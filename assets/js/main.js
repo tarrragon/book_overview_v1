@@ -200,7 +200,7 @@ function copyTableText() {
     });
     
     navigator.clipboard.writeText(text).then(() => {
-        alert('表格內容已複製到剪貼簿！可以直接貼到Google文件中。');
+        alert('表格內容已複製到剪貼簿。');
     }).catch(() => {
         // Fallback for older browsers
         const textArea = document.createElement('textarea');
@@ -209,7 +209,7 @@ function copyTableText() {
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        alert('表格內容已複製到剪貼簿！可以直接貼到Google文件中。');
+        alert('表格內容已複製到剪貼簿。');
     });
 }
 
@@ -223,7 +223,7 @@ function selectAllTable() {
     const selection = window.getSelection();
     selection.removeAllRanges();
     selection.addRange(range);
-    alert('表格已選取，請按 Ctrl+C (或 Cmd+C) 複製後貼到Google文件中。');
+    alert('表格已選取，請按 Ctrl+C (或 Cmd+C) 複製後。');
 }
 
 /**
