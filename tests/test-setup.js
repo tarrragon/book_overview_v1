@@ -88,6 +88,9 @@ global.testUtils = {
   cleanup: () => {
     // 清理 localStorage
     localStorage.clear();
+    localStorage.getItem.mockClear();
+    localStorage.setItem.mockClear();
+    localStorage.removeItem.mockClear();
     
     // 清理 sessionStorage
     sessionStorage.clear();
@@ -103,11 +106,26 @@ global.testUtils = {
   }
 };
 
+// 模擬 localStorage
+const localStorageMock = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
+  length: 0,
+  key: jest.fn()
+};
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock
+});
+global.localStorage = localStorageMock;
+
 // 設定 Chrome Extension API 模擬
 // 確保 chrome 物件存在於全域範圍
 global.chrome = require('jest-chrome').chrome;
 
 chrome.runtime.id = 'test-extension-id';
+// chrome.runtime.lastError 由 jest-chrome 自動管理，不需要手動設置
 chrome.storage.local.get.mockImplementation((keys, callback) => {
   const result = {};
   if (typeof keys === 'string') {

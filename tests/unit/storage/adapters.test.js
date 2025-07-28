@@ -127,8 +127,9 @@ describe('💾 儲存適配器測試', () => {
       // Arrange
       const error = new Error('QUOTA_EXCEEDED_ERR');
       chrome.storage.local.set.mockImplementation((items, callback) => {
-        callback();
+        // 模擬配額超出的情況
         chrome.runtime.lastError = error;
+        callback();
       });
 
       // Act & Assert
@@ -145,6 +146,12 @@ describe('💾 儲存適配器測試', () => {
       };
 
       await expect(saveOperation('large-data')).rejects.toThrow('QUOTA_EXCEEDED_ERR');
+      
+      // Cleanup - 重設模擬狀態
+      chrome.storage.local.set.mockRestore();
+      chrome.storage.local.set.mockImplementation((items, callback) => {
+        if (callback) callback();
+      });
     });
   });
 
@@ -153,6 +160,11 @@ describe('💾 儲存適配器測試', () => {
       // Arrange
       const testBooks = global.testUtils.createMockBooks(2);
       const storageKey = 'readmoo-books';
+      const testData = JSON.stringify(testBooks);
+
+      // 設定模擬行為
+      localStorage.getItem.mockReturnValue(testData);
+      localStorage.setItem.mockImplementation(() => {});
 
       // Act - 模擬localStorage操作
       const saveToLocalStorage = (key, data) => {
