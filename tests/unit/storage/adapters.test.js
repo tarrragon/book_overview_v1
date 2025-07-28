@@ -386,7 +386,20 @@ describe('💾 儲存適配器測試', () => {
 
       // Act - 模擬資料驗證
       const validateBook = (book) => {
-        return book.id && book.title && book.cover;
+        // 驗證必要欄位存在且有效
+        if (!book || typeof book !== 'object') return false;
+        if (!book.id || typeof book.id !== 'string') return false;
+        if (!book.title || typeof book.title !== 'string') return false;
+        if (!book.cover || typeof book.cover !== 'string') return false;
+        
+        // 驗證 cover 是有效的 URL
+        try {
+          new URL(book.cover);
+        } catch {
+          return false;
+        }
+        
+        return true;
       };
 
       // Assert
