@@ -16,7 +16,34 @@
 
 ---
 
-## [0.0.2] - TBD
+## [0.1.0] - 進行中
+
+### 重大里程碑 🎉
+
+- 事件系統核心架構實現
+- EventBus核心完成 (15個測試通過)
+- Observer模式事件驅動基礎建立
+
+### 新增 ✨
+
+- **事件總線核心** (`src/core/event-bus.js`)
+  - Observer模式事件系統
+  - 優先級排序和一次性監聽器
+  - 錯誤隔離和非同步處理支援
+  - 統計追蹤和記憶體管理
+- 完整的事件系統測試框架 (15個測試)
+- 高精度時間測量 (performance.now)
+
+### 技術改進 🔧
+
+- Jest模組路徑映射修復 (moduleNameMapper)
+- JavaScript falsy值處理優化
+- 完整的JSDoc文檔標準
+- v0.1.0 工作日誌建立
+
+---
+
+## [0.0.1] - 2025-07-29
 
 ### 重大里程碑 🎉
 
@@ -26,9 +53,11 @@
 
 ### 新增 ✨
 
+- 完整的 TDD 測試框架基礎設施
 - 多書城支援架構
 - 書籍ID驗證邏輯 (域名+模式)
 - 完整資料格式驗證
+- Chrome Extension API 模擬機制
 - 改善的儲存模擬機制
 
 ### 變更 🔄
@@ -37,59 +66,19 @@
 - 測試框架穩定性提升
 - 書籍ID處理邏輯重構
 
-### 技術改進 🔧
-
-- 工作日誌管理系統
-- 開發規範檔案 (.cursorrules)
-- TDD循環追蹤機制
-
----
-
-## [0.0.1] - 2025-07-29
-
-### 新增 ✨
-
-- 建立完整的專案架構設計
-- 實現事件驅動的模組化結構設計
-- 建立完整的 TDD 測試框架基礎設施
-- 配置 Jest 測試環境與 Chrome Extension 模擬環境
-- 建立資料提取器、儲存適配器、事件系統的單元測試骨架
-- 提供完整的測試工具、模擬物件和測試資料
-- 建立詳細的專案文件系統
-
 ### 技術架構 🏗
 
 - **測試框架**: Jest + Chrome Extension API Mocks
 - **專案結構**: 事件驅動的模組化設計
 - **開發方法**: 嚴格的 TDD (Test-Driven Development)
-- **文件系統**: 完整的架構設計文件
 
-### 檔案新增 📁
+### 技術改進 🔧
 
-- `package.json` - Node.js 專案配置與腳本
-- `tests/test-setup.js` - Jest 測試環境設定
-- `tests/jest.config.js` - Jest 主要配置檔案
-- `tests/unit/content-scripts/extractors.test.js` - 資料提取器測試
-- `tests/unit/storage/adapters.test.js` - 儲存適配器測試
-- `tests/unit/background/events.test.js` - 事件系統測試
-- `tests/fixtures/sample-books.json` - 測試用書籍資料
-- `tests/mocks/chrome-api.mock.js` - Chrome API 模擬
-- `tests/fixtures/mock-dom.html` - DOM 測試環境
-- `docs/architecture/event-system.md` - 事件系統架構設計
-- `docs/struct.md` - 專案結構設計文件
-- `docs/todolist.md` - TDD 開發任務清單
-- `docs/README.md` - 詳細專案說明文件
-
-### 開發環境 🛠
-
-- **Node.js**: v24.4.1
-- **npm**: v11.4.2  
-- **測試覆蓋率目標**: 單元測試 ≥ 90%, 整合測試 ≥ 80%, E2E ≥ 70%
-
-### 專案狀態 📊
-
-- **開發階段**: 基礎架構建立完成
-- **TDD 狀態**: 測試骨架建立，等待紅燈-綠燈循環開始
+- 工作日誌管理系統
+- 開發規範檔案 (.cursorrules)
+- TDD循環追蹤機制
+- Chrome Storage 配額錯誤處理
+- localStorage 模擬修正
 - **下一里程碑**: Chrome Extension manifest 配置與核心功能實現
 
 ---
