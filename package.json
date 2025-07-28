@@ -1,0 +1,95 @@
+{
+  "name": "readmoo-book-extractor",
+  "version": "1.0.0",
+  "description": "一個專為Readmoo電子書平台設計的Chrome擴充功能，能夠自動提取使用者書庫資料，並提供本地化的書目管理與匯出功能。",
+  "main": "src/background/service-worker.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest tests/unit",
+    "test:integration": "jest tests/integration",
+    "test:e2e": "jest tests/e2e",
+    "build": "node scripts/build.js",
+    "build:dev": "node scripts/build.js --dev",
+    "build:prod": "node scripts/build.js --prod",
+    "dev": "npm run build:dev && npm run test:watch",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix",
+    "serve": "http-server build/development -p 8080",
+    "clean": "rimraf build/ coverage/",
+    "docs": "jsdoc src/ -r -d docs/generated"
+  },
+  "keywords": [
+    "chrome-extension",
+    "readmoo",
+    "ebook",
+    "data-extraction",
+    "book-management",
+    "taiwan"
+  ],
+  "author": "開發者名稱",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chrome": "^0.0.246",
+    "@types/jest": "^29.5.5",
+    "eslint": "^8.50.0",
+    "eslint-config-standard": "^17.1.0",
+    "http-server": "^14.1.1",
+    "jest": "^29.7.0",
+    "jest-chrome": "^0.8.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jest-environment-node": "^29.7.0",
+    "jsdoc": "^4.0.2",
+    "puppeteer": "^21.3.6",
+    "rimraf": "^5.0.5"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": ["<rootDir>/tests/test-setup.js"],
+    "testMatch": [
+      "<rootDir>/tests/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/**/*.config.js",
+      "!src/**/index.js"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": ["text", "lcov", "html"],
+    "moduleNameMapping": {
+      "^@/(.*)$": "<rootDir>/src/$1",
+      "^@tests/(.*)$": "<rootDir>/tests/$1"
+    },
+    "testPathIgnorePatterns": [
+      "<rootDir>/node_modules/",
+      "<rootDir>/build/"
+    ],
+    "verbose": true
+  },
+  "eslintConfig": {
+    "extends": ["standard"],
+    "env": {
+      "browser": true,
+      "node": true,
+      "jest": true,
+      "webextensions": true
+    },
+    "globals": {
+      "chrome": "readonly"
+    },
+    "rules": {
+      "no-console": "warn",
+      "no-debugger": "error",
+      "prefer-const": "error"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/readmoo-book-extractor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/readmoo-book-extractor/issues"
+  },
+  "homepage": "https://github.com/your-username/readmoo-book-extractor#readme"
+} 

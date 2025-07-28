@@ -1,0 +1,170 @@
+/**
+ * Jest 測試環境設定檔案
+ * 負責設定測試所需的全域變數、模擬物件和通用測試工具
+ * 
+ * Design considerations:
+ * - 模擬Chrome Extension APIs以便在測試環境中使用
+ * - 設定全域變數以提供一致的測試環境
+ * - 提供通用測試工具函數供所有測試檔案使用
+ */
+
+// 引入 jest-chrome 模擬 Chrome Extension APIs
+require('jest-chrome');
+
+// 設定全域測試工具
+global.testUtils = {
+  /**
+   * 等待指定時間
+   * @param {number} ms - 等待毫秒數
+   * @returns {Promise} Promise物件
+   */
+  wait: (ms) => new Promise(resolve => setTimeout(resolve, ms)),
+
+  /**
+   * 模擬DOM元素
+   * @param {string} tag - HTML標籤名稱
+   * @param {Object} attributes - 元素屬性
+   * @param {string} textContent - 文字內容
+   * @returns {Element} DOM元素
+   */
+  createMockElement: (tag, attributes = {}, textContent = '') => {
+    const element = document.createElement(tag);
+    Object.keys(attributes).forEach(key => {
+      element.setAttribute(key, attributes[key]);
+    });
+    if (textContent) {
+      element.textContent = textContent;
+    }
+    return element;
+  },
+
+  /**
+   * 模擬書籍資料
+   * @param {Object} overrides - 覆蓋預設值的物件
+   * @returns {Object} 書籍資料物件
+   */
+  createMockBook: (overrides = {}) => ({
+    id: '210327003000101',
+    title: '測試書籍',
+    cover: 'https://example.com/cover.jpg',
+    progress: 50,
+    type: '流式',
+    isNew: false,
+    isFinished: false,
+    extractedAt: new Date().toISOString(),
+    ...overrides
+  }),
+
+  /**
+   * 模擬書籍陣列
+   * @param {number} count - 書籍數量
+   * @returns {Array} 書籍陣列
+   */
+  createMockBooks: (count = 3) => {
+    return Array.from({ length: count }, (_, index) => 
+      global.testUtils.createMockBook({
+        id: `21032700300010${index + 1}`,
+        title: `測試書籍 ${index + 1}`,
+        progress: (index + 1) * 20
+      })
+    );
+  },
+
+  /**
+   * 模擬事件物件
+   * @param {string} type - 事件類型
+   * @param {Object} detail - 事件詳細資料
+   * @returns {Event} 事件物件
+   */
+  createMockEvent: (type, detail = {}) => {
+    const event = new CustomEvent(type, { detail });
+    return event;
+  },
+
+  /**
+   * 清理測試環境
+   * 每個測試後呼叫以重置狀態
+   */
+  cleanup: () => {
+    // 清理 localStorage
+    localStorage.clear();
+    
+    // 清理 sessionStorage
+    sessionStorage.clear();
+    
+    // 重置 Chrome API 模擬
+    chrome.flush();
+    
+    // 清理 DOM
+    document.body.innerHTML = '';
+    document.head.innerHTML = '';
+  }
+};
+
+// 設定 Chrome Extension API 模擬
+chrome.runtime.id = 'test-extension-id';
+chrome.storage.local.get.mockImplementation((keys, callback) => {
+  const result = {};
+  if (typeof keys === 'string') {
+    result[keys] = null;
+  } else if (Array.isArray(keys)) {
+    keys.forEach(key => {
+      result[key] = null;
+    });
+  }
+  callback(result);
+});
+
+chrome.storage.local.set.mockImplementation((items, callback) => {
+  if (callback) callback();
+});
+
+chrome.tabs.query.mockImplementation((queryInfo, callback) => {
+  callback([{
+    id: 1,
+    url: 'https://readmoo.com/library',
+    title: 'Readmoo 電子書',
+    active: true
+  }]);
+});
+
+// 設定 console 方法的模擬（可選）
+const originalConsole = { ...console };
+beforeEach(() => {
+  // 可以選擇性地模擬 console 方法來避免測試輸出污染
+  // console.log = jest.fn();
+  // console.error = jest.fn();
+  // console.warn = jest.fn();
+});
+
+afterEach(() => {
+  // 每個測試後清理環境
+  global.testUtils.cleanup();
+  
+  // 重置 console（如果有模擬的話）
+  // Object.assign(console, originalConsole);
+});
+
+// 全域錯誤處理
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// 設定測試超時時間
+jest.setTimeout(10000); // 10秒
+
+// 模擬 IntersectionObserver（如果需要的話）
+global.IntersectionObserver = class IntersectionObserver {
+  constructor () {}
+  disconnect () {}
+  observe () {}
+  unobserve () {}
+};
+
+// 模擬 ResizeObserver（如果需要的話）
+global.ResizeObserver = class ResizeObserver {
+  constructor () {}
+  disconnect () {}
+  observe () {}
+  unobserve () {}
+}; 
