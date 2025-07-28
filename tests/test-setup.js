@@ -93,7 +93,9 @@ global.testUtils = {
     sessionStorage.clear();
     
     // 重置 Chrome API 模擬
-    chrome.flush();
+    if (chrome && chrome.flush) {
+      chrome.flush();
+    }
     
     // 清理 DOM
     document.body.innerHTML = '';
@@ -102,6 +104,9 @@ global.testUtils = {
 };
 
 // 設定 Chrome Extension API 模擬
+// 確保 chrome 物件存在於全域範圍
+global.chrome = require('jest-chrome').chrome;
+
 chrome.runtime.id = 'test-extension-id';
 chrome.storage.local.get.mockImplementation((keys, callback) => {
   const result = {};

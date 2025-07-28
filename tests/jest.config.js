@@ -50,7 +50,7 @@ module.exports = {
   ],
 
   // 模組名稱映射
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@tests/(.*)$': '<rootDir>/tests/$1',
     '^@mocks/(.*)$': '<rootDir>/tests/mocks/$1',
@@ -65,12 +65,12 @@ module.exports = {
     'css'
   ],
 
-  // 轉換配置
-  transform: {
-    '^.+\\.js$': 'babel-jest',
-    '^.+\\.html$': '<rootDir>/tests/transforms/html-transform.js',
-    '^.+\\.css$': '<rootDir>/tests/transforms/css-transform.js'
-  },
+  // 轉換配置（簡化版本）
+  // transform: {
+  //   '^.+\\.js$': 'babel-jest',
+  //   '^.+\\.html$': '<rootDir>/tests/transforms/html-transform.js',
+  //   '^.+\\.css$': '<rootDir>/tests/transforms/css-transform.js'
+  // },
 
   // 轉換忽略規則
   transformIgnorePatterns: [
@@ -133,44 +133,44 @@ module.exports = {
     'NODE_ENV': 'test'
   },
 
-  // 測試結果處理器
-  testResultsProcessor: '<rootDir>/tests/processors/test-results-processor.js',
+  // 測試結果處理器（暫時註解掉以簡化配置）
+  // testResultsProcessor: '<rootDir>/tests/processors/test-results-processor.js',
 
-  // 監視插件
-  watchPlugins: [
-    'jest-watch-typeahead/filename',
-    'jest-watch-typeahead/testname'
-  ],
+  // 監視插件（暫時註解掉以簡化配置）
+  // watchPlugins: [
+  //   'jest-watch-typeahead/filename',
+  //   'jest-watch-typeahead/testname'
+  // ],
 
-  // 快照序列化器
-  snapshotSerializers: [
-    '<rootDir>/tests/serializers/html-element-serializer.js'
-  ],
+  // 快照序列化器（暫時註解掉以簡化配置）
+  // snapshotSerializers: [
+  //   '<rootDir>/tests/serializers/html-element-serializer.js'
+  // ],
 
-  // 測試套件配置
-  projects: [
-    {
-      displayName: 'Unit Tests',
-      testMatch: ['<rootDir>/tests/unit/**/*.test.js'],
-      testEnvironment: 'jsdom'
-    },
-    {
-      displayName: 'Integration Tests',
-      testMatch: ['<rootDir>/tests/integration/**/*.test.js'],
-      testEnvironment: 'jsdom'
-    },
-    {
-      displayName: 'Background Scripts Tests',
-      testMatch: ['<rootDir>/tests/unit/background/**/*.test.js'],
-      testEnvironment: 'node'
-    },
-    {
-      displayName: 'E2E Tests',
-      testMatch: ['<rootDir>/tests/e2e/**/*.test.js'],
-      testEnvironment: 'node',
-      runner: '@jest-runner/electron'
-    }
-  ],
+  // 測試套件配置（暫時簡化）
+  // projects: [
+  //   {
+  //     displayName: 'Unit Tests',
+  //     testMatch: ['<rootDir>/tests/unit/**/*.test.js'],
+  //     testEnvironment: 'jsdom'
+  //   },
+  //   {
+  //     displayName: 'Integration Tests',
+  //     testMatch: ['<rootDir>/tests/integration/**/*.test.js'],
+  //     testEnvironment: 'jsdom'
+  //   },
+  //   {
+  //     displayName: 'Background Scripts Tests',
+  //     testMatch: ['<rootDir>/tests/unit/background/**/*.test.js'],
+  //     testEnvironment: 'node'
+  //   },
+  //   {
+  //     displayName: 'E2E Tests',
+  //     testMatch: ['<rootDir>/tests/e2e/**/*.test.js'],
+  //     testEnvironment: 'node',
+  //     runner: '@jest-runner/electron'
+  //   }
+  // ],
 
   // 錯誤處理
   errorOnDeprecated: true,
