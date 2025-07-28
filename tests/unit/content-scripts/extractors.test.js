@@ -265,22 +265,92 @@ describe('📚 資料提取器測試', () => {
     });
 
     test('應該能夠處理無效的書籍ID格式', () => {
-      // Arrange
+      // Arrange - 支援多書城的ID驗證邏輯
+      const supportedBookstores = {
+        'readmoo': {
+          domain: 'readmoo.com',
+          pattern: /\/api\/reader\/(\d+)/
+        },
+        // 未來擴展：其他書城
+        // 'books': {
+        //   domain: 'books.com.tw', 
+        //   pattern: /\/book\/(\d+)/
+        // }
+      };
+
       const invalidUrls = [
-        'https://readmoo.com/invalid',
-        'https://example.com/api/reader/123',
-        'not-a-url'
+        'https://readmoo.com/invalid',           // ❌ 正確域名但無效路徑
+        'https://example.com/api/reader/123',    // ❌ 錯誤域名
+        'not-a-url',                             // ❌ 無效URL
+        'https://readmoo.com/api/reader/abc',    // ❌ 非數字ID
+        ''                                       // ❌ 空字串
       ];
 
+      // Act & Assert
       invalidUrls.forEach(url => {
         const mockLink = global.testUtils.createMockElement('a', { href: url });
         
-        // Act - 嘗試提取ID
-        const idMatch = url.match(/\/api\/reader\/(\d+)/);
-        const id = idMatch ? idMatch[1] : null;
-
-        // Assert
+        // 多書城ID提取邏輯
+        const extractBookId = (href) => {
+          if (!href || typeof href !== 'string') return null;
+          
+          try {
+            const urlObj = new URL(href);
+            
+            // 檢查是否為支援的書城
+            for (const [storeName, config] of Object.entries(supportedBookstores)) {
+              if (urlObj.hostname === config.domain) {
+                const match = href.match(config.pattern);
+                return match ? match[1] : null;
+              }
+            }
+            return null;
+          } catch {
+            return null; // 無效URL
+          }
+        };
+        
+        const id = extractBookId(url);
         expect(id).toBeNull();
+      });
+    });
+
+    test('應該能夠正確提取有效的書籍ID（多書城支援）', () => {
+      // Arrange - 相同的多書城配置
+      const supportedBookstores = {
+        'readmoo': {
+          domain: 'readmoo.com',
+          pattern: /\/api\/reader\/(\d+)/
+        }
+      };
+
+      const validUrls = [
+        { url: 'https://readmoo.com/api/reader/123456', expectedId: '123456' },
+        { url: 'https://readmoo.com/api/reader/789', expectedId: '789' }
+      ];
+
+      // Act & Assert
+      validUrls.forEach(({ url, expectedId }) => {
+        const extractBookId = (href) => {
+          if (!href || typeof href !== 'string') return null;
+          
+          try {
+            const urlObj = new URL(href);
+            
+            for (const [storeName, config] of Object.entries(supportedBookstores)) {
+              if (urlObj.hostname === config.domain) {
+                const match = href.match(config.pattern);
+                return match ? match[1] : null;
+              }
+            }
+            return null;
+          } catch {
+            return null;
+          }
+        };
+        
+        const id = extractBookId(url);
+        expect(id).toBe(expectedId);
       });
     });
   });
