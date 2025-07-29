@@ -132,15 +132,23 @@
 - **測試覆蓋**: 20個測試，100%通過
 - **功能特性**: 抽象基底類別、生命週期管理、統計追蹤、錯誤隔離
 
-### 1.3 Chrome Extension 事件橋接
+### 1.3 Chrome Extension 事件橋接 ✅
 
-- [ ] ⭕ **測試**: ChromeEventBridge 跨上下文通訊測試
-  - [ ] 🔴 測試 background ↔ content script 通訊
-  - [ ] 🟢 實現跨上下文事件傳遞
-  - [ ] 🔵 重構通訊機制
-  - [ ] 🔴 測試 popup ↔ background 通訊
-  - [ ] 🟢 實現彈出視窗通訊
-  - [ ] 🔵 重構整體橋接邏輯
+- [x] ✅ **測試**: ChromeEventBridge 跨上下文通訊測試
+  - [x] ✅ 測試 background ↔ content script 通訊
+  - [x] ✅ 實現跨上下文事件傳遞
+  - [x] ✅ 重構通訊機制
+  - [x] ✅ 測試 popup ↔ background 通訊
+  - [x] ✅ 實現彈出視窗通訊
+  - [x] ✅ 重構整體橋接邏輯
+
+#### 實現成果
+
+- **實現位置**: `src/core/chrome-event-bridge.js`
+- **測試覆蓋**: 22個測試，100%通過
+- **功能特性**: 跨上下文通訊、Promise包裝Chrome API、錯誤容錯、資源管理
+
+### 🎉 階段一完成：事件系統核心 (57/57 測試通過)
 
 ---
 
