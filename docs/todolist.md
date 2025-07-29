@@ -232,10 +232,10 @@
 
 ### 2.1 BookDataExtractor 核心提取器 (繼承 EventHandler)
 
-- [ ] ⭕ **TDD循環 #1**: BookDataExtractor 基礎架構
-  - [ ] 🔴 測試 EventHandler 繼承和事件支援
-  - [ ] 🟢 實現 BookDataExtractor 基底類別
-  - [ ] 🔵 重構提取器架構
+- [x] ✅ **TDD循環 #1**: BookDataExtractor 基礎架構
+  - [x] ✅ 測試 EventHandler 繼承和事件支援
+  - [x] ✅ 實現 BookDataExtractor 基底類別
+  - [x] ✅ 重構提取器架構
 
 - [ ] ⭕ **TDD循環 #2**: Readmoo 頁面識別和初始化
   - [ ] 🔴 測試 Readmoo URL 識別邏輯
