@@ -354,20 +354,22 @@
 
 ---
 
-## 🏗 階段三：Chrome Extension 基礎架構 (整合事件系統)
+## 🏗 階段三：Chrome Extension 基礎架構 (整合事件系統) ⭕ → 🚀
 
 > **依賴**: v0.1.0 事件系統核心 + v0.2.0 資料提取器  
-> **目標**: 將事件系統和提取器整合到 Chrome Extension 中
+> **目標**: 將事件系統和提取器整合到 Chrome Extension 中  
+> **版本**: v0.3.0 開發中  
+> **開始時間**: 2025-01-29 晚間
 
 ### 3.1 Chrome Extension 核心檔案
 
-- [ ] ⭕ **TDD循環 #10**: manifest.json 配置
-  - [ ] 🔴 測試 Manifest V3 格式驗證
-  - [ ] 🟢 實現 manifest.json 基礎配置
-  - [ ] 🔵 重構權限和配置
-  - [ ] 🔴 測試事件系統權限需求
-  - [ ] 🟢 實現完整的權限配置
-  - [ ] 🔵 重構 manifest 結構
+- [x] ✅ **TDD循環 #10**: manifest.json 配置 (v0.3.0 Cycle #1)
+  - [x] 🔴 測試 Manifest V3 格式驗證 (19個測試，全部失敗 ✅)
+  - [x] 🟢 實現 manifest.json 基礎配置 (19/19 測試通過 ✅)
+  - [x] 🔵 重構權限和配置 (優化配置，持續通過 ✅)
+  - [x] 🔴 測試事件系統權限需求 (包含在19個測試中 ✅)
+  - [x] 🟢 實現完整的權限配置 (storage, activeTab, host_permissions ✅)
+  - [x] 🔵 重構 manifest 結構 (最佳實踐配置 ✅)
 
 - [ ] ⭕ **TDD循環 #11**: Background Service Worker (事件系統整合)
   - [ ] 🔴 測試 Service Worker 載入
