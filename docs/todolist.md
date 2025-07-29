@@ -72,18 +72,27 @@
 
 ---
 
-## 🌐 多書城支援目標
+## 🎯 v1.0.0 產品原型目標 (專注 Readmoo)
 
-### 支援書城
+### 核心目標
 
-- [x] ✅ Readmoo - 架構已設計
-- [ ] ⭕ 博客來、金石堂、Kobo 等 - 待開發
+- [x] ✅ Readmoo 書城完整支援 - 架構已設計
+- [ ] ⭕ 完整的 Chrome Extension 功能
+- [ ] ⭕ 本地書籍管理和匯出功能
+- [ ] ⭕ 穩定的產品原型發布
 
-### 架構任務
+### 未來擴展 (v1.1.0+)
 
-- [x] ✅ 可配置書城支援系統
-- [ ] ⭕ 書城適配器介面 (v0.2.0 規劃中)
-- [ ] ⭕ 統一資料格式轉換器 (v0.2.0 規劃中)
+- [ ] 🔮 博客來書城支援
+- [ ] 🔮 金石堂書城支援  
+- [ ] 🔮 Kobo 書城支援
+- [ ] 🔮 多書城統一管理
+
+### 架構策略
+
+- [x] ✅ 事件驅動架構 (支援未來擴展)
+- [x] ✅ 適配器模式設計 (為多書城做準備)
+- [ ] ⭕ Readmoo 完整功能實現
 
 ---
 
@@ -108,11 +117,11 @@
    - EventHandler: 抽象基底、生命週期、統計追蹤
    - ChromeEventBridge: 跨上下文通訊、Promise包裝
 
-2. **v0.2.0 📚 規劃中** - 事件驅動資料提取器  
-   - BookDataExtractor: 基於EventHandler的智能提取器
-   - BookstoreAdapter: 多書城適配器系統  
+2. **v0.2.0 📚 規劃中** - Readmoo 資料提取器  
+   - BookDataExtractor: 基於EventHandler的 Readmoo 提取器
+   - ReadmooAdapter: 專注 Readmoo 的資料提取邏輯  
    - ExtractionEventHandler: 進度追蹤、完成通知
-   - DataValidator: 資料驗證和清理
+   - DataValidator: Readmoo 資料驗證和清理
 
 3. **v0.3.0 🏗 規劃中** - Chrome Extension整合
    - Manifest V3: Service Worker、Content Script
@@ -137,11 +146,11 @@
 - 🛡 錯誤隔離和恢復機制
 - 📊 完整的監控和統計
 
-**多書城支援**  
-- 🌐 統一的適配器介面
-- 🔧 可配置的書城規則
-- 📈 易於擴展的架構設計
-- 🎯 專業的錯誤處理
+**擴展性設計**  
+- 🎯 專注 Readmoo 的完整實現
+- 🌐 為未來多書城支援預留架構空間
+- 📈 事件驅動的可擴展設計
+- 🎯 專業的錯誤處理和驗證
 
 **Chrome Extension專業化**
 - 📱 Manifest V3 現代化標準
@@ -228,13 +237,13 @@
   - [ ] 🟢 實現 BookDataExtractor 基底類別
   - [ ] 🔵 重構提取器架構
 
-- [ ] ⭕ **TDD循環 #2**: 書城識別和適配器選擇
-  - [ ] 🔴 測試 URL 書城識別邏輯
-  - [ ] 🟢 實現書城檢測功能
+- [ ] ⭕ **TDD循環 #2**: Readmoo 頁面識別和初始化
+  - [ ] 🔴 測試 Readmoo URL 識別邏輯
+  - [ ] 🟢 實現 Readmoo 頁面檢測功能
   - [ ] 🔵 重構識別算法
-  - [ ] 🔴 測試適配器選擇機制
-  - [ ] 🟢 實現適配器註冊和選擇
-  - [ ] 🔵 重構適配器管理
+  - [ ] 🔴 測試提取器初始化流程
+  - [ ] 🟢 實現 Readmoo 提取器初始化
+  - [ ] 🔵 重構初始化邏輯
 
 - [ ] ⭕ **TDD循環 #3**: 事件驅動提取流程
   - [ ] 🔴 測試 EXTRACTION.STARTED 事件處理
@@ -246,28 +255,25 @@
 
 #### 實現目標
 - **實現位置**: `src/extractors/book-data-extractor.js`
-- **事件支援**: `EXTRACTION.STARTED`, `TAB.UPDATED.BOOKSTORE`, `USER.EXTRACT.REQUESTED`
-- **功能特性**: 基於EventHandler、多書城支援、事件驅動流程
+- **事件支援**: `EXTRACTION.STARTED`, `TAB.UPDATED.READMOO`, `USER.EXTRACT.REQUESTED`
+- **功能特性**: 基於EventHandler、專注Readmoo、事件驅動流程
 
-### 2.2 BookstoreAdapter 適配器系統
+### 2.2 ReadmooAdapter 專用適配器
 
-- [ ] ⭕ **TDD循環 #4**: BookstoreAdapter 基底類別
-  - [ ] 🔴 測試適配器基底類別功能
-  - [ ] 🟢 實現 BookstoreAdapter 抽象類別
-  - [ ] 🔵 重構適配器介面
+- [ ] ⭕ **TDD循環 #4**: ReadmooAdapter 基礎實現
+  - [ ] 🔴 測試 ReadmooAdapter 基本功能
+  - [ ] 🟢 實現 ReadmooAdapter 核心類別
+  - [ ] 🔵 重構適配器架構
 
-- [ ] ⭕ **TDD循環 #5**: ReadmooAdapter 實現
-  - [ ] 🔴 測試 Readmoo URL 識別
-  - [ ] 🟢 實現 ReadmooAdapter 初始化
-  - [ ] 🔵 重構適配器配置
-  - [ ] 🔴 測試 DOM 元素查找
+- [ ] ⭕ **TDD循環 #5**: Readmoo DOM 解析
+  - [ ] 🔴 測試 Readmoo 頁面 DOM 元素查找
   - [ ] 🟢 實現書籍元素選擇器
   - [ ] 🔵 重構 DOM 查詢邏輯
-  - [ ] 🔴 測試書籍資料提取
-  - [ ] 🟢 實現完整的資料提取
-  - [ ] 🔵 重構提取邏輯
+  - [ ] 🔴 測試基本書籍資料提取 (ID、標題、封面)
+  - [ ] 🟢 實現完整的基本資料提取
+  - [ ] 🔵 重構資料提取邏輯
 
-- [ ] ⭕ **TDD循環 #6**: 進度和狀態提取
+- [ ] ⭕ **TDD循環 #6**: Readmoo 進度和狀態提取
   - [ ] 🔴 測試閱讀進度解析
   - [ ] 🟢 實現進度條資料提取
   - [ ] 🔵 重構進度計算
@@ -276,9 +282,9 @@
   - [ ] 🔵 重構狀態識別邏輯
 
 #### 實現目標
-- **實現位置**: `src/extractors/adapters/`
-- **支援書城**: Readmoo (v0.2.0), 博客來/金石堂/Kobo (後續版本)
-- **功能特性**: 抽象適配器、URL識別、DOM解析、資料驗證
+- **實現位置**: `src/extractors/readmoo-adapter.js`
+- **專注平台**: Readmoo 電子書平台完整支援
+- **功能特性**: 專用 DOM 解析、進度追蹤、狀態識別、資料驗證
 
 ### 2.3 ExtractionEventHandler 事件處理器
 
@@ -306,25 +312,25 @@
 - **事件處理**: 進度追蹤、完成通知、儲存觸發、UI更新
 - **功能特性**: 基於EventHandler、事件鏈式處理、錯誤隔離
 
-### 2.4 DataValidator 資料驗證器
+### 2.4 ReadmooDataValidator 資料驗證器
 
-- [ ] ⭕ **TDD循環 #9**: 書籍資料驗證器
-  - [ ] 🔴 測試基本資料格式驗證
-  - [ ] 🟢 實現 DataValidator 核心
+- [ ] ⭕ **TDD循環 #9**: Readmoo 書籍資料驗證器
+  - [ ] 🔴 測試 Readmoo 資料格式驗證
+  - [ ] 🟢 實現 ReadmooDataValidator 核心
   - [ ] 🔵 重構驗證邏輯
-  - [ ] 🔴 測試書城特定驗證規則
-  - [ ] 🟢 實現書城適配驗證
+  - [ ] 🔴 測試 Readmoo 特定驗證規則
+  - [ ] 🟢 實現 Readmoo 專用驗證
   - [ ] 🔵 重構驗證規則
   - [ ] 🔴 測試資料清理和標準化
   - [ ] 🟢 實現資料清理邏輯
   - [ ] 🔵 重構清理機制
 
 #### 實現目標
-- **實現位置**: `src/extractors/validators/`
-- **驗證規則**: 必填欄位、資料格式、書城特定規則
+- **實現位置**: `src/extractors/readmoo-data-validator.js`
+- **驗證規則**: Readmoo 必填欄位、資料格式、特定規則
 - **功能特性**: 資料清理、格式標準化、錯誤報告
 
-### 🎉 階段二完成：基於事件系統的資料提取器 (預計9個TDD循環)
+### 🎉 階段二完成：基於事件系統的 Readmoo 資料提取器 (預計9個TDD循環)
 
 ---
 
