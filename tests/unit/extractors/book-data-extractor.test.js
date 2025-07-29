@@ -419,4 +419,328 @@ describe('BookDataExtractor', () => {
       expect(typeof extractor.getExtractionStats).toBe('function');
     });
   });
+
+  // === TDD Cycle #3 新增測試 ===
+  describe('事件驅動提取流程 (Cycle #3)', () => {
+    let mockEventBus;
+
+    beforeEach(() => {
+      extractor = new BookDataExtractor();
+      
+      // 模擬 EventBus
+      mockEventBus = {
+        emit: jest.fn().mockResolvedValue(true),
+        on: jest.fn(),
+        off: jest.fn()
+      };
+      
+      // 注入 EventBus
+      extractor.setEventBus(mockEventBus);
+    });
+
+    test('應該能設置和取得 EventBus', () => {
+      expect(typeof extractor.setEventBus).toBe('function');
+      expect(typeof extractor.getEventBus).toBe('function');
+      
+      expect(extractor.getEventBus()).toBe(mockEventBus);
+    });
+
+    test('應該能開始完整的事件驅動提取流程', async () => {
+      const url = 'https://readmoo.com/library';
+      const options = { includeProgress: true };
+
+      // 模擬頁面檢查
+      jest.spyOn(extractor, 'checkPageReady').mockResolvedValue(true);
+
+      // 執行完整提取流程
+      await extractor.startExtractionFlow(url, options);
+
+      // 驗證事件發布順序
+      expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.STARTED', {
+        url,
+        options,
+        timestamp: expect.any(String),
+        flowId: expect.any(String)
+      });
+
+      // 檢查第二個調用 (第一個 EXTRACTION.PROGRESS 事件)
+      expect(mockEventBus.emit).toHaveBeenNthCalledWith(2, 'EXTRACTION.PROGRESS', {
+        flowId: expect.any(String),
+        stage: 'initialization',
+        progress: 0,
+        message: '初始化提取器...',
+        timestamp: expect.any(String)
+      });
+    });
+
+    test('應該能報告提取進度', async () => {
+      const flowId = 'test-flow-123';
+      const progressData = {
+        stage: 'parsing',
+        progress: 50,
+        message: '解析書籍資料中...',
+        currentBook: '大腦不滿足',
+        processedCount: 5,
+        totalCount: 10
+      };
+
+      await extractor.reportProgress(flowId, progressData);
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.PROGRESS', {
+        flowId,
+        ...progressData,
+        timestamp: expect.any(String)
+      });
+    });
+
+    test('應該能處理提取完成事件', async () => {
+      const flowId = 'test-flow-123';
+      const extractedBooks = [
+        { id: '1', title: '書籍1', cover: 'cover1.jpg' },
+        { id: '2', title: '書籍2', cover: 'cover2.jpg' }
+      ];
+
+      await extractor.completeExtraction(flowId, extractedBooks);
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.COMPLETED', {
+        flowId,
+        books: extractedBooks,
+        totalCount: 2,
+        completedAt: expect.any(String),
+        duration: expect.any(Number)
+      });
+
+      // 驗證提取狀態已更新
+      expect(extractor.extractionState.isExtracting).toBe(false);
+      expect(extractor.extractionState.extractedBooksCount).toBe(2);
+    });
+
+    test('應該支援提取流程的事件鏈', async () => {
+      const url = 'https://readmoo.com/library';
+      
+      // 模擬成功的提取流程
+      jest.spyOn(extractor, 'checkPageReady').mockResolvedValue(true);
+      jest.spyOn(extractor, 'performActualExtraction').mockResolvedValue([
+        { id: '1', title: '測試書籍', cover: 'test.jpg' }
+      ]);
+
+      await extractor.startExtractionFlow(url);
+
+      // 驗證完整的事件鏈
+      const emittedEvents = mockEventBus.emit.mock.calls.map(call => call[0]);
+      
+      expect(emittedEvents).toContain('EXTRACTION.STARTED');
+      expect(emittedEvents).toContain('EXTRACTION.PROGRESS');
+      expect(emittedEvents).toContain('EXTRACTION.COMPLETED');
+    });
+  });
+
+  describe('提取錯誤處理和重試機制 (Cycle #3)', () => {
+    let mockEventBus;
+
+    beforeEach(() => {
+      extractor = new BookDataExtractor();
+      
+      mockEventBus = {
+        emit: jest.fn().mockResolvedValue(true),
+        on: jest.fn(),
+        off: jest.fn()
+      };
+      
+      extractor.setEventBus(mockEventBus);
+    });
+
+    test('應該能處理提取錯誤並發布錯誤事件', async () => {
+      const flowId = 'test-flow-error';
+      const error = new Error('網路連線失敗');
+      const context = { url: 'https://readmoo.com/library', stage: 'parsing' };
+
+      await extractor.handleExtractionError(flowId, error, context);
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.ERROR', {
+        flowId,
+        error: error.message,
+        context,
+        timestamp: expect.any(String),
+        retryable: true
+      });
+    });
+
+    test('應該支援提取重試機制', async () => {
+      const flowId = 'test-flow-retry';
+      const retryOptions = {
+        maxRetries: 3,
+        retryDelay: 1000,
+        backoffMultiplier: 2
+      };
+
+      // 模擬重試成功
+      jest.spyOn(extractor, 'performActualExtraction').mockResolvedValue([
+        { id: '1', title: '重試成功書籍', cover: 'retry.jpg' }
+      ]);
+
+      await extractor.retryExtraction(flowId, retryOptions);
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.RETRY', {
+        flowId,
+        retryCount: 1,
+        maxRetries: 3,
+        timestamp: expect.any(String)
+      });
+    });
+
+    test('應該能標記提取最終失敗', async () => {
+      const flowId = 'test-flow-failed';
+      const lastError = new Error('多次重試失敗');
+      const retryHistory = [
+        { attempt: 1, error: '網路錯誤', timestamp: '2025-01-29T10:00:00Z' },
+        { attempt: 2, error: '解析錯誤', timestamp: '2025-01-29T10:01:00Z' },
+        { attempt: 3, error: '多次重試失敗', timestamp: '2025-01-29T10:02:00Z' }
+      ];
+
+      await extractor.markExtractionFailed(flowId, lastError, retryHistory);
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.FAILED', {
+        flowId,
+        finalError: lastError.message,
+        retryHistory,
+        failedAt: expect.any(String),
+        totalRetries: 3
+      });
+
+      // 驗證提取狀態已重置
+      expect(extractor.extractionState.isExtracting).toBe(false);
+      expect(extractor.extractionStats.failedExtractions).toBeGreaterThan(0);
+    });
+
+    test('應該支援提取取消功能', async () => {
+      const flowId = 'test-flow-cancel';
+      const reason = '使用者手動取消';
+
+      await extractor.cancelExtraction(flowId, reason);
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.CANCELLED', {
+        flowId,
+        reason,
+        cancelledAt: expect.any(String),
+        partialResults: expect.any(Array)
+      });
+
+      // 驗證清理事件也被發布
+      expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.CLEANUP', {
+        flowId,
+        cleanupType: 'cancellation',
+        timestamp: expect.any(String)
+      });
+    });
+  });
+
+  describe('提取進度追蹤和狀態廣播 (Cycle #3)', () => {
+    let mockEventBus;
+
+    beforeEach(() => {
+      extractor = new BookDataExtractor();
+      
+      mockEventBus = {
+        emit: jest.fn().mockResolvedValue(true),
+        on: jest.fn(),
+        off: jest.fn()
+      };
+      
+      extractor.setEventBus(mockEventBus);
+    });
+
+    test('應該追蹤提取流程的詳細進度', async () => {
+      const flowId = 'test-flow-progress';
+      
+      // 初始化進度追蹤
+      extractor.initializeProgressTracking(flowId);
+      
+      // 報告不同階段的進度
+      await extractor.reportProgress(flowId, {
+        stage: 'initialization',
+        progress: 10,
+        message: '正在初始化...'
+      });
+
+      await extractor.reportProgress(flowId, {
+        stage: 'page_analysis',
+        progress: 30,
+        message: '分析頁面結構...'
+      });
+
+      await extractor.reportProgress(flowId, {
+        stage: 'data_extraction',
+        progress: 70,
+        message: '提取書籍資料...',
+        currentBook: '測試書籍',
+        processedCount: 7,
+        totalCount: 10
+      });
+
+      // 驗證進度事件的發布
+      const progressEvents = mockEventBus.emit.mock.calls
+        .filter(call => call[0] === 'EXTRACTION.PROGRESS');
+      
+      expect(progressEvents).toHaveLength(3);
+      expect(progressEvents[0][1].stage).toBe('initialization');
+      expect(progressEvents[1][1].stage).toBe('page_analysis');
+      expect(progressEvents[2][1].stage).toBe('data_extraction');
+    });
+
+    test('應該能取得當前提取流程的狀態', () => {
+      const flowId = 'test-flow-status';
+      
+      extractor.initializeProgressTracking(flowId);
+      
+      const status = extractor.getExtractionFlowStatus(flowId);
+      
+      expect(status).toEqual({
+        flowId,
+        isActive: true,
+        currentStage: 'initialization',
+        progress: 0,
+        startedAt: expect.any(String),
+        estimatedTimeRemaining: null,
+        processedCount: 0,
+        totalCount: 0
+      });
+    });
+
+    test('應該能列出所有活躍的提取流程', () => {
+      // 初始化多個流程
+      extractor.initializeProgressTracking('flow1');
+      extractor.initializeProgressTracking('flow2');
+      extractor.initializeProgressTracking('flow3');
+
+      const activeFlows = extractor.getActiveExtractionFlows();
+      
+      expect(activeFlows).toHaveLength(3);
+      expect(activeFlows.map(f => f.flowId)).toContain('flow1');
+      expect(activeFlows.map(f => f.flowId)).toContain('flow2');
+      expect(activeFlows.map(f => f.flowId)).toContain('flow3');
+    });
+
+    test('應該能清理完成的提取流程', async () => {
+      const flowId = 'test-flow-cleanup';
+      
+      extractor.initializeProgressTracking(flowId);
+      
+      // 完成提取
+      await extractor.completeExtraction(flowId, []);
+      
+      // 執行清理
+      await extractor.cleanupExtractionFlow(flowId);
+      
+      expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.CLEANUP', {
+        flowId,
+        cleanupType: 'completion',
+        timestamp: expect.any(String)
+      });
+      
+      // 驗證流程已從活躍列表中移除
+      const activeFlows = extractor.getActiveExtractionFlows();
+      expect(activeFlows.find(f => f.flowId === flowId)).toBeUndefined();
+    });
+  });
 }); 

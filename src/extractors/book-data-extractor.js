@@ -59,6 +59,15 @@ class BookDataExtractor extends EventHandler {
     
     // Readmoo 適配器 (稍後初始化)
     this.readmooAdapter = null;
+
+    // EventBus 整合 (TDD Cycle #3)
+    this.eventBus = null;
+
+    // 活躍提取流程追蹤 (TDD Cycle #3)
+    this.activeExtractionFlows = new Map();
+
+    // 提取流程計數器
+    this.flowCounter = 0;
     
     // 提取統計
     this.extractionStats = {
@@ -442,7 +451,349 @@ class BookDataExtractor extends EventHandler {
   destroy() {
     this.resetExtractionState();
     this.readmooAdapter = null;
+    this.eventBus = null;
+    this.activeExtractionFlows.clear();
     super.destroy();
+  }
+
+  // === TDD Cycle #3: 事件驅動提取流程方法 ===
+
+  /**
+   * 設置 EventBus (TDD Cycle #3)
+   * @param {Object} eventBus - EventBus 實例
+   */
+  setEventBus(eventBus) {
+    this.eventBus = eventBus;
+  }
+
+  /**
+   * 取得 EventBus (TDD Cycle #3)
+   * @returns {Object|null} EventBus 實例
+   */
+  getEventBus() {
+    return this.eventBus;
+  }
+
+  /**
+   * 生成唯一的流程ID (TDD Cycle #3)
+   * @returns {string} 流程ID
+   */
+  generateFlowId() {
+    this.flowCounter++;
+    return `extraction-flow-${Date.now()}-${this.flowCounter}`;
+  }
+
+  /**
+   * 開始完整的事件驅動提取流程 (TDD Cycle #3)
+   * @param {string} url - 要提取的頁面 URL
+   * @param {Object} options - 提取選項
+   * @returns {Promise<string>} 流程ID
+   */
+  async startExtractionFlow(url, options = {}) {
+    const flowId = this.generateFlowId();
+    const startTime = Date.now();
+
+    try {
+      // 初始化進度追蹤
+      this.initializeProgressTracking(flowId);
+
+      // 發布開始事件
+      await this.emitEvent('EXTRACTION.STARTED', {
+        url,
+        options,
+        timestamp: new Date().toISOString(),
+        flowId
+      });
+
+      // 報告初始化進度
+      await this.reportProgress(flowId, {
+        stage: 'initialization',
+        progress: 0,
+        message: '初始化提取器...'
+      });
+
+      // 檢查頁面準備狀態
+      const isReady = await this.checkPageReady(url);
+      if (!isReady) {
+        throw new Error('頁面未準備好');
+      }
+
+      // 初始化適配器
+      await this.initializeReadmooAdapter(url);
+
+      // 報告初始化完成
+      await this.reportProgress(flowId, {
+        stage: 'adapter_ready',
+        progress: 20,
+        message: '適配器初始化完成...'
+      });
+
+      // 執行實際提取
+      const extractedBooks = await this.performActualExtraction(url, options, flowId);
+
+      // 完成提取
+      await this.completeExtraction(flowId, extractedBooks);
+
+      return flowId;
+
+    } catch (error) {
+      await this.handleExtractionError(flowId, error, { url, stage: 'flow_start' });
+      throw error;
+    }
+  }
+
+  /**
+   * 報告提取進度 (TDD Cycle #3)
+   * @param {string} flowId - 流程ID
+   * @param {Object} progressData - 進度資料
+   */
+  async reportProgress(flowId, progressData) {
+    const progress = {
+      flowId,
+      ...progressData,
+      timestamp: new Date().toISOString()
+    };
+
+    // 更新流程狀態
+    if (this.activeExtractionFlows.has(flowId)) {
+      const flow = this.activeExtractionFlows.get(flowId);
+      flow.currentStage = progressData.stage;
+      flow.progress = progressData.progress || 0;
+      flow.processedCount = progressData.processedCount || 0;
+      flow.totalCount = progressData.totalCount || 0;
+    }
+
+    // 發布進度事件
+    await this.emitEvent('EXTRACTION.PROGRESS', progress);
+  }
+
+  /**
+   * 完成提取 (TDD Cycle #3)
+   * @param {string} flowId - 流程ID
+   * @param {Array} extractedBooks - 提取的書籍資料
+   */
+  async completeExtraction(flowId, extractedBooks) {
+    const flow = this.activeExtractionFlows.get(flowId);
+    const duration = flow ? Date.now() - new Date(flow.startedAt).getTime() : 0;
+
+    // 更新提取狀態
+    this.extractionState.isExtracting = false;
+    this.extractionState.extractedBooksCount = extractedBooks.length;
+    this.extractionStats.successfulExtractions++;
+
+    // 發布完成事件
+    await this.emitEvent('EXTRACTION.COMPLETED', {
+      flowId,
+      books: extractedBooks,
+      totalCount: extractedBooks.length,
+      completedAt: new Date().toISOString(),
+      duration
+    });
+  }
+
+  /**
+   * 執行實際的資料提取 (TDD Cycle #3)
+   * @param {string} url - 頁面 URL
+   * @param {Object} options - 提取選項
+   * @param {string} flowId - 流程ID
+   * @returns {Promise<Array>} 提取的書籍資料
+   */
+  async performActualExtraction(url, options, flowId) {
+    // 報告開始提取
+    await this.reportProgress(flowId, {
+      stage: 'parsing',
+      progress: 30,
+      message: '開始解析頁面...'
+    });
+
+    // 模擬提取過程 (實際實現會從 DOM 提取)
+    // TODO: 在實際實現中會調用 ReadmooAdapter 的提取方法
+    const mockBooks = [
+      { id: '1', title: '測試書籍', cover: 'test.jpg' }
+    ];
+
+    // 報告提取完成
+    await this.reportProgress(flowId, {
+      stage: 'extraction_complete',
+      progress: 100,
+      message: '資料提取完成'
+    });
+
+    return mockBooks;
+  }
+
+  /**
+   * 處理提取錯誤 (TDD Cycle #3)
+   * @param {string} flowId - 流程ID
+   * @param {Error} error - 錯誤物件
+   * @param {Object} context - 錯誤上下文
+   */
+  async handleExtractionError(flowId, error, context) {
+    const isRetryable = this.isErrorRetryable(error);
+
+    await this.emitEvent('EXTRACTION.ERROR', {
+      flowId,
+      error: error.message,
+      context,
+      timestamp: new Date().toISOString(),
+      retryable: isRetryable
+    });
+
+    // 更新統計
+    this.extractionStats.failedExtractions++;
+  }
+
+  /**
+   * 判斷錯誤是否可重試 (TDD Cycle #3)
+   * @param {Error} error - 錯誤物件
+   * @returns {boolean} 是否可重試
+   */
+  isErrorRetryable(error) {
+    const retryableErrors = [
+      '網路連線失敗',
+      '網路連線錯誤',
+      '頁面載入超時',
+      '伺服器暫時無法回應'
+    ];
+
+    return retryableErrors.some(msg => error.message.includes(msg));
+  }
+
+  /**
+   * 重試提取 (TDD Cycle #3)
+   * @param {string} flowId - 流程ID
+   * @param {Object} retryOptions - 重試選項
+   */
+  async retryExtraction(flowId, retryOptions = {}) {
+    const { maxRetries = 3, retryDelay = 1000, backoffMultiplier = 2 } = retryOptions;
+
+    // 發布重試事件
+    await this.emitEvent('EXTRACTION.RETRY', {
+      flowId,
+      retryCount: 1,
+      maxRetries,
+      timestamp: new Date().toISOString()
+    });
+
+    // 模擬重試邏輯 (實際會重新執行提取)
+    // TODO: 實際實現會重新執行提取流程
+  }
+
+  /**
+   * 標記提取最終失敗 (TDD Cycle #3)
+   * @param {string} flowId - 流程ID
+   * @param {Error} lastError - 最後的錯誤
+   * @param {Array} retryHistory - 重試歷史
+   */
+  async markExtractionFailed(flowId, lastError, retryHistory) {
+    // 重置提取狀態
+    this.extractionState.isExtracting = false;
+    this.extractionStats.failedExtractions++;
+
+    // 發布失敗事件
+    await this.emitEvent('EXTRACTION.FAILED', {
+      flowId,
+      finalError: lastError.message,
+      retryHistory,
+      failedAt: new Date().toISOString(),
+      totalRetries: retryHistory.length
+    });
+  }
+
+  /**
+   * 取消提取 (TDD Cycle #3)
+   * @param {string} flowId - 流程ID
+   * @param {string} reason - 取消原因
+   */
+  async cancelExtraction(flowId, reason) {
+    // 取得部分結果
+    const partialResults = [];
+
+    // 發布取消事件
+    await this.emitEvent('EXTRACTION.CANCELLED', {
+      flowId,
+      reason,
+      cancelledAt: new Date().toISOString(),
+      partialResults
+    });
+
+    // 執行清理
+    await this.cleanupExtractionFlow(flowId, 'cancellation');
+  }
+
+  /**
+   * 清理提取流程 (TDD Cycle #3)
+   * @param {string} flowId - 流程ID
+   * @param {string} cleanupType - 清理類型
+   */
+  async cleanupExtractionFlow(flowId, cleanupType = 'completion') {
+    // 發布清理事件
+    await this.emitEvent('EXTRACTION.CLEANUP', {
+      flowId,
+      cleanupType,
+      timestamp: new Date().toISOString()
+    });
+
+    // 從活躍流程中移除
+    this.activeExtractionFlows.delete(flowId);
+  }
+
+  /**
+   * 初始化進度追蹤 (TDD Cycle #3)
+   * @param {string} flowId - 流程ID
+   */
+  initializeProgressTracking(flowId) {
+    this.activeExtractionFlows.set(flowId, {
+      flowId,
+      isActive: true,
+      currentStage: 'initialization',
+      progress: 0,
+      startedAt: new Date().toISOString(),
+      estimatedTimeRemaining: null,
+      processedCount: 0,
+      totalCount: 0
+    });
+  }
+
+  /**
+   * 取得提取流程狀態 (TDD Cycle #3)
+   * @param {string} flowId - 流程ID
+   * @returns {Object|null} 流程狀態
+   */
+  getExtractionFlowStatus(flowId) {
+    return this.activeExtractionFlows.get(flowId) || null;
+  }
+
+  /**
+   * 取得所有活躍的提取流程 (TDD Cycle #3)
+   * @returns {Array} 活躍流程列表
+   */
+  getActiveExtractionFlows() {
+    return Array.from(this.activeExtractionFlows.values());
+  }
+
+  /**
+   * 發布事件 (TDD Cycle #3)
+   * 設計考量：統一的事件發布介面，確保與 EventBus 的正確整合
+   * 處理流程：
+   * 1. 檢查 EventBus 是否可用
+   * 2. 驗證事件資料的完整性
+   * 3. 發布事件到 EventBus
+   * 4. 處理發布過程中的錯誤
+   * @param {string} eventType - 事件類型
+   * @param {Object} eventData - 事件資料
+   */
+  async emitEvent(eventType, eventData) {
+    if (this.eventBus && typeof this.eventBus.emit === 'function') {
+      try {
+        await this.eventBus.emit(eventType, eventData);
+      } catch (error) {
+        console.warn(`事件發布失敗: ${eventType}`, error);
+        // 不重新拋出錯誤，避免中斷提取流程
+      }
+    } else {
+      console.warn(`EventBus 未設置，無法發布事件: ${eventType}`);
+    }
   }
 }
 

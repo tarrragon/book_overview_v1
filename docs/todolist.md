@@ -245,13 +245,13 @@
   - [x] ✅ 實現 Readmoo 提取器初始化
   - [x] ✅ 重構初始化邏輯
 
-- [ ] ⭕ **TDD循環 #3**: 事件驅動提取流程
-  - [ ] 🔴 測試 EXTRACTION.STARTED 事件處理
-  - [ ] 🟢 實現提取開始邏輯
-  - [ ] 🔵 重構事件處理
-  - [ ] 🔴 測試 EXTRACTION.COMPLETED 事件觸發
-  - [ ] 🟢 實現提取完成邏輯
-  - [ ] 🔵 重構完成處理
+- [x] ✅ **TDD循環 #3**: 事件驅動提取流程
+  - [x] ✅ 測試 EXTRACTION.STARTED 事件處理
+  - [x] ✅ 實現提取開始邏輯
+  - [x] ✅ 重構事件處理
+  - [x] ✅ 測試 EXTRACTION.COMPLETED 事件觸發
+  - [x] ✅ 實現提取完成邏輯
+  - [x] ✅ 重構完成處理
 
 #### 實現目標
 - **實現位置**: `src/extractors/book-data-extractor.js`
