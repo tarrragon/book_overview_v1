@@ -48,6 +48,14 @@ class BookDataExtractor extends EventHandler {
       lastExtractionTime: null,
       extractedBooksCount: 0
     };
+
+    // 初始化狀態追蹤 (TDD Cycle #2)
+    this.initializationState = {
+      isInitializing: false,
+      lastInitializedUrl: null,
+      lastInitializationTime: null,
+      initializationCount: 0
+    };
     
     // Readmoo 適配器 (稍後初始化)
     this.readmooAdapter = null;
@@ -131,7 +139,7 @@ class BookDataExtractor extends EventHandler {
       }
       
       // 初始化 Readmoo 適配器
-      await this.initializeReadmooAdapter();
+      await this.initializeReadmooAdapter(url);
       
       // 更新統計
       this.extractionStats.totalExtractions++;
@@ -213,18 +221,174 @@ class BookDataExtractor extends EventHandler {
   }
 
   /**
-   * 初始化 Readmoo 適配器
+   * 取得 Readmoo 頁面類型 (TDD Cycle #2)
+   * @param {string} url - 要檢查的 URL
+   * @returns {string|null} 頁面類型或 null
+   */
+  getReadmooPageType(url) {
+    if (!url || typeof url !== 'string') {
+      return null;
+    }
+
+    // 如果不是 Readmoo URL，直接返回 null
+    if (!this.isReadmooUrl(url)) {
+      return null;
+    }
+
+    // Readmoo 頁面類型模式
+    const pageTypes = [
+      { pattern: /\/library(?:\/|$)/i, type: 'library' },
+      { pattern: /\/shelf(?:\/|$)/i, type: 'shelf' },
+      { pattern: /reader\.readmoo\.com.*\/reader/i, type: 'reader' },
+      { pattern: /^https?:\/\/readmoo\.com\/?$/i, type: 'home' }
+    ];
+
+    for (const { pattern, type } of pageTypes) {
+      if (pattern.test(url)) {
+        return type;
+      }
+    }
+
+    // 預設為主頁類型
+    return 'home';
+  }
+
+  /**
+   * 檢查 Readmoo 頁面是否支援資料提取 (TDD Cycle #2)
+   * @param {string} url - 要檢查的 URL
+   * @returns {boolean} 是否支援提取
+   */
+  isExtractableReadmooPage(url) {
+    const pageType = this.getReadmooPageType(url);
+    
+    // 支援提取的頁面類型
+    const extractableTypes = ['library', 'shelf'];
+    return extractableTypes.includes(pageType);
+  }
+
+  /**
+   * 檢查頁面準備狀態 (TDD Cycle #2)
+   * @param {string} url - 要檢查的頁面 URL
+   * @returns {Promise<boolean>} 頁面是否準備好
+   */
+  async checkPageReady(url) {
+    const pageType = this.getReadmooPageType(url);
+    
+    try {
+      switch (pageType) {
+        case 'library':
+          return await this.checkLibraryPageReady();
+        case 'shelf':
+          return await this.checkShelfPageReady();
+        default:
+          return false;
+      }
+    } catch (error) {
+      console.warn(`頁面準備檢查失敗: ${error.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * 檢查書庫頁面準備狀態 (TDD Cycle #2)
+   * 設計考量：檢查書庫頁面的關鍵 DOM 元素是否載入完成
+   * 處理流程：
+   * 1. 檢查書籍容器元素是否存在
+   * 2. 檢查是否有足夠的書籍資料載入
+   * 3. 驗證頁面互動功能是否可用
+   * @returns {Promise<boolean>} 書庫頁面是否準備好
+   */
+  async checkLibraryPageReady() {
+    // 模擬 DOM 檢查邏輯
+    // TODO: 在實際實現中檢查以下元素：
+    // - 書籍列表容器: .library-books, .book-grid
+    // - 載入完成指示器: .loading-complete
+    // - 分頁控制器: .pagination
+    return new Promise(resolve => {
+      setTimeout(() => resolve(true), 10);
+    });
+  }
+
+  /**
+   * 檢查書架頁面準備狀態 (TDD Cycle #2)
+   * 設計考量：書架頁面通常有不同的佈局和載入方式
+   * 處理流程：
+   * 1. 檢查書架分類是否載入
+   * 2. 檢查書籍元素是否可互動
+   * 3. 驗證書架功能是否可用
+   * @returns {Promise<boolean>} 書架頁面是否準備好
+   */
+  async checkShelfPageReady() {
+    // 模擬 DOM 檢查邏輯
+    // TODO: 在實際實現中檢查以下元素：
+    // - 書架容器: .shelf-container
+    // - 書籍卡片: .book-card
+    // - 書架操作按鈕: .shelf-actions
+    return new Promise(resolve => {
+      setTimeout(() => resolve(true), 10);
+    });
+  }
+
+  /**
+   * 取得頁面完整狀態資訊 (TDD Cycle #2)
+   * @param {string} url - 要檢查的頁面 URL
+   * @returns {Promise<Object>} 頁面狀態資訊
+   */
+  async getPageStatus(url) {
+    const pageType = this.getReadmooPageType(url);
+    const isExtractable = this.isExtractableReadmooPage(url);
+    const isReady = isExtractable ? await this.checkPageReady(url) : false;
+
+    return {
+      url,
+      pageType,
+      isExtractable,
+      isReady,
+      checkedAt: new Date().toISOString()
+    };
+  }
+
+  /**
+   * 初始化 Readmoo 適配器 (TDD Cycle #2 改進)
+   * @param {string} url - 要初始化的頁面 URL
    * @returns {Promise<void>}
    */
-  async initializeReadmooAdapter() {
-    // 預留 ReadmooAdapter 初始化邏輯
-    // 在後續的 TDD 循環中實現
-    if (!this.readmooAdapter) {
-      // 暫時使用模擬適配器
+  async initializeReadmooAdapter(url) {
+    // 更新初始化狀態
+    this.initializationState.isInitializing = true;
+    this.initializationState.initializationCount++;
+
+    try {
+      // 檢查是否支援提取
+      if (!this.isExtractableReadmooPage(url)) {
+        throw new Error('此 Readmoo 頁面不支援資料提取');
+      }
+
+      // 檢查頁面準備狀態
+      const isReady = await this.checkPageReady(url);
+      if (!isReady) {
+        throw new Error('Readmoo 頁面未準備好');
+      }
+
+      // 初始化適配器
+      const pageType = this.getReadmooPageType(url);
       this.readmooAdapter = {
         initialized: true,
-        name: 'ReadmooAdapter'
+        name: 'ReadmooAdapter',
+        pageType,
+        url,
+        initializedAt: new Date().toISOString()
       };
+
+      // 更新初始化狀態
+      this.initializationState.lastInitializedUrl = url;
+      this.initializationState.lastInitializationTime = new Date().toISOString();
+
+    } catch (error) {
+      throw error;
+    } finally {
+      // 重置初始化狀態
+      this.initializationState.isInitializing = false;
     }
   }
 
