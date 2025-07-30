@@ -400,13 +400,16 @@
 
 ### 3.2 Popup UI (事件驅動界面)
 
-- [ ] ⭕ **TDD循環 #13**: Popup 基本界面
-  - [ ] 🔴 測試 Popup HTML 結構
-  - [ ] 🟢 實現基本 popup.html
-  - [ ] 🔵 重構 UI 結構
-  - [ ] 🔴 測試 Popup 與 background 通訊
-  - [ ] 🟢 實現事件驅動的 popup.js
-  - [ ] 🔵 重構 Popup 事件處理
+- [x] ✅ **TDD循環 #13**: Popup 基本界面
+  - [x] 🔴 測試 Popup HTML 結構  
+  - [x] 🟢 實現基本 popup.html
+  - [x] 🔵 重構 UI 結構
+  - [x] 🔴 測試 Popup 與 background 通訊
+  - [x] 🟢 實現事件驅動的 popup.js
+  - [x] 🔵 重構 Popup 事件處理
+  - [x] 🔴 完整測試套件建立 (24個測試)
+  - [x] 🟢 修復alert模擬和DOM元素引用問題
+  - [x] 🔵 程式碼品質重構 (常數管理、註解標準化)
 
 - [ ] ⭕ **TDD循環 #14**: 提取控制界面
   - [ ] 🔴 測試提取觸發按鈕

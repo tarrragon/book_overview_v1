@@ -34,6 +34,41 @@
 
 ---
 
+## [0.3.4] - 2025-01-29 ✅
+
+### TDD Cycle #13: Popup 基本界面完整實現
+
+- **Popup 界面完整重構** (`src/popup/popup.js`)
+  - 447 行專業級程式碼 (重構前 200 行)
+  - 統一常數管理系統 (STATUS_TYPES, MESSAGE_TYPES, MESSAGES)
+  - 模組化程式碼結構 (8 個清晰的功能區段)
+  - 完整 JSDoc 註解標準化
+
+- **JSDOM 測試環境完善**
+  - 解決 Chrome Extension 在測試環境的相容性問題
+  - 修復 `window.alert` 模擬機制
+  - 建立 24 個專業整合測試 (100% 通過)
+
+- **事件系統完整整合**
+  - Popup ↔ Background Service Worker 雙向通訊
+  - Popup ↔ Content Script 狀態檢測和控制
+  - 即時狀態更新和錯誤處理機制
+
+- **使用者介面功能**
+  - Readmoo 頁面自動檢測和狀態顯示
+  - 書庫資料提取控制和進度回饋
+  - 設定和說明功能預留接口
+
+- **程式碼品質提升**
+  - 常數管理統一化 (14 個預設訊息常數)
+  - 函數職責分離 (updateButtonState, showSettings, showHelp)
+  - 錯誤處理統一化 (handleGlobalError)
+  - 生命週期管理完善 (periodicStatusUpdate)
+
+- **測試覆蓋**: 24個專業整合測試 (100% 通過)
+
+---
+
 ## [0.3.3] - 2025-01-29 ✅
 
 ### TDD Cycle #12: Content Script 提取器整合
