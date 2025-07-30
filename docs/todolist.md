@@ -382,16 +382,16 @@
   - [x] 🟢 實現完整的訊息路由和事件轉發機制
   - [x] 🔵 重構錯誤處理和效能優化
 
-- [ ] ⭕ **TDD循環 #12**: Content Script (提取器整合)
-  - [ ] 🔴 測試 Content Script 注入
-  - [ ] 🟢 實現基本 content.js
-  - [ ] 🔵 重構注入邏輯
-  - [ ] 🔴 測試提取器在 Content Script 中的初始化
-  - [ ] 🟢 實現 BookDataExtractor 整合
-  - [ ] 🔵 重構提取器集成
-  - [ ] 🔴 測試事件通訊機制
-  - [ ] 🟢 實現 content 與 background 事件通訊
-  - [ ] 🔵 重構通訊邏輯
+- [x] ✅ **TDD循環 #12**: Content Script (提取器整合)
+  - [x] 🔴 測試 Content Script 注入
+  - [x] 🟢 實現基本 content.js
+  - [x] 🔵 重構注入邏輯
+  - [x] 🔴 測試提取器在 Content Script 中的初始化
+  - [x] 🟢 實現 BookDataExtractor 整合
+  - [x] 🔵 重構提取器集成
+  - [x] 🔴 測試事件通訊機制
+  - [x] 🟢 實現 content 與 background 事件通訊
+  - [x] 🔵 重構通訊邏輯
 
 #### 實現目標
 - **實現位置**: `manifest.json`, `src/background/`, `src/content/`

@@ -125,6 +125,9 @@ global.localStorage = localStorageMock;
 global.chrome = require('jest-chrome').chrome;
 
 chrome.runtime.id = 'test-extension-id';
+
+// 將 onMessage.addListener 模擬為 jest.fn()
+chrome.runtime.onMessage.addListener = jest.fn();
 // chrome.runtime.lastError 由 jest-chrome 自動管理，不需要手動設置
 chrome.storage.local.get.mockImplementation((keys, callback) => {
   const result = {};
@@ -190,4 +193,9 @@ global.ResizeObserver = class ResizeObserver {
   disconnect () {}
   observe () {}
   unobserve () {}
-}; 
+};
+
+// 添加 TextEncoder/TextDecoder 支持 (JSDOM 需要)
+const { TextEncoder, TextDecoder } = require('util');
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder; 
