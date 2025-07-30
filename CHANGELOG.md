@@ -16,6 +16,78 @@
 
 ---
 
+## [0.3.0] - 2025-01-29 ✅
+
+### 重大里程碑 🎊
+
+- **Chrome Extension 核心架構完成**
+- 30個專業整合測試全部通過 (100%)
+- 3個完整TDD循環實現 (100%)
+- 事件系統 + 提取器 + Chrome Extension 的完美整合
+
+### 新增 ✨
+
+- **Manifest V3 配置** (`manifest.json`)
+  - 完整的Chrome Extension配置
+  - Service Worker支援
+  - Content Scripts配置
+  - 權限和安全性設定
+
+- **Background Service Worker** (`src/background/background.js`)
+  - 簡化版EventBus整合
+  - ChromeEventBridge跨上下文通訊
+  - 完整的訊息路由機制
+  - Service Worker生命週期管理
+
+- **Content Script 提取器整合** (`src/content/content.js`)
+  - v0.2.0 BookDataExtractor完整整合
+  - v0.2.0 ReadmooAdapter DOM操作
+  - v0.1.0 事件系統適配
+  - 頁面生命週期管理
+  - SPA導航支援
+
+- **跨上下文事件通訊系統**
+  - Background ↔ Content Script 雙向通訊
+  - 事件格式統一和驗證
+  - 通訊延遲追蹤和錯誤處理
+  - 高頻率訊息效能優化
+
+### 改進 🔧
+
+- **效能優化**
+  - DOM查詢批量處理
+  - 記憶體使用優化
+  - 事件處理並行化
+  - 頁面凍結防護
+
+- **安全性增強**
+  - XSS防護機制
+  - 惡意URL過濾
+  - 文字內容清理
+  - 擴展性安全配置
+
+- **程式碼品質**
+  - 完整JSDoc註解
+  - 模組化配置設計
+  - 錯誤處理標準化
+  - 統計監控完善
+
+### 架構 🏗
+
+- **TDD Cycle #1**: Manifest V3 配置 (19個測試)
+- **TDD Cycle #2**: Background Service Worker 整合 (21個測試)
+- **TDD Cycle #3**: Content Script 提取器整合 (30個測試)
+
+### 技術規格 📋
+
+- **檔案結構**: Manifest V3 標準架構
+- **通訊機制**: Chrome Runtime API + EventBus
+- **測試覆蓋**: 70個專業整合測試
+- **記憶體管理**: 歷史記錄限制 + 自動清理
+- **效能監控**: 完整的統計追蹤系統
+
+---
+
 ## [0.2.0] - 2025-01-29 ✅
 
 ### 重大里程碑 🎊
