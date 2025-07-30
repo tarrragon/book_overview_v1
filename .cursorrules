@@ -117,10 +117,19 @@
 - 每個小功能完成後必須：
   1. 更新 `docs/todolist.md` 進度
   2. 更新工作日誌 `docs/work-logs/vX.X.X-work-log.md`
-  3. 更新 `CHANGELOG.md` 記錄（如有實際功能完成）
+  3. **強制更新 `CHANGELOG.md`** 記錄小版本號 (v0.X.Y)
   4. 提交 git commit
 - Commit 訊息使用 [Conventional Commits](https://www.conventionalcommits.org/) 格式
 - 每次 commit 前執行完整測試套件
+
+#### 版本號管理規範
+- **小版本號 (v0.X.Y)**: 對應每個 TDD 循環完成
+  - 例：v0.3.1 (Manifest V3), v0.3.2 (Background), v0.3.3 (Content Script)
+- **中版本號 (v0.X.0)**: 對應主要功能模組完成
+  - 例：v0.1.0 (事件系統), v0.2.0 (資料提取器), v0.3.0 (Chrome Extension)
+- **主版本號 (v1.0.0)**: 產品完整功能，準備上架
+- **每個 TDD 循環必須對應一個小版本號記錄**
+- **CHANGELOG.md 必須詳細記錄每個版本的具體功能和改進**
 
 ### 工作日誌管理規範
 - **建立時機**: 每個中版本號變更時建立新的工作日誌檔案

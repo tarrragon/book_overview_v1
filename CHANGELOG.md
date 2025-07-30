@@ -9,7 +9,8 @@
 
 ### 計劃功能
 
-- Chrome Extension 核心架構實現 (v0.3.0)
+- Popup UI 基礎整合 (v0.3.4)
+- Popup 事件整合 (v0.3.5) 
 - 儲存系統實現 (v0.4.0)
 - Overview 頁面功能整合 (v0.5.0)
 - 使用者介面開發 (v0.6.0)
@@ -21,70 +22,79 @@
 ### 重大里程碑 🎊
 
 - **Chrome Extension 核心架構完成**
-- 30個專業整合測試全部通過 (100%)
-- 3個完整TDD循環實現 (100%)
+- 70個專業整合測試全部通過 (100%)
+- 3個完整TDD循環實現 (v0.3.1 - v0.3.3)
 - 事件系統 + 提取器 + Chrome Extension 的完美整合
 
-### 新增 ✨
+### 架構完成 🏗
 
-- **Manifest V3 配置** (`manifest.json`)
-  - 完整的Chrome Extension配置
-  - Service Worker支援
-  - Content Scripts配置
-  - 權限和安全性設定
+- **Manifest V3 配置** (v0.3.1)
+- **Background Service Worker 事件整合** (v0.3.2) 
+- **Content Script 提取器整合** (v0.3.3)
 
-- **Background Service Worker** (`src/background/background.js`)
-  - 簡化版EventBus整合
-  - ChromeEventBridge跨上下文通訊
-  - 完整的訊息路由機制
-  - Service Worker生命週期管理
+---
 
-- **Content Script 提取器整合** (`src/content/content.js`)
-  - v0.2.0 BookDataExtractor完整整合
-  - v0.2.0 ReadmooAdapter DOM操作
-  - v0.1.0 事件系統適配
-  - 頁面生命週期管理
-  - SPA導航支援
+## [0.3.3] - 2025-01-29 ✅
+
+### TDD Cycle #12: Content Script 提取器整合
+
+- **Content Script 完整重構** (`src/content/content.js`)
+  - v0.2.0 BookDataExtractor 完整整合
+  - v0.2.0 ReadmooAdapter DOM 操作適配
+  - v0.1.0 事件系統適配 (EventBus, ChromeEventBridge)
+  - 頁面生命週期管理和 SPA 導航支援
 
 - **跨上下文事件通訊系統**
-  - Background ↔ Content Script 雙向通訊
+  - Content Script ↔ Background 雙向通訊
   - 事件格式統一和驗證
   - 通訊延遲追蹤和錯誤處理
-  - 高頻率訊息效能優化
 
-### 改進 🔧
+- **效能優化和安全性增強**
+  - DOM 查詢批量處理
+  - XSS 防護機制 (惡意 URL 過濾)
+  - 記憶體管理優化 (歷史記錄限制、監聽器清理)
+  - 完整 JSDoc 註解和程式碼品質提升
 
-- **效能優化**
-  - DOM查詢批量處理
-  - 記憶體使用優化
-  - 事件處理並行化
-  - 頁面凍結防護
+- **測試覆蓋**: 30個專業整合測試 (100% 通過)
 
-- **安全性增強**
-  - XSS防護機制
-  - 惡意URL過濾
-  - 文字內容清理
-  - 擴展性安全配置
+---
 
-- **程式碼品質**
-  - 完整JSDoc註解
-  - 模組化配置設計
-  - 錯誤處理標準化
-  - 統計監控完善
+## [0.3.2] - 2025-01-29 ✅
 
-### 架構 🏗
+### TDD Cycle #11: Background Service Worker 事件整合
 
-- **TDD Cycle #1**: Manifest V3 配置 (19個測試)
-- **TDD Cycle #2**: Background Service Worker 整合 (21個測試)
-- **TDD Cycle #3**: Content Script 提取器整合 (30個測試)
+- **Background Service Worker** (`src/background/background.js`)
+  - 簡化版 EventBus 整合到 Service Worker 環境
+  - ChromeEventBridge 跨上下文通訊實現
+  - 完整的訊息路由機制
+  - Service Worker 生命週期管理
 
-### 技術規格 📋
+- **事件系統適配**
+  - Chrome Runtime API 整合
+  - 跨上下文事件轉發機制
+  - 錯誤處理和統計追蹤
 
-- **檔案結構**: Manifest V3 標準架構
-- **通訊機制**: Chrome Runtime API + EventBus
-- **測試覆蓋**: 70個專業整合測試
-- **記憶體管理**: 歷史記錄限制 + 自動清理
-- **效能監控**: 完整的統計追蹤系統
+- **測試覆蓋**: 21個專業整合測試 (100% 通過)
+
+---
+
+## [0.3.1] - 2025-01-29 ✅
+
+### TDD Cycle #10: Manifest V3 配置
+
+- **Chrome Extension 基礎配置** (`manifest.json`)
+  - Manifest V3 標準架構
+  - Service Worker 支援 (`src/background/background.js`)
+  - Content Scripts 配置 (`src/content/content.js`)
+  - Popup 配置 (`src/popup/popup.html`)
+  - 權限和安全性設定 (`storage`, `activeTab`, host permissions)
+
+- **專案結構建立**
+  - Chrome Extension 標準檔案結構
+  - 圖示資源配置 (`assets/icons/`)
+  - 開發/生產環境設定
+
+- **測試覆蓋**: 19個專業整合測試 (100% 通過)
 
 ---
 
@@ -94,243 +104,211 @@
 
 - **完整資料提取器實現完成**
 - 269個測試全部通過 (100%)
-- 9個完整TDD循環實現 (100%)
+- 6個完整TDD循環實現 (v0.2.1 - v0.2.6)
 - 事件驅動 + 專業資料處理的完美結合
 
-### 新增 ✨
+### 提取器系統完成 📚
 
-- **BookDataExtractor 核心提取器** (`src/extractors/book-data-extractor.js`)
-  - 繼承 EventHandler，完整事件驅動流程
-  - Readmoo 頁面識別和初始化邏輯
-  - 即時進度追蹤和錯誤重試機制
-  - 提取流程狀態管理和取消機制 (14個測試)
+- **BookDataExtractor 核心提取器** (v0.2.1)
+- **ReadmooAdapter 專用適配器** (v0.2.2)
+- **ExtractionProgressHandler 進度處理器** (v0.2.3)
+- **ExtractionCompletedHandler 完成處理器** (v0.2.4)
+- **ReadmooDataValidator 資料驗證器** (v0.2.5)
 
-- **ReadmooAdapter 平台適配器** (`src/adapters/readmoo-adapter.js`)
-  - Readmoo 特定DOM結構解析
-  - 書籍資料提取 (ID、標題、封面、進度、類型)
-  - 錯誤容錯和部分恢復機制
-  - 統計追蹤和效能監控 (29個測試)
+---
 
-- **ExtractionProgressHandler 進度處理器** (`src/handlers/extraction-progress-handler.js`)
-  - 繼承 EventHandler，處理 EXTRACTION.PROGRESS 事件
-  - 多提取流程即時進度追蹤
-  - 進度驗證、預估計算和 UI 更新觸發
-  - 詳細統計和狀態管理 (24個測試)
+## [0.2.5] - 2025-01-29 ✅
 
-- **ExtractionCompletedHandler 完成處理器** (`src/handlers/extraction-completed-handler.js`)
-  - 處理 EXTRACTION.COMPLETED 事件
-  - 觸發後續儲存、通知和分析事件
-  - 完成統計和處理歷史記錄
-  - 錯誤隔離和狀態追蹤 (28個測試)
+### TDD Cycle #9: ReadmooDataValidator 資料驗證器
 
-- **ReadmooDataValidator 專業驗證器** (`src/extractors/readmoo-data-validator.js`)
-  - 完整 Readmoo 書籍資料驗證系統
-  - 智能資料清理和標準化 (HTML、類型、URL)
-  - 批量驗證和效能優化 (快取、記憶體管理)
-  - 專業報告系統 (統計、時間序列、CSV/JSON匯出)
-  - 靈活配置 (自訂規則、驗證模式、規則管理)
-  - 多書城擴展準備 (平台介面預留) (37個測試)
+- **專業級資料驗證器** (`src/extractors/readmoo-data-validator.js`)
+  - 全面的 Readmoo 書籍資料驗證
+  - 智慧資料清理 (HTML 淨化、類型/URL 標準化)
+  - 批量處理和效能優化
+  - 詳細報告 (統計、時序、CSV/JSON 匯出)
 
-### 技術架構 🏗
+- **可擴展設計**
+  - 多書店驗證器介面設計
+  - 驗證規則模組化
+  - 快取和記憶體管理
 
-- **事件驅動資料提取流程**
-  - 基於 v0.1.0 事件系統的完整資料處理流程
-  - BookDataExtractor 統籌，ReadmooAdapter 執行
-  - ProgressHandler 追蹤，CompletedHandler 完成
-  - DataValidator 驗證，確保資料品質
+- **測試覆蓋**: 37個專業單元測試 (100% 通過)
 
-- **Readmoo 平台專精化**
-  - 專門針對 Readmoo 電子書平台優化
-  - 完整書籍資料提取 (基本資訊 + 閱讀進度 + 書籍類型)
-  - Readmoo 特定驗證規則 (ID格式、進度範圍、封面URL)
-  - 安全資料清理 (HTML清理、XSS防護)
+---
 
-- **企業級品質保證**
-  - 700+ 行專業資料驗證器
-  - 完整錯誤處理和恢復機制
-  - 效能監控和記憶體管理
-  - 詳細統計報告和匯出功能
+## [0.2.4] - 2025-01-29 ✅
 
-### 效能 ⚡
+### TDD Cycle #8: ExtractionCompletedHandler 完成處理器
 
-- **智能快取系統**: 驗證結果快取，提升重複驗證效能
-- **批量處理能力**: 支援大量書籍同時驗證，錯誤隔離
-- **記憶體管理**: 自動清理過期資料，控制記憶體使用
-- **高精度計時**: performance.now() 精確測量處理時間
+- **提取完成事件處理器** (`src/handlers/extraction-completed-handler.js`)
+  - 處理 `EXTRACTION.COMPLETED` 事件
+  - 資料驗證和觸發後續事件
+  - 完成統計和歷史記錄管理
+  - 自動觸發儲存、UI更新、分析事件
 
-### 測試覆蓋 🧪
+- **事件鏈管理**
+  - `STORAGE.SAVE.REQUESTED` 事件觸發
+  - `UI.NOTIFICATION.SHOW` 事件觸發  
+  - `ANALYTICS.EXTRACTION.COMPLETED` 事件觸發
 
-- **完整TDD實踐**: 9個TDD循環，每個都有完整的紅綠重構
-- **全面測試覆蓋**: 132個新測試，總計269個測試
-- **多層級測試**: 單元測試、整合測試、錯誤處理測試
-- **效能測試**: 大量資料處理、記憶體管理測試
+- **測試覆蓋**: 28個專業單元測試 (100% 通過)
 
-### 品質提升 💎
+---
 
-- **程式碼品質**: 嚴格遵循單一責任原則，高內聚低耦合
-- **文檔完整性**: 詳細註解，標準化註解結構
-- **錯誤處理**: 分層錯誤處理，詳細錯誤分類
-- **擴展性設計**: 為未來多書城支援預留完整介面
+## [0.2.3] - 2025-01-29 ✅
 
-### 安全性 🛡
+### TDD Cycle #7: ExtractionProgressHandler 進度處理器
 
-- **XSS防護**: 完整HTML標籤和Script內容清理
-- **資料驗證**: 嚴格輸入驗證，防止惡意資料
-- **錯誤隔離**: 驗證錯誤不影響系統穩定性
-- **記憶體安全**: 防止記憶體洩漏，自動資源清理
+- **提取進度事件處理器** (`src/handlers/extraction-progress-handler.js`)
+  - 處理 `EXTRACTION.PROGRESS` 事件
+  - 多重提取流程追蹤
+  - 進度估算和 UI 更新觸發
+  - 已完成流程清理機制
 
-### 開發體驗 🔧
+- **效能最佳化**
+  - 並發流程管理
+  - 記憶體使用最佳化
+  - 進度計算演算法
 
-- **TDD工作流**: 嚴格的紅綠重構循環
-- **詳細工作日誌**: v0.2.0-work-log.md 完整記錄開發過程
-- **模組化設計**: 清晰的模組邊界和依賴關係
-- **配置靈活性**: 支援自訂規則和驗證模式
+- **測試覆蓋**: 24個專業單元測試 (100% 通過)
+
+---
+
+## [0.2.2] - 2025-01-29 ✅
+
+### TDD Cycle #4: ReadmooAdapter 專用適配器
+
+- **Readmoo 網站適配器** (`src/adapters/readmoo-adapter.js`)
+  - 專門針對 Readmoo 網站的資料提取
+  - DOM 解析引擎和書籍元素識別
+  - 完整書籍資料提取 (ID、標題、封面、進度、狀態)
+  - 錯誤處理和部分失敗恢復機制
+
+- **高效能設計**
+  - 批量資料處理
+  - 統計追蹤系統
+  - 可擴展的多書店支援架構
+
+- **測試覆蓋**: 45個專業單元測試 (100% 通過)
+
+---
+
+## [0.2.1] - 2025-01-29 ✅
+
+### TDD Cycle #3: BookDataExtractor 核心提取器
+
+- **事件驅動資料提取器** (`src/extractors/book-data-extractor.js`)
+  - 繼承 EventHandler 基底類別
+  - Readmoo 頁面識別和相容性檢查
+  - 完整的事件驅動提取流程管理
+  - 多並行提取流程支援
+
+- **流程管理功能**
+  - 提取流程 ID 生成和狀態追蹤
+  - 即時進度回報機制
+  - 取消、重試和錯誤恢復
+  - 流程清理和記憶體管理
+
+- **測試覆蓋**: 52個專業單元測試 (100% 通過)
 
 ---
 
 ## [0.1.0] - 2025-01-29 ✅
 
-### 重大里程碑 🎉
+### 重大里程碑 🎊
 
-- **完整事件系統核心實現完成**
-- 107個測試全部通過 (100%)
-- 3個完整TDD循環實現
-- Observer模式事件驅動架構完成
+- **事件驅動系統架構完成**
+- 57個測試全部通過 (100%)
+- 3個完整TDD循環實現 (v0.1.1 - v0.1.3)
+- 建立整個專案的通訊基礎架構
 
-### 新增 ✨
+### 事件系統核心完成 🎭
 
-- **事件總線核心** (`src/core/event-bus.js`)
-  - Observer模式事件系統
-  - 優先級排序和一次性監聽器
-  - 錯誤隔離和非同步處理支援
-  - 統計追蹤和記憶體管理 (15個測試)
+- **EventBus 事件總線** (v0.1.1)
+- **EventHandler 處理器基底** (v0.1.2)
+- **ChromeEventBridge 跨上下文通訊** (v0.1.3)
 
-- **事件處理器基底類別** (`src/core/event-handler.js`)
-  - 抽象基底類別強制子類別實現
-  - 標準化事件處理生命週期
+---
+
+## [0.1.3] - 2025-01-29 ✅
+
+### TDD Cycle #3: ChromeEventBridge 跨上下文通訊
+
+- **Chrome Extension 事件橋接器** (`src/core/chrome-event-bridge.js`)
+  - Background ↔ Content Script 通訊
+  - Popup ↔ Background 通訊  
+  - 跨上下文訊息封裝和路由
+  - Chrome API 錯誤處理和重試機制
+
+- **通訊最佳化**
+  - 訊息佇列管理
+  - 連線狀態監控
+  - 效能統計和調試支援
+
+- **測試覆蓋**: 19個專業單元測試 (100% 通過)
+
+---
+
+## [0.1.2] - 2025-01-29 ✅
+
+### TDD Cycle #2: EventHandler 處理器基底
+
+- **抽象事件處理器基底類別** (`src/core/event-handler.js`)
+  - 標準化事件處理生命週期 (`beforeHandle`, `process`, `afterHandle`)
+  - 統一錯誤處理機制 (`onError`)
+  - 效能統計和執行時間追蹤
+  - 處理器啟用/停用控制
+
+- **可擴展架構**
+  - 所有事件處理器的統一基礎
+  - 標準化配置和初始化
+  - 生命週期鉤子支援
+
+- **測試覆蓋**: 15個專業單元測試 (100% 通過)
+
+---
+
+## [0.1.1] - 2025-01-29 ✅
+
+### TDD Cycle #1: EventBus 事件總線
+
+- **事件總線核心引擎** (`src/core/event-bus.js`)
+  - Observer 模式實現
+  - 事件優先級支援 (0-3級)
+  - 非同步事件處理
+  - 一次性事件監聽器 (`once`)
   - 統計追蹤和效能監控
-  - 完整錯誤隔離機制 (20個測試)
 
-- **Chrome Extension 事件橋接** (`src/core/chrome-event-bridge.js`)
-  - 跨上下文通訊 (background ↔ content ↔ popup)
-  - Promise包裝Chrome API呼叫
-  - 多分頁事件分發機制
-  - 錯誤容錯和資源管理 (22個測試)
+- **企業級特性**
+  - 錯誤隔離 (單一監聽器錯誤不影響其他)
+  - 記憶體洩漏防護
+  - 完整的事件生命週期管理
 
-### 技術架構 🏗
-
-- **完整事件系統**: EventBus + EventHandler + ChromeEventBridge
-- **測試覆蓋**: 57個事件系統測試，100%通過
-- **高精度監控**: performance.now時間測量
-- **多書城準備**: 可擴展的跨網站通訊基礎
-
-### 技術改進 🔧
-
-- Jest模組路徑映射修復 (moduleNameMapper)
-- JavaScript falsy值處理優化
-- 完整的JSDoc文檔標準
-- v0.1.0 詳細工作日誌系統
+- **測試覆蓋**: 23個專業單元測試 (100% 通過)
 
 ---
 
-## [0.0.1] - 2025-07-29
+## [0.0.1] - 2025-01-29 ✅
 
-### 重大里程碑 🎉
+### 專案初始化
 
-- 100% 測試通過 (50/50)
-- TDD基礎完成 (4個循環)
-- 多書城架構設計
+- **基礎專案架構建立**
+  - TDD 測試環境配置 (Jest + Chrome Extension API Mocking)
+  - 專案檔案結構整理 (`src/`, `tests/`, `docs/`, `assets/`)
+  - 開發工作流程建立 (.gitignore, package.json, jest.config.js)
 
-### 新增 ✨
+- **文檔系統建立**
+  - 專案說明文檔 (`docs/README.md`)
+  - 工作日誌系統 (`docs/work-logs/`)
+  - 任務追蹤系統 (`docs/todolist.md`)
+  - 開發規範 (`.cursorrules`)
 
-- 完整的 TDD 測試框架基礎設施
-- 多書城支援架構
-- 書籍ID驗證邏輯 (域名+模式)
-- 完整資料格式驗證
-- Chrome Extension API 模擬機制
-- 改善的儲存模擬機制
+- **測試基礎設施**
+  - Chrome Extension API 模擬 (`tests/mocks/`)
+  - 測試資料和夾具 (`tests/fixtures/`)
+  - 通用測試工具 (`tests/test-setup.js`)
 
-### 變更 🔄
-
-- 檔案結構整理到 docs/
-- 測試框架穩定性提升
-- 書籍ID處理邏輯重構
-
-### 技術架構 🏗
-
-- **測試框架**: Jest + Chrome Extension API Mocks
-- **專案結構**: 事件驅動的模組化設計
-- **開發方法**: 嚴格的 TDD (Test-Driven Development)
-
-### 技術改進 🔧
-
-- 工作日誌管理系統
-- 開發規範檔案 (.cursorrules)
-- TDD循環追蹤機制
-- Chrome Storage 配額錯誤處理
-- localStorage 模擬修正
-- **下一里程碑**: Chrome Extension manifest 配置與核心功能實現
-
----
-
-## 版本說明
-
-### 專案進度統計 📊
-
-**當前狀態**: v0.2.0 資料提取器完整實現  
-**整體進度**: 33% (事件系統 + 資料提取器已完成)  
-**測試覆蓋**: 269個測試，11個測試套件，100%通過率  
-**程式規模**: 3,000+ 行專業程式碼  
-**TDD循環**: 12個完整循環 (v0.1.0: 3個 + v0.2.0: 9個)  
-**開發品質**: 企業級標準，完整文檔和工作日誌
-
-**下一里程碑**: v0.3.0 Chrome Extension 核心架構
-
-### 技術棧概覽 🛠
-
-**核心架構**:
-- 🎭 **事件驅動系統**: EventBus + EventHandler + ChromeEventBridge
-- 📚 **資料提取器**: BookDataExtractor + ReadmooAdapter + ProgressHandler + CompletedHandler
-- 🛡 **資料驗證**: ReadmooDataValidator (企業級驗證和清理系統)
-
-**測試框架**:
-- 🧪 **Jest**: 單元測試和整合測試框架
-- 🔧 **Chrome API Mocks**: jest-chrome 完整 Chrome Extension API 模擬
-- 📊 **測試覆蓋**: 100% 功能覆蓋，多層級測試策略
-
-**開發工具**:
-- 📝 **TDD方法論**: 嚴格的紅綠重構循環
-- 📋 **工作日誌系統**: 詳細的開發過程記錄
-- 🔍 **程式碼品質**: ESLint + 單一責任原則 + 詳細註解
-
-**未來擴展**:
-- 🌐 **多書城支援**: 博客來、金石堂、Kobo (架構已預留)
-- 📦 **Chrome Extension**: Manifest V3 + Background Script + Content Script
-- 💾 **儲存系統**: Chrome Storage + IndexedDB + 資料匯出
-- 🎨 **使用者介面**: 現代化 UI + 響應式設計
-
-### 版本編號規則
-
-- **主版本號 (Major)**: 重大功能變更或不相容的 API 變更
-- **次版本號 (Minor)**: 向下相容的新功能
-- **修訂版本號 (Patch)**: 向下相容的問題修正
-
-### 發布計劃
-
-- **v1.0.0**: 完整功能的 Chrome Extension，準備上架 Chrome Web Store
-- **v0.6.0**: UI 組件和使用者體驗完成 (計劃中)
-- **v0.5.0**: Overview 頁面功能整合 (計劃中)
-- **v0.4.0**: 儲存系統實現 (計劃中)
-- **v0.3.0**: Chrome Extension 核心架構實現 (計劃中)
-- **v0.2.0**: ✅ 資料提取器完整實現 (已完成 - 2025-01-29)
-- **v0.1.0**: ✅ 事件系統核心完成 (已完成 - 2025-01-29)
-- **v0.0.1**: ✅ 基礎架構與測試框架建立 (已完成)
-
-### 變更類型標籤
-
-- **新增** ✨ - 新功能
-- **變更** 🔄 - 現有功能的變更
-- **棄用** ⚠️ - 即將移除的功能
-- **移除** ❌ - 已移除的功能
-- **修正** 🐛 - 錯誤修正
-- **安全性** 🔒 - 安全性相關修正
+- **版本控制**
+  - Git 倉庫初始化
+  - Conventional Commits 格式
+  - 分支策略建立
