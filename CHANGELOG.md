@@ -1,36 +1,42 @@
-# 版本變更紀錄
+# 📋 Readmoo 書庫提取器 Chrome Extension - 版本變更紀錄
 
-此檔案記錄了 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更。
+本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
-格式基於 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.0.0/)，
-版本號遵循 [語意化版本控制](https://semver.org/lang/zh-TW/)。
+## [0.3.5] - 2025-07-30 ✅
 
-## [未發布]
+### TDD Cycle #14: 提取控制界面完整實現
 
-### 計劃功能
+- **高級提取控制功能** (`src/popup/popup.js`)
+  - 智能按鈕狀態管理和動態文字更新
+  - 提取取消機制 (`cancelExtraction`)
+  - 進度中狀態視覺回饋
 
-- Popup UI 基礎整合 (v0.3.4)
-- Popup 事件整合 (v0.3.5) 
-- 儲存系統實現 (v0.4.0)
-- Overview 頁面功能整合 (v0.5.0)
-- 使用者介面開發 (v0.6.0)
+- **視覺化進度顯示系統** (`src/popup/popup.html`)
+  - 即時進度條 (`progressContainer`, `progressBar`)
+  - 百分比數值顯示 (`progressPercentage`)
+  - 進度描述文字 (`progressText`)
+  - 平滑動畫效果和 CSS 優化
 
----
+- **結果展示和統計功能**
+  - 提取結果統計 (`extractedBookCount`, `extractionTime`, `successRate`)
+  - 結果匯出框架 (`exportResults`)
+  - 詳情查看準備 (`viewResultsBtn`)
+  - 結果數據展示邏輯 (`displayExtractionResults`)
 
-## [0.3.0] - 2025-07-30 ✅
+- **完善的錯誤處理系統**
+  - 詳細錯誤訊息顯示 (`errorContainer`, `errorMessage`)
+  - 一鍵重試機制 (`retryExtraction`)
+  - 問題回報準備 (`reportBtn`)
+  - 優雅的錯誤恢復流程 (`handleExtractionError`)
 
-### 重大里程碑 🎊
+- **事件系統整合增強**
+  - 新增 6 個專業按鈕事件監聽器
+  - 統一的事件處理機制優化
+  - 完整的使用者互動支援
 
-- **Chrome Extension 核心架構完成**
-- 70個專業整合測試全部通過 (100%)
-- 3個完整TDD循環實現 (v0.3.1 - v0.3.3)
-- 事件系統 + 提取器 + Chrome Extension 的完美整合
-
-### 架構完成 🏗
-
-- **Manifest V3 配置** (v0.3.1)
-- **Background Service Worker 事件整合** (v0.3.2) 
-- **Content Script 提取器整合** (v0.3.3)
+- **測試覆蓋**: 12個專業整合測試 (100% 通過)
+- **程式碼品質**: 689 行專業級程式碼，模組化設計
+- **UI/UX**: 4 大核心功能完整實現，視覺回饋優化
 
 ---
 
@@ -133,7 +139,7 @@
 
 ---
 
-## [0.2.0] - 2025-07-30 ✅
+## [0.2.0] - 2025-07-29 ✅
 
 ### 重大里程碑 🎊
 
@@ -152,7 +158,7 @@
 
 ---
 
-## [0.2.5] - 2025-07-30 ✅
+## [0.2.5] - 2025-07-29 ✅
 
 ### TDD Cycle #9: ReadmooDataValidator 資料驗證器
 
@@ -171,7 +177,7 @@
 
 ---
 
-## [0.2.4] - 2025-07-30 ✅
+## [0.2.4] - 2025-07-29 ✅
 
 ### TDD Cycle #8: ExtractionCompletedHandler 完成處理器
 
@@ -190,7 +196,7 @@
 
 ---
 
-## [0.2.3] - 2025-07-30 ✅
+## [0.2.3] - 2025-07-29 ✅
 
 ### TDD Cycle #7: ExtractionProgressHandler 進度處理器
 
@@ -209,7 +215,7 @@
 
 ---
 
-## [0.2.2] - 2025-07-30 ✅
+## [0.2.2] - 2025-07-29 ✅
 
 ### TDD Cycle #4: ReadmooAdapter 專用適配器
 
@@ -228,7 +234,7 @@
 
 ---
 
-## [0.2.1] - 2025-07-30 ✅
+## [0.2.1] - 2025-07-29 ✅
 
 ### TDD Cycle #3: BookDataExtractor 核心提取器
 
@@ -248,7 +254,7 @@
 
 ---
 
-## [0.1.0] - 2025-07-30 ✅
+## [0.1.0] - 2025-07-29 ✅
 
 ### 重大里程碑 🎊
 
@@ -265,7 +271,7 @@
 
 ---
 
-## [0.1.3] - 2025-07-30 ✅
+## [0.1.3] - 2025-07-29 ✅
 
 ### TDD Cycle #3: ChromeEventBridge 跨上下文通訊
 
@@ -284,7 +290,7 @@
 
 ---
 
-## [0.1.2] - 2025-07-30 ✅
+## [0.1.2] - 2025-07-29 ✅
 
 ### TDD Cycle #2: EventHandler 處理器基底
 
@@ -303,7 +309,7 @@
 
 ---
 
-## [0.1.1] - 2025-07-30 ✅
+## [0.1.1] - 2025-07-29 ✅
 
 ### TDD Cycle #1: EventBus 事件總線
 
@@ -323,7 +329,7 @@
 
 ---
 
-## [0.0.1] - 2025-07-30 ✅
+## [0.0.1] - 2025-07-29 ✅
 
 ### 專案初始化
 

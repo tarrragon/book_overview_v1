@@ -89,7 +89,27 @@ const elements = {
   helpBtn: document.getElementById('helpBtn'),
   pageInfo: document.getElementById('pageInfo'),
   bookCount: document.getElementById('bookCount'),
-  extensionStatus: document.getElementById('extensionStatus')
+  extensionStatus: document.getElementById('extensionStatus'),
+  
+  // 進度顯示元素
+  progressContainer: document.getElementById('progressContainer'),
+  progressBar: document.getElementById('progressBar'),
+  progressText: document.getElementById('progressText'),
+  progressPercentage: document.getElementById('progressPercentage'),
+  
+  // 結果展示元素
+  resultsContainer: document.getElementById('resultsContainer'),
+  extractedBookCount: document.getElementById('extractedBookCount'),
+  extractionTime: document.getElementById('extractionTime'),
+  successRate: document.getElementById('successRate'),
+  exportBtn: document.getElementById('exportBtn'),
+  viewResultsBtn: document.getElementById('viewResultsBtn'),
+  
+  // 錯誤訊息元素
+  errorContainer: document.getElementById('errorContainer'),
+  errorMessage: document.getElementById('errorMessage'),
+  retryBtn: document.getElementById('retryBtn'),
+  reportBtn: document.getElementById('reportBtn')
 };
 
 // ==================== 狀態管理 ====================
@@ -121,13 +141,203 @@ function updateStatus(status, text, info, type = STATUS_TYPES.LOADING) {
  * 更新按鈕狀態
  * 
  * @param {boolean} disabled - 是否禁用提取按鈕
+ * @param {string} [text] - 按鈕文字 (可選)
  * 
  * 負責功能：
  * - 統一管理按鈕的啟用/禁用狀態
  * - 提供一致的使用者互動控制
+ * - 支援動態按鈕文字更新
  */
-function updateButtonState(disabled) {
+function updateButtonState(disabled, text) {
   elements.extractBtn.disabled = disabled;
+  if (text) {
+    elements.extractBtn.textContent = text;
+  }
+}
+
+// ==================== 進度顯示功能 ====================
+
+/**
+ * 更新提取進度
+ * 
+ * @param {number} percentage - 進度百分比 (0-100)
+ * @param {string} text - 進度描述文字
+ * 
+ * 負責功能：
+ * - 更新進度條視覺顯示
+ * - 更新進度百分比數值
+ * - 更新進度描述文字
+ * 
+ * 設計考量：
+ * - 平滑的進度條動畫效果
+ * - 即時的進度回饋
+ */
+function updateProgress(percentage, text) {
+  if (!elements.progressContainer || !elements.progressBar) return;
+  
+  // 顯示進度容器
+  elements.progressContainer.style.display = 'block';
+  
+  // 更新進度條寬度
+  const progressFill = elements.progressBar.querySelector('.progress-fill');
+  if (progressFill) {
+    progressFill.style.width = `${Math.min(100, Math.max(0, percentage))}%`;
+  }
+  
+  // 更新進度百分比
+  if (elements.progressPercentage) {
+    elements.progressPercentage.textContent = `${Math.round(percentage)}%`;
+  }
+  
+  // 更新進度文字
+  if (elements.progressText && text) {
+    elements.progressText.textContent = text;
+  }
+}
+
+/**
+ * 隱藏進度顯示
+ * 
+ * 負責功能：
+ * - 隱藏進度顯示容器
+ * - 重置進度狀態
+ */
+function hideProgress() {
+  if (elements.progressContainer) {
+    elements.progressContainer.style.display = 'none';
+  }
+}
+
+// ==================== 結果展示功能 ====================
+
+/**
+ * 展示提取結果
+ * 
+ * @param {Object} results - 提取結果資料
+ * @param {number} results.bookCount - 提取的書籍數量
+ * @param {string} results.extractionTime - 提取耗時
+ * @param {number} results.successRate - 成功率
+ * 
+ * 負責功能：
+ * - 顯示提取結果統計資訊
+ * - 啟用結果相關操作按鈕
+ * - 提供結果查看和匯出功能
+ */
+function displayExtractionResults(results) {
+  if (!elements.resultsContainer) return;
+  
+  // 顯示結果容器
+  elements.resultsContainer.style.display = 'block';
+  
+  // 更新結果資訊
+  if (elements.extractedBookCount) {
+    elements.extractedBookCount.textContent = results.bookCount || 0;
+  }
+  
+  if (elements.extractionTime) {
+    elements.extractionTime.textContent = results.extractionTime || '-';
+  }
+  
+  if (elements.successRate) {
+    elements.successRate.textContent = results.successRate ? `${results.successRate}%` : '-';
+  }
+  
+  // 啟用操作按鈕
+  if (elements.exportBtn) {
+    elements.exportBtn.disabled = false;
+  }
+  
+  if (elements.viewResultsBtn) {
+    elements.viewResultsBtn.disabled = false;
+  }
+}
+
+/**
+ * 匯出提取結果
+ * 
+ * 負責功能：
+ * - 處理結果資料匯出
+ * - 支援多種匯出格式
+ * 
+ * 使用情境：
+ * - 使用者點擊匯出按鈕時呼叫
+ */
+function exportResults() {
+  // TODO: 實現結果匯出功能
+  window.alert('匯出功能將在後續版本實現');
+}
+
+// ==================== 錯誤處理功能 ====================
+
+/**
+ * 顯示錯誤訊息
+ * 
+ * @param {string} message - 錯誤訊息
+ * @param {Error} [error] - 錯誤物件 (可選)
+ * 
+ * 負責功能：
+ * - 顯示詳細的錯誤訊息
+ * - 提供錯誤恢復選項
+ * - 記錄錯誤資訊供除錯使用
+ */
+function handleExtractionError(message, error) {
+  if (!elements.errorContainer) return;
+  
+  // 顯示錯誤容器
+  elements.errorContainer.style.display = 'block';
+  
+  // 隱藏進度顯示
+  hideProgress();
+  
+  // 更新錯誤訊息
+  if (elements.errorMessage) {
+    elements.errorMessage.textContent = message || '發生未知錯誤';
+  }
+  
+  // 記錄詳細錯誤資訊
+  if (error) {
+    console.error('❌ 提取錯誤詳情:', error);
+  }
+  
+  // 重置按鈕狀態
+  updateButtonState(false, '🚀 開始提取書庫資料');
+}
+
+/**
+ * 重試提取操作
+ * 
+ * 負責功能：
+ * - 隱藏錯誤訊息
+ * - 重新啟動提取流程
+ * 
+ * 使用情境：
+ * - 使用者點擊重試按鈕時呼叫
+ */
+function retryExtraction() {
+  // 隱藏錯誤容器
+  if (elements.errorContainer) {
+    elements.errorContainer.style.display = 'none';
+  }
+  
+  // 重新開始提取
+  startExtraction();
+}
+
+/**
+ * 處理取消提取操作
+ * 
+ * 負責功能：
+ * - 取消進行中的提取操作
+ * - 重置界面狀態
+ * 
+ * 使用情境：
+ * - 使用者需要中止提取時呼叫
+ */
+function cancelExtraction() {
+  // TODO: 實現取消提取功能
+  hideProgress();
+  updateButtonState(false, '🚀 開始提取書庫資料');
+  updateStatus('擴展就緒', '準備開始提取', '請前往 Readmoo 書庫頁面', STATUS_TYPES.READY);
 }
 
 // ==================== 通訊管理 ====================
@@ -317,21 +527,43 @@ function showHelp() {
 // ==================== 事件管理 ====================
 
 /**
- * 事件監聽器設定
+ * 設定事件監聽器
  * 
  * 負責功能：
- * - 設定所有按鈕的點擊事件監聽器
- * - 統一管理事件處理邏輯
+ * - 為所有互動元素設定適當的事件監聽器
+ * - 確保使用者互動能正確觸發對應功能
  * 
  * 設計考量：
- * - 使用命名函數提高程式碼可讀性
- * - 便於測試和除錯
- * - 集中管理所有事件綁定
+ * - 統一的事件處理機制
+ * - 清晰的職責分離
  */
 function setupEventListeners() {
+  // 主要操作按鈕
   elements.extractBtn.addEventListener('click', startExtraction);
   elements.settingsBtn.addEventListener('click', showSettings);
   elements.helpBtn.addEventListener('click', showHelp);
+  
+  // 結果操作按鈕
+  if (elements.exportBtn) {
+    elements.exportBtn.addEventListener('click', exportResults);
+  }
+  
+  if (elements.viewResultsBtn) {
+    elements.viewResultsBtn.addEventListener('click', () => {
+      window.alert('查看詳情功能將在後續版本實現');
+    });
+  }
+  
+  // 錯誤處理按鈕
+  if (elements.retryBtn) {
+    elements.retryBtn.addEventListener('click', retryExtraction);
+  }
+  
+  if (elements.reportBtn) {
+    elements.reportBtn.addEventListener('click', () => {
+      window.alert('問題回報功能將在後續版本實現');
+    });
+  }
 }
 
 // ==================== 初始化和生命週期管理 ====================
@@ -420,11 +652,21 @@ function handleGlobalError(event) {
 if (typeof window !== 'undefined') {
   window.elements = elements;
   window.updateStatus = updateStatus;
+  window.updateButtonState = updateButtonState;
   window.checkCurrentTab = checkCurrentTab;
   window.checkBackgroundStatus = checkBackgroundStatus;
   window.startExtraction = startExtraction;
   window.setupEventListeners = setupEventListeners;
   window.initialize = initialize;
+  
+  // 新增的進度和結果功能
+  window.updateProgress = updateProgress;
+  window.hideProgress = hideProgress;
+  window.displayExtractionResults = displayExtractionResults;
+  window.exportResults = exportResults;
+  window.handleExtractionError = handleExtractionError;
+  window.retryExtraction = retryExtraction;
+  window.cancelExtraction = cancelExtraction;
   
   // 暴露常數供測試驗證
   window.STATUS_TYPES = STATUS_TYPES;

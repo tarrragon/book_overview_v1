@@ -123,6 +123,72 @@
       color: rgba(255, 255, 255, 0.7);
       margin-top: 20px;
     }
+
+    /* New styles for progress and results sections */
+    .progress-header, .results-header, .error-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .progress-header strong, .results-header strong, .error-header strong {
+      font-size: 14px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .progress-percentage {
+      font-size: 14px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .progress-bar-container {
+      height: 8px;
+      background-color: #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(to right, #4f46e5, #6366f1);
+      border-radius: 4px;
+      transition: width 0.3s ease-in-out;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #4f46e5;
+      border-radius: 4px;
+      transition: width 0.3s ease-in-out;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .button.small {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+
+    .error-card {
+      background-color: #fef3f2;
+      border: 1px solid #fcd3c7;
+      color: #991b1b;
+    }
+
+    .error-message {
+      font-size: 12px;
+      color: #991b1b;
+      line-height: 1.4;
+      margin-bottom: 15px;
+    }
   </style>
 </head>
 <body>
@@ -158,6 +224,60 @@
       </button>
     </div>
     
+    <!-- 進度顯示區域 -->
+    <div class="status-card" id="progressContainer" style="display: none;">
+      <div class="progress-header">
+        <strong>📊 提取進度</strong>
+        <span id="progressPercentage">0%</span>
+      </div>
+      <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
+      <div class="info-text" id="progressText">
+        準備開始提取...
+      </div>
+    </div>
+    
+    <!-- 結果展示區域 -->
+    <div class="status-card" id="resultsContainer" style="display: none;">
+      <div class="results-header">
+        <strong>📋 提取結果</strong>
+      </div>
+      <div class="info-text">
+        <strong>已提取書籍:</strong> <span id="extractedBookCount">0</span> 本<br>
+        <strong>提取時間:</strong> <span id="extractionTime">-</span><br>
+        <strong>成功率:</strong> <span id="successRate">-</span>
+      </div>
+      <div class="action-buttons">
+        <button class="button secondary small" id="exportBtn" disabled>
+          💾 匯出資料
+        </button>
+        <button class="button secondary small" id="viewResultsBtn" disabled>
+          👁️ 查看詳情
+        </button>
+      </div>
+    </div>
+    
+    <!-- 錯誤訊息區域 -->
+    <div class="status-card error-card" id="errorContainer" style="display: none;">
+      <div class="error-header">
+        <strong>⚠️ 錯誤訊息</strong>
+      </div>
+      <div class="error-message" id="errorMessage">
+        發生未知錯誤
+      </div>
+      <div class="action-buttons">
+        <button class="button secondary small" id="retryBtn">
+          🔄 重試
+        </button>
+        <button class="button secondary small" id="reportBtn">
+          📝 回報問題
+        </button>
+      </div>
+    </div>
+    
     <!-- 頁面信息 -->
     <div class="status-card">
       <div class="info-text">
@@ -169,7 +289,7 @@
   </div>
   
   <div class="version">
-    v0.3.0 開發版本
+    v0.3.5 開發版本
   </div>
   
   <script src="popup.js"></script>

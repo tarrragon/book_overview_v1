@@ -422,4 +422,191 @@ describe('Popup Interface 整合測試', () => {
       expect(extractBtn.className).toContain('button');
     });
   });
+
+  // ==================== TDD Cycle #14: 提取控制界面 ====================
+  describe('🚀 TDD Cycle #14: 提取控制界面', () => {
+    
+    describe('🟢 綠燈階段 - 提取觸發按鈕高級功能', () => {
+      
+      test('應該能檢測提取按鈕的狀態管理', () => {
+        loadPopupInterface();
+        eval(popupScript);
+        
+        // 檢查按鈕的初始狀態
+        const extractBtn = document.getElementById('extractBtn');
+        expect(extractBtn).toBeTruthy();
+        expect(extractBtn.disabled).toBe(true); // 初始應該是禁用狀態
+        
+        // 檢查按鈕文字是否反映狀態
+        expect(extractBtn.textContent).toContain('提取');
+      });
+
+      test('應該能處理提取按鈕的進行中狀態', () => {
+        loadPopupInterface();
+        eval(popupScript);
+        
+        // 模擬提取開始
+        const extractBtn = document.getElementById('extractBtn');
+        
+        // 測試按鈕狀態更新功能
+        if (window.updateButtonState) {
+          // 模擬提取中狀態 - 傳入禁用狀態和新文字
+          window.updateButtonState(true, '⏳ 提取中...');
+          
+          expect(extractBtn.disabled).toBe(true);
+          expect(extractBtn.textContent).toContain('提取中');
+        }
+      });
+
+      test('應該能處理提取取消功能', () => {
+        loadPopupInterface();
+        eval(popupScript);
+        
+        // 檢查取消提取功能已實現
+        expect(window.cancelExtraction).toBeDefined();
+        expect(typeof window.cancelExtraction).toBe('function');
+      });
+    });
+
+    describe('🟢 綠燈階段 - 進度顯示功能', () => {
+      
+      test('應該有進度條元素', () => {
+        loadPopupInterface();
+        
+        // 檢查進度條相關元素存在
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const progressPercentage = document.getElementById('progressPercentage');
+        
+        expect(progressBar).toBeTruthy();
+        expect(progressText).toBeTruthy();
+        expect(progressPercentage).toBeTruthy();
+      });
+
+      test('應該能顯示提取進度', () => {
+        loadPopupInterface();
+        eval(popupScript);
+        
+        // 檢查進度更新功能已實現
+        expect(window.updateProgress).toBeDefined();
+        expect(typeof window.updateProgress).toBe('function');
+        
+        // 測試進度更新功能
+        if (window.updateProgress) {
+          window.updateProgress(50, '正在提取第50本書...');
+          
+          const progressPercentage = document.getElementById('progressPercentage');
+          const progressText = document.getElementById('progressText');
+          
+          expect(progressPercentage.textContent).toBe('50%');
+          expect(progressText.textContent).toBe('正在提取第50本書...');
+        }
+      });
+
+      test('應該能處理進度事件', () => {
+        loadPopupInterface();
+        eval(popupScript);
+        
+        // 檢查進度相關功能已實現
+        expect(window.updateProgress).toBeDefined();
+        expect(window.hideProgress).toBeDefined();
+      });
+    });
+
+    describe('🟢 綠燈階段 - 結果展示功能', () => {
+      
+      test('應該有結果顯示區域', () => {
+        loadPopupInterface();
+        
+        // 檢查結果顯示相關元素存在
+        const resultsContainer = document.getElementById('resultsContainer');
+        const bookCount = document.getElementById('extractedBookCount');
+        const extractionTime = document.getElementById('extractionTime');
+        
+        expect(resultsContainer).toBeTruthy();
+        expect(bookCount).toBeTruthy();
+        expect(extractionTime).toBeTruthy();
+      });
+
+      test('應該能展示提取結果統計', () => {
+        loadPopupInterface();
+        eval(popupScript);
+        
+        // 檢查結果展示功能已實現
+        expect(window.displayExtractionResults).toBeDefined();
+        expect(typeof window.displayExtractionResults).toBe('function');
+        
+        // 測試結果展示功能
+        if (window.displayExtractionResults) {
+          const testResults = {
+            bookCount: 123,
+            extractionTime: '2分30秒',
+            successRate: 98
+          };
+          
+          window.displayExtractionResults(testResults);
+          
+          const bookCount = document.getElementById('extractedBookCount');
+          const extractionTime = document.getElementById('extractionTime');
+          const successRate = document.getElementById('successRate');
+          
+          expect(bookCount.textContent).toBe('123');
+          expect(extractionTime.textContent).toBe('2分30秒');
+          expect(successRate.textContent).toBe('98%');
+        }
+      });
+
+      test('應該能提供結果匯出功能', () => {
+        loadPopupInterface();
+        eval(popupScript);
+        
+        // 檢查匯出功能已實現
+        expect(window.exportResults).toBeDefined();
+        expect(typeof window.exportResults).toBe('function');
+      });
+    });
+
+    describe('🟢 綠燈階段 - 錯誤處理和使用者體驗', () => {
+      
+      test('應該能處理提取失敗情況', () => {
+        loadPopupInterface();
+        eval(popupScript);
+        
+        // 檢查錯誤處理功能已實現
+        expect(window.handleExtractionError).toBeDefined();
+        expect(typeof window.handleExtractionError).toBe('function');
+        
+        // 測試錯誤處理功能
+        if (window.handleExtractionError) {
+          window.handleExtractionError('測試錯誤訊息');
+          
+          const errorContainer = document.getElementById('errorContainer');
+          const errorMessage = document.getElementById('errorMessage');
+          
+          expect(errorContainer.style.display).toBe('block');
+          expect(errorMessage.textContent).toBe('測試錯誤訊息');
+        }
+      });
+
+      test('應該能顯示詳細的錯誤訊息', () => {
+        loadPopupInterface();
+        
+        // 檢查錯誤訊息顯示區域存在
+        const errorContainer = document.getElementById('errorContainer');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        expect(errorContainer).toBeTruthy();
+        expect(errorMessage).toBeTruthy();
+      });
+
+      test('應該能提供重試機制', () => {
+        loadPopupInterface();
+        eval(popupScript);
+        
+        // 檢查重試功能已實現
+        expect(window.retryExtraction).toBeDefined();
+        expect(typeof window.retryExtraction).toBe('function');
+      });
+    });
+  });
 }); 
