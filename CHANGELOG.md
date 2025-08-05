@@ -2,6 +2,40 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [0.5.19] - 2025-08-05 🖥️
+
+### TDD 循環 #26: Overview 頁面架構實現
+
+- **OverviewPageController 類別實現** (21/21 測試通過)
+  - 新增 `src/overview/overview-page-controller.js` (580+ 行完整實現)
+  - 繼承 EventHandler 基底類別，實現標準化事件處理流程
+  - 支援事件驅動的資料管理：STORAGE.LOAD.COMPLETED、EXTRACTION.COMPLETED、UI.BOOKS.UPDATE
+  - 完整的 DOM 管理：20個 UI 元素統一初始化和狀態控制
+
+- **Overview 頁面核心功能**
+  - 響應式資料更新：搜尋、篩選、顯示的即時同步機制
+  - 多功能操作支援：搜尋、CSV匯出、重載、JSON檔案載入
+  - 載入狀態管理：載入指示器、錯誤訊息、狀態轉換動畫
+  - 書籍表格渲染：動態內容生成、空資料狀態、統計資訊更新
+
+- **程式碼品質優化 (Refactor)**
+  - 常數管理：CONSTANTS 物件集中管理魔法數字和字串
+  - 方法重構：表格渲染分離、CSV匯出模組化、工具方法抽象
+  - EventHandler 介面修正：正確實現 getSupportedEvents() 和 process() 方法
+  - 程式碼分離：單一責任原則、模組化設計、可維護性提升
+
+- **測試架構完善**
+  - 新增 `tests/unit/overview/overview-page-controller.test.js` (21 個專業測試)
+  - 完整覆蓋：頁面初始化、資料載入、搜尋篩選、載入狀態、使用者操作、EventHandler 整合
+  - TDD 完整流程：Red-Green-Refactor 嚴格遵循，確保架構穩定性
+  - 事件系統整合：驗證與現有 EventBus 架構的無縫銜接
+
+- **技術架構決策**
+  - 事件驅動設計：完全整合到現有事件系統，支援優先級和統計追蹤
+  - DOM 元素管理：分類組織、快取機制、安全存取模式
+  - 資料流設計：單一資料源、響應式更新、狀態同步機制
+  - 錯誤處理策略：多層次錯誤處理、使用者友善訊息、狀態恢復機制
+
 ## [0.5.18] - 2025-08-05 🎨
 
 ### TDD 循環 #25: Popup UI 組件完整實現
