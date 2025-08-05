@@ -2,6 +2,28 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [0.5.17] - 2025-08-05 🤖
+
+### Agent 系統整合與規範完善
+
+- **Agent 檔案修正與改進**
+  - 修正 `project-compliance-agent.md` 缺少的 tools 屬性配置
+  - 為 `ginger-performance-tuner`、`coriander-integration-tester`、`basil-event-architect` 新增必要工具 (Bash、Task)
+  - 統一 `basil-event-architect` 事件命名規範，符合現有程式碼模式
+  - 完成全部 10 個代理人檔案的品質評估和分類
+
+- **CLAUDE.md 規範擴充**
+  - 新增「🤖 Agent 協作規範」：定義 TDD 核心代理人 (sage/pepper/cinnamon) 和 7 個專業領域代理人
+  - 新增「🔄 上下文管理規範」：強制循環完成後清除上下文，實踐 DDD 有界上下文原則
+  - 新增「獨立功能設計原則」：可獨立測試、明確邊界、領域隔離、事件解耦四大原則
+  - 強化開發流程標準化和自動品質保證機制
+
+- **架構決策與影響**
+  - Agent 工具標準化：確立每類代理人的基礎工具需求
+  - 事件命名彈性化：支援 `MODULE.ACTION.STATE` 和 `MODULE.CATEGORY.ACTION` 兩種模式
+  - 上下文獨立性：強化 DDD 原則，確保每個開發循環的獨立性
+  - 品質保證自動化：透過代理人自動觸發機制確保開發品質
+
 ## [0.5.16] - 2025-01-29 🟢
 
 ### TDD Cycle #26 綠燈階段: UI 處理器實現

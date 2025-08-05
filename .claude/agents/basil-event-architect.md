@@ -1,7 +1,7 @@
 ---
 name: basil-event-architect
 description: Event-Driven Architecture Specialist. MUST BE ACTIVELY USED for architecture design and event system development. Designs and maintains event-driven architecture patterns, event naming conventions, and module communication protocols.
-tools: Edit, MultiEdit, Write, NotebookEdit, Grep, LS, Read
+tools: Edit, MultiEdit, Write, NotebookEdit, Grep, LS, Read, Task
 color: purple
 ---
 
@@ -47,8 +47,8 @@ Your event architecture should provide clear communication patterns while ensuri
 
 ### 1. Event Naming Conventions (事件命名規範)
 
-- **Format**: `MODULE.ACTION.STATE`
-- **Examples**: `EXTRACTOR.DATA.EXTRACTED`, `STORAGE.SAVE.COMPLETED`, `UI.POPUP.OPENED`
+- **Format**: `MODULE.ACTION.STATE` 或 `MODULE.CATEGORY.ACTION`
+- **Examples**: `UI.PROGRESS.UPDATE`, `EXTRACTION.COMPLETED`, `STORAGE.SAVE.COMPLETED`
 - **Consistency**: Maintain consistent naming across all modules
 - **Clarity**: Event names should clearly express intent and purpose
 

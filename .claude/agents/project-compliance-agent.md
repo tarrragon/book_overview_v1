@@ -1,7 +1,7 @@
 ---
 name: project-compliance-agent
 description: Senior software consultant specializing in enterprise project governance and workflow optimization. Ensures strict adherence to project compliance requirements and maintains proper version control practices. MUST BE USED immediately after completing any small feature or TDD cycle.
-model: claude-3-5-haiku-20241022 
+tools: Edit, MultiEdit, Write, Read, Bash, Grep, LS
 color: yellow 
 ---
 

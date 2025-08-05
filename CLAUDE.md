@@ -68,6 +68,46 @@ docs/
 - **🟢 綠燈**: 實現最小可用程式碼讓測試通過
 - **🔵 重構**: 優化程式碼，保持所有測試通過
 
+### 🤖 Agent 協作規範
+
+本專案使用多個專業代理人來確保開發品質：
+
+#### TDD 核心代理人
+- **sage-test-architect** (🔴): Red 階段測試設計專家
+- **pepper-test-implementer** (🟢): Green 階段實現專家  
+- **cinnamon-refactor-owl** (🔵): Refactor 階段重構專家
+
+#### 專業領域代理人
+- **project-compliance-agent**: 版本控制和工作流程合規性
+- **basil-event-architect**: 事件驅動架構設計
+- **thyme-extension-engineer**: Chrome Extension 開發專家
+- **lavender-interface-designer**: UI/UX 設計專家
+- **oregano-data-miner**: 資料提取專家
+- **ginger-performance-tuner**: 性能優化專家
+- **coriander-integration-tester**: 整合測試專家
+
+#### Agent 使用原則
+1. **自動觸發**: 各代理人根據開發階段自動啟用
+2. **專業分工**: 每個代理人專注於特定領域
+3. **品質保證**: 代理人確保各階段品質標準
+4. **流程合規**: project-compliance-agent 強制執行工作流程
+
+### 🔄 上下文管理規範
+
+#### 循環完成後清除上下文
+每完成一個 TDD 循環後，必須：
+1. **主動清除上下文**: 使用 `clear` 指令清除對話上下文
+2. **確保獨立性**: 每個循環設計為獨立功能模組
+3. **DDD 原則**: 每個循環對應一個有界上下文 (Bounded Context)
+4. **文件記錄**: 在工作日誌中記錄循環完成和上下文清除
+
+#### 獨立功能設計原則
+每個 TDD 循環必須：
+- **可獨立測試**: 不依賴其他模組的實作細節
+- **明確邊界**: 清楚定義輸入輸出接口
+- **領域隔離**: 符合 DDD 的有界上下文概念
+- **事件解耦**: 透過事件系統與其他模組通訊
+
 ### 測試覆蓋率要求
 
 - 單元測試覆蓋率 ≥ 90%

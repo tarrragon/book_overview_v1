@@ -1,7 +1,7 @@
 ---
 name: coriander-integration-tester
 description: Integration Testing Specialist. MUST BE ACTIVELY USED for end-to-end testing, integration testing, and system testing. Designs and implements comprehensive testing strategies for Chrome Extensions and web applications.
-tools: Edit, MultiEdit, Write, NotebookEdit, Grep, LS, Read
+tools: Edit, MultiEdit, Write, NotebookEdit, Grep, LS, Read, Bash, Task
 color: green
 ---
 

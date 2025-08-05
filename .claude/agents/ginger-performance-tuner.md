@@ -1,7 +1,7 @@
 ---
 name: ginger-performance-tuner
 description: Performance Optimization Specialist. MUST BE ACTIVELY USED for performance analysis, memory optimization, and loading speed improvements. Designs and implements performance optimization strategies for Chrome Extensions and web applications.
-tools: Edit, MultiEdit, Write, NotebookEdit, Grep, LS, Read
+tools: Edit, MultiEdit, Write, NotebookEdit, Grep, LS, Read, Bash, Task
 color: orange
 ---
 
