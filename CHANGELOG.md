@@ -2,6 +2,35 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [0.5.18] - 2025-08-05 🎨
+
+### TDD 循環 #25: Popup UI 組件完整實現
+
+- **PopupUIComponents 類別實現** (17/17 測試通過)
+  - 新增 `src/popup/popup-ui-components.js` (400+ 行完整實現)
+  - 狀態顯示組件：支援 loading、ready、error 三種狀態的視覺回饋
+  - 進度條組件：動態進度更新、邊界值處理、百分比同步顯示
+  - 結果展示組件：提取結果資料顯示、操作按鈕狀態管理
+  - 錯誤顯示組件：錯誤訊息展示、重試和回報按鈕事件處理
+
+- **UI 組件架構優化**
+  - 組件化設計：statusElements、progressElements、resultsElements、errorElements 分類管理
+  - 工具方法抽象：_setElementVisibility、_updateTextContent、_clampValue 等統一工具
+  - 無障礙功能完整：ARIA 標籤、螢幕閱讀器相容、keyboard navigation 支援
+  - 批量狀態更新：updateUI() 方法支援複雜狀態場景的一次性更新
+
+- **測試架構完善**
+  - 新增 `tests/unit/popup/popup-ui-components.test.js` (17 個專業測試)
+  - 完整覆蓋：狀態組件、進度組件、結果組件、錯誤組件、UI 互動測試
+  - TDD 完整流程：Red-Green-Refactor 嚴格遵循，確保程式碼品質
+  - 邊界條件處理：進度值限制、空值檢查、異常情況完整測試
+
+- **程式碼品質提升**
+  - 常數化管理：STATUS_TYPES、UI_VISIBILITY、PROGRESS_BOUNDS 統一定義
+  - 重構優化：消除重複程式碼、提高可維護性、增強錯誤處理
+  - 向後相容：保持既有介面穩定，確保與 PopupEventController 整合無礙
+  - 效能最佳化：元素引用快取、批量 DOM 操作、事件處理優化
+
 ## [0.5.17] - 2025-08-05 🤖
 
 ### Agent 系統整合與規範完善
