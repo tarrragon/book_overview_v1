@@ -2,6 +2,138 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [0.5.15] - 2025-08-05 🔵
+
+### TDD Cycle #24 重構階段: PopupEventController 優化完成
+
+- **測試修正和優化**
+  - 修正 textContent 期望值類型不符問題（數字 vs 字串）
+  - 優化提取流程測試，正確驗證 extractionInProgress 狀態
+  - 改善通訊錯誤測試，使用 contentScriptReady 狀態控制
+  - 統一所有測試的 Chrome API mock 使用方式
+- **錯誤處理改善**
+  - 標準化錯誤訊息格式，使用繁體中文用戶友善訊息
+  - 改善錯誤恢復機制，確保狀態正確重置
+  - 增強錯誤統計和日誌記錄功能
+- **程式碼品質提升**
+  - 完整的 JSDoc 註解，包含參數、回傳值、使用情境
+  - 統一的常數管理（STATUS_TYPES, MESSAGE_TYPES）
+  - 模組化的方法設計，單一責任原則
+- **重構成果**: 34/34 測試通過，722行完整實現，事件驅動架構完美整合
+
+---
+
+## [0.5.14] - 2025-08-05 🟢
+
+### TDD Cycle #24 綠燈階段: PopupEventController 實現
+
+- **PopupEventController 核心實現** (`src/popup/popup-event-controller.js`)
+  - 繼承 EventHandler 基底類別，實現標準化事件處理
+  - 支援6種事件類型：UI.PROGRESS.UPDATE, EXTRACTION.COMPLETED, EXTRACTION.ERROR 等
+  - 完整的DOM管理：26個UI元素的統一管理和驗證
+  - Chrome API整合：Background Service Worker 和 Content Script 雙向通訊
+- **核心功能實現**
+  - 初始化系統：DOM元素收集、Chrome API檢查、事件監聽器設定
+  - 狀態檢查：Background Service Worker連線測試、Content Script就緒檢查  
+  - 提取流程：完整的資料提取生命週期管理
+  - 進度管理：即時進度更新、進度條動畫、百分比顯示
+  - 結果展示：提取結果統計、操作按鈕啟用、成功回饋
+  - 錯誤恢復：錯誤訊息顯示、重試機制、狀態重置
+- **技術特點**: 事件驅動架構、智能UI狀態同步、多層次錯誤處理
+- **測試整合**: 34個整合測試，涵蓋所有主要功能和邊界情況
+
+---
+
+## [0.5.13] - 2025-08-05 🔴
+
+### TDD Cycle #24 紅燈階段: PopupEventController 測試創建
+
+- **測試重構和優化**
+  - 完全重寫 `tests/unit/popup/popup-event-integration.test.js`
+  - 從原本依賴 JSDOM 執行 popup.js 改為測試 PopupEventController 類別
+  - 34個全面的整合測試，涵蓋基本事件系統整合、狀態更新、進度處理、錯誤處理等
+- **技術設計**
+  - 完整的 Chrome Extension API 模擬 (chrome.runtime + chrome.tabs)
+  - 涵蓋 Popup 界面的所有互動功能和事件處理
+  - 重點測試事件驅動架構的整合效果
+  - DOM 元素管理和狀態同步機制測試
+- **紅燈驗證**: 確認 PopupEventController 不存在，測試正確失敗
+
+---
+
+## [0.5.3] - 2025-07-31 🔵
+
+### TDD Cycle #17 重構階段: ChromeStorageAdapter 代碼優化
+
+- **常數管理優化**
+  - 引入 `STORAGE_TYPES`, `ERROR_TYPES`, `CLEANUP_STRATEGIES` 常數，統一命名規範。
+  - 提高代碼可讀性和維護性，減少硬編碼字串。
+- **配置初始化重構**
+  - 提取 `initializeConfig()` 方法，增加 `timeoutMs` 和 `maxConcurrentOperations` 配置。
+  - 改善配置的擴展性和靈活性。
+- **壓縮工具重構**
+  - 提取 `initializeCompression()` 方法，改善壓縮數據結構。
+  - 為未來整合真實壓縮庫做準備。
+- **錯誤處理標準化**
+  - 實現 `createError()` 方法，標準化錯誤格式。
+  - 支援錯誤鏈和堆疊追蹤，包含類型、時間戳、適配器名稱。
+- **統計功能增強**
+  - 增加壓縮統計追蹤和效能指標分類。
+  - 錯誤詳情記錄和限制，改善監控能力。
+- **清理策略改善**
+  - 統一清理結果格式，改善錯誤處理和回調管理。
+  - 增加策略類型和時間戳記錄。
+- **程式碼品質**: 600+行專業級程式碼，100% 測試通過率。
+- **重構成果**: 改善可維護性、可擴展性，保持功能完整。
+
+---
+
+## [0.5.2] - 2025-07-31 🟢
+
+### TDD Cycle #17 綠燈階段: ChromeStorageAdapter 實現
+
+- **核心功能實現** (`src/storage/adapters/chrome-storage-adapter.js`)
+  - Chrome Storage API 完整整合，支援 save, load, delete, clear, batch 操作。
+  - 配額管理和清理策略實現，智能檢查和自動清理。
+  - 並發控制和鎖定機制，防止同時操作同一key。
+  - 統計追蹤和效能監控，詳細的操作統計和錯誤記錄。
+- **數據壓縮功能**
+  - 支援大型數據自動壓縮 (>1KB閾值)。
+  - 智能解壓縮，保持數據完整性。
+  - 壓縮統計和空間節省追蹤。
+- **錯誤處理和恢復**
+  - 完整的Chrome API錯誤處理。
+  - 配額超限檢測和拒絕機制。
+  - 重試策略和錯誤統計。
+- **測試驗證**
+  - 創建簡化版測試 `tests/unit/storage/adapters/chrome-storage-adapter-simple.test.js`。
+  - 17個核心功能測試全部通過。
+  - 修復test-setup.js中的Chrome API清理問題。
+- **程式碼品質**: 450+行專業級程式碼，完整JSDoc註解。
+- **測試覆蓋**: 17/17 測試通過 (100% 通過率)。
+
+---
+
+## [0.5.1] - 2025-07-31 🔴
+
+### TDD Cycle #17 紅燈階段: ChromeStorageAdapter 測試定義
+
+- **測試文件創建** (`tests/unit/storage/adapters/chrome-storage-adapter-simple.test.js`)
+  - 創建 17 個核心功能測試，涵蓋：
+    - 基本結構測試 (實例化、類型、配置選項、API可用性)
+    - 儲存操作測試 (save, load, delete, clear, 不存在key處理)
+    - 統計功能測試 (統計資訊、操作追蹤、錯誤統計、效能指標)
+    - 配額管理測試 (配額檢查、超限偵測)
+    - 健康檢查測試 (健康狀態)
+    - 鎖定機制測試 (鎖定狀態查詢)
+    - 數據壓縮測試 (小型數據跳過壓縮)
+- **紅燈階段驗證**
+  - 執行測試確認正確檢測到 `ChromeStorageAdapter` 模組不存在。
+  - 錯誤訊息：`Cannot find module '../../../src/storage/adapters/chrome-storage-adapter'`。
+  - 確認測試結構完整且符合 TDD 原則。
+
+---
+
 ## [0.4.6] - 2025-07-31 ✅
 
 ### TDD Cycle #16 重構階段: StorageCompletionHandler 架構優化
