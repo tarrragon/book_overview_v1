@@ -2,14 +2,18 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
-## [0.5.16] - 2025-01-29 🔴
+## [0.5.16] - 2025-01-29 🟢
 
-### TDD Cycle #26 紅燈階段: UI 處理器測試創建
+### TDD Cycle #26 綠燈階段: UI 處理器實現
 
+- **UI 處理器實現**
+  - 新增 `src/ui/handlers/ui-notification-handler.js` (611行)
+  - 新增 `src/ui/handlers/ui-progress-handler.js` (505行)
+  - 事件驅動的通知系統和進度管理
 - **UI 處理器測試**
-  - 新增 `tests/unit/ui/ui-notification-handler.test.js`
-  - 新增 `tests/unit/ui/ui-progress-handler.test.js`
-  - 通知系統和進度管理測試
+  - 新增 `tests/unit/ui/ui-notification-handler.test.js` (488行)
+  - 新增 `tests/unit/ui/ui-progress-handler.test.js` (436行)
+  - 完整的邊界條件和錯誤情況覆蓋
 - **測試環境修正**
   - 修正 `tests/test-setup.js` 中的 Chrome API 模擬類型檢查
   - 改善測試穩定性和可靠性

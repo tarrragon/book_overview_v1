@@ -72,25 +72,25 @@
 
 ---
 
-## 🎯 v0.5.0 開發階段概覽 (儲存系統和 UI 組件)
-
-### 儲存系統開發
-
-- [x] ✅ **UI 處理器測試創建** (v0.5.16)
-  - [x] ✅ 新增 `tests/unit/ui/ui-notification-handler.test.js`
-  - [x] ✅ 新增 `tests/unit/ui/ui-progress-handler.test.js`
-  - [x] ✅ 通知系統和進度管理測試
-- [ ] 🔴 **UI 處理器實現** (v0.5.17)
-- [ ] 🔵 **UI 處理器重構** (v0.5.18)
+## 🎯 v0.5.0 開發階段概覽 (UI 組件和 LocalStorageAdapter)
 
 ### UI 組件開發
 
-- [x] ✅ **UI 處理器測試創建** (v0.5.16)
-  - [x] ✅ 新增 `tests/unit/ui/ui-notification-handler.test.js`
-  - [x] ✅ 新增 `tests/unit/ui/ui-progress-handler.test.js`
-  - [x] ✅ 通知系統和進度管理測試
-- [ ] 🔴 **UI 處理器實現** (v0.5.17)
-- [ ] 🔵 **UI 處理器重構** (v0.5.18)
+- [x] ✅ **UI 處理器實現** (v0.5.16)
+  - [x] ✅ 新增 `src/ui/handlers/ui-notification-handler.js` (611行)
+  - [x] ✅ 新增 `src/ui/handlers/ui-progress-handler.js` (505行)
+  - [x] ✅ 事件驅動的通知系統和進度管理
+- [x] ✅ **UI 處理器測試** (v0.5.16)
+  - [x] ✅ 新增 `tests/unit/ui/ui-notification-handler.test.js` (488行)
+  - [x] ✅ 新增 `tests/unit/ui/ui-progress-handler.test.js` (436行)
+  - [x] ✅ 完整的邊界條件和錯誤情況覆蓋
+- [ ] 🔵 **UI 處理器重構** (v0.5.17)
+
+### LocalStorageAdapter 開發
+
+- [ ] 🔴 **LocalStorageAdapter 測試創建** (v0.5.18)
+- [ ] 🟢 **LocalStorageAdapter 實現** (v0.5.19)
+- [ ] 🔵 **LocalStorageAdapter 重構** (v0.5.20)
 
 ### 測試環境改善
 
