@@ -2,6 +2,25 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [0.5.16] - 2025-01-29 🔴
+
+### TDD Cycle #25 紅燈階段: 儲存系統和 UI 處理器測試創建
+
+- **Chrome Storage Adapter 測試**
+  - 新增 `tests/unit/storage/adapters/chrome-storage-adapter.test.js`
+  - 新增 `tests/unit/storage/adapters/chrome-storage-adapter-simple.test.js`
+  - 完整的儲存操作測試：save, load, delete, clear, batch
+  - 配額管理和錯誤處理測試
+- **UI 處理器測試**
+  - 新增 `tests/unit/ui/ui-notification-handler.test.js`
+  - 新增 `tests/unit/ui/ui-progress-handler.test.js`
+  - 通知系統和進度管理測試
+- **測試環境修正**
+  - 修正 `tests/test-setup.js` 中的 Chrome API 模擬類型檢查
+  - 改善測試穩定性和可靠性
+
+---
+
 ## [0.5.15] - 2025-08-05 🔵
 
 ### TDD Cycle #24 重構階段: PopupEventController 優化完成

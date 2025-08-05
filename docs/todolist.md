@@ -72,6 +72,35 @@
 
 ---
 
+## 🎯 v0.5.0 開發階段概覽 (儲存系統和 UI 組件)
+
+### 儲存系統開發
+
+- [x] ✅ **Chrome Storage Adapter 測試創建** (v0.5.16)
+  - [x] ✅ 新增 `tests/unit/storage/adapters/chrome-storage-adapter.test.js`
+  - [x] ✅ 新增 `tests/unit/storage/adapters/chrome-storage-adapter-simple.test.js`
+  - [x] ✅ 完整的儲存操作測試：save, load, delete, clear, batch
+  - [x] ✅ 配額管理和錯誤處理測試
+- [ ] 🔴 **Chrome Storage Adapter 實現** (v0.5.17)
+- [ ] 🔵 **Chrome Storage Adapter 重構** (v0.5.18)
+
+### UI 組件開發
+
+- [x] ✅ **UI 處理器測試創建** (v0.5.16)
+  - [x] ✅ 新增 `tests/unit/ui/ui-notification-handler.test.js`
+  - [x] ✅ 新增 `tests/unit/ui/ui-progress-handler.test.js`
+  - [x] ✅ 通知系統和進度管理測試
+- [ ] 🔴 **UI 處理器實現** (v0.5.17)
+- [ ] 🔵 **UI 處理器重構** (v0.5.18)
+
+### 測試環境改善
+
+- [x] ✅ **測試環境修正** (v0.5.16)
+  - [x] ✅ 修正 `tests/test-setup.js` 中的 Chrome API 模擬類型檢查
+  - [x] ✅ 改善測試穩定性和可靠性
+
+---
+
 ## 🎯 v1.0.0 產品原型目標 (專注 Readmoo)
 
 ### 核心目標
