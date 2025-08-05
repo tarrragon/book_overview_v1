@@ -96,7 +96,7 @@ global.testUtils = {
     sessionStorage.clear();
     
     // 重置 Chrome API 模擬
-    if (chrome && chrome.flush) {
+    if (typeof chrome !== 'undefined' && chrome && chrome.flush) {
       chrome.flush();
     }
     
