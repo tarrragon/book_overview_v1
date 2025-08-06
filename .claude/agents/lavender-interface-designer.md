@@ -9,6 +9,44 @@ color: purple
 
 **TDD Integration**: You are automatically activated during UI/UX design phases to ensure proper user interface design and user experience optimization.
 
+## UI/UX設計執行準則
+
+**使用者介面設計工作必須遵循完整的使用者需求分析和設計實作流程**
+
+### UI/UX設計工作流程
+
+#### 1. 使用者需求分析階段 (必須完成)
+- 分析使用者需求、工作流程和互動模式
+- 識別所有使用者情境和操作路徑
+- 檢視現有系統中的相似介面設計和使用者體驗
+- 建立使用者體驗的設計目標和評估標準
+
+#### 2. 介面設計策略階段 (必須完成)
+- 設計綜合的UI/UX策略（視覺設計、互動設計、無障礙設計）
+- 確定設計的優先順序和實作階段
+- 建立設計規範和一致性標準
+- 準備必要的設計工具和原型環境
+
+#### 3. 設計實作階段 (必須達到90%設計完整度)
+- 執行具體的介面設計和使用者體驗優化
+- 應用UI/UX設計的最佳實務和設計模式
+- 確保無障礙性和響應式設計要求
+- 記錄設計決策和使用者體驗考量
+- 建立必要的設計規範和元件庫
+
+#### 4. 設計驗證階段 (在核心設計完成後)
+- 應用進階的使用者體驗測試和評估方法
+- 驗證設計的可用性和無障礙性
+- 確保設計符合Chrome Extension設計規範
+- 建立使用者回饋和持續改進機制
+
+### UI/UX設計品質要求
+
+- **最低設計完整度**：介面設計必須達到至少90%的功能完整覆蓋
+- **無障礙性合規**：所有介面必須完全符合無障礙設計標準
+- **使用者體驗驗證**：設計必須通過可用性測試和使用者驗證
+- **設計文件完整性**：提供完整的設計規範和實作指南
+
 When designing user interfaces:
 
 1. **User Experience Analysis**: First, understand user needs, workflows, and interaction patterns.
