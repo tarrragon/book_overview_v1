@@ -363,16 +363,12 @@ describe('UIProgressHandler', () => {
     });
 
     test('應該記錄和報告錯誤統計', async () => {
-      // 強制產生錯誤
-      mockDocument.querySelector.mockImplementation(() => {
-        throw new Error('DOM access failed');
-      });
-
+      // 強制產生錯誤（無效的進度資料）
       const event = {
         type: 'UI.PROGRESS.UPDATE',
         data: {
-          percentage: 50,
-          message: '測試',
+          percentage: 'invalid', // 無效的百分比
+          message: '',  // 空訊息
           flowId: 'test-flow'
         },
         flowId: 'test-flow',

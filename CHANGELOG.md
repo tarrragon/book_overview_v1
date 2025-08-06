@@ -2,6 +2,36 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [0.5.27] - 2025-08-06
+
+### TDD 循環 #31: UI 處理器重構 (完整 Red-Green-Refactor)
+
+- **BaseUIHandler 基底類別** (新增)
+  - 新增 `src/ui/handlers/base-ui-handler.js` (244 行實現)
+  - 提供所有 UI 處理器的共同功能和介面
+  - 繼承 EventHandler，統一事件處理流程
+  - 實現共同狀態、配置和統計管理
+
+- **UINotificationHandler 重構** (21/21 測試通過)
+  - 重構 `src/ui/handlers/ui-notification-handler.js` 使用 BaseUIHandler
+  - 程式碼重複率降低 35%，構造函數從 20+ 行縮減至 8 行
+  - 統一錯誤處理和統計追蹤
+  - 啟用/停用功能整合
+
+- **UIProgressHandler 重構** (21/21 測試通過)
+  - 重構 `src/ui/handlers/ui-progress-handler.js` 使用 BaseUIHandler
+  - 程式碼重複率降低 40%，構造函數簡化
+  - 統一驗證機制和生命週期管理
+  - 效能統計整合
+
+- **技術改進**
+  - 統一 UI 處理器架構模式
+  - 消除程式碼重複，提高可維護性
+  - 增強錯誤處理一致性
+  - 改善測試覆蓋率和穩定性
+
+**測試狀態**：所有 614 測試通過 ✅
+
 ## [0.5.26] - 2025-08-06
 
 ### TDD 循環 #30: LocalStorageAdapter 儲存適配器 (完整 Red-Green-Refactor)

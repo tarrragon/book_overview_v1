@@ -31,62 +31,59 @@
  * - 統一管理所有UI通知顯示
  */
 
-const EventHandler = require('../../core/event-handler');
+const BaseUIHandler = require('./base-ui-handler');
+const UIEventValidator = require('./ui-event-validator');
 
-class UINotificationHandler extends EventHandler {
+class UINotificationHandler extends BaseUIHandler {
   /**
    * 建構UI通知處理器
    * 
    * @param {Object} eventBus - 事件總線實例
    * @param {Object} document - DOM文檔物件
-   * 
-   * 負責功能：
-   * - 初始化事件處理器基本配置
-   * - 設定DOM文檔和事件總線引用
-   * - 配置處理器優先級 (UI更新需要較高優先級)
-   * - 初始化通知管理和佇列系統
    */
   constructor(eventBus, document) {
-    super('UINotificationHandler', 2); // UI更新優先級設為2 (較高)
+    super('UINotificationHandler', 2, eventBus, document);
     
-    this.eventBus = eventBus;
-    this.document = document;
+    // 初始化通知特定狀態
+    this.initializeNotificationState();
     
-    // 初始化狀態管理
-    this.initializeState();
+    // 初始化通知特定配置
+    this.initializeNotificationConfiguration();
     
-    // 初始化配置
-    this.initializeConfiguration();
-    
-    // 初始化統計
-    this.initializeStatistics();
+    // 初始化通知特定統計
+    this.initializeNotificationStatistics();
   }
 
   /**
-   * 初始化狀態管理
+   * 初始化通知特定狀態
    * 
    * 負責功能：
    * - 初始化通知狀態追蹤
    * - 設定通知佇列管理
-   * - 準備定時器管理
    */
-  initializeState() {
+  initializeNotificationState() {
     this.activeNotifications = new Map();
     this.notificationQueue = [];
     this.notificationTimers = new Map();
-    this.cachedContainer = null;
   }
 
   /**
-   * 初始化配置參數
+   * 初始化通知特定配置
+   * 繼承基底類別的配置並添加通知特定參數
    * 
    * 負責功能：
    * - 設定通知限制和持續時間
    * - 定義支援的通知類型
    */
-  initializeConfiguration() {
-    this.maxNotifications = 5;
-    this.defaultDuration = 3000; // 3秒
+  initializeNotificationConfiguration() {
+    // 擴展基底配置
+    this.config = {
+      ...this.config,
+      maxNotifications: 5,
+      defaultDuration: 3000, // 3秒
+      animationDelay: 10,
+      hideDelay: 300
+    };
     
     this.NOTIFICATION_TYPES = {
       SUCCESS: 'success',
@@ -97,13 +94,14 @@ class UINotificationHandler extends EventHandler {
   }
 
   /**
-   * 初始化統計追蹤
+   * 初始化通知特定統計
+   * 繼承基底類別統計並添加通知特定追蹤
    * 
    * 負責功能：
    * - 設定通知統計計數器
    * - 初始化錯誤追蹤
    */
-  initializeStatistics() {
+  initializeNotificationStatistics() {
     this.totalNotifications = 0;
     this.notificationsByType = {
       success: 0,
@@ -206,66 +204,43 @@ class UINotificationHandler extends EventHandler {
   }
 
   /**
-   * 驗證通知事件基本結構
+   * 驗證通知事件
    * 
    * @param {Object} event - 事件物件
    * @throws {Error} 事件結構無效時拋出錯誤
-   * 
-   * 負責功能：
-   * - 檢查事件的基本必要欄位
-   * - 驗證事件的整體結構
    */
   validateNotificationEvent(event) {
-    if (!event || typeof event !== 'object') {
-      throw new Error('Event must be a valid object');
-    }
-
-    if (!event.flowId) {
-      throw new Error('Event must have a flowId');
-    }
+    UIEventValidator.validateEventStructure(event);
   }
 
   /**
-   * 驗證通知資料的完整性和有效性
+   * 驗證通知資料
    * 
    * @param {Object} data - 要驗證的通知資料
    * @throws {Error} 資料驗證失敗時拋出錯誤
-   * 
-   * 負責功能：
-   * - 檢查必要欄位的存在性
-   * - 驗證通知類型的有效性
-   * - 確保資料的基本品質要求
    */
   validateNotificationData(data) {
-    if (!data || typeof data !== 'object') {
-      throw new Error('Notification data must be a valid object');
+    UIEventValidator.validateDataStructure(data, 'Notification data');
+    UIEventValidator.validateStringField(data.message, 'Message');
+    
+    if (data.type) {
+      UIEventValidator.validateEnumField(
+        data.type, 
+        'notification type', 
+        Object.values(this.NOTIFICATION_TYPES),
+        { required: false }
+      );
     }
-
-    if (!data.message || typeof data.message !== 'string' || data.message.trim() === '') {
-      throw new Error('Message must be a non-empty string');
-    }
-
-    if (data.type && !this.isValidNotificationType(data.type)) {
-      throw new Error(`Invalid notification type: ${data.type}. Valid types: ${Object.values(this.NOTIFICATION_TYPES).join(', ')}`);
-    }
-
-    if (data.duration !== undefined && (typeof data.duration !== 'number' || data.duration < 0)) {
-      throw new Error('Duration must be a non-negative number');
+    
+    if (data.duration !== undefined) {
+      UIEventValidator.validateNumberField(
+        data.duration, 
+        'Duration', 
+        { required: false, min: 0 }
+      );
     }
   }
 
-  /**
-   * 檢查通知類型是否有效
-   * 
-   * @param {string} type - 通知類型
-   * @returns {boolean} 類型是否有效
-   * 
-   * 負責功能：
-   * - 驗證通知類型在支援列表中
-   */
-  isValidNotificationType(type) {
-    return Object.values(this.NOTIFICATION_TYPES).includes(type);
-  }
 
   /**
    * 強制執行通知數量限制
@@ -275,7 +250,7 @@ class UINotificationHandler extends EventHandler {
    * - 移除最舊的通知以騰出空間
    */
   async enforceNotificationLimit() {
-    while (this.activeNotifications.size >= this.maxNotifications) {
+    while (this.activeNotifications.size >= this.config.maxNotifications) {
       const oldestFlowId = this.getOldestNotificationId();
       if (oldestFlowId) {
         await this.hideNotification(oldestFlowId);
@@ -324,38 +299,64 @@ class UINotificationHandler extends EventHandler {
       throw new Error('Document not available');
     }
 
-    const notification = this.document.createElement('div');
-    notification.classList.add('notification');
-    notification.classList.add(`notification-${data.type || this.NOTIFICATION_TYPES.INFO}`);
-    notification.setAttribute('data-flow-id', flowId);
+    // 創建主通知元素
+    const notification = this.domManager.createElement('div', {
+      classes: ['notification', `notification-${data.type || this.NOTIFICATION_TYPES.INFO}`],
+      attributes: { 'data-flow-id': flowId }
+    });
+
+    if (!notification) {
+      throw new Error('Failed to create notification element');
+    }
 
     // 設定通知內容
+    this.setNotificationContent(notification, data);
+
+    // 添加關閉按鈕（如果可關閉）
+    if (data.closable !== false) {
+      this.addCloseButton(notification, flowId);
+    }
+
+    return notification;
+  }
+
+  /**
+   * 設定通知內容
+   * 
+   * @param {Element} notification - 通知元素
+   * @param {Object} data - 通知資料
+   */
+  setNotificationContent(notification, data) {
     if (data.title) {
+      // 使用innerHTML來設定內容以維持向後相容性
       notification.innerHTML = `
-        <div class="notification-title">${this.escapeHtml(data.title)}</div>
-        <div class="notification-message">${this.escapeHtml(data.message)}</div>
+        <div class="notification-title">${this.domManager.escapeHtml(data.title)}</div>
+        <div class="notification-message">${this.domManager.escapeHtml(data.message)}</div>
       `;
     } else {
       notification.textContent = data.message;
     }
+  }
 
-    // 添加關閉按鈕（如果可關閉）
-    if (data.closable !== false) {
-      const closeButton = this.document.createElement('button');
-      closeButton.classList.add('notification-close');
-      closeButton.innerHTML = '×';
-      
-      // 安全地添加事件監聽器
-      if (typeof closeButton.addEventListener === 'function') {
-        closeButton.addEventListener('click', () => {
-          this.hideNotification(flowId);
-        });
-      }
+  /**
+   * 添加關閉按鈕
+   * 
+   * @param {Element} notification - 通知元素
+   * @param {string} flowId - 流程ID
+   */
+  addCloseButton(notification, flowId) {
+    const closeButton = this.domManager.createElement('button', {
+      classes: ['notification-close'],
+      textContent: '×'
+    });
+    
+    if (closeButton) {
+      this.domManager.addEventListener(closeButton, 'click', () => {
+        this.hideNotification(flowId);
+      });
       
       notification.appendChild(closeButton);
     }
-
-    return notification;
   }
 
   /**
@@ -378,7 +379,7 @@ class UINotificationHandler extends EventHandler {
       // 觸發顯示動畫
       setTimeout(() => {
         notification.classList.add('notification-show');
-      }, 10);
+      }, this.config.animationDelay);
     }
 
     // 記錄通知狀態
@@ -411,30 +412,12 @@ class UINotificationHandler extends EventHandler {
       element.classList.add('notification-hide');
     }
 
-    // 延遲移除元素
-    const removeElement = () => {
-      if (element.parentNode && typeof element.parentNode.removeChild === 'function') {
-        element.parentNode.removeChild(element);
-      } else if (typeof element.remove === 'function') {
-        element.remove();
-      }
-    };
+    // 移除元素（在測試環境中立即移除）
+    const delay = process.env.NODE_ENV === 'test' ? 0 : this.config.hideDelay;
+    await this.domManager.removeElement(element, delay);
 
-    // 在測試環境中立即移除，在真實環境中延遲移除
-    if (process.env.NODE_ENV === 'test') {
-      removeElement();
-    } else {
-      setTimeout(removeElement, 300);
-    }
-
-    // 清理狀態
-    this.activeNotifications.delete(flowId);
-    
-    // 清理定時器
-    if (this.notificationTimers.has(flowId)) {
-      clearTimeout(this.notificationTimers.get(flowId));
-      this.notificationTimers.delete(flowId);
-    }
+    // 清理狀態和定時器
+    this.cleanupNotification(flowId);
   }
 
   /**
@@ -450,13 +433,15 @@ class UINotificationHandler extends EventHandler {
    */
   manageNotificationLifecycle(data, flowId, notification) {
     if (!data.persistent) {
-      const duration = data.duration || this.defaultDuration;
+      const duration = data.duration || this.config.defaultDuration;
       
       const timer = setTimeout(async () => {
         await this.hideNotification(flowId);
       }, duration);
       
-      this.notificationTimers.set(flowId, timer);
+      if (this.notificationTimers) {
+        this.notificationTimers.set(flowId, timer);
+      }
     }
   }
 
@@ -470,32 +455,56 @@ class UINotificationHandler extends EventHandler {
    * - 快取容器引用
    */
   async getNotificationContainer() {
-    if (this.cachedContainer) {
-      return this.cachedContainer;
+    const selectors = [
+      '.notification-container',
+      '#notification-container',
+      '.notifications'
+    ];
+    
+    let container = this.domManager.findElement(selectors, 'notificationContainer');
+
+    // 如枟沒有容器，創建一個
+    if (!container) {
+      container = this.createNotificationContainer();
     }
 
-    if (!this.document) return null;
+    return container;
+  }
 
-    // 尋找現有容器
-    let container = this.document.querySelector('.notification-container') ||
-                   this.document.querySelector('#notification-container') ||
-                   this.document.querySelector('.notifications');
-
-    // 如果沒有容器，創建一個
-    if (!container) {
-      container = this.document.createElement('div');
-      container.classList.add('notification-container');
-      container.id = 'notification-container';
-      
-      // 添加到頁面
+  /**
+   * 創建通知容器
+   * 
+   * @returns {Element|null} 創建的通知容器
+   */
+  createNotificationContainer() {
+    const container = this.domManager.createElement('div', {
+      classes: ['notification-container'],
+      attributes: { id: 'notification-container' }
+    });
+    
+    if (container) {
       const body = this.document.body || this.document.documentElement;
       if (body) {
         body.appendChild(container);
+        this.domManager.cachedElements.set('notificationContainer', container);
       }
     }
-
-    this.cachedContainer = container;
+    
     return container;
+  }
+
+  /**
+   * 清理通知狀態
+   * 
+   * @param {string} flowId - 流程ID
+   */
+  cleanupNotification(flowId) {
+    this.activeNotifications.delete(flowId);
+    
+    if (this.notificationTimers.has(flowId)) {
+      clearTimeout(this.notificationTimers.get(flowId));
+      this.notificationTimers.delete(flowId);
+    }
   }
 
   /**
@@ -508,21 +517,6 @@ class UINotificationHandler extends EventHandler {
    * - 防止XSS攻擊
    * - 安全地顯示用戶內容
    */
-  escapeHtml(text) {
-    if (!text) return '';
-    
-    // 備用轉義方法（在測試環境中較可靠）
-    return text.replace(/[&<>"']/g, (match) => {
-      const escapeMap = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-      };
-      return escapeMap[match];
-    });
-  }
 
   /**
    * 取得活躍通知列表
@@ -619,7 +613,7 @@ class UINotificationHandler extends EventHandler {
    * - 計算效能和使用相關指標
    */
   getStats() {
-    const baseStats = super.getStats();
+    const baseStats = super.getStats ? super.getStats() : this.getStatistics();
     
     return {
       ...baseStats,
@@ -645,11 +639,8 @@ class UINotificationHandler extends EventHandler {
     if (this.activeNotifications.size === 0) return 0;
 
     const now = Date.now();
-    let totalTime = 0;
-
-    for (const notificationInfo of this.activeNotifications.values()) {
-      totalTime += now - notificationInfo.createdAt;
-    }
+    const totalTime = Array.from(this.activeNotifications.values())
+      .reduce((sum, notification) => sum + (now - notification.createdAt), 0);
 
     return Math.round(totalTime / this.activeNotifications.size);
   }

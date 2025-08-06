@@ -338,7 +338,7 @@ describe('UINotificationHandler', () => {
 
     test('應該支援通知佇列限制', async () => {
       // 設定最大通知數量
-      handler.maxNotifications = 2;
+      handler.config.maxNotifications = 2;
 
       const notifications = [
         { message: '通知 1', type: 'info', flowId: 'flow-1' },
