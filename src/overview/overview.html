@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Readmoo書籍目錄</title>
+    <link rel="stylesheet" href="overview.css">
+</head>
+<body>
+    <div class="container">
+        <h1 id="pageTitle">📚 Readmoo書籍目錄</h1>
+        
+        <!-- 統計資訊區域 -->
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalBooks">0</div>
+                <div class="stat-label">總書籍數</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="displayedBooks">0</div>
+                <div class="stat-label">顯示中</div>
+            </div>
+        </div>
+
+        <!-- 搜尋區域 -->
+        <input type="text" id="searchBox" placeholder="🔍 搜尋書籍標題...">
+        
+        <!-- 操作按鈕區域 -->
+        <div class="export-buttons">
+            <button class="export-btn" id="exportCSVBtn">📊 匯出 CSV</button>
+            <button class="export-btn" id="copyTextBtn">📋 複製表格文字</button>
+            <button class="export-btn" id="selectAllBtn">✅ 選取全部</button>
+            <button class="export-btn" id="reloadBtn">🔄 重新載入</button>
+        </div>
+
+        <!-- 檔案載入區域 -->
+        <div id="fileUploader" style="display: none;">
+            <div class="file-uploader">
+                <h3>📁 載入書籍 JSON 檔案</h3>
+                <input type="file" id="jsonFileInput" accept=".json">
+                <button class="export-btn" id="loadFileBtn">📂 載入檔案</button>
+                <button class="export-btn" id="loadSampleBtn">📚 載入範例資料</button>
+            </div>
+        </div>
+
+        <!-- 書籍表格區域 -->
+        <table id="booksTable">
+            <thead>
+                <tr>
+                    <th>封面</th>
+                    <th>書籍ID</th>
+                    <th>書名</th>
+                    <th>進度</th>
+                    <th>狀態</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+        </table>
+
+        <!-- 載入狀態區域 -->
+        <div id="loadingIndicator" style="display: none;">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">載入中...</div>
+        </div>
+
+        <!-- 錯誤訊息區域 -->
+        <div id="errorContainer" style="display: none;">
+            <div class="error-message" id="errorMessage"></div>
+            <button class="error-retry-btn" id="retryBtn">重試</button>
+        </div>
+    </div>
+
+    <!-- 載入 JavaScript -->
+    <script src="../core/event-bus.js"></script>
+    <script src="../core/chrome-event-bridge.js"></script>
+    <script src="overview-page-controller.js"></script>
+    <script src="overview.js"></script>
+</body>
+</html>

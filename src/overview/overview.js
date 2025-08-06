@@ -1,0 +1,259 @@
+/**
+ * Overview 頁面初始化腳本
+ * 基於事件驅動架構，整合 OverviewPageController 與事件系統
+ * 
+ * 負責功能：
+ * - 初始化 Overview 頁面的事件系統
+ * - 創建和配置 OverviewPageController 實例
+ * - 處理頁面載入和錯誤狀態
+ * - 提供統一的錯誤處理機制
+ * 
+ * 設計考量：
+ * - 適配 Chrome Extension 環境
+ * - 支援事件驅動的資料流管理
+ * - 提供完整的初始化錯誤恢復機制
+ * - 整合現有的事件處理器架構
+ */
+
+(function() {
+  'use strict';
+
+  /**
+   * 全域變數
+   */
+  let eventBus = null;
+  let chromeBridge = null;
+  let overviewController = null;
+
+  /**
+   * 初始化事件系統
+   * 
+   * 負責功能：
+   * - 檢查並初始化 EventBus
+   * - 檢查並初始化 ChromeEventBridge  
+   * - 設定事件系統的相互引用
+   * - 提供降級處理機制
+   * 
+   * 設計考量：
+   * - 適應不同的載入環境（擴展頁面 vs 獨立頁面）
+   * - 提供錯誤處理和初始化重試機制
+   * - 確保事件系統的正確初始化順序
+   */
+  async function initializeEventSystem() {
+    try {
+      console.log('📡 Overview 頁面：開始初始化事件系統');
+
+      // 檢查 EventBus 是否可用
+      if (typeof EventBus !== 'undefined') {
+        eventBus = new EventBus();
+        console.log('✅ EventBus 初始化成功');
+      } else if (window.eventBus) {
+        // 使用全域 EventBus 實例
+        eventBus = window.eventBus;
+        console.log('✅ 使用全域 EventBus 實例');
+      } else {
+        console.warn('⚠️ EventBus 不可用，使用簡化實現');
+        eventBus = createFallbackEventBus();
+      }
+
+      // 檢查 ChromeEventBridge 是否可用
+      if (typeof ChromeEventBridge !== 'undefined' && typeof chrome !== 'undefined') {
+        chromeBridge = new ChromeEventBridge(eventBus);
+        console.log('✅ ChromeEventBridge 初始化成功');
+      } else {
+        console.log('ℹ️ Chrome Extension 環境不可用，跳過 ChromeEventBridge 初始化');
+      }
+
+      return { eventBus, chromeBridge };
+
+    } catch (error) {
+      console.error('❌ 事件系統初始化失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 創建降級版本的 EventBus
+   * 用於非 Chrome Extension 環境或 EventBus 不可用時
+   */
+  function createFallbackEventBus() {
+    const listeners = new Map();
+    
+    return {
+      on(eventType, handler) {
+        if (!listeners.has(eventType)) {
+          listeners.set(eventType, []);
+        }
+        listeners.get(eventType).push(handler);
+      },
+      
+      emit(eventType, data) {
+        return new Promise((resolve) => {
+          if (listeners.has(eventType)) {
+            const eventHandlers = listeners.get(eventType);
+            Promise.all(eventHandlers.map(handler => {
+              try {
+                return Promise.resolve(handler({ type: eventType, data }));
+              } catch (error) {
+                console.error(`事件處理錯誤 (${eventType}):`, error);
+                return null;
+              }
+            })).then(() => resolve());
+          } else {
+            resolve();
+          }
+        });
+      },
+      
+      off(eventType, handler) {
+        if (listeners.has(eventType)) {
+          const handlers = listeners.get(eventType);
+          const index = handlers.indexOf(handler);
+          if (index !== -1) {
+            handlers.splice(index, 1);
+          }
+        }
+      }
+    };
+  }
+
+  /**
+   * 初始化 Overview 頁面控制器
+   * 
+   * 負責功能：
+   * - 創建 OverviewPageController 實例
+   * - 配置事件系統整合
+   * - 註冊必要的事件監聽器
+   * - 處理控制器初始化錯誤
+   */
+  async function initializeOverviewController() {
+    try {
+      console.log('🎮 Overview 頁面：開始初始化控制器');
+
+      // 檢查 OverviewPageController 是否可用
+      if (typeof OverviewPageController === 'undefined') {
+        throw new Error('OverviewPageController 類別不可用');
+      }
+
+      // 創建控制器實例
+      overviewController = new OverviewPageController(eventBus, chromeBridge);
+      
+      // 設定控制器事件監聽器
+      if (eventBus && overviewController) {
+        overviewController.initialize();
+        console.log('✅ OverviewPageController 初始化成功');
+      }
+
+      // 觸發頁面就緒事件
+      if (eventBus) {
+        await eventBus.emit('OVERVIEW.PAGE.READY', {
+          timestamp: Date.now(),
+          controller: !!overviewController
+        });
+      }
+
+      return overviewController;
+
+    } catch (error) {
+      console.error('❌ Overview 控制器初始化失敗:', error);
+      showInitializationError(error);
+      throw error;
+    }
+  }
+
+  /**
+   * 顯示初始化錯誤訊息
+   * 
+   * @param {Error} error - 初始化錯誤
+   */
+  function showInitializationError(error) {
+    const errorContainer = document.getElementById('errorContainer');
+    const errorMessage = document.getElementById('errorMessage');
+    
+    if (errorContainer && errorMessage) {
+      errorMessage.textContent = `頁面初始化失敗: ${error.message}`;
+      errorContainer.style.display = 'block';
+      
+      // 設定重試按鈕
+      const retryBtn = document.getElementById('retryBtn');
+      if (retryBtn) {
+        retryBtn.onclick = () => {
+          errorContainer.style.display = 'none';
+          initializeOverviewPage();
+        };
+      }
+    } else {
+      // 降級處理：使用 alert
+      alert(`Overview 頁面初始化失敗: ${error.message}`);
+    }
+  }
+
+  /**
+   * 完整的 Overview 頁面初始化流程
+   */
+  async function initializeOverviewPage() {
+    try {
+      console.log('🚀 Overview 頁面：開始完整初始化流程');
+
+      // 顯示載入狀態
+      const loadingIndicator = document.getElementById('loadingIndicator');
+      if (loadingIndicator) {
+        loadingIndicator.style.display = 'block';
+      }
+
+      // Step 1: 初始化事件系統
+      const { eventBus: eBus, chromeBridge: cBridge } = await initializeEventSystem();
+      eventBus = eBus;
+      chromeBridge = cBridge;
+
+      // Step 2: 初始化控制器
+      await initializeOverviewController();
+
+      // Step 3: 嘗試載入儲存的資料
+      if (eventBus) {
+        await eventBus.emit('STORAGE.LOAD.REQUESTED', {
+          source: 'readmoo',
+          loadType: 'all'
+        });
+      }
+
+      // 隱藏載入狀態
+      if (loadingIndicator) {
+        loadingIndicator.style.display = 'none';
+      }
+
+      console.log('✅ Overview 頁面初始化完成');
+
+    } catch (error) {
+      console.error('❌ Overview 頁面初始化失敗:', error);
+      
+      // 隱藏載入狀態
+      const loadingIndicator = document.getElementById('loadingIndicator');
+      if (loadingIndicator) {
+        loadingIndicator.style.display = 'none';
+      }
+      
+      // 顯示錯誤訊息
+      showInitializationError(error);
+    }
+  }
+
+  /**
+   * 頁面載入完成後自動初始化
+   */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeOverviewPage);
+  } else {
+    // DOM 已經載入完成，立即初始化
+    initializeOverviewPage();
+  }
+
+  // 將關鍵函數暴露給全域範圍（用於除錯和擴展）
+  window.overviewPage = {
+    eventBus: () => eventBus,
+    chromeBridge: () => chromeBridge,
+    controller: () => overviewController,
+    reinitialize: initializeOverviewPage
+  };
+
+})();

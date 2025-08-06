@@ -2,6 +2,38 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [0.5.29] - 2025-08-06
+
+### 完成 Overview 書庫瀏覽頁面 (TDD 循環完整實現)
+
+- **Overview 頁面完整實現** (3 個新檔案)
+  - 新增 `src/overview/overview.html` - 書庫瀏覽界面
+  - 新增 `src/overview/overview.css` - 響應式樣式設計
+  - 新增 `src/overview/overview.js` - 事件系統初始化
+
+- **Chrome Extension 配置更新**
+  - 更新 `manifest.json` 添加 `options_page` 配置
+  - 支援通過擴展選項頁面訪問書庫瀏覽功能
+  - 整合 `web_accessible_resources` 資源管理
+
+- **功能特性完善**
+  - 響應式設計，支援桌面和行動裝置
+  - 完整的書籍表格顯示和搜尋功能
+  - 統計資訊即時更新
+  - CSV 匯出和檔案載入支援
+  - 完整的載入狀態和錯誤處理
+
+- **架構整合**
+  - 基於現有 `OverviewPageController` (21/21 測試通過)
+  - 事件驅動架構無縫整合
+  - 支援 EventBus 和 ChromeEventBridge 系統
+  - 提供降級處理機制
+
+- **測試驗證**
+  - 所有現有測試保持通過 (744/744)
+  - Overview 控制器測試完全覆蓋
+  - 確保功能完整性和穩定性
+
 ## [0.5.28] - 2025-08-06
 
 ### 測試穩定性修復和架構統一 (100% 測試通過)
