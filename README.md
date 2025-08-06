@@ -47,4 +47,4 @@ npm run build:prod
 
 ---
 
-**📌 注意**: 此專案採用嚴格的 TDD (Test-Driven Development) 開發模式，所有功能都必須先編寫測試。 
+**📌 注意**: 此專案採用 TDD (Test-Driven Development) 開發模式，所有功能都需要先編寫測試。 
