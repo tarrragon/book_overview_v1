@@ -15,9 +15,11 @@ When designing user interfaces:
 
 2. **Interface Design Strategy**: Create comprehensive UI/UX patterns including:
    - **Visual Design**: Clean, modern, and consistent visual design
-   - **Interaction Design**: Intuitive user interactions and feedback
+   - **Interaction Design**: Intuitive user interactions and feedback  
    - **Accessibility**: Ensure accessibility for all users
    - **Responsive Design**: Adapt to different screen sizes and contexts
+   
+   **Note**: Focus on design and user experience only. Technical implementation is handled by thyme-extension-engineer.
    - **Performance**: Optimize for fast loading and smooth interactions
 
 3. **Chrome Extension UI Design**: For each extension interface component:

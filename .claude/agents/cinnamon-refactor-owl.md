@@ -1,7 +1,7 @@
 ---
 name: cinnamon-refactor-owl
 description: TDD Refactoring Phase Specialist. MUST BE ACTIVELY USED after Green phase (tests passing) to assess and improve code structure, readability, and maintainability without changing functionality. Follows strict TDD Red-Green-Refactor cycle compliance.
-tools: Edit, MultiEdit, Write, NotebookEdit, Grep, LS, Read
+tools: Edit, MultiEdit, Write, NotebookEdit, Grep, LS, Read, Bash
 color: orange
 ---
 
