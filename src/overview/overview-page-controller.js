@@ -31,18 +31,48 @@ const EventHandler = require('../core/event-handler');
 
 // 常數定義
 const CONSTANTS = {
+  // 控制器配置
   PRIORITY: 2,
-  DEFAULT_LOAD_MESSAGE: '載入中...',
-  RELOAD_MESSAGE: '重新載入書籍資料...',
-  EMPTY_BOOKS_MESSAGE: '📚 目前沒有書籍資料',
-  NO_DATA_EXPORT_MESSAGE: '沒有資料可以匯出',
-  TABLE_COLUMNS: 5,
-  SUPPORTED_EVENTS: [
-    'STORAGE.LOAD.COMPLETED',
-    'EXTRACTION.COMPLETED',
-    'UI.BOOKS.UPDATE'
-  ],
-  CSV_HEADERS: ['書籍ID', '書名', '進度', '狀態', '封面URL']
+  
+  // UI 訊息
+  MESSAGES: {
+    DEFAULT_LOAD: '載入中...',
+    RELOAD: '重新載入書籍資料...',
+    EMPTY_BOOKS: '📚 目前沒有書籍資料',
+    NO_DATA_EXPORT: '沒有資料可以匯出',
+    FILE_PARSE_ERROR: '檔案解析失敗',
+    FILE_READ_ERROR: '檔案讀取失敗',
+    INVALID_JSON: '無效的 JSON 格式'
+  },
+  
+  // 表格配置
+  TABLE: {
+    COLUMNS: 5,
+    COVER_SIZE: { WIDTH: 50, HEIGHT: 75 },
+    DEFAULT_COVER: '📚'
+  },
+  
+  // 事件配置
+  EVENTS: {
+    SUPPORTED: [
+      'STORAGE.LOAD.COMPLETED',
+      'EXTRACTION.COMPLETED',
+      'UI.BOOKS.UPDATE'
+    ],
+    STORAGE_LOAD_REQUEST: 'STORAGE.LOAD.REQUESTED'
+  },
+  
+  // 匯出配置
+  EXPORT: {
+    CSV_HEADERS: ['書籍ID', '書名', '進度', '狀態', '封面URL'],
+    FILE_TYPE: 'text/csv;charset=utf-8;',
+    FILENAME_PREFIX: '書籍資料_'
+  },
+  
+  // 元素選取器
+  SELECTORS: {
+    LOADING_TEXT: '.loading-text'
+  }
 };
 
 class OverviewPageController extends EventHandler {
@@ -86,35 +116,31 @@ class OverviewPageController extends EventHandler {
    * - 分類組織元素引用
    */
   initializeElements() {
-    this.elements = {
+    // 定義元素映射表，提高可維護性
+    const elementMap = {
       // 統計相關元素
-      totalBooks: this.document.getElementById('totalBooks'),
-      displayedBooks: this.document.getElementById('displayedBooks'),
-      
+      statistics: ['totalBooks', 'displayedBooks'],
       // 搜尋相關元素
-      searchBox: this.document.getElementById('searchBox'),
-      
+      search: ['searchBox'],
       // 表格相關元素
-      tableBody: this.document.getElementById('tableBody'),
-      booksTable: this.document.getElementById('booksTable'),
-      
+      table: ['tableBody', 'booksTable'],
       // 操作按鈕元素
-      exportCSVBtn: this.document.getElementById('exportCSVBtn'),
-      copyTextBtn: this.document.getElementById('copyTextBtn'),
-      selectAllBtn: this.document.getElementById('selectAllBtn'),
-      reloadBtn: this.document.getElementById('reloadBtn'),
-      
+      buttons: ['exportCSVBtn', 'copyTextBtn', 'selectAllBtn', 'reloadBtn'],
       // 檔案載入相關元素
-      fileUploader: this.document.getElementById('fileUploader'),
-      jsonFileInput: this.document.getElementById('jsonFileInput'),
-      loadFileBtn: this.document.getElementById('loadFileBtn'),
-      loadSampleBtn: this.document.getElementById('loadSampleBtn'),
-      
+      fileLoad: ['fileUploader', 'jsonFileInput', 'loadFileBtn', 'loadSampleBtn'],
       // 狀態顯示元素
-      loadingIndicator: this.document.getElementById('loadingIndicator'),
-      errorContainer: this.document.getElementById('errorContainer'),
-      errorMessage: this.document.getElementById('errorMessage'),
-      retryBtn: this.document.getElementById('retryBtn')
+      status: ['loadingIndicator', 'errorContainer', 'errorMessage', 'retryBtn']
+    };
+    
+    // 批量取得元素引用
+    this.elements = {};
+    Object.values(elementMap).flat().forEach(id => {
+      this.elements[id] = this.document.getElementById(id);
+    });
+    
+    // 快取常用元素
+    this.cachedElements = {
+      loadingText: this.document.querySelector(CONSTANTS.SELECTORS.LOADING_TEXT)
     };
   }
 
@@ -153,6 +179,8 @@ class OverviewPageController extends EventHandler {
     }
   }
 
+  // ========== 事件處理方法 ==========
+  
   /**
    * 處理儲存系統載入完成事件
    * 
@@ -165,9 +193,8 @@ class OverviewPageController extends EventHandler {
    * - 觸發頁面重新渲染
    */
   handleStorageLoadCompleted(eventData) {
-    if (eventData && eventData.books) {
-      this.currentBooks = eventData.books;
-      this.filteredBooks = [...this.currentBooks];
+    if (this._validateEventData(eventData, 'books')) {
+      this._updateBooksData(eventData.books);
       this.updateDisplay();
     }
   }
@@ -182,7 +209,6 @@ class OverviewPageController extends EventHandler {
    * - 觸發資料重新載入
    */
   handleExtractionCompleted(eventData) {
-    // 觸發重新載入資料
     this.handleReload();
   }
 
@@ -196,8 +222,8 @@ class OverviewPageController extends EventHandler {
    * - 重新渲染頁面
    */
   handleBooksUpdate(eventData) {
-    if (eventData && eventData.books) {
-      this.currentBooks = eventData.books;
+    if (this._validateEventData(eventData, 'books')) {
+      this._updateBooksData(eventData.books);
       this.applyCurrentFilter();
     }
   }
@@ -304,12 +330,7 @@ class OverviewPageController extends EventHandler {
    * 渲染空資料狀態
    */
   renderEmptyState() {
-    const emptyRow = this.document.createElement('tr');
-    emptyRow.innerHTML = `
-      <td colspan="${CONSTANTS.TABLE_COLUMNS}" style="text-align: center; padding: 40px; color: #666;">
-        ${CONSTANTS.EMPTY_BOOKS_MESSAGE}
-      </td>
-    `;
+    const emptyRow = this._createEmptyTableRow();
     this.elements.tableBody.appendChild(emptyRow);
   }
 
@@ -336,25 +357,21 @@ class OverviewPageController extends EventHandler {
    */
   createBookRow(book) {
     const row = this.document.createElement('tr');
-    
-    const cover = book.cover ? 
-      `<img src="${book.cover}" alt="封面" style="width: 50px; height: 75px; object-fit: cover;">` : 
-      '📚';
-    
-    const progress = book.progress ? `${book.progress}%` : '-';
-    const status = book.status || '未知';
+    const rowData = this._formatBookRowData(book);
     
     row.innerHTML = `
-      <td>${cover}</td>
-      <td>${book.id || '-'}</td>
-      <td>${book.title || '未知書名'}</td>
-      <td>${progress}</td>
-      <td>${status}</td>
+      <td>${rowData.cover}</td>
+      <td>${rowData.id}</td>
+      <td>${rowData.title}</td>
+      <td>${rowData.progress}</td>
+      <td>${rowData.status}</td>
     `;
     
     return row;
   }
 
+  // ========== 狀態管理方法 ==========
+  
   /**
    * 顯示載入狀態
    * 
@@ -365,17 +382,10 @@ class OverviewPageController extends EventHandler {
    * - 更新載入訊息
    * - 設置載入狀態標記
    */
-  showLoading(message = CONSTANTS.DEFAULT_LOAD_MESSAGE) {
+  showLoading(message = CONSTANTS.MESSAGES.DEFAULT_LOAD) {
     this.isLoading = true;
-    
-    if (this.elements.loadingIndicator) {
-      this.elements.loadingIndicator.style.display = 'block';
-    }
-    
-    const loadingText = this.document.querySelector('.loading-text');
-    if (loadingText) {
-      loadingText.textContent = message;
-    }
+    this._toggleElement('loadingIndicator', true);
+    this._updateLoadingText(message);
   }
 
   /**
@@ -387,10 +397,7 @@ class OverviewPageController extends EventHandler {
    */
   hideLoading() {
     this.isLoading = false;
-    
-    if (this.elements.loadingIndicator) {
-      this.elements.loadingIndicator.style.display = 'none';
-    }
+    this._toggleElement('loadingIndicator', false);
   }
 
   /**
@@ -405,14 +412,8 @@ class OverviewPageController extends EventHandler {
    */
   showError(message) {
     this.hideLoading();
-    
-    if (this.elements.errorContainer) {
-      this.elements.errorContainer.style.display = 'block';
-    }
-    
-    if (this.elements.errorMessage && message) {
-      this.elements.errorMessage.textContent = message;
-    }
+    this._toggleElement('errorContainer', true);
+    this._updateErrorText(message);
   }
 
   /**
@@ -422,9 +423,7 @@ class OverviewPageController extends EventHandler {
    * - 隱藏錯誤容器
    */
   hideError() {
-    if (this.elements.errorContainer) {
-      this.elements.errorContainer.style.display = 'none';
-    }
+    this._toggleElement('errorContainer', false);
   }
 
   /**
@@ -437,7 +436,7 @@ class OverviewPageController extends EventHandler {
    */
   handleExportCSV() {
     if (!this.filteredBooks || this.filteredBooks.length === 0) {
-      alert(CONSTANTS.NO_DATA_EXPORT_MESSAGE);
+      alert(CONSTANTS.MESSAGES.NO_DATA_EXPORT);
       return;
     }
 
@@ -445,47 +444,26 @@ class OverviewPageController extends EventHandler {
     this.downloadCSVFile(csvContent);
   }
 
+  // ========== CSV 匯出相關方法 ==========
+  
   /**
    * 生成 CSV 內容
    */
   generateCSVContent() {
     const csvRows = [
-      CONSTANTS.CSV_HEADERS.join(','),
-      ...this.filteredBooks.map(book => this.bookToCSVRow(book))
+      CONSTANTS.EXPORT.CSV_HEADERS.join(','),
+      ...this.filteredBooks.map(book => this._bookToCSVRow(book))
     ];
     return csvRows.join('\n');
-  }
-
-  /**
-   * 將書籍資料轉換為 CSV 行
-   */
-  bookToCSVRow(book) {
-    return [
-      `"${book.id || ''}"`,
-      `"${book.title || ''}"`,
-      `"${book.progress || 0}"`,
-      `"${book.status || ''}"`,
-      `"${book.cover || ''}"`
-    ].join(',');
   }
 
   /**
    * 下載 CSV 檔案
    */
   downloadCSVFile(csvContent) {
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = this.document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    
-    link.setAttribute('href', url);
-    link.setAttribute('download', `書籍資料_${new Date().toISOString().slice(0, 10)}.csv`);
-    link.style.visibility = 'hidden';
-    
-    this.document.body.appendChild(link);
-    link.click();
-    this.document.body.removeChild(link);
-    
-    URL.revokeObjectURL(url);
+    const blob = new Blob([csvContent], { type: CONSTANTS.EXPORT.FILE_TYPE });
+    const filename = this._generateCSVFilename();
+    this._triggerFileDownload(blob, filename);
   }
 
   /**
@@ -497,20 +475,9 @@ class OverviewPageController extends EventHandler {
    * - 重置搜尋條件
    */
   handleReload() {
-    this.showLoading(CONSTANTS.RELOAD_MESSAGE);
-    this.searchTerm = '';
-    
-    if (this.elements.searchBox) {
-      this.elements.searchBox.value = '';
-    }
-    
-    // 觸發儲存載入事件
-    if (this.eventBus) {
-      this.eventBus.emit('STORAGE.LOAD.REQUESTED', {
-        source: 'overview-reload',
-        timestamp: Date.now()
-      });
-    }
+    this.showLoading(CONSTANTS.MESSAGES.RELOAD);
+    this._resetSearchState();
+    this._emitStorageLoadRequest('overview-reload');
   }
 
   /**
@@ -527,38 +494,193 @@ class OverviewPageController extends EventHandler {
     if (!file) return;
 
     const reader = new FileReader();
-    
-    reader.onload = (e) => {
-      try {
-        const data = JSON.parse(e.target.result);
-        let books = [];
-        
-        // 支援不同格式的 JSON 結構
-        if (Array.isArray(data)) {
-          books = data;
-        } else if (data.books && Array.isArray(data.books)) {
-          books = data.books;
-        } else {
-          throw new Error('無效的 JSON 格式');
-        }
-        
-        this.currentBooks = books;
-        this.filteredBooks = [...books];
-        this.updateDisplay();
-        
-      } catch (error) {
-        this.showError(`檔案解析失敗: ${error.message}`);
-      }
-    };
-    
-    reader.onerror = () => {
-      this.showError('檔案讀取失敗');
-    };
-    
+    reader.onload = (e) => this._handleFileContent(e.target.result);
+    reader.onerror = () => this.showError(CONSTANTS.MESSAGES.FILE_READ_ERROR);
     reader.readAsText(file, 'utf-8');
   }
 
   // EventHandler 抽象方法實現
+
+  // ========== 私有輔助方法 ==========
+  
+  /**
+   * 驗證事件資料的有效性
+   * @private
+   */
+  _validateEventData(eventData, property) {
+    return eventData && eventData[property] && Array.isArray(eventData[property]);
+  }
+  
+  /**
+   * 更新書籍資料
+   * @private
+   */
+  _updateBooksData(books) {
+    this.currentBooks = books;
+    this.filteredBooks = [...books];
+  }
+  
+  /**
+   * 切換元素的顯示/隱藏狀態
+   * @private
+   */
+  _toggleElement(elementKey, show) {
+    const element = this.elements[elementKey];
+    if (element) {
+      element.style.display = show ? 'block' : 'none';
+    }
+  }
+  
+  /**
+   * 更新載入文字
+   * @private
+   */
+  _updateLoadingText(message) {
+    if (this.cachedElements.loadingText) {
+      this.cachedElements.loadingText.textContent = message;
+    }
+  }
+  
+  /**
+   * 更新錯誤文字
+   * @private
+   */
+  _updateErrorText(message) {
+    if (this.elements.errorMessage && message) {
+      this.elements.errorMessage.textContent = message;
+    }
+  }
+  
+  /**
+   * 創建空表格行
+   * @private
+   */
+  _createEmptyTableRow() {
+    const emptyRow = this.document.createElement('tr');
+    emptyRow.innerHTML = `
+      <td colspan="${CONSTANTS.TABLE.COLUMNS}" style="text-align: center; padding: 40px; color: #666;">
+        ${CONSTANTS.MESSAGES.EMPTY_BOOKS}
+      </td>
+    `;
+    return emptyRow;
+  }
+  
+  /**
+   * 格式化書籍行資料
+   * @private
+   */
+  _formatBookRowData(book) {
+    const { WIDTH, HEIGHT } = CONSTANTS.TABLE.COVER_SIZE;
+    
+    return {
+      cover: book.cover ? 
+        `<img src="${book.cover}" alt="封面" style="width: ${WIDTH}px; height: ${HEIGHT}px; object-fit: cover;">` : 
+        CONSTANTS.TABLE.DEFAULT_COVER,
+      id: book.id || '-',
+      title: book.title || '未知書名',
+      progress: book.progress ? `${book.progress}%` : '-',
+      status: book.status || '未知'
+    };
+  }
+  
+  /**
+   * 將書籍資料轉換為 CSV 行
+   * @private
+   */
+  _bookToCSVRow(book) {
+    return [
+      `"${book.id || ''}"`,
+      `"${book.title || ''}"`,
+      `"${book.progress || 0}"`,
+      `"${book.status || ''}"`,
+      `"${book.cover || ''}"`
+    ].join(',');
+  }
+  
+  /**
+   * 生成 CSV 檔案名
+   * @private
+   */
+  _generateCSVFilename() {
+    const date = new Date().toISOString().slice(0, 10);
+    return `${CONSTANTS.EXPORT.FILENAME_PREFIX}${date}.csv`;
+  }
+  
+  /**
+   * 觸發檔案下載
+   * @private
+   */
+  _triggerFileDownload(blob, filename) {
+    const link = this.document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    
+    this.document.body.appendChild(link);
+    link.click();
+    this.document.body.removeChild(link);
+    
+    URL.revokeObjectURL(url);
+  }
+  
+  /**
+   * 重置搜尋狀態
+   * @private
+   */
+  _resetSearchState() {
+    this.searchTerm = '';
+    if (this.elements.searchBox) {
+      this.elements.searchBox.value = '';
+    }
+  }
+  
+  /**
+   * 發送儲存載入請求
+   * @private
+   */
+  _emitStorageLoadRequest(source) {
+    if (this.eventBus) {
+      this.eventBus.emit(CONSTANTS.EVENTS.STORAGE_LOAD_REQUEST, {
+        source,
+        timestamp: Date.now()
+      });
+    }
+  }
+  
+  /**
+   * 處理檔案內容
+   * @private
+   */
+  _handleFileContent(content) {
+    try {
+      const data = JSON.parse(content);
+      const books = this._extractBooksFromData(data);
+      
+      this._updateBooksData(books);
+      this.updateDisplay();
+      
+    } catch (error) {
+      this.showError(`${CONSTANTS.MESSAGES.FILE_PARSE_ERROR}: ${error.message}`);
+    }
+  }
+  
+  /**
+   * 從資料中提取書籍陣列
+   * @private
+   */
+  _extractBooksFromData(data) {
+    if (Array.isArray(data)) {
+      return data;
+    } else if (data.books && Array.isArray(data.books)) {
+      return data.books;
+    } else {
+      throw new Error(CONSTANTS.MESSAGES.INVALID_JSON);
+    }
+  }
+
+  // ========== EventHandler 抽象方法實現 ==========
 
   /**
    * 取得支援的事件類型
@@ -566,7 +688,7 @@ class OverviewPageController extends EventHandler {
    * @returns {string[]} 支援的事件類型列表
    */
   getSupportedEvents() {
-    return [...CONSTANTS.SUPPORTED_EVENTS];
+    return [...CONSTANTS.EVENTS.SUPPORTED];
   }
 
   /**
