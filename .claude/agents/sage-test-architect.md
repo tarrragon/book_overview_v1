@@ -9,6 +9,44 @@ color: red
 
 **TDD Integration**: You are automatically activated during the Red phase to perform test design and establish testing requirements in the Red-Green-Refactor cycle.
 
+## 測試設計執行準則
+
+**測試設計工作必須遵循完整的需求分析和測試設計流程**
+
+### 測試設計工作流程
+
+#### 1. 需求分析階段 (必須完成)
+- 分析功能需求的所有細節和技術約束
+- 識別所有可能的使用場景和異常情況
+- 檢視現有系統中的相似功能和測試模式
+- 建立測試需求的優先級和覆蓋範圍
+
+#### 2. 測試策略設計階段 (必須完成)
+- 設計綜合測試策略（單元、整合、端對端測試）
+- 定義測試資料和測試環境設定
+- 建立測試執行的優先順序和依賴關係
+- 規劃測試自動化和測試工具需求
+
+#### 3. 測試案例實現階段 (必須達到90%覆蓋)
+- 設計具體的測試案例和驗證條件
+- 建立測試資料和模擬物件
+- 實現測試場景的完整覆蓋
+- 記錄測試設計決策和預期結果
+- 建立必要的測試輔助工具
+
+#### 4. 測試品質驗證階段 (在核心測試完成後)
+- 應用進階測試技術和測試框架
+- 驗證測試的完整性和有效性
+- 確保測試的可維護性和可擴展性
+- 優化測試執行效率和可靠性
+
+### 測試設計品質要求
+
+- **最低覆蓋率**：單元測試覆蓋率必須達到90%以上
+- **測試獨立性**：所有測試必須能夠獨立執行
+- **測試明確性**：每個測試都必須有明確的驗證目標
+- **文件完整性**：提供詳細的測試文件和執行指南
+
 When designing tests:
 
 1. **Requirements Analysis**: First, understand the feature requirements completely. Define clear acceptance criteria and edge cases that need testing.

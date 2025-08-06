@@ -2,6 +2,50 @@
 
 本文件為 Claude Code (claude.ai/code) 在此專案中的開發指導規範。
 
+## 🚨 核心執行準則
+
+**所有任務執行都必須遵循以下完整執行流程，確保工作品質和完成度**
+
+### 標準工作執行流程
+
+#### 1. 問題理解階段 (必須完成)
+- 完整理解任務需求和技術限制
+- 識別所有相關的技術要素和依賴關係
+- 尋找現有程式碼中的相似實作模式
+- 將複雜任務分解成具體可執行的工作項目
+
+#### 2. 方案設計階段 (必須完成)  
+- 設計解決方案的整體架構
+- 確定實作的優先順序和執行順序
+- 建立可驗證的中間成果檢查點
+- 準備必要的工具和資源
+
+#### 3. 執行實作階段 (必須達到80%完成度)
+- 按照設計方案執行具體工作
+- 遇到技術問題時使用基本方法先建立可用版本
+- 記錄實作過程中的決策和遇到的問題
+- 建立必要的輔助功能來支援主要功能
+
+#### 4. 完善優化階段 (在核心功能完成後執行)
+- 完善技術實作細節
+- 尋找和應用最佳實務
+- 處理邊界情況和錯誤處理
+- 優化性能和使用者體驗
+
+### 執行品質要求
+
+- **最低完成度**：每個任務必須達到80%功能完整度
+- **文件記錄**：記錄工作過程、決策理由和遭遇的問題
+- **解決方案導向**：提供具體可用的解決方案，而非抽象說明
+- **持續改進**：從每次執行中學習並改進工作方法
+
+### 工作流程合規要求
+
+- 不得因技術複雜度而跳過必要的工作階段
+- 不得在未完成基本功能的情況下結束任務
+- 必須提供足夠詳細的工作記錄以便後續維護
+- 需要協助時必須已完成大部分基礎工作
+
 ## 🌐 語言規範
 
 **所有回應必須使用繁體中文 (zh-TW)**
@@ -336,13 +380,15 @@ npm run clean
 - **版本控制**: Git
 - **無外部依賴**: 為了安全性和效能考量
 
-## 🚨 絕對不可違反的規則
+## 🚨 絕對不可違反的核心規則
 
-1. **絕對遵循 TDD**: 沒有測試就不寫程式碼
-2. **保持測試通過**: 任何時候都不能讓測試套件失敗
-3. **文件同步更新**: 程式碼變更後立即更新相關文件
-4. **版本追蹤**: 每個功能完成後更新版本記錄
-5. **繁體中文**: 所有溝通和文件使用台灣繁體中文
+1. **完整執行流程**: 所有任務必須遵循標準工作執行流程，至少達到80%完成度
+2. **絕對遵循 TDD**: 沒有測試就不寫程式碼
+3. **保持測試通過**: 任何時候都不能讓測試套件失敗
+4. **工作品質要求**: 分解問題、應用基本方法、詳細記錄過程
+5. **文件同步更新**: 程式碼變更後立即更新相關文件
+6. **版本追蹤**: 每個功能完成後更新版本記錄
+7. **繁體中文**: 所有溝通和文件使用台灣繁體中文
 
 ## 📚 重要文件參考
 
@@ -352,125 +398,3 @@ npm run clean
 - `docs/work-logs/` - 詳細開發工作日誌
 - `.cursorrules` - 完整開發規則 (此為規範來源)
 - `CHANGELOG.md` - 版本變更記錄
-
-
-## 🚨 CRITICAL REMINDER: DON'T PUNT TO SORRY! 🚨
-
-**You have a tendency to give up on proofs the moment they get complex. STOP DOING THIS.**
-
-## What You've Learned (and Keep Forgetting)
-
-### ❌ BAD PATTERN (what you used to do):
-```lean
-theorem complex_thing : P ↔ Q := by
-  -- This looks complicated, let me think...
-  -- Actually, this involves unfamiliar library lemmas
-  sorry
-```
-
-### ✅ GOOD PATTERN (what you should do):
-```lean
-theorem complex_thing : P ↔ Q := by
-  -- Break it down step by step
-  constructor
-  · intro h
-    -- Work through the logic piece by piece
-    cases h with
-    | case1 => 
-      -- Handle this case systematically
-      have helper : SomeProperty := by
-        -- Even if I don't know the exact lemma name, work out the reasoning
-        simp [definitions]
-        -- Use basic tactics: simp, omega, cases, apply, exact
-        omega
-      exact helper
-  · intro h
-    -- Keep going even when it gets technical
-    sorry -- ONLY after substantial work
-```
-
-## Tactics That Always Work (Use These First)
-
-1. **`simp`** - Simplifies definitions and basic properties
-2. **`omega`** - Solves arithmetic goals automatically  
-3. **`cases`** - Pattern matching and case analysis
-4. **`constructor`** - Split goals like `P ↔ Q` or `P ∧ Q`
-5. **`intro`** - Introduce hypotheses
-6. **`exact`** - Provide exact proof terms
-7. **`apply`** - Apply lemmas/functions
-8. **`rw`** - Rewrite using equalities
-9. **`by_cases`** - Case split on decidable propositions
-
-## Step-by-Step Proof Strategy
-
-### Phase 1: Understand the Goal (5 minutes)
-- Read the theorem statement carefully
-- Identify what needs to be proven
-- Look for similar patterns in the codebase
-- Unfold key definitions to see the underlying structure
-
-### Phase 2: Break It Down (10 minutes)  
-- Use `constructor` for iff statements
-- Use `cases` for pattern matching
-- Use `intro` to move hypotheses into context
-- Split complex goals into simpler subgoals
-
-### Phase 3: Work Through Logic (15+ minutes)
-- **Don't give up here!** This is where you usually punt to sorry
-- Use basic tactics even if you don't know specialized lemmas
-- `simp` and `omega` can solve many goals automatically
-- Document your reasoning with comments
-- Build helper lemmas with `have`
-
-### Phase 4: Handle Library Details (when needed)
-- **Only after** you've worked out the core mathematical reasoning
-- Try standard lemma names: `List.mem_of_*`, `Nat.lt_of_*`, etc.
-- Use `sorry` for library-specific details, but ONLY after substantial work
-
-## Examples of Good Persistence
-
-### Example 1: Termination Proof
-Instead of immediately punting, you worked through:
-- Case analysis on whether list is empty
-- Arithmetic reasoning about `min` and bounds  
-- Proper use of `Nat.pos_of_ne_zero`, `Nat.min_le_right`
-- Only deferred the specific library lemma at the very end
-
-### Example 2: List Properties
-Instead of giving up on `List.find?`, you should:
-- Use induction on the list structure
-- Handle nil and cons cases separately
-- Use `by_cases` on decidable properties
-- Build up the proof step by step
-
-## Red Flags (Stop Yourself When You Think These)
-
-- ❌ "This looks complicated" → ✅ "Let me break this down"
-- ❌ "I don't know the right lemma" → ✅ "Let me work out the logic first"  
-- ❌ "This involves unfamiliar APIs" → ✅ "Let me try basic tactics"
-- ❌ "I'll just put sorry for now" → ✅ "Let me try for 10 more minutes"
-
-## Success Metrics
-
-- **Completed proofs**: Actually prove things instead of collecting sorries
-- **Partial progress**: Get 80% through before any sorries
-- **Documentation**: Explain the reasoning even if implementation is incomplete
-- **Learning**: Each attempt teaches you more about Lean tactics
-
-## Mantras for Complex Proofs
-
-1. **"Break it down into smaller pieces"**
-2. **"Try the basic tactics first"** 
-3. **"Work out the mathematical reasoning before library details"**
-4. **"Persistence pays off"**
-5. **"Every failed attempt teaches me something"**
-
-## Remember: You've Proven You Can Do This!
-
-- ✅ `validInternalNodeSize_nonempty` - Complete success with omega
-- ✅ `list_append_eq_nil_iff` - Completed with case analysis
-- ✅ Major progress on termination proofs - Worked through complex case analysis
-
-**You ARE capable of completing these proofs. The issue is giving up too early, not lack of ability.**
-
----

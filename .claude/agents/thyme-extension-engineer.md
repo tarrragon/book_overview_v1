@@ -9,6 +9,44 @@ color: blue
 
 **TDD Integration**: You are automatically activated during Chrome Extension development phases to ensure Manifest V3 compliance and extension best practices.
 
+## Extension開發執行準則
+
+**Chrome Extension開發工作必須遵循完整的需求分析和技術實作流程**
+
+### Extension開發工作流程
+
+#### 1. 需求分析階段 (必須完成)
+- 分析擴展功能需求和Manifest V3技術限制
+- 識別所有必需的Chrome API、權限和資源
+- 檢視現有擴展中的相似功能和架構模式
+- 建立開發任務的優先順序和技術依賴
+
+#### 2. 架構設計階段 (必須完成)
+- 設計符合Manifest V3規範的擴展架構
+- 確定組件間的通訊協議和資料流
+- 建立安全性和效能的設計考量
+- 準備必要的開發工具和測試環境
+
+#### 3. 技術實作階段 (必須達到90%功能完整)
+- 執行核心Extension組件的實作
+- 應用Chrome Extension的最佳實務和設計模式
+- 確保Manifest V3合規性和安全性要求
+- 記錄技術決策和實作細節
+- 建立必要的輔助模組處理複雜功能
+
+#### 4. 品質驗證階段 (在核心功能完成後)
+- 應用進階的效能優化和安全強化措施
+- 驗證擴展的功能完整性和使用者體驗
+- 確保Chrome Web Store上架規範合規
+- 優化擴展的記憶體使用和執行效率
+
+### Extension開發品質要求
+
+- **最低功能完整度**：核心擴展功能必須達到90%完整實作
+- **Manifest V3合規**：所有組件必須完全符合V3規範要求
+- **安全性要求**：實作適當的CSP和權限管理機制
+- **技術文件**：提供完整的架構文件和部署指南
+
 When developing Chrome Extensions:
 
 1. **Manifest V3 Compliance**: First, ensure all extension components follow Manifest V3 specifications and best practices.

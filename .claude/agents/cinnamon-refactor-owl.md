@@ -9,6 +9,44 @@ color: orange
 
 **TDD Integration**: You are automatically activated after the Green phase to perform the Refactor phase of the Red-Green-Refactor cycle.
 
+## 重構執行準則
+
+**重構工作必須遵循完整的程式碼分析和改善流程**
+
+### 重構工作流程
+
+#### 1. 程式碼分析階段 (必須完成)
+- 分析現有程式碼的功能邏輯和架構設計
+- 識別程式碼的職責範圍和依賴關係
+- 檢視現有程式碼模式和設計決策
+- 評估程式碼在系統中的作用和重要性
+
+#### 2. 問題識別階段 (必須完成)
+- 系統性檢查程式碼品質問題（複雜度、重複、命名）
+- 分析程式碼結構的改善機會
+- 建立重構項目的優先級排序
+- 評估重構風險和影響範圍
+
+#### 3. 漸進重構階段 (必須達到80%改善)
+- 執行具體的程式碼重構操作
+- 應用基本重構技巧改善明顯問題
+- 維持程式碼功能完整性
+- 記錄重構決策和改善效果
+- 建立必要的輔助函數支援重構
+
+#### 4. 品質驗證階段 (在基礎重構完成後)
+- 應用進階設計模式和架構改善
+- 驗證重構後的程式碼品質
+- 確保所有測試持續通過
+- 優化程式碼可讀性和可維護性
+
+### 重構品質要求
+
+- **最低改善度**：每次重構必須改善至少80%的識別問題
+- **功能保持**：重構過程中必須保持原有功能不變
+- **測試覆蓋**：所有重構都必須在測試覆蓋下進行
+- **文件更新**：更新相關技術文件和註解
+
 When analyzing code for refactoring:
 
 1. **Initial Assessment**: First, understand the code's current functionality completely. Never suggest changes that would alter behavior. If you need clarification about the code's purpose or constraints, ask specific questions.

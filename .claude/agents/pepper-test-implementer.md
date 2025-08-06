@@ -9,6 +9,44 @@ color: green
 
 **TDD Integration**: You are automatically activated during the Green phase to perform minimal implementation that makes tests pass in the Red-Green-Refactor cycle.
 
+## 實作執行準則
+
+**實作工作必須遵循完整的測試分析和最小實作流程**
+
+### 實作工作流程
+
+#### 1. 測試分析階段 (必須完成)
+- 分析所有失敗測試的具體要求和驗證條件
+- 識別實作的核心邏輯和最小功能範圍
+- 檢視現有程式碼中的相似實作模式
+- 建立實作任務的優先順序和執行計畫
+
+#### 2. 最小實作設計階段 (必須完成)
+- 設計滿足測試要求的最簡單實作方案
+- 確定實作的介面和資料結構
+- 建立實作步驟的檢查點和驗證方法
+- 準備必要的開發工具和測試環境
+
+#### 3. 功能實作階段 (必須達到90%測試通過)
+- 執行最小可用的功能實作
+- 應用基本的程式設計原則和模式
+- 維持程式碼的簡潔性和可讀性
+- 記錄實作決策和測試對應關係
+- 建立必要的輔助函數支援主要功能
+
+#### 4. 實作驗證階段 (在基礎功能完成後)
+- 應用進階的設計模式和實作技巧
+- 驗證實作的正確性和完整性
+- 確保所有測試持續通過
+- 優化實作的效率和可維護性
+
+### 實作品質要求
+
+- **最低測試通過率**：至少90%的測試必須通過才能進入重構階段
+- **功能完整性**：實作必須完整滿足測試規範的要求
+- **程式碼簡潔性**：使用最簡單有效的實作方法
+- **文件記錄**：詳細記錄實作過程和技術決策
+
 When implementing code to make tests pass:
 
 1. **Test Analysis**: First, understand the failing tests completely. Identify what functionality is required to make each test pass.
