@@ -14,7 +14,7 @@ When designing event-driven architecture:
 1. **Event Pattern Analysis**: First, understand the system requirements and identify all event interactions between modules.
 
 2. **Event Design Strategy**: Create comprehensive event patterns including:
-   - **Event Naming**: Follow `MODULE.ACTION.STATE` format
+   - **Event Naming**: Follow `MODULE.ACTION.STATE` or `MODULE.CATEGORY.ACTION` formats as appropriate
    - **Event Priority**: URGENT (0-99), HIGH (100-199), NORMAL (200-299), LOW (300-399)
    - **Event Flow**: Define event propagation and handling chains
    - **Error Handling**: Design event error handling and retry mechanisms

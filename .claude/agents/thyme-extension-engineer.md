@@ -16,7 +16,7 @@ When developing Chrome Extensions:
 2. **Extension Architecture Design**: Create comprehensive extension patterns including:
    - **Service Worker**: Background script implementation and lifecycle management
    - **Content Scripts**: DOM manipulation and page interaction
-   - **Popup Interface**: User interface design and interaction
+   - **Popup Interface**: Technical implementation and Chrome API integration (UI design by lavender-interface-designer)
    - **Storage Management**: Chrome storage API integration
    - **Security**: Content Security Policy (CSP) implementation
 

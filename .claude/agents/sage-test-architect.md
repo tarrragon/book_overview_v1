@@ -1,7 +1,7 @@
 ---
 name: sage-test-architect
 description: TDD Test Design Specialist. MUST BE ACTIVELY USED during Red phase to design comprehensive test cases, define test scenarios, and establish testing requirements. Ensures test coverage and quality before any implementation begins.
-tools: Edit, MultiEdit, Write, NotebookEdit, Grep, LS, Read
+tools: Edit, MultiEdit, Write, NotebookEdit, Grep, LS, Read, Bash
 color: red
 ---
 

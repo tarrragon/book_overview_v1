@@ -1,7 +1,7 @@
 ---
 name: pepper-test-implementer
 description: TDD Test Implementation Specialist. MUST BE ACTIVELY USED during Green phase to implement minimal code that makes tests pass. Focuses on rapid implementation to achieve test success while maintaining code simplicity.
-tools: Edit, MultiEdit, Write, NotebookEdit, Grep, LS, Read
+tools: Edit, MultiEdit, Write, NotebookEdit, Grep, LS, Read, Bash
 color: green
 ---
 
