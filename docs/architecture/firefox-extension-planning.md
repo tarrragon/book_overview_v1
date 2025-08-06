@@ -1,6 +1,6 @@
 # 🦊 Firefox Extension 跨平台支援規劃
 
-**版本**: v0.7.0 規劃  
+**版本**: v2.1 未來規劃 (🔴 **延後開發**)  
 **建立日期**: 2025-08-06  
 **目標**: Chrome Extension 跨平台擴展至 Firefox WebExtension
 
@@ -390,6 +390,13 @@ class CrossPlatformTestSuite {
 
 ---
 
+🔴 **重要策略調整通知**
+
+基於優先上架策略，Firefox Extension 支援已調整為 **v2.1 未來規劃**：
+
+**優先策略**: v1.0 Chrome Extension 穩定上架建立用戶基礎  
+**延後開發**: Firefox 跨平台支援在 v1.0 穩定運行後再進行
+
 **架構負責人**: 開發團隊  
-**開始條件**: v0.6.x 書籍元資料增強完成  
-**預計完成**: v0.7.2 跨平台支援上線
+**開始條件**: v1.0 Chrome Web Store 成功上架且穩定運行  
+**預計完成**: v2.1 跨平台支援上線
