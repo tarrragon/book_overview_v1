@@ -125,7 +125,7 @@ describe('Popup Interface 整合測試', () => {
       // 版本資訊
       const versionElement = document.querySelector('.version');
       expect(versionElement).toBeTruthy();
-      expect(versionElement.textContent).toContain('v0.3.0');
+      expect(versionElement.textContent).toContain('v0.3.5');
       
       // 確認有載入樣式
       const styleElements = document.querySelectorAll('style');
