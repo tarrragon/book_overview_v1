@@ -2,6 +2,77 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [0.5.26] - 2025-08-06
+
+### TDD 循環 #30: LocalStorageAdapter 儲存適配器 (完整 Red-Green-Refactor)
+
+- **LocalStorageAdapter 類別實現** (21/21 測試通過)
+  - 新增 `src/storage/adapters/local-storage-adapter.js` (650+ 行實現)
+  - 新增 `tests/unit/storage/adapters/local-storage-adapter.test.js` (350+ 行測試)
+  - 作為 Chrome Storage 的備援方案，支援跨瀏覽器相容性
+
+- **核心儲存功能**
+  - **基本操作**：save、load、delete、clear、getStorageInfo 五大操作
+  - **資料處理**：JSON 序列化/反序列化，特殊值處理（undefined 支援）
+  - **錯誤分類**：8 種錯誤類型（API 不可用、序列化錯誤、配額超出等）
+  - **統計系統**：操作統計、效能指標、錯誤統計追蹤
+
+- **技術特性**
+  - **前綴管理**：避免與其他應用衝突，支援批次清理
+  - **配額檢測**：大小限制檢查，配額超出處理
+  - **效能監控**：操作時間追蹤，平均響應時間計算
+  - **容錯機制**：API 可用性檢測，優雅降級處理
+
+- **程式碼重構 (Refactor 階段完成)**
+  - **常數統一管理**：`initializeConstants` 方法統一錯誤類型、特殊值、測試常數
+  - **序列化邏輯抽取**：`serializeData` 和 `deserializeData` 方法統一處理
+  - **操作包裝器模式**：`executeOperation` 統一統計、效能、錯誤處理模板
+  - **程式碼複雜度降低**：重複代碼減少約 30%，可維護性提升
+
+- **測試環境改善**
+  - 修正 `tests/test-setup.js` localStorage 清理邏輯
+  - 改善 localStorage 模擬機制，支援複雜測試情況
+  - 21 個測試涵蓋所有主要功能路徑和邊界條件
+
+- **UI 處理器重構**
+  - UINotificationHandler 和 UIProgressHandler 程式碼優化
+  - 初始化方法重構：`initializeState`、`initializeConfiguration`、`initializeStatistics`
+  - 流程邏輯抽取：`executeNotificationFlow` 和 `executeProgressFlow` 統一處理
+
+---
+
+## [0.5.25] - 2025-08-06 📤
+
+### TDD 循環 #29: 數據匯出系統 (完整 Red-Green-Refactor)
+
+- **BookDataExporter 類別實現** (44/44 測試通過)
+  - 新增 `src/export/book-data-exporter.js` (1060+ 行全面實現)
+  - 多格式資料匯出系統，支援 CSV、JSON、Excel、PDF 四大格式
+  - 範本系統和自訂匯出選項
+
+- **核心匯出功能**
+  - **CSV 匯出**：可自訂欄位、分隔符號、標題行，特殊字符處理
+  - **JSON 匯出**：格式化選項、元資料包含、欄位篩選
+  - **Excel 匯出**：多工作表支援、格式設定、欄位寬度調整
+  - **PDF 報告**：範本系統、統計圖表、自訂樣式
+
+- **進階功能**
+  - **批量匯出**：多格式同時匯出、ZIP 壓縮、README 生成
+  - **檔案操作**：檔案下載、本地儲存、剪貼簿複製
+  - **範本系統**：預設範本、自訂範本、範本驗證
+  - **進度追蹤**：即時進度更新、匯出統計、歷史記錄
+
+- **程式碼重構 (Refactor 階段完成)** 🔧
+  - **通用匯出包裝器**：`_executeExport` 統一錯誤處理和統計記錄
+  - **欄位值處理**：`_processFieldValue` 統一特殊字符和類型處理
+  - **初始化重構**：分解建構函數為 `_initializeState`、`_initializeStats`、`_initializeTemplates`
+  - **常數架構**：CONFIG、FIELDS、TEMPLATES、FILES、MIME_TYPES 分層管理
+
+- **效能優化成果**
+  - **檔案大小估算**：智能預估各格式檔案大小
+  - **記憶體管理**：批量處理機制、進度追蹤優化
+  - **統計系統**：完整的匯出統計、錯誤記錄、效能指標
+
 ## [0.5.24] - 2025-08-06 📋
 
 ### 專案文件完善與多書城規劃

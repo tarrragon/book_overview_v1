@@ -52,16 +52,58 @@ class UINotificationHandler extends EventHandler {
     this.eventBus = eventBus;
     this.document = document;
     
-    // 通知狀態管理
+    // 初始化狀態管理
+    this.initializeState();
+    
+    // 初始化配置
+    this.initializeConfiguration();
+    
+    // 初始化統計
+    this.initializeStatistics();
+  }
+
+  /**
+   * 初始化狀態管理
+   * 
+   * 負責功能：
+   * - 初始化通知狀態追蹤
+   * - 設定通知佇列管理
+   * - 準備定時器管理
+   */
+  initializeState() {
     this.activeNotifications = new Map();
     this.notificationQueue = [];
     this.notificationTimers = new Map();
-    
-    // 通知配置
+    this.cachedContainer = null;
+  }
+
+  /**
+   * 初始化配置參數
+   * 
+   * 負責功能：
+   * - 設定通知限制和持續時間
+   * - 定義支援的通知類型
+   */
+  initializeConfiguration() {
     this.maxNotifications = 5;
     this.defaultDuration = 3000; // 3秒
     
-    // 通知統計
+    this.NOTIFICATION_TYPES = {
+      SUCCESS: 'success',
+      ERROR: 'error',
+      WARNING: 'warning',
+      INFO: 'info'
+    };
+  }
+
+  /**
+   * 初始化統計追蹤
+   * 
+   * 負責功能：
+   * - 設定通知統計計數器
+   * - 初始化錯誤追蹤
+   */
+  initializeStatistics() {
     this.totalNotifications = 0;
     this.notificationsByType = {
       success: 0,
@@ -70,20 +112,8 @@ class UINotificationHandler extends EventHandler {
       info: 0
     };
     
-    // 錯誤統計
     this.errorCount = 0;
     this.lastError = null;
-    
-    // 支援的通知類型
-    this.NOTIFICATION_TYPES = {
-      SUCCESS: 'success',
-      ERROR: 'error',
-      WARNING: 'warning',
-      INFO: 'info'
-    };
-    
-    // DOM 元素快取
-    this.cachedContainer = null;
   }
 
   /**
@@ -130,32 +160,49 @@ class UINotificationHandler extends EventHandler {
     const { data, flowId, timestamp } = event;
 
     try {
-      // 1. 前置驗證
-      this.validateNotificationEvent(event);
-      this.validateNotificationData(data);
-
-      // 2. 檢查通知佇列限制
-      await this.enforceNotificationLimit();
-
-      // 3. 創建通知元素
-      const notification = await this.createNotification(data, flowId);
-
-      // 4. 顯示通知
-      await this.showNotification(notification, flowId);
-
-      // 5. 管理通知生命週期
-      this.manageNotificationLifecycle(data, flowId, notification);
-
-      // 6. 更新統計
-      this.updateNotificationStats(data);
-
-      return this.buildSuccessResponse(flowId, data);
-
+      // 執行完整的通知處理流程
+      return await this.executeNotificationFlow(event, data, flowId);
     } catch (error) {
       // 統一錯誤處理
       this.handleNotificationError(flowId, error);
       throw error; // 重新拋出供上層處理
     }
+  }
+
+  /**
+   * 執行完整的通知處理流程
+   * 
+   * @param {Object} event - 事件物件
+   * @param {Object} data - 通知資料
+   * @param {string} flowId - 流程ID
+   * @returns {Promise<Object>} 處理結果
+   * 
+   * 負責功能：
+   * - 協調整個通知顯示流程
+   * - 確保步驟順序和依賴關係
+   * - 提供統一的流程控制
+   */
+  async executeNotificationFlow(event, data, flowId) {
+    // 1. 前置驗證
+    this.validateNotificationEvent(event);
+    this.validateNotificationData(data);
+
+    // 2. 檢查通知佇列限制
+    await this.enforceNotificationLimit();
+
+    // 3. 創建通知元素
+    const notification = await this.createNotification(data, flowId);
+
+    // 4. 顯示通知
+    await this.showNotification(notification, flowId);
+
+    // 5. 管理通知生命週期
+    this.manageNotificationLifecycle(data, flowId, notification);
+
+    // 6. 更新統計
+    this.updateNotificationStats(data);
+
+    return this.buildSuccessResponse(flowId, data);
   }
 
   /**

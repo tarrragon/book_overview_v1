@@ -50,22 +50,42 @@ class UIProgressHandler extends EventHandler {
     this.eventBus = eventBus;
     this.document = document;
     
-    // 進度狀態管理
+    // 初始化狀態管理
+    this.initializeState();
+    
+    // 初始化統計
+    this.initializeStatistics();
+  }
+
+  /**
+   * 初始化狀態管理
+   * 
+   * 負責功能：
+   * - 初始化進度狀態追蹤
+   * - 設定動畫狀態管理
+   * - 準備DOM元素快取
+   */
+  initializeState() {
     this.progressState = new Map();
     this.animationState = new Map();
-    
-    // UI更新統計
+    this.cachedElements = new Map();
+  }
+
+  /**
+   * 初始化統計追蹤
+   * 
+   * 負責功能：
+   * - 設定UI更新統計
+   * - 初始化錯誤追蹤
+   */
+  initializeStatistics() {
     this.updateCount = 0;
     this.activeFlows = new Set();
     this.completedFlows = 0;
     this.lastUpdateTime = null;
     
-    // 錯誤統計
     this.errorCount = 0;
     this.lastError = null;
-    
-    // DOM元素快取
-    this.cachedElements = new Map();
   }
 
   /**
@@ -110,34 +130,52 @@ class UIProgressHandler extends EventHandler {
     const { data, flowId, timestamp } = event;
 
     try {
-      // 1. 前置驗證
-      this.validateProgressEvent(event);
-      this.validateProgressData(data);
-
-      // 2. 更新進度狀態
-      this.updateProgressState(flowId, data, timestamp);
-
-      // 3. 更新DOM元素
-      await this.updateProgressDisplay(data, flowId);
-
-      // 4. 處理狀態變化
-      await this.handleProgressStatus(data, flowId);
-
-      // 5. 更新統計
-      this.updateProgressStats(flowId, data);
-
-      // 6. 清理完成的流程
-      if (data.status === 'completed') {
-        this.scheduleProgressCleanup(flowId);
-      }
-
-      return this.buildSuccessResponse(flowId, data);
-
+      // 執行完整的進度處理流程
+      return await this.executeProgressFlow(event, data, flowId, timestamp);
     } catch (error) {
       // 統一錯誤處理
       this.handleProgressError(flowId, error);
       throw error; // 重新拋出供上層處理
     }
+  }
+
+  /**
+   * 執行完整的進度處理流程
+   * 
+   * @param {Object} event - 事件物件
+   * @param {Object} data - 進度資料
+   * @param {string} flowId - 流程ID
+   * @param {number} timestamp - 時間戳
+   * @returns {Promise<Object>} 處理結果
+   * 
+   * 負責功能：
+   * - 協調整個進度更新流程
+   * - 確保步驟順序和依賴關係
+   * - 提供統一的流程控制
+   */
+  async executeProgressFlow(event, data, flowId, timestamp) {
+    // 1. 前置驗證
+    this.validateProgressEvent(event);
+    this.validateProgressData(data);
+
+    // 2. 更新進度狀態
+    this.updateProgressState(flowId, data, timestamp);
+
+    // 3. 更新DOM元素
+    await this.updateProgressDisplay(data, flowId);
+
+    // 4. 處理狀態變化
+    await this.handleProgressStatus(data, flowId);
+
+    // 5. 更新統計
+    this.updateProgressStats(flowId, data);
+
+    // 6. 清理完成的流程
+    if (data.status === 'completed') {
+      this.scheduleProgressCleanup(flowId);
+    }
+
+    return this.buildSuccessResponse(flowId, data);
   }
 
   /**

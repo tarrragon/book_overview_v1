@@ -86,11 +86,21 @@ global.testUtils = {
    * 每個測試後呼叫以重置狀態
    */
   cleanup: () => {
-    // 清理 localStorage
-    localStorage.clear();
-    localStorage.getItem.mockClear();
-    localStorage.setItem.mockClear();
-    localStorage.removeItem.mockClear();
+    // 清理 localStorage（如果存在）
+    if (typeof localStorage !== 'undefined' && localStorage) {
+      if (typeof localStorage.clear === 'function') {
+        localStorage.clear();
+      }
+      if (localStorage.getItem && typeof localStorage.getItem.mockClear === 'function') {
+        localStorage.getItem.mockClear();
+      }
+      if (localStorage.setItem && typeof localStorage.setItem.mockClear === 'function') {
+        localStorage.setItem.mockClear();
+      }
+      if (localStorage.removeItem && typeof localStorage.removeItem.mockClear === 'function') {
+        localStorage.removeItem.mockClear();
+      }
+    }
     
     // 清理 sessionStorage
     sessionStorage.clear();
