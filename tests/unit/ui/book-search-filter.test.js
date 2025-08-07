@@ -702,15 +702,18 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
       });
     });
 
-    test('應該處理外部搜尋請求事件', () => {
+    test('應該處理外部搜尋請求事件', async () => {
       const BookSearchFilter = require('../../../src/ui/book-search-filter');
       const instance = new BookSearchFilter(mockEventBus, mockDocument);
       
       const eventHandler = mockEventBus.on.mock.calls
         .find(call => call[0] === 'SEARCH.REQUEST')[1];
       
-      const searchSpy = jest.spyOn(instance, 'searchBooks');
+      const searchSpy = jest.spyOn(instance, 'searchBooks').mockResolvedValue([]);
       eventHandler({ query: 'JavaScript' });
+      
+      // 等待一個 tick 確保異步調用完成
+      await new Promise(resolve => setTimeout(resolve, 0));
       
       expect(searchSpy).toHaveBeenCalledWith('JavaScript');
     });
