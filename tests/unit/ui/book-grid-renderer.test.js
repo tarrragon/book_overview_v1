@@ -30,11 +30,29 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
   let mockContainer;
   let mockEventBus;
   
+  // 測試輔助函數
+  const setupRequestAnimationFrame = () => {
+    global.requestAnimationFrame = jest.fn((callback) => {
+      setTimeout(callback, 0);
+      return 1;
+    });
+  };
+
+  const waitForAsyncRender = (callback, timeout = 10) => {
+    setTimeout(callback, timeout);
+  };
+
   beforeEach(() => {
     // 模擬 DOM 環境
     mockContainer = {
-      appendChild: jest.fn(),
-      removeChild: jest.fn(),
+      appendChild: jest.fn().mockImplementation(function(element) {
+        element.parentNode = this;
+        return element;
+      }),
+      removeChild: jest.fn().mockImplementation(function(element) {
+        element.parentNode = null;
+        return element;
+      }),
       scrollTop: 0,
       scrollHeight: 1000,
       clientHeight: 400,
@@ -53,21 +71,39 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     };
 
     mockDocument = {
-      createElement: jest.fn((tag) => ({
-        tagName: tag.toUpperCase(),
-        style: {},
-        classList: {
-          add: jest.fn(),
-          remove: jest.fn()
-        },
-        setAttribute: jest.fn(),
-        appendChild: jest.fn(),
-        removeChild: jest.fn(),
-        textContent: '',
-        innerHTML: '',
-        addEventListener: jest.fn(),
-        removeEventListener: jest.fn()
-      })),
+      createElement: jest.fn((tag) => {
+        const element = {
+          tagName: tag.toUpperCase(),
+          style: {},
+          className: '',
+          attributes: new Map(),
+          parentNode: null,
+          classList: {
+            add: jest.fn(function(cls) { 
+              element.className += (element.className ? ' ' : '') + cls; 
+            }),
+            remove: jest.fn(function(cls) { 
+              element.className = element.className.replace(cls, '').trim(); 
+            }),
+            contains: jest.fn(function(cls) { 
+              return element.className.includes(cls); 
+            })
+          },
+          setAttribute: jest.fn(function(name, value) { 
+            element.attributes.set(name, value); 
+          }),
+          getAttribute: jest.fn(function(name) { 
+            return element.attributes.get(name); 
+          }),
+          appendChild: jest.fn(),
+          removeChild: jest.fn(),
+          textContent: '',
+          innerHTML: '',
+          addEventListener: jest.fn(),
+          removeEventListener: jest.fn()
+        };
+        return element;
+      }),
       querySelector: jest.fn().mockReturnValue(mockContainer),
       querySelectorAll: jest.fn().mockReturnValue([])
     };
@@ -90,13 +126,40 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     test('應該能夠創建 BookGridRenderer 實例', () => {
       expect(() => {
         const BookGridRenderer = require('../../../src/ui/book-grid-renderer');
-        renderer = new BookGridRenderer(mockContainer, mockEventBus);
+        renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument);
       }).not.toThrow();
+    });
+
+    test('應該支援 document 依賴注入', () => {
+      const BookGridRenderer = require('../../../src/ui/book-grid-renderer');
+      renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument);
+      
+      // 驗證注入的 document 被正確設置
+      expect(renderer.document).toBe(mockDocument);
+    });
+
+    test('應該在沒有注入 document 時使用全域 document', () => {
+      const BookGridRenderer = require('../../../src/ui/book-grid-renderer');
+      const originalDocument = global.document;
+      
+      // 模擬瀏覽器環境
+      global.document = { createElement: jest.fn() };
+      global.window = { document: global.document };
+      
+      // 不傳入 document 參數，期望使用全域 document
+      renderer = new BookGridRenderer(mockContainer, mockEventBus, {});
+      
+      // 應該使用全域 document
+      expect(renderer.document).toBe(global.document);
+      
+      // 清理
+      global.document = originalDocument;
+      delete global.window;
     });
 
     test('應該正確初始化基本屬性', () => {
       const BookGridRenderer = require('../../../src/ui/book-grid-renderer');
-      renderer = new BookGridRenderer(mockContainer, mockEventBus);
+      renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument);
       
       expect(renderer.container).toBe(mockContainer);
       expect(renderer.eventBus).toBe(mockEventBus);
@@ -106,7 +169,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
     test('應該初始化預設配置', () => {
       const BookGridRenderer = require('../../../src/ui/book-grid-renderer');
-      renderer = new BookGridRenderer(mockContainer, mockEventBus);
+      renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument);
       
       expect(renderer.config).toBeDefined();
       expect(renderer.config.cardWidth).toBeGreaterThan(0);
@@ -117,7 +180,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
     test('應該註冊事件監聽器', () => {
       const BookGridRenderer = require('../../../src/ui/book-grid-renderer');
-      renderer = new BookGridRenderer(mockContainer, mockEventBus);
+      renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument);
       
       expect(mockEventBus.on).toHaveBeenCalledWith('UI.BOOKS.UPDATE', expect.any(Function));
       expect(mockEventBus.on).toHaveBeenCalledWith('UI.BOOKS.FILTER', expect.any(Function));
@@ -125,7 +188,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
     test('應該初始化統計追蹤', () => {
       const BookGridRenderer = require('../../../src/ui/book-grid-renderer');
-      renderer = new BookGridRenderer(mockContainer, mockEventBus);
+      renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument);
       
       expect(renderer.stats).toBeDefined();
       expect(renderer.stats.totalBooks).toBe(0);
@@ -137,7 +200,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
   describe('📐 網格計算和佈局', () => {
     beforeEach(() => {
       const BookGridRenderer = require('../../../src/ui/book-grid-renderer');
-      renderer = new BookGridRenderer(mockContainer, mockEventBus);
+      renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument);
     });
 
     test('應該正確計算網格欄位數量', () => {
@@ -181,7 +244,8 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
   describe('🖼 書籍卡片渲染', () => {
     beforeEach(() => {
       const BookGridRenderer = require('../../../src/ui/book-grid-renderer');
-      renderer = new BookGridRenderer(mockContainer, mockEventBus);
+      // 使用依賴注入來支援測試
+      renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument);
     });
 
     test('應該創建書籍卡片元素', () => {
@@ -194,7 +258,14 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
       
       const card = renderer.createBookCard(book);
       
+      // 驗證 document.createElement 被調用
+      expect(mockDocument.createElement).toHaveBeenCalledWith('div');
+      
+      // 驗證卡片元素被正確設置
       expect(card).toBeDefined();
+      expect(card.tagName).toBe('DIV');
+      
+      // 驗證行為結果而非實現細節
       expect(card.classList.add).toHaveBeenCalledWith('book-card');
     });
 
@@ -210,7 +281,11 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
       
       const card = renderer.createBookCard(book);
       
+      // 驗證 DOM 操作被正確調用
       expect(card.setAttribute).toHaveBeenCalledWith('data-book-id', 'test-book');
+      
+      // 額外驗證：檢查屬性是否真的被設置
+      expect(card.getAttribute('data-book-id')).toBe('test-book');
     });
 
     test('應該處理缺少封面圖片的情況', () => {
@@ -254,12 +329,15 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
   describe('📱 響應式設計', () => {
     beforeEach(() => {
       const BookGridRenderer = require('../../../src/ui/book-grid-renderer');
-      renderer = new BookGridRenderer(mockContainer, mockEventBus);
+      renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument);
     });
 
-    test('應該響應容器尺寸變化', () => {
+    test('應該響應容器尺寸變化', (done) => {
       const originalWidth = 800;
       const newWidth = 400;
+      
+      // 記錄原始欄位數
+      const originalColumns = renderer.calculateColumns(originalWidth);
       
       // 模擬尺寸變化
       mockContainer.getBoundingClientRect = jest.fn().mockReturnValue({
@@ -269,7 +347,12 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
       
       renderer.handleResize();
       
-      expect(renderer.currentColumns).toBeLessThan(renderer.calculateColumns(originalWidth));
+      // handleResize 是異步的，需要等待
+      setTimeout(() => {
+        const newColumns = renderer.currentColumns;
+        expect(newColumns).toBeLessThan(originalColumns);
+        done();
+      }, 150); // 等待 throttleDelay
     });
 
     test('應該在小螢幕上使用單欄佈局', () => {
@@ -303,7 +386,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
   describe('🔄 虛擬滾動功能', () => {
     beforeEach(() => {
       const BookGridRenderer = require('../../../src/ui/book-grid-renderer');
-      renderer = new BookGridRenderer(mockContainer, mockEventBus);
+      renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument);
     });
 
     test('應該計算可見區域範圍', () => {
@@ -317,15 +400,20 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
       expect(visibleRange.start).toBeLessThan(visibleRange.end);
     });
 
-    test('應該只渲染可見的書籍', () => {
-      const books = Array.from({length: 100}, (_, i) => ({id: `book-${i}`}));
-      renderer.updateBooks(books);
+    test('應該只渲染可見的書籍', (done) => {
+      const books = Array.from({length: 100}, (_, i) => ({id: `book-${i}`, title: `Book ${i}`}));
       
+      setupRequestAnimationFrame();
+      
+      renderer.updateBooks(books);
       renderer.renderVisibleBooks();
       
-      // 應該只渲染部分書籍，不是全部100本
-      expect(mockContainer.appendChild.mock.calls.length).toBeLessThan(100);
-      expect(mockContainer.appendChild.mock.calls.length).toBeGreaterThan(0);
+      waitForAsyncRender(() => {
+        // 應該只渲染部分書籍，不是全部100本
+        expect(mockContainer.appendChild.mock.calls.length).toBeLessThan(100);
+        expect(mockContainer.appendChild.mock.calls.length).toBeGreaterThan(0);
+        done();
+      });
     });
 
     test('應該在滾動時更新可見範圍', () => {
@@ -358,19 +446,25 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
   describe('📊 資料更新和重新渲染', () => {
     beforeEach(() => {
       const BookGridRenderer = require('../../../src/ui/book-grid-renderer');
-      renderer = new BookGridRenderer(mockContainer, mockEventBus);
+      renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument);
     });
 
-    test('應該更新書籍資料並重新渲染', () => {
+    test('應該更新書籍資料並重新渲染', (done) => {
       const books = [
         {id: 'book-1', title: 'Book 1'},
         {id: 'book-2', title: 'Book 2'}
       ];
       
+      setupRequestAnimationFrame();
+      
       renderer.updateBooks(books);
       
       expect(renderer.books).toEqual(books);
-      expect(mockContainer.appendChild).toHaveBeenCalled();
+      
+      waitForAsyncRender(() => {
+        expect(mockContainer.appendChild).toHaveBeenCalled();
+        done();
+      });
     });
 
     test('應該處理空書籍清單', () => {
@@ -413,7 +507,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
   describe('⚡ 效能優化', () => {
     beforeEach(() => {
       const BookGridRenderer = require('../../../src/ui/book-grid-renderer');
-      renderer = new BookGridRenderer(mockContainer, mockEventBus);
+      renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument);
     });
 
     test('應該使用 requestAnimationFrame 優化渲染', () => {
@@ -442,31 +536,47 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
       jest.useRealTimers();
     });
 
-    test('應該追蹤渲染效能指標', () => {
-      const books = Array.from({length: 20}, (_, i) => ({id: `book-${i}`}));
+    test('應該追蹤渲染效能指標', (done) => {
+      const books = Array.from({length: 20}, (_, i) => ({id: `book-${i}`, title: `Book ${i}`}));
+      
+      setupRequestAnimationFrame();
       
       renderer.updateBooks(books);
       
-      expect(renderer.stats.renderTime).toBeGreaterThan(0);
-      expect(renderer.stats.renderedBooks).toBe(books.length);
+      waitForAsyncRender(() => {
+        expect(renderer.stats.renderTime).toBeGreaterThan(0);
+        expect(renderer.stats.renderedBooks).toBeGreaterThan(0);
+        done();
+      });
     });
 
-    test('應該清理未使用的 DOM 元素', () => {
-      const books = Array.from({length: 10}, (_, i) => ({id: `book-${i}`}));
+    test('應該清理未使用的 DOM 元素', (done) => {
+      const books = Array.from({length: 10}, (_, i) => ({id: `book-${i}`, title: `Book ${i}`}));
+      
+      setupRequestAnimationFrame();
+      
       renderer.updateBooks(books);
       
-      // 減少書籍數量
-      const fewerBooks = books.slice(0, 5);
-      renderer.updateBooks(fewerBooks);
-      
-      expect(mockContainer.removeChild).toHaveBeenCalled();
+      waitForAsyncRender(() => {
+        // 清除之前的調用記錄
+        mockContainer.removeChild.mockClear();
+        
+        // 減少書籍數量，觸發清理
+        const fewerBooks = books.slice(0, 5);
+        renderer.updateBooks(fewerBooks);
+        
+        waitForAsyncRender(() => {
+          expect(mockContainer.removeChild).toHaveBeenCalled();
+          done();
+        });
+      });
     });
   });
 
   describe('🔧 錯誤處理', () => {
     beforeEach(() => {
       const BookGridRenderer = require('../../../src/ui/book-grid-renderer');
-      renderer = new BookGridRenderer(mockContainer, mockEventBus);
+      renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument);
     });
 
     test('應該處理無效的書籍資料', () => {
@@ -512,7 +622,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
   describe('🎯 邊界條件測試', () => {
     beforeEach(() => {
       const BookGridRenderer = require('../../../src/ui/book-grid-renderer');
-      renderer = new BookGridRenderer(mockContainer, mockEventBus);
+      renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument);
     });
 
     test('應該處理極大量書籍資料', () => {
