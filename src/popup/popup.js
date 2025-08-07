@@ -109,7 +109,10 @@ const elements = {
   errorContainer: document.getElementById('errorContainer'),
   errorMessage: document.getElementById('errorMessage'),
   retryBtn: document.getElementById('retryBtn'),
-  reportBtn: document.getElementById('reportBtn')
+  reportBtn: document.getElementById('reportBtn'),
+  
+  // 版本顯示元素
+  versionDisplay: document.getElementById('versionDisplay')
 };
 
 // ==================== 狀態管理 ====================
@@ -152,6 +155,33 @@ function updateButtonState(disabled, text) {
   elements.extractBtn.disabled = disabled;
   if (text) {
     elements.extractBtn.textContent = text;
+  }
+}
+
+/**
+ * 更新版本顯示
+ * 
+ * 負責功能：
+ * - 動態獲取並顯示擴展版本號
+ * - 區分開發版本和正式版本
+ * 
+ * 設計考量：
+ * - 自動從 manifest.json 獲取版本號
+ * - 提供版本類型標識
+ */
+function updateVersionDisplay() {
+  if (!elements.versionDisplay) return;
+  
+  try {
+    const manifest = chrome.runtime.getManifest();
+    const version = manifest.version;
+    const isDevelopment = version.includes('dev') || version.startsWith('0.');
+    const versionText = isDevelopment ? `v${version} 開發版本` : `v${version}`;
+    
+    elements.versionDisplay.textContent = versionText;
+  } catch (error) {
+    console.warn('無法獲取版本號:', error);
+    elements.versionDisplay.textContent = 'v?.?.? 未知版本';
   }
 }
 
@@ -592,6 +622,9 @@ async function initialize() {
   console.log('🚀 開始初始化 Popup Interface');
   
   try {
+    // 更新版本顯示
+    updateVersionDisplay();
+    
     // 初始化錯誤處理器
     initializeErrorHandler();
     
@@ -701,6 +734,7 @@ if (typeof window !== 'undefined') {
   window.elements = elements;
   window.updateStatus = updateStatus;
   window.updateButtonState = updateButtonState;
+  window.updateVersionDisplay = updateVersionDisplay;
   window.checkCurrentTab = checkCurrentTab;
   window.checkBackgroundStatus = checkBackgroundStatus;
   window.startExtraction = startExtraction;
