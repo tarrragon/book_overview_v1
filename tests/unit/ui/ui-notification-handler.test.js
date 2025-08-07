@@ -212,9 +212,20 @@ describe('UINotificationHandler', () => {
         }
       ];
 
-      for (const event of invalidEvents) {
-        await expect(handler.handle(event)).rejects.toThrow();
-      }
+      // 測試第一種情況：null data
+      const result1 = await handler.handle(invalidEvents[0]);
+      expect(result1.success).toBe(false);
+      expect(result1.error).toContain('Notification data must be a valid object');
+
+      // 測試第二種情況：空訊息
+      const result2 = await handler.handle(invalidEvents[1]);
+      expect(result2.success).toBe(false);
+      expect(result2.error).toContain('Message must be a non-empty string');
+
+      // 測試第三種情況：無效類型
+      const result3 = await handler.handle(invalidEvents[2]);
+      expect(result3.success).toBe(false);
+      expect(result3.error).toContain('notification type');
     });
   });
 
@@ -391,10 +402,14 @@ describe('UINotificationHandler', () => {
       };
 
       // 應該優雅處理錯誤
-      await expect(handler.handle(event)).rejects.toThrow();
+      const result = await handler.handle(event);
+      
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Failed to create notification element');
+      expect(result.errorType).toBe('NOTIFICATION_DISPLAY');
 
       const stats = handler.getStats();
-      expect(stats.errorCount).toBeGreaterThan(0);
+      expect(stats.errorStats.errorCount).toBeGreaterThan(0);
     });
 
     test('應該處理缺少通知容器的情況', async () => {
