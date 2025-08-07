@@ -414,6 +414,33 @@ describe('Content Script Extractor Integration', () => {
       }
     });
 
+    test('應該支援簡化版的 START_EXTRACTION 訊息格式', async () => {
+      await loadContentScript();
+      
+      // 獲取訊息處理器
+      const messageHandler = chrome.runtime.onMessage.addListener.mock.calls[0]?.[0];
+      
+      if (messageHandler) {
+        const mockMessage = {
+          type: 'START_EXTRACTION',
+          data: { pageType: 'library', options: {} }
+        };
+        const mockSender = { id: 'test-extension-id' };
+        const mockSendResponse = jest.fn();
+        
+        // 測試訊息處理
+        const result = messageHandler(mockMessage, mockSender, mockSendResponse);
+        
+        // 應該處理訊息並回應
+        if (result === true) {
+          // 異步處理
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        expect(mockSendResponse).toHaveBeenCalled();
+      }
+    });
+
     test('應該能夠橋接內部事件到 Background', async () => {
       await loadContentScript();
       

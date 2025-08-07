@@ -1350,6 +1350,7 @@ async function handleBackgroundMessage(message, sender, sendResponse) {
         sendResponse({ success: true, ...pageStatus });
         break;
 
+      case 'START_EXTRACTION':
       case 'BACKGROUND.COMMAND.START_EXTRACTION':
         console.log('🚀 收到提取指令');
         
