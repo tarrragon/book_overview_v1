@@ -42,15 +42,37 @@ class BookGridRenderer {
    * 
    * @param {HTMLElement} container - 渲染容器
    * @param {Object} eventBus - 事件總線
-   * @param {Object} options - 配置選項
+   * @param {Object} options - 配置選項，預設為空物件
+   * @param {Document|null} document - 文檔對象，支援依賴注入。
+   *                                   在測試環境中可注入 mock document，
+   *                                   在瀏覽器環境中會自動使用 window.document
+   * 
+   * @example
+   * // 瀏覽器環境使用
+   * const renderer = new BookGridRenderer(container, eventBus);
+   * 
+   * // 測試環境使用
+   * const renderer = new BookGridRenderer(container, eventBus, {}, mockDocument);
    */
-  constructor(container, eventBus, options = {}) {
+  constructor(container, eventBus, options = {}, document = null) {
     if (!container) {
       throw new Error('Container is required');
     }
     
     this.container = container;
     this.eventBus = eventBus;
+    
+    // 依賴注入模式 - 支援測試環境的 DOM 模擬
+    // 這個設計遵循依賴注入原則，使得組件可以在不同環境中運作：
+    // 1. 瀏覽器環境：自動使用 window.document
+    // 2. 測試環境：注入 mock document 以支援單元測試
+    // 3. Node.js 環境：拋出錯誤以提早發現配置問題
+    this.document = document || (typeof window !== 'undefined' ? window.document : null);
+    
+    if (!this.document) {
+      throw new Error('Document is required for BookGridRenderer. ' +
+                     'In test environments, please inject a mock document.');
+    }
     
     // 初始化資料
     this.books = [];
@@ -329,7 +351,7 @@ class BookGridRenderer {
    */
   createBookCard(book) {
     try {
-      const card = document.createElement('div');
+      const card = this.document.createElement('div');
       const { BOOK_CARD } = this.CONSTANTS.CLASSES;
       const { STATUS_PREFIX } = this.CONSTANTS;
       
@@ -392,7 +414,7 @@ class BookGridRenderer {
    * @returns {HTMLElement} 備用卡片元素
    */
   createFallbackCard(book) {
-    const card = document.createElement('div');
+    const card = this.document.createElement('div');
     card.classList.add(this.CONSTANTS.CLASSES.BOOK_CARD, 'fallback-card');
     card.setAttribute('data-book-id', book.id);
     card.textContent = book.title || 'Unknown Book';
@@ -439,11 +461,11 @@ class BookGridRenderer {
    * @returns {HTMLElement} 封面容器元素
    */
   createCoverContainer(book, CLASSES) {
-    const coverContainer = document.createElement('div');
+    const coverContainer = this.document.createElement('div');
     coverContainer.classList.add(CLASSES.BOOK_COVER);
     
     if (book.coverImage && typeof book.coverImage === 'string') {
-      const coverImg = document.createElement('img');
+      const coverImg = this.document.createElement('img');
       coverImg.src = book.coverImage;
       coverImg.alt = book.title || 'Book cover';
       coverImg.loading = 'lazy'; // 延遲載入優化
@@ -501,12 +523,12 @@ class BookGridRenderer {
    * @returns {HTMLElement} 資訊容器元素
    */
   createInfoContainer(book, CLASSES) {
-    const infoContainer = document.createElement('div');
+    const infoContainer = this.document.createElement('div');
     infoContainer.classList.add(CLASSES.BOOK_INFO);
     
     // 添加標題
     if (book.title && typeof book.title === 'string') {
-      const title = document.createElement('h3');
+      const title = this.document.createElement('h3');
       title.classList.add(CLASSES.BOOK_TITLE);
       title.textContent = this.truncateText(book.title, 50);
       title.title = book.title; // 完整標題作為 tooltip
@@ -515,7 +537,7 @@ class BookGridRenderer {
     
     // 添加作者
     if (book.author && typeof book.author === 'string') {
-      const author = document.createElement('p');
+      const author = this.document.createElement('p');
       author.classList.add(CLASSES.BOOK_AUTHOR);
       author.textContent = this.truncateText(book.author, 30);
       author.title = book.author; // 完整作者名作為 tooltip
@@ -533,10 +555,10 @@ class BookGridRenderer {
    * @returns {HTMLElement} 進度容器元素
    */
   createProgressContainer(book, CLASSES) {
-    const progressContainer = document.createElement('div');
+    const progressContainer = this.document.createElement('div');
     progressContainer.classList.add(CLASSES.PROGRESS_CONTAINER);
     
-    const progressBar = document.createElement('div');
+    const progressBar = this.document.createElement('div');
     progressBar.classList.add(CLASSES.PROGRESS_BAR);
     
     // 正規化進度值（0-100）
@@ -544,7 +566,7 @@ class BookGridRenderer {
     progressBar.style.width = `${normalizedProgress}%`;
     
     // 添加進度文字
-    const progressText = document.createElement('span');
+    const progressText = this.document.createElement('span');
     progressText.classList.add('progress-text');
     progressText.textContent = `${normalizedProgress}%`;
     
