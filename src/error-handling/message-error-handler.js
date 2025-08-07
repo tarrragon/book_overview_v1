@@ -1,34 +1,79 @@
 /**
  * MessageErrorHandler - Chrome Extension 訊息錯誤處理器
  * TDD 循環 #31: 訊息處理錯誤監控
- * 
+ *
  * 負責功能：
  * - Chrome Extension 訊息錯誤捕獲和分類
  * - 未知訊息類型診斷和建議
  * - 訊息路由錯誤分析和修復建議
  * - 錯誤統計和診斷報告生成
- * 
+ *
  * 設計考量：
  * - 繼承 EventHandler 提供標準化事件處理
  * - 最高優先級 (0) 確保錯誤能被及時捕獲
  * - 診斷模式提供詳細的除錯資訊
  * - 記憶體管理避免錯誤記錄無限增長
- * 
+ *
  * 處理流程：
  * 1. 接收各類訊息錯誤事件
  * 2. 分類錯誤類型並更新統計
  * 3. 生成診斷建議和修復方案
  * 4. 發送診斷事件供其他系統使用
- * 
+ *
  * 使用情境：
  * - Chrome Extension 開發階段的錯誤診斷
  * - 生產環境的錯誤監控和報告
  * - START_EXTRACTION 等訊息處理問題的診斷
  */
 
-const EventHandler = require('../core/event-handler');
+const EventHandler = require("../core/event-handler");
 
 class MessageErrorHandler extends EventHandler {
+  /**
+   * 常數定義 - 統一管理所有硬編碼值
+   */
+  static get CONSTANTS() {
+    return {
+      // 事件類型
+      EVENT_TYPES: {
+        MESSAGE_ERROR: "MESSAGE.ERROR",
+        MESSAGE_UNKNOWN_TYPE: "MESSAGE.UNKNOWN_TYPE",
+        MESSAGE_ROUTING_ERROR: "MESSAGE.ROUTING_ERROR",
+      },
+
+      // 發送事件類型
+      EMIT_EVENTS: {
+        ERROR_LOGGED: "ERROR.LOGGED",
+        DIAGNOSTIC_SUGGESTION: "DIAGNOSTIC.SUGGESTION",
+        DIAGNOSTIC_ROUTING_ISSUE: "DIAGNOSTIC.ROUTING_ISSUE",
+        DIAGNOSTIC_MODE_ENABLED: "DIAGNOSTIC.MODE_ENABLED",
+        DIAGNOSTIC_MODE_DISABLED: "DIAGNOSTIC.MODE_DISABLED",
+      },
+
+      // 錯誤分析類型
+      ROUTING_ISSUES: {
+        CONTENT_SCRIPT_NOT_READY: "CONTENT_SCRIPT_NOT_READY",
+        BACKGROUND_NOT_READY: "BACKGROUND_NOT_READY",
+        EXTENSION_CONTEXT_INVALIDATED: "EXTENSION_CONTEXT_INVALIDATED",
+        UNKNOWN_ROUTING_ERROR: "UNKNOWN_ROUTING_ERROR",
+      },
+
+      // 預設配置
+      DEFAULTS: {
+        MAX_ERROR_RECORDS: 100,
+        ERROR_RETENTION_HOURS: 24,
+        CLEANUP_INTERVAL_MS: 60 * 60 * 1000, // 1小時
+        SIMILARITY_THRESHOLD: 0.5,
+      },
+
+      // 錯誤訊息模板
+      ERROR_MESSAGES: {
+        UNSUPPORTED_EVENT_TYPE: "不支援的錯誤事件類型",
+        PROCESSING_FAILED: "處理錯誤事件失敗",
+      },
+    };
+  }
+
   /**
    * 建構 MessageErrorHandler
    * @param {Object} eventBus - 事件總線實例
@@ -36,36 +81,56 @@ class MessageErrorHandler extends EventHandler {
    */
   constructor(eventBus, options = {}) {
     // EventHandler 建構函數簽名是 (name, priority)
-    super('MessageErrorHandler', 0); // 最高優先級
+    super("MessageErrorHandler", 0); // 最高優先級
 
     // 設置 eventBus 和支援的事件
     this.eventBus = eventBus;
     this.supportedEvents = [
-      'MESSAGE.ERROR',
-      'MESSAGE.UNKNOWN_TYPE', 
-      'MESSAGE.ROUTING_ERROR'
+      MessageErrorHandler.CONSTANTS.EVENT_TYPES.MESSAGE_ERROR,
+      MessageErrorHandler.CONSTANTS.EVENT_TYPES.MESSAGE_UNKNOWN_TYPE,
+      MessageErrorHandler.CONSTANTS.EVENT_TYPES.MESSAGE_ROUTING_ERROR,
     ];
 
-    // 初始化錯誤統計
+    // 初始化各個子系統
+    this.initializeErrorStats();
+    this.initializeDiagnosticSystem(options);
+    this.initializeChromeIntegration();
+    this.setupCleanupTimer();
+  }
+
+  /**
+   * 初始化錯誤統計系統
+   */
+  initializeErrorStats() {
     this.errorStats = {
       totalErrors: 0,
       unknownMessageTypes: 0,
       routingErrors: 0,
       errorsByType: new Map(),
-      lastErrorTime: null
+      lastErrorTime: null,
     };
+  }
 
-    // 診斷模式和錯誤記錄
+  /**
+   * 初始化診斷系統
+   * @param {Object} options - 配置選項
+   */
+  initializeDiagnosticSystem(options) {
+    const { DEFAULTS } = MessageErrorHandler.CONSTANTS;
+
     this.diagnosticMode = false;
     this.recentErrors = [];
-    this.maxErrorRecords = options.maxErrorRecords || 100;
-    this.errorRetentionHours = options.errorRetentionHours || 24;
+    this.maxErrorRecords =
+      options.maxErrorRecords || DEFAULTS.MAX_ERROR_RECORDS;
+    this.errorRetentionHours =
+      options.errorRetentionHours || DEFAULTS.ERROR_RETENTION_HOURS;
+  }
 
-    // Chrome Extension 相關
-    this.chromeAvailable = typeof chrome !== 'undefined' && chrome.runtime;
-    
-    // 自動清理定時器
-    this.setupCleanupTimer();
+  /**
+   * 初始化 Chrome Extension 整合
+   */
+  initializeChromeIntegration() {
+    this.chromeAvailable = typeof chrome !== "undefined" && chrome.runtime;
   }
 
   /**
@@ -77,22 +142,30 @@ class MessageErrorHandler extends EventHandler {
     const { type, data } = event;
 
     try {
+      const { EVENT_TYPES } = MessageErrorHandler.CONSTANTS;
+
       switch (type) {
-        case 'MESSAGE.ERROR':
+        case EVENT_TYPES.MESSAGE_ERROR:
           return await this.handleMessageError(data);
-        
-        case 'MESSAGE.UNKNOWN_TYPE':
+
+        case EVENT_TYPES.MESSAGE_UNKNOWN_TYPE:
           return await this.handleUnknownMessageType(data);
-        
-        case 'MESSAGE.ROUTING_ERROR':
+
+        case EVENT_TYPES.MESSAGE_ROUTING_ERROR:
           return await this.handleRoutingError(data);
-        
+
         default:
-          throw new Error(`不支援的錯誤事件類型: ${type}`);
+          return this.createErrorResponse(
+            MessageErrorHandler.CONSTANTS.ERROR_MESSAGES.UNSUPPORTED_EVENT_TYPE,
+            type
+          );
       }
     } catch (error) {
-      console.error('[MessageErrorHandler] 處理錯誤事件失敗:', error);
-      return { success: false, error: error.message };
+      console.error(
+        `[MessageErrorHandler] ${MessageErrorHandler.CONSTANTS.ERROR_MESSAGES.PROCESSING_FAILED}:`,
+        error
+      );
+      return this.createErrorResponse(error.message);
     }
   }
 
@@ -110,19 +183,19 @@ class MessageErrorHandler extends EventHandler {
 
     // 記錄錯誤
     this.recordError({
-      type: 'MESSAGE.ERROR',
+      type: "MESSAGE.ERROR",
       error,
       message,
       context,
-      timestamp: this.errorStats.lastErrorTime
+      timestamp: this.errorStats.lastErrorTime,
     });
 
     // 發送錯誤日誌事件
-    this.eventBus.emit('ERROR.LOGGED', {
-      type: 'MESSAGE_ERROR',
+    this.eventBus.emit(MessageErrorHandler.CONSTANTS.EMIT_EVENTS.ERROR_LOGGED, {
+      type: "MESSAGE_ERROR",
       error: error.message,
       context,
-      timestamp: this.errorStats.lastErrorTime
+      timestamp: this.errorStats.lastErrorTime,
     });
 
     return { success: true, errorId: this.generateErrorId() };
@@ -134,12 +207,12 @@ class MessageErrorHandler extends EventHandler {
    * @returns {Object} 處理結果
    */
   async handleUnknownMessageType(unknownTypeData) {
-    const { 
-      messageType, 
-      receivedMessage, 
-      context, 
-      availableTypes = [], 
-      timestamp 
+    const {
+      messageType,
+      receivedMessage,
+      context,
+      availableTypes = [],
+      timestamp,
     } = unknownTypeData;
 
     // 更新統計
@@ -149,24 +222,27 @@ class MessageErrorHandler extends EventHandler {
 
     // 記錄錯誤
     this.recordError({
-      type: 'MESSAGE.UNKNOWN_TYPE',
+      type: "MESSAGE.UNKNOWN_TYPE",
       messageType,
       receivedMessage,
       context,
       availableTypes,
-      timestamp: this.errorStats.lastErrorTime
+      timestamp: this.errorStats.lastErrorTime,
     });
 
     // 生成診斷建議
-    const suggestion = this.generateUnknownTypeSuggestion(messageType, availableTypes);
+    const suggestion = this.generateUnknownTypeSuggestion(
+      messageType,
+      availableTypes
+    );
 
     // 發送診斷建議事件
-    this.eventBus.emit('DIAGNOSTIC.SUGGESTION', {
-      type: 'UNKNOWN_MESSAGE_TYPE',
+    this.eventBus.emit("DIAGNOSTIC.SUGGESTION", {
+      type: "UNKNOWN_MESSAGE_TYPE",
       messageType,
       suggestion,
       context,
-      timestamp: this.errorStats.lastErrorTime
+      timestamp: this.errorStats.lastErrorTime,
     });
 
     return { success: true, suggestion };
@@ -187,24 +263,24 @@ class MessageErrorHandler extends EventHandler {
 
     // 記錄錯誤
     this.recordError({
-      type: 'MESSAGE.ROUTING_ERROR',
+      type: "MESSAGE.ROUTING_ERROR",
       source,
       target,
       message,
       error,
-      timestamp: this.errorStats.lastErrorTime
+      timestamp: this.errorStats.lastErrorTime,
     });
 
     // 分析路由問題
     const analysis = this.analyzeRoutingError(source, target, error.message);
 
     // 發送路由問題診斷事件
-    this.eventBus.emit('DIAGNOSTIC.ROUTING_ISSUE', {
+    this.eventBus.emit("DIAGNOSTIC.ROUTING_ISSUE", {
       source,
       target,
       message,
       analysis,
-      timestamp: this.errorStats.lastErrorTime
+      timestamp: this.errorStats.lastErrorTime,
     });
 
     return { success: true, analysis };
@@ -218,21 +294,24 @@ class MessageErrorHandler extends EventHandler {
    */
   generateUnknownTypeSuggestion(unknownType, availableTypes) {
     let suggestion = `收到未知的訊息類型: "${unknownType}"\n\n`;
-    
-    suggestion += '可能的解決方案:\n';
-    suggestion += '1. 檢查訊息格式是否正確\n';
-    suggestion += '2. 確認訊息處理器是否已註冊\n';
-    suggestion += '3. 檢查版本相容性問題\n\n';
+
+    suggestion += "可能的解決方案:\n";
+    suggestion += "1. 檢查訊息格式是否正確\n";
+    suggestion += "2. 確認訊息處理器是否已註冊\n";
+    suggestion += "3. 檢查版本相容性問題\n\n";
 
     if (availableTypes.length > 0) {
       suggestion += `目前支援的訊息類型:\n`;
-      availableTypes.forEach(type => {
+      availableTypes.forEach((type) => {
         suggestion += `- ${type}\n`;
       });
     }
 
     // 提供相似類型建議
-    const similarType = this.findSimilarMessageType(unknownType, availableTypes);
+    const similarType = this.findSimilarMessageType(
+      unknownType,
+      availableTypes
+    );
     if (similarType) {
       suggestion += `\n建議: 您可能想使用 "${similarType}" 而不是 "${unknownType}"`;
     }
@@ -249,33 +328,33 @@ class MessageErrorHandler extends EventHandler {
    */
   analyzeRoutingError(source, target, errorMessage) {
     const analysis = {
-      issue: 'UNKNOWN_ROUTING_ERROR',
-      suggestions: []
+      issue: "UNKNOWN_ROUTING_ERROR",
+      suggestions: [],
     };
 
     // 分析常見的路由錯誤
-    if (errorMessage.includes('No receiving end')) {
-      if (target === 'content-script') {
-        analysis.issue = 'CONTENT_SCRIPT_NOT_READY';
+    if (errorMessage.includes("No receiving end")) {
+      if (target === "content-script") {
+        analysis.issue = "CONTENT_SCRIPT_NOT_READY";
         analysis.suggestions = [
-          '確認 Content Script 已載入',
-          '檢查頁面是否為 Readmoo 網站',
-          '確認 manifest.json 中的 content_scripts 配置正確'
+          "確認 Content Script 已載入",
+          "檢查頁面是否為 Readmoo 網站",
+          "確認 manifest.json 中的 content_scripts 配置正確",
         ];
-      } else if (target === 'background') {
-        analysis.issue = 'BACKGROUND_NOT_READY';
+      } else if (target === "background") {
+        analysis.issue = "BACKGROUND_NOT_READY";
         analysis.suggestions = [
-          '確認 Background Service Worker 正在運行',
-          '檢查 manifest.json 中的 background 配置',
-          '確認沒有 Service Worker 啟動錯誤'
+          "確認 Background Service Worker 正在運行",
+          "檢查 manifest.json 中的 background 配置",
+          "確認沒有 Service Worker 啟動錯誤",
         ];
       }
-    } else if (errorMessage.includes('Extension context invalidated')) {
-      analysis.issue = 'EXTENSION_CONTEXT_INVALIDATED';
+    } else if (errorMessage.includes("Extension context invalidated")) {
+      analysis.issue = "EXTENSION_CONTEXT_INVALIDATED";
       analysis.suggestions = [
-        '擴展已重新載入，需要重新初始化',
-        '檢查是否有開發者工具重載擴展',
-        '確認擴展沒有被禁用或卸載'
+        "擴展已重新載入，需要重新初始化",
+        "檢查是否有開發者工具重載擴展",
+        "確認擴展沒有被禁用或卸載",
       ];
     }
 
@@ -287,10 +366,10 @@ class MessageErrorHandler extends EventHandler {
    */
   enableDiagnosticMode() {
     this.diagnosticMode = true;
-    
-    this.eventBus.emit('DIAGNOSTIC.MODE_ENABLED', {
-      handler: 'MessageErrorHandler',
-      timestamp: Date.now()
+
+    this.eventBus.emit("DIAGNOSTIC.MODE_ENABLED", {
+      handler: "MessageErrorHandler",
+      timestamp: Date.now(),
     });
   }
 
@@ -299,10 +378,10 @@ class MessageErrorHandler extends EventHandler {
    */
   disableDiagnosticMode() {
     this.diagnosticMode = false;
-    
-    this.eventBus.emit('DIAGNOSTIC.MODE_DISABLED', {
-      handler: 'MessageErrorHandler',
-      timestamp: Date.now()
+
+    this.eventBus.emit("DIAGNOSTIC.MODE_DISABLED", {
+      handler: "MessageErrorHandler",
+      timestamp: Date.now(),
     });
   }
 
@@ -315,7 +394,7 @@ class MessageErrorHandler extends EventHandler {
       ...this.errorStats,
       errorsByType: Object.fromEntries(this.errorStats.errorsByType),
       recentErrorsCount: this.recentErrors.length,
-      diagnosticMode: this.diagnosticMode
+      diagnosticMode: this.diagnosticMode,
     };
   }
 
@@ -325,21 +404,25 @@ class MessageErrorHandler extends EventHandler {
    */
   generateErrorReport() {
     const stats = this.getErrorStatistics();
-    
-    let report = '=== 訊息錯誤統計報告 ===\n\n';
+
+    let report = "=== 訊息錯誤統計報告 ===\n\n";
     report += `總錯誤數: ${stats.totalErrors}\n`;
     report += `未知訊息類型: ${stats.unknownMessageTypes}\n`;
     report += `路由錯誤: ${stats.routingErrors}\n`;
-    report += `最後錯誤時間: ${stats.lastErrorTime ? new Date(stats.lastErrorTime).toLocaleString() : '無'}\n\n`;
+    report += `最後錯誤時間: ${
+      stats.lastErrorTime
+        ? new Date(stats.lastErrorTime).toLocaleString()
+        : "無"
+    }\n\n`;
 
     if (Object.keys(stats.errorsByType).length > 0) {
-      report += '錯誤類型分佈:\n';
+      report += "錯誤類型分佈:\n";
       Object.entries(stats.errorsByType).forEach(([type, count]) => {
         report += `- ${type}: ${count}\n`;
       });
     }
 
-    report += `\n診斷模式: ${stats.diagnosticMode ? '啟用' : '停用'}\n`;
+    report += `\n診斷模式: ${stats.diagnosticMode ? "啟用" : "停用"}\n`;
     report += `記錄的錯誤數: ${stats.recentErrorsCount}\n`;
 
     return report;
@@ -357,9 +440,9 @@ class MessageErrorHandler extends EventHandler {
         chromeAvailable: this.chromeAvailable,
         diagnosticMode: this.diagnosticMode,
         maxErrorRecords: this.maxErrorRecords,
-        errorRetentionHours: this.errorRetentionHours
+        errorRetentionHours: this.errorRetentionHours,
       },
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -372,7 +455,7 @@ class MessageErrorHandler extends EventHandler {
     // 監聽 Chrome Runtime 訊息
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (this.diagnosticMode) {
-        console.log('[MessageErrorHandler] 診斷模式 - 收到訊息:', message);
+        console.log("[MessageErrorHandler] 診斷模式 - 收到訊息:", message);
       }
     });
   }
@@ -386,11 +469,11 @@ class MessageErrorHandler extends EventHandler {
 
     if (chrome.runtime.lastError) {
       const error = new Error(chrome.runtime.lastError.message);
-      
-      this.eventBus.emit('MESSAGE.ERROR', {
+
+      this.eventBus.emit("MESSAGE.ERROR", {
         error,
-        context: 'chrome-runtime',
-        timestamp: Date.now()
+        context: "chrome-runtime",
+        timestamp: Date.now(),
       });
 
       return true;
@@ -407,9 +490,11 @@ class MessageErrorHandler extends EventHandler {
     return {
       runtimeAvailable: this.chromeAvailable,
       messageSystemWorking: this.chromeAvailable && !chrome.runtime.lastError,
-      lastErrorStatus: this.chromeAvailable ? 
-        (chrome.runtime.lastError ? chrome.runtime.lastError.message : null) : 
-        'Chrome API 不可用'
+      lastErrorStatus: this.chromeAvailable
+        ? chrome.runtime.lastError
+          ? chrome.runtime.lastError.message
+          : null
+        : "Chrome API 不可用",
     };
   }
 
@@ -436,10 +521,10 @@ class MessageErrorHandler extends EventHandler {
    * 清理過期的錯誤記錄
    */
   cleanupExpiredErrors() {
-    const cutoffTime = Date.now() - (this.errorRetentionHours * 60 * 60 * 1000);
-    
-    this.recentErrors = this.recentErrors.filter(error => 
-      error.timestamp > cutoffTime
+    const cutoffTime = Date.now() - this.errorRetentionHours * 60 * 60 * 1000;
+
+    this.recentErrors = this.recentErrors.filter(
+      (error) => error.timestamp > cutoffTime
     );
   }
 
@@ -454,7 +539,7 @@ class MessageErrorHandler extends EventHandler {
     return {
       errorRecordsCount,
       estimatedMemoryUsage,
-      lastCleanupTime: this.lastCleanupTime || null
+      lastCleanupTime: this.lastCleanupTime || null,
     };
   }
 
@@ -482,7 +567,7 @@ class MessageErrorHandler extends EventHandler {
     let bestMatch = null;
     let bestScore = 0;
 
-    availableTypes.forEach(type => {
+    availableTypes.forEach((type) => {
       const score = this.calculateStringSimilarity(unknownType, type);
       if (score > bestScore && score > 0.5) {
         bestScore = score;
@@ -502,9 +587,9 @@ class MessageErrorHandler extends EventHandler {
   calculateStringSimilarity(str1, str2) {
     const longer = str1.length > str2.length ? str1 : str2;
     const shorter = str1.length > str2.length ? str2 : str1;
-    
+
     if (longer.length === 0) return 1.0;
-    
+
     const editDistance = this.levenshteinDistance(longer, shorter);
     return (longer.length - editDistance) / longer.length;
   }
@@ -541,6 +626,27 @@ class MessageErrorHandler extends EventHandler {
     }
 
     return matrix[str2.length][str1.length];
+  }
+
+  /**
+   * 創建標準化錯誤回應
+   * @param {string} message - 錯誤訊息
+   * @param {string} [details] - 額外詳細資訊
+   * @returns {Object} 標準化錯誤回應
+   */
+  createErrorResponse(message, details = null) {
+    const errorResponse = {
+      success: false,
+      error: message,
+      timestamp: Date.now(),
+      errorId: this.generateErrorId(),
+    };
+
+    if (details) {
+      errorResponse.details = details;
+    }
+
+    return errorResponse;
   }
 
   /**
