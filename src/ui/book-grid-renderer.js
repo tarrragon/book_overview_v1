@@ -1,689 +1,552 @@
 /**
- * BookGridRenderer - 書籍網格渲染器 (TDD循環 #27 - Red Phase 實現)
+ * BookGridRenderer - 書籍網格渲染器
+ * TDD 循環 #27 - 重構階段優化
  * 
- * 🔴 Red Phase 實現目標：
- * ========================
- * - 實現基本功能以通過核心測試
- * - 為高級功能預留介面但不完全實現 (保持測試失敗狀態)
- * - 建立完整的架構基礎以支援未來的 Green Phase 實現
+ * 負責功能：
+ * - 書籍網格渲染和佈局管理
+ * - 響應式設計適配不同螢幕尺寸  
+ * - 虛擬滾動支援大量資料處理
+ * - 書籍卡片互動功能
+ * - 效能優化和記憶體管理
  * 
- * 已實現功能 (通過測試)：
- * ========================
- * - 基本建構器和配置管理
- * - 網格佈局計算基礎
- * - 書籍項目基本渲染
- * - 虛擬滾動基礎結構
- * - 檢視模式切換
- * - 基本事件處理
- * - 錯誤處理框架
+ * 設計考量：
+ * - 基於事件驅動架構與系統整合
+ * - 響應式網格佈局自動適配螢幕尺寸
+ * - 虛擬滾動優化大量資料處理效能
+ * - 記憶體管理避免 DOM 元素累積
+ * - 完整錯誤處理和邊界條件處理
+ * - 使用統一配置管理系統
  * 
- * 未完全實現功能 (測試應失敗)：
- * ==============================
- * - EventHandler 繼承和事件系統完整整合
- * - 高級效能監控和統計
- * - 記憶體池化和回收機制
- * - 動畫轉場效果
- * - 無障礙功能支援
- * - 進階錯誤恢復機制
+ * 處理流程：
+ * 1. 初始化容器和事件系統
+ * 2. 計算響應式網格佈局
+ * 3. 創建和管理書籍卡片
+ * 4. 實現虛擬滾動機制
+ * 5. 處理使用者互動事件
+ * 6. 優化渲染效能和記憶體使用
  * 
- * @version 1.0.0
+ * 使用情境：
+ * - Overview 頁面書籍展示
+ * - 大量書籍資料的高效渲染
+ * - 響應式書籍瀏覽體驗
+ * 
+ * @version 1.1.0
  * @since 2025-08-07
- * @phase RED - 最小可行實現
  */
 
-// 常數定義 - 分層組織架構
-const CONSTANTS = {
-  // 配置管理
-  CONFIG: {
-    DEFAULT: {
-      itemWidth: 180,
-      itemHeight: 280,
-      gap: 20,
-      viewMode: 'grid', // 'grid' or 'list'
-      virtualScrolling: true,
-      bufferSize: 5,
-      animationDuration: 300
-    },
-    BREAKPOINTS: {
-      MOBILE: 480,
-      TABLET: 768,
-      DESKTOP: 1024,
-      WIDE: 1440
-    }
-  },
-  
-  // 視覺介面
-  UI: {
-    CSS_CLASSES: {
-      CONTAINER: 'book-grid-container',
-      ITEM: 'book-grid-item',
-      GRID_VIEW: 'grid-view',
-      LIST_VIEW: 'list-view',
-      VIRTUAL_SCROLLER: 'virtual-scroller',
-      LOADING: 'loading',
-      HOVER: 'hover',
-      SELECTED: 'selected',
-      ERROR: 'error',
-      PLACEHOLDER: 'placeholder'
-    },
-    ELEMENT_CLASSES: {
-      CONTENT: 'book-item-content',
-      COVER: 'book-cover',
-      INFO: 'book-info',
-      TITLE: 'book-title',
-      AUTHOR: 'book-author',
-      STATUS: 'book-status',
-      PROGRESS: 'progress-container',
-      PROGRESS_BAR: 'progress-bar',
-      PROGRESS_TEXT: 'progress-text'
-    }
-  },
-  
-  // 效能優化
-  PERFORMANCE: {
-    RENDER_BATCH_SIZE: 20,
-    SCROLL_THROTTLE: 16, // ~60fps
-    RESIZE_DEBOUNCE: 250,
-    MAX_RENDERED_ITEMS: 100,
-    MEMORY_POOL_SIZE: 50,
-    GC_THRESHOLD: 200
-  },
-  
-  // 事件類型
-  EVENTS: {
-    ITEM_CLICK: 'itemClick',
-    ITEM_HOVER: 'itemHover',
-    VIEW_MODE_CHANGE: 'viewModeChange',
-    SCROLL: 'scroll',
-    RESIZE: 'resize'
-  },
-  
-  // 錯誤類型
-  ERRORS: {
-    INVALID_CONTAINER: 'Container element is required',
-    INVALID_VIEW_MODE: 'Invalid view mode. Must be "grid" or "list"',
-    RENDER_FAILED: 'Failed to render book item',
-    MEMORY_EXCEEDED: 'Memory usage exceeded threshold'
-  }
-};
+const UI_HANDLER_CONFIG = require('./config/ui-handler-config');
 
 class BookGridRenderer {
   /**
-   * 建構書籍網格渲染器
+   * 建構 BookGridRenderer 實例
    * 
-   * @param {HTMLElement} container - 容器元素
-   * @param {Document} document - DOM 文檔物件
+   * @param {HTMLElement} container - 渲染容器
+   * @param {Object} eventBus - 事件總線
    * @param {Object} options - 配置選項
    */
-  constructor(container, document, options = {}) {
-    // 驗證必要參數
+  constructor(container, eventBus, options = {}) {
     if (!container) {
-      throw new Error(CONSTANTS.ERRORS.INVALID_CONTAINER);
+      throw new Error('Container is required');
     }
-    
-    // 🔴 Red Phase: 這裡缺少 document 參數驗證，測試應該失敗
-    // TODO: 加入 document 驗證在 Green Phase
     
     this.container = container;
-    this.document = document;
+    this.eventBus = eventBus;
     
-    // 合併配置
-    this.config = { ...CONSTANTS.CONFIG.DEFAULT, ...options };
+    // 初始化資料
+    this.books = [];
+    this.renderedBooks = [];
     
-    // 🔴 Red Phase: 這裡缺少配置驗證，測試應該失敗
-    // TODO: 加入配置驗證 (itemWidth > 0 等) 在 Green Phase
+    // 初始化配置
+    this.initializeConfig(options);
+    
+    // 初始化統計
+    this.initializeStats();
     
     // 初始化狀態
-    this.isRendering = false;
-    this.isDestroyed = false;
-    this.renderedItems = [];
-    this.recycledItems = [];
-    this.visibleRange = { start: 0, end: 0 };
-    this.totalItems = 0;
-    this.currentBooks = [];
+    this.initializeState();
     
-    // 記憶體池化管理
-    this.elementPool = {
-      items: [],
-      maxSize: CONSTANTS.PERFORMANCE.MEMORY_POOL_SIZE
+    // 初始化事件監聽
+    this.initializeEventListeners();
+    
+    // 初始化佈局
+    this.initializeLayout();
+  }
+
+  /**
+   * 初始化配置參數
+   * 使用統一配置系統並合併自訂選項
+   * 
+   * @param {Object} options - 自訂配置選項
+   */
+  initializeConfig(options) {
+    // 從統一配置系統載入網格配置
+    const gridConfig = this.loadGridConfiguration();
+    const performanceConfig = UI_HANDLER_CONFIG.PERFORMANCE;
+    const environmentConfig = UI_HANDLER_CONFIG.getEnvironmentConfig(process.env.NODE_ENV);
+    
+    // 合併所有配置來源
+    this.config = UI_HANDLER_CONFIG.mergeConfig(gridConfig, {
+      ...performanceConfig,
+      ...environmentConfig,
+      ...options
+    });
+    
+    // 設定常數
+    this.CONSTANTS = this.initializeConstants();
+  }
+
+  /**
+   * 載入網格特定配置
+   * 
+   * @returns {Object} 網格配置物件
+   */
+  loadGridConfiguration() {
+    return {
+      // 卡片尺寸配置
+      cardWidth: 200,
+      cardHeight: 300,
+      minCardWidth: 150,
+      maxCardWidth: 250,
+      
+      // 佈局配置
+      gap: 16,
+      minGap: 8,
+      maxGap: 24,
+      virtualScrolling: true,
+      bufferSize: 5,
+      
+      // 效能配置
+      throttleDelay: 100,
+      renderBatchSize: 10,
+      animationDuration: 300,
+      
+      // 響應式斷點
+      breakpoints: {
+        mobile: 480,
+        tablet: 768,
+        desktop: 1024,
+        largeDesktop: 1200
+      },
+      
+      // 錯誤處理
+      maxRetries: 3,
+      enableErrorLogging: true
     };
-    
-    // 效能統計
+  }
+
+  /**
+   * 初始化常數定義
+   * 
+   * @returns {Object} 常數物件
+   */
+  initializeConstants() {
+    return {
+      // CSS 類別名稱
+      CLASSES: {
+        BOOK_CARD: 'book-card',
+        BOOK_COVER: 'book-cover', 
+        BOOK_INFO: 'book-info',
+        BOOK_TITLE: 'book-title',
+        BOOK_AUTHOR: 'book-author',
+        PROGRESS_CONTAINER: 'progress-container',
+        PROGRESS_BAR: 'progress-bar',
+        DEFAULT_COVER: 'default-cover'
+      },
+      
+      // 狀態類別前綴
+      STATUS_PREFIX: 'status-',
+      
+      // 事件名稱
+      EVENTS: {
+        RENDER_COMPLETE: 'UI.GRID.RENDER_COMPLETE',
+        BOOKS_UPDATE: 'UI.BOOKS.UPDATE',
+        BOOKS_FILTER: 'UI.BOOKS.FILTER'
+      },
+      
+      // 錯誤類型
+      ERROR_TYPES: UI_HANDLER_CONFIG.ERROR_TYPES
+    };
+  }
+
+  /**
+   * 初始化統計追蹤
+   */
+  initializeStats() {
     this.stats = {
+      totalBooks: 0,
+      renderedBooks: 0,
       renderTime: 0,
-      renderedCount: 0,
-      recycledCount: 0,
-      poolHits: 0,
-      memoryUsage: 0
-    };
-    
-    // 錯誤統計
-    this.errorStats = {
-      renderErrors: 0,
-      memoryErrors: 0,
-      poolErrors: 0
-    };
-    
-    // 事件處理器
-    this.onItemClick = null;
-    this.selectedItems = new Set();
-    
-    // 快取元素映射
-    this.elementCache = new Map();
-    
-    // 🔴 Red Phase: 缺少 EventHandler 整合，測試應該失敗
-    // TODO: 在 Green Phase 新增：
-    // - this.eventBus = options.eventBus
-    // - this.handle = function() {}
-    // - this.emit = function() {}
-    // - this.eventHandlers = new Map()
-    // - this.eventListeners = new Set()
-    // - this.subscribedEvents = ['UI.BOOKS.UPDATE', ...]
-    // - this.performanceStats = { ... }
-    
-    // 🔴 Red Phase: 缺少高級效能監控，測試應該失敗
-    // TODO: 在 Green Phase 新增：
-    // - this.performanceMonitor = { warnings: [] }
-    // - this.onPerformanceWarning = null
-    // - this.memoryPool = { activeItems: 0, recycledItems: [], clear: function() {} }
-    // - this.asyncRenderQueue = []
-    // - this.scrollPerformanceMetrics = { throttledCalls: 0, averageScrollTime: 0 }
-    
-    // 初始化組件
-    this.initializeContainer();
-    this.setupVirtualScrolling();
-    this.bindEvents();
-    
-    // 🔴 Red Phase: 缺少完整初始化，進階測試應該失敗
-    // TODO: 在 Green Phase 新增：
-    // - this.initializeEventSystem()
-    // - this.setupAdvancedFeatures()
-    // - this.initializeAccessibility()
-  }
-
-  /**
-   * 初始化容器設定
-   */
-  initializeContainer() {
-    // 設定容器 CSS 類別
-    this.container.classList.add(CONSTANTS.UI.CSS_CLASSES.CONTAINER);
-    this.container.classList.add(CONSTANTS.UI.CSS_CLASSES.GRID_VIEW);
-    
-    // 設定容器樣式
-    this.container.style.position = 'relative';
-    this.container.style.overflow = 'auto';
-  }
-
-  /**
-   * 設定虛擬滾動
-   */
-  setupVirtualScrolling() {
-    if (this.config.virtualScrolling) {
-      this.virtualScroller = {
-        scrollTop: 0,
-        visibleHeight: 0,
-        totalHeight: 0,
-        itemsPerRow: 1,
-        rowHeight: this.config.itemHeight + this.config.gap
-      };
-      
-      // 🔴 Red Phase: 缺少進階虛擬滾動結構，測試應該失敗
-      // TODO: 在 Green Phase 新增：
-      // this.virtualScroller.itemHeightCache = new Map();
-      // this.virtualScroller.scrollDirection = 'vertical';
-      // this.virtualScroller.estimatedTotalHeight = 0;
-      // this.virtualScrollOptimizer = { ... };
-    }
-  }
-
-  /**
-   * 綁定事件監聽器
-   */
-  bindEvents() {
-    // 滾動事件（節流處理）
-    this.throttledScrollHandler = this._throttle(
-      this.handleScroll.bind(this), 
-      CONSTANTS.PERFORMANCE.SCROLL_THROTTLE
-    );
-    this.container.addEventListener('scroll', this.throttledScrollHandler);
-    
-    // 調整大小事件（防抖處理）
-    this.debouncedResizeHandler = this._debounce(
-      this.handleResize.bind(this), 
-      CONSTANTS.PERFORMANCE.RESIZE_DEBOUNCE
-    );
-    global.window?.addEventListener('resize', this.debouncedResizeHandler);
-    
-    // 點擊事件
-    this.container.addEventListener('click', this.handleItemClick.bind(this));
-    
-    // 鍵盤事件
-    this.container.addEventListener('keydown', this.handleKeyNavigation.bind(this));
-    this.container.setAttribute('tabindex', '0');
-  }
-
-  // ===============================
-  // 私有方法 - 記憶體池化管理
-  // ===============================
-
-  /**
-   * 從池中獲取元素
-   * 
-   * @returns {HTMLElement|null} 可重用的元素
-   */
-  _getFromPool() {
-    try {
-      if (this.elementPool.items.length > 0) {
-        this.stats.poolHits++;
-        return this.elementPool.items.pop();
-      }
-      return null;
-    } catch (error) {
-      this.errorStats.poolErrors++;
-      return null;
-    }
-  }
-
-  /**
-   * 將元素回收到池中
-   * 
-   * @param {HTMLElement} element - 要回收的元素
-   */
-  _returnToPool(element) {
-    try {
-      if (this.elementPool.items.length < this.elementPool.maxSize) {
-        // 清理元素內容但保留結構
-        element.innerHTML = '';
-        element.className = CONSTANTS.UI.CSS_CLASSES.ITEM;
-        element.removeAttribute('data-book-id');
-        
-        this.elementPool.items.push(element);
-      }
-    } catch (error) {
-      this.errorStats.poolErrors++;
-    }
-  }
-
-  /**
-   * 檢查記憶體使用量
-   */
-  _checkMemoryUsage() {
-    const totalElements = this.renderedItems.length + this.elementPool.items.length;
-    this.stats.memoryUsage = totalElements;
-    
-    if (totalElements > CONSTANTS.PERFORMANCE.GC_THRESHOLD) {
-      this._garbageCollect();
-    }
-  }
-
-  /**
-   * 垃圾回收
-   */
-  _garbageCollect() {
-    try {
-      // 清理池中過多的元素
-      const poolSizeToKeep = Math.floor(this.elementPool.maxSize * 0.5);
-      if (this.elementPool.items.length > poolSizeToKeep) {
-        this.elementPool.items.splice(poolSizeToKeep);
-      }
-      
-      // 清理緩存
-      if (this.elementCache.size > 100) {
-        this.elementCache.clear();
-      }
-      
-    } catch (error) {
-      this.errorStats.memoryErrors++;
-    }
-  }
-
-  // ===============================
-  // 私有方法 - 佈局計算
-  // ===============================
-
-  /**
-   * 獲取容器尺寸
-   * 
-   * @returns {Object} 容器尺寸 {width, height}
-   */
-  _getContainerDimensions() {
-    const rect = this.container.getBoundingClientRect();
-    return {
-      width: rect.width,
-      height: rect.height
+      scrollEvents: 0,
+      lastRenderTime: 0
     };
   }
 
   /**
-   * 計算項目總尺寸（包含間距）
-   * 
-   * @returns {Object} 項目尺寸 {width, height}
+   * 初始化內部狀態
    */
-  _getItemTotalSize() {
-    return {
-      width: this.config.itemWidth + this.config.gap,
-      height: this.config.itemHeight + this.config.gap
-    };
+  initializeState() {
+    this.currentColumns = 1;
+    this.visibleRange = { start: 0, end: 0 };
+    this.scrollTop = 0;
+    this.containerHeight = 0;
+    this.totalHeight = 0;
+    this.cardPool = []; // DOM 元素池
+    this.throttleTimer = null;
   }
 
   /**
-   * 根據螢幕尺寸調整配置
+   * 初始化事件監聽器
    */
-  _adaptToScreenSize() {
-    const { width } = this._getContainerDimensions();
+  initializeEventListeners() {
+    if (this.eventBus && typeof this.eventBus.on === 'function') {
+      this.eventBus.on('UI.BOOKS.UPDATE', this.handleBooksUpdate.bind(this));
+      this.eventBus.on('UI.BOOKS.FILTER', this.handleBooksFilter.bind(this));
+    }
     
-    if (width <= CONSTANTS.CONFIG.BREAKPOINTS.MOBILE) {
-      this.config.itemWidth = Math.min(this.config.itemWidth, 150);
-      this.config.gap = Math.min(this.config.gap, 10);
-    } else if (width <= CONSTANTS.CONFIG.BREAKPOINTS.TABLET) {
-      this.config.itemWidth = Math.min(this.config.itemWidth, 160);
-      this.config.gap = Math.min(this.config.gap, 15);
+    // 容器滾動事件
+    this.boundHandleScroll = this.handleScroll.bind(this);
+    this.container.addEventListener?.('scroll', this.boundHandleScroll);
+    
+    // 視窗大小變化事件
+    this.boundHandleResize = this.handleResize.bind(this);
+    if (typeof window !== 'undefined') {
+      window.addEventListener?.('resize', this.boundHandleResize);
     }
   }
 
   /**
-   * 計算網格列數
-   * 
-   * @returns {number} 列數
+   * 初始化佈局
    */
-  calculateColumns() {
-    const { width: containerWidth } = this._getContainerDimensions();
-    const { width: itemTotalWidth } = this._getItemTotalSize();
-    
-    // 至少顯示一列
-    const columns = Math.max(1, Math.floor(containerWidth / itemTotalWidth));
-    
-    // 根據檢視模式調整
-    if (this.config.viewMode === 'list') {
+  initializeLayout() {
+    this.updateLayout();
+  }
+
+  /**
+   * 計算網格欄位數量
+   * 使用配置化的響應式斷點
+   * 
+   * @param {number} containerWidth - 容器寬度
+   * @returns {number} 欄位數量
+   */
+  calculateColumns(containerWidth) {
+    if (containerWidth <= 0) {
       return 1;
     }
     
-    // 🔴 Red Phase: 缺少事件觸發，測試應該失敗
-    // TODO: 在 Green Phase 新增：
-    // this.emit && this.emit('UI.GRID.LAYOUT_CALCULATED', {
-    //   columns,
-    //   containerWidth,
-    //   itemWidth: this.config.itemWidth
-    // });
+    const { cardWidth, gap, breakpoints } = this.config;
+    const availableWidth = containerWidth - gap;
+    const columnWidth = cardWidth + gap;
+    const maxColumns = Math.floor(availableWidth / columnWidth);
     
-    return columns;
+    // 根據響應式斷點限制最大欄數
+    if (containerWidth <= breakpoints.mobile) {
+      return 1; // 手機：單欄
+    } else if (containerWidth <= breakpoints.tablet) {
+      return Math.min(maxColumns, 2); // 平板：最多2欄
+    } else if (containerWidth <= breakpoints.desktop) {
+      return Math.min(maxColumns, 3); // 小桌面：最多3欄
+    } else if (containerWidth <= breakpoints.largeDesktop) {
+      return Math.min(maxColumns, 4); // 大桌面：最多4欄
+    } else {
+      return Math.min(maxColumns, 5); // 超大螢幕：最多5欄
+    }
   }
 
   /**
-   * 計算項目位置
-   * 
-   * @param {number} index - 項目索引
-   * @returns {Object} 位置座標 {x, y}
-   */
-  calculateItemPosition(index) {
-    const columns = this.calculateColumns();
-    const { width: itemTotalWidth, height: itemTotalHeight } = this._getItemTotalSize();
-    
-    const row = Math.floor(index / columns);
-    const col = index % columns;
-    
-    const position = {
-      x: col * itemTotalWidth,
-      y: row * itemTotalHeight
-    };
-    
-    // 🔴 Red Phase: 缺少動畫支援，測試應該失敗
-    // TODO: 在 Green Phase 新增：
-    // position.animationDelay = index * 50;
-    // position.transitionDuration = this.config.animationDuration;
-    
-    return position;
-  }
-
-  /**
-   * 計算可視範圍
+   * 計算書籍卡片位置
    * 
    * @param {Array} books - 書籍陣列
-   * @param {number} scrollTop - 滾動位置
-   * @returns {Object} 可視範圍 {start, end}
+   * @param {number} columns - 欄位數量
+   * @returns {Array} 位置陣列
    */
-  calculateVisibleRange(books, scrollTop = 0) {
-    if (!this.config.virtualScrolling || books.length === 0) {
-      return { start: 0, end: Math.min(books.length, CONSTANTS.PERFORMANCE.MAX_RENDERED_ITEMS) };
-    }
+  calculatePositions(books, columns) {
+    const positions = [];
+    const { cardWidth, cardHeight, gap } = this.config;
     
-    const containerHeight = this.container.clientHeight;
-    const itemHeight = this.config.itemHeight + this.config.gap;
-    const columns = this.calculateColumns();
+    books.forEach((book, index) => {
+      const row = Math.floor(index / columns);
+      const col = index % columns;
+      const x = col * (cardWidth + gap) + gap;
+      const y = row * (cardHeight + gap) + gap;
+      
+      positions.push({ row, col, x, y });
+    });
     
-    const startRow = Math.floor(scrollTop / itemHeight);
-    const endRow = Math.ceil((scrollTop + containerHeight) / itemHeight);
-    
-    // 加入緩衝區
-    const buffer = this.config.bufferSize;
-    const start = Math.max(0, (startRow - buffer) * columns);
-    const end = Math.min(books.length, (endRow + buffer) * columns);
-    
-    const range = { start, end };
-    
-    // 🔴 Red Phase: 缺少虛擬滾動優化，測試應該失敗
-    // TODO: 在 Green Phase 新增：
-    // range.bufferSize = this.config.bufferSize;
-    // range.estimatedHeight = (books.length / columns) * itemHeight;
-    // this.virtualScrollOptimizer = { ... };
-    
-    return range;
+    return positions;
   }
 
-  // ===============================
-  // 私有方法 - DOM 元素創建
-  // ===============================
-
   /**
-   * 創建基礎項目元素
+   * 計算容器總高度
    * 
-   * @returns {HTMLElement} 基礎項目元素
+   * @param {Array} books - 書籍陣列
+   * @param {number} columns - 欄位數量
+   * @returns {number} 總高度
    */
-  _createBaseItem() {
-    // 嘗試從池中獲取元素
-    let item = this._getFromPool();
+  calculateTotalHeight(books, columns) {
+    if (books.length === 0) return 0;
     
-    if (!item) {
-      item = this.document.createElement('div');
-    }
+    const { cardHeight, gap } = this.config;
+    const rows = Math.ceil(books.length / columns);
     
-    item.className = CONSTANTS.UI.CSS_CLASSES.ITEM;
-    item.style.width = `${this.config.itemWidth}px`;
-    item.style.height = `${this.config.itemHeight}px`;
-    
-    return item;
+    return rows * (cardHeight + gap) + gap;
   }
 
   /**
-   * 驗證書籍資料
+   * 計算間距
    * 
-   * @param {Object} book - 書籍資料
-   * @returns {boolean} 是否有效
+   * @param {number} containerWidth - 容器寬度
+   * @returns {number} 間距值
    */
-  _validateBookData(book) {
-    const isValid = book && typeof book === 'object' && (book.id || book.title);
-    
-    // 🔴 Red Phase: 缺少錯誤回退機制，測試應該失敗
-    if (!isValid) {
-      // TODO: 在 Green Phase 新增錯誤處理：
-      // const errorItem = this._createErrorPlaceholder('invalid-data');
-      // return errorItem;
-    }
-    
-    return isValid;
+  calculateGap(containerWidth) {
+    if (containerWidth <= 480) return 8;   // 手機小間距
+    if (containerWidth <= 768) return 12;  // 平板中等間距
+    return 16; // 桌面大間距
   }
 
   /**
-   * 渲染單個書籍項目
+   * 更新佈局
+   */
+  updateLayout() {
+    const rect = this.container.getBoundingClientRect();
+    const containerWidth = rect.width;
+    const containerHeight = rect.height;
+    
+    this.currentColumns = this.calculateColumns(containerWidth);
+    this.containerHeight = containerHeight;
+    this.config.gap = this.calculateGap(containerWidth);
+    this.totalHeight = this.calculateTotalHeight(this.books, this.currentColumns);
+    
+    // 更新可見範圍
+    this.updateVisibleRange();
+  }
+
+  /**
+   * 創建書籍卡片
+   * 使用常數定義和改善的錯誤處理
    * 
    * @param {Object} book - 書籍資料
-   * @returns {HTMLElement} DOM 元素
+   * @returns {HTMLElement} 書籍卡片元素
    */
-  renderBookItem(book) {
+  createBookCard(book) {
     try {
-      // 處理無效資料
-      if (!this._validateBookData(book)) {
-        return this._createPlaceholderItem();
+      const card = document.createElement('div');
+      const { BOOK_CARD } = this.CONSTANTS.CLASSES;
+      const { STATUS_PREFIX } = this.CONSTANTS;
+      
+      card.classList.add(BOOK_CARD);
+      card.setAttribute('data-book-id', book.id);
+      
+      // 設定基本樣式
+      this.setCardBaseStyles(card);
+      
+      // 創建卡片內容
+      this.populateBookCard(card, book);
+      
+      // 添加狀態樣式
+      if (book.status && typeof book.status === 'string') {
+        card.classList.add(`${STATUS_PREFIX}${book.status}`);
       }
       
-      // 創建項目容器
-      const item = this._createBaseItem();
-      item.dataset.bookId = book.id || '';
-      
-      // 🔴 Red Phase: 缺少多格式支援，測試應該失敗
-      // TODO: 在 Green Phase 新增：
-      // item.dataset.renderFormat = 'enhanced';
-      // item.classList.add('book-item-enhanced');
-      
-      // 渲染項目內容
-      const content = this._renderItemContent(book);
-      item.appendChild(content);
-      
-      // 添加互動事件
-      this._attachItemEvents(item, book);
-      
-      // 🔴 Red Phase: 缺少互動元素支援，測試應該失敗
-      // TODO: 在 Green Phase 新增：
-      // const actions = this._createBookActions(book);
-      // const progressIndicator = this._createProgressIndicator(book.progress);
-      // item.appendChild(actions);
-      // item.appendChild(progressIndicator);
-      // item.setAttribute('tabindex', '0');
-      // item.setAttribute('role', 'button');
-      
-      return item;
-      
+      return card;
     } catch (error) {
-      this.errorStats.renderErrors++;
-      return this._createErrorItem(error);
+      this.handleCardCreationError(book, error);
+      return this.createFallbackCard(book);
     }
   }
 
   /**
-   * 渲染項目內容
+   * 設定卡片基本樣式
+   * 
+   * @param {HTMLElement} card - 卡片元素
+   */
+  setCardBaseStyles(card) {
+    const { cardWidth, cardHeight } = this.config;
+    
+    Object.assign(card.style, {
+      position: 'absolute',
+      width: `${cardWidth}px`,
+      height: `${cardHeight}px`,
+      boxSizing: 'border-box'
+    });
+  }
+
+  /**
+   * 處理卡片創建錯誤
    * 
    * @param {Object} book - 書籍資料
-   * @returns {HTMLElement} 內容元素
-   */
-  _renderItemContent(book) {
-    try {
-      const content = this.document.createElement('div');
-      content.className = CONSTANTS.UI.ELEMENT_CLASSES.CONTENT;
-      
-      // 封面圖片
-      const cover = this._renderBookCover(book);
-      content.appendChild(cover);
-      
-      // 書籍資訊
-      const info = this._renderBookInfo(book);
-      content.appendChild(info);
-      
-      // 進度指示器
-      if (book.progress !== undefined) {
-        const progress = this._renderProgressBar(book.progress);
-        content.appendChild(progress);
-      }
-      
-      return content;
-    } catch (error) {
-      // 如果渲染失敗，返回錯誤內容但不拋出錯誤
-      return this._createErrorContent(error);
-    }
-  }
-
-  /**
-   * 創建錯誤內容
-   * 
    * @param {Error} error - 錯誤物件
-   * @returns {HTMLElement} 錯誤內容元素
    */
-  _createErrorContent(error) {
-    const errorContent = this.document.createElement('div');
-    errorContent.className = `${CONSTANTS.UI.ELEMENT_CLASSES.CONTENT} ${CONSTANTS.UI.CSS_CLASSES.ERROR}`;
-    errorContent.innerHTML = `<div class="error-message">渲染失敗: ${error.message}</div>`;
-    return errorContent;
+  handleCardCreationError(book, error) {
+    if (this.config.enableErrorLogging) {
+      console.error(`[BookGridRenderer] Failed to create card for book ${book.id}:`, error);
+    }
+    
+    // 更新錯誤統計
+    this.stats.cardCreationErrors = (this.stats.cardCreationErrors || 0) + 1;
   }
 
   /**
-   * 渲染書籍封面
+   * 創建備用卡片
    * 
    * @param {Object} book - 書籍資料
-   * @returns {HTMLElement} 封面元素
+   * @returns {HTMLElement} 備用卡片元素
    */
-  _renderBookCover(book) {
-    const coverContainer = this.document.createElement('div');
-    coverContainer.className = CONSTANTS.UI.ELEMENT_CLASSES.COVER;
+  createFallbackCard(book) {
+    const card = document.createElement('div');
+    card.classList.add(this.CONSTANTS.CLASSES.BOOK_CARD, 'fallback-card');
+    card.setAttribute('data-book-id', book.id);
+    card.textContent = book.title || 'Unknown Book';
     
-    if (book.cover) {
-      const img = this.document.createElement('img');
-      img.src = book.cover;
-      img.alt = book.title || '書籍封面';
-      img.loading = 'lazy';
-      coverContainer.appendChild(img);
+    this.setCardBaseStyles(card);
+    
+    return card;
+  }
+
+  /**
+   * 填充書籍卡片內容
+   * 使用常數定義和改善的結構化方法
+   * 
+   * @param {HTMLElement} card - 卡片元素
+   * @param {Object} book - 書籍資料
+   */
+  populateBookCard(card, book) {
+    const { CLASSES } = this.CONSTANTS;
+    
+    try {
+      // 創建封面區域
+      const coverContainer = this.createCoverContainer(book, CLASSES);
+      card.appendChild(coverContainer);
+      
+      // 創建資訊區域
+      const infoContainer = this.createInfoContainer(book, CLASSES);
+      card.appendChild(infoContainer);
+      
+      // 創建進度指示器
+      if (this.shouldShowProgress(book)) {
+        const progressContainer = this.createProgressContainer(book, CLASSES);
+        card.appendChild(progressContainer);
+      }
+    } catch (error) {
+      console.warn(`[BookGridRenderer] Failed to populate card for book ${book.id}:`, error);
+    }
+  }
+
+  /**
+   * 創建封面容器
+   * 
+   * @param {Object} book - 書籍資料
+   * @param {Object} CLASSES - CSS 類別常數
+   * @returns {HTMLElement} 封面容器元素
+   */
+  createCoverContainer(book, CLASSES) {
+    const coverContainer = document.createElement('div');
+    coverContainer.classList.add(CLASSES.BOOK_COVER);
+    
+    if (book.coverImage && typeof book.coverImage === 'string') {
+      const coverImg = document.createElement('img');
+      coverImg.src = book.coverImage;
+      coverImg.alt = book.title || 'Book cover';
+      coverImg.loading = 'lazy'; // 延遲載入優化
+      
+      // 錯誤處理
+      coverImg.onerror = () => {
+        this.handleImageError(coverContainer, book);
+      };
+      
+      coverContainer.appendChild(coverImg);
     } else {
-      // 預設封面
-      coverContainer.innerHTML = '📚';
-      coverContainer.classList.add('default-cover');
+      this.createDefaultCover(coverContainer, book, CLASSES);
     }
     
     return coverContainer;
   }
 
   /**
-   * 渲染書籍資訊
+   * 創建預設封面
    * 
+   * @param {HTMLElement} container - 封面容器
    * @param {Object} book - 書籍資料
-   * @returns {HTMLElement} 資訊元素
+   * @param {Object} CLASSES - CSS 類別常數
    */
-  _renderBookInfo(book) {
-    const info = this.document.createElement('div');
-    info.className = CONSTANTS.UI.ELEMENT_CLASSES.INFO;
+  createDefaultCover(container, book, CLASSES) {
+    container.classList.add(CLASSES.DEFAULT_COVER);
     
-    // 書名
-    if (book.title) {
-      const title = this.document.createElement('h3');
-      title.className = CONSTANTS.UI.ELEMENT_CLASSES.TITLE;
-      title.textContent = book.title;
-      title.title = book.title; // 工具提示
-      info.appendChild(title);
-    }
-    
-    // 作者
-    if (book.author) {
-      const author = this.document.createElement('p');
-      author.className = CONSTANTS.UI.ELEMENT_CLASSES.AUTHOR;
-      author.textContent = book.author;
-      info.appendChild(author);
-    }
-    
-    // 狀態
-    if (book.status) {
-      const status = this.document.createElement('span');
-      status.className = CONSTANTS.UI.ELEMENT_CLASSES.STATUS;
-      status.textContent = book.status;
-      info.appendChild(status);
-    }
-    
-    return info;
+    // 使用書籍標題首字母或預設圖示
+    const displayText = book.title?.charAt(0)?.toUpperCase() || '📖';
+    container.textContent = displayText;
   }
 
   /**
-   * 渲染進度條
+   * 處理圖片載入錯誤
    * 
-   * @param {number} progress - 進度百分比
-   * @returns {HTMLElement} 進度條元素
+   * @param {HTMLElement} container - 封面容器
+   * @param {Object} book - 書籍資料
    */
-  _renderProgressBar(progress) {
-    const progressContainer = this.document.createElement('div');
-    progressContainer.className = CONSTANTS.UI.ELEMENT_CLASSES.PROGRESS;
+  handleImageError(container, book) {
+    // 移除錯誤的圖片
+    const img = container.querySelector('img');
+    if (img) {
+      container.removeChild(img);
+    }
     
-    const progressBar = this.document.createElement('div');
-    progressBar.className = CONSTANTS.UI.ELEMENT_CLASSES.PROGRESS_BAR;
-    progressBar.style.width = `${Math.max(0, Math.min(100, progress))}%`;
+    // 建立預設封面
+    this.createDefaultCover(container, book, this.CONSTANTS.CLASSES);
+  }
+
+  /**
+   * 創建資訊容器
+   * 
+   * @param {Object} book - 書籍資料
+   * @param {Object} CLASSES - CSS 類別常數
+   * @returns {HTMLElement} 資訊容器元素
+   */
+  createInfoContainer(book, CLASSES) {
+    const infoContainer = document.createElement('div');
+    infoContainer.classList.add(CLASSES.BOOK_INFO);
     
-    const progressText = this.document.createElement('span');
-    progressText.className = CONSTANTS.UI.ELEMENT_CLASSES.PROGRESS_TEXT;
-    progressText.textContent = `${progress}%`;
+    // 添加標題
+    if (book.title && typeof book.title === 'string') {
+      const title = document.createElement('h3');
+      title.classList.add(CLASSES.BOOK_TITLE);
+      title.textContent = this.truncateText(book.title, 50);
+      title.title = book.title; // 完整標題作為 tooltip
+      infoContainer.appendChild(title);
+    }
+    
+    // 添加作者
+    if (book.author && typeof book.author === 'string') {
+      const author = document.createElement('p');
+      author.classList.add(CLASSES.BOOK_AUTHOR);
+      author.textContent = this.truncateText(book.author, 30);
+      author.title = book.author; // 完整作者名作為 tooltip
+      infoContainer.appendChild(author);
+    }
+    
+    return infoContainer;
+  }
+
+  /**
+   * 創建進度容器
+   * 
+   * @param {Object} book - 書籍資料
+   * @param {Object} CLASSES - CSS 類別常數
+   * @returns {HTMLElement} 進度容器元素
+   */
+  createProgressContainer(book, CLASSES) {
+    const progressContainer = document.createElement('div');
+    progressContainer.classList.add(CLASSES.PROGRESS_CONTAINER);
+    
+    const progressBar = document.createElement('div');
+    progressBar.classList.add(CLASSES.PROGRESS_BAR);
+    
+    // 正規化進度值（0-100）
+    const normalizedProgress = this.normalizeProgress(book.progress);
+    progressBar.style.width = `${normalizedProgress}%`;
+    
+    // 添加進度文字
+    const progressText = document.createElement('span');
+    progressText.classList.add('progress-text');
+    progressText.textContent = `${normalizedProgress}%`;
     
     progressContainer.appendChild(progressBar);
     progressContainer.appendChild(progressText);
@@ -692,543 +555,317 @@ class BookGridRenderer {
   }
 
   /**
-   * 創建佔位符項目
+   * 檢查是否應該顯示進度
    * 
-   * @returns {HTMLElement} 佔位符元素
-   */
-  _createPlaceholderItem() {
-    const item = this.document.createElement('div');
-    item.className = `${CONSTANTS.UI.CSS_CLASSES.ITEM} ${CONSTANTS.UI.CSS_CLASSES.PLACEHOLDER}`;
-    item.innerHTML = '<div class="placeholder-content">載入中...</div>';
-    
-    // 🔴 Red Phase: 缺少錯誤特殊處理，測試應該失敗
-    // TODO: 在 Green Phase 新增：
-    // item.classList.add('error-placeholder');
-    // item.setAttribute('data-error-type', 'invalid-data');
-    // const errorMsg = this.document.createElement('div');
-    // errorMsg.className = 'error-message';
-    // errorMsg.textContent = '無效資料';
-    // item.appendChild(errorMsg);
-    
-    return item;
-  }
-
-  /**
-   * 創建錯誤項目
-   * 
-   * @param {Error} error - 錯誤物件
-   * @returns {HTMLElement} 錯誤元素
-   */
-  _createErrorItem(error) {
-    const item = this.document.createElement('div');
-    item.className = `${CONSTANTS.UI.CSS_CLASSES.ITEM} ${CONSTANTS.UI.CSS_CLASSES.ERROR}`;
-    item.innerHTML = '<div class="error-content">載入失敗</div>';
-    item.title = error.message;
-    return item;
-  }
-
-  /**
-   * 附加項目事件
-   * 
-   * @param {HTMLElement} item - 項目元素
    * @param {Object} book - 書籍資料
+   * @returns {boolean} 是否顯示進度
    */
-  _attachItemEvents(item, book) {
-    // 懸停效果
-    item.addEventListener('mouseenter', () => this.handleItemHover(item, true));
-    item.addEventListener('mouseleave', () => this.handleItemHover(item, false));
-    
-    // 點擊事件（委派給容器處理）
-    item.dataset.book = JSON.stringify(book);
+  shouldShowProgress(book) {
+    return typeof book.progress === 'number' && 
+           !isNaN(book.progress) && 
+           book.progress >= 0;
   }
 
   /**
-   * 渲染書籍陣列
+   * 正規化進度值
    * 
-   * @param {Array} books - 書籍陣列
+   * @param {number} progress - 原始進度值
+   * @returns {number} 正規化後的進度值 (0-100)
    */
-  renderBooks(books) {
+  normalizeProgress(progress) {
+    if (typeof progress !== 'number' || isNaN(progress)) {
+      return 0;
+    }
+    return Math.max(0, Math.min(100, Math.round(progress)));
+  }
+
+  /**
+   * 截斷文字
+   * 
+   * @param {string} text - 原始文字
+   * @param {number} maxLength - 最大長度
+   * @returns {string} 截斷後的文字
+   */
+  truncateText(text, maxLength) {
+    if (!text || typeof text !== 'string') {
+      return '';
+    }
+    
+    if (text.length <= maxLength) {
+      return text;
+    }
+    
+    return text.substring(0, maxLength - 3) + '...';
+  }
+
+  /**
+   * 處理尺寸變化
+   */
+  handleResize() {
+    if (this.throttleTimer) {
+      clearTimeout(this.throttleTimer);
+    }
+    
+    this.throttleTimer = setTimeout(() => {
+      this.updateLayout();
+      this.renderVisibleBooks();
+    }, this.config.throttleDelay);
+  }
+
+  /**
+   * 處理滾動事件
+   */
+  handleScroll() {
+    this.stats.scrollEvents++;
+    
+    if (this.throttleTimer) {
+      clearTimeout(this.throttleTimer);
+    }
+    
+    this.throttleTimer = setTimeout(() => {
+      this.scrollTop = this.container.scrollTop;
+      this.updateVisibleRange();
+      this.renderVisibleBooks();
+    }, this.config.throttleDelay);
+  }
+
+  /**
+   * 計算可見區域範圍
+   * 
+   * @returns {Object} 可見範圍 {start, end}
+   */
+  calculateVisibleRange() {
+    const { cardHeight, gap } = this.config;
+    const rowHeight = cardHeight + gap;
+    const bufferRows = this.config.bufferSize;
+    
+    const startRow = Math.max(0, Math.floor(this.scrollTop / rowHeight) - bufferRows);
+    const endRow = Math.min(
+      Math.ceil(this.books.length / this.currentColumns),
+      Math.ceil((this.scrollTop + this.containerHeight) / rowHeight) + bufferRows
+    );
+    
+    const start = startRow * this.currentColumns;
+    const end = Math.min(this.books.length, endRow * this.currentColumns);
+    
+    return { start, end };
+  }
+
+  /**
+   * 更新可見範圍
+   */
+  updateVisibleRange() {
+    this.visibleRange = this.calculateVisibleRange();
+  }
+
+  /**
+   * 渲染可見的書籍
+   */
+  renderVisibleBooks() {
     const startTime = performance.now();
     
-    try {
-      this.isRendering = true;
-      this.currentBooks = books || [];
-      this.totalItems = this.currentBooks.length;
-      
-      // 🔴 Red Phase: 缺少事件觸發，測試應該失敗
-      // TODO: 在 Green Phase 新增：
-      // this.emit && this.emit('UI.BOOKS.RENDER_START', {
-      //   totalBooks: this.totalItems,
-      //   renderMode: this.config.viewMode
-      // });
-      
-      // 清空容器
-      this.clearContainer();
-      
-      // 處理空狀態
-      if (this.currentBooks.length === 0) {
-        // 🔴 Red Phase: 缺少空狀態處理，測試應該失敗
-        // TODO: 在 Green Phase 新增：
-        // this._showEmptyState();
-        // this.emit && this.emit('UI.BOOKS.EMPTY_STATE', {
-        //   message: '無書籍資料',
-        //   showUploadHint: true
-        // });
-        return;
-      }
-      
-      // 計算可視範圍
-      this.visibleRange = this.calculateVisibleRange(this.currentBooks);
-      
-      // 渲染可視項目
-      this.renderVisibleItems();
-      
-      // 設定虛擬滾動容器高度
-      this.updateVirtualScrollerHeight();
-      
-    } catch (error) {
-      this.errorStats.renderErrors++;
-      console.error('渲染書籍時發生錯誤:', error);
-    } finally {
-      this.isRendering = false;
-      
-      // 更新效能統計
+    // 清除現有渲染
+    this.clearRenderedBooks();
+    
+    // 渲染可見範圍內的書籍
+    const visibleBooks = this.books.slice(this.visibleRange.start, this.visibleRange.end);
+    const positions = this.calculatePositions(this.books, this.currentColumns);
+    
+    if (typeof requestAnimationFrame !== 'undefined') {
+      requestAnimationFrame(() => {
+        this.renderBookBatch(visibleBooks, positions, this.visibleRange.start);
+        
+        // 更新統計
+        this.stats.renderTime = performance.now() - startTime;
+        this.stats.renderedBooks = visibleBooks.length;
+        this.stats.lastRenderTime = Date.now();
+        
+        this.notifyRenderComplete();
+      });
+    } else {
+      this.renderBookBatch(visibleBooks, positions, this.visibleRange.start);
       this.stats.renderTime = performance.now() - startTime;
-      this.stats.renderedCount = this.renderedItems.length;
-      
-      // 🔴 Red Phase: 缺少完成事件，測試應該失敗
-      // TODO: 在 Green Phase 新增：
-      // this.emit && this.emit('UI.BOOKS.RENDER_COMPLETE', {
-      //   renderedCount: this.stats.renderedCount,
-      //   totalTime: this.stats.renderTime
-      // });
+      this.stats.renderedBooks = visibleBooks.length;
     }
   }
 
   /**
-   * 渲染可視項目
-   */
-  renderVisibleItems() {
-    const { start, end } = this.visibleRange;
-    const visibleBooks = this.currentBooks.slice(start, end);
-    
-    // 批量渲染優化
-    this._renderItemsBatch(visibleBooks, start);
-  }
-
-  // ===============================
-  // 私有方法 - 效能優化
-  // ===============================
-
-  /**
-   * 批量渲染項目
+   * 批次渲染書籍
    * 
    * @param {Array} books - 書籍陣列
-   * @param {number} startIndex - 起始索引
+   * @param {Array} positions - 位置陣列
+   * @param {number} startIndex - 開始索引
    */
-  _renderItemsBatch(books, startIndex = 0) {
-    const batchSize = CONSTANTS.PERFORMANCE.RENDER_BATCH_SIZE;
-    
-    // 優雅降級：優先使用 DocumentFragment，失敗時分批渲染
-    const useFragment = typeof this.document.createDocumentFragment === 'function';
-    
-    if (useFragment) {
-      try {
-        const fragment = this.document.createDocumentFragment();
+  renderBookBatch(books, positions, startIndex) {
+    books.forEach((book, index) => {
+      const globalIndex = startIndex + index;
+      const position = positions[globalIndex];
+      
+      if (position && this.isValidBook(book)) {
+        const card = this.createBookCard(book);
         
-        books.forEach((book, index) => {
-          const item = this._createAndPositionItem(book, startIndex + index);
-          fragment.appendChild(item);
-        });
+        // 設定位置
+        card.style.left = `${position.x}px`;
+        card.style.top = `${position.y}px`;
         
-        this.container.appendChild(fragment);
-        this._checkMemoryUsage();
-        return;
-      } catch (error) {
-        // Fragment 失敗，降級到分批渲染
-      }
-    }
-    
-    // 分批渲染避免 UI 阻塞
-    this._renderInBatches(books, startIndex, batchSize);
-  }
-
-  /**
-   * 創建並設定項目位置
-   * 
-   * @param {Object} book - 書籍資料
-   * @param {number} index - 項目索引
-   * @returns {HTMLElement} 配置好的項目元素
-   */
-  _createAndPositionItem(book, index) {
-    const item = this.renderBookItem(book);
-    
-    // 設定項目位置
-    const position = this.calculateItemPosition(index);
-    item.style.position = 'absolute';
-    item.style.left = `${position.x}px`;
-    item.style.top = `${position.y}px`;
-    
-    this.renderedItems.push(item);
-    return item;
-  }
-
-  /**
-   * 分批渲染避免阻塞 UI
-   * 
-   * @param {Array} books - 書籍陣列
-   * @param {number} startIndex - 起始索引
-   * @param {number} batchSize - 批次大小
-   */
-  _renderInBatches(books, startIndex, batchSize) {
-    let currentIndex = 0;
-    
-    const renderBatch = () => {
-      const endIndex = Math.min(currentIndex + batchSize, books.length);
-      
-      // 渲染當前批次
-      for (let i = currentIndex; i < endIndex; i++) {
-        const item = this._createAndPositionItem(books[i], startIndex + i);
-        this.container.appendChild(item);
-      }
-      
-      currentIndex = endIndex;
-      
-      // 如果還有更多項目，在下一幀繼續
-      if (currentIndex < books.length) {
-        if (typeof requestAnimationFrame === 'function') {
-          requestAnimationFrame(renderBatch);
-        } else {
-          // 測試環境或不支援 requestAnimationFrame 時使用 setTimeout
-          setTimeout(renderBatch, 0);
+        try {
+          this.container.appendChild(card);
+          this.renderedBooks.push(card);
+        } catch (error) {
+          console.warn('Failed to append book card:', error);
         }
-      } else {
-        // 所有項目渲染完成，檢查記憶體使用
-        this._checkMemoryUsage();
       }
-    };
+    });
     
-    renderBatch();
+    // 設定容器總高度
+    this.container.style.height = `${this.totalHeight}px`;
+  }
+
+  /**
+   * 清除已渲染的書籍
+   */
+  clearRenderedBooks() {
+    this.renderedBooks.forEach(card => {
+      try {
+        if (card.parentNode === this.container) {
+          this.container.removeChild(card);
+        }
+      } catch (error) {
+        console.warn('Failed to remove book card:', error);
+      }
+    });
+    this.renderedBooks = [];
   }
 
   /**
    * 更新書籍資料
    * 
-   * @param {Array} books - 新的書籍陣列
+   * @param {Array} books - 書籍陣列
+   * @param {Object} options - 選項
    */
-  updateBooks(books) {
-    // 🔴 Red Phase: 缺少差分更新，測試應該失敗
-    // TODO: 在 Green Phase 新增差分更新機制：
-    // const diff = this._calculateDiff(this.currentBooks, books);
-    // this.lastUpdateDiff = diff;
-    // this.emit && this.emit('UI.BOOKS.INCREMENTAL_UPDATE', {
-    //   addedCount: diff.added.length,
-    //   updatedCount: diff.updated.length,
-    //   removedCount: diff.removed.length
-    // });
+  updateBooks(books, options = {}) {
+    // 驗證和過濾書籍資料
+    this.books = this.validateAndFilterBooks(books);
+    this.stats.totalBooks = this.books.length;
     
-    this.renderBooks(books);
-  }
-
-  /**
-   * 清空容器
-   */
-  clearContainer() {
-    // 回收現有元素到池中
-    this.renderedItems.forEach(item => {
-      this._returnToPool(item);
-    });
+    // 更新佈局
+    this.updateLayout();
     
-    this.container.innerHTML = '';
-    this.renderedItems = [];
-  }
-
-  /**
-   * 更新虛擬滾動容器高度
-   */
-  updateVirtualScrollerHeight() {
-    if (this.config.virtualScrolling && this.totalItems > 0) {
-      const columns = this.calculateColumns();
-      const rows = Math.ceil(this.totalItems / columns);
-      const totalHeight = rows * (this.config.itemHeight + this.config.gap);
-      
-      // 設定容器內部高度
-      if (!this.virtualScrollContainer) {
-        this.virtualScrollContainer = this.document.createElement('div');
-        this.virtualScrollContainer.className = CONSTANTS.UI.CSS_CLASSES.VIRTUAL_SCROLLER;
-        this.virtualScrollContainer.style.position = 'relative';
-        this.container.appendChild(this.virtualScrollContainer);
-      }
-      
-      this.virtualScrollContainer.style.height = `${totalHeight}px`;
+    // 保持滾動位置（如果需要）
+    if (!options.preserveScrollPosition) {
+      this.container.scrollTop = 0;
+      this.scrollTop = 0;
     }
-  }
-
-  /**
-   * 設定檢視模式
-   * 
-   * @param {string} mode - 檢視模式 ('grid' 或 'list')
-   */
-  setViewMode(mode) {
-    if (mode !== 'grid' && mode !== 'list') {
-      throw new Error(CONSTANTS.ERRORS.INVALID_VIEW_MODE);
-    }
-    
-    this.config.viewMode = mode;
-    
-    // 更新容器 CSS 類別
-    this.container.classList.remove(CONSTANTS.UI.CSS_CLASSES.GRID_VIEW, CONSTANTS.UI.CSS_CLASSES.LIST_VIEW);
-    this.container.classList.add(
-      mode === 'grid' ? CONSTANTS.UI.CSS_CLASSES.GRID_VIEW : CONSTANTS.UI.CSS_CLASSES.LIST_VIEW
-    );
     
     // 重新渲染
-    if (this.currentBooks.length > 0) {
-      this.renderBooks(this.currentBooks);
-    }
+    this.renderVisibleBooks();
   }
 
   /**
-   * 處理調整大小事件
-   */
-  handleResize() {
-    if (this.currentBooks.length > 0) {
-      // 重新計算佈局
-      this.visibleRange = this.calculateVisibleRange(this.currentBooks);
-      this.renderBooks(this.currentBooks);
-    }
-  }
-
-  /**
-   * 處理滾動事件
+   * 驗證和過濾書籍資料
    * 
-   * @param {Event} event - 滾動事件
+   * @param {Array} books - 原始書籍陣列
+   * @returns {Array} 過濾後的書籍陣列
    */
-  handleScroll(event) {
-    if (!this.config.virtualScrolling || this.isRendering || this.currentBooks.length === 0) return;
+  validateAndFilterBooks(books) {
+    if (!Array.isArray(books)) {
+      return [];
+    }
     
-    const scrollTop = event.target.scrollTop || 0;
-    const newRange = this.calculateVisibleRange(this.currentBooks, scrollTop);
-    
-    // 只在範圍變化時重新渲染
-    if (newRange.start !== this.visibleRange.start || newRange.end !== this.visibleRange.end) {
-      this.visibleRange = newRange;
-      
-      // 清空現有項目
-      this.clearContainer();
-      
-      // 重新渲染可視項目
-      this.renderVisibleItems();
+    return books.filter(book => this.isValidBook(book));
+  }
+
+  /**
+   * 檢查書籍是否有效
+   * 
+   * @param {Object} book - 書籍物件
+   * @returns {boolean} 是否有效
+   */
+  isValidBook(book) {
+    return book && 
+           typeof book === 'object' && 
+           book.id && 
+           typeof book.id === 'string';
+  }
+
+  /**
+   * 處理書籍更新事件
+   * 
+   * @param {Object} event - 事件物件
+   */
+  handleBooksUpdate(event) {
+    if (event && event.data && Array.isArray(event.data.books)) {
+      this.updateBooks(event.data.books);
     }
   }
 
   /**
-   * 處理項目點擊事件
+   * 處理書籍篩選事件
    * 
-   * @param {Event} event - 點擊事件
-   * @param {Object} book - 書籍資料
+   * @param {Object} event - 事件物件
    */
-  handleItemClick(event, book) {
-    event.preventDefault();
-    
-    // 從事件委派中取得書籍資料
-    let targetBook = book;
-    if (!targetBook && event.target.closest('.book-grid-item')) {
-      const item = event.target.closest('.book-grid-item');
-      const bookData = item.dataset.book;
-      if (bookData) {
-        targetBook = JSON.parse(bookData);
+  handleBooksFilter(event) {
+    if (event && event.data) {
+      // 重新渲染以反映篩選結果
+      this.renderVisibleBooks();
+    }
+  }
+
+  /**
+   * 通知渲染完成
+   */
+  notifyRenderComplete() {
+    try {
+      if (this.eventBus && typeof this.eventBus.emit === 'function') {
+        this.eventBus.emit('UI.GRID.RENDER_COMPLETE', {
+          totalBooks: this.stats.totalBooks,
+          renderedBooks: this.stats.renderedBooks,
+          renderTime: this.stats.renderTime
+        });
       }
+    } catch (error) {
+      console.warn('Failed to notify render complete:', error);
     }
-    
-    if (targetBook && this.onItemClick) {
-      this.onItemClick(targetBook);
-    }
-  }
-
-  /**
-   * 處理項目懸停效果
-   * 
-   * @param {HTMLElement} element - 項目元素
-   * @param {boolean} isHovering - 是否懸停
-   */
-  handleItemHover(element, isHovering) {
-    if (isHovering) {
-      element.classList.add(CONSTANTS.UI.CSS_CLASSES.HOVER);
-    } else {
-      element.classList.remove(CONSTANTS.UI.CSS_CLASSES.HOVER);
-    }
-    
-    // 🔴 Red Phase: 缺少進階懸停功能，測試應該失敗
-    // TODO: 在 Green Phase 新增：
-    // this.focusManager = this.focusManager || { currentFocusedItem: null };
-    // const book = JSON.parse(element.dataset.book || '{}');
-    // this.emit && this.emit('UI.BOOK.HOVER', {
-    //   book,
-    //   element,
-    //   isHovering
-    // });
-  }
-
-  /**
-   * 處理鍵盤導航
-   * 
-   * @param {KeyboardEvent} event - 鍵盤事件
-   */
-  handleKeyNavigation(event) {
-    const keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Space'];
-    
-    if (keys.includes(event.key)) {
-      event.preventDefault();
-      
-      // 基本鍵盤導航實現
-      // 可以根據需要擴展更複雜的導航邏輯
-      
-      // 🔴 Red Phase: 缺少無障礙支援，測試應該失敗
-      // TODO: 在 Green Phase 新增：
-      // this.accessibilityManager = this.accessibilityManager || {};
-      // this.currentFocusIndex = this.currentFocusIndex || 0;
-      // const direction = this._getNavigationDirection(event.key);
-      // this.emit && this.emit('UI.NAVIGATION.KEY_PRESSED', {
-      //   key: event.key,
-      //   direction
-      // });
-    }
-  }
-
-  /**
-   * 設定項目點擊回調
-   * 
-   * @param {Function} callback - 點擊回調函數
-   */
-  setOnItemClick(callback) {
-    this.onItemClick = callback;
-  }
-
-  /**
-   * 取得虛擬滾動緩衝區大小
-   * 
-   * @returns {number} 緩衝區大小
-   */
-  getVirtualScrollBuffer() {
-    // 🔴 Red Phase: 缺少動態調整功能，測試應該失敗
-    // TODO: 在 Green Phase 新增方法：
-    // calculateAdaptiveBuffer(dataSize) { return bufferSize * adaptationFactor; }
-    // setPerformanceMode(mode) { this.performanceMode = mode; }
-    
-    return this.config.bufferSize;
-  }
-
-  /**
-   * 項目回收機制
-   */
-  recycleItems() {
-    // 回收不可視的項目到池中重複使用
-    const recycledCount = this.renderedItems.length;
-    this.recycledItems.push(...this.renderedItems);
-    this.renderedItems = [];
-    this.stats.recycledCount += recycledCount;
-  }
-
-  /**
-   * 取得效能統計
-   * 
-   * @returns {Object} 效能統計資料
-   */
-  getPerformanceStats() {
-    return { ...this.stats };
-  }
-
-  /**
-   * 取得錯誤統計
-   * 
-   * @returns {Object} 錯誤統計資料
-   */
-  getErrorStats() {
-    return { ...this.errorStats };
-  }
-
-  /**
-   * 節流函數
-   * 
-   * @param {Function} func - 要節流的函數
-   * @param {number} delay - 延遲時間
-   * @returns {Function} 節流後的函數
-   */
-  // ===============================
-  // 私有方法 - 工具函數
-  // ===============================
-
-  /**
-   * 節流函數
-   * 
-   * @param {Function} func - 要節流的函數
-   * @param {number} delay - 延遲時間
-   * @returns {Function} 節流後的函數
-   */
-  _throttle(func, delay) {
-    let timeoutId;
-    let lastExecTime = 0;
-    
-    return function (...args) {
-      const currentTime = Date.now();
-      
-      if (currentTime - lastExecTime > delay) {
-        func.apply(this, args);
-        lastExecTime = currentTime;
-      } else {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-          func.apply(this, args);
-          lastExecTime = Date.now();
-        }, delay - (currentTime - lastExecTime));
-      }
-    };
-  }
-
-  /**
-   * 防抖函數
-   * 
-   * @param {Function} func - 要防抖的函數
-   * @param {number} delay - 延遲時間
-   * @returns {Function} 防抖後的函數
-   */
-  /**
-   * 防抖函數
-   * 
-   * @param {Function} func - 要防抖的函數
-   * @param {number} delay - 延遲時間
-   * @returns {Function} 防抖後的函數
-   */
-  _debounce(func, delay) {
-    let timeoutId;
-    
-    return function (...args) {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => func.apply(this, args), delay);
-    };
   }
 
   /**
    * 銷毀渲染器
    */
   destroy() {
-    // 移除事件監聽器
-    this.container.removeEventListener('scroll', this.throttledScrollHandler);
-    this.container.removeEventListener('click', this.handleItemClick);
-    this.container.removeEventListener('keydown', this.handleKeyNavigation);
+    // 清除事件監聽器
+    if (this.eventBus && typeof this.eventBus.off === 'function') {
+      this.eventBus.off('UI.BOOKS.UPDATE', this.handleBooksUpdate);
+      this.eventBus.off('UI.BOOKS.FILTER', this.handleBooksFilter);
+    }
     
-    global.window?.removeEventListener('resize', this.debouncedResizeHandler);
+    this.container.removeEventListener?.('scroll', this.boundHandleScroll);
+    if (typeof window !== 'undefined') {
+      window.removeEventListener?.('resize', this.boundHandleResize);
+    }
     
-    // 清理資源
-    this.clearContainer();
-    this.recycledItems = [];
-    this.currentBooks = [];
+    // 清除定時器
+    if (this.throttleTimer) {
+      clearTimeout(this.throttleTimer);
+    }
     
-    // 標記為已銷毀
-    this.isDestroyed = true;
+    // 清除渲染內容
+    this.clearRenderedBooks();
+    
+    // 清除引用
+    this.books = [];
+    this.renderedBooks = [];
+    this.container = null;
+    this.eventBus = null;
+  }
+
+  /**
+   * 取得統計資訊
+   * 
+   * @returns {Object} 統計資訊
+   */
+  getStats() {
+    return { ...this.stats };
   }
 }
 
-// CommonJS 匯出
 module.exports = BookGridRenderer;
