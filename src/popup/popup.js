@@ -592,12 +592,24 @@ async function initialize() {
   console.log('🚀 開始初始化 Popup Interface');
   
   try {
+    // 初始化錯誤處理器
+    initializeErrorHandler();
+    
     // 設定事件監聽器
     setupEventListeners();
     
     // 檢查 Background Service Worker
     const backgroundOk = await checkBackgroundStatus();
-    if (!backgroundOk) return;
+    if (!backgroundOk) {
+      // 觸發系統初始化錯誤
+      if (errorHandler) {
+        errorHandler.handleInitializationError({
+          type: 'BACKGROUND_SERVICE_WORKER_FAILED',
+          message: 'Background Service Worker 無法連線'
+        });
+      }
+      return;
+    }
     
     // 檢查當前標籤頁
     await checkCurrentTab();
@@ -605,7 +617,18 @@ async function initialize() {
     console.log('✅ Popup Interface 初始化完成');
   } catch (error) {
     console.error('❌ 初始化過程發生錯誤:', error);
-    updateStatus('錯誤', '初始化失敗', error.message, STATUS_TYPES.ERROR);
+    
+    // 使用增強的錯誤處理
+    if (errorHandler) {
+      errorHandler.handleInitializationError({
+        type: 'POPUP_INITIALIZATION_ERROR',
+        message: error.message,
+        stack: error.stack
+      });
+    } else {
+      // 備用錯誤處理
+      updateStatus('錯誤', '初始化失敗', error.message, STATUS_TYPES.ERROR);
+    }
   }
 }
 
@@ -641,9 +664,34 @@ async function periodicStatusUpdate() {
  * - 防止錯誤導致界面完全失效
  * - 提供有用的錯誤資訊給使用者
  */
+/**
+ * 初始化錯誤處理系統
+ */
+let errorHandler = null;
+
+function initializeErrorHandler() {
+  if (typeof PopupErrorHandler !== 'undefined') {
+    errorHandler = new PopupErrorHandler();
+    errorHandler.initialize();
+  }
+}
+
 function handleGlobalError(event) {
   console.error('❌ Popup Interface 錯誤:', event.error);
-  updateStatus('錯誤', '界面發生錯誤', event.error.message, STATUS_TYPES.ERROR);
+  
+  // 如果錯誤處理器可用，使用增強的錯誤處理
+  if (errorHandler) {
+    errorHandler.showUserFriendlyError({
+      type: 'POPUP_INTERFACE_ERROR',
+      data: {
+        message: event.error.message,
+        stack: event.error.stack
+      }
+    });
+  } else {
+    // 備用的基本錯誤處理
+    updateStatus('錯誤', '界面發生錯誤', event.error.message, STATUS_TYPES.ERROR);
+  }
 }
 
 // ==================== 全域範圍暴露 (供測試使用) ====================
