@@ -31,6 +31,7 @@
 
 const BaseUIHandler = require('./base-ui-handler');
 const UIEventValidator = require('./ui-event-validator');
+const UI_HANDLER_CONFIG = require('../config/ui-handler-config');
 
 class UIProgressHandler extends BaseUIHandler {
   /**
@@ -66,19 +67,33 @@ class UIProgressHandler extends BaseUIHandler {
 
   /**
    * 初始化進度特定配置
-   * 繼承基底類別的配置並添加進度特定參數
+   * 使用統一配置系統並添加進度特定參數
    */
   initializeProgressConfiguration() {
+    const progressConfig = UI_HANDLER_CONFIG.PROGRESS;
+    const environmentConfig = UI_HANDLER_CONFIG.getEnvironmentConfig(process.env.NODE_ENV);
+    
     // 擴展基底配置
     this.config = {
       ...this.config,
-      cleanupDelay: 3000, // 3秒後清理
+      updateThrottle: progressConfig.UPDATE_THROTTLE,
+      completionDelay: progressConfig.COMPLETION_DELAY,
+      cleanupDelay: progressConfig.CLEANUP_DELAY,
+      minProgress: progressConfig.MIN_PROGRESS,
+      maxProgress: progressConfig.MAX_PROGRESS,
+      enableSmoothAnimation: progressConfig.ENABLE_SMOOTH_ANIMATION,
+      animationDuration: progressConfig.ANIMATION_DURATION,
       statusClasses: {
         started: 'progress-active',
         completed: 'progress-completed',
         error: 'progress-error'
-      }
+      },
+      ...environmentConfig
     };
+    
+    // 使用統一的錯誤類型和選擇器
+    this.ERROR_TYPES = UI_HANDLER_CONFIG.ERROR_TYPES;
+    this.SELECTORS = UI_HANDLER_CONFIG.SELECTORS;
   }
 
   /**

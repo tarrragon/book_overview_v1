@@ -83,6 +83,13 @@ class BaseUIHandler extends EventHandler {
       lastOperationTime: null,
       operationHistory: []
     };
+    
+    // 初始化錯誤統計
+    this.errorStats = {
+      errorCount: 0,
+      lastError: null,
+      errorHistory: []
+    };
   }
 
   /**
@@ -157,6 +164,80 @@ class BaseUIHandler extends EventHandler {
   }
 
   /**
+   * 統一錯誤處理機制
+   * 
+   * @param {string} flowId - 流程ID
+   * @param {Error} error - 錯誤物件
+   * @param {string} errorType - 錯誤類型，預設為 'GENERAL'
+   * @returns {Object} 標準化的錯誤回應
+   */
+  handleProcessingError(flowId, error, errorType = 'GENERAL') {
+    this.errorStats.errorCount++;
+    
+    const errorInfo = {
+      flowId,
+      type: errorType,
+      error: error.message,
+      stack: error.stack,
+      timestamp: Date.now()
+    };
+    
+    // 記錄最新錯誤
+    this.errorStats.lastError = errorInfo;
+    
+    // 維護錯誤歷史 (保留最近50筆)
+    this.errorStats.errorHistory.push(errorInfo);
+    if (this.errorStats.errorHistory.length > 50) {
+      this.errorStats.errorHistory.shift();
+    }
+    
+    // 記錄到log（如果啟用）
+    this.logError(flowId, error, errorType);
+    
+    return {
+      success: false,
+      flowId,
+      error: error.message,
+      errorType,
+      timestamp: Date.now()
+    };
+  }
+
+  /**
+   * 統一的成功回應建構器
+   * 
+   * @param {string} flowId - 流程ID
+   * @param {Object} data - 回應資料
+   * @param {Object} additionalData - 額外資料，預設為空物件
+   * @returns {Object} 標準化的成功回應
+   */
+  buildStandardResponse(flowId, data = {}, additionalData = {}) {
+    return {
+      success: true,
+      flowId,
+      timestamp: Date.now(),
+      ...data,
+      ...additionalData
+    };
+  }
+
+  /**
+   * 記錄錯誤到 log
+   * 
+   * @param {string} flowId - 流程ID
+   * @param {Error} error - 錯誤物件
+   * @param {string} errorType - 錯誤類型
+   */
+  logError(flowId, error, errorType) {
+    if (this.config.enableLogging) {
+      console.error(`[${this.name}] Error in flow ${flowId} (${errorType}):`, error.message);
+      if (process.env.NODE_ENV === 'development') {
+        console.error(error.stack);
+      }
+    }
+  }
+
+  /**
    * 清理過期的操作
    * 防止記憶體洩漏和狀態混亂
    */
@@ -187,6 +268,7 @@ class BaseUIHandler extends EventHandler {
     return {
       ...baseStats,
       ...this.statistics,
+      errorStats: { ...this.errorStats },
       activeOperationsCount: this.activeOperations.size,
       uptime: Date.now() - this.lastActivity,
       config: { ...this.config }

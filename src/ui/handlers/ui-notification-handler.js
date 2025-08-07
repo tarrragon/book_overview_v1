@@ -33,6 +33,7 @@
 
 const BaseUIHandler = require('./base-ui-handler');
 const UIEventValidator = require('./ui-event-validator');
+const UI_HANDLER_CONFIG = require('../config/ui-handler-config');
 
 class UINotificationHandler extends BaseUIHandler {
   /**
@@ -69,28 +70,40 @@ class UINotificationHandler extends BaseUIHandler {
 
   /**
    * 初始化通知特定配置
-   * 繼承基底類別的配置並添加通知特定參數
+   * 使用統一配置系統並添加通知特定參數
    * 
    * 負責功能：
-   * - 設定通知限制和持續時間
-   * - 定義支援的通知類型
+   * - 從統一配置載入通知設定
+   * - 定義支援的通知類型和錯誤類型
    */
   initializeNotificationConfiguration() {
+    const notificationConfig = UI_HANDLER_CONFIG.NOTIFICATION;
+    const environmentConfig = UI_HANDLER_CONFIG.getEnvironmentConfig(process.env.NODE_ENV);
+    
     // 擴展基底配置
     this.config = {
       ...this.config,
-      maxNotifications: 5,
-      defaultDuration: 3000, // 3秒
-      animationDelay: 10,
-      hideDelay: 300
+      maxNotifications: notificationConfig.MAX_NOTIFICATIONS,
+      defaultDuration: notificationConfig.DEFAULT_DURATION,
+      animationDelay: notificationConfig.ANIMATION_DELAY,
+      hideDelay: notificationConfig.HIDE_DELAY,
+      autoHideSuccess: notificationConfig.AUTO_HIDE_SUCCESS,
+      autoHideError: notificationConfig.AUTO_HIDE_ERROR,
+      enableAnimations: notificationConfig.ENABLE_ANIMATIONS,
+      cleanupInterval: notificationConfig.CLEANUP_INTERVAL,
+      ...environmentConfig
     };
     
+    // 使用統一的通知類型和錯誤類型
     this.NOTIFICATION_TYPES = {
       SUCCESS: 'success',
       ERROR: 'error',
       WARNING: 'warning',
       INFO: 'info'
     };
+    
+    this.ERROR_TYPES = UI_HANDLER_CONFIG.ERROR_TYPES;
+    this.SELECTORS = UI_HANDLER_CONFIG.SELECTORS;
   }
 
   /**
@@ -161,9 +174,8 @@ class UINotificationHandler extends BaseUIHandler {
       // 執行完整的通知處理流程
       return await this.executeNotificationFlow(event, data, flowId);
     } catch (error) {
-      // 統一錯誤處理
-      this.handleNotificationError(flowId, error);
-      throw error; // 重新拋出供上層處理
+      // 使用基底類別的統一錯誤處理
+      return this.handleProcessingError(flowId, error, this.ERROR_TYPES.NOTIFICATION_DISPLAY);
     }
   }
 
@@ -200,7 +212,11 @@ class UINotificationHandler extends BaseUIHandler {
     // 6. 更新統計
     this.updateNotificationStats(data);
 
-    return this.buildSuccessResponse(flowId, data);
+    return this.buildStandardResponse(flowId, {
+      message: data.message,
+      type: data.type || this.NOTIFICATION_TYPES.INFO,
+      persistent: data.persistent || false
+    });
   }
 
   /**
@@ -569,16 +585,6 @@ class UINotificationHandler extends BaseUIHandler {
    * - 更新錯誤統計
    * - 嘗試錯誤恢復
    */
-  handleNotificationError(flowId, error) {
-    this.errorCount++;
-    this.lastError = {
-      flowId,
-      error: error.message,
-      timestamp: Date.now()
-    };
-
-    console.error(`[UINotificationHandler] Notification display failed for flow ${flowId}:`, error);
-  }
 
   /**
    * 建構成功回應
@@ -591,16 +597,6 @@ class UINotificationHandler extends BaseUIHandler {
    * - 統一成功回應的格式
    * - 提供一致的API介面
    */
-  buildSuccessResponse(flowId, data) {
-    return {
-      success: true,
-      flowId,
-      message: data.message,
-      type: data.type || this.NOTIFICATION_TYPES.INFO,
-      persistent: data.persistent || false,
-      timestamp: Date.now()
-    };
-  }
 
   /**
    * 取得處理器的統計資訊

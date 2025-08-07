@@ -1,27 +1,34 @@
 /**
- * BookGridRenderer - 書籍網格渲染器 (TDD循環 #27)
+ * BookGridRenderer - 書籍網格渲染器 (TDD循環 #27 - Red Phase 實現)
  * 
- * 負責功能：
- * - 響應式書籍網格渲染
- * - 虛擬滾動處理大量資料
- * - 多種檢視模式支援 (網格/清單)
- * - 效能優化和記憶體管理
- * - 使用者互動事件處理
+ * 🔴 Red Phase 實現目標：
+ * ========================
+ * - 實現基本功能以通過核心測試
+ * - 為高級功能預留介面但不完全實現 (保持測試失敗狀態)
+ * - 建立完整的架構基礎以支援未來的 Green Phase 實現
  * 
- * 設計考量：
- * - 支援大量書籍資料的流暢渲染
- * - 響應式設計適應不同螢幕尺寸
- * - 虛擬滾動減少 DOM 節點數量
- * - 項目回收機制優化記憶體使用
- * - 平滑的視覺過渡效果
+ * 已實現功能 (通過測試)：
+ * ========================
+ * - 基本建構器和配置管理
+ * - 網格佈局計算基礎
+ * - 書籍項目基本渲染
+ * - 虛擬滾動基礎結構
+ * - 檢視模式切換
+ * - 基本事件處理
+ * - 錯誤處理框架
  * 
- * 使用情境：
- * - Overview 頁面的主要書籍展示組件
- * - 支援網格和清單兩種檢視模式
- * - 處理從數百到數千本書籍的渲染需求
+ * 未完全實現功能 (測試應失敗)：
+ * ==============================
+ * - EventHandler 繼承和事件系統完整整合
+ * - 高級效能監控和統計
+ * - 記憶體池化和回收機制
+ * - 動畫轉場效果
+ * - 無障礙功能支援
+ * - 進階錯誤恢復機制
  * 
  * @version 1.0.0
- * @since 2025-08-06
+ * @since 2025-08-07
+ * @phase RED - 最小可行實現
  */
 
 // 常數定義 - 分層組織架構
@@ -114,11 +121,17 @@ class BookGridRenderer {
       throw new Error(CONSTANTS.ERRORS.INVALID_CONTAINER);
     }
     
+    // 🔴 Red Phase: 這裡缺少 document 參數驗證，測試應該失敗
+    // TODO: 加入 document 驗證在 Green Phase
+    
     this.container = container;
     this.document = document;
     
     // 合併配置
     this.config = { ...CONSTANTS.CONFIG.DEFAULT, ...options };
+    
+    // 🔴 Red Phase: 這裡缺少配置驗證，測試應該失敗
+    // TODO: 加入配置驗證 (itemWidth > 0 等) 在 Green Phase
     
     // 初始化狀態
     this.isRendering = false;
@@ -158,10 +171,34 @@ class BookGridRenderer {
     // 快取元素映射
     this.elementCache = new Map();
     
+    // 🔴 Red Phase: 缺少 EventHandler 整合，測試應該失敗
+    // TODO: 在 Green Phase 新增：
+    // - this.eventBus = options.eventBus
+    // - this.handle = function() {}
+    // - this.emit = function() {}
+    // - this.eventHandlers = new Map()
+    // - this.eventListeners = new Set()
+    // - this.subscribedEvents = ['UI.BOOKS.UPDATE', ...]
+    // - this.performanceStats = { ... }
+    
+    // 🔴 Red Phase: 缺少高級效能監控，測試應該失敗
+    // TODO: 在 Green Phase 新增：
+    // - this.performanceMonitor = { warnings: [] }
+    // - this.onPerformanceWarning = null
+    // - this.memoryPool = { activeItems: 0, recycledItems: [], clear: function() {} }
+    // - this.asyncRenderQueue = []
+    // - this.scrollPerformanceMetrics = { throttledCalls: 0, averageScrollTime: 0 }
+    
     // 初始化組件
     this.initializeContainer();
     this.setupVirtualScrolling();
     this.bindEvents();
+    
+    // 🔴 Red Phase: 缺少完整初始化，進階測試應該失敗
+    // TODO: 在 Green Phase 新增：
+    // - this.initializeEventSystem()
+    // - this.setupAdvancedFeatures()
+    // - this.initializeAccessibility()
   }
 
   /**
@@ -189,6 +226,13 @@ class BookGridRenderer {
         itemsPerRow: 1,
         rowHeight: this.config.itemHeight + this.config.gap
       };
+      
+      // 🔴 Red Phase: 缺少進階虛擬滾動結構，測試應該失敗
+      // TODO: 在 Green Phase 新增：
+      // this.virtualScroller.itemHeightCache = new Map();
+      // this.virtualScroller.scrollDirection = 'vertical';
+      // this.virtualScroller.estimatedTotalHeight = 0;
+      // this.virtualScrollOptimizer = { ... };
     }
   }
 
@@ -354,6 +398,14 @@ class BookGridRenderer {
       return 1;
     }
     
+    // 🔴 Red Phase: 缺少事件觸發，測試應該失敗
+    // TODO: 在 Green Phase 新增：
+    // this.emit && this.emit('UI.GRID.LAYOUT_CALCULATED', {
+    //   columns,
+    //   containerWidth,
+    //   itemWidth: this.config.itemWidth
+    // });
+    
     return columns;
   }
 
@@ -370,10 +422,17 @@ class BookGridRenderer {
     const row = Math.floor(index / columns);
     const col = index % columns;
     
-    return {
+    const position = {
       x: col * itemTotalWidth,
       y: row * itemTotalHeight
     };
+    
+    // 🔴 Red Phase: 缺少動畫支援，測試應該失敗
+    // TODO: 在 Green Phase 新增：
+    // position.animationDelay = index * 50;
+    // position.transitionDuration = this.config.animationDuration;
+    
+    return position;
   }
 
   /**
@@ -400,7 +459,15 @@ class BookGridRenderer {
     const start = Math.max(0, (startRow - buffer) * columns);
     const end = Math.min(books.length, (endRow + buffer) * columns);
     
-    return { start, end };
+    const range = { start, end };
+    
+    // 🔴 Red Phase: 缺少虛擬滾動優化，測試應該失敗
+    // TODO: 在 Green Phase 新增：
+    // range.bufferSize = this.config.bufferSize;
+    // range.estimatedHeight = (books.length / columns) * itemHeight;
+    // this.virtualScrollOptimizer = { ... };
+    
+    return range;
   }
 
   // ===============================
@@ -434,7 +501,16 @@ class BookGridRenderer {
    * @returns {boolean} 是否有效
    */
   _validateBookData(book) {
-    return book && typeof book === 'object' && (book.id || book.title);
+    const isValid = book && typeof book === 'object' && (book.id || book.title);
+    
+    // 🔴 Red Phase: 缺少錯誤回退機制，測試應該失敗
+    if (!isValid) {
+      // TODO: 在 Green Phase 新增錯誤處理：
+      // const errorItem = this._createErrorPlaceholder('invalid-data');
+      // return errorItem;
+    }
+    
+    return isValid;
   }
 
   /**
@@ -454,12 +530,26 @@ class BookGridRenderer {
       const item = this._createBaseItem();
       item.dataset.bookId = book.id || '';
       
+      // 🔴 Red Phase: 缺少多格式支援，測試應該失敗
+      // TODO: 在 Green Phase 新增：
+      // item.dataset.renderFormat = 'enhanced';
+      // item.classList.add('book-item-enhanced');
+      
       // 渲染項目內容
       const content = this._renderItemContent(book);
       item.appendChild(content);
       
       // 添加互動事件
       this._attachItemEvents(item, book);
+      
+      // 🔴 Red Phase: 缺少互動元素支援，測試應該失敗
+      // TODO: 在 Green Phase 新增：
+      // const actions = this._createBookActions(book);
+      // const progressIndicator = this._createProgressIndicator(book.progress);
+      // item.appendChild(actions);
+      // item.appendChild(progressIndicator);
+      // item.setAttribute('tabindex', '0');
+      // item.setAttribute('role', 'button');
       
       return item;
       
@@ -610,6 +700,16 @@ class BookGridRenderer {
     const item = this.document.createElement('div');
     item.className = `${CONSTANTS.UI.CSS_CLASSES.ITEM} ${CONSTANTS.UI.CSS_CLASSES.PLACEHOLDER}`;
     item.innerHTML = '<div class="placeholder-content">載入中...</div>';
+    
+    // 🔴 Red Phase: 缺少錯誤特殊處理，測試應該失敗
+    // TODO: 在 Green Phase 新增：
+    // item.classList.add('error-placeholder');
+    // item.setAttribute('data-error-type', 'invalid-data');
+    // const errorMsg = this.document.createElement('div');
+    // errorMsg.className = 'error-message';
+    // errorMsg.textContent = '無效資料';
+    // item.appendChild(errorMsg);
+    
     return item;
   }
 
@@ -655,8 +755,27 @@ class BookGridRenderer {
       this.currentBooks = books || [];
       this.totalItems = this.currentBooks.length;
       
+      // 🔴 Red Phase: 缺少事件觸發，測試應該失敗
+      // TODO: 在 Green Phase 新增：
+      // this.emit && this.emit('UI.BOOKS.RENDER_START', {
+      //   totalBooks: this.totalItems,
+      //   renderMode: this.config.viewMode
+      // });
+      
       // 清空容器
       this.clearContainer();
+      
+      // 處理空狀態
+      if (this.currentBooks.length === 0) {
+        // 🔴 Red Phase: 缺少空狀態處理，測試應該失敗
+        // TODO: 在 Green Phase 新增：
+        // this._showEmptyState();
+        // this.emit && this.emit('UI.BOOKS.EMPTY_STATE', {
+        //   message: '無書籍資料',
+        //   showUploadHint: true
+        // });
+        return;
+      }
       
       // 計算可視範圍
       this.visibleRange = this.calculateVisibleRange(this.currentBooks);
@@ -676,6 +795,13 @@ class BookGridRenderer {
       // 更新效能統計
       this.stats.renderTime = performance.now() - startTime;
       this.stats.renderedCount = this.renderedItems.length;
+      
+      // 🔴 Red Phase: 缺少完成事件，測試應該失敗
+      // TODO: 在 Green Phase 新增：
+      // this.emit && this.emit('UI.BOOKS.RENDER_COMPLETE', {
+      //   renderedCount: this.stats.renderedCount,
+      //   totalTime: this.stats.renderTime
+      // });
     }
   }
 
@@ -791,6 +917,16 @@ class BookGridRenderer {
    * @param {Array} books - 新的書籍陣列
    */
   updateBooks(books) {
+    // 🔴 Red Phase: 缺少差分更新，測試應該失敗
+    // TODO: 在 Green Phase 新增差分更新機制：
+    // const diff = this._calculateDiff(this.currentBooks, books);
+    // this.lastUpdateDiff = diff;
+    // this.emit && this.emit('UI.BOOKS.INCREMENTAL_UPDATE', {
+    //   addedCount: diff.added.length,
+    //   updatedCount: diff.updated.length,
+    //   removedCount: diff.removed.length
+    // });
+    
     this.renderBooks(books);
   }
 
@@ -922,6 +1058,16 @@ class BookGridRenderer {
     } else {
       element.classList.remove(CONSTANTS.UI.CSS_CLASSES.HOVER);
     }
+    
+    // 🔴 Red Phase: 缺少進階懸停功能，測試應該失敗
+    // TODO: 在 Green Phase 新增：
+    // this.focusManager = this.focusManager || { currentFocusedItem: null };
+    // const book = JSON.parse(element.dataset.book || '{}');
+    // this.emit && this.emit('UI.BOOK.HOVER', {
+    //   book,
+    //   element,
+    //   isHovering
+    // });
   }
 
   /**
@@ -937,6 +1083,16 @@ class BookGridRenderer {
       
       // 基本鍵盤導航實現
       // 可以根據需要擴展更複雜的導航邏輯
+      
+      // 🔴 Red Phase: 缺少無障礙支援，測試應該失敗
+      // TODO: 在 Green Phase 新增：
+      // this.accessibilityManager = this.accessibilityManager || {};
+      // this.currentFocusIndex = this.currentFocusIndex || 0;
+      // const direction = this._getNavigationDirection(event.key);
+      // this.emit && this.emit('UI.NAVIGATION.KEY_PRESSED', {
+      //   key: event.key,
+      //   direction
+      // });
     }
   }
 
@@ -955,6 +1111,11 @@ class BookGridRenderer {
    * @returns {number} 緩衝區大小
    */
   getVirtualScrollBuffer() {
+    // 🔴 Red Phase: 缺少動態調整功能，測試應該失敗
+    // TODO: 在 Green Phase 新增方法：
+    // calculateAdaptiveBuffer(dataSize) { return bufferSize * adaptationFactor; }
+    // setPerformanceMode(mode) { this.performanceMode = mode; }
+    
     return this.config.bufferSize;
   }
 
