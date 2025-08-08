@@ -47,10 +47,7 @@ class PopupUIManager {
     // DOM 元素快取
     this.elements = {};
     
-    // 文件物件來源（測試環境優先使用 globalThis.document）
-    this.document = (typeof globalThis !== 'undefined' && globalThis.document)
-      ? globalThis.document
-      : (typeof window !== 'undefined' ? window.document : null);
+    // 不持有 document 參考，避免在測試或不同 JSDOM 之間失效
     
     // 事件監聽器快取
     this.eventListeners = new Map();
@@ -76,6 +73,12 @@ class PopupUIManager {
     
     // 初始化
     this.initialize();
+    
+    // 構建鍵名到ID的快速查表，供動態回退查詢使用
+    this.keyToIdMap = this._buildKeyToIdMap();
+
+    // 預先快取關鍵元素以滿足初始化即存在的測試期望
+    this._warmUpCriticalElements();
   }
 
   /**
@@ -123,6 +126,90 @@ class PopupUIManager {
   }
 
   /**
+   * 建立鍵名到元素ID的映射，用於方法層的動態回退查詢
+   * @private
+   */
+  _buildKeyToIdMap() {
+    const map = {};
+    const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+    Object.keys(this.elementConfig).forEach((category) => {
+      const categoryConfig = this.elementConfig[category];
+      Object.keys(categoryConfig).forEach((elementKey) => {
+        const elementId = categoryConfig[elementKey];
+        // 非前綴鍵（例如 progressBar）
+        map[elementKey] = elementId;
+        // 前綴鍵（例如 errorContainer、statusMessage）
+        map[`${category}${capitalize(elementKey)}`] = elementId;
+      });
+    });
+    // 常用別名補充
+    map.errorContainer = this.elementConfig.error.container;
+    map.errorTitle = this.elementConfig.error.title;
+    map.errorMessage = this.elementConfig.error.message;
+    map.errorActions = this.elementConfig.error.actions;
+    map.retryButton = this.elementConfig.error.retryButton;
+    map.reloadButton = this.elementConfig.error.reloadButton;
+    map.diagnosticButton = this.elementConfig.error.diagnosticButton;
+    map.successContainer = this.elementConfig.success.container;
+    map.successMessage = this.elementConfig.success.message;
+    map.loadingOverlay = this.elementConfig.loading.overlay;
+    map.loadingSpinner = this.elementConfig.loading.spinner;
+    map.statusContainer = this.elementConfig.status.container;
+    map.statusMessage = this.elementConfig.status.message;
+    map.progressBar = this.elementConfig.status.progressBar;
+    map.diagnosticPanel = this.elementConfig.diagnostic.panel;
+    map.diagnosticContent = this.elementConfig.diagnostic.content;
+    return map;
+  }
+
+  /**
+   * 預先快取關鍵元素，確保初始化後 elements.* 可用
+   * @private
+   */
+  _warmUpCriticalElements() {
+    const criticalKeys = [
+      'statusContainer', 'statusMessage', 'progressBar',
+      'errorContainer', 'errorTitle', 'errorMessage', 'errorActions',
+      'successContainer', 'successMessage',
+      'loadingOverlay', 'loadingSpinner',
+      'diagnosticPanel', 'diagnosticContent',
+      'retryButton', 'reloadButton', 'diagnosticButton',
+      'extractButton', 'exportButton', 'settingsButton'
+    ];
+    criticalKeys.forEach((key) => {
+      const el = this._getElementByKey(key);
+      if (el) this.elements[key] = el;
+    });
+  }
+
+  /**
+   * 取得目前的 document 物件
+   * @private
+   */
+  _getDoc() {
+    return (typeof globalThis !== 'undefined' && globalThis.document) || (typeof window !== 'undefined' ? window.document : null);
+  }
+
+  /**
+   * 依鍵名取得元素，若快取缺失則回退 DOM 查詢並回填快取
+   * @param {string} key
+   * @private
+   */
+  _getElementByKey(key) {
+    if (this.elements[key]) return this.elements[key];
+    const id = this.keyToIdMap?.[key];
+    const doc = this._getDoc();
+    if (id && doc) {
+      const el = doc.getElementById(id);
+      if (el) {
+        this.elements[key] = el;
+        return el;
+      }
+    }
+    return null;
+  }
+
+  /**
    * 初始化 PopupUIManager
    * 
    * 負責功能：
@@ -149,7 +236,7 @@ class PopupUIManager {
    * - 支援動態元素檢查和警告
    */
   cacheElements() {
-    const doc = this.document || (typeof globalThis !== 'undefined' && globalThis.document) || (typeof window !== 'undefined' ? window.document : null);
+    const doc = (typeof globalThis !== 'undefined' && globalThis.document) || (typeof window !== 'undefined' ? window.document : null);
     if (!doc) {
       console.warn('[PopupUIManager] No document available for element caching');
       return;
@@ -162,13 +249,7 @@ class PopupUIManager {
       
       Object.keys(categoryConfig).forEach(elementKey => {
         const elementId = categoryConfig[elementKey];
-        let element = doc.getElementById(elementId);
-        if (!element) {
-          const altDoc = (typeof document !== 'undefined') ? document : null;
-          if (altDoc && altDoc !== doc) {
-            element = altDoc.getElementById(elementId);
-          }
-        }
+        const element = doc ? doc.getElementById(elementId) : null;
         
         if (element) {
           // 通用鍵（例如 progressBar）
@@ -242,7 +323,13 @@ class PopupUIManager {
    */
   showError(errorData) {
     if (!errorData || !this.elements.errorContainer) {
-      return;
+      // 回退：嘗試動態查詢元素
+      const container = this._getElementByKey('errorContainer');
+      if (!container) return;
+      this.elements.errorContainer = container;
+      this.elements.errorTitle = this._getElementByKey('errorTitle');
+      this.elements.errorMessage = this._getElementByKey('errorMessage');
+      this.elements.errorActions = this._getElementByKey('errorActions');
     }
 
     // 顯示錯誤容器
@@ -279,7 +366,10 @@ class PopupUIManager {
    */
   updateErrorActions(actions) {
     if (!this.elements.errorActions || !Array.isArray(actions)) {
-      return;
+      // 回退：嘗試動態查詢動作容器
+      const actionsContainer = this._getElementByKey('errorActions');
+      if (!actionsContainer || !Array.isArray(actions)) return;
+      this.elements.errorActions = actionsContainer;
     }
 
     // 首先隱藏所有錯誤操作按鈕
@@ -342,7 +432,11 @@ class PopupUIManager {
   showLoading(message) {
     if (!this.elements.loadingOverlay) {
       console.warn('[PopupUIManager] showLoading: Loading overlay element not found');
-      return;
+      // 回退：嘗試動態查詢
+      const overlay = this._getElementByKey('loadingOverlay');
+      if (!overlay) return;
+      this.elements.loadingOverlay = overlay;
+      this.elements.loadingSpinner = this._getElementByKey('loadingSpinner');
     }
 
     this._showElement(this.elements.loadingOverlay);
@@ -399,7 +493,8 @@ class PopupUIManager {
     
     // 加入更新佇列進行批次處理
     this._queueUpdate(() => {
-      if (this.elements.progressBar) {
+    if (this.elements.progressBar || this._getElementByKey('progressBar')) {
+      if (!this.elements.progressBar) this.elements.progressBar = this._getElementByKey('progressBar');
         this.elements.progressBar.style.width = `${clampedPercentage}%`;
         this.currentState.progress = clampedPercentage;
       }
@@ -455,8 +550,8 @@ class PopupUIManager {
    * @private
    */
   _showContainerWithMessage(containerKey, messageKey, message) {
-    const container = this.elements[containerKey];
-    const messageElement = this.elements[messageKey];
+    const container = this.elements[containerKey] || this._getElementByKey(containerKey);
+    const messageElement = this.elements[messageKey] || this._getElementByKey(messageKey);
     
     if (!container) {
       console.warn(`[PopupUIManager] Container element not found: ${containerKey}`);
@@ -532,7 +627,7 @@ class PopupUIManager {
       return false;
     }
     
-    const doc = this.document || (typeof globalThis !== 'undefined' && globalThis.document) || (typeof window !== 'undefined' ? window.document : null);
+    const doc = (typeof globalThis !== 'undefined' && globalThis.document) || (typeof window !== 'undefined' ? window.document : null);
     const element = doc ? doc.getElementById(elementId) : null;
     if (!element) {
       console.warn(`[PopupUIManager] bindEvent: Element not found: ${elementId}`);
@@ -644,8 +739,10 @@ class PopupUIManager {
       return;
     }
     
-    if (this.elements.statusMessage) {
-      this._updateElementText(this.elements.statusMessage, message);
+    const statusEl = this.elements.statusMessage || this._getElementByKey('statusMessage');
+    if (statusEl) {
+      this.elements.statusMessage = statusEl;
+      this._updateElementText(statusEl, message);
       this.currentState.status = message;
     }
   }

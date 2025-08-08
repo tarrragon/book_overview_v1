@@ -2,6 +2,17 @@
 
 本文件為 Claude Code (claude.ai/code) 在此專案中的開發指導規範。
 
+## 🚨 絕對不可違反的核心規則
+
+1. **架構債務零容忍**: 一旦發現架構問題，立即停止功能開發，優先修正，絕不妥協
+2. **永不放棄原則**: 複雜問題不得用 "sorry" 或 "暫時處理" 解決，必須找到根本解法
+3. **絕對遵循 TDD**: 沒有測試就不寫程式碼，Red-Green-Refactor 循環不可跳步
+4. **保持測試通過**: 任何時候都不能讓測試套件失敗，100% 通過率是最低標準
+5. **完整執行流程**: 所有任務必須遵循標準工作執行流程，至少達到 90% 完成度
+6. **工作品質要求**: 深入分析問題根因、應用系統化方法、詳細記錄思考過程
+7. **文件同步更新**: 程式碼變更後立即更新相關文件，包括工作日誌和版本記錄，然後確實無論大階段或者小步驟的更新都應該提交 commit，不可節省
+8. **繁體中文**: 所有溝通和文件使用台灣繁體中文，技術術語遵循台灣慣例
+
 ## 🚨 核心執行準則
 
 **所有任務執行都必須遵循以下完整執行流程，確保工作品質和完成度**
@@ -22,7 +33,7 @@
 - 建立可驗證的中間成果檢查點
 - 準備必要的工具和資源
 
-#### 3. 執行實作階段 (必須達到 80%完成度)
+#### 3. 執行實作階段
 
 - 按照設計方案執行具體工作
 - 遇到技術問題時使用基本方法先建立可用版本
@@ -52,81 +63,7 @@
 
 ### TDD 循環完成後的標準流程
 
-**每個 TDD 循環（Red-Green-Refactor）完成後必須執行：**
-
-1. **文檔更新階段**
-
-   - 更新 `docs/todolist.md` 標記任務完成狀態
-   - 更新對應的工作日誌 `docs/work-logs/vX.X.X-work-log.md`
-   - 更新 `CHANGELOG.md` 記錄版本變更
-
-2. **版本控制階段**
-
-   - 提交 git commit 使用 Conventional Commits 格式
-   - 格式：`feat(module): 簡短描述 TDD 循環完成內容`
-   - 包含測試通過狀態和主要功能點
-
-3. **重構階段**
-
-   - 程式碼品質優化和架構改善
-   - 確保所有測試持續通過
-   - 文檔和註解完善
-
-4. **準備下一循環**
-   - 評估下一個 TDD 循環的需求
-   - 確認當前循環的完成度達到標準
-
-## 🌐 語言規範
-
-**所有回應必須使用繁體中文 (zh-TW)**
-
-- 產品使用者和開發者為台灣人，使用台灣特有的程式術語
-- 程式碼中的中文註解和變數命名嚴格遵循台灣語言慣例
-- 如不確定用詞，優先使用英文而非中國用語
-
-## 🏗 專案概覽
-
-這是一個基於 **Chrome Extension (Manifest V3)** 的 Readmoo 電子書平台資料提取和管理工具。專案嚴格遵循 **TDD (測試驅動開發)** 和 **事件驅動架構**。
-
-### 核心架構原則
-
-1. **事件驅動架構**: 所有模組通過中央化事件系統通訊
-2. **單一責任原則**: 每個模組、處理器和組件只有一個明確目的
-3. **TDD 優先**: 所有程式碼必須先寫測試，使用 Red-Green-Refactor 循環
-4. **Chrome Extension 最佳實踐**: 遵循 Manifest V3 規範
-
-### 主要組件
-
-- **Background Service Worker** (`src/background/`): 處理擴展生命週期和跨上下文事件
-- **Content Scripts** (`src/content/`): 從 Readmoo 頁面提取資料
-- **Popup 界面** (`src/popup/`): 主要使用者互動界面
-- **儲存系統** (`src/storage/`): 管理資料持久化，支援多種適配器
-- **事件系統** (`src/core/`): 模組通訊的中央事件總線
-
-### 專案結構
-
-```
-src/
-├── background/         # Service Worker 和背景事件
-├── content/           # Readmoo 頁面的 Content Scripts
-├── popup/             # 擴展 Popup 界面
-├── storage/           # 資料持久化層
-│   ├── adapters/      # 儲存適配器 (Chrome, Local, IndexedDB)
-│   └── handlers/      # 儲存事件處理器
-├── core/              # 核心事件系統
-└── extractors/        # 資料提取邏輯
-
-tests/
-├── unit/              # 單元測試
-├── integration/       # 整合測試
-└── e2e/               # 端對端測試
-
-docs/
-├── architecture/      # 架構設計文件
-├── work-logs/         # 開發工作日誌
-├── todolist.md        # 任務追蹤清單
-└── struct.md          # 完整專案結構
-```
+此流程統一由「📋 版本控制強制要求」章節規範，避免重複。
 
 ## 🧪 TDD (測試驅動開發) 嚴格要求
 
@@ -142,126 +79,6 @@ docs/
 - **🔴 紅燈**: 必須先寫測試，確認測試失敗
 - **🟢 綠燈**: 實現最小可用程式碼讓測試通過
 - **🔵 重構**: 優化程式碼，保持所有測試通過
-
-### 🤖 Agent 協作規範
-
-本專案使用多個專業代理人來確保開發品質：
-
-#### TDD 核心代理人
-
-- **sage-test-architect** (🔴): Red 階段測試設計專家
-- **pepper-test-implementer** (🟢): Green 階段實現專家
-- **cinnamon-refactor-owl** (🔵): Refactor 階段重構專家
-
-#### 專業領域代理人
-
-- **project-compliance-agent**: 版本控制和工作流程合規性
-- **basil-event-architect**: 事件驅動架構設計
-- **thyme-extension-engineer**: Chrome Extension 開發專家
-- **lavender-interface-designer**: UI/UX 設計專家
-- **oregano-data-miner**: 資料提取專家
-- **ginger-performance-tuner**: 性能優化專家
-- **coriander-integration-tester**: 整合測試專家
-
-#### Agent 使用原則與觸發機制
-
-**核心原則**:
-
-1. **明確觸發**: 每個代理人都有具體的觸發條件和時機
-2. **專業分工**: 每個代理人專注於特定領域，避免職責重疊
-3. **品質保證**: 代理人確保各階段品質標準
-4. **流程合規**: project-compliance-agent 強制執行工作流程
-
-**TDD 核心代理人觸發條件**:
-
-- **sage-test-architect**:
-  - 開始新功能開發時
-  - 需要設計測試案例時
-  - 測試覆蓋率不足時
-- **pepper-test-implementer**:
-  - 測試已設計完成且處於失敗狀態
-  - 需要實現讓測試通過的最小程式碼時
-- **cinnamon-refactor-owl**:
-  - 所有測試通過後進行重構時
-  - 程式碼品質需要改善時
-
-**專業領域代理人觸發條件**:
-
-- **project-compliance-agent**: 完成任何小功能或 TDD 循環後
-- **basil-event-architect**: 設計或修改事件系統時
-- **thyme-extension-engineer**: Chrome Extension 相關技術問題時
-- **lavender-interface-designer**: UI/UX 設計和使用者體驗問題時
-- **oregano-data-miner**: 資料提取和處理問題時
-- **ginger-performance-tuner**: 效能分析和優化需求時
-- **coriander-integration-tester**: 整合測試和端對端測試時
-
-### 🔄 上下文管理規範
-
-#### 循環完成後上下文管理
-
-每完成一個 TDD 循環後，必須：
-
-1. **對話結束宣告**: 明確告知使用者 TDD 循環已完成
-2. **文件記錄完整**: 在工作日誌中記錄循環完成狀態
-3. **版本提交**: 提交 git commit 記錄變更
-4. **新對話開始**: 使用者開始新對話進行下一個循環
-
-**技術實現方式**:
-
-- 由於 Claude Code 沒有 `clear` 指令功能
-- 透過明確的對話結束和新對話開始來達成上下文隔離
-- 每個循環的程式碼設計必須獨立，不依賴上下文記憶
-
-#### 獨立功能設計原則
-
-每個 TDD 循環必須：
-
-- **可獨立測試**: 不依賴其他模組的實作細節
-- **明確邊界**: 清楚定義輸入輸出接口
-- **領域隔離**: 符合 DDD 的有界上下文概念
-- **事件解耦**: 透過事件系統與其他模組通訊
-
-### 測試覆蓋率要求
-
-- 單元測試覆蓋率 ≥ 90%
-- 整合測試覆蓋率 ≥ 80%
-- 端對端測試覆蓋率 ≥ 70%
-
-## 🎭 事件驅動架構規範
-
-### 事件命名規範
-
-- **格式**: `MODULE.ACTION.STATE`
-- **範例**: `EXTRACTOR.DATA.EXTRACTED`、`STORAGE.SAVE.COMPLETED`、`UI.POPUP.OPENED`
-
-### 事件優先級
-
-- `URGENT` (0-99): 系統關鍵事件
-- `HIGH` (100-199): 使用者互動事件
-- `NORMAL` (200-299): 一般處理事件
-- `LOW` (300-399): 背景處理事件
-
-### 事件處理原則
-
-- 每個模組通過事件總線通訊
-- 避免直接模組間依賴
-- 事件處理器必須有錯誤處理機制
-- 實現事件的重試與降級機制
-
-### 模組通訊方式
-
-- Background ↔ Content Script: Chrome Runtime 訊息傳遞
-- Background ↔ Popup: Chrome Extension APIs
-- 內部模組: Event Bus 模式
-
-## 📁 檔案管理嚴格規則
-
-### 檔案操作原則
-
-- **絕對不創建非必要的檔案**
-- **優先編輯現有檔案而非創建新檔案**
-- **永不主動創建文件檔案 (\*.md) 或 README 檔案**，除非使用者明確要求
-- 臨時檔案和輔助腳本在任務完成後必須清理
 
 ## 📋 版本控制強制要求
 
@@ -297,6 +114,15 @@ docs/
 - **技術棧選擇與工具變更決策**
 - **除錯過程**: 包含錯誤訊息、診斷步驟、修復驗證
 - **效能優化**: 效能問題識別、分析方法、優化成果
+
+## 📁 檔案管理嚴格規則
+
+### 檔案操作原則
+
+- **絕對不創建非必要的檔案**
+- **優先編輯現有檔案而非創建新檔案**
+- **永不主動創建文件檔案 (\*.md) 或 README 檔案**，除非使用者明確要求
+- 臨時檔案和輔助腳本在任務完成後必須清理
 
 ## 🏗 架構債務管理與持續改善
 
@@ -354,7 +180,7 @@ docs/
 
 **在任何程式碼被標記為「完成」之前，必須驗證**:
 
-1. **100% 測試覆蓋率**: 所有程式碼路徑都有對應測試
+1. **測試覆蓋率達標**: 依「測試覆蓋率要求」章節的門檻
 2. **零架構債務**: 沒有已知的設計缺陷或債務
 3. **一致的模式**: 與專案其他部分設計模式一致
 4. **完整的錯誤處理**: 所有可能的錯誤情況都有適當處理
@@ -384,6 +210,12 @@ docs/
 - 識別潛在的設計風險
 - 更新架構決策文件
 - 規劃下週的改善重點
+
+## 測試覆蓋率要求
+
+- 單元測試覆蓋率 ≥ 90%
+- 整合測試覆蓋率 ≥ 80%
+- 端對端測試覆蓋率 ≥ 70%
 
 ## 📝 程式碼品質規範
 
@@ -433,6 +265,186 @@ docs/
 - 優先使用 const/let 而非 var
 - 使用模組化匯入/匯出
 - 遵循 JSDoc 註解規範
+
+## 🎭 事件驅動架構規範
+
+### 事件命名規範
+
+- **格式**: `MODULE.ACTION.STATE`
+- **範例**: `EXTRACTOR.DATA.EXTRACTED`、`STORAGE.SAVE.COMPLETED`、`UI.POPUP.OPENED`
+
+### 事件優先級
+
+- `URGENT` (0-99): 系統關鍵事件
+- `HIGH` (100-199): 使用者互動事件
+- `NORMAL` (200-299): 一般處理事件
+- `LOW` (300-399): 背景處理事件
+
+### 事件處理原則
+
+- 每個模組通過事件總線通訊
+- 避免直接模組間依賴
+- 事件處理器必須有錯誤處理機制
+- 實現事件的重試與降級機制
+
+### 模組通訊方式
+
+- Background ↔ Content Script: Chrome Runtime 訊息傳遞
+- Background ↔ Popup: Chrome Extension APIs
+- 內部模組: Event Bus 模式
+
+## 🔄 上下文管理規範
+
+#### 循環完成後上下文管理
+
+每完成一個 TDD 循環後，必須：
+
+1. **對話結束宣告**: 明確告知使用者 TDD 循環已完成
+4. **新對話開始**: 使用者開始新對話進行下一個循環
+
+文件記錄與版本提交請依「📋 版本控制強制要求」執行。
+
+**技術實現方式**:
+
+- 由於 Claude Code 沒有 `clear` 指令功能
+- 透過明確的對話結束和新對話開始來達成上下文隔離
+- 每個循環的程式碼設計必須獨立，不依賴上下文記憶
+
+#### 獨立功能設計原則
+
+每個 TDD 循環必須：
+
+- **可獨立測試**: 不依賴其他模組的實作細節
+- **明確邊界**: 清楚定義輸入輸出接口
+- **領域隔離**: 符合 DDD 的有界上下文概念
+- **事件解耦**: 透過事件系統與其他模組通訊
+
+## 🌐 語言規範
+
+**所有回應必須使用繁體中文 (zh-TW)**
+
+- 產品使用者和開發者為台灣人，使用台灣特有的程式術語
+- 程式碼中的中文註解和變數命名嚴格遵循台灣語言慣例
+- 如不確定用詞，優先使用英文而非中國用語
+
+## 🏗 Chrome Extension 特定要求
+
+### Manifest V3 規範
+
+- 嚴格遵循 Manifest V3 API
+- 使用 Service Worker 而非 Background Pages
+- 實現適當的權限請求策略
+
+### 安全性要求
+
+- 所有資料處理在本地進行
+- 避免將敏感資料傳送到外部服務
+- 實現適當的 CSP (Content Security Policy)
+- 最小權限原則：只請求必要的權限
+
+### 技術規格
+
+- **測試框架**: Jest + Chrome Extension API Mocks
+- **建置工具**: npm scripts
+- **程式碼檢查**: ESLint
+- **版本控制**: Git
+- **無外部依賴**: 為了安全性和效能考量
+
+## 🏗 專案概覽
+
+這是一個基於 **Chrome Extension (Manifest V3)** 的 Readmoo 電子書平台資料提取和管理工具。專案嚴格遵循 **TDD (測試驅動開發)** 和 **事件驅動架構**。
+
+### 核心架構原則
+
+1. **事件驅動架構**: 所有模組通過中央化事件系統通訊
+2. **單一責任原則**: 每個模組、處理器和組件只有一個明確目的
+3. **TDD 優先**: 所有程式碼必須先寫測試，使用 Red-Green-Refactor 循環
+4. **Chrome Extension 最佳實踐**: 遵循 Manifest V3 規範
+
+### 主要組件
+
+- **Background Service Worker** (`src/background/`): 處理擴展生命週期和跨上下文事件
+- **Content Scripts** (`src/content/`): 從 Readmoo 頁面提取資料
+- **Popup 界面** (`src/popup/`): 主要使用者互動界面
+- **儲存系統** (`src/storage/`): 管理資料持久化，支援多種適配器
+- **事件系統** (`src/core/`): 模組通訊的中央事件總線
+
+### 專案結構
+
+```
+src/
+├── background/         # Service Worker 和背景事件
+├── content/           # Readmoo 頁面的 Content Scripts
+├── popup/             # 擴展 Popup 界面
+├── storage/           # 資料持久化層
+│   ├── adapters/      # 儲存適配器 (Chrome, Local, IndexedDB)
+│   └── handlers/      # 儲存事件處理器
+├── core/              # 核心事件系統
+└── extractors/        # 資料提取邏輯
+
+tests/
+├── unit/              # 單元測試
+├── integration/       # 整合測試
+└── e2e/               # 端對端測試
+
+docs/
+├── architecture/      # 架構設計文件
+├── work-logs/         # 開發工作日誌
+├── todolist.md        # 任務追蹤清單
+└── struct.md          # 完整專案結構
+```
+
+## 🤖 Agent 協作規範
+
+本專案使用多個專業代理人來確保開發品質：
+
+#### TDD 核心代理人
+
+- **sage-test-architect** (🔴): Red 階段測試設計專家
+- **pepper-test-implementer** (🟢): Green 階段實現專家
+- **cinnamon-refactor-owl** (🔵): Refactor 階段重構專家
+
+#### 專業領域代理人
+
+- **project-compliance-agent**: 版本控制和工作流程合規性
+- **basil-event-architect**: 事件驅動架構設計
+- **thyme-extension-engineer**: Chrome Extension 開發專家
+- **lavender-interface-designer**: UI/UX 設計專家
+- **oregano-data-miner**: 資料提取專家
+- **ginger-performance-tuner**: 性能優化專家
+- **coriander-integration-tester**: 整合測試專家
+
+#### Agent 使用原則與觸發機制
+
+**核心原則**:
+
+1. **明確觸發**: 每個代理人都有具體的觸發條件和時機
+2. **專業分工**: 每個代理人專注於特定領域，避免職責重疊
+3. **品質保證**: 代理人確保各階段品質標準
+4. **流程合規**: project-compliance-agent 強制執行工作流程
+
+**TDD 核心代理人觸發條件**:
+
+- **sage-test-architect**:
+  - 開始新功能開發時
+  - 需要設計測試案例時
+  - 測試覆蓋率不足時
+- **pepper-test-implementer**:
+  - 測試已設計完成且處於失敗狀態
+  - 需要實現讓測試通過的最小程式碼時
+- **cinnamon-refactor-owl**:
+  - 所有測試通過後進行重構時
+  - 程式碼品質需要改善時
+
+**專業領域代理人觸發條件**:
+
+- **project-compliance-agent**: 完成任何小功能或 TDD 循環後
+- **basil-event-architect**: 設計或修改事件系統時
+- **thyme-extension-engineer**: Chrome Extension 相關技術問題時
+- **lavender-interface-designer**: UI/UX 設計和使用者體驗問題時
+- **oregano-data-miner**: 資料提取和處理問題時
+- **ginger-performance-tuner**: 效能分析和優化需求時
+- **coriander-integration-tester**: 整合測試和端對端測試時
 
 ## 🔧 開發工具和指令
 
@@ -496,40 +508,6 @@ npm run clean
 - v0.0.x: 基礎架構與測試框架
 - v0.x.x: 開發階段，逐步實現功能
 - v1.0.0: 完整功能，準備上架 Chrome Web Store
-
-## 🏗 Chrome Extension 特定要求
-
-### Manifest V3 規範
-
-- 嚴格遵循 Manifest V3 API
-- 使用 Service Worker 而非 Background Pages
-- 實現適當的權限請求策略
-
-### 安全性要求
-
-- 所有資料處理在本地進行
-- 避免將敏感資料傳送到外部服務
-- 實現適當的 CSP (Content Security Policy)
-- 最小權限原則：只請求必要的權限
-
-### 技術規格
-
-- **測試框架**: Jest + Chrome Extension API Mocks
-- **建置工具**: npm scripts
-- **程式碼檢查**: ESLint
-- **版本控制**: Git
-- **無外部依賴**: 為了安全性和效能考量
-
-## 🚨 絕對不可違反的核心規則
-
-1. **架構債務零容忍**: 一旦發現架構問題，立即停止功能開發，優先修正，絕不妥協
-2. **永不放棄原則**: 複雜問題不得用 "sorry" 或 "暫時處理" 解決，必須找到根本解法
-3. **絕對遵循 TDD**: 沒有測試就不寫程式碼，Red-Green-Refactor 循環不可跳步
-4. **保持測試通過**: 任何時候都不能讓測試套件失敗，100% 通過率是最低標準
-5. **完整執行流程**: 所有任務必須遵循標準工作執行流程，至少達到 90% 完成度
-6. **工作品質要求**: 深入分析問題根因、應用系統化方法、詳細記錄思考過程
-7. **文件同步更新**: 程式碼變更後立即更新相關文件，包括工作日誌和版本記錄，然後確實無論大階段或者小步驟的更新都應該提交 commit，不可節省
-8. **繁體中文**: 所有溝通和文件使用台灣繁體中文，技術術語遵循台灣慣例
 
 ## 📚 重要文件參考
 

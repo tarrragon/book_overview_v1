@@ -792,10 +792,6 @@ class BookSearchFilter extends BaseUIHandler {
       
       // 使用 setter 以確保索引重建與一致的副作用
       this.booksData = Array.isArray(newData) ? [...newData] : [];
-      // 觸發一次同步索引建構以確保 getter 立即可見
-      try {
-        this.buildSearchIndex(this._booksData);
-      } catch (_) {}
       
       // 清除快取因為資料已更新（保險，雖然 setter 已做索引重建）
       this.searchCache.clear();
@@ -827,9 +823,8 @@ class BookSearchFilter extends BaseUIHandler {
    */
   handleSearchRequest(event) {
     if (event && event.query && typeof event.query === 'string') {
-      // 直接呼叫，並確保回傳 Promise 便於測試等待完成
-      const p = this.searchBooks(event.query);
-      return p || true;
+      // 直接呼叫並回傳 Promise，讓測試能 await 完成
+      return this.searchBooks(event.query);
     }
     return false;
   }
