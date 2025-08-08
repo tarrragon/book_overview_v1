@@ -47,6 +47,11 @@ class PopupUIManager {
     // DOM 元素快取
     this.elements = {};
     
+    // 文件物件來源（測試環境優先使用 globalThis.document）
+    this.document = (typeof globalThis !== 'undefined' && globalThis.document)
+      ? globalThis.document
+      : (typeof window !== 'undefined' ? window.document : null);
+    
     // 事件監聽器快取
     this.eventListeners = new Map();
     
@@ -144,6 +149,12 @@ class PopupUIManager {
    * - 支援動態元素檢查和警告
    */
   cacheElements() {
+    const doc = this.document || (typeof globalThis !== 'undefined' && globalThis.document) || (typeof window !== 'undefined' ? window.document : null);
+    if (!doc) {
+      console.warn('[PopupUIManager] No document available for element caching');
+      return;
+    }
+
     const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 
     Object.keys(this.elementConfig).forEach(category => {
@@ -151,7 +162,13 @@ class PopupUIManager {
       
       Object.keys(categoryConfig).forEach(elementKey => {
         const elementId = categoryConfig[elementKey];
-        const element = document.getElementById(elementId);
+        let element = doc.getElementById(elementId);
+        if (!element) {
+          const altDoc = (typeof document !== 'undefined') ? document : null;
+          if (altDoc && altDoc !== doc) {
+            element = altDoc.getElementById(elementId);
+          }
+        }
         
         if (element) {
           // 通用鍵（例如 progressBar）
@@ -469,8 +486,8 @@ class PopupUIManager {
       if (typeof requestAnimationFrame !== 'undefined') {
         requestAnimationFrame(() => this._processUpdateQueue());
       } else {
-        // 在測試環境中的降級處理
-        setTimeout(() => this._processUpdateQueue(), 0);
+        // 在測試/Node 環境中立即處理，避免斷言時機問題
+        this._processUpdateQueue();
       }
     }
   }
@@ -515,7 +532,8 @@ class PopupUIManager {
       return false;
     }
     
-    const element = document.getElementById(elementId);
+    const doc = this.document || (typeof globalThis !== 'undefined' && globalThis.document) || (typeof window !== 'undefined' ? window.document : null);
+    const element = doc ? doc.getElementById(elementId) : null;
     if (!element) {
       console.warn(`[PopupUIManager] bindEvent: Element not found: ${elementId}`);
       return false;
