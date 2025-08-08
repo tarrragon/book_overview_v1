@@ -1,16 +1,30 @@
 /**
- * Popup 錯誤處理增強模組
+ * PopupErrorHandler - 重構版錯誤處理器 (TDD 循環 #42)
  * 
  * 負責功能：
- * - 使用者友善的錯誤訊息轉換
- * - 擴展重新載入功能
- * - 系統初始載入錯誤處理
- * - 診斷建議顯示
+ * - 錯誤邏輯處理和分析
+ * - 錯誤恢復策略管理
+ * - 事件驅動的錯誤報告
+ * - 與 UIManager 整合進行 DOM 操作
+ * - 診斷模組的動態載入
+ * - Chrome API 錯誤處理
+ * 
+ * 設計考量：
+ * - 分離錯誤處理邏輯和 DOM 操作
+ * - UIManager 負責所有 DOM 相關操作
+ * - 保持向後相容性的 API
+ * - 支援依賴注入和模組化設計
+ * 
+ * 重構改善：
+ * - ErrorHandler 專注於錯誤邏輯處理
+ * - UIManager 負責所有 DOM 操作
+ * - 診斷功能模組化為獨立模組
+ * - 事件驅動的架構整合
  * 
  * 使用情境：
- * - Popup 界面錯誤顯示和處理
- * - 使用者自助故障排除
- * - 診斷模式啟用和控制
+ * - 與 PopupUIManager 整合使用
+ * - 支援依賴注入模式
+ * - 提供完整的錯誤處理能力
  */
 
 // 錯誤配置函數（需要支援瀏覽器環境）
@@ -37,21 +51,81 @@ try {
   getDiagnosticSuggestion = () => null;
 }
 
+// 嘗試載入診斷模組
+let DiagnosticModule;
+try {
+  if (typeof require !== 'undefined') {
+    DiagnosticModule = require('./diagnostic-module');
+  }
+} catch (error) {
+  console.warn('[PopupErrorHandler] Unable to load diagnostic module');
+}
+
 class PopupErrorHandler {
-  constructor() {
+  /**
+   * 建構 PopupErrorHandler
+   * 
+   * @param {Object} dependencies - 依賴注入物件
+   * @param {PopupUIManager} dependencies.uiManager - UI 管理器（可選）
+   */
+  constructor(dependencies = {}) {
+    // 支援依賴注入的 UIManager
+    this.uiManager = dependencies.uiManager || null;
+    
+    // 向後相容性：保留原有屬性
     this.elements = {};
     this.diagnosticMode = false;
     this.initializationFailed = false;
+    
+    // 新增重構功能
+    this.eventBus = null;
+    this.diagnosticModule = undefined; // 延遲載入
+    this.errorQueue = [];
+    this.errorHistory = [];
+    this.lastError = null;
+    
+    // 錯誤恢復策略映射
+    this.recoveryStrategies = {
+      'NETWORK_ERROR': {
+        strategies: ['重試請求', '檢查網路連線', '使用快取資料'],
+        priority: 'high',
+        autoRetry: true,
+        maxRetries: 3
+      },
+      'CHROME_API_ERROR': {
+        strategies: ['重新載入擴展', '檢查權限設定'],
+        priority: 'critical',
+        autoRetry: false,
+        maxRetries: 1
+      },
+      'SYSTEM_INITIALIZATION_ERROR': {
+        strategies: ['重新載入擴展', '清除快取', '檢查擴展版本'],
+        priority: 'critical', 
+        autoRetry: false,
+        maxRetries: 1
+      }
+    };
   }
 
   /**
-   * 初始化錯誤處理器
+   * 初始化錯誤處理器（重構版：支援 UIManager 整合）
+   * 
+   * 負責功能：
+   * - 向後相容的初始化流程
+   * - 如無 UIManager，則使用原有 DOM 管理
+   * - 設定事件監聽和全域錯誤處理
    */
   initialize() {
-    this.initializeElements();
-    this.setupEventListeners();
-    this.setupGlobalErrorHandling();
+    if (this.uiManager) {
+      // 使用 UIManager 的情況，不需要直接 DOM 操作
+      console.log('[PopupErrorHandler] Initializing with UIManager integration');
+    } else {
+      // 向後相容：原有的初始化流程
+      this.initializeElements();
+      this.setupEventListeners();
+    }
     
+    this.setupGlobalErrorHandling();
     console.log('[PopupErrorHandler] Error handler initialized');
   }
 
@@ -141,18 +215,56 @@ class PopupErrorHandler {
   }
 
   /**
-   * 處理系統初始化錯誤
+   * 處理系統初始化錯誤（重構版：使用 UIManager）
+   * 
+   * @param {Error} error - 初始化錯誤物件
+   * 
+   * 負責功能：
+   * - 處理系統初始化失敗
+   * - 委派 DOM 操作給 UIManager
+   * - 提供錯誤恢復建議
    */
   handleInitializationError(error) {
     this.initializationFailed = true;
     
+    const userMessage = getUserErrorMessage('SYSTEM_INITIALIZATION_ERROR', error.message);
+    const errorData = {
+      title: '初始化錯誤',
+      message: userMessage.message + (error.message ? `: ${error.message}` : ''),
+      actions: ['重新載入擴展', '查看診斷'],
+      severity: 'error'
+    };
+    
+    // 使用 UIManager 或向後相容的 DOM 操作
+    if (this.uiManager) {
+      this.uiManager.showError(errorData);
+    } else {
+      // 向後相容的 DOM 操作
+      this._legacyShowInitError(errorData);
+    }
+    
+    // 記錄錯誤
+    this.logError('SYSTEM_INITIALIZATION_ERROR', {
+      originalError: error,
+      timestamp: Date.now()
+    });
+
+    console.error('[PopupErrorHandler] Initialization failed:', error);
+  }
+  
+  /**
+   * 向後相容的初始化錯誤顯示
+   * 
+   * @param {Object} errorData - 錯誤資料
+   * @private
+   */
+  _legacyShowInitError(errorData) {
     if (this.elements.initErrorContainer) {
       this.elements.initErrorContainer.style.display = 'block';
     }
 
     if (this.elements.initErrorMessage) {
-      const userMessage = getUserErrorMessage('SYSTEM_INITIALIZATION_ERROR', error.message);
-      this.elements.initErrorMessage.textContent = userMessage.message;
+      this.elements.initErrorMessage.textContent = errorData.message;
     }
 
     // 隱藏正常的UI元素
@@ -168,8 +280,6 @@ class PopupErrorHandler {
     if (this.elements.diagnosticBtn) {
       this.elements.diagnosticBtn.style.display = 'block';
     }
-
-    console.error('[PopupErrorHandler] Initialization failed:', error);
   }
 
   /**
@@ -192,25 +302,72 @@ class PopupErrorHandler {
   }
 
   /**
-   * 顯示使用者友善錯誤
+   * 顯示使用者友善錯誤（重構版：委派給 UIManager）
+   * 
+   * @param {Object} errorInfo - 錯誤資訊物件
+   * 
+   * 負責功能：
+   * - 處理錯誤訊息轉換
+   * - 委派 DOM 顯示給 UIManager
+   * - 向後相容性支援
    */
   showUserFriendlyError(errorInfo) {
+    const userMessage = getUserErrorMessage(errorInfo.type, errorInfo.data?.technicalMessage);
+    const errorData = {
+      title: userMessage.title || '錯誤',
+      message: userMessage.message,
+      actions: userMessage.actions || [],
+      severity: userMessage.severity || 'error'
+    };
+    
+    // 使用 UIManager 或向後相容的 DOM 操作
+    if (this.uiManager) {
+      this.uiManager.showError(errorData);
+    } else {
+      // 向後相容的 DOM 操作
+      this._legacyShowError(errorData);
+    }
+  }
+  
+  /**
+   * 向後相容的錯誤顯示
+   * 
+   * @param {Object} errorData - 錯誤資料
+   * @private
+   */
+  _legacyShowError(errorData) {
     if (!this.elements.errorContainer || !this.elements.errorMessage) return;
 
     // 顯示錯誤容器
     this.elements.errorContainer.style.display = 'block';
 
     // 設置錯誤訊息
-    const userMessage = getUserErrorMessage(errorInfo.type, errorInfo.data?.technicalMessage);
-    this.elements.errorMessage.textContent = userMessage.message;
+    this.elements.errorMessage.textContent = errorData.message;
 
     // 顯示建議解決步驟
-    if (userMessage.actions && userMessage.actions.length > 0) {
-      this.showErrorSuggestions(userMessage.actions);
+    if (errorData.actions && errorData.actions.length > 0) {
+      this.showErrorSuggestions(errorData.actions);
     }
 
     // 根據錯誤嚴重程度調整UI
-    this.adjustUIForErrorSeverity(userMessage.severity);
+    this.adjustUIForErrorSeverity(errorData.severity);
+  }
+  
+  /**
+   * 顯示錯誤（統一 API，支援 UIManager 整合）
+   * 
+   * @param {Object} errorData - 錯誤資料物件
+   * 
+   * 負責功能：
+   * - 提供統一的錯誤顯示接口
+   * - 自動選擇顯示方式（UIManager 或傳統方式）
+   */
+  showError(errorData) {
+    if (this.uiManager && typeof this.uiManager.showError === 'function') {
+      this.uiManager.showError(errorData);
+    } else {
+      this._legacyShowError(errorData);
+    }
   }
 
   /**
@@ -457,6 +614,216 @@ ${JSON.stringify(diagnosticData, null, 2)}
 
     console.log(`[PopupErrorHandler] Diagnostic mode ${this.diagnosticMode ? 'enabled' : 'disabled'}`);
   }
+  
+  /**
+   * 啟用診斷模式（重構版：模組化診斷功能）
+   * 
+   * 負責功能：
+   * - 延遲載入診斷模組
+   * - 啟用深度診斷功能
+   * - 整合 UIManager 顯示
+   */
+  enableDiagnosticMode() {
+    if (!this.diagnosticModule && DiagnosticModule) {
+      this.diagnosticModule = new DiagnosticModule();
+      this.diagnosticModule.initialize();
+    }
+    
+    this.diagnosticMode = true;
+    
+    console.log('[PopupErrorHandler] Diagnostic mode enabled with module integration');
+  }
+  
+  // ===== 新增重構功能 =====
+  
+  /**
+   * 設定事件總線（事件驅動架構整合）
+   * 
+   * @param {Object} eventBus - 事件總線物件
+   */
+  setEventBus(eventBus) {
+    this.eventBus = eventBus;
+    console.log('[PopupErrorHandler] Event bus integrated');
+  }
+  
+  /**
+   * 報告錯誤（事件驅動）
+   * 
+   * @param {string} errorType - 錯誤類型
+   * @param {string} message - 錯誤訊息
+   * @param {Object} context - 錯誤上下文
+   */
+  reportError(errorType, message, context = {}) {
+    const errorEvent = {
+      type: errorType,
+      message,
+      timestamp: Date.now(),
+      context
+    };
+    
+    if (this.eventBus && typeof this.eventBus.emit === 'function') {
+      this.eventBus.emit('ERROR.SYSTEM.REPORTED', errorEvent);
+    }
+    
+    // 記錄到錯誤歷史
+    this.logError(errorType, { message, context, timestamp: errorEvent.timestamp });
+  }
+  
+  /**
+   * 處理 Chrome API 錯誤
+   * 
+   * @param {string} apiName - API 名稱
+   * @returns {Promise} 處理結果
+   */
+  async handleChromeAPIError(apiName) {
+    try {
+      // 嘗試執行 Chrome API 調用（這裡模擬）
+      if (apiName === 'sendMessage') {
+        await chrome.runtime.sendMessage({ type: 'TEST_MESSAGE' });
+      }
+      
+      return { success: true };
+      
+    } catch (error) {
+      const apiError = {
+        type: 'CHROME_API_ERROR',
+        api: apiName,
+        message: error.message,
+        timestamp: Date.now()
+      };
+      
+      this.lastError = apiError;
+      this.logError('CHROME_API_ERROR', apiError);
+      
+      return { success: false, error: apiError };
+    }
+  }
+  
+  /**
+   * 取得錯誤恢復策略
+   * 
+   * @param {Object} error - 錯誤物件
+   * @returns {Object} 恢復策略
+   */
+  getRecoveryStrategy(error) {
+    const errorType = error.type || 'UNKNOWN_ERROR';
+    return this.recoveryStrategies[errorType] || {
+      strategies: ['聯絡技術支援'],
+      priority: 'low',
+      autoRetry: false,
+      maxRetries: 0
+    };
+  }
+  
+  /**
+   * 處理錯誤（重構版：統一錯誤處理入口）
+   * 
+   * @param {Object} error - 錯誤物件
+   */
+  handleError(error) {
+    // 錯誤節流處理
+    this._throttleError(error);
+    
+    // 根據錯誤類型選擇處理策略
+    const strategy = this.getRecoveryStrategy(error);
+    
+    // 顯示錯誤
+    this.showError({
+      title: this._getErrorTitle(error.type),
+      message: error.message,
+      actions: strategy.strategies,
+      severity: this._mapPriorityToSeverity(strategy.priority)
+    });
+    
+    // 記錄錯誤
+    this.logError(error.type, error);
+  }
+  
+  /**
+   * 錯誤節流處理
+   * 
+   * @param {Object} error - 錯誤物件
+   * @private
+   */
+  _throttleError(error) {
+    const errorKey = `${error.type}_${error.message}`;
+    
+    // 查找現有錯誤
+    const existingError = this.errorQueue.find(e => 
+      `${e.type}_${e.message}` === errorKey
+    );
+    
+    if (existingError) {
+      existingError.count = (existingError.count || 1) + 1;
+    } else {
+      this.errorQueue.push({
+        ...error,
+        count: 1
+      });
+    }
+  }
+  
+  /**
+   * 記錄錯誤到歷史中
+   * 
+   * @param {string} errorType - 錯誤類型
+   * @param {Object} errorData - 錯誤資料
+   */
+  logError(errorType, errorData) {
+    const errorRecord = {
+      type: errorType,
+      ...errorData,
+      timestamp: errorData.timestamp || Date.now()
+    };
+    
+    this.errorHistory.push(errorRecord);
+    
+    // 限制錯誤歷史記錄數量（記憶體優化）
+    if (this.errorHistory.length > 100) {
+      this.errorHistory = this.errorHistory.slice(-100); // 保持最新的100條
+    }
+    
+    // 如果有診斷模組，同步記錄
+    if (this.diagnosticModule && typeof this.diagnosticModule.logError === 'function') {
+      this.diagnosticModule.logError(errorRecord);
+    }
+  }
+  
+  /**
+   * 取得錯誤標題
+   * 
+   * @param {string} errorType - 錯誤類型
+   * @returns {string} 錯誤標題
+   * @private
+   */
+  _getErrorTitle(errorType) {
+    const titles = {
+      'NETWORK_ERROR': '網路連線錯誤',
+      'CHROME_API_ERROR': 'Chrome 擴展錯誤',
+      'SYSTEM_INITIALIZATION_ERROR': '系統初始化錯誤',
+      'EXTRACTION_ERROR': '資料提取錯誤'
+    };
+    
+    return titles[errorType] || '系統錯誤';
+  }
+  
+  /**
+   * 將優先級映射為嚴重程度
+   * 
+   * @param {string} priority - 優先級
+   * @returns {string} 嚴重程度
+   * @private
+   */
+  _mapPriorityToSeverity(priority) {
+    const mapping = {
+      'critical': 'critical',
+      'high': 'error',
+      'medium': 'warning',
+      'low': 'info'
+    };
+    
+    return mapping[priority] || 'error';
+  }
 
   /**
    * 隱藏所有錯誤界面
@@ -483,25 +850,61 @@ ${JSON.stringify(diagnosticData, null, 2)}
   }
 
   /**
-   * 重置錯誤狀態
+   * 重置錯誤狀態（重構版：整合 UIManager）
    */
   resetErrorState() {
     this.initializationFailed = false;
-    this.hideAllErrors();
     
-    // 顯示正常UI元素
-    const normalElements = ['extractBtn', 'settingsBtn', 'helpBtn'];
-    normalElements.forEach(id => {
-      const element = document.getElementById(id);
-      if (element) {
-        element.style.display = '';
-      }
-    });
+    if (this.uiManager && typeof this.uiManager.reset === 'function') {
+      this.uiManager.reset();
+    } else {
+      this.hideAllErrors();
+      
+      // 顯示正常UI元素
+      const normalElements = ['extractBtn', 'settingsBtn', 'helpBtn'];
+      normalElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.style.display = '';
+        }
+      });
 
-    // 隱藏診斷模式按鈕
-    if (this.elements.diagnosticBtn) {
-      this.elements.diagnosticBtn.style.display = 'none';
+      // 隱藏診斷模式按鈕
+      if (this.elements.diagnosticBtn) {
+        this.elements.diagnosticBtn.style.display = 'none';
+      }
     }
+    
+    // 清理錯誤資料
+    this.errorQueue = [];
+    this.lastError = null;
+  }
+  
+  /**
+   * 清理錯誤處理器（重構版：完整清理）
+   */
+  cleanup() {
+    // 清理診斷模組
+    if (this.diagnosticModule && typeof this.diagnosticModule.cleanup === 'function') {
+      this.diagnosticModule.cleanup();
+    }
+    
+    // 清理錯誤資料
+    this.errorQueue = [];
+    this.errorHistory = [];
+    this.lastError = null;
+    
+    // 重置狀態
+    this.diagnosticMode = false;
+    this.initializationFailed = false;
+    this.eventBus = null;
+    
+    // 如果有 UIManager，也進行清理
+    if (this.uiManager && typeof this.uiManager.cleanup === 'function') {
+      this.uiManager.cleanup();
+    }
+    
+    console.log('[PopupErrorHandler] Cleanup completed');
   }
 }
 
