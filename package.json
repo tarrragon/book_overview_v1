@@ -9,6 +9,7 @@
     "test:coverage": "jest --coverage",
     "test:unit": "jest tests/unit",
     "test:integration": "jest tests/integration",
+    "test:unification": "node scripts/run-unification-test.js",
     "test:e2e": "jest tests/e2e",
     "build": "node scripts/build.js",
     "build:dev": "node scripts/build.js --dev",
