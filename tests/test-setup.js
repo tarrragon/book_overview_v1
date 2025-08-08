@@ -10,6 +10,12 @@
 
 // 引入 jest-chrome 模擬 Chrome Extension APIs
 require('jest-chrome');
+// 提供額外的 DOM 斷言（toHaveClass 等）
+try {
+  require('@testing-library/jest-dom');
+} catch (e) {
+  // 若未安裝則略過，不影響其餘測試
+}
 
 // 設定全域測試工具
 global.testUtils = {
