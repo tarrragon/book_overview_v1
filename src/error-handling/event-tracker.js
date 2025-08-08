@@ -564,8 +564,10 @@ class EventTracker extends EventHandler {
       // 時間範圍過濾
       if (filters.timeRange) {
         const { start, end } = filters.timeRange;
-        if (start && record.timestamp < start) return false;
-        if (end && record.timestamp > end) return false;
+        // 增加 1 秒容忍度，避免邊界抖動導致漏抓
+        const tolerance = 1000;
+        if (start && record.timestamp < (start - tolerance)) return false;
+        if (end && record.timestamp > (end + tolerance)) return false;
       }
 
       // 資料內容過濾

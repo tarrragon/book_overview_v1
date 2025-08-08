@@ -884,6 +884,11 @@
       - 一般版本顯示 `v{version}`
       - 開發版（含 dev 或 0.x）顯示 `v{version} 開發版本`
       - 例外時顯示 `v?.?.? 未知版本`
+  - [x] 🟢 整合修復（v0.6.15）
+    - [x] ReadmooDataValidator：改以輸入指紋作為快取鍵並加入過期檢查，修正進度/類型/封面規則測試
+    - [x] EventTracker：時間範圍查詢加入 1 秒容忍度，修正邊界少筆問題
+    - [x] BookSearchFilter：資料更新事件改用 `booksData` setter（重建索引與清快取）
+    - [x] PopupUIManager：新增 `updateStatus()` 相容別名，解決整合測試穩定性警示
 
 #### 重構目標效能指標
 

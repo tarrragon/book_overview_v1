@@ -144,6 +144,8 @@ class PopupUIManager {
    * - 支援動態元素檢查和警告
    */
   cacheElements() {
+    const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+
     Object.keys(this.elementConfig).forEach(category => {
       const categoryConfig = this.elementConfig[category];
       
@@ -152,7 +154,31 @@ class PopupUIManager {
         const element = document.getElementById(elementId);
         
         if (element) {
+          // 通用鍵（例如 progressBar）
           this.elements[elementKey] = element;
+          
+          // 分類前綴的鍵（例如 errorContainer、statusMessage）
+          const prefixedKey = `${category}${capitalize(elementKey)}`;
+          this.elements[prefixedKey] = element;
+          
+          // 針對常見鍵建立向後相容別名（例如 error-container => errorContainer 等）
+          if (category === 'error') {
+            if (elementKey === 'container') this.elements.errorContainer = element;
+            if (elementKey === 'title') this.elements.errorTitle = element;
+            if (elementKey === 'message') this.elements.errorMessage = element;
+            if (elementKey === 'actions') this.elements.errorActions = element;
+          }
+          if (category === 'status') {
+            if (elementKey === 'container') this.elements.statusContainer = element;
+            if (elementKey === 'message') this.elements.statusMessage = element;
+          }
+          if (category === 'success') {
+            if (elementKey === 'container') this.elements.successContainer = element;
+            if (elementKey === 'message') this.elements.successMessage = element;
+          }
+          if (category === 'loading') {
+            if (elementKey === 'overlay') this.elements.loadingOverlay = element;
+          }
         } else {
           // 記錄缺失的元素但不中斷執行
           console.warn(`[PopupUIManager] Element not found: ${elementId}`);
@@ -174,15 +200,10 @@ class PopupUIManager {
    * @private
    */
   _validateCriticalElements() {
-    const criticalElements = [
-      'container', 'message' // 狀態相關的最基本元素（注意：這是配置鍵，不是元素鍵）
-    ];
-    
     // 實際檢查元素映射
     const criticalElementKeys = [
-      'statusContainer', 'statusMessage' // 實際的元素鍵名
+      'statusContainer', 'statusMessage', 'progressBar', 'errorContainer'
     ];
-    
     const missingCritical = criticalElementKeys.filter(key => !this.elements[key]);
     if (missingCritical.length > 0) {
       console.warn(`[PopupUIManager] Missing critical elements: ${missingCritical.join(', ')}`);
@@ -609,6 +630,14 @@ class PopupUIManager {
       this._updateElementText(this.elements.statusMessage, message);
       this.currentState.status = message;
     }
+  }
+
+  /**
+   * 相容別名：updateStatus → updateStatusMessage
+   * 部分整合測試使用舊名稱，維持向後相容
+   */
+  updateStatus(message) {
+    this.updateStatusMessage(message);
   }
 
   /**

@@ -155,6 +155,27 @@ class ReadmooDataValidator {
     const startTime = performance.now();
     
     try {
+      // 以輸入指紋作為快取鍵，避免僅以 id 導致錯誤命中
+      const cacheKey = this._generateInputCacheKey(book);
+      if (cacheKey && this.validationCache.has(cacheKey)) {
+        const cached = this.validationCache.get(cacheKey);
+        // 檢查快取是否過期
+        if (cached && (Date.now() - cached.timestamp) <= this.config.cacheExpiration) {
+          const processingTime = performance.now() - startTime;
+          this.updateValidationStats(cached.result, processingTime);
+          this.recordValidationHistory(book, cached.result, processingTime);
+          return this.createValidationResult(
+            cached.result,
+            [],
+            [],
+            this.config.enableDataCleaning ? this.cleanData(book) : { ...book }
+          );
+        } else {
+          // 移除過期快取
+          this.validationCache.delete(cacheKey);
+        }
+      }
+
       // 檢查輸入有效性
       if (!this.isValidInput(book)) {
         return this.createValidationResult(false, [], [
@@ -215,9 +236,9 @@ class ReadmooDataValidator {
       // 記錄歷史
       this.recordValidationHistory(book, errors.length === 0, processingTime);
       
-      // 更新快取 (簡化實現)
-      if (book.id) {
-        this.validationCache.set(book.id, { result: errors.length === 0, timestamp: Date.now() });
+      // 更新快取（使用輸入指紋）
+      if (cacheKey) {
+        this.validationCache.set(cacheKey, { result: errors.length === 0, timestamp: Date.now() });
       }
       
       const isValid = errors.length === 0;
@@ -240,6 +261,29 @@ class ReadmooDataValidator {
       return this.createValidationResult(false, [], [
         { field: 'system', code: 'PROCESSING_ERROR', message: error.message }
       ], null, { processingError: error.message });
+    }
+  }
+
+  /**
+   * 產生輸入指紋快取鍵
+   * - 使用穩定序列化避免欄位順序造成差異
+   * - 在必要欄位缺失時返回 null，避免無意義快取
+   */
+  _generateInputCacheKey(book) {
+    if (!book || typeof book !== 'object') return null;
+    try {
+      // 僅挑選與驗證相關的核心欄位建立指紋
+      const fingerprint = {
+        id: book.id ?? null,
+        title: book.title ?? null,
+        cover: book.cover ?? null,
+        progress: book.progress ?? null,
+        type: book.type ?? null,
+        url: book.url ?? null,
+      };
+      return JSON.stringify(fingerprint);
+    } catch (e) {
+      return null;
     }
   }
   

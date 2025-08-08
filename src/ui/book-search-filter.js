@@ -790,10 +790,10 @@ class BookSearchFilter extends BaseUIHandler {
         newData = event;
       }
       
-      // 直接設定資料，使用擴展運算符複製
-      this._booksData = Array.isArray(newData) ? [...newData] : [];
+      // 使用 setter 以確保索引重建與一致的副作用
+      this.booksData = Array.isArray(newData) ? [...newData] : [];
       
-      // 清除快取因為資料已更新
+      // 清除快取因為資料已更新（保險，雖然 setter 已做索引重建）
       this.searchCache.clear();
       
       // 發出資料更新完成事件
