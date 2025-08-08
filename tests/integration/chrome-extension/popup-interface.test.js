@@ -121,12 +121,29 @@ describe('Popup Interface 整合測試', () => {
       expect(extractBtn.disabled).toBe(true); // 初始狀態應該是禁用的
     });
 
-    test('應該包含版本資訊和樣式', () => {
-      // 版本資訊
+    test('應該包含版本資訊和樣式（動態取得 manifest 版本）', () => {
+      // 版本資訊元素存在
       const versionElement = document.querySelector('.version');
       expect(versionElement).toBeTruthy();
-      expect(versionElement.textContent).toContain('v0.3.5');
-      
+
+      // 從 manifest.json 讀取版本號，並 mock chrome.runtime.getManifest
+      const manifestPath = path.join(__dirname, '../../../manifest.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      if (!global.chrome.runtime.getManifest) {
+        global.chrome.runtime.getManifest = jest.fn(() => ({ version: manifest.version }));
+      } else {
+        global.chrome.runtime.getManifest.mockImplementation(() => ({ version: manifest.version }));
+      }
+
+      // 載入並執行 popup 腳本後更新版本顯示
+      eval(popupScript);
+      if (window.updateVersionDisplay) {
+        window.updateVersionDisplay();
+      }
+
+      // 斷言顯示的版本包含 manifest 的版本字串
+      expect(versionElement.textContent).toContain(`v${manifest.version}`);
+
       // 確認有載入樣式
       const styleElements = document.querySelectorAll('style');
       expect(styleElements.length).toBeGreaterThan(0);

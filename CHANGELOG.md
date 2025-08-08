@@ -2,6 +2,22 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.6.14] - 2025-08-08
+
+### 🟢 TDD 循環 #45：版本顯示動態化與測試
+
+- 改善 Popup 版本顯示邏輯：從 `manifest.json` 動態取得版本字串
+- 一般版顯示 `v{version}`，開發版（包含 dev 或以 0. 開頭）顯示 `v{version} 開發版本`
+- 例外情況（`getManifest` 失敗）顯示 `v?.?.? 未知版本`
+
+#### 檔案變更
+- 更新 `src/popup/popup.html`：移除硬編碼版本字串，恢復為占位文字
+- 更新 `tests/integration/chrome-extension/popup-interface.test.js`：動態讀取 `manifest.json` 版本後驗證
+- 新增 `tests/unit/popup/version-display.test.js`：覆蓋一般版/開發版/例外顯示三類情境
+
+#### 備註
+- 本次改動不影響既有功能，僅調整顯示來源與測試驗證方式
+
 ## [v0.6.11] - 2025-08-08
 
 ### ✅ TDD 循環 #42: ErrorHandler 重構完成
