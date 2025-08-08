@@ -110,10 +110,21 @@ const elements = {
   errorMessage: document.getElementById('errorMessage'),
   retryBtn: document.getElementById('retryBtn'),
   reportBtn: document.getElementById('reportBtn'),
+  initReportBtn: document.getElementById('initReportBtn'),
+  systemHealthCheckBtn: document.getElementById('systemHealthCheckBtn'),
   
   // 版本顯示元素
   versionDisplay: document.getElementById('versionDisplay')
 };
+
+// ==================== 全域變數 ====================
+
+/**
+ * 全域變數宣告
+ */
+let errorHandler = null;
+let diagnosticEnhancer = null;
+let initializationTracker = null;
 
 // ==================== 狀態管理 ====================
 
@@ -393,17 +404,52 @@ function cancelExtraction() {
  */
 async function checkBackgroundStatus() {
   try {
-    const response = await chrome.runtime.sendMessage({ type: MESSAGE_TYPES.GET_STATUS });
+    console.log('🔍 正在檢查 Background Service Worker 狀態...');
+    
+    // 使用更短的超時時間來快速檢測問題
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Background Service Worker 連線超時 (5秒)')), 5000);
+    });
+    
+    const messagePromise = chrome.runtime.sendMessage({ type: MESSAGE_TYPES.GET_STATUS });
+    
+    const response = await Promise.race([messagePromise, timeoutPromise]);
     
     if (response && response.success) {
-      console.log('✅ Background Service Worker 狀態正常');
+      console.log('✅ Background Service Worker 狀態正常', response);
+      
+      // 記錄詳細狀態供診斷使用
+      if (response.eventSystem) {
+        console.log('📊 事件系統狀態:', response.eventSystem);
+      }
+      
       return true;
     } else {
-      throw new Error('Background Service Worker 回應異常');
+      throw new Error('Background Service Worker 回應異常: ' + JSON.stringify(response));
     }
   } catch (error) {
     console.error('❌ Background Service Worker 連線失敗:', error);
-    updateStatus('離線', 'Service Worker 離線', '請重新載入擴展', STATUS_TYPES.ERROR);
+    
+    // 提供更詳細的錯誤診斷
+    let diagnosticInfo = '詳細診斷:\n';
+    
+    if (error.message.includes('超時')) {
+      diagnosticInfo += '• Background Service Worker 可能已停止運行\n';
+      diagnosticInfo += '• 建議重新載入擴展以重新啟動 Service Worker\n';
+    } else if (error.message.includes('Extension context invalidated')) {
+      diagnosticInfo += '• 擴展上下文已失效\n';
+      diagnosticInfo += '• 請重新載入擴展頁面\n';
+    } else if (error.message.includes('receiving end does not exist')) {
+      diagnosticInfo += '• Background Script 未載入或已停止\n';
+      diagnosticInfo += '• 檢查擴展是否正確安裝和啟用\n';
+    } else {
+      diagnosticInfo += '• 未知的通訊錯誤\n';
+      diagnosticInfo += '• 請嘗試重新載入擴展\n';
+    }
+    
+    diagnosticInfo += '\n錯誤詳情: ' + error.message;
+    
+    updateStatus('離線', 'Background Service Worker 無法連線', diagnosticInfo, STATUS_TYPES.ERROR);
     return false;
   }
 }
@@ -594,6 +640,11 @@ function setupEventListeners() {
       window.alert('問題回報功能將在後續版本實現');
     });
   }
+  
+  // 初始化報告按鈕
+  if (elements.initReportBtn) {
+    elements.initReportBtn.addEventListener('click', showInitializationReport);
+  }
 }
 
 // ==================== 初始化和生命週期管理 ====================
@@ -621,19 +672,68 @@ function setupEventListeners() {
 async function initialize() {
   console.log('🚀 開始初始化 Popup Interface');
   
+  // 初始化進度追蹤器
+  if (typeof PopupInitializationTracker !== 'undefined') {
+    initializationTracker = new PopupInitializationTracker();
+    initializationTracker.startTracking();
+  }
+  
   try {
-    // 更新版本顯示
+    // 步驟1: DOM 就緒確認
+    if (initializationTracker) {
+      initializationTracker.startStep('dom_ready');
+    }
+    await new Promise(resolve => setTimeout(resolve, 100)); // 確保DOM完全就緒
+    if (initializationTracker) {
+      initializationTracker.completeStep('dom_ready', 'DOM 元素已就緒');
+    }
+
+    // 步驟2: 更新版本顯示
+    if (initializationTracker) {
+      initializationTracker.startStep('version_display');
+    }
     updateVersionDisplay();
+    if (initializationTracker) {
+      initializationTracker.completeStep('version_display', '版本資訊已顯示');
+    }
     
-    // 初始化錯誤處理器
+    // 步驟3: 初始化錯誤處理器
+    if (initializationTracker) {
+      initializationTracker.startStep('error_handler');
+    }
     initializeErrorHandler();
+    if (initializationTracker) {
+      initializationTracker.completeStep('error_handler', '錯誤處理器已初始化');
+    }
+
+    // 步驟4: 初始化診斷增強器
+    if (initializationTracker) {
+      initializationTracker.startStep('diagnostic_enhancer');
+    }
+    await initializeDiagnosticEnhancer();
+    if (initializationTracker) {
+      initializationTracker.completeStep('diagnostic_enhancer', '診斷增強器已初始化');
+    }
     
-    // 設定事件監聽器
+    // 步驟5: 設定事件監聽器
+    if (initializationTracker) {
+      initializationTracker.startStep('event_listeners');
+    }
     setupEventListeners();
+    if (initializationTracker) {
+      initializationTracker.completeStep('event_listeners', '事件監聽器已設定');
+    }
     
-    // 檢查 Background Service Worker
+    // 步驟6: 檢查 Background Service Worker
+    if (initializationTracker) {
+      initializationTracker.startStep('background_check');
+    }
     const backgroundOk = await checkBackgroundStatus();
     if (!backgroundOk) {
+      if (initializationTracker) {
+        initializationTracker.failStep('background_check', new Error('Background Service Worker 連線失敗'));
+      }
+      
       // 觸發系統初始化錯誤
       if (errorHandler) {
         errorHandler.handleInitializationError({
@@ -642,25 +742,57 @@ async function initialize() {
         });
       }
       return;
+    } else {
+      if (initializationTracker) {
+        initializationTracker.completeStep('background_check', 'Background Service Worker 連線成功');
+      }
     }
     
-    // 檢查當前標籤頁
+    // 步驟7: 檢查當前標籤頁
+    if (initializationTracker) {
+      initializationTracker.startStep('current_tab');
+    }
     await checkCurrentTab();
+    if (initializationTracker) {
+      initializationTracker.completeStep('current_tab', '標籤頁狀態檢查完成');
+    }
     
+    // 步驟8: 完成初始化
+    if (initializationTracker) {
+      initializationTracker.startStep('finalization');
+    }
     console.log('✅ Popup Interface 初始化完成');
+    if (initializationTracker) {
+      initializationTracker.completeStep('finalization', '初始化流程完成');
+    }
+    
   } catch (error) {
     console.error('❌ 初始化過程發生錯誤:', error);
+    
+    // 記錄失敗的步驟
+    if (initializationTracker && !initializationTracker.isFailed) {
+      const currentStep = initializationTracker.steps.find(s => s.status === 'running');
+      if (currentStep) {
+        initializationTracker.failStep(currentStep.id, error);
+      }
+    }
     
     // 使用增強的錯誤處理
     if (errorHandler) {
       errorHandler.handleInitializationError({
         type: 'POPUP_INITIALIZATION_ERROR',
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
+        initializationReport: initializationTracker ? initializationTracker.getInitializationReport() : null
       });
     } else {
       // 備用錯誤處理
       updateStatus('錯誤', '初始化失敗', error.message, STATUS_TYPES.ERROR);
+    }
+    
+    // 顯示初始化報告按鈕
+    if (elements.initReportBtn && initializationTracker) {
+      elements.initReportBtn.style.display = 'inline-block';
     }
   }
 }
@@ -700,12 +832,158 @@ async function periodicStatusUpdate() {
 /**
  * 初始化錯誤處理系統
  */
-let errorHandler = null;
 
 function initializeErrorHandler() {
   if (typeof PopupErrorHandler !== 'undefined') {
     errorHandler = new PopupErrorHandler();
     errorHandler.initialize();
+  }
+}
+
+async function initializeDiagnosticEnhancer() {
+  if (typeof PopupDiagnosticEnhancer !== 'undefined') {
+    diagnosticEnhancer = new PopupDiagnosticEnhancer();
+    const result = await diagnosticEnhancer.initialize();
+    
+    if (!result.success) {
+      console.warn('⚠️ 診斷增強器初始化失敗:', result.error);
+    } else {
+      console.log('✅ 診斷增強器初始化成功');
+      
+      // 設置系統健康檢查按鈕事件監聽器
+      const healthCheckBtn = document.getElementById('systemHealthCheckBtn');
+      if (healthCheckBtn) {
+        healthCheckBtn.addEventListener('click', async () => {
+          healthCheckBtn.disabled = true;
+          healthCheckBtn.textContent = '⏳ 檢查中...';
+          
+          try {
+            const healthReport = await diagnosticEnhancer.performSystemHealthCheck();
+            displayHealthCheckResults(healthReport);
+          } catch (error) {
+            console.error('健康檢查錯誤:', error);
+            alert('健康檢查失敗: ' + error.message);
+          } finally {
+            healthCheckBtn.disabled = false;
+            healthCheckBtn.textContent = '⚕️ 系統健康檢查';
+          }
+        });
+      }
+    }
+  }
+}
+
+function displayHealthCheckResults(healthReport) {
+  const { summary, checks, recommendations } = healthReport;
+  
+  let statusText = `系統健康檢查結果：\n`;
+  statusText += `✅ 通過: ${summary.passed} 項\n`;
+  statusText += `⚠️ 警告: ${summary.warnings} 項\n`;
+  statusText += `❌ 失敗: ${summary.failed} 項\n\n`;
+  
+  // 顯示主要問題
+  const failedChecks = Object.values(checks).filter(check => check.status === 'failed');
+  if (failedChecks.length > 0) {
+    statusText += '主要問題：\n';
+    failedChecks.forEach(check => {
+      statusText += `• ${check.name}: ${check.details.join(', ')}\n`;
+    });
+    statusText += '\n';
+  }
+  
+  // 顯示建議
+  if (recommendations.length > 0) {
+    statusText += '建議解決方案：\n';
+    recommendations.slice(0, 3).forEach((rec, index) => {
+      statusText += `${index + 1}. ${rec.action}\n`;
+    });
+  }
+  
+  // 在錯誤容器中顯示結果
+  const errorContainer = elements.errorContainer;
+  const errorMessage = elements.errorMessage;
+  
+  if (errorContainer && errorMessage) {
+    errorMessage.textContent = statusText;
+    errorContainer.style.display = 'block';
+    
+    // 更改樣式以表示這是診斷資訊，不是錯誤
+    errorContainer.style.backgroundColor = summary.failed === 0 ? '#e8f5e8' : '#fff3cd';
+    errorContainer.style.borderColor = summary.failed === 0 ? '#28a745' : '#ffc107';
+  } else {
+    alert(statusText);
+  }
+}
+
+/**
+ * 顯示初始化報告
+ */
+function showInitializationReport() {
+  if (!initializationTracker) {
+    alert('初始化追蹤器未載入');
+    return;
+  }
+  
+  const report = initializationTracker.getInitializationReport();
+  
+  let reportText = `🔍 Popup 初始化詳細報告\n\n`;
+  
+  // 基本統計
+  reportText += `📊 總體統計：\n`;
+  reportText += `• 總步驟數: ${report.summary.totalSteps}\n`;
+  reportText += `• 完成步驟: ${report.summary.completedSteps}\n`;
+  reportText += `• 失敗步驟: ${report.summary.failedSteps}\n`;
+  reportText += `• 執行中步驟: ${report.summary.runningSteps}\n`;
+  
+  if (report.totalDuration) {
+    reportText += `• 總耗時: ${report.totalDuration}ms\n`;
+  }
+  
+  reportText += `\n⏱️ 詳細步驟執行記錄：\n`;
+  
+  // 步驟詳情
+  report.steps.forEach((step, index) => {
+    const statusIcon = step.status === 'completed' ? '✅' : 
+                      step.status === 'failed' ? '❌' : 
+                      step.status === 'running' ? '🔄' : '⏸️';
+    
+    reportText += `${index + 1}. ${statusIcon} ${step.name}\n`;
+    reportText += `   描述: ${step.description}\n`;
+    
+    if (step.duration) {
+      reportText += `   耗時: ${step.duration}ms\n`;
+    }
+    
+    if (step.error) {
+      reportText += `   錯誤: ${step.error}\n`;
+    }
+    
+    reportText += '\n';
+  });
+  
+  // 如果有失敗，提供建議
+  if (report.summary.failedSteps > 0) {
+    reportText += `💡 故障排除建議：\n`;
+    reportText += `1. 重新載入擴展 (chrome://extensions/)\n`;
+    reportText += `2. 重新整理頁面並重新開啟 Popup\n`;
+    reportText += `3. 重啟 Chrome 瀏覽器\n`;
+    reportText += `4. 執行系統健康檢查以獲得更多診斷資訊\n`;
+  }
+  
+  // 在錯誤容器中顯示報告
+  const errorContainer = elements.errorContainer;
+  const errorMessage = elements.errorMessage;
+  
+  if (errorContainer && errorMessage) {
+    errorMessage.style.whiteSpace = 'pre-line';
+    errorMessage.textContent = reportText;
+    errorContainer.style.display = 'block';
+    
+    // 設置樣式（藍色邊框表示資訊性內容）
+    errorContainer.style.backgroundColor = '#e8f4f8';
+    errorContainer.style.borderColor = '#17a2b8';
+  } else {
+    alert(reportText);
   }
 }
 

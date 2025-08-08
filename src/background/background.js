@@ -62,12 +62,12 @@ async function initializeEventSystem() {
     // TODO: v0.4.0+ 整合完整的 EventBus 和 ChromeEventBridge 模組
     
     // 建立全域 EventBus 實例
-    global.eventBus = createSimpleEventBus();
-    eventBus = global.eventBus;
+    globalThis.eventBus = createSimpleEventBus();
+    eventBus = globalThis.eventBus;
     
     // 建立全域 ChromeEventBridge 實例
-    global.chromeBridge = createSimpleChromeEventBridge();
-    chromeBridge = global.chromeBridge;
+    globalThis.chromeBridge = createSimpleChromeEventBridge();
+    chromeBridge = globalThis.chromeBridge;
     
     // 設定事件系統整合
     chromeBridge.eventBus = eventBus;
@@ -82,8 +82,8 @@ async function initializeEventSystem() {
     console.error('❌ EventBus 初始化失敗:', error);
     
     // 提供降級方案
-    global.eventBus = null;
-    global.chromeBridge = null;
+    globalThis.eventBus = null;
+    globalThis.chromeBridge = null;
     
     throw error;
   }
@@ -427,6 +427,35 @@ function handleMessage(message, sender, sendResponse) {
           }
         });
         break;
+
+      case 'HEALTH_CHECK':
+        sendResponse({
+          success: true,
+          message: 'Background Service Worker 健康狀態正常',
+          uptime: Date.now() - (globalThis.backgroundStartTime || Date.now()),
+          eventSystem: {
+            initialized: !!(eventBus && chromeBridge),
+            eventBus: !!eventBus,
+            chromeBridge: !!chromeBridge,
+            handlersCount: eventBus ? Object.keys(eventBus._handlers || {}).length : 0,
+            eventsProcessed: eventBus ? eventBus.getStats?.()?.totalEvents || 0 : 0
+          }
+        });
+        break;
+
+      case 'EVENT_SYSTEM_STATUS_CHECK':
+        sendResponse({
+          success: true,
+          eventSystem: {
+            initialized: !!(eventBus && chromeBridge),
+            eventBusStatus: eventBus ? 'active' : 'inactive',
+            chromeBridgeStatus: chromeBridge ? 'active' : 'inactive',
+            handlersCount: eventBus ? Object.keys(eventBus._handlers || {}).length : 0,
+            eventsProcessed: eventBus ? eventBus.getStats?.()?.totalEvents || 0 : 0,
+            lastActivity: eventBus ? eventBus.getStats?.()?.lastActivity || null : null
+          }
+        });
+        break;
         
       case 'GET_STATUS':
         chrome.storage.local.get(['isEnabled'], (result) => {
@@ -702,6 +731,9 @@ self.addEventListener('unhandledrejection', async (event) => {
         version: chrome.runtime.getManifest().version
       });
     }
+    
+    // 記錄啟動時間
+    globalThis.backgroundStartTime = Date.now();
     
   } catch (error) {
     console.error('❌ Background Service Worker 初始化失敗:', error);

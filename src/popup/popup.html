@@ -297,8 +297,14 @@
         <button class="button secondary small" id="reloadExtensionBtn">
           🔃 重新載入擴展
         </button>
+        <button class="button info small" id="systemHealthCheckBtn">
+          ⚕️ 系統健康檢查
+        </button>
         <button class="button secondary small" id="reportBtn">
           📝 回報問題
+        </button>
+        <button class="button info small" id="initReportBtn" style="display: none;">
+          📋 初始化報告
         </button>
       </div>
       <div class="error-suggestions" id="errorSuggestions" style="display: none;">
@@ -324,6 +330,8 @@
   </div>
   
   <script src="popup-error-handler.js"></script>
+  <script src="popup-diagnostic-enhancer.js"></script>
+  <script src="popup-initialization-tracker.js"></script>
   <script src="popup.js"></script>
 </body>
 </html> 
