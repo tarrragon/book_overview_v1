@@ -2,6 +2,144 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.6.10] - 2025-01-29
+
+### 🔵 TDD Refactor Phase: PopupUIManager 重構優化完成
+
+#### 🏗 TDD循環 #36 完整循環: PopupUIManager 統一 DOM 管理系統
+
+**完整 TDD 循環達成**:
+- ✅ **Red Phase**: 測試設計和失敗驅動
+- ✅ **Green Phase**: 最小可行實現，所有測試通過  
+- ✅ **Refactor Phase**: 程式碼品質優化和架構改善
+
+#### 🔵 Refactor Phase 重構成果
+
+##### 💡 重構前問題識別
+- **程式碼重複**: 多處相似的 DOM 顯示/隱藏邏輯
+- **硬編碼問題**: 錯誤操作按鈕使用硬編碼字串匹配
+- **效能問題**: 不合理的 setTimeout 更新機制
+- **錯誤處理**: 缺乏統一的錯誤處理和邊界檢查
+- **可維護性**: 硬編碼的元素 ID，缺乏配置化設計
+
+##### 🛠 重構改善實現
+- ✅ **配置化設計**: 新增 `_createElementConfig()` 消除硬編碼
+- ✅ **統一 DOM 工具**: `_showElement()`, `_hideElement()`, `_updateElementText()`
+- ✅ **批次更新機制**: 使用 `requestAnimationFrame` 替代 setTimeout
+- ✅ **錯誤處理強化**: 完整的參數驗證和降級處理
+- ✅ **記憶體管理**: 改善清理機制和更新佇列管理
+
+#### ✅ 核心功能實現
+
+##### 🧩 PopupUIManager 類別建立  
+- ✅ **統一 DOM 管理**: 配置化的 DOM 元素管理系統
+- ✅ **元素快取機制**: 一次性查詢並快取，支援動態驗證
+- ✅ **事件監聽管理**: 增強的事件綁定和清理機制
+- ✅ **UI 狀態追蹤**: 完整的狀態管理和診斷支援
+
+##### 🔧 API 接口實現
+- ✅ `showError(errorData)` - 智慧錯誤顯示，支援動作映射表
+- ✅ `showSuccess(message)` - 統一的成功狀態顯示
+- ✅ `showLoading(message)` / `hideLoading()` - 載入狀態管理
+- ✅ `updateProgress(percentage)` - 批次更新的進度條管理
+- ✅ `bindEvent(elementId, eventType, callback)` - 增強錯誤處理的事件綁定
+- ✅ `showDiagnostic(content)` / `hideDiagnostic()` - 診斷面板管理
+- ✅ `cleanup()` - 完善的記憶體洩漏防護和資源清理
+
+##### 🔗 系統整合支援
+- ✅ **向後相容性**: `displayError()` 方法支援現有 ErrorHandler
+- ✅ **事件驅動支援**: `handleStatusEvent()` 處理狀態事件
+- ✅ **多狀態併存**: 支援同時顯示多個 UI 狀態（如載入+成功）
+
+##### ⚡ 效能優化特性
+- ✅ **DOM 查詢優化**: 初始化時一次性快取所有元素引用
+- ✅ **更新去重機制**: `pendingUpdates` 計數避免過度渲染
+- ✅ **事件記憶體管理**: Map 結構管理事件監聽器，支援完整清理
+
+#### 🧪 測試通過狀態
+
+##### ✅ Green Phase 測試結果
+- ✅ **基本實例化測試** - PopupUIManager 正確建構和初始化
+- ✅ **DOM 元素快取測試** - 關鍵元素正確快取和存取
+- ✅ **錯誤顯示測試** - showError 正確顯示標題、訊息和操作按鈕
+- ✅ **成功訊息測試** - showSuccess 正確顯示和隱藏狀態
+- ✅ **載入狀態測試** - showLoading/hideLoading 正確控制覆蓋層
+- ✅ **進度條測試** - updateProgress 正確更新寬度百分比
+- ✅ **事件綁定測試** - bindEvent 正確綁定和觸發回調函數
+- ✅ **診斷面板測試** - showDiagnostic/hideDiagnostic 正確控制顯示
+- ✅ **事件清理測試** - cleanup 正確移除事件監聽器
+- ✅ **相容性測試** - displayError 與現有系統相容
+- ✅ **事件驅動測試** - handleStatusEvent 正確處理狀態更新
+- ✅ **多狀態測試** - 支援同時顯示多個 UI 狀態
+- ✅ **效能測試** - 快速更新去重機制正常運作
+- ✅ **DOM 優化測試** - 元素快取避免重複查詢
+
+#### 📁 建立的檔案
+- ✅ `src/popup/popup-ui-manager.js` - PopupUIManager 主要實現 (367 行)
+- ✅ 更新 `tests/unit/popup/popup-ui-manager.test.js` - 轉換為 Green Phase 實際測試
+
+#### 🎯 下一步驟
+- 🔵 **Refactor Phase**: 程式碼優化、效能改善、架構重構
+- ⭕ **TDD循環 #42**: ErrorHandler 重構實現，整合 PopupUIManager
+
+## [v0.6.9] - 2025-01-29
+
+### 🧪 Popup 錯誤處理系統重構測試設計
+
+#### 🎯 TDD循環 #36-40: 完整重構測試策略建立
+
+**重構背景**:
+為改善 Popup 錯誤處理系統的架構品質、效能表現和使用者體驗，設計完整的測試策略以確保重構過程的安全性和品質保證。
+
+#### 📋 完成的測試設計
+
+##### 🧪 測試架構建立
+- ✅ **五階段測試策略** - 涵蓋重構的所有關鍵階段
+- ✅ **測試分層架構** - Unit (60%) / Integration (30%) / E2E (10%)
+- ✅ **完整回歸保護** - 確保現有功能不被破壞
+- ✅ **效能基準建立** - 可量測的改善指標
+
+##### 📁 建立的測試檔案
+- ✅ `tests/unit/popup/popup-ui-manager.test.js` - PopupUIManager 統一 DOM 管理測試
+- ✅ `tests/unit/popup/popup-error-handler-refactor.test.js` - ErrorHandler 重構和整合測試
+- ✅ `tests/integration/popup/popup-refactor-integration.test.js` - 完整整合和使用者流程測試
+- ✅ `tests/performance/popup-refactor-performance.test.js` - 效能基準和優化驗證測試
+- ✅ `tests/regression/popup-refactor-regression.test.js` - 回歸測試和相容性保障
+
+##### 📊 測試策略文檔
+- ✅ `docs/testing/popup-refactor-test-strategy.md` - 完整測試策略和執行計劃
+- ✅ **效能指標定義** - 載入時間 < 100ms, 響應時間 < 50ms, 記憶體增長 < 5MB
+- ✅ **覆蓋率目標** - 單元測試 ≥ 95%, 整合測試 ≥ 85%
+- ✅ **TDD 循環框架** - Red-Green-Refactor 完整執行流程
+
+#### 🎯 重構目標定義
+
+##### 🏗 架構改善目標
+1. **PopupUIManager 統一化** - 所有 DOM 操作集中管理
+2. **ErrorHandler 重構** - 專注錯誤邏輯，委託 UI 操作  
+3. **診斷功能模組化** - 按需載入，減少初始載入時間
+4. **事件驅動統一** - 統一事件總線通訊模式
+5. **效能優化** - 記憶體使用和響應速度改善
+
+##### 📈 預期改善指標
+- **初始化載入時間**: 減少 30% (目標 < 100ms)
+- **錯誤處理響應**: 改善 50% (目標 < 50ms)
+- **記憶體使用**: 優化 25% (增長 < 5MB)
+- **使用者體驗**: 錯誤訊息友善度提升 70%
+
+#### 🔄 TDD 執行狀態
+
+- [x] ✅ **🔴 Red Phase 完成** - 所有失敗測試案例設計就緒
+- [ ] ⭕ **🟢 Green Phase 待執行** - 實現讓測試通過的最小程式碼
+- [ ] ⭕ **🔵 Refactor Phase 待執行** - 重構優化和效能改善
+
+#### 📝 任務追蹤更新
+
+- ✅ 更新 `docs/todolist.md` - 新增重構測試設計任務 (TDD循環 #36-40)
+- ✅ 更新 `docs/work-logs/v0.6.8-work-log.md` - 記錄重構測試設計完成過程
+
+---
+
 ## [v0.6.8] - 2025-08-08
 
 ### 🔧 Chrome Extension 初始化失敗問題修復
