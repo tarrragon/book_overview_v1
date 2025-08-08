@@ -44,6 +44,9 @@ class PopupUIManager {
     // 配置化的元素定義
     this.elementConfig = this._createElementConfig();
     
+    // 先建立鍵名映射，便於後續即時查表
+    this.keyToIdMap = this._buildKeyToIdMap();
+    
     // DOM 元素快取
     this.elements = {};
     
@@ -71,14 +74,11 @@ class PopupUIManager {
       '診斷': 'diagnosticButton'
     };
     
-    // 初始化
-    this.initialize();
-    
-    // 構建鍵名到ID的快速查表，供動態回退查詢使用
-    this.keyToIdMap = this._buildKeyToIdMap();
-
-    // 預先快取關鍵元素以滿足初始化即存在的測試期望
+    // 預先快取關鍵元素（確保初始化後 elements 可用）
     this._warmUpCriticalElements();
+    
+    // 進一步執行完整快取與驗證
+    this.initialize();
   }
 
   /**
@@ -187,7 +187,9 @@ class PopupUIManager {
    * @private
    */
   _getDoc() {
-    return (typeof globalThis !== 'undefined' && globalThis.document) || (typeof window !== 'undefined' ? window.document : null);
+    return (typeof document !== 'undefined' && document)
+      || (typeof globalThis !== 'undefined' && globalThis.document)
+      || (typeof window !== 'undefined' ? window.document : null);
   }
 
   /**
