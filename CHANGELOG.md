@@ -2,6 +2,35 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.6.16] - 2025-08-08
+
+### 🔴 TDD 循環 #29：匯出事件驅動系統測試設計（Red階段完成）
+
+#### 功能目標
+建立完整的匯出事件驅動系統，支援多格式匯出、進度追蹤、錯誤處理和檔案操作。
+
+#### 測試檔案建立
+- 新增 `tests/unit/export/export-events.test.js`：匯出事件定義系統測試（27個測試案例）
+- 新增 `tests/unit/export/export-manager.test.js`：ExportManager 事件驅動整合測試（涵蓋CSV/JSON/批量/檔案下載）
+- 新增 `tests/unit/export/export-handler.test.js`：匯出事件處理器測試（處理器註冊/錯誤處理/進度追蹤）
+
+#### 設計規範遵循
+- 事件命名格式：`MODULE.ACTION.STATE`（如：`EXPORT.CSV.REQUESTED`）
+- 事件優先級：URGENT(0-99)/HIGH(100-199)/NORMAL(200-299)/LOW(300-399)
+- 與現有 EventBus 系統完全相容
+- 支援事件相關性追蹤和錯誤恢復機制
+
+#### 測試覆蓋範圍
+- 基本事件常數定義和命名規範驗證
+- 事件建立工廠函數和驗證工具
+- CSV/JSON/Excel/PDF 專用匯出處理器
+- 進度追蹤、錯誤處理和批量匯出
+- 處理器註冊系統和生命週期管理
+
+#### 備註
+- Red 階段：所有測試正確失敗，確認需要實現的功能
+- 下一步：Green 階段實現最小可用程式碼讓測試通過
+
 ## [v0.6.15] - 2025-08-08
 
 ### 🟢 TDD 循環 #45：整合修復（資料驗證/事件查詢/UI 相容性）
