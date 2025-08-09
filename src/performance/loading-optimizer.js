@@ -480,17 +480,21 @@ class LoadingOptimizer {
    */
   async simulateResourceLoad(resourceName) {
     const resourceConfig = this.resourceMap.get(resourceName);
-    if (!resourceConfig) {
-      throw new Error(`未知的資源: ${resourceName}`);
-    }
+    
+    // 如果找不到配置，創建動態配置
+    const config = resourceConfig || {
+      priority: LoadingOptimizer.CONSTANTS.PRIORITY.NORMAL,
+      size: 'medium',
+      type: 'dynamic'
+    };
     
     // 模擬載入時間（根據資源大小）
-    const loadTime = this.calculateLoadTime(resourceConfig.size);
+    const loadTime = this.calculateLoadTime(config.size);
     await new Promise(resolve => setTimeout(resolve, loadTime));
     
     return {
       name: resourceName,
-      config: resourceConfig,
+      config: config,
       loadedAt: Date.now(),
       content: `模擬載入的 ${resourceName} 資源內容`
     };

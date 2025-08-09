@@ -356,7 +356,7 @@ describe('🚀 效能優化整合測試', () => {
 
     test('應該能夠提供優化建議', () => {
       // 模擬需要優化的情況
-      global.performance.memory.usedJSHeapSize = 45 * 1024 * 1024; // 高記憶體使用
+      mockMemory.usedJSHeapSize = 45 * 1024 * 1024; // 高記憶體使用
       performanceOptimizer.collectPerformanceMetrics();
       
       const report = performanceOptimizer.getPerformanceReport();

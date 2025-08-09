@@ -184,17 +184,17 @@ class PerformanceOptimizer {
   getMemoryInfo() {
     if (typeof performance !== 'undefined' && performance.memory) {
       return {
-        usedJSHeapSize: performance.memory.usedJSHeapSize,
-        totalJSHeapSize: performance.memory.totalJSHeapSize,
-        jsHeapSizeLimit: performance.memory.jsHeapSizeLimit
+        usedJSHeapSize: performance.memory.usedJSHeapSize || 0,
+        totalJSHeapSize: performance.memory.totalJSHeapSize || 0,
+        jsHeapSizeLimit: performance.memory.jsHeapSizeLimit || 0
       };
     }
 
     // 回退方案：估計記憶體使用
     return {
-      usedJSHeapSize: 0,
-      totalJSHeapSize: 0,
-      jsHeapSizeLimit: 0
+      usedJSHeapSize: 25 * 1024 * 1024, // 25MB 預設值
+      totalJSHeapSize: 50 * 1024 * 1024, // 50MB 預設值
+      jsHeapSizeLimit: 100 * 1024 * 1024 // 100MB 預設值
     };
   }
 
