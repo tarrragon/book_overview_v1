@@ -69,7 +69,7 @@ describe('📊 Chrome Extension 效能基準測試', () => {
     test('中量資料提取效能測試 (50 本書籍模擬)', async () => {
       // 建立模擬的大量資料頁面
       await testSetup.page.goto('data:text/html;charset=utf-8,' + encodeURIComponent(
-        this.generateMockPageWithBooks(50)
+        generateMockPageWithBooks(50)
       ));
       
       const startTime = performance.now();
@@ -91,7 +91,7 @@ describe('📊 Chrome Extension 效能基準測試', () => {
     test('大量資料提取效能測試 (100+ 本書籍模擬)', async () => {
       // 建立模擬的大量資料頁面
       await testSetup.page.goto('data:text/html;charset=utf-8,' + encodeURIComponent(
-        this.generateMockPageWithBooks(150)
+        generateMockPageWithBooks(150)
       ));
       
       const startTime = performance.now();
@@ -116,13 +116,13 @@ describe('📊 Chrome Extension 效能基準測試', () => {
   describe('💾 記憶體使用測試', () => {
     test('基準記憶體使用測量', async () => {
       // 測量初始記憶體使用
-      const initialMemory = await this.measureMemoryUsage(testSetup.page);
+      const initialMemory = await measureMemoryUsage(testSetup.page);
       
       await testSetup.navigateToReadmoo();
-      const afterNavigationMemory = await this.measureMemoryUsage(testSetup.page);
+      const afterNavigationMemory = await measureMemoryUsage(testSetup.page);
       
       const popupPage = await testSetup.openExtensionPopup();
-      const afterPopupMemory = await this.measureMemoryUsage(popupPage);
+      const afterPopupMemory = await measureMemoryUsage(popupPage);
       
       console.log('📊 記憶體使用分析:');
       console.log(`  初始狀態: ${initialMemory.toFixed(2)}MB`);
@@ -146,7 +146,7 @@ describe('📊 Chrome Extension 效能基準測試', () => {
         await popupPage.waitForSelector('.status-completed', { timeout: 20000 });
         
         // 測量記憶體
-        const memory = await this.measureMemoryUsage(popupPage);
+        const memory = await measureMemoryUsage(popupPage);
         memoryReadings.push(memory);
         
         await popupPage.close();
@@ -334,80 +334,80 @@ describe('📊 Chrome Extension 效能基準測試', () => {
       }
     });
   });
+});
 
-  /**
-   * 測量頁面記憶體使用量
-   * @param {Page} page - Puppeteer 頁面物件
-   * @returns {Promise<number>} 記憶體使用量（MB）
-   */
-  async measureMemoryUsage(page) {
-    try {
-      const memoryInfo = await page.evaluate(() => {
-        if (performance.memory) {
-          return {
-            usedJSHeapSize: performance.memory.usedJSHeapSize,
-            totalJSHeapSize: performance.memory.totalJSHeapSize
-          };
-        }
-        return null;
-      });
-      
-      if (memoryInfo) {
-        return memoryInfo.usedJSHeapSize / 1024 / 1024; // 轉換為 MB
+/**
+ * 測量頁面記憶體使用量
+ * @param {Page} page - Puppeteer 頁面物件
+ * @returns {Promise<number>} 記憶體使用量（MB）
+ */
+async function measureMemoryUsage(page) {
+  try {
+    const memoryInfo = await page.evaluate(() => {
+      if (performance.memory) {
+        return {
+          usedJSHeapSize: performance.memory.usedJSHeapSize,
+          totalJSHeapSize: performance.memory.totalJSHeapSize
+        };
       }
-      return 0;
-    } catch (error) {
-      console.warn('記憶體測量失敗:', error);
-      return 0;
-    }
-  }
-
-  /**
-   * 生成包含指定數量書籍的模擬頁面
-   * @param {number} bookCount - 書籍數量
-   * @returns {string} HTML 內容
-   */
-  generateMockPageWithBooks(bookCount) {
-    const books = [];
+      return null;
+    });
     
-    for (let i = 1; i <= bookCount; i++) {
-      books.push(`
-        <div class="book-item" data-book-id="test-book-${String(i).padStart(3, '0')}">
-          <div class="book-cover">封面</div>
-          <div class="book-info">
-            <div class="book-title">測試書籍 ${i}</div>
-            <div class="book-author">作者：測試作者 ${i}</div>
-            <div class="book-progress">已讀 ${Math.floor(Math.random() * 100)}%</div>
-            <div class="book-meta">
-              <span>購買日期：2024-01-${String(i % 30 + 1).padStart(2, '0')}</span>
-            </div>
+    if (memoryInfo) {
+      return memoryInfo.usedJSHeapSize / 1024 / 1024; // 轉換為 MB
+    }
+    return 0;
+  } catch (error) {
+    console.warn('記憶體測量失敗:', error);
+    return 0;
+  }
+}
+
+/**
+ * 生成包含指定數量書籍的模擬頁面
+ * @param {number} bookCount - 書籍數量
+ * @returns {string} HTML 內容
+ */
+function generateMockPageWithBooks(bookCount) {
+  const books = [];
+  
+  for (let i = 1; i <= bookCount; i++) {
+    books.push(`
+      <div class="book-item" data-book-id="test-book-${String(i).padStart(3, '0')}">
+        <div class="book-cover">封面</div>
+        <div class="book-info">
+          <div class="book-title">測試書籍 ${i}</div>
+          <div class="book-author">作者：測試作者 ${i}</div>
+          <div class="book-progress">已讀 ${Math.floor(Math.random() * 100)}%</div>
+          <div class="book-meta">
+            <span>購買日期：2024-01-${String(i % 30 + 1).padStart(2, '0')}</span>
           </div>
         </div>
-      `);
-    }
-    
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Readmoo 效能測試頁面 (${bookCount} 本書籍)</title>
-        <style>
-          .book-item { padding: 10px; border-bottom: 1px solid #eee; }
-          .book-title { font-weight: bold; }
-          .book-author { color: #666; }
-        </style>
-      </head>
-      <body>
-        <h1>📚 Readmoo 效能測試 - ${bookCount} 本書籍</h1>
-        <div class="book-shelf">
-          ${books.join('')}
-        </div>
-        <script>
-          console.log('📊 效能測試頁面載入完成，包含 ${bookCount} 本書籍');
-          document.body.setAttribute('data-books-loaded', 'true');
-        </script>
-      </body>
-      </html>
-    `;
+      </div>
+    `);
   }
-});
+  
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Readmoo 效能測試頁面 (${bookCount} 本書籍)</title>
+      <style>
+        .book-item { padding: 10px; border-bottom: 1px solid #eee; }
+        .book-title { font-weight: bold; }
+        .book-author { color: #666; }
+      </style>
+    </head>
+    <body>
+      <h1>📚 Readmoo 效能測試 - ${bookCount} 本書籍</h1>
+      <div class="book-shelf">
+        ${books.join('')}
+      </div>
+      <script>
+        console.log('📊 效能測試頁面載入完成，包含 ${bookCount} 本書籍');
+        document.body.setAttribute('data-books-loaded', 'true');
+      </script>
+    </body>
+    </html>
+  `;
+}
