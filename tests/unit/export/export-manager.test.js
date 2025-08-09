@@ -28,25 +28,29 @@
 
 const EventBus = require('../../../src/core/event-bus');
 
-// Mock BookDataExporter
+// Mock BookDataExporter 
+let mockExporterInstance;
 jest.mock('../../../src/export/book-data-exporter', () => {
-  return jest.fn().mockImplementation(() => ({
-    exportToCSV: jest.fn().mockReturnValue('mock-csv-data'),
-    exportToJSON: jest.fn().mockReturnValue('mock-json-data'),
-    exportToExcel: jest.fn().mockReturnValue(new ArrayBuffer(100)),
-    exportToPDF: jest.fn().mockReturnValue(new ArrayBuffer(200)),
-    batchExport: jest.fn().mockReturnValue({
-      csv: 'mock-csv-data',
-      json: 'mock-json-data'
-    }),
-    exportToZip: jest.fn().mockReturnValue(new ArrayBuffer(500)),
-    setProgressCallback: jest.fn(),
-    downloadFile: jest.fn(),
-    getExportStats: jest.fn().mockReturnValue({
-      totalExports: 0,
-      formatBreakdown: {}
-    })
-  }));
+  return jest.fn().mockImplementation(() => {
+    mockExporterInstance = {
+      exportToCSV: jest.fn().mockReturnValue('mock-csv-data'),
+      exportToJSON: jest.fn().mockReturnValue('mock-json-data'),
+      exportToExcel: jest.fn().mockReturnValue(new ArrayBuffer(100)),
+      exportToPDF: jest.fn().mockReturnValue(new ArrayBuffer(200)),
+      batchExport: jest.fn().mockReturnValue({
+        csv: 'mock-csv-data',
+        json: 'mock-json-data'
+      }),
+      exportToZip: jest.fn().mockReturnValue(new ArrayBuffer(500)),
+      setProgressCallback: jest.fn(),
+      downloadFile: jest.fn().mockResolvedValue(true),
+      getExportStats: jest.fn().mockReturnValue({
+        totalExports: 0,
+        formatBreakdown: {}
+      })
+    };
+    return mockExporterInstance;
+  });
 });
 
 // Mock 事件系統
@@ -131,8 +135,14 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     // 建立新的事件總線
     eventBus = new EventBus();
     
-    // 清理所有模擬
-    jest.clearAllMocks();
+    // 清理所有模擬，但保持 mock 實例引用
+    if (mockExporterInstance) {
+      Object.values(mockExporterInstance).forEach(fn => {
+        if (jest.isMockFunction(fn)) {
+          fn.mockClear();
+        }
+      });
+    }
   });
 
   describe('🔴 Red Phase: ExportManager 基本結構', () => {
@@ -235,8 +245,8 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     test('CSV 匯出失敗時應該觸發失敗事件', async () => {
       const BookDataExporter = require('../../../src/export/book-data-exporter');
       
-      // 模擬匯出失敗
-      BookDataExporter.mockImplementation(() => ({
+      // 模擬匯出失敗 - 使用 mockImplementationOnce 避免影響其他測試
+      BookDataExporter.mockImplementationOnce(() => ({
         exportToCSV: jest.fn().mockImplementation(() => {
           throw new Error('CSV export failed');
         }),
@@ -281,6 +291,15 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     beforeEach(() => {
       const ExportManager = require('../../../src/export/export-manager');
       exportManager = new ExportManager(eventBus);
+      
+      // 確保 mock 實例被正確重設
+      if (mockExporterInstance) {
+        Object.values(mockExporterInstance).forEach(fn => {
+          if (jest.isMockFunction(fn)) {
+            fn.mockClear();
+          }
+        });
+      }
     });
 
     test('應該處理 JSON 匯出請求事件', async () => {
@@ -314,9 +333,6 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     });
 
     test('JSON 匯出應該正確傳遞選項給 BookDataExporter', async () => {
-      const BookDataExporter = require('../../../src/export/book-data-exporter');
-      const mockInstance = new BookDataExporter();
-
       const jsonExportData = {
         books: mockBooks,
         options: { 
@@ -328,7 +344,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
       await eventBus.emit('EXPORT.JSON.REQUESTED', jsonExportData);
 
-      expect(mockInstance.exportToJSON).toHaveBeenCalledWith(jsonExportData.options);
+      expect(mockExporterInstance.exportToJSON).toHaveBeenCalledWith(jsonExportData.options);
     });
   });
 
@@ -336,6 +352,15 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     beforeEach(() => {
       const ExportManager = require('../../../src/export/export-manager');
       exportManager = new ExportManager(eventBus);
+      
+      // 確保 mock 實例被正確重設
+      if (mockExporterInstance) {
+        Object.values(mockExporterInstance).forEach(fn => {
+          if (jest.isMockFunction(fn)) {
+            fn.mockClear();
+          }
+        });
+      }
     });
 
     test('應該處理批量匯出請求事件', async () => {
@@ -381,16 +406,19 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
       await eventBus.emit('EXPORT.BATCH.REQUESTED', batchExportData);
 
+      // 等待非同步進度事件處理完成
+      await new Promise(resolve => process.nextTick(resolve));
+
       // 應該有多個進度更新（每種格式至少一個）
       expect(progressEventSpy).toHaveBeenCalled();
-      expect(progressEventSpy).toHaveBeenCalledTimes(expect.any(Number));
+      expect(progressEventSpy.mock.calls.length).toBeGreaterThan(0);
     });
 
     test('批量匯出中部分失敗應該正確處理', async () => {
       const BookDataExporter = require('../../../src/export/book-data-exporter');
       
-      // 模擬部分格式匯出失敗
-      BookDataExporter.mockImplementation(() => ({
+      // 模擬部分格式匯出失敗 - 使用 mockImplementationOnce
+      BookDataExporter.mockImplementationOnce(() => ({
         batchExport: jest.fn().mockImplementation(() => {
           throw new Error('Some formats failed');
         }),
@@ -416,6 +444,15 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     beforeEach(() => {
       const ExportManager = require('../../../src/export/export-manager');
       exportManager = new ExportManager(eventBus);
+      
+      // 確保 mock 實例被正確重設
+      if (mockExporterInstance) {
+        Object.values(mockExporterInstance).forEach(fn => {
+          if (jest.isMockFunction(fn)) {
+            fn.mockClear();
+          }
+        });
+      }
     });
 
     test('應該處理檔案下載請求事件', async () => {
@@ -449,8 +486,8 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     test('檔案下載失敗時應該觸發失敗事件', async () => {
       const BookDataExporter = require('../../../src/export/book-data-exporter');
       
-      // 模擬下載失敗
-      BookDataExporter.mockImplementation(() => ({
+      // 模擬下載失敗 - 使用 mockImplementationOnce
+      BookDataExporter.mockImplementationOnce(() => ({
         downloadFile: jest.fn().mockImplementation(() => {
           throw new Error('Download failed');
         })
@@ -547,8 +584,8 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     test('應該處理 BookDataExporter 實例化失敗', async () => {
       const BookDataExporter = require('../../../src/export/book-data-exporter');
       
-      // 模擬建構函數失敗
-      BookDataExporter.mockImplementation(() => {
+      // 模擬建構函數失敗 - 使用 mockImplementationOnce
+      BookDataExporter.mockImplementationOnce(() => {
         throw new Error('Exporter initialization failed');
       });
 
@@ -582,8 +619,8 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     test('應該處理記憶體不足的情況', async () => {
       const BookDataExporter = require('../../../src/export/book-data-exporter');
       
-      // 模擬記憶體不足錯誤
-      BookDataExporter.mockImplementation(() => ({
+      // 模擬記憶體不足錯誤 - 使用 mockImplementationOnce
+      BookDataExporter.mockImplementationOnce(() => ({
         exportToCSV: jest.fn().mockImplementation(() => {
           const error = new Error('Out of memory');
           error.name = 'RangeError';
@@ -609,8 +646,8 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
       let attemptCount = 0;
       const BookDataExporter = require('../../../src/export/book-data-exporter');
       
-      // 模擬第一次失敗，第二次成功
-      BookDataExporter.mockImplementation(() => ({
+      // 模擬第一次失敗，第二次成功 - 使用 mockImplementationOnce
+      BookDataExporter.mockImplementationOnce(() => ({
         exportToCSV: jest.fn().mockImplementation(() => {
           attemptCount++;
           if (attemptCount === 1) {
@@ -643,12 +680,18 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     beforeEach(() => {
       const ExportManager = require('../../../src/export/export-manager');
       exportManager = new ExportManager(eventBus);
+      
+      // 確保 mock 實例被正確重設
+      if (mockExporterInstance) {
+        Object.values(mockExporterInstance).forEach(fn => {
+          if (jest.isMockFunction(fn)) {
+            fn.mockClear();
+          }
+        });
+      }
     });
 
     test('應該與現有 BookDataExporter API 完全相容', async () => {
-      const BookDataExporter = require('../../../src/export/book-data-exporter');
-      const mockInstance = new BookDataExporter();
-
       const csvExportData = {
         books: mockBooks,
         options: { fields: ['title', 'author'] }
@@ -657,8 +700,8 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
       await eventBus.emit('EXPORT.CSV.REQUESTED', csvExportData);
 
       // 驗證 BookDataExporter 方法被正確呼叫
-      expect(mockInstance.exportToCSV).toHaveBeenCalledWith(csvExportData.options);
-      expect(mockInstance.setProgressCallback).toHaveBeenCalledWith(expect.any(Function));
+      expect(mockExporterInstance.exportToCSV).toHaveBeenCalledWith(csvExportData.options);
+      expect(mockExporterInstance.setProgressCallback).toHaveBeenCalledWith(expect.any(Function));
     });
 
     test('應該支援事件鏈式處理', async () => {

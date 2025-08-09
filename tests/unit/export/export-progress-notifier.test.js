@@ -380,7 +380,6 @@ describe('ExportProgressNotifier', () => {
       const exportId = 'cancel-test-001';
 
       expect(() => {
-        progressNotifier.startTracking(exportId, 'csv');
         progressNotifier.cancelTracking(exportId);
       }).toThrow('ExportProgressNotifier.cancelTracking() not implemented - Red phase');
 
