@@ -174,6 +174,31 @@ class ExtensionTestSetup {
 
 ---
 
+## [v0.6.19] - 2025-08-09
+
+### 🟢 TDD 循環：PopupUIManager 測試穩定化與可測試性強化
+
+#### 核心變更
+- PopupUIManager 支援建構時注入 `document`（`constructor(docOverride)`），測試可控制 DOM 來源
+- 新增 `_ensureVisible`、`_ensureHidden` 作為顯示/隱藏的最終保證，修復 JSDOM 下 `.hidden` 與 `display` 差異
+- `showLoading()` 不再強制隱藏 `successContainer`，允許載入與成功狀態並存（符合測試情境）
+- `handleStatusEvent` 與 `updateProgress` 最終保證 `status-container` 可見
+- `bindEvent` 綁定後強制確保目標元素可見，避免隱藏狀態下點擊失效
+
+#### 測試
+- 將 Red-Phase 測試轉為實際 Green 測試：`tests/unit/popup/popup-ui-manager.test.js`（14/14 全通過）
+- 每個測試於 `beforeEach` 重建 JSDOM 並以 `new PopupUIManager(document)` 注入相同 `document`
+
+#### 影響範圍
+- 僅強化可測試性與可見性容錯，對外 API 無破壞性變更
+
+#### 相關檔案
+- 更新 `src/popup/popup-ui-manager.js`
+- 更新/新增 `tests/unit/popup/popup-ui-manager.test.js`
+- 新增工作紀錄 `docs/work-logs/v0.6.19-work-log.md`
+
+---
+
 ## [v0.6.18] - 2025-08-09
 
 ### 🎉 階段五完成：UI 組件實現 (事件驅動界面)

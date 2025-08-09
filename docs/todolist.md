@@ -102,6 +102,13 @@
 - [ ] ⭕ 效能基準測試：大量資料處理、記憶體使用監控
 - [ ] ⭕ 錯誤恢復測試：網路錯誤、權限問題、系統資源不足
 
+### ✅ 新完成項目（本循環）
+- [x] 🟢 PopupUIManager 測試穩定化與可測試性強化（v0.6.19）
+  - 支援建構時注入 `document`
+  - 新增 `_ensureVisible`/`_ensureHidden` 最終保證
+  - `showLoading` 與 `showSuccess` 並存相容
+  - 單元測試 `tests/unit/popup/popup-ui-manager.test.js` 全通過（14/14）
+
 ---
 
 ## 📊 總體進度追蹤（精簡版）
