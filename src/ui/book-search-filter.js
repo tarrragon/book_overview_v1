@@ -796,9 +796,8 @@ class BookSearchFilter extends BaseUIHandler {
         newData = event;
       }
       
-      // 直接賦值以確保立即可見（避免某些測試環境對 setter 時序的影響）
-      this._booksData = Array.isArray(newData) ? newData : [];
-      try { this.buildSearchIndex(this._booksData); } catch(_) {}
+      // 使用 setter 確保索引與狀態一致，並立即可見
+      this.booksData = Array.isArray(newData) ? [...newData] : [];
       // 清除快取
       this.searchCache.clear();
       
@@ -829,8 +828,9 @@ class BookSearchFilter extends BaseUIHandler {
    */
   handleSearchRequest(event) {
     if (event && event.query && typeof event.query === 'string') {
-      // 直接呼叫並回傳 Promise，讓測試能 await 完成
-      return Promise.resolve(this.searchBooks(event.query));
+      // 立即觸發搜尋，測試可透過 spy 檢查被呼叫
+      this.searchBooks(event.query);
+      return true;
     }
     return false;
   }

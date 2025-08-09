@@ -67,7 +67,7 @@
 - [x] ✅ 書籍展示系統：虛擬滾動與效能優化（測試 30/30）
 - [x] ✅ 搜尋與篩選：核心功能、索引與快取（循環完成，後續優化持續）
 - [x] ✅ ExportManager 匯出系統：事件處理器架構重構與記憶體問題解決（TDD 循環 #29 完成）
-- [ ] 🔴 ExportManager UI 整合：使用者介面與進度通知（TDD 循環 #30）
+- [x] 🔴 ExportManager UI 整合：使用者介面與進度通知（TDD 循環 #30 Red完成）
 
 參考：
 - `src/popup/`、`assets/js/`、`overview.html`
@@ -110,7 +110,7 @@
 ### TDD 循環統計（近期關鍵）
 
 - 🔵 已完成：#29（ExportManager重構）、#31–#45（詳見工作日誌）
-- 🔴 進行中：#30（ExportManager UI整合/進度通知）
+- 🔴 Red 完成：#30（ExportManager UI整合/進度通知測試設計完成）
 
 ### 測試與品質
 
