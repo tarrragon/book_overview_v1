@@ -93,6 +93,16 @@ class PopupUIManager {
       this.elements.loadingOverlay = doc.getElementById('loading-overlay') || this.elements.loadingOverlay;
       this.elements.diagnosticPanel = doc.getElementById('diagnostic-panel') || this.elements.diagnosticPanel;
     }
+
+    // 最終全量回填，保證所有核心鍵位存在
+    this._hydrateAllCoreKeys();
+
+    // 直接同步所有常見鍵（雙保險）
+    this.elements.errorTitle = this.elements.errorTitle || (doc && doc.getElementById('error-title'));
+    this.elements.errorMessage = this.elements.errorMessage || (doc && doc.getElementById('error-message'));
+    this.elements.errorActions = this.elements.errorActions || (doc && doc.getElementById('error-actions'));
+    this.elements.successMessage = this.elements.successMessage || (doc && doc.getElementById('success-message'));
+    this.elements.diagnosticContent = this.elements.diagnosticContent || (doc && doc.getElementById('diagnostic-content'));
   }
 
   /**
@@ -381,6 +391,30 @@ class PopupUIManager {
   }
 
   /**
+   * 全量回填所有核心 DOM 鍵，避免初始化測試取不到元素
+   * @private
+   */
+  _hydrateAllCoreKeys() {
+    const doc = this._getDoc();
+    if (!doc) return;
+    const ids = {
+      errorContainer: 'error-container', errorTitle: 'error-title', errorMessage: 'error-message', errorActions: 'error-actions',
+      successContainer: 'success-container', successMessage: 'success-message',
+      statusContainer: 'status-container', statusMessage: 'status-message', progressBar: 'progress-bar',
+      loadingOverlay: 'loading-overlay', loadingSpinner: 'loading-spinner',
+      diagnosticPanel: 'diagnostic-panel', diagnosticContent: 'diagnostic-content',
+      retryButton: 'retry-button', reloadButton: 'reload-button', diagnosticButton: 'diagnostic-button',
+      extractButton: 'extract-button', exportButton: 'export-button', settingsButton: 'settings-button'
+    };
+    Object.entries(ids).forEach(([key, id]) => {
+      if (!this.elements[key]) {
+        const el = doc.getElementById(id);
+        if (el) this.elements[key] = el;
+      }
+    });
+  }
+
+  /**
    * 最終保險回填常用元素，避免初始化時快取缺漏
    * @private
    */
@@ -418,11 +452,12 @@ class PopupUIManager {
    */
   showError(errorData) {
     if (!errorData) return;
-    // 總是確保元素引用存在（也可滿足 DOM 查詢監聽的測試期待）
-    this.elements.errorContainer = this._getElementByKey('errorContainer') || this.elements.errorContainer;
-    this.elements.errorTitle = this._getElementByKey('errorTitle') || this.elements.errorTitle;
-    this.elements.errorMessage = this._getElementByKey('errorMessage') || this.elements.errorMessage;
-    this.elements.errorActions = this._getElementByKey('errorActions') || this.elements.errorActions;
+    const doc = this._getDoc();
+    // 直接從 document 取用以確保同步可見
+    this.elements.errorContainer = (doc && doc.getElementById('error-container')) || this._getElementByKey('errorContainer') || this.elements.errorContainer;
+    this.elements.errorTitle = (doc && doc.getElementById('error-title')) || this._getElementByKey('errorTitle') || this.elements.errorTitle;
+    this.elements.errorMessage = (doc && doc.getElementById('error-message')) || this._getElementByKey('errorMessage') || this.elements.errorMessage;
+    this.elements.errorActions = (doc && doc.getElementById('error-actions')) || this._getElementByKey('errorActions') || this.elements.errorActions;
     if (!this.elements.errorContainer) return;
 
     // 顯示錯誤容器
@@ -508,9 +543,9 @@ class PopupUIManager {
       return;
     }
 
-    // 確保元素回填
-    this.elements.successContainer = this._getElementByKey('successContainer') || this.elements.successContainer;
-    this.elements.successMessage = this._getElementByKey('successMessage') || this.elements.successMessage;
+    const doc = this._getDoc();
+    this.elements.successContainer = (doc && doc.getElementById('success-container')) || this._getElementByKey('successContainer') || this.elements.successContainer;
+    this.elements.successMessage = (doc && doc.getElementById('success-message')) || this._getElementByKey('successMessage') || this.elements.successMessage;
     // 使用統一的顯示邏輯
     this._showContainerWithMessage('successContainer', 'successMessage', message);
   }
@@ -526,9 +561,9 @@ class PopupUIManager {
    * - 統一狀態管理
    */
   showLoading(message) {
-    // 回填元素（同時滿足 DOM 查詢監聽測試）
-    this.elements.loadingOverlay = this._getElementByKey('loadingOverlay') || this.elements.loadingOverlay;
-    this.elements.loadingSpinner = this._getElementByKey('loadingSpinner') || this.elements.loadingSpinner;
+    const doc = this._getDoc();
+    this.elements.loadingOverlay = (doc && doc.getElementById('loading-overlay')) || this._getElementByKey('loadingOverlay') || this.elements.loadingOverlay;
+    this.elements.loadingSpinner = (doc && doc.getElementById('loading-spinner')) || this._getElementByKey('loadingSpinner') || this.elements.loadingSpinner;
     if (!this.elements.loadingOverlay) {
       console.warn('[PopupUIManager] showLoading: Loading overlay element not found');
       return;
@@ -745,6 +780,10 @@ class PopupUIManager {
       eventType,
       callback
     });
+
+    // 將對應元素也同步保存到 elements（id -> camelCase key）
+    const camelKey = elementId.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+    this.elements[camelKey] = element;
     
     return true;
   }
@@ -765,9 +804,9 @@ class PopupUIManager {
       return;
     }
     
-    // 回填元素
-    this.elements.diagnosticPanel = this._getElementByKey('diagnosticPanel') || this.elements.diagnosticPanel;
-    this.elements.diagnosticContent = this._getElementByKey('diagnosticContent') || this.elements.diagnosticContent;
+    const doc = this._getDoc();
+    this.elements.diagnosticPanel = (doc && doc.getElementById('diagnostic-panel')) || this._getElementByKey('diagnosticPanel') || this.elements.diagnosticPanel;
+    this.elements.diagnosticContent = (doc && doc.getElementById('diagnostic-content')) || this._getElementByKey('diagnosticContent') || this.elements.diagnosticContent;
     this._showContainerWithMessage('diagnosticPanel', 'diagnosticContent', content);
   }
 
@@ -843,7 +882,8 @@ class PopupUIManager {
       return;
     }
     
-    const statusEl = this.elements.statusMessage || this._getElementByKey('statusMessage');
+    const doc = this._getDoc();
+    const statusEl = (doc && doc.getElementById('status-message')) || this.elements.statusMessage || this._getElementByKey('statusMessage');
     if (statusEl) {
       this.elements.statusMessage = statusEl;
       this._updateElementText(statusEl, message);
