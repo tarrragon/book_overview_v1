@@ -1,0 +1,25 @@
+# 測試截圖目錄
+
+此目錄用於儲存端對端測試過程中產生的截圖檔案。
+
+## 目錄結構
+
+- `popup-*.png` - Popup 界面截圖
+- `overview-*.png` - Overview 頁面截圖
+- `readmoo-*.png` - Readmoo 測試頁面截圖
+- `error-*.png` - 錯誤狀態截圖
+
+## 檔案命名規則
+
+格式：`{component}-{state}-{timestamp}.png`
+
+範例：
+- `popup-extracting-20240315-103045.png`
+- `overview-loaded-20240315-103102.png`
+- `error-network-failure-20240315-103125.png`
+
+## 注意事項
+
+- 截圖檔案不會提交到版本控制系統
+- 測試執行完成後會自動清理舊的截圖
+- 僅在測試失敗或需要視覺驗證時保留截圖

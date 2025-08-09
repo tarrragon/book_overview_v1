@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Readmoo 電子書 - 測試頁面</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            margin: -20px -20px 20px -20px;
+        }
+        .book-shelf {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .book-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .book-item:last-child {
+            border-bottom: none;
+        }
+        .book-cover {
+            width: 60px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            margin-right: 15px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            text-align: center;
+        }
+        .book-info {
+            flex: 1;
+        }
+        .book-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .book-author {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .book-progress {
+            font-size: 12px;
+            color: #95a5a6;
+            background: #ecf0f1;
+            padding: 2px 8px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+        .book-meta {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        .extraction-test-data {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📚 我的書櫃</h1>
+        <p>Readmoo 電子書平台 - 測試環境</p>
+    </div>
+
+    <div class="book-shelf" id="bookShelf">
+        <!-- 測試書籍 1 -->
+        <div class="book-item" data-book-id="test-book-001">
+            <div class="book-cover">封面</div>
+            <div class="book-info">
+                <div class="book-title">JavaScript 完全攻略</div>
+                <div class="book-author">作者：程式設計師</div>
+                <div class="book-progress">已讀 45%</div>
+                <div class="book-meta">
+                    <span>購買日期：2024-01-15</span> | 
+                    <span>檔案格式：EPUB</span> | 
+                    <span>檔案大小：2.5MB</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 測試書籍 2 -->
+        <div class="book-item" data-book-id="test-book-002">
+            <div class="book-cover">封面</div>
+            <div class="book-info">
+                <div class="book-title">Vue.js 開發實戰</div>
+                <div class="book-author">作者：前端工程師</div>
+                <div class="book-progress">已讀 78%</div>
+                <div class="book-meta">
+                    <span>購買日期：2024-02-20</span> | 
+                    <span>檔案格式：PDF</span> | 
+                    <span>檔案大小：5.1MB</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 測試書籍 3 -->
+        <div class="book-item" data-book-id="test-book-003">
+            <div class="book-cover">封面</div>
+            <div class="book-info">
+                <div class="book-title">Chrome Extension 開發指南</div>
+                <div class="book-author">作者：技術作家</div>
+                <div class="book-progress">未開始</div>
+                <div class="book-meta">
+                    <span>購買日期：2024-03-10</span> | 
+                    <span>檔案格式：EPUB</span> | 
+                    <span>檔案大小：1.8MB</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 測試書籍 4 -->
+        <div class="book-item" data-book-id="test-book-004">
+            <div class="book-cover">封面</div>
+            <div class="book-info">
+                <div class="book-title">測試驅動開發實踐</div>
+                <div class="book-author">作者：軟體架構師</div>
+                <div class="book-progress">已讀 23%</div>
+                <div class="book-meta">
+                    <span>購買日期：2024-01-05</span> | 
+                    <span>檔案格式：PDF</span> | 
+                    <span>檔案大小：4.2MB</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 測試書籍 5 -->
+        <div class="book-item" data-book-id="test-book-005">
+            <div class="book-cover">封面</div>
+            <div class="book-info">
+                <div class="book-title">人工智慧導論</div>
+                <div class="book-author">作者：AI 研究學者</div>
+                <div class="book-progress">已讀 91%</div>
+                <div class="book-meta">
+                    <span>購買日期：2023-12-18</span> | 
+                    <span>檔案格式：EPUB</span> | 
+                    <span>檔案大小：3.7MB</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 隱藏的測試資料，供 Extension 提取使用 -->
+    <script type="application/json" id="testBookData" class="extraction-test-data">
+    {
+        "books": [
+            {
+                "id": "test-book-001",
+                "title": "JavaScript 完全攻略",
+                "author": "程式設計師",
+                "progress": 45,
+                "purchaseDate": "2024-01-15",
+                "format": "EPUB",
+                "fileSize": "2.5MB",
+                "category": "程式設計",
+                "isbn": "9789000000001",
+                "publisher": "技術出版社",
+                "rating": 4.5
+            },
+            {
+                "id": "test-book-002",
+                "title": "Vue.js 開發實戰",
+                "author": "前端工程師",
+                "progress": 78,
+                "purchaseDate": "2024-02-20",
+                "format": "PDF",
+                "fileSize": "5.1MB",
+                "category": "程式設計",
+                "isbn": "9789000000002",
+                "publisher": "前端出版社",
+                "rating": 4.8
+            },
+            {
+                "id": "test-book-003",
+                "title": "Chrome Extension 開發指南",
+                "author": "技術作家",
+                "progress": 0,
+                "purchaseDate": "2024-03-10",
+                "format": "EPUB",
+                "fileSize": "1.8MB",
+                "category": "程式設計",
+                "isbn": "9789000000003",
+                "publisher": "瀏覽器出版社",
+                "rating": 4.2
+            },
+            {
+                "id": "test-book-004",
+                "title": "測試驅動開發實踐",
+                "author": "軟體架構師",
+                "progress": 23,
+                "purchaseDate": "2024-01-05",
+                "format": "PDF",
+                "fileSize": "4.2MB",
+                "category": "軟體工程",
+                "isbn": "9789000000004",
+                "publisher": "架構出版社",
+                "rating": 4.7
+            },
+            {
+                "id": "test-book-005",
+                "title": "人工智慧導論",
+                "author": "AI 研究學者",
+                "progress": 91,
+                "purchaseDate": "2023-12-18",
+                "format": "EPUB",
+                "fileSize": "3.7MB",
+                "category": "人工智慧",
+                "isbn": "9789000000005",
+                "publisher": "AI 出版社",
+                "rating": 4.9
+            }
+        ],
+        "user": {
+            "id": "test-user-001",
+            "name": "測試使用者",
+            "email": "test@example.com",
+            "memberLevel": "Premium",
+            "joinDate": "2023-06-15"
+        },
+        "library": {
+            "totalBooks": 5,
+            "totalProgress": 47.4,
+            "lastUpdate": "2024-03-15T10:30:00Z",
+            "categories": {
+                "程式設計": 3,
+                "軟體工程": 1,
+                "人工智慧": 1
+            }
+        }
+    }
+    </script>
+
+    <!-- 測試用的動態載入模擬 -->
+    <script>
+        // 模擬 Readmoo 的動態載入行為
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('📚 Readmoo 測試頁面已載入');
+            
+            // 模擬非同步資料載入
+            setTimeout(() => {
+                console.log('📈 書籍資料載入完成');
+                document.body.setAttribute('data-books-loaded', 'true');
+                
+                // 觸發自訂事件，Extension 可以監聽
+                const event = new CustomEvent('readmoo:booksLoaded', {
+                    detail: {
+                        bookCount: 5,
+                        loadTime: Date.now()
+                    }
+                });
+                window.dispatchEvent(event);
+            }, 1000);
+        });
+
+        // 提供給 Extension 測試的全域函數
+        window.getTestBookData = function() {
+            const dataElement = document.getElementById('testBookData');
+            return JSON.parse(dataElement.textContent);
+        };
+
+        // 模擬使用者互動
+        document.querySelectorAll('.book-item').forEach((item, index) => {
+            item.addEventListener('click', function() {
+                console.log(`📖 使用者點擊了書籍: ${item.querySelector('.book-title').textContent}`);
+                item.setAttribute('data-clicked', 'true');
+            });
+        });
+    </script>
+</body>
+</html>
