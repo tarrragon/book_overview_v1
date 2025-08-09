@@ -502,10 +502,15 @@ class PopupUIManager {
     this._showElement(container);
     container.className = (container.className || '').replace(/\bhidden\b/g, '').replace(/\s{2,}/g, ' ').trim();
     try { doc.getElementById('error-container')?.classList.remove('hidden'); } catch(_) {}
+    if ((container.className || '').includes('hidden')) container.className = '';
+    // 使用全域 document 最終保證
+    try { if (typeof document !== 'undefined') { const el = document.getElementById('error-container'); if (el) { el.classList.remove('hidden'); el.className = el.className.replace(/\bhidden\b/g, '').trim(); el.style.display=''; } } } catch(_) {}
     const successContainer = doc && doc.getElementById('success-container');
     const loadingOverlay = doc && doc.getElementById('loading-overlay');
     if (successContainer) this._hideElement(successContainer);
     if (loadingOverlay) this._hideElement(loadingOverlay);
+    // 最終保證：再一次直接移除 hidden
+    try { container.classList.remove('hidden'); } catch(_) {}
     
     // 更新錯誤標題
     if (this.elements.errorTitle && errorData.title) {
@@ -595,6 +600,8 @@ class PopupUIManager {
       this._showElement(container);
       container.className = (container.className || '').replace(/\bhidden\b/g, '').replace(/\s{2,}/g, ' ').trim();
       try { doc.getElementById('success-container')?.classList.remove('hidden'); } catch(_) {}
+      if ((container.className || '').includes('hidden')) container.className = '';
+      try { if (typeof document !== 'undefined') { const el = document.getElementById('success-container'); if (el) { el.classList.remove('hidden'); el.className = el.className.replace(/\bhidden\b/g, '').trim(); el.style.display=''; } } } catch(_) {}
     }
     if (msgEl) {
       this.elements.successMessage = msgEl;
@@ -604,6 +611,8 @@ class PopupUIManager {
     const loadingOverlay = doc && doc.getElementById('loading-overlay');
     if (errorContainer) this._hideElement(errorContainer);
     if (loadingOverlay) this._hideElement(loadingOverlay);
+    // 最終保證
+    if (container) { try { container.classList.remove('hidden'); } catch(_) {} }
   }
 
   /**
@@ -628,6 +637,8 @@ class PopupUIManager {
     this._showElement(this.elements.loadingOverlay);
     this.elements.loadingOverlay.className = (this.elements.loadingOverlay.className || '').replace(/\bhidden\b/g, '').replace(/\s{2,}/g, ' ').trim();
     try { doc.getElementById('loading-overlay')?.classList.remove('hidden'); } catch(_) {}
+    if ((this.elements.loadingOverlay.className || '').includes('hidden')) this.elements.loadingOverlay.className = '';
+    try { if (typeof document !== 'undefined') { const el = document.getElementById('loading-overlay'); if (el) { el.classList.remove('hidden'); el.className = el.className.replace(/\bhidden\b/g, '').trim(); el.style.display=''; } } } catch(_) {}
     if (this.elements.errorContainer) this._hideElement(this.elements.errorContainer);
     if (this.elements.successContainer) this._hideElement(this.elements.successContainer);
     
@@ -888,6 +899,9 @@ class PopupUIManager {
     if (load) this._hideElement(load);
     if (this.elements.errorContainer) this._hideElement(this.elements.errorContainer);
     if (this.elements.loadingOverlay) this._hideElement(this.elements.loadingOverlay);
+    const diagEl = doc && doc.getElementById('diagnostic-panel');
+    if (diagEl && (diagEl.className || '').includes('hidden')) diagEl.className = '';
+    try { if (typeof document !== 'undefined') { const el = document.getElementById('diagnostic-panel'); if (el) { el.classList.remove('hidden'); el.className = el.className.replace(/\bhidden\b/g, '').trim(); el.style.display=''; } } } catch(_) {}
   }
 
   /**
