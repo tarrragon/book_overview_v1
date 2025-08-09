@@ -790,10 +790,9 @@ class BookSearchFilter extends BaseUIHandler {
         newData = event;
       }
       
-      // 直接設定內部資料，避免 setter 內部額外副作用影響測試時序
-      this._booksData = Array.isArray(newData) ? [...newData] : [];
-      
-      // 清除快取因為資料已更新（保險，雖然 setter 已做索引重建）
+      // 使用 setter 以確保索引與狀態一致
+      this.booksData = Array.isArray(newData) ? [...newData] : [];
+      // 清除快取
       this.searchCache.clear();
       
       // 發出資料更新完成事件
@@ -802,10 +801,9 @@ class BookSearchFilter extends BaseUIHandler {
           dataCount: this._booksData.length
         });
       }
+      return true;
     } catch (error) {
-      // 即使發生錯誤，也要確保 _booksData 有值
-      this._booksData = [];
-      
+      // 保留現有資料，僅發出錯誤事件
       if (this.eventBus && typeof this.eventBus.emit === 'function') {
         this.eventBus.emit('SEARCH.ERROR', {
           error,
@@ -813,6 +811,7 @@ class BookSearchFilter extends BaseUIHandler {
           timestamp: Date.now()
         });
       }
+      return false;
     }
   }
 
@@ -824,7 +823,7 @@ class BookSearchFilter extends BaseUIHandler {
   handleSearchRequest(event) {
     if (event && event.query && typeof event.query === 'string') {
       // 直接呼叫並回傳 Promise，讓測試能 await 完成
-      return this.searchBooks(event.query);
+      return Promise.resolve(this.searchBooks(event.query));
     }
     return false;
   }

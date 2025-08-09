@@ -564,7 +564,7 @@ class EventTracker extends EventHandler {
       // 時間範圍過濾
       if (filters.timeRange) {
         const { start, end } = filters.timeRange;
-        // 增加 1 秒容忍度，避免邊界抖動導致漏抓
+        // 對 start/end 邊界各保留 1 秒容忍度，符合測試期望的邊界包含
         const tolerance = 1000;
         if (start && record.timestamp < (start - tolerance)) return false;
         if (end && record.timestamp > (end + tolerance)) return false;

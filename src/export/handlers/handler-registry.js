@@ -1,0 +1,301 @@
+/**
+ * 處理器註冊中心 - TDD循環 #29 Green階段實作
+ * 
+ * 負責功能：
+ * - 管理所有匯出事件處理器的註冊和移除
+ * - 提供處理器的動態查詢和檢索
+ * - 支援預設處理器的自動註冊
+ * - 根據事件類型找到合適的處理器
+ * 
+ * 設計考量：
+ * - 使用 Map 結構進行高效的處理器管理
+ * - 支援處理器的動態註冊和移除
+ * - 提供多種查詢方式（按名稱、按事件類型）
+ * - 自動載入和註冊預設處理器
+ * 
+ * @version 1.0.0
+ * @since 2025-08-08
+ */
+
+const CSVExportHandler = require('./csv-export-handler');
+const JSONExportHandler = require('./json-export-handler');
+const ExcelExportHandler = require('./excel-export-handler');
+const ProgressHandler = require('./progress-handler');
+const ErrorHandler = require('./error-handler');
+
+/**
+ * 處理器註冊中心類別
+ * 管理所有匯出事件處理器的生命週期
+ */
+class HandlerRegistry {
+  /**
+   * 建構函數
+   * 
+   * @param {EventBus} eventBus - 事件總線實例
+   */
+  constructor(eventBus) {
+    if (!eventBus) {
+      throw new Error('EventBus is required for HandlerRegistry');
+    }
+
+    /**
+     * 事件總線實例
+     * @type {EventBus}
+     */
+    this.eventBus = eventBus;
+
+    /**
+     * 已註冊的處理器映射
+     * @type {Map<string, EventHandler>}
+     */
+    this.handlers = new Map();
+
+    /**
+     * 事件類型到處理器的映射
+     * @type {Map<string, Array<EventHandler>>}
+     */
+    this.eventToHandlers = new Map();
+  }
+
+  /**
+   * 註冊處理器
+   * 
+   * @param {EventHandler} handler - 要註冊的處理器
+   * @throws {Error} 當處理器無效或已存在時拋出錯誤
+   */
+  register(handler) {
+    if (!handler) {
+      throw new Error('Handler is required for registration');
+    }
+
+    if (!handler.name) {
+      throw new Error('Handler must have a name');
+    }
+
+    if (this.handlers.has(handler.name)) {
+      throw new Error(`Handler '${handler.name}' is already registered`);
+    }
+
+    // 註冊處理器
+    this.handlers.set(handler.name, handler);
+
+    // 建立事件類型映射
+    const supportedEvents = handler.getSupportedEvents();
+    supportedEvents.forEach(eventType => {
+      if (!this.eventToHandlers.has(eventType)) {
+        this.eventToHandlers.set(eventType, []);
+      }
+      this.eventToHandlers.get(eventType).push(handler);
+
+      // 在事件總線上註冊處理器
+      this.eventBus.on(eventType, (data) => {
+        if (handler.isEnabled) {
+          return handler.handle(data);
+        }
+        return null;
+      }, {
+        priority: handler.priority
+      });
+    });
+
+    console.log(`[HandlerRegistry] Registered handler: ${handler.name}`);
+  }
+
+  /**
+   * 移除處理器
+   * 
+   * @param {string} handlerName - 要移除的處理器名稱
+   * @returns {boolean} 是否成功移除
+   */
+  unregister(handlerName) {
+    if (!handlerName) {
+      return false;
+    }
+
+    const handler = this.handlers.get(handlerName);
+    if (!handler) {
+      return false;
+    }
+
+    // 從事件類型映射中移除
+    const supportedEvents = handler.getSupportedEvents();
+    supportedEvents.forEach(eventType => {
+      const handlers = this.eventToHandlers.get(eventType);
+      if (handlers) {
+        const index = handlers.indexOf(handler);
+        if (index !== -1) {
+          handlers.splice(index, 1);
+        }
+        
+        // 如果沒有處理器了，移除整個映射
+        if (handlers.length === 0) {
+          this.eventToHandlers.delete(eventType);
+        }
+      }
+
+      // 從事件總線上移除處理器（簡化實作，實際可能需要更複雜的邏輯）
+      // 注意：EventBus 可能需要提供 off 方法來支援此功能
+    });
+
+    // 從處理器映射中移除
+    this.handlers.delete(handlerName);
+
+    console.log(`[HandlerRegistry] Unregistered handler: ${handlerName}`);
+    return true;
+  }
+
+  /**
+   * 根據名稱獲取處理器
+   * 
+   * @param {string} handlerName - 處理器名稱
+   * @returns {EventHandler|undefined} 處理器實例
+   */
+  getHandler(handlerName) {
+    return this.handlers.get(handlerName);
+  }
+
+  /**
+   * 獲取所有已註冊的處理器
+   * 
+   * @returns {Array<EventHandler>} 處理器陣列
+   */
+  getAllHandlers() {
+    return Array.from(this.handlers.values());
+  }
+
+  /**
+   * 根據事件類型獲取處理器
+   * 
+   * @param {string} eventType - 事件類型
+   * @returns {Array<EventHandler>} 支援該事件的處理器陣列
+   */
+  getHandlersForEvent(eventType) {
+    return this.eventToHandlers.get(eventType) || [];
+  }
+
+  /**
+   * 註冊預設處理器
+   * 自動註冊所有內建的匯出處理器
+   */
+  registerDefaultHandlers() {
+    try {
+      // 註冊各種格式的匯出處理器
+      this.register(new CSVExportHandler());
+      this.register(new JSONExportHandler());
+      this.register(new ExcelExportHandler());
+      
+      // 註冊通用處理器
+      this.register(new ProgressHandler());
+      this.register(new ErrorHandler());
+
+      console.log('[HandlerRegistry] Default handlers registered successfully');
+    } catch (error) {
+      console.error('[HandlerRegistry] Failed to register default handlers:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 檢查處理器是否已註冊
+   * 
+   * @param {string} handlerName - 處理器名稱
+   * @returns {boolean} 是否已註冊
+   */
+  hasHandler(handlerName) {
+    return this.handlers.has(handlerName);
+  }
+
+  /**
+   * 啟用或停用處理器
+   * 
+   * @param {string} handlerName - 處理器名稱
+   * @param {boolean} enabled - 是否啟用
+   * @returns {boolean} 操作是否成功
+   */
+  setHandlerEnabled(handlerName, enabled) {
+    const handler = this.handlers.get(handlerName);
+    if (!handler) {
+      return false;
+    }
+
+    handler.setEnabled(enabled);
+    console.log(`[HandlerRegistry] Handler '${handlerName}' ${enabled ? 'enabled' : 'disabled'}`);
+    return true;
+  }
+
+  /**
+   * 獲取處理器統計資訊
+   * 
+   * @returns {Object} 統計資訊
+   */
+  getStats() {
+    const stats = {
+      totalHandlers: this.handlers.size,
+      enabledHandlers: 0,
+      eventTypesCovered: this.eventToHandlers.size,
+      handlerDetails: {}
+    };
+
+    this.handlers.forEach((handler, name) => {
+      if (handler.isEnabled) {
+        stats.enabledHandlers++;
+      }
+
+      stats.handlerDetails[name] = {
+        enabled: handler.isEnabled,
+        priority: handler.priority,
+        supportedEvents: handler.getSupportedEvents(),
+        stats: handler.getStats ? handler.getStats() : null
+      };
+    });
+
+    return stats;
+  }
+
+  /**
+   * 清理所有處理器
+   * 移除所有已註冊的處理器
+   */
+  clear() {
+    const handlerNames = Array.from(this.handlers.keys());
+    handlerNames.forEach(name => {
+      this.unregister(name);
+    });
+
+    console.log('[HandlerRegistry] All handlers cleared');
+  }
+
+  /**
+   * 驗證處理器註冊狀態
+   * 檢查是否有必要的處理器缺失
+   * 
+   * @returns {Object} 驗證結果
+   */
+  validateRegistry() {
+    const requiredHandlers = [
+      'CSVExportHandler',
+      'JSONExportHandler',
+      'ExcelExportHandler',
+      'ProgressHandler',
+      'ErrorHandler'
+    ];
+
+    const missingHandlers = requiredHandlers.filter(name => 
+      !this.handlers.has(name)
+    );
+
+    const disabledHandlers = requiredHandlers.filter(name => {
+      const handler = this.handlers.get(name);
+      return handler && !handler.isEnabled;
+    });
+
+    return {
+      isValid: missingHandlers.length === 0,
+      missingHandlers,
+      disabledHandlers,
+      totalHandlers: this.handlers.size
+    };
+  }
+}
+
+module.exports = HandlerRegistry;

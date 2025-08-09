@@ -156,9 +156,9 @@ class StorageLoadHandler extends EventHandler {
       return this.buildSuccessResponse(flowId, loadResult);
 
     } catch (error) {
-      // 統一錯誤處理
+      // 統一錯誤處理並以拒絕的 Promise 傳遞，避免工作執行緒崩潰
       await this.handleProcessError(flowId, error);
-      throw error; // 重新拋出供上層處理
+      return Promise.reject(error);
     }
   }
 

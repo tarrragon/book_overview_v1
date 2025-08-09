@@ -64,18 +64,10 @@ jest.mock('../../../src/export/export-events', () => ({
     JSON_EXPORT_REQUESTED: 'EXPORT.JSON.REQUESTED',
     JSON_EXPORT_COMPLETED: 'EXPORT.JSON.COMPLETED',
     JSON_EXPORT_FAILED: 'EXPORT.JSON.FAILED',
-    EXCEL_EXPORT_REQUESTED: 'EXPORT.EXCEL.REQUESTED',
-    EXCEL_EXPORT_COMPLETED: 'EXPORT.EXCEL.COMPLETED',
-    EXCEL_EXPORT_FAILED: 'EXPORT.EXCEL.FAILED',
-    PDF_EXPORT_REQUESTED: 'EXPORT.PDF.REQUESTED',
-    PDF_EXPORT_COMPLETED: 'EXPORT.PDF.COMPLETED',
-    PDF_EXPORT_FAILED: 'EXPORT.PDF.FAILED',
     BATCH_EXPORT_REQUESTED: 'EXPORT.BATCH.REQUESTED',
-    BATCH_EXPORT_STARTED: 'EXPORT.BATCH.STARTED',
     BATCH_EXPORT_COMPLETED: 'EXPORT.BATCH.COMPLETED',
     BATCH_EXPORT_FAILED: 'EXPORT.BATCH.FAILED',
     FILE_DOWNLOAD_REQUESTED: 'EXPORT.DOWNLOAD.REQUESTED',
-    FILE_DOWNLOAD_STARTED: 'EXPORT.DOWNLOAD.STARTED',
     FILE_DOWNLOAD_COMPLETED: 'EXPORT.DOWNLOAD.COMPLETED',
     FILE_DOWNLOAD_FAILED: 'EXPORT.DOWNLOAD.FAILED'
   },
@@ -84,14 +76,7 @@ jest.mock('../../../src/export/export-events', () => ({
     EXPORT_STARTED: 200,
     EXPORT_PROGRESS: 210,
     EXPORT_COMPLETED: 220,
-    EXPORT_FAILED: 50,
-    CSV_EXPORT_REQUESTED: 101,
-    JSON_EXPORT_REQUESTED: 102,
-    EXCEL_EXPORT_REQUESTED: 103,
-    PDF_EXPORT_REQUESTED: 104,
-    BATCH_EXPORT_REQUESTED: 105,
-    FILE_DOWNLOAD_REQUESTED: 106,
-    EXPORT_CANCELLED: 50
+    EXPORT_FAILED: 50
   },
   createExportEvent: jest.fn((type, data) => ({
     id: Date.now() + Math.random(),
@@ -226,9 +211,6 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
       await eventBus.emit('EXPORT.CSV.REQUESTED', csvExportData);
 
-      // 等待非同步事件處理完成
-      await new Promise(resolve => process.nextTick(resolve));
-
       expect(completedEventSpy).toHaveBeenCalled();
     });
 
@@ -253,9 +235,6 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
       await eventBus.emit('EXPORT.CSV.REQUESTED', csvExportData);
 
-      // 等待非同步事件處理完成
-      await new Promise(resolve => process.nextTick(resolve));
-
       expect(failedEventSpy).toHaveBeenCalled();
     });
 
@@ -269,9 +248,6 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
       };
 
       await eventBus.emit('EXPORT.CSV.REQUESTED', csvExportData);
-
-      // 等待非同步事件處理完成
-      await new Promise(resolve => process.nextTick(resolve));
 
       expect(progressEventSpy).toHaveBeenCalled();
     });

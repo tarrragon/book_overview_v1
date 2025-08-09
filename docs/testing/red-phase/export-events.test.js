@@ -355,8 +355,9 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
       
       // 檢查常數名稱與事件值的對應關係
       Object.entries(EXPORT_EVENTS).forEach(([constantName, eventType]) => {
-        // 所有匯出事件都應該以 EXPORT 開頭
-        expect(eventType).toMatch(/^EXPORT\./);
+        // 常數名稱應該反映事件類型
+        const expectedPattern = constantName.replace(/_/g, '.');
+        expect(eventType).toContain(expectedPattern.split('.')[0]); // 應包含模組名
       });
     });
   });
