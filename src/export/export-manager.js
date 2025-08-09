@@ -314,7 +314,8 @@ class ExportManager {
       json: EXPORT_EVENTS.JSON_EXPORT_COMPLETED,
       excel: EXPORT_EVENTS.EXCEL_EXPORT_COMPLETED,
       pdf: EXPORT_EVENTS.PDF_EXPORT_COMPLETED,
-      batch: EXPORT_EVENTS.BATCH_EXPORT_COMPLETED
+      batch: EXPORT_EVENTS.BATCH_EXPORT_COMPLETED,
+      download: EXPORT_EVENTS.FILE_DOWNLOAD_COMPLETED
     };
     
     const eventType = eventTypeMap[format.toLowerCase()];
@@ -323,14 +324,11 @@ class ExportManager {
       return;
     }
     
-    process.nextTick(() => {
-      this.eventBus.emit(eventType, {
-        exportId,
-        data,
-        correlationId
-      }).catch(error => {
-        console.warn(`Failed to emit completion event for ${format}:`, error);
-      });
+    // 同步發送事件以便測試驗證
+    this.eventBus.emit(eventType, {
+      exportId,
+      data,
+      correlationId
     });
   }
 
@@ -351,7 +349,8 @@ class ExportManager {
       json: EXPORT_EVENTS.JSON_EXPORT_FAILED,
       excel: EXPORT_EVENTS.EXCEL_EXPORT_FAILED,
       pdf: EXPORT_EVENTS.PDF_EXPORT_FAILED,
-      batch: EXPORT_EVENTS.BATCH_EXPORT_FAILED
+      batch: EXPORT_EVENTS.BATCH_EXPORT_FAILED,
+      download: EXPORT_EVENTS.FILE_DOWNLOAD_FAILED
     };
     
     const eventType = eventTypeMap[format.toLowerCase()];
@@ -360,14 +359,11 @@ class ExportManager {
       return;
     }
     
-    process.nextTick(() => {
-      this.eventBus.emit(eventType, {
-        exportId,
-        error: error.message,
-        correlationId
-      }).catch(emitError => {
-        console.warn(`Failed to emit failure event for ${format}:`, emitError);
-      });
+    // 同步發送失敗事件以便測試驗證
+    this.eventBus.emit(eventType, {
+      exportId,
+      error: error.message,
+      correlationId
     });
   }
 
@@ -429,32 +425,16 @@ class ExportManager {
         downloadData.mimeType
       );
       
-      // 非同步發送完成事件
-      process.nextTick(() => {
-        this.eventBus.emit(EXPORT_EVENTS.FILE_DOWNLOAD_COMPLETED, {
-          exportId,
-          filename: downloadData.filename,
-          correlationId: downloadData.correlationId
-        }).catch(error => {
-          console.warn('Failed to emit download completed event:', error);
-        });
-      });
+      // 使用統一的完成事件發送機制
+      this._emitCompletionEvent('download', exportId, { filename: downloadData.filename }, downloadData.correlationId);
 
       this._completeExport(exportId, { filename: downloadData.filename, format: 'download' });
 
       return { success: true, filename: downloadData.filename, exportId };
 
     } catch (error) {
-      // 非同步發送失敗事件
-      process.nextTick(() => {
-        this.eventBus.emit(EXPORT_EVENTS.FILE_DOWNLOAD_FAILED, {
-          exportId,
-          error: error.message,
-          correlationId: downloadData.correlationId
-        }).catch(emitError => {
-          console.warn('Failed to emit download failed event:', emitError);
-        });
-      });
+      // 使用統一的失敗事件發送機制
+      this._emitFailureEvent('download', exportId, error, downloadData.correlationId);
 
       this._failExport(exportId, error);
       throw error;

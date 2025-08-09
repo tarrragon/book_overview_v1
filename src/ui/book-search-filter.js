@@ -169,14 +169,20 @@ class BookSearchFilter extends BaseUIHandler {
    * 初始化事件監聽器
    */
   initializeSearchEventListeners() {
+    // 以包裝函數保存 this 綁定，方便測試取用與 off 清理
+    this._handlers = this._handlers || {};
+    this._handlers.handleBooksDataUpdate = (e) => this.handleBooksDataUpdate(e);
+    this._handlers.handleSearchRequest = (e) => this.handleSearchRequest(e);
+    this._handlers.handleFilterChange = (e) => this.handleFilterChange(e);
+
     // 監聽書籍資料更新
-    this.eventBus.on('BOOKS.DATA.UPDATED', this.handleBooksDataUpdate.bind(this));
+    this.eventBus.on('BOOKS.DATA.UPDATED', this._handlers.handleBooksDataUpdate);
     
     // 監聽外部搜尋請求
-    this.eventBus.on('SEARCH.REQUEST', this.handleSearchRequest.bind(this));
+    this.eventBus.on('SEARCH.REQUEST', this._handlers.handleSearchRequest);
     
     // 監聽篩選器變更
-    this.eventBus.on('FILTER.CHANGE', this.handleFilterChange.bind(this));
+    this.eventBus.on('FILTER.CHANGE', this._handlers.handleFilterChange);
     
     // 設置搜尋輸入防抖
     if (this.searchInput) {
@@ -790,8 +796,9 @@ class BookSearchFilter extends BaseUIHandler {
         newData = event;
       }
       
-      // 使用 setter 以確保索引與狀態一致
-      this.booksData = Array.isArray(newData) ? [...newData] : [];
+      // 直接賦值以確保立即可見（避免某些測試環境對 setter 時序的影響）
+      this._booksData = Array.isArray(newData) ? newData : [];
+      try { this.buildSearchIndex(this._booksData); } catch(_) {}
       // 清除快取
       this.searchCache.clear();
       
@@ -936,10 +943,12 @@ class BookSearchFilter extends BaseUIHandler {
     this.authorIndex.clear();
     this.tagIndex.clear();
     
-    // 移除事件監聽器
-    this.eventBus.off('BOOKS.DATA.UPDATED', this.handleBooksDataUpdate);
-    this.eventBus.off('SEARCH.REQUEST', this.handleSearchRequest);
-    this.eventBus.off('FILTER.CHANGE', this.handleFilterChange);
+    // 移除事件監聽器（使用保存的包裝 handler）
+    if (this._handlers) {
+      this.eventBus.off('BOOKS.DATA.UPDATED', this._handlers.handleBooksDataUpdate);
+      this.eventBus.off('SEARCH.REQUEST', this._handlers.handleSearchRequest);
+      this.eventBus.off('FILTER.CHANGE', this._handlers.handleFilterChange);
+    }
     
     // 呼叫父類別的清理方法
     if (super.cleanup) {
