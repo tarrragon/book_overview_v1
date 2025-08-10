@@ -55,6 +55,26 @@ class HandlerRegistry {
      * @type {Map<string, Array<EventHandler>>}
      */
     this.eventToHandlers = new Map();
+    
+    /**
+     * 錯誤處理重入保護旗標
+     * 
+     * 防止 ErrorHandler 處理錯誤時再次觸發錯誤處理，造成無限循環
+     * 
+     * 問題背景：
+     * 1. HandlerRegistry 在處理器失敗時會發送 FAILED 事件
+     * 2. ErrorHandler 監聽這些 FAILED 事件進行錯誤處理
+     * 3. 如果 ErrorHandler 自身拋出錯誤，會再次觸發錯誤處理
+     * 4. 形成無限遞迴，導致 heap OOM 和 RangeError
+     * 
+     * 解決方案：
+     * - 使用重入保護旗標防止錯誤處理的遞迴觸發
+     * - ErrorHandler 的錯誤會直接記錄到 console，不再遞迴處理
+     * - 確保旗標在 finally 塊中重置，避免永久鎖定
+     * 
+     * @type {boolean}
+     */
+    this._processingError = false;
   }
 
   /**
@@ -98,14 +118,36 @@ class HandlerRegistry {
           }
           return result;
         } catch (err) {
-          // 出錯時對應發送失敗事件，讓 ErrorHandler 能被觸發
-          const failedEventMap = {
-            'EXPORT.CSV.REQUESTED': 'EXPORT.CSV.FAILED',
-            'EXPORT.JSON.REQUESTED': 'EXPORT.JSON.FAILED',
-            'EXPORT.EXCEL.REQUESTED': 'EXPORT.EXCEL.FAILED'
-          };
-          const failedType = failedEventMap[eventType] || 'EXPORT.PROCESS.FAILED';
-          try { await this.eventBus.emit(failedType, { error: err, format: eventType.split('.')[1].toLowerCase() }); } catch (_) {}
+          // 錯誤處理重入保護：防止 ErrorHandler 處理錯誤時再次觸發錯誤處理
+          if (!this._processingError) {
+            this._processingError = true;
+            
+            try {
+              // 出錯時對應發送失敗事件，讓 ErrorHandler 能被觸發
+              const failedEventMap = {
+                'EXPORT.CSV.REQUESTED': 'EXPORT.CSV.FAILED',
+                'EXPORT.JSON.REQUESTED': 'EXPORT.JSON.FAILED',
+                'EXPORT.EXCEL.REQUESTED': 'EXPORT.EXCEL.FAILED'
+              };
+              const failedType = failedEventMap[eventType] || 'EXPORT.PROCESS.FAILED';
+              
+              // 發送錯誤事件，但如果 ErrorHandler 自身出錯，不會再次觸發
+              await this.eventBus.emit(failedType, { 
+                error: err, 
+                format: eventType.split('.')[1] ? eventType.split('.')[1].toLowerCase() : 'unknown',
+                originalEvent: eventType,
+                exportId: data?.exportId || 'auto-generated', // 提供預設 exportId
+                phase: 'processing'
+              });
+            } catch (errorHandlingErr) {
+              // ErrorHandler 本身的錯誤不再遞迴處理，直接記錄
+              console.error('[HandlerRegistry] Error in error handling:', errorHandlingErr.message);
+            } finally {
+              // 確保重入保護旗標被重置
+              this._processingError = false;
+            }
+          }
+          
           throw err;
         }
       }, {
