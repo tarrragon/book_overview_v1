@@ -1,184 +1,296 @@
-# 📚 Readmoo書庫數據提取器 Chrome Extension
+# 🏗️ 開發者文檔總覽
 
-一個專為Readmoo電子書平台設計的Chrome擴充功能，能夠自動提取使用者書庫資料，並提供本地化的書目管理與匯出功能。
-
-## 🎯 專案目的
-
-### 核心功能
-
-- **自動數據提取**：從書庫頁面自動提取書籍資訊（書名、封面、ID、閱讀進度等）
-- **多書城支援**：支援 Readmoo、博客來、金石堂等多個電子書平台（可擴展架構）
-- **本地化瀏覽**：在extension內建的overview頁面中瀏覽個人書庫
-- **資料匯出**：支援JSON、CSV格式匯出，方便資料管理與備份
-- **離線存取**：提取的資料儲存在本地，無需重複載入網頁即可瀏覽
-- **統一管理**：不同書城的書籍統一管理，提供完整的閱讀記錄
-
-### 設計理念
-
-- **事件驅動架構**：基於Chrome extension的事件系統設計，實現高效的資料流管理
-- **使用者體驗優先**：簡潔直觀的介面，一鍵操作完成資料提取與管理
-- **數據安全**：所有資料處理均在本地進行，保護使用者隱私
-- **擴展性設計**：模組化架構，便於未來功能擴展
-
-## 🏗 系統架構
-
-### Chrome Extension 結構
-
-```
-book_overview_v1/
-├── manifest.json              # Extension配置檔案
-├── background/                # 背景服務
-│   ├── service-worker.js      # 主要背景處理邏輯
-│   └── events/                # 事件處理模組
-├── content-scripts/           # 內容腳本
-│   ├── extractor.js          # 數據提取腳本
-│   └── injector.js           # 頁面注入腳本
-├── popup/                     # 彈出視窗
-│   ├── popup.html            # 彈出介面
-│   ├── popup.css             # 彈出樣式
-│   └── popup.js              # 彈出邏輯
-├── overview/                  # 書庫瀏覽頁面
-│   ├── overview.html         # 主瀏覽頁面
-│   ├── assets/               # 靜態資源
-│   └── modules/              # 功能模組
-├── storage/                   # 數據儲存
-│   └── handlers/             # 儲存處理器
-├── utils/                     # 工具函數
-│   ├── data-processor.js     # 資料處理工具
-│   └── export-manager.js     # 匯出管理工具
-└── tests/                     # 測試檔案
-    ├── unit/                 # 單元測試
-    ├── integration/          # 整合測試
-    └── e2e/                  # 端對端測試
-```
-
-### 事件驅動流程
-
-1. **觸發事件**：使用者在Readmoo頁面點擊extension圖示
-2. **資料提取**：Content script執行extractBooksData函數
-3. **資料處理**：Background service處理並儲存資料
-4. **介面更新**：Popup/Overview頁面即時更新顯示
-5. **使用者操作**：搜尋、篩選、匯出等互動功能
-
-## 🔧 技術棧
-
-### 前端技術
-
-- **HTML5 + CSS3**：現代化的使用者介面
-- **Vanilla JavaScript (ES6+)**：原生JS實現，避免外部依賴
-- **Chrome Extension APIs**：深度整合Chrome瀏覽器功能
-
-### 開發方法論
-
-- **測試驅動開發 (TDD)**：先寫測試，後實現功能
-- **事件驅動設計**：基於事件的鬆耦合架構
-- **模組化開發**：單一責任原則，功能模組化
-
-### 品質保證
-
-- **單元測試**：使用Jest進行單元測試
-- **整合測試**：驗證模組間協作
-- **端對端測試**：使用Puppeteer模擬使用者操作
-
-## 📋 資料格式
-
-### 提取的書籍資料結構
-
-```javascript
-{
-  "id": "書籍唯一識別碼",
-  "title": "書籍標題",
-  "cover": "封面圖片URL",
-  "progress": "閱讀進度百分比",
-  "type": "書籍類型（流式/版式）",
-  "isNew": "是否為新書",
-  "isFinished": "是否已完讀",
-  "extractedAt": "提取時間戳記"
-}
-```
-
-### 儲存格式
-
-- **Local Storage**：即時存取的快取資料
-- **Chrome Storage API**：持久化的使用者資料
-- **匯出格式**：JSON（完整資料）、CSV（表格資料）
-
-## 🚀 開發路線圖
-
-### 第一階段：基礎架構建立
-
-- [x] 專案結構設計
-- [ ] Chrome Extension manifest配置
-- [ ] 基礎事件系統建立
-- [ ] 測試框架搭建
-
-### 第二階段：核心功能開發
-
-- [ ] 資料提取模組實現
-- [ ] 資料儲存與管理
-- [ ] Overview頁面整合
-- [ ] 基礎使用者介面
-
-### 第三階段：功能增強
-
-- [ ] 進階搜尋與篩選
-- [ ] 多格式匯出功能
-- [ ] 使用者設定與偏好
-- [ ] 效能最佳化
-
-### 第四階段：品質提升
-
-- [ ] 完整測試覆蓋
-- [ ] 錯誤處理與回復
-- [ ] 使用者體驗優化
-- [ ] 文件完善
-
-## 🎮 使用方式
-
-1. **安裝Extension**：將專案載入Chrome開發者模式
-2. **瀏覽Readmoo**：前往個人書庫頁面
-3. **提取資料**：點擊extension圖示開始提取
-4. **管理書目**：在Overview頁面瀏覽和管理
-5. **匯出資料**：使用內建匯出功能備份資料
-
-## 🛠 開發環境設定
-
-### 必要條件
-
-- Chrome瀏覽器 (版本88+)
-- Node.js (版本14+)
-- npm或yarn包管理器
-
-### 開發指令
-
-```bash
-# 安裝依賴
-npm install
-
-# 執行測試
-npm test
-
-# 開發模式
-npm run dev
-
-# 建置發布版本
-npm run build
-```
-
-## 🤝 貢獻指南
-
-我們歡迎所有形式的貢獻！請閱讀我們的貢獻指南並遵循以下原則：
-
-- 遵循TDD開發模式
-- 保持程式碼簡潔可讀
-- 撰寫完整的測試案例
-- 詳細的commit訊息
-- 適當的文件更新
-
-## 📄 授權條款
-
-本專案採用MIT授權條款，詳情請參閱LICENSE檔案。
+> **多書城書庫管理器** Chrome Extension 完整開發文檔  
+> 提供架構設計、職責劃分、開發流程、未來規劃等內部開發資訊
 
 ---
 
-**注意：本專案僅供個人學習與研究使用，請尊重Readmoo平台的使用條款。**
+## 📍 文檔導覽
+
+### 📚 核心文檔
+- **[🏠 架構設計](./architecture/)** - 事件系統、資料流、安全性設計
+- **[📋 專案結構](./struct.md)** - 完整檔案結構和資料夾組織
+- **[🎨 開發流程](./CONTRIBUTING.md)** - TDD 節律、編碼規範、提交流程
+
+### 🔧 API 與部署
+- **[⚙️ API 文檔](./API.md)** - 完整 API 接口說明和使用範例
+- **[🚀 部署指南](./DEPLOYMENT.md)** - Chrome Web Store 上架流程
+- **[🕰️ 版本記錄](../CHANGELOG.md)** - 詳細版本變更記錄
+
+### 📋 專案管理
+- **[🎯 開發任務](./todolist.md)** - 當前任務清單和進度追蹤  
+- **[🗺️ v1.0 上架計劃](./v1.0-release-roadmap.md)** - Chrome Web Store 上架路線圖
+- **[📝 工作日誌](./work-logs/)** - 詳細開發過程和技術決策
+
+---
+
+## 🎯 專案目標與理念
+
+### 項目願景
+為電子書用戶提供**跨平台完整書庫管理解決方案**，讓數位閱讀更有條理、更有效率。支援多個主流書城平台，實現統一管理。
+
+### 產品價值
+1. **多平台整合** - 統一管理不同書城的書籍，消除平台隔閡
+2. **資料最佳化** - 從各書城分散的頁面資訊整理為統一結構化資料
+3. **隱私保護** - 全本地處理，絕不上傳雲端，完全保護用戶隱私
+4. **效率提升** - 一鍵提取、快速搜尋、智能篩選，大幅提升書庫管理效率
+5. **資料永久化** - 不依賴任何書城網站，隨時查看完整閱讀紀錄
+
+## 🏠 技術架構概述
+
+### 🔄 事件驅動設計
+採用**去耦合事件架構**，核心理念：
+- **Event Bus 中心化通訊** - 所有模組通過事件系統通訊
+- **Publisher-Subscriber 模式** - 面向事件的鬆耦合設計
+- **單一責任原則** - 每個模組只負責一個明確功能
+- **依賴注入** - 提升可測試性和維護性
+
+### 📦 模組責任劃分
+
+| 模組 | 核心責任 | 主要事件 |
+|------|--------|--------|
+| **Background** | 擴展生命周期管理 | `EXTENSION.*`, `STORAGE.*` |
+| **Content Scripts** | 多書城頁面資料提取 | `EXTRACTOR.*`, `DATA.*` |
+| **Popup** | 使用者互動控制面板 | `UI.POPUP.*`, `USER.*` |
+| **Overview** | 書庫管理主頁面 | `UI.OVERVIEW.*`, `SEARCH.*` |
+| **Storage** | 資料持久化管理 | `STORAGE.*`, `SYNC.*` |
+| **Export** | 多格式資料匯出 | `EXPORT.*`, `FILE.*` |
+
+### 🔁 資料流管理
+
+```
+使用者觸發 → 事件發布 → 資料提取 → 資料處理 → 儲存更新 → UI 更新
+     │              │             │             │             │            │
+  Popup Click  → EXTRACT.START → DOM Analysis → Data Format → Chrome API → Component
+```
+
+## 📋 職責區塊劃分
+
+### 🔴 核心功能區塊 (v1.0 已完成)
+
+#### 資料提取層 (Content Scripts)
+- **責任範圍**: 多書城 DOM 解析、書籍資料提取、進度追蹤
+- **v1.0 支援**: Readmoo 平台完整實現
+- **v2.0+ 規劃**: Kobo, Kindle, BookWalker, 博客來等書城擴展
+- **主要檔案**: `src/extractors/`, `src/content/`
+- **事件接口**: `EXTRACTOR.DATA.EXTRACTED`, `EXTRACTOR.PROGRESS.UPDATED`
+
+#### 資料管理層 (Storage)
+- **責任範圍**: Chrome Storage API 封裝、資料持久化、同步管理
+- **主要檔案**: `src/storage/`, `src/handlers/`
+- **事件接口**: `STORAGE.SAVE.COMPLETED`, `STORAGE.LOAD.COMPLETED`
+
+#### 使用者介面層 (UI Components)
+- **責任範圍**: Popup 控制面板、Overview 主頁面、互動組件
+- **主要檔案**: `src/popup/`, `src/overview/`, `src/ui/`
+- **事件接口**: `UI.POPUP.OPENED`, `UI.SEARCH.TRIGGERED`
+
+### 🔶 支援服務區塊 (v1.0 已完成)
+
+#### 事件系統 (Event Bus)
+- **責任範圍**: 中央化事件傳遞、跨模組通訊管理
+- **主要檔案**: `src/core/`, `src/events/`
+- **核心 API**: `EventBus.emit()`, `EventBus.on()`, `EventBus.off()`
+
+#### 資料轉換與匯出 (Export)
+- **責任範圍**: CSV/JSON 匯出、資料格式化、檔案管理
+- **主要檔案**: `src/export/`, `src/utils/export/`
+- **支援格式**: CSV (已完成), JSON (已完成)
+
+#### 日誌與錯誤處理 (Logging)
+- **責任範圍**: 事件日誌、錯誤回報、性能監控
+- **主要檔案**: `src/utils/logger/`, `src/error/`
+- **檔案等級**: ERROR, WARN, INFO, DEBUG
+
+### 🔵 多書城擴展區塊 (v2.0+ 核心功能)
+
+#### 多書城支援 (Multi-Platform) - 專案核心目標
+- **設計理念**: 以支援多書城為核心目標設計
+- **v1.0 策略**: 先完善 Readmoo 單一平台，確保架構穩定和用戶體驗
+- **擴展計劃**: 
+  - **v2.0**: Kobo 電子書店、BookWalker 角川書城
+  - **v2.1**: Kindle 雲端閱讀器、博客來電子書城
+  - **v2.2**: HyRead、Pubu 等台灣本土平台
+- **技術挑戰**: 適配器模式、統一資料格式、跨平台認證、DOM 解析適配
+
+#### 進階節能 (Advanced Features)
+- **計劃範圍**: 用戶標籤系統、閱讀統計分析、書籍推薦
+- **設計挑戰**: 機器學習演算法、個人化推薦、資料視覺化
+- **預計時程**: v2.1 版本 (2025 Q4)
+
+#### 跨平台擴展 (Cross-Platform)
+- **計劃範圍**: Firefox Extension, Edge Extension
+- **設計挑戰**: WebExtension 標準相容性、統一建置流程
+- **預計時程**: v2.2 版本 (2026 Q1)
+
+## 🛤️ 開發流程指南
+
+### 🔄 TDD 循環紀律
+本專案**嚴格遵循 TDD 開發方法論**，每個功能都必須遵循：
+
+#### 🔴 Red 階段 - 測試設計
+1. **分析需求** - 明確功能規格和期望行為
+2. **設計測試案例** - 寫出導致失敗的測試
+3. **定義介面** - 確定 API 和資料結構
+4. **執行測試** - 確認測試失敗（紅燈）
+
+#### 🟢 Green 階段 - 實現功能
+1. **最小可行實現** - 只寫讓測試通過的程式碼
+2. **通過測試** - 確認所有測試都通過
+3. **基本功能驗證** - 手動測試核心功能
+4. **提交程式碼** - Git commit 線上版本
+
+#### 🔵 Refactor 階段 - 程式碼優化
+1. **檢視程式碼品質** - 找出可改善的地方
+2. **重構優化** - 保持測試通過下改善程式碼
+3. **性能優化** - 測量和改善具體效能
+4. **文件更新** - 同步更新相關文件
+
+### 📑 程式碼品質規範
+
+#### 命名規範
+- **事件命名**: `MODULE.ACTION.STATE` 格式
+- **檔案命名**: `feature.type.js` 格式 (e.g., `book-extractor.handler.js`)
+- **函式命名**: 動詞開頭的駝駝式 (e.g., `extractBookData`, `handleStorageEvent`)
+- **變數命名**: 名詞或算子語句 (e.g., `bookList`, `isExtracting`)
+
+#### 注釋與文件
+- **檔案標頭** - 每個 JS 檔案都必須有此檔案的目的、功能、依賴關係
+- **函式註釋** - 複雜函式必須說明參數、返回值、副作用
+- **事件註釋** - 每個事件發布和監聽都必須說明目的和資料格式
+- **TODO 標記** - 暫時權宜實現必須以 `//todo: <後續修正方向>` 註記
+
+### 📦 版本控制流程
+
+#### 提交訊息範例
+```bash
+# 功能新增
+feat(extractor): add book progress extraction
+
+# 錯誤修復  
+fix(storage): resolve data persistence issue
+
+# 程式碼重構
+refactor(events): improve event naming consistency
+
+# 測試新增
+test(export): add CSV export integration tests
+```
+
+#### 分支管理
+- **main** - 穩定版本，隨時可以部署
+- **develop** - 開發中版本，功能測試中
+- **feature/*** - 個別功能開發分支
+- **hotfix/*** - 緊急修復分支
+
+🔍 **詳細開發規範請參考**: [CONTRIBUTING.md](./CONTRIBUTING.md)
+
+## 🗺️ 規劃中 Roadmap 與未來展望
+
+### 🎆 v1.0 上架成功 (2025 Q2 已完成) - Readmoo 專版
+
+✅ **核心功能 100% 完成**
+- Readmoo 書庫資料完整提取（多書城架構的第一個實現）
+- Chrome Storage 本地安全儲存
+- 響應式書庫管理介面
+- CSV 格式資料匯出
+- **為多書城擴展預留的可擴展架構**
+
+
+### 🚀 v1.1 用戶體驗優化 (2025 Q3 發布)
+
+🟡 **進階功能增強**
+- [ ] 🎨 深色主題模式 
+- [ ] 📊 閱讀統計分析儀表板
+- [ ] 🏷️ 個人標籤和書籍分類系統
+- [ ] 🔍 進階搜尋篩選 (作者、年份、類型)
+
+🟡 **可用性改善**  
+- [ ] 📱 行動裝置优源介面
+- [ ] ⚡ 大量書籍處理性能優化
+- [ ] 🔄 書庫資料自動同步功能
+- [ ] 🚑 快速設定和使用教學
+
+### 🌍 v2.0 多書城正式擴展 (2025 Q4 規劃) - 實現核心目標
+
+🔵 **多書城支援 - 專案核心功能實現**
+- [ ] 📚 Kobo 電子書店完整支援
+- [ ] 🏪 BookWalker 角川書城支援  
+- [ ] 📖 Kindle 雲端閱讀器支援（技術挑戰較高）
+- [ ] 🏢 博客來電子書城支援
+- [ ] 📱 統一跨平台書庫管理介面
+
+🔵 **跨瀏覽器支援**
+- [ ] 🦊 Firefox Extension 版本
+- [ ] 🌐 Edge Extension 版本
+- [ ] 🔄 跨平台資料同步
+
+### 🚀 v2.1 智能分析 (2026 Q1 未來展望)
+
+🟣 **人工智能功能**
+- [ ] 🤖 書籍推薦算法 (ML 機器學習)
+- [ ] 📈 閱讀習慣深度分析
+- [ ] 🎯 個人化閱讀目標設定
+- [ ] 💡 閱讀效率優化建議
+
+🟣 **社群互動功能**
+- [ ] 👥 好友閱讀動態分享
+- [ ] 📝 書籍評論和筆記功能
+- [ ] 🏆 閱讀成就系統
+- [ ] 📊 書友圈閱讀排行榜
+
+---
+
+### 👀 目前開發重點
+
+**短期目標** (1-3 個月):
+1. v1.0 用戶回饋優化和錯誤修復
+2. v1.1 版本新功能設計和開發
+3. 使用者社群經營和交流
+
+**中期目標** (6-12 個月):
+1. **多書城平台技術調研和測試** - 實現專案核心目標
+2. Kobo、BookWalker 等平台 DOM 解析和資料提取方案
+3. 統一資料格式和跨平台相容性架構
+4. 大量用戶流量性能優化
+
+
+
+## 🔧 技術細節與架構文件
+
+### 🏠 核心架構文件
+- **[🔄 事件系統設計](./architecture/event-system.md)** - 中央化事件總線架構
+- **[📊 資料流設計](./architecture/data-extractor-design.md)** - 資料提取和處理流程  
+- **[🔒 安全性設計](./architecture/)** - Chrome Extension 安全性規範
+
+### 📝 技術決策記錄
+- **[📝 依賴注入債務分析](./architecture/dependency-injection-debt-analysis.md)**
+- **[🔄 重構執行計劃](./architecture/refactoring-execution-plan.md)**  
+- **[🚀 效能優化報告](./performance-optimization-report.md)**
+
+### 📋 開發管理文件
+- **[⚙️ 開發環境設置](./DEPLOYMENT.md)** - 本地開發和 CI/CD 配置
+- **[🐛 用戶錯誤指南](./USER_ERROR_GUIDE.md)** - 常見問題診斷和解決
+- **[🤝 貢獻指南](./CONTRIBUTING.md)** - 外部開發者參與流程
+
+---
+
+📚 **更多技術細節和開發文件請瀏覽** [📁 docs/ 目錄](./)
+
+🚀 **立即開始開發請參考** [🏠 專案結構設計](./struct.md) 和 [⚙️ API 文檔](./API.md)
+
+---
+
+<div align="center">
+
+
+
+[🐛 GitHub Issues](https://github.com/your-username/readmoo-book-manager/issues) •
+[💡 Feature Requests](https://github.com/your-username/readmoo-book-manager/discussions) •
+[👨‍💻 貢獻指南](./CONTRIBUTING.md) •
+[📚 API 文件](./API.md)
+
+---
+
+
+</div>
