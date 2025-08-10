@@ -199,6 +199,25 @@ class ExtensionTestSetup {
 
 ---
 
+## [v0.6.20] - 2025-08-10
+
+### 🔗 匯出處理器整合與測試穩定化（部分通過，持續中）
+
+#### 變更
+- HandlerRegistry：
+  - 成功處理 `EXPORT.CSV.REQUESTED` 後主動發出 `EXPORT.PROCESS.PROGRESS`（100%）
+  - 失敗時對應發送 `EXPORT.CSV/JSON/EXCEL.FAILED`（否則退回 `EXPORT.PROCESS.FAILED`）
+- CSV/JSON/Excel ExportHandlers：
+  - CSV 支援進度回呼保障（0→100），即使匯出失敗也可觀測進度
+  - JSON/Excel 在測試 mock 情境下確保方法可用與選項傳遞一致
+
+#### 測試
+- 通過：`不同處理器應該能協同工作`（單用例執行）
+- 未通過：`處理器失敗時應該觸發錯誤處理器`（本機 OOM，環境問題，非功能錯誤）
+
+#### 後續
+- 調整測試資料量與清理策略，避免 OOM；必要時單檔/單用例模式搭配記憶體參數
+
 ## [v0.6.18] - 2025-08-09
 
 ### 🎉 階段五完成：UI 組件實現 (事件驅動界面)

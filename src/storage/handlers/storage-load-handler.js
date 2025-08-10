@@ -83,6 +83,10 @@ class StorageLoadHandler extends EventHandler {
 
     // 載入類型統計 - 重構：在LOAD_TYPES定義後初始化
     this.loadTypeStats = this.initializeLoadTypeStats();
+
+    // 錯誤處理保險：避免同一 flowId 重複發送錯誤或造成 worker 重試風暴
+    // key: flowId, value: 錯誤次數
+    this._errorFlows = new Map();
   }
 
   /**
@@ -150,14 +154,19 @@ class StorageLoadHandler extends EventHandler {
       const loadQuery = this.prepareLoadQuery(data, timestamp);
       const loadResult = await this.executeLoad(loadQuery);
 
-      // 3. 後處理
-      this.performPostProcessing(data.loadType, loadResult, flowId);
+      // 3. 後處理（必須等待以確保錯誤在同一 try/catch 中被捕捉）
+      await this.performPostProcessing(data.loadType, loadResult, flowId);
 
       return this.buildSuccessResponse(flowId, loadResult);
 
     } catch (error) {
-      // 統一錯誤處理並以拒絕的 Promise 傳遞，避免工作執行緒崩潰
-      await this.handleProcessError(flowId, error);
+      // 統一錯誤處理：只對同一 flowId 送出一次 STORAGE.ERROR，避免 jest-worker 過度重試
+      const currentCount = this._errorFlows.get(flowId) || 0;
+      if (currentCount === 0) {
+        await this.handleProcessError(flowId, error);
+      }
+      this._errorFlows.set(flowId, currentCount + 1);
+      // 回傳拒絕以符合測試期望（reject once），由上層捕捉
       return Promise.reject(error);
     }
   }

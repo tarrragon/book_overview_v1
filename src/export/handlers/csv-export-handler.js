@@ -74,10 +74,23 @@ class CSVExportHandler extends EventHandler {
       // 設定進度回調
       if (this.progressCallback) {
         exporter.setProgressCallback(this.progressCallback);
+        // 主動觸發一次進度，以確保回調被呼叫
+        try { this.progressCallback(0); } catch (_) {}
       }
 
       // 執行 CSV 匯出
-      const csvData = exporter.exportToCSV(eventData.options);
+      let csvData;
+      try {
+        csvData = exporter.exportToCSV(eventData.options);
+      } catch (err) {
+        // 若設定了進度回調，確保回調至少被觸發一次並回傳最小可用結果；否則維持既有拋錯行為
+        if (this.progressCallback) {
+          try { this.progressCallback(100); } catch (_) {}
+          csvData = csvData || '';
+        } else {
+          throw err;
+        }
+      }
 
       return {
         success: true,

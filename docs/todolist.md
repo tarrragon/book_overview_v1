@@ -104,6 +104,7 @@
 
 ### ✅ 新完成項目（本循環）
 - [x] 🟢 PopupUIManager 測試穩定化與可測試性強化（v0.6.19）
+- [x] 🔗 匯出處理器整合（進度事件打通）單用例通過（v0.6.20）
   - 支援建構時注入 `document`
   - 新增 `_ensureVisible`/`_ensureHidden` 最終保證
   - `showLoading` 與 `showSuccess` 並存相容
