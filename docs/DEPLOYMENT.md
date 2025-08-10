@@ -27,7 +27,7 @@
 
 ## 🏗 建置流程
 
-### 開發版本建置
+### 開發版本建置 (本地測試推薦)
 ```bash
 # 安裝依賴
 npm install --legacy-peer-deps
@@ -39,7 +39,10 @@ npm test
 npm run build:dev
 ```
 
-### 生產版本建置
+**輸出目錄**: `build/development/`
+**用途**: 本地開發測試，保留完整程式碼結構，方便 DevTools 除錯
+
+### 生產版本建置 (上架專用)
 ```bash
 # 清理先前建置
 npm run clean
@@ -47,9 +50,67 @@ npm run clean
 # 建置生產版本
 npm run build:prod
 
-# 驗證建置結果
-npm run validate:build
+# 自動驗證建置結果
+npm run validate:build:prod
 ```
+
+**輸出目錄**: `build/production/`  
+**用途**: Chrome Web Store 上架版本，經過優化處理
+
+### 版本共存機制
+
+兩個建置版本可以同時存在，互不影響：
+- `build/development/` - 開發測試版本
+- `build/production/` - 上架發布版本
+
+### 建議的開發流程
+
+#### 開發階段
+```bash
+npm run build:dev
+```
+- 載入到 Chrome: 選擇 `build/development/` 目錄
+- 優點: 建置速度快、除錯友好、程式碼結構完整
+
+#### 上架前準備  
+```bash
+npm run build:prod
+```
+- 用途: 最終測試和 Chrome Web Store 上架
+- 重要: **上架前建議重新打包**，確保程式碼為最新版本
+
+#### 最佳實務建議
+1. **開發期間**: 使用 `build:dev` 進行日常開發和測試
+2. **功能完成**: 用 `build:prod` 做最終版本測試  
+3. **確認無誤**: 將 `build/production/` 打包上架
+4. **版本一致性**: 避免開發版本意外上架
+
+### 建置驗證指令
+
+專案提供自動化的建置驗證功能：
+
+```bash
+# 驗證開發版本建置
+npm run validate:build
+
+# 驗證生產版本建置  
+npm run validate:build:prod
+```
+
+#### 驗證項目包含
+
+- **目錄結構驗證**: 確認所有必要檔案和目錄存在
+- **Manifest 檔案驗證**: 檢查 manifest.json 語法和必要欄位
+- **核心檔案檢查**: 驗證 Background、Content Script、Popup 檔案
+- **圖示檔案檢查**: 確認 16x16、48x48、128x128 圖示存在
+- **權限配置檢查**: 驗證權限設定符合最小權限原則
+- **檔案大小檢查**: 防止檔案過大影響載入速度
+
+#### 驗證結果說明
+
+- **✅ 通過**: 所有檢查通過，可安全使用
+- **⚠️ 警告**: 功能正常但有優化建議
+- **❌ 失敗**: 發現問題，需修正後重新建置
 
 ## 📦 Chrome Web Store 上架
 
