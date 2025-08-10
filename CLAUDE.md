@@ -437,99 +437,177 @@ docs/
 
 ## 🤖 Agent 協作規範
 
-本專案使用多個專業代理人來確保開發品質：
+本專案使用多個專業代理人來確保開發品質，每個代理人都有明確的100%責任範圍和敏捷升級機制：
 
-#### TDD 核心代理人
+#### 專案管理層級
 
-- **sage-test-architect** (🔴): Red 階段測試設計專家
-- **pepper-test-implementer** (🟢): Green 階段實現專家
-- **cinnamon-refactor-owl** (🔵): Refactor 階段重構專家
+- **rosemary-project-manager** (📋): 敏捷專案管理專家
+  - **核心職責**: 策略規劃、工作分派完整度100%、敏捷升級處理
+  - **專業範圍**: 監督文件先行策略、管理最小分派最快交付、協調Agent間工作分配
+  - **升級處理**: 當代理人多次嘗試無法完成時，立即重新拆分任務並重新分配
+
+- **project-compliance-agent**: 執行層級合規專家
+  - **核心職責**: 執行合規性檢查100%、版本控制強制要求
+  - **專業範圍**: 在 rosemary-project-manager 策略指導下執行操作層面合規驗證
+  - **協作邊界**: 不負責策略規劃，專注於執行層面的合規性驗證
+
+#### TDD 核心代理人（測試領域職責分離）
+
+- **sage-test-architect** (🔴): 單元測試設計專家
+  - **核心職責**: TDD Red階段單元測試設計100%、組件層級測試覆蓋
+  - **專業範圍**: 專注於單元測試和組件測試，不涉及系統整合測試
+  - **協作邊界**: 測試設計完成後交接給 pepper-test-implementer
+
+- **pepper-test-implementer** (🟢): TDD 實作階段專家
+  - **核心職責**: Green階段實現100%測試通過，不允許任何失敗測試
+  - **專業範圍**: 實現最小可用程式碼讓所有測試通過
+  - **協作邊界**: 完成後交接給 cinnamon-refactor-owl 進行重構
+
+- **cinnamon-refactor-owl** (🔵): TDD 重構階段專家
+  - **核心職責**: Refactor階段100%重構完成，不允許任何已識別問題未解決
+  - **專業範圍**: 在保持測試通過前提下優化程式碼品質
+  - **升級機制**: 遇到複雜重構問題必須尋找可行改善方案，不得放棄
+
+- **coriander-integration-tester**: 系統整合測試專家
+  - **核心職責**: 100%覆蓋所有系統整合點，端對端測試和系統層級測試
+  - **專業範圍**: 專注於系統間整合、API整合、跨組件測試
+  - **協作邊界**: 單元測試完成後才進行整合測試，與 sage-test-architect 互補
+
+#### UI/UX 設計與實現領域（設計實現分離）
+
+- **lavender-interface-designer**: 純設計策略專家
+  - **核心職責**: 100%設計規劃完整度，確保100%技術實現交接
+  - **專業範圍**: UI/UX設計策略、使用者體驗規劃、設計規範制定
+  - **協作邊界**: 不進行技術實現，所有設計完成後交接給 thyme-extension-engineer
+
+- **thyme-extension-engineer**: Chrome Extension 技術實現專家
+  - **核心職責**: 100%功能完整實作、100%實現 lavender-interface-designer 設計規範
+  - **專業範圍**: Manifest V3合規、擴展架構、技術實現和程式碼轉譯
+  - **協作邊界**: 不做設計決策，專注於將設計規範轉換為功能程式碼
 
 #### 專業領域代理人
 
-- **project-compliance-agent**: 版本控制和工作流程合規性
-- **basil-event-architect**: 事件驅動架構設計
-- **thyme-extension-engineer**: Chrome Extension 開發專家
-- **lavender-interface-designer**: UI/UX 設計專家
+- **basil-event-architect**: 事件驅動架構專家
+  - **核心職責**: 100%架構完整度，不允許任何通訊路徑未定義
+  - **專業範圍**: 事件系統設計、模組通訊協議、架構模式設計
+  - **協作機制**: 與 thyme-extension-engineer 協作確保事件架構技術實現
+
 - **oregano-data-miner**: 資料提取專家
-- **ginger-performance-tuner**: 性能優化專家
-- **coriander-integration-tester**: 整合測試專家
+  - **核心職責**: 100%目標資料必須成功提取，不允許任何關鍵資料遺漏
+  - **專業範圍**: 網頁爬蟲、DOM操作、資料處理和驗證
+  - **升級機制**: 遇到技術困難時必須尋找替代方案，不得放棄任何目標資料
 
-#### 專案管理代理人
-
-- **rosemary-project-manager** (📋): 敏捷專案管理專家
-  - 監督文件先行策略執行
-  - 管理最小分派最快交付工作流程
-  - 協調 Agent 間的工作分配和優先順序
-  - 確保高頻工作日誌更新和站立會議效果
-  - 追蹤專案進度和風險管理
+- **ginger-performance-tuner**: 效能優化專家
+  - **核心職責**: 100%優化目標完成，不允許任何效能問題未解決
+  - **專業範圍**: 效能分析、記憶體優化、載入速度改善
+  - **協作機制**: 與 coriander-integration-tester 協作進行效能測試驗證
 
 #### Agent 使用原則與觸發機制
 
 **核心原則**:
 
-1. **明確觸發**: 每個代理人都有具體的觸發條件和時機
-2. **專業分工**: 每個代理人專注於特定領域，避免職責重疊
-3. **品質保證**: 代理人確保各階段品質標準
-4. **流程合規**: project-compliance-agent 強制執行工作流程
+1. **100%責任制**: 每個代理人對其工作範圍負100%責任，不允許責任空隙
+2. **敏捷升級機制**: 當技術困難無法突破時，必須升級給PM重新拆分任務
+3. **明確職責邊界**: 避免職責重疊，建立清楚的協作和交接協議
+4. **品質保證優先**: 代理人確保各階段品質標準，不得因困難而降低標準
 
-**TDD 核心代理人觸發條件**:
+**敏捷升級機制統一原則**:
 
-- **sage-test-architect**:
-  - 開始新功能開發時
-  - 需要設計測試案例時
-  - 測試覆蓋率不足時
-- **pepper-test-implementer**:
-  - 測試已設計完成且處於失敗狀態
-  - 需要實現讓測試通過的最小程式碼時
-- **cinnamon-refactor-owl**:
-  - 所有測試通過後進行重構時
-  - 程式碼品質需要改善時
+所有代理人都必須遵循以下升級流程：
+- **3次嘗試限制**: 同一問題超過3次嘗試仍無法解決時必須升級
+- **工作日誌記錄**: 詳細記錄嘗試方案、失敗原因、問題複雜度
+- **立即升級**: 停止無效嘗試，將問題拋回給 rosemary-project-manager
+- **重新分配**: 等待PM重新拆分任務為更小、更可行的單元
+
+**專案管理層級觸發條件**:
+
+- **rosemary-project-manager**: 
+  - 開始新開發任務或重構專案時（策略規劃階段）
+  - 代理人工作升級時（任務重新拆分處理）
+  - 文件先行策略監督執行時
+  - 多個Agent需要協調合作時
+  - 專案進度風險管理時
+
+- **project-compliance-agent**: 
+  - 完成任何小功能或TDD循環後（執行合規檢查）
+  - 版本控制和文件更新驗證時
+  - 在 rosemary-project-manager 指導下進行操作合規
+
+**TDD核心代理人觸發條件（測試領域分離）**:
+
+- **sage-test-architect**: 
+  - 開始新功能開發需要單元測試設計時
+  - 組件層級測試覆蓋不足時
+  - TDD Red階段測試案例設計時
+
+- **pepper-test-implementer**: 
+  - sage-test-architect 測試設計完成且處於失敗狀態時
+  - 需要實現讓測試100%通過的最小程式碼時
+
+- **cinnamon-refactor-owl**: 
+  - pepper-test-implementer 完成且所有測試通過後
+  - 程式碼品質需要100%改善時
+
+- **coriander-integration-tester**: 
+  - 單元測試階段完成後進行系統層級測試時
+  - 需要端對端測試和系統整合驗證時
+
+**UI/UX設計實現領域觸發條件（設計實現分離）**:
+
+- **lavender-interface-designer**: 
+  - 需要UI/UX設計策略和使用者體驗規劃時
+  - 設計規範和界面標準制定時
+
+- **thyme-extension-engineer**: 
+  - lavender-interface-designer 設計規範完成後進行技術實現時
+  - Chrome Extension相關技術問題和Manifest V3合規時
 
 **專業領域代理人觸發條件**:
 
-- **project-compliance-agent**: 完成任何小功能或 TDD 循環後
-- **basil-event-architect**: 設計或修改事件系統時
-- **thyme-extension-engineer**: Chrome Extension 相關技術問題時
-- **lavender-interface-designer**: UI/UX 設計和使用者體驗問題時
-- **oregano-data-miner**: 資料提取和處理問題時
+- **basil-event-architect**: 事件系統設計或架構模式修改時
+- **oregano-data-miner**: 資料提取和網頁爬蟲處理時
 - **ginger-performance-tuner**: 效能分析和優化需求時
-- **coriander-integration-tester**: 整合測試和端對端測試時
-
-**專案管理代理人觸發條件**:
-
-- **rosemary-project-manager**: 
-  - 開始新的開發任務或重構專案時
-  - 需要制定工作分派和優先順序時
-  - 文件先行策略需要監督執行時
-  - 工作日誌更新頻率不足時
-  - 多個 Agent 需要協調合作時
-  - 專案進度出現延遲或風險時
-  - 需要進行敏捷回顧和改善時
 
 #### Agent 協作流程與 PM 監督
 
-**專案管理驅動的協作模式**:
+**100%責任制協作模式**:
 
 1. **專案啟動階段**：
-   - rosemary-project-manager 分析需求並制定工作分派
-   - 確保文件先行策略得到執行
-   - 協調相關專業 Agent 進行設計和規劃
+   - rosemary-project-manager 分析需求並制定100%工作分派覆蓋
+   - 確保文件先行策略執行和明確職責邊界劃分
+   - 協調相關專業Agent進行設計規劃，建立清楚交接協議
 
 2. **執行監督階段**：
-   - 監督 TDD 循環中各 Agent 的協作
-   - 確保工作日誌高頻更新
-   - 追蹤進度並及時調整資源分配
+   - 監督TDD循環中各Agent的100%責任履行
+   - 確保工作日誌高頻更新和敏捷升級機制執行
+   - 當Agent觸發升級時立即重新拆分任務並重新分配
 
 3. **品質保證階段**：
-   - 協調 project-compliance-agent 進行合規檢查
-   - 整合各專業 Agent 的交付成果
-   - 確保最小分派最快交付原則的實踐
+   - 協調 project-compliance-agent 進行執行層級合規檢查
+   - 整合各專業Agent的100%交付成果
+   - 確保敏捷升級機制和最小分派最快交付原則實踐
 
-4. **風險管理階段**：
-   - 識別專案風險並制定緩解策略
-   - 協調緊急問題的處理和資源調配
-   - 管理技術債務和架構決策
+4. **升級處理階段**：
+   - 接收Agent升級請求，分析問題複雧度和技術依賴
+   - 重新拆分大任務為更小更具體的可完成單元
+   - 重新評估技術風險並分配給適合的Agent或組合
+   - 透過循環消化機制確保所有工作最終完成
+
+**職責邊界與協作協議**:
+
+- **測試領域**: sage-test-architect(單元測試) → pepper-test-implementer(實現) → cinnamon-refactor-owl(重構) → coriander-integration-tester(系統測試)
+- **設計實現領域**: lavender-interface-designer(100%設計) → thyme-extension-engineer(100%實現)
+- **專案管理領域**: rosemary-project-manager(策略規劃) → project-compliance-agent(執行合規)
+- **技術支援**: basil-event-architect(架構)、oregano-data-miner(資料)、ginger-performance-tuner(效能) 按需協作
+
+**敏捷升級協作流程**:
+
+1. **升級觸發**: Agent遇到3次嘗試無法解決的問題
+2. **工作日誌**: Agent記錄詳細的嘗試方案和失敗分析  
+3. **PM接收**: rosemary-project-manager 接收升級並分析問題
+4. **任務拆分**: 重新設計更小更可行的任務單元
+5. **重新分配**: 分配給適合的Agent或Agent組合
+6. **循環消化**: 重複此流程直到所有工作完成
 
 ## 🔧 開發工具和指令
 
