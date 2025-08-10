@@ -19,6 +19,8 @@
     "build": "node scripts/build.js",
     "build:dev": "node scripts/build.js --dev",
     "build:prod": "node scripts/build.js --prod",
+    "validate:build": "node scripts/validate-build.js",
+    "validate:build:prod": "node scripts/validate-build.js --prod",
     "dev": "npm run build:dev && npm run test:watch",
     "lint": "eslint src/ tests/",
     "lint:fix": "eslint src/ tests/ --fix",
