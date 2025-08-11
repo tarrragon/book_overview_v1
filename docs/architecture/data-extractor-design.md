@@ -227,6 +227,36 @@ class ReadmooAdapter extends BookstoreAdapter {
 }
 ```
 
+### Readmoo DOM 相容性與識別策略更新（v0.8.5）
+
+為了與實際頁面結構與測試夾具一致，本次更新補強了 Readmoo 的 DOM 相容性與書籍識別邏輯：
+
+1) 容器相容性
+- 主要容器：`.library-item`
+- 備用容器：`.book-item`、`.book-card`、`.library-book`
+- 容器即連結：當書籍容器本身為 `a[href*="/api/reader/"]` 時，需將容器本身視為 `readerLink`
+
+2) 欄位提取準則
+- 封面：優先 `.cover-img`，備用 `img`
+- 標題：優先 `.title` 的文字或 `title` 屬性；備用 `img.alt`
+- 進度：`.progress-bar` 的 `style.width` 百分比；備用 `.progress-text`/`.reading-progress` 文字
+- 類型：`.label.rendition` 或其他包含 `rendition`/`type` 的元素
+
+3) 穩定識別策略（ID）
+- 第一優先：封面 URL 驗證為 `cdn.readmoo.com/cover/...` 時，從封面 URL 提取穩定 ID（cover-*）
+- 第二優先：基於標題生成 ID（title-*）
+- 最後備用：從閱讀器連結擷取（unstable-*，標記為不穩定）
+
+4) Content Script 對齊
+- `src/content/content.js` 的簡化版 `ReadmooAdapter.parseBookElement()` 已加入「容器本身即 `readerLink`」判斷，使 `a.book-item` 結構可解析
+- 與核心 `src/adapters/readmoo-adapter.js` 的封面+標題識別策略一致
+
+5) 驗收準則
+- 測試夾具使用 `a.book-item > img + .book-info > h3` 結構時，`parseBookElement` 應回傳包含 `id/title/cover` 的物件
+- `extractAllBooks()` 在上述 DOM 結構下應返回非空陣列
+
+---
+
 ### 3. ExtractionEventHandler (提取事件處理器)
 
 ```javascript

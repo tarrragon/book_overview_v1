@@ -940,8 +940,11 @@ function createContentReadmooAdapter () {
       const startTime = performance.now()
 
       try {
-        // 從容器中查找閱讀器連結
-        const readerLink = element.querySelector(SELECTORS.readerLink)
+        // 從容器中查找閱讀器連結（容器可能本身就是連結）
+        let readerLink = element.querySelector(SELECTORS.readerLink)
+        if (!readerLink && element.matches && element.matches(SELECTORS.readerLink)) {
+          readerLink = element
+        }
         if (!readerLink) {
           console.warn('⚠️ 容器中未找到閱讀器連結:', element)
           return null
