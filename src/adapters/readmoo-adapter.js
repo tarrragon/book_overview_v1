@@ -238,6 +238,9 @@ class ReadmooAdapter {
       const progress = this.extractBookProgress(element);
       const type = this.extractBookType(element);
 
+      // 提取額外的識別資訊
+      const additionalIds = this.extractAdditionalIdentifiers(element);
+      
       // 建構書籍資料物件
       const bookData = {
         id,
@@ -246,7 +249,20 @@ class ReadmooAdapter {
         progress: progress !== null ? progress : 0,
         type: type || '未知',
         extractedAt: new Date().toISOString(),
-        source: 'readmoo'
+        source: 'readmoo',
+        // 新增的識別資訊
+        identifiers: {
+          coverId: additionalIds.coverId,
+          titleBased: additionalIds.titleBased,
+          readerLinkId: additionalIds.readerLinkId,
+          primarySource: additionalIds.primarySource
+        },
+        // 完整的封面URL資訊
+        coverInfo: {
+          url: cover,
+          filename: additionalIds.coverFilename,
+          domain: this.extractDomain(cover)
+        }
       };
 
       return bookData;
@@ -258,11 +274,119 @@ class ReadmooAdapter {
   }
 
   /**
-   * 提取書籍 ID
+   * 提取書籍 ID - 使用封面圖片URL作為主要識別標準
    * @param {Element} element - 書籍元素
    * @returns {string|null} 書籍 ID
    */
   extractBookId(element) {
+    try {
+      // 主要策略：從封面圖片URL提取書籍ID
+      const coverImageId = this.extractBookIdFromCover(element);
+      if (coverImageId) {
+        return coverImageId;
+      }
+
+      // 備用策略：使用標題屬性生成穩定ID
+      const titleBasedId = this.extractBookIdFromTitle(element);
+      if (titleBasedId) {
+        return titleBasedId;
+      }
+
+      // 最後備用：使用閱讀器連結（但會註記這是不穩定的ID）
+      const readerLinkId = this.extractBookIdFromReaderLink(element);
+      if (readerLinkId) {
+        return `unstable-${readerLinkId}`; // 標記為不穩定ID
+      }
+
+      return null;
+
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * 從封面圖片URL提取書籍ID（主要方法）
+   * @param {Element} element - 書籍元素
+   * @returns {string|null} 從封面URL提取的書籍ID
+   */
+  extractBookIdFromCover(element) {
+    try {
+      const imgElement = element.querySelector(this.selectors.bookImage);
+      if (!imgElement) {
+        return null;
+      }
+
+      const src = imgElement.getAttribute('src');
+      if (!src) {
+        return null;
+      }
+
+      // 只處理來自 cdn.readmoo.com 的封面 URL
+      if (!src.includes('cdn.readmoo.com')) {
+        return null;
+      }
+
+      // 解析封面URL格式：https://cdn.readmoo.com/cover/xx/xxxxx_210x315.jpg?v=xxxxxxxx
+      // 提取核心識別碼部分
+      const coverMatch = src.match(/\/cover\/[a-z0-9]+\/([^_]+)_/);
+      if (coverMatch) {
+        return `cover-${coverMatch[1]}`; // 使用 cover- 前綴標識來源
+      }
+
+      // 備用解析方式 - 只對有效域名進行解析
+      const filenameMatch = src.match(/\/([^/]+)\.(jpg|png|jpeg)/i);
+      if (filenameMatch) {
+        const filename = filenameMatch[1].replace(/_\d+x\d+$/, ''); // 移除尺寸後綴
+        return `cover-${filename}`;
+      }
+
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * 從書籍標題生成穩定ID（備用方法）
+   * @param {Element} element - 書籍元素
+   * @returns {string|null} 基於標題的書籍ID
+   */
+  extractBookIdFromTitle(element) {
+    try {
+      const titleElement = element.querySelector(this.selectors.bookTitle);
+      if (!titleElement) {
+        return null;
+      }
+
+      const title = titleElement.getAttribute('title') || titleElement.textContent;
+      if (!title || !title.trim()) {
+        return null;
+      }
+
+      // 生成基於標題的穩定ID
+      const normalizedTitle = title.trim()
+        .replace(/[^\u4e00-\u9fff\w\s]/g, '') // 保留中文、英文字母、數字、空格
+        .replace(/\s+/g, '-') // 空格轉換為連字符
+        .toLowerCase();
+
+      if (normalizedTitle.length > 0) {
+        return `title-${normalizedTitle.substring(0, 50)}`; // 限制長度並使用 title- 前綴
+      }
+
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * 從閱讀器連結提取ID（最後備用方法）
+   * 注意：這種方法提取的是用戶ID，不是真正的書籍ID
+   * @param {Element} element - 書籍元素
+   * @returns {string|null} 從閱讀器連結提取的ID
+   */
+  extractBookIdFromReaderLink(element) {
     try {
       const readerLink = element.querySelector(this.selectors.readerLink);
       if (!readerLink) {
@@ -274,9 +398,9 @@ class ReadmooAdapter {
         return null;
       }
 
-             // 使用正規表達式提取 ID (支援字母數字組合)
-       const idMatch = href.match(/\/api\/reader\/([^/?#]+)/);
-       return idMatch ? idMatch[1] : null;
+      // 使用正規表達式提取 ID (支援字母數字組合)
+      const idMatch = href.match(/\/api\/reader\/([^/?#]+)/);
+      return idMatch ? idMatch[1] : null;
 
     } catch (error) {
       return null;
@@ -370,6 +494,84 @@ class ReadmooAdapter {
       return '未知';
     } catch (error) {
       return '未知';
+    }
+  }
+
+  /**
+   * 提取額外的識別資訊
+   * @param {Element} element - 書籍元素
+   * @returns {Object} 額外的識別資訊
+   */
+  extractAdditionalIdentifiers(element) {
+    try {
+      const coverId = this.extractBookIdFromCover(element);
+      const titleBased = this.extractBookIdFromTitle(element);
+      const readerLinkId = this.extractBookIdFromReaderLink(element);
+      
+      // 確定主要來源
+      let primarySource = 'unknown';
+      if (coverId && coverId.startsWith('cover-')) {
+        primarySource = 'cover';
+      } else if (titleBased && titleBased.startsWith('title-')) {
+        primarySource = 'title';
+      } else if (readerLinkId) {
+        primarySource = 'reader-link';
+      }
+
+      // 提取封面檔名
+      const coverElement = element.querySelector(this.selectors.bookImage);
+      const coverSrc = coverElement?.getAttribute('src') || '';
+      const coverFilename = this.extractFilenameFromUrl(coverSrc);
+
+      return {
+        coverId: coverId?.replace(/^cover-/, '') || null,
+        titleBased: titleBased?.replace(/^title-/, '') || null,
+        readerLinkId: readerLinkId || null,
+        primarySource,
+        coverFilename
+      };
+    } catch (error) {
+      return {
+        coverId: null,
+        titleBased: null,
+        readerLinkId: null,
+        primarySource: 'unknown',
+        coverFilename: null
+      };
+    }
+  }
+
+  /**
+   * 從URL提取檔名
+   * @param {string} url - 完整URL
+   * @returns {string|null} 檔名
+   */
+  extractFilenameFromUrl(url) {
+    try {
+      if (!url) return null;
+      const urlObj = new URL(url);
+      const pathname = urlObj.pathname;
+      const filename = pathname.split('/').pop();
+      return filename?.split('?')[0] || null; // 移除查詢參數
+    } catch (error) {
+      // 備用方法：使用正規表達式
+      const match = url.match(/\/([^/]+\.(jpg|png|jpeg|gif|webp))(\?|$)/i);
+      return match ? match[1] : null;
+    }
+  }
+
+  /**
+   * 從URL提取域名
+   * @param {string} url - 完整URL
+   * @returns {string|null} 域名
+   */
+  extractDomain(url) {
+    try {
+      if (!url) return null;
+      const urlObj = new URL(url);
+      return urlObj.hostname;
+    } catch (error) {
+      return null;
     }
   }
 
