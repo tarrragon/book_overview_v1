@@ -1,26 +1,26 @@
 /**
  * 匯出事件定義系統 - TDD循環 #29 Green階段實作
- * 
+ *
  * 負責功能：
  * - 定義所有匯出相關的事件常數
  * - 提供事件優先級配置
  * - 提供事件建立工廠函數
  * - 提供事件驗證和工具函數
  * - 支援事件資料結構標準化
- * 
+ *
  * 設計考量：
  * - 遵循 CLAUDE.md 的 MODULE.ACTION.STATE 格式
  * - 使用 URGENT(0-99)/HIGH(100-199)/NORMAL(200-299)/LOW(300-399) 優先級
  * - 與現有 EventBus 系統完全相容
  * - 提供完整的事件生命週期管理
- * 
+ *
  * 處理流程：
  * 1. 事件常數定義和分類
  * 2. 優先級配置和查詢
  * 3. 事件建立工廠函數
  * 4. 事件驗證和類型檢查
  * 5. 資料結構標準化
- * 
+ *
  * @version 1.0.0
  * @since 2025-08-08
  */
@@ -89,7 +89,7 @@ const EXPORT_EVENTS = {
   CLIPBOARD_COPY_REQUESTED: 'EXPORT.CLIPBOARD.REQUESTED',
   CLIPBOARD_COPY_COMPLETED: 'EXPORT.CLIPBOARD.COMPLETED',
   CLIPBOARD_COPY_FAILED: 'EXPORT.CLIPBOARD.FAILED'
-};
+}
 
 // ================================
 // 事件優先級定義
@@ -144,16 +144,16 @@ const EXPORT_EVENT_PRIORITIES = {
   // LOW 優先級：背景處理事件
   BATCH_EXPORT_PROGRESS: 310,
   ZIP_CREATION_PROGRESS: 300
-};
+}
 
 // 為所有事件類型建立優先級對應（使用事件類型轉換為常數名稱）
 Object.values(EXPORT_EVENTS).forEach(eventType => {
-  const priorityKey = eventType.replace(/\./g, '_');
+  const priorityKey = eventType.replace(/\./g, '_')
   if (!EXPORT_EVENT_PRIORITIES[priorityKey]) {
     // 為沒有明確優先級的事件設定預設優先級（NORMAL）
-    EXPORT_EVENT_PRIORITIES[priorityKey] = 250;
+    EXPORT_EVENT_PRIORITIES[priorityKey] = 250
   }
-});
+})
 
 // ================================
 // 事件資料結構標準
@@ -196,7 +196,7 @@ const EXPORT_EVENT_SCHEMAS = {
     books: 'array',
     options: 'object'
   }
-};
+}
 
 // ================================
 // 事件建立工廠函數
@@ -204,14 +204,14 @@ const EXPORT_EVENT_SCHEMAS = {
 
 /**
  * 建立標準化匯出事件物件
- * 
+ *
  * @param {string} eventType - 事件類型
  * @param {Object} eventData - 事件資料
  * @param {Object} options - 額外選項
  * @param {string} options.correlationId - 關聯ID
  * @returns {Object} 標準化事件物件
  */
-function createExportEvent(eventType, eventData, options = {}) {
+function createExportEvent (eventType, eventData, options = {}) {
   const event = {
     id: Date.now() + '-' + Math.random().toString(36).substr(2, 9),
     type: eventType,
@@ -225,86 +225,86 @@ function createExportEvent(eventType, eventData, options = {}) {
       createdBy: 'export-events',
       ...options.metadata
     }
-  };
+  }
 
-  return event;
+  return event
 }
 
 /**
  * 建立 CSV 匯出事件
- * 
+ *
  * @param {Array} books - 書籍資料陣列
  * @param {Object} options - CSV 匯出選項
  * @returns {Object} CSV 匯出事件
  */
-function createCSVExportEvent(books, options = {}) {
+function createCSVExportEvent (books, options = {}) {
   return createExportEvent(EXPORT_EVENTS.CSV_EXPORT_REQUESTED, {
     books,
     options
-  });
+  })
 }
 
 /**
  * 建立 JSON 匯出事件
- * 
+ *
  * @param {Array} books - 書籍資料陣列
  * @param {Object} options - JSON 匯出選項
  * @returns {Object} JSON 匯出事件
  */
-function createJSONExportEvent(books, options = {}) {
+function createJSONExportEvent (books, options = {}) {
   return createExportEvent(EXPORT_EVENTS.JSON_EXPORT_REQUESTED, {
     books,
     options
-  });
+  })
 }
 
 /**
  * 建立 Excel 匯出事件
- * 
+ *
  * @param {Array} books - 書籍資料陣列
  * @param {Object} options - Excel 匯出選項
  * @returns {Object} Excel 匯出事件
  */
-function createExcelExportEvent(books, options = {}) {
+function createExcelExportEvent (books, options = {}) {
   return createExportEvent(EXPORT_EVENTS.EXCEL_EXPORT_REQUESTED, {
     books,
     options
-  });
+  })
 }
 
 /**
  * 建立 PDF 匯出事件
- * 
+ *
  * @param {Array} books - 書籍資料陣列
  * @param {Object} options - PDF 匯出選項
  * @returns {Object} PDF 匯出事件
  */
-function createPDFExportEvent(books, options = {}) {
+function createPDFExportEvent (books, options = {}) {
   return createExportEvent(EXPORT_EVENTS.PDF_EXPORT_REQUESTED, {
     books,
     options
-  });
+  })
 }
 
 /**
  * 建立批量匯出事件
- * 
+ *
  * @param {Array} formats - 匯出格式陣列
  * @param {Array} books - 書籍資料陣列
  * @param {Object} options - 各格式的匯出選項
  * @returns {Object} 批量匯出事件
  */
-function createBatchExportEvent(formats, books, options = {}) {
+function createBatchExportEvent (formats, books, options = {}) {
   return createExportEvent(EXPORT_EVENTS.BATCH_EXPORT_REQUESTED, {
     formats,
     books,
     options
-  });
+  })
 }
 
 /**
  * 建立進度更新事件
- * 
+ *
  * @param {Object} progressData - 進度資料
  * @param {number} progressData.current - 當前進度
  * @param {number} progressData.total - 總進度
@@ -312,14 +312,15 @@ function createBatchExportEvent(formats, books, options = {}) {
  * @param {string} progressData.message - 進度訊息
  * @returns {Object} 進度更新事件
  */
-function createProgressEvent(progressData) {
+function createProgressEvent (progressData) {
   const data = {
     ...progressData,
-    percentage: progressData.total > 0 ? 
-      Math.round((progressData.current / progressData.total) * 100) : 0
-  };
+    percentage: progressData.total > 0
+      ? Math.round((progressData.current / progressData.total) * 100)
+      : 0
+  }
 
-  return createExportEvent(EXPORT_EVENTS.EXPORT_PROGRESS, data);
+  return createExportEvent(EXPORT_EVENTS.EXPORT_PROGRESS, data)
 }
 
 // ================================
@@ -328,93 +329,93 @@ function createProgressEvent(progressData) {
 
 /**
  * 驗證匯出事件物件結構
- * 
+ *
  * @param {Object} event - 待驗證的事件物件
  * @returns {boolean} 驗證結果
  */
-function validateExportEvent(event) {
+function validateExportEvent (event) {
   if (!event || typeof event !== 'object') {
-    return false;
+    return false
   }
 
   // 檢查必要屬性
-  const requiredProperties = ['id', 'type', 'data', 'timestamp', 'priority'];
+  const requiredProperties = ['id', 'type', 'data', 'timestamp', 'priority']
   for (const prop of requiredProperties) {
     if (!event.hasOwnProperty(prop)) {
-      return false;
+      return false
     }
   }
 
   // 檢查事件類型是否為有效的匯出事件
   if (!isExportEvent(event.type)) {
-    return false;
+    return false
   }
 
-  return true;
+  return true
 }
 
 /**
  * 檢查是否為匯出事件類型
- * 
+ *
  * @param {string} eventType - 事件類型
  * @returns {boolean} 檢查結果
  */
-function isExportEvent(eventType) {
-  return Object.values(EXPORT_EVENTS).includes(eventType);
+function isExportEvent (eventType) {
+  return Object.values(EXPORT_EVENTS).includes(eventType)
 }
 
 /**
  * 獲取事件的優先級
- * 
+ *
  * @param {string} eventType - 事件類型
  * @returns {number} 事件優先級
  */
-function getEventPriority(eventType) {
-  const priorityKey = eventType.replace(/\./g, '_');
-  return EXPORT_EVENT_PRIORITIES[priorityKey] || 250; // 預設 NORMAL 優先級
+function getEventPriority (eventType) {
+  const priorityKey = eventType.replace(/\./g, '_')
+  return EXPORT_EVENT_PRIORITIES[priorityKey] || 250 // 預設 NORMAL 優先級
 }
 
 /**
  * 驗證事件資料結構
- * 
+ *
  * @param {string} eventType - 事件類型
  * @param {Object} eventData - 事件資料
  * @returns {boolean} 驗證結果
  */
-function validateEventData(eventType, eventData) {
-  const schemaKey = eventType.replace(/EXPORT\./, '').replace(/\./g, '_');
-  const schema = EXPORT_EVENT_SCHEMAS[schemaKey];
-  
+function validateEventData (eventType, eventData) {
+  const schemaKey = eventType.replace(/EXPORT\./, '').replace(/\./g, '_')
+  const schema = EXPORT_EVENT_SCHEMAS[schemaKey]
+
   if (!schema) {
-    return true; // 沒有定義結構規範的事件預設為有效
+    return true // 沒有定義結構規範的事件預設為有效
   }
 
   if (!eventData || typeof eventData !== 'object') {
-    return false;
+    return false
   }
 
   // 檢查每個欄位的類型
   for (const [field, expectedType] of Object.entries(schema)) {
-    const actualValue = eventData[field];
-    
+    const actualValue = eventData[field]
+
     if (expectedType === 'array' && !Array.isArray(actualValue)) {
-      return false;
+      return false
     }
-    
+
     if (expectedType === 'object' && (typeof actualValue !== 'object' || Array.isArray(actualValue))) {
-      return false;
+      return false
     }
-    
+
     if (expectedType === 'string' && typeof actualValue !== 'string') {
-      return false;
+      return false
     }
-    
+
     if (expectedType === 'number' && typeof actualValue !== 'number') {
-      return false;
+      return false
     }
   }
 
-  return true;
+  return true
 }
 
 // ================================
@@ -441,4 +442,4 @@ module.exports = {
   isExportEvent,
   getEventPriority,
   validateEventData
-};
+}

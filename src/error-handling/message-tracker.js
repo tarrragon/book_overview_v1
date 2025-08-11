@@ -26,93 +26,93 @@
  * - 即時訊息流程監控和分析
  */
 
-const EventHandler = require("../core/event-handler");
+const EventHandler = require('../core/event-handler')
 
 class MessageTracker extends EventHandler {
   /**
    * 分層常數架構 - 統一管理所有硬編碼值
    */
-  static get CONSTANTS() {
+  static get CONSTANTS () {
     return {
       // 核心配置
       CONFIG: {
         PRIORITY: 10,
-        NAME: "MessageTracker",
+        NAME: 'MessageTracker',
         MAX_MESSAGE_RECORDS: 100,
         MESSAGE_TIMEOUT_MS: 30000, // 30秒
         CLEANUP_INTERVAL_MS: 60 * 1000, // 1分鐘
-        CONSOLE_LOG_LIMIT: 20,
+        CONSOLE_LOG_LIMIT: 20
       },
 
       // 事件系統
       EVENTS: {
         // 支援的輸入事件
         INPUT: {
-          MESSAGE_SENT: "MESSAGE.SENT",
-          MESSAGE_RECEIVED: "MESSAGE.RECEIVED",
-          MESSAGE_PROCESSED: "MESSAGE.PROCESSED",
-          MESSAGE_FAILED: "MESSAGE.FAILED",
+          MESSAGE_SENT: 'MESSAGE.SENT',
+          MESSAGE_RECEIVED: 'MESSAGE.RECEIVED',
+          MESSAGE_PROCESSED: 'MESSAGE.PROCESSED',
+          MESSAGE_FAILED: 'MESSAGE.FAILED'
         },
         // 發送的輸出事件
         OUTPUT: {
-          TRACKING_STARTED: "TRACKING.STARTED",
-          UNKNOWN_MESSAGE_DETECTED: "UNKNOWN_MESSAGE.DETECTED",
-          MESSAGE_FLOW_COMPLETED: "MESSAGE_FLOW.COMPLETED",
-          DIAGNOSTIC_INFO_UPDATED: "DIAGNOSTIC_INFO.UPDATED",
-        },
+          TRACKING_STARTED: 'TRACKING.STARTED',
+          UNKNOWN_MESSAGE_DETECTED: 'UNKNOWN_MESSAGE.DETECTED',
+          MESSAGE_FLOW_COMPLETED: 'MESSAGE_FLOW.COMPLETED',
+          DIAGNOSTIC_INFO_UPDATED: 'DIAGNOSTIC_INFO.UPDATED'
+        }
       },
 
       // 訊息系統
       MESSAGE: {
         // 訊息狀態
         STATUS: {
-          SENT: "SENT",
-          RECEIVED: "RECEIVED",
-          PROCESSED: "PROCESSED",
-          FAILED: "FAILED",
-          TIMEOUT: "TIMEOUT",
+          SENT: 'SENT',
+          RECEIVED: 'RECEIVED',
+          PROCESSED: 'PROCESSED',
+          FAILED: 'FAILED',
+          TIMEOUT: 'TIMEOUT'
         },
         // 訊息來源/目標
         CONTEXTS: {
-          POPUP: "popup",
-          BACKGROUND: "background",
-          CONTENT: "content",
-          DEVTOOLS: "devtools",
-        },
+          POPUP: 'popup',
+          BACKGROUND: 'background',
+          CONTENT: 'content',
+          DEVTOOLS: 'devtools'
+        }
       },
 
       // Console 診斷
       CONSOLE: {
         COMMANDS: {
-          STATUS: "status",
-          MESSAGES: "messages",
-          UNKNOWN: "unknown",
-          CLEAR: "clear",
-          ACTIVE: "active",
-          STATS: "stats",
+          STATUS: 'status',
+          MESSAGES: 'messages',
+          UNKNOWN: 'unknown',
+          CLEAR: 'clear',
+          ACTIVE: 'active',
+          STATS: 'stats'
         },
         MESSAGES: {
-          INTERFACE_ENABLED: "[MessageTracker] Console 診斷介面已啟用",
-          USAGE_HINT: "使用 MessageDiagnostic.status() 查看追蹤狀態",
-          DIAGNOSTIC_MODE_ON: "[MessageTracker] 診斷模式 啟用",
-          DIAGNOSTIC_MODE_OFF: "[MessageTracker] 診斷模式 停用",
-        },
+          INTERFACE_ENABLED: '[MessageTracker] Console 診斷介面已啟用',
+          USAGE_HINT: '使用 MessageDiagnostic.status() 查看追蹤狀態',
+          DIAGNOSTIC_MODE_ON: '[MessageTracker] 診斷模式 啟用',
+          DIAGNOSTIC_MODE_OFF: '[MessageTracker] 診斷模式 停用'
+        }
       },
 
       // 錯誤處理
       ERRORS: {
         TYPES: {
-          UNSUPPORTED_EVENT: "UNSUPPORTED_EVENT_TYPE",
-          PROCESSING_FAILED: "PROCESSING_FAILED",
-          CONSOLE_UNAVAILABLE: "CONSOLE_UNAVAILABLE",
+          UNSUPPORTED_EVENT: 'UNSUPPORTED_EVENT_TYPE',
+          PROCESSING_FAILED: 'PROCESSING_FAILED',
+          CONSOLE_UNAVAILABLE: 'CONSOLE_UNAVAILABLE'
         },
         MESSAGES: {
-          UNSUPPORTED_EVENT_TYPE: "不支援的追蹤事件類型",
-          PROCESSING_FAILED: "處理追蹤事件失敗",
-          CONSOLE_UNAVAILABLE: "Console 診斷介面不可用",
-        },
-      },
-    };
+          UNSUPPORTED_EVENT_TYPE: '不支援的追蹤事件類型',
+          PROCESSING_FAILED: '處理追蹤事件失敗',
+          CONSOLE_UNAVAILABLE: 'Console 診斷介面不可用'
+        }
+      }
+    }
   }
 
   /**
@@ -120,25 +120,25 @@ class MessageTracker extends EventHandler {
    * @param {Object} eventBus - 事件總線實例
    * @param {Object} options - 配置選項
    */
-  constructor(eventBus, options = {}) {
-    const { CONFIG, EVENTS } = MessageTracker.CONSTANTS;
+  constructor (eventBus, options = {}) {
+    const { CONFIG, EVENTS } = MessageTracker.CONSTANTS
 
     // EventHandler 建構函數簽名是 (name, priority)
-    super(CONFIG.NAME, CONFIG.PRIORITY);
+    super(CONFIG.NAME, CONFIG.PRIORITY)
 
     // 設置 eventBus 和支援的事件
-    this.eventBus = eventBus;
-    this.supportedEvents = Object.values(EVENTS.INPUT);
+    this.eventBus = eventBus
+    this.supportedEvents = Object.values(EVENTS.INPUT)
 
     // 統一配置管理
-    this.config = this._mergeConfiguration(options);
+    this.config = this._mergeConfiguration(options)
 
     // 初始化各個子系統
-    this._initializeTrackingState();
-    this._initializeMessageLog();
-    this._initializeStatistics();
-    this._initializeConsoleInterface();
-    this._setupCleanupTimer();
+    this._initializeTrackingState()
+    this._initializeMessageLog()
+    this._initializeStatistics()
+    this._initializeConsoleInterface()
+    this._setupCleanupTimer()
   }
 
   /**
@@ -147,8 +147,8 @@ class MessageTracker extends EventHandler {
    * @returns {Object} 合併後的配置
    * @private
    */
-  _mergeConfiguration(options) {
-    const { CONFIG } = MessageTracker.CONSTANTS;
+  _mergeConfiguration (options) {
+    const { CONFIG } = MessageTracker.CONSTANTS
 
     return {
       maxMessageRecords:
@@ -156,52 +156,52 @@ class MessageTracker extends EventHandler {
       messageTimeoutMs: options.messageTimeoutMs || CONFIG.MESSAGE_TIMEOUT_MS,
       cleanupIntervalMs:
         options.cleanupIntervalMs || CONFIG.CLEANUP_INTERVAL_MS,
-      consoleLogLimit: options.consoleLogLimit || CONFIG.CONSOLE_LOG_LIMIT,
-    };
+      consoleLogLimit: options.consoleLogLimit || CONFIG.CONSOLE_LOG_LIMIT
+    }
   }
 
   /**
    * 初始化追蹤狀態
    * @private
    */
-  _initializeTrackingState() {
-    this.trackingEnabled = true;
-    this.diagnosticMode = false;
-    this.startTime = Date.now();
+  _initializeTrackingState () {
+    this.trackingEnabled = true
+    this.diagnosticMode = false
+    this.startTime = Date.now()
   }
 
   /**
    * 初始化訊息記錄系統
    * @private
    */
-  _initializeMessageLog() {
-    this.messageLog = [];
-    this.activeMessages = new Map();
-    this.unknownMessages = [];
+  _initializeMessageLog () {
+    this.messageLog = []
+    this.activeMessages = new Map()
+    this.unknownMessages = []
   }
 
   /**
    * 初始化統計系統
    * @private
    */
-  _initializeStatistics() {
+  _initializeStatistics () {
     this.trackingStats = {
       totalMessages: 0,
       unknownMessages: 0,
       failedMessages: 0,
       processedMessages: 0,
       averageProcessingTime: 0,
-      lastMessageTime: null,
-    };
+      lastMessageTime: null
+    }
   }
 
   /**
    * 初始化 Console 診斷介面
    * @private
    */
-  _initializeConsoleInterface() {
-    if (typeof window !== "undefined") {
-      this._setupConsoleInterface();
+  _initializeConsoleInterface () {
+    if (typeof window !== 'undefined') {
+      this._setupConsoleInterface()
     }
   }
 
@@ -210,22 +210,22 @@ class MessageTracker extends EventHandler {
    * @param {Object} event - 追蹤事件
    * @returns {Object} 處理結果
    */
-  async process(event) {
+  async process (event) {
     if (!this.trackingEnabled) {
-      return { success: true, message: "追蹤已停用" };
+      return { success: true, message: '追蹤已停用' }
     }
 
-    const { type, data } = event;
+    const { type, data } = event
 
     try {
-      return await this._dispatchEventHandler(type, data);
+      return await this._dispatchEventHandler(type, data)
     } catch (error) {
-      const { ERRORS } = MessageTracker.CONSTANTS;
+      const { ERRORS } = MessageTracker.CONSTANTS
       console.error(
         `[MessageTracker] ${ERRORS.MESSAGES.PROCESSING_FAILED}:`,
         error
-      );
-      return this._createErrorResponse(error.message);
+      )
+      return this._createErrorResponse(error.message)
     }
   }
 
@@ -236,27 +236,27 @@ class MessageTracker extends EventHandler {
    * @returns {Promise<Object>} 處理結果
    * @private
    */
-  async _dispatchEventHandler(type, data) {
-    const { EVENTS, ERRORS } = MessageTracker.CONSTANTS;
+  async _dispatchEventHandler (type, data) {
+    const { EVENTS, ERRORS } = MessageTracker.CONSTANTS
 
     switch (type) {
       case EVENTS.INPUT.MESSAGE_SENT:
-        return await this._handleMessageSent(data);
+        return await this._handleMessageSent(data)
 
       case EVENTS.INPUT.MESSAGE_RECEIVED:
-        return await this._handleMessageReceived(data);
+        return await this._handleMessageReceived(data)
 
       case EVENTS.INPUT.MESSAGE_PROCESSED:
-        return await this._handleMessageProcessed(data);
+        return await this._handleMessageProcessed(data)
 
       case EVENTS.INPUT.MESSAGE_FAILED:
-        return await this._handleMessageFailed(data);
+        return await this._handleMessageFailed(data)
 
       default:
         return this._createErrorResponse(
           ERRORS.MESSAGES.UNSUPPORTED_EVENT_TYPE,
           type
-        );
+        )
     }
   }
 
@@ -266,15 +266,15 @@ class MessageTracker extends EventHandler {
    * @returns {Object} 處理結果
    * @private
    */
-  async _handleMessageSent(messageData) {
+  async _handleMessageSent (messageData) {
     const {
       messageId,
       type,
       source,
       target,
       data,
-      timestamp = Date.now(),
-    } = messageData;
+      timestamp = Date.now()
+    } = messageData
 
     // 生成訊息記錄
     const messageRecord = this._createMessageRecord({
@@ -284,27 +284,27 @@ class MessageTracker extends EventHandler {
       target,
       status: MessageTracker.CONSTANTS.MESSAGE.STATUS.SENT,
       timestamp,
-      data,
-    });
+      data
+    })
 
     // 添加到活躍訊息
-    this.activeMessages.set(messageRecord.id, messageRecord);
+    this.activeMessages.set(messageRecord.id, messageRecord)
 
     // 記錄訊息
-    this._recordMessage(messageRecord);
+    this._recordMessage(messageRecord)
 
     // 更新統計
-    this._updateTrackingStats("sent", timestamp);
+    this._updateTrackingStats('sent', timestamp)
 
     // 發送追蹤事件
     this._emitDiagnosticEvent(
-      "message_sent",
+      'message_sent',
       messageRecord.id,
       type,
       timestamp
-    );
+    )
 
-    return { success: true, messageId: messageRecord.id };
+    return { success: true, messageId: messageRecord.id }
   }
 
   /**
@@ -312,28 +312,28 @@ class MessageTracker extends EventHandler {
    * @param {Object} messageData - 訊息資料
    * @returns {Object} 處理結果
    */
-  async _handleMessageReceived(messageData) {
-    const { messageId, type, source, timestamp = Date.now() } = messageData;
+  async _handleMessageReceived (messageData) {
+    const { messageId, type, source, timestamp = Date.now() } = messageData
 
     // 查找或創建訊息記錄
-    let messageRecord = this._findOrCreateMessageRecord(messageId, {
+    const messageRecord = this._findOrCreateMessageRecord(messageId, {
       type,
       source,
       status: MessageTracker.CONSTANTS.MESSAGE.STATUS.RECEIVED,
-      timestamp,
-    });
+      timestamp
+    })
 
     // 更新接收狀態
-    messageRecord.status = MessageTracker.CONSTANTS.MESSAGE.STATUS.RECEIVED;
-    messageRecord.receivedTime = timestamp;
+    messageRecord.status = MessageTracker.CONSTANTS.MESSAGE.STATUS.RECEIVED
+    messageRecord.receivedTime = timestamp
 
     // 記錄訊息
-    this._recordMessage({ ...messageRecord });
+    this._recordMessage({ ...messageRecord })
 
     // 更新統計
-    this._updateTrackingStats("received", timestamp);
+    this._updateTrackingStats('received', timestamp)
 
-    return { success: true, messageId: messageRecord.id };
+    return { success: true, messageId: messageRecord.id }
   }
 
   /**
@@ -343,18 +343,18 @@ class MessageTracker extends EventHandler {
    * @returns {Object} 訊息記錄
    * @private
    */
-  _findOrCreateMessageRecord(messageId, defaultData) {
-    let messageRecord = this.activeMessages.get(messageId);
+  _findOrCreateMessageRecord (messageId, defaultData) {
+    let messageRecord = this.activeMessages.get(messageId)
 
     if (!messageRecord) {
       messageRecord = this._createMessageRecord({
         id: messageId || this._generateMessageId(),
-        ...defaultData,
-      });
-      this.activeMessages.set(messageRecord.id, messageRecord);
+        ...defaultData
+      })
+      this.activeMessages.set(messageRecord.id, messageRecord)
     }
 
-    return messageRecord;
+    return messageRecord
   }
 
   /**
@@ -362,12 +362,12 @@ class MessageTracker extends EventHandler {
    * @param {Object} messageRecord - 訊息記錄
    * @private
    */
-  _recordMessage(messageRecord) {
-    this.messageLog.push({ ...messageRecord });
+  _recordMessage (messageRecord) {
+    this.messageLog.push({ ...messageRecord })
 
     // 限制記錄數量
     if (this.messageLog.length > this.config.maxMessageRecords) {
-      this.messageLog.shift();
+      this.messageLog.shift()
     }
   }
 
@@ -379,15 +379,15 @@ class MessageTracker extends EventHandler {
    * @param {number} timestamp - 時間戳
    * @private
    */
-  _emitDiagnosticEvent(action, messageId, type, timestamp) {
-    const { EVENTS } = MessageTracker.CONSTANTS;
+  _emitDiagnosticEvent (action, messageId, type, timestamp) {
+    const { EVENTS } = MessageTracker.CONSTANTS
 
     this.eventBus.emit(EVENTS.OUTPUT.DIAGNOSTIC_INFO_UPDATED, {
       action,
       messageId,
       type,
-      timestamp,
-    });
+      timestamp
+    })
   }
 
   /**
@@ -395,47 +395,47 @@ class MessageTracker extends EventHandler {
    * @param {Object} messageData - 訊息資料
    * @returns {Object} 處理結果
    */
-  async _handleMessageProcessed(messageData) {
+  async _handleMessageProcessed (messageData) {
     const {
       messageId,
       result,
       processingTime,
-      timestamp = Date.now(),
-    } = messageData;
+      timestamp = Date.now()
+    } = messageData
 
-    const messageRecord = this.activeMessages.get(messageId);
+    const messageRecord = this.activeMessages.get(messageId)
 
     if (messageRecord) {
-      messageRecord.status = MessageTracker.CONSTANTS.MESSAGE.STATUS.PROCESSED;
-      messageRecord.processedTime = timestamp;
-      messageRecord.result = result;
+      messageRecord.status = MessageTracker.CONSTANTS.MESSAGE.STATUS.PROCESSED
+      messageRecord.processedTime = timestamp
+      messageRecord.result = result
       messageRecord.processingTime =
-        processingTime || this._calculateProcessingTime(messageRecord);
+        processingTime || this._calculateProcessingTime(messageRecord)
 
       // 記錄到訊息日誌
-      this._recordMessage({ ...messageRecord });
+      this._recordMessage({ ...messageRecord })
 
       // 從活躍訊息中移除
-      this.activeMessages.delete(messageId);
+      this.activeMessages.delete(messageId)
 
       // 更新統計
       this._updateTrackingStats(
-        "processed",
+        'processed',
         timestamp,
         messageRecord.processingTime
-      );
+      )
 
       // 發送流程完成事件
-      const { EVENTS } = MessageTracker.CONSTANTS;
+      const { EVENTS } = MessageTracker.CONSTANTS
       this.eventBus.emit(EVENTS.OUTPUT.MESSAGE_FLOW_COMPLETED, {
         messageId,
         type: messageRecord.type,
         processingTime: messageRecord.processingTime,
-        timestamp,
-      });
+        timestamp
+      })
     }
 
-    return { success: true, messageId };
+    return { success: true, messageId }
   }
 
   /**
@@ -443,29 +443,29 @@ class MessageTracker extends EventHandler {
    * @param {Object} messageData - 訊息資料
    * @returns {Object} 處理結果
    */
-  async _handleMessageFailed(messageData) {
-    const { messageId, error, timestamp = Date.now() } = messageData;
+  async _handleMessageFailed (messageData) {
+    const { messageId, error, timestamp = Date.now() } = messageData
 
-    const messageRecord = this.activeMessages.get(messageId);
+    const messageRecord = this.activeMessages.get(messageId)
 
     if (messageRecord) {
-      messageRecord.status = MessageTracker.CONSTANTS.MESSAGE.STATUS.FAILED;
-      messageRecord.failedTime = timestamp;
-      messageRecord.error = error;
+      messageRecord.status = MessageTracker.CONSTANTS.MESSAGE.STATUS.FAILED
+      messageRecord.failedTime = timestamp
+      messageRecord.error = error
       messageRecord.processingTime =
-        this._calculateProcessingTime(messageRecord);
+        this._calculateProcessingTime(messageRecord)
 
       // 記錄到訊息日誌
-      this._recordMessage({ ...messageRecord });
+      this._recordMessage({ ...messageRecord })
 
       // 從活躍訊息中移除
-      this.activeMessages.delete(messageId);
+      this.activeMessages.delete(messageId)
     }
 
     // 總是更新統計，即使沒有找到對應的記錄
-    this._updateTrackingStats("failed", timestamp);
+    this._updateTrackingStats('failed', timestamp)
 
-    return { success: true, messageId };
+    return { success: true, messageId }
   }
 
   /**
@@ -474,7 +474,7 @@ class MessageTracker extends EventHandler {
    * @returns {Object} 訊息記錄
    * @private
    */
-  _createMessageRecord(recordData) {
+  _createMessageRecord (recordData) {
     return {
       id: recordData.id,
       type: recordData.type,
@@ -488,20 +488,20 @@ class MessageTracker extends EventHandler {
       processingTime: recordData.processingTime,
       receivedTime: recordData.receivedTime,
       processedTime: recordData.processedTime,
-      failedTime: recordData.failedTime,
-    };
+      failedTime: recordData.failedTime
+    }
   }
 
   /**
    * 添加到訊息日誌
    * @param {Object} messageRecord - 訊息記錄
    */
-  addToMessageLog(messageRecord) {
-    this.messageLog.push({ ...messageRecord });
+  addToMessageLog (messageRecord) {
+    this.messageLog.push({ ...messageRecord })
 
     // 限制記錄數量
     if (this.messageLog.length > this.maxMessageRecords) {
-      this.messageLog.shift();
+      this.messageLog.shift()
     }
   }
 
@@ -512,25 +512,25 @@ class MessageTracker extends EventHandler {
    * @param {number} [processingTime] - 處理時間
    * @private
    */
-  _updateTrackingStats(action, timestamp, processingTime) {
-    this.trackingStats.lastMessageTime = timestamp;
+  _updateTrackingStats (action, timestamp, processingTime) {
+    this.trackingStats.lastMessageTime = timestamp
 
     switch (action) {
-      case "sent":
-        this.trackingStats.totalMessages++;
-        break;
-      case "received":
+      case 'sent':
+        this.trackingStats.totalMessages++
+        break
+      case 'received':
         // 接收統計可以在這裡添加
-        break;
-      case "processed":
-        this.trackingStats.processedMessages++;
+        break
+      case 'processed':
+        this.trackingStats.processedMessages++
         if (processingTime) {
-          this._updateAverageProcessingTime(processingTime);
+          this._updateAverageProcessingTime(processingTime)
         }
-        break;
-      case "failed":
-        this.trackingStats.failedMessages++;
-        break;
+        break
+      case 'failed':
+        this.trackingStats.failedMessages++
+        break
     }
   }
 
@@ -539,11 +539,11 @@ class MessageTracker extends EventHandler {
    * @param {number} processingTime - 處理時間
    * @private
    */
-  _updateAverageProcessingTime(processingTime) {
-    const { processedMessages, averageProcessingTime } = this.trackingStats;
+  _updateAverageProcessingTime (processingTime) {
+    const { processedMessages, averageProcessingTime } = this.trackingStats
     this.trackingStats.averageProcessingTime =
       (averageProcessingTime * (processedMessages - 1) + processingTime) /
-      processedMessages;
+      processedMessages
   }
 
   /**
@@ -552,11 +552,11 @@ class MessageTracker extends EventHandler {
    * @returns {number} 處理時間（毫秒）
    * @private
    */
-  _calculateProcessingTime(messageRecord) {
+  _calculateProcessingTime (messageRecord) {
     const endTime =
-      messageRecord.processedTime || messageRecord.failedTime || Date.now();
-    const startTime = messageRecord.receivedTime || messageRecord.timestamp;
-    return endTime - startTime;
+      messageRecord.processedTime || messageRecord.failedTime || Date.now()
+    const startTime = messageRecord.receivedTime || messageRecord.timestamp
+    return endTime - startTime
   }
 
   /**
@@ -564,17 +564,17 @@ class MessageTracker extends EventHandler {
    * @returns {string} 訊息ID
    * @private
    */
-  _generateMessageId() {
-    return `MSG_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+  _generateMessageId () {
+    return `MSG_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
   }
 
   /**
    * 設置 Console 診斷介面
    * @private
    */
-  _setupConsoleInterface() {
+  _setupConsoleInterface () {
     try {
-      const { CONSOLE } = MessageTracker.CONSTANTS;
+      const { CONSOLE } = MessageTracker.CONSTANTS
 
       window.MessageDiagnostic = {
         [CONSOLE.COMMANDS.STATUS]: () => this.getTrackingStatus(),
@@ -582,17 +582,17 @@ class MessageTracker extends EventHandler {
         [CONSOLE.COMMANDS.UNKNOWN]: () => this.getUnknownMessages(),
         [CONSOLE.COMMANDS.CLEAR]: () => this.clearTrackingLog(),
         [CONSOLE.COMMANDS.ACTIVE]: () => this.getActiveMessages(),
-        [CONSOLE.COMMANDS.STATS]: () => this.getTrackingStats(),
-      };
+        [CONSOLE.COMMANDS.STATS]: () => this.getTrackingStats()
+      }
 
-      console.log(CONSOLE.MESSAGES.INTERFACE_ENABLED);
-      console.log(CONSOLE.MESSAGES.USAGE_HINT);
+      console.log(CONSOLE.MESSAGES.INTERFACE_ENABLED)
+      console.log(CONSOLE.MESSAGES.USAGE_HINT)
     } catch (error) {
-      const { ERRORS } = MessageTracker.CONSTANTS;
+      const { ERRORS } = MessageTracker.CONSTANTS
       console.warn(
         `[MessageTracker] ${ERRORS.MESSAGES.CONSOLE_UNAVAILABLE}:`,
         error
-      );
+      )
     }
   }
 
@@ -600,18 +600,18 @@ class MessageTracker extends EventHandler {
    * 獲取追蹤狀態
    * @returns {Object} 追蹤狀態
    */
-  getTrackingStatus() {
+  getTrackingStatus () {
     const status = {
       enabled: this.trackingEnabled,
       diagnosticMode: this.diagnosticMode,
       uptime: Date.now() - this.startTime,
       activeMessages: this.activeMessages.size,
       totalRecords: this.messageLog.length,
-      ...this.trackingStats,
-    };
+      ...this.trackingStats
+    }
 
-    console.table(status);
-    return status;
+    console.table(status)
+    return status
   }
 
   /**
@@ -619,98 +619,98 @@ class MessageTracker extends EventHandler {
    * @param {number} [limit] - 限制數量
    * @returns {Array} 訊息記錄
    */
-  getRecentMessages(limit) {
-    const { CONFIG } = MessageTracker.CONSTANTS;
-    const actualLimit = limit || this.config.consoleLogLimit;
-    const messages = this.messageLog.slice(-actualLimit);
+  getRecentMessages (limit) {
+    const { CONFIG } = MessageTracker.CONSTANTS
+    const actualLimit = limit || this.config.consoleLogLimit
+    const messages = this.messageLog.slice(-actualLimit)
 
-    console.group("最近訊息記錄");
+    console.group('最近訊息記錄')
     messages.forEach((msg, index) => {
-      console.log(`${index + 1}.`, msg);
-    });
-    console.groupEnd();
+      console.log(`${index + 1}.`, msg)
+    })
+    console.groupEnd()
 
-    return messages;
+    return messages
   }
 
   /**
    * 獲取未知訊息
    * @returns {Array} 未知訊息記錄
    */
-  getUnknownMessages() {
-    console.warn("未知訊息類型:", this.unknownMessages);
-    return this.unknownMessages;
+  getUnknownMessages () {
+    console.warn('未知訊息類型:', this.unknownMessages)
+    return this.unknownMessages
   }
 
   /**
    * 獲取活躍訊息
    * @returns {Array} 活躍訊息記錄
    */
-  getActiveMessages() {
-    const active = Array.from(this.activeMessages.values());
-    console.log("當前活躍訊息:", active);
-    return active;
+  getActiveMessages () {
+    const active = Array.from(this.activeMessages.values())
+    console.log('當前活躍訊息:', active)
+    return active
   }
 
   /**
    * 獲取追蹤統計
    * @returns {Object} 統計資訊
    */
-  getTrackingStats() {
-    return { ...this.trackingStats };
+  getTrackingStats () {
+    return { ...this.trackingStats }
   }
 
   /**
    * 清除追蹤記錄
    * @returns {Object} 清除結果
    */
-  clearTrackingLog() {
-    const clearedCount = this.messageLog.length;
-    this.messageLog = [];
-    this.unknownMessages = [];
+  clearTrackingLog () {
+    const clearedCount = this.messageLog.length
+    this.messageLog = []
+    this.unknownMessages = []
 
-    console.log(`已清除 ${clearedCount} 條追蹤記錄`);
-    return { clearedCount };
+    console.log(`已清除 ${clearedCount} 條追蹤記錄`)
+    return { clearedCount }
   }
 
   /**
    * 設置清理定時器
    * @private
    */
-  _setupCleanupTimer() {
-    const { CONFIG } = MessageTracker.CONSTANTS;
+  _setupCleanupTimer () {
+    const { CONFIG } = MessageTracker.CONSTANTS
 
     setInterval(() => {
-      this._cleanupTimeoutMessages();
-    }, this.config.cleanupIntervalMs);
+      this._cleanupTimeoutMessages()
+    }, this.config.cleanupIntervalMs)
   }
 
   /**
    * 清理超時的訊息
    */
-  _cleanupTimeoutMessages() {
-    const now = Date.now();
-    const timeoutMessages = [];
+  _cleanupTimeoutMessages () {
+    const now = Date.now()
+    const timeoutMessages = []
 
     for (const [messageId, messageRecord] of this.activeMessages.entries()) {
       if (now - messageRecord.timestamp > this.config.messageTimeoutMs) {
-        messageRecord.status = MessageTracker.CONSTANTS.MESSAGE.STATUS.TIMEOUT;
-        messageRecord.timeoutTime = now;
+        messageRecord.status = MessageTracker.CONSTANTS.MESSAGE.STATUS.TIMEOUT
+        messageRecord.timeoutTime = now
 
-        timeoutMessages.push(messageRecord);
-        this.activeMessages.delete(messageId);
+        timeoutMessages.push(messageRecord)
+        this.activeMessages.delete(messageId)
       }
     }
 
     // 將超時訊息添加到日誌
     timeoutMessages.forEach((record) => {
-      this._recordMessage(record);
-    });
+      this._recordMessage(record)
+    })
 
     if (timeoutMessages.length > 0 && this.diagnosticMode) {
       console.warn(
         `[MessageTracker] 清理了 ${timeoutMessages.length} 個超時訊息`
-      );
+      )
     }
   }
 
@@ -718,14 +718,14 @@ class MessageTracker extends EventHandler {
    * 啟用/停用追蹤
    * @param {boolean} enabled - 是否啟用
    */
-  setTrackingEnabled(enabled) {
-    this.trackingEnabled = enabled;
+  setTrackingEnabled (enabled) {
+    this.trackingEnabled = enabled
 
     if (enabled) {
-      const { EVENTS } = MessageTracker.CONSTANTS;
+      const { EVENTS } = MessageTracker.CONSTANTS
       this.eventBus.emit(EVENTS.OUTPUT.TRACKING_STARTED, {
-        timestamp: Date.now(),
-      });
+        timestamp: Date.now()
+      })
     }
   }
 
@@ -733,21 +733,21 @@ class MessageTracker extends EventHandler {
    * 啟用/停用診斷模式
    * @param {boolean} enabled - 是否啟用
    */
-  setDiagnosticMode(enabled) {
-    const { CONSOLE } = MessageTracker.CONSTANTS;
-    this.diagnosticMode = enabled;
+  setDiagnosticMode (enabled) {
+    const { CONSOLE } = MessageTracker.CONSTANTS
+    this.diagnosticMode = enabled
     console.log(
       enabled
         ? CONSOLE.MESSAGES.DIAGNOSTIC_MODE_ON
         : CONSOLE.MESSAGES.DIAGNOSTIC_MODE_OFF
-    );
+    )
   }
 
   /**
    * 手動觸發清理超時訊息 (用於測試)
    */
-  cleanupTimeoutMessages() {
-    this._cleanupTimeoutMessages();
+  cleanupTimeoutMessages () {
+    this._cleanupTimeoutMessages()
   }
 
   /**
@@ -757,20 +757,20 @@ class MessageTracker extends EventHandler {
    * @returns {Object} 標準化錯誤回應
    * @private
    */
-  _createErrorResponse(message, details = null) {
+  _createErrorResponse (message, details = null) {
     const errorResponse = {
       success: false,
       error: message,
       timestamp: Date.now(),
-      trackerId: this._generateMessageId(),
-    };
-
-    if (details) {
-      errorResponse.details = details;
+      trackerId: this._generateMessageId()
     }
 
-    return errorResponse;
+    if (details) {
+      errorResponse.details = details
+    }
+
+    return errorResponse
   }
 }
 
-module.exports = MessageTracker;
+module.exports = MessageTracker

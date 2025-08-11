@@ -4,8 +4,8 @@
  */
 
 module.exports = {
-  process(src, filename) {
+  process (src, filename) {
     // 將 HTML 內容轉換為 JavaScript 字符串
-    return `module.exports = ${JSON.stringify(src)};`;
+    return `module.exports = ${JSON.stringify(src)};`
   }
-}; 
+}

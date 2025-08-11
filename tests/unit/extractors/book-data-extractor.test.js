@@ -1,6 +1,6 @@
 /**
  * BookDataExtractor 單元測試
- * 
+ *
  * 測試 BookDataExtractor 的基礎功能：
  * - EventHandler 繼承
  * - 事件支援
@@ -11,86 +11,86 @@
 // 注意：BookDataExtractor 會導入 EventHandler，我們直接檢查原型鏈
 
 describe('BookDataExtractor', () => {
-  let BookDataExtractor;
-  let extractor;
+  let BookDataExtractor
+  let extractor
 
   beforeEach(() => {
     // 重新載入模組以確保乾淨的測試環境
-    jest.resetModules();
-    
+    jest.resetModules()
+
     try {
-      BookDataExtractor = require('@/extractors/book-data-extractor');
+      BookDataExtractor = require('@/extractors/book-data-extractor')
     } catch (error) {
       // 預期在紅燈階段會失敗
-      BookDataExtractor = null;
+      BookDataExtractor = null
     }
-  });
+  })
 
   afterEach(() => {
     if (extractor) {
-      extractor = null;
+      extractor = null
     }
-    jest.clearAllMocks();
-  });
+    jest.clearAllMocks()
+  })
 
   describe('類別繼承和基本結構', () => {
     test('應該正確繼承 EventHandler', () => {
-      expect(BookDataExtractor).toBeDefined();
-      
-      extractor = new BookDataExtractor();
-      expect(extractor).toBeInstanceOf(BookDataExtractor);
-      
+      expect(BookDataExtractor).toBeDefined()
+
+      extractor = new BookDataExtractor()
+      expect(extractor).toBeInstanceOf(BookDataExtractor)
+
       // 檢查是否有 EventHandler 的關鍵方法
-      expect(typeof extractor.handle).toBe('function');
-      expect(typeof extractor.process).toBe('function');
-      expect(typeof extractor.getSupportedEvents).toBe('function');
-      expect(typeof extractor.getStats).toBe('function');
-    });
+      expect(typeof extractor.handle).toBe('function')
+      expect(typeof extractor.process).toBe('function')
+      expect(typeof extractor.getSupportedEvents).toBe('function')
+      expect(typeof extractor.getStats).toBe('function')
+    })
 
     test('應該有正確的類別名稱和優先級', () => {
-      extractor = new BookDataExtractor();
-      expect(extractor.name).toBe('BookDataExtractor');
-      expect(extractor.priority).toBe(1); // HIGH priority for extraction
-    });
+      extractor = new BookDataExtractor()
+      expect(extractor.name).toBe('BookDataExtractor')
+      expect(extractor.priority).toBe(1) // HIGH priority for extraction
+    })
 
     test('應該正確初始化預設狀態', () => {
-      extractor = new BookDataExtractor();
-      expect(extractor.isEnabled).toBe(true);
-      expect(extractor.executionCount).toBe(0);
-      expect(extractor.lastExecutionTime).toBeNull();
-    });
-  });
+      extractor = new BookDataExtractor()
+      expect(extractor.isEnabled).toBe(true)
+      expect(extractor.executionCount).toBe(0)
+      expect(extractor.lastExecutionTime).toBeNull()
+    })
+  })
 
   describe('事件支援', () => {
     beforeEach(() => {
-      extractor = new BookDataExtractor();
-    });
+      extractor = new BookDataExtractor()
+    })
 
     test('應該支援必要的事件類型', () => {
-      const supportedEvents = extractor.getSupportedEvents();
-      
-      expect(supportedEvents).toContain('EXTRACTION.STARTED');
-      expect(supportedEvents).toContain('TAB.UPDATED.READMOO');
-      expect(supportedEvents).toContain('USER.EXTRACT.REQUESTED');
-      expect(supportedEvents).toHaveLength(3);
-    });
+      const supportedEvents = extractor.getSupportedEvents()
+
+      expect(supportedEvents).toContain('EXTRACTION.STARTED')
+      expect(supportedEvents).toContain('TAB.UPDATED.READMOO')
+      expect(supportedEvents).toContain('USER.EXTRACT.REQUESTED')
+      expect(supportedEvents).toHaveLength(3)
+    })
 
     test('應該能檢查特定事件是否支援', () => {
-      expect(extractor.canHandle('EXTRACTION.STARTED')).toBe(true);
-      expect(extractor.canHandle('TAB.UPDATED.READMOO')).toBe(true);
-      expect(extractor.canHandle('USER.EXTRACT.REQUESTED')).toBe(true);
-      expect(extractor.canHandle('UNSUPPORTED.EVENT')).toBe(false);
-    });
-  });
+      expect(extractor.canHandle('EXTRACTION.STARTED')).toBe(true)
+      expect(extractor.canHandle('TAB.UPDATED.READMOO')).toBe(true)
+      expect(extractor.canHandle('USER.EXTRACT.REQUESTED')).toBe(true)
+      expect(extractor.canHandle('UNSUPPORTED.EVENT')).toBe(false)
+    })
+  })
 
   describe('事件處理', () => {
     beforeEach(() => {
-      extractor = new BookDataExtractor();
-    });
+      extractor = new BookDataExtractor()
+    })
 
     test('應該實現 process 方法', () => {
-      expect(typeof extractor.process).toBe('function');
-    });
+      expect(typeof extractor.process).toBe('function')
+    })
 
     test('應該能處理 EXTRACTION.STARTED 事件', async () => {
       const mockEvent = {
@@ -99,16 +99,16 @@ describe('BookDataExtractor', () => {
           url: 'https://readmoo.com/library',
           options: {}
         }
-      };
+      }
 
       // 模擬處理方法
       const handleExtractionStartSpy = jest.spyOn(extractor, 'handleExtractionStart')
-        .mockResolvedValue({ success: true });
+        .mockResolvedValue({ success: true })
 
-      await extractor.process(mockEvent);
+      await extractor.process(mockEvent)
 
-      expect(handleExtractionStartSpy).toHaveBeenCalledWith(mockEvent);
-    });
+      expect(handleExtractionStartSpy).toHaveBeenCalledWith(mockEvent)
+    })
 
     test('應該能處理 TAB.UPDATED.READMOO 事件', async () => {
       const mockEvent = {
@@ -117,16 +117,16 @@ describe('BookDataExtractor', () => {
           tabId: 123,
           url: 'https://readmoo.com/library'
         }
-      };
+      }
 
       // 模擬處理方法
       const handleTabUpdateSpy = jest.spyOn(extractor, 'handleTabUpdate')
-        .mockResolvedValue({ processed: true });
+        .mockResolvedValue({ processed: true })
 
-      await extractor.process(mockEvent);
+      await extractor.process(mockEvent)
 
-      expect(handleTabUpdateSpy).toHaveBeenCalledWith(mockEvent);
-    });
+      expect(handleTabUpdateSpy).toHaveBeenCalledWith(mockEvent)
+    })
 
     test('應該能處理 USER.EXTRACT.REQUESTED 事件', async () => {
       const mockEvent = {
@@ -135,325 +135,325 @@ describe('BookDataExtractor', () => {
           trigger: 'popup',
           options: { includeProgress: true }
         }
-      };
+      }
 
       // 模擬處理方法
       const handleUserRequestSpy = jest.spyOn(extractor, 'handleUserRequest')
-        .mockResolvedValue({ initiated: true });
+        .mockResolvedValue({ initiated: true })
 
-      await extractor.process(mockEvent);
+      await extractor.process(mockEvent)
 
-      expect(handleUserRequestSpy).toHaveBeenCalledWith(mockEvent);
-    });
+      expect(handleUserRequestSpy).toHaveBeenCalledWith(mockEvent)
+    })
 
     test('應該拋出錯誤當遇到不支援的事件類型', async () => {
       const mockEvent = {
         type: 'UNSUPPORTED.EVENT',
         data: {}
-      };
+      }
 
       await expect(extractor.process(mockEvent)).rejects.toThrow(
         'Unsupported event type: UNSUPPORTED.EVENT'
-      );
-    });
-  });
+      )
+    })
+  })
 
   describe('Readmoo 特定功能', () => {
     beforeEach(() => {
-      extractor = new BookDataExtractor();
-    });
+      extractor = new BookDataExtractor()
+    })
 
     test('應該能識別 Readmoo URL', () => {
-      expect(extractor.isReadmooUrl('https://readmoo.com/library')).toBe(true);
-      expect(extractor.isReadmooUrl('https://member.readmoo.com/library')).toBe(true);
-      expect(extractor.isReadmooUrl('https://example.com')).toBe(false);
-    });
+      expect(extractor.isReadmooUrl('https://readmoo.com/library')).toBe(true)
+      expect(extractor.isReadmooUrl('https://member.readmoo.com/library')).toBe(true)
+      expect(extractor.isReadmooUrl('https://example.com')).toBe(false)
+    })
 
     test('應該有 Readmoo 適配器初始化方法', () => {
-      expect(typeof extractor.initializeReadmooAdapter).toBe('function');
-    });
+      expect(typeof extractor.initializeReadmooAdapter).toBe('function')
+    })
 
     test('應該有提取狀態追蹤', () => {
-      expect(extractor.extractionState).toBeDefined();
-      expect(extractor.extractionState.isExtracting).toBe(false);
-      expect(extractor.extractionState.currentUrl).toBeNull();
-    });
-  });
+      expect(extractor.extractionState).toBeDefined()
+      expect(extractor.extractionState.isExtracting).toBe(false)
+      expect(extractor.extractionState.currentUrl).toBeNull()
+    })
+  })
 
   // === TDD Cycle #2 新增測試 ===
   describe('精細的 Readmoo 頁面識別 (Cycle #2)', () => {
     beforeEach(() => {
-      extractor = new BookDataExtractor();
-    });
+      extractor = new BookDataExtractor()
+    })
 
     test('應該能識別不同類型的 Readmoo 頁面', () => {
       // 書庫頁面
-      expect(extractor.getReadmooPageType('https://readmoo.com/library')).toBe('library');
-      expect(extractor.getReadmooPageType('https://member.readmoo.com/library')).toBe('library');
-      
+      expect(extractor.getReadmooPageType('https://readmoo.com/library')).toBe('library')
+      expect(extractor.getReadmooPageType('https://member.readmoo.com/library')).toBe('library')
+
       // 書架頁面
-      expect(extractor.getReadmooPageType('https://member.readmoo.com/shelf')).toBe('shelf');
-      
+      expect(extractor.getReadmooPageType('https://member.readmoo.com/shelf')).toBe('shelf')
+
       // 閱讀器頁面
-      expect(extractor.getReadmooPageType('https://reader.readmoo.com/reader')).toBe('reader');
-      
+      expect(extractor.getReadmooPageType('https://reader.readmoo.com/reader')).toBe('reader')
+
       // 主頁
-      expect(extractor.getReadmooPageType('https://readmoo.com')).toBe('home');
-      
+      expect(extractor.getReadmooPageType('https://readmoo.com')).toBe('home')
+
       // 非 Readmoo 頁面
-      expect(extractor.getReadmooPageType('https://example.com')).toBe(null);
-    });
+      expect(extractor.getReadmooPageType('https://example.com')).toBe(null)
+    })
 
     test('應該能檢查頁面是否支援資料提取', () => {
       // 支援提取的頁面
-      expect(extractor.isExtractableReadmooPage('https://readmoo.com/library')).toBe(true);
-      expect(extractor.isExtractableReadmooPage('https://member.readmoo.com/library')).toBe(true);
-      expect(extractor.isExtractableReadmooPage('https://member.readmoo.com/shelf')).toBe(true);
-      
+      expect(extractor.isExtractableReadmooPage('https://readmoo.com/library')).toBe(true)
+      expect(extractor.isExtractableReadmooPage('https://member.readmoo.com/library')).toBe(true)
+      expect(extractor.isExtractableReadmooPage('https://member.readmoo.com/shelf')).toBe(true)
+
       // 不支援提取的頁面
-      expect(extractor.isExtractableReadmooPage('https://reader.readmoo.com/reader')).toBe(false);
-      expect(extractor.isExtractableReadmooPage('https://readmoo.com')).toBe(false);
-      expect(extractor.isExtractableReadmooPage('https://example.com')).toBe(false);
-    });
+      expect(extractor.isExtractableReadmooPage('https://reader.readmoo.com/reader')).toBe(false)
+      expect(extractor.isExtractableReadmooPage('https://readmoo.com')).toBe(false)
+      expect(extractor.isExtractableReadmooPage('https://example.com')).toBe(false)
+    })
 
     test('應該能檢測頁面準備狀態', async () => {
       // 模擬 DOM 檢查
       const mockCheckPageReady = jest.spyOn(extractor, 'checkPageReady')
-        .mockResolvedValue(true);
+        .mockResolvedValue(true)
 
-      const isReady = await extractor.checkPageReady('https://readmoo.com/library');
-      expect(isReady).toBe(true);
-      expect(mockCheckPageReady).toHaveBeenCalledWith('https://readmoo.com/library');
-    });
+      const isReady = await extractor.checkPageReady('https://readmoo.com/library')
+      expect(isReady).toBe(true)
+      expect(mockCheckPageReady).toHaveBeenCalledWith('https://readmoo.com/library')
+    })
 
     test('應該處理無效的 URL 格式', () => {
-      const invalidUrls = ['', null, undefined, 'not-a-url', 'ftp://readmoo.com'];
-      
+      const invalidUrls = ['', null, undefined, 'not-a-url', 'ftp://readmoo.com']
+
       invalidUrls.forEach(url => {
-        expect(extractor.getReadmooPageType(url)).toBe(null);
-        expect(extractor.isExtractableReadmooPage(url)).toBe(false);
-      });
-    });
-  });
+        expect(extractor.getReadmooPageType(url)).toBe(null)
+        expect(extractor.isExtractableReadmooPage(url)).toBe(false)
+      })
+    })
+  })
 
   describe('Readmoo 提取器初始化流程 (Cycle #2)', () => {
     beforeEach(() => {
-      extractor = new BookDataExtractor();
-    });
+      extractor = new BookDataExtractor()
+    })
 
     test('應該能完整初始化 Readmoo 適配器', async () => {
-      const url = 'https://readmoo.com/library';
-      
+      const url = 'https://readmoo.com/library'
+
       // 模擬頁面檢查
-      jest.spyOn(extractor, 'checkPageReady').mockResolvedValue(true);
-      
+      jest.spyOn(extractor, 'checkPageReady').mockResolvedValue(true)
+
       // 執行初始化
-      await extractor.initializeReadmooAdapter(url);
-      
+      await extractor.initializeReadmooAdapter(url)
+
       // 驗證適配器狀態
-      expect(extractor.readmooAdapter).toBeDefined();
-      expect(extractor.readmooAdapter.initialized).toBe(true);
-      expect(extractor.readmooAdapter.pageType).toBe('library');
-      expect(extractor.readmooAdapter.url).toBe(url);
-    });
+      expect(extractor.readmooAdapter).toBeDefined()
+      expect(extractor.readmooAdapter.initialized).toBe(true)
+      expect(extractor.readmooAdapter.pageType).toBe('library')
+      expect(extractor.readmooAdapter.url).toBe(url)
+    })
 
     test('應該處理頁面未準備好的情況', async () => {
-      const url = 'https://readmoo.com/library';
-      
+      const url = 'https://readmoo.com/library'
+
       // 模擬頁面未準備好
-      jest.spyOn(extractor, 'checkPageReady').mockResolvedValue(false);
-      
+      jest.spyOn(extractor, 'checkPageReady').mockResolvedValue(false)
+
       await expect(extractor.initializeReadmooAdapter(url))
-        .rejects.toThrow('Readmoo 頁面未準備好');
-    });
+        .rejects.toThrow('Readmoo 頁面未準備好')
+    })
 
     test('應該處理不支援提取的頁面', async () => {
-      const url = 'https://readmoo.com';
-      
+      const url = 'https://readmoo.com'
+
       await expect(extractor.initializeReadmooAdapter(url))
-        .rejects.toThrow('此 Readmoo 頁面不支援資料提取');
-    });
+        .rejects.toThrow('此 Readmoo 頁面不支援資料提取')
+    })
 
     test('應該處理初始化過程中的錯誤', async () => {
-      const url = 'https://readmoo.com/library';
-      
+      const url = 'https://readmoo.com/library'
+
       // 模擬初始化錯誤
       jest.spyOn(extractor, 'checkPageReady')
-        .mockRejectedValue(new Error('網路連線錯誤'));
-      
+        .mockRejectedValue(new Error('網路連線錯誤'))
+
       await expect(extractor.initializeReadmooAdapter(url))
-        .rejects.toThrow('網路連線錯誤');
-    });
+        .rejects.toThrow('網路連線錯誤')
+    })
 
     test('應該追蹤初始化狀態', async () => {
-      const url = 'https://readmoo.com/library';
-      
+      const url = 'https://readmoo.com/library'
+
       // 初始狀態
-      expect(extractor.initializationState).toBeDefined();
-      expect(extractor.initializationState.isInitializing).toBe(false);
-      
+      expect(extractor.initializationState).toBeDefined()
+      expect(extractor.initializationState.isInitializing).toBe(false)
+
       // 模擬初始化過程
       jest.spyOn(extractor, 'checkPageReady').mockImplementation(async () => {
         // 檢查初始化狀態已更新
-        expect(extractor.initializationState.isInitializing).toBe(true);
-        return true;
-      });
-      
-      await extractor.initializeReadmooAdapter(url);
-      
+        expect(extractor.initializationState.isInitializing).toBe(true)
+        return true
+      })
+
+      await extractor.initializeReadmooAdapter(url)
+
       // 完成後狀態
-      expect(extractor.initializationState.isInitializing).toBe(false);
-      expect(extractor.initializationState.lastInitializedUrl).toBe(url);
-    });
-  });
+      expect(extractor.initializationState.isInitializing).toBe(false)
+      expect(extractor.initializationState.lastInitializedUrl).toBe(url)
+    })
+  })
 
   describe('頁面狀態檢測 (Cycle #2)', () => {
     beforeEach(() => {
-      extractor = new BookDataExtractor();
-    });
+      extractor = new BookDataExtractor()
+    })
 
     test('應該能檢測書庫頁面的載入狀態', async () => {
       // 模擬 DOM 檢查邏輯
-      const mockDomCheck = jest.fn().mockResolvedValue(true);
-      extractor.checkLibraryPageReady = mockDomCheck;
-      
-      const isReady = await extractor.checkPageReady('https://readmoo.com/library');
-      
-      expect(isReady).toBe(true);
-      expect(mockDomCheck).toHaveBeenCalled();
-    });
+      const mockDomCheck = jest.fn().mockResolvedValue(true)
+      extractor.checkLibraryPageReady = mockDomCheck
+
+      const isReady = await extractor.checkPageReady('https://readmoo.com/library')
+
+      expect(isReady).toBe(true)
+      expect(mockDomCheck).toHaveBeenCalled()
+    })
 
     test('應該能檢測書架頁面的載入狀態', async () => {
-      const mockDomCheck = jest.fn().mockResolvedValue(true);
-      extractor.checkShelfPageReady = mockDomCheck;
-      
-      const isReady = await extractor.checkPageReady('https://member.readmoo.com/shelf');
-      
-      expect(isReady).toBe(true);
-      expect(mockDomCheck).toHaveBeenCalled();
-    });
+      const mockDomCheck = jest.fn().mockResolvedValue(true)
+      extractor.checkShelfPageReady = mockDomCheck
+
+      const isReady = await extractor.checkPageReady('https://member.readmoo.com/shelf')
+
+      expect(isReady).toBe(true)
+      expect(mockDomCheck).toHaveBeenCalled()
+    })
 
     test('應該處理頁面檢測超時', async () => {
       // 模擬超時情況
       jest.spyOn(extractor, 'checkPageReady')
         .mockImplementation(() => new Promise(resolve => {
-          setTimeout(() => resolve(false), 100);
-        }));
-      
-      const startTime = Date.now();
-      const isReady = await extractor.checkPageReady('https://readmoo.com/library');
-      const elapsed = Date.now() - startTime;
-      
-      expect(isReady).toBe(false);
-      expect(elapsed).toBeGreaterThanOrEqual(100);
-    });
+          setTimeout(() => resolve(false), 100)
+        }))
+
+      const startTime = Date.now()
+      const isReady = await extractor.checkPageReady('https://readmoo.com/library')
+      const elapsed = Date.now() - startTime
+
+      expect(isReady).toBe(false)
+      expect(elapsed).toBeGreaterThanOrEqual(100)
+    })
 
     test('應該提供頁面檢測的詳細資訊', async () => {
-      const url = 'https://readmoo.com/library';
-      
-      const checkResult = await extractor.getPageStatus(url);
-      
-      expect(checkResult).toHaveProperty('isReady');
-      expect(checkResult).toHaveProperty('pageType');
-      expect(checkResult).toHaveProperty('isExtractable');
-      expect(checkResult).toHaveProperty('checkedAt');
-      expect(checkResult.pageType).toBe('library');
-      expect(checkResult.isExtractable).toBe(true);
-    });
-  });
+      const url = 'https://readmoo.com/library'
+
+      const checkResult = await extractor.getPageStatus(url)
+
+      expect(checkResult).toHaveProperty('isReady')
+      expect(checkResult).toHaveProperty('pageType')
+      expect(checkResult).toHaveProperty('isExtractable')
+      expect(checkResult).toHaveProperty('checkedAt')
+      expect(checkResult.pageType).toBe('library')
+      expect(checkResult.isExtractable).toBe(true)
+    })
+  })
 
   describe('錯誤處理', () => {
     beforeEach(() => {
-      extractor = new BookDataExtractor();
-    });
+      extractor = new BookDataExtractor()
+    })
 
     test('應該正確處理初始化錯誤', () => {
       // 測試建構函數的錯誤處理
       expect(() => {
-        new BookDataExtractor({ invalidOption: true });
-      }).not.toThrow();
-    });
+        new BookDataExtractor({ invalidOption: true })
+      }).not.toThrow()
+    })
 
     test('應該有錯誤回報機制', () => {
-      expect(typeof extractor.reportError).toBe('function');
-    });
+      expect(typeof extractor.reportError).toBe('function')
+    })
 
     test('應該能從提取錯誤中恢復', async () => {
       const mockEvent = {
         type: 'EXTRACTION.STARTED',
         data: { url: 'invalid-url' }
-      };
+      }
 
       // 模擬 isReadmooUrl 返回 true 以通過 URL 檢查
-      jest.spyOn(extractor, 'isReadmooUrl').mockReturnValue(true);
-      
+      jest.spyOn(extractor, 'isReadmooUrl').mockReturnValue(true)
+
       // 模擬 initializeReadmooAdapter 拋出錯誤
       jest.spyOn(extractor, 'initializeReadmooAdapter')
-        .mockRejectedValue(new Error('適配器初始化失敗'));
+        .mockRejectedValue(new Error('適配器初始化失敗'))
 
       const reportErrorSpy = jest.spyOn(extractor, 'reportError')
-        .mockResolvedValue({ reported: true });
+        .mockResolvedValue({ reported: true })
 
       // 應該返回錯誤狀態而不是拋出錯誤（因為我們修改了 handleExtractionStart）
-      const result = await extractor.process(mockEvent);
-      
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('適配器初始化失敗');
-      expect(reportErrorSpy).toHaveBeenCalled();
-    });
-  });
+      const result = await extractor.process(mockEvent)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('適配器初始化失敗')
+      expect(reportErrorSpy).toHaveBeenCalled()
+    })
+  })
 
   describe('統計追蹤', () => {
     beforeEach(() => {
-      extractor = new BookDataExtractor();
-    });
+      extractor = new BookDataExtractor()
+    })
 
     test('應該追蹤提取統計', () => {
-      expect(extractor.getStats()).toBeDefined();
-      expect(extractor.getStats().executionCount).toBe(0);
-      expect(extractor.getStats().averageExecutionTime).toBe(0);
-    });
+      expect(extractor.getStats()).toBeDefined()
+      expect(extractor.getStats().executionCount).toBe(0)
+      expect(extractor.getStats().averageExecutionTime).toBe(0)
+    })
 
     test('應該有專用的提取統計', () => {
-      expect(extractor.getExtractionStats).toBeDefined();
-      expect(typeof extractor.getExtractionStats).toBe('function');
-    });
-  });
+      expect(extractor.getExtractionStats).toBeDefined()
+      expect(typeof extractor.getExtractionStats).toBe('function')
+    })
+  })
 
   // === TDD Cycle #3 新增測試 ===
   describe('事件驅動提取流程 (Cycle #3)', () => {
-    let mockEventBus;
+    let mockEventBus
 
     beforeEach(() => {
-      extractor = new BookDataExtractor();
-      
+      extractor = new BookDataExtractor()
+
       // 模擬 EventBus
       mockEventBus = {
         emit: jest.fn().mockResolvedValue(true),
         on: jest.fn(),
         off: jest.fn()
-      };
-      
+      }
+
       // 注入 EventBus
-      extractor.setEventBus(mockEventBus);
-    });
+      extractor.setEventBus(mockEventBus)
+    })
 
     test('應該能設置和取得 EventBus', () => {
-      expect(typeof extractor.setEventBus).toBe('function');
-      expect(typeof extractor.getEventBus).toBe('function');
-      
-      expect(extractor.getEventBus()).toBe(mockEventBus);
-    });
+      expect(typeof extractor.setEventBus).toBe('function')
+      expect(typeof extractor.getEventBus).toBe('function')
+
+      expect(extractor.getEventBus()).toBe(mockEventBus)
+    })
 
     test('應該能開始完整的事件驅動提取流程', async () => {
-      const url = 'https://readmoo.com/library';
-      const options = { includeProgress: true };
+      const url = 'https://readmoo.com/library'
+      const options = { includeProgress: true }
 
       // 模擬頁面檢查
-      jest.spyOn(extractor, 'checkPageReady').mockResolvedValue(true);
+      jest.spyOn(extractor, 'checkPageReady').mockResolvedValue(true)
 
       // 執行完整提取流程
-      await extractor.startExtractionFlow(url, options);
+      await extractor.startExtractionFlow(url, options)
 
       // 驗證事件發布順序
       expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.STARTED', {
@@ -461,7 +461,7 @@ describe('BookDataExtractor', () => {
         options,
         timestamp: expect.any(String),
         flowId: expect.any(String)
-      });
+      })
 
       // 檢查第二個調用 (第一個 EXTRACTION.PROGRESS 事件)
       expect(mockEventBus.emit).toHaveBeenNthCalledWith(2, 'EXTRACTION.PROGRESS', {
@@ -470,11 +470,11 @@ describe('BookDataExtractor', () => {
         progress: 0,
         message: '初始化提取器...',
         timestamp: expect.any(String)
-      });
-    });
+      })
+    })
 
     test('應該能報告提取進度', async () => {
-      const flowId = 'test-flow-123';
+      const flowId = 'test-flow-123'
       const progressData = {
         stage: 'parsing',
         progress: 50,
@@ -482,25 +482,25 @@ describe('BookDataExtractor', () => {
         currentBook: '大腦不滿足',
         processedCount: 5,
         totalCount: 10
-      };
+      }
 
-      await extractor.reportProgress(flowId, progressData);
+      await extractor.reportProgress(flowId, progressData)
 
       expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.PROGRESS', {
         flowId,
         ...progressData,
         timestamp: expect.any(String)
-      });
-    });
+      })
+    })
 
     test('應該能處理提取完成事件', async () => {
-      const flowId = 'test-flow-123';
+      const flowId = 'test-flow-123'
       const extractedBooks = [
         { id: '1', title: '書籍1', cover: 'cover1.jpg' },
         { id: '2', title: '書籍2', cover: 'cover2.jpg' }
-      ];
+      ]
 
-      await extractor.completeExtraction(flowId, extractedBooks);
+      await extractor.completeExtraction(flowId, extractedBooks)
 
       expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.COMPLETED', {
         flowId,
@@ -508,54 +508,54 @@ describe('BookDataExtractor', () => {
         totalCount: 2,
         completedAt: expect.any(String),
         duration: expect.any(Number)
-      });
+      })
 
       // 驗證提取狀態已更新
-      expect(extractor.extractionState.isExtracting).toBe(false);
-      expect(extractor.extractionState.extractedBooksCount).toBe(2);
-    });
+      expect(extractor.extractionState.isExtracting).toBe(false)
+      expect(extractor.extractionState.extractedBooksCount).toBe(2)
+    })
 
     test('應該支援提取流程的事件鏈', async () => {
-      const url = 'https://readmoo.com/library';
-      
+      const url = 'https://readmoo.com/library'
+
       // 模擬成功的提取流程
-      jest.spyOn(extractor, 'checkPageReady').mockResolvedValue(true);
+      jest.spyOn(extractor, 'checkPageReady').mockResolvedValue(true)
       jest.spyOn(extractor, 'performActualExtraction').mockResolvedValue([
         { id: '1', title: '測試書籍', cover: 'test.jpg' }
-      ]);
+      ])
 
-      await extractor.startExtractionFlow(url);
+      await extractor.startExtractionFlow(url)
 
       // 驗證完整的事件鏈
-      const emittedEvents = mockEventBus.emit.mock.calls.map(call => call[0]);
-      
-      expect(emittedEvents).toContain('EXTRACTION.STARTED');
-      expect(emittedEvents).toContain('EXTRACTION.PROGRESS');
-      expect(emittedEvents).toContain('EXTRACTION.COMPLETED');
-    });
-  });
+      const emittedEvents = mockEventBus.emit.mock.calls.map(call => call[0])
+
+      expect(emittedEvents).toContain('EXTRACTION.STARTED')
+      expect(emittedEvents).toContain('EXTRACTION.PROGRESS')
+      expect(emittedEvents).toContain('EXTRACTION.COMPLETED')
+    })
+  })
 
   describe('提取錯誤處理和重試機制 (Cycle #3)', () => {
-    let mockEventBus;
+    let mockEventBus
 
     beforeEach(() => {
-      extractor = new BookDataExtractor();
-      
+      extractor = new BookDataExtractor()
+
       mockEventBus = {
         emit: jest.fn().mockResolvedValue(true),
         on: jest.fn(),
         off: jest.fn()
-      };
-      
-      extractor.setEventBus(mockEventBus);
-    });
+      }
+
+      extractor.setEventBus(mockEventBus)
+    })
 
     test('應該能處理提取錯誤並發布錯誤事件', async () => {
-      const flowId = 'test-flow-error';
-      const error = new Error('網路連線失敗');
-      const context = { url: 'https://readmoo.com/library', stage: 'parsing' };
+      const flowId = 'test-flow-error'
+      const error = new Error('網路連線失敗')
+      const context = { url: 'https://readmoo.com/library', stage: 'parsing' }
 
-      await extractor.handleExtractionError(flowId, error, context);
+      await extractor.handleExtractionError(flowId, error, context)
 
       expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.ERROR', {
         flowId,
@@ -563,42 +563,42 @@ describe('BookDataExtractor', () => {
         context,
         timestamp: expect.any(String),
         retryable: true
-      });
-    });
+      })
+    })
 
     test('應該支援提取重試機制', async () => {
-      const flowId = 'test-flow-retry';
+      const flowId = 'test-flow-retry'
       const retryOptions = {
         maxRetries: 3,
         retryDelay: 1000,
         backoffMultiplier: 2
-      };
+      }
 
       // 模擬重試成功
       jest.spyOn(extractor, 'performActualExtraction').mockResolvedValue([
         { id: '1', title: '重試成功書籍', cover: 'retry.jpg' }
-      ]);
+      ])
 
-      await extractor.retryExtraction(flowId, retryOptions);
+      await extractor.retryExtraction(flowId, retryOptions)
 
       expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.RETRY', {
         flowId,
         retryCount: 1,
         maxRetries: 3,
         timestamp: expect.any(String)
-      });
-    });
+      })
+    })
 
     test('應該能標記提取最終失敗', async () => {
-      const flowId = 'test-flow-failed';
-      const lastError = new Error('多次重試失敗');
+      const flowId = 'test-flow-failed'
+      const lastError = new Error('多次重試失敗')
       const retryHistory = [
         { attempt: 1, error: '網路錯誤', timestamp: '2025-01-29T10:00:00Z' },
         { attempt: 2, error: '解析錯誤', timestamp: '2025-01-29T10:01:00Z' },
         { attempt: 3, error: '多次重試失敗', timestamp: '2025-01-29T10:02:00Z' }
-      ];
+      ]
 
-      await extractor.markExtractionFailed(flowId, lastError, retryHistory);
+      await extractor.markExtractionFailed(flowId, lastError, retryHistory)
 
       expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.FAILED', {
         flowId,
@@ -606,68 +606,68 @@ describe('BookDataExtractor', () => {
         retryHistory,
         failedAt: expect.any(String),
         totalRetries: 3
-      });
+      })
 
       // 驗證提取狀態已重置
-      expect(extractor.extractionState.isExtracting).toBe(false);
-      expect(extractor.extractionStats.failedExtractions).toBeGreaterThan(0);
-    });
+      expect(extractor.extractionState.isExtracting).toBe(false)
+      expect(extractor.extractionStats.failedExtractions).toBeGreaterThan(0)
+    })
 
     test('應該支援提取取消功能', async () => {
-      const flowId = 'test-flow-cancel';
-      const reason = '使用者手動取消';
+      const flowId = 'test-flow-cancel'
+      const reason = '使用者手動取消'
 
-      await extractor.cancelExtraction(flowId, reason);
+      await extractor.cancelExtraction(flowId, reason)
 
       expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.CANCELLED', {
         flowId,
         reason,
         cancelledAt: expect.any(String),
         partialResults: expect.any(Array)
-      });
+      })
 
       // 驗證清理事件也被發布
       expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.CLEANUP', {
         flowId,
         cleanupType: 'cancellation',
         timestamp: expect.any(String)
-      });
-    });
-  });
+      })
+    })
+  })
 
   describe('提取進度追蹤和狀態廣播 (Cycle #3)', () => {
-    let mockEventBus;
+    let mockEventBus
 
     beforeEach(() => {
-      extractor = new BookDataExtractor();
-      
+      extractor = new BookDataExtractor()
+
       mockEventBus = {
         emit: jest.fn().mockResolvedValue(true),
         on: jest.fn(),
         off: jest.fn()
-      };
-      
-      extractor.setEventBus(mockEventBus);
-    });
+      }
+
+      extractor.setEventBus(mockEventBus)
+    })
 
     test('應該追蹤提取流程的詳細進度', async () => {
-      const flowId = 'test-flow-progress';
-      
+      const flowId = 'test-flow-progress'
+
       // 初始化進度追蹤
-      extractor.initializeProgressTracking(flowId);
-      
+      extractor.initializeProgressTracking(flowId)
+
       // 報告不同階段的進度
       await extractor.reportProgress(flowId, {
         stage: 'initialization',
         progress: 10,
         message: '正在初始化...'
-      });
+      })
 
       await extractor.reportProgress(flowId, {
         stage: 'page_analysis',
         progress: 30,
         message: '分析頁面結構...'
-      });
+      })
 
       await extractor.reportProgress(flowId, {
         stage: 'data_extraction',
@@ -676,25 +676,25 @@ describe('BookDataExtractor', () => {
         currentBook: '測試書籍',
         processedCount: 7,
         totalCount: 10
-      });
+      })
 
       // 驗證進度事件的發布
       const progressEvents = mockEventBus.emit.mock.calls
-        .filter(call => call[0] === 'EXTRACTION.PROGRESS');
-      
-      expect(progressEvents).toHaveLength(3);
-      expect(progressEvents[0][1].stage).toBe('initialization');
-      expect(progressEvents[1][1].stage).toBe('page_analysis');
-      expect(progressEvents[2][1].stage).toBe('data_extraction');
-    });
+        .filter(call => call[0] === 'EXTRACTION.PROGRESS')
+
+      expect(progressEvents).toHaveLength(3)
+      expect(progressEvents[0][1].stage).toBe('initialization')
+      expect(progressEvents[1][1].stage).toBe('page_analysis')
+      expect(progressEvents[2][1].stage).toBe('data_extraction')
+    })
 
     test('應該能取得當前提取流程的狀態', () => {
-      const flowId = 'test-flow-status';
-      
-      extractor.initializeProgressTracking(flowId);
-      
-      const status = extractor.getExtractionFlowStatus(flowId);
-      
+      const flowId = 'test-flow-status'
+
+      extractor.initializeProgressTracking(flowId)
+
+      const status = extractor.getExtractionFlowStatus(flowId)
+
       expect(status).toEqual({
         flowId,
         isActive: true,
@@ -704,43 +704,43 @@ describe('BookDataExtractor', () => {
         estimatedTimeRemaining: null,
         processedCount: 0,
         totalCount: 0
-      });
-    });
+      })
+    })
 
     test('應該能列出所有活躍的提取流程', () => {
       // 初始化多個流程
-      extractor.initializeProgressTracking('flow1');
-      extractor.initializeProgressTracking('flow2');
-      extractor.initializeProgressTracking('flow3');
+      extractor.initializeProgressTracking('flow1')
+      extractor.initializeProgressTracking('flow2')
+      extractor.initializeProgressTracking('flow3')
 
-      const activeFlows = extractor.getActiveExtractionFlows();
-      
-      expect(activeFlows).toHaveLength(3);
-      expect(activeFlows.map(f => f.flowId)).toContain('flow1');
-      expect(activeFlows.map(f => f.flowId)).toContain('flow2');
-      expect(activeFlows.map(f => f.flowId)).toContain('flow3');
-    });
+      const activeFlows = extractor.getActiveExtractionFlows()
+
+      expect(activeFlows).toHaveLength(3)
+      expect(activeFlows.map(f => f.flowId)).toContain('flow1')
+      expect(activeFlows.map(f => f.flowId)).toContain('flow2')
+      expect(activeFlows.map(f => f.flowId)).toContain('flow3')
+    })
 
     test('應該能清理完成的提取流程', async () => {
-      const flowId = 'test-flow-cleanup';
-      
-      extractor.initializeProgressTracking(flowId);
-      
+      const flowId = 'test-flow-cleanup'
+
+      extractor.initializeProgressTracking(flowId)
+
       // 完成提取
-      await extractor.completeExtraction(flowId, []);
-      
+      await extractor.completeExtraction(flowId, [])
+
       // 執行清理
-      await extractor.cleanupExtractionFlow(flowId);
-      
+      await extractor.cleanupExtractionFlow(flowId)
+
       expect(mockEventBus.emit).toHaveBeenCalledWith('EXTRACTION.CLEANUP', {
         flowId,
         cleanupType: 'completion',
         timestamp: expect.any(String)
-      });
-      
+      })
+
       // 驗證流程已從活躍列表中移除
-      const activeFlows = extractor.getActiveExtractionFlows();
-      expect(activeFlows.find(f => f.flowId === flowId)).toBeUndefined();
-    });
-  });
-}); 
+      const activeFlows = extractor.getActiveExtractionFlows()
+      expect(activeFlows.find(f => f.flowId === flowId)).toBeUndefined()
+    })
+  })
+})

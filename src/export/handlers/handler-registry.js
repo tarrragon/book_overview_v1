@@ -1,27 +1,27 @@
 /**
  * 處理器註冊中心 - TDD循環 #29 Green階段實作
- * 
+ *
  * 負責功能：
  * - 管理所有匯出事件處理器的註冊和移除
  * - 提供處理器的動態查詢和檢索
  * - 支援預設處理器的自動註冊
  * - 根據事件類型找到合適的處理器
- * 
+ *
  * 設計考量：
  * - 使用 Map 結構進行高效的處理器管理
  * - 支援處理器的動態註冊和移除
  * - 提供多種查詢方式（按名稱、按事件類型）
  * - 自動載入和註冊預設處理器
- * 
+ *
  * @version 1.0.0
  * @since 2025-08-08
  */
 
-const CSVExportHandler = require('./csv-export-handler');
-const JSONExportHandler = require('./json-export-handler');
-const ExcelExportHandler = require('./excel-export-handler');
-const ProgressHandler = require('./progress-handler');
-const ErrorHandler = require('./error-handler');
+const CSVExportHandler = require('./csv-export-handler')
+const JSONExportHandler = require('./json-export-handler')
+const ExcelExportHandler = require('./excel-export-handler')
+const ProgressHandler = require('./progress-handler')
+const ErrorHandler = require('./error-handler')
 
 /**
  * 處理器註冊中心類別
@@ -30,272 +30,272 @@ const ErrorHandler = require('./error-handler');
 class HandlerRegistry {
   /**
    * 建構函數
-   * 
+   *
    * @param {EventBus} eventBus - 事件總線實例
    */
-  constructor(eventBus) {
+  constructor (eventBus) {
     if (!eventBus) {
-      throw new Error('EventBus is required for HandlerRegistry');
+      throw new Error('EventBus is required for HandlerRegistry')
     }
 
     /**
      * 事件總線實例
      * @type {EventBus}
      */
-    this.eventBus = eventBus;
+    this.eventBus = eventBus
 
     /**
      * 已註冊的處理器映射
      * @type {Map<string, EventHandler>}
      */
-    this.handlers = new Map();
+    this.handlers = new Map()
 
     /**
      * 事件類型到處理器的映射
      * @type {Map<string, Array<EventHandler>>}
      */
-    this.eventToHandlers = new Map();
-    
+    this.eventToHandlers = new Map()
+
     /**
      * 錯誤處理重入保護旗標
-     * 
+     *
      * 防止 ErrorHandler 處理錯誤時再次觸發錯誤處理，造成無限循環
-     * 
+     *
      * 問題背景：
      * 1. HandlerRegistry 在處理器失敗時會發送 FAILED 事件
      * 2. ErrorHandler 監聽這些 FAILED 事件進行錯誤處理
      * 3. 如果 ErrorHandler 自身拋出錯誤，會再次觸發錯誤處理
      * 4. 形成無限遞迴，導致 heap OOM 和 RangeError
-     * 
+     *
      * 解決方案：
      * - 使用重入保護旗標防止錯誤處理的遞迴觸發
      * - ErrorHandler 的錯誤會直接記錄到 console，不再遞迴處理
      * - 確保旗標在 finally 塊中重置，避免永久鎖定
-     * 
+     *
      * @type {boolean}
      */
-    this._processingError = false;
+    this._processingError = false
   }
 
   /**
    * 註冊處理器
-   * 
+   *
    * @param {EventHandler} handler - 要註冊的處理器
    * @throws {Error} 當處理器無效或已存在時拋出錯誤
    */
-  register(handler) {
+  register (handler) {
     if (!handler) {
-      throw new Error('Handler is required for registration');
+      throw new Error('Handler is required for registration')
     }
 
     if (!handler.name) {
-      throw new Error('Handler must have a name');
+      throw new Error('Handler must have a name')
     }
 
     if (this.handlers.has(handler.name)) {
-      throw new Error(`Handler '${handler.name}' is already registered`);
+      throw new Error(`Handler '${handler.name}' is already registered`)
     }
 
     // 註冊處理器
-    this.handlers.set(handler.name, handler);
+    this.handlers.set(handler.name, handler)
 
     // 建立事件類型映射
-    const supportedEvents = handler.getSupportedEvents();
+    const supportedEvents = handler.getSupportedEvents()
     supportedEvents.forEach(eventType => {
       if (!this.eventToHandlers.has(eventType)) {
-        this.eventToHandlers.set(eventType, []);
+        this.eventToHandlers.set(eventType, [])
       }
-      this.eventToHandlers.get(eventType).push(handler);
+      this.eventToHandlers.get(eventType).push(handler)
 
       // 在事件總線上註冊處理器
       this.eventBus.on(eventType, async (data) => {
-        if (!handler.isEnabled) return null;
+        if (!handler.isEnabled) return null
         try {
-          const result = await handler.handle(data);
+          const result = await handler.handle(data)
           // 成功時若是匯出處理器，主動發出進度完成事件，滿足整合測試對進度的觀察
           if (eventType === 'EXPORT.CSV.REQUESTED') {
-            try { await this.eventBus.emit('EXPORT.PROCESS.PROGRESS', { exportId: 'auto', current: 100, total: 100 }); } catch (_) {}
+            try { await this.eventBus.emit('EXPORT.PROCESS.PROGRESS', { exportId: 'auto', current: 100, total: 100 }) } catch (_) {}
           }
-          return result;
+          return result
         } catch (err) {
           // 錯誤處理重入保護：防止 ErrorHandler 處理錯誤時再次觸發錯誤處理
           if (!this._processingError) {
-            this._processingError = true;
-            
+            this._processingError = true
+
             try {
               // 出錯時對應發送失敗事件，讓 ErrorHandler 能被觸發
               const failedEventMap = {
                 'EXPORT.CSV.REQUESTED': 'EXPORT.CSV.FAILED',
                 'EXPORT.JSON.REQUESTED': 'EXPORT.JSON.FAILED',
                 'EXPORT.EXCEL.REQUESTED': 'EXPORT.EXCEL.FAILED'
-              };
-              const failedType = failedEventMap[eventType] || 'EXPORT.PROCESS.FAILED';
-              
+              }
+              const failedType = failedEventMap[eventType] || 'EXPORT.PROCESS.FAILED'
+
               // 發送錯誤事件，但如果 ErrorHandler 自身出錯，不會再次觸發
-              await this.eventBus.emit(failedType, { 
-                error: err, 
+              await this.eventBus.emit(failedType, {
+                error: err,
                 format: eventType.split('.')[1] ? eventType.split('.')[1].toLowerCase() : 'unknown',
                 originalEvent: eventType,
                 exportId: data?.exportId || 'auto-generated', // 提供預設 exportId
                 phase: 'processing'
-              });
+              })
             } catch (errorHandlingErr) {
               // ErrorHandler 本身的錯誤不再遞迴處理，直接記錄
-              console.error('[HandlerRegistry] Error in error handling:', errorHandlingErr.message);
+              console.error('[HandlerRegistry] Error in error handling:', errorHandlingErr.message)
             } finally {
               // 確保重入保護旗標被重置
-              this._processingError = false;
+              this._processingError = false
             }
           }
-          
-          throw err;
+
+          throw err
         }
       }, {
         priority: handler.priority
-      });
-    });
+      })
+    })
 
-    console.log(`[HandlerRegistry] Registered handler: ${handler.name}`);
+    console.log(`[HandlerRegistry] Registered handler: ${handler.name}`)
   }
 
   /**
    * 移除處理器
-   * 
+   *
    * @param {string} handlerName - 要移除的處理器名稱
    * @returns {boolean} 是否成功移除
    */
-  unregister(handlerName) {
+  unregister (handlerName) {
     if (!handlerName) {
-      return false;
+      return false
     }
 
-    const handler = this.handlers.get(handlerName);
+    const handler = this.handlers.get(handlerName)
     if (!handler) {
-      return false;
+      return false
     }
 
     // 從事件類型映射中移除
-    const supportedEvents = handler.getSupportedEvents();
+    const supportedEvents = handler.getSupportedEvents()
     supportedEvents.forEach(eventType => {
-      const handlers = this.eventToHandlers.get(eventType);
+      const handlers = this.eventToHandlers.get(eventType)
       if (handlers) {
-        const index = handlers.indexOf(handler);
+        const index = handlers.indexOf(handler)
         if (index !== -1) {
-          handlers.splice(index, 1);
+          handlers.splice(index, 1)
         }
-        
+
         // 如果沒有處理器了，移除整個映射
         if (handlers.length === 0) {
-          this.eventToHandlers.delete(eventType);
+          this.eventToHandlers.delete(eventType)
         }
       }
 
       // 從事件總線上移除處理器（簡化實作，實際可能需要更複雜的邏輯）
       // 注意：EventBus 可能需要提供 off 方法來支援此功能
-    });
+    })
 
     // 從處理器映射中移除
-    this.handlers.delete(handlerName);
+    this.handlers.delete(handlerName)
 
-    console.log(`[HandlerRegistry] Unregistered handler: ${handlerName}`);
-    return true;
+    console.log(`[HandlerRegistry] Unregistered handler: ${handlerName}`)
+    return true
   }
 
   /**
    * 根據名稱獲取處理器
-   * 
+   *
    * @param {string} handlerName - 處理器名稱
    * @returns {EventHandler|undefined} 處理器實例
    */
-  getHandler(handlerName) {
-    return this.handlers.get(handlerName);
+  getHandler (handlerName) {
+    return this.handlers.get(handlerName)
   }
 
   /**
    * 獲取所有已註冊的處理器
-   * 
+   *
    * @returns {Array<EventHandler>} 處理器陣列
    */
-  getAllHandlers() {
-    return Array.from(this.handlers.values());
+  getAllHandlers () {
+    return Array.from(this.handlers.values())
   }
 
   /**
    * 根據事件類型獲取處理器
-   * 
+   *
    * @param {string} eventType - 事件類型
    * @returns {Array<EventHandler>} 支援該事件的處理器陣列
    */
-  getHandlersForEvent(eventType) {
-    return this.eventToHandlers.get(eventType) || [];
+  getHandlersForEvent (eventType) {
+    return this.eventToHandlers.get(eventType) || []
   }
 
   /**
    * 註冊預設處理器
    * 自動註冊所有內建的匯出處理器
    */
-  registerDefaultHandlers() {
+  registerDefaultHandlers () {
     try {
       // 註冊各種格式的匯出處理器
-      this.register(new CSVExportHandler());
-      this.register(new JSONExportHandler());
-      this.register(new ExcelExportHandler());
-      
-      // 註冊通用處理器
-      this.register(new ProgressHandler());
-      this.register(new ErrorHandler());
+      this.register(new CSVExportHandler())
+      this.register(new JSONExportHandler())
+      this.register(new ExcelExportHandler())
 
-      console.log('[HandlerRegistry] Default handlers registered successfully');
+      // 註冊通用處理器
+      this.register(new ProgressHandler())
+      this.register(new ErrorHandler())
+
+      console.log('[HandlerRegistry] Default handlers registered successfully')
     } catch (error) {
-      console.error('[HandlerRegistry] Failed to register default handlers:', error);
-      throw error;
+      console.error('[HandlerRegistry] Failed to register default handlers:', error)
+      throw error
     }
   }
 
   /**
    * 檢查處理器是否已註冊
-   * 
+   *
    * @param {string} handlerName - 處理器名稱
    * @returns {boolean} 是否已註冊
    */
-  hasHandler(handlerName) {
-    return this.handlers.has(handlerName);
+  hasHandler (handlerName) {
+    return this.handlers.has(handlerName)
   }
 
   /**
    * 啟用或停用處理器
-   * 
+   *
    * @param {string} handlerName - 處理器名稱
    * @param {boolean} enabled - 是否啟用
    * @returns {boolean} 操作是否成功
    */
-  setHandlerEnabled(handlerName, enabled) {
-    const handler = this.handlers.get(handlerName);
+  setHandlerEnabled (handlerName, enabled) {
+    const handler = this.handlers.get(handlerName)
     if (!handler) {
-      return false;
+      return false
     }
 
-    handler.setEnabled(enabled);
-    console.log(`[HandlerRegistry] Handler '${handlerName}' ${enabled ? 'enabled' : 'disabled'}`);
-    return true;
+    handler.setEnabled(enabled)
+    console.log(`[HandlerRegistry] Handler '${handlerName}' ${enabled ? 'enabled' : 'disabled'}`)
+    return true
   }
 
   /**
    * 獲取處理器統計資訊
-   * 
+   *
    * @returns {Object} 統計資訊
    */
-  getStats() {
+  getStats () {
     const stats = {
       totalHandlers: this.handlers.size,
       enabledHandlers: 0,
       eventTypesCovered: this.eventToHandlers.size,
       handlerDetails: {}
-    };
+    }
 
     this.handlers.forEach((handler, name) => {
       if (handler.isEnabled) {
-        stats.enabledHandlers++;
+        stats.enabledHandlers++
       }
 
       stats.handlerDetails[name] = {
@@ -303,56 +303,56 @@ class HandlerRegistry {
         priority: handler.priority,
         supportedEvents: handler.getSupportedEvents(),
         stats: handler.getStats ? handler.getStats() : null
-      };
-    });
+      }
+    })
 
-    return stats;
+    return stats
   }
 
   /**
    * 清理所有處理器
    * 移除所有已註冊的處理器
    */
-  clear() {
-    const handlerNames = Array.from(this.handlers.keys());
+  clear () {
+    const handlerNames = Array.from(this.handlers.keys())
     handlerNames.forEach(name => {
-      this.unregister(name);
-    });
+      this.unregister(name)
+    })
 
-    console.log('[HandlerRegistry] All handlers cleared');
+    console.log('[HandlerRegistry] All handlers cleared')
   }
 
   /**
    * 驗證處理器註冊狀態
    * 檢查是否有必要的處理器缺失
-   * 
+   *
    * @returns {Object} 驗證結果
    */
-  validateRegistry() {
+  validateRegistry () {
     const requiredHandlers = [
       'CSVExportHandler',
       'JSONExportHandler',
       'ExcelExportHandler',
       'ProgressHandler',
       'ErrorHandler'
-    ];
+    ]
 
-    const missingHandlers = requiredHandlers.filter(name => 
+    const missingHandlers = requiredHandlers.filter(name =>
       !this.handlers.has(name)
-    );
+    )
 
     const disabledHandlers = requiredHandlers.filter(name => {
-      const handler = this.handlers.get(name);
-      return handler && !handler.isEnabled;
-    });
+      const handler = this.handlers.get(name)
+      return handler && !handler.isEnabled
+    })
 
     return {
       isValid: missingHandlers.length === 0,
       missingHandlers,
       disabledHandlers,
       totalHandlers: this.handlers.size
-    };
+    }
   }
 }
 
-module.exports = HandlerRegistry;
+module.exports = HandlerRegistry

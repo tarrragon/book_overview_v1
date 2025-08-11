@@ -4,11 +4,11 @@
  */
 
 module.exports = {
-  test(val) {
-    return val && val.nodeType === 1; // Element node
+  test (val) {
+    return val && val.nodeType === 1 // Element node
   },
-  
-  serialize(val) {
-    return val.outerHTML || '';
+
+  serialize (val) {
+    return val.outerHTML || ''
   }
-}; 
+}

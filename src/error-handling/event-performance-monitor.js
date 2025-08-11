@@ -21,7 +21,7 @@
  * @version 1.0.0
  */
 
-const EventHandler = require("../core/event-handler");
+const EventHandler = require('../core/event-handler')
 
 /**
  * EventPerformanceMonitor 類別
@@ -40,53 +40,53 @@ class EventPerformanceMonitor extends EventHandler {
    * - PERFORMANCE: 效能相關常數
    * - ERRORS: 錯誤訊息定義
    */
-  static get CONSTANTS() {
+  static get CONSTANTS () {
     return {
       CONFIG: {
-        NAME: "EventPerformanceMonitor",
+        NAME: 'EventPerformanceMonitor',
         PRIORITY: 5,
         DEFAULT_SAMPLE_RATE: 1.0,
         DEFAULT_MAX_RECORDS: 1000,
-        MAX_WARNING_HISTORY: 100,
+        MAX_WARNING_HISTORY: 100
       },
       EVENTS: {
         INPUT: {
-          PROCESSING_STARTED: "EVENT.PROCESSING.STARTED",
-          PROCESSING_COMPLETED: "EVENT.PROCESSING.COMPLETED",
-          PROCESSING_FAILED: "EVENT.PROCESSING.FAILED",
-          MONITOR_REQUEST: "PERFORMANCE.MONITOR.REQUEST",
+          PROCESSING_STARTED: 'EVENT.PROCESSING.STARTED',
+          PROCESSING_COMPLETED: 'EVENT.PROCESSING.COMPLETED',
+          PROCESSING_FAILED: 'EVENT.PROCESSING.FAILED',
+          MONITOR_REQUEST: 'PERFORMANCE.MONITOR.REQUEST'
         },
         OUTPUT: {
-          WARNING: "PERFORMANCE.WARNING",
-          MONITOR_RESPONSE: "PERFORMANCE.MONITOR.RESPONSE",
-        },
+          WARNING: 'PERFORMANCE.WARNING',
+          MONITOR_RESPONSE: 'PERFORMANCE.MONITOR.RESPONSE'
+        }
       },
       WARNINGS: {
         TYPES: {
-          SLOW_EVENT_PROCESSING: "SLOW_EVENT_PROCESSING",
-          HIGH_MEMORY_USAGE: "HIGH_MEMORY_USAGE",
-          HIGH_ACTIVE_EVENT_COUNT: "HIGH_ACTIVE_EVENT_COUNT",
+          SLOW_EVENT_PROCESSING: 'SLOW_EVENT_PROCESSING',
+          HIGH_MEMORY_USAGE: 'HIGH_MEMORY_USAGE',
+          HIGH_ACTIVE_EVENT_COUNT: 'HIGH_ACTIVE_EVENT_COUNT'
         },
         DEFAULT_THRESHOLDS: {
           eventProcessingTime: 1000, // 1 秒
           memoryUsage: 100 * 1024 * 1024, // 100MB
-          activeEventCount: 50,
-        },
+          activeEventCount: 50
+        }
       },
       PERFORMANCE: {
         CLEANUP_INTERVAL: 5 * 60 * 1000, // 5 分鐘
         EVENT_TIMEOUT: 30 * 1000, // 30 秒
-        MARK_PREFIX: "event-start-",
-        MEASURE_PREFIX: "event-duration-",
+        MARK_PREFIX: 'event-start-',
+        MEASURE_PREFIX: 'event-duration-'
       },
       ERRORS: {
         MESSAGES: {
-          PROCESSING_ERROR: "效能監控處理錯誤",
-          UNSUPPORTED_EVENT_TYPE: "不支援的事件類型",
-          EVENT_NOT_FOUND: "找不到對應的開始事件",
-        },
-      },
-    };
+          PROCESSING_ERROR: '效能監控處理錯誤',
+          UNSUPPORTED_EVENT_TYPE: '不支援的事件類型',
+          EVENT_NOT_FOUND: '找不到對應的開始事件'
+        }
+      }
+    }
   }
 
   /**
@@ -95,26 +95,26 @@ class EventPerformanceMonitor extends EventHandler {
    * @param {Object} eventBus - 事件總線實例
    * @param {Object} options - 配置選項
    */
-  constructor(eventBus, options = {}) {
-    const { CONFIG, EVENTS } = EventPerformanceMonitor.CONSTANTS;
+  constructor (eventBus, options = {}) {
+    const { CONFIG, EVENTS } = EventPerformanceMonitor.CONSTANTS
 
-    super(CONFIG.NAME, CONFIG.PRIORITY);
+    super(CONFIG.NAME, CONFIG.PRIORITY)
 
-    this.eventBus = eventBus;
-    this.supportedEvents = Object.values(EVENTS.INPUT);
+    this.eventBus = eventBus
+    this.supportedEvents = Object.values(EVENTS.INPUT)
 
     // 合併配置
-    this.config = this._mergeConfiguration(options);
+    this.config = this._mergeConfiguration(options)
 
     // 初始化狀態
-    this.isEnabled = true;
-    this.startTime = Date.now();
+    this.isEnabled = true
+    this.startTime = Date.now()
 
     // 初始化資料結構
-    this._initializeDataStructures();
+    this._initializeDataStructures()
 
     // 啟動定期清理
-    this._startPeriodicCleanup();
+    this._startPeriodicCleanup()
   }
 
   /**
@@ -124,19 +124,19 @@ class EventPerformanceMonitor extends EventHandler {
    * @returns {Object} 合併後的配置
    * @private
    */
-  _mergeConfiguration(options) {
-    const { CONFIG, WARNINGS, PERFORMANCE } = EventPerformanceMonitor.CONSTANTS;
+  _mergeConfiguration (options) {
+    const { CONFIG, WARNINGS, PERFORMANCE } = EventPerformanceMonitor.CONSTANTS
 
     return {
       sampleRate: options.sampleRate || CONFIG.DEFAULT_SAMPLE_RATE,
       maxRecords: options.maxRecords || CONFIG.DEFAULT_MAX_RECORDS,
       warningThresholds: {
         ...WARNINGS.DEFAULT_THRESHOLDS,
-        ...(options.warningThresholds || {}),
+        ...(options.warningThresholds || {})
       },
       cleanupInterval: options.cleanupInterval || PERFORMANCE.CLEANUP_INTERVAL,
-      eventTimeout: options.eventTimeout || PERFORMANCE.EVENT_TIMEOUT,
-    };
+      eventTimeout: options.eventTimeout || PERFORMANCE.EVENT_TIMEOUT
+    }
   }
 
   /**
@@ -144,9 +144,9 @@ class EventPerformanceMonitor extends EventHandler {
    *
    * @private
    */
-  _initializeDataStructures() {
+  _initializeDataStructures () {
     // 活躍事件追蹤
-    this.activeEvents = new Map();
+    this.activeEvents = new Map()
 
     // 效能統計
     this.performanceStats = {
@@ -154,17 +154,17 @@ class EventPerformanceMonitor extends EventHandler {
       failedEvents: 0,
       averageProcessingTime: 0,
       warningCount: 0,
-      lastWarningTime: null,
-    };
+      lastWarningTime: null
+    }
 
     // 效能歷史記錄
-    this.performanceHistory = [];
+    this.performanceHistory = []
 
     // 警告歷史
-    this.warningHistory = [];
+    this.warningHistory = []
 
     // 清理定時器
-    this.cleanupTimer = null;
+    this.cleanupTimer = null
   }
 
   /**
@@ -173,15 +173,15 @@ class EventPerformanceMonitor extends EventHandler {
    * @param {Object} eventData - 事件資料
    * @returns {Object} 處理結果
    */
-  process(eventData) {
+  process (eventData) {
     if (!this.isEnabled || !this._shouldSample()) {
-      return { success: true, skipped: true };
+      return { success: true, skipped: true }
     }
 
     try {
-      return this._dispatchEventHandler(eventData);
+      return this._dispatchEventHandler(eventData)
     } catch (error) {
-      return this._createErrorResponse("PROCESSING_ERROR", error, eventData);
+      return this._createErrorResponse('PROCESSING_ERROR', error, eventData)
     }
   }
 
@@ -192,27 +192,27 @@ class EventPerformanceMonitor extends EventHandler {
    * @returns {Object} 處理結果
    * @private
    */
-  _dispatchEventHandler(eventData) {
-    const { EVENTS } = EventPerformanceMonitor.CONSTANTS;
+  _dispatchEventHandler (eventData) {
+    const { EVENTS } = EventPerformanceMonitor.CONSTANTS
 
     switch (eventData.type) {
       case EVENTS.INPUT.PROCESSING_STARTED:
-        return this._handleProcessingStarted(eventData.data);
+        return this._handleProcessingStarted(eventData.data)
       case EVENTS.INPUT.PROCESSING_COMPLETED:
-        return this._handleProcessingCompleted(eventData.data);
+        return this._handleProcessingCompleted(eventData.data)
       case EVENTS.INPUT.PROCESSING_FAILED:
-        return this._handleProcessingFailed(eventData.data);
+        return this._handleProcessingFailed(eventData.data)
       case EVENTS.INPUT.MONITOR_REQUEST:
-        return this._handleMonitorRequest(eventData.data);
+        return this._handleMonitorRequest(eventData.data)
       default:
-        const { ERRORS } = EventPerformanceMonitor.CONSTANTS;
+        const { ERRORS } = EventPerformanceMonitor.CONSTANTS
         return this._createErrorResponse(
-          "UNSUPPORTED_EVENT_TYPE",
+          'UNSUPPORTED_EVENT_TYPE',
           new Error(
             `${ERRORS.MESSAGES.UNSUPPORTED_EVENT_TYPE}: ${eventData.type}`
           ),
           eventData
-        );
+        )
     }
   }
 
@@ -223,27 +223,27 @@ class EventPerformanceMonitor extends EventHandler {
    * @returns {Object} 處理結果
    * @private
    */
-  _handleProcessingStarted(data) {
-    const { eventId, eventType } = data;
-    const startTime = this._getCurrentTime();
+  _handleProcessingStarted (data) {
+    const { eventId, eventType } = data
+    const startTime = this._getCurrentTime()
 
     // 記錄活躍事件
     this.activeEvents.set(eventId, {
       eventType,
       startTime,
-      timestamp: Date.now(),
-    });
+      timestamp: Date.now()
+    })
 
     // 設置效能標記
-    if (typeof performance !== "undefined" && performance.mark) {
-      const { PERFORMANCE } = EventPerformanceMonitor.CONSTANTS;
-      performance.mark(`${PERFORMANCE.MARK_PREFIX}${eventId}`);
+    if (typeof performance !== 'undefined' && performance.mark) {
+      const { PERFORMANCE } = EventPerformanceMonitor.CONSTANTS
+      performance.mark(`${PERFORMANCE.MARK_PREFIX}${eventId}`)
     }
 
     // 檢查活躍事件數量警告
-    this._checkActiveEventCountWarning();
+    this._checkActiveEventCountWarning()
 
-    return { success: true, eventId, startTime };
+    return { success: true, eventId, startTime }
   }
 
   /**
@@ -253,53 +253,53 @@ class EventPerformanceMonitor extends EventHandler {
    * @returns {Object} 處理結果
    * @private
    */
-  _handleProcessingCompleted(data) {
-    const { eventId, eventType } = data;
-    const endTime = this._getCurrentTime();
+  _handleProcessingCompleted (data) {
+    const { eventId, eventType } = data
+    const endTime = this._getCurrentTime()
 
     if (!this.activeEvents.has(eventId)) {
-      const { ERRORS } = EventPerformanceMonitor.CONSTANTS;
-      return { success: false, error: ERRORS.MESSAGES.EVENT_NOT_FOUND };
+      const { ERRORS } = EventPerformanceMonitor.CONSTANTS
+      return { success: false, error: ERRORS.MESSAGES.EVENT_NOT_FOUND }
     }
 
-    const eventInfo = this.activeEvents.get(eventId);
-    const processingTime = endTime - eventInfo.startTime;
+    const eventInfo = this.activeEvents.get(eventId)
+    const processingTime = endTime - eventInfo.startTime
 
     // 更新統計
-    this._updateProcessingStats(processingTime);
+    this._updateProcessingStats(processingTime)
 
     // 記錄效能資料
     this._addPerformanceRecord({
       eventId,
       eventType: eventType || eventInfo.eventType,
       processingTime,
-      timestamp: Date.now(),
-    });
+      timestamp: Date.now()
+    })
 
     // 檢查處理時間警告
     this._checkProcessingTimeWarning(
       eventId,
       eventType || eventInfo.eventType,
       processingTime
-    );
+    )
 
     // 清理活躍事件
-    this.activeEvents.delete(eventId);
+    this.activeEvents.delete(eventId)
 
     // 設置效能測量
-    if (typeof performance !== "undefined" && performance.measure) {
+    if (typeof performance !== 'undefined' && performance.measure) {
       try {
-        const { PERFORMANCE } = EventPerformanceMonitor.CONSTANTS;
+        const { PERFORMANCE } = EventPerformanceMonitor.CONSTANTS
         performance.measure(
           `${PERFORMANCE.MEASURE_PREFIX}${eventId}`,
           `${PERFORMANCE.MARK_PREFIX}${eventId}`
-        );
+        )
       } catch (error) {
         // 忽略測量錯誤
       }
     }
 
-    return { success: true, eventId, processingTime };
+    return { success: true, eventId, processingTime }
   }
 
   /**
@@ -309,15 +309,15 @@ class EventPerformanceMonitor extends EventHandler {
    * @returns {Object} 處理結果
    * @private
    */
-  _handleProcessingFailed(data) {
-    const { eventId, eventType, error } = data;
+  _handleProcessingFailed (data) {
+    const { eventId, eventType, error } = data
 
     // 更新失敗統計
-    this.performanceStats.failedEvents++;
+    this.performanceStats.failedEvents++
 
     // 清理活躍事件
     if (this.activeEvents.has(eventId)) {
-      this.activeEvents.delete(eventId);
+      this.activeEvents.delete(eventId)
     }
 
     // 記錄失敗事件
@@ -325,11 +325,11 @@ class EventPerformanceMonitor extends EventHandler {
       eventId,
       eventType,
       failed: true,
-      error: error?.message || "未知錯誤",
-      timestamp: Date.now(),
-    });
+      error: error?.message || '未知錯誤',
+      timestamp: Date.now()
+    })
 
-    return { success: true, eventId, failed: true };
+    return { success: true, eventId, failed: true }
   }
 
   /**
@@ -339,24 +339,24 @@ class EventPerformanceMonitor extends EventHandler {
    * @returns {Object} 處理結果
    * @private
    */
-  _handleMonitorRequest(data) {
-    const { requestId, includeHistory = false } = data;
+  _handleMonitorRequest (data) {
+    const { requestId, includeHistory = false } = data
 
-    const report = this.generatePerformanceReport();
+    const report = this.generatePerformanceReport()
     const response = {
       requestId,
       report,
-      timestamp: Date.now(),
-    };
+      timestamp: Date.now()
+    }
 
     if (includeHistory) {
-      response.history = [...this.performanceHistory];
+      response.history = [...this.performanceHistory]
     }
 
     // 發送回應事件
-    this._emitMonitorResponse(response);
+    this._emitMonitorResponse(response)
 
-    return { success: true, requestId };
+    return { success: true, requestId }
   }
 
   /**
@@ -365,8 +365,8 @@ class EventPerformanceMonitor extends EventHandler {
    * @returns {boolean} 是否採樣
    * @private
    */
-  _shouldSample() {
-    return Math.random() < this.config.sampleRate;
+  _shouldSample () {
+    return Math.random() < this.config.sampleRate
   }
 
   /**
@@ -375,10 +375,10 @@ class EventPerformanceMonitor extends EventHandler {
    * @returns {number} 當前時間戳
    * @private
    */
-  _getCurrentTime() {
-    return typeof performance !== "undefined" && performance.now
+  _getCurrentTime () {
+    return typeof performance !== 'undefined' && performance.now
       ? performance.now()
-      : Date.now();
+      : Date.now()
   }
 
   /**
@@ -387,13 +387,13 @@ class EventPerformanceMonitor extends EventHandler {
    * @param {number} processingTime - 處理時間
    * @private
    */
-  _updateProcessingStats(processingTime) {
-    const currentTotal = this.performanceStats.totalEvents;
-    const currentAverage = this.performanceStats.averageProcessingTime;
+  _updateProcessingStats (processingTime) {
+    const currentTotal = this.performanceStats.totalEvents
+    const currentAverage = this.performanceStats.averageProcessingTime
 
-    this.performanceStats.totalEvents++;
+    this.performanceStats.totalEvents++
     this.performanceStats.averageProcessingTime =
-      (currentAverage * currentTotal + processingTime) / (currentTotal + 1);
+      (currentAverage * currentTotal + processingTime) / (currentTotal + 1)
   }
 
   /**
@@ -402,12 +402,12 @@ class EventPerformanceMonitor extends EventHandler {
    * @param {Object} record - 效能記錄
    * @private
    */
-  _addPerformanceRecord(record) {
-    this.performanceHistory.unshift(record);
+  _addPerformanceRecord (record) {
+    this.performanceHistory.unshift(record)
 
     // 限制記錄數量 - 保留最新的記錄
     if (this.performanceHistory.length > this.config.maxRecords) {
-      this.performanceHistory.length = this.config.maxRecords;
+      this.performanceHistory.length = this.config.maxRecords
     }
   }
 
@@ -419,8 +419,8 @@ class EventPerformanceMonitor extends EventHandler {
    * @param {number} processingTime - 處理時間
    * @private
    */
-  _checkProcessingTimeWarning(eventId, eventType, processingTime) {
-    const threshold = this.config.warningThresholds.eventProcessingTime;
+  _checkProcessingTimeWarning (eventId, eventType, processingTime) {
+    const threshold = this.config.warningThresholds.eventProcessingTime
 
     if (processingTime > threshold) {
       this._emitWarning(
@@ -430,9 +430,9 @@ class EventPerformanceMonitor extends EventHandler {
           eventType,
           processingTime,
           threshold,
-          timestamp: Date.now(),
+          timestamp: Date.now()
         }
-      );
+      )
     }
   }
 
@@ -441,9 +441,9 @@ class EventPerformanceMonitor extends EventHandler {
    *
    * @private
    */
-  _checkActiveEventCountWarning() {
-    const activeCount = this.activeEvents.size;
-    const threshold = this.config.warningThresholds.activeEventCount;
+  _checkActiveEventCountWarning () {
+    const activeCount = this.activeEvents.size
+    const threshold = this.config.warningThresholds.activeEventCount
 
     if (activeCount > threshold) {
       this._emitWarning(
@@ -452,9 +452,9 @@ class EventPerformanceMonitor extends EventHandler {
         {
           activeEventCount: activeCount,
           threshold,
-          timestamp: Date.now(),
+          timestamp: Date.now()
         }
-      );
+      )
     }
   }
 
@@ -463,9 +463,9 @@ class EventPerformanceMonitor extends EventHandler {
    *
    * @private
    */
-  _checkMemoryWarnings() {
-    const memoryStats = this._collectMemoryStats();
-    const threshold = this.config.warningThresholds.memoryUsage;
+  _checkMemoryWarnings () {
+    const memoryStats = this._collectMemoryStats()
+    const threshold = this.config.warningThresholds.memoryUsage
 
     if (memoryStats.usedMemory > threshold) {
       this._emitWarning(
@@ -474,9 +474,9 @@ class EventPerformanceMonitor extends EventHandler {
           usedMemory: memoryStats.usedMemory,
           threshold,
           memoryUsagePercent: memoryStats.memoryUsagePercent,
-          timestamp: Date.now(),
+          timestamp: Date.now()
         }
-      );
+      )
     }
   }
 
@@ -486,25 +486,25 @@ class EventPerformanceMonitor extends EventHandler {
    * @returns {Object} 記憶體統計資料
    * @private
    */
-  _collectMemoryStats() {
-    if (typeof performance !== "undefined" && performance.memory) {
-      const memory = performance.memory;
+  _collectMemoryStats () {
+    if (typeof performance !== 'undefined' && performance.memory) {
+      const memory = performance.memory
       return {
         usedMemory: memory.usedJSHeapSize,
         totalMemory: memory.totalJSHeapSize,
         memoryLimit: memory.jsHeapSizeLimit,
         memoryUsagePercent: Math.round(
           (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100
-        ),
-      };
+        )
+      }
     }
 
     return {
       usedMemory: 0,
       totalMemory: 0,
       memoryLimit: 0,
-      memoryUsagePercent: 0,
-    };
+      memoryUsagePercent: 0
+    }
   }
 
   /**
@@ -514,22 +514,22 @@ class EventPerformanceMonitor extends EventHandler {
    * @param {Object} warningData - 警告資料
    * @private
    */
-  _emitWarning(warningType, warningData) {
+  _emitWarning (warningType, warningData) {
     const warning = {
       type: warningType,
-      ...warningData,
-    };
+      ...warningData
+    }
 
     // 更新警告統計
-    this.performanceStats.warningCount++;
-    this.performanceStats.lastWarningTime = Date.now();
+    this.performanceStats.warningCount++
+    this.performanceStats.lastWarningTime = Date.now()
 
     // 記錄警告歷史
-    this.warningHistory.unshift(warning);
-    const { CONFIG } = EventPerformanceMonitor.CONSTANTS;
+    this.warningHistory.unshift(warning)
+    const { CONFIG } = EventPerformanceMonitor.CONSTANTS
     if (this.warningHistory.length > CONFIG.MAX_WARNING_HISTORY) {
       // 限制警告歷史數量
-      this.warningHistory.length = CONFIG.MAX_WARNING_HISTORY;
+      this.warningHistory.length = CONFIG.MAX_WARNING_HISTORY
     }
 
     // 發送警告事件
@@ -537,7 +537,7 @@ class EventPerformanceMonitor extends EventHandler {
       this.eventBus.emit(
         EventPerformanceMonitor.CONSTANTS.EVENTS.OUTPUT.WARNING,
         warning
-      );
+      )
     }
   }
 
@@ -547,12 +547,12 @@ class EventPerformanceMonitor extends EventHandler {
    * @param {Object} response - 回應資料
    * @private
    */
-  _emitMonitorResponse(response) {
+  _emitMonitorResponse (response) {
     if (this.eventBus && this.eventBus.emit) {
       this.eventBus.emit(
         EventPerformanceMonitor.CONSTANTS.EVENTS.OUTPUT.MONITOR_RESPONSE,
         response
-      );
+      )
     }
   }
 
@@ -561,9 +561,9 @@ class EventPerformanceMonitor extends EventHandler {
    *
    * @returns {Object} 效能報告
    */
-  generatePerformanceReport() {
-    const memoryStats = this._collectMemoryStats();
-    const uptime = Date.now() - this.startTime;
+  generatePerformanceReport () {
+    const memoryStats = this._collectMemoryStats()
+    const uptime = Date.now() - this.startTime
 
     return {
       summary: {
@@ -572,24 +572,24 @@ class EventPerformanceMonitor extends EventHandler {
         successRate:
           this.performanceStats.totalEvents > 0
             ? Math.round(
-                ((this.performanceStats.totalEvents -
+              ((this.performanceStats.totalEvents -
                   this.performanceStats.failedEvents) /
                   this.performanceStats.totalEvents) *
                   100
-              )
+            )
             : 100,
         averageProcessingTime: this.performanceStats.averageProcessingTime,
-        activeEventCount: this.activeEvents.size,
+        activeEventCount: this.activeEvents.size
       },
       warnings: {
         totalWarnings: this.performanceStats.warningCount,
         lastWarningTime: this.performanceStats.lastWarningTime,
-        recentWarnings: this.warningHistory.slice(0, 5),
+        recentWarnings: this.warningHistory.slice(0, 5)
       },
       memory: memoryStats,
       uptime,
-      timestamp: Date.now(),
-    };
+      timestamp: Date.now()
+    }
   }
 
   /**
@@ -597,30 +597,30 @@ class EventPerformanceMonitor extends EventHandler {
    *
    * @returns {Object} 效能統計資料
    */
-  getPerformanceStats() {
+  getPerformanceStats () {
     return {
       ...this.performanceStats,
       uptime: Date.now() - this.startTime,
       activeEventCount: this.activeEvents.size,
-      memoryStats: this._collectMemoryStats(),
-    };
+      memoryStats: this._collectMemoryStats()
+    }
   }
 
   /**
    * 重置統計資料
    */
-  resetStats() {
+  resetStats () {
     this.performanceStats = {
       totalEvents: 0,
       failedEvents: 0,
       averageProcessingTime: 0,
       warningCount: 0,
-      lastWarningTime: null,
-    };
+      lastWarningTime: null
+    }
 
-    this.performanceHistory = [];
-    this.warningHistory = [];
-    this.startTime = Date.now();
+    this.performanceHistory = []
+    this.warningHistory = []
+    this.startTime = Date.now()
   }
 
   /**
@@ -628,14 +628,14 @@ class EventPerformanceMonitor extends EventHandler {
    *
    * @private
    */
-  _startPeriodicCleanup() {
+  _startPeriodicCleanup () {
     if (this.cleanupTimer) {
-      clearInterval(this.cleanupTimer);
+      clearInterval(this.cleanupTimer)
     }
 
     this.cleanupTimer = setInterval(() => {
-      this._performCleanup();
-    }, this.config.cleanupInterval);
+      this._performCleanup()
+    }, this.config.cleanupInterval)
   }
 
   /**
@@ -643,9 +643,9 @@ class EventPerformanceMonitor extends EventHandler {
    *
    * @private
    */
-  _performCleanup() {
-    this._cleanupExpiredEvents();
-    this._checkMemoryWarnings();
+  _performCleanup () {
+    this._cleanupExpiredEvents()
+    this._checkMemoryWarnings()
   }
 
   /**
@@ -653,13 +653,13 @@ class EventPerformanceMonitor extends EventHandler {
    *
    * @private
    */
-  _cleanupExpiredEvents() {
-    const now = Date.now();
-    const timeout = this.config.eventTimeout;
+  _cleanupExpiredEvents () {
+    const now = Date.now()
+    const timeout = this.config.eventTimeout
 
     for (const [eventId, eventInfo] of this.activeEvents.entries()) {
       if (now - eventInfo.timestamp > timeout) {
-        this.activeEvents.delete(eventId);
+        this.activeEvents.delete(eventId)
       }
     }
   }
@@ -667,19 +667,19 @@ class EventPerformanceMonitor extends EventHandler {
   /**
    * 停用監控器
    */
-  disable() {
-    this.isEnabled = false;
+  disable () {
+    this.isEnabled = false
 
     // 清理定時器
     if (this.cleanupTimer) {
-      clearInterval(this.cleanupTimer);
-      this.cleanupTimer = null;
+      clearInterval(this.cleanupTimer)
+      this.cleanupTimer = null
     }
 
     // 清理資源
-    this.activeEvents.clear();
-    this.performanceHistory = [];
-    this.warningHistory = [];
+    this.activeEvents.clear()
+    this.performanceHistory = []
+    this.warningHistory = []
   }
 
   /**
@@ -691,15 +691,15 @@ class EventPerformanceMonitor extends EventHandler {
    * @returns {Object} 錯誤回應
    * @private
    */
-  _createErrorResponse(errorType, error, eventData) {
+  _createErrorResponse (errorType, error, eventData) {
     return {
       success: false,
       error: errorType,
       message: error.message,
       eventData,
-      timestamp: Date.now(),
-    };
+      timestamp: Date.now()
+    }
   }
 }
 
-module.exports = EventPerformanceMonitor;
+module.exports = EventPerformanceMonitor

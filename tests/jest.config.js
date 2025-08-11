@@ -1,17 +1,17 @@
 /**
  * Jest 測試框架配置檔案
- * 
+ *
  * Responsible for:
  * - 配置測試環境和執行設定
  * - 定義測試檔案匹配規則
  * - 設定程式碼覆蓋率收集
  * - 配置模組路徑映射
- * 
+ *
  * Design considerations:
  * - 支援多種測試環境（JSDOM for UI, Node for background scripts）
  * - 提供詳細的覆蓋率報告
  * - 優化測試執行效能
- * 
+ *
  * Process flow:
  * 1. 載入基礎配置
  * 2. 設定測試環境
@@ -23,7 +23,7 @@
 module.exports = {
   // 測試環境配置
   testEnvironment: 'jsdom',
-  
+
   // 測試環境選項
   testEnvironmentOptions: {
     url: 'https://readmoo.com',
@@ -128,9 +128,9 @@ module.exports = {
 
   // 全域設定
   globals: {
-    'chrome': {},
-    'browser': {},
-    'NODE_ENV': 'test'
+    chrome: {},
+    browser: {},
+    NODE_ENV: 'test'
   },
 
   // 測試結果處理器（暫時註解掉以簡化配置）
@@ -184,4 +184,4 @@ module.exports = {
   clearMocks: true,
   restoreMocks: true,
   resetMocks: false
-}; 
+}
