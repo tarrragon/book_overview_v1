@@ -77,7 +77,9 @@ const CONSTANTS = {
   EXPORT: {
     CSV_HEADERS: ['書籍ID', '書名', '進度', '狀態', '封面URL'],
     FILE_TYPE: 'text/csv;charset=utf-8;',
-    FILENAME_PREFIX: '書籍資料_'
+    FILENAME_PREFIX: '書籍資料_',
+    JSON_MIME: 'application/json;charset=utf-8;',
+    JSON_FILENAME_PREFIX: '書籍資料_'
   },
 
   // 元素選取器
@@ -136,9 +138,9 @@ class OverviewPageController extends EventHandlerClass {
       // 表格相關元素
       table: ['tableBody', 'booksTable'],
       // 操作按鈕元素
-      buttons: ['exportCSVBtn', 'copyTextBtn', 'selectAllBtn', 'reloadBtn'],
+      buttons: ['exportCSVBtn', 'exportJSONBtn', 'importJSONBtn', 'copyTextBtn', 'selectAllBtn', 'reloadBtn'],
       // 檔案載入相關元素
-      fileLoad: ['fileUploader', 'jsonFileInput', 'loadFileBtn', 'loadSampleBtn'],
+      fileLoad: ['fileUploader', 'jsonFileInput', 'loadFileBtn', 'loadSampleBtn', 'sortSelect', 'sortDirection'],
       // 狀態顯示元素
       status: ['loadingIndicator', 'errorContainer', 'errorMessage', 'retryBtn']
     }
@@ -204,6 +206,36 @@ class OverviewPageController extends EventHandlerClass {
       this.elements.exportCSVBtn.addEventListener('click', () => {
         this.handleExportCSV()
       })
+    }
+
+    if (this.elements.exportJSONBtn) {
+      this.elements.exportJSONBtn.addEventListener('click', () => {
+        this.handleExportJSON()
+      })
+    }
+
+    if (this.elements.importJSONBtn) {
+      this.elements.importJSONBtn.addEventListener('click', () => {
+        if (this.elements.fileUploader) {
+          this.elements.fileUploader.style.display = this.elements.fileUploader.style.display === 'none' ? 'block' : 'none'
+        }
+      })
+    }
+
+    if (this.elements.loadFileBtn && this.elements.jsonFileInput) {
+      this.elements.loadFileBtn.addEventListener('click', () => {
+        const fileInput = this.elements.jsonFileInput
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+          this.handleFileLoad(fileInput.files[0])
+        }
+      })
+    }
+
+    if (this.elements.sortSelect) {
+      this.elements.sortSelect.addEventListener('change', () => this.applyCurrentFilter())
+    }
+    if (this.elements.sortDirection) {
+      this.elements.sortDirection.addEventListener('change', () => this.applyCurrentFilter())
     }
   }
 
@@ -320,13 +352,35 @@ class OverviewPageController extends EventHandlerClass {
    * - 觸發顯示更新
    */
   applyCurrentFilter () {
-    if (!this.searchTerm) {
-      this.filteredBooks = [...this.currentBooks]
-    } else {
-      this.filteredBooks = this.currentBooks.filter(book =>
-        book.title && book.title.toLowerCase().includes(this.searchTerm)
-      )
+    // 搜尋
+    const base = !this.searchTerm
+      ? [...this.currentBooks]
+      : this.currentBooks.filter(book => book.title && book.title.toLowerCase().includes(this.searchTerm))
+
+    // 排序
+    const sortKey = this.elements.sortSelect ? this.elements.sortSelect.value : 'title'
+    const direction = this.elements.sortDirection ? this.elements.sortDirection.value : 'asc'
+    const sign = direction === 'desc' ? -1 : 1
+
+    const normalizeTitle = (t) => (t || '').toString().toLowerCase()
+    const getTag = (b) => Array.isArray(b.tags) && b.tags.length ? b.tags[0] : (b.tag || b.store || 'readmoo')
+
+    const compare = (a, b) => {
+      if (sortKey === 'title') {
+        return normalizeTitle(a.title).localeCompare(normalizeTitle(b.title)) * sign
+      }
+      if (sortKey === 'progress') {
+        const pa = Number(a.progress || 0)
+        const pb = Number(b.progress || 0)
+        return (pa - pb) * sign
+      }
+      if (sortKey === 'tag') {
+        return String(getTag(a)).localeCompare(String(getTag(b))) * sign
+      }
+      return 0
     }
+
+    this.filteredBooks = base.sort(compare)
     this.updateDisplay()
   }
 
@@ -523,6 +577,46 @@ class OverviewPageController extends EventHandlerClass {
       ...this.filteredBooks.map(book => this._bookToCSVRow(book))
     ]
     return csvRows.join('\n')
+  }
+
+  // ========== JSON 匯出相關方法 ==========
+
+  /**
+   * 處理匯出 JSON 操作
+   */
+  handleExportJSON () {
+    if (!this.filteredBooks || this.filteredBooks.length === 0) {
+      alert(CONSTANTS.MESSAGES.NO_DATA_EXPORT)
+      return
+    }
+
+    const json = this.generateJSONContent()
+    this.downloadJSONFile(json)
+  }
+
+  /**
+   * 生成 JSON 內容（表格欄位對應）
+   */
+  generateJSONContent () {
+    const rows = this.filteredBooks.map(book => ({
+      id: book.id || '',
+      title: book.title || '',
+      progress: Number(book.progress || 0),
+      status: book.status || '',
+      cover: book.cover || '',
+      tags: Array.isArray(book.tags) ? book.tags : (book.tag ? [book.tag] : ['readmoo'])
+    }))
+    return JSON.stringify({ books: rows }, null, 2)
+  }
+
+  /**
+   * 下載 JSON 檔案
+   */
+  downloadJSONFile (jsonContent) {
+    const blob = new Blob([jsonContent], { type: CONSTANTS.EXPORT.JSON_MIME })
+    const date = new Date().toISOString().slice(0, 10)
+    const filename = `${CONSTANTS.EXPORT.JSON_FILENAME_PREFIX}${date}.json`
+    this._triggerFileDownload(blob, filename)
   }
 
   /**

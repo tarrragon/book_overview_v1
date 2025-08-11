@@ -45,10 +45,18 @@ async function registerCoreListenersIfNeeded () {
         console.log('  - 所有欄位:', Object.keys(event.data || {}))
 
         try {
-          const books = event.data?.booksData || event.data?.books
+          let books = event.data?.booksData || event.data?.books
+          // 正規化每本書加入 tags（預設包含 readmoo），以支援後續排序與跨書城擴充
+          if (Array.isArray(books)) {
+            books = books.map(b => {
+              const existing = Array.isArray(b.tags) ? b.tags : (b.tag ? [b.tag] : [])
+              const tags = Array.from(new Set([...(existing || []), 'readmoo']))
+              return { ...b, tags }
+            })
+          }
           if (books && Array.isArray(books)) {
             const storageData = {
-              books: books,
+            books: books,
               extractionTimestamp: event.timestamp || Date.now(),
               extractionCount: event.data?.count || books.length,
               extractionDuration: event.data?.duration || 0,

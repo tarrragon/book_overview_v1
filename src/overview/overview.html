@@ -28,16 +28,30 @@
         <!-- 操作按鈕區域 -->
         <div class="export-buttons">
             <button class="export-btn" id="exportCSVBtn">📊 匯出 CSV</button>
+            <button class="export-btn" id="exportJSONBtn">🧾 匯出 JSON</button>
+            <button class="export-btn" id="importJSONBtn">📥 匯入 JSON</button>
             <button class="export-btn" id="copyTextBtn">📋 複製表格文字</button>
             <button class="export-btn" id="selectAllBtn">✅ 選取全部</button>
             <button class="export-btn" id="reloadBtn">🔄 重新載入</button>
+            <div style="display:inline-block;margin-left:16px;">
+              <label for="sortSelect">排序：</label>
+              <select id="sortSelect">
+                <option value="title">書名</option>
+                <option value="progress">閱讀進度</option>
+                <option value="tag">書城/標籤</option>
+              </select>
+              <select id="sortDirection">
+                <option value="asc">升冪</option>
+                <option value="desc">降冪</option>
+              </select>
+            </div>
         </div>
 
         <!-- 檔案載入區域 -->
         <div id="fileUploader" style="display: none;">
             <div class="file-uploader">
                 <h3>📁 載入書籍 JSON 檔案</h3>
-                <input type="file" id="jsonFileInput" accept=".json">
+                <input type="file" id="jsonFileInput" accept=".json,application/json">
                 <button class="export-btn" id="loadFileBtn">📂 載入檔案</button>
                 <button class="export-btn" id="loadSampleBtn">📚 載入範例資料</button>
             </div>
