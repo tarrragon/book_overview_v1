@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>瀏覽器相容性測試</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Chrome Extension 瀏覽器相容性測試</h1>
+    
+    <div id="testResults"></div>
+
+    <!-- 載入測試的 JavaScript 檔案 -->
+    <script src="src/core/event-bus.js"></script>
+    <script src="src/core/chrome-event-bridge.js"></script>
+    <script src="src/core/event-handler.js"></script>
+    <script src="src/overview/overview-page-controller.js"></script>
+    
+    <script>
+        (function() {
+            'use strict';
+            
+            const results = [];
+            const resultsContainer = document.getElementById('testResults');
+            
+            function addResult(test, status, message, error) {
+                results.push({ test, status, message, error });
+                const div = document.createElement('div');
+                div.className = `test-result ${status}`;
+                
+                let content = `<strong>${test}</strong>: ${message}`;
+                if (error) {
+                    content += `<pre>${error}</pre>`;
+                }
+                
+                div.innerHTML = content;
+                resultsContainer.appendChild(div);
+            }
+            
+            // 測試 1: 檢查全域變數是否正確定義
+            try {
+                if (typeof window.EventBus === 'function') {
+                    addResult('EventBus 全域變數', 'success', '✅ EventBus 已正確定義為全域變數');
+                } else {
+                    addResult('EventBus 全域變數', 'error', '❌ EventBus 未定義或不是函數');
+                }
+            } catch (e) {
+                addResult('EventBus 全域變數', 'error', '❌ 檢查 EventBus 時發生錯誤', e.message);
+            }
+            
+            // 測試 2: 檢查 ChromeEventBridge
+            try {
+                if (typeof window.ChromeEventBridge === 'function') {
+                    addResult('ChromeEventBridge 全域變數', 'success', '✅ ChromeEventBridge 已正確定義為全域變數');
+                } else {
+                    addResult('ChromeEventBridge 全域變數', 'error', '❌ ChromeEventBridge 未定義或不是函數');
+                }
+            } catch (e) {
+                addResult('ChromeEventBridge 全域變數', 'error', '❌ 檢查 ChromeEventBridge 時發生錯誤', e.message);
+            }
+            
+            // 測試 3: 檢查 EventHandler
+            try {
+                if (typeof window.EventHandler === 'function') {
+                    addResult('EventHandler 全域變數', 'success', '✅ EventHandler 已正確定義為全域變數');
+                } else {
+                    addResult('EventHandler 全域變數', 'error', '❌ EventHandler 未定義或不是函數');
+                }
+            } catch (e) {
+                addResult('EventHandler 全域變數', 'error', '❌ 檢查 EventHandler 時發生錯誤', e.message);
+            }
+            
+            // 測試 4: 檢查 OverviewPageController
+            try {
+                if (typeof window.OverviewPageController === 'function') {
+                    addResult('OverviewPageController 全域變數', 'success', '✅ OverviewPageController 已正確定義為全域變數');
+                } else {
+                    addResult('OverviewPageController 全域變數', 'error', '❌ OverviewPageController 未定義或不是函數');
+                }
+            } catch (e) {
+                addResult('OverviewPageController 全域變數', 'error', '❌ 檢查 OverviewPageController 時發生錯誤', e.message);
+            }
+            
+            // 測試 5: 嘗試實例化 EventBus
+            try {
+                const eventBus = new window.EventBus();
+                if (eventBus && typeof eventBus.on === 'function' && typeof eventBus.emit === 'function') {
+                    addResult('EventBus 實例化', 'success', '✅ EventBus 可以正常實例化並具有必要方法');
+                } else {
+                    addResult('EventBus 實例化', 'error', '❌ EventBus 實例化成功但缺少必要方法');
+                }
+            } catch (e) {
+                addResult('EventBus 實例化', 'error', '❌ EventBus 實例化失敗', e.message);
+            }
+            
+            // 測試 6: 嘗試實例化 OverviewPageController
+            try {
+                const eventBus = new window.EventBus();
+                const controller = new window.OverviewPageController(eventBus, document);
+                
+                if (controller && typeof controller.getSupportedEvents === 'function') {
+                    addResult('OverviewPageController 實例化', 'success', '✅ OverviewPageController 可以正常實例化');
+                } else {
+                    addResult('OverviewPageController 實例化', 'error', '❌ OverviewPageController 實例化成功但缺少必要方法');
+                }
+            } catch (e) {
+                addResult('OverviewPageController 實例化', 'error', '❌ OverviewPageController 實例化失敗', e.message);
+            }
+            
+            // 測試 7: 檢查模組系統錯誤
+            try {
+                if (typeof module !== 'undefined' && typeof require !== 'undefined') {
+                    addResult('模組系統檢查', 'warning', '⚠️ 檢測到 Node.js 模組系統，這在正常瀏覽器環境中不應存在');
+                } else {
+                    addResult('模組系統檢查', 'success', '✅ 沒有檢測到 Node.js 模組系統錯誤');
+                }
+            } catch (e) {
+                addResult('模組系統檢查', 'success', '✅ 模組系統檢查正常（預期錯誤）');
+            }
+            
+            // 統計結果
+            const successCount = results.filter(r => r.status === 'success').length;
+            const errorCount = results.filter(r => r.status === 'error').length;
+            const warningCount = results.filter(r => r.status === 'warning').length;
+            
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'test-result';
+            summaryDiv.className += errorCount > 0 ? ' error' : ' success';
+            summaryDiv.innerHTML = `
+                <h3>📊 測試總結</h3>
+                <p>總共進行 ${results.length} 項測試：</p>
+                <ul>
+                    <li>✅ 成功：${successCount} 項</li>
+                    <li>❌ 失敗：${errorCount} 項</li>
+                    <li>⚠️ 警告：${warningCount} 項</li>
+                </ul>
+                ${errorCount === 0 ? '<p><strong>🎉 所有測試都通過了！瀏覽器相容性修復成功。</strong></p>' : '<p><strong>🚨 仍有錯誤需要修復。</strong></p>'}
+            `;
+            
+            resultsContainer.insertBefore(summaryDiv, resultsContainer.firstChild);
+            
+        })();
+    </script>
+</body>
+</html>

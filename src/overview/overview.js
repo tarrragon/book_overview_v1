@@ -135,11 +135,10 @@
       }
 
       // 創建控制器實例
-      overviewController = new OverviewPageController(eventBus, chromeBridge)
+      overviewController = new OverviewPageController(eventBus, document)
 
-      // 設定控制器事件監聽器
+      // 控制器已在建構函式中完成初始化
       if (eventBus && overviewController) {
-        overviewController.initialize()
         console.log('✅ OverviewPageController 初始化成功')
       }
 
@@ -208,7 +207,11 @@
       await initializeOverviewController()
 
       // Step 3: 嘗試載入儲存的資料
-      if (eventBus) {
+      if (overviewController && typeof overviewController.loadBooksFromChromeStorage === 'function') {
+        // 使用控制器的 Chrome Storage 載入方法
+        await overviewController.loadBooksFromChromeStorage()
+      } else if (eventBus) {
+        // 降級方案：使用事件系統
         await eventBus.emit('STORAGE.LOAD.REQUESTED', {
           source: 'readmoo',
           loadType: 'all'

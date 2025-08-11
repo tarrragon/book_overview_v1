@@ -27,7 +27,18 @@
  * - 使用者互動功能的協調中心
  */
 
-const EventHandler = require('../core/event-handler')
+// 動態取得 EventHandler（支援瀏覽器和 Node.js）
+let EventHandlerClass
+if (typeof window !== 'undefined') {
+  // 瀏覽器環境：從全域變數取得（應該已由 event-handler.js 載入）
+  EventHandlerClass = window.EventHandler
+  if (!EventHandlerClass) {
+    throw new Error('EventHandler 未在全域變數中找到，請確認 event-handler.js 已正確載入')
+  }
+} else {
+  // Node.js 環境：使用 require
+  EventHandlerClass = require('../core/event-handler')
+}
 
 // 常數定義
 const CONSTANTS = {
@@ -75,7 +86,7 @@ const CONSTANTS = {
   }
 }
 
-class OverviewPageController extends EventHandler {
+class OverviewPageController extends EventHandlerClass {
   /**
    * 建構 Overview 頁面控制器
    *
@@ -196,6 +207,46 @@ class OverviewPageController extends EventHandler {
     if (this._validateEventData(eventData, 'books')) {
       this._updateBooksData(eventData.books)
       this.updateDisplay()
+    }
+  }
+
+  /**
+   * 從 Chrome Storage 載入書籍資料
+   *
+   * 負責功能：
+   * - 直接從 Chrome Storage 讀取書籍資料
+   * - 處理載入錯誤和空資料狀況
+   * - 更新頁面顯示
+   */
+  async loadBooksFromChromeStorage () {
+    if (typeof chrome === 'undefined' || !chrome.storage) {
+      console.warn('⚠️ Chrome Storage API 不可用')
+      return
+    }
+
+    try {
+      this.showLoading('從儲存載入書籍資料...')
+
+      const result = await chrome.storage.local.get(['readmoo_books'])
+      
+      if (result.readmoo_books && result.readmoo_books.books) {
+        const books = result.readmoo_books.books
+        const timestamp = result.readmoo_books.extractionTimestamp
+        
+        console.log(`📚 從 Chrome Storage 載入了 ${books.length} 本書籍`)
+        console.log(`📅 提取時間: ${new Date(timestamp).toLocaleString()}`)
+        
+        this._updateBooksData(books)
+        this.updateDisplay()
+      } else {
+        console.log('📂 Chrome Storage 中沒有書籍資料')
+        this.hideLoading()
+        // 顯示空資料狀態，但不顯示錯誤
+        this.renderBooksTable([])
+      }
+    } catch (error) {
+      console.error('❌ 從 Chrome Storage 載入書籍資料失敗:', error)
+      this.showError('無法載入書籍資料: ' + error.message)
     }
   }
 
@@ -470,14 +521,21 @@ class OverviewPageController extends EventHandler {
    * 處理重新載入操作
    *
    * 負責功能：
-   * - 觸發儲存系統重新載入
+   * - 從 Chrome Storage 重新載入資料
    * - 顯示載入狀態
    * - 重置搜尋條件
    */
-  handleReload () {
-    this.showLoading(CONSTANTS.MESSAGES.RELOAD)
+  async handleReload () {
     this._resetSearchState()
-    this._emitStorageLoadRequest('overview-reload')
+    
+    // 優先使用 Chrome Storage 載入
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      await this.loadBooksFromChromeStorage()
+    } else {
+      // 降級方案：使用事件系統
+      this.showLoading(CONSTANTS.MESSAGES.RELOAD)
+      this._emitStorageLoadRequest('overview-reload')
+    }
   }
 
   /**
@@ -738,5 +796,12 @@ class OverviewPageController extends EventHandler {
   }
 }
 
-// CommonJS 匯出
-module.exports = { OverviewPageController }
+// 瀏覽器環境：將 OverviewPageController 定義為全域變數
+if (typeof window !== 'undefined') {
+  window.OverviewPageController = OverviewPageController
+}
+
+// Node.js 環境：保持 CommonJS 匯出
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { OverviewPageController }
+}

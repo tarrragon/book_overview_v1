@@ -75,6 +75,11 @@ async function initializeEventSystem () {
     console.log('✅ 事件系統初始化完成')
     console.log('📊 EventBus 實例:', !!eventBus)
     console.log('🌉 ChromeEventBridge 實例:', !!chromeBridge)
+    console.log('🔍 EventBus 方法可用:', {
+      on: typeof eventBus?.on,
+      emit: typeof eventBus?.emit,
+      listeners: typeof eventBus?.listeners
+    })
 
     return { eventBus, chromeBridge }
   } catch (error) {
@@ -189,19 +194,27 @@ function createSimpleEventBus () {
 
         const eventListeners = [...listeners.get(eventType)]
         const results = []
+        const toRemove = []
 
         for (const wrapper of eventListeners) {
           try {
-            const result = await wrapper.handler(event)
+            // 直接傳遞 data 給處理器，而不是包裝的 event 物件
+            // 這樣與我們的事件監聽器期望格式一致
+            const result = await wrapper.handler(data)
             results.push({ success: true, result })
 
             // 處理一次性監聽器
             if (wrapper.once) {
-              this.off(eventType, wrapper.id)
+              toRemove.push(wrapper)
             }
           } catch (error) {
             console.error(`❌ 事件處理器錯誤 (${eventType}):`, error)
             results.push({ success: false, error })
+
+            // 即使錯誤也要移除一次性監聽器
+            if (wrapper.once) {
+              toRemove.push(wrapper)
+            }
           }
         }
 
@@ -217,6 +230,16 @@ function createSimpleEventBus () {
         eventStat.count++
         eventStat.totalTime += performance.now() - startTime
 
+        // 移除一次性監聽器
+        if (toRemove.length > 0) {
+          const remainingListeners = listeners.get(eventType).filter(wrapper => !toRemove.includes(wrapper))
+          if (remainingListeners.length === 0) {
+            listeners.delete(eventType)
+          } else {
+            listeners.set(eventType, remainingListeners)
+          }
+        }
+
         return { success: true, results }
       } catch (error) {
         console.error(`❌ 事件觸發失敗 (${eventType}):`, error)
@@ -229,6 +252,33 @@ function createSimpleEventBus () {
      */
     getStats () {
       return { ...stats }
+    },
+
+    /**
+     * 檢查是否有特定事件類型的監聽器
+     * @param {string} eventType - 事件類型
+     * @returns {boolean}
+     */
+    hasListener (eventType) {
+      return listeners.has(eventType) && listeners.get(eventType).length > 0
+    },
+
+    /**
+     * 取得監聽器映射表的引用（用於除錯）
+     * @returns {Map} 監聽器映射表
+     */
+    get listeners () {
+      return listeners
+    },
+
+    /**
+     * 取得特定事件類型的監聽器數量
+     * @param {string} eventType - 事件類型
+     * @returns {number}
+     */
+    getListenerCount (eventType) {
+      if (!listeners.has(eventType)) return 0
+      return listeners.get(eventType).length
     },
 
     /**
@@ -506,6 +556,11 @@ function handleMessage (message, sender, sendResponse) {
         handlePopupMessage(message, sender, sendResponse)
         return true // 可能是異步回應
 
+      // Content Script 事件轉發
+      case 'CONTENT.EVENT.FORWARD':
+        handleContentEventForward(message, sender, sendResponse)
+        return true // 可能是異步回應
+
       default:
         console.warn('⚠️ 未知的訊息類型:', message.type)
         sendResponse({ success: false, error: '未知的訊息類型' })
@@ -567,6 +622,102 @@ async function handlePopupMessage (message, sender, sendResponse) {
   } catch (error) {
     console.error('❌ Popup 訊息處理錯誤:', error)
     sendResponse({ success: false, error: error.message })
+  }
+}
+
+/**
+ * 處理來自 Content Script 的事件轉發
+ *
+ * 負責功能：
+ * - 接收 Content Script 轉發的事件
+ * - 將事件轉發到內部事件系統
+ * - 支援跨上下文的事件通訊
+ * - 提供完整的錯誤處理和回應
+ *
+ * 設計考量：
+ * - 作為 Content Script 和事件系統之間的橋接
+ * - 保持事件資料的完整性和一致性
+ * - 支援異步事件處理和回應
+ * - 提供詳細的日誌記錄和除錯資訊
+ *
+ * 處理流程：
+ * 1. 驗證訊息格式和必要參數
+ * 2. 提取事件類型和資料
+ * 3. 透過 EventBus 轉發事件
+ * 4. 記錄轉發結果和統計資訊
+ * 5. 回應處理結果給 Content Script
+ *
+ * @param {Object} message - 來自 Content Script 的訊息
+ * @param {string} message.eventType - 要轉發的事件類型
+ * @param {Object} message.data - 事件資料
+ * @param {number} message.timestamp - 事件時間戳
+ * @param {Object} sender - 訊息發送者資訊
+ * @param {Function} sendResponse - 回應函數
+ */
+async function handleContentEventForward (message, sender, sendResponse) {
+  try {
+    console.log('🔄 處理 Content Script 事件轉發:', message.eventType, message.data)
+
+    // 驗證訊息格式
+    if (!message.eventType) {
+      throw new Error('事件類型不能為空')
+    }
+
+    // 提取事件資訊
+    const eventType = message.eventType
+    const eventData = message.data || {}
+    const originalTimestamp = message.timestamp || Date.now()
+
+    // 增強事件資料，加入 Content Script 來源資訊
+    const enhancedEventData = {
+      ...eventData,
+      source: {
+        type: 'content-script',
+        tabId: sender.tab?.id,
+        url: sender.tab?.url,
+        frameId: sender.frameId,
+        originalTimestamp
+      },
+      forwardedAt: Date.now()
+    }
+
+    // 透過 EventBus 轉發事件
+    if (eventBus) {
+      console.log(`🎯 準備發送事件到 EventBus: ${eventType}`)
+      console.log(`📋 事件資料:`, enhancedEventData)
+      console.log(`🔍 EventBus 是否有此事件的監聽器:`, eventBus.listeners?.has?.(eventType))
+      
+      const result = await eventBus.emit(eventType, enhancedEventData)
+      
+      console.log(`✅ 事件轉發成功: ${eventType}`, {
+        handlersExecuted: result.results?.length || 0,
+        success: result.success,
+        results: result.results
+      })
+
+      sendResponse({
+        success: true,
+        message: '事件已轉發',
+        eventType,
+        handlersExecuted: result.results?.length || 0,
+        timestamp: Date.now()
+      })
+    } else {
+      console.warn('⚠️ EventBus 未初始化，無法轉發事件')
+      sendResponse({
+        success: false,
+        error: 'EventBus 未初始化',
+        eventType
+      })
+    }
+
+  } catch (error) {
+    console.error('❌ Content Script 事件轉發失敗:', error)
+    sendResponse({
+      success: false,
+      error: error.message,
+      eventType: message.eventType || 'unknown'
+    })
   }
 }
 
@@ -674,48 +825,135 @@ self.addEventListener('unhandledrejection', async (event) => {
 // ====================
 
 // 在 Service Worker 載入時立即初始化事件系統
-(async function initializeBackgroundServiceWorker () {
+console.log('📂 Background Service Worker 腳本開始載入')
+
+// 立即執行函數：在 Service Worker 載入時立即初始化事件系統和監聽器
+console.log('🌟 準備執行立即初始化函數')
+
+async function initializeBackgroundServiceWorker () {
   try {
     console.log('🚀 開始 Background Service Worker 初始化')
+    console.log('🌟 立即執行函數已被呼叫')
 
     // 初始化事件系統
+    console.log('📡 準備初始化事件系統...')
     await initializeEventSystem()
+    console.log('📡 事件系統初始化完成')
 
-    // 註冊基本事件監聽器
-    if (eventBus) {
-      // 系統事件監聽
-      eventBus.on('SYSTEM.INSTALLED', (event) => {
-        console.log('🎉 系統安裝事件:', event.data)
-      })
+    // 檢查初始化結果
+    console.log('🔍 檢查事件系統初始化狀態:')
+    console.log('  - eventBus 是否存在:', !!eventBus)
+    console.log('  - chromeBridge 是否存在:', !!chromeBridge)
+    console.log('  - globalThis.eventBus:', !!globalThis.eventBus)
+    console.log('  - globalThis.chromeBridge:', !!globalThis.chromeBridge)
 
-      eventBus.on('SYSTEM.STARTUP', (event) => {
-        console.log('🔄 系統啟動事件:', event.data)
-      })
-
-      eventBus.on('SYSTEM.ERROR', (event) => {
-        console.error('💥 系統錯誤事件:', event.data)
-      })
-
-      // 頁面事件監聽
-      eventBus.on('PAGE.READMOO.DETECTED', (event) => {
-        console.log('📚 Readmoo 頁面檢測事件:', event.data)
-      })
-
-      eventBus.on('PAGE.CONTENT.READY', (event) => {
-        console.log('✅ Content Script 就緒事件:', event.data)
-      })
-
-      // 跨上下文訊息事件監聽
-      eventBus.on('CONTENT.MESSAGE.RECEIVED', (event) => {
-        console.log('📱 Content Script 訊息事件:', event.data)
-      })
-
-      eventBus.on('POPUP.MESSAGE.RECEIVED', (event) => {
-        console.log('🎨 Popup 訊息事件:', event.data)
-      })
+    if (!eventBus) {
+      throw new Error('EventBus 初始化失敗')
     }
 
-    console.log('✅ Background Service Worker 初始化完成')
+    // 註冊基本事件監聽器
+    console.log('🎯 開始註冊事件監聽器')
+    console.log('✅ EventBus 可用，開始註冊監聽器')
+    
+    // 系統事件監聽
+    const systemInstalledId = eventBus.on('SYSTEM.INSTALLED', (event) => {
+      console.log('🎉 系統安裝事件:', event.data)
+    })
+    console.log('✅ 註冊 SYSTEM.INSTALLED 監聽器，ID:', systemInstalledId)
+
+    const systemStartupId = eventBus.on('SYSTEM.STARTUP', (event) => {
+      console.log('🔄 系統啟動事件:', event.data)
+    })
+    console.log('✅ 註冊 SYSTEM.STARTUP 監聽器，ID:', systemStartupId)
+
+    const systemErrorId = eventBus.on('SYSTEM.ERROR', (event) => {
+      console.error('💥 系統錯誤事件:', event.data)
+    })
+    console.log('✅ 註冊 SYSTEM.ERROR 監聽器，ID:', systemErrorId)
+
+    // 頁面事件監聽
+    const pageReadmooId = eventBus.on('PAGE.READMOO.DETECTED', (event) => {
+      console.log('📚 Readmoo 頁面檢測事件:', event.data)
+    })
+    console.log('✅ 註冊 PAGE.READMOO.DETECTED 監聽器，ID:', pageReadmooId)
+
+    const pageContentReadyId = eventBus.on('PAGE.CONTENT.READY', (event) => {
+      console.log('✅ Content Script 就緒事件:', event.data)
+    })
+    console.log('✅ 註冊 PAGE.CONTENT.READY 監聽器，ID:', pageContentReadyId)
+
+    // 跨上下文訊息事件監聽
+    const contentMessageId = eventBus.on('CONTENT.MESSAGE.RECEIVED', (event) => {
+      console.log('📱 Content Script 訊息事件:', event.data)
+    })
+    console.log('✅ 註冊 CONTENT.MESSAGE.RECEIVED 監聽器，ID:', contentMessageId)
+
+    const popupMessageId = eventBus.on('POPUP.MESSAGE.RECEIVED', (event) => {
+      console.log('🎨 Popup 訊息事件:', event.data)
+    })
+    console.log('✅ 註冊 POPUP.MESSAGE.RECEIVED 監聽器，ID:', popupMessageId)
+
+    // 書籍提取完成事件監聽 - 這是關鍵的監聽器
+    console.log('📝 準備註冊 EXTRACTION.COMPLETED 事件監聽器')
+    const extractionCompletedId = eventBus.on('EXTRACTION.COMPLETED', async (eventData) => {
+      console.log('📊 書籍提取完成事件被觸發!')
+      console.log('📋 完整事件資料:', eventData)
+      console.log('🔍 資料欄位檢查:')
+      console.log('  - eventData.booksData:', !!eventData.booksData, eventData.booksData?.length)
+      console.log('  - eventData.books:', !!eventData.books, eventData.books?.length)
+      console.log('  - 所有欄位:', Object.keys(eventData))
+        
+      try {
+        // 將提取完成的資料儲存到 Chrome Storage
+        // EventBus 直接傳遞 enhancedEventData，不包裝在 event.data 中
+        const books = eventData.booksData || eventData.books
+        if (books && Array.isArray(books)) {
+          const storageData = {
+            books: books,
+            extractionTimestamp: eventData.timestamp || Date.now(),
+            extractionCount: eventData.count || books.length,
+            extractionDuration: eventData.duration || 0,
+            source: eventData.source || 'readmoo'
+          }
+          
+          console.log(`💾 準備儲存 ${books.length} 本書籍到 Chrome Storage`)
+          console.log(`📄 儲存資料結構:`, storageData)
+          
+          await chrome.storage.local.set({
+            'readmoo_books': storageData
+          })
+          
+          // 驗證儲存是否成功
+          const verifyData = await chrome.storage.local.get('readmoo_books')
+          console.log(`✅ 書籍資料已儲存到 Chrome Storage: ${books.length} 本書籍`)
+          console.log(`🔍 驗證儲存結果:`, verifyData.readmoo_books ? `${verifyData.readmoo_books.books?.length || 0} 本書籍` : '無資料')
+        } else {
+          console.warn('⚠️ 提取完成事件中沒有有效的書籍資料:', eventData)
+        }
+      } catch (error) {
+        console.error('❌ 儲存書籍資料失敗:', error)
+      }
+    })
+    console.log('📝 註冊 EXTRACTION.COMPLETED 事件監聽器完成，ID:', extractionCompletedId)
+    
+    // 驗證監聽器註冊狀態
+    console.log('🔍 監聽器註冊完成，EventBus 狀態:')
+    console.log('  - EventBus 類型:', typeof eventBus)
+    console.log('  - EventBus.listeners 類型:', typeof eventBus.listeners)
+    console.log('  - 總監聽器數量:', eventBus.listeners?.size || 0)
+    console.log('  - EXTRACTION.COMPLETED 監聽器存在:', eventBus.listeners?.has?.('EXTRACTION.COMPLETED'))
+    console.log('  - 所有事件類型:', eventBus.listeners ? Array.from(eventBus.listeners.keys()) : [])
+    
+    // 測試 EventBus 功能
+    console.log('🧪 測試 EventBus 是否正常工作...')
+    try {
+      const testResult = await eventBus.emit('TEST.INITIALIZATION', { test: true })
+      console.log('🧪 EventBus 測試結果:', testResult)
+    } catch (testError) {
+      console.error('🧪 EventBus 測試失敗:', testError)
+    }
+
+    console.log('✅ Background Service Worker 初始化完成 - 包含所有事件監聽器')
 
     // 觸發系統就緒事件
     if (eventBus) {
@@ -727,7 +965,29 @@ self.addEventListener('unhandledrejection', async (event) => {
 
     // 記錄啟動時間
     globalThis.backgroundStartTime = Date.now()
+    console.log('🏁 Background Service Worker 初始化完全完成')
+    
   } catch (error) {
     console.error('❌ Background Service Worker 初始化失敗:', error)
+    console.error('❌ 錯誤堆疊:', error.stack)
+    console.error('❌ 監聽器可能未被註冊！')
+    
+    // 嘗試恢復機制
+    console.log('🔄 嘗試恢復初始化...')
+    try {
+      // 重新嘗試基本初始化
+      await initializeEventSystem()
+      console.log('🔄 恢復初始化完成')
+    } catch (recoveryError) {
+      console.error('❌ 恢復初始化也失敗:', recoveryError)
+    }
   }
-})()
+}
+
+// 立即執行初始化
+console.log('🎯 立即執行 Background Service Worker 初始化')
+initializeBackgroundServiceWorker().then(() => {
+  console.log('🎯 立即執行初始化完成')
+}).catch((error) => {
+  console.error('🎯 立即執行初始化失敗:', error)
+})

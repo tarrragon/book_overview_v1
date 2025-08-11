@@ -165,4 +165,12 @@ class EventHandler {
   }
 }
 
-module.exports = EventHandler
+// 瀏覽器環境：將 EventHandler 定義為全域變數
+if (typeof window !== 'undefined') {
+  window.EventHandler = EventHandler
+}
+
+// Node.js 環境：保持 CommonJS 匯出
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = EventHandler
+}

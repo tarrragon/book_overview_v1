@@ -200,4 +200,12 @@ class ChromeEventBridge {
   }
 }
 
-module.exports = ChromeEventBridge
+// 瀏覽器環境：將 ChromeEventBridge 定義為全域變數
+if (typeof window !== 'undefined') {
+  window.ChromeEventBridge = ChromeEventBridge
+}
+
+// Node.js 環境：保持 CommonJS 匯出
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = ChromeEventBridge
+}
