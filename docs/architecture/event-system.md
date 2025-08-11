@@ -1226,3 +1226,47 @@ Array.isArray(results) === true
 #### 測試與驗證：
 - 新增整合測試：監聽器註冊前 emit，`markReady()` 後 handler 必須收到事件（已通過）
 - 驗證 emit 回傳型別統一為陣列，便於統計處理器執行次數
+
+### Overview 資料同步設計（透過 chrome.storage.onChanged）
+
+#### 負責功能：
+- 讓 Overview 頁面在提取完成後自動更新書庫資料
+- 解耦 Content Script/Background 和 Overview 的跨上下文通訊
+
+#### 設計考量：
+- 依據本專案跨上下文通訊規範，Overview ↔ Background 優先透過 `chrome.storage` 進行資料同步
+- Background 在接收到 `EXTRACTION.COMPLETED` 後將資料寫入 `chrome.storage.local.readmoo_books`
+- Overview 監聽 `chrome.storage.onChanged`，一旦 `readmoo_books` 變更立即更新 UI
+
+#### 處理流程：
+1. Content Script 觸發提取 → 事件轉發到 Background
+2. Background 監聽 `EXTRACTION.COMPLETED` → 寫入 `chrome.storage.local.readmoo_books`
+3. Overview 監聽 `chrome.storage.onChanged` → 讀取變更並更新畫面
+
+### 關鍵監聽器守護（Listener Guard）
+
+為避免冷啟動或例外情況下關鍵監聽器未註冊導致事件流失，背景層加入守護機制：
+
+- 提供 `registerCoreListenersIfNeeded()`：可重入，確保 `EXTRACTION.COMPLETED` 等關鍵監聽器存在
+- 在背景初始化流程及 `CONTENT.EVENT.FORWARD` 的 `EXTRACTION.COMPLETED` 路徑上均會呼叫此函式
+- 若監聽器缺失則即時補註冊，保障資料寫入 `chrome.storage.local`
+
+驗收準則：
+- 在 Content Script 先發 `EXTRACTION.COMPLETED` 再完成背景監聽器註冊時，資料仍會被寫入 storage（靠 pre-init queue + 守護）
+- 在任意時序下，`eventBus.hasListener('EXTRACTION.COMPLETED')` 於 emit 前後均為 true 或在 emit 前被補足
+
+#### 介面範例：
+```js
+// Overview 初始化時註冊 storage 變更監聽
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.readmoo_books?.newValue?.books) {
+    const { books } = changes.readmoo_books.newValue
+    this._updateBooksData(books || [])
+    this.updateDisplay()
+  }
+})
+```
+
+#### 驗收準則：
+- Background 寫入 `readmoo_books` 後，Overview 應無需手動重載即可顯示最新書庫數量
+- 即使 `EXTRACTION.STARTED/PROGRESS` 無監聽器，整體使用者體驗仍正確（完成時自動更新）

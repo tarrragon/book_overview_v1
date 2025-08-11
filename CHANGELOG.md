@@ -2,6 +2,20 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.8.6] - 2025-08-11
+
+### 🔧 架構穩定性：Listener Guard 與 Overview 同步完成
+- **Listener Guard**：新增 `registerCoreListenersIfNeeded()`，在背景初始化與 `CONTENT.EVENT.FORWARD(EXTRACTION.COMPLETED)` 前自動補註冊關鍵監聽器
+- **事件處理一致性**：確保 `EXTRACTION.COMPLETED` 在任何時序下都有監聽器，避免 handlersExecuted: 0 導致資料未入庫
+- **Overview 同步**：`overview-page-controller.js` 監聽 `chrome.storage.onChanged`，自動反映 `readmoo_books` 更新
+- **檔案**：更新 `src/background/background.js`、`src/overview/overview-page-controller.js`
+- **文件**：`docs/architecture/event-system.md` 新增「Listener Guard」章節；`docs/todolist.md` 更新當前狀態至 v0.8.6
+
+#### 測試
+- 整合測試全通過；實機驗證 Overview 正確顯示 96 筆
+
+---
+
 ## [v0.8.5] - 2025-08-11
 
 ### 🔧 架構穩定性：事件系統就緒屏障與 Pre-init 佇列

@@ -23,6 +23,56 @@ console.log('🚀 Readmoo 書庫提取器 Background Service Worker 啟動')
 // 載入事件系統模組 (使用動態載入以支援 Service Worker 環境)
 let EventBus, ChromeEventBridge
 let eventBus, chromeBridge
+let coreListenersRegistered = false
+
+async function registerCoreListenersIfNeeded () {
+  if (!eventBus) return
+  try {
+    // 若已註冊過且存在關鍵監聽器，則略過
+    if (coreListenersRegistered && eventBus.hasListener?.('EXTRACTION.COMPLETED')) {
+      return
+    }
+
+    // EXTRACTION.COMPLETED 監聽器
+    if (!eventBus.hasListener?.('EXTRACTION.COMPLETED')) {
+      console.log('📝 [Guard] 註冊缺失的 EXTRACTION.COMPLETED 監聽器')
+      eventBus.on('EXTRACTION.COMPLETED', async (event) => {
+        console.log('📊 書籍提取完成事件被觸發!')
+        console.log('📋 完整事件資料:', event)
+        console.log('🔍 資料欄位檢查:')
+        console.log('  - event.data.booksData:', !!event.data?.booksData, event.data?.booksData?.length)
+        console.log('  - event.data.books:', !!event.data?.books, event.data?.books?.length)
+        console.log('  - 所有欄位:', Object.keys(event.data || {}))
+
+        try {
+          const books = event.data?.booksData || event.data?.books
+          if (books && Array.isArray(books)) {
+            const storageData = {
+              books: books,
+              extractionTimestamp: event.timestamp || Date.now(),
+              extractionCount: event.data?.count || books.length,
+              extractionDuration: event.data?.duration || 0,
+              source: event.data?.source || 'readmoo'
+            }
+            console.log(`💾 [Guard] 準備儲存 ${books.length} 本書籍到 Chrome Storage`)
+            await chrome.storage.local.set({ 'readmoo_books': storageData })
+            const verifyData = await chrome.storage.local.get('readmoo_books')
+            console.log(`✅ [Guard] 驗證儲存結果:`, verifyData.readmoo_books ? `${verifyData.readmoo_books.books?.length || 0} 本書籍` : '無資料')
+          } else {
+            console.warn('⚠️ [Guard] 提取完成事件中沒有有效的書籍資料')
+          }
+        } catch (error) {
+          console.error('❌ [Guard] 儲存書籍資料失敗:', error)
+        }
+      })
+      console.log('📝 [Guard] EXTRACTION.COMPLETED 監聽器已補註冊')
+    }
+
+    coreListenersRegistered = true
+  } catch (e) {
+    console.error('❌ [Guard] 註冊關鍵監聽器失敗:', e)
+  }
+}
 
 /**
  * 初始化事件系統
@@ -744,8 +794,11 @@ async function handleContentEventForward (message, sender, sendResponse) {
       forwardedAt: Date.now()
     }
 
-    // 透過 EventBus 轉發事件
+    // 透過 EventBus 轉發事件（在轉發前確保關鍵監聽器存在）
     if (eventBus) {
+      if (eventType === 'EXTRACTION.COMPLETED') {
+        await registerCoreListenersIfNeeded()
+      }
       console.log(`🎯 準備發送事件到 EventBus: ${eventType}`)
       console.log('📋 事件資料:', enhancedEventData)
       console.log('🔍 EventBus 監聽檢查:', {
@@ -960,48 +1013,9 @@ async function initializeBackgroundServiceWorker () {
     })
     console.log('✅ 註冊 POPUP.MESSAGE.RECEIVED 監聽器，ID:', popupMessageId)
 
-    // 書籍提取完成事件監聽 - 這是關鍵的監聽器
-    console.log('📝 準備註冊 EXTRACTION.COMPLETED 事件監聽器')
-    const extractionCompletedId = eventBus.on('EXTRACTION.COMPLETED', async (event) => {
-      console.log('📊 書籍提取完成事件被觸發!')
-      console.log('📋 完整事件資料:', event)
-      console.log('🔍 資料欄位檢查:')
-      console.log('  - event.data.booksData:', !!event.data?.booksData, event.data?.booksData?.length)
-      console.log('  - event.data.books:', !!event.data?.books, event.data?.books?.length)
-      console.log('  - 所有欄位:', Object.keys(event.data || {}))
-        
-      try {
-        // 將提取完成的資料儲存到 Chrome Storage
-        // EventBus 直接傳遞 enhancedEventData，不包裝在 event.data 中
-        const books = event.data?.booksData || event.data?.books
-        if (books && Array.isArray(books)) {
-          const storageData = {
-            books: books,
-            extractionTimestamp: event.timestamp || Date.now(),
-            extractionCount: event.data?.count || books.length,
-            extractionDuration: event.data?.duration || 0,
-            source: event.data?.source || 'readmoo'
-          }
-          
-          console.log(`💾 準備儲存 ${books.length} 本書籍到 Chrome Storage`)
-          console.log(`📄 儲存資料結構:`, storageData)
-          
-          await chrome.storage.local.set({
-            'readmoo_books': storageData
-          })
-          
-          // 驗證儲存是否成功
-          const verifyData = await chrome.storage.local.get('readmoo_books')
-          console.log(`✅ 書籍資料已儲存到 Chrome Storage: ${books.length} 本書籍`)
-          console.log(`🔍 驗證儲存結果:`, verifyData.readmoo_books ? `${verifyData.readmoo_books.books?.length || 0} 本書籍` : '無資料')
-        } else {
-          console.warn('⚠️ 提取完成事件中沒有有效的書籍資料:', eventData)
-        }
-      } catch (error) {
-        console.error('❌ 儲存書籍資料失敗:', error)
-      }
-    })
-    console.log('📝 註冊 EXTRACTION.COMPLETED 事件監聽器完成，ID:', extractionCompletedId)
+    // 書籍提取完成事件監聽 - 由守護函式集中註冊
+    await registerCoreListenersIfNeeded()
+    console.log('📝 EXTRACTION.COMPLETED 監聽器確認完成（核心守護）')
     
     // 驗證監聽器註冊狀態
     console.log('🔍 監聽器註冊完成，EventBus 狀態:')

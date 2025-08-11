@@ -170,6 +170,23 @@ class OverviewPageController extends EventHandlerClass {
       this.eventBus.on('UI.BOOKS.UPDATE', this.handleBooksUpdate.bind(this))
     }
 
+    // 監聽 Chrome Storage 資料變更，實現跨上下文的自動資料同步
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+      chrome.storage.onChanged.addListener((changes, area) => {
+        try {
+          if (area === 'local' && changes.readmoo_books && changes.readmoo_books.newValue) {
+            const newValue = changes.readmoo_books.newValue
+            const books = Array.isArray(newValue.books) ? newValue.books : []
+            this._updateBooksData(books)
+            this.updateDisplay()
+          }
+        } catch (error) {
+          // 僅記錄錯誤，不中斷頁面運作
+          console.warn('⚠️ 處理 storage 變更失敗:', error)
+        }
+      })
+    }
+
     // 設置 DOM 事件監聽器
     if (this.elements.searchBox) {
       this.elements.searchBox.addEventListener('input', (e) => {
