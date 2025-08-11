@@ -116,6 +116,9 @@ async function initializeEventSystem () {
 function createSimpleEventBus () {
   // 事件監聽器註冊表 Map<eventType, ListenerWrapper[]>
   const listeners = new Map()
+  // 就緒前事件暫存佇列
+  const preInitQueue = []
+  let isReady = false
 
   // 統計追蹤資料
   const stats = {
@@ -153,6 +156,23 @@ function createSimpleEventBus () {
       }
 
       eventListeners.splice(insertIndex, 0, wrapper)
+
+      // 註冊新監聽器後，若尚有相符事件在佇列中，重放這些事件
+      if (preInitQueue.length > 0) {
+        const pending = preInitQueue.filter(e => e.type === eventType)
+        if (pending.length > 0) {
+          // 從佇列移除已匹配事件
+          for (let i = preInitQueue.length - 1; i >= 0; i--) {
+            if (preInitQueue[i].type === eventType) preInitQueue.splice(i, 1)
+          }
+          // 非阻塞重放（不影響目前 on 的回傳）
+          Promise.resolve().then(async () => {
+            for (const evt of pending) {
+              await this.emit(evt.type, evt.data)
+            }
+          })
+        }
+      }
       return wrapper.id
     },
 
@@ -183,7 +203,11 @@ function createSimpleEventBus () {
 
       try {
         if (!listeners.has(eventType)) {
-          return { success: true, results: [] }
+          // 若系統尚未就緒，先暫存事件以便稍後重放
+          if (!isReady) {
+            preInitQueue.push({ type: eventType, data })
+          }
+          return []
         }
 
         const event = {
@@ -198,9 +222,8 @@ function createSimpleEventBus () {
 
         for (const wrapper of eventListeners) {
           try {
-            // 直接傳遞 data 給處理器，而不是包裝的 event 物件
-            // 這樣與我們的事件監聽器期望格式一致
-            const result = await wrapper.handler(data)
+            // 傳遞標準事件物件給處理器（與核心 EventBus 一致）
+            const result = await wrapper.handler(event)
             results.push({ success: true, result })
 
             // 處理一次性監聽器
@@ -240,10 +263,12 @@ function createSimpleEventBus () {
           }
         }
 
-        return { success: true, results }
+        // 與核心 EventBus 對齊：回傳處理結果陣列
+        return results
       } catch (error) {
         console.error(`❌ 事件觸發失敗 (${eventType}):`, error)
-        return { success: false, error }
+        // 失敗時仍回傳陣列以保持介面穩定
+        return [{ success: false, error }]
       }
     },
 
@@ -279,6 +304,21 @@ function createSimpleEventBus () {
     getListenerCount (eventType) {
       if (!listeners.has(eventType)) return 0
       return listeners.get(eventType).length
+    },
+
+    /**
+     * 標記事件系統完成就緒，並重放所有尚未有監聽器處理的暫存事件
+     */
+    markReady () {
+      isReady = true
+      if (preInitQueue.length === 0) return
+      // 逐一嘗試重放（保持原始順序）
+      Promise.resolve().then(async () => {
+        while (preInitQueue.length > 0) {
+          const evt = preInitQueue.shift()
+          await this.emit(evt.type, evt.data)
+        }
+      })
     },
 
     /**
@@ -384,8 +424,12 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   console.log('📦 擴展安裝完成', details)
 
   try {
-    // 初始化事件系統
+    // 初始化事件系統（快速啟動）
     await initializeEventSystem()
+    // 等待完整背景初始化（含監聽器註冊）完成
+    if (globalThis.__bgInitPromise) {
+      await globalThis.__bgInitPromise
+    }
 
     // 設定預設配置
     await chrome.storage.local.set({
@@ -398,7 +442,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       version: chrome.runtime.getManifest().version
     })
 
-    // 觸發系統初始化事件
+    // 觸發系統初始化事件（保證監聽器已就緒）
     if (eventBus) {
       await eventBus.emit('SYSTEM.INSTALLED', {
         reason: details.reason,
@@ -417,10 +461,14 @@ chrome.runtime.onStartup.addListener(async () => {
   console.log('🔄 Service Worker 重新啟動')
 
   try {
-    // 重新初始化事件系統
+    // 重新初始化事件系統（快速啟動）
     await initializeEventSystem()
+    // 等待完整背景初始化（含監聽器註冊）完成
+    if (globalThis.__bgInitPromise) {
+      await globalThis.__bgInitPromise
+    }
 
-    // 觸發系統重啟事件
+    // 觸發系統重啟事件（保證監聽器已就緒）
     if (eventBus) {
       await eventBus.emit('SYSTEM.STARTUP', {
         timestamp: Date.now()
@@ -441,19 +489,34 @@ chrome.runtime.onStartup.addListener(async () => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('📨 收到訊息:', message, '來自:', sender)
 
-  // 確保事件系統已初始化
-  if (!eventBus || !chromeBridge) {
-    console.warn('⚠️ 事件系統尚未初始化，嘗試重新初始化')
-    initializeEventSystem().then(() => {
-      handleMessage(message, sender, sendResponse)
-    }).catch(error => {
-      console.error('❌ 事件系統初始化失敗:', error)
-      sendResponse({ success: false, error: '事件系統尚未就緒' })
-    })
-    return true // 保持訊息通道開啟
+  // 全域就緒屏障：等待「完整初始化（含監聽器註冊）」
+  // 若尚未建立，回退到僅事件系統初始化，並接著等待完整初始化流程
+  const waitForReady = async () => {
+    try {
+      if (!globalThis.__bgInitPromise) {
+        // 尚未有完整初始化流程，先初始化事件系統，避免丟失消息管道
+        await initializeEventSystem()
+        // 觸發一次完整背景初始化（包含監聽器註冊）
+        globalThis.__bgInitPromise = initializeBackgroundServiceWorker?.() || Promise.resolve()
+      }
+      await globalThis.__bgInitPromise
+      return true
+    } catch (e) {
+      console.error('❌ 等待背景初始化就緒失敗:', e)
+      return false
+    }
   }
 
-  return handleMessage(message, sender, sendResponse)
+  ;(async () => {
+    const ready = await waitForReady()
+    if (!ready) {
+      sendResponse({ success: false, error: '背景初始化失敗，事件系統未就緒' })
+      return
+    }
+    await handleMessage(message, sender, sendResponse)
+  })()
+
+  return true // 保持訊息通道開啟（因為有非同步流程）
 })
 
 /**
@@ -684,22 +747,26 @@ async function handleContentEventForward (message, sender, sendResponse) {
     // 透過 EventBus 轉發事件
     if (eventBus) {
       console.log(`🎯 準備發送事件到 EventBus: ${eventType}`)
-      console.log(`📋 事件資料:`, enhancedEventData)
-      console.log(`🔍 EventBus 是否有此事件的監聽器:`, eventBus.listeners?.has?.(eventType))
-      
-      const result = await eventBus.emit(eventType, enhancedEventData)
-      
+      console.log('📋 事件資料:', enhancedEventData)
+      console.log('🔍 EventBus 監聽檢查:', {
+        hasListener: eventBus.hasListener?.(eventType),
+        listenerCount: eventBus.getListenerCount?.(eventType)
+      })
+
+      const results = await eventBus.emit(eventType, enhancedEventData)
+
+      const handlersExecuted = Array.isArray(results) ? results.length : 0
+
       console.log(`✅ 事件轉發成功: ${eventType}`, {
-        handlersExecuted: result.results?.length || 0,
-        success: result.success,
-        results: result.results
+        handlersExecuted,
+        success: true
       })
 
       sendResponse({
         success: true,
         message: '事件已轉發',
         eventType,
-        handlersExecuted: result.results?.length || 0,
+        handlersExecuted,
         timestamp: Date.now()
       })
     } else {
@@ -895,25 +962,25 @@ async function initializeBackgroundServiceWorker () {
 
     // 書籍提取完成事件監聽 - 這是關鍵的監聽器
     console.log('📝 準備註冊 EXTRACTION.COMPLETED 事件監聽器')
-    const extractionCompletedId = eventBus.on('EXTRACTION.COMPLETED', async (eventData) => {
+    const extractionCompletedId = eventBus.on('EXTRACTION.COMPLETED', async (event) => {
       console.log('📊 書籍提取完成事件被觸發!')
-      console.log('📋 完整事件資料:', eventData)
+      console.log('📋 完整事件資料:', event)
       console.log('🔍 資料欄位檢查:')
-      console.log('  - eventData.booksData:', !!eventData.booksData, eventData.booksData?.length)
-      console.log('  - eventData.books:', !!eventData.books, eventData.books?.length)
-      console.log('  - 所有欄位:', Object.keys(eventData))
+      console.log('  - event.data.booksData:', !!event.data?.booksData, event.data?.booksData?.length)
+      console.log('  - event.data.books:', !!event.data?.books, event.data?.books?.length)
+      console.log('  - 所有欄位:', Object.keys(event.data || {}))
         
       try {
         // 將提取完成的資料儲存到 Chrome Storage
         // EventBus 直接傳遞 enhancedEventData，不包裝在 event.data 中
-        const books = eventData.booksData || eventData.books
+        const books = event.data?.booksData || event.data?.books
         if (books && Array.isArray(books)) {
           const storageData = {
             books: books,
-            extractionTimestamp: eventData.timestamp || Date.now(),
-            extractionCount: eventData.count || books.length,
-            extractionDuration: eventData.duration || 0,
-            source: eventData.source || 'readmoo'
+            extractionTimestamp: event.timestamp || Date.now(),
+            extractionCount: event.data?.count || books.length,
+            extractionDuration: event.data?.duration || 0,
+            source: event.data?.source || 'readmoo'
           }
           
           console.log(`💾 準備儲存 ${books.length} 本書籍到 Chrome Storage`)
@@ -957,6 +1024,8 @@ async function initializeBackgroundServiceWorker () {
 
     // 觸發系統就緒事件
     if (eventBus) {
+      // 標記事件系統就緒，重放暫存事件
+      eventBus.markReady?.()
       await eventBus.emit('SYSTEM.READY', {
         timestamp: Date.now(),
         version: chrome.runtime.getManifest().version
@@ -986,8 +1055,11 @@ async function initializeBackgroundServiceWorker () {
 
 // 立即執行初始化
 console.log('🎯 立即執行 Background Service Worker 初始化')
-initializeBackgroundServiceWorker().then(() => {
-  console.log('🎯 立即執行初始化完成')
-}).catch((error) => {
-  console.error('🎯 立即執行初始化失敗:', error)
-})
+// 建立全域就緒屏障，涵蓋事件系統建立與監聽器註冊
+globalThis.__bgInitPromise = initializeBackgroundServiceWorker()
+  .then(() => {
+    console.log('🎯 立即執行初始化完成')
+  })
+  .catch((error) => {
+    console.error('🎯 立即執行初始化失敗:', error)
+  })

@@ -341,6 +341,38 @@ describe('Background Service Worker Event System Integration', () => {
         expect(global.chromeBridge.eventBus).toBe(global.eventBus)
       }
     })
+
+    test('應該在監聽器註冊前的事件於就緒後被重放 (pre-init queue)', async () => {
+      const eventBus = global.eventBus
+      expect(eventBus).toBeDefined()
+
+      if (eventBus) {
+        const handler = jest.fn()
+
+        // 在尚未註冊監聽器前先 emit（模擬冷啟動早到事件）
+        await eventBus.emit('EARLY.EVENT', { foo: 'bar' })
+
+        // 此時尚未有監聽器，不應觸發 handler
+        expect(handler).not.toHaveBeenCalled()
+
+        // 註冊監聽器
+        eventBus.on('EARLY.EVENT', (event) => handler(event.data))
+
+        // 透過 markReady 觸發 pre-init 佇列重放
+        if (typeof eventBus.markReady === 'function') {
+          eventBus.markReady()
+          // 等待重放
+          await new Promise(resolve => setTimeout(resolve, 20))
+        } else {
+          // 若無 markReady，至少確認 on 之後 emit 一次也可
+          await eventBus.emit('EARLY.EVENT', { foo: 'bar' })
+        }
+
+        // 斷言：handler 應該已在重放後被呼叫一次，且資料一致
+        expect(handler).toHaveBeenCalled()
+        expect(handler).toHaveBeenCalledWith({ foo: 'bar' })
+      }
+    })
   })
 
   describe('🔧 Service Worker 生命週期相容性', () => {

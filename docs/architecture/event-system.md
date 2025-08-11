@@ -24,7 +24,7 @@
 
 ### 核心組件
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    事件驅動架構核心                          │
 ├─────────────────────────────────────────────────────────────┤
@@ -1123,4 +1123,106 @@ class EventTracker {
 
 ---
 
-**本文件將隨著系統發展持續更新，確保架構文件與實際實現保持同步。** 
+**本文件將隨著系統發展持續更新，確保架構文件與實際實現保持同步。**
+
+## 🧩 架構決策：初始化競態與介面封裝
+
+### 問題描述（Problem Statement）
+
+- **症狀**：在冷啟動或 Service Worker 重啟時，`CONTENT.EVENT.FORWARD` 與 `EXTRACTION.COMPLETED` 等事件可能早於背景端監聽器完成註冊即抵達，導致事件雖成功 `emit()`，但當下沒有任何監聽器被執行，並伴隨除錯日誌出現不穩定值（例如 `undefined`）。
+- **根因**：
+  - 事件系統「建立（EventBus/Bridge）」與「監聽器註冊」之間缺少單一就緒屏障（Ready Barrier），訊息入口未等候完整初始化完成便開始分發事件。
+  - 外部直接讀取 `eventBus.listeners` 內部結構檢查監聽器，破壞抽象邊界，導致檢查值不穩定。
+
+### 設計原則（Design Principles）
+
+- **單一責任與清晰邊界**：訊息入口只負責「路由 + 等待就緒」，事件系統對外僅以公開方法提供狀態檢查；內部資料結構不可被外部直接依賴。
+- **可觀測且可測試**：提供穩定的檢查介面（如 `hasListener(eventType)`、`getListenerCount(eventType)`），避免測試/日誌依賴內部實作細節。
+- **防禦式設計**：在不可避免的冷啟動情境下，任何早到事件要嘛被安全緩衝，要嘛在入口處被 gating 直到系統 ready。
+
+### 解決方案（Solution Overview）
+
+- **就緒屏障（Ready Barrier）**：
+  - 建立單一「完整初始化承諾」涵蓋「事件總線/橋接器建立 + 監聽器註冊」，例如 `globalThis.__bgInitPromise = initializeBackgroundServiceWorker()`。
+  - 訊息入口（`chrome.runtime.onMessage`）一律先 `await __bgInitPromise` 再進行路由與 `emit()`。
+
+- **訊息入口 Gating**：
+  - 若事件系統尚未就緒，入口先等待就緒承諾；必要時可加入 timeout 與告警。
+  - 在 ready 前將事件放入 pre-init queue，待就緒或註冊到對應監聽器後重放（本專案已採用）。
+
+- **介面封裝與一致性**：
+  - 封裝監聽檢查為公開介面：`eventBus.hasListener(eventType)`、`eventBus.getListenerCount(eventType)`。
+  - 禁止直接讀取 `eventBus.listeners`。
+  - 保持跨模組 API 一致，以利整合測試與診斷。
+
+### 處理流程（Process Flow）
+
+1. 背景初始化啟動 `initializeBackgroundServiceWorker()`，建立事件系統並完成監聽器註冊。
+2. 初始化過程完成後呼叫 `resolve` 標記 `__bgInitPromise` 完成（系統 ready）。
+3. 訊息入口接收到任何跨上下文訊息時，先 `await __bgInitPromise`，再呼叫對應的 `handle*` 路由與 `eventBus.emit()`。
+4. 監聽檢查與診斷一律使用公開介面，避免內部資料結構外洩。
+
+### 使用情境（Usage Context）
+
+- 冷啟動或 Service Worker 被喚醒後立即有 Content Script 傳入 `CONTENT.EVENT.FORWARD`。
+- 團隊需要在日誌或測試中確認某事件目前是否有監聽器、有多少監聽器。
+
+### 設計取捨（Trade-offs）
+
+- 等待就緒可能引入極短延遲，但換取事件處理一致性與可靠度。
+- 若採用 pre-init queue，需額外記憶體與序列化保證；本階段先採「等待就緒」以降低複雜度。
+
+### 標準化介面（Standardized Interfaces）
+
+```js
+// 穩定檢查方式
+eventBus.hasListener('EXTRACTION.COMPLETED') // boolean
+eventBus.getListenerCount('EXTRACTION.COMPLETED') // number
+
+// 事件系統就緒與重放
+eventBus.markReady() // 標記系統就緒，觸發 pre-init 佇列重放
+
+// 統一 emit 介面與回傳
+// 傳入 data，處理器收到標準事件物件 { type, data, timestamp }
+// 回傳處理結果陣列（每個監聽器的處理結果）
+const results = await eventBus.emit('EXTRACTION.COMPLETED', { booksData })
+Array.isArray(results) === true
+```
+
+### 驗收準則（Acceptance Criteria）
+
+- 冷啟動情境下，`EXTRACTION.COMPLETED` 不再出現「事件成功 emit 但無監聽器執行」的情況。
+- 就緒前到達的事件會被暫存於 pre-init queue，並在 `markReady()` 或對應事件監聽器註冊後重放。
+- 所有監聽檢查日誌/測試均改用公開 API，不依賴 `listeners` 內部結構。
+- 整合測試在多次啟停/重載下事件處理結果一致。
+
+### Pre-init 佇列與就緒屏障設計（新增）
+
+#### 負責功能：
+- 暫存系統就緒前抵達的事件，避免資料遺失
+- 在系統就緒後安全重放事件，確保處理順序與一致性
+- 降低 Service Worker 冷啟動時序不確定性對功能的影響
+
+#### 設計考量：
+- Chrome MV3 Service Worker 可能在任何時間被喚醒/終止
+- Content Script 可能在背景監聽器註冊完成前即開始發送事件
+- 需避免直接依賴內部資料結構（如 listeners Map）
+
+#### 處理流程：
+1. emit(eventType, data) 在尚無監聽器且未就緒時，將事件推入 pre-init queue 並返回空陣列
+2. on(eventType, handler) 註冊後，非阻塞重放佇列中同型別事件
+3. initializeBackgroundServiceWorker() 完成後呼叫 eventBus.markReady()，重放所有佇列事件
+4. 後續 emit 直接以已註冊監聽器同步/非同步處理，回傳結果陣列
+
+#### 使用情境：
+- 冷啟動立即進行的 `CONTENT.EVENT.FORWARD` 與 `EXTRACTION.*` 事件
+- 背景監聽器註冊落後於訊息入口事件到達的情境
+
+#### 狀態轉換：
+- [PreInit] → [Ready] 由 `eventBus.markReady()` 觸發
+- 在 [PreInit] 狀態，事件進入 `preInitQueue`
+- 進入 [Ready] 後，佇列事件依時間順序重放
+
+#### 測試與驗證：
+- 新增整合測試：監聽器註冊前 emit，`markReady()` 後 handler 必須收到事件（已通過）
+- 驗證 emit 回傳型別統一為陣列，便於統計處理器執行次數

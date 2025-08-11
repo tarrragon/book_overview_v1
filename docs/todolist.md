@@ -147,19 +147,19 @@
 
 ## 🎯 專案當前狀態
 
-🏗️ **建置品質保證完成！** Readmoo 書庫數據提取器 Chrome Extension v0.8.0
+🏗️ **事件系統就緒屏障與 Pre-init 佇列完成（v0.8.5）**
 
-### ✨ v0.8.0 成就
-- **建置驗證系統**：完整的建置結果自動化驗證機制
-- **品質保證自動化**：檔案結構、Manifest、權限、圖示完整性驗證
-- **部署前檢查**：自動化檢查確保建置結果符合上架標準
-- **開發工作流程**：整合 npm scripts 提供便捷的驗證指令
+### ✨ v0.8.5 成就（事件系統穩定性強化）
+- **就緒屏障**：`globalThis.__bgInitPromise` 串起事件系統建立與監聽器註冊
+- **入口 Gating**：`chrome.runtime.onMessage` 等待就緒後再分派事件
+- **Pre-init 佇列**：就緒前事件暫存與就緒後重放（含 on() 註冊後非阻塞重放）
+- **介面統一**：`emit()` 回傳陣列；處理器接收 `{ type, data, timestamp }`
+- **診斷 API**：統一 `hasListener()` / `getListenerCount()`，禁止外部直接讀取 `listeners`
 
-### 🚀 下個里程碑方向（v1.0.0）
-- 最終整合測試驗證
-- Chrome Web Store 上架前最終檢查
-- 使用者文件和說明完善
-- 正式版本發布準備
+### 🚀 下一步（v0.8.6 提案）
+- [ ] 強化 `content-script-extractor` DOM 解析兩個紅燈測試
+- [ ] EventBus 診斷 `getStats()` 文件化與測試
+- [ ] 事件優先級調整策略與壅塞控制（可選）
 
 ---
 
