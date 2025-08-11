@@ -87,6 +87,7 @@ const elements = {
   extractBtn: document.getElementById('extractBtn'),
   settingsBtn: document.getElementById('settingsBtn'),
   helpBtn: document.getElementById('helpBtn'),
+  viewLibraryBtn: document.getElementById('viewLibraryBtn'),
   pageInfo: document.getElementById('pageInfo'),
   bookCount: document.getElementById('bookCount'),
   extensionStatus: document.getElementById('extensionStatus'),
@@ -600,6 +601,33 @@ function showHelp () {
   window.alert(MESSAGES.HELP_TEXT)
 }
 
+/**
+ * 開啟書庫總覽頁面
+ * 
+ * 負責功能：
+ * - 使用 Chrome Extension API 開啟 overview 頁面
+ * - 提供錯誤處理和使用者回饋
+ * - 支援無障礙功能
+ * 
+ * 設計考量：
+ * - 使用標準的 chrome.runtime.openOptionsPage() API
+ * - 適當的錯誤處理避免使用者困惑
+ * - 保持一致的使用者體驗
+ * 
+ * 使用情境：
+ * - 使用者點擊「檢視書庫」按鈕時
+ * - 提取完成後點擊「查看結果」時
+ */
+function openLibraryOverview () {
+  try {
+    console.log('📖 開啟書庫總覽頁面...')
+    chrome.runtime.openOptionsPage()
+  } catch (error) {
+    console.error('❌ 無法開啟書庫頁面:', error)
+    window.alert('無法開啟書庫頁面，請稍後再試')
+  }
+}
+
 // ==================== 事件管理 ====================
 
 /**
@@ -618,6 +646,7 @@ function setupEventListeners () {
   elements.extractBtn.addEventListener('click', startExtraction)
   elements.settingsBtn.addEventListener('click', showSettings)
   elements.helpBtn.addEventListener('click', showHelp)
+  elements.viewLibraryBtn.addEventListener('click', openLibraryOverview)
 
   // 結果操作按鈕
   if (elements.exportBtn) {
@@ -625,9 +654,7 @@ function setupEventListeners () {
   }
 
   if (elements.viewResultsBtn) {
-    elements.viewResultsBtn.addEventListener('click', () => {
-      window.alert('查看詳情功能將在後續版本實現')
-    })
+    elements.viewResultsBtn.addEventListener('click', openLibraryOverview)
   }
 
   // 錯誤處理按鈕
