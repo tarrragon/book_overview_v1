@@ -1270,3 +1270,175 @@ chrome.storage.onChanged.addListener((changes, area) => {
 #### 驗收準則：
 - Background 寫入 `readmoo_books` 後，Overview 應無需手動重載即可顯示最新書庫數量
 - 即使 `EXTRACTION.STARTED/PROGRESS` 無監聽器，整體使用者體驗仍正確（完成時自動更新）
+
+## 🔍 EventBus 診斷 API (`getStats()`)
+
+### 功能概述
+
+EventBus 提供 `getStats()` 方法，返回完整的事件系統統計資訊，用於系統監控、效能分析和除錯診斷。此方法是事件系統健康狀態的核心指標來源。
+
+### 方法簽名
+
+```javascript
+/**
+ * 取得事件系統統計資訊
+ * @returns {Object} 完整的統計資訊物件
+ */
+getStats(): EventBusStats
+```
+
+### 返回資料結構
+
+```typescript
+interface EventBusStats {
+  // === 監聽器相關統計 ===
+  totalEventTypes: number;        // 註冊的事件類型總數
+  totalListeners: number;         // 監聽器總數量
+  eventTypes: string[];          // 所有已註冊事件類型陣列
+  listenerCounts: {              // 每種事件類型的監聽器數量
+    [eventType: string]: number;
+  };
+  
+  // === 事件觸發相關統計 ===
+  totalEvents: number;           // 總事件觸發次數（與 totalEmissions 相同）
+  totalEmissions: number;        // 總事件觸發次數（向後相容）
+  totalExecutionTime: number;    // 累計執行時間（毫秒）
+  lastActivity: string | null;   // 最後活動時間戳（ISO格式）
+}
+```
+
+### 使用範例
+
+#### 基本統計查詢
+```javascript
+const eventBus = new EventBus();
+eventBus.on('DATA.EXTRACTION.STARTED', handler1);
+eventBus.on('DATA.EXTRACTION.STARTED', handler2);
+eventBus.on('UI.UPDATE.PROGRESS', handler3);
+
+const stats = eventBus.getStats();
+console.log(stats);
+/* 輸出：
+{
+  totalEventTypes: 2,
+  totalListeners: 3,
+  eventTypes: ['DATA.EXTRACTION.STARTED', 'UI.UPDATE.PROGRESS'],
+  listenerCounts: {
+    'DATA.EXTRACTION.STARTED': 2,
+    'UI.UPDATE.PROGRESS': 1
+  },
+  totalEvents: 0,
+  totalEmissions: 0,
+  totalExecutionTime: 0,
+  lastActivity: null
+}
+*/
+```
+
+#### 觸發事件後的統計
+```javascript
+await eventBus.emit('DATA.EXTRACTION.STARTED', { bookId: 123 });
+await eventBus.emit('UI.UPDATE.PROGRESS', { progress: 50 });
+
+const stats = eventBus.getStats();
+console.log(stats);
+/* 輸出：
+{
+  totalEventTypes: 2,
+  totalListeners: 3,
+  eventTypes: ['DATA.EXTRACTION.STARTED', 'UI.UPDATE.PROGRESS'],
+  listenerCounts: {
+    'DATA.EXTRACTION.STARTED': 2,
+    'UI.UPDATE.PROGRESS': 1
+  },
+  totalEvents: 2,
+  totalEmissions: 2,
+  totalExecutionTime: 15.2,
+  lastActivity: '2025-08-12T10:30:45.123Z'
+}
+*/
+```
+
+### 實際應用場景
+
+#### 1. Background Service Worker 健康檢查
+```javascript
+// src/background/background.js
+function getSystemStatus() {
+  const stats = eventBus.getStats();
+  return {
+    eventSystem: {
+      active: stats.totalListeners > 0,
+      eventsProcessed: stats.totalEvents,
+      lastActivity: stats.lastActivity,
+      listenerHealth: stats.listenerCounts
+    }
+  };
+}
+```
+
+#### 2. 開發除錯與效能監控
+```javascript
+// 檢查關鍵監聽器是否存在
+function validateCriticalListeners() {
+  const stats = eventBus.getStats();
+  const critical = ['EXTRACTION.COMPLETED', 'STORAGE.SAVE.COMPLETED'];
+  
+  const missing = critical.filter(event => 
+    !stats.eventTypes.includes(event) || 
+    stats.listenerCounts[event] === 0
+  );
+  
+  if (missing.length > 0) {
+    console.warn('Missing critical listeners:', missing);
+  }
+  
+  return missing.length === 0;
+}
+```
+
+#### 3. 整合測試驗證
+```javascript
+// tests/integration/background-event-system.test.js
+test('事件系統統計追蹤', async () => {
+  const initialStats = eventBus.getStats();
+  expect(initialStats.totalEvents).toBe(0);
+  
+  await eventBus.emit('TEST.EVENT', { data: 'test' });
+  
+  const finalStats = eventBus.getStats();
+  expect(finalStats.totalEvents).toBe(1);
+  expect(finalStats.lastActivity).toBeTruthy();
+});
+```
+
+### 統計資料解讀指南
+
+#### 監聽器健康度指標
+- `totalEventTypes`: 反映系統模組化程度，過多可能表示事件切分過細
+- `totalListeners`: 反映系統複雜度，異常增長可能表示記憶體洩漏
+- `listenerCounts`: 用於驗證關鍵事件是否有足夠處理器
+
+#### 效能指標分析
+- `totalEvents`: 系統活躍度指標，可用於負載分析
+- `totalExecutionTime`: 整體處理效能，異常增長需檢查處理器效率
+- `lastActivity`: 系統生命週期追蹤，用於判斷是否正常運作
+
+### 注意事項與最佳實踐
+
+1. **統計資料即時性**: 所有統計資料都是即時計算，反映當前事件系統狀態
+2. **記憶體考量**: 統計資料占用記憶體極少，但在大量事件觸發時 `totalExecutionTime` 會持續累積
+3. **除錯應用**: 建議在開發和測試階段頻繁使用，生產環境可用於健康檢查
+4. **API 穩定性**: 返回物件結構保持向後相容，新增欄位不會破壞既有代碼
+
+### 相關 API
+
+- `hasListener(eventType)`: 檢查特定事件是否有監聽器
+- `getListenerCount(eventType)`: 取得特定事件的監聽器數量
+- `getEventStats(eventType)`: 取得特定事件的詳細統計（觸發次數、執行時間等）
+
+### 版本歷史
+
+- **v0.8.8**: 新增 `totalEvents` 和 `lastActivity` 欄位，提升與 Background 整合的相容性
+- **v0.8.5**: 建立基礎 `getStats()` 實現，包含監聽器統計
+- **初始版本**: 事件系統核心功能建立

@@ -2,6 +2,24 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.8.8] - 2025-08-12
+
+### 🔍 EventBus getStats 文件化與測試完善
+- **統計功能修復**：新增 `totalEvents` 和 `lastActivity` 欄位，修復 Background 整合相容性問題
+- **完整文件化**：新增 170+ 行技術文件（`docs/architecture/event-system.md`）和 130+ 行API文檔（`docs/API.md`）
+- **測試覆蓋增強**：補強單元測試（新增6個測試案例）和整合測試（新建5個場景測試）
+- **向後相容保證**：保持既有API不變，新增功能不破壞現有代碼
+- **診斷能力提升**：支援系統健康檢查、效能分析、除錯診斷三大應用場景
+- **檔案**：更新 `src/core/event-bus.js`、新增 `tests/integration/chrome-extension/event-bus-stats.test.js`
+- **文件**：新增工作日誌 `docs/work-logs/v0.8.8-work-log.md`、更新 `docs/todolist.md`
+
+#### 測試
+- 單元測試：20/20 通過（100%）
+- 整合測試：5/5 通過（100%）
+- 功能驗證：Background 統計API完全相容
+
+---
+
 ## [v0.8.7] - 2025-08-11
 
 ### ✨ Overview 匯出/匯入 + 排序 + Tag 準備

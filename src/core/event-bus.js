@@ -58,7 +58,8 @@ class EventBus {
     this.stats = {
       eventStats: new Map(), // 每個事件類型的統計
       totalEmissions: 0,
-      totalExecutionTime: 0
+      totalExecutionTime: 0,
+      lastActivity: null // 記錄最後活動時間
     }
   }
 
@@ -161,6 +162,7 @@ class EventBus {
 
     // 更新統計
     this.stats.totalEmissions++
+    this.stats.lastActivity = new Date().toISOString()
 
     if (!this.listeners.has(eventType)) {
       return []
@@ -248,10 +250,16 @@ class EventBus {
     })
 
     return {
+      // 監聽器相關統計
       totalEventTypes: eventTypes.length,
       totalListeners,
       eventTypes,
-      listenerCounts
+      listenerCounts,
+      // 事件觸發相關統計
+      totalEvents: this.stats.totalEmissions, // 總事件觸發次數
+      totalEmissions: this.stats.totalEmissions, // 向後相容
+      totalExecutionTime: this.stats.totalExecutionTime,
+      lastActivity: this.stats.lastActivity
     }
   }
 
@@ -303,6 +311,7 @@ class EventBus {
     this.stats.eventStats.clear()
     this.stats.totalEmissions = 0
     this.stats.totalExecutionTime = 0
+    this.stats.lastActivity = null
   }
 }
 

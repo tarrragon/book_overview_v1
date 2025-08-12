@@ -34,7 +34,11 @@ eventBus.off('EXTRACTION.COMPLETED', handler);
 - `once(eventType, handler, priority = 200)`: 註冊一次性事件監聽器
 - `emit(eventType, data, priority = 200)`: 觸發事件
 - `off(eventType, handler)`: 移除事件監聽器
-- `getStats()`: 取得事件統計資訊
+- `hasListener(eventType)`: 檢查是否有特定事件的監聽器
+- `getListenerCount(eventType)`: 取得特定事件的監聽器數量
+- `getStats()`: 取得完整的事件系統統計資訊
+- `getEventStats(eventType)`: 取得特定事件的詳細統計
+- `destroy()`: 清理和銷毀事件系統
 
 #### EventHandler
 抽象基底類別，所有事件處理器的共同祖先。
@@ -423,6 +427,138 @@ const stats = {
 
 // 記憶體使用
 const memoryInfo = getMemoryUsage();
+```
+
+### EventBus 診斷統計
+
+EventBus 提供完整的統計資訊，用於系統監控、效能分析和除錯診斷。
+
+#### `getStats()` 方法
+
+返回完整的事件系統統計資訊：
+
+```javascript
+const eventBus = new EventBus();
+const stats = eventBus.getStats();
+
+console.log(stats);
+// 輸出：
+{
+  // 監聽器相關統計
+  totalEventTypes: 3,           // 註冊的事件類型總數
+  totalListeners: 5,            // 監聽器總數量
+  eventTypes: [                 // 所有已註冊事件類型陣列
+    'EXTRACTION.COMPLETED', 
+    'UI.UPDATE.PROGRESS', 
+    'SYSTEM.ERROR'
+  ],
+  listenerCounts: {             // 每種事件類型的監聽器數量
+    'EXTRACTION.COMPLETED': 2,
+    'UI.UPDATE.PROGRESS': 2,
+    'SYSTEM.ERROR': 1
+  },
+  
+  // 事件觸發相關統計
+  totalEvents: 15,              // 總事件觸發次數
+  totalEmissions: 15,           // 總事件觸發次數（向後相容）
+  totalExecutionTime: 245.7,    // 累計執行時間（毫秒）
+  lastActivity: '2025-08-12T10:30:45.123Z'  // 最後活動時間戳
+}
+```
+
+#### 常見使用場景
+
+**1. 系統健康檢查**
+```javascript
+function checkEventSystemHealth() {
+  const stats = eventBus.getStats();
+  
+  return {
+    isActive: stats.totalListeners > 0,
+    eventsProcessed: stats.totalEvents,
+    averageExecutionTime: stats.totalExecutionTime / Math.max(stats.totalEvents, 1),
+    lastActivity: stats.lastActivity,
+    criticalListenersPresent: [
+      'EXTRACTION.COMPLETED',
+      'STORAGE.SAVE.COMPLETED'
+    ].every(event => stats.listenerCounts[event] > 0)
+  };
+}
+```
+
+**2. 效能分析**
+```javascript
+// 監控事件處理效能
+function analyzePerformance() {
+  const stats = eventBus.getStats();
+  
+  if (stats.totalEvents > 0) {
+    const avgTime = stats.totalExecutionTime / stats.totalEvents;
+    
+    if (avgTime > 50) { // 超過50ms平均執行時間
+      console.warn('Event processing performance degraded:', {
+        averageTime: avgTime,
+        totalEvents: stats.totalEvents,
+        slowListeners: Object.entries(stats.listenerCounts)
+          .filter(([_, count]) => count > 3) // 可能的效能瓶頸
+      });
+    }
+  }
+}
+```
+
+**3. 除錯診斷**
+```javascript
+// 檢查關鍵監聽器是否遺失
+function validateCriticalListeners() {
+  const stats = eventBus.getStats();
+  const requiredEvents = [
+    'EXTRACTION.COMPLETED',
+    'STORAGE.SAVE.COMPLETED',
+    'UI.UPDATE.PROGRESS'
+  ];
+  
+  const missing = requiredEvents.filter(event => 
+    !stats.eventTypes.includes(event) || 
+    stats.listenerCounts[event] === 0
+  );
+  
+  if (missing.length > 0) {
+    console.error('Critical listeners missing:', missing);
+    return false;
+  }
+  
+  return true;
+}
+```
+
+#### `getEventStats(eventType)` 方法
+
+取得特定事件的詳細統計：
+
+```javascript
+const eventStats = eventBus.getEventStats('EXTRACTION.COMPLETED');
+
+console.log(eventStats);
+// 輸出：
+{
+  emitCount: 5,                 // 觸發次數
+  totalExecutionTime: 125.3,    // 總執行時間
+  averageExecutionTime: 25.06   // 平均執行時間
+}
+```
+
+#### 統計資料重置
+
+使用 `destroy()` 方法可以重置所有統計資料：
+
+```javascript
+eventBus.destroy(); // 清理所有監聽器和統計資料
+
+const stats = eventBus.getStats();
+// 所有統計歸零
+console.log(stats.totalEvents); // 0
+console.log(stats.lastActivity); // null
 ```
 
 ---

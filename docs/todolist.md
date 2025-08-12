@@ -163,10 +163,17 @@
 - **診斷 API**：統一 `hasListener()` / `getListenerCount()`，禁止外部直接讀取 `listeners`
 - **Listener Guard**：`registerCoreListenersIfNeeded()` 確保 `EXTRACTION.COMPLETED` 等關鍵監聽器在任何時序都存在；在事件轉發前自動補註冊
 
-### 🚀 下一步（v0.8.8 提案）
+### ✨ v0.8.8 成就（EventBus getStats 文件化與測試完善）
+- **統計完整性**：修復 `getStats()` 缺失的 `totalEvents` 和 `lastActivity` 欄位
+- **文件化**：新增完整的技術文件（170+行）和API文檔（130+行）
+- **測試覆蓋**：補強單元測試（6個新案例）和整合測試（5個場景）
+- **向後相容**：保持既有API穩定，新增功能不破壞現有代碼
+- **診斷能力**：提升系統監控、效能分析和除錯診斷能力
+
+### 🚀 下一步（v0.8.9 提案）
 - [ ] 強化 `content-script-extractor` DOM 解析兩個紅燈測試
-- [ ] EventBus 診斷 `getStats()` 文件化與測試
 - [ ] 事件優先級調整策略與壅塞控制（可選）
+- [ ] 效能基準建立與統計資料持久化（可選）
 
 ---
 

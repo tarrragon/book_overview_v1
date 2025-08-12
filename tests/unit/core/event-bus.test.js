@@ -286,7 +286,7 @@ describe('🎭 事件總線核心測試', () => {
   })
 
   describe('📊 統計和監控功能', () => {
-    test('應該提供事件系統統計資訊', () => {
+    test('應該提供完整的事件系統統計資訊（無觸發時）', () => {
       // Arrange
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
@@ -303,14 +303,180 @@ describe('🎭 事件總線核心測試', () => {
 
       // Assert
       expect(stats).toEqual({
+        // 監聽器相關統計
         totalEventTypes: 2,
         totalListeners: 3,
         eventTypes: ['event1', 'event2'],
         listenerCounts: {
           event1: 2,
           event2: 1
-        }
+        },
+        // 事件觸發相關統計
+        totalEvents: 0,
+        totalEmissions: 0,
+        totalExecutionTime: 0,
+        lastActivity: null
       })
+    })
+
+    test('應該正確更新事件觸發統計', async () => {
+      // Arrange
+      const EventBus = require('@/core/event-bus')
+      eventBus = new EventBus()
+
+      const handler1 = jest.fn()
+      const handler2 = jest.fn()
+
+      eventBus.on('test.event', handler1)
+      eventBus.on('another.event', handler2)
+
+      const initialStats = eventBus.getStats()
+      expect(initialStats.totalEvents).toBe(0)
+      expect(initialStats.lastActivity).toBeNull()
+
+      // Act - 觸發第一個事件
+      await eventBus.emit('test.event', { data: 'first' })
+
+      // Assert - 檢查第一次觸發後統計
+      const firstStats = eventBus.getStats()
+      expect(firstStats.totalEvents).toBe(1)
+      expect(firstStats.totalEmissions).toBe(1)
+      expect(firstStats.totalExecutionTime).toBeGreaterThan(0)
+      expect(firstStats.lastActivity).toBeTruthy()
+      expect(typeof firstStats.lastActivity).toBe('string')
+      
+      const firstActivityTime = new Date(firstStats.lastActivity)
+      expect(firstActivityTime).toBeInstanceOf(Date)
+      expect(firstActivityTime.getTime()).not.toBeNaN()
+
+      // Act - 觸發第二個事件
+      await new Promise(resolve => setTimeout(resolve, 10)) // 確保時間戳不同
+      await eventBus.emit('another.event', { data: 'second' })
+
+      // Assert - 檢查第二次觸發後統計
+      const secondStats = eventBus.getStats()
+      expect(secondStats.totalEvents).toBe(2)
+      expect(secondStats.totalEmissions).toBe(2)
+      expect(secondStats.totalExecutionTime).toBeGreaterThan(firstStats.totalExecutionTime)
+      expect(new Date(secondStats.lastActivity).getTime()).toBeGreaterThan(firstActivityTime.getTime())
+
+      // 確認監聽器統計未變
+      expect(secondStats.totalEventTypes).toBe(2)
+      expect(secondStats.totalListeners).toBe(2)
+    })
+
+    test('應該在空事件系統時提供正確統計', () => {
+      // Arrange
+      const EventBus = require('@/core/event-bus')
+      eventBus = new EventBus()
+
+      // Act
+      const stats = eventBus.getStats()
+
+      // Assert
+      expect(stats).toEqual({
+        totalEventTypes: 0,
+        totalListeners: 0,
+        eventTypes: [],
+        listenerCounts: {},
+        totalEvents: 0,
+        totalEmissions: 0,
+        totalExecutionTime: 0,
+        lastActivity: null
+      })
+    })
+
+    test('應該在移除監聽器後正確更新統計', () => {
+      // Arrange
+      const EventBus = require('@/core/event-bus')
+      eventBus = new EventBus()
+
+      const handler1 = jest.fn()
+      const handler2 = jest.fn()
+      const handler3 = jest.fn()
+
+      eventBus.on('event1', handler1)
+      eventBus.on('event1', handler2)
+      eventBus.on('event2', handler3)
+
+      const beforeStats = eventBus.getStats()
+      expect(beforeStats.totalEventTypes).toBe(2)
+      expect(beforeStats.totalListeners).toBe(3)
+
+      // Act - 移除一個監聽器
+      eventBus.off('event1', handler1)
+
+      // Assert - 檢查部分移除後統計
+      const afterRemoveStats = eventBus.getStats()
+      expect(afterRemoveStats.totalEventTypes).toBe(2)
+      expect(afterRemoveStats.totalListeners).toBe(2)
+      expect(afterRemoveStats.listenerCounts.event1).toBe(1)
+      expect(afterRemoveStats.listenerCounts.event2).toBe(1)
+
+      // Act - 移除所有 event1 監聽器
+      eventBus.off('event1', handler2)
+
+      // Assert - 檢查完全移除一個事件類型後統計
+      const afterCompleteRemoveStats = eventBus.getStats()
+      expect(afterCompleteRemoveStats.totalEventTypes).toBe(1)
+      expect(afterCompleteRemoveStats.totalListeners).toBe(1)
+      expect(afterCompleteRemoveStats.eventTypes).toEqual(['event2'])
+      expect(afterCompleteRemoveStats.listenerCounts).toEqual({ event2: 1 })
+    })
+
+    test('應該在destroy後重置所有統計', async () => {
+      // Arrange
+      const EventBus = require('@/core/event-bus')
+      eventBus = new EventBus()
+
+      const handler = jest.fn()
+      eventBus.on('test.event', handler)
+      
+      // 觸發一些事件以建立統計資料
+      await eventBus.emit('test.event', { data: 'test' })
+      
+      const beforeDestroyStats = eventBus.getStats()
+      expect(beforeDestroyStats.totalEvents).toBe(1)
+      expect(beforeDestroyStats.totalListeners).toBe(1)
+      expect(beforeDestroyStats.lastActivity).toBeTruthy()
+
+      // Act
+      eventBus.destroy()
+
+      // Assert
+      const afterDestroyStats = eventBus.getStats()
+      expect(afterDestroyStats).toEqual({
+        totalEventTypes: 0,
+        totalListeners: 0,
+        eventTypes: [],
+        listenerCounts: {},
+        totalEvents: 0,
+        totalEmissions: 0,
+        totalExecutionTime: 0,
+        lastActivity: null
+      })
+    })
+
+    test('應該在emit不存在事件時仍更新部分統計', async () => {
+      // Arrange
+      const EventBus = require('@/core/event-bus')
+      eventBus = new EventBus()
+
+      const initialStats = eventBus.getStats()
+      expect(initialStats.totalEvents).toBe(0)
+      expect(initialStats.lastActivity).toBeNull()
+
+      // Act - emit 不存在監聽器的事件
+      const results = await eventBus.emit('nonexistent.event', { data: 'test' })
+
+      // Assert
+      expect(results).toEqual([]) // 無監聽器時返回空陣列
+
+      const afterStats = eventBus.getStats()
+      expect(afterStats.totalEvents).toBe(1) // 仍應計算emit次數
+      expect(afterStats.totalEmissions).toBe(1)
+      expect(afterStats.lastActivity).toBeTruthy() // 應更新活動時間
+      expect(afterStats.totalExecutionTime).toBeGreaterThanOrEqual(0)
     })
 
     test('應該追蹤事件觸發統計', async () => {
