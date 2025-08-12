@@ -2,6 +2,18 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.8.7] - 2025-08-11
+
+### ✨ Overview 匯出/匯入 + 排序 + Tag 準備
+- 匯出 JSON：與表格欄位一致，輸出 `{ books: [...] }`
+- 匯入 JSON：支援陣列或包裝物件；錯誤提示完善
+- 排序：書名、閱讀進度、tag/書城（升/降冪）
+- Tag 準備：背景儲存前為每書加入 `tags`（預設含 `readmoo`），為多書城擴充鋪路
+- 檔案：`src/overview/overview.html`、`src/overview/overview-page-controller.js`、`src/background/background.js`
+- 文件：`docs/architecture/data-extractor-design.md`、`docs/todolist.md`
+
+---
+
 ## [v0.8.6] - 2025-08-11
 
 ### 🔧 架構穩定性：Listener Guard 與 Overview 同步完成

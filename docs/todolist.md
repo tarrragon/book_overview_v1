@@ -149,6 +149,12 @@
 
 🏗️ **事件系統就緒屏障 + Pre-init 佇列 + Listener Guard 完成（v0.8.6）**
 
+### ✨ v0.8.7 成就（Overview 匯出/匯入 + 排序 + Tag 準備）
+- **匯出 JSON**：與表格欄位對齊的 `{ books: [...] }` 格式
+- **匯入 JSON**：支援陣列或包裝物件兩種格式，錯誤提示完善
+- **排序**：書名/進度/tag（升冪/降冪）
+- **Tag 準備**：背景端儲存前正規化 `tags`，預設包含 `readmoo`
+
 ### ✨ v0.8.6 成就（事件系統穩定性強化）
 - **就緒屏障**：`globalThis.__bgInitPromise` 串起事件系統建立與監聽器註冊
 - **入口 Gating**：`chrome.runtime.onMessage` 等待就緒後再分派事件
@@ -157,7 +163,7 @@
 - **診斷 API**：統一 `hasListener()` / `getListenerCount()`，禁止外部直接讀取 `listeners`
 - **Listener Guard**：`registerCoreListenersIfNeeded()` 確保 `EXTRACTION.COMPLETED` 等關鍵監聽器在任何時序都存在；在事件轉發前自動補註冊
 
-### 🚀 下一步（v0.8.7 提案）
+### 🚀 下一步（v0.8.8 提案）
 - [ ] 強化 `content-script-extractor` DOM 解析兩個紅燈測試
 - [ ] EventBus 診斷 `getStats()` 文件化與測試
 - [ ] 事件優先級調整策略與壅塞控制（可選）

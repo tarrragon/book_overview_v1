@@ -228,6 +228,41 @@ class ReadmooAdapter extends BookstoreAdapter {
 ```
 
 ### Readmoo DOM 相容性與識別策略更新（v0.8.5）
+### 匯出/匯入與排序 + Tag 設計（v0.8.7）
+
+為支援跨裝置/多書城同步與更好的瀏覽體驗，本版加入下列能力：
+
+1) 匯出 JSON（與 CSV 對齊）
+- 欄位：`id`, `title`, `progress`, `status`, `cover`, `tags`
+- 結構：`{ books: Array<Book> }`
+- 符合表格欄位，利於匯入/匯出往返
+
+2) 匯入 JSON（Overview 端）
+- 來源：使用者本機檔案（`application/json`）
+- 格式：接受 `Array<Book>` 或 `{ books: Array<Book> }`
+- 檔案讀取錯誤與 JSON 解析錯誤皆有明確錯誤提示
+
+3) Tag 與多書城擴充
+- 背景層在儲存前正規化 `tags`：預設加入 `readmoo`
+- 書籍結構保留 `tags: string[]`，未來可加入 `kobo`, `bookwalker` 等
+- 與排序、篩選策略相容
+
+4) 排序設計（Overview 端）
+- 書名排序：以 `title` 的 localeCompare（忽略大小寫），同系列可聚合
+- 進度排序：以 `progress` 數值排序
+- Tag/書城排序：以 `tags[0]` 或 `tag/store` 字段排序（未來多書城可擴展）
+- 方向：支援升冪/降冪
+
+5) 介面與流程
+- Overview 增加匯出/匯入按鈕與排序控制下拉
+- 匯出 JSON：將 `filteredBooks` 轉換為 `{ books: [...] }` 並下載
+- 匯入 JSON：讀檔 → 解析 → 更新頁面資料與 UI
+
+驗收準則：
+- JSON 來回匯入/匯出欄位一致，無資料遺失
+- 排序對 96+ 本資料表現穩定（操作即時）
+- Tag 正規化後 Overview 以 tag 排序可用，為多書城鋪路
+
 
 為了與實際頁面結構與測試夾具一致，本次更新補強了 Readmoo 的 DOM 相容性與書籍識別邏輯：
 
