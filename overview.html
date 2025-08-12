@@ -25,7 +25,6 @@
         
         <div class="export-buttons">
             <button class="export-btn" onclick="exportToCSV()">📊 匯出 CSV</button>
-            <button class="export-btn" onclick="copyTableText()">📋 複製表格文字</button>
             <button class="export-btn" onclick="selectAllTable()">✅ 選取全部</button>
             <button class="export-btn" onclick="resetAndReload()">🔄 重新載入檔案</button>
         </div>
@@ -45,8 +44,10 @@
             <thead>
                 <tr>
                     <th>封面</th>
-                    <th>書籍ID</th>
                     <th>書名</th>
+                    <th>書城來源</th>
+                    <th>進度</th>
+                    <th>狀態</th>
                 </tr>
             </thead>
             <tbody id="tableBody">

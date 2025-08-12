@@ -48,8 +48,9 @@ class ExtensionTestSetup {
 
       // 啟動 Chromium with Extension
       this.browser = await puppeteer.launch({
-        headless: options.headless !== false, // 預設 headless，除非明確設定為 false
+        headless: options.headless !== false ? 'new' : false, // 使用新的 headless 模式
         devtools: false,
+        protocolTimeout: 120000, // 增加協定超時時間
         args: [
           `--disable-extensions-except=${extensionPath}`,
           `--load-extension=${extensionPath}`,
@@ -57,9 +58,11 @@ class ExtensionTestSetup {
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
           '--disable-background-timer-throttling',
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor',
+          '--remote-debugging-port=0', // 動態分配調試端口
           '--disable-backgrounding-occluded-windows',
           '--disable-renderer-backgrounding',
-          '--disable-web-security',
           '--disable-features=TranslateUI',
           '--disable-default-apps'
         ]

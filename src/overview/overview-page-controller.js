@@ -75,7 +75,7 @@ const CONSTANTS = {
 
   // 匯出配置
   EXPORT: {
-    CSV_HEADERS: ['書籍ID', '書名', '進度', '狀態', '封面URL'],
+    CSV_HEADERS: ['書名', '書城來源', '進度', '狀態', '封面URL'],
     FILE_TYPE: 'text/csv;charset=utf-8;',
     FILENAME_PREFIX: '書籍資料_',
     JSON_MIME: 'application/json;charset=utf-8;',
@@ -363,7 +363,7 @@ class OverviewPageController extends EventHandlerClass {
     const sign = direction === 'desc' ? -1 : 1
 
     const normalizeTitle = (t) => (t || '').toString().toLowerCase()
-    const getTag = (b) => Array.isArray(b.tags) && b.tags.length ? b.tags[0] : (b.tag || b.store || 'readmoo')
+    const getSource = (b) => this._formatBookSource(b)
 
     const compare = (a, b) => {
       if (sortKey === 'title') {
@@ -374,8 +374,8 @@ class OverviewPageController extends EventHandlerClass {
         const pb = Number(b.progress || 0)
         return (pa - pb) * sign
       }
-      if (sortKey === 'tag') {
-        return String(getTag(a)).localeCompare(String(getTag(b))) * sign
+      if (sortKey === 'source') {
+        return String(getSource(a)).localeCompare(String(getSource(b))) * sign
       }
       return 0
     }
@@ -483,8 +483,8 @@ class OverviewPageController extends EventHandlerClass {
 
     row.innerHTML = `
       <td>${rowData.cover}</td>
-      <td>${rowData.id}</td>
       <td>${rowData.title}</td>
+      <td>${rowData.source}</td>
       <td>${rowData.progress}</td>
       <td>${rowData.status}</td>
     `
@@ -745,11 +745,42 @@ class OverviewPageController extends EventHandlerClass {
       cover: book.cover
         ? `<img src="${book.cover}" alt="封面" style="width: ${WIDTH}px; height: ${HEIGHT}px; object-fit: cover;">`
         : CONSTANTS.TABLE.DEFAULT_COVER,
-      id: book.id || '-',
       title: book.title || '未知書名',
+      source: this._formatBookSource(book),
       progress: book.progress ? `${book.progress}%` : '-',
       status: book.status || '未知'
     }
+  }
+
+  /**
+   * 格式化書城來源顯示
+   * @private
+   * @param {Object} book - 書籍資料
+   * @returns {string} 格式化的書城來源
+   */
+  _formatBookSource (book) {
+    // 優先使用 tags 陣列
+    if (Array.isArray(book.tags) && book.tags.length > 0) {
+      // 如果有多個來源，顯示所有，以逗號分隔
+      return book.tags.join(', ')
+    }
+    
+    // 其次使用單一 tag 或 store 字段
+    if (book.tag) {
+      return book.tag
+    }
+    
+    if (book.store) {
+      return book.store
+    }
+    
+    // 最後檢查 source 字段
+    if (book.source) {
+      return book.source
+    }
+    
+    // 默認值
+    return 'readmoo'
   }
 
   /**
@@ -758,8 +789,8 @@ class OverviewPageController extends EventHandlerClass {
    */
   _bookToCSVRow (book) {
     return [
-      `"${book.id || ''}"`,
       `"${book.title || ''}"`,
+      `"${this._formatBookSource(book)}"`,
       `"${book.progress || 0}"`,
       `"${book.status || ''}"`,
       `"${book.cover || ''}"`

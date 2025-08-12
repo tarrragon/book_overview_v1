@@ -57,9 +57,22 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
           <!-- 操作按鈕區域 -->
           <div class="export-buttons">
             <button class="export-btn" id="exportCSVBtn">📊 匯出 CSV</button>
-            <button class="export-btn" id="copyTextBtn">📋 複製表格文字</button>
+            <button class="export-btn" id="exportJSONBtn">🧾 匯出 JSON</button>
+            <button class="export-btn" id="importJSONBtn">📥 匯入 JSON</button>
             <button class="export-btn" id="selectAllBtn">✅ 選取全部</button>
             <button class="export-btn" id="reloadBtn">🔄 重新載入</button>
+            <div style="display:inline-block;margin-left:16px;">
+              <label for="sortSelect">排序：</label>
+              <select id="sortSelect">
+                <option value="title">書名</option>
+                <option value="progress">閱讀進度</option>
+                <option value="source">書城來源</option>
+              </select>
+              <select id="sortDirection">
+                <option value="asc">升冪</option>
+                <option value="desc">降冪</option>
+              </select>
+            </div>
           </div>
 
           <!-- 檔案載入區域 -->
@@ -77,8 +90,8 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
             <thead>
               <tr>
                 <th>封面</th>
-                <th>書籍ID</th>
                 <th>書名</th>
+                <th>書城來源</th>
                 <th>進度</th>
                 <th>狀態</th>
               </tr>
@@ -183,8 +196,8 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       expect(typeof controller.handleStorageLoadCompleted).toBe('function')
 
       const mockBooksData = [
-        { id: '1', title: '測試書籍1', cover: 'cover1.jpg' },
-        { id: '2', title: '測試書籍2', cover: 'cover2.jpg' }
+        { id: '1', title: '測試書籍1', cover: 'cover1.jpg', tags: ['readmoo'], progress: 50, status: '閱讀中' },
+        { id: '2', title: '測試書籍2', cover: 'cover2.jpg', tags: ['kobo'], progress: 100, status: '已完成' }
       ]
 
       controller.handleStorageLoadCompleted({ books: mockBooksData })
@@ -199,9 +212,9 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       const controller = new OverviewPageController(mockEventBus, document)
 
       const mockBooks = [
-        { id: '1', title: '書籍1' },
-        { id: '2', title: '書籍2' },
-        { id: '3', title: '書籍3' }
+        { id: '1', title: '書籍1', tags: ['readmoo'], progress: 25, status: '閱讀中' },
+        { id: '2', title: '書籍2', tags: ['kobo'], progress: 75, status: '閱讀中' },
+        { id: '3', title: '書籍3', tags: ['readmoo'], progress: 100, status: '已完成' }
       ]
 
       // 設置當前書籍資料，這樣 totalBooks 統計才正確
@@ -224,6 +237,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
           id: '210327003000101',
           title: '大腦不滿足',
           cover: 'https://example.com/cover1.jpg',
+          tags: ['readmoo'],
           progress: 75,
           status: '閱讀中'
         },
@@ -231,6 +245,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
           id: '210165843000101',
           title: '我們為何吃太多？',
           cover: 'https://example.com/cover2.jpg',
+          tags: ['kobo'],
           progress: 100,
           status: '已完成'
         }
@@ -266,9 +281,9 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       expect(typeof controller.handleSearchInput).toBe('function')
 
       const mockBooks = [
-        { id: '1', title: '大腦不滿足' },
-        { id: '2', title: '我們為何吃太多？' },
-        { id: '3', title: '雜食者的兩難' }
+        { id: '1', title: '大腦不滿足', tags: ['readmoo'], progress: 50, status: '閱讀中' },
+        { id: '2', title: '我們為何吃太多？', tags: ['kobo'], progress: 75, status: '閱讀中' },
+        { id: '3', title: '雜食者的兩難', tags: ['readmoo'], progress: 100, status: '已完成' }
       ]
 
       controller.currentBooks = mockBooks
@@ -283,8 +298,8 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       const controller = new OverviewPageController(mockEventBus, document)
 
       const mockBooks = [
-        { id: '1', title: '大腦不滿足' },
-        { id: '2', title: '我們為何吃太多？' }
+        { id: '1', title: '大腦不滿足', tags: ['readmoo'], progress: 50, status: '閱讀中' },
+        { id: '2', title: '我們為何吃太多？', tags: ['kobo'], progress: 75, status: '閱讀中' }
       ]
 
       controller.currentBooks = mockBooks
@@ -298,8 +313,8 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       const controller = new OverviewPageController(mockEventBus, document)
 
       const mockBooks = [
-        { id: '1', title: '大腦不滿足' },
-        { id: '2', title: '我們為何吃太多？' }
+        { id: '1', title: '大腦不滿足', tags: ['readmoo'], progress: 50, status: '閱讀中' },
+        { id: '2', title: '我們為何吃太多？', tags: ['kobo'], progress: 75, status: '閱讀中' }
       ]
 
       controller.currentBooks = mockBooks
@@ -373,8 +388,8 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       expect(typeof controller.handleExportCSV).toBe('function')
 
       const mockBooks = [
-        { id: '1', title: '書籍1', progress: 50 },
-        { id: '2', title: '書籍2', progress: 100 }
+        { id: '1', title: '書籍1', tags: ['readmoo'], progress: 50, status: '閱讀中' },
+        { id: '2', title: '書籍2', tags: ['kobo'], progress: 100, status: '已完成' }
       ]
 
       // Mock 全域函數

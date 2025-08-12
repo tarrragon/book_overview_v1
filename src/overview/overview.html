@@ -30,7 +30,6 @@
             <button class="export-btn" id="exportCSVBtn">📊 匯出 CSV</button>
             <button class="export-btn" id="exportJSONBtn">🧾 匯出 JSON</button>
             <button class="export-btn" id="importJSONBtn">📥 匯入 JSON</button>
-            <button class="export-btn" id="copyTextBtn">📋 複製表格文字</button>
             <button class="export-btn" id="selectAllBtn">✅ 選取全部</button>
             <button class="export-btn" id="reloadBtn">🔄 重新載入</button>
             <div style="display:inline-block;margin-left:16px;">
@@ -38,7 +37,7 @@
               <select id="sortSelect">
                 <option value="title">書名</option>
                 <option value="progress">閱讀進度</option>
-                <option value="tag">書城/標籤</option>
+                <option value="source">書城來源</option>
               </select>
               <select id="sortDirection">
                 <option value="asc">升冪</option>
@@ -62,8 +61,8 @@
             <thead>
                 <tr>
                     <th>封面</th>
-                    <th>書籍ID</th>
                     <th>書名</th>
+                    <th>書城來源</th>
                     <th>進度</th>
                     <th>狀態</th>
                 </tr>
