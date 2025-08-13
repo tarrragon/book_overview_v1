@@ -31,11 +31,11 @@ const EventCoordinator = require('./events/event-coordinator')
 const PageMonitor = require('./monitoring/page-monitor')
 const ErrorHandler = require('./monitoring/error-handler')
 
-// 導入領域處理器
+// 導入領域協調器
 const SystemDomainCoordinator = require('./domains/system/system-domain-coordinator')
 const PageDomainCoordinator = require('./domains/page/page-domain-coordinator')
-const ExtractionDomainHandler = require('./domains/extraction-domain-handler')
-const MessagingDomainHandler = require('./domains/messaging-domain-handler')
+const ExtractionDomainCoordinator = require('./domains/extraction/extraction-domain-coordinator')
+const MessagingDomainCoordinator = require('./domains/messaging/messaging-domain-coordinator')
 
 // 導入支援服務
 const I18nManager = require('./i18n/i18n-manager')
@@ -70,11 +70,11 @@ class BackgroundCoordinator extends BaseModule {
     this.pageMonitor = null
     this.errorHandler = null
 
-    // 領域處理器
-    this.systemDomainHandler = null
-    this.pageDomainHandler = null
-    this.extractionDomainHandler = null
-    this.messagingDomainHandler = null
+    // 領域協調器
+    this.systemDomainCoordinator = null
+    this.pageDomainCoordinator = null
+    this.extractionDomainCoordinator = null
+    this.messagingDomainCoordinator = null
 
     // 模組管理
     this.modules = new Map()
@@ -113,8 +113,8 @@ class BackgroundCoordinator extends BaseModule {
       // 2. 建立所有功能模組
       await this.createFunctionalModules()
 
-      // 3. 建立所有領域處理器
-      await this.createDomainHandlers()
+      // 3. 建立所有領域協調器
+      await this.createDomainCoordinators()
 
       // 4. 註冊模組到監控系統
       await this.registerModulesForMonitoring()
@@ -269,13 +269,13 @@ class BackgroundCoordinator extends BaseModule {
   }
 
   /**
-   * 建立領域處理器
+   * 建立領域協調器
    * @returns {Promise<void>}
    * @private
    */
-  async createDomainHandlers () {
+  async createDomainCoordinators () {
     try {
-      this.logger.log('🎭 建立領域處理器')
+      this.logger.log('🎭 建立領域協調器')
 
       const commonDependencies = {
         eventBus: this.eventBus,
@@ -283,27 +283,27 @@ class BackgroundCoordinator extends BaseModule {
         i18nManager: this.i18nManager
       }
 
-      // 建立系統領域處理器
-      this.systemDomainHandler = new SystemDomainCoordinator(commonDependencies)
-      this.modules.set('systemDomainHandler', this.systemDomainHandler)
+      // 建立系統領域協調器
+      this.systemDomainCoordinator = new SystemDomainCoordinator(commonDependencies)
+      this.modules.set('systemDomainCoordinator', this.systemDomainCoordinator)
 
-      // 建立頁面領域處理器
-      this.pageDomainHandler = new PageDomainCoordinator(commonDependencies)
-      this.modules.set('pageDomainHandler', this.pageDomainHandler)
+      // 建立頁面領域協調器
+      this.pageDomainCoordinator = new PageDomainCoordinator(commonDependencies)
+      this.modules.set('pageDomainCoordinator', this.pageDomainCoordinator)
 
-      // 建立提取領域處理器
-      this.extractionDomainHandler = new ExtractionDomainHandler(commonDependencies)
-      this.modules.set('extractionDomainHandler', this.extractionDomainHandler)
+      // 建立提取領域協調器
+      this.extractionDomainCoordinator = new ExtractionDomainCoordinator(commonDependencies)
+      this.modules.set('extractionDomainCoordinator', this.extractionDomainCoordinator)
 
-      // 建立通訊領域處理器
-      this.messagingDomainHandler = new MessagingDomainHandler(commonDependencies)
-      this.modules.set('messagingDomainHandler', this.messagingDomainHandler)
+      // 建立通訊領域協調器
+      this.messagingDomainCoordinator = new MessagingDomainCoordinator(commonDependencies)
+      this.modules.set('messagingDomainCoordinator', this.messagingDomainCoordinator)
 
       // 更新總模組數量
       this.coordinatorStats.modulesLoaded = this.modules.size
-      this.logger.log(`✅ 領域處理器建立完成 (總共 ${this.modules.size} 個模組)`)
+      this.logger.log(`✅ 領域協調器建立完成 (總共 ${this.modules.size} 個模組)`)
     } catch (error) {
-      this.logger.error('❌ 領域處理器建立失敗:', error)
+      this.logger.error('❌ 領域協調器建立失敗:', error)
       throw error
     }
   }
@@ -353,18 +353,18 @@ class BackgroundCoordinator extends BaseModule {
         }
       }
 
-      // 再初始化領域處理器
-      const domainHandlers = [
-        'systemDomainHandler',
-        'pageDomainHandler',
-        'extractionDomainHandler',
-        'messagingDomainHandler'
+      // 再初始化領域協調器
+      const domainCoordinators = [
+        'systemDomainCoordinator',
+        'pageDomainCoordinator',
+        'extractionDomainCoordinator',
+        'messagingDomainCoordinator'
       ]
 
-      for (const domainName of domainHandlers) {
+      for (const domainName of domainCoordinators) {
         const domain = this.modules.get(domainName)
         if (domain) {
-          this.logger.log(`🎭 初始化領域處理器: ${domainName}`)
+          this.logger.log(`🎭 初始化領域協調器: ${domainName}`)
           await domain.initialize()
           this.coordinatorStats.modulesInitialized++
         }
@@ -396,11 +396,11 @@ class BackgroundCoordinator extends BaseModule {
         'errorHandler',
         'pageMonitor',
 
-        // 領域處理器
-        'systemDomainHandler',
-        'pageDomainHandler',
-        'extractionDomainHandler',
-        'messagingDomainHandler'
+        // 領域協調器
+        'systemDomainCoordinator',
+        'pageDomainCoordinator',
+        'extractionDomainCoordinator',
+        'messagingDomainCoordinator'
       ]
 
       this.moduleStartOrder = startupOrder

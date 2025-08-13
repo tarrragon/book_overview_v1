@@ -10,6 +10,7 @@
 - **Page 領域服務層**：實現 5 個管理服務（Content Script 協調、導航、檢測、權限、標籤狀態）
 - **System 領域服務層**：實現 5 個核心服務（配置、診斷、健康監控、生命週期、版本控制）
 - **三層架構完成**：建立 入口點 → 協調器 → 服務層 的完整分層架構
+- **架構清理完成**：修正所有協調器引用，清理舊的處理器檔案，消除最後的架構債務
 
 #### 服務層架構亮點
 - **18 個專業服務模組**：平均 652 行/模組，職責單一且明確
@@ -23,10 +24,11 @@
 - **測試覆蓋準備**：所有服務模組設計為可獨立單元測試
 
 #### 檔案變更
-- **協調器**：更新 `src/background/background-coordinator.js` 支援新架構
+- **協調器**：更新 `src/background/background-coordinator.js` 支援新架構並修正所有協調器引用
 - **領域協調器**：新增 `src/background/domains/{extraction,page,system}/*-coordinator.js`
 - **服務層**：新增 `src/background/domains/*/services/*.js` 完整服務模組
-- **文件更新**：補充 `docs/work-logs/v0.9.0-background-refactoring.md` 記錄架構演進
+- **清理舊檔案**：移除過時的 `*-domain-handler.js` 檔案，消除架構債務
+- **文件更新**：補充 `docs/work-logs/v0.9.0-background-refactoring.md` 記錄完整架構演進
 
 ---
 
