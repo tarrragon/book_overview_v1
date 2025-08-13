@@ -344,7 +344,7 @@ describe('🎭 事件總線核心測試', () => {
       expect(firstStats.totalExecutionTime).toBeGreaterThan(0)
       expect(firstStats.lastActivity).toBeTruthy()
       expect(typeof firstStats.lastActivity).toBe('string')
-      
+
       const firstActivityTime = new Date(firstStats.lastActivity)
       expect(firstActivityTime).toBeInstanceOf(Date)
       expect(firstActivityTime.getTime()).not.toBeNaN()
@@ -431,10 +431,10 @@ describe('🎭 事件總線核心測試', () => {
 
       const handler = jest.fn()
       eventBus.on('test.event', handler)
-      
+
       // 觸發一些事件以建立統計資料
       await eventBus.emit('test.event', { data: 'test' })
-      
+
       const beforeDestroyStats = eventBus.getStats()
       expect(beforeDestroyStats.totalEvents).toBe(1)
       expect(beforeDestroyStats.totalListeners).toBe(1)

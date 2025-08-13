@@ -603,17 +603,17 @@ function showHelp () {
 
 /**
  * 開啟書庫總覽頁面
- * 
+ *
  * 負責功能：
  * - 使用 Chrome Extension API 開啟 overview 頁面
  * - 提供錯誤處理和使用者回饋
  * - 支援無障礙功能
- * 
+ *
  * 設計考量：
  * - 使用標準的 chrome.runtime.openOptionsPage() API
  * - 適當的錯誤處理避免使用者困惑
  * - 保持一致的使用者體驗
- * 
+ *
  * 使用情境：
  * - 使用者點擊「檢視書庫」按鈕時
  * - 提取完成後點擊「查看結果」時

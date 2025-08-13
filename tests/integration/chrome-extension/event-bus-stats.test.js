@@ -32,11 +32,11 @@ describe('🔍 EventBus getStats 整合測試', () => {
   beforeEach(() => {
     // 重置測試環境
     global.testUtils.cleanup()
-    
+
     // 初始化EventBus
     const EventBus = require('@/core/event-bus')
     eventBus = new EventBus()
-    
+
     // 模擬Chrome Extension環境
     global.chrome = {
       storage: {
@@ -114,10 +114,10 @@ describe('🔍 EventBus getStats 整合測試', () => {
 
       // 1. 觸發資料提取完成事件
       const extractionResults = await eventBus.emit('EXTRACTION.COMPLETED', extractionData)
-      
+
       // 2. 觸發UI更新事件
       const uiResults = await eventBus.emit('UI.UPDATE.PROGRESS', { progress: 100 })
-      
+
       // 3. 觸發錯誤處理事件
       const errorResults = await eventBus.emit('SYSTEM.ERROR', new Error('測試錯誤'))
 
@@ -140,7 +140,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
       expect(finalStats.totalEmissions).toBe(3) // 向後相容
       expect(finalStats.totalExecutionTime).toBeGreaterThan(0) // 有實際執行時間
       expect(finalStats.lastActivity).toBeTruthy()
-      
+
       // 驗證活動時間戳格式
       const lastActivityDate = new Date(finalStats.lastActivity)
       expect(lastActivityDate).toBeInstanceOf(Date)
@@ -151,12 +151,12 @@ describe('🔍 EventBus getStats 整合測試', () => {
       // Arrange - 模擬高負載場景
       const handlers = []
       const eventTypes = []
-      
+
       // 建立多個處理器
       for (let i = 0; i < 10; i++) {
         const eventType = `HIGH.LOAD.EVENT.${i}`
         const handler = jest.fn((data) => ({ processed: true, id: i, data }))
-        
+
         eventBus.on(eventType, handler)
         handlers.push(handler)
         eventTypes.push(eventType)
@@ -251,7 +251,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
       const finalStats = eventBus.getStats()
       expect(finalStats.totalEvents).toBe(2)
       expect(finalStats.totalListeners).toBe(2)
-      
+
       // 確認只有兩個處理器在第二次被呼叫
       expect(handlers[0]).toHaveBeenCalledTimes(2)
       expect(handlers[1]).toHaveBeenCalledTimes(1) // 被移除前只執行一次

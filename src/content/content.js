@@ -849,7 +849,7 @@ function createContentReadmooAdapter () {
     bookTitle: '.title',
     progressBar: '.progress-bar',
     renditionType: '.label.rendition',
-    
+
     // 額外的備用選擇器
     alternativeContainers: [
       '.book-item',
@@ -883,11 +883,11 @@ function createContentReadmooAdapter () {
       try {
         // 主要策略：查找 .library-item 容器
         elements = Array.from(document.querySelectorAll(SELECTORS.bookContainer))
-        
+
         // 備用策略：如果沒有找到主要容器，嘗試其他選擇器
         if (elements.length === 0) {
           console.log('⚠️ 未找到 .library-item，嘗試備用選擇器...')
-          
+
           for (const selector of SELECTORS.alternativeContainers) {
             const found = document.querySelectorAll(selector)
             if (found.length > 0) {
@@ -897,13 +897,13 @@ function createContentReadmooAdapter () {
             }
           }
         }
-        
+
         // 最後備用策略：直接查找閱讀器連結的父容器
         if (elements.length === 0) {
           console.log('⚠️ 使用最後備用策略：查找閱讀器連結的父容器...')
           const readerLinks = document.querySelectorAll(SELECTORS.readerLink)
           const containers = new Set()
-          
+
           readerLinks.forEach(link => {
             // 向上查找可能的書籍容器
             let parent = link.parentElement
@@ -915,12 +915,12 @@ function createContentReadmooAdapter () {
               parent = parent.parentElement
             }
           })
-          
+
           elements = Array.from(containers)
         }
 
         console.log(`📚 找到 ${elements.length} 個書籍容器元素`)
-        
+
         stats.domQueryTime += performance.now() - startTime
         return elements
       } catch (error) {
@@ -1002,7 +1002,7 @@ function createContentReadmooAdapter () {
           extractedAt: new Date().toISOString(),
           url: href,
           source: 'readmoo',
-          
+
           // 提取的完整識別資訊
           identifiers: {
             readerLinkId: id,
@@ -1010,14 +1010,14 @@ function createContentReadmooAdapter () {
             titleBased: this.generateTitleBasedId(title),
             primarySource: cover ? 'cover' : 'reader-link'
           },
-          
+
           // 完整的封面資訊
           coverInfo: {
             url: cover,
             filename: this.extractFilenameFromUrl(cover),
             domain: this.extractDomainFromUrl(cover)
           },
-          
+
           // 額外資訊
           progressInfo: progressData,
           extractedFrom: 'content-script'
@@ -1072,7 +1072,7 @@ function createContentReadmooAdapter () {
       // 詳細的提取結果日誌
       console.log(`📊 提取完成: ${books.length}/${bookElements.length} 本書籍 (${totalTime.toFixed(2)}ms)`)
       console.log(`✅ 成功: ${stats.successfulExtractions}, ❌ 失敗: ${stats.failedExtractions}`)
-      
+
       if (bookElements.length === 0) {
         console.warn('⚠️ 未找到任何書籍元素，可能的原因：')
         console.warn('   1. 頁面尚未完全載入')
@@ -1152,7 +1152,7 @@ function createContentReadmooAdapter () {
         // 從樣式中提取進度百分比
         const style = progressBar.getAttribute('style') || ''
         let progressPercent = 0
-        
+
         const widthMatch = style.match(/width:\s*(\d+(?:\.\d+)?)%/)
         if (widthMatch) {
           progressPercent = Math.round(parseFloat(widthMatch[1]))
@@ -1170,7 +1170,7 @@ function createContentReadmooAdapter () {
 
         return {
           progress: progressPercent,
-          progressText: progressText,
+          progressText,
           hasProgress: true,
           progressStyle: style
         }

@@ -277,14 +277,14 @@ class OverviewPageController extends EventHandlerClass {
       this.showLoading('從儲存載入書籍資料...')
 
       const result = await chrome.storage.local.get(['readmoo_books'])
-      
+
       if (result.readmoo_books && result.readmoo_books.books) {
         const books = result.readmoo_books.books
         const timestamp = result.readmoo_books.extractionTimestamp
-        
+
         console.log(`📚 從 Chrome Storage 載入了 ${books.length} 本書籍`)
         console.log(`📅 提取時間: ${new Date(timestamp).toLocaleString()}`)
-        
+
         this._updateBooksData(books)
         this.updateDisplay()
       } else {
@@ -638,7 +638,7 @@ class OverviewPageController extends EventHandlerClass {
    */
   async handleReload () {
     this._resetSearchState()
-    
+
     // 優先使用 Chrome Storage 載入
     if (typeof chrome !== 'undefined' && chrome.storage) {
       await this.loadBooksFromChromeStorage()
@@ -764,21 +764,21 @@ class OverviewPageController extends EventHandlerClass {
       // 如果有多個來源，顯示所有，以逗號分隔
       return book.tags.join(', ')
     }
-    
+
     // 其次使用單一 tag 或 store 字段
     if (book.tag) {
       return book.tag
     }
-    
+
     if (book.store) {
       return book.store
     }
-    
+
     // 最後檢查 source 字段
     if (book.source) {
       return book.source
     }
-    
+
     // 默認值
     return 'readmoo'
   }

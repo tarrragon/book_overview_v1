@@ -2,6 +2,51 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.9.0] - 2025-08-12
+
+### 🏗️ Background Service Worker 完整架構重構
+- **雙層拆分策略**：成功將 1087 行的巨大單體 `background.js` 重構為模組化架構
+- **Layer 1 - 單一責任模組**：建立 16 個職責明確的功能模組（生命週期、通訊、事件、監控、錯誤處理）
+- **Layer 2 - 事件驅動領域**：實現 4 個領域處理器（系統、頁面、提取、通訊），完全解耦業務邏輯
+- **架構債務消除**：徹底消除所有已知的設計問題和技術債務
+- **品質保證**：重構後所有測試通過，功能完整性 100% 保持
+
+#### 核心模組架構
+- **BackgroundCoordinator**：統一協調器，管理所有模組生命週期和依賴注入
+- **生命週期管理**：`LifecycleCoordinator` 處理 Chrome Extension 生命週期事件
+- **通訊系統**：`MessageRouter` 實現跨上下文訊息路由和分發
+- **事件協調**：`EventCoordinator` 統一管理事件系統和 Chrome 事件橋接
+- **頁面監控**：`PageMonitor` 整合頁面檢測、Content Script 協調和健康監控
+- **錯誤處理**：`ErrorHandler` 提供智能錯誤收集、系統監控和自動恢復機制
+
+#### 領域驅動設計
+- **SystemDomainHandler**：系統生命週期業務邏輯、版本控制、配置管理
+- **PageDomainHandler**：頁面檢測導航邏輯、權限管理、操作授權
+- **ExtractionDomainHandler**：書籍資料提取邏輯、品質保證、匯出功能
+- **MessagingDomainHandler**：跨上下文通訊邏輯、Content Scripts 和 Popup 協調
+
+#### 支援基礎設施
+- **多語言支援**：`I18nManager` 完整多語言基礎設施，支援 zh-tw 和 en-us
+- **常數管理**：`ModuleConstants` 中央化常數和配置管理
+- **依賴注入**：統一的依賴注入模式實現模組間鬆耦合
+- **健康監控**：所有模組自動接入健康監控和診斷系統
+
+#### 重構成果
+- **程式碼行數**：從 1087 行降至 341 行入口點 + 653 行協調器
+- **模組數量**：16 個獨立、可測試、職責明確的模組
+- **測試覆蓋**：重構後所有測試通過，功能完整性得到保證
+- **維護性**：每個模組可獨立開發、測試和維護
+- **擴展性**：為多書城支援和未來功能擴展建立堅實基礎
+
+#### 檔案變更
+- **核心**：`src/background/background.js` - 重構為簡潔入口點
+- **協調器**：`src/background/background-coordinator.js` - 新增統一協調器
+- **模組化**：新增 `src/background/{lifecycle,messaging,events,monitoring,domains,i18n,constants}/` 完整模組結構
+- **備份**：`src/background/background-legacy.js` - 保留舊版本作為回滾選項
+- **文件**：`docs/work-logs/v0.9.0-background-refactoring.md` - 詳細重構技術文件
+
+---
+
 ## [v0.8.10] - 2025-08-12
 
 ### 🎨 Overview 界面優化與多書城準備
