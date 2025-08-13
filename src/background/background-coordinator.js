@@ -32,8 +32,8 @@ const PageMonitor = require('./monitoring/page-monitor')
 const ErrorHandler = require('./monitoring/error-handler')
 
 // 導入領域處理器
-const SystemDomainHandler = require('./domains/system-domain-handler')
-const PageDomainHandler = require('./domains/page-domain-handler')
+const SystemDomainCoordinator = require('./domains/system/system-domain-coordinator')
+const PageDomainCoordinator = require('./domains/page/page-domain-coordinator')
 const ExtractionDomainHandler = require('./domains/extraction-domain-handler')
 const MessagingDomainHandler = require('./domains/messaging-domain-handler')
 
@@ -284,11 +284,11 @@ class BackgroundCoordinator extends BaseModule {
       }
 
       // 建立系統領域處理器
-      this.systemDomainHandler = new SystemDomainHandler(commonDependencies)
+      this.systemDomainHandler = new SystemDomainCoordinator(commonDependencies)
       this.modules.set('systemDomainHandler', this.systemDomainHandler)
 
       // 建立頁面領域處理器
-      this.pageDomainHandler = new PageDomainHandler(commonDependencies)
+      this.pageDomainHandler = new PageDomainCoordinator(commonDependencies)
       this.modules.set('pageDomainHandler', this.pageDomainHandler)
 
       // 建立提取領域處理器
