@@ -449,4 +449,102 @@ const createChromeMock = () => {
   }
 }
 
-module.exports = createChromeMock()
+// 模擬事件系統
+const createEventBusMock = () => {
+  const listeners = new Map()
+  const eventHistory = []
+
+  class MockEventBus {
+    constructor() {
+      this.listeners = new Map()
+      this.eventHistory = []
+    }
+
+    on(eventName, handler, priority = 200) {
+      if (!this.listeners.has(eventName)) {
+        this.listeners.set(eventName, [])
+      }
+      this.listeners.get(eventName).push({ handler, priority })
+      
+      // 依優先級排序
+      this.listeners.get(eventName).sort((a, b) => a.priority - b.priority)
+    }
+
+    off(eventName, handler) {
+      if (this.listeners.has(eventName)) {
+        const handlers = this.listeners.get(eventName)
+        const index = handlers.findIndex(h => h.handler === handler)
+        if (index !== -1) {
+          handlers.splice(index, 1)
+        }
+      }
+    }
+
+    emit(eventName, data = {}) {
+      // 記錄事件歷史
+      this.eventHistory.push({
+        eventName,
+        data,
+        timestamp: Date.now()
+      })
+
+      // 觸發監聽器
+      if (this.listeners.has(eventName)) {
+        const handlers = this.listeners.get(eventName)
+        handlers.forEach(({ handler }) => {
+          try {
+            handler(data)
+          } catch (error) {
+            console.error(`Error in event handler for ${eventName}:`, error)
+          }
+        })
+      }
+
+      return Promise.resolve()
+    }
+
+    once(eventName, handler, priority = 200) {
+      const onceHandler = (data) => {
+        handler(data)
+        this.off(eventName, onceHandler)
+      }
+      this.on(eventName, onceHandler, priority)
+    }
+
+    clear(eventName) {
+      if (eventName) {
+        this.listeners.delete(eventName)
+      } else {
+        this.listeners.clear()
+      }
+      this.eventHistory.length = 0
+    }
+
+    // 測試工具方法
+    getEventHistory() {
+      return [...this.eventHistory]
+    }
+
+    getListeners(eventName) {
+      return this.listeners.get(eventName) || []
+    }
+
+    hasListener(eventName, handler) {
+      const handlers = this.listeners.get(eventName) || []
+      return handlers.some(h => h.handler === handler)
+    }
+  }
+
+  // 建立jest mock方法
+  MockEventBus.prototype.on = jest.fn(MockEventBus.prototype.on)
+  MockEventBus.prototype.off = jest.fn(MockEventBus.prototype.off)
+  MockEventBus.prototype.emit = jest.fn(MockEventBus.prototype.emit)
+  MockEventBus.prototype.once = jest.fn(MockEventBus.prototype.once)
+
+  return MockEventBus
+}
+
+const chromeMock = createChromeMock()
+chromeMock.createEventBusMock = createEventBusMock
+
+module.exports = chromeMock

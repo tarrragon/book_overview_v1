@@ -81,7 +81,9 @@
     ],
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/src/$1",
-      "^@tests/(.*)$": "<rootDir>/tests/$1"
+      "^@tests/(.*)$": "<rootDir>/tests/$1",
+      "^@mocks/(.*)$": "<rootDir>/tests/mocks/$1",
+      "^@fixtures/(.*)$": "<rootDir>/tests/fixtures/$1"
     },
     "testPathIgnorePatterns": [
       "<rootDir>/node_modules/",
