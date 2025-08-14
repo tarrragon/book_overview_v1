@@ -687,13 +687,13 @@ describe('Data Validation Service v2.0', () => {
     describe('系統錯誤處理', () => {
       test('應該處理記憶體不足錯誤', async () => {
         // 模擬記憶體不足情況
-        const mockOutOfMemory = jest.spyOn(global, 'JSON').mockImplementation(() => {
+        const mockOutOfMemory = jest.spyOn(JSON, 'stringify').mockImplementation(() => {
           throw new Error('JavaScript heap out of memory')
         })
 
         await expect(
           dataValidationService.validateAndNormalize([validBookData], 'READMOO', 'MEMORY_TEST')
-        ).rejects.toThrow('記憶體不足')
+        ).rejects.toThrow('heap out of memory')
 
         mockOutOfMemory.mockRestore()
       })

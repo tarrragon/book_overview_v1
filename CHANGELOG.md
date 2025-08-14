@@ -4,10 +4,11 @@
 
 ## [v0.9.5] - 2025-08-14
 
-### 🎯 Data Validation Service TDD Refactor 階段性完成
-- **測試通過率大幅提升**：從 57/94 (60.6%) 提升到 77/94 (81.9%)，改善 +21.3 百分點
-- **跨平台資料格式統一**：完成 READMOO、KINDLE、KOBO 三大平台格式標準化
+### 🎯 Data Validation Service TDD Refactor 持續優化
+- **測試通過率顯著提升**：從 57/94 (60.6%) 提升到 80/94 (85.1%)，改善 +24.5 百分點
+- **跨平台資料格式統一**：完成 READMOO、KINDLE、KOBO 三大平台格式標準化  
 - **系統級錯誤處理優化**：區分業務驗證錯誤與系統級錯誤，提升錯誤處理精準度
+- **TDD 循環品質提升**：通過「逐個進行」方法學系統化修正，累計修正 23 個測試案例
 
 ### 🔧 核心修正成果 (Red-Green-Refactor 循環)
 - **系統錯誤處理重構**：修正「系統驗證錯誤」未正確中斷處理流程的問題
@@ -20,6 +21,9 @@
   - KINDLE: `reading_progress: {percent_complete: 75.0}` → `progress: {percentage: 75}`
   - KOBO: `reading_state: {current_position: 0.75}` → `progress: {percentage: 75}`
 - **平台特定欄位處理**：確保各平台必填欄位 (ASIN, kobo_id) 正確識別
+- **KOBO 平台欄位保留機制**：修正 contributors 欄位誤刪問題，保留原始資料完整性
+- **大陣列效能警告優化**：修正 10000 項目閾值判斷條件 (`>=` 取代 `>`)  
+- **記憶體錯誤處理測試修復**：修正 Jest spy 方法，正確模擬 JSON.stringify 記憶體錯誤
 
 ### ⚡ 程式碼品質改善
 - **預處理修復增強**：`_performPreValidationFixes` 新增 100+ 行跨平台格式轉換邏輯

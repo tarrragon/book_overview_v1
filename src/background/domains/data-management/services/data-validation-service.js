@@ -196,7 +196,7 @@ class DataValidationService {
       }
 
       // 檢查大批次處理警告
-      if (books.length > 10000) {
+      if (books.length >= 10000) {
         allWarnings.push({
           type: 'PERFORMANCE_WARNING',
           message: '大量資料處理，建議分批進行',
@@ -1099,7 +1099,7 @@ class DataValidationService {
       }
     }
 
-    // 統一 KOBO 格式的作者資訊: contributors -> authors
+    // 統一 KOBO 格式的作者資訊: contributors -> authors (保留原始 contributors)
     if (book.contributors && Array.isArray(book.contributors) && !book.authors) {
       const originalContributors = book.contributors
       book.authors = book.contributors
@@ -1114,7 +1114,8 @@ class DataValidationService {
           before: originalContributors,
           after: book.authors
         })
-        delete book.contributors
+        // 保留 contributors 欄位，因為它是 KOBO 平台特定欄位
+        // delete book.contributors
       }
     }
 
