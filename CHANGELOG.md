@@ -4,20 +4,27 @@
 
 ## [v0.9.5] - 2025-08-14
 
-### 🔧 Data Validation Service TDD Refactor 核心修復完成
-- **測試通過率提升**：從 69/94 提升到 73/94，修正關鍵的資料標準化問題
-- **自動修復機制重構**：實現預處理+後處理的兩階段修復架構
-- **跨平台資料格式統一**：完成 READMOO 平台資料格式自動轉換機制
+### 🎯 Data Validation Service TDD Refactor 階段性完成
+- **測試通過率大幅提升**：從 57/94 (60.6%) 提升到 77/94 (81.9%)，改善 +21.3 百分點
+- **跨平台資料格式統一**：完成 READMOO、KINDLE、KOBO 三大平台格式標準化
+- **系統級錯誤處理優化**：區分業務驗證錯誤與系統級錯誤，提升錯誤處理精準度
 
-### 🛠️ 核心問題修正
-- **測試匹配器修正**：解決 `toContain` vs `toContainEqual` 的測試失敗問題
-- **normalizedBooks 空陣列問題**：修正資料標準化流程，確保有效書籍正確標準化
-- **資料品質檢查增強**：新增空作者陣列的品質警告機制
+### 🔧 核心修正成果 (Red-Green-Refactor 循環)
+- **系統錯誤處理重構**：修正「系統驗證錯誤」未正確中斷處理流程的問題
+- **作者格式統一機制**：
+  - READMOO: `author: '姓名'` → `authors: ['姓名']`
+  - KINDLE: `authors: [{name: '姓名'}]` → `authors: ['姓名']`
+  - KOBO: `contributors: [{role: 'Author', name: '姓名'}]` → `authors: ['姓名']`
+- **進度格式標準化**：
+  - READMOO: `progress: 75` → `progress: {percentage: 75}`
+  - KINDLE: `reading_progress: {percent_complete: 75.0}` → `progress: {percentage: 75}`
+  - KOBO: `reading_state: {current_position: 0.75}` → `progress: {percentage: 75}`
+- **平台特定欄位處理**：確保各平台必填欄位 (ASIN, kobo_id) 正確識別
 
-### ⚡ 自動修復功能完善
-- **預處理修復**：在驗證前執行格式修復，包含：
-  - 單一 `author` 字串轉換為 `authors` 陣列
-  - 數字 `progress` 轉換為 READMOO 期望的物件格式
+### ⚡ 程式碼品質改善
+- **預處理修復增強**：`_performPreValidationFixes` 新增 100+ 行跨平台格式轉換邏輯
+- **錯誤分層處理**：在 `_processBatch` 中建立系統級錯誤識別和中斷機制
+- **測試資料完善**：修正所有測試案例以符合各平台驗證規則要求
   - 標題空白字符標準化
 - **後處理修復**：驗證後的格式優化和範圍檢查
 

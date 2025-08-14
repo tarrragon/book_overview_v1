@@ -322,6 +322,12 @@ class DataValidationService {
         }
 
       } catch (error) {
+        // 區分系統級錯誤和業務驗證錯誤
+        if (error.message === '系統驗證錯誤' || error.message.includes('系統錯誤') || error.message.includes('heap out of memory')) {
+          // 系統級錯誤需要中斷處理並拋出
+          throw error
+        }
+        
         invalidBooks.push({
           book,
           bookId: book.id || 'unknown',
@@ -1070,6 +1076,48 @@ class DataValidationService {
       delete book.author
     }
 
+    // 統一 KINDLE 格式的作者資訊: authors: [{ name: '作者姓名' }] -> authors: ['作者姓名']
+    if (book.authors && Array.isArray(book.authors)) {
+      let needsFixing = false
+      const originalAuthors = [...book.authors]
+      const fixedAuthors = book.authors.map(author => {
+        if (author && typeof author === 'object' && author.name) {
+          needsFixing = true
+          return author.name
+        }
+        return author
+      })
+      
+      if (needsFixing) {
+        book.authors = fixedAuthors
+        validation.fixes.push({
+          type: 'KINDLE_AUTHOR_FORMAT_FIX',
+          field: 'authors',
+          before: originalAuthors,
+          after: book.authors
+        })
+      }
+    }
+
+    // 統一 KOBO 格式的作者資訊: contributors -> authors
+    if (book.contributors && Array.isArray(book.contributors) && !book.authors) {
+      const originalContributors = book.contributors
+      book.authors = book.contributors
+        .filter(contributor => contributor.role === 'Author')
+        .map(contributor => contributor.name)
+        .filter(name => name)
+      
+      if (book.authors.length > 0) {
+        validation.fixes.push({
+          type: 'KOBO_CONTRIBUTORS_TO_AUTHORS_FIX',
+          field: 'contributors -> authors',
+          before: originalContributors,
+          after: book.authors
+        })
+        delete book.contributors
+      }
+    }
+
     // 將數字 progress 轉換為物件格式 (READMOO 平台需求)
     if (book.progress && typeof book.progress === 'number') {
       const originalProgress = book.progress
@@ -1082,6 +1130,51 @@ class DataValidationService {
         before: originalProgress,
         after: book.progress
       })
+    }
+
+    // 統一 KINDLE 進度格式: reading_progress -> progress
+    if (book.reading_progress && !book.progress) {
+      const originalReading = book.reading_progress
+      let percentage = 0
+      
+      if (originalReading.percent_complete !== undefined) {
+        percentage = Math.max(0, Math.min(100, originalReading.percent_complete))
+      }
+      
+      book.progress = {
+        percentage: percentage
+      }
+      
+      validation.fixes.push({
+        type: 'KINDLE_PROGRESS_FORMAT_FIX',
+        field: 'reading_progress -> progress',
+        before: originalReading,
+        after: book.progress
+      })
+      delete book.reading_progress
+    }
+
+    // 統一 KOBO 進度格式: reading_state -> progress  
+    if (book.reading_state && !book.progress) {
+      const originalState = book.reading_state
+      let percentage = 0
+      
+      if (originalState.current_position !== undefined) {
+        // current_position 通常是 0-1 的小數，轉換為 0-100 的百分比
+        percentage = Math.max(0, Math.min(100, originalState.current_position * 100))
+      }
+      
+      book.progress = {
+        percentage: percentage
+      }
+      
+      validation.fixes.push({
+        type: 'KOBO_PROGRESS_FORMAT_FIX',
+        field: 'reading_state -> progress',
+        before: originalState,
+        after: book.progress
+      })
+      delete book.reading_state
     }
   }
 

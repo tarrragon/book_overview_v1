@@ -566,8 +566,8 @@ describe('Data Validation Service v2.0', () => {
       test('應該統一不同平台的進度格式', async () => {
         const progressFormats = [
           { platform: 'READMOO', progress: 75 },
-          { platform: 'KINDLE', reading_progress: { percent_complete: 75.0 } },
-          { platform: 'KOBO', reading_state: { current_position: 0.75 } }
+          { platform: 'KINDLE', ASIN: 'B123456789', reading_progress: { percent_complete: 75.0 } },
+          { platform: 'KOBO', kobo_id: 'kobo_12345', reading_state: { current_position: 0.75 } }
         ]
 
         for (const { platform, ...progressData } of progressFormats) {
@@ -610,7 +610,8 @@ describe('Data Validation Service v2.0', () => {
         const mixedPlatformBook = {
           id: 'mixed_123',
           title: '混合平台書籍',
-          kindle_asin: 'B08XYZ123',      // KINDLE 特有
+          ASIN: 'B08XYZ123',             // KINDLE 必填欄位
+          kindle_price: 9.99,            // KINDLE 特有
           kobo_series_id: 'kobo_456',    // KOBO 特有
           readmoo_type: '流式'           // READMOO 特有
         }
