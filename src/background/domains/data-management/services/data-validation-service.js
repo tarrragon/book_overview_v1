@@ -130,6 +130,10 @@ class DataValidationService {
   async loadRulesForPlatform(platform) {
     const platformRules = this._getPlatformSpecificRules(platform)
     this.validationRules.set(platform, platformRules)
+    
+    // 同時設置平台schema
+    const platformSchema = this._getPlatformSchema(platform)
+    this.platformSchemas.set(platform, platformSchema)
   }
 
   /**
@@ -383,15 +387,20 @@ class DataValidationService {
         throw new Error('驗證規則損壞')
       }
 
+      // 執行預處理修復（在驗證之前）
+      if (this.config.autoFix) {
+        await this._performPreValidationFixes(validation)
+      }
+
       // 執行各種驗證
       await this._validateRequiredFields(validation, rules)
       await this._validateDataTypes(validation, rules)
       await this._validateBusinessRules(validation, rules)
       await this._performQualityChecks(validation, rules)
       
-      // 執行自動修復
+      // 執行後處理修復（在驗證之後）
       if (this.config.autoFix) {
-        await this._performAutoFixes(validation)
+        await this._performPostValidationFixes(validation)
       }
 
       // 快取結果
@@ -599,7 +608,7 @@ class DataValidationService {
         required: ['id', 'title'],
         types: {
           ...baseRules.types,
-          progress: 'number',
+          progress: 'object',
           type: 'string',
           isNew: 'boolean',
           isFinished: 'boolean'
@@ -644,6 +653,87 @@ class DataValidationService {
     }
 
     return platformSpecificRules[platform] || baseRules
+  }
+
+  /**
+   * 獲取平台特定的資料架構定義
+   */
+  _getPlatformSchema(platform) {
+    const schemas = {
+      READMOO: {
+        version: '2.0.0',
+        platform: 'READMOO',
+        fields: {
+          id: { type: 'string', required: true },
+          title: { type: 'string', required: true },
+          authors: { type: 'array', required: false },
+          publisher: { type: 'string', required: false },
+          progress: { type: 'number', required: false, min: 0, max: 100 },
+          type: { type: 'string', required: false },
+          isNew: { type: 'boolean', required: false },
+          isFinished: { type: 'boolean', required: false },
+          cover: { type: 'string', required: false }
+        }
+      },
+      KINDLE: {
+        version: '2.0.0',
+        platform: 'KINDLE',
+        fields: {
+          ASIN: { type: 'string', required: true },
+          title: { type: 'string', required: true },
+          authors: { type: 'array', required: false },
+          kindle_price: { type: 'number', required: false },
+          reading_progress: { type: 'object', required: false },
+          whispersync_device: { type: 'string', required: false },
+          cover: { type: 'string', required: false }
+        }
+      },
+      KOBO: {
+        version: '2.0.0',
+        platform: 'KOBO',
+        fields: {
+          id: { type: 'string', required: true },
+          title: { type: 'string', required: true },
+          authors: { type: 'array', required: false },
+          publisher: { type: 'string', required: false },
+          reading_percentage: { type: 'number', required: false, min: 0, max: 100 },
+          cover: { type: 'string', required: false }
+        }
+      },
+      BOOKWALKER: {
+        version: '2.0.0',
+        platform: 'BOOKWALKER',
+        fields: {
+          id: { type: 'string', required: true },
+          title: { type: 'string', required: true },
+          authors: { type: 'array', required: false },
+          series: { type: 'string', required: false },
+          volume: { type: 'number', required: false },
+          cover: { type: 'string', required: false }
+        }
+      },
+      BOOKS_COM: {
+        version: '2.0.0',
+        platform: 'BOOKS_COM',
+        fields: {
+          id: { type: 'string', required: true },
+          title: { type: 'string', required: true },
+          authors: { type: 'array', required: false },
+          publisher: { type: 'string', required: false },
+          isbn: { type: 'string', required: false },
+          cover: { type: 'string', required: false }
+        }
+      }
+    }
+
+    return schemas[platform] || {
+      version: '2.0.0',
+      platform: 'UNKNOWN',
+      fields: {
+        id: { type: 'string', required: true },
+        title: { type: 'string', required: true }
+      }
+    }
   }
 
   /**
@@ -894,23 +984,33 @@ class DataValidationService {
 
     // 作者品質檢查
     if (book.authors && Array.isArray(book.authors)) {
-      const hasEmptyAuthor = book.authors.some(author => {
-        if (!author) return true
-        if (typeof author === 'string') {
-          return author.trim() === ''
-        }
-        if (typeof author === 'object' && author !== null && author.name) {
-          return !author.name || String(author.name).trim() === ''
-        }
-        return false
-      })
-      if (hasEmptyAuthor) {
+      // 檢查空作者陣列
+      if (book.authors.length === 0) {
         validation.warnings.push({
           type: 'DATA_QUALITY_WARNING',
           field: 'authors',
-          message: '包含空白作者名稱',
-          suggestion: '清理作者清單'
+          message: '作者清單為空',
+          suggestion: '添加作者資訊'
         })
+      } else {
+        const hasEmptyAuthor = book.authors.some(author => {
+          if (!author) return true
+          if (typeof author === 'string') {
+            return author.trim() === ''
+          }
+          if (typeof author === 'object' && author !== null && author.name) {
+            return !author.name || String(author.name).trim() === ''
+          }
+          return false
+        })
+        if (hasEmptyAuthor) {
+          validation.warnings.push({
+            type: 'DATA_QUALITY_WARNING',
+            field: 'authors',
+            message: '包含空白作者名稱',
+            suggestion: '清理作者清單'
+          })
+        }
       }
     }
 
@@ -938,9 +1038,9 @@ class DataValidationService {
   }
 
   /**
-   * 自動修復
+   * 預處理修復（在驗證之前執行）
    */
-  async _performAutoFixes(validation) {
+  async _performPreValidationFixes(validation) {
     const book = validation.book
 
     // 修復標題空白
@@ -957,6 +1057,40 @@ class DataValidationService {
       }
     }
 
+    // 將單一 author 轉換為 authors 陣列
+    if (book.author && !book.authors) {
+      const originalAuthor = book.author
+      book.authors = typeof book.author === 'string' ? [book.author] : book.author
+      validation.fixes.push({
+        type: 'AUTHOR_TO_AUTHORS_FIX',
+        field: 'author -> authors',
+        before: originalAuthor,
+        after: book.authors
+      })
+      delete book.author
+    }
+
+    // 將數字 progress 轉換為物件格式 (READMOO 平台需求)
+    if (book.progress && typeof book.progress === 'number') {
+      const originalProgress = book.progress
+      book.progress = {
+        percentage: Math.max(0, Math.min(100, book.progress))
+      }
+      validation.fixes.push({
+        type: 'PROGRESS_TYPE_FIX',
+        field: 'progress',
+        before: originalProgress,
+        after: book.progress
+      })
+    }
+  }
+
+  /**
+   * 後處理修復（在驗證之後執行）
+   */
+  async _performPostValidationFixes(validation) {
+    const book = validation.book
+
     // 修復 ISBN 格式
     if (book.isbn && typeof book.isbn === 'string') {
       const originalISBN = book.isbn
@@ -971,7 +1105,7 @@ class DataValidationService {
       }
     }
 
-    // 修復作者格式
+    // 修復作者格式（如果是字串轉陣列）
     if (book.authors && typeof book.authors === 'string') {
       const originalAuthors = book.authors
       book.authors = [book.authors]

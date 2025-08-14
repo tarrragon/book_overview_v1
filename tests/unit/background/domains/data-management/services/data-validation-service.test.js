@@ -241,7 +241,7 @@ describe('Data Validation Service v2.0', () => {
 
         expect(result.validBooks).toHaveLength(0)
         expect(result.invalidBooks).toHaveLength(1)
-        expect(result.invalidBooks[0].errors).toContain(
+        expect(result.invalidBooks[0].errors).toContainEqual(
           expect.objectContaining({
             type: 'MISSING_REQUIRED_FIELD',
             field: 'id'
@@ -1725,6 +1725,7 @@ describe('Data Validation Service v2.0', () => {
         'READMOO',
         'COMPLETE_WORKFLOW_TEST'
       )
+
 
       // 3. 驗證完整流程的輸出
       expect(result.totalBooks).toBe(1)
