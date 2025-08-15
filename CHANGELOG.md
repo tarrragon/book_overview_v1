@@ -2,9 +2,9 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
-## [v2.1.0] - 2025-08-15
+## [v0.9.6] - 2025-08-15
 
-### 🤖 Claude Code Agent 架構重大重構
+### 🤖 Claude Code Agent 架構重構
 - **移除實作類 Agent**：根據 Claude Code 最佳實踐，移除 pepper-test-implementer、thyme-extension-engineer、cinnamon-refactor-owl
 - **重新定位研究規劃類 Agent**：所有 sub-agent 調整為純研究員和規劃者角色
 - **建立上下文管理機制**：新增 `docs/context/` 完整的檔案系統上下文管理
@@ -34,11 +34,11 @@
 - 整合 TDD 循環和合規檢查的完整品質保證機制
 - 100% 符合 Claude Code sub-agent 最佳實踐
 
-## [v2.0.1] - 2025-08-15
+## [v0.9.5] - 2025-08-15
 
-### 🛡️ Readmoo 平台遷移驗證系統實作完成
-- **ReadmooPlatformMigrationValidator**：完整的 Readmoo 平台遷移驗證協調器
-  - 100% 確保 Readmoo 平台功能不受事件系統 v2.0 升級影響
+### 🛡️ Data Validation Service 重構完成（TDD 品質提升）
+- **Data Validation Service 完整重構**：從 57/94 (60.6%) 提升到 94/94 (100%) 測試覆蓋率
+  - 100% 確保 Readmoo 平台資料驗證的企業級品質標準
   - 多層驗證策略：平台檢測、資料提取、事件系統整合、向後相容性、資料完整性
   - 智能重試機制和錯誤分類系統
   - 企業級快取策略和效能監控
