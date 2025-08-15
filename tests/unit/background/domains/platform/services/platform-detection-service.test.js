@@ -2,7 +2,7 @@
  * @fileoverview Platform Detection Service 單元測試
  * @version v2.1.0
  * @since 2025-08-13
- * 
+ *
  * TDD Red Phase - 測試驅動開發紅燈階段
  * 設計完整測試案例，確保 100% 程式碼覆蓋率
  */
@@ -28,7 +28,7 @@ const MockPlatformData = {
     expectedConfidence: 0.95
   },
 
-  // Kindle 平台測試資料  
+  // Kindle 平台測試資料
   KINDLE: {
     urls: [
       'https://read.amazon.com',
@@ -123,7 +123,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('READMOO')
       expect(result.confidence).toBeGreaterThan(0.8)
       expect(result.features).toContain('url_pattern_match')
@@ -136,7 +136,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('READMOO')
       expect(result.confidence).toBeGreaterThan(0.8)
     })
@@ -148,7 +148,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('KINDLE')
       expect(result.confidence).toBeGreaterThan(0.7)
     })
@@ -160,7 +160,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('KOBO')
       expect(result.confidence).toBeGreaterThan(0.7)
     })
@@ -172,7 +172,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('BOOKWALKER')
       expect(result.confidence).toBeGreaterThan(0.7)
     })
@@ -184,7 +184,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('BOOKS_COM')
       expect(result.confidence).toBeGreaterThan(0.7)
     })
@@ -196,7 +196,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('UNKNOWN')
       expect(result.confidence).toBe(0)
     })
@@ -208,7 +208,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('UNKNOWN')
       expect(result.confidence).toBe(0)
       expect(result.error).toBeDefined()
@@ -221,7 +221,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('READMOO')
       expect(result.confidence).toBeGreaterThan(0.8)
     })
@@ -239,7 +239,7 @@ describe('PlatformDetectionService', () => {
 
       const resultHTTPS = await service.detectPlatform(contextHTTPS)
       const resultHTTP = await service.detectPlatform(contextHTTP)
-      
+
       expect(resultHTTPS.platformId).toBe(resultHTTP.platformId)
     })
 
@@ -263,7 +263,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('READMOO')
       expect(result.confidence).toBeGreaterThan(0.85)
       expect(result.features).toContain('reader_url_pattern')
@@ -277,7 +277,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('KOBO')
       expect(result.confidence).toBeGreaterThan(0.7)
     })
@@ -289,7 +289,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('READMOO')
       expect(result.confidence).toBeGreaterThan(0.8)
     })
@@ -304,7 +304,7 @@ describe('PlatformDetectionService', () => {
       const startTime = performance.now()
       await service.detectPlatform(context)
       const endTime = performance.now()
-      
+
       expect(endTime - startTime).toBeLessThan(50) // 50ms threshold for URL matching
     })
 
@@ -316,12 +316,12 @@ describe('PlatformDetectionService', () => {
 
       // First call
       await service.detectPlatform(context)
-      
+
       // Second call should be faster (cached)
       const startTime = performance.now()
       await service.detectPlatform(context)
       const endTime = performance.now()
-      
+
       expect(endTime - startTime).toBeLessThan(10) // Should be very fast from cache
     })
 
@@ -334,7 +334,7 @@ describe('PlatformDetectionService', () => {
 
       const promises = contexts.map(context => service.detectPlatform(context))
       const results = await Promise.all(promises)
-      
+
       expect(results[0].platformId).toBe('READMOO')
       expect(results[1].platformId).toBe('KINDLE')
       expect(results[2].platformId).toBe('KOBO')
@@ -345,8 +345,8 @@ describe('PlatformDetectionService', () => {
   describe('DOM Feature Detection', () => {
     test('should detect Readmoo DOM features correctly', async () => {
       mockDOM.querySelector = jest.fn()
-        .mockReturnValueOnce({ className: 'readmoo-header' })  // .readmoo-header
-        .mockReturnValueOnce({ content: 'readmoo-reader' })    // .readmoo-reader
+        .mockReturnValueOnce({ className: 'readmoo-header' }) // .readmoo-header
+        .mockReturnValueOnce({ content: 'readmoo-reader' }) // .readmoo-reader
 
       const context = {
         url: 'https://readmoo.com',
@@ -355,7 +355,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.confidence).toBeGreaterThan(0.9)
       expect(result.features).toContain('dom_features_match')
     })
@@ -372,7 +372,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.confidence).toBeGreaterThan(0.8)
       expect(result.features).toContain('dom_features_match')
     })
@@ -385,7 +385,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('READMOO')
       expect(result.confidence).toBeGreaterThan(0.5) // Lower confidence without DOM
       expect(result.features).toContain('url_pattern_match')
@@ -404,7 +404,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('READMOO')
       expect(result.features).toContain('url_pattern_match')
       expect(result.features).not.toContain('dom_features_match')
@@ -429,7 +429,7 @@ describe('PlatformDetectionService', () => {
       })
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('KINDLE') // DOM should win
       expect(result.confidence).toBeGreaterThan(0.7)
     })
@@ -446,7 +446,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       // Both URL and DOM should contribute to high confidence
       expect(result.confidence).toBeGreaterThan(0.9)
       expect(result.features).toContain('url_pattern_match')
@@ -468,7 +468,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.features).toContain('multiple_dom_elements')
       expect(result.confidence).toBeGreaterThan(0.8)
     })
@@ -489,9 +489,9 @@ describe('PlatformDetectionService', () => {
 
       // Enable retry mechanism
       service.enableDOMRetry = true
-      
+
       const result = await service.detectPlatform(context)
-      
+
       expect(mockDOM.querySelector).toHaveBeenCalledTimes(2)
       expect(result.confidence).toBeGreaterThan(0.8)
     })
@@ -514,7 +514,7 @@ describe('PlatformDetectionService', () => {
       const startTime = performance.now()
       const result = await service.detectPlatform(context)
       const endTime = performance.now()
-      
+
       expect(endTime - startTime).toBeLessThan(600) // Should timeout
       expect(result.features).toContain('dom_analysis_timeout')
     })
@@ -534,7 +534,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.features).toContain('meta_tag_match')
       expect(result.metadata).toHaveProperty('version', '2.1.0')
     })
@@ -555,7 +555,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.features).toContain('javascript_object_match')
       expect(result.confidence).toBeGreaterThan(0.8)
     })
@@ -570,7 +570,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result).toHaveProperty('platformId')
       expect(result).toHaveProperty('confidence')
       expect(result).toHaveProperty('features')
@@ -584,7 +584,7 @@ describe('PlatformDetectionService', () => {
 
     test('should handle empty context gracefully', async () => {
       const result = await service.detectPlatform({})
-      
+
       expect(result.platformId).toBe('UNKNOWN')
       expect(result.confidence).toBe(0)
       expect(result.features).toEqual([])
@@ -592,7 +592,7 @@ describe('PlatformDetectionService', () => {
 
     test('should handle null context gracefully', async () => {
       const result = await service.detectPlatform(null)
-      
+
       expect(result.platformId).toBe('UNKNOWN')
       expect(result.confidence).toBe(0)
       expect(result.error).toBeDefined()
@@ -605,11 +605,11 @@ describe('PlatformDetectionService', () => {
       }
 
       await service.detectPlatform(context)
-      
+
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'PLATFORM.DETECTION.STARTED',
         expect.objectContaining({
-          context: context,
+          context,
           timestamp: expect.any(Number)
         })
       )
@@ -622,11 +622,11 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'PLATFORM.DETECTION.COMPLETED',
         expect.objectContaining({
-          result: result,
+          result,
           timestamp: expect.any(Number)
         })
       )
@@ -644,12 +644,12 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'PLATFORM.DETECTION.FAILED',
         expect.objectContaining({
           error: expect.any(Error),
-          context: context,
+          context,
           timestamp: expect.any(Number)
         })
       )
@@ -664,9 +664,9 @@ describe('PlatformDetectionService', () => {
       // Perform multiple detections
       await service.detectPlatform(context)
       await service.detectPlatform(context)
-      
+
       const stats = service.getDetectionStatistics()
-      
+
       expect(stats.totalDetections).toBeGreaterThan(0)
       expect(stats.platformCounts).toHaveProperty('READMOO')
       expect(stats.averageDetectionTime).toBeGreaterThan(0)
@@ -674,14 +674,14 @@ describe('PlatformDetectionService', () => {
 
     test('should respect confidence threshold', async () => {
       service.confidenceThreshold = 0.9 // High threshold
-      
+
       const context = {
         url: 'https://maybe-readmoo.com', // Ambiguous URL
         hostname: 'maybe-readmoo.com'
       }
 
       const result = await service.detectPlatform(context)
-      
+
       if (result.confidence < service.confidenceThreshold) {
         expect(result.platformId).toBe('UNKNOWN')
       }
@@ -696,7 +696,7 @@ describe('PlatformDetectionService', () => {
 
       const promises = contexts.map(context => service.detectPlatform(context))
       const results = await Promise.all(promises)
-      
+
       expect(results).toHaveLength(3)
       expect(results[0].platformId).toBe('READMOO')
       expect(results[1].platformId).toBe('KINDLE')
@@ -710,7 +710,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.capabilities).toContain('book_extraction')
       expect(result.capabilities).toContain('reading_progress')
       expect(result.capabilities).toContain('user_annotations')
@@ -727,10 +727,10 @@ describe('PlatformDetectionService', () => {
 
       // First detection
       const result1 = await service.detectPlatform(context)
-      
+
       // Second detection should use cache
       const result2 = await service.detectPlatform(context)
-      
+
       expect(result1).toEqual(result2)
       expect(service.detectionCache.size).toBeGreaterThan(0)
     })
@@ -739,18 +739,18 @@ describe('PlatformDetectionService', () => {
       const context1 = { url: 'https://readmoo.com', hostname: 'readmoo.com' }
       const context2 = { url: 'https://readmoo.com', hostname: 'readmoo.com' }
       const context3 = { url: 'https://kindle.amazon.com', hostname: 'kindle.amazon.com' }
-      
+
       const key1 = service.generateCacheKey(context1)
       const key2 = service.generateCacheKey(context2)
       const key3 = service.generateCacheKey(context3)
-      
+
       expect(key1).toBe(key2) // Same context should generate same key
       expect(key1).not.toBe(key3) // Different context should generate different key
     })
 
     test('should respect cache expiration', async () => {
       service.cacheTimeout = 100 // 100ms timeout
-      
+
       const context = {
         url: 'https://readmoo.com',
         hostname: 'readmoo.com'
@@ -758,20 +758,20 @@ describe('PlatformDetectionService', () => {
 
       // First detection
       await service.detectPlatform(context)
-      
+
       // Wait for cache to expire
       await new Promise(resolve => setTimeout(resolve, 150))
-      
+
       // Second detection should not use expired cache
       const spy = jest.spyOn(service, 'analyzeUrlPattern')
       await service.detectPlatform(context)
-      
+
       expect(spy).toHaveBeenCalled() // Should have analyzed again
     })
 
     test('should limit cache size', async () => {
       service.maxCacheSize = 2 // Limit to 2 entries
-      
+
       const contexts = [
         { url: 'https://readmoo.com', hostname: 'readmoo.com' },
         { url: 'https://read.amazon.com', hostname: 'read.amazon.com' },
@@ -782,7 +782,7 @@ describe('PlatformDetectionService', () => {
       for (const context of contexts) {
         await service.detectPlatform(context)
       }
-      
+
       expect(service.detectionCache.size).toBeLessThanOrEqual(service.maxCacheSize)
     })
 
@@ -794,7 +794,7 @@ describe('PlatformDetectionService', () => {
 
       await service.detectPlatform(context)
       expect(service.detectionCache.size).toBeGreaterThan(0)
-      
+
       service.clearCache()
       expect(service.detectionCache.size).toBe(0)
     })
@@ -809,9 +809,9 @@ describe('PlatformDetectionService', () => {
       await service.detectPlatform(context)
       // Second call (cache hit)
       await service.detectPlatform(context)
-      
+
       const stats = service.getCacheStatistics()
-      
+
       expect(stats.hits).toBe(1)
       expect(stats.misses).toBe(1)
       expect(stats.hitRate).toBe(0.5)
@@ -826,10 +826,10 @@ describe('PlatformDetectionService', () => {
       // Corrupt cache entry
       const cacheKey = service.generateCacheKey(context)
       service.detectionCache.set(cacheKey, null)
-      
+
       // Should handle corrupted cache and perform fresh detection
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('READMOO')
       expect(result.confidence).toBeGreaterThan(0)
     })
@@ -846,7 +846,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const confidence = service.calculateConfidence(factors)
-      
+
       expect(confidence).toBe(1.0)
     })
 
@@ -859,7 +859,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const confidence = service.calculateConfidence(factors)
-      
+
       expect(confidence).toBeGreaterThan(0.4)
       expect(confidence).toBeLessThan(0.8)
     })
@@ -881,7 +881,7 @@ describe('PlatformDetectionService', () => {
 
       const urlConfidence = service.calculateConfidence(urlOnlyFactors)
       const domConfidence = service.calculateConfidence(domOnlyFactors)
-      
+
       expect(urlConfidence).toBeGreaterThan(domConfidence)
     })
 
@@ -894,19 +894,19 @@ describe('PlatformDetectionService', () => {
       }
 
       const confidence = service.calculateConfidence(factors)
-      
+
       expect(confidence).toBe(0.0)
     })
 
     test('should apply confidence decay over time', () => {
       const baseConfidence = 0.8
-      
+
       // Fresh detection
       const freshConfidence = service.applyTimeDecay(baseConfidence, 0)
-      
+
       // Old detection (5 minutes)
       const oldConfidence = service.applyTimeDecay(baseConfidence, 5 * 60 * 1000)
-      
+
       expect(freshConfidence).toBe(baseConfidence)
       expect(oldConfidence).toBeLessThan(baseConfidence)
     })
@@ -914,18 +914,18 @@ describe('PlatformDetectionService', () => {
     test('should adjust confidence based on platform specificity', () => {
       // Highly specific platform
       const specificConfidence = service.adjustForPlatformSpecificity('READMOO', 0.8)
-      
-      // Generic platform pattern  
+
+      // Generic platform pattern
       const genericConfidence = service.adjustForPlatformSpecificity('UNKNOWN', 0.8)
-      
+
       expect(specificConfidence).toBeGreaterThanOrEqual(genericConfidence)
     })
 
     test('should normalize confidence scores correctly', () => {
       const rawScores = [1.2, 0.8, -0.1, 0.5]
-      
+
       const normalizedScores = rawScores.map(score => service.normalizeConfidence(score))
-      
+
       normalizedScores.forEach(score => {
         expect(score).toBeGreaterThanOrEqual(0)
         expect(score).toBeLessThanOrEqual(1)
@@ -960,7 +960,7 @@ describe('PlatformDetectionService', () => {
       }
 
       await service.detectPlatform(context)
-      
+
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'PLATFORM.READMOO.DETECTION.COMPLETED',
         expect.objectContaining({
@@ -977,7 +977,7 @@ describe('PlatformDetectionService', () => {
       }
 
       await service.detectPlatform(context)
-      
+
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'PLATFORM.DETECTION.COMPLETED',
         expect.any(Object)
@@ -986,7 +986,7 @@ describe('PlatformDetectionService', () => {
 
     test('should handle event emission failures gracefully', async () => {
       mockEventBus.emit.mockRejectedValue(new Error('Event emission failed'))
-      
+
       const context = {
         url: 'https://readmoo.com',
         hostname: 'readmoo.com'
@@ -994,7 +994,7 @@ describe('PlatformDetectionService', () => {
 
       // Should not throw error
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('READMOO')
     })
 
@@ -1047,7 +1047,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('READMOO') // Should still detect via URL
       expect(result.features).toContain('network_timeout')
     })
@@ -1065,7 +1065,7 @@ describe('PlatformDetectionService', () => {
 
       // Should handle gracefully and clear cache if needed
       const result = await service.detectPlatform(context)
-      
+
       expect(result.platformId).toBe('READMOO')
       expect(service.detectionCache.size).toBeLessThan(1000) // Should have cleaned up
     })
@@ -1080,7 +1080,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const confidence = await service.validatePlatform('READMOO', context)
-      
+
       expect(confidence).toBeGreaterThan(0.8)
     })
 
@@ -1091,7 +1091,7 @@ describe('PlatformDetectionService', () => {
       }
 
       const confidence = await service.validatePlatform('KINDLE', context)
-      
+
       expect(confidence).toBeLessThan(0.5)
     })
   })
@@ -1133,7 +1133,7 @@ const TestHelpers = {
     const startTime = performance.now()
     const result = await fn()
     const endTime = performance.now()
-    
+
     return {
       result,
       duration: endTime - startTime

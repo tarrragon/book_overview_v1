@@ -2,7 +2,7 @@
  * @fileoverview Platform Isolation Service - 平台隔離與安全控制服務
  * @version v2.0.0
  * @since 2025-08-14
- * 
+ *
  * 負責功能：
  * - 平台資源隔離機制與容器管理
  * - 平台間資料隔離與安全控制
@@ -10,21 +10,21 @@
  * - 平台權限管理和存取控制
  * - 安全沙箱和隔離容器生命週期
  * - 跨平台汙染防護與違規偵測
- * 
+ *
  * 設計考量：
  * - 支援 5 個平台的完全隔離運作
  * - 事件驅動架構 v2.0 命名規範 (PLATFORM.ISOLATION.*)
  * - 資源配額管理與記憶體洩漏防護
  * - 安全權限驗證與存取控制機制
  * - 隔離狀態監控與自動恢復
- * 
+ *
  * 處理流程：
  * 1. 初始化隔離容器與安全沙箱
  * 2. 建立平台間資源配額管理
  * 3. 實施權限驗證與存取控制
  * 4. 監控隔離狀態與違規偵測
  * 5. 執行資源清理與容器回收
- * 
+ *
  * 使用情境：
  * - Platform Domain Coordinator 管理平台隔離時
  * - 平台切換時確保資源完全隔離
@@ -37,7 +37,7 @@ class PlatformIsolationService {
    * @param {EventBus} eventBus - 事件總線實例
    * @param {Object} config - 服務配置
    */
-  constructor(eventBus, config = {}) {
+  constructor (eventBus, config = {}) {
     this.eventBus = eventBus
     this.config = config
     this.logger = config.logger
@@ -70,7 +70,7 @@ class PlatformIsolationService {
     // 支援的平台清單
     this.supportedPlatforms = [
       'READMOO',
-      'KINDLE', 
+      'KINDLE',
       'KOBO',
       'BOOKWALKER',
       'BOOKS_COM'
@@ -99,7 +99,7 @@ class PlatformIsolationService {
   /**
    * 初始化隔離服務
    */
-  async initialize() {
+  async initialize () {
     try {
       await this.log('開始初始化 Platform Isolation Service')
 
@@ -131,7 +131,6 @@ class PlatformIsolationService {
         containersReady: this.isolationContainers.size,
         timestamp: Date.now()
       })
-
     } catch (error) {
       await this.logError('Platform Isolation Service 初始化失敗', error)
       throw error
@@ -141,7 +140,7 @@ class PlatformIsolationService {
   /**
    * 初始化隔離容器系統
    */
-  async initializeIsolationSystem() {
+  async initializeIsolationSystem () {
     await this.log('初始化隔離容器系統')
 
     // 為每個支援的平台建立隔離容器
@@ -158,35 +157,35 @@ class PlatformIsolationService {
    * @param {string} platformId - 平台標識符
    * @returns {Object} 容器上下文
    */
-  async createIsolationContainer(platformId) {
+  async createIsolationContainer (platformId) {
     const containerId = `container-${platformId}-${Date.now()}`
-    
+
     const containerContext = {
       containerId,
       platformId,
       createdAt: Date.now(),
       status: 'CREATED',
       isolationLevel: 'STRICT',
-      
+
       // 資源隔離
       memoryScope: new Map(), // 平台專用記憶體空間
       storageScope: new Map(), // 平台專用儲存空間
-      eventScope: new Map(),   // 平台專用事件空間
-      
+      eventScope: new Map(), // 平台專用事件空間
+
       // 安全上下文
       securityContext: {
         encryptionKey: this.generateEncryptionKey(),
         accessToken: this.generateAccessToken(platformId),
         permissions: this.getDefaultPermissions(platformId)
       },
-      
+
       // 資源限制
       resourceLimits: {
         memoryLimitMB: this.defaultIsolationConfig.memoryLimitMB,
         processingTimeoutMs: this.defaultIsolationConfig.processingTimeoutMs,
         maxConcurrentOperations: this.defaultIsolationConfig.maxConcurrentOperations
       },
-      
+
       // 監控與統計
       monitoring: {
         memoryUsage: 0,
@@ -205,7 +204,7 @@ class PlatformIsolationService {
   /**
    * 初始化安全沙箱
    */
-  async initializeSandboxes() {
+  async initializeSandboxes () {
     await this.log('初始化安全沙箱系統')
 
     for (const platformId of this.supportedPlatforms) {
@@ -213,7 +212,7 @@ class PlatformIsolationService {
         sandboxId: `sandbox-${platformId}-${Date.now()}`,
         platformId,
         isolationLevel: 'MAXIMUM',
-        
+
         // 沙箱邊界設定
         boundaries: {
           memoryAccess: 'RESTRICTED',
@@ -221,7 +220,7 @@ class PlatformIsolationService {
           networkAccess: 'FILTERED',
           apiAccess: 'WHITELISTED'
         },
-        
+
         // 安全策略
         securityPolicy: {
           crossOriginRequests: false,
@@ -229,7 +228,7 @@ class PlatformIsolationService {
           dynamicImports: false,
           externalScripts: false
         },
-        
+
         // 監控配置
         monitoring: {
           auditLog: true,
@@ -247,13 +246,13 @@ class PlatformIsolationService {
   /**
    * 初始化資源配額管理
    */
-  async initializeResourceQuotas() {
+  async initializeResourceQuotas () {
     await this.log('初始化資源配額管理系統')
 
     for (const platformId of this.supportedPlatforms) {
       const quotaConfig = {
         platformId,
-        
+
         // 記憶體配額
         memory: {
           limitMB: this.defaultIsolationConfig.memoryLimitMB,
@@ -261,7 +260,7 @@ class PlatformIsolationService {
           peakUsageMB: 0,
           alertThresholdPercent: 80
         },
-        
+
         // 處理時間配額
         processing: {
           timeoutMs: this.defaultIsolationConfig.processingTimeoutMs,
@@ -269,7 +268,7 @@ class PlatformIsolationService {
           maxProcessingMs: 0,
           operationQueue: []
         },
-        
+
         // 並發操作配額
         concurrency: {
           maxOperations: this.defaultIsolationConfig.maxConcurrentOperations,
@@ -277,7 +276,7 @@ class PlatformIsolationService {
           pendingOperations: 0,
           rejectedOperations: 0
         },
-        
+
         // 儲存配額
         storage: {
           limitMB: 100,
@@ -298,7 +297,7 @@ class PlatformIsolationService {
   /**
    * 初始化權限管理系統
    */
-  async initializePermissionSystem() {
+  async initializePermissionSystem () {
     await this.log('初始化權限管理系統')
 
     for (const platformId of this.supportedPlatforms) {
@@ -314,7 +313,7 @@ class PlatformIsolationService {
       const securityPolicy = {
         platformId,
         accessLevel: 'RESTRICTED',
-        
+
         // 存取控制
         allowedOperations: [
           'READ_DATA',
@@ -322,7 +321,7 @@ class PlatformIsolationService {
           'EMIT_EVENTS',
           'RECEIVE_EVENTS'
         ],
-        
+
         // 禁止操作
         forbiddenOperations: [
           'CROSS_PLATFORM_READ',
@@ -330,7 +329,7 @@ class PlatformIsolationService {
           'SYSTEM_MODIFICATION',
           'GLOBAL_STATE_CHANGE'
         ],
-        
+
         // 資料存取限制
         dataAccessRules: {
           ownPlatformData: 'FULL_ACCESS',
@@ -348,14 +347,14 @@ class PlatformIsolationService {
   /**
    * 初始化違規檢測系統
    */
-  async initializeViolationDetection() {
+  async initializeViolationDetection () {
     await this.log('初始化違規檢測系統')
 
     for (const platformId of this.supportedPlatforms) {
       const detectorConfig = {
         platformId,
         enabled: true,
-        
+
         // 檢測規則
         detectionRules: {
           memoryViolation: true,
@@ -364,7 +363,7 @@ class PlatformIsolationService {
           crossContamination: true,
           permissionViolation: true
         },
-        
+
         // 檢測閾值
         thresholds: {
           memoryUsagePercent: 90,
@@ -372,7 +371,7 @@ class PlatformIsolationService {
           suspiciousOperationCount: 10,
           crossPlatformAccessAttempts: 1
         },
-        
+
         // 響應策略
         responseActions: {
           memoryViolation: 'CLEANUP_AND_ALERT',
@@ -397,7 +396,7 @@ class PlatformIsolationService {
   /**
    * 註冊事件監聽器
    */
-  async registerEventListeners() {
+  async registerEventListeners () {
     // 平台隔離操作事件
     this.eventBus.on('PLATFORM.ISOLATION.CREATE_CONTAINER', this.handleCreateContainer.bind(this))
     this.eventBus.on('PLATFORM.ISOLATION.DESTROY_CONTAINER', this.handleDestroyContainer.bind(this))
@@ -427,7 +426,7 @@ class PlatformIsolationService {
    * 創建隔離容器
    * @param {Object} event - 創建容器事件
    */
-  async handleCreateContainer(event) {
+  async handleCreateContainer (event) {
     try {
       const { platformId, isolationLevel } = event.data || {}
 
@@ -443,7 +442,7 @@ class PlatformIsolationService {
 
       // 創建新的隔離容器
       const containerContext = await this.createIsolationContainer(platformId)
-      
+
       if (isolationLevel) {
         containerContext.isolationLevel = isolationLevel
       }
@@ -458,7 +457,6 @@ class PlatformIsolationService {
       })
 
       return containerContext
-
     } catch (error) {
       await this.logError('創建隔離容器失敗', error)
       throw error
@@ -469,7 +467,7 @@ class PlatformIsolationService {
    * 銷毀隔離容器
    * @param {Object} event - 銷毀容器事件
    */
-  async handleDestroyContainer(event) {
+  async handleDestroyContainer (event) {
     try {
       const { platformId, force } = event.data || {}
 
@@ -494,7 +492,6 @@ class PlatformIsolationService {
       })
 
       await this.log(`銷毀隔離容器: ${container.containerId}`)
-
     } catch (error) {
       await this.logError('銷毀隔離容器失敗', error)
       throw error
@@ -505,7 +502,7 @@ class PlatformIsolationService {
    * 驗證安全權限
    * @param {Object} event - 安全驗證事件
    */
-  async handleVerifySecurity(event) {
+  async handleVerifySecurity (event) {
     try {
       const { platformId, operation, accessToken } = event.data || {}
 
@@ -548,7 +545,6 @@ class PlatformIsolationService {
       })
 
       return { verified: true }
-
     } catch (error) {
       await this.logError('安全驗證失敗', error)
       return { verified: false, reason: 'VERIFICATION_ERROR' }
@@ -559,16 +555,15 @@ class PlatformIsolationService {
    * 檢查資源使用狀況
    * @param {Object} event - 資源檢查事件
    */
-  async handleCheckResourceUsage(event) {
+  async handleCheckResourceUsage (event) {
     try {
       const { platformId } = event.data || {}
-      
+
       if (platformId) {
         return await this.checkSinglePlatformResources(platformId)
       } else {
         return await this.checkAllPlatformResources()
       }
-
     } catch (error) {
       await this.logError('檢查資源使用狀況失敗', error)
       throw error
@@ -579,7 +574,7 @@ class PlatformIsolationService {
    * 檢查單一平台資源使用
    * @param {string} platformId - 平台標識符
    */
-  async checkSinglePlatformResources(platformId) {
+  async checkSinglePlatformResources (platformId) {
     const container = this.isolationContainers.get(platformId)
     const quota = this.resourceQuotas.get(platformId)
 
@@ -637,7 +632,7 @@ class PlatformIsolationService {
    * 執行資源配額控制
    * @param {Object} event - 配額控制事件
    */
-  async handleEnforceQuota(event) {
+  async handleEnforceQuota (event) {
     try {
       const { platformId, action } = event.data || {}
 
@@ -665,7 +660,6 @@ class PlatformIsolationService {
         action,
         timestamp: Date.now()
       })
-
     } catch (error) {
       await this.logError('執行資源配額控制失敗', error)
       throw error
@@ -676,7 +670,7 @@ class PlatformIsolationService {
    * 清理平台資源
    * @param {Object} event - 資源清理事件
    */
-  async handleCleanupResources(event) {
+  async handleCleanupResources (event) {
     try {
       const { platformId, cleanupType } = event.data || {}
 
@@ -688,7 +682,6 @@ class PlatformIsolationService {
         cleanupType,
         timestamp: Date.now()
       })
-
     } catch (error) {
       await this.logError('清理平台資源失敗', error)
       throw error
@@ -699,12 +692,12 @@ class PlatformIsolationService {
    * 檢測跨平台汙染
    * @param {Object} event - 汙染檢測事件
    */
-  async handleCheckContamination(event) {
+  async handleCheckContamination (event) {
     try {
       const { platformId } = event.data || {}
 
       const contaminationResult = await this.performContaminationCheck(platformId)
-      
+
       if (contaminationResult.contaminated) {
         await this.reportViolation(platformId, 'CROSS_PLATFORM_CONTAMINATION', {
           contaminationSources: contaminationResult.sources,
@@ -719,7 +712,6 @@ class PlatformIsolationService {
       }
 
       return contaminationResult
-
     } catch (error) {
       await this.logError('檢測跨平台汙染失敗', error)
       throw error
@@ -730,7 +722,7 @@ class PlatformIsolationService {
    * 執行汙染檢查
    * @param {string} platformId - 平台標識符
    */
-  async performContaminationCheck(platformId) {
+  async performContaminationCheck (platformId) {
     const container = this.isolationContainers.get(platformId)
     if (!container) {
       throw new Error(`平台 ${platformId} 容器不存在`)
@@ -788,7 +780,7 @@ class PlatformIsolationService {
    * @param {string} violationType - 違規類型
    * @param {Object} details - 違規詳情
    */
-  async reportViolation(platformId, violationType, details) {
+  async reportViolation (platformId, violationType, details) {
     const violation = {
       violationType,
       platformId,
@@ -822,7 +814,7 @@ class PlatformIsolationService {
    * 處理違規響應
    * @param {Object} violation - 違規物件
    */
-  async handleViolationResponse(violation) {
+  async handleViolationResponse (violation) {
     const { violationType, platformId, severity } = violation
 
     switch (severity) {
@@ -846,7 +838,7 @@ class PlatformIsolationService {
    * 隔離平台 (隔離檢疫)
    * @param {string} platformId - 平台標識符
    */
-  async quarantinePlatform(platformId) {
+  async quarantinePlatform (platformId) {
     const container = this.isolationContainers.get(platformId)
     if (!container) {
       return
@@ -880,7 +872,7 @@ class PlatformIsolationService {
    * @param {string} platformId - 平台標識符
    * @param {boolean} force - 是否強制清理
    */
-  async cleanupContainerResources(platformId, force = false) {
+  async cleanupContainerResources (platformId, force = false) {
     const container = this.isolationContainers.get(platformId)
     if (!container) {
       return
@@ -889,10 +881,10 @@ class PlatformIsolationService {
     try {
       // 清理記憶體空間
       container.memoryScope.clear()
-      
+
       // 清理儲存空間
       container.storageScope.clear()
-      
+
       // 清理事件空間
       container.eventScope.clear()
 
@@ -913,7 +905,6 @@ class PlatformIsolationService {
       }
 
       await this.log(`清理容器資源完成: ${platformId}`)
-
     } catch (error) {
       await this.logError(`清理容器資源失敗: ${platformId}`, error)
       if (!force) {
@@ -926,7 +917,7 @@ class PlatformIsolationService {
    * 取得隔離服務健康狀態
    * @returns {Object} 健康狀態報告
    */
-  getHealthStatus() {
+  getHealthStatus () {
     const containerHealth = {}
     for (const [platformId, container] of this.isolationContainers) {
       containerHealth[platformId] = {
@@ -957,7 +948,7 @@ class PlatformIsolationService {
    * 產生加密金鑰
    * @returns {string} 加密金鑰
    */
-  generateEncryptionKey() {
+  generateEncryptionKey () {
     return `key-${Date.now()}-${Math.random().toString(36).substr(2, 16)}`
   }
 
@@ -966,7 +957,7 @@ class PlatformIsolationService {
    * @param {string} platformId - 平台標識符
    * @returns {string} 存取權杖
    */
-  generateAccessToken(platformId) {
+  generateAccessToken (platformId) {
     return `token-${platformId}-${Date.now()}-${Math.random().toString(36).substr(2, 12)}`
   }
 
@@ -975,7 +966,7 @@ class PlatformIsolationService {
    * @param {string} platformId - 平台標識符
    * @returns {Object} 權限配置
    */
-  getDefaultPermissions(platformId) {
+  getDefaultPermissions (platformId) {
     return {
       level: 'STANDARD',
       allowedOperations: [
@@ -998,7 +989,7 @@ class PlatformIsolationService {
    * @param {string} operation - 操作類型
    * @returns {boolean} 是否有權限
    */
-  hasPermission(permissions, operation) {
+  hasPermission (permissions, operation) {
     return permissions.allowedOperations.includes(operation)
   }
 
@@ -1008,7 +999,7 @@ class PlatformIsolationService {
    * @param {string} operation - 操作類型
    * @returns {boolean} 是否違反策略
    */
-  violatesSecurityPolicy(securityPolicy, operation) {
+  violatesSecurityPolicy (securityPolicy, operation) {
     return securityPolicy.forbiddenOperations.includes(operation)
   }
 
@@ -1017,7 +1008,7 @@ class PlatformIsolationService {
    * @param {string} platformId - 平台標識符
    * @returns {number} 記憶體使用量 (MB)
    */
-  getCurrentMemoryUsage(platformId) {
+  getCurrentMemoryUsage (platformId) {
     const container = this.isolationContainers.get(platformId)
     return container ? container.memoryScope.size * 0.1 : 0 // 模擬計算
   }
@@ -1027,7 +1018,7 @@ class PlatformIsolationService {
    * @param {string} platformId - 平台標識符
    * @returns {number} 處理時間 (ms)
    */
-  getCurrentProcessingTime(platformId) {
+  getCurrentProcessingTime (platformId) {
     const container = this.isolationContainers.get(platformId)
     return container ? container.monitoring.processingTime : 0
   }
@@ -1037,7 +1028,7 @@ class PlatformIsolationService {
    * @param {string} platformId - 平台標識符
    * @returns {number} 並發操作數
    */
-  getCurrentConcurrentOperations(platformId) {
+  getCurrentConcurrentOperations (platformId) {
     const container = this.isolationContainers.get(platformId)
     return container ? container.monitoring.operationCount : 0
   }
@@ -1047,7 +1038,7 @@ class PlatformIsolationService {
    * @param {string} platformId - 平台標識符
    * @returns {number} 儲存使用量 (MB)
    */
-  getCurrentStorageUsage(platformId) {
+  getCurrentStorageUsage (platformId) {
     const container = this.isolationContainers.get(platformId)
     return container ? container.storageScope.size * 0.05 : 0 // 模擬計算
   }
@@ -1057,7 +1048,7 @@ class PlatformIsolationService {
    * @param {Object} container - 容器上下文
    * @returns {Array} 汙染詳情
    */
-  checkMemoryContamination(container) {
+  checkMemoryContamination (container) {
     // 模擬記憶體汙染檢查邏輯
     const contamination = []
     // 實際實作中會檢查記憶體空間是否包含其他平台的資料
@@ -1069,7 +1060,7 @@ class PlatformIsolationService {
    * @param {Object} container - 容器上下文
    * @returns {Array} 汙染詳情
    */
-  checkEventContamination(container) {
+  checkEventContamination (container) {
     // 模擬事件汙染檢查邏輯
     const contamination = []
     // 實際實作中會檢查事件空間是否接收到其他平台的事件
@@ -1081,7 +1072,7 @@ class PlatformIsolationService {
    * @param {Object} container - 容器上下文
    * @returns {Array} 汙染詳情
    */
-  checkStorageContamination(container) {
+  checkStorageContamination (container) {
     // 模擬儲存汙染檢查邏輯
     const contamination = []
     // 實際實作中會檢查儲存空間是否包含其他平台的資料
@@ -1093,7 +1084,7 @@ class PlatformIsolationService {
    * @param {Object} contamination - 汙染資訊
    * @returns {string} 嚴重程度
    */
-  assessContaminationSeverity(contamination) {
+  assessContaminationSeverity (contamination) {
     const sourceCount = contamination.sources.length
     if (sourceCount >= 3) return 'CRITICAL'
     if (sourceCount >= 2) return 'HIGH'
@@ -1106,15 +1097,15 @@ class PlatformIsolationService {
    * @param {string} violationType - 違規類型
    * @returns {string} 嚴重程度
    */
-  assessViolationSeverity(violationType) {
+  assessViolationSeverity (violationType) {
     const severityMap = {
-      'CROSS_PLATFORM_CONTAMINATION': 'CRITICAL',
-      'UNAUTHORIZED_ACCESS': 'HIGH',
-      'SECURITY_POLICY_VIOLATION': 'HIGH',
-      'MEMORY_QUOTA_EXCEEDED': 'MEDIUM',
-      'PROCESSING_TIME_VIOLATION': 'MEDIUM',
-      'CONCURRENCY_QUOTA_EXCEEDED': 'LOW',
-      'INVALID_ACCESS_TOKEN': 'MEDIUM'
+      CROSS_PLATFORM_CONTAMINATION: 'CRITICAL',
+      UNAUTHORIZED_ACCESS: 'HIGH',
+      SECURITY_POLICY_VIOLATION: 'HIGH',
+      MEMORY_QUOTA_EXCEEDED: 'MEDIUM',
+      PROCESSING_TIME_VIOLATION: 'MEDIUM',
+      CONCURRENCY_QUOTA_EXCEEDED: 'LOW',
+      INVALID_ACCESS_TOKEN: 'MEDIUM'
     }
     return severityMap[violationType] || 'LOW'
   }
@@ -1123,7 +1114,7 @@ class PlatformIsolationService {
    * 終止超額操作
    * @param {string} platformId - 平台標識符
    */
-  async terminateExcessOperations(platformId) {
+  async terminateExcessOperations (platformId) {
     // 實作終止超額操作的邏輯
     await this.log(`終止平台 ${platformId} 的超額操作`)
   }
@@ -1132,7 +1123,7 @@ class PlatformIsolationService {
    * 清理記憶體使用
    * @param {string} platformId - 平台標識符
    */
-  async cleanupMemoryUsage(platformId) {
+  async cleanupMemoryUsage (platformId) {
     // 實作記憶體清理的邏輯
     await this.log(`清理平台 ${platformId} 的記憶體使用`)
   }
@@ -1141,7 +1132,7 @@ class PlatformIsolationService {
    * 節流處理
    * @param {string} platformId - 平台標識符
    */
-  async throttleProcessing(platformId) {
+  async throttleProcessing (platformId) {
     // 實作處理節流的邏輯
     await this.log(`節流平台 ${platformId} 的處理速度`)
   }
@@ -1150,7 +1141,7 @@ class PlatformIsolationService {
    * 應用預設配額控制
    * @param {string} platformId - 平台標識符
    */
-  async applyDefaultQuotaEnforcement(platformId) {
+  async applyDefaultQuotaEnforcement (platformId) {
     // 實作預設配額控制的邏輯
     await this.log(`應用平台 ${platformId} 的預設配額控制`)
   }
@@ -1159,7 +1150,7 @@ class PlatformIsolationService {
    * 限制平台存取
    * @param {string} platformId - 平台標識符
    */
-  async restrictPlatformAccess(platformId) {
+  async restrictPlatformAccess (platformId) {
     const permissions = this.platformPermissions.get(platformId)
     if (permissions) {
       permissions.level = 'RESTRICTED'
@@ -1171,7 +1162,7 @@ class PlatformIsolationService {
   /**
    * 檢查所有平台資源
    */
-  async checkAllPlatformResources() {
+  async checkAllPlatformResources () {
     const results = {}
     for (const platformId of this.supportedPlatforms) {
       if (this.isolationContainers.has(platformId)) {
@@ -1186,7 +1177,7 @@ class PlatformIsolationService {
    * @param {string} eventType - 事件類型
    * @param {Object} eventData - 事件資料
    */
-  async emitEvent(eventType, eventData) {
+  async emitEvent (eventType, eventData) {
     try {
       if (this.eventBus && typeof this.eventBus.emit === 'function') {
         await this.eventBus.emit(eventType, eventData)
@@ -1200,7 +1191,7 @@ class PlatformIsolationService {
    * 記錄日誌
    * @param {string} message - 日誌訊息
    */
-  async log(message) {
+  async log (message) {
     if (this.logger && typeof this.logger.info === 'function') {
       this.logger.info(`[PlatformIsolationService] ${message}`)
     } else {
@@ -1213,7 +1204,7 @@ class PlatformIsolationService {
    * @param {string} message - 錯誤訊息
    * @param {Error} error - 錯誤物件
    */
-  async logError(message, error) {
+  async logError (message, error) {
     if (this.logger && typeof this.logger.error === 'function') {
       this.logger.error(`[PlatformIsolationService] ${message}`, error)
     } else {
@@ -1225,7 +1216,7 @@ class PlatformIsolationService {
    * 記錄警告日誌
    * @param {string} message - 警告訊息
    */
-  async logWarning(message) {
+  async logWarning (message) {
     if (this.logger && typeof this.logger.warn === 'function') {
       this.logger.warn(`[PlatformIsolationService] ${message}`)
     } else {
@@ -1236,11 +1227,11 @@ class PlatformIsolationService {
   /**
    * 啟動隔離服務
    */
-  async start() {
+  async start () {
     if (!this.isInitialized) {
       await this.initialize()
     }
-    
+
     this.isIsolating = true
     await this.log('Platform Isolation Service 啟動')
   }
@@ -1248,21 +1239,21 @@ class PlatformIsolationService {
   /**
    * 停止隔離服務
    */
-  async stop() {
+  async stop () {
     this.isIsolating = false
-    
+
     // 清理所有隔離容器
     for (const platformId of this.isolationContainers.keys()) {
       await this.cleanupContainerResources(platformId, true)
     }
-    
+
     await this.log('Platform Isolation Service 已停止')
   }
 
   /**
    * 清理隔離服務資源
    */
-  async cleanup() {
+  async cleanup () {
     // 清理所有隔離容器
     this.isolationContainers.clear()
     this.sandboxes.clear()
@@ -1273,7 +1264,7 @@ class PlatformIsolationService {
     this.violationDetectors.clear()
     this.isolationViolations.clear()
     this.crossContaminationChecks.clear()
-    
+
     this.isInitialized = false
     await this.log('Platform Isolation Service 資源清理完成')
   }

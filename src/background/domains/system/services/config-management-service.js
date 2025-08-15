@@ -1,18 +1,18 @@
 /**
  * 配置管理服務
- * 
+ *
  * 負責功能：
  * - 系統配置的載入、保存和驗證
  * - 配置變更的監聽和通知
  * - 配置更新請求的處理和應用
  * - 配置驗證器的管理和執行
- * 
+ *
  * 設計考量：
  * - 配置的版本控制和向後相容
  * - 配置變更的原子性操作
  * - 配置驗證的可擴展架構
  * - 配置監聽器的生命週期管理
- * 
+ *
  * 使用情境：
  * - 系統配置的統一管理
  * - 動態配置更新和熱重載
@@ -27,28 +27,28 @@ const {
 } = require('../../constants/module-constants')
 
 class ConfigManagementService {
-  constructor(dependencies = {}) {
+  constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
     this.logger = dependencies.logger || console
     this.i18nManager = dependencies.i18nManager || null
-    
+
     // 服務狀態
     this.state = {
       initialized: false,
       active: false
     }
-    
+
     // 配置管理
     this.currentConfig = { ...DEFAULT_CONFIG }
     this.configHistory = []
     this.pendingUpdates = new Map()
-    
+
     // 配置監聽器和驗證器
     this.configurationWatchers = new Map()
     this.configurationValidators = new Map()
     this.registeredListeners = new Map()
-    
+
     // 統計資料
     this.stats = {
       configUpdates: 0,
@@ -56,7 +56,7 @@ class ConfigManagementService {
       validationFailures: 0,
       watcherNotifications: 0
     }
-    
+
     // 初始化預設驗證器
     this.initializeDefaultValidators()
   }
@@ -64,7 +64,7 @@ class ConfigManagementService {
   /**
    * 初始化配置管理服務
    */
-  async initialize() {
+  async initialize () {
     if (this.state.initialized) {
       this.logger.warn('⚠️ 配置管理服務已初始化')
       return
@@ -72,16 +72,16 @@ class ConfigManagementService {
 
     try {
       this.logger.log('⚙️ 初始化配置管理服務')
-      
+
       // 載入當前配置
       await this.loadConfiguration()
-      
+
       // 註冊事件監聽器
       await this.registerEventListeners()
-      
+
       this.state.initialized = true
       this.logger.log('✅ 配置管理服務初始化完成')
-      
+
       // 發送初始化完成事件
       if (this.eventBus) {
         await this.eventBus.emit('SYSTEM.CONFIG.INITIALIZED', {
@@ -98,7 +98,7 @@ class ConfigManagementService {
   /**
    * 啟動配置管理服務
    */
-  async start() {
+  async start () {
     if (!this.state.initialized) {
       throw new Error('服務尚未初始化')
     }
@@ -110,13 +110,13 @@ class ConfigManagementService {
 
     try {
       this.logger.log('🚀 啟動配置管理服務')
-      
+
       // 驗證當前配置
       await this.validateCurrentConfiguration()
-      
+
       this.state.active = true
       this.logger.log('✅ 配置管理服務啟動完成')
-      
+
       // 發送啟動完成事件
       if (this.eventBus) {
         await this.eventBus.emit('SYSTEM.CONFIG.STARTED', {
@@ -133,7 +133,7 @@ class ConfigManagementService {
   /**
    * 停止配置管理服務
    */
-  async stop() {
+  async stop () {
     if (!this.state.active) {
       this.logger.warn('⚠️ 配置管理服務未啟動')
       return
@@ -141,19 +141,19 @@ class ConfigManagementService {
 
     try {
       this.logger.log('🛑 停止配置管理服務')
-      
+
       // 保存當前配置
       await this.saveConfiguration()
-      
+
       // 清理待處理的更新
       this.pendingUpdates.clear()
-      
+
       // 取消註冊事件監聽器
       await this.unregisterEventListeners()
-      
+
       this.state.active = false
       this.logger.log('✅ 配置管理服務停止完成')
-      
+
       // 發送停止完成事件
       if (this.eventBus) {
         await this.eventBus.emit('SYSTEM.CONFIG.STOPPED', {
@@ -169,11 +169,11 @@ class ConfigManagementService {
   /**
    * 載入配置
    */
-  async loadConfiguration() {
+  async loadConfiguration () {
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         const result = await chrome.storage.local.get([STORAGE_KEYS.SYSTEM_CONFIG])
-        
+
         if (result[STORAGE_KEYS.SYSTEM_CONFIG]) {
           // 合併預設配置和儲存的配置
           this.currentConfig = { ...DEFAULT_CONFIG, ...result[STORAGE_KEYS.SYSTEM_CONFIG] }
@@ -194,7 +194,7 @@ class ConfigManagementService {
   /**
    * 保存配置
    */
-  async saveConfiguration() {
+  async saveConfiguration () {
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         await chrome.storage.local.set({
@@ -213,25 +213,25 @@ class ConfigManagementService {
   /**
    * 初始化預設驗證器
    */
-  initializeDefaultValidators() {
+  initializeDefaultValidators () {
     // 基本類型驗證器
     this.configurationValidators.set('type_boolean', (value) => {
       return typeof value === 'boolean'
     })
-    
+
     this.configurationValidators.set('type_string', (value) => {
       return typeof value === 'string'
     })
-    
+
     this.configurationValidators.set('type_number', (value) => {
       return typeof value === 'number' && !isNaN(value)
     })
-    
+
     // 範圍驗證器
     this.configurationValidators.set('positive_number', (value) => {
       return typeof value === 'number' && value > 0
     })
-    
+
     // 字串長度驗證器
     this.configurationValidators.set('non_empty_string', (value) => {
       return typeof value === 'string' && value.trim().length > 0
@@ -241,22 +241,22 @@ class ConfigManagementService {
   /**
    * 驗證當前配置
    */
-  async validateCurrentConfiguration() {
+  async validateCurrentConfiguration () {
     this.stats.validationAttempts++
-    
+
     try {
       const validation = await this.validateConfiguration(this.currentConfig)
-      
+
       if (!validation.isValid) {
         this.stats.validationFailures++
         this.logger.warn('⚠️ 當前配置驗證失敗:', validation.errors)
-        
+
         // 嘗試恢復到預設配置
         this.currentConfig = { ...DEFAULT_CONFIG }
         await this.saveConfiguration()
         this.logger.log('🔄 已恢復到預設配置')
       }
-      
+
       return validation
     } catch (error) {
       this.stats.validationFailures++
@@ -268,17 +268,17 @@ class ConfigManagementService {
   /**
    * 驗證配置
    */
-  async validateConfiguration(config) {
+  async validateConfiguration (config) {
     const errors = []
     const warnings = []
-    
+
     // 檢查必要的配置項
     for (const key of Object.keys(DEFAULT_CONFIG)) {
       if (!(key in config)) {
         errors.push(`缺少必要配置項: ${key}`)
       }
     }
-    
+
     // 執行註冊的驗證器
     for (const [key, value] of Object.entries(config)) {
       const validatorKey = `${key}_validator`
@@ -294,7 +294,7 @@ class ConfigManagementService {
         }
       }
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors,
@@ -305,44 +305,44 @@ class ConfigManagementService {
   /**
    * 應用配置更新
    */
-  async applyConfigurationUpdates(updates) {
+  async applyConfigurationUpdates (updates) {
     this.stats.configUpdates++
-    
+
     try {
       // 創建更新後的配置
       const newConfig = { ...this.currentConfig, ...updates }
-      
+
       // 驗證新配置
       const validation = await this.validateConfiguration(newConfig)
-      
+
       if (!validation.isValid) {
         throw new Error(`配置驗證失敗: ${validation.errors.join(', ')}`)
       }
-      
+
       // 保存舊配置到歷史
       this.configHistory.push({
         config: { ...this.currentConfig },
         timestamp: Date.now(),
         reason: 'update'
       })
-      
+
       // 限制歷史記錄數量
       if (this.configHistory.length > 10) {
         this.configHistory.shift()
       }
-      
+
       // 應用新配置
       const oldConfig = { ...this.currentConfig }
       this.currentConfig = newConfig
-      
+
       // 保存到儲存
       await this.saveConfiguration()
-      
+
       // 通知監聽器
       await this.notifyConfigurationWatchers(oldConfig, newConfig, updates)
-      
+
       this.logger.log('✅ 配置更新完成')
-      
+
       // 發送配置更新事件
       if (this.eventBus) {
         await this.eventBus.emit('SYSTEM.CONFIG.UPDATED', {
@@ -351,7 +351,7 @@ class ConfigManagementService {
           currentConfig: this.getSafeConfigSummary()
         })
       }
-      
+
       return { success: true, warnings: validation.warnings }
     } catch (error) {
       this.logger.error('❌ 應用配置更新失敗:', error)
@@ -362,7 +362,7 @@ class ConfigManagementService {
   /**
    * 通知配置監聽器
    */
-  async notifyConfigurationWatchers(oldConfig, newConfig, updates) {
+  async notifyConfigurationWatchers (oldConfig, newConfig, updates) {
     for (const [watcherKey, watcher] of this.configurationWatchers) {
       try {
         this.stats.watcherNotifications++
@@ -376,11 +376,11 @@ class ConfigManagementService {
   /**
    * 註冊配置監聽器
    */
-  registerConfigurationWatcher(key, watcher) {
+  registerConfigurationWatcher (key, watcher) {
     if (typeof watcher !== 'function') {
       throw new Error('配置監聽器必須是函數')
     }
-    
+
     this.configurationWatchers.set(key, watcher)
     this.logger.log(`✅ 註冊配置監聽器: ${key}`)
   }
@@ -388,7 +388,7 @@ class ConfigManagementService {
   /**
    * 取消註冊配置監聽器
    */
-  unregisterConfigurationWatcher(key) {
+  unregisterConfigurationWatcher (key) {
     const removed = this.configurationWatchers.delete(key)
     if (removed) {
       this.logger.log(`✅ 取消註冊配置監聽器: ${key}`)
@@ -399,11 +399,11 @@ class ConfigManagementService {
   /**
    * 註冊配置驗證器
    */
-  registerConfigurationValidator(key, validator) {
+  registerConfigurationValidator (key, validator) {
     if (typeof validator !== 'function') {
       throw new Error('配置驗證器必須是函數')
     }
-    
+
     this.configurationValidators.set(key, validator)
     this.logger.log(`✅ 註冊配置驗證器: ${key}`)
   }
@@ -411,7 +411,7 @@ class ConfigManagementService {
   /**
    * 註冊事件監聽器
    */
-  async registerEventListeners() {
+  async registerEventListeners () {
     if (!this.eventBus) {
       this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
       return
@@ -441,7 +441,7 @@ class ConfigManagementService {
   /**
    * 取消註冊事件監聽器
    */
-  async unregisterEventListeners() {
+  async unregisterEventListeners () {
     if (!this.eventBus) return
 
     for (const [event, listenerId] of this.registeredListeners) {
@@ -459,17 +459,17 @@ class ConfigManagementService {
   /**
    * 處理配置更新請求
    */
-  async handleConfigurationUpdateRequest(event) {
+  async handleConfigurationUpdateRequest (event) {
     try {
       const { updates } = event.data || {}
       if (!updates || typeof updates !== 'object') {
         throw new Error('無效的配置更新數據')
       }
-      
+
       await this.applyConfigurationUpdates(updates)
     } catch (error) {
       this.logger.error('❌ 處理配置更新請求失敗:', error)
-      
+
       if (this.eventBus) {
         await this.eventBus.emit('SYSTEM.CONFIG.UPDATE_FAILED', {
           error: error.message,
@@ -482,11 +482,11 @@ class ConfigManagementService {
   /**
    * 處理配置重載請求
    */
-  async handleConfigurationReloadRequest(event) {
+  async handleConfigurationReloadRequest (event) {
     try {
       await this.loadConfiguration()
       await this.validateCurrentConfiguration()
-      
+
       if (this.eventBus) {
         await this.eventBus.emit('SYSTEM.CONFIG.RELOADED', {
           config: this.getSafeConfigSummary(),
@@ -501,19 +501,19 @@ class ConfigManagementService {
   /**
    * 獲取當前配置
    */
-  getCurrentConfiguration() {
+  getCurrentConfiguration () {
     return { ...this.currentConfig }
   }
 
   /**
    * 獲取安全的配置摘要（隱藏敏感資訊）
    */
-  getSafeConfigSummary() {
+  getSafeConfigSummary () {
     const summary = {}
     for (const [key, value] of Object.entries(this.currentConfig)) {
       // 隱藏可能的敏感配置
-      if (key.toLowerCase().includes('password') || 
-          key.toLowerCase().includes('secret') || 
+      if (key.toLowerCase().includes('password') ||
+          key.toLowerCase().includes('secret') ||
           key.toLowerCase().includes('token')) {
         summary[key] = '[隱藏]'
       } else {
@@ -526,7 +526,7 @@ class ConfigManagementService {
   /**
    * 獲取服務狀態
    */
-  getStatus() {
+  getStatus () {
     return {
       initialized: this.state.initialized,
       active: this.state.active,
@@ -540,8 +540,8 @@ class ConfigManagementService {
   /**
    * 獲取健康狀態
    */
-  getHealthStatus() {
-    const isHealthy = this.state.initialized && 
+  getHealthStatus () {
+    const isHealthy = this.state.initialized &&
                      Object.keys(this.currentConfig).length > 0 &&
                      this.stats.validationFailures < this.stats.validationAttempts
 

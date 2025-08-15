@@ -2,7 +2,7 @@
  * @fileoverview Readmoo Migration Integration Tests
  * @version v2.0.0
  * @since 2025-08-15
- * 
+ *
  * 整合測試覆蓋：
  * - Readmoo 平台遷移驗證系統的完整整合
  * - 事件系統 v2.0 與 Readmoo 平台的真實互動
@@ -16,7 +16,7 @@ const PlatformDetectionService = require('../../src/background/domains/platform/
 
 // 模擬 Readmoo 適配器
 class MockReadmooAdapter {
-  constructor() {
+  constructor () {
     this.mockBooks = [
       {
         id: 'readmoo-book-1',
@@ -39,10 +39,10 @@ class MockReadmooAdapter {
     ]
   }
 
-  async extractBookData(context) {
+  async extractBookData (context) {
     // 模擬網路延遲
     await new Promise(resolve => setTimeout(resolve, 100))
-    
+
     if (context.url && context.url.includes('readmoo.com')) {
       return [...this.mockBooks]
     } else {
@@ -50,16 +50,16 @@ class MockReadmooAdapter {
     }
   }
 
-  validateExtractedData(data) {
+  validateExtractedData (data) {
     if (!Array.isArray(data)) return false
-    
+
     return data.every(item => {
-      return item.id && item.title && item.author && 
+      return item.id && item.title && item.author &&
              typeof item.progress === 'number' && item.platform === 'READMOO'
     })
   }
 
-  isOnBookLibraryPage(url) {
+  isOnBookLibraryPage (url) {
     return url && url.includes('readmoo.com/library')
   }
 }
@@ -99,7 +99,7 @@ describe('Readmoo Migration Integration Tests', () => {
     eventBus = new EventBus()
     platformDetectionService = new PlatformDetectionService(eventBus)
     readmooAdapter = new MockReadmooAdapter()
-    
+
     migrationValidator = new ReadmooPlatformMigrationValidator({
       eventBus,
       readmooAdapter,
@@ -119,7 +119,7 @@ describe('Readmoo Migration Integration Tests', () => {
 
       expect(result).toBeDefined()
       expect(result.isValid).toBe(true)
-      
+
       // 驗證各個組件的驗證結果
       expect(result.data.validationDetails.platformValidation.isValid).toBe(true)
       expect(result.data.validationDetails.dataExtractionValidation.isValid).toBe(true)
@@ -199,7 +199,7 @@ describe('Readmoo Migration Integration Tests', () => {
       expect(result.data.extractedData).toBeDefined()
       expect(result.data.extractedData.length).toBe(2)
       expect(result.data.dataCount).toBe(2)
-      
+
       // 驗證資料結構
       const firstBook = result.data.extractedData[0]
       expect(firstBook.id).toBeDefined()
@@ -239,7 +239,7 @@ describe('Readmoo Migration Integration Tests', () => {
 
     it('應該測試 v2.0 事件格式的正確性', async () => {
       const context = { platform: 'READMOO' }
-      
+
       // 監聽事件
       const eventPromises = []
       const testEvents = [
@@ -262,10 +262,10 @@ describe('Readmoo Migration Integration Tests', () => {
       const result = await migrationValidator.validateEventSystemIntegration(context)
 
       expect(result.isValid).toBe(true)
-      
+
       // 等待事件處理
       const eventResults = await Promise.all(eventPromises)
-      
+
       // 驗證事件是否正確發送
       eventResults.forEach(eventResult => {
         expect(eventResult.received).toBe(true)
@@ -310,7 +310,7 @@ describe('Readmoo Migration Integration Tests', () => {
       }
 
       const eventResults = await Promise.all(eventPromises)
-      
+
       eventResults.forEach(eventResult => {
         expect(eventResult.received).toBe(true)
       })
@@ -379,7 +379,7 @@ describe('Readmoo Migration Integration Tests', () => {
       }
 
       await migrationValidator.validateReadmooMigration(context)
-      
+
       const report = migrationValidator.getValidationReport()
 
       expect(report).toBeDefined()
@@ -509,7 +509,7 @@ describe('Readmoo Migration Integration Tests', () => {
 
       // 模擬慢速檢測
       const originalDetectPlatform = platformDetectionService.detectPlatform
-      platformDetectionService.detectPlatform = jest.fn(() => 
+      platformDetectionService.detectPlatform = jest.fn(() =>
         new Promise(resolve => setTimeout(resolve, 200))
       )
 

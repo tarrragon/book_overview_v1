@@ -29,7 +29,7 @@ const customMatchers = {
    * @param {Object} received - 實際檢測結果
    * @returns {Object} Jest 匹配結果
    */
-  toBeValidDetectionResult(received) {
+  toBeValidDetectionResult (received) {
     const pass = received &&
       typeof received.platformId === 'string' &&
       typeof received.confidence === 'number' &&
@@ -58,8 +58,8 @@ const customMatchers = {
    * @param {number} threshold - 信心度閾值
    * @returns {Object} Jest 匹配結果
    */
-  toHaveConfidenceAbove(received, threshold) {
-    const pass = received && 
+  toHaveConfidenceAbove (received, threshold) {
+    const pass = received &&
       typeof received.confidence === 'number' &&
       received.confidence > threshold
 
@@ -82,15 +82,15 @@ const customMatchers = {
    * @param {Array} expectedFeatures - 預期特徵列表
    * @returns {Object} Jest 匹配結果
    */
-  toContainFeatures(received, expectedFeatures) {
+  toContainFeatures (received, expectedFeatures) {
     if (!received || !Array.isArray(received.features)) {
       return {
-        message: () => `Expected result to have features array`,
+        message: () => 'Expected result to have features array',
         pass: false
       }
     }
 
-    const missingFeatures = expectedFeatures.filter(feature => 
+    const missingFeatures = expectedFeatures.filter(feature =>
       !received.features.includes(feature)
     )
 
@@ -115,7 +115,7 @@ const customMatchers = {
    * @param {number} maxTime - 最大允許時間（毫秒）
    * @returns {Object} Jest 匹配結果
    */
-  toCompleteWithin(received, maxTime) {
+  toCompleteWithin (received, maxTime) {
     const pass = typeof received === 'number' && received <= maxTime
 
     if (pass) {
@@ -135,7 +135,7 @@ const customMatchers = {
 /**
  * 安裝自訂匹配器
  */
-function setupCustomMatchers() {
+function setupCustomMatchers () {
   expect.extend(customMatchers)
 }
 
@@ -147,14 +147,14 @@ const assertions = {
    * 斷言檢測結果結構完整性
    * @param {Object} result - 檢測結果
    */
-  assertDetectionResultStructure(result) {
+  assertDetectionResultStructure (result) {
     expect(result).toBeDefined()
     expect(result).toHaveProperty('platformId')
     expect(result).toHaveProperty('confidence')
     expect(result).toHaveProperty('features')
     expect(result).toHaveProperty('capabilities')
     expect(result).toHaveProperty('metadata')
-    
+
     expect(typeof result.platformId).toBe('string')
     expect(typeof result.confidence).toBe('number')
     expect(Array.isArray(result.features)).toBe(true)
@@ -169,11 +169,11 @@ const assertions = {
    * @param {string} expectedPlatform - 預期平台
    * @param {number} minConfidence - 最小信心度
    */
-  assertPlatformDetection(result, expectedPlatform, minConfidence = 0.8) {
+  assertPlatformDetection (result, expectedPlatform, minConfidence = 0.8) {
     this.assertDetectionResultStructure(result)
     expect(result.platformId).toBe(expectedPlatform)
     expect(result.confidence).toBeGreaterThanOrEqual(minConfidence)
-    
+
     if (expectedPlatform !== 'UNKNOWN') {
       expect(result.features).toContain('url_pattern_match')
       expect(result.features.length).toBeGreaterThan(0)
@@ -185,7 +185,7 @@ const assertions = {
    * @param {number} duration - 檢測耗時（毫秒）
    * @param {number} maxTime - 最大允許時間（毫秒）
    */
-  assertDetectionPerformance(duration, maxTime = 500) {
+  assertDetectionPerformance (duration, maxTime = 500) {
     expect(duration).toBeLessThan(maxTime)
     expect(typeof duration).toBe('number')
     expect(duration).toBeGreaterThan(0)
@@ -197,7 +197,7 @@ const assertions = {
    * @param {string} expectedEvent - 預期事件名稱
    * @param {Object} expectedPayload - 預期事件負載
    */
-  assertEventEmission(mockEventBus, expectedEvent, expectedPayload = {}) {
+  assertEventEmission (mockEventBus, expectedEvent, expectedPayload = {}) {
     expect(mockEventBus.emit).toHaveBeenCalledWith(
       expectedEvent,
       expect.objectContaining({
@@ -218,7 +218,7 @@ const dataGenerators = {
    * @param {Object} options - 生成選項
    * @returns {string} 生成的 URL
    */
-  generateRandomUrl(platform, options = {}) {
+  generateRandomUrl (platform, options = {}) {
     const baseUrls = {
       READMOO: ['https://readmoo.com', 'https://www.readmoo.com'],
       KINDLE: ['https://read.amazon.com', 'https://kindle.amazon.com'],
@@ -230,13 +230,13 @@ const dataGenerators = {
     const paths = ['/library', '/books', '/collections', '/search']
     const queries = ['', '?page=1', '?category=fiction', '?sort=title']
 
-    const baseUrl = baseUrls[platform] 
+    const baseUrl = baseUrls[platform]
       ? baseUrls[platform][Math.floor(Math.random() * baseUrls[platform].length)]
       : 'https://unknown-platform.com'
-    
+
     const path = paths[Math.floor(Math.random() * paths.length)]
     const query = queries[Math.floor(Math.random() * queries.length)]
-    
+
     return `${baseUrl}${path}${query}`
   },
 
@@ -246,10 +246,10 @@ const dataGenerators = {
    * @param {Object} overrides - 覆蓋選項
    * @returns {Object} 檢測上下文
    */
-  generateDetectionContext(platform, overrides = {}) {
+  generateDetectionContext (platform, overrides = {}) {
     const url = overrides.url || this.generateRandomUrl(platform)
     let hostname
-    
+
     try {
       hostname = new URL(url).hostname
     } catch (error) {
@@ -271,7 +271,7 @@ const dataGenerators = {
    * @param {string} platform - 平台類型
    * @returns {Object} 模擬 DOM 物件
    */
-  generateMockDOM(platform) {
+  generateMockDOM (platform) {
     const features = {
       READMOO: { selectors: ['.library-book', '.readmoo-header'], text: '讀墨 Readmoo' },
       KINDLE: { selectors: ['.library-item', '.kindle-header'], text: 'Kindle Amazon' },
@@ -284,12 +284,12 @@ const dataGenerators = {
 
     return {
       querySelector: jest.fn((selector) => {
-        return platformFeatures.selectors.includes(selector) 
-          ? { textContent: 'Mock Element' } 
+        return platformFeatures.selectors.includes(selector)
+          ? { textContent: 'Mock Element' }
           : null
       }),
       querySelectorAll: jest.fn((selector) => {
-        return platformFeatures.selectors.includes(selector) 
+        return platformFeatures.selectors.includes(selector)
           ? [{ textContent: 'Mock Element 1' }, { textContent: 'Mock Element 2' }]
           : []
       }),
@@ -307,9 +307,9 @@ const dataGenerators = {
    * @param {number} countPerPlatform - 每平台生成數量
    * @returns {Array} 測試資料陣列
    */
-  generateBatchTestData(platforms, countPerPlatform = 5) {
+  generateBatchTestData (platforms, countPerPlatform = 5) {
     const testData = []
-    
+
     platforms.forEach(platform => {
       for (let i = 0; i < countPerPlatform; i++) {
         testData.push({
@@ -322,7 +322,7 @@ const dataGenerators = {
         })
       }
     })
-    
+
     return testData
   }
 }
@@ -337,19 +337,19 @@ const performanceUtils = {
    * @param {...any} args - 函數參數
    * @returns {Promise<Object>} 執行結果和時間
    */
-  async measureExecutionTime(fn, ...args) {
+  async measureExecutionTime (fn, ...args) {
     const start = process.hrtime.bigint()
-    
+
     try {
       const result = await fn(...args)
       const end = process.hrtime.bigint()
       const duration = Number(end - start) / 1000000 // 轉換為毫秒
-      
+
       return { result, duration, success: true }
     } catch (error) {
       const end = process.hrtime.bigint()
       const duration = Number(end - start) / 1000000
-      
+
       return { error, duration, success: false }
     }
   },
@@ -361,7 +361,7 @@ const performanceUtils = {
    * @param {Object} benchmarks - 效能基準
    * @returns {Promise<Object>} 基準測試結果
    */
-  async runPerformanceBenchmark(fn, testCases, benchmarks = {}) {
+  async runPerformanceBenchmark (fn, testCases, benchmarks = {}) {
     const {
       maxAverageTime = 500,
       maxSingleTime = 1000,
@@ -375,7 +375,7 @@ const performanceUtils = {
     for (const testCase of testCases) {
       const measurement = await this.measureExecutionTime(fn, testCase)
       results.push(measurement)
-      
+
       totalTime += measurement.duration
       if (measurement.success) successCount++
     }
@@ -385,8 +385,8 @@ const performanceUtils = {
     const successRate = successCount / testCases.length
 
     const benchmarkResult = {
-      passed: averageTime <= maxAverageTime && 
-              maxTime <= maxSingleTime && 
+      passed: averageTime <= maxAverageTime &&
+              maxTime <= maxSingleTime &&
               successRate >= minSuccessRate,
       metrics: {
         averageTime,
@@ -416,7 +416,7 @@ const reportGenerator = {
    * @param {Array} testResults - 測試結果陣列
    * @returns {Object} 摘要報告
    */
-  generateDetectionSummary(testResults) {
+  generateDetectionSummary (testResults) {
     const summary = {
       totalTests: testResults.length,
       successful: 0,
@@ -433,7 +433,7 @@ const reportGenerator = {
       if (result.success) {
         summary.successful++
         totalConfidence += result.detection?.confidence || 0
-        
+
         const platform = result.detection?.platformId || 'UNKNOWN'
         if (!summary.platformStats[platform]) {
           summary.platformStats[platform] = { count: 0, avgConfidence: 0 }
@@ -442,7 +442,7 @@ const reportGenerator = {
       } else {
         summary.failed++
       }
-      
+
       totalTime += result.duration || 0
     })
 
@@ -452,13 +452,13 @@ const reportGenerator = {
 
     // 計算各平台平均信心度
     Object.keys(summary.platformStats).forEach(platform => {
-      const platformResults = testResults.filter(r => 
+      const platformResults = testResults.filter(r =>
         r.success && r.detection?.platformId === platform
       )
-      const avgConfidence = platformResults.reduce((sum, r) => 
+      const avgConfidence = platformResults.reduce((sum, r) =>
         sum + r.detection.confidence, 0
       ) / platformResults.length
-      
+
       summary.platformStats[platform].avgConfidence = avgConfidence
     })
 
@@ -470,9 +470,9 @@ const reportGenerator = {
    * @param {Object} benchmarkResult - 基準測試結果
    * @returns {string} 效能報告文字
    */
-  generatePerformanceReport(benchmarkResult) {
+  generatePerformanceReport (benchmarkResult) {
     const { metrics, benchmarks, passed } = benchmarkResult
-    
+
     return `
 Performance Benchmark Report
 ============================

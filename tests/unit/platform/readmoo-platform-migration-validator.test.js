@@ -2,9 +2,9 @@
  * @fileoverview Readmoo Platform Migration Validator 測試
  * @version v2.0.0
  * @since 2025-08-15
- * 
+ *
  * 測試 Readmoo 平台在事件系統 v2.0 下的完整遷移驗證系統
- * 
+ *
  * 測試覆蓋範圍：
  * - ReadmooPlatformMigrationValidator 主要驗證協調器
  * - Readmoo 特定的資料提取邏輯驗證
@@ -41,7 +41,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
 
   beforeEach(() => {
     eventBus = new EventBus()
-    
+
     // Mock Readmoo Adapter
     mockReadmooAdapter = {
       extractBookData: jest.fn(),
@@ -184,7 +184,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
       }
 
       // 模擬超時
-      mockPlatformDetectionService.detectPlatform.mockImplementation(() => 
+      mockPlatformDetectionService.detectPlatform.mockImplementation(() =>
         new Promise(resolve => setTimeout(resolve, 35000))
       )
 
@@ -337,7 +337,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
 
       // 設定事件監聽器
       const eventPromises = []
-      
+
       eventPromises.push(new Promise(resolve => {
         eventBus.on('PLATFORM.READMOO.DETECTION.COMPLETED', resolve)
       }))

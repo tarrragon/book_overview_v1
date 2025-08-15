@@ -1,18 +1,18 @@
 /**
  * 頁面檢測服務
- * 
+ *
  * 負責功能：
  * - Readmoo 頁面智能檢測和分類
  * - URL 模式匹配和驗證
  * - 頁面類型識別和配置管理
  * - 頁面狀態變化監控
- * 
+ *
  * 設計考量：
  * - 可擴展的頁面檢測規則引擎
  * - 支援多書城檢測模式（為未來擴展準備）
  * - 高效能的URL模式匹配
  * - 即時頁面狀態追蹤
- * 
+ *
  * 使用情境：
  * - 檢測用戶是否在 Readmoo 頁面
  * - 識別頁面類型（書庫、書籍詳情、閱讀頁面）
@@ -25,29 +25,29 @@ const {
 } = require('../../constants/module-constants')
 
 class PageDetectionService {
-  constructor(dependencies = {}) {
+  constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
     this.logger = dependencies.logger || console
     this.i18nManager = dependencies.i18nManager || null
-    
+
     // 服務狀態
     this.state = {
       initialized: false,
       active: false,
       detecting: false
     }
-    
+
     // 頁面檢測配置
     this.detectionRules = new Map()
     this.urlPatterns = new Map()
     this.pageTypeConfigs = new Map()
     this.registeredListeners = new Map()
-    
+
     // 檢測結果快取
     this.detectionCache = new Map()
     this.cacheExpiry = 30000 // 30秒
-    
+
     // 統計資料
     this.stats = {
       detectionsPerformed: 0,
@@ -55,7 +55,7 @@ class PageDetectionService {
       cacheHits: 0,
       ruleMisses: 0
     }
-    
+
     // 初始化檢測規則
     this.initializeDetectionRules()
   }
@@ -63,7 +63,7 @@ class PageDetectionService {
   /**
    * 初始化頁面檢測服務
    */
-  async initialize() {
+  async initialize () {
     if (this.state.initialized) {
       this.logger.warn('⚠️ 頁面檢測服務已初始化')
       return
@@ -71,16 +71,16 @@ class PageDetectionService {
 
     try {
       this.logger.log('🔍 初始化頁面檢測服務')
-      
+
       // 初始化頁面類型配置
       await this.initializePageTypeConfigs()
-      
+
       // 註冊事件監聽器
       await this.registerEventListeners()
-      
+
       this.state.initialized = true
       this.logger.log('✅ 頁面檢測服務初始化完成')
-      
+
       // 發送初始化完成事件
       if (this.eventBus) {
         await this.eventBus.emit('PAGE.DETECTION.INITIALIZED', {
@@ -98,7 +98,7 @@ class PageDetectionService {
   /**
    * 啟動頁面檢測服務
    */
-  async start() {
+  async start () {
     if (!this.state.initialized) {
       throw new Error('服務尚未初始化')
     }
@@ -110,12 +110,12 @@ class PageDetectionService {
 
     try {
       this.logger.log('🚀 啟動頁面檢測服務')
-      
+
       this.state.active = true
       this.state.detecting = true
-      
+
       this.logger.log('✅ 頁面檢測服務啟動完成')
-      
+
       // 發送啟動完成事件
       if (this.eventBus) {
         await this.eventBus.emit('PAGE.DETECTION.STARTED', {
@@ -131,7 +131,7 @@ class PageDetectionService {
   /**
    * 停止頁面檢測服務
    */
-  async stop() {
+  async stop () {
     if (!this.state.active) {
       this.logger.warn('⚠️ 頁面檢測服務未啟動')
       return
@@ -139,18 +139,18 @@ class PageDetectionService {
 
     try {
       this.logger.log('🛑 停止頁面檢測服務')
-      
+
       // 清理快取
       this.detectionCache.clear()
-      
+
       // 取消註冊事件監聽器
       await this.unregisterEventListeners()
-      
+
       this.state.active = false
       this.state.detecting = false
-      
+
       this.logger.log('✅ 頁面檢測服務停止完成')
-      
+
       // 發送停止完成事件
       if (this.eventBus) {
         await this.eventBus.emit('PAGE.DETECTION.STOPPED', {
@@ -167,7 +167,7 @@ class PageDetectionService {
   /**
    * 初始化檢測規則
    */
-  initializeDetectionRules() {
+  initializeDetectionRules () {
     // Readmoo 主頁面檢測規則
     this.detectionRules.set('readmoo_main', {
       urlPattern: /^https:\/\/readmoo\.com/,
@@ -177,7 +177,7 @@ class PageDetectionService {
       pageType: 'readmoo_main',
       priority: 1
     })
-    
+
     // Readmoo 書庫頁面檢測規則
     this.detectionRules.set('readmoo_library', {
       urlPattern: /^https:\/\/readmoo\.com\/library/,
@@ -187,7 +187,7 @@ class PageDetectionService {
       pageType: 'readmoo_library',
       priority: 2
     })
-    
+
     // Readmoo 書籍詳情頁面檢測規則
     this.detectionRules.set('readmoo_book_detail', {
       urlPattern: /^https:\/\/readmoo\.com\/book\/\d+/,
@@ -197,7 +197,7 @@ class PageDetectionService {
       pageType: 'readmoo_book_detail',
       priority: 3
     })
-    
+
     // Readmoo 閱讀頁面檢測規則
     this.detectionRules.set('readmoo_reader', {
       urlPattern: /^https:\/\/readmoo\.com\/reader/,
@@ -207,14 +207,14 @@ class PageDetectionService {
       pageType: 'readmoo_reader',
       priority: 4
     })
-    
+
     this.logger.log(`✅ 初始化了 ${this.detectionRules.size} 個檢測規則`)
   }
 
   /**
    * 初始化頁面類型配置
    */
-  async initializePageTypeConfigs() {
+  async initializePageTypeConfigs () {
     // 書庫頁面配置
     this.pageTypeConfigs.set('readmoo_library', {
       displayName: 'Readmoo 書庫',
@@ -223,7 +223,7 @@ class PageDetectionService {
       extractionCapable: true,
       requiresLogin: true
     })
-    
+
     // 書籍詳情頁面配置
     this.pageTypeConfigs.set('readmoo_book_detail', {
       displayName: 'Readmoo 書籍詳情',
@@ -232,7 +232,7 @@ class PageDetectionService {
       extractionCapable: false,
       requiresLogin: false
     })
-    
+
     // 閱讀頁面配置
     this.pageTypeConfigs.set('readmoo_reader', {
       displayName: 'Readmoo 閱讀器',
@@ -241,7 +241,7 @@ class PageDetectionService {
       extractionCapable: false,
       requiresLogin: true
     })
-    
+
     // 主頁面配置
     this.pageTypeConfigs.set('readmoo_main', {
       displayName: 'Readmoo 主頁',
@@ -250,20 +250,20 @@ class PageDetectionService {
       extractionCapable: false,
       requiresLogin: false
     })
-    
+
     this.logger.log(`✅ 初始化了 ${this.pageTypeConfigs.size} 個頁面類型配置`)
   }
 
   /**
    * 檢測頁面類型
    */
-  async detectPageType(url, title = '', tabId = null) {
+  async detectPageType (url, title = '', tabId = null) {
     if (!this.state.detecting) {
       return { detected: false, reason: 'service_not_active' }
     }
 
     this.stats.detectionsPerformed++
-    
+
     try {
       // 檢查快取
       const cacheKey = `${url}_${title}`
@@ -272,17 +272,17 @@ class PageDetectionService {
         this.stats.cacheHits++
         return cached
       }
-      
+
       // 執行檢測規則
       const detectionResult = await this.executeDetectionRules(url, title)
-      
+
       // 快取結果
       this.setCachedResult(cacheKey, detectionResult)
-      
+
       // 更新統計
       if (detectionResult.detected) {
         this.stats.pagesDetected++
-        
+
         // 發送檢測成功事件
         if (this.eventBus) {
           await this.eventBus.emit('PAGE.DETECTED', {
@@ -297,9 +297,8 @@ class PageDetectionService {
       } else {
         this.stats.ruleMisses++
       }
-      
+
       return detectionResult
-      
     } catch (error) {
       this.logger.error('❌ 頁面檢測失敗:', error)
       return {
@@ -313,21 +312,21 @@ class PageDetectionService {
   /**
    * 執行檢測規則
    */
-  async executeDetectionRules(url, title) {
+  async executeDetectionRules (url, title) {
     // 按優先級排序規則
     const sortedRules = Array.from(this.detectionRules.entries())
       .sort(([, a], [, b]) => b.priority - a.priority)
-    
+
     for (const [ruleName, rule] of sortedRules) {
       try {
         // URL 模式匹配
         if (rule.urlPattern.test(url)) {
           // 執行額外檢查
           const additionalCheckPassed = await rule.additionalChecks(url, title)
-          
+
           if (additionalCheckPassed) {
             const config = this.pageTypeConfigs.get(rule.pageType)
-            
+
             return {
               detected: true,
               pageType: rule.pageType,
@@ -343,7 +342,7 @@ class PageDetectionService {
         this.logger.error(`檢測規則執行失敗 (${ruleName}):`, error)
       }
     }
-    
+
     return {
       detected: false,
       reason: 'no_matching_rules',
@@ -356,29 +355,29 @@ class PageDetectionService {
   /**
    * 獲取快取結果
    */
-  getCachedResult(key) {
+  getCachedResult (key) {
     const cached = this.detectionCache.get(key)
     if (cached && Date.now() - cached.timestamp < this.cacheExpiry) {
       return cached.result
     }
-    
+
     // 清理過期快取
     if (cached) {
       this.detectionCache.delete(key)
     }
-    
+
     return null
   }
 
   /**
    * 設定快取結果
    */
-  setCachedResult(key, result) {
+  setCachedResult (key, result) {
     this.detectionCache.set(key, {
       result,
       timestamp: Date.now()
     })
-    
+
     // 限制快取大小
     if (this.detectionCache.size > 100) {
       const oldestKey = this.detectionCache.keys().next().value
@@ -389,9 +388,9 @@ class PageDetectionService {
   /**
    * 批量檢測頁面
    */
-  async batchDetectPages(pages) {
+  async batchDetectPages (pages) {
     const results = []
-    
+
     for (const page of pages) {
       try {
         const result = await this.detectPageType(page.url, page.title, page.tabId)
@@ -409,31 +408,31 @@ class PageDetectionService {
         })
       }
     }
-    
+
     return results
   }
 
   /**
    * 註冊檢測規則
    */
-  registerDetectionRule(name, rule) {
+  registerDetectionRule (name, rule) {
     if (!rule.urlPattern || !rule.pageType) {
       throw new Error('檢測規則必須包含 urlPattern 和 pageType')
     }
-    
+
     this.detectionRules.set(name, {
       priority: 0,
       additionalChecks: () => true,
       ...rule
     })
-    
+
     this.logger.log(`✅ 註冊檢測規則: ${name}`)
   }
 
   /**
    * 註冊頁面類型配置
    */
-  registerPageTypeConfig(pageType, config) {
+  registerPageTypeConfig (pageType, config) {
     this.pageTypeConfigs.set(pageType, config)
     this.logger.log(`✅ 註冊頁面類型配置: ${pageType}`)
   }
@@ -441,7 +440,7 @@ class PageDetectionService {
   /**
    * 清理快取
    */
-  clearCache() {
+  clearCache () {
     this.detectionCache.clear()
     this.logger.log('✅ 檢測快取已清理')
   }
@@ -449,7 +448,7 @@ class PageDetectionService {
   /**
    * 註冊事件監聽器
    */
-  async registerEventListeners() {
+  async registerEventListeners () {
     if (!this.eventBus) {
       this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
       return
@@ -479,7 +478,7 @@ class PageDetectionService {
   /**
    * 取消註冊事件監聽器
    */
-  async unregisterEventListeners() {
+  async unregisterEventListeners () {
     if (!this.eventBus) return
 
     for (const [event, listenerId] of this.registeredListeners) {
@@ -497,16 +496,16 @@ class PageDetectionService {
   /**
    * 處理檢測請求
    */
-  async handleDetectionRequest(event) {
+  async handleDetectionRequest (event) {
     try {
       const { url, title, tabId, requestId } = event.data || {}
-      
+
       if (!url) {
         throw new Error('檢測請求必須包含 URL')
       }
-      
+
       const result = await this.detectPageType(url, title, tabId)
-      
+
       if (this.eventBus) {
         await this.eventBus.emit('PAGE.DETECTION.RESULT', {
           requestId,
@@ -517,7 +516,7 @@ class PageDetectionService {
       }
     } catch (error) {
       this.logger.error('❌ 處理檢測請求失敗:', error)
-      
+
       if (this.eventBus) {
         await this.eventBus.emit('PAGE.DETECTION.ERROR', {
           requestId: event.data?.requestId,
@@ -530,16 +529,16 @@ class PageDetectionService {
   /**
    * 處理批量檢測請求
    */
-  async handleBatchDetectionRequest(event) {
+  async handleBatchDetectionRequest (event) {
     try {
       const { pages, requestId } = event.data || {}
-      
+
       if (!Array.isArray(pages)) {
         throw new Error('批量檢測請求必須包含頁面陣列')
       }
-      
+
       const results = await this.batchDetectPages(pages)
-      
+
       if (this.eventBus) {
         await this.eventBus.emit('PAGE.BATCH_DETECTION.RESULT', {
           requestId,
@@ -556,7 +555,7 @@ class PageDetectionService {
   /**
    * 獲取服務狀態
    */
-  getStatus() {
+  getStatus () {
     return {
       initialized: this.state.initialized,
       active: this.state.active,
@@ -571,8 +570,8 @@ class PageDetectionService {
   /**
    * 獲取健康狀態
    */
-  getHealthStatus() {
-    const isHealthy = this.state.initialized && 
+  getHealthStatus () {
+    const isHealthy = this.state.initialized &&
                      this.detectionRules.size > 0 &&
                      this.pageTypeConfigs.size > 0
 
@@ -586,8 +585,9 @@ class PageDetectionService {
         pagesDetected: this.stats.pagesDetected,
         cacheHits: this.stats.cacheHits,
         ruleMisses: this.stats.ruleMisses,
-        cacheHitRate: this.stats.detectionsPerformed > 0 ? 
-          (this.stats.cacheHits / this.stats.detectionsPerformed * 100).toFixed(2) + '%' : '0%'
+        cacheHitRate: this.stats.detectionsPerformed > 0
+          ? (this.stats.cacheHits / this.stats.detectionsPerformed * 100).toFixed(2) + '%'
+          : '0%'
       }
     }
   }

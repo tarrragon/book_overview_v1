@@ -1,26 +1,26 @@
 /**
  * Data Validation Service v2.0
  * TDD Green Phase - 實作功能讓測試通過
- * 
+ *
  * 負責功能：
  * - 統一書籍資料格式驗證與標準化
  * - 跨平台資料品質檢測和修復
  * - 自動資料清理和修復
  * - 資料完整性驗證與錯誤回報
- * 
+ *
  * 設計考量：
  * - 支援 5 個平台的資料格式驗證
  * - 事件驅動架構 v2.0 整合
  * - 統一資料模型 v2.0 輸出格式
  * - 效能優化的批次處理
- * 
+ *
  * 處理流程：
  * 1. 初始化驗證規則和平台架構
  * 2. 接收驗證請求並開始批次處理
  * 3. 對每本書執行完整的驗證流程
  * 4. 生成標準化資料和驗證報告
  * 5. 發送事件通知和結果回傳
- * 
+ *
  * 使用情境：
  * - 資料提取完成後的驗證標準化
  * - 跨平台資料同步前的品質保證
@@ -31,7 +31,7 @@
 const crypto = require('crypto')
 
 class DataValidationService {
-  constructor(eventBus, config = {}) {
+  constructor (eventBus, config = {}) {
     // 驗證必要依賴
     if (!eventBus) {
       throw new Error('EventBus is required')
@@ -39,7 +39,7 @@ class DataValidationService {
 
     this.eventBus = eventBus
     this.serviceName = 'DataValidationService'
-    
+
     // 合併預設配置
     this.config = {
       autoFix: true,
@@ -85,7 +85,7 @@ class DataValidationService {
    * 初始化服務
    * 載入驗證規則、註冊事件監聽器
    */
-  async initialize() {
+  async initialize () {
     try {
       // 載入預設驗證規則
       await this._loadDefaultValidationRules()
@@ -107,7 +107,7 @@ class DataValidationService {
   /**
    * 載入平台特定驗證規則
    */
-  async loadPlatformValidationRules(platform) {
+  async loadPlatformValidationRules (platform) {
     if (!this.config.supportedPlatforms.includes(platform)) {
       throw new Error(`不支援的平台: ${platform}`)
     }
@@ -127,10 +127,10 @@ class DataValidationService {
   /**
    * 為特定平台載入驗證規則
    */
-  async loadRulesForPlatform(platform) {
+  async loadRulesForPlatform (platform) {
     const platformRules = this._getPlatformSpecificRules(platform)
     this.validationRules.set(platform, platformRules)
-    
+
     // 同時設置平台schema
     const platformSchema = this._getPlatformSchema(platform)
     this.platformSchemas.set(platform, platformSchema)
@@ -139,7 +139,7 @@ class DataValidationService {
   /**
    * 主要驗證和標準化方法
    */
-  async validateAndNormalize(books, platform, source) {
+  async validateAndNormalize (books, platform, source) {
     // 輸入驗證
     this._validateInputs(books, platform, source)
 
@@ -184,7 +184,7 @@ class DataValidationService {
   /**
    * 執行實際的驗證邏輯 (不包含逾時控制)
    */
-  async _performValidation(books, platform, source, validationId, startTime) {
+  async _performValidation (books, platform, source, validationId, startTime) {
     // 處理大批次分割
     const batches = this._splitIntoBatches(books)
     let allValidBooks = []
@@ -195,10 +195,10 @@ class DataValidationService {
     // 處理每個批次
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
       const batch = batches[batchIndex]
-      
+
       // 驗證單個批次
       const batchResult = await this._processBatch(batch, platform, source, batchIndex, batches.length)
-      
+
       allValidBooks = allValidBooks.concat(batchResult.validBooks)
       allInvalidBooks = allInvalidBooks.concat(batchResult.invalidBooks)
       allWarnings = allWarnings.concat(batchResult.warnings)
@@ -240,7 +240,7 @@ class DataValidationService {
         const bookSize = JSON.stringify(book).length
         return total + bookSize
       }, 0)
-      
+
       // 如果估算記憶體超過閾值，發出記憶體管理警告
       if (estimatedMemoryUsage > 1000000) { // 1MB
         allWarnings.push({
@@ -314,7 +314,7 @@ class DataValidationService {
   /**
    * 處理單個批次
    */
-  async _processBatch(batch, platform, source, batchIndex, totalBatches) {
+  async _processBatch (batch, platform, source, batchIndex, totalBatches) {
     const validBooks = []
     const invalidBooks = []
     const warnings = []
@@ -335,7 +335,7 @@ class DataValidationService {
 
       try {
         const validation = await this.validateSingleBook(book, platform, source)
-        
+
         if (validation.isValid) {
           validBooks.push(validation)
           const normalized = await this.normalizeBook(validation.book, platform)
@@ -347,7 +347,7 @@ class DataValidationService {
         // 收集警告
         if (validation.warnings && validation.warnings.length > 0) {
           warnings.push(...validation.warnings)
-          
+
           // 發送品質警告事件
           await this.eventBus.emit('DATA.QUALITY.WARNING', {
             platform,
@@ -356,18 +356,17 @@ class DataValidationService {
             timestamp: new Date().toISOString()
           })
         }
-
       } catch (error) {
         // 區分系統級錯誤和業務驗證錯誤
-        if (error.message === '系統驗證錯誤' || 
-            error.message.includes('系統錯誤') || 
+        if (error.message === '系統驗證錯誤' ||
+            error.message.includes('系統錯誤') ||
             error.message.includes('heap out of memory') ||
             error.message === '模擬驗證錯誤' ||
             error.message === '驗證規則損壞') {
           // 系統級錯誤需要中斷處理並拋出
           throw error
         }
-        
+
         invalidBooks.push({
           book,
           bookId: book.id || 'unknown',
@@ -403,9 +402,9 @@ class DataValidationService {
   /**
    * 驗證單本書籍
    */
-  async validateSingleBook(book, platform, source) {
+  async validateSingleBook (book, platform, source) {
     const bookId = book.id || book.ASIN || book.kobo_id || 'unknown'
-    
+
     // 檢查快取
     if (this.config.enableCache) {
       const cacheKey = this._generateCacheKey(book, platform)
@@ -449,7 +448,7 @@ class DataValidationService {
       await this._validateDataTypes(validation, rules)
       await this._validateBusinessRules(validation, rules)
       await this._performQualityChecks(validation, rules)
-      
+
       // 執行後處理修復（在驗證之後）
       if (this.config.autoFix) {
         await this._performPostValidationFixes(validation)
@@ -462,16 +461,15 @@ class DataValidationService {
       }
 
       return validation
-
     } catch (error) {
       // 對於系統級關鍵錯誤，直接拋出
-      if (error.message === '驗證規則損壞' || 
-          error.message.includes('系統錯誤') || 
+      if (error.message === '驗證規則損壞' ||
+          error.message.includes('系統錯誤') ||
           error.message.includes('heap out of memory') ||
           error.message === '模擬驗證錯誤') {
         throw error
       }
-      
+
       // 其他錯誤包裝成驗證失敗
       validation.isValid = false
       validation.errors.push({
@@ -486,12 +484,12 @@ class DataValidationService {
   /**
    * 標準化書籍資料為 v2.0 統一格式
    */
-  async normalizeBook(book, platform) {
+  async normalizeBook (book, platform) {
     const now = new Date().toISOString()
-    
+
     // 生成跨平台統一ID
     const crossPlatformId = await this._generateCrossPlatformId(book)
-    
+
     // 生成資料指紋
     const dataFingerprint = await this.generateDataFingerprint(book)
 
@@ -501,34 +499,34 @@ class DataValidationService {
       id: book.id || book.ASIN || book.kobo_id || '',
       crossPlatformId,
       platform,
-      
+
       // 基本書籍資訊
       title: this._normalizeTitle(book.title),
       authors: this._normalizeAuthors(book.authors || book.author || book.contributors),
       publisher: book.publisher || book.imprint || '',
       isbn: this._normalizeISBN(book.isbn),
-      
+
       // 封面圖片
       cover: this._normalizeCover(book.cover),
-      
+
       // 閱讀狀態
       progress: this._normalizeProgress(book.progress || book.reading_progress || book.reading_state),
       status: this._normalizeReadingStatus(book.status || book.isFinished),
-      
+
       // 評分和標籤
       rating: typeof book.rating === 'number' ? Math.max(0, Math.min(5, book.rating)) : 0,
       tags: Array.isArray(book.tags) ? book.tags : (book.categories || []),
       notes: book.notes || book.review || '',
-      
+
       // 日期資訊
       purchaseDate: book.purchaseDate || book.acquired_date || now,
-      
+
       // v2.0 模型欄位
       schemaVersion: '2.0.0',
       createdAt: now,
       updatedAt: now,
       dataFingerprint,
-      
+
       // 平台特定元資料
       platformMetadata: {
         [platform]: {
@@ -537,7 +535,7 @@ class DataValidationService {
           dataQuality: this._assessDataQuality(book)
         }
       },
-      
+
       // 同步管理欄位
       syncStatus: {
         lastSyncTimestamp: now,
@@ -554,28 +552,28 @@ class DataValidationService {
   /**
    * 計算品質分數
    */
-  calculateQualityScore(report) {
+  calculateQualityScore (report) {
     if (report.totalBooks === 0) {
       return 0
     }
 
     const validPercentage = (report.validBooks.length / report.totalBooks) * 100
     const warningPenalty = Math.min(report.warnings.length, 20) // 最多扣20分
-    
+
     return Math.max(0, Math.round(validPercentage - warningPenalty))
   }
 
   /**
    * 生成資料指紋
    */
-  async generateDataFingerprint(book) {
+  async generateDataFingerprint (book) {
     // 只使用核心欄位來生成指紋，忽略平台特定和動態欄位
     const coreData = {
       title: (book.title || '').trim().toLowerCase(),
       authors: this._normalizeAuthors(book.authors || book.author || book.contributors),
       isbn: this._normalizeISBN(book.isbn)
     }
-    
+
     const dataString = JSON.stringify(coreData)
     return this.hashString(dataString)
   }
@@ -583,14 +581,14 @@ class DataValidationService {
   /**
    * 雜湊字串工具方法
    */
-  hashString(str) {
+  hashString (str) {
     return crypto.createHash('md5').update(str).digest('hex').substring(0, 16)
   }
 
   /**
    * 取得嵌套物件值
    */
-  getNestedValue(obj, path) {
+  getNestedValue (obj, path) {
     return path.split('.').reduce((current, key) => {
       return current && current[key] !== undefined ? current[key] : undefined
     }, obj)
@@ -599,7 +597,7 @@ class DataValidationService {
   /**
    * 檢查資料類型
    */
-  isCorrectType(value, expectedType) {
+  isCorrectType (value, expectedType) {
     switch (expectedType) {
       case 'string':
         return typeof value === 'string'
@@ -621,7 +619,7 @@ class DataValidationService {
   /**
    * 清理服務
    */
-  destroy() {
+  destroy () {
     if (this.validationCache) {
       this.validationCache.clear()
       this.cacheTimestamps.clear()
@@ -637,7 +635,7 @@ class DataValidationService {
   /**
    * 載入預設驗證規則
    */
-  async _loadDefaultValidationRules() {
+  async _loadDefaultValidationRules () {
     const defaultRules = {
       required: ['id', 'title'],
       types: {
@@ -653,16 +651,16 @@ class DataValidationService {
         ratingRange: { min: 0, max: 5 }
       }
     }
-    
+
     this.validationRules.set('DEFAULT', defaultRules)
   }
 
   /**
    * 取得平台特定驗證規則
    */
-  _getPlatformSpecificRules(platform) {
+  _getPlatformSpecificRules (platform) {
     const baseRules = this.validationRules.get('DEFAULT') || {}
-    
+
     const platformSpecificRules = {
       READMOO: {
         ...baseRules,
@@ -719,7 +717,7 @@ class DataValidationService {
   /**
    * 獲取平台特定的資料架構定義
    */
-  _getPlatformSchema(platform) {
+  _getPlatformSchema (platform) {
     const schemas = {
       READMOO: {
         version: '2.0.0',
@@ -800,7 +798,7 @@ class DataValidationService {
   /**
    * 註冊事件監聽器
    */
-  _registerEventListeners() {
+  _registerEventListeners () {
     // 監聽驗證請求
     this.eventBus.on('DATA.VALIDATION.REQUESTED', async (data) => {
       try {
@@ -860,8 +858,8 @@ class DataValidationService {
         if (data.books && data.platform) {
           try {
             const result = await this.validateAndNormalize(
-              data.books, 
-              data.platform, 
+              data.books,
+              data.platform,
               'EXTRACTION'
             )
             await this.eventBus.emit('DATA.VALIDATION.COMPLETED', {
@@ -882,15 +880,15 @@ class DataValidationService {
   /**
    * 輸入驗證
    */
-  _validateInputs(books, platform, source) {
+  _validateInputs (books, platform, source) {
     if (books === null || books === undefined) {
       throw new Error('書籍資料不能為空')
     }
-    
+
     if (!Array.isArray(books)) {
       throw new Error('書籍資料必須是陣列')
     }
-    
+
     if (!platform || typeof platform !== 'string') {
       throw new Error('平台名稱不能為空')
     }
@@ -899,28 +897,28 @@ class DataValidationService {
   /**
    * 生成驗證ID
    */
-  _generateValidationId() {
+  _generateValidationId () {
     return `validation_${Date.now()}_${Math.random().toString(36).substring(2)}`
   }
 
   /**
    * 分割批次
    */
-  _splitIntoBatches(books) {
+  _splitIntoBatches (books) {
     const batchSize = Math.min(this.config.batchSize, this.config.maxBatchSize)
     const batches = []
-    
+
     for (let i = 0; i < books.length; i += batchSize) {
       batches.push(books.slice(i, i + batchSize))
     }
-    
+
     return batches
   }
 
   /**
    * 取得驗證規則
    */
-  _getValidationRules(platform) {
+  _getValidationRules (platform) {
     // 明確檢查平台規則是否存在且有效
     if (this.validationRules.has(platform)) {
       const rules = this.validationRules.get(platform)
@@ -930,7 +928,7 @@ class DataValidationService {
       }
       return rules
     }
-    
+
     // 如果平台規則不存在，返回預設規則
     return this.validationRules.get('DEFAULT')
   }
@@ -938,9 +936,9 @@ class DataValidationService {
   /**
    * 驗證必填欄位
    */
-  async _validateRequiredFields(validation, rules) {
+  async _validateRequiredFields (validation, rules) {
     const required = rules.required || []
-    
+
     for (const field of required) {
       const value = validation.book[field]
       if (value === undefined || value === null || value === '') {
@@ -957,16 +955,16 @@ class DataValidationService {
   /**
    * 驗證資料類型
    */
-  async _validateDataTypes(validation, rules) {
+  async _validateDataTypes (validation, rules) {
     const types = rules.types || {}
-    
+
     for (const [field, expectedType] of Object.entries(types)) {
       const value = validation.book[field]
       if (value !== undefined && value !== null) {
         // 對於 authors 欄位，允許物件陣列（Kindle格式）
         if (field === 'authors' && expectedType === 'array' && Array.isArray(value)) {
           // 檢查是否為物件陣列（Kindle格式）或字串陣列
-          const isValidAuthors = value.every(author => 
+          const isValidAuthors = value.every(author =>
             typeof author === 'string' || (typeof author === 'object' && author.name)
           )
           if (!isValidAuthors) {
@@ -996,7 +994,7 @@ class DataValidationService {
   /**
    * 驗證商業規則
    */
-  async _validateBusinessRules(validation, rules) {
+  async _validateBusinessRules (validation, rules) {
     const business = rules.business || {}
     const book = validation.book
 
@@ -1046,7 +1044,7 @@ class DataValidationService {
   /**
    * 品質檢查
    */
-  async _performQualityChecks(validation, rules) {
+  async _performQualityChecks (validation, rules) {
     const book = validation.book
 
     // 標題品質檢查
@@ -1117,7 +1115,7 @@ class DataValidationService {
   /**
    * 預處理修復（在驗證之前執行）
    */
-  async _performPreValidationFixes(validation) {
+  async _performPreValidationFixes (validation) {
     const book = validation.book
 
     // 修復標題空白
@@ -1158,7 +1156,7 @@ class DataValidationService {
         }
         return author
       })
-      
+
       if (needsFixing) {
         book.authors = fixedAuthors
         validation.fixes.push({
@@ -1177,7 +1175,7 @@ class DataValidationService {
         .filter(contributor => contributor.role === 'Author')
         .map(contributor => contributor.name)
         .filter(name => name)
-      
+
       if (book.authors.length > 0) {
         validation.fixes.push({
           type: 'KOBO_CONTRIBUTORS_TO_AUTHORS_FIX',
@@ -1208,15 +1206,15 @@ class DataValidationService {
     if (book.reading_progress && !book.progress) {
       const originalReading = book.reading_progress
       let percentage = 0
-      
+
       if (originalReading.percent_complete !== undefined) {
         percentage = Math.max(0, Math.min(100, originalReading.percent_complete))
       }
-      
+
       book.progress = {
-        percentage: percentage
+        percentage
       }
-      
+
       validation.fixes.push({
         type: 'KINDLE_PROGRESS_FORMAT_FIX',
         field: 'reading_progress -> progress',
@@ -1226,20 +1224,20 @@ class DataValidationService {
       delete book.reading_progress
     }
 
-    // 統一 KOBO 進度格式: reading_state -> progress  
+    // 統一 KOBO 進度格式: reading_state -> progress
     if (book.reading_state && !book.progress) {
       const originalState = book.reading_state
       let percentage = 0
-      
+
       if (originalState.current_position !== undefined) {
         // current_position 通常是 0-1 的小數，轉換為 0-100 的百分比
         percentage = Math.max(0, Math.min(100, originalState.current_position * 100))
       }
-      
+
       book.progress = {
-        percentage: percentage
+        percentage
       }
-      
+
       validation.fixes.push({
         type: 'KOBO_PROGRESS_FORMAT_FIX',
         field: 'reading_state -> progress',
@@ -1253,7 +1251,7 @@ class DataValidationService {
   /**
    * 後處理修復（在驗證之後執行）
    */
-  async _performPostValidationFixes(validation) {
+  async _performPostValidationFixes (validation) {
     const book = validation.book
 
     // 修復 ISBN 格式
@@ -1293,7 +1291,7 @@ class DataValidationService {
         })
         book.progress.percentage = 100
       }
-      
+
       if (book.progress.currentPage < 0) {
         validation.fixes.push({
           type: 'PROGRESS_RANGE_FIX',
@@ -1309,25 +1307,25 @@ class DataValidationService {
   /**
    * 生成跨平台統一ID
    */
-  async _generateCrossPlatformId(book) {
+  async _generateCrossPlatformId (book) {
     // 使用核心識別資訊生成統一ID
     const identifiers = [
       (book.title || '').trim().toLowerCase(),
       this._normalizeAuthors(book.authors || book.author || book.contributors).join('|'),
       this._normalizeISBN(book.isbn)
     ].filter(Boolean)
-    
+
     if (identifiers.length === 0) {
       return this.hashString(`fallback_${book.id || Math.random()}`)
     }
-    
+
     return this.hashString(identifiers.join('::'))
   }
 
   /**
    * 標準化標題
    */
-  _normalizeTitle(title) {
+  _normalizeTitle (title) {
     if (!title) return ''
     return title.trim().replace(/\s+/g, ' ')
   }
@@ -1335,13 +1333,13 @@ class DataValidationService {
   /**
    * 標準化作者
    */
-  _normalizeAuthors(authors) {
+  _normalizeAuthors (authors) {
     if (!authors) return []
-    
+
     if (typeof authors === 'string') {
       return [authors.trim()]
     }
-    
+
     if (Array.isArray(authors)) {
       return authors.map(author => {
         if (typeof author === 'string') {
@@ -1353,14 +1351,14 @@ class DataValidationService {
         return String(author).trim()
       }).filter(name => name.length > 0)
     }
-    
+
     return []
   }
 
   /**
    * 標準化 ISBN
    */
-  _normalizeISBN(isbn) {
+  _normalizeISBN (isbn) {
     if (!isbn) return ''
     return String(isbn).replace(/[-\s:]/g, '').replace(/^isbn/i, '')
   }
@@ -1368,7 +1366,7 @@ class DataValidationService {
   /**
    * 標準化封面
    */
-  _normalizeCover(cover) {
+  _normalizeCover (cover) {
     if (!cover) {
       return {
         thumbnail: '',
@@ -1376,7 +1374,7 @@ class DataValidationService {
         large: ''
       }
     }
-    
+
     if (typeof cover === 'string') {
       return {
         thumbnail: cover,
@@ -1384,7 +1382,7 @@ class DataValidationService {
         large: cover
       }
     }
-    
+
     if (typeof cover === 'object') {
       return {
         thumbnail: cover.small || cover.thumbnail || cover.medium || cover.large || '',
@@ -1392,7 +1390,7 @@ class DataValidationService {
         large: cover.large || cover.medium || cover.small || cover.thumbnail || ''
       }
     }
-    
+
     return {
       thumbnail: '',
       medium: '',
@@ -1403,7 +1401,7 @@ class DataValidationService {
   /**
    * 標準化進度
    */
-  _normalizeProgress(progress) {
+  _normalizeProgress (progress) {
     if (!progress) {
       return {
         percentage: 0,
@@ -1412,7 +1410,7 @@ class DataValidationService {
         lastPosition: ''
       }
     }
-    
+
     if (typeof progress === 'number') {
       return {
         percentage: Math.max(0, Math.min(100, Math.floor(progress))),
@@ -1421,7 +1419,7 @@ class DataValidationService {
         lastPosition: ''
       }
     }
-    
+
     if (typeof progress === 'object') {
       let percentage = progress.percentage || progress.percent_complete || 0
       if (progress.current_position !== undefined) {
@@ -1431,7 +1429,7 @@ class DataValidationService {
       if (progress.percent !== undefined) {
         percentage = Math.max(0, Math.min(100, progress.percent))
       }
-      
+
       return {
         percentage: Math.max(0, Math.min(100, Math.floor(percentage))),
         currentPage: Math.max(0, progress.currentPage || progress.page || 0),
@@ -1439,7 +1437,7 @@ class DataValidationService {
         lastPosition: progress.lastPosition || progress.last_read || ''
       }
     }
-    
+
     return {
       percentage: 0,
       currentPage: 0,
@@ -1451,11 +1449,11 @@ class DataValidationService {
   /**
    * 標準化閱讀狀態
    */
-  _normalizeReadingStatus(status) {
+  _normalizeReadingStatus (status) {
     if (typeof status === 'boolean') {
       return status ? 'FINISHED' : 'READING'
     }
-    
+
     if (typeof status === 'string') {
       const normalizedStatus = status.toUpperCase()
       if (['FINISHED', 'COMPLETED', 'DONE'].includes(normalizedStatus)) {
@@ -1468,31 +1466,31 @@ class DataValidationService {
         return 'NOT_STARTED'
       }
     }
-    
+
     return 'NOT_STARTED'
   }
 
   /**
    * 提取平台特定資料
    */
-  _extractPlatformSpecificData(book, platform) {
+  _extractPlatformSpecificData (book, platform) {
     const platformSpecific = {}
     const prefix = platform.toLowerCase()
-    
+
     // 提取以平台名稱開頭的欄位
     Object.keys(book).forEach(key => {
       if (key.startsWith(prefix)) {
         platformSpecific[key] = book[key]
       }
     })
-    
+
     // 平台特定欄位映射
     const platformFields = {
       READMOO: ['type', 'isNew', 'isFinished'],
       KINDLE: ['ASIN', 'whispersync_device', 'kindle_price'],
       KOBO: ['contributors', 'kobo_categories', 'reading_state']
     }
-    
+
     if (platformFields[platform]) {
       platformFields[platform].forEach(field => {
         if (book[field] !== undefined) {
@@ -1500,57 +1498,57 @@ class DataValidationService {
         }
       })
     }
-    
+
     return platformSpecific
   }
 
   /**
    * 評估資料品質
    */
-  _assessDataQuality(book) {
+  _assessDataQuality (book) {
     let qualityScore = 100
-    
+
     // 檢查核心欄位
     if (!book.title || book.title.trim().length < 2) qualityScore -= 20
     if (!book.authors || (Array.isArray(book.authors) && book.authors.length === 0)) qualityScore -= 15
     if (!book.isbn || book.isbn.length < 10) qualityScore -= 10
     if (!book.cover) qualityScore -= 10
     if (!book.publisher) qualityScore -= 5
-    
+
     return Math.max(0, qualityScore)
   }
 
   /**
    * 快取相關方法
    */
-  _generateCacheKey(book, platform) {
+  _generateCacheKey (book, platform) {
     const key = `${platform}_${book.id || book.ASIN || 'unknown'}_${this.hashString(JSON.stringify(book))}`
     return key
   }
 
-  _getCachedValidation(cacheKey) {
+  _getCachedValidation (cacheKey) {
     if (!this.validationCache || !this.cacheTimestamps) return null
-    
+
     const timestamp = this.cacheTimestamps.get(cacheKey)
     if (!timestamp || Date.now() - timestamp > this.config.cacheTTL) {
       this.validationCache.delete(cacheKey)
       this.cacheTimestamps.delete(cacheKey)
       return null
     }
-    
+
     return this.validationCache.get(cacheKey)
   }
 
-  _setCachedValidation(cacheKey, validation) {
+  _setCachedValidation (cacheKey, validation) {
     if (!this.validationCache || !this.cacheTimestamps) return
-    
+
     // 限制快取大小
     if (this.validationCache.size >= this.config.cacheSize) {
       const oldestKey = this.validationCache.keys().next().value
       this.validationCache.delete(oldestKey)
       this.cacheTimestamps.delete(oldestKey)
     }
-    
+
     // 複製驗證結果以避免意外修改
     this.validationCache.set(cacheKey, { ...validation })
     this.cacheTimestamps.set(cacheKey, Date.now())

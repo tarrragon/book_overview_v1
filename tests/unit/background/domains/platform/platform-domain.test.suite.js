@@ -33,7 +33,7 @@ describe('Platform Domain Test Suite', () => {
   beforeAll(() => {
     // 設定自訂匹配器
     setupCustomMatchers()
-    
+
     console.log('🌐 Platform Domain v2.0 Test Suite Starting...')
     console.log('📋 Test Coverage Target: 100% for all testable code paths')
   })
@@ -113,10 +113,10 @@ const testStats = {
 
   // 測試類型統計
   testTypes: {
-    unit: 67,        // 單元測試數量
+    unit: 67, // 單元測試數量
     integration: 24, // 整合測試數量
     performance: 12, // 效能測試數量
-    e2e: 0          // 端對端測試數量（由其他測試套件處理）
+    e2e: 0 // 端對端測試數量（由其他測試套件處理）
   },
 
   // 效能基準統計
@@ -131,7 +131,7 @@ const testStats = {
 // 匯出測試統計（供 CI/CD 使用）
 module.exports = {
   testStats,
-  
+
   // 測試套件資訊
   suiteInfo: {
     name: 'Platform Domain Test Suite',

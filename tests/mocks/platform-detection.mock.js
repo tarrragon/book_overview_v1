@@ -41,7 +41,7 @@ const PLATFORM_URL_PATTERNS = {
       'https://readmoo.com/contact'
     ]
   },
-  
+
   KINDLE: {
     valid: [
       'https://read.amazon.com/library',
@@ -56,7 +56,7 @@ const PLATFORM_URL_PATTERNS = {
       'https://www.amazon.com/books'
     ]
   },
-  
+
   KOBO: {
     valid: [
       'https://www.kobo.com/library',
@@ -70,7 +70,7 @@ const PLATFORM_URL_PATTERNS = {
       'https://www.kobo.com/about'
     ]
   },
-  
+
   BOOKWALKER: {
     valid: [
       'https://global.bookwalker.jp/library',
@@ -83,7 +83,7 @@ const PLATFORM_URL_PATTERNS = {
       'https://global.bookwalker.jp/about'
     ]
   },
-  
+
   BOOKS_COM: {
     valid: [
       'https://www.books.com.tw/products',
@@ -260,7 +260,7 @@ const DOM_FEATURES = {
  * @param {Object} options - 自訂選項
  * @returns {Object} 模擬的 DOM 物件
  */
-function createMockDOM(platformId, options = {}) {
+function createMockDOM (platformId, options = {}) {
   const features = DOM_FEATURES[platformId] || {}
   const foundSelectors = new Set()
   const foundElements = new Map()
@@ -302,7 +302,7 @@ function createMockDOM(platformId, options = {}) {
   })
 
   // 建構頁面文字內容
-  const textContent = features.textContent 
+  const textContent = features.textContent
     ? features.textContent.slice(0, 3).join(' ') + ' Sample Page Content'
     : 'Generic Page Content'
 
@@ -351,10 +351,10 @@ function createMockDOM(platformId, options = {}) {
  * @param {Object} customOptions - 自訂選項
  * @returns {Object} 檢測上下文物件
  */
-function createDetectionContext(platformId, customOptions = {}) {
+function createDetectionContext (platformId, customOptions = {}) {
   const urls = PLATFORM_URL_PATTERNS[platformId]?.valid || []
   const url = customOptions.url || urls[0] || `https://mock-${platformId.toLowerCase()}.com`
-  
+
   let hostname
   try {
     hostname = new URL(url).hostname
@@ -380,7 +380,7 @@ function createDetectionContext(platformId, customOptions = {}) {
  * @param {string} expectedPlatform - 期望的平台
  * @returns {Object} 驗證結果
  */
-function validateDetectionResult(result, expectedPlatform = null) {
+function validateDetectionResult (result, expectedPlatform = null) {
   const validation = {
     isValid: true,
     errors: [],
@@ -449,27 +449,27 @@ const performanceHelpers = {
    * @param {Object} context - 檢測上下文
    * @returns {Promise<Object>} 效能測試結果
    */
-  async measureDetectionPerformance(detectionFunction, context) {
+  async measureDetectionPerformance (detectionFunction, context) {
     const startTime = process.hrtime.bigint()
     const memBefore = process.memoryUsage()
-    
+
     let result, error
     try {
       result = await detectionFunction(context)
     } catch (err) {
       error = err
     }
-    
+
     const endTime = process.hrtime.bigint()
     const memAfter = process.memoryUsage()
-    
+
     const duration = Number(endTime - startTime) / 1000000 // 轉換為毫秒
     const memoryDiff = {
       heapUsed: memAfter.heapUsed - memBefore.heapUsed,
       heapTotal: memAfter.heapTotal - memBefore.heapTotal,
       external: memAfter.external - memBefore.external
     }
-    
+
     return {
       duration,
       memoryDiff,
@@ -485,19 +485,19 @@ const performanceHelpers = {
    * @param {Array} contexts - 檢測上下文陣列
    * @returns {Promise<Object>} 批量效能測試結果
    */
-  async measureBatchPerformance(detectionFunction, contexts) {
+  async measureBatchPerformance (detectionFunction, contexts) {
     const results = []
     const startTime = Date.now()
-    
+
     for (const context of contexts) {
       const perf = await this.measureDetectionPerformance(detectionFunction, context)
       results.push(perf)
     }
-    
+
     const totalTime = Date.now() - startTime
     const successful = results.filter(r => r.success).length
     const avgDuration = results.reduce((sum, r) => sum + r.duration, 0) / results.length
-    
+
     return {
       totalTime,
       averageDuration: avgDuration,
@@ -518,9 +518,9 @@ const scenarioBuilder = {
    * @param {Array} platforms - 平台陣列
    * @returns {Array} 檢測場景陣列
    */
-  createMultiPlatformScenarios(platforms = ['READMOO', 'KINDLE', 'KOBO']) {
+  createMultiPlatformScenarios (platforms = ['READMOO', 'KINDLE', 'KOBO']) {
     const scenarios = []
-    
+
     platforms.forEach(platform => {
       const urls = PLATFORM_URL_PATTERNS[platform]?.valid || []
       urls.forEach(url => {
@@ -531,7 +531,7 @@ const scenarioBuilder = {
         })
       })
     })
-    
+
     return scenarios
   },
 
@@ -539,7 +539,7 @@ const scenarioBuilder = {
    * 建立錯誤處理場景
    * @returns {Array} 錯誤場景陣列
    */
-  createErrorScenarios() {
+  createErrorScenarios () {
     return [
       {
         name: 'Null context',
@@ -568,7 +568,7 @@ const scenarioBuilder = {
    * 建立邊界測試場景
    * @returns {Array} 邊界測試場景陣列
    */
-  createBoundaryScenarios() {
+  createBoundaryScenarios () {
     return [
       {
         name: 'Empty DOM',

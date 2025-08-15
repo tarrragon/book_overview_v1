@@ -1,7 +1,7 @@
 /**
  * EventTypeDefinitions 測試檔案
  * 測試事件類型定義的核心功能
- * 
+ *
  * 測試重點：
  * - v2.0 事件命名格式驗證
  * - 事件類型定義和規範
@@ -13,7 +13,7 @@ const EventTypeDefinitions = require('../../../src/core/events/event-type-defini
 
 describe('EventTypeDefinitions', () => {
   let eventTypes
-  
+
   beforeEach(() => {
     eventTypes = new EventTypeDefinitions()
   })
@@ -28,10 +28,10 @@ describe('EventTypeDefinitions', () => {
 
     test('應該載入完整的領域定義', () => {
       const expectedDomains = [
-        'SYSTEM', 'PLATFORM', 'EXTRACTION', 'DATA', 
+        'SYSTEM', 'PLATFORM', 'EXTRACTION', 'DATA',
         'MESSAGING', 'PAGE', 'UX', 'SECURITY', 'ANALYTICS'
       ]
-      
+
       expectedDomains.forEach(domain => {
         expect(eventTypes.domains).toContain(domain)
       })
@@ -39,10 +39,10 @@ describe('EventTypeDefinitions', () => {
 
     test('應該載入完整的平台定義', () => {
       const expectedPlatforms = [
-        'READMOO', 'KINDLE', 'KOBO', 'BOOKS_COM', 
+        'READMOO', 'KINDLE', 'KOBO', 'BOOKS_COM',
         'BOOKWALKER', 'UNIFIED', 'MULTI', 'GENERIC'
       ]
-      
+
       expectedPlatforms.forEach(platform => {
         expect(eventTypes.platforms).toContain(platform)
       })
@@ -54,7 +54,7 @@ describe('EventTypeDefinitions', () => {
         'DETECT', 'SWITCH', 'VALIDATE', 'PROCESS', 'SYNC',
         'OPEN', 'CLOSE', 'UPDATE', 'DELETE', 'CREATE'
       ]
-      
+
       expectedActions.forEach(action => {
         expect(eventTypes.actions).toContain(action)
       })
@@ -62,10 +62,10 @@ describe('EventTypeDefinitions', () => {
 
     test('應該載入完整的狀態定義', () => {
       const expectedStates = [
-        'REQUESTED', 'STARTED', 'PROGRESS', 'COMPLETED', 
+        'REQUESTED', 'STARTED', 'PROGRESS', 'COMPLETED',
         'FAILED', 'CANCELLED', 'TIMEOUT', 'SUCCESS', 'ERROR'
       ]
-      
+
       expectedStates.forEach(state => {
         expect(eventTypes.states).toContain(state)
       })
@@ -121,7 +121,7 @@ describe('EventTypeDefinitions', () => {
     test('應該正確分解事件名稱', () => {
       const eventName = 'EXTRACTION.READMOO.EXTRACT.COMPLETED'
       const parts = eventTypes.parseEventName(eventName)
-      
+
       expect(parts.domain).toBe('EXTRACTION')
       expect(parts.platform).toBe('READMOO')
       expect(parts.action).toBe('EXTRACT')
@@ -212,7 +212,7 @@ describe('EventTypeDefinitions', () => {
 
     test('應該查詢事件類型的完整定義', () => {
       const definition = eventTypes.getEventDefinition('EXTRACTION.READMOO.EXTRACT.COMPLETED')
-      
+
       expect(definition.domain).toBe('EXTRACTION')
       expect(definition.platform).toBe('READMOO')
       expect(definition.action).toBe('EXTRACT')
@@ -298,10 +298,10 @@ describe('EventTypeDefinitions', () => {
     test('應該驗證事件各部分的命名規範', () => {
       // 測試小寫字母
       expect(eventTypes.isValidEventName('extraction.readmoo.extract.completed')).toBe(false)
-      
+
       // 測試數字開頭
       expect(eventTypes.isValidEventName('1EXTRACTION.READMOO.EXTRACT.COMPLETED')).toBe(false)
-      
+
       // 測試特殊字符
       expect(eventTypes.isValidEventName('EXTRACTION-.READMOO.EXTRACT.COMPLETED')).toBe(false)
     })
@@ -310,20 +310,20 @@ describe('EventTypeDefinitions', () => {
   describe('事件類型建議', () => {
     test('應該為無效事件名稱提供建議', () => {
       const suggestions = eventTypes.suggestCorrections('EXTRACTION.COMPLETED')
-      
+
       expect(suggestions).toHaveLength(1)
       expect(suggestions[0]).toContain('EXTRACTION.READMOO.EXTRACT.COMPLETED')
     })
 
     test('應該為拼寫錯誤提供建議', () => {
       const suggestions = eventTypes.suggestCorrections('EXTRACTOIN.READMOO.EXTRACT.COMPLETED')
-      
+
       expect(suggestions).toContain('EXTRACTION.READMOO.EXTRACT.COMPLETED')
     })
 
     test('應該為部分匹配提供多個建議', () => {
       const suggestions = eventTypes.suggestCorrections('PLATFORM.READMOO.DET')
-      
+
       expect(suggestions.length).toBeGreaterThan(0)
       expect(suggestions.some(s => s.includes('DETECT'))).toBe(true)
     })
@@ -382,7 +382,7 @@ describe('EventTypeDefinitions', () => {
     test('應該記錄驗證錯誤統計', () => {
       eventTypes.isValidEventName('INVALID.FORMAT')
       eventTypes.isValidEventName('ANOTHER.INVALID')
-      
+
       const errorStats = eventTypes.getValidationErrorStats()
       expect(errorStats.totalErrors).toBe(2)
       expect(errorStats.errorTypes.INVALID_FORMAT).toBeGreaterThan(0)
@@ -405,11 +405,11 @@ describe('EventTypeDefinitions', () => {
 
     test('應該快速建構大量事件名稱', () => {
       const startTime = performance.now()
-      
+
       for (let i = 0; i < 1000; i++) {
         eventTypes.buildEventName('EXTRACTION', 'READMOO', 'EXTRACT', 'COMPLETED')
       }
-      
+
       const endTime = performance.now()
       expect(endTime - startTime).toBeLessThan(50) // 應該在 50ms 內完成
     })

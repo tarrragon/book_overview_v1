@@ -2,7 +2,7 @@
  * @fileoverview Adapter Factory Service 單元測試
  * @version v2.0.0
  * @since 2025-08-14
- * 
+ *
  * TDD Red Phase - 測試驅動開發紅燈階段
  * 設計完整測試案例，確保 100% 程式碼覆蓋率
  */
@@ -15,12 +15,12 @@ const MockFactoryData = {
   // 支援的平台測試資料
   SUPPORTED_PLATFORMS: [
     'READMOO',
-    'KINDLE', 
+    'KINDLE',
     'KOBO',
     'BOOKWALKER',
     'BOOKS_COM'
   ],
-  
+
   // 工廠配置測試資料
   FACTORY_CONFIG: {
     maxPoolSize: 5,
@@ -30,7 +30,7 @@ const MockFactoryData = {
     healthCheckInterval: 60000,
     maxRetryAttempts: 3
   },
-  
+
   // 適配器配置測試資料
   ADAPTER_CONFIGS: {
     READMOO: {
@@ -56,9 +56,9 @@ const MockFactoryData = {
 
 // 模擬平台註冊服務
 class MockPlatformRegistry {
-  constructor() {
+  constructor () {
     this.platforms = new Map()
-    
+
     // 預設註冊一些平台
     this.platforms.set('READMOO', {
       platformId: 'READMOO',
@@ -68,7 +68,7 @@ class MockPlatformRegistry {
         version: '2.0.0'
       }
     })
-    
+
     this.platforms.set('KINDLE', {
       platformId: 'KINDLE',
       name: 'Amazon Kindle',
@@ -78,25 +78,25 @@ class MockPlatformRegistry {
       }
     })
   }
-  
-  getPlatform(platformId) {
+
+  getPlatform (platformId) {
     return this.platforms.get(platformId) || null
   }
 }
 
 // 模擬效能監控器
 class MockPerformanceMonitor {
-  constructor() {
+  constructor () {
     this.metrics = new Map()
   }
-  
-  startTimer(name) {
+
+  startTimer (name) {
     return {
       stop: () => Math.random() * 100
     }
   }
-  
-  recordMetric(name, value) {
+
+  recordMetric (name, value) {
     this.metrics.set(name, value)
   }
 }
@@ -111,24 +111,24 @@ describe('AdapterFactoryService', () => {
 
   beforeEach(() => {
     eventBus = new EventBus()
-    
+
     mockLogger = {
       info: jest.fn(),
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn()
     }
-    
+
     mockPlatformRegistry = new MockPlatformRegistry()
     mockPerformanceMonitor = new MockPerformanceMonitor()
-    
+
     dependencies = {
       logger: mockLogger,
       config: MockFactoryData.FACTORY_CONFIG,
       platformRegistry: mockPlatformRegistry,
       performanceMonitor: mockPerformanceMonitor
     }
-    
+
     adapterFactory = new AdapterFactoryService(eventBus, dependencies)
   })
 
@@ -190,14 +190,14 @@ describe('AdapterFactoryService', () => {
   describe('🏗 服務初始化測試', () => {
     test('應該成功完成完整初始化流程', async () => {
       const initSpy = jest.spyOn(eventBus, 'emit')
-      
+
       await adapterFactory.initialize()
-      
+
       expect(adapterFactory.isInitialized).toBe(true)
       expect(adapterFactory.adapterTypes.size).toBe(5) // 5個支援平台
       expect(adapterFactory.adapterConstructors.size).toBe(5)
       expect(adapterFactory.adapterPool.size).toBe(5)
-      
+
       // 檢查初始化事件
       expect(initSpy).toHaveBeenCalledWith(
         'PLATFORM.ADAPTER.FACTORY.INITIALIZED',
@@ -210,7 +210,7 @@ describe('AdapterFactoryService', () => {
 
     test('應該正確初始化適配器類型映射', async () => {
       await adapterFactory.initialize()
-      
+
       // 檢查 READMOO 適配器類型
       const readmooType = adapterFactory.adapterTypes.get('READMOO')
       expect(readmooType).toEqual(
@@ -225,7 +225,7 @@ describe('AdapterFactoryService', () => {
           ])
         })
       )
-      
+
       // 檢查 KINDLE 適配器類型
       const kindleType = adapterFactory.adapterTypes.get('KINDLE')
       expect(kindleType).toEqual(
@@ -244,7 +244,7 @@ describe('AdapterFactoryService', () => {
 
     test('應該正確載入適配器構造函數', async () => {
       await adapterFactory.initialize()
-      
+
       // 檢查所有平台都有構造函數
       for (const platformId of MockFactoryData.SUPPORTED_PLATFORMS) {
         const constructor = adapterFactory.adapterConstructors.get(platformId)
@@ -255,7 +255,7 @@ describe('AdapterFactoryService', () => {
 
     test('應該正確初始化適配器池結構', async () => {
       await adapterFactory.initialize()
-      
+
       // 檢查每個平台的池結構
       for (const platformId of MockFactoryData.SUPPORTED_PLATFORMS) {
         const pool = adapterFactory.adapterPool.get(platformId)
@@ -269,7 +269,7 @@ describe('AdapterFactoryService', () => {
             totalReused: 0
           })
         )
-        
+
         const state = adapterFactory.adapterStates.get(platformId)
         expect(state).toEqual(
           expect.objectContaining({
@@ -284,7 +284,7 @@ describe('AdapterFactoryService', () => {
 
     test('應該啟動健康監控和資源清理', async () => {
       await adapterFactory.initialize()
-      
+
       expect(adapterFactory.healthCheckTimer).toBeDefined()
       expect(adapterFactory.cleanupTimer).toBeDefined()
     })
@@ -295,10 +295,10 @@ describe('AdapterFactoryService', () => {
       adapterFactory.initializeAdapterTypes = jest.fn().mockRejectedValue(
         new Error('初始化失敗')
       )
-      
+
       await expect(adapterFactory.initialize()).rejects.toThrow('初始化失敗')
       expect(adapterFactory.isInitialized).toBe(false)
-      
+
       // 恢復原方法
       adapterFactory.initializeAdapterTypes = originalMethod
     })
@@ -311,25 +311,25 @@ describe('AdapterFactoryService', () => {
 
     test('應該成功創建新的適配器實例', async () => {
       const createSpy = jest.spyOn(eventBus, 'emit')
-      
+
       const adapter = await adapterFactory.createAdapter('READMOO')
-      
+
       expect(adapter).toBeDefined()
       expect(adapter.platformId).toBe('READMOO')
       expect(adapter.id).toMatch(/READMOO_adapter_\d+_[a-z0-9]+/)
       expect(adapter.factoryId).toBeDefined()
       expect(adapter.createdBy).toBe('AdapterFactoryService')
       expect(adapter.version).toBe('2.0.0')
-      
+
       // 檢查統計更新
       expect(adapterFactory.statistics.totalCreated).toBe(1)
       expect(adapterFactory.statistics.activeInstances).toBe(1)
-      
+
       // 檢查平台狀態更新
       const state = adapterFactory.adapterStates.get('READMOO')
       expect(state.totalInstances).toBe(1)
       expect(state.activeInstances).toBe(1)
-      
+
       // 檢查創建事件
       expect(createSpy).toHaveBeenCalledWith(
         'PLATFORM.ADAPTER.CREATED',
@@ -344,11 +344,11 @@ describe('AdapterFactoryService', () => {
     test('應該為不同平台創建不同的適配器', async () => {
       const readmooAdapter = await adapterFactory.createAdapter('READMOO')
       const kindleAdapter = await adapterFactory.createAdapter('KINDLE')
-      
+
       expect(readmooAdapter.platformId).toBe('READMOO')
       expect(kindleAdapter.platformId).toBe('KINDLE')
       expect(readmooAdapter.id).not.toBe(kindleAdapter.id)
-      
+
       // 檢查統計
       expect(adapterFactory.statistics.totalCreated).toBe(2)
       expect(adapterFactory.statistics.activeInstances).toBe(2)
@@ -358,7 +358,7 @@ describe('AdapterFactoryService', () => {
       const adapter = await adapterFactory.createAdapter('READMOO', {
         config: { customOption: 'test' }
       })
-      
+
       expect(adapter.config).toEqual(
         expect.objectContaining({
           baseUrl: 'https://readmoo.com',
@@ -366,7 +366,7 @@ describe('AdapterFactoryService', () => {
           customOption: 'test'
         })
       )
-      
+
       expect(adapter.dependencies).toEqual(
         expect.objectContaining({
           eventBus,
@@ -380,23 +380,23 @@ describe('AdapterFactoryService', () => {
       await expect(
         adapterFactory.createAdapter('UNSUPPORTED_PLATFORM')
       ).rejects.toThrow('不支援的平台: UNSUPPORTED_PLATFORM')
-      
+
       expect(adapterFactory.statistics.creationErrors).toBe(1)
     })
 
     test('創建過程中出錯應該正確處理', async () => {
       // 模擬構造函數錯誤
       const originalConstructor = adapterFactory.adapterConstructors.get('READMOO')
-      adapterFactory.adapterConstructors.set('READMOO', function() {
+      adapterFactory.adapterConstructors.set('READMOO', function () {
         throw new Error('構造失敗')
       })
-      
+
       await expect(
         adapterFactory.createAdapter('READMOO')
       ).rejects.toThrow('構造失敗')
-      
+
       expect(adapterFactory.statistics.creationErrors).toBe(1)
-      
+
       // 恢復構造函數
       adapterFactory.adapterConstructors.set('READMOO', originalConstructor)
     })
@@ -413,12 +413,12 @@ describe('AdapterFactoryService', () => {
       await adapter1.initialize()
       await adapter1.activate()
       await adapter1.deactivate() // 這會將適配器加入可用池
-      
+
       const poolHitsBefore = adapterFactory.statistics.poolHits
-      
+
       // 請求新適配器應該重用現有的
       const adapter2 = await adapterFactory.createAdapter('READMOO')
-      
+
       expect(adapter2.id).toBe(adapter1.id) // 應該是同一個實例
       expect(adapterFactory.statistics.poolHits).toBe(poolHitsBefore + 1)
     })
@@ -426,7 +426,7 @@ describe('AdapterFactoryService', () => {
     test('池滿時應該清理最舊的適配器', async () => {
       const maxPoolSize = adapterFactory.factoryConfig.maxPoolSize
       const adapters = []
-      
+
       // 創建超過池大小限制的適配器
       for (let i = 0; i < maxPoolSize + 2; i++) {
         const adapter = await adapterFactory.createAdapter('READMOO')
@@ -435,7 +435,7 @@ describe('AdapterFactoryService', () => {
         await adapter.deactivate()
         adapters.push(adapter)
       }
-      
+
       const pool = adapterFactory.adapterPool.get('READMOO')
       expect(pool.available.length).toBeLessThanOrEqual(maxPoolSize)
     })
@@ -445,18 +445,18 @@ describe('AdapterFactoryService', () => {
       const adapter1 = await adapterFactory.createAdapter('READMOO')
       await adapter1.initialize()
       await adapter1.activate()
-      
+
       // 模擬不健康狀態
       adapter1.getHealthStatus = jest.fn().mockReturnValue({
         isHealthy: false,
         errorCount: 10
       })
-      
+
       await adapter1.deactivate()
-      
+
       // 請求新適配器應該創建新實例而非重用
       const adapter2 = await adapterFactory.createAdapter('READMOO')
-      
+
       expect(adapter2.id).not.toBe(adapter1.id)
       expect(adapterFactory.statistics.poolMisses).toBeGreaterThan(0)
     })
@@ -466,16 +466,16 @@ describe('AdapterFactoryService', () => {
       const adapter1 = await adapterFactory.createAdapter('READMOO')
       await adapter1.initialize()
       await adapter1.activate()
-      
+
       // 模擬超過最大閒置時間
       const pastTime = Date.now() - adapterFactory.factoryConfig.maxIdleTime - 1000
       adapter1.lastActivity = pastTime
-      
+
       await adapter1.deactivate()
-      
+
       // 請求新適配器應該創建新實例
       const adapter2 = await adapterFactory.createAdapter('READMOO')
-      
+
       expect(adapter2.id).not.toBe(adapter1.id)
     })
 
@@ -485,12 +485,12 @@ describe('AdapterFactoryService', () => {
       await adapter1.initialize()
       await adapter1.activate()
       await adapter1.deactivate()
-      
+
       // 使用 forceNew 選項創建適配器
       const adapter2 = await adapterFactory.createAdapter('READMOO', {
         forceNew: true
       })
-      
+
       expect(adapter2.id).not.toBe(adapter1.id)
       expect(adapterFactory.statistics.poolMisses).toBeGreaterThan(0)
     })
@@ -503,13 +503,13 @@ describe('AdapterFactoryService', () => {
 
     test('應該正確管理適配器初始化生命週期', async () => {
       const initSpy = jest.spyOn(eventBus, 'emit')
-      
+
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
-      
+
       expect(adapter.isInitialized).toBe(true)
       expect(adapter.state).toBe('initialized')
-      
+
       // 檢查初始化事件
       expect(initSpy).toHaveBeenCalledWith(
         'PLATFORM.ADAPTER.INITIALIZING',
@@ -518,7 +518,7 @@ describe('AdapterFactoryService', () => {
           adapterId: adapter.id
         })
       )
-      
+
       expect(initSpy).toHaveBeenCalledWith(
         'PLATFORM.ADAPTER.INITIALIZED',
         expect.objectContaining({
@@ -530,18 +530,18 @@ describe('AdapterFactoryService', () => {
 
     test('應該正確管理適配器啟動生命週期', async () => {
       const activateSpy = jest.spyOn(eventBus, 'emit')
-      
+
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
-      
+
       expect(adapter.isActive).toBe(true)
       expect(adapter.state).toBe('active')
-      
+
       // 檢查適配器是否在活躍池中
       const pool = adapterFactory.adapterPool.get('READMOO')
       expect(pool.active.has(adapter.id)).toBe(true)
-      
+
       // 檢查啟動事件
       expect(activateSpy).toHaveBeenCalledWith(
         'PLATFORM.ADAPTER.ACTIVATED',
@@ -554,20 +554,20 @@ describe('AdapterFactoryService', () => {
 
     test('應該正確管理適配器停用生命週期', async () => {
       const deactivateSpy = jest.spyOn(eventBus, 'emit')
-      
+
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
       await adapter.deactivate()
-      
+
       expect(adapter.isActive).toBe(false)
       expect(adapter.state).toBe('inactive')
-      
+
       // 檢查適配器是否從活躍池移除且加入可用池
       const pool = adapterFactory.adapterPool.get('READMOO')
       expect(pool.active.has(adapter.id)).toBe(false)
       expect(pool.available).toContain(adapter)
-      
+
       // 檢查停用事件
       expect(deactivateSpy).toHaveBeenCalledWith(
         'PLATFORM.ADAPTER.DEACTIVATED',
@@ -580,23 +580,23 @@ describe('AdapterFactoryService', () => {
 
     test('應該正確管理適配器清理生命週期', async () => {
       const cleanupSpy = jest.spyOn(eventBus, 'emit')
-      
+
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
       await adapter.cleanup()
-      
+
       expect(adapter.state).toBe('cleaned')
-      
+
       // 檢查適配器是否完全移除
       const pool = adapterFactory.adapterPool.get('READMOO')
       expect(pool.active.has(adapter.id)).toBe(false)
       expect(pool.available).not.toContain(adapter)
-      
+
       // 檢查統計更新
       expect(adapterFactory.statistics.totalDestroyed).toBe(1)
       expect(adapterFactory.statistics.activeInstances).toBe(0)
-      
+
       // 檢查清理事件
       expect(cleanupSpy).toHaveBeenCalledWith(
         'PLATFORM.ADAPTER.CLEANED',
@@ -609,17 +609,17 @@ describe('AdapterFactoryService', () => {
 
     test('生命週期操作失敗應該發送錯誤事件', async () => {
       const errorSpy = jest.spyOn(eventBus, 'emit')
-      
+
       const adapter = await adapterFactory.createAdapter('READMOO')
-      
+
       // 模擬初始化失敗
       const originalInitialize = adapter.initialize
       adapter.initialize = jest.fn().mockImplementation(async () => {
         throw new Error('初始化失敗')
       })
-      
+
       await expect(adapter.initialize()).rejects.toThrow('初始化失敗')
-      
+
       expect(errorSpy).toHaveBeenCalledWith(
         'PLATFORM.ADAPTER.INITIALIZATION.FAILED',
         expect.objectContaining({
@@ -628,9 +628,9 @@ describe('AdapterFactoryService', () => {
           error: '初始化失敗'
         })
       )
-      
+
       expect(adapterFactory.statistics.lifecycleErrors).toBe(1)
-      
+
       // 恢復原方法
       adapter.initialize = originalInitialize
     })
@@ -645,10 +645,10 @@ describe('AdapterFactoryService', () => {
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
-      
+
       const foundAdapter = adapterFactory.getAdapter('READMOO', adapter.id)
       expect(foundAdapter).toBe(adapter)
-      
+
       const notFound = adapterFactory.getAdapter('READMOO', 'non-existent-id')
       expect(notFound).toBeNull()
     })
@@ -656,12 +656,12 @@ describe('AdapterFactoryService', () => {
     test('應該能夠查詢平台的所有活躍適配器', async () => {
       const adapter1 = await adapterFactory.createAdapter('READMOO')
       const adapter2 = await adapterFactory.createAdapter('READMOO')
-      
+
       await adapter1.initialize()
       await adapter1.activate()
       await adapter2.initialize()
       await adapter2.activate()
-      
+
       const activeAdapters = adapterFactory.getActiveAdapters('READMOO')
       expect(activeAdapters).toHaveLength(2)
       expect(activeAdapters).toContain(adapter1)
@@ -671,12 +671,12 @@ describe('AdapterFactoryService', () => {
     test('應該能夠查詢所有平台的活躍適配器', async () => {
       const readmooAdapter = await adapterFactory.createAdapter('READMOO')
       const kindleAdapter = await adapterFactory.createAdapter('KINDLE')
-      
+
       await readmooAdapter.initialize()
       await readmooAdapter.activate()
       await kindleAdapter.initialize()
       await kindleAdapter.activate()
-      
+
       const allActiveAdapters = adapterFactory.getActiveAdapters()
       expect(allActiveAdapters).toHaveLength(2)
       expect(allActiveAdapters).toContain(readmooAdapter)
@@ -687,9 +687,9 @@ describe('AdapterFactoryService', () => {
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
-      
+
       const result = await adapterFactory.deactivateAdapter('READMOO', adapter.id)
-      
+
       expect(result).toBe(true)
       expect(adapter.isActive).toBe(false)
     })
@@ -698,12 +698,12 @@ describe('AdapterFactoryService', () => {
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
-      
+
       const result = await adapterFactory.cleanupAdapterById('READMOO', adapter.id)
-      
+
       expect(result).toBe(true)
       expect(adapter.state).toBe('cleaned')
-      
+
       const foundAdapter = adapterFactory.getAdapter('READMOO', adapter.id)
       expect(foundAdapter).toBeNull()
     })
@@ -713,7 +713,7 @@ describe('AdapterFactoryService', () => {
         'READMOO', 'non-existent-id'
       )
       expect(deactivateResult).toBe(false)
-      
+
       const cleanupResult = await adapterFactory.cleanupAdapterById(
         'READMOO', 'non-existent-id'
       )
@@ -730,19 +730,19 @@ describe('AdapterFactoryService', () => {
       // 創建多個適配器
       const adapter1 = await adapterFactory.createAdapter('READMOO')
       const adapter2 = await adapterFactory.createAdapter('READMOO')
-      
+
       await adapter1.initialize()
       await adapter1.activate()
       await adapter2.initialize()
       await adapter2.activate()
       await adapter2.deactivate() // 加入可用池
-      
+
       const cleanedCount = await adapterFactory.cleanupPlatformAdapters('READMOO')
-      
+
       expect(cleanedCount).toBe(2)
       expect(adapter1.state).toBe('cleaned')
       expect(adapter2.state).toBe('cleaned')
-      
+
       const pool = adapterFactory.adapterPool.get('READMOO')
       expect(pool.active.size).toBe(0)
       expect(pool.available.length).toBe(0)
@@ -752,14 +752,14 @@ describe('AdapterFactoryService', () => {
       // 創建不同平台的適配器
       const readmooAdapter = await adapterFactory.createAdapter('READMOO')
       const kindleAdapter = await adapterFactory.createAdapter('KINDLE')
-      
+
       await readmooAdapter.initialize()
       await readmooAdapter.activate()
       await kindleAdapter.initialize()
       await kindleAdapter.activate()
-      
+
       const totalCleaned = await adapterFactory.cleanupAllAdapters()
-      
+
       expect(totalCleaned).toBe(2)
       expect(adapterFactory.statistics.activeInstances).toBe(0)
     })
@@ -770,12 +770,12 @@ describe('AdapterFactoryService', () => {
       await adapter.initialize()
       await adapter.activate()
       await adapter.deactivate()
-      
+
       // 模擬超過最大閒置時間
       adapter.lastActivity = Date.now() - adapterFactory.factoryConfig.maxIdleTime - 1000
-      
+
       await adapterFactory.performResourceCleanup()
-      
+
       const pool = adapterFactory.adapterPool.get('READMOO')
       expect(pool.available).not.toContain(adapter)
     })
@@ -784,12 +784,12 @@ describe('AdapterFactoryService', () => {
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
-      
+
       // 模擬清理失敗
       adapter.cleanup = jest.fn().mockRejectedValue(new Error('清理失敗'))
-      
+
       const result = await adapterFactory.cleanupAdapterById('READMOO', adapter.id)
-      
+
       expect(result).toBe(false)
       expect(mockLogger.error).toHaveBeenCalled()
     })
@@ -802,29 +802,29 @@ describe('AdapterFactoryService', () => {
 
     test('應該正確執行健康檢查', async () => {
       const healthSpy = jest.spyOn(eventBus, 'emit')
-      
+
       // 創建健康和不健康的適配器
       const healthyAdapter = await adapterFactory.createAdapter('READMOO')
       const unhealthyAdapter = await adapterFactory.createAdapter('KINDLE')
-      
+
       await healthyAdapter.initialize()
       await healthyAdapter.activate()
       await unhealthyAdapter.initialize()
       await unhealthyAdapter.activate()
-      
+
       // 模擬不健康狀態
       unhealthyAdapter.getHealthStatus = jest.fn().mockReturnValue({
         isHealthy: false,
         errorCount: 10
       })
-      
+
       await adapterFactory.performHealthCheck()
-      
+
       expect(adapterFactory.healthStatus.isHealthy).toBe(false)
       expect(adapterFactory.healthStatus.errorCount).toBe(1)
       expect(adapterFactory.healthStatus.totalAdapters).toBe(2)
       expect(adapterFactory.healthStatus.healthyAdapters).toBe(1)
-      
+
       // 檢查健康檢查完成事件
       expect(healthSpy).toHaveBeenCalledWith(
         'PLATFORM.ADAPTER.HEALTH.CHECK.COMPLETED',
@@ -832,7 +832,7 @@ describe('AdapterFactoryService', () => {
           healthStatus: expect.any(Object)
         })
       )
-      
+
       // 檢查健康警告事件
       expect(healthSpy).toHaveBeenCalledWith(
         'PLATFORM.ADAPTER.HEALTH.WARNING',
@@ -845,16 +845,16 @@ describe('AdapterFactoryService', () => {
 
     test('所有適配器健康時不應該發送警告', async () => {
       const healthSpy = jest.spyOn(eventBus, 'emit')
-      
+
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
-      
+
       await adapterFactory.performHealthCheck()
-      
+
       expect(adapterFactory.healthStatus.isHealthy).toBe(true)
       expect(adapterFactory.healthStatus.errorCount).toBe(0)
-      
+
       // 不應該發送健康警告事件
       expect(healthSpy).not.toHaveBeenCalledWith(
         'PLATFORM.ADAPTER.HEALTH.WARNING',
@@ -871,12 +871,12 @@ describe('AdapterFactoryService', () => {
         },
         configurable: true
       })
-      
+
       await adapterFactory.performHealthCheck()
-      
+
       expect(adapterFactory.healthStatus.errorCount).toBeGreaterThan(0)
       expect(mockLogger.error).toHaveBeenCalled()
-      
+
       // 恢復原屬性
       Object.defineProperty(adapterFactory, 'adapterPool', {
         value: originalMethod,
@@ -892,10 +892,10 @@ describe('AdapterFactoryService', () => {
 
     test('應該正確更新創建統計', async () => {
       const startTime = Date.now()
-      
+
       await adapterFactory.createAdapter('READMOO')
       await adapterFactory.createAdapter('KINDLE')
-      
+
       const stats = adapterFactory.getStatistics()
       expect(stats.totalCreated).toBe(2)
       expect(stats.activeInstances).toBe(2)
@@ -907,11 +907,11 @@ describe('AdapterFactoryService', () => {
       // 第一個適配器
       await adapterFactory.createAdapter('READMOO')
       const firstAvg = adapterFactory.statistics.avgCreationTime
-      
+
       // 第二個適配器
       await adapterFactory.createAdapter('KINDLE')
       const secondAvg = adapterFactory.statistics.avgCreationTime
-      
+
       expect(firstAvg).toBeGreaterThan(0)
       expect(secondAvg).toBeGreaterThan(0)
       // 平均值應該根據兩次創建時間計算
@@ -921,14 +921,14 @@ describe('AdapterFactoryService', () => {
       const adapter1 = await adapterFactory.createAdapter('READMOO')
       await adapter1.initialize()
       await adapter1.activate()
-      
+
       const adapter2 = await adapterFactory.createAdapter('READMOO')
       await adapter2.initialize()
       await adapter2.activate()
       await adapter2.deactivate() // 重用
-      
+
       const adapter3 = await adapterFactory.createAdapter('READMOO') // 應該重用 adapter2
-      
+
       const stats = adapterFactory.getStatistics()
       expect(stats.poolHits).toBeGreaterThan(0)
       expect(stats.poolStatistics.READMOO.totalReused).toBeGreaterThan(0)
@@ -938,9 +938,9 @@ describe('AdapterFactoryService', () => {
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
-      
+
       await adapterFactory.performHealthCheck()
-      
+
       const healthStatus = adapterFactory.getHealthStatus()
       expect(healthStatus).toEqual(
         expect.objectContaining({
@@ -959,10 +959,10 @@ describe('AdapterFactoryService', () => {
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
-      
+
       const stats = adapterFactory.getStatistics()
       const readmooState = stats.adapterStates.READMOO
-      
+
       expect(readmooState).toEqual(
         expect.objectContaining({
           totalInstances: 1,
@@ -985,7 +985,7 @@ describe('AdapterFactoryService', () => {
       const readmooAdapter = await adapterFactory.createAdapter('READMOO')
       await readmooAdapter.initialize()
       await readmooAdapter.activate()
-      
+
       // 模擬平台切換事件
       await eventBus.emit('PLATFORM.SWITCHER.SWITCHING', {
         data: {
@@ -993,13 +993,13 @@ describe('AdapterFactoryService', () => {
           toPlatform: 'KINDLE'
         }
       })
-      
+
       // 等待事件處理
       await new Promise(resolve => setTimeout(resolve, 10))
-      
+
       // 檢查 READMOO 適配器是否被停用
       expect(readmooAdapter.isActive).toBe(false)
-      
+
       // 檢查是否為 KINDLE 創建了新適配器
       const kindleAdapters = adapterFactory.getActiveAdapters('KINDLE')
       expect(kindleAdapters.length).toBeGreaterThan(0)
@@ -1009,7 +1009,7 @@ describe('AdapterFactoryService', () => {
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
-      
+
       // 模擬適配器錯誤事件
       await eventBus.emit('PLATFORM.ADAPTER.ERROR', {
         data: {
@@ -1018,10 +1018,10 @@ describe('AdapterFactoryService', () => {
           error: new Error('測試錯誤')
         }
       })
-      
+
       // 等待事件處理
       await new Promise(resolve => setTimeout(resolve, 10))
-      
+
       expect(adapter.errorCount).toBe(1)
     })
 
@@ -1029,9 +1029,9 @@ describe('AdapterFactoryService', () => {
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
-      
+
       const responseSpy = jest.spyOn(eventBus, 'emit')
-      
+
       // 模擬查詢事件
       await eventBus.emit('PLATFORM.ADAPTER.FACTORY.QUERY', {
         data: {
@@ -1043,10 +1043,10 @@ describe('AdapterFactoryService', () => {
           responseEventType: 'PLATFORM.ADAPTER.FACTORY.QUERY.RESPONSE'
         }
       })
-      
+
       // 等待事件處理
       await new Promise(resolve => setTimeout(resolve, 10))
-      
+
       expect(responseSpy).toHaveBeenCalledWith(
         'PLATFORM.ADAPTER.FACTORY.QUERY.RESPONSE',
         expect.objectContaining({
@@ -1060,9 +1060,9 @@ describe('AdapterFactoryService', () => {
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
-      
+
       const cleanupSpy = jest.spyOn(eventBus, 'emit')
-      
+
       // 模擬清理請求事件
       await eventBus.emit('PLATFORM.ADAPTER.CLEANUP.REQUESTED', {
         data: {
@@ -1071,10 +1071,10 @@ describe('AdapterFactoryService', () => {
           adapterId: adapter.id
         }
       })
-      
+
       // 等待事件處理
       await new Promise(resolve => setTimeout(resolve, 50))
-      
+
       expect(cleanupSpy).toHaveBeenCalledWith(
         'PLATFORM.ADAPTER.CLEANUP.COMPLETED',
         expect.objectContaining({
@@ -1096,14 +1096,14 @@ describe('AdapterFactoryService', () => {
       // 創建一些適配器
       const adapter1 = await adapterFactory.createAdapter('READMOO')
       const adapter2 = await adapterFactory.createAdapter('KINDLE')
-      
+
       await adapter1.initialize()
       await adapter1.activate()
       await adapter2.initialize()
       await adapter2.activate()
-      
+
       await adapterFactory.stop()
-      
+
       expect(adapterFactory.isInitialized).toBe(false)
       expect(adapterFactory.isShuttingDown).toBe(true)
       expect(adapterFactory.healthCheckTimer).toBeNull()
@@ -1114,9 +1114,9 @@ describe('AdapterFactoryService', () => {
     test('應該正確清理服務資源', async () => {
       // 創建一些資料
       await adapterFactory.createAdapter('READMOO')
-      
+
       await adapterFactory.cleanup()
-      
+
       expect(adapterFactory.isInitialized).toBe(false)
       expect(adapterFactory.adapterPool.size).toBe(0)
       expect(adapterFactory.adapterStates.size).toBe(0)
@@ -1128,13 +1128,13 @@ describe('AdapterFactoryService', () => {
     test('應該正確處理重複初始化', async () => {
       // 第二次初始化不應該失敗
       await adapterFactory.initialize()
-      
+
       expect(adapterFactory.isInitialized).toBe(true)
     })
 
     test('未初始化的服務操作應該正確處理', async () => {
       const uninitializedFactory = new AdapterFactoryService(eventBus, dependencies)
-      
+
       // 嘗試創建適配器應該失敗
       await expect(
         uninitializedFactory.createAdapter('READMOO')
@@ -1146,7 +1146,7 @@ describe('AdapterFactoryService', () => {
     test('應該生成唯一的適配器ID', () => {
       const id1 = adapterFactory.generateAdapterId('READMOO')
       const id2 = adapterFactory.generateAdapterId('READMOO')
-      
+
       expect(id1).toMatch(/READMOO_adapter_\d+_[a-z0-9]+/)
       expect(id2).toMatch(/READMOO_adapter_\d+_[a-z0-9]+/)
       expect(id1).not.toBe(id2)
@@ -1155,7 +1155,7 @@ describe('AdapterFactoryService', () => {
     test('應該生成唯一的工廠ID', () => {
       const id1 = adapterFactory.generateFactoryId()
       const id2 = adapterFactory.generateFactoryId()
-      
+
       expect(id1).toMatch(/factory_\d+_[a-z0-9]+/)
       expect(id2).toMatch(/factory_\d+_[a-z0-9]+/)
       expect(id1).not.toBe(id2)
@@ -1165,7 +1165,7 @@ describe('AdapterFactoryService', () => {
   describe('📝 日誌測試', () => {
     test('應該正確記錄一般日誌', async () => {
       await adapterFactory.log('測試訊息')
-      
+
       expect(mockLogger.info).toHaveBeenCalledWith(
         '[AdapterFactoryService] 測試訊息'
       )
@@ -1174,7 +1174,7 @@ describe('AdapterFactoryService', () => {
     test('應該正確記錄錯誤日誌', async () => {
       const error = new Error('測試錯誤')
       await adapterFactory.logError('錯誤訊息', error)
-      
+
       expect(mockLogger.error).toHaveBeenCalledWith(
         '[AdapterFactoryService] 錯誤訊息',
         error
@@ -1183,13 +1183,13 @@ describe('AdapterFactoryService', () => {
 
     test('無 logger 時應該使用 console', async () => {
       const factoryWithoutLogger = new AdapterFactoryService(eventBus, {})
-      
+
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation()
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation()
-      
+
       await factoryWithoutLogger.log('測試訊息')
       await factoryWithoutLogger.logError('錯誤訊息', new Error('測試'))
-      
+
       expect(consoleSpy).toHaveBeenCalledWith(
         '[AdapterFactoryService] 測試訊息'
       )
@@ -1197,7 +1197,7 @@ describe('AdapterFactoryService', () => {
         '[AdapterFactoryService] 錯誤訊息',
         expect.any(Error)
       )
-      
+
       consoleSpy.mockRestore()
       consoleErrorSpy.mockRestore()
     })

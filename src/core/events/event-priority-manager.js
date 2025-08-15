@@ -1,25 +1,25 @@
 /**
  * EventPriorityManager - 事件優先級管理器
  * 負責 v2.0 事件優先級系統管理和最佳化
- * 
+ *
  * 負責功能：
  * - v2.0 事件優先級分配和管理
  * - 智能優先級推斷和分類
  * - 優先級衝突檢測和解決
  * - 效能最佳化和統計監控
- * 
+ *
  * 設計考量：
  * - 基於 4-Layer 架構的優先級系統
  * - 智能推斷事件優先級類別
  * - 支援動態調整和最佳化
  * - 完整的統計和監控功能
- * 
+ *
  * 處理流程：
  * 1. 分析事件名稱，推斷適當的優先級類別
  * 2. 分配具體的優先級數值
  * 3. 檢測和解決優先級衝突
  * 4. 記錄統計並提供最佳化建議
- * 
+ *
  * 使用情境：
  * - 確保系統關鍵事件的優先處理
  * - 最佳化使用者體驗響應速度
@@ -41,7 +41,7 @@ const PRIORITY_CONFIG = {
     keywords: ['ERROR', 'CRITICAL', 'SECURITY', 'FAILURE', 'URGENT'],
     description: '系統關鍵事件（錯誤處理、安全警告）'
   },
-  
+
   // 平台管理 (100-199)
   PLATFORM_MANAGEMENT: {
     range: [100, 199],
@@ -53,7 +53,7 @@ const PRIORITY_CONFIG = {
     keywords: ['PLATFORM', 'DETECT', 'SWITCH', 'SYNC'],
     description: '平台管理事件'
   },
-  
+
   // 使用者互動 (200-299)
   USER_INTERACTION: {
     range: [200, 299],
@@ -65,7 +65,7 @@ const PRIORITY_CONFIG = {
     keywords: ['UX', 'UI', 'USER', 'CLICK', 'OPEN', 'CLOSE', 'REQUESTED'],
     description: '使用者互動事件（UI 響應、即時反饋）'
   },
-  
+
   // 一般業務處理 (300-399)
   BUSINESS_PROCESSING: {
     range: [300, 399],
@@ -77,7 +77,7 @@ const PRIORITY_CONFIG = {
     keywords: ['EXTRACT', 'VALIDATE', 'PROCESS', 'SAVE', 'LOAD', 'COMPLETED'],
     description: '一般業務處理事件（資料處理、儲存操作）'
   },
-  
+
   // 背景處理 (400-499)
   BACKGROUND_PROCESSING: {
     range: [400, 499],
@@ -92,7 +92,7 @@ const PRIORITY_CONFIG = {
 }
 
 class EventPriorityManager {
-  constructor() {
+  constructor () {
     this.priorityConfig = PRIORITY_CONFIG
     this.eventPriorities = new Map() // 事件名稱 -> 優先級
     this.priorityHistory = new Map() // 事件名稱 -> 優先級變更歷史
@@ -104,7 +104,7 @@ class EventPriorityManager {
    * 初始化優先級統計
    * @returns {Object} 統計對象
    */
-  initializePriorityStats() {
+  initializePriorityStats () {
     return {
       totalAssignments: 0,
       priorityDistribution: {},
@@ -119,13 +119,13 @@ class EventPriorityManager {
    * @param {string} eventName - 事件名稱
    * @returns {number} 分配的優先級
    */
-  assignEventPriority(eventName) {
+  assignEventPriority (eventName) {
     if (!eventName || typeof eventName !== 'string') {
       throw new Error('Invalid event name')
     }
 
     const startTime = performance.now()
-    
+
     try {
       // 檢查是否已有分配的優先級
       if (this.eventPriorities.has(eventName)) {
@@ -139,7 +139,7 @@ class EventPriorityManager {
       // 記錄分配
       this.eventPriorities.set(eventName, priority)
       this.recordPriorityHistory(eventName, priority, 'ASSIGNED')
-      
+
       // 更新統計
       this.updatePriorityStats(category)
       this.priorityStats.totalAssignments++
@@ -159,7 +159,7 @@ class EventPriorityManager {
    * @param {string} eventName - 事件名稱
    * @returns {string} 優先級類別
    */
-  inferPriorityCategory(eventName) {
+  inferPriorityCategory (eventName) {
     const upperEventName = eventName.toUpperCase()
 
     // 檢查每個類別的關鍵字
@@ -173,7 +173,7 @@ class EventPriorityManager {
     const parts = eventName.split('.')
     if (parts.length >= 1) {
       const domain = parts[0]
-      
+
       if (domain === 'SYSTEM' || domain === 'SECURITY') {
         return 'SYSTEM_CRITICAL'
       }
@@ -197,7 +197,7 @@ class EventPriorityManager {
    * @param {string} category - 優先級類別
    * @returns {number} 生成的優先級
    */
-  generatePriorityInCategory(category) {
+  generatePriorityInCategory (category) {
     const config = this.priorityConfig[category]
     if (!config) {
       throw new Error(`Invalid priority category: ${category}`)
@@ -213,7 +213,7 @@ class EventPriorityManager {
    * @param {string} eventName - 事件名稱
    * @param {number} newPriority - 新優先級
    */
-  adjustEventPriority(eventName, newPriority) {
+  adjustEventPriority (eventName, newPriority) {
     if (!this.isValidPriority(newPriority)) {
       throw new Error('Invalid priority value')
     }
@@ -228,7 +228,7 @@ class EventPriorityManager {
    * @param {string} eventName - 事件名稱
    * @returns {number|undefined} 事件優先級
    */
-  getEventPriority(eventName) {
+  getEventPriority (eventName) {
     return this.eventPriorities.get(eventName)
   }
 
@@ -237,7 +237,7 @@ class EventPriorityManager {
    * @param {string} eventName - 事件名稱
    * @returns {Array<number>} 優先級陣列
    */
-  getEventPriorities(eventName) {
+  getEventPriorities (eventName) {
     const history = this.priorityHistory.get(eventName) || []
     return history.map(record => record.priority)
   }
@@ -247,7 +247,7 @@ class EventPriorityManager {
    * @param {number} priority - 優先級
    * @returns {boolean} 是否有效
    */
-  isValidPriority(priority) {
+  isValidPriority (priority) {
     return typeof priority === 'number' && priority >= 0 && priority < 500
   }
 
@@ -257,10 +257,10 @@ class EventPriorityManager {
    * @param {string} category - 類別
    * @returns {boolean} 是否在範圍內
    */
-  isPriorityInCategory(priority, category) {
+  isPriorityInCategory (priority, category) {
     const config = this.priorityConfig[category]
     if (!config) return false
-    
+
     const [min, max] = config.range
     return priority >= min && priority <= max
   }
@@ -269,7 +269,7 @@ class EventPriorityManager {
    * 檢測優先級衝突
    * @returns {Array} 衝突列表
    */
-  detectPriorityConflicts() {
+  detectPriorityConflicts () {
     const conflicts = []
     const eventConflicts = new Map()
 
@@ -290,7 +290,7 @@ class EventPriorityManager {
   /**
    * 最佳化事件優先級
    */
-  optimizeEventPriorities() {
+  optimizeEventPriorities () {
     // 移除重複的優先級分配
     for (const [eventName, history] of this.priorityHistory.entries()) {
       if (history.length > 1) {
@@ -306,7 +306,7 @@ class EventPriorityManager {
   /**
    * 根據效能統計最佳化優先級
    */
-  optimizeBasedOnPerformance() {
+  optimizeBasedOnPerformance () {
     for (const [eventName, metrics] of this.performanceMetrics.entries()) {
       if (metrics.avgExecutionTime > 300) { // 300ms 被認為是慢的
         const currentPriority = this.getEventPriority(eventName)
@@ -323,7 +323,7 @@ class EventPriorityManager {
    * @param {string} eventName - 事件名稱
    * @param {Object} metrics - 效能指標
    */
-  recordPerformanceMetrics(eventName, metrics) {
+  recordPerformanceMetrics (eventName, metrics) {
     this.performanceMetrics.set(eventName, metrics)
   }
 
@@ -333,7 +333,7 @@ class EventPriorityManager {
    * @param {string} eventName - 事件名稱
    * @param {Function} handler - 處理器
    */
-  registerWithPriority(eventBus, eventName, handler) {
+  registerWithPriority (eventBus, eventName, handler) {
     const priority = this.assignEventPriority(eventName)
     eventBus.on(eventName, handler, { priority })
   }
@@ -345,7 +345,7 @@ class EventPriorityManager {
    * @param {string} action - 操作類型
    * @param {number} oldPriority - 舊優先級
    */
-  recordPriorityHistory(eventName, priority, action, oldPriority = null) {
+  recordPriorityHistory (eventName, priority, action, oldPriority = null) {
     if (!this.priorityHistory.has(eventName)) {
       this.priorityHistory.set(eventName, [])
     }
@@ -362,7 +362,7 @@ class EventPriorityManager {
    * 更新優先級統計
    * @param {string} category - 優先級類別
    */
-  updatePriorityStats(category) {
+  updatePriorityStats (category) {
     if (!this.priorityStats.priorityDistribution[category]) {
       this.priorityStats.priorityDistribution[category] = 0
     }
@@ -373,10 +373,10 @@ class EventPriorityManager {
    * 更新分配時間統計
    * @param {number} assignmentTime - 分配時間
    */
-  updateAssignmentTime(assignmentTime) {
+  updateAssignmentTime (assignmentTime) {
     const totalAssignments = this.priorityStats.totalAssignments
     const currentAvg = this.priorityStats.avgAssignmentTime
-    this.priorityStats.avgAssignmentTime = 
+    this.priorityStats.avgAssignmentTime =
       ((currentAvg * totalAssignments) + assignmentTime) / (totalAssignments + 1)
   }
 
@@ -384,7 +384,7 @@ class EventPriorityManager {
    * 取得優先級統計
    * @returns {Object} 統計資訊
    */
-  getPriorityStats() {
+  getPriorityStats () {
     return { ...this.priorityStats }
   }
 
@@ -392,7 +392,7 @@ class EventPriorityManager {
    * 取得優先級分佈
    * @returns {Object} 分佈統計
    */
-  getPriorityDistribution() {
+  getPriorityDistribution () {
     return { ...this.priorityStats.priorityDistribution }
   }
 
@@ -401,7 +401,7 @@ class EventPriorityManager {
    * @param {string} eventName - 事件名稱
    * @returns {Array} 歷史記錄
    */
-  getPriorityHistory(eventName) {
+  getPriorityHistory (eventName) {
     return this.priorityHistory.get(eventName) || []
   }
 }

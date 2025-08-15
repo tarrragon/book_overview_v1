@@ -1,18 +1,18 @@
 /**
  * 生命週期管理服務
- * 
+ *
  * 負責功能：
  * - 系統狀態載入和保存
  * - 服務生命週期協調 (初始化、啟動、停止)
  * - 事件監聽器註冊和管理
  * - 系統啟動和關閉檢查
- * 
+ *
  * 設計考量：
  * - 統一的生命週期管理介面
  * - 狀態持久化和恢復機制
  * - 完整的錯誤處理和恢復
  * - 事件監聽器生命週期管理
- * 
+ *
  * 使用情境：
  * - System Domain 生命週期協調
  * - 與其他微服務的啟動順序管理
@@ -27,12 +27,12 @@ const {
 } = require('../../constants/module-constants')
 
 class LifecycleManagementService {
-  constructor(dependencies = {}) {
+  constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
     this.logger = dependencies.logger || console
     this.i18nManager = dependencies.i18nManager || null
-    
+
     // 生命週期狀態
     this.state = {
       initialized: false,
@@ -40,7 +40,7 @@ class LifecycleManagementService {
       startupTime: null,
       shutdownRequested: false
     }
-    
+
     // 系統狀態管理
     this.systemState = {
       installationInfo: null,
@@ -49,10 +49,10 @@ class LifecycleManagementService {
       maintenanceMode: false,
       configuration: { ...DEFAULT_CONFIG }
     }
-    
+
     // 事件監聽器記錄
     this.registeredListeners = new Map()
-    
+
     // 統計資料
     this.stats = {
       startupAttempts: 0,
@@ -65,7 +65,7 @@ class LifecycleManagementService {
   /**
    * 初始化生命週期管理服務
    */
-  async initialize() {
+  async initialize () {
     if (this.state.initialized) {
       this.logger.warn('⚠️ 生命週期管理服務已初始化')
       return
@@ -73,16 +73,16 @@ class LifecycleManagementService {
 
     try {
       this.logger.log('🔄 初始化生命週期管理服務')
-      
+
       // 載入系統狀態
       await this.loadSystemState()
-      
+
       // 註冊事件監聽器
       await this.registerEventListeners()
-      
+
       this.state.initialized = true
       this.logger.log('✅ 生命週期管理服務初始化完成')
-      
+
       // 發送初始化完成事件
       if (this.eventBus) {
         await this.eventBus.emit('SYSTEM.LIFECYCLE.INITIALIZED', {
@@ -99,7 +99,7 @@ class LifecycleManagementService {
   /**
    * 啟動生命週期管理服務
    */
-  async start() {
+  async start () {
     if (!this.state.initialized) {
       throw new Error('服務尚未初始化')
     }
@@ -112,19 +112,19 @@ class LifecycleManagementService {
     try {
       this.logger.log('🚀 啟動生命週期管理服務')
       this.stats.startupAttempts++
-      
+
       // 執行啟動檢查
       await this.performStartupChecks()
-      
+
       this.state.active = true
       this.state.startupTime = Date.now()
       this.systemState.lastStartupTime = this.state.startupTime
-      
+
       // 保存狀態
       await this.saveSystemState()
-      
+
       this.logger.log('✅ 生命週期管理服務啟動完成')
-      
+
       // 發送啟動完成事件
       if (this.eventBus) {
         await this.eventBus.emit('SYSTEM.LIFECYCLE.STARTED', {
@@ -141,7 +141,7 @@ class LifecycleManagementService {
   /**
    * 停止生命週期管理服務
    */
-  async stop() {
+  async stop () {
     if (!this.state.active) {
       this.logger.warn('⚠️ 生命週期管理服務未啟動')
       return
@@ -151,19 +151,19 @@ class LifecycleManagementService {
       this.logger.log('🛑 停止生命週期管理服務')
       this.stats.shutdownAttempts++
       this.state.shutdownRequested = true
-      
+
       // 執行關閉檢查
       await this.performShutdownChecks()
-      
+
       // 保存最終狀態
       await this.saveSystemState()
-      
+
       // 取消註冊事件監聽器
       await this.unregisterEventListeners()
-      
+
       this.state.active = false
       this.logger.log('✅ 生命週期管理服務停止完成')
-      
+
       // 發送停止完成事件
       if (this.eventBus) {
         await this.eventBus.emit('SYSTEM.LIFECYCLE.STOPPED', {
@@ -180,9 +180,9 @@ class LifecycleManagementService {
   /**
    * 載入系統狀態
    */
-  async loadSystemState() {
+  async loadSystemState () {
     this.stats.stateLoadAttempts++
-    
+
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         const result = await chrome.storage.local.get([
@@ -219,9 +219,9 @@ class LifecycleManagementService {
   /**
    * 保存系統狀態
    */
-  async saveSystemState() {
+  async saveSystemState () {
     this.stats.stateSaveAttempts++
-    
+
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         const stateToSave = {
@@ -248,7 +248,7 @@ class LifecycleManagementService {
   /**
    * 註冊事件監聽器
    */
-  async registerEventListeners() {
+  async registerEventListeners () {
     if (!this.eventBus) {
       this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
       return
@@ -283,7 +283,7 @@ class LifecycleManagementService {
   /**
    * 取消註冊事件監聽器
    */
-  async unregisterEventListeners() {
+  async unregisterEventListeners () {
     if (!this.eventBus) return
 
     for (const [event, listenerId] of this.registeredListeners) {
@@ -301,7 +301,7 @@ class LifecycleManagementService {
   /**
    * 執行啟動檢查
    */
-  async performStartupChecks() {
+  async performStartupChecks () {
     // 檢查系統狀態
     if (this.systemState.maintenanceMode) {
       this.logger.warn('⚠️ 系統處於維護模式')
@@ -319,7 +319,7 @@ class LifecycleManagementService {
   /**
    * 執行關閉檢查
    */
-  async performShutdownChecks() {
+  async performShutdownChecks () {
     // 檢查是否有未完成的操作
     if (this.state.shutdownRequested) {
       this.logger.log('🔄 執行正常關閉流程')
@@ -331,7 +331,7 @@ class LifecycleManagementService {
   /**
    * 處理啟動請求
    */
-  async handleStartupRequest(event) {
+  async handleStartupRequest (event) {
     try {
       this.logger.log('🔄 處理啟動請求')
       if (!this.state.active) {
@@ -345,7 +345,7 @@ class LifecycleManagementService {
   /**
    * 處理關閉請求
    */
-  async handleShutdownRequest(event) {
+  async handleShutdownRequest (event) {
     try {
       this.logger.log('🔄 處理關閉請求')
       if (this.state.active) {
@@ -359,7 +359,7 @@ class LifecycleManagementService {
   /**
    * 處理狀態保存請求
    */
-  async handleStateSaveRequest(event) {
+  async handleStateSaveRequest (event) {
     try {
       await this.saveSystemState()
     } catch (error) {
@@ -370,7 +370,7 @@ class LifecycleManagementService {
   /**
    * 獲取服務狀態
    */
-  getStatus() {
+  getStatus () {
     return {
       initialized: this.state.initialized,
       active: this.state.active,
@@ -383,8 +383,8 @@ class LifecycleManagementService {
   /**
    * 獲取健康狀態
    */
-  getHealthStatus() {
-    const isHealthy = this.state.initialized && 
+  getHealthStatus () {
+    const isHealthy = this.state.initialized &&
                      !this.systemState.maintenanceMode &&
                      this.stats.stateLoadAttempts > 0
 

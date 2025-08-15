@@ -1,22 +1,22 @@
 /**
  * Data Validation Service v2.0 單元測試
  * TDD Red Phase - 完整測試案例設計
- * 
+ *
  * 負責功能：
  * - 統一資料格式驗證與標準化測試
- * - 跨平台資料品質檢測測試  
+ * - 跨平台資料品質檢測測試
  * - 自動資料清理和修復測試
  * - 資料完整性驗證測試
- * 
+ *
  * 設計考量：
  * - 支援多種資料來源和格式的測試覆蓋
  * - 可擴展的驗證規則引擎測試
  * - 效能優化的批量處理測試
  * - 詳細的驗證報告和錯誤追蹤測試
- * 
+ *
  * 測試覆蓋範圍：
  * 1. 建構函數與初始化測試
- * 2. 基本資料驗證功能測試  
+ * 2. 基本資料驗證功能測試
  * 3. 跨平台資料格式支援測試
  * 4. 錯誤處理與邊界條件測試
  * 5. 事件系統整合測試
@@ -36,7 +36,7 @@ describe('Data Validation Service v2.0', () => {
 
   // 測試數據集合
   const testPlatforms = ['READMOO', 'KINDLE', 'KOBO', 'BOOKWALKER', 'BOOKS_COM']
-  
+
   const validBookData = {
     id: 'book-123',
     title: '測試書籍標題',
@@ -57,16 +57,16 @@ describe('Data Validation Service v2.0', () => {
   }
 
   const invalidBookData = {
-    id: '',  // 空ID
-    title: '   ',  // 空白標題
-    authors: null,  // null作者
-    publisher: 123,  // 錯誤型別
-    isbn: 'invalid-isbn',  // 錯誤格式
+    id: '', // 空ID
+    title: '   ', // 空白標題
+    authors: null, // null作者
+    publisher: 123, // 錯誤型別
+    isbn: 'invalid-isbn', // 錯誤格式
     progress: {
-      percentage: 150,  // 超出範圍
-      currentPage: -10  // 負數頁數
+      percentage: 150, // 超出範圍
+      currentPage: -10 // 負數頁數
     },
-    rating: 6  // 超出範圍
+    rating: 6 // 超出範圍
   }
 
   const mixedQualityBooks = [
@@ -150,7 +150,7 @@ describe('Data Validation Service v2.0', () => {
 
       test('應該載入預設驗證規則', async () => {
         await dataValidationService.initialize()
-        
+
         expect(dataValidationService.validationRules.has('DEFAULT')).toBe(true)
         const defaultRules = dataValidationService.validationRules.get('DEFAULT')
         expect(defaultRules).toHaveProperty('required')
@@ -203,7 +203,7 @@ describe('Data Validation Service v2.0', () => {
 
       test('應該快取已載入的驗證規則', async () => {
         const loadSpy = jest.spyOn(dataValidationService, 'loadRulesForPlatform')
-        
+
         await dataValidationService.loadPlatformValidationRules('KINDLE')
         await dataValidationService.loadPlatformValidationRules('KINDLE') // 重複載入
 
@@ -364,9 +364,9 @@ describe('Data Validation Service v2.0', () => {
       test('應該檢測資料類型錯誤', async () => {
         const bookWithTypeErrors = {
           ...validBookData,
-          progress: 'invalid_progress',  // 應該是物件
-          rating: 'five_stars',          // 應該是數字
-          authors: 'single_author'       // 應該是陣列
+          progress: 'invalid_progress', // 應該是物件
+          rating: 'five_stars', // 應該是數字
+          authors: 'single_author' // 應該是陣列
         }
 
         const validation = await dataValidationService.validateSingleBook(
@@ -389,11 +389,11 @@ describe('Data Validation Service v2.0', () => {
         const bookWithBusinessLogicErrors = {
           ...validBookData,
           progress: {
-            percentage: 150,     // 超出0-100範圍
+            percentage: 150, // 超出0-100範圍
             currentPage: 200,
-            totalPages: 100      // 當前頁數大於總頁數
+            totalPages: 100 // 當前頁數大於總頁數
           },
-          rating: -1,            // 負評分
+          rating: -1, // 負評分
           publishedDate: '2030-12-31' // 未來日期
         }
 
@@ -410,10 +410,10 @@ describe('Data Validation Service v2.0', () => {
       test('應該執行資料品質檢查', async () => {
         const lowQualityBook = {
           ...validBookData,
-          title: 'a',           // 太短的標題
-          authors: [''],        // 空作者名稱
-          isbn: '123',          // 太短的ISBN
-          cover: 'invalid-url'  // 無效的圖片URL
+          title: 'a', // 太短的標題
+          authors: [''], // 空作者名稱
+          isbn: '123', // 太短的ISBN
+          cover: 'invalid-url' // 無效的圖片URL
         }
 
         const validation = await dataValidationService.validateSingleBook(
@@ -434,8 +434,8 @@ describe('Data Validation Service v2.0', () => {
         const bookNeedingFix = {
           ...validBookData,
           title: '  標題前後有空白  ',
-          isbn: '978-957-123-456-7',  // 帶連字符的ISBN
-          authors: 'Single Author'     // 字串形式的作者
+          isbn: '978-957-123-456-7', // 帶連字符的ISBN
+          authors: 'Single Author' // 字串形式的作者
         }
 
         const validation = await dataValidationService.validateSingleBook(
@@ -613,10 +613,10 @@ describe('Data Validation Service v2.0', () => {
         const mixedPlatformBook = {
           id: 'mixed_123',
           title: '混合平台書籍',
-          ASIN: 'B08XYZ123',             // KINDLE 必填欄位
-          kindle_price: 9.99,            // KINDLE 特有
-          kobo_series_id: 'kobo_456',    // KOBO 特有
-          readmoo_type: '流式'           // READMOO 特有
+          ASIN: 'B08XYZ123', // KINDLE 必填欄位
+          kindle_price: 9.99, // KINDLE 特有
+          kobo_series_id: 'kobo_456', // KOBO 特有
+          readmoo_type: '流式' // READMOO 特有
         }
 
         const kindleValidation = await dataValidationService.validateSingleBook(
@@ -704,7 +704,7 @@ describe('Data Validation Service v2.0', () => {
       test('應該處理網路逾時錯誤', async () => {
         // 清除快取以確保會調用 loadRulesForPlatform
         dataValidationService.validationRules.clear()
-        
+
         // 模擬載入驗證規則時的網路錯誤
         jest.spyOn(dataValidationService, 'loadRulesForPlatform')
           .mockRejectedValueOnce(new Error('Network timeout'))
@@ -799,7 +799,7 @@ describe('Data Validation Service v2.0', () => {
 
       test('應該處理循環引用資料結構', async () => {
         const circularBook = { ...validBookData }
-        circularBook.self = circularBook  // 建立循環引用
+        circularBook.self = circularBook // 建立循環引用
 
         // 應該能安全處理循環引用
         const validation = await dataValidationService.validateSingleBook(
@@ -898,7 +898,7 @@ describe('Data Validation Service v2.0', () => {
       test('應該發布批次處理進度事件', async () => {
         // 設置小批次大小以觸發多批次處理
         dataValidationService.config.batchSize = 20
-        
+
         const largeBatch = Array(50).fill().map((_, index) => ({
           ...validBookData,
           id: `batch-book-${index}`
@@ -920,8 +920,8 @@ describe('Data Validation Service v2.0', () => {
       test('應該發布資料品質警告事件', async () => {
         const lowQualityBook = {
           id: 'quality-test',
-          title: 'a',  // 太短的標題
-          authors: ['']  // 空作者名稱
+          title: 'a', // 太短的標題
+          authors: [''] // 空作者名稱
         }
 
         await dataValidationService.validateAndNormalize([lowQualityBook], 'READMOO', 'QUALITY_WARNING_TEST')
@@ -1013,7 +1013,7 @@ describe('Data Validation Service v2.0', () => {
 
         const lowPriorityRequest = {
           books: [validBookData],
-          platform: 'READMOO', 
+          platform: 'READMOO',
           source: 'LOW_PRIORITY_TEST',
           priority: 'LOW',
           requestId: 'low-pri-456'
@@ -1030,7 +1030,7 @@ describe('Data Validation Service v2.0', () => {
 
         // 高優先級請求應該先被處理
         const emitCalls = mockEventBus.emit.mock.calls
-        const highPriorityResponse = emitCalls.find(call => 
+        const highPriorityResponse = emitCalls.find(call =>
           call[0] === 'DATA.VALIDATION.COMPLETED' && call[1].requestId === 'high-pri-123'
         )
         const lowPriorityResponse = emitCalls.find(call =>
@@ -1164,11 +1164,11 @@ describe('Data Validation Service v2.0', () => {
 
       test('應該監控記憶體使用量', async () => {
         const memoryBefore = process.memoryUsage().heapUsed
-        
+
         const largeBatch = Array(500).fill().map((_, index) => ({
           ...validBookData,
           id: `memory-test-${index}`,
-          largeData: 'x'.repeat(1000)  // 增加每個物件的記憶體佔用
+          largeData: 'x'.repeat(1000) // 增加每個物件的記憶體佔用
         }))
 
         const result = await dataValidationService.validateAndNormalize(
@@ -1225,7 +1225,7 @@ describe('Data Validation Service v2.0', () => {
         const duration = Date.now() - startTime
 
         // 並行處理應該比串行處理快
-        expect(duration).toBeLessThan(500)  // 假設串行需要更長時間
+        expect(duration).toBeLessThan(500) // 假設串行需要更長時間
         results.forEach(result => {
           expect(result.totalBooks).toBe(50)
           expect(result.validBooks).toHaveLength(50)
@@ -1291,13 +1291,13 @@ describe('Data Validation Service v2.0', () => {
         )
 
         expect(result.totalBooks).toBe(500)
-        expect(progressEvents).toBeGreaterThan(0)  // 應該有進度報告
+        expect(progressEvents).toBeGreaterThan(0) // 應該有進度報告
       })
 
       test('應該支援記憶體閾值控制', async () => {
         const memoryLimitConfig = {
           ...mockConfig,
-          memoryThreshold: 100 * 1024 * 1024,  // 100MB
+          memoryThreshold: 100 * 1024 * 1024, // 100MB
           gcAfterBatch: true
         }
 
@@ -1328,7 +1328,7 @@ describe('Data Validation Service v2.0', () => {
           ...mockConfig,
           enableCache: true,
           cacheSize: 1000,
-          cacheTTL: 300000  // 5分鐘
+          cacheTTL: 300000 // 5分鐘
         }
 
         const cacheService = new DataValidationService(mockEventBus, cacheConfig)
@@ -1347,7 +1347,7 @@ describe('Data Validation Service v2.0', () => {
         const duration2 = Date.now() - startTime2
 
         expect(result1.isValid).toBe(result2.isValid)
-        expect(duration2).toBeLessThan(duration1)  // 快取應該更快
+        expect(duration2).toBeLessThan(duration1) // 快取應該更快
       })
     })
   })
@@ -1485,7 +1485,7 @@ describe('Data Validation Service v2.0', () => {
             expected: { percentage: 75, currentPage: 150, totalPages: 200, lastPosition: '' }
           },
           {
-            input: { percent: 120, page: -10, total: 0 },  // 邊界值測試
+            input: { percent: 120, page: -10, total: 0 }, // 邊界值測試
             expected: { percentage: 100, currentPage: 0, totalPages: 0, lastPosition: '' }
           },
           {
@@ -1573,7 +1573,7 @@ describe('Data Validation Service v2.0', () => {
         }
 
         const qualityScore = dataValidationService.calculateQualityScore(partialReport)
-        expect(qualityScore).toBe(65)  // 70% valid - 5% warning penalty
+        expect(qualityScore).toBe(65) // 70% valid - 5% warning penalty
       })
 
       test('應該為空資料集返回 0 分數', () => {
@@ -1593,11 +1593,11 @@ describe('Data Validation Service v2.0', () => {
           totalBooks: 10,
           validBooks: Array(10).fill({}),
           invalidBooks: [],
-          warnings: Array(100).fill({})  // 大量警告
+          warnings: Array(100).fill({}) // 大量警告
         }
 
         const qualityScore = dataValidationService.calculateQualityScore(heavyWarningReport)
-        expect(qualityScore).toBe(80)  // 100% valid - 20% max warning penalty
+        expect(qualityScore).toBe(80) // 100% valid - 20% max warning penalty
       })
     })
 
@@ -1648,7 +1648,7 @@ describe('Data Validation Service v2.0', () => {
         expect(typeof fingerprint).toBe('string')
         expect(fingerprint.length).toBeGreaterThan(5)
         expect(fingerprint.length).toBeLessThan(50)
-        expect(fingerprint).toMatch(/^[a-z0-9]+$/)  // 只包含小寫字母和數字
+        expect(fingerprint).toMatch(/^[a-z0-9]+$/) // 只包含小寫字母和數字
       })
     })
 
@@ -1716,7 +1716,7 @@ describe('Data Validation Service v2.0', () => {
         // 檢查跨平台ID的唯一性
         const crossPlatformIds = result.normalizedBooks.map(book => book.crossPlatformId)
         const uniqueIds = new Set(crossPlatformIds)
-        expect(uniqueIds.size).toBe(100)  // 所有ID應該唯一
+        expect(uniqueIds.size).toBe(100) // 所有ID應該唯一
       })
     })
   })
@@ -1737,7 +1737,7 @@ describe('Data Validation Service v2.0', () => {
           type: '流式',
           isNew: false,
           isFinished: false,
-          author: 'Daniel J. Siegel'  // 單一作者字串
+          author: 'Daniel J. Siegel' // 單一作者字串
         }
       ]
 
@@ -1748,7 +1748,6 @@ describe('Data Validation Service v2.0', () => {
         'COMPLETE_WORKFLOW_TEST'
       )
 
-
       // 3. 驗證完整流程的輸出
       expect(result.totalBooks).toBe(1)
       expect(result.validBooks).toHaveLength(1)
@@ -1758,8 +1757,8 @@ describe('Data Validation Service v2.0', () => {
 
       // 4. 檢查資料轉換正確性
       expect(normalizedBook.id).toBe('210327003000101')
-      expect(normalizedBook.title).toBe('大腦不滿足')  // 去除空白
-      expect(normalizedBook.authors).toEqual(['Daniel J. Siegel'])  // 轉為陣列
+      expect(normalizedBook.title).toBe('大腦不滿足') // 去除空白
+      expect(normalizedBook.authors).toEqual(['Daniel J. Siegel']) // 轉為陣列
       expect(normalizedBook.platform).toBe('READMOO')
       expect(normalizedBook.progress.percentage).toBe(60)
 
@@ -1834,7 +1833,7 @@ describe('Data Validation Service v2.0', () => {
       expect(realDataResult.qualityScore).toBeGreaterThan(65)
 
       // 檢查處理效能
-      expect(realDataResult.duration).toBeLessThan(1000)  // 1秒內完成
+      expect(realDataResult.duration).toBeLessThan(1000) // 1秒內完成
 
       // 檢查資料品質
       realDataResult.normalizedBooks.forEach(book => {
@@ -1856,7 +1855,7 @@ describe('Data Validation Service v2.0', () => {
         validBookData,
         { ...invalidBookData, id: 'error-book-1' },
         { ...validBookData, id: 'valid-book-2', title: '正常書籍2' },
-        null,  // 完全無效的資料
+        null, // 完全無效的資料
         { ...validBookData, id: 'valid-book-3', title: '正常書籍3' }
       ]
 

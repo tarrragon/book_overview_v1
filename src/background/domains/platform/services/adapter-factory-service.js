@@ -2,28 +2,28 @@
  * @fileoverview Adapter Factory Service - 適配器工廠服務
  * @version v2.0.0
  * @since 2025-08-14
- * 
+ *
  * 負責功能：
  * - 工廠模式適配器創建與管理
  * - 適配器生命週期完整管理 (create, initialize, activate, deactivate, cleanup)
  * - 資源池化與重用機制
  * - 效能監控與統計記錄
  * - 依賴注入與配置管理
- * 
+ *
  * 設計考量：
  * - 支援 5 個主流電子書平台 (READMOO, KINDLE, KOBO, BOOKWALKER, BOOKS_COM)
  * - 與 Platform Registry Service 無縫整合
  * - 事件驅動架構 v2.0 命名規範
  * - 錯誤處理和健康監控機制
  * - 記憶體效率與效能優化
- * 
+ *
  * 處理流程：
  * 1. 初始化適配器工廠和資源池
  * 2. 根據平台需求創建適配器實例
  * 3. 管理適配器完整生命週期
  * 4. 提供資源池化和重用服務
  * 5. 監控效能並記錄統計資料
- * 
+ *
  * 使用情境：
  * - Platform Domain Coordinator 請求適配器時
  * - Platform Switcher Service 切換平台時
@@ -36,22 +36,22 @@ class AdapterFactoryService {
    * @param {EventBus} eventBus - 事件總線實例
    * @param {Object} dependencies - 依賴注入物件
    */
-  constructor(eventBus, dependencies = {}) {
+  constructor (eventBus, dependencies = {}) {
     this.eventBus = eventBus
     this.logger = dependencies.logger
     this.config = dependencies.config || {}
     this.platformRegistry = dependencies.platformRegistry
     this.performanceMonitor = dependencies.performanceMonitor
-    
+
     // 適配器實例池 - 主要資料結構
     this.adapterPool = new Map()
-    
+
     // 適配器狀態追蹤
     this.adapterStates = new Map()
-    
+
     // 適配器類型映射
     this.adapterTypes = new Map()
-    
+
     // 工廠配置
     this.factoryConfig = {
       maxPoolSize: this.config.maxPoolSize || 10,
@@ -61,7 +61,7 @@ class AdapterFactoryService {
       healthCheckInterval: this.config.healthCheckInterval || 60000, // 1分鐘
       maxRetryAttempts: this.config.maxRetryAttempts || 3
     }
-    
+
     // 統計資料
     this.statistics = {
       totalCreated: 0,
@@ -75,7 +75,7 @@ class AdapterFactoryService {
       avgCreationTime: 0,
       performanceMetrics: new Map()
     }
-    
+
     // 健康監控
     this.healthStatus = {
       isHealthy: true,
@@ -84,22 +84,22 @@ class AdapterFactoryService {
       warningCount: 0,
       errorCount: 0
     }
-    
+
     // 服務狀態
     this.isInitialized = false
     this.isShuttingDown = false
     this.healthCheckTimer = null
     this.cleanupTimer = null
-    
+
     // 支援的平台配置
     this.supportedPlatforms = [
       'READMOO',
-      'KINDLE', 
+      'KINDLE',
       'KOBO',
       'BOOKWALKER',
       'BOOKS_COM'
     ]
-    
+
     // 適配器構造函數映射
     this.adapterConstructors = new Map()
   }
@@ -107,38 +107,37 @@ class AdapterFactoryService {
   /**
    * 初始化工廠服務
    */
-  async initialize() {
+  async initialize () {
     try {
       await this.log('開始初始化 Adapter Factory Service')
-      
+
       // 初始化適配器類型映射
       await this.initializeAdapterTypes()
-      
+
       // 載入適配器構造函數
       await this.loadAdapterConstructors()
-      
+
       // 初始化資源池
       await this.initializeAdapterPool()
-      
+
       // 設定事件監聽器
       await this.setupEventListeners()
-      
+
       // 啟動健康監控
       await this.startHealthMonitoring()
-      
+
       // 啟動資源清理
       await this.startResourceCleanup()
-      
+
       this.isInitialized = true
       await this.log('Adapter Factory Service 初始化完成')
-      
+
       // 發送初始化完成事件
       await this.emitEvent('PLATFORM.ADAPTER.FACTORY.INITIALIZED', {
         supportedPlatforms: this.supportedPlatforms,
         poolConfiguration: this.factoryConfig,
         timestamp: Date.now()
       })
-      
     } catch (error) {
       await this.logError('Adapter Factory Service 初始化失敗', error)
       throw error
@@ -148,7 +147,7 @@ class AdapterFactoryService {
   /**
    * 初始化適配器類型映射
    */
-  async initializeAdapterTypes() {
+  async initializeAdapterTypes () {
     // 定義每個平台的適配器類型配置
     const adapterTypeConfigs = {
       READMOO: {
@@ -172,7 +171,7 @@ class AdapterFactoryService {
           retryAttempts: 3
         }
       },
-      
+
       KINDLE: {
         moduleId: 'kindle-adapter',
         className: 'KindleAdapter',
@@ -193,7 +192,7 @@ class AdapterFactoryService {
           retryAttempts: 2
         }
       },
-      
+
       KOBO: {
         moduleId: 'kobo-adapter',
         className: 'KoboAdapter',
@@ -213,7 +212,7 @@ class AdapterFactoryService {
           retryAttempts: 3
         }
       },
-      
+
       BOOKWALKER: {
         moduleId: 'bookwalker-adapter',
         className: 'BookWalkerAdapter',
@@ -233,7 +232,7 @@ class AdapterFactoryService {
           retryAttempts: 2
         }
       },
-      
+
       BOOKS_COM: {
         moduleId: 'books-com-adapter',
         className: 'BooksComAdapter',
@@ -254,7 +253,7 @@ class AdapterFactoryService {
         }
       }
     }
-    
+
     // 註冊所有適配器類型
     for (const [platformId, typeConfig] of Object.entries(adapterTypeConfigs)) {
       this.adapterTypes.set(platformId, typeConfig)
@@ -265,12 +264,12 @@ class AdapterFactoryService {
   /**
    * 載入適配器構造函數
    */
-  async loadAdapterConstructors() {
-    //todo: 實際適配器模組載入 - 目前使用模擬構造函數
-    
+  async loadAdapterConstructors () {
+    // todo: 實際適配器模組載入 - 目前使用模擬構造函數
+
     // 模擬適配器構造函數 - 實際環境中應該動態載入
     const MockAdapter = class {
-      constructor(platformId, config, dependencies) {
+      constructor (platformId, config, dependencies) {
         this.platformId = platformId
         this.config = config
         this.dependencies = dependencies
@@ -287,8 +286,8 @@ class AdapterFactoryService {
           avgResponseTime: 0
         }
       }
-      
-      async initialize() {
+
+      async initialize () {
         const startTime = Date.now()
         await this.simulateAsyncOperation(100)
         this.isInitialized = true
@@ -296,8 +295,8 @@ class AdapterFactoryService {
         this.performanceMetrics.initTime = Date.now() - startTime
         this.lastActivity = Date.now()
       }
-      
-      async activate() {
+
+      async activate () {
         const startTime = Date.now()
         await this.simulateAsyncOperation(50)
         this.isActive = true
@@ -305,25 +304,25 @@ class AdapterFactoryService {
         this.performanceMetrics.activationTime = Date.now() - startTime
         this.lastActivity = Date.now()
       }
-      
-      async deactivate() {
+
+      async deactivate () {
         await this.simulateAsyncOperation(30)
         this.isActive = false
         this.state = 'inactive'
         this.lastActivity = Date.now()
       }
-      
-      async cleanup() {
+
+      async cleanup () {
         await this.simulateAsyncOperation(80)
         this.state = 'cleaned'
         this.lastActivity = Date.now()
       }
-      
-      async simulateAsyncOperation(delay) {
+
+      async simulateAsyncOperation (delay) {
         return new Promise(resolve => setTimeout(resolve, delay))
       }
-      
-      getHealthStatus() {
+
+      getHealthStatus () {
         return {
           isHealthy: this.errorCount < 5,
           state: this.state,
@@ -333,7 +332,7 @@ class AdapterFactoryService {
         }
       }
     }
-    
+
     // 為每個平台註冊構造函數
     for (const platformId of this.supportedPlatforms) {
       this.adapterConstructors.set(platformId, MockAdapter)
@@ -344,7 +343,7 @@ class AdapterFactoryService {
   /**
    * 初始化適配器池
    */
-  async initializeAdapterPool() {
+  async initializeAdapterPool () {
     // 為每個支援的平台建立空的池
     for (const platformId of this.supportedPlatforms) {
       this.adapterPool.set(platformId, {
@@ -355,7 +354,7 @@ class AdapterFactoryService {
         totalCreated: 0,
         totalReused: 0
       })
-      
+
       // 初始化狀態追蹤
       this.adapterStates.set(platformId, {
         totalInstances: 0,
@@ -366,7 +365,7 @@ class AdapterFactoryService {
         lastError: null
       })
     }
-    
+
     await this.log('適配器池初始化完成')
   }
 
@@ -376,24 +375,24 @@ class AdapterFactoryService {
    * @param {Object} options - 創建選項
    * @returns {Promise<Object>} 適配器實例
    */
-  async createAdapter(platformId, options = {}) {
+  async createAdapter (platformId, options = {}) {
     const startTime = Date.now()
-    
+
     try {
       await this.log(`開始創建適配器: ${platformId}`)
-      
+
       // 驗證平台支援
       if (!this.supportedPlatforms.includes(platformId)) {
         throw new Error(`不支援的平台: ${platformId}`)
       }
-      
+
       // 檢查是否可以從池中重用
       if (this.factoryConfig.enablePooling && !options.forceNew) {
         const pooledAdapter = await this.getFromPool(platformId)
         if (pooledAdapter) {
           this.statistics.poolHits++
           await this.log(`從池中重用適配器: ${platformId}`)
-          
+
           // 發送重用事件
           await this.emitEvent('PLATFORM.ADAPTER.REUSED', {
             platformId,
@@ -401,23 +400,23 @@ class AdapterFactoryService {
             creationTime: Date.now() - startTime,
             timestamp: Date.now()
           })
-          
+
           return pooledAdapter
         }
         this.statistics.poolMisses++
       }
-      
+
       // 建立新的適配器實例
       const adapter = await this.createNewAdapter(platformId, options)
-      
+
       // 記錄統計
       this.statistics.totalCreated++
       this.statistics.activeInstances++
       this.statistics.lastCreationTime = Date.now()
-      
+
       const creationTime = Date.now() - startTime
       this.updateAverageCreationTime(creationTime)
-      
+
       // 更新平台狀態
       const state = this.adapterStates.get(platformId)
       if (state) {
@@ -425,7 +424,7 @@ class AdapterFactoryService {
         state.activeInstances++
         state.lastCreated = Date.now()
       }
-      
+
       // 發送創建完成事件
       await this.emitEvent('PLATFORM.ADAPTER.CREATED', {
         platformId,
@@ -434,13 +433,12 @@ class AdapterFactoryService {
         totalInstances: this.statistics.activeInstances,
         timestamp: Date.now()
       })
-      
+
       await this.log(`適配器創建成功: ${platformId} (${creationTime}ms)`)
       return adapter
-      
     } catch (error) {
       this.statistics.creationErrors++
-      
+
       // 更新平台狀態
       const state = this.adapterStates.get(platformId)
       if (state) {
@@ -449,7 +447,7 @@ class AdapterFactoryService {
           timestamp: Date.now()
         }
       }
-      
+
       // 發送創建失敗事件
       await this.emitEvent('PLATFORM.ADAPTER.CREATION.FAILED', {
         platformId,
@@ -457,7 +455,7 @@ class AdapterFactoryService {
         creationTime: Date.now() - startTime,
         timestamp: Date.now()
       })
-      
+
       await this.logError(`適配器創建失敗: ${platformId}`, error)
       throw error
     }
@@ -469,32 +467,32 @@ class AdapterFactoryService {
    * @param {Object} options - 創建選項
    * @returns {Promise<Object>} 新的適配器實例
    */
-  async createNewAdapter(platformId, options = {}) {
+  async createNewAdapter (platformId, options = {}) {
     // 取得適配器類型配置
     const adapterType = this.adapterTypes.get(platformId)
     if (!adapterType) {
       throw new Error(`找不到適配器類型配置: ${platformId}`)
     }
-    
+
     // 取得平台註冊資訊
     let platformConfig = null
     if (this.platformRegistry) {
       platformConfig = this.platformRegistry.getPlatform(platformId)
     }
-    
+
     // 取得構造函數
     const AdapterConstructor = this.adapterConstructors.get(platformId)
     if (!AdapterConstructor) {
       throw new Error(`找不到適配器構造函數: ${platformId}`)
     }
-    
+
     // 建立配置物件
     const config = {
       ...adapterType.config,
       ...platformConfig?.adapterConfig,
       ...options.config
     }
-    
+
     // 建立依賴注入物件
     const dependencies = {
       eventBus: this.eventBus,
@@ -502,19 +500,19 @@ class AdapterFactoryService {
       performanceMonitor: this.performanceMonitor,
       ...options.dependencies
     }
-    
+
     // 創建適配器實例
     const adapter = new AdapterConstructor(platformId, config, dependencies)
-    
+
     // 加入唯一識別符
     adapter.id = this.generateAdapterId(platformId)
     adapter.factoryId = this.generateFactoryId()
     adapter.createdBy = 'AdapterFactoryService'
     adapter.version = adapterType.version
-    
+
     // 加入生命週期管理方法
     await this.enhanceAdapterWithLifecycle(adapter, platformId)
-    
+
     return adapter
   }
 
@@ -523,12 +521,12 @@ class AdapterFactoryService {
    * @param {Object} adapter - 適配器實例
    * @param {string} platformId - 平台標識符
    */
-  async enhanceAdapterWithLifecycle(adapter, platformId) {
+  async enhanceAdapterWithLifecycle (adapter, platformId) {
     const originalInitialize = adapter.initialize?.bind(adapter)
     const originalActivate = adapter.activate?.bind(adapter)
     const originalDeactivate = adapter.deactivate?.bind(adapter)
     const originalCleanup = adapter.cleanup?.bind(adapter)
-    
+
     // 增強初始化方法
     adapter.initialize = async () => {
       try {
@@ -537,19 +535,18 @@ class AdapterFactoryService {
           adapterId: adapter.id,
           timestamp: Date.now()
         })
-        
+
         if (originalInitialize) {
           await originalInitialize()
         }
-        
+
         await this.emitEvent('PLATFORM.ADAPTER.INITIALIZED', {
           platformId,
           adapterId: adapter.id,
           timestamp: Date.now()
         })
-        
+
         await this.log(`適配器初始化完成: ${platformId}`)
-        
       } catch (error) {
         this.statistics.lifecycleErrors++
         await this.emitEvent('PLATFORM.ADAPTER.INITIALIZATION.FAILED', {
@@ -561,7 +558,7 @@ class AdapterFactoryService {
         throw error
       }
     }
-    
+
     // 增強啟動方法
     adapter.activate = async () => {
       try {
@@ -570,22 +567,21 @@ class AdapterFactoryService {
           adapterId: adapter.id,
           timestamp: Date.now()
         })
-        
+
         if (originalActivate) {
           await originalActivate()
         }
-        
+
         // 添加到活躍池
         await this.addToActivePool(platformId, adapter)
-        
+
         await this.emitEvent('PLATFORM.ADAPTER.ACTIVATED', {
           platformId,
           adapterId: adapter.id,
           timestamp: Date.now()
         })
-        
+
         await this.log(`適配器啟動完成: ${platformId}`)
-        
       } catch (error) {
         this.statistics.lifecycleErrors++
         await this.emitEvent('PLATFORM.ADAPTER.ACTIVATION.FAILED', {
@@ -597,7 +593,7 @@ class AdapterFactoryService {
         throw error
       }
     }
-    
+
     // 增強停用方法
     adapter.deactivate = async () => {
       try {
@@ -606,26 +602,25 @@ class AdapterFactoryService {
           adapterId: adapter.id,
           timestamp: Date.now()
         })
-        
+
         if (originalDeactivate) {
           await originalDeactivate()
         }
-        
+
         // 從活躍池移除並可能加入可用池
         await this.removeFromActivePool(platformId, adapter.id)
-        
+
         if (this.factoryConfig.enablePooling) {
           await this.addToAvailablePool(platformId, adapter)
         }
-        
+
         await this.emitEvent('PLATFORM.ADAPTER.DEACTIVATED', {
           platformId,
           adapterId: adapter.id,
           timestamp: Date.now()
         })
-        
+
         await this.log(`適配器停用完成: ${platformId}`)
-        
       } catch (error) {
         this.statistics.lifecycleErrors++
         await this.emitEvent('PLATFORM.ADAPTER.DEACTIVATION.FAILED', {
@@ -637,7 +632,7 @@ class AdapterFactoryService {
         throw error
       }
     }
-    
+
     // 增強清理方法
     adapter.cleanup = async () => {
       try {
@@ -646,22 +641,21 @@ class AdapterFactoryService {
           adapterId: adapter.id,
           timestamp: Date.now()
         })
-        
+
         if (originalCleanup) {
           await originalCleanup()
         }
-        
+
         // 完全移除適配器
         await this.removeAdapter(platformId, adapter.id)
-        
+
         await this.emitEvent('PLATFORM.ADAPTER.CLEANED', {
           platformId,
           adapterId: adapter.id,
           timestamp: Date.now()
         })
-        
+
         await this.log(`適配器清理完成: ${platformId}`)
-        
       } catch (error) {
         this.statistics.lifecycleErrors++
         await this.emitEvent('PLATFORM.ADAPTER.CLEANUP.FAILED', {
@@ -680,15 +674,15 @@ class AdapterFactoryService {
    * @param {string} platformId - 平台標識符
    * @returns {Promise<Object|null>} 適配器實例或 null
    */
-  async getFromPool(platformId) {
+  async getFromPool (platformId) {
     const pool = this.adapterPool.get(platformId)
     if (!pool || pool.available.length === 0) {
       return null
     }
-    
+
     // 取得第一個可用的適配器
     const adapter = pool.available.shift()
-    
+
     // 檢查適配器健康狀態
     const healthStatus = adapter.getHealthStatus?.()
     if (!healthStatus?.isHealthy) {
@@ -696,28 +690,27 @@ class AdapterFactoryService {
       await this.cleanupAdapter(adapter)
       return null
     }
-    
+
     // 檢查閒置時間
     const idleTime = Date.now() - adapter.lastActivity
     if (idleTime > this.factoryConfig.maxIdleTime) {
       await this.cleanupAdapter(adapter)
       return null
     }
-    
+
     // 重新啟動適配器
     try {
       await adapter.activate()
       pool.totalReused++
-      
+
       // 更新統計
       const state = this.adapterStates.get(platformId)
       if (state) {
         state.activeInstances++
         state.idleInstances--
       }
-      
+
       return adapter
-      
     } catch (error) {
       await this.logError(`適配器重啟失敗: ${platformId}`, error)
       await this.cleanupAdapter(adapter)
@@ -730,12 +723,12 @@ class AdapterFactoryService {
    * @param {string} platformId - 平台標識符
    * @param {Object} adapter - 適配器實例
    */
-  async addToActivePool(platformId, adapter) {
+  async addToActivePool (platformId, adapter) {
     const pool = this.adapterPool.get(platformId)
     if (pool) {
       pool.active.set(adapter.id, adapter)
     }
-    
+
     // 更新統計
     const state = this.adapterStates.get(platformId)
     if (state) {
@@ -748,12 +741,12 @@ class AdapterFactoryService {
    * @param {string} platformId - 平台標識符
    * @param {string} adapterId - 適配器ID
    */
-  async removeFromActivePool(platformId, adapterId) {
+  async removeFromActivePool (platformId, adapterId) {
     const pool = this.adapterPool.get(platformId)
     if (pool) {
       pool.active.delete(adapterId)
     }
-    
+
     // 更新統計
     const state = this.adapterStates.get(platformId)
     if (state) {
@@ -766,20 +759,20 @@ class AdapterFactoryService {
    * @param {string} platformId - 平台標識符
    * @param {Object} adapter - 適配器實例
    */
-  async addToAvailablePool(platformId, adapter) {
+  async addToAvailablePool (platformId, adapter) {
     const pool = this.adapterPool.get(platformId)
     if (!pool) return
-    
+
     // 檢查池大小限制
     if (pool.available.length >= pool.maxSize) {
       // 清理最舊的適配器
       const oldestAdapter = pool.available.shift()
       await this.cleanupAdapter(oldestAdapter)
     }
-    
+
     // 添加到可用池
     pool.available.push(adapter)
-    
+
     // 更新統計
     const state = this.adapterStates.get(platformId)
     if (state) {
@@ -792,20 +785,20 @@ class AdapterFactoryService {
    * @param {string} platformId - 平台標識符
    * @param {string} adapterId - 適配器ID
    */
-  async removeAdapter(platformId, adapterId) {
+  async removeAdapter (platformId, adapterId) {
     const pool = this.adapterPool.get(platformId)
     if (!pool) return
-    
+
     // 從活躍池移除
     pool.active.delete(adapterId)
-    
+
     // 從可用池移除
     pool.available = pool.available.filter(adapter => adapter.id !== adapterId)
-    
+
     // 更新統計
     this.statistics.activeInstances--
     this.statistics.totalDestroyed++
-    
+
     const state = this.adapterStates.get(platformId)
     if (state) {
       state.totalInstances--
@@ -819,7 +812,7 @@ class AdapterFactoryService {
    * 清理適配器資源
    * @param {Object} adapter - 適配器實例
    */
-  async cleanupAdapter(adapter) {
+  async cleanupAdapter (adapter) {
     try {
       if (adapter.cleanup && typeof adapter.cleanup === 'function') {
         await adapter.cleanup()
@@ -835,10 +828,10 @@ class AdapterFactoryService {
    * @param {string} adapterId - 適配器ID
    * @returns {Object|null} 適配器實例
    */
-  getAdapter(platformId, adapterId) {
+  getAdapter (platformId, adapterId) {
     const pool = this.adapterPool.get(platformId)
     if (!pool) return null
-    
+
     return pool.active.get(adapterId) || null
   }
 
@@ -847,12 +840,12 @@ class AdapterFactoryService {
    * @param {string} platformId - 平台標識符
    * @returns {Array<Object>} 適配器實例陣列
    */
-  getActiveAdapters(platformId = null) {
+  getActiveAdapters (platformId = null) {
     if (platformId) {
       const pool = this.adapterPool.get(platformId)
       return pool ? Array.from(pool.active.values()) : []
     }
-    
+
     // 回傳所有平台的活躍適配器
     const allAdapters = []
     for (const pool of this.adapterPool.values()) {
@@ -867,18 +860,17 @@ class AdapterFactoryService {
    * @param {string} adapterId - 適配器ID
    * @returns {Promise<boolean>} 停用結果
    */
-  async deactivateAdapter(platformId, adapterId) {
+  async deactivateAdapter (platformId, adapterId) {
     try {
       const adapter = this.getAdapter(platformId, adapterId)
       if (!adapter) {
         await this.log(`適配器不存在: ${platformId}/${adapterId}`)
         return false
       }
-      
+
       await adapter.deactivate()
       await this.log(`適配器停用成功: ${platformId}/${adapterId}`)
       return true
-      
     } catch (error) {
       await this.logError(`停用適配器失敗: ${platformId}/${adapterId}`, error)
       return false
@@ -891,18 +883,17 @@ class AdapterFactoryService {
    * @param {string} adapterId - 適配器ID
    * @returns {Promise<boolean>} 清理結果
    */
-  async cleanupAdapterById(platformId, adapterId) {
+  async cleanupAdapterById (platformId, adapterId) {
     try {
       const adapter = this.getAdapter(platformId, adapterId)
       if (!adapter) {
         await this.log(`適配器不存在: ${platformId}/${adapterId}`)
         return false
       }
-      
+
       await adapter.cleanup()
       await this.log(`適配器清理成功: ${platformId}/${adapterId}`)
       return true
-      
     } catch (error) {
       await this.logError(`清理適配器失敗: ${platformId}/${adapterId}`, error)
       return false
@@ -914,13 +905,13 @@ class AdapterFactoryService {
    * @param {string} platformId - 平台標識符
    * @returns {Promise<number>} 清理的適配器數量
    */
-  async cleanupPlatformAdapters(platformId) {
+  async cleanupPlatformAdapters (platformId) {
     let cleanedCount = 0
-    
+
     try {
       const pool = this.adapterPool.get(platformId)
       if (!pool) return 0
-      
+
       // 清理活躍適配器
       const activeAdapters = Array.from(pool.active.values())
       for (const adapter of activeAdapters) {
@@ -931,7 +922,7 @@ class AdapterFactoryService {
           await this.logError(`清理活躍適配器失敗: ${adapter.id}`, error)
         }
       }
-      
+
       // 清理可用適配器
       const availableAdapters = [...pool.available]
       for (const adapter of availableAdapters) {
@@ -942,15 +933,14 @@ class AdapterFactoryService {
           await this.logError(`清理可用適配器失敗: ${adapter.id}`, error)
         }
       }
-      
+
       // 重置池狀態
       pool.active.clear()
       pool.available = []
       pool.currentSize = 0
-      
+
       await this.log(`平台 ${platformId} 的 ${cleanedCount} 個適配器已清理`)
       return cleanedCount
-      
     } catch (error) {
       await this.logError(`清理平台適配器失敗: ${platformId}`, error)
       return cleanedCount
@@ -960,16 +950,16 @@ class AdapterFactoryService {
   /**
    * 設定事件監聽器
    */
-  async setupEventListeners() {
+  async setupEventListeners () {
     // 監聽平台切換事件
     this.eventBus.on('PLATFORM.SWITCHER.SWITCHING', this.handlePlatformSwitching.bind(this))
-    
+
     // 監聽適配器錯誤事件
     this.eventBus.on('PLATFORM.ADAPTER.ERROR', this.handleAdapterError.bind(this))
-    
+
     // 監聽工廠查詢事件
     this.eventBus.on('PLATFORM.ADAPTER.FACTORY.QUERY', this.handleFactoryQuery.bind(this))
-    
+
     // 監聽資源清理請求
     this.eventBus.on('PLATFORM.ADAPTER.CLEANUP.REQUESTED', this.handleCleanupRequest.bind(this))
   }
@@ -978,9 +968,9 @@ class AdapterFactoryService {
    * 處理平台切換事件
    * @param {Object} event - 平台切換事件
    */
-  async handlePlatformSwitching(event) {
+  async handlePlatformSwitching (event) {
     const { fromPlatform, toPlatform } = event.data || {}
-    
+
     try {
       // 停用舊平台的適配器
       if (fromPlatform) {
@@ -989,12 +979,11 @@ class AdapterFactoryService {
           await adapter.deactivate()
         }
       }
-      
+
       // 為新平台預先創建適配器
       if (toPlatform) {
         await this.createAdapter(toPlatform, { preload: true })
       }
-      
     } catch (error) {
       await this.logError('處理平台切換事件失敗', error)
     }
@@ -1004,14 +993,14 @@ class AdapterFactoryService {
    * 處理適配器錯誤事件
    * @param {Object} event - 適配器錯誤事件
    */
-  async handleAdapterError(event) {
+  async handleAdapterError (event) {
     const { platformId, adapterId, error } = event.data || {}
-    
+
     if (platformId && adapterId) {
       const adapter = this.getAdapter(platformId, adapterId)
       if (adapter) {
         adapter.errorCount = (adapter.errorCount || 0) + 1
-        
+
         // 錯誤次數過多時自動清理
         if (adapter.errorCount >= 5) {
           await this.cleanupAdapterById(platformId, adapterId)
@@ -1025,11 +1014,11 @@ class AdapterFactoryService {
    * 處理工廠查詢事件
    * @param {Object} event - 工廠查詢事件
    */
-  async handleFactoryQuery(event) {
+  async handleFactoryQuery (event) {
     const { queryType, params, responseEventType } = event.data || {}
-    
+
     let result = null
-    
+
     switch (queryType) {
       case 'GET_ADAPTER':
         result = this.getAdapter(params.platformId, params.adapterId)
@@ -1046,7 +1035,7 @@ class AdapterFactoryService {
       default:
         result = { error: `Unknown query type: ${queryType}` }
     }
-    
+
     if (responseEventType) {
       await this.emitEvent(responseEventType, {
         query: queryType,
@@ -1061,12 +1050,12 @@ class AdapterFactoryService {
    * 處理清理請求事件
    * @param {Object} event - 清理請求事件
    */
-  async handleCleanupRequest(event) {
+  async handleCleanupRequest (event) {
     const { cleanupType, platformId, adapterId } = event.data || {}
-    
+
     try {
       let result = 0
-      
+
       switch (cleanupType) {
         case 'ADAPTER':
           result = await this.cleanupAdapterById(platformId, adapterId) ? 1 : 0
@@ -1078,7 +1067,7 @@ class AdapterFactoryService {
           result = await this.cleanupAllAdapters()
           break
       }
-      
+
       await this.emitEvent('PLATFORM.ADAPTER.CLEANUP.COMPLETED', {
         cleanupType,
         platformId,
@@ -1086,7 +1075,6 @@ class AdapterFactoryService {
         cleanedCount: result,
         timestamp: Date.now()
       })
-      
     } catch (error) {
       await this.emitEvent('PLATFORM.ADAPTER.CLEANUP.FAILED', {
         cleanupType,
@@ -1101,45 +1089,45 @@ class AdapterFactoryService {
   /**
    * 啟動健康監控
    */
-  async startHealthMonitoring() {
+  async startHealthMonitoring () {
     if (this.healthCheckTimer) {
       clearInterval(this.healthCheckTimer)
     }
-    
+
     this.healthCheckTimer = setInterval(async () => {
       await this.performHealthCheck()
     }, this.factoryConfig.healthCheckInterval)
-    
+
     await this.log('健康監控已啟動')
   }
 
   /**
    * 執行健康檢查
    */
-  async performHealthCheck() {
+  async performHealthCheck () {
     try {
       let totalAdapters = 0
       let healthyAdapters = 0
       let unhealthyCount = 0
       const unhealthyAdapters = new Set()
-      
+
       // 檢查所有平台的適配器
       for (const [platformId, pool] of this.adapterPool.entries()) {
         const allAdapters = [
           ...Array.from(pool.active.values()),
           ...pool.available
         ]
-        
+
         for (const adapter of allAdapters) {
           totalAdapters++
           const healthStatus = adapter.getHealthStatus?.()
-          
+
           if (healthStatus?.isHealthy) {
             healthyAdapters++
           } else {
             unhealthyCount++
             unhealthyAdapters.add(`${platformId}:${adapter.id}`)
-            
+
             // 記錄不健康的適配器
             const state = this.adapterStates.get(platformId)
             if (state) {
@@ -1148,7 +1136,7 @@ class AdapterFactoryService {
           }
         }
       }
-      
+
       // 更新健康狀態
       this.healthStatus = {
         isHealthy: unhealthyCount === 0,
@@ -1159,13 +1147,13 @@ class AdapterFactoryService {
         totalAdapters,
         healthyAdapters
       }
-      
+
       // 發送健康檢查完成事件
       await this.emitEvent('PLATFORM.ADAPTER.HEALTH.CHECK.COMPLETED', {
         healthStatus: this.healthStatus,
         timestamp: Date.now()
       })
-      
+
       // 如果有不健康的適配器，發送警告
       if (unhealthyCount > 0) {
         await this.emitEvent('PLATFORM.ADAPTER.HEALTH.WARNING', {
@@ -1175,7 +1163,6 @@ class AdapterFactoryService {
           timestamp: Date.now()
         })
       }
-      
     } catch (error) {
       this.healthStatus.errorCount++
       await this.logError('健康檢查執行失敗', error)
@@ -1185,42 +1172,42 @@ class AdapterFactoryService {
   /**
    * 啟動資源清理
    */
-  async startResourceCleanup() {
+  async startResourceCleanup () {
     if (this.cleanupTimer) {
       clearInterval(this.cleanupTimer)
     }
-    
+
     // 每5分鐘執行一次資源清理
     this.cleanupTimer = setInterval(async () => {
       await this.performResourceCleanup()
     }, 300000)
-    
+
     await this.log('資源清理已啟動')
   }
 
   /**
    * 執行資源清理
    */
-  async performResourceCleanup() {
+  async performResourceCleanup () {
     try {
       let cleanedCount = 0
       const now = Date.now()
-      
+
       // 清理所有平台的閒置適配器
       for (const [platformId, pool] of this.adapterPool.entries()) {
         const availableAdapters = [...pool.available]
-        
+
         for (const adapter of availableAdapters) {
           const idleTime = now - adapter.lastActivity
-          
+
           // 清理超過最大閒置時間的適配器
           if (idleTime > this.factoryConfig.maxIdleTime) {
             try {
               await this.cleanupAdapter(adapter)
-              
+
               // 從可用池移除
               pool.available = pool.available.filter(a => a.id !== adapter.id)
-              
+
               cleanedCount++
             } catch (error) {
               await this.logError(`清理閒置適配器失敗: ${adapter.id}`, error)
@@ -1228,16 +1215,15 @@ class AdapterFactoryService {
           }
         }
       }
-      
+
       if (cleanedCount > 0) {
         await this.log(`資源清理完成，清理了 ${cleanedCount} 個閒置適配器`)
-        
+
         await this.emitEvent('PLATFORM.ADAPTER.RESOURCE.CLEANUP.COMPLETED', {
           cleanedCount,
           timestamp: Date.now()
         })
       }
-      
     } catch (error) {
       await this.logError('資源清理執行失敗', error)
     }
@@ -1247,14 +1233,14 @@ class AdapterFactoryService {
    * 清理所有適配器
    * @returns {Promise<number>} 清理的適配器數量
    */
-  async cleanupAllAdapters() {
+  async cleanupAllAdapters () {
     let totalCleaned = 0
-    
+
     for (const platformId of this.supportedPlatforms) {
       const cleaned = await this.cleanupPlatformAdapters(platformId)
       totalCleaned += cleaned
     }
-    
+
     return totalCleaned
   }
 
@@ -1262,11 +1248,11 @@ class AdapterFactoryService {
    * 更新平均創建時間
    * @param {number} creationTime - 創建時間
    */
-  updateAverageCreationTime(creationTime) {
+  updateAverageCreationTime (creationTime) {
     const totalCreated = this.statistics.totalCreated
     const currentAvg = this.statistics.avgCreationTime
-    
-    this.statistics.avgCreationTime = 
+
+    this.statistics.avgCreationTime =
       ((currentAvg * (totalCreated - 1)) + creationTime) / totalCreated
   }
 
@@ -1275,7 +1261,7 @@ class AdapterFactoryService {
    * @param {string} platformId - 平台標識符
    * @returns {string} 適配器ID
    */
-  generateAdapterId(platformId) {
+  generateAdapterId (platformId) {
     const timestamp = Date.now()
     const random = Math.random().toString(36).substr(2, 9)
     return `${platformId}_adapter_${timestamp}_${random}`
@@ -1285,7 +1271,7 @@ class AdapterFactoryService {
    * 產生工廠ID
    * @returns {string} 工廠ID
    */
-  generateFactoryId() {
+  generateFactoryId () {
     const timestamp = Date.now()
     const random = Math.random().toString(36).substr(2, 9)
     return `factory_${timestamp}_${random}`
@@ -1295,9 +1281,9 @@ class AdapterFactoryService {
    * 取得統計資料
    * @returns {Object} 統計資料
    */
-  getStatistics() {
+  getStatistics () {
     const poolStatistics = {}
-    
+
     for (const [platformId, pool] of this.adapterPool.entries()) {
       poolStatistics[platformId] = {
         activeCount: pool.active.size,
@@ -1307,7 +1293,7 @@ class AdapterFactoryService {
         maxSize: pool.maxSize
       }
     }
-    
+
     return {
       ...this.statistics,
       poolStatistics,
@@ -1321,18 +1307,18 @@ class AdapterFactoryService {
    * 取得健康狀態
    * @returns {Object} 健康狀態
    */
-  getHealthStatus() {
+  getHealthStatus () {
     const totalPools = this.adapterPool.size
     const healthyPools = Array.from(this.adapterPool.values())
       .filter(pool => pool.active.size > 0 || pool.available.length > 0).length
-    
+
     let overallHealthScore = 0
     if (this.healthStatus.totalAdapters > 0) {
       overallHealthScore = Math.round(
         (this.healthStatus.healthyAdapters / this.healthStatus.totalAdapters) * 100
       )
     }
-    
+
     return {
       ...this.healthStatus,
       overallHealthScore,
@@ -1346,23 +1332,23 @@ class AdapterFactoryService {
   /**
    * 停止服務
    */
-  async stop() {
+  async stop () {
     this.isShuttingDown = true
-    
+
     // 停止定時器
     if (this.healthCheckTimer) {
       clearInterval(this.healthCheckTimer)
       this.healthCheckTimer = null
     }
-    
+
     if (this.cleanupTimer) {
       clearInterval(this.cleanupTimer)
       this.cleanupTimer = null
     }
-    
+
     // 清理所有適配器
     await this.cleanupAllAdapters()
-    
+
     this.isInitialized = false
     await this.log('Adapter Factory Service 已停止')
   }
@@ -1370,16 +1356,16 @@ class AdapterFactoryService {
   /**
    * 清理服務資源
    */
-  async cleanup() {
+  async cleanup () {
     // 停止服務
     await this.stop()
-    
+
     // 清理資料結構
     this.adapterPool.clear()
     this.adapterStates.clear()
     this.adapterTypes.clear()
     this.adapterConstructors.clear()
-    
+
     // 重置統計
     this.statistics = {
       totalCreated: 0,
@@ -1393,7 +1379,7 @@ class AdapterFactoryService {
       avgCreationTime: 0,
       performanceMetrics: new Map()
     }
-    
+
     // 重置健康狀態
     this.healthStatus = {
       isHealthy: true,
@@ -1402,7 +1388,7 @@ class AdapterFactoryService {
       warningCount: 0,
       errorCount: 0
     }
-    
+
     await this.log('Adapter Factory Service 資源清理完成')
   }
 
@@ -1411,7 +1397,7 @@ class AdapterFactoryService {
    * @param {string} eventType - 事件類型
    * @param {Object} eventData - 事件資料
    */
-  async emitEvent(eventType, eventData) {
+  async emitEvent (eventType, eventData) {
     try {
       if (this.eventBus && typeof this.eventBus.emit === 'function') {
         await this.eventBus.emit(eventType, eventData)
@@ -1425,7 +1411,7 @@ class AdapterFactoryService {
    * 記錄日誌
    * @param {string} message - 日誌訊息
    */
-  async log(message) {
+  async log (message) {
     if (this.logger && typeof this.logger.info === 'function') {
       this.logger.info(`[AdapterFactoryService] ${message}`)
     } else {
@@ -1438,7 +1424,7 @@ class AdapterFactoryService {
    * @param {string} message - 錯誤訊息
    * @param {Error} error - 錯誤物件
    */
-  async logError(message, error) {
+  async logError (message, error) {
     if (this.logger && typeof this.logger.error === 'function') {
       this.logger.error(`[AdapterFactoryService] ${message}`, error)
     } else {

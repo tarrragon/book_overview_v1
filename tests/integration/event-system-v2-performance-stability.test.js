@@ -1,21 +1,21 @@
 /**
  * 事件系統 v2.0 效能和穩定性整合測試
- * 
+ *
  * 負責功能：
  * - 大量事件處理效能測試
  * - 記憶體使用和垃圾回收驗證
  * - 長時間運行穩定性測試
  * - 併發事件處理和系統負載測試
- * 
+ *
  * 測試策略：
  * - 真實負載條件模擬
  * - 系統資源監控和分析
  * - 極限條件下的穩定性驗證
  * - 效能回歸檢測和基準比較
- * 
+ *
  * 效能要求驗證：
  * - 事件轉換延遲 < 5ms
- * - 優先級分配 < 1ms  
+ * - 優先級分配 < 1ms
  * - 命名驗證 < 0.1ms
  * - 記憶體增長 < 15%
  * - 長時間運行零崩潰
@@ -88,7 +88,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
   afterEach(async () => {
     // 停止監控並清理資源
     stabilityMonitor.isActive = false
-    
+
     if (eventBus && typeof eventBus.removeAllListeners === 'function') {
       eventBus.removeAllListeners()
     }
@@ -116,7 +116,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
           const startTime = performance.now()
           const modernEvent = namingCoordinator.convertToModernEvent(event)
           const endTime = performance.now()
-          
+
           const conversionTime = endTime - startTime
           conversionTimes.push(conversionTime)
 
@@ -141,7 +141,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
         // 分批處理大量轉換
         for (let batch = 0; batch < eventCount / batchSize; batch++) {
           const batchStartTime = performance.now()
-          
+
           const batchPromises = Array.from({ length: batchSize }, (_, i) => {
             const eventIndex = batch * batchSize + i
             const event = `EXTRACTION.COMPLETED.${eventIndex}`
@@ -149,7 +149,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
           })
 
           await Promise.all(batchPromises)
-          
+
           const batchEndTime = performance.now()
           const batchTime = batchEndTime - batchStartTime
           totalTimes.push(batchTime)
@@ -161,7 +161,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
         // 總體效能驗證
         const totalTime = totalTimes.reduce((sum, time) => sum + time, 0)
         const avgTimePerEvent = totalTime / eventCount
-        
+
         expect(avgTimePerEvent).toBeLessThan(5) // 平均每個事件小於 5ms
       })
 
@@ -171,7 +171,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
 
         for (const batchSize of concurrentBatches) {
           const startTime = performance.now()
-          
+
           // 創建並發轉換
           const promises = Array.from({ length: batchSize }, (_, i) => {
             return new Promise(resolve => {
@@ -217,7 +217,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
       test('應該在 1ms 內完成優先級分配', async () => {
         const testEvents = [
           'SYSTEM.GENERIC.ERROR.CRITICAL',
-          'PLATFORM.READMOO.DETECT.COMPLETED', 
+          'PLATFORM.READMOO.DETECT.COMPLETED',
           'UX.GENERIC.OPEN.STARTED',
           'EXTRACTION.READMOO.EXTRACT.PROGRESS',
           'ANALYTICS.GENERIC.UPDATE.COMPLETED'
@@ -229,7 +229,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
           const startTime = performance.now()
           const priority = priorityManager.assignEventPriority(event)
           const endTime = performance.now()
-          
+
           const assignmentTime = endTime - startTime
           assignmentTimes.push(assignmentTime)
 
@@ -274,7 +274,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
         expect(totalTime).toBeLessThan(2000) // 總時間少於 2 秒
 
         // 驗證所有分配都成功
-        const validPriorities = results.filter(r => 
+        const validPriorities = results.filter(r =>
           typeof r.priority === 'number' && r.priority >= 0 && r.priority < 500
         )
         expect(validPriorities.length).toBe(eventCount)
@@ -283,7 +283,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
       test('應該高效處理優先級衝突檢測', async () => {
         // 創建一些有衝突的優先級分配
         const baseEvents = ['TEST.PRIORITY.A', 'TEST.PRIORITY.B', 'TEST.PRIORITY.C']
-        
+
         for (const event of baseEvents) {
           priorityManager.assignEventPriority(event)
           priorityManager.adjustEventPriority(event, 100)
@@ -296,7 +296,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
         const endTime = performance.now()
 
         const detectionTime = endTime - startTime
-        
+
         expect(detectionTime).toBeLessThan(10) // 衝突檢測少於 10ms
         expect(conflicts.length).toBe(baseEvents.length)
       })
@@ -318,7 +318,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
           const startTime = performance.now()
           const isValid = typeDefinitions.isValidEventName(event)
           const endTime = performance.now()
-          
+
           const validationTime = endTime - startTime
           validationTimes.push(validationTime)
 
@@ -334,14 +334,14 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
 
       test('應該高效處理大量驗證請求', async () => {
         const eventCount = 5000
-        const events = Array.from({ length: eventCount }, (_, i) => 
+        const events = Array.from({ length: eventCount }, (_, i) =>
           `EXTRACTION.READMOO.EXTRACT.COMPLETED.${i}`
         )
 
         const startTime = performance.now()
-        
+
         // 並發驗證
-        const promises = events.map(event => 
+        const promises = events.map(event =>
           Promise.resolve(typeDefinitions.isValidEventName(event))
         )
 
@@ -370,7 +370,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
           const startTime = performance.now()
           const suggestions = typeDefinitions.suggestCorrections(event)
           const endTime = performance.now()
-          
+
           const suggestionTime = endTime - startTime
           suggestionTimes.push(suggestionTime)
 
@@ -402,13 +402,13 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
         // 分批處理大量事件以控制記憶體
         for (let batch = 0; batch < eventCount / batchSize; batch++) {
           const batchEvents = []
-          
+
           // 生成一批事件
           for (let i = 0; i < batchSize; i++) {
             const eventIndex = batch * batchSize + i
             batchEvents.push({
               legacyEvent: `EXTRACTION.COMPLETED.${eventIndex}`,
-              data: { 
+              data: {
                 iteration: eventIndex,
                 timestamp: Date.now(),
                 payload: new Array(100).fill(`data-${eventIndex}`)
@@ -457,14 +457,14 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
 
         // 計算記憶體增長
         const memoryGrowth = (finalMemory.heapUsed - initialMemory.heapUsed) / initialMemory.heapUsed
-        
+
         // 記憶體增長必須控制在 15% 以內
         expect(memoryGrowth).toBeLessThan(0.15)
 
         // 檢查記憶體是否有異常洩漏
         const peakMemory = Math.max(...performanceMetrics.memorySnapshots.map(s => s.memory.heapUsed))
         const memoryVariation = (peakMemory - finalMemory.heapUsed) / finalMemory.heapUsed
-        
+
         // 記憶體變化應該合理
         expect(memoryVariation).toBeLessThan(0.5) // 峰值不應該超過最終記憶體 50%
       })
@@ -477,7 +477,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
         for (let i = 0; i < 1000; i++) {
           const handler = () => { /* 模擬處理器 */ }
           const eventType = `TEST.MEMORY.${i}.COMPLETED`
-          
+
           eventBus.on(eventType, handler)
           listeners.push({ eventType, handler })
         }
@@ -575,7 +575,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
             beforeHeap: beforeMemory.heapUsed,
             afterProcessingHeap: afterProcessingMemory.heapUsed,
             afterGCHeap: afterGCMemory.heapUsed,
-            gcEfficiency: (afterProcessingMemory.heapUsed - afterGCMemory.heapUsed) / 
+            gcEfficiency: (afterProcessingMemory.heapUsed - afterGCMemory.heapUsed) /
                          (afterProcessingMemory.heapUsed - beforeMemory.heapUsed)
           })
         }
@@ -592,7 +592,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
       test('應該在模擬長時間運行中保持穩定', async () => {
         const testDuration = 10000 // 10 秒模擬 24 小時
         const eventInterval = 100 // 每 100ms 一個事件
-        
+
         stabilityMonitor.isActive = true
         stabilityMonitor.eventProcessed = 0
         stabilityMonitor.errorsDetected = 0
@@ -615,7 +615,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
 
               const randomEvent = eventTypes[Math.floor(Math.random() * eventTypes.length)]
               const startTime = performance.now()
-              
+
               await namingCoordinator.intelligentEmit(randomEvent, {
                 sequence: stabilityMonitor.eventProcessed,
                 timestamp: Date.now()
@@ -627,7 +627,6 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
               stabilityMonitor.eventProcessed++
               stabilityMonitor.maxLatency = Math.max(stabilityMonitor.maxLatency, latency)
               stabilityMonitor.minLatency = Math.min(stabilityMonitor.minLatency, latency)
-
             } catch (error) {
               stabilityMonitor.errorsDetected++
               performanceMetrics.errors.push({
@@ -677,12 +676,12 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
             }
 
             const streamStartTime = Date.now()
-            
+
             while (Date.now() - streamStartTime < loadTestDuration) {
               for (let event = 0; event < eventsPerStream; event++) {
                 try {
                   const eventStartTime = performance.now()
-                  
+
                   await namingCoordinator.intelligentEmit('LOAD.TEST.EVENT', {
                     stream,
                     event,
@@ -693,10 +692,9 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
                   const latency = eventEndTime - eventStartTime
 
                   streamResults.eventsProcessed++
-                  streamResults.averageLatency = 
+                  streamResults.averageLatency =
                     (streamResults.averageLatency * (streamResults.eventsProcessed - 1) + latency) /
                     streamResults.eventsProcessed
-
                 } catch (error) {
                   streamResults.errors++
                 }
@@ -796,7 +794,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
         // 驗證恢復效果
         const memoryRecovery = (recoveryMetrics.duringPressure.memory.heapUsed - recoveryMetrics.afterRecovery.memory.heapUsed) /
                               (recoveryMetrics.duringPressure.memory.heapUsed - recoveryMetrics.beforePressure.memory.heapUsed)
-        
+
         expect(memoryRecovery).toBeGreaterThan(0.8) // 至少恢復 80% 的記憶體
         expect(responseTime).toBeLessThan(10) // 響應時間少於 10ms
       })
@@ -824,10 +822,10 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
             await namingCoordinator.intelligentEmit(scenario.event, scenario.data)
             handledExceptions.push({ scenario: scenario.type, handled: true })
           } catch (error) {
-            handledExceptions.push({ 
-              scenario: scenario.type, 
-              handled: false, 
-              error: error.message 
+            handledExceptions.push({
+              scenario: scenario.type,
+              handled: false,
+              error: error.message
             })
           }
         }
@@ -981,10 +979,10 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
         // 驗證每個事件只被處理一次
         for (const [eventId, receivedList] of dataConsistencyCheck.receivedEvents) {
           expect(receivedList.length).toBe(1) // 每個事件只收到一次
-          
+
           const sentData = dataConsistencyCheck.sentEvents.get(eventId)
           const receivedData = receivedList[0].data
-          
+
           expect(receivedData.id).toBe(sentData.id)
           expect(receivedData.payload).toBe(sentData.payload)
         }
@@ -1011,7 +1009,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
         try {
           // 逐步增加負載直到系統極限
           const loadLevels = [100, 500, 1000, 2000, 5000]
-          
+
           for (const loadLevel of loadLevels) {
             const levelStartTime = performance.now()
             const levelPromises = []
@@ -1060,7 +1058,6 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
             // 等待系統穩定
             await new Promise(resolve => setTimeout(resolve, 200))
           }
-
         } finally {
           clearInterval(resourceMonitor)
         }

@@ -2,19 +2,19 @@
  * @fileoverview Platform Detection Service - 平台自動檢測和識別服務
  * @version v2.1.0
  * @since 2025-08-13
- * 
+ *
  * 負責功能：
  * - URL 模式匹配分析
- * - DOM 結構特徵檢測  
+ * - DOM 結構特徵檢測
  * - API 端點驗證
  * - 平台信心度評估
- * 
+ *
  * 設計考量：
  * - 支援5個主要電子書平台檢測
  * - 事件驅動架構整合
  * - 高效能快取機制
  * - 全面錯誤處理和恢復
- * 
+ *
  * 處理流程：
  * 1. 接收檢測上下文 (URL, hostname, DOM)
  * 2. 執行 URL 模式匹配分析
@@ -22,7 +22,7 @@
  * 4. 計算信心度分數
  * 5. 快取檢測結果並觸發事件
  * 6. 返回結構化檢測結果
- * 
+ *
  * 使用情境：
  * - 使用者訪問新的電子書網站時自動檢測平台
  * - 內容腳本初始化時驗證當前平台
@@ -34,7 +34,7 @@ class PlatformDetectionService {
    * 初始化平台檢測服務
    * @param {EventBus} eventBus - 事件總線實例
    */
-  constructor(eventBus) {
+  constructor (eventBus) {
     this.eventBus = eventBus
     this.confidenceThreshold = 0.8
     this.detectionCache = new Map()
@@ -42,7 +42,7 @@ class PlatformDetectionService {
     this.maxCacheSize = 100
     this.domAnalysisTimeout = 1000 // 1 second
     this.enableDOMRetry = false
-    
+
     // 統計資料
     this.statistics = {
       totalDetections: 0,
@@ -62,7 +62,7 @@ class PlatformDetectionService {
    * 初始化所有支援平台的檢測模式
    * @returns {Map<string, Object>} 平台檢測模式映射表
    */
-  initializePlatformPatterns() {
+  initializePlatformPatterns () {
     const patterns = new Map()
 
     // Readmoo 平台模式
@@ -75,7 +75,7 @@ class PlatformDetectionService {
       ],
       domSelectors: [
         '.readmoo-header',
-        '.readmoo-reader', 
+        '.readmoo-reader',
         'meta[name="readmoo-version"]',
         '#readmoo-app'
       ],
@@ -158,7 +158,7 @@ class PlatformDetectionService {
       }
     })
 
-    // 博客來平台模式  
+    // 博客來平台模式
     patterns.set('BOOKS_COM', {
       urlPatterns: [
         /^https?:\/\/(?:www\.)?books\.com\.tw/,
@@ -176,7 +176,7 @@ class PlatformDetectionService {
       confidence: {
         urlWeight: 0.4,
         domWeight: 0.4,
-        metaWeight: 0.1,  
+        metaWeight: 0.1,
         jsWeight: 0.1
       }
     })
@@ -187,7 +187,7 @@ class PlatformDetectionService {
   /**
    * 註冊事件監聽器
    */
-  registerEventListeners() {
+  registerEventListeners () {
     if (this.eventBus && typeof this.eventBus.on === 'function') {
       this.eventBus.on('PLATFORM.VALIDATION.REQUESTED', this.handleValidationRequest.bind(this))
       this.eventBus.on('PLATFORM.CACHE.CLEAR', this.handleCacheClear.bind(this))
@@ -203,7 +203,7 @@ class PlatformDetectionService {
    * @param {Object} [context.window] - window物件引用
    * @returns {Promise<PlatformDetectionResult>} 檢測結果
    */
-  async detectPlatform(context) {
+  async detectPlatform (context) {
     const startTime = performance.now()
 
     try {
@@ -231,7 +231,7 @@ class PlatformDetectionService {
       try {
         // URL 模式分析
         const urlAnalysis = this.analyzeUrlPattern(context)
-        
+
         // DOM 特徵檢測
         const domAnalysis = context.DOM ? await this.analyzeDOMFeatures(context) : null
 
@@ -240,7 +240,6 @@ class PlatformDetectionService {
 
         // 計算最終結果
         detectionResult = this.combineAnalysisResults(urlAnalysis, domAnalysis, jsAnalysis)
-
       } catch (analysisError) {
         // 分析失敗時的降級處理
         detectionResult = this.createDetectionResult('UNKNOWN', 0, ['analysis_failed'], analysisError.message)
@@ -261,7 +260,6 @@ class PlatformDetectionService {
       await this.emitDetectionEvents(detectionResult)
 
       return detectionResult
-
     } catch (error) {
       // 全域錯誤處理
       const errorResult = this.createDetectionResult('UNKNOWN', 0, ['service_error'], error.message)
@@ -275,7 +273,7 @@ class PlatformDetectionService {
    * @param {Object} context - 檢測上下文
    * @returns {Object} URL分析結果
    */
-  analyzeUrlPattern(context) {
+  analyzeUrlPattern (context) {
     try {
       const { url = '', hostname = '' } = context
 
@@ -291,7 +289,7 @@ class PlatformDetectionService {
           if (urlPattern.test(normalizedUrl) || urlPattern.test(hostname)) {
             const confidence = this.calculateUrlConfidence(url, urlPattern, pattern)
             const features = this.extractUrlFeatures(url, urlPattern)
-            
+
             return {
               platformId,
               confidence,
@@ -303,7 +301,6 @@ class PlatformDetectionService {
       }
 
       return { platformId: 'UNKNOWN', confidence: 0, features: [] }
-
     } catch (error) {
       return { platformId: 'UNKNOWN', confidence: 0, features: [], error: error.message }
     }
@@ -316,7 +313,7 @@ class PlatformDetectionService {
    * @param {Object} platformPattern - 平台模式物件
    * @returns {number} 信心度分數 (0-1)
    */
-  calculateUrlConfidence(url, pattern, platformPattern) {
+  calculateUrlConfidence (url, pattern, platformPattern) {
     let confidence = 0.7 // 基礎信心度
 
     // 特定路徑模式加分
@@ -342,7 +339,7 @@ class PlatformDetectionService {
    * @param {RegExp} pattern - 匹配模式
    * @returns {Array<string>} 特徵列表
    */
-  extractUrlFeatures(url, pattern) {
+  extractUrlFeatures (url, pattern) {
     const features = ['url_pattern_match']
 
     if (url.includes('/reader/') || url.includes('/read/')) {
@@ -366,10 +363,10 @@ class PlatformDetectionService {
    * @param {Object} context - 檢測上下文
    * @returns {Promise<Object>} DOM分析結果
    */
-  async analyzeDOMFeatures(context) {
+  async analyzeDOMFeatures (context) {
     try {
       const { DOM } = context
-      let detectedFeatures = []
+      const detectedFeatures = []
       let confidence = 0
       let platformId = 'UNKNOWN'
 
@@ -418,7 +415,6 @@ class PlatformDetectionService {
         confidence: Math.min(confidence, 1.0),
         features: detectedFeatures
       }
-
     } catch (error) {
       return {
         platformId: 'UNKNOWN',
@@ -434,10 +430,10 @@ class PlatformDetectionService {
    * @param {Object} context - 檢測上下文
    * @returns {Object} JavaScript分析結果
    */
-  analyzeJavaScriptObjects(context) {
+  analyzeJavaScriptObjects (context) {
     try {
       const { window } = context
-      let detectedFeatures = []
+      const detectedFeatures = []
       let confidence = 0
       let platformId = 'UNKNOWN'
 
@@ -458,10 +454,9 @@ class PlatformDetectionService {
         confidence,
         features: detectedFeatures
       }
-
     } catch (error) {
       return {
-        platformId: 'UNKNOWN', 
+        platformId: 'UNKNOWN',
         confidence: 0,
         features: []
       }
@@ -471,14 +466,14 @@ class PlatformDetectionService {
   /**
    * 組合分析結果
    * @param {Object} urlAnalysis - URL分析結果
-   * @param {Object} domAnalysis - DOM分析結果  
+   * @param {Object} domAnalysis - DOM分析結果
    * @param {Object} jsAnalysis - JavaScript分析結果
    * @returns {PlatformDetectionResult} 最終檢測結果
    */
-  combineAnalysisResults(urlAnalysis, domAnalysis, jsAnalysis) {
+  combineAnalysisResults (urlAnalysis, domAnalysis, jsAnalysis) {
     // 收集所有檢測到的平台
     const candidates = []
-    
+
     if (urlAnalysis && urlAnalysis.platformId !== 'UNKNOWN') {
       candidates.push({
         platformId: urlAnalysis.platformId,
@@ -522,7 +517,7 @@ class PlatformDetectionService {
     // 計算最終信心度 (如果多個來源檢測到相同平台，信心度會提升)
     const sameplatformCandidates = candidates.filter(c => c.platformId === winner.platformId)
     let finalConfidence = winner.confidence
-    
+
     if (sameplatformCandidates.length > 1) {
       // 多重確認獎勵
       finalConfidence = Math.min(finalConfidence * 1.2, 1.0)
@@ -556,7 +551,7 @@ class PlatformDetectionService {
    * @param {Object} jsAnalysis - JavaScript分析結果
    * @returns {string|null} 版本資訊
    */
-  extractVersionInfo(domAnalysis, jsAnalysis) {
+  extractVersionInfo (domAnalysis, jsAnalysis) {
     // 這裡可以從DOM或JS分析中提取版本資訊
     // 目前返回預設值，未來可以擴展
     return null
@@ -572,7 +567,7 @@ class PlatformDetectionService {
    * @param {Array<string>} [capabilities] - 平台能力
    * @returns {PlatformDetectionResult} 檢測結果
    */
-  createDetectionResult(platformId, confidence, features, error = null, metadata = {}, capabilities = []) {
+  createDetectionResult (platformId, confidence, features, error = null, metadata = {}, capabilities = []) {
     const result = {
       platformId,
       confidence: Math.max(0, Math.min(confidence, 1)), // 確保在0-1範圍
@@ -596,7 +591,7 @@ class PlatformDetectionService {
    * 發送檢測事件
    * @param {PlatformDetectionResult} result - 檢測結果
    */
-  async emitDetectionEvents(result) {
+  async emitDetectionEvents (result) {
     try {
       // v2.0 階層式事件
       if (result.platformId !== 'UNKNOWN') {
@@ -612,7 +607,6 @@ class PlatformDetectionService {
         result,
         timestamp: Date.now()
       })
-
     } catch (eventError) {
       // 事件發送失敗不應該影響檢測結果
       console.warn('Failed to emit detection events:', eventError)
@@ -625,16 +619,15 @@ class PlatformDetectionService {
    * @param {Object} context - 檢測上下文
    * @returns {Promise<number>} 驗證信心度 (0-1)
    */
-  async validatePlatform(platformId, context) {
+  async validatePlatform (platformId, context) {
     try {
       const detectionResult = await this.detectPlatform(context)
-      
+
       if (detectionResult.platformId === platformId) {
         return detectionResult.confidence
       } else {
         return 0.0
       }
-
     } catch (error) {
       return 0.0
     }
@@ -649,7 +642,7 @@ class PlatformDetectionService {
    * @param {number} factors.jsMatch - JavaScript物件匹配度
    * @returns {number} 綜合信心度 (0-1)
    */
-  calculateConfidence(factors) {
+  calculateConfidence (factors) {
     if (!factors || typeof factors !== 'object') {
       return 0.0
     }
@@ -671,12 +664,12 @@ class PlatformDetectionService {
 
     // 安全的數值處理
     const safeUrlMatch = this.normalizeConfidence(urlMatch)
-    const safeDomMatch = this.normalizeConfidence(domMatch)  
+    const safeDomMatch = this.normalizeConfidence(domMatch)
     const safeMetaMatch = this.normalizeConfidence(metaMatch)
     const safeJsMatch = this.normalizeConfidence(jsMatch)
 
     // 加權平均
-    const confidence = 
+    const confidence =
       safeUrlMatch * weights.url +
       safeDomMatch * weights.dom +
       safeMetaMatch * weights.meta +
@@ -690,7 +683,7 @@ class PlatformDetectionService {
    * @param {number} score - 原始分數
    * @returns {number} 標準化分數 (0-1)
    */
-  normalizeConfidence(score) {
+  normalizeConfidence (score) {
     if (typeof score !== 'number' || !Number.isFinite(score)) {
       return 0.0
     }
@@ -703,7 +696,7 @@ class PlatformDetectionService {
    * @param {number} ageMs - 年齡(毫秒)
    * @returns {number} 衰減後信心度
    */
-  applyTimeDecay(baseConfidence, ageMs) {
+  applyTimeDecay (baseConfidence, ageMs) {
     const decayFactor = Math.exp(-ageMs / (24 * 60 * 60 * 1000)) // 24小時衰減
     return baseConfidence * decayFactor
   }
@@ -714,14 +707,14 @@ class PlatformDetectionService {
    * @param {number} baseConfidence - 基礎信心度
    * @returns {number} 調整後信心度
    */
-  adjustForPlatformSpecificity(platformId, baseConfidence) {
+  adjustForPlatformSpecificity (platformId, baseConfidence) {
     const specificityBoost = {
-      'READMOO': 1.0,
-      'KINDLE': 0.95,
-      'KOBO': 0.9,
-      'BOOKWALKER': 0.9,
-      'BOOKS_COM': 0.85,
-      'UNKNOWN': 0.0
+      READMOO: 1.0,
+      KINDLE: 0.95,
+      KOBO: 0.9,
+      BOOKWALKER: 0.9,
+      BOOKS_COM: 0.85,
+      UNKNOWN: 0.0
     }
 
     const boost = specificityBoost[platformId] || 0.8
@@ -733,9 +726,9 @@ class PlatformDetectionService {
    * @param {Object} context - 檢測上下文
    * @returns {string} 快取鍵
    */
-  generateCacheKey(context) {
+  generateCacheKey (context) {
     if (!context) return 'unknown'
-    
+
     const { url = '', hostname = '' } = context
     return `${hostname}_${url}`.replace(/[^a-zA-Z0-9_]/g, '_').substring(0, 100)
   }
@@ -745,9 +738,9 @@ class PlatformDetectionService {
    * @param {string} cacheKey - 快取鍵
    * @returns {PlatformDetectionResult|null} 快取的檢測結果
    */
-  getCachedResult(cacheKey) {
+  getCachedResult (cacheKey) {
     const cached = this.detectionCache.get(cacheKey)
-    
+
     if (!cached) return null
 
     // 檢查過期時間
@@ -764,7 +757,7 @@ class PlatformDetectionService {
    * @param {string} cacheKey - 快取鍵
    * @param {PlatformDetectionResult} result - 檢測結果
    */
-  cacheResult(cacheKey, result) {
+  cacheResult (cacheKey, result) {
     // 檢查快取大小限制
     if (this.detectionCache.size >= this.maxCacheSize) {
       // 清除最舊的條目
@@ -783,7 +776,7 @@ class PlatformDetectionService {
   /**
    * 清除快取
    */
-  clearCache() {
+  clearCache () {
     this.detectionCache.clear()
   }
 
@@ -791,10 +784,10 @@ class PlatformDetectionService {
    * 取得快取統計
    * @returns {Object} 快取統計資料
    */
-  getCacheStatistics() {
+  getCacheStatistics () {
     const { hits, misses } = this.statistics.cacheStats
     const total = hits + misses
-    
+
     return {
       hits,
       misses,
@@ -808,7 +801,7 @@ class PlatformDetectionService {
    * 取得檢測統計
    * @returns {Object} 檢測統計資料
    */
-  getDetectionStatistics() {
+  getDetectionStatistics () {
     return {
       ...this.statistics,
       cacheStats: this.getCacheStatistics()
@@ -820,17 +813,17 @@ class PlatformDetectionService {
    * @param {PlatformDetectionResult} result - 檢測結果
    * @param {number} detectionTime - 檢測耗時
    */
-  updateStatistics(result, detectionTime) {
+  updateStatistics (result, detectionTime) {
     this.statistics.totalDetections++
-    
+
     if (result.platformId !== 'UNKNOWN') {
-      this.statistics.platformCounts[result.platformId] = 
+      this.statistics.platformCounts[result.platformId] =
         (this.statistics.platformCounts[result.platformId] || 0) + 1
     }
 
     // 更新平均檢測時間
-    this.statistics.averageDetectionTime = 
-      (this.statistics.averageDetectionTime * (this.statistics.totalDetections - 1) + detectionTime) / 
+    this.statistics.averageDetectionTime =
+      (this.statistics.averageDetectionTime * (this.statistics.totalDetections - 1) + detectionTime) /
       this.statistics.totalDetections
   }
 
@@ -839,7 +832,7 @@ class PlatformDetectionService {
    * @param {string} eventType - 事件類型
    * @param {Object} eventData - 事件資料
    */
-  async emitEvent(eventType, eventData) {
+  async emitEvent (eventType, eventData) {
     try {
       if (this.eventBus && typeof this.eventBus.emit === 'function') {
         await this.eventBus.emit(eventType, eventData)
@@ -854,10 +847,10 @@ class PlatformDetectionService {
    * 處理驗證請求
    * @param {Object} event - 驗證請求事件
    */
-  async handleValidationRequest(event) {
+  async handleValidationRequest (event) {
     const { platformId, context } = event.data || {}
     const confidence = await this.validatePlatform(platformId, context)
-    
+
     await this.emitEvent('PLATFORM.VALIDATION.COMPLETED', {
       platformId,
       confidence,
@@ -869,7 +862,7 @@ class PlatformDetectionService {
    * 處理清除快取請求
    * @param {Object} event - 清除快取事件
    */
-  handleCacheClear(event) {
+  handleCacheClear (event) {
     this.clearCache()
     this.emitEvent('PLATFORM.CACHE.CLEARED', {
       timestamp: Date.now()

@@ -2,26 +2,26 @@
  * @fileoverview Platform Registry Service - 平台註冊管理服務
  * @version v2.0.0
  * @since 2025-08-14
- * 
+ *
  * 負責功能：
  * - 管理所有支援平台的註冊與登記
  * - 平台適配器資訊維護與查詢
  * - 平台能力定義與驗證機制
  * - 動態平台載入與卸載管理
- * 
+ *
  * 設計考量：
  * - 支援動態平台註冊和移除
  * - 平台能力標準化定義
  * - 高效能查詢和索引機制
  * - 完整的錯誤處理和恢復
- * 
+ *
  * 處理流程：
  * 1. 初始化核心平台註冊表
  * 2. 提供平台註冊與移除接口
  * 3. 管理平台適配器生命週期
  * 4. 驗證平台能力與相容性
  * 5. 提供平台查詢與統計服務
- * 
+ *
  * 使用情境：
  * - Platform Domain Coordinator 初始化時註冊所有平台
  * - Adapter Factory 查詢平台適配器資訊
@@ -34,27 +34,27 @@ class PlatformRegistryService {
    * @param {EventBus} eventBus - 事件總線實例
    * @param {Object} config - 服務配置
    */
-  constructor(eventBus, config = {}) {
+  constructor (eventBus, config = {}) {
     this.eventBus = eventBus
     this.config = config
     this.logger = config.logger
-    
+
     // 平台註冊表 - 核心資料結構
     this.platformRegistry = new Map()
-    
+
     // 平台適配器緩存
     this.adapterCache = new Map()
-    
+
     // 平台能力索引
     this.capabilityIndex = new Map()
-    
+
     // 平台狀態追蹤
     this.platformStatus = new Map()
-    
+
     // 服務狀態
     this.isInitialized = false
     this.lastUpdateTime = null
-    
+
     // 統計資料
     this.statistics = {
       totalRegistrations: 0,
@@ -62,7 +62,7 @@ class PlatformRegistryService {
       failedRegistrations: 0,
       lastRegistrationTime: null
     }
-    
+
     // 預定義支援的平台配置
     this.defaultPlatformConfigs = this.getDefaultPlatformConfigs()
   }
@@ -70,31 +70,30 @@ class PlatformRegistryService {
   /**
    * 初始化註冊服務
    */
-  async initialize() {
+  async initialize () {
     try {
       await this.log('開始初始化 Platform Registry Service')
-      
+
       // 註冊預設支援的平台
       await this.registerDefaultPlatforms()
-      
+
       // 設定事件監聽器
       await this.setupEventListeners()
-      
+
       // 驗證註冊表完整性
       await this.validateRegistryIntegrity()
-      
+
       this.isInitialized = true
       this.lastUpdateTime = Date.now()
-      
+
       await this.log('Platform Registry Service 初始化完成')
-      
+
       // 發送初始化完成事件
       await this.emitEvent('PLATFORM.REGISTRY.INITIALIZED', {
         registeredPlatforms: Array.from(this.platformRegistry.keys()),
         totalPlatforms: this.platformRegistry.size,
         timestamp: Date.now()
       })
-      
     } catch (error) {
       await this.logError('Platform Registry Service 初始化失敗', error)
       throw error
@@ -105,7 +104,7 @@ class PlatformRegistryService {
    * 取得預設平台配置
    * @returns {Object} 預設平台配置
    */
-  getDefaultPlatformConfigs() {
+  getDefaultPlatformConfigs () {
     return {
       READMOO: {
         name: 'Readmoo 讀墨',
@@ -145,7 +144,7 @@ class PlatformRegistryService {
         priority: 1,
         status: 'active'
       },
-      
+
       KINDLE: {
         name: 'Amazon Kindle',
         platformId: 'KINDLE',
@@ -183,7 +182,7 @@ class PlatformRegistryService {
         priority: 2,
         status: 'active'
       },
-      
+
       KOBO: {
         name: 'Kobo',
         platformId: 'KOBO',
@@ -219,7 +218,7 @@ class PlatformRegistryService {
         priority: 3,
         status: 'planned'
       },
-      
+
       BOOKWALKER: {
         name: 'BookWalker',
         platformId: 'BOOKWALKER',
@@ -255,7 +254,7 @@ class PlatformRegistryService {
         priority: 4,
         status: 'planned'
       },
-      
+
       BOOKS_COM: {
         name: '博客來',
         platformId: 'BOOKS_COM',
@@ -297,7 +296,7 @@ class PlatformRegistryService {
   /**
    * 註冊預設支援的平台
    */
-  async registerDefaultPlatforms() {
+  async registerDefaultPlatforms () {
     for (const [platformId, config] of Object.entries(this.defaultPlatformConfigs)) {
       try {
         await this.registerPlatform(platformId, config)
@@ -315,20 +314,20 @@ class PlatformRegistryService {
    * @param {Object} platformConfig - 平台配置
    * @returns {Promise<boolean>} 註冊結果
    */
-  async registerPlatform(platformId, platformConfig) {
+  async registerPlatform (platformId, platformConfig) {
     try {
       // 驗證平台配置
       const validationResult = await this.validatePlatformConfig(platformId, platformConfig)
       if (!validationResult.isValid) {
         throw new Error(`平台配置驗證失敗: ${validationResult.errors.join(', ')}`)
       }
-      
+
       // 檢查是否已經註冊
       if (this.platformRegistry.has(platformId)) {
         await this.log(`平台 ${platformId} 已存在，將更新配置`)
         return await this.updatePlatform(platformId, platformConfig)
       }
-      
+
       // 建立完整的平台註冊記錄
       const registrationRecord = {
         ...platformConfig,
@@ -343,13 +342,13 @@ class PlatformRegistryService {
           configVersion: platformConfig.version || '1.0.0'
         }
       }
-      
+
       // 註冊到主要註冊表
       this.platformRegistry.set(platformId, registrationRecord)
-      
+
       // 建立能力索引
       await this.indexPlatformCapabilities(platformId, platformConfig.capabilities || [])
-      
+
       // 初始化平台狀態
       this.platformStatus.set(platformId, {
         status: 'registered',
@@ -359,7 +358,7 @@ class PlatformRegistryService {
         errorCount: 0,
         lastError: null
       })
-      
+
       // 更新統計
       this.statistics.totalRegistrations++
       if (registrationRecord.status === 'active') {
@@ -367,7 +366,7 @@ class PlatformRegistryService {
       }
       this.statistics.lastRegistrationTime = Date.now()
       this.lastUpdateTime = Date.now()
-      
+
       // 發送註冊成功事件
       await this.emitEvent('PLATFORM.REGISTRY.PLATFORM.REGISTERED', {
         platformId,
@@ -375,10 +374,9 @@ class PlatformRegistryService {
         status: registrationRecord.status,
         timestamp: Date.now()
       })
-      
+
       await this.log(`平台 ${platformId} (${platformConfig.name}) 註冊成功`)
       return true
-      
     } catch (error) {
       await this.logError(`註冊平台 ${platformId} 失敗`, error)
       this.statistics.failedRegistrations++
@@ -392,19 +390,19 @@ class PlatformRegistryService {
    * @param {Object} newConfig - 新的配置
    * @returns {Promise<boolean>} 更新結果
    */
-  async updatePlatform(platformId, newConfig) {
+  async updatePlatform (platformId, newConfig) {
     try {
       const existingRecord = this.platformRegistry.get(platformId)
       if (!existingRecord) {
         throw new Error(`平台 ${platformId} 不存在`)
       }
-      
+
       // 驗證新配置
       const validationResult = await this.validatePlatformConfig(platformId, newConfig)
       if (!validationResult.isValid) {
         throw new Error(`平台配置驗證失敗: ${validationResult.errors.join(', ')}`)
       }
-      
+
       // 合併配置（保留註冊時間等元資料）
       const updatedRecord = {
         ...existingRecord,
@@ -417,16 +415,16 @@ class PlatformRegistryService {
           lastUpdateSource: 'platform-registry-service'
         }
       }
-      
+
       // 更新註冊表
       this.platformRegistry.set(platformId, updatedRecord)
-      
+
       // 重新建立能力索引
       await this.indexPlatformCapabilities(platformId, newConfig.capabilities || [])
-      
+
       // 更新統計
       this.lastUpdateTime = Date.now()
-      
+
       // 發送更新事件
       await this.emitEvent('PLATFORM.REGISTRY.PLATFORM.UPDATED', {
         platformId,
@@ -434,10 +432,9 @@ class PlatformRegistryService {
         newVersion: updatedRecord.metadata.configVersion,
         timestamp: Date.now()
       })
-      
+
       await this.log(`平台 ${platformId} 配置更新成功`)
       return true
-      
     } catch (error) {
       await this.logError(`更新平台 ${platformId} 失敗`, error)
       throw error
@@ -449,42 +446,41 @@ class PlatformRegistryService {
    * @param {string} platformId - 平台標識符
    * @returns {Promise<boolean>} 移除結果
    */
-  async unregisterPlatform(platformId) {
+  async unregisterPlatform (platformId) {
     try {
       const existingRecord = this.platformRegistry.get(platformId)
       if (!existingRecord) {
         await this.log(`平台 ${platformId} 不存在，無需移除`)
         return true
       }
-      
+
       // 清理適配器緩存
       this.adapterCache.delete(platformId)
-      
+
       // 清理能力索引
       await this.removeFromCapabilityIndex(platformId)
-      
+
       // 清理平台狀態
       this.platformStatus.delete(platformId)
-      
+
       // 從主要註冊表移除
       this.platformRegistry.delete(platformId)
-      
+
       // 更新統計
       this.statistics.totalRegistrations--
       if (existingRecord.status === 'active') {
         this.statistics.activeRegistrations--
       }
       this.lastUpdateTime = Date.now()
-      
+
       // 發送移除事件
       await this.emitEvent('PLATFORM.REGISTRY.PLATFORM.UNREGISTERED', {
         platformId,
         timestamp: Date.now()
       })
-      
+
       await this.log(`平台 ${platformId} 移除成功`)
       return true
-      
     } catch (error) {
       await this.logError(`移除平台 ${platformId} 失敗`, error)
       throw error
@@ -497,24 +493,24 @@ class PlatformRegistryService {
    * @param {Object} config - 平台配置
    * @returns {Object} 驗證結果
    */
-  async validatePlatformConfig(platformId, config) {
+  async validatePlatformConfig (platformId, config) {
     const errors = []
-    
+
     // 必要欄位檢查
     if (!config.name) errors.push('平台名稱 (name) 不能為空')
     if (!config.platformId) errors.push('平台ID (platformId) 不能為空')
     if (!config.type) errors.push('平台類型 (type) 不能為空')
-    
+
     // 平台ID一致性檢查
     if (config.platformId && config.platformId !== platformId) {
       errors.push('配置中的 platformId 與註冊ID不一致')
     }
-    
+
     // 能力陣列檢查
     if (config.capabilities && !Array.isArray(config.capabilities)) {
       errors.push('平台能力 (capabilities) 必須是陣列')
     }
-    
+
     // URL模式檢查
     if (config.urlPatterns) {
       if (!Array.isArray(config.urlPatterns)) {
@@ -527,7 +523,7 @@ class PlatformRegistryService {
         })
       }
     }
-    
+
     // 適配器配置檢查
     if (config.adapterConfig) {
       if (!config.adapterConfig.moduleId) {
@@ -537,7 +533,7 @@ class PlatformRegistryService {
         errors.push('適配器配置必須包含 version')
       }
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors
@@ -549,10 +545,10 @@ class PlatformRegistryService {
    * @param {string} platformId - 平台標識符
    * @param {Array<string>} capabilities - 平台能力列表
    */
-  async indexPlatformCapabilities(platformId, capabilities) {
+  async indexPlatformCapabilities (platformId, capabilities) {
     // 清理舊的索引
     await this.removeFromCapabilityIndex(platformId)
-    
+
     // 建立新的索引
     capabilities.forEach(capability => {
       if (!this.capabilityIndex.has(capability)) {
@@ -566,7 +562,7 @@ class PlatformRegistryService {
    * 從能力索引中移除平台
    * @param {string} platformId - 平台標識符
    */
-  async removeFromCapabilityIndex(platformId) {
+  async removeFromCapabilityIndex (platformId) {
     for (const [capability, platforms] of this.capabilityIndex.entries()) {
       platforms.delete(platformId)
       if (platforms.size === 0) {
@@ -580,7 +576,7 @@ class PlatformRegistryService {
    * @param {string} platformId - 平台標識符
    * @returns {Object|null} 平台資訊
    */
-  getPlatform(platformId) {
+  getPlatform (platformId) {
     return this.platformRegistry.get(platformId) || null
   }
 
@@ -588,7 +584,7 @@ class PlatformRegistryService {
    * 取得所有註冊的平台
    * @returns {Array<Object>} 平台列表
    */
-  getAllPlatforms() {
+  getAllPlatforms () {
     return Array.from(this.platformRegistry.values())
   }
 
@@ -596,7 +592,7 @@ class PlatformRegistryService {
    * 取得活躍的平台
    * @returns {Array<Object>} 活躍平台列表
    */
-  getActivePlatforms() {
+  getActivePlatforms () {
     return Array.from(this.platformRegistry.values())
       .filter(platform => platform.status === 'active')
   }
@@ -606,7 +602,7 @@ class PlatformRegistryService {
    * @param {string} capability - 能力名稱
    * @returns {Array<string>} 支援該能力的平台ID列表
    */
-  getPlatformsByCapability(capability) {
+  getPlatformsByCapability (capability) {
     const platforms = this.capabilityIndex.get(capability)
     return platforms ? Array.from(platforms) : []
   }
@@ -617,7 +613,7 @@ class PlatformRegistryService {
    * @param {string} capability - 能力名稱
    * @returns {boolean} 是否支援
    */
-  platformSupportsCapability(platformId, capability) {
+  platformSupportsCapability (platformId, capability) {
     const platform = this.getPlatform(platformId)
     if (!platform || !platform.capabilities) return false
     return platform.capabilities.includes(capability)
@@ -628,7 +624,7 @@ class PlatformRegistryService {
    * @param {string} platformId - 平台標識符
    * @returns {Object|null} 適配器配置
    */
-  getAdapterConfig(platformId) {
+  getAdapterConfig (platformId) {
     const platform = this.getPlatform(platformId)
     return platform ? platform.adapterConfig : null
   }
@@ -638,12 +634,12 @@ class PlatformRegistryService {
    * @param {string} platformId - 平台標識符
    * @param {Object} adapterInstance - 適配器實例
    */
-  setAdapterCache(platformId, adapterInstance) {
+  setAdapterCache (platformId, adapterInstance) {
     this.adapterCache.set(platformId, {
       instance: adapterInstance,
       cachedAt: Date.now()
     })
-    
+
     // 更新平台狀態
     const status = this.platformStatus.get(platformId)
     if (status) {
@@ -658,7 +654,7 @@ class PlatformRegistryService {
    * @param {string} platformId - 平台標識符
    * @returns {Object|null} 適配器實例
    */
-  getAdapterCache(platformId) {
+  getAdapterCache (platformId) {
     const cached = this.adapterCache.get(platformId)
     return cached ? cached.instance : null
   }
@@ -667,9 +663,9 @@ class PlatformRegistryService {
    * 清除適配器緩存
    * @param {string} platformId - 平台標識符
    */
-  clearAdapterCache(platformId) {
+  clearAdapterCache (platformId) {
     this.adapterCache.delete(platformId)
-    
+
     // 更新平台狀態
     const status = this.platformStatus.get(platformId)
     if (status) {
@@ -684,7 +680,7 @@ class PlatformRegistryService {
    * @param {string} platformId - 平台標識符
    * @param {Object} statusUpdate - 狀態更新
    */
-  updatePlatformStatus(platformId, statusUpdate) {
+  updatePlatformStatus (platformId, statusUpdate) {
     const currentStatus = this.platformStatus.get(platformId)
     if (currentStatus) {
       Object.assign(currentStatus, statusUpdate, {
@@ -698,20 +694,20 @@ class PlatformRegistryService {
    * @param {string} platformId - 平台標識符
    * @returns {Object|null} 平台狀態
    */
-  getPlatformStatus(platformId) {
+  getPlatformStatus (platformId) {
     return this.platformStatus.get(platformId) || null
   }
 
   /**
    * 設定事件監聽器
    */
-  async setupEventListeners() {
+  async setupEventListeners () {
     // 監聽平台狀態變更事件
     this.eventBus.on('PLATFORM.STATUS.CHANGED', this.handlePlatformStatusChange.bind(this))
-    
+
     // 監聽適配器錯誤事件
     this.eventBus.on('PLATFORM.ADAPTER.ERROR', this.handleAdapterError.bind(this))
-    
+
     // 監聽註冊表查詢事件
     this.eventBus.on('PLATFORM.REGISTRY.QUERY', this.handleRegistryQuery.bind(this))
   }
@@ -720,7 +716,7 @@ class PlatformRegistryService {
    * 處理平台狀態變更
    * @param {Object} event - 狀態變更事件
    */
-  async handlePlatformStatusChange(event) {
+  async handlePlatformStatusChange (event) {
     const { platformId, status } = event.data || {}
     if (platformId && status) {
       this.updatePlatformStatus(platformId, status)
@@ -731,7 +727,7 @@ class PlatformRegistryService {
    * 處理適配器錯誤
    * @param {Object} event - 適配器錯誤事件
    */
-  async handleAdapterError(event) {
+  async handleAdapterError (event) {
     const { platformId, error } = event.data || {}
     if (platformId) {
       const status = this.platformStatus.get(platformId)
@@ -749,11 +745,11 @@ class PlatformRegistryService {
    * 處理註冊表查詢
    * @param {Object} event - 查詢事件
    */
-  async handleRegistryQuery(event) {
+  async handleRegistryQuery (event) {
     const { queryType, params, responseEventType } = event.data || {}
-    
+
     let result = null
-    
+
     switch (queryType) {
       case 'GET_PLATFORM':
         result = this.getPlatform(params.platformId)
@@ -770,7 +766,7 @@ class PlatformRegistryService {
       default:
         result = { error: `Unknown query type: ${queryType}` }
     }
-    
+
     if (responseEventType) {
       await this.emitEvent(responseEventType, {
         query: queryType,
@@ -784,9 +780,9 @@ class PlatformRegistryService {
   /**
    * 驗證註冊表完整性
    */
-  async validateRegistryIntegrity() {
+  async validateRegistryIntegrity () {
     const issues = []
-    
+
     // 檢查註冊表與能力索引的一致性
     for (const [platformId, platform] of this.platformRegistry.entries()) {
       if (platform.capabilities) {
@@ -798,19 +794,19 @@ class PlatformRegistryService {
         }
       }
     }
-    
+
     // 檢查狀態追蹤一致性
     for (const platformId of this.platformRegistry.keys()) {
       if (!this.platformStatus.has(platformId)) {
         issues.push(`平台 ${platformId} 缺少狀態追蹤記錄`)
       }
     }
-    
+
     if (issues.length > 0) {
       await this.logError('註冊表完整性檢查發現問題', new Error(issues.join('; ')))
       return false
     }
-    
+
     await this.log('註冊表完整性驗證通過')
     return true
   }
@@ -819,7 +815,7 @@ class PlatformRegistryService {
    * 取得服務統計資訊
    * @returns {Object} 統計資訊
    */
-  getStatistics() {
+  getStatistics () {
     return {
       ...this.statistics,
       currentRegistrations: this.platformRegistry.size,
@@ -834,18 +830,18 @@ class PlatformRegistryService {
    * 取得健康狀態
    * @returns {Object} 健康狀態
    */
-  getHealthStatus() {
+  getHealthStatus () {
     const totalPlatforms = this.platformRegistry.size
     const activePlatforms = this.getActivePlatforms().length
     const loadedAdapters = Array.from(this.platformStatus.values())
       .filter(status => status.isLoaded).length
-    
+
     let healthScore = 0
     if (totalPlatforms > 0) {
-      healthScore = (activePlatforms / totalPlatforms) * 0.6 + 
+      healthScore = (activePlatforms / totalPlatforms) * 0.6 +
                    (loadedAdapters / totalPlatforms) * 0.4
     }
-    
+
     return {
       status: this.isInitialized ? 'operational' : 'initializing',
       healthScore: Math.round(healthScore * 100),
@@ -860,12 +856,12 @@ class PlatformRegistryService {
   /**
    * 停止服務
    */
-  async stop() {
+  async stop () {
     // 清理緩存
     this.adapterCache.clear()
     this.capabilityIndex.clear()
     this.platformStatus.clear()
-    
+
     this.isInitialized = false
     await this.log('Platform Registry Service 已停止')
   }
@@ -873,13 +869,13 @@ class PlatformRegistryService {
   /**
    * 清理服務資源
    */
-  async cleanup() {
+  async cleanup () {
     // 清理所有資料結構
     this.platformRegistry.clear()
     this.adapterCache.clear()
     this.capabilityIndex.clear()
     this.platformStatus.clear()
-    
+
     // 重置統計
     this.statistics = {
       totalRegistrations: 0,
@@ -887,10 +883,10 @@ class PlatformRegistryService {
       failedRegistrations: 0,
       lastRegistrationTime: null
     }
-    
+
     this.isInitialized = false
     this.lastUpdateTime = null
-    
+
     await this.log('Platform Registry Service 資源清理完成')
   }
 
@@ -899,7 +895,7 @@ class PlatformRegistryService {
    * @param {string} eventType - 事件類型
    * @param {Object} eventData - 事件資料
    */
-  async emitEvent(eventType, eventData) {
+  async emitEvent (eventType, eventData) {
     try {
       if (this.eventBus && typeof this.eventBus.emit === 'function') {
         await this.eventBus.emit(eventType, eventData)
@@ -913,7 +909,7 @@ class PlatformRegistryService {
    * 記錄日誌
    * @param {string} message - 日誌訊息
    */
-  async log(message) {
+  async log (message) {
     if (this.logger && typeof this.logger.info === 'function') {
       this.logger.info(`[PlatformRegistryService] ${message}`)
     } else {
@@ -926,7 +922,7 @@ class PlatformRegistryService {
    * @param {string} message - 錯誤訊息
    * @param {Error} error - 錯誤物件
    */
-  async logError(message, error) {
+  async logError (message, error) {
     if (this.logger && typeof this.logger.error === 'function') {
       this.logger.error(`[PlatformRegistryService] ${message}`, error)
     } else {

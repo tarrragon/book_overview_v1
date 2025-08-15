@@ -1,18 +1,18 @@
 /**
  * 診斷服務
- * 
+ *
  * 負責功能：
  * - 系統診斷和故障排除
  * - 日誌收集和分析
  * - 診斷報告生成和匯出
  * - 故障恢復建議
- * 
+ *
  * 設計考量：
  * - 深度診斷分析能力
  * - 智能故障識別和分類
  * - 可擴展的診斷規則引擎
  * - 隱私保護的資料收集
- * 
+ *
  * 使用情境：
  * - 系統故障診斷和分析
  * - 效能問題根因分析
@@ -25,19 +25,19 @@ const {
 } = require('../../constants/module-constants')
 
 class DiagnosticService {
-  constructor(dependencies = {}) {
+  constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
     this.logger = dependencies.logger || console
     this.i18nManager = dependencies.i18nManager || null
-    
+
     // 服務狀態
     this.state = {
       initialized: false,
       active: false,
       collecting: false
     }
-    
+
     // 診斷配置
     this.config = {
       logRetentionDays: 7,
@@ -46,7 +46,7 @@ class DiagnosticService {
       anonymizeData: true,
       enableAutoAnalysis: true
     }
-    
+
     // 診斷資料
     this.diagnosticData = {
       logs: [],
@@ -56,12 +56,12 @@ class DiagnosticService {
       userActions: [],
       diagnosticSessions: []
     }
-    
+
     // 診斷規則和分析器
     this.diagnosticRules = new Map()
     this.analyzers = new Map()
     this.registeredListeners = new Map()
-    
+
     // 統計資料
     this.stats = {
       logsCollected: 0,
@@ -69,7 +69,7 @@ class DiagnosticService {
       patternsDetected: 0,
       reportsGenerated: 0
     }
-    
+
     // 初始化預設診斷規則
     this.initializeDefaultRules()
   }
@@ -77,7 +77,7 @@ class DiagnosticService {
   /**
    * 初始化診斷服務
    */
-  async initialize() {
+  async initialize () {
     if (this.state.initialized) {
       this.logger.warn('⚠️ 診斷服務已初始化')
       return
@@ -85,19 +85,19 @@ class DiagnosticService {
 
     try {
       this.logger.log('🔍 初始化診斷服務')
-      
+
       // 收集系統基本資訊
       await this.collectSystemInfo()
-      
+
       // 初始化分析器
       await this.initializeAnalyzers()
-      
+
       // 註冊事件監聽器
       await this.registerEventListeners()
-      
+
       this.state.initialized = true
       this.logger.log('✅ 診斷服務初始化完成')
-      
+
       // 發送初始化完成事件
       if (this.eventBus) {
         await this.eventBus.emit('SYSTEM.DIAGNOSTIC.INITIALIZED', {
@@ -114,7 +114,7 @@ class DiagnosticService {
   /**
    * 啟動診斷服務
    */
-  async start() {
+  async start () {
     if (!this.state.initialized) {
       throw new Error('服務尚未初始化')
     }
@@ -126,15 +126,15 @@ class DiagnosticService {
 
     try {
       this.logger.log('🚀 啟動診斷服務')
-      
+
       // 開始資料收集
       this.startDataCollection()
-      
+
       this.state.active = true
       this.state.collecting = true
-      
+
       this.logger.log('✅ 診斷服務啟動完成')
-      
+
       // 發送啟動完成事件
       if (this.eventBus) {
         await this.eventBus.emit('SYSTEM.DIAGNOSTIC.STARTED', {
@@ -150,7 +150,7 @@ class DiagnosticService {
   /**
    * 停止診斷服務
    */
-  async stop() {
+  async stop () {
     if (!this.state.active) {
       this.logger.warn('⚠️ 診斷服務未啟動')
       return
@@ -158,24 +158,24 @@ class DiagnosticService {
 
     try {
       this.logger.log('🛑 停止診斷服務')
-      
+
       // 停止資料收集
       this.stopDataCollection()
-      
+
       // 生成最終診斷報告
       const finalReport = await this.generateDiagnosticReport()
-      
+
       // 清理敏感資料
       this.cleanupSensitiveData()
-      
+
       // 取消註冊事件監聽器
       await this.unregisterEventListeners()
-      
+
       this.state.active = false
       this.state.collecting = false
-      
+
       this.logger.log('✅ 診斷服務停止完成')
-      
+
       // 發送停止完成事件
       if (this.eventBus) {
         await this.eventBus.emit('SYSTEM.DIAGNOSTIC.STOPPED', {
@@ -192,7 +192,7 @@ class DiagnosticService {
   /**
    * 收集系統基本資訊
    */
-  async collectSystemInfo() {
+  async collectSystemInfo () {
     try {
       this.diagnosticData.systemInfo = {
         userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown',
@@ -204,7 +204,7 @@ class DiagnosticService {
         storage: await this.getStorageInfo(),
         extensions: await this.getExtensionInfo()
       }
-      
+
       this.logger.log('✅ 系統資訊收集完成')
     } catch (error) {
       this.logger.error('❌ 收集系統資訊失敗:', error)
@@ -214,7 +214,7 @@ class DiagnosticService {
   /**
    * 獲取記憶體資訊
    */
-  getMemoryInfo() {
+  getMemoryInfo () {
     if (typeof performance !== 'undefined' && performance.memory) {
       return {
         used: performance.memory.usedJSHeapSize,
@@ -228,7 +228,7 @@ class DiagnosticService {
   /**
    * 獲取儲存資訊
    */
-  async getStorageInfo() {
+  async getStorageInfo () {
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         const usage = await chrome.storage.local.getBytesInUse()
@@ -246,7 +246,7 @@ class DiagnosticService {
   /**
    * 獲取擴展資訊
    */
-  async getExtensionInfo() {
+  async getExtensionInfo () {
     try {
       if (typeof chrome !== 'undefined' && chrome.runtime) {
         return {
@@ -263,27 +263,27 @@ class DiagnosticService {
   /**
    * 初始化分析器
    */
-  async initializeAnalyzers() {
+  async initializeAnalyzers () {
     // 錯誤模式分析器
     this.analyzers.set('errorPatterns', (logs) => {
       const patterns = new Map()
-      
+
       logs.filter(log => log.level === 'error').forEach(log => {
         const pattern = this.extractErrorPattern(log.message)
         if (pattern) {
           patterns.set(pattern, (patterns.get(pattern) || 0) + 1)
         }
       })
-      
+
       return Array.from(patterns.entries())
         .filter(([pattern, count]) => count > 1)
         .map(([pattern, count]) => ({ pattern, count, severity: this.calculateSeverity(count) }))
     })
-    
+
     // 效能問題分析器
     this.analyzers.set('performance', (metrics) => {
       const issues = []
-      
+
       // 分析響應時間
       const slowResponses = metrics.filter(m => m.responseTime > 1000)
       if (slowResponses.length > 0) {
@@ -293,15 +293,15 @@ class DiagnosticService {
           avgTime: slowResponses.reduce((sum, m) => sum + m.responseTime, 0) / slowResponses.length
         })
       }
-      
+
       return issues
     })
-    
+
     // 記憶體使用分析器
     this.analyzers.set('memory', (systemInfo) => {
       const issues = []
       const memory = systemInfo.memory
-      
+
       if (memory && memory.used > memory.limit * 0.8) {
         issues.push({
           type: 'high_memory_usage',
@@ -309,21 +309,21 @@ class DiagnosticService {
           severity: 'high'
         })
       }
-      
+
       return issues
     })
-    
+
     this.logger.log(`✅ 初始化了 ${this.analyzers.size} 個分析器`)
   }
 
   /**
    * 初始化預設診斷規則
    */
-  initializeDefaultRules() {
+  initializeDefaultRules () {
     // 頻繁錯誤規則
     this.diagnosticRules.set('frequent_errors', {
       condition: (data) => {
-        const recentErrors = data.logs.filter(log => 
+        const recentErrors = data.logs.filter(log =>
           log.level === 'error' && Date.now() - log.timestamp < 300000 // 5分鐘內
         )
         return recentErrors.length > 5
@@ -334,7 +334,7 @@ class DiagnosticService {
         recommendation: '檢查系統日誌，識別錯誤根因並修復'
       })
     })
-    
+
     // 記憶體洩漏規則
     this.diagnosticRules.set('memory_leak', {
       condition: (data) => {
@@ -347,7 +347,7 @@ class DiagnosticService {
         recommendation: '重啟擴展或檢查記憶體使用模式'
       })
     })
-    
+
     // 效能降級規則
     this.diagnosticRules.set('performance_degradation', {
       condition: (data) => {
@@ -365,27 +365,27 @@ class DiagnosticService {
   /**
    * 開始資料收集
    */
-  startDataCollection() {
+  startDataCollection () {
     // 攔截和記錄日誌
     this.interceptLogs()
-    
+
     this.logger.log('📊 開始診斷資料收集')
   }
 
   /**
    * 停止資料收集
    */
-  stopDataCollection() {
+  stopDataCollection () {
     // 清理日誌攔截
     this.cleanupLogInterception()
-    
+
     this.logger.log('⏹️ 停止診斷資料收集')
   }
 
   /**
    * 攔截日誌
    */
-  interceptLogs() {
+  interceptLogs () {
     // 這裡可以實現日誌攔截邏輯
     // 例如重寫 console 方法或監聽特定事件
   }
@@ -393,16 +393,16 @@ class DiagnosticService {
   /**
    * 清理日誌攔截
    */
-  cleanupLogInterception() {
+  cleanupLogInterception () {
     // 清理日誌攔截設置
   }
 
   /**
    * 記錄日誌條目
    */
-  recordLogEntry(level, message, context = {}) {
+  recordLogEntry (level, message, context = {}) {
     if (!this.state.collecting) return
-    
+
     const logEntry = {
       id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
       level,
@@ -410,15 +410,15 @@ class DiagnosticService {
       context: this.config.anonymizeData ? this.anonymizeContext(context) : context,
       timestamp: Date.now()
     }
-    
+
     this.diagnosticData.logs.push(logEntry)
     this.stats.logsCollected++
-    
+
     // 限制日誌數量
     if (this.diagnosticData.logs.length > this.config.maxLogEntries) {
       this.diagnosticData.logs = this.diagnosticData.logs.slice(-this.config.maxLogEntries / 2)
     }
-    
+
     // 即時分析錯誤模式
     if (level === 'error') {
       this.analyzeErrorPattern(message)
@@ -428,12 +428,12 @@ class DiagnosticService {
   /**
    * 分析錯誤模式
    */
-  analyzeErrorPattern(errorMessage) {
+  analyzeErrorPattern (errorMessage) {
     const pattern = this.extractErrorPattern(errorMessage)
     if (pattern) {
       const count = (this.diagnosticData.errorPatterns.get(pattern) || 0) + 1
       this.diagnosticData.errorPatterns.set(pattern, count)
-      
+
       if (count > 3) {
         this.stats.patternsDetected++
         this.logger.warn(`🔍 檢測到重複錯誤模式: ${pattern} (${count} 次)`)
@@ -444,7 +444,7 @@ class DiagnosticService {
   /**
    * 提取錯誤模式
    */
-  extractErrorPattern(errorMessage) {
+  extractErrorPattern (errorMessage) {
     // 簡化錯誤訊息，提取模式
     return errorMessage
       .replace(/\d+/g, 'NUMBER')
@@ -456,7 +456,7 @@ class DiagnosticService {
   /**
    * 計算嚴重程度
    */
-  calculateSeverity(count) {
+  calculateSeverity (count) {
     if (count > 10) return 'high'
     if (count > 5) return 'medium'
     return 'low'
@@ -465,16 +465,16 @@ class DiagnosticService {
   /**
    * 執行診斷分析
    */
-  async performDiagnosticAnalysis() {
+  async performDiagnosticAnalysis () {
     this.stats.diagnosticsPerformed++
-    
+
     const analysisResults = {
       timestamp: Date.now(),
       issues: [],
       recommendations: [],
       analysisDetails: {}
     }
-    
+
     try {
       // 執行診斷規則
       for (const [ruleName, rule] of this.diagnosticRules) {
@@ -490,7 +490,7 @@ class DiagnosticService {
           this.logger.error(`診斷規則執行失敗 (${ruleName}):`, error)
         }
       }
-      
+
       // 執行分析器
       for (const [analyzerName, analyzer] of this.analyzers) {
         try {
@@ -508,17 +508,16 @@ class DiagnosticService {
             default:
               analysisData = this.diagnosticData
           }
-          
+
           const results = analyzer(analysisData)
           analysisResults.analysisDetails[analyzerName] = results
         } catch (error) {
           this.logger.error(`分析器執行失敗 (${analyzerName}):`, error)
         }
       }
-      
+
       this.logger.log(`✅ 診斷分析完成，發現 ${analysisResults.issues.length} 個問題`)
       return analysisResults
-      
     } catch (error) {
       this.logger.error('❌ 診斷分析失敗:', error)
       throw error
@@ -528,12 +527,12 @@ class DiagnosticService {
   /**
    * 生成診斷報告
    */
-  async generateDiagnosticReport() {
+  async generateDiagnosticReport () {
     this.stats.reportsGenerated++
-    
+
     try {
       const analysis = await this.performDiagnosticAnalysis()
-      
+
       const report = {
         metadata: {
           reportId: `diag_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`,
@@ -541,9 +540,9 @@ class DiagnosticService {
           version: '1.0.0',
           anonymized: this.config.anonymizeData
         },
-        systemInfo: this.config.anonymizeData ? 
-          this.anonymizeSystemInfo(this.diagnosticData.systemInfo) : 
-          this.diagnosticData.systemInfo,
+        systemInfo: this.config.anonymizeData
+          ? this.anonymizeSystemInfo(this.diagnosticData.systemInfo)
+          : this.diagnosticData.systemInfo,
         summary: {
           totalLogs: this.diagnosticData.logs.length,
           errorCount: this.diagnosticData.logs.filter(l => l.level === 'error').length,
@@ -555,7 +554,7 @@ class DiagnosticService {
         recommendations: this.generateRecommendations(analysis),
         stats: { ...this.stats }
       }
-      
+
       return report
     } catch (error) {
       this.logger.error('❌ 生成診斷報告失敗:', error)
@@ -566,30 +565,30 @@ class DiagnosticService {
   /**
    * 生成建議
    */
-  generateRecommendations(analysis) {
+  generateRecommendations (analysis) {
     const recommendations = []
-    
+
     // 基於分析結果生成建議
     analysis.issues.forEach(issue => {
       if (issue.recommendation) {
         recommendations.push(issue.recommendation)
       }
     })
-    
+
     // 通用建議
     if (this.diagnosticData.logs.filter(l => l.level === 'error').length > 10) {
       recommendations.push('考慮重啟擴展以清除累積的錯誤狀態')
     }
-    
+
     return recommendations
   }
 
   /**
    * 匿名化資料
    */
-  anonymizeContext(context) {
+  anonymizeContext (context) {
     if (!context || typeof context !== 'object') return context
-    
+
     const anonymized = {}
     for (const [key, value] of Object.entries(context)) {
       if (typeof value === 'string') {
@@ -604,7 +603,7 @@ class DiagnosticService {
   /**
    * 匿名化系統資訊
    */
-  anonymizeSystemInfo(systemInfo) {
+  anonymizeSystemInfo (systemInfo) {
     return {
       ...systemInfo,
       userAgent: 'ANONYMIZED',
@@ -615,9 +614,9 @@ class DiagnosticService {
   /**
    * 匿名化報告
    */
-  anonymizeReport(report) {
+  anonymizeReport (report) {
     if (!this.config.anonymizeData) return report
-    
+
     return {
       ...report,
       systemInfo: this.anonymizeSystemInfo(report.systemInfo)
@@ -627,7 +626,7 @@ class DiagnosticService {
   /**
    * 清理敏感資料
    */
-  cleanupSensitiveData() {
+  cleanupSensitiveData () {
     if (this.config.anonymizeData) {
       // 清理可能包含敏感資訊的日誌
       this.diagnosticData.logs = this.diagnosticData.logs.map(log => ({
@@ -640,7 +639,7 @@ class DiagnosticService {
   /**
    * 註冊事件監聽器
    */
-  async registerEventListeners() {
+  async registerEventListeners () {
     if (!this.eventBus) {
       this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
       return
@@ -670,7 +669,7 @@ class DiagnosticService {
   /**
    * 取消註冊事件監聽器
    */
-  async unregisterEventListeners() {
+  async unregisterEventListeners () {
     if (!this.eventBus) return
 
     for (const [event, listenerId] of this.registeredListeners) {
@@ -688,10 +687,10 @@ class DiagnosticService {
   /**
    * 處理診斷請求
    */
-  async handleDiagnosticRequest(event) {
+  async handleDiagnosticRequest (event) {
     try {
       const { type } = event.data || {}
-      
+
       let result
       switch (type) {
         case 'full_report':
@@ -703,7 +702,7 @@ class DiagnosticService {
         default:
           result = this.getStatus()
       }
-      
+
       if (this.eventBus) {
         await this.eventBus.emit('SYSTEM.DIAGNOSTIC.RESULT', {
           requestId: event.data?.requestId,
@@ -719,7 +718,7 @@ class DiagnosticService {
   /**
    * 處理錯誤發生事件
    */
-  async handleErrorOccurred(event) {
+  async handleErrorOccurred (event) {
     const { error, context } = event.data || {}
     this.recordLogEntry('error', error?.message || '未知錯誤', context)
   }
@@ -727,7 +726,7 @@ class DiagnosticService {
   /**
    * 獲取服務狀態
    */
-  getStatus() {
+  getStatus () {
     return {
       initialized: this.state.initialized,
       active: this.state.active,
@@ -745,8 +744,8 @@ class DiagnosticService {
   /**
    * 獲取健康狀態
    */
-  getHealthStatus() {
-    const isHealthy = this.state.initialized && 
+  getHealthStatus () {
+    const isHealthy = this.state.initialized &&
                      this.diagnosticData.logs.length < this.config.maxLogEntries
 
     return {

@@ -455,22 +455,22 @@ const createEventBusMock = () => {
   const eventHistory = []
 
   class MockEventBus {
-    constructor() {
+    constructor () {
       this.listeners = new Map()
       this.eventHistory = []
     }
 
-    on(eventName, handler, priority = 200) {
+    on (eventName, handler, priority = 200) {
       if (!this.listeners.has(eventName)) {
         this.listeners.set(eventName, [])
       }
       this.listeners.get(eventName).push({ handler, priority })
-      
+
       // 依優先級排序
       this.listeners.get(eventName).sort((a, b) => a.priority - b.priority)
     }
 
-    off(eventName, handler) {
+    off (eventName, handler) {
       if (this.listeners.has(eventName)) {
         const handlers = this.listeners.get(eventName)
         const index = handlers.findIndex(h => h.handler === handler)
@@ -480,7 +480,7 @@ const createEventBusMock = () => {
       }
     }
 
-    emit(eventName, data = {}) {
+    emit (eventName, data = {}) {
       // 記錄事件歷史
       this.eventHistory.push({
         eventName,
@@ -503,7 +503,7 @@ const createEventBusMock = () => {
       return Promise.resolve()
     }
 
-    once(eventName, handler, priority = 200) {
+    once (eventName, handler, priority = 200) {
       const onceHandler = (data) => {
         handler(data)
         this.off(eventName, onceHandler)
@@ -511,7 +511,7 @@ const createEventBusMock = () => {
       this.on(eventName, onceHandler, priority)
     }
 
-    clear(eventName) {
+    clear (eventName) {
       if (eventName) {
         this.listeners.delete(eventName)
       } else {
@@ -521,15 +521,15 @@ const createEventBusMock = () => {
     }
 
     // 測試工具方法
-    getEventHistory() {
+    getEventHistory () {
       return [...this.eventHistory]
     }
 
-    getListeners(eventName) {
+    getListeners (eventName) {
       return this.listeners.get(eventName) || []
     }
 
-    hasListener(eventName, handler) {
+    hasListener (eventName, handler) {
       const handlers = this.listeners.get(eventName) || []
       return handlers.some(h => h.handler === handler)
     }

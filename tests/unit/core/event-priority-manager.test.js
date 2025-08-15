@@ -1,7 +1,7 @@
 /**
  * EventPriorityManager 測試檔案
  * 測試事件優先級管理器的核心功能
- * 
+ *
  * 測試重點：
  * - v2.0 事件優先級系統
  * - 事件分類和優先級分配
@@ -15,7 +15,7 @@ const EventPriorityManager = require('../../../src/core/events/event-priority-ma
 describe('EventPriorityManager', () => {
   let eventBus
   let priorityManager
-  
+
   beforeEach(() => {
     eventBus = new EventBus()
     priorityManager = new EventPriorityManager()
@@ -139,7 +139,7 @@ describe('EventPriorityManager', () => {
 
     test('應該根據關鍵字判斷優先級', () => {
       const criticalKeywords = ['ERROR', 'CRITICAL', 'URGENT', 'SECURITY']
-      
+
       criticalKeywords.forEach(keyword => {
         const eventName = `SYSTEM.GENERIC.${keyword}.DETECTED`
         const category = priorityManager.inferPriorityCategory(eventName)
@@ -167,7 +167,7 @@ describe('EventPriorityManager', () => {
     test('應該檢測優先級衝突', () => {
       priorityManager.recordEventPriority('TEST.EVENT', 50)
       priorityManager.recordEventPriority('TEST.EVENT', 150)
-      
+
       const conflicts = priorityManager.detectPriorityConflicts()
       expect(conflicts).toHaveLength(1)
       expect(conflicts[0].eventName).toBe('TEST.EVENT')
@@ -179,24 +179,24 @@ describe('EventPriorityManager', () => {
     test('應該能夠調整事件優先級', () => {
       const eventName = 'TEST.READMOO.ACTION.COMPLETED'
       const originalPriority = priorityManager.assignEventPriority(eventName)
-      
+
       const newPriority = 150
       priorityManager.adjustEventPriority(eventName, newPriority)
-      
+
       const adjustedPriority = priorityManager.getEventPriority(eventName)
       expect(adjustedPriority).toBe(newPriority)
     })
 
     test('應該最佳化重複事件的優先級分配', () => {
       const eventName = 'EXTRACTION.READMOO.EXTRACT.PROGRESS'
-      
+
       // 分配多次相同事件
       for (let i = 0; i < 5; i++) {
         priorityManager.assignEventPriority(eventName)
       }
-      
+
       priorityManager.optimizeEventPriorities()
-      
+
       // 應該只有一個優先級分配
       const priorities = priorityManager.getEventPriorities(eventName)
       expect(new Set(priorities).size).toBe(1)
@@ -205,16 +205,16 @@ describe('EventPriorityManager', () => {
     test('應該根據效能統計調整優先級', () => {
       const slowEvent = 'SLOW.READMOO.PROCESS.COMPLETED'
       const fastEvent = 'FAST.READMOO.PROCESS.COMPLETED'
-      
+
       // 記錄效能統計
       priorityManager.recordPerformanceMetrics(slowEvent, { avgExecutionTime: 500 })
       priorityManager.recordPerformanceMetrics(fastEvent, { avgExecutionTime: 50 })
-      
+
       priorityManager.optimizeBasedOnPerformance()
-      
+
       const slowPriority = priorityManager.getEventPriority(slowEvent)
       const fastPriority = priorityManager.getEventPriority(fastEvent)
-      
+
       // 慢的事件應該有較低的優先級（較大的數字）
       expect(slowPriority).toBeGreaterThan(fastPriority)
     })
@@ -224,7 +224,7 @@ describe('EventPriorityManager', () => {
     test('應該記錄優先級分配統計', () => {
       priorityManager.assignEventPriority('TEST.READMOO.ACTION.COMPLETED')
       priorityManager.assignEventPriority('SYSTEM.GENERIC.ERROR.CRITICAL')
-      
+
       const stats = priorityManager.getPriorityStats()
       expect(stats.totalAssignments).toBe(2)
       expect(stats.priorityDistribution).toBeDefined()
@@ -235,7 +235,7 @@ describe('EventPriorityManager', () => {
       priorityManager.assignEventPriority('SYSTEM.GENERIC.ERROR.CRITICAL')
       priorityManager.assignEventPriority('UX.GENERIC.CLICK.STARTED')
       priorityManager.assignEventPriority('ANALYTICS.GENERIC.LOG.COMPLETED')
-      
+
       const distribution = priorityManager.getPriorityDistribution()
       expect(distribution.SYSTEM_CRITICAL).toBeGreaterThan(0)
       expect(distribution.USER_INTERACTION).toBeGreaterThan(0)
@@ -245,10 +245,10 @@ describe('EventPriorityManager', () => {
     test('應該監控優先級調整歷史', () => {
       const eventName = 'TEST.READMOO.ACTION.COMPLETED'
       const originalPriority = priorityManager.assignEventPriority(eventName)
-      
+
       priorityManager.adjustEventPriority(eventName, 150)
       priorityManager.adjustEventPriority(eventName, 200)
-      
+
       const history = priorityManager.getPriorityHistory(eventName)
       expect(history).toHaveLength(3) // 原始 + 2次調整
       expect(history[0].priority).toBe(originalPriority)
@@ -261,34 +261,34 @@ describe('EventPriorityManager', () => {
     test('應該整合優先級到 EventBus 註冊', () => {
       const eventName = 'EXTRACTION.READMOO.EXTRACT.COMPLETED'
       const handler = jest.fn()
-      
+
       priorityManager.registerWithPriority(eventBus, eventName, handler)
-      
+
       expect(eventBus.hasListener(eventName)).toBe(true)
-      
+
       const expectedPriority = priorityManager.getEventPriority(eventName)
       expect(expectedPriority).toBeGreaterThanOrEqual(300) // BUSINESS_PROCESSING
     })
 
     test('應該按優先級順序執行事件處理器', async () => {
       const executionOrder = []
-      
+
       const urgentHandler = () => executionOrder.push('urgent')
       const normalHandler = () => executionOrder.push('normal')
       const lowHandler = () => executionOrder.push('low')
-      
+
       // 註冊不同優先級的處理器
       priorityManager.registerWithPriority(eventBus, 'SYSTEM.GENERIC.ERROR.CRITICAL', urgentHandler)
       priorityManager.registerWithPriority(eventBus, 'EXTRACTION.READMOO.EXTRACT.COMPLETED', normalHandler)
       priorityManager.registerWithPriority(eventBus, 'ANALYTICS.GENERIC.LOG.COMPLETED', lowHandler)
-      
+
       // 同時觸發所有事件
       await Promise.all([
         eventBus.emit('ANALYTICS.GENERIC.LOG.COMPLETED'),
         eventBus.emit('SYSTEM.GENERIC.ERROR.CRITICAL'),
         eventBus.emit('EXTRACTION.READMOO.EXTRACT.COMPLETED')
       ])
-      
+
       // 應該按優先級順序執行
       expect(executionOrder).toEqual(['urgent', 'normal', 'low'])
     })
@@ -299,7 +299,7 @@ describe('EventPriorityManager', () => {
       expect(() => {
         priorityManager.assignEventPriority('')
       }).toThrow('Invalid event name')
-      
+
       expect(() => {
         priorityManager.assignEventPriority(null)
       }).toThrow('Invalid event name')
@@ -307,11 +307,11 @@ describe('EventPriorityManager', () => {
 
     test('應該處理無效的優先級調整', () => {
       const eventName = 'TEST.READMOO.ACTION.COMPLETED'
-      
+
       expect(() => {
         priorityManager.adjustEventPriority(eventName, -1)
       }).toThrow('Invalid priority value')
-      
+
       expect(() => {
         priorityManager.adjustEventPriority(eventName, 1000)
       }).toThrow('Invalid priority value')
@@ -323,7 +323,7 @@ describe('EventPriorityManager', () => {
       } catch (error) {
         // 預期錯誤
       }
-      
+
       const stats = priorityManager.getPriorityStats()
       expect(stats.errors).toBeGreaterThan(0)
     })
@@ -332,14 +332,14 @@ describe('EventPriorityManager', () => {
   describe('效能測試', () => {
     test('應該在合理時間內完成大量優先級分配', () => {
       const startTime = performance.now()
-      
+
       for (let i = 0; i < 1000; i++) {
         priorityManager.assignEventPriority(`TEST.READMOO.ACTION.COMPLETED_${i}`)
       }
-      
+
       const endTime = performance.now()
       const duration = endTime - startTime
-      
+
       expect(duration).toBeLessThan(100) // 應該在 100ms 內完成
     })
 
@@ -348,11 +348,11 @@ describe('EventPriorityManager', () => {
       for (let i = 0; i < 100; i++) {
         priorityManager.recordEventPriority('CONFLICT_EVENT', i)
       }
-      
+
       const startTime = performance.now()
       const conflicts = priorityManager.detectPriorityConflicts()
       const endTime = performance.now()
-      
+
       expect(endTime - startTime).toBeLessThan(50) // 應該在 50ms 內完成
       expect(conflicts).toHaveLength(1)
     })

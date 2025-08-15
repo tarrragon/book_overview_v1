@@ -1,7 +1,7 @@
 /**
  * EventNamingUpgradeCoordinator 測試檔案
  * 測試事件命名升級協調器的核心功能
- * 
+ *
  * 測試重點：
  * - 事件轉換對應表驗證
  * - 雙軌並行事件處理
@@ -17,11 +17,11 @@ describe('EventNamingUpgradeCoordinator', () => {
   let eventBus
   let coordinator
   let mockEventData
-  
+
   beforeEach(() => {
     eventBus = new EventBus()
     coordinator = new EventNamingUpgradeCoordinator(eventBus)
-    mockEventData = { 
+    mockEventData = {
       bookId: 'test-book-123',
       timestamp: Date.now(),
       source: 'test'
@@ -122,7 +122,7 @@ describe('EventNamingUpgradeCoordinator', () => {
       const legacyEvent = 'EXTRACTION.COMPLETED'
       const modernEvent = 'EXTRACTION.READMOO.EXTRACT.COMPLETED'
       const handlerCalls = []
-      
+
       const handler = (data) => {
         handlerCalls.push(data)
       }
@@ -139,7 +139,7 @@ describe('EventNamingUpgradeCoordinator', () => {
       const legacyEvent = 'EXTRACTION.COMPLETED'
       const modernEvent = 'EXTRACTION.READMOO.EXTRACT.COMPLETED'
       const handlerCalls = []
-      
+
       const handler = (data) => {
         handlerCalls.push({ event: 'handled', data })
       }
@@ -186,7 +186,7 @@ describe('EventNamingUpgradeCoordinator', () => {
 
     test('在 MODERN_ONLY 模式下應該只發射 Modern 事件', async () => {
       coordinator.setConversionMode('MODERN_ONLY')
-      
+
       const legacyEvent = 'EXTRACTION.COMPLETED'
       const modernEvent = 'EXTRACTION.READMOO.EXTRACT.COMPLETED'
       const emittedEvents = []
@@ -238,7 +238,7 @@ describe('EventNamingUpgradeCoordinator', () => {
   describe('轉換統計與監控', () => {
     test('應該提供完整的轉換統計', () => {
       const stats = coordinator.getConversionStats()
-      
+
       expect(stats).toHaveProperty('totalConversions')
       expect(stats).toHaveProperty('legacyEventCount')
       expect(stats).toHaveProperty('modernEventCount')
@@ -250,9 +250,9 @@ describe('EventNamingUpgradeCoordinator', () => {
     test('應該計算正確的轉換成功率', async () => {
       const handler = () => {}
       coordinator.registerDualTrackListener('EXTRACTION.COMPLETED', handler)
-      
+
       await eventBus.emit('EXTRACTION.COMPLETED', mockEventData)
-      
+
       const stats = coordinator.getConversionStats()
       expect(stats.conversionSuccessRate).toBeGreaterThan(0)
       expect(stats.conversionSuccessRate).toBeLessThanOrEqual(1)
@@ -261,7 +261,7 @@ describe('EventNamingUpgradeCoordinator', () => {
     test('應該追蹤 Modern 事件註冊數量', () => {
       coordinator.registerDualTrackListener('EXTRACTION.COMPLETED', () => {})
       coordinator.registerDualTrackListener('STORAGE.SAVE.COMPLETED', () => {})
-      
+
       const stats = coordinator.getConversionStats()
       expect(stats.modernEventsRegistered).toBe(2)
     })
@@ -271,7 +271,7 @@ describe('EventNamingUpgradeCoordinator', () => {
     test('應該允許設定轉換模式', () => {
       coordinator.setConversionMode('MODERN_ONLY')
       expect(coordinator.conversionMode).toBe('MODERN_ONLY')
-      
+
       coordinator.setConversionMode('DUAL_TRACK')
       expect(coordinator.conversionMode).toBe('DUAL_TRACK')
     })
@@ -297,10 +297,10 @@ describe('EventNamingUpgradeCoordinator', () => {
       }
 
       coordinator.registerDualTrackListener('EXTRACTION.COMPLETED', errorHandler)
-      
+
       // 不應該拋出錯誤
       await expect(eventBus.emit('EXTRACTION.COMPLETED', mockEventData)).resolves.not.toThrow()
-      
+
       const stats = coordinator.getConversionStats()
       expect(stats.conversionErrors).toBeGreaterThan(0)
     })
@@ -346,13 +346,13 @@ describe('EventNamingUpgradeCoordinator', () => {
 
     test('應該不改變原有的事件處理器介面', () => {
       const originalHandler = jest.fn()
-      
+
       // 使用原有的 EventBus API
       eventBus.on('EXTRACTION.COMPLETED', originalHandler)
-      
+
       // 再使用新的雙軌 API
       coordinator.registerDualTrackListener('EXTRACTION.COMPLETED', originalHandler)
-      
+
       // 兩者應該能共存
       expect(eventBus.hasListener('EXTRACTION.COMPLETED')).toBe(true)
     })

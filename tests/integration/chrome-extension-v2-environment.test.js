@@ -1,18 +1,18 @@
 /**
  * Chrome Extension v2.0 環境整合測試
- * 
+ *
  * 負責功能：
  * - Background Service Worker 與事件系統 v2.0 整合測試
  * - Content Scripts 的事件處理和 DOM 互動驗證
  * - Popup 界面的事件驅動功能完整測試
  * - 跨上下文事件傳遞和通訊協議驗證
- * 
+ *
  * 測試策略：
  * - 真實 Chrome Extension 環境模擬
  * - 完整擴展生命週期測試
  * - 跨上下文通訊協議驗證
  * - 實際使用者操作流程模擬
- * 
+ *
  * 整合測試範圍：
  * - Service Worker 生命週期 100% 覆蓋
  * - 事件傳遞準確性 100% 驗證
@@ -47,7 +47,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
 
     // 初始化 Chrome Extension 環境
     mockTabId = 123
-    
+
     // 設置 Chrome APIs 模擬
     chrome.tabs.sendMessage.mockResolvedValue({ success: true })
     chrome.runtime.sendMessage.mockResolvedValue({ success: true })
@@ -108,7 +108,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       test('應該在 Service Worker 安裝時設置預設配置', async () => {
         // 模擬擴展安裝
         const installDetails = { reason: 'install' }
-        
+
         // 觸發安裝事件處理
         await chromeBridge.handleInstallation(installDetails)
 
@@ -126,7 +126,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
         // 設置一些事件監聽器和狀態
         const testHandler = jest.fn()
         namingCoordinator.registerDualTrackListener('EXTRACTION.COMPLETED', testHandler)
-        
+
         const testEvent = 'EXTRACTION.READMOO.EXTRACT.COMPLETED'
         priorityManager.assignEventPriority(testEvent)
 
@@ -141,7 +141,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
 
         // 驗證基本功能恢復
         await namingCoordinator.intelligentEmit('EXTRACTION.COMPLETED', { test: 'restart' })
-        
+
         // 等待事件處理
         await new Promise(resolve => setTimeout(resolve, 100))
 
@@ -162,7 +162,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
         // 驗證事件系統仍然可用
         const testHandler = jest.fn()
         eventBus.on('SYSTEM.GENERIC.WAKEUP.COMPLETED', testHandler)
-        
+
         await eventBus.emit('SYSTEM.GENERIC.WAKEUP.COMPLETED', {
           previousStats: preSleepStats,
           timestamp: Date.now()
@@ -287,7 +287,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
         for (let i = 0; i < legacyEvents.length; i++) {
           const legacyEvent = legacyEvents[i]
           const expectedModern = modernEvents[i]
-          
+
           const handler = jest.fn()
           namingCoordinator.registerDualTrackListener(legacyEvent, handler)
 
@@ -316,11 +316,11 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
 
         // 設置處理器並記錄執行順序
         const executionOrder = []
-        
+
         priorityManager.registerWithPriority(eventBus, highPriorityEvent, () => {
           executionOrder.push('high')
         })
-        
+
         priorityManager.registerWithPriority(eventBus, normalPriorityEvent, () => {
           executionOrder.push('normal')
         })
@@ -467,7 +467,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
 
         // 模擬 DOM 存取錯誤
         const domError = new Error('Cannot access property of null')
-        
+
         await chromeBridge.handleContentScriptError({
           error: domError,
           context: 'dom-access',
@@ -586,7 +586,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
         await chromeBridge.syncSystemStatus(systemStatus)
 
         expect(statusSyncHandler).toHaveBeenCalled()
-        
+
         // 驗證狀態被正確廣播
         expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -599,7 +599,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       test('應該處理 Popup 開啟和關閉事件', async () => {
         const openHandler = jest.fn()
         const closeHandler = jest.fn()
-        
+
         eventBus.on('UX.GENERIC.OPEN.COMPLETED', openHandler)
         eventBus.on('UX.GENERIC.CLOSE.COMPLETED', closeHandler)
 
@@ -669,11 +669,11 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
     describe('完整提取工作流程', () => {
       test('應該執行完整的書籍提取流程', async () => {
         const workflowEvents = []
-        
+
         // 設置工作流程事件監聽器
         const eventTypes = [
           'EXTRACTION.READMOO.EXTRACT.STARTED',
-          'EXTRACTION.READMOO.EXTRACT.PROGRESS', 
+          'EXTRACTION.READMOO.EXTRACT.PROGRESS',
           'DATA.READMOO.SAVE.REQUESTED',
           'DATA.READMOO.SAVE.COMPLETED',
           'UX.GENERIC.NOTIFICATION.SENT',
@@ -738,7 +738,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       test('應該支援暫停和恢復提取', async () => {
         const pauseHandler = jest.fn()
         const resumeHandler = jest.fn()
-        
+
         eventBus.on('EXTRACTION.READMOO.EXTRACT.PAUSED', pauseHandler)
         eventBus.on('EXTRACTION.READMOO.EXTRACT.RESUMED', resumeHandler)
 
@@ -810,7 +810,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
 
         // 驗證效能指標
         expect(totalTime).toBeLessThan(10000) // 總時間少於 10 秒
-        
+
         const avgTimePerEvent = totalTime / eventCount
         expect(avgTimePerEvent).toBeLessThan(10) // 平均每個事件少於 10ms
       })
@@ -847,7 +847,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
 
       test('應該處理快速連續的狀態變更', async () => {
         const stateChanges = [
-          'started', 'progress', 'progress', 'paused', 
+          'started', 'progress', 'progress', 'paused',
           'resumed', 'progress', 'completed'
         ]
 
@@ -861,7 +861,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
             newState: state,
             timestamp: Date.now()
           })
-          
+
           // 很短的延遲模擬快速變更
           await new Promise(resolve => setTimeout(resolve, 10))
         }
