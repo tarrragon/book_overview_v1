@@ -2,6 +2,38 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v2.1.0] - 2025-08-15
+
+### 🤖 Claude Code Agent 架構重大重構
+- **移除實作類 Agent**：根據 Claude Code 最佳實踐，移除 pepper-test-implementer、thyme-extension-engineer、cinnamon-refactor-owl
+- **重新定位研究規劃類 Agent**：所有 sub-agent 調整為純研究員和規劃者角色
+- **建立上下文管理機制**：新增 `docs/context/` 完整的檔案系統上下文管理
+- **主線程實作整合**：將所有實作責任整合到主線程，確保完整上下文
+
+### 📁 新增上下文管理系統
+- **上下文檔案管理**：`docs/context/session_contexts/` 專案階段上下文
+- **Agent 規劃輸出**：`docs/context/agent_plans/` 分類存放 agent 規劃文件
+- **標準化模板**：`docs/context/templates/` 統一的檔案格式模板
+- **輸出格式規範**：`docs/context/agent_output_standards.md` Agent 標準輸出格式
+
+### 🔄 自主合規機制建立
+- **主線程自主合規**：基於完整實作上下文的合規檢查機制
+- **TDD 循環整合**：將合規檢查整合到 Red-Green-Refactor 各階段
+- **文件同步更新**：開發過程中即時更新工作日誌和版本記錄
+- **品質標準驗證**：每個階段的具體檢查點和驗收標準
+
+### 🏗 架構優化成果
+- **效率提升**：減少上下文切換和 token 消耗，避免上下文壓縮問題
+- **品質保證**：主線程完整上下文確保更好的技術決策和問題解決
+- **責任清晰**：Sub-agent 專注規劃研究，主線程專注實作執行
+- **資訊準確**：文件記錄基於第一手實作資訊，避免上下文斷層
+
+### 📊 重構統計
+- 移除 3 個實作類 Agent，重新定位 6 個研究規劃類 Agent
+- 建立 4 個新的上下文管理文件和完整目錄結構
+- 整合 TDD 循環和合規檢查的完整品質保證機制
+- 100% 符合 Claude Code sub-agent 最佳實踐
+
 ## [v2.0.1] - 2025-08-15
 
 ### 🛡️ Readmoo 平台遷移驗證系統實作完成
