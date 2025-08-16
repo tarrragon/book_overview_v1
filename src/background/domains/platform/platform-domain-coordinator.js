@@ -1,31 +1,36 @@
 /**
  * @fileoverview Platform Domain Coordinator - 平台管理領域協調器
- * @version v2.0.0
+ * @version v2.0.0 (v1.0 重構版)
  * @since 2025-08-14
  *
  * 負責功能：
- * - 多平台檢測與識別協調
- * - 平台適配器生命週期管理
- * - 跨平台切換與狀態同步
- * - 平台資源隔離與安全控制
+ * - Readmoo 平台檢測與識別協調
+ * - 平台適配器生命週期管理 (僅 Readmoo)
+ * - 平台狀態管理與監控
+ * - 為未來多平台擴展保留架構彈性
  *
  * 設計考量：
- * - 支援 5 個主流電子書平台
- * - 確保 100% 向後相容性
+ * - v1.0 階段專注 Readmoo 平台實作
+ * - 架構設計保留多平台擴展能力
  * - 事件驅動架構整合
- * - 高效能跨平台協調
+ * - 單一平台高效能協調
  *
  * 處理流程：
- * 1. 初始化所有平台管理服務
+ * 1. 初始化 Readmoo 平台管理服務
  * 2. 協調平台檢測與註冊
- * 3. 管理適配器工廠與切換器
- * 4. 處理跨平台事件路由
- * 5. 監控平台服務健康狀態
+ * 3. 管理適配器工廠（僅 Readmoo）
+ * 4. 監控平台服務健康狀態
+ * 5. 為未來多平台保留事件路由接口
  *
  * 使用情境：
  * - Background Service Worker 初始化時建立協調器
- * - 處理跨平台操作和資料同步
- * - 管理平台切換和適配器載入
+ * - 處理 Readmoo 平台操作和資料管理
+ * - 管理平台狀態和適配器載入
+ *
+ * **v1.0 暫時擁擱置的功能**:
+ * - crossPlatformRouter: 跨平台路由邏輯 (已標記為擱置)
+ * - platformIsolation: 平台隔離機制 (v1.0 單平台不需要)
+ * - 多平台切換與同步 (保留架構但不實作)
  */
 
 const BaseModule = require('../../lifecycle/base-module.js')
@@ -58,13 +63,10 @@ class PlatformDomainCoordinator extends BaseModule {
     this.activePlatforms = new Set()
     this.currentPlatform = null
 
-    // 配置管理
+    // 配置管理 - v1.0 僅支援 Readmoo
     this.supportedPlatforms = [
-      'READMOO',
-      'KINDLE',
-      'KOBO',
-      'BOOKWALKER',
-      'BOOKS_COM'
+      'READMOO'
+      // 未來擴展: 'KINDLE', 'KOBO', 'BOOKWALKER', 'BOOKS_COM'
     ]
 
     // 協調器狀態
@@ -104,24 +106,27 @@ class PlatformDomainCoordinator extends BaseModule {
   }
 
   /**
-   * 初始化所有平台管理服務
+   * 初始化 v1.0 平台管理服務 (僅 Readmoo)
    */
   async initializePlatformServices () {
     const PlatformDetectionService = require('./services/platform-detection-service.js')
     const PlatformRegistryService = require('./services/platform-registry-service.js')
     const PlatformSwitcherService = require('./services/platform-switcher-service.js')
     const AdapterFactoryService = require('./services/adapter-factory-service.js')
-    const CrossPlatformRouter = require('./services/cross-platform-router.js')
-    const PlatformIsolationService = require('./services/platform-isolation-service.js')
+    
+    // v1.0 暫時擱置的服務 - 保留架構但不實例化
+    // const CrossPlatformRouter = require('./services/cross-platform-router.js')
+    // const PlatformIsolationService = require('./services/platform-isolation-service.js')
 
     // 建立服務依賴注入物件
     const serviceConfig = {
       eventBus: this.eventBus,
       logger: this.logger,
-      config: this.config.platformServices || {}
+      config: this.config.platformServices || {},
+      supportedPlatforms: this.supportedPlatforms  // 僅 Readmoo
     }
 
-    // 初始化核心服務（按依賴順序）
+    // 初始化 v1.0 核心服務（按依賴順序）
     this.services.platformDetection = new PlatformDetectionService(
       this.eventBus, serviceConfig
     )
@@ -142,25 +147,21 @@ class PlatformDomainCoordinator extends BaseModule {
       }
     )
 
-    this.services.crossPlatformRouter = new CrossPlatformRouter(
-      this.eventBus, {
-        ...serviceConfig,
-        platformRegistry: this.services.platformRegistry,
-        adapterFactory: this.services.adapterFactory
-      }
-    )
+    // v1.0 暫時擱置的服務設為 null
+    this.services.crossPlatformRouter = null  // 擱置: 跨平台路由
+    this.services.platformIsolation = null    // 擱置: 平台隔離
 
-    this.services.platformIsolation = new PlatformIsolationService(
-      this.eventBus, serviceConfig
-    )
-
-    // 初始化所有服務
+    // 初始化已實作的服務
     for (const [serviceName, service] of Object.entries(this.services)) {
       if (service && typeof service.initialize === 'function') {
         await service.initialize()
         await this.log(`${serviceName} 服務初始化完成`)
+      } else if (service === null) {
+        await this.log(`${serviceName} 服務暫時擱置 (v1.0 不需要)`)
       }
     }
+
+    await this.log('v1.0 平台服務初始化完成 - 專注 Readmoo 平台')
   }
 
   /**
@@ -311,19 +312,36 @@ class PlatformDomainCoordinator extends BaseModule {
   }
 
   /**
-   * 處理跨平台協調請求
+   * 處理跨平台協調請求 (v1.0 暫時擱置)
    * @param {Object} event - 跨平台協調事件
    */
   async handleCrossPlatformCoordination (event) {
     try {
       const { operation, platforms, options } = event.data || {}
+      
+      await this.log(`跨平台協調請求暫時擱置: ${operation}, 平台: ${platforms?.join(',') || '未指定'}`, 'warn')
 
+      // v1.0 階段暫不支援跨平台協調
       if (this.services.crossPlatformRouter) {
         const result = await this.services.crossPlatformRouter.coordinateOperation(
           operation, platforms, options
         )
-
         return result
+      } else {
+        // 發送擱置通知事件
+        await this.emitEvent('PLATFORM.CROSS_PLATFORM.COORDINATION.SHELVED', {
+          operation,
+          platforms,
+          reason: 'V1_READMOO_ONLY',
+          message: 'v1.0 階段僅支援 Readmoo 平台，跨平台功能暫時擱置',
+          timestamp: Date.now()
+        })
+        
+        return {
+          success: false,
+          reason: 'V1_READMOO_ONLY',
+          message: '跨平台協調功能暫時擱置，v1.0 僅支援 Readmoo'
+        }
       }
     } catch (error) {
       await this.logError('處理跨平台協調請求失敗', error)

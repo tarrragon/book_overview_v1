@@ -1,32 +1,38 @@
 /**
  * @fileoverview Data Domain Coordinator - 資料管理領域協調器
- * @version v2.0.0
+ * @version v2.0.0 (v1.0 重構版)
  * @since 2025-08-15
  *
  * 負責功能：
- * - 協調所有資料管理服務運作
- * - 管理跨平台資料同步流程
+ * - 協調 Readmoo 資料管理服務運作
  * - 處理與其他 Domain 的事件通訊
  * - 監控和優化資料處理效能
+ * - 為未來多平台擴展保留架構彈性
  *
  * 設計考量：
- * - 事件驅動架構，避免直接服務依賴
+ * - v1.0 階段專注 Readmoo 平台資料管理
+ * - 事件骅動架構，避免直接服務依賴
  * - 統一錯誤處理和恢復機制
  * - 效能監控和自動調優
- * - 支援水平擴展和負載平衡
+ * - 架構設計保留未來水平擴展能力
  *
  * 處理流程：
- * 1. 註冊所有核心服務
+ * 1. 註冊 Readmoo 核心資料服務
  * 2. 建立服務間依賴關係
  * 3. 設定事件監聽器
  * 4. 啟動效能監控
- * 5. 協調跨領域資料流程
+ * 5. 協調 Readmoo 資料流程
  *
  * 使用情境：
  * - Background Service Worker 初始化時建立協調器
- * - 處理平台資料提取完成後的驗證和標準化
- * - 管理跨平台資料同步和衝突解決
- * - 協調資料遷移和備份恢復操作
+ * - 處理 Readmoo 平台資料提取完成後的驗證和標準化
+ * - 管理 Readmoo 資料的遷移和備份恢復操作
+ * - 為未來多平台擴展保留架構面向
+ *
+ * **v1.0 暫時擱置的功能**:
+ * - synchronization: 跨平台資料同步 (已標記為擱置)
+ * - conflictResolution: 跨平台衝突解決 (保留架構但不實作)
+ * - 多平台同步和衝突解決 (等待未來實作)
  */
 
 const BaseModule = require('../../lifecycle/base-module.js')
@@ -48,14 +54,14 @@ class DataDomainCoordinator extends BaseModule {
     this.logger = dependencies.logger || console
     this.config = dependencies.config || {}
 
-    // 資料管理服務實例
+    // 資料管理服務實例 - v1.0 僅實作 Readmoo 所需服務
     this.services = {
-      validation: null,           // DataValidationService
-      migration: null,            // SchemaMigrationService  
-      synchronization: null,      // DataSynchronizationService
-      conflictResolution: null,   // ConflictResolutionService
-      storageAdapter: null,       // StorageAdapterService
-      backupRecovery: null        // BackupRecoveryService
+      validation: null,           // DataValidationService (已實作)
+      migration: null,            // SchemaMigrationService (未來實作)
+      synchronization: null,      // DataSynchronizationService (暫時擱置)
+      conflictResolution: null,   // ConflictResolutionService (暫時擱置)
+      storageAdapter: null,       // StorageAdapterService (未來實作)
+      backupRecovery: null        // BackupRecoveryService (未來實作)
     }
 
     // 活躍操作追蹤
@@ -128,22 +134,24 @@ class DataDomainCoordinator extends BaseModule {
   }
 
   /**
-   * 初始化所有資料管理服務
+   * 初始化 v1.0 資料管理服務 (僅 Readmoo 所需)
    */
   async initializeDataServices () {
-    await this.log('初始化資料管理服務')
+    await this.log('初始化 v1.0 資料管理服務 - 專注 Readmoo')
 
-    // 載入現有的 DataValidationService
+    // 載入已實作的 DataValidationService
     const DataValidationService = require('./services/data-validation-service.js')
     this.services.validation = new DataValidationService(this.eventBus, this.effectiveConfig.validation)
 
-    // 注意：其他服務將在後續 TDD 循環中實作
-    // 現在先建立服務佔位符，避免空指標錯誤
+    // v1.0 階段設定 - 部分服務暫時擱置
+    // 未來實作的服務（使用 Mock 保持架構完整）
     this.services.migration = new MockService('SchemaMigrationService')
-    this.services.synchronization = new MockService('DataSynchronizationService')
-    this.services.conflictResolution = new MockService('ConflictResolutionService')
     this.services.storageAdapter = new MockService('StorageAdapterService')
     this.services.backupRecovery = new MockService('BackupRecoveryService')
+    
+    // v1.0 暫時擱置的多平台服務（設為 null 代表擱置）
+    this.services.synchronization = null      // 擱置: 跨平台同步
+    this.services.conflictResolution = null   // 擱置: 跨平台衝突解決
 
     // 初始化已實作的服務
     if (this.services.validation && typeof this.services.validation.initialize === 'function') {
@@ -151,7 +159,14 @@ class DataDomainCoordinator extends BaseModule {
       await this.log('DataValidationService 初始化完成')
     }
 
-    await this.log(`資料管理服務初始化完成，共 ${Object.keys(this.services).length} 個服務`)
+    // 記錄擱置的服務
+    const shelvedServices = ['synchronization', 'conflictResolution']
+    for (const serviceName of shelvedServices) {
+      await this.log(`${serviceName} 服務暫時擱置 (v1.0 不需要多平台功能)`)
+    }
+
+    const activeServices = Object.values(this.services).filter(s => s !== null).length
+    await this.log(`v1.0 資料管理服務初始化完成，共 ${activeServices} 個啟用服務，2 個擱置服務`)
   }
 
   /**
@@ -387,28 +402,38 @@ class DataDomainCoordinator extends BaseModule {
   }
 
   /**
-   * 處理跨平台同步請求
+   * 處理跨平台同步請求 (v1.0 暫時擱置)
    */
   async handleCrossPlatformSyncRequest (event) {
     const { sourcePlatforms, targetPlatforms, syncOptions } = event.data || {}
     const syncId = this.generateSyncId()
 
     try {
-      await this.log(`處理跨平台同步請求: ${sourcePlatforms} -> ${targetPlatforms}`)
+      await this.log(`跨平台同步請求暫時擱置: ${sourcePlatforms} -> ${targetPlatforms}`, 'warn')
 
-      await this.emitEvent('DATA.SYNC.STARTED', {
+      // v1.0 階段不支援跨平台同步
+      await this.emitEvent('DATA.SYNC.SHELVED', {
         syncId,
         sourcePlatforms,
         targetPlatforms,
+        reason: 'V1_READMOO_ONLY',
+        message: 'v1.0 階段僅支援 Readmoo 平台，跨平台同步功能暫時擱置',
         options: syncOptions,
         timestamp: Date.now()
       })
 
-      // 委派給同步服務處理（暫時使用模擬）
+      // 如果未來實作了同步服務，就恢復這段程式碼
       if (this.services.synchronization && this.services.synchronization.initiateCrossPlatformSync) {
         await this.services.synchronization.initiateCrossPlatformSync(syncId, sourcePlatforms, targetPlatforms, syncOptions)
       } else {
-        await this.log('同步服務尚未實作，跳過實際同步操作', 'warn')
+        await this.log('v1.0 同步服務暫時擱置，等待未來多平台擴展時實作', 'info')
+      }
+
+      return {
+        success: false,
+        reason: 'V1_READMOO_ONLY',
+        message: '跨平台同步功能暫時擱置，v1.0 僅支援 Readmoo',
+        syncId
       }
 
     } catch (error) {
@@ -418,31 +443,49 @@ class DataDomainCoordinator extends BaseModule {
         syncId,
         sourcePlatforms,
         targetPlatforms,
-        error: error.message
+        error: error.message,
+        reason: 'V1_READMOO_ONLY'
       })
+
+      throw error
     }
   }
 
   /**
-   * 處理資料衝突事件
+   * 處理資料衝突事件 (v1.0 暫時擱置)
    */
   async handleDataConflict (event) {
     const { conflictId, platform, conflictData } = event.data || {}
 
     try {
-      await this.log(`處理資料衝突: ${conflictId} on ${platform}`)
+      await this.log(`資料衝突處理暫時擱置: ${conflictId} on ${platform}`, 'warn')
 
-      // 委派給衝突解決服務
-      if (this.services.conflictResolution && this.services.conflictResolution.resolveConflict) {
-        await this.services.conflictResolution.resolveConflict(conflictId, platform, conflictData)
-      } else {
-        await this.log('衝突解決服務尚未實作，記錄衝突待處理', 'warn')
+      // v1.0 階段單一 Readmoo 平台不會有跨平台衝突
+      if (platform === 'READMOO') {
+        await this.log('Readmoo 平台內部資料衝突，等待未來衝突解決服務實作', 'info')
         
-        await this.emitEvent('DATA.CONFLICT.QUEUED', {
+        await this.emitEvent('DATA.CONFLICT.READMOO.QUEUED', {
           conflictId,
           platform,
+          reason: 'V1_CONFLICT_RESOLUTION_NOT_IMPLEMENTED',
+          message: 'Readmoo 平台內部衝突，等待未來衝突解決服務實作',
           queuedAt: Date.now()
         })
+      } else {
+        await this.log(`非 Readmoo 平台衝突 (${platform})，v1.0 不支援跨平台衝突處理`, 'warn')
+        
+        await this.emitEvent('DATA.CONFLICT.CROSS_PLATFORM.SHELVED', {
+          conflictId,
+          platform,
+          reason: 'V1_READMOO_ONLY',
+          message: 'v1.0 僅支援 Readmoo，跨平台衝突處理暫時擱置',
+          queuedAt: Date.now()
+        })
+      }
+
+      // 如果未來實作了衝突解決服務，就恢復這段程式碼
+      if (this.services.conflictResolution && this.services.conflictResolution.resolveConflict) {
+        await this.services.conflictResolution.resolveConflict(conflictId, platform, conflictData)
       }
 
     } catch (error) {
