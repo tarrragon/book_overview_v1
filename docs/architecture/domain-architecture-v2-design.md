@@ -6,42 +6,42 @@
 
 ## 🎯 設計目標
 
-基於當前 v1.0.0 單一平台架構，重新設計支援 5 個主流書城的多平台架構，確保：
-- **平台無關化**：業務邏輯完全獨立於具體平台
-- **事件系統擴展**：支援跨平台事件管理和路由  
-- **統一資料管理**：跨平台資料同步和衝突解決
-- **向後相容性**：現有 Readmoo 功能無縫遷移
+基於當前 v1.0.0 單一平台架構，重新設計以單一職責為核心的 Domain 架構，確保：
+- **職責清晰化**：每個 Domain 和檔案都有明確的單一職責
+- **架構抽象化**：將現有 Readmoo 特定實作抽象為通用介面
+- **可擴展設計**：為未來多平台支援預留架構彈性
+- **向後相容性**：現有 Readmoo 功能完全保留
 
 ## 📋 新增 Domain 架構設計
 
-### 1. **Platform Domain** - 平台管理領域 🆕
+### 1. **Platform Domain** - 平台抽象領域 🆕
 ```
 src/background/domains/platform/
-├── platform-domain-coordinator.js      # 平台領域協調器
+├── platform-domain-coordinator.js      # 平台抽象協調器
 └── services/
-    ├── platform-detection-service.js   # 平台自動識別
-    ├── platform-registry-service.js    # 平台註冊管理
-    ├── platform-switcher-service.js    # 平台切換控制
-    └── adapter-factory-service.js      # 適配器工廠
+    ├── platform-abstraction-service.js # 平台抽象層服務
+    ├── adapter-interface-service.js    # 適配器介面定義
+    ├── platform-config-service.js      # 平台配置管理
+    └── platform-factory-service.js     # 平台工廠抽象
 ```
 
 **負責功能：**
-- 自動識別當前訪問的電子書平台
-- 管理所有平台適配器的註冊和載入
-- 提供統一的平台切換和配置管理
-- 實現平台間的隔離和資源管理
+- 抽象化現有 Readmoo 特定邏輯為通用介面
+- 定義統一的平台適配器介面規範
+- 管理平台特定配置的抽象層
+- 為未來平台擴展提供架構基礎
 
 **關鍵事件：**
 ```javascript
-// 平台檢測事件
-'PLATFORM.DETECTED'         // 平台檢測完成
-'PLATFORM.CHANGED'          // 平台切換
-'PLATFORM.ADAPTER.LOADED'   // 適配器載入
-'PLATFORM.ADAPTER.FAILED'   // 適配器失敗
+// 平台抽象事件
+'PLATFORM.ABSTRACTION.READY'     // 抽象層就緒
+'PLATFORM.INTERFACE.DEFINED'     // 介面定義完成
+'PLATFORM.CONFIG.LOADED'         // 配置載入
+'PLATFORM.FACTORY.INITIALIZED'   // 工廠初始化
 
-// 多平台協調事件  
-'PLATFORM.MULTI.SYNC.STARTED'    // 多平台同步開始
-'PLATFORM.MULTI.CONFLICT.DETECTED' // 資料衝突檢測
+// 抽象層協調事件  
+'PLATFORM.ABSTRACTION.VALIDATED' // 抽象層驗證
+'PLATFORM.COMPATIBILITY.CHECKED' // 相容性檢查
 ```
 
 ### 2. **Data Management Domain** - 資料管理領域 🆕
@@ -49,32 +49,31 @@ src/background/domains/platform/
 src/background/domains/data-management/
 ├── data-domain-coordinator.js          # 資料領域協調器
 └── services/
-    ├── data-synchronization-service.js # 跨平台資料同步
-    ├── conflict-resolution-service.js  # 衝突解決服務
     ├── data-validation-service.js      # 資料驗證服務
-    ├── schema-migration-service.js     # 資料模型遷移
-    └── backup-recovery-service.js      # 備份與恢復
+    ├── data-normalization-service.js   # 資料標準化服務
+    ├── storage-abstraction-service.js  # 儲存抽象服務
+    ├── schema-management-service.js    # 資料模型管理
+    └── backup-service.js               # 備份服務
 ```
 
 **負責功能：**
-- 跨平台資料同步和一致性管理
-- 智能資料衝突檢測和解決策略
-- 統一資料格式轉換和驗證
-- 資料版本管理和遷移策略
+- 統一資料驗證和品質保證
+- 現有資料格式的標準化處理
+- 抽象化儲存層介面
+- 資料模型定義和管理
 
 **關鍵事件：**
 ```javascript
-// 資料同步事件
-'DATA.SYNC.STARTED'         // 同步開始
-'DATA.SYNC.PROGRESS'        // 同步進度
-'DATA.SYNC.COMPLETED'       // 同步完成
-'DATA.CONFLICT.DETECTED'    // 衝突檢測
-'DATA.CONFLICT.RESOLVED'    // 衝突解決
-
 // 資料管理事件
-'DATA.VALIDATION.PASSED'    // 驗證通過
-'DATA.SCHEMA.MIGRATED'      // 模型遷移
-'DATA.BACKUP.CREATED'       // 備份建立
+'DATA.VALIDATION.COMPLETED' // 驗證完成
+'DATA.NORMALIZED'           // 資料標準化
+'DATA.STORED'               // 資料儲存
+'DATA.SCHEMA.UPDATED'       // 模型更新
+
+// 儲存管理事件
+'DATA.STORAGE.ABSTRACTED'   // 儲存抽象化
+'DATA.BACKUP.COMPLETED'     // 備份完成
+'DATA.RECOVERY.NEEDED'      // 需要恢復
 ```
 
 ### 3. **User Experience Domain** - 用戶體驗領域 🆕
@@ -339,34 +338,26 @@ await eventBus.emit('ANALYTICS.STATS.UPDATED', {
 
 ## 🚀 實現優先級規劃
 
-### **Phase 1: 基礎平台架構 (v2.1.0)** 🔥
-- [ ] **Platform Domain** 完整實現
-- [ ] **Data Management Domain** 核心功能  
-- [ ] 事件命名系統升級
-- [ ] Readmoo 平台無縫遷移
+### **Phase 1: 架構重構與抽象化 (v1.0.0)** 🔥
+- [ ] **職責拆分**: 拆解臃腫的單一檔案，確保單一職責原則
+- [ ] **Platform Domain 抽象化**: 將 Readmoo 特定邏輯抽象為通用介面
+- [ ] **Data Management Domain 重構**: 整理現有資料處理邏輯
+- [ ] **事件系統優化**: 確保事件命名清晰且職責明確
+- [ ] **Readmoo 功能完整保留**: 100% 向後相容
 
-**風險評估**: 低 - 主要是架構重整，功能保持一致
+**風險評估**: 低 - 主要是重構工作，不改變現有功能
 
-### **Phase 2: 多平台支援 (v2.2.0)** ⚡
-- [ ] 博客來 + Kindle 適配器實現
-- [ ] **Security Domain** 資料隔離
-- [ ] 跨平台資料同步基礎功能
+### **Phase 2: 架構驗證與優化 (v1.1.0)** ⚡
+- [ ] **抽象層驗證**: 確保抽象化設計的正確性
+- [ ] **效能優化**: 重構後的效能調優
+- [ ] **測試完善**: 補強重構後的測試覆蓋
 
-**風險評估**: 中 - 新平台整合存在不確定性
+**風險評估**: 低 - 基於既有功能的優化
 
-### **Phase 3: 進階體驗 (v2.3.0)** 🌟  
-- [ ] **User Experience Domain** 完整實現
-- [ ] **Analytics Domain** 基礎統計
-- [ ] Kobo + BookWalker 支援
-
-**風險評估**: 中 - UX 設計和用戶接受度挑戰
-
-### **Phase 4: 完整生態 (v2.4.0)** 🎯
-- [ ] 全平台支援完成
-- [ ] 進階分析和個人化功能
-- [ ] 智能推薦和趨勢分析
-
-**風險評估**: 高 - 複雜功能整合和效能挑戰
+### **未來考量: 多平台擴展準備** 🌟  
+- 當 v1.0 穩定後，基於已建立的抽象架構
+- 逐步引入其他平台的適配器實作
+- 此階段不在當前 1.0 範圍內
 
 ## 🛡️ 向後相容性保證策略
 
