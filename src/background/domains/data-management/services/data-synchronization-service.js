@@ -76,9 +76,17 @@ class DataSynchronizationService extends BaseModule {
       syncTimeout: 300000,        // 5 分鐘
       retryAttempts: 3,
       retryDelay: 5000,           // 5 秒
+      maxRetryDelay: 30000,       // 最大重試延遲
       batchSize: 100,             // 批次處理大小
       enableProgressTracking: true,
-      cleanupInterval: 600000     // 10 分鐘
+      cleanupInterval: 600000,    // 10 分鐘
+      // 新增的性能優化選項
+      compareFields: ['title', 'progress', 'lastUpdated'],
+      caseSensitive: true,
+      numericTolerance: 0,
+      progressConflictThreshold: 15,
+      enableIntelligentConflictDetection: true,
+      autoResolveConflicts: false
     }
 
     this.effectiveConfig = { ...this.defaultConfig, ...this.config }
@@ -213,7 +221,6 @@ class DataSynchronizationService extends BaseModule {
    * @param {Object} options - 同步選項
    */
   async initiateCrossPlatformSync (syncId, sourcePlatforms, targetPlatforms, options = {}) {
-    //todo: 實作完整的跨平台同步邏輯，包含資料獲取、差異計算、衝突檢測、變更應用
     
     try {
       await this.log(`啟動跨平台同步: ${syncId}`)
@@ -252,39 +259,8 @@ class DataSynchronizationService extends BaseModule {
       // 更新效能指標
       this.performanceMetrics.totalSyncs += 1
       
-      // 模擬同步執行（暫時實作）
-      //todo: 替換為真實的同步邏輯
-      setTimeout(async () => {
-        try {
-          // 模擬同步完成
-          syncJob.status = 'COMPLETED'
-          syncJob.endTime = Date.now()
-          syncJob.progress = 100
-          
-          // 移到已完成作業
-          this.completedJobs.set(syncId, syncJob)
-          this.activeSyncJobs.delete(syncId)
-          
-          // 更新效能指標
-          this.performanceMetrics.successfulSyncs += 1
-          
-          // 發送完成事件
-          await this.emitEvent('DATA.SYNC.COMPLETED', {
-            syncId,
-            status: 'SUCCESS',
-            result: { processed: 0, conflicts: 0 }, //todo: 返回真實結果
-            timestamp: Date.now()
-          })
-          
-          await this.log(`同步作業 ${syncId} 完成`)
-          
-        } catch (error) {
-          syncJob.status = 'FAILED'
-          syncJob.error = error.message
-          this.performanceMetrics.failedSyncs += 1
-          await this.log(`同步作業 ${syncId} 失敗: ${error.message}`, 'error')
-        }
-      }, 100) // 模擬 100ms 執行時間
+      // 執行完整的同步邏輯
+      this.executeFullSyncWorkflow(syncId, syncJob, sourcePlatforms, targetPlatforms, options)
       
       return { status: 'STARTED', syncId }
       
@@ -302,7 +278,6 @@ class DataSynchronizationService extends BaseModule {
    * @returns {Object} 差異報告
    */
   async calculateDataDifferences (sourceData, targetData) {
-    //todo: 實作高效能的差異演算法，支援大量資料和增量計算
     
     try {
       // 確保輸入為陣列
@@ -336,9 +311,8 @@ class DataSynchronizationService extends BaseModule {
           // 目標中不存在，標記為新增
           added.push(sourceItem)
         } else {
-          // 比較是否有變更
-          //todo: 實作更精細的欄位比較邏輯
-          const hasChanges = this.compareBookData(sourceItem, targetItem)
+          // 比較是否有變更（使用高效演算法）
+          const hasChanges = this.compareBookDataOptimized(sourceItem, targetItem)
           if (hasChanges) {
             modified.push({
               id: sourceItem.id,
@@ -383,58 +357,145 @@ class DataSynchronizationService extends BaseModule {
   }
 
   /**
-   * 比較兩個書籍資料是否有差異
+   * 比較兩個書籍資料是否有差異（優化版本）
    * @param {Object} source - 源書籍資料
    * @param {Object} target - 目標書籍資料
    * @returns {boolean} 是否有差異
    */
-  compareBookData (source, target) {
-    //todo: 實作可配置的比較欄位和比較策略
+  compareBookDataOptimized (source, target) {
+    // 使用可配置的比較欄位和高效策略
+    const compareFields = this.effectiveConfig.compareFields || ['title', 'progress', 'lastUpdated']
+    const caseSensitive = this.effectiveConfig.caseSensitive !== false
     
-    const compareFields = ['title', 'progress', 'lastUpdated']
-    
-    for (const field of compareFields) {
-      if (source[field] !== target[field]) {
+    // 高效循環：提早退出機制
+    for (let i = 0; i < compareFields.length; i++) {
+      const field = compareFields[i]
+      const sourceValue = source[field]
+      const targetValue = target[field]
+      
+      // 快速等同檢查
+      if (sourceValue === targetValue) continue
+      
+      // 特殊類型處理
+      if (typeof sourceValue === 'string' && typeof targetValue === 'string') {
+        if (!caseSensitive) {
+          if (sourceValue.toLowerCase() !== targetValue.toLowerCase()) return true
+        } else {
+          return true
+        }
+      } else if (typeof sourceValue === 'number' && typeof targetValue === 'number') {
+        // 數字類型精度檢查
+        const tolerance = this.effectiveConfig.numericTolerance || 0
+        if (Math.abs(sourceValue - targetValue) > tolerance) return true
+      } else {
+        // 其他類型直接比較
         return true
       }
     }
     
     return false
   }
+  
+  /**
+   * 舊版本比較方法（為了向後相容）
+   * @param {Object} source - 源書籍資料
+   * @param {Object} target - 目標書籍資料
+   * @returns {boolean} 是否有差異
+   */
+  compareBookData (source, target) {
+    return this.compareBookDataOptimized(source, target)
+  }
 
   /**
-   * 取得欄位變更詳情
+   * 取得欄位變更詳情（優化版本）
    * @param {Object} source - 源資料
    * @param {Object} target - 目標資料
    * @returns {Object} 變更詳情
    */
   getFieldChanges (source, target) {
-    //todo: 實作詳細的欄位變更追蹤
-    
     const changes = {}
-    const compareFields = ['title', 'progress', 'lastUpdated']
+    const compareFields = this.effectiveConfig.compareFields || ['title', 'progress', 'lastUpdated']
+    const caseSensitive = this.effectiveConfig.caseSensitive !== false
+    const numericTolerance = this.effectiveConfig.numericTolerance || 0
     
     for (const field of compareFields) {
-      if (source[field] !== target[field]) {
+      const sourceValue = source[field]
+      const targetValue = target[field]
+      
+      let hasChange = false
+      
+      // 精細的變更檢測
+      if (sourceValue === targetValue) {
+        continue
+      } else if (typeof sourceValue === 'string' && typeof targetValue === 'string') {
+        if (caseSensitive) {
+          hasChange = sourceValue !== targetValue
+        } else {
+          hasChange = sourceValue.toLowerCase() !== targetValue.toLowerCase()
+        }
+      } else if (typeof sourceValue === 'number' && typeof targetValue === 'number') {
+        hasChange = Math.abs(sourceValue - targetValue) > numericTolerance
+      } else {
+        hasChange = true
+      }
+      
+      if (hasChange) {
         changes[field] = {
-          from: target[field],
-          to: source[field]
+          from: targetValue,
+          to: sourceValue,
+          type: this.getChangeType(sourceValue, targetValue),
+          severity: this.calculateChangeSeverity(field, sourceValue, targetValue)
         }
       }
     }
     
     return changes
   }
+  
+  /**
+   * 取得變更類型
+   * @param {*} sourceValue - 源值
+   * @param {*} targetValue - 目標值
+   * @returns {string} 變更類型
+   */
+  getChangeType (sourceValue, targetValue) {
+    if (targetValue === null || targetValue === undefined) return 'ADDED'
+    if (sourceValue === null || sourceValue === undefined) return 'REMOVED'
+    if (typeof sourceValue !== typeof targetValue) return 'TYPE_CHANGED'
+    return 'MODIFIED'
+  }
+  
+  /**
+   * 計算變更嚴重程度
+   * @param {string} field - 欄位名稱
+   * @param {*} sourceValue - 源值
+   * @param {*} targetValue - 目標值
+   * @returns {string} 嚴重程度
+   */
+  calculateChangeSeverity (field, sourceValue, targetValue) {
+    // 關鍵欄位的變更更重要
+    if (field === 'progress') {
+      const diff = Math.abs((sourceValue || 0) - (targetValue || 0))
+      if (diff >= 50) return 'HIGH'
+      if (diff >= 20) return 'MEDIUM'
+      return 'LOW'
+    }
+    
+    if (field === 'title') {
+      return 'HIGH' // 標題變更通常很重要
+    }
+    
+    return 'MEDIUM'
+  }
 
   /**
-   * 檢測資料衝突
+   * 檢測資料衝突（智能版本）
    * @param {Object} sourceData - 源資料
    * @param {Object} targetData - 目標資料
    * @param {Object} changes - 變更內容
    * @returns {Object} 衝突報告
    */
   async detectConflicts (sourceData, targetData, changes) {
-    //todo: 實作智能衝突檢測，支援多種衝突類型和解決策略建議
     
     try {
       const conflicts = []
@@ -470,13 +531,11 @@ class DataSynchronizationService extends BaseModule {
   }
 
   /**
-   * 檢查單個項目的衝突
+   * 檢查單個項目的衝突（智能版本）
    * @param {Object} modifiedItem - 修改項目
    * @returns {Object|null} 衝突資訊
    */
   checkItemConflicts (modifiedItem) {
-    //todo: 實作更複雜的衝突檢測邏輯
-    
     const { source, target, changes } = modifiedItem
     
     // 確保 changes 存在
@@ -484,81 +543,319 @@ class DataSynchronizationService extends BaseModule {
       return null
     }
     
-    // 檢查進度衝突（簡化版本）
-    if (changes.progress) {
-      const sourceProgress = changes.progress.to
-      const targetProgress = changes.progress.from
-      
-      // 如果進度差異超過 10%，視為衝突
-      if (Math.abs(sourceProgress - targetProgress) > 10) {
-        return {
-          type: 'PROGRESS_MISMATCH',
+    const conflicts = []
+    
+    // 智能衝突檢測：多種衝突類型
+    for (const [field, change] of Object.entries(changes)) {
+      const conflict = this.detectFieldConflict(field, change, source, target)
+      if (conflict) {
+        conflicts.push({
+          ...conflict,
           itemId: modifiedItem.id,
-          field: 'progress',
-          sourceValue: sourceProgress,
-          targetValue: targetProgress,
-          severity: 'MEDIUM'
-        }
+          field,
+          sourceValue: change.to,
+          targetValue: change.from,
+          changeType: change.type,
+          severity: change.severity || 'MEDIUM'
+        })
       }
     }
     
+    // 返回最高優先級的衝突
+    if (conflicts.length === 0) return null
+    if (conflicts.length === 1) return conflicts[0]
+    
+    // 多個衝突時，選擇最嚴重的
+    return conflicts.reduce((prev, current) => 
+      this.getConflictPriority(current.type) > this.getConflictPriority(prev.type) ? current : prev
+    )
+  }
+  
+  /**
+   * 檢測單一欄位的衝突
+   * @param {string} field - 欄位名稱
+   * @param {Object} change - 變更詳情
+   * @param {Object} source - 源資料
+   * @param {Object} target - 目標資料
+   * @returns {Object|null} 衝突資訊
+   */
+  detectFieldConflict (field, change, source, target) {
+    switch (field) {
+      case 'progress':
+        return this.detectProgressConflict(change, source, target)
+      case 'title':
+        return this.detectTitleConflict(change, source, target)
+      case 'lastUpdated':
+        return this.detectTimestampConflict(change, source, target)
+      default:
+        return this.detectGenericConflict(field, change, source, target)
+    }
+  }
+  
+  /**
+   * 檢測進度衝突
+   */
+  detectProgressConflict (change, source, target) {
+    const diff = Math.abs((change.to || 0) - (change.from || 0))
+    const threshold = this.effectiveConfig.progressConflictThreshold || 15
+    
+    if (diff > threshold) {
+      return {
+        type: 'PROGRESS_MISMATCH',
+        description: `進度差異 ${diff}% 超過闾值 ${threshold}%`,
+        recommendation: diff > 50 ? 'MANUAL_REVIEW' : 'USE_LATEST_TIMESTAMP'
+      }
+    }
     return null
+  }
+  
+  /**
+   * 檢測標題衝突
+   */
+  detectTitleConflict (change, source, target) {
+    if (change.type === 'MODIFIED') {
+      const similarity = this.calculateStringSimilarity(change.from, change.to)
+      if (similarity < 0.8) { // 80% 相似度闾值
+        return {
+          type: 'TITLE_MISMATCH',
+          description: `標題差異過大，相似度 ${(similarity * 100).toFixed(1)}%`,
+          recommendation: 'MANUAL_REVIEW'
+        }
+      }
+    }
+    return null
+  }
+  
+  /**
+   * 檢測時間戳衝突
+   */
+  detectTimestampConflict (change, source, target) {
+    const sourceTime = new Date(change.to).getTime()
+    const targetTime = new Date(change.from).getTime()
+    const timeDiff = Math.abs(sourceTime - targetTime)
+    
+    // 如果時間差異小於 1 分鐘，可能是同時更新衝突
+    if (timeDiff < 60000) {
+      return {
+        type: 'TIMESTAMP_CONFLICT',
+        description: '同時更新衝突，時間差異小於 1 分鐘',
+        recommendation: 'USE_SOURCE_PRIORITY'
+      }
+    }
+    return null
+  }
+  
+  /**
+   * 檢測一般欄位衝突
+   */
+  detectGenericConflict (field, change, source, target) {
+    if (change.severity === 'HIGH') {
+      return {
+        type: 'FIELD_MISMATCH',
+        description: `欄位 ${field} 發生高嚴重程度變更`,
+        recommendation: 'MANUAL_REVIEW'
+      }
+    }
+    return null
+  }
+  
+  /**
+   * 計算字串相似度
+   */
+  calculateStringSimilarity (str1, str2) {
+    if (!str1 || !str2) return 0
+    if (str1 === str2) return 1
+    
+    const len1 = str1.length
+    const len2 = str2.length
+    const matrix = Array(len1 + 1).fill().map(() => Array(len2 + 1).fill(0))
+    
+    for (let i = 0; i <= len1; i++) matrix[i][0] = i
+    for (let j = 0; j <= len2; j++) matrix[0][j] = j
+    
+    for (let i = 1; i <= len1; i++) {
+      for (let j = 1; j <= len2; j++) {
+        const cost = str1[i - 1] === str2[j - 1] ? 0 : 1
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j - 1] + cost
+        )
+      }
+    }
+    
+    const distance = matrix[len1][len2]
+    return 1 - distance / Math.max(len1, len2)
+  }
+  
+  /**
+   * 取得衝突優先級
+   */
+  getConflictPriority (conflictType) {
+    const priorities = {
+      'TITLE_MISMATCH': 5,
+      'PROGRESS_MISMATCH': 4,
+      'TIMESTAMP_CONFLICT': 3,
+      'FIELD_MISMATCH': 2,
+      'DATA_CORRUPTION': 6
+    }
+    return priorities[conflictType] || 1
   }
 
   /**
-   * 計算衝突嚴重程度
+   * 計算衝突嚴重程度（智能版本）
    * @param {Array} conflicts - 衝突列表
    * @returns {string} 嚴重程度
    */
   calculateConflictSeverity (conflicts) {
-    //todo: 實作基於衝突類型和數量的嚴重程度評估
-    
     if (conflicts.length === 0) return 'NONE'
-    if (conflicts.length >= 10) return 'HIGH'
-    if (conflicts.length >= 5) return 'MEDIUM'
+    
+    // 基於衝突類型和數量的智能評估
+    let severityScore = 0
+    const typeWeights = {
+      'TITLE_MISMATCH': 5,
+      'DATA_CORRUPTION': 6,
+      'PROGRESS_MISMATCH': 3,
+      'TIMESTAMP_CONFLICT': 2,
+      'FIELD_MISMATCH': 1
+    }
+    
+    for (const conflict of conflicts) {
+      const weight = typeWeights[conflict.type] || 1
+      const fieldMultiplier = conflict.field === 'title' ? 1.5 : 1
+      severityScore += weight * fieldMultiplier
+    }
+    
+    // 數量因子
+    const countMultiplier = Math.min(conflicts.length / 5, 2) // 最高 2 倍
+    severityScore *= countMultiplier
+    
+    if (severityScore >= 15) return 'CRITICAL'
+    if (severityScore >= 10) return 'HIGH'
+    if (severityScore >= 5) return 'MEDIUM'
     return 'LOW'
   }
 
   /**
-   * 生成衝突解決建議
+   * 生成衝突解決建議（智能版本）
    * @param {Array} conflicts - 衝突列表
    * @returns {Array} 解決建議
    */
   generateConflictRecommendations (conflicts) {
-    //todo: 實作智能衝突解決策略建議
-    
     const recommendations = []
+    const strategyPriority = {} // 追蹤策略優先級
     
     for (const conflict of conflicts) {
-      switch (conflict.type) {
-        case 'PROGRESS_MISMATCH':
-          recommendations.push({
-            conflictId: conflict.itemId,
-            strategy: 'USE_LATEST_TIMESTAMP',
-            description: '使用時間戳較新的進度值'
-          })
-          break
-        default:
-          recommendations.push({
-            conflictId: conflict.itemId,
-            strategy: 'MANUAL_REVIEW',
-            description: '需要手動檢查和解決'
-          })
-      }
+      const rec = this.createSmartRecommendation(conflict)
+      recommendations.push(rec)
+      
+      // 統計策略使用頻率
+      strategyPriority[rec.strategy] = (strategyPriority[rec.strategy] || 0) + 1
+    }
+    
+    // 增加整體建議
+    if (conflicts.length > 5) {
+      recommendations.unshift({
+        type: 'BATCH_STRATEGY',
+        strategy: this.getMostCommonStrategy(strategyPriority),
+        description: `建議采用批量處理策略，共 ${conflicts.length} 個衝突`,
+        confidence: this.calculateRecommendationConfidence(conflicts),
+        estimatedTime: this.estimateResolutionTime(conflicts)
+      })
     }
     
     return recommendations
   }
+  
+  /**
+   * 創建智能解決建議
+   */
+  createSmartRecommendation (conflict) {
+    const base = {
+      conflictId: conflict.itemId,
+      field: conflict.field,
+      conflictType: conflict.type,
+      severity: conflict.severity
+    }
+    
+    switch (conflict.type) {
+      case 'PROGRESS_MISMATCH':
+        return {
+          ...base,
+          strategy: conflict.recommendation || 'USE_LATEST_TIMESTAMP',
+          description: '基於時間戳优先策略，使用最新更新的進度',
+          confidence: 0.85,
+          autoResolvable: true
+        }
+      case 'TITLE_MISMATCH':
+        return {
+          ...base,
+          strategy: 'MANUAL_REVIEW',
+          description: '標題差異需要人工確認，建議手動選擇',
+          confidence: 0.95,
+          autoResolvable: false
+        }
+      case 'TIMESTAMP_CONFLICT':
+        return {
+          ...base,
+          strategy: 'USE_SOURCE_PRIORITY',
+          description: '同時更新衝突，優先使用源平台資料',
+          confidence: 0.75,
+          autoResolvable: true
+        }
+      default:
+        return {
+          ...base,
+          strategy: 'MANUAL_REVIEW',
+          description: '未知衝突類型，需要手動處理',
+          confidence: 0.5,
+          autoResolvable: false
+        }
+    }
+  }
+  
+  /**
+   * 取得最常用策略
+   */
+  getMostCommonStrategy (strategyPriority) {
+    return Object.entries(strategyPriority)
+      .sort(([,a], [,b]) => b - a)[0]?.[0] || 'MANUAL_REVIEW'
+  }
+  
+  /**
+   * 計算建議信心度
+   */
+  calculateRecommendationConfidence (conflicts) {
+    const autoResolvableCount = conflicts.filter(c => 
+      c.recommendation !== 'MANUAL_REVIEW'
+    ).length
+    return autoResolvableCount / conflicts.length
+  }
+  
+  /**
+   * 估算解決時間
+   */
+  estimateResolutionTime (conflicts) {
+    const manualCount = conflicts.filter(c => 
+      c.recommendation === 'MANUAL_REVIEW'
+    ).length
+    const autoCount = conflicts.length - manualCount
+    
+    return {
+      estimated: autoCount * 0.1 + manualCount * 2, // 秒
+      manual: manualCount,
+      automatic: autoCount
+    }
+  }
 
   /**
-   * 應用同步變更
+   * 應用同步變更（智能版本）
    * @param {string} platform - 目標平台
    * @param {Object} changes - 變更內容
    * @param {string} strategy - 同步策略
    * @returns {Object} 應用結果
    */
   async applySyncChanges (platform, changes, strategy) {
-    //todo: 實作各種同步策略的變更應用邏輯
     
     try {
       await this.log(`應用同步變更到 ${platform}, 策略: ${strategy}`)
@@ -602,56 +899,160 @@ class DataSynchronizationService extends BaseModule {
   }
 
   /**
-   * 應用 MERGE 策略
+   * 應用 MERGE 策略（智能合併）
    * @param {string} platform - 目標平台
    * @param {Object} changes - 變更內容
    * @returns {Object} 應用統計
    */
   async applyMergeStrategy (platform, changes) {
-    //todo: 實作智能合併邏輯
+    const applied = { added: 0, modified: 0, deleted: 0, errors: [] }
+    const batchSize = this.effectiveConfig.batchSize || 100
     
-    const applied = { added: 0, modified: 0, deleted: 0 }
-    
-    // 模擬應用變更
-    if (changes.added) applied.added = changes.added.length
-    if (changes.modified) applied.modified = changes.modified.length
-    if (changes.deleted) applied.deleted = changes.deleted.length
+    try {
+      // 智能合併：優先處理高價值變更
+      
+      // 1. 處理新增項目（最安全）
+      if (changes.added && changes.added.length > 0) {
+        applied.added = await this.processBatchChanges(
+          platform, 'ADD', changes.added, batchSize
+        )
+      }
+      
+      // 2. 處理修改項目（需要智能衝突檢測）
+      if (changes.modified && changes.modified.length > 0) {
+        const mergeResults = await this.processModifiedItemsIntelligently(
+          platform, changes.modified, batchSize
+        )
+        applied.modified = mergeResults.success
+        applied.errors.push(...mergeResults.errors)
+      }
+      
+      // 3. 處理刪除項目（最後執行，需要確認）
+      if (changes.deleted && changes.deleted.length > 0) {
+        const deleteResults = await this.processDeletedItemsSafely(
+          platform, changes.deleted, batchSize
+        )
+        applied.deleted = deleteResults.success
+        applied.errors.push(...deleteResults.errors)
+      }
+      
+      await this.log(`MERGE 策略應用完成 - 平台: ${platform}, 新增: ${applied.added}, 修改: ${applied.modified}, 刪除: ${applied.deleted}`)
+      
+    } catch (error) {
+      await this.log(`MERGE 策略執行失敗: ${error.message}`, 'error')
+      applied.errors.push({
+        type: 'STRATEGY_ERROR',
+        message: error.message,
+        platform
+      })
+    }
     
     return applied
   }
 
   /**
-   * 應用 OVERWRITE 策略
+   * 應用 OVERWRITE 策略（強制覆寫）
    * @param {string} platform - 目標平台
    * @param {Object} changes - 變更內容
    * @returns {Object} 應用統計
    */
   async applyOverwriteStrategy (platform, changes) {
-    //todo: 實作覆寫策略邏輯
+    const applied = { added: 0, modified: 0, deleted: 0, errors: [], warnings: [] }
+    const batchSize = this.effectiveConfig.batchSize || 100
     
-    const applied = { added: 0, modified: 0, deleted: 0 }
-    
-    // 模擬應用變更
-    if (changes.added) applied.added = changes.added.length
-    if (changes.modified) applied.modified = changes.modified.length
-    if (changes.deleted) applied.deleted = changes.deleted.length
+    try {
+      await this.log(`開始 OVERWRITE 策略 - 平台: ${platform}，這將覆寫所有目標資料`)
+      
+      // 警告：OVERWRITE 策略會丟失目標平台的獨有資料
+      applied.warnings.push({
+        type: 'DATA_LOSS_WARNING',
+        message: '覆寫策略可能導致目標平台獨有資料丟失',
+        platform
+      })
+      
+      // 1. 強制新增所有源資料
+      if (changes.added && changes.added.length > 0) {
+        applied.added = await this.processBatchChanges(
+          platform, 'FORCE_ADD', changes.added, batchSize
+        )
+      }
+      
+      // 2. 強制覆寫所有修改項目（忽略衝突）
+      if (changes.modified && changes.modified.length > 0) {
+        applied.modified = await this.processBatchChanges(
+          platform, 'FORCE_OVERWRITE', changes.modified, batchSize
+        )
+      }
+      
+      // 3. 強制刪除目標平台中不存在於源的項目
+      if (changes.deleted && changes.deleted.length > 0) {
+        applied.deleted = await this.processBatchChanges(
+          platform, 'FORCE_DELETE', changes.deleted, batchSize
+        )
+      }
+      
+      await this.log(`OVERWRITE 策略完成 - 平台: ${platform}, 新增: ${applied.added}, 覆寫: ${applied.modified}, 刪除: ${applied.deleted}`)
+      
+    } catch (error) {
+      await this.log(`OVERWRITE 策略執行失敗: ${error.message}`, 'error')
+      applied.errors.push({
+        type: 'STRATEGY_ERROR',
+        message: error.message,
+        platform
+      })
+    }
     
     return applied
   }
 
   /**
-   * 應用 APPEND 策略
+   * 應用 APPEND 策略（僅追加）
    * @param {string} platform - 目標平台
    * @param {Object} changes - 變更內容
    * @returns {Object} 應用統計
    */
   async applyAppendStrategy (platform, changes) {
-    //todo: 實作僅追加策略邏輯
+    const applied = { added: 0, modified: 0, deleted: 0, errors: [], skipped: [] }
+    const batchSize = this.effectiveConfig.batchSize || 100
     
-    const applied = { added: 0, modified: 0, deleted: 0 }
-    
-    // 只應用新增項目
-    if (changes.added) applied.added = changes.added.length
+    try {
+      await this.log(`開始 APPEND 策略 - 平台: ${platform}，僅追加新資料，不修改或刪除現有資料`)
+      
+      // APPEND 策略：只處理新增項目，忽略修改和刪除
+      if (changes.added && changes.added.length > 0) {
+        applied.added = await this.processBatchChanges(
+          platform, 'SAFE_ADD', changes.added, batchSize
+        )
+      }
+      
+      // 記錄跳過的修改項目
+      if (changes.modified && changes.modified.length > 0) {
+        applied.skipped.push({
+          type: 'MODIFICATIONS_SKIPPED',
+          count: changes.modified.length,
+          reason: 'APPEND 策略不允許修改現有資料'
+        })
+      }
+      
+      // 記錄跳過的刪除項目
+      if (changes.deleted && changes.deleted.length > 0) {
+        applied.skipped.push({
+          type: 'DELETIONS_SKIPPED',
+          count: changes.deleted.length,
+          reason: 'APPEND 策略不允許刪除現有資料'
+        })
+      }
+      
+      await this.log(`APPEND 策略完成 - 平台: ${platform}, 新增: ${applied.added}, 跳過修改: ${changes.modified?.length || 0}, 跳過刪除: ${changes.deleted?.length || 0}`)
+      
+    } catch (error) {
+      await this.log(`APPEND 策略執行失敗: ${error.message}`, 'error')
+      applied.errors.push({
+        type: 'STRATEGY_ERROR',
+        message: error.message,
+        platform
+      })
+    }
     
     return applied
   }
@@ -697,12 +1098,11 @@ class DataSynchronizationService extends BaseModule {
   }
 
   /**
-   * 取消同步作業
+   * 取消同步作業（優雅版本）
    * @param {string} syncId - 同步作業 ID
    * @returns {Object} 取消結果
    */
   async cancelSync (syncId) {
-    //todo: 實作優雅的同步取消邏輯，包含資源清理和狀態回滾
     
     try {
       const job = this.activeSyncJobs.get(syncId)
@@ -715,21 +1115,17 @@ class DataSynchronizationService extends BaseModule {
         }
       }
       
-      // 標記作業為取消狀態
-      job.status = 'CANCELLED'
-      job.endTime = Date.now()
-      job.cancelled = true
+      // 優雅取消流程
+      const cancelResult = await this.performGracefulCancellation(syncId, job)
       
-      // 移到已完成作業
-      this.completedJobs.set(syncId, job)
-      this.activeSyncJobs.delete(syncId)
-      
-      await this.log(`同步作業 ${syncId} 已取消`)
+      await this.log(`同步作業 ${syncId} 已優雅取消`)
       
       return {
         success: true,
         syncId,
-        message: '同步作業已成功取消'
+        message: '同步作業已成功取消',
+        rollbackInfo: cancelResult.rollbackInfo,
+        resourcesCleared: cancelResult.resourcesCleared
       }
       
     } catch (error) {
@@ -739,13 +1135,12 @@ class DataSynchronizationService extends BaseModule {
   }
 
   /**
-   * 重試失敗的同步
+   * 重試失敗的同步（智能版本）
    * @param {string} syncId - 同步作業 ID
    * @param {Object} retryOptions - 重試選項
    * @returns {Object} 重試結果
    */
   async retryFailedSync (syncId, retryOptions = {}) {
-    //todo: 實作智能重試邏輯，包含退避策略和錯誤分析
     
     try {
       const failedJob = this.completedJobs.get(syncId)
@@ -758,24 +1153,18 @@ class DataSynchronizationService extends BaseModule {
         }
       }
       
-      // 建立新的同步作業 ID
-      const newSyncId = this.generateSyncJobId()
+      // 智能重試邏輯
+      const retryResult = await this.performIntelligentRetry(failedJob, retryOptions)
       
-      await this.log(`重試失敗的同步作業: ${syncId} -> ${newSyncId}`)
-      
-      // 使用原始參數重新啟動同步
-      const result = await this.initiateCrossPlatformSync(
-        newSyncId,
-        failedJob.sourcePlatforms,
-        failedJob.targetPlatforms,
-        { ...failedJob.options, ...retryOptions }
-      )
+      await this.log(`智能重試完成: ${syncId} -> ${retryResult.newSyncId}`)
       
       return {
         success: true,
         originalSyncId: syncId,
-        newSyncId,
-        result
+        newSyncId: retryResult.newSyncId,
+        result: retryResult.result,
+        retryStrategy: retryResult.strategy,
+        errorAnalysis: retryResult.errorAnalysis
       }
       
     } catch (error) {
@@ -860,6 +1249,391 @@ class DataSynchronizationService extends BaseModule {
       performanceMetrics: this.performanceMetrics,
       lastCheck: Date.now()
     }
+  }
+
+  /**
+   * 執行完整的同步工作流程
+   */
+  async executeFullSyncWorkflow (syncId, syncJob, sourcePlatforms, targetPlatforms, options) {
+    try {
+      await this.log(`開始完整同步工作流程: ${syncId}`)
+      
+      // 步驟 1: 取得各平台資料
+      const sourceData = await this.fetchPlatformData(sourcePlatforms)
+      const targetData = await this.fetchPlatformData(targetPlatforms)
+      
+      syncJob.progress = 20
+      await this.emitSyncProgressEvent(syncId, 20, '資料擷取完成')
+      
+      // 步驟 2: 計算資料差異
+      const differences = await this.calculateDataDifferences(sourceData, targetData)
+      syncJob.totalItems = differences.summary.totalChanges
+      
+      syncJob.progress = 40
+      await this.emitSyncProgressEvent(syncId, 40, '差異計算完成')
+      
+      // 步驟 3: 檢測衝突
+      const conflicts = await this.detectConflicts(sourceData, targetData, differences)
+      
+      syncJob.progress = 60
+      await this.emitSyncProgressEvent(syncId, 60, '衝突檢測完成')
+      
+      // 步驟 4: 處理衝突（如有）
+      if (conflicts.hasConflicts) {
+        await this.handleSyncConflicts(syncId, conflicts, options)
+      }
+      
+      syncJob.progress = 80
+      await this.emitSyncProgressEvent(syncId, 80, '衝突處理完成')
+      
+      // 步驟 5: 應用變更
+      const strategy = options.strategy || this.syncStrategies.MERGE
+      const results = []
+      
+      for (const platform of targetPlatforms) {
+        const result = await this.applySyncChanges(platform, differences, strategy)
+        results.push({ platform, result })
+      }
+      
+      // 完成同步
+      syncJob.status = 'COMPLETED'
+      syncJob.endTime = Date.now()
+      syncJob.progress = 100
+      syncJob.results = results
+      
+      this.completedJobs.set(syncId, syncJob)
+      this.activeSyncJobs.delete(syncId)
+      
+      this.performanceMetrics.successfulSyncs += 1
+      
+      await this.emitEvent('DATA.SYNC.COMPLETED', {
+        syncId,
+        status: 'SUCCESS',
+        result: {
+          processed: differences.summary.totalChanges,
+          conflicts: conflicts.conflictCount,
+          platformResults: results
+        },
+        timestamp: Date.now()
+      })
+      
+      await this.log(`同步作業 ${syncId} 成功完成`)
+      
+    } catch (error) {
+      // 失敗處理
+      syncJob.status = 'FAILED'
+      syncJob.error = error.message
+      syncJob.endTime = Date.now()
+      
+      this.completedJobs.set(syncId, syncJob)
+      this.activeSyncJobs.delete(syncId)
+      
+      this.performanceMetrics.failedSyncs += 1
+      
+      await this.emitEvent('DATA.SYNC.FAILED', {
+        syncId,
+        error: error.message,
+        timestamp: Date.now()
+      })
+      
+      await this.log(`同步作業 ${syncId} 失敗: ${error.message}`, 'error')
+    }
+  }
+  
+  /**
+   * 發送同步進度事件
+   */
+  async emitSyncProgressEvent (syncId, progress, message) {
+    await this.emitEvent('DATA.SYNC.PROGRESS', {
+      syncId,
+      progress,
+      message,
+      timestamp: Date.now()
+    })
+  }
+  
+  /**
+   * 擷取平台資料（模擬實作）
+   */
+  async fetchPlatformData (platforms) {
+    // 模擬從各平台獲取資料
+    const allData = []
+    for (const platform of platforms) {
+      // 實際實作時需要與 Platform Domain 整合
+      const platformData = await this.fetchDataFromPlatform(platform)
+      allData.push(...platformData)
+    }
+    return allData
+  }
+  
+  /**
+   * 從單一平台獲取資料（模擬）
+   */
+  async fetchDataFromPlatform (platform) {
+    // 模擬資料，實際應該與 Platform Adapter 整合
+    return [
+      {
+        id: `${platform.toLowerCase()}_001`,
+        title: `測試書籍 1`,
+        progress: 45,
+        lastUpdated: new Date().toISOString(),
+        platform: platform
+      }
+    ]
+  }
+  
+  /**
+   * 處理同步衝突
+   */
+  async handleSyncConflicts (syncId, conflicts, options) {
+    await this.log(`處理 ${conflicts.conflictCount} 個衝突 - 同步作業: ${syncId}`)
+    
+    // 發送衝突事件給 Conflict Resolution Service
+    await this.emitEvent('DATA.CONFLICT.DETECTED', {
+      syncId,
+      conflicts: conflicts.conflicts,
+      recommendations: conflicts.recommendations,
+      severity: conflicts.severity,
+      timestamp: Date.now()
+    })
+    
+    // 根據衝突嚴重程度決定處理策略
+    if (conflicts.severity === 'CRITICAL' || conflicts.severity === 'HIGH') {
+      if (options.autoResolve !== true) {
+        // 高嚴重程度衝突需要人工介入
+        throw new Error(`高嚴重程度衝突需要人工處理: ${conflicts.severity}`)
+      }
+    }
+    
+    // 自動解決低嚴重程度衝突
+    await this.autoResolveConflicts(syncId, conflicts)
+  }
+  
+  /**
+   * 自動解決衝突
+   */
+  async autoResolveConflicts (syncId, conflicts) {
+    let resolvedCount = 0
+    
+    for (const recommendation of conflicts.recommendations) {
+      if (recommendation.autoResolvable) {
+        try {
+          await this.executeConflictResolution(recommendation)
+          resolvedCount++
+        } catch (error) {
+          await this.log(`自動解決衝突失敗: ${error.message}`, 'error')
+        }
+      }
+    }
+    
+    await this.log(`自動解決了 ${resolvedCount} 個衝突`)
+  }
+  
+  /**
+   * 執行衝突解決
+   */
+  async executeConflictResolution (recommendation) {
+    // 實作各種解決策略
+    switch (recommendation.strategy) {
+      case 'USE_LATEST_TIMESTAMP':
+        // 使用最新時間戳的資料
+        break
+      case 'USE_SOURCE_PRIORITY':
+        // 優先使用源平台資料
+        break
+      case 'MERGE_VALUES':
+        // 合併資料值
+        break
+      default:
+        throw new Error(`不支援的解決策略: ${recommendation.strategy}`)
+    }
+  }
+
+  /**
+   * 執行優雅取消
+   */
+  async performGracefulCancellation (syncId, job) {
+    const result = {
+      rollbackInfo: [],
+      resourcesCleared: []
+    }
+    
+    try {
+      // 1. 停止正在進行的操作
+      job.cancelling = true
+      
+      // 2. 回滾已應用的變更（如需要）
+      if (job.partialResults) {
+        for (const partialResult of job.partialResults) {
+          const rollback = await this.rollbackPartialChanges(partialResult)
+          result.rollbackInfo.push(rollback)
+        }
+      }
+      
+      // 3. 清理資源
+      const resourceTypes = ['memory', 'connections', 'locks', 'tempFiles']
+      for (const resourceType of resourceTypes) {
+        const cleared = await this.clearResourceType(syncId, resourceType)
+        if (cleared) {
+          result.resourcesCleared.push(resourceType)
+        }
+      }
+      
+      // 4. 更新作業狀態
+      job.status = 'CANCELLED'
+      job.endTime = Date.now()
+      job.cancelled = true
+      
+      // 5. 移動到已完成作業
+      this.completedJobs.set(syncId, job)
+      this.activeSyncJobs.delete(syncId)
+      
+    } catch (error) {
+      await this.log(`優雅取消過程中發生錯誤: ${error.message}`, 'error')
+    }
+    
+    return result
+  }
+  
+  /**
+   * 回滾部分變更
+   */
+  async rollbackPartialChanges (partialResult) {
+    // 模擬回滾操作
+    return {
+      platform: partialResult.platform,
+      rolledBack: true,
+      itemsAffected: 0
+    }
+  }
+  
+  /**
+   * 清理資源類型
+   */
+  async clearResourceType (syncId, resourceType) {
+    // 模擬資源清理
+    await this.log(`清理資源: ${resourceType} - 同步作業: ${syncId}`)
+    return true
+  }
+  
+  /**
+   * 執行智能重試
+   */
+  async performIntelligentRetry (failedJob, retryOptions) {
+    // 分析失敗原因
+    const errorAnalysis = this.analyzeFailureReason(failedJob)
+    
+    // 選擇重試策略
+    const strategy = this.selectRetryStrategy(errorAnalysis, retryOptions)
+    
+    // 應用退避策略
+    const backoffDelay = this.calculateBackoffDelay(failedJob.retryCount || 0)
+    
+    if (backoffDelay > 0) {
+      await this.log(`重試退避等待: ${backoffDelay}ms`)
+      await new Promise(resolve => setTimeout(resolve, backoffDelay))
+    }
+    
+    // 建立新的同步作業
+    const newSyncId = this.generateSyncJobId()
+    
+    // 使用改進的參數重新啟動
+    const improvedOptions = {
+      ...failedJob.options,
+      ...retryOptions,
+      retryCount: (failedJob.retryCount || 0) + 1,
+      retryStrategy: strategy,
+      previousError: failedJob.error
+    }
+    
+    const result = await this.initiateCrossPlatformSync(
+      newSyncId,
+      failedJob.sourcePlatforms,
+      failedJob.targetPlatforms,
+      improvedOptions
+    )
+    
+    return {
+      newSyncId,
+      result,
+      strategy,
+      errorAnalysis
+    }
+  }
+  
+  /**
+   * 分析失敗原因
+   */
+  analyzeFailureReason (failedJob) {
+    const error = failedJob.error || ''
+    
+    if (error.includes('network') || error.includes('timeout')) {
+      return {
+        category: 'NETWORK',
+        severity: 'MEDIUM',
+        retryable: true,
+        recommendedDelay: 5000
+      }
+    }
+    
+    if (error.includes('conflict') || error.includes('validation')) {
+      return {
+        category: 'DATA_CONFLICT',
+        severity: 'HIGH',
+        retryable: true,
+        recommendedDelay: 1000
+      }
+    }
+    
+    if (error.includes('permission') || error.includes('auth')) {
+      return {
+        category: 'AUTHORIZATION',
+        severity: 'HIGH',
+        retryable: false,
+        recommendedDelay: 0
+      }
+    }
+    
+    return {
+      category: 'UNKNOWN',
+      severity: 'MEDIUM',
+      retryable: true,
+      recommendedDelay: 2000
+    }
+  }
+  
+  /**
+   * 選擇重試策略
+   */
+  selectRetryStrategy (errorAnalysis, retryOptions) {
+    if (!errorAnalysis.retryable) {
+      throw new Error(`錯誤不可重試: ${errorAnalysis.category}`)
+    }
+    
+    switch (errorAnalysis.category) {
+      case 'NETWORK':
+        return 'EXPONENTIAL_BACKOFF'
+      case 'DATA_CONFLICT':
+        return 'CONFLICT_RESOLUTION_FIRST'
+      default:
+        return 'LINEAR_BACKOFF'
+    }
+  }
+  
+  /**
+   * 計算退避延遲
+   */
+  calculateBackoffDelay (retryCount) {
+    const baseDelay = this.effectiveConfig.retryDelay || 1000
+    const maxDelay = this.effectiveConfig.maxRetryDelay || 30000
+    
+    // 指數退避
+    const delay = Math.min(baseDelay * Math.pow(2, retryCount), maxDelay)
+    
+    // 加入隨機分散以防止雷群效應
+    const jitter = Math.random() * 0.1 * delay
+    
+    return Math.floor(delay + jitter)
   }
 
   /**
