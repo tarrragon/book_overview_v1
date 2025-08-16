@@ -1,0 +1,993 @@
+const BaseModule = require('../background/lifecycle/base-module');
+
+/**
+ * Conflict Resolution Service
+ * 
+ * 負責功能：
+ * - 智能衝突檢測與分析
+ * - 多策略衝突解決方案
+ * - 批次衝突處理和管理
+ * - 用戶互動和手動解決
+ * 
+ * 設計考量：
+ * - 事件驅動架構整合
+ * - 支援多種衝突類型和解決策略
+ * - 智能推薦和學習機制
+ * - 高效能批次處理
+ * 
+ * 處理流程：
+ * 1. 接收衝突檢測請求
+ * 2. 分析衝突類型和嚴重程度
+ * 3. 生成智能解決建議
+ * 4. 執行解決策略
+ * 5. 追蹤結果和用戶滿意度
+ */
+class ConflictResolutionService extends BaseModule {
+  constructor(eventBus, logger, config, dependencies = {}) {
+    if (!eventBus || (typeof eventBus === 'object' && Object.keys(eventBus).length === 0 && !eventBus.on)) {
+      throw new Error('EventBus is required');
+    }
+    if (!logger) {
+      throw new Error('Logger is required');
+    }
+    if (!config) {
+      throw new Error('Config is required');
+    }
+
+    super({ eventBus, logger, config });
+    
+    // 依賴注入
+    this.detectionEngine = dependencies.detectionEngine;
+    this.strategyEngine = dependencies.strategyEngine;
+    this.userPreferences = dependencies.userPreferences;
+    
+    // 配置管理
+    this.config = {
+      conflict: {
+        severityThresholds: {
+          low: 0.3,
+          medium: 0.6,
+          high: 0.8
+        },
+        batchSize: 50,
+        timeoutMs: 30000,
+        ...config.conflict
+      },
+      ...config
+    };
+
+    // 狀態管理
+    this.isInitialized = false;
+    this.activeDetections = new Map();
+    this.resolutionQueue = [];
+    this.batchJobs = new Map();
+    this.resolutionHistory = [];
+    
+    // 統計和監控
+    this.statistics = {
+      conflictsDetected: 0,
+      conflictsResolved: 0,
+      autoResolutionSuccessRate: 0,
+      userSatisfactionScore: 0,
+      averageResolutionTime: 0
+    };
+    
+    // 用戶偏好和學習
+    this.userPreferences = {
+      defaultStrategy: 'USE_LATEST_TIMESTAMP',
+      autoResolveThreshold: 0.8,
+      preferredConflictTypes: [],
+      learningEnabled: true
+    };
+    
+    // 註冊事件監聽器
+    this.setupEventListeners();
+  }
+
+  setupEventListeners() {
+    this.eventBus.on('DATA.CONFLICT.DETECT_REQUEST', this.handleConflictDetectionRequest.bind(this));
+    this.eventBus.on('DATA.CONFLICT.RESOLVE_REQUEST', this.handleConflictResolutionRequest.bind(this));
+    this.eventBus.on('DATA.CONFLICT.BATCH_REQUEST', this.handleBatchResolutionRequest.bind(this));
+    this.eventBus.on('DATA.CONFLICT.MANUAL_RESOLUTION', this.handleManualResolution.bind(this));
+  }
+
+  async initialize() {
+    if (this.isInitialized) {
+      return;
+    }
+
+    this.logger.info('Initializing Conflict Resolution Service');
+    
+    // 初始化依賴
+    if (!this.detectionEngine) {
+      this.detectionEngine = new MockDetectionEngine();
+    }
+    if (!this.strategyEngine) {
+      this.strategyEngine = new MockStrategyEngine();
+    }
+
+    this.isInitialized = true;
+    this.logger.info('Conflict Resolution Service initialized successfully');
+  }
+
+  // 事件處理器
+  async handleConflictDetectionRequest(event) {
+    try {
+      const { data1, data2, options } = event.data || {};
+      this.logger.info('Handling conflict detection request');
+      
+      const result = await this.detectConflicts(data1, data2, options);
+      
+      this.eventBus.emit('DATA.CONFLICT.DETECTED', {
+        conflicts: result.conflicts,
+        summary: result.summary
+      });
+      
+      return result;
+    } catch (error) {
+      this.logger.error('Error handling conflict detection request:', error);
+      throw error;
+    }
+  }
+
+  async handleConflictResolutionRequest(event) {
+    try {
+      const { conflicts, strategy, options } = event.data || {};
+      this.logger.info('Handling conflict resolution request');
+      
+      const result = await this.resolveConflicts(conflicts, strategy, options);
+      
+      this.eventBus.emit('DATA.CONFLICT.RESOLVED', {
+        resolvedConflicts: result.resolvedConflicts,
+        summary: result.summary
+      });
+      
+      return result;
+    } catch (error) {
+      this.logger.error('Error handling conflict resolution request:', error);
+      throw error;
+    }
+  }
+
+  async handleBatchResolutionRequest(event) {
+    try {
+      const { conflictBatches, options } = event.data || {};
+      this.logger.info('Handling batch resolution request');
+      
+      const result = await this.resolveBatchConflicts(conflictBatches, options);
+      
+      this.eventBus.emit('DATA.CONFLICT.BATCH_COMPLETED', {
+        batchResults: result.results,
+        summary: result.summary
+      });
+      
+      return result;
+    } catch (error) {
+      this.logger.error('Error handling batch resolution request:', error);
+      throw error;
+    }
+  }
+
+  async handleManualResolution(event) {
+    try {
+      const { conflictId, resolution, userSatisfaction } = event.data || {};
+      this.logger.info('Handling manual resolution');
+      
+      const result = await this.recordManualResolution(conflictId, resolution, userSatisfaction);
+      
+      this.eventBus.emit('DATA.CONFLICT.MANUAL_RECORDED', {
+        conflictId,
+        resolution,
+        learningUpdate: result.learningUpdate
+      });
+      
+      return result;
+    } catch (error) {
+      this.logger.error('Error handling manual resolution:', error);
+      throw error;
+    }
+  }
+
+  // 衝突檢測核心方法
+  async detectConflicts(data1, data2, options = {}) {
+    const conflicts = [];
+    
+    if (!data1 || !data2) {
+      return {
+        conflicts: [],
+        summary: {
+          totalConflicts: 0,
+          conflictTypes: {},
+          severityDistribution: {}
+        }
+      };
+    }
+
+    // 確保資料是陣列格式
+    const items1 = Array.isArray(data1) ? data1 : [data1];
+    const items2 = Array.isArray(data2) ? data2 : [data2];
+
+    // 建立 ID 索引
+    const map2 = new Map();
+    items2.forEach(item => {
+      if (item && item.id) {
+        map2.set(item.id, item);
+      }
+    });
+
+    // 檢測衝突
+    for (const item1 of items1) {
+      if (!item1 || !item1.id) continue;
+      
+      const item2 = map2.get(item1.id);
+      if (!item2) continue;
+
+      const itemConflicts = await this.detectItemConflicts(item1, item2, options);
+      conflicts.push(...itemConflicts);
+    }
+
+    // 生成摘要
+    const summary = this.generateConflictSummary(conflicts);
+    
+    // 更新統計
+    this.statistics.conflictsDetected += conflicts.length;
+
+    return {
+      conflicts,
+      summary
+    };
+  }
+
+  async detectItemConflicts(item1, item2, options = {}) {
+    const conflicts = [];
+    const conflictTypes = options.conflictTypes || ['PROGRESS_MISMATCH', 'TITLE_DIFFERENCE', 'TIMESTAMP_CONFLICT', 'TAG_DIFFERENCE'];
+
+    for (const type of conflictTypes) {
+      const conflict = await this.checkSpecificConflict(item1, item2, type);
+      if (conflict) {
+        conflicts.push({
+          id: `${item1.id}_${type}_${Date.now()}`,
+          itemId: item1.id,
+          type,
+          severity: conflict.severity,
+          details: conflict.details,
+          data1: item1,
+          data2: item2,
+          detectedAt: new Date().toISOString()
+        });
+      }
+    }
+
+    return conflicts;
+  }
+
+  async checkSpecificConflict(item1, item2, type) {
+    switch (type) {
+      case 'PROGRESS_MISMATCH':
+        return this.checkProgressConflict(item1, item2);
+      case 'TITLE_DIFFERENCE':
+        return this.checkTitleConflict(item1, item2);
+      case 'TIMESTAMP_CONFLICT':
+        return this.checkTimestampConflict(item1, item2);
+      case 'TAG_DIFFERENCE':
+        return this.checkTagConflict(item1, item2);
+      default:
+        return null;
+    }
+  }
+
+  checkProgressConflict(item1, item2) {
+    const progress1 = typeof item1.progress === 'number' ? item1.progress : 0;
+    const progress2 = typeof item2.progress === 'number' ? item2.progress : 0;
+    
+    const difference = Math.abs(progress1 - progress2);
+    
+    if (difference > 10) {
+      return {
+        severity: difference > 30 ? 'HIGH' : 'MEDIUM',
+        details: {
+          progress1,
+          progress2,
+          difference
+        }
+      };
+    }
+    
+    return null;
+  }
+
+  checkTitleConflict(item1, item2) {
+    const title1 = item1.title || '';
+    const title2 = item2.title || '';
+    
+    if (title1 !== title2) {
+      // 簡單字串相似度檢查
+      const similarity = this.calculateStringSimilarity(title1, title2);
+      
+      if (similarity < 0.8) {
+        return {
+          severity: similarity < 0.5 ? 'HIGH' : 'MEDIUM',
+          details: {
+            title1,
+            title2,
+            similarity
+          }
+        };
+      }
+    }
+    
+    return null;
+  }
+
+  checkTimestampConflict(item1, item2) {
+    const timestamp1 = item1.lastUpdated || item1.timestamp;
+    const timestamp2 = item2.lastUpdated || item2.timestamp;
+    
+    if (timestamp1 && timestamp2) {
+      const time1 = new Date(timestamp1).getTime();
+      const time2 = new Date(timestamp2).getTime();
+      const difference = Math.abs(time1 - time2);
+      
+      // 如果時間差超過 1 小時且進度不同，認為是衝突
+      if (difference > 3600000 && item1.progress !== item2.progress) {
+        return {
+          severity: 'MEDIUM',
+          details: {
+            timestamp1,
+            timestamp2,
+            timeDifference: difference
+          }
+        };
+      }
+    }
+    
+    return null;
+  }
+
+  checkTagConflict(item1, item2) {
+    const tags1 = item1.tags || item1.categories || [];
+    const tags2 = item2.tags || item2.categories || [];
+    
+    const set1 = new Set(Array.isArray(tags1) ? tags1 : [tags1]);
+    const set2 = new Set(Array.isArray(tags2) ? tags2 : [tags2]);
+    
+    // 檢查是否有不同的標籤
+    const hasConflict = [...set1].some(tag => !set2.has(tag)) || 
+                       [...set2].some(tag => !set1.has(tag));
+    
+    if (hasConflict) {
+      return {
+        severity: 'LOW',
+        details: {
+          tags1: Array.from(set1),
+          tags2: Array.from(set2)
+        }
+      };
+    }
+    
+    return null;
+  }
+
+  calculateStringSimilarity(str1, str2) {
+    if (str1 === str2) return 1.0;
+    if (!str1 || !str2) return 0.0;
+    
+    // 簡單的 Jaccard 相似度計算
+    const set1 = new Set(str1.toLowerCase().split(' '));
+    const set2 = new Set(str2.toLowerCase().split(' '));
+    
+    const intersection = new Set([...set1].filter(x => set2.has(x)));
+    const union = new Set([...set1, ...set2]);
+    
+    return intersection.size / union.size;
+  }
+
+  generateConflictSummary(conflicts) {
+    const summary = {
+      totalConflicts: conflicts.length,
+      conflictTypes: {},
+      severityDistribution: {
+        LOW: 0,
+        MEDIUM: 0,
+        HIGH: 0,
+        CRITICAL: 0
+      }
+    };
+
+    conflicts.forEach(conflict => {
+      // 統計衝突類型
+      summary.conflictTypes[conflict.type] = (summary.conflictTypes[conflict.type] || 0) + 1;
+      
+      // 統計嚴重程度
+      summary.severityDistribution[conflict.severity] = (summary.severityDistribution[conflict.severity] || 0) + 1;
+    });
+
+    return summary;
+  }
+
+  // 衝突解決核心方法
+  async resolveConflicts(conflicts, strategy, options = {}) {
+    if (!Array.isArray(conflicts) || conflicts.length === 0) {
+      return {
+        resolvedConflicts: [],
+        summary: {
+          totalResolved: 0,
+          successRate: 1.0,
+          strategiesUsed: {}
+        }
+      };
+    }
+
+    const resolvedConflicts = [];
+    const strategiesUsed = {};
+
+    for (const conflict of conflicts) {
+      try {
+        const resolution = await this.resolveConflict(conflict, strategy, options);
+        resolvedConflicts.push({
+          conflictId: conflict.id,
+          resolution,
+          strategy: resolution.strategy,
+          confidence: resolution.confidence,
+          resolvedAt: new Date().toISOString()
+        });
+
+        // 統計策略使用
+        strategiesUsed[resolution.strategy] = (strategiesUsed[resolution.strategy] || 0) + 1;
+        
+      } catch (error) {
+        this.logger.error(`Failed to resolve conflict ${conflict.id}:`, error);
+        resolvedConflicts.push({
+          conflictId: conflict.id,
+          resolution: null,
+          error: error.message,
+          resolvedAt: new Date().toISOString()
+        });
+      }
+    }
+
+    // 生成摘要
+    const summary = {
+      totalResolved: resolvedConflicts.filter(r => r.resolution).length,
+      successRate: resolvedConflicts.filter(r => r.resolution).length / conflicts.length,
+      strategiesUsed
+    };
+
+    // 更新統計
+    this.statistics.conflictsResolved += summary.totalResolved;
+
+    return {
+      resolvedConflicts,
+      summary
+    };
+  }
+
+  async resolveConflict(conflict, suggestedStrategy, options = {}) {
+    // 生成解決建議
+    const recommendations = await this.generateResolutionRecommendations(conflict);
+    
+    // 選擇策略
+    const strategy = suggestedStrategy || recommendations[0]?.strategy || 'MANUAL_REVIEW';
+    
+    // 執行解決策略
+    const resolution = await this.executeResolutionStrategy(conflict, strategy, options);
+    
+    return {
+      strategy,
+      resolution,
+      confidence: resolution.confidence || 0.5,
+      recommendations
+    };
+  }
+
+  async generateResolutionRecommendations(conflict) {
+    const recommendations = [];
+
+    switch (conflict.type) {
+      case 'PROGRESS_MISMATCH':
+        recommendations.push({
+          strategy: 'USE_LATEST_TIMESTAMP',
+          confidence: 0.8,
+          description: '使用時間戳較新的進度值'
+        });
+        recommendations.push({
+          strategy: 'USE_SOURCE_PRIORITY',
+          confidence: 0.6,
+          description: '根據資料來源優先級選擇'
+        });
+        break;
+        
+      case 'TITLE_DIFFERENCE':
+        recommendations.push({
+          strategy: 'MANUAL_REVIEW',
+          confidence: 0.9,
+          description: '標題差異需要人工確認'
+        });
+        break;
+        
+      case 'TIMESTAMP_CONFLICT':
+        recommendations.push({
+          strategy: 'USE_LATEST_TIMESTAMP',
+          confidence: 0.9,
+          description: '使用最新時間戳'
+        });
+        break;
+        
+      case 'TAG_DIFFERENCE':
+        recommendations.push({
+          strategy: 'MERGE_VALUES',
+          confidence: 0.7,
+          description: '合併所有標籤'
+        });
+        break;
+        
+      default:
+        recommendations.push({
+          strategy: 'MANUAL_REVIEW',
+          confidence: 0.5,
+          description: '未知衝突類型，需要人工處理'
+        });
+    }
+
+    return recommendations;
+  }
+
+  async executeResolutionStrategy(conflict, strategy, options = {}) {
+    switch (strategy) {
+      case 'USE_LATEST_TIMESTAMP':
+        return this.useLatestTimestampStrategy(conflict);
+      case 'USE_SOURCE_PRIORITY':
+        return this.useSourcePriorityStrategy(conflict, options);
+      case 'MERGE_VALUES':
+        return this.mergeValuesStrategy(conflict);
+      case 'MANUAL_REVIEW':
+        return this.manualReviewStrategy(conflict);
+      default:
+        throw new Error(`Unknown resolution strategy: ${strategy}`);
+    }
+  }
+
+  useLatestTimestampStrategy(conflict) {
+    const data1 = conflict.data1;
+    const data2 = conflict.data2;
+    
+    const timestamp1 = new Date(data1.lastUpdated || data1.timestamp || 0).getTime();
+    const timestamp2 = new Date(data2.lastUpdated || data2.timestamp || 0).getTime();
+    
+    const selectedData = timestamp1 > timestamp2 ? data1 : data2;
+    
+    return {
+      resolvedValue: selectedData,
+      reason: `選擇時間戳較新的資料 (${selectedData.lastUpdated || selectedData.timestamp})`,
+      confidence: 0.8
+    };
+  }
+
+  useSourcePriorityStrategy(conflict, options = {}) {
+    const sourcePriority = options.sourcePriority || ['readmoo', 'kindle', 'kobo'];
+    const data1 = conflict.data1;
+    const data2 = conflict.data2;
+    
+    const source1 = data1.source || 'unknown';
+    const source2 = data2.source || 'unknown';
+    
+    const priority1 = sourcePriority.indexOf(source1);
+    const priority2 = sourcePriority.indexOf(source2);
+    
+    const selectedData = (priority1 !== -1 && (priority2 === -1 || priority1 < priority2)) ? data1 : data2;
+    
+    return {
+      resolvedValue: selectedData,
+      reason: `根據來源優先級選擇 ${selectedData.source}`,
+      confidence: 0.6
+    };
+  }
+
+  mergeValuesStrategy(conflict) {
+    const data1 = conflict.data1;
+    const data2 = conflict.data2;
+    
+    // 合併邏輯依衝突類型而定
+    let mergedValue;
+    
+    if (conflict.type === 'TAG_DIFFERENCE') {
+      const tags1 = data1.tags || data1.categories || [];
+      const tags2 = data2.tags || data2.categories || [];
+      const allTags = [...new Set([...Array.isArray(tags1) ? tags1 : [tags1], ...Array.isArray(tags2) ? tags2 : [tags2]])];
+      
+      mergedValue = {
+        ...data1,
+        tags: allTags
+      };
+    } else {
+      // 預設合併邏輯
+      mergedValue = {
+        ...data1,
+        ...data2,
+        mergedAt: new Date().toISOString()
+      };
+    }
+    
+    return {
+      resolvedValue: mergedValue,
+      reason: '智能合併兩個資料源的值',
+      confidence: 0.7
+    };
+  }
+
+  manualReviewStrategy(conflict) {
+    return {
+      resolvedValue: null,
+      reason: '需要人工審核',
+      confidence: 0.0,
+      requiresManualReview: true,
+      reviewOptions: [
+        { label: '使用資料1', value: conflict.data1 },
+        { label: '使用資料2', value: conflict.data2 },
+        { label: '自定義合併', value: 'custom' }
+      ]
+    };
+  }
+
+  // 批次處理方法
+  async resolveBatchConflicts(conflictBatches, options = {}) {
+    const batchId = `batch_${Date.now()}`;
+    const results = [];
+    
+    this.batchJobs.set(batchId, {
+      status: 'RUNNING',
+      startTime: Date.now(),
+      totalBatches: conflictBatches.length,
+      completedBatches: 0
+    });
+
+    try {
+      for (let i = 0; i < conflictBatches.length; i++) {
+        const batch = conflictBatches[i];
+        
+        // 發送進度事件
+        this.eventBus.emit('DATA.CONFLICT.BATCH_PROGRESS', {
+          batchId,
+          progress: (i / conflictBatches.length) * 100,
+          currentBatch: i,
+          totalBatches: conflictBatches.length
+        });
+        
+        const batchResult = await this.processBatch(batch, options);
+        results.push(batchResult);
+        
+        // 更新作業狀態
+        const job = this.batchJobs.get(batchId);
+        job.completedBatches = i + 1;
+      }
+
+      this.batchJobs.get(batchId).status = 'COMPLETED';
+      
+      return {
+        batchId,
+        results,
+        summary: {
+          totalBatches: conflictBatches.length,
+          successfulBatches: results.filter(r => r.success).length,
+          totalConflictsResolved: results.reduce((sum, r) => sum + (r.resolvedCount || 0), 0)
+        }
+      };
+      
+    } catch (error) {
+      this.batchJobs.get(batchId).status = 'FAILED';
+      throw error;
+    }
+  }
+
+  async processBatch(batch, options = {}) {
+    try {
+      const conflicts = batch.conflicts || [];
+      const strategy = batch.strategy || options.defaultStrategy || 'USE_LATEST_TIMESTAMP';
+      
+      const result = await this.resolveConflicts(conflicts, strategy, options);
+      
+      return {
+        batchId: batch.id,
+        success: true,
+        resolvedCount: result.summary.totalResolved,
+        details: result
+      };
+    } catch (error) {
+      return {
+        batchId: batch.id,
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  // 用戶互動和學習方法
+  async recordManualResolution(conflictId, resolution, userSatisfaction = null) {
+    const record = {
+      conflictId,
+      resolution,
+      userSatisfaction,
+      timestamp: new Date().toISOString()
+    };
+    
+    this.resolutionHistory.push(record);
+    
+    // 學習機制
+    const learningUpdate = this.updateLearningModel(record);
+    
+    return {
+      recorded: true,
+      learningUpdate
+    };
+  }
+
+  updateLearningModel(record) {
+    if (!this.userPreferences.learningEnabled) {
+      return { updated: false, reason: 'Learning disabled' };
+    }
+    
+    // 簡單的學習機制：根據用戶滿意度調整策略偏好
+    if (record.userSatisfaction !== null) {
+      const satisfaction = parseFloat(record.userSatisfaction);
+      
+      if (satisfaction >= 0.8) {
+        // 高滿意度：增加對這種解決方案的偏好
+        return { updated: true, action: 'increase_preference' };
+      } else if (satisfaction <= 0.3) {
+        // 低滿意度：降低對這種解決方案的偏好
+        return { updated: true, action: 'decrease_preference' };
+      }
+    }
+    
+    return { updated: false, reason: 'No significant satisfaction data' };
+  }
+
+  async getUserPreferences() {
+    return { ...this.userPreferences };
+  }
+
+  async updateUserPreferences(newPreferences) {
+    this.userPreferences = {
+      ...this.userPreferences,
+      ...newPreferences
+    };
+    
+    return {
+      success: true,
+      preferences: this.userPreferences
+    };
+  }
+
+  async getResolutionHistory(options = {}) {
+    const { limit = 100, conflictType, fromDate, toDate } = options;
+    
+    let history = [...this.resolutionHistory];
+    
+    // 過濾條件
+    if (conflictType) {
+      history = history.filter(record => record.conflictType === conflictType);
+    }
+    
+    if (fromDate) {
+      history = history.filter(record => new Date(record.timestamp) >= new Date(fromDate));
+    }
+    
+    if (toDate) {
+      history = history.filter(record => new Date(record.timestamp) <= new Date(toDate));
+    }
+    
+    // 限制數量
+    history = history.slice(-limit);
+    
+    return history;
+  }
+
+  async undoResolution(resolutionId) {
+    const historyIndex = this.resolutionHistory.findIndex(record => record.resolutionId === resolutionId);
+    
+    if (historyIndex === -1) {
+      throw new Error('Resolution not found');
+    }
+    
+    const record = this.resolutionHistory[historyIndex];
+    
+    // 執行撤銷邏輯
+    const undoResult = {
+      success: true,
+      undoneResolution: record,
+      undoneAt: new Date().toISOString()
+    };
+    
+    // 從歷史記錄移除
+    this.resolutionHistory.splice(historyIndex, 1);
+    
+    return undoResult;
+  }
+
+  async escalateConflict(conflictId, reason) {
+    return {
+      escalated: true,
+      conflictId,
+      reason,
+      escalatedAt: new Date().toISOString(),
+      assignedTo: 'expert_review_queue'
+    };
+  }
+
+  // 效能監控和統計方法
+  async getStatistics() {
+    const totalResolutions = this.resolutionHistory.length;
+    const recentResolutions = this.resolutionHistory.slice(-100);
+    
+    // 計算平均解決時間（模擬）
+    this.statistics.averageResolutionTime = 2.5; // 秒
+    
+    // 計算用戶滿意度
+    const satisfactionScores = recentResolutions
+      .filter(r => r.userSatisfaction !== null)
+      .map(r => parseFloat(r.userSatisfaction));
+    
+    this.statistics.userSatisfactionScore = satisfactionScores.length > 0 
+      ? satisfactionScores.reduce((sum, score) => sum + score, 0) / satisfactionScores.length
+      : 0;
+    
+    // 計算自動解決成功率
+    this.statistics.autoResolutionSuccessRate = this.statistics.conflictsResolved > 0 
+      ? this.statistics.conflictsResolved / this.statistics.conflictsDetected 
+      : 0;
+
+    return {
+      ...this.statistics,
+      totalResolutions,
+      activeDetections: this.activeDetections.size,
+      queuedResolutions: this.resolutionQueue.length,
+      activeBatchJobs: this.batchJobs.size
+    };
+  }
+
+  async getPerformanceMetrics() {
+    return {
+      memoryUsage: this.getMemoryUsage(),
+      processingTime: this.getAverageProcessingTime(),
+      throughput: this.getThroughput(),
+      errorRate: this.getErrorRate()
+    };
+  }
+
+  getMemoryUsage() {
+    // 估算記憶體使用量
+    const historySize = JSON.stringify(this.resolutionHistory).length;
+    const activeSize = JSON.stringify(Array.from(this.activeDetections.values())).length;
+    
+    return {
+      total: historySize + activeSize,
+      history: historySize,
+      active: activeSize,
+      unit: 'bytes'
+    };
+  }
+
+  getAverageProcessingTime() {
+    return this.statistics.averageResolutionTime;
+  }
+
+  getThroughput() {
+    // 每分鐘處理的衝突數量
+    return this.statistics.conflictsResolved * 60 / (Date.now() / 1000);
+  }
+
+  getErrorRate() {
+    const totalAttempts = this.statistics.conflictsDetected;
+    const failures = totalAttempts - this.statistics.conflictsResolved;
+    
+    return totalAttempts > 0 ? failures / totalAttempts : 0;
+  }
+
+  async generatePerformanceReport() {
+    const stats = await this.getStatistics();
+    const metrics = await this.getPerformanceMetrics();
+    
+    return {
+      timestamp: new Date().toISOString(),
+      summary: {
+        totalConflictsDetected: stats.conflictsDetected,
+        totalConflictsResolved: stats.conflictsResolved,
+        successRate: stats.autoResolutionSuccessRate,
+        userSatisfaction: stats.userSatisfactionScore
+      },
+      performance: metrics,
+      recommendations: this.generateOptimizationRecommendations(stats, metrics)
+    };
+  }
+
+  generateOptimizationRecommendations(stats, metrics) {
+    const recommendations = [];
+    
+    if (metrics.errorRate > 0.1) {
+      recommendations.push({
+        type: 'ERROR_RATE',
+        message: '錯誤率過高，建議檢查衝突檢測邏輯',
+        priority: 'HIGH'
+      });
+    }
+    
+    if (metrics.memoryUsage.total > 1000000) {
+      recommendations.push({
+        type: 'MEMORY_USAGE',
+        message: '記憶體使用量較高，建議清理歷史記錄',
+        priority: 'MEDIUM'
+      });
+    }
+    
+    if (stats.userSatisfactionScore < 0.7) {
+      recommendations.push({
+        type: 'USER_SATISFACTION',
+        message: '用戶滿意度較低，建議優化解決策略',
+        priority: 'HIGH'
+      });
+    }
+    
+    return recommendations;
+  }
+
+  // 清理和維護方法
+  async cleanup() {
+    // 清理歷史記錄（保留最近 1000 條）
+    if (this.resolutionHistory.length > 1000) {
+      this.resolutionHistory = this.resolutionHistory.slice(-1000);
+    }
+    
+    // 清理過期的活躍檢測
+    const now = Date.now();
+    for (const [id, detection] of this.activeDetections.entries()) {
+      if (now - detection.startTime > 300000) { // 5分鐘過期
+        this.activeDetections.delete(id);
+      }
+    }
+    
+    // 清理完成的批次作業
+    for (const [id, job] of this.batchJobs.entries()) {
+      if (job.status === 'COMPLETED' || job.status === 'FAILED') {
+        this.batchJobs.delete(id);
+      }
+    }
+    
+    return {
+      success: true,
+      cleanedItems: {
+        historyRecords: Math.max(0, this.resolutionHistory.length - 1000),
+        expiredDetections: 0,
+        completedBatchJobs: 0
+      }
+    };
+  }
+
+  async getHealthStatus() {
+    const baseStatus = super.getHealthStatus();
+    
+    return {
+      ...baseStatus,
+      conflictResolution: {
+        isProcessing: this.activeDetections.size > 0,
+        queueLength: this.resolutionQueue.length,
+        activeBatchJobs: this.batchJobs.size,
+        memoryHealth: this.getMemoryUsage().total < 2000000 ? 'healthy' : 'warning'
+      }
+    };
+  }
+}
+
+// Mock implementations for dependencies
+class MockDetectionEngine {
+  async detectConflicts(data1, data2) {
+    return [];
+  }
+}
+
+class MockStrategyEngine {
+  async generateStrategy(conflict) {
+    return 'USE_LATEST_TIMESTAMP';
+  }
+}
+
+module.exports = ConflictResolutionService;
