@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Readmoo 書庫數據提取器",
+  "name": "Readmoo 書庫數據提取器 (模組化版本)",
   "version": "1.0.0",
-  "description": "專為 Readmoo 電子書平台設計的書庫資料提取工具，支援書目管理和資料匯出功能",
+  "description": "專為 Readmoo 電子書平台設計的書庫資料提取工具，支援書目管理和資料匯出功能 - 模組化架構版本",
   
   "icons": {
     "16": "assets/icons/icon-16.png",
@@ -21,7 +21,7 @@
         "*://readmoo.com/*"
       ],
       "js": [
-        "src/content/content.js"
+        "src/content/content-modular.js"
       ],
       "run_at": "document_idle",
       "all_frames": false
@@ -35,7 +35,7 @@
       "48": "assets/icons/icon-48.png",
       "128": "assets/icons/icon-128.png"
     },
-    "default_title": "Readmoo 書庫提取器"
+    "default_title": "Readmoo 書庫提取器 (模組化)"
   },
   
   "permissions": [
@@ -60,4 +60,4 @@
   ],
 
   "options_page": "src/overview/overview.html"
-} 
+}
