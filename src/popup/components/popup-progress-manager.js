@@ -1,0 +1,180 @@
+/**
+ * PopupProgressManager - Popup 進度管理器
+ *
+ * 負責功能：
+ * - 管理提取進度的顯示和更新
+ * - 進度條視覺效果控制
+ * - 進度狀態生命週期管理
+ * - 進度完成和取消處理
+ *
+ * 設計考量：
+ * - 單一職責：專注於進度狀態管理
+ * - 邊界值處理：確保進度百分比在有效範圍內
+ * - 錯誤恢復：UI 更新失敗不影響內部狀態
+ * - 狀態轉換：支援完整的進度生命週期
+ *
+ * 使用情境：
+ * - 書庫資料提取進度顯示
+ * - 與 PopupUIComponents 協作進行視覺更新
+ * - 支援取消和錯誤處理
+ *
+ * @version 1.0.0
+ * @since 2025-08-18
+ */
+
+class PopupProgressManager {
+  /**
+   * 建構 PopupProgressManager
+   * @param {Object} uiComponents - UI 組件實例，用於更新界面
+   */
+  constructor (uiComponents) {
+    this.uiComponents = uiComponents
+
+    // 有效的進度狀態
+    this.validProgressStates = ['idle', 'starting', 'extracting', 'processing', 'completed', 'cancelled', 'error']
+
+    // 初始化進度狀態
+    this.currentProgress = {
+      percentage: 0,
+      status: 'idle',
+      text: '',
+      isVisible: false
+    }
+  }
+
+  /**
+   * 更新進度資料
+   * @param {Object} progressData - 進度資料
+   * @param {number} progressData.percentage - 進度百分比 (0-100)
+   * @param {string} progressData.status - 進度狀態
+   * @param {string} [progressData.text] - 進度文字說明
+   */
+  updateProgress (progressData) {
+    // 驗證必要欄位
+    if (!progressData || typeof progressData.percentage !== 'number' || !progressData.status) {
+      throw new Error('Progress data must include percentage and status fields')
+    }
+
+    // 驗證狀態類型
+    if (!this.validProgressStates.includes(progressData.status)) {
+      throw new Error(`Invalid progress status: ${progressData.status}`)
+    }
+
+    // 限制百分比在 0-100 範圍內（避免視覺異常）
+    const clampedPercentage = this._clampPercentage(progressData.percentage)
+
+    // 更新內部狀態
+    this.currentProgress = {
+      ...this.currentProgress,
+      percentage: clampedPercentage,
+      status: progressData.status,
+      text: progressData.text || '',
+      isVisible: true
+    }
+
+    // 安全地更新 UI 顯示
+    this._safeUIUpdate(() => {
+      this.uiComponents.updateProgress(
+        clampedPercentage,
+        progressData.status,
+        progressData.text
+      )
+    }, 'Progress update failed')
+  }
+
+  /**
+   * 開始進度顯示
+   * @param {Object} startData - 開始資料
+   * @param {string} [startData.title] - 進度標題
+   * @param {number} [startData.estimatedTotal] - 預估總數
+   */
+  startProgress (startData = {}) {
+    // 更新狀態為開始
+    this.currentProgress = {
+      ...this.currentProgress,
+      percentage: 0,
+      status: 'starting',
+      isVisible: true,
+      estimatedTotal: startData.estimatedTotal
+    }
+
+    // 顯示進度容器
+    this.uiComponents.showProgress()
+  }
+
+  /**
+   * 完成進度顯示
+   * @param {Object} completionData - 完成資料
+   * @param {number} [completionData.totalProcessed] - 總處理數量
+   * @param {number} [completionData.successCount] - 成功數量
+   * @param {number} [completionData.failureCount] - 失敗數量
+   * @param {number} [completionData.duration] - 耗時（毫秒）
+   */
+  completeProgress (completionData = {}) {
+    // 更新狀態為完成
+    this.currentProgress = {
+      ...this.currentProgress,
+      percentage: 100,
+      status: 'completed',
+      isVisible: false,
+      completionData
+    }
+  }
+
+  /**
+   * 取消進度顯示
+   * @param {string} [reason] - 取消原因
+   */
+  cancelProgress (reason = '') {
+    // 更新狀態為取消
+    this.currentProgress = {
+      ...this.currentProgress,
+      status: 'cancelled',
+      isVisible: false,
+      cancellationReason: reason
+    }
+
+    // 隱藏進度顯示
+    this.uiComponents.hideProgress()
+  }
+
+  /**
+   * 獲取當前進度狀態
+   * @returns {Object} 當前進度資料
+   */
+  getCurrentProgress () {
+    return { ...this.currentProgress }
+  }
+
+  /**
+   * 限制百分比在有效範圍內的工具方法
+   * @param {number} percentage - 要限制的百分比
+   * @returns {number} 限制後的百分比 (0-100)
+   * @private
+   */
+  _clampPercentage (percentage) {
+    return Math.max(0, Math.min(100, percentage))
+  }
+
+  /**
+   * 安全地更新 UI 的工具方法
+   * @param {Function} updateFunction - 要執行的更新函數
+   * @param {string} errorContext - 錯誤上下文描述
+   * @private
+   */
+  _safeUIUpdate (updateFunction, errorContext) {
+    try {
+      updateFunction()
+    } catch (error) {
+      this.uiComponents.showError({
+        message: `${errorContext}: ${error.message}`,
+        type: 'ui_error'
+      })
+    }
+  }
+}
+
+// 導出模組
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = PopupProgressManager
+}
