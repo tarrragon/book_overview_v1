@@ -120,13 +120,16 @@ class EventPriorityManager {
    * @returns {number} 分配的優先級
    */
   assignEventPriority (eventName) {
-    if (!eventName || typeof eventName !== 'string') {
-      throw new Error('Invalid event name')
-    }
-
     const startTime = performance.now()
 
     try {
+      // 優雅處理無效事件名稱
+      if (!eventName || typeof eventName !== 'string') {
+        this.priorityStats.errors++
+        // 返回預設優先級而不是拋出異常
+        return this.priorityConfig.BUSINESS_PROCESSING.range[1] // 預設為一般業務處理的最低優先級
+      }
+
       // 檢查是否已有分配的優先級
       if (this.eventPriorities.has(eventName)) {
         return this.eventPriorities.get(eventName)
@@ -147,7 +150,8 @@ class EventPriorityManager {
       return priority
     } catch (error) {
       this.priorityStats.errors++
-      throw error
+      // 優雅處理錯誤，返回預設優先級
+      return this.priorityConfig.BUSINESS_PROCESSING.range[1]
     } finally {
       const endTime = performance.now()
       this.updateAssignmentTime(endTime - startTime)
@@ -162,14 +166,7 @@ class EventPriorityManager {
   inferPriorityCategory (eventName) {
     const upperEventName = eventName.toUpperCase()
 
-    // 檢查每個類別的關鍵字
-    for (const [category, config] of Object.entries(this.priorityConfig)) {
-      if (config.keywords.some(keyword => upperEventName.includes(keyword))) {
-        return category
-      }
-    }
-
-    // 根據領域推斷
+    // 首先根據領域推斷（優先級更高）
     const parts = eventName.split('.')
     if (parts.length >= 1) {
       const domain = parts[0]
@@ -185,6 +182,13 @@ class EventPriorityManager {
       }
       if (domain === 'ANALYTICS') {
         return 'BACKGROUND_PROCESSING'
+      }
+    }
+
+    // 檢查每個類別的關鍵字（作為後備選項）
+    for (const [category, config] of Object.entries(this.priorityConfig)) {
+      if (config.keywords.some(keyword => upperEventName.includes(keyword))) {
+        return category
       }
     }
 
