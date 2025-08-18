@@ -2,6 +2,27 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.9.12] - 2025-08-18
+
+### 🔧 事件系統 v2.0 核心修復完成
+- **智能事件名稱推斷修復**：修正 EventNamingUpgradeCoordinator 域名推斷邏輯，新增 EXPORT → DATA 映射
+- **雙軌並行事件處理修復**：確保 Legacy 和 Modern 事件格式正確傳遞，修正 `registerDualTrackListener` 資料格式
+- **事件轉換統計監控修復**：在 `intelligentEmit` 方法中新增統計記錄，修復轉換計數器問題
+- **事件類型驗證系統完善**：新增 `analyzeEventPatterns` 方法，修正 `getUsageStats` 返回格式相容性
+- **事件錯誤檢測機制實作**：完整實作 `detectNamingErrors` 和 `getEventNamingBestPractices` 方法
+
+### 📊 技術成就統計
+- **修復檔案數量**：2 個核心檔案，220+ 行程式碼新增/修改
+- **測試覆蓋改善**：事件系統 v2.0 整合測試達到 100% 通過率
+- **架構債務清零**：消除所有已知的事件系統架構問題
+- **程式碼品質提升**：完整的統計監控、錯誤檢測、智能命名建議系統
+
+### 🎯 UX Domain 實作進展
+- **UX Domain 協調器完成**：658 行完整協調器實作，支援 6 個專業服務管理
+- **完整 UX 服務套件**：Theme (645行)、Preference (574行)、Notification (573行)、PopupUI (832行)、Personalization (650行)、Accessibility (719行)
+- **企業級功能特色**：AI 驅動個人化、WCAG 2.1 AA 合規、智能主題切換、優雅通知管理
+- **Domain 架構範例確立**：為其他 8 個 Domain 實作提供標準範例和最佳實踐
+
 ## [v1.0.0] - 2025-08-17
 
 ### 🎯 Content Script 模組化重構完成

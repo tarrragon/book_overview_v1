@@ -112,7 +112,7 @@ class EventNamingUpgradeCoordinator {
     // 註冊 Legacy 事件監聽器
     this.eventBus.on(legacyEvent, async (data) => {
       this.recordConversion(legacyEvent, 'LEGACY_TRIGGERED')
-      await handler(data)
+      await handler({ type: legacyEvent, data })
 
       // 同時觸發 Modern 事件
       await this.eventBus.emit(modernEvent, data)
@@ -121,7 +121,7 @@ class EventNamingUpgradeCoordinator {
     // 註冊 Modern 事件監聽器
     this.eventBus.on(modernEvent, async (data) => {
       this.recordConversion(modernEvent, 'MODERN_TRIGGERED')
-      await handler(data)
+      await handler({ type: modernEvent, data })
     })
 
     this.modernEventRegistry.add(modernEvent)
@@ -137,6 +137,8 @@ class EventNamingUpgradeCoordinator {
       // 雙軌模式：同時發射 Legacy 和 Modern 事件
       if (this.isLegacyEvent(eventName)) {
         const modernEvent = this.convertToModernEvent(eventName)
+        this.recordConversion(eventName, 'LEGACY_TRIGGERED')
+        this.recordConversion(modernEvent, 'MODERN_TRIGGERED')
         await Promise.all([
           this.eventBus.emit(eventName, data),
           this.eventBus.emit(modernEvent, data)
@@ -145,11 +147,14 @@ class EventNamingUpgradeCoordinator {
         // Modern 事件，檢查是否需要發射對應的 Legacy 事件
         const legacyEvent = this.convertToLegacyEvent(eventName)
         if (legacyEvent) {
+          this.recordConversion(eventName, 'MODERN_TRIGGERED')
+          this.recordConversion(legacyEvent, 'LEGACY_TRIGGERED')
           await Promise.all([
             this.eventBus.emit(eventName, data),
             this.eventBus.emit(legacyEvent, data)
           ])
         } else {
+          this.recordConversion(eventName, 'MODERN_TRIGGERED')
           await this.eventBus.emit(eventName, data)
         }
       }
@@ -158,12 +163,14 @@ class EventNamingUpgradeCoordinator {
       const modernEvent = this.isLegacyEvent(eventName)
         ? this.convertToModernEvent(eventName)
         : eventName
+      this.recordConversion(modernEvent, 'MODERN_TRIGGERED')
       await this.eventBus.emit(modernEvent, data)
     } else {
       // Legacy Only 模式：只發射 Legacy 事件
       const legacyEvent = this.isLegacyEvent(eventName)
         ? eventName
         : this.convertToLegacyEvent(eventName) || eventName
+      this.recordConversion(legacyEvent, 'LEGACY_TRIGGERED')
       await this.eventBus.emit(legacyEvent, data)
     }
   }
@@ -224,7 +231,8 @@ class EventNamingUpgradeCoordinator {
       DIAGNOSTIC: 'SYSTEM',
       ERROR: 'SYSTEM',
       PLATFORM: 'PLATFORM',
-      ANALYTICS: 'ANALYTICS'
+      ANALYTICS: 'ANALYTICS',
+      EXPORT: 'DATA' // 修復：匯出功能屬於資料領域
     }
 
     return domainMapping[module] || 'SYSTEM'
