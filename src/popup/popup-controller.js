@@ -161,18 +161,8 @@ class PopupController {
       // const PopupUIManager = await import('./popup-ui-manager.js')
       // this.components.ui = new PopupUIManager.default(this.document)
       
-      // 暫時的 Mock 實作
-      this.components.ui = {
-        initialize: () => {},
-        cleanup: () => {},
-        bindEvent: (selector, event, handler) => {
-          const element = this.document.getElementById(selector.replace('#', ''))
-          if (element) {
-            element.addEventListener(event, handler)
-            this.eventListeners.push({ element, type: event, listener: handler })
-          }
-        }
-      }
+      // 暫時的 Mock 實作，支援 StatusManager 所需的 updateStatus 接口
+      this.components.ui = this._createUIManagerMock()
       
       // UI 管理器初始化完成
     } catch (error) {
@@ -182,23 +172,70 @@ class PopupController {
   }
 
   /**
+   * 建立 UI 管理器的 Mock 實作
+   * @returns {Object} UI 管理器 Mock 物件
+   * @private
+   */
+  _createUIManagerMock() {
+    return {
+      initialize: () => {},
+      cleanup: () => {},
+      bindEvent: (selector, event, handler) => {
+        const element = this.document.getElementById(selector.replace('#', ''))
+        if (element) {
+          element.addEventListener(event, handler)
+          this.eventListeners.push({ element, type: event, listener: handler })
+        }
+      },
+      updateStatus: (statusData) => {
+        this._updateStatusElements(statusData)
+      },
+      showError: (errorInfo) => {
+        console.log('Error displayed:', errorInfo)
+      }
+    }
+  }
+
+  /**
+   * 更新狀態相關的 DOM 元素
+   * @param {Object} statusData - 狀態資料
+   * @private
+   */
+  _updateStatusElements(statusData) {
+    // 更新狀態點樣式
+    const statusDot = this.document.getElementById('status-dot')
+    if (statusDot) {
+      statusDot.className = `status-dot ${statusData.type}`
+    }
+    
+    // 更新狀態文字
+    const statusText = this.document.getElementById('status-text')
+    if (statusText) {
+      statusText.textContent = statusData.text
+    }
+    
+    // 更新狀態資訊
+    const statusInfo = this.document.getElementById('status-info')
+    if (statusInfo && statusData.info) {
+      statusInfo.textContent = statusData.info
+    }
+    
+    // 更新擴展狀態
+    const extensionStatus = this.document.getElementById('extension-status')
+    if (extensionStatus && statusData.status) {
+      extensionStatus.textContent = statusData.status
+    }
+  }
+
+  /**
    * 初始化狀態管理器
    * @private
    */
   async _initializeStatusManager() {
     try {
-      // TODO: 動態載入 PopupStatusManager
-      // const PopupStatusManager = await import('./components/popup-status-manager.js')
-      // this.components.status = new PopupStatusManager.default(this.components.ui)
-      
-      // 暫時的 Mock 實作
-      this.components.status = {
-        updateStatus: (statusData) => {
-          console.log('Status updated:', statusData)
-        },
-        getCurrentStatus: () => ({ type: 'ready', text: '就緒', info: '' }),
-        cleanup: () => {}
-      }
+      // 載入 PopupStatusManager
+      const PopupStatusManager = require('./components/popup-status-manager.js')
+      this.components.status = new PopupStatusManager(this.components.ui)
       
       // 狀態管理器初始化完成
     } catch (error) {

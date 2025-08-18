@@ -57,13 +57,8 @@ class PopupUIManager {
     // 事件監聽器快取
     this.eventListeners = new Map()
 
-    // UI 狀態
-    this.currentState = {
-      loading: false,
-      error: null,
-      progress: 0,
-      status: null
-    }
+    // 移除狀態管理 - 狀態由 PopupStatusManager 和 PopupProgressManager 管理
+    // UI 組件專注於純 DOM 操作
 
     // DOM 更新批次處理
     this.updateQueue = []
@@ -568,8 +563,6 @@ class PopupUIManager {
     if (errorData.actions && Array.isArray(errorData.actions)) {
       this.updateErrorActions(errorData.actions)
     }
-
-    this.currentState.error = errorData
   }
 
   /**
@@ -689,7 +682,6 @@ class PopupUIManager {
     // 最終保證
     this._ensureVisible(this.elements.loadingOverlay)
     try { console.debug('[PopupUIManager] showLoading after class', this.elements.loadingOverlay && this.elements.loadingOverlay.className) } catch (_) {}
-    this.currentState.loading = true
   }
 
   /**
@@ -703,8 +695,6 @@ class PopupUIManager {
     if (this.elements.loadingOverlay) {
       this._hideElement(this.elements.loadingOverlay)
     }
-
-    this.currentState.loading = false
   }
 
   /**
@@ -730,11 +720,6 @@ class PopupUIManager {
     // 限制進度在 0-100 範圍內
     const clampedPercentage = Math.max(0, Math.min(100, percentage))
 
-    // 如果進度沒有變化，不進行更新
-    if (this.currentState.progress === clampedPercentage) {
-      return
-    }
-
     // 直接同步更新，避免測試斷言時序問題
     const doc = this._getDoc()
     const bar = (doc && doc.getElementById('progress-bar')) || this.elements.progressBar || this._getElementByKey('progressBar')
@@ -742,7 +727,6 @@ class PopupUIManager {
       this.elements.progressBar = bar
       bar.style.width = `${clampedPercentage}%`
       try { console.debug('[PopupUIManager] updateProgress width', bar.style.width) } catch (_) {}
-      this.currentState.progress = clampedPercentage
       const statusContainer = (doc && doc.getElementById('status-container')) || this.elements.statusContainer || this._getElementByKey('statusContainer')
       if (statusContainer) {
         statusContainer.classList.remove('hidden')
@@ -1035,7 +1019,6 @@ class PopupUIManager {
           if (el && typeof statusEvent.data.message === 'string') {
             el.textContent = statusEvent.data.message
             this.elements.statusMessage = el
-            this.currentState.status = statusEvent.data.message
           }
           if (statusEvent.data.progress !== undefined) {
             this.updateProgress(statusEvent.data.progress)
@@ -1071,7 +1054,6 @@ class PopupUIManager {
     if (statusEl) {
       this.elements.statusMessage = statusEl
       statusEl.textContent = message
-      this.currentState.status = message
     }
   }
 
@@ -1105,14 +1087,6 @@ class PopupUIManager {
     // 清理更新佇列
     this.updateQueue = []
     this.updateScheduled = false
-
-    // 重置狀態
-    this.currentState = {
-      loading: false,
-      error: null,
-      progress: 0,
-      status: null
-    }
   }
 
   /**
@@ -1127,7 +1101,6 @@ class PopupUIManager {
    */
   getCurrentState () {
     return {
-      ...this.currentState,
       queuedUpdates: this.updateQueue.length,
       updateScheduled: this.updateScheduled,
       elementsCount: Object.keys(this.elements).length,
@@ -1165,14 +1138,6 @@ class PopupUIManager {
     // 清理更新佇列
     this.updateQueue = []
     this.updateScheduled = false
-
-    // 重置狀態
-    this.currentState = {
-      loading: false,
-      error: null,
-      progress: 0,
-      status: null
-    }
   }
 }
 
