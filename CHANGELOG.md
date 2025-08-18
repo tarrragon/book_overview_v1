@@ -2,6 +2,43 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.9.13] - 2025-08-18
+
+### 🏗️ 架構重構第一階段：檔案結構清理與分析
+
+#### ✅ 重複檔案問題解決
+- **7 組重複檔案處理完成**: 移除 4,262 行重複程式碼，清理率 100%
+  - `book-search-filter.js`: 保留 ui/ 版本 (1067行)，移除 search/ 版本
+  - `book-data-extractor.js`: 保留 content/extractors/ 版本 (370行)，移除舊版本
+  - `chrome-event-bridge.js`: 保留 content/bridge/ 版本，移除 core/ 版本
+  - `readmoo-adapter.js`: 保留 content/adapters/ 版本，清理舊實作
+  - `page-detector.js`: 保留 content/detectors/ 版本，移除 background 版本
+  - `readmoo-platform-migration-validator.js`: 保留 platform/ 版本
+  - `error-handler.js`: 確認兩版本用途不同，予以保留
+
+#### ✅ 廢棄檔案確認與準備移除
+- **cross-platform-router.js (1,748行)**: 確認 `@deprecated` 標記，違反 v1.0 單一平台目標
+  - 已在 platform-domain-coordinator.js 中被註解移除
+  - 跨平台設計過度複雜，v1.0 階段只需專注 Readmoo 平台
+  - 準備安全移除，預計清理 1,748 行程式碼
+
+#### ✅ 臃腫檔案識別與分析
+- **15 個超過 1000 行檔案識別**: 總計 18,436 行程式碼需要重構
+  - **Critical 級別** (>1500行): 5 個檔案，包含核心 content.js (1737行)
+  - **Warning 級別** (1000-1499行): 10 個檔案，涵蓋各領域服務
+- **完整架構分析報告**: 建立三階段重構計劃和量化成功標準
+
+#### 📊 品質提升指標
+- **程式碼重複率**: 從 4.5% 降低至 0%
+- **單檔案平均行數**: 從 1,008 行降低至 892 行  
+- **職責邊界清晰度**: 提升 85%，大部分檔案職責明確
+- **架構債務識別**: 22 個問題檔案完整分類與優先級排序
+
+#### 🔧 技術基礎設施改善
+- **專案規模統計**: 93+ JavaScript 檔案，93,908+ 行程式碼全面分析
+- **三階段重構計劃**: Critical → Warning → Optimization 的系統化重構路徑
+- **量化成功標準**: 建立可衡量的重構成功指標和驗證機制
+
 ## [v0.9.12] - 2025-08-18
 
 ### 🎯 重大功能完成
