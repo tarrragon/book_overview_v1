@@ -30,7 +30,7 @@
  * @since 2025-08-19
  */
 
-const ISynchronizationCoordinator = require('./interfaces/ISynchronizationCoordinator.js')
+const ISynchronizationCoordinator = require('../interfaces/ISynchronizationCoordinator.js')
 
 class ReadmooSynchronizationCoordinator extends ISynchronizationCoordinator {
   /**
@@ -39,12 +39,9 @@ class ReadmooSynchronizationCoordinator extends ISynchronizationCoordinator {
    * @param {Object} dependencies - 依賴注入物件
    */
   constructor (eventBus, dependencies = {}) {
-    super()
+    super(dependencies)
     
     this.eventBus = eventBus
-    this.logger = dependencies.logger || console
-    this.storage = dependencies.storage
-    this.validator = dependencies.validator
 
     // 預設配置
     this.config = {

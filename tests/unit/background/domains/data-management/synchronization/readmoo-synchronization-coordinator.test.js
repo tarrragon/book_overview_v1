@@ -13,7 +13,7 @@
  */
 
 const ReadmooSynchronizationCoordinator = require('../../../../../../src/background/domains/data-management/synchronization/readmoo-synchronization-coordinator.js')
-const ISynchronizationCoordinator = require('../../../../../../src/background/domains/data-management/synchronization/interfaces/ISynchronizationCoordinator.js')
+const ISynchronizationCoordinator = require('../../../../../../src/background/domains/data-management/interfaces/ISynchronizationCoordinator.js')
 
 describe('ReadmooSynchronizationCoordinator TDD 實作', () => {
   let coordinator
