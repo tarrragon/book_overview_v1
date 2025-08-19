@@ -48,6 +48,9 @@ class PopupController {
 
     // 事件監聽器清理追蹤
     this.eventListeners = []
+
+    // 事件管理器 (延遲初始化)
+    this.eventManager = null
   }
 
   /**
@@ -107,6 +110,9 @@ class PopupController {
     // 設置組件間通訊
     this._setupInterComponentCommunication()
 
+    // 初始化事件管理器
+    this._initializeEventManager()
+
     // 設置事件監聽器
     this._setupEventListeners()
   }
@@ -146,7 +152,13 @@ class PopupController {
    * 清理控制器資源
    */
   cleanup () {
-    // 清理事件監聽器
+    // 清理事件管理器
+    if (this.eventManager) {
+      this.eventManager.cleanup()
+      this.eventManager = undefined
+    }
+
+    // 清理舊式事件監聽器
     this.eventListeners.forEach(({ element, type, listener }) => {
       if (element && element.removeEventListener) {
         element.removeEventListener(type, listener)
@@ -399,25 +411,56 @@ class PopupController {
   }
 
   /**
+   * 初始化事件管理器
+   * @private
+   */
+  _initializeEventManager () {
+    try {
+      // 動態載入 EventManager
+      const EventManager = require('./utils/event-manager.js')
+      this.eventManager = new EventManager(this.document, this.components)
+    } catch (error) {
+      // 降級到舊式事件處理
+      console.warn('EventManager 載入失敗，使用舊式事件處理:', error.message)
+      this.eventManager = null
+    }
+  }
+
+  /**
    * 設置事件監聽器
    * @private
    */
   _setupEventListeners () {
     try {
-      // 綁定主要操作按鈕
-      this.components.ui.bindEvent('extract-button', 'click', () => {
-        this.components.extraction.startExtraction()
-      })
-
-      // TODO: 綁定其他按鈕事件
-      // - settings-button -> showSettings
-      // - help-button -> showHelp
-      // - retry-button -> retryExtraction
+      if (this.eventManager) {
+        // 使用新的事件管理器
+        this.eventManager.bindEvents()
+      } else {
+        // 降級到舊式事件綁定
+        this._setupLegacyEventListeners()
+      }
 
       // 事件監聽器設置完成
     } catch (error) {
       // 事件監聽器設置失敗
+      console.error('事件監聽器設置失敗:', error.message)
     }
+  }
+
+  /**
+   * 舊式事件監聽器設置（降級機制）
+   * @private
+   */
+  _setupLegacyEventListeners () {
+    // 綁定主要操作按鈕
+    this.components.ui.bindEvent('extract-button', 'click', () => {
+      this.components.extraction.startExtraction()
+    })
+
+    // TODO: 綁定其他按鈕事件
+    // - settings-button -> showSettings
+    // - help-button -> showHelp
+    // - retry-button -> retryExtraction
   }
 
   /**
