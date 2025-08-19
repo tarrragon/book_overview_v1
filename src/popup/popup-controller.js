@@ -181,17 +181,53 @@ class PopupController {
       initialize: () => {},
       cleanup: () => {},
       bindEvent: (selector, event, handler) => {
-        const element = this.document.getElementById(selector.replace('#', ''))
-        if (element) {
-          element.addEventListener(event, handler)
-          this.eventListeners.push({ element, type: event, listener: handler })
-        }
+        this._bindEventToElement(selector, event, handler)
       },
       updateStatus: (statusData) => {
         this._updateStatusElements(statusData)
       },
       showError: (errorInfo) => {
         console.log('Error displayed:', errorInfo)
+      },
+      updateProgress: (percentage, status, text) => {
+        this._updateProgressElements(percentage, status, text)
+      },
+      showProgress: () => {
+        this._toggleProgressVisibility(true)
+      },
+      hideProgress: () => {
+        this._toggleProgressVisibility(false)
+      }
+    }
+  }
+
+  /**
+   * 綁定事件到 DOM 元素
+   * @param {string} selector - 元素選擇器
+   * @param {string} event - 事件類型
+   * @param {Function} handler - 事件處理函數
+   * @private
+   */
+  _bindEventToElement(selector, event, handler) {
+    const element = this.document.getElementById(selector.replace('#', ''))
+    if (element) {
+      element.addEventListener(event, handler)
+      this.eventListeners.push({ element, type: event, listener: handler })
+    }
+  }
+
+  /**
+   * 切換進度容器可見性
+   * @param {boolean} visible - 是否可見
+   * @private
+   */
+  _toggleProgressVisibility(visible) {
+    const progressContainer = this.document.getElementById('progress-container')
+    if (progressContainer) {
+      if (visible) {
+        progressContainer.classList.remove('hidden')
+      } else {
+        progressContainer.classList.add('hidden')
       }
     }
   }
@@ -228,6 +264,33 @@ class PopupController {
   }
 
   /**
+   * 更新進度相關的 DOM 元素
+   * @param {number} percentage - 進度百分比
+   * @param {string} status - 進度狀態
+   * @param {string} text - 進度文字
+   * @private
+   */
+  _updateProgressElements(percentage, status, text) {
+    // 更新進度條寬度
+    const progressBar = this.document.getElementById('progress-bar')
+    if (progressBar) {
+      progressBar.style.width = `${percentage}%`
+    }
+    
+    // 更新進度文字
+    const progressText = this.document.getElementById('progress-text')
+    if (progressText && text) {
+      progressText.textContent = text
+    }
+    
+    // 更新進度百分比
+    const progressPercentage = this.document.getElementById('progress-percentage')
+    if (progressPercentage) {
+      progressPercentage.textContent = `${percentage}%`
+    }
+  }
+
+  /**
    * 初始化狀態管理器
    * @private
    */
@@ -250,23 +313,9 @@ class PopupController {
    */
   async _initializeProgressManager() {
     try {
-      // TODO: 動態載入 PopupProgressManager
-      // const PopupProgressManager = await import('./components/popup-progress-manager.js')
-      // this.components.progress = new PopupProgressManager.default(this.components.ui)
-      
-      // 暫時的 Mock 實作
-      this.components.progress = {
-        startProgress: (config) => {
-          console.log('Progress started:', config)
-        },
-        updateProgress: (progressData) => {
-          console.log('Progress updated:', progressData)
-        },
-        completeProgress: (result) => {
-          console.log('Progress completed:', result)
-        },
-        cleanup: () => {}
-      }
+      // 載入 PopupProgressManager
+      const PopupProgressManager = require('./components/popup-progress-manager.js')
+      this.components.progress = new PopupProgressManager(this.components.ui)
       
       // 進度管理器初始化完成
     } catch (error) {
