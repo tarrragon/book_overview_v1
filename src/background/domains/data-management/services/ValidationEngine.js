@@ -1,0 +1,403 @@
+/**
+ * @fileoverview ValidationEngine - 資料驗證引擎核心實作
+ * @version 1.0.0
+ * @since 2025-08-19
+ *
+ * 負責功能：
+ * - 單本書籍的完整驗證流程
+ * - 必填欄位、資料類型和商業規則驗證
+ * - 驗證結果標準化和錯誤回報
+ * - 平台特定驗證規則整合
+ *
+ * 設計考量：
+ * - 實作 IValidationEngine 介面契約
+ * - 依賴 IPlatformRuleManager 獲取平台規則
+ * - 支援高效能的單書驗證和批次驗證
+ * - 提供詳細的驗證報告和錯誤分析
+ *
+ * 處理流程：
+ * 1. 接收書籍資料和平台資訊
+ * 2. 獲取對應的平台驗證規則
+ * 3. 執行三階段驗證（必填欄位、資料類型、商業規則）
+ * 4. 彙總驗證結果和生成錯誤報告
+ * 5. 返回標準化的驗證結果物件
+ *
+ * 使用情境：
+ * - ValidationServiceCoordinator 的核心驗證引擎
+ * - ValidationBatchProcessor 的單書驗證處理
+ * - 獨立的書籍資料品質檢查
+ * - 平台特定驗證規則測試和驗證
+ */
+
+class ValidationEngine {
+  /**
+   * 建構驗證引擎
+   * @param {Object} options - 驗證引擎配置選項
+   */
+  constructor (options = {}) {
+    // 驗證必要依賴
+    if (!options.platformRuleManager) {
+      throw new Error('PlatformRuleManager is required')
+    }
+
+    this.platformRuleManager = options.platformRuleManager
+
+    // 驗證引擎配置
+    this.config = {
+      strictMode: options.strictMode || false,
+      enableCache: options.enableCache || true,
+      validationTimeout: options.validationTimeout || 5000,
+      detailedErrorReporting: options.detailedErrorReporting !== false,
+      skipOptionalValidation: options.skipOptionalValidation || false,
+      maxErrorsPerField: options.maxErrorsPerField || 3,
+      ...options
+    }
+
+    // 統計資訊
+    this.stats = {
+      totalValidations: 0,
+      passedValidations: 0,
+      failedValidations: 0,
+      averageValidationTime: 0,
+      totalValidationTime: 0
+    }
+
+    this.isInitialized = true
+  }
+
+  /**
+   * 驗證單本書籍
+   * @param {Object} book - 書籍資料
+   * @param {string} platform - 平台名稱
+   * @param {string} source - 資料來源
+   * @returns {Promise<Object>} 驗證結果
+   */
+  async validateSingleBook (book, platform, source) {
+    const startTime = Date.now()
+
+    // 輸入驗證
+    this._validateInputs(book, platform, source)
+
+    try {
+      // 初始化驗證物件
+      const validation = {
+        bookId: book.id || 'unknown',
+        book,
+        platform,
+        source,
+        results: {
+          requiredFields: { passed: false, errors: [] },
+          dataTypes: { passed: false, errors: [] },
+          businessRules: { passed: false, errors: [] }
+        },
+        warnings: [],
+        errors: [],
+        processingTime: 0,
+        timestamp: Date.now()
+      }
+
+      // 獲取平台驗證規則
+      const rules = this.getValidationRules(platform)
+
+      // 階段 1: 驗證必填欄位
+      await this.validateRequiredFields(validation, rules)
+
+      // 階段 2: 驗證資料類型
+      await this.validateDataTypes(validation, rules)
+
+      // 階段 3: 驗證商業規則
+      await this.validateBusinessRules(validation, rules)
+
+      // 彙總驗證結果
+      const isValid = validation.results.requiredFields.passed &&
+                     validation.results.dataTypes.passed &&
+                     validation.results.businessRules.passed
+
+      // 計算處理時間
+      validation.processingTime = Date.now() - startTime
+
+      // 更新統計
+      this._updateStatistics(validation.processingTime, isValid)
+
+      // 彙總所有錯誤
+      validation.errors = [
+        ...validation.results.requiredFields.errors,
+        ...validation.results.dataTypes.errors,
+        ...validation.results.businessRules.errors
+      ]
+
+      return {
+        isValid,
+        bookId: validation.bookId,
+        platform: validation.platform,
+        source: validation.source,
+        validationResults: validation.results,
+        warnings: validation.warnings,
+        errors: validation.errors,
+        processingTime: validation.processingTime,
+        timestamp: validation.timestamp
+      }
+    } catch (error) {
+      this._updateStatistics(Date.now() - startTime, false)
+      throw new Error(`Validation failed: ${error.message}`)
+    }
+  }
+
+  /**
+   * 驗證必填欄位
+   * @param {Object} validation - 驗證物件
+   * @param {Object} rules - 驗證規則
+   */
+  async validateRequiredFields (validation, rules) {
+    const { book } = validation
+    const { requiredFields } = rules
+    const errors = []
+
+    for (const field of requiredFields) {
+      if (!this._hasValue(book[field])) {
+        errors.push({
+          type: 'MISSING_REQUIRED_FIELD',
+          field,
+          message: `Required field '${field}' is missing or empty`,
+          severity: 'HIGH'
+        })
+      }
+    }
+
+    validation.results.requiredFields = {
+      passed: errors.length === 0,
+      errors,
+      fieldsChecked: requiredFields.length,
+      timestamp: Date.now()
+    }
+  }
+
+  /**
+   * 驗證資料類型
+   * @param {Object} validation - 驗證物件
+   * @param {Object} rules - 驗證規則
+   */
+  async validateDataTypes (validation, rules) {
+    const { book } = validation
+    const { dataTypes } = rules
+    const errors = []
+
+    for (const [field, expectedType] of Object.entries(dataTypes)) {
+      if (book[field] !== undefined && book[field] !== null) {
+        const actualType = this._getDataType(book[field])
+
+        if (actualType !== expectedType) {
+          errors.push({
+            type: 'TYPE_MISMATCH',
+            field,
+            expected: expectedType,
+            actual: actualType,
+            value: book[field],
+            message: `Field '${field}' expected ${expectedType} but got ${actualType}`,
+            severity: 'MEDIUM'
+          })
+        }
+      }
+    }
+
+    validation.results.dataTypes = {
+      passed: errors.length === 0,
+      errors,
+      fieldsChecked: Object.keys(dataTypes).length,
+      timestamp: Date.now()
+    }
+  }
+
+  /**
+   * 驗證商業規則
+   * @param {Object} validation - 驗證物件
+   * @param {Object} rules - 驗證規則
+   */
+  async validateBusinessRules (validation, rules) {
+    const { book } = validation
+    const { businessRules } = rules
+    const errors = []
+
+    for (const [ruleName, ruleConfig] of Object.entries(businessRules)) {
+      try {
+        const violationResult = this._checkBusinessRule(book, ruleName, ruleConfig)
+        if (violationResult) {
+          errors.push({
+            type: 'BUSINESS_RULE_VIOLATION',
+            rule: ruleName,
+            field: violationResult.field,
+            message: violationResult.message,
+            severity: violationResult.severity || 'MEDIUM',
+            value: violationResult.value
+          })
+        }
+      } catch (error) {
+        // 商業規則驗證錯誤不應該阻止整個驗證過程
+        validation.warnings.push({
+          type: 'RULE_VALIDATION_ERROR',
+          rule: ruleName,
+          message: `Business rule validation error: ${error.message}`,
+          severity: 'LOW'
+        })
+      }
+    }
+
+    validation.results.businessRules = {
+      passed: errors.length === 0,
+      errors,
+      rulesChecked: Object.keys(businessRules).length,
+      timestamp: Date.now()
+    }
+  }
+
+  /**
+   * 獲取平台驗證規則
+   * @param {string} platform - 平台名稱
+   * @returns {Object} 驗證規則
+   */
+  getValidationRules (platform) {
+    return this.platformRuleManager.getRulesForPlatform(platform)
+  }
+
+  /**
+   * 驗證輸入參數
+   * @private
+   */
+  _validateInputs (book, platform, source) {
+    if (!book || typeof book !== 'object') {
+      throw new Error('Invalid book data')
+    }
+    if (!platform || typeof platform !== 'string') {
+      throw new Error('Platform is required')
+    }
+    if (!source || typeof source !== 'string') {
+      throw new Error('Source is required')
+    }
+  }
+
+  /**
+   * 檢查值是否存在
+   * @private
+   */
+  _hasValue (value) {
+    return value !== undefined &&
+           value !== null &&
+           value !== '' &&
+           (Array.isArray(value) ? value.length > 0 : true)
+  }
+
+  /**
+   * 獲取資料類型
+   * @private
+   */
+  _getDataType (value) {
+    if (Array.isArray(value)) return 'array'
+    if (value === null) return 'null'
+    return typeof value
+  }
+
+  /**
+   * 檢查商業規則
+   * @private
+   */
+  _checkBusinessRule (book, ruleName, ruleConfig) {
+    switch (ruleName) {
+      case 'titleMinLength':
+        if (book.title !== undefined) {
+          if (!book.title || book.title.length < ruleConfig) {
+            return {
+              field: 'title',
+              message: `Title must be at least ${ruleConfig} characters`,
+              value: book.title,
+              severity: 'HIGH'
+            }
+          }
+        }
+        break
+
+      case 'progressRange':
+        if (book.progress !== undefined) {
+          const [min, max] = ruleConfig
+          if (book.progress < min || book.progress > max) {
+            return {
+              field: 'progress',
+              message: `Progress must be between ${min} and ${max}`,
+              value: book.progress,
+              severity: 'MEDIUM'
+            }
+          }
+        }
+        break
+
+      default:
+        // 處理其他商業規則
+        break
+    }
+
+    return null
+  }
+
+  /**
+   * 更新統計資訊
+   * @private
+   */
+  _updateStatistics (processingTime, isValid) {
+    this.stats.totalValidations++
+    if (isValid) {
+      this.stats.passedValidations++
+    } else {
+      this.stats.failedValidations++
+    }
+    this.stats.totalValidationTime += processingTime
+    this.stats.averageValidationTime = this.stats.totalValidationTime / this.stats.totalValidations
+  }
+
+  /**
+   * 獲取統計資訊
+   * @returns {Object} 統計資訊
+   */
+  getStatistics () {
+    return {
+      ...this.stats,
+      successRate: this.stats.totalValidations > 0
+        ? this.stats.passedValidations / this.stats.totalValidations
+        : 0,
+      config: this.config,
+      timestamp: Date.now()
+    }
+  }
+
+  /**
+   * 重置統計計數器
+   */
+  resetStatistics () {
+    this.stats = {
+      totalValidations: 0,
+      passedValidations: 0,
+      failedValidations: 0,
+      averageValidationTime: 0,
+      totalValidationTime: 0
+    }
+  }
+
+  /**
+   * 更新配置
+   * @param {Object} newConfig - 新配置
+   */
+  updateConfig (newConfig) {
+    this.config = {
+      ...this.config,
+      ...newConfig
+    }
+  }
+}
+
+// 導出模組
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = ValidationEngine
+}
+
+// 瀏覽器環境支援
+if (typeof window !== 'undefined') {
+  window.ValidationEngine = ValidationEngine
+}

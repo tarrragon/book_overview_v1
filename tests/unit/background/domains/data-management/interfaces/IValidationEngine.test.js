@@ -1,0 +1,261 @@
+/**
+ * IValidationEngine 介面測試
+ *
+ * 測試目標：
+ * - 驗證核心驗證引擎介面契約
+ * - 測試單書驗證、欄位驗證和業務規則驗證
+ * - 確保介面的一致性和可擴展性
+ * - 驗證錯誤處理和驗證結果格式
+ *
+ * @jest-environment jsdom
+ */
+
+describe('IValidationEngine TDD 介面契約測試', () => {
+  let validationEngine
+  let mockPlatformRuleManager
+
+  beforeEach(() => {
+    // Mock IPlatformRuleManager 依賴
+    mockPlatformRuleManager = {
+      getRulesForPlatform: jest.fn(),
+      getPlatformSchema: jest.fn(),
+      isRuleSupported: jest.fn(),
+      getFieldRequirements: jest.fn()
+    }
+
+    // 這裡會實例化 ValidationEngine，目前會失敗因為類別尚未建立
+    const ValidationEngine = require('../../../../../../src/background/domains/data-management/services/ValidationEngine.js')
+    validationEngine = new ValidationEngine({
+      platformRuleManager: mockPlatformRuleManager
+    })
+  })
+
+  describe('🔴 Red 階段：介面契約驗證', () => {
+    test('應該正確實作 IValidationEngine 介面', () => {
+      // Given: ValidationEngine 實例
+
+      // Then: 應該實作所有必要的介面方法
+      expect(typeof validationEngine.validateSingleBook).toBe('function')
+      expect(typeof validationEngine.validateRequiredFields).toBe('function')
+      expect(typeof validationEngine.validateDataTypes).toBe('function')
+      expect(typeof validationEngine.validateBusinessRules).toBe('function')
+      expect(typeof validationEngine.getValidationRules).toBe('function')
+      expect(validationEngine.isInitialized).toBeDefined()
+    })
+
+    test('validateSingleBook() 應該返回標準化的驗證結果', async () => {
+      // Given: 有效的書籍資料
+      const book = {
+        id: 'book_123',
+        title: '測試書籍',
+        authors: ['作者A'],
+        progress: 75,
+        platform: 'READMOO'
+      }
+      const platform = 'READMOO'
+      const source = 'extraction'
+
+      // Mock 平台規則
+      mockPlatformRuleManager.getRulesForPlatform.mockReturnValue({
+        requiredFields: ['id', 'title', 'authors'],
+        dataTypes: {
+          id: 'string',
+          title: 'string',
+          authors: 'array',
+          progress: 'number'
+        },
+        businessRules: {
+          progressRange: [0, 100],
+          titleMinLength: 1
+        }
+      })
+
+      // When: 驗證單本書籍
+      const result = await validationEngine.validateSingleBook(book, platform, source)
+
+      // Then: 應該返回標準格式的驗證結果
+      expect(result).toHaveProperty('isValid')
+      expect(result).toHaveProperty('bookId', 'book_123')
+      expect(result).toHaveProperty('platform', platform)
+      expect(result).toHaveProperty('validationResults')
+      expect(result).toHaveProperty('warnings')
+      expect(result).toHaveProperty('errors')
+      expect(result).toHaveProperty('processingTime')
+      expect(typeof result.isValid).toBe('boolean')
+      expect(Array.isArray(result.warnings)).toBe(true)
+      expect(Array.isArray(result.errors)).toBe(true)
+    })
+
+    test('validateRequiredFields() 應該檢查必填欄位', async () => {
+      // Given: 缺少必填欄位的書籍
+      const validation = {
+        book: {
+          id: 'book_123',
+          title: '測試書籍'
+          // 缺少 authors 欄位
+        },
+        results: {
+          requiredFields: { passed: false, errors: [] }
+        }
+      }
+      const rules = {
+        requiredFields: ['id', 'title', 'authors']
+      }
+
+      // When: 驗證必填欄位
+      await validationEngine.validateRequiredFields(validation, rules)
+
+      // Then: 應該識別缺少的欄位
+      expect(validation.results.requiredFields.passed).toBe(false)
+      expect(validation.results.requiredFields.errors).toContainEqual(
+        expect.objectContaining({
+          type: 'MISSING_REQUIRED_FIELD',
+          field: 'authors'
+        })
+      )
+    })
+
+    test('validateDataTypes() 應該驗證資料類型', async () => {
+      // Given: 有錯誤資料類型的書籍
+      const validation = {
+        book: {
+          id: 'book_123',
+          title: '測試書籍',
+          authors: 'single_author_string', // 應該是陣列
+          progress: '75' // 應該是數字
+        },
+        results: {
+          dataTypes: { passed: false, errors: [] }
+        }
+      }
+      const rules = {
+        dataTypes: {
+          id: 'string',
+          title: 'string',
+          authors: 'array',
+          progress: 'number'
+        }
+      }
+
+      // When: 驗證資料類型
+      await validationEngine.validateDataTypes(validation, rules)
+
+      // Then: 應該識別類型錯誤
+      expect(validation.results.dataTypes.passed).toBe(false)
+      expect(validation.results.dataTypes.errors).toContainEqual(
+        expect.objectContaining({
+          type: 'TYPE_MISMATCH',
+          field: 'authors',
+          expected: 'array',
+          actual: 'string'
+        })
+      )
+      expect(validation.results.dataTypes.errors).toContainEqual(
+        expect.objectContaining({
+          type: 'TYPE_MISMATCH',
+          field: 'progress',
+          expected: 'number',
+          actual: 'string'
+        })
+      )
+    })
+
+    test('validateBusinessRules() 應該執行商業規則驗證', async () => {
+      // Given: 違反商業規則的書籍
+      const validation = {
+        book: {
+          id: 'book_123',
+          title: '', // 太短
+          progress: 150 // 超出範圍
+        },
+        results: {
+          businessRules: { passed: false, errors: [] }
+        }
+      }
+      const rules = {
+        businessRules: {
+          titleMinLength: 1,
+          progressRange: [0, 100]
+        }
+      }
+
+      // When: 驗證商業規則
+      await validationEngine.validateBusinessRules(validation, rules)
+
+      // Then: 應該識別商業規則違反
+      expect(validation.results.businessRules.passed).toBe(false)
+      expect(validation.results.businessRules.errors).toContainEqual(
+        expect.objectContaining({
+          type: 'BUSINESS_RULE_VIOLATION',
+          rule: 'titleMinLength',
+          field: 'title'
+        })
+      )
+      expect(validation.results.businessRules.errors).toContainEqual(
+        expect.objectContaining({
+          type: 'BUSINESS_RULE_VIOLATION',
+          rule: 'progressRange',
+          field: 'progress'
+        })
+      )
+    })
+
+    test('getValidationRules() 應該獲取平台驗證規則', () => {
+      // Given: 平台名稱
+      const platform = 'READMOO'
+      const expectedRules = {
+        requiredFields: ['id', 'title'],
+        dataTypes: { id: 'string' }
+      }
+
+      // Mock 規則管理器
+      mockPlatformRuleManager.getRulesForPlatform.mockReturnValue(expectedRules)
+
+      // When: 獲取驗證規則
+      const rules = validationEngine.getValidationRules(platform)
+
+      // Then: 應該返回平台特定規則
+      expect(mockPlatformRuleManager.getRulesForPlatform).toHaveBeenCalledWith(platform)
+      expect(rules).toEqual(expectedRules)
+    })
+
+    test('應該處理無效輸入和錯誤情況', async () => {
+      // Given: 無效輸入
+      const nullBook = null
+      const emptyPlatform = ''
+      const undefinedSource = undefined
+
+      // When & Then: 應該拋出適當錯誤
+      await expect(
+        validationEngine.validateSingleBook(nullBook, 'READMOO', 'test')
+      ).rejects.toThrow('Invalid book data')
+
+      await expect(
+        validationEngine.validateSingleBook({ id: '1' }, emptyPlatform, 'test')
+      ).rejects.toThrow('Platform is required')
+
+      await expect(
+        validationEngine.validateSingleBook({ id: '1' }, 'READMOO', undefinedSource)
+      ).rejects.toThrow('Source is required')
+    })
+
+    test('應該支援依賴注入配置', () => {
+      // Given: 自訂配置
+      const customConfig = {
+        platformRuleManager: mockPlatformRuleManager,
+        strictMode: true,
+        enableCache: false,
+        validationTimeout: 3000
+      }
+
+      // When: 建立驗證引擎
+      const customEngine = new ValidationEngine(customConfig)
+
+      // Then: 應該使用注入的依賴和配置
+      expect(customEngine.platformRuleManager).toBe(mockPlatformRuleManager)
+      expect(customEngine.config.strictMode).toBe(true)
+      expect(customEngine.config.enableCache).toBe(false)
+      expect(customEngine.config.validationTimeout).toBe(3000)
+    })
+  })
+})
