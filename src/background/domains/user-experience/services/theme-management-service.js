@@ -208,7 +208,7 @@ class ThemeManagementService {
 
       // 計算有效主題
       const newEffectiveTheme = this.calculateEffectiveTheme(theme)
-      
+
       // 如果有效主題發生變化，通知所有提供者
       if (newEffectiveTheme !== this.effectiveTheme) {
         this.effectiveTheme = newEffectiveTheme
@@ -220,8 +220,8 @@ class ThemeManagementService {
 
       // 發送主題變更事件
       if (this.eventBus) {
-        await this.eventBus.emit('UX.THEME.CHANGED', { 
-          theme, 
+        await this.eventBus.emit('UX.THEME.CHANGED', {
+          theme,
           effectiveTheme: this.effectiveTheme,
           systemTheme: this.systemTheme,
           timestamp: Date.now(),
@@ -302,7 +302,7 @@ class ThemeManagementService {
     this.logger.log(`🔌 取消註冊主題提供者: ${providerId}`)
 
     const removed = this.themeProviders.delete(providerId)
-    
+
     if (removed) {
       this.logger.log(`✅ 主題提供者取消註冊完成: ${providerId}`)
     } else {
@@ -362,7 +362,7 @@ class ThemeManagementService {
     try {
       if (typeof window !== 'undefined' && window.matchMedia) {
         const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)')
-        
+
         this.systemThemeListener = (event) => {
           const newSystemTheme = event.matches ? 'dark' : 'light'
           this.handleSystemThemeChange(newSystemTheme)
@@ -388,12 +388,12 @@ class ThemeManagementService {
     // 如果使用者設定為自動模式，更新有效主題
     if (this.currentTheme === 'auto') {
       this.stats.autoSwitches++
-      
+
       const newEffectiveTheme = this.calculateEffectiveTheme(this.currentTheme)
-      
+
       if (newEffectiveTheme !== this.effectiveTheme) {
         this.effectiveTheme = newEffectiveTheme
-        
+
         // 記錄自動主題切換歷史
         this.themeHistory.push({
           fromTheme: this.currentTheme,
@@ -428,7 +428,7 @@ class ThemeManagementService {
     if (theme === 'auto') {
       return this.systemTheme
     }
-    
+
     return this.isValidTheme(theme) ? theme : 'light'
   }
 
@@ -461,7 +461,7 @@ class ThemeManagementService {
    */
   async applyInitialTheme () {
     this.effectiveTheme = this.calculateEffectiveTheme(this.currentTheme)
-    
+
     if (this.themeProviders.size > 0) {
       await this.notifyThemeProviders(this.effectiveTheme)
     }
@@ -519,7 +519,7 @@ class ThemeManagementService {
     // 監聽主題查詢請求
     await this.eventBus.on('UX.THEME.GET.REQUEST', async (event) => {
       const currentTheme = this.getCurrentTheme()
-      
+
       if (this.eventBus) {
         await this.eventBus.emit('UX.THEME.GET.RESPONSE', {
           requestId: event.data?.requestId,

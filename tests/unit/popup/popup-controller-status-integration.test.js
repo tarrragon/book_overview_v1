@@ -1,11 +1,11 @@
 /**
  * PopupController 狀態管理整合測試
- * 
+ *
  * 測試目標：
  * - 驗證 PopupController 與真實 PopupStatusManager 的整合
  * - 確保狀態更新正確流動到 UI 組件
  * - 測試狀態管理的錯誤處理和驗證
- * 
+ *
  * @jest-environment jsdom
  */
 
@@ -80,14 +80,14 @@ describe('PopupController 狀態管理整合測試', () => {
     test('應該能夠整合真實的 PopupStatusManager', async () => {
       // Given: PopupController 實例
       const controller = new PopupController(document)
-      
+
       // When: 初始化控制器
       await controller.initialize()
-      
+
       // Then: 狀態管理器應該是真實的 PopupStatusManager 實例
       const statusManager = controller.getComponent('status')
       expect(statusManager).toBeInstanceOf(PopupStatusManager)
-      
+
       // 且應該有完整的狀態管理功能
       expect(typeof statusManager.updateStatus).toBe('function')
       expect(typeof statusManager.getCurrentStatus).toBe('function')
@@ -97,17 +97,17 @@ describe('PopupController 狀態管理整合測試', () => {
     test('應該正確注入 UI 組件到 StatusManager', async () => {
       // Given: PopupController 實例
       const controller = new PopupController(document)
-      
+
       // When: 初始化
       await controller.initialize()
-      
+
       // Then: StatusManager 應該有正確的 UI 組件依賴
       const statusManager = controller.getComponent('status')
       const uiManager = controller.getComponent('ui')
-      
+
       expect(statusManager).toBeDefined()
       expect(uiManager).toBeDefined()
-      
+
       // StatusManager 應該能夠通過 UI 組件更新狀態
       expect(statusManager.uiComponents).toBeDefined()
     })
@@ -116,18 +116,18 @@ describe('PopupController 狀態管理整合測試', () => {
       // Given: 已初始化的控制器
       const controller = new PopupController(document)
       await controller.initialize()
-      
+
       const statusManager = controller.getComponent('status')
-      
+
       // When: 通過 StatusManager 更新狀態
       const testStatus = {
         type: 'ready',
         text: '就緒',
         info: '可以開始提取書庫資料'
       }
-      
+
       statusManager.updateStatus(testStatus)
-      
+
       // Then: UI 應該正確更新
       expect(document.getElementById('status-text').textContent).toBe('就緒')
       expect(document.getElementById('status-info').textContent).toBe('可以開始提取書庫資料')
@@ -138,15 +138,15 @@ describe('PopupController 狀態管理整合測試', () => {
       // Given: 已初始化的控制器
       const controller = new PopupController(document)
       await controller.initialize()
-      
+
       const statusManager = controller.getComponent('status')
-      
+
       // When: 嘗試使用無效狀態類型
       const invalidStatus = {
         type: 'invalid_type',
         text: '無效狀態'
       }
-      
+
       // Then: 應該拋出錯誤
       expect(() => {
         statusManager.updateStatus(invalidStatus)
@@ -157,18 +157,18 @@ describe('PopupController 狀態管理整合測試', () => {
       // Given: 已初始化的控制器
       const controller = new PopupController(document)
       await controller.initialize()
-      
+
       const statusManager = controller.getComponent('status')
-      
+
       // When: 從背景同步狀態
       const backgroundStatus = {
         type: 'extracting',
         text: '正在提取',
         info: '已處理 50 本書籍'
       }
-      
+
       statusManager.syncFromBackground(backgroundStatus)
-      
+
       // Then: 狀態應該正確同步
       const currentStatus = statusManager.getCurrentStatus()
       expect(currentStatus.type).toBe('extracting')
@@ -180,15 +180,15 @@ describe('PopupController 狀態管理整合測試', () => {
       // Given: 已初始化的控制器
       const controller = new PopupController(document)
       await controller.initialize()
-      
+
       const statusManager = controller.getComponent('status')
-      
+
       // When: 嘗試使用缺失必要欄位的狀態
       const incompleteStatus = {
         type: 'ready'
         // 缺少 text 欄位
       }
-      
+
       // Then: 應該拋出錯誤
       expect(() => {
         statusManager.updateStatus(incompleteStatus)
@@ -199,22 +199,22 @@ describe('PopupController 狀態管理整合測試', () => {
       // Given: 已初始化的控制器
       const controller = new PopupController(document)
       await controller.initialize()
-      
+
       const statusManager = controller.getComponent('status')
-      
+
       // When: 更新狀態
       const originalStatus = {
         type: 'ready',
         text: '就緒',
         info: '原始資訊'
       }
-      
+
       statusManager.updateStatus(originalStatus)
       const retrievedStatus = statusManager.getCurrentStatus()
-      
+
       // 修改檢索到的狀態
       retrievedStatus.text = '已修改'
-      
+
       // Then: 內部狀態不應該受到影響
       const currentStatus = statusManager.getCurrentStatus()
       expect(currentStatus.text).toBe('就緒')
@@ -227,19 +227,19 @@ describe('PopupController 狀態管理整合測試', () => {
       // Given: 已初始化的控制器
       const controller = new PopupController(document)
       await controller.initialize()
-      
+
       const statusManager = controller.getComponent('status')
-      
+
       // Mock UI 組件的 showError 方法
       const mockShowError = jest.fn()
       statusManager.uiComponents = {
         ...statusManager.uiComponents,
         showError: mockShowError
       }
-      
+
       // When: 處理同步失敗
       statusManager.handleSyncFailure('網路連線中斷')
-      
+
       // Then: 應該調用錯誤顯示
       expect(mockShowError).toHaveBeenCalledWith({
         message: '與背景服務同步失敗: 網路連線中斷',

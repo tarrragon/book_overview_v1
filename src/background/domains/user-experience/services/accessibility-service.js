@@ -342,8 +342,9 @@ class AccessibilityService {
 
       // 計算合規分數
       const totalRules = Object.keys(this.wcagRules).length
-      complianceReport.score = totalRules > 0 ? 
-        (complianceReport.passed / totalRules) * 100 : 0
+      complianceReport.score = totalRules > 0
+        ? (complianceReport.passed / totalRules) * 100
+        : 0
 
       // 更新違規統計
       this.stats.violationsFound += complianceReport.violations.length
@@ -380,9 +381,9 @@ class AccessibilityService {
       switch (ruleId) {
         case 'contrast':
           result.passed = await this.checkContrastCompliance()
-          result.details = result.passed ? 
-            '對比度符合 WCAG AA 標準' : 
-            '對比度不足，建議啟用高對比度模式'
+          result.details = result.passed
+            ? '對比度符合 WCAG AA 標準'
+            : '對比度不足，建議啟用高對比度模式'
           if (!result.passed) {
             result.suggestions.push('啟用高對比度模式')
           }
@@ -390,9 +391,9 @@ class AccessibilityService {
 
         case 'textSize':
           result.passed = await this.checkTextSizeCompliance()
-          result.details = result.passed ? 
-            '文字大小可適當縮放' : 
-            '文字縮放功能不足'
+          result.details = result.passed
+            ? '文字大小可適當縮放'
+            : '文字縮放功能不足'
           if (!result.passed) {
             result.suggestions.push('啟用大文字模式')
           }
@@ -400,9 +401,9 @@ class AccessibilityService {
 
         case 'keyboardAccess':
           result.passed = this.accessibilitySettings.keyboardNavigation
-          result.details = result.passed ? 
-            '鍵盤導航功能已啟用' : 
-            '鍵盤導航功能未啟用'
+          result.details = result.passed
+            ? '鍵盤導航功能已啟用'
+            : '鍵盤導航功能未啟用'
           if (!result.passed) {
             result.suggestions.push('啟用鍵盤導航')
           }
@@ -410,9 +411,9 @@ class AccessibilityService {
 
         case 'focusVisible':
           result.passed = this.accessibilitySettings.focusIndicator
-          result.details = result.passed ? 
-            '焦點指示器已啟用' : 
-            '焦點指示器未啟用'
+          result.details = result.passed
+            ? '焦點指示器已啟用'
+            : '焦點指示器未啟用'
           if (!result.passed) {
             result.suggestions.push('啟用焦點指示器')
           }
@@ -715,7 +716,7 @@ class AccessibilityService {
   async performInitialComplianceCheck () {
     try {
       const report = await this.validateAccessibilityCompliance()
-      
+
       if (report.violations.length > 0) {
         this.logger.warn(`⚠️ 發現 ${report.violations.length} 個無障礙合規問題`)
       } else {
@@ -771,7 +772,7 @@ class AccessibilityService {
     // 監聽合規檢查請求
     await this.eventBus.on('UX.ACCESSIBILITY.COMPLIANCE.CHECK.REQUEST', async (event) => {
       const report = await this.validateAccessibilityCompliance()
-      
+
       if (this.eventBus) {
         await this.eventBus.emit('UX.ACCESSIBILITY.COMPLIANCE.CHECK.RESPONSE', {
           requestId: event.data?.requestId,
@@ -846,8 +847,9 @@ class AccessibilityService {
         violationsFound: this.stats.violationsFound,
         violationsFixed: this.stats.violationsFixed,
         enabledSettings: `${enabledCount}/${totalCount}`,
-        complianceScore: this.stats.complianceChecks > 0 ? 
-          ((this.stats.complianceChecks - this.stats.violationsFound) / this.stats.complianceChecks * 100).toFixed(1) : 'N/A'
+        complianceScore: this.stats.complianceChecks > 0
+          ? ((this.stats.complianceChecks - this.stats.violationsFound) / this.stats.complianceChecks * 100).toFixed(1)
+          : 'N/A'
       }
     }
   }

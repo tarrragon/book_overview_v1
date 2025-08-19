@@ -1,6 +1,6 @@
 /**
  * PopupProgressManager 單元測試
- * 
+ *
  * 負責測試：
  * - 進度顯示和更新功能
  * - 進度條視覺效果管理
@@ -77,11 +77,11 @@ describe('PopupProgressManager 核心功能', () => {
 
       // When: 測試邊界值
       const testCases = [
-        { input: -10, expected: 0 },   // 負數應該被限制為 0
-        { input: 0, expected: 0 },     // 最小值
-        { input: 50, expected: 50 },   // 正常值
+        { input: -10, expected: 0 }, // 負數應該被限制為 0
+        { input: 0, expected: 0 }, // 最小值
+        { input: 50, expected: 50 }, // 正常值
         { input: 100, expected: 100 }, // 最大值
-        { input: 150, expected: 100 }  // 超過 100 應該被限制
+        { input: 150, expected: 100 } // 超過 100 應該被限制
       ]
 
       testCases.forEach(({ input, expected }) => {
@@ -171,7 +171,7 @@ describe('PopupProgressManager 核心功能', () => {
         expect(() => {
           progressManager.updateProgress({ percentage: 50, status, text: `測試 ${status}` })
         }).not.toThrow()
-        
+
         expect(progressManager.getCurrentProgress().status).toBe(status)
       })
     })
@@ -220,7 +220,7 @@ describe('PopupProgressManager 核心功能', () => {
       // Given: 進度管理器，模擬 UI 組件錯誤
       const PopupProgressManager = require('../../../src/popup/components/popup-progress-manager.js')
       progressManager = new PopupProgressManager(mockUIComponents)
-      
+
       mockUIComponents.updateProgress.mockImplementation(() => {
         throw new Error('UI update failed')
       })

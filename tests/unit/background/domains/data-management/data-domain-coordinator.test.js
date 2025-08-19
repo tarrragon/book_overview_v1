@@ -22,7 +22,7 @@ class MockEventBus {
 
   async emit (eventType, data) {
     this.emittedEvents.push({ eventType, data, timestamp: Date.now() })
-    
+
     // 觸發匹配的事件監聽器（包括萬用字元匹配）
     for (const [pattern, handlers] of this.events.entries()) {
       if (this.matchEventPattern(pattern, eventType)) {
@@ -42,14 +42,14 @@ class MockEventBus {
     if (pattern === eventType) {
       return true
     }
-    
+
     // 萬用字元匹配（支援 * 萬用字元）
     if (pattern.includes('*')) {
       const regexPattern = pattern.replace(/\*/g, '[^.]*')
       const regex = new RegExp(`^${regexPattern}$`)
       return regex.test(eventType)
     }
-    
+
     return false
   }
 
@@ -208,7 +208,7 @@ describe('DataDomainCoordinator', () => {
 
       // 檢查事件監聽器是否已註冊
       expect(mockEventBus.events.size).toBeGreaterThan(0)
-      
+
       // 檢查特定事件監聽器
       expect(mockEventBus.events.has('PLATFORM.*.DETECTED')).toBe(true)
       expect(mockEventBus.events.has('EXTRACTION.*.COMPLETED')).toBe(true)
@@ -404,7 +404,7 @@ describe('DataDomainCoordinator', () => {
 
         // 由於衝突解決服務尚未實作，應該記錄警告日誌
         const warnings = mockLogger.getLogsByLevel('warn')
-        const conflictWarnings = warnings.filter(log => 
+        const conflictWarnings = warnings.filter(log =>
           log.message.includes('衝突解決服務尚未實作')
         )
         expect(conflictWarnings.length).toBeGreaterThan(0)
@@ -421,7 +421,7 @@ describe('DataDomainCoordinator', () => {
 
         // 由於備份恢復服務尚未實作，應該記錄警告日誌
         const warnings = mockLogger.getLogsByLevel('warn')
-        const recoveryWarnings = warnings.filter(log => 
+        const recoveryWarnings = warnings.filter(log =>
           log.message.includes('備份恢復服務尚未實作')
         )
         expect(recoveryWarnings.length).toBeGreaterThan(0)
@@ -437,7 +437,7 @@ describe('DataDomainCoordinator', () => {
     test('should generate unique operation IDs', () => {
       const id1 = coordinator.generateOperationId('TEST')
       const id2 = coordinator.generateOperationId('TEST')
-      
+
       expect(id1).toBeDefined()
       expect(id2).toBeDefined()
       expect(id1).not.toBe(id2)
@@ -447,7 +447,7 @@ describe('DataDomainCoordinator', () => {
     test('should generate unique sync IDs', () => {
       const syncId1 = coordinator.generateSyncId()
       const syncId2 = coordinator.generateSyncId()
-      
+
       expect(syncId1).toBeDefined()
       expect(syncId2).toBeDefined()
       expect(syncId1).not.toBe(syncId2)
@@ -456,7 +456,7 @@ describe('DataDomainCoordinator', () => {
 
     test('should complete operations correctly', () => {
       const operationId = coordinator.generateOperationId('TEST')
-      
+
       // 新增操作
       coordinator.activeOperations.set(operationId, {
         type: 'TEST_OPERATION',
@@ -475,7 +475,7 @@ describe('DataDomainCoordinator', () => {
 
     test('should complete operations with error', () => {
       const operationId = coordinator.generateOperationId('TEST')
-      
+
       coordinator.activeOperations.set(operationId, {
         type: 'TEST_OPERATION',
         startTime: Date.now(),
@@ -617,7 +617,7 @@ describe('DataDomainCoordinator', () => {
 
       // 創建一個會導致錯誤的模擬方法
       const originalHandleExtraction = coordinator.handleExtractionCompleted
-      coordinator.handleExtractionCompleted = async function(event) {
+      coordinator.handleExtractionCompleted = async function (event) {
         throw new Error('Simulated processing error')
       }
 
@@ -653,7 +653,7 @@ describe('DataDomainCoordinator', () => {
 
     test('should call validation service methods', async () => {
       const platform = 'READMOO'
-      
+
       // 模擬平台檢測事件，這應該調用驗證服務的方法
       await mockEventBus.emit('PLATFORM.READMOO.DETECTED', {
         platform,
@@ -677,7 +677,7 @@ describe('DataDomainCoordinator Performance', () => {
   beforeEach(() => {
     mockEventBus = new MockEventBus()
     mockLogger = new MockLogger()
-    
+
     coordinator = new DataDomainCoordinator(mockEventBus, {
       logger: mockLogger,
       config: { enablePerformanceMonitoring: false }

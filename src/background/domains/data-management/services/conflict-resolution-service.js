@@ -5,24 +5,24 @@
  * @deprecated 此檔案已廢棄，需重新設計為 Readmoo 資料品質服務
  *
  * 🚨 **v1.0 重構標記 - 2025-08-16**
- * 
+ *
  * **暫時擱置原因**：
  * - 衝突檢測與解決機制在多平台環境中是必要的
  * - 但 v1.0 階段只有 Readmoo 單一平台，衝突場景較少
  * - 1,353 行程式碼包含過多跨平台衝突處理邏輯，需要重構
- * 
+ *
  * **TODO - v1.0 重構計劃**：
  * - [ ] 保留衝突檢測抽象架構（適用於任何平台）
  * - [ ] 重構為：抽象衝突檢測介面 + Readmoo 衝突處理實作
  * - [ ] 專注於 Readmoo 資料品質檢查和一致性驗證
  * - [ ] 檔案拆分：核心檢測邏輯 + Readmoo 實作（各 <300行）
- * 
+ *
  * **可保留的核心概念**：
  * - 資料衝突檢測抽象介面設計
  * - 多層次驗證機制（進度、標題、時間戳等）
  * - 智能解決策略引擎
  * - 品質指標監控和統計分析
- * 
+ *
  * **重構後架構**：
  * - `IConflictDetector` - 定義衝突檢測介面（抽象層）
  * - `ReadmooConflictDetector` - Readmoo 具體實作
@@ -290,17 +290,17 @@ class ConflictResolutionService extends BaseModule {
       applicable: (conflict) => true, // 適用於所有衝突
       confidence: 0.5,
       execute: (conflict) => {
-        const isComplex = conflict.severity === 'HIGH' || conflict.confidence < 0.5 || 
+        const isComplex = conflict.severity === 'HIGH' || conflict.confidence < 0.5 ||
                          (conflict.details && Object.keys(conflict.details).length > 3)
-        
-        const reason = isComplex 
-          ? '複雜衝突需要人工審核決策' 
+
+        const reason = isComplex
+          ? '複雜衝突需要人工審核決策'
           : '此衝突需要手動處理'
-        
+
         return {
           requiresManualReview: true,
           reasoning: '衝突複雜度較高，建議人工審核',
-          reason: reason, // 測試期望的屬性
+          reason, // 測試期望的屬性
           recommendedActions: this.generateManualReviewRecommendations(conflict)
         }
       }
@@ -433,10 +433,10 @@ class ConflictResolutionService extends BaseModule {
 
             // 為 MANUAL_REVIEW 策略添加 reason 屬性
             if (strategyName === 'MANUAL_REVIEW') {
-              const isComplex = conflict.severity === 'HIGH' || conflict.confidence < 0.5 || 
+              const isComplex = conflict.severity === 'HIGH' || conflict.confidence < 0.5 ||
                                (conflict.details && Object.keys(conflict.details).length > 3)
-              recommendation.reason = isComplex 
-                ? '複雜衝突需要人工審核決策' 
+              recommendation.reason = isComplex
+                ? '複雜衝突需要人工審核決策'
                 : '此衝突需要手動處理'
             }
 
@@ -661,7 +661,7 @@ class ConflictResolutionService extends BaseModule {
   async executeBatchResolution (conflicts, options = {}) {
     const batchId = this.generateBatchId()
     const startTime = Date.now()
-    
+
     const results = {
       batchId,
       totalProcessed: conflicts.length,
@@ -692,7 +692,7 @@ class ConflictResolutionService extends BaseModule {
 
     for (let i = 0; i < conflicts.length; i++) {
       const conflict = conflicts[i]
-      
+
       // 檢查是否被取消
       const batch = this.batchOperations.get(batchId)
       if (batch && batch.cancelled) {
@@ -744,7 +744,7 @@ class ConflictResolutionService extends BaseModule {
     const endTime = Date.now()
     const duration = endTime - startTime
     results.statistics.avgProcessingTime = duration / conflicts.length
-    
+
     const batchOp = this.batchOperations.get(batchId)
     if (batchOp) {
       batchOp.status = results.cancelled ? 'CANCELLED' : 'COMPLETED'
@@ -972,7 +972,7 @@ class ConflictResolutionService extends BaseModule {
 
   generateManualReviewRecommendations (conflict) {
     const recommendations = []
-    
+
     switch (conflict.type) {
       case 'PROGRESS_MISMATCH':
         recommendations.push(
@@ -995,12 +995,12 @@ class ConflictResolutionService extends BaseModule {
           '選擇最符合實際情況的數值'
         )
     }
-    
+
     // 加入複雜衝突的額外建議
     if (conflict.severity === 'HIGH' || conflict.confidence < 0.5) {
       recommendations.unshift('此為複雜衝突，建議謹慎處理')
     }
-    
+
     return recommendations
   }
 
@@ -1022,7 +1022,7 @@ class ConflictResolutionService extends BaseModule {
         this.performanceMetrics.totalDetectionTime = 0
       }
       this.performanceMetrics.totalDetectionTime += detectionTime
-      
+
       // 計算平均檢測時間（同步更新兩個屬性以保持相容性）
       const avgTime = this.performanceMetrics.totalDetectionTime / this.performanceMetrics.conflictsDetected
       this.performanceMetrics.avgDetectionTime = avgTime
@@ -1032,8 +1032,8 @@ class ConflictResolutionService extends BaseModule {
 
   updateStrategyMetrics (strategy, success) {
     if (!this.performanceMetrics.strategySuccessRates.has(strategy)) {
-      this.performanceMetrics.strategySuccessRates.set(strategy, { 
-        attempts: 0, 
+      this.performanceMetrics.strategySuccessRates.set(strategy, {
+        attempts: 0,
         successes: 0,
         userSatisfaction: {
           averageRating: 0,
@@ -1100,7 +1100,7 @@ class ConflictResolutionService extends BaseModule {
       batch.cancelled = true
       batch.status = 'CANCELLED'
       batch.endTime = Date.now()
-      
+
       // 發送取消事件
       await this.emitEvent('DATA.CONFLICT.BATCH.CANCELLED', {
         batchId,
@@ -1108,10 +1108,10 @@ class ConflictResolutionService extends BaseModule {
         totalItems: batch.totalItems || 0,
         reason: 'USER_REQUESTED'
       })
-      
+
       return { success: true, batchId }
     }
-    
+
     return { success: false, error: 'Batch not found' }
   }
 
@@ -1121,9 +1121,9 @@ class ConflictResolutionService extends BaseModule {
   getStrategyMetrics (strategy) {
     const metrics = this.performanceMetrics.strategySuccessRates.get(strategy)
     if (!metrics) {
-      return { 
-        successRate: 0, 
-        attempts: 0, 
+      return {
+        successRate: 0,
+        attempts: 0,
         successes: 0,
         userSatisfaction: {
           averageRating: 0,
@@ -1165,10 +1165,10 @@ class ConflictResolutionService extends BaseModule {
     if (!this.batchOperations.has(batchId)) {
       return null
     }
-    
+
     const batch = this.batchOperations.get(batchId)
     const duration = (batch.endTime || Date.now()) - batch.startTime
-    
+
     return {
       batchId,
       status: batch.status,
@@ -1188,14 +1188,14 @@ class ConflictResolutionService extends BaseModule {
     if (!this.resolutionHistory.has(resolutionId)) {
       return { success: false, error: 'Resolution not found' }
     }
-    
+
     const resolution = this.resolutionHistory.get(resolutionId)
     resolution.userSatisfaction = {
       rating: satisfactionRating, // 1-5 評分
       feedback,
       recordedAt: new Date().toISOString()
     }
-    
+
     // 更新策略滿意度指標
     if (resolution.strategy) {
       const strategyMetrics = this.performanceMetrics.strategySuccessRates.get(resolution.strategy)
@@ -1206,7 +1206,7 @@ class ConflictResolutionService extends BaseModule {
         satisfaction.averageRating = satisfaction.ratingSum / satisfaction.totalRatings
       }
     }
-    
+
     // 發送滿意度事件
     await this.emitEvent('DATA.CONFLICT.USER.SATISFACTION', {
       resolutionId,
@@ -1214,7 +1214,7 @@ class ConflictResolutionService extends BaseModule {
       strategy: resolution.strategy,
       conflictType: resolution.conflictType
     })
-    
+
     return { success: true }
   }
 
@@ -1354,14 +1354,14 @@ class ConflictResolutionService extends BaseModule {
 
   async generatePerformanceReport () {
     const totalConflicts = this.performanceMetrics.conflictsDetected
-    const resolutionRate = this.performanceMetrics.resolutionsAttempted > 0 
-      ? this.performanceMetrics.successfulResolutions / this.performanceMetrics.resolutionsAttempted 
+    const resolutionRate = this.performanceMetrics.resolutionsAttempted > 0
+      ? this.performanceMetrics.successfulResolutions / this.performanceMetrics.resolutionsAttempted
       : 0
-    
+
     return {
       timeRange: { start: new Date().toISOString(), end: new Date().toISOString() },
       summary: {
-        totalConflicts: totalConflicts,
+        totalConflicts,
         resolutionRate: Math.round(resolutionRate * 100) / 100 // 四捨五入到小數點後兩位
       },
       recommendations: ['增加自動解決策略', '優化檢測演算法'],
@@ -1375,4 +1375,3 @@ class ConflictResolutionService extends BaseModule {
 }
 
 module.exports = ConflictResolutionService
-

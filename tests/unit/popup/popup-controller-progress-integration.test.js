@@ -1,11 +1,11 @@
 /**
  * PopupController 進度管理整合測試
- * 
+ *
  * 測試目標：
  * - 驗證 PopupController 與真實 PopupProgressManager 的整合
  * - 確保進度更新正確流動到 UI 組件
  * - 測試進度管理的生命週期和錯誤處理
- * 
+ *
  * @jest-environment jsdom
  */
 
@@ -77,14 +77,14 @@ describe('PopupController 進度管理整合測試', () => {
     test('應該能夠整合真實的 PopupProgressManager', async () => {
       // Given: PopupController 實例
       const controller = new PopupController(document)
-      
+
       // When: 初始化控制器
       await controller.initialize()
-      
+
       // Then: 進度管理器應該是真實的 PopupProgressManager 實例
       const progressManager = controller.getComponent('progress')
       expect(progressManager).toBeInstanceOf(PopupProgressManager)
-      
+
       // 且應該有完整的進度管理功能
       expect(typeof progressManager.updateProgress).toBe('function')
       expect(typeof progressManager.startProgress).toBe('function')
@@ -96,17 +96,17 @@ describe('PopupController 進度管理整合測試', () => {
     test('應該正確注入 UI 組件到 ProgressManager', async () => {
       // Given: PopupController 實例
       const controller = new PopupController(document)
-      
+
       // When: 初始化
       await controller.initialize()
-      
+
       // Then: ProgressManager 應該有正確的 UI 組件依賴
       const progressManager = controller.getComponent('progress')
       const uiManager = controller.getComponent('ui')
-      
+
       expect(progressManager).toBeDefined()
       expect(uiManager).toBeDefined()
-      
+
       // ProgressManager 應該能夠通過 UI 組件更新進度
       expect(progressManager.uiComponents).toBeDefined()
     })
@@ -115,18 +115,18 @@ describe('PopupController 進度管理整合測試', () => {
       // Given: 已初始化的控制器
       const controller = new PopupController(document)
       await controller.initialize()
-      
+
       const progressManager = controller.getComponent('progress')
-      
+
       // When: 通過 ProgressManager 更新進度
       const testProgress = {
         percentage: 65,
         status: 'extracting',
         text: '正在提取第 65 本書籍'
       }
-      
+
       progressManager.updateProgress(testProgress)
-      
+
       // Then: UI 應該正確更新
       expect(document.getElementById('progress-bar').style.width).toBe('65%')
       expect(document.getElementById('progress-text').textContent).toBe('正在提取第 65 本書籍')
@@ -137,22 +137,22 @@ describe('PopupController 進度管理整合測試', () => {
       // Given: 已初始化的控制器
       const controller = new PopupController(document)
       await controller.initialize()
-      
+
       const progressManager = controller.getComponent('progress')
-      
+
       // When: 嘗試使用超出範圍的百分比
       const invalidProgress = {
         percentage: 150, // 超過 100
         status: 'extracting',
         text: '測試無效百分比'
       }
-      
+
       progressManager.updateProgress(invalidProgress)
-      
+
       // Then: 百分比應該被限制在 100
       expect(document.getElementById('progress-bar').style.width).toBe('100%')
       expect(document.getElementById('progress-percentage').textContent).toBe('100%')
-      
+
       const currentProgress = progressManager.getCurrentProgress()
       expect(currentProgress.percentage).toBe(100)
     })
@@ -161,22 +161,22 @@ describe('PopupController 進度管理整合測試', () => {
       // Given: 已初始化的控制器
       const controller = new PopupController(document)
       await controller.initialize()
-      
+
       const progressManager = controller.getComponent('progress')
-      
+
       // When: 嘗試使用負數百分比
       const negativeProgress = {
         percentage: -25,
         status: 'starting',
         text: '測試負數百分比'
       }
-      
+
       progressManager.updateProgress(negativeProgress)
-      
+
       // Then: 百分比應該被限制在 0
       expect(document.getElementById('progress-bar').style.width).toBe('0%')
       expect(document.getElementById('progress-percentage').textContent).toBe('0%')
-      
+
       const currentProgress = progressManager.getCurrentProgress()
       expect(currentProgress.percentage).toBe(0)
     })
@@ -185,16 +185,16 @@ describe('PopupController 進度管理整合測試', () => {
       // Given: 已初始化的控制器
       const controller = new PopupController(document)
       await controller.initialize()
-      
+
       const progressManager = controller.getComponent('progress')
-      
+
       // When: 嘗試使用無效進度狀態
       const invalidProgress = {
         percentage: 50,
         status: 'invalid_status',
         text: '無效狀態'
       }
-      
+
       // Then: 應該拋出錯誤
       expect(() => {
         progressManager.updateProgress(invalidProgress)
@@ -205,15 +205,15 @@ describe('PopupController 進度管理整合測試', () => {
       // Given: 已初始化的控制器
       const controller = new PopupController(document)
       await controller.initialize()
-      
+
       const progressManager = controller.getComponent('progress')
-      
+
       // When: 嘗試使用缺失必要欄位的進度資料
       const incompleteProgress = {
         percentage: 50
         // 缺少 status 欄位
       }
-      
+
       // Then: 應該拋出錯誤
       expect(() => {
         progressManager.updateProgress(incompleteProgress)
@@ -224,27 +224,27 @@ describe('PopupController 進度管理整合測試', () => {
       // Given: 已初始化的控制器
       const controller = new PopupController(document)
       await controller.initialize()
-      
+
       const progressManager = controller.getComponent('progress')
-      
+
       // When: 開始進度
       progressManager.startProgress({ estimatedTotal: 100 })
-      
+
       // Then: 進度應該正確初始化
       let currentProgress = progressManager.getCurrentProgress()
       expect(currentProgress.percentage).toBe(0)
       expect(currentProgress.status).toBe('starting')
       expect(currentProgress.isVisible).toBe(true)
       expect(currentProgress.estimatedTotal).toBe(100)
-      
+
       // When: 完成進度
-      progressManager.completeProgress({ 
+      progressManager.completeProgress({
         totalProcessed: 95,
         successCount: 90,
         failureCount: 5,
         duration: 45000
       })
-      
+
       // Then: 進度應該正確完成
       currentProgress = progressManager.getCurrentProgress()
       expect(currentProgress.percentage).toBe(100)
@@ -257,14 +257,14 @@ describe('PopupController 進度管理整合測試', () => {
       // Given: 已初始化的控制器
       const controller = new PopupController(document)
       await controller.initialize()
-      
+
       const progressManager = controller.getComponent('progress')
-      
+
       // When: 開始然後取消進度
       progressManager.startProgress()
       progressManager.updateProgress({ percentage: 30, status: 'extracting', text: '進行中' })
       progressManager.cancelProgress('使用者取消')
-      
+
       // Then: 進度應該正確取消
       const currentProgress = progressManager.getCurrentProgress()
       expect(currentProgress.status).toBe('cancelled')
@@ -276,23 +276,23 @@ describe('PopupController 進度管理整合測試', () => {
       // Given: 已初始化的控制器
       const controller = new PopupController(document)
       await controller.initialize()
-      
+
       const progressManager = controller.getComponent('progress')
-      
+
       // When: 更新進度
       const originalProgress = {
         percentage: 45,
         status: 'extracting',
         text: '原始進度'
       }
-      
+
       progressManager.updateProgress(originalProgress)
       const retrievedProgress = progressManager.getCurrentProgress()
-      
+
       // 修改檢索到的進度
       retrievedProgress.percentage = 999
       retrievedProgress.text = '已修改'
-      
+
       // Then: 內部狀態不應該受到影響
       const currentProgress = progressManager.getCurrentProgress()
       expect(currentProgress.percentage).toBe(45)
@@ -306,9 +306,9 @@ describe('PopupController 進度管理整合測試', () => {
       // Given: 已初始化的控制器
       const controller = new PopupController(document)
       await controller.initialize()
-      
+
       const progressManager = controller.getComponent('progress')
-      
+
       // Mock UI 組件的 updateProgress 方法拋出錯誤
       const mockShowError = jest.fn()
       progressManager.uiComponents = {
@@ -318,22 +318,22 @@ describe('PopupController 進度管理整合測試', () => {
         }),
         showError: mockShowError
       }
-      
+
       // When: 嘗試更新進度
       const testProgress = {
         percentage: 50,
         status: 'extracting',
         text: '測試錯誤處理'
       }
-      
+
       progressManager.updateProgress(testProgress)
-      
+
       // Then: 應該調用錯誤顯示
       expect(mockShowError).toHaveBeenCalledWith({
         message: 'Progress update failed: DOM 更新失敗',
         type: 'ui_error'
       })
-      
+
       // 但內部狀態應該正確更新
       const currentProgress = progressManager.getCurrentProgress()
       expect(currentProgress.percentage).toBe(50)

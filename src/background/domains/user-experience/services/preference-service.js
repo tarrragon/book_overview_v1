@@ -212,7 +212,7 @@ class PreferenceService {
       // 檢查預設偏好
       if (this.defaultPreferences.has(key)) {
         const defaultVal = this.defaultPreferences.get(key)
-        
+
         // 如果沒有設定過，使用預設值並保存
         await this.setPreference(key, defaultVal)
         return defaultVal
@@ -269,7 +269,7 @@ class PreferenceService {
         }
 
         const oldValue = this.preferences.get(key)
-        
+
         // 記錄重置歷史
         this.preferenceHistory.push({
           key,
@@ -331,7 +331,7 @@ class PreferenceService {
     const subscribers = this.preferenceSubscribers.get(key)
     if (subscribers) {
       subscribers.delete(callback)
-      
+
       // 如果沒有訂閱者了，移除該鍵
       if (subscribers.size === 0) {
         this.preferenceSubscribers.delete(key)
@@ -359,7 +359,7 @@ class PreferenceService {
     try {
       if (this.storageService) {
         const userPreferences = await this.storageService.get('user.preferences') || {}
-        
+
         for (const [key, value] of Object.entries(userPreferences)) {
           // 驗證並設定使用者偏好
           try {
@@ -389,7 +389,7 @@ class PreferenceService {
       } catch (error) {
         this.logger.warn(`⚠️ 偏好驗證失敗: ${key}`, error)
         invalidCount++
-        
+
         // 重置為預設值
         if (this.defaultPreferences.has(key)) {
           this.preferences.set(key, this.defaultPreferences.get(key))
@@ -411,7 +411,7 @@ class PreferenceService {
    */
   async validatePreference (key, value) {
     const schema = this.preferenceSchema.get(key)
-    
+
     if (!schema) {
       throw new Error(`未知的偏好鍵: ${key}`)
     }
@@ -452,13 +452,13 @@ class PreferenceService {
       if (this.storageService) {
         // 獲取當前所有使用者偏好
         const userPreferences = await this.storageService.get('user.preferences') || {}
-        
+
         // 更新特定偏好
         userPreferences[key] = value
-        
+
         // 保存回存儲
         await this.storageService.set('user.preferences', userPreferences)
-        
+
         this.logger.log(`💾 偏好已持久化: ${key}`)
       }
     } catch (error) {
@@ -482,7 +482,7 @@ class PreferenceService {
    */
   async notifyPreferenceSubscribers (key, newValue, oldValue) {
     const subscribers = this.preferenceSubscribers.get(key)
-    
+
     if (subscribers && subscribers.size > 0) {
       this.logger.log(`📢 通知偏好訂閱者: ${key} (${subscribers.size} 個)`)
 
@@ -507,7 +507,7 @@ class PreferenceService {
     if (key.startsWith('extraction.')) return 'extraction'
     if (key.startsWith('notification.')) return 'notification'
     if (key.startsWith('accessibility.')) return 'accessibility'
-    
+
     return 'advanced'
   }
 
@@ -519,35 +519,35 @@ class PreferenceService {
       // 主題與外觀
       ['theme.mode', 'auto'],
       ['theme.contrast', 'normal'],
-      
+
       // 使用者介面
       ['ui.language', 'zh-TW'],
       ['ui.animation.enabled', true],
       ['ui.animation.duration', 300],
-      
+
       // Popup 相關
       ['popup.autoClose', false],
       ['popup.autoCloseDelay', 3000],
       ['popup.showProgress', true],
       ['popup.showNotifications', true],
-      
+
       // 資料提取
       ['extraction.showProgress', true],
       ['extraction.autoExtract', false],
       ['extraction.batchSize', 50],
       ['extraction.timeout', 30000],
-      
+
       // 通知設定
       ['notification.enabled', true],
       ['notification.sound', false],
       ['notification.duration', 5000],
       ['notification.position', 'top-right'],
-      
+
       // 無障礙功能
       ['accessibility.highContrast', false],
       ['accessibility.largeText', false],
       ['accessibility.screenReader', false],
-      
+
       // 進階設定
       ['advanced.debug', false],
       ['advanced.performance.monitoring', true],
@@ -564,38 +564,38 @@ class PreferenceService {
       // 主題與外觀
       ['theme.mode', { type: 'string', enum: ['light', 'dark', 'auto'] }],
       ['theme.contrast', { type: 'string', enum: ['normal', 'high'] }],
-      
+
       // 使用者介面
       ['ui.language', { type: 'string', enum: ['zh-TW', 'en-US'] }],
       ['ui.animation.enabled', { type: 'boolean' }],
       ['ui.animation.duration', { type: 'number', min: 100, max: 1000 }],
-      
+
       // Popup 相關
       ['popup.autoClose', { type: 'boolean' }],
       ['popup.autoCloseDelay', { type: 'number', min: 1000, max: 10000 }],
       ['popup.showProgress', { type: 'boolean' }],
       ['popup.showNotifications', { type: 'boolean' }],
-      
+
       // 資料提取
       ['extraction.showProgress', { type: 'boolean' }],
       ['extraction.autoExtract', { type: 'boolean' }],
       ['extraction.batchSize', { type: 'number', min: 10, max: 200 }],
       ['extraction.timeout', { type: 'number', min: 5000, max: 120000 }],
-      
+
       // 通知設定
       ['notification.enabled', { type: 'boolean' }],
       ['notification.sound', { type: 'boolean' }],
       ['notification.duration', { type: 'number', min: 1000, max: 15000 }],
-      ['notification.position', { 
-        type: 'string', 
-        enum: ['top-left', 'top-right', 'bottom-left', 'bottom-right'] 
+      ['notification.position', {
+        type: 'string',
+        enum: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
       }],
-      
+
       // 無障礙功能
       ['accessibility.highContrast', { type: 'boolean' }],
       ['accessibility.largeText', { type: 'boolean' }],
       ['accessibility.screenReader', { type: 'boolean' }],
-      
+
       // 進階設定
       ['advanced.debug', { type: 'boolean' }],
       ['advanced.performance.monitoring', { type: 'boolean' }],
@@ -625,7 +625,7 @@ class PreferenceService {
     await this.eventBus.on('UX.PREFERENCE.GET.REQUEST', async (event) => {
       const { key, requestId } = event.data || {}
       const value = await this.getPreference(key)
-      
+
       if (this.eventBus) {
         await this.eventBus.emit('UX.PREFERENCE.GET.RESPONSE', {
           requestId,

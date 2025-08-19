@@ -22,7 +22,7 @@ describe('PageDetectionUtils - 完整功能測試', () => {
         pathname: '/library'
       }
     }
-    
+
     global.document = {
       readyState: 'complete',
       querySelector: jest.fn(() => ({ id: 'book-container' }))
@@ -154,7 +154,7 @@ describe('PageDetectionUtils - 完整功能測試', () => {
   describe('🔍 URL 路徑分析', () => {
     test('應該正確解析 URL 路徑', () => {
       const urlInfo = PageDetectionUtils.parseUrl('https://readmoo.com/library/bought?page=2')
-      
+
       expect(urlInfo).toEqual({
         hostname: 'readmoo.com',
         pathname: '/library/bought',
@@ -167,7 +167,7 @@ describe('PageDetectionUtils - 完整功能測試', () => {
 
     test('應該處理沒有查詢參數的 URL', () => {
       const urlInfo = PageDetectionUtils.parseUrl('https://readmoo.com/shelf')
-      
+
       expect(urlInfo).toEqual({
         hostname: 'readmoo.com',
         pathname: '/shelf',
@@ -180,7 +180,7 @@ describe('PageDetectionUtils - 完整功能測試', () => {
 
     test('應該處理非 Readmoo URL', () => {
       const urlInfo = PageDetectionUtils.parseUrl('https://amazon.com/books')
-      
+
       expect(urlInfo).toEqual({
         hostname: 'amazon.com',
         pathname: '/books',
@@ -199,7 +199,7 @@ describe('PageDetectionUtils - 完整功能測試', () => {
       global.document = { readyState: 'complete' }
 
       const pageInfo = PageDetectionUtils.getCurrentPageInfo()
-      
+
       expect(pageInfo).toEqual({
         url: 'https://readmoo.com/library',
         hostname: 'readmoo.com',
@@ -219,7 +219,7 @@ describe('PageDetectionUtils - 完整功能測試', () => {
         readyState: 'complete',
         querySelector: jest.fn().mockReturnValue({ id: 'book-container' })
       }
-      
+
       expect(PageDetectionUtils.shouldActivateExtension()).toBe(true)
 
       // 測試沒有必要元素的情況
@@ -232,13 +232,13 @@ describe('PageDetectionUtils - 完整功能測試', () => {
     test('應該快取檢測結果', () => {
       // 清空快取
       PageDetectionUtils.clearCache()
-      
+
       // 第一次檢測
       const result1 = PageDetectionUtils.getPageType('https://readmoo.com/library')
-      
+
       // 第二次檢測應該使用快取
       const result2 = PageDetectionUtils.getPageType('https://readmoo.com/library')
-      
+
       expect(result1).toBe(result2)
       expect(result1).toBe('library')
     })
@@ -246,7 +246,7 @@ describe('PageDetectionUtils - 完整功能測試', () => {
     test('應該支援清空快取', () => {
       PageDetectionUtils.getPageType('https://readmoo.com/library')
       PageDetectionUtils.clearCache()
-      
+
       // 清空後應該重新檢測
       const result = PageDetectionUtils.getPageType('https://readmoo.com/shelf')
       expect(result).toBe('shelf')
@@ -255,7 +255,7 @@ describe('PageDetectionUtils - 完整功能測試', () => {
     test('應該提供快取統計資訊', () => {
       PageDetectionUtils.clearCache()
       PageDetectionUtils.getPageType('https://readmoo.com/library')
-      
+
       const stats = PageDetectionUtils.getCacheStats()
       expect(stats.size).toBeGreaterThan(0)
       expect(Array.isArray(stats.keys)).toBe(true)
@@ -266,18 +266,18 @@ describe('PageDetectionUtils - 完整功能測試', () => {
     test('應該安全處理 window 物件不存在的情況', () => {
       const originalWindow = global.window
       delete global.window
-      
+
       expect(() => PageDetectionUtils.getCurrentPageInfo()).not.toThrow()
-      
+
       global.window = originalWindow
     })
 
     test('應該安全處理 document 物件不存在的情況', () => {
       const originalDocument = global.document
       delete global.document
-      
+
       expect(() => PageDetectionUtils.isPageReady()).not.toThrow()
-      
+
       global.document = originalDocument
     })
 

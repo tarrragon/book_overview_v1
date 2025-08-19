@@ -24,14 +24,14 @@
 
 /**
  * 平台適配器抽象介面
- * 
+ *
  * 所有平台適配器實作都必須繼承此介面並實作所有抽象方法
  */
 class PlatformAdapterInterface {
   /**
    * 初始化平台適配器介面
    */
-  constructor() {
+  constructor () {
     this.platformName = 'Abstract'
     this.version = '1.0.0'
     this.initializationTime = Date.now()
@@ -46,7 +46,7 @@ class PlatformAdapterInterface {
    * @returns {Promise<string>} 頁面類型 ('library', 'shelf', 'reader', 'unknown')
    * @abstract
    */
-  async getPageType() {
+  async getPageType () {
     throw new Error('Must implement getPageType()')
   }
 
@@ -55,7 +55,7 @@ class PlatformAdapterInterface {
    * @returns {Promise<boolean>} 是否可提取
    * @abstract
    */
-  async isExtractablePage() {
+  async isExtractablePage () {
     throw new Error('Must implement isExtractablePage()')
   }
 
@@ -64,7 +64,7 @@ class PlatformAdapterInterface {
    * @returns {Promise<boolean>} 頁面是否準備就緒
    * @abstract
    */
-  async checkPageReady() {
+  async checkPageReady () {
     throw new Error('Must implement checkPageReady()')
   }
 
@@ -74,7 +74,7 @@ class PlatformAdapterInterface {
    * @returns {boolean} 是否為有效網域
    * @abstract
    */
-  isValidDomain(url = window.location.href) {
+  isValidDomain (url = window.location.href) {
     throw new Error('Must implement isValidDomain()')
   }
 
@@ -87,7 +87,7 @@ class PlatformAdapterInterface {
    * @returns {NodeList|Array<Element>} 書籍元素列表
    * @abstract
    */
-  getBookElements() {
+  getBookElements () {
     throw new Error('Must implement getBookElements()')
   }
 
@@ -96,7 +96,7 @@ class PlatformAdapterInterface {
    * @returns {number} 書籍數量
    * @abstract
    */
-  getBookCount() {
+  getBookCount () {
     throw new Error('Must implement getBookCount()')
   }
 
@@ -105,7 +105,7 @@ class PlatformAdapterInterface {
    * @returns {Element|null} 書籍容器元素
    * @abstract
    */
-  findBookContainer() {
+  findBookContainer () {
     throw new Error('Must implement findBookContainer()')
   }
 
@@ -119,7 +119,7 @@ class PlatformAdapterInterface {
    * @returns {Object} 書籍資料物件
    * @abstract
    */
-  parseBookElement(element) {
+  parseBookElement (element) {
     throw new Error('Must implement parseBookElement()')
   }
 
@@ -128,7 +128,7 @@ class PlatformAdapterInterface {
    * @returns {Promise<Array<Object>>} 書籍資料陣列
    * @abstract
    */
-  async extractAllBooks() {
+  async extractAllBooks () {
     throw new Error('Must implement extractAllBooks()')
   }
 
@@ -138,7 +138,7 @@ class PlatformAdapterInterface {
    * @returns {Object} 完整書籍資料
    * @abstract
    */
-  extractBookData(element) {
+  extractBookData (element) {
     throw new Error('Must implement extractBookData()')
   }
 
@@ -152,7 +152,7 @@ class PlatformAdapterInterface {
    * @returns {Object} 清理後的資料
    * @abstract
    */
-  sanitizeData(data) {
+  sanitizeData (data) {
     throw new Error('Must implement sanitizeData()')
   }
 
@@ -161,7 +161,7 @@ class PlatformAdapterInterface {
    * @returns {Object} 統計資訊
    * @abstract
    */
-  getStats() {
+  getStats () {
     throw new Error('Must implement getStats()')
   }
 
@@ -169,7 +169,7 @@ class PlatformAdapterInterface {
    * 重置適配器狀態
    * @abstract
    */
-  reset() {
+  reset () {
     throw new Error('Must implement reset()')
   }
 
@@ -181,7 +181,7 @@ class PlatformAdapterInterface {
    * 取得適配器描述資訊
    * @returns {string} 適配器描述
    */
-  toString() {
+  toString () {
     return `PlatformAdapterInterface[${this.platformName}] v${this.version}`
   }
 
@@ -190,7 +190,7 @@ class PlatformAdapterInterface {
    * 檢查所有抽象方法是否已被正確實作
    * @returns {boolean} 是否實作完整
    */
-  validateImplementation() {
+  validateImplementation () {
     const abstractMethods = [
       'getPageType',
       'isExtractablePage',
@@ -233,7 +233,7 @@ class PlatformAdapterInterface {
    * 取得介面版本資訊
    * @returns {Object} 版本資訊
    */
-  getInterfaceInfo() {
+  getInterfaceInfo () {
     return {
       interfaceName: 'PlatformAdapterInterface',
       version: this.version,
@@ -241,7 +241,7 @@ class PlatformAdapterInterface {
       initializationTime: this.initializationTime,
       requiredMethods: [
         'getPageType',
-        'isExtractablePage', 
+        'isExtractablePage',
         'checkPageReady',
         'isValidDomain',
         'getBookElements',

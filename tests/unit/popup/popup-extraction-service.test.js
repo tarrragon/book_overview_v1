@@ -1,6 +1,6 @@
 /**
  * PopupExtractionService 單元測試
- * 
+ *
  * 負責測試：
  * - 業務邏輯協調和依賴整合
  * - 提取流程生命週期控制
@@ -30,19 +30,19 @@ describe('PopupExtractionService 核心功能', () => {
       startProgress: jest.fn(),
       completeProgress: jest.fn(),
       cancelProgress: jest.fn(),
-      getCurrentProgress: jest.fn().mockReturnValue({ 
-        percentage: 0, 
-        status: 'idle', 
-        isVisible: false 
+      getCurrentProgress: jest.fn().mockReturnValue({
+        percentage: 0,
+        status: 'idle',
+        isVisible: false
       })
     }
 
     // 建立 Mock CommunicationService
     mockCommunicationService = {
       checkBackgroundStatus: jest.fn().mockResolvedValue({ isReady: true }),
-      startExtraction: jest.fn().mockResolvedValue({ 
-        success: true, 
-        estimatedCount: 100 
+      startExtraction: jest.fn().mockResolvedValue({
+        success: true,
+        estimatedCount: 100
       }),
       isReadmooPage: jest.fn().mockReturnValue(true),
       cleanup: jest.fn()
@@ -56,7 +56,7 @@ describe('PopupExtractionService 核心功能', () => {
     test('應該正確初始化提取服務', () => {
       // Given: 提取服務的依賴
       const PopupExtractionService = require('../../../src/popup/services/popup-extraction-service.js')
-      
+
       // When: 建立提取服務
       extractionService = new PopupExtractionService(
         mockStatusManager,
@@ -74,7 +74,7 @@ describe('PopupExtractionService 核心功能', () => {
     test('應該驗證依賴注入的完整性', () => {
       // Given: 缺少必要依賴
       const PopupExtractionService = require('../../../src/popup/services/popup-extraction-service.js')
-      
+
       // When & Then: 應該拋出錯誤
       expect(() => {
         new PopupExtractionService(null, mockProgressManager, mockCommunicationService)
@@ -97,7 +97,7 @@ describe('PopupExtractionService 核心功能', () => {
         timeout: 10000,
         batchSize: 50
       }
-      
+
       // When: 使用選項建立服務
       extractionService = new PopupExtractionService(
         mockStatusManager,
@@ -323,7 +323,7 @@ describe('PopupExtractionService 核心功能', () => {
       expect(mockProgressManager.updateProgress).toHaveBeenCalledWith({
         percentage: expectedPercentage,
         status: 'processing',
-        text: `批次 3/10：已處理 35/50 本書籍`
+        text: '批次 3/10：已處理 35/50 本書籍'
       })
     })
   })
@@ -408,7 +408,7 @@ describe('PopupExtractionService 核心功能', () => {
       expect(mockStatusManager.updateStatus).toHaveBeenCalledWith({
         type: 'completed',
         text: '提取完成',
-        info: `成功處理 230/250 本書籍，耗時 2 分鐘`
+        info: '成功處理 230/250 本書籍，耗時 2 分鐘'
       })
       expect(extractionService.isExtracting).toBe(false)
     })
@@ -465,19 +465,19 @@ describe('PopupExtractionService 核心功能', () => {
     test('應該提供提取統計和報告', () => {
       // Given: 完成的提取歷史
       extractionService.extractionHistory = [
-        { 
-          id: 'extraction-1', 
-          startTime: Date.now() - 300000, 
+        {
+          id: 'extraction-1',
+          startTime: Date.now() - 300000,
           endTime: Date.now() - 240000,
-          successCount: 50, 
-          totalProcessed: 55 
+          successCount: 50,
+          totalProcessed: 55
         },
-        { 
-          id: 'extraction-2', 
-          startTime: Date.now() - 180000, 
+        {
+          id: 'extraction-2',
+          startTime: Date.now() - 180000,
           endTime: Date.now() - 120000,
-          successCount: 75, 
-          totalProcessed: 80 
+          successCount: 75,
+          totalProcessed: 80
         }
       ]
 

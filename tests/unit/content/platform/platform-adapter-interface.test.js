@@ -141,16 +141,16 @@ describe('PlatformAdapterInterface', () => {
   describe('🔄 介面繼承測試', () => {
     test('應該支援類別繼承', () => {
       class MockAdapter extends PlatformAdapterInterface {
-        constructor() {
+        constructor () {
           super()
           this.platformName = 'Mock'
         }
 
-        getPageType() {
+        getPageType () {
           return 'library'
         }
 
-        isValidDomain() {
+        isValidDomain () {
           return true
         }
       }
@@ -164,7 +164,7 @@ describe('PlatformAdapterInterface', () => {
 
     test('繼承類別未實作的方法仍應拋出錯誤', () => {
       class PartialAdapter extends PlatformAdapterInterface {
-        getPageType() {
+        getPageType () {
           return 'library'
         }
       }
@@ -179,7 +179,7 @@ describe('PlatformAdapterInterface', () => {
     test('應該定義所有必需的抽象方法', () => {
       const requiredMethods = [
         'getPageType',
-        'isExtractablePage', 
+        'isExtractablePage',
         'checkPageReady',
         'isValidDomain',
         'getBookElements',
@@ -201,8 +201,8 @@ describe('PlatformAdapterInterface', () => {
     test('應該具有正確的方法簽名', () => {
       // 檢查關鍵方法的參數長度
       expect(adapter.parseBookElement.length).toBe(1) // 接受一個 element 參數
-      expect(adapter.extractBookData.length).toBe(1)  // 接受一個 element 參數
-      expect(adapter.sanitizeData.length).toBe(1)     // 接受一個 data 參數
+      expect(adapter.extractBookData.length).toBe(1) // 接受一個 element 參數
+      expect(adapter.sanitizeData.length).toBe(1) // 接受一個 data 參數
     })
   })
 

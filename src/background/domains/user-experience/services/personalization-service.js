@@ -364,7 +364,7 @@ class PersonalizationService {
     try {
       if (this.storageService) {
         const savedProfile = await this.storageService.get('user.personalization.profile')
-        
+
         if (savedProfile) {
           // 恢復偏好設定
           if (savedProfile.preferences) {
@@ -550,8 +550,9 @@ class PersonalizationService {
    */
   calculateAverageSessionLength () {
     // 簡化實現
-    return this.behaviorHistory.length > 0 ? 
-      (Date.now() - this.behaviorHistory[0].timestamp) / this.behaviorHistory.length : 0
+    return this.behaviorHistory.length > 0
+      ? (Date.now() - this.behaviorHistory[0].timestamp) / this.behaviorHistory.length
+      : 0
   }
 
   /**
@@ -583,8 +584,9 @@ class PersonalizationService {
     stats.set('lastUsed', Date.now())
 
     // 使用頻率（每天）
-    const daysSinceFirst = this.behaviorHistory.length > 0 ? 
-      (Date.now() - this.behaviorHistory[0].timestamp) / (1000 * 60 * 60 * 24) : 0
+    const daysSinceFirst = this.behaviorHistory.length > 0
+      ? (Date.now() - this.behaviorHistory[0].timestamp) / (1000 * 60 * 60 * 24)
+      : 0
     stats.set('dailyFrequency', daysSinceFirst > 0 ? this.behaviorHistory.length / daysSinceFirst : 0)
 
     this.userProfile.usageStats = stats
@@ -598,7 +600,7 @@ class PersonalizationService {
     if (!timePatterns) return null
 
     const currentHour = new Date().getHours()
-    
+
     // 根據使用時間推薦主題
     if (currentHour >= 18 || currentHour <= 6) {
       return {
@@ -783,7 +785,7 @@ class PersonalizationService {
     // 監聽個人化推薦生成請求
     await this.eventBus.on('UX.PERSONALIZATION.RECOMMENDATIONS.REQUEST', async (event) => {
       const recommendations = await this.generatePersonalizedRecommendations()
-      
+
       if (this.eventBus) {
         await this.eventBus.emit('UX.PERSONALIZATION.RECOMMENDATIONS.RESPONSE', {
           requestId: event.data?.requestId,

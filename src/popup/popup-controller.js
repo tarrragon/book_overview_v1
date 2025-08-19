@@ -35,17 +35,17 @@ class PopupController {
    * 建構 PopupController
    * @param {Document} [document] - DOM 文件物件 (用於測試注入)
    */
-  constructor(document = globalThis.document) {
+  constructor (document = globalThis.document) {
     // 組件容器
     this.components = {}
-    
+
     // 初始化狀態
     this.isInitialized = false
     this.initializationError = null
-    
+
     // DOM 文件引用 (支援測試注入)
     this.document = document
-    
+
     // 事件監聽器清理追蹤
     this.eventListeners = []
   }
@@ -54,26 +54,26 @@ class PopupController {
    * 初始化控制器和所有組件
    * @returns {Promise<boolean>} 初始化是否成功
    */
-  async initialize() {
+  async initialize () {
     try {
       // 依序初始化組件（遵循依賴順序）
       await this._initializeInDependencyOrder()
-      
+
       // 設置組件協作機制
       this._setupComponentCollaboration()
-      
+
       // 執行初始化驗證
       await this._performInitializationChecks()
-      
+
       this.isInitialized = true
-      
+
       return true
     } catch (error) {
       this.initializationError = error
-      
+
       // 嘗試部分初始化和降級
       await this._handleInitializationFailure(error)
-      
+
       return false
     }
   }
@@ -82,19 +82,19 @@ class PopupController {
    * 按依賴順序初始化組件
    * @private
    */
-  async _initializeInDependencyOrder() {
+  async _initializeInDependencyOrder () {
     // 1. 初始化 UI 管理器（基礎層）
     await this._initializeUIManager()
-    
+
     // 2. 初始化狀態管理器（依賴 UI）
     await this._initializeStatusManager()
-    
+
     // 3. 初始化進度管理器（依賴 UI）
     await this._initializeProgressManager()
-    
+
     // 4. 初始化通訊服務（依賴狀態和進度管理器）
     await this._initializeCommunicationService()
-    
+
     // 5. 初始化提取服務（依賴所有其他組件）
     await this._initializeExtractionService()
   }
@@ -103,10 +103,10 @@ class PopupController {
    * 設置組件協作機制
    * @private
    */
-  _setupComponentCollaboration() {
+  _setupComponentCollaboration () {
     // 設置組件間通訊
     this._setupInterComponentCommunication()
-    
+
     // 設置事件監聽器
     this._setupEventListeners()
   }
@@ -116,7 +116,7 @@ class PopupController {
    * @param {string} componentName - 組件名稱
    * @returns {Object|null} 組件實例
    */
-  getComponent(componentName) {
+  getComponent (componentName) {
     return this.components[componentName] || null
   }
 
@@ -125,7 +125,7 @@ class PopupController {
    * @param {string} componentName - 組件名稱
    * @returns {boolean} 組件是否可用
    */
-  isComponentAvailable(componentName) {
+  isComponentAvailable (componentName) {
     return this.components[componentName] != null
   }
 
@@ -133,7 +133,7 @@ class PopupController {
    * 獲取初始化狀態
    * @returns {Object} 初始化狀態資訊
    */
-  getInitializationStatus() {
+  getInitializationStatus () {
     return {
       isInitialized: this.isInitialized,
       initializationError: this.initializationError,
@@ -145,7 +145,7 @@ class PopupController {
   /**
    * 清理控制器資源
    */
-  cleanup() {
+  cleanup () {
     // 清理事件監聽器
     this.eventListeners.forEach(({ element, type, listener }) => {
       if (element && element.removeEventListener) {
@@ -173,15 +173,15 @@ class PopupController {
    * 初始化 UI 管理器
    * @private
    */
-  async _initializeUIManager() {
+  async _initializeUIManager () {
     try {
       // TODO: 動態載入 PopupUIManager
       // const PopupUIManager = await import('./popup-ui-manager.js')
       // this.components.ui = new PopupUIManager.default(this.document)
-      
+
       // 暫時的 Mock 實作，支援 StatusManager 所需的 updateStatus 接口
       this.components.ui = this._createUIManagerMock()
-      
+
       // UI 管理器初始化完成
     } catch (error) {
       // UI 管理器初始化失敗
@@ -194,7 +194,7 @@ class PopupController {
    * @returns {Object} UI 管理器 Mock 物件
    * @private
    */
-  _createUIManagerMock() {
+  _createUIManagerMock () {
     return {
       initialize: () => {},
       cleanup: () => {},
@@ -226,7 +226,7 @@ class PopupController {
    * @param {Function} handler - 事件處理函數
    * @private
    */
-  _bindEventToElement(selector, event, handler) {
+  _bindEventToElement (selector, event, handler) {
     const element = this.document.getElementById(selector.replace('#', ''))
     if (element) {
       element.addEventListener(event, handler)
@@ -239,7 +239,7 @@ class PopupController {
    * @param {boolean} visible - 是否可見
    * @private
    */
-  _toggleProgressVisibility(visible) {
+  _toggleProgressVisibility (visible) {
     const progressContainer = this.document.getElementById('progress-container')
     if (progressContainer) {
       if (visible) {
@@ -255,25 +255,25 @@ class PopupController {
    * @param {Object} statusData - 狀態資料
    * @private
    */
-  _updateStatusElements(statusData) {
+  _updateStatusElements (statusData) {
     // 更新狀態點樣式
     const statusDot = this.document.getElementById('status-dot')
     if (statusDot) {
       statusDot.className = `status-dot ${statusData.type}`
     }
-    
+
     // 更新狀態文字
     const statusText = this.document.getElementById('status-text')
     if (statusText) {
       statusText.textContent = statusData.text
     }
-    
+
     // 更新狀態資訊
     const statusInfo = this.document.getElementById('status-info')
     if (statusInfo && statusData.info) {
       statusInfo.textContent = statusData.info
     }
-    
+
     // 更新擴展狀態
     const extensionStatus = this.document.getElementById('extension-status')
     if (extensionStatus && statusData.status) {
@@ -288,19 +288,19 @@ class PopupController {
    * @param {string} text - 進度文字
    * @private
    */
-  _updateProgressElements(percentage, status, text) {
+  _updateProgressElements (percentage, status, text) {
     // 更新進度條寬度
     const progressBar = this.document.getElementById('progress-bar')
     if (progressBar) {
       progressBar.style.width = `${percentage}%`
     }
-    
+
     // 更新進度文字
     const progressText = this.document.getElementById('progress-text')
     if (progressText && text) {
       progressText.textContent = text
     }
-    
+
     // 更新進度百分比
     const progressPercentage = this.document.getElementById('progress-percentage')
     if (progressPercentage) {
@@ -312,12 +312,12 @@ class PopupController {
    * 初始化狀態管理器
    * @private
    */
-  async _initializeStatusManager() {
+  async _initializeStatusManager () {
     try {
       // 載入 PopupStatusManager
       const PopupStatusManager = require('./components/popup-status-manager.js')
       this.components.status = new PopupStatusManager(this.components.ui)
-      
+
       // 狀態管理器初始化完成
     } catch (error) {
       // 狀態管理器初始化失敗
@@ -329,12 +329,12 @@ class PopupController {
    * 初始化進度管理器
    * @private
    */
-  async _initializeProgressManager() {
+  async _initializeProgressManager () {
     try {
       // 載入 PopupProgressManager
       const PopupProgressManager = require('./components/popup-progress-manager.js')
       this.components.progress = new PopupProgressManager(this.components.ui)
-      
+
       // 進度管理器初始化完成
     } catch (error) {
       // 進度管理器初始化失敗
@@ -346,7 +346,7 @@ class PopupController {
    * 初始化通訊服務
    * @private
    */
-  async _initializeCommunicationService() {
+  async _initializeCommunicationService () {
     try {
       // 載入 PopupCommunicationService
       const PopupCommunicationService = require('./services/popup-communication-service.js')
@@ -354,7 +354,7 @@ class PopupController {
         this.components.status,
         this.components.progress
       )
-      
+
       // 通訊服務初始化完成
     } catch (error) {
       // 通訊服務初始化失敗
@@ -366,29 +366,16 @@ class PopupController {
    * 初始化提取服務
    * @private
    */
-  async _initializeExtractionService() {
+  async _initializeExtractionService () {
     try {
-      // TODO: 動態載入 PopupExtractionService
-      // const PopupExtractionService = await import('./services/popup-extraction-service.js')
-      // this.components.extraction = new PopupExtractionService.default(
-      //   this.components.status,
-      //   this.components.progress,
-      //   this.components.communication
-      // )
-      
-      // 暫時的 Mock 實作
-      this.components.extraction = {
-        startExtraction: () => {
-          console.log('Starting extraction via service...')
-          return Promise.resolve({ success: true })
-        },
-        cancelExtraction: () => {
-          console.log('Canceling extraction...')
-          return Promise.resolve({ cancelled: true })
-        },
-        cleanup: () => {}
-      }
-      
+      // 載入 PopupExtractionService
+      const PopupExtractionService = require('./services/popup-extraction-service.js')
+      this.components.extraction = new PopupExtractionService(
+        this.components.status,
+        this.components.progress,
+        this.components.communication
+      )
+
       // 提取服務初始化完成
     } catch (error) {
       // 提取服務初始化失敗
@@ -400,11 +387,11 @@ class PopupController {
    * 設置組件間通訊機制
    * @private
    */
-  _setupInterComponentCommunication() {
+  _setupInterComponentCommunication () {
     try {
       // TODO: 實作組件間事件通訊
       // 目前為佔位符實作
-      
+
       // 組件間通訊設置完成
     } catch (error) {
       // 組件間通訊設置失敗
@@ -415,7 +402,7 @@ class PopupController {
    * 設置事件監聽器
    * @private
    */
-  _setupEventListeners() {
+  _setupEventListeners () {
     try {
       // 綁定主要操作按鈕
       this.components.ui.bindEvent('extract-button', 'click', () => {
@@ -426,7 +413,7 @@ class PopupController {
       // - settings-button -> showSettings
       // - help-button -> showHelp
       // - retry-button -> retryExtraction
-      
+
       // 事件監聽器設置完成
     } catch (error) {
       // 事件監聽器設置失敗
@@ -437,19 +424,19 @@ class PopupController {
    * 執行初始化檢查
    * @private
    */
-  async _performInitializationChecks() {
+  async _performInitializationChecks () {
     try {
       // 檢查所有組件是否正確載入
       const requiredComponents = ['ui', 'status', 'progress', 'communication', 'extraction']
       const missingComponents = requiredComponents.filter(name => !this.components[name])
-      
+
       if (missingComponents.length > 0) {
         throw new Error(`Missing components: ${missingComponents.join(', ')}`)
       }
 
       // TODO: 執行 Background Service Worker 狀態檢查
       // const backgroundStatus = await this.components.communication.checkBackgroundStatus()
-      
+
       // 初始化檢查完成
     } catch (error) {
       // 初始化檢查失敗
@@ -462,13 +449,13 @@ class PopupController {
    * @param {Error} error - 初始化錯誤
    * @private
    */
-  async _handleInitializationFailure(error) {
+  async _handleInitializationFailure (error) {
     try {
       // TODO: 實作降級機制
       // - 使用基本 UI 操作
       // - 禁用高級功能
       // - 顯示錯誤狀態
-      
+
       // 降級機制啟動完成
     } catch (degradationError) {
       // 記錄降級失敗，但不中斷執行

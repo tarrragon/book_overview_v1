@@ -229,7 +229,7 @@ class NotificationService {
     try {
       if (this.activeNotifications.has(notificationId)) {
         const notification = this.activeNotifications.get(notificationId)
-        
+
         // 清除定時器
         if (this.notificationTimers.has(notificationId)) {
           clearTimeout(this.notificationTimers.get(notificationId))
@@ -340,7 +340,7 @@ class NotificationService {
         const enabled = await this.preferenceService.getPreference('notification.enabled', true)
         return enabled
       }
-      
+
       // 預設啟用通知
       return true
     } catch (error) {
@@ -355,7 +355,7 @@ class NotificationService {
   async validateNotification (notification) {
     // 生成通知 ID
     const id = `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    
+
     // 驗證必要欄位
     if (!notification.type || !this.notificationTypes[notification.type]) {
       throw new Error(`無效的通知類型: ${notification.type}`)
@@ -428,7 +428,7 @@ class NotificationService {
         const timerId = setTimeout(async () => {
           await this.clearNotification(notification.id)
         }, notification.duration)
-        
+
         this.notificationTimers.set(notification.id, timerId)
       }
 
@@ -436,8 +436,8 @@ class NotificationService {
       // 例如：Chrome Extension 通知、Popup 通知等
       await this.renderNotification(notification)
 
-      return { 
-        shown: true, 
+      return {
+        shown: true,
         id: notification.id,
         type: notification.type,
         duration: notification.duration
@@ -494,9 +494,9 @@ class NotificationService {
   async processNextQueuedNotification () {
     if (this.notificationQueue.length > 0 && this.activeNotifications.size < this.maxActiveNotifications) {
       const nextNotification = this.notificationQueue.shift()
-      
+
       this.logger.log(`📥 處理隊列通知: ${nextNotification.id}`)
-      
+
       // 重新顯示通知
       await this.displayNotification(nextNotification)
     }

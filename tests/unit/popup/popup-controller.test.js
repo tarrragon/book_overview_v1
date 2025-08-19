@@ -1,11 +1,11 @@
 /**
  * PopupController 單元測試
- * 
+ *
  * 測試目標：
  * - 驗證 PopupController 的初始化和組件協調功能
  * - 確保依賴注入正確運作
  * - 測試組件間通訊和事件協調
- * 
+ *
  * @jest-environment jsdom
  */
 
@@ -75,10 +75,10 @@ describe('PopupController 基礎架構測試', () => {
   describe('🏗 基礎架構建立', () => {
     test('應該能成功建立 PopupController 實例', () => {
       // Given: PopupController 類別已定義
-      
+
       // When: 建立 PopupController 實例
       const controller = new PopupController()
-      
+
       // Then: 實例應該正確建立
       expect(controller).toBeInstanceOf(PopupController)
       expect(controller.components).toBeDefined()
@@ -88,7 +88,7 @@ describe('PopupController 基礎架構測試', () => {
     test('應該支援依賴注入容器', () => {
       // Given: PopupController 實例
       const controller = new PopupController()
-      
+
       // When: 檢查組件容器
       // Then: 組件容器應該存在且為空物件
       expect(controller.components).toEqual({})
@@ -99,10 +99,10 @@ describe('PopupController 基礎架構測試', () => {
       // Given: PopupController 實例
       const controller = new PopupController()
       expect(controller.isInitialized).toBe(false)
-      
+
       // When: 執行初始化
       await controller.initialize()
-      
+
       // Then: 初始化狀態應該更新
       expect(controller.isInitialized).toBe(true)
     })
@@ -113,14 +113,14 @@ describe('PopupController 基礎架構測試', () => {
       // Given: PopupController 實例
       const controller = new PopupController(document)
       expect(controller.isInitialized).toBe(false)
-      
+
       // When: 初始化
       const initResult = await controller.initialize()
-      
+
       // Then: 初始化完成
       expect(initResult).toBe(true)
       expect(controller.isInitialized).toBe(true)
-      
+
       // 驗證所有組件都已初始化
       const requiredComponents = ['ui', 'status', 'progress', 'communication', 'extraction']
       requiredComponents.forEach(componentName => {
@@ -132,20 +132,20 @@ describe('PopupController 基礎架構測試', () => {
     test('應該建立組件間依賴關係', async () => {
       // Given: PopupController 實例
       const controller = new PopupController(document)
-      
+
       // When: 初始化
       await controller.initialize()
-      
+
       // Then: 組件依賴建立
       expect(controller.isInitialized).toBe(true)
-      
+
       // 驗證組件可用性
       expect(controller.getComponent('ui')).toBeTruthy()
       expect(controller.getComponent('status')).toBeTruthy()
       expect(controller.getComponent('progress')).toBeTruthy()
       expect(controller.getComponent('communication')).toBeTruthy()
       expect(controller.getComponent('extraction')).toBeTruthy()
-      
+
       // 驗證初始化狀態
       const status = controller.getInitializationStatus()
       expect(status.isInitialized).toBe(true)
@@ -156,7 +156,7 @@ describe('PopupController 基礎架構測試', () => {
     test('應該正確注入 DOM 文件依賴', () => {
       // Given: PopupController 實例與文件注入
       const controller = new PopupController(document)
-      
+
       // When: 檢查文件引用
       // Then: 文件應該正確注入
       expect(controller.document).toBe(document)
@@ -168,11 +168,11 @@ describe('PopupController 基礎架構測試', () => {
       // Given: PopupController 實例和初始化完成
       const controller = new PopupController()
       await controller.initialize()
-      
+
       // When: 檢查基礎架構
       // Then: 基本結構存在
       expect(controller).toBeDefined()
-      
+
       // TODO: 未來需要測試：
       // - setupEventListeners 方法存在
       // - 按鈕事件正確綁定到對應組件方法
@@ -183,11 +183,11 @@ describe('PopupController 基礎架構測試', () => {
       // Given: PopupController 實例
       const controller = new PopupController()
       await controller.initialize()
-      
+
       // When: 檢查通訊機制
       // Then: 基礎結構存在
       expect(controller).toBeDefined()
-      
+
       // TODO: 未來需要測試：
       // - 狀態變更事件正確傳播
       // - 進度更新事件正確處理
@@ -200,13 +200,13 @@ describe('PopupController 基礎架構測試', () => {
       // Given: 已初始化的 PopupController
       const controller = new PopupController(document)
       await controller.initialize()
-      
+
       expect(controller.isInitialized).toBe(true)
       expect(Object.keys(controller.components).length).toBe(5)
-      
+
       // When: 執行清理
       controller.cleanup()
-      
+
       // Then: 所有資源都應該被清理
       expect(controller.isInitialized).toBe(false)
       expect(Object.keys(controller.components).length).toBe(0)
@@ -219,15 +219,15 @@ describe('PopupController 基礎架構測試', () => {
     test('初始化成功時應該返回正確狀態', async () => {
       // Given: PopupController 實例
       const controller = new PopupController(document)
-      
+
       // When: 執行初始化
       const initResult = await controller.initialize()
-      
+
       // Then: 應該成功處理
       expect(initResult).toBe(true)
       expect(controller.isInitialized).toBe(true)
       expect(controller.initializationError).toBeNull()
-      
+
       // 驗證初始化狀態
       const status = controller.getInitializationStatus()
       expect(status.isInitialized).toBe(true)
@@ -239,13 +239,13 @@ describe('PopupController 基礎架構測試', () => {
       // Given: 已初始化的控制器
       const controller = new PopupController(document)
       await controller.initialize()
-      
+
       // When: 檢查組件可用性
       // Then: 應該正確返回組件狀態
       expect(controller.isComponentAvailable('ui')).toBe(true)
       expect(controller.isComponentAvailable('status')).toBe(true)
       expect(controller.isComponentAvailable('nonexistent')).toBe(false)
-      
+
       // 檢查組件實例
       expect(controller.getComponent('ui')).not.toBeNull()
       expect(controller.getComponent('nonexistent')).toBeNull()

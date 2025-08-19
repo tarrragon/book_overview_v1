@@ -4,7 +4,7 @@
  * @since 2025-08-17
  *
  * TDD Red 階段：設計 config-utils.js 的完整測試套件
- * 
+ *
  * 測試目標：
  * - 配置管理和驗證
  * - 結構化日誌輸出系統
@@ -159,8 +159,8 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
         success: true,
         config: {
           timeout: 5000, // 使用者設定
-          retries: 2,    // 預設值
-          debug: false   // 預設值
+          retries: 2, // 預設值
+          debug: false // 預設值
         },
         defaultsApplied: ['retries', 'debug']
       })
@@ -266,7 +266,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
 
     test('應該格式化日誌訊息', () => {
       const timestamp = Date.now()
-      
+
       const result = ConfigUtils.formatLogMessage('info', '測試訊息', {
         component: 'TestComponent',
         timestamp
@@ -338,7 +338,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
 
     test('應該支援日誌輸出重定向', () => {
       const customHandler = jest.fn()
-      
+
       ConfigUtils.addLogHandler('custom', customHandler)
       ConfigUtils.log('info', '重定向測試', { test: true })
 
@@ -353,13 +353,13 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
 
     test('應該支援效能日誌記錄', () => {
       const operationName = 'test-operation'
-      
+
       ConfigUtils.startPerformanceLog(operationName)
-      
+
       // 模擬一些處理時間
       setTimeout(() => {
         const result = ConfigUtils.endPerformanceLog(operationName)
-        
+
         expect(result).toEqual({
           operation: operationName,
           duration: expect.any(Number),
@@ -455,7 +455,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
       expect(typeof envInfo.capabilities.localStorage).toBe('boolean')
       expect(typeof envInfo.capabilities.performance).toBe('boolean')
       expect(typeof envInfo.capabilities.observer).toBe('boolean')
-      
+
       // manifest 可以是 undefined 或物件
       expect(envInfo.chromeExtension.manifest !== null).toBe(true)
     })
@@ -481,7 +481,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
 
       expect(allFeatures).toEqual({
         autoExtraction: true,
-        notifications: true,  // 已切換
+        notifications: true, // 已切換
         analytics: true,
         debugging: false
       })

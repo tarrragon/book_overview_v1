@@ -1,11 +1,11 @@
 /**
  * PopupUIManager 整合測試
- * 
+ *
  * 測試目標：
  * - 驗證 PopupUIManager 與新的模組化組件整合
  * - 確保移除狀態管理重複後功能正常
  * - 測試 UI 更新機制與狀態管理器分離
- * 
+ *
  * @jest-environment jsdom
  */
 
@@ -84,7 +84,7 @@ describe('PopupUIManager 模組化整合測試', () => {
   describe('📋 DOM 元素管理 (核心職責)', () => {
     test('應該正確初始化和快取 DOM 元素', () => {
       // Given: UIManager 已初始化
-      
+
       // When: 檢查核心元素
       const coreElements = [
         'errorContainer', 'successContainer', 'statusMessage',
@@ -100,7 +100,7 @@ describe('PopupUIManager 模組化整合測試', () => {
 
     test('應該提供統一的元素存取 API', () => {
       // Given: UIManager 已初始化
-      
+
       // When: 使用 elements 屬性存取元素
       const errorContainer = uiManager.elements.errorContainer
       const statusMessage = uiManager.elements.statusMessage
@@ -196,11 +196,11 @@ describe('PopupUIManager 模組化整合測試', () => {
   describe('🔧 狀態管理分離驗證', () => {
     test('應該不再維護內部狀態', () => {
       // Given: UIManager 初始化後
-      
+
       // When: 檢查內部狀態
       // Then: 重構後不應該有狀態管理邏輯
       expect(uiManager.currentState).toBeUndefined()
-      
+
       // getCurrentState 應該只返回診斷資訊，不包含業務狀態
       const state = uiManager.getCurrentState()
       expect(state).toHaveProperty('queuedUpdates')
@@ -208,7 +208,7 @@ describe('PopupUIManager 模組化整合測試', () => {
       expect(state).toHaveProperty('elementsCount')
       expect(state).toHaveProperty('listenersCount')
       expect(state).toHaveProperty('timestamp')
-      
+
       // 不應該包含業務狀態
       expect(state).not.toHaveProperty('loading')
       expect(state).not.toHaveProperty('error')
@@ -218,23 +218,23 @@ describe('PopupUIManager 模組化整合測試', () => {
 
     test('UI 更新不應該包含狀態邏輯', () => {
       // Given: UI 更新操作
-      
+
       // When: 分別執行 UI 更新並驗證
-      
+
       // 測試錯誤顯示（純 UI）
       uiManager.showError({ title: '錯誤', message: '測試', actions: [] })
       expect(document.getElementById('error-container')).not.toHaveClass('hidden')
       expect(document.getElementById('error-title').textContent).toBe('錯誤')
-      
+
       // 測試成功顯示（純 UI）
       uiManager.showSuccess('成功')
       expect(document.getElementById('success-container')).not.toHaveClass('hidden')
       expect(document.getElementById('success-message').textContent).toBe('成功')
-      
+
       // 測試進度更新（純 UI）
       uiManager.updateProgress(50)
       expect(document.getElementById('progress-bar').style.width).toBe('50%')
-      
+
       // 最重要的驗證：確保沒有內部狀態被修改
       expect(uiManager.currentState).toBeUndefined()
     })
@@ -243,7 +243,7 @@ describe('PopupUIManager 模組化整合測試', () => {
   describe('⚡ 效能優化功能', () => {
     test('應該支援批次 DOM 更新', () => {
       // Given: 多個 UI 更新操作
-      
+
       // When: 執行多個更新（測試批次處理是否正常）
       uiManager.updateProgress(25)
       uiManager.showLoading('載入中...')

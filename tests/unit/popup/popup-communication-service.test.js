@@ -1,6 +1,6 @@
 /**
  * PopupCommunicationService 單元測試
- * 
+ *
  * 負責測試：
  * - Chrome Extension API 通訊
  * - Background Service Worker 狀態檢查
@@ -269,7 +269,7 @@ describe('PopupCommunicationService 核心功能', () => {
       expect(mockStatusManager.updateStatus).toHaveBeenCalledWith({
         type: 'completed',
         text: '提取完成',
-        info: `成功處理 95/98 本書籍`
+        info: '成功處理 95/98 本書籍'
       })
     })
   })

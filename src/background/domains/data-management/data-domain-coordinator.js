@@ -45,7 +45,7 @@ class DataDomainCoordinator extends BaseModule {
    */
   constructor (eventBus, dependencies = {}) {
     super({
-      eventBus: eventBus,
+      eventBus,
       logger: dependencies.logger || console,
       config: dependencies.config || {}
     })
@@ -56,12 +56,12 @@ class DataDomainCoordinator extends BaseModule {
 
     // 資料管理服務實例 - v1.0 僅實作 Readmoo 所需服務
     this.services = {
-      validation: null,           // DataValidationService (已實作)
-      migration: null,            // SchemaMigrationService (未來實作)
-      synchronization: null,      // DataSynchronizationService (暫時擱置)
-      conflictResolution: null,   // ConflictResolutionService (暫時擱置)
-      storageAdapter: null,       // StorageAdapterService (未來實作)
-      backupRecovery: null        // BackupRecoveryService (未來實作)
+      validation: null, // DataValidationService (已實作)
+      migration: null, // SchemaMigrationService (未來實作)
+      synchronization: null, // DataSynchronizationService (暫時擱置)
+      conflictResolution: null, // ConflictResolutionService (暫時擱置)
+      storageAdapter: null, // StorageAdapterService (未來實作)
+      backupRecovery: null // BackupRecoveryService (未來實作)
     }
 
     // 活躍操作追蹤
@@ -78,7 +78,7 @@ class DataDomainCoordinator extends BaseModule {
     // 配置管理
     this.defaultConfig = {
       maxConcurrentOperations: 5,
-      operationTimeout: 300000,  // 5 分鐘
+      operationTimeout: 300000, // 5 分鐘
       retryAttempts: 3,
       enablePerformanceMonitoring: true,
       autoCleanupInterval: 600000 // 10 分鐘
@@ -125,7 +125,6 @@ class DataDomainCoordinator extends BaseModule {
         config: this.effectiveConfig,
         timestamp: Date.now()
       })
-
     } catch (error) {
       this.initializationError = error
       await this.log(`Data Domain Coordinator 初始化失敗: ${error.message}`, 'error')
@@ -148,10 +147,10 @@ class DataDomainCoordinator extends BaseModule {
     this.services.migration = new MockService('SchemaMigrationService')
     this.services.storageAdapter = new MockService('StorageAdapterService')
     this.services.backupRecovery = new MockService('BackupRecoveryService')
-    
+
     // v1.0 暫時擱置的多平台服務（設為 null 代表擱置）
-    this.services.synchronization = null      // 擱置: 跨平台同步
-    this.services.conflictResolution = null   // 擱置: 跨平台衝突解決
+    this.services.synchronization = null // 擱置: 跨平台同步
+    this.services.conflictResolution = null // 擱置: 跨平台衝突解決
 
     // 初始化已實作的服務
     if (this.services.validation && typeof this.services.validation.initialize === 'function') {
@@ -242,7 +241,6 @@ class DataDomainCoordinator extends BaseModule {
 
       // 完成操作
       this.completeOperation(operationId, 'SUCCESS')
-
     } catch (error) {
       await this.log(`處理平台檢測事件失敗: ${error.message}`, 'error')
       this.completeOperation(operationId, 'FAILED', error.message)
@@ -260,7 +258,7 @@ class DataDomainCoordinator extends BaseModule {
    */
   async handlePlatformAdapterLoaded (event) {
     const { platform, adapter } = event.data || {}
-    
+
     try {
       await this.log(`平台適配器載入: ${platform}`)
 
@@ -273,7 +271,6 @@ class DataDomainCoordinator extends BaseModule {
       if (this.services.validation && this.services.validation.loadPlatformValidationRules) {
         await this.services.validation.loadPlatformValidationRules(platform)
       }
-
     } catch (error) {
       await this.log(`處理平台適配器載入失敗: ${error.message}`, 'error')
     }
@@ -310,7 +307,6 @@ class DataDomainCoordinator extends BaseModule {
 
       // 更新效能指標
       this.updatePerformanceMetrics('validation', 'requested', books?.length || 0)
-
     } catch (error) {
       await this.log(`處理提取完成事件失敗: ${error.message}`, 'error')
       this.completeOperation(operationId, 'FAILED', error.message)
@@ -347,7 +343,7 @@ class DataDomainCoordinator extends BaseModule {
         })
       } else {
         await this.log(`資料品質分數過低 (${qualityScore}%)，需要人工檢查`, 'warn')
-        
+
         await this.emitEvent('DATA.QUALITY.REVIEW.REQUIRED', {
           platform,
           qualityScore,
@@ -363,7 +359,6 @@ class DataDomainCoordinator extends BaseModule {
         operation.qualityScore = qualityScore
         operation.validCount = validCount
       }
-
     } catch (error) {
       await this.log(`處理驗證完成事件失敗: ${error.message}`, 'error')
     }
@@ -395,7 +390,6 @@ class DataDomainCoordinator extends BaseModule {
         operationId,
         timestamp: Date.now()
       })
-
     } catch (err) {
       await this.log(`處理驗證失敗事件失敗: ${err.message}`, 'error')
     }
@@ -435,7 +429,6 @@ class DataDomainCoordinator extends BaseModule {
         message: '跨平台同步功能暫時擱置，v1.0 僅支援 Readmoo',
         syncId
       }
-
     } catch (error) {
       await this.log(`處理跨平台同步請求失敗: ${error.message}`, 'error')
 
@@ -463,7 +456,7 @@ class DataDomainCoordinator extends BaseModule {
       // v1.0 階段單一 Readmoo 平台不會有跨平台衝突
       if (platform === 'READMOO') {
         await this.log('Readmoo 平台內部資料衝突，等待未來衝突解決服務實作', 'info')
-        
+
         await this.emitEvent('DATA.CONFLICT.READMOO.QUEUED', {
           conflictId,
           platform,
@@ -473,7 +466,7 @@ class DataDomainCoordinator extends BaseModule {
         })
       } else {
         await this.log(`非 Readmoo 平台衝突 (${platform})，v1.0 不支援跨平台衝突處理`, 'warn')
-        
+
         await this.emitEvent('DATA.CONFLICT.CROSS_PLATFORM.SHELVED', {
           conflictId,
           platform,
@@ -487,7 +480,6 @@ class DataDomainCoordinator extends BaseModule {
       if (this.services.conflictResolution && this.services.conflictResolution.resolveConflict) {
         await this.services.conflictResolution.resolveConflict(conflictId, platform, conflictData)
       }
-
     } catch (error) {
       await this.log(`處理資料衝突失敗: ${error.message}`, 'error')
     }
@@ -508,7 +500,6 @@ class DataDomainCoordinator extends BaseModule {
       } else {
         await this.log('備份恢復服務尚未實作', 'warn')
       }
-
     } catch (error) {
       await this.log(`處理備份恢復請求失敗: ${error.message}`, 'error')
     }
@@ -529,7 +520,6 @@ class DataDomainCoordinator extends BaseModule {
       } else {
         await this.log('遷移服務尚未實作', 'warn')
       }
-
     } catch (error) {
       await this.log(`處理遷移需求失敗: ${error.message}`, 'error')
     }
@@ -698,7 +688,7 @@ class DataDomainCoordinator extends BaseModule {
   async log (message, level = 'info') {
     const timestamp = new Date().toISOString()
     const logMessage = `[${timestamp}] [DataDomainCoordinator] ${message}`
-    
+
     if (this.logger && this.logger[level]) {
       this.logger[level](logMessage)
     } else {
@@ -761,7 +751,6 @@ class DataDomainCoordinator extends BaseModule {
       this.operationQueue.length = 0
 
       await this.log('Data Domain Coordinator 已停止')
-
     } catch (error) {
       await this.log(`停止 Data Domain Coordinator 失敗: ${error.message}`, 'error')
       throw error

@@ -124,7 +124,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
   describe('🔍 URL 路徑分析', () => {
     test('應該正確解析完整的 Readmoo URL', () => {
       const urlInfo = PageDetectionUtils.parseUrl('https://readmoo.com/library/bought?page=2&sort=date')
-      
+
       expect(urlInfo).toEqual({
         hostname: 'readmoo.com',
         pathname: '/library/bought',
@@ -137,7 +137,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
 
     test('應該正確解析沒有查詢參數的 URL', () => {
       const urlInfo = PageDetectionUtils.parseUrl('https://readmoo.com/shelf')
-      
+
       expect(urlInfo).toEqual({
         hostname: 'readmoo.com',
         pathname: '/shelf',
@@ -150,7 +150,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
 
     test('應該正確處理閱讀器頁面 URL', () => {
       const urlInfo = PageDetectionUtils.parseUrl('https://readmoo.com/read/book-123')
-      
+
       expect(urlInfo).toEqual({
         hostname: 'readmoo.com',
         pathname: '/read/book-123',
@@ -163,7 +163,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
 
     test('應該正確處理非 Readmoo URL', () => {
       const urlInfo = PageDetectionUtils.parseUrl('https://amazon.com/books')
-      
+
       expect(urlInfo).toEqual({
         hostname: 'amazon.com',
         pathname: '/books',
@@ -176,7 +176,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
 
     test('應該處理無效的 URL', () => {
       const urlInfo = PageDetectionUtils.parseUrl('invalid-url')
-      
+
       expect(urlInfo).toEqual({
         hostname: '',
         pathname: '',
@@ -190,7 +190,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     test('應該處理 null 和 undefined URL', () => {
       const nullUrlInfo = PageDetectionUtils.parseUrl(null)
       const undefinedUrlInfo = PageDetectionUtils.parseUrl(undefined)
-      
+
       const expectedResult = {
         hostname: '',
         pathname: '',
@@ -209,17 +209,17 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     test('應該支援快取檢測結果', () => {
       // 清空快取
       PageDetectionUtils.clearCache()
-      
+
       // 第一次檢測
       const result1 = PageDetectionUtils.getPageType('https://readmoo.com/library')
-      
+
       // 檢查快取是否生效
       const stats = PageDetectionUtils.getCacheStats()
       expect(stats.size).toBeGreaterThan(0)
-      
+
       // 第二次檢測應該使用快取
       const result2 = PageDetectionUtils.getPageType('https://readmoo.com/library')
-      
+
       expect(result1).toBe('library')
       expect(result2).toBe('library')
       expect(result1).toBe(result2)
@@ -229,14 +229,14 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
       // 檢測一些頁面以填充快取
       PageDetectionUtils.getPageType('https://readmoo.com/library')
       PageDetectionUtils.getPageType('https://readmoo.com/shelf')
-      
+
       // 確認快取有內容
       let stats = PageDetectionUtils.getCacheStats()
       expect(stats.size).toBeGreaterThan(0)
-      
+
       // 清空快取
       PageDetectionUtils.clearCache()
-      
+
       // 確認快取已清空
       stats = PageDetectionUtils.getCacheStats()
       expect(stats.size).toBe(0)
@@ -244,11 +244,11 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
 
     test('應該提供快取統計資訊', () => {
       PageDetectionUtils.clearCache()
-      
+
       // 執行一些檢測
       PageDetectionUtils.getPageType('https://readmoo.com/library')
       PageDetectionUtils.getPageType('https://readmoo.com/shelf')
-      
+
       const stats = PageDetectionUtils.getCacheStats()
       expect(typeof stats).toBe('object')
       expect(typeof stats.size).toBe('number')
@@ -260,7 +260,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     test('快取鍵值應該包含 pageType 前綴', () => {
       PageDetectionUtils.clearCache()
       PageDetectionUtils.getPageType('https://readmoo.com/library')
-      
+
       const stats = PageDetectionUtils.getCacheStats()
       const hasPageTypeKey = stats.keys.some(key => key.includes('pageType:'))
       expect(hasPageTypeKey).toBe(true)
@@ -296,18 +296,18 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     test('應該處理非常長的 URL', () => {
       const longPath = '/library/' + 'a'.repeat(1000)
       const longUrl = `https://readmoo.com${longPath}`
-      
+
       expect(() => PageDetectionUtils.getPageType(longUrl)).not.toThrow()
       expect(PageDetectionUtils.getPageType(longUrl)).toBe('library')
     })
 
     test('應該處理 URL 中的查詢參數', () => {
       const url = 'https://readmoo.com/library?filter=all&page=1&sort=desc'
-      
+
       // 先檢查基本功能
       expect(PageDetectionUtils.isReadmooDomain(url)).toBe(true)
       expect(PageDetectionUtils.getPageType(url)).toBe('library')
-      
+
       const result = PageDetectionUtils.parseUrl(url)
       expect(result.pageType).toBe('library')
       expect(result.search).toContain('filter=all')
@@ -348,17 +348,17 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
   describe('🔄 整合測試場景', () => {
     test('完整 Readmoo 書庫檢測流程', () => {
       const libraryUrl = 'https://readmoo.com/library/bought?page=1'
-      
+
       // 檢測網域
       expect(PageDetectionUtils.isReadmooDomain(libraryUrl)).toBe(true)
-      
+
       // 檢測頁面類型
       const pageType = PageDetectionUtils.getPageType(libraryUrl)
       expect(pageType).toBe('library')
-      
+
       // 檢測可提取性
       expect(PageDetectionUtils.isExtractablePage(pageType)).toBe(true)
-      
+
       // 解析 URL
       const urlInfo = PageDetectionUtils.parseUrl(libraryUrl)
       expect(urlInfo.isReadmoo).toBe(true)
@@ -368,14 +368,14 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
 
     test('完整 Readmoo 書架檢測流程', () => {
       const shelfUrl = 'https://readmoo.com/shelf/favorites'
-      
+
       expect(PageDetectionUtils.isReadmooDomain(shelfUrl)).toBe(true)
-      
+
       const pageType = PageDetectionUtils.getPageType(shelfUrl)
       expect(pageType).toBe('shelf')
-      
+
       expect(PageDetectionUtils.isExtractablePage(pageType)).toBe(true)
-      
+
       const urlInfo = PageDetectionUtils.parseUrl(shelfUrl)
       expect(urlInfo.isReadmoo).toBe(true)
       expect(urlInfo.isExtractable).toBe(true)
@@ -383,14 +383,14 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
 
     test('閱讀器頁面應該被拒絕', () => {
       const readerUrl = 'https://readmoo.com/read/book-123'
-      
+
       expect(PageDetectionUtils.isReadmooDomain(readerUrl)).toBe(true)
-      
+
       const pageType = PageDetectionUtils.getPageType(readerUrl)
       expect(pageType).toBe('reader')
-      
+
       expect(PageDetectionUtils.isExtractablePage(pageType)).toBe(false)
-      
+
       const urlInfo = PageDetectionUtils.parseUrl(readerUrl)
       expect(urlInfo.isReadmoo).toBe(true)
       expect(urlInfo.isExtractable).toBe(false)
@@ -398,14 +398,14 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
 
     test('非 Readmoo 頁面應該被完全拒絕', () => {
       const externalUrl = 'https://amazon.com/kindle-books'
-      
+
       expect(PageDetectionUtils.isReadmooDomain(externalUrl)).toBe(false)
-      
+
       const pageType = PageDetectionUtils.getPageType(externalUrl)
       expect(pageType).toBe('unknown')
-      
+
       expect(PageDetectionUtils.isExtractablePage(pageType)).toBe(false)
-      
+
       const urlInfo = PageDetectionUtils.parseUrl(externalUrl)
       expect(urlInfo.isReadmoo).toBe(false)
       expect(urlInfo.isExtractable).toBe(false)

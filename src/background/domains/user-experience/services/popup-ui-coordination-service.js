@@ -275,7 +275,7 @@ class PopupUICoordinationService {
       this.logger.log(`✅ 模組載入成功: ${moduleId}`)
     } catch (error) {
       this.logger.error(`❌ 模組載入失敗: ${moduleId}`, error)
-      
+
       // 記錄載入失敗狀態
       this.moduleStates.set(moduleId, {
         loaded: false,
@@ -284,7 +284,7 @@ class PopupUICoordinationService {
         error: error.message,
         lastUpdate: Date.now()
       })
-      
+
       throw error
     }
   }
@@ -781,7 +781,7 @@ class PopupEventBus {
   off (eventType, handler) {
     const listeners = this.listeners.get(eventType) || []
     const index = listeners.findIndex(l => l.handler === handler)
-    
+
     if (index !== -1) {
       listeners.splice(index, 1)
     }

@@ -10,10 +10,10 @@ describe('PerformanceUtils', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     // 清除模組快取
     delete require.cache[require.resolve('../../../../src/content/utils/performance-utils')]
-    
+
     // Mock performance API
     global.performance = {
       now: jest.fn(() => Date.now()),
@@ -35,7 +35,7 @@ describe('PerformanceUtils', () => {
   describe('計時器功能', () => {
     test('建立和開始計時器', () => {
       const timerId = PerformanceUtils.startTimer('test-operation')
-      
+
       expect(typeof timerId).toBe('string')
       expect(timerId).toMatch(/^test-operation-\d+-[a-z0-9]+$/)
       expect(PerformanceUtils.hasActiveTimer(timerId)).toBe(true)
@@ -43,12 +43,12 @@ describe('PerformanceUtils', () => {
 
     test('停止計時器並取得執行時間', () => {
       global.performance.now = jest.fn()
-        .mockReturnValueOnce(1000)  // 開始時間
-        .mockReturnValueOnce(1500)  // 結束時間
+        .mockReturnValueOnce(1000) // 開始時間
+        .mockReturnValueOnce(1500) // 結束時間
 
       const timerId = PerformanceUtils.startTimer('test-operation')
       const duration = PerformanceUtils.stopTimer(timerId)
-      
+
       expect(duration).toBe(500)
       expect(PerformanceUtils.hasActiveTimer(timerId)).toBe(false)
     })
@@ -62,7 +62,7 @@ describe('PerformanceUtils', () => {
 
       const timer1 = PerformanceUtils.startTimer('operation-1')
       PerformanceUtils.stopTimer(timer1)
-      
+
       const timer2 = PerformanceUtils.startTimer('operation-1')
       PerformanceUtils.stopTimer(timer2)
 
@@ -77,9 +77,9 @@ describe('PerformanceUtils', () => {
     test('清除計時器統計', () => {
       const timerId = PerformanceUtils.startTimer('test-clear')
       PerformanceUtils.stopTimer(timerId)
-      
+
       PerformanceUtils.clearTimerStats('test-clear')
-      
+
       const stats = PerformanceUtils.getTimerStats('test-clear')
       expect(stats.count).toBe(0)
       expect(stats.totalTime).toBe(0)
@@ -89,7 +89,7 @@ describe('PerformanceUtils', () => {
   describe('記憶體監控功能', () => {
     test('取得當前記憶體使用量', () => {
       const memoryInfo = PerformanceUtils.getMemoryUsage()
-      
+
       expect(memoryInfo).toHaveProperty('usedJSHeapSize')
       expect(memoryInfo).toHaveProperty('totalJSHeapSize')
       expect(memoryInfo).toHaveProperty('jsHeapSizeLimit')
@@ -101,7 +101,7 @@ describe('PerformanceUtils', () => {
     test('記錄記憶體快照', () => {
       PerformanceUtils.takeMemorySnapshot('before-operation')
       PerformanceUtils.takeMemorySnapshot('after-operation')
-      
+
       const snapshots = PerformanceUtils.getMemorySnapshots()
       expect(snapshots).toHaveLength(2)
       expect(snapshots[0].label).toBe('before-operation')
@@ -115,14 +115,14 @@ describe('PerformanceUtils', () => {
         jsHeapSizeLimit: 1024 * 1024 * 100
       }
       PerformanceUtils.takeMemorySnapshot('start')
-      
+
       global.performance.memory = {
         usedJSHeapSize: 1024 * 1024 * 15, // 15MB
         totalJSHeapSize: 1024 * 1024 * 50,
         jsHeapSizeLimit: 1024 * 1024 * 100
       }
       PerformanceUtils.takeMemorySnapshot('end')
-      
+
       const diff = PerformanceUtils.getMemoryDifference('start', 'end')
       expect(diff.usedHeapDiff).toBe(1024 * 1024 * 5) // 5MB increase
       expect(diff.diffMB).toBe(5)
@@ -132,12 +132,12 @@ describe('PerformanceUtils', () => {
       // 模擬記憶體增長
       const baseMem = 1024 * 1024 * 10
       const samples = []
-      
+
       for (let i = 0; i < 5; i++) {
         const memSize = baseMem + (i * 1024 * 1024 * 2)
         samples.push(memSize)
       }
-      
+
       const hasLeak = PerformanceUtils.detectMemoryLeak(samples)
       expect(hasLeak).toBe(true)
     })
@@ -169,7 +169,7 @@ describe('PerformanceUtils', () => {
       PerformanceUtils.incrementCounter('api-calls')
       PerformanceUtils.incrementCounter('api-calls')
       PerformanceUtils.incrementCounter('api-calls')
-      
+
       const count = PerformanceUtils.getCounter('api-calls')
       expect(count).toBe(3)
     })
@@ -178,7 +178,7 @@ describe('PerformanceUtils', () => {
       PerformanceUtils.recordMetric('response-time', 250)
       PerformanceUtils.recordMetric('response-time', 300)
       PerformanceUtils.recordMetric('response-time', 200)
-      
+
       const metrics = PerformanceUtils.getMetrics('response-time')
       expect(metrics.count).toBe(3)
       expect(metrics.average).toBe(250)
@@ -191,9 +191,9 @@ describe('PerformanceUtils', () => {
       PerformanceUtils.incrementCounter('operations')
       PerformanceUtils.recordMetric('latency', 100)
       PerformanceUtils.takeMemorySnapshot('test')
-      
+
       const report = PerformanceUtils.getPerformanceReport()
-      
+
       expect(report).toHaveProperty('counters')
       expect(report).toHaveProperty('metrics')
       expect(report).toHaveProperty('timers')
@@ -207,7 +207,7 @@ describe('PerformanceUtils', () => {
     test('監控 DOM 節點數量', () => {
       // 簡單地測試函數不會出錯
       expect(() => PerformanceUtils.getDOMNodeCount()).not.toThrow()
-      
+
       // 測試返回值是數字
       const nodeCount = PerformanceUtils.getDOMNodeCount()
       expect(typeof nodeCount).toBe('number')
@@ -217,7 +217,7 @@ describe('PerformanceUtils', () => {
     test('監控事件監聽器數量', () => {
       const listenerCount = PerformanceUtils.trackEventListeners('click', 1)
       expect(listenerCount).toBe(1)
-      
+
       PerformanceUtils.trackEventListeners('click', 2)
       const totalCount = PerformanceUtils.getEventListenerCount('click')
       expect(totalCount).toBe(3)
@@ -225,16 +225,16 @@ describe('PerformanceUtils', () => {
 
     test('檢測長時間運行的任務', () => {
       const longRunningTasks = []
-      
+
       PerformanceUtils.detectLongTasks((task) => {
         longRunningTasks.push(task)
       })
-      
+
       // 模擬長任務
       global.performance.getEntriesByType = jest.fn().mockReturnValue([
         { name: 'long-task', duration: 100, startTime: 1000 }
       ])
-      
+
       // 觸發檢測
       PerformanceUtils.checkForLongTasks()
       expect(longRunningTasks).toHaveLength(1)
@@ -249,7 +249,7 @@ describe('PerformanceUtils', () => {
 
     test('處理記憶體 API 不可用的情況', () => {
       delete global.performance.memory
-      
+
       const memoryInfo = PerformanceUtils.getMemoryUsage()
       expect(memoryInfo.usedJSHeapSize).toBe(0)
       expect(memoryInfo.totalJSHeapSize).toBe(0)
@@ -258,7 +258,7 @@ describe('PerformanceUtils', () => {
 
     test('處理效能 API 不可用的情況', () => {
       global.performance.now = undefined
-      
+
       expect(() => PerformanceUtils.startTimer('test')).not.toThrow()
       expect(() => PerformanceUtils.mark('test')).not.toThrow()
     })
@@ -276,7 +276,7 @@ describe('PerformanceUtils', () => {
       PerformanceUtils.recordMetric('slow-operation', 1000)
       PerformanceUtils.recordMetric('slow-operation', 1200)
       PerformanceUtils.recordMetric('fast-operation', 50)
-      
+
       const bottlenecks = PerformanceUtils.detectBottlenecks()
       expect(bottlenecks).toContain('slow-operation')
       expect(bottlenecks).not.toContain('fast-operation')
@@ -285,16 +285,16 @@ describe('PerformanceUtils', () => {
     test('建議效能優化', () => {
       // 清理現有狀態
       PerformanceUtils.clearAllStats()
-      
+
       // 測試只有事件監聽器的建議
       PerformanceUtils.trackEventListeners('click', 1000) // 大量事件監聽器
-      
+
       let suggestions = PerformanceUtils.getOptimizationSuggestions()
       expect(suggestions).toContain('減少事件監聽器數量')
-      
+
       // 清理並測試記憶體建議
       PerformanceUtils.clearAllStats()
-      
+
       // 模擬高記憶體使用
       const originalGetMemoryUsage = PerformanceUtils.getMemoryUsage
       PerformanceUtils.getMemoryUsage = jest.fn(() => ({
@@ -303,10 +303,10 @@ describe('PerformanceUtils', () => {
         jsHeapSizeLimit: 1024 * 1024 * 100,
         usagePercentage: 85 // 85%
       }))
-      
+
       suggestions = PerformanceUtils.getOptimizationSuggestions()
       expect(suggestions).toContain('減少記憶體使用')
-      
+
       // 恢復原始函數
       PerformanceUtils.getMemoryUsage = originalGetMemoryUsage
     })
@@ -326,7 +326,7 @@ describe('PerformanceUtils', () => {
         }
         return sum
       }, 5) // 執行 5 次
-      
+
       expect(benchmarkResult.iterations).toBe(5)
       expect(benchmarkResult.averageTime).toBeGreaterThan(0)
       expect(benchmarkResult.minTime).toBeGreaterThan(0)

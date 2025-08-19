@@ -4,7 +4,7 @@
  * @since 2025-08-16
  *
  * TDD Red 階段：設計 memory-utils.js 的完整測試套件
- * 
+ *
  * 測試目標：
  * - 記憶體使用監控和分析
  * - 快取管理和清理策略
@@ -35,7 +35,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       totalJSHeapSize: 20000000,
       jsHeapSizeLimit: 2147483648
     }
-    
+
     global.performance = {
       memory: mockMemory,
       now: jest.fn(() => Date.now()),
@@ -55,11 +55,11 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
   describe('📊 記憶體監控和分析', () => {
     test('應該取得當前記憶體使用狀況（fallback模式）', () => {
       const memoryInfo = MemoryUtils.getMemoryInfo()
-      
+
       // 在測試環境中可能沒有 performance.memory，應該支援 fallback
       expect(memoryInfo.success).toBeDefined()
       expect(typeof memoryInfo.success).toBe('boolean')
-      
+
       if (memoryInfo.success) {
         expect(memoryInfo.percentage).toBeGreaterThanOrEqual(0)
         expect(memoryInfo.percentage).toBeLessThanOrEqual(100)
@@ -74,9 +74,9 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       MemoryUtils.recordMemorySnapshot('test-operation-1')
       MemoryUtils.recordMemorySnapshot('test-operation-2')
       MemoryUtils.recordMemorySnapshot('test-operation-3')
-      
+
       const trend = MemoryUtils.getMemoryTrend()
-      
+
       expect(trend).toEqual({
         snapshots: expect.any(Array),
         totalSnapshots: 3,
@@ -88,13 +88,13 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
         peak: expect.any(Object),
         average: expect.any(Number)
       })
-      
+
       expect(trend.snapshots).toHaveLength(3)
     })
 
     test('應該檢測記憶體使用異常', () => {
       const analysis = MemoryUtils.analyzeMemoryUsage()
-      
+
       // 在 fallback 模式下應該提供基本分析
       expect(analysis).toEqual(
         expect.objectContaining({
@@ -105,7 +105,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
           timestamp: expect.any(Number)
         })
       )
-      
+
       // 檢查基本結構
       expect(typeof analysis.status).toBe('string')
       expect(Array.isArray(analysis.recommendations)).toBe(true)
@@ -116,9 +116,9 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       // 記錄一些操作
       MemoryUtils.recordMemorySnapshot('operation-start')
       MemoryUtils.recordMemorySnapshot('operation-end')
-      
+
       const efficiency = MemoryUtils.calculateMemoryEfficiency()
-      
+
       expect(efficiency).toEqual({
         allocation: {
           total: expect.any(Number),
@@ -144,9 +144,9 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
         ttl: 300000, // 5 分鐘
         strategy: 'LRU'
       }
-      
+
       const result = MemoryUtils.registerCache(cacheConfig)
-      
+
       expect(result).toEqual({
         success: true,
         cacheId: 'book-data-cache',
@@ -164,14 +164,14 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       // 註冊多個快取
       MemoryUtils.registerCache({ name: 'cache-1', maxSize: 50 })
       MemoryUtils.registerCache({ name: 'cache-2', maxSize: 30 })
-      
+
       // 模擬快取使用
       for (let i = 0; i < 10; i++) {
         MemoryUtils.setCacheItem('cache-1', `key-${i}`, { data: `value-${i}` })
       }
-      
+
       const cleanupResult = MemoryUtils.performCacheCleanup()
-      
+
       expect(cleanupResult).toEqual({
         success: true,
         cleaned: expect.any(Array),
@@ -179,7 +179,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
         remaining: expect.any(Number),
         strategy: expect.any(String)
       })
-      
+
       // 清理結果應該是合理的數字
       expect(cleanupResult.released).toBeGreaterThanOrEqual(0)
     })
@@ -190,37 +190,37 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
         maxSize: 3,
         strategy: 'LRU'
       })
-      
+
       // 填滿快取
       MemoryUtils.setCacheItem('lru-cache', 'key1', 'value1')
       MemoryUtils.setCacheItem('lru-cache', 'key2', 'value2')
       MemoryUtils.setCacheItem('lru-cache', 'key3', 'value3')
-      
+
       // 存取 key1 使其變成最近使用
       MemoryUtils.getCacheItem('lru-cache', 'key1')
-      
+
       // 加入新項目應該移除 key2
       MemoryUtils.setCacheItem('lru-cache', 'key4', 'value4')
-      
+
       const item2 = MemoryUtils.getCacheItem('lru-cache', 'key2')
       const item1 = MemoryUtils.getCacheItem('lru-cache', 'key1')
       const item4 = MemoryUtils.getCacheItem('lru-cache', 'key4')
-      
+
       expect(item2.found).toBe(false) // 應該被清除
-      expect(item1.found).toBe(true)  // 應該保留
-      expect(item4.found).toBe(true)  // 新項目
+      expect(item1.found).toBe(true) // 應該保留
+      expect(item4.found).toBe(true) // 新項目
     })
 
     test('應該監控快取效能指標', () => {
       MemoryUtils.registerCache({ name: 'perf-cache', maxSize: 100 })
-      
+
       // 執行一些快取操作
       MemoryUtils.setCacheItem('perf-cache', 'test-key', 'test-value')
       MemoryUtils.getCacheItem('perf-cache', 'test-key') // hit
       MemoryUtils.getCacheItem('perf-cache', 'missing-key') // miss
-      
+
       const stats = MemoryUtils.getCacheStats('perf-cache')
-      
+
       expect(stats).toEqual({
         size: 1,
         maxSize: 100,
@@ -240,9 +240,9 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       for (let i = 0; i < 10; i++) {
         MemoryUtils.recordMemorySnapshot(`leak-test-${i}`)
       }
-      
+
       const leakDetection = MemoryUtils.detectMemoryLeaks()
-      
+
       expect(leakDetection).toEqual({
         hasLeaks: expect.any(Boolean),
         severity: expect.stringMatching(/^(LOW|MEDIUM|HIGH|CRITICAL)$/),
@@ -264,20 +264,20 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       // 模擬 DOM 節點建立和刪除
       const container = document.createElement('div')
       document.body.appendChild(container)
-      
+
       MemoryUtils.trackDOMNodes('test-container')
-      
+
       // 建立大量節點
       for (let i = 0; i < 100; i++) {
         const node = document.createElement('div')
         node.textContent = `Node ${i}`
         container.appendChild(node)
       }
-      
+
       MemoryUtils.trackDOMNodes('test-container-filled')
-      
+
       const domAnalysis = MemoryUtils.analyzeDOMNodeLeaks()
-      
+
       expect(domAnalysis).toEqual({
         nodeCount: expect.any(Number),
         growth: expect.any(Number),
@@ -290,13 +290,13 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
     test('應該檢查事件監聽器洩漏', () => {
       const mockElement = document.createElement('div')
       const mockHandler = jest.fn()
-      
+
       // 模擬事件監聽器註冊
       MemoryUtils.trackEventListener(mockElement, 'click', mockHandler)
       MemoryUtils.trackEventListener(mockElement, 'scroll', mockHandler)
-      
+
       const listenerAnalysis = MemoryUtils.analyzeEventListeners()
-      
+
       expect(listenerAnalysis).toEqual({
         total: 2,
         byType: {
@@ -312,22 +312,22 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
   describe('⚡ 效能最佳化', () => {
     test('應該監控執行時間', () => {
       MemoryUtils.startTimer('test-operation')
-      
+
       // 模擬一些工作
       let sum = 0
       for (let i = 0; i < 1000; i++) {
         sum += i
       }
-      
+
       const timing = MemoryUtils.endTimer('test-operation')
-      
+
       expect(timing).toEqual({
         success: true,
         duration: expect.any(Number),
         operation: 'test-operation',
         timestamp: expect.any(Number)
       })
-      
+
       expect(timing.duration).toBeGreaterThan(0)
     })
 
@@ -339,9 +339,9 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
         }
         return result
       }
-      
+
       const performance = MemoryUtils.measurePerformance(testFunction, 'math-calculation')
-      
+
       expect(performance).toEqual({
         result: expect.any(Number),
         timing: {
@@ -358,13 +358,13 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
 
     test('應該批量測量多次執行', () => {
       const simpleFunction = () => Math.random()
-      
+
       const benchmark = MemoryUtils.benchmark(simpleFunction, {
         iterations: 100,
         warmup: 10,
         name: 'random-generation'
       })
-      
+
       expect(benchmark).toEqual({
         name: 'random-generation',
         iterations: 100,
@@ -388,16 +388,16 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       // 建立一些效能問題的情境
       MemoryUtils.recordMemorySnapshot('before-heavy-operation')
       MemoryUtils.recordMemorySnapshot('after-heavy-operation')
-      
+
       const suggestions = MemoryUtils.getOptimizationSuggestions()
-      
+
       expect(suggestions).toEqual({
         memory: expect.any(Array),
         performance: expect.any(Array),
         caching: expect.any(Array),
         priority: expect.stringMatching(/^(LOW|MEDIUM|HIGH|CRITICAL)$/)
       })
-      
+
       // 檢查建議結構是正確的
       expect(Array.isArray(suggestions.memory)).toBe(true)
       expect(Array.isArray(suggestions.performance)).toBe(true)
@@ -410,9 +410,9 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       // 建立一些資料
       MemoryUtils.recordMemorySnapshot('report-test-1')
       MemoryUtils.recordMemorySnapshot('report-test-2')
-      
+
       const report = MemoryUtils.generateMemoryReport()
-      
+
       expect(report).toEqual({
         summary: {
           current: expect.any(Object),
@@ -437,9 +437,9 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       MemoryUtils.endTimer('operation-1')
       MemoryUtils.startTimer('operation-2')
       MemoryUtils.endTimer('operation-2')
-      
+
       const performanceReport = MemoryUtils.generatePerformanceReport()
-      
+
       expect(performanceReport).toEqual({
         operations: expect.any(Array),
         summary: {
@@ -461,9 +461,9 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       MemoryUtils.registerCache({ name: 'cleanup-test', maxSize: 10 })
       MemoryUtils.recordMemorySnapshot('cleanup-snapshot')
       MemoryUtils.startTimer('cleanup-timer')
-      
+
       const cleanupResult = MemoryUtils.cleanup()
-      
+
       expect(cleanupResult).toEqual({
         success: true,
         cleared: {
@@ -482,13 +482,13 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       // 暫時移除 performance.memory
       const originalMemory = global.performance.memory
       delete global.performance.memory
-      
+
       const memoryInfo = MemoryUtils.getMemoryInfo()
-      
+
       expect(memoryInfo.success).toBe(false)
       expect(memoryInfo.error).toBeDefined()
       expect(memoryInfo.fallback).toBe(true)
-      
+
       // 恢復
       global.performance.memory = originalMemory
     })
@@ -502,7 +502,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
         { name: 'test', maxSize: -1 },
         { name: 'test', maxSize: 'invalid' }
       ]
-      
+
       invalidConfigs.forEach(config => {
         const result = MemoryUtils.registerCache(config)
         expect(result.success).toBe(false)
@@ -513,7 +513,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
     test('應該處理計時器錯誤', () => {
       // 結束不存在的計時器
       const result = MemoryUtils.endTimer('non-existent-timer')
-      
+
       expect(result.success).toBe(false)
       expect(result.error).toBeDefined()
     })
@@ -523,9 +523,9 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       global.performance.now = jest.fn(() => {
         throw new Error('Performance API error')
       })
-      
+
       expect(() => MemoryUtils.startTimer('error-test')).not.toThrow()
-      
+
       const result = MemoryUtils.startTimer('error-test')
       expect(result.success).toBe(false)
     })
@@ -571,7 +571,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
         () => MemoryUtils.registerCache({ name: 'format-test', maxSize: 10 }),
         () => MemoryUtils.startTimer('format-test')
       ]
-      
+
       methods.forEach(method => {
         const result = method()
         expect(typeof result).toBe('object')
@@ -581,7 +581,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
 
     test('應該安全處理各種錯誤輸入', () => {
       const invalidInputs = [null, undefined, '', 0, {}, [], NaN]
-      
+
       invalidInputs.forEach(input => {
         expect(() => MemoryUtils.recordMemorySnapshot(input)).not.toThrow()
         expect(() => MemoryUtils.registerCache(input)).not.toThrow()

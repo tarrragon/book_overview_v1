@@ -1,6 +1,6 @@
 /**
  * User Experience Domain 協調器測試
- * 
+ *
  * 測試範圍：
  * - UX Domain 協調器初始化和啟動
  * - 服務依賴管理和協調
@@ -37,18 +37,18 @@ const createMockService = (serviceName, extraMethods = {}) => {
     getHealthStatus: jest.fn().mockReturnValue({ healthy: true }),
     ...extraMethods
   }
-  
+
   // 返回 Mock 構造函數
-  const MockConstructor = jest.fn().mockImplementation(function() {
+  const MockConstructor = jest.fn().mockImplementation(function () {
     // 將共用的 Mock 方法分配給實例
     // 使用 Object.defineProperties 來創建引用，確保動態更新
     const instance = this
     Object.keys(mockMethods).forEach(methodName => {
       Object.defineProperty(instance, methodName, {
-        get() {
+        get () {
           return mockMethods[methodName]
         },
-        set(value) {
+        set (value) {
           mockMethods[methodName] = value
         },
         configurable: true,
@@ -57,34 +57,34 @@ const createMockService = (serviceName, extraMethods = {}) => {
     })
     return this
   })
-  
+
   // 在構造函數上暴露 Mock 方法，方便測試中直接訪問
   MockConstructor.mockMethods = mockMethods
-  
+
   return MockConstructor
 }
 
 // Mock UX 服務
-jest.mock('../../../../../src/background/domains/user-experience/services/theme-management-service', () => 
+jest.mock('../../../../../src/background/domains/user-experience/services/theme-management-service', () =>
   createMockService('ThemeManagementService', {
     setTheme: jest.fn().mockResolvedValue()
   })
 )
 
-jest.mock('../../../../../src/background/domains/user-experience/services/preference-service', () => 
+jest.mock('../../../../../src/background/domains/user-experience/services/preference-service', () =>
   createMockService('PreferenceService', {
     setPreference: jest.fn().mockResolvedValue(),
     getPreference: jest.fn().mockResolvedValue('auto')
   })
 )
 
-jest.mock('../../../../../src/background/domains/user-experience/services/notification-service', () => 
+jest.mock('../../../../../src/background/domains/user-experience/services/notification-service', () =>
   createMockService('NotificationService', {
     showNotification: jest.fn().mockResolvedValue()
   })
 )
 
-jest.mock('../../../../../src/background/domains/user-experience/services/popup-ui-coordination-service', () => 
+jest.mock('../../../../../src/background/domains/user-experience/services/popup-ui-coordination-service', () =>
   createMockService('PopupUICoordinationService', {
     coordinateState: jest.fn().mockResolvedValue({ success: true }),
     updateTheme: jest.fn().mockResolvedValue(),
@@ -92,11 +92,11 @@ jest.mock('../../../../../src/background/domains/user-experience/services/popup-
   })
 )
 
-jest.mock('../../../../../src/background/domains/user-experience/services/personalization-service', () => 
+jest.mock('../../../../../src/background/domains/user-experience/services/personalization-service', () =>
   createMockService('PersonalizationService')
 )
 
-jest.mock('../../../../../src/background/domains/user-experience/services/accessibility-service', () => 
+jest.mock('../../../../../src/background/domains/user-experience/services/accessibility-service', () =>
   createMockService('AccessibilityService')
 )
 
@@ -125,7 +125,7 @@ describe('🎨 UX Domain 協調器測試', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     // 手動設定 Mock 服務池 - 確保所有 Mock 方法都可訪問
     const ThemeManagementService = require('../../../../../src/background/domains/user-experience/services/theme-management-service')
     const PreferenceService = require('../../../../../src/background/domains/user-experience/services/preference-service')
@@ -133,27 +133,27 @@ describe('🎨 UX Domain 協調器測試', () => {
     const PopupUICoordinationService = require('../../../../../src/background/domains/user-experience/services/popup-ui-coordination-service')
     const PersonalizationService = require('../../../../../src/background/domains/user-experience/services/personalization-service')
     const AccessibilityService = require('../../../../../src/background/domains/user-experience/services/accessibility-service')
-    
+
     mockServicesPool.ThemeManagementService = ThemeManagementService.mockMethods
     mockServicesPool.PreferenceService = PreferenceService.mockMethods
     mockServicesPool.NotificationService = NotificationService.mockMethods
     mockServicesPool.PopupUICoordinationService = PopupUICoordinationService.mockMethods
     mockServicesPool.PersonalizationService = PersonalizationService.mockMethods
     mockServicesPool.AccessibilityService = AccessibilityService.mockMethods
-    
+
     // 重置所有 Mock 方法為預設行為，避免測試間狀態污染
     mockServicesPool.ThemeManagementService.setTheme.mockResolvedValue()
     mockServicesPool.ThemeManagementService.initialize.mockResolvedValue()
     mockServicesPool.ThemeManagementService.start.mockResolvedValue()
     mockServicesPool.ThemeManagementService.getHealthStatus.mockReturnValue({ healthy: true })
-    
+
     mockServicesPool.NotificationService.showNotification.mockResolvedValue()
     mockServicesPool.PopupUICoordinationService.coordinateState.mockResolvedValue({ success: true })
     mockServicesPool.PopupUICoordinationService.updateTheme.mockResolvedValue()
     mockServicesPool.PopupUICoordinationService.updatePreference.mockResolvedValue()
     mockServicesPool.PreferenceService.setPreference.mockResolvedValue()
     mockServicesPool.PreferenceService.getPreference.mockResolvedValue('auto')
-    
+
     dependencies = {
       eventBus: mockEventBus,
       logger: mockLogger,
@@ -199,7 +199,7 @@ describe('🎨 UX Domain 協調器測試', () => {
     test('應該正確啟動 UX Domain 協調器', async () => {
       // 先初始化
       await coordinator.initialize()
-      
+
       // 執行啟動
       await coordinator.start()
 
@@ -227,7 +227,7 @@ describe('🎨 UX Domain 協調器測試', () => {
     test('應該防止重複初始化', async () => {
       // 第一次初始化
       await coordinator.initialize()
-      
+
       // 重複初始化
       await coordinator.initialize()
 
@@ -238,7 +238,7 @@ describe('🎨 UX Domain 協調器測試', () => {
     test('應該防止重複啟動', async () => {
       await coordinator.initialize()
       await coordinator.start()
-      
+
       // 重複啟動
       await coordinator.start()
 
@@ -264,10 +264,10 @@ describe('🎨 UX Domain 協調器測試', () => {
 
     test('應該正確協調主題變更', async () => {
       const theme = 'dark'
-      
+
       // 記錄初始統計 - 因為初始化時可能已經設定過預設主題
       const initialThemeChanges = coordinator.stats.themeChanges
-      
+
       // 執行主題協調
       const result = await coordinator.coordinateThemeChange(theme)
 
@@ -299,7 +299,7 @@ describe('🎨 UX Domain 協調器測試', () => {
 
     test('應該處理無效主題錯誤', async () => {
       const invalidTheme = 'invalid-theme'
-      
+
       // Mock 主題服務拋出錯誤 - 使用 mockServicesPool 訪問
       mockServicesPool.ThemeManagementService.setTheme.mockRejectedValue(new Error('Invalid theme'))
 

@@ -392,7 +392,7 @@ class EventTypeDefinitions {
     const parts = invalidEventName.split('.')
     if (parts.length === 3) {
       const [firstPart, secondPart, thirdPart] = parts
-      
+
       // 假設是缺少平台的情況
       if (this.isValidDomain(firstPart) && this.isValidAction(secondPart) && this.isValidState(thirdPart)) {
         const validPlatforms = this.getPlatformsForDomain(firstPart)
@@ -417,7 +417,7 @@ class EventTypeDefinitions {
     if (suggestions.length === 0) {
       const commonEvents = this.generateCommonEvents()
       const similarEvents = this.findSimilarEvents(invalidEventName)
-      
+
       // 如果沒找到相似事件，提供一些常見事件作為參考
       if (similarEvents.length === 0) {
         suggestions.push(...commonEvents.slice(0, 3)) // 前三個常見事件

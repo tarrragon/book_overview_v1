@@ -1,6 +1,6 @@
 /**
  * PopupStatusManager 單元測試
- * 
+ *
  * 負責測試：
  * - 狀態管理核心功能
  * - 狀態類型驗證
@@ -58,7 +58,7 @@ describe('PopupStatusManager 核心功能', () => {
       expect(() => {
         statusManager.updateStatus(invalidStatusData)
       }).toThrow('Invalid status type: invalid_type')
-      
+
       expect(mockUIComponents.updateStatus).not.toHaveBeenCalled()
     })
 
@@ -84,7 +84,7 @@ describe('PopupStatusManager 核心功能', () => {
       // Given: Background 狀態變化
       const PopupStatusManager = require('../../../src/popup/components/popup-status-manager.js')
       statusManager = new PopupStatusManager(mockUIComponents)
-      
+
       const backgroundStatus = {
         type: 'ready',
         text: '背景服務就緒',
@@ -140,11 +140,11 @@ describe('PopupStatusManager 核心功能', () => {
       // When & Then: 每個有效類型都應該被接受
       validTypes.forEach(type => {
         const statusData = { type, text: `測試 ${type}`, info: 'test' }
-        
+
         expect(() => {
           statusManager.updateStatus(statusData)
         }).not.toThrow()
-        
+
         expect(statusManager.getCurrentStatus().type).toBe(type)
       })
     })

@@ -108,7 +108,7 @@ describe('Modular Content Script', () => {
     test('應該正確檢測 Readmoo 頁面', () => {
       // JSDOM 使用 readmoo.com 域名
       const pageDetector = createPageDetector()
-      
+
       const result = pageDetector.detectReadmooPage()
       expect(result.isReadmooPage).toBe(true)
       expect(result.pageType).toBe('library')
@@ -116,22 +116,22 @@ describe('Modular Content Script', () => {
 
     test('應該能夠檢測不同的頁面類型', () => {
       const pageDetector = createPageDetector()
-      
+
       // 測試 library 頁面
       expect(pageDetector.detectPageType()).toBe('library')
-      
+
       // 模擬其他頁面類型
       global.location.href = 'https://readmoo.com/shelf/123'
       global.location.pathname = '/shelf/123'
       window.location.href = 'https://readmoo.com/shelf/123'
       window.location.pathname = '/shelf/123'
-      
+
       expect(pageDetector.detectPageType()).toBe('shelf')
     })
 
     test('應該提供頁面狀態資訊', () => {
       const pageDetector = createPageDetector()
-      
+
       const status = pageDetector.getPageStatus()
       expect(status).toEqual({
         isReadmooPage: true,
@@ -145,7 +145,7 @@ describe('Modular Content Script', () => {
 
     test('應該能夠監聽 URL 變更', (done) => {
       const pageDetector = createPageDetector()
-      
+
       const stopListening = pageDetector.onUrlChange((changeInfo) => {
         expect(changeInfo.newUrl).toContain('/shelf')
         expect(changeInfo.changed).toBe(true)
@@ -169,9 +169,9 @@ describe('Modular Content Script', () => {
       const handler = jest.fn()
 
       eventBus.on('TEST.EVENT', handler)
-      
+
       const result = await eventBus.emit('TEST.EVENT', { message: 'test' })
-      
+
       expect(result.success).toBe(true)
       expect(handler).toHaveBeenCalledWith({
         type: 'TEST.EVENT',
@@ -199,10 +199,10 @@ describe('Modular Content Script', () => {
       const handler = jest.fn()
 
       eventBus.on('ONCE.TEST', handler, { once: true })
-      
+
       await eventBus.emit('ONCE.TEST')
       await eventBus.emit('ONCE.TEST')
-      
+
       expect(handler).toHaveBeenCalledTimes(1)
     })
 
@@ -227,7 +227,7 @@ describe('Modular Content Script', () => {
   describe('ChromeEventBridge 模組', () => {
     test('應該能夠發送訊息到 Background', async () => {
       const bridge = createChromeEventBridge()
-      
+
       chrome.runtime.sendMessage.mockResolvedValue({ success: true })
 
       const message = {
@@ -252,7 +252,7 @@ describe('Modular Content Script', () => {
 
     test('應該處理發送錯誤', async () => {
       const bridge = createChromeEventBridge()
-      
+
       chrome.runtime.sendMessage.mockRejectedValue(new Error('Connection failed'))
 
       const message = {
@@ -268,7 +268,7 @@ describe('Modular Content Script', () => {
 
     test('應該能夠轉發事件到 Background', async () => {
       const bridge = createChromeEventBridge()
-      
+
       chrome.runtime.sendMessage.mockResolvedValue({ success: true })
 
       await bridge.forwardEventToBackground('EXTRACTION.COMPLETED', { flowId: 'test' })
@@ -288,9 +288,9 @@ describe('Modular Content Script', () => {
   describe('ReadmooAdapter 模組', () => {
     test('應該能夠找到書籍元素', () => {
       const adapter = createReadmooAdapter()
-      
+
       const bookElements = adapter.getBookElements()
-      
+
       expect(bookElements).toHaveLength(2)
       expect(bookElements[0].tagName.toLowerCase()).toBe('div')
       expect(bookElements[0].classList.contains('library-item')).toBe(true)
@@ -299,9 +299,9 @@ describe('Modular Content Script', () => {
     test('應該能夠解析書籍資料', () => {
       const adapter = createReadmooAdapter()
       const bookElements = adapter.getBookElements()
-      
+
       const bookData = adapter.parseBookElement(bookElements[0])
-      
+
       expect(bookData).toEqual({
         id: expect.stringMatching(/^cover-12345$/),
         title: '測試書籍1',
@@ -331,9 +331,9 @@ describe('Modular Content Script', () => {
 
     test('應該能夠提取所有書籍', async () => {
       const adapter = createReadmooAdapter()
-      
+
       const books = await adapter.extractAllBooks()
-      
+
       expect(books).toHaveLength(2)
       expect(books[0].title).toBe('測試書籍1')
       expect(books[1].title).toBe('測試書籍2')
@@ -341,7 +341,7 @@ describe('Modular Content Script', () => {
 
     test('應該過濾不安全的 URL', () => {
       const adapter = createReadmooAdapter()
-      
+
       expect(adapter.isUnsafeUrl('javascript:alert(1)')).toBe(true)
       expect(adapter.isUnsafeUrl('data:text/html,<script>alert(1)</script>')).toBe(true)
       expect(adapter.isUnsafeUrl('https://cdn.readmoo.com/cover/test.jpg')).toBe(false)
@@ -351,10 +351,10 @@ describe('Modular Content Script', () => {
   describe('BookDataExtractor 模組', () => {
     test('應該能夠檢測頁面類型', () => {
       const extractor = createBookDataExtractor()
-      
+
       const pageType = extractor.getReadmooPageType()
       expect(pageType).toBe('library')
-      
+
       const isExtractable = extractor.isExtractableReadmooPage()
       expect(isExtractable).toBe(true)
     })
@@ -362,11 +362,11 @@ describe('Modular Content Script', () => {
     test('應該能夠檢查頁面準備狀態', async () => {
       const extractor = createBookDataExtractor()
       const adapter = createReadmooAdapter()
-      
+
       extractor.setReadmooAdapter(adapter)
-      
+
       const status = await extractor.checkPageReady()
-      
+
       expect(status).toEqual({
         isReady: true,
         pageType: 'library',
@@ -381,7 +381,7 @@ describe('Modular Content Script', () => {
       const eventBus = createContentEventBus()
       const extractor = createBookDataExtractor()
       const adapter = createReadmooAdapter()
-      
+
       extractor.setEventBus(eventBus)
       extractor.setReadmooAdapter(adapter)
 
@@ -400,9 +400,9 @@ describe('Modular Content Script', () => {
     test('應該能夠取消提取流程', async () => {
       const eventBus = createContentEventBus()
       const extractor = createBookDataExtractor()
-      
+
       extractor.setEventBus(eventBus)
-      
+
       // 手動添加活動流程 (直接操作內部狀態進行測試)
       const mockFlowId = 'test-flow-123'
       // 通過反射或直接訪問私有屬性
@@ -452,7 +452,7 @@ describe('Modular Content Script', () => {
     test('應該能夠處理事件轉發', async () => {
       const eventBus = createContentEventBus()
       const chromeBridge = createChromeEventBridge()
-      
+
       chromeBridge.eventBus = eventBus
       chrome.runtime.sendMessage.mockResolvedValue({ success: true })
 
@@ -477,7 +477,7 @@ describe('Modular Content Script', () => {
     test('應該能夠處理模組錯誤隔離', async () => {
       const eventBus = createContentEventBus()
       const extractor = createBookDataExtractor()
-      
+
       extractor.setEventBus(eventBus)
       // 故意不設置 adapter
 
@@ -498,10 +498,10 @@ describe('Modular Content Script', () => {
   describe('記憶體管理和清理', () => {
     test('PageDetector 應該能夠清理資源', () => {
       const pageDetector = createPageDetector()
-      
+
       const stopFunction = pageDetector.onUrlChange(() => {})
       expect(typeof stopFunction).toBe('function')
-      
+
       pageDetector.destroy()
       // 清理後應該不會拋出錯誤
       expect(() => stopFunction()).not.toThrow()
@@ -509,22 +509,22 @@ describe('Modular Content Script', () => {
 
     test('EventBus 應該能夠清理事件監聽器', async () => {
       const eventBus = createContentEventBus()
-      
+
       eventBus.on('TEST.EVENT', () => {})
       expect(eventBus.getStats().memoryUsage.totalListeners).toBe(1)
-      
+
       eventBus.destroy()
       expect(eventBus.getStats().memoryUsage.totalListeners).toBe(0)
     })
 
     test('應該能夠清理活動提取流程', () => {
       const extractor = createBookDataExtractor()
-      
+
       // 測試取得活動流程列表 (應該是空的)
       const activeFlows = extractor.getActiveExtractionFlows()
       expect(Array.isArray(activeFlows)).toBe(true)
       expect(activeFlows).toHaveLength(0)
-      
+
       // 測試取消不存在的流程
       extractor.cancelExtraction('non-existent-flow').then(result => {
         expect(result.success).toBe(false)

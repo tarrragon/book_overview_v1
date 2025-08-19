@@ -222,8 +222,8 @@ class UXDomainCoordinator {
 
       // 發送主題變更協調事件
       if (this.eventBus) {
-        await this.eventBus.emit('UX.THEME.CHANGE.COORDINATED', { 
-          theme, 
+        await this.eventBus.emit('UX.THEME.CHANGE.COORDINATED', {
+          theme,
           timestamp: Date.now(),
           coordinatedServices: ['theme', 'popupUI']
         })
@@ -266,8 +266,8 @@ class UXDomainCoordinator {
 
       // 發送 Popup 狀態協調事件
       if (this.eventBus) {
-        await this.eventBus.emit('UX.POPUP.STATE.COORDINATED', { 
-          state: popupState, 
+        await this.eventBus.emit('UX.POPUP.STATE.COORDINATED', {
+          state: popupState,
           result,
           timestamp: Date.now()
         })
@@ -308,9 +308,9 @@ class UXDomainCoordinator {
 
       // 發送偏好協調事件
       if (this.eventBus) {
-        await this.eventBus.emit('UX.PREFERENCE.COORDINATED', { 
-          key, 
-          value, 
+        await this.eventBus.emit('UX.PREFERENCE.COORDINATED', {
+          key,
+          value,
           timestamp: Date.now()
         })
       }
@@ -430,7 +430,7 @@ class UXDomainCoordinator {
     try {
       const preferenceService = this.services.get('preference')
       const savedTheme = await preferenceService.getPreference('theme', 'auto')
-      
+
       await this.coordinateThemeChange(savedTheme)
       this.logger.log(`🎨 載入預設主題: ${savedTheme}`)
     } catch (error) {
@@ -450,7 +450,7 @@ class UXDomainCoordinator {
 
     // 檢查關鍵 UX 服務狀態
     const criticalServices = ['theme', 'preference', 'popupUI']
-    
+
     for (const serviceName of criticalServices) {
       const service = this.services.get(serviceName)
       try {

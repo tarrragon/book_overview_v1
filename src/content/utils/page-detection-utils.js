@@ -26,7 +26,7 @@
  * 頁面檢測工具類
  */
 class PageDetectionUtils {
-  constructor() {
+  constructor () {
     this.cache = new Map()
     this.urlPatterns = {
       readmoo: /^https?:\/\/(?:[\w-]+\.)*readmoo\.com/i,
@@ -41,12 +41,12 @@ class PageDetectionUtils {
    * @param {string} url - 要檢查的 URL (可選，預設使用當前頁面)
    * @returns {boolean} 是否為 Readmoo 網域
    */
-  isReadmooDomain(url) {
+  isReadmooDomain (url) {
     // 如果沒有提供 URL，使用當前頁面 URL
     if (url === undefined) {
       url = this._getCurrentUrl()
     }
-    
+
     if (!url || typeof url !== 'string') {
       return false
     }
@@ -63,12 +63,12 @@ class PageDetectionUtils {
    * @param {string} url - 要分析的 URL (可選，預設使用當前頁面)
    * @returns {string} 頁面類型 ('library', 'shelf', 'reader', 'unknown')
    */
-  getPageType(url) {
+  getPageType (url) {
     // 如果沒有提供 URL，使用當前頁面 URL
     if (url === undefined) {
       url = this._getCurrentUrl()
     }
-    
+
     if (!url || typeof url !== 'string') {
       return 'unknown'
     }
@@ -106,7 +106,7 @@ class PageDetectionUtils {
    * @param {string} pageType - 頁面類型
    * @returns {boolean} 是否可提取
    */
-  isExtractablePage(pageType) {
+  isExtractablePage (pageType) {
     if (!pageType || typeof pageType !== 'string') {
       return false
     }
@@ -119,12 +119,12 @@ class PageDetectionUtils {
    * 檢查頁面是否已準備就緒
    * @returns {boolean} 頁面是否準備就緒
    */
-  isPageReady() {
+  isPageReady () {
     try {
       if (typeof document === 'undefined') {
         return false
       }
-      
+
       return document.readyState === 'complete'
     } catch (error) {
       return false
@@ -135,7 +135,7 @@ class PageDetectionUtils {
    * 檢查是否存在必要的頁面元素
    * @returns {boolean} 是否存在必要元素
    */
-  hasRequiredElements() {
+  hasRequiredElements () {
     try {
       if (typeof document === 'undefined') {
         return false
@@ -168,7 +168,7 @@ class PageDetectionUtils {
    * @param {number} timeout - 超時時間 (毫秒)
    * @returns {Promise<boolean>} 是否準備完成
    */
-  async waitForPageReady(timeout = 10000) {
+  async waitForPageReady (timeout = 10000) {
     const startTime = Date.now()
 
     return new Promise((resolve) => {
@@ -195,11 +195,11 @@ class PageDetectionUtils {
    * @param {string} url - 要解析的 URL
    * @returns {Object} URL 資訊物件
    */
-  parseUrl(url) {
+  parseUrl (url) {
     try {
       const urlObj = new URL(url)
       const pageType = this.getPageType(url)
-      
+
       return {
         hostname: urlObj.hostname,
         pathname: urlObj.pathname,
@@ -224,10 +224,10 @@ class PageDetectionUtils {
    * 取得當前頁面的完整資訊
    * @returns {Object} 頁面資訊物件
    */
-  getCurrentPageInfo() {
+  getCurrentPageInfo () {
     const url = this._getCurrentUrl()
     const urlInfo = this.parseUrl(url)
-    
+
     return {
       url,
       ...urlInfo,
@@ -239,12 +239,12 @@ class PageDetectionUtils {
    * 判斷是否應該啟動擴展功能
    * @returns {boolean} 是否應該啟動
    */
-  shouldActivateExtension() {
+  shouldActivateExtension () {
     try {
       const pageInfo = this.getCurrentPageInfo()
-      
-      return pageInfo.isReadmoo && 
-             pageInfo.isExtractable && 
+
+      return pageInfo.isReadmoo &&
+             pageInfo.isExtractable &&
              pageInfo.isReady &&
              this.hasRequiredElements()
     } catch (error) {
@@ -255,7 +255,7 @@ class PageDetectionUtils {
   /**
    * 清空檢測結果快取
    */
-  clearCache() {
+  clearCache () {
     this.cache.clear()
   }
 
@@ -263,7 +263,7 @@ class PageDetectionUtils {
    * 取得快取統計資訊
    * @returns {Object} 快取統計
    */
-  getCacheStats() {
+  getCacheStats () {
     return {
       size: this.cache.size,
       keys: Array.from(this.cache.keys())
@@ -279,7 +279,7 @@ class PageDetectionUtils {
    * @returns {string} 當前 URL
    * @private
    */
-  _getCurrentUrl() {
+  _getCurrentUrl () {
     try {
       if (typeof window !== 'undefined' && window.location) {
         return window.location.href
@@ -295,7 +295,7 @@ class PageDetectionUtils {
    * @returns {string} 當前 hostname
    * @private
    */
-  _getCurrentHostname() {
+  _getCurrentHostname () {
     try {
       if (typeof window !== 'undefined' && window.location) {
         return window.location.hostname
@@ -311,7 +311,7 @@ class PageDetectionUtils {
    * @returns {string} 當前 pathname
    * @private
    */
-  _getCurrentPathname() {
+  _getCurrentPathname () {
     try {
       if (typeof window !== 'undefined' && window.location) {
         return window.location.pathname
