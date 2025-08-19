@@ -56,28 +56,13 @@ class PopupController {
    */
   async initialize() {
     try {
-      // 1. 初始化 UI 管理器
-      await this._initializeUIManager()
+      // 依序初始化組件（遵循依賴順序）
+      await this._initializeInDependencyOrder()
       
-      // 2. 初始化狀態管理器
-      await this._initializeStatusManager()
+      // 設置組件協作機制
+      this._setupComponentCollaboration()
       
-      // 3. 初始化進度管理器
-      await this._initializeProgressManager()
-      
-      // 4. 初始化通訊服務
-      await this._initializeCommunicationService()
-      
-      // 5. 初始化提取服務
-      await this._initializeExtractionService()
-      
-      // 6. 設置組件間通訊
-      this._setupInterComponentCommunication()
-      
-      // 7. 設置事件監聽器
-      this._setupEventListeners()
-      
-      // 8. 執行初始化檢查
+      // 執行初始化驗證
       await this._performInitializationChecks()
       
       this.isInitialized = true
@@ -91,6 +76,39 @@ class PopupController {
       
       return false
     }
+  }
+
+  /**
+   * 按依賴順序初始化組件
+   * @private
+   */
+  async _initializeInDependencyOrder() {
+    // 1. 初始化 UI 管理器（基礎層）
+    await this._initializeUIManager()
+    
+    // 2. 初始化狀態管理器（依賴 UI）
+    await this._initializeStatusManager()
+    
+    // 3. 初始化進度管理器（依賴 UI）
+    await this._initializeProgressManager()
+    
+    // 4. 初始化通訊服務（依賴狀態和進度管理器）
+    await this._initializeCommunicationService()
+    
+    // 5. 初始化提取服務（依賴所有其他組件）
+    await this._initializeExtractionService()
+  }
+
+  /**
+   * 設置組件協作機制
+   * @private
+   */
+  _setupComponentCollaboration() {
+    // 設置組件間通訊
+    this._setupInterComponentCommunication()
+    
+    // 設置事件監聽器
+    this._setupEventListeners()
   }
 
   /**
@@ -330,16 +348,12 @@ class PopupController {
    */
   async _initializeCommunicationService() {
     try {
-      // TODO: 動態載入 PopupCommunicationService
-      // const PopupCommunicationService = await import('./services/popup-communication-service.js')
-      // this.components.communication = new PopupCommunicationService.default()
-      
-      // 暫時的 Mock 實作
-      this.components.communication = {
-        checkBackgroundStatus: () => Promise.resolve({ status: 'ready' }),
-        startExtraction: () => Promise.resolve({ success: true }),
-        cleanup: () => {}
-      }
+      // 載入 PopupCommunicationService
+      const PopupCommunicationService = require('./services/popup-communication-service.js')
+      this.components.communication = new PopupCommunicationService(
+        this.components.status,
+        this.components.progress
+      )
       
       // 通訊服務初始化完成
     } catch (error) {
