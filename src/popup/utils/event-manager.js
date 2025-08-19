@@ -370,6 +370,19 @@ class EventManager {
       }
     }
 
+    // 匯出按鈕
+    this.eventConfigs['export-button'] = {
+      element: 'export-button',
+      event: 'click',
+      elementId: 'export-button',
+      eventType: 'click',
+      category: 'UI_ACTIONS',
+      handler: () => {
+        // TODO: 實作匯出功能
+        console.log('匯出功能')
+      }
+    }
+
     // 初始化分類統計
     this.eventCategories.forEach(category => {
       this.stats.categories[category] = {
