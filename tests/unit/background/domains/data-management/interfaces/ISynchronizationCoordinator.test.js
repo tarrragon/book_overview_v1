@@ -1,12 +1,12 @@
 /**
  * ISynchronizationCoordinator 抽象介面測試
- * 
+ *
  * 測試目標：
  * - 驗證抽象類別不能直接實例化
  * - 確保所有抽象方法都會拋出錯誤
  * - 測試介面契約的完整性
  * - 驗證依賴注入機制
- * 
+ *
  * @jest-environment jsdom
  */
 

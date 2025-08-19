@@ -1,12 +1,12 @@
 /**
  * DataComparisonEngine 測試
- * 
+ *
  * 測試目標：
  * - 驗證高效能資料比較演算法
  * - 測試差異計算和變更檢測
  * - 確保最佳化比較的正確性
  * - 驗證批次處理和效能統計
- * 
+ *
  * @jest-environment jsdom
  */
 
@@ -14,7 +14,7 @@ const DataComparisonEngine = require('../../../../../../src/background/domains/d
 
 describe('DataComparisonEngine TDD 測試', () => {
   let engine
-  
+
   beforeEach(() => {
     engine = new DataComparisonEngine({
       compareFields: ['title', 'progress', 'lastUpdated'],
@@ -173,7 +173,7 @@ describe('DataComparisonEngine TDD 測試', () => {
 
     test('getChangeType() 應該正確分類變更類型', () => {
       // Given: 不同的變更情況
-      
+
       // When & Then: 測試各種變更類型
       expect(engine.getChangeType('old', 'new')).toBe('VALUE_CHANGED')
       expect(engine.getChangeType('value', null)).toBe('ADDED')
@@ -306,7 +306,7 @@ describe('DataComparisonEngine TDD 測試', () => {
   describe('⚠️ 錯誤處理測試', () => {
     test('calculateDataDifferences() 應該處理無效輸入', async () => {
       // Given: 無效的輸入資料
-      
+
       // When & Then: 應該拋出錯誤
       await expect(engine.calculateDataDifferences('not-array', [])).rejects.toThrow('Source and target data must be arrays')
       await expect(engine.calculateDataDifferences([], 'not-array')).rejects.toThrow('Source and target data must be arrays')

@@ -188,7 +188,7 @@ class PopupController {
     // 檢查當前類別中的 TODO 標記
     const sourceCode = this.constructor.toString()
     const todoMatches = sourceCode.match(/\/\/\s*TODO[^]*?$/gm) || []
-    
+
     return todoMatches.map(match => match.replace(/^\s*\/\/\s*TODO:?\s*/i, '').trim())
   }
 
@@ -518,15 +518,15 @@ class PopupController {
     try {
       // 實作降級機制
       console.warn('初始化失敗，啟動降級模式:', error.message)
-      
+
       // 使用基本 UI 操作
       if (!this.components.ui) {
         this.components.ui = this._createUIManagerMock()
       }
-      
+
       // 禁用高級功能
       this.isInitialized = false
-      
+
       // 顯示錯誤狀態
       if (this.components.ui && this.components.ui.showError) {
         this.components.ui.showError({

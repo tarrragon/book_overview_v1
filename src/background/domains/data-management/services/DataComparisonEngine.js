@@ -94,7 +94,7 @@ class DataComparisonEngine {
         }
 
         const targetItem = targetMap.get(sourceItem.id)
-        
+
         if (!targetItem) {
           // 新增的項目
           changes.added.push({
@@ -268,7 +268,7 @@ class DataComparisonEngine {
     if (targetValue === null || targetValue === undefined) return 'ADDED'
     if (sourceValue === null || sourceValue === undefined) return 'REMOVED'
     if (typeof sourceValue !== typeof targetValue) return 'TYPE_CHANGED'
-    
+
     if (typeof sourceValue === 'number') {
       return Math.abs(sourceValue - targetValue) > this.config.numericTolerance ? 'VALUE_CHANGED' : 'MINOR_CHANGE'
     }
@@ -295,7 +295,7 @@ class DataComparisonEngine {
     // 標題變更的嚴重性分析
     if (field === 'title') {
       if (!sourceValue || !targetValue) return 'HIGH'
-      
+
       const similarity = this.calculateStringSimilarity(sourceValue, targetValue)
       if (similarity < 0.5) return 'HIGH'
       if (similarity < 0.8) return 'MEDIUM'
@@ -349,7 +349,7 @@ class DataComparisonEngine {
     const totalItems = Math.max(sourceData.length, targetData.length)
     const batches = Math.ceil(totalItems / batchSize)
 
-    let aggregatedResults = {
+    const aggregatedResults = {
       changes: { added: [], modified: [], deleted: [], unchanged: [] },
       summary: { added: 0, modified: 0, deleted: 0, unchanged: 0, total: 0 },
       processingTime: 0,
@@ -379,9 +379,9 @@ class DataComparisonEngine {
       aggregatedResults.processingTime += batchResult.processingTime
     }
 
-    aggregatedResults.summary.total = aggregatedResults.summary.added + 
-                                      aggregatedResults.summary.modified + 
-                                      aggregatedResults.summary.deleted + 
+    aggregatedResults.summary.total = aggregatedResults.summary.added +
+                                      aggregatedResults.summary.modified +
+                                      aggregatedResults.summary.deleted +
                                       aggregatedResults.summary.unchanged
 
     return aggregatedResults

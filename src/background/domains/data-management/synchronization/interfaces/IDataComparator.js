@@ -179,7 +179,7 @@ IDataComparator.SeverityLevels = {
  */
 IDataComparator.StrategyTypes = {
   FIELD_LEVEL: 'FIELD_LEVEL',
-  OBJECT_LEVEL: 'OBJECT_LEVEL', 
+  OBJECT_LEVEL: 'OBJECT_LEVEL',
   DEEP_COMPARE: 'DEEP_COMPARE',
   HASH_COMPARE: 'HASH_COMPARE'
 }

@@ -1,13 +1,13 @@
 /**
  * ReadmooSynchronizationCoordinator TDD 測試
- * 
+ *
  * 測試目標：Readmoo 平台專用同步協調器實作
  * 覆蓋範圍：
  * - 同步協調器基礎實作
  * - Readmoo 特定的同步邏輯
  * - 抽象介面合規性驗證
  * - 錯誤處理和重試機制
- * 
+ *
  * @version 1.0.0
  * @since 2025-08-19
  */
@@ -96,7 +96,7 @@ describe('ReadmooSynchronizationCoordinator TDD 實作', () => {
       }
 
       const customCoordinator = new ReadmooSynchronizationCoordinator(
-        mockEventBus, 
+        mockEventBus,
         { ...mockDependencies, config: customConfig }
       )
 

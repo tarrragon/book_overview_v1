@@ -1,12 +1,12 @@
 /**
  * ConflictDetectionService 測試
- * 
+ *
  * 測試目標：
  * - 驗證智能衝突檢測和分類功能
  * - 測試衝突嚴重性分析和優先級排序
  * - 確保自動解決策略生成的準確性
  * - 驗證批次衝突檢測和統計功能
- * 
+ *
  * @jest-environment jsdom
  */
 
@@ -14,7 +14,7 @@ const ConflictDetectionService = require('../../../../../../src/background/domai
 
 describe('ConflictDetectionService TDD 測試', () => {
   let service
-  
+
   beforeEach(() => {
     service = new ConflictDetectionService({
       progressConflictThreshold: 15,
@@ -181,14 +181,14 @@ describe('ConflictDetectionService TDD 測試', () => {
         fieldChanges: {
           title: {
             source: 'New Title',
-            target: 'Old Title', 
+            target: 'Old Title',
             type: 'VALUE_CHANGED',
             severity: 'HIGH'
           },
           progress: {
             source: 90,
             target: 40,
-            type: 'VALUE_CHANGED', 
+            type: 'VALUE_CHANGED',
             severity: 'HIGH'
           }
         }
@@ -240,7 +240,7 @@ describe('ConflictDetectionService TDD 測試', () => {
           { severity: 'HIGH', priority: 8 }
         ]
       }]
-      
+
       const mediumItems = [{
         conflicts: [
           { severity: 'MEDIUM', priority: 5 },
@@ -511,7 +511,7 @@ describe('ConflictDetectionService TDD 測試', () => {
     test('應該處理超出最大衝突限制的項目', () => {
       // Given: 配置最大衝突數為 2
       const limitedService = new ConflictDetectionService({ maxConflictsPerItem: 2 })
-      
+
       const modifiedItem = {
         id: '1',
         sourceData: { id: '1', title: 'New', progress: 90, lastUpdated: '2025-08-19T10:00:00Z' },

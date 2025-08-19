@@ -60,13 +60,13 @@ const COMPATIBILITY_MATRIX = {
 function validateInterfaceImplementation (ImplementationClass, InterfaceClass) {
   const interfaceMethods = Object.getOwnPropertyNames(InterfaceClass.prototype)
     .filter(name => name !== 'constructor' && typeof InterfaceClass.prototype[name] === 'function')
-  
+
   const implementationMethods = Object.getOwnPropertyNames(ImplementationClass.prototype)
     .filter(name => name !== 'constructor' && typeof ImplementationClass.prototype[name] === 'function')
-  
+
   const missingMethods = interfaceMethods.filter(method => !implementationMethods.includes(method))
   const extraMethods = implementationMethods.filter(method => !interfaceMethods.includes(method))
-  
+
   return {
     isValid: missingMethods.length === 0,
     missingMethods,
@@ -87,7 +87,7 @@ function checkInterfaceCompatibility (interfaceName, requiredVersion) {
   if (!currentVersion) {
     throw new Error(`Unknown interface: ${interfaceName}`)
   }
-  
+
   const compatibleVersions = COMPATIBILITY_MATRIX[currentVersion]?.[interfaceName] || []
   return compatibleVersions.includes(requiredVersion)
 }
@@ -100,10 +100,10 @@ function checkInterfaceCompatibility (interfaceName, requiredVersion) {
 function getInterfaceSummary (InterfaceClass) {
   const methods = Object.getOwnPropertyNames(InterfaceClass.prototype)
     .filter(name => name !== 'constructor' && typeof InterfaceClass.prototype[name] === 'function')
-  
+
   const constants = Object.getOwnPropertyNames(InterfaceClass)
     .filter(name => typeof InterfaceClass[name] === 'object')
-  
+
   return {
     name: InterfaceClass.name,
     version: INTERFACE_VERSIONS[InterfaceClass.name] || 'unknown',
@@ -126,11 +126,11 @@ function loadInterface (interfaceName) {
     IConflictResolver,
     ISyncStrategyExecutor
   }
-  
+
   if (!interfaces[interfaceName]) {
     throw new Error(`Interface '${interfaceName}' not found`)
   }
-  
+
   return interfaces[interfaceName]
 }
 
@@ -170,18 +170,18 @@ module.exports = {
   IDataComparator,
   IConflictResolver,
   ISyncStrategyExecutor,
-  
+
   // 版本和相容性
   INTERFACE_VERSIONS,
   COMPATIBILITY_MATRIX,
-  
+
   // 工具函數
   validateInterfaceImplementation,
   checkInterfaceCompatibility,
   getInterfaceSummary,
   loadInterface,
   getAvailableInterfaces,
-  
+
   // 便捷別名
   interfaces: {
     ISynchronizationCoordinator,

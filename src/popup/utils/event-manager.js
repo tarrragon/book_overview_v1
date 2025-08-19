@@ -41,10 +41,10 @@ class EventManager {
 
     // 事件分類
     this.eventCategories = [
-      'UI_ACTIONS',      // UI 操作事件
-      'BUSINESS_LOGIC',  // 業務邏輯事件
-      'SYSTEM_EVENTS',   // 系統事件
-      'ERROR_HANDLING'   // 錯誤處理事件
+      'UI_ACTIONS', // UI 操作事件
+      'BUSINESS_LOGIC', // 業務邏輯事件
+      'SYSTEM_EVENTS', // 系統事件
+      'ERROR_HANDLING' // 錯誤處理事件
     ]
 
     // 事件配置
@@ -403,7 +403,7 @@ class EventManager {
     try {
       const elementId = config.elementId || config.element
       const element = this.document.getElementById(elementId)
-      
+
       if (!element) {
         this.failedBindings.push({
           configKey,
@@ -441,7 +441,6 @@ class EventManager {
       if (this.stats.categories[config.category]) {
         this.stats.categories[config.category].total++
       }
-
     } catch (error) {
       this.failedBindings.push({
         configKey,
@@ -477,7 +476,6 @@ class EventManager {
           this.retryStats[elementId].lastSuccess = true
           this.retryStats[elementId].lastError = null
         }
-
       } catch (error) {
         // 記錄錯誤
         this.eventErrors.push({
@@ -529,7 +527,7 @@ class EventManager {
         } catch (retryError) {
           retryStats.lastSuccess = false
           retryStats.lastError = retryError.message
-          
+
           // 遞歸重試
           await this._handleRetry(elementId, config, retryError)
         }

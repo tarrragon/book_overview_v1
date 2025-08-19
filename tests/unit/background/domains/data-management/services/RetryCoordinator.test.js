@@ -1,12 +1,12 @@
 /**
  * RetryCoordinator 測試
- * 
+ *
  * 測試目標：
  * - 驗證智能重試機制和策略選擇
  * - 測試退避演算法和時間計算
  * - 確保錯誤分析和可重試性判斷
  * - 驗證重試限制和失敗處理
- * 
+ *
  * @jest-environment jsdom
  */
 
@@ -14,7 +14,7 @@ const RetryCoordinator = require('../../../../../../src/background/domains/data-
 
 describe('RetryCoordinator TDD 測試', () => {
   let coordinator
-  
+
   beforeEach(() => {
     coordinator = new RetryCoordinator({
       maxRetryAttempts: 3,
@@ -101,7 +101,7 @@ describe('RetryCoordinator TDD 測試', () => {
       expect(coordinator.selectRetryStrategy(networkAnalysis)).toBe('EXPONENTIAL_BACKOFF')
       expect(coordinator.selectRetryStrategy(conflictAnalysis)).toBe('CONFLICT_RESOLUTION_FIRST')
       expect(coordinator.selectRetryStrategy(unknownAnalysis)).toBe('LINEAR_BACKOFF')
-      
+
       // 不可重試的錯誤應該拋出異常
       expect(() => coordinator.selectRetryStrategy(nonRetryableAnalysis))
         .toThrow('錯誤不可重試: AUTHORIZATION')
@@ -132,7 +132,7 @@ describe('RetryCoordinator TDD 測試', () => {
         error: 'network timeout',
         originalParams: { source: 'readmoo', target: 'local' }
       }
-      
+
       const mockExecutor = jest.fn().mockResolvedValue({
         success: true,
         data: { synced: 10 }
@@ -162,7 +162,7 @@ describe('RetryCoordinator TDD 測試', () => {
         error: 'server error',
         originalParams: { source: 'readmoo' }
       }
-      
+
       const mockExecutor = jest.fn().mockRejectedValue(new Error('still failing'))
 
       // When: 執行重試
@@ -266,7 +266,7 @@ describe('RetryCoordinator TDD 測試', () => {
         error: 'persistent error',
         originalParams: {}
       }
-      
+
       const mockExecutor = jest.fn()
 
       // When: 嘗試執行重試
@@ -303,7 +303,7 @@ describe('RetryCoordinator TDD 測試', () => {
         error: 'initial error',
         originalParams: {}
       }
-      
+
       const mockExecutor = jest.fn().mockRejectedValue('string error')
 
       // When: 執行重試
@@ -318,9 +318,9 @@ describe('RetryCoordinator TDD 測試', () => {
   describe('📊 策略特定行為測試', () => {
     test('EXPONENTIAL_BACKOFF 策略應該使用指數退避', () => {
       // Given: 指數退避策略的延遲計算
-      
+
       // When: 計算不同重試次數的延遲
-      const delays = [0, 1, 2, 3].map(count => 
+      const delays = [0, 1, 2, 3].map(count =>
         coordinator.calculateBackoffDelay(count)
       )
 
@@ -352,7 +352,7 @@ describe('RetryCoordinator TDD 測試', () => {
         error: 'data conflict detected',
         originalParams: { conflictData: [] }
       }
-      
+
       const mockExecutor = jest.fn().mockResolvedValue({
         success: true,
         conflictsResolved: true

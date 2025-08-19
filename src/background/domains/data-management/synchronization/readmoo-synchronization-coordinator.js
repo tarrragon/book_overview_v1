@@ -40,7 +40,7 @@ class ReadmooSynchronizationCoordinator extends ISynchronizationCoordinator {
    */
   constructor (eventBus, dependencies = {}) {
     super(dependencies)
-    
+
     this.eventBus = eventBus
 
     // 預設配置
@@ -72,7 +72,7 @@ class ReadmooSynchronizationCoordinator extends ISynchronizationCoordinator {
    */
   async initializeSync (syncRequest) {
     this._validateSyncRequest(syncRequest)
-    
+
     // 檢查重複作業
     if (this.activeSyncs.has(syncRequest.syncId)) {
       throw new Error('同步作業已存在')
@@ -96,7 +96,7 @@ class ReadmooSynchronizationCoordinator extends ISynchronizationCoordinator {
     }
 
     this.activeSyncs.set(syncRequest.syncId, syncJob)
-    
+
     this.logger.info('Readmoo 同步作業已初始化', { syncId: syncRequest.syncId })
 
     return {
@@ -150,7 +150,6 @@ class ReadmooSynchronizationCoordinator extends ISynchronizationCoordinator {
         processedRecords,
         completedAt: sync.completedAt
       })
-
     } catch (error) {
       errors.push(error.message)
       sync.status = 'PARTIAL_SUCCESS'
@@ -178,7 +177,7 @@ class ReadmooSynchronizationCoordinator extends ISynchronizationCoordinator {
     }
 
     const cancelledAt = Date.now()
-    
+
     sync.status = 'CANCELLED'
     sync.cancelledAt = cancelledAt
     sync.cancelReason = reason
@@ -287,9 +286,9 @@ class ReadmooSynchronizationCoordinator extends ISynchronizationCoordinator {
    */
   async updateSyncConfiguration (config) {
     this._validateConfig(config)
-    
+
     Object.assign(this.config, config)
-    
+
     this.logger.info('Readmoo 同步配置已更新', config)
 
     return { updated: true, config }
@@ -304,7 +303,7 @@ class ReadmooSynchronizationCoordinator extends ISynchronizationCoordinator {
       this.activeSyncs.clear()
       this.syncQueue.length = 0
       this.completedSyncs.clear()
-      
+
       this.logger.info('Readmoo 同步協調器資源已清理')
     }
   }
@@ -352,7 +351,7 @@ class ReadmooSynchronizationCoordinator extends ISynchronizationCoordinator {
   _calculateEstimatedDuration (syncRequest) {
     const baseTime = 10000 // 基礎 10 秒
     const scopeMultiplier = syncRequest.scope.length * 5000 // 每個範圍 5 秒
-    
+
     return Math.min(baseTime + scopeMultiplier, 300000) // 最多 5 分鐘
   }
 
