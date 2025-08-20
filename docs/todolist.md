@@ -289,26 +289,32 @@
 - **技術亮點**: 指數退避重試、狀態協調、Chrome API 整合、錯誤處理策略
 - **程式碼品質**: 所有模組通過 ESLint 檢查，建置成功
 
-### 📋 下一步立即工作項目
+### 📋 當前優先工作項目 (BookSearchFilter 拆分重構繼續)
 
-#### 🔄 TDD 循環 6/7: 事件系統重構 (準備中)
-- [ ] **分析現有事件監聽器設置** - 檢查 PopupController._setupEventListeners()
-- [ ] **設計統一事件管理系統** - 建立事件監聽器管理架構
-- [ ] **重構事件綁定邏輯** - 統一事件處理和錯誤恢復
-- [ ] **實現事件清理機制** - 完善事件監聽器生命週期管理
+#### 🚀 BookSearchFilter TDD 拆分重構進度 (已完成 3/8)
 
-#### 🔧 TDD 循環 7/7: 最終整合和優化 (後續)
-- [ ] **移除重複程式碼** - 識別和清理代碼重複
-- [ ] **效能優化** - 組件協調和 Chrome API 通訊優化
-- [ ] **記憶體管理改善** - 資源清理和記憶體洩漏防護
-- [ ] **最終整合測試** - 完整的端對端功能驗證
+**✅ 已完成的 TDD 循環**:
+- [x] **TDD 循環 1/8: SearchIndexManager 建立** ✅ 完成 (v0.9.13)
+- [x] **TDD 循環 2/8: SearchEngine 拆分重構** ✅ 完成實作 (v0.9.14) 
+- [x] **TDD 循環 3/8: SearchCacheManager 拆分重構** ✅ 完成實作 (v0.9.15) - 100% 測試通過
 
-#### 📋 其他 1.0 重構工作 (並行)
+**🔄 當前工作重點**:
+- [ ] **TDD 循環 4/8: SearchResultFormatter 拆分重構** - 處理搜尋結果格式化邏輯 (待開始)
+
+**📋 後續 TDD 循環計劃**:
+- [ ] **TDD 循環 5/8: FilterEngine 拆分重構** - 專門處理篩選邏輯
+- [ ] **TDD 循環 6/8: SearchCoordinator 拆分重構** - 協調搜尋和篩選功能  
+- [ ] **TDD 循環 7/8: SearchUIController 拆分重構** - UI 交互控制邏輯
+- [ ] **TDD 循環 8/8: 最終整合測試** - 完整功能驗證和效能測試
+
+#### 🔧 技術債務修復 (並行處理)
+- [ ] **修復過時整合測試** - content-script-extractor.test.js 檔案路徑問題 (content.js → content-modular.js)
+
+#### 📋 其他 1.0 重構工作 (延後處理)
+- [ ] **Popup 模組化整合 TDD 循環 6/7: 事件系統重構** - 重構事件監聽器設置邏輯
+- [ ] **Popup 模組化整合 TDD 循環 7/7: 最終整合和優化** - 移除重複程式碼，優化效能
 - [ ] **職責拆分檢查 - data-synchronization-service.js (1689行)**
-- [ ] **職責拆分檢查 - data-validation-service.js (1558行)**  
-- [x] **職責拆分檢查 - book-search-filter.js (1067行)** ✅ 完成分析 (v0.9.13)
-- [x] **TDD 循環 2/8: SearchEngine 拆分重構** ✅ 完成實作 (v0.9.14)
-- [x] **TDD 循環 3/8: SearchCacheManager 拆分重構** ✅ 完成實作 (v0.9.15)
+- [ ] **職責拆分檢查 - data-validation-service.js (1558行)**
 
 #### ✅ v0.9.14 成就（SearchEngine TDD 循環重構完成）
 
