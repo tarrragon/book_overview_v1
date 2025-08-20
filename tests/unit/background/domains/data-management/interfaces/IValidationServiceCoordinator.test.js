@@ -368,11 +368,11 @@ describe('IValidationServiceCoordinator TDD 介面契約測試', () => {
     test('getValidationStatus() 應該提供詳細狀態資訊', async () => {
       // Given: 創建一個活躍的協調狀態
       const validationId = 'validation_123'
-      
+
       // 先啟動一個驗證來創建活躍狀態
       const books = [{ id: 'test_book', title: '測試書籍' }]
       const platform = 'READMOO'
-      
+
       // Mock 服務回應
       mockValidationEngine.validateBatch.mockResolvedValue({
         validBooks: books,
@@ -382,7 +382,7 @@ describe('IValidationServiceCoordinator TDD 介面契約測試', () => {
 
       // 啟動驗證（但不等待完成）
       const validationPromise = validationServiceCoordinator.validateAndNormalize(books, platform)
-      
+
       // 獲取生成的協調ID
       const activeKeys = Array.from(validationServiceCoordinator.activeCoordinations.keys())
       const actualValidationId = activeKeys[0]
@@ -409,7 +409,7 @@ describe('IValidationServiceCoordinator TDD 介面契約測試', () => {
       // Given: 創建一個活躍的協調狀態
       const books = [{ id: 'control_book', title: '控制測試書籍' }]
       const platform = 'READMOO'
-      
+
       // Mock 服務回應
       mockValidationEngine.validateBatch.mockImplementation(async () => {
         // 模擬長時間處理
@@ -423,7 +423,7 @@ describe('IValidationServiceCoordinator TDD 介面契約測試', () => {
 
       // 啟動驗證（不等待完成）
       const validationPromise = validationServiceCoordinator.validateAndNormalize(books, platform)
-      
+
       // 獲取生成的協調ID
       const activeKeys = Array.from(validationServiceCoordinator.activeCoordinations.keys())
       const actualValidationId = activeKeys[0]
@@ -458,7 +458,7 @@ describe('IValidationServiceCoordinator TDD 介面契約測試', () => {
         success: false,
         message: 'Batch not found'
       })
-      
+
       const pauseResult = await validationServiceCoordinator.pauseValidation('non_existent_id')
       expect(pauseResult).toHaveProperty('success', false)
 
@@ -467,7 +467,7 @@ describe('IValidationServiceCoordinator TDD 介面契約測試', () => {
         success: false,
         message: 'Batch not found'
       })
-      
+
       const resumeResult = await validationServiceCoordinator.resumeValidation('non_existent_id')
       expect(resumeResult).toHaveProperty('success', false)
 

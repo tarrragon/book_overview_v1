@@ -268,7 +268,7 @@ class ValidationCacheManager {
     try {
       // 規則同時快取到記憶體和持久化
       await this._setMemoryCache(cacheKey, cacheEntry, cacheOptions)
-      
+
       if (this.config.enablePersistentCache) {
         await this._setPersistentCache(cacheKey, cacheEntry, cacheOptions)
       }
@@ -294,7 +294,7 @@ class ValidationCacheManager {
    */
   async getCachedRules (platform) {
     const cacheKey = `platform_rules_${platform}`
-    
+
     const memoryResult = await this._getMemoryCache(cacheKey)
     if (memoryResult.found) {
       this._updateGetStatistics(true, 'memory', 'rules')
@@ -421,7 +421,7 @@ class ValidationCacheManager {
           // 保留規則快取
           const rulesToPreserve = new Map()
           const metadataToPreserve = new Map()
-          
+
           for (const [key, value] of this.memoryCache.entries()) {
             if (key.startsWith('platform_rules_')) {
               rulesToPreserve.set(key, value)
@@ -430,7 +430,7 @@ class ValidationCacheManager {
               memoryCleared++
             }
           }
-          
+
           this.memoryCache.clear()
           this.cacheMetadata.clear()
           this.accessOrder.length = 0
@@ -453,7 +453,7 @@ class ValidationCacheManager {
       // 清除持久化快取
       if ((level === 'persistent' || level === 'all') && this.config.enablePersistentCache) {
         if (preserveRules) {
-          const keysToDelete = Array.from(this.persistentKeys).filter(key => 
+          const keysToDelete = Array.from(this.persistentKeys).filter(key =>
             !key.startsWith('platform_rules_')
           )
           for (const key of keysToDelete) {
@@ -584,7 +584,7 @@ class ValidationCacheManager {
         const cacheOperations = batchItems.map(item =>
           this.cacheValidationResult(item.key, item.data, options)
         )
-        
+
         const operationResults = await Promise.all(cacheOperations)
         results.successfulItems = operationResults.length
         results.items = operationResults
@@ -660,7 +660,7 @@ class ValidationCacheManager {
     if (data === null || data === undefined) {
       throw new Error('Cache data cannot be null or undefined')
     }
-    
+
     const dataSize = this._calculateDataSize(data)
     if (dataSize > this.config.maxCacheEntrySize) {
       throw new Error(`Cache entry too large: ${dataSize} bytes (max: ${this.config.maxCacheEntrySize})`)
@@ -993,7 +993,7 @@ class ValidationCacheManager {
   async _rebalancePriorities () {
     // 重新平衡快取項目的優先級
     const priorityOrder = { high: 3, normal: 2, low: 1 }
-    
+
     this.accessOrder.sort((a, b) => {
       const aMetadata = this.cacheMetadata.get(a)
       const bMetadata = this.cacheMetadata.get(b)

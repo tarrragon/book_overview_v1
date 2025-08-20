@@ -78,8 +78,8 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
 
       // When: 快取驗證結果
       const cacheResult = await validationCacheManager.cacheValidationResult(
-        cacheKey, 
-        validationResult, 
+        cacheKey,
+        validationResult,
         cacheOptions
       )
 
@@ -148,7 +148,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
 
       // When: 快取品質分析結果
       const cacheResult = await validationCacheManager.cacheQualityAnalysis(
-        cacheKey, 
+        cacheKey,
         qualityResult,
         { ttl: 900000 } // 15分鐘
       )
@@ -324,7 +324,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
 
       for (const item of items) {
         await validationCacheManager.cacheValidationResult(
-          item.key, 
+          item.key,
           { isValid: true },
           { ttl: item.ttl, priority: item.priority }
         )
@@ -358,7 +358,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
       for (let i = 0; i < 10; i++) {
         operations.push(
           validationCacheManager.cacheValidationResult(
-            `${cacheKey}_${i}`, 
+            `${cacheKey}_${i}`,
             { isValid: i % 2 === 0, index: i }
           )
         )
@@ -401,7 +401,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
       // Then: 應該根據策略正確快取
       const stats = validationCacheManager.getStatistics()
       expect(stats.memoryCache.size).toBeGreaterThan(0)
-      
+
       // 檢查各層級的快取
       for (const testCase of testCases) {
         const cached = await validationCacheManager.getCachedValidation(testCase.key)

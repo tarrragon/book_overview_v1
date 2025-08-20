@@ -383,7 +383,7 @@ class ValidationServiceCoordinator {
    */
   getValidationStatus (validationId) {
     const coordinationState = this.activeCoordinations.get(validationId)
-    
+
     if (!coordinationState) {
       const historicalState = this.coordinationHistory.get(validationId)
       if (historicalState) {
@@ -421,7 +421,7 @@ class ValidationServiceCoordinator {
    */
   async cancelValidation (validationId) {
     const coordinationState = this.activeCoordinations.get(validationId)
-    
+
     if (!coordinationState) {
       return { success: false, message: 'Validation not found' }
     }
@@ -460,7 +460,7 @@ class ValidationServiceCoordinator {
   async pauseValidation (validationId) {
     try {
       const batchPauseResult = await this.validationBatchProcessor.pauseBatch(validationId)
-      
+
       const servicesPaused = await this._pauseCoordinatedServices(validationId)
 
       return {
@@ -486,7 +486,7 @@ class ValidationServiceCoordinator {
   async resumeValidation (validationId) {
     try {
       const batchResumeResult = await this.validationBatchProcessor.resumeBatch(validationId)
-      
+
       const servicesResumed = await this._resumeCoordinatedServices(validationId)
 
       return {
@@ -622,14 +622,14 @@ class ValidationServiceCoordinator {
       if (clearOptions.clearPlatformCache !== false) {
         const platformClearResults = []
         const supportedPlatforms = ['READMOO', 'KINDLE', 'KOBO', 'BOOKWALKER', 'BOOKS_COM']
-        
+
         for (const platform of supportedPlatforms) {
           const platformResult = this.platformRuleManager.clearPlatformCache(platform)
           if (platformResult.success) {
             platformClearResults.push(platform)
           }
         }
-        
+
         clearResult.platformCache = {
           cleared: platformClearResults,
           totalPlatforms: platformClearResults.length
@@ -793,7 +793,7 @@ class ValidationServiceCoordinator {
         lastCheck: Date.now(),
         errorCount: 0
       })
-      
+
       this.performanceMetrics.serviceUtilization.set(service, {
         totalCalls: 0,
         totalTime: 0,
@@ -939,7 +939,7 @@ class ValidationServiceCoordinator {
   _generateQualityMetrics (batchResult) {
     const totalBooks = batchResult.totalBooks || 0
     const validBooks = batchResult.validBooks || 0
-    
+
     return {
       validationRate: totalBooks > 0 ? validBooks / totalBooks : 0,
       qualityScore: batchResult.averageQualityScore || 0,
@@ -1015,11 +1015,11 @@ class ValidationServiceCoordinator {
    */
   _estimateCompletion (coordinationState) {
     if (coordinationState.progress === 0) return null
-    
+
     const elapsedTime = Date.now() - coordinationState.startTime
     const estimatedTotalTime = (elapsedTime / coordinationState.progress) * 100
     const remainingTime = estimatedTotalTime - elapsedTime
-    
+
     return {
       estimatedRemainingTime: remainingTime,
       estimatedCompletionTime: Date.now() + remainingTime
@@ -1169,7 +1169,7 @@ class ValidationServiceCoordinator {
   async _clearCoordinationCache (clearOptions) {
     // 清理協調相關的快取數據
     const cleanedCoordinations = this.coordinationHistory.size
-    
+
     if (clearOptions.clearHistory !== false) {
       this.coordinationHistory.clear()
     }

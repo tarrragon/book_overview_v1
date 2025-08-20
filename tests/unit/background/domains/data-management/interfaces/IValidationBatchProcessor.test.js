@@ -229,7 +229,7 @@ describe('IValidationBatchProcessor TDD 介面契約測試', () => {
 
       // When: 啟動批次處理（不等待完成）
       const batchPromise = validationBatchProcessor.processBatch(books, platform)
-      
+
       // 等待一小段時間讓處理開始
       await new Promise(resolve => setTimeout(resolve, 10))
 
@@ -266,7 +266,7 @@ describe('IValidationBatchProcessor TDD 介面契約測試', () => {
 
       // When: 啟動批次處理
       const batchPromise = validationBatchProcessor.processBatch(books, platform)
-      
+
       // 等待處理開始
       await new Promise(resolve => setTimeout(resolve, 50))
 
@@ -300,7 +300,7 @@ describe('IValidationBatchProcessor TDD 介面契約測試', () => {
 
       // When: 啟動批次處理
       const batchPromise = validationBatchProcessor.processBatch(books, platform)
-      
+
       // 等待部分處理
       await new Promise(resolve => setTimeout(resolve, 150))
 
@@ -432,7 +432,7 @@ describe('IValidationBatchProcessor TDD 介面契約測試', () => {
       // Then: 應該定期更新進度
       expect(progressCallback).toHaveBeenCalled()
       expect(progressUpdates.length).toBeGreaterThan(0)
-      
+
       // 檢查進度格式
       progressUpdates.forEach(progress => {
         expect(progress).toHaveProperty('processed')

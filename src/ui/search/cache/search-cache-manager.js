@@ -289,9 +289,9 @@ class SearchCacheManager {
   _performCleanup (reserveSpace = true) {
     const currentSize = this.cache.size
     const targetSize = Math.floor(this.config.maxCacheSize * this.config.cleanupThreshold)
-    const removeCount = reserveSpace ? 
-      currentSize - targetSize + 1 : // 自動清理：為新項目預留空間
-      currentSize - targetSize       // 手動清理：不預留空間
+    const removeCount = reserveSpace
+      ? currentSize - targetSize + 1 // 自動清理：為新項目預留空間
+      : currentSize - targetSize // 手動清理：不預留空間
 
     if (removeCount <= 0) {
       return
