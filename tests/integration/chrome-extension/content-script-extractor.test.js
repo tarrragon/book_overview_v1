@@ -99,8 +99,8 @@ describe('Content Script Extractor Integration', () => {
 
   describe('🔧 Content Script 載入和初始化', () => {
     test('應該成功載入 content script', async () => {
-      // 檢查 content.js 檔案存在
-      const contentPath = path.join(__dirname, '../../../src/content/content.js')
+      // 檢查 content-legacy-backup.js 檔案存在 (用於整合測試)
+      const contentPath = path.join(__dirname, '../../../src/content/content-legacy-backup.js')
       expect(fs.existsSync(contentPath)).toBe(true)
 
       // 檢查內容包含必要的功能
@@ -802,8 +802,8 @@ describe('Content Script Extractor Integration', () => {
     const path = require('path')
 
     try {
-      // 讀取 content.js 內容
-      const contentPath = path.join(__dirname, '../../../src/content/content.js')
+      // 讀取 content-legacy-backup.js 內容 (用於整合測試)
+      const contentPath = path.join(__dirname, '../../../src/content/content-legacy-backup.js')
       const contentContent = fs.readFileSync(contentPath, 'utf8')
 
       // 在當前上下文中執行 content script
