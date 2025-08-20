@@ -546,9 +546,6 @@ git add .
 git commit -m "$(cat <<'EOF'
 [commit message here]
 
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
 ```
@@ -556,7 +553,6 @@ EOF
 **Commit 品質標準**：
 - [ ] 使用 Conventional Commits 格式
 - [ ] 訊息清楚描述變更內容和原因
-- [ ] 包含必要的 co-author 資訊
 
 ### 工作日誌管理規範
 
