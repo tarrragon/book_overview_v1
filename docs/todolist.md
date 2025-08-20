@@ -332,6 +332,14 @@
 - **量化效益分析**: 可維護性、測試性、擴展性改善指標
 - **分析文件**: `docs/architecture/book-search-filter-refactor-analysis.md` 500+ 行
 - **為 TDD 實施準備**: 下一步可直接開始 TDD 循環 1
+ -  ☒ TDD 循環 1/8: SearchIndexManager 建立
+  - ☒ TDD 循環 2/8: SearchEngine 拆分重構
+ -  ☒ TDD 循環 3/8: SearchCacheManager 拆分重構 - 將快取管理邏輯從 SearchEngine 中拆分出來
+ -  ☒ TDD 循環 4/8: SearchResultFormatter 拆分重構 - 處理搜尋結果格式化邏輯
+ -  ☒ TDD 循環 5/8: FilterEngine 拆分重構 - 專門處理篩選邏輯
+ -  ☒ TDD 循環 6/8: SearchCoordinator 拆分重構 - 協調搜尋和篩選功能
+ -  ☒ TDD 循環 7/8: SearchUIController 拆分重構 - UI 交互控制邏輯
+ -  ☐ TDD 循環 8/8: 最終整合測試 - 完整功能驗證和效能測試
 
 ### 🎯 1.0 完成標準
 - Popup 模組化整合 100% 完成 (7/7 TDD 循環)
