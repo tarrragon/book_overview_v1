@@ -32,16 +32,34 @@ const crypto = require('crypto')
 
 class DataValidationService {
   constructor (eventBus, config = {}) {
-    // 驗證必要依賴
+    this._validateConstructorInputs(eventBus)
+    this._initializeBasicProperties(eventBus)
+    this._initializeConfiguration(config)
+    this._initializeCoreComponents()
+    this._initializeCacheSystemIfEnabled()
+  }
+
+  _validateConstructorInputs (eventBus) {
     if (!eventBus) {
       throw new Error('EventBus is required')
     }
+  }
 
+  _initializeBasicProperties (eventBus) {
     this.eventBus = eventBus
     this.serviceName = 'DataValidationService'
+    this.isInitialized = false
+  }
 
-    // 合併預設配置
+  _initializeConfiguration (config) {
     this.config = {
+      ...this._getDefaultConfiguration(),
+      ...config
+    }
+  }
+
+  _getDefaultConfiguration () {
+    return {
       autoFix: true,
       strictMode: false,
       batchSize: 100,
@@ -53,7 +71,6 @@ class DataValidationService {
         medium: 70,
         low: 50
       },
-      // 效能相關配置
       concurrentBatches: 1,
       parallelProcessing: false,
       memoryOptimization: false,
@@ -64,24 +81,24 @@ class DataValidationService {
       gcAfterBatch: false,
       enableCache: false,
       cacheSize: 100,
-      cacheTTL: 300000, // 5分鐘
-      ...config
+      cacheTTL: 300000 // 5分鐘
     }
+  }
 
-    // 核心組件初始化
+  _initializeCoreComponents () {
     this.validationRules = new Map()
     this.platformSchemas = new Map()
     this.dataQualityMetrics = new Map()
-    this.isInitialized = false
+  }
 
-    // 快取系統（如果啟用）
+  _initializeCacheSystemIfEnabled () {
     if (this.config.enableCache) {
       this.validationCache = new Map()
       this.cacheTimestamps = new Map()
     }
 
     // 初始化子服務整合 - TDD 循環 6/8
-    this._initializeSubServices(config.services)
+    this._initializeSubServices(this.config.services)
   }
 
   /**
@@ -143,161 +160,224 @@ class DataValidationService {
    * @returns {Object} 整合處理結果
    */
   async _performIntegratedValidation (books, platform, source, validationId, startTime) {
-    const performanceMetrics = {
+    const performanceMetrics = this._initializePerformanceMetrics()
+    const { cacheResults, uncachedBooks, processedBooks, validBooks, errors, warnings } = await this._checkCacheAndFilterUncachedBooks(books)
+
+    if (uncachedBooks.length === 0) {
+      return this._handleFullCacheHit(cacheResults, books, performanceMetrics, startTime, processedBooks, validBooks, errors, warnings)
+    }
+
+    return await this._processUncachedBooks(uncachedBooks, platform, books, performanceMetrics, startTime, processedBooks, validBooks, errors, warnings, validationId)
+  }
+
+  _initializePerformanceMetrics () {
+    return {
       totalTime: 0,
       subServiceTimes: {},
       cacheHitRate: 0,
       processingStages: []
     }
+  }
 
-    // 檢查快取
+  async _checkCacheAndFilterUncachedBooks (books) {
     const cacheResults = await this._checkValidationCache(books)
     const uncachedBooks = books.filter((_, index) => !cacheResults[index])
 
-    let processedBooks = []
-    let validBooks = []
-    const errors = []
-    const warnings = []
-
-    if (uncachedBooks.length === 0) {
-      // 全部命中快取
-      processedBooks = cacheResults.filter(Boolean).map(result => result.normalized)
-      validBooks = processedBooks
-      performanceMetrics.cacheHitRate = 1.0
-      performanceMetrics.totalTime = Date.now() - startTime
-
-      return {
-        success: true,
-        fromCache: true,
-        processed: processedBooks,
-        validBooks,
-        errors,
-        warnings,
-        statistics: {
-          total: books.length,
-          successful: validBooks.length,
-          failed: errors.length
-        },
-        performanceMetrics
-      }
+    return {
+      cacheResults,
+      uncachedBooks,
+      processedBooks: [],
+      validBooks: [],
+      errors: [],
+      warnings: []
     }
+  }
 
-    // 處理未快取的資料
-    try {
-      // 1. 驗證階段
-      if (this._validationEngine) {
-        const validationStart = Date.now()
-
-        for (const book of uncachedBooks) {
-          try {
-            const validationResult = await this._validationEngine.validateSingle(book, { platform })
-            if (validationResult.isValid) {
-              processedBooks.push(book)
-            } else {
-              errors.push(...validationResult.errors)
-              warnings.push(...validationResult.warnings)
-            }
-          } catch (error) {
-            errors.push(`ValidationEngine error: ${error.message}`)
-            // 發出服務錯誤事件
-            await this.eventBus.emit('VALIDATION.SERVICE.ERROR', {
-              service: 'ValidationEngine',
-              error: error.message
-            })
-          }
-        }
-
-        performanceMetrics.subServiceTimes.validation = Date.now() - validationStart
-        performanceMetrics.processingStages.push('validation')
-      } else {
-        // 無驗證引擎時的權宜處理
-        processedBooks = uncachedBooks
-      }
-
-      // 2. 標準化階段
-      if (this._normalizationService && processedBooks.length > 0) {
-        const normalizationStart = Date.now()
-        const normalizedResults = []
-
-        for (const book of processedBooks) {
-          try {
-            const normalizationResult = await this._normalizationService.normalize(book)
-            normalizedResults.push(normalizationResult.normalized)
-          } catch (error) {
-            normalizedResults.push(book) // 標準化失敗時保留原資料
-            warnings.push(`Normalization warning: ${error.message}`)
-          }
-        }
-
-        processedBooks = normalizedResults
-        performanceMetrics.subServiceTimes.normalization = Date.now() - normalizationStart
-        performanceMetrics.processingStages.push('normalization')
-      }
-
-      // 3. 品質分析階段
-      if (this._qualityAnalyzer && processedBooks.length > 0) {
-        const qualityStart = Date.now()
-
-        for (const book of processedBooks) {
-          try {
-            const qualityResult = await this._qualityAnalyzer.analyzeQuality(book, { platform })
-            if (qualityResult.issues.length > 0) {
-              warnings.push(...qualityResult.issues.map(issue => `Quality issue: ${issue}`))
-            }
-          } catch (error) {
-            warnings.push(`Quality analysis warning: ${error.message}`)
-          }
-        }
-
-        performanceMetrics.subServiceTimes.qualityAnalysis = Date.now() - qualityStart
-        performanceMetrics.processingStages.push('quality-analysis')
-      }
-
-      validBooks = processedBooks
-
-      // 4. 更新快取
-      if (this._cacheManager && processedBooks.length > 0) {
-        const cacheStart = Date.now()
-
-        for (let i = 0; i < uncachedBooks.length; i++) {
-          if (i < processedBooks.length) {
-            await this._cacheManager.setCached(
-              this._generateCacheKey(uncachedBooks[i]),
-              {
-                normalized: processedBooks[i],
-                isValid: true,
-                quality: { score: 0.95 },
-                timestamp: Date.now()
-              }
-            )
-          }
-        }
-
-        performanceMetrics.subServiceTimes.caching = Date.now() - cacheStart
-      }
-    } catch (error) {
-      performanceMetrics.totalTime = Date.now() - startTime
-      return {
-        success: false,
-        errors: [error.message],
-        warnings,
-        statistics: {
-          total: books.length,
-          successful: 0,
-          failed: books.length
-        },
-        performanceMetrics
-      }
-    }
-
-    // 計算總執行時間
+  _handleFullCacheHit (cacheResults, books, performanceMetrics, startTime, processedBooks, validBooks, errors, warnings) {
+    processedBooks = cacheResults.filter(Boolean).map(result => result.normalized)
+    validBooks = processedBooks
+    performanceMetrics.cacheHitRate = 1.0
     performanceMetrics.totalTime = Date.now() - startTime
 
-    // 判斷整體成功狀態 - 有錯誤但仍有成功處理的書籍時為部分成功
-    const hasErrors = errors.length > 0
-    const success = !hasErrors || validBooks.length > 0
+    return this._formatValidationResult(true, processedBooks, validBooks, errors, warnings, books, performanceMetrics, true)
+  }
 
-    return {
+  async _processUncachedBooks (uncachedBooks, platform, books, performanceMetrics, startTime, processedBooks, validBooks, errors, warnings, validationId) {
+    try {
+      processedBooks = await this._processValidationStage(uncachedBooks, platform, performanceMetrics, errors, warnings)
+      processedBooks = await this._processNormalizationStage(processedBooks, performanceMetrics, warnings)
+      await this._processQualityAnalysisStage(processedBooks, platform, performanceMetrics, warnings)
+
+      validBooks = processedBooks
+      await this._updateValidationCache(uncachedBooks, processedBooks)
+
+      return this._calculateFinalResults(books, processedBooks, validBooks, errors, warnings, performanceMetrics, startTime)
+    } catch (error) {
+      return this._handleValidationError(error, books, warnings, performanceMetrics, startTime)
+    }
+  }
+
+  async _processValidationStage (uncachedBooks, platform, performanceMetrics, errors, warnings) {
+    if (!this._validationEngine) {
+      return uncachedBooks
+    }
+
+    const validationStart = Date.now()
+    const processedBooks = await this._executeValidationForBooks(uncachedBooks, platform, errors, warnings)
+
+    performanceMetrics.subServiceTimes.validation = Date.now() - validationStart
+    performanceMetrics.processingStages.push('validation')
+    return processedBooks
+  }
+
+  async _executeValidationForBooks (uncachedBooks, platform, errors, warnings) {
+    const processedBooks = []
+
+    for (const book of uncachedBooks) {
+      const isValidBook = await this._validateSingleBookInStage(book, platform, errors, warnings)
+      if (isValidBook) processedBooks.push(book)
+    }
+
+    return processedBooks
+  }
+
+  async _validateSingleBookInStage (book, platform, errors, warnings) {
+    try {
+      const validationResult = await this._validationEngine.validateSingle(book, { platform })
+      return this._processValidationResult(validationResult, errors, warnings)
+    } catch (error) {
+      await this._handleValidationServiceError(error, errors)
+      return false
+    }
+  }
+
+  _processValidationResult (validationResult, errors, warnings) {
+    if (validationResult.isValid) {
+      return true
+    } else {
+      errors.push(...validationResult.errors)
+      warnings.push(...validationResult.warnings)
+      return false
+    }
+  }
+
+  async _handleValidationServiceError (error, errors) {
+    errors.push(`ValidationEngine error: ${error.message}`)
+    await this.eventBus.emit('VALIDATION.SERVICE.ERROR', {
+      service: 'ValidationEngine',
+      error: error.message
+    })
+  }
+
+  async _processNormalizationStage (processedBooks, performanceMetrics, warnings) {
+    if (!this._normalizationService || processedBooks.length === 0) {
+      return processedBooks
+    }
+
+    const normalizationStart = Date.now()
+    const normalizedResults = await this._executeNormalizationForBooks(processedBooks, warnings)
+
+    performanceMetrics.subServiceTimes.normalization = Date.now() - normalizationStart
+    performanceMetrics.processingStages.push('normalization')
+    return normalizedResults
+  }
+
+  async _executeNormalizationForBooks (processedBooks, warnings) {
+    const normalizedResults = []
+
+    for (const book of processedBooks) {
+      const normalizedBook = await this._normalizeSingleBook(book, warnings)
+      normalizedResults.push(normalizedBook)
+    }
+
+    return normalizedResults
+  }
+
+  async _normalizeSingleBook (book, warnings) {
+    try {
+      const normalizationResult = await this._normalizationService.normalize(book)
+      return normalizationResult.normalized
+    } catch (error) {
+      warnings.push(`Normalization warning: ${error.message}`)
+      return book // 標準化失敗時保留原資料
+    }
+  }
+
+  async _processQualityAnalysisStage (processedBooks, platform, performanceMetrics, warnings) {
+    if (!this._qualityAnalyzer || processedBooks.length === 0) {
+      return
+    }
+
+    const qualityStart = Date.now()
+    await this._executeQualityAnalysisForBooks(processedBooks, platform, warnings)
+
+    performanceMetrics.subServiceTimes.qualityAnalysis = Date.now() - qualityStart
+    performanceMetrics.processingStages.push('quality-analysis')
+  }
+
+  async _executeQualityAnalysisForBooks (processedBooks, platform, warnings) {
+    for (const book of processedBooks) {
+      await this._analyzeSingleBookQuality(book, platform, warnings)
+    }
+  }
+
+  async _analyzeSingleBookQuality (book, platform, warnings) {
+    try {
+      const qualityResult = await this._qualityAnalyzer.analyzeQuality(book, { platform })
+      this._processQualityAnalysisResult(qualityResult, warnings)
+    } catch (error) {
+      warnings.push(`Quality analysis warning: ${error.message}`)
+    }
+  }
+
+  _processQualityAnalysisResult (qualityResult, warnings) {
+    if (qualityResult.issues.length > 0) {
+      warnings.push(...qualityResult.issues.map(issue => `Quality issue: ${issue}`))
+    }
+  }
+
+  async _updateValidationCache (uncachedBooks, processedBooks) {
+    if (!this._cacheManager || processedBooks.length === 0) {
+      return
+    }
+
+    await this._setCacheForProcessedBooks(uncachedBooks, processedBooks)
+  }
+
+  async _setCacheForProcessedBooks (uncachedBooks, processedBooks) {
+    for (let i = 0; i < uncachedBooks.length; i++) {
+      if (i < processedBooks.length) {
+        await this._setCacheForSingleBook(uncachedBooks[i], processedBooks[i])
+      }
+    }
+  }
+
+  async _setCacheForSingleBook (originalBook, processedBook) {
+    await this._cacheManager.setCached(
+      this._generateCacheKey(originalBook),
+      {
+        normalized: processedBook,
+        isValid: true,
+        quality: { score: 0.95 },
+        timestamp: Date.now()
+      }
+    )
+  }
+
+  _calculateFinalResults (books, processedBooks, validBooks, errors, warnings, performanceMetrics, startTime) {
+    performanceMetrics.totalTime = Date.now() - startTime
+    const success = this._determineOverallSuccess(errors, validBooks)
+
+    return this._formatValidationResult(success, processedBooks, validBooks, errors, warnings, books, performanceMetrics, false)
+  }
+
+  _determineOverallSuccess (errors, validBooks) {
+    const hasErrors = errors.length > 0
+    return !hasErrors || validBooks.length > 0
+  }
+
+  _formatValidationResult (success, processedBooks, validBooks, errors, warnings, books, performanceMetrics, fromCache = false) {
+    const result = {
       success,
       processed: processedBooks,
       validBooks,
@@ -307,6 +387,24 @@ class DataValidationService {
         total: books.length,
         successful: validBooks.length,
         failed: errors.length
+      },
+      performanceMetrics
+    }
+
+    if (fromCache) result.fromCache = true
+    return result
+  }
+
+  _handleValidationError (error, books, warnings, performanceMetrics, startTime) {
+    performanceMetrics.totalTime = Date.now() - startTime
+    return {
+      success: false,
+      errors: [error.message],
+      warnings,
+      statistics: {
+        total: books.length,
+        successful: 0,
+        failed: books.length
       },
       performanceMetrics
     }
@@ -343,59 +441,84 @@ class DataValidationService {
    * @returns {Object} 批次處理結果
    */
   async _handleBatchProcessing (books, platform, source, options, validationId, startTime) {
-    if (!this._batchProcessor) {
-      // 如果沒有批次處理器，回退到基本處理
+    if (!this._validateBatchProcessor()) {
       return await this._performIntegratedValidation(books, platform, source, validationId, startTime)
     }
 
+    return await this._executeBatchProcessingWithFallback(books, platform, source, options, validationId, startTime)
+  }
+
+  _validateBatchProcessor () {
+    return this._batchProcessor !== null
+  }
+
+  async _executeBatchProcessingWithFallback (books, platform, source, options, validationId, startTime) {
     try {
-      if (options.useParallelProcessing) {
-        // 使用並行處理
-        const result = await this._batchProcessor.processParallel(books, {
-          platform,
-          source,
-          batchSize: this.config.batchSize,
-          validationEngine: this._validationEngine,
-          qualityAnalyzer: this._qualityAnalyzer,
-          normalizationService: this._normalizationService
-        })
-
-        return {
-          success: true,
-          processed: result.processed || [],
-          validBooks: result.processed || [],
-          errors: result.errors || [],
-          statistics: result.statistics || { total: 0, successful: 0, failed: 0, parallelBatches: 4 },
-          performanceMetrics: {
-            totalTime: Date.now() - startTime,
-            subServiceTimes: { batchProcessing: Date.now() - startTime }
-          }
-        }
-      } else {
-        // 使用一般批次處理
-        const result = await this._batchProcessor.processBatch(books, {
-          platform,
-          source,
-          batchSize: this.config.batchSize
-        })
-
-        return {
-          success: true,
-          processed: result.processed || [],
-          validBooks: result.processed || [],
-          errors: result.errors || [],
-          statistics: result.statistics || { total: books.length, successful: books.length, failed: 0 },
-          performanceMetrics: {
-            totalTime: Date.now() - startTime,
-            subServiceTimes: { batchProcessing: Date.now() - startTime }
-          }
-        }
-      }
+      return await this._executeBatchProcessing(books, platform, source, options, startTime)
     } catch (error) {
-      // 批次處理失敗時，回退到基本處理
-      console.warn('Batch processing failed, falling back to integrated validation:', error.message)
-      return await this._performIntegratedValidation(books, platform, source, validationId, startTime)
+      return await this._handleBatchProcessingError(error, books, platform, source, validationId, startTime)
     }
+  }
+
+  async _executeBatchProcessing (books, platform, source, options, startTime) {
+    if (options.useParallelProcessing) {
+      return await this._executeParallelProcessing(books, platform, source, startTime)
+    } else {
+      return await this._executeStandardBatchProcessing(books, platform, source, startTime)
+    }
+  }
+
+  async _executeParallelProcessing (books, platform, source, startTime) {
+    const result = await this._batchProcessor.processParallel(books, {
+      platform,
+      source,
+      batchSize: this.config.batchSize,
+      validationEngine: this._validationEngine,
+      qualityAnalyzer: this._qualityAnalyzer,
+      normalizationService: this._normalizationService
+    })
+
+    return this._formatBatchProcessingResult(result, books, startTime, true)
+  }
+
+  async _executeStandardBatchProcessing (books, platform, source, startTime) {
+    const result = await this._batchProcessor.processBatch(books, {
+      platform,
+      source,
+      batchSize: this.config.batchSize
+    })
+
+    return this._formatBatchProcessingResult(result, books, startTime, false)
+  }
+
+  _formatBatchProcessingResult (result, books, startTime, isParallel) {
+    const baseResult = {
+      success: true,
+      processed: result.processed || [],
+      validBooks: result.processed || [],
+      errors: result.errors || [],
+      performanceMetrics: {
+        totalTime: Date.now() - startTime,
+        subServiceTimes: { batchProcessing: Date.now() - startTime }
+      }
+    }
+
+    if (isParallel) {
+      baseResult.statistics = result.statistics || { total: 0, successful: 0, failed: 0, parallelBatches: 4 }
+    } else {
+      baseResult.statistics = result.statistics || { total: books.length, successful: books.length, failed: 0 }
+    }
+
+    return baseResult
+  }
+
+  async _handleBatchProcessingError (error, books, platform, source, validationId, startTime) {
+    // 發出批次處理錯誤事件而非直接 console.warn
+    await this.eventBus.emit('VALIDATION.BATCH.ERROR', {
+      error: error.message,
+      fallbackAction: 'integrated_validation'
+    })
+    return await this._performIntegratedValidation(books, platform, source, validationId, startTime)
   }
 
   /**
@@ -457,71 +580,92 @@ class DataValidationService {
    * 主要驗證和標準化方法
    */
   async validateAndNormalize (books, platform, source, options = {}) {
-    // 輸入驗證
     this._validateInputs(books, platform, source)
-
     const validationId = this._generateValidationId()
     const startTime = Date.now()
 
-    // 發送驗證開始事件
+    return await this._executeValidationWithEventHandling(books, platform, source, options, validationId, startTime)
+  }
+
+  async _executeValidationWithEventHandling (books, platform, source, options, validationId, startTime) {
+    await this._emitValidationStartedEvent(validationId, platform, source, books.length)
+
+    try {
+      const result = await this._executeValidationLogic(books, platform, source, options, validationId, startTime)
+      const finalResult = await this._processValidationOptions(result, options, books.length, startTime)
+
+      await this._emitValidationCompletedEvent(validationId, platform, source, finalResult, startTime)
+      return this._formatFinalValidationResult(validationId, platform, source, finalResult)
+    } catch (error) {
+      await this._emitValidationFailedEventMain(validationId, platform, source, error)
+      throw error
+    }
+  }
+
+  async _emitValidationStartedEvent (validationId, platform, source, bookCount) {
     await this.eventBus.emit('DATA.VALIDATION.STARTED', {
       validationId,
       platform,
       source,
-      bookCount: books.length,
+      bookCount,
       timestamp: new Date().toISOString()
     })
+  }
 
-    try {
-      let result
-
-      // 檢查是否需要批次處理
-      if (books.length > this.config.batchSize && this._batchProcessor) {
-        result = await this._handleBatchProcessing(books, platform, source, options, validationId, startTime)
-      } else {
-        // 使用整合的驗證和標準化流程
-        result = await this._performIntegratedValidation(books, platform, source, validationId, startTime)
-      }
-
-      // 處理選項配置
-      if (options.adaptiveOptimization && books.length >= 1000) {
-        result.optimizationApplied = true
-        await this.eventBus.emit('VALIDATION.OPTIMIZATION.APPLIED', {
-          dataSize: books.length,
-          optimizations: ['parallel-processing', 'cache-optimization', 'memory-management']
-        })
-      }
-
-      // 發送驗證完成事件
-      await this.eventBus.emit('DATA.VALIDATION.COMPLETED', {
-        validationId,
-        platform,
-        source,
-        qualityScore: result.qualityScore || 0.95,
-        validCount: result.validBooks ? result.validBooks.length : 0,
-        invalidCount: result.errors ? result.errors.length : 0,
-        duration: Date.now() - startTime,
-        timestamp: new Date().toISOString()
-      })
-
-      return {
-        validationId,
-        platform,
-        source,
-        success: result.success !== false,
-        ...result
-      }
-    } catch (error) {
-      // 發送驗證失敗事件
-      await this.eventBus.emit('DATA.VALIDATION.FAILED', {
-        validationId,
-        platform,
-        source,
-        error: error.message,
-        timestamp: new Date().toISOString()
-      })
-      throw error
+  async _executeValidationLogic (books, platform, source, options, validationId, startTime) {
+    if (books.length > this.config.batchSize && this._batchProcessor) {
+      return await this._handleBatchProcessing(books, platform, source, options, validationId, startTime)
+    } else {
+      return await this._performIntegratedValidation(books, platform, source, validationId, startTime)
     }
+  }
+
+  async _processValidationOptions (result, options, booksLength, startTime) {
+    if (options.adaptiveOptimization && booksLength >= 1000) {
+      result.optimizationApplied = true
+      await this._emitOptimizationAppliedEvent(booksLength)
+    }
+    return result
+  }
+
+  async _emitOptimizationAppliedEvent (dataSize) {
+    await this.eventBus.emit('VALIDATION.OPTIMIZATION.APPLIED', {
+      dataSize,
+      optimizations: ['parallel-processing', 'cache-optimization', 'memory-management']
+    })
+  }
+
+  async _emitValidationCompletedEvent (validationId, platform, source, result, startTime) {
+    await this.eventBus.emit('DATA.VALIDATION.COMPLETED', {
+      validationId,
+      platform,
+      source,
+      qualityScore: result.qualityScore || 0.95,
+      validCount: result.validBooks ? result.validBooks.length : 0,
+      invalidCount: result.errors ? result.errors.length : 0,
+      duration: Date.now() - startTime,
+      timestamp: new Date().toISOString()
+    })
+  }
+
+  _formatFinalValidationResult (validationId, platform, source, result) {
+    return {
+      validationId,
+      platform,
+      source,
+      success: result.success !== false,
+      ...result
+    }
+  }
+
+  async _emitValidationFailedEventMain (validationId, platform, source, error) {
+    await this.eventBus.emit('DATA.VALIDATION.FAILED', {
+      validationId,
+      platform,
+      source,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
   }
 
   /**
@@ -1142,82 +1286,111 @@ class DataValidationService {
    * 註冊事件監聽器
    */
   _registerEventListeners () {
-    // 監聽驗證請求
-    this.eventBus.on('DATA.VALIDATION.REQUESTED', async (data) => {
-      try {
-        const result = await this.validateAndNormalize(data.books, data.platform, data.source)
-        await this.eventBus.emit('DATA.VALIDATION.COMPLETED', {
-          ...result,
-          requestId: data.requestId
-        })
-      } catch (error) {
-        await this.eventBus.emit('DATA.VALIDATION.FAILED', {
-          requestId: data.requestId,
-          error: error.message
-        })
-      }
-    })
+    this._registerValidationRequestListeners()
+    this._registerBatchValidationListeners()
+    this._registerConfigUpdateListeners()
+    this._registerPlatformDetectionListeners()
+    this._registerExtractionCompletedListeners()
+  }
 
-    // 監聽批次驗證請求 - 為每個平台註冊具體事件
+  _registerValidationRequestListeners () {
+    this.eventBus.on('DATA.VALIDATION.REQUESTED', async (data) => {
+      await this._handleValidationRequest(data)
+    })
+  }
+
+  async _handleValidationRequest (data) {
+    try {
+      const result = await this.validateAndNormalize(data.books, data.platform, data.source)
+      await this.eventBus.emit('DATA.VALIDATION.COMPLETED', {
+        ...result,
+        requestId: data.requestId
+      })
+    } catch (error) {
+      await this._emitValidationFailedEvent(data.requestId, error, 'requestId')
+    }
+  }
+
+  _registerBatchValidationListeners () {
     const platforms = ['READMOO', 'KINDLE', 'KOBO', 'BOOKWALKER', 'BOOKS_COM']
     platforms.forEach(platform => {
       this.eventBus.on(`DATA.${platform}.BATCH.VALIDATION.REQUESTED`, async (data) => {
-        try {
-          const result = await this.validateAndNormalize(data.books, data.platform, data.source)
-          await this.eventBus.emit('DATA.VALIDATION.COMPLETED', {
-            ...result,
-            batchId: data.batchId
-          })
-        } catch (error) {
-          await this.eventBus.emit('DATA.VALIDATION.FAILED', {
-            batchId: data.batchId,
-            error: error.message
-          })
-        }
+        await this._handleBatchValidationRequest(data)
       })
     })
+  }
 
-    // 監聽配置更新
+  async _handleBatchValidationRequest (data) {
+    try {
+      const result = await this.validateAndNormalize(data.books, data.platform, data.source)
+      await this.eventBus.emit('DATA.VALIDATION.COMPLETED', {
+        ...result,
+        batchId: data.batchId
+      })
+    } catch (error) {
+      await this._emitValidationFailedEvent(data.batchId, error, 'batchId')
+    }
+  }
+
+  _registerConfigUpdateListeners () {
     this.eventBus.on('DATA.VALIDATION.CONFIG.UPDATED', async (data) => {
-      if (data.platform && data.validationRules) {
-        this.validationRules.set(data.platform, {
-          ...this.validationRules.get(data.platform) || {},
-          ...data.validationRules
-        })
-      }
+      await this._handleConfigUpdate(data)
     })
+  }
 
-    // 監聽平台檢測事件
+  async _handleConfigUpdate (data) {
+    if (data.platform && data.validationRules) {
+      this.validationRules.set(data.platform, {
+        ...this.validationRules.get(data.platform) || {},
+        ...data.validationRules
+      })
+    }
+  }
+
+  _registerPlatformDetectionListeners () {
     this.eventBus.on('PLATFORM.*.DETECTED', async (data) => {
-      const platform = data.platform
-      if (platform && this.config.supportedPlatforms.includes(platform)) {
-        await this.loadPlatformValidationRules(platform)
-      }
+      await this._handlePlatformDetection(data)
     })
+  }
 
-    // 監聽提取完成事件 - 為每個平台註冊具體事件
+  async _handlePlatformDetection (data) {
+    const platform = data.platform
+    if (platform && this.config.supportedPlatforms.includes(platform)) {
+      await this.loadPlatformValidationRules(platform)
+    }
+  }
+
+  _registerExtractionCompletedListeners () {
+    const platforms = ['READMOO', 'KINDLE', 'KOBO', 'BOOKWALKER', 'BOOKS_COM']
     platforms.forEach(platform => {
       this.eventBus.on(`EXTRACTION.${platform}.COMPLETED`, async (data) => {
-        if (data.books && data.platform) {
-          try {
-            const result = await this.validateAndNormalize(
-              data.books,
-              data.platform,
-              'EXTRACTION'
-            )
-            await this.eventBus.emit('DATA.VALIDATION.COMPLETED', {
-              ...result,
-              extractionId: data.extractionId
-            })
-          } catch (error) {
-            await this.eventBus.emit('DATA.VALIDATION.FAILED', {
-              extractionId: data.extractionId,
-              error: error.message
-            })
-          }
-        }
+        await this._handleExtractionCompleted(data)
       })
     })
+  }
+
+  async _handleExtractionCompleted (data) {
+    if (data.books && data.platform) {
+      try {
+        const result = await this.validateAndNormalize(
+          data.books,
+          data.platform,
+          'EXTRACTION'
+        )
+        await this.eventBus.emit('DATA.VALIDATION.COMPLETED', {
+          ...result,
+          extractionId: data.extractionId
+        })
+      } catch (error) {
+        await this._emitValidationFailedEvent(data.extractionId, error, 'extractionId')
+      }
+    }
+  }
+
+  async _emitValidationFailedEvent (id, error, idType) {
+    const eventData = { error: error.message }
+    eventData[idType] = id
+    await this.eventBus.emit('DATA.VALIDATION.FAILED', eventData)
   }
 
   /**
