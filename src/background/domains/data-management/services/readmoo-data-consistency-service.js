@@ -19,6 +19,10 @@
  */
 
 const BaseModule = require('../../../lifecycle/base-module.js')
+const DataDifferenceEngine = require('./data-difference-engine.js')
+const ConflictDetectionService = require('./conflict-detection-service.js')
+const SyncProgressMonitor = require('./sync-progress-monitor.js')
+const SyncStrategyProcessor = require('./sync-strategy-processor.js')
 
 class ReadmooDataConsistencyService extends BaseModule {
   /**
@@ -40,6 +44,19 @@ class ReadmooDataConsistencyService extends BaseModule {
     this.eventBus = eventBus
     this.logger = dependencies.logger || console
     this.config = dependencies.config || {}
+
+    // 初始化專門服務
+    this.dataDifferenceEngine = dependencies.dataDifferenceEngine || 
+      new DataDifferenceEngine(eventBus, { logger: this.logger })
+    this.conflictDetectionService = dependencies.conflictDetectionService || 
+      new ConflictDetectionService(eventBus, { 
+        logger: this.logger, 
+        dataDifferenceEngine: this.dataDifferenceEngine 
+      })
+    this.syncProgressMonitor = dependencies.syncProgressMonitor || 
+      new SyncProgressMonitor(eventBus, { logger: this.logger })
+    this.syncStrategyProcessor = dependencies.syncStrategyProcessor || 
+      new SyncStrategyProcessor(eventBus, { logger: this.logger })
 
     // 一致性檢查狀態
     this.consistencyJobs = new Map()
@@ -179,15 +196,8 @@ class ReadmooDataConsistencyService extends BaseModule {
 
       this.logger.log(`開始執行一致性檢查: ${checkId}`)
 
-      // 模擬檢查過程 (實際實作會在後續 TDD 循環中完成)
-      const result = {
-        checkId,
-        platform: 'READMOO',
-        status: 'completed',
-        inconsistencies: [],
-        recommendations: [],
-        timestamp: Date.now()
-      }
+      // 使用專門服務執行一致性檢查
+      const result = await this.executeConsistencyCheckWithServices(checkId, options)
 
       // 更新作業狀態
       job.status = 'completed'
@@ -292,6 +302,84 @@ class ReadmooDataConsistencyService extends BaseModule {
     } catch (error) {
       this.logger.error(`清理資源失敗: ${error.message}`)
     }
+  }
+
+  /**
+   * 使用專門服務執行一致性檢查
+   */
+  async executeConsistencyCheckWithServices (checkId, options) {
+    try {
+      // 模擬獲取本地和遠端資料
+      const localData = await this.fetchLocalReadmooData()
+      const remoteData = await this.fetchRemoteReadmooData()
+
+      // 使用差異引擎計算差異
+      const differences = await this.dataDifferenceEngine.calculateDifferences(localData, remoteData)
+
+      // 使用衝突檢測服務檢測衝突
+      const conflicts = await this.conflictDetectionService.detectConflicts(localData, remoteData)
+
+      // 生成一致性檢查結果
+      return {
+        checkId,
+        platform: 'READMOO',
+        status: 'completed',
+        inconsistencies: this.formatInconsistencies(differences),
+        conflicts: conflicts.conflicts || [],
+        recommendations: conflicts.recommendations || [],
+        statistics: {
+          totalItems: localData.length,
+          differences: differences.summary?.totalChanges || 0,
+          conflicts: conflicts.conflictCount || 0
+        },
+        timestamp: Date.now()
+      }
+    } catch (error) {
+      this.logger.error(`執行一致性檢查失敗: ${error.message}`)
+      throw error
+    }
+  }
+
+  /**
+   * 獲取本地 Readmoo 資料（模擬）
+   */
+  async fetchLocalReadmooData () {
+    // 模擬本地資料
+    return [
+      { id: 'local_1', title: '本地書籍 1', progress: 45, lastUpdated: '2025-01-01' },
+      { id: 'local_2', title: '本地書籍 2', progress: 80, lastUpdated: '2025-01-02' }
+    ]
+  }
+
+  /**
+   * 獲取遠端 Readmoo 資料（模擬）
+   */
+  async fetchRemoteReadmooData () {
+    // 模擬遠端資料
+    return [
+      { id: 'local_1', title: '遠端書籍 1', progress: 50, lastUpdated: '2025-01-03' },
+      { id: 'local_2', title: '本地書籍 2', progress: 80, lastUpdated: '2025-01-02' }
+    ]
+  }
+
+  /**
+   * 格式化不一致資料
+   */
+  formatInconsistencies (differences) {
+    const inconsistencies = []
+    
+    if (differences.modified) {
+      for (const modified of differences.modified) {
+        inconsistencies.push({
+          type: 'DATA_MISMATCH',
+          itemId: modified.id,
+          fields: Object.keys(modified.changes || {}),
+          severity: 'MEDIUM'
+        })
+      }
+    }
+
+    return inconsistencies
   }
 }
 

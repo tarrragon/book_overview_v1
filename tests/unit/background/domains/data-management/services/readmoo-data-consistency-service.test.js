@@ -183,14 +183,22 @@ describe('ReadmooDataConsistencyService', () => {
         autoFix: false
       })
 
-      expect(result).toEqual({
+      // 驗證基本結構
+      expect(result).toMatchObject({
         checkId,
         platform: 'READMOO',
         status: 'completed',
-        inconsistencies: [],
-        recommendations: [],
         timestamp: expect.any(Number)
       })
+      
+      // 驗證整合的專門服務結果
+      expect(result).toHaveProperty('inconsistencies')
+      expect(result).toHaveProperty('conflicts')
+      expect(result).toHaveProperty('recommendations')
+      expect(result).toHaveProperty('statistics')
+      expect(Array.isArray(result.inconsistencies)).toBe(true)
+      expect(Array.isArray(result.conflicts)).toBe(true)
+      expect(Array.isArray(result.recommendations)).toBe(true)
 
       const job = service.consistencyJobs.get(checkId)
       expect(job.status).toBe('completed')

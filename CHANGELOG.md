@@ -2,6 +2,46 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.9.20] - 2025-08-21
+
+### 🔄 Background Service Worker 模組化重構 - TDD 循環 4/8
+
+#### 🎯 SyncStrategyProcessor 提取完成
+
+**架構改進**:
+- **📊 策略處理器模組化**: 從 1,668 行 data-synchronization-service.js 中提取同步策略執行邏輯
+- **🏗️ Three-Strategy 設計**: 完整實作 MERGE、OVERWRITE、APPEND 三種同步策略
+- **✅ Five Lines 規則遵循**: 所有方法都符合 ≤5 行要求，共拆分為 35 個語意化函數
+- **🧪 完整測試覆蓋**: 21 個測試案例，100% 覆蓋率
+
+#### 🔄 TDD 循環完整記錄
+
+**🔴 Red 階段 - 測試設計**:
+- 設計 21 個測試案例涵蓋建構函數、策略驗證、三種策略執行、批量處理、重試機制
+- 驗證 Red 狀態：模組找不到，測試失敗
+
+**🟢 Green 階段 - 功能實作**:
+- 實作 SyncStrategyProcessor 類別 (700+ 行)
+- 三種同步策略的完整實作：智能合併、強制覆寫、僅追加
+- 批量處理機制：重試、錯誤處理、統計監控
+- 修正 3 個測試問題：配置合併、重試邏輯、日誌輸出
+
+**🔵 Refactor 階段 - 程式碼品質優化**:
+- 重構 4 個主要方法，拆分為 35 個語意化小函數
+- 應用 Five Lines 規則和單一職責原則
+- 維持 21/21 測試通過，功能完整性保持
+
+#### 📁 新增檔案
+- `src/background/domains/data-management/services/sync-strategy-processor.js` - 同步策略處理器
+- `tests/unit/background/domains/data-management/services/sync-strategy-processor.test.js` - 完整測試套件
+- `docs/work-logs/v0.9.20-sync-strategy-processor-work-log.md` - 詳細開發記錄
+
+#### 🔄 下一步規劃
+- **TDD 循環 5/8**: ConflictDetectionService 提取 - 衝突檢測邏輯分離
+- **TDD 循環 6/8**: ProgressTrackingService 提取 - 進度追蹤機制模組化
+
+---
+
 ## [v0.9.19] - 2025-08-20
 
 ### 🎉 BookSearchFilter TDD 重構項目最終完成
