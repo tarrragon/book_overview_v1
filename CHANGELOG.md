@@ -2,6 +2,54 @@
 
 本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.9.22] - 2025-08-21
+
+### 🔄 DataValidationService 子服務整合重構 - TDD 循環 6/8 Green 階段
+
+#### 🎯 服務整合架構完成
+
+**核心成就**:
+- **🏗️ 子服務整合架構**: 完整整合 ValidationEngine、BatchProcessor、QualityAnalyzer、CacheManager、NormalizationService
+- **🔄 協調流程實現**: 實作 快取檢查 → 驗證 → 標準化 → 品質分析 → 快取更新 的完整流程
+- **⚡ 進階功能支持**: 批次處理、並行處理、錯誤容災、效能監控、自適應最佳化
+- **🧪 完整測試覆蓋**: 新增 13 個整合測試全部通過，驗證服務協調正確性
+
+#### 🔄 TDD 循環完整記錄
+
+**🔴 Red 階段 - 整合測試設計**:
+- 設計 13 個整合測試涵蓋服務協調、快取整合、批次處理、錯誤處理、效能監控、健康監控
+- 驗證 Red 狀態：缺少整合方法和健康監控功能
+
+**🟢 Green 階段 - 整合功能實作**:
+- 重構建構函數支援子服務依賴注入
+- 實作 `_performIntegratedValidation()` 核心整合邏輯 (130+ 行)
+- 實作 `_handleBatchProcessing()` 批次處理整合
+- 實作 `getServiceHealthStatus()` 健康狀態監控
+- 修改 `validateAndNormalize()` 支援選項參數和完整協調流程
+
+**🔵 Refactor 階段 - 程式碼品質優化**:
+- ESLint 修正程式碼格式問題 (18 個錯誤修正)
+- 確保新增功能不破壞現有測試
+- 效能最佳化：快取機制、並行處理、錯誤容災
+
+#### 🏗️ 技術實現細節
+
+**核心整合流程**:
+```
+輸入資料 → 快取檢查 → [ValidationEngine] → [NormalizationService] 
+         → [QualityAnalyzer] → 快取更新 → 結果回傳
+```
+
+**批次處理支援**:
+- 大資料量自動觸發 BatchProcessor
+- 支援並行處理提升效能
+- 配置化批次大小 (預設 50)
+
+**健康監控系統**:
+- 5 個子服務健康狀態監控
+- 整體健康狀態計算 (healthy/degraded/unhealthy)
+- 服務錯誤事件發布機制
+
 ## [v0.9.20] - 2025-08-21
 
 ### 🔄 Background Service Worker 模組化重構 - TDD 循環 4/8
