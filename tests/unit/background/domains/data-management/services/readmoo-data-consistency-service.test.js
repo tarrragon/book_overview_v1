@@ -88,7 +88,7 @@ describe('ReadmooDataConsistencyService', () => {
     test('cleanup() 應該正確清理資源', async () => {
       // 先初始化服務
       await service.initialize()
-      
+
       // 添加一些測試資料
       service.consistencyJobs.set('test1', { status: 'running' })
       service.checkHistory.push({ checkId: 'test1' })
@@ -160,7 +160,7 @@ describe('ReadmooDataConsistencyService', () => {
 
       expect(checkId).toMatch(/^readmoo_check_\d+_[a-z0-9]+$/)
       expect(service.consistencyJobs.has(checkId)).toBe(true)
-      
+
       const job = service.consistencyJobs.get(checkId)
       expect(job.status).toBe('scheduled')
       expect(job.options.source).toBe('manual')
@@ -178,7 +178,7 @@ describe('ReadmooDataConsistencyService', () => {
 
     test('performConsistencyCheck() 應該成功執行檢查', async () => {
       const checkId = 'test_check_456'
-      
+
       const result = await service.performConsistencyCheck(checkId, {
         autoFix: false
       })
@@ -200,7 +200,7 @@ describe('ReadmooDataConsistencyService', () => {
 
     test('performConsistencyCheck() 失敗時應該正確處理錯誤', async () => {
       const checkId = 'failing_check'
-      
+
       // 模擬 emit 失敗
       mockEventBus.emit.mockImplementation(() => {
         throw new Error('Event emission failed')

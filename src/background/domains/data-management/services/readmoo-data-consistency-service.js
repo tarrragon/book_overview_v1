@@ -2,15 +2,15 @@
  * @fileoverview Readmoo Data Consistency Service - Readmoo 資料一致性服務
  * @version v0.9.20
  * @since 2025-08-20
- * 
+ *
  * 重構自 data-synchronization-service.js，專注於 Readmoo 平台的資料一致性檢查
- * 
+ *
  * 負責功能：
  * - Readmoo 本地資料與瀏覽器狀態的一致性檢查
  * - 資料差異檢測和修復建議
  * - 資料品質監控和報告
  * - 一致性狀態追蹤和事件通知
- * 
+ *
  * 設計原則：
  * - 單一職責：專注於 Readmoo 資料一致性
  * - 事件驅動：與現有事件系統整合
@@ -44,7 +44,7 @@ class ReadmooDataConsistencyService extends BaseModule {
     // 一致性檢查狀態
     this.consistencyJobs = new Map()
     this.checkHistory = []
-    
+
     // 配置管理
     this.defaultConfig = {
       checkInterval: 300000, // 5 分鐘
@@ -92,10 +92,10 @@ class ReadmooDataConsistencyService extends BaseModule {
   async registerEventListeners () {
     // 監聽資料更新事件
     this.eventBus.on('DATA.UPDATE', this.handleDataUpdate.bind(this))
-    
+
     // 監聽一致性檢查請求
     this.eventBus.on('DATA.CONSISTENCY.CHECK_REQUEST', this.handleConsistencyCheckRequest.bind(this))
-    
+
     this.logger.log('事件監聽器註冊完成')
   }
 
@@ -138,7 +138,7 @@ class ReadmooDataConsistencyService extends BaseModule {
     if (!checkId) {
       checkId = this.generateCheckId()
     }
-    
+
     // 防止重複檢查
     if (this.consistencyJobs.has(checkId)) {
       return checkId
@@ -152,10 +152,10 @@ class ReadmooDataConsistencyService extends BaseModule {
     }
 
     this.consistencyJobs.set(checkId, job)
-    
+
     // 非同步執行檢查
     setTimeout(() => this.performConsistencyCheck(checkId, options), 0)
-    
+
     return checkId
   }
 
@@ -204,7 +204,7 @@ class ReadmooDataConsistencyService extends BaseModule {
       return result
     } catch (error) {
       this.logger.error(`一致性檢查失敗: ${error.message}`)
-      
+
       // 更新作業狀態為失敗
       const job = this.consistencyJobs.get(checkId)
       if (job) {
@@ -223,7 +223,7 @@ class ReadmooDataConsistencyService extends BaseModule {
    */
   async initiateCrossPlatformSync (syncId, sourcePlatforms, targetPlatforms, options = {}) {
     this.logger.log('將跨平台同步請求轉換為 Readmoo 一致性檢查')
-    
+
     return await this.performConsistencyCheck(syncId, {
       ...options,
       compatibilityMode: true,
@@ -244,7 +244,7 @@ class ReadmooDataConsistencyService extends BaseModule {
    */
   addToHistory (result) {
     this.checkHistory.push(result)
-    
+
     // 保持歷史記錄數量限制
     if (this.checkHistory.length > this.effectiveConfig.maxHistoryEntries) {
       this.checkHistory.shift()

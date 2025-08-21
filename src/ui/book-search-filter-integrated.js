@@ -9,7 +9,7 @@
  * - 提供統一的生命週期和錯誤處理
  *
  * 架構設計：
- * - 使用模組化組件：SearchIndexManager, SearchEngine, SearchCacheManager, 
+ * - 使用模組化組件：SearchIndexManager, SearchEngine, SearchCacheManager,
  *   SearchResultFormatter, FilterEngine, SearchCoordinator, SearchUIController
  * - 維持與原始 API 的 100% 相容性
  * - 透過 SearchCoordinator 協調所有模組的運作
@@ -303,14 +303,14 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
     } catch (error) {
       console.error('❌ 搜尋執行失敗:', error)
       this.searchState.isSearching = false
-      
+
       this.eventBus.emit('SEARCH.ERROR', {
         type: 'search_execution_error',
         message: error.message,
-        query: query,
+        query,
         source: 'BookSearchFilterIntegrated'
       })
-      
+
       throw error
     }
   }
@@ -323,18 +323,18 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
     try {
       // 委派給搜尋協調器
       const results = await this.searchCoordinator.applyFilters(this.searchState.searchResults, filters)
-      
+
       return results
     } catch (error) {
       console.error('❌ 篩選套用失敗:', error)
-      
+
       this.eventBus.emit('FILTER.ERROR', {
         type: 'filter_application_error',
         message: error.message,
-        filters: filters,
+        filters,
         source: 'BookSearchFilterIntegrated'
       })
-      
+
       throw error
     }
   }

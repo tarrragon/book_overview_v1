@@ -165,7 +165,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     // 創建整合版本實例
     const BookSearchFilterIntegrated = require('../../../src/ui/book-search-filter-integrated')
     bookSearchFilter = new BookSearchFilterIntegrated(eventBus, document)
-    
+
     // 設定測試資料
     bookSearchFilter.updateBooksData(testBooks)
   })
@@ -185,7 +185,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
 
     test('應該正確初始化所有模組化組件', () => {
       const health = bookSearchFilter.getModuleHealth()
-      
+
       expect(health.searchIndexManager).toBe(true)
       expect(health.searchEngine).toBe(true)
       expect(health.searchCacheManager).toBe(true)
@@ -220,7 +220,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
   describe('即時搜尋功能整合', () => {
     test('應該支援依書名搜尋', async () => {
       const results = await bookSearchFilter.performSearch('JavaScript')
-      
+
       expect(Array.isArray(results)).toBe(true)
       expect(results.length).toBeGreaterThan(0)
       expect(results.some(book => book.title.includes('JavaScript'))).toBe(true)
@@ -228,7 +228,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
 
     test('應該支援依作者搜尋', async () => {
       const results = await bookSearchFilter.performSearch('David Flanagan')
-      
+
       expect(Array.isArray(results)).toBe(true)
       expect(results.length).toBeGreaterThan(0)
       expect(results.some(book => book.author.includes('David Flanagan'))).toBe(true)
@@ -236,21 +236,21 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
 
     test('應該支援模糊搜尋', async () => {
       const results = await bookSearchFilter.performSearch('javascrpt') // 拼字錯誤
-      
+
       expect(Array.isArray(results)).toBe(true)
       // 模糊搜尋應該能找到相似的結果
     })
 
     test('應該正確處理空搜尋查詢', async () => {
       const results = await bookSearchFilter.performSearch('')
-      
+
       expect(Array.isArray(results)).toBe(true)
       expect(results.length).toBe(testBooks.length) // 應該返回所有書籍
     })
 
     test('應該正確處理無結果的搜尋', async () => {
       const results = await bookSearchFilter.performSearch('不存在的書籍名稱')
-      
+
       expect(Array.isArray(results)).toBe(true)
       expect(results.length).toBe(0)
     })
@@ -260,7 +260,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     test('應該支援依閱讀狀態篩選', async () => {
       const filters = { status: 'completed' }
       const results = await bookSearchFilter.applyFilters(filters)
-      
+
       expect(Array.isArray(results)).toBe(true)
       expect(results.every(book => book.status === 'completed')).toBe(true)
     })
@@ -268,7 +268,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     test('應該支援依閱讀進度範圍篩選', async () => {
       const filters = { progress: { min: 50, max: 100 } }
       const results = await bookSearchFilter.applyFilters(filters)
-      
+
       expect(Array.isArray(results)).toBe(true)
       expect(results.every(book => book.progress >= 50 && book.progress <= 100)).toBe(true)
     })
@@ -276,20 +276,20 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     test('應該支援依書籍分類篩選', async () => {
       const filters = { category: 'tech' }
       const results = await bookSearchFilter.applyFilters(filters)
-      
+
       expect(Array.isArray(results)).toBe(true)
       expect(results.every(book => book.category === 'tech')).toBe(true)
     })
 
     test('應該支援多重篩選條件組合', async () => {
-      const filters = { 
+      const filters = {
         status: 'reading',
         category: 'tech'
       }
       const results = await bookSearchFilter.applyFilters(filters)
-      
+
       expect(Array.isArray(results)).toBe(true)
-      expect(results.every(book => 
+      expect(results.every(book =>
         book.status === 'reading' && book.category === 'tech'
       )).toBe(true)
     })
@@ -299,17 +299,17 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     test('應該能夠執行搜尋後再篩選', async () => {
       // 先搜尋技術相關書籍
       const searchResults = await bookSearchFilter.performSearch('tech')
-      
+
       // 再篩選正在閱讀的書籍
       const filteredResults = await bookSearchFilter.applyFilters({ status: 'reading' })
-      
+
       expect(Array.isArray(filteredResults)).toBe(true)
       expect(filteredResults.every(book => book.status === 'reading')).toBe(true)
     })
 
     test('應該能夠清除搜尋和篩選', () => {
       bookSearchFilter.clearSearchAndFilters()
-      
+
       expect(bookSearchFilter.searchState.currentQuery).toBe('')
       expect(bookSearchFilter.searchState.searchResults).toEqual([])
       expect(bookSearchFilter.searchState.filteredResults).toEqual([])
@@ -320,22 +320,22 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
   describe('事件整合和通知機制', () => {
     test('應該發出搜尋結果更新事件', async () => {
       await bookSearchFilter.performSearch('JavaScript')
-      
+
       const searchEvents = eventBus.getEventHistory().filter(
         event => event.eventType === 'SEARCH.RESULTS_UPDATED'
       )
-      
+
       expect(searchEvents.length).toBeGreaterThan(0)
       expect(searchEvents[0].data.source).toBe('BookSearchFilterIntegrated')
     })
 
     test('應該發出篩選應用事件', async () => {
       await bookSearchFilter.applyFilters({ status: 'completed' })
-      
+
       const filterEvents = eventBus.getEventHistory().filter(
         event => event.eventType === 'FILTER.APPLIED'
       )
-      
+
       expect(filterEvents.length).toBeGreaterThan(0)
       expect(filterEvents[0].data.source).toBe('BookSearchFilterIntegrated')
     })
@@ -351,7 +351,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
       }]
 
       eventBus.emit('BOOKS.DATA_UPDATED', { books: newBooks })
-      
+
       expect(bookSearchFilter.booksData).toHaveLength(5)
     })
   })
@@ -360,9 +360,9 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     test('應該提供搜尋統計資訊', async () => {
       await bookSearchFilter.performSearch('JavaScript')
       await bookSearchFilter.applyFilters({ status: 'completed' })
-      
+
       const stats = bookSearchFilter.getSearchStatistics()
-      
+
       expect(typeof stats).toBe('object')
       expect(typeof stats.totalSearches).toBe('number')
       expect(typeof stats.totalFilters).toBe('number')
@@ -372,7 +372,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     test('應該監控效能並處理慢操作', async () => {
       // 執行搜尋操作
       await bookSearchFilter.performSearch('test')
-      
+
       const stats = bookSearchFilter.getSearchStatistics()
       expect(stats.averageSearchTime).toBeGreaterThanOrEqual(0)
     })
@@ -383,7 +383,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
       expect(() => {
         bookSearchFilter.updateBooksData(null)
       }).not.toThrow()
-      
+
       expect(() => {
         bookSearchFilter.updateBooksData('invalid data')
       }).not.toThrow()
@@ -392,7 +392,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     test('應該處理搜尋過程中的錯誤', async () => {
       // 模擬搜尋錯誤
       bookSearchFilter.searchCoordinator = null
-      
+
       await expect(
         bookSearchFilter.performSearch('test')
       ).rejects.toThrow()
@@ -401,7 +401,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     test('應該處理篩選過程中的錯誤', async () => {
       // 模擬篩選錯誤
       bookSearchFilter.searchCoordinator = null
-      
+
       await expect(
         bookSearchFilter.applyFilters({ status: 'completed' })
       ).rejects.toThrow()
@@ -411,7 +411,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
       expect(() => {
         bookSearchFilter.cleanup()
       }).not.toThrow()
-      
+
       // 驗證清理後的狀態
       expect(bookSearchFilter.searchState).toBeNull()
       expect(bookSearchFilter._booksData).toEqual([])
@@ -439,10 +439,10 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     test('應該提供相同的事件介面', async () => {
       // 執行操作並檢查事件
       await bookSearchFilter.performSearch('test')
-      
+
       const events = eventBus.getEventHistory()
       const searchEvents = events.filter(e => e.eventType.startsWith('SEARCH.'))
-      
+
       expect(searchEvents.length).toBeGreaterThan(0)
     })
   })
@@ -450,14 +450,14 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
   describe('模組間協調驗證', () => {
     test('應該正確協調搜尋引擎和索引管理器', async () => {
       const results = await bookSearchFilter.performSearch('JavaScript')
-      
+
       // 驗證搜尋引擎能夠使用索引管理器
       expect(Array.isArray(results)).toBe(true)
     })
 
     test('應該正確協調篩選引擎和結果格式化器', async () => {
       const results = await bookSearchFilter.applyFilters({ status: 'reading' })
-      
+
       // 驗證篩選結果被正確格式化
       expect(Array.isArray(results)).toBe(true)
       if (results.length > 0) {
@@ -470,7 +470,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
       // 執行相同搜尋兩次
       await bookSearchFilter.performSearch('JavaScript')
       await bookSearchFilter.performSearch('JavaScript')
-      
+
       const stats = bookSearchFilter.getSearchStatistics()
       // 第二次搜尋應該更快 (使用快取)
       expect(typeof stats.cacheHitRate).toBe('number')
