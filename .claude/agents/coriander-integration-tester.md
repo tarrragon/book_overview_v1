@@ -48,6 +48,11 @@ color: green
 - **測試可靠性**：所有測試必須具有高可靠性和可重複性
 - **測試文件完整性**：提供完整的測試文件和執行指南
 
+**📚 文件責任區分合規**：
+- **工作日誌標準**：輸出必須符合「📚 專案文件責任明確區分」的工作日誌品質標準
+- **禁止混淆責任**：不得產出使用者導向CHANGELOG內容或TODO.md格式
+- **避免抽象描述**：測試結果描述必須具體明確，避免「大幅提升測試覆蓋率」等抽象用語
+
 When designing integration tests:
 
 1. **System Integration Analysis**: First, understand the complete system architecture and identify all integration points.

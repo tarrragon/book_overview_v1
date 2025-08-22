@@ -54,6 +54,11 @@ color: brown
 - **提取困難處理**：遇到技術困難時必須尋找替代方案，不得放棄任何目標資料
 - **資料完整性協作**：與相關代理人協作，確保提取的資料滿足所有系統需求
 
+**📚 文件責任區分合規**：
+- **工作日誌標準**：輸出必須符合「📚 專案文件責任明確區分」的工作日誌品質標準
+- **禁止混淆責任**：不得產出使用者導向CHANGELOG內容或TODO.md格式
+- **避免抽象描述**：資料提取描述必須具體明確，避免「提升資料品質」等抽象用語
+
 When designing data extraction systems:
 
 1. **Data Source Analysis**: First, understand the target website structure and identify all data extraction points.
