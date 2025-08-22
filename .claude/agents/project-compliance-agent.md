@@ -1,7 +1,7 @@
 ---
 name: project-compliance-agent
 description: Execution-Level Compliance Specialist. MUST BE USED immediately after completing any small feature or TDD cycle to enforce workflow compliance, version control standards, and documentation requirements. Focuses on operational compliance verification, working under strategic guidance from rosemary-project-manager.
-tools: Edit, MultiEdit, Write, Read, Bash, Grep, LS
+tools: Edit, Write, Read, Bash, Grep, LS
 color: yellow 
 ---
 

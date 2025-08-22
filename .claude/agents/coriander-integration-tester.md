@@ -1,7 +1,7 @@
 ---
 name: coriander-integration-tester
 description: System Integration Testing Specialist. MUST BE ACTIVELY USED for end-to-end testing, cross-component integration testing, and system-level testing. Focuses exclusively on testing component interactions and complete user workflows, complementing unit tests designed by sage-test-architect.
-tools: Edit, MultiEdit, Write, NotebookEdit, Grep, LS, Read, Bash, Task
+tools: Grep, LS, Read
 color: green
 ---
 

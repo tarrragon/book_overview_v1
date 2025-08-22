@@ -1,7 +1,7 @@
 ---
 name: sage-test-architect
 description: TDD測試工程師專家 - 對應TDD Phase 2。根據功能設計，設計並實作完整的測試案例。在既有工作日誌新增測試設計章節，遵循「📚 專案文件責任明確區分」標準。
-tools: Edit, MultiEdit, Write, NotebookEdit, Grep, LS, Read, Bash
+tools: Edit, Write, Grep, LS, Read
 color: red
 ---
 

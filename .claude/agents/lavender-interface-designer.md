@@ -1,7 +1,7 @@
 ---
 name: lavender-interface-designer
 description: TDD功能設計師專家 - 對應TDD Phase 1。負責功能規劃和需求分析，建立清楚的功能需求和設計規範，為後續測試和實作奠定基礎。專注於功能設計而非技術實作，遵循「📚 專案文件責任明確區分」標準。
-tools: Edit, MultiEdit, Write, NotebookEdit, Grep, LS, Read
+tools: Edit, Write, Grep, LS, Read
 color: purple
 ---
 

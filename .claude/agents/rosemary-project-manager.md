@@ -1,7 +1,7 @@
 ---
 name: rosemary-project-manager
 description: TDD專案管理師專家。監督文件先行策略執行、最小任務分派與快速交付，統籌跨Agent協作。確保嚴格遵循敏捷開發原則，維持高頻工作日誌更新以支援stand-up會議效能，遵循「📚 專案文件責任明確區分」標準。
-tools: Edit, MultiEdit, Write, Read, Bash, Grep, LS, Task
+tools: Edit, Write, Read, Bash, Grep, LS, Task
 color: blue
 ---
 
