@@ -30,8 +30,6 @@
  * - 為未來多平台擴展保留架構面向
  *
  * **v1.0 暫時擱置的功能**:
- * - synchronization: 跨平台資料同步 (已標記為擱置)
- * - conflictResolution: 跨平台衝突解決 (保留架構但不實作)
  * - 多平台同步和衝突解決 (等待未來實作)
  */
 
@@ -58,8 +56,6 @@ class DataDomainCoordinator extends BaseModule {
     this.services = {
       validation: null, // DataValidationService (已實作)
       migration: null, // SchemaMigrationService (未來實作)
-      synchronization: null, // DataSynchronizationService (暫時擱置)
-      conflictResolution: null, // ConflictResolutionService (暫時擱置)
       storageAdapter: null, // StorageAdapterService (未來實作)
       backupRecovery: null // BackupRecoveryService (未來實作)
     }
@@ -149,8 +145,6 @@ class DataDomainCoordinator extends BaseModule {
     this.services.backupRecovery = new MockService('BackupRecoveryService')
 
     // v1.0 暫時擱置的多平台服務（設為 null 代表擱置）
-    this.services.synchronization = null // 擱置: 跨平台同步
-    this.services.conflictResolution = null // 擱置: 跨平台衝突解決
 
     // 初始化已實作的服務
     if (this.services.validation && typeof this.services.validation.initialize === 'function') {
@@ -159,7 +153,7 @@ class DataDomainCoordinator extends BaseModule {
     }
 
     // 記錄擱置的服務
-    const shelvedServices = ['synchronization', 'conflictResolution']
+    const shelvedServices = []
     for (const serviceName of shelvedServices) {
       await this.log(`${serviceName} 服務暫時擱置 (v1.0 不需要多平台功能)`)
     }
@@ -416,12 +410,8 @@ class DataDomainCoordinator extends BaseModule {
         timestamp: Date.now()
       })
 
-      // 如果未來實作了同步服務，就恢復這段程式碼
-      if (this.services.synchronization && this.services.synchronization.initiateCrossPlatformSync) {
-        await this.services.synchronization.initiateCrossPlatformSync(syncId, sourcePlatforms, targetPlatforms, syncOptions)
-      } else {
-        await this.log('v1.0 同步服務暫時擱置，等待未來多平台擴展時實作', 'info')
-      }
+      // v1.0 採用手動JSON匯出入操作，不需要複雜同步邏輯
+      await this.log('v1.0 採用簡單的手動JSON匯出入操作，不需要跨平台同步', 'info')
 
       return {
         success: false,
@@ -477,9 +467,8 @@ class DataDomainCoordinator extends BaseModule {
       }
 
       // 如果未來實作了衝突解決服務，就恢復這段程式碼
-      if (this.services.conflictResolution && this.services.conflictResolution.resolveConflict) {
-        await this.services.conflictResolution.resolveConflict(conflictId, platform, conflictData)
-      }
+      // v1.0 採用簡單的去重機制，不需要複雜衝突解決
+      await this.log('v1.0 採用基於穩定ID的簡單去重機制處理重複書目', 'info')
     } catch (error) {
       await this.log(`處理資料衝突失敗: ${error.message}`, 'error')
     }
