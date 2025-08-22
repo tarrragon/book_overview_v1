@@ -650,22 +650,60 @@ class OverviewPageController extends EventHandlerClass {
   }
 
   /**
-   * 處理檔案載入操作
+   * 處理檔案載入操作 - 增強版本
    *
    * @param {File} file - 要載入的檔案
+   * @returns {Promise<void>} 載入完成Promise
    *
    * 負責功能：
+   * - 檔案前置驗證（格式、大小）
    * - 讀取 JSON 檔案
    * - 解析書籍資料
    * - 更新頁面顯示
    */
-  handleFileLoad (file) {
-    if (!file) return
+  async handleFileLoad (file) {
+    // //todo: 增加檔案前置驗證
+    if (!file) {
+      this.showError('請先選擇一個 JSON 檔案！')
+      return
+    }
 
-    const reader = new FileReader()
-    reader.onload = (e) => this._handleFileContent(e.target.result)
-    reader.onerror = () => this.showError(CONSTANTS.MESSAGES.FILE_READ_ERROR)
-    reader.readAsText(file, 'utf-8')
+    // //todo: 檔案副檔名驗證（權宜方案：簡單檢查）
+    if (!file.name.toLowerCase().endsWith('.json')) {
+      this.showError('請選擇 JSON 格式的檔案！')
+      return
+    }
+
+    // //todo: 檔案大小檢查（權宜方案：設定10MB限制）
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    if (file.size > maxSize) {
+      this.showError('檔案過大，請選擇小於 10MB 的檔案！')
+      return
+    }
+
+    this.showLoading('正在讀取檔案...')
+
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      
+      reader.onload = (e) => {
+        try {
+          this._handleFileContent(e.target.result)
+          resolve()
+        } catch (error) {
+          this.showError(`載入檔案失敗：${error.message}`)
+          reject(error)
+        }
+      }
+      
+      reader.onerror = () => {
+        const errorMsg = '讀取檔案時發生錯誤！'
+        this.showError(errorMsg)
+        reject(new Error(errorMsg))
+      }
+      
+      reader.readAsText(file, 'utf-8')
+    })
   }
 
   // EventHandler 抽象方法實現
@@ -850,33 +888,91 @@ class OverviewPageController extends EventHandlerClass {
   }
 
   /**
-   * 處理檔案內容
+   * 處理檔案內容 - 增強JSON解析和錯誤處理
    * @private
+   * 
+   * @param {string} content - 檔案內容
    */
   _handleFileContent (content) {
     try {
-      const data = JSON.parse(content)
+      // //todo: JSON解析錯誤處理強化
+      if (!content || content.trim() === '') {
+        throw new Error('檔案內容為空')
+      }
+
+      // //todo: BOM檢查和移除（權宜方案：簡單處理）
+      const cleanContent = content.replace(/^\uFEFF/, '') // 移除UTF-8 BOM
+
+      const data = JSON.parse(cleanContent)
       const books = this._extractBooksFromData(data)
 
-      this._updateBooksData(books)
+      // //todo: 基本資料驗證（權宜方案：簡單過濾）
+      const validBooks = books.filter(book => this._isValidBook(book))
+      
+      // //todo: 大型資料集分批處理（未來改善）
+      if (validBooks.length > 1000) {
+        console.warn('⚠️ 大型資料集，建議分批處理（未來改善）')
+      }
+      
+      this._updateBooksData(validBooks)
       this.updateDisplay()
+      
+      // //todo: 成功訊息顯示（暫時使用console.log）
+      console.log(`✅ 成功載入 ${validBooks.length} 本書籍`)
+      
     } catch (error) {
-      this.showError(`${CONSTANTS.MESSAGES.FILE_PARSE_ERROR}: ${error.message}`)
+      if (error instanceof SyntaxError) {
+        throw new Error('JSON 檔案格式不正確')
+      }
+      throw error
     }
   }
 
   /**
-   * 從資料中提取書籍陣列
+   * 從資料中提取書籍陣列 - 增強格式支援
    * @private
+   * 
+   * @param {any} data - 解析後的JSON資料
+   * @returns {Array} 書籍陣列
    */
   _extractBooksFromData (data) {
+    // 支援直接陣列格式
     if (Array.isArray(data)) {
       return data
-    } else if (data.books && Array.isArray(data.books)) {
-      return data.books
-    } else {
-      throw new Error(CONSTANTS.MESSAGES.INVALID_JSON)
     }
+    
+    // 支援包裝格式（包含books屬性）
+    if (data && typeof data === 'object' && Array.isArray(data.books)) {
+      return data.books
+    }
+    
+    // //todo: 其他格式支援（如metadata包裝）
+    if (data && data.data && Array.isArray(data.data)) {
+      return data.data
+    }
+    
+    throw new Error('JSON 檔案應該包含一個陣列或包含books屬性的物件')
+  }
+
+  /**
+   * 驗證書籍資料是否有效 - 基本版本
+   * @private
+   * 
+   * @param {Object} book - 書籍物件
+   * @returns {boolean} 是否有效
+   */
+  _isValidBook (book) {
+    // //todo: 完整驗證邏輯（權宜方案：檢查必要欄位）
+    if (!book || typeof book !== 'object') {
+      return false
+    }
+    
+    // 檢查必要欄位：id, title, cover
+    const hasId = book.id && typeof book.id === 'string'
+    const hasTitle = book.title && typeof book.title === 'string'
+    const hasCover = book.cover && typeof book.cover === 'string'
+    
+    return hasId && hasTitle && hasCover
   }
 
   // ========== EventHandler 抽象方法實現 ==========
