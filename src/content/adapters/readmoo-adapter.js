@@ -420,39 +420,86 @@ function createReadmooAdapter () {
      * @returns {string} 穩定的書籍 ID
      */
     generateStableBookId (readerId, title, cover) {
-      // 輸入參數安全化處理
-      const safeReaderId = this.safeStringify(readerId)
-      const safeTitle = this.safeStringify(title)
-      const safeCover = this.safeStringify(cover)
-      
       try {
-        // 優先使用封面URL提取的ID（最穩定）
-        if (safeCover && safeCover.trim()) {
-          const coverId = this.extractCoverIdFromUrl(safeCover)
-          if (coverId) {
-            return `cover-${coverId}`
-          }
-        }
-
-        // 備用：使用標題生成ID
-        if (safeTitle && safeTitle.trim() && safeTitle.trim() !== '未知標題') {
-          const titleId = this.generateTitleBasedId(safeTitle)
-          if (titleId) {
-            return `title-${titleId}`
-          }
-        }
-
-        // 最後備用：使用閱讀器連結ID
-        if (safeReaderId && safeReaderId.trim()) {
-          return `reader-${safeReaderId}`
-        }
-
-        // 極端情況：所有參數都無效
-        return 'reader-undefined'
+        const inputs = this.validateAndSanitizeInputs(readerId, title, cover)
+        return this.applyIdGenerationStrategies(inputs)
       } catch (error) {
         console.warn('generateStableBookId 發生錯誤:', error)
+        const safeReaderId = this.safeStringify(readerId)
         return safeReaderId ? `reader-${safeReaderId}` : 'reader-undefined'
       }
+    },
+
+    /**
+     * 驗證並安全化輸入參數
+     *
+     * @param {string} readerId - 閱讀器連結 ID
+     * @param {string} title - 書籍標題
+     * @param {string} cover - 封面 URL
+     * @returns {Object} 安全化後的輸入參數物件
+     */
+    validateAndSanitizeInputs (readerId, title, cover) {
+      return {
+        readerId: this.safeStringify(readerId),
+        title: this.safeStringify(title),
+        cover: this.safeStringify(cover)
+      }
+    },
+
+    /**
+     * 按優先級應用ID生成策略
+     *
+     * @param {Object} inputs - 安全化的輸入參數
+     * @returns {string} 生成的書籍 ID
+     */
+    applyIdGenerationStrategies (inputs) {
+      return this.tryCoverStrategy(inputs) ||
+             this.tryTitleStrategy(inputs) ||
+             this.tryReaderStrategy(inputs) ||
+             this.createFallbackId()
+    },
+
+    /**
+     * 嘗試封面ID生成策略
+     *
+     * @param {Object} inputs - 輸入參數
+     * @returns {string|null} 封面ID或null
+     */
+    tryCoverStrategy ({ cover }) {
+      if (!cover || !cover.trim()) return null
+      const coverId = this.extractCoverIdFromUrl(cover)
+      return coverId ? `cover-${coverId}` : null
+    },
+
+    /**
+     * 嘗試標題ID生成策略
+     *
+     * @param {Object} inputs - 輸入參數
+     * @returns {string|null} 標題ID或null
+     */
+    tryTitleStrategy ({ title }) {
+      if (!title || !title.trim() || title.trim() === '未知標題') return null
+      const titleId = this.generateTitleBasedId(title)
+      return titleId ? `title-${titleId}` : null
+    },
+
+    /**
+     * 嘗試閱讀器ID生成策略
+     *
+     * @param {Object} inputs - 輸入參數
+     * @returns {string|null} 閱讀器ID或null
+     */
+    tryReaderStrategy ({ readerId }) {
+      return readerId && readerId.trim() ? `reader-${readerId}` : null
+    },
+
+    /**
+     * 創建降級ID
+     *
+     * @returns {string} 默認的降級ID
+     */
+    createFallbackId () {
+      return 'reader-undefined'
     },
 
     /**
