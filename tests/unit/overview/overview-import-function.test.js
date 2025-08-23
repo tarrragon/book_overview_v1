@@ -66,6 +66,86 @@ describe('📄 Overview 資料匯入功能測試', () => {
     }
   }
 
+  /**
+   * 建立符合真實 FileReader API 的 Mock 物件
+   * @param {Object} options - Mock配置選項
+   * @param {boolean} options.shouldError - 是否觸發錯誤
+   * @param {string} options.errorType - 錯誤類型
+   * @param {number} options.delay - 延遲時間（毫秒）
+   * @param {string} options.result - 成功時的結果
+   * @returns {Object} Mock FileReader實例
+   */
+  function createMockFileReader(options = {}) {
+    const {
+      shouldError = false,
+      errorType = 'NotReadableError',
+      delay = 10,
+      result = ''
+    } = options
+    
+    const mockInstance = {
+      readyState: 0,
+      result: null,
+      error: null,
+      onload: null,
+      onerror: null,
+      onabort: null,
+      onloadstart: null,
+      onprogress: null,
+      onloadend: null,
+      
+      readAsText: jest.fn().mockImplementation(function(file, encoding) {
+        // 模擬讀取開始
+        this.readyState = 1
+        if (this.onloadstart) this.onloadstart()
+        
+        // 非同步處理，確保回調函數已設定
+        setTimeout(() => {
+          if (shouldError) {
+            // 創建錯誤事件
+            this.readyState = 2
+            this.error = new DOMException(`Mock ${errorType} error`, errorType)
+            
+            if (this.onerror) {
+              const errorEvent = {
+                target: this,
+                type: 'error',
+                loaded: 0,
+                total: file.size || 0
+              }
+              this.onerror(errorEvent)
+            }
+          } else {
+            // 成功讀取
+            this.readyState = 2
+            this.result = file.content || result
+            
+            if (this.onload) {
+              const loadEvent = {
+                target: this,
+                type: 'load',
+                loaded: this.result.length,
+                total: this.result.length
+              }
+              this.onload(loadEvent)
+            }
+          }
+          
+          // 總是觸發loadend
+          if (this.onloadend) this.onloadend()
+        }, delay)
+      }),
+      
+      abort: jest.fn().mockImplementation(function() {
+        this.readyState = 2
+        if (this.onabort) this.onabort()
+        if (this.onloadend) this.onloadend()
+      })
+    }
+    
+    return mockInstance
+  }
+
   const mockFileReader = {
     result: null,
     error: null,
@@ -420,40 +500,54 @@ describe('📄 Overview 資料匯入功能測試', () => {
     })
 
     test('應該處理FileReader讀取錯誤', async () => {
-      // Given: 模擬檔案讀取錯誤的情況
-      const mockFile = createMockFile('valid content')
-      
-      // 恢復原始的 handleFileLoad 方法來測試真實的 FileReader 錯誤處理
+      // Given: 恢復原始 handleFileLoad 方法來測試真實錯誤處理
       controller.handleFileLoad.mockRestore()
       
-      // Mock FileReader 來觸發錯誤
-      const mockFileReaderInstance = {
-        readAsText: jest.fn().mockImplementation(function(file, encoding) {
-          // 立即觸發錯誤
-          setTimeout(() => {
-            if (this.onerror) {
-              this.onerror()
-            }
-          }, 10)
-        }),
-        onerror: null,
-        onload: null
-      }
-      window.FileReader = jest.fn(() => mockFileReaderInstance)
+      // Given: 在設置 mock 前保存原始 FileReader
+      const originalFileReader = global.FileReader || window.FileReader
+      
+      // Given: 創建會觸發錯誤的 mock FileReader
+      global.FileReader = jest.fn().mockImplementation(() => {
+        const mockInstance = createMockFileReader({ 
+          shouldError: true,
+          delay: 10
+        })
+        return mockInstance
+      })
+      
+      // 確保全域 window 也使用同樣的 mock
+      window.FileReader = global.FileReader
+      
+      // Given: 創建真實的 File 對象
+      const fileContent = 'test content'
+      const blob = new Blob([fileContent], { type: 'application/json' })
+      const realFile = new File([blob], 'test.json', { type: 'application/json' })
+      
+      // Given: 檢查初始UI狀態
+      const errorContainer = document.getElementById('errorContainer')
+      const errorMessage = document.getElementById('errorMessage')
+      expect(errorContainer.style.display).toBe('none')
       
       // When: 執行檔案載入
+      let caughtError = null
       try {
-        await controller.handleFileLoad(mockFile)
+        await controller.handleFileLoad(realFile)
       } catch (error) {
-        // 預期會拋出錯誤
+        caughtError = error
       }
       
-      // 等待錯誤處理完成
-      await new Promise(resolve => setTimeout(resolve, 50))
+      // 等待異步錯誤處理完成
+      await new Promise(resolve => setTimeout(resolve, 100))
       
       // Then: 驗證錯誤處理
-      const errorMessage = document.getElementById('errorMessage').textContent
-      expect(errorMessage).toContain('讀取檔案時發生錯誤')
+      expect(caughtError).toBeInstanceOf(Error)
+      expect(caughtError.message).toContain('讀取檔案時發生錯誤')
+      expect(errorMessage.textContent).toContain('讀取檔案時發生錯誤')
+      expect(errorContainer.style.display).not.toBe('none')
+      
+      // 恢復原始 FileReader
+      global.FileReader = originalFileReader
+      window.FileReader = originalFileReader
     })
   })
 
