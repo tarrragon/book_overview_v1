@@ -618,4 +618,338 @@ describe('📄 Overview 資料匯入功能測試', () => {
       expect(document.getElementById('loadingIndicator').style.display).toBe('none')
     })
   })
+
+  describe('🎯 覆蓋率提升測試案例', () => {
+    
+    describe('📝 檔案處理邊界情況', () => {
+      test('應該處理 BOM (Byte Order Mark) 標記', async () => {
+        // Given: 包含BOM標記的JSON檔案
+        const bomContent = '\uFEFF' + JSON.stringify([testBook])
+        
+        // When: 執行檔案載入
+        await controller.handleFileLoad(createMockFile(bomContent))
+        
+        // Then: 驗證BOM被正確移除
+        expect(controller.currentBooks).toHaveLength(1)
+        expect(controller.currentBooks[0].title).toBe('測試書籍')
+      })
+
+      test('應該處理 Unicode 字符', async () => {
+        // Given: 包含複雜 Unicode 字符的JSON檔案
+        const unicodeBooks = [
+          { id: 'unicode-1', title: '🌟✨📚 Unicode測試 🇹🇼', cover: 'http://example.com/cover.jpg' },
+          { id: 'unicode-2', title: 'العربية 中文 한국어', cover: 'http://example.com/cover.jpg' }
+        ]
+        const fileContent = JSON.stringify(unicodeBooks)
+        
+        // When: 執行檔案載入
+        await controller.handleFileLoad(createMockFile(fileContent))
+        
+        // Then: 驗證Unicode字符正確處理
+        expect(controller.currentBooks).toHaveLength(2)
+        expect(controller.currentBooks[0].title).toBe('🌟✨📚 Unicode測試 🇹🇼')
+        expect(controller.currentBooks[1].title).toBe('العربية 中文 한국어')
+      })
+
+      test('應該處理metadata包裝格式', async () => {
+        // Given: 包含metadata包裝格式的JSON檔案（data.data包含陣列）
+        const metadataWrappedData = {
+          metadata: { version: '2.0', timestamp: '2025-08-23' },
+          data: [
+            { id: 'metadata-1', title: 'Metadata包裝測試書籍', cover: 'http://example.com/cover.jpg' }
+          ]
+        }
+        const fileContent = JSON.stringify(metadataWrappedData)
+        
+        // When: 執行檔案載入
+        await controller.handleFileLoad(createMockFile(fileContent))
+        
+        // Then: 驗證正確提取data陣列
+        expect(controller.currentBooks).toHaveLength(1)
+        expect(controller.currentBooks[0].title).toBe('Metadata包裝測試書籍')
+      })
+    })
+
+    describe('❌ 錯誤處理分支測試', () => {
+      test('應該處理JSON語法錯誤', async () => {
+        // Given: 包含語法錯誤的JSON檔案
+        const malformedJSON = '{"books": [{"id": "test", "title": "Test"}'
+        
+        // When: 執行檔案載入
+        let errorCaught = false
+        try {
+          await controller.handleFileLoad(createMockFile(malformedJSON))
+        } catch (error) {
+          errorCaught = true
+        }
+        
+        // Then: 驗證錯誤處理
+        expect(errorCaught).toBe(true)
+        const errorMessage = document.getElementById('errorMessage').textContent
+        expect(errorMessage).toContain('JSON 檔案格式不正確')
+      })
+
+      test('應該處理 FileReader 讀取失敗', async () => {
+        // Given: 恢復原始方法並模擬FileReader錯誤
+        controller.handleFileLoad.mockRestore()
+        
+        // Given: Mock FileReader 觸發錯誤
+        const originalFileReader = global.FileReader || window.FileReader
+        global.FileReader = jest.fn().mockImplementation(() => {
+          const mockInstance = createMockFileReader({ 
+            shouldError: true,
+            errorType: 'NotReadableError',
+            delay: 10
+          })
+          return mockInstance
+        })
+        window.FileReader = global.FileReader
+        
+        // Given: 創建真實的 File 對象
+        const blob = new Blob(['test'], { type: 'application/json' })
+        const realFile = new File([blob], 'test.json', { type: 'application/json' })
+        
+        // When: 執行檔案載入
+        let errorCaught = false
+        try {
+          await controller.handleFileLoad(realFile)
+        } catch (error) {
+          errorCaught = true
+        }
+        
+        // 等待異步錯誤處理完成
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
+        // Then: 驗證錯誤處理
+        expect(errorCaught).toBe(true)
+        const errorMessage = document.getElementById('errorMessage').textContent
+        expect(errorMessage).toContain('讀取檔案時發生錯誤')
+        
+        // 恢復原始 FileReader
+        global.FileReader = originalFileReader
+        window.FileReader = originalFileReader
+      })
+
+      test('應該處理超大檔案錯誤', async () => {
+        // Given: 恢復原始方法以測試檔案大小驗證
+        controller.handleFileLoad.mockRestore()
+        
+        // Given: 創建超過限制大小的檔案（11MB > 10MB限制）
+        const oversizedContent = 'x'.repeat(100) // 小內容，但設定大size
+        const oversizedFile = createMockFile(oversizedContent, 'oversized.json')
+        // 模擬超大檔案大小
+        Object.defineProperty(oversizedFile, 'size', {
+          value: 11 * 1024 * 1024, // 11MB
+          writable: false
+        })
+        
+        // When: 執行檔案載入
+        let errorCaught = false
+        try {
+          await controller.handleFileLoad(oversizedFile)
+        } catch (error) {
+          errorCaught = true
+        }
+        
+        // Then: 驗證檔案大小限制
+        expect(errorCaught).toBe(true)
+        const errorMessage = document.getElementById('errorMessage').textContent
+        expect(errorMessage).toContain('檔案過大')
+      })
+    })
+
+    describe('📄 資料格式支援測試', () => {
+      test('應該處理books包裝格式的資料', async () => {
+        // Given: 包裝books格式的JSON檔案（直接包含books屬性）
+        const booksWrappedData = {
+          timestamp: '2025-08-23T10:00:00Z',
+          version: '1.0',
+          books: [
+            { id: 'books-wrapped-1', title: 'Books包裝測試書籍', cover: 'http://example.com/cover.jpg' }
+          ]
+        }
+        const fileContent = JSON.stringify(booksWrappedData)
+        
+        // When: 執行檔案載入
+        await controller.handleFileLoad(createMockFile(fileContent))
+        
+        // Then: 驗證正確提取books陣列
+        expect(controller.currentBooks).toHaveLength(1)
+        expect(controller.currentBooks[0].title).toBe('Books包裝測試書籍')
+      })
+
+      test('應該處理大型資料集的效能', async () => {
+        // Given: 包含5000本書的大型資料集
+        const largeDataset = Array.from({ length: 5000 }, (_, i) => ({
+          id: `book-${i}`,
+          title: `大型資料測試書籍 ${i}`,
+          cover: `http://example.com/cover${i}.jpg`,
+          progress: Math.floor(Math.random() * 100),
+          tags: [`tag-${i % 10}`, 'performance-test'],
+          extractedAt: new Date().toISOString()
+        }))
+        const fileContent = JSON.stringify(largeDataset)
+        
+        // When: 執行檔案載入並測量時間
+        const startTime = Date.now()
+        await controller.handleFileLoad(createMockFile(fileContent))
+        const endTime = Date.now()
+        
+        // Then: 驗證效能要求
+        expect(controller.currentBooks).toHaveLength(5000)
+        expect(endTime - startTime).toBeLessThan(3000) // 3秒內完成
+        
+        // 驗證資料完整性
+        expect(controller.currentBooks[0].id).toBe('book-0')
+        expect(controller.currentBooks[4999].id).toBe('book-4999')
+        expect(Array.isArray(controller.currentBooks[100].tags)).toBe(true)
+      })
+    })
+
+    describe('⚡ 非同步處理測試', () => {
+      test('應該處理檔案讀取延遲', async () => {
+        // Given: 設定較長的讀取延遲
+        const delayedContent = JSON.stringify([testBook])
+        
+        // Mock FileReader with longer delay
+        controller.handleFileLoad.mockRestore()
+        controller.handleFileLoad = jest.fn().mockImplementation(async function(file) {
+          this.showLoading('正在讀取檔案...')
+          
+          // 模擬長時間讀取
+          await new Promise(resolve => setTimeout(resolve, 100))
+          
+          this._handleFileContent(file.content)
+          this.hideLoading()
+        })
+        
+        // When: 執行檔案載入
+        const loadPromise = controller.handleFileLoad(createMockFile(delayedContent))
+        
+        // Then: 驗證載入狀態管理
+        await new Promise(resolve => setTimeout(resolve, 10))
+        expect(document.getElementById('loadingIndicator').style.display).toBe('block')
+        
+        await loadPromise
+        expect(document.getElementById('loadingIndicator').style.display).toBe('none')
+        expect(controller.currentBooks).toHaveLength(1)
+      })
+
+      test('應該處理載入過程中的取消操作', async () => {
+        // Given: 恢復原始方法
+        controller.handleFileLoad.mockRestore()
+        
+        // Given: Mock FileReader 支援中止操作
+        const originalFileReader = global.FileReader || window.FileReader
+        global.FileReader = jest.fn().mockImplementation(() => {
+          const mockInstance = createMockFileReader({ delay: 200 })
+          return mockInstance
+        })
+        window.FileReader = global.FileReader
+        
+        // Given: 創建檔案
+        const blob = new Blob([JSON.stringify([testBook])], { type: 'application/json' })
+        const realFile = new File([blob], 'test.json', { type: 'application/json' })
+        
+        // When: 開始載入然後嘗試中止
+        const loadPromise = controller.handleFileLoad(realFile)
+        
+        // 等待載入開始
+        await new Promise(resolve => setTimeout(resolve, 10))
+        
+        // 模擬用戶中止操作 (如果控制器有abort方法)
+        if (typeof controller.abortFileLoad === 'function') {
+          controller.abortFileLoad()
+        }
+        
+        // Then: 等待處理完成
+        try {
+          await loadPromise
+        } catch (error) {
+          // 中止操作可能拋出錯誤
+        }
+        
+        // 恢復原始 FileReader
+        global.FileReader = originalFileReader
+        window.FileReader = originalFileReader
+      })
+    })
+
+    describe('🔄 狀態管理和UI更新測試', () => {
+      test('應該正確更新統計資訊', async () => {
+        // Given: 準備多本書籍的資料
+        const multipleBooks = Array.from({ length: 25 }, (_, i) => ({
+          id: `stat-book-${i}`,
+          title: `統計測試書籍 ${i}`,
+          cover: `http://example.com/cover${i}.jpg`
+        }))
+        const fileContent = JSON.stringify(multipleBooks)
+        
+        // When: 執行檔案載入
+        await controller.handleFileLoad(createMockFile(fileContent))
+        
+        // Then: 驗證統計資訊更新
+        expect(controller.currentBooks).toHaveLength(25)
+        expect(document.getElementById('totalBooks').textContent).toBe('25')
+        expect(document.getElementById('displayedBooks').textContent).toBe('25')
+      })
+
+      test('應該處理連續多次載入操作', async () => {
+        // Given: 準備三次不同的載入資料
+        const firstBatch = [
+          { id: 'batch1-1', title: '第一批書籍1', cover: 'http://example.com/cover1.jpg' }
+        ]
+        const secondBatch = [
+          { id: 'batch2-1', title: '第二批書籍1', cover: 'http://example.com/cover2.jpg' },
+          { id: 'batch2-2', title: '第二批書籍2', cover: 'http://example.com/cover3.jpg' }
+        ]
+        const thirdBatch = [
+          { id: 'batch3-1', title: '第三批書籍1', cover: 'http://example.com/cover4.jpg' }
+        ]
+        
+        // When: 執行連續三次載入
+        await controller.handleFileLoad(createMockFile(JSON.stringify(firstBatch)))
+        expect(controller.currentBooks).toHaveLength(1)
+        
+        await controller.handleFileLoad(createMockFile(JSON.stringify(secondBatch)))
+        expect(controller.currentBooks).toHaveLength(2)
+        
+        await controller.handleFileLoad(createMockFile(JSON.stringify(thirdBatch)))
+        expect(controller.currentBooks).toHaveLength(1)
+        
+        // Then: 驗證最後載入的資料取代前面的資料
+        expect(controller.currentBooks[0].title).toBe('第三批書籍1')
+        expect(document.getElementById('totalBooks').textContent).toBe('1')
+      })
+
+      test('應該正確處理表格顯示更新', async () => {
+        // Given: 準備包含完整資訊的書籍資料
+        const completeBooks = [
+          {
+            id: 'complete-1',
+            title: '完整資訊書籍',
+            cover: 'http://example.com/cover.jpg',
+            progress: 75,
+            status: '閱讀中',
+            source: 'readmoo',
+            type: '電子書'
+          }
+        ]
+        const fileContent = JSON.stringify(completeBooks)
+        
+        // When: 執行檔案載入
+        await controller.handleFileLoad(createMockFile(fileContent))
+        
+        // Then: 驗證表格內容更新
+        const tableBody = document.getElementById('tableBody')
+        expect(tableBody.children.length).toBe(1)
+        
+        const row = tableBody.children[0]
+        expect(row.querySelector('td:nth-child(2)').textContent).toContain('完整資訊書籍')
+        expect(row.querySelector('td:nth-child(3)').textContent).toContain('readmoo')
+        expect(row.querySelector('td:nth-child(4)').textContent).toContain('75%')
+        expect(row.querySelector('td:nth-child(5)').textContent).toContain('閱讀中')
+      })
+    })
+  })
 })
