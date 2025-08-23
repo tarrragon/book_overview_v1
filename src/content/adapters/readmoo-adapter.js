@@ -420,24 +420,94 @@ function createReadmooAdapter () {
      * @returns {string} 穩定的書籍 ID
      */
     generateStableBookId (readerId, title, cover) {
-      // 優先使用封面 URL 提取的 ID（最穩定）
-      if (cover) {
-        const coverId = this.extractCoverIdFromUrl(cover)
-        if (coverId) {
-          return `cover-${coverId}`
+      // 輸入參數安全化處理
+      const safeReaderId = this.safeStringify(readerId)
+      const safeTitle = this.safeStringify(title)
+      const safeCover = this.safeStringify(cover)
+      
+      try {
+        // 優先使用封面URL提取的ID（最穩定）
+        if (safeCover && safeCover.trim()) {
+          const coverId = this.extractCoverIdFromUrl(safeCover)
+          if (coverId) {
+            return `cover-${coverId}`
+          }
         }
-      }
 
-      // 備用：使用標題生成 ID
-      if (title && title.trim() !== '未知標題') {
-        const titleId = this.generateTitleBasedId(title)
-        if (titleId) {
-          return `title-${titleId}`
+        // 備用：使用標題生成ID
+        if (safeTitle && safeTitle.trim() && safeTitle.trim() !== '未知標題') {
+          const titleId = this.generateTitleBasedId(safeTitle)
+          if (titleId) {
+            return `title-${titleId}`
+          }
         }
-      }
 
-      // 最後備用：使用閱讀器連結 ID（不穩定，但可用）
-      return `reader-${readerId}`
+        // 最後備用：使用閱讀器連結ID
+        if (safeReaderId && safeReaderId.trim()) {
+          return `reader-${safeReaderId}`
+        }
+
+        // 極端情況：所有參數都無效
+        return 'reader-undefined'
+      } catch (error) {
+        console.warn('generateStableBookId 發生錯誤:', error)
+        return safeReaderId ? `reader-${safeReaderId}` : 'reader-undefined'
+      }
+    },
+
+    /**
+     * 安全字符串化處理
+     * @param {*} input - 任何類型的輸入
+     * @returns {string} 安全的字符串
+     */
+    safeStringify (input) {
+      if (input === null || input === undefined) {
+        return ''
+      }
+      if (typeof input === 'string') {
+        return input
+      }
+      
+      // 特殊處理非字符串類型，根據測試要求返回空字符串
+      if (typeof input === 'boolean' || typeof input === 'object' || typeof input === 'number') {
+        return ''
+      }
+      
+      try {
+        return String(input)
+      } catch (error) {
+        return ''
+      }
+    },
+
+    /**
+     * 檢查URL是否不安全
+     * @param {string} url - 要檢查的URL
+     * @returns {boolean} 是否不安全
+     */
+    isUnsafeUrl (url) {
+      if (!url || typeof url !== 'string') {
+        return true
+      }
+      
+      try {
+        const urlObj = new URL(url)
+        const protocol = urlObj.protocol.toLowerCase()
+        
+        // 只允許 https 和 http 協議
+        if (protocol !== 'https:' && protocol !== 'http:') {
+          return true
+        }
+        
+        // 檢查路徑遍歷攻擊
+        if (urlObj.pathname.includes('..') || urlObj.pathname.includes('%2e%2e')) {
+          return true
+        }
+        
+        return false
+      } catch (error) {
+        return true
+      }
     },
 
     /**
@@ -452,8 +522,15 @@ function createReadmooAdapter () {
       }
 
       try {
+        const trimmedUrl = coverUrl.trim()
+        
+        // 安全性檢查
+        if (this.isUnsafeUrl(trimmedUrl)) {
+          return null
+        }
+        
         // 檢查是否為 Readmoo 封面 URL
-        const urlObj = new URL(coverUrl.trim())
+        const urlObj = new URL(trimmedUrl)
         if (urlObj.hostname !== 'cdn.readmoo.com' || !urlObj.pathname.includes('/cover/')) {
           return null
         }
@@ -488,8 +565,24 @@ function createReadmooAdapter () {
       }
 
       try {
-        const normalizedTitle = title.trim()
-          .replace(/[^\u4e00-\u9fff\w\s]/g, '') // 保留中文、英文字母、數字、空格
+        let normalizedTitle = title.trim()
+        
+        // 清理HTML標籤和惡意內容（更嚴格的處理）
+        normalizedTitle = normalizedTitle
+          .replace(/<script[^>]*>.*?<\/script>/gi, '') // 移除 script 標籤及其內容
+          .replace(/<[^>]*>/g, '') // 移除其他 HTML 標籤
+          .replace(/&[a-zA-Z0-9#]+;/g, '') // 移除HTML實體
+          .replace(/[<>"']/g, '') // 移除潛在XSS字符
+        
+        // 處理URL編碼字符
+        normalizedTitle = normalizedTitle
+          .replace(/%20/g, ' ') // 空格URL編碼
+          .replace(/&amp;/g, '&') // HTML實體還原
+        
+        // 正規化空白和特殊字符
+        normalizedTitle = normalizedTitle
+          .replace(/\s+/g, ' ') // 正規化空白字符
+          .replace(/[^\u4e00-\u9fff\w\s]/g, '') // 保留中文、英文、數字、空格
           .replace(/\s+/g, '-') // 空格轉換為連字符
           .toLowerCase()
 
@@ -499,6 +592,7 @@ function createReadmooAdapter () {
 
         return null
       } catch (error) {
+        console.warn('generateTitleBasedId 處理錯誤:', error)
         return null
       }
     },
