@@ -650,60 +650,135 @@ class OverviewPageController extends EventHandlerClass {
   }
 
   /**
-   * 處理檔案載入操作 - 增強版本
+   * 處理檔案載入操作 - 重構版本
    *
    * @param {File} file - 要載入的檔案
    * @returns {Promise<void>} 載入完成Promise
    *
    * 負責功能：
-   * - 檔案前置驗證（格式、大小）
-   * - 讀取 JSON 檔案
-   * - 解析書籍資料
-   * - 更新頁面顯示
+   * - 協調檔案載入流程
+   * - 整合驗證和讀取步驟
+   * - 管理載入狀態
    */
   async handleFileLoad (file) {
-    // //todo: 增加檔案前置驗證
+    this._validateFileBasics(file)
+    this._validateFileSize(file)
+    this.showLoading('正在讀取檔案...')
+    return this._readFileWithReader(file)
+  }
+
+  /**
+   * 驗證檔案基本要求
+   * @private
+   * @param {File} file - 要驗證的檔案
+   * @throws {Error} 檔案不符合基本要求時拋出錯誤
+   */
+  _validateFileBasics (file) {
     if (!file) {
       this.showError('請先選擇一個 JSON 檔案！')
-      return
+      throw new Error('檔案不存在')
     }
-
-    // //todo: 檔案副檔名驗證（權宜方案：簡單檢查）
-    if (!file.name.toLowerCase().endsWith('.json')) {
+    if (!this._isJSONFile(file)) {
       this.showError('請選擇 JSON 格式的檔案！')
-      return
+      throw new Error('檔案格式不正確')
     }
+  }
 
-    // //todo: 檔案大小檢查（權宜方案：設定10MB限制）
+  /**
+   * 檢查是否為JSON檔案
+   * @private
+   * @param {File} file - 要檢查的檔案
+   * @returns {boolean} 是否為JSON檔案
+   */
+  _isJSONFile (file) {
+    return file.name.toLowerCase().endsWith('.json')
+  }
+
+  /**
+   * 驗證檔案大小
+   * @private
+   * @param {File} file - 要驗證的檔案
+   * @throws {Error} 檔案過大時拋出錯誤
+   */
+  _validateFileSize (file) {
     const maxSize = 10 * 1024 * 1024 // 10MB
     if (file.size > maxSize) {
       this.showError('檔案過大，請選擇小於 10MB 的檔案！')
-      return
+      throw new Error('檔案大小超出限制')
     }
+  }
 
-    this.showLoading('正在讀取檔案...')
-
+  /**
+   * 使用FileReader讀取檔案
+   * @private
+   * @param {File} file - 要讀取的檔案
+   * @returns {Promise<void>} 讀取完成Promise
+   */
+  _readFileWithReader (file) {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      
-      reader.onload = (e) => {
-        try {
-          this._handleFileContent(e.target.result)
-          resolve()
-        } catch (error) {
-          this.showError(`載入檔案失敗：${error.message}`)
-          reject(error)
-        }
-      }
-      
-      reader.onerror = () => {
-        const errorMsg = '讀取檔案時發生錯誤！'
-        this.showError(errorMsg)
-        reject(new Error(errorMsg))
-      }
-      
+      const reader = this._createFileReader()
+      this._setupReaderHandlers(reader, resolve, reject)
       reader.readAsText(file, 'utf-8')
     })
+  }
+
+  /**
+   * 建立FileReader實例
+   * @private
+   * @returns {FileReader} FileReader實例
+   */
+  _createFileReader () {
+    return new FileReader()
+  }
+
+  /**
+   * 設定FileReader事件處理器
+   * @private
+   * @param {FileReader} reader - FileReader實例
+   * @param {Function} resolve - Promise resolve函數
+   * @param {Function} reject - Promise reject函數
+   */
+  _setupReaderHandlers (reader, resolve, reject) {
+    reader.onload = (e) => this._handleReaderSuccess(e, resolve, reject)
+    reader.onerror = () => this._handleReaderError(reject)
+  }
+
+  /**
+   * 處理FileReader成功事件
+   * @private
+   * @param {Event} e - 載入事件
+   * @param {Function} resolve - Promise resolve函數
+   * @param {Function} reject - Promise reject函數
+   */
+  _handleReaderSuccess (e, resolve, reject) {
+    try {
+      this._handleFileContent(e.target.result)
+      resolve()
+    } catch (error) {
+      this._handleFileProcessError(error, reject)
+    }
+  }
+
+  /**
+   * 處理FileReader錯誤事件
+   * @private
+   * @param {Function} reject - Promise reject函數
+   */
+  _handleReaderError (reject) {
+    const errorMsg = '讀取檔案時發生錯誤！'
+    this.showError(errorMsg)
+    reject(new Error(errorMsg))
+  }
+
+  /**
+   * 處理檔案處理錯誤
+   * @private
+   * @param {Error} error - 錯誤對象
+   * @param {Function} reject - Promise reject函數
+   */
+  _handleFileProcessError (error, reject) {
+    this.showError(`載入檔案失敗：${error.message}`)
+    reject(error)
   }
 
   // EventHandler 抽象方法實現
@@ -888,38 +963,50 @@ class OverviewPageController extends EventHandlerClass {
   }
 
   /**
-   * 處理檔案內容 - 增強JSON解析和錯誤處理
+   * 處理檔案內容 - 重構版本
    * @private
    * 
    * @param {string} content - 檔案內容
    */
   _handleFileContent (content) {
+    const cleanContent = this._validateAndCleanContent(content)
+    const data = this._parseJSONContent(cleanContent)
+    const books = this._processBookData(data)
+    this._updateUIWithBooks(books)
+  }
+
+  /**
+   * 驗證並清理檔案內容
+   * @private
+   * @param {string} content - 原始檔案內容
+   * @returns {string} 清理後的內容
+   */
+  _validateAndCleanContent (content) {
+    if (!content || content.trim() === '') {
+      throw new Error('檔案內容為空')
+    }
+    return this._removeBOM(content)
+  }
+
+  /**
+   * 移除UTF-8 BOM標記
+   * @private
+   * @param {string} content - 檔案內容
+   * @returns {string} 移除BOM後的內容
+   */
+  _removeBOM (content) {
+    return content.replace(/^\uFEFF/, '')
+  }
+
+  /**
+   * 解析JSON內容
+   * @private
+   * @param {string} content - 要解析的JSON內容
+   * @returns {any} 解析後的資料
+   */
+  _parseJSONContent (content) {
     try {
-      // //todo: JSON解析錯誤處理強化
-      if (!content || content.trim() === '') {
-        throw new Error('檔案內容為空')
-      }
-
-      // //todo: BOM檢查和移除（權宜方案：簡單處理）
-      const cleanContent = content.replace(/^\uFEFF/, '') // 移除UTF-8 BOM
-
-      const data = JSON.parse(cleanContent)
-      const books = this._extractBooksFromData(data)
-
-      // //todo: 基本資料驗證（權宜方案：簡單過濾）
-      const validBooks = books.filter(book => this._isValidBook(book))
-      
-      // //todo: 大型資料集分批處理（未來改善）
-      if (validBooks.length > 1000) {
-        console.warn('⚠️ 大型資料集，建議分批處理（未來改善）')
-      }
-      
-      this._updateBooksData(validBooks)
-      this.updateDisplay()
-      
-      // //todo: 成功訊息顯示（暫時使用console.log）
-      console.log(`✅ 成功載入 ${validBooks.length} 本書籍`)
-      
+      return JSON.parse(content)
     } catch (error) {
       if (error instanceof SyntaxError) {
         throw new Error('JSON 檔案格式不正確')
@@ -929,50 +1016,153 @@ class OverviewPageController extends EventHandlerClass {
   }
 
   /**
-   * 從資料中提取書籍陣列 - 增強格式支援
+   * 處理書籍資料
+   * @private
+   * @param {any} data - 解析後的JSON資料
+   * @returns {Array} 驗證後的書籍陣列
+   */
+  _processBookData (data) {
+    const books = this._extractBooksFromData(data)
+    const validBooks = this._filterValidBooks(books)
+    this._checkLargeDataset(validBooks)
+    return validBooks
+  }
+
+  /**
+   * 過濾有效書籍
+   * @private
+   * @param {Array} books - 書籍陣列
+   * @returns {Array} 有效書籍陣列
+   */
+  _filterValidBooks (books) {
+    return books.filter(book => this._isValidBook(book))
+  }
+
+  /**
+   * 檢查大型資料集
+   * @private
+   * @param {Array} books - 書籍陣列
+   */
+  _checkLargeDataset (books) {
+    if (books.length > 1000) {
+      console.warn('⚠️ 大型資料集，建議分批處理（未來改善）')
+    }
+  }
+
+  /**
+   * 更新UI與書籍資料
+   * @private
+   * @param {Array} books - 書籍陣列
+   */
+  _updateUIWithBooks (books) {
+    this._updateBooksData(books)
+    this.updateDisplay()
+    this._logLoadSuccess(books)
+  }
+
+  /**
+   * 記錄載入成功訊息
+   * @private
+   * @param {Array} books - 載入的書籍陣列
+   */
+  _logLoadSuccess (books) {
+    console.log(`✅ 成功載入 ${books.length} 本書籍`)
+  }
+
+  /**
+   * 從資料中提取書籍陣列 - 重構版本
    * @private
    * 
    * @param {any} data - 解析後的JSON資料
    * @returns {Array} 書籍陣列
    */
   _extractBooksFromData (data) {
-    // 支援直接陣列格式
-    if (Array.isArray(data)) {
-      return data
-    }
-    
-    // 支援包裝格式（包含books屬性）
-    if (data && typeof data === 'object' && Array.isArray(data.books)) {
-      return data.books
-    }
-    
-    // //todo: 其他格式支援（如metadata包裝）
-    if (data && data.data && Array.isArray(data.data)) {
-      return data.data
-    }
+    if (this._isDirectArrayFormat(data)) return data
+    if (this._isWrappedBooksFormat(data)) return data.books
+    if (this._isMetadataWrapFormat(data)) return data.data
     
     throw new Error('JSON 檔案應該包含一個陣列或包含books屬性的物件')
   }
 
   /**
-   * 驗證書籍資料是否有效 - 基本版本
+   * 檢查是否為直接陣列格式
+   * @private
+   * @param {any} data - 要檢查的資料
+   * @returns {boolean} 是否為直接陣列格式
+   */
+  _isDirectArrayFormat (data) {
+    return Array.isArray(data)
+  }
+
+  /**
+   * 檢查是否為包裝books格式
+   * @private
+   * @param {any} data - 要檢查的資料
+   * @returns {boolean} 是否為包裝books格式
+   */
+  _isWrappedBooksFormat (data) {
+    return data && 
+           typeof data === 'object' && 
+           Array.isArray(data.books)
+  }
+
+  /**
+   * 檢查是否為metadata包裝格式
+   * @private
+   * @param {any} data - 要檢查的資料
+   * @returns {boolean} 是否為metadata包裝格式
+   */
+  _isMetadataWrapFormat (data) {
+    return data && 
+           data.data && 
+           Array.isArray(data.data)
+  }
+
+  /**
+   * 驗證書籍資料是否有效 - 重構版本
    * @private
    * 
    * @param {Object} book - 書籍物件
    * @returns {boolean} 是否有效
    */
   _isValidBook (book) {
-    // //todo: 完整驗證邏輯（權宜方案：檢查必要欄位）
-    if (!book || typeof book !== 'object') {
-      return false
-    }
-    
-    // 檢查必要欄位：id, title, cover
-    const hasId = book.id && typeof book.id === 'string'
-    const hasTitle = book.title && typeof book.title === 'string'
-    const hasCover = book.cover && typeof book.cover === 'string'
-    
-    return hasId && hasTitle && hasCover
+    return this._validateBookStructure(book) &&
+           this._validateRequiredFields(book) &&
+           this._validateFieldTypes(book)
+  }
+
+  /**
+   * 驗證書籍基本結構
+   * @private
+   * @param {any} book - 要驗證的書籍對象
+   * @returns {boolean} 結構是否有效
+   */
+  _validateBookStructure (book) {
+    return book && typeof book === 'object'
+  }
+
+  /**
+   * 驗證必要欄位存在
+   * @private
+   * @param {Object} book - 書籍物件
+   * @returns {boolean} 必要欄位是否都存在
+   */
+  _validateRequiredFields (book) {
+    return Boolean(book.id) && 
+           Boolean(book.title) && 
+           Boolean(book.cover)
+  }
+
+  /**
+   * 驗證欄位類型
+   * @private
+   * @param {Object} book - 書籍物件
+   * @returns {boolean} 欄位類型是否正確
+   */
+  _validateFieldTypes (book) {
+    return typeof book.id === 'string' &&
+           typeof book.title === 'string' &&
+           typeof book.cover === 'string'
   }
 
   // ========== EventHandler 抽象方法實現 ==========
