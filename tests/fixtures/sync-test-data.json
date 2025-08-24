@@ -1,0 +1,372 @@
+{
+  "testDataSets": {
+    "small": {
+      "description": "小型資料集，適用於快速測試和基本功能驗證",
+      "bookCount": 50,
+      "estimatedSize": "0.5MB",
+      "useCase": "基本同步功能測試、快速驗證"
+    },
+    "medium": {
+      "description": "中型資料集，適用於一般使用者場景測試",
+      "bookCount": 500,
+      "estimatedSize": "5MB",
+      "useCase": "真實使用者場景、效能基準測試"
+    },
+    "large": {
+      "description": "大型資料集，適用於重度使用者和壓力測試",
+      "bookCount": 2000,
+      "estimatedSize": "20MB",
+      "useCase": "重度使用者場景、記憶體和效能測試"
+    },
+    "huge": {
+      "description": "極大資料集，適用於極限情況和擴展性測試",
+      "bookCount": 8000,
+      "estimatedSize": "80MB",
+      "useCase": "極限情況測試、系統穩定性驗證"
+    }
+  },
+  
+  "sampleBooks": [
+    {
+      "id": "sample-001",
+      "title": "資料結構與演算法",
+      "cover": "https://example.com/covers/data-structures.jpg",
+      "progress": 65,
+      "type": "流式",
+      "isNew": false,
+      "isFinished": false,
+      "extractedAt": "2025-08-01T10:00:00.000Z",
+      "category": "技術類",
+      "author": "測試作者A"
+    },
+    {
+      "id": "sample-002", 
+      "title": "JavaScript 完全指南",
+      "cover": "https://example.com/covers/javascript.jpg",
+      "progress": 42,
+      "type": "流式",
+      "isNew": true,
+      "isFinished": false,
+      "extractedAt": "2025-08-15T14:30:00.000Z",
+      "category": "程式設計",
+      "author": "測試作者B"
+    },
+    {
+      "id": "sample-003",
+      "title": "人工智慧導論",
+      "cover": "https://example.com/covers/ai-intro.jpg", 
+      "progress": 100,
+      "type": "版式",
+      "isNew": false,
+      "isFinished": true,
+      "extractedAt": "2025-07-20T09:15:00.000Z",
+      "category": "人工智慧",
+      "author": "測試作者C"
+    },
+    {
+      "id": "sample-004",
+      "title": "雲端架構設計模式",
+      "cover": "https://example.com/covers/cloud-patterns.jpg",
+      "progress": 28,
+      "type": "流式", 
+      "isNew": false,
+      "isFinished": false,
+      "extractedAt": "2025-08-10T16:45:00.000Z",
+      "category": "雲端技術",
+      "author": "測試作者D"
+    },
+    {
+      "id": "sample-005",
+      "title": "敏捷開發實戰",
+      "cover": "https://example.com/covers/agile.jpg",
+      "progress": 83,
+      "type": "流式",
+      "isNew": false,
+      "isFinished": false,
+      "extractedAt": "2025-08-05T11:20:00.000Z",
+      "category": "專案管理",
+      "author": "測試作者E"
+    }
+  ],
+
+  "specialCharacterBooks": [
+    {
+      "id": "special-001",
+      "title": "JavaScript 完整指南 📚 React & Vue 實戰",
+      "cover": "https://example.com/covers/js-guide.jpg",
+      "progress": 50,
+      "type": "流式",
+      "isNew": false,
+      "isFinished": false,
+      "extractedAt": "2025-08-01T12:00:00.000Z",
+      "notes": "包含emoji和特殊字符的標題測試"
+    },
+    {
+      "id": "special-002",
+      "title": "データベース設計パターン (日本語)",
+      "cover": "https://example.com/covers/db-patterns-jp.jpg",
+      "progress": 73,
+      "type": "版式",
+      "isNew": true,
+      "isFinished": false,
+      "extractedAt": "2025-08-02T15:30:00.000Z",
+      "notes": "日文標題測試"
+    },
+    {
+      "id": "special-003",
+      "title": "프로그래밍 기초 (Korean Programming Basics)",
+      "cover": "https://example.com/covers/programming-kr.jpg",
+      "progress": 35,
+      "type": "流式",
+      "isNew": false,
+      "isFinished": false,
+      "extractedAt": "2025-08-03T09:45:00.000Z",
+      "notes": "韓文標題測試"
+    },
+    {
+      "id": "special-004",
+      "title": "Algorithmes & Structures de Données",
+      "cover": "https://example.com/covers/algo-fr.jpg",
+      "progress": 67,
+      "type": "流式",
+      "isNew": false,
+      "isFinished": false,
+      "extractedAt": "2025-08-04T14:15:00.000Z",
+      "notes": "法文標題和特殊字符測試"
+    }
+  ],
+
+  "duplicateTestData": {
+    "description": "用於測試重複資料處理的測試案例",
+    "scenarios": [
+      {
+        "name": "完全重複",
+        "books": [
+          {
+            "id": "dup-001",
+            "title": "重複測試書籍",
+            "progress": 50
+          },
+          {
+            "id": "dup-001", 
+            "title": "重複測試書籍",
+            "progress": 50
+          }
+        ],
+        "expectedBehavior": "保留一本，跳過重複"
+      },
+      {
+        "name": "部分重複",
+        "books": [
+          {
+            "id": "dup-002",
+            "title": "部分重複書籍",
+            "progress": 30,
+            "extractedAt": "2025-08-01T10:00:00.000Z"
+          },
+          {
+            "id": "dup-002",
+            "title": "部分重複書籍 (更新版)",
+            "progress": 60,
+            "extractedAt": "2025-08-02T10:00:00.000Z"
+          }
+        ],
+        "expectedBehavior": "保留最新版本 (progress=60)"
+      }
+    ]
+  },
+
+  "corruptedDataExamples": {
+    "jsonSyntaxErrors": {
+      "missingBracket": "{\"books\": [{\"id\": \"1\", \"title\": \"Test\"}",
+      "extraComma": "{\"books\": [{\"id\": \"1\", \"title\": \"Test\",}]}",
+      "unquotedKeys": "{books: [{id: \"1\", title: \"Test\"}]}",
+      "invalidEscape": "{\"books\": [{\"title\": \"Test\\uGGGG\"}]}"
+    },
+    "dataStructureErrors": {
+      "missingId": "[{\"title\": \"No ID Book\", \"progress\": 50}]",
+      "invalidProgress": "[{\"id\": \"1\", \"progress\": \"invalid\"}]",
+      "nullTitle": "[{\"id\": \"1\", \"title\": null}]",
+      "wrongType": "[{\"id\": 123, \"title\": \"Wrong ID Type\"}]"
+    }
+  },
+
+  "performanceBenchmarks": {
+    "small": {
+      "bookCount": 50,
+      "maxExportTime": 5000,
+      "maxImportTime": 10000,
+      "maxFileSize": 1048576,
+      "maxMemoryUsage": 52428800
+    },
+    "medium": {
+      "bookCount": 500,
+      "maxExportTime": 15000,
+      "maxImportTime": 30000, 
+      "maxFileSize": 5242880,
+      "maxMemoryUsage": 104857600
+    },
+    "large": {
+      "bookCount": 2000,
+      "maxExportTime": 30000,
+      "maxImportTime": 60000,
+      "maxFileSize": 10485760,
+      "maxMemoryUsage": 157286400
+    },
+    "huge": {
+      "bookCount": 8000,
+      "maxExportTime": 60000,
+      "maxImportTime": 120000,
+      "maxFileSize": 20971520,
+      "maxMemoryUsage": 209715200
+    }
+  },
+
+  "deviceConfigurations": {
+    "windows10": {
+      "os": "Windows 10",
+      "browser": "Chrome 120+",
+      "timezone": "Asia/Taipei",
+      "memoryLimit": 536870912,
+      "typical": true
+    },
+    "macOS": {
+      "os": "macOS 12+",
+      "browser": "Chrome 121+", 
+      "timezone": "America/Los_Angeles",
+      "memoryLimit": 1073741824,
+      "typical": true
+    },
+    "ubuntu": {
+      "os": "Ubuntu 20.04+",
+      "browser": "Chrome Latest",
+      "timezone": "Europe/London", 
+      "memoryLimit": 268435456,
+      "typical": false
+    },
+    "lowEnd": {
+      "os": "Chrome OS",
+      "browser": "Chrome 120+",
+      "timezone": "UTC",
+      "memoryLimit": 134217728,
+      "simulateSlowCPU": true,
+      "typical": false
+    }
+  },
+
+  "networkConditions": {
+    "broadband": {
+      "bandwidth": "unlimited",
+      "latency": 50,
+      "reliability": 0.99
+    },
+    "4g": {
+      "bandwidth": 10485760,
+      "latency": 100,
+      "reliability": 0.95
+    },
+    "3g": {
+      "bandwidth": 1048576,
+      "latency": 300,
+      "reliability": 0.90
+    },
+    "slow": {
+      "bandwidth": 262144,
+      "latency": 2000,
+      "reliability": 0.85
+    },
+    "intermittent": {
+      "bandwidth": 1048576,
+      "latency": 500,
+      "reliability": 0.70
+    }
+  },
+
+  "errorScenarios": [
+    {
+      "type": "NETWORK_ERROR",
+      "subtype": "CONNECTION_TIMEOUT",
+      "description": "網路連線超時",
+      "expectedMessage": "網路連線超時，請檢查網路狀況後重試",
+      "recoveryOptions": ["retry", "offline_backup"]
+    },
+    {
+      "type": "FILE_ERROR",
+      "subtype": "FILE_CORRUPTED",
+      "description": "檔案損壞",
+      "expectedMessage": "檔案可能已損壞，請嘗試使用其他備份檔案",
+      "recoveryOptions": ["select_another_file", "contact_support"]
+    },
+    {
+      "type": "STORAGE_ERROR",
+      "subtype": "QUOTA_EXCEEDED",
+      "description": "儲存空間不足",
+      "expectedMessage": "Chrome 儲存空間不足，請清理部分資料或聯絡管理員", 
+      "recoveryOptions": ["cleanup_old_data", "upgrade_quota"]
+    },
+    {
+      "type": "PERMISSION_ERROR",
+      "subtype": "ACCESS_DENIED",
+      "description": "權限不足",
+      "expectedMessage": "Chrome Extension 權限不足，請檢查權限設定",
+      "recoveryOptions": ["check_permissions", "reinstall_extension"]
+    }
+  ],
+
+  "conflictResolutionExamples": [
+    {
+      "scenario": "progress_conflict",
+      "description": "相同書籍不同進度",
+      "localBook": {
+        "id": "conflict-001",
+        "title": "衝突測試書籍",
+        "progress": 45,
+        "lastModified": "2025-08-23T10:00:00Z"
+      },
+      "remoteBook": {
+        "id": "conflict-001",
+        "title": "衝突測試書籍", 
+        "progress": 70,
+        "lastModified": "2025-08-24T10:00:00Z"
+      },
+      "recommendedStrategy": "keep_highest_progress",
+      "expectedResult": {
+        "progress": 70,
+        "reason": "保留較高的閱讀進度"
+      }
+    },
+    {
+      "scenario": "title_conflict",
+      "description": "相同ID不同標題",
+      "localBook": {
+        "id": "conflict-002",
+        "title": "原始標題",
+        "lastModified": "2025-08-20T10:00:00Z"
+      },
+      "remoteBook": {
+        "id": "conflict-002", 
+        "title": "更新後標題",
+        "lastModified": "2025-08-24T15:00:00Z"
+      },
+      "recommendedStrategy": "keep_latest_timestamp",
+      "expectedResult": {
+        "title": "更新後標題",
+        "reason": "保留時間戳較新的版本"
+      }
+    }
+  ],
+
+  "metadata": {
+    "version": "1.0.0",
+    "lastUpdated": "2025-08-24",
+    "description": "UC-05 跨設備同步工作流程測試資料集",
+    "totalTestCases": 45,
+    "categories": [
+      "完整同步流程測試 (8個案例)",
+      "資料完整性驗證測試 (10個案例)", 
+      "效能和擴展性測試 (8個案例)",
+      "錯誤處理和恢復測試 (12個案例)",
+      "跨設備一致性測試 (7個案例)"
+    ]
+  }
+}

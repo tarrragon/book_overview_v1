@@ -398,6 +398,50 @@ const OPERATION_TYPES = {
 }
 
 // ====================
+// 同步系統常數
+// ====================
+
+/**
+ * 同步狀態常數
+ */
+const SYNC_STATES = {
+  INITIALIZING: 'initializing',
+  VALIDATING: 'validating',
+  EXPORTING: 'exporting',
+  TRANSFERRING: 'transferring',
+  IMPORTING: 'importing',
+  VERIFYING: 'verifying',
+  COMPLETED: 'completed',
+  FAILED: 'failed',
+  CANCELLED: 'cancelled'
+}
+
+/**
+ * 同步策略常數
+ */
+const SYNC_STRATEGIES = {
+  MERGE: 'merge',           // 合併資料（預設）
+  OVERWRITE: 'overwrite',   // 覆寫目標資料
+  SKIP_EXISTING: 'skip_existing', // 跳過重複資料
+  CREATE_BACKUP: 'create_backup'  // 建立備份後合併
+}
+
+/**
+ * 同步事件常數
+ */
+const SYNC_EVENTS = {
+  SYNC_REQUEST: 'SYNC.REQUEST',
+  SYNC_RESPONSE: 'SYNC.RESPONSE',
+  SYNC_STARTED: 'SYNC.STARTED',
+  SYNC_PROGRESS: 'SYNC.PROGRESS',
+  SYNC_COMPLETED: 'SYNC.COMPLETED',
+  SYNC_FAILED: 'SYNC.FAILED',
+  SYNC_CANCELLED: 'SYNC.CANCELLED',
+  CONFLICT_DETECTED: 'SYNC.CONFLICT_DETECTED',
+  CONFLICT_RESOLVED: 'SYNC.CONFLICT_RESOLVED'
+}
+
+// ====================
 // 儲存鍵名常數
 // ====================
 
@@ -452,6 +496,11 @@ module.exports = {
   PAGE_EVENTS,
   EXTRACTION_EVENTS,
   MESSAGE_EVENTS,
+
+  // 同步系統
+  SYNC_STATES,
+  SYNC_STRATEGIES,
+  SYNC_EVENTS,
 
   // 配置和限制
   TIMEOUTS,
