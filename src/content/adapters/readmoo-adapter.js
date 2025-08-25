@@ -67,12 +67,6 @@ function createReadmooAdapter () {
     ]
   }
 
-  // 安全性過濾規則
-  const SECURITY_FILTERS = {
-    maliciousProtocols: ['javascript:', 'data:', 'vbscript:'],
-    allowedImageTypes: ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']
-  }
-
   const adapter = {
     /**
      * 取得書籍容器元素 (修正：使用正確的 Readmoo 頁面結構)
@@ -300,18 +294,33 @@ function createReadmooAdapter () {
     },
 
     /**
-     * 檢查URL是否安全
-     *
+     * 檢查URL是否不安全
      * @param {string} url - 要檢查的URL
-     * @returns {boolean} 是否為不安全的URL
+     * @returns {boolean} 是否不安全
      */
     isUnsafeUrl (url) {
-      if (!url || typeof url !== 'string') return false
+      if (!url || typeof url !== 'string') {
+        return true
+      }
 
-      const lowerUrl = url.toLowerCase().trim()
-      return SECURITY_FILTERS.maliciousProtocols.some(protocol =>
-        lowerUrl.startsWith(protocol)
-      )
+      try {
+        const urlObj = new URL(url)
+        const protocol = urlObj.protocol.toLowerCase()
+
+        // 只允許 https 和 http 協議
+        if (protocol !== 'https:' && protocol !== 'http:') {
+          return true
+        }
+
+        // 檢查路徑遍歷攻擊
+        if (urlObj.pathname.includes('..') || urlObj.pathname.includes('%2e%2e')) {
+          return true
+        }
+
+        return false
+      } catch (error) {
+        return true
+      }
     },
 
     /**
@@ -420,14 +429,17 @@ function createReadmooAdapter () {
      * @returns {string} 穩定的書籍 ID
      */
     generateStableBookId (readerId, title, cover) {
-      try {
-        const inputs = this.validateAndSanitizeInputs(readerId, title, cover)
-        return this.applyIdGenerationStrategies(inputs)
-      } catch (error) {
-        console.warn('generateStableBookId 發生錯誤:', error)
-        const safeReaderId = this.safeStringify(readerId)
-        return safeReaderId ? `reader-${safeReaderId}` : 'reader-undefined'
-      }
+      return this.handleWithFallback(
+        'generateStableBookId',
+        () => {
+          const inputs = this.validateAndSanitizeInputs(readerId, title, cover)
+          return this.applyIdGenerationStrategies(inputs)
+        },
+        (() => {
+          const safeReaderId = this.safeStringify(readerId)
+          return safeReaderId ? `reader-${safeReaderId}` : 'reader-undefined'
+        })()
+      )
     },
 
     /**
@@ -503,58 +515,103 @@ function createReadmooAdapter () {
     },
 
     /**
+     * 檢查輸入是否為null或undefined
+     * @param {*} input - 輸入值
+     * @returns {boolean} 是否為null或undefined
+     */
+    isNullOrUndefined (input) {
+      return input === null || input === undefined
+    },
+
+    /**
+     * 檢查輸入是否為字符串類型
+     * @param {*} input - 輸入值
+     * @returns {boolean} 是否為字符串
+     */
+    isStringType (input) {
+      return typeof input === 'string'
+    },
+
+    /**
+     * 檢查是否為需要特殊處理的類型
+     * @param {*} input - 輸入值
+     * @returns {boolean} 是否需要特殊處理
+     */
+    requiresSpecialHandling (input) {
+      const type = typeof input
+      return type === 'boolean' || type === 'object' || type === 'number'
+    },
+
+    /**
+     * 安全轉換為字符串
+     * @param {*} input - 輸入值
+     * @returns {string} 轉換後的字符串
+     */
+    safeConvertToString (input) {
+      return this.handleWithFallback(
+        'safeConvertToString',
+        () => String(input),
+        ''
+      )
+    },
+
+    /**
      * 安全字符串化處理
      * @param {*} input - 任何類型的輸入
      * @returns {string} 安全的字符串
      */
     safeStringify (input) {
-      if (input === null || input === undefined) {
-        return ''
-      }
-      if (typeof input === 'string') {
-        return input
-      }
-      
-      // 特殊處理非字符串類型，根據測試要求返回空字符串
-      if (typeof input === 'boolean' || typeof input === 'object' || typeof input === 'number') {
-        return ''
-      }
-      
-      try {
-        return String(input)
-      } catch (error) {
-        return ''
-      }
+      if (this.isNullOrUndefined(input)) return ''
+      if (this.isStringType(input)) return input
+      if (this.requiresSpecialHandling(input)) return ''
+      return this.safeConvertToString(input)
     },
 
     /**
-     * 檢查URL是否不安全
-     * @param {string} url - 要檢查的URL
-     * @returns {boolean} 是否不安全
+     * 驗證封面URL輸入
+     * @param {string} coverUrl - 封面URL
+     * @returns {string|null} 驗證後的URL或null
      */
-    isUnsafeUrl (url) {
-      if (!url || typeof url !== 'string') {
-        return true
-      }
-      
-      try {
-        const urlObj = new URL(url)
-        const protocol = urlObj.protocol.toLowerCase()
-        
-        // 只允許 https 和 http 協議
-        if (protocol !== 'https:' && protocol !== 'http:') {
-          return true
-        }
-        
-        // 檢查路徑遍歷攻擊
-        if (urlObj.pathname.includes('..') || urlObj.pathname.includes('%2e%2e')) {
-          return true
-        }
-        
-        return false
-      } catch (error) {
-        return true
-      }
+    validateCoverUrlInput (coverUrl) {
+      if (!coverUrl || typeof coverUrl !== 'string') return null
+      const trimmed = coverUrl.trim()
+      return this.isUnsafeUrl(trimmed) ? null : trimmed
+    },
+
+    /**
+     * 驗證Readmoo域名
+     * @param {string} url - URL
+     * @returns {boolean} 是否為Readmoo封面URL
+     */
+    validateReadmooDomain (url) {
+      return this.handleWithFallback(
+        'validateReadmooDomain',
+        () => {
+          const urlObj = new URL(url)
+          return urlObj.hostname === 'cdn.readmoo.com' && urlObj.pathname.includes('/cover/')
+        },
+        false
+      )
+    },
+
+    /**
+     * 從封面路徑提取ID
+     * @param {string} coverUrl - 封面URL
+     * @returns {string|null} 提取的ID或null
+     */
+    extractIdFromCoverPath (coverUrl) {
+      const coverMatch = coverUrl.match(/\/cover\/[a-z0-9]+\/([^_]+)_/)
+      return coverMatch ? coverMatch[1] : null
+    },
+
+    /**
+     * 從檔名提取ID
+     * @param {string} coverUrl - 封面URL
+     * @returns {string|null} 提取的ID或null
+     */
+    extractIdFromFilename (coverUrl) {
+      const filenameMatch = coverUrl.match(/\/([^/]+)\.(jpg|png|jpeg)/i)
+      return filenameMatch ? filenameMatch[1].replace(/_\d+x\d+$/, '') : null
     },
 
     /**
@@ -564,40 +621,76 @@ function createReadmooAdapter () {
      * @returns {string|null} 封面 ID
      */
     extractCoverIdFromUrl (coverUrl) {
-      if (!coverUrl || typeof coverUrl !== 'string') {
-        return null
-      }
+      const validatedUrl = this.validateCoverUrlInput(coverUrl)
+      if (!validatedUrl) return null
+      
+      if (!this.validateReadmooDomain(validatedUrl)) return null
+      
+      return this.extractIdFromCoverPath(validatedUrl) ||
+             this.extractIdFromFilename(validatedUrl) ||
+             null
+    },
 
-      try {
-        const trimmedUrl = coverUrl.trim()
-        
-        // 安全性檢查
-        if (this.isUnsafeUrl(trimmedUrl)) {
-          return null
-        }
-        
-        // 檢查是否為 Readmoo 封面 URL
-        const urlObj = new URL(trimmedUrl)
-        if (urlObj.hostname !== 'cdn.readmoo.com' || !urlObj.pathname.includes('/cover/')) {
-          return null
-        }
+    /**
+     * 驗證標題輸入
+     * @param {string} title - 書籍標題
+     * @returns {string|null} 驗證後的標題或null
+     */
+    validateTitleInput (title) {
+      if (!title || typeof title !== 'string') return null
+      const trimmed = title.trim()
+      return trimmed || null
+    },
 
-        // 解析封面ID格式：https://cdn.readmoo.com/cover/xx/xxxxx_210x315.jpg?v=xxxxxxxx
-        const coverMatch = coverUrl.match(/\/cover\/[a-z0-9]+\/([^_]+)_/)
-        if (coverMatch) {
-          return coverMatch[1]
-        }
+    /**
+     * 清理HTML標籤和惡意內容
+     * @param {string} text - 輸入文字
+     * @returns {string} 清理後的文字
+     */
+    cleanHtmlAndMaliciousContent (text) {
+      if (!text) return ''
+      return text
+        .replace(/<script[^>]*>.*?<\/script>/gi, '')
+        .replace(/<[^>]*>/g, '')
+        .replace(/&[a-zA-Z0-9#]+;/g, '')
+        .replace(/[<>"']/g, '')
+    },
 
-        // 備用解析方式
-        const filenameMatch = coverUrl.match(/\/([^/]+)\.(jpg|png|jpeg)/i)
-        if (filenameMatch) {
-          return filenameMatch[1].replace(/_\d+x\d+$/, '') // 移除尺寸後綴
-        }
+    /**
+     * 處理URL編碼字符
+     * @param {string} text - 輸入文字
+     * @returns {string} 處理後的文字
+     */
+    processUrlEncoding (text) {
+      if (!text) return ''
+      return text
+        .replace(/%20/g, ' ')
+        .replace(/&amp;/g, '&')
+    },
 
-        return null
-      } catch (error) {
-        return null
-      }
+    /**
+     * 正規化文字內容
+     * @param {string} text - 輸入文字
+     * @returns {string} 正規化後的文字
+     */
+    normalizeTextContent (text) {
+      if (!text) return ''
+      return text
+        .replace(/\s+/g, ' ')
+        .replace(/[^\u4e00-\u9fff\w\s]/g, '')
+        .replace(/\s+/g, '-')
+        .toLowerCase()
+    },
+
+    /**
+     * 限制文字長度
+     * @param {string} text - 輸入文字
+     * @param {number} maxLength - 最大長度
+     * @returns {string|null} 限制長度後的文字或null
+     */
+    limitTextLength (text, maxLength) {
+      if (!text) return null
+      return text.length > 0 ? text.substring(0, maxLength) : null
     },
 
     /**
@@ -607,41 +700,18 @@ function createReadmooAdapter () {
      * @returns {string|null} 標題 ID
      */
     generateTitleBasedId (title) {
-      if (!title || typeof title !== 'string') {
-        return null
-      }
-
-      try {
-        let normalizedTitle = title.trim()
-        
-        // 清理HTML標籤和惡意內容（更嚴格的處理）
-        normalizedTitle = normalizedTitle
-          .replace(/<script[^>]*>.*?<\/script>/gi, '') // 移除 script 標籤及其內容
-          .replace(/<[^>]*>/g, '') // 移除其他 HTML 標籤
-          .replace(/&[a-zA-Z0-9#]+;/g, '') // 移除HTML實體
-          .replace(/[<>"']/g, '') // 移除潛在XSS字符
-        
-        // 處理URL編碼字符
-        normalizedTitle = normalizedTitle
-          .replace(/%20/g, ' ') // 空格URL編碼
-          .replace(/&amp;/g, '&') // HTML實體還原
-        
-        // 正規化空白和特殊字符
-        normalizedTitle = normalizedTitle
-          .replace(/\s+/g, ' ') // 正規化空白字符
-          .replace(/[^\u4e00-\u9fff\w\s]/g, '') // 保留中文、英文、數字、空格
-          .replace(/\s+/g, '-') // 空格轉換為連字符
-          .toLowerCase()
-
-        if (normalizedTitle.length > 0) {
-          return normalizedTitle.substring(0, 50) // 限制長度
-        }
-
-        return null
-      } catch (error) {
-        console.warn('generateTitleBasedId 處理錯誤:', error)
-        return null
-      }
+      return this.handleWithFallback(
+        'generateTitleBasedId',
+        () => {
+          const validated = this.validateTitleInput(title)
+          if (!validated) return null
+          const cleaned = this.cleanHtmlAndMaliciousContent(validated)
+          const urlProcessed = this.processUrlEncoding(cleaned)
+          const normalized = this.normalizeTextContent(urlProcessed)
+          return this.limitTextLength(normalized, 50)
+        },
+        null
+      )
     },
 
     /**
@@ -683,6 +753,34 @@ function createReadmooAdapter () {
         return urlObj.hostname
       } catch (error) {
         return null
+      }
+    },
+
+    /**
+     * 標準化錯誤日誌記錄
+     * @param {string} methodName - 方法名稱
+     * @param {Error} error - 錯誤對象
+     * @param {string} context - 額外上下文資訊
+     */
+    logError (methodName, error, context = '') {
+      const errorMsg = `${methodName} 發生錯誤${context ? ` (${context})` : ''}:`
+      console.warn(errorMsg, error)
+    },
+
+    /**
+     * 標準化錯誤處理包裝器
+     * @param {string} methodName - 方法名稱  
+     * @param {Function} operation - 要執行的操作
+     * @param {*} fallbackValue - 錯誤時的回退值
+     * @param {string} context - 額外上下文資訊
+     * @returns {*} 操作結果或回退值
+     */
+    handleWithFallback (methodName, operation, fallbackValue, context = '') {
+      try {
+        return operation()
+      } catch (error) {
+        this.logError(methodName, error, context)
+        return fallbackValue
       }
     },
 
