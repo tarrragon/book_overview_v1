@@ -130,7 +130,7 @@ class MessageErrorHandler extends EventHandler {
    * 初始化 Chrome Extension 整合
    */
   initializeChromeIntegration () {
-    this.chromeAvailable = typeof chrome !== 'undefined' && chrome.runtime
+    this.chromeAvailable = typeof chrome !== 'undefined' && chrome.runtime && typeof chrome.runtime === 'object'
   }
 
   /**
