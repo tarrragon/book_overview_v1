@@ -57,7 +57,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
     global.chrome = mockChrome
 
     // 載入 ChromeEventBridge
-    ChromeEventBridge = require('@/core/chrome-event-bridge')
+    ChromeEventBridge = require('@/content/bridge/chrome-event-bridge')
 
     // 創建橋接器實例
     bridge = new ChromeEventBridge()

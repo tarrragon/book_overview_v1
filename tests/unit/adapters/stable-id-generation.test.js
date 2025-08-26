@@ -146,7 +146,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC007: 封面和標題都無效時應該使用閱讀器ID', () => {
         const result = adapter.generateStableBookId('reader555', '', '')
 
-        expect(result).toBe('reader-reader555')
+        expect(result).toBe('unstable-reader555')
       })
 
       // TC008: 標題為預設值時的處理
@@ -154,7 +154,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         const invalidCoverUrl = ''
         const result = adapter.generateStableBookId('reader666', '未知標題', invalidCoverUrl)
 
-        expect(result).toBe('reader-reader666')
+        expect(result).toBe('unstable-reader666')
       })
     })
   })
@@ -182,7 +182,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       // TC012: 只有readerId有效
       test('TC012: 只有readerId有效時應該使用閱讀器ID', () => {
         const result = adapter.generateStableBookId('valid123', null, null)
-        expect(result).toBe('reader-valid123')
+        expect(result).toBe('unstable-valid123')
       })
 
       // TC013: 只有title有效
@@ -244,7 +244,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         const longReaderId = 'reader' + 'x'.repeat(200)
         const result = adapter.generateStableBookId(longReaderId, '', '')
 
-        expect(result).toBe(`reader-${longReaderId}`)
+        expect(result).toBe(`unstable-${longReaderId}`)
       })
     })
 
@@ -363,7 +363,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
 
         expect(() => {
           const result = adapter.generateStableBookId('reader123', circularObj, '')
-          expect(result).toBe('reader-reader123')
+          expect(result).toBe('unstable-reader123')
         }).not.toThrow()
       })
     })
