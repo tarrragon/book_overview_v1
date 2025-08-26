@@ -74,7 +74,7 @@
 **失敗測試套件分類 (39個)**:
 
 🔴 **關鍵測試套件** (15個 - 影響核心功能):
-- platform-detection-service.test.js ✅ 已修復
+- platform-detection-service.test.js ✅ 已修復 - 信心度精度問題
 - data-validation-service.test.js
 - chrome-event-bridge.test.js  
 - event-priority-manager.test.js
