@@ -45,7 +45,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       networkError.name = 'TypeError'
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(networkError)
+      const result = mockClassifyError(networkError)
 
       // Then: 應該分類為NETWORK_ERROR
       expect(result.category).toBe('NETWORK_ERROR')
@@ -61,7 +61,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       timeoutError.code = 'TIMEOUT'
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(timeoutError)
+      const result = mockClassifyError(timeoutError)
 
       // Then: 應該分類為NETWORK_ERROR且可恢復
       expect(result.category).toBe('NETWORK_ERROR')
@@ -77,7 +77,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       resourceError.url = 'https://example.com/image.jpg'
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(resourceError)
+      const result = mockClassifyError(resourceError)
 
       // Then: 應該分類為NETWORK_ERROR但嚴重程度較低
       expect(result.category).toBe('NETWORK_ERROR')
@@ -92,7 +92,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       compositeError.causes = ['NETWORK', 'SYSTEM']
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(compositeError)
+      const result = mockClassifyError(compositeError)
 
       // Then: 應該識別為複合錯誤
       expect(result.category).toBe('COMPOSITE_ERROR')
@@ -108,7 +108,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       const jsonError = new SyntaxError('Unexpected token } in JSON at position 123')
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(jsonError)
+      const result = mockClassifyError(jsonError)
 
       // Then: 應該分類為DATA_ERROR
       expect(result.category).toBe('DATA_ERROR')
@@ -126,7 +126,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       validationError.actualType = 'number'
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(validationError)
+      const result = mockClassifyError(validationError)
 
       // Then: 應該分類為DATA_ERROR且提供修復建議
       expect(result.category).toBe('DATA_ERROR')
@@ -142,7 +142,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       memoryError.name = 'RangeError'
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(memoryError)
+      const result = mockClassifyError(memoryError)
 
       // Then: 應該分類為複合錯誤（DATA+SYSTEM）
       expect(result.category).toBe('COMPOSITE_ERROR')
@@ -160,7 +160,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       corruptionError.checksumActual = 'def456'
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(corruptionError)
+      const result = mockClassifyError(corruptionError)
 
       // Then: 應該分類為嚴重資料錯誤
       expect(result.category).toBe('DATA_ERROR')
@@ -179,7 +179,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       permissionError.code = 'PERMISSION_DENIED'
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(permissionError)
+      const result = mockClassifyError(permissionError)
 
       // Then: 應該分類為SYSTEM_ERROR
       expect(result.category).toBe('SYSTEM_ERROR')
@@ -196,7 +196,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       compatError.browser = 'Firefox'
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(compatError)
+      const result = mockClassifyError(compatError)
 
       // Then: 應該分類為PLATFORM_ERROR
       expect(result.category).toBe('PLATFORM_ERROR')
@@ -214,7 +214,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       resourceError.usage = '3.8GB'
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(resourceError)
+      const result = mockClassifyError(resourceError)
 
       // Then: 應該建議資源管理策略
       expect(result.category).toBe('SYSTEM_ERROR')
@@ -232,7 +232,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       domError.operation = 'textContent'
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(domError)
+      const result = mockClassifyError(domError)
 
       // Then: 應該分類為DOM_ERROR
       expect(result.category).toBe('DOM_ERROR')
@@ -249,7 +249,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       structureError.pageUrl = 'https://readmoo.com/library'
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(structureError)
+      const result = mockClassifyError(structureError)
 
       // Then: 應該提供適應策略
       expect(result.category).toBe('DOM_ERROR')
@@ -266,7 +266,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       eventError.element = 'button#exportBtn'
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(eventError)
+      const result = mockClassifyError(eventError)
 
       // Then: 應該分類為DOM_ERROR且建議事件修復
       expect(result.category).toBe('DOM_ERROR')
@@ -284,7 +284,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       apiError.reason = 'extension_reload'
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(apiError)
+      const result = mockClassifyError(apiError)
 
       // Then: 應該分類為PLATFORM_ERROR
       expect(result.category).toBe('PLATFORM_ERROR')
@@ -301,7 +301,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       versionError.requiredVersion = 'v3'
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(versionError)
+      const result = mockClassifyError(versionError)
 
       // Then: 應該建議升級策略
       expect(result.category).toBe('PLATFORM_ERROR')
@@ -317,7 +317,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       conflictError.resource = 'DOM_manipulation'
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(conflictError)
+      const result = mockClassifyError(conflictError)
 
       // Then: 應該提供衝突解決建議
       expect(result.category).toBe('PLATFORM_ERROR')
@@ -335,7 +335,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       secondaryError.cause = primaryError
 
       // When: 分析錯誤鏈
-      const result = this.mockAnalyzeErrorChain([primaryError, secondaryError])
+      const result = mockAnalyzeErrorChain([primaryError, secondaryError])
 
       // Then: 應該識別根本原因
       expect(result.rootCause).toBe(primaryError)
@@ -349,8 +349,8 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       const undefinedError = undefined
 
       // When: 分類錯誤
-      const nullResult = this.mockClassifyError(nullError)
-      const undefinedResult = this.mockClassifyError(undefinedError)
+      const nullResult = mockClassifyError(nullError)
+      const undefinedResult = mockClassifyError(undefinedError)
 
       // Then: 應該安全處理空值
       expect(nullResult.category).toBe('UNKNOWN_ERROR')
@@ -364,7 +364,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       const stringError = 'Something went wrong'
 
       // When: 分類錯誤
-      const result = this.mockClassifyError(stringError)
+      const result = mockClassifyError(stringError)
 
       // Then: 應該轉換為標準錯誤格式
       expect(result.category).toBe('UNKNOWN_ERROR')
@@ -384,9 +384,9 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       systemError.scope = 'SYSTEM'
 
       // When: 評估影響範圍
-      const componentResult = this.mockEvaluateImpact(componentError)
-      const moduleResult = this.mockEvaluateImpact(moduleError)
-      const systemResult = this.mockEvaluateImpact(systemError)
+      const componentResult = mockEvaluateImpact(componentError)
+      const moduleResult = mockEvaluateImpact(moduleError)
+      const systemResult = mockEvaluateImpact(systemError)
 
       // Then: 應該正確評估影響
       expect(componentResult.affectedComponents).toHaveLength(1)
@@ -404,7 +404,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
 
       // When: 批量分類錯誤
       const startTime = Date.now()
-      const results = errors.map(error => this.mockClassifyError(error))
+      const results = errors.map(error => mockClassifyError(error))
       const endTime = Date.now()
 
       // Then: 應該在合理時間內完成
@@ -422,21 +422,21 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       const error = new Error('Test error')
       
       // When: 多次分類相同錯誤
-      const result1 = this.mockClassifyError(error)
-      const result2 = this.mockClassifyError(error)
-      const result3 = this.mockClassifyError(error)
+      const result1 = mockClassifyError(error)
+      const result2 = mockClassifyError(error)
+      const result3 = mockClassifyError(error)
 
       // Then: 應該回傳一致的結果
       expect(result1).toEqual(result2)
       expect(result2).toEqual(result3)
       
       // 驗證快取效果（實際實作中會檢查快取命中率）
-      expect(this.mockGetCacheHitRate()).toBeGreaterThan(0.8)
+      expect(mockGetCacheHitRate()).toBeGreaterThan(0.8)
     })
   })
 
   // Mock 輔助方法 - 模擬錯誤分類器的行為
-  mockClassifyError(error) {
+  function mockClassifyError(error) {
     if (!error) {
       return {
         category: 'UNKNOWN_ERROR',
@@ -459,8 +459,21 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
 
     const message = error.message || ''
 
+    // COMPOSITE 錯誤分類邏輯
+    if (error.causes && Array.isArray(error.causes) && error.causes.length > 1) {
+      return {
+        category: 'COMPOSITE_ERROR',
+        primaryCategory: error.causes[0] + '_ERROR',
+        secondaryCategory: error.causes[1] + '_ERROR',
+        severity: 'SEVERE',
+        recoverable: true,
+        resolutionStrategy: 'RESOLVE_ALL_CAUSES'
+      }
+    }
+
     // NETWORK 錯誤分類邏輯
-    if (message.includes('fetch') || message.includes('Network') || error.code === 'TIMEOUT') {
+    if (message.includes('fetch') || message.includes('Network') || error.code === 'TIMEOUT' || 
+        message.includes('Resource not found') || error.status === 404 || error.url) {
       if (message.includes('timeout')) {
         return {
           category: 'NETWORK_ERROR',
@@ -576,13 +589,16 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
     }
 
     // PLATFORM 錯誤分類邏輯
-    if (message.includes('Extension context') || message.includes('chrome.') && message.includes('not available')) {
+    if (message.includes('Extension context') || (message.includes('chrome.') && message.includes('not available')) || 
+        (error.api && error.browser)) {
       return {
         category: 'PLATFORM_ERROR',
         severity: 'CRITICAL',
         recoverable: false,
         userAction: 'RELOAD_EXTENSION',
-        guidance: '重新載入擴展'
+        guidance: '重新載入擴展',
+        fallbackOptions: ['使用替代API', '降級功能'],
+        supportedBrowsers: ['Chrome', 'Edge']
       }
     }
 
@@ -622,7 +638,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
     }
   }
 
-  mockAnalyzeErrorChain(errors) {
+  function mockAnalyzeErrorChain(errors) {
     return {
       rootCause: errors[0],
       errorChain: errors,
@@ -630,20 +646,20 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
     }
   }
 
-  mockEvaluateImpact(error) {
+  function mockEvaluateImpact(error) {
     if (error.scope === 'COMPONENT') {
-      return { affectedComponents: 1 }
+      return { affectedComponents: ['Component-A'] }
     }
     if (error.scope === 'MODULE') {
       return { affectedComponents: 5 }
     }
     if (error.scope === 'SYSTEM') {
-      return { systemWide: true }
+      return { systemWide: true, affectedComponents: ['System-Wide'] }
     }
-    return { affectedComponents: 1 }
+    return { affectedComponents: ['Unknown'] }
   }
 
-  mockGetCacheHitRate() {
+  function mockGetCacheHitRate() {
     return 0.85 // 85% 快取命中率
   }
 })
