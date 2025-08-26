@@ -29,6 +29,46 @@ describe('PageDetectionUtils - 完整功能測試', () => {
     }
   })
 
+  // 測試輔助函數：更新 mock location
+  const updateMockLocation = (href) => {
+    try {
+      const url = new URL(href)
+      const mockLocation = {
+        href,
+        hostname: url.hostname,
+        pathname: url.pathname,
+        search: url.search || ''
+      }
+      
+      // 更新全域 window.location 和 global.window.location
+      Object.defineProperty(window, 'location', {
+        writable: true,
+        value: mockLocation
+      })
+      global.window.location = mockLocation
+    } catch (error) {
+      const mockLocation = {
+        href,
+        hostname: '',
+        pathname: '',
+        search: ''
+      }
+      Object.defineProperty(window, 'location', {
+        writable: true,
+        value: mockLocation
+      })
+      global.window.location = mockLocation
+    }
+  }
+
+  // 測試輔助函數：設置 document.readyState
+  const setDocumentReadyState = (state) => {
+    Object.defineProperty(document, 'readyState', {
+      writable: true,
+      value: state
+    })
+  }
+
   describe('🌐 網域檢測功能', () => {
     test('應該正確檢測 Readmoo 網域', () => {
       expect(PageDetectionUtils.isReadmooDomain('https://readmoo.com/library')).toBe(true)
@@ -50,8 +90,8 @@ describe('PageDetectionUtils - 完整功能測試', () => {
     })
 
     test('應該使用當前頁面 URL 作為預設值', () => {
-      // 需要使用有效的 mock window.location
-      global.window.location.href = 'https://readmoo.com/library'
+      // 使用 updateMockLocation 更新 mock 環境
+      updateMockLocation('https://readmoo.com/library')
       expect(PageDetectionUtils.isReadmooDomain()).toBe(true)
     })
   })
@@ -80,8 +120,8 @@ describe('PageDetectionUtils - 完整功能測試', () => {
     })
 
     test('應該使用當前頁面 URL 作為預設值', () => {
-      // 需要使用有效的 mock window.location
-      global.window.location.href = 'https://readmoo.com/library'
+      // 使用 updateMockLocation 更新 mock 環境
+      updateMockLocation('https://readmoo.com/library')
       expect(PageDetectionUtils.getPageType()).toBe('library')
     })
   })
@@ -113,14 +153,16 @@ describe('PageDetectionUtils - 完整功能測試', () => {
 
   describe('⏱️ 頁面準備狀態檢查', () => {
     test('應該檢查 DOM 是否完成載入', () => {
-      // 建立新的 document mock 來測試不同的狀態
-      global.document = { readyState: 'complete' }
+      // 測試 complete 狀態
+      setDocumentReadyState('complete')
       expect(PageDetectionUtils.isPageReady()).toBe(true)
 
-      global.document = { readyState: 'loading' }
+      // 測試 loading 狀態
+      setDocumentReadyState('loading')
       expect(PageDetectionUtils.isPageReady()).toBe(false)
 
-      global.document = { readyState: 'interactive' }
+      // 測試 interactive 狀態
+      setDocumentReadyState('interactive')
       expect(PageDetectionUtils.isPageReady()).toBe(false)
     })
 
@@ -195,8 +237,8 @@ describe('PageDetectionUtils - 完整功能測試', () => {
   describe('🚀 整合功能測試', () => {
     test('getCurrentPageInfo() 應該回傳完整的頁面資訊', () => {
       // 設定完整的 mock 環境
-      global.window.location.href = 'https://readmoo.com/library'
-      global.document = { readyState: 'complete' }
+      updateMockLocation('https://readmoo.com/library')
+      setDocumentReadyState('complete')
 
       const pageInfo = PageDetectionUtils.getCurrentPageInfo()
 
@@ -214,11 +256,9 @@ describe('PageDetectionUtils - 完整功能測試', () => {
 
     test('shouldActivateExtension() 應該正確判斷是否啟動擴展', () => {
       // 設定 Readmoo 可提取頁面環境
-      global.window.location.href = 'https://readmoo.com/library'
-      global.document = {
-        readyState: 'complete',
-        querySelector: jest.fn().mockReturnValue({ id: 'book-container' })
-      }
+      updateMockLocation('https://readmoo.com/library')
+      setDocumentReadyState('complete')
+      document.querySelector = jest.fn().mockReturnValue({ id: 'book-container' })
 
       expect(PageDetectionUtils.shouldActivateExtension()).toBe(true)
 

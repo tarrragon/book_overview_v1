@@ -116,9 +116,13 @@ global.testUtils = {
       chrome.flush()
     }
 
-    // 清理 DOM
-    document.body.innerHTML = ''
-    document.head.innerHTML = ''
+    // 清理 DOM (安全檢查)
+    if (document.body) {
+      document.body.innerHTML = ''
+    }
+    if (document.head) {
+      document.head.innerHTML = ''
+    }
   }
 }
 

@@ -409,19 +409,19 @@ class AdapterFactoryService {
       // 建立新的適配器實例
       const adapter = await this.createNewAdapter(platformId, options)
 
-      // 記錄統計
+      // 記錄統計 - 先計算平均時間再更新總數
+      const creationTime = Math.max(1, Date.now() - startTime) // 確保至少為1ms
+      this.updateAverageCreationTime(creationTime)
+      
       this.statistics.totalCreated++
       this.statistics.activeInstances++
       this.statistics.lastCreationTime = Date.now()
 
-      const creationTime = Date.now() - startTime
-      this.updateAverageCreationTime(creationTime)
-
-      // 更新平台狀態
+      // 更新平台狀態 - 創建時就算活躍實例(與全局統計一致)
       const state = this.adapterStates.get(platformId)
       if (state) {
         state.totalInstances++
-        state.activeInstances++
+        state.activeInstances++ // 創建時就算活躍，與全局統計保持一致
         state.lastCreated = Date.now()
       }
 
@@ -703,7 +703,7 @@ class AdapterFactoryService {
       await adapter.activate()
       pool.totalReused++
 
-      // 更新統計
+      // 從可用池重新激活時，需要增加activeInstances統計
       const state = this.adapterStates.get(platformId)
       if (state) {
         state.activeInstances++
@@ -729,11 +729,8 @@ class AdapterFactoryService {
       pool.active.set(adapter.id, adapter)
     }
 
-    // 更新統計
-    const state = this.adapterStates.get(platformId)
-    if (state) {
-      state.activeInstances++
-    }
+    // 不要重複增加 activeInstances，因為在 createAdapter 時已經計算了
+    // 只有從可用池重新激活時才需要增加統計
   }
 
   /**
@@ -980,9 +977,11 @@ class AdapterFactoryService {
         }
       }
 
-      // 為新平台預先創建適配器
+      // 為新平台預先創建並激活適配器
       if (toPlatform) {
-        await this.createAdapter(toPlatform, { preload: true })
+        const newAdapter = await this.createAdapter(toPlatform, { preload: true })
+        await newAdapter.initialize()
+        await newAdapter.activate()
       }
     } catch (error) {
       await this.logError('處理平台切換事件失敗', error)
@@ -1241,6 +1240,21 @@ class AdapterFactoryService {
       totalCleaned += cleaned
     }
 
+    // 重置統計資料
+    this.statistics.totalCreated = 0
+    this.statistics.activeInstances = 0
+    
+    // 重置所有平台狀態
+    for (const platformId of this.supportedPlatforms) {
+      const state = this.adapterStates.get(platformId)
+      if (state) {
+        state.totalInstances = 0
+        state.activeInstances = 0
+        state.idleInstances = 0
+        state.errorInstances = 0
+      }
+    }
+
     return totalCleaned
   }
 
@@ -1252,8 +1266,9 @@ class AdapterFactoryService {
     const totalCreated = this.statistics.totalCreated
     const currentAvg = this.statistics.avgCreationTime
 
+    // 計算新的平均時間，totalCreated 還未增加，所以不需要減1
     this.statistics.avgCreationTime =
-      ((currentAvg * (totalCreated - 1)) + creationTime) / totalCreated
+      ((currentAvg * totalCreated) + creationTime) / (totalCreated + 1)
   }
 
   /**
