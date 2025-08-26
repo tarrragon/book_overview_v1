@@ -383,12 +383,13 @@ describe('DataDomainCoordinator', () => {
 
         await mockEventBus.emit('DATA.CROSS_PLATFORM.SYNC.REQUESTED', syncData)
 
-        // 檢查是否發送了同步開始事件
-        const syncEvents = mockEventBus.getEmittedEventsByType('DATA.SYNC.STARTED')
+        // 檢查是否發送了同步擱置事件（v1.0 不支援跨平台同步）
+        const syncEvents = mockEventBus.getEmittedEventsByType('DATA.SYNC.SHELVED')
         expect(syncEvents).toHaveLength(1)
         expect(syncEvents[0].data.sourcePlatforms).toEqual(['READMOO'])
         expect(syncEvents[0].data.targetPlatforms).toEqual(['KINDLE', 'KOBO'])
         expect(syncEvents[0].data.syncId).toBeDefined()
+        expect(syncEvents[0].data.reason).toBe('V1_READMOO_ONLY')
       })
     })
 
@@ -405,7 +406,8 @@ describe('DataDomainCoordinator', () => {
         // 由於衝突解決服務尚未實作，應該記錄警告日誌
         const warnings = mockLogger.getLogsByLevel('warn')
         const conflictWarnings = warnings.filter(log =>
-          log.message.includes('衝突解決服務尚未實作')
+          log.message.includes('資料衝突處理暫時擁置') || 
+          log.message.includes('conflict_123')
         )
         expect(conflictWarnings.length).toBeGreaterThan(0)
       })

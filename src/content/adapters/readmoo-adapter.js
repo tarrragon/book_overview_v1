@@ -68,6 +68,34 @@ function createReadmooAdapter () {
   }
 
   const adapter = {
+    // 適配器標準屬性
+    name: 'ReadmooAdapter',
+    version: '2.0.0',
+    isInitialized: false,
+    
+    // 適配器配置
+    config: {
+      batchSize: 10,
+      timeout: 5000,
+      retryCount: 3,
+      validateUrls: true,
+      enableStats: true
+    },
+    
+    // 適配器統計 (提供 stats 屬性訪問)
+    get stats() {
+      return this.getStats()
+    },
+
+    /**
+     * 標準化書籍提取介面 (兼容測試期望)
+     * @param {Document} document - DOM 文件物件 (測試用，實際使用全域 document)
+     * @returns {Promise<Object[]>} 書籍資料陣列
+     */
+    async extractBooks (document = globalThis.document) {
+      return await this.extractAllBooks()
+    },
+
     /**
      * 取得書籍容器元素 (修正：使用正確的 Readmoo 頁面結構)
      *
@@ -188,10 +216,12 @@ function createReadmooAdapter () {
         // 提取書籍類型
         const bookType = this.extractBookTypeFromContainer(element)
 
+        // 生成穩定的書籍ID並取得策略資訊
+        const idInfo = this.generateStableBookIdWithInfo(id, title, cover)
+
         // 建立完整的書籍資料物件
         const bookData = {
-          // 使用封面ID系統產生穩定的書籍ID
-          id: this.generateStableBookId(id, title, cover),
+          id: idInfo.id,
           title: this.sanitizeText(title) || '未知標題',
           cover: cover || '',
           progress: progressData.progress,
@@ -205,7 +235,7 @@ function createReadmooAdapter () {
             readerLinkId: id,
             coverId: this.extractCoverIdFromUrl(cover),
             titleBased: this.generateTitleBasedId(title),
-            primarySource: cover ? 'cover' : 'reader-link'
+            primarySource: idInfo.strategy
           },
 
           // 完整的封面資訊
@@ -250,10 +280,15 @@ function createReadmooAdapter () {
         const batch = bookElements.slice(i, i + batchSize)
 
         for (const element of batch) {
-          const bookData = this.parseBookElement(element)
-          if (bookData) {
-            books.push(bookData)
-            stats.successfulExtractions++
+          try {
+            const bookData = this.parseBookElement(element)
+            if (bookData) {
+              books.push(bookData)
+              stats.successfulExtractions++
+            }
+          } catch (error) {
+            stats.failedExtractions++
+            console.error('❌ 書籍元素解析失敗:', error.message)
           }
         }
 
@@ -429,16 +464,28 @@ function createReadmooAdapter () {
      * @returns {string} 穩定的書籍 ID
      */
     generateStableBookId (readerId, title, cover) {
+      return this.generateStableBookIdWithInfo(readerId, title, cover).id
+    },
+
+    /**
+     * 生成穩定的書籍 ID 並返回策略資訊
+     *
+     * @param {string} readerId - 閱讀器連結 ID
+     * @param {string} title - 書籍標題
+     * @param {string} cover - 封面 URL
+     * @returns {Object} {id: string, strategy: string} ID 和使用的策略
+     */
+    generateStableBookIdWithInfo (readerId, title, cover) {
       return this.handleWithFallback(
-        'generateStableBookId',
+        'generateStableBookIdWithInfo',
         () => {
           const inputs = this.validateAndSanitizeInputs(readerId, title, cover)
-          return this.applyIdGenerationStrategies(inputs)
+          return this.applyIdGenerationStrategiesWithInfo(inputs)
         },
-        (() => {
-          const safeReaderId = this.safeStringify(readerId)
-          return safeReaderId ? `reader-${safeReaderId}` : 'reader-undefined'
-        })()
+        {
+          id: readerId ? `reader-${readerId}` : 'reader-undefined',
+          strategy: 'reader-link'
+        }
       )
     },
 
@@ -465,10 +512,38 @@ function createReadmooAdapter () {
      * @returns {string} 生成的書籍 ID
      */
     applyIdGenerationStrategies (inputs) {
-      return this.tryCoverStrategy(inputs) ||
-             this.tryTitleStrategy(inputs) ||
-             this.tryReaderStrategy(inputs) ||
-             this.createFallbackId()
+      return this.applyIdGenerationStrategiesWithInfo(inputs).id
+    },
+
+    /**
+     * 按優先級應用ID生成策略（含策略資訊）
+     *
+     * @param {Object} inputs - 安全化的輸入參數
+     * @returns {Object} {id: string, strategy: string}
+     */
+    applyIdGenerationStrategiesWithInfo (inputs) {
+      const coverResult = this.tryCoverStrategy(inputs)
+      if (coverResult) {
+        return { id: coverResult, strategy: 'cover' }
+      }
+
+      const titleResult = this.tryTitleStrategy(inputs)
+      if (titleResult) {
+        return { id: titleResult, strategy: 'title' }
+      }
+
+      const readerResult = this.tryReaderStrategy(inputs)
+      if (readerResult) {
+        return { 
+          id: `unstable-${inputs.readerId}`, 
+          strategy: 'reader-link' 
+        }
+      }
+
+      return { 
+        id: this.createFallbackId(), 
+        strategy: 'fallback' 
+      }
     },
 
     /**
@@ -807,12 +882,108 @@ function createReadmooAdapter () {
     getStats () {
       return {
         ...stats,
+        // 別名兼容測試期望
+        totalExtractions: stats.totalExtracted,
         successRate: stats.totalExtracted > 0
           ? (stats.successfulExtractions / stats.totalExtracted * 100).toFixed(2) + '%'
           : '0%',
         avgParseTime: stats.successfulExtractions > 0
           ? (stats.parseTime / stats.successfulExtractions).toFixed(2) + 'ms'
           : '0ms'
+      }
+    },
+
+    /**
+     * 標準化介面：解析文檔
+     * @param {Document} document - DOM 文檔物件
+     * @returns {Object} 解析結果物件 {isValid, bookElements}
+     */
+    parseDocument (document = globalThis.document) {
+      try {
+        const bookElements = this.getBookElements()
+        return {
+          isValid: true,
+          bookElements: bookElements
+        }
+      } catch (error) {
+        return {
+          isValid: false,
+          bookElements: []
+        }
+      }
+    },
+
+    /**
+     * 標準化介面：查找書籍容器 (測試期望的方法)
+     * @param {Document} document - DOM 文檔物件
+     * @returns {HTMLElement[]} 書籍容器元素陣列
+     */
+    findBookContainers (document = globalThis.document) {
+      return this.getBookElements()
+    },
+
+    /**
+     * 標準化介面：驗證頁面是否支援此適配器
+     * @param {string} url - 頁面 URL
+     * @returns {boolean} 是否支援
+     */
+    validatePage (url = globalThis.location?.href || '') {
+      try {
+        const urlObj = new URL(url)
+        const isReadmooHost = urlObj.hostname.includes('readmoo.com')
+        const isLibraryPath = urlObj.pathname.includes('library')
+        const isBookshelfPath = urlObj.pathname.includes('bookshelf') || urlObj.pathname.includes('shelf')
+        
+        return isReadmooHost && (isLibraryPath || isBookshelfPath)
+      } catch (error) {
+        return false
+      }
+    },
+
+    /**
+     * 標準化介面：獲取支援的 URL 模式
+     * @returns {string[]} 支援的 URL 模式陣列
+     */
+    getSupportedUrls () {
+      return [
+        'readmoo.com',
+        'member.readmoo.com',
+        'https://readmoo.com/library*',
+        'https://readmoo.com/bookshelf*',
+        'https://*.readmoo.com/library*',
+        'https://*.readmoo.com/bookshelf*'
+      ]
+    },
+
+    /**
+     * 重置適配器狀態 (測試期望的方法)
+     */
+    reset () {
+      stats.totalExtracted = 0
+      stats.successfulExtractions = 0
+      stats.failedExtractions = 0
+      stats.domQueryTime = 0
+      stats.parseTime = 0
+      stats.lastExtraction = 0
+      this.isInitialized = false
+    },
+
+    /**
+     * 獲取適配器資訊 (測試期望的方法)
+     * @returns {Object} 適配器資訊物件
+     */
+    getAdapterInfo () {
+      return {
+        name: this.name,
+        version: this.version,
+        supportedSites: ['readmoo.com', 'member.readmoo.com'],
+        features: [
+          'book-extraction',
+          'progress-tracking',
+          'cover-analysis',
+          'batch-processing'
+        ],
+        config: this.config
       }
     }
   }

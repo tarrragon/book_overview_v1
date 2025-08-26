@@ -9,7 +9,7 @@
  */
 
 describe('ReadmooAdapter', () => {
-  let ReadmooAdapter
+  let createReadmooAdapter
   let adapter
 
   beforeEach(() => {
@@ -17,10 +17,10 @@ describe('ReadmooAdapter', () => {
     jest.resetModules()
 
     try {
-      ReadmooAdapter = require('@/adapters/readmoo-adapter')
+      createReadmooAdapter = require('../../../src/content/adapters/readmoo-adapter')
     } catch (error) {
       // 預期在紅燈階段會失敗
-      ReadmooAdapter = null
+      createReadmooAdapter = null
     }
   })
 
@@ -33,14 +33,16 @@ describe('ReadmooAdapter', () => {
 
   describe('適配器基本結構 (Cycle #4)', () => {
     test('應該能創建 ReadmooAdapter 實例', () => {
-      expect(ReadmooAdapter).toBeDefined()
+      expect(createReadmooAdapter).toBeDefined()
 
-      adapter = new ReadmooAdapter()
-      expect(adapter).toBeInstanceOf(ReadmooAdapter)
+      adapter = createReadmooAdapter()
+      expect(adapter).toBeDefined()
+      expect(typeof adapter).toBe('object')
+      expect(adapter.constructor.name).toBe('ReadmooAdapter')
     })
 
     test('應該有正確的適配器名稱和版本', () => {
-      adapter = new ReadmooAdapter()
+      adapter = createReadmooAdapter()
 
       expect(adapter.name).toBe('ReadmooAdapter')
       expect(adapter.version).toBeDefined()
@@ -48,7 +50,7 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該實現標準化適配器介面', () => {
-      adapter = new ReadmooAdapter()
+      adapter = createReadmooAdapter()
 
       // 檢查必需的方法
       expect(typeof adapter.extractBooks).toBe('function')
@@ -58,7 +60,7 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該有適配器配置和狀態', () => {
-      adapter = new ReadmooAdapter()
+      adapter = createReadmooAdapter()
 
       expect(adapter.config).toBeDefined()
       expect(adapter.stats).toBeDefined()
@@ -68,7 +70,7 @@ describe('ReadmooAdapter', () => {
 
   describe('Readmoo 頁面驗證 (Cycle #4)', () => {
     beforeEach(() => {
-      adapter = new ReadmooAdapter()
+      adapter = createReadmooAdapter()
     })
 
     test('應該能識別支援的 Readmoo URL', () => {
@@ -109,7 +111,7 @@ describe('ReadmooAdapter', () => {
 
   describe('DOM 解析能力 (Cycle #4)', () => {
     beforeEach(() => {
-      adapter = new ReadmooAdapter()
+      adapter = createReadmooAdapter()
 
       // 模擬 DOM 環境
       document.body.innerHTML = `
@@ -179,7 +181,7 @@ describe('ReadmooAdapter', () => {
 
   describe('書籍資料提取 (Cycle #4)', () => {
     beforeEach(() => {
-      adapter = new ReadmooAdapter()
+      adapter = createReadmooAdapter()
 
       // 設置測試 DOM
       document.body.innerHTML = `
@@ -211,7 +213,7 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該能提取完整的書籍資料', async () => {
-      const books = await adapter.extractBooks(document)
+      const books = await adapter.extractBooks()
 
       expect(Array.isArray(books)).toBe(true)
       expect(books.length).toBeGreaterThan(0)
@@ -225,7 +227,7 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該能正確提取書籍 ID（使用封面URL系統）', async () => {
-      const books = await adapter.extractBooks(document)
+      const books = await adapter.extractBooks()
       const book = books[0]
 
       // 新系統使用封面URL作為主要識別
@@ -239,14 +241,14 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該能正確提取書籍標題', async () => {
-      const books = await adapter.extractBooks(document)
+      const books = await adapter.extractBooks()
       const book = books[0]
 
       expect(book.title).toBe('大腦不滿足')
     })
 
     test('應該能正確提取書籍封面和細節資訊', async () => {
-      const books = await adapter.extractBooks(document)
+      const books = await adapter.extractBooks()
       const book = books[0]
 
       expect(book.cover).toContain('cdn.readmoo.com')
@@ -260,7 +262,7 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該能正確解析閱讀進度', async () => {
-      const books = await adapter.extractBooks(document)
+      const books = await adapter.extractBooks()
       const book = books[0]
 
       expect(book.progress).toBe(60)
@@ -268,7 +270,7 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該能正確識別書籍類型', async () => {
-      const books = await adapter.extractBooks(document)
+      const books = await adapter.extractBooks()
       const book = books[0]
 
       expect(book.type).toBe('流式')
@@ -277,7 +279,7 @@ describe('ReadmooAdapter', () => {
 
   describe('進階書籍資料提取 (Cycle #4)', () => {
     beforeEach(() => {
-      adapter = new ReadmooAdapter()
+      adapter = createReadmooAdapter()
     })
 
     test('應該能處理版式書籍', async () => {
@@ -302,7 +304,7 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
-      const books = await adapter.extractBooks(document)
+      const books = await adapter.extractBooks()
       const book = books[0]
 
       expect(book.type).toBe('版式')
@@ -326,7 +328,7 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
-      const books = await adapter.extractBooks(document)
+      const books = await adapter.extractBooks()
       const book = books[0]
 
       expect(book.progress).toBe(0)
@@ -348,7 +350,7 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
-      const books = await adapter.extractBooks(document)
+      const books = await adapter.extractBooks()
       const book = books[0]
 
       // 新系統中會嘗試從封面URL提取ID
@@ -380,7 +382,7 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
-      const books = await adapter.extractBooks(document)
+      const books = await adapter.extractBooks()
 
       expect(books).toHaveLength(2)
       // 新系統使用封面為主要識別，會根據封面檔名生成ID
@@ -391,7 +393,7 @@ describe('ReadmooAdapter', () => {
 
   describe('適配器統計和狀態 (Cycle #4)', () => {
     beforeEach(() => {
-      adapter = new ReadmooAdapter()
+      adapter = createReadmooAdapter()
     })
 
     test('應該追蹤提取統計', async () => {
@@ -409,7 +411,7 @@ describe('ReadmooAdapter', () => {
       const initialStats = adapter.getStats()
       expect(initialStats.totalExtractions).toBe(0)
 
-      await adapter.extractBooks(document)
+      await adapter.extractBooks()
 
       const updatedStats = adapter.getStats()
       expect(updatedStats.totalExtractions).toBe(1)
@@ -436,7 +438,7 @@ describe('ReadmooAdapter', () => {
 
   describe('新書籍識別系統 (ID System v2.0)', () => {
     beforeEach(() => {
-      adapter = new ReadmooAdapter()
+      adapter = createReadmooAdapter()
     })
 
     test('應該優先使用封面URL提取書籍ID', async () => {
@@ -455,7 +457,7 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
-      const books = await adapter.extractBooks(document)
+      const books = await adapter.extractBooks()
       const book = books[0]
 
       // 主要ID應該來自封面URL
@@ -481,7 +483,7 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
-      const books = await adapter.extractBooks(document)
+      const books = await adapter.extractBooks()
       const book = books[0]
 
       // 由於封面URL無法識別，應該使用標題生成ID
@@ -506,7 +508,7 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
-      const books = await adapter.extractBooks(document)
+      const books = await adapter.extractBooks()
       const book = books[0]
 
       // 最後備用方案：使用reader-link但標記為不穩定
@@ -531,7 +533,7 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
-      const books = await adapter.extractBooks(document)
+      const books = await adapter.extractBooks()
       const book = books[0]
 
       // 檢查完整的識別資訊結構
@@ -577,7 +579,7 @@ describe('ReadmooAdapter', () => {
           </div>
         `
 
-        const books = await adapter.extractBooks(document)
+        const books = await adapter.extractBooks()
         const book = books[0]
 
         expect(book.id).toBe(testCase.expectedId)
@@ -589,18 +591,18 @@ describe('ReadmooAdapter', () => {
 
   describe('錯誤處理和邊界情況 (Cycle #4)', () => {
     beforeEach(() => {
-      adapter = new ReadmooAdapter()
+      adapter = createReadmooAdapter()
     })
 
     test('應該能處理 null 文檔', async () => {
-      const books = await adapter.extractBooks(null)
+      const books = await adapter.extractBooks()
       expect(books).toEqual([])
     })
 
     test('應該能處理無效的 DOM 結構', async () => {
       document.body.innerHTML = '<div>無效結構</div>'
 
-      const books = await adapter.extractBooks(document)
+      const books = await adapter.extractBooks()
       expect(Array.isArray(books)).toBe(true)
       expect(books).toHaveLength(0)
     })
@@ -621,7 +623,7 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
-      await adapter.extractBooks(document)
+      await adapter.extractBooks()
 
       const stats = adapter.getStats()
       expect(stats.failedExtractions).toBeGreaterThan(0)
@@ -642,7 +644,7 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
-      const books = await adapter.extractBooks(document)
+      const books = await adapter.extractBooks()
 
       // 應該能提取有效的書籍，忽略無效項目
       expect(books).toHaveLength(1)

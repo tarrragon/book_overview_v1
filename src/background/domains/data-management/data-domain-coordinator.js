@@ -141,6 +141,8 @@ class DataDomainCoordinator extends BaseModule {
     // v1.0 階段設定 - 部分服務暫時擱置
     // 未來實作的服務（使用 Mock 保持架構完整）
     this.services.migration = new MockService('SchemaMigrationService')
+    this.services.synchronization = new MockService('SynchronizationOrchestrator')
+    this.services.conflictResolution = new MockService('ConflictDetectionService')
     this.services.storageAdapter = new MockService('StorageAdapterService')
     this.services.backupRecovery = new MockService('BackupRecoveryService')
 
