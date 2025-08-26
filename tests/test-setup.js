@@ -223,7 +223,7 @@ global.TextDecoder = TextDecoder
 // 修復 JSDOM 中 Blob 的 type 屬性問題
 const OriginalBlob = global.Blob
 global.Blob = class extends OriginalBlob {
-  constructor(blobParts, options = {}) {
+  constructor (blobParts, options = {}) {
     super(blobParts, options)
     // 確保 type 屬性被正確設置
     Object.defineProperty(this, 'type', {

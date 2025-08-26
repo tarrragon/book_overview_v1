@@ -218,7 +218,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
     })
 
     test('CE010: 應該處理Background Script連線中斷', async () => {
-      // Given: Background Script 連線中斷事件  
+      // Given: Background Script 連線中斷事件
       const connectionErrorEvent = {
         type: 'MESSAGE.ROUTING_ERROR',
         data: {
@@ -253,7 +253,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
           }
         },
         {
-          type: 'MESSAGE.UNKNOWN_TYPE', 
+          type: 'MESSAGE.UNKNOWN_TYPE',
           data: {
             messageType: 'UNKNOWN_MESSAGE',
             context: 'non-critical',
@@ -287,9 +287,9 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
 
       // Then: 應該提供完整的健康狀態資訊
       expect(health).toHaveProperty('runtimeAvailable')
-      expect(health).toHaveProperty('messageSystemWorking') 
+      expect(health).toHaveProperty('messageSystemWorking')
       expect(health).toHaveProperty('lastErrorStatus')
-      
+
       expect(health.runtimeAvailable).toBe(true)
       expect(health.messageSystemWorking).toBe(true)
       expect(health.lastErrorStatus).toBe(null)

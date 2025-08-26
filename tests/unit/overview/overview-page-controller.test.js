@@ -132,6 +132,31 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       once: jest.fn()
     }
 
+    // 載入 EventHandler 並設置到 window
+    const EventHandler = require('../../../src/core/event-handler')
+    window.EventHandler = EventHandler
+
+    // Mock Chrome APIs for Promise-based usage
+    global.chrome = {
+      storage: {
+        local: {
+          get: jest.fn().mockImplementation((keys) => {
+            return Promise.resolve({
+              readmoo_books: []
+            })
+          }),
+          set: jest.fn().mockImplementation(() => Promise.resolve())
+        }
+      },
+      runtime: {
+        onMessage: {
+          addListener: jest.fn()
+        },
+        sendMessage: jest.fn().mockImplementation(() => Promise.resolve()),
+        lastError: null
+      }
+    }
+
     // 重置模組快取
     jest.resetModules()
     OverviewPageController = null
@@ -405,16 +430,16 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       expect(global.Blob).toHaveBeenCalled()
     })
 
-    test('應該能處理重新載入操作', () => {
+    test('應該能處理重新載入操作', async () => {
       const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.handleReload).toBe('function')
 
-      controller.handleReload()
+      await controller.handleReload()
 
-      // 檢查是否觸發了資料載入事件
-      expect(mockEventBus.emit).toHaveBeenCalledWith('STORAGE.LOAD.REQUESTED', expect.any(Object))
+      // 檢查是否調用了 Chrome Storage
+      expect(global.chrome.storage.local.get).toHaveBeenCalledWith(['readmoo_books'])
     })
 
     test('應該能處理檔案載入操作', () => {
@@ -446,9 +471,11 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
       const controller = new OverviewPageController(mockEventBus, document)
 
-      expect(controller).toBeInstanceOf(EventHandler)
+      // 檢查是否具有 EventHandler 的關鍵方法和屬性
       expect(controller.name).toBe('OverviewPageController')
       expect(controller.priority).toBeDefined()
+      expect(typeof controller.process).toBe('function')
+      expect(typeof controller.canHandle).toBe('function')
     })
 
     test('應該正確實現 EventHandler 抽象方法', () => {

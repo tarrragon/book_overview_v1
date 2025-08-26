@@ -412,7 +412,7 @@ class AdapterFactoryService {
       // 記錄統計 - 先計算平均時間再更新總數
       const creationTime = Math.max(1, Date.now() - startTime) // 確保至少為1ms
       this.updateAverageCreationTime(creationTime)
-      
+
       this.statistics.totalCreated++
       this.statistics.activeInstances++
       this.statistics.lastCreationTime = Date.now()
@@ -1243,7 +1243,7 @@ class AdapterFactoryService {
     // 重置統計資料
     this.statistics.totalCreated = 0
     this.statistics.activeInstances = 0
-    
+
     // 重置所有平台狀態
     for (const platformId of this.supportedPlatforms) {
       const state = this.adapterStates.get(platformId)

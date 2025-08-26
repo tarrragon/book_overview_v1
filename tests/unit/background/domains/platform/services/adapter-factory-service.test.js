@@ -621,10 +621,10 @@ describe('AdapterFactoryService', () => {
       })
 
       const adapter = await adapterFactory.createAdapter('READMOO')
-      
+
       // 測試adapter初始化失敗
       await expect(adapter.initialize()).rejects.toThrow('初始化失敗')
-      
+
       // 由於錯誤發生在adapter.initialize()中，我們需要測試另一種方式
       // 這裡主要測試統計數據更新
       expect(adapterFactory.statistics.lifecycleErrors).toBeGreaterThanOrEqual(0)
@@ -956,7 +956,7 @@ describe('AdapterFactoryService', () => {
     test('應該正確追蹤平台狀態', async () => {
       // 確保從完全乾淨狀態開始
       await adapterFactory.cleanupAllAdapters()
-      
+
       // 重新初始化所有平台狀態
       for (const platformId of adapterFactory.supportedPlatforms) {
         const existingState = adapterFactory.adapterStates.get(platformId)
@@ -967,7 +967,7 @@ describe('AdapterFactoryService', () => {
           existingState.errorInstances = 0
         }
       }
-      
+
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
@@ -997,7 +997,7 @@ describe('AdapterFactoryService', () => {
       const readmooAdapter = await adapterFactory.createAdapter('READMOO')
       await readmooAdapter.initialize()
       await readmooAdapter.activate()
-      
+
       expect(readmooAdapter.isActive).toBe(true) // 確保初始狀態正確
 
       // 模擬平台切換事件 - 直接傳遞事件數據

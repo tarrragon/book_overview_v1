@@ -260,6 +260,7 @@ const MESSAGE_EVENTS = {
 /**
  * UX Domain 事件類型
  */
+// eslint-disable-next-line no-unused-vars
 const UX_EVENTS = {
   // 協調器事件
   COORDINATOR_INITIALIZED: 'UX.COORDINATOR.INITIALIZED',
@@ -279,6 +280,7 @@ const UX_EVENTS = {
 /**
  * 主題相關事件類型
  */
+// eslint-disable-next-line no-unused-vars
 const THEME_EVENTS = {
   // 主題變更事件
   CHANGE_REQUEST: 'UX.THEME.CHANGE.REQUEST',
@@ -296,6 +298,7 @@ const THEME_EVENTS = {
 /**
  * Popup 相關事件類型
  */
+// eslint-disable-next-line no-unused-vars
 const POPUP_EVENTS = {
   // 狀態協調事件
   STATE_COORDINATED: 'UX.POPUP.STATE.COORDINATED',

@@ -932,9 +932,9 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
       await controller.setupEventListeners()
 
       const testBooks = TestDataFactory.createBooksList(5)
-      
+
       // 正確設置 Chrome Storage mock，使用 Promise 版本以配合實作中的 await
-      chrome.storage.local.get = jest.fn().mockResolvedValue({ 
+      chrome.storage.local.get = jest.fn().mockResolvedValue({
         readmoo_books: {
           books: testBooks,
           extractionTimestamp: Date.now()

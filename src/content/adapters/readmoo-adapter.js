@@ -72,7 +72,7 @@ function createReadmooAdapter () {
     name: 'ReadmooAdapter',
     version: '2.0.0',
     isInitialized: false,
-    
+
     // 適配器配置
     config: {
       batchSize: 10,
@@ -81,9 +81,9 @@ function createReadmooAdapter () {
       validateUrls: true,
       enableStats: true
     },
-    
+
     // 適配器統計 (提供 stats 屬性訪問)
-    get stats() {
+    get stats () {
       return this.getStats()
     },
 
@@ -534,15 +534,15 @@ function createReadmooAdapter () {
 
       const readerResult = this.tryReaderStrategy(inputs)
       if (readerResult) {
-        return { 
-          id: `unstable-${inputs.readerId}`, 
-          strategy: 'reader-link' 
+        return {
+          id: `unstable-${inputs.readerId}`,
+          strategy: 'reader-link'
         }
       }
 
-      return { 
-        id: this.createFallbackId(), 
-        strategy: 'fallback' 
+      return {
+        id: this.createFallbackId(),
+        strategy: 'fallback'
       }
     },
 
@@ -903,7 +903,7 @@ function createReadmooAdapter () {
         const bookElements = this.getBookElements()
         return {
           isValid: true,
-          bookElements: bookElements
+          bookElements
         }
       } catch (error) {
         return {
@@ -933,7 +933,7 @@ function createReadmooAdapter () {
         const isReadmooHost = urlObj.hostname.includes('readmoo.com')
         const isLibraryPath = urlObj.pathname.includes('library')
         const isBookshelfPath = urlObj.pathname.includes('bookshelf') || urlObj.pathname.includes('shelf')
-        
+
         return isReadmooHost && (isLibraryPath || isBookshelfPath)
       } catch (error) {
         return false

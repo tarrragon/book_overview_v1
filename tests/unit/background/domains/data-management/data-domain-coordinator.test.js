@@ -406,7 +406,7 @@ describe('DataDomainCoordinator', () => {
         // 由於衝突解決服務尚未實作，應該記錄警告日誌
         const warnings = mockLogger.getLogsByLevel('warn')
         const conflictWarnings = warnings.filter(log =>
-          log.message.includes('資料衝突處理暫時擁置') || 
+          log.message.includes('資料衝突處理暫時擁置') ||
           log.message.includes('conflict_123')
         )
         expect(conflictWarnings.length).toBeGreaterThan(0)

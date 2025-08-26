@@ -206,11 +206,11 @@ class DataValidationService {
     try {
       const invalidBooks = []
       const validationResult = await this._processValidationStage(uncachedBooks, platform, performanceMetrics, errors, warnings, invalidBooks)
-      
+
       // 從驗證結果中提取有效書籍進行後續處理
       const validBooksFromValidation = validationResult.validBooks
       const invalidBooksFromValidation = validationResult.invalidBooks
-      
+
       // 對有效書籍進行標準化和品質分析
       processedBooks = await this._processNormalizationStage(validBooksFromValidation, performanceMetrics, warnings)
       await this._processQualityAnalysisStage(processedBooks, platform, performanceMetrics, warnings)
@@ -226,7 +226,7 @@ class DataValidationService {
 
   async _processValidationStage (uncachedBooks, platform, performanceMetrics, errors, warnings, invalidBooks = []) {
     const validationStart = Date.now()
-    
+
     // 總是進行驗證，無論是否有外部驗證引擎
     const validationResult = await this._executeValidationForBooks(uncachedBooks, platform, errors, warnings, invalidBooks)
 
@@ -272,7 +272,7 @@ class DataValidationService {
 
   _performBasicBookValidation (book, platform, errors, warnings) {
     const bookErrors = []
-    
+
     // 檢查必填欄位
     if (!book.id || book.id.trim() === '') {
       bookErrors.push({
@@ -282,7 +282,7 @@ class DataValidationService {
         bookId: book.id
       })
     }
-    
+
     if (!book.title || book.title.trim() === '') {
       bookErrors.push({
         type: 'MISSING_REQUIRED_FIELD',
@@ -291,7 +291,7 @@ class DataValidationService {
         bookId: book.id
       })
     }
-    
+
     // 檢查資料類型
     if (book.authors !== undefined && book.authors !== null && !Array.isArray(book.authors)) {
       bookErrors.push({
@@ -301,7 +301,7 @@ class DataValidationService {
         bookId: book.id
       })
     }
-    
+
     if (book.publisher !== undefined && typeof book.publisher !== 'string') {
       bookErrors.push({
         type: 'INVALID_DATA_TYPE',
@@ -310,7 +310,7 @@ class DataValidationService {
         bookId: book.id
       })
     }
-    
+
     // 檢查進度範圍
     if (book.progress) {
       if (book.progress.percentage !== undefined && (book.progress.percentage < 0 || book.progress.percentage > 100)) {
@@ -321,7 +321,7 @@ class DataValidationService {
           bookId: book.id
         })
       }
-      
+
       if (book.progress.currentPage !== undefined && book.progress.currentPage < 0) {
         bookErrors.push({
           type: 'INVALID_RANGE',
@@ -331,7 +331,7 @@ class DataValidationService {
         })
       }
     }
-    
+
     // 檢查評分範圍
     if (book.rating !== undefined && (book.rating < 1 || book.rating > 5)) {
       bookErrors.push({
@@ -341,10 +341,10 @@ class DataValidationService {
         bookId: book.id
       })
     }
-    
+
     // 將錯誤添加到全局錯誤列表
     errors.push(...bookErrors)
-    
+
     // 如果有錯誤，返回 false（無效）
     return bookErrors.length === 0
   }

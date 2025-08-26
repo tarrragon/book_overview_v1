@@ -162,7 +162,7 @@ describe('Background Service Worker Event System Integration', () => {
     test('應該成功載入並初始化 ChromeEventBridge', async () => {
       // 檢查 ChromeEventBridge 模組是否可被載入
       expect(() => {
-        require('@/core/chrome-event-bridge')
+        require('@/content/bridge/chrome-event-bridge')
       }).not.toThrow()
 
       // 檢查 background.js 是否包含 ChromeEventBridge 相關程式碼

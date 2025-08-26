@@ -39,7 +39,7 @@ describe('PageDetectionUtils - 完整功能測試', () => {
         pathname: url.pathname,
         search: url.search || ''
       }
-      
+
       // 更新全域 window.location 和 global.window.location
       Object.defineProperty(window, 'location', {
         writable: true,
