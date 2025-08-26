@@ -34,6 +34,7 @@
 ### Phase 2: 關鍵測試套件修復 (預計15-20個) 🔄 進行中
 - [x] 修復platform-detection-service.test.js - 浮點數精度問題
 - [x] 修復event-utils.test.js - Chrome API mock問題
+- [x] 修復system-error-classifier.test.js - 語法和mock邏輯問題
 - [ ] 修復data-validation-service.test.js
 - [ ] 修復chrome-event-bridge.test.js
 - [ ] 修復其他關鍵測試套件
@@ -72,8 +73,9 @@
 - ✅ 分析失敗測試套件清單並按優先級分類
 - ✅ 修復platform-detection-service.test.js - 浮點數精度問題
 - ✅ 修復event-utils.test.js - Chrome API mock問題 (29/29通過)
-- 📊 **當前通過率**: 92.3% (2763/2998) - 38個失敗套件
-- 🎯 **進步**: +9個測試通過，-1個失敗套件
+- ✅ 修復system-error-classifier.test.js - 語法和mock邏輯問題 (23/23通過)
+- 📊 **當前通過率**: 92.3% (2786/3021) - 38個失敗套件
+- 🎯 **進步**: +32個測試通過，修復3個測試套件，+23個新測試
 
 **失敗測試套件分類 (39個)**:
 
@@ -90,7 +92,7 @@
 - readmoo-platform-migration-validator.test.js
 - overview-import-private-methods.test.js
 - page-detection-utils.test.js
-- system-error-classifier.test.js
+- system-error-classifier.test.js ✅ 已修復 - 語法和mock邏輯問題
 - error-recovery-strategies.test.js
 - event-utils.test.js ✅ 已修復 - Chrome API mock問題
 
