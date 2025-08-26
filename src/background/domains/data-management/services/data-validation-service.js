@@ -199,56 +199,154 @@ class DataValidationService {
     performanceMetrics.cacheHitRate = 1.0
     performanceMetrics.totalTime = Date.now() - startTime
 
-    return this._formatValidationResult(true, processedBooks, validBooks, errors, warnings, books, performanceMetrics, true)
+    return this._formatValidationResult(true, processedBooks, validBooks, errors, warnings, books, performanceMetrics, true, [])
   }
 
   async _processUncachedBooks (uncachedBooks, platform, books, performanceMetrics, startTime, processedBooks, validBooks, errors, warnings, validationId) {
     try {
-      processedBooks = await this._processValidationStage(uncachedBooks, platform, performanceMetrics, errors, warnings)
-      processedBooks = await this._processNormalizationStage(processedBooks, performanceMetrics, warnings)
+      const invalidBooks = []
+      const validationResult = await this._processValidationStage(uncachedBooks, platform, performanceMetrics, errors, warnings, invalidBooks)
+      
+      // 從驗證結果中提取有效書籍進行後續處理
+      const validBooksFromValidation = validationResult.validBooks
+      const invalidBooksFromValidation = validationResult.invalidBooks
+      
+      // 對有效書籍進行標準化和品質分析
+      processedBooks = await this._processNormalizationStage(validBooksFromValidation, performanceMetrics, warnings)
       await this._processQualityAnalysisStage(processedBooks, platform, performanceMetrics, warnings)
 
       validBooks = processedBooks
-      await this._updateValidationCache(uncachedBooks, processedBooks)
+      await this._updateValidationCache(validBooksFromValidation, processedBooks)
 
-      return this._calculateFinalResults(books, processedBooks, validBooks, errors, warnings, performanceMetrics, startTime)
+      return this._calculateFinalResults(books, processedBooks, validBooks, errors, warnings, performanceMetrics, startTime, invalidBooksFromValidation)
     } catch (error) {
       return this._handleValidationError(error, books, warnings, performanceMetrics, startTime)
     }
   }
 
-  async _processValidationStage (uncachedBooks, platform, performanceMetrics, errors, warnings) {
-    if (!this._validationEngine) {
-      return uncachedBooks
-    }
-
+  async _processValidationStage (uncachedBooks, platform, performanceMetrics, errors, warnings, invalidBooks = []) {
     const validationStart = Date.now()
-    const processedBooks = await this._executeValidationForBooks(uncachedBooks, platform, errors, warnings)
+    
+    // 總是進行驗證，無論是否有外部驗證引擎
+    const validationResult = await this._executeValidationForBooks(uncachedBooks, platform, errors, warnings, invalidBooks)
 
     performanceMetrics.subServiceTimes.validation = Date.now() - validationStart
     performanceMetrics.processingStages.push('validation')
-    return processedBooks
+    return validationResult
   }
 
-  async _executeValidationForBooks (uncachedBooks, platform, errors, warnings) {
+  async _executeValidationForBooks (uncachedBooks, platform, errors, warnings, invalidBooks = []) {
     const processedBooks = []
 
     for (const book of uncachedBooks) {
       const isValidBook = await this._validateSingleBookInStage(book, platform, errors, warnings)
-      if (isValidBook) processedBooks.push(book)
+      if (isValidBook) {
+        processedBooks.push(book)
+      } else {
+        // 收集無效書籍，包含錯誤信息
+        const bookWithErrors = {
+          ...book,
+          errors: errors.filter(error => error.bookId === book.id || !error.bookId)
+        }
+        invalidBooks.push(bookWithErrors)
+      }
     }
 
-    return processedBooks
+    return { validBooks: processedBooks, invalidBooks }
   }
 
   async _validateSingleBookInStage (book, platform, errors, warnings) {
     try {
-      const validationResult = await this._validationEngine.validateSingle(book, { platform })
-      return this._processValidationResult(validationResult, errors, warnings)
+      if (this._validationEngine) {
+        const validationResult = await this._validationEngine.validateSingle(book, { platform })
+        return this._processValidationResult(validationResult, errors, warnings)
+      } else {
+        // 內置基本驗證邏輯
+        return this._performBasicBookValidation(book, platform, errors, warnings)
+      }
     } catch (error) {
       await this._handleValidationServiceError(error, errors)
       return false
     }
+  }
+
+  _performBasicBookValidation (book, platform, errors, warnings) {
+    const bookErrors = []
+    
+    // 檢查必填欄位
+    if (!book.id || book.id.trim() === '') {
+      bookErrors.push({
+        type: 'MISSING_REQUIRED_FIELD',
+        field: 'id',
+        message: 'Book ID is required',
+        bookId: book.id
+      })
+    }
+    
+    if (!book.title || book.title.trim() === '') {
+      bookErrors.push({
+        type: 'MISSING_REQUIRED_FIELD',
+        field: 'title',
+        message: 'Book title is required',
+        bookId: book.id
+      })
+    }
+    
+    // 檢查資料類型
+    if (book.authors !== undefined && book.authors !== null && !Array.isArray(book.authors)) {
+      bookErrors.push({
+        type: 'INVALID_DATA_TYPE',
+        field: 'authors',
+        message: 'Authors must be an array',
+        bookId: book.id
+      })
+    }
+    
+    if (book.publisher !== undefined && typeof book.publisher !== 'string') {
+      bookErrors.push({
+        type: 'INVALID_DATA_TYPE',
+        field: 'publisher',
+        message: 'Publisher must be a string',
+        bookId: book.id
+      })
+    }
+    
+    // 檢查進度範圍
+    if (book.progress) {
+      if (book.progress.percentage !== undefined && (book.progress.percentage < 0 || book.progress.percentage > 100)) {
+        bookErrors.push({
+          type: 'INVALID_RANGE',
+          field: 'progress.percentage',
+          message: 'Progress percentage must be between 0 and 100',
+          bookId: book.id
+        })
+      }
+      
+      if (book.progress.currentPage !== undefined && book.progress.currentPage < 0) {
+        bookErrors.push({
+          type: 'INVALID_RANGE',
+          field: 'progress.currentPage',
+          message: 'Current page cannot be negative',
+          bookId: book.id
+        })
+      }
+    }
+    
+    // 檢查評分範圍
+    if (book.rating !== undefined && (book.rating < 1 || book.rating > 5)) {
+      bookErrors.push({
+        type: 'INVALID_RANGE',
+        field: 'rating',
+        message: 'Rating must be between 1 and 5',
+        bookId: book.id
+      })
+    }
+    
+    // 將錯誤添加到全局錯誤列表
+    errors.push(...bookErrors)
+    
+    // 如果有錯誤，返回 false（無效）
+    return bookErrors.length === 0
   }
 
   _processValidationResult (validationResult, errors, warnings) {
@@ -364,11 +462,11 @@ class DataValidationService {
     )
   }
 
-  _calculateFinalResults (books, processedBooks, validBooks, errors, warnings, performanceMetrics, startTime) {
+  _calculateFinalResults (books, processedBooks, validBooks, errors, warnings, performanceMetrics, startTime, invalidBooks = []) {
     performanceMetrics.totalTime = Date.now() - startTime
     const success = this._determineOverallSuccess(errors, validBooks)
 
-    return this._formatValidationResult(success, processedBooks, validBooks, errors, warnings, books, performanceMetrics, false)
+    return this._formatValidationResult(success, processedBooks, validBooks, errors, warnings, books, performanceMetrics, false, invalidBooks)
   }
 
   _determineOverallSuccess (errors, validBooks) {
@@ -376,20 +474,32 @@ class DataValidationService {
     return !hasErrors || validBooks.length > 0
   }
 
-  _formatValidationResult (success, processedBooks, validBooks, errors, warnings, books, performanceMetrics, fromCache = false) {
+  _formatValidationResult (success, processedBooks, validBooks, errors, warnings, books, performanceMetrics, fromCache = false, invalidBooks = []) {
     const result = {
       success,
       processed: processedBooks,
-      validBooks,
-      errors,
-      warnings,
+      validBooks: validBooks || [],
+      errors: errors || [],
+      warnings: warnings || [],
       statistics: {
         total: books.length,
-        successful: validBooks.length,
-        failed: errors.length
+        successful: (validBooks || []).length,
+        failed: (invalidBooks || []).length
       },
-      performanceMetrics
+      performanceMetrics,
+      // 測試期望的直接屬性
+      totalBooks: books.length,
+      invalidBooks: invalidBooks || [],
+      normalizedBooks: processedBooks || []
     }
+
+    // 使用現有的 calculateQualityScore 方法計算品質分數
+    result.qualityScore = this.calculateQualityScore({
+      totalBooks: books.length,
+      validBooks: validBooks || [],
+      invalidBooks: invalidBooks || [],
+      warnings: warnings || []
+    })
 
     if (fromCache) result.fromCache = true
     return result
@@ -399,14 +509,19 @@ class DataValidationService {
     performanceMetrics.totalTime = Date.now() - startTime
     return {
       success: false,
+      validBooks: [],
+      invalidBooks: books || [],
       errors: [error.message],
       warnings,
       statistics: {
-        total: books.length,
+        total: (books || []).length,
         successful: 0,
-        failed: books.length
+        failed: (books || []).length
       },
-      performanceMetrics
+      performanceMetrics,
+      totalBooks: (books || []).length,
+      normalizedBooks: [],
+      qualityScore: 0
     }
   }
 
