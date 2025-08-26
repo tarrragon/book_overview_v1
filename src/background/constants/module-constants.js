@@ -420,10 +420,10 @@ const SYNC_STATES = {
  * 同步策略常數
  */
 const SYNC_STRATEGIES = {
-  MERGE: 'merge',           // 合併資料（預設）
-  OVERWRITE: 'overwrite',   // 覆寫目標資料
+  MERGE: 'merge', // 合併資料（預設）
+  OVERWRITE: 'overwrite', // 覆寫目標資料
   SKIP_EXISTING: 'skip_existing', // 跳過重複資料
-  CREATE_BACKUP: 'create_backup'  // 建立備份後合併
+  CREATE_BACKUP: 'create_backup' // 建立備份後合併
 }
 
 /**

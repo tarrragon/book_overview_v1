@@ -65,7 +65,7 @@ class SyncConflictResolver {
       processor: (localBook, remoteBook) => {
         const localTime = new Date(localBook.extractedAt || 0).getTime()
         const remoteTime = new Date(remoteBook.extractedAt || 0).getTime()
-        
+
         return {
           resolved: true,
           result: remoteTime > localTime ? remoteBook : localBook,
@@ -81,7 +81,7 @@ class SyncConflictResolver {
       processor: (localBook, remoteBook) => {
         const localProgress = localBook.progress || 0
         const remoteProgress = remoteBook.progress || 0
-        
+
         return {
           resolved: true,
           result: remoteProgress > localProgress ? remoteBook : localBook,
@@ -96,24 +96,24 @@ class SyncConflictResolver {
       description: '保留每個屬性的最佳值',
       processor: (localBook, remoteBook) => {
         const merged = { ...localBook }
-        
+
         // 保留較高的進度
         if ((remoteBook.progress || 0) > (localBook.progress || 0)) {
           merged.progress = remoteBook.progress
         }
-        
+
         // 保留較新的時間戳
         const localTime = new Date(localBook.extractedAt || 0).getTime()
         const remoteTime = new Date(remoteBook.extractedAt || 0).getTime()
         if (remoteTime > localTime) {
           merged.extractedAt = remoteBook.extractedAt
         }
-        
+
         // 保留完成狀態（如果任一已完成）
         if (remoteBook.isFinished && !localBook.isFinished) {
           merged.isFinished = true
         }
-        
+
         return {
           resolved: true,
           result: merged,
@@ -142,7 +142,7 @@ class SyncConflictResolver {
   async detectConflicts (localBooks, remoteBooks) {
     const conflicts = []
     const localBookMap = new Map()
-    
+
     // 建立本地書籍索引
     localBooks.forEach(book => {
       localBookMap.set(book.id, book)
@@ -151,7 +151,7 @@ class SyncConflictResolver {
     // 檢查遠端書籍是否有衝突
     for (const remoteBook of remoteBooks) {
       const localBook = localBookMap.get(remoteBook.id)
-      
+
       if (localBook) {
         const conflictDetails = this.analyzeConflict(localBook, remoteBook)
         if (conflictDetails.hasConflict) {
@@ -186,7 +186,7 @@ class SyncConflictResolver {
         remote: remoteBook.progress,
         difference: progressDiff
       })
-      
+
       if (progressDiff > 20) severity = 'high'
       else if (progressDiff > 5) severity = 'medium'
     }
@@ -205,7 +205,7 @@ class SyncConflictResolver {
     const localTime = new Date(localBook.extractedAt || 0).getTime()
     const remoteTime = new Date(remoteBook.extractedAt || 0).getTime()
     const timeDiff = Math.abs(localTime - remoteTime)
-    
+
     if (timeDiff > 24 * 60 * 60 * 1000) { // 超過24小時
       conflicts.push({
         field: 'extractedAt',
@@ -225,18 +225,18 @@ class SyncConflictResolver {
 
   categorizeConflictType (conflicts) {
     const fieldTypes = conflicts.map(c => c.field)
-    
+
     if (fieldTypes.includes('isFinished')) return 'status_conflict'
     if (fieldTypes.includes('progress')) return 'progress_conflict'
     if (fieldTypes.includes('extractedAt')) return 'timestamp_conflict'
-    
+
     return 'data_conflict'
   }
 
   async resolveConflicts (conflicts, strategy = 'keep_latest', options = {}) {
     const resolutionResults = []
     const strategyProcessor = this.conflictStrategies.get(strategy)
-    
+
     if (!strategyProcessor) {
       throw new Error(`未支援的衝突解決策略: ${strategy}`)
     }
@@ -249,7 +249,7 @@ class SyncConflictResolver {
           conflict.localBook,
           conflict.remoteBook
         )
-        
+
         const result = {
           bookId: conflict.bookId,
           title: conflict.title,
@@ -258,10 +258,10 @@ class SyncConflictResolver {
           resolvedAt: Date.now(),
           conflictDetails: conflict
         }
-        
+
         resolutionResults.push(result)
         this.resolutionHistory.push(result)
-        
+
         // 更新統計
         if (resolutionResult.resolved) {
           this.stats.autoResolved++
@@ -277,7 +277,6 @@ class SyncConflictResolver {
           resolved: resolutionResult.resolved,
           reason: resolutionResult.reason
         })
-
       } catch (error) {
         this.logger.error(`❌ 解決衝突失敗 (${conflict.bookId}):`, error)
         resolutionResults.push({
@@ -311,7 +310,7 @@ class SyncConflictResolver {
       // 按類型統計
       const type = conflict.conflictType
       summary.byType[type] = (summary.byType[type] || 0) + 1
-      
+
       // 按嚴重程度統計
       summary.bySeverity[conflict.severity]++
     })
@@ -385,7 +384,7 @@ class SyncConflictResolver {
     try {
       this.logger.log('⚠️ 檢測到衝突，準備自動解決')
       const { conflicts, strategy } = event.data || {}
-      
+
       if (conflicts && conflicts.length > 0) {
         await this.resolveConflicts(conflicts, strategy || 'keep_latest')
       }

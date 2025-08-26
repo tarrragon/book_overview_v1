@@ -1,7 +1,7 @@
 /**
  * BatchValidationProcessor 測試
  * TDD 重構循環 2/8: 批次驗證處理邏輯提取
- * 
+ *
  * 目標：將批次驗證處理邏輯從 DataValidationService 中提取
  */
 
@@ -73,7 +73,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     test('splitIntoBatches() 應該正確分割小數量資料', () => {
       const books = [1, 2, 3, 4, 5]
       const batches = processor.splitIntoBatches(books)
-      
+
       expect(batches).toHaveLength(1)
       expect(batches[0]).toEqual([1, 2, 3, 4, 5])
     })
@@ -81,7 +81,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     test('splitIntoBatches() 應該正確分割大數量資料', () => {
       const books = new Array(25).fill(0).map((_, i) => ({ id: i }))
       const batches = processor.splitIntoBatches(books)
-      
+
       expect(batches).toHaveLength(3)
       expect(batches[0]).toHaveLength(10)
       expect(batches[1]).toHaveLength(10)
@@ -96,10 +96,10 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     test('splitIntoBatches() 應該尊重最大批次大小限制', () => {
       processor.config.batchSize = 200
       processor.config.maxBatchSize = 50
-      
+
       const books = new Array(100).fill(0).map((_, i) => ({ id: i }))
       const batches = processor.splitIntoBatches(books)
-      
+
       expect(batches).toHaveLength(2)
       expect(batches[0]).toHaveLength(50)
       expect(batches[1]).toHaveLength(50)
@@ -131,7 +131,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
       }
 
       const result = await processor.validateSingleBook(book, 'READMOO')
-      
+
       expect(result.isValid).toBe(true)
       expect(result.errors).toHaveLength(0)
       expect(result.book).toBe(book)
@@ -144,7 +144,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
       }
 
       const result = await processor.validateSingleBook(book, 'READMOO')
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toHaveLength(1)
       expect(result.errors[0].type).toBe('MISSING_REQUIRED_FIELD')
@@ -159,7 +159,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
       }
 
       const result = await processor.validateSingleBook(book, 'READMOO')
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors.some(e => e.type === 'INVALID_DATA_TYPE')).toBe(true)
     })
@@ -172,7 +172,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
       }
 
       const result = await processor.validateSingleBook(book, 'READMOO')
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors.some(e => e.type === 'BUSINESS_RULE_VIOLATION')).toBe(true)
     })
@@ -180,10 +180,10 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     test('validateSingleBook() 應該處理 null 或 undefined 書籍', async () => {
       const result1 = await processor.validateSingleBook(null, 'READMOO')
       const result2 = await processor.validateSingleBook(undefined, 'READMOO')
-      
+
       expect(result1.isValid).toBe(false)
       expect(result1.errors[0].type).toBe('NULL_BOOK_DATA')
-      
+
       expect(result2.isValid).toBe(false)
       expect(result2.errors[0].type).toBe('NULL_BOOK_DATA')
     })
@@ -209,7 +209,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
       ]
 
       const result = await processor.processBatch(batch, 'READMOO', 'test', 0, 1)
-      
+
       expect(result.validBooks).toHaveLength(3)
       expect(result.invalidBooks).toHaveLength(0)
       expect(result.warnings).toBeDefined()
@@ -223,7 +223,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
       ]
 
       const result = await processor.processBatch(batch, 'READMOO', 'test', 0, 1)
-      
+
       expect(result.validBooks).toHaveLength(2)
       expect(result.invalidBooks).toHaveLength(1)
       expect(result.invalidBooks[0].book.id).toBe('book2')
@@ -231,17 +231,17 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
 
     test('processBatch() 應該處理記憶體管理', async () => {
       global.gc = jest.fn()
-      
+
       const batch = [{ id: 'book1', title: '書籍1' }]
       const result = await processor.processBatch(batch, 'READMOO', 'test', 9, 10)
-      
+
       expect(global.gc).toHaveBeenCalled()
       expect(result.warnings.some(w => w.type === 'MEMORY_MANAGEMENT_INFO')).toBe(true)
     })
 
     test('processBatch() 應該處理空批次', async () => {
       const result = await processor.processBatch([], 'READMOO', 'test', 0, 1)
-      
+
       expect(result.validBooks).toHaveLength(0)
       expect(result.invalidBooks).toHaveLength(0)
     })
@@ -249,9 +249,9 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
 
   describe('🚀 完整批次驗證流程', () => {
     test('processBatches() 應該處理多個批次', async () => {
-      const books = new Array(25).fill(0).map((_, i) => ({ 
-        id: `book${i}`, 
-        title: `書籍${i}` 
+      const books = new Array(25).fill(0).map((_, i) => ({
+        id: `book${i}`,
+        title: `書籍${i}`
       }))
 
       mockValidationRuleManager.getValidationRules.mockReturnValue({
@@ -261,7 +261,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
       })
 
       const result = await processor.processBatches(books, 'READMOO', 'test', 'validation123')
-      
+
       expect(result.validBooks).toHaveLength(25)
       expect(result.allBatches).toHaveLength(3) // 10+10+5
       expect(mockEventBus.emit).toHaveBeenCalledWith(
@@ -275,7 +275,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
 
     test('processBatches() 應該處理空資料', async () => {
       const result = await processor.processBatches([], 'READMOO', 'test', 'validation123')
-      
+
       expect(result.validBooks).toHaveLength(0)
       expect(result.invalidBooks).toHaveLength(0)
       expect(result.allBatches).toHaveLength(0)
@@ -294,7 +294,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
       })
 
       await processor.processBatches(books, 'READMOO', 'test', 'validation123')
-      
+
       expect(processor.batchStatistics.totalProcessed).toBe(2)
       expect(processor.batchStatistics.batchCount).toBe(1)
     })
@@ -305,9 +305,9 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
       processor.batchStatistics.totalProcessed = 100
       processor.batchStatistics.batchCount = 5
       processor.batchStatistics.averageBatchSize = 20
-      
+
       const stats = processor.getBatchStatistics()
-      
+
       expect(stats.totalProcessed).toBe(100)
       expect(stats.batchCount).toBe(5)
       expect(stats.averageBatchSize).toBe(20)
@@ -316,14 +316,14 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     test('resetStatistics() 應該重置統計數據', () => {
       processor.batchStatistics.totalProcessed = 100
       processor.resetStatistics()
-      
+
       expect(processor.batchStatistics.totalProcessed).toBe(0)
       expect(processor.batchStatistics.batchCount).toBe(0)
     })
 
     test('isBatchProcessorHealthy() 應該檢查服務健康狀態', () => {
       const health = processor.isBatchProcessorHealthy()
-      
+
       expect(health.isHealthy).toBeDefined()
       expect(health.memoryUsage).toBeDefined()
       expect(health.lastCheck).toBeDefined()
@@ -337,7 +337,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
       expect(processor.isCorrectType([], 'array')).toBe(true)
       expect(processor.isCorrectType({}, 'object')).toBe(true)
       expect(processor.isCorrectType(true, 'boolean')).toBe(true)
-      
+
       expect(processor.isCorrectType('test', 'number')).toBe(false)
       expect(processor.isCorrectType(123, 'string')).toBe(false)
     })
@@ -345,7 +345,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     test('generateBatchId() 應該生成唯一的批次ID', () => {
       const id1 = processor.generateBatchId()
       const id2 = processor.generateBatchId()
-      
+
       expect(typeof id1).toBe('string')
       expect(typeof id2).toBe('string')
       expect(id1).not.toBe(id2)
@@ -367,10 +367,10 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
 
     test('應該處理驗證規則載入失敗', async () => {
       mockValidationRuleManager.getValidationRules.mockReturnValue(null)
-      
+
       const book = { id: 'book1', title: '書籍1' }
       const result = await processor.validateSingleBook(book, 'INVALID_PLATFORM')
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors[0].type).toBe('VALIDATION_RULES_UNAVAILABLE')
     })
@@ -378,10 +378,10 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     test('應該處理批次處理過程中的錯誤', async () => {
       // 模擬驗證過程中發生錯誤
       jest.spyOn(processor, 'validateSingleBook').mockRejectedValue(new Error('驗證失敗'))
-      
+
       const batch = [{ id: 'book1', title: '書籍1' }]
       const result = await processor.processBatch(batch, 'READMOO', 'test', 0, 1)
-      
+
       expect(result.invalidBooks).toHaveLength(1)
       expect(result.invalidBooks[0].errors[0].type).toBe('VALIDATION_ERROR')
     })

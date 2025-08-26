@@ -1,56 +1,56 @@
 /**
  * 測試資料生成器
- * 
+ *
  * 負責生成各種測試情境所需的資料
  * 支援不同規模的資料集和特殊測試情境
  */
 
 class TestDataGenerator {
-  constructor(options = {}) {
+  constructor (options = {}) {
     this.options = {
       locale: options.locale || 'zh-TW',
       seed: options.seed || Date.now(),
       includeSpecialChars: options.includeSpecialChars || true,
       ...options
     }
-    
+
     // 設定隨機種子以確保測試可重現
     this.randomSeed = this.options.seed
   }
 
   // 簡單的偽隨機數生成器
-  random() {
+  random () {
     this.randomSeed = (this.randomSeed * 9301 + 49297) % 233280
     return this.randomSeed / 233280
   }
 
-  randomInt(min, max) {
+  randomInt (min, max) {
     return Math.floor(this.random() * (max - min + 1)) + min
   }
 
-  randomChoice(array) {
+  randomChoice (array) {
     return array[Math.floor(this.random() * array.length)]
   }
 
-  generateBooks(count = 10) {
+  generateBooks (count = 10) {
     const books = []
     const categories = [
       '技術類', '程式設計', '人工智慧', '雲端技術', '專案管理',
       '文學小說', '商業管理', '心理學', '歷史', '科學'
     ]
-    
+
     const authors = [
       '測試作者A', '測試作者B', '測試作者C', '測試作者D', '測試作者E',
       'Test Author', 'John Doe', 'Jane Smith', '李明', '王小華'
     ]
-    
+
     const types = ['流式', '版式']
-    
+
     for (let i = 1; i <= count; i++) {
       const id = `test-book-${String(i).padStart(6, '0')}`
       const progress = this.randomInt(0, 100)
       const isFinished = progress === 100 || this.random() < 0.1
-      
+
       books.push({
         id,
         title: this.generateBookTitle(i),
@@ -70,14 +70,14 @@ class TestDataGenerator {
         }
       })
     }
-    
+
     return books
   }
 
-  generateBookTitle(index) {
+  generateBookTitle (index) {
     const baseTitles = [
       '資料結構與演算法',
-      'JavaScript 完全指南', 
+      'JavaScript 完全指南',
       '人工智慧導論',
       '雲端架構設計模式',
       '敏捷開發實戰',
@@ -87,12 +87,12 @@ class TestDataGenerator {
       '程式設計思維',
       '軟體工程原理'
     ]
-    
+
     let title = this.randomChoice(baseTitles)
-    
+
     // 添加序號使標題唯一
     title += ` ${index}`
-    
+
     // 隨機添加特殊字符（測試國際化）
     if (this.options.includeSpecialChars && this.random() < 0.2) {
       const specialSuffixes = [
@@ -101,27 +101,27 @@ class TestDataGenerator {
       ]
       title += this.randomChoice(specialSuffixes)
     }
-    
+
     return title
   }
 
-  generateRandomDate() {
+  generateRandomDate () {
     const now = new Date()
     const pastDays = this.randomInt(1, 90)
     const randomDate = new Date(now.getTime() - pastDays * 24 * 60 * 60 * 1000)
-    
+
     // 添加隨機時間
     randomDate.setHours(this.randomInt(0, 23))
     randomDate.setMinutes(this.randomInt(0, 59))
     randomDate.setSeconds(this.randomInt(0, 59))
-    
+
     return randomDate.toISOString()
   }
 
-  generateUsers(count = 3) {
+  generateUsers (count = 3) {
     const users = []
     const names = ['測試使用者A', '測試使用者B', '測試使用者C', 'Test User', 'Demo User']
-    
+
     for (let i = 1; i <= count; i++) {
       users.push({
         id: `test-user-${i}`,
@@ -139,11 +139,11 @@ class TestDataGenerator {
         }
       })
     }
-    
+
     return users
   }
 
-  generateSettings() {
+  generateSettings () {
     return {
       version: '1.0.0-test',
       testMode: true,
@@ -171,10 +171,10 @@ class TestDataGenerator {
     }
   }
 
-  generateDuplicateBooks(originalBooks, duplicateRatio = 0.1) {
+  generateDuplicateBooks (originalBooks, duplicateRatio = 0.1) {
     const duplicateCount = Math.ceil(originalBooks.length * duplicateRatio)
     const duplicates = []
-    
+
     for (let i = 0; i < duplicateCount; i++) {
       const original = this.randomChoice(originalBooks)
       const duplicate = {
@@ -189,20 +189,20 @@ class TestDataGenerator {
           originalId: original.id
         }
       }
-      
+
       duplicates.push(duplicate)
     }
-    
+
     return duplicates
   }
 
-  generateCorruptedBooks(validBooks, corruptionTypes = ['missingId', 'invalidProgress', 'nullTitle']) {
+  generateCorruptedBooks (validBooks, corruptionTypes = ['missingId', 'invalidProgress', 'nullTitle']) {
     const corrupted = []
-    
+
     corruptionTypes.forEach(type => {
       const original = this.randomChoice(validBooks)
-      let corruptedBook = { ...original }
-      
+      const corruptedBook = { ...original }
+
       switch (type) {
         case 'missingId':
           delete corruptedBook.id
@@ -222,29 +222,29 @@ class TestDataGenerator {
           const randomKey = this.randomChoice(keys)
           corruptedBook[randomKey] = undefined
       }
-      
+
       corruptedBook.testMetadata = {
         ...corruptedBook.testMetadata,
         corrupted: true,
         corruptionType: type
       }
-      
+
       corrupted.push(corruptedBook)
     })
-    
+
     return corrupted
   }
 
-  generatePerformanceTestData() {
+  generatePerformanceTestData () {
     const sizes = {
       small: 50,
       medium: 500,
       large: 2000,
       huge: 8000
     }
-    
+
     const testSets = {}
-    
+
     Object.entries(sizes).forEach(([size, count]) => {
       testSets[size] = {
         books: this.generateBooks(count),
@@ -255,11 +255,11 @@ class TestDataGenerator {
         }
       }
     })
-    
+
     return testSets
   }
 
-  getExpectedLoadTime(bookCount) {
+  getExpectedLoadTime (bookCount) {
     // 基於書籍數量估算載入時間（毫秒）
     if (bookCount <= 100) return 1000
     if (bookCount <= 1000) return 3000
@@ -267,28 +267,28 @@ class TestDataGenerator {
     return 30000
   }
 
-  getExpectedMemoryUsage(bookCount) {
+  getExpectedMemoryUsage (bookCount) {
     // 基於書籍數量估算記憶體使用（位元組）
     const baseMemory = 1024 * 1024 // 1MB 基礎記憶體
     const perBookMemory = 512 // 每本書 512 bytes
     return baseMemory + (bookCount * perBookMemory)
   }
 
-  getExpectedOperationTime(bookCount) {
+  getExpectedOperationTime (bookCount) {
     // 基於書籍數量估算操作時間（毫秒）
     return Math.max(100, bookCount * 2) // 至少100ms，每本書增加2ms
   }
 
   // 靜態方法：快速生成常用資料集
-  static generateQuickTestData(size = 'small') {
+  static generateQuickTestData (size = 'small') {
     const generator = new TestDataGenerator()
-    
+
     const counts = {
       small: 10,
-      medium: 100, 
+      medium: 100,
       large: 1000
     }
-    
+
     return {
       books: generator.generateBooks(counts[size] || 10),
       users: generator.generateUsers(1),

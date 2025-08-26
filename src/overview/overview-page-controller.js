@@ -965,7 +965,7 @@ class OverviewPageController extends EventHandlerClass {
   /**
    * 處理檔案內容 - 重構版本
    * @private
-   * 
+   *
    * @param {string} content - 檔案內容
    */
   _handleFileContent (content) {
@@ -1072,7 +1072,7 @@ class OverviewPageController extends EventHandlerClass {
   /**
    * 從資料中提取書籍陣列 - 重構版本
    * @private
-   * 
+   *
    * @param {any} data - 解析後的JSON資料
    * @returns {Array} 書籍陣列
    */
@@ -1080,7 +1080,7 @@ class OverviewPageController extends EventHandlerClass {
     if (this._isDirectArrayFormat(data)) return data
     if (this._isWrappedBooksFormat(data)) return data.books
     if (this._isMetadataWrapFormat(data)) return data.data
-    
+
     throw new Error('JSON 檔案應該包含一個陣列或包含books屬性的物件')
   }
 
@@ -1101,8 +1101,8 @@ class OverviewPageController extends EventHandlerClass {
    * @returns {boolean} 是否為包裝books格式
    */
   _isWrappedBooksFormat (data) {
-    return data && 
-           typeof data === 'object' && 
+    return data &&
+           typeof data === 'object' &&
            Array.isArray(data.books)
   }
 
@@ -1113,15 +1113,15 @@ class OverviewPageController extends EventHandlerClass {
    * @returns {boolean} 是否為metadata包裝格式
    */
   _isMetadataWrapFormat (data) {
-    return data && 
-           data.data && 
+    return data &&
+           data.data &&
            Array.isArray(data.data)
   }
 
   /**
    * 驗證書籍資料是否有效 - 重構版本
    * @private
-   * 
+   *
    * @param {Object} book - 書籍物件
    * @returns {boolean} 是否有效
    */
@@ -1148,8 +1148,8 @@ class OverviewPageController extends EventHandlerClass {
    * @returns {boolean} 必要欄位是否都存在
    */
   _validateRequiredFields (book) {
-    return Boolean(book.id) && 
-           Boolean(book.title) && 
+    return Boolean(book.id) &&
+           Boolean(book.title) &&
            Boolean(book.cover)
   }
 

@@ -1,7 +1,7 @@
 /**
  * DataNormalizationService 測試
  * TDD 重構循環 3/8: 資料正規化邏輯提取
- * 
+ *
  * 目標：將資料正規化邏輯從 DataValidationService 中提取
  */
 
@@ -242,7 +242,7 @@ describe('DataNormalizationService - 資料正規化服務', () => {
   describe('📊 進度正規化', () => {
     test('normalizeProgress() 應該處理數字進度', () => {
       const result = normalizer.normalizeProgress(75)
-      
+
       expect(result.percentage).toBe(75)
       expect(result.pages).toBeNull()
       expect(result.locations).toBeNull()

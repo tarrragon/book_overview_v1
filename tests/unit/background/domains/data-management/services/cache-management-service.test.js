@@ -1,7 +1,7 @@
 /**
  * CacheManagementService 測試
  * TDD 重構循環 5/8: 快取管理邏輯提取
- * 
+ *
  * 目標：將快取管理邏輯從 DataValidationService 中提取
  */
 
@@ -182,7 +182,7 @@ describe('CacheManagementService - 快取管理服務', () => {
 
       // 等待一小段時間
       await new Promise(resolve => setTimeout(resolve, 10))
-      
+
       cacheService.refreshCacheEntry(cacheKey, 'validation')
       const newTimestamp = cacheService.cacheTimestamps.get('validation').get(cacheKey)
 
@@ -242,12 +242,12 @@ describe('CacheManagementService - 快取管理服務', () => {
       cacheService.config.cacheTTL = 100
 
       cacheService.setCacheValue('expired_key', { result: 'expired' }, 'validation')
-      
+
       // 等待過期
       await new Promise(resolve => setTimeout(resolve, 150))
-      
+
       cacheService.setCacheValue('fresh_key', { result: 'fresh' }, 'validation')
-      
+
       cacheService.clearExpiredEntries('validation')
 
       expect(cacheService.getCacheValue('expired_key', 'validation')).toBeNull()
@@ -359,9 +359,9 @@ describe('CacheManagementService - 快取管理服務', () => {
     test('健康檢查應該檢測記憶體使用過高', () => {
       // 填充大量快取以測試記憶體使用
       for (let i = 0; i < 100; i++) {
-        cacheService.setCacheValue(`stress_key_${i}`, { 
+        cacheService.setCacheValue(`stress_key_${i}`, {
           data: 'x'.repeat(1000),
-          index: i 
+          index: i
         }, 'validation')
       }
 

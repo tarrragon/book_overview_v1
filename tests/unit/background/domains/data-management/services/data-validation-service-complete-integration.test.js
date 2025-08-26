@@ -1,7 +1,7 @@
 /**
  * DataValidationService 完整整合測試
  * TDD 循環 6/8 - Green 階段：重構 DataValidationService 以整合所有子服務
- * 
+ *
  * 測試目標：
  * 1. DataValidationService 能正確整合所有子服務
  * 2. 子服務間的協調和數據流正確
@@ -139,19 +139,19 @@ describe('DataValidationService - 完整服務整合測試', () => {
         id: 'book-123',
         title: '測試書籍'
       }]
-      
+
       const executionOrder = []
-      
+
       MockValidationEngine.validateSingle.mockImplementation(async (data) => {
         executionOrder.push('validation')
         return { isValid: true, errors: [], warnings: [] }
       })
-      
+
       MockDataNormalizationService.normalize.mockImplementation(async (data) => {
         executionOrder.push('normalization')
         return { normalized: data, changes: [], metadata: {} }
       })
-      
+
       MockDataQualityAnalyzer.analyzeQuality.mockImplementation(async (data) => {
         executionOrder.push('quality-analysis')
         return { score: 0.95, issues: [], recommendations: [] }
@@ -170,7 +170,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
         id: 'book-123',
         title: '原始標題'
       }]
-      
+
       const normalizedData = {
         id: 'book-123',
         title: '標準化標題',
@@ -194,7 +194,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
         }),
         expect.any(Object)
       )
-      
+
       expect(MockDataQualityAnalyzer.analyzeQuality).toHaveBeenCalledWith(
         expect.objectContaining({
           _normalized: true
@@ -211,14 +211,14 @@ describe('DataValidationService - 完整服務整合測試', () => {
         id: 'book-123',
         title: '測試書籍'
       }]
-      
+
       const cachedResult = {
         isValid: true,
         normalized: testData[0],
         quality: { score: 0.95 },
         timestamp: Date.now()
       }
-      
+
       MockValidationCacheManager.getCached.mockResolvedValue(cachedResult)
 
       // Act
@@ -236,7 +236,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
         id: 'book-123',
         title: '測試書籍'
       }]
-      
+
       MockValidationCacheManager.getCached.mockResolvedValue(null)
 
       // Act
@@ -300,7 +300,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
         id: 'book-123',
         title: '測試書籍'
       }]
-      
+
       MockValidationEngine.validateSingle.mockRejectedValue(
         new Error('Service unavailable')
       )
@@ -311,7 +311,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
       // Assert
       expect(result.success).toBe(false)
       expect(result.errors).toContain('ValidationEngine error: Service unavailable')
-      
+
       // 驗證服務錯誤事件被發出
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'VALIDATION.SERVICE.ERROR',
@@ -328,13 +328,13 @@ describe('DataValidationService - 完整服務整合測試', () => {
         { id: 'book-1', title: '正確書籍' },
         { id: 'book-2', title: '' } // 無效資料
       ]
-      
+
       MockValidationEngine.validateSingle
         .mockResolvedValueOnce({ isValid: true, errors: [], warnings: [] })
-        .mockResolvedValueOnce({ 
-          isValid: false, 
-          errors: ['Title is required'], 
-          warnings: [] 
+        .mockResolvedValueOnce({
+          isValid: false,
+          errors: ['Title is required'],
+          warnings: []
         })
 
       // Act

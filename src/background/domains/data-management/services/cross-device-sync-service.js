@@ -86,7 +86,7 @@ class CrossDeviceSyncService {
 
     try {
       this.logger.log(`🔄 開始同步作業: ${syncId}`)
-      
+
       const syncJob = {
         id: syncId,
         state: SYNC_STATES.INITIALIZING,
@@ -177,7 +177,6 @@ class CrossDeviceSyncService {
       this.logger.log(`✅ 同步作業完成: ${syncId}`)
 
       return syncResult
-
     } catch (error) {
       await this.handleSyncError(syncId, error)
       throw error
@@ -189,7 +188,7 @@ class CrossDeviceSyncService {
       throw new Error('Export service not available')
     }
 
-    //todo: 整合實際的export service
+    // todo: 整合實際的export service
     return {
       data: { books: [] }, // 權宜方案：空資料
       format: 'json',
@@ -201,8 +200,8 @@ class CrossDeviceSyncService {
   async simulateTransfer (exportResult) {
     // 模擬網路傳輸延遲
     await this.delay(100)
-    
-    //todo: 實作真實的檔案傳輸邏輯
+
+    // todo: 實作真實的檔案傳輸邏輯
     return {
       success: true,
       data: exportResult.data,
@@ -216,7 +215,7 @@ class CrossDeviceSyncService {
       throw new Error('Import service not available')
     }
 
-    //todo: 整合實際的import service
+    // todo: 整合實際的import service
     return {
       imported: 0,
       skipped: 0,
@@ -226,7 +225,7 @@ class CrossDeviceSyncService {
   }
 
   async verifySyncIntegrity (exportResult, importResult) {
-    //todo: 實作完整的資料完整性驗證
+    // todo: 實作完整的資料完整性驗證
     return {
       valid: true,
       issues: [],
@@ -239,7 +238,7 @@ class CrossDeviceSyncService {
     if (syncJob) {
       syncJob.state = state
       syncJob.progress = { ...syncJob.progress, ...progress }
-      
+
       await this.emitSyncEvent(SYNC_EVENTS.SYNC_PROGRESS, {
         syncId,
         state,
@@ -249,7 +248,7 @@ class CrossDeviceSyncService {
   }
 
   async validateSyncOptions (options) {
-    //todo: 實作完整的選項驗證
+    // todo: 實作完整的選項驗證
     return {
       valid: true,
       message: 'Valid options'
@@ -269,17 +268,17 @@ class CrossDeviceSyncService {
     if (syncJob) {
       syncJob.result = result
       syncJob.endTime = Date.now()
-      
+
       // 移至歷史記錄
       this.syncHistory.push({
         ...syncJob,
         duration: syncJob.endTime - syncJob.startTime
       })
-      
+
       this.activeSyncs.delete(syncId)
       this.stats.totalSyncs++
       this.stats.successfulSyncs++
-      
+
       await this.emitSyncEvent(SYNC_EVENTS.SYNC_COMPLETED, {
         syncId,
         result
@@ -293,22 +292,22 @@ class CrossDeviceSyncService {
       syncJob.state = SYNC_STATES.FAILED
       syncJob.error = error.message
       syncJob.endTime = Date.now()
-      
+
       this.syncHistory.push({
         ...syncJob,
         duration: syncJob.endTime - syncJob.startTime
       })
-      
+
       this.activeSyncs.delete(syncId)
       this.stats.totalSyncs++
       this.stats.failedSyncs++
-      
+
       await this.emitSyncEvent(SYNC_EVENTS.SYNC_FAILED, {
         syncId,
         error: error.message
       })
     }
-    
+
     this.logger.error(`❌ 同步作業失敗 ${syncId}:`, error)
   }
 
@@ -328,7 +327,7 @@ class CrossDeviceSyncService {
     syncJob.endTime = Date.now()
 
     this.activeSyncs.delete(syncId)
-    
+
     await this.emitSyncEvent(SYNC_EVENTS.SYNC_CANCELLED, {
       syncId,
       reason

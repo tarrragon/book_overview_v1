@@ -190,7 +190,7 @@ describe('ReadmooDataConsistencyService', () => {
         status: 'completed',
         timestamp: expect.any(Number)
       })
-      
+
       // 驗證整合的專門服務結果
       expect(result).toHaveProperty('inconsistencies')
       expect(result).toHaveProperty('conflicts')

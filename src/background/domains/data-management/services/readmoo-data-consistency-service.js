@@ -46,16 +46,16 @@ class ReadmooDataConsistencyService extends BaseModule {
     this.config = dependencies.config || {}
 
     // 初始化專門服務
-    this.dataDifferenceEngine = dependencies.dataDifferenceEngine || 
+    this.dataDifferenceEngine = dependencies.dataDifferenceEngine ||
       new DataDifferenceEngine(eventBus, { logger: this.logger })
-    this.conflictDetectionService = dependencies.conflictDetectionService || 
-      new ConflictDetectionService(eventBus, { 
-        logger: this.logger, 
-        dataDifferenceEngine: this.dataDifferenceEngine 
+    this.conflictDetectionService = dependencies.conflictDetectionService ||
+      new ConflictDetectionService(eventBus, {
+        logger: this.logger,
+        dataDifferenceEngine: this.dataDifferenceEngine
       })
-    this.syncProgressMonitor = dependencies.syncProgressMonitor || 
+    this.syncProgressMonitor = dependencies.syncProgressMonitor ||
       new SyncProgressMonitor(eventBus, { logger: this.logger })
-    this.syncStrategyProcessor = dependencies.syncStrategyProcessor || 
+    this.syncStrategyProcessor = dependencies.syncStrategyProcessor ||
       new SyncStrategyProcessor(eventBus, { logger: this.logger })
 
     // 一致性檢查狀態
@@ -367,7 +367,7 @@ class ReadmooDataConsistencyService extends BaseModule {
    */
   formatInconsistencies (differences) {
     const inconsistencies = []
-    
+
     if (differences.modified) {
       for (const modified of differences.modified) {
         inconsistencies.push({

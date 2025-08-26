@@ -1,9 +1,9 @@
 /**
  * 📄 Overview 資料匯入功能 - 私有方法單元測試
- * 
+ *
  * 目標：提升測試覆蓋率從 49.66% 至 90%
  * 重點：測試重構後的 20 個私有方法
- * 
+ *
  * @jest-environment jsdom
  */
 
@@ -11,7 +11,7 @@ const { JSDOM } = require('jsdom')
 
 describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => {
   let dom
-  let document  
+  let document
   let window
   let controller
   let OverviewPageController
@@ -42,13 +42,13 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
       metadata: { pages: 1000, genre: '技術' }
     },
     invalidBook: {
-      title: '',  // 缺少標題和 ID
-      isbn: '123'  // 無效 ISBN
+      title: '', // 缺少標題和 ID
+      isbn: '123' // 無效 ISBN
     }
   }
 
   // Mock File 建立工具
-  function createMockFile(content, name = 'test.json', type = 'application/json') {
+  function createMockFile (content, name = 'test.json', type = 'application/json') {
     // 建立模擬的 File 物件，避免 JSDOM Blob 問題
     return {
       name,
@@ -64,7 +64,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
   }
 
   // 增強版 Mock FileReader 建立工具
-  function createAdvancedMockFileReader(options = {}) {
+  function createAdvancedMockFileReader (options = {}) {
     const {
       shouldError = false,
       delay = 0,
@@ -90,21 +90,23 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
             if (onerror) onerror({ type: 'error', error })
           } else {
             const content = result || (typeof file === 'string' ? file : '[]')
-            if (onload) onload({ 
-              type: 'load', 
-              target: { result: content }
-            })
+            if (onload) {
+              onload({
+                type: 'load',
+                target: { result: content }
+              })
+            }
           }
         }, delay)
       }),
 
-      set onload(callback) { onload = callback },
-      set onerror(callback) { onerror = callback },
-      set onloadstart(callback) { onloadstart = callback },
-      set onprogress(callback) { onprogress = callback },
+      set onload (callback) { onload = callback },
+      set onerror (callback) { onerror = callback },
+      set onloadstart (callback) { onloadstart = callback },
+      set onprogress (callback) { onprogress = callback },
 
-      get onload() { return onload },
-      get onerror() { return onerror }
+      get onload () { return onload },
+      get onerror () { return onerror }
     }
 
     return mockReader
@@ -184,7 +186,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
     // Mock EventHandler class
     global.EventHandler = class EventHandler {
-      constructor(name, priority = 2) {
+      constructor (name, priority = 2) {
         this.name = name
         this.priority = priority
         this.isEnabled = true
@@ -192,15 +194,15 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         this.lastExecutionTime = null
       }
 
-      async execute(eventData) {
+      async execute (eventData) {
         if (!this.isEnabled) return null
         this.executionCount++
         this.lastExecutionTime = new Date()
         return eventData
       }
 
-      enable() { this.isEnabled = true }
-      disable() { this.isEnabled = false }
+      enable () { this.isEnabled = true }
+      disable () { this.isEnabled = false }
     }
 
     // Mock EventBus
@@ -243,7 +245,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
     // 現在載入 OverviewPageController
     const { OverviewPageController: OverviewPageControllerClass } = require('@/overview/overview-page-controller')
     OverviewPageController = OverviewPageControllerClass
-    
+
     // 建立控制器實例，並傳入必要參數
     controller = new OverviewPageController(global.mockEventBus, document)
     controller.books = []
@@ -252,50 +254,49 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
   afterEach(() => {
     // 清理環境
     jest.clearAllMocks()
-    
+
     // 清理全域變數
     delete global.EventHandler
     delete global.mockEventBus
     delete global.document
     delete global.window
-    
+
     if (global.FileReader && global.FileReader.mockRestore) {
       global.FileReader.mockRestore()
     }
-    
+
     // 清理 require cache 以避免模組快取問題
     delete require.cache[require.resolve('@/overview/overview-page-controller')]
   })
 
   // 🔧 目標 1: 檔案處理層私有方法測試
   describe('📁 檔案處理層私有方法測試', () => {
-
     describe('_validateFileBasics() 檔案基礎驗證', () => {
       test('應該通過有效JSON檔案驗證', async () => {
         // Given: 有效的 JSON 檔案
         const validFile = createMockFile('[]', 'valid.json', 'application/json')
-        
+
         // When & Then: 透過 handleFileLoad 間接測試，不應拋出異常
-        global.FileReader = jest.fn().mockImplementation(() => 
+        global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ result: '[]' })
         )
-        
+
         await expect(controller.handleFileLoad(validFile)).resolves.not.toThrow()
       })
-      
+
       test('應該拒絕非JSON檔案', async () => {
-        // Given: 非 JSON 檔案  
+        // Given: 非 JSON 檔案
         const invalidFile = createMockFile('content', 'invalid.txt', 'text/plain')
-        
+
         // When & Then: 應該拋出格式錯誤
         await expect(controller.handleFileLoad(invalidFile))
           .rejects.toThrow('請選擇 JSON 檔案')
       })
-      
+
       test('應該拒絕空檔案名稱', async () => {
         // Given: 空檔案名稱的檔案
         const noNameFile = createMockFile('[]', '', 'application/json')
-        
+
         // When & Then: 應該拋出驗證錯誤
         await expect(controller.handleFileLoad(noNameFile))
           .rejects.toThrow()
@@ -304,7 +305,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
       test('應該拒絕null檔案', async () => {
         // Given: null 檔案
         const nullFile = null
-        
+
         // When & Then: 應該拋出檔案驗證錯誤
         await expect(controller.handleFileLoad(nullFile))
           .rejects.toThrow('請選擇一個檔案')
@@ -316,11 +317,11 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // Given: 正常大小的檔案 (約1MB)
         const normalContent = JSON.stringify(Array(1000).fill(testDataSets.validBook))
         const normalFile = createMockFile(normalContent, 'normal.json')
-        
-        global.FileReader = jest.fn().mockImplementation(() => 
+
+        global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ result: normalContent })
         )
-        
+
         // When & Then: 應該成功處理
         await expect(controller.handleFileLoad(normalFile)).resolves.not.toThrow()
       })
@@ -329,7 +330,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // Given: 過大的檔案 (超過限制)
         const hugeContent = 'x'.repeat(50 * 1024 * 1024) // 50MB
         const hugeFile = createMockFile(hugeContent, 'huge.json')
-        
+
         // When & Then: 應該拋出檔案大小錯誤
         await expect(controller.handleFileLoad(hugeFile))
           .rejects.toThrow('檔案大小超過限制')
@@ -338,7 +339,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
       test('應該通過空檔案（0大小）', async () => {
         // Given: 空檔案
         const emptyFile = createMockFile('', 'empty.json')
-        
+
         // When & Then: 應該成功處理（但內容驗證會失敗）
         await expect(controller.handleFileLoad(emptyFile))
           .rejects.toThrow('檔案內容為空')
@@ -349,11 +350,11 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
       test('應該識別.json副檔名', async () => {
         // Given: .json 檔案
         const jsonFile = createMockFile('{}', 'test.json', 'application/json')
-        
-        global.FileReader = jest.fn().mockImplementation(() => 
+
+        global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ result: '{}' })
         )
-        
+
         // When & Then: 應該通過檢查
         await expect(controller.handleFileLoad(jsonFile)).resolves.not.toThrow()
       })
@@ -361,11 +362,11 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
       test('應該識別application/json MIME類型', async () => {
         // Given: 正確 MIME 類型但無副檔名的檔案
         const mimeFile = createMockFile('{}', 'noextension', 'application/json')
-        
-        global.FileReader = jest.fn().mockImplementation(() => 
+
+        global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ result: '{}' })
         )
-        
+
         // When & Then: 應該通過檢查
         await expect(controller.handleFileLoad(mimeFile)).resolves.not.toThrow()
       })
@@ -373,7 +374,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
       test('應該拒絕錯誤的副檔名和MIME類型', async () => {
         // Given: 完全不符合的檔案格式
         const wrongFile = createMockFile('content', 'test.txt', 'text/plain')
-        
+
         // When & Then: 應該拋出格式錯誤
         await expect(controller.handleFileLoad(wrongFile))
           .rejects.toThrow('請選擇 JSON 檔案')
@@ -383,19 +384,18 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
   // ⚙️ 目標 2: FileReader 操作層私有方法測試
   describe('📡 FileReader 操作層私有方法測試', () => {
-
     describe('_createFileReader() FileReader 建立', () => {
       test('應該建立新的 FileReader 實例', async () => {
         // Given: 有效檔案
         const validFile = createMockFile('[]', 'test.json')
-        
+
         // Given: Mock FileReader 建構函式
         const mockFileReader = createAdvancedMockFileReader({ result: '[]' })
         global.FileReader = jest.fn().mockImplementation(() => mockFileReader)
-        
+
         // When: 執行檔案載入
         await controller.handleFileLoad(validFile)
-        
+
         // Then: 應該建立 FileReader 實例
         expect(global.FileReader).toHaveBeenCalled()
       })
@@ -404,11 +404,11 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // Given: 移除 FileReader 支援
         const originalFileReader = global.FileReader
         global.FileReader = undefined
-        
+
         try {
           // Given: 有效檔案
           const validFile = createMockFile('[]', 'test.json')
-          
+
           // When & Then: 應該拋出不支援錯誤
           await expect(controller.handleFileLoad(validFile))
             .rejects.toThrow()
@@ -425,10 +425,10 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         const validFile = createMockFile('[]', 'test.json')
         const mockFileReader = createAdvancedMockFileReader({ result: '[]' })
         global.FileReader = jest.fn().mockImplementation(() => mockFileReader)
-        
+
         // When: 執行檔案載入
         await controller.handleFileLoad(validFile)
-        
+
         // Then: 應該設定事件處理器
         expect(mockFileReader.onload).toBeDefined()
         expect(mockFileReader.onerror).toBeDefined()
@@ -438,14 +438,14 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // Given: 包含書籍資料的檔案
         const bookData = JSON.stringify([testDataSets.validBook])
         const validFile = createMockFile(bookData, 'books.json')
-        
-        global.FileReader = jest.fn().mockImplementation(() => 
+
+        global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ result: bookData })
         )
-        
+
         // When: 執行檔案載入
         await controller.handleFileLoad(validFile)
-        
+
         // Then: 應該成功處理書籍資料
         expect(controller.books).toHaveLength(1)
         expect(controller.books[0]).toMatchObject(testDataSets.validBook)
@@ -454,11 +454,11 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
       test('應該正確處理讀取錯誤事件', async () => {
         // Given: 會產生錯誤的檔案
         const validFile = createMockFile('[]', 'test.json')
-        
-        global.FileReader = jest.fn().mockImplementation(() => 
+
+        global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ shouldError: true })
         )
-        
+
         // When & Then: 應該拋出讀取錯誤
         await expect(controller.handleFileLoad(validFile))
           .rejects.toThrow('檔案讀取失敗')
@@ -470,14 +470,14 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // Given: 有效檔案
         const validContent = JSON.stringify([testDataSets.validBook])
         const validFile = createMockFile(validContent, 'test.json')
-        
-        global.FileReader = jest.fn().mockImplementation(() => 
+
+        global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ result: validContent })
         )
-        
+
         // When: 執行檔案載入
         await controller.handleFileLoad(validFile)
-        
+
         // Then: 應該完成完整流程
         expect(controller.books).toHaveLength(1)
         expect(console.log).toHaveBeenCalledWith('✅ 成功載入 1 本書籍')
@@ -486,15 +486,15 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
       test('應該處理非同步讀取錯誤', async () => {
         // Given: 會在非同步過程中失敗的檔案
         const validFile = createMockFile('[]', 'test.json')
-        
-        global.FileReader = jest.fn().mockImplementation(() => 
-          createAdvancedMockFileReader({ 
-            shouldError: true, 
+
+        global.FileReader = jest.fn().mockImplementation(() =>
+          createAdvancedMockFileReader({
+            shouldError: true,
             delay: 10,
             errorType: 'security'
           })
         )
-        
+
         // When & Then: 應該正確處理非同步錯誤
         await expect(controller.handleFileLoad(validFile))
           .rejects.toThrow('檔案讀取失敗')
@@ -504,17 +504,16 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
   // 🧹 目標 3: 內容處理層私有方法測試
   describe('🧹 內容處理層私有方法測試', () => {
-
     describe('_validateAndCleanContent() 內容驗證與清理', () => {
       test('應該通過有效內容驗證', async () => {
         // Given: 有效 JSON 內容
         const validContent = JSON.stringify([testDataSets.validBook])
         const validFile = createMockFile(validContent, 'test.json')
-        
-        global.FileReader = jest.fn().mockImplementation(() => 
+
+        global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ result: validContent })
         )
-        
+
         // When & Then: 應該成功處理
         await expect(controller.handleFileLoad(validFile)).resolves.not.toThrow()
       })
@@ -522,11 +521,11 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
       test('應該拒絕空內容', async () => {
         // Given: 空內容
         const emptyFile = createMockFile('', 'empty.json')
-        
-        global.FileReader = jest.fn().mockImplementation(() => 
+
+        global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ result: '' })
         )
-        
+
         // When & Then: 應該拋出空內容錯誤
         await expect(controller.handleFileLoad(emptyFile))
           .rejects.toThrow('檔案內容為空')
@@ -535,11 +534,11 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
       test('應該拒絕純空白內容', async () => {
         // Given: 純空白內容
         const whitespaceFile = createMockFile('   \n\t  ', 'whitespace.json')
-        
-        global.FileReader = jest.fn().mockImplementation(() => 
+
+        global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ result: '   \n\t  ' })
         )
-        
+
         // When & Then: 應該拋出空內容錯誤
         await expect(controller.handleFileLoad(whitespaceFile))
           .rejects.toThrow('檔案內容為空')
@@ -549,14 +548,14 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // Given: 前後有空白的有效 JSON
         const paddedContent = `  \n${JSON.stringify([testDataSets.validBook])}  \n`
         const paddedFile = createMockFile(paddedContent, 'padded.json')
-        
-        global.FileReader = jest.fn().mockImplementation(() => 
+
+        global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ result: paddedContent })
         )
-        
+
         // When: 執行處理
         await controller.handleFileLoad(paddedFile)
-        
+
         // Then: 應該成功解析內容
         expect(controller.books).toHaveLength(1)
         expect(controller.books[0]).toMatchObject(testDataSets.validBook)
@@ -568,14 +567,14 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // Given: 包含 BOM 的 JSON 內容
         const bomContent = '\uFEFF' + JSON.stringify([testDataSets.validBook])
         const bomFile = createMockFile(bomContent, 'bom.json')
-        
-        global.FileReader = jest.fn().mockImplementation(() => 
+
+        global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ result: bomContent })
         )
-        
+
         // When: 執行處理
         await controller.handleFileLoad(bomFile)
-        
+
         // Then: 應該成功解析內容（BOM 已被移除）
         expect(controller.books).toHaveLength(1)
         expect(controller.books[0]).toMatchObject(testDataSets.validBook)
@@ -585,14 +584,14 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // Given: 不包含 BOM 的正常內容
         const normalContent = JSON.stringify([testDataSets.validBook])
         const normalFile = createMockFile(normalContent, 'normal.json')
-        
-        global.FileReader = jest.fn().mockImplementation(() => 
+
+        global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ result: normalContent })
         )
-        
+
         // When: 執行處理
         await controller.handleFileLoad(normalFile)
-        
+
         // Then: 應該正常處理
         expect(controller.books).toHaveLength(1)
         expect(controller.books[0]).toMatchObject(testDataSets.validBook)
@@ -604,14 +603,14 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // Given: 有效 JSON 字串
         const validJSON = JSON.stringify({ books: [testDataSets.validBook] })
         const validFile = createMockFile(validJSON, 'valid.json')
-        
-        global.FileReader = jest.fn().mockImplementation(() => 
+
+        global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ result: validJSON })
         )
-        
+
         // When: 執行處理
         await controller.handleFileLoad(validFile)
-        
+
         // Then: 應該成功解析並載入書籍
         expect(controller.books).toHaveLength(1)
       })
@@ -620,11 +619,11 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // Given: 無效 JSON 語法
         const invalidJSON = '{ "books": [invalid json} '
         const invalidFile = createMockFile(invalidJSON, 'invalid.json')
-        
-        global.FileReader = jest.fn().mockImplementation(() => 
+
+        global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ result: invalidJSON })
         )
-        
+
         // When & Then: 應該拋出 JSON 格式錯誤
         await expect(controller.handleFileLoad(invalidFile))
           .rejects.toThrow('JSON 檔案格式不正確')
@@ -634,14 +633,14 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // Given: 空 JSON 對象
         const emptyJSON = '{}'
         const emptyFile = createMockFile(emptyJSON, 'empty.json')
-        
-        global.FileReader = jest.fn().mockImplementation(() => 
+
+        global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ result: emptyJSON })
         )
-        
+
         // When: 執行處理
         await controller.handleFileLoad(emptyFile)
-        
+
         // Then: 應該成功處理（但沒有書籍資料）
         expect(controller.books).toHaveLength(0)
         expect(console.log).toHaveBeenCalledWith('✅ 成功載入 0 本書籍')
@@ -656,14 +655,14 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         }
         const specialJSON = JSON.stringify([specialBook])
         const specialFile = createMockFile(specialJSON, 'special.json')
-        
-        global.FileReader = jest.fn().mockImplementation(() => 
+
+        global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ result: specialJSON })
         )
-        
+
         // When: 執行處理
         await controller.handleFileLoad(specialFile)
-        
+
         // Then: 應該正確處理特殊字符
         expect(controller.books).toHaveLength(1)
         expect(controller.books[0].title).toBe(specialBook.title)

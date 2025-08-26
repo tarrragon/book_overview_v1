@@ -1,18 +1,18 @@
 /**
  * 效能測試資料生成器
- * 
+ *
  * 負責生成各種規模和複雜度的測試資料
  * 支援書籍資料生成、JSON檔案生成、場景資料生成
  */
 
 class PerformanceTestDataGenerator {
-  constructor() {
+  constructor () {
     this.bookTemplates = this.initializeBookTemplates()
     this.generatedData = new Map() // 快取已生成的資料
   }
 
   // 初始化書籍模板
-  initializeBookTemplates() {
+  initializeBookTemplates () {
     return {
       fiction: {
         genres: ['小說', '推理', '科幻', '奇幻', '愛情', '冒險', '恐怖', '青春'],
@@ -30,7 +30,7 @@ class PerformanceTestDataGenerator {
   }
 
   // 主要書籍生成方法
-  generateBooks(count, options = {}) {
+  generateBooks (count, options = {}) {
     const {
       complexity = 'normal',
       duplicateRate = 0.05,
@@ -47,7 +47,7 @@ class PerformanceTestDataGenerator {
 
     const complexitySettings = this.getComplexitySettings(complexity)
     const books = []
-    
+
     for (let i = 0; i < count; i++) {
       const book = this.generateSingleBook(i, complexitySettings, {
         includeImages,
@@ -68,7 +68,7 @@ class PerformanceTestDataGenerator {
   }
 
   // 真實場景書籍生成器 (重構版)
-  generateRealisticBooks(count, options = {}) {
+  generateRealisticBooks (count, options = {}) {
     const {
       complexityDistribution = { simple: 30, normal: 50, complex: 20 },
       includeVariations = true,
@@ -84,7 +84,7 @@ class PerformanceTestDataGenerator {
 
     const books = []
     const total = complexityDistribution.simple + complexityDistribution.normal + complexityDistribution.complex
-    
+
     // 計算各複雜度的書籍數量
     const simpleCount = Math.floor(count * complexityDistribution.simple / total)
     const normalCount = Math.floor(count * complexityDistribution.normal / total)
@@ -112,24 +112,24 @@ class PerformanceTestDataGenerator {
   }
 
   // 生成特定複雜度等級的書籍
-  generateComplexityLevelBooks(count, complexity, includeVariations) {
+  generateComplexityLevelBooks (count, complexity, includeVariations) {
     const books = []
     const complexitySettings = this.getComplexitySettings(complexity)
-    
+
     for (let i = 0; i < count; i++) {
       const book = this.generateRealisticSingleBook(i, complexity, complexitySettings, includeVariations)
       books.push(book)
     }
-    
+
     return books
   }
 
   // 生成真實的單一書籍
-  generateRealisticSingleBook(index, complexity, settings, includeVariations) {
+  generateRealisticSingleBook (index, complexity, settings, includeVariations) {
     const bookType = Math.random() < 0.6 ? 'fiction' : 'nonFiction'
     const template = this.bookTemplates[bookType]
     const variationLevel = includeVariations ? Math.random() : 0.5
-    
+
     const book = {
       id: `realistic-book-${complexity}-${index}`,
       title: this.generateVariatedTitle(template, variationLevel),
@@ -160,10 +160,10 @@ class PerformanceTestDataGenerator {
     return book
   }
 
-  generateSingleBook(index, settings, options) {
+  generateSingleBook (index, settings, options) {
     const bookType = Math.random() < 0.6 ? 'fiction' : 'nonFiction'
     const template = this.bookTemplates[bookType]
-    
+
     const book = {
       id: `perf-test-book-${index}`,
       title: this.generateTitle(template.titlePatterns, template.genres),
@@ -198,7 +198,7 @@ class PerformanceTestDataGenerator {
     return book
   }
 
-  getComplexitySettings(complexity) {
+  getComplexitySettings (complexity) {
     const settings = {
       simple: {
         descriptionLength: 50,
@@ -226,7 +226,7 @@ class PerformanceTestDataGenerator {
   }
 
   // JSON檔案生成方法
-  generateJSONFile(targetSize, options = {}) {
+  generateJSONFile (targetSize, options = {}) {
     const {
       format = 'standard',
       compression = 'none',
@@ -244,18 +244,18 @@ class PerformanceTestDataGenerator {
     const estimatedBookCount = Math.ceil(targetSizeBytes / estimatedBookSize)
 
     while (currentSize < targetSizeBytes * 0.95 && books.length < estimatedBookCount * 1.2) {
-      const book = this.generateSingleBook(bookIndex++, 
-        this.getComplexitySettings(complexity), 
+      const book = this.generateSingleBook(bookIndex++,
+        this.getComplexitySettings(complexity),
         options)
-      
+
       const bookJson = JSON.stringify(book)
       const bookSize = new Blob([bookJson]).size
-      
+
       if (currentSize + bookSize > targetSizeBytes * 1.1) {
         // 如果加入這本書會超過目標太多，停止生成
         break
       }
-      
+
       currentSize += bookSize
       books.push(book)
     }
@@ -263,14 +263,16 @@ class PerformanceTestDataGenerator {
     const fileData = {
       version: '1.0',
       generatedAt: new Date().toISOString(),
-      metadata: includeMetadata ? {
-        totalBooks: books.length,
-        estimatedSize: currentSize,
-        targetSize: targetSizeBytes,
-        format: format,
-        complexity: complexity
-      } : undefined,
-      books: books
+      metadata: includeMetadata
+        ? {
+            totalBooks: books.length,
+            estimatedSize: currentSize,
+            targetSize: targetSizeBytes,
+            format,
+            complexity
+          }
+        : undefined,
+      books
     }
 
     return {
@@ -280,88 +282,88 @@ class PerformanceTestDataGenerator {
     }
   }
 
-  parseSize(sizeString) {
+  parseSize (sizeString) {
     const match = sizeString.match(/^(\d+(?:\.\d+)?)(KB|MB|GB)?$/i)
     if (!match) throw new Error(`Invalid size format: ${sizeString}`)
-    
+
     const value = parseFloat(match[1])
     const unit = (match[2] || 'B').toUpperCase()
-    
+
     const multipliers = { B: 1, KB: 1024, MB: 1024 * 1024, GB: 1024 * 1024 * 1024 }
     return value * multipliers[unit]
   }
 
-  estimateBookSize(complexity) {
+  estimateBookSize (complexity) {
     const settings = this.getComplexitySettings(complexity)
     // 基礎欄位 + 描述長度 + metadata
     let baseSize = 200 // JSON結構和基礎欄位
     baseSize += settings.descriptionLength * 2 // Unicode字符
     baseSize += settings.includeMetadata ? 100 : 0
     baseSize += settings.longTextLength * 2 // 長文字欄位
-    
+
     return baseSize
   }
 
   // 輔助方法
-  generateTitle(titlePatterns, genres) {
+  generateTitle (titlePatterns, genres) {
     const pattern = this.selectRandom(titlePatterns)
     const genre = this.selectRandom(genres)
     const randomWord = this.generateRandomWord()
     return pattern.replace(/xxx/g, randomWord)
   }
 
-  generateAuthor(authorPatterns) {
+  generateAuthor (authorPatterns) {
     const pattern = this.selectRandom(authorPatterns)
     const randomName = this.generateRandomName()
     return pattern.replace(/xxx/g, randomName)
   }
 
-  generateDescription(length, starters) {
+  generateDescription (length, starters) {
     const starter = this.selectRandom(starters)
     const baseText = starter.replace(/xxx/g, this.generateRandomWord())
-    
+
     // 擴充到指定長度
     let description = baseText
     const words = ['故事', '情節', '角色', '背景', '主題', '內容', '結局', '開始']
-    
+
     while (description.length < length) {
       description += '，' + this.selectRandom(words) + '非常' + this.selectRandom(['精彩', '動人', '深刻', '有趣', '震撼'])
     }
-    
+
     return description.substring(0, length)
   }
 
-  generateRandomDate(startYear, endYear) {
+  generateRandomDate (startYear, endYear) {
     const start = new Date(startYear, 0, 1)
     const end = new Date(endYear, 11, 31)
     return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime())).toISOString().split('T')[0]
   }
 
-  generateISBN() {
+  generateISBN () {
     const prefix = '978'
     const group = Math.floor(Math.random() * 10)
     const publisher = Math.floor(Math.random() * 100000).toString().padStart(5, '0')
     const title = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
     const check = Math.floor(Math.random() * 10)
-    
+
     return `${prefix}-${group}-${publisher}-${title}-${check}`
   }
 
-  generateTags(count) {
+  generateTags (count) {
     const availableTags = ['精選', '推薦', '暢銷', '經典', '新書', '熱門', '得獎', '翻譯', '原創', '系列']
     const tags = []
-    
+
     for (let i = 0; i < count && i < availableTags.length; i++) {
       const tag = availableTags[Math.floor(Math.random() * availableTags.length)]
       if (!tags.includes(tag)) {
         tags.push(tag)
       }
     }
-    
+
     return tags
   }
 
-  generateMetadata() {
+  generateMetadata () {
     return {
       language: this.selectRandom(['zh-TW', 'zh-CN', 'en', 'ja']),
       format: this.selectRandom(['EPUB', 'PDF', 'MOBI', 'AZW3']),
@@ -371,7 +373,7 @@ class PerformanceTestDataGenerator {
     }
   }
 
-  generateLongText(length) {
+  generateLongText (length) {
     const sentences = [
       '這是一個非常精彩的故事內容。',
       '作者運用了豐富的想像力來描述場景。',
@@ -379,16 +381,16 @@ class PerformanceTestDataGenerator {
       '整本書的主題思想值得深度思考。',
       '文字優美，描述生動有趣。'
     ]
-    
+
     let text = ''
     while (text.length < length) {
       text += this.selectRandom(sentences) + ' '
     }
-    
+
     return text.substring(0, length).trim()
   }
 
-  generateImageList(count) {
+  generateImageList (count) {
     const images = []
     for (let i = 0; i < count; i++) {
       images.push({
@@ -400,31 +402,31 @@ class PerformanceTestDataGenerator {
     return images
   }
 
-  addDuplicateBooks(books, duplicateRate) {
+  addDuplicateBooks (books, duplicateRate) {
     const duplicateCount = Math.floor(books.length * duplicateRate)
-    
+
     for (let i = 0; i < duplicateCount; i++) {
       const originalIndex = Math.floor(Math.random() * Math.min(books.length, 20)) // 只從前20本中選擇
       const duplicateBook = JSON.parse(JSON.stringify(books[originalIndex]))
-      
+
       // 略微修改以模擬真實的重複情況
       duplicateBook.id = `duplicate-${duplicateBook.id}`
       duplicateBook.addedDate = this.generateRandomDate(2023, 2024)
-      
+
       books.push(duplicateBook)
     }
   }
 
   // 真實世界資料錯誤模擬
-  introduceRealisticDataErrors(books) {
+  introduceRealisticDataErrors (books) {
     const errorRate = 0.03 // 3%的錯誤率
     const errorCount = Math.floor(books.length * errorRate)
-    
+
     for (let i = 0; i < errorCount; i++) {
       const bookIndex = Math.floor(Math.random() * books.length)
       const book = books[bookIndex]
       const errorType = this.selectRandom(['missing_field', 'invalid_format', 'encoding_issue', 'truncated_data'])
-      
+
       switch (errorType) {
         case 'missing_field':
           // 隨機移除某個欄位
@@ -436,7 +438,7 @@ class PerformanceTestDataGenerator {
             book[fieldToRemove] = null
           }
           break
-          
+
         case 'invalid_format':
           // 格式錯誤
           if (Math.random() > 0.5) {
@@ -445,12 +447,12 @@ class PerformanceTestDataGenerator {
             book.pageCount = 'not_a_number'
           }
           break
-          
+
         case 'encoding_issue':
           // 編碼問題
           book.title = book.title.replace(/[\u4e00-\u9fff]/g, '?') // 中文變成問號
           break
-          
+
         case 'truncated_data':
           // 資料截斷
           if (book.description && book.description.length > 50) {
@@ -462,7 +464,7 @@ class PerformanceTestDataGenerator {
   }
 
   // 陣列隨機打亂
-  shuffleArray(array) {
+  shuffleArray (array) {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1))
       ;[array[i], array[j]] = [array[j], array[i]]
@@ -470,35 +472,35 @@ class PerformanceTestDataGenerator {
   }
 
   // 變化標題生成
-  generateVariatedTitle(template, variationLevel) {
+  generateVariatedTitle (template, variationLevel) {
     const pattern = this.selectRandom(template.titlePatterns)
     let baseWord = this.generateRandomWord()
-    
+
     // 高變化率時加入更複雜的詞彙
     if (variationLevel > 0.7) {
       const complexWords = ['量子', '時空', '永恆', '命運', '靈魂', '宇宙', '維度']
       baseWord = this.selectRandom(complexWords)
     }
-    
+
     return pattern.replace(/xxx/g, baseWord)
   }
 
   // 變化作者生成
-  generateVariatedAuthor(template, variationLevel) {
+  generateVariatedAuthor (template, variationLevel) {
     const pattern = this.selectRandom(template.authorPatterns)
     let name = this.generateRandomName()
-    
+
     // 高變化率時可能包含英文名或筆名
     if (variationLevel > 0.8) {
       const westernNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones']
       name = this.selectRandom(westernNames)
     }
-    
+
     return pattern.replace(/xxx/g, name)
   }
 
   // 真實評分生成
-  generateRealisticRating(variationLevel) {
+  generateRealisticRating (variationLevel) {
     // 真實書籍評分通常集中在3-5分
     const baseRating = 3 + Math.random() * 2
     const variation = variationLevel * 0.5
@@ -507,9 +509,9 @@ class PerformanceTestDataGenerator {
   }
 
   // 真實頁數生成
-  generateRealisticPageCount(complexity, variationLevel) {
+  generateRealisticPageCount (complexity, variationLevel) {
     let basePage = 200
-    
+
     switch (complexity) {
       case 'simple':
         basePage = 100 + Math.random() * 150 // 100-250頁
@@ -521,13 +523,13 @@ class PerformanceTestDataGenerator {
         basePage = 400 + Math.random() * 600 // 400-1000頁
         break
     }
-    
+
     const variation = variationLevel * 100
     return Math.floor(basePage + (Math.random() - 0.5) * variation)
   }
 
   // 場景資料生成
-  generateScenarioData(scenarioType) {
+  generateScenarioData (scenarioType) {
     switch (scenarioType) {
       case 'concurrent_operations':
         return this.generateConcurrentScenario()
@@ -542,7 +544,7 @@ class PerformanceTestDataGenerator {
     }
   }
 
-  generateConcurrentScenario() {
+  generateConcurrentScenario () {
     return {
       operations: [
         { type: 'extract', delay: 0, books: this.generateBooks(50) },
@@ -556,13 +558,13 @@ class PerformanceTestDataGenerator {
     }
   }
 
-  generateErrorScenario() {
+  generateErrorScenario () {
     const corruptedBooks = this.generateBooks(10)
     // 故意損壞某些資料
     corruptedBooks[0].title = null
     corruptedBooks[1].id = undefined
     delete corruptedBooks[2].author
-    
+
     return {
       invalidData: corruptedBooks,
       networkErrors: ['timeout', 'connection_refused', 'dns_error'],
@@ -571,12 +573,12 @@ class PerformanceTestDataGenerator {
     }
   }
 
-  generateMemoryStressScenario() {
+  generateMemoryStressScenario () {
     return {
-      largeBooks: this.generateBooks(100, { 
-        complexity: 'extreme', 
-        includeLongTexts: true, 
-        includeImages: true 
+      largeBooks: this.generateBooks(100, {
+        complexity: 'extreme',
+        includeLongTexts: true,
+        includeImages: true
       }),
       repeatedOperations: 50,
       memoryLimit: 100 * 1024 * 1024, // 100MB
@@ -584,7 +586,7 @@ class PerformanceTestDataGenerator {
     }
   }
 
-  generateLargeDatasetScenario() {
+  generateLargeDatasetScenario () {
     return {
       datasets: {
         small: this.generateBooks(100),
@@ -601,11 +603,11 @@ class PerformanceTestDataGenerator {
   }
 
   // 快取管理
-  clearCache() {
+  clearCache () {
     this.generatedData.clear()
   }
 
-  getCacheStats() {
+  getCacheStats () {
     return {
       cacheSize: this.generatedData.size,
       totalItems: Array.from(this.generatedData.values()).reduce((sum, items) => sum + items.length, 0)
@@ -613,23 +615,23 @@ class PerformanceTestDataGenerator {
   }
 
   // 工具方法
-  selectRandom(array) {
+  selectRandom (array) {
     return array[Math.floor(Math.random() * array.length)]
   }
 
-  generateRandomWord() {
+  generateRandomWord () {
     const words = ['夢想', '冒險', '秘密', '傳說', '英雄', '魔法', '未來', '過去', '愛情', '友情']
     return this.selectRandom(words)
   }
 
-  generateRandomName() {
+  generateRandomName () {
     const surnames = ['王', '李', '張', '劉', '陳', '楊', '趙', '黃', '周', '吳']
     const names = ['明', '華', '偉', '芳', '娟', '敏', '靜', '麗', '強', '磊']
     return this.selectRandom(surnames) + this.selectRandom(names)
   }
 
   // 真實ISBN生成
-  generateRealisticISBN(variationLevel) {
+  generateRealisticISBN (variationLevel) {
     // 有時候ISBN格式會不標準
     if (variationLevel > 0.9) {
       // 10%機率產生舊版ISBN-10格式
@@ -638,38 +640,38 @@ class PerformanceTestDataGenerator {
       const title = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
       return `${group}-${publisher}-${title}`
     }
-    
+
     return this.generateISBN()
   }
 
   // 變化標籤生成
-  generateVariatedTags(complexity, variationLevel) {
+  generateVariatedTags (complexity, variationLevel) {
     const baseTags = ['精選', '推薦', '暢銷', '經典', '新書', '熱門', '得獎', '翻譯', '原創', '系列']
     const complexTags = ['深度思考', '心靈成長', '專業技能', '生活智慧', '文學經典', '科普知識']
-    
-    let availableTags = [...baseTags]
+
+    const availableTags = [...baseTags]
     if (complexity === 'complex') {
       availableTags.push(...complexTags)
     }
-    
+
     const tagCount = Math.floor(2 + Math.random() * 6) // 2-8個標籤
     const tags = []
-    
+
     for (let i = 0; i < tagCount && i < availableTags.length; i++) {
       const tag = availableTags[Math.floor(Math.random() * availableTags.length)]
       if (!tags.includes(tag)) {
         tags.push(tag)
       }
     }
-    
+
     return tags
   }
 
   // 真實閱讀狀態選擇
-  selectRealisticReadingStatus(variationLevel) {
+  selectRealisticReadingStatus (variationLevel) {
     const statuses = ['未讀', '閱讀中', '已讀', '暫停']
     const weights = [0.4, 0.2, 0.3, 0.1] // 真實分布：40%未讀，20%閱讀中，30%已讀，10%暫停
-    
+
     let random = Math.random()
     for (let i = 0; i < statuses.length; i++) {
       random -= weights[i]
@@ -677,15 +679,15 @@ class PerformanceTestDataGenerator {
         return statuses[i]
       }
     }
-    
+
     return statuses[0]
   }
 
   // 真實日期生成
-  generateRealisticDate(type, variationLevel) {
+  generateRealisticDate (type, variationLevel) {
     const now = new Date()
     let startYear, endYear
-    
+
     switch (type) {
       case 'simple':
         startYear = now.getFullYear() - 2
@@ -707,12 +709,12 @@ class PerformanceTestDataGenerator {
         startYear = 2020
         endYear = now.getFullYear()
     }
-    
+
     return this.generateRandomDate(startYear, endYear)
   }
 
   // 真實元數據生成
-  generateRealisticMetadata(complexity, variationLevel) {
+  generateRealisticMetadata (complexity, variationLevel) {
     const metadata = {
       language: this.selectWeightedRandom([
         { value: 'zh-TW', weight: 0.6 },
@@ -730,57 +732,57 @@ class PerformanceTestDataGenerator {
       downloadCount: Math.floor(Math.random() * 50000),
       lastAccessed: this.generateRealisticDate('recent', variationLevel)
     }
-    
+
     // 複雜模式添加更多元數據
     if (complexity === 'complex') {
       metadata.chapters = Math.floor(5 + Math.random() * 25)
       metadata.readingTime = Math.floor(180 + Math.random() * 1800) // 3-30小時
       metadata.difficulty = this.selectRandom(['初級', '中級', '高級'])
     }
-    
+
     return metadata
   }
 
   // 加權隨機選擇
-  selectWeightedRandom(items) {
-    let totalWeight = items.reduce((sum, item) => sum + item.weight, 0)
+  selectWeightedRandom (items) {
+    const totalWeight = items.reduce((sum, item) => sum + item.weight, 0)
     let random = Math.random() * totalWeight
-    
+
     for (const item of items) {
       random -= item.weight
       if (random <= 0) {
         return item.value
       }
     }
-    
+
     return items[0].value
   }
 
   // 真實類別生成
-  generateRealisticCategories(variationLevel) {
+  generateRealisticCategories (variationLevel) {
     const categories = [
       '文學小說', '商業理財', '心理勵志', '醫療保健', '旅遊',
       '藝術設計', '人文史地', '社會科學', '自然科普', '語言學習'
     ]
-    
+
     const count = Math.floor(1 + Math.random() * 3) // 1-3個類別
     const result = []
-    
+
     for (let i = 0; i < count; i++) {
       const category = this.selectRandom(categories)
       if (!result.includes(category)) {
         result.push(category)
       }
     }
-    
+
     return result
   }
 
   // 真實評論生成
-  generateRealisticReviews(variationLevel) {
+  generateRealisticReviews (variationLevel) {
     const reviewCount = Math.floor(Math.random() * 10) // 0-9個評論
     const reviews = []
-    
+
     for (let i = 0; i < reviewCount; i++) {
       reviews.push({
         rating: this.generateRealisticRating(variationLevel),
@@ -789,12 +791,12 @@ class PerformanceTestDataGenerator {
         helpful: Math.floor(Math.random() * 20)
       })
     }
-    
+
     return reviews
   }
 
   // 真實評論文字
-  generateRealisticReviewText() {
+  generateRealisticReviewText () {
     const positiveComments = [
       '內容豐富，值得推薦', '寫得很好，學到很多', '非常實用的一本書',
       '作者見解獨到', '深入淺出，容易理解'
@@ -807,13 +809,13 @@ class PerformanceTestDataGenerator {
       '內容太淺顯', '不如期待', '翻譯有問題',
       '論點不夠充分', '例子太少'
     ]
-    
+
     const allComments = [...positiveComments, ...neutralComments, ...negativeComments]
     return this.selectRandom(allComments)
   }
 
   // 真實進度生成
-  generateRealisticProgress(variationLevel) {
+  generateRealisticProgress (variationLevel) {
     return {
       currentPage: Math.floor(Math.random() * 500),
       totalPages: Math.floor(300 + Math.random() * 700),
@@ -825,33 +827,33 @@ class PerformanceTestDataGenerator {
   }
 
   // 變化描述生成
-  generateVariatedDescription(length, template, variationLevel) {
+  generateVariatedDescription (length, template, variationLevel) {
     const starter = this.selectRandom(template.descriptionStarters)
-    let baseText = starter.replace(/xxx/g, this.generateRandomWord())
-    
+    const baseText = starter.replace(/xxx/g, this.generateRandomWord())
+
     // 根據變化等級調整描述複雜度
-    const complexityWords = variationLevel > 0.7 ? 
-      ['深刻', '複雜', '多層次', '哲學性', '批判性', '創新性'] :
-      ['有趣', '精彩', '動人', '實用', '清楚', '生動']
-    
+    const complexityWords = variationLevel > 0.7
+      ? ['深刻', '複雜', '多層次', '哲學性', '批判性', '創新性']
+      : ['有趣', '精彩', '動人', '實用', '清楚', '生動']
+
     let description = baseText
     while (description.length < length) {
       const word = this.selectRandom(complexityWords)
       description += '，' + word + '且' + this.selectRandom(['引人入勝', '發人深省', '令人印象深刻', '值得思考'])
     }
-    
+
     return description.substring(0, length)
   }
 
   // 變化類型選擇
-  selectVariatedGenre(genres, variationLevel) {
+  selectVariatedGenre (genres, variationLevel) {
     if (variationLevel > 0.8) {
       // 高變化率時可能組合多個類型
       const primary = this.selectRandom(genres)
       const secondary = this.selectRandom(genres.filter(g => g !== primary))
       return `${primary}／${secondary}`
     }
-    
+
     return this.selectRandom(genres)
   }
 }

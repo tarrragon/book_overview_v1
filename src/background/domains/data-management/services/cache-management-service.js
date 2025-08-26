@@ -193,7 +193,7 @@ class CacheManagementService extends BaseModule {
 
     this.caches.get(type).clear()
     this.cacheTimestamps.get(type).clear()
-    
+
     // 重置統計（但保留歷史總計）
     this.cacheStats[type].lastAccessed = null
   }
@@ -377,7 +377,7 @@ class CacheManagementService extends BaseModule {
   checkCacheTTL (key, type) {
     const timestamps = this.cacheTimestamps.get(type)
     const timestamp = timestamps.get(key)
-    
+
     if (timestamp && Date.now() - timestamp > this.config.cacheTTL) {
       this.removeCacheEntry(key, type)
       this.updateCacheStatistics(type, 'miss')
@@ -391,7 +391,7 @@ class CacheManagementService extends BaseModule {
    */
   retrieveCacheData (key, type) {
     const cache = this.caches.get(type)
-    
+
     if (cache.has(key)) {
       this.updateCacheStatistics(type, 'hit')
       return this.deepClone(cache.get(key))

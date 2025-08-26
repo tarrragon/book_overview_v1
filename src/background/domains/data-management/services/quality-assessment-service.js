@@ -279,7 +279,7 @@ class QualityAssessmentService extends BaseModule {
   _getIssuePriority (issueType) {
     const highPriorityTypes = ['MISSING_COVER', 'MISSING_TITLE', 'MISSING_AUTHORS']
     const mediumPriorityTypes = ['TITLE_TOO_SHORT', 'INVALID_ISBN']
-    
+
     if (highPriorityTypes.includes(issueType)) return 'HIGH'
     if (mediumPriorityTypes.includes(issueType)) return 'MEDIUM'
     return 'LOW'
@@ -313,12 +313,12 @@ class QualityAssessmentService extends BaseModule {
    */
   _createSuggestionForIssue (issue) {
     const suggestionMap = {
-      'MISSING_COVER': `建議補充${this.getFieldDisplayName(issue.field)}資訊`,
-      'MISSING_TITLE': `建議補充${this.getFieldDisplayName(issue.field)}資訊`,
-      'MISSING_AUTHORS': `建議補充${this.getFieldDisplayName(issue.field)}資訊`,
-      'TITLE_TOO_SHORT': '建議提供更完整的書籍標題',
-      'INVALID_ISBN': '建議確認ISBN格式是否正確',
-      'MISSING_PUBLISHER': '建議添加出版社資訊'
+      MISSING_COVER: `建議補充${this.getFieldDisplayName(issue.field)}資訊`,
+      MISSING_TITLE: `建議補充${this.getFieldDisplayName(issue.field)}資訊`,
+      MISSING_AUTHORS: `建議補充${this.getFieldDisplayName(issue.field)}資訊`,
+      TITLE_TOO_SHORT: '建議提供更完整的書籍標題',
+      INVALID_ISBN: '建議確認ISBN格式是否正確',
+      MISSING_PUBLISHER: '建議添加出版社資訊'
     }
     return suggestionMap[issue.type] || '建議改善資料品質'
   }
@@ -508,7 +508,7 @@ class QualityAssessmentService extends BaseModule {
    */
   assessProgress (book, issues, fieldCounts) {
     fieldCounts.total++
-    
+
     if (book.progress !== undefined && book.progress !== null) {
       fieldCounts.present++
     }
@@ -521,7 +521,7 @@ class QualityAssessmentService extends BaseModule {
    */
   assessRating (book, issues, fieldCounts) {
     fieldCounts.total++
-    
+
     if (book.rating !== undefined && book.rating !== null) {
       fieldCounts.present++
     }
@@ -594,7 +594,7 @@ class QualityAssessmentService extends BaseModule {
    * @returns {number} 完整度百分比
    */
   _calculateCompleteness (fieldCounts) {
-    return fieldCounts.total > 0 
+    return fieldCounts.total > 0
       ? Math.round((fieldCounts.present / fieldCounts.total) * 100)
       : 0
   }
@@ -668,15 +668,15 @@ class QualityAssessmentService extends BaseModule {
    */
   updateQualityStatistics (score) {
     this.qualityStatistics.totalAssessed++
-    
+
     // 更新平均分數
     const currentTotal = this.qualityStatistics.averageScore * (this.qualityStatistics.totalAssessed - 1)
     this.qualityStatistics.averageScore = Math.round((currentTotal + score) / this.qualityStatistics.totalAssessed)
-    
+
     // 更新品質分佈
     const level = this.determineQualityLevel(score)
     this.qualityStatistics.qualityDistribution[level]++
-    
+
     this.qualityStatistics.lastAssessmentTime = Date.now()
   }
 
@@ -738,7 +738,7 @@ class QualityAssessmentService extends BaseModule {
    */
   isQualityServiceHealthy () {
     const stats = this.qualityStatistics
-    const recentActivity = stats.lastAssessmentTime && 
+    const recentActivity = stats.lastAssessmentTime &&
                           (Date.now() - stats.lastAssessmentTime) < 24 * 60 * 60 * 1000 // 24小時內
 
     return {

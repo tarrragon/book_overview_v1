@@ -1,8 +1,8 @@
 /**
  * stable-id-generation.test.js
- * 
+ *
  * UC-02 去重邏輯 - generateStableBookId() 方法完整測試套件
- * 
+ *
  * 測試範圍：
  * - 三層ID生成策略驗證（封面ID → 標題ID → 閱讀器ID）
  * - 冪等性和唯一性測試
@@ -10,7 +10,7 @@
  * - 異常情況處理驗證
  * - 效能和記憶體使用測試
  * - 安全性過濾機制測試
- * 
+ *
  * 目標：測試覆蓋率從65%提升至95%
  * 測試案例數量：41個comprehensive測試案例
  */
@@ -23,7 +23,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
     // 重新載入模組以確保乾淨的測試環境
     jest.resetModules()
     jest.clearAllMocks()
-    
+
     // 重置全域變數
     global.DEBUG_MODE = false
 
@@ -59,7 +59,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       'https://cdn.readmoo.com/cover/xy/book789_300x450.png?v=123456',
       'https://cdn.readmoo.com/cover/cd/novel456_150x200.jpeg'
     ],
-    
+
     // 各種格式的書籍標題
     testTitles: [
       '正常書籍標題',
@@ -68,7 +68,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       '<script>alert("test")</script>惡意標題',
       '超長標題'.repeat(100)
     ],
-    
+
     // 邊界條件測試資料
     boundaryTestData: {
       nullValues: [null, undefined, '', '   '],
@@ -91,7 +91,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC001: 應該從標準Readmoo封面URL生成cover-based ID', () => {
         const coverUrl = 'https://cdn.readmoo.com/cover/ab/test123_210x315.jpg'
         const result = adapter.generateStableBookId('reader456', '書籍標題', coverUrl)
-        
+
         expect(result).toBe('cover-test123')
       })
 
@@ -99,7 +99,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC002: 應該正確處理包含查詢參數的封面URL', () => {
         const coverUrl = 'https://cdn.readmoo.com/cover/xy/book789_300x450.png?v=123456'
         const result = adapter.generateStableBookId('reader999', '測試書籍', coverUrl)
-        
+
         expect(result).toBe('cover-book789')
       })
 
@@ -107,7 +107,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC003: 應該正確處理不同尺寸格式的封面URL', () => {
         const coverUrl = 'https://cdn.readmoo.com/cover/cd/novel456_150x200.jpeg'
         const result = adapter.generateStableBookId('reader111', '小說', coverUrl)
-        
+
         expect(result).toBe('cover-novel456')
       })
     })
@@ -118,7 +118,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         const invalidCoverUrl = 'https://invalid-domain.com/image.jpg'
         const title = 'JavaScript 程式設計指南'
         const result = adapter.generateStableBookId('reader222', title, invalidCoverUrl)
-        
+
         expect(result).toBe('title-javascript-程式設計指南')
       })
 
@@ -127,7 +127,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         const invalidCoverUrl = ''
         const title = 'Python@入門 (第二版) & 實戰！'
         const result = adapter.generateStableBookId('reader333', title, invalidCoverUrl)
-        
+
         expect(result).toBe('title-python入門-第二版-實戰')
       })
 
@@ -136,7 +136,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         const invalidCoverUrl = ''
         const title = 'Deep Learning 深度學習 2024'
         const result = adapter.generateStableBookId('reader444', title, invalidCoverUrl)
-        
+
         expect(result).toBe('title-deep-learning-深度學習-2024')
       })
     })
@@ -145,7 +145,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       // TC007: 封面和標題都無效時使用閱讀器ID
       test('TC007: 封面和標題都無效時應該使用閱讀器ID', () => {
         const result = adapter.generateStableBookId('reader555', '', '')
-        
+
         expect(result).toBe('reader-reader555')
       })
 
@@ -153,7 +153,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC008: 標題為預設值時應該使用閱讀器ID', () => {
         const invalidCoverUrl = ''
         const result = adapter.generateStableBookId('reader666', '未知標題', invalidCoverUrl)
-        
+
         expect(result).toBe('reader-reader666')
       })
     })
@@ -202,7 +202,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
     describe('非字符串類型輸入處理', () => {
       // TC015: 混合類型輸入
       test('TC015: 非字符串類型輸入應該返回合理降級ID', () => {
-        const result = adapter.generateStableBookId(123, {title: "book"}, ["url"])
+        const result = adapter.generateStableBookId(123, { title: 'book' }, ['url'])
         expect(typeof result).toBe('string')
         expect(result).toMatch(/^(cover|title|reader)-/)
       })
@@ -215,7 +215,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
 
       // TC017: 對象類型輸入
       test('TC017: 對象類型輸入應該返回reader-undefined', () => {
-        const result = adapter.generateStableBookId({id: "test"}, 456, null)
+        const result = adapter.generateStableBookId({ id: 'test' }, 456, null)
         expect(result).toBe('reader-undefined')
       })
     })
@@ -225,7 +225,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC018: 超長標題應該被截斷至50字符', () => {
         const longTitle = '超長標題'.repeat(100) // 400字符
         const result = adapter.generateStableBookId('reader123', longTitle, '')
-        
+
         expect(result).toMatch(/^title-/)
         expect(result.length).toBeLessThanOrEqual(56) // 'title-' + 50字符
       })
@@ -234,7 +234,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC019: 超長封面URL如果能解析coverId則正常返回', () => {
         const longUrl = 'https://cdn.readmoo.com/cover/ab/test123_210x315.jpg' + '?param=' + 'x'.repeat(500)
         const result = adapter.generateStableBookId('reader123', '標題', longUrl)
-        
+
         // 如果能解析出coverId則返回，否則降級
         expect(result).toMatch(/^(cover-test123|title-)/)
       })
@@ -243,7 +243,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC020: 超長readerId應該被完整保留', () => {
         const longReaderId = 'reader' + 'x'.repeat(200)
         const result = adapter.generateStableBookId(longReaderId, '', '')
-        
+
         expect(result).toBe(`reader-${longReaderId}`)
       })
     })
@@ -253,7 +253,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC021: 應該清理HTML標籤並返回安全ID', () => {
         const maliciousTitle = '<script>alert(\'test\')</script>書名'
         const result = adapter.generateStableBookId('reader123', maliciousTitle, '')
-        
+
         expect(result).toBe('title-書名')
         expect(result).not.toContain('<script>')
       })
@@ -262,7 +262,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC022: 應該正規化URL編碼字符', () => {
         const encodedTitle = '書名%20測試&amp;版本'
         const result = adapter.generateStableBookId('reader123', encodedTitle, '')
-        
+
         expect(result).toBe('title-書名-測試版本')
       })
 
@@ -270,7 +270,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC023: 惡意協議URL應該降級到其他ID', () => {
         const maliciousUrl = 'javascript:alert(1)'
         const result = adapter.generateStableBookId('reader123', '正常標題', maliciousUrl)
-        
+
         expect(result).not.toContain('javascript')
         expect(result).toMatch(/^(title-正常標題|reader-reader123)$/)
       })
@@ -282,7 +282,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       // TC024: 無效URL格式
       test('TC024: 無效URL格式應該優雅降級不拋出錯誤', () => {
         const invalidUrl = 'not-a-url-at-all'
-        
+
         expect(() => {
           const result = adapter.generateStableBookId('reader123', '標題', invalidUrl)
           expect(result).toMatch(/^(title-標題|reader-reader123)$/)
@@ -293,7 +293,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC025: 不支援的協議應該降級處理', () => {
         const ftpUrl = 'ftp://cdn.readmoo.com/cover/test.jpg'
         const result = adapter.generateStableBookId('reader123', '標題', ftpUrl)
-        
+
         expect(result).toMatch(/^(title-標題|reader-reader123)$/)
       })
 
@@ -301,7 +301,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC026: 應該防護路徑遍歷攻擊', () => {
         const maliciousUrl = 'https://cdn.readmoo.com/cover/../../../etc/passwd'
         const result = adapter.generateStableBookId('reader123', '標題', maliciousUrl)
-        
+
         expect(result).not.toContain('..')
         expect(result).not.toContain('etc/passwd')
         expect(result).toMatch(/^(title-標題|reader-reader123)$/)
@@ -317,11 +317,11 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
           title: 'y'.repeat(10000),
           cover: 'https://cdn.readmoo.com/cover/ab/' + 'z'.repeat(1000) + '_210x315.jpg'
         }
-        
+
         expect(() => {
           const result = adapter.generateStableBookId(
-            extremeInput.readerId, 
-            extremeInput.title, 
+            extremeInput.readerId,
+            extremeInput.title,
             extremeInput.cover
           )
           expect(typeof result).toBe('string')
@@ -333,7 +333,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC028: 批量處理1000次應該在合理時間內完成', () => {
         const startTime = performance.now()
         const results = []
-        
+
         for (let i = 0; i < 1000; i++) {
           const result = adapter.generateStableBookId(
             `reader${i}`,
@@ -342,13 +342,13 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
           )
           results.push(result)
         }
-        
+
         const endTime = performance.now()
         const totalTime = endTime - startTime
-        
+
         expect(results).toHaveLength(1000)
         expect(totalTime).toBeLessThan(1000) // 應該在1秒內完成
-        
+
         // 檢查每個結果都是有效的
         results.forEach(result => {
           expect(result).toMatch(/^(cover|title|reader)-/)
@@ -360,7 +360,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         // 創建可能導致循環的輸入
         const circularObj = {}
         circularObj.self = circularObj
-        
+
         expect(() => {
           const result = adapter.generateStableBookId('reader123', circularObj, '')
           expect(result).toBe('reader-reader123')
@@ -373,18 +373,18 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC030: 瀏覽器安全策略阻止時應該降級', () => {
         // 模擬URL構造函數被安全策略阻止
         const originalURL = global.URL
-        global.URL = function() {
+        global.URL = function () {
           throw new Error('Blocked by security policy')
         }
-        
+
         const result = adapter.generateStableBookId(
-          'reader123', 
-          '標題', 
+          'reader123',
+          '標題',
           'https://cdn.readmoo.com/cover/ab/test123_210x315.jpg'
         )
-        
+
         expect(result).toMatch(/^(title-標題|reader-reader123)$/)
-        
+
         // 恢復原始URL
         global.URL = originalURL
       })
@@ -397,7 +397,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
           'CSP測試書籍',
           'https://cdn.readmoo.com/cover/ab/csp123_210x315.jpg'
         )
-        
+
         expect(result).toMatch(/^(cover-csp123|title-csp測試書籍)$/)
       })
 
@@ -409,7 +409,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
           '跨域測試',
           'https://cdn.readmoo.com/cover/ab/cors123_210x315.jpg'
         )
-        
+
         expect(result).toMatch(/^(cover-cors123|title-跨域測試)$/)
       })
 
@@ -418,16 +418,16 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         // 模擬舊版瀏覽器環境
         const originalURL = global.URL
         delete global.URL
-        
+
         const result = adapter.generateStableBookId(
           'reader123',
           '兼容性測試',
           'https://cdn.readmoo.com/cover/ab/compat123_210x315.jpg'
         )
-        
+
         // 應該降級到標題或閱讀器ID
         expect(result).toMatch(/^(title-兼容性測試|reader-reader123)$/)
-        
+
         // 恢復URL
         global.URL = originalURL
       })
@@ -439,11 +439,11 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       // TC034: 相同參數多次調用
       test('TC034: 相同參數多次調用應該返回相同結果', () => {
         const params = ['reader123', '測試書籍', 'https://cdn.readmoo.com/cover/ab/test123_210x315.jpg']
-        
+
         const result1 = adapter.generateStableBookId(...params)
         const result2 = adapter.generateStableBookId(...params)
         const result3 = adapter.generateStableBookId(...params)
-        
+
         expect(result1).toBe(result2)
         expect(result2).toBe(result3)
         expect(result1).toBe('cover-test123')
@@ -452,14 +452,14 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       // TC035: 不同時間調用一致性
       test('TC035: 相同參數在不同時間調用結果必須一致', async () => {
         const params = ['reader456', '時間測試', 'https://cdn.readmoo.com/cover/ab/time123_210x315.jpg']
-        
+
         const result1 = adapter.generateStableBookId(...params)
-        
+
         // 等待一小段時間
         await new Promise(resolve => setTimeout(resolve, 10))
-        
+
         const result2 = adapter.generateStableBookId(...params)
-        
+
         expect(result1).toBe(result2)
       })
 
@@ -468,10 +468,10 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         const baseId = 'samebook123'
         const url1 = `https://cdn.readmoo.com/cover/ab/${baseId}_210x315.jpg`
         const url2 = `https://cdn.readmoo.com/cover/ab/${baseId}_300x450.jpg`
-        
+
         const result1 = adapter.generateStableBookId('reader1', '書籍', url1)
         const result2 = adapter.generateStableBookId('reader2', '書籍', url2)
-        
+
         expect(result1).toBe(`cover-${baseId}`)
         expect(result2).toBe(`cover-${baseId}`)
         expect(result1).toBe(result2)
@@ -481,12 +481,12 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC037: 標題的空格和標點符號略有不同應該正規化後相同', () => {
         const title1 = 'JavaScript  程式設計！'
         const title2 = 'JavaScript 程式設計！'
-        const title3 = 'JavaScript　程式設計!'  // 全形空格和感嘆號
-        
+        const title3 = 'JavaScript　程式設計!' // 全形空格和感嘆號
+
         const result1 = adapter.generateStableBookId('reader123', title1, '')
         const result2 = adapter.generateStableBookId('reader456', title2, '')
         const result3 = adapter.generateStableBookId('reader789', title3, '')
-        
+
         // 正規化後應該產生相似的ID（具體實作可能略有不同）
         expect(result1).toMatch(/^title-javascript-程式設計/)
         expect(result2).toMatch(/^title-javascript-程式設計/)
@@ -498,16 +498,16 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       // TC038: 不同書籍生成不同ID
       test('TC038: 兩本不同書籍應該生成不同ID', () => {
         const book1 = adapter.generateStableBookId(
-          'reader1', 
-          '書籍A', 
+          'reader1',
+          '書籍A',
           'https://cdn.readmoo.com/cover/ab/bookA_210x315.jpg'
         )
         const book2 = adapter.generateStableBookId(
-          'reader2', 
-          '書籍B', 
+          'reader2',
+          '書籍B',
           'https://cdn.readmoo.com/cover/ab/bookB_210x315.jpg'
         )
-        
+
         expect(book1).not.toBe(book2)
         expect(book1).toBe('cover-bookA')
         expect(book2).toBe('cover-bookB')
@@ -517,10 +517,10 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC039: 相似但不同的標題應該生成不同ID', () => {
         const title1 = 'JavaScript入門指南'
         const title2 = 'JavaScript進階指南'
-        
+
         const result1 = adapter.generateStableBookId('reader123', title1, '')
         const result2 = adapter.generateStableBookId('reader456', title2, '')
-        
+
         expect(result1).not.toBe(result2)
         expect(result1).toContain('入門')
         expect(result2).toContain('進階')
@@ -531,10 +531,10 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         const sameTitle = '程式設計基礎'
         const cover1 = 'https://cdn.readmoo.com/cover/ab/prog1_210x315.jpg'
         const cover2 = 'https://cdn.readmoo.com/cover/ab/prog2_210x315.jpg'
-        
+
         const result1 = adapter.generateStableBookId('reader1', sameTitle, cover1)
         const result2 = adapter.generateStableBookId('reader2', sameTitle, cover2)
-        
+
         expect(result1).not.toBe(result2)
         expect(result1).toBe('cover-prog1')
         expect(result2).toBe('cover-prog2')
@@ -544,7 +544,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC041: 批量不同書籍資料應該生成唯一ID', () => {
         const books = []
         const results = []
-        
+
         // 生成100本不同的書籍
         for (let i = 0; i < 100; i++) {
           const result = adapter.generateStableBookId(
@@ -554,11 +554,11 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
           )
           results.push(result)
         }
-        
+
         // 檢查所有結果都是唯一的
         const uniqueResults = new Set(results)
         expect(uniqueResults.size).toBe(100)
-        
+
         // 檢查每個結果都符合預期格式
         results.forEach((result, index) => {
           expect(result).toBe(`cover-book${index}`)
@@ -570,23 +570,23 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
   describe('📊 效能和記憶體測試', () => {
     test('單次調用效能測試 - 應該在10ms內完成', () => {
       const startTime = performance.now()
-      
+
       const result = adapter.generateStableBookId(
         'reader123',
         '效能測試書籍',
         'https://cdn.readmoo.com/cover/ab/perf123_210x315.jpg'
       )
-      
+
       const endTime = performance.now()
       const duration = endTime - startTime
-      
+
       expect(result).toBe('cover-perf123')
       expect(duration).toBeLessThan(10) // 10ms內完成
     })
 
     test('記憶體使用測試 - 不應該有記憶體洩漏', () => {
       const initialMemory = process.memoryUsage ? process.memoryUsage().heapUsed : 0
-      
+
       // 執行大量操作
       for (let i = 0; i < 1000; i++) {
         adapter.generateStableBookId(
@@ -595,13 +595,13 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
           `https://cdn.readmoo.com/cover/ab/mem${i}_210x315.jpg`
         )
       }
-      
+
       // 強制垃圾收集
       if (global.gc) global.gc()
-      
+
       const finalMemory = process.memoryUsage ? process.memoryUsage().heapUsed : 0
       const memoryIncrease = finalMemory - initialMemory
-      
+
       // 記憶體增長應該在合理範圍內（少於15MB，考慮字符串和正則表達式記憶體）
       expect(memoryIncrease).toBeLessThan(15 * 1024 * 1024)
     })
@@ -611,7 +611,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
     test('應該防止XSS攻擊', () => {
       const xssTitle = '<img src=x onerror=alert("XSS")>書名'
       const result = adapter.generateStableBookId('reader123', xssTitle, '')
-      
+
       expect(result).not.toContain('<img')
       expect(result).not.toContain('onerror')
       expect(result).not.toContain('alert')
@@ -621,7 +621,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
     test('應該防止SQL注入式字符', () => {
       const sqlTitle = "書名'; DROP TABLE books; --"
       const result = adapter.generateStableBookId('reader123', sqlTitle, '')
-      
+
       expect(result).not.toContain('DROP')
       expect(result).not.toContain('TABLE')
       expect(result).toContain('書名')

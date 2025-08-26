@@ -1,9 +1,9 @@
 /**
  * Overview 資料匯入功能測試 - TDD Phase 2
- * 
+ *
  * 測試目標：驗證 loadFromFile 相關功能
  * 覆蓋率目標：從 10% 提升至 90%
- * 
+ *
  * @jest-environment jsdom
  */
 
@@ -51,7 +51,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
   }
 
   // Mock 工具函數
-  function createMockFile(content, name = 'test.json', type = 'application/json') {
+  function createMockFile (content, name = 'test.json', type = 'application/json') {
     // 建立模擬的 File 物件，避免 JSDOM Blob 問題
     return {
       name,
@@ -75,14 +75,14 @@ describe('📄 Overview 資料匯入功能測試', () => {
    * @param {string} options.result - 成功時的結果
    * @returns {Object} Mock FileReader實例
    */
-  function createMockFileReader(options = {}) {
+  function createMockFileReader (options = {}) {
     const {
       shouldError = false,
       errorType = 'NotReadableError',
       delay = 10,
       result = ''
     } = options
-    
+
     const mockInstance = {
       readyState: 0,
       result: null,
@@ -93,19 +93,19 @@ describe('📄 Overview 資料匯入功能測試', () => {
       onloadstart: null,
       onprogress: null,
       onloadend: null,
-      
-      readAsText: jest.fn().mockImplementation(function(file, encoding) {
+
+      readAsText: jest.fn().mockImplementation(function (file, encoding) {
         // 模擬讀取開始
         this.readyState = 1
         if (this.onloadstart) this.onloadstart()
-        
+
         // 非同步處理，確保回調函數已設定
         setTimeout(() => {
           if (shouldError) {
             // 創建錯誤事件
             this.readyState = 2
             this.error = new DOMException(`Mock ${errorType} error`, errorType)
-            
+
             if (this.onerror) {
               const errorEvent = {
                 target: this,
@@ -119,7 +119,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
             // 成功讀取
             this.readyState = 2
             this.result = file.content || result
-            
+
             if (this.onload) {
               const loadEvent = {
                 target: this,
@@ -130,19 +130,19 @@ describe('📄 Overview 資料匯入功能測試', () => {
               this.onload(loadEvent)
             }
           }
-          
+
           // 總是觸發loadend
           if (this.onloadend) this.onloadend()
         }, delay)
       }),
-      
-      abort: jest.fn().mockImplementation(function() {
+
+      abort: jest.fn().mockImplementation(function () {
         this.readyState = 2
         if (this.onabort) this.onabort()
         if (this.onloadend) this.onloadend()
       })
     }
-    
+
     return mockInstance
   }
 
@@ -152,7 +152,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
     readyState: 0,
     onload: null,
     onerror: null,
-    readAsText: jest.fn().mockImplementation(function(file, encoding) {
+    readAsText: jest.fn().mockImplementation(function (file, encoding) {
       // 模擬非同步讀取
       setTimeout(() => {
         this.result = file.content || file.textContent || JSON.stringify(file)
@@ -236,7 +236,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
     // Mock EventHandler class 基於實際的 EventHandler 結構
     global.EventHandler = class EventHandler {
-      constructor(name, priority = 2) {
+      constructor (name, priority = 2) {
         this.name = name
         this.priority = priority
         this.isEnabled = true
@@ -244,17 +244,17 @@ describe('📄 Overview 資料匯入功能測試', () => {
         this.lastExecutionTime = null
         this.averageExecutionTime = 0
       }
-      
+
       // 實現基本的事件處理方法
-      handle(event) {
+      handle (event) {
         return Promise.resolve()
       }
-      
-      getSupportedEvents() {
+
+      getSupportedEvents () {
         return []
       }
-      
-      process(event) {
+
+      process (event) {
         return Promise.resolve()
       }
     }
@@ -271,15 +271,15 @@ describe('📄 Overview 資料匯入功能測試', () => {
       // 設定瀏覽器環境變數模擬
       global.window = window
       global.document = document
-      
+
       const module = require('../../../src/overview/overview-page-controller.js')
       OverviewPageController = module.OverviewPageController
-      
+
       // 延遲初始化，確保DOM元素已準備就緒
       controller = new OverviewPageController(mockEventBus, document)
-      
+
       // Mock FileReader 方法，避免 JSDOM Blob 驗證問題
-      jest.spyOn(controller, 'handleFileLoad').mockImplementation(async function(file) {
+      jest.spyOn(controller, 'handleFileLoad').mockImplementation(async function (file) {
         // 檔案前置驗證
         if (!file) {
           this.showError('請先選擇一個 JSON 檔案！')
@@ -307,11 +307,9 @@ describe('📄 Overview 資料匯入功能測試', () => {
           throw error
         }
       })
-      
     } catch (error) {
       console.error('Failed to load OverviewPageController:', error)
       // 跳過這些測試，因為模組無法載入
-      return
     }
   })
 
@@ -322,16 +320,16 @@ describe('📄 Overview 資料匯入功能測試', () => {
       controller.filteredBooks = []
       controller.isLoading = false
     }
-    
+
     // 重置UI元素
     document.getElementById('totalBooks').textContent = '0'
     document.getElementById('displayedBooks').textContent = '0'
     document.getElementById('tableBody').innerHTML = ''
-    
+
     // 清理錯誤和載入狀態
     document.getElementById('loadingIndicator').style.display = 'none'
     document.getElementById('errorContainer').style.display = 'none'
-    
+
     // 清理Mock函數
     jest.clearAllMocks()
   })
@@ -344,10 +342,10 @@ describe('📄 Overview 資料匯入功能測試', () => {
         { id: 'book-2', title: '測試書籍2', cover: 'http://example.com/cover2.jpg' }
       ]
       const fileContent = JSON.stringify(validBooks)
-      
+
       // When: 執行檔案載入
       await controller.handleFileLoad(createMockFile(fileContent))
-      
+
       // Then: 驗證載入結果
       expect(controller.currentBooks).toHaveLength(2)
       expect(controller.currentBooks[0].title).toBe('測試書籍1')
@@ -362,10 +360,10 @@ describe('📄 Overview 資料匯入功能測試', () => {
         ],
         metadata: { version: '1.0', timestamp: '2025-08-22' }
       })
-      
+
       // When: 執行檔案載入
       await controller.handleFileLoad(createMockFile(fileContent))
-      
+
       // Then: 驗證正確提取books陣列
       expect(controller.currentBooks).toHaveLength(1)
       expect(controller.currentBooks[0].title).toBe('測試書籍')
@@ -381,10 +379,10 @@ describe('📄 Overview 資料匯入功能測試', () => {
         { title: '缺少ID', cover: 'http://example.com/cover.jpg' } // 缺少id欄位
       ]
       const fileContent = JSON.stringify(invalidBooks)
-      
+
       // When: 執行檔案載入
       await controller.handleFileLoad(createMockFile(fileContent))
-      
+
       // Then: 驗證只載入有效記錄
       expect(controller.currentBooks).toHaveLength(1)
       expect(controller.currentBooks[0].id).toBe('book-1')
@@ -403,10 +401,10 @@ describe('📄 Overview 資料匯入功能測試', () => {
         }
       ]
       const fileContent = JSON.stringify(mixedData)
-      
+
       // When: 執行檔案載入
       await controller.handleFileLoad(createMockFile(fileContent))
-      
+
       // Then: 驗證資料類型正確處理
       expect(controller.currentBooks[0].progress).toBe(50)
       expect(Array.isArray(controller.currentBooks[0].tags)).toBe(true)
@@ -418,10 +416,10 @@ describe('📄 Overview 資料匯入功能測試', () => {
     test('應該處理空JSON陣列', async () => {
       // Given: 空陣列的JSON檔案
       const fileContent = JSON.stringify([])
-      
+
       // When: 執行檔案載入
       await controller.handleFileLoad(createMockFile(fileContent))
-      
+
       // Then: 驗證空資料處理
       expect(controller.currentBooks).toHaveLength(0)
       expect(controller.isLoading).toBe(false)
@@ -435,12 +433,12 @@ describe('📄 Overview 資料匯入功能測試', () => {
         cover: `http://example.com/cover${i}.jpg`
       }))
       const fileContent = JSON.stringify(largeDataset)
-      
+
       // When: 執行檔案載入
       const startTime = Date.now()
       await controller.handleFileLoad(createMockFile(fileContent))
       const endTime = Date.now()
-      
+
       // Then: 驗證效能要求
       expect(controller.currentBooks).toHaveLength(1000)
       expect(endTime - startTime).toBeLessThan(5000) // 5秒內完成
@@ -454,10 +452,10 @@ describe('📄 Overview 資料匯入功能測試', () => {
         { id: 'book-3', title: 'Special: "\'<>&', cover: 'http://example.com/cover.jpg' }
       ]
       const fileContent = JSON.stringify(specialCharBooks)
-      
+
       // When: 執行檔案載入
       await controller.handleFileLoad(createMockFile(fileContent))
-      
+
       // Then: 驗證特殊字符正確處理
       expect(controller.currentBooks[0].title).toBe('📚 測試書籍 🔥')
       expect(controller.currentBooks[1].title).toBe('English & 中文 & 日本語')
@@ -469,14 +467,14 @@ describe('📄 Overview 資料匯入功能測試', () => {
     test('應該處理無效的JSON格式', async () => {
       // Given: 無效的JSON檔案內容
       const invalidJSON = '{ invalid json content'
-      
+
       // When: 執行檔案載入
       try {
         await controller.handleFileLoad(createMockFile(invalidJSON))
       } catch (error) {
         // 預期會拋出錯誤
       }
-      
+
       // Then: 驗證錯誤處理
       const errorMessage = document.getElementById('errorMessage').textContent
       expect(errorMessage).toContain('JSON 檔案格式不正確')
@@ -486,14 +484,14 @@ describe('📄 Overview 資料匯入功能測試', () => {
     test('應該處理非陣列格式的JSON', async () => {
       // Given: 非陣列格式的JSON
       const nonArrayJSON = JSON.stringify({ title: '單一書籍物件' })
-      
+
       // When: 執行檔案載入
       try {
         await controller.handleFileLoad(createMockFile(nonArrayJSON))
       } catch (error) {
         // 預期會拋出錯誤
       }
-      
+
       // Then: 驗證錯誤處理
       const errorMessage = document.getElementById('errorMessage').textContent
       expect(errorMessage).toContain('應該包含一個陣列')
@@ -502,32 +500,32 @@ describe('📄 Overview 資料匯入功能測試', () => {
     test('應該處理FileReader讀取錯誤', async () => {
       // Given: 恢復原始 handleFileLoad 方法來測試真實錯誤處理
       controller.handleFileLoad.mockRestore()
-      
+
       // Given: 在設置 mock 前保存原始 FileReader
       const originalFileReader = global.FileReader || window.FileReader
-      
+
       // Given: 創建會觸發錯誤的 mock FileReader
       global.FileReader = jest.fn().mockImplementation(() => {
-        const mockInstance = createMockFileReader({ 
+        const mockInstance = createMockFileReader({
           shouldError: true,
           delay: 10
         })
         return mockInstance
       })
-      
+
       // 確保全域 window 也使用同樣的 mock
       window.FileReader = global.FileReader
-      
+
       // Given: 創建真實的 File 對象
       const fileContent = 'test content'
       const blob = new Blob([fileContent], { type: 'application/json' })
       const realFile = new File([blob], 'test.json', { type: 'application/json' })
-      
+
       // Given: 檢查初始UI狀態
       const errorContainer = document.getElementById('errorContainer')
       const errorMessage = document.getElementById('errorMessage')
       expect(errorContainer.style.display).toBe('none')
-      
+
       // When: 執行檔案載入
       let caughtError = null
       try {
@@ -535,16 +533,16 @@ describe('📄 Overview 資料匯入功能測試', () => {
       } catch (error) {
         caughtError = error
       }
-      
+
       // 等待異步錯誤處理完成
       await new Promise(resolve => setTimeout(resolve, 100))
-      
+
       // Then: 驗證錯誤處理
       expect(caughtError).toBeInstanceOf(Error)
       expect(caughtError.message).toContain('讀取檔案時發生錯誤')
       expect(errorMessage.textContent).toContain('讀取檔案時發生錯誤')
       expect(errorContainer.style.display).not.toBe('none')
-      
+
       // 恢復原始 FileReader
       global.FileReader = originalFileReader
       window.FileReader = originalFileReader
@@ -558,11 +556,11 @@ describe('📄 Overview 資料匯入功能測試', () => {
       const loadButton = document.getElementById('loadFileBtn')
       const testFile = createMockFile(JSON.stringify([testBook]))
       Object.defineProperty(fileInput, 'files', { value: [testFile] })
-      
+
       // When: 點擊載入按鈕
       loadButton.click()
       await new Promise(resolve => setTimeout(resolve, 100)) // 等待非同步處理
-      
+
       // Then: 驗證UI狀態更新
       expect(controller.currentBooks).toHaveLength(1)
       expect(document.getElementById('totalBooks').textContent).toBe('1')
@@ -571,31 +569,31 @@ describe('📄 Overview 資料匯入功能測試', () => {
     test('應該顯示載入進度指示', async () => {
       // Given: 準備檔案並重新Mock handleFileLoad來測試載入狀態
       const largeFile = createMockFile(JSON.stringify(Array(100).fill(testBook)))
-      
+
       // 重新Mock handleFileLoad 來確保 isLoading 狀態正確設定
       controller.handleFileLoad.mockRestore()
-      controller.handleFileLoad = jest.fn().mockImplementation(async function(file) {
+      controller.handleFileLoad = jest.fn().mockImplementation(async function (file) {
         this.isLoading = true
         this.showLoading('正在讀取檔案...')
-        
+
         // 模擬處理時間
         await new Promise(resolve => setTimeout(resolve, 50))
-        
+
         this._handleFileContent(file.content)
         this.isLoading = false
         this.hideLoading()
       })
-      
+
       // When: 開始載入檔案
       const loadPromise = controller.handleFileLoad(largeFile)
-      
+
       // Then: 驗證載入指示器顯示（需要等待非同步設定）
       await new Promise(resolve => setTimeout(resolve, 10))
       expect(controller.isLoading).toBe(true)
       expect(document.getElementById('loadingIndicator').style.display).toBe('block')
-      
+
       await loadPromise
-      
+
       // 載入完成後應該隱藏指示器
       expect(controller.isLoading).toBe(false)
       expect(document.getElementById('loadingIndicator').style.display).toBe('none')
@@ -604,14 +602,14 @@ describe('📄 Overview 資料匯入功能測試', () => {
     test('應該在錯誤時顯示適當的錯誤訊息', async () => {
       // Given: 無效檔案
       const invalidFile = createMockFile('invalid json')
-      
+
       // When: 載入無效檔案
       try {
         await controller.handleFileLoad(invalidFile)
       } catch (error) {
         // 預期會拋出錯誤
       }
-      
+
       // Then: 驗證錯誤UI狀態
       expect(document.getElementById('errorContainer').style.display).toBe('block')
       expect(document.getElementById('errorMessage').textContent).toContain('JSON 檔案格式不正確')
@@ -620,15 +618,14 @@ describe('📄 Overview 資料匯入功能測試', () => {
   })
 
   describe('🎯 覆蓋率提升測試案例', () => {
-    
     describe('📝 檔案處理邊界情況', () => {
       test('應該處理 BOM (Byte Order Mark) 標記', async () => {
         // Given: 包含BOM標記的JSON檔案
         const bomContent = '\uFEFF' + JSON.stringify([testBook])
-        
+
         // When: 執行檔案載入
         await controller.handleFileLoad(createMockFile(bomContent))
-        
+
         // Then: 驗證BOM被正確移除
         expect(controller.currentBooks).toHaveLength(1)
         expect(controller.currentBooks[0].title).toBe('測試書籍')
@@ -641,10 +638,10 @@ describe('📄 Overview 資料匯入功能測試', () => {
           { id: 'unicode-2', title: 'العربية 中文 한국어', cover: 'http://example.com/cover.jpg' }
         ]
         const fileContent = JSON.stringify(unicodeBooks)
-        
+
         // When: 執行檔案載入
         await controller.handleFileLoad(createMockFile(fileContent))
-        
+
         // Then: 驗證Unicode字符正確處理
         expect(controller.currentBooks).toHaveLength(2)
         expect(controller.currentBooks[0].title).toBe('🌟✨📚 Unicode測試 🇹🇼')
@@ -660,10 +657,10 @@ describe('📄 Overview 資料匯入功能測試', () => {
           ]
         }
         const fileContent = JSON.stringify(metadataWrappedData)
-        
+
         // When: 執行檔案載入
         await controller.handleFileLoad(createMockFile(fileContent))
-        
+
         // Then: 驗證正確提取data陣列
         expect(controller.currentBooks).toHaveLength(1)
         expect(controller.currentBooks[0].title).toBe('Metadata包裝測試書籍')
@@ -674,7 +671,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
       test('應該處理JSON語法錯誤', async () => {
         // Given: 包含語法錯誤的JSON檔案
         const malformedJSON = '{"books": [{"id": "test", "title": "Test"}'
-        
+
         // When: 執行檔案載入
         let errorCaught = false
         try {
@@ -682,7 +679,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
         } catch (error) {
           errorCaught = true
         }
-        
+
         // Then: 驗證錯誤處理
         expect(errorCaught).toBe(true)
         const errorMessage = document.getElementById('errorMessage').textContent
@@ -692,11 +689,11 @@ describe('📄 Overview 資料匯入功能測試', () => {
       test('應該處理 FileReader 讀取失敗', async () => {
         // Given: 恢復原始方法並模擬FileReader錯誤
         controller.handleFileLoad.mockRestore()
-        
+
         // Given: Mock FileReader 觸發錯誤
         const originalFileReader = global.FileReader || window.FileReader
         global.FileReader = jest.fn().mockImplementation(() => {
-          const mockInstance = createMockFileReader({ 
+          const mockInstance = createMockFileReader({
             shouldError: true,
             errorType: 'NotReadableError',
             delay: 10
@@ -704,11 +701,11 @@ describe('📄 Overview 資料匯入功能測試', () => {
           return mockInstance
         })
         window.FileReader = global.FileReader
-        
+
         // Given: 創建真實的 File 對象
         const blob = new Blob(['test'], { type: 'application/json' })
         const realFile = new File([blob], 'test.json', { type: 'application/json' })
-        
+
         // When: 執行檔案載入
         let errorCaught = false
         try {
@@ -716,15 +713,15 @@ describe('📄 Overview 資料匯入功能測試', () => {
         } catch (error) {
           errorCaught = true
         }
-        
+
         // 等待異步錯誤處理完成
         await new Promise(resolve => setTimeout(resolve, 100))
-        
+
         // Then: 驗證錯誤處理
         expect(errorCaught).toBe(true)
         const errorMessage = document.getElementById('errorMessage').textContent
         expect(errorMessage).toContain('讀取檔案時發生錯誤')
-        
+
         // 恢復原始 FileReader
         global.FileReader = originalFileReader
         window.FileReader = originalFileReader
@@ -733,7 +730,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
       test('應該處理超大檔案錯誤', async () => {
         // Given: 恢復原始方法以測試檔案大小驗證
         controller.handleFileLoad.mockRestore()
-        
+
         // Given: 創建超過限制大小的檔案（11MB > 10MB限制）
         const oversizedContent = 'x'.repeat(100) // 小內容，但設定大size
         const oversizedFile = createMockFile(oversizedContent, 'oversized.json')
@@ -742,7 +739,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
           value: 11 * 1024 * 1024, // 11MB
           writable: false
         })
-        
+
         // When: 執行檔案載入
         let errorCaught = false
         try {
@@ -750,7 +747,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
         } catch (error) {
           errorCaught = true
         }
-        
+
         // Then: 驗證檔案大小限制
         expect(errorCaught).toBe(true)
         const errorMessage = document.getElementById('errorMessage').textContent
@@ -769,10 +766,10 @@ describe('📄 Overview 資料匯入功能測試', () => {
           ]
         }
         const fileContent = JSON.stringify(booksWrappedData)
-        
+
         // When: 執行檔案載入
         await controller.handleFileLoad(createMockFile(fileContent))
-        
+
         // Then: 驗證正確提取books陣列
         expect(controller.currentBooks).toHaveLength(1)
         expect(controller.currentBooks[0].title).toBe('Books包裝測試書籍')
@@ -789,16 +786,16 @@ describe('📄 Overview 資料匯入功能測試', () => {
           extractedAt: new Date().toISOString()
         }))
         const fileContent = JSON.stringify(largeDataset)
-        
+
         // When: 執行檔案載入並測量時間
         const startTime = Date.now()
         await controller.handleFileLoad(createMockFile(fileContent))
         const endTime = Date.now()
-        
+
         // Then: 驗證效能要求
         expect(controller.currentBooks).toHaveLength(5000)
         expect(endTime - startTime).toBeLessThan(3000) // 3秒內完成
-        
+
         // 驗證資料完整性
         expect(controller.currentBooks[0].id).toBe('book-0')
         expect(controller.currentBooks[4999].id).toBe('book-4999')
@@ -810,26 +807,26 @@ describe('📄 Overview 資料匯入功能測試', () => {
       test('應該處理檔案讀取延遲', async () => {
         // Given: 設定較長的讀取延遲
         const delayedContent = JSON.stringify([testBook])
-        
+
         // Mock FileReader with longer delay
         controller.handleFileLoad.mockRestore()
-        controller.handleFileLoad = jest.fn().mockImplementation(async function(file) {
+        controller.handleFileLoad = jest.fn().mockImplementation(async function (file) {
           this.showLoading('正在讀取檔案...')
-          
+
           // 模擬長時間讀取
           await new Promise(resolve => setTimeout(resolve, 100))
-          
+
           this._handleFileContent(file.content)
           this.hideLoading()
         })
-        
+
         // When: 執行檔案載入
         const loadPromise = controller.handleFileLoad(createMockFile(delayedContent))
-        
+
         // Then: 驗證載入狀態管理
         await new Promise(resolve => setTimeout(resolve, 10))
         expect(document.getElementById('loadingIndicator').style.display).toBe('block')
-        
+
         await loadPromise
         expect(document.getElementById('loadingIndicator').style.display).toBe('none')
         expect(controller.currentBooks).toHaveLength(1)
@@ -838,7 +835,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
       test('應該處理載入過程中的取消操作', async () => {
         // Given: 恢復原始方法
         controller.handleFileLoad.mockRestore()
-        
+
         // Given: Mock FileReader 支援中止操作
         const originalFileReader = global.FileReader || window.FileReader
         global.FileReader = jest.fn().mockImplementation(() => {
@@ -846,29 +843,29 @@ describe('📄 Overview 資料匯入功能測試', () => {
           return mockInstance
         })
         window.FileReader = global.FileReader
-        
+
         // Given: 創建檔案
         const blob = new Blob([JSON.stringify([testBook])], { type: 'application/json' })
         const realFile = new File([blob], 'test.json', { type: 'application/json' })
-        
+
         // When: 開始載入然後嘗試中止
         const loadPromise = controller.handleFileLoad(realFile)
-        
+
         // 等待載入開始
         await new Promise(resolve => setTimeout(resolve, 10))
-        
+
         // 模擬用戶中止操作 (如果控制器有abort方法)
         if (typeof controller.abortFileLoad === 'function') {
           controller.abortFileLoad()
         }
-        
+
         // Then: 等待處理完成
         try {
           await loadPromise
         } catch (error) {
           // 中止操作可能拋出錯誤
         }
-        
+
         // 恢復原始 FileReader
         global.FileReader = originalFileReader
         window.FileReader = originalFileReader
@@ -884,10 +881,10 @@ describe('📄 Overview 資料匯入功能測試', () => {
           cover: `http://example.com/cover${i}.jpg`
         }))
         const fileContent = JSON.stringify(multipleBooks)
-        
+
         // When: 執行檔案載入
         await controller.handleFileLoad(createMockFile(fileContent))
-        
+
         // Then: 驗證統計資訊更新
         expect(controller.currentBooks).toHaveLength(25)
         expect(document.getElementById('totalBooks').textContent).toBe('25')
@@ -906,17 +903,17 @@ describe('📄 Overview 資料匯入功能測試', () => {
         const thirdBatch = [
           { id: 'batch3-1', title: '第三批書籍1', cover: 'http://example.com/cover4.jpg' }
         ]
-        
+
         // When: 執行連續三次載入
         await controller.handleFileLoad(createMockFile(JSON.stringify(firstBatch)))
         expect(controller.currentBooks).toHaveLength(1)
-        
+
         await controller.handleFileLoad(createMockFile(JSON.stringify(secondBatch)))
         expect(controller.currentBooks).toHaveLength(2)
-        
+
         await controller.handleFileLoad(createMockFile(JSON.stringify(thirdBatch)))
         expect(controller.currentBooks).toHaveLength(1)
-        
+
         // Then: 驗證最後載入的資料取代前面的資料
         expect(controller.currentBooks[0].title).toBe('第三批書籍1')
         expect(document.getElementById('totalBooks').textContent).toBe('1')
@@ -936,14 +933,14 @@ describe('📄 Overview 資料匯入功能測試', () => {
           }
         ]
         const fileContent = JSON.stringify(completeBooks)
-        
+
         // When: 執行檔案載入
         await controller.handleFileLoad(createMockFile(fileContent))
-        
+
         // Then: 驗證表格內容更新
         const tableBody = document.getElementById('tableBody')
         expect(tableBody.children.length).toBe(1)
-        
+
         const row = tableBody.children[0]
         expect(row.querySelector('td:nth-child(2)').textContent).toContain('完整資訊書籍')
         expect(row.querySelector('td:nth-child(3)').textContent).toContain('readmoo')

@@ -204,7 +204,7 @@ async function activateEmergencyMode () {
 
   try {
     // 建立簡化的事件總線
-    const emergencyEventBus = createEmergencyEventBus()
+    createEmergencyEventBus()
 
     // 註冊基本的訊息處理
     if (chrome.runtime.onMessage) {

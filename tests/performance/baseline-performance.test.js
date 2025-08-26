@@ -1,6 +1,6 @@
 /**
  * v0.9.35 基礎效能測試套件
- * 
+ *
  * 測試範圍：UI回應時間、資料處理效能、記憶體使用監控
  * 測試標準：符合Chrome Extension環境的效能基準
  */
@@ -44,7 +44,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
   afterEach(async () => {
     // 每個測試後檢查記憶體使用
     performanceMonitor.captureMemorySnapshot('test-end')
-    
+
     // 強制垃圾回收
     if (global.gc) {
       global.gc()
@@ -118,10 +118,10 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
 
     test('A1-3: 搜尋即時回應測試 - 應在300ms內顯示結果', async () => {
       // Given: Overview頁面已載入100本書籍資料
-      const testBooks = dataGenerator.generateRealisticBooks(100, { 
-        complexityDistribution: { simple: 20, normal: 60, complex: 20 }, 
+      const testBooks = dataGenerator.generateRealisticBooks(100, {
+        complexityDistribution: { simple: 20, normal: 60, complex: 20 },
         includeVariations: true,
-        cacheKey: 'baseline-search-test' 
+        cacheKey: 'baseline-search-test'
       })
       const mockOverview = await setupMockOverviewPage(testBooks)
       const expectedMaxTime = 300 // ms
@@ -159,7 +159,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
   describe('📊 A2. 資料處理效能基準測試', () => {
     test('A2-1: 小量書籍提取效能測試 - 10本書籍應在1秒內完成', async () => {
       // Given: 目標網頁包含10本書籍資料
-      const testBooks = dataGenerator.generateRealisticBooks(10, { 
+      const testBooks = dataGenerator.generateRealisticBooks(10, {
         complexityDistribution: { simple: 80, normal: 20, complex: 0 },
         includeVariations: false,
         cacheKey: 'small-extraction-test'
@@ -189,7 +189,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
 
     test('A2-2: 中量書籍提取效能測試 - 100本書籍應在8秒內完成', async () => {
       // Given: 目標網頁包含100本書籍資料
-      const testBooks = dataGenerator.generateRealisticBooks(100, { 
+      const testBooks = dataGenerator.generateRealisticBooks(100, {
         complexityDistribution: { simple: 30, normal: 50, complex: 20 },
         includeVariations: true,
         simulateRealWorldErrors: true,
@@ -237,7 +237,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
 
       // Then: 檔案解析應在4秒內完成(0.5MB/秒)
       expect(timing.duration).toBeLessThan(expectedMaxTime)
-      
+
       const processingSpeedMBs = (actualSize / (1024 * 1024)) / (timing.duration / 1000)
       expect(processingSpeedMBs).toBeGreaterThanOrEqual(expectedMinSpeed)
 
@@ -262,11 +262,11 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
 
       // When: 執行多次操作模擬長時間運行
       for (let i = 0; i < operationCount; i++) {
-        const books = dataGenerator.generateRealisticBooks(10, { 
+        const books = dataGenerator.generateRealisticBooks(10, {
           complexityDistribution: { simple: 90, normal: 10, complex: 0 }
         })
         await simulateBookExtraction(await setupMockWebPage(books), 10)
-        
+
         // 每10次操作強制垃圾回收
         if (i % 10 === 9 && global.gc) {
           global.gc()
@@ -317,11 +317,11 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
   })
 
   // === 測試輔助函數 ===
-  
-  async function setupPerformanceTestEnvironment() {
+
+  async function setupPerformanceTestEnvironment () {
     // 模擬Chrome Extension環境
     setupChromeExtensionMocks()
-    
+
     // 設置DOM環境
     if (typeof document === 'undefined') {
       const { JSDOM } = require('jsdom')
@@ -348,10 +348,10 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
     })
   }
 
-  function setupChromeExtensionMocks() {
+  function setupChromeExtensionMocks () {
     global.chrome = {
       runtime: {
-        sendMessage: jest.fn().mockImplementation(() => 
+        sendMessage: jest.fn().mockImplementation(() =>
           new Promise(resolve => setTimeout(() => resolve({ success: true }), 10))
         ),
         onMessage: {
@@ -360,10 +360,10 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       },
       storage: {
         local: {
-          get: jest.fn().mockImplementation(() => 
+          get: jest.fn().mockImplementation(() =>
             new Promise(resolve => setTimeout(() => resolve({}), 5))
           ),
-          set: jest.fn().mockImplementation(() => 
+          set: jest.fn().mockImplementation(() =>
             new Promise(resolve => setTimeout(() => resolve(), 5))
           )
         }
@@ -371,7 +371,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
     }
   }
 
-  async function setupMockPopupEnvironment() {
+  async function setupMockPopupEnvironment () {
     const mockPopup = {
       isOpen: false,
       contentLoaded: false,
@@ -380,16 +380,16 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
     return mockPopup
   }
 
-  async function simulatePopupOpen(mockPopup) {
+  async function simulatePopupOpen (mockPopup) {
     const startTime = performance.now()
-    
+
     // 模擬Popup載入過程
     await simulateAsyncOperation(50) // 模擬DOM建立時間
     mockPopup.isOpen = true
-    
+
     await simulateAsyncOperation(30) // 模擬內容載入時間
     mockPopup.contentLoaded = true
-    
+
     // 模擬UI元素渲染
     mockPopup.uiElements = [
       { type: 'button', id: 'extract', rendered: true },
@@ -397,10 +397,10 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       { type: 'button', id: 'export', rendered: true },
       { type: 'panel', id: 'main', rendered: true }
     ]
-    
+
     const endTime = performance.now()
     mockPopup.loadTime = endTime - startTime
-    
+
     return {
       isLoaded: mockPopup.contentLoaded,
       contentVisible: mockPopup.isOpen,
@@ -409,22 +409,22 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
     }
   }
 
-  async function simulateButtonClick(mockPopup, buttonType) {
+  async function simulateButtonClick (mockPopup, buttonType) {
     const startTime = performance.now()
-    
+
     // 模擬按鈕點擊處理
     await simulateAsyncOperation(10) // 事件處理時間
-    
+
     const result = {
       visualFeedback: true,
       functionTriggered: true,
-      buttonType: buttonType,
+      buttonType,
       responseTime: performance.now() - startTime
     }
     return result
   }
 
-  async function setupMockOverviewPage(testBooks) {
+  async function setupMockOverviewPage (testBooks) {
     return {
       books: testBooks,
       searchIndex: testBooks.reduce((index, book) => {
@@ -435,27 +435,27 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
     }
   }
 
-  async function simulateSearch(mockOverview, query) {
+  async function simulateSearch (mockOverview, query) {
     const startTime = performance.now()
-    
+
     // 模擬搜尋邏輯
     await simulateAsyncOperation(20) // 搜尋處理時間
-    
-    const results = mockOverview.books.filter(book => 
-      (book.title && book.title.includes(query)) || 
-      (book.author && book.author.includes(query)) || 
+
+    const results = mockOverview.books.filter(book =>
+      (book.title && book.title.includes(query)) ||
+      (book.author && book.author.includes(query)) ||
       (book.genre && book.genre.includes(query))
     )
-    
+
     return {
       resultsDisplayed: true,
       resultCount: results.length,
-      results: results,
+      results,
       searchTime: performance.now() - startTime
     }
   }
 
-  async function setupMockWebPage(testBooks) {
+  async function setupMockWebPage (testBooks) {
     return {
       books: testBooks,
       domElements: testBooks.map(book => ({ id: book.id, data: book })),
@@ -463,22 +463,22 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
     }
   }
 
-  async function simulateBookExtraction(mockWebPage, expectedCount) {
+  async function simulateBookExtraction (mockWebPage, expectedCount) {
     const startTime = performance.now()
     let extractedCount = 0
     let successCount = 0
-    
+
     // 模擬逐本書籍提取
     for (const bookElement of mockWebPage.domElements) {
       await simulateAsyncOperation(5, 15) // 模擬DOM查詢和資料提取
       extractedCount++
-      
+
       // 模擬96%成功率
       if (Math.random() > 0.04) {
         successCount++
       }
     }
-    
+
     return {
       extractedCount,
       successCount,
@@ -487,23 +487,23 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
     }
   }
 
-  async function simulateJSONImport(jsonData, fileSize) {
+  async function simulateJSONImport (jsonData, fileSize) {
     const startTime = performance.now()
-    
+
     // 模擬JSON解析處理
     const processingTime = Math.max(100, (fileSize / (1024 * 1024)) * 1000) // 基於檔案大小的處理時間
     await simulateAsyncOperation(processingTime)
-    
+
     return {
       parsedBooks: jsonData.books.length,
       parseErrors: 0,
-      fileSize: fileSize,
+      fileSize,
       processingTime: performance.now() - startTime
     }
   }
 
   // 工具函數：模擬異步操作
-  function simulateAsyncOperation(minTime, maxTime = null) {
+  function simulateAsyncOperation (minTime, maxTime = null) {
     const delay = maxTime ? minTime + Math.random() * (maxTime - minTime) : minTime
     return new Promise(resolve => setTimeout(resolve, delay))
   }

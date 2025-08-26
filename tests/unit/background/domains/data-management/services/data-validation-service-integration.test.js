@@ -1,7 +1,7 @@
 /**
  * DataValidationService 整合測試
  * TDD 重構循環 6/8: 服務整合與協調器模式
- * 
+ *
  * 目標：將 DataValidationService 重構為整合所有子服務的協調器
  */
 
@@ -60,8 +60,8 @@ describe('DataValidationService - 服務整合測試', () => {
 
     mockDataNormalizationService = {
       normalizeBookBatch: jest.fn().mockResolvedValue({
-        normalizedBooks: [{ 
-          id: 'book1', 
+        normalizedBooks: [{
+          id: 'book1',
           title: '書籍1',
           platform: 'READMOO',
           normalizedAt: new Date().toISOString()
@@ -157,7 +157,7 @@ describe('DataValidationService - 服務整合測試', () => {
 
     test('應該支援快取機制整合', async () => {
       const books = [{ id: 'book1', title: '測試書籍' }]
-      
+
       // 第一次調用 - 應該檢查快取
       await validationService.validateAndNormalize(books, 'READMOO', 'test')
       expect(mockCacheManagementService.getCacheValue).toHaveBeenCalled()
@@ -188,7 +188,7 @@ describe('DataValidationService - 服務整合測試', () => {
       validationService.config.validationTimeout = 100
 
       // 模擬長時間運行的批次處理
-      mockBatchValidationProcessor.processBatches.mockImplementation(() => 
+      mockBatchValidationProcessor.processBatches.mockImplementation(() =>
         new Promise(resolve => setTimeout(resolve, 200))
       )
 
@@ -307,7 +307,7 @@ describe('DataValidationService - 服務整合測試', () => {
 
     test('應該正確處理服務初始化狀態', () => {
       expect(validationService.isInitialized).toBe(true)
-      
+
       validationService.destroy()
       expect(validationService.isInitialized).toBe(false)
     })

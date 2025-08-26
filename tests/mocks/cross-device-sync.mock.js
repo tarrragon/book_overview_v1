@@ -1,9 +1,9 @@
 /**
  * 跨設備同步測試Mock物件
- * 
+ *
  * 提供完整的跨設備同步測試環境模擬
  * 包含設備模擬、網路環境模擬、效能測量工具等
- * 
+ *
  * 設計目的：
  * - 模擬真實的多設備同步環境
  * - 提供可控制的測試條件
@@ -17,7 +17,7 @@ const chromeMock = require('./chrome-api.mock')
 /**
  * 測試資料生成器
  */
-function generateTestBooks(count, prefix = 'test') {
+function generateTestBooks (count, prefix = 'test') {
   return Array.from({ length: count }, (_, index) => ({
     id: `${prefix}-${String(index + 1).padStart(6, '0')}`,
     title: `${prefix} 測試書籍 ${index + 1}`,
@@ -33,17 +33,17 @@ function generateTestBooks(count, prefix = 'test') {
 /**
  * 生成包含特殊字元的測試書籍
  */
-function generateSpecialCharBooks(count = 10) {
+function generateSpecialCharBooks (count = 10) {
   const specialChars = ['📚', '🔥', '💯', '❤️', '⭐', '🎯', '📖', '✨']
   const multilingualTitles = [
     'English Title',
-    '日本語のタイトル', 
+    '日本語のタイトル',
     '한국어 제목',
     'Français Titre',
     'Español Título',
     'Deutsch Titel'
   ]
-  
+
   return Array.from({ length: count }, (_, index) => ({
     id: `special-${String(index + 1).padStart(6, '0')}`,
     title: `${multilingualTitles[index % multilingualTitles.length]} ${specialChars[index % specialChars.length]}`,
@@ -59,24 +59,24 @@ function generateSpecialCharBooks(count = 10) {
 /**
  * 生成重複書籍資料用於測試去重功能
  */
-function generateDuplicateBooks(uniqueCount = 30, duplicateRatio = 0.3) {
+function generateDuplicateBooks (uniqueCount = 30, duplicateRatio = 0.3) {
   const uniqueBooks = generateTestBooks(uniqueCount, 'unique')
   const duplicateCount = Math.floor(uniqueCount * duplicateRatio)
-  
+
   const duplicates = uniqueBooks.slice(0, duplicateCount).map(book => ({
     ...book,
     title: book.title + ' (重複版)',
     progress: Math.min(100, book.progress + Math.floor(Math.random() * 20)),
     extractedAt: new Date().toISOString()
   }))
-  
+
   return [...uniqueBooks, ...duplicates]
 }
 
 /**
  * 生成損壞的測試資料
  */
-function generateCorruptedData() {
+function generateCorruptedData () {
   return {
     jsonSyntaxError: '{"books": [{"id": "1", "title": "Test"} // missing closing bracket',
     missingRequiredFields: JSON.stringify({
@@ -98,13 +98,13 @@ function generateCorruptedData() {
  * 設備Mock類別
  */
 class MockDevice {
-  constructor(deviceId, options = {}) {
+  constructor (deviceId, options = {}) {
     this.deviceId = deviceId
     this.options = options
     this.storage = new MockStorage()
     this.networkCondition = 'normal'
     this.isOnline = true
-    
+
     // 模擬設備特性
     this.specs = {
       os: options.os || 'Chrome OS',
@@ -113,15 +113,15 @@ class MockDevice {
       memoryLimit: options.limitedMemory || (512 * 1024 * 1024), // 512MB default
       ...options
     }
-    
+
     this.logger = new MockLogger(deviceId)
     this.syncHistory = []
   }
 
-  async exportFullData() {
+  async exportFullData () {
     const books = await this.storage.getBooks()
     const metadata = await this.storage.getMetadata()
-    
+
     return {
       books,
       metadata: {
@@ -135,9 +135,9 @@ class MockDevice {
     }
   }
 
-  async exportToFile() {
+  async exportToFile () {
     const data = await this.exportFullData()
-    
+
     // 模擬檔案匯出
     return {
       filename: `readmoo_books_${this.deviceId}_${new Date().toISOString().slice(0, 10)}.json`,
@@ -147,23 +147,23 @@ class MockDevice {
     }
   }
 
-  async importFromFile(file) {
+  async importFromFile (file) {
     let data
-    
+
     try {
       // 模擬檔案讀取
       data = typeof file === 'string' ? JSON.parse(file) : file
-      
+
       // 驗證資料格式
       if (!data.books || !Array.isArray(data.books)) {
         throw new Error('Invalid file format: missing books array')
       }
-      
+
       const currentBooks = await this.storage.getBooks()
       const merged = await mergeBookData(currentBooks, data.books)
-      
+
       await this.storage.storeBooks(merged.books)
-      
+
       return {
         success: true,
         imported: merged.imported,
@@ -172,7 +172,6 @@ class MockDevice {
         total: data.books.length,
         message: `成功匯入 ${merged.imported} 本書籍`
       }
-      
     } catch (error) {
       return {
         success: false,
@@ -183,10 +182,10 @@ class MockDevice {
     }
   }
 
-  async validateImportFile(file) {
+  async validateImportFile (file) {
     try {
       const data = typeof file === 'string' ? JSON.parse(file) : file
-      
+
       const validation = {
         valid: true,
         errors: [],
@@ -194,17 +193,17 @@ class MockDevice {
         bookCount: 0,
         estimatedSize: 0
       }
-      
+
       // 檢查基本格式
       if (!data.books || !Array.isArray(data.books)) {
         validation.valid = false
         validation.errors.push('Missing or invalid books array')
         return validation
       }
-      
+
       validation.bookCount = data.books.length
       validation.estimatedSize = JSON.stringify(data).length
-      
+
       // 檢查書籍資料完整性
       data.books.forEach((book, index) => {
         if (!book.id) {
@@ -214,13 +213,12 @@ class MockDevice {
           validation.warnings.push(`Book at index ${index} missing title`)
         }
       })
-      
+
       if (validation.errors.length > 0) {
         validation.valid = false
       }
-      
+
       return validation
-      
     } catch (error) {
       return {
         valid: false,
@@ -232,10 +230,10 @@ class MockDevice {
     }
   }
 
-  async exportFullBackup() {
+  async exportFullBackup () {
     const exportData = await this.exportFullData()
     const fileData = await this.exportToFile()
-    
+
     return {
       success: true,
       file: {
@@ -251,17 +249,17 @@ class MockDevice {
     }
   }
 
-  async importBackup(backupFile) {
+  async importBackup (backupFile) {
     try {
       // 驗證備份檔案
       const validation = await this.validateImportFile(backupFile.data)
       if (!validation.valid) {
         throw new Error(`備份檔案驗證失敗: ${validation.errors.join(', ')}`)
       }
-      
+
       // 執行匯入
       const importResult = await this.importFromFile(backupFile.data)
-      
+
       return {
         success: importResult.success,
         imported: importResult.imported,
@@ -275,7 +273,6 @@ class MockDevice {
           checksum: backupFile.checksum || null
         }
       }
-      
     } catch (error) {
       return {
         success: false,
@@ -287,32 +284,32 @@ class MockDevice {
   }
 
   // 模擬網路狀況
-  setNetworkCondition(condition) {
+  setNetworkCondition (condition) {
     this.networkCondition = condition
     this.isOnline = condition !== 'disconnected'
   }
 
   // 模擬設備重啟
-  async restart() {
+  async restart () {
     this.logger.log('INFO', 'Device restarting')
     await this.wait(100) // 模擬重啟時間
     return this
   }
 
   // 工具方法
-  async wait(ms) {
+  async wait (ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
 
-  getLogger() {
+  getLogger () {
     return this.logger
   }
 
-  async getSyncHistory() {
+  async getSyncHistory () {
     return [...this.syncHistory]
   }
 
-  async getState() {
+  async getState () {
     return {
       deviceId: this.deviceId,
       online: this.isOnline,
@@ -322,7 +319,7 @@ class MockDevice {
     }
   }
 
-  async getStorageMetadata() {
+  async getStorageMetadata () {
     const books = await this.storage.getBooks()
     return {
       bookCount: books.length,
@@ -331,7 +328,7 @@ class MockDevice {
     }
   }
 
-  async calculateChecksum(data) {
+  async calculateChecksum (data) {
     // 簡單的checksum實作，實際可能使用SHA-256
     const jsonString = JSON.stringify(data, Object.keys(data).sort())
     let checksum = 0
@@ -346,12 +343,12 @@ class MockDevice {
  * Mock儲存類別
  */
 class MockStorage {
-  constructor() {
+  constructor () {
     this.books = new Map()
     this.metadata = {}
   }
 
-  async setBooks(books) {
+  async setBooks (books) {
     this.books.clear()
     books.forEach(book => {
       this.books.set(book.id, { ...book })
@@ -359,43 +356,43 @@ class MockStorage {
     this.metadata.lastModified = new Date().toISOString()
   }
 
-  async storeBooks(books) {
+  async storeBooks (books) {
     // 別名方法，與setBooks功能相同
     return this.setBooks(books)
   }
 
-  async getBooks() {
+  async getBooks () {
     return Array.from(this.books.values())
   }
 
-  async addBooks(books) {
+  async addBooks (books) {
     books.forEach(book => {
       this.books.set(book.id, { ...book })
     })
     this.metadata.lastModified = new Date().toISOString()
   }
 
-  async removeBooks(bookIds) {
+  async removeBooks (bookIds) {
     bookIds.forEach(id => {
       this.books.delete(id)
     })
     this.metadata.lastModified = new Date().toISOString()
   }
 
-  async clear() {
+  async clear () {
     this.books.clear()
     this.metadata = {}
   }
 
-  async getBookCount() {
+  async getBookCount () {
     return this.books.size
   }
 
-  async hasBook(bookId) {
+  async hasBook (bookId) {
     return this.books.has(bookId)
   }
 
-  async getMetadata() {
+  async getMetadata () {
     return {
       ...this.metadata,
       bookCount: this.books.size,
@@ -408,12 +405,12 @@ class MockStorage {
  * Mock日誌記錄器
  */
 class MockLogger {
-  constructor(deviceId) {
+  constructor (deviceId) {
     this.deviceId = deviceId
     this.logs = []
   }
 
-  log(level, message, context = {}) {
+  log (level, message, context = {}) {
     this.logs.push({
       timestamp: new Date().toISOString(),
       level,
@@ -422,19 +419,19 @@ class MockLogger {
     })
   }
 
-  getLogs() {
+  getLogs () {
     return [...this.logs]
   }
 
-  clear() {
+  clear () {
     this.logs = []
   }
 
-  analyzeDiagnosticValue() {
+  analyzeDiagnosticValue () {
     const errorLogs = this.logs.filter(log => log.level === 'ERROR')
     const warnLogs = this.logs.filter(log => log.level === 'WARN')
     const infoLogs = this.logs.filter(log => log.level === 'INFO')
-    
+
     return {
       completeness: this.logs.length > 0 ? 1.0 : 0.0,
       actionability: errorLogs.length / Math.max(1, this.logs.length),
@@ -447,18 +444,18 @@ class MockLogger {
  * 效能測量工具
  */
 class PerformanceMonitor {
-  constructor() {
+  constructor () {
     this.metrics = {}
     this.startTime = null
     this.memoryStart = null
   }
 
-  start() {
+  start () {
     this.startTime = Date.now()
     this.memoryStart = this.getCurrentMemoryUsage()
   }
 
-  stop() {
+  stop () {
     if (!this.startTime) {
       throw new Error('Performance monitor not started')
     }
@@ -476,7 +473,7 @@ class PerformanceMonitor {
     }
   }
 
-  getCurrentMemoryUsage() {
+  getCurrentMemoryUsage () {
     // 模擬記憶體使用量，實際環境可能使用 process.memoryUsage()
     return Math.floor(Math.random() * 100 * 1024 * 1024) // 0-100MB
   }
@@ -486,14 +483,14 @@ class PerformanceMonitor {
  * 網路狀況模擬器
  */
 class NetworkSimulator {
-  constructor() {
+  constructor () {
     this.condition = 'normal'
     this.latency = 100 // ms
     this.reliability = 1.0 // 0-1
     this.bandwidth = Infinity // bytes/s
   }
 
-  setCondition(condition) {
+  setCondition (condition) {
     switch (condition) {
       case 'normal':
         this.latency = 100
@@ -519,7 +516,7 @@ class NetworkSimulator {
     this.condition = condition
   }
 
-  async simulateRequest(size = 1024) {
+  async simulateRequest (size = 1024) {
     if (this.condition === 'disconnected') {
       throw new Error('Network disconnected')
     }
@@ -545,7 +542,7 @@ class NetworkSimulator {
 /**
  * 資料完整性驗證工具
  */
-function validateDataIntegrity(originalData, comparedData) {
+function validateDataIntegrity (originalData, comparedData) {
   if (!Array.isArray(originalData) || !Array.isArray(comparedData)) {
     return 0
   }
@@ -555,17 +552,17 @@ function validateDataIntegrity(originalData, comparedData) {
   }
 
   let matchingItems = 0
-  
+
   originalData.forEach(originalItem => {
     const matchingItem = comparedData.find(item => item.id === originalItem.id)
     if (matchingItem) {
       // 檢查關鍵欄位是否一致
-      const fieldsMatch = 
+      const fieldsMatch =
         matchingItem.title === originalItem.title &&
         matchingItem.progress === originalItem.progress &&
         matchingItem.type === originalItem.type &&
         matchingItem.extractedAt === originalItem.extractedAt
-      
+
       if (fieldsMatch) {
         matchingItems++
       }
@@ -578,7 +575,7 @@ function validateDataIntegrity(originalData, comparedData) {
 /**
  * 合併書籍資料的輔助函數
  */
-async function mergeBookData(targetBooks, sourceBooks) {
+async function mergeBookData (targetBooks, sourceBooks) {
   const targetMap = new Map()
   const result = {
     books: [],
@@ -593,7 +590,7 @@ async function mergeBookData(targetBooks, sourceBooks) {
   // 處理來源書籍
   for (const sourceBook of sourceBooks) {
     const targetBook = targetMap.get(sourceBook.id)
-    
+
     if (!targetBook) {
       // 新書籍，直接加入
       result.books.push(sourceBook)
@@ -604,7 +601,7 @@ async function mergeBookData(targetBooks, sourceBooks) {
         targetBook.progress !== sourceBook.progress ||
         targetBook.isFinished !== sourceBook.isFinished
       )
-      
+
       if (hasConflict) {
         result.conflicts++
         // 簡單策略：保留較高的進度
@@ -624,7 +621,7 @@ async function mergeBookData(targetBooks, sourceBooks) {
         result.books.push(targetBook)
         result.skipped++
       }
-      
+
       // 從目標映射中移除已處理的書籍
       targetMap.delete(sourceBook.id)
     }
@@ -641,12 +638,12 @@ async function mergeBookData(targetBooks, sourceBooks) {
 /**
  * 測試環境設置和清理
  */
-async function createSyncTestEnvironment() {
+async function createSyncTestEnvironment () {
   // 初始化測試環境
   global.mockDevices = new Map()
   global.networkSimulator = new NetworkSimulator()
   global.performanceMonitor = new PerformanceMonitor()
-  
+
   return {
     devicesCreated: 0,
     networkCondition: 'normal',
@@ -654,7 +651,7 @@ async function createSyncTestEnvironment() {
   }
 }
 
-async function resetSyncTestEnvironment() {
+async function resetSyncTestEnvironment () {
   // 清理所有mock設備
   if (global.mockDevices) {
     for (const device of global.mockDevices.values()) {
@@ -677,28 +674,28 @@ async function resetSyncTestEnvironment() {
 /**
  * 測量效能的輔助函數
  */
-async function measurePerformance(asyncFunction, options = {}) {
+async function measurePerformance (asyncFunction, options = {}) {
   const monitor = new PerformanceMonitor()
   monitor.start()
-  
+
   let result
   let error = null
-  
+
   try {
     result = await asyncFunction()
   } catch (err) {
     error = err
   }
-  
+
   const metrics = monitor.stop()
-  
+
   return {
     syncResult: result,
     error,
     timing: {
       total: metrics.duration,
       export: Math.floor(metrics.duration * 0.3), // 模擬匯出佔30%時間
-      import: Math.floor(metrics.duration * 0.7)   // 模擬匯入佔70%時間
+      import: Math.floor(metrics.duration * 0.7) // 模擬匯入佔70%時間
     },
     memoryUsage: {
       peak: metrics.memoryPeak,
@@ -711,7 +708,7 @@ async function measurePerformance(asyncFunction, options = {}) {
 /**
  * 網路狀況模擬
  */
-async function simulateNetworkConditions(condition) {
+async function simulateNetworkConditions (condition) {
   if (global.networkSimulator) {
     global.networkSimulator.setCondition(condition)
   }
@@ -720,7 +717,7 @@ async function simulateNetworkConditions(condition) {
 /**
  * 建立損壞檔案的輔助函數
  */
-function createCorruptedFile(corruptionType) {
+function createCorruptedFile (corruptionType) {
   const baseData = {
     books: generateTestBooks(10),
     metadata: {
@@ -733,23 +730,23 @@ function createCorruptedFile(corruptionType) {
   switch (corruptionType) {
     case 'binary_corruption':
       return Buffer.from(JSON.stringify(baseData)).subarray(0, 100) // 截斷檔案
-    
+
     case 'permission_denied':
       return {
         ...baseData,
         _permissions: 'denied',
         error: 'PERMISSION_DENIED'
       }
-    
+
     case 'file_not_found':
       return null
-    
+
     case 'disk_error':
       return {
         error: 'DISK_READ_ERROR',
         message: 'Unable to read from disk'
       }
-    
+
     default:
       return baseData
   }
@@ -786,12 +783,12 @@ module.exports = {
     if (global.mockDevices) {
       global.mockDevices.set(deviceId, device)
     }
-    
+
     // 初始化設備資料
     if (options.initialBooks) {
       await device.storage.storeBooks(options.initialBooks)
     }
-    
+
     return device
   },
 
@@ -799,7 +796,7 @@ module.exports = {
     // 模擬完整同步流程
     const sourceBooks = await sourceDevice.storage.getBooks()
     const targetBooksBefore = await targetDevice.storage.getBooks()
-    
+
     // 模擬網路延遲
     if (global.networkSimulator) {
       await global.networkSimulator.simulateRequest(sourceBooks.length * 1024)
@@ -858,7 +855,7 @@ module.exports = {
       target: targetDevice.deviceId,
       result
     }
-    
+
     sourceDevice.syncHistory.push(syncRecord)
     targetDevice.syncHistory.push(syncRecord)
 
@@ -869,17 +866,17 @@ module.exports = {
     // 智慧合併同步：比較兩設備資料，僅同步差異部分
     const booksA = await deviceA.storage.getBooks()
     const booksB = await deviceB.storage.getBooks()
-    
+
     // 建立書籍索引
     const mapA = new Map(booksA.map(book => [book.id, book]))
     const mapB = new Map(booksB.map(book => [book.id, book]))
-    
+
     const changes = {
       aToB: [], // A有B沒有的書籍
       bToA: [], // B有A沒有的書籍
       conflicts: [] // 兩邊都有但不同的書籍
     }
-    
+
     // 找出A有B沒有的書籍
     for (const [id, book] of mapA) {
       if (!mapB.has(id)) {
@@ -887,45 +884,45 @@ module.exports = {
       } else {
         // 檢查是否有衝突
         const bookB = mapB.get(id)
-        if (book.progress !== bookB.progress || 
+        if (book.progress !== bookB.progress ||
             book.isFinished !== bookB.isFinished ||
             book.extractedAt !== bookB.extractedAt) {
           changes.conflicts.push({
             id,
             bookA: book,
-            bookB: bookB
+            bookB
           })
         }
       }
     }
-    
+
     // 找出B有A沒有的書籍
     for (const [id, book] of mapB) {
       if (!mapA.has(id)) {
         changes.bToA.push(book)
       }
     }
-    
+
     // 模擬網路傳輸
     if (global.networkSimulator) {
       const totalChanges = changes.aToB.length + changes.bToA.length + changes.conflicts.length
       await global.networkSimulator.simulateRequest(totalChanges * 512) // 假設每筆變更512bytes
     }
-    
+
     // 執行智慧合併
     const mergedA = [...booksA]
     const mergedB = [...booksB]
-    
+
     // 將B的新書籍加入A
     for (const book of changes.bToA) {
       mergedA.push(book)
     }
-    
-    // 將A的新書籍加入B  
+
+    // 將A的新書籍加入B
     for (const book of changes.aToB) {
       mergedB.push(book)
     }
-    
+
     // 解決衝突 - 使用合併最佳屬性策略
     for (const conflict of changes.conflicts) {
       const merged = {
@@ -937,18 +934,18 @@ module.exports = {
           new Date(conflict.bookB.extractedAt || 0).getTime()
         )).toISOString()
       }
-      
+
       // 更新兩邊的資料
       const indexA = mergedA.findIndex(b => b.id === conflict.id)
       const indexB = mergedB.findIndex(b => b.id === conflict.id)
       if (indexA >= 0) mergedA[indexA] = merged
       if (indexB >= 0) mergedB[indexB] = merged
     }
-    
+
     // 儲存合併結果
     await deviceA.storage.storeBooks(mergedA)
     await deviceB.storage.storeBooks(mergedB)
-    
+
     const result = {
       success: true,
       syncId: `smart_sync_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
@@ -970,7 +967,7 @@ module.exports = {
           total: mergedA.length
         },
         deviceB: {
-          added: changes.aToB.length, 
+          added: changes.aToB.length,
           updated: changes.conflicts.length,
           total: mergedB.length
         }
@@ -989,7 +986,7 @@ module.exports = {
         duration: Math.floor(Math.random() * 500) + 100
       }
     }
-    
+
     // 記錄同步歷史
     const syncRecord = {
       timestamp: Date.now(),
@@ -997,10 +994,10 @@ module.exports = {
       devices: [deviceA.deviceId, deviceB.deviceId],
       result
     }
-    
+
     deviceA.syncHistory.push(syncRecord)
     deviceB.syncHistory.push(syncRecord)
-    
+
     return result
   },
 
@@ -1008,27 +1005,27 @@ module.exports = {
     // 雙向同步：確保兩設備最終資料完全一致
     const booksA = await deviceA.storage.getBooks()
     const booksB = await deviceB.storage.getBooks()
-    
+
     // 建立書籍索引以檢測差異和衝突
     const mapA = new Map(booksA.map(book => [book.id, book]))
     const mapB = new Map(booksB.map(book => [book.id, book]))
-    
+
     const allBookIds = new Set([...mapA.keys(), ...mapB.keys()])
     const conflicts = []
     const finalBooks = []
-    
+
     // 處理每本書籍，確保最終一致性
     for (const id of allBookIds) {
       const bookA = mapA.get(id)
       const bookB = mapB.get(id)
-      
+
       if (bookA && bookB) {
         // 兩邊都有，檢查衝突
-        const hasConflict = 
+        const hasConflict =
           bookA.progress !== bookB.progress ||
           bookA.isFinished !== bookB.isFinished ||
           bookA.extractedAt !== bookB.extractedAt
-          
+
         if (hasConflict) {
           // 解決衝突：合併最佳屬性
           const merged = {
@@ -1054,16 +1051,16 @@ module.exports = {
         finalBooks.push(bookB)
       }
     }
-    
+
     // 模擬網路傳輸
     if (global.networkSimulator) {
       await global.networkSimulator.simulateRequest(finalBooks.length * 256)
     }
-    
+
     // 將最終結果同步到兩設備
     await deviceA.storage.storeBooks(finalBooks)
     await deviceB.storage.storeBooks(finalBooks)
-    
+
     const result = {
       success: true,
       syncId: `bidirectional_sync_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
@@ -1098,7 +1095,7 @@ module.exports = {
         duration: Math.floor(Math.random() * 800) + 200
       }
     }
-    
+
     // 記錄到同步歷史
     const syncRecord = {
       timestamp: Date.now(),
@@ -1106,10 +1103,10 @@ module.exports = {
       devices: [deviceA.deviceId, deviceB.deviceId],
       result
     }
-    
+
     deviceA.syncHistory.push(syncRecord)
     deviceB.syncHistory.push(syncRecord)
-    
+
     return result
   },
 
@@ -1118,59 +1115,59 @@ module.exports = {
     const startTime = Date.now()
     const sourceBooks = await sourceDevice.storage.getBooks()
     const targetBooks = await targetDevice.storage.getBooks()
-    
+
     // 計算記憶體使用基線
     const initialMemory = process.memoryUsage ? process.memoryUsage().heapUsed : 50 * 1024 * 1024
-    
+
     // 批次處理策略：分批次處理避免記憶體壓力
     const batchSize = 100 // 每次處理100本書籍
     const batches = []
     for (let i = 0; i < sourceBooks.length; i += batchSize) {
       batches.push(sourceBooks.slice(i, i + batchSize))
     }
-    
+
     // 建立目標設備的書籍索引
     const targetMap = new Map(targetBooks.map(book => [book.id, book]))
     const processedBooks = []
     let batchesProcessed = 0
-    
+
     // 逐批次處理
     for (const batch of batches) {
       // 模擬批次處理延遲（實際會更短）
       await new Promise(resolve => setTimeout(resolve, 10))
-      
+
       // 處理當前批次
       batch.forEach(book => {
         const existingBook = targetMap.get(book.id)
-        if (!existingBook || 
+        if (!existingBook ||
             (existingBook.progress || 0) < (book.progress || 0) ||
             new Date(existingBook.extractedAt || 0) < new Date(book.extractedAt || 0)) {
           processedBooks.push(book)
           targetMap.set(book.id, book)
         }
       })
-      
+
       batchesProcessed++
-      
+
       // 模擬網路傳輸（批次傳輸效率更高）
       if (global.networkSimulator) {
         await global.networkSimulator.simulateRequest(batch.length * 128) // 批次傳輸減少overhead
       }
     }
-    
+
     // 合併所有書籍（保留目標設備原有書籍）
     const allTargetBooks = Array.from(targetMap.values())
-    
+
     // 儲存最終結果
     await targetDevice.storage.storeBooks(allTargetBooks)
-    
+
     const endTime = Date.now()
     const duration = endTime - startTime
-    
+
     // 計算記憶體使用（模擬）
     const finalMemory = process.memoryUsage ? process.memoryUsage().heapUsed : initialMemory + (sourceBooks.length * 1024)
     const memoryUsage = Math.max(finalMemory - initialMemory, sourceBooks.length * 512) // 估算每本書512bytes
-    
+
     const result = {
       success: true,
       syncId: `batch_sync_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
@@ -1201,7 +1198,7 @@ module.exports = {
         duration
       }
     }
-    
+
     // 記錄同步歷史
     const syncRecord = {
       timestamp: Date.now(),
@@ -1210,66 +1207,66 @@ module.exports = {
       targetDevice: targetDevice.deviceId,
       result
     }
-    
+
     sourceDevice.syncHistory.push(syncRecord)
     targetDevice.syncHistory.push(syncRecord)
-    
+
     return result
   },
 
   executeTrackedSync: async (sourceDevice, targetDevice, stateTracker) => {
-    throw new Error(`executeTrackedSync function not implemented - awaiting TDD Phase 3`)
+    throw new Error('executeTrackedSync function not implemented - awaiting TDD Phase 3')
   },
 
   getSyncHistory: async (device) => {
-    throw new Error(`getSyncHistory function not implemented - awaiting TDD Phase 3`)
+    throw new Error('getSyncHistory function not implemented - awaiting TDD Phase 3')
   },
 
   executeUserWorkflow: async (config) => {
-    throw new Error(`executeUserWorkflow function not implemented - awaiting TDD Phase 3`)
+    throw new Error('executeUserWorkflow function not implemented - awaiting TDD Phase 3')
   },
 
   calculateDataChecksum: async (data) => {
-    throw new Error(`calculateDataChecksum function not implemented - awaiting TDD Phase 3`)
+    throw new Error('calculateDataChecksum function not implemented - awaiting TDD Phase 3')
   },
 
   createDataSnapshot: async (deviceDataSets) => {
-    throw new Error(`createDataSnapshot function not implemented - awaiting TDD Phase 3`)
+    throw new Error('createDataSnapshot function not implemented - awaiting TDD Phase 3')
   },
 
   compareDataSnapshots: async (preSyncSnapshot, postSyncSnapshot) => {
-    throw new Error(`compareDataSnapshots function not implemented - awaiting TDD Phase 3`)
+    throw new Error('compareDataSnapshots function not implemented - awaiting TDD Phase 3')
   },
 
   createExportData: async (books) => {
-    throw new Error(`createExportData function not implemented - awaiting TDD Phase 3`)
+    throw new Error('createExportData function not implemented - awaiting TDD Phase 3')
   },
 
   validateSampleIntegrity: async (originalData, comparedData, options) => {
-    throw new Error(`validateSampleIntegrity function not implemented - awaiting TDD Phase 3`)
+    throw new Error('validateSampleIntegrity function not implemented - awaiting TDD Phase 3')
   },
 
   checkDataRaceConditions: async (finalBooks) => {
-    throw new Error(`checkDataRaceConditions function not implemented - awaiting TDD Phase 3`)
+    throw new Error('checkDataRaceConditions function not implemented - awaiting TDD Phase 3')
   },
 
   detectSyncConflicts: async (deviceA, deviceB) => {
-    throw new Error(`detectSyncConflicts function not implemented - awaiting TDD Phase 3`)
+    throw new Error('detectSyncConflicts function not implemented - awaiting TDD Phase 3')
   },
 
   setupConflictResolver: async () => {
-    throw new Error(`setupConflictResolver function not implemented - awaiting TDD Phase 3`)
+    throw new Error('setupConflictResolver function not implemented - awaiting TDD Phase 3')
   },
 
   checkVersionCompatibility: async (fromDevice, toDevice) => {
-    throw new Error(`checkVersionCompatibility function not implemented - awaiting TDD Phase 3`)
+    throw new Error('checkVersionCompatibility function not implemented - awaiting TDD Phase 3')
   },
 
   calculateUpgradePath: async (fromVersion, toVersion) => {
-    throw new Error(`calculateUpgradePath function not implemented - awaiting TDD Phase 3`)
+    throw new Error('calculateUpgradePath function not implemented - awaiting TDD Phase 3')
   },
 
   validateDataPropagation: async (devices) => {
-    throw new Error(`validateDataPropagation function not implemented - awaiting TDD Phase 3`)
+    throw new Error('validateDataPropagation function not implemented - awaiting TDD Phase 3')
   }
 }

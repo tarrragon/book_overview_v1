@@ -101,7 +101,7 @@ class SyncProgressTracker {
     this.state.tracking = true
 
     this.logger.log(`📊 開始追蹤同步作業: ${syncId}`)
-    
+
     await this.emitProgressEvent(SYNC_EVENTS.SYNC_PROGRESS, {
       syncId,
       phase: SYNC_STATES.INITIALIZING,
@@ -209,7 +209,7 @@ class SyncProgressTracker {
     for (const [phase, weight] of Object.entries(this.phaseWeights)) {
       totalWeight += weight
       const phaseData = tracking.phases.get(phase)
-      
+
       if (phaseData) {
         if (phaseData.state === 'completed') {
           completedWeight += weight
@@ -365,7 +365,7 @@ class SyncProgressTracker {
       [SYNC_STATES.IMPORTING]: '匯入資料',
       [SYNC_STATES.VERIFYING]: '驗證同步完整性'
     }
-    
+
     return messages[phase] || `處理階段: ${phase}`
   }
 

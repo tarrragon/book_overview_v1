@@ -623,9 +623,9 @@ function createReadmooAdapter () {
     extractCoverIdFromUrl (coverUrl) {
       const validatedUrl = this.validateCoverUrlInput(coverUrl)
       if (!validatedUrl) return null
-      
+
       if (!this.validateReadmooDomain(validatedUrl)) return null
-      
+
       return this.extractIdFromCoverPath(validatedUrl) ||
              this.extractIdFromFilename(validatedUrl) ||
              null
@@ -769,7 +769,7 @@ function createReadmooAdapter () {
 
     /**
      * 標準化錯誤處理包裝器
-     * @param {string} methodName - 方法名稱  
+     * @param {string} methodName - 方法名稱
      * @param {Function} operation - 要執行的操作
      * @param {*} fallbackValue - 錯誤時的回退值
      * @param {string} context - 額外上下文資訊

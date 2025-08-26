@@ -604,7 +604,7 @@ class BackgroundCoordinator extends BaseModule {
     }
 
     // 統計各模組健康狀態
-    for (const [moduleName, module] of this.modules) {
+    for (const [, module] of this.modules) {
       if (typeof module._getCustomHealthStatus === 'function') {
         const status = module._getCustomHealthStatus()
         const health = status.health || 'unknown'

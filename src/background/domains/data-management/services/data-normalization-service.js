@@ -613,7 +613,7 @@ class DataNormalizationService extends BaseModule {
    */
   updateNormalizationStatistics (platform) {
     this.normalizationStatistics.totalNormalized++
-    this.normalizationStatistics.platformBreakdown[platform] = 
+    this.normalizationStatistics.platformBreakdown[platform] =
       (this.normalizationStatistics.platformBreakdown[platform] || 0) + 1
     this.normalizationStatistics.lastNormalizationTime = Date.now()
   }

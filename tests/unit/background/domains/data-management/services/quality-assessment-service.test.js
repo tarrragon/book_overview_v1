@@ -1,7 +1,7 @@
 /**
  * QualityAssessmentService 測試
  * TDD 重構循環 4/8: 品質評估邏輯提取
- * 
+ *
  * 目標：將品質評估邏輯從 DataValidationService 中提取
  */
 
@@ -291,7 +291,7 @@ describe('QualityAssessmentService - 品質評估服務', () => {
           cover: 'cover2.jpg'
         },
         {
-          title: '差書', // 缺少其他欄位
+          title: '差書' // 缺少其他欄位
         }
       ]
 
@@ -321,7 +321,7 @@ describe('QualityAssessmentService - 品質評估服務', () => {
       const result = assessor.assessBatchQuality(books)
 
       expect(result.qualityBreakdown).toBeDefined()
-      expect(result.qualityBreakdown.HIGH + result.qualityBreakdown.MEDIUM + 
+      expect(result.qualityBreakdown.HIGH + result.qualityBreakdown.MEDIUM +
              result.qualityBreakdown.LOW + result.qualityBreakdown.VERY_LOW).toBe(3)
     })
   })
@@ -430,9 +430,9 @@ describe('QualityAssessmentService - 品質評估服務', () => {
 
     test('應該處理評估過程中的錯誤', () => {
       // 模擬一個會導致錯誤的書籍物件
-      const invalidBook = { 
-        title: 'Test Book',  // 有標題會有一些分數
-        toString: () => { throw new Error('轉換錯誤') } 
+      const invalidBook = {
+        title: 'Test Book', // 有標題會有一些分數
+        toString: () => { throw new Error('轉換錯誤') }
       }
 
       const result = assessor.assessDataQuality(invalidBook)
