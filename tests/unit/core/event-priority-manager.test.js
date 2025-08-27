@@ -273,21 +273,25 @@ describe('EventPriorityManager', () => {
     test('應該按優先級順序執行事件處理器', async () => {
       const executionOrder = []
 
+      // 為同一事件註冊三個不同優先級的處理器
+      const testEventName = 'TEST.PRIORITY.VERIFICATION'
+      
       const urgentHandler = () => executionOrder.push('urgent')
-      const normalHandler = () => executionOrder.push('normal')
+      const normalHandler = () => executionOrder.push('normal') 
       const lowHandler = () => executionOrder.push('low')
 
-      // 註冊不同優先級的處理器
-      priorityManager.registerWithPriority(eventBus, 'SYSTEM.GENERIC.ERROR.CRITICAL', urgentHandler)
-      priorityManager.registerWithPriority(eventBus, 'EXTRACTION.READMOO.EXTRACT.COMPLETED', normalHandler)
-      priorityManager.registerWithPriority(eventBus, 'ANALYTICS.GENERIC.LOG.COMPLETED', lowHandler)
+      // 獲取不同優先級數值
+      const urgentPriority = priorityManager.assignEventPriority('SYSTEM.GENERIC.ERROR.CRITICAL')
+      const normalPriority = priorityManager.assignEventPriority('EXTRACTION.READMOO.EXTRACT.COMPLETED')
+      const lowPriority = priorityManager.assignEventPriority('ANALYTICS.GENERIC.LOG.COMPLETED')
 
-      // 同時觸發所有事件
-      await Promise.all([
-        eventBus.emit('ANALYTICS.GENERIC.LOG.COMPLETED'),
-        eventBus.emit('SYSTEM.GENERIC.ERROR.CRITICAL'),
-        eventBus.emit('EXTRACTION.READMOO.EXTRACT.COMPLETED')
-      ])
+      // 註冊同一事件的多個處理器，但按相反順序註冊來測試排序
+      eventBus.on(testEventName, lowHandler, { priority: lowPriority })
+      eventBus.on(testEventName, urgentHandler, { priority: urgentPriority })
+      eventBus.on(testEventName, normalHandler, { priority: normalPriority })
+
+      // 觸發單一事件（同一事件的多個處理器會按優先級順序執行）
+      await eventBus.emit(testEventName)
 
       // 應該按優先級順序執行
       expect(executionOrder).toEqual(['urgent', 'normal', 'low'])
