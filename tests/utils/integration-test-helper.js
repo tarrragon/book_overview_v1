@@ -66,14 +66,26 @@ class IntegrationTestHelper {
    * 設定整合測試環境
    */
   async setupIntegrationTest(testConfig = {}) {
-    const config = { ...this.config, ...testConfig }
-    
+    const config = this._buildEffectiveConfig(testConfig)
+    await this._performSetupSequence(config)
+    return this._createTestContext(config)
+  }
+
+  /**
+   * 建構有效配置
+   */
+  _buildEffectiveConfig(testConfig) {
+    return { ...this.config, ...testConfig }
+  }
+
+  /**
+   * 執行設定序列
+   */
+  async _performSetupSequence(config) {
     this._startPerformanceTracking()
     await this._initializeTestEnvironment(config)
     this._setupModuleMocks(config)
     this._setupEventListeners(config)
-    
-    return this._createTestContext(config)
   }
 
   /**
@@ -103,27 +115,46 @@ class IntegrationTestHelper {
    * 初始化測試環境
    */
   async _initializeTestEnvironment(config) {
-    // 重置全域狀態
     this._resetGlobalState()
-    
-    // 設定Chrome API Mock
-    global.chrome = this.chromeMocks.createCompleteChromeAPI()
-    
-    // 初始化模組狀態
+    this._setupChromeAPIGlobal()
     this._initializeModuleStates(config.modules)
-    
-    // 等待非同步初始化完成
     await this._waitForInitialization()
+  }
+
+  /**
+   * 設定Chrome API全域變數
+   */
+  _setupChromeAPIGlobal() {
+    global.chrome = this.chromeMocks.createCompleteChromeAPI()
   }
 
   /**
    * 重置全域狀態
    */
   _resetGlobalState() {
+    this._resetMockStates()
+    this._resetTestStates()
+    this._clearJestMocks()
+  }
+
+  /**
+   * 重置Mock狀態
+   */
+  _resetMockStates() {
     this.chromeMocks.resetAllStates()
+  }
+
+  /**
+   * 重置測試狀態
+   */
+  _resetTestStates() {
     this.testState.clear()
-    
-    // 清理Jest Mock
+  }
+
+  /**
+   * 清理Jest Mocks
+   */
+  _clearJestMocks() {
     if (typeof jest !== 'undefined') {
       jest.clearAllMocks()
     }
@@ -167,16 +198,19 @@ class IntegrationTestHelper {
    * 設定模組特定Mock
    */
   _setupModuleSpecificMocks(moduleName, config) {
-    switch (moduleName) {
-      case 'background':
-        this._setupBackgroundMocks(config)
-        break
-      case 'content':
-        this._setupContentScriptMocks(config)
-        break
-      case 'popup':
-        this._setupPopupMocks(config)
-        break
+    const setupActions = this._getModuleSetupActions()
+    const setupAction = setupActions[moduleName]
+    if (setupAction) setupAction(config)
+  }
+
+  /**
+   * 獲取模組設置操作對應表
+   */
+  _getModuleSetupActions() {
+    return {
+      'background': (config) => this._setupBackgroundMocks(config),
+      'content': (config) => this._setupContentScriptMocks(config),
+      'popup': (config) => this._setupPopupMocks(config)
     }
   }
 
@@ -184,38 +218,85 @@ class IntegrationTestHelper {
    * 設定Background Script Mock
    */
   _setupBackgroundMocks(config) {
-    // Service Worker環境模擬
+    this._setupServiceWorkerEnvironment()
+    this._enhanceChromeRuntimeForBackground()
+  }
+
+  /**
+   * 設定Service Worker環境
+   */
+  _setupServiceWorkerEnvironment() {
     global.self = global.self || {}
-    global.self.registration = {
+    global.self.registration = this._createServiceWorkerRegistration()
+  }
+
+  /**
+   * 創建Service Worker註冊物件
+   */
+  _createServiceWorkerRegistration() {
+    return {
       scope: '/',
       active: true
     }
-    
-    // Background特定的Chrome API增強
-    if (global.chrome.runtime) {
-      global.chrome.runtime.onInstalled = {
-        addListener: jest.fn()
-      }
-    }
+  }
+
+  /**
+   * 增強Background專用Chrome Runtime
+   */
+  _enhanceChromeRuntimeForBackground() {
+    if (!global.chrome.runtime) return
+    global.chrome.runtime.onInstalled = this._createOnInstalledMock()
+  }
+
+  /**
+   * 創建安裝事件Mock
+   */
+  _createOnInstalledMock() {
+    return { addListener: jest.fn() }
   }
 
   /**
    * 設定Content Script Mock
    */
   _setupContentScriptMocks(config) {
-    // DOM環境模擬
+    this._setupDOMEnvironment()
+    this._setupWindowEnvironment()
+  }
+
+  /**
+   * 設定DOM環境
+   */
+  _setupDOMEnvironment() {
     if (typeof document === 'undefined') {
-      global.document = {
-        querySelector: jest.fn(),
-        querySelectorAll: jest.fn(() => []),
-        createElement: jest.fn(() => ({})),
-        addEventListener: jest.fn()
-      }
+      global.document = this._createDocumentMock()
     }
-    
-    // Window物件增強
+  }
+
+  /**
+   * 創建Document Mock
+   */
+  _createDocumentMock() {
+    return {
+      querySelector: jest.fn(),
+      querySelectorAll: jest.fn(() => []),
+      createElement: jest.fn(() => ({})),
+      addEventListener: jest.fn()
+    }
+  }
+
+  /**
+   * 設定Window環境
+   */
+  _setupWindowEnvironment() {
     global.window = global.window || {}
-    global.window.location = {
+    global.window.location = this._createLocationMock()
+  }
+
+  /**
+   * 創建Location Mock
+   */
+  _createLocationMock() {
+    return {
       href: 'https://readmoo.com/test',
       origin: 'https://readmoo.com'
     }
@@ -225,11 +306,22 @@ class IntegrationTestHelper {
    * 設定Popup Mock
    */
   _setupPopupMocks(config) {
-    // Popup環境特定設定
+    this._setupPopupWindow()
+    this._setupPopupDOM()
+  }
+
+  /**
+   * 設定Popup Window
+   */
+  _setupPopupWindow() {
     global.window = global.window || {}
     global.window.close = jest.fn()
-    
-    // DOM元素Mock
+  }
+
+  /**
+   * 設定Popup DOM
+   */
+  _setupPopupDOM() {
     global.document = global.document || {}
     global.document.getElementById = jest.fn()
     global.document.querySelector = jest.fn()

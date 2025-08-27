@@ -113,49 +113,109 @@ class ChromeExtensionMocksEnhancedV2 extends ChromeExtensionMocksEnhanced {
    */
   _createStorageAreaMock(areaName) {
     const storage = this._storageState[areaName]
-    
+    return this._buildStorageOperations(storage, areaName)
+  }
+
+  /**
+   * 建構儲存操作物件
+   */
+  _buildStorageOperations(storage, areaName) {
     return {
-      get: jest.fn((keys, callback) => {
-        const result = this._getStorageData(storage, keys)
-        if (callback) callback(result)
-        return Promise.resolve(result)
-      }),
-      
-      set: jest.fn((items, callback) => {
-        this._setStorageData(storage, items, areaName)
-        if (callback) callback()
-        return Promise.resolve()
-      }),
-      
-      remove: jest.fn((keys, callback) => {
-        this._removeStorageData(storage, keys, areaName)
-        if (callback) callback()
-        return Promise.resolve()
-      }),
-      
-      clear: jest.fn((callback) => {
-        this._clearStorageData(storage, areaName)
-        if (callback) callback()
-        return Promise.resolve()
-      })
+      get: this._createGetOperation(storage),
+      set: this._createSetOperation(storage, areaName),
+      remove: this._createRemoveOperation(storage, areaName),
+      clear: this._createClearOperation(storage, areaName)
     }
+  }
+
+  /**
+   * 創建取得操作
+   */
+  _createGetOperation(storage) {
+    return jest.fn((keys, callback) => {
+      const result = this._getStorageData(storage, keys)
+      return this._handleCallback(callback, result)
+    })
+  }
+
+  /**
+   * 創建設定操作
+   */
+  _createSetOperation(storage, areaName) {
+    return jest.fn((items, callback) => {
+      this._setStorageData(storage, items, areaName)
+      return this._handleCallback(callback)
+    })
+  }
+
+  /**
+   * 創建移除操作
+   */
+  _createRemoveOperation(storage, areaName) {
+    return jest.fn((keys, callback) => {
+      this._removeStorageData(storage, keys, areaName)
+      return this._handleCallback(callback)
+    })
+  }
+
+  /**
+   * 創建清除操作
+   */
+  _createClearOperation(storage, areaName) {
+    return jest.fn((callback) => {
+      this._clearStorageData(storage, areaName)
+      return this._handleCallback(callback)
+    })
+  }
+
+  /**
+   * 處理回調函數
+   */
+  _handleCallback(callback, result = undefined) {
+    if (callback) callback(result)
+    return Promise.resolve(result)
   }
 
   /**
    * 獲取Storage資料
    */
   _getStorageData(storage, keys) {
-    if (!keys) return Object.fromEntries(storage)
-    
-    const keyArray = Array.isArray(keys) ? keys : [keys]
+    if (!keys) return this._getAllStorageData(storage)
+    return this._getSpecificStorageData(storage, keys)
+  }
+
+  /**
+   * 獲取全部儲存資料
+   */
+  _getAllStorageData(storage) {
+    return Object.fromEntries(storage)
+  }
+
+  /**
+   * 獲取特定儲存資料
+   */
+  _getSpecificStorageData(storage, keys) {
+    const keyArray = this._normalizeKeys(keys)
+    return this._extractStorageValues(storage, keyArray)
+  }
+
+  /**
+   * 標準化鍵值
+   */
+  _normalizeKeys(keys) {
+    return Array.isArray(keys) ? keys : [keys]
+  }
+
+  /**
+   * 提取儲存值
+   */
+  _extractStorageValues(storage, keyArray) {
     const result = {}
-    
     keyArray.forEach(key => {
       if (storage.has(key)) {
         result[key] = storage.get(key)
       }
     })
-    
     return result
   }
 
@@ -164,36 +224,59 @@ class ChromeExtensionMocksEnhancedV2 extends ChromeExtensionMocksEnhanced {
    */
   _setStorageData(storage, items, areaName) {
     Object.entries(items).forEach(([key, value]) => {
-      const oldValue = storage.get(key)
-      storage.set(key, value)
-      
-      this._triggerStorageChange(key, value, oldValue, areaName)
+      this._updateStorageItem(storage, key, value, areaName)
     })
+  }
+
+  /**
+   * 更新儲存項目
+   */
+  _updateStorageItem(storage, key, value, areaName) {
+    const oldValue = storage.get(key)
+    storage.set(key, value)
+    this._triggerStorageChange(key, value, oldValue, areaName)
   }
 
   /**
    * 移除Storage資料
    */
   _removeStorageData(storage, keys, areaName) {
-    const keyArray = Array.isArray(keys) ? keys : [keys]
-    
+    const keyArray = this._normalizeKeys(keys)
     keyArray.forEach(key => {
-      if (storage.has(key)) {
-        const oldValue = storage.get(key)
-        storage.delete(key)
-        
-        this._triggerStorageChange(key, undefined, oldValue, areaName)
-      }
+      this._removeStorageItem(storage, key, areaName)
     })
+  }
+
+  /**
+   * 移除儲存項目
+   */
+  _removeStorageItem(storage, key, areaName) {
+    if (!storage.has(key)) return
+    const oldValue = storage.get(key)
+    storage.delete(key)
+    this._triggerStorageChange(key, undefined, oldValue, areaName)
   }
 
   /**
    * 清空Storage資料
    */
   _clearStorageData(storage, areaName) {
-    const oldEntries = Object.fromEntries(storage)
+    const oldEntries = this._captureStorageSnapshot(storage)
     storage.clear()
-    
+    this._triggerClearChanges(oldEntries, areaName)
+  }
+
+  /**
+   * 擷取儲存快照
+   */
+  _captureStorageSnapshot(storage) {
+    return Object.fromEntries(storage)
+  }
+
+  /**
+   * 觸發清除變更事件
+   */
+  _triggerClearChanges(oldEntries, areaName) {
     Object.keys(oldEntries).forEach(key => {
       this._triggerStorageChange(key, undefined, oldEntries[key], areaName)
     })
@@ -239,70 +322,119 @@ class ChromeExtensionMocksEnhancedV2 extends ChromeExtensionMocksEnhanced {
    */
   _createTabsAPIMock() {
     return {
-      query: jest.fn((queryInfo, callback) => {
-        const results = this._queryTabs(queryInfo)
-        if (callback) callback(results)
-        return Promise.resolve(results)
-      }),
-      
-      sendMessage: jest.fn((tabId, message, callback) => {
-        return this._sendTabMessage(tabId, message, callback)
-      }),
-      
-      executeScript: jest.fn((tabId, details, callback) => {
-        const result = this._executeScript(tabId, details)
-        if (callback) callback(result)
-        return Promise.resolve(result)
-      }),
-      
-      create: jest.fn((createProperties, callback) => {
-        const tab = this._createTab(createProperties)
-        if (callback) callback(tab)
-        return Promise.resolve(tab)
-      })
+      query: this._createTabQueryOperation(),
+      sendMessage: this._createTabMessageOperation(),
+      executeScript: this._createTabScriptOperation(),
+      create: this._createTabCreateOperation()
     }
+  }
+
+  /**
+   * 創建標籤查詢操作
+   */
+  _createTabQueryOperation() {
+    return jest.fn((queryInfo, callback) => {
+      const results = this._queryTabs(queryInfo)
+      return this._handleCallback(callback, results)
+    })
+  }
+
+  /**
+   * 創建標籤訊息操作
+   */
+  _createTabMessageOperation() {
+    return jest.fn((tabId, message, callback) => {
+      return this._sendTabMessage(tabId, message, callback)
+    })
+  }
+
+  /**
+   * 創建標籤腳本操作
+   */
+  _createTabScriptOperation() {
+    return jest.fn((tabId, details, callback) => {
+      const result = this._executeScript(tabId, details)
+      return this._handleCallback(callback, result)
+    })
+  }
+
+  /**
+   * 創建標籤建立操作
+   */
+  _createTabCreateOperation() {
+    return jest.fn((createProperties, callback) => {
+      const tab = this._createTab(createProperties)
+      return this._handleCallback(callback, tab)
+    })
   }
 
   /**
    * 查詢標籤頁
    */
   _queryTabs(queryInfo) {
-    const allTabs = Array.from(this._tabsState.tabs.values())
-    
-    return allTabs.filter(tab => {
-      return this._matchesTabQuery(tab, queryInfo)
-    })
+    const allTabs = this._getAllTabs()
+    return this._filterTabsByQuery(allTabs, queryInfo)
+  }
+
+  /**
+   * 獲取所有標籤頁
+   */
+  _getAllTabs() {
+    return Array.from(this._tabsState.tabs.values())
+  }
+
+  /**
+   * 根據查詢條件過濾標籤頁
+   */
+  _filterTabsByQuery(tabs, queryInfo) {
+    return tabs.filter(tab => this._matchesTabQuery(tab, queryInfo))
   }
 
   /**
    * 檢查標籤頁是否符合查詢條件
    */
   _matchesTabQuery(tab, queryInfo) {
-    if (queryInfo.active !== undefined && tab.active !== queryInfo.active) {
-      return false
-    }
-    
-    if (queryInfo.url && !tab.url.includes(queryInfo.url)) {
-      return false
-    }
-    
-    return true
+    return this._matchesActiveQuery(tab, queryInfo) && 
+           this._matchesUrlQuery(tab, queryInfo)
+  }
+
+  /**
+   * 檢查活躍狀態查詢
+   */
+  _matchesActiveQuery(tab, queryInfo) {
+    if (queryInfo.active === undefined) return true
+    return tab.active === queryInfo.active
+  }
+
+  /**
+   * 檢查URL查詢
+   */
+  _matchesUrlQuery(tab, queryInfo) {
+    if (!queryInfo.url) return true
+    return tab.url.includes(queryInfo.url)
   }
 
   /**
    * 發送標籤頁訊息
    */
   _sendTabMessage(tabId, message, callback) {
-    const handler = this._messageHandlers.get(tabId)
-    
-    if (handler) {
-      const response = handler(message)
-      if (callback) callback(response)
-      return Promise.resolve(response)
-    }
-    
-    if (callback) callback(undefined)
-    return Promise.resolve(undefined)
+    const handler = this._getMessageHandler(tabId)
+    const response = this._processTabMessage(handler, message)
+    return this._handleCallback(callback, response)
+  }
+
+  /**
+   * 獲取訊息處理器
+   */
+  _getMessageHandler(tabId) {
+    return this._messageHandlers.get(tabId)
+  }
+
+  /**
+   * 處理標籤頁訊息
+   */
+  _processTabMessage(handler, message) {
+    return handler ? handler(message) : undefined
   }
 
   /**
@@ -335,21 +467,38 @@ class ChromeExtensionMocksEnhancedV2 extends ChromeExtensionMocksEnhanced {
    */
   _createRuntimeAPIMock() {
     return {
-      sendMessage: jest.fn((message, callback) => {
-        return this._sendRuntimeMessage(message, callback)
-      }),
-      
+      sendMessage: this._createRuntimeSendMessageMock(),
       onMessage: this._createRuntimeOnMessageMock(),
-      
-      getManifest: jest.fn(() => ({
-        name: 'Test Extension',
-        version: '1.0.0',
-        manifest_version: 3
-      })),
-      
+      getManifest: this._createRuntimeGetManifestMock(),
       id: 'test-extension-id',
-      
       lastError: null
+    }
+  }
+
+  /**
+   * 創建Runtime發送訊息Mock
+   */
+  _createRuntimeSendMessageMock() {
+    return jest.fn((message, callback) => {
+      return this._sendRuntimeMessage(message, callback)
+    })
+  }
+
+  /**
+   * 創建Runtime獲取清單Mock
+   */
+  _createRuntimeGetManifestMock() {
+    return jest.fn(() => this._generateTestManifest())
+  }
+
+  /**
+   * 生成測試清單
+   */
+  _generateTestManifest() {
+    return {
+      name: 'Test Extension',
+      version: '1.0.0',
+      manifest_version: 3
     }
   }
 
@@ -357,16 +506,24 @@ class ChromeExtensionMocksEnhancedV2 extends ChromeExtensionMocksEnhanced {
    * 發送Runtime訊息
    */
   _sendRuntimeMessage(message, callback) {
-    const listeners = this._runtimeState.listeners.get('message') || []
-    
-    if (listeners.length > 0) {
-      const response = listeners[0](message)
-      if (callback) callback(response)
-      return Promise.resolve(response)
-    }
-    
-    if (callback) callback(undefined)
-    return Promise.resolve(undefined)
+    const listeners = this._getRuntimeMessageListeners()
+    const response = this._processRuntimeMessage(listeners, message)
+    return this._handleCallback(callback, response)
+  }
+
+  /**
+   * 獲取Runtime訊息監聽器
+   */
+  _getRuntimeMessageListeners() {
+    return this._runtimeState.listeners.get('message') || []
+  }
+
+  /**
+   * 處理Runtime訊息
+   */
+  _processRuntimeMessage(listeners, message) {
+    if (listeners.length === 0) return undefined
+    return listeners[0](message)
   }
 
   /**

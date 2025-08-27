@@ -148,40 +148,61 @@ class TestDataFactory {
    * 創建單一書籍資料
    */
   _createSingleBook(index, type) {
-    const book = { ...this.templates.book }
-    
-    // 基礎資訊
+    const book = this._initializeBookTemplate()
+    this._populateBasicBookInfo(book, index)
+    this._populateBookMetadata(book, index)
+    this._applyBookTypeData(book, index, type)
+    return book
+  }
+
+  /**
+   * 初始化書籍模板
+   */
+  _initializeBookTemplate() {
+    return { ...this.templates.book }
+  }
+
+  /**
+   * 填充基礎書籍資訊
+   */
+  _populateBasicBookInfo(book, index) {
     book.id = this._generateBookId(index)
     book.title = this._selectRandomFromSeed('bookTitles', index)
     book.author = this._selectRandomFromSeed('authors', index)
     book.publisher = this._selectRandomFromSeed('publishers', index)
     book.category = this._selectRandomFromSeed('categories', index)
-    
-    // 先設定基本欄位，確保所有類型都有一致的頁數基礎
+  }
+
+  /**
+   * 填充書籍中繼資料
+   */
+  _populateBookMetadata(book, index) {
     book.isbn = this._generateISBN(index)
     book.price = this._generatePrice(index)
     book.totalPages = this._generatePageCount(index)
     book.rating = this._generateRating(index)
     book.tags = this._generateTags(index)
-    
-    // 根據類型生成特定資料（進度相關）
-    switch (type) {
-      case 'reading':
-        this._applyReadingBookData(book, index)
-        break
-      case 'completed':
-        this._applyCompletedBookData(book, index)
-        break
-      case 'new':
-        this._applyNewBookData(book, index)
-        break
-      case 'mixed':
-      default:
-        this._applyMixedBookData(book, index)
-        break
+  }
+
+  /**
+   * 應用書籍類型資料
+   */
+  _applyBookTypeData(book, index, type) {
+    const typeHandlers = this._getBookTypeHandlers()
+    const handler = typeHandlers[type] || typeHandlers['mixed']
+    handler(book, index)
+  }
+
+  /**
+   * 獲取書籍類型處理器
+   */
+  _getBookTypeHandlers() {
+    return {
+      'reading': (book, index) => this._applyReadingBookData(book, index),
+      'completed': (book, index) => this._applyCompletedBookData(book, index),
+      'new': (book, index) => this._applyNewBookData(book, index),
+      'mixed': (book, index) => this._applyMixedBookData(book, index)
     }
-    
-    return book
   }
 
   /**
