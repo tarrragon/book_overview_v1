@@ -123,11 +123,12 @@ class EventPriorityManager {
     const startTime = performance.now()
 
     try {
-      // 優雅處理無效事件名稱
+      // 驗證事件名稱並拋出錯誤
       if (!eventName || typeof eventName !== 'string') {
         this.priorityStats.errors++
-        // 返回預設優先級而不是拋出異常
-        return this.priorityConfig.BUSINESS_PROCESSING.range[1] // 預設為一般業務處理的最低優先級
+        const endTime = performance.now()
+        this.updateAssignmentTime(endTime - startTime)
+        throw new Error('Invalid event name')
       }
 
       // 檢查是否已有分配的優先級
@@ -149,8 +150,12 @@ class EventPriorityManager {
 
       return priority
     } catch (error) {
+      // 如果是我們拋出的驗證錯誤，重新拋出
+      if (error.message === 'Invalid event name') {
+        throw error
+      }
+      // 其他意外錯誤才返回預設優先級
       this.priorityStats.errors++
-      // 優雅處理錯誤，返回預設優先級
       return this.priorityConfig.BUSINESS_PROCESSING.range[1]
     } finally {
       const endTime = performance.now()
@@ -166,12 +171,32 @@ class EventPriorityManager {
   inferPriorityCategory (eventName) {
     const upperEventName = eventName.toUpperCase()
 
-    // 首先根據領域推斷（優先級更高）
+    // 首先根據領域檢查特殊情況（最高優先級）
     const parts = eventName.split('.')
     if (parts.length >= 1) {
       const domain = parts[0]
 
+      // ANALYTICS 領域始終是 BACKGROUND_PROCESSING
+      if (domain === 'ANALYTICS') {
+        return 'BACKGROUND_PROCESSING'
+      }
+    }
+
+    // 然後檢查關鍵字的重要性 - CRITICAL、ERROR、FAILURE 等優先
+    const highPriorityKeywords = ['ERROR', 'CRITICAL', 'SECURITY', 'FAILURE', 'URGENT']
+    if (highPriorityKeywords.some(keyword => upperEventName.includes(keyword))) {
+      return 'SYSTEM_CRITICAL'
+    }
+
+    // 檢查其他領域
+    if (parts.length >= 1) {
+      const domain = parts[0]
+
       if (domain === 'SYSTEM' || domain === 'SECURITY') {
+        // SYSTEM 領域的 CLEANUP 等背景工作是 BACKGROUND_PROCESSING
+        if (['CLEANUP', 'LOG', 'BACKGROUND', 'SYNC'].some(keyword => upperEventName.includes(keyword))) {
+          return 'BACKGROUND_PROCESSING'
+        }
         return 'SYSTEM_CRITICAL'
       }
       if (domain === 'PLATFORM') {
@@ -180,13 +205,23 @@ class EventPriorityManager {
       if (domain === 'UX' || domain === 'UI') {
         return 'USER_INTERACTION'
       }
-      if (domain === 'ANALYTICS') {
-        return 'BACKGROUND_PROCESSING'
-      }
     }
 
-    // 檢查每個類別的關鍵字（作為後備選項）
-    for (const [category, config] of Object.entries(this.priorityConfig)) {
+    // 檢查背景處理關鍵字優先（避免被其他類別搶先匹配）
+    const backgroundKeywords = ['ANALYTICS', 'LOG', 'CLEANUP', 'SYNC', 'BACKGROUND']
+    if (backgroundKeywords.some(keyword => upperEventName.includes(keyword))) {
+      return 'BACKGROUND_PROCESSING'
+    }
+
+    // 然後按優先級順序檢查剩餘關鍵字
+    const categoryOrder = [
+      'PLATFORM_MANAGEMENT', 
+      'USER_INTERACTION',
+      'BUSINESS_PROCESSING'
+    ]
+
+    for (const category of categoryOrder) {
+      const config = this.priorityConfig[category]
       if (config.keywords.some(keyword => upperEventName.includes(keyword))) {
         return category
       }
@@ -219,6 +254,7 @@ class EventPriorityManager {
    */
   adjustEventPriority (eventName, newPriority) {
     if (!this.isValidPriority(newPriority)) {
+      this.priorityStats.errors++
       throw new Error('Invalid priority value')
     }
 
@@ -312,9 +348,15 @@ class EventPriorityManager {
    */
   optimizeBasedOnPerformance () {
     for (const [eventName, metrics] of this.performanceMetrics.entries()) {
+      let currentPriority = this.getEventPriority(eventName)
+      
+      // 如果事件沒有優先級，先分配一個
+      if (currentPriority === undefined) {
+        currentPriority = this.assignEventPriority(eventName)
+      }
+      
       if (metrics.avgExecutionTime > 300) { // 300ms 被認為是慢的
-        const currentPriority = this.getEventPriority(eventName)
-        if (currentPriority !== undefined && currentPriority < 400) {
+        if (currentPriority < 400) {
           // 調低優先級（增加數值）
           this.adjustEventPriority(eventName, Math.min(currentPriority + 50, 450))
         }
@@ -329,6 +371,16 @@ class EventPriorityManager {
    */
   recordPerformanceMetrics (eventName, metrics) {
     this.performanceMetrics.set(eventName, metrics)
+  }
+
+  /**
+   * 記錄事件優先級（用於測試衝突檢測）
+   * @param {string} eventName - 事件名稱
+   * @param {number} priority - 優先級
+   */
+  recordEventPriority (eventName, priority) {
+    this.eventPriorities.set(eventName, priority)
+    this.recordPriorityHistory(eventName, priority, 'RECORDED')
   }
 
   /**
