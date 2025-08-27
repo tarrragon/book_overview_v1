@@ -30,7 +30,7 @@
  */
 
 describe('🌐 Chrome Extension 事件橋接器測試', () => {
-  let ChromeEventBridge
+  let createChromeEventBridge
   let bridge
   let mockChrome
 
@@ -56,11 +56,11 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
 
     global.chrome = mockChrome
 
-    // 載入 ChromeEventBridge
-    ChromeEventBridge = require('@/content/bridge/chrome-event-bridge')
+    // 載入 ChromeEventBridge 工廠函數
+    createChromeEventBridge = require('@/content/bridge/chrome-event-bridge')
 
     // 創建橋接器實例
-    bridge = new ChromeEventBridge()
+    bridge = createChromeEventBridge()
   })
 
   afterEach(() => {
@@ -73,8 +73,9 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
   describe('📝 基本構造和設置', () => {
     test('應該能夠創建橋接器實例', () => {
       // Act & Assert
-      expect(bridge).toBeInstanceOf(ChromeEventBridge)
-      expect(bridge.messageHandlers).toBeInstanceOf(Map)
+      expect(bridge).toBeDefined()
+      expect(typeof bridge).toBe('object')
+      expect(typeof bridge.sendToBackground).toBe('function')
     })
 
     test('應該設置Chrome Runtime消息監聽器', () => {

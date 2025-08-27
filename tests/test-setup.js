@@ -117,11 +117,13 @@ global.testUtils = {
     }
 
     // 清理 DOM (安全檢查)
-    if (document.body) {
-      document.body.innerHTML = ''
-    }
-    if (document.head) {
-      document.head.innerHTML = ''
+    if (typeof document !== 'undefined' && document) {
+      if (document.body) {
+        document.body.innerHTML = ''
+      }
+      if (document.head) {
+        document.head.innerHTML = ''
+      }
     }
   }
 }

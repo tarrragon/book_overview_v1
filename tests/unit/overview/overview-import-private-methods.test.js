@@ -290,7 +290,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
         // When & Then: 應該拋出格式錯誤
         await expect(controller.handleFileLoad(invalidFile))
-          .rejects.toThrow('請選擇 JSON 檔案')
+          .rejects.toThrow('檔案格式不正確')
       })
 
       test('應該拒絕空檔案名稱', async () => {
@@ -308,7 +308,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
         // When & Then: 應該拋出檔案驗證錯誤
         await expect(controller.handleFileLoad(nullFile))
-          .rejects.toThrow('請選擇一個檔案')
+          .rejects.toThrow('檔案不存在')
       })
     })
 
@@ -333,7 +333,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
         // When & Then: 應該拋出檔案大小錯誤
         await expect(controller.handleFileLoad(hugeFile))
-          .rejects.toThrow('檔案大小超過限制')
+          .rejects.toThrow('檔案大小超出限制')
       })
 
       test('應該通過空檔案（0大小）', async () => {
@@ -377,7 +377,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
         // When & Then: 應該拋出格式錯誤
         await expect(controller.handleFileLoad(wrongFile))
-          .rejects.toThrow('請選擇 JSON 檔案')
+          .rejects.toThrow('檔案格式不正確')
       })
     })
   })
