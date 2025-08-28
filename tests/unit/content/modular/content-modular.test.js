@@ -72,22 +72,62 @@ describe('Modular Content Script', () => {
       </html>
     `, {
       url: 'https://readmoo.com/library',
-      runScripts: 'dangerously',
-      resources: 'usable'
+      referrer: 'https://readmoo.com/',
+      contentType: 'text/html',
+      storageQuota: 10000000
     })
 
     window = dom.window
     document = window.document
+
+    // JSDOM的location物件由於安全限制無法重新定義，
+    // 我們只能依賴 globalThis.location 供模組使用
 
     // 設置全域環境
     global.window = window
     global.document = document
     global.MutationObserver = window.MutationObserver
     global.performance = window.performance || { now: () => Date.now() }
+    
+    // 確保 document.body 正確設置
+    if (!document.body) {
+      document.body = document.createElement('body')
+      document.documentElement.appendChild(document.body)
+    }
 
-    // 正確設定 location 物件 - 直接修改 JSDOM 的 location
-    // 由於 JSDOM 會重寫 location，我們直接設定 global.location 讓模組使用
-    global.location = window.location
+    // 正確設定 location 物件 - 使用 Object.defineProperty 避免 JSDOM 限制
+    const locationObj = {
+      href: 'https://readmoo.com/library',
+      hostname: 'readmoo.com',
+      pathname: '/library',
+      protocol: 'https:',
+      host: 'readmoo.com',
+      port: '',
+      search: '',
+      hash: '',
+      origin: 'https://readmoo.com',
+      toString: () => 'https://readmoo.com/library'
+    }
+    
+    // 設置 global.location 供模組使用（因為 JSDOM 的 window.location 不可修改）
+    global.location = locationObj
+    
+    // 同時設置在 window 上，但主要依賴 global.location
+    try {
+      Object.defineProperty(window, 'location', {
+        value: locationObj,
+        writable: false,
+        configurable: true
+      })
+    } catch (e) {
+      // JSDOM 可能不允許重新定義 location，忽略錯誤
+    }
+
+    // 設置 globalThis 供模組使用
+    global.globalThis = global
+    globalThis.document = document
+    globalThis.window = window
+    globalThis.location = global.location
 
     // 模擬 console 方法
     global.console = {
@@ -107,6 +147,9 @@ describe('Modular Content Script', () => {
   describe('PageDetector 模組', () => {
     test('應該正確檢測 Readmoo 頁面', () => {
       // JSDOM 使用 readmoo.com 域名
+      console.log('Debug - window.location.hostname:', window.location.hostname)
+      console.log('Debug - global.location.hostname:', global.location.hostname)
+      
       const pageDetector = createPageDetector()
 
       const result = pageDetector.detectReadmooPage()
