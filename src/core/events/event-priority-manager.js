@@ -123,12 +123,14 @@ class EventPriorityManager {
     const startTime = performance.now()
 
     try {
-      // 驗證事件名稱並拋出錯誤
+      // 驗證事件名稱並優雅處理無效情況
       if (!eventName || typeof eventName !== 'string') {
         this.priorityStats.errors++
         const endTime = performance.now()
         this.updateAssignmentTime(endTime - startTime)
-        throw new Error('Invalid event name')
+        // 優雅處理：返回最低優先級而非拋出異常
+        console.warn(`EventPriorityManager: Invalid event name "${eventName}", assigning lowest priority`)
+        return 999 // 最低優先級
       }
 
       // 檢查是否已有分配的優先級
