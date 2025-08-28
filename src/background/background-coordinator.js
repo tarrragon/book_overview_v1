@@ -213,6 +213,7 @@ class BackgroundCoordinator extends BaseModule {
 
       // 3. 設定全域事件總線引用
       this.eventBus = this.eventCoordinator.eventBusInstance
+      this.chromeBridge = this.eventCoordinator.chromeBridgeInstance
 
       this.logger.log('✅ 核心依賴初始化完成')
     } catch (error) {

@@ -159,6 +159,12 @@ class EventCoordinator extends BaseModule {
       // 設定全域引用
       globalThis.eventBus = this.eventBusInstance
       globalThis.chromeBridge = this.chromeBridgeInstance
+      
+      // 在Node.js測試環境中，也要設定global.chromeBridge
+      if (typeof global !== 'undefined') {
+        global.eventBus = this.eventBusInstance
+        global.chromeBridge = this.chromeBridgeInstance
+      }
 
       // 設定事件總線引用（用於基底模組）
       this.eventBus = this.eventBusInstance
@@ -177,6 +183,12 @@ class EventCoordinator extends BaseModule {
       // 提供降級方案
       globalThis.eventBus = null
       globalThis.chromeBridge = null
+      
+      // 在Node.js測試環境中，也要清理global變數
+      if (typeof global !== 'undefined') {
+        global.eventBus = null
+        global.chromeBridge = null
+      }
 
       throw error
     }
@@ -392,6 +404,15 @@ class EventCoordinator extends BaseModule {
         } catch (error) {
           return { success: false, error: error.message }
         }
+      },
+
+      onMessageFromContent (handler) {
+        // 註冊來自 content script 的訊息處理器
+        if (chrome.runtime && chrome.runtime.onMessage) {
+          chrome.runtime.onMessage.addListener(handler)
+          return () => chrome.runtime.onMessage.removeListener(handler)
+        }
+        return () => {}
       }
     }
   }

@@ -78,10 +78,15 @@ async function initializeBackgroundSystem () {
       總耗時: `${stats.initializationDuration + stats.startupDuration}ms`
     })
 
-    // 設定全域 EventBus 實例供測試和外部模組使用
+    // 設定全域實例供測試和外部模組使用
     if (backgroundCoordinator && backgroundCoordinator.eventBus) {
       global.eventBus = backgroundCoordinator.eventBus
       console.log('✅ 全域 EventBus 實例已設定')
+    }
+    
+    if (backgroundCoordinator && backgroundCoordinator.chromeBridge) {
+      global.chromeBridge = backgroundCoordinator.chromeBridge
+      console.log('✅ 全域 ChromeBridge 實例已設定')
     }
 
     // 註冊 Service Worker 生命週期事件

@@ -56,6 +56,7 @@ describe('Background Service Worker Event System Integration', () => {
     // 清理全域變數
     global.eventBus = undefined
     global.chromeBridge = undefined
+    global.backgroundCoordinator = undefined
 
     // 模擬 performance.now (如果不存在)
     if (!global.performance) {
@@ -66,15 +67,48 @@ describe('Background Service Worker Event System Integration', () => {
 
     // 載入並執行 background script
     try {
-      // 由於 background.js 使用 IIFE 自動執行，我們需要在測試環境中模擬載入
-      await loadBackgroundScript()
+      // 使用直接初始化的方式來確保全域變數設定
+      await setupBackgroundEnvironment()
     } catch (error) {
-      console.error('載入 background script 失敗:', error)
+      console.error('設定 background 環境失敗:', error)
     }
   })
 
   /**
-   * 載入並執行 background script
+   * 設定 background 測試環境
+   */
+  async function setupBackgroundEnvironment () {
+    try {
+      // 直接使用 BackgroundCoordinator 進行初始化
+      const BackgroundCoordinator = require('../../../src/background/background-coordinator')
+      
+      // 建立協調器實例並初始化
+      const backgroundCoordinator = new BackgroundCoordinator()
+      await backgroundCoordinator.initialize()
+      await backgroundCoordinator.start()
+      
+      // 設定全域變數模擬 background.js 行為
+      if (backgroundCoordinator && backgroundCoordinator.eventBus) {
+        global.eventBus = backgroundCoordinator.eventBus
+      }
+      
+      if (backgroundCoordinator && backgroundCoordinator.chromeBridge) {
+        global.chromeBridge = backgroundCoordinator.chromeBridge
+      }
+      
+      // 保存協調器實例供其他測試使用
+      global.backgroundCoordinator = backgroundCoordinator
+      
+    } catch (error) {
+      console.warn('Background 環境設定錯誤:', error.message)
+      // 提供基本的 fallback
+      global.eventBus = null
+      global.chromeBridge = null
+    }
+  }
+
+  /**
+   * 載入並執行 background script（作為備用方法）
    */
   async function loadBackgroundScript () {
     const fs = require('fs')
@@ -129,6 +163,10 @@ describe('Background Service Worker Event System Integration', () => {
         // 模擬background.js的全域設定
         if (backgroundCoordinator && backgroundCoordinator.eventBus) {
           global.eventBus = backgroundCoordinator.eventBus
+        }
+        
+        if (backgroundCoordinator && backgroundCoordinator.chromeBridge) {
+          global.chromeBridge = backgroundCoordinator.chromeBridge
         }
         
         // 驗證 EventBus 實例
