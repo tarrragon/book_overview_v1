@@ -426,7 +426,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
 
       // Act & Assert
       expect(() => {
-        new ChromeEventBridge()
+        createChromeEventBridge()
       }).toThrow('Listener registration failed')
     })
 

@@ -119,6 +119,16 @@ class OverviewPageController extends EventHandlerClass {
     // 設置事件監聽器
     this.setupEventListeners()
   }
+  // Getter 方法：為了向後相容，提供 books 屬性存取
+  get books() {
+    return this.currentBooks
+  }
+
+  // Setter 方法：統一書籍資料設定
+  set books(value) {
+    this.currentBooks = value
+    this.filteredBooks = [...value] // 預設顯示全部書籍
+  }
 
   /**
    * 初始化 DOM 元素引用
@@ -691,7 +701,13 @@ class OverviewPageController extends EventHandlerClass {
    * @returns {boolean} 是否為JSON檔案
    */
   _isJSONFile (file) {
-    return file.name.toLowerCase().endsWith('.json')
+    // 檢查副檔名
+    const hasJsonExtension = file.name.toLowerCase().endsWith('.json')
+    
+    // 檢查 MIME 類型
+    const hasJsonMimeType = file.type === 'application/json'
+    
+    return hasJsonExtension || hasJsonMimeType
   }
 
   /**
@@ -728,7 +744,20 @@ class OverviewPageController extends EventHandlerClass {
    * @returns {FileReader} FileReader實例
    */
   _createFileReader () {
-    return new FileReader()
+    const FileReaderFactory = this._loadFileReaderFactory()
+    return FileReaderFactory.createReader()
+  }
+
+  /**
+   * 載入FileReaderFactory
+   * @private
+   * @returns {Object} FileReaderFactory類
+   */
+  _loadFileReaderFactory () {
+    if (typeof require !== 'undefined') {
+      return require('../utils/file-reader-factory')
+    }
+    return window.FileReaderFactory
   }
 
   /**
@@ -765,7 +794,7 @@ class OverviewPageController extends EventHandlerClass {
    * @param {Function} reject - Promise reject函數
    */
   _handleReaderError (reject) {
-    const errorMsg = '讀取檔案時發生錯誤！'
+    const errorMsg = '讀取檔案時發生錯誤'
     this.showError(errorMsg)
     reject(new Error(errorMsg))
   }
@@ -1080,6 +1109,11 @@ class OverviewPageController extends EventHandlerClass {
     if (this._isDirectArrayFormat(data)) return data
     if (this._isWrappedBooksFormat(data)) return data.books
     if (this._isMetadataWrapFormat(data)) return data.data
+    
+    // 處理空 JSON 對象的情況
+    if (data && typeof data === 'object' && Object.keys(data).length === 0) {
+      return [] // 空對象回傳空陣列
+    }
 
     throw new Error('JSON 檔案應該包含一個陣列或包含books屬性的物件')
   }

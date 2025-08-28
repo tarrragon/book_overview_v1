@@ -89,7 +89,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
             const error = errorTypes[errorType] || errorTypes.generic
             if (onerror) onerror({ type: 'error', error })
           } else {
-            const content = result || (typeof file === 'string' ? file : '[]')
+            const content = result !== null ? result : (typeof file === 'string' ? file : '[]')
             if (onload) {
               onload({
                 type: 'load',
@@ -337,8 +337,13 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
       })
 
       test('應該通過空檔案（0大小）', async () => {
-        // Given: 空檔案
+        // Given: 空檔案和 FileReader mock
         const emptyFile = createMockFile('', 'empty.json')
+        
+        // Mock FileReader 回傳空內容
+        global.FileReader = jest.fn().mockImplementation(() =>
+          createAdvancedMockFileReader({ result: '' })
+        )
 
         // When & Then: 應該成功處理（但內容驗證會失敗）
         await expect(controller.handleFileLoad(emptyFile))
@@ -461,7 +466,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
         // When & Then: 應該拋出讀取錯誤
         await expect(controller.handleFileLoad(validFile))
-          .rejects.toThrow('檔案讀取失敗')
+          .rejects.toThrow('讀取檔案時發生錯誤')
       })
     })
 
@@ -497,7 +502,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
         // When & Then: 應該正確處理非同步錯誤
         await expect(controller.handleFileLoad(validFile))
-          .rejects.toThrow('檔案讀取失敗')
+          .rejects.toThrow('讀取檔案時發生錯誤')
       })
     })
   })
