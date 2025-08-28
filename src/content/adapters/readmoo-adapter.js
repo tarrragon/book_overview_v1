@@ -43,6 +43,10 @@ function createReadmooAdapter () {
     lastExtraction: 0
   }
 
+  // 動態取得環境物件的輔助函數
+  const getDocument = () => globalThis.document || window?.document
+  const getLocation = () => globalThis.location || window?.location || {}
+
   // DOM 選擇器配置 (與 ReadmooAdapter 保持一致)
   const SELECTORS = {
     // 主要書籍容器 - 與 ReadmooAdapter 一致
@@ -106,6 +110,12 @@ function createReadmooAdapter () {
       let elements = []
 
       try {
+        const document = getDocument()
+        if (!document) {
+          console.warn('⚠️ document 物件不可用')
+          return []
+        }
+
         // 主要策略：查找 .library-item 容器
         elements = Array.from(document.querySelectorAll(SELECTORS.bookContainer))
 
@@ -927,7 +937,7 @@ function createReadmooAdapter () {
      * @param {string} url - 頁面 URL
      * @returns {boolean} 是否支援
      */
-    validatePage (url = globalThis.location?.href || '') {
+    validatePage (url = getLocation().href || '') {
       try {
         const urlObj = new URL(url)
         const isReadmooHost = urlObj.hostname.includes('readmoo.com')

@@ -33,26 +33,37 @@
  * @returns {Object} PageDetector 實例
  */
 function createPageDetector () {
-  // 使用 globalThis.location 或 window.location，優先使用 globalThis（測試環境）
-  const location = globalThis.location || window.location
-  let currentUrl = location.href
   let isReadmooPage = false
   let pageType = 'unknown'
   let changeObserver = null
 
+  // 動態取得 location 的輔助函數
+  const getLocation = () => globalThis.location || window?.location || {}
+  
   const detector = {
+    // 快取當前URL以偵測變更
+    _cachedUrl: '',
     /**
      * 檢測 Readmoo 頁面
      *
      * @returns {Object} 檢測結果 { isReadmooPage, pageType }
      */
     detectReadmooPage () {
-      console.log('Debug - PageDetector location:', { 
+      const location = getLocation()
+      // Debug: 在測試環境中強制輸出到標準輸出
+      const locationInfo = { 
         hostname: location.hostname, 
         href: location.href,
-        origin: location.origin 
-      })
-      isReadmooPage = location.hostname.includes('readmoo.com')
+        origin: location.origin,
+        globalThis: globalThis.location ? 'exists' : 'missing',
+        window: (window?.location) ? 'exists' : 'missing'
+      }
+      console.log('Debug - PageDetector location:', locationInfo)
+      // 強制輸出到stderr確保在Jest中可見
+      if (typeof process !== 'undefined' && process.stderr) {
+        process.stderr.write(`PageDetector Debug: ${JSON.stringify(locationInfo)}\n`)
+      }
+      isReadmooPage = location.hostname && location.hostname.includes('readmoo.com')
       pageType = isReadmooPage ? this.detectPageType() : 'unknown'
 
       console.log(`📍 頁面檢測: ${isReadmooPage ? 'Readmoo' : '非Readmoo'} 頁面 (${pageType})`)
@@ -66,8 +77,9 @@ function createPageDetector () {
      * @returns {string} 頁面類型 ('library', 'shelf', 'reader', 'unknown')
      */
     detectPageType () {
-      const url = location.href
-      const pathname = location.pathname
+      const location = getLocation()
+      const url = location.href || ''
+      const pathname = location.pathname || ''
 
       if (url.includes('/library') || pathname.includes('/library')) {
         return 'library'
@@ -89,12 +101,13 @@ function createPageDetector () {
      * @returns {Object} 頁面狀態資訊
      */
     getPageStatus () {
+      const location = getLocation()
       return {
         isReadmooPage,
         pageType,
-        url: location.href,
-        hostname: location.hostname,
-        pathname: location.pathname,
+        url: location.href || '',
+        hostname: location.hostname || '',
+        pathname: location.pathname || '',
         timestamp: Date.now()
       }
     },
@@ -144,11 +157,15 @@ function createPageDetector () {
 
       // 建立新的觀察器
       changeObserver = new MutationObserver(() => {
-        if (location.href !== currentUrl) {
-          const oldUrl = currentUrl
+        const location = getLocation()
+        const currentUrl = location.href || ''
+        const cachedUrl = detector._cachedUrl || ''
+        
+        if (currentUrl !== cachedUrl) {
+          const oldUrl = cachedUrl
           const oldStatus = { isReadmooPage, pageType }
 
-          currentUrl = location.href
+          detector._cachedUrl = currentUrl
           this.detectReadmooPage()
 
           const newStatus = this.getPageStatus()
@@ -176,9 +193,10 @@ function createPageDetector () {
         }
       })
 
-      // 開始觀察 - 使用 globalThis.document 或 document
-      const document = globalThis.document || window.document
-      const targetElement = document.body || document.documentElement
+      // 開始觀察 - 使用動態document取得
+      const getDocument = () => globalThis.document || window?.document
+      const document = getDocument()
+      const targetElement = document?.body || document?.documentElement
       if (targetElement) {
         changeObserver.observe(targetElement, {
           childList: true,

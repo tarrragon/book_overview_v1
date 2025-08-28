@@ -20,15 +20,20 @@ const fs = require('fs')
 const path = require('path')
 const { JSDOM } = require('jsdom')
 
-// 模擬 Content Script 環境
+// 模擬 Content Script 環境 - 強化Chrome Extension API模擬
 global.chrome = require('jest-chrome').chrome
 
-// 引入模組化組件進行單元測試
-const createPageDetector = require('../../../../src/content/detectors/page-detector')
-const createContentEventBus = require('../../../../src/content/core/content-event-bus')
-const createChromeEventBridge = require('../../../../src/content/bridge/chrome-event-bridge')
-const createBookDataExtractor = require('../../../../src/content/extractors/book-data-extractor')
-const createReadmooAdapter = require('../../../../src/content/adapters/readmoo-adapter')
+// 強化chrome.runtime.sendMessage的模擬行為
+global.chrome.runtime.sendMessage.mockImplementation((message, callback) => {
+  // 模擬成功的訊息發送，包含正確的metadata格式
+  const response = { success: true }
+  if (callback) {
+    setTimeout(() => callback(response), 0)
+  }
+  return Promise.resolve(response)
+})
+
+// 模組將在測試內部載入，確保環境設定完成
 
 describe('Modular Content Script', () => {
   let dom
@@ -123,11 +128,21 @@ describe('Modular Content Script', () => {
       // JSDOM 可能不允許重新定義 location，忽略錯誤
     }
 
-    // 設置 globalThis 供模組使用
+    // 設置 globalThis 供模組使用 - 確保模組載入前就設置完成
     global.globalThis = global
     globalThis.document = document
     globalThis.window = window
-    globalThis.location = global.location
+    
+    // 強制設置 location - 確保不被覆蓋
+    Object.defineProperty(globalThis, 'location', {
+      value: global.location,
+      writable: true,
+      configurable: true
+    })
+    
+    // 確保模組能取得正確的環境變數 - 設置到主要環境
+    globalThis.performance = window.performance || { now: () => Date.now() }
+    global.performance = globalThis.performance
 
     // 模擬 console 方法
     global.console = {
@@ -146,9 +161,13 @@ describe('Modular Content Script', () => {
 
   describe('PageDetector 模組', () => {
     test('應該正確檢測 Readmoo 頁面', () => {
+      // 在環境設定完成後載入模組
+      const createPageDetector = require('../../../../src/content/detectors/page-detector')
+      
       // JSDOM 使用 readmoo.com 域名
       console.log('Debug - window.location.hostname:', window.location.hostname)
       console.log('Debug - global.location.hostname:', global.location.hostname)
+      console.log('Debug - globalThis.location.hostname:', globalThis.location.hostname)
       
       const pageDetector = createPageDetector()
 
@@ -158,6 +177,7 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠檢測不同的頁面類型', () => {
+      const createPageDetector = require('../../../../src/content/detectors/page-detector')
       const pageDetector = createPageDetector()
 
       // 測試 library 頁面

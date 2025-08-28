@@ -40,6 +40,10 @@ function createBookDataExtractor () {
   const extractionHistory = []
   const maxHistorySize = 50 // 限制歷史記錄大小
 
+  // 動態取得環境物件的輔助函數
+  const getDocument = () => globalThis.document || window?.document
+  const getLocation = () => globalThis.location || window?.location || {}
+
   const extractor = {
     /**
      * 設定事件系統
@@ -74,8 +78,9 @@ function createBookDataExtractor () {
      * @returns {string} 頁面類型 ('library', 'shelf', 'reader', 'unknown')
      */
     getReadmooPageType () {
-      const url = window.location.href
-      const pathname = window.location.pathname
+      const location = getLocation()
+      const url = location.href || ''
+      const pathname = location.pathname || ''
 
       if (url.includes('/library') || pathname.includes('/library')) {
         return 'library'
@@ -108,7 +113,8 @@ function createBookDataExtractor () {
      */
     async checkPageReady () {
       const pageType = this.getReadmooPageType()
-      const isReady = document.readyState === 'complete' || document.readyState === 'interactive'
+      const document = getDocument()
+      const isReady = document ? (document.readyState === 'complete' || document.readyState === 'interactive') : false
 
       let bookCount = 0
       if (readmooAdapter) {
@@ -116,12 +122,13 @@ function createBookDataExtractor () {
         bookCount = bookElements.length
       }
 
+      const location = getLocation()
       return {
         isReady,
         pageType,
         bookCount,
         extractable: this.isExtractableReadmooPage() && bookCount > 0,
-        url: window.location.href,
+        url: location.href || '',
         timestamp: Date.now()
       }
     },
