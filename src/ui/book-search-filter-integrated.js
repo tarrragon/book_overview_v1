@@ -176,10 +176,10 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
 
     // 設定UI控制器的DOM元素 (延遲到DOM準備好)
     if (this.document && this.document.readyState === 'complete') {
-      this.searchUIController.initializeDOMElements()
+      this.searchUIController.initializeDOMReferences()
     } else {
       this.document?.addEventListener('DOMContentLoaded', () => {
-        this.searchUIController.initializeDOMElements()
+        this.searchUIController.initializeDOMReferences()
       })
     }
   }
@@ -352,7 +352,6 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
       this.searchState.isSearching = false
 
       // 清除UI狀態
-      this.searchUIController.clearSearchInput()
       this.searchUIController.clearSearchResults()
       this.searchUIController.resetFilters()
 
@@ -374,7 +373,7 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
     try {
       const coordinatorStats = this.searchCoordinator.getStatistics()
       const cacheStats = this.searchCacheManager.getCacheStatistics()
-      const uiStats = this.searchUIController.getStatistics()
+      const uiStats = this.searchUIController.getUIState()
 
       return {
         totalSearches: coordinatorStats.totalSearches || 0,
@@ -382,11 +381,11 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
         averageSearchTime: coordinatorStats.averageSearchTime || 0,
         cacheHitRate: cacheStats.hitRate || 0,
         cacheSize: cacheStats.size || 0,
-        uiInteractions: uiStats.totalInteractions || 0,
+        uiInteractions: 0, // UI stats not available from getUIState
         lastActivity: Math.max(
           coordinatorStats.lastActivity || 0,
           cacheStats.lastActivity || 0,
-          uiStats.lastActivity || 0
+          uiStats.timestamp || 0
         )
       }
     } catch (error) {
