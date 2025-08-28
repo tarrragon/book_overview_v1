@@ -15,7 +15,7 @@
  */
 
 const BaseModule = require('../lifecycle/base-module')
-const PageDetector = require('./page-detector')
+const PageDetector = require('../../content/detectors/page-detector')
 const ContentCoordinator = require('./content-coordinator')
 const {
   PAGE_EVENTS,
@@ -29,7 +29,7 @@ class PageMonitor extends BaseModule {
     super(dependencies)
 
     // 子模組
-    this.pageDetector = new PageDetector({
+    this.pageDetector = PageDetector({
       eventBus: this.eventBus,
       logger: this.logger,
       i18nManager: dependencies.i18nManager

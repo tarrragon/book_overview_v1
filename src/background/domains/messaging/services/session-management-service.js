@@ -23,7 +23,7 @@ const {
   STORAGE_KEYS,
   LIMITS,
   TIMEOUTS
-} = require('../../constants/module-constants')
+} = require('../../../constants/module-constants')
 
 class SessionManagementService {
   constructor (dependencies = {}) {

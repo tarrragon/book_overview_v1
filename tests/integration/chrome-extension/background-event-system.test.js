@@ -23,6 +23,17 @@ const path = require('path')
 global.self = global
 global.chrome = require('jest-chrome').chrome
 
+// 模擬 DOM 環境變數（PageDetector 需要）
+global.globalThis = global
+global.location = { 
+  hostname: 'localhost', 
+  href: 'http://localhost/', 
+  origin: 'http://localhost' 
+}
+global.window = { 
+  location: global.location 
+}
+
 describe('Background Service Worker Event System Integration', () => {
   let backgroundScript
   let mockEventBus
@@ -102,15 +113,31 @@ describe('Background Service Worker Event System Integration', () => {
     })
 
     test('應該在 Service Worker 啟動時建立 EventBus 實例', async () => {
-      // 模擬動態載入 background 腳本的函數
-      const loadBackground = () => {
-        // 這裡應該會初始化一個全域的 EventBus 實例
+      // 直接使用 BackgroundCoordinator 來初始化 EventBus
+      const BackgroundCoordinator = require('../../../src/background/background-coordinator')
+      
+      // 清理之前的全域變數
+      delete global.eventBus
+      
+      // 模擬背景腳本的初始化過程
+      const loadBackground = async () => {
+        // 建立 BackgroundCoordinator 實例並初始化
+        const backgroundCoordinator = new BackgroundCoordinator()
+        await backgroundCoordinator.initialize()
+        await backgroundCoordinator.start()
+        
+        // 模擬background.js的全域設定
+        if (backgroundCoordinator && backgroundCoordinator.eventBus) {
+          global.eventBus = backgroundCoordinator.eventBus
+        }
+        
+        // 驗證 EventBus 實例
         expect(global.eventBus).toBeDefined()
         expect(typeof global.eventBus.on).toBe('function')
         expect(typeof global.eventBus.emit).toBe('function')
       }
 
-      expect(loadBackground).not.toThrow()
+      await expect(loadBackground()).resolves.not.toThrow()
     })
 
     test('應該正確配置事件處理器', async () => {

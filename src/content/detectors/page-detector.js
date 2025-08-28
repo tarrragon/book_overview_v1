@@ -56,7 +56,7 @@ function createPageDetector () {
         href: location.href,
         origin: location.origin,
         globalThis: globalThis.location ? 'exists' : 'missing',
-        window: (window?.location) ? 'exists' : 'missing'
+        window: (typeof window !== 'undefined' && window?.location) ? 'exists' : 'missing'
       }
       console.log('Debug - PageDetector location:', locationInfo)
       // 強制輸出到stderr確保在Jest中可見
@@ -295,6 +295,41 @@ function createPageDetector () {
       }
 
       console.log('🧹 PageDetector 已清理完成')
+    },
+
+    /**
+     * 初始化檢測器 (BaseModule 相容性)
+     */
+    async initialize () {
+      // PageDetector 在建立時已自動初始化
+      return Promise.resolve()
+    },
+
+    /**
+     * 啟動檢測器 (BaseModule 相容性)
+     */
+    async start () {
+      // PageDetector 在建立時已自動啟動
+      return Promise.resolve()
+    },
+
+    /**
+     * 停止檢測器 (BaseModule 相容性)
+     */
+    async stop () {
+      this.destroy()
+      return Promise.resolve()
+    },
+
+    /**
+     * 健康狀態檢查 (BaseModule 相容性)
+     */
+    _getCustomHealthStatus () {
+      return {
+        pageDetected: isReadmooPage,
+        pageType: pageType,
+        health: 'healthy'
+      }
     }
   }
 

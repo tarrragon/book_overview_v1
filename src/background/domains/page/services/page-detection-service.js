@@ -22,7 +22,7 @@
 const {
   PAGE_EVENTS,
   EVENT_PRIORITIES
-} = require('../../constants/module-constants')
+} = require('../../../constants/module-constants')
 
 class PageDetectionService {
   constructor (dependencies = {}) {

@@ -18,7 +18,7 @@ const {
   SYNC_EVENTS,
   SYNC_STATES,
   EVENT_PRIORITIES
-} = require('../../constants/module-constants')
+} = require('../../../constants/module-constants')
 
 class SyncProgressTracker {
   constructor (dependencies = {}) {

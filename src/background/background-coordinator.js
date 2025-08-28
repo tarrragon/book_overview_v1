@@ -212,7 +212,7 @@ class BackgroundCoordinator extends BaseModule {
       await this.eventCoordinator.initialize()
 
       // 3. 設定全域事件總線引用
-      this.eventBus = this.eventCoordinator.getEventBus()
+      this.eventBus = this.eventCoordinator.eventBusInstance
 
       this.logger.log('✅ 核心依賴初始化完成')
     } catch (error) {

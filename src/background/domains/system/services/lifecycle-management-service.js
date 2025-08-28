@@ -24,7 +24,7 @@ const {
   LIFECYCLE_EVENTS,
   STORAGE_KEYS,
   DEFAULT_CONFIG
-} = require('../../constants/module-constants')
+} = require('../../../constants/module-constants')
 
 class LifecycleManagementService {
   constructor (dependencies = {}) {

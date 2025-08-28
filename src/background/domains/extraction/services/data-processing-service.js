@@ -22,7 +22,7 @@
 const {
   EXTRACTION_EVENTS,
   EVENT_PRIORITIES
-} = require('../../constants/module-constants')
+} = require('../../../constants/module-constants')
 
 class DataProcessingService {
   constructor (dependencies = {}) {
