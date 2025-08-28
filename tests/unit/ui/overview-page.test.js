@@ -869,7 +869,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
       mockFileReader.simulateError()
 
       // 等待 Promise 被拒絕
-      await expect(loadPromise).rejects.toThrow('讀取檔案時發生錯誤！')
+      await expect(loadPromise).rejects.toThrow('讀取檔案時發生錯誤')
 
       expect(DOMTestUtils.verifyTableState.showsError()).toBe(true)
     })

@@ -1071,7 +1071,7 @@ describe('PlatformDetectionService', () => {
 
     test('should handle network timeouts during detection', async () => {
       // Simulate network timeout
-      service.fetchPlatformAPI = jest.fn().mockImplementation(() => {
+      service.fetchPlatformAPIWithTimeout = jest.fn().mockImplementation(() => {
         return new Promise((_, reject) => {
           setTimeout(() => reject(new Error('Network timeout')), 100)
         })
