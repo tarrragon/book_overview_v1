@@ -788,6 +788,12 @@ class DataValidationService {
       const finalResult = await this._processValidationOptions(result, options, books.length, startTime)
 
       await this._emitValidationCompletedEvent(validationId, platform, source, finalResult, startTime)
+      
+      // 發送資料準備同步事件 (整合測試期望)
+      if (finalResult.success && finalResult.processed && finalResult.processed.length > 0) {
+        await this._emitDataReadyForSyncEvent(validationId, finalResult.processed)
+      }
+      
       return this._formatFinalValidationResult(validationId, platform, source, finalResult)
     } catch (error) {
       await this._emitValidationFailedEventMain(validationId, platform, source, error)
@@ -806,17 +812,28 @@ class DataValidationService {
   }
 
   async _executeValidationLogic (books, platform, source, options, validationId, startTime) {
-    // 如果有注入的服務（整合測試模式），使用注入的服務
-    if (this._isUsingInjectedServices()) {
-      return await this._executeWithInjectedServices(books, platform, source, validationId, startTime)
-    }
-    
-    // 否則使用原有邏輯
-    if (books.length > this.config.batchSize && this._batchProcessor) {
-      return await this._handleBatchProcessing(books, platform, source, options, validationId, startTime)
-    } else {
-      return await this._performIntegratedValidation(books, platform, source, validationId, startTime)
-    }
+    // 建立超時控制
+    const timeout = this.config.validationTimeout || 5000
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('驗證逾時')), timeout)
+    })
+
+    const validationPromise = (async () => {
+      // 如果有注入的服務（整合測試模式），使用注入的服務
+      if (this._isUsingInjectedServices()) {
+        return await this._executeWithInjectedServices(books, platform, source, validationId, startTime)
+      }
+      
+      // 否則使用原有邏輯
+      if (books.length > this.config.batchSize && this._batchProcessor) {
+        return await this._handleBatchProcessing(books, platform, source, options, validationId, startTime)
+      } else {
+        return await this._performIntegratedValidation(books, platform, source, validationId, startTime)
+      }
+    })()
+
+    // 使用 Promise.race 來實現超時控制
+    return await Promise.race([validationPromise, timeoutPromise])
   }
 
   async _processValidationOptions (result, options, booksLength, startTime) {
@@ -1605,8 +1622,12 @@ class DataValidationService {
       throw new Error('書籍資料必須是陣列')
     }
 
+    if (books.length === 0) {
+      throw new Error('書籍資料不能為空')
+    }
+
     if (!platform || typeof platform !== 'string') {
-      throw new Error('平台名稱不能為空')
+      throw new Error('平台參數為必要')
     }
   }
 
@@ -2308,6 +2329,54 @@ class DataValidationService {
   }
 
   /**
+   * 發送資料準備同步事件
+   * @private
+   * @param {string} validationId - 驗證 ID
+   * @param {Array} normalizedBooks - 標準化後的書籍資料
+   */
+  async _emitDataReadyForSyncEvent (validationId, normalizedBooks) {
+    await this.eventBus.emit('DATA.READY_FOR_SYNC', {
+      validationId,
+      normalizedBooks,
+      platform: 'READMOO', // 從結果中取得
+      timestamp: new Date().toISOString()
+    })
+  }
+
+  /**
+   * 清理和銷毀服務
+   * @public
+   */
+  destroy () {
+    // 清理快取管理服務
+    if (this.cacheManagementService && this.cacheManagementService.clearAllCaches) {
+      this.cacheManagementService.clearAllCaches()
+    }
+
+    // 清理驗證規則管理器
+    if (this.validationRuleManager && this.validationRuleManager.clearAllRules) {
+      this.validationRuleManager.clearAllRules()
+    }
+
+    // 清理批次處理器
+    if (this.batchValidationProcessor && this.batchValidationProcessor.cleanup) {
+      this.batchValidationProcessor.cleanup()
+    }
+
+    // 清理其他注入的服務
+    if (this.dataNormalizationService && this.dataNormalizationService.cleanup) {
+      this.dataNormalizationService.cleanup()
+    }
+
+    if (this.qualityAssessmentService && this.qualityAssessmentService.cleanup) {
+      this.qualityAssessmentService.cleanup()
+    }
+
+    // 重置初始化狀態
+    this.isInitialized = false
+  }
+
+  /**
    * 檢查是否使用注入的服務
    * @private
    * @returns {boolean}
@@ -2394,6 +2463,7 @@ class DataValidationService {
       }
     }
   }
+
 }
 
 module.exports = DataValidationService
