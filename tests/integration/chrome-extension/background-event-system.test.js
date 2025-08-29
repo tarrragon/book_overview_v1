@@ -502,11 +502,27 @@ describe('Background Service Worker Event System Integration', () => {
 
   describe('🔧 錯誤處理和恢復機制', () => {
     test('應該處理 EventBus 初始化失敗', async () => {
-      // 模擬初始化失敗情況
+      // 模擬初始化失敗情況 - 創建一個會失敗的EventCoordinator
       const originalEventBus = global.eventBus
-      global.eventBus = null
+      
+      // 清除控制台調用記錄
+      global.console.error.mockClear()
+      
+      try {
+        // 測試重新初始化一個會失敗的EventCoordinator
+        const EventCoordinator = require('../../../src/background/events/event-coordinator')
+        const failingCoordinator = new EventCoordinator()
+        
+        // 模擬EventCoordinator內部初始化失敗
+        failingCoordinator.createSimpleEventBus = () => null
+        
+        // 這應該觸發錯誤處理機制
+        await failingCoordinator.initialize()
+      } catch (error) {
+        // 預期會拋出錯誤
+      }
 
-      // 應該有錯誤處理機制 (檢查所有控制台錯誤調用)
+      // 檢查是否有記錄EventBus初始化失敗的錯誤
       const errorCalls = global.console.error.mock.calls
       const hasEventBusError = errorCalls.some(call =>
         call.some(arg =>

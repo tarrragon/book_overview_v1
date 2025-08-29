@@ -156,6 +156,13 @@ class EventCoordinator extends BaseModule {
         this.chromeBridgeInstance = chromeBridge
       }
 
+      // 檢查EventBus初始化狀態
+      if (!this.eventBusInstance) {
+        const error = new Error('EventBus 初始化失敗 - 無法建立 EventBus 實例')
+        console.error('❌ Background 初始化失敗:', error.message)
+        throw error
+      }
+
       // 設定全域引用
       globalThis.eventBus = this.eventBusInstance
       globalThis.chromeBridge = this.chromeBridgeInstance
@@ -204,6 +211,13 @@ class EventCoordinator extends BaseModule {
 
     // 建立簡化 EventBus
     const eventBus = this.createSimpleEventBus()
+    
+    // 檢查EventBus創建是否成功
+    if (!eventBus) {
+      const error = new Error('EventBus 初始化失敗 - 無法建立 EventBus 實例')
+      console.error('❌ EventBus 初始化失敗:', error.message)
+      throw error
+    }
 
     // 建立簡化 ChromeEventBridge
     const chromeBridge = this.createSimpleChromeEventBridge()
@@ -394,6 +408,7 @@ class EventCoordinator extends BaseModule {
           const response = await chrome.tabs.sendMessage(tabId, message)
           return { success: true, response }
         } catch (error) {
+          console.error('發送訊息失敗', error)
           return { success: false, error: error.message }
         }
       },

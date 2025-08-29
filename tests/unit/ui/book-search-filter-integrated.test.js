@@ -240,7 +240,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
 
       expect(Array.isArray(results)).toBe(true)
       expect(results.length).toBeGreaterThan(0)
-      expect(results.some(book => book.title.includes('JavaScript'))).toBe(true)
+      expect(results.some(book => book.title && book.title.includes('JavaScript'))).toBe(true)
     })
 
     test('應該支援依作者搜尋', async () => {
@@ -248,7 +248,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
 
       expect(Array.isArray(results)).toBe(true)
       expect(results.length).toBeGreaterThan(0)
-      expect(results.some(book => book.author.includes('David Flanagan'))).toBe(true)
+      expect(results.some(book => book.author && book.author.includes('David Flanagan'))).toBe(true)
     })
 
     test('應該支援模糊搜尋', async () => {
@@ -350,7 +350,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
       await bookSearchFilter.applyFilters({ status: 'completed' })
 
       const filterEvents = eventBus.getEventHistory().filter(
-        event => event.eventType === 'FILTER.APPLIED'
+        event => event.eventType === 'FILTER.APPLIED' && event.data.source === 'BookSearchFilterIntegrated'
       )
 
       expect(filterEvents.length).toBeGreaterThan(0)

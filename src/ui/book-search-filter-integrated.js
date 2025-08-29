@@ -189,31 +189,33 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
    */
   setupEventIntegration () {
     // 監聽搜尋協調器事件並轉發為原始API期望的事件格式
-    this.eventBus.on('SEARCH.COORDINATION.SEARCH_COMPLETED', (data) => {
-      this.searchState.searchResults = data.results
-      this.searchState.filteredResults = data.results
+    this.eventBus.on('COORDINATOR.SEARCH.COMPLETED', (data) => {
+      const results = data?.results || []
+      this.searchState.searchResults = results
+      this.searchState.filteredResults = results
       this.searchState.isSearching = false
       this.searchState.lastSearchTime = Date.now()
 
       // 發送與原版相容的事件
       this.eventBus.emit('SEARCH.RESULTS_UPDATED', {
-        query: data.query,
-        results: data.results,
-        totalCount: data.results.length,
-        filteredCount: data.results.length,
+        query: data?.query || '',
+        results: results,
+        totalCount: results.length,
+        filteredCount: results.length,
         source: 'BookSearchFilterIntegrated'
       })
     })
 
     // 監聽篩選完成事件
-    this.eventBus.on('SEARCH.COORDINATION.FILTER_COMPLETED', (data) => {
-      this.searchState.filteredResults = data.results
-      this.searchState.appliedFilters = data.filters
+    this.eventBus.on('COORDINATOR.FILTER.COMPLETED', (data) => {
+      const results = data?.results || []
+      this.searchState.filteredResults = results
+      this.searchState.appliedFilters = data?.filters || {}
 
       // 發送篩選事件
       this.eventBus.emit('FILTER.APPLIED', {
-        filters: data.filters,
-        results: data.results,
+        filters: data?.filters || {},
+        results: results,
         source: 'BookSearchFilterIntegrated'
       })
     })
@@ -297,7 +299,40 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
       this.searchState.currentQuery = query
 
       // 委派給搜尋協調器
-      const results = await this.searchCoordinator.executeSearch(query, options)
+      const searchResult = await this.searchCoordinator.executeSearch(query, options)
+      
+      // 確保返回結果數組 (與原版API相容)
+      const rawResults = searchResult?.results || searchResult || []
+      
+      // 扁平化搜尋結果，確保與測試期待的格式一致
+      const results = rawResults.map(result => {
+        if (result.originalData) {
+          // 如果是格式化過的結果，提取原始資料並保留格式化屬性
+          return {
+            ...result.originalData,
+            formattedTitle: result.formattedTitle,
+            formattedAuthor: result.formattedAuthor,
+            formattedProgress: result.formattedProgress,
+            relevanceScore: result.relevanceScore
+          }
+        }
+        return result
+      })
+      
+      // 更新搜尋狀態
+      this.searchState.searchResults = results
+      this.searchState.filteredResults = results
+      this.searchState.isSearching = false
+      this.searchState.lastSearchTime = Date.now()
+
+      // 手動發送搜尋結果更新事件（因為協調器事件不包含results）
+      this.eventBus.emit('SEARCH.RESULTS_UPDATED', {
+        query: query,
+        results: results,
+        totalCount: results.length,
+        filteredCount: results.length,
+        source: 'BookSearchFilterIntegrated'
+      })
 
       return results
     } catch (error) {
@@ -322,7 +357,21 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
   async applyFilters (filters) {
     try {
       // 委派給搜尋協調器
-      const results = await this.searchCoordinator.applyFilters(this.searchState.searchResults, filters)
+      const filterResult = await this.searchCoordinator.applyFiltersToResults(this.searchState.searchResults, filters)
+      
+      // 從 filterResult 中提取結果數組
+      const results = filterResult?.results || []
+      
+      // 更新搜尋狀態
+      this.searchState.filteredResults = results
+      this.searchState.appliedFilters = filters
+
+      // 手動發送篩選應用事件
+      this.eventBus.emit('FILTER.APPLIED', {
+        filters: filters,
+        results: results,
+        source: 'BookSearchFilterIntegrated'
+      })
 
       return results
     } catch (error) {
@@ -371,8 +420,8 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
    */
   getSearchStatistics () {
     try {
-      const coordinatorStats = this.searchCoordinator.getStatistics()
-      const cacheStats = this.searchCacheManager.getCacheStatistics()
+      const coordinatorStats = this.searchCoordinator.getCoordinatedStatistics()
+      const cacheStats = this.searchCacheManager.getStatistics()
       const uiStats = this.searchUIController.getUIState()
 
       return {
@@ -399,22 +448,25 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
    */
   cleanup () {
     try {
-      // 清理所有模組化組件
-      this.searchCoordinator?.cleanup()
-      this.searchUIController?.cleanup()
-      this.searchEngine?.cleanup()
-      this.filterEngine?.cleanup()
-      this.searchResultFormatter?.cleanup()
-      this.searchCacheManager?.cleanup()
-      this.searchIndexManager?.cleanup()
+      // 清理搜尋協調器 (它會處理其他模組的清理)
+      if (this.searchCoordinator && typeof this.searchCoordinator.cleanup === 'function') {
+        this.searchCoordinator.cleanup()
+      }
+      
+      // 清理UI控制器
+      if (this.searchUIController && typeof this.searchUIController.cleanup === 'function') {
+        this.searchUIController.cleanup()
+      }
 
       // 清理狀態
       this.searchState = null
       this.searchConfig = null
       this._booksData = []
 
-      // 調用父類清理
-      super.cleanup()
+      // 調用父類清理（如果存在）
+      if (super.cleanup) {
+        super.cleanup()
+      }
 
       console.log('✅ BookSearchFilterIntegrated 資源清理完成')
     } catch (error) {
