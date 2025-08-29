@@ -41,9 +41,10 @@ class SearchEngine {
    * @param {Object} options.eventBus - 事件總線實例
    * @param {Object} options.logger - 日誌記錄器實例
    * @param {Object} options.config - 自定義配置
+   * @param {Function} options.getCurrentTime - 時間函數（用於測試注入）
    */
   constructor (options = {}) {
-    const { indexManager, eventBus, logger, config = {} } = options
+    const { indexManager, eventBus, logger, config = {}, getCurrentTime } = options
 
     if (!indexManager || !eventBus || !logger) {
       throw new Error('IndexManager、EventBus 和 Logger 是必需的')
@@ -52,6 +53,9 @@ class SearchEngine {
     this.indexManager = indexManager
     this.eventBus = eventBus
     this.logger = logger
+    
+    // 注入的時間函數（用於測試）
+    this._timeFunction = getCurrentTime || this._getDefaultTimeFunction()
 
     // 合併預設配置和自定義配置
     this.config = {
@@ -632,19 +636,33 @@ class SearchEngine {
    * @private
    * @returns {number} 當前時間戳
    */
+  /**
+   * 取得預設時間函數
+   * @returns {Function} 時間函數
+   */
+  _getDefaultTimeFunction () {
+    return () => {
+      // 在測試環境中，優先使用 global.performance
+      if (typeof global !== 'undefined' && global.performance && typeof global.performance.now === 'function') {
+        return global.performance.now()
+      }
+      
+      // 在瀏覽器環境中，使用 performance
+      if (typeof performance !== 'undefined' && performance.now) {
+        return performance.now()
+      }
+      
+      // 後備方案
+      return Date.now()
+    }
+  }
+
+  /**
+   * 取得當前時間（支援依賴注入）
+   * @returns {number} 當前時間戳
+   */
   _getCurrentTime () {
-    // 在測試環境中，優先使用 global.performance
-    if (typeof global !== 'undefined' && global.performance && typeof global.performance.now === 'function') {
-      return global.performance.now()
-    }
-    
-    // 在瀏覽器環境中，使用 performance
-    if (typeof performance !== 'undefined' && performance.now) {
-      return performance.now()
-    }
-    
-    // 後備方案
-    return Date.now()
+    return this._timeFunction()
   }
 
   /**

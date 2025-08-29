@@ -536,29 +536,25 @@ describe('SearchEngine - TDD 循環 2/8', () => {
       }))
     })
 
-    test.skip('慢速搜尋應該發送警告事件', async () => {
-      // 重新建立 SearchEngine 實例確保使用最新的 performance mock
-      const originalPerformance = global.performance
-
-      // 設定 mock 在實例創建之前
+    test('慢速搜尋應該發送警告事件', async () => {
+      // 使用依賴注入的時間函數來模擬慢速搜尋
       let callCount = 0
-      global.performance = {
-        now: jest.fn(() => {
-          if (callCount === 0) {
-            callCount++
-            return 0 // 開始時間
-          } else {
-            return 2000 // 結束時間（2秒）
-          }
-        })
-      }
+      const mockTimeFunction = jest.fn(() => {
+        if (callCount === 0) {
+          callCount++
+          return 0 // 開始時間
+        } else {
+          return 2000 // 結束時間（2秒）
+        }
+      })
 
-      // 重新創建 SearchEngine 實例
+      // 創建使用注入時間函數的 SearchEngine 實例
       const SearchEngine = require('../../../../../src/ui/search/core/search-engine')
       const testSearchEngine = new SearchEngine({
         indexManager: mockIndexManager,
         eventBus: mockEventBus,
-        logger: mockLogger
+        logger: mockLogger,
+        getCurrentTime: mockTimeFunction
       })
 
       await testSearchEngine.search('JavaScript', mockBooks)
@@ -568,9 +564,6 @@ describe('SearchEngine - TDD 循環 2/8', () => {
         searchTime: 2000,
         threshold: expect.any(Number)
       }))
-
-      // 復原 performance
-      global.performance = originalPerformance
     })
 
     test('應該重置效能統計', () => {
