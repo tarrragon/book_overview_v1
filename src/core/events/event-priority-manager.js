@@ -123,12 +123,12 @@ class EventPriorityManager {
     const startTime = performance.now()
 
     try {
-      // 驗證事件名稱
+      // 驗證事件名稱 - 優雅處理而非拋出異常
       if (!eventName || typeof eventName !== 'string' || eventName.trim() === '') {
         this.priorityStats.errors++
-        const endTime = performance.now()
-        this.updateAssignmentTime(endTime - startTime)
-        throw new Error('Invalid event name')
+        this.recordPriorityHistory(eventName || 'INVALID', -1, 'INVALID_NAME')
+        // 返回最低優先級而非拋出異常
+        return this.priorityConfig.BUSINESS_PROCESSING.range[1]
       }
 
       // 檢查是否已有分配的優先級
@@ -150,12 +150,9 @@ class EventPriorityManager {
 
       return priority
     } catch (error) {
-      // 如果是我們拋出的驗證錯誤，重新拋出
-      if (error.message === 'Invalid event name') {
-        throw error
-      }
-      // 其他意外錯誤才返回預設優先級
+      // 處理任何意外錯誤，返回預設優先級而非拋出異常
       this.priorityStats.errors++
+      this.recordPriorityHistory(eventName || 'ERROR', -1, 'UNEXPECTED_ERROR')
       return this.priorityConfig.BUSINESS_PROCESSING.range[1]
     } finally {
       const endTime = performance.now()

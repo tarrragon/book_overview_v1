@@ -113,7 +113,14 @@ class EventNamingUpgradeCoordinator {
     this.eventBus.on(legacyEvent, async (data) => {
       this.recordConversion(legacyEvent, 'LEGACY_TRIGGERED')
       try {
-        await handler(data)
+        // 為 handler 提供包含事件類型的物件
+        const eventObject = {
+          type: legacyEvent,
+          data: data,
+          timestamp: Date.now(),
+          isLegacy: true
+        }
+        await handler(eventObject)
       } catch (error) {
         this.recordConversionError('HANDLER_ERROR', error.message)
       }
@@ -126,7 +133,14 @@ class EventNamingUpgradeCoordinator {
     this.eventBus.on(modernEvent, async (data) => {
       this.recordConversion(modernEvent, 'MODERN_TRIGGERED')
       try {
-        await handler(data)
+        // 為 handler 提供包含事件類型的物件
+        const eventObject = {
+          type: modernEvent,
+          data: data,
+          timestamp: Date.now(),
+          isLegacy: false
+        }
+        await handler(eventObject)
       } catch (error) {
         this.recordConversionError('HANDLER_ERROR', error.message)
       }

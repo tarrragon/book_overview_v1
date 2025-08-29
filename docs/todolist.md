@@ -233,6 +233,7 @@
 **架構與工作記錄**:
 - [`docs/work-logs/`](./work-logs/) - 完整技術決策記錄
 - [`docs/architecture/`](./architecture/) - 架構設計文件
+- [`docs/testing/skipped-tests-registry.md`](./testing/skipped-tests-registry.md) - 跳過測試登記檔案 ⚠️ **發布前必修復**
 - [`CHANGELOG.md`](../CHANGELOG.md) - 版本更新記錄
 
 ---

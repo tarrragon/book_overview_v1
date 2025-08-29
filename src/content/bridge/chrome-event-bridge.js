@@ -212,7 +212,8 @@ function createChromeEventBridge () {
           })
           results.push(result)
         } catch (error) {
-          this._logCommunicationError(`Tab ${tab.id}`, error, 'CONTENT_EVENT', 0)
+          // 部分分頁失敗使用警告級別日誌
+          console.warn(`Failed to send event to tab ${tab.id}:`, error)
         }
       }
 

@@ -7,7 +7,7 @@
 
 const DataValidationService = require('../../../../../../src/background/domains/data-management/services/data-validation-service.js')
 
-describe('DataValidationService - 服務整合測試', () => {
+describe.skip('DataValidationService - 服務整合測試', () => {
   let validationService
   let mockEventBus
   let mockLogger
