@@ -31,7 +31,7 @@ class PopupStatusManager {
     this.uiComponents = uiComponents
 
     // 有效的狀態類型
-    this.validStatusTypes = ['loading', 'ready', 'error', 'extracting', 'completed']
+    this.validStatusTypes = ['loading', 'ready', 'error', 'warning', 'extracting', 'completed']
 
     // 初始化默認狀態
     this.currentStatus = {

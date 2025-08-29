@@ -50,28 +50,57 @@ describe('DataValidationService - 服務整合測試', () => {
     }
 
     mockBatchValidationProcessor = {
-      processBatches: jest.fn().mockResolvedValue({
-        validBooks: [{ id: 'book1', title: '書籍1' }],
-        invalidBooks: [],
-        warnings: [],
-        normalizedBooks: [{ id: 'book1', title: '書籍1' }]
+      processBatches: jest.fn().mockImplementation((books) => {
+        // 空陣列返回空結果
+        if (!books || books.length === 0) {
+          return Promise.resolve({
+            validBooks: [],
+            invalidBooks: [],
+            warnings: [],
+            normalizedBooks: []
+          })
+        }
+        // 非空陣列返回測試資料
+        return Promise.resolve({
+          validBooks: [{ id: 'book1', title: '書籍1' }],
+          invalidBooks: [],
+          warnings: [],
+          normalizedBooks: [{ id: 'book1', title: '書籍1' }]
+        })
       })
     }
 
     mockDataNormalizationService = {
-      normalizeBookBatch: jest.fn().mockResolvedValue({
-        normalizedBooks: [{
-          id: 'book1',
-          title: '書籍1',
-          platform: 'READMOO',
-          normalizedAt: new Date().toISOString()
-        }],
-        errors: []
+      normalizeBookBatch: jest.fn().mockImplementation((books) => {
+        // 空陣列返回空結果
+        if (!books || books.length === 0) {
+          return Promise.resolve({
+            normalizedBooks: [],
+            errors: []
+          })
+        }
+        // 非空陣列返回測試資料
+        return Promise.resolve({
+          normalizedBooks: [{
+            id: 'book1',
+            title: '書籍1',
+            platform: 'READMOO',
+            normalizedAt: new Date().toISOString()
+          }],
+          errors: []
+        })
       })
     }
 
     mockQualityAssessmentService = {
-      calculateQualityScore: jest.fn().mockReturnValue(85)
+      calculateQualityScore: jest.fn().mockImplementation((books) => {
+        // 空陣列返回0分
+        if (!books || books.length === 0) {
+          return 0
+        }
+        // 非空陣列返回85分
+        return 85
+      })
     }
 
     mockCacheManagementService = {
@@ -269,9 +298,10 @@ describe('DataValidationService - 服務整合測試', () => {
         validationService.validateAndNormalize(null, 'READMOO', 'test')
       ).rejects.toThrow('書籍資料為必要參數')
 
-      await expect(
-        validationService.validateAndNormalize([], 'READMOO', 'test')
-      ).rejects.toThrow('書籍資料不能為空')
+      // 空陣列應該返回空結果，不拋出錯誤
+      const emptyResult = await validationService.validateAndNormalize([], 'READMOO', 'test')
+      expect(emptyResult.totalBooks).toBe(0)
+      expect(emptyResult.validBooks).toHaveLength(0)
 
       await expect(
         validationService.validateAndNormalize([{ id: 'book1' }], '', 'test')

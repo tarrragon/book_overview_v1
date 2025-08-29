@@ -1622,9 +1622,10 @@ class DataValidationService {
       throw new Error('書籍資料必須是陣列')
     }
 
-    if (books.length === 0) {
-      throw new Error('書籍資料不能為空')
-    }
+    // 空陣列是合法輸入，不拋出錯誤 - 由調用方處理
+    // if (books.length === 0) {
+    //   throw new Error('書籍資料不能為空')
+    // }
 
     if (!platform || typeof platform !== 'string') {
       throw new Error('平台參數為必要')

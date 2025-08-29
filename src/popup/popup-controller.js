@@ -497,14 +497,24 @@ class PopupController {
       // 執行 Background Service Worker 狀態檢查
       try {
         await this.components.communication.checkBackgroundStatus()
+        // 檢查成功，記錄狀態
+        console.log('✅ Background service check completed successfully')
       } catch (error) {
         // 背景服務檢查失敗，但不阻止初始化
+        // 錯誤已經在 communication service 中處理，包含使用者友好的錯誤訊息
         console.warn('Background service check failed:', error.message)
+        
+        // 在測試環境中，不應該當作錯誤
+        if (process.env.NODE_ENV === 'test') {
+          console.log('📝 Test environment - background service check skipped')
+        }
       }
 
       // 初始化檢查完成
+      console.log('✅ Popup initialization checks completed')
     } catch (error) {
       // 初始化檢查失敗
+      console.error('❌ Initialization checks failed:', error)
       throw error
     }
   }

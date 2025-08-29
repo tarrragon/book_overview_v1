@@ -289,24 +289,41 @@ describe('Data Validation Service v2.0', () => {
         )
       })
 
-      test.skip('應該在驗證失敗時發送錯誤事件', async () => {
+      test('應該在驗證失敗時發送錯誤事件', async () => {
         // 清除快取以確保會調用 validateSingleBook
         if (dataValidationService.validationCache) {
           dataValidationService.validationCache.clear()
         }
         
-        // 模擬驗證過程中的系統錯誤
-        jest.spyOn(dataValidationService, 'validateSingleBook')
-          .mockRejectedValueOnce(new Error('系統驗證錯誤'))
+        // 模擬一個會導致驗證失敗的書籍資料
+        const invalidBookData = null // null資料會導致驗證失敗
 
-        await expect(
-          dataValidationService.validateAndNormalize([validBookData], 'READMOO', 'ERROR_TEST')
-        ).rejects.toThrow('系統驗證錯誤')
+        // 測試會返回失敗結果，包含錯誤資訊
+        const result = await dataValidationService.validateAndNormalize([invalidBookData], 'READMOO', 'ERROR_TEST')
 
+        // 驗證結果包含錯誤
+        expect(result.success).toBe(false)
+        expect(result.errors).toHaveLength(1)
+        expect(result.invalidBooks).toHaveLength(1)
+        expect(result.validBooks).toHaveLength(0)
+
+        // 驗證服務錯誤事件被發送
         expect(mockEventBus.emit).toHaveBeenCalledWith(
-          'DATA.VALIDATION.FAILED',
+          'VALIDATION.SERVICE.ERROR',
           expect.objectContaining({
-            error: '系統驗證錯誤'
+            error: expect.any(String),
+            service: 'ValidationEngine'
+          })
+        )
+
+        // 驗證完成事件也被發送（包含失敗統計）
+        expect(mockEventBus.emit).toHaveBeenCalledWith(
+          'DATA.VALIDATION.COMPLETED',
+          expect.objectContaining({
+            source: 'ERROR_TEST',
+            validationId: expect.any(String),
+            invalidCount: 1,
+            validCount: 0
           })
         )
       })
@@ -645,11 +662,11 @@ describe('Data Validation Service v2.0', () => {
       test('應該處理 null 或 undefined 輸入', async () => {
         await expect(
           dataValidationService.validateAndNormalize(null, 'READMOO', 'NULL_TEST')
-        ).rejects.toThrow('書籍資料不能為空')
+        ).rejects.toThrow('書籍資料為必要參數')
 
         await expect(
           dataValidationService.validateAndNormalize(undefined, 'READMOO', 'UNDEFINED_TEST')
-        ).rejects.toThrow('書籍資料不能為空')
+        ).rejects.toThrow('書籍資料為必要參數')
       })
 
       test('應該處理非陣列輸入', async () => {
