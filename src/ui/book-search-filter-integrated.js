@@ -267,7 +267,7 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
       this.searchCoordinator.updateBooksData(books)
 
       // 清除快取以確保資料一致性
-      this.searchCacheManager.clearCache()
+      this.searchCacheManager.clear()
 
       // 發送資料更新事件
       this.eventBus.emit('SEARCH.BOOKS_DATA_UPDATED', {

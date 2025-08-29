@@ -229,7 +229,7 @@ describe('EventNamingUpgradeCoordinator', () => {
     })
 
     test('應該處理無對應 Legacy 事件的 Modern 事件', () => {
-      const modernEvent = 'PLATFORM.READMOO.DETECT.COMPLETED'
+      const modernEvent = 'NEW_FEATURE.READMOO.ACTION.COMPLETED'
       const legacyEvent = coordinator.convertToLegacyEvent(modernEvent)
       expect(legacyEvent).toBeNull()
     })

@@ -76,6 +76,23 @@ class MockEventBus {
     }
   }
 
+  off (eventType, handler) {
+    if (!this.listeners.has(eventType)) {
+      return this
+    }
+
+    const listeners = this.listeners.get(eventType)
+    const filteredListeners = listeners.filter(listener => listener !== handler)
+
+    if (filteredListeners.length === 0) {
+      this.listeners.delete(eventType)
+    } else {
+      this.listeners.set(eventType, filteredListeners)
+    }
+
+    return this
+  }
+
   removeAllListeners () {
     this.listeners.clear()
     this.eventHistory = []

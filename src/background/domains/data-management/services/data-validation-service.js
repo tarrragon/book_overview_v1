@@ -262,7 +262,7 @@ class DataValidationService {
         return this._processValidationResult(validationResult, errors, warnings)
       } else {
         // 內置基本驗證邏輯
-        return this._performBasicBookValidation(book, platform, errors, warnings)
+        return await this._performBasicBookValidation(book, platform, errors, warnings)
       }
     } catch (error) {
       await this._handleValidationServiceError(error, errors)
@@ -270,8 +270,9 @@ class DataValidationService {
     }
   }
 
-  _performBasicBookValidation (book, platform, errors, warnings) {
+  async _performBasicBookValidation (book, platform, errors, warnings) {
     const bookErrors = []
+    const bookWarnings = []
 
     // 檢查必填欄位
     if (!book.id || book.id.trim() === '') {
@@ -342,8 +343,13 @@ class DataValidationService {
       })
     }
 
-    // 將錯誤添加到全局錯誤列表
+    // 執行品質檢查來生成警告
+    const mockValidation = { book, warnings: bookWarnings }
+    await this._performQualityChecks(mockValidation, {})
+    
+    // 將錯誤和警告添加到全局列表
     errors.push(...bookErrors)
+    warnings.push(...bookWarnings)
 
     // 如果有錯誤，返回 false（無效）
     return bookErrors.length === 0
@@ -757,7 +763,8 @@ class DataValidationService {
       source,
       qualityScore: result.qualityScore || 0.95,
       validCount: result.validBooks ? result.validBooks.length : 0,
-      invalidCount: result.errors ? result.errors.length : 0,
+      invalidCount: result.invalidBooks ? result.invalidBooks.length : 0,
+      normalizedBooks: result.normalizedBooks || result.validBooks || [],
       duration: Date.now() - startTime,
       timestamp: new Date().toISOString()
     })
@@ -1689,9 +1696,16 @@ class DataValidationService {
     }
 
     // 作者品質檢查
-    if (book.authors && Array.isArray(book.authors)) {
-      // 檢查空作者陣列
-      if (book.authors.length === 0) {
+    if (book.authors !== undefined) {
+      if (!Array.isArray(book.authors)) {
+        validation.warnings.push({
+          type: 'DATA_QUALITY_WARNING',
+          field: 'authors',
+          message: '作者資料格式錯誤，應為陣列',
+          suggestion: '修正作者資料格式'
+        })
+      } else if (book.authors.length === 0) {
+        // 空作者陣列生成警告
         validation.warnings.push({
           type: 'DATA_QUALITY_WARNING',
           field: 'authors',

@@ -140,7 +140,7 @@ class SearchEngine {
    * @returns {Promise<Array>} 搜尋結果
    */
   async search (query, books) {
-    const startTime = performance.now()
+    const startTime = this._getCurrentTime()
 
     try {
       // 處理無效輸入
@@ -163,7 +163,7 @@ class SearchEngine {
         const results = books.slice(0, this.config.maxResults)
 
         // 記錄效能統計
-        const endTime = performance.now()
+        const endTime = this._getCurrentTime()
         const searchTime = endTime - startTime
         this._recordPerformance(searchTime, normalizedQuery, results.length)
 
@@ -199,7 +199,7 @@ class SearchEngine {
       }
 
       // 記錄效能統計
-      const endTime = performance.now()
+      const endTime = this._getCurrentTime()
       const searchTime = endTime - startTime
       this._recordPerformance(searchTime, normalizedQuery, results.length)
 
@@ -625,6 +625,26 @@ class SearchEngine {
    */
   resetPerformanceStats () {
     this._initializePerformanceStats()
+  }
+
+  /**
+   * 取得當前時間 (支援測試中的 mock)
+   * @private
+   * @returns {number} 當前時間戳
+   */
+  _getCurrentTime () {
+    // 在測試環境中，優先使用 global.performance
+    if (typeof global !== 'undefined' && global.performance && typeof global.performance.now === 'function') {
+      return global.performance.now()
+    }
+    
+    // 在瀏覽器環境中，使用 performance
+    if (typeof performance !== 'undefined' && performance.now) {
+      return performance.now()
+    }
+    
+    // 後備方案
+    return Date.now()
   }
 
   /**

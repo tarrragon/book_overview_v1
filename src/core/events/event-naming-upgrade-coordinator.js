@@ -112,7 +112,11 @@ class EventNamingUpgradeCoordinator {
     // 註冊 Legacy 事件監聽器
     this.eventBus.on(legacyEvent, async (data) => {
       this.recordConversion(legacyEvent, 'LEGACY_TRIGGERED')
-      await handler({ type: legacyEvent, data })
+      try {
+        await handler(data)
+      } catch (error) {
+        this.recordConversionError('HANDLER_ERROR', error.message)
+      }
 
       // 同時觸發 Modern 事件
       await this.eventBus.emit(modernEvent, data)
@@ -121,7 +125,11 @@ class EventNamingUpgradeCoordinator {
     // 註冊 Modern 事件監聽器
     this.eventBus.on(modernEvent, async (data) => {
       this.recordConversion(modernEvent, 'MODERN_TRIGGERED')
-      await handler({ type: modernEvent, data })
+      try {
+        await handler(data)
+      } catch (error) {
+        this.recordConversionError('HANDLER_ERROR', error.message)
+      }
     })
 
     this.modernEventRegistry.add(modernEvent)
@@ -258,6 +266,10 @@ class EventNamingUpgradeCoordinator {
       return 'READMOO' // 平台操作預設為當前平台
     }
 
+    if (module === 'CONTENT') {
+      return 'READMOO' // CONTENT 模組在 Readmoo 上下文中
+    }
+
     return 'GENERIC' // 預設為平台無關
   }
 
@@ -267,8 +279,8 @@ class EventNamingUpgradeCoordinator {
    * @returns {boolean} 是否為 Legacy 事件
    */
   isLegacyEvent (eventName) {
-    const parts = eventName.split('.')
-    return parts.length === 3 && this.conversionMap.hasOwnProperty(eventName)
+    // 檢查是否在Legacy事件映射表中存在
+    return this.conversionMap.hasOwnProperty(eventName)
   }
 
   /**

@@ -47,6 +47,13 @@ class BaseUIHandler extends EventHandler {
   }
 
   /**
+   * 取得處理器名稱 (提供 handlerName 別名)
+   */
+  get handlerName () {
+    return this.name
+  }
+
+  /**
    * 初始化共同狀態管理
    * 子類別可以覆寫此方法來添加特定狀態
    */

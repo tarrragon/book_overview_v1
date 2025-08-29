@@ -492,6 +492,13 @@ class SearchCoordinator {
   }
 
   /**
+   * 清理方法別名 (為了與其他模組保持一致的接口)
+   */
+  async cleanup () {
+    return await this.coordinatedCleanup()
+  }
+
+  /**
    * 取得當前搜尋狀態
    *
    * @returns {Object} 搜尋狀態

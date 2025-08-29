@@ -31,9 +31,11 @@
 /**
  * 建立 Readmoo 適配器實例
  *
+ * @param {Object} options - 配置選項
+ * @param {Document} options.document - 可選的 document 物件，用於測試環境
  * @returns {Object} ReadmooAdapter 實例
  */
-function createReadmooAdapter () {
+function createReadmooAdapter (options = {}) {
   const stats = {
     totalExtracted: 0,
     successfulExtractions: 0,
@@ -44,7 +46,7 @@ function createReadmooAdapter () {
   }
 
   // 動態取得環境物件的輔助函數
-  const getDocument = () => globalThis.document || window?.document
+  const getDocument = () => options.document || globalThis.document || window?.document
   const getLocation = () => globalThis.location || window?.location || {}
 
   // DOM 選擇器配置 (與 ReadmooAdapter 保持一致)
