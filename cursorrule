@@ -829,6 +829,39 @@ EOF
 
 ### 程式碼品質規範
 
+#### 檔案路徑規範 (強制要求)
+
+**專案根目錄相對路徑原則**:
+- **使用從專案根目錄起算的相對路徑**: 所有檔案導入必須從專案根目錄開始計算路徑
+- **禁止系統絕對路徑**: 絕不使用 `/Users/...` 等系統絕對路徑
+- **路徑一致性**: 確保所有模組引用使用統一的路徑格式
+
+**正確路徑格式範例**:
+```javascript
+// ✅ 正確：從專案根目錄起算的相對路徑
+const EventBus = require('../../../src/core/event-bus')
+const ReadmooAdapter = require('../../../src/content/adapters/readmoo-adapter')
+const ValidationService = require('../../../src/services/validation-service')
+
+// ❌ 錯誤：系統絕對路徑
+const EventBus = require('/Users/project/src/core/event-bus')
+const ReadmooAdapter = require('/Users/tarragon/Projects/book_overview_v1/src/content/adapters/readmoo-adapter')
+
+// ❌ 錯誤：錯誤的相對路徑深度
+const EventBus = require('../../core/event-bus')  // 深度不對
+const ReadmooAdapter = require('../adapters/readmoo-adapter')  // 路徑錯誤
+```
+
+**路徑重構時機**:
+- **測試全部通過後**: 必須等所有測試 100% 通過後，才可進行全專案路徑標準化
+- **批次處理**: 使用自動化工具進行批次路徑轉換，避免手動錯誤
+- **驗證完整性**: 路徑更改後必須重新運行所有測試確保無破損
+
+**違規後果**:
+- 任何使用相對路徑的程式碼將被視為技術債務，必須立即修正
+- 新增程式碼如使用相對路徑，該 commit 不得通過程式碼審查
+- 路徑不一致會導致模組依賴關係模糊，影響程式碼可維護性
+
 #### Five Lines 規則與單一責任原則
 
 **Five Lines 規則 (強制要求)**:

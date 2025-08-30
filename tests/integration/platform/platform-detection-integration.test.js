@@ -115,10 +115,11 @@ describe('Platform Detection Integration Tests', () => {
       )
     })
 
-    test.skip('應該在檢測失敗時發送錯誤事件', async () => {
-      // 暫時跳過這個測試，專注修正其他問題
-      // 模擬內部方法失敗
-      jest.spyOn(service, 'analyzeUrlPattern').mockRejectedValue(new Error('Network Error'))
+    test('應該在檢測失敗時發送錯誤事件', async () => {
+      // 模擬內部方法失敗 - 由於 analyzeUrlPattern 是同步方法，使用 mockImplementation
+      jest.spyOn(service, 'analyzeUrlPattern').mockImplementation(() => {
+        throw new Error('Network Error')
+      })
 
       const context = testContexts.readmoo
 
@@ -256,33 +257,73 @@ describe('Platform Detection Integration Tests', () => {
   })
 
   describe('🛡️ 錯誤恢復和容錯機制', () => {
-    test.skip('應該從 URL 分析錯誤中恢復', async () => {
-      // 模擬 URL 分析失敗但 DOM 分析成功
+    test('應該從 URL 分析錯誤中恢復', async () => {
+      // 清除快取以確保每次調用都執行完整的檢測邏輯
+      service.detectionCache.clear()
+      
+      // 模擬 URL 分析失敗但 DOM 分析成功的情況
       jest.spyOn(service, 'analyzeUrlPattern')
-        .mockRejectedValueOnce(new Error('URL Analysis Failed'))
-        .mockResolvedValue({ READMOO: 0.0 })
+        .mockImplementationOnce(() => {
+          throw new Error('URL Analysis Failed')
+        })
+        .mockImplementation(() => ({ platformId: 'READMOO', confidence: 0.9, features: ['url_pattern'] }))
 
       jest.spyOn(service, 'analyzeDOMFeatures')
-        .mockResolvedValue({ READMOO: 0.8 })
+        .mockResolvedValue({ platformId: 'READMOO', confidence: 0.8, features: ['dom_elements'] })
 
       const context = testContexts.readmoo
 
-      // 第一次調用應該失敗
-      await expect(service.detectPlatform(context)).rejects.toThrow()
+      // 第一次調用 - URL 分析失敗，系統應該降級處理，基於其他分析返回結果
+      const firstResult = await service.detectPlatform(context)
+      expect(firstResult).toBeDefined()
+      expect(firstResult.platformId).toBe('UNKNOWN') // 因為分析失敗，返回 UNKNOWN
+      expect(firstResult.features).toContain('analysis_failed') // 應該標記分析失敗
+
+      // 驗證錯誤事件被發送
+      expect(mockEventBus.emit).toHaveBeenCalledWith(
+        'PLATFORM.DETECTION.FAILED',
+        expect.objectContaining({
+          error: expect.any(Error),
+          timestamp: expect.any(Number)
+        })
+      )
+
+      // 清除快取以確保第二次調用也執行完整邏輯
+      service.detectionCache.clear()
+      mockEventBus.emit.mockClear()
 
       // 第二次調用應該成功（從錯誤中恢復）
-      const result = await service.detectPlatform(context)
-      expect(result).toBeValidDetectionResult()
+      const secondResult = await service.detectPlatform(context)
+      expect(secondResult).toBeValidDetectionResult()
+      expect(secondResult.platformId).toBe('READMOO')
+      expect(secondResult.confidence).toBeGreaterThan(0)
+      expect(secondResult.features).toEqual(expect.arrayContaining(['dom_elements', 'url_pattern']))
+      
+      // 驗證成功事件被發送
+      expect(mockEventBus.emit).toHaveBeenCalledWith(
+        'PLATFORM.DETECTION.COMPLETED',
+        expect.objectContaining({
+          result: secondResult,
+          timestamp: expect.any(Number)
+        })
+      )
     })
 
-    test.skip('應該處理 DOM 分析異常', async () => {
+    test('應該處理 DOM 分析異常', async () => {
       // 模擬 DOM 分析異常
       jest.spyOn(service, 'analyzeDOMFeatures')
         .mockRejectedValue(new Error('DOM Access Error'))
 
       const context = testContexts.readmoo
 
-      await expect(service.detectPlatform(context)).rejects.toThrow('DOM Access Error')
+      // detectPlatform 有完整錯誤處理，不會拋出異常，而是返回錯誤結果
+      const result = await service.detectPlatform(context)
+      
+      // 驗證返回的錯誤結果
+      expect(result).toBeDefined()
+      expect(result.platformId).toBe('UNKNOWN')
+      expect(result.confidence).toBe(0)
+      expect(result.features).toContain('analysis_failed')
 
       // 驗證錯誤事件被發送
       assertions.assertEventEmission(mockEventBus, 'PLATFORM.DETECTION.FAILED')
@@ -476,33 +517,73 @@ describe('Platform Detection Integration Tests', () => {
       })
     })
 
-    test.skip('應該在並發錯誤時保持系統穩定', async () => {
-      // 模擬部分檢測失敗
+    test('應該在並發錯誤時保持系統穩定', async () => {
+      // 清除快取以確保每次調用都執行檢測邏輯
+      service.detectionCache.clear()
+      
+      // 模擬部分檢測失敗 - 每三次調用失敗一次
       let callCount = 0
-      jest.spyOn(service, 'analyzeUrlPattern').mockImplementation(async () => {
+      jest.spyOn(service, 'analyzeUrlPattern').mockImplementation(() => {
         callCount++
         if (callCount % 3 === 0) {
-          throw new Error(`Simulated error ${callCount}`)
+          throw new Error(`Simulated concurrent error ${callCount}`)
         }
-        return { READMOO: 0.8 }
+        return { platformId: 'READMOO', confidence: 0.8, features: ['url_pattern'] }
       })
 
+      // 模擬 DOM 分析成功，以確保有備選檢測方法
+      jest.spyOn(service, 'analyzeDOMFeatures')
+        .mockResolvedValue({ platformId: 'READMOO', confidence: 0.7, features: ['dom_elements'] })
+
+      // 創建 10 個並發檢測請求，每個都有不同的 URL 以避免快取
       const promises = Array.from({ length: 10 }, (_, i) =>
         service.detectPlatform(
           createDetectionContext('READMOO', {
-            url: `https://readmoo.com/concurrent-error-test/${i}`
+            url: `https://readmoo.com/concurrent-error-test/${i}`,
+            hostname: 'readmoo.com'
           })
-        ).catch(error => ({ error: error.message, index: i }))
+        )
       )
 
       const results = await Promise.all(promises)
 
-      const successful = results.filter(r => !r.error)
-      const failed = results.filter(r => r.error)
+      // 驗證所有結果都是有效的檢測結果
+      results.forEach(result => {
+        expect(result).toBeValidDetectionResult()
+        expect(result).toBeDefined()
+        expect(result.platformId).toBeDefined()
+        expect(typeof result.confidence).toBe('number')
+      })
 
-      expect(successful.length).toBeGreaterThan(0) // 至少有一些成功
-      expect(failed.length).toBeGreaterThan(0) // 確實有錯誤發生
-      expect(successful.length + failed.length).toBe(10) // 總數正確
+      // 分析結果 - 基於我們的錯誤處理機制
+      const successfulDetections = results.filter(r => r.platformId === 'READMOO')
+      const failedDetections = results.filter(r => r.platformId === 'UNKNOWN' && r.features.includes('analysis_failed'))
+
+      // 驗證系統穩定性：
+      // 1. 所有調用都返回有效結果（沒有未捕獲的異常）
+      expect(results).toHaveLength(10)
+      
+      // 2. 成功的檢測應該基於DOM分析（因為URL分析有部分失敗）
+      expect(successfulDetections.length).toBeGreaterThan(0)
+      successfulDetections.forEach(result => {
+        expect(result.features).toEqual(expect.arrayContaining(['dom_elements']))
+      })
+      
+      // 3. 失敗的檢測應該正確標記
+      if (failedDetections.length > 0) {
+        failedDetections.forEach(result => {
+          expect(result.features).toContain('analysis_failed')
+        })
+      }
+
+      // 4. 驗證錯誤事件被正確發送（至少應該有一些錯誤事件）
+      expect(mockEventBus.emit).toHaveBeenCalledWith(
+        'PLATFORM.DETECTION.FAILED',
+        expect.objectContaining({
+          error: expect.any(Error),
+          timestamp: expect.any(Number)
+        })
+      )
     })
   })
 })

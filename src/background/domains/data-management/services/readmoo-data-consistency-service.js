@@ -20,8 +20,8 @@
 
 const BaseModule = require('../../../lifecycle/base-module.js')
 const DataDifferenceEngine = require('./data-difference-engine.js')
-const ConflictDetectionService = require('./conflict-detection-service.js')
-const SyncProgressMonitor = require('./sync-progress-monitor.js')
+const ConflictDetectionService = require('./ConflictDetectionService.js')
+const SyncProgressMonitor = require('./sync-progress-tracker.js')
 const SyncStrategyProcessor = require('./sync-strategy-processor.js')
 
 class ReadmooDataConsistencyService extends BaseModule {

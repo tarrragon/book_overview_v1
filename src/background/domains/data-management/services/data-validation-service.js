@@ -1627,8 +1627,8 @@ class DataValidationService {
     //   throw new Error('書籍資料不能為空')
     // }
 
-    if (!platform || typeof platform !== 'string') {
-      throw new Error('平台參數為必要')
+    if (!platform || typeof platform !== 'string' || platform.trim() === '') {
+      throw new Error('平台名稱不能為空')
     }
   }
 

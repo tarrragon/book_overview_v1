@@ -10,7 +10,7 @@
 const { E2ETestSuite } = require('../../helpers/e2e-test-suite')
 const { ChromeExtensionController } = require('../../helpers/chrome-extension-controller')
 const { TestDataGenerator } = require('../../helpers/test-data-generator')
-const { DataConsistencyChecker } = require('../../helpers/data-consistency-checker')
+const DataConsistencyChecker = require('../../helpers/data-consistency-checker')
 
 describe('日常使用工作流程整合測試', () => {
   let testSuite

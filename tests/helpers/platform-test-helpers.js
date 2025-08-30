@@ -201,7 +201,7 @@ const assertions = {
     expect(mockEventBus.emit).toHaveBeenCalledWith(
       expectedEvent,
       expect.objectContaining({
-        timestamp: expect.any(Date),
+        timestamp: expect.any(Number),
         ...expectedPayload
       })
     )

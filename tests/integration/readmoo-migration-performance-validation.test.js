@@ -11,7 +11,7 @@
 
 const EventBus = require('../../src/core/event-bus')
 const EventNamingUpgradeCoordinator = require('../../src/core/events/event-naming-upgrade-coordinator')
-const ReadmooPlatformMigrationValidator = require('../../src/core/events/readmoo-platform-migration-validator')
+const ReadmooPlatformMigrationValidator = require('../../src/platform/readmoo-platform-migration-validator')
 
 describe('Readmoo 遷移效能驗證整合測試', () => {
   let eventBus
@@ -50,7 +50,25 @@ describe('Readmoo 遷移效能驗證整合測試', () => {
   beforeEach(() => {
     eventBus = new EventBus()
     namingCoordinator = new EventNamingUpgradeCoordinator(eventBus)
-    migrationValidator = new ReadmooPlatformMigrationValidator(eventBus, namingCoordinator)
+    
+    // 建立 mock readmooAdapter
+    const mockReadmooAdapter = {
+      extractBookData: jest.fn().mockResolvedValue({ success: true, data: {} }),
+      validateExtractedData: jest.fn().mockReturnValue({ valid: true })
+    }
+    
+    // 建立 mock platformDetectionService
+    const mockPlatformDetectionService = {
+      detectPlatform: jest.fn().mockResolvedValue({ platform: 'readmoo', confidence: 0.95 }),
+      validatePlatform: jest.fn().mockReturnValue({ valid: true })
+    }
+    
+    migrationValidator = new ReadmooPlatformMigrationValidator({ 
+      eventBus, 
+      namingCoordinator, 
+      readmooAdapter: mockReadmooAdapter, 
+      platformDetectionService: mockPlatformDetectionService 
+    })
   })
 
   afterEach(() => {
