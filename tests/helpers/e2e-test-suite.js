@@ -768,6 +768,130 @@ class E2ETestSuite {
     }
   }
 
+  /**
+   * 等待條件滿足
+   */
+  async waitForCondition(conditionFn, timeoutMs = 10000, pollIntervalMs = 100) {
+    const startTime = Date.now()
+    
+    while (Date.now() - startTime < timeoutMs) {
+      try {
+        const result = await conditionFn()
+        if (result) {
+          return true
+        }
+      } catch (error) {
+        // 忽略條件檢查中的錯誤，繼續等待
+        this.logDiagnostic('warn', 'Condition check failed', { error: error.message })
+      }
+      
+      // 等待下次檢查
+      await new Promise(resolve => setTimeout(resolve, pollIntervalMs))
+    }
+    
+    throw new Error(`Condition not met within ${timeoutMs}ms timeout`)
+  }
+
+  /**
+   * 等待指定時間
+   */
+  async waitForTimeout(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms))
+  }
+
+  /**
+   * 啟用詳細日誌記錄
+   */
+  async enableDetailedLogging(config = {}) {
+    this.detailedLogging = {
+      enabled: true,
+      logLevel: config.logLevel || 'debug',
+      includeStackTrace: config.includeStackTrace || false,
+      logToFile: config.logToFile || false,
+      maxLogEntries: config.maxLogEntries || 1000
+    }
+
+    this.operationLogs = []
+    this.errorLogs = []
+    
+    this.log('詳細日誌記錄已啟用')
+    
+    return {
+      success: true,
+      loggingConfig: this.detailedLogging
+    }
+  }
+
+  /**
+   * 記錄操作日誌
+   */
+  logOperation(operation, details = {}) {
+    if (!this.detailedLogging || !this.detailedLogging.enabled) {
+      return
+    }
+
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      operation: operation,
+      details: details,
+      level: 'info'
+    }
+
+    this.operationLogs.push(logEntry)
+    
+    if (this.detailedLogging.logLevel === 'debug') {
+      console.log(`[OPERATION] ${operation}`, details)
+    }
+
+    // 清理舊日誌
+    if (this.operationLogs.length > this.detailedLogging.maxLogEntries) {
+      this.operationLogs = this.operationLogs.slice(-this.detailedLogging.maxLogEntries)
+    }
+  }
+
+  /**
+   * 記錄錯誤日誌
+   */
+  logError(error, context = 'unknown') {
+    if (!this.detailedLogging || !this.detailedLogging.enabled) {
+      return
+    }
+
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      error: {
+        message: error.message,
+        name: error.name,
+        stack: this.detailedLogging.includeStackTrace ? error.stack : undefined
+      },
+      context: context,
+      level: 'error'
+    }
+
+    this.errorLogs.push(logEntry)
+    
+    console.error(`[ERROR] ${context}:`, error.message)
+
+    // 清理舊日誌
+    if (this.errorLogs.length > this.detailedLogging.maxLogEntries) {
+      this.errorLogs = this.errorLogs.slice(-this.detailedLogging.maxLogEntries)
+    }
+  }
+
+  /**
+   * 獲取操作日誌
+   */
+  getOperationLogs() {
+    return this.operationLogs || []
+  }
+
+  /**
+   * 獲取錯誤日誌
+   */
+  getErrorLogs() {
+    return this.errorLogs || []
+  }
+
   // 靜態工廠方法
   static async create (config = {}) {
     const suite = new E2ETestSuite(config)

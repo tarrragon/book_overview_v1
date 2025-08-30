@@ -870,6 +870,77 @@ class ChromeExtensionController {
     }
   }
 
+  /**
+   * 配置重試策略
+   */
+  async configureRetryStrategy(retryConfig) {
+    this.retryConfig = {
+      maxRetries: retryConfig.maxRetries || 3,
+      retryDelay: retryConfig.retryDelay || 1000,
+      baseDelay: retryConfig.baseDelay || 1000,
+      backoffMultiplier: retryConfig.backoffMultiplier || 2,
+      jitter: retryConfig.jitter || false
+    }
+
+    this.log(`配置重試策略: ${JSON.stringify(this.retryConfig)}`)
+    
+    return {
+      success: true,
+      retryConfig: this.retryConfig
+    }
+  }
+
+  /**
+   * 執行帶重試的操作
+   */
+  async executeWithRetry(operation, context = 'generic operation') {
+    if (!this.retryConfig) {
+      await this.configureRetryStrategy({}) // 使用預設配置
+    }
+
+    let lastError = null
+    
+    for (let attempt = 1; attempt <= this.retryConfig.maxRetries; attempt++) {
+      try {
+        this.log(`嘗試執行 ${context} (第 ${attempt} 次)`)
+        const result = await operation()
+        
+        if (attempt > 1) {
+          this.log(`${context} 在第 ${attempt} 次嘗試成功`)
+        }
+        
+        return result
+      } catch (error) {
+        lastError = error
+        this.log(`${context} 第 ${attempt} 次嘗試失敗: ${error.message}`)
+        
+        if (attempt < this.retryConfig.maxRetries) {
+          const delay = this.calculateRetryDelay(attempt)
+          this.log(`等待 ${delay}ms 後重試`)
+          await this.simulateDelay(delay)
+        }
+      }
+    }
+    
+    throw new Error(`Max retries (${this.retryConfig.maxRetries}) exceeded for ${context}: ${lastError.message}`)
+  }
+
+  /**
+   * 計算重試延遲時間
+   */
+  calculateRetryDelay(attempt) {
+    const baseDelay = this.retryConfig.baseDelay
+    let delay = baseDelay * Math.pow(this.retryConfig.backoffMultiplier, attempt - 1)
+    
+    if (this.retryConfig.jitter) {
+      // 添加隨機抖動（±25%）
+      const jitterRange = delay * 0.25
+      delay = delay + (Math.random() * jitterRange * 2 - jitterRange)
+    }
+    
+    return Math.round(delay)
+  }
+
   // 靜態工廠方法
   static async create (options = {}) {
     const controller = new ChromeExtensionController(options)

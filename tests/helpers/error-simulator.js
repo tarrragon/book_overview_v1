@@ -161,6 +161,35 @@ class ErrorSimulator {
     this.logError(error)
     throw error
   }
+
+  /**
+   * 模擬儲存損壞
+   */
+  async simulateStorageCorruption() {
+    const error = new Error('Storage corruption detected')
+    this.logError(error)
+    throw error
+  }
+
+  /**
+   * 模擬網路緩慢
+   */
+  async simulateSlowNetwork(timeoutMs = 30000) {
+    // 模擬網路延遲
+    await new Promise(resolve => setTimeout(resolve, Math.min(timeoutMs / 10, 1000)))
+    const error = new Error(`Network timeout after ${timeoutMs}ms`)
+    this.logError(error)
+    throw error
+  }
+
+  /**
+   * 模擬儲存配額超限
+   */
+  async simulateStorageQuotaExceeded() {
+    const error = new Error('Storage quota exceeded')
+    this.logError(error)
+    throw error
+  }
 }
 
 module.exports = ErrorSimulator
