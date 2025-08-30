@@ -114,6 +114,53 @@ class ErrorSimulator {
       await this.testSuite.cleanup()
     }
   }
+
+  /**
+   * 模擬網路中斷
+   */
+  async simulateNetworkDisconnection() {
+    // 模擬網路中斷狀況
+    const error = new Error('Network disconnected')
+    this.logError(error)
+    throw error
+  }
+
+  /**
+   * 模擬擴展錯誤
+   */
+  async simulateExtensionError() {
+    // 模擬擴展運行錯誤
+    const error = new Error('Extension runtime error')
+    this.logError(error)
+    throw error
+  }
+
+  /**
+   * 模擬資料損壞錯誤
+   */
+  async simulateDataCorruption() {
+    const error = new Error('Data corruption detected')
+    this.logError(error)
+    throw error
+  }
+
+  /**
+   * 模擬系統過載錯誤
+   */
+  async simulateSystemOverload() {
+    const error = new Error('System overload')
+    this.logError(error)
+    throw error
+  }
+
+  /**
+   * 模擬認證失敗
+   */
+  async simulateAuthenticationFailure() {
+    const error = new Error('Authentication failed')
+    this.logError(error)
+    throw error
+  }
 }
 
 module.exports = ErrorSimulator

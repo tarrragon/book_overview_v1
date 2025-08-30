@@ -686,6 +686,88 @@ class E2ETestSuite {
     }
   }
 
+  /**
+   * 啟用診斷模式
+   */
+  async enableDiagnosticMode(config = {}) {
+    this.diagnosticMode = {
+      enabled: true,
+      verbose: config.verbose || false,
+      collectMetrics: config.collectMetrics || true,
+      captureErrors: config.captureErrors || true,
+      trackPerformance: config.trackPerformance || true,
+      logLevel: config.logLevel || 'info'
+    }
+
+    // 設置錯誤捕獲
+    if (this.diagnosticMode.captureErrors) {
+      this.errorCapture = {
+        errors: [],
+        warnings: []
+      }
+    }
+
+    // 設置效能監控
+    if (this.diagnosticMode.trackPerformance) {
+      this.performanceMetrics = {
+        startTime: Date.now(),
+        operations: [],
+        memoryUsage: []
+      }
+    }
+
+    return {
+      success: true,
+      diagnosticMode: this.diagnosticMode,
+      message: '診斷模式已啟用'
+    }
+  }
+
+  /**
+   * 記錄診斷資訊
+   */
+  logDiagnostic(level, message, data = {}) {
+    if (!this.diagnosticMode || !this.diagnosticMode.enabled) {
+      return
+    }
+
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      level,
+      message,
+      data
+    }
+
+    if (this.diagnosticMode.verbose || level === 'error') {
+      console.log(`[DIAGNOSTIC ${level.toUpperCase()}]`, message, data)
+    }
+
+    // 儲存到相應的收集器
+    if (level === 'error' && this.errorCapture) {
+      this.errorCapture.errors.push(logEntry)
+    } else if (level === 'warn' && this.errorCapture) {
+      this.errorCapture.warnings.push(logEntry)
+    }
+  }
+
+  /**
+   * 獲取診斷報告
+   */
+  getDiagnosticReport() {
+    if (!this.diagnosticMode || !this.diagnosticMode.enabled) {
+      return { error: '診斷模式未啟用' }
+    }
+
+    return {
+      diagnosticMode: this.diagnosticMode,
+      errors: this.errorCapture?.errors || [],
+      warnings: this.errorCapture?.warnings || [],
+      performanceMetrics: this.performanceMetrics || {},
+      testMetrics: this.metrics,
+      generatedAt: new Date().toISOString()
+    }
+  }
+
   // 靜態工廠方法
   static async create (config = {}) {
     const suite = new E2ETestSuite(config)

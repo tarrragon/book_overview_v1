@@ -813,6 +813,63 @@ class ChromeExtensionController {
     }
   }
 
+  /**
+   * 模擬並發操作
+   */
+  async simulateConcurrentOperation(operationId, config = {}) {
+    const { eventCount = 20, duration = 5000, eventTypes = ['DATA', 'UI', 'STORAGE'] } = config
+    
+    this.log(`開始模擬並發操作 ${operationId}`)
+    
+    const startTime = Date.now()
+    const events = []
+    
+    // 生成事件
+    for (let i = 0; i < eventCount; i++) {
+      const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)]
+      const event = {
+        id: `${operationId}_event_${i}`,
+        type: `${eventType}.${operationId.toUpperCase()}`,
+        timestamp: startTime + (i * (duration / eventCount)),
+        operationId: operationId,
+        payload: {
+          index: i,
+          total: eventCount
+        }
+      }
+      events.push(event)
+    }
+    
+    // 模擬並發處理
+    const processingPromises = events.map(async (event, index) => {
+      // 模擬處理時間
+      const processingDelay = Math.random() * 100 + 20
+      await this.simulateDelay(processingDelay)
+      
+      return {
+        eventId: event.id,
+        processed: true,
+        processingTime: processingDelay,
+        completedAt: Date.now()
+      }
+    })
+    
+    const results = await Promise.all(processingPromises)
+    const endTime = Date.now()
+    
+    return {
+      success: true,
+      operationId: operationId,
+      startTime: startTime,
+      endTime: endTime,
+      duration: endTime - startTime,
+      totalEvents: eventCount,
+      processedEvents: results.length,
+      averageProcessingTime: results.reduce((sum, r) => sum + r.processingTime, 0) / results.length,
+      results: results
+    }
+  }
+
   // 靜態工廠方法
   static async create (options = {}) {
     const controller = new ChromeExtensionController(options)

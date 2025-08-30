@@ -78,6 +78,86 @@ class RecoveryValidator {
     this.recoveryAttempts = []
     this.validationResults = []
   }
+
+  /**
+   * 計算資料雜湊值
+   */
+  async calculateDataHash(data) {
+    if (!data || typeof data !== 'object') {
+      return 'empty-hash'
+    }
+
+    // 簡單的雜湊計算（用於測試環境）
+    const dataString = JSON.stringify(data)
+    let hash = 0
+    for (let i = 0; i < dataString.length; i++) {
+      const char = dataString.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // Convert to 32-bit integer
+    }
+    return `hash-${Math.abs(hash).toString(16)}`
+  }
+
+  /**
+   * 驗證資料完整性
+   */
+  async validateDataIntegrity(originalHash, currentData) {
+    const currentHash = await this.calculateDataHash(currentData)
+    return {
+      isValid: originalHash === currentHash,
+      originalHash,
+      currentHash,
+      corruptionDetected: originalHash !== currentHash
+    }
+  }
+
+  /**
+   * 驗證恢復時間
+   */
+  validateRecoveryTime(startTime, maxDuration = 30000) {
+    const endTime = Date.now()
+    const duration = endTime - startTime
+    return {
+      duration,
+      withinLimit: duration <= maxDuration,
+      startTime,
+      endTime
+    }
+  }
+
+  /**
+   * 驗證錯誤分類
+   */
+  validateErrorClassification(error, expectedType) {
+    const detectedType = this.detectErrorType(error)
+    return {
+      isCorrect: detectedType === expectedType,
+      detected: detectedType,
+      expected: expectedType
+    }
+  }
+
+  /**
+   * 檢測錯誤類型（簡化版本）
+   */
+  detectErrorType(error) {
+    if (error.message.includes('network') || error.message.includes('fetch')) {
+      return 'NETWORK_ERROR'
+    }
+    if (error.message.includes('memory') || error.message.includes('heap')) {
+      return 'MEMORY_ERROR'
+    }
+    if (error.message.includes('timeout')) {
+      return 'TIMEOUT_ERROR'
+    }
+    if (error.message.includes('permission')) {
+      return 'PERMISSION_ERROR'
+    }
+    if (error.message.includes('storage') || error.message.includes('quota')) {
+      return 'STORAGE_ERROR'
+    }
+    return 'UNKNOWN_ERROR'
+  }
 }
 
 module.exports = RecoveryValidator
