@@ -279,6 +279,187 @@ class TestDataGenerator {
     return Math.max(100, bookCount * 2) // 至少100ms，每本書增加2ms
   }
 
+  /**
+   * 生成特殊配置的測試書籍
+   */
+  generateSpecialBook(type, customProperties = {}) {
+    const baseId = `special-${type}-${Date.now()}`
+    
+    // 預設的特殊書籍模板
+    const templates = {
+      'completed-book': {
+        id: baseId,
+        title: `已完成閱讀的書籍 - ${type}`,
+        progress: 100,
+        status: 'completed',
+        readingTime: this.randomInt(3600, 36000), // 1-10 小時
+        type: this.randomChoice(['流式', '版式'])
+      },
+      'new-book': {
+        id: baseId,
+        title: `全新書籍 - ${type}`,
+        progress: 0,
+        status: 'new',
+        readingTime: 0,
+        type: this.randomChoice(['流式', '版式'])
+      },
+      'half-read': {
+        id: baseId,
+        title: `閱讀中書籍 - ${type}`,
+        progress: this.randomInt(25, 75),
+        status: 'reading',
+        readingTime: this.randomInt(600, 3600),
+        type: this.randomChoice(['流式', '版式'])
+      },
+      'unicode-title': {
+        id: baseId,
+        title: customProperties.title || '測試Unicode字符📚🔖✨',
+        progress: this.randomInt(0, 100),
+        status: 'reading',
+        readingTime: this.randomInt(0, 3600),
+        type: this.randomChoice(['流式', '版式'])
+      },
+      'large-title': {
+        id: baseId,
+        title: '這是一個非常非常非常非常非常非常非常非常非常非常非常非常長的書籍標題用於測試長標題處理能力',
+        progress: this.randomInt(0, 100),
+        status: this.randomChoice(['new', 'reading', 'completed']),
+        readingTime: this.randomInt(0, 7200),
+        type: this.randomChoice(['流式', '版式'])
+      },
+      'special-characters': {
+        id: baseId,
+        title: '特殊字符 & <script>alert("test")</script> 書籍',
+        progress: this.randomInt(0, 100),
+        status: this.randomChoice(['new', 'reading', 'completed']),
+        readingTime: this.randomInt(0, 3600),
+        type: this.randomChoice(['流式', '版式'])
+      }
+    }
+
+    // 取得對應模板或使用通用模板
+    const template = templates[type] || {
+      id: baseId,
+      title: `特殊測試書籍 - ${type}`,
+      progress: this.randomInt(0, 100),
+      status: this.randomChoice(['new', 'reading', 'completed']),
+      readingTime: this.randomInt(0, 3600),
+      type: this.randomChoice(['流式', '版式'])
+    }
+
+    // 加入基本書籍屬性
+    const specialBook = {
+      ...template,
+      authors: ['特殊測試作者'],
+      category: '測試分類',
+      extractedAt: new Date().toISOString(),
+      platform: 'readmoo',
+      testMetadata: {
+        isTestData: true,
+        specialType: type,
+        createdAt: new Date().toISOString()
+      },
+      ...customProperties // 覆寫自訂屬性
+    }
+
+    return specialBook
+  }
+
+  /**
+   * 批次生成特殊書籍
+   */
+  generateSpecialBooks(bookConfigs) {
+    return bookConfigs.map((config, index) => {
+      const type = config.type || `custom-${index}`
+      return this.generateSpecialBook(type, config)
+    })
+  }
+
+  /**
+   * 生成具有指定進度分佈的書籍
+   */
+  generateBooksWithProgress(count, scenarioName = 'default', options = {}) {
+    const {
+      completedRatio = 0.3,    // 已完成書籍比例
+      averageProgress = 50      // 平均進度
+    } = options
+
+    const books = []
+    const completedCount = Math.floor(count * completedRatio)
+    const inProgressCount = count - completedCount
+
+    // 生成已完成的書籍
+    for (let i = 0; i < completedCount; i++) {
+      books.push({
+        id: `${scenarioName}-completed-${i + 1}`,
+        title: `已完成書籍 ${i + 1} - ${scenarioName}`,
+        progress: 100,
+        status: 'completed',
+        isFinished: true,
+        readingTime: this.randomInt(3600, 36000), // 1-10 小時
+        type: this.randomChoice(['流式', '版式']),
+        category: '測試分類',
+        author: '測試作者',
+        extractedAt: this.generateRandomDate(),
+        testMetadata: {
+          scenario: scenarioName,
+          progressType: 'completed',
+          generatedAt: new Date().toISOString()
+        }
+      })
+    }
+
+    // 生成進行中的書籍 - 使用更精確的進度分佈
+    let totalInProgressSum = 0
+    const inProgressBooks = []
+    
+    for (let i = 0; i < inProgressCount; i++) {
+      // 對於前面的書籍，允許一些變化
+      if (i < inProgressCount - 1) {
+        const progressVariation = this.randomInt(-3, 3) // 更小的變化範圍
+        const progress = Math.max(0, Math.min(99, averageProgress + progressVariation))
+        totalInProgressSum += progress
+        inProgressBooks.push(progress)
+      } else {
+        // 最後一本書用來調整總平均值
+        const targetTotal = averageProgress * inProgressCount
+        const remainingProgress = targetTotal - totalInProgressSum
+        const finalProgress = Math.max(0, Math.min(99, remainingProgress))
+        inProgressBooks.push(finalProgress)
+      }
+    }
+    
+    // 創建進行中的書籍
+    for (let i = 0; i < inProgressCount; i++) {
+      books.push({
+        id: `${scenarioName}-inprogress-${i + 1}`,
+        title: `閱讀中書籍 ${i + 1} - ${scenarioName}`,
+        progress: inProgressBooks[i],
+        status: 'reading',
+        isFinished: false,
+        readingTime: this.randomInt(600, 7200), // 10分鐘-2小時
+        type: this.randomChoice(['流式', '版式']),
+        category: '測試分類',
+        author: '測試作者',
+        extractedAt: this.generateRandomDate(),
+        testMetadata: {
+          scenario: scenarioName,
+          progressType: 'inprogress',
+          targetProgress: averageProgress,
+          generatedAt: new Date().toISOString()
+        }
+      })
+    }
+
+    // 隨機打亂順序
+    for (let i = books.length - 1; i > 0; i--) {
+      const j = Math.floor(this.random() * (i + 1))
+      ;[books[i], books[j]] = [books[j], books[i]]
+    }
+
+    return books
+  }
+
   // 靜態方法：快速生成常用資料集
   static generateQuickTestData (size = 'small') {
     const generator = new TestDataGenerator()

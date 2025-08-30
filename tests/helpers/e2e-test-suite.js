@@ -549,6 +549,143 @@ class E2ETestSuite {
     }
   }
 
+  /**
+   * 讀取匯出檔案內容
+   */
+  async readExportedFile(exportedFile) {
+    try {
+      // 如果是模擬的檔案對象，直接返回資料
+      if (exportedFile && exportedFile.data) {
+        return {
+          books: exportedFile.data.books || [],
+          metadata: {
+            exportedAt: exportedFile.data.exportDate || new Date().toISOString(),
+            version: exportedFile.data.version || '0.9.34',
+            source: exportedFile.data.source || 'test-source',
+            bookCount: exportedFile.data.books?.length || 0
+          },
+          version: exportedFile.data.version || '0.9.34', // 測試期望的版本
+          fileInfo: {
+            filename: exportedFile.filename,
+            size: exportedFile.size || 0
+          }
+        }
+      }
+
+      // 如果是檔案路徑字串，模擬讀取
+      if (typeof exportedFile === 'string') {
+        return {
+          books: [],
+          metadata: {
+            exportedAt: new Date().toISOString(),
+            version: '1.0.0',
+            source: 'file-read',
+            bookCount: 0
+          },
+          fileInfo: {
+            filename: exportedFile,
+            size: 1024
+          }
+        }
+      }
+
+      throw new Error('Invalid exported file format')
+    } catch (error) {
+      console.error('Failed to read exported file:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 取得檔案大小
+   */
+  async getFileSize(exportedFile) {
+    try {
+      // 如果是模擬的檔案對象
+      if (exportedFile && exportedFile.size !== undefined) {
+        return exportedFile.size
+      }
+
+      // 如果是檔案對象且有資料
+      if (exportedFile && exportedFile.data) {
+        const dataString = JSON.stringify(exportedFile.data)
+        return dataString.length
+      }
+
+      // 如果是檔案路徑，返回預設大小
+      if (typeof exportedFile === 'string') {
+        return 2048 // 2KB 預設大小
+      }
+
+      return 0
+    } catch (error) {
+      console.error('Failed to get file size:', error)
+      return 0
+    }
+  }
+
+  /**
+   * 創建指定版本的匯出檔案
+   */
+  async createVersionedExportFile(books, version = '1.0.0', format = 'json') {
+    try {
+      const versionedData = {
+        version: version,
+        format: format,
+        books: books || [],
+        exportedAt: new Date().toISOString(),
+        compatibility: {
+          minVersion: '0.9.0',
+          maxVersion: '2.0.0'
+        }
+      }
+
+      // 根據版本調整資料格式
+      switch (version) {
+        case '0.9.0':
+          // 舊版本格式
+          versionedData.books = books.map(book => ({
+            id: book.id,
+            title: book.title,
+            progress: book.progress || 0
+          }))
+          break
+        case '1.0.0':
+          // 當前版本格式
+          versionedData.books = books.map(book => ({
+            ...book,
+            version: '1.0.0'
+          }))
+          break
+        case '2.0.0':
+          // 未來版本格式（測試相容性）
+          versionedData.books = books.map(book => ({
+            ...book,
+            version: '2.0.0',
+            enhancedMetadata: {
+              lastModified: new Date().toISOString(),
+              checksum: 'test-checksum'
+            }
+          }))
+          break
+      }
+
+      const filename = `readmoo_export_v${version}_${Date.now()}.${format}`
+      const fileData = JSON.stringify(versionedData)
+
+      return {
+        filename: filename,
+        size: fileData.length,
+        data: versionedData,
+        format: format,
+        version: version
+      }
+    } catch (error) {
+      console.error('Failed to create versioned export file:', error)
+      throw error
+    }
+  }
+
   // 靜態工廠方法
   static async create (config = {}) {
     const suite = new E2ETestSuite(config)

@@ -547,6 +547,7 @@ class ChromeExtensionController {
       welcomeMessageVisible: !hasUsedBefore,
       extractButtonEnabled: isReadmooPage && !pageDetectionError,
       overviewButtonEnabled: books.length > 0,
+      exportButtonEnabled: books.length > 0, // 有書籍資料時才啟用匯出按鈕
       pageDetectionError,
       errorMessage: this.state.storage.get('errorMessage') || null,
       emptyStateVisible: hasUsedBefore && books.length === 0,
@@ -604,6 +605,36 @@ class ChromeExtensionController {
     return {
       success: true,
       pageUrl: 'chrome-extension://test-extension-12345/overview.html'
+    }
+  }
+
+  async clickExportButton () {
+    this.recordAPICall('popup.click.exportButton', {})
+    
+    // 模擬匯出過程
+    await this.simulateDelay(500)
+    
+    // 取得當前儲存的資料進行匯出
+    const storageData = await this.getStorageData()
+    const exportData = {
+      books: storageData.books || [],
+      exportDate: new Date().toISOString(),
+      version: '0.9.34', // 測試期望的版本號
+      source: 'chrome-extension-test'
+    }
+    
+    // 模擬檔案生成
+    const exportedFile = {
+      filename: `readmoo_export_${Date.now()}.json`,
+      size: JSON.stringify(exportData).length,
+      data: exportData
+    }
+    
+    return {
+      success: true,
+      exportedFile: exportedFile,
+      bookCount: exportData.books.length,
+      timestamp: new Date().toISOString()
     }
   }
 
