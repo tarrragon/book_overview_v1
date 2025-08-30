@@ -941,6 +941,133 @@ class ChromeExtensionController {
     return Math.round(delay)
   }
 
+  /**
+   * 模擬背景任務 - event-system-integration.test.js 需要的方法
+   */
+  async simulateBackgroundTask(taskName) {
+    this.log(`開始模擬背景任務: ${taskName}`)
+    
+    // 模擬任務執行時間
+    const executionTime = Math.random() * 500 + 200 // 200-700ms
+    await this.simulateDelay(executionTime)
+    
+    // 模擬事件發送
+    if (this.eventEmitter) {
+      this.eventEmitter.emit('BACKGROUND.TASK.STARTED', { taskName, startTime: Date.now() })
+      await this.simulateDelay(executionTime * 0.8)
+      this.eventEmitter.emit('BACKGROUND.TASK.COMPLETED', { taskName, duration: executionTime })
+    }
+    
+    return {
+      success: true,
+      taskName,
+      executionTime,
+      completedAt: Date.now()
+    }
+  }
+
+  /**
+   * 模擬UI更新 - event-system-integration.test.js 需要的方法
+   */
+  async simulateUIUpdates(updateCount) {
+    this.log(`開始模擬 ${updateCount} 次UI更新`)
+    
+    const results = []
+    
+    for (let i = 0; i < updateCount; i++) {
+      const updateType = ['DOM_UPDATE', 'STATE_CHANGE', 'RENDER_CYCLE', 'EVENT_HANDLER'][i % 4]
+      const updateDelay = Math.random() * 50 + 10 // 10-60ms per update
+      
+      await this.simulateDelay(updateDelay)
+      
+      if (this.eventEmitter) {
+        this.eventEmitter.emit('UI.UPDATE.TRIGGERED', {
+          updateType,
+          updateIndex: i,
+          timestamp: Date.now()
+        })
+      }
+      
+      results.push({
+        updateType,
+        updateIndex: i,
+        delay: updateDelay,
+        success: true
+      })
+    }
+    
+    return {
+      success: true,
+      totalUpdates: updateCount,
+      completedUpdates: results.length,
+      updates: results,
+      averageUpdateTime: results.reduce((sum, r) => sum + r.delay, 0) / results.length
+    }
+  }
+
+  /**
+   * 模擬儲存操作 - event-system-integration.test.js 需要的方法
+   */
+  async simulateStorageOperations(operationCount) {
+    this.log(`開始模擬 ${operationCount} 次儲存操作`)
+    
+    const operations = ['READ', 'write', 'update', 'delete']
+    const results = []
+    
+    for (let i = 0; i < operationCount; i++) {
+      const operation = operations[i % operations.length]
+      const operationDelay = Math.random() * 100 + 50 // 50-150ms per operation
+      const key = `test_key_${i}`
+      const value = `test_value_${i}_${Date.now()}`
+      
+      await this.simulateDelay(operationDelay)
+      
+      // 模擬實際的儲存操作
+      switch (operation) {
+        case 'read':
+          // 模擬讀取
+          break
+        case 'write':
+          this.state.storage.set(key, value)
+          break
+        case 'update':
+          if (this.state.storage.has(key)) {
+            this.state.storage.set(key, value + '_updated')
+          }
+          break
+        case 'delete':
+          this.state.storage.delete(key)
+          break
+      }
+      
+      if (this.eventEmitter) {
+        this.eventEmitter.emit('STORAGE.OPERATION.COMPLETED', {
+          operation,
+          key,
+          operationIndex: i,
+          timestamp: Date.now()
+        })
+      }
+      
+      results.push({
+        operation,
+        key,
+        operationIndex: i,
+        delay: operationDelay,
+        success: true
+      })
+    }
+    
+    return {
+      success: true,
+      totalOperations: operationCount,
+      completedOperations: results.length,
+      operations: results,
+      storageSize: this.state.storage.size,
+      averageOperationTime: results.reduce((sum, r) => sum + r.delay, 0) / results.length
+    }
+  }
+
   // 靜態工廠方法
   static async create (options = {}) {
     const controller = new ChromeExtensionController(options)
