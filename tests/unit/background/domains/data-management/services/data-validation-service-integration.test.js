@@ -305,7 +305,7 @@ describe('DataValidationService - 服務整合測試', () => {
 
       await expect(
         validationService.validateAndNormalize([{ id: 'book1' }], '', 'test')
-      ).rejects.toThrow('平台參數為必要')
+      ).rejects.toThrow('平台名稱不能為空')
     })
 
     test('應該處理大批次資料分割', async () => {

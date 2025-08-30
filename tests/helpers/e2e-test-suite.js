@@ -157,6 +157,115 @@ class E2ETestSuite {
     this.testData.settings = generator.generateSettings()
   }
 
+  async loadInitialData (data = {}) {
+    if (!this.testEnvironment.initialized) {
+      throw new Error('測試套件未初始化，請先呼叫 initialize()')
+    }
+
+    // 載入書籍資料
+    if (data.books && Array.isArray(data.books)) {
+      this.testData.books = [...this.testData.books, ...data.books]
+      
+      // 模擬將資料存儲到 Chrome Extension Storage
+      await this.simulateStorageWrite('books', data.books)
+      
+      // 同步到 extensionController 的存儲系統
+      if (this.extensionController) {
+        this.extensionController.state.storage.set('books', data.books)
+        this.extensionController.state.storage.set('hasUsedBefore', true)
+      }
+    }
+
+    // 載入元資料
+    if (data.metadata) {
+      this.testData.metadata = { ...this.testData.metadata, ...data.metadata }
+      
+      // 模擬將元資料存儲到 Chrome Extension Storage
+      await this.simulateStorageWrite('metadata', data.metadata)
+      
+      // 同步到 extensionController 的存儲系統
+      if (this.extensionController) {
+        this.extensionController.state.storage.set('metadata', data.metadata)
+        if (data.metadata.lastExtraction) {
+          this.extensionController.state.storage.set('lastExtraction', data.metadata.lastExtraction)
+        }
+      }
+    }
+
+    // 載入使用者設定
+    if (data.settings) {
+      this.testData.settings = { ...this.testData.settings, ...data.settings }
+      
+      // 模擬將設定存儲到 Chrome Extension Storage
+      await this.simulateStorageWrite('settings', data.settings)
+      
+      // 同步到 extensionController 的存儲系統
+      if (this.extensionController) {
+        this.extensionController.state.storage.set('settings', data.settings)
+      }
+    }
+
+    return {
+      success: true,
+      loadedBooks: data.books ? data.books.length : 0,
+      totalBooks: this.testData.books.length
+    }
+  }
+
+  async simulateStorageWrite (key, data) {
+    // 模擬 Chrome Storage API 寫入
+    // 在測試環境中，我們將資料存儲在記憶體中
+    if (!this.testEnvironment.storage) {
+      this.testEnvironment.storage = new Map()
+    }
+    
+    this.testEnvironment.storage.set(key, JSON.parse(JSON.stringify(data)))
+    
+    // 記錄操作用於除錯
+    this.metrics.operations.push({
+      type: 'storage_write',
+      key,
+      timestamp: Date.now(),
+      dataSize: JSON.stringify(data).length
+    })
+  }
+
+  async simulateStorageRead (key) {
+    // 模擬 Chrome Storage API 讀取
+    if (!this.testEnvironment.storage) {
+      return null
+    }
+    
+    const data = this.testEnvironment.storage.get(key)
+    
+    // 記錄操作用於除錯
+    this.metrics.operations.push({
+      type: 'storage_read',
+      key,
+      timestamp: Date.now(),
+      found: !!data
+    })
+    
+    return data
+  }
+
+  async clearAllStorageData () {
+    // 清除所有模擬的儲存資料
+    if (this.testEnvironment.storage) {
+      this.testEnvironment.storage.clear()
+    }
+    
+    // 重置測試資料
+    this.testData.books = []
+    this.testData.metadata = {}
+    this.testData.settings = {}
+    
+    this.metrics.operations.push({
+      type: 'storage_clear',
+      timestamp: Date.now()
+    })
+  }
+
   async executeWorkflow (workflowName, steps = []) {
     if (!this.testEnvironment.initialized) {
       throw new Error('測試套件未初始化，請先呼叫 initialize()')

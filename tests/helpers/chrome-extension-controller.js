@@ -535,6 +535,11 @@ class ChromeExtensionController {
     const books = this.state.storage.get('books') || []
     const pageDetectionError = this.state.storage.get('pageDetectionError') || false
     const isReadmooPage = this.state.storage.get('isReadmooPage') !== false
+    const lastExtraction = this.state.storage.get('lastExtraction') || null
+    const metadata = this.state.storage.get('metadata') || {}
+
+    // 計算統計資訊
+    const statistics = this.calculateStatistics(books, lastExtraction, metadata)
 
     return {
       isFirstTime: !hasUsedBefore,
@@ -545,7 +550,27 @@ class ChromeExtensionController {
       pageDetectionError,
       errorMessage: this.state.storage.get('errorMessage') || null,
       emptyStateVisible: hasUsedBefore && books.length === 0,
-      lastExtraction: this.state.storage.get('lastExtraction') || null
+      lastExtraction,
+      statistics
+    }
+  }
+
+  calculateStatistics (books, lastExtraction, metadata) {
+    const now = new Date()
+    let daysSinceLastExtraction = null
+    
+    if (lastExtraction) {
+      const lastExtractionDate = new Date(lastExtraction)
+      const timeDiff = now - lastExtractionDate
+      daysSinceLastExtraction = Math.floor(timeDiff / (1000 * 60 * 60 * 24))
+    }
+
+    return {
+      totalBooks: books.length,
+      daysSinceLastExtraction,
+      lastExtractionDate: lastExtraction,
+      version: metadata.version || '0.9.34',
+      firstInstall: metadata.firstInstall || null
     }
   }
 

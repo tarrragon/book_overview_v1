@@ -831,26 +831,42 @@ EOF
 
 #### 檔案路徑規範 (強制要求)
 
-**專案根目錄相對路徑原則**:
-- **使用從專案根目錄起算的相對路徑**: 所有檔案導入必須從專案根目錄開始計算路徑
+**完整路徑名稱原則**:
+- **每個資料夾都明確寫出實際名稱**: 所有檔案導入必須包含完整的資料夾名稱，讓domain結構一目了然
+- **禁止相對深度寫法**: 絕不使用 `../../../` 等相對深度計算方式
 - **禁止系統絕對路徑**: 絕不使用 `/Users/...` 等系統絕對路徑
-- **路徑一致性**: 確保所有模組引用使用統一的路徑格式
+- **Domain可見性**: 路徑必須清楚顯示domain分類和功能分類，便於除錯和維護
 
 **正確路徑格式範例**:
 ```javascript
-// ✅ 正確：從專案根目錄起算的相對路徑
+// ✅ 正確：完整路徑名稱，domain結構清楚
+const EventBus = require('src/core/event-bus')
+const DataValidationService = require('src/background/domains/data-management/services/data-validation-service')
+const ReadmooAdapter = require('src/content/adapters/readmoo-adapter')
+const PopupController = require('src/popup/controllers/popup-controller')
+const CrossDeviceSyncService = require('src/background/domains/data-management/services/cross-device-sync-service')
+
+// ❌ 錯誤：使用相對深度，domain結構不明
 const EventBus = require('../../../src/core/event-bus')
-const ReadmooAdapter = require('../../../src/content/adapters/readmoo-adapter')
-const ValidationService = require('../../../src/services/validation-service')
+const DataValidationService = require('../../../../src/background/domains/data-management/services/data-validation-service')
+const ReadmooAdapter = require('../../src/content/adapters/readmoo-adapter')
 
 // ❌ 錯誤：系統絕對路徑
 const EventBus = require('/Users/project/src/core/event-bus')
 const ReadmooAdapter = require('/Users/tarragon/Projects/book_overview_v1/src/content/adapters/readmoo-adapter')
-
-// ❌ 錯誤：錯誤的相對路徑深度
-const EventBus = require('../../core/event-bus')  // 深度不對
-const ReadmooAdapter = require('../adapters/readmoo-adapter')  // 路徑錯誤
 ```
+
+**Domain結構可見性檢查**:
+從路徑名稱應該能夠直接判斷：
+- **Domain分類**: `background/domains/data-management` 表示資料管理域
+- **功能分類**: `services` 表示服務層，`controllers` 表示控制層
+- **平台特定**: `content` 表示內容腳本，`popup` 表示彈出介面
+- **核心組件**: `core` 表示核心基礎設施
+
+**除錯便利性**:
+- ✅ 路徑錯誤立即可見：如果看到 `src/background/domains/ui-management/services/data-validation-service` 就知道domain錯誤
+- ✅ 缺少層級立即可見：`src/background/services/data-validation-service` 缺少 `domains/data-management`
+- ✅ 多餘層級立即可見：`src/background/domains/data-management/sub-domain/services/` 有多餘的 `sub-domain`
 
 **路徑重構時機**:
 - **測試全部通過後**: 必須等所有測試 100% 通過後，才可進行全專案路徑標準化
@@ -858,9 +874,9 @@ const ReadmooAdapter = require('../adapters/readmoo-adapter')  // 路徑錯誤
 - **驗證完整性**: 路徑更改後必須重新運行所有測試確保無破損
 
 **違規後果**:
-- 任何使用相對路徑的程式碼將被視為技術債務，必須立即修正
-- 新增程式碼如使用相對路徑，該 commit 不得通過程式碼審查
-- 路徑不一致會導致模組依賴關係模糊，影響程式碼可維護性
+- 任何使用相對深度路徑的程式碼將被視為技術債務，必須立即修正
+- 新增程式碼如使用相對深度路徑，該 commit 不得通過程式碼審查
+- 路徑不清晰會導致domain結構模糊，嚴重影響程式碼可維護性和除錯效率
 
 #### Five Lines 規則與單一責任原則
 
