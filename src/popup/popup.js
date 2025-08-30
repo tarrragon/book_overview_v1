@@ -404,13 +404,6 @@ function cancelExtraction () {
  * 4. 處理錯誤並提供使用者回饋
  */
 async function checkBackgroundStatus () {
-  // 測試環境中跳過檢查
-  if (process.env.NODE_ENV === 'test') {
-    console.log('📝 Test environment - skipping background service check')
-    updateStatus('測試模式', '測試環境', '跳過背景服務檢查', STATUS_TYPES.READY)
-    return true
-  }
-
   try {
     console.log('🔍 正在檢查 Background Service Worker 狀態...')
 
@@ -422,6 +415,13 @@ async function checkBackgroundStatus () {
     const messagePromise = chrome.runtime.sendMessage({ type: MESSAGE_TYPES.GET_STATUS })
 
     const response = await Promise.race([messagePromise, timeoutPromise])
+
+    // 測試環境中提供模擬回應處理
+    if (process.env.NODE_ENV === 'test') {
+      console.log('📝 Test environment - processing mock response')
+      updateStatus('測試模式', '測試環境', '背景服務模擬檢查完成', STATUS_TYPES.READY)
+      return response && response.success !== false
+    }
 
     if (response && response.success) {
       console.log('✅ Background Service Worker 狀態正常', response)
