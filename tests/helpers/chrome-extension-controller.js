@@ -656,6 +656,136 @@ class ChromeExtensionController {
     return { success: true, retry: true }
   }
 
+  async importDataFromFile (exportedFile, options = {}) {
+    this.recordAPICall('popup.import.importDataFromFile', { options })
+    
+    // 模擬匯入延遲
+    await this.simulateDelay(800)
+    
+    try {
+      // 解析匯入檔案
+      let importData
+      if (exportedFile && exportedFile.data) {
+        importData = exportedFile.data
+      } else if (typeof exportedFile === 'string') {
+        // 模擬從檔案路徑讀取
+        importData = {
+          books: [],
+          version: '0.9.34',
+          source: 'file-import'
+        }
+      } else {
+        throw new Error('Invalid import file format')
+      }
+
+      const currentStorageData = await this.getStorageData()
+      const currentBooks = currentStorageData.books || []
+      const importBooks = importData.books || []
+
+      let finalBooks = []
+      let conflicts = []
+
+      switch (options.mode) {
+        case 'merge':
+          // 合併模式：保留兩邊的書籍，處理衝突
+          const bookMap = new Map()
+          
+          // 先添加現有書籍
+          currentBooks.forEach(book => bookMap.set(book.id, book))
+          
+          // 處理匯入書籍，檢查衝突
+          importBooks.forEach(book => {
+            if (bookMap.has(book.id)) {
+              const existingBook = bookMap.get(book.id)
+              if (existingBook.progress !== book.progress) {
+                conflicts.push({
+                  bookId: book.id,
+                  type: 'progress_conflict',
+                  existing: existingBook.progress,
+                  imported: book.progress,
+                  resolution: Math.max(existingBook.progress, book.progress) // 使用較高進度
+                })
+                // 使用較高的進度
+                bookMap.set(book.id, {
+                  ...existingBook,
+                  progress: Math.max(existingBook.progress, book.progress)
+                })
+              }
+            } else {
+              bookMap.set(book.id, book)
+            }
+          })
+          
+          finalBooks = Array.from(bookMap.values())
+          break
+          
+        case 'replace':
+          // 替換模式：完全使用匯入資料
+          finalBooks = importBooks
+          break
+          
+        default:
+          // 預設模式：添加新書籍，保留現有書籍
+          const existingIds = new Set(currentBooks.map(book => book.id))
+          const newBooks = importBooks.filter(book => !existingIds.has(book.id))
+          finalBooks = [...currentBooks, ...newBooks]
+      }
+
+      // 更新儲存
+      this.state.storage.set('books', finalBooks)
+      this.state.storage.set('lastImport', new Date().toISOString())
+      this.state.storage.set('importSource', importData.source || 'unknown')
+
+      return {
+        success: true,
+        importedCount: importBooks.length, // 測試期望的屬性名
+        importedBookCount: importBooks.length,
+        finalBookCount: finalBooks.length,
+        conflicts: conflicts,
+        conflictCount: conflicts.length,
+        mode: options.mode || 'add',
+        timestamp: new Date().toISOString()
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      }
+    }
+  }
+
+  async subscribeToExportProgress (callback) {
+    this.recordAPICall('popup.export.subscribeToProgress', {})
+    
+    // 模擬匯出進度事件
+    const progressEvents = [
+      { stage: 'preparing', progress: 0, message: '準備匯出資料...' },
+      { stage: 'reading', progress: 25, message: '讀取書籍資料...' },
+      { stage: 'processing', progress: 50, message: '處理資料格式...' },
+      { stage: 'generating', progress: 75, message: '生成匯出檔案...' },
+      { stage: 'completed', progress: 100, message: '匯出完成！' }
+    ]
+
+    // 模擬進度回調
+    for (const event of progressEvents) {
+      await this.simulateDelay(200)
+      if (callback) {
+        callback(event)
+      }
+    }
+
+    // 返回訂閱控制物件
+    return {
+      unsubscribe: () => {
+        this.recordAPICall('popup.export.unsubscribe', {})
+        return true
+      },
+      isActive: true,
+      totalEvents: progressEvents.length
+    }
+  }
+
   async measureButtonResponseTime () {
     // 模擬按鈕響應時間測量
     return Math.random() * 50 + 20 // 20-70ms 隨機響應時間

@@ -409,23 +409,41 @@ class TestDataGenerator {
       })
     }
 
-    // 生成進行中的書籍 - 使用更精確的進度分佈
-    let totalInProgressSum = 0
+    // 計算整體目標：需要考慮已完成書籍（100%）和進行中書籍的平均值
+    // 已完成書籍的貢獻：completedCount * 100
+    // 進行中書籍的總貢獻需要：(averageProgress * count) - (completedCount * 100)
+    const totalTargetProgress = averageProgress * count
+    const completedContribution = completedCount * 100
+    const inProgressTotalNeeded = totalTargetProgress - completedContribution
+    
+    // 生成進行中的書籍 - 精確控制以達到目標總平均
     const inProgressBooks = []
     
-    for (let i = 0; i < inProgressCount; i++) {
-      // 對於前面的書籍，允許一些變化
-      if (i < inProgressCount - 1) {
-        const progressVariation = this.randomInt(-3, 3) // 更小的變化範圍
-        const progress = Math.max(0, Math.min(99, averageProgress + progressVariation))
-        totalInProgressSum += progress
-        inProgressBooks.push(progress)
-      } else {
-        // 最後一本書用來調整總平均值
-        const targetTotal = averageProgress * inProgressCount
-        const remainingProgress = targetTotal - totalInProgressSum
-        const finalProgress = Math.max(0, Math.min(99, remainingProgress))
-        inProgressBooks.push(finalProgress)
+    if (inProgressCount > 0) {
+      // 計算進行中書籍需要的平均進度
+      const inProgressAverage = inProgressTotalNeeded / inProgressCount
+      const clampedAverage = Math.max(0, Math.min(99, inProgressAverage))
+      
+      for (let i = 0; i < inProgressCount; i++) {
+        if (i === inProgressCount - 1) {
+          // 最後一本書：計算確切需要的進度值以達到精確總和
+          const currentSum = inProgressBooks.reduce((sum, progress) => sum + progress, 0)
+          const neededProgress = inProgressTotalNeeded - currentSum
+          const finalProgress = Math.max(0, Math.min(99, neededProgress))
+          inProgressBooks.push(finalProgress)
+        } else {
+          // 其他書籍：使用計算出的平均值，允許小幅變化
+          let progress = clampedAverage
+          
+          // 對於多本書的情況，允許一些變化但確保能調整回來
+          if (inProgressCount > 1) {
+            const maxVariation = Math.min(3, Math.floor(Math.abs(clampedAverage) * 0.05)) // 更小的變化範圍
+            const variation = this.randomInt(-maxVariation, maxVariation)
+            progress = Math.max(1, Math.min(99, clampedAverage + variation))
+          }
+          
+          inProgressBooks.push(progress)
+        }
       }
     }
     
