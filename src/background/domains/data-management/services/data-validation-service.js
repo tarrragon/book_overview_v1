@@ -260,6 +260,16 @@ class DataValidationService {
       validBooks = processedBooks
       await this._updateValidationCache(validBooksFromValidation, processedBooks)
 
+      // 發送批次處理完成事件
+      this.eventBus.emit('DATA.BATCH.PROCESSED', {
+        platform,
+        totalBooks: books.length,
+        validBooks: validBooks.length,
+        invalidBooks: invalidBooksFromValidation.length,
+        processingTime: Date.now() - (Date.now() - (performanceMetrics.totalTime || 0)),
+        timestamp: new Date().toISOString()
+      })
+
       return this._calculateFinalResults(books, processedBooks, validBooks, errors, warnings, performanceMetrics, startTime, invalidBooksFromValidation)
     } catch (error) {
       // 檢查是否為系統級致命錯誤，這些應該被重新拋出
@@ -272,6 +282,13 @@ class DataValidationService {
       }
       
       // 其他驗證錯誤返回錯誤結果
+      // 發送驗證失敗事件
+      this.eventBus.emit('DATA.VALIDATION.FAILED', {
+        error: error.message,
+        totalBooks: books.length,
+        timestamp: new Date().toISOString()
+      })
+      
       return this._handleValidationError(error, books, warnings, performanceMetrics, startTime)
     }
   }
@@ -666,6 +683,16 @@ class DataValidationService {
     this._addPerformanceWarnings(books, performanceMetrics, warnings)
     
     const success = this._determineOverallSuccess(errors, validBooks, invalidBooks)
+
+    // 發送效能報告事件
+    const performanceReport = this._generatePerformanceReport(books.length, performanceMetrics)
+    this.eventBus.emit('DATA.VALIDATION.PERFORMANCE_REPORT', {
+      totalBooks: books.length,
+      processingTime: performanceMetrics.totalTime,
+      performance: performanceReport,
+      cacheHitRate: performanceMetrics.cacheHitRate || 0,
+      timestamp: new Date().toISOString()
+    })
 
     return this._formatValidationResult(success, processedBooks, validBooks, errors, warnings, books, performanceMetrics, false, invalidBooks)
   }

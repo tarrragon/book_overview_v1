@@ -10,8 +10,8 @@
 const { E2ETestSuite } = require('../../helpers/e2e-test-suite')
 const { ChromeExtensionController } = require('../../helpers/chrome-extension-controller')
 const { TestDataGenerator } = require('../../helpers/test-data-generator')
-const { ErrorSimulator } = require('../../helpers/error-simulator')
-const { RecoveryValidator } = require('../../helpers/recovery-validator')
+const ErrorSimulator = require('../../helpers/error-simulator')
+const RecoveryValidator = require('../../helpers/recovery-validator')
 
 describe('錯誤恢復工作流程整合測試', () => {
   let testSuite

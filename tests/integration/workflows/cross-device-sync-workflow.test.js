@@ -10,7 +10,7 @@
 const { E2ETestSuite } = require('../../helpers/e2e-test-suite')
 const { ChromeExtensionController } = require('../../helpers/chrome-extension-controller')
 const { TestDataGenerator } = require('../../helpers/test-data-generator')
-const { CrossDeviceSyncSimulator } = require('../../helpers/cross-device-sync-simulator')
+const CrossDeviceSyncSimulator = require('../../helpers/cross-device-sync-simulator')
 
 describe('跨設備同步工作流程整合測試', () => {
   let testSuite
