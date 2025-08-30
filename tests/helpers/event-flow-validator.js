@@ -530,4 +530,4 @@ class EventFlowValidator {
   }
 }
 
-module.exports = EventFlowValidator
+module.exports = { EventFlowValidator }

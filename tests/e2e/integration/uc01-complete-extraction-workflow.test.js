@@ -12,7 +12,7 @@
 const E2EIntegrationTestCoordinator = require('../../helpers/e2e-integration-test-coordinator')
 const ChromeExtensionEnvironmentSimulator = require('../../helpers/chrome-extension-environment-simulator')
 const ReadmooPageSimulator = require('../../helpers/readmoo-page-simulator')
-const EventFlowValidator = require('../../helpers/event-flow-validator')
+const { EventFlowValidator } = require('../../helpers/event-flow-validator')
 const E2ETestDataGenerator = require('../../helpers/e2e-test-data-generator')
 
 describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
