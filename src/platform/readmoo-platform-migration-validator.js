@@ -1259,13 +1259,40 @@ class ReadmooPlatformMigrationValidator {
    * @param {Object} data - 資料物件
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateDataIntegrity(data) {
-    // 如果有兩個參數，使用原本的方法
+  async validateDataIntegrity(data, expectedCount = null) {
+    // 如果有兩個參數（data 和 expectedCount），處理批量驗證
     if (arguments.length === 2) {
-      return super.validateDataIntegrity.apply(this, arguments)
+      // 執行原本的兩個參數版本邏輯
+      const dataArray = Array.isArray(data) ? data : [data]
+      const validationResults = []
+      
+      for (const item of dataArray) {
+        const result = await this.validateSingleDataIntegrity(item)
+        validationResults.push(result)
+      }
+      
+      const validItems = validationResults.filter(r => r.dataValid)
+      const invalidItems = validationResults.filter(r => !r.dataValid)
+      
+      return {
+        dataValid: validItems.length === dataArray.length,
+        totalItems: dataArray.length,
+        validItems: validItems.length,
+        invalidItems: invalidItems.length,
+        expectedCount: expectedCount,
+        countMatches: expectedCount ? dataArray.length === expectedCount : true,
+        validationResults: validationResults
+      }
     }
 
     // 單個參數版本的實作
+    return this.validateSingleDataIntegrity(data)
+  }
+
+  /**
+   * 驗證單個資料項目的完整性
+   */
+  async validateSingleDataIntegrity(data) {
     const requiredFields = ['bookId', 'title', 'author', 'progress']
     const missingFields = []
     const dataTypes = {}

@@ -23,6 +23,11 @@ class InjectionAnalyzer {
   reset() {
     this.injections = []
   }
+
+  async cleanup() {
+    this.reset()
+    // 清理任何資源
+  }
 }
 
-module.exports = InjectionAnalyzer
+module.exports = { InjectionAnalyzer }

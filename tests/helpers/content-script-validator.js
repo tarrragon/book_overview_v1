@@ -1,5 +1,5 @@
 /**
- * Content Script Validator - g�s,WIh
+ * Content Script Validator - g�s,WIh
  */
 
 class ContentScriptValidator {
@@ -26,6 +26,11 @@ class ContentScriptValidator {
   reset() {
     this.validationResults = []
   }
+
+  async cleanup() {
+    this.reset()
+    // 清理任何資源
+  }
 }
 
-module.exports = ContentScriptValidator
+module.exports = { ContentScriptValidator }
