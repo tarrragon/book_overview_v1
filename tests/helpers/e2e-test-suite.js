@@ -465,15 +465,28 @@ class E2ETestSuite {
     return { success: true, mockSetup: true }
   }
 
-  async injectMockBooks (books) {
+  async injectMockBooks (books, tabId = null) {
     this.testData.books = books || []
-    this.log(`注入模擬書籍資料: ${this.testData.books.length} 本書`)
+    this.log(`注入模擬書籍資料: ${this.testData.books.length} 本書` + (tabId ? ` (Tab ${tabId})` : ''))
 
     // 更新 extensionController 的狀態
     if (this.extensionController) {
-      this.extensionController.state.storage.set('mockBooksCount', this.testData.books.length)
-      this.extensionController.state.storage.set('isReadmooPage', true)
-      this.extensionController.state.storage.set('expectedBookCount', this.testData.books.length)
+      if (tabId) {
+        // 為特定分頁設置數據
+        if (!this.extensionController.state.testData) {
+          this.extensionController.state.testData = new Map()
+        }
+        this.extensionController.state.testData.set(tabId, {
+          books: books || [],
+          tabId: tabId
+        })
+        this.log(`為 Tab ${tabId} 設置書籍數據: ${(books || []).length} 本書`)
+      } else {
+        // 設置全局數據（向後兼容）
+        this.extensionController.state.storage.set('mockBooksCount', this.testData.books.length)
+        this.extensionController.state.storage.set('isReadmooPage', true)
+        this.extensionController.state.storage.set('expectedBookCount', this.testData.books.length)
+      }
     }
 
     return { success: true, injectedCount: this.testData.books.length }

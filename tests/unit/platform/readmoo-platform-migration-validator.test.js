@@ -125,11 +125,11 @@ describe('ReadmooPlatformMigrationValidator', () => {
       // 驗證結果
       expect(result).toBeDefined()
       expect(result.isValid).toBe(true)
-      expect(result.platformValidation.isValid).toBe(true)
-      expect(result.dataExtractionValidation.isValid).toBe(true)
-      expect(result.eventSystemValidation.isValid).toBe(true)
-      expect(result.backwardCompatibilityValidation.isValid).toBe(true)
-      expect(result.dataIntegrityValidation.isValid).toBe(true)
+      expect(result.data.validationDetails.platformValidation.isValid).toBe(true)
+      expect(result.data.validationDetails.dataExtractionValidation.isValid).toBe(true)
+      expect(result.data.validationDetails.eventSystemValidation.isValid).toBe(true)
+      expect(result.data.validationDetails.backwardCompatibilityValidation.isValid).toBe(true)
+      expect(result.data.validationDetails.dataIntegrityValidation.isValid).toBe(true)
     })
 
     it('應該在平台檢測失敗時返回驗證失敗', async () => {
@@ -150,8 +150,8 @@ describe('ReadmooPlatformMigrationValidator', () => {
       const result = await validator.validateReadmooMigration(validationContext)
 
       expect(result.isValid).toBe(false)
-      expect(result.platformValidation.isValid).toBe(false)
-      expect(result.platformValidation.errors).toContain('Platform detection failed: UNKNOWN platform detected')
+      expect(result.data.validationDetails.platformValidation.isValid).toBe(false)
+      expect(result.data.validationDetails.platformValidation.errors).toContain('Platform detection failed: UNKNOWN platform detected')
     })
 
     it('應該在資料提取失敗時返回驗證失敗', async () => {
@@ -173,8 +173,8 @@ describe('ReadmooPlatformMigrationValidator', () => {
       const result = await validator.validateReadmooMigration(validationContext)
 
       expect(result.isValid).toBe(false)
-      expect(result.dataExtractionValidation.isValid).toBe(false)
-      expect(result.dataExtractionValidation.errors).toContain('Data extraction failed: Data extraction failed')
+      expect(result.data.validationDetails.dataExtractionValidation.isValid).toBe(false)
+      expect(result.data.validationDetails.dataExtractionValidation.errors).toContain('Data extraction failed: Data extraction failed')
     })
 
     it('應該在驗證超時時處理錯誤', async () => {
@@ -192,7 +192,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
 
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Validation timeout after 30000ms')
-    })
+    }, 40000)
   })
 
   describe('validatePlatformDetection', () => {
@@ -214,8 +214,8 @@ describe('ReadmooPlatformMigrationValidator', () => {
       const result = await validator.validatePlatformDetection(context)
 
       expect(result.isValid).toBe(true)
-      expect(result.detectionResult).toBe(mockDetectionResult)
-      expect(result.confidence).toBe(0.95)
+      expect(result.data.detectionResult).toBe(mockDetectionResult)
+      expect(result.data.confidence).toBe(0.95)
       expect(result.errors).toEqual([])
     })
 
@@ -282,8 +282,8 @@ describe('ReadmooPlatformMigrationValidator', () => {
       const result = await validator.validateDataExtraction(context)
 
       expect(result.isValid).toBe(true)
-      expect(result.extractedData).toBe(mockBookData)
-      expect(result.dataCount).toBe(2)
+      expect(result.data.extractedData).toBe(mockBookData)
+      expect(result.data.dataCount).toBe(2)
       expect(result.errors).toEqual([])
     })
 
@@ -349,9 +349,9 @@ describe('ReadmooPlatformMigrationValidator', () => {
       const result = await validator.validateEventSystemIntegration(context)
 
       expect(result.isValid).toBe(true)
-      expect(result.v2EventsSupported).toBe(true)
-      expect(result.legacyEventsSupported).toBe(true)
-      expect(result.eventConversionAccuracy).toBeGreaterThan(0.95)
+      expect(result.data.v2EventsSupported).toBe(true)
+      expect(result.data.legacyEventsSupported).toBe(true)
+      expect(result.data.eventConversionAccuracy).toBeGreaterThan(0.95)
     })
 
     it('應該檢測事件格式轉換錯誤', async () => {
@@ -379,9 +379,9 @@ describe('ReadmooPlatformMigrationValidator', () => {
       const result = await validator.validateBackwardCompatibility(context)
 
       expect(result.isValid).toBe(true)
-      expect(result.legacyEventsSupported).toBe(true)
-      expect(result.legacyApiSupported).toBe(true)
-      expect(result.configurationMigrated).toBe(true)
+      expect(result.data.legacyEventsSupported).toBe(true)
+      expect(result.data.legacyApiSupported).toBe(true)
+      expect(result.data.configurationMigrated).toBe(true)
     })
 
     it('應該檢測向後相容性問題', async () => {
@@ -409,9 +409,9 @@ describe('ReadmooPlatformMigrationValidator', () => {
       const result = await validator.validateDataIntegrity(beforeData, afterData)
 
       expect(result.isValid).toBe(true)
-      expect(result.dataLoss).toBe(0)
-      expect(result.dataCorruption).toBe(0)
-      expect(result.integrityScore).toBe(1.0)
+      expect(result.data.dataLoss).toBe(0)
+      expect(result.data.dataCorruption).toBe(0)
+      expect(result.data.integrityScore).toBe(1.0)
     })
 
     it('應該檢測資料遺失', async () => {
@@ -426,7 +426,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
       const result = await validator.validateDataIntegrity(beforeData, afterData)
 
       expect(result.isValid).toBe(false)
-      expect(result.dataLoss).toBe(1)
+      expect(result.data.dataLoss).toBe(1)
       expect(result.errors).toContain('Data loss detected: 1 items missing')
     })
 
@@ -441,7 +441,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
       const result = await validator.validateDataIntegrity(beforeData, afterData)
 
       expect(result.isValid).toBe(false)
-      expect(result.dataCorruption).toBe(1)
+      expect(result.data.dataCorruption).toBe(1)
       expect(result.errors).toContain('Data corruption detected in 1 items')
     })
   })

@@ -283,9 +283,15 @@ class ReadmooPlatformMigrationValidator {
         validationResults.platformValidation = await this.validatePlatformDetection(validationContext)
 
         if (!validationResults.platformValidation.isValid) {
-          // 直接返回平台檢測的具體錯誤，不進行重試
+          // 使用 createValidationResult 來創建嵌套結構
           return this.createValidationResult(false, {
-            validationDetails: validationResults
+            validationDetails: {
+              platformValidation: validationResults.platformValidation,
+              dataExtractionValidation: validationResults.dataExtractionValidation,
+              eventSystemValidation: validationResults.eventSystemValidation,
+              backwardCompatibilityValidation: validationResults.backwardCompatibilityValidation,
+              dataIntegrityValidation: validationResults.dataIntegrityValidation
+            }
           }, validationResults.platformValidation.errors)
         }
 
@@ -293,9 +299,15 @@ class ReadmooPlatformMigrationValidator {
         validationResults.dataExtractionValidation = await this.validateDataExtraction(validationContext)
 
         if (!validationResults.dataExtractionValidation.isValid) {
-          // 直接返回資料提取的具體錯誤，不進行重試
+          // 使用 createValidationResult 來創建嵌套結構
           return this.createValidationResult(false, {
-            validationDetails: validationResults
+            validationDetails: {
+              platformValidation: validationResults.platformValidation,
+              dataExtractionValidation: validationResults.dataExtractionValidation,
+              eventSystemValidation: validationResults.eventSystemValidation,
+              backwardCompatibilityValidation: validationResults.backwardCompatibilityValidation,
+              dataIntegrityValidation: validationResults.dataIntegrityValidation
+            }
           }, validationResults.dataExtractionValidation.errors)
         }
 
@@ -326,9 +338,15 @@ class ReadmooPlatformMigrationValidator {
       } catch (error) {
         retryCount++
         if (retryCount >= maxRetries) {
-          return this.createValidationResult(false, [], [
-            `Max retries exceeded: ${error.message}`
-          ])
+          return this.createValidationResult(false, {
+            validationDetails: {
+              platformValidation: validationResults.platformValidation,
+              dataExtractionValidation: validationResults.dataExtractionValidation,
+              eventSystemValidation: validationResults.eventSystemValidation,
+              backwardCompatibilityValidation: validationResults.backwardCompatibilityValidation,
+              dataIntegrityValidation: validationResults.dataIntegrityValidation
+            }
+          }, [`Max retries exceeded: ${error.message}`])
         }
 
         // 等待重試間隔
@@ -807,13 +825,15 @@ class ReadmooPlatformMigrationValidator {
       return errors.concat(result.errors || [])
     }, [])
 
-    const allData = results.reduce((data, result) => {
-      return { ...data, ...result.data }
-    }, {})
-
+    // 使用 createValidationResult 來創建嵌套結構，以符合 readmoo-platform-v2-integration.test.js 的期望
     return this.createValidationResult(isOverallValid, {
-      ...allData,
-      validationDetails: validationResults
+      validationDetails: {
+        platformValidation: validationResults.platformValidation,
+        dataExtractionValidation: validationResults.dataExtractionValidation,
+        eventSystemValidation: validationResults.eventSystemValidation,
+        backwardCompatibilityValidation: validationResults.backwardCompatibilityValidation,
+        dataIntegrityValidation: validationResults.dataIntegrityValidation
+      }
     }, allErrors)
   }
 
