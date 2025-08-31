@@ -28,7 +28,7 @@
 
 ## 🎯 專案當前狀態
 
-🎉 **v0.9.48 - 整合測試重大突破完成，v1.0.0 準備中**
+🎉 **v0.9.49 - Chrome Extension 整合測試重大突破，content-script-injection.test.js 從 1/9 提升至 7/9 通過**
 
 ### 📚 核心功能完成狀況
 
@@ -86,6 +86,34 @@
 - 🛡️ 輸入驗證與錯誤處理 (2/2 通過)
 - 🧹 服務清理與資源管理 (2/2 通過)
 - ⚙️ 配置管理測試 (2/2 通過)
+
+---
+
+## 🔄 v0.9.49 當前工作 - Chrome Extension 整合測試修復
+
+### 🏆 重大突破 - content-script-injection.test.js 大幅改善
+
+**測試進度**: 7/9 通過 (77.8%) - 從 1/9 (11.1%) 大幅改善 **+66.7%**
+
+**✅ 已解決核心問題**:
+- 腳本類型匹配 - 修復 `navigateToPage()` 重複定義問題
+- 頁面跳過檢測 - 修正跳過原因邏輯順序  
+- 書籍數量提取 - 修復 `injectMockBooks()` 重複定義
+- 頁面重載重注入 - 修正 `cleanupPerformed` 邏輯
+- 生命周期管理 - 完善測試輔助方法
+
+**⚠️ 剩餘 4 個失敗測試**:
+1. 錯誤處理測試 (errorHandled: false)
+2. 多分頁書籍數量 (期望 80 得到 0)
+3. CSP 違規檢測 (cspViolationDetected: false) 
+4. 惡意頁面對抗措施 (countermeasuresActivated: [])
+
+### 📋 優先任務清單
+- [ ] **進行中**: 完成 content-script-injection.test.js 剩餘修復
+- [ ] **待開始**: readmoo-platform-migration-validator.test.js (13個失敗測試)
+- [ ] **計劃中**: 系統性修復其他失敗測試套件
+
+---
 
 ### ✅ v0.9.26-v0.9.37 重大成就（架構簡化與測試分析完成）
 

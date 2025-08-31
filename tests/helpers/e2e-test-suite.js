@@ -266,6 +266,21 @@ class E2ETestSuite {
     })
   }
 
+  /**
+   * 通用日誌方法
+   */
+  log(message, level = 'info') {
+    if (this.config.enableLogging !== false) {
+      const timestamp = new Date().toISOString()
+      console.log(`[E2ETestSuite ${timestamp}] ${message}`)
+    }
+    
+    // 如果啟用詳細日誌，也記錄到操作日誌
+    if (this.detailedLogging && this.detailedLogging.enabled) {
+      this.logOperation('LOG', { message, level })
+    }
+  }
+
   async executeWorkflow (workflowName, steps = []) {
     if (!this.testEnvironment.initialized) {
       throw new Error('測試套件未初始化，請先呼叫 initialize()')
@@ -452,6 +467,7 @@ class E2ETestSuite {
 
   async injectMockBooks (books) {
     this.testData.books = books || []
+    this.log(`注入模擬書籍資料: ${this.testData.books.length} 本書`)
 
     // 更新 extensionController 的狀態
     if (this.extensionController) {
@@ -482,6 +498,125 @@ class E2ETestSuite {
     return { success: true, networkDisconnected: true }
   }
 
+  async restoreNormalConditions() {
+    // 恢復正常測試環境
+    this.log('恢復正常環境')
+    
+    // 清理 extensionController 的錯誤狀態
+    if (this.extensionController) {
+      this.extensionController.state.tabPermissionsRevoked = false
+      this.extensionController.state.scriptLoadingError = false
+      this.extensionController.state.cspTestConfig = null
+      this.extensionController.state.cspSettings = null
+    }
+    
+    return { success: true, restored: true }
+  }
+
+  async revokeTabPermissions() {
+    this.log('撤銷標籤頁權限')
+    
+    // 設置 extensionController 的狀態
+    if (this.extensionController) {
+      this.extensionController.state.tabPermissionsRevoked = true
+    }
+    
+    return { success: true, permissionsRevoked: true }
+  }
+
+  async navigateToIncompleteReadmooPage() {
+    this.log('導航到不完整的Readmoo頁面')
+    return { success: true, pageIncomplete: true }
+  }
+
+  async createNewTab(url) {
+    this.log(`創建新標籤頁: ${url}`)
+    const tabId = Date.now() + Math.floor(Math.random() * 1000) // 簡單的ID生成
+    return {
+      id: tabId,
+      url: url,
+      active: true
+    }
+  }
+
+  async reloadCurrentPage() {
+    this.log('重新載入當前頁面')
+    
+    // 重載時重置Content Script狀態
+    if (this.extensionController) {
+      const contentContext = this.extensionController.state.contexts.get('content')
+      if (contentContext) {
+        contentContext.state = 'unloaded' // 重載後設為未載入狀態
+      }
+    }
+    
+    return { success: true, reloaded: true }
+  }
+
+  async closeTab(tabId) {
+    this.log(`關閉標籤頁: ${tabId}`)
+    return { success: true, tabClosed: tabId }
+  }
+
+  async setupCSPTestPage(config) {
+    this.log(`設置CSP測試頁面: ${config.cspPolicy || 'no CSP'}`)
+    return { success: true, cspConfigured: true, config }
+  }
+
+  async clearMaliciousPage() {
+    this.log('清理惡意頁面環境')
+    return { success: true, maliciousPageCleared: true }
+  }
+
+  async navigateToPage(url) {
+    this.log(`導航到頁面: ${url}`)
+    
+    // 設置頁面環境資訊
+    if (this.extensionController) {
+      const isReadmooPage = url.includes('readmoo.com')
+      
+      // 設置頁面環境
+      this.extensionController.state.pageEnvironment = {
+        url: url,
+        pageType: this.determinePageType(url)
+      }
+      
+      // 同時更新存儲狀態
+      this.extensionController.state.storage.set('isReadmooPage', isReadmooPage)
+      this.extensionController.state.storage.set('currentUrl', url)
+
+      if (!isReadmooPage) {
+        this.extensionController.state.storage.set('pageDetectionError', true)
+        this.extensionController.state.storage.set('errorMessage', 'Readmoo 頁面檢測失敗')
+      } else {
+        // 清除錯誤狀態
+        this.extensionController.state.storage.set('pageDetectionError', false)
+        this.extensionController.state.storage.set('errorMessage', null)
+      }
+    }
+    
+    return { success: true, url, navigated: true }
+  }
+  
+  determinePageType(url) {
+    if (url.includes('/library')) {
+      if (url.includes('category=')) {
+        return 'library_filtered'
+      }
+      return 'library'
+    }
+    if (url.includes('/search')) {
+      return 'search_results'
+    }
+    if (url.includes('/book/')) {
+      return 'book_detail'
+    }
+    if (url.includes('/reader/')) {
+      return 'reader'
+    }
+    return 'unsupported'
+  }
+
   async restoreNetworkConnection () {
     return { success: true, networkRestored: true }
   }
@@ -509,21 +644,6 @@ class E2ETestSuite {
     }
   }
 
-  async navigateToPage (url) {
-    // 更新 extensionController 的頁面狀態
-    if (this.extensionController) {
-      const isReadmooPage = url.includes('readmoo.com')
-      this.extensionController.state.storage.set('isReadmooPage', isReadmooPage)
-      this.extensionController.state.storage.set('currentUrl', url)
-
-      if (!isReadmooPage) {
-        this.extensionController.state.storage.set('pageDetectionError', true)
-        this.extensionController.state.storage.set('errorMessage', 'Readmoo 頁面檢測失敗')
-      }
-    }
-
-    return { success: true, url, navigated: true }
-  }
 
   async cleanup () {
     try {
@@ -943,6 +1063,122 @@ class E2ETestSuite {
       throw new Error(`系統重啟模擬失敗: ${error.message}`)
     }
   }
+
+  // 添加Content Script測試所需的方法
+  async navigateToCSPRestrictedPage(options = {}) {
+    this.log('導航到CSP受限頁面')
+    
+    // 模擬CSP受限頁面設置
+    const cspSettings = {
+      'script-src': "'self'",
+      'object-src': "'none'",
+      'base-uri': "'self'",
+      ...options.csp
+    }
+
+    if (this.extensionController) {
+      await this.extensionController.simulateCSPRestriction(cspSettings)
+    }
+
+    return { 
+      success: true, 
+      cspApplied: true,
+      restrictions: Object.keys(cspSettings)
+    }
+  }
+
+  async setupComplexJSEnvironmentPage(config = {}) {
+    this.log('設置複雜JavaScript環境頁面')
+    
+    const {
+      globalVariables = [],
+      libraryConflicts = [],
+      eventListeners = []
+    } = config
+
+    // 模擬複雜JS環境
+    const mockEnv = {
+      globals: globalVariables.reduce((acc, name) => {
+        acc[name] = `mock_${name}_value`
+        return acc
+      }, {}),
+      libraries: libraryConflicts,
+      listeners: eventListeners
+    }
+
+    if (this.extensionController) {
+      await this.extensionController.setupMockPageEnvironment(mockEnv)
+    }
+
+    return {
+      success: true,
+      environment: mockEnv,
+      complexity: 'high'
+    }
+  }
+
+  async setupCSPTestPage(config = {}) {
+    this.log('設置CSP測試頁面')
+    
+    const { cspPolicy, pageContent } = config
+
+    // 模擬CSP測試環境
+    if (this.extensionController) {
+      await this.extensionController.setupCSPTestEnvironment({
+        policy: cspPolicy,
+        content: pageContent
+      })
+    }
+
+    return {
+      success: true,
+      cspPolicy: cspPolicy,
+      contentLoaded: true
+    }
+  }
+
+  async setupMaliciousPage(config = {}) {
+    this.log('設置惡意頁面測試環境')
+    
+    const { behavior, targets } = config
+
+    // 模擬惡意頁面行為
+    const maliciousActions = {
+      behavior: behavior,
+      targets: targets || [],
+      timestamp: Date.now()
+    }
+
+    if (this.extensionController) {
+      await this.extensionController.simulateMaliciousPageBehavior(maliciousActions)
+    }
+
+    return {
+      success: true,
+      maliciousActionsConfigured: true,
+      behavior: behavior
+    }
+  }
+
+  async createNewTab(url = 'about:blank') {
+    this.log(`創建新標籤頁: ${url}`)
+    
+    const tabId = Math.floor(Math.random() * 10000) + 1000
+    const tab = {
+      id: tabId,
+      url: url,
+      active: false,
+      created: Date.now()
+    }
+
+    // 模擬標籤頁創建
+    if (this.extensionController) {
+      await this.extensionController.createTab(tab)
+    }
+
+    return tab
+  }
+
 
   // 靜態工廠方法
   static async create (config = {}) {

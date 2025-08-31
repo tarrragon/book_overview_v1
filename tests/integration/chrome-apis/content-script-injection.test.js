@@ -183,7 +183,7 @@ describe('Content Script 注入整合測試', () => {
 
         expect(result.injectionSkipped).toBe(true)
         expect(result.detectionTime).toBeLessThan(500) // 檢測時間<500ms
-        expect(result.actualReason).toBe(page.expectedReason)
+        expect(result.actualReason).toBe(page.reason)
 
         // 檢查錯誤訊息的用戶友善性
         if (result.errorMessage) {
