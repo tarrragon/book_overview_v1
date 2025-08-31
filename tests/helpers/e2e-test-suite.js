@@ -892,6 +892,58 @@ class E2ETestSuite {
     return this.errorLogs || []
   }
 
+  /**
+   * 模擬系統重啟
+   */
+  async simulateSystemRestart() {
+    try {
+      // 記錄重啟前的狀態
+      const preRestartState = {
+        initialized: this.testEnvironment.initialized,
+        extensionState: this.extensionController?.state || {},
+        testDataCount: this.testData.books.length,
+        timestamp: Date.now()
+      }
+
+      // 清理當前狀態
+      await this.cleanup()
+
+      // 重新初始化系統
+      await this.initialize()
+
+      // 恢復基本狀態
+      if (this.extensionController) {
+        this.extensionController.state.installed = true
+        this.extensionController.state.loaded = true
+      }
+
+      // 記錄重啟後的狀態
+      const postRestartState = {
+        initialized: this.testEnvironment.initialized,
+        extensionState: this.extensionController?.state || {},
+        testDataCount: this.testData.books.length,
+        timestamp: Date.now()
+      }
+
+      this.logOperation('system_restart', {
+        preRestart: preRestartState,
+        postRestart: postRestartState,
+        duration: postRestartState.timestamp - preRestartState.timestamp
+      })
+
+      return {
+        success: true,
+        preRestartState,
+        postRestartState,
+        restartDuration: postRestartState.timestamp - preRestartState.timestamp,
+        message: '系統重啟模擬完成'
+      }
+    } catch (error) {
+      this.logError(error, 'simulateSystemRestart')
+      throw new Error(`系統重啟模擬失敗: ${error.message}`)
+    }
+  }
+
   // 靜態工廠方法
   static async create (config = {}) {
     const suite = new E2ETestSuite(config)
