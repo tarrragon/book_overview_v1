@@ -84,7 +84,7 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
       readmooAdapter: mockReadmooAdapter,
       platformDetectionService: mockPlatformDetectionService
     }, {
-      maxValidationRetries: 2,
+      maxValidationRetries: 3,
       validationTimeout: 5000,
       minDetectionConfidence: 0.8,
       enableDetailedLogging: true
@@ -787,7 +787,7 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
 
       // 檢查配置資訊
       expect(report.configuration).toBeDefined()
-      expect(report.configuration.maxValidationRetries).toBe(2)
+      expect(report.configuration.maxValidationRetries).toBe(3)
     })
 
     test('應該追蹤驗證統計趨勢', async () => {
@@ -797,11 +797,16 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
       // 執行成功驗證
       await migrationValidator.validateReadmooMigration(validationContext)
 
-      // 執行失敗驗證
+      // 執行失敗驗證 - 使用不同的上下文避免快取命中
+      const failValidationContext = {
+        ...validationContext,
+        url: 'https://readmoo.com/library/different' // 不同的 URL 避免快取
+      }
+      
       mockPlatformDetectionService.detectPlatform.mockRejectedValueOnce(
         new Error('Test error')
       )
-      await migrationValidator.validateReadmooMigration(validationContext)
+      await migrationValidator.validateReadmooMigration(failValidationContext)
 
       const finalReport = migrationValidator.getValidationReport()
 

@@ -1123,20 +1123,35 @@ class ReadmooPlatformMigrationValidator {
    * @returns {boolean} 是否可重試
    */
   isRetryableError (error) {
+    const errorMessage = error.message.toLowerCase()
+    
+    // 明確不可重試的錯誤（優先級高於可重試判斷）
+    const nonRetryableMessages = [
+      'network connection failed',  // 完全的網路連接失敗
+      'invalid platform',
+      'authentication failed',
+      'permission denied'
+    ]
+    
+    // 檢查是否為明確不可重試的錯誤
+    if (nonRetryableMessages.some(msg => errorMessage.includes(msg))) {
+      return false
+    }
+    
+    // 可重試的錯誤
     const retryableMessages = [
-      'network error',
       'temporary network error',
       'temporary',
       'timeout',
-      'connection',
       'ECONNREFUSED',
       'ENOTFOUND',
       'ETIMEDOUT',
       'persistent network error'
     ]
     
-    const errorMessage = error.message.toLowerCase()
-    return retryableMessages.some(msg => errorMessage.includes(msg))
+    const isRetryable = retryableMessages.some(msg => errorMessage.includes(msg))
+    
+    return isRetryable
   }
 
   /**
