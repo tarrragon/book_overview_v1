@@ -204,6 +204,16 @@ class ReadmooPlatformMigrationValidator {
       const cacheKey = this.generateCacheKey(validationContext)
       const cachedResult = this.getCachedResult(cacheKey)
       if (cachedResult) {
+        // 使用快取時仍需更新統計 (快取命中的驗證時間很短)
+        this.updateValidationStats(cachedResult, Date.now() - startTime)
+        
+        // 發送快取驗證結果事件
+        await this.emitEvent('PLATFORM.READMOO.VALIDATION.RESULT', {
+          result: cachedResult,
+          cached: true,
+          timestamp: Date.now()
+        })
+        
         return cachedResult
       }
 
@@ -221,6 +231,12 @@ class ReadmooPlatformMigrationValidator {
 
       // 更新統計
       this.updateValidationStats(result, Date.now() - startTime)
+
+      // 發送驗證結果事件
+      await this.emitEvent('PLATFORM.READMOO.VALIDATION.RESULT', {
+        result,
+        timestamp: Date.now()
+      })
 
       return result
     } catch (error) {
@@ -267,14 +283,20 @@ class ReadmooPlatformMigrationValidator {
         validationResults.platformValidation = await this.validatePlatformDetection(validationContext)
 
         if (!validationResults.platformValidation.isValid) {
-          throw new Error('Platform detection validation failed')
+          // 直接返回平台檢測的具體錯誤，不進行重試
+          return this.createValidationResult(false, {
+            validationDetails: validationResults
+          }, validationResults.platformValidation.errors)
         }
 
         // 2. 資料提取驗證
         validationResults.dataExtractionValidation = await this.validateDataExtraction(validationContext)
 
         if (!validationResults.dataExtractionValidation.isValid) {
-          throw new Error('Data extraction validation failed')
+          // 直接返回資料提取的具體錯誤，不進行重試
+          return this.createValidationResult(false, {
+            validationDetails: validationResults
+          }, validationResults.dataExtractionValidation.errors)
         }
 
         // 3. 事件系統整合驗證
@@ -365,9 +387,18 @@ class ReadmooPlatformMigrationValidator {
         confidence: validationConfidence
       }, [])
     } catch (error) {
-      return this.createValidationResult(false, {}, [
-        `Platform detection error: ${error.message}`
-      ])
+      // 區分可重試錯誤和不可重試錯誤
+      const isRetryableError = this.isRetryableError(error)
+      
+      if (isRetryableError) {
+        // 重新拋出可重試錯誤，觸發上層重試機制
+        throw error
+      } else {
+        // 不可重試錯誤直接返回失敗結果
+        return this.createValidationResult(false, {}, [
+          `Platform detection error: ${error.message}`
+        ])
+      }
     }
   }
 
@@ -861,6 +892,11 @@ class ReadmooPlatformMigrationValidator {
    * @param {number} validationTime - 驗證耗時
    */
   updateValidationStats (result, validationTime) {
+    // 調試信息 - 確保 validationTime 有效
+    if (validationTime <= 0) {
+      console.warn(`Invalid validation time: ${validationTime}`)
+      validationTime = 1 // 設置最小時間避免除零錯誤
+    }
     // 基本統計更新
     if (result.isValid) {
       this.validationStats.successfulValidations++
@@ -939,28 +975,10 @@ class ReadmooPlatformMigrationValidator {
    * @returns {string} 快取鍵
    */
   generateCacheKey (context) {
-    const key = `${context.url || ''}_${context.hostname || ''}_${Date.now()}`
+    const key = `${context.url || ''}_${context.hostname || ''}_${context.userAgent || ''}`
     return key.replace(/[^a-zA-Z0-9_]/g, '_').substring(0, 100)
   }
 
-  /**
-   * 取得快取結果
-   * @param {string} cacheKey - 快取鍵
-   * @returns {Object|null} 快取的驗證結果
-   */
-  getCachedResult (cacheKey) {
-    const cached = this.validationCache.get(cacheKey)
-
-    if (!cached) return null
-
-    // 檢查過期時間
-    if (Date.now() - cached.timestamp > this.cacheTimeout) {
-      this.validationCache.delete(cacheKey)
-      return null
-    }
-
-    return cached.result
-  }
 
   /**
    * 快取驗證結果
@@ -1085,12 +1103,40 @@ class ReadmooPlatformMigrationValidator {
   async emitEvent (eventType, eventData) {
     try {
       if (this.eventBus && typeof this.eventBus.emit === 'function') {
-        await this.eventBus.emit(eventType, eventData)
+        // 發送包含類型的完整事件物件
+        const eventObject = {
+          type: eventType,
+          data: eventData,
+          timestamp: Date.now()
+        }
+        await this.eventBus.emit(eventType, eventObject)
       }
     } catch (error) {
       // 事件發送失敗不應該影響驗證流程
       console.warn(`Failed to emit event ${eventType}:`, error)
     }
+  }
+
+  /**
+   * 判斷錯誤是否可重試
+   * @param {Error} error - 錯誤物件
+   * @returns {boolean} 是否可重試
+   */
+  isRetryableError (error) {
+    const retryableMessages = [
+      'network error',
+      'temporary network error',
+      'temporary',
+      'timeout',
+      'connection',
+      'ECONNREFUSED',
+      'ENOTFOUND',
+      'ETIMEDOUT',
+      'persistent network error'
+    ]
+    
+    const errorMessage = error.message.toLowerCase()
+    return retryableMessages.some(msg => errorMessage.includes(msg))
   }
 
   /**
@@ -1259,7 +1305,7 @@ class ReadmooPlatformMigrationValidator {
    * @param {Object} data - 資料物件
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateDataIntegrity(data, expectedCount = null) {
+  async validateDataCollection(data, expectedCount = null) {
     // 如果有兩個參數（data 和 expectedCount），處理批量驗證
     if (arguments.length === 2) {
       // 執行原本的兩個參數版本邏輯

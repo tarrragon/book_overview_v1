@@ -142,8 +142,10 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
         const result = await migrationValidator.validateReadmooMigration(validationContext)
 
         expect(result.isValid).toBe(false)
-        expect(result.errors).toContain(
-          expect.stringMatching(/Low detection confidence.*0\.6.*minimum required.*0\.8/)
+        expect(result.errors).toEqual(
+          expect.arrayContaining([
+            expect.stringMatching(/Low detection confidence.*0\.6.*minimum required.*0\.8/)
+          ])
         )
       })
 
@@ -158,8 +160,10 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
         const result = await migrationValidator.validateReadmooMigration(validationContext)
 
         expect(result.isValid).toBe(false)
-        expect(result.errors).toContain(
-          expect.stringMatching(/Platform detection failed.*KINDLE platform detected/)
+        expect(result.errors).toEqual(
+          expect.arrayContaining([
+            expect.stringMatching(/Platform detection failed.*KINDLE platform detected/)
+          ])
         )
       })
 
@@ -172,8 +176,10 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
         const result = await migrationValidator.validateReadmooMigration(validationContext)
 
         expect(result.isValid).toBe(false)
-        expect(result.errors).toContain(
-          expect.stringMatching(/Platform detection error.*Network connection failed/)
+        expect(result.errors).toEqual(
+          expect.arrayContaining([
+            expect.stringMatching(/Platform detection error.*Network connection failed/)
+          ])
         )
       })
     })
@@ -258,14 +264,12 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
         // 應該檢測到缺少的欄位
         const fieldValidation = dataValidation.data.fieldValidation
         expect(fieldValidation.isValid).toBe(false)
-        expect(fieldValidation.errors).toContain(
-          expect.stringMatching(/Missing required field 'author' in item 0/)
-        )
-        expect(fieldValidation.errors).toContain(
-          expect.stringMatching(/Missing required field 'progress' in item 0/)
-        )
-        expect(fieldValidation.errors).toContain(
-          expect.stringMatching(/Missing required field 'platform' in item 0/)
+        expect(fieldValidation.errors).toEqual(
+          expect.arrayContaining([
+            expect.stringMatching(/Missing required field 'author' in item 0/),
+            expect.stringMatching(/Missing required field 'progress' in item 0/),
+            expect.stringMatching(/Missing required field 'platform' in item 0/)
+          ])
         )
       })
 
@@ -281,8 +285,10 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
 
         const dataValidation = result.data.validationDetails.dataExtractionValidation
         expect(dataValidation.isValid).toBe(false)
-        expect(dataValidation.errors).toContain(
-          expect.stringMatching(/Data extraction failed.*DOM parsing failed/)
+        expect(dataValidation.errors).toEqual(
+          expect.arrayContaining([
+            expect.stringMatching(/Data extraction failed.*DOM parsing failed/)
+          ])
         )
       })
     })
@@ -556,7 +562,7 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
           readmooAdapter: mockReadmooAdapter,
           platformDetectionService: mockPlatformDetectionService
         }, {
-          validationTimeout: 100 // 100ms 超時
+          validationTimeout: 1000 // 1000ms 超時
         })
 
         // 模擬長時間等待
@@ -565,14 +571,14 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
             setTimeout(() => resolve({
               platformId: 'READMOO',
               confidence: 0.9
-            }), 500) // 500ms 延遲，超過超時時間
+            }), 1500) // 1500ms 延遲，超過超時時間
           )
         )
 
         const result = await shortTimeoutValidator.validateReadmooMigration(validationContext)
 
         expect(result.isValid).toBe(false)
-        expect(result.errors[0]).toMatch(/Validation timeout after 100ms/)
+        expect(result.errors[0]).toMatch(/Validation timeout after 1000ms/)
       })
 
       test('應該支援重試機制', async () => {
