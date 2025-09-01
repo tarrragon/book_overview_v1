@@ -70,9 +70,13 @@ class ContentScriptValidator {
     this.simulatedErrors = []
     this.errorSimulationActive = false
     
-    // 清理 extensionController 的錯誤狀態
+    // 清理 extensionController 的所有錯誤狀態
     if (this.testSuite && this.testSuite.extensionController) {
       this.testSuite.extensionController.state.scriptLoadingError = false
+      this.testSuite.extensionController.state.tabPermissionsRevoked = false
+      this.testSuite.extensionController.state.pageNotReady = false
+      this.testSuite.extensionController.state.cspTestConfig = null
+      this.testSuite.extensionController.state.cspSettings = null
     }
   }
 

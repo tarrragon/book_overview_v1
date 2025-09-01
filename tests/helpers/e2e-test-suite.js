@@ -515,12 +515,14 @@ class E2ETestSuite {
     // 恢復正常測試環境
     this.log('恢復正常環境')
     
-    // 清理 extensionController 的錯誤狀態
+    // 清理 extensionController 的所有錯誤狀態
     if (this.extensionController) {
       this.extensionController.state.tabPermissionsRevoked = false
       this.extensionController.state.scriptLoadingError = false
+      this.extensionController.state.pageNotReady = false
       this.extensionController.state.cspTestConfig = null
       this.extensionController.state.cspSettings = null
+      this.extensionController.state.maliciousEnvironment = null
     }
     
     return { success: true, restored: true }
@@ -539,6 +541,12 @@ class E2ETestSuite {
 
   async navigateToIncompleteReadmooPage() {
     this.log('導航到不完整的Readmoo頁面')
+    
+    // 設置 extensionController 的狀態，標記頁面未準備就緒
+    if (this.extensionController) {
+      this.extensionController.state.pageNotReady = true
+    }
+    
     return { success: true, pageIncomplete: true }
   }
 
