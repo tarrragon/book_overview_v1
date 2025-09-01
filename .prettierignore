@@ -1,0 +1,38 @@
+# 依賴套件
+node_modules/
+
+# 建置輸出
+build/
+dist/
+
+# 測試覆蓋率報告
+coverage/
+coverage-*/
+
+# 日誌檔案
+*.log
+npm-debug.log*
+
+# 暫存檔案
+.tmp/
+temp/
+
+# IDE 檔案
+.vscode/
+.idea/
+
+# 系統檔案
+.DS_Store
+Thumbs.db
+
+# 特定格式保留的檔案
+package-lock.json
+*.min.js
+*.min.css
+
+# 自動生成的檔案
+docs/generated/
+
+# 特殊格式的 HTML 檔案
+source_html/
+test-browser-compatibility.html

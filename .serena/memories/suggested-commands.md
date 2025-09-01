@@ -1,6 +1,7 @@
 # 開發指令速查
 
 ## 測試指令
+
 ```bash
 # 執行核心測試 (單元+整合)
 npm test
@@ -21,6 +22,7 @@ npm run test:integration   # 整合測試
 ```
 
 ## 品質檢查指令
+
 ```bash
 # 程式碼檢查
 npm run lint
@@ -30,6 +32,7 @@ npm run lint:fix
 ```
 
 ## 建置指令
+
 ```bash
 # 開發版本建置
 npm run build:dev
@@ -42,6 +45,7 @@ npm run dev
 ```
 
 ## 任務完成時必須執行的指令
+
 ```bash
 # 1. 執行所有測試
 npm test
@@ -54,6 +58,7 @@ npm run build:dev
 ```
 
 ## 系統工具 (macOS)
+
 - `git` - 版本控制
 - `ls` - 列出檔案
 - `find` - 搜尋檔案

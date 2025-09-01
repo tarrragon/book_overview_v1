@@ -10,16 +10,18 @@
 Platform Domain 是 Domain 架構 v2.0 的核心新增領域，負責：
 
 ### **核心職責**
+
 - **多平台自動識別**: 檢測使用者當前訪問的電子書平台
 - **適配器生命週期管理**: 動態載入、配置、管理平台適配器
 - **平台切換協調**: 處理使用者在不同平台間切換的狀態管理
 - **平台資源隔離**: 確保不同平台的資料和配置完全分離
 
 ### **支援平台列表**
+
 - **Readmoo** (`READMOO`) - 台灣繁體中文電子書平台
 - **博客來** (`BOOKS_COM`) - 台灣最大網路書店
 - **Amazon Kindle** (`KINDLE`) - 全球電子書平台
-- **樂天 Kobo** (`KOBO`) - 日系國際電子書平台  
+- **樂天 Kobo** (`KOBO`) - 日系國際電子書平台
 - **BookWalker** (`BOOKWALKER`) - ACG特化電子書平台
 
 ## 📋 服務架構設計
@@ -65,24 +67,26 @@ class PlatformDetectionService {
 ```
 
 **資料結構定義**:
+
 ```javascript
 const PlatformDetectionResult = {
-  platformId: String,        // READMOO, KINDLE, KOBO, etc.
-  confidence: Number,        // 檢測信心度 (0-1)
-  features: Array,           // 檢測到的平台特徵
-  version: String,           // 平台版本 (如果可檢測)
-  capabilities: Array,       // 平台能力清單
-  metadata: Object          // 額外的平台特定資訊
+  platformId: String, // READMOO, KINDLE, KOBO, etc.
+  confidence: Number, // 檢測信心度 (0-1)
+  features: Array, // 檢測到的平台特徵
+  version: String, // 平台版本 (如果可檢測)
+  capabilities: Array, // 平台能力清單
+  metadata: Object // 額外的平台特定資訊
 }
 ```
 
 **關鍵事件**:
+
 ```javascript
-'PLATFORM.DETECTION.STARTED'          // 平台檢測開始
-'PLATFORM.DETECTION.COMPLETED'        // 平台檢測完成
-'PLATFORM.DETECTION.FAILED'           // 平台檢測失敗
-'PLATFORM.VALIDATION.PASSED'          // 平台驗證通過
-'PLATFORM.VALIDATION.FAILED'          // 平台驗證失敗
+'PLATFORM.DETECTION.STARTED' // 平台檢測開始
+'PLATFORM.DETECTION.COMPLETED' // 平台檢測完成
+'PLATFORM.DETECTION.FAILED' // 平台檢測失敗
+'PLATFORM.VALIDATION.PASSED' // 平台驗證通過
+'PLATFORM.VALIDATION.FAILED' // 平台驗證失敗
 ```
 
 ### 2. **platform-registry-service.js** - 平台註冊管理服務
@@ -135,24 +139,26 @@ class PlatformRegistryService {
 ```
 
 **資料結構定義**:
+
 ```javascript
 const PlatformAdapterConfig = {
-  platformId: String,           // 平台標識符
-  adapterClass: String,         // 適配器類別名稱
-  version: String,              // 適配器版本
-  capabilities: Array,          // 支援的功能列表
-  requirements: Object,         // 環境需求
-  loadPriority: Number,         // 載入優先級
-  configuration: Object         // 平台特定配置
+  platformId: String, // 平台標識符
+  adapterClass: String, // 適配器類別名稱
+  version: String, // 適配器版本
+  capabilities: Array, // 支援的功能列表
+  requirements: Object, // 環境需求
+  loadPriority: Number, // 載入優先級
+  configuration: Object // 平台特定配置
 }
 ```
 
 **關鍵事件**:
+
 ```javascript
-'PLATFORM.REGISTRY.ADAPTER.REGISTERED'    // 適配器註冊完成
-'PLATFORM.REGISTRY.ADAPTER.UNREGISTERED'  // 適配器註銷完成
-'PLATFORM.REGISTRY.CONFIG.UPDATED'        // 平台配置更新
-'PLATFORM.REGISTRY.AVAILABILITY.CHANGED'  // 平台可用性變更
+'PLATFORM.REGISTRY.ADAPTER.REGISTERED' // 適配器註冊完成
+'PLATFORM.REGISTRY.ADAPTER.UNREGISTERED' // 適配器註銷完成
+'PLATFORM.REGISTRY.CONFIG.UPDATED' // 平台配置更新
+'PLATFORM.REGISTRY.AVAILABILITY.CHANGED' // 平台可用性變更
 ```
 
 ### 3. **adapter-factory-service.js** - 適配器工廠服務
@@ -206,24 +212,26 @@ class AdapterFactoryService {
 ```
 
 **資料結構定義**:
+
 ```javascript
 const PlatformAdapter = {
-  platformId: String,           // 平台標識符
-  instance: Object,             // 適配器實例
-  createdAt: Date,              // 建立時間
-  lastUsed: Date,               // 最後使用時間
-  configuration: Object,        // 實例配置
-  statistics: Object           // 使用統計
+  platformId: String, // 平台標識符
+  instance: Object, // 適配器實例
+  createdAt: Date, // 建立時間
+  lastUsed: Date, // 最後使用時間
+  configuration: Object, // 實例配置
+  statistics: Object // 使用統計
 }
 ```
 
 **關鍵事件**:
+
 ```javascript
-'PLATFORM.ADAPTER.CREATED'             // 適配器建立完成
-'PLATFORM.ADAPTER.CACHED'              // 適配器快取完成
-'PLATFORM.ADAPTER.RELEASED'            // 適配器釋放完成
-'PLATFORM.ADAPTER.POOL.FULL'           // 適配器池已滿
-'PLATFORM.ADAPTER.LIFECYCLE.EXPIRED'   // 適配器生命週期過期
+'PLATFORM.ADAPTER.CREATED' // 適配器建立完成
+'PLATFORM.ADAPTER.CACHED' // 適配器快取完成
+'PLATFORM.ADAPTER.RELEASED' // 適配器釋放完成
+'PLATFORM.ADAPTER.POOL.FULL' // 適配器池已滿
+'PLATFORM.ADAPTER.LIFECYCLE.EXPIRED' // 適配器生命週期過期
 ```
 
 ### 4. **platform-switcher-service.js** - 平台切換控制服務
@@ -277,34 +285,36 @@ class PlatformSwitcherService {
 ```
 
 **資料結構定義**:
+
 ```javascript
 const PlatformSwitchResult = {
-  success: Boolean,             // 切換是否成功
-  fromPlatform: String,         // 來源平台
-  toPlatform: String,           // 目標平台
-  switchTime: Date,             // 切換時間
-  duration: Number,             // 切換耗時 (ms)
-  error: String                 // 錯誤訊息 (如果失敗)
+  success: Boolean, // 切換是否成功
+  fromPlatform: String, // 來源平台
+  toPlatform: String, // 目標平台
+  switchTime: Date, // 切換時間
+  duration: Number, // 切換耗時 (ms)
+  error: String // 錯誤訊息 (如果失敗)
 }
 
 const PlatformSwitchRecord = {
-  switchId: String,             // 切換記錄ID
-  fromPlatform: String,         // 來源平台
-  toPlatform: String,           // 目標平台
-  timestamp: Date,              // 切換時間戳
-  reason: String,               // 切換原因
-  userAgent: String,            // 使用者代理
-  success: Boolean              // 切換結果
+  switchId: String, // 切換記錄ID
+  fromPlatform: String, // 來源平台
+  toPlatform: String, // 目標平台
+  timestamp: Date, // 切換時間戳
+  reason: String, // 切換原因
+  userAgent: String, // 使用者代理
+  success: Boolean // 切換結果
 }
 ```
 
 **關鍵事件**:
+
 ```javascript
-'PLATFORM.SWITCH.REQUESTED'            // 平台切換請求
-'PLATFORM.SWITCH.STARTED'              // 平台切換開始
-'PLATFORM.SWITCH.COMPLETED'            // 平台切換完成
-'PLATFORM.SWITCH.FAILED'               // 平台切換失敗
-'PLATFORM.SWITCH.HISTORY.UPDATED'      // 切換歷史更新
+'PLATFORM.SWITCH.REQUESTED' // 平台切換請求
+'PLATFORM.SWITCH.STARTED' // 平台切換開始
+'PLATFORM.SWITCH.COMPLETED' // 平台切換完成
+'PLATFORM.SWITCH.FAILED' // 平台切換失敗
+'PLATFORM.SWITCH.HISTORY.UPDATED' // 切換歷史更新
 ```
 
 ## 🔗 Platform Domain 協調器設計
@@ -317,7 +327,7 @@ class PlatformDomainCoordinator extends EventHandler {
   constructor(eventBus) {
     super('PlatformDomainCoordinator', EventPriority.PLATFORM_SWITCH)
     this.eventBus = eventBus
-    
+
     // 注入4個核心服務
     this.detectionService = null
     this.registryService = null
@@ -345,7 +355,7 @@ class PlatformDomainCoordinator extends EventHandler {
 
   /**
    * 處理平台切換請求
-   * @param {Object} event - 切換請求事件  
+   * @param {Object} event - 切換請求事件
    */
   async handlePlatformSwitchRequest(event) {
     // 協調平台切換流程
@@ -407,7 +417,7 @@ const ServiceDependencies = {
 
   // Switcher Service 依賴
   switcherService: {
-    requires: ['eventBus', 'adapterFactory'],  
+    requires: ['eventBus', 'adapterFactory'],
     provides: ['switchToPlatform', 'getCurrentPlatform']
   }
 }
@@ -423,7 +433,7 @@ const PlatformEvents = {
   // 平台檢測事件
   DETECTION: {
     STARTED: 'PLATFORM.DETECTION.STARTED',
-    COMPLETED: 'PLATFORM.DETECTION.COMPLETED', 
+    COMPLETED: 'PLATFORM.DETECTION.COMPLETED',
     FAILED: 'PLATFORM.DETECTION.FAILED'
   },
 
@@ -478,12 +488,12 @@ describe('Platform Detection Service', () => {
     test('should return unknown for unsupported platforms')
     test('should validate detection confidence threshold')
   })
-  
+
   describe('DOM Analysis', () => {
     test('should analyze DOM features accurately')
     test('should handle DOM changes gracefully')
   })
-  
+
   describe('Error Handling', () => {
     test('should handle network errors')
     test('should handle invalid URLs')
@@ -501,7 +511,7 @@ describe('Platform Domain Integration', () => {
     test('should handle service dependency injection correctly')
     test('should maintain service lifecycle properly')
   })
-  
+
   describe('Event System Integration', () => {
     test('should emit correct v2.0 events')
     test('should maintain v1.0 event compatibility')
@@ -519,7 +529,7 @@ describe('Backward Compatibility', () => {
     test('should preserve API interface signatures')
     test('should convert legacy events correctly')
   })
-  
+
   describe('Performance Impact', () => {
     test('should not degrade existing performance')
     test('should maintain memory usage within limits')
@@ -534,26 +544,26 @@ describe('Backward Compatibility', () => {
 ```javascript
 const PerformanceBenchmarks = {
   platformDetection: {
-    averageTime: 500,      // ms - 平均檢測時間
-    maxTime: 1000,         // ms - 最大檢測時間
-    cacheHitRate: 0.8      // 快取命中率
+    averageTime: 500, // ms - 平均檢測時間
+    maxTime: 1000, // ms - 最大檢測時間
+    cacheHitRate: 0.8 // 快取命中率
   },
-  
+
   adapterLoading: {
-    averageTime: 200,      // ms - 平均載入時間
-    maxTime: 500,          // ms - 最大載入時間
-    poolEfficiency: 0.9    // 資源池效率
+    averageTime: 200, // ms - 平均載入時間
+    maxTime: 500, // ms - 最大載入時間
+    poolEfficiency: 0.9 // 資源池效率
   },
-  
+
   platformSwitching: {
-    averageTime: 1000,     // ms - 平均切換時間
-    maxTime: 2000,         // ms - 最大切換時間
-    successRate: 0.95      // 切換成功率
+    averageTime: 1000, // ms - 平均切換時間
+    maxTime: 2000, // ms - 最大切換時間
+    successRate: 0.95 // 切換成功率
   },
-  
+
   memoryUsage: {
-    maxIncrease: 0.2,      // 最大記憶體使用增長 20%
-    leakTolerance: 0       // 記憶體洩漏容忍度 0%
+    maxIncrease: 0.2, // 最大記憶體使用增長 20%
+    leakTolerance: 0 // 記憶體洩漏容忍度 0%
   }
 }
 ```
@@ -566,17 +576,17 @@ const MonitoringMetrics = {
   detectionRequests: 0,
   switchingRequests: 0,
   adapterCreations: 0,
-  
+
   // 效能指標
   averageDetectionTime: 0,
   averageSwitchTime: 0,
   cacheHitRate: 0,
-  
+
   // 錯誤統計
   detectionErrors: 0,
   switchingErrors: 0,
   adapterErrors: 0,
-  
+
   // 資源使用
   activeAdapters: 0,
   memoryUsage: 0,
@@ -597,7 +607,7 @@ const ErrorHandlingStrategy = {
     DOMError: 'fallback to URL-based detection',
     TimeoutError: 'return cached result if available'
   },
-  
+
   // 適配器錯誤處理
   AdapterError: {
     LoadingError: 'attempt alternative adapter source',
@@ -605,8 +615,8 @@ const ErrorHandlingStrategy = {
     InitializationError: 'mark adapter as unavailable',
     RuntimeError: 'restart adapter with error reporting'
   },
-  
-  // 切換錯誤處理  
+
+  // 切換錯誤處理
   SwitchingError: {
     AdapterUnavailable: 'queue switch for later retry',
     StateConflict: 'force state reset and retry',
@@ -623,20 +633,20 @@ const RecoveryMechanisms = {
   // 自動恢復
   autoRecovery: {
     maxRetries: 3,
-    retryInterval: 1000,    // ms
+    retryInterval: 1000, // ms
     backoffMultiplier: 2.0
   },
-  
+
   // 狀態恢復
   stateRecovery: {
-    checkpointInterval: 5000,  // ms
+    checkpointInterval: 5000, // ms
     maxCheckpoints: 10,
-    recoveryTimeout: 30000     // ms
+    recoveryTimeout: 30000 // ms
   },
-  
+
   // 資源恢復
   resourceRecovery: {
-    memoryThreshold: 0.8,      // 80% 記憶體使用觸發清理
+    memoryThreshold: 0.8, // 80% 記憶體使用觸發清理
     adapterPoolCleanup: true,
     cacheEvictionPolicy: 'LRU'
   }
@@ -654,7 +664,7 @@ const RecoveryMechanisms = {
   - [ ] 檢測結果快取系統
   - [ ] 100% 單元測試覆蓋
 
-- [ ] **platform-registry-service.js**  
+- [ ] **platform-registry-service.js**
   - [ ] 適配器註冊表管理
   - [ ] 平台配置載入機制
   - [ ] 版本相容性檢查

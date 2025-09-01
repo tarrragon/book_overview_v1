@@ -8,6 +8,7 @@
 ## 🎯 設計目標與核心職責
 
 ### 設計目標
+
 Data Management Domain 是 Domain 架構 v2.0 的第二個核心領域，負責建立統一、可靠、高效的跨平台資料管理系統，確保：
 
 - **統一資料模型**: 建立跨平台統一的書籍資料格式標準
@@ -17,11 +18,13 @@ Data Management Domain 是 Domain 架構 v2.0 的第二個核心領域，負責�
 - **效能優化**: 優化大資料量的處理和存取效能
 
 ### 核心職責 (20字)
+
 跨平台資料同步、衝突解決、格式轉換、版本管理、備份恢復
 
 ## 🏗️ 在 Domain v2.0 架構中的定位
 
 ### 與 Platform Domain 的整合
+
 ```mermaid
 graph LR
     Platform[Platform Domain] -->|平台檢測完成| DataMgmt[Data Management Domain]
@@ -31,12 +34,14 @@ graph LR
 ```
 
 **協作關係**:
+
 - **接收**: `PLATFORM.{PLATFORM}.DETECTED` - 平台檢測完成事件
 - **接收**: `PLATFORM.{PLATFORM}.ADAPTER.LOADED` - 適配器載入事件
 - **發送**: `DATA.{PLATFORM}.READY` - 資料管理準備就緒
 - **發送**: `DATA.CROSS_PLATFORM.SYNC.STATUS` - 跨平台同步狀態
 
 ### 與其他 Domain 的協作
+
 ```mermaid
 graph TB
     Extraction[Extraction Domain] -->|原始資料| DataMgmt[Data Management Domain]
@@ -49,6 +54,7 @@ graph TB
 ## 📂 完整架構設計
 
 ### 內部服務架構
+
 ```
 src/background/domains/data-management/
 ├── data-domain-coordinator.js              # 資料領域協調器 (450行)
@@ -80,22 +86,24 @@ src/background/domains/data-management/
 ### 1. Data Domain Coordinator - 資料領域協調器
 
 **負責功能**:
+
 - 協調所有資料管理服務的運作
 - 管理跨平台資料流程
 - 處理領域間事件通訊
 - 監控資料管理效能
 
 **技術架構**:
+
 ```javascript
 /**
  * Data Domain Coordinator v2.0
- * 
+ *
  * 負責功能：
  * - 協調所有資料管理服務運作
- * - 管理跨平台資料同步流程  
+ * - 管理跨平台資料同步流程
  * - 處理與其他 Domain 的事件通訊
  * - 監控和優化資料處理效能
- * 
+ *
  * 設計考量：
  * - 事件驅動架構，避免直接服務依賴
  * - 統一錯誤處理和恢復機制
@@ -113,7 +121,7 @@ class DataDomainCoordinator extends DomainCoordinator {
 
   /**
    * 初始化資料領域服務
-   * 
+   *
    * 處理流程：
    * 1. 註冊所有核心服務
    * 2. 建立服務間依賴關係
@@ -125,7 +133,7 @@ class DataDomainCoordinator extends DomainCoordinator {
     await this.setupServiceDependencies()
     await this.registerEventListeners()
     await this.startPerformanceMonitoring()
-    
+
     await this.emit('DATA.DOMAIN.INITIALIZED', {
       services: this.serviceRegistry.getServiceNames(),
       timestamp: Date.now()
@@ -158,16 +166,16 @@ class DataDomainCoordinator extends DomainCoordinator {
   async registerEventListeners() {
     // 平台檢測事件
     this.on('PLATFORM.*.DETECTED', this.handlePlatformDetected.bind(this))
-    
+
     // 提取完成事件
     this.on('EXTRACTION.*.COMPLETED', this.handleExtractionCompleted.bind(this))
-    
+
     // 跨平台同步請求
     this.on('DATA.CROSS_PLATFORM.SYNC.REQUESTED', this.handleCrossPlatformSync.bind(this))
-    
+
     // 資料衝突事件
     this.on('DATA.*.CONFLICT.DETECTED', this.handleDataConflict.bind(this))
-    
+
     // 備份恢復請求
     this.on('DATA.BACKUP.RECOVERY.REQUESTED', this.handleBackupRecovery.bind(this))
   }
@@ -177,10 +185,10 @@ class DataDomainCoordinator extends DomainCoordinator {
    */
   async handlePlatformDetected(event) {
     const { platform, adapter } = event.data
-    
+
     // 初始化平台特定的資料管理設定
     await this.initializePlatformDataManagement(platform, adapter)
-    
+
     // 檢查是否需要資料遷移
     const migrationNeeded = await this.checkMigrationNeeded(platform)
     if (migrationNeeded) {
@@ -189,7 +197,7 @@ class DataDomainCoordinator extends DomainCoordinator {
         reason: 'PLATFORM_FIRST_TIME_DETECTION'
       })
     }
-    
+
     await this.emit('DATA.PLATFORM.READY', { platform })
   }
 
@@ -198,7 +206,7 @@ class DataDomainCoordinator extends DomainCoordinator {
    */
   async handleExtractionCompleted(event) {
     const { platform, books, extractionId } = event.data
-    
+
     try {
       const operationId = this.generateOperationId()
       this.activeOperations.set(operationId, {
@@ -218,7 +226,6 @@ class DataDomainCoordinator extends DomainCoordinator {
 
       // 等待驗證完成後觸發同步
       // 由事件驅動機制處理後續流程
-
     } catch (error) {
       await this.emit('DATA.PROCESSING.FAILED', {
         platform,
@@ -234,7 +241,7 @@ class DataDomainCoordinator extends DomainCoordinator {
    */
   async handleCrossPlatformSync(event) {
     const { sourcePlatforms, targetPlatforms, syncOptions } = event.data
-    
+
     const syncId = this.generateSyncId()
     await this.emit('DATA.SYNC.STARTED', {
       syncId,
@@ -245,7 +252,12 @@ class DataDomainCoordinator extends DomainCoordinator {
 
     // 委派給同步服務處理
     const syncService = await this.serviceRegistry.get('synchronization')
-    await syncService.initiateCrossPlatformSync(syncId, sourcePlatforms, targetPlatforms, syncOptions)
+    await syncService.initiateCrossPlatformSync(
+      syncId,
+      sourcePlatforms,
+      targetPlatforms,
+      syncOptions
+    )
   }
 
   /**
@@ -253,7 +265,7 @@ class DataDomainCoordinator extends DomainCoordinator {
    */
   async handleDataConflict(event) {
     const { conflictId, platform, conflictData } = event.data
-    
+
     // 委派給衝突解決服務
     const conflictService = await this.serviceRegistry.get('conflictResolution')
     await conflictService.resolveConflict(conflictId, platform, conflictData)
@@ -266,7 +278,7 @@ class DataDomainCoordinator extends DomainCoordinator {
     // 設定平台特定的儲存適配器
     const storageService = await this.serviceRegistry.get('storageAdapter')
     await storageService.registerPlatformAdapter(platform, adapter)
-    
+
     // 設定平台特定的資料驗證規則
     const validationService = await this.serviceRegistry.get('validation')
     await validationService.loadPlatformValidationRules(platform)
@@ -299,22 +311,24 @@ class DataDomainCoordinator extends DomainCoordinator {
 ### 2. Data Validation Service - 統一資料格式驗證與標準化
 
 **負責功能**:
+
 - 驗證來自不同平台的原始資料格式
 - 標準化資料為統一的 v2.0 格式
 - 檢測資料完整性和品質
 - 提供資料清理和修復功能
 
 **技術架構**:
+
 ```javascript
 /**
  * Data Validation Service v2.0
- * 
+ *
  * 負責功能：
  * - 統一資料格式驗證與標準化
  * - 跨平台資料品質檢測
  * - 自動資料清理和修復
  * - 資料完整性驗證
- * 
+ *
  * 設計考量：
  * - 支援多種資料來源和格式
  * - 可擴展的驗證規則引擎
@@ -367,7 +381,7 @@ class DataValidationService extends BaseService {
     try {
       for (const book of books) {
         const bookValidation = await this.validateSingleBook(book, platform, source)
-        
+
         if (bookValidation.isValid) {
           const normalizedBook = await this.normalizeBook(bookValidation.book, platform)
           validationReport.validBooks.push(bookValidation)
@@ -375,7 +389,7 @@ class DataValidationService extends BaseService {
         } else {
           validationReport.invalidBooks.push(bookValidation)
         }
-        
+
         validationReport.warnings.push(...bookValidation.warnings)
       }
 
@@ -395,7 +409,6 @@ class DataValidationService extends BaseService {
       })
 
       return validationReport
-
     } catch (error) {
       await this.emit('DATA.VALIDATION.FAILED', {
         validationId: validationReport.validationId,
@@ -425,16 +438,16 @@ class DataValidationService extends BaseService {
 
     // 結構驗證
     await this.validateStructure(validation, schema)
-    
+
     // 必填欄位驗證
     await this.validateRequiredFields(validation, rules.required)
-    
+
     // 資料類型驗證
     await this.validateDataTypes(validation, rules.types)
-    
+
     // 商業邏輯驗證
     await this.validateBusinessRules(validation, rules.business)
-    
+
     // 資料品質檢查
     await this.checkDataQuality(validation, rules.quality)
 
@@ -463,25 +476,25 @@ class DataValidationService extends BaseService {
       authors: this.normalizeAuthors(book.authors || book.author),
       publisher: book.publisher || '',
       isbn: this.normalizeISBN(book.isbn),
-      
+
       // 封面圖片標準化
       cover: await this.normalizeCover(book.cover),
-      
+
       // 閱讀狀態標準化
       progress: this.normalizeProgress(book.progress),
       status: this.normalizeStatus(book.status),
-      
+
       // 時間記錄標準化
       purchaseDate: this.normalizeDate(book.purchaseDate),
       lastReadDate: this.normalizeDate(book.lastReadDate),
       addedToLibraryDate: this.normalizeDate(book.addedDate) || new Date().toISOString(),
-      
+
       // 個人化資料
       rating: this.normalizeRating(book.rating),
       tags: this.normalizeTags(book.tags, platform),
       notes: book.notes || '',
       bookmarks: this.normalizeBookmarks(book.bookmarks),
-      
+
       // 平台特定資料
       platformMetadata: {
         [platform]: {
@@ -491,14 +504,14 @@ class DataValidationService extends BaseService {
           normalizationVersion: '2.0.0'
         }
       },
-      
+
       // 同步管理
       syncStatus: {
         lastSyncTimestamp: new Date().toISOString(),
         conflictResolved: true,
         mergeStrategy: 'LATEST_TIMESTAMP'
       },
-      
+
       // 版本資訊
       version: '1.0.0',
       schemaVersion: '2.0.0',
@@ -587,7 +600,9 @@ class DataValidationService extends BaseService {
       return [authors.trim()]
     }
     if (Array.isArray(authors)) {
-      return authors.map(author => typeof author === 'string' ? author.trim() : String(author).trim())
+      return authors.map((author) =>
+        typeof author === 'string' ? author.trim() : String(author).trim()
+      )
     }
     return [String(authors).trim()]
   }
@@ -666,7 +681,7 @@ class DataValidationService extends BaseService {
     const validRatio = report.validBooks.length / totalBooks
     const warningPenalty = Math.min(report.warnings.length * 0.01, 0.2) // 最多扣20%
 
-    return Math.max(0, Math.min(100, (validRatio * 100) - (warningPenalty * 100)))
+    return Math.max(0, Math.min(100, validRatio * 100 - warningPenalty * 100))
   }
 
   /**
@@ -685,7 +700,7 @@ class DataValidationService extends BaseService {
     if (str.length === 0) return hash.toString(36)
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
+      hash = (hash << 5) - hash + char
       hash = hash & hash // Convert to 32bit integer
     }
     return Math.abs(hash).toString(36)
@@ -703,13 +718,20 @@ class DataValidationService extends BaseService {
    */
   isCorrectType(value, expectedType) {
     switch (expectedType) {
-      case 'string': return typeof value === 'string'
-      case 'number': return typeof value === 'number' && !isNaN(value)
-      case 'boolean': return typeof value === 'boolean'
-      case 'array': return Array.isArray(value)
-      case 'object': return typeof value === 'object' && value !== null && !Array.isArray(value)
-      case 'date': return value instanceof Date || (typeof value === 'string' && !isNaN(Date.parse(value)))
-      default: return true
+      case 'string':
+        return typeof value === 'string'
+      case 'number':
+        return typeof value === 'number' && !isNaN(value)
+      case 'boolean':
+        return typeof value === 'boolean'
+      case 'array':
+        return Array.isArray(value)
+      case 'object':
+        return typeof value === 'object' && value !== null && !Array.isArray(value)
+      case 'date':
+        return value instanceof Date || (typeof value === 'string' && !isNaN(Date.parse(value)))
+      default:
+        return true
     }
   }
 }
@@ -718,22 +740,24 @@ class DataValidationService extends BaseService {
 ### 3. Schema Migration Service - 資料模型版本管理與自動遷移
 
 **負責功能**:
+
 - 管理資料模型版本演進
 - 自動檢測和執行資料遷移
 - 保證向後相容性
 - 提供回滾機制
 
 **技術架構**:
+
 ```javascript
 /**
  * Schema Migration Service v2.0
- * 
+ *
  * 負責功能：
  * - 資料模型版本管理與自動遷移
  * - 跨版本相容性維護
  * - 遷移腳本管理和執行
  * - 資料備份和回滾機制
- * 
+ *
  * 設計考量：
  * - 支援增量遷移和批量遷移
  * - 零停機時間遷移策略
@@ -764,7 +788,7 @@ class SchemaMigrationService extends BaseService {
   async checkMigrationRequired(platform) {
     const currentVersion = await this.getCurrentVersion(platform)
     const targetVersion = this.config.targetVersion || '2.0.0'
-    
+
     return this.compareVersions(currentVersion, targetVersion) < 0
   }
 
@@ -773,7 +797,7 @@ class SchemaMigrationService extends BaseService {
    */
   async migratePlatformData(platform, fromVersion = null, toVersion = null) {
     const migrationId = this.generateMigrationId()
-    const currentVersion = fromVersion || await this.getCurrentVersion(platform)
+    const currentVersion = fromVersion || (await this.getCurrentVersion(platform))
     const targetVersion = toVersion || this.config.targetVersion || '2.0.0'
 
     if (this.compareVersions(currentVersion, targetVersion) === 0) {
@@ -781,7 +805,7 @@ class SchemaMigrationService extends BaseService {
     }
 
     const migrationPlan = await this.createMigrationPlan(platform, currentVersion, targetVersion)
-    
+
     await this.emit('DATA.MIGRATION.STARTED', {
       migrationId,
       platform,
@@ -793,15 +817,21 @@ class SchemaMigrationService extends BaseService {
     try {
       // 建立備份
       const backupId = await this.createBackup(platform, currentVersion)
-      
+
       // 執行遷移步驟
       const results = await this.executeMigrationPlan(migrationId, platform, migrationPlan)
-      
+
       // 更新版本記錄
       await this.updateCurrentVersion(platform, targetVersion)
-      
+
       // 記錄遷移歷史
-      await this.recordMigrationHistory(migrationId, platform, currentVersion, targetVersion, results)
+      await this.recordMigrationHistory(
+        migrationId,
+        platform,
+        currentVersion,
+        targetVersion,
+        results
+      )
 
       await this.emit('DATA.MIGRATION.COMPLETED', {
         migrationId,
@@ -820,7 +850,6 @@ class SchemaMigrationService extends BaseService {
         toVersion: targetVersion,
         results
       }
-
     } catch (error) {
       await this.emit('DATA.MIGRATION.FAILED', {
         migrationId,
@@ -854,14 +883,16 @@ class SchemaMigrationService extends BaseService {
 
     // 找出需要執行的遷移步驟
     const versionPath = this.getVersionPath(fromVersion, toVersion)
-    
+
     for (let i = 0; i < versionPath.length - 1; i++) {
       const stepFromVersion = versionPath[i]
       const stepToVersion = versionPath[i + 1]
-      
+
       const migration = this.findMigration(platform, stepFromVersion, stepToVersion)
       if (!migration) {
-        throw new Error(`No migration found from ${stepFromVersion} to ${stepToVersion} for platform ${platform}`)
+        throw new Error(
+          `No migration found from ${stepFromVersion} to ${stepToVersion} for platform ${platform}`
+        )
       }
 
       plan.steps.push({
@@ -896,7 +927,7 @@ class SchemaMigrationService extends BaseService {
 
     for (const [index, step] of plan.steps.entries()) {
       const stepStart = Date.now()
-      
+
       await this.emit('DATA.MIGRATION.STEP.STARTED', {
         migrationId,
         platform,
@@ -908,7 +939,7 @@ class SchemaMigrationService extends BaseService {
 
       try {
         const stepResult = await this.executeMigrationStep(platform, step)
-        
+
         const stepDuration = Date.now() - stepStart
         const stepResults = {
           stepId: step.migrationId,
@@ -930,7 +961,6 @@ class SchemaMigrationService extends BaseService {
           stepIndex: index,
           ...stepResults
         })
-
       } catch (error) {
         await this.emit('DATA.MIGRATION.STEP.FAILED', {
           migrationId,
@@ -955,10 +985,10 @@ class SchemaMigrationService extends BaseService {
   async executeMigrationStep(platform, step) {
     const migration = step.migration
     const storageAdapter = await this.getStorageAdapter(platform)
-    
+
     // 取得需要遷移的資料
     const records = await storageAdapter.getAllRecords()
-    
+
     const result = {
       recordsProcessed: 0,
       recordsUpdated: 0,
@@ -978,16 +1008,15 @@ class SchemaMigrationService extends BaseService {
         })
 
         await storageAdapter.updateRecords(migratedBatch)
-        
+
         result.recordsProcessed += batch.length
         result.recordsUpdated += migratedBatch.length
-
       } catch (error) {
         result.errors.push({
           batchIndex: batches.indexOf(batch),
           error: error.message
         })
-        
+
         if (!this.config.continueOnError) {
           throw error
         }
@@ -1003,10 +1032,10 @@ class SchemaMigrationService extends BaseService {
   async createBackup(platform, version) {
     const backupId = this.generateBackupId()
     const timestamp = new Date().toISOString()
-    
+
     const storageAdapter = await this.getStorageAdapter(platform)
     const allData = await storageAdapter.getAllRecords()
-    
+
     const backup = {
       backupId,
       platform,
@@ -1022,7 +1051,7 @@ class SchemaMigrationService extends BaseService {
     }
 
     await this.storeBackup(backup)
-    
+
     await this.emit('DATA.BACKUP.CREATED', {
       backupId,
       platform,
@@ -1047,7 +1076,7 @@ class SchemaMigrationService extends BaseService {
       // 恢復資料
       const storageAdapter = await this.getStorageAdapter(platform)
       await storageAdapter.replaceAllRecords(backup.data)
-      
+
       // 恢復版本記錄
       await this.updateCurrentVersion(platform, targetVersion)
 
@@ -1057,7 +1086,6 @@ class SchemaMigrationService extends BaseService {
         backupId: backup.backupId,
         restoredVersion: targetVersion
       })
-
     } catch (error) {
       await this.emit('DATA.MIGRATION.ROLLBACK.FAILED', {
         migrationId,
@@ -1098,7 +1126,7 @@ class SchemaMigrationService extends BaseService {
    * v1.0 到 v2.0 基礎遷移
    */
   async migrateV1ToV2Basic(records, context) {
-    return records.map(record => {
+    return records.map((record) => {
       // 如果已經是 v2.0 格式，直接返回
       if (record.schemaVersion === '2.0.0') {
         return record
@@ -1109,20 +1137,20 @@ class SchemaMigrationService extends BaseService {
         id: record.id,
         crossPlatformId: this.generateCrossPlatformId(record),
         platform: context.platform,
-        
+
         // 基本資訊
         title: record.title,
         authors: Array.isArray(record.author) ? record.author : [record.author || ''],
         publisher: record.publisher || '',
         isbn: record.isbn || '',
-        
+
         // 封面圖片
         cover: {
           thumbnail: record.cover || '',
           medium: record.cover || '',
           large: record.cover || ''
         },
-        
+
         // 閱讀狀態
         progress: {
           percentage: record.progress || 0,
@@ -1131,18 +1159,18 @@ class SchemaMigrationService extends BaseService {
           lastPosition: ''
         },
         status: record.status || 'UNREAD',
-        
+
         // 時間記錄
         purchaseDate: record.purchaseDate || null,
         lastReadDate: record.lastReadDate || null,
         addedToLibraryDate: record.addedDate || new Date().toISOString(),
-        
+
         // 個人化資料
         rating: record.rating || 0,
         tags: record.tags || [context.platform.toLowerCase()],
         notes: record.notes || '',
         bookmarks: record.bookmarks || [],
-        
+
         // 平台特定資料
         platformMetadata: {
           [context.platform]: {
@@ -1151,23 +1179,25 @@ class SchemaMigrationService extends BaseService {
             dataQuality: 'MIGRATED'
           }
         },
-        
+
         // 同步管理
         syncStatus: {
           lastSyncTimestamp: new Date().toISOString(),
           conflictResolved: true,
           mergeStrategy: 'LEGACY_MIGRATION'
         },
-        
+
         // 版本資訊
         version: '1.0.0',
         schemaVersion: '2.0.0',
-        migrationHistory: [{
-          from: '1.0.0',
-          to: '2.0.0',
-          timestamp: Date.now(),
-          reason: 'AUTOMATIC_MIGRATION'
-        }]
+        migrationHistory: [
+          {
+            from: '1.0.0',
+            to: '2.0.0',
+            timestamp: Date.now(),
+            reason: 'AUTOMATIC_MIGRATION'
+          }
+        ]
       }
     })
   }
@@ -1178,15 +1208,15 @@ class SchemaMigrationService extends BaseService {
   compareVersions(version1, version2) {
     const v1Parts = version1.split('.').map(Number)
     const v2Parts = version2.split('.').map(Number)
-    
+
     for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
       const v1Part = v1Parts[i] || 0
       const v2Part = v2Parts[i] || 0
-      
+
       if (v1Part < v2Part) return -1
       if (v1Part > v2Part) return 1
     }
-    
+
     return 0
   }
 
@@ -1218,36 +1248,37 @@ class SchemaMigrationService extends BaseService {
 **事件命名規範**: `DATA.{PLATFORM}.{ACTION}.{STATE}`
 
 #### 發布事件 (Outbound Events)
+
 ```javascript
 const DataManagementEvents = {
   // 領域初始化
   DOMAIN_INITIALIZED: 'DATA.DOMAIN.INITIALIZED',
-  
+
   // 資料驗證事件
   VALIDATION_STARTED: 'DATA.{PLATFORM}.VALIDATION.STARTED',
-  VALIDATION_COMPLETED: 'DATA.{PLATFORM}.VALIDATION.COMPLETED', 
+  VALIDATION_COMPLETED: 'DATA.{PLATFORM}.VALIDATION.COMPLETED',
   VALIDATION_FAILED: 'DATA.{PLATFORM}.VALIDATION.FAILED',
-  
+
   // 資料同步事件
   SYNC_STARTED: 'DATA.{PLATFORM}.SYNC.STARTED',
   SYNC_PROGRESS: 'DATA.{PLATFORM}.SYNC.PROGRESS',
   SYNC_COMPLETED: 'DATA.{PLATFORM}.SYNC.COMPLETED',
   SYNC_FAILED: 'DATA.{PLATFORM}.SYNC.FAILED',
-  
+
   // 跨平台同步事件
   CROSS_PLATFORM_SYNC_STARTED: 'DATA.CROSS_PLATFORM.SYNC.STARTED',
   CROSS_PLATFORM_SYNC_COMPLETED: 'DATA.CROSS_PLATFORM.SYNC.COMPLETED',
-  
+
   // 衝突處理事件
   CONFLICT_DETECTED: 'DATA.{PLATFORM}.CONFLICT.DETECTED',
   CONFLICT_RESOLVED: 'DATA.{PLATFORM}.CONFLICT.RESOLVED',
   CONFLICT_RESOLUTION_FAILED: 'DATA.{PLATFORM}.CONFLICT.FAILED',
-  
+
   // 資料遷移事件
   MIGRATION_STARTED: 'DATA.{PLATFORM}.MIGRATION.STARTED',
   MIGRATION_COMPLETED: 'DATA.{PLATFORM}.MIGRATION.COMPLETED',
   MIGRATION_FAILED: 'DATA.{PLATFORM}.MIGRATION.FAILED',
-  
+
   // 備份恢復事件
   BACKUP_CREATED: 'DATA.{PLATFORM}.BACKUP.CREATED',
   RECOVERY_STARTED: 'DATA.{PLATFORM}.RECOVERY.STARTED',
@@ -1256,20 +1287,21 @@ const DataManagementEvents = {
 ```
 
 #### 監聽事件 (Inbound Events)
+
 ```javascript
 const DataManagementListeners = {
   // 來自 Platform Domain
   PLATFORM_DETECTED: 'PLATFORM.{PLATFORM}.DETECTED',
   PLATFORM_ADAPTER_LOADED: 'PLATFORM.{PLATFORM}.ADAPTER.LOADED',
-  
-  // 來自 Extraction Domain  
+
+  // 來自 Extraction Domain
   EXTRACTION_COMPLETED: 'EXTRACTION.{PLATFORM}.COMPLETED',
   EXTRACTION_DATA_READY: 'EXTRACTION.{PLATFORM}.DATA.READY',
-  
+
   // 來自 Security Domain
   SECURITY_POLICY_UPDATED: 'SECURITY.{PLATFORM}.POLICY.UPDATED',
   SECURITY_ENCRYPTION_REQUIRED: 'SECURITY.{PLATFORM}.ENCRYPTION.REQUIRED',
-  
+
   // 跨領域協調事件
   DATA_SYNC_REQUESTED: 'DATA.CROSS_PLATFORM.SYNC.REQUESTED',
   DATA_BACKUP_REQUESTED: 'DATA.BACKUP.RECOVERY.REQUESTED',
@@ -1285,17 +1317,17 @@ const DataEventPriorities = {
   DATA_CORRUPTION: 10,
   CRITICAL_SYNC_FAILURE: 20,
   BACKUP_FAILURE: 30,
-  
+
   // 高優先級事件 (100-199)
   CONFLICT_DETECTED: 110,
   MIGRATION_REQUIRED: 120,
   VALIDATION_FAILED: 130,
-  
+
   // 正常優先級事件 (200-299)
   SYNC_STARTED: 210,
   VALIDATION_STARTED: 220,
   BACKUP_CREATED: 230,
-  
+
   // 低優先級事件 (300-399)
   SYNC_PROGRESS: 310,
   STATISTICS_UPDATED: 320,
@@ -1310,7 +1342,7 @@ const DataEventPriorities = {
 ```javascript
 /**
  * 統一書籍資料模型 v2.0
- * 
+ *
  * 設計原則：
  * - 平台無關的標準化格式
  * - 支援多平台資料合併
@@ -1319,118 +1351,128 @@ const DataEventPriorities = {
  */
 const UnifiedBookModelV2 = {
   // 核心識別資訊
-  id: 'string',                    // 平台特定ID
-  crossPlatformId: 'string',       // 跨平台統一ID (雜湊生成)
+  id: 'string', // 平台特定ID
+  crossPlatformId: 'string', // 跨平台統一ID (雜湊生成)
   platform: 'READMOO|KINDLE|KOBO|BOOKWALKER|BOOKS_COM',
-  
+
   // 基本書籍資訊
-  title: 'string',                 // 書名
-  authors: ['string'],             // 作者列表
-  publisher: 'string',             // 出版社
-  isbn: 'string',                  // ISBN (標準化後)
-  description: 'string',           // 書籍描述
-  language: 'string',              // 語言代碼
-  publishedDate: 'ISO_8601_date',  // 出版日期
-  pageCount: 'number',             // 頁數
-  genres: ['string'],              // 分類/類型
-  
+  title: 'string', // 書名
+  authors: ['string'], // 作者列表
+  publisher: 'string', // 出版社
+  isbn: 'string', // ISBN (標準化後)
+  description: 'string', // 書籍描述
+  language: 'string', // 語言代碼
+  publishedDate: 'ISO_8601_date', // 出版日期
+  pageCount: 'number', // 頁數
+  genres: ['string'], // 分類/類型
+
   // 封面圖片
   cover: {
-    thumbnail: 'url',              // 縮圖
-    medium: 'url',                 // 中等尺寸
-    large: 'url',                  // 大尺寸
-    original: 'url'                // 原始尺寸
+    thumbnail: 'url', // 縮圖
+    medium: 'url', // 中等尺寸
+    large: 'url', // 大尺寸
+    original: 'url' // 原始尺寸
   },
-  
+
   // 閱讀狀態
   progress: {
-    percentage: 'number',          // 0-100
-    currentPage: 'number',         // 當前頁數
-    totalPages: 'number',          // 總頁數
-    lastPosition: 'string',        // 平台特定位置標記
-    estimatedTimeLeft: 'number'    // 預估剩餘閱讀時間(分鐘)
+    percentage: 'number', // 0-100
+    currentPage: 'number', // 當前頁數
+    totalPages: 'number', // 總頁數
+    lastPosition: 'string', // 平台特定位置標記
+    estimatedTimeLeft: 'number' // 預估剩餘閱讀時間(分鐘)
   },
   status: 'UNREAD|READING|COMPLETED|ON_HOLD|ABANDONED',
-  
+
   // 時間記錄
-  purchaseDate: 'ISO_8601_date',   // 購買日期
-  lastReadDate: 'ISO_8601_date',   // 最後閱讀日期
+  purchaseDate: 'ISO_8601_date', // 購買日期
+  lastReadDate: 'ISO_8601_date', // 最後閱讀日期
   addedToLibraryDate: 'ISO_8601_date', // 加入書庫日期
-  completedDate: 'ISO_8601_date',  // 完成閱讀日期
-  
+  completedDate: 'ISO_8601_date', // 完成閱讀日期
+
   // 個人化資料
-  rating: 'number',                // 1-5 評分
-  tags: ['string'],                // 使用者自定義標籤
-  notes: 'string',                 // 閱讀筆記
-  bookmarks: [{                    // 書籤列表
-    id: 'string',
-    position: 'string',
-    note: 'string',
-    timestamp: 'ISO_8601_date',
-    chapter: 'string'
-  }],
-  highlights: [{                   // 劃線/標記
-    id: 'string',
-    text: 'string',
-    position: 'string',
-    color: 'string',
-    note: 'string',
-    timestamp: 'ISO_8601_date'
-  }],
-  
+  rating: 'number', // 1-5 評分
+  tags: ['string'], // 使用者自定義標籤
+  notes: 'string', // 閱讀筆記
+  bookmarks: [
+    {
+      // 書籤列表
+      id: 'string',
+      position: 'string',
+      note: 'string',
+      timestamp: 'ISO_8601_date',
+      chapter: 'string'
+    }
+  ],
+  highlights: [
+    {
+      // 劃線/標記
+      id: 'string',
+      text: 'string',
+      position: 'string',
+      color: 'string',
+      note: 'string',
+      timestamp: 'ISO_8601_date'
+    }
+  ],
+
   // 閱讀統計
   readingStats: {
-    totalReadingTime: 'number',    // 總閱讀時間(分鐘)
+    totalReadingTime: 'number', // 總閱讀時間(分鐘)
     averageReadingSpeed: 'number', // 平均閱讀速度(字/分鐘)
-    sessionsCount: 'number',       // 閱讀次數
-    longestSession: 'number'       // 最長閱讀時間(分鐘)
+    sessionsCount: 'number', // 閱讀次數
+    longestSession: 'number' // 最長閱讀時間(分鐘)
   },
-  
+
   // 平台特定資料
   platformMetadata: {
     [platform]: {
-      originalData: 'object',      // 原始平台資料
+      originalData: 'object', // 原始平台資料
       extractionTimestamp: 'ISO_8601_date',
       dataQuality: 'VERIFIED|PARTIAL|SUSPECT|MIGRATED',
       platformSpecificFields: 'object', // 平台特有欄位
-      apiVersion: 'string'         // 提取時使用的 API 版本
+      apiVersion: 'string' // 提取時使用的 API 版本
     }
   },
-  
+
   // 同步管理
   syncStatus: {
     lastSyncTimestamp: 'ISO_8601_date',
     conflictResolved: 'boolean',
     mergeStrategy: 'LATEST_TIMESTAMP|MANUAL|PLATFORM_PRIORITY|SMART_MERGE',
-    syncSources: ['string'],       // 參與同步的平台列表
-    pendingSync: 'boolean'         // 是否有待同步的變更
+    syncSources: ['string'], // 參與同步的平台列表
+    pendingSync: 'boolean' // 是否有待同步的變更
   },
-  
+
   // 衝突記錄
-  conflictHistory: [{
-    conflictId: 'string',
-    timestamp: 'ISO_8601_date',
-    conflictType: 'DATA_INCONSISTENCY|VERSION_CONFLICT|PLATFORM_DIVERGENCE',
-    involvedPlatforms: ['string'],
-    resolutionStrategy: 'string',
-    resolvedBy: 'SYSTEM|USER',
-    conflictData: 'object'
-  }],
-  
+  conflictHistory: [
+    {
+      conflictId: 'string',
+      timestamp: 'ISO_8601_date',
+      conflictType: 'DATA_INCONSISTENCY|VERSION_CONFLICT|PLATFORM_DIVERGENCE',
+      involvedPlatforms: ['string'],
+      resolutionStrategy: 'string',
+      resolvedBy: 'SYSTEM|USER',
+      conflictData: 'object'
+    }
+  ],
+
   // 資料版本控制
-  version: 'semantic_version',     // 資料版本
-  schemaVersion: '2.0.0',         // 模型版本
-  createdAt: 'ISO_8601_date',     // 建立時間
-  updatedAt: 'ISO_8601_date',     // 最後更新時間
-  dataFingerprint: 'string',      // 資料指紋(用於重複檢測)
-  
+  version: 'semantic_version', // 資料版本
+  schemaVersion: '2.0.0', // 模型版本
+  createdAt: 'ISO_8601_date', // 建立時間
+  updatedAt: 'ISO_8601_date', // 最後更新時間
+  dataFingerprint: 'string', // 資料指紋(用於重複檢測)
+
   // 遷移歷史
-  migrationHistory: [{
-    from: 'semantic_version',
-    to: 'semantic_version', 
-    timestamp: 'number',
-    reason: 'AUTOMATIC_MIGRATION|MANUAL_UPGRADE|SCHEMA_UPDATE'
-  }]
+  migrationHistory: [
+    {
+      from: 'semantic_version',
+      to: 'semantic_version',
+      timestamp: 'number',
+      reason: 'AUTOMATIC_MIGRATION|MANUAL_UPGRADE|SCHEMA_UPDATE'
+    }
+  ]
 }
 ```
 
@@ -1442,33 +1484,33 @@ const UnifiedBookModelV2 = {
  * 管理跨平台資料同步的狀態和歷史
  */
 const SyncMetadataModel = {
-  syncId: 'string',                // 同步操作ID
+  syncId: 'string', // 同步操作ID
   type: 'FULL_SYNC|INCREMENTAL_SYNC|CONFLICT_RESOLUTION',
-  
+
   // 參與同步的平台
   platforms: {
-    source: ['string'],            // 來源平台
-    target: ['string'],            // 目標平台
-    excluded: ['string']           // 排除的平台
+    source: ['string'], // 來源平台
+    target: ['string'], // 目標平台
+    excluded: ['string'] // 排除的平台
   },
-  
+
   // 同步範圍
   scope: {
     allBooks: 'boolean',
-    bookIds: ['string'],           // 特定書籍ID
+    bookIds: ['string'], // 特定書籍ID
     dateRange: {
       from: 'ISO_8601_date',
       to: 'ISO_8601_date'
     },
-    platforms: ['string']          // 限制的平台
+    platforms: ['string'] // 限制的平台
   },
-  
+
   // 同步狀態
   status: 'PENDING|RUNNING|COMPLETED|FAILED|CANCELLED',
   startTime: 'ISO_8601_date',
   endTime: 'ISO_8601_date',
-  duration: 'number',              // 毫秒
-  
+  duration: 'number', // 毫秒
+
   // 同步結果
   results: {
     totalBooks: 'number',
@@ -1476,20 +1518,22 @@ const SyncMetadataModel = {
     failedBooks: 'number',
     conflictsDetected: 'number',
     conflictsResolved: 'number',
-    errors: [{
-      bookId: 'string',
-      platform: 'string',
-      error: 'string',
-      errorCode: 'string'
-    }]
+    errors: [
+      {
+        bookId: 'string',
+        platform: 'string',
+        error: 'string',
+        errorCode: 'string'
+      }
+    ]
   },
-  
+
   // 效能指標
   performance: {
     booksPerSecond: 'number',
-    networkUsage: 'number',        // 位元組
-    memoryPeak: 'number',          // 位元組
-    cpuUsage: 'number'             // 百分比
+    networkUsage: 'number', // 位元組
+    memoryPeak: 'number', // 位元組
+    cpuUsage: 'number' // 百分比
   }
 }
 ```
@@ -1510,7 +1554,7 @@ const DataManagementDIConfig = {
       dependencies: ['eventBus', 'serviceRegistry', 'config'],
       singleton: true
     },
-    
+
     // 資料驗證服務
     validation: {
       class: 'DataValidationService',
@@ -1521,10 +1565,10 @@ const DataManagementDIConfig = {
         batchSize: 100
       }
     },
-    
+
     // 模型遷移服務
     migration: {
-      class: 'SchemaMigrationService', 
+      class: 'SchemaMigrationService',
       dependencies: ['eventBus', 'migrationConfig'],
       config: {
         targetVersion: '2.0.0',
@@ -1533,30 +1577,30 @@ const DataManagementDIConfig = {
         continueOnError: false
       }
     },
-    
+
     // 資料同步服務
     synchronization: {
       class: 'DataSynchronizationService',
       dependencies: ['eventBus', 'syncConfig'],
       config: {
         maxConcurrentSyncs: 3,
-        syncTimeout: 300000,         // 5 分鐘
+        syncTimeout: 300000, // 5 分鐘
         retryAttempts: 3,
         conflictResolutionStrategy: 'SMART_MERGE'
       }
     },
-    
+
     // 衝突解決服務
     conflictResolution: {
       class: 'ConflictResolutionService',
       dependencies: ['eventBus', 'conflictConfig'],
       config: {
-        autoResolveThreshold: 0.8,   // 80% 信心度自動解決
+        autoResolveThreshold: 0.8, // 80% 信心度自動解決
         userInteractionTimeout: 300000, // 5 分鐘等待使用者
         defaultStrategy: 'LATEST_TIMESTAMP'
       }
     },
-    
+
     // 儲存適配器服務
     storageAdapter: {
       class: 'StorageAdapterService',
@@ -1568,20 +1612,20 @@ const DataManagementDIConfig = {
         cacheSize: 1000
       }
     },
-    
+
     // 備份恢復服務
     backupRecovery: {
       class: 'BackupRecoveryService',
       dependencies: ['eventBus', 'backupConfig'],
       config: {
         autoBackup: true,
-        backupFrequency: 86400000,   // 24 小時
+        backupFrequency: 86400000, // 24 小時
         maxBackups: 10,
         compressionEnabled: true
       }
     }
   },
-  
+
   // 外部依賴
   external: {
     eventBus: 'EventBus',
@@ -1816,11 +1860,11 @@ class DataManagementErrorHandler {
    */
   async retryOperation(error, context, strategy) {
     const delay = this.calculateBackoffDelay(context.retryCount, strategy.backoffStrategy)
-    
+
     await this.sleep(delay)
-    
+
     context.retryCount = (context.retryCount || 0) + 1
-    
+
     await this.eventBus.emit('DATA.ERROR.RETRY.ATTEMPTED', {
       errorId: context.errorId,
       retryCount: context.retryCount,
@@ -1838,16 +1882,16 @@ class DataManagementErrorHandler {
     switch (fallbackType) {
       case 'SKIP_INVALID_RECORDS':
         return await this.skipInvalidRecords(context)
-      
+
       case 'QUEUE_FOR_LATER':
         return await this.queueForLaterProcessing(context)
-      
+
       case 'REQUEST_USER_INTERVENTION':
         return await this.requestUserIntervention(error, context)
-      
+
       case 'SWITCH_TO_BACKUP_STORAGE':
         return await this.switchToBackupStorage(context)
-      
+
       default:
         console.warn(`Unknown fallback strategy: ${fallbackType}`)
         return null
@@ -1874,7 +1918,7 @@ class DataManagementErrorHandler {
    * 工具方法
    */
   sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
   generateErrorId() {
@@ -1904,7 +1948,7 @@ class DataManagementPerformanceOptimizer {
   async optimizeBatchProcessing(data, processor, options = {}) {
     const batchSize = options.batchSize || this.calculateOptimalBatchSize(data.length)
     const concurrency = options.concurrency || this.calculateOptimalConcurrency()
-    
+
     const batches = this.chunkArray(data, batchSize)
     const results = []
 
@@ -1916,7 +1960,7 @@ class DataManagementPerformanceOptimizer {
         const startTime = Date.now()
         const result = await processor(batch, index)
         const duration = Date.now() - startTime
-        
+
         this.recordBatchMetrics(index, batch.length, duration)
         return result
       } finally {
@@ -1945,7 +1989,7 @@ class DataManagementPerformanceOptimizer {
     // 基於 CPU 核心數和記憶體使用量
     const cpuCores = navigator.hardwareConcurrency || 4
     const memoryUsage = this.getCurrentMemoryUsage()
-    
+
     if (memoryUsage > 0.8) return Math.max(1, Math.floor(cpuCores / 2))
     if (memoryUsage > 0.6) return Math.max(2, Math.floor(cpuCores * 0.75))
     return Math.max(2, Math.min(cpuCores, 6))
@@ -1973,28 +2017,28 @@ class DataManagementPerformanceOptimizer {
       get: (key) => {
         const item = cache.get(key)
         if (!item) return null
-        
+
         if (Date.now() - item.timestamp > ttl) {
           cache.delete(key)
           return null
         }
-        
+
         return item.data
       },
-      
+
       set: (key, data) => {
         // LRU 清理
         if (cache.size >= maxCacheSize) {
           const firstKey = cache.keys().next().value
           cache.delete(firstKey)
         }
-        
+
         cache.set(key, {
           data,
           timestamp: Date.now()
         })
       },
-      
+
       clear: () => cache.clear(),
       size: () => cache.size
     }
@@ -2012,7 +2056,7 @@ class Semaphore {
   }
 
   async acquire() {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (this.current < this.max) {
         this.current++
         resolve()
@@ -2078,7 +2122,7 @@ describe('Data Management Domain v2.0', () => {
         {
           id: 'book-2',
           title: '', // 空標題
-          author: null, // 空作者
+          author: null // 空作者
         }
       ]
 
@@ -2093,7 +2137,7 @@ describe('Data Management Domain v2.0', () => {
     // 同步服務測試
     test('should sync data across platforms', async () => {
       const syncService = new DataSynchronizationService(eventBus, syncConfig)
-      
+
       const result = await syncService.initiateCrossPlatformSync(
         'sync-123',
         ['READMOO'],
@@ -2110,7 +2154,7 @@ describe('Data Management Domain v2.0', () => {
     // 衝突解決服務測試
     test('should automatically resolve simple conflicts', async () => {
       const conflictService = new ConflictResolutionService(eventBus, conflictConfig)
-      
+
       const conflict = {
         conflictId: 'conflict-123',
         type: 'PROGRESS_MISMATCH',
@@ -2136,15 +2180,15 @@ describe('Data Management Domain Integration Tests', () => {
   test('should handle complete data flow from extraction to storage', async () => {
     // 模擬完整的資料流程
     const extractedBooks = await mockExtraction('READMOO')
-    
+
     // 觸發驗證
     const validationResult = await dataCoordinator.handleExtractionCompleted({
       data: { platform: 'READMOO', books: extractedBooks }
     })
-    
+
     // 驗證資料已標準化
     expect(validationResult.normalizedBooks).toBeDefined()
-    
+
     // 觸發同步到其他平台
     const syncResult = await dataCoordinator.handleCrossPlatformSync({
       data: {
@@ -2153,7 +2197,7 @@ describe('Data Management Domain Integration Tests', () => {
         syncOptions: { strategy: 'SMART_MERGE' }
       }
     })
-    
+
     expect(syncResult.status).toBe('COMPLETED')
   })
 })
@@ -2172,7 +2216,7 @@ const DataManagementMetrics = {
     qualityScore: 'gauge',
     errorRate: 'counter'
   },
-  
+
   // 同步效能
   synchronization: {
     syncDuration: 'histogram',
@@ -2180,7 +2224,7 @@ const DataManagementMetrics = {
     conflictRate: 'gauge',
     retryCount: 'counter'
   },
-  
+
   // 儲存效能
   storage: {
     readLatency: 'histogram',
@@ -2188,7 +2232,7 @@ const DataManagementMetrics = {
     cacheHitRate: 'gauge',
     storageUsage: 'gauge'
   },
-  
+
   // 系統資源
   system: {
     memoryUsage: 'gauge',
@@ -2204,25 +2248,25 @@ const DataManagementMetrics = {
 const CapacityPlanning = {
   // 資料量估算
   dataVolume: {
-    booksPerUser: 500,           // 平均每使用者書籍數
-    avgBookSize: 2048,           // 平均書籍資料大小(bytes)
-    metadataOverhead: 1.5,       // 元資料開銷倍數
-    expectedUsers: 10000         // 預期使用者數
+    booksPerUser: 500, // 平均每使用者書籍數
+    avgBookSize: 2048, // 平均書籍資料大小(bytes)
+    metadataOverhead: 1.5, // 元資料開銷倍數
+    expectedUsers: 10000 // 預期使用者數
   },
-  
+
   // 效能需求
   performance: {
-    validationThroughput: 1000,  // 每秒驗證書籍數
-    syncLatency: 5000,           // 同步延遲上限(ms)
-    maxConcurrentSyncs: 10,      // 最大並行同步數
-    cacheHitRate: 0.8            // 快取命中率目標
+    validationThroughput: 1000, // 每秒驗證書籍數
+    syncLatency: 5000, // 同步延遲上限(ms)
+    maxConcurrentSyncs: 10, // 最大並行同步數
+    cacheHitRate: 0.8 // 快取命中率目標
   },
-  
+
   // 資源配置
   resources: {
-    maxMemoryUsage: '512MB',     // 最大記憶體使用
-    maxStorageSize: '2GB',       // 最大儲存空間
-    maxCPUUsage: 0.7             // 最大 CPU 使用率
+    maxMemoryUsage: '512MB', // 最大記憶體使用
+    maxStorageSize: '2GB', // 最大儲存空間
+    maxCPUUsage: 0.7 // 最大 CPU 使用率
   }
 }
 ```
@@ -2232,19 +2276,22 @@ const CapacityPlanning = {
 Data Management Domain v2.0 設計文件建立了一個完整、可擴展、高效的跨平台資料管理系統。通過以下核心特性：
 
 ### 🎯 核心價值
+
 1. **統一資料模型**: 標準化跨平台書籍資料格式
 2. **智能同步機制**: 自動衝突檢測和解決
-3. **高效能處理**: 優化的批量處理和並行機制  
+3. **高效能處理**: 優化的批量處理和並行機制
 4. **完整錯誤處理**: 多層次的錯誤恢復策略
 5. **向後相容性**: 平滑的版本遷移和 API 相容
 
 ### 🔗 架構整合
+
 - **與 Platform Domain 緊密協作**: 平台檢測和適配器管理
 - **事件驅動通訊**: 遵循 v2.0 事件命名規範
 - **依賴注入設計**: 模組化和可測試性
 - **效能優化**: 智能快取和資源管理
 
 ### 📊 品質保證
+
 - **完整測試策略**: 單元、整合、效能測試
 - **監控指標**: 詳細的效能和健康監控
 - **容量規劃**: 可擴展的資源配置策略

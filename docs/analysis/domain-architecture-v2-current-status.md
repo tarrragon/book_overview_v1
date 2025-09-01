@@ -11,6 +11,7 @@
 根據檔案系統分析，我們已經實作了以下 Domain：
 
 #### 1. **System Domain** ✅ 完整實作
+
 ```
 src/background/domains/system/
 ├── system-domain-coordinator.js
@@ -23,6 +24,7 @@ src/background/domains/system/
 ```
 
 #### 2. **Page Domain** ✅ 完整實作
+
 ```
 src/background/domains/page/
 ├── page-domain-coordinator.js
@@ -35,6 +37,7 @@ src/background/domains/page/
 ```
 
 #### 3. **Extraction Domain** ✅ 完整實作
+
 ```
 src/background/domains/extraction/
 ├── extraction-domain-coordinator.js
@@ -47,6 +50,7 @@ src/background/domains/extraction/
 ```
 
 #### 4. **Messaging Domain** ✅ 完整實作
+
 ```
 src/background/domains/messaging/
 ├── messaging-domain-coordinator.js
@@ -56,6 +60,7 @@ src/background/domains/messaging/
 ```
 
 #### 5. **Platform Domain** ✅ 完整實作 (超出設計!)
+
 ```
 src/background/domains/platform/
 ├── platform-domain-coordinator.js
@@ -69,6 +74,7 @@ src/background/domains/platform/
 ```
 
 #### 6. **Data Management Domain** ✅ 完整實作 (超出設計!)
+
 ```
 src/background/domains/data-management/
 ├── data-domain-coordinator.js
@@ -81,7 +87,9 @@ src/background/domains/data-management/
 ### ❌ 缺少的 Domain (3/9)
 
 #### 7. **User Experience Domain** - 需要設計實作
+
 根據設計文件應包含：
+
 - theme-management-service.js (主題管理)
 - preference-service.js (偏好設定)
 - notification-service.js (通知管理)
@@ -89,7 +97,9 @@ src/background/domains/data-management/
 - accessibility-service.js (無障礙)
 
 #### 8. **Analytics Domain** - 需要設計實作
+
 根據設計文件應包含：
+
 - reading-analytics-service.js (閱讀分析)
 - cross-platform-stats-service.js (跨平台統計)
 - visualization-service.js (視覺化)
@@ -97,7 +107,9 @@ src/background/domains/data-management/
 - trend-analysis-service.js (趨勢分析)
 
 #### 9. **Security Domain** - 需要設計實作
+
 根據設計文件應包含：
+
 - data-encryption-service.js (資料加密)
 - privacy-protection-service.js (隱私保護)
 - audit-logging-service.js (審計日誌)
@@ -140,6 +152,7 @@ src/background/domains/data-management/
 ### 1. **Popup 模組化** → **User Experience Domain**
 
 **融合策略**:
+
 ```
 src/background/domains/user-experience/
 ├── ux-domain-coordinator.js
@@ -153,6 +166,7 @@ src/background/domains/user-experience/
 ```
 
 **Popup 重構融入 UX Domain**:
+
 - popup-ui-coordination-service 負責協調 popup 各模組
 - theme-management-service 處理 popup 主題切換
 - preference-service 管理 popup 使用者偏好
@@ -161,6 +175,7 @@ src/background/domains/user-experience/
 ### 2. **Content Utils 重構** → **System Domain 擴展**
 
 **融合策略**:
+
 ```
 src/background/domains/system/services/
 ├── config-management-service.js       # 已存在，整合 config-utils
@@ -172,6 +187,7 @@ src/background/domains/system/services/
 ### 3. **儲存系統抽象化** → **Data Management Domain 擴展**
 
 **融合策略**:
+
 ```
 src/background/domains/data-management/services/
 ├── storage-abstraction-service.js     # 新建
@@ -186,35 +202,37 @@ src/background/domains/data-management/services/
 ### 核心介面協議
 
 #### 1. **Platform Domain 介面**
+
 ```javascript
 interface PlatformDomainAPI {
   // 平台檢測
   detectPlatform(url: string): Promise<PlatformInfo>
-  
+
   // 適配器管理
   getAdapter(platform: string): Promise<PlatformAdapter>
   registerAdapter(platform: string, adapter: PlatformAdapter): Promise<void>
-  
+
   // 跨平台路由
   routeToAllPlatforms(operation: string, data: any): Promise<OperationResult[]>
-  
+
   // 平台切換
   switchToPlatform(platform: string): Promise<boolean>
 }
 ```
 
 #### 2. **Data Management Domain 介面**
+
 ```javascript
 interface DataManagementDomainAPI {
   // 資料驗證
   validateData(data: any, schema: Schema): Promise<ValidationResult>
-  
+
   // 資料同步
   syncData(platforms: string[]): Promise<SyncResult>
-  
+
   // 衝突解決
   resolveConflicts(conflicts: Conflict[]): Promise<ResolutionResult>
-  
+
   // 儲存抽象
   store(key: string, data: any, options?: StorageOptions): Promise<void>
   retrieve(key: string, options?: StorageOptions): Promise<any>
@@ -222,55 +240,58 @@ interface DataManagementDomainAPI {
 ```
 
 #### 3. **User Experience Domain 介面**
+
 ```javascript
 interface UserExperienceDomainAPI {
   // 主題管理
   setTheme(theme: Theme): Promise<void>
   getCurrentTheme(): Promise<Theme>
-  
+
   // 偏好管理
   setPreference(key: string, value: any): Promise<void>
   getPreference(key: string): Promise<any>
-  
+
   // 通知管理
   showNotification(notification: Notification): Promise<void>
-  
+
   // UI 協調
   coordinatePopupState(state: PopupState): Promise<void>
 }
 ```
 
 #### 4. **Analytics Domain 介面**
+
 ```javascript
 interface AnalyticsDomainAPI {
   // 數據收集
   collectEvent(event: AnalyticsEvent): Promise<void>
-  
+
   // 統計分析
   generateStats(timeRange: TimeRange): Promise<Statistics>
-  
+
   // 報告生成
   generateReport(type: ReportType): Promise<Report>
-  
+
   // 趨勢分析
   analyzeTrends(data: AnalyticsData): Promise<TrendAnalysis>
 }
 ```
 
 #### 5. **Security Domain 介面**
+
 ```javascript
 interface SecurityDomainAPI {
   // 資料加密
   encrypt(data: any): Promise<EncryptedData>
   decrypt(encryptedData: EncryptedData): Promise<any>
-  
+
   // 隱私保護
   anonymizeData(data: any): Promise<AnonymizedData>
-  
+
   // 權限控制
   checkPermission(operation: string): Promise<boolean>
   grantPermission(operation: string): Promise<void>
-  
+
   // 審計日誌
   logAuditEvent(event: AuditEvent): Promise<void>
 }
@@ -279,16 +300,19 @@ interface SecurityDomainAPI {
 ## 🚀 實施優先級建議
 
 ### Phase 1: 完成缺失的 Domain 設計 (立即執行)
+
 1. **User Experience Domain** - 整合 Popup 重構需求
 2. **Analytics Domain** - 為未來功能準備基礎
 3. **Security Domain** - 為多平台準備安全機制
 
 ### Phase 2: 補完現有 Domain 的設計缺口
+
 1. **Platform Domain** - 補齊抽象化服務
 2. **Data Management Domain** - 補齊儲存抽象化服務
 3. **System Domain** - 整合 Utils 重構
 
 ### Phase 3: Domain 間介面整合與測試
+
 1. 建立跨 Domain 通訊協議
 2. 實作 Domain 間事件流程
 3. 完整的整合測試

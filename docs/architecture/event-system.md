@@ -62,29 +62,29 @@
 ```javascript
 // 格式：[MODULE].[ACTION].[STATE]
 // 範例：
-'data.extract.started'      // 資料提取開始
-'data.extract.progress'     // 資料提取進度
-'data.extract.completed'    // 資料提取完成
-'data.extract.failed'       // 資料提取失敗
+'data.extract.started' // 資料提取開始
+'data.extract.progress' // 資料提取進度
+'data.extract.completed' // 資料提取完成
+'data.extract.failed' // 資料提取失敗
 
-'storage.save.requested'    // 儲存請求
-'storage.save.completed'    // 儲存完成
-'storage.save.failed'       // 儲存失敗
+'storage.save.requested' // 儲存請求
+'storage.save.completed' // 儲存完成
+'storage.save.failed' // 儲存失敗
 
-'ui.popup.opened'          // 彈出視窗開啟
-'ui.popup.closed'          // 彈出視窗關閉
-'ui.overview.rendered'     // 瀏覽頁面渲染完成
+'ui.popup.opened' // 彈出視窗開啟
+'ui.popup.closed' // 彈出視窗關閉
+'ui.overview.rendered' // 瀏覽頁面渲染完成
 ```
 
 ### 事件優先級
 
 ```javascript
 const EVENT_PRIORITY = {
-  CRITICAL: 0,    // 關鍵事件（錯誤、安全相關）
-  HIGH: 1,        // 高優先級（使用者操作回應）
-  NORMAL: 2,      // 一般優先級（資料處理）
-  LOW: 3          // 低優先級（統計、日誌）
-};
+  CRITICAL: 0, // 關鍵事件（錯誤、安全相關）
+  HIGH: 1, // 高優先級（使用者操作回應）
+  NORMAL: 2, // 一般優先級（資料處理）
+  LOW: 3 // 低優先級（統計、日誌）
+}
 ```
 
 ## 🔄 事件生命週期
@@ -154,18 +154,18 @@ graph TD
  */
 class Event {
   constructor(type, data = {}, options = {}) {
-    this.id = generateEventId();
-    this.type = type;
-    this.data = data;
-    this.timestamp = new Date().toISOString();
-    this.priority = options.priority || EVENT_PRIORITY.NORMAL;
-    this.source = options.source || 'unknown';
-    this.correlationId = options.correlationId || null;
+    this.id = generateEventId()
+    this.type = type
+    this.data = data
+    this.timestamp = new Date().toISOString()
+    this.priority = options.priority || EVENT_PRIORITY.NORMAL
+    this.source = options.source || 'unknown'
+    this.correlationId = options.correlationId || null
     this.metadata = {
       version: '1.0',
       schema: 'standard-event',
       ...options.metadata
-    };
+    }
   }
 
   /**
@@ -181,15 +181,14 @@ class Event {
       source: this.source,
       correlationId: this.correlationId,
       metadata: this.metadata
-    };
+    }
   }
 
   /**
    * 檢查事件是否可以取消
    */
   isCancellable() {
-    return this.type.endsWith('.requested') || 
-           this.type.endsWith('.started');
+    return this.type.endsWith('.requested') || this.type.endsWith('.started')
   }
 }
 ```
@@ -203,20 +202,18 @@ const DataExtractionEvent = {
   PROGRESS: 'data.extract.progress',
   COMPLETED: 'data.extract.completed',
   FAILED: 'data.extract.failed',
-  
+
   // 事件資料結構
-  createStartedEvent: (url, options) => new Event(
-    DataExtractionEvent.STARTED,
-    { url, options },
-    { priority: EVENT_PRIORITY.HIGH }
-  ),
-  
-  createProgressEvent: (progress, total) => new Event(
-    DataExtractionEvent.PROGRESS,
-    { progress, total, percentage: (progress / total) * 100 },
-    { priority: EVENT_PRIORITY.NORMAL }
-  )
-};
+  createStartedEvent: (url, options) =>
+    new Event(DataExtractionEvent.STARTED, { url, options }, { priority: EVENT_PRIORITY.HIGH }),
+
+  createProgressEvent: (progress, total) =>
+    new Event(
+      DataExtractionEvent.PROGRESS,
+      { progress, total, percentage: (progress / total) * 100 },
+      { priority: EVENT_PRIORITY.NORMAL }
+    )
+}
 
 // 儲存事件
 const StorageEvent = {
@@ -226,7 +223,7 @@ const StorageEvent = {
   LOAD_REQUESTED: 'storage.load.requested',
   LOAD_COMPLETED: 'storage.load.completed',
   LOAD_FAILED: 'storage.load.failed'
-};
+}
 
 // UI事件
 const UIEvent = {
@@ -235,7 +232,7 @@ const UIEvent = {
   OVERVIEW_RENDERED: 'ui.overview.rendered',
   SEARCH_PERFORMED: 'ui.search.performed',
   EXPORT_REQUESTED: 'ui.export.requested'
-};
+}
 ```
 
 ## 🔧 事件處理器設計
@@ -248,12 +245,12 @@ const UIEvent = {
  */
 class EventHandler {
   constructor(name, priority = EVENT_PRIORITY.NORMAL) {
-    this.name = name;
-    this.priority = priority;
-    this.isEnabled = true;
-    this.executionCount = 0;
-    this.lastExecutionTime = null;
-    this.averageExecutionTime = 0;
+    this.name = name
+    this.priority = priority
+    this.isEnabled = true
+    this.executionCount = 0
+    this.lastExecutionTime = null
+    this.averageExecutionTime = 0
   }
 
   /**
@@ -263,30 +260,30 @@ class EventHandler {
    */
   async handle(event) {
     if (!this.isEnabled) {
-      return null;
+      return null
     }
 
-    const startTime = Date.now();
-    this.executionCount++;
+    const startTime = Date.now()
+    this.executionCount++
 
     try {
       // 預處理
-      await this.beforeHandle(event);
-      
+      await this.beforeHandle(event)
+
       // 主要處理邏輯
-      const result = await this.process(event);
-      
+      const result = await this.process(event)
+
       // 後處理
-      await this.afterHandle(event, result);
-      
-      return result;
+      await this.afterHandle(event, result)
+
+      return result
     } catch (error) {
-      await this.onError(event, error);
-      throw error;
+      await this.onError(event, error)
+      throw error
     } finally {
       // 更新統計資訊
-      const executionTime = Date.now() - startTime;
-      this.updateStats(executionTime);
+      const executionTime = Date.now() - startTime
+      this.updateStats(executionTime)
     }
   }
 
@@ -294,7 +291,7 @@ class EventHandler {
    * 實際的處理邏輯 - 子類別必須實現
    */
   async process(event) {
-    throw new Error('Process method must be implemented by subclass');
+    throw new Error('Process method must be implemented by subclass')
   }
 
   /**
@@ -302,7 +299,7 @@ class EventHandler {
    */
   async beforeHandle(event) {
     // 預設實現：記錄日誌
-    console.log(`[${this.name}] Processing event: ${event.type}`);
+    console.log(`[${this.name}] Processing event: ${event.type}`)
   }
 
   /**
@@ -310,45 +307,44 @@ class EventHandler {
    */
   async afterHandle(event, result) {
     // 預設實現：記錄結果
-    console.log(`[${this.name}] Completed event: ${event.type}`);
+    console.log(`[${this.name}] Completed event: ${event.type}`)
   }
 
   /**
    * 錯誤處理
    */
   async onError(event, error) {
-    console.error(`[${this.name}] Error processing event: ${event.type}`, error);
+    console.error(`[${this.name}] Error processing event: ${event.type}`, error)
   }
 
   /**
    * 更新執行統計
    */
   updateStats(executionTime) {
-    this.lastExecutionTime = executionTime;
-    this.averageExecutionTime = 
-      (this.averageExecutionTime * (this.executionCount - 1) + executionTime) / 
-      this.executionCount;
+    this.lastExecutionTime = executionTime
+    this.averageExecutionTime =
+      (this.averageExecutionTime * (this.executionCount - 1) + executionTime) / this.executionCount
   }
 
   /**
    * 檢查是否可以處理指定事件
    */
   canHandle(eventType) {
-    return this.getSupportedEvents().includes(eventType);
+    return this.getSupportedEvents().includes(eventType)
   }
 
   /**
    * 取得支援的事件類型 - 子類別必須實現
    */
   getSupportedEvents() {
-    throw new Error('getSupportedEvents method must be implemented by subclass');
+    throw new Error('getSupportedEvents method must be implemented by subclass')
   }
 
   /**
    * 啟用/停用處理器
    */
   setEnabled(enabled) {
-    this.isEnabled = enabled;
+    this.isEnabled = enabled
   }
 
   /**
@@ -361,7 +357,7 @@ class EventHandler {
       lastExecutionTime: this.lastExecutionTime,
       averageExecutionTime: this.averageExecutionTime,
       isEnabled: this.isEnabled
-    };
+    }
   }
 }
 ```
@@ -374,62 +370,58 @@ class EventHandler {
  */
 class DataExtractionHandler extends EventHandler {
   constructor() {
-    super('DataExtractionHandler', EVENT_PRIORITY.HIGH);
-    this.extractor = null;
+    super('DataExtractionHandler', EVENT_PRIORITY.HIGH)
+    this.extractor = null
   }
 
   getSupportedEvents() {
-    return [
-      DataExtractionEvent.STARTED,
-      'tab.updated.readmoo'
-    ];
+    return [DataExtractionEvent.STARTED, 'tab.updated.readmoo']
   }
 
   async process(event) {
     switch (event.type) {
       case DataExtractionEvent.STARTED:
-        return await this.handleExtractionStart(event);
+        return await this.handleExtractionStart(event)
       case 'tab.updated.readmoo':
-        return await this.handleTabUpdate(event);
+        return await this.handleTabUpdate(event)
       default:
-        throw new Error(`Unsupported event type: ${event.type}`);
+        throw new Error(`Unsupported event type: ${event.type}`)
     }
   }
 
   async handleExtractionStart(event) {
-    const { url, options } = event.data;
-    
+    const { url, options } = event.data
+
     // 建立進度追蹤
-    const progressTracker = new ProgressTracker();
-    
+    const progressTracker = new ProgressTracker()
+
     // 初始化提取器
-    this.extractor = new BookDataExtractor(options);
-    
+    this.extractor = new BookDataExtractor(options)
+
     // 執行提取
     const books = await this.extractor.extract(url, (progress) => {
       // 發布進度事件
-      eventBus.publish(
-        DataExtractionEvent.createProgressEvent(progress.current, progress.total)
-      );
-    });
+      eventBus.publish(DataExtractionEvent.createProgressEvent(progress.current, progress.total))
+    })
 
     // 發布完成事件
-    eventBus.publish(new Event(
-      DataExtractionEvent.COMPLETED,
-      { books, extractedAt: new Date().toISOString() },
-      { correlationId: event.id }
-    ));
+    eventBus.publish(
+      new Event(
+        DataExtractionEvent.COMPLETED,
+        { books, extractedAt: new Date().toISOString() },
+        { correlationId: event.id }
+      )
+    )
 
-    return books;
+    return books
   }
 
   async handleTabUpdate(event) {
-    const { tabId, changeInfo, tab } = event.data;
-    
-    if (changeInfo.status === 'complete' && 
-        tab.url.includes('readmoo.com/library')) {
+    const { tabId, changeInfo, tab } = event.data
+
+    if (changeInfo.status === 'complete' && tab.url.includes('readmoo.com/library')) {
       // 自動觸發資料提取
-      eventBus.publish(DataExtractionEvent.createStartedEvent(tab.url));
+      eventBus.publish(DataExtractionEvent.createStartedEvent(tab.url))
     }
   }
 }
@@ -439,67 +431,66 @@ class DataExtractionHandler extends EventHandler {
  */
 class StorageHandler extends EventHandler {
   constructor() {
-    super('StorageHandler', EVENT_PRIORITY.NORMAL);
-    this.storageAdapter = new ChromeStorageAdapter();
+    super('StorageHandler', EVENT_PRIORITY.NORMAL)
+    this.storageAdapter = new ChromeStorageAdapter()
   }
 
   getSupportedEvents() {
-    return [
-      StorageEvent.SAVE_REQUESTED,
-      StorageEvent.LOAD_REQUESTED,
-      DataExtractionEvent.COMPLETED
-    ];
+    return [StorageEvent.SAVE_REQUESTED, StorageEvent.LOAD_REQUESTED, DataExtractionEvent.COMPLETED]
   }
 
   async process(event) {
     switch (event.type) {
       case StorageEvent.SAVE_REQUESTED:
-        return await this.handleSaveRequest(event);
+        return await this.handleSaveRequest(event)
       case StorageEvent.LOAD_REQUESTED:
-        return await this.handleLoadRequest(event);
+        return await this.handleLoadRequest(event)
       case DataExtractionEvent.COMPLETED:
-        return await this.handleAutoSave(event);
+        return await this.handleAutoSave(event)
       default:
-        throw new Error(`Unsupported event type: ${event.type}`);
+        throw new Error(`Unsupported event type: ${event.type}`)
     }
   }
 
   async handleSaveRequest(event) {
-    const { key, data, options } = event.data;
-    
+    const { key, data, options } = event.data
+
     try {
-      await this.storageAdapter.save(key, data, options);
-      
-      eventBus.publish(new Event(
-        StorageEvent.SAVE_COMPLETED,
-        { key, timestamp: new Date().toISOString() },
-        { correlationId: event.id }
-      ));
-      
-      return { success: true };
+      await this.storageAdapter.save(key, data, options)
+
+      eventBus.publish(
+        new Event(
+          StorageEvent.SAVE_COMPLETED,
+          { key, timestamp: new Date().toISOString() },
+          { correlationId: event.id }
+        )
+      )
+
+      return { success: true }
     } catch (error) {
-      eventBus.publish(new Event(
-        StorageEvent.SAVE_FAILED,
-        { key, error: error.message },
-        { correlationId: event.id }
-      ));
-      
-      throw error;
+      eventBus.publish(
+        new Event(
+          StorageEvent.SAVE_FAILED,
+          { key, error: error.message },
+          { correlationId: event.id }
+        )
+      )
+
+      throw error
     }
   }
 
   async handleAutoSave(event) {
-    const { books } = event.data;
-    
+    const { books } = event.data
+
     // 自動儲存提取的書籍資料
-    return await this.handleSaveRequest(new Event(
-      StorageEvent.SAVE_REQUESTED,
-      { 
-        key: 'extracted_books', 
+    return await this.handleSaveRequest(
+      new Event(StorageEvent.SAVE_REQUESTED, {
+        key: 'extracted_books',
         data: books,
         options: { autoSave: true }
-      }
-    ));
+      })
+    )
   }
 }
 ```
@@ -515,8 +506,8 @@ class StorageHandler extends EventHandler {
  */
 class ChromeEventBridge {
   constructor() {
-    this.messageHandlers = new Map();
-    this.setupMessageListeners();
+    this.messageHandlers = new Map()
+    this.setupMessageListeners()
   }
 
   /**
@@ -525,24 +516,24 @@ class ChromeEventBridge {
   setupMessageListeners() {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.type === 'CROSS_CONTEXT_EVENT') {
-        this.handleCrossContextEvent(message, sender, sendResponse);
-        return true; // 保持消息通道開啟
+        this.handleCrossContextEvent(message, sender, sendResponse)
+        return true // 保持消息通道開啟
       }
-    });
+    })
   }
 
   /**
    * 處理跨上下文事件
    */
   async handleCrossContextEvent(message, sender, sendResponse) {
-    const { event, targetContext } = message.data;
-    
+    const { event, targetContext } = message.data
+
     try {
       // 在目標上下文中觸發事件
-      const result = await this.dispatchToContext(event, targetContext);
-      sendResponse({ success: true, result });
+      const result = await this.dispatchToContext(event, targetContext)
+      sendResponse({ success: true, result })
     } catch (error) {
-      sendResponse({ success: false, error: error.message });
+      sendResponse({ success: false, error: error.message })
     }
   }
 
@@ -552,13 +543,13 @@ class ChromeEventBridge {
   async dispatchToContext(event, targetContext) {
     switch (targetContext) {
       case 'background':
-        return await this.dispatchToBackground(event);
+        return await this.dispatchToBackground(event)
       case 'content':
-        return await this.dispatchToContent(event);
+        return await this.dispatchToContent(event)
       case 'popup':
-        return await this.dispatchToPopup(event);
+        return await this.dispatchToPopup(event)
       default:
-        throw new Error(`Unknown target context: ${targetContext}`);
+        throw new Error(`Unknown target context: ${targetContext}`)
     }
   }
 
@@ -567,39 +558,42 @@ class ChromeEventBridge {
    */
   async dispatchToBackground(event) {
     return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage({
-        type: 'BACKGROUND_EVENT',
-        event
-      }, (response) => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-        } else {
-          resolve(response);
+      chrome.runtime.sendMessage(
+        {
+          type: 'BACKGROUND_EVENT',
+          event
+        },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message))
+          } else {
+            resolve(response)
+          }
         }
-      });
-    });
+      )
+    })
   }
 
   /**
    * 發送事件到內容腳本
    */
   async dispatchToContent(event) {
-    const tabs = await this.getReadmooTabs();
-    const results = [];
-    
+    const tabs = await this.getReadmooTabs()
+    const results = []
+
     for (const tab of tabs) {
       try {
         const result = await this.sendToTab(tab.id, {
           type: 'CONTENT_EVENT',
           event
-        });
-        results.push(result);
+        })
+        results.push(result)
       } catch (error) {
-        console.warn(`Failed to send event to tab ${tab.id}:`, error);
+        console.warn(`Failed to send event to tab ${tab.id}:`, error)
       }
     }
-    
-    return results;
+
+    return results
   }
 
   /**
@@ -607,10 +601,13 @@ class ChromeEventBridge {
    */
   async getReadmooTabs() {
     return new Promise((resolve) => {
-      chrome.tabs.query({
-        url: ['*://readmoo.com/*', '*://*.readmoo.com/*']
-      }, resolve);
-    });
+      chrome.tabs.query(
+        {
+          url: ['*://readmoo.com/*', '*://*.readmoo.com/*']
+        },
+        resolve
+      )
+    })
   }
 
   /**
@@ -620,12 +617,12 @@ class ChromeEventBridge {
     return new Promise((resolve, reject) => {
       chrome.tabs.sendMessage(tabId, message, (response) => {
         if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
+          reject(new Error(chrome.runtime.lastError.message))
         } else {
-          resolve(response);
+          resolve(response)
         }
-      });
-    });
+      })
+    })
   }
 }
 ```
@@ -640,35 +637,35 @@ class ChromeEventBridge {
  */
 class EventPerformanceMonitor {
   constructor() {
-    this.metrics = new Map();
+    this.metrics = new Map()
     this.thresholds = {
-      warning: 1000,  // 1秒
-      critical: 5000  // 5秒
-    };
+      warning: 1000, // 1秒
+      critical: 5000 // 5秒
+    }
   }
 
   /**
    * 開始監控事件
    */
   startMonitoring(event) {
-    const eventId = event.id;
+    const eventId = event.id
     this.metrics.set(eventId, {
       event,
       startTime: performance.now(),
       handlers: []
-    });
+    })
   }
 
   /**
    * 記錄處理器執行時間
    */
   recordHandlerExecution(eventId, handlerName, executionTime) {
-    const metric = this.metrics.get(eventId);
+    const metric = this.metrics.get(eventId)
     if (metric) {
       metric.handlers.push({
         name: handlerName,
         executionTime
-      });
+      })
     }
   }
 
@@ -676,22 +673,22 @@ class EventPerformanceMonitor {
    * 完成事件監控
    */
   completeMonitoring(eventId) {
-    const metric = this.metrics.get(eventId);
-    if (!metric) return;
+    const metric = this.metrics.get(eventId)
+    if (!metric) return
 
-    const totalTime = performance.now() - metric.startTime;
-    metric.totalTime = totalTime;
-    metric.completedAt = new Date().toISOString();
+    const totalTime = performance.now() - metric.startTime
+    metric.totalTime = totalTime
+    metric.completedAt = new Date().toISOString()
 
     // 檢查是否超過閾值
     if (totalTime > this.thresholds.critical) {
-      this.reportCriticalPerformance(metric);
+      this.reportCriticalPerformance(metric)
     } else if (totalTime > this.thresholds.warning) {
-      this.reportWarningPerformance(metric);
+      this.reportWarningPerformance(metric)
     }
 
     // 清理舊的監控資料
-    this.metrics.delete(eventId);
+    this.metrics.delete(eventId)
   }
 
   /**
@@ -702,14 +699,12 @@ class EventPerformanceMonitor {
       eventType: metric.event.type,
       totalTime: metric.totalTime,
       handlers: metric.handlers
-    });
-    
+    })
+
     // 發送效能警告事件
-    eventBus.publish(new Event(
-      'system.performance.critical',
-      { metric },
-      { priority: EVENT_PRIORITY.CRITICAL }
-    ));
+    eventBus.publish(
+      new Event('system.performance.critical', { metric }, { priority: EVENT_PRIORITY.CRITICAL })
+    )
   }
 
   /**
@@ -719,23 +714,26 @@ class EventPerformanceMonitor {
     console.warn('Performance warning:', {
       eventType: metric.event.type,
       totalTime: metric.totalTime
-    });
+    })
   }
 
   /**
    * 取得效能統計
    */
   getPerformanceStats() {
-    const activeEvents = Array.from(this.metrics.values());
+    const activeEvents = Array.from(this.metrics.values())
     return {
       activeEventsCount: activeEvents.length,
-      longestRunningEvent: activeEvents.reduce((longest, current) => {
-        const currentRunTime = performance.now() - current.startTime;
-        return currentRunTime > longest.runTime ? 
-          { event: current.event, runTime: currentRunTime } : 
-          longest;
-      }, { runTime: 0 })
-    };
+      longestRunningEvent: activeEvents.reduce(
+        (longest, current) => {
+          const currentRunTime = performance.now() - current.startTime
+          return currentRunTime > longest.runTime
+            ? { event: current.event, runTime: currentRunTime }
+            : longest
+        },
+        { runTime: 0 }
+      )
+    }
   }
 }
 ```
@@ -750,27 +748,23 @@ class EventPerformanceMonitor {
  */
 class EventErrorHandler extends EventHandler {
   constructor() {
-    super('EventErrorHandler', EVENT_PRIORITY.CRITICAL);
-    this.errorCounts = new Map();
-    this.circuitBreaker = new Map();
+    super('EventErrorHandler', EVENT_PRIORITY.CRITICAL)
+    this.errorCounts = new Map()
+    this.circuitBreaker = new Map()
   }
 
   getSupportedEvents() {
-    return [
-      'system.error.occurred',
-      'handler.execution.failed',
-      'event.processing.timeout'
-    ];
+    return ['system.error.occurred', 'handler.execution.failed', 'event.processing.timeout']
   }
 
   async process(event) {
     switch (event.type) {
       case 'system.error.occurred':
-        return await this.handleSystemError(event);
+        return await this.handleSystemError(event)
       case 'handler.execution.failed':
-        return await this.handleHandlerFailure(event);
+        return await this.handleHandlerFailure(event)
       case 'event.processing.timeout':
-        return await this.handleProcessingTimeout(event);
+        return await this.handleProcessingTimeout(event)
     }
   }
 
@@ -778,21 +772,21 @@ class EventErrorHandler extends EventHandler {
    * 處理系統錯誤
    */
   async handleSystemError(event) {
-    const { error, context, severity } = event.data;
-    
+    const { error, context, severity } = event.data
+
     // 記錄錯誤
-    this.logError(error, context, severity);
-    
+    this.logError(error, context, severity)
+
     // 根據嚴重程度決定處理策略
     switch (severity) {
       case 'critical':
-        await this.handleCriticalError(error, context);
-        break;
+        await this.handleCriticalError(error, context)
+        break
       case 'warning':
-        await this.handleWarningError(error, context);
-        break;
+        await this.handleWarningError(error, context)
+        break
       default:
-        await this.handleGeneralError(error, context);
+        await this.handleGeneralError(error, context)
     }
   }
 
@@ -801,58 +795,61 @@ class EventErrorHandler extends EventHandler {
    */
   async handleCriticalError(error, context) {
     // 啟動斷路器
-    this.activateCircuitBreaker(context.component);
-    
+    this.activateCircuitBreaker(context.component)
+
     // 嘗試系統復原
-    await this.attemptSystemRecovery(context);
-    
+    await this.attemptSystemRecovery(context)
+
     // 通知使用者
     await this.notifyUser({
       type: 'critical_error',
       message: '系統遇到嚴重錯誤，正在嘗試自動復原',
       canRetry: true
-    });
+    })
   }
 
   /**
    * 啟動斷路器
    */
   activateCircuitBreaker(component) {
-    const now = Date.now();
+    const now = Date.now()
     const breakerInfo = this.circuitBreaker.get(component) || {
       isOpen: false,
       failureCount: 0,
       lastFailureTime: 0
-    };
+    }
 
-    breakerInfo.failureCount++;
-    breakerInfo.lastFailureTime = now;
+    breakerInfo.failureCount++
+    breakerInfo.lastFailureTime = now
 
     // 如果失敗次數過多，開啟斷路器
     if (breakerInfo.failureCount >= 3) {
-      breakerInfo.isOpen = true;
-      breakerInfo.openedAt = now;
-      
+      breakerInfo.isOpen = true
+      breakerInfo.openedAt = now
+
       // 設定自動復原時間（5分鐘後）
-      setTimeout(() => {
-        this.resetCircuitBreaker(component);
-      }, 5 * 60 * 1000);
+      setTimeout(
+        () => {
+          this.resetCircuitBreaker(component)
+        },
+        5 * 60 * 1000
+      )
     }
 
-    this.circuitBreaker.set(component, breakerInfo);
+    this.circuitBreaker.set(component, breakerInfo)
   }
 
   /**
    * 重設斷路器
    */
   resetCircuitBreaker(component) {
-    const breakerInfo = this.circuitBreaker.get(component);
+    const breakerInfo = this.circuitBreaker.get(component)
     if (breakerInfo) {
-      breakerInfo.isOpen = false;
-      breakerInfo.failureCount = 0;
-      this.circuitBreaker.set(component, breakerInfo);
-      
-      console.log(`Circuit breaker reset for component: ${component}`);
+      breakerInfo.isOpen = false
+      breakerInfo.failureCount = 0
+      this.circuitBreaker.set(component, breakerInfo)
+
+      console.log(`Circuit breaker reset for component: ${component}`)
     }
   }
 
@@ -860,8 +857,8 @@ class EventErrorHandler extends EventHandler {
    * 檢查斷路器狀態
    */
   isCircuitBreakerOpen(component) {
-    const breakerInfo = this.circuitBreaker.get(component);
-    return breakerInfo && breakerInfo.isOpen;
+    const breakerInfo = this.circuitBreaker.get(component)
+    return breakerInfo && breakerInfo.isOpen
   }
 
   /**
@@ -870,24 +867,24 @@ class EventErrorHandler extends EventHandler {
   async attemptSystemRecovery(context) {
     try {
       // 清理可能損壞的狀態
-      await this.cleanupCorruptedState(context);
-      
+      await this.cleanupCorruptedState(context)
+
       // 重新初始化相關組件
-      await this.reinitializeComponents(context);
-      
+      await this.reinitializeComponents(context)
+
       // 驗證系統狀態
-      const isHealthy = await this.validateSystemHealth();
-      
+      const isHealthy = await this.validateSystemHealth()
+
       if (isHealthy) {
-        console.log('System recovery successful');
-        return true;
+        console.log('System recovery successful')
+        return true
       } else {
-        console.error('System recovery failed');
-        return false;
+        console.error('System recovery failed')
+        return false
       }
     } catch (recoveryError) {
-      console.error('Error during system recovery:', recoveryError);
-      return false;
+      console.error('Error during system recovery:', recoveryError)
+      return false
     }
   }
 }
@@ -903,9 +900,9 @@ class EventErrorHandler extends EventHandler {
  */
 class EventTracker {
   constructor() {
-    this.eventHistory = [];
-    this.maxHistorySize = 1000;
-    this.filters = new Set();
+    this.eventHistory = []
+    this.maxHistorySize = 1000
+    this.filters = new Set()
   }
 
   /**
@@ -918,18 +915,18 @@ class EventTracker {
       phase,
       timestamp: new Date().toISOString(),
       metadata
-    };
+    }
 
-    this.eventHistory.push(trackingEntry);
+    this.eventHistory.push(trackingEntry)
 
     // 維護歷史記錄大小
     if (this.eventHistory.length > this.maxHistorySize) {
-      this.eventHistory.shift();
+      this.eventHistory.shift()
     }
 
     // 即時日誌
     if (this.shouldLog(event.type)) {
-      console.log(`[EventTracker] ${event.type} - ${phase}`, metadata);
+      console.log(`[EventTracker] ${event.type} - ${phase}`, metadata)
     }
   }
 
@@ -937,32 +934,28 @@ class EventTracker {
    * 檢查是否應該記錄此事件
    */
   shouldLog(eventType) {
-    if (this.filters.size === 0) return true;
-    return Array.from(this.filters).some(filter => 
-      eventType.includes(filter)
-    );
+    if (this.filters.size === 0) return true
+    return Array.from(this.filters).some((filter) => eventType.includes(filter))
   }
 
   /**
    * 設定事件過濾器
    */
   setFilters(filters) {
-    this.filters = new Set(filters);
+    this.filters = new Set(filters)
   }
 
   /**
    * 取得事件歷史
    */
   getEventHistory(eventType = null, limit = 100) {
-    let history = this.eventHistory;
-    
+    let history = this.eventHistory
+
     if (eventType) {
-      history = history.filter(entry => 
-        entry.eventType.includes(eventType)
-      );
+      history = history.filter((entry) => entry.eventType.includes(eventType))
     }
-    
-    return history.slice(-limit);
+
+    return history.slice(-limit)
   }
 
   /**
@@ -977,19 +970,17 @@ class EventTracker {
         start: this.eventHistory[0]?.timestamp,
         end: this.eventHistory[this.eventHistory.length - 1]?.timestamp
       }
-    };
+    }
 
-    this.eventHistory.forEach(entry => {
+    this.eventHistory.forEach((entry) => {
       // 統計事件類型
-      stats.eventTypes[entry.eventType] = 
-        (stats.eventTypes[entry.eventType] || 0) + 1;
-      
-      // 統計階段
-      stats.phases[entry.phase] = 
-        (stats.phases[entry.phase] || 0) + 1;
-    });
+      stats.eventTypes[entry.eventType] = (stats.eventTypes[entry.eventType] || 0) + 1
 
-    return stats;
+      // 統計階段
+      stats.phases[entry.phase] = (stats.phases[entry.phase] || 0) + 1
+    })
+
+    return stats
   }
 
   /**
@@ -1003,15 +994,15 @@ class EventTracker {
         format
       },
       events: this.eventHistory
-    };
+    }
 
     switch (format) {
       case 'json':
-        return JSON.stringify(data, null, 2);
+        return JSON.stringify(data, null, 2)
       case 'csv':
-        return this.convertToCsv(this.eventHistory);
+        return this.convertToCsv(this.eventHistory)
       default:
-        throw new Error(`Unsupported format: ${format}`);
+        throw new Error(`Unsupported format: ${format}`)
     }
   }
 
@@ -1019,19 +1010,17 @@ class EventTracker {
    * 轉換為CSV格式
    */
   convertToCsv(events) {
-    if (events.length === 0) return '';
+    if (events.length === 0) return ''
 
-    const headers = Object.keys(events[0]);
+    const headers = Object.keys(events[0])
     const csvContent = [
       headers.join(','),
-      ...events.map(event => 
-        headers.map(header => 
-          JSON.stringify(event[header] || '')
-        ).join(',')
+      ...events.map((event) =>
+        headers.map((header) => JSON.stringify(event[header] || '')).join(',')
       )
-    ].join('\n');
+    ].join('\n')
 
-    return csvContent;
+    return csvContent
   }
 }
 ```
@@ -1199,46 +1188,55 @@ Array.isArray(results) === true
 ### Pre-init 佇列與就緒屏障設計（新增）
 
 #### 負責功能：
+
 - 暫存系統就緒前抵達的事件，避免資料遺失
 - 在系統就緒後安全重放事件，確保處理順序與一致性
 - 降低 Service Worker 冷啟動時序不確定性對功能的影響
 
 #### 設計考量：
+
 - Chrome MV3 Service Worker 可能在任何時間被喚醒/終止
 - Content Script 可能在背景監聽器註冊完成前即開始發送事件
 - 需避免直接依賴內部資料結構（如 listeners Map）
 
 #### 處理流程：
+
 1. emit(eventType, data) 在尚無監聽器且未就緒時，將事件推入 pre-init queue 並返回空陣列
 2. on(eventType, handler) 註冊後，非阻塞重放佇列中同型別事件
 3. initializeBackgroundServiceWorker() 完成後呼叫 eventBus.markReady()，重放所有佇列事件
 4. 後續 emit 直接以已註冊監聽器同步/非同步處理，回傳結果陣列
 
 #### 使用情境：
+
 - 冷啟動立即進行的 `CONTENT.EVENT.FORWARD` 與 `EXTRACTION.*` 事件
 - 背景監聽器註冊落後於訊息入口事件到達的情境
 
 #### 狀態轉換：
+
 - [PreInit] → [Ready] 由 `eventBus.markReady()` 觸發
 - 在 [PreInit] 狀態，事件進入 `preInitQueue`
 - 進入 [Ready] 後，佇列事件依時間順序重放
 
 #### 測試與驗證：
+
 - 新增整合測試：監聽器註冊前 emit，`markReady()` 後 handler 必須收到事件（已通過）
 - 驗證 emit 回傳型別統一為陣列，便於統計處理器執行次數
 
 ### Overview 資料同步設計（透過 chrome.storage.onChanged）
 
 #### 負責功能：
+
 - 讓 Overview 頁面在提取完成後自動更新書庫資料
 - 解耦 Content Script/Background 和 Overview 的跨上下文通訊
 
 #### 設計考量：
+
 - 依據本專案跨上下文通訊規範，Overview ↔ Background 優先透過 `chrome.storage` 進行資料同步
 - Background 在接收到 `EXTRACTION.COMPLETED` 後將資料寫入 `chrome.storage.local.readmoo_books`
 - Overview 監聽 `chrome.storage.onChanged`，一旦 `readmoo_books` 變更立即更新 UI
 
 #### 處理流程：
+
 1. Content Script 觸發提取 → 事件轉發到 Background
 2. Background 監聽 `EXTRACTION.COMPLETED` → 寫入 `chrome.storage.local.readmoo_books`
 3. Overview 監聽 `chrome.storage.onChanged` → 讀取變更並更新畫面
@@ -1252,10 +1250,12 @@ Array.isArray(results) === true
 - 若監聽器缺失則即時補註冊，保障資料寫入 `chrome.storage.local`
 
 驗收準則：
+
 - 在 Content Script 先發 `EXTRACTION.COMPLETED` 再完成背景監聽器註冊時，資料仍會被寫入 storage（靠 pre-init queue + 守護）
 - 在任意時序下，`eventBus.hasListener('EXTRACTION.COMPLETED')` 於 emit 前後均為 true 或在 emit 前被補足
 
 #### 介面範例：
+
 ```js
 // Overview 初始化時註冊 storage 變更監聽
 chrome.storage.onChanged.addListener((changes, area) => {
@@ -1268,6 +1268,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
 ```
 
 #### 驗收準則：
+
 - Background 寫入 `readmoo_books` 後，Overview 應無需手動重載即可顯示最新書庫數量
 - 即使 `EXTRACTION.STARTED/PROGRESS` 無監聽器，整體使用者體驗仍正確（完成時自動更新）
 
@@ -1292,32 +1293,34 @@ getStats(): EventBusStats
 ```typescript
 interface EventBusStats {
   // === 監聽器相關統計 ===
-  totalEventTypes: number;        // 註冊的事件類型總數
-  totalListeners: number;         // 監聽器總數量
-  eventTypes: string[];          // 所有已註冊事件類型陣列
-  listenerCounts: {              // 每種事件類型的監聽器數量
-    [eventType: string]: number;
-  };
-  
+  totalEventTypes: number // 註冊的事件類型總數
+  totalListeners: number // 監聽器總數量
+  eventTypes: string[] // 所有已註冊事件類型陣列
+  listenerCounts: {
+    // 每種事件類型的監聽器數量
+    [eventType: string]: number
+  }
+
   // === 事件觸發相關統計 ===
-  totalEvents: number;           // 總事件觸發次數（與 totalEmissions 相同）
-  totalEmissions: number;        // 總事件觸發次數（向後相容）
-  totalExecutionTime: number;    // 累計執行時間（毫秒）
-  lastActivity: string | null;   // 最後活動時間戳（ISO格式）
+  totalEvents: number // 總事件觸發次數（與 totalEmissions 相同）
+  totalEmissions: number // 總事件觸發次數（向後相容）
+  totalExecutionTime: number // 累計執行時間（毫秒）
+  lastActivity: string | null // 最後活動時間戳（ISO格式）
 }
 ```
 
 ### 使用範例
 
 #### 基本統計查詢
-```javascript
-const eventBus = new EventBus();
-eventBus.on('DATA.EXTRACTION.STARTED', handler1);
-eventBus.on('DATA.EXTRACTION.STARTED', handler2);
-eventBus.on('UI.UPDATE.PROGRESS', handler3);
 
-const stats = eventBus.getStats();
-console.log(stats);
+```javascript
+const eventBus = new EventBus()
+eventBus.on('DATA.EXTRACTION.STARTED', handler1)
+eventBus.on('DATA.EXTRACTION.STARTED', handler2)
+eventBus.on('UI.UPDATE.PROGRESS', handler3)
+
+const stats = eventBus.getStats()
+console.log(stats)
 /* 輸出：
 {
   totalEventTypes: 2,
@@ -1336,12 +1339,13 @@ console.log(stats);
 ```
 
 #### 觸發事件後的統計
-```javascript
-await eventBus.emit('DATA.EXTRACTION.STARTED', { bookId: 123 });
-await eventBus.emit('UI.UPDATE.PROGRESS', { progress: 50 });
 
-const stats = eventBus.getStats();
-console.log(stats);
+```javascript
+await eventBus.emit('DATA.EXTRACTION.STARTED', { bookId: 123 })
+await eventBus.emit('UI.UPDATE.PROGRESS', { progress: 50 })
+
+const stats = eventBus.getStats()
+console.log(stats)
 /* 輸出：
 {
   totalEventTypes: 2,
@@ -1362,10 +1366,11 @@ console.log(stats);
 ### 實際應用場景
 
 #### 1. Background Service Worker 健康檢查
+
 ```javascript
 // src/background/background.js
 function getSystemStatus() {
-  const stats = eventBus.getStats();
+  const stats = eventBus.getStats()
   return {
     eventSystem: {
       active: stats.totalListeners > 0,
@@ -1373,53 +1378,56 @@ function getSystemStatus() {
       lastActivity: stats.lastActivity,
       listenerHealth: stats.listenerCounts
     }
-  };
+  }
 }
 ```
 
 #### 2. 開發除錯與效能監控
+
 ```javascript
 // 檢查關鍵監聽器是否存在
 function validateCriticalListeners() {
-  const stats = eventBus.getStats();
-  const critical = ['EXTRACTION.COMPLETED', 'STORAGE.SAVE.COMPLETED'];
-  
-  const missing = critical.filter(event => 
-    !stats.eventTypes.includes(event) || 
-    stats.listenerCounts[event] === 0
-  );
-  
+  const stats = eventBus.getStats()
+  const critical = ['EXTRACTION.COMPLETED', 'STORAGE.SAVE.COMPLETED']
+
+  const missing = critical.filter(
+    (event) => !stats.eventTypes.includes(event) || stats.listenerCounts[event] === 0
+  )
+
   if (missing.length > 0) {
-    console.warn('Missing critical listeners:', missing);
+    console.warn('Missing critical listeners:', missing)
   }
-  
-  return missing.length === 0;
+
+  return missing.length === 0
 }
 ```
 
 #### 3. 整合測試驗證
+
 ```javascript
 // tests/integration/background-event-system.test.js
 test('事件系統統計追蹤', async () => {
-  const initialStats = eventBus.getStats();
-  expect(initialStats.totalEvents).toBe(0);
-  
-  await eventBus.emit('TEST.EVENT', { data: 'test' });
-  
-  const finalStats = eventBus.getStats();
-  expect(finalStats.totalEvents).toBe(1);
-  expect(finalStats.lastActivity).toBeTruthy();
-});
+  const initialStats = eventBus.getStats()
+  expect(initialStats.totalEvents).toBe(0)
+
+  await eventBus.emit('TEST.EVENT', { data: 'test' })
+
+  const finalStats = eventBus.getStats()
+  expect(finalStats.totalEvents).toBe(1)
+  expect(finalStats.lastActivity).toBeTruthy()
+})
 ```
 
 ### 統計資料解讀指南
 
 #### 監聽器健康度指標
+
 - `totalEventTypes`: 反映系統模組化程度，過多可能表示事件切分過細
 - `totalListeners`: 反映系統複雜度，異常增長可能表示記憶體洩漏
 - `listenerCounts`: 用於驗證關鍵事件是否有足夠處理器
 
 #### 效能指標分析
+
 - `totalEvents`: 系統活躍度指標，可用於負載分析
 - `totalExecutionTime`: 整體處理效能，異常增長需檢查處理器效率
 - `lastActivity`: 系統生命週期追蹤，用於判斷是否正常運作

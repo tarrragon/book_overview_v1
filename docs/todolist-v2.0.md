@@ -5,6 +5,7 @@
 基於 **v1.0.0 企業級基礎**，擴展為支援多個主流電子書平台的統一書庫管理系統。
 
 ### 核心願景
+
 - **5 個主流書城**：Readmoo + 博客來 + Kindle + Kobo + BookWalker
 - **統一管理介面**：跨平台書庫整合管理
 - **100% 向後相容**：完整保留 v1.0.0 所有功能
@@ -12,19 +13,20 @@
 
 ## 📊 開發階段概覽
 
-| 階段 | 時程 | 核心目標 | TDD 循環數 | 交付成果 |
-|------|------|----------|------------|----------|
-| **階段 A** | 12週 | 多平台架構基礎 | 15 循環 | 通用適配器架構 |
-| **階段 B** | 11週 | 4 個平台適配器 | 16 循環 | 5 平台完整支援 |
-| **階段 C** | 6週 | 統一管理介面 | 6 循環 | 跨平台整合功能 |
-| **階段 D** | 4週 | 最終優化 | 2 循環 | 響應式 & 效能優化 |
-| **總計** | **33週** | **v2.0.0 上架就緒** | **39 循環** | **企業級多平台系統** |
+| 階段       | 時程     | 核心目標            | TDD 循環數  | 交付成果             |
+| ---------- | -------- | ------------------- | ----------- | -------------------- |
+| **階段 A** | 12週     | 多平台架構基礎      | 15 循環     | 通用適配器架構       |
+| **階段 B** | 11週     | 4 個平台適配器      | 16 循環     | 5 平台完整支援       |
+| **階段 C** | 6週      | 統一管理介面        | 6 循環      | 跨平台整合功能       |
+| **階段 D** | 4週      | 最終優化            | 2 循環      | 響應式 & 效能優化    |
+| **總計**   | **33週** | **v2.0.0 上架就緒** | **39 循環** | **企業級多平台系統** |
 
 ---
 
 ## 🏗️ 階段 A：多平台架構基礎 (12週，15 TDD 循環)
 
 ### 🎯 階段目標
+
 建立可擴展的多平台架構，最小化重構 v1.0.0 基礎，最大化擴展性。
 
 ### 📋 任務清單
@@ -123,6 +125,7 @@
 ## 📚 階段 B：四大平台適配器開發 (11週，16 TDD 循環)
 
 ### 🎯 階段目標
+
 實現博客來、Kindle、Kobo、BookWalker 四大平台的完整適配器。
 
 ### 📋 任務清單
@@ -227,6 +230,7 @@
 ## 🎨 階段 C：統一管理介面與進階功能 (6週，6 TDD 循環)
 
 ### 🎯 階段目標
+
 建立跨平台統一管理介面，實現進階功能和使用者體驗提升。
 
 ### 📋 任務清單
@@ -273,6 +277,7 @@
 ## 🚀 階段 D：最終優化與上架準備 (4週，2 TDD 循環)
 
 ### 🎯 階段目標
+
 最終效能優化、響應式設計、深色模式，準備 v2.0.0 上架。
 
 ### 📋 任務清單
@@ -301,13 +306,14 @@
 ### 🏗️ 核心技術架構
 
 #### 1. 多平台適配器架構
+
 ```javascript
 // 通用適配器接口
 class PlatformAdapter {
   constructor(platformConfig) {
-    this.platform = platformConfig.name;
-    this.baseUrl = platformConfig.baseUrl;
-    this.selectors = platformConfig.selectors;
+    this.platform = platformConfig.name
+    this.baseUrl = platformConfig.baseUrl
+    this.selectors = platformConfig.selectors
   }
 
   async extractBooks() {
@@ -317,19 +323,30 @@ class PlatformAdapter {
 
   async processBookData(rawData) {
     // 資料標準化處理
-    return this.dataTransformer.transform(rawData);
+    return this.dataTransformer.transform(rawData)
   }
 }
 
 // 平台特定實現
-class ReadmooAdapter extends PlatformAdapter { /* ... */ }
-class BooksAdapter extends PlatformAdapter { /* ... */ }
-class KindleAdapter extends PlatformAdapter { /* ... */ }
-class KoboAdapter extends PlatformAdapter { /* ... */ }
-class BookWalkerAdapter extends PlatformAdapter { /* ... */ }
+class ReadmooAdapter extends PlatformAdapter {
+  /* ... */
+}
+class BooksAdapter extends PlatformAdapter {
+  /* ... */
+}
+class KindleAdapter extends PlatformAdapter {
+  /* ... */
+}
+class KoboAdapter extends PlatformAdapter {
+  /* ... */
+}
+class BookWalkerAdapter extends PlatformAdapter {
+  /* ... */
+}
 ```
 
 #### 2. 統一資料模型
+
 ```javascript
 // 跨平台標準化書籍資料格式
 const BookDataModel = {
@@ -345,11 +362,14 @@ const BookDataModel = {
   tags: ['string'], // 使用者自定義標籤
   rating: 'number', // 1-5
   notes: 'string',
-  metadata: { /* 平台特定資料 */ }
-};
+  metadata: {
+    /* 平台特定資料 */
+  }
+}
 ```
 
 #### 3. 事件驅動架構擴展
+
 ```javascript
 // 多平台事件命名規範
 const EventTypes = {
@@ -357,19 +377,20 @@ const EventTypes = {
   'PLATFORM.DETECTED': 'platform.detected',
   'PLATFORM.BOOKS.EXTRACTED': 'platform.books.extracted',
   'PLATFORM.DATA.SYNCHRONIZED': 'platform.data.synchronized',
-  
+
   // 平台特定事件
   'READMOO.BOOKS.EXTRACTED': 'readmoo.books.extracted',
   'BOOKS.BOOKS.EXTRACTED': 'books.books.extracted',
   'KINDLE.BOOKS.EXTRACTED': 'kindle.books.extracted',
   'KOBO.BOOKS.EXTRACTED': 'kobo.books.extracted',
   'BOOKWALKER.BOOKS.EXTRACTED': 'bookwalker.books.extracted'
-};
+}
 ```
 
 ### 🚨 主要技術挑戰
 
 #### 高風險項目
+
 1. **平台 DOM 結構變化**
    - **風險**: 書城平台更新可能導致提取器失效
    - **緩解**: 建立監控系統、版本偵測、多重選擇器備援
@@ -383,6 +404,7 @@ const EventTypes = {
    - **緩解**: 懶載入策略、資料分頁、記憶體池管理
 
 #### 中風險項目
+
 1. **各平台 API 限制**
    - **緩解**: API 頻率控制、錯誤重試機制
 2. **使用者體驗一致性**
@@ -397,16 +419,19 @@ const EventTypes = {
 ### 👥 Agent 協作分工
 
 #### 專案管理層級
+
 - **rosemary-project-manager**: 全程敏捷專案管控，階段里程碑監督
 - **project-compliance-agent**: 每個 TDD 循環後的合規檢查
 
 #### TDD 核心團隊
+
 - **sage-test-architect**: 39 個 TDD 循環的測試設計
 - **pepper-test-implementer**: 實現所有測試通過的程式碼
 - **cinnamon-refactor-owl**: 每個循環後的程式碼品質優化
 - **coriander-integration-tester**: 階段性整合測試執行
 
 #### 專業領域專家
+
 - **basil-event-architect**: 多平台事件系統架構設計
 - **oregano-data-miner**: 各平台資料提取器開發
 - **lavender-interface-designer**: 統一管理介面設計
@@ -415,16 +440,17 @@ const EventTypes = {
 
 ### 📈 關鍵里程碑
 
-| 里程碑 | 時程 | 驗收標準 | 風險評估 |
-|--------|------|----------|----------|
-| **架構基礎完成** | 第 12 週 | 通用適配器架構、Readmoo 重構完成 | 低風險 |
-| **5 平台支援完成** | 第 23 週 | 所有平台適配器 100% 功能正常 | 中高風險 |
-| **統一介面完成** | 第 29 週 | 跨平台管理功能完整實現 | 中風險 |
-| **v2.0.0 上架就緒** | 第 33 週 | 效能優化、Store 合規完成 | 低風險 |
+| 里程碑              | 時程     | 驗收標準                         | 風險評估 |
+| ------------------- | -------- | -------------------------------- | -------- |
+| **架構基礎完成**    | 第 12 週 | 通用適配器架構、Readmoo 重構完成 | 低風險   |
+| **5 平台支援完成**  | 第 23 週 | 所有平台適配器 100% 功能正常     | 中高風險 |
+| **統一介面完成**    | 第 29 週 | 跨平台管理功能完整實現           | 中風險   |
+| **v2.0.0 上架就緒** | 第 33 週 | 效能優化、Store 合規完成         | 低風險   |
 
 ### 🎯 成功指標
 
 #### 技術指標
+
 - **平台支援**: 5 個主流書城 100% 功能支援
 - **向後相容**: v1.0.0 功能 100% 保留
 - **效能提升**: 載入速度提升 50%，記憶體使用優化 25%
@@ -432,12 +458,14 @@ const EventTypes = {
 - **穩定性**: 錯誤率 < 1%，正常運行時間 > 99%
 
 #### 使用者體驗指標
+
 - **統一操作體驗**: 所有平台操作流程一致
 - **響應速度**: 平台切換響應時間 < 2 秒
 - **視覺設計**: 響應式設計、深色模式完整支援
 - **無障礙性**: 通過 WCAG 2.1 AA 標準
 
 #### 商業指標
+
 - **Chrome Web Store**: 100% 政策合規，準備上架
 - **使用者增長**: 預期支援 5 平台後使用者增長 300%+
 - **市場競爭力**: 成為唯一支援多書城的統一管理工具
@@ -449,16 +477,19 @@ const EventTypes = {
 ### 🔒 風險管控策略
 
 #### 架構債務零容忍
+
 - **即時修正**: 發現架構問題立即停止功能開發，優先修正
 - **技術評審**: 每個 TDD 循環後進行架構健康檢查
 - **重構門檻**: 任何元件超過複雜度門檻立即重構
 
 #### 敏捷升級機制
+
 - **3 次嘗試限制**: 同一問題 3 次嘗試無法解決則升級
 - **PM 重新分配**: rosemary-project-manager 重新拆分任務
 - **循環消化**: 確保所有工作項目最終完成
 
 #### 平台相容性監控
+
 - **自動化監控**: 每日檢查各平台頁面結構變化
 - **版本追蹤**: 監控各平台版本更新和 API 變更
 - **緊急應對**: 平台變更 24 小時內發布修復更新
@@ -466,16 +497,19 @@ const EventTypes = {
 ### 🏆 品質保證機制
 
 #### TDD 品質門檻
+
 - **紅燈階段**: 測試必須先失敗，驗證測試邏輯正確
 - **綠燈階段**: 實現最小可用程式碼，100% 測試通過
 - **重構階段**: 優化程式碼品質，保持測試通過
 
 #### 階段性品質檢查
+
 - **程式碼審查**: 每個 TDD 循環後進行程式碼品質審查
 - **整合測試**: 每階段完成後執行完整整合測試
 - **使用者測試**: 關鍵功能實現後進行使用者體驗測試
 
 #### 上架前最終檢查
+
 - **效能基準**: 確保載入速度、記憶體使用符合標準
 - **相容性測試**: 所有支援平台和瀏覽器版本測試
 - **安全檢查**: 資料隱私、權限管理、安全漏洞掃描
@@ -486,15 +520,18 @@ const EventTypes = {
 ## 🎯 v2.0.0 最終願景
 
 ### 🏆 產品定位
+
 **全球首個支援多書城的統一電子書庫管理 Chrome Extension**
 
 ### ✨ 核心價值主張
+
 - **5 大平台統一管理**: Readmoo、博客來、Kindle、Kobo、BookWalker
 - **企業級品質保證**: 100% 測試覆蓋、99%+ 穩定性、50% 效能提升
 - **完整使用者體驗**: 響應式設計、深色模式、無障礙支援
 - **隱私安全至上**: 本地資料處理、零雲端依賴、透明開源
 
 ### 🚀 市場影響力
+
 - **技術領先**: 業界唯一多平台整合解決方案
 - **使用者基礎**: 預期 10,000+ 活躍使用者
 - **生態擴展**: 為未來更多書城平台接入奠定基礎
@@ -504,16 +541,19 @@ const EventTypes = {
 ## 📚 相關文件參考
 
 ### 開發文件
+
 - `docs/architecture/multi-platform-design.md` - 多平台架構設計
 - `docs/work-logs/v2.X.X-work-log.md` - 各階段開發工作日誌
 - `CHANGELOG.md` - v2.0.0 版本變更記錄
 
 ### 技術規範
+
 - `docs/api/platform-adapter-spec.md` - 平台適配器規範
 - `docs/testing/multi-platform-testing.md` - 多平台測試策略
 - `docs/performance/optimization-guidelines.md` - 效能優化指南
 
 ### 專案管理
+
 - `docs/project-management/v2-milestone-tracking.md` - 里程碑追蹤
 - `docs/risk-management/platform-risks.md` - 平台風險評估
 - `docs/quality-assurance/testing-checklist.md` - 品質檢查清單

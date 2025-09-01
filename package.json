@@ -27,6 +27,10 @@
     "dev": "npm run build:dev && npm run test:watch",
     "lint": "eslint src/ tests/",
     "lint:fix": "eslint src/ tests/ --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "format:md": "prettier --write \"**/*.md\"",
+    "format:docs": "prettier --write \"docs/**/*.md\"",
     "serve": "http-server build/development -p 8080",
     "clean": "rimraf build/ coverage/ test-results/",
     "docs": "jsdoc src/ -r -d docs/generated"
@@ -57,6 +61,7 @@
     "jest-environment-node": "^29.7.0",
     "jsdoc": "^4.0.2",
     "jsdom": "^26.1.0",
+    "prettier": "^3.6.2",
     "puppeteer": "^21.3.6",
     "rimraf": "^5.0.5"
   },

@@ -9,6 +9,7 @@
 ### 核心澄清：測試工具 vs 產品功能
 
 **重要說明**：
+
 - **我們的 Chrome Extension 產品本身不使用 WebSocket**
 - WebSocket 是 **Puppeteer 測試工具** 控制 Chrome 瀏覽器的基礎建設
 - WebSocket 問題屬於 **測試環境問題**，不是 **產品功能問題**
@@ -53,12 +54,13 @@ const ws = new NodeWebSocket(url, [], {
   maxPayload: 256 * 1024 * 1024, // 256Mb
   headers: {
     'User-Agent': `Puppeteer ${packageVersion}`,
-    ...headers,
-  },
-});
+    ...headers
+  }
+})
 ```
 
 **通訊流程**：
+
 ```
 Puppeteer 測試 → WebSocket → CDP → Chrome Browser → Extension
 ```
@@ -66,12 +68,14 @@ Puppeteer 測試 → WebSocket → CDP → Chrome Browser → Extension
 ### 2. E2E 測試場景需求
 
 #### Chrome Extension 自動化控制
+
 - **Extension 載入**: `--load-extension=${extensionPath}`
 - **瀏覽器控制**: 開啟頁面、點擊按鈕、輸入文字
 - **狀態檢查**: Extension ID 取得、Background Script 狀態
 - **結果驗證**: 資料提取結果、UI 狀態變化
 
 #### 測試類型與 WebSocket 需求
+
 1. **效能基準測試**：
    - 測量資料提取速度
    - 監控記憶體使用狀況
@@ -95,6 +99,7 @@ Puppeteer 測試 → WebSocket → CDP → Chrome Browser → Extension
 ### 3. 技術要求說明
 
 #### 雙向通訊需求
+
 ```javascript
 // Puppeteer 需要發送指令到 Chrome
 await page.goto('https://readmoo.com/library')
@@ -108,6 +113,7 @@ const result = await page.evaluate(() => {
 ```
 
 #### 即時監控需求
+
 ```javascript
 // 監控 Extension 執行狀態
 const backgroundPage = await extensionSetup.getBackgroundPage()
@@ -122,6 +128,7 @@ const metrics = await page.metrics()
 ## 🚨 當前 WebSocket 問題分析
 
 ### 問題根源
+
 ```
 Error: ws does not work in the browser. Browser clients must use the native WebSocket object
 at node_modules/puppeteer-core/node_modules/ws/browser.js:4:9
@@ -129,11 +136,13 @@ at node_modules/puppeteer-core/src/node/NodeWebSocketTransport.ts:20:18
 ```
 
 ### 技術原因
+
 1. **版本相容性**: Puppeteer 21.3.6 與 Node.js 22.18.0 存在相容性問題
 2. **依賴衝突**: Puppeteer 內部 `ws` 模組與瀏覽器環境衝突
 3. **協定實現**: WebSocket 實現在不同環境間的差異
 
 ### 問題影響範圍
+
 - **無法執行的測試**：
   - `tests/e2e/performance/` (效能基準測試)
   - `tests/e2e/workflows/` (工作流程測試)
@@ -148,6 +157,7 @@ at node_modules/puppeteer-core/src/node/NodeWebSocketTransport.ts:20:18
 ## 💡 解決策略與建議
 
 ### 短期策略：測試隔離
+
 ```json
 // package.json 調整
 {
@@ -158,12 +168,15 @@ at node_modules/puppeteer-core/src/node/NodeWebSocketTransport.ts:20:18
 ```
 
 **優點**：
+
 - 核心開發不受影響
 - 產品品質完全保證
 - 開發效率維持正常
 
 ### 中期策略：技術修復
+
 考慮的選項：
+
 1. **Puppeteer 版本調整**：
    - 降級至穩定版本 20.x.x
    - 升級至最新版本 22.x.x
@@ -178,10 +191,12 @@ at node_modules/puppeteer-core/src/node/NodeWebSocketTransport.ts:20:18
    - CI/CD 環境統一
 
 ### 長期策略：架構優化
+
 1. **測試分層優化**：
+
    ```
    單元測試 (Jest) ← 核心邏輯驗證
-   整合測試 (Jest) ← 模組協作驗證  
+   整合測試 (Jest) ← 模組協作驗證
    E2E 測試 (Puppeteer/Playwright) ← 使用者體驗驗證
    ```
 
@@ -193,16 +208,19 @@ at node_modules/puppeteer-core/src/node/NodeWebSocketTransport.ts:20:18
 ## 📊 風險評估與影響分析
 
 ### 開發影響：極低風險
+
 - **核心功能測試覆蓋率**: 100%
 - **開發流程**: 完全不受影響
 - **程式碼品質**: 完整保證
 
 ### 產品影響：零風險
+
 - **Chrome Extension 功能**: 100% 正常
 - **使用者體驗**: 無任何影響
 - **部署安全性**: 完全保證
 
 ### 測試覆蓋：中等影響
+
 - **單元測試**: 完整覆蓋
 - **整合測試**: 完整覆蓋
 - **E2E 測試**: 暫時停用
@@ -210,16 +228,19 @@ at node_modules/puppeteer-core/src/node/NodeWebSocketTransport.ts:20:18
 ## 🔄 後續行動計畫
 
 ### v0.8.9（當前）
+
 - ✅ 問題識別和文件化
 - ✅ 測試隔離實施
 - ✅ 核心功能保證
 
 ### v0.9.0（規劃中）
+
 - [ ] Puppeteer 版本研究
 - [ ] 替代方案技術評估
 - [ ] 測試環境標準化
 
 ### v1.0.0（長期目標）
+
 - [ ] 完整 E2E 測試恢復
 - [ ] 測試策略最佳化
 - [ ] 自動化 CI/CD 整合

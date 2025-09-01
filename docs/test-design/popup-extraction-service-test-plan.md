@@ -13,18 +13,21 @@
 ### 驗收標準定義
 
 #### 業務邏輯協調驗收標準
+
 - 能夠初始化所有依賴組件並建立正確的協調關係
 - 提供完整的提取流程控制 API（開始/暫停/取消/重試）
 - 實現參數驗證和配置管理功能
 - 確保組件間數據同步和狀態一致性
 
 #### 流程控制驗收標準
+
 - 支援完整的提取生命週期管理
 - 實現錯誤恢復和重試機制（最多 3 次重試）
 - 支援批次處理和進度追蹤
 - 提供取消操作和清理機制
 
 #### 資料處理協調驗收標準
+
 - 協調與 Content Script 的雙向通訊
 - 實現提取結果的驗證和格式化
 - 管理提取統計和進度報告
@@ -33,17 +36,20 @@
 ### 邊界條件和異常情況
 
 #### 組件初始化邊界條件
+
 - 依賴組件為 null、undefined 或無效物件
 - 組件初始化失敗或拋出異常
 - 組件方法不存在或不可呼叫
 
 #### 通訊異常情況
+
 - Chrome Extension API 不可用或失效
 - Content Script 未載入或通訊失敗
 - 網路連線問題導致通訊超時
 - Background Service Worker 無回應
 
 #### 提取流程異常情況
+
 - 重複開始提取操作
 - 在未開始狀態下執行暫停/取消
 - 提取過程中發生未預期錯誤
@@ -55,6 +61,7 @@
 ### 組件測試策略
 
 #### 依賴注入模式設計
+
 ```javascript
 class PopupExtractionService {
   constructor(statusManager, progressManager, communicationService, options = {}) {
@@ -66,6 +73,7 @@ class PopupExtractionService {
 ```
 
 #### Mock 整合測試設計
+
 - **StatusManager Mock**: 模擬狀態更新、獲取當前狀態、錯誤處理
 - **ProgressManager Mock**: 模擬進度更新、開始/完成/取消進度
 - **CommunicationService Mock**: 模擬通訊成功/失敗、超時、Chrome API 錯誤
@@ -73,12 +81,14 @@ class PopupExtractionService {
 ### 組件級測試場景
 
 #### 建構函數和初始化測試
+
 1. **正常初始化**: 提供有效依賴組件，驗證初始化成功
 2. **依賴驗證**: 驗證 null/undefined 依賴時拋出適當錯誤
 3. **選項設定**: 驗證預設選項和自定義選項正確設定
 4. **內部狀態**: 驗證初始化後內部狀態正確
 
 #### 業務邏輯協調測試
+
 1. **狀態同步**: 驗證三個組件間狀態正確同步
 2. **事件流程**: 驗證事件在組件間正確傳播
 3. **資料轉換**: 驗證組件間資料格式正確轉換
@@ -87,11 +97,13 @@ class PopupExtractionService {
 ### 邊界條件和錯誤場景
 
 #### 組件通訊失敗場景
+
 1. **StatusManager 失效**: 模擬狀態更新失敗，驗證錯誤處理
 2. **ProgressManager 失效**: 模擬進度更新失敗，驗證恢復機制
 3. **CommunicationService 失效**: 模擬通訊失敗，驗證重試邏輯
 
 #### 併發和競爭條件
+
 1. **同時多個提取請求**: 驗證只允許一個活躍提取
 2. **快速連續操作**: 驗證操作序列正確處理
 3. **取消期間狀態變更**: 驗證取消操作的原子性
@@ -101,13 +113,15 @@ class PopupExtractionService {
 ### 核心功能測試組
 
 #### 1. 建構和初始化測試組
+
 **測試組描述**: 驗證 PopupExtractionService 正確初始化和依賴管理
 
 ##### Test Case 1.1: 正常初始化
+
 ```
 Given: 有效的 statusManager、progressManager 和 communicationService 實例
 When: 建構 PopupExtractionService
-Then: 
+Then:
   - 服務初始化成功
   - 內部狀態設為 'idle'
   - 所有依賴正確儲存
@@ -115,15 +129,17 @@ Then:
 ```
 
 ##### Test Case 1.2: 依賴驗證失敗
+
 ```
 Given: statusManager 為 null
 When: 建構 PopupExtractionService
-Then: 
+Then:
   - 拋出 Error('StatusManager is required')
   - 服務未初始化
 ```
 
 ##### Test Case 1.3: 自定義選項設定
+
 ```
 Given: 自定義選項 { retryCount: 5, timeout: 10000 }
 When: 建構 PopupExtractionService
@@ -134,9 +150,11 @@ Then:
 ```
 
 #### 2. 提取流程控制測試組
+
 **測試組描述**: 驗證完整的提取生命週期管理
 
 ##### Test Case 2.1: 正常提取流程
+
 ```
 Given: 服務已初始化且狀態為 'idle'
 When: 呼叫 startExtraction()
@@ -148,6 +166,7 @@ Then:
 ```
 
 ##### Test Case 2.2: 重複開始提取
+
 ```
 Given: 提取已在進行中（狀態為 'extracting'）
 When: 再次呼叫 startExtraction()
@@ -158,6 +177,7 @@ Then:
 ```
 
 ##### Test Case 2.3: 取消提取操作
+
 ```
 Given: 提取正在進行中
 When: 呼叫 cancelExtraction()
@@ -169,9 +189,11 @@ Then:
 ```
 
 #### 3. 錯誤處理和重試測試組
+
 **測試組描述**: 驗證錯誤恢復和重試機制
 
 ##### Test Case 3.1: 通訊失敗重試
+
 ```
 Given: CommunicationService.startExtraction() 前兩次失敗
 When: 呼叫 startExtraction()
@@ -183,6 +205,7 @@ Then:
 ```
 
 ##### Test Case 3.2: 超過最大重試次數
+
 ```
 Given: CommunicationService.startExtraction() 持續失敗
 When: 呼叫 startExtraction()
@@ -194,6 +217,7 @@ Then:
 ```
 
 ##### Test Case 3.3: 部分組件失敗恢復
+
 ```
 Given: ProgressManager.updateProgress() 失敗
 When: 提取過程中更新進度
@@ -205,9 +229,11 @@ Then:
 ```
 
 #### 4. 資料處理協調測試組
+
 **測試組描述**: 驗證資料處理和格式化功能
 
 ##### Test Case 4.1: 提取結果驗證
+
 ```
 Given: Content Script 回傳原始提取資料
 When: 處理提取完成事件
@@ -219,6 +245,7 @@ Then:
 ```
 
 ##### Test Case 4.2: 無效資料處理
+
 ```
 Given: Content Script 回傳格式錯誤的資料
 When: 處理提取完成事件
@@ -230,6 +257,7 @@ Then:
 ```
 
 ##### Test Case 4.3: 批次處理進度追蹤
+
 ```
 Given: 大量書籍需要處理
 When: 執行批次提取
@@ -241,9 +269,11 @@ Then:
 ```
 
 #### 5. 組件整合協調測試組
+
 **測試組描述**: 驗證三個組件間的協調工作
 
 ##### Test Case 5.1: 狀態同步協調
+
 ```
 Given: 提取狀態發生變更
 When: 狀態從 'extracting' 變為 'completed'
@@ -255,6 +285,7 @@ Then:
 ```
 
 ##### Test Case 5.2: 事件流程協調
+
 ```
 Given: CommunicationService 接收到進度事件
 When: 處理 'EXTRACTION_PROGRESS' 事件
@@ -266,6 +297,7 @@ Then:
 ```
 
 ##### Test Case 5.3: 錯誤處理協調
+
 ```
 Given: ProgressManager 更新失敗
 When: 處理進度更新錯誤
@@ -281,6 +313,7 @@ Then:
 ### Mock 物件設計規格
 
 #### StatusManager Mock 實作
+
 ```javascript
 const mockStatusManager = {
   updateStatus: jest.fn(),
@@ -291,6 +324,7 @@ const mockStatusManager = {
 ```
 
 #### ProgressManager Mock 實作
+
 ```javascript
 const mockProgressManager = {
   updateProgress: jest.fn(),
@@ -302,6 +336,7 @@ const mockProgressManager = {
 ```
 
 #### CommunicationService Mock 實作
+
 ```javascript
 const mockCommunicationService = {
   checkBackgroundStatus: jest.fn(() => Promise.resolve({ status: 'ready' })),
@@ -315,6 +350,7 @@ const mockCommunicationService = {
 ### 測試資料設計
 
 #### 標準測試資料集
+
 ```javascript
 const testData = {
   validExtractionResult: {
@@ -326,13 +362,13 @@ const testData = {
     successCount: 2,
     failureCount: 0
   },
-  
+
   invalidExtractionResult: {
     // 缺少必要欄位的錯誤資料
     books: null,
     error: '資料格式錯誤'
   },
-  
+
   progressUpdateData: {
     percentage: 50,
     status: 'extracting',
@@ -344,6 +380,7 @@ const testData = {
 ## 🔍 測試覆蓋率要求
 
 ### 程式碼覆蓋率目標
+
 - **語句覆蓋率**: 100%
 - **分支覆蓋率**: 100%
 - **函數覆蓋率**: 100%
@@ -352,8 +389,9 @@ const testData = {
 ### 功能覆蓋率檢查清單
 
 #### 核心功能覆蓋
+
 - [ ] 建構函數和初始化邏輯
-- [ ] 依賴注入和驗證機制  
+- [ ] 依賴注入和驗證機制
 - [ ] 提取流程開始/取消/重試
 - [ ] 錯誤處理和恢復機制
 - [ ] 組件間協調和同步
@@ -362,6 +400,7 @@ const testData = {
 - [ ] 資源清理和生命週期管理
 
 #### 邊界條件覆蓋
+
 - [ ] 所有參數邊界值測試
 - [ ] 異常輸入處理驗證
 - [ ] 併發操作處理測試
@@ -371,8 +410,9 @@ const testData = {
 - [ ] 超時情況處理驗證
 
 #### 整合場景覆蓋
+
 - [ ] 三組件正常協作場景
-- [ ] 部分組件失效場景  
+- [ ] 部分組件失效場景
 - [ ] 複雜事件流程場景
 - [ ] 錯誤傳播處理場景
 - [ ] 狀態同步驗證場景
@@ -381,12 +421,13 @@ const testData = {
 ## 📋 測試執行計劃
 
 ### 測試組織結構
+
 ```
 tests/unit/popup/
 ├── popup-extraction-service.test.js       # 主要測試檔案
 ├── mocks/
 │   ├── status-manager.mock.js            # StatusManager mock
-│   ├── progress-manager.mock.js          # ProgressManager mock  
+│   ├── progress-manager.mock.js          # ProgressManager mock
 │   └── communication-service.mock.js     # CommunicationService mock
 └── test-data/
     ├── extraction-results.json           # 測試資料集
@@ -395,12 +436,14 @@ tests/unit/popup/
 ```
 
 ### 測試執行策略
+
 1. **單元測試優先**: 每個方法獨立測試，確保功能正確
 2. **整合測試驗證**: 組件協作場景測試，確保協調正確
 3. **邊界條件驗證**: 異常和邊界情況測試，確保健全性
 4. **效能基準測試**: 批次處理和大量資料測試，確保效能
 
 ### 測試品質保證
+
 - 每個測試案例都有明確的 Given-When-Then 結構
 - 所有 Mock 物件都有完整的驗證邏輯
 - 異步操作都有適當的超時和錯誤處理
@@ -410,12 +453,14 @@ tests/unit/popup/
 ## 📊 成功標準和驗證機制
 
 ### 測試成功標準
+
 1. **100% 測試通過**: 所有測試案例都必須通過
 2. **100% 程式碼覆蓋**: 達到完整的程式碼覆蓋率
 3. **零架構債務**: 不存在已知的設計問題
 4. **效能基準達標**: 滿足效能要求和使用者體驗標準
 
 ### 品質驗證機制
+
 1. **自動化測試**: 整合到 CI/CD 流程中自動執行
 2. **覆蓋率報告**: 生成詳細的測試覆蓋率報告
 3. **效能監控**: 監控測試執行時間和記憶體使用

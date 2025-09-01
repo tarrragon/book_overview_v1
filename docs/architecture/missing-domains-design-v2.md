@@ -7,6 +7,7 @@
 ## 🎯 設計概覽
 
 基於現況分析，我們需要設計以下 3 個 Domain：
+
 1. **User Experience Domain** - 用戶體驗領域
 2. **Analytics Domain** - 分析統計領域
 3. **Security Domain** - 安全隱私領域
@@ -16,6 +17,7 @@
 ## 🎨 User Experience Domain 詳細設計
 
 ### 核心職責
+
 - 統一的主題和外觀管理
 - 跨平台用戶偏好同步和管理
 - 智能通知系統和用戶回饋
@@ -40,10 +42,11 @@ src/background/domains/user-experience/
 ### 服務詳細設計
 
 #### 1. **ux-domain-coordinator.js**
+
 ```javascript
 /**
  * User Experience Domain 協調器
- * 
+ *
  * 負責功能：
  * - 統籌 UX 相關服務的生命週期
  * - 協調主題切換和偏好同步
@@ -64,7 +67,7 @@ class UXDomainCoordinator extends BaseDomainCoordinator {
     await this.initializePopupCoordination()
     await this.initializePersonalization()
     await this.initializeAccessibility()
-    
+
     // 設定跨服務協調
     await this.setupCrossServiceCoordination()
   }
@@ -84,10 +87,11 @@ class UXDomainCoordinator extends BaseDomainCoordinator {
 ```
 
 #### 2. **theme-management-service.js**
+
 ```javascript
 /**
  * 主題管理服務
- * 
+ *
  * 負責功能：
  * - 深色/淺色主題切換
  * - 響應式主題適配
@@ -108,7 +112,7 @@ class ThemeManagementService extends BaseService {
     }
 
     this.currentTheme = theme
-    
+
     // 更新所有註冊的主題提供者
     for (const [providerId, provider] of this.themeProviders) {
       await provider.updateTheme(theme)
@@ -116,10 +120,10 @@ class ThemeManagementService extends BaseService {
 
     // 持久化主題偏好
     await this.persistThemePreference(theme)
-    
+
     // 發送主題變更事件
-    await this.emitEvent('UX.THEME.CHANGED', { 
-      theme, 
+    await this.emitEvent('UX.THEME.CHANGED', {
+      theme,
       timestamp: Date.now(),
       providers: Array.from(this.themeProviders.keys())
     })
@@ -137,10 +141,11 @@ class ThemeManagementService extends BaseService {
 ```
 
 #### 3. **popup-ui-coordination-service.js** 🔥 **重點整合**
+
 ```javascript
 /**
  * Popup UI 協調服務
- * 
+ *
  * 負責功能：
  * - 整合 Popup 模組化重構成果
  * - 協調 Popup 各模組間的通訊
@@ -163,7 +168,7 @@ class PopupUICoordinationService extends BaseService {
     await this.loadModule('button-manager', PopupButtonManager)
     await this.loadModule('background-bridge', PopupBackgroundBridge)
     await this.loadModule('extraction-service', PopupExtractionService)
-    
+
     // 設定模組間協調
     await this.setupModuleCoordination()
   }
@@ -172,14 +177,14 @@ class PopupUICoordinationService extends BaseService {
     // 更新 Popup 狀態
     const oldState = this.popupState.getCurrentState()
     await this.popupState.setState(newState)
-    
+
     // 通知相關模組
     await this.popupEventBus.emit('POPUP.STATE.CHANGED', {
       oldState,
       newState,
       timestamp: Date.now()
     })
-    
+
     // 向上層報告狀態變更
     await this.emitEvent('UX.POPUP.STATE.COORDINATED', { newState })
   }
@@ -188,10 +193,10 @@ class PopupUICoordinationService extends BaseService {
     // 協調提取流程
     const extractionService = this.popupModules.get('extraction-service')
     const result = await extractionService.startExtraction(options)
-    
+
     // 更新 UI 狀態
     await this.updateProgressDisplay(result.progress)
-    
+
     return result
   }
 
@@ -211,10 +216,11 @@ class PopupUICoordinationService extends BaseService {
 ```
 
 #### 4. **preference-service.js**
+
 ```javascript
 /**
  * 偏好設定服務
- * 
+ *
  * 負責功能：
  * - 用戶偏好的持久化存儲
  * - 偏好設定的跨平台同步
@@ -231,10 +237,10 @@ class PreferenceService extends BaseService {
   async setPreference(key, value) {
     const oldValue = this.preferences.get(key)
     this.preferences.set(key, value)
-    
+
     // 持久化偏好
     await this.persistPreference(key, value)
-    
+
     // 發送偏好變更事件
     await this.emitEvent('UX.PREFERENCE.UPDATED', {
       key,
@@ -248,14 +254,14 @@ class PreferenceService extends BaseService {
     if (this.preferences.has(key)) {
       return this.preferences.get(key)
     }
-    
+
     // 從持久化存儲載入
     const persistedValue = await this.loadPersistedPreference(key)
     if (persistedValue !== null) {
       this.preferences.set(key, persistedValue)
       return persistedValue
     }
-    
+
     // 返回預設值
     return defaultValue || this.defaultPreferences.get(key)
   }
@@ -274,10 +280,11 @@ class PreferenceService extends BaseService {
 ```
 
 #### 5. **notification-service.js**
+
 ```javascript
 /**
  * 通知管理服務
- * 
+ *
  * 負責功能：
  * - 統一的通知顯示管理
  * - 通知優先級和去重
@@ -309,10 +316,10 @@ class NotificationService extends BaseService {
 
     // 顯示通知
     const result = await this.displayNotification(processedNotification)
-    
+
     // 記錄通知歷史
     this.recordNotificationHistory(processedNotification, result)
-    
+
     // 發送通知事件
     await this.emitEvent('UX.NOTIFICATION.SHOWN', {
       notification: processedNotification,
@@ -328,7 +335,7 @@ class NotificationService extends BaseService {
       const notification = this.activeNotifications.get(notificationId)
       await this.hideNotification(notification)
       this.activeNotifications.delete(notificationId)
-      
+
       await this.emitEvent('UX.NOTIFICATION.CLEARED', {
         notificationId,
         timestamp: Date.now()
@@ -342,38 +349,39 @@ class NotificationService extends BaseService {
 
 ```javascript
 // 主題管理事件
-'UX.THEME.CHANGED'              // 主題變更完成
-'UX.THEME.CHANGE.REQUESTED'     // 主題變更請求
-'UX.THEME.PROVIDER.REGISTERED'  // 主題提供者註冊
+'UX.THEME.CHANGED' // 主題變更完成
+'UX.THEME.CHANGE.REQUESTED' // 主題變更請求
+'UX.THEME.PROVIDER.REGISTERED' // 主題提供者註冊
 
 // 偏好管理事件
-'UX.PREFERENCE.UPDATED'         // 偏好設定更新
-'UX.PREFERENCE.SYNC.COMPLETED'  // 偏好同步完成
-'UX.PREFERENCE.RESET'           // 偏好重置
+'UX.PREFERENCE.UPDATED' // 偏好設定更新
+'UX.PREFERENCE.SYNC.COMPLETED' // 偏好同步完成
+'UX.PREFERENCE.RESET' // 偏好重置
 
 // 通知管理事件
-'UX.NOTIFICATION.SHOWN'         // 通知顯示
-'UX.NOTIFICATION.CLEARED'       // 通知清除
+'UX.NOTIFICATION.SHOWN' // 通知顯示
+'UX.NOTIFICATION.CLEARED' // 通知清除
 'UX.NOTIFICATION.QUEUE.UPDATED' // 通知佇列更新
 
 // Popup 協調事件
-'UX.POPUP.STATE.COORDINATED'    // Popup 狀態協調完成
-'UX.POPUP.MODULE.LOADED'        // Popup 模組載入
-'UX.POPUP.EXTRACTION.STARTED'   // Popup 提取開始
+'UX.POPUP.STATE.COORDINATED' // Popup 狀態協調完成
+'UX.POPUP.MODULE.LOADED' // Popup 模組載入
+'UX.POPUP.EXTRACTION.STARTED' // Popup 提取開始
 
 // 個人化事件
-'UX.PERSONALIZATION.APPLIED'    // 個人化設定應用
-'UX.USER.ACTION.RECORDED'       // 用戶行為記錄
-'UX.FEEDBACK.COLLECTED'         // 用戶回饋收集
+'UX.PERSONALIZATION.APPLIED' // 個人化設定應用
+'UX.USER.ACTION.RECORDED' // 用戶行為記錄
+'UX.FEEDBACK.COLLECTED' // 用戶回饋收集
 
 // 無障礙事件
-'UX.ACCESSIBILITY.ENABLED'      // 無障礙功能啟用
+'UX.ACCESSIBILITY.ENABLED' // 無障礙功能啟用
 'UX.ACCESSIBILITY.MODE.CHANGED' // 無障礙模式變更
 ```
 
 ## 📊 Analytics Domain 詳細設計
 
 ### 核心職責
+
 - 跨平台閱讀習慣分析和統計
 - 書庫管理效率和趨勢分析
 - 智能視覺化圖表和報告生成
@@ -396,10 +404,11 @@ src/background/domains/analytics/
 ### 關鍵服務設計
 
 #### **reading-analytics-service.js**
+
 ```javascript
 /**
  * 閱讀分析服務
- * 
+ *
  * 負責功能：
  * - 閱讀時間和進度統計
  * - 閱讀習慣模式分析
@@ -416,7 +425,7 @@ class ReadingAnalyticsService extends BaseService {
       progress,
       timestamp: Date.now()
     }
-    
+
     await this.recordSession(session)
     await this.updateReadingStats(session)
     await this.checkReadingGoals(session)
@@ -432,17 +441,18 @@ class ReadingAnalyticsService extends BaseService {
       preferredGenres: await this.getPreferredGenres(timeRange),
       readingEfficiency: await this.calculateReadingEfficiency(timeRange)
     }
-    
+
     return insights
   }
 }
 ```
 
 #### **cross-platform-stats-service.js**
+
 ```javascript
 /**
  * 跨平台統計服務
- * 
+ *
  * 負責功能：
  * - 多平台資料統計整合
  * - 平台使用偏好分析
@@ -457,7 +467,7 @@ class CrossPlatformStatsService extends BaseService {
       syncEfficiency: await this.getSyncEfficiencyStats(),
       platformPreferences: await this.getPlatformPreferences()
     }
-    
+
     return stats
   }
 }
@@ -466,6 +476,7 @@ class CrossPlatformStatsService extends BaseService {
 ## 🔒 Security Domain 詳細設計
 
 ### 核心職責
+
 - 跨平台資料的加密和隱私保護
 - 平台間資料隔離和訪問控制
 - 敏感操作的審計日誌和追蹤
@@ -488,10 +499,11 @@ src/background/domains/security/
 ### 關鍵服務設計
 
 #### **data-encryption-service.js**
+
 ```javascript
 /**
  * 資料加密服務
- * 
+ *
  * 負責功能：
  * - 敏感資料的加密/解密
  * - 加密金鑰管理
@@ -502,42 +514,43 @@ class DataEncryptionService extends BaseService {
   async encryptSensitiveData(data, encryptionLevel = 'standard') {
     // 根據加密級別選擇算法
     const algorithm = this.getEncryptionAlgorithm(encryptionLevel)
-    
+
     // 生成加密金鑰
     const key = await this.generateEncryptionKey(algorithm)
-    
+
     // 執行加密
     const encryptedData = await this.encrypt(data, key, algorithm)
-    
+
     // 記錄加密操作
     await this.logEncryptionOperation(encryptedData.id, algorithm)
-    
+
     return encryptedData
   }
 
   async decryptData(encryptedData) {
     // 驗證資料完整性
     await this.verifyDataIntegrity(encryptedData)
-    
+
     // 獲取解密金鑰
     const key = await this.getDecryptionKey(encryptedData.keyId)
-    
+
     // 執行解密
     const decryptedData = await this.decrypt(encryptedData, key)
-    
+
     // 記錄解密操作
     await this.logDecryptionOperation(encryptedData.id)
-    
+
     return decryptedData
   }
 }
 ```
 
 #### **audit-logging-service.js**
+
 ```javascript
 /**
  * 審計日誌服務
- * 
+ *
  * 負責功能：
  * - 系統操作的審計記錄
  * - 安全事件的日誌追蹤
@@ -556,15 +569,15 @@ class AuditLoggingService extends BaseService {
       userId: details.userId || null,
       sessionId: details.sessionId || null
     }
-    
+
     // 持久化審計日誌
     await this.persistAuditLog(auditEvent)
-    
+
     // 檢查是否需要即時警報
     if (this.isHighSeverityEvent(severity)) {
       await this.triggerSecurityAlert(auditEvent)
     }
-    
+
     // 發送審計事件
     await this.emitEvent('SECURITY.AUDIT.LOGGED', { event: auditEvent })
   }
@@ -573,7 +586,7 @@ class AuditLoggingService extends BaseService {
     // 生成合規性報告
     const events = await this.getAuditEvents(timeRange)
     const report = await this.compileComplianceReport(events, reportType)
-    
+
     return report
   }
 }
@@ -586,6 +599,7 @@ class AuditLoggingService extends BaseService {
 #### **用戶執行書庫提取的完整流程**
 
 1. **User Experience Domain** 接收用戶操作
+
 ```javascript
 // Popup UI 協調服務處理用戶點擊
 await uxDomain.coordinateExtractionRequest({
@@ -595,6 +609,7 @@ await uxDomain.coordinateExtractionRequest({
 ```
 
 2. **Security Domain** 進行權限檢查
+
 ```javascript
 // 權限控制服務驗證操作權限
 const hasPermission = await securityDomain.checkExtractionPermission()
@@ -604,6 +619,7 @@ await securityDomain.logSecurityEvent('EXTRACTION.PERMISSION.CHECKED', {
 ```
 
 3. **Platform Domain** 協調平台適配器
+
 ```javascript
 // 平台協調器啟動 Readmoo 適配器
 const adapter = await platformDomain.getAdapter('readmoo')
@@ -611,6 +627,7 @@ await platformDomain.routeExtractionRequest(adapter, extractionConfig)
 ```
 
 4. **Extraction Domain** 執行實際提取
+
 ```javascript
 // 提取領域協調器執行提取流程
 const extractionResult = await extractionDomain.startExtraction({
@@ -620,6 +637,7 @@ const extractionResult = await extractionDomain.startExtraction({
 ```
 
 5. **Data Management Domain** 處理資料
+
 ```javascript
 // 資料管理域驗證和存儲資料
 const validatedData = await dataManagementDomain.validateExtractedData(extractionResult.data)
@@ -627,6 +645,7 @@ await dataManagementDomain.storeData(validatedData)
 ```
 
 6. **Analytics Domain** 記錄統計
+
 ```javascript
 // 分析域記錄使用統計
 await analyticsDomain.trackExtractionEvent({
@@ -638,6 +657,7 @@ await analyticsDomain.trackExtractionEvent({
 ```
 
 7. **User Experience Domain** 更新 UI
+
 ```javascript
 // UX 域更新 Popup 顯示結果
 await uxDomain.updateExtractionResults({
@@ -648,6 +668,7 @@ await uxDomain.updateExtractionResults({
 ```
 
 這個完整的 Domain 設計確保了：
+
 - 🎯 **職責清晰**: 每個 Domain 都有明確的責任範圍
 - 🔗 **協作明確**: Domain 間的協作模式和介面定義清楚
 - 🔄 **事件驅動**: 統一的事件系統協調所有 Domain

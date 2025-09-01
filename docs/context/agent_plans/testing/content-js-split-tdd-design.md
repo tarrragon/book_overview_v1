@@ -35,11 +35,11 @@ describe('Readmoo 功能保護測試', () => {
   test('書庫頁面提取功能保護', async () => {
     // 測試重構前後提取結果完全一致
   })
-  
+
   test('書架頁面提取功能保護', async () => {
     // 測試各種書架場景
   })
-  
+
   test('進度回報機制保護', async () => {
     // 測試提取進度事件完整性
   })
@@ -57,11 +57,11 @@ describe('事件系統通訊穩定性測試', () => {
   test('Content Script 與 Background 雙向通訊', async () => {
     // 測試訊息發送與接收的完整性
   })
-  
+
   test('事件轉發機制驗證', async () => {
     // 測試內部事件正確轉發到 Background
   })
-  
+
   test('通訊失敗恢復機制', async () => {
     // 測試通訊中斷後的重連機制
   })
@@ -79,11 +79,11 @@ describe('記憶體洩漏檢測測試', () => {
   test('模組生命週期記憶體管理', async () => {
     // 測試模組載入/卸載過程中記憶體變化
   })
-  
+
   test('事件監聽器清理驗證', async () => {
     // 測試所有事件監聽器正確清理
   })
-  
+
   test('長時間運行記憶體穩定性', async () => {
     // 測試長時間提取過程記憶體不持續增長
   })
@@ -107,35 +107,35 @@ describe('PageDetectionUtils', () => {
     test('正確識別 readmoo.com 網域', () => {
       // 測試各種 Readmoo URL 格式
     })
-    
+
     test('拒絕非 Readmoo 網域', () => {
       // 測試其他網站 URL
     })
   })
-  
+
   describe('頁面類型檢測', () => {
     test('正確識別書庫頁面 (library)', () => {
       // 測試 /library 路徑識別
     })
-    
+
     test('正確識別書架頁面 (shelf)', () => {
       // 測試 /shelf 路徑識別
     })
-    
+
     test('正確識別閱讀器頁面 (reader)', () => {
       // 測試 /api/reader 路徑識別
     })
-    
+
     test('未知頁面類型處理', () => {
       // 測試未知頁面的fallback處理
     })
   })
-  
+
   describe('頁面準備狀態檢查', () => {
     test('DOM 載入完成檢測', () => {
       // 測試 document.readyState 檢查
     })
-    
+
     test('動態內容載入檢測', () => {
       // 測試 SPA 頁面內容準備狀態
     })
@@ -152,21 +152,21 @@ describe('ErrorHandlingUtils', () => {
     test('捕獲並格式化同步錯誤', () => {
       // 測試 window.onerror 處理
     })
-    
+
     test('捕獲並格式化 Promise 拒絕', () => {
       // 測試 unhandledrejection 處理
     })
   })
-  
+
   describe('錯誤分類與上報', () => {
     test('錯誤優先級正確分類', () => {
       // 測試錯誤類型識別和優先級分派
     })
-    
+
     test('錯誤資訊正確格式化', () => {
       // 測試錯誤訊息標準化格式
     })
-    
+
     test('錯誤上報到 Background', () => {
       // 測試錯誤資訊正確發送到 Background
     })
@@ -185,53 +185,53 @@ describe('ContentEventBus', () => {
     test('正確註冊事件監聽器', () => {
       // 測試 on() 方法
     })
-    
+
     test('支援優先級排序', () => {
       // 測試監聽器按優先級執行
     })
-    
+
     test('支援一次性監聽器', () => {
       // 測試 { once: true } 選項
     })
-    
+
     test('正確移除事件監聽器', () => {
       // 測試 off() 方法
     })
   })
-  
+
   describe('事件觸發與處理', () => {
     test('正確觸發事件並收集結果', () => {
       // 測試 emit() 方法
     })
-    
+
     test('錯誤隔離機制', () => {
       // 測試單一監聽器錯誤不影響其他
     })
-    
+
     test('異步處理支援', () => {
       // 測試 async 監聽器正確處理
     })
   })
-  
+
   describe('效能與統計', () => {
     test('事件統計資料正確收集', () => {
       // 測試 getStats() 方法
     })
-    
+
     test('記憶體使用監控', () => {
       // 測試記憶體統計資料
     })
-    
+
     test('效能監控功能', () => {
       // 測試執行時間統計
     })
   })
-  
+
   describe('生命週期管理', () => {
     test('資源正確清理', () => {
       // 測試 destroy() 方法
     })
-    
+
     test('記憶體洩漏防護', () => {
       // 測試長期使用無記憶體累積
     })
@@ -248,31 +248,31 @@ describe('ContentChromeBridge', () => {
     test('正確發送訊息到 Background', () => {
       // 測試 sendToBackground() 方法
     })
-    
+
     test('訊息格式標準化', () => {
       // 測試訊息元資料添加
     })
-    
+
     test('通訊錯誤處理', () => {
       // 測試通訊失敗時的錯誤處理
     })
   })
-  
+
   describe('事件轉發機制', () => {
     test('內部事件正確轉發', () => {
       // 測試 forwardEventToBackground() 方法
     })
-    
+
     test('轉發失敗降級處理', () => {
       // 測試轉發失敗時的fallback機制
     })
   })
-  
+
   describe('通訊效能監控', () => {
     test('通訊統計正確收集', () => {
       // 測試延遲、成功率統計
     })
-    
+
     test('效能基準監控', () => {
       // 測試通訊效能不低於基準
     })
@@ -289,31 +289,31 @@ describe('ContentLifecycleManager', () => {
     test('頁面載入初始化', () => {
       // 測試 DOMContentLoaded 處理
     })
-    
+
     test('頁面卸載清理', () => {
       // 測試 beforeunload 資源清理
     })
-    
+
     test('URL 變更監聽', () => {
       // 測試 SPA 導航檢測
     })
   })
-  
+
   describe('模組生命週期協調', () => {
     test('模組初始化順序控制', () => {
       // 測試依賴模組按正確順序初始化
     })
-    
+
     test('模組清理順序控制', () => {
       // 測試模組按反向順序清理
     })
   })
-  
+
   describe('資源管理', () => {
     test('觀察器正確設置與清理', () => {
       // 測試 MutationObserver 管理
     })
-    
+
     test('事件監聽器生命週期', () => {
       // 測試事件監聽器正確添加和移除
     })
@@ -332,31 +332,31 @@ describe('PlatformAdapterInterface', () => {
     test('所有必須實作方法都拋出錯誤', () => {
       // 測試抽象方法未實作時拋出錯誤
     })
-    
+
     test('介面契約完整性', () => {
       // 測試所有必要方法都存在於介面定義中
     })
   })
-  
+
   describe('方法簽名驗證', () => {
     test('getPageType() 方法簽名', () => {
       // 測試方法參數和返回值類型定義
     })
-    
+
     test('extractAllBooks() 方法簽名', () => {
       // 測試 async 方法正確定義
     })
-    
+
     test('parseBookElement() 方法簽名', () => {
       // 測試參數驗證和返回值格式
     })
   })
-  
+
   describe('實作合規性檢查', () => {
     test('Readmoo 適配器合規性', () => {
       // 測試 Readmoo 實作符合介面契約
     })
-    
+
     test('未來擴展準備度', () => {
       // 測試介面設計適合多平台擴展
     })
@@ -373,12 +373,14 @@ describe('PlatformAdapterInterface', () => {
 **目標**: 為每個拆分模組設計失敗測試
 
 **執行步驟**:
+
 1. 分析原始 content.js 中對應功能區塊
 2. 設計新模組的預期行為和介面
 3. 撰寫詳細的測試案例 (必須失敗)
 4. 驗證測試確實因功能未實作而失敗
 
 **測試清單範例** (每個模組):
+
 ```javascript
 // Red 階段測試模板
 describe('[模組名稱] - Red 階段', () => {
@@ -386,12 +388,12 @@ describe('[模組名稱] - Red 階段', () => {
     // 測試模組載入 - 預期失敗
     expect(() => require('./module')).toThrow()
   })
-  
+
   test('核心功能方法存在', () => {
     // 測試方法定義 - 預期失敗
     expect(module.coreMethod).toBeDefined()
   })
-  
+
   test('預期行為正確實作', () => {
     // 測試功能邏輯 - 預期失敗
     expect(module.coreMethod()).toEqual(expectedResult)
@@ -404,12 +406,14 @@ describe('[模組名稱] - Red 階段', () => {
 **目標**: 實作剛好讓測試通過的最小程式碼
 
 **執行步驟**:
+
 1. 從原始 content.js 提取對應程式碼區塊
 2. 重構為新模組格式 (保持功能不變)
 3. 調整至測試通過 (可以是暫時實作)
 4. 驗證所有測試通過且無回歸
 
 **品質檢查點**:
+
 ```bash
 # Green 階段後必須執行的檢查
 npm test                    # 所有測試通過
@@ -423,12 +427,14 @@ npm run test:integration   # 整合測試無回歸
 **目標**: 改善程式碼品質而不影響功能
 
 **執行步驟**:
+
 1. 重構暫時實作為最佳實踐
 2. 改善程式碼結構和可讀性
 3. 消除重複程式碼和 `//todo:` 標記
 4. 優化效能和記憶體使用
 
 **重構檢查清單**:
+
 - [ ] 消除所有 `//todo:` 標記
 - [ ] 程式碼符合單一職責原則
 - [ ] 函數長度控制在 30 行以內
@@ -448,14 +454,14 @@ npm run test:integration   # 整合測試無回歸
 // tests/jest.config.refactor.js (重構專用配置)
 module.exports = {
   ...require('./jest.config.js'), // 繼承基礎配置
-  
+
   // 重構測試專用設置
   testMatch: [
     '<rootDir>/tests/unit/refactor/**/*.test.js',
     '<rootDir>/tests/integration/refactor/**/*.test.js',
     '<rootDir>/tests/e2e/refactor-protection/**/*.test.js'
   ],
-  
+
   // 更嚴格的覆蓋率要求
   coverageThreshold: {
     global: {
@@ -465,7 +471,7 @@ module.exports = {
       statements: 100
     }
   },
-  
+
   // 重構階段特殊設置
   setupFilesAfterEnv: [
     '<rootDir>/tests/test-setup.js',
@@ -486,7 +492,7 @@ global.chrome = {
       addListener: jest.fn(),
       removeListener: jest.fn()
     }
-  },
+  }
   // 針對重構期間的特殊模擬需求
 }
 ```
@@ -540,8 +546,9 @@ export const createMockChromeBridge = () => ({
 ### 覆蓋率要求
 
 #### **絕對要求 (100% 覆蓋)**
+
 - **單元測試**: 所有新拆分模組 100% 程式碼覆蓋
-- **功能測試**: 所有 Readmoo 提取功能 100% 覆蓋  
+- **功能測試**: 所有 Readmoo 提取功能 100% 覆蓋
 - **整合測試**: 所有模組間介面 100% 覆蓋
 - **E2E 測試**: 所有使用者場景 100% 覆蓋
 
@@ -555,12 +562,12 @@ module.exports = {
   checkCoverageThreshold: () => {
     // 驗證覆蓋率不低於 100%
   },
-  
+
   // 覆蓋率回歸檢測
   detectCoverageRegression: () => {
     // 比較重構前後覆蓋率變化
   },
-  
+
   // 未覆蓋程式碼報告
   reportUncoveredCode: () => {
     // 生成詳細的未覆蓋程式碼報告
@@ -582,11 +589,11 @@ describe('測試可靠性驗證', () => {
       expect(result.failed).toBe(0)
     }
   })
-  
+
   test('測試隔離性驗證', () => {
     // 確保測試間沒有相互影響
   })
-  
+
   test('測試執行效能基準', () => {
     // 確保測試執行時間在可接受範圍
   })
@@ -604,7 +611,7 @@ describe('功能回歸防護', () => {
     const afterRefactor = await performExtraction()
     expect(afterRefactor).toEqual(beforeRefactor)
   })
-  
+
   test('效能回歸檢測', async () => {
     // 確保重構後效能不低於基準
     const performanceResult = await runPerformanceBenchmark()
@@ -624,15 +631,15 @@ describe('重構效能基準測試', () => {
     const startTime = performance.now()
     await loadAllModules()
     const loadTime = performance.now() - startTime
-    
+
     expect(loadTime).toBeLessThan(ACCEPTABLE_LOAD_TIME)
   })
-  
+
   test('提取效能基準維持', async () => {
     const extractionTime = await measureExtractionTime()
     expect(extractionTime).toBeLessThanOrEqual(BASELINE_EXTRACTION_TIME)
   })
-  
+
   test('事件處理效能', async () => {
     const eventProcessingTime = await measureEventProcessing()
     expect(eventProcessingTime).toBeLessThan(MAX_EVENT_PROCESSING_TIME)
@@ -649,19 +656,19 @@ describe('記憶體使用監控', () => {
     const initialMemory = getMemoryUsage()
     initializeAllModules()
     const afterInit = getMemoryUsage()
-    
+
     expect(afterInit - initialMemory).toBeLessThan(MAX_INIT_MEMORY)
   })
-  
+
   test('長期運行記憶體穩定性', async () => {
     const initialMemory = getMemoryUsage()
-    
+
     // 模擬長期使用
     for (let i = 0; i < 100; i++) {
       await performExtraction()
       await cleanup()
     }
-    
+
     const finalMemory = getMemoryUsage()
     expect(finalMemory - initialMemory).toBeLessThan(MEMORY_LEAK_THRESHOLD)
   })
@@ -679,29 +686,29 @@ module.exports = {
   // 每個 TDD 階段後執行
   runTDDCycleValidation: async () => {
     console.log('🔄 執行 TDD 循環驗證...')
-    
+
     // Red 階段驗證
     await validateRedPhase()
-    
-    // Green 階段驗證  
+
+    // Green 階段驗證
     await validateGreenPhase()
-    
+
     // Refactor 階段驗證
     await validateRefactorPhase()
-    
+
     console.log('✅ TDD 循環驗證完成')
   },
-  
+
   // 完整回歸測試
   runFullRegressionSuite: async () => {
     console.log('🧪 執行完整回歸測試套件...')
-    
+
     await runUnitTests()
     await runIntegrationTests()
     await runE2ETests()
     await runPerformanceTests()
     await runMemoryTests()
-    
+
     console.log('✅ 回歸測試套件完成')
   }
 }
@@ -722,7 +729,7 @@ module.exports = {
         testCoverage: getCurrentCoverage(),
         performanceImpact: getPerformanceImpact()
       },
-      
+
       // 品質指標
       qualityMetrics: {
         allTestsPassing: getAllTestsStatus(),
@@ -730,11 +737,11 @@ module.exports = {
         memoryStable: getMemoryStatus(),
         performanceStable: getPerformanceStatus()
       },
-      
+
       // 風險評估
       riskAssessment: {
         functionalRisk: 'LOW',
-        performanceRisk: 'LOW', 
+        performanceRisk: 'LOW',
         memoryRisk: 'LOW',
         integrationRisk: 'MEDIUM'
       }
@@ -748,18 +755,21 @@ module.exports = {
 ### 每個 TDD 循環必須執行
 
 #### 🔴 **Red 階段檢查**
+
 - [ ] 新測試確實失敗 (紅燈狀態)
 - [ ] 失敗原因符合預期 (因功能未實作)
 - [ ] 測試描述清楚表達預期行為
 - [ ] 測試資料和模擬環境正確設置
 
 #### 🟢 **Green 階段檢查**
+
 - [ ] 所有測試通過 (綠燈狀態)
 - [ ] 新功能按預期工作
 - [ ] 沒有回歸問題 (既有測試仍通過)
 - [ ] 程式碼覆蓋率達到 100%
 
 #### 🔵 **Refactor 階段檢查**
+
 - [ ] 所有測試仍然通過
 - [ ] 效能沒有明顯退化
 - [ ] 記憶體使用沒有增長
@@ -769,6 +779,7 @@ module.exports = {
 ### 完整循環後驗證
 
 #### 🧪 **功能驗證**
+
 ```bash
 # 功能完整性檢查
 npm run test:e2e:readmoo           # Readmoo 功能測試
@@ -778,6 +789,7 @@ npm run test:memory:leak          # 記憶體洩漏檢測
 ```
 
 #### 📊 **品質指標驗證**
+
 ```bash
 # 品質指標檢查
 npm run test:coverage             # 覆蓋率檢查 (必須 100%)
@@ -811,17 +823,17 @@ npm run test:regression           # 回歸檢測
 describe('重構最終驗收測試', () => {
   test('所有絕對成功標準達成', async () => {
     const results = await runFullValidationSuite()
-    
+
     expect(results.functionalIntegrity).toBe(100)
     expect(results.testCoverage).toBe(100)
     expect(results.performanceRatio).toBeGreaterThanOrEqual(0.9)
     expect(results.memoryGrowth).toBeLessThan(50)
     expect(results.communicationSuccessRate).toBeGreaterThan(0.99)
   })
-  
+
   test('所有品質標準達成', async () => {
     const qualityResults = await runQualityValidation()
-    
+
     expect(qualityResults.allModulesFollowSRP).toBe(true)
     expect(qualityResults.testReliability).toBe(100)
     expect(qualityResults.documentationComplete).toBe(true)
@@ -845,11 +857,13 @@ describe('重構最終驗收測試', () => {
 ### 🔄 **執行優先順序建議**
 
 #### Week 1 執行計劃:
+
 1. **Day 1-2**: 建立測試基礎設施和 Mock 環境
 2. **Day 3-4**: 實作 Phase 1 核心模組測試 (工具和事件系統)
 3. **Day 5-7**: 建立平台抽象介面測試和驗證機制
 
 #### 關鍵成功要素:
+
 1. **測試先行**: 每個模組拆分前必須先寫完整測試
 2. **小步迭代**: 一次只拆分一個模組，確保每步都穩定
 3. **持續驗證**: 每個 TDD 循環後立即執行完整驗證

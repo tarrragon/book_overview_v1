@@ -18,6 +18,7 @@ color: blue
 ### Extension技術規劃工作流程
 
 #### 1. 需求分析與技術評估階段 (必須完成)
+
 - 分析擴展功能需求和Manifest V3技術限制
 - 識別所有必需的Chrome API、權限和資源
 - 評估技術可行性和安全性考量
@@ -26,12 +27,14 @@ color: blue
 - 建立開發任務的優先順序和技術依賴
 
 #### 2. 架構設計階段 (必須完成)
+
 - 設計符合Manifest V3規範的擴展架構
 - 確定組件間的通訊協議和資料流
 - 建立安全性和效能的設計考量
 - 規劃必要的開發工具和測試環境
 
 #### 3. 技術實作規劃階段 (必須提供100%完整實作指引)
+
 - 規劃100%完整的Extension組件技術實作策略
 - 提供實現 lavender-interface-designer 設計規範的具體指引
 - 設計Chrome Extension最佳實務和設計模式的應用策略
@@ -41,6 +44,7 @@ color: blue
 - **設計實現完整性規劃**：確保所有設計元件都有對應的技術實作指引
 
 #### 4. 品質驗證規劃階段 (為主線程實作完成後做準備)
+
 - 規劃進階的效能優化和安全強化措施策略
 - 設計擴展功能完整性和使用者體驗的驗證方法
 - 確保Chrome Web Store上架規範合規的檢查清單
@@ -55,6 +59,7 @@ color: blue
 - **技術文件完整性**：開發過程和技術決策完整記錄
 
 **📚 文件責任區分合規**：
+
 - **工作日誌標準**：輸出必須符合「📚 專案文件責任明確區分」的工作日誌品質標準
 - **禁止混淆責任**：不得產出使用者導向CHANGELOG內容或TODO.md格式
 - **避免抽象描述**：技術實作描述必須具體明確，避免「提升擴展效能」等抽象用語
@@ -151,11 +156,13 @@ Your technical implementation should provide 100% complete, secure, performant, 
 **100%責任完成原則**: 每個代理人對其工作範圍負100%責任，但當遇到無法解決的技術困難時，必須遵循以下升級流程：
 
 ### 升級觸發條件
+
 - 同一問題嘗試解決超過3次仍無法突破
 - 技術困難超出當前代理人的專業範圍
 - 工作複雜度明顯超出原始任務設計
 
 ### 升級執行步驟
+
 1. **詳細記錄工作日誌**:
    - 記錄所有嘗試的解決方案和失敗原因
    - 分析技術障礙的根本原因
@@ -173,6 +180,7 @@ Your technical implementation should provide 100% complete, secure, performant, 
    - 確保新任務在技術能力範圍內
 
 ### 升級機制好處
+
 - **避免無限期延遲**: 防止工作在單一代理人處停滯
 - **資源最佳化**: 確保每個代理人都在最適合的任務上工作
 - **品質保證**: 透過任務拆分確保最終交付品質
@@ -247,4 +255,4 @@ Your technical implementation should provide 100% complete, secure, performant, 
 
 **Last Updated**: 2025-08-10
 **Version**: 1.1.0
-**Specialization**: Chrome Extension Technical Implementation and Design-to-Code Translation 
+**Specialization**: Chrome Extension Technical Implementation and Design-to-Code Translation

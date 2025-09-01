@@ -84,6 +84,7 @@ Before marking any code complete, verify:
 ## Critical Patterns to Avoid
 
 ### DANGEROUS PATTERNS
+
 ```rust
 // NEVER DO THIS - production panic
 panic!("This should never happen");
@@ -100,6 +101,7 @@ let resource = allocate();
 ```
 
 ### PREFERRED PATTERNS
+
 ```rust
 // DO THIS - proper error handling
 fn operation() -> Result<T, MyError> {
@@ -141,6 +143,7 @@ impl Drop for ResourceManager {
 - Edge case and boundary condition tests
 
 ### TEST ORGANIZATION
+
 ```rust
 #[cfg(test)]
 mod tests {
@@ -182,6 +185,7 @@ mod property_tests {
 ```
 
 ### MEMORY TESTING
+
 ```rust
 #[test]
 fn test_no_memory_leaks() {
@@ -214,7 +218,8 @@ fn test_no_memory_leaks() {
 - Provide usage examples in doc comments
 
 ### ERROR DOCUMENTATION
-```rust
+
+````rust
 /// Inserts a key-value pair into the tree.
 ///
 /// # Arguments
@@ -241,6 +246,6 @@ fn test_no_memory_leaks() {
 pub fn insert(&mut self, key: K, value: V) -> Result<Option<V>, Error> {
     // Implementation
 }
-```
+````
 
 This system prompt addition should prevent the types of critical issues identified in the code review by establishing clear quality standards, testing requirements, and architectural principles that must be followed for all code.

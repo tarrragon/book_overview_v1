@@ -1,16 +1,13 @@
 # Implementation Plan
 
 - [x] 1. 建立 MessageTracker 核心類別和基礎架構
-
   - 創建 MessageTracker 類別繼承 EventHandler
   - 實現基本的事件處理介面和初始化邏輯
   - 設置訊息追蹤的資料結構和狀態管理
   - _Requirements: 1.1, 1.2_
 
 - [ ] 2. 實現訊息追蹤核心功能
-
   - [ ] 2.1 實現訊息發送和接收追蹤
-
     - 編寫 trackMessageSent 和 trackMessageReceived 方法
     - 實現訊息 ID 生成和狀態管理邏輯
     - 創建訊息記錄的資料結構和儲存機制
@@ -23,9 +20,7 @@
     - _Requirements: 1.3, 1.4_
 
 - [ ] 3. 實現未知訊息類型識別和記錄
-
   - [ ] 3.1 建立未知訊息檢測機制
-
     - 實現訊息類型驗證邏輯
     - 創建未知訊息的特別標記和記錄系統
     - 建立 START_EXTRACTION 等特定錯誤的識別
@@ -38,9 +33,7 @@
     - _Requirements: 2.2, 2.4_
 
 - [ ] 4. 建立 Chrome DevTools Console 診斷介面
-
   - [ ] 4.1 實現 Console 診斷命令
-
     - 創建 window.MessageDiagnostic 全域物件
     - 實現 status、messages、unknown、clear 命令
     - 建立格式化輸出和表格顯示功能
@@ -53,23 +46,19 @@
     - _Requirements: 3.3, 3.4_
 
 - [ ] 5. 實現記憶體管理和效能優化
-
   - 建立追蹤記錄數量限制機制
   - 實現過期記錄的自動清理功能
   - 建立記憶體使用統計和監控
   - _Requirements: 1.4_
 
 - [ ] 6. 建立與現有錯誤處理系統的整合
-
   - 實現與 MessageErrorHandler 的事件協作
   - 建立與 EventErrorHandler 的錯誤共享機制
   - 確保診斷系統不影響現有錯誤處理流程
   - _Requirements: 整體系統整合_
 
 - [ ] 7. 建立完整的測試套件
-
   - [ ] 7.1 編寫 MessageTracker 單元測試
-
     - 測試訊息追蹤的基本功能
     - 測試未知訊息類型的識別
     - 測試記憶體管理和清理機制

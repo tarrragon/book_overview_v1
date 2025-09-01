@@ -31,30 +31,36 @@
 ## 🔧 核心組件實作
 
 ### 1. EventNamingUpgradeCoordinator
+
 **檔案**: `src/core/events/event-naming-upgrade-coordinator.js`
 
 **主要功能**:
+
 - Legacy → Modern 事件轉換
 - 雙軌並行事件處理
 - 智能事件名稱推斷
 - 轉換統計與監控
 
 **關鍵方法**:
+
 - `convertToModernEvent()` - 轉換為現代事件格式
 - `registerDualTrackListener()` - 註冊雙軌監聽器
 - `intelligentEmit()` - 智能事件發射
 - `buildModernEventName()` - 智能名稱推斷
 
 ### 2. EventPriorityManager
+
 **檔案**: `src/core/events/event-priority-manager.js`
 
 **主要功能**:
+
 - 智能優先級分配
 - 動態優先級調整
 - 效能導向最佳化
 - 完整統計追蹤
 
 **優先級架構**:
+
 - SYSTEM_CRITICAL (0-99) - 系統關鍵事件
 - PLATFORM_MANAGEMENT (100-199) - 平台管理事件
 - USER_INTERACTION (200-299) - 使用者互動事件
@@ -62,15 +68,18 @@
 - BACKGROUND_PROCESSING (400-499) - 背景處理事件
 
 ### 3. EventTypeDefinitions
+
 **檔案**: `src/core/events/event-type-definitions.js`
 
 **主要功能**:
+
 - v2.0 命名格式驗證
 - 智能命名建議
 - 事件使用統計
 - 錯誤檢測和修正
 
 **命名架構**:
+
 - **領域**: SYSTEM, PLATFORM, EXTRACTION, DATA, MESSAGING, PAGE, UX, SECURITY, ANALYTICS
 - **平台**: READMOO, KINDLE, KOBO, BOOKS_COM, BOOKWALKER, UNIFIED, MULTI, GENERIC
 - **動作**: INIT, START, STOP, EXTRACT, SAVE, LOAD, DETECT, SWITCH, VALIDATE, PROCESS, SYNC, OPEN, CLOSE, UPDATE, DELETE, CREATE
@@ -79,32 +88,38 @@
 ## 🧪 測試驅動開發成果
 
 ### 測試覆蓋率
+
 - **總測試案例**: 180+ 個
 - **覆蓋率**: 100%
 - **TDD 循環**: 完整的 Red-Green-Refactor
 
 ### 測試檔案
+
 - `tests/unit/core/event-naming-upgrade-coordinator.test.js`
 - `tests/unit/core/event-priority-manager.test.js`
 - `tests/unit/core/event-type-definitions.test.js`
 
 ### 驗證腳本
+
 - `test-event-system-v2.js` - 快速整合驗證
 
 ## 🎯 品質指標達成
 
 ### 效能要求
+
 - ✅ 事件轉換延遲 < 5ms
 - ✅ 優先級分配 < 1ms
 - ✅ 命名驗證 < 0.1ms
 - ✅ 記憶體增長 < 15%
 
 ### 相容性保證
+
 - ✅ 向後相容性 100%
 - ✅ 轉換準確性 100%
 - ✅ API 介面穩定性 100%
 
 ### 程式碼品質
+
 - ✅ 零架構債務
 - ✅ 完整錯誤處理
 - ✅ 詳細程式碼註解
@@ -113,12 +128,14 @@
 ## 🚀 技術創新亮點
 
 ### 1. 智能事件推斷算法
+
 ```javascript
 // 自動將 Legacy 事件轉換為 Modern 格式
 'ANALYTICS.COUNT.UPDATED' → 'ANALYTICS.GENERIC.COUNT.UPDATED'
 ```
 
 ### 2. 雙軌並行機制
+
 ```javascript
 // 同時支援舊版和新版事件，零中斷升級
 coordinator.registerDualTrackListener('EXTRACTION.COMPLETED', handler)
@@ -126,12 +143,14 @@ coordinator.registerDualTrackListener('EXTRACTION.COMPLETED', handler)
 ```
 
 ### 3. 動態優先級調整
+
 ```javascript
 // 根據效能統計自動調整優先級
 priorityManager.optimizeBasedOnPerformance()
 ```
 
 ### 4. 智能命名建議
+
 ```javascript
 // 為無效事件名稱提供修正建議
 eventTypes.suggestCorrections('EXTRACTION.COMPLETED')
@@ -141,6 +160,7 @@ eventTypes.suggestCorrections('EXTRACTION.COMPLETED')
 ## 📊 事件轉換對應表
 
 ### 核心事件轉換 (25+ 事件)
+
 ```javascript
 const EventMigrationMapping = {
   // Readmoo 平台核心事件
@@ -148,25 +168,25 @@ const EventMigrationMapping = {
   'EXTRACTION.PROGRESS': 'EXTRACTION.READMOO.EXTRACT.PROGRESS',
   'EXTRACTION.STARTED': 'EXTRACTION.READMOO.EXTRACT.STARTED',
   'EXTRACTION.FAILED': 'EXTRACTION.READMOO.EXTRACT.FAILED',
-  
+
   // 儲存相關事件
   'STORAGE.SAVE.COMPLETED': 'DATA.READMOO.SAVE.COMPLETED',
   'STORAGE.SAVE.REQUESTED': 'DATA.READMOO.SAVE.REQUESTED',
   'STORAGE.LOAD.COMPLETED': 'DATA.READMOO.LOAD.COMPLETED',
-  
+
   // UI 相關事件
   'UI.POPUP.OPENED': 'UX.GENERIC.OPEN.COMPLETED',
   'UI.POPUP.CLOSED': 'UX.GENERIC.CLOSE.COMPLETED',
   'UI.OVERVIEW.RENDERED': 'UX.GENERIC.RENDER.COMPLETED',
-  
+
   // 背景服務事件
   'BACKGROUND.INIT.COMPLETED': 'SYSTEM.GENERIC.INIT.COMPLETED',
   'CONTENT.EVENT.FORWARD': 'MESSAGING.READMOO.FORWARD.COMPLETED',
-  
+
   // 診斷監控事件
   'DIAGNOSTIC.STATUS.UPDATE': 'SYSTEM.GENERIC.UPDATE.COMPLETED',
   'ERROR.HANDLING.TRIGGERED': 'SYSTEM.GENERIC.ERROR.TRIGGERED',
-  
+
   // 平台管理事件
   'PLATFORM.DETECTION.COMPLETED': 'PLATFORM.READMOO.DETECT.COMPLETED',
   'PLATFORM.SWITCH.REQUESTED': 'PLATFORM.READMOO.SWITCH.REQUESTED'
@@ -176,16 +196,19 @@ const EventMigrationMapping = {
 ## 🔄 整合現有系統
 
 ### EventBus 整合
+
 - 完全相容現有 `src/core/event-bus.js`
 - 保持所有現有 API 介面
 - 新增優先級支援
 
 ### Chrome Extension 整合
+
 - 與 `src/core/chrome-event-bridge.js` 無縫整合
 - 支援跨上下文事件傳遞
 - 維持 Manifest V3 合規性
 
 ### 現有模組相容
+
 - Background Service Worker
 - Content Scripts
 - Popup 界面
@@ -194,6 +217,7 @@ const EventMigrationMapping = {
 ## 📈 使用範例
 
 ### 基本使用
+
 ```javascript
 const eventBus = new EventBus()
 const coordinator = new EventNamingUpgradeCoordinator(eventBus)
@@ -213,10 +237,11 @@ priorityManager.registerWithPriority(eventBus, 'URGENT.EVENT', handler)
 ```
 
 ### 高級功能
+
 ```javascript
 // 轉換模式控制
 coordinator.setConversionMode('MODERN_ONLY') // 純現代模式
-coordinator.setConversionMode('DUAL_TRACK')  // 雙軌模式 (預設)
+coordinator.setConversionMode('DUAL_TRACK') // 雙軌模式 (預設)
 coordinator.setConversionMode('LEGACY_ONLY') // 緊急模式
 
 // 統計監控
@@ -233,21 +258,25 @@ const suggestions = eventTypes.suggestCorrections('INVALID.EVENT.NAME')
 ## 🔍 最佳實務建議
 
 ### 1. 漸進式遷移
+
 - 開始時使用 DUAL_TRACK 模式
 - 逐步驗證 Modern 事件功能
 - 最後切換到 MODERN_ONLY 模式
 
 ### 2. 效能最佳化
+
 - 使用優先級管理器自動分配優先級
 - 定期執行優先級最佳化
 - 監控轉換統計，識別效能瓶頸
 
 ### 3. 錯誤處理
+
 - 處理轉換錯誤，提供降級機制
 - 使用事件驗證，確保格式正確
 - 建立監控和告警機制
 
 ### 4. 開發指南
+
 - 新事件使用 Modern 格式
 - 使用 EventTypeDefinitions 驗證格式
 - 記錄事件使用統計，優化設計
@@ -255,6 +284,7 @@ const suggestions = eventTypes.suggestCorrections('INVALID.EVENT.NAME')
 ## 🎯 下階段規劃
 
 ### Phase 2: Readmoo 平台無縫遷移驗證 (1-2天)
+
 1. **ReadmooPlatformMigrationValidator 實作**
    - 完整 Readmoo 功能驗證
    - 效能基準測試
@@ -266,6 +296,7 @@ const suggestions = eventTypes.suggestCorrections('INVALID.EVENT.NAME')
    - 自動告警系統
 
 ### Phase 3: 現代化管理系統 (1天)
+
 1. **EventSystemModernizationManager 實作**
    - 漸進式升級管理
    - 緊急回滾機制
@@ -277,6 +308,7 @@ const suggestions = eventTypes.suggestCorrections('INVALID.EVENT.NAME')
    - 文件完善
 
 ### Phase 4: 多平台整合準備
+
 1. **Kindle 平台支援**
 2. **Kobo 平台支援**
 3. **博客來平台支援**
@@ -285,18 +317,22 @@ const suggestions = eventTypes.suggestCorrections('INVALID.EVENT.NAME')
 ## 📚 相關文件
 
 ### 策略文件
+
 - `docs/architecture/event-system-v2-naming-upgrade-strategy.md`
 - `docs/architecture/readmoo-migration-validation-plan.md`
 
 ### 工作日誌
+
 - `docs/work-logs/v2.0.0-event-system-upgrade-work-log.md`
 
 ### 測試文件
+
 - `tests/unit/core/event-naming-upgrade-coordinator.test.js`
 - `tests/unit/core/event-priority-manager.test.js`
 - `tests/unit/core/event-type-definitions.test.js`
 
 ### 驗證腳本
+
 - `test-event-system-v2.js`
 
 ## 🏆 項目總結

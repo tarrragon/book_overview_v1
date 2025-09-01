@@ -42,21 +42,21 @@
 ```javascript
 class MessageTracker extends EventHandler {
   constructor(eventBus, options = {}) {
-    super("MessageTracker", 10); // 中等優先級
+    super('MessageTracker', 10) // 中等優先級
 
     // 基本配置
-    this.eventBus = eventBus;
+    this.eventBus = eventBus
     this.supportedEvents = [
-      "MESSAGE.SENT",
-      "MESSAGE.RECEIVED",
-      "MESSAGE.PROCESSED",
-      "MESSAGE.FAILED",
-    ];
+      'MESSAGE.SENT',
+      'MESSAGE.RECEIVED',
+      'MESSAGE.PROCESSED',
+      'MESSAGE.FAILED'
+    ]
 
     // 追蹤狀態
-    this.messageLog = [];
-    this.activeMessages = new Map();
-    this.diagnosticMode = false;
+    this.messageLog = []
+    this.activeMessages = new Map()
+    this.diagnosticMode = false
   }
 }
 ```
@@ -67,32 +67,32 @@ class MessageTracker extends EventHandler {
 
 ```javascript
 // 追蹤訊息發送
-trackMessageSent(messageId, type, source, target, timestamp);
+trackMessageSent(messageId, type, source, target, timestamp)
 
 // 追蹤訊息接收
-trackMessageReceived(messageId, type, source, timestamp);
+trackMessageReceived(messageId, type, source, timestamp)
 
 // 追蹤訊息處理完成
-trackMessageProcessed(messageId, result, timestamp);
+trackMessageProcessed(messageId, result, timestamp)
 
 // 追蹤訊息處理失敗
-trackMessageFailed(messageId, error, timestamp);
+trackMessageFailed(messageId, error, timestamp)
 ```
 
 #### 2. 診斷查詢介面
 
 ```javascript
 // 獲取訊息流程記錄
-getMessageFlow(messageId);
+getMessageFlow(messageId)
 
 // 獲取未知訊息統計
-getUnknownMessageStats();
+getUnknownMessageStats()
 
 // 獲取當前活躍訊息
-getActiveMessages();
+getActiveMessages()
 
 // 清除追蹤記錄
-clearTrackingLog();
+clearTrackingLog()
 ```
 
 #### 3. Console 診斷介面
@@ -103,8 +103,8 @@ window.MessageDiagnostic = {
   status: () => tracker.getTrackingStatus(),
   messages: () => tracker.getMessageLog(),
   unknown: () => tracker.getUnknownMessages(),
-  clear: () => tracker.clearTrackingLog(),
-};
+  clear: () => tracker.clearTrackingLog()
+}
 ```
 
 ## Data Models
@@ -121,8 +121,8 @@ const MessageRecord = {
   timestamp: Number, // 時間戳
   data: Object, // 訊息內容 (可選)
   error: Object, // 錯誤資訊 (如果失敗)
-  processingTime: Number, // 處理時間 (毫秒)
-};
+  processingTime: Number // 處理時間 (毫秒)
+}
 ```
 
 ### TrackingStats 統計模型
@@ -134,8 +134,8 @@ const TrackingStats = {
   failedMessages: Number, // 失敗訊息數
   averageProcessingTime: Number, // 平均處理時間
   activeMessagesCount: Number, // 當前活躍訊息數
-  lastMessageTime: Number, // 最後訊息時間
-};
+  lastMessageTime: Number // 最後訊息時間
+}
 ```
 
 ## Error Handling
@@ -150,11 +150,11 @@ const TrackingStats = {
 
 ```javascript
 const DiagnosticErrors = {
-  TRACKING_FAILED: "追蹤記錄失敗",
-  CONSOLE_UNAVAILABLE: "Console 不可用",
-  MEMORY_LIMIT_EXCEEDED: "記憶體限制超出",
-  INTEGRATION_ERROR: "整合錯誤",
-};
+  TRACKING_FAILED: '追蹤記錄失敗',
+  CONSOLE_UNAVAILABLE: 'Console 不可用',
+  MEMORY_LIMIT_EXCEEDED: '記憶體限制超出',
+  INTEGRATION_ERROR: '整合錯誤'
+}
 ```
 
 ## Testing Strategy
@@ -168,24 +168,24 @@ const DiagnosticErrors = {
 ### 測試重點
 
 ```javascript
-describe("MessageTracker 測試", () => {
+describe('MessageTracker 測試', () => {
   // 基本功能測試
-  test("應該能夠追蹤訊息發送和接收");
-  test("應該能夠識別未知訊息類型");
-  test("應該能夠記錄訊息處理時間");
+  test('應該能夠追蹤訊息發送和接收')
+  test('應該能夠識別未知訊息類型')
+  test('應該能夠記錄訊息處理時間')
 
   // Console 整合測試
-  test("應該在 Console 中提供診斷命令");
-  test("應該能夠輸出格式化的診斷資訊");
+  test('應該在 Console 中提供診斷命令')
+  test('應該能夠輸出格式化的診斷資訊')
 
   // 記憶體管理測試
-  test("應該限制追蹤記錄數量");
-  test("應該清理過期的追蹤記錄");
+  test('應該限制追蹤記錄數量')
+  test('應該清理過期的追蹤記錄')
 
   // 錯誤處理測試
-  test("應該處理追蹤過程中的錯誤");
-  test("應該與 MessageErrorHandler 協作");
-});
+  test('應該處理追蹤過程中的錯誤')
+  test('應該與 MessageErrorHandler 協作')
+})
 ```
 
 ### 測試資料準備
@@ -193,23 +193,23 @@ describe("MessageTracker 測試", () => {
 ```javascript
 const mockMessageFlow = [
   {
-    id: "msg_001",
-    type: "START_EXTRACTION",
-    source: "popup",
-    target: "content",
-    status: "sent",
-    timestamp: Date.now(),
+    id: 'msg_001',
+    type: 'START_EXTRACTION',
+    source: 'popup',
+    target: 'content',
+    status: 'sent',
+    timestamp: Date.now()
   },
   {
-    id: "msg_001",
-    type: "START_EXTRACTION",
-    source: "popup",
-    target: "content",
-    status: "failed",
+    id: 'msg_001',
+    type: 'START_EXTRACTION',
+    source: 'popup',
+    target: 'content',
+    status: 'failed',
     timestamp: Date.now() + 100,
-    error: { message: "No receiving end" },
-  },
-];
+    error: { message: 'No receiving end' }
+  }
+]
 ```
 
 ## Implementation Details
@@ -217,13 +217,11 @@ const mockMessageFlow = [
 ### 核心實現流程
 
 1. **初始化階段**
-
    - 註冊事件監聽器
    - 設置 Console 診斷介面
    - 初始化追蹤狀態
 
 2. **訊息追蹤階段**
-
    - 攔截訊息事件
    - 記錄訊息流程
    - 更新統計資訊
@@ -237,41 +235,41 @@ const mockMessageFlow = [
 
 ```javascript
 // 與 MessageErrorHandler 整合
-eventBus.on("MESSAGE.UNKNOWN_TYPE", (data) => {
-  messageTracker.trackUnknownMessage(data);
-});
+eventBus.on('MESSAGE.UNKNOWN_TYPE', (data) => {
+  messageTracker.trackUnknownMessage(data)
+})
 
 // 與 EventErrorHandler 整合
-eventBus.on("ERROR.HANDLER", (data) => {
-  messageTracker.trackHandlerError(data);
-});
+eventBus.on('ERROR.HANDLER', (data) => {
+  messageTracker.trackHandlerError(data)
+})
 ```
 
 ### Console 診斷實現
 
 ```javascript
 // 在 Chrome DevTools Console 中註冊診斷工具
-if (typeof window !== "undefined") {
+if (typeof window !== 'undefined') {
   window.MessageDiagnostic = {
     status: () => {
-      const stats = messageTracker.getTrackingStats();
-      console.table(stats);
-      return stats;
+      const stats = messageTracker.getTrackingStats()
+      console.table(stats)
+      return stats
     },
 
     messages: (limit = 10) => {
-      const messages = messageTracker.getRecentMessages(limit);
-      console.group("最近訊息記錄");
-      messages.forEach((msg) => console.log(msg));
-      console.groupEnd();
-      return messages;
+      const messages = messageTracker.getRecentMessages(limit)
+      console.group('最近訊息記錄')
+      messages.forEach((msg) => console.log(msg))
+      console.groupEnd()
+      return messages
     },
 
     unknown: () => {
-      const unknown = messageTracker.getUnknownMessages();
-      console.warn("未知訊息類型:", unknown);
-      return unknown;
-    },
-  };
+      const unknown = messageTracker.getUnknownMessages()
+      console.warn('未知訊息類型:', unknown)
+      return unknown
+    }
+  }
 }
 ```

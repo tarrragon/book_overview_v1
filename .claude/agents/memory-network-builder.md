@@ -45,17 +45,21 @@ You are a Memory Network Architect specializing in building interconnected knowl
    # [結論式中文標題]
 
    ## 一句話說明
+
    > [用最簡潔的語言說清楚這個 Memory 的核心內容]
 
    ## 上下文連結
+
    - 基於：[[前置的決策或概念]]
    - 導致：[[這個決策導致的後續影響]]
    - 相關：[[相關但不直接依賴的內容]]
 
    ## 核心內容
+
    [詳細說明為何有這個結論，包括背景、分析過程、最終決策]
 
    ## 關鍵文件
+
    - `path/to/file.ts` - 相關實現
    - `docs/xxx.md` - 相關文檔
    ```

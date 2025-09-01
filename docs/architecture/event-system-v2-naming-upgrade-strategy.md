@@ -10,6 +10,7 @@
 基於當前 v0.9.5 的穩固技術基礎，制定事件系統 v2.0 階層式命名標準升級策略，並確保 Readmoo 平台的 100% 向後相容性和無縫遷移驗證。
 
 ### **戰略核心目標**
+
 1. **事件命名系統現代化**：從 `MODULE.ACTION.STATE` 升級為 `DOMAIN.PLATFORM.ACTION.STATE`
 2. **Readmoo 平台無縫遷移**：確保所有既有功能 100% 向後相容
 3. **多平台架構基礎**：為後續 Kindle、Kobo、博客來整合鋪路
@@ -20,6 +21,7 @@
 ### **現有事件系統評估 (v0.9.5)**
 
 #### ✅ 技術優勢 (已建立的堅實基礎)
+
 - **EventBus 核心完善**：100% 測試覆蓋，支援優先級、快取、統計
 - **就緒屏障機制**：解決冷啟動競態問題，系統穩定性高
 - **Pre-init 佇列**：確保事件不遺失，支援重放機制
@@ -27,6 +29,7 @@
 - **Platform Domain v2.0**：6,000+ 行企業級平台管理架構完成
 
 #### 🔧 需要升級的領域
+
 - **命名規範**: 當前使用 3-layer 格式，需升級為 4-layer 階層式命名
 - **事件路由**: 需要跨平台路由和協調機制
 - **向後相容**: 需要 Legacy → Modern 事件轉換層
@@ -39,16 +42,16 @@
 const CurrentEventPatterns = {
   // 核心事件 (保持高度相容性)
   'EXTRACTION.COMPLETED': '資料提取完成 - 使用頻率: 極高',
-  'EXTRACTION.PROGRESS': '資料提取進度 - 使用頻率: 高', 
+  'EXTRACTION.PROGRESS': '資料提取進度 - 使用頻率: 高',
   'STORAGE.SAVE.COMPLETED': '儲存完成 - 使用頻率: 高',
   'UI.POPUP.OPENED': 'Popup 開啟 - 使用頻率: 中',
   'CONTENT.EVENT.FORWARD': '內容事件轉發 - 使用頻率: 高',
-  
+
   // 系統事件 (需要升級)
   'BACKGROUND.INIT.COMPLETED': '背景初始化完成',
   'DIAGNOSTIC.STATUS.UPDATE': '診斷狀態更新',
-  'ERROR.HANDLING.TRIGGERED': '錯誤處理觸發',
-  
+  'ERROR.HANDLING.TRIGGERED': '錯誤處理觸發'
+
   // 總計: 約 25-30 個核心事件類型
 }
 ```
@@ -62,39 +65,59 @@ const CurrentEventPatterns = {
 const EventNamingV2 = {
   format: 'DOMAIN.PLATFORM.ACTION.STATE',
   example: 'EXTRACTION.READMOO.EXTRACT.COMPLETED',
-  
+
   domains: [
-    'SYSTEM',      // 系統管理領域
-    'PLATFORM',    // 平台管理領域  
-    'EXTRACTION',  // 資料提取領域
-    'DATA',        // 資料管理領域
-    'MESSAGING',   // 通訊訊息領域
-    'PAGE',        // 頁面管理領域
-    'UX',          // 使用者體驗領域
-    'SECURITY',    // 安全驗證領域
-    'ANALYTICS'    // 分析統計領域
+    'SYSTEM', // 系統管理領域
+    'PLATFORM', // 平台管理領域
+    'EXTRACTION', // 資料提取領域
+    'DATA', // 資料管理領域
+    'MESSAGING', // 通訊訊息領域
+    'PAGE', // 頁面管理領域
+    'UX', // 使用者體驗領域
+    'SECURITY', // 安全驗證領域
+    'ANALYTICS' // 分析統計領域
   ],
-  
+
   platforms: [
-    'READMOO',     // Readmoo 平台
-    'KINDLE',      // Amazon Kindle
-    'KOBO',        // 樂天 Kobo
-    'BOOKS_COM',   // 博客來
-    'BOOKWALKER',  // BookWalker
-    'UNIFIED',     // 跨平台統一操作
-    'MULTI',       // 多平台協調操作
-    'GENERIC'      // 平台無關操作
+    'READMOO', // Readmoo 平台
+    'KINDLE', // Amazon Kindle
+    'KOBO', // 樂天 Kobo
+    'BOOKS_COM', // 博客來
+    'BOOKWALKER', // BookWalker
+    'UNIFIED', // 跨平台統一操作
+    'MULTI', // 多平台協調操作
+    'GENERIC' // 平台無關操作
   ],
-  
+
   actions: [
-    'INIT', 'START', 'STOP', 'EXTRACT', 'SAVE', 'LOAD',
-    'DETECT', 'SWITCH', 'VALIDATE', 'PROCESS', 'SYNC',
-    'OPEN', 'CLOSE', 'UPDATE', 'DELETE', 'CREATE'
+    'INIT',
+    'START',
+    'STOP',
+    'EXTRACT',
+    'SAVE',
+    'LOAD',
+    'DETECT',
+    'SWITCH',
+    'VALIDATE',
+    'PROCESS',
+    'SYNC',
+    'OPEN',
+    'CLOSE',
+    'UPDATE',
+    'DELETE',
+    'CREATE'
   ],
-  
+
   states: [
-    'REQUESTED', 'STARTED', 'PROGRESS', 'COMPLETED', 
-    'FAILED', 'CANCELLED', 'TIMEOUT', 'SUCCESS', 'ERROR'
+    'REQUESTED',
+    'STARTED',
+    'PROGRESS',
+    'COMPLETED',
+    'FAILED',
+    'CANCELLED',
+    'TIMEOUT',
+    'SUCCESS',
+    'ERROR'
   ]
 }
 ```
@@ -106,28 +129,28 @@ const EventNamingV2 = {
 const EventMigrationMapping = {
   // Readmoo 平台核心事件
   'EXTRACTION.COMPLETED': 'EXTRACTION.READMOO.EXTRACT.COMPLETED',
-  'EXTRACTION.PROGRESS': 'EXTRACTION.READMOO.EXTRACT.PROGRESS', 
+  'EXTRACTION.PROGRESS': 'EXTRACTION.READMOO.EXTRACT.PROGRESS',
   'EXTRACTION.STARTED': 'EXTRACTION.READMOO.EXTRACT.STARTED',
   'EXTRACTION.FAILED': 'EXTRACTION.READMOO.EXTRACT.FAILED',
-  
+
   // 儲存相關事件
   'STORAGE.SAVE.COMPLETED': 'DATA.READMOO.SAVE.COMPLETED',
   'STORAGE.SAVE.REQUESTED': 'DATA.READMOO.SAVE.REQUESTED',
   'STORAGE.LOAD.COMPLETED': 'DATA.READMOO.LOAD.COMPLETED',
-  
+
   // UI 相關事件
   'UI.POPUP.OPENED': 'UX.GENERIC.OPEN.COMPLETED',
   'UI.POPUP.CLOSED': 'UX.GENERIC.CLOSE.COMPLETED',
   'UI.OVERVIEW.RENDERED': 'UX.GENERIC.RENDER.COMPLETED',
-  
+
   // 背景服務事件
   'BACKGROUND.INIT.COMPLETED': 'SYSTEM.GENERIC.INIT.COMPLETED',
   'CONTENT.EVENT.FORWARD': 'MESSAGING.READMOO.FORWARD.COMPLETED',
-  
+
   // 診斷監控事件
   'DIAGNOSTIC.STATUS.UPDATE': 'SYSTEM.GENERIC.UPDATE.COMPLETED',
   'ERROR.HANDLING.TRIGGERED': 'SYSTEM.GENERIC.ERROR.TRIGGERED',
-  
+
   // 平台管理事件 (新增)
   'PLATFORM.DETECTION.COMPLETED': 'PLATFORM.READMOO.DETECT.COMPLETED',
   'PLATFORM.SWITCH.REQUESTED': 'PLATFORM.READMOO.SWITCH.REQUESTED'
@@ -148,8 +171,8 @@ const EventPriorityV2 = {
       'PLATFORM.GENERIC.FAILURE.CRITICAL'
     ]
   },
-  
-  // 平台管理 (100-199)  
+
+  // 平台管理 (100-199)
   PLATFORM_MANAGEMENT: {
     range: [100, 199],
     examples: [
@@ -158,17 +181,17 @@ const EventPriorityV2 = {
       'PLATFORM.UNIFIED.SYNC.REQUESTED'
     ]
   },
-  
+
   // 使用者互動 (200-299)
   USER_INTERACTION: {
-    range: [200, 299], 
+    range: [200, 299],
     examples: [
       'UX.GENERIC.OPEN.STARTED',
       'EXTRACTION.READMOO.EXTRACT.REQUESTED',
       'DATA.READMOO.SAVE.REQUESTED'
     ]
   },
-  
+
   // 一般業務處理 (300-399)
   BUSINESS_PROCESSING: {
     range: [300, 399],
@@ -178,7 +201,7 @@ const EventPriorityV2 = {
       'MESSAGING.READMOO.FORWARD.COMPLETED'
     ]
   },
-  
+
   // 背景處理 (400-499)
   BACKGROUND_PROCESSING: {
     range: [400, 499],
@@ -200,7 +223,7 @@ const EventPriorityV2 = {
 ```javascript
 /**
  * EventNamingUpgradeCoordinator - 事件命名升級協調器
- * 
+ *
  * 負責功能:
  * - v1.x → v2.0 事件轉換
  * - 雙向事件支援 (Legacy + Modern)
@@ -223,22 +246,22 @@ class EventNamingUpgradeCoordinator {
    */
   registerDualTrackListener(legacyEvent, handler) {
     const modernEvent = this.convertToModernEvent(legacyEvent)
-    
+
     // 註冊 Legacy 事件監聽器
     this.eventBus.on(legacyEvent, async (data) => {
       this.recordConversion(legacyEvent, 'LEGACY_TRIGGERED')
       await handler(data)
-      
+
       // 同時觸發 Modern 事件
       await this.eventBus.emit(modernEvent, data)
     })
-    
-    // 註冊 Modern 事件監聽器 
+
+    // 註冊 Modern 事件監聽器
     this.eventBus.on(modernEvent, async (data) => {
       this.recordConversion(modernEvent, 'MODERN_TRIGGERED')
       await handler(data)
     })
-    
+
     this.modernEventRegistry.add(modernEvent)
   }
 
@@ -270,8 +293,8 @@ class EventNamingUpgradeCoordinator {
       }
     } else {
       // Modern Only 模式：只發射 Modern 事件
-      const modernEvent = this.isLegacyEvent(eventName) 
-        ? this.convertToModernEvent(eventName) 
+      const modernEvent = this.isLegacyEvent(eventName)
+        ? this.convertToModernEvent(eventName)
         : eventName
       await this.eventBus.emit(modernEvent, data)
     }
@@ -295,14 +318,14 @@ class EventNamingUpgradeCoordinator {
     const parts = legacyEvent.split('.')
     if (parts.length === 3) {
       const [module, action, state] = parts
-      
+
       // 智能推斷 Domain 和 Platform
       const domain = this.inferDomain(module)
       const platform = this.inferPlatform(module, action)
-      
+
       return `${domain}.${platform}.${action}.${state}`
     }
-    
+
     // 如果無法轉換，保持原事件名稱並記錄警告
     console.warn(`Unable to convert legacy event: ${legacyEvent}`)
     return legacyEvent
@@ -315,18 +338,18 @@ class EventNamingUpgradeCoordinator {
    */
   inferDomain(module) {
     const domainMapping = {
-      'EXTRACTION': 'EXTRACTION',
-      'STORAGE': 'DATA', 
-      'UI': 'UX',
-      'POPUP': 'UX',
-      'BACKGROUND': 'SYSTEM',
-      'CONTENT': 'MESSAGING',
-      'DIAGNOSTIC': 'SYSTEM',
-      'ERROR': 'SYSTEM',
-      'PLATFORM': 'PLATFORM',
-      'ANALYTICS': 'ANALYTICS'
+      EXTRACTION: 'EXTRACTION',
+      STORAGE: 'DATA',
+      UI: 'UX',
+      POPUP: 'UX',
+      BACKGROUND: 'SYSTEM',
+      CONTENT: 'MESSAGING',
+      DIAGNOSTIC: 'SYSTEM',
+      ERROR: 'SYSTEM',
+      PLATFORM: 'PLATFORM',
+      ANALYTICS: 'ANALYTICS'
     }
-    
+
     return domainMapping[module] || 'SYSTEM'
   }
 
@@ -341,15 +364,15 @@ class EventNamingUpgradeCoordinator {
     if (module === 'EXTRACTION' || module === 'STORAGE') {
       return 'READMOO' // 目前主要平台
     }
-    
+
     if (module === 'UI' || module === 'POPUP') {
       return 'GENERIC' // UI 通常是平台無關的
     }
-    
+
     if (module === 'PLATFORM') {
       return 'READMOO' // 平台操作預設為當前平台
     }
-    
+
     return 'GENERIC' // 預設為平台無關
   }
 
@@ -399,7 +422,7 @@ class EventNamingUpgradeCoordinator {
 ```javascript
 /**
  * ReadmooPlatformMigrationValidator - Readmoo 平台遷移驗證器
- * 
+ *
  * 負責功能:
  * - Readmoo 平台功能完整性驗證
  * - 資料提取流程端對端測試
@@ -430,28 +453,27 @@ class ReadmooPlatformMigrationValidator {
     try {
       // 1. 核心功能驗證
       await this.validateCoreReadmooFunctions(validationReport)
-      
-      // 2. 事件流程驗證  
+
+      // 2. 事件流程驗證
       await this.validateEventFlows(validationReport)
-      
+
       // 3. 資料提取端對端驗證
       await this.validateDataExtractionE2E(validationReport)
-      
+
       // 4. 效能基準驗證
       await this.validatePerformanceBenchmarks(validationReport)
-      
+
       // 5. Platform Domain 整合驗證
       await this.validatePlatformDomainIntegration(validationReport)
-      
+
       // 6. 向後相容性驗證
       await this.validateBackwardCompatibility(validationReport)
-      
+
       validationReport.overallStatus = this.calculateOverallStatus(validationReport)
       validationReport.endTime = Date.now()
       validationReport.duration = validationReport.endTime - validationReport.startTime
-      
+
       return validationReport
-      
     } catch (error) {
       validationReport.overallStatus = 'FAILED'
       validationReport.error = error.message
@@ -497,7 +519,7 @@ class ReadmooPlatformMigrationValidator {
         })
       } catch (error) {
         report.testResults.set(test.name, {
-          status: 'FAILED', 
+          status: 'FAILED',
           error: error.message,
           timestamp: Date.now()
         })
@@ -518,7 +540,7 @@ class ReadmooPlatformMigrationValidator {
       },
       {
         name: 'Modern Event → Legacy Event 相容',
-        legacy: 'STORAGE.SAVE.COMPLETED', 
+        legacy: 'STORAGE.SAVE.COMPLETED',
         modern: 'DATA.READMOO.SAVE.COMPLETED'
       },
       {
@@ -532,10 +554,10 @@ class ReadmooPlatformMigrationValidator {
       try {
         // 測試 Legacy 事件觸發能否正確轉換為 Modern 事件
         const legacyResult = await this.testEventConversion(test.legacy, test.modern)
-        
+
         // 測試 Modern 事件是否能正常運作
         const modernResult = await this.testModernEventHandling(test.modern)
-        
+
         report.testResults.set(test.name, {
           status: legacyResult && modernResult ? 'PASSED' : 'FAILED',
           legacyConversion: legacyResult,
@@ -559,16 +581,16 @@ class ReadmooPlatformMigrationValidator {
   async validateDataExtractionE2E(report) {
     try {
       const startTime = performance.now()
-      
+
       // 模擬完整的 Readmoo 書籍資料提取流程
       const extractionResult = await this.simulateReadmooExtraction()
-      
+
       const endTime = performance.now()
       const duration = endTime - startTime
-      
+
       // 驗證結果
       const isValid = this.validateExtractionResult(extractionResult)
-      
+
       report.testResults.set('Readmoo E2E 資料提取', {
         status: isValid ? 'PASSED' : 'FAILED',
         duration,
@@ -576,12 +598,13 @@ class ReadmooPlatformMigrationValidator {
         dataQuality: extractionResult.quality,
         timestamp: Date.now()
       })
-      
+
       // 記錄效能指標
       report.performanceMetrics.set('extraction_duration', duration)
-      report.performanceMetrics.set('extraction_throughput', 
-        extractionResult.books.length / (duration / 1000))
-      
+      report.performanceMetrics.set(
+        'extraction_throughput',
+        extractionResult.books.length / (duration / 1000)
+      )
     } catch (error) {
       report.testResults.set('Readmoo E2E 資料提取', {
         status: 'FAILED',
@@ -593,7 +616,7 @@ class ReadmooPlatformMigrationValidator {
 
   /**
    * 驗證效能基準
-   * @param {Object} report - 驗證報告  
+   * @param {Object} report - 驗證報告
    */
   async validatePerformanceBenchmarks(report) {
     const benchmarks = [
@@ -603,7 +626,7 @@ class ReadmooPlatformMigrationValidator {
         test: () => this.measureEventConversionOverhead()
       },
       {
-        name: 'Platform Detection Speed', 
+        name: 'Platform Detection Speed',
         baseline: 500, // ms
         test: () => this.measurePlatformDetectionSpeed()
       },
@@ -618,7 +641,7 @@ class ReadmooPlatformMigrationValidator {
       try {
         const actualTime = await benchmark.test()
         const performanceRatio = actualTime / benchmark.baseline
-        
+
         report.performanceMetrics.set(benchmark.name, {
           baseline: benchmark.baseline,
           actual: actualTime,
@@ -644,11 +667,12 @@ class ReadmooPlatformMigrationValidator {
   calculateOverallStatus(report) {
     const testResults = Array.from(report.testResults.values())
     const performanceResults = Array.from(report.performanceMetrics.values())
-    
-    const failedTests = testResults.filter(result => result.status === 'FAILED')
-    const degradedPerformance = performanceResults.filter(result => 
-      result.status === 'DEGRADED' || result.status === 'ERROR')
-    
+
+    const failedTests = testResults.filter((result) => result.status === 'FAILED')
+    const degradedPerformance = performanceResults.filter(
+      (result) => result.status === 'DEGRADED' || result.status === 'ERROR'
+    )
+
     if (failedTests.length === 0 && degradedPerformance.length === 0) {
       return 'PASSED'
     } else if (failedTests.length <= 1 && degradedPerformance.length <= 1) {
@@ -665,13 +689,13 @@ class ReadmooPlatformMigrationValidator {
    */
   generateValidationReport(validationReport) {
     const report = []
-    
+
     report.push('# Readmoo 平台遷移驗證報告')
     report.push(`**執行時間**: ${new Date(validationReport.startTime).toISOString()}`)
     report.push(`**總耗時**: ${validationReport.duration}ms`)
     report.push(`**總體狀態**: ${validationReport.overallStatus}`)
     report.push('')
-    
+
     // 功能測試結果
     report.push('## 功能測試結果')
     for (const [testName, result] of validationReport.testResults) {
@@ -682,18 +706,18 @@ class ReadmooPlatformMigrationValidator {
       }
     }
     report.push('')
-    
+
     // 效能測試結果
     report.push('## 效能測試結果')
     for (const [metricName, result] of validationReport.performanceMetrics) {
-      const status = result.status === 'ACCEPTABLE' ? '✅' : 
-                     result.status === 'DEGRADED' ? '⚠️' : '❌'
+      const status =
+        result.status === 'ACCEPTABLE' ? '✅' : result.status === 'DEGRADED' ? '⚠️' : '❌'
       report.push(`${status} **${metricName}**: ${result.actual}ms (基準: ${result.baseline}ms)`)
       if (result.ratio) {
         report.push(`   - 效能比率: ${(result.ratio * 100).toFixed(1)}%`)
       }
     }
-    
+
     return report.join('\n')
   }
 }
@@ -708,7 +732,7 @@ class ReadmooPlatformMigrationValidator {
    - ✅ UI 更新和顯示功能
    - ✅ 錯誤處理和恢復功能
 
-2. **事件流程驗證**  
+2. **事件流程驗證**
    - ✅ Legacy → Modern 事件轉換正確性
    - ✅ 雙軌並行事件處理穩定性
    - ✅ 事件優先級和執行順序
@@ -716,7 +740,7 @@ class ReadmooPlatformMigrationValidator {
 
 3. **效能基準驗證**
    - ✅ 事件轉換開銷 < 5ms
-   - ✅ 平台檢測速度 < 500ms  
+   - ✅ 平台檢測速度 < 500ms
    - ✅ 資料提取效能不降低 > 20%
    - ✅ 記憶體使用不增加 > 15%
 
@@ -733,7 +757,7 @@ class ReadmooPlatformMigrationValidator {
 ```javascript
 /**
  * EventSystemModernizationManager - 事件系統現代化管理器
- * 
+ *
  * 負責功能:
  * - 漸進式 Legacy → Modern 切換
  * - 現代化進度監控
@@ -763,21 +787,20 @@ class EventSystemModernizationManager {
     try {
       // Phase 1: Modern Priority (現代事件優先)
       await this.switchToModernPriority(report)
-      
+
       // Phase 2: Validation Check (驗證檢查)
       await this.validateModernPriority(report)
-      
+
       // Phase 3: Modern Only (純現代模式)
       await this.switchToModernOnly(report)
-      
+
       // Phase 4: Final Validation (最終驗證)
       await this.validateModernOnly(report)
-      
+
       report.finalStatus = 'COMPLETED'
       report.endTime = Date.now()
-      
+
       return report
-      
     } catch (error) {
       // 發生錯誤時自動回滾
       await this.executeRollback()
@@ -801,26 +824,25 @@ class EventSystemModernizationManager {
     try {
       // 建立回滾檢查點
       this.createRollbackCheckpoint('BEFORE_MODERN_PRIORITY')
-      
+
       // 1. 切換事件協調器模式
       this.eventCoordinator.setConversionMode('MODERN_PRIORITY')
       phaseReport.steps.push({ step: '事件協調器模式切換', status: 'COMPLETED' })
-      
+
       // 2. 優先發射 Modern 事件
       await this.reconfigureEventEmitters('MODERN_PRIORITY')
       phaseReport.steps.push({ step: '事件發射器重配置', status: 'COMPLETED' })
-      
+
       // 3. 監控 Legacy 事件使用情況
       const legacyUsage = await this.monitorLegacyEventUsage(5000) // 監控 5 秒
-      phaseReport.steps.push({ 
-        step: '舊版事件使用監控', 
+      phaseReport.steps.push({
+        step: '舊版事件使用監控',
         status: 'COMPLETED',
         data: { legacyEventCount: legacyUsage.totalCount }
       })
-      
+
       phaseReport.status = 'COMPLETED'
       phaseReport.endTime = Date.now()
-      
     } catch (error) {
       phaseReport.status = 'FAILED'
       phaseReport.error = error.message
@@ -844,26 +866,25 @@ class EventSystemModernizationManager {
     try {
       // 建立回滾檢查點
       this.createRollbackCheckpoint('BEFORE_MODERN_ONLY')
-      
+
       // 1. 切換到純現代模式
       this.eventCoordinator.setConversionMode('MODERN_ONLY')
       phaseReport.steps.push({ step: '純現代模式切換', status: 'COMPLETED' })
-      
+
       // 2. 移除 Legacy 事件監聽器 (保留關鍵事件)
       await this.removeLegacyListeners()
       phaseReport.steps.push({ step: '舊版事件監聽器清理', status: 'COMPLETED' })
-      
+
       // 3. 驗證系統穩定性
       const stabilityCheck = await this.checkSystemStability(10000) // 監控 10 秒
-      phaseReport.steps.push({ 
-        step: '系統穩定性檢查', 
+      phaseReport.steps.push({
+        step: '系統穩定性檢查',
         status: stabilityCheck.stable ? 'COMPLETED' : 'WARNING',
         data: stabilityCheck
       })
-      
+
       phaseReport.status = 'COMPLETED'
       phaseReport.endTime = Date.now()
-      
     } catch (error) {
       phaseReport.status = 'FAILED'
       phaseReport.error = error.message
@@ -884,9 +905,9 @@ class EventSystemModernizationManager {
       eventState: this.captureEventSystemState(),
       configuration: this.captureSystemConfiguration()
     }
-    
+
     this.rollbackCheckpoints.push(checkpoint)
-    
+
     // 限制檢查點數量
     if (this.rollbackCheckpoints.length > 5) {
       this.rollbackCheckpoints.shift()
@@ -898,10 +919,10 @@ class EventSystemModernizationManager {
    * @param {string} checkpointName - 目標檢查點名稱
    */
   async executeRollback(checkpointName = null) {
-    const targetCheckpoint = checkpointName 
-      ? this.rollbackCheckpoints.find(cp => cp.name === checkpointName)
+    const targetCheckpoint = checkpointName
+      ? this.rollbackCheckpoints.find((cp) => cp.name === checkpointName)
       : this.rollbackCheckpoints[this.rollbackCheckpoints.length - 1]
-    
+
     if (!targetCheckpoint) {
       throw new Error('No valid rollback checkpoint found')
     }
@@ -909,15 +930,14 @@ class EventSystemModernizationManager {
     try {
       // 1. 恢復事件系統狀態
       await this.restoreEventSystemState(targetCheckpoint.eventState)
-      
+
       // 2. 恢復系統配置
       await this.restoreSystemConfiguration(targetCheckpoint.configuration)
-      
+
       // 3. 切換回雙軌模式
       this.eventCoordinator.setConversionMode('DUAL_TRACK')
-      
+
       console.log(`Successfully rolled back to checkpoint: ${targetCheckpoint.name}`)
-      
     } catch (error) {
       console.error('Rollback failed:', error)
       throw new Error(`Rollback to ${targetCheckpoint.name} failed: ${error.message}`)
@@ -952,7 +972,7 @@ class EventSystemModernizationManager {
    - 保留關鍵事件的向後相容 (如 EXTRACTION.COMPLETED)
    - 實現智能事件名稱轉換
 
-3. **Modern Only 模式** (0.3 天)  
+3. **Modern Only 模式** (0.3 天)
    - 切換到純 Modern 事件模式
    - 最終驗證所有功能正常運作
    - 建立監控和告警機制
@@ -961,19 +981,19 @@ class EventSystemModernizationManager {
 
 ### **風險評估矩陣**
 
-| 風險類別 | 可能性 | 影響程度 | 風險等級 | 緩解策略 |
-|---------|-------|---------|---------|----------|
-| 事件轉換失敗 | 中 | 高 | **高** | 漸進式升級 + 回滾機制 |
-| 效能降低 | 低 | 中 | 中 | 效能監控 + 基準驗證 |
-| Readmoo 功能中斷 | 低 | 高 | 中 | 全面測試 + 金絲雀部署 |
-| 使用者體驗影響 | 低 | 中 | 低 | UI/UX 一致性驗證 |
+| 風險類別         | 可能性 | 影響程度 | 風險等級 | 緩解策略              |
+| ---------------- | ------ | -------- | -------- | --------------------- |
+| 事件轉換失敗     | 中     | 高       | **高**   | 漸進式升級 + 回滾機制 |
+| 效能降低         | 低     | 中       | 中       | 效能監控 + 基準驗證   |
+| Readmoo 功能中斷 | 低     | 高       | 中       | 全面測試 + 金絲雀部署 |
+| 使用者體驗影響   | 低     | 中       | 低       | UI/UX 一致性驗證      |
 
 ### **緊急應急計畫**
 
 ```javascript
 /**
  * EventSystemEmergencyProtocol - 事件系統緊急應急協議
- * 
+ *
  * 負責功能:
  * - 系統健康監控
  * - 自動故障檢測
@@ -985,10 +1005,10 @@ class EventSystemEmergencyProtocol {
     this.modernizationManager = modernizationManager
     this.migrationValidator = migrationValidator
     this.emergencyThresholds = {
-      errorRate: 0.05,        // 5% 錯誤率觸發緊急模式
-      responseTime: 2000,     // 2秒響應時間閾值
-      memoryIncrease: 0.3,    // 30% 記憶體增長閾值
-      systemFailures: 3       // 3次系統失敗觸發回滾
+      errorRate: 0.05, // 5% 錯誤率觸發緊急模式
+      responseTime: 2000, // 2秒響應時間閾值
+      memoryIncrease: 0.3, // 30% 記憶體增長閾值
+      systemFailures: 3 // 3次系統失敗觸發回滾
     }
     this.emergencyMode = false
     this.failureCount = 0
@@ -1013,20 +1033,19 @@ class EventSystemEmergencyProtocol {
   async checkSystemHealth() {
     try {
       const healthMetrics = await this.collectHealthMetrics()
-      
+
       // 檢查是否觸發緊急條件
       if (this.shouldTriggerEmergency(healthMetrics)) {
         await this.triggerEmergencyProtocol(healthMetrics)
       }
-      
     } catch (error) {
       console.error('Health check failed:', error)
       this.failureCount++
-      
+
       if (this.failureCount >= this.emergencyThresholds.systemFailures) {
-        await this.triggerEmergencyProtocol({ 
+        await this.triggerEmergencyProtocol({
           reason: 'REPEATED_HEALTH_CHECK_FAILURES',
-          failureCount: this.failureCount 
+          failureCount: this.failureCount
         })
       }
     }
@@ -1047,13 +1066,13 @@ class EventSystemEmergencyProtocol {
     try {
       // 1. 立即通知相關系統
       await this.notifyEmergencyStatus(triggerData)
-      
+
       // 2. 執行自動回滾
       await this.executeEmergencyRollback()
-      
+
       // 3. 驗證回滾成功
       const rollbackValidation = await this.validateEmergencyRollback()
-      
+
       if (rollbackValidation.success) {
         console.log('✅ Emergency rollback completed successfully')
         await this.notifyRecoveryStatus(rollbackValidation)
@@ -1061,7 +1080,6 @@ class EventSystemEmergencyProtocol {
         console.error('❌ Emergency rollback failed')
         await this.escalateToManualIntervention(rollbackValidation)
       }
-      
     } catch (error) {
       console.error('Emergency protocol execution failed:', error)
       await this.escalateToManualIntervention({ error: error.message })
@@ -1081,8 +1099,8 @@ class EventSystemEmergencyProtocol {
     // 回滾到最近的穩定檢查點
     const latestStableCheckpoint = this.modernizationManager
       .getRollbackCheckpoints()
-      .find(cp => cp.validated === true)
-    
+      .find((cp) => cp.validated === true)
+
     if (latestStableCheckpoint) {
       await this.modernizationManager.executeRollback(latestStableCheckpoint.name)
     } else {
@@ -1099,17 +1117,16 @@ class EventSystemEmergencyProtocol {
     try {
       // 執行快速健康檢查
       const quickValidation = await this.migrationValidator.quickHealthCheck()
-      
+
       // 驗證核心 Readmoo 功能
       const coreValidation = await this.migrationValidator.validateCoreReadmooFunctions()
-      
+
       return {
         success: quickValidation.success && coreValidation.overallStatus === 'PASSED',
         quickHealth: quickValidation,
         coreFunction: coreValidation,
         timestamp: Date.now()
       }
-      
     } catch (error) {
       return {
         success: false,
@@ -1149,13 +1166,13 @@ class EventSystemEmergencyProtocol {
   async enterSafeMode() {
     // 停用所有自動化程序
     this.stopEmergencyMonitoring()
-    
+
     // 切換到最基本的事件處理模式
     this.modernizationManager.eventCoordinator.setConversionMode('LEGACY_ONLY')
-    
+
     // 標記系統為安全模式
     globalThis.__BOOK_OVERVIEW_SAFE_MODE = true
-    
+
     console.log('System entered safe mode. Only legacy events will be processed.')
   }
 
@@ -1179,34 +1196,34 @@ class EventSystemEmergencyProtocol {
 const SuccessMetrics = {
   // 功能完整性指標
   functionalityMetrics: {
-    readmooFeatureCompleteness: 100,      // % - Readmoo 功能完整性
-    eventConversionAccuracy: 100,         // % - 事件轉換準確性
-    backwardCompatibility: 100,           // % - 向後相容性
-    apiStability: 100                     // % - API 穩定性
+    readmooFeatureCompleteness: 100, // % - Readmoo 功能完整性
+    eventConversionAccuracy: 100, // % - 事件轉換準確性
+    backwardCompatibility: 100, // % - 向後相容性
+    apiStability: 100 // % - API 穩定性
   },
 
   // 效能指標
   performanceMetrics: {
-    eventConversionOverhead: 5,           // ms - 事件轉換開銷上限
-    platformDetectionSpeed: 500,         // ms - 平台檢測速度上限
-    memoryUsageIncrease: 15,              // % - 記憶體使用增長上限
-    responseTimeDegrade: 20               // % - 響應時間降低上限
+    eventConversionOverhead: 5, // ms - 事件轉換開銷上限
+    platformDetectionSpeed: 500, // ms - 平台檢測速度上限
+    memoryUsageIncrease: 15, // % - 記憶體使用增長上限
+    responseTimeDegrade: 20 // % - 響應時間降低上限
   },
 
   // 穩定性指標
   stabilityMetrics: {
-    systemErrorRate: 0.01,                // % - 系統錯誤率上限
-    eventLossRate: 0,                     // % - 事件遺失率 (零容忍)
-    rollbackSuccessRate: 100,             // % - 回滾成功率
-    emergencyRecoveryTime: 30             // seconds - 緊急恢復時間上限
+    systemErrorRate: 0.01, // % - 系統錯誤率上限
+    eventLossRate: 0, // % - 事件遺失率 (零容忍)
+    rollbackSuccessRate: 100, // % - 回滾成功率
+    emergencyRecoveryTime: 30 // seconds - 緊急恢復時間上限
   },
 
   // 開發體驗指標
   developerExperienceMetrics: {
-    apiLearningCurve: 2,                  // hours - API 學習曲線
-    debuggingEfficiency: 150,             // % - 除錯效率改善
-    codeMaintenanceComplexity: 50,        // % - 程式碼維護複雜度降低
-    documentationCompleteness: 95         // % - 文件完整性
+    apiLearningCurve: 2, // hours - API 學習曲線
+    debuggingEfficiency: 150, // % - 除錯效率改善
+    codeMaintenanceComplexity: 50, // % - 程式碼維護複雜度降低
+    documentationCompleteness: 95 // % - 文件完整性
   }
 }
 ```
@@ -1304,11 +1321,11 @@ class EventSystemV2AcceptanceTests {
     for (const category of this.testSuite) {
       const categoryReport = await this.runCategoryTests(category)
       report.categories.set(category.category, categoryReport)
-      
+
       // 更新統計
       report.totalTests += categoryReport.totalTests
       report.passedTests += categoryReport.passedTests
-      
+
       if (categoryReport.requiredTestsFailed > 0) {
         report.status = 'FAILED'
       }
@@ -1316,7 +1333,7 @@ class EventSystemV2AcceptanceTests {
 
     // 計算總分和最終狀態
     report.overallScore = this.calculateOverallScore(report)
-    
+
     if (report.status !== 'FAILED') {
       report.status = report.overallScore >= 90 ? 'PASSED' : 'CONDITIONAL_PASS'
     }
@@ -1334,7 +1351,7 @@ class EventSystemV2AcceptanceTests {
   async testReadmooFunctionalityPreservation() {
     const functionalityTests = [
       () => this.testReadmooBookExtraction(),
-      () => this.testReadmooDataStorage(), 
+      () => this.testReadmooDataStorage(),
       () => this.testReadmooUIInteraction(),
       () => this.testReadmooErrorHandling(),
       () => this.testReadmooPerformance()
@@ -1350,7 +1367,7 @@ class EventSystemV2AcceptanceTests {
       }
     }
 
-    const successCount = results.filter(r => r.success).length
+    const successCount = results.filter((r) => r.success).length
     const successRate = successCount / results.length
 
     return {
@@ -1376,7 +1393,7 @@ class EventSystemV2AcceptanceTests {
         expected: 'EXTRACTION.READMOO.EXTRACT.COMPLETED'
       },
       {
-        legacy: 'STORAGE.SAVE.COMPLETED', 
+        legacy: 'STORAGE.SAVE.COMPLETED',
         expected: 'DATA.READMOO.SAVE.COMPLETED'
       },
       {
@@ -1393,16 +1410,16 @@ class EventSystemV2AcceptanceTests {
     for (const test of conversionTests) {
       const actualModern = this.eventNamingCoordinator.convertToModernEvent(test.legacy)
       const isCorrect = actualModern === test.expected
-      
+
       results.push({
         legacy: test.legacy,
-        expected: test.expected, 
+        expected: test.expected,
         actual: actualModern,
         correct: isCorrect
       })
     }
 
-    const correctCount = results.filter(r => r.correct).length
+    const correctCount = results.filter((r) => r.correct).length
     const accuracy = correctCount / results.length
 
     return {
@@ -1424,7 +1441,7 @@ class EventSystemV2AcceptanceTests {
    */
   generateAcceptanceReport(acceptanceReport) {
     const lines = []
-    
+
     lines.push('# 事件系統 v2.0 升級驗收報告')
     lines.push('')
     lines.push(`**執行時間**: ${new Date(acceptanceReport.startTime).toISOString()}`)
@@ -1436,9 +1453,11 @@ class EventSystemV2AcceptanceTests {
     // 各類別測試結果
     for (const [categoryName, categoryReport] of acceptanceReport.categories) {
       lines.push(`## ${categoryName}`)
-      lines.push(`**通過率**: ${categoryReport.passedTests}/${categoryReport.totalTests} (${Math.round(categoryReport.passedTests/categoryReport.totalTests*100)}%)`)
+      lines.push(
+        `**通過率**: ${categoryReport.passedTests}/${categoryReport.totalTests} (${Math.round((categoryReport.passedTests / categoryReport.totalTests) * 100)}%)`
+      )
       lines.push('')
-      
+
       for (const testResult of categoryReport.testResults) {
         const status = testResult.passed ? '✅' : '❌'
         lines.push(`${status} **${testResult.name}**: ${testResult.score}/100`)
@@ -1474,56 +1493,56 @@ class EventSystemV2AcceptanceTests {
 
 ### **Week 1: 基礎設施建立 (3 天)**
 
-| 日期 | 階段 | 主要任務 | 負責 Agent | 預期產出 |
-|------|------|----------|-----------|----------|
-| Day 1 | 架構設計 | EventNamingUpgradeCoordinator 實作 | basil-event-architect + thyme-extension-engineer | 升級協調器完成 |
-| Day 2 | 雙軌實現 | Legacy ↔ Modern 事件轉換機制 | sage-test-architect + pepper-test-implementer | 雙軌並行系統 |
-| Day 3 | 整合測試 | ReadmooPlatformMigrationValidator | coriander-integration-tester + ginger-performance-tuner | 驗證器完成 |
+| 日期  | 階段     | 主要任務                           | 負責 Agent                                              | 預期產出       |
+| ----- | -------- | ---------------------------------- | ------------------------------------------------------- | -------------- |
+| Day 1 | 架構設計 | EventNamingUpgradeCoordinator 實作 | basil-event-architect + thyme-extension-engineer        | 升級協調器完成 |
+| Day 2 | 雙軌實現 | Legacy ↔ Modern 事件轉換機制      | sage-test-architect + pepper-test-implementer           | 雙軌並行系統   |
+| Day 3 | 整合測試 | ReadmooPlatformMigrationValidator  | coriander-integration-tester + ginger-performance-tuner | 驗證器完成     |
 
 ### **Week 2: 遷移驗證 (2 天)**
 
-| 日期 | 階段 | 主要任務 | 負責 Agent | 預期產出 |
-|------|------|----------|-----------|----------|
+| 日期  | 階段         | 主要任務                      | 負責 Agent                   | 預期產出     |
+| ----- | ------------ | ----------------------------- | ---------------------------- | ------------ |
 | Day 4 | Readmoo 驗證 | 完整 Readmoo 平台無縫遷移測試 | coriander-integration-tester | 遷移驗證報告 |
-| Day 5 | 效能基準 | 效能基準測試與優化 | ginger-performance-tuner | 效能達標證明 |
+| Day 5 | 效能基準     | 效能基準測試與優化            | ginger-performance-tuner     | 效能達標證明 |
 
 ### **Week 3: 現代化切換 (2 天)**
 
-| 日期 | 階段 | 主要任務 | 負責 Agent | 預期產出 |
-|------|------|----------|-----------|----------|
-| Day 6 | 漸進切換 | EventSystemModernizationManager | basil-event-architect | 現代化管理器 |
-| Day 7 | 驗收測試 | EventSystemV2AcceptanceTests | sage-test-architect + coriander-integration-tester | 最終驗收報告 |
+| 日期  | 階段     | 主要任務                        | 負責 Agent                                         | 預期產出     |
+| ----- | -------- | ------------------------------- | -------------------------------------------------- | ------------ |
+| Day 6 | 漸進切換 | EventSystemModernizationManager | basil-event-architect                              | 現代化管理器 |
+| Day 7 | 驗收測試 | EventSystemV2AcceptanceTests    | sage-test-architect + coriander-integration-tester | 最終驗收報告 |
 
 ### **總投入資源估算**
 
 ```javascript
 const ResourceEstimation = {
   totalDuration: '7 working days',
-  
+
   // Agent 工作分配
   agentWorkload: {
-    'basil-event-architect': 3.5,        // 3.5 天 - 事件架構設計
-    'thyme-extension-engineer': 2.0,     // 2.0 天 - 技術實現
-    'sage-test-architect': 2.5,         // 2.5 天 - 測試設計
-    'pepper-test-implementer': 1.5,     // 1.5 天 - 測試實現
+    'basil-event-architect': 3.5, // 3.5 天 - 事件架構設計
+    'thyme-extension-engineer': 2.0, // 2.0 天 - 技術實現
+    'sage-test-architect': 2.5, // 2.5 天 - 測試設計
+    'pepper-test-implementer': 1.5, // 1.5 天 - 測試實現
     'coriander-integration-tester': 3.0, // 3.0 天 - 整合測試
-    'ginger-performance-tuner': 1.5,    // 1.5 天 - 效能優化
-    'rosemary-project-manager': 7.0     // 7.0 天 - 全程管理
+    'ginger-performance-tuner': 1.5, // 1.5 天 - 效能優化
+    'rosemary-project-manager': 7.0 // 7.0 天 - 全程管理
   },
 
   // 風險緩衝
   riskBuffer: {
-    technicalRisks: 1,    // 1 天技術風險緩衝
-    integrationRisks: 1,  // 1 天整合風險緩衝
-    testingRisks: 0.5     // 0.5 天測試風險緩衝
+    technicalRisks: 1, // 1 天技術風險緩衝
+    integrationRisks: 1, // 1 天整合風險緩衝
+    testingRisks: 0.5 // 0.5 天測試風險緩衝
   },
 
   // 品質保證要求
   qualityRequirements: {
-    testCoverage: 100,           // % - 測試覆蓋率要求
-    documentationComplete: 95,   // % - 文件完整性要求
-    performanceBaseline: 100,    // % - 效能基準達成要求
-    backwardCompatibility: 100   // % - 向後相容性要求
+    testCoverage: 100, // % - 測試覆蓋率要求
+    documentationComplete: 95, // % - 文件完整性要求
+    performanceBaseline: 100, // % - 效能基準達成要求
+    backwardCompatibility: 100 // % - 向後相容性要求
   }
 }
 ```
@@ -1543,16 +1562,12 @@ const WorkPackageBreakdown = {
     dependencies: [],
     deliverables: [
       'EventNamingUpgradeCoordinator 完整實作',
-      'Legacy → Modern 事件轉換對應表', 
+      'Legacy → Modern 事件轉換對應表',
       '雙軌並行事件處理機制',
       '100% 單元測試覆蓋'
     ],
     assignedAgents: ['basil-event-architect', 'thyme-extension-engineer'],
-    successCriteria: [
-      '所有既有事件正確轉換',
-      '雙軌模式穩定運行',
-      '零功能中斷'
-    ]
+    successCriteria: ['所有既有事件正確轉換', '雙軌模式穩定運行', '零功能中斷']
   },
 
   // Package 2: Readmoo 無縫遷移驗證 (2 天)
@@ -1567,11 +1582,7 @@ const WorkPackageBreakdown = {
       '向後相容性保證測試'
     ],
     assignedAgents: ['coriander-integration-tester', 'ginger-performance-tuner'],
-    successCriteria: [
-      'Readmoo 所有功能 100% 正常',
-      '效能降低不超過 20%',
-      '使用者體驗完全一致'
-    ]
+    successCriteria: ['Readmoo 所有功能 100% 正常', '效能降低不超過 20%', '使用者體驗完全一致']
   },
 
   // Package 3: 漸進式現代化管理 (2 天)
@@ -1586,11 +1597,7 @@ const WorkPackageBreakdown = {
       '最終驗收測試套件'
     ],
     assignedAgents: ['basil-event-architect', 'sage-test-architect'],
-    successCriteria: [
-      '安全的現代化切換流程',
-      '可靠的回滾機制',
-      '完整的監控和告警'
-    ]
+    successCriteria: ['安全的現代化切換流程', '可靠的回滾機制', '完整的監控和告警']
   },
 
   // Package 4: 驗收測試與文件 (1 天)
@@ -1605,11 +1612,7 @@ const WorkPackageBreakdown = {
       'v2.0 事件系統文件更新'
     ],
     assignedAgents: ['sage-test-architect', 'coriander-integration-tester'],
-    successCriteria: [
-      '驗收測試 90+ 分通過',
-      '文件完整性 95%+',
-      '準備進入生產環境'
-    ]
+    successCriteria: ['驗收測試 90+ 分通過', '文件完整性 95%+', '準備進入生產環境']
   }
 }
 ```
@@ -1641,16 +1644,12 @@ const AgentEscalationProtocol = {
         '提供重新拆分建議'
       ]
     },
-    
+
     step2: {
       action: '向 PM 拋出工作',
-      requirement: [
-        '停止繼續嘗試避免浪費資源',
-        '提交完整問題分析報告',
-        '建議具體的任務拆分方向'
-      ]
+      requirement: ['停止繼續嘗試避免浪費資源', '提交完整問題分析報告', '建議具體的任務拆分方向']
     },
-    
+
     step3: {
       action: 'PM 重新拆分任務',
       requirement: [
@@ -1660,14 +1659,10 @@ const AgentEscalationProtocol = {
         '分配給適合的 Agent 或組合'
       ]
     },
-    
+
     step4: {
       action: '循環消化直到完成',
-      requirement: [
-        '持續監控任務完成狀況',
-        '必要時再次拆分',
-        '確保所有工作最終完成'
-      ]
+      requirement: ['持續監控任務完成狀況', '必要時再次拆分', '確保所有工作最終完成']
     }
   },
 
@@ -1685,7 +1680,7 @@ const AgentEscalationProtocol = {
         '降低設計複雜度，採用漸進式方法'
       ]
     },
-    
+
     'coriander-integration-tester': {
       escalationTypes: [
         'Readmoo 整合測試涵蓋面過廣',
@@ -1698,7 +1693,7 @@ const AgentEscalationProtocol = {
         '調整測試基準為實際可達成標準'
       ]
     },
-    
+
     'sage-test-architect': {
       escalationTypes: [
         '測試設計覆蓋範圍過於龐大',
@@ -1725,7 +1720,7 @@ const AgentEscalationProtocol = {
   - [ ] 智能事件名稱推斷功能
   - [ ] 轉換統計與監控完整
 
-- [ ] **ReadmooPlatformMigrationValidator 驗證通過**  
+- [ ] **ReadmooPlatformMigrationValidator 驗證通過**
   - [ ] Readmoo 核心功能 100% 正常
   - [ ] 資料提取流程完整無誤
   - [ ] UI/UX 體驗完全一致
@@ -1770,18 +1765,21 @@ const AgentEscalationProtocol = {
 ## 🏆 戰略價值與長期影響
 
 ### **立即價值 (v2.0 完成後)**
+
 - ✅ **Readmoo 平台穩定性提升**: 事件系統現代化，錯誤率降低 50%+
-- ✅ **維護效率提升**: 統一事件命名，程式碼維護複雜度降低 40%+  
+- ✅ **維護效率提升**: 統一事件命名，程式碼維護複雜度降低 40%+
 - ✅ **開發速度提升**: 標準化事件架構，新功能開發速度提升 30%+
 - ✅ **系統可靠性提升**: 緊急回滾機制，系統恢復時間縮短至 30 秒內
 
 ### **中期價值 (Phase 1-2 完成後)**
+
 - 🚀 **多平台整合基礎**: 為 Kindle、Kobo、博客來整合提供堅實架構基礎
 - 🚀 **跨平台資料同步**: 統一事件系統支援複雜的跨平台協調操作
 - 🚀 **智能平台切換**: 使用者可無縫在不同電子書平台間切換
 - 🚀 **企業級可擴展性**: 支援無限平台擴展，架構複雜度線性增長
 
 ### **長期價值 (Phase 3+ 戰略願景)**
+
 - 🌟 **電子書行業標竿**: 建立業界首個多平台統一管理系統標準
 - 🌟 **AI 整合基礎**: 統一事件架構為 AI 功能整合提供理想基礎
 - 🌟 **生態系統建立**: 開放式架構支援第三方開發者和平台接入

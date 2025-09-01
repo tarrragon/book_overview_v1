@@ -7,12 +7,14 @@
 ## 📊 現況分析
 
 ### 當前問題
+
 - **職責過於集中**：單一檔案承擔了事件系統、通訊管理、生命週期、監控等多項職責
 - **程式碼臃腫**：1088 行程式碼難以維護和除錯
 - **測試困難**：高耦合度使得單元測試和集成測試複雜
 - **擴展性差**：新增功能需要修改主要檔案，違反開放/封閉原則
 
 ### 架構債務識別
+
 1. **混合關注點**：事件處理、訊息路由、系統監控混在同一檔案
 2. **缺乏抽象層**：直接操作 Chrome API 而無統一封裝
 3. **硬編碼依賴**：模組間存在直接引用，難以測試和替換
@@ -25,6 +27,7 @@
 #### 第一層：單一職責原則拆分
 
 **1. Service Worker 生命週期管理** (`src/background/lifecycle/`)
+
 ```
 src/background/lifecycle/
 ├── lifecycle-coordinator.js    # 生命週期協調器
@@ -34,12 +37,14 @@ src/background/lifecycle/
 ```
 
 **職責範圍**：
+
 - 擴展安裝/更新/卸載處理
 - Service Worker 啟動/重啟協調
 - 系統初始化順序管理
 - 依賴模組的載入協調
 
 **2. 跨上下文通訊管理** (`src/background/messaging/`)
+
 ```
 src/background/messaging/
 ├── message-router.js          # 訊息路由器
@@ -49,12 +54,14 @@ src/background/messaging/
 ```
 
 **職責範圍**：
+
 - 統一訊息路由和分發
 - 訊息格式標準化和驗證
 - 跨上下文通訊狀態管理
 - Chrome API 的統一封裝
 
 **3. 事件系統協調** (`src/background/events/`)
+
 ```
 src/background/events/
 ├── event-coordinator.js       # 事件協調器
@@ -64,12 +71,14 @@ src/background/events/
 ```
 
 **職責範圍**：
+
 - EventBus 和 ChromeEventBridge 初始化
 - 事件監聽器的註冊和管理
 - 事件轉發和橋接邏輯
 - 事件系統健康檢查
 
 **4. 頁面監控與檢測** (`src/background/monitoring/`)
+
 ```
 src/background/monitoring/
 ├── page-monitor.js            # 頁面監控器
@@ -79,12 +88,14 @@ src/background/monitoring/
 ```
 
 **職責範圍**：
+
 - 標籤頁狀態監聽和追蹤
 - 目標頁面檢測（Readmoo）
 - Content Script 注入和就緒狀態管理
 - 頁面導航和重載處理
 
 **5. 錯誤處理與監控** (`src/background/error/`)
+
 ```
 src/background/error/
 ├── global-error-handler.js    # 全域錯誤處理器
@@ -94,6 +105,7 @@ src/background/error/
 ```
 
 **職責範圍**：
+
 - 全域錯誤捕獲和處理
 - 系統健康狀態監控
 - 錯誤恢復和重試機制
@@ -102,6 +114,7 @@ src/background/error/
 #### 第二層：事件驅動 Domain 分離
 
 **1. 系統領域** (`src/background/domains/system/`)
+
 ```
 src/background/domains/system/
 ├── system-event-handlers.js   # 系統事件處理器
@@ -111,10 +124,12 @@ src/background/domains/system/
 ```
 
 **處理事件**：
+
 - `SYSTEM.INSTALLED`, `SYSTEM.STARTUP`, `SYSTEM.ERROR`
 - `SYSTEM.READY`, `SYSTEM.SHUTDOWN`
 
 **2. 頁面領域** (`src/background/domains/page/`)
+
 ```
 src/background/domains/page/
 ├── page-event-handlers.js     # 頁面事件處理器
@@ -123,10 +138,12 @@ src/background/domains/page/
 ```
 
 **處理事件**：
+
 - `PAGE.READMOO.DETECTED`, `PAGE.CONTENT.READY`
 - `PAGE.CONTENT.NOT_READY`, `PAGE.NAVIGATION.CHANGED`
 
 **3. 提取領域** (`src/background/domains/extraction/`)
+
 ```
 src/background/domains/extraction/
 ├── extraction-event-handlers.js # 提取事件處理器
@@ -136,10 +153,12 @@ src/background/domains/extraction/
 ```
 
 **處理事件**：
+
 - `EXTRACTION.COMPLETED`, `EXTRACTION.STARTED`
 - `EXTRACTION.PROGRESS`, `EXTRACTION.ERROR`
 
 **4. 通訊領域** (`src/background/domains/messaging/`)
+
 ```
 src/background/domains/messaging/
 ├── messaging-event-handlers.js  # 通訊事件處理器
@@ -148,16 +167,18 @@ src/background/domains/messaging/
 ```
 
 **處理事件**：
+
 - `CONTENT.MESSAGE.RECEIVED`, `POPUP.MESSAGE.RECEIVED`
 - `MESSAGE.SENT`, `MESSAGE.FAILED`
 
 ### 統一協調層
 
 **主要協調器** (`src/background/background.js`)
+
 ```javascript
 /**
  * Background Service Worker 主協調器
- * 
+ *
  * 職責：
  * - 載入和初始化各個模組
  * - 協調模組間的啟動順序
@@ -179,28 +200,29 @@ src/background/domains/messaging/
 ### 介面規範
 
 **模組標準介面**：
+
 ```javascript
 class BaseModule {
   constructor(dependencies = {}) {
     // 依賴注入
   }
-  
+
   async initialize() {
     // 初始化邏輯
   }
-  
+
   async start() {
     // 啟動邏輯
   }
-  
+
   async stop() {
     // 停止邏輯
   }
-  
+
   async cleanup() {
     // 清理邏輯
   }
-  
+
   getHealthStatus() {
     // 健康狀態檢查
   }
@@ -208,21 +230,22 @@ class BaseModule {
 ```
 
 **事件處理器標準介面**：
+
 ```javascript
 class BaseDomainHandler {
   constructor(eventBus, logger) {
     this.eventBus = eventBus
     this.logger = logger
   }
-  
+
   registerEventHandlers() {
     // 註冊事件監聽器
   }
-  
+
   async handleEvent(event) {
     // 處理特定事件
   }
-  
+
   unregisterEventHandlers() {
     // 取消註冊事件監聽器
   }
@@ -258,21 +281,25 @@ class BaseDomainHandler {
 ## 📈 遷移計劃
 
 ### 階段 1：架構準備（第 1-3 個任務）
+
 - 撰寫完整設計文件
 - 確認測試覆蓋率
 - 建立新的目錄結構
 
 ### 階段 2：核心模組拆分（第 4-8 個任務）
+
 - 按單一職責原則拆分現有功能
 - 建立標準化介面和抽象層
 - 實現依賴注入和模組化
 
 ### 階段 3：事件驅動重構（第 9-12 個任務）
+
 - 建立領域事件處理器
 - 分離事件邏輯和通訊邏輯
 - 實現事件驅動架構
 
 ### 階段 4：整合驗證（第 13-15 個任務）
+
 - 重構主協調器
 - 執行完整測試套件
 - 更新文件和日誌
@@ -280,16 +307,19 @@ class BaseDomainHandler {
 ## 🎯 預期效益
 
 ### 程式碼品質提升
+
 - **可讀性**：每個模組職責明確，程式碼更易理解
 - **可維護性**：修改和擴展功能更加容易
 - **可測試性**：模組化設計使測試更加簡單
 
 ### 開發效率提升
+
 - **並行開發**：不同開發者可以同時處理不同模組
 - **除錯便利**：問題定位更加精確
 - **功能擴展**：新增功能時影響範圍更小
 
 ### 系統穩定性提升
+
 - **錯誤隔離**：單個模組錯誤不影響整體系統
 - **恢復能力**：更好的錯誤恢復和降級機制
 - **監控可視**：系統健康狀態更加透明
@@ -297,11 +327,13 @@ class BaseDomainHandler {
 ## 📝 風險評估
 
 ### 技術風險
+
 - **複雜度增加**：模組數量增加可能增加系統複雜度
 - **效能影響**：模組間通訊可能影響效能
 - **整合困難**：事件驅動架構的除錯可能較困難
 
 ### 緩解措施
+
 - **段階式重構**：逐步遷移，降低風險
 - **充分測試**：確保每個階段都有完整測試覆蓋
 - **效能監控**：持續監控系統效能指標
