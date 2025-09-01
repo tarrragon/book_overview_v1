@@ -198,7 +198,8 @@ describe('Content Script 注入整合測試', () => {
         {
           name: 'CSP_VIOLATION',
           setup: async () => {
-            await testSuite.navigateToCSPRestrictedPage()
+            await testSuite.navigateToMockReadmooPage()  // 先設置 Readmoo 頁面環境
+            await testSuite.navigateToCSPRestrictedPage() // 然後設置 CSP 限制
           },
           expectedError: 'Content Security Policy violation',
           recoverable: false
@@ -241,19 +242,25 @@ describe('Content Script 注入整合測試', () => {
         const injectionResult = await extensionController.attemptContentScriptInjection({
           enableErrorHandling: true,
           retryOnFailure: scenario.recoverable,
-          maxRetries: 3
+          maxRetries: 3,
+          // 對 CSP_VIOLATION 場景啟用 CSP 檢測
+          enableCSPDetection: scenario.name === 'CSP_VIOLATION',
+          detectCSPViolations: scenario.name === 'CSP_VIOLATION'
         })
         const handlingTime = Date.now() - failureTestStart
 
         failureHandlingResults.push({
           scenario: scenario.name,
           injectionFailed: !injectionResult.injected,
-          errorMessage: injectionResult.errorMessage,
+          errorMessage: injectionResult.originalError || injectionResult.errorMessage,
           errorHandled: injectionResult.errorHandled,
           recoveryAttempted: injectionResult.recoveryAttempted,
           finalSuccess: injectionResult.injected,
           handlingTime
         })
+        
+        // 調試信息
+        console.log(`🔧 Scenario ${scenario.name}: errorHandled=${injectionResult.errorHandled}, injected=${injectionResult.injected}, errorMessage="${injectionResult.errorMessage}"`)
 
         // 清理錯誤狀態
         await scriptValidator.clearSimulatedErrors()
@@ -618,12 +625,14 @@ describe('Content Script 注入整合測試', () => {
 
         const cspTestTime = Date.now() - cspTestStart
 
+        console.log(`🔧 測試結果映射 ${scenario.name}: injectionResult.cspViolationDetected=${injectionResult.cspViolationDetected}, injectionResult.behavior=${injectionResult.behavior}, injectionResult.success=${injectionResult.success}`)
+        
         cspHandlingResults.push({
           scenario: scenario.name,
           expectedBehavior: scenario.expectedBehavior,
           actualBehavior: injectionResult.behavior,
           injectionSuccess: injectionResult.success,
-          cspViolationDetected: injectionResult.cspViolation,
+          cspViolationDetected: injectionResult.cspViolationDetected,
           fallbackUsed: injectionResult.fallbackUsed,
           testTime: cspTestTime
         })

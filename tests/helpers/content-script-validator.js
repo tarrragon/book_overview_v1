@@ -3,8 +3,9 @@
  */
 
 class ContentScriptValidator {
-  constructor() {
+  constructor(testSuite = null) {
     this.validationResults = []
+    this.testSuite = testSuite
   }
 
   validate(contentScript) {
@@ -70,13 +71,12 @@ class ContentScriptValidator {
     this.simulatedErrors = []
     this.errorSimulationActive = false
     
-    // 清理 extensionController 的所有錯誤狀態
+    // 清理 extensionController 的錯誤模擬狀態（不清理測試環境設置如 CSP）
     if (this.testSuite && this.testSuite.extensionController) {
       this.testSuite.extensionController.state.scriptLoadingError = false
       this.testSuite.extensionController.state.tabPermissionsRevoked = false
       this.testSuite.extensionController.state.pageNotReady = false
-      this.testSuite.extensionController.state.cspTestConfig = null
-      this.testSuite.extensionController.state.cspSettings = null
+      // 注意：不清理 cspTestConfig 和 cspSettings，因為它們是測試環境設置而非錯誤狀態
     }
   }
 

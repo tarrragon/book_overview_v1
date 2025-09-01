@@ -120,7 +120,7 @@ class E2ETestSuite {
     const { ChromeExtensionController } = require('./chrome-extension-controller')
     this.extensionController = new ChromeExtensionController({
       extensionId: 'test-extension-12345',
-      enableLogging: false,
+      enableLogging: true,  // 重新啟用詳細記錄來調查剩餘問題
       simulateNetworkDelay: false
     })
 
@@ -446,6 +446,16 @@ class E2ETestSuite {
 
   // 模擬測試環境的輔助方法
   async navigateToMockReadmooPage () {
+    this.log('導航到模擬Readmoo頁面')
+    
+    // 設置頁面環境
+    if (this.extensionController) {
+      this.extensionController.state.pageEnvironment = {
+        url: 'https://readmoo.com/library',
+        pageType: 'library'
+      }
+    }
+    
     return { success: true, url: 'https://readmoo.com/library', pageType: 'library' }
   }
 

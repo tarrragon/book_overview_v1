@@ -266,7 +266,7 @@ class ChromeExtensionController {
       detectCSPViolations = false
     } = options
 
-    this.log('嘗試Content Script注入...')
+    this.log(`嘗試Content Script注入... enableErrorHandling=${enableErrorHandling}, retryOnFailure=${retryOnFailure}, enableCSPDetection=${enableCSPDetection}`)
 
     const result = {
       success: true,
@@ -350,22 +350,46 @@ class ChromeExtensionController {
       if (enableCSPDetection) {
         const cspConfig = this.state.cspTestConfig || this.state.cspSettings
         
-        if (cspConfig && cspConfig.policy && cspConfig.policy.includes("script-src 'self'") && !cspConfig.policy.includes('chrome-extension:')) {
+        // this.log(`🔧 CSP檢測邏輯: cspConfig=${!!cspConfig}, restrictive=${cspConfig?.restrictive}`)
+        
+        // 使用 setupCSPTestEnvironment 設置的 restrictive 標記
+        if (cspConfig && cspConfig.restrictive === true) {
+          // 嚴格限制性 CSP - 完全阻止注入
           result.cspViolation = true
-          result.cspViolationDetected = true  // 設置測試期望的屬性
+          result.cspViolationDetected = true
           result.behavior = 'injection_blocked'
-          result.injectionSuccess = false  // 明確設置為 false
-          if (!enableFallbackMethods) {
-            throw new Error('Content Security Policy violation')
-          } else {
+          result.injectionSuccess = false
+          
+          this.log(`檢測到嚴格限制性CSP: ${cspConfig.policy}`)
+        } else if (cspConfig && cspConfig.restrictive === 'moderate') {
+          // 中度限制性 CSP - 可以使用 fallback 方法
+          result.cspViolation = true
+          result.cspViolationDetected = true
+          
+          if (enableFallbackMethods) {
             result.fallbackUsed = true
             result.behavior = 'limited_injection'
-            result.injectionSuccess = true  // 使用 fallback 時設為 true
+            result.injectionSuccess = true
+            this.log(`檢測到中度限制性CSP，使用fallback方法: ${cspConfig.policy}`)
+          } else {
+            result.behavior = 'injection_blocked'
+            result.injectionSuccess = false
+            this.log(`檢測到中度限制性CSP，無fallback方法: ${cspConfig.policy}`)
           }
-        } else if (!cspConfig || !cspConfig.policy) {
+        } else if (cspConfig && cspConfig.policy && cspConfig.restrictive === false) {
+          // CSP存在但不限制性 (如允許 chrome-extension)
           result.behavior = 'normal_injection'
-          result.cspViolationDetected = false  // 明確設置為 false
+          result.cspViolationDetected = false
           result.injectionSuccess = true
+          
+          this.log(`CSP允許擴展: ${cspConfig.policy}`)
+        } else {
+          // 沒有CSP或沒有政策
+          result.behavior = 'normal_injection'
+          result.cspViolationDetected = false
+          result.injectionSuccess = true
+          
+          this.log('沒有CSP限制')
         }
       }
 
@@ -377,34 +401,54 @@ class ChromeExtensionController {
       
       while (retryCount <= (retryOnFailure ? maxRetries : 0)) {
         try {
-          // 基於當前測試狀態觸發錯誤
-          if (retryCount === 0) {
-            
-            // 檢查 CSP 限制
-            if (this.state.cspTestConfig && this.state.cspTestConfig.restrictive) {
-              throw new Error('Content Security Policy violation')
+          // 基於當前測試狀態觸發錯誤 - 每次重試都要檢查
+          this.log(`檢查錯誤狀態 (retry: ${retryCount}): cspTestConfig=${!!this.state.cspTestConfig}, tabPermissionsRevoked=${!!this.state.tabPermissionsRevoked}, scriptLoadingError=${!!this.state.scriptLoadingError}, pageNotReady=${!!this.state.pageNotReady}`)
+          
+          // 檢查 CSP 限制 - 根據不同級別處理
+          if (this.state.cspTestConfig) {
+            if (this.state.cspTestConfig.restrictive === true) {
+              // 嚴格限制性 CSP - 總是拋出錯誤（除非使用 fallback）
+              if (enableCSPDetection && result.fallbackUsed) {
+                this.log(`嚴格CSP限制檢測到，但使用fallback方法繞過 (retry: ${retryCount})`)
+              } else {
+                this.log(`觸發嚴格CSP錯誤 (retry: ${retryCount})`)
+                throw new Error('Content Security Policy violation')
+              }
+            } else if (this.state.cspTestConfig.restrictive === 'moderate') {
+              // 中度限制性 CSP - 只有在沒有 fallback 時才拋出錯誤
+              if (enableCSPDetection && result.fallbackUsed) {
+                this.log(`中度CSP限制檢測到，使用fallback方法繞過 (retry: ${retryCount})`)
+              } else if (!enableCSPDetection) {
+                // 如果沒有啟用 CSP 檢測，中度 CSP 仍然會拋出錯誤
+                this.log(`觸發中度CSP錯誤 (retry: ${retryCount})`)
+                throw new Error('Content Security Policy violation')
+              }
             }
-            
-            // 檢查權限撤銷
-            if (this.state.tabPermissionsRevoked) {
-              throw new Error('Insufficient permissions')
-            }
-            
-            // 檢查腳本載入錯誤模擬
-            if (this.state.scriptLoadingError) {
-              throw new Error('Script loading failed')
-            }
-            
-            // 檢查頁面未準備狀態
-            if (this.state.pageNotReady) {
-              throw new Error('Page not ready')
-            }
-            
-            // 檢查預期失敗（保留原有邏輯）
-            if (expectedFailures.length > 0) {
-              const randomFailure = expectedFailures[Math.floor(Math.random() * expectedFailures.length)]
-              throw new Error(randomFailure)
-            }
+          }
+          
+          // 檢查權限撤銷
+          if (this.state.tabPermissionsRevoked) {
+            this.log(`觸發權限錯誤 (retry: ${retryCount})`)
+            throw new Error('Insufficient permissions')
+          }
+          
+          // 檢查腳本載入錯誤模擬
+          if (this.state.scriptLoadingError) {
+            this.log(`觸發腳本載入錯誤 (retry: ${retryCount})`)
+            throw new Error('Script loading failed')
+          }
+          
+          // 檢查頁面未準備狀態
+          if (this.state.pageNotReady) {
+            this.log(`觸發頁面未準備錯誤 (retry: ${retryCount})`)
+            throw new Error('Page not ready')
+          }
+          
+          // 檢查預期失敗（保留原有邏輯）- 只在第一次重試時執行
+          if (retryCount === 0 && expectedFailures.length > 0) {
+            const randomFailure = expectedFailures[Math.floor(Math.random() * expectedFailures.length)]
+            this.log(`觸發預期失敗錯誤: ${randomFailure}`)
+            throw new Error(randomFailure)
           }
           
           injectionResult = await this.injectContentScript(tabId)
@@ -421,6 +465,18 @@ class ChromeExtensionController {
           if (retryOnFailure && retryCount <= maxRetries) {
             result.recoveryAttempted = true
             this.log(`重試注入 (${retryCount}/${maxRetries}): ${error.message}`)
+            
+            // 對於可恢復錯誤，在重試過程中模擬錯誤狀態恢復
+            if (retryCount >= 2) {
+              if (error.message.includes('Script loading failed')) {
+                this.state.scriptLoadingError = false
+                this.log('模擬腳本載入錯誤狀態恢復')
+              } else if (error.message.includes('Insufficient permissions')) {
+                this.state.tabPermissionsRevoked = false
+                this.log('模擬權限錯誤狀態恢復')
+              }
+            }
+            
             await this.simulateDelay(100 * retryCount) // 指數退避
           } else {
             throw error
@@ -431,10 +487,16 @@ class ChromeExtensionController {
       // 如果有進行重試且最終成功，記錄恢復成功
       if (result.recoveryAttempted && result.success) {
         result.errorHandled = true
+        // 確保恢復成功後仍保留原始錯誤訊息
+        if (lastError && !result.errorMessage) {
+          result.errorMessage = lastError.message
+        }
       }
 
     } catch (error) {
       const handlingStartTime = Date.now()
+      
+      this.log(`🔧 進入錯誤處理: ${error.message}, enableErrorHandling=${enableErrorHandling}, retryOnFailure=${retryOnFailure}`)
       
       result.success = false
       result.error = error.message
@@ -444,16 +506,36 @@ class ChromeExtensionController {
       if (enableErrorHandling) {
         result.errorHandled = true  // 啟用錯誤處理時總是設為 true
         
+        // 對 CSP 違規錯誤設置檢測標記
+        if (error.message.includes('Content Security Policy violation')) {
+          result.cspViolationDetected = true
+          result.behavior = 'injection_blocked'
+          result.injectionSuccess = false
+        }
+        
         // 對於特定錯誤類型進行自動恢復
         if (error.message.includes('Insufficient permissions') || error.message.includes('Script loading failed')) {
           result.recoveryAttempted = true
           // 模擬恢復成功
           if (retryOnFailure && Math.random() > 0.3) { // 70% 成功率
+            this.log(`🔧 模擬恢復成功: ${error.message}`)
             result.success = true
             result.injected = true
             result.injectionSuccess = true
+            // 如果恢復成功，errorHandled 保持為 true
+            result.errorHandled = true
+            result.finalSuccess = true
             // 保留原始錯誤訊息，即使恢復成功
             result.originalError = error.message
+            // 確保 errorMessage 不會變成 null
+            if (!result.errorMessage) {
+              result.errorMessage = error.message
+            }
+          } else {
+            this.log(`🔧 模擬恢復失敗: ${error.message}`)
+            // 恢復失敗時確保 errorMessage 存在
+            result.errorMessage = error.message
+            result.finalSuccess = false
           }
         }
         
@@ -462,11 +544,20 @@ class ChromeExtensionController {
       } else {
         // 即使沒有啟用錯誤處理，也要設置基本的錯誤處理狀態
         result.errorHandled = false
+        
+        // 對 CSP 違規錯誤設置檢測標記（即使沒有啟用錯誤處理）
+        if (error.message.includes('Content Security Policy violation')) {
+          result.cspViolationDetected = true
+          result.behavior = 'injection_blocked'
+          result.injectionSuccess = false
+        }
       }
       
       this.log(`Content Script注入失敗: ${error.message}`)
     }
 
+    this.log(`🔧 最終結果: cspViolationDetected=${result.cspViolationDetected}, behavior=${result.behavior}, injectionSuccess=${result.injectionSuccess}`)
+    
     return result
   }
 
@@ -546,14 +637,47 @@ class ChromeExtensionController {
     this.log('設定CSP測試環境')
     
     // 將 config 轉換為 attemptContentScriptInjection 期望的格式
+    const policy = config.policy || ''
+    let isRestrictive = false
+    
+    if (policy) {
+      // 檢查是否含有限制性的 script-src 指令
+      const hasScriptSrcSelf = policy.includes("script-src 'self'") || policy.includes("script-src: 'self'")
+      const allowsChromeExtension = policy.includes('chrome-extension:')
+      const hasUnsafeEval = policy.includes("'unsafe-eval'")
+      const hasUnsafeInline = policy.includes("'unsafe-inline'")
+      
+      // CSP 嚴格程度分級：
+      // 1. 完全限制性：script-src 'self' 且沒有 chrome-extension（應該阻止注入）
+      // 2. 中度限制性：有 'unsafe-eval' 或 'unsafe-inline'（可以使用 fallback）
+      // 3. 寬鬆：允許 chrome-extension（正常注入）
+      if (allowsChromeExtension) {
+        isRestrictive = false  // 允許 chrome-extension，可以正常注入
+      } else if (hasUnsafeEval || hasUnsafeInline) {
+        isRestrictive = 'moderate'  // 中度限制，可以使用 fallback
+      } else if (hasScriptSrcSelf) {
+        isRestrictive = true  // 嚴格限制，阻止注入
+      }
+      
+      this.log(`CSP Policy分析: hasScriptSrcSelf=${hasScriptSrcSelf}, allowsChromeExtension=${allowsChromeExtension}, hasUnsafeEval=${hasUnsafeEval}, hasUnsafeInline=${hasUnsafeInline}, restrictive=${isRestrictive}`)
+    }
+    
     this.state.cspTestConfig = {
-      restrictive: !!config.policy && 
-        (config.policy.includes("script-src 'self'") && !config.policy.includes('chrome-extension:')),
-      policy: config.policy,
+      restrictive: isRestrictive,
+      policy: policy,
       content: config.content
     }
     
+    // 設置 readmoo.com URL 以確保通過頁面兼容性檢查
+    this.state.pageEnvironment = {
+      url: 'https://readmoo.com/library/csp-test-page',
+      title: 'CSP Test Page',
+      domain: 'readmoo.com',
+      timestamp: Date.now()
+    }
+    
     console.log('🔧 CSP Test Environment setup:', this.state.cspTestConfig)
+    console.log('🔧 Page Environment for CSP test:', this.state.pageEnvironment.url)
     
     return { success: true, testEnvironmentReady: true }
   }
