@@ -275,9 +275,9 @@ describe('EventPriorityManager', () => {
 
       // 為同一事件註冊三個不同優先級的處理器
       const testEventName = 'TEST.PRIORITY.VERIFICATION'
-      
+
       const urgentHandler = () => executionOrder.push('urgent')
-      const normalHandler = () => executionOrder.push('normal') 
+      const normalHandler = () => executionOrder.push('normal')
       const lowHandler = () => executionOrder.push('low')
 
       // 獲取不同優先級數值
@@ -303,15 +303,15 @@ describe('EventPriorityManager', () => {
       // 實際實作採用優雅錯誤處理，返回預設優先級而非拋出異常
       // 根據實作，預設優先級是 BUSINESS_PROCESSING 範圍的最大值 (399)
       const defaultPriority = 399
-      
+
       // 空字串應該返回預設優先級
       const emptyPriority = priorityManager.assignEventPriority('')
       expect(emptyPriority).toBe(defaultPriority)
-      
+
       // null 應該返回預設優先級
       const nullPriority = priorityManager.assignEventPriority(null)
       expect(nullPriority).toBe(defaultPriority)
-      
+
       // 檢查錯誤統計有增加
       const stats = priorityManager.getPriorityStats()
       expect(stats.errors).toBeGreaterThanOrEqual(2)

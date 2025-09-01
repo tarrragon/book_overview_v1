@@ -127,7 +127,7 @@ describe('PopupController 通訊服務整合測試', () => {
       await controller.initialize()
 
       const communicationService = controller.getComponent('communication')
-      
+
       // 在測試環境中，應該跳過實際的背景檢查
       const originalEnv = process.env.NODE_ENV
       process.env.NODE_ENV = 'production' // 臨時設為非測試環境以測試實際通訊
@@ -180,7 +180,7 @@ describe('PopupController 通訊服務整合測試', () => {
       // When: 檢查背景狀態
       // Then: 應該在超時後拋出錯誤
       await expect(communicationService.checkBackgroundStatus()).rejects.toThrow('Background communication timeout')
-      
+
       // 恢復測試環境
       process.env.NODE_ENV = originalEnv
     }, 5000) // 5秒超時
@@ -205,7 +205,7 @@ describe('PopupController 通訊服務整合測試', () => {
       // When: 檢查背景狀態
       // Then: 應該拋出錯誤
       await expect(communicationService.checkBackgroundStatus()).rejects.toThrow('Chrome API error: Extension context invalidated')
-      
+
       // 恢復測試環境
       process.env.NODE_ENV = originalEnv
     }, 5000) // 5秒超時

@@ -117,7 +117,7 @@ class EventNamingUpgradeCoordinator {
         // 為 handler 提供包含事件類型的物件
         const eventObject = {
           type: legacyEvent,
-          data: data,
+          data,
           timestamp: Date.now(),
           isLegacy: true
         }
@@ -137,7 +137,7 @@ class EventNamingUpgradeCoordinator {
         // 為 handler 提供包含事件類型的物件
         const eventObject = {
           type: modernEvent,
-          data: data,
+          data,
           timestamp: Date.now(),
           isLegacy: false
         }

@@ -212,7 +212,7 @@ class EventPriorityManager {
 
     // 然後按優先級順序檢查剩餘關鍵字
     const categoryOrder = [
-      'PLATFORM_MANAGEMENT', 
+      'PLATFORM_MANAGEMENT',
       'USER_INTERACTION',
       'BUSINESS_PROCESSING'
     ]
@@ -346,12 +346,12 @@ class EventPriorityManager {
   optimizeBasedOnPerformance () {
     for (const [eventName, metrics] of this.performanceMetrics.entries()) {
       let currentPriority = this.getEventPriority(eventName)
-      
+
       // 如果事件沒有優先級，先分配一個
       if (currentPriority === undefined) {
         currentPriority = this.assignEventPriority(eventName)
       }
-      
+
       if (metrics.avgExecutionTime > 300) { // 300ms 被認為是慢的
         if (currentPriority < 400) {
           // 調低優先級（增加數值）

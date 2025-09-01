@@ -192,19 +192,19 @@ class ChromeExtensionController {
     contentContext.state = 'ready'
   }
 
-  async injectContentScript(options = {}) {
+  async injectContentScript (options = {}) {
     const {
       tabId = null,
       enableSecurityMode = false,
       detectMaliciousBehavior = false,
       enableCountermeasures = false
     } = typeof options === 'object' && options !== null ? options : { tabId: options }
-    
+
     // 如果沒有提供tabId，使用活動標籤頁或創建一個
     const targetTabId = tabId || this.state.activeTab || 1
-    
+
     const contentContext = this.state.contexts.get('content')
-    
+
     // 如果Content Script還沒準備好，先準備它
     if (contentContext.state !== 'ready') {
       this.log('Content Script尚未準備，正在初始化...')
@@ -221,12 +221,12 @@ class ChromeExtensionController {
 
     // 根據頁面環境推斷腳本類型
     const scriptType = this.inferScriptTypeFromPageEnvironment()
-    
+
     // 基本注入結果
-    let result = { 
-      success: true, 
+    const result = {
+      success: true,
       tabId: targetTabId,
-      scriptType: scriptType,
+      scriptType,
       featuresEnabled: ['bookExtraction', 'progressTracking', 'dataSync'],
       injectionTime: Date.now(),
       securityViolations: 0,
@@ -236,15 +236,15 @@ class ChromeExtensionController {
     // 如果啟用安全模式，進行惡意行為檢測和對抗
     if (enableSecurityMode && detectMaliciousBehavior) {
       const currentInterference = this.detectCurrentInterference()
-      
+
       if (currentInterference) {
         result.securityViolations = 1
         console.log('🔧 Security violation detected:', currentInterference)
-        
+
         if (enableCountermeasures) {
           const countermeasures = this.activateCountermeasures(currentInterference)
           result.countermeasuresActivated = countermeasures
-          
+
           this.log(`檢測到 ${currentInterference} 威脅，激活對抗措施: ${countermeasures.join(', ')}`)
         }
       }
@@ -253,9 +253,9 @@ class ChromeExtensionController {
     return result
   }
 
-  async attemptContentScriptInjection(options = {}) {
-    const { 
-      skipUnsupported = true,  // 預設跳過不支援的頁面
+  async attemptContentScriptInjection (options = {}) {
+    const {
+      skipUnsupported = true, // 預設跳過不支援的頁面
       checkCompatibility = true,
       expectedFailures = [],
       enableErrorHandling = false,
@@ -273,47 +273,47 @@ class ChromeExtensionController {
       attempted: true,
       injected: false,
       skipped: false,
-      injectionSkipped: false,  // 測試期望的屬性
+      injectionSkipped: false, // 測試期望的屬性
       error: null,
       skipReason: null,
-      actualReason: null,  // 測試期望的屬性
+      actualReason: null, // 測試期望的屬性
       errorMessage: null,
       compatibilityCheck: null,
       errorHandled: false,
       recoveryAttempted: false,
       behavior: 'normal_injection',
       cspViolation: false,
-      cspViolationDetected: false,  // 測試期望的屬性
+      cspViolationDetected: false, // 測試期望的屬性
       fallbackUsed: false,
-      detectionTime: 0,  // 測試期望的檢測時間
-      handlingTime: 0,    // 測試期望的處理時間
-      injectionSuccess: false  // 添加新屬性以符合 CSP 測試期望
+      detectionTime: 0, // 測試期望的檢測時間
+      handlingTime: 0, // 測試期望的處理時間
+      injectionSuccess: false // 添加新屬性以符合 CSP 測試期望
     }
 
     try {
       const startTime = Date.now()
-      
+
       // 模擬頁面兼容性檢查
       if (checkCompatibility) {
         const isSupported = this.checkPageCompatibility()
         result.compatibilityCheck = { supported: isSupported }
-        result.detectionTime = Date.now() - startTime  // 設置檢測時間
-        
+        result.detectionTime = Date.now() - startTime // 設置檢測時間
+
         if (!isSupported) {
           result.skipped = true
-          result.injectionSkipped = true  // 測試期望的屬性名稱
+          result.injectionSkipped = true // 測試期望的屬性名稱
           result.injected = false
           result.success = false
-          
+
           // 設定跳過原因（與 checkPageCompatibility 邏輯一致）
           const url = this.state.pageEnvironment?.url || ''
-          
+
           // 先檢查瀏覽器內部頁面
           if (url.startsWith('about:') || url.startsWith('chrome://')) {
             result.skipReason = 'browser_internal_page'
             result.actualReason = 'browser_internal_page'
             result.errorMessage = '瀏覽器內部頁面無法使用此功能'
-          } 
+          }
           // 再檢查 Readmoo 域名內的特定頁面
           else if (url.includes('readmoo.com') && url.includes('/login')) {
             result.skipReason = 'authentication_page'
@@ -333,14 +333,14 @@ class ChromeExtensionController {
             result.skipReason = 'not_readmoo_domain'
             result.actualReason = 'not_readmoo_domain'
             result.errorMessage = '請在Readmoo網站上使用此延伸功能'
-          } 
+          }
           // 其他不支援的情況
           else {
             result.skipReason = 'unsupported_page'
             result.actualReason = 'unsupported_page'
             result.errorMessage = '當前頁面不支援書籍提取功能'
           }
-          
+
           this.log(`頁面不支援，跳過注入: ${result.skipReason}`)
           return result
         }
@@ -349,9 +349,9 @@ class ChromeExtensionController {
       // CSP檢測邏輯
       if (enableCSPDetection) {
         const cspConfig = this.state.cspTestConfig || this.state.cspSettings
-        
+
         // this.log(`🔧 CSP檢測邏輯: cspConfig=${!!cspConfig}, restrictive=${cspConfig?.restrictive}`)
-        
+
         // 使用 setupCSPTestEnvironment 設置的 restrictive 標記
         if (cspConfig && cspConfig.restrictive === true) {
           // 嚴格限制性 CSP - 完全阻止注入
@@ -359,13 +359,13 @@ class ChromeExtensionController {
           result.cspViolationDetected = true
           result.behavior = 'injection_blocked'
           result.injectionSuccess = false
-          
+
           this.log(`檢測到嚴格限制性CSP: ${cspConfig.policy}`)
         } else if (cspConfig && cspConfig.restrictive === 'moderate') {
           // 中度限制性 CSP - 可以使用 fallback 方法
           result.cspViolation = true
           result.cspViolationDetected = true
-          
+
           if (enableFallbackMethods) {
             result.fallbackUsed = true
             result.behavior = 'limited_injection'
@@ -381,14 +381,14 @@ class ChromeExtensionController {
           result.behavior = 'normal_injection'
           result.cspViolationDetected = false
           result.injectionSuccess = true
-          
+
           this.log(`CSP允許擴展: ${cspConfig.policy}`)
         } else {
           // 沒有CSP或沒有政策
           result.behavior = 'normal_injection'
           result.cspViolationDetected = false
           result.injectionSuccess = true
-          
+
           this.log('沒有CSP限制')
         }
       }
@@ -398,12 +398,12 @@ class ChromeExtensionController {
       let injectionResult
       let retryCount = 0
       let lastError = null
-      
+
       while (retryCount <= (retryOnFailure ? maxRetries : 0)) {
         try {
           // 基於當前測試狀態觸發錯誤 - 每次重試都要檢查
           this.log(`檢查錯誤狀態 (retry: ${retryCount}): cspTestConfig=${!!this.state.cspTestConfig}, tabPermissionsRevoked=${!!this.state.tabPermissionsRevoked}, scriptLoadingError=${!!this.state.scriptLoadingError}, pageNotReady=${!!this.state.pageNotReady}`)
-          
+
           // 檢查 CSP 限制 - 根據不同級別處理
           if (this.state.cspTestConfig) {
             if (this.state.cspTestConfig.restrictive === true) {
@@ -425,47 +425,46 @@ class ChromeExtensionController {
               }
             }
           }
-          
+
           // 檢查權限撤銷
           if (this.state.tabPermissionsRevoked) {
             this.log(`觸發權限錯誤 (retry: ${retryCount})`)
             throw new Error('Insufficient permissions')
           }
-          
+
           // 檢查腳本載入錯誤模擬
           if (this.state.scriptLoadingError) {
             this.log(`觸發腳本載入錯誤 (retry: ${retryCount})`)
             throw new Error('Script loading failed')
           }
-          
+
           // 檢查頁面未準備狀態
           if (this.state.pageNotReady) {
             this.log(`觸發頁面未準備錯誤 (retry: ${retryCount})`)
             throw new Error('Page not ready')
           }
-          
+
           // 檢查預期失敗（保留原有邏輯）- 只在第一次重試時執行
           if (retryCount === 0 && expectedFailures.length > 0) {
             const randomFailure = expectedFailures[Math.floor(Math.random() * expectedFailures.length)]
             this.log(`觸發預期失敗錯誤: ${randomFailure}`)
             throw new Error(randomFailure)
           }
-          
+
           injectionResult = await this.injectContentScript(tabId)
-          
+
           result.success = injectionResult.success
           result.injected = injectionResult.success
           result.injectionSuccess = injectionResult.success
           break // 成功的話跳出循環
-          
         } catch (error) {
           lastError = error
           retryCount++
-          
+
           if (retryOnFailure && retryCount <= maxRetries) {
             result.recoveryAttempted = true
             this.log(`重試注入 (${retryCount}/${maxRetries}): ${error.message}`)
-            
+
             // 對於可恢復錯誤，在重試過程中模擬錯誤狀態恢復
             if (retryCount >= 2) {
               if (error.message.includes('Script loading failed')) {
@@ -476,14 +475,14 @@ class ChromeExtensionController {
                 this.log('模擬權限錯誤狀態恢復')
               }
             }
-            
+
             await this.simulateDelay(100 * retryCount) // 指數退避
           } else {
             throw error
           }
         }
       }
-      
+
       // 如果有進行重試且最終成功，記錄恢復成功
       if (result.recoveryAttempted && result.success) {
         result.errorHandled = true
@@ -492,27 +491,26 @@ class ChromeExtensionController {
           result.errorMessage = lastError.message
         }
       }
-
     } catch (error) {
       const handlingStartTime = Date.now()
-      
+
       this.log(`🔧 進入錯誤處理: ${error.message}, enableErrorHandling=${enableErrorHandling}, retryOnFailure=${retryOnFailure}`)
-      
+
       result.success = false
       result.error = error.message
       result.errorMessage = error.message
       result.injectionSuccess = false
-      
+
       if (enableErrorHandling) {
-        result.errorHandled = true  // 啟用錯誤處理時總是設為 true
-        
+        result.errorHandled = true // 啟用錯誤處理時總是設為 true
+
         // 對 CSP 違規錯誤設置檢測標記
         if (error.message.includes('Content Security Policy violation')) {
           result.cspViolationDetected = true
           result.behavior = 'injection_blocked'
           result.injectionSuccess = false
         }
-        
+
         // 對於特定錯誤類型進行自動恢復
         if (error.message.includes('Insufficient permissions') || error.message.includes('Script loading failed')) {
           result.recoveryAttempted = true
@@ -538,13 +536,13 @@ class ChromeExtensionController {
             result.finalSuccess = false
           }
         }
-        
+
         // 設置處理時間
         result.handlingTime = Date.now() - handlingStartTime
       } else {
         // 即使沒有啟用錯誤處理，也要設置基本的錯誤處理狀態
         result.errorHandled = false
-        
+
         // 對 CSP 違規錯誤設置檢測標記（即使沒有啟用錯誤處理）
         if (error.message.includes('Content Security Policy violation')) {
           result.cspViolationDetected = true
@@ -552,44 +550,44 @@ class ChromeExtensionController {
           result.injectionSuccess = false
         }
       }
-      
+
       this.log(`Content Script注入失敗: ${error.message}`)
     }
 
     this.log(`🔧 最終結果: cspViolationDetected=${result.cspViolationDetected}, behavior=${result.behavior}, injectionSuccess=${result.injectionSuccess}`)
-    
+
     return result
   }
 
-  checkPageCompatibility() {
+  checkPageCompatibility () {
     // 根據當前頁面環境檢查兼容性
     if (this.state.pageEnvironment) {
       const url = this.state.pageEnvironment.url || ''
-      
+
       // 檢查域名
       if (!url.includes('readmoo.com')) {
         return false
       }
-      
+
       // 檢查不支援的頁面類型
       const unsupportedPaths = ['/login', '/payment', '/static/help']
       if (unsupportedPaths.some(path => url.includes(path))) {
         return false
       }
-      
+
       // 檢查瀏覽器內部頁面
       if (url.startsWith('about:') || url.startsWith('chrome://')) {
         return false
       }
-      
+
       return true
     }
-    
+
     // 預設情況下，模擬80%兼容性
     return Math.random() > 0.2
   }
 
-  inferScriptTypeFromPageEnvironment() {
+  inferScriptTypeFromPageEnvironment () {
     // 根據頁面環境推斷腳本類型
     if (this.state.pageEnvironment) {
       const pageType = this.state.pageEnvironment.pageType
@@ -613,61 +611,61 @@ class ChromeExtensionController {
   }
 
   // 添加E2ETestSuite所需的模擬方法
-  async simulateCSPRestriction(cspSettings = {}) {
+  async simulateCSPRestriction (cspSettings = {}) {
     this.log('模擬CSP限制')
-    
+
     // 記錄CSP設置並設置限制性標誌
     this.state.cspSettings = cspSettings
     this.state.cspTestConfig = {
       restrictive: true,
       policy: Object.entries(cspSettings).map(([key, value]) => `${key} ${value}`).join('; ')
     }
-    
+
     return { success: true, cspApplied: true }
   }
 
-  async setupMockPageEnvironment(mockEnv = {}) {
+  async setupMockPageEnvironment (mockEnv = {}) {
     this.log('設置模擬頁面環境')
-    
+
     this.state.pageEnvironment = mockEnv
     return { success: true, environmentConfigured: true }
   }
 
-  async setupCSPTestEnvironment(config = {}) {
+  async setupCSPTestEnvironment (config = {}) {
     this.log('設定CSP測試環境')
-    
+
     // 將 config 轉換為 attemptContentScriptInjection 期望的格式
     const policy = config.policy || ''
     let isRestrictive = false
-    
+
     if (policy) {
       // 檢查是否含有限制性的 script-src 指令
       const hasScriptSrcSelf = policy.includes("script-src 'self'") || policy.includes("script-src: 'self'")
       const allowsChromeExtension = policy.includes('chrome-extension:')
       const hasUnsafeEval = policy.includes("'unsafe-eval'")
       const hasUnsafeInline = policy.includes("'unsafe-inline'")
-      
+
       // CSP 嚴格程度分級：
       // 1. 完全限制性：script-src 'self' 且沒有 chrome-extension（應該阻止注入）
       // 2. 中度限制性：有 'unsafe-eval' 或 'unsafe-inline'（可以使用 fallback）
       // 3. 寬鬆：允許 chrome-extension（正常注入）
       if (allowsChromeExtension) {
-        isRestrictive = false  // 允許 chrome-extension，可以正常注入
+        isRestrictive = false // 允許 chrome-extension，可以正常注入
       } else if (hasUnsafeEval || hasUnsafeInline) {
-        isRestrictive = 'moderate'  // 中度限制，可以使用 fallback
+        isRestrictive = 'moderate' // 中度限制，可以使用 fallback
       } else if (hasScriptSrcSelf) {
-        isRestrictive = true  // 嚴格限制，阻止注入
+        isRestrictive = true // 嚴格限制，阻止注入
       }
-      
+
       this.log(`CSP Policy分析: hasScriptSrcSelf=${hasScriptSrcSelf}, allowsChromeExtension=${allowsChromeExtension}, hasUnsafeEval=${hasUnsafeEval}, hasUnsafeInline=${hasUnsafeInline}, restrictive=${isRestrictive}`)
     }
-    
+
     this.state.cspTestConfig = {
       restrictive: isRestrictive,
-      policy: policy,
+      policy,
       content: config.content
     }
-    
+
     // 設置 readmoo.com URL 以確保通過頁面兼容性檢查
     this.state.pageEnvironment = {
       url: 'https://readmoo.com/library/csp-test-page',
@@ -675,22 +673,22 @@ class ChromeExtensionController {
       domain: 'readmoo.com',
       timestamp: Date.now()
     }
-    
+
     console.log('🔧 CSP Test Environment setup:', this.state.cspTestConfig)
     console.log('🔧 Page Environment for CSP test:', this.state.pageEnvironment.url)
-    
+
     return { success: true, testEnvironmentReady: true }
   }
 
-  async simulateMaliciousPageBehavior(actions = {}) {
+  async simulateMaliciousPageBehavior (actions = {}) {
     this.log('模擬惡意頁面行為')
-    
+
     // 設置惡意行為和環境狀態
     this.state.maliciousActions = actions
-    
+
     // 設置 maliciousEnvironment 以供 detectCurrentInterference 使用
     let interferenceType = null
-    
+
     if (actions.behavior === 'aggressive_dom_modification') {
       interferenceType = 'dom_manipulation'
     } else if (actions.behavior === 'event_interception') {
@@ -700,39 +698,39 @@ class ChromeExtensionController {
     } else if (actions.behavior === 'script_interference') {
       interferenceType = 'script_interference'
     }
-    
+
     if (interferenceType) {
       this.state.maliciousEnvironment = {
         type: interferenceType,
         timestamp: Date.now(),
-        actions: actions
+        actions
       }
       console.log('🔧 Malicious environment set:', this.state.maliciousEnvironment)
     }
-    
+
     return { success: true, behaviorSimulated: true }
   }
 
-  async createTab(tabConfig = {}) {
+  async createTab (tabConfig = {}) {
     this.log(`創建標籤頁: ${tabConfig.url}`)
-    
+
     if (!this.state.tabs) {
       this.state.tabs = []
     }
-    
+
     this.state.tabs.push(tabConfig)
     this.state.activeTab = tabConfig.id
-    
+
     return { success: true, tab: tabConfig }
   }
 
-  async waitForContentScriptInitialization(options = {}) {
+  async waitForContentScriptInitialization (options = {}) {
     const { timeout = 5000 } = options
     this.log('等待Content Script初始化...')
-    
+
     // 模擬初始化等待
     await this.simulateDelay(100)
-    
+
     return {
       initialized: true,
       initializationTime: 100,
@@ -740,16 +738,16 @@ class ChromeExtensionController {
     }
   }
 
-  async executeContentScriptExtraction(options = {}) {
+  async executeContentScriptExtraction (options = {}) {
     const { securityMode = false } = options
     this.log('執行Content Script提取...')
-    
+
     // 模擬提取過程
     await this.simulateDelay(200)
-    
+
     // 嘗試從多個源獲取書籍數量
     let extractedCount = 0
-    
+
     // 從特定Tab的測試資料中獲取
     if (this.state.testData?.get(this.state.activeTab)?.books) {
       extractedCount = this.state.testData.get(this.state.activeTab).books.length
@@ -766,7 +764,7 @@ class ChromeExtensionController {
     else {
       extractedCount = 100
     }
-    
+
     return {
       success: true,
       extractedCount,
@@ -775,12 +773,12 @@ class ChromeExtensionController {
     }
   }
 
-  async cleanupContentScript() {
+  async cleanupContentScript () {
     this.log('清理Content Script...')
-    
+
     // 模擬清理過程
     await this.simulateDelay(50)
-    
+
     return {
       cleaned: true,
       cleanupTime: 50,
@@ -788,7 +786,7 @@ class ChromeExtensionController {
     }
   }
 
-  async getContentScriptState() {
+  async getContentScriptState () {
     const contentContext = this.state.contexts.get('content')
     return {
       active: contentContext.state === 'ready' || contentContext.state === 'injected',
@@ -798,16 +796,16 @@ class ChromeExtensionController {
     }
   }
 
-  async injectContentScriptInTab(tabId) {
+  async injectContentScriptInTab (tabId) {
     return await this.injectContentScript(tabId)
   }
 
-  async executeExtractionInTab(tabId) {
+  async executeExtractionInTab (tabId) {
     this.log(`在標籤頁 ${tabId} 執行提取`)
-    
+
     const tabData = this.state.testData?.get(tabId)
     const extractedCount = tabData?.books?.length || 0
-    
+
     return {
       success: true,
       extractedCount,
@@ -815,47 +813,47 @@ class ChromeExtensionController {
     }
   }
 
-  async executeContentScriptExtraction(options = {}) {
+  async executeContentScriptExtraction (options = {}) {
     const {
       securityMode = false,
       validateDOMIntegrity = false,
       detectInterference = false
     } = options
-    
+
     this.log('執行 Content Script 數據提取...')
-    
+
     // 從存儲中獲取書籍數量
     const mockBooksCount = this.state.storage.get('mockBooksCount') || 0
     const expectedBookCount = this.state.storage.get('expectedBookCount') || mockBooksCount
-    
+
     // 基本提取結果
-    let result = {
+    const result = {
       success: true,
       protected: false,
       extractionTime: Date.now(),
       countermeasuresActivated: [],
-      extractedCount: expectedBookCount  // 使用實際的書籍數量
+      extractedCount: expectedBookCount // 使用實際的書籍數量
     }
-    
+
     // 如果啟用安全模式，檢測和處理干擾
     if (securityMode) {
       // 檢查當前環境的干擾類型（基於測試設置的狀態）
       const currentInterference = this.detectCurrentInterference()
-      
+
       if (currentInterference && detectInterference) {
         // 根據干擾類型激活對抗措施
         const countermeasures = this.activateCountermeasures(currentInterference)
         result.countermeasuresActivated = countermeasures
         result.protected = true
-        
+
         this.log(`檢測到 ${currentInterference} 干擾，激活對抗措施: ${countermeasures.join(', ')}`)
       }
     }
-    
+
     return result
   }
 
-  detectCurrentInterference() {
+  detectCurrentInterference () {
     // 基於測試狀態檢測當前的惡意干擾類型
     if (this.state.maliciousEnvironment) {
       return this.state.maliciousEnvironment.type
@@ -863,50 +861,50 @@ class ChromeExtensionController {
     return null
   }
 
-  activateCountermeasures(interferenceType) {
+  activateCountermeasures (interferenceType) {
     // 根據干擾類型返回對應的對抗措施
     const countermeasuresMap = {
-      'dom_manipulation': ['dom_protection'],
-      'event_interception': ['event_isolation'],
-      'global_pollution': ['namespace_protection'],
-      'script_interference': ['execution_protection']
+      dom_manipulation: ['dom_protection'],
+      event_interception: ['event_isolation'],
+      global_pollution: ['namespace_protection'],
+      script_interference: ['execution_protection']
     }
-    
+
     return countermeasuresMap[interferenceType] || []
   }
 
-  async reinjectContentScript(options = {}) {
+  async reinjectContentScript (options = {}) {
     const { detectPreviousScript = true, cleanupBefore = true, validateAfter = true } = options
     this.log('重新注入Content Script...')
-    
+
     let previousScriptDetected = false
     let cleanupPerformed = false
-    
+
     if (detectPreviousScript) {
       // 模擬檢測舊腳本
       // 在頁面重載後，舊腳本通常不會被檢測到
       previousScriptDetected = Math.random() > 0.8 // 20%機率檢測到舊腳本
     }
-    
+
     if (cleanupBefore) {
       // 總是執行清理（即使沒有檢測到舊腳本）
       await this.cleanupContentScript()
       cleanupPerformed = true
     }
-    
+
     const injectionResult = await this.injectContentScript()
-    
+
     return {
       success: injectionResult.success,
       previousScriptDetected,
-      cleanupPerformed,  // 根據是否要求清理而設定，不依賴於是否檢測到舊腳本
+      cleanupPerformed, // 根據是否要求清理而設定，不依賴於是否檢測到舊腳本
       reinjectionTime: Date.now()
     }
   }
 
-  async testContentScriptFunctionality() {
+  async testContentScriptFunctionality () {
     this.log('測試Content Script功能性...')
-    
+
     return {
       functional: true,
       canExtract: true,
@@ -915,7 +913,7 @@ class ChromeExtensionController {
     }
   }
 
-  async testVariableIsolation(variables) {
+  async testVariableIsolation (variables) {
     this.log(`測試變數隔離: ${variables.join(', ')}`)
     return {
       passed: true,
@@ -924,7 +922,7 @@ class ChromeExtensionController {
     }
   }
 
-  async testLibraryConflicts(libraries) {
+  async testLibraryConflicts (libraries) {
     this.log(`測試程式庫衝突: ${libraries.join(', ')}`)
     return {
       passed: true,
@@ -933,7 +931,7 @@ class ChromeExtensionController {
     }
   }
 
-  async testEventIsolation(events) {
+  async testEventIsolation (events) {
     this.log(`測試事件隔離: ${events.join(', ')}`)
     return {
       passed: true,
@@ -942,7 +940,7 @@ class ChromeExtensionController {
     }
   }
 
-  async testDOMModificationSafety() {
+  async testDOMModificationSafety () {
     this.log('測試DOM修改安全性')
     return {
       passed: true,
@@ -951,7 +949,7 @@ class ChromeExtensionController {
     }
   }
 
-  async checkGlobalPollution() {
+  async checkGlobalPollution () {
     this.log('檢查全域污染')
     return {
       polluted: false,
@@ -960,13 +958,13 @@ class ChromeExtensionController {
     }
   }
 
-  async injectTestData(tabId, data = {}) {
+  async injectTestData (tabId, data = {}) {
     this.log(`為標籤頁 ${tabId} 注入測試資料`)
-    
+
     if (!this.state.testData) {
       this.state.testData = new Map()
     }
-    
+
     this.state.testData.set(tabId, data)
     return { success: true, dataInjected: true }
   }
@@ -1195,8 +1193,8 @@ class ChromeExtensionController {
       // 頁面檢測失敗的情況
       this.state.storage.set('pageDetectionError', true)
       this.state.storage.set('errorMessage', 'Readmoo 頁面檢測失敗')
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: 'Page detection failed',
         encounteredErrors: 1,
         recoveredFromErrors: false
@@ -1230,9 +1228,9 @@ class ChromeExtensionController {
 
     // 模擬在提取過程中遇到一些錯誤但成功恢復
     const simulatedErrors = Math.floor(Math.random() * 5) + 2 // 2-6個錯誤
-    
-    return { 
-      success: true, 
+
+    return {
+      success: true,
       started: true,
       extractedCount: mockBooksCount,
       // 測試期望的錯誤處理屬性
@@ -1340,7 +1338,7 @@ class ChromeExtensionController {
   calculateStatistics (books, lastExtraction, metadata) {
     const now = new Date()
     let daysSinceLastExtraction = null
-    
+
     if (lastExtraction) {
       const lastExtractionDate = new Date(lastExtraction)
       const timeDiff = now - lastExtractionDate
@@ -1374,11 +1372,11 @@ class ChromeExtensionController {
   async getStorageData () {
     const storedBooks = this.state.storage.get('books') || []
     const mockBooksCount = this.state.storage.get('mockBooksCount') || 0
-    
+
     // 計算總書籍數量：基礎書籍(103) + 注入的書籍
     const baseBooks = 103 // 模擬基礎書籍數量
     const totalBooks = []
-    
+
     // 添加基礎書籍（如果還沒有的話）
     if (storedBooks.length === 0 && mockBooksCount === 0) {
       // 如果沒有書籍，返回空
@@ -1407,7 +1405,7 @@ class ChromeExtensionController {
         })
       }
     }
-    
+
     return {
       books: totalBooks,
       metadata: {
@@ -1421,11 +1419,11 @@ class ChromeExtensionController {
     const extractionInProgress = this.state.storage.get('extractionInProgress') || false
     const mockBooksCount = this.state.storage.get('mockBooksCount') || 0
     const lastExtraction = this.state.storage.get('lastExtraction')
-    
+
     if (!extractionInProgress && !lastExtraction) {
       return null
     }
-    
+
     // 模擬進度數據
     return {
       processedCount: Math.min(mockBooksCount, Math.floor(mockBooksCount * 0.6)), // 60% 進度
@@ -1439,7 +1437,7 @@ class ChromeExtensionController {
     // 模擬系統狀態捕獲
     const currentProgress = await this.getCurrentProgress()
     const storageData = await this.getStorageData()
-    
+
     return {
       timestamp: Date.now(),
       // 測試期望的頂層屬性
@@ -1474,10 +1472,10 @@ class ChromeExtensionController {
 
   async clickExportButton () {
     this.recordAPICall('popup.click.exportButton', {})
-    
+
     // 模擬匯出過程
     await this.simulateDelay(500)
-    
+
     // 取得當前儲存的資料進行匯出
     const storageData = await this.getStorageData()
     const exportData = {
@@ -1486,17 +1484,17 @@ class ChromeExtensionController {
       version: '0.9.34', // 測試期望的版本號
       source: 'chrome-extension-test'
     }
-    
+
     // 模擬檔案生成
     const exportedFile = {
       filename: `readmoo_export_${Date.now()}.json`,
       size: JSON.stringify(exportData).length,
       data: exportData
     }
-    
+
     return {
       success: true,
-      exportedFile: exportedFile,
+      exportedFile,
       bookCount: exportData.books.length,
       timestamp: new Date().toISOString()
     }
@@ -1522,10 +1520,10 @@ class ChromeExtensionController {
 
   async importDataFromFile (exportedFile, options = {}) {
     this.recordAPICall('popup.import.importDataFromFile', { options })
-    
+
     // 模擬匯入延遲
     await this.simulateDelay(800)
-    
+
     try {
       // 解析匯入檔案
       let importData
@@ -1547,16 +1545,16 @@ class ChromeExtensionController {
       const importBooks = importData.books || []
 
       let finalBooks = []
-      let conflicts = []
+      const conflicts = []
 
       switch (options.mode) {
         case 'merge':
           // 合併模式：保留兩邊的書籍，處理衝突
           const bookMap = new Map()
-          
+
           // 先添加現有書籍
           currentBooks.forEach(book => bookMap.set(book.id, book))
-          
+
           // 處理匯入書籍，檢查衝突
           importBooks.forEach(book => {
             if (bookMap.has(book.id)) {
@@ -1579,15 +1577,15 @@ class ChromeExtensionController {
               bookMap.set(book.id, book)
             }
           })
-          
+
           finalBooks = Array.from(bookMap.values())
           break
-          
+
         case 'replace':
           // 替換模式：完全使用匯入資料
           finalBooks = importBooks
           break
-          
+
         default:
           // 預設模式：添加新書籍，保留現有書籍
           const existingIds = new Set(currentBooks.map(book => book.id))
@@ -1605,7 +1603,7 @@ class ChromeExtensionController {
         importedCount: importBooks.length, // 測試期望的屬性名
         importedBookCount: importBooks.length,
         finalBookCount: finalBooks.length,
-        conflicts: conflicts,
+        conflicts,
         conflictCount: conflicts.length,
         mode: options.mode || 'add',
         timestamp: new Date().toISOString()
@@ -1621,7 +1619,7 @@ class ChromeExtensionController {
 
   async subscribeToExportProgress (callback) {
     this.recordAPICall('popup.export.subscribeToProgress', {})
-    
+
     // 模擬匯出進度事件
     const progressEvents = [
       { stage: 'preparing', progress: 0, message: '準備匯出資料...' },
@@ -1680,14 +1678,14 @@ class ChromeExtensionController {
   /**
    * 模擬並發操作
    */
-  async simulateConcurrentOperation(operationId, config = {}) {
+  async simulateConcurrentOperation (operationId, config = {}) {
     const { eventCount = 20, duration = 5000, eventTypes = ['DATA', 'UI', 'STORAGE'] } = config
-    
+
     this.log(`開始模擬並發操作 ${operationId}`)
-    
+
     const startTime = Date.now()
     const events = []
-    
+
     // 生成事件
     for (let i = 0; i < eventCount; i++) {
       const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)]
@@ -1695,7 +1693,7 @@ class ChromeExtensionController {
         id: `${operationId}_event_${i}`,
         type: `${eventType}.${operationId.toUpperCase()}`,
         timestamp: startTime + (i * (duration / eventCount)),
-        operationId: operationId,
+        operationId,
         payload: {
           index: i,
           total: eventCount
@@ -1703,13 +1701,13 @@ class ChromeExtensionController {
       }
       events.push(event)
     }
-    
+
     // 模擬並發處理
     const processingPromises = events.map(async (event, index) => {
       // 模擬處理時間
       const processingDelay = Math.random() * 100 + 20
       await this.simulateDelay(processingDelay)
-      
+
       return {
         eventId: event.id,
         processed: true,
@@ -1717,27 +1715,27 @@ class ChromeExtensionController {
         completedAt: Date.now()
       }
     })
-    
+
     const results = await Promise.all(processingPromises)
     const endTime = Date.now()
-    
+
     return {
       success: true,
-      operationId: operationId,
-      startTime: startTime,
-      endTime: endTime,
+      operationId,
+      startTime,
+      endTime,
       duration: endTime - startTime,
       totalEvents: eventCount,
       processedEvents: results.length,
       averageProcessingTime: results.reduce((sum, r) => sum + r.processingTime, 0) / results.length,
-      results: results
+      results
     }
   }
 
   /**
    * 配置重試策略
    */
-  async configureRetryStrategy(retryConfig) {
+  async configureRetryStrategy (retryConfig) {
     this.retryConfig = {
       maxRetries: retryConfig.maxRetries || 3,
       retryDelay: retryConfig.retryDelay || 1000,
@@ -1747,7 +1745,7 @@ class ChromeExtensionController {
     }
 
     this.log(`配置重試策略: ${JSON.stringify(this.retryConfig)}`)
-    
+
     return {
       success: true,
       retryConfig: this.retryConfig
@@ -1757,27 +1755,27 @@ class ChromeExtensionController {
   /**
    * 執行帶重試的操作
    */
-  async executeWithRetry(operation, context = 'generic operation') {
+  async executeWithRetry (operation, context = 'generic operation') {
     if (!this.retryConfig) {
       await this.configureRetryStrategy({}) // 使用預設配置
     }
 
     let lastError = null
-    
+
     for (let attempt = 1; attempt <= this.retryConfig.maxRetries; attempt++) {
       try {
         this.log(`嘗試執行 ${context} (第 ${attempt} 次)`)
         const result = await operation()
-        
+
         if (attempt > 1) {
           this.log(`${context} 在第 ${attempt} 次嘗試成功`)
         }
-        
+
         return result
       } catch (error) {
         lastError = error
         this.log(`${context} 第 ${attempt} 次嘗試失敗: ${error.message}`)
-        
+
         if (attempt < this.retryConfig.maxRetries) {
           const delay = this.calculateRetryDelay(attempt)
           this.log(`等待 ${delay}ms 後重試`)
@@ -1785,43 +1783,43 @@ class ChromeExtensionController {
         }
       }
     }
-    
+
     throw new Error(`Max retries (${this.retryConfig.maxRetries}) exceeded for ${context}: ${lastError.message}`)
   }
 
   /**
    * 計算重試延遲時間
    */
-  calculateRetryDelay(attempt) {
+  calculateRetryDelay (attempt) {
     const baseDelay = this.retryConfig.baseDelay
     let delay = baseDelay * Math.pow(this.retryConfig.backoffMultiplier, attempt - 1)
-    
+
     if (this.retryConfig.jitter) {
       // 添加隨機抖動（±25%）
       const jitterRange = delay * 0.25
       delay = delay + (Math.random() * jitterRange * 2 - jitterRange)
     }
-    
+
     return Math.round(delay)
   }
 
   /**
    * 模擬背景任務 - event-system-integration.test.js 需要的方法
    */
-  async simulateBackgroundTask(taskName) {
+  async simulateBackgroundTask (taskName) {
     this.log(`開始模擬背景任務: ${taskName}`)
-    
+
     // 模擬任務執行時間
     const executionTime = Math.random() * 500 + 200 // 200-700ms
     await this.simulateDelay(executionTime)
-    
+
     // 模擬事件發送
     if (this.eventEmitter) {
       this.eventEmitter.emit('BACKGROUND.TASK.STARTED', { taskName, startTime: Date.now() })
       await this.simulateDelay(executionTime * 0.8)
       this.eventEmitter.emit('BACKGROUND.TASK.COMPLETED', { taskName, duration: executionTime })
     }
-    
+
     return {
       success: true,
       taskName,
@@ -1833,17 +1831,17 @@ class ChromeExtensionController {
   /**
    * 模擬UI更新 - event-system-integration.test.js 需要的方法
    */
-  async simulateUIUpdates(updateCount) {
+  async simulateUIUpdates (updateCount) {
     this.log(`開始模擬 ${updateCount} 次UI更新`)
-    
+
     const results = []
-    
+
     for (let i = 0; i < updateCount; i++) {
       const updateType = ['DOM_UPDATE', 'STATE_CHANGE', 'RENDER_CYCLE', 'EVENT_HANDLER'][i % 4]
       const updateDelay = Math.random() * 50 + 10 // 10-60ms per update
-      
+
       await this.simulateDelay(updateDelay)
-      
+
       if (this.eventEmitter) {
         this.eventEmitter.emit('UI.UPDATE.TRIGGERED', {
           updateType,
@@ -1851,7 +1849,7 @@ class ChromeExtensionController {
           timestamp: Date.now()
         })
       }
-      
+
       results.push({
         updateType,
         updateIndex: i,
@@ -1859,7 +1857,7 @@ class ChromeExtensionController {
         success: true
       })
     }
-    
+
     return {
       success: true,
       totalUpdates: updateCount,
@@ -1872,20 +1870,20 @@ class ChromeExtensionController {
   /**
    * 模擬儲存操作 - event-system-integration.test.js 需要的方法
    */
-  async simulateStorageOperations(operationCount) {
+  async simulateStorageOperations (operationCount) {
     this.log(`開始模擬 ${operationCount} 次儲存操作`)
-    
+
     const operations = ['READ', 'write', 'update', 'delete']
     const results = []
-    
+
     for (let i = 0; i < operationCount; i++) {
       const operation = operations[i % operations.length]
       const operationDelay = Math.random() * 100 + 50 // 50-150ms per operation
       const key = `test_key_${i}`
       const value = `test_value_${i}_${Date.now()}`
-      
+
       await this.simulateDelay(operationDelay)
-      
+
       // 模擬實際的儲存操作
       switch (operation) {
         case 'read':
@@ -1903,7 +1901,7 @@ class ChromeExtensionController {
           this.state.storage.delete(key)
           break
       }
-      
+
       if (this.eventEmitter) {
         this.eventEmitter.emit('STORAGE.OPERATION.COMPLETED', {
           operation,
@@ -1912,7 +1910,7 @@ class ChromeExtensionController {
           timestamp: Date.now()
         })
       }
-      
+
       results.push({
         operation,
         key,
@@ -1921,7 +1919,7 @@ class ChromeExtensionController {
         success: true
       })
     }
-    
+
     return {
       success: true,
       totalOperations: operationCount,
@@ -1935,11 +1933,11 @@ class ChromeExtensionController {
   /**
    * 獲取系統狀態 - event-system-integration.test.js 需要的方法
    */
-  async getSystemState() {
+  async getSystemState () {
     // 模擬獲取當前系統狀態
     const storageData = await this.getStorageData()
     const currentProgress = this.state.storage.get('operationProgress') || 0.0
-    
+
     return {
       bookCount: storageData.books?.length || 0,
       operationProgress: currentProgress,
@@ -1961,10 +1959,10 @@ class ChromeExtensionController {
   /**
    * 從重放恢復操作 - event-system-integration.test.js 需要的方法
    */
-  async resumeFromReplay() {
+  async resumeFromReplay () {
     // 模擬從事件重放恢復後繼續操作
     this.recordAPICall('resumeFromReplay', {})
-    
+
     return {
       success: true,
       resumedOperations: 3,

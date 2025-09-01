@@ -65,7 +65,7 @@ describe('PopupCommunicationService 核心功能', () => {
         text: '測試模式',
         info: '測試環境 - 跳過背景服務檢查'
       })
-      
+
       // 在測試環境中不應該調用 Chrome API
       expect(mockChrome.runtime.sendMessage).not.toHaveBeenCalled()
     })
@@ -74,7 +74,7 @@ describe('PopupCommunicationService 核心功能', () => {
       // Given: 模擬非測試環境
       const originalNodeEnv = process.env.NODE_ENV
       process.env.NODE_ENV = 'development'
-      
+
       const PopupCommunicationService = require('../../../src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
@@ -89,7 +89,7 @@ describe('PopupCommunicationService 核心功能', () => {
 
       // Then: 正確處理超時
       expect(mockStatusManager.handleSyncFailure).toHaveBeenCalledWith('Background communication timeout')
-      
+
       // 恢復原始環境
       process.env.NODE_ENV = originalNodeEnv
     })
@@ -98,7 +98,7 @@ describe('PopupCommunicationService 核心功能', () => {
       // Given: 模擬非測試環境
       const originalNodeEnv = process.env.NODE_ENV
       process.env.NODE_ENV = 'development'
-      
+
       const PopupCommunicationService = require('../../../src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
@@ -113,7 +113,7 @@ describe('PopupCommunicationService 核心功能', () => {
 
       // Then: 錯誤被正確處理
       expect(mockStatusManager.handleSyncFailure).toHaveBeenCalledWith('Chrome API error: Extension context invalidated.')
-      
+
       // 恢復原始環境
       process.env.NODE_ENV = originalNodeEnv
     })

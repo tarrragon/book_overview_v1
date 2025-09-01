@@ -4,19 +4,19 @@
  */
 
 class DataConsistencyChecker {
-  constructor() {
+  constructor () {
     this.checkResults = []
   }
 
   /**
    * 檢查書籍資料一致性
    */
-  checkBookDataConsistency(sourceData, targetData) {
+  checkBookDataConsistency (sourceData, targetData) {
     const inconsistencies = []
 
     // 檢查基本欄位
     const requiredFields = ['id', 'title', 'authors']
-    
+
     for (const field of requiredFields) {
       if (sourceData[field] !== targetData[field]) {
         inconsistencies.push({
@@ -51,7 +51,7 @@ class DataConsistencyChecker {
   /**
    * 檢查陣列資料一致性
    */
-  checkArrayConsistency(sourceArray, targetArray) {
+  checkArrayConsistency (sourceArray, targetArray) {
     const result = {
       lengthMatch: sourceArray.length === targetArray.length,
       sourceLength: sourceArray.length,
@@ -63,7 +63,7 @@ class DataConsistencyChecker {
 
     // 檢查缺失項目
     for (const sourceItem of sourceArray) {
-      const found = targetArray.find(item => 
+      const found = targetArray.find(item =>
         JSON.stringify(item) === JSON.stringify(sourceItem)
       )
       if (!found) {
@@ -73,7 +73,7 @@ class DataConsistencyChecker {
 
     // 檢查多餘項目
     for (const targetItem of targetArray) {
-      const found = sourceArray.find(item => 
+      const found = sourceArray.find(item =>
         JSON.stringify(item) === JSON.stringify(targetItem)
       )
       if (!found) {
@@ -81,7 +81,7 @@ class DataConsistencyChecker {
       }
     }
 
-    result.consistent = result.missingInTarget.length === 0 && 
+    result.consistent = result.missingInTarget.length === 0 &&
                        result.extraInTarget.length === 0
 
     return result
@@ -90,14 +90,14 @@ class DataConsistencyChecker {
   /**
    * 獲取檢查歷史
    */
-  getCheckHistory() {
+  getCheckHistory () {
     return this.checkResults
   }
 
   /**
    * 重置檢查結果
    */
-  reset() {
+  reset () {
     this.checkResults = []
   }
 }

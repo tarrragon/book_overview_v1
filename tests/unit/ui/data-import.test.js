@@ -11,7 +11,7 @@ global.booksData = []
 global.renderTable = jest.fn()
 
 // 模擬 DOM 元素 - 需要在模擬元素定義後設定
-let mockDocument
+// let mockDocument - 移除未使用的變數
 
 // 模擬檔案輸入元素
 global.mockFileInput = {
@@ -70,14 +70,14 @@ function loadFromFile () {
       }
 
       // 載入資料
-      booksData.length = 0 // 清空現有資料
-      booksData.push(...jsonData)
+      global.booksData.length = 0 // 清空現有資料
+      global.booksData.push(...jsonData)
 
       // 隱藏檔案上傳介面
       document.getElementById('fileUploader').style.display = 'none'
 
       // 重新渲染表格
-      renderTable()
+      global.renderTable()
 
       alert(`成功載入 ${jsonData.length} 本書籍資料！`)
     } catch (error) {

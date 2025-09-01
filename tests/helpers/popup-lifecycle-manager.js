@@ -2,16 +2,16 @@
  * Popup Lifecycle Manager Test Helper
  */
 class PopupLifecycleManager {
-  constructor() {
+  constructor () {
     this.initialized = true
     this.popupStates = new Map()
   }
-  
-  managePopupLifecycle(popupId, action) {
+
+  managePopupLifecycle (popupId, action) {
     const currentState = this.popupStates.get(popupId) || 'closed'
     let newState = currentState
-    
-    switch(action) {
+
+    switch (action) {
       case 'open':
         newState = 'open'
         break
@@ -22,24 +22,24 @@ class PopupLifecycleManager {
         newState = 'minimized'
         break
     }
-    
+
     this.popupStates.set(popupId, newState)
-    return { 
+    return {
       popupId,
       previousState: currentState,
       newState,
-      success: true 
+      success: true
     }
   }
-  
-  validate() { 
-    return { 
-      success: true, 
-      managedPopups: this.popupStates.size 
-    } 
+
+  validate () {
+    return {
+      success: true,
+      managedPopups: this.popupStates.size
+    }
   }
-  
-  reset() {
+
+  reset () {
     this.popupStates.clear()
   }
 }

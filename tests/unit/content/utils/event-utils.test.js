@@ -51,7 +51,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
     if (EventUtils.clearAllListeners) {
       EventUtils.clearAllListeners()
     }
-    
+
     // 重置Chrome消息監聽器狀態 (通過重新載入模組)
     delete require.cache[require.resolve('../../../../src/content/utils/event-utils.js')]
     EventUtils = require('../../../../src/content/utils/event-utils.js')
@@ -223,7 +223,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
 
       // 確保chrome.runtime.onMessage.addListener的mock是被重置的
       chrome.runtime.onMessage.addListener.mockClear()
-      
+
       const result = EventUtils.onMessage('BACKGROUND_NOTIFICATION', mockHandler)
 
       expect(result).toEqual({
@@ -249,7 +249,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
       // 驗證訊息處理器被正確註冊
       expect(bookResult.success).toBe(true)
       expect(uiResult.success).toBe(true)
-      
+
       // 驗證handler ID被正確生成
       expect(typeof bookResult.handlerId).toBe('string')
       expect(typeof uiResult.handlerId).toBe('string')
@@ -671,7 +671,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
       // 簡化測試，確保不會超時
       const result1 = EventUtils.sendMessage({ type: 'ASYNC_TEST' })
       const result2 = EventUtils.sendMessageWithRetry({ type: 'RETRY_TEST' }, { maxRetries: 1 })
-      
+
       // 驗證函數返回了某種結果（不一定是Promise）
       expect(result1).toBeDefined()
       expect(result2).toBeDefined()

@@ -802,7 +802,7 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
         ...validationContext,
         url: 'https://readmoo.com/library/different' // 不同的 URL 避免快取
       }
-      
+
       mockPlatformDetectionService.detectPlatform.mockRejectedValueOnce(
         new Error('Test error')
       )

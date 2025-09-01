@@ -407,8 +407,8 @@ class PlatformDetectionService {
     try {
       const { DOM } = context
       const detectedFeatures = []
-      let confidence = 0
-      let platformId = 'UNKNOWN'
+      const confidence = 0
+      const platformId = 'UNKNOWN'
       const startTime = Date.now()
 
       // DOM分析超時處理
@@ -429,7 +429,7 @@ class PlatformDetectionService {
       let analysisResult
       try {
         analysisResult = await Promise.race([analysisPromise, timeoutPromise])
-        
+
         // 檢查是否超時（通過標誌和features檢測）
         if (timedOut || (analysisResult && analysisResult.isTimeout)) {
           detectedFeatures.push('dom_analysis_timeout')
@@ -478,7 +478,7 @@ class PlatformDetectionService {
           if (element) {
             matchCount++
             detectedFeatures.push(`dom_match_${selector.replace(/[^a-zA-Z0-9]/g, '_')}`)
-            
+
             // Meta標籤特殊處理
             if (selector.includes('meta')) {
               detectedFeatures.push('meta_tag_match')
@@ -539,7 +539,7 @@ class PlatformDetectionService {
    * @param {Object} context - 檢測上下文
    * @returns {Object} JavaScript分析結果
    */
-  analyzeJavaScriptObjects(context) {
+  analyzeJavaScriptObjects (context) {
     try {
       const { window } = context
       const detectedFeatures = []
@@ -577,9 +577,9 @@ class PlatformDetectionService {
    * @param {Object} context - 檢測上下文
    * @returns {Promise<Object>} API分析結果
    */
-  async fetchPlatformAPIWithTimeout(context) {
+  async fetchPlatformAPIWithTimeout (context) {
     if (!this.fetchPlatformAPI) return null
-    
+
     const TimeoutHandler = require('../../../utils/timeout-handler')
     const timeoutResult = { error: 'Network timeout' }
     return await TimeoutHandler.createTimeout(this.fetchPlatformAPI(context), 2000, timeoutResult)
@@ -590,7 +590,7 @@ class PlatformDetectionService {
    * @param {Object} context - 檢測上下文
    * @returns {Promise<Object>} API檢測結果
    */
-  async fetchPlatformAPI(context) {
+  async fetchPlatformAPI (context) {
     // 預設實作不進行網路請求
     return null
   }
@@ -646,18 +646,18 @@ class PlatformDetectionService {
     const allFeatures = candidates.reduce((features, candidate) => {
       return features.concat(candidate.features)
     }, [])
-    
+
     // 合併DOM metadata（如版本資訊）到最終metadata中
     let combinedMetadata = {}
     if (domAnalysis && domAnalysis.metadata) {
       combinedMetadata = { ...combinedMetadata, ...domAnalysis.metadata }
     }
-    
+
     // 添加DOM分析的特徵（即使DOM platform是UNKNOWN，如timeout等特徵仍需合併）
     if (domAnalysis && domAnalysis.features) {
       allFeatures.push(...domAnalysis.features)
     }
-    
+
     // 添加API分析的特徵（如網路timeout）
     if (apiAnalysis && apiAnalysis.features) {
       allFeatures.push(...apiAnalysis.features)
@@ -1028,12 +1028,12 @@ class PlatformDetectionService {
   async analyzeDOMFeaturesWithTimeout (context) {
     try {
       const result = await this.analyzeDOMFeatures(context)
-      
+
       // 模擬網路超時情況（基於測試需求）
       if (context.simulateTimeout) {
         result.features.push('network_timeout')
       }
-      
+
       return result
     } catch (error) {
       // 網路超時處理
@@ -1055,9 +1055,9 @@ class PlatformDetectionService {
       // 清理舊的快取項目，保留最近的一半
       const entries = Array.from(this.detectionCache.entries())
       const keepCount = Math.floor(entries.length / 2)
-      
+
       this.detectionCache.clear()
-      
+
       // 只保留最近的項目（基於時間戳）
       entries
         .sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0))

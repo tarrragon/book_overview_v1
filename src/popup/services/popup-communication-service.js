@@ -74,14 +74,14 @@ class PopupCommunicationService {
       const timeoutId = setTimeout(() => {
         const errorMsg = 'Background communication timeout'
         this.statusManager.handleSyncFailure(errorMsg)
-        
+
         // 提供使用者友好的操作指引
         this.statusManager.updateStatus({
           type: 'warning',
           text: '背景服務未回應',
           info: '請重新載入擴展或檢查擴展狀態。點擊右上角擴展圖示重試。'
         })
-        
+
         reject(new Error(errorMsg))
       }, 2000) // 改為 2 秒超時
 
@@ -92,7 +92,7 @@ class PopupCommunicationService {
         if (chrome.runtime.lastError) {
           const errorMsg = `Chrome API error: ${chrome.runtime.lastError.message}`
           this.statusManager.handleSyncFailure(errorMsg)
-          
+
           // 根據具體錯誤提供操作指引
           let userGuidance = '發生通訊錯誤'
           if (chrome.runtime.lastError.message.includes('Extension context invalidated')) {
@@ -100,13 +100,13 @@ class PopupCommunicationService {
           } else if (chrome.runtime.lastError.message.includes('receiving end does not exist')) {
             userGuidance = '背景服務未啟動，請重新載入擴展'
           }
-          
+
           this.statusManager.updateStatus({
             type: 'error',
             text: userGuidance,
             info: chrome.runtime.lastError.message
           })
-          
+
           reject(new Error(errorMsg))
           return
         }
@@ -114,13 +114,13 @@ class PopupCommunicationService {
         if (!response) {
           const errorMsg = 'No response from background service'
           this.statusManager.handleSyncFailure(errorMsg)
-          
+
           this.statusManager.updateStatus({
             type: 'error',
             text: '背景服務無回應',
             info: '請重新載入擴展，或檢查擴展是否已正確安裝'
           })
-          
+
           reject(new Error(errorMsg))
           return
         }

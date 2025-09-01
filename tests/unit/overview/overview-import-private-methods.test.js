@@ -339,7 +339,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
       test('應該通過空檔案（0大小）', async () => {
         // Given: 空檔案和 FileReader mock
         const emptyFile = createMockFile('', 'empty.json')
-        
+
         // Mock FileReader 回傳空內容
         global.FileReader = jest.fn().mockImplementation(() =>
           createAdvancedMockFileReader({ result: '' })

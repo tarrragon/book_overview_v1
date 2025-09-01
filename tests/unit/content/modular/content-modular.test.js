@@ -93,7 +93,7 @@ describe('Modular Content Script', () => {
     global.document = document
     global.MutationObserver = window.MutationObserver
     global.performance = window.performance || { now: () => Date.now() }
-    
+
     // 確保 document.body 正確設置
     if (!document.body) {
       document.body = document.createElement('body')
@@ -113,10 +113,10 @@ describe('Modular Content Script', () => {
       origin: 'https://readmoo.com',
       toString: () => 'https://readmoo.com/library'
     }
-    
+
     // 設置 global.location 供模組使用（因為 JSDOM 的 window.location 不可修改）
     global.location = locationObj
-    
+
     // 同時設置在 window 上，但主要依賴 global.location
     try {
       Object.defineProperty(window, 'location', {
@@ -132,14 +132,14 @@ describe('Modular Content Script', () => {
     global.globalThis = global
     globalThis.document = document
     globalThis.window = window
-    
+
     // 強制設置 location - 確保不被覆蓋
     Object.defineProperty(globalThis, 'location', {
       value: global.location,
       writable: true,
       configurable: true
     })
-    
+
     // 確保模組能取得正確的環境變數 - 設置到主要環境
     globalThis.performance = window.performance || { now: () => Date.now() }
     global.performance = globalThis.performance
@@ -169,14 +169,14 @@ describe('Modular Content Script', () => {
         origin: 'https://readmoo.com',
         toString: () => 'https://readmoo.com/library'
       }
-      
+
       // 在環境設定完成後載入模組
       const createPageDetector = require('../../../../src/content/detectors/page-detector')
-      
+
       console.log('Debug - window.location.hostname:', window.location.hostname)
       console.log('Debug - global.location.hostname:', global.location.hostname)
       console.log('Debug - globalThis.location.hostname:', globalThis.location.hostname)
-      
+
       const pageDetector = createPageDetector()
 
       const result = pageDetector.detectReadmooPage()
@@ -214,7 +214,7 @@ describe('Modular Content Script', () => {
         origin: 'https://readmoo.com',
         toString: () => 'https://readmoo.com/library'
       }
-      
+
       const createPageDetector = require('../../../../src/content/detectors/page-detector')
       const pageDetector = createPageDetector()
 
@@ -252,7 +252,7 @@ describe('Modular Content Script', () => {
       // 測試是否能檢測到 URL 變更
       const newPageType = pageDetector.detectPageType()
       expect(newPageType).toBe('shelf')
-      
+
       // 模擬變更回調（在實際環境中會由 MutationObserver 觸發）
       const changeInfo = {
         newUrl: global.location.href,
@@ -476,7 +476,7 @@ describe('Modular Content Script', () => {
     test('應該能夠檢查頁面準備狀態', async () => {
       // 確保 location 正確設置
       const originalGlobalLocation = globalThis.location
-      
+
       globalThis.location = {
         hostname: 'readmoo.com',
         href: 'https://readmoo.com/library',
@@ -489,7 +489,7 @@ describe('Modular Content Script', () => {
         origin: 'https://readmoo.com',
         toString: () => 'https://readmoo.com/library'
       }
-      
+
       const createBookDataExtractor = require('../../../../src/content/extractors/book-data-extractor')
       const createReadmooAdapter = require('../../../../src/content/adapters/readmoo-adapter')
       const extractor = createBookDataExtractor()
@@ -507,7 +507,7 @@ describe('Modular Content Script', () => {
         url: 'https://readmoo.com/library',
         timestamp: expect.any(Number)
       })
-      
+
       // 恢復原始設置
       if (originalGlobalLocation !== undefined) {
         globalThis.location = originalGlobalLocation
@@ -656,13 +656,13 @@ describe('Modular Content Script', () => {
 
       // 由於 JSDOM 環境限制，我們測試清理函數的存在和調用而不是實際觀察設置
       // 在真實環境中，onUrlChange 會設置 MutationObserver
-      
+
       // 測試清理方法是否存在
       expect(typeof pageDetector.destroy).toBe('function')
-      
+
       // 清理不應該拋出錯誤
       expect(() => pageDetector.destroy()).not.toThrow()
-      
+
       // 測試模組狀態重置
       const result = pageDetector.detectReadmooPage()
       expect(typeof result).toBe('object')

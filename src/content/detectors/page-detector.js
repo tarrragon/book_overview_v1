@@ -39,7 +39,7 @@ function createPageDetector () {
 
   // 動態取得 location 的輔助函數
   const getLocation = () => globalThis.location || window?.location || {}
-  
+
   const detector = {
     // 快取當前URL以偵測變更
     _cachedUrl: '',
@@ -51,8 +51,8 @@ function createPageDetector () {
     detectReadmooPage () {
       const location = getLocation()
       // Debug: 在測試環境中強制輸出到標準輸出
-      const locationInfo = { 
-        hostname: location.hostname, 
+      const locationInfo = {
+        hostname: location.hostname,
         href: location.href,
         origin: location.origin,
         globalThis: globalThis.location ? 'exists' : 'missing',
@@ -160,7 +160,7 @@ function createPageDetector () {
         const location = getLocation()
         const currentUrl = location.href || ''
         const cachedUrl = detector._cachedUrl || ''
-        
+
         if (currentUrl !== cachedUrl) {
           const oldUrl = cachedUrl
           const oldStatus = { isReadmooPage, pageType }
@@ -327,7 +327,7 @@ function createPageDetector () {
     _getCustomHealthStatus () {
       return {
         pageDetected: isReadmooPage,
-        pageType: pageType,
+        pageType,
         health: 'healthy'
       }
     }

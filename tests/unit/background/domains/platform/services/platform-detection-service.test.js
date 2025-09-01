@@ -414,7 +414,7 @@ describe('PlatformDetectionService', () => {
       mockDOM.querySelector = jest.fn()
         // Mock for READMOO selectors (4 calls) - all return null
         .mockReturnValueOnce(null) // .readmoo-header
-        .mockReturnValueOnce(null) // .readmoo-reader  
+        .mockReturnValueOnce(null) // .readmoo-reader
         .mockReturnValueOnce(null) // meta[name="readmoo-version"]
         .mockReturnValueOnce(null) // #readmoo-app
         // Mock for KINDLE selectors (4 calls) - first 3 return elements
@@ -464,9 +464,9 @@ describe('PlatformDetectionService', () => {
       // Mock querySelector for platform detection - return readmoo elements
       mockDOM.querySelector = jest.fn()
         .mockReturnValueOnce({ className: 'readmoo-header' }) // .readmoo-header
-        .mockReturnValueOnce({ className: 'readmoo-reader' }) // .readmoo-reader  
+        .mockReturnValueOnce({ className: 'readmoo-reader' }) // .readmoo-reader
         .mockReturnValue(null) // all other selectors return null
-        
+
       mockDOM.querySelectorAll = jest.fn()
         .mockReturnValueOnce([
           { className: 'readmoo-book' },
@@ -1008,7 +1008,7 @@ describe('PlatformDetectionService', () => {
       // Mock console.warn to avoid test output pollution
       const originalWarn = console.warn
       console.warn = jest.fn()
-      
+
       mockEventBus.emit.mockRejectedValue(new Error('Event emission failed'))
 
       const context = {
@@ -1021,7 +1021,7 @@ describe('PlatformDetectionService', () => {
 
       expect(result.platformId).toBe('READMOO')
       expect(console.warn).toHaveBeenCalled()
-      
+
       // Restore original console.warn
       console.warn = originalWarn
     })

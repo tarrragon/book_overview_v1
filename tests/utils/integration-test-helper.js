@@ -1,7 +1,7 @@
 /**
  * Integration Test Helper - Stage 3整合測試輔助工具
  * 專門為跨模組整合測試提供統一的測試環境和工具
- * 
+ *
  * 功能:
  * - 統一的測試環境初始化
  * - 跨模組通訊測試支援
@@ -18,7 +18,7 @@ const ChromeExtensionMocksEnhancedV2 = require('./chrome-extension-mocks-enhance
 const TestDataFactory = require('./test-data-factory')
 
 class IntegrationTestHelper {
-  constructor(config = {}) {
+  constructor (config = {}) {
     this.config = this._mergeConfig(config)
     this._initializeCore()
   }
@@ -26,7 +26,7 @@ class IntegrationTestHelper {
   /**
    * 合併配置
    */
-  _mergeConfig(userConfig) {
+  _mergeConfig (userConfig) {
     return {
       timeout: 10000,
       enablePerformanceMonitoring: true,
@@ -42,7 +42,7 @@ class IntegrationTestHelper {
   /**
    * 初始化核心組件
    */
-  _initializeCore() {
+  _initializeCore () {
     this.chromeMocks = new ChromeExtensionMocksEnhancedV2()
     this.testDataFactory = new TestDataFactory()
     this.testState = new Map()
@@ -52,7 +52,7 @@ class IntegrationTestHelper {
   /**
    * 初始化效能追蹤
    */
-  _initializePerformanceTracking() {
+  _initializePerformanceTracking () {
     this.performance = {
       startTime: null,
       endTime: null,
@@ -65,7 +65,7 @@ class IntegrationTestHelper {
   /**
    * 設定整合測試環境
    */
-  async setupIntegrationTest(testConfig = {}) {
+  async setupIntegrationTest (testConfig = {}) {
     const config = this._buildEffectiveConfig(testConfig)
     await this._performSetupSequence(config)
     return this._createTestContext(config)
@@ -74,14 +74,14 @@ class IntegrationTestHelper {
   /**
    * 建構有效配置
    */
-  _buildEffectiveConfig(testConfig) {
+  _buildEffectiveConfig (testConfig) {
     return { ...this.config, ...testConfig }
   }
 
   /**
    * 執行設定序列
    */
-  async _performSetupSequence(config) {
+  async _performSetupSequence (config) {
     this._startPerformanceTracking()
     await this._initializeTestEnvironment(config)
     this._setupModuleMocks(config)
@@ -91,10 +91,10 @@ class IntegrationTestHelper {
   /**
    * 開始效能追蹤
    */
-  _startPerformanceTracking() {
+  _startPerformanceTracking () {
     if (this.config.enablePerformanceMonitoring) {
       this.performance.startTime = performance.now()
-      
+
       if (this.config.enableMemoryTracking) {
         this.performance.memoryStart = this._getMemoryUsage()
       }
@@ -104,7 +104,7 @@ class IntegrationTestHelper {
   /**
    * 獲取記憶體使用量
    */
-  _getMemoryUsage() {
+  _getMemoryUsage () {
     if (typeof process !== 'undefined' && process.memoryUsage) {
       return process.memoryUsage()
     }
@@ -114,7 +114,7 @@ class IntegrationTestHelper {
   /**
    * 初始化測試環境
    */
-  async _initializeTestEnvironment(config) {
+  async _initializeTestEnvironment (config) {
     this._resetGlobalState()
     this._setupChromeAPIGlobal()
     this._initializeModuleStates(config.modules)
@@ -124,14 +124,14 @@ class IntegrationTestHelper {
   /**
    * 設定Chrome API全域變數
    */
-  _setupChromeAPIGlobal() {
+  _setupChromeAPIGlobal () {
     global.chrome = this.chromeMocks.createCompleteChromeAPI()
   }
 
   /**
    * 重置全域狀態
    */
-  _resetGlobalState() {
+  _resetGlobalState () {
     this._resetMockStates()
     this._resetTestStates()
     this._clearJestMocks()
@@ -140,21 +140,21 @@ class IntegrationTestHelper {
   /**
    * 重置Mock狀態
    */
-  _resetMockStates() {
+  _resetMockStates () {
     this.chromeMocks.resetAllStates()
   }
 
   /**
    * 重置測試狀態
    */
-  _resetTestStates() {
+  _resetTestStates () {
     this.testState.clear()
   }
 
   /**
    * 清理Jest Mocks
    */
-  _clearJestMocks() {
+  _clearJestMocks () {
     if (typeof jest !== 'undefined') {
       jest.clearAllMocks()
     }
@@ -163,7 +163,7 @@ class IntegrationTestHelper {
   /**
    * 初始化模組狀態
    */
-  _initializeModuleStates(modules) {
+  _initializeModuleStates (modules) {
     modules.forEach(moduleName => {
       this.testState.set(moduleName, {
         initialized: false,
@@ -180,7 +180,7 @@ class IntegrationTestHelper {
   /**
    * 等待初始化完成
    */
-  async _waitForInitialization() {
+  async _waitForInitialization () {
     // 簡單的延遲，確保所有非同步操作完成
     await new Promise(resolve => setTimeout(resolve, 10))
   }
@@ -188,7 +188,7 @@ class IntegrationTestHelper {
   /**
    * 設定模組Mock
    */
-  _setupModuleMocks(config) {
+  _setupModuleMocks (config) {
     config.modules.forEach(moduleName => {
       this._setupModuleSpecificMocks(moduleName, config)
     })
@@ -197,7 +197,7 @@ class IntegrationTestHelper {
   /**
    * 設定模組特定Mock
    */
-  _setupModuleSpecificMocks(moduleName, config) {
+  _setupModuleSpecificMocks (moduleName, config) {
     const setupActions = this._getModuleSetupActions()
     const setupAction = setupActions[moduleName]
     if (setupAction) setupAction(config)
@@ -206,18 +206,18 @@ class IntegrationTestHelper {
   /**
    * 獲取模組設置操作對應表
    */
-  _getModuleSetupActions() {
+  _getModuleSetupActions () {
     return {
-      'background': (config) => this._setupBackgroundMocks(config),
-      'content': (config) => this._setupContentScriptMocks(config),
-      'popup': (config) => this._setupPopupMocks(config)
+      background: (config) => this._setupBackgroundMocks(config),
+      content: (config) => this._setupContentScriptMocks(config),
+      popup: (config) => this._setupPopupMocks(config)
     }
   }
 
   /**
    * 設定Background Script Mock
    */
-  _setupBackgroundMocks(config) {
+  _setupBackgroundMocks (config) {
     this._setupServiceWorkerEnvironment()
     this._enhanceChromeRuntimeForBackground()
   }
@@ -225,7 +225,7 @@ class IntegrationTestHelper {
   /**
    * 設定Service Worker環境
    */
-  _setupServiceWorkerEnvironment() {
+  _setupServiceWorkerEnvironment () {
     global.self = global.self || {}
     global.self.registration = this._createServiceWorkerRegistration()
   }
@@ -233,7 +233,7 @@ class IntegrationTestHelper {
   /**
    * 創建Service Worker註冊物件
    */
-  _createServiceWorkerRegistration() {
+  _createServiceWorkerRegistration () {
     return {
       scope: '/',
       active: true
@@ -243,7 +243,7 @@ class IntegrationTestHelper {
   /**
    * 增強Background專用Chrome Runtime
    */
-  _enhanceChromeRuntimeForBackground() {
+  _enhanceChromeRuntimeForBackground () {
     if (!global.chrome.runtime) return
     global.chrome.runtime.onInstalled = this._createOnInstalledMock()
   }
@@ -251,14 +251,14 @@ class IntegrationTestHelper {
   /**
    * 創建安裝事件Mock
    */
-  _createOnInstalledMock() {
+  _createOnInstalledMock () {
     return { addListener: jest.fn() }
   }
 
   /**
    * 設定Content Script Mock
    */
-  _setupContentScriptMocks(config) {
+  _setupContentScriptMocks (config) {
     this._setupDOMEnvironment()
     this._setupWindowEnvironment()
   }
@@ -266,7 +266,7 @@ class IntegrationTestHelper {
   /**
    * 設定DOM環境
    */
-  _setupDOMEnvironment() {
+  _setupDOMEnvironment () {
     if (typeof document === 'undefined') {
       global.document = this._createDocumentMock()
     }
@@ -275,7 +275,7 @@ class IntegrationTestHelper {
   /**
    * 創建Document Mock
    */
-  _createDocumentMock() {
+  _createDocumentMock () {
     return {
       querySelector: jest.fn(),
       querySelectorAll: jest.fn(() => []),
@@ -287,7 +287,7 @@ class IntegrationTestHelper {
   /**
    * 設定Window環境
    */
-  _setupWindowEnvironment() {
+  _setupWindowEnvironment () {
     global.window = global.window || {}
     global.window.location = this._createLocationMock()
   }
@@ -295,7 +295,7 @@ class IntegrationTestHelper {
   /**
    * 創建Location Mock
    */
-  _createLocationMock() {
+  _createLocationMock () {
     return {
       href: 'https://readmoo.com/test',
       origin: 'https://readmoo.com'
@@ -305,7 +305,7 @@ class IntegrationTestHelper {
   /**
    * 設定Popup Mock
    */
-  _setupPopupMocks(config) {
+  _setupPopupMocks (config) {
     this._setupPopupWindow()
     this._setupPopupDOM()
   }
@@ -313,7 +313,7 @@ class IntegrationTestHelper {
   /**
    * 設定Popup Window
    */
-  _setupPopupWindow() {
+  _setupPopupWindow () {
     global.window = global.window || {}
     global.window.close = jest.fn()
   }
@@ -321,7 +321,7 @@ class IntegrationTestHelper {
   /**
    * 設定Popup DOM
    */
-  _setupPopupDOM() {
+  _setupPopupDOM () {
     global.document = global.document || {}
     global.document.getElementById = jest.fn()
     global.document.querySelector = jest.fn()
@@ -330,13 +330,13 @@ class IntegrationTestHelper {
   /**
    * 設定事件監聽器
    */
-  _setupEventListeners(config) {
+  _setupEventListeners (config) {
     // 全域錯誤處理
     this._setupErrorHandlers()
-    
+
     // 模組間通訊監聽
     this._setupInterModuleCommunication()
-    
+
     // 效能事件監聽
     if (config.enablePerformanceMonitoring) {
       this._setupPerformanceListeners()
@@ -346,10 +346,10 @@ class IntegrationTestHelper {
   /**
    * 設定錯誤處理器
    */
-  _setupErrorHandlers() {
+  _setupErrorHandlers () {
     global.addEventListener = global.addEventListener || jest.fn()
     global.removeEventListener = global.removeEventListener || jest.fn()
-    
+
     // 模擬錯誤捕獲
     this._errorHandler = (error) => {
       this._recordError('global', error)
@@ -359,7 +359,7 @@ class IntegrationTestHelper {
   /**
    * 記錄錯誤
    */
-  _recordError(moduleName, error) {
+  _recordError (moduleName, error) {
     const moduleState = this.testState.get(moduleName)
     if (moduleState) {
       moduleState.errors.push({
@@ -373,7 +373,7 @@ class IntegrationTestHelper {
   /**
    * 設定模組間通訊
    */
-  _setupInterModuleCommunication() {
+  _setupInterModuleCommunication () {
     // 設定chrome.runtime.sendMessage Mock
     if (global.chrome?.runtime?.sendMessage) {
       // 保存對原始方法的引用，但不呼叫以避免循環
@@ -391,7 +391,7 @@ class IntegrationTestHelper {
   /**
    * 記錄模組間訊息
    */
-  _recordInterModuleMessage(channel, message) {
+  _recordInterModuleMessage (channel, message) {
     this.testState.forEach((state, moduleName) => {
       state.events.push({
         type: 'inter-module-message',
@@ -405,7 +405,7 @@ class IntegrationTestHelper {
   /**
    * 設定效能監聽器
    */
-  _setupPerformanceListeners() {
+  _setupPerformanceListeners () {
     // Mock performance API if needed
     if (typeof performance === 'undefined') {
       global.performance = {
@@ -419,14 +419,14 @@ class IntegrationTestHelper {
   /**
    * 創建測試上下文
    */
-  _createTestContext(config) {
+  _createTestContext (config) {
     return {
       chrome: global.chrome,
       modules: this._createModuleHelpers(config.modules),
       data: this.testDataFactory,
       state: this.testState,
       performance: this.performance,
-      
+
       // 工具方法
       waitFor: this.waitFor.bind(this),
       simulateUserAction: this.simulateUserAction.bind(this),
@@ -438,9 +438,9 @@ class IntegrationTestHelper {
   /**
    * 創建模組輔助工具
    */
-  _createModuleHelpers(modules) {
+  _createModuleHelpers (modules) {
     const helpers = {}
-    
+
     modules.forEach(moduleName => {
       helpers[moduleName] = {
         getState: () => this.testState.get(moduleName),
@@ -449,14 +449,14 @@ class IntegrationTestHelper {
         getEventHistory: () => this.testState.get(moduleName)?.events || []
       }
     })
-    
+
     return helpers
   }
 
   /**
    * 記錄模組事件
    */
-  _recordModuleEvent(moduleName, event) {
+  _recordModuleEvent (moduleName, event) {
     const moduleState = this.testState.get(moduleName)
     if (moduleState) {
       moduleState.events.push({
@@ -469,26 +469,26 @@ class IntegrationTestHelper {
   /**
    * 等待條件成立
    */
-  async waitFor(condition, options = {}) {
+  async waitFor (condition, options = {}) {
     const { timeout = this.config.timeout, interval = 100 } = options
     const startTime = Date.now()
-    
+
     while (Date.now() - startTime < timeout) {
       if (await condition()) {
         return true
       }
       await new Promise(resolve => setTimeout(resolve, interval))
     }
-    
+
     throw new Error(`Condition not met within ${timeout}ms`)
   }
 
   /**
    * 模擬使用者操作
    */
-  async simulateUserAction(actionType, params = {}) {
+  async simulateUserAction (actionType, params = {}) {
     const startTime = performance.now()
-    
+
     let result
     switch (actionType) {
       case 'click':
@@ -503,7 +503,7 @@ class IntegrationTestHelper {
       default:
         throw new Error(`Unknown action type: ${actionType}`)
     }
-    
+
     this._recordPerformanceOperation('user-action', performance.now() - startTime)
     return result
   }
@@ -511,14 +511,14 @@ class IntegrationTestHelper {
   /**
    * 模擬點擊
    */
-  async _simulateClick(params) {
+  async _simulateClick (params) {
     const { selector, moduleName = 'popup' } = params
-    
+
     this._recordModuleEvent(moduleName, {
       type: 'user-click',
       selector
     })
-    
+
     // 模擬點擊延遲
     await new Promise(resolve => setTimeout(resolve, 10))
     return { clicked: true, selector }
@@ -527,24 +527,24 @@ class IntegrationTestHelper {
   /**
    * 模擬輸入
    */
-  async _simulateInput(params) {
+  async _simulateInput (params) {
     const { selector, value, moduleName = 'popup' } = params
-    
+
     this._recordModuleEvent(moduleName, {
       type: 'user-input',
       selector,
       value
     })
-    
+
     return { inputted: true, selector, value }
   }
 
   /**
    * 模擬導航
    */
-  async _simulateNavigation(params) {
+  async _simulateNavigation (params) {
     const { url, moduleName = 'content' } = params
-    
+
     // 安全地更新location，避免JSDOM navigation問題
     try {
       if (global.window?.location) {
@@ -557,19 +557,19 @@ class IntegrationTestHelper {
     } catch (error) {
       // 忽略JSDOM navigation錯誤，這在測試環境中是正常的
     }
-    
+
     this._recordModuleEvent(moduleName, {
       type: 'navigation',
       url
     })
-    
+
     return { navigated: true, url }
   }
 
   /**
    * 記錄效能操作
    */
-  _recordPerformanceOperation(operation, duration) {
+  _recordPerformanceOperation (operation, duration) {
     if (this.config.enablePerformanceMonitoring) {
       this.performance.operations.push({
         operation,
@@ -582,21 +582,21 @@ class IntegrationTestHelper {
   /**
    * 驗證模組通訊
    */
-  verifyModuleCommunication(fromModule, toModule, expectedMessages = []) {
+  verifyModuleCommunication (fromModule, toModule, expectedMessages = []) {
     const fromState = this.testState.get(fromModule)
     const toState = this.testState.get(toModule)
-    
+
     if (!fromState || !toState) {
       return {
         verified: false,
         error: 'Module state not found'
       }
     }
-    
-    const communicationEvents = fromState.events.filter(event => 
+
+    const communicationEvents = fromState.events.filter(event =>
       event.type === 'inter-module-message'
     )
-    
+
     return {
       verified: communicationEvents.length >= expectedMessages.length,
       sentMessages: communicationEvents.length,
@@ -608,14 +608,14 @@ class IntegrationTestHelper {
   /**
    * 獲取效能報告
    */
-  getPerformanceReport() {
+  getPerformanceReport () {
     if (!this.config.enablePerformanceMonitoring) {
       return { enabled: false }
     }
-    
+
     const endTime = performance.now()
     const totalDuration = this.performance.startTime ? endTime - this.performance.startTime : 0
-    
+
     const report = {
       enabled: true,
       totalDuration,
@@ -623,17 +623,17 @@ class IntegrationTestHelper {
       averageOperationTime: this._calculateAverageOperationTime(),
       memoryUsage: this._getMemoryReport()
     }
-    
+
     return report
   }
 
   /**
    * 計算平均操作時間
    */
-  _calculateAverageOperationTime() {
+  _calculateAverageOperationTime () {
     const { operations } = this.performance
     if (operations.length === 0) return 0
-    
+
     const totalTime = operations.reduce((sum, op) => sum + op.duration, 0)
     return totalTime / operations.length
   }
@@ -641,20 +641,20 @@ class IntegrationTestHelper {
   /**
    * 獲取記憶體報告
    */
-  _getMemoryReport() {
+  _getMemoryReport () {
     if (!this.config.enableMemoryTracking) {
       return { enabled: false }
     }
-    
+
     const currentMemory = this._getMemoryUsage()
     const startMemory = this.performance.memoryStart
-    
+
     return {
       enabled: true,
       start: startMemory,
       current: currentMemory,
       increase: currentMemory.heapUsed - startMemory.heapUsed,
-      percentage: startMemory.heapUsed > 0 
+      percentage: startMemory.heapUsed > 0
         ? ((currentMemory.heapUsed - startMemory.heapUsed) / startMemory.heapUsed * 100)
         : 0
     }
@@ -663,7 +663,7 @@ class IntegrationTestHelper {
   /**
    * 清理測試環境
    */
-  async cleanup() {
+  async cleanup () {
     if (this.config.autoCleanup) {
       await this._performCleanup()
     }
@@ -672,16 +672,16 @@ class IntegrationTestHelper {
   /**
    * 執行清理
    */
-  async _performCleanup() {
+  async _performCleanup () {
     // 重置Chrome API Mock
     this.chromeMocks.resetAllStates()
-    
+
     // 清理全域變數
     this._cleanupGlobalVariables()
-    
+
     // 清理測試狀態
     this.testState.clear()
-    
+
     // 停止效能追蹤
     this._stopPerformanceTracking()
   }
@@ -689,12 +689,12 @@ class IntegrationTestHelper {
   /**
    * 清理全域變數
    */
-  _cleanupGlobalVariables() {
+  _cleanupGlobalVariables () {
     // 清理可能的記憶體洩漏
     if (global.chrome) {
       delete global.chrome
     }
-    
+
     if (global.self?.registration) {
       delete global.self.registration
     }
@@ -703,7 +703,7 @@ class IntegrationTestHelper {
   /**
    * 停止效能追蹤
    */
-  _stopPerformanceTracking() {
+  _stopPerformanceTracking () {
     if (this.config.enablePerformanceMonitoring) {
       this.performance.endTime = performance.now()
     }
@@ -712,23 +712,23 @@ class IntegrationTestHelper {
   /**
    * 驗證測試環境狀態
    */
-  validateTestEnvironment() {
+  validateTestEnvironment () {
     const issues = []
-    
+
     // 驗證Chrome API Mock
     const mockValidation = this.chromeMocks.validateMockConsistency()
     if (!mockValidation.isValid) {
       issues.push(...mockValidation.issues)
     }
-    
+
     // 驗證模組狀態
     issues.push(...this._validateModuleStates())
-    
+
     // 驗證效能指標
     if (this.config.enablePerformanceMonitoring) {
       issues.push(...this._validatePerformanceMetrics())
     }
-    
+
     return {
       isValid: issues.length === 0,
       issues
@@ -738,37 +738,37 @@ class IntegrationTestHelper {
   /**
    * 驗證模組狀態
    */
-  _validateModuleStates() {
+  _validateModuleStates () {
     const issues = []
-    
+
     this.testState.forEach((state, moduleName) => {
       if (!state || typeof state !== 'object') {
         issues.push(`Module ${moduleName} has invalid state`)
       }
-      
+
       if (!Array.isArray(state.events)) {
         issues.push(`Module ${moduleName} events is not an array`)
       }
     })
-    
+
     return issues
   }
 
   /**
    * 驗證效能指標
    */
-  _validatePerformanceMetrics() {
+  _validatePerformanceMetrics () {
     const issues = []
-    
+
     if (this.performance.operations.some(op => op.duration > 1000)) {
       issues.push('Some operations took longer than 1 second')
     }
-    
+
     const memoryReport = this._getMemoryReport()
     if (memoryReport.enabled && memoryReport.percentage > 50) {
       issues.push('Memory usage increased by more than 50%')
     }
-    
+
     return issues
   }
 }

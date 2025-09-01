@@ -2,36 +2,36 @@
  * Injection Analyzer Test Helper
  */
 class InjectionAnalyzer {
-  constructor() {
+  constructor () {
     this.initialized = true
     this.injections = []
     this.lifecycleTracking = false
     this.lifecycleEvents = []
   }
-  
-  analyze(injectionData) {
+
+  analyze (injectionData) {
     this.injections.push(injectionData)
-    return { 
-      status: 'ok', 
+    return {
+      status: 'ok',
       successful: true,
-      injectionCount: this.injections.length 
+      injectionCount: this.injections.length
     }
   }
-  
-  validate() { 
-    return { success: true, validInjections: this.injections.length } 
+
+  validate () {
+    return { success: true, validInjections: this.injections.length }
   }
-  
-  async enableLifecycleTracking() {
+
+  async enableLifecycleTracking () {
     this.lifecycleTracking = true
     this.lifecycleEvents = []
-    
+
     // 模擬啟用生命周期追蹤
     this.recordLifecycleEvent('tracking_enabled', {
       timestamp: Date.now(),
       status: 'active'
     })
-    
+
     return {
       success: true,
       trackingEnabled: true,
@@ -39,32 +39,32 @@ class InjectionAnalyzer {
     }
   }
 
-  recordLifecycleEvent(eventType, data = {}) {
+  recordLifecycleEvent (eventType, data = {}) {
     if (this.lifecycleTracking) {
       this.lifecycleEvents.push({
         type: eventType,
         timestamp: Date.now(),
-        data: data
+        data
       })
     }
   }
 
-  getLifecycleEvents() {
+  getLifecycleEvents () {
     return this.lifecycleEvents
   }
 
-  reset() {
+  reset () {
     this.injections = []
     this.lifecycleEvents = []
     this.lifecycleTracking = false
   }
 
-  async cleanup() {
+  async cleanup () {
     this.reset()
     // 清理任何資源
   }
 
-  async getLifecycleAnalysis() {
+  async getLifecycleAnalysis () {
     // 測試中需要的生命週期分析結果
     return {
       phases: {

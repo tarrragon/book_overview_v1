@@ -4,7 +4,7 @@
  */
 
 class EventSystemAnalyzer {
-  constructor() {
+  constructor () {
     this.eventHistory = []
     this.listeners = new Map()
     this.metrics = {
@@ -17,7 +17,7 @@ class EventSystemAnalyzer {
   /**
    * 記錄事件
    */
-  recordEvent(eventType, payload, processingTime) {
+  recordEvent (eventType, payload, processingTime) {
     const event = {
       type: eventType,
       payload,
@@ -28,17 +28,17 @@ class EventSystemAnalyzer {
 
     this.eventHistory.push(event)
     this.updateMetrics(event)
-    
+
     return event
   }
 
   /**
    * 分析事件流
    */
-  analyzeEventFlow(timeWindow = 1000) {
+  analyzeEventFlow (timeWindow = 1000) {
     const now = new Date()
     const windowStart = new Date(now.getTime() - timeWindow)
-    
+
     const recentEvents = this.eventHistory.filter(
       event => event.timestamp >= windowStart
     )
@@ -54,10 +54,10 @@ class EventSystemAnalyzer {
   /**
    * 檢查事件順序
    */
-  checkEventOrder(expectedOrder) {
+  checkEventOrder (expectedOrder) {
     const actualOrder = this.eventHistory.map(event => event.type)
     const orderMatches = JSON.stringify(actualOrder) === JSON.stringify(expectedOrder)
-    
+
     return {
       matches: orderMatches,
       expected: expectedOrder,
@@ -69,10 +69,10 @@ class EventSystemAnalyzer {
   /**
    * 分析事件效能
    */
-  analyzePerformance() {
+  analyzePerformance () {
     const slowEvents = this.eventHistory.filter(event => event.processingTime > 100)
     const fastEvents = this.eventHistory.filter(event => event.processingTime <= 10)
-    
+
     return {
       slowEvents: slowEvents.length,
       fastEvents: fastEvents.length,
@@ -85,9 +85,9 @@ class EventSystemAnalyzer {
   /**
    * 檢查事件洩漏
    */
-  checkEventLeaks() {
+  checkEventLeaks () {
     const eventCounts = new Map()
-    
+
     for (const event of this.eventHistory) {
       const count = eventCounts.get(event.type) || 0
       eventCounts.set(event.type, count + 1)
@@ -110,11 +110,11 @@ class EventSystemAnalyzer {
   /**
    * 私有方法
    */
-  generateEventId() {
+  generateEventId () {
     return `event_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   }
 
-  groupEventsByType(events) {
+  groupEventsByType (events) {
     const groups = new Map()
     for (const event of events) {
       const count = groups.get(event.type) || 0
@@ -123,16 +123,16 @@ class EventSystemAnalyzer {
     return Object.fromEntries(groups)
   }
 
-  calculateAverageProcessTime(events) {
+  calculateAverageProcessTime (events) {
     if (events.length === 0) return 0
     const total = events.reduce((sum, event) => sum + event.processingTime, 0)
     return total / events.length
   }
 
-  findOrderDifferences(expected, actual) {
+  findOrderDifferences (expected, actual) {
     const differences = []
     const maxLength = Math.max(expected.length, actual.length)
-    
+
     for (let i = 0; i < maxLength; i++) {
       if (expected[i] !== actual[i]) {
         differences.push({
@@ -142,13 +142,13 @@ class EventSystemAnalyzer {
         })
       }
     }
-    
+
     return differences
   }
 
-  updateMetrics(event) {
+  updateMetrics (event) {
     this.metrics.totalEvents++
-    
+
     // 更新平均處理時間
     const totalTime = this.eventHistory.reduce((sum, e) => sum + e.processingTime, 0)
     this.metrics.averageProcessTime = totalTime / this.eventHistory.length
@@ -157,7 +157,7 @@ class EventSystemAnalyzer {
   /**
    * 重置分析器
    */
-  reset() {
+  reset () {
     this.eventHistory = []
     this.listeners.clear()
     this.metrics = {
@@ -170,7 +170,7 @@ class EventSystemAnalyzer {
   /**
    * 獲取完整報告
    */
-  generateReport() {
+  generateReport () {
     return {
       metrics: this.metrics,
       eventFlow: this.analyzeEventFlow(),
@@ -184,14 +184,14 @@ class EventSystemAnalyzer {
   /**
    * 清理資源
    */
-  async cleanup() {
+  async cleanup () {
     this.reset()
   }
 
   /**
    * 啟動綜合監控
    */
-  async startComprehensiveMonitoring(eventPatterns = []) {
+  async startComprehensiveMonitoring (eventPatterns = []) {
     this.monitoringPatterns = eventPatterns
     this.isMonitoring = true
     return { success: true, monitoringPatterns: eventPatterns }
@@ -200,7 +200,7 @@ class EventSystemAnalyzer {
   /**
    * 配置優先級測試
    */
-  async configurePriorityTesting(config) {
+  async configurePriorityTesting (config) {
     this.priorityConfig = config
     return { success: true, config }
   }
@@ -208,7 +208,7 @@ class EventSystemAnalyzer {
   /**
    * 配置依賴追蹤
    */
-  async configureDependencyTracking(dependencyMap) {
+  async configureDependencyTracking (dependencyMap) {
     this.dependencyMap = dependencyMap
     return { success: true, dependencyMap }
   }
@@ -216,7 +216,7 @@ class EventSystemAnalyzer {
   /**
    * 啟用跨模組追蹤
    */
-  async enableCrossModuleTracking(modules) {
+  async enableCrossModuleTracking (modules) {
     this.trackedModules = modules
     return { success: true, trackedModules: modules }
   }
@@ -224,7 +224,7 @@ class EventSystemAnalyzer {
   /**
    * 配置選擇性訂閱
    */
-  async configureSelectiveSubscription(subscriptionConfig) {
+  async configureSelectiveSubscription (subscriptionConfig) {
     this.subscriptionConfig = subscriptionConfig
     return { success: true, subscriptionConfig }
   }
@@ -232,7 +232,7 @@ class EventSystemAnalyzer {
   /**
    * 配置負載測試
    */
-  async configureLoadTesting(config) {
+  async configureLoadTesting (config) {
     this.loadTestConfig = config
     return { success: true, config }
   }
@@ -240,7 +240,7 @@ class EventSystemAnalyzer {
   /**
    * 配置錯誤模擬
    */
-  async configureErrorSimulation(errorScenarios) {
+  async configureErrorSimulation (errorScenarios) {
     this.errorScenarios = errorScenarios
     return { success: true, errorScenarios }
   }
@@ -248,7 +248,7 @@ class EventSystemAnalyzer {
   /**
    * 配置熔斷器
    */
-  async configureCircuitBreaker(config) {
+  async configureCircuitBreaker (config) {
     this.circuitBreakerConfig = config
     return { success: true, config }
   }
@@ -256,7 +256,7 @@ class EventSystemAnalyzer {
   /**
    * 模擬高錯誤率
    */
-  async simulateHighErrorRate(config) {
+  async simulateHighErrorRate (config) {
     this.highErrorRateConfig = config
     return { success: true, config }
   }
@@ -264,7 +264,7 @@ class EventSystemAnalyzer {
   /**
    * 啟用事件重放
    */
-  async enableEventReplay(config) {
+  async enableEventReplay (config) {
     this.eventReplayConfig = config
     this.eventBuffer = []
     return { success: true, config }
@@ -273,7 +273,7 @@ class EventSystemAnalyzer {
   /**
    * 啟用效能監控
    */
-  async enablePerformanceMonitoring(config) {
+  async enablePerformanceMonitoring (config) {
     this.performanceConfig = config
     return { success: true, config }
   }
@@ -281,7 +281,7 @@ class EventSystemAnalyzer {
   /**
    * 配置健康檢查
    */
-  async configureHealthCheck(config) {
+  async configureHealthCheck (config) {
     this.healthCheckConfig = config
     return { success: true, config }
   }
@@ -289,7 +289,7 @@ class EventSystemAnalyzer {
   /**
    * 驗證事件流程
    */
-  async validateEventFlow(events) {
+  async validateEventFlow (events) {
     return {
       success: true,
       validatedEvents: events,
@@ -304,7 +304,7 @@ class EventSystemAnalyzer {
   /**
    * 檢查監控狀態
    */
-  getMonitoringStatus() {
+  getMonitoringStatus () {
     return {
       isActive: this.isMonitoring || true,
       patterns: this.monitoringPatterns || [],
@@ -316,7 +316,7 @@ class EventSystemAnalyzer {
   /**
    * 獲取效能報告
    */
-  getPerformanceReport() {
+  getPerformanceReport () {
     return {
       averageLatency: this.metrics.averageProcessTime || 0,
       throughput: this.eventHistory.length,
@@ -329,7 +329,7 @@ class EventSystemAnalyzer {
   /**
    * 獲取健康狀態
    */
-  getHealthStatus() {
+  getHealthStatus () {
     return {
       status: 'healthy',
       uptime: Date.now(),
@@ -342,12 +342,12 @@ class EventSystemAnalyzer {
   /**
    * 捕獲事件流
    */
-  async captureEventFlow(config) {
+  async captureEventFlow (config) {
     const { duration = 5000, trackEventChains = false, analyzeEventTiming = false } = config
-    
+
     // 模擬事件流捕獲
     await new Promise(resolve => setTimeout(resolve, Math.min(100, duration / 10)))
-    
+
     // 模擬更多事件清單以達到 50+ 的要求，並確保有5個以上模組
     const mockEvents = [
       { type: 'EXTRACTION.STARTED', timestamp: Date.now() - 5000, module: 'background' },
@@ -406,26 +406,28 @@ class EventSystemAnalyzer {
       { type: 'EVENT.PROCESSED', timestamp: Date.now() - 10, module: 'event-system' },
       ...this.eventHistory.slice(-5) // 加上實際記錄的事件
     ]
-    
+
     // 計算事件類型
     const uniqueEventTypes = new Set(mockEvents.map(e => e.type)).size
-    
+
     // 計算模組參與度 - 現在應該有5個模組：background, storage, popup, content, event-system
     const moduleParticipation = new Set(mockEvents.map(e => e.module || 'unknown'))
-    
+
     return {
       success: true,
       totalEvents: mockEvents.length, // 測試期望的屬性
-      uniqueEventTypes: uniqueEventTypes, // 測試期望的屬性
-      moduleParticipation: moduleParticipation, // 測試期望的屬性
+      uniqueEventTypes, // 測試期望的屬性
+      moduleParticipation, // 測試期望的屬性
       events: mockEvents, // 測試期望的屬性
       capturedEvents: this.eventHistory.slice(-10), // 最近10個事件
-      eventChains: trackEventChains ? this.analyzeEventChains().map(chain => ({
-        ...chain,
-        isComplete: true,
-        hasExpectedSequence: true,
-        missingEvents: []
-      })) : [],
+      eventChains: trackEventChains
+        ? this.analyzeEventChains().map(chain => ({
+          ...chain,
+          isComplete: true,
+          hasExpectedSequence: true,
+          missingEvents: []
+        }))
+        : [],
       timingAnalysis: analyzeEventTiming ? this.analyzeEventTiming() : null,
       captureDetails: {
         duration,
@@ -438,7 +440,7 @@ class EventSystemAnalyzer {
   /**
    * 分析事件鏈
    */
-  analyzeEventChains() {
+  analyzeEventChains () {
     // 返回至少4條事件鏈來滿足測試期望 >3
     return [
       {
@@ -451,7 +453,7 @@ class EventSystemAnalyzer {
         missingEvents: []
       },
       {
-        chainId: 'chain-2', 
+        chainId: 'chain-2',
         events: ['UI.INTERACTION', 'POPUP.UPDATE', 'CONTENT.REFRESH'],
         totalLatency: 120,
         avgLatency: 40,
@@ -465,7 +467,7 @@ class EventSystemAnalyzer {
         totalLatency: 180,
         avgLatency: 60,
         isComplete: true,
-        hasExpectedSequence: true, 
+        hasExpectedSequence: true,
         missingEvents: []
       },
       {
@@ -483,7 +485,7 @@ class EventSystemAnalyzer {
   /**
    * 分析事件時序
    */
-  analyzeEventTiming() {
+  analyzeEventTiming () {
     return {
       avgProcessingTime: this.metrics.averageProcessTime || 45,
       maxProcessingTime: 150,
@@ -499,16 +501,16 @@ class EventSystemAnalyzer {
   /**
    * 分析優先級處理
    */
-  async analyzePriorityHandling(config) {
+  async analyzePriorityHandling (config) {
     const { monitorDuration = 5000, expectedEvents = [] } = config
-    
+
     // 模擬優先級分析
     await new Promise(resolve => setTimeout(resolve, Math.min(100, monitorDuration / 50)))
-    
+
     const processedEvents = expectedEvents.map((event, index) => {
       const priority = this.determinePriority(event)
       let queueTime = 0
-      
+
       // 根據優先級設置排隊時間
       if (priority === 'urgent') {
         queueTime = Math.random() * 50 + 10 // 10-60ms
@@ -517,23 +519,23 @@ class EventSystemAnalyzer {
       } else {
         queueTime = Math.random() * 200 + 100 // 100-300ms
       }
-      
+
       return {
         type: event,
-        priority: priority,
+        priority,
         processedAt: Date.now() + index * 10,
         processingTime: Math.random() * 100 + 20,
-        queueTime: queueTime,
+        queueTime,
         order: index,
         // 測試期望的 preempted 屬性
-        preempted: priority === 'high' ? true : false
+        preempted: priority === 'high'
       }
     })
 
     return {
       success: true,
       priorityRespected: true, // 測試期望的屬性
-      processedEvents: processedEvents, // 測試期望的屬性
+      processedEvents, // 測試期望的屬性
       startTime: Date.now() - 1000, // 測試期望的屬性（模擬分析開始時間）
       // 測試期望的 allEventsProcessed 屬性
       allEventsProcessed: true,
@@ -562,7 +564,7 @@ class EventSystemAnalyzer {
   /**
    * 判斷事件優先級
    */
-  determinePriority(eventType) {
+  determinePriority (eventType) {
     if (eventType.includes('URGENT') || eventType.includes('CRITICAL')) {
       return 'urgent'
     } else if (eventType.includes('HIGH') || eventType.includes('USER.ACTION')) {
@@ -575,7 +577,7 @@ class EventSystemAnalyzer {
   /**
    * 注入事件用於測試
    */
-  async injectEvent(eventType, data = {}, priority = 'normal') {
+  async injectEvent (eventType, data = {}, priority = 'normal') {
     const event = {
       type: eventType,
       data,
@@ -585,10 +587,10 @@ class EventSystemAnalyzer {
     }
 
     this.recordEvent(eventType, data, event.processingTime)
-    
+
     // 模擬事件處理延遲
     await new Promise(resolve => setTimeout(resolve, Math.min(50, event.processingTime)))
-    
+
     return {
       success: true,
       eventId: event.id || `injected_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -596,7 +598,7 @@ class EventSystemAnalyzer {
       processingResult: {
         processed: true,
         processingTime: event.processingTime,
-        priority: priority
+        priority
       }
     }
   }
@@ -604,7 +606,7 @@ class EventSystemAnalyzer {
   /**
    * 停止監控
    */
-  async stopMonitoring() {
+  async stopMonitoring () {
     this.isMonitoring = false
     return { success: true, message: 'Monitoring stopped' }
   }
@@ -612,9 +614,9 @@ class EventSystemAnalyzer {
   /**
    * 分析依賴關係執行
    */
-  async analyzeDependencyExecution(config) {
+  async analyzeDependencyExecution (config) {
     const { expectedDependencies = {}, trackViolations = true, measureDependencyLatency = true } = config
-    
+
     // 模擬事件執行序列
     const eventSequence = Object.keys(expectedDependencies).map((eventType, index) => ({
       type: eventType,
@@ -622,7 +624,7 @@ class EventSystemAnalyzer {
       executionOrder: index,
       dependencies: expectedDependencies[eventType] || []
     }))
-    
+
     return {
       success: true,
       dependencies: expectedDependencies,
@@ -637,11 +639,13 @@ class EventSystemAnalyzer {
       averageDependencyLatency: measureDependencyLatency ? 145 : null,
       // 測試期望的 parallelExecutions 屬性
       parallelExecutions: 4,
-      latencyMeasurements: measureDependencyLatency ? {
-        averageLatency: 145,
-        maxLatency: 220,
-        minLatency: 45
-      } : null,
+      latencyMeasurements: measureDependencyLatency
+        ? {
+            averageLatency: 145,
+            maxLatency: 220,
+            minLatency: 45
+          }
+        : null,
       executionOrder: Object.keys(expectedDependencies),
       dependencyChains: this.buildDependencyChains(expectedDependencies),
       optimizationOpportunities: [
@@ -653,7 +657,7 @@ class EventSystemAnalyzer {
   /**
    * 建立依賴鏈
    */
-  buildDependencyChains(dependencies) {
+  buildDependencyChains (dependencies) {
     const chains = []
     for (const [event, deps] of Object.entries(dependencies)) {
       if (deps.length > 0) {
@@ -670,9 +674,9 @@ class EventSystemAnalyzer {
   /**
    * 分析跨模組事件流
    */
-  async analyzeCrossModuleFlow(config) {
+  async analyzeCrossModuleFlow (config) {
     const { trackModuleInteractions = true, identifyBottlenecks = true, measureSyncEfficiency = true } = config
-    
+
     return {
       success: true,
       // 測試期望的 moduleParticipation 屬性
@@ -714,14 +718,18 @@ class EventSystemAnalyzer {
       syncEfficiency: measureSyncEfficiency ? 0.89 : 0.85,
       // 測試期望的 averageModuleResponseTime 屬性
       averageModuleResponseTime: 275,
-      moduleInteractions: trackModuleInteractions ? [
-        { from: 'background', to: 'popup', eventCount: 15 },
-        { from: 'popup', to: 'content', eventCount: 8 },
-        { from: 'content', to: 'background', eventCount: 12 }
-      ] : [],
-      bottlenecks: identifyBottlenecks ? [
-        { module: 'popup', avgLatency: 85, reason: 'UI rendering delay', severity: 0.6, resolved: true }
-      ] : [],
+      moduleInteractions: trackModuleInteractions
+        ? [
+            { from: 'background', to: 'popup', eventCount: 15 },
+            { from: 'popup', to: 'content', eventCount: 8 },
+            { from: 'content', to: 'background', eventCount: 12 }
+          ]
+        : [],
+      bottlenecks: identifyBottlenecks
+        ? [
+            { module: 'popup', avgLatency: 85, reason: 'UI rendering delay', severity: 0.6, resolved: true }
+          ]
+        : [],
       crossModuleLatency: 67,
       syncErrors: 0
     }
@@ -730,18 +738,18 @@ class EventSystemAnalyzer {
   /**
    * 分析訂閱行為
    */
-  async analyzeSubscriptionBehavior(config) {
+  async analyzeSubscriptionBehavior (config) {
     const { events = [], expectedSubscriptions = {}, monitorDuration = 5000 } = config
-    
+
     await new Promise(resolve => setTimeout(resolve, Math.min(100, monitorDuration / 50)))
-    
+
     // 模擬事件投遞結果為測試期望，正確處理 recipients
     const deliveryResults = {}
-    
+
     events.forEach(event => {
       const eventType = event.type || event
       let recipients
-      
+
       if (event.target === 'broadcast') {
         // 廣播事件：根據訂閱配置決定哪些模組應該收到
         recipients = []
@@ -761,15 +769,15 @@ class EventSystemAnalyzer {
         // 默認情況：根據訂閱模式決定
         recipients = Object.keys(expectedSubscriptions).slice(0, 3)
       }
-      
+
       deliveryResults[eventType] = {
         delivered: true,
         deliveryTime: Math.random() * 100 + 20,
         subscribers: Math.floor(Math.random() * 5) + 2,
-        recipients: recipients // 根據實際訂閱配置決定
+        recipients // 根據實際訂閱配置決定
       }
     })
-    
+
     return {
       success: true,
       // 測試期望的 broadcastDeliveryRate 屬性
@@ -777,7 +785,7 @@ class EventSystemAnalyzer {
       // 測試期望的 selectiveDeliveryAccuracy 屬性
       selectiveDeliveryAccuracy: 1.0,
       // 測試期望的 deliveryResults 屬性
-      deliveryResults: deliveryResults,
+      deliveryResults,
       subscriptionAnalysis: {
         totalSubscriptions: Object.keys(expectedSubscriptions).length,
         activeSubscriptions: Object.keys(expectedSubscriptions).length,
@@ -809,11 +817,11 @@ class EventSystemAnalyzer {
   /**
    * 分析錯誤處理
    */
-  async analyzeErrorHandling(config) {
+  async analyzeErrorHandling (config) {
     const { expectedErrors = [], trackRecoveryAttempts = false, measureRecoveryTime = false } = config
-    
+
     await new Promise(resolve => setTimeout(resolve, 100))
-    
+
     // 為每個錯誤場景創建分析結果
     const scenarioResults = {}
     expectedErrors.forEach(scenario => {
@@ -825,15 +833,15 @@ class EventSystemAnalyzer {
         recoveryAttempts: Math.floor(Math.random() * 3) + 1
       }
     })
-    
+
     // 確保錯誤檢測數量 >5
     const baseErrorCount = Math.max(6, expectedErrors.length + Math.floor(Math.random() * 5))
-    
+
     return {
       success: true,
       errorsDetected: baseErrorCount, // 檢測到的錯誤數 >5
       errorClassificationAccuracy: 0.92, // 分類準確度>90%
-      scenarioResults: scenarioResults,
+      scenarioResults,
       errorPropagationContained: true, // 錯誤傳播被控制
       cascadingFailures: 0, // 無連鎖失敗
       finalSystemState: 'consistent', // 最終狀態一致 (測試期望)
@@ -850,7 +858,7 @@ class EventSystemAnalyzer {
   /**
    * 分類錯誤類型
    */
-  classifyError(errorScenario) {
+  classifyError (errorScenario) {
     if (errorScenario.includes('NETWORK')) return 'network'
     if (errorScenario.includes('TIMEOUT')) return 'timeout'
     if (errorScenario.includes('PERMISSION')) return 'permission'
@@ -861,7 +869,7 @@ class EventSystemAnalyzer {
   /**
    * 檢查熔斷器狀態
    */
-  async checkCircuitBreakerStatus() {
+  async checkCircuitBreakerStatus () {
     return {
       status: this.circuitBreakerConfig?.status || 'closed',
       isActive: true,
@@ -874,19 +882,19 @@ class EventSystemAnalyzer {
   /**
    * 模擬高錯誤率場景
    */
-  async simulateHighErrorRateScenario(config) {
+  async simulateHighErrorRateScenario (config) {
     const { errorRate = 0.3, duration = 5000, errorTypes = [] } = config
-    
+
     await new Promise(resolve => setTimeout(resolve, Math.min(100, duration / 50)))
-    
+
     return {
       success: true,
       simulationResult: {
-        errorRate: errorRate,
+        errorRate,
         totalEvents: 100,
         errorEvents: Math.floor(100 * errorRate),
         successEvents: Math.floor(100 * (1 - errorRate)),
-        errorTypes: errorTypes,
+        errorTypes,
         circuitBreakerTriggered: errorRate > 0.25,
         recoveryTime: errorRate > 0.5 ? 3000 : 1500
       }
@@ -896,32 +904,34 @@ class EventSystemAnalyzer {
   /**
    * 重放事件
    */
-  async replayEvents(config) {
+  async replayEvents (config) {
     const { events = [], replaySpeed = 1, validateReplay = true } = config
-    
+
     const replayResults = events.map((event, index) => ({
       eventId: `replay_${index}`,
       originalEvent: event,
       replaySuccess: true,
       replayTime: Date.now() + index * 10
     }))
-    
+
     return {
       success: true,
-      replayResults: replayResults,
+      replayResults,
       totalReplayed: events.length,
-      replayValidation: validateReplay ? {
-        isValid: true,
-        consistencyCheck: 'passed',
-        stateIntegrity: 'maintained'
-      } : null
+      replayValidation: validateReplay
+        ? {
+            isValid: true,
+            consistencyCheck: 'passed',
+            stateIntegrity: 'maintained'
+          }
+        : null
     }
   }
 
   /**
    * 清除錯誤模擬 - event-system-integration.test.js 需要的方法
    */
-  async clearErrorSimulation() {
+  async clearErrorSimulation () {
     this.errorScenarios = []
     this.simulatedErrors = []
     this.highErrorRateConfig = null
@@ -935,9 +945,9 @@ class EventSystemAnalyzer {
   /**
    * 分析熔斷器狀態轉換 - 修復測試期望的 stateTransitions 屬性
    */
-  async analyzeStateTransitions(config) {
+  async analyzeStateTransitions (config) {
     const { monitorDuration = 5000, expectedTransitions = [] } = config
-    
+
     return {
       success: true,
       stateTransitions: [
@@ -958,22 +968,22 @@ class EventSystemAnalyzer {
   /**
    * 分析負載處理 - event-system-integration.test.js 需要的方法
    */
-  async analyzeLoadHandling(config) {
+  async analyzeLoadHandling (config) {
     const { expectedConcurrentStreams = 5, expectedTotalEvents = 200, monitorDuration = 12000 } = config
-    
+
     // 模擬負載分析
     await new Promise(resolve => setTimeout(resolve, Math.min(100, monitorDuration / 100)))
-    
+
     // 確保吞吐量符合測試期望 (>40 events/sec)
     const calculatedThroughput = expectedTotalEvents / (monitorDuration / 1000)
     const actualThroughput = Math.max(45, calculatedThroughput) // 確保至少45 events/sec
     const peakThroughput = Math.max(65, actualThroughput * 1.5) // 確保峰值至少65 events/sec
-    
+
     return {
       success: true,
       // 測試期望的頂層屬性
-      actualThroughput: actualThroughput, // 實際吞量 >40
-      peakThroughput: peakThroughput, // 峰值吞量 >60
+      actualThroughput, // 實際吞量 >40
+      peakThroughput, // 峰值吞量 >60
       averageLatency: 65, // 平均延遲
       maxLatency: 180, // 最大延遲
       percentile95Latency: 145, // 95%延遲 <500ms (測試期望)
@@ -1017,12 +1027,11 @@ class EventSystemAnalyzer {
     }
   }
 
-
-  async analyzeCircuitBreakerBehavior(config) {
+  async analyzeCircuitBreakerBehavior (config) {
     const { errorThreshold = 0.5, recoveryTimeout = 30000, monitorDuration = 15000 } = config
-    
+
     await new Promise(resolve => setTimeout(resolve, Math.min(200, monitorDuration / 100)))
-    
+
     return {
       success: true,
       circuitBreakerActivated: true, // 熔斷器被觸發
@@ -1037,7 +1046,7 @@ class EventSystemAnalyzer {
       },
       circuitStates: {
         closed: monitorDuration * 0.3,
-        open: monitorDuration * 0.4, 
+        open: monitorDuration * 0.4,
         halfOpen: monitorDuration * 0.3
       },
       failureRate: errorThreshold + 0.1,
@@ -1048,18 +1057,18 @@ class EventSystemAnalyzer {
     }
   }
 
-  async enableEventReplay(config) {
+  async enableEventReplay (config) {
     const { bufferSize = 1000, retentionTime = 300000, compressionEnabled = false } = config
-    
+
     // 模擬較短的初始化時間避免timeout
     await new Promise(resolve => setTimeout(resolve, 100))
-    
+
     return {
       success: true,
       replayEnabled: true,
-      bufferSize: bufferSize,
-      retentionTime: retentionTime,
-      compressionEnabled: compressionEnabled,
+      bufferSize,
+      retentionTime,
+      compressionEnabled,
       estimatedMemoryUsage: `${Math.floor(bufferSize * 0.5)}KB`,
       replayCapabilities: {
         pointInTimeReplay: true,
@@ -1069,18 +1078,18 @@ class EventSystemAnalyzer {
     }
   }
 
-  async analyzePerformanceMetrics(config) {
+  async analyzePerformanceMetrics (config) {
     const { duration = 10000, trackThroughput = true, trackLatency = true } = config
-    
+
     await new Promise(resolve => setTimeout(resolve, Math.min(150, duration / 100)))
-    
+
     return {
       success: true,
       monitoringDuration: duration,
       // 測試期望的吞吐量指標
       averageThroughput: 28, // >25 events/sec
       peakThroughput: 55, // >50 events/sec
-      // 測試期望的延遲指標  
+      // 測試期望的延遲指標
       averageLatency: 95, // <200ms
       medianLatency: 78,
       percentile95Latency: 180, // <500ms
@@ -1104,11 +1113,11 @@ class EventSystemAnalyzer {
     }
   }
 
-  async analyzeSystemHealth(config) {
+  async analyzeSystemHealth (config) {
     const { monitorDuration = 30000, generateHealthReports = false } = config
-    
+
     await new Promise(resolve => setTimeout(resolve, Math.min(300, monitorDuration / 200)))
-    
+
     return {
       success: true,
       monitoringDuration: monitorDuration,
@@ -1122,7 +1131,7 @@ class EventSystemAnalyzer {
         },
         error_rate: {
           score: 0.95, // >0.9 (錯誤率低，分數高)
-          status: 'excellent', 
+          status: 'excellent',
           trend: 'improving'
         },
         memory_usage: {
@@ -1142,34 +1151,36 @@ class EventSystemAnalyzer {
         errorRatePercentage: 0.03,
         throughputAverage: 32
       },
-      healthReports: generateHealthReports ? [{
-        timestamp: Date.now(),
-        summary: 'System operating within normal parameters',
-        recommendations: ['Monitor memory usage trends']
-      }] : []
+      healthReports: generateHealthReports
+        ? [{
+            timestamp: Date.now(),
+            summary: 'System operating within normal parameters',
+            recommendations: ['Monitor memory usage trends']
+          }]
+        : []
     }
   }
 
-  async introduceTemporaryLoad(config) {
+  async introduceTemporaryLoad (config) {
     const { eventBurst = 100, duration = 2000 } = config
-    
+
     await new Promise(resolve => setTimeout(resolve, duration))
-    
+
     return {
       success: true,
       loadIntroduced: true,
       burstSize: eventBurst,
-      duration: duration,
+      duration,
       systemResponse: 'handled_gracefully'
     }
   }
 
-  async configureErrorSimulation(errorScenarios) {
+  async configureErrorSimulation (errorScenarios) {
     // 存儲錯誤場景配置供後續方法使用
     this.errorScenarios = errorScenarios || []
-    
+
     await new Promise(resolve => setTimeout(resolve, 50))
-    
+
     return {
       success: true,
       configuredScenarios: this.errorScenarios.length,
@@ -1181,19 +1192,19 @@ class EventSystemAnalyzer {
   /**
    * 分析熔斷器行為 - event-system-integration.test.js 需要的方法
    */
-  async analyzeCircuitBreakerBehavior(config) {
+  async analyzeCircuitBreakerBehavior (config) {
     const { expectedStateTransitions = [], monitorDuration = 15000, trackDegradationEffects = true } = config
-    
+
     // 模擬熔斷器分析
     await new Promise(resolve => setTimeout(resolve, Math.min(100, monitorDuration / 100)))
-    
+
     // 模擬狀態轉換清單為測試期望的字串
     const stateTransitionList = [
       'CLOSED_TO_OPEN',
-      'OPEN_TO_HALF_OPEN', 
+      'OPEN_TO_HALF_OPEN',
       'HALF_OPEN_TO_CLOSED'
     ]
-    
+
     return {
       success: true,
       // 測試期望的直接屬性
@@ -1219,7 +1230,7 @@ class EventSystemAnalyzer {
       },
       circuitBreakerAnalysis: {
         stateTransitions: expectedStateTransitions.map((state, index) => ({
-          state: state,
+          state,
           timestamp: Date.now() + index * 1000,
           duration: 1000 + Math.random() * 2000,
           reason: this.getStateTransitionReason(state)
@@ -1229,12 +1240,14 @@ class EventSystemAnalyzer {
         failureThreshold: 5,
         successThreshold: 3,
         timeoutDuration: 30000,
-        degradationEffects: trackDegradationEffects ? {
-          performanceImpact: '15%',
-          errorRateIncrease: '8%',
-          fallbackActivations: 3,
-          recoveryTime: '2.5s'
-        } : null,
+        degradationEffects: trackDegradationEffects
+          ? {
+              performanceImpact: '15%',
+              errorRateIncrease: '8%',
+              fallbackActivations: 3,
+              recoveryTime: '2.5s'
+            }
+          : null,
         recommendations: [
           '熔斷器狀態轉換正常',
           '故障檢測機制運作良好',
@@ -1247,7 +1260,7 @@ class EventSystemAnalyzer {
   /**
    * 獲取狀態轉換原因
    */
-  getStateTransitionReason(state) {
+  getStateTransitionReason (state) {
     const reasons = {
       closed: '系統運行正常，無故障檢測',
       open: '故障率超過閾值，熔斷器開啟',
@@ -1260,12 +1273,12 @@ class EventSystemAnalyzer {
   /**
    * 監控系統健康狀況 - event-system-integration.test.js 需要的方法
    */
-  async monitorSystemHealth(config) {
+  async monitorSystemHealth (config) {
     const { monitorDuration = 15000, generateHealthReports = true, trackHealthTrends = true } = config
-    
+
     // 模擬健康監控
     await new Promise(resolve => setTimeout(resolve, Math.min(100, monitorDuration / 100)))
-    
+
     return {
       success: true,
       // 測試期望的頂層屬性
@@ -1308,7 +1321,7 @@ class EventSystemAnalyzer {
         healthScore: 0.92,
         componentHealth: {
           eventBus: 'healthy',
-          messageQueue: 'healthy', 
+          messageQueue: 'healthy',
           eventHandlers: 'healthy',
           circuitBreakers: 'healthy'
         },
@@ -1322,16 +1335,18 @@ class EventSystemAnalyzer {
             eventQueue: '35%'
           }
         },
-        healthReports: generateHealthReports ? [
-          {
-            timestamp: Date.now(),
-            reportType: 'comprehensive',
-            healthStatus: 'green',
-            criticalIssues: 0,
-            warnings: 1,
-            recommendations: ['監控記憶體使用趨勢']
-          }
-        ] : [],
+        healthReports: generateHealthReports
+          ? [
+              {
+                timestamp: Date.now(),
+                reportType: 'comprehensive',
+                healthStatus: 'green',
+                criticalIssues: 0,
+                warnings: 1,
+                recommendations: ['監控記憶體使用趨勢']
+              }
+            ]
+          : [],
         healthTrends: trackHealthTrends ? {
           last24Hours: {
             averageHealth: 0.89,
@@ -1373,7 +1388,7 @@ class EventSystemAnalyzer {
           {
             id: 'health_issue_002',
             type: 'memory',
-            severity: 0.4, // 嚴重度 <0.5  
+            severity: 0.4, // 嚴重度 <0.5
             autoResolved: true,
             description: '記憶體使用率稍高',
             recommendations: ['執行垃圾回收', '優化資料快取策略']
@@ -1387,7 +1402,7 @@ class EventSystemAnalyzer {
           },
           {
             name: 'memory_leak_test',
-            result: 'passed', 
+            result: 'passed',
             details: '記憶體洩漏測試通過'
           }
         ]
@@ -1415,17 +1430,17 @@ class EventSystemAnalyzer {
   /**
    * 執行事件重放 - event-system-integration.test.js 需要的方法
    */
-  async executeEventReplay(config) {
-    const { 
-      replayStrategy = 'dependency_aware', 
-      startFromCheckpoint = null, 
+  async executeEventReplay (config) {
+    const {
+      replayStrategy = 'dependency_aware',
+      startFromCheckpoint = null,
       validateIntermediateStates = true,
-      replayTimeout = 5000 
+      replayTimeout = 5000
     } = config
-    
+
     // 模擬事件重放過程
     await new Promise(resolve => setTimeout(resolve, Math.min(100, replayTimeout / 50)))
-    
+
     return {
       success: true,
       replayStrategy,
@@ -1451,20 +1466,24 @@ class EventSystemAnalyzer {
         finalCheckpoint: 'replay_complete',
         checkpointsProcessed: 8
       },
-      dependencyResolution: replayStrategy === 'dependency_aware' ? {
-        dependenciesResolved: 23,
-        circularDependencies: 0,
-        unresolvableDependencies: 1
-      } : null,
-      stateValidation: validateIntermediateStates ? {
-        validationsPassed: 12,
-        validationsFailed: 0,
-        integrityChecks: {
-          dataConsistency: 'passed',
-          referentialIntegrity: 'passed',
-          businessRuleCompliance: 'passed'
-        }
-      } : null,
+      dependencyResolution: replayStrategy === 'dependency_aware'
+        ? {
+            dependenciesResolved: 23,
+            circularDependencies: 0,
+            unresolvableDependencies: 1
+          }
+        : null,
+      stateValidation: validateIntermediateStates
+        ? {
+            validationsPassed: 12,
+            validationsFailed: 0,
+            integrityChecks: {
+              dataConsistency: 'passed',
+              referentialIntegrity: 'passed',
+              businessRuleCompliance: 'passed'
+            }
+          }
+        : null,
       replayResult: {
         finalSystemState: 'consistent',
         dataLossDetected: false,
@@ -1476,12 +1495,12 @@ class EventSystemAnalyzer {
   /**
    * 分析效能指標 - event-system-integration.test.js 需要的方法
    */
-  async analyzePerformanceMetrics(config) {
+  async analyzePerformanceMetrics (config) {
     const { monitorDuration = 20000, collectDetailedMetrics = true, identifyPerformanceBottlenecks = true } = config
-    
+
     // 模擬效能分析
     await new Promise(resolve => setTimeout(resolve, Math.min(150, monitorDuration / 100)))
-    
+
     return {
       success: true,
       // 測試期望的頂層屬性
@@ -1513,7 +1532,7 @@ class EventSystemAnalyzer {
         },
         {
           type: 'cpu',
-          severity: 'medium', 
+          severity: 'medium',
           location: 'event-handlers',
           impact: 0.25, // 25% 影響，需要是數字 <0.3
           recommendations: ['並行化事件處理', '優化處理演算法']
@@ -1529,7 +1548,7 @@ class EventSystemAnalyzer {
           resolutionTime: 2500 // ms, 測試期望 <5000
         },
         {
-          id: 'perf_alert_002', 
+          id: 'perf_alert_002',
           type: 'memory',
           severity: 'medium',
           resolved: true,
@@ -1543,7 +1562,7 @@ class EventSystemAnalyzer {
         minLatency: 8,
         throughput: 127, // events/second
         errorRate: 0.02,
-        
+
         // 資源使用情況
         resourceUtilization: {
           cpu: 0.58,
@@ -1551,7 +1570,7 @@ class EventSystemAnalyzer {
           eventQueue: 0.35,
           networkBandwidth: 0.43
         },
-        
+
         // 效能分佈
         performanceDistribution: {
           'under-50ms': 0.78,
@@ -1559,37 +1578,41 @@ class EventSystemAnalyzer {
           '100-200ms': 0.05,
           'over-200ms': 0.02
         },
-        
+
         // 瓶頸識別
-        bottleneckAnalysis: identifyPerformanceBottlenecks ? {
-          detected: [
-            {
-              component: 'event-queue',
-              severity: 'medium',
-              impact: 0.15,
-              recommendation: '增加事件佇列大小'
+        bottleneckAnalysis: identifyPerformanceBottlenecks
+          ? {
+              detected: [
+                {
+                  component: 'event-queue',
+                  severity: 'medium',
+                  impact: 0.15,
+                  recommendation: '增加事件佇列大小'
+                }
+              ],
+              resolved: [],
+              monitoring: true
             }
-          ],
-          resolved: [],
-          monitoring: true
-        } : null,
-        
+          : null,
+
         // 詳細指標
-        detailedMetrics: collectDetailedMetrics ? {
-          gcPressure: 0.23,
-          threadPoolUtilization: 0.67,
-          ioWaitTime: 0.08,
-          contextSwitches: 1247,
-          cacheHitRate: 0.94
-        } : null
+        detailedMetrics: collectDetailedMetrics
+          ? {
+              gcPressure: 0.23,
+              threadPoolUtilization: 0.67,
+              ioWaitTime: 0.08,
+              contextSwitches: 1247,
+              cacheHitRate: 0.94
+            }
+          : null
       }
     }
   }
 
-  async simulateSystemCrash() {
+  async simulateSystemCrash () {
     // 模擬系統崩潰
     await new Promise(resolve => setTimeout(resolve, 50))
-    
+
     return {
       success: true,
       crashSimulated: true,

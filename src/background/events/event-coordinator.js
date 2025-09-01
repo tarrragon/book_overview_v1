@@ -166,7 +166,7 @@ class EventCoordinator extends BaseModule {
       // 設定全域引用
       globalThis.eventBus = this.eventBusInstance
       globalThis.chromeBridge = this.chromeBridgeInstance
-      
+
       // 在Node.js測試環境中，也要設定global.chromeBridge
       if (typeof global !== 'undefined') {
         global.eventBus = this.eventBusInstance
@@ -190,7 +190,7 @@ class EventCoordinator extends BaseModule {
       // 提供降級方案
       globalThis.eventBus = null
       globalThis.chromeBridge = null
-      
+
       // 在Node.js測試環境中，也要清理global變數
       if (typeof global !== 'undefined') {
         global.eventBus = null
@@ -211,7 +211,7 @@ class EventCoordinator extends BaseModule {
 
     // 建立簡化 EventBus
     const eventBus = this.createSimpleEventBus()
-    
+
     // 檢查EventBus創建是否成功
     if (!eventBus) {
       const error = new Error('EventBus 初始化失敗 - 無法建立 EventBus 實例')

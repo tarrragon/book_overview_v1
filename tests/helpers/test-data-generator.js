@@ -282,9 +282,9 @@ class TestDataGenerator {
   /**
    * 生成特殊配置的測試書籍
    */
-  generateSpecialBook(type, customProperties = {}) {
+  generateSpecialBook (type, customProperties = {}) {
     const baseId = `special-${type}-${Date.now()}`
-    
+
     // 預設的特殊書籍模板
     const templates = {
       'completed-book': {
@@ -368,7 +368,7 @@ class TestDataGenerator {
   /**
    * 批次生成特殊書籍
    */
-  generateSpecialBooks(bookConfigs) {
+  generateSpecialBooks (bookConfigs) {
     return bookConfigs.map((config, index) => {
       const type = config.type || `custom-${index}`
       return this.generateSpecialBook(type, config)
@@ -378,10 +378,10 @@ class TestDataGenerator {
   /**
    * 生成具有指定進度分佈的書籍
    */
-  generateBooksWithProgress(count, scenarioName = 'default', options = {}) {
+  generateBooksWithProgress (count, scenarioName = 'default', options = {}) {
     const {
-      completedRatio = 0.3,    // 已完成書籍比例
-      averageProgress = 50      // 平均進度
+      completedRatio = 0.3, // 已完成書籍比例
+      averageProgress = 50 // 平均進度
     } = options
 
     const books = []
@@ -415,15 +415,15 @@ class TestDataGenerator {
     const totalTargetProgress = averageProgress * count
     const completedContribution = completedCount * 100
     const inProgressTotalNeeded = totalTargetProgress - completedContribution
-    
+
     // 生成進行中的書籍 - 精確控制以達到目標總平均
     const inProgressBooks = []
-    
+
     if (inProgressCount > 0) {
       // 計算進行中書籍需要的平均進度
       const inProgressAverage = inProgressTotalNeeded / inProgressCount
       const clampedAverage = Math.max(0, Math.min(99, inProgressAverage))
-      
+
       for (let i = 0; i < inProgressCount; i++) {
         if (i === inProgressCount - 1) {
           // 最後一本書：計算確切需要的進度值以達到精確總和
@@ -434,19 +434,19 @@ class TestDataGenerator {
         } else {
           // 其他書籍：使用計算出的平均值，允許小幅變化
           let progress = clampedAverage
-          
+
           // 對於多本書的情況，允許一些變化但確保能調整回來
           if (inProgressCount > 1) {
             const maxVariation = Math.min(3, Math.floor(Math.abs(clampedAverage) * 0.05)) // 更小的變化範圍
             const variation = this.randomInt(-maxVariation, maxVariation)
             progress = Math.max(1, Math.min(99, clampedAverage + variation))
           }
-          
+
           inProgressBooks.push(progress)
         }
       }
     }
-    
+
     // 創建進行中的書籍
     for (let i = 0; i < inProgressCount; i++) {
       books.push({

@@ -294,7 +294,7 @@ describe('Data Validation Service v2.0', () => {
         if (dataValidationService.validationCache) {
           dataValidationService.validationCache.clear()
         }
-        
+
         // 模擬一個會導致驗證失敗的書籍資料
         const invalidBookData = null // null資料會導致驗證失敗
 

@@ -25,13 +25,13 @@ global.chrome = require('jest-chrome').chrome
 
 // 模擬 DOM 環境變數（PageDetector 需要）
 global.globalThis = global
-global.location = { 
-  hostname: 'localhost', 
-  href: 'http://localhost/', 
-  origin: 'http://localhost' 
+global.location = {
+  hostname: 'localhost',
+  href: 'http://localhost/',
+  origin: 'http://localhost'
 }
-global.window = { 
-  location: global.location 
+global.window = {
+  location: global.location
 }
 
 describe('Background Service Worker Event System Integration', () => {
@@ -81,24 +81,23 @@ describe('Background Service Worker Event System Integration', () => {
     try {
       // 直接使用 BackgroundCoordinator 進行初始化
       const BackgroundCoordinator = require('../../../src/background/background-coordinator')
-      
+
       // 建立協調器實例並初始化
       const backgroundCoordinator = new BackgroundCoordinator()
       await backgroundCoordinator.initialize()
       await backgroundCoordinator.start()
-      
+
       // 設定全域變數模擬 background.js 行為
       if (backgroundCoordinator && backgroundCoordinator.eventBus) {
         global.eventBus = backgroundCoordinator.eventBus
       }
-      
+
       if (backgroundCoordinator && backgroundCoordinator.chromeBridge) {
         global.chromeBridge = backgroundCoordinator.chromeBridge
       }
-      
+
       // 保存協調器實例供其他測試使用
       global.backgroundCoordinator = backgroundCoordinator
-      
     } catch (error) {
       console.warn('Background 環境設定錯誤:', error.message)
       // 提供基本的 fallback
@@ -149,26 +148,26 @@ describe('Background Service Worker Event System Integration', () => {
     test('應該在 Service Worker 啟動時建立 EventBus 實例', async () => {
       // 直接使用 BackgroundCoordinator 來初始化 EventBus
       const BackgroundCoordinator = require('../../../src/background/background-coordinator')
-      
+
       // 清理之前的全域變數
       delete global.eventBus
-      
+
       // 模擬背景腳本的初始化過程
       const loadBackground = async () => {
         // 建立 BackgroundCoordinator 實例並初始化
         const backgroundCoordinator = new BackgroundCoordinator()
         await backgroundCoordinator.initialize()
         await backgroundCoordinator.start()
-        
+
         // 模擬background.js的全域設定
         if (backgroundCoordinator && backgroundCoordinator.eventBus) {
           global.eventBus = backgroundCoordinator.eventBus
         }
-        
+
         if (backgroundCoordinator && backgroundCoordinator.chromeBridge) {
           global.chromeBridge = backgroundCoordinator.chromeBridge
         }
-        
+
         // 驗證 EventBus 實例
         expect(global.eventBus).toBeDefined()
         expect(typeof global.eventBus.on).toBe('function')
@@ -504,18 +503,18 @@ describe('Background Service Worker Event System Integration', () => {
     test('應該處理 EventBus 初始化失敗', async () => {
       // 模擬初始化失敗情況 - 創建一個會失敗的EventCoordinator
       const originalEventBus = global.eventBus
-      
+
       // 清除控制台調用記錄
       global.console.error.mockClear()
-      
+
       try {
         // 測試重新初始化一個會失敗的EventCoordinator
         const EventCoordinator = require('../../../src/background/events/event-coordinator')
         const failingCoordinator = new EventCoordinator()
-        
+
         // 模擬EventCoordinator內部初始化失敗
         failingCoordinator.createSimpleEventBus = () => null
-        
+
         // 這應該觸發錯誤處理機制
         await failingCoordinator.initialize()
       } catch (error) {

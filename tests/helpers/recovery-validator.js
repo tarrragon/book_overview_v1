@@ -3,7 +3,7 @@
  */
 
 class RecoveryValidator {
-  constructor() {
+  constructor () {
     this.recoveryAttempts = []
     this.validationResults = []
   }
@@ -11,7 +11,7 @@ class RecoveryValidator {
   /**
    * 驗證錯誤恢復流程
    */
-  validateRecovery(errorType, recoveryStrategy, result) {
+  validateRecovery (errorType, recoveryStrategy, result) {
     const attempt = {
       errorType,
       recoveryStrategy,
@@ -21,7 +21,7 @@ class RecoveryValidator {
     }
 
     this.recoveryAttempts.push(attempt)
-    
+
     const validation = {
       isValid: this.isValidRecovery(attempt),
       message: this.getValidationMessage(attempt),
@@ -35,7 +35,7 @@ class RecoveryValidator {
   /**
    * 檢查恢復策略是否有效
    */
-  isValidRecovery(attempt) {
+  isValidRecovery (attempt) {
     // 基本驗證邏輯
     if (!attempt.recoveryStrategy || !attempt.result) {
       return false
@@ -48,7 +48,7 @@ class RecoveryValidator {
   /**
    * 生成驗證訊息
    */
-  getValidationMessage(attempt) {
+  getValidationMessage (attempt) {
     if (this.isValidRecovery(attempt)) {
       return `Recovery successful for ${attempt.errorType}`
     } else {
@@ -59,10 +59,10 @@ class RecoveryValidator {
   /**
    * 獲取恢復統計
    */
-  getRecoveryStats() {
+  getRecoveryStats () {
     const total = this.recoveryAttempts.length
     const successful = this.recoveryAttempts.filter(a => a.success).length
-    
+
     return {
       total,
       successful,
@@ -74,7 +74,7 @@ class RecoveryValidator {
   /**
    * 重置驗證器
    */
-  reset() {
+  reset () {
     this.recoveryAttempts = []
     this.validationResults = []
   }
@@ -82,7 +82,7 @@ class RecoveryValidator {
   /**
    * 計算資料雜湊值
    */
-  async calculateDataHash(data) {
+  async calculateDataHash (data) {
     if (!data || typeof data !== 'object') {
       return 'empty-hash'
     }
@@ -101,7 +101,7 @@ class RecoveryValidator {
   /**
    * 驗證資料完整性
    */
-  async validateDataIntegrity(originalHash, currentData) {
+  async validateDataIntegrity (originalHash, currentData) {
     const currentHash = await this.calculateDataHash(currentData)
     return {
       isValid: originalHash === currentHash,
@@ -114,7 +114,7 @@ class RecoveryValidator {
   /**
    * 驗證恢復時間
    */
-  validateRecoveryTime(startTime, maxDuration = 30000) {
+  validateRecoveryTime (startTime, maxDuration = 30000) {
     const endTime = Date.now()
     const duration = endTime - startTime
     return {
@@ -128,7 +128,7 @@ class RecoveryValidator {
   /**
    * 驗證錯誤分類
    */
-  validateErrorClassification(error, expectedType) {
+  validateErrorClassification (error, expectedType) {
     const detectedType = this.detectErrorType(error)
     return {
       isCorrect: detectedType === expectedType,
@@ -140,7 +140,7 @@ class RecoveryValidator {
   /**
    * 檢測錯誤類型（簡化版本）
    */
-  detectErrorType(error) {
+  detectErrorType (error) {
     if (error.message.includes('network') || error.message.includes('fetch')) {
       return 'NETWORK_ERROR'
     }

@@ -1,11 +1,11 @@
 /**
  * FileReaderFactory - FileReader 工廠模式
- * 
+ *
  * 負責功能：
  * - 統一 FileReader 實例建立
  * - 相容性檢查和處理
  * - 測試環境支援
- * 
+ *
  * 設計考量：
  * - 遵循 Five Lines 規則
  * - 單一責任原則：只負責建立 FileReader

@@ -275,13 +275,13 @@ function createChromeEventBridge () {
     destroy () {
       // 清理消息處理器
       messageHandlers.clear()
-      
+
       // 移除消息監聽器
       const listenerToRemove = bridge.messageListener || messageListener
       if (listenerToRemove && chrome.runtime && chrome.runtime.onMessage) {
         chrome.runtime.onMessage.removeListener(listenerToRemove)
       }
-      
+
       // 重置引用
       bridge.messageListener = null
       messageListener = null

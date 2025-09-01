@@ -119,13 +119,14 @@ class OverviewPageController extends EventHandlerClass {
     // 設置事件監聽器
     this.setupEventListeners()
   }
+
   // Getter 方法：為了向後相容，提供 books 屬性存取
-  get books() {
+  get books () {
     return this.currentBooks
   }
 
   // Setter 方法：統一書籍資料設定
-  set books(value) {
+  set books (value) {
     this.currentBooks = value
     this.filteredBooks = [...value] // 預設顯示全部書籍
   }
@@ -703,10 +704,10 @@ class OverviewPageController extends EventHandlerClass {
   _isJSONFile (file) {
     // 檢查副檔名
     const hasJsonExtension = file.name.toLowerCase().endsWith('.json')
-    
+
     // 檢查 MIME 類型
     const hasJsonMimeType = file.type === 'application/json'
-    
+
     return hasJsonExtension || hasJsonMimeType
   }
 
@@ -1109,7 +1110,7 @@ class OverviewPageController extends EventHandlerClass {
     if (this._isDirectArrayFormat(data)) return data
     if (this._isWrappedBooksFormat(data)) return data.books
     if (this._isMetadataWrapFormat(data)) return data.data
-    
+
     // 處理空 JSON 對象的情況
     if (data && typeof data === 'object' && Object.keys(data).length === 0) {
       return [] // 空對象回傳空陣列

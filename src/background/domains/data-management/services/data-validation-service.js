@@ -46,15 +46,15 @@ class DataValidationService {
     if (!eventBus) {
       throw new Error('EventBus is required')
     }
-    
+
     // 如果使用依賴注入模式（整合測試期望），驗證必要服務
     if (config && (config.validationRuleManager !== undefined || config.services)) {
       const services = { ...config.services, ...config }
-      
+
       if (config.validationRuleManager === null) {
         throw new Error('ValidationRuleManager is required')
       }
-      
+
       if (config.batchValidationProcessor === null) {
         throw new Error('BatchValidationProcessor is required')
       }
@@ -138,10 +138,10 @@ class DataValidationService {
     this._qualityAnalyzer = services.qualityAnalyzer || null
     this._cacheManager = services.cacheManager || null
     this._normalizationService = services.normalizationService || null
-    
+
     // 整合測試期望的服務名稱對應 (用於向後相容)
     this.validationRuleManager = services.validationRuleManager || this._validationEngine
-    this.batchValidationProcessor = services.batchValidationProcessor || this._batchProcessor  
+    this.batchValidationProcessor = services.batchValidationProcessor || this._batchProcessor
     this.dataNormalizationService = services.dataNormalizationService || this._normalizationService
     this.qualityAssessmentService = services.qualityAssessmentService || this._qualityAnalyzer
     this.cacheManagementService = services.cacheManagementService || this._cacheManager
@@ -195,12 +195,12 @@ class DataValidationService {
   async _performIntegratedValidation (books, platform, source, validationId, startTime) {
     // 檢查是否需要分批處理
     const batches = this._splitIntoBatches(books)
-    
+
     if (batches.length > 1) {
       // 使用批次分割邏輯
       return await this._performValidation(books, platform, source, validationId, startTime)
     }
-    
+
     // 單批次處理
     const performanceMetrics = this._initializePerformanceMetrics()
     const { cacheResults, uncachedBooks, processedBooks, validBooks, errors, warnings } = await this._checkCacheAndFilterUncachedBooks(books)
@@ -273,14 +273,14 @@ class DataValidationService {
       return this._calculateFinalResults(books, processedBooks, validBooks, errors, warnings, performanceMetrics, startTime, invalidBooksFromValidation)
     } catch (error) {
       // 檢查是否為系統級致命錯誤，這些應該被重新拋出
-      if (error.message.includes('heap out of memory') || 
+      if (error.message.includes('heap out of memory') ||
           error.message.includes('out of memory') ||
           error.message.includes('系統錯誤') ||
           error.message.includes('模擬驗證錯誤') ||
           error.message === '驗證逾時') {
         throw error
       }
-      
+
       // 其他驗證錯誤返回錯誤結果
       // 發送驗證失敗事件
       this.eventBus.emit('DATA.VALIDATION.FAILED', {
@@ -288,7 +288,7 @@ class DataValidationService {
         totalBooks: books.length,
         timestamp: new Date().toISOString()
       })
-      
+
       return this._handleValidationError(error, books, warnings, performanceMetrics, startTime)
     }
   }
@@ -310,11 +310,11 @@ class DataValidationService {
 
     for (let i = 0; i < uncachedBooks.length; i++) {
       const book = uncachedBooks[i]
-      
+
       // 跳過 null 或 undefined 的書籍
       if (!book || typeof book !== 'object') {
         invalidBooks.push({
-          book: book,
+          book,
           errors: [{
             type: 'INVALID_DATA',
             message: 'Book data is null or invalid',
@@ -323,9 +323,9 @@ class DataValidationService {
         })
         continue
       }
-      
+
       const isValidBook = await this._validateSingleBookInStage(book, platform, errors, warnings)
-      
+
       if (isValidBook) {
         processedBooks.push(book)
       } else {
@@ -337,7 +337,7 @@ class DataValidationService {
         }
         invalidBooks.push(bookWithErrors)
       }
-      
+
       // 發送批次處理進度事件
       if (totalBooks >= 10 && (i + 1) % Math.max(1, Math.floor(totalBooks / 10)) === 0) {
         this.eventBus.emit('DATA.VALIDATION.PROGRESS', {
@@ -360,7 +360,7 @@ class DataValidationService {
         return this._processValidationResult(validationResult, errors, warnings)
       } else {
         // 檢查是否為測試環境（通過檢查 validateSingleBook 是否被 Jest mock）
-        if (this.validateSingleBook._isMockFunction || 
+        if (this.validateSingleBook._isMockFunction ||
             (typeof jest !== 'undefined' && jest.isMockFunction && jest.isMockFunction(this.validateSingleBook))) {
           // 測試環境：調用可能被 mock 的 validateSingleBook
           const validation = await this.validateSingleBook(book, platform, 'stage_validation')
@@ -377,12 +377,12 @@ class DataValidationService {
       }
     } catch (error) {
       // 對於測試環境中的模擬錯誤，重新拋出讓上層處理
-      if (error.message.includes('模擬驗證錯誤') || 
-          error.message.includes('mock') || 
+      if (error.message.includes('模擬驗證錯誤') ||
+          error.message.includes('mock') ||
           error.message.includes('模擬')) {
         throw error
       }
-      
+
       await this._handleValidationServiceError(error, errors)
       return false
     }
@@ -399,7 +399,7 @@ class DataValidationService {
         type: 'MISSING_REQUIRED_FIELD',
         field: 'id',
         message: 'Book ID is required (id, ASIN, or kobo_id)',
-        bookId: bookId
+        bookId
       })
     }
 
@@ -465,7 +465,7 @@ class DataValidationService {
     // 執行品質檢查來生成警告
     const mockValidation = { book, warnings: bookWarnings }
     await this._performQualityChecks(mockValidation, {})
-    
+
     // 將錯誤和警告添加到全局列表
     errors.push(...bookErrors)
     warnings.push(...bookWarnings)
@@ -499,7 +499,7 @@ class DataValidationService {
 
     const normalizationStart = Date.now()
     let normalizedResults
-    
+
     if (this._normalizationService) {
       // 使用外部標準化服務
       normalizedResults = await this._executeNormalizationForBooks(processedBooks, warnings)
@@ -539,19 +539,19 @@ class DataValidationService {
             timestamp: new Date().toISOString()
           })
         }
-        
+
         // 使用內置的 normalizeBook 方法進行標準化
         const normalizedBook = await this.normalizeBook(book, platform)
         normalizedResults.push(normalizedBook)
       } catch (error) {
         // 檢查是否為系統級致命錯誤，這些應該被重新拋出
-        if (error.message.includes('heap out of memory') || 
+        if (error.message.includes('heap out of memory') ||
             error.message.includes('out of memory') ||
             error.message.includes('系統錯誤') ||
             error.message.includes('模擬驗證錯誤')) {
           throw error
         }
-        
+
         // 其他標準化失敗時記錄警告但不中斷流程
         warnings.push({
           type: 'NORMALIZATION_WARNING',
@@ -627,7 +627,7 @@ class DataValidationService {
     try {
       const qualityResult = await this._qualityAnalyzer.analyzeQuality(book, { platform })
       this._processQualityAnalysisResult(qualityResult, warnings)
-      
+
       // 發送品質警告事件
       if (qualityResult.issues && qualityResult.issues.length > 0) {
         this.eventBus.emit('DATA.QUALITY.WARNING', {
@@ -678,10 +678,10 @@ class DataValidationService {
 
   _calculateFinalResults (books, processedBooks, validBooks, errors, warnings, performanceMetrics, startTime, invalidBooks = []) {
     performanceMetrics.totalTime = Date.now() - startTime
-    
+
     // 添加效能相關警告
     this._addPerformanceWarnings(books, performanceMetrics, warnings)
-    
+
     const success = this._determineOverallSuccess(errors, validBooks, invalidBooks)
 
     // 發送效能報告事件
@@ -702,12 +702,12 @@ class DataValidationService {
     if (validBooks.length > 0) {
       return true
     }
-    
+
     // 如果沒有有效書籍但有無效書籍，就算失敗
     if (invalidBooks.length > 0) {
       return false
     }
-    
+
     // 如果沒有有效書籍且有錯誤，就算失敗
     const hasErrors = errors.length > 0
     return !hasErrors
@@ -716,7 +716,7 @@ class DataValidationService {
   _formatValidationResult (success, processedBooks, validBooks, errors, warnings, books, performanceMetrics, fromCache = false, invalidBooks = []) {
     const endTime = Date.now()
     const startTime = endTime - (performanceMetrics.totalTime || 0)
-    
+
     const result = {
       success,
       processed: processedBooks,
@@ -777,7 +777,7 @@ class DataValidationService {
   _generatePerformanceReport (totalBooks, performanceMetrics) {
     const totalTimeInSeconds = (performanceMetrics.totalTime || 0) / 1000
     const booksPerSecond = totalTimeInSeconds > 0 ? Math.round(totalBooks / totalTimeInSeconds) : totalBooks
-    
+
     return {
       booksPerSecond,
       totalTime: performanceMetrics.totalTime || 0,
@@ -980,12 +980,12 @@ class DataValidationService {
       const finalResult = await this._processValidationOptions(result, options, books.length, startTime)
 
       await this._emitValidationCompletedEvent(validationId, platform, source, finalResult, startTime)
-      
+
       // 發送資料準備同步事件 (整合測試期望)
       if (finalResult.success && finalResult.processed && finalResult.processed.length > 0) {
         await this._emitDataReadyForSyncEvent(validationId, finalResult.processed)
       }
-      
+
       return this._formatFinalValidationResult(validationId, platform, source, finalResult)
     } catch (error) {
       await this._emitValidationFailedEventMain(validationId, platform, source, error)
@@ -1015,7 +1015,7 @@ class DataValidationService {
       if (this._isUsingInjectedServices()) {
         return await this._executeWithInjectedServices(books, platform, source, validationId, startTime)
       }
-      
+
       // 否則使用原有邏輯
       if (books.length > this.config.batchSize && this._batchProcessor) {
         return await this._handleBatchProcessing(books, platform, source, options, validationId, startTime)
@@ -2501,7 +2501,6 @@ class DataValidationService {
     this.cacheTimestamps.set(cacheKey, Date.now())
   }
 
-
   /**
    * 更新配置 (整合測試期望的方法)
    * @param {Object} newConfig - 新的配置參數
@@ -2585,9 +2584,9 @@ class DataValidationService {
    * @returns {boolean}
    */
   _isUsingInjectedServices () {
-    return !!(this.validationRuleManager && 
-              this.batchValidationProcessor && 
-              this.dataNormalizationService && 
+    return !!(this.validationRuleManager &&
+              this.batchValidationProcessor &&
+              this.dataNormalizationService &&
               this.qualityAssessmentService)
   }
 
@@ -2598,7 +2597,7 @@ class DataValidationService {
   _addPerformanceWarnings (books, performanceMetrics, warnings) {
     const totalTime = performanceMetrics.totalTime || 0
     const bookCount = books.length
-    
+
     // 大陣列效能警告
     if (bookCount > 5000) {
       warnings.push({
@@ -2608,7 +2607,7 @@ class DataValidationService {
         suggestion: '考慮分批處理以改善效能'
       })
     }
-    
+
     // 處理時間過長警告
     if (totalTime > 2000) {
       warnings.push({
@@ -2618,7 +2617,7 @@ class DataValidationService {
         suggestion: '檢查資料複雜度或考慮啟用快取機制'
       })
     }
-    
+
     // 批次處理資訊
     if (bookCount > this.config.batchSize) {
       warnings.push({
@@ -2628,7 +2627,7 @@ class DataValidationService {
         suggestion: '分批處理有助於記憶體管理和效能優化'
       })
     }
-    
+
     // 記憶體管理資訊
     if (bookCount > 800) {
       warnings.push({
@@ -2646,7 +2645,7 @@ class DataValidationService {
    */
   async _executeWithInjectedServices (books, platform, source, validationId, startTime) {
     const performanceMetrics = this._initializePerformanceMetrics()
-    
+
     // 0. 快取檢查
     if (this.cacheManagementService) {
       const cacheKey = this.cacheManagementService.generateCacheKey(books, platform)
@@ -2655,33 +2654,33 @@ class DataValidationService {
         return cachedResult
       }
     }
-    
+
     // 1. 載入驗證規則
     await this.validationRuleManager.loadPlatformValidationRules(platform)
-    
+
     // 2. 執行批次驗證處理
     const batchResult = await this.batchValidationProcessor.processBatches(
       books, platform, source, validationId
     ) || { validBooks: books, invalidBooks: [], warnings: [], errors: [] }
-    
+
     // 3. 對有效書籍進行標準化
     const normalizedResult = await this.dataNormalizationService.normalizeBookBatch(
       batchResult.validBooks || [], platform
     ) || { normalizedBooks: [], errors: [] }
-    
+
     // 4. 計算品質分數
     const qualityScore = this.qualityAssessmentService.calculateQualityScore(
       batchResult.validBooks || normalizedResult.normalizedBooks || books
     )
-    
+
     // 5. 快取支援
     if (this.cacheManagementService) {
       const cacheKey = this.cacheManagementService.generateCacheKey(books, platform)
       this.cacheManagementService.setCacheValue(cacheKey, batchResult)
     }
-    
+
     const endTime = Date.now()
-    
+
     return {
       validationId,
       platform,
@@ -2715,7 +2714,6 @@ class DataValidationService {
       }
     }
   }
-
 }
 
 module.exports = DataValidationService

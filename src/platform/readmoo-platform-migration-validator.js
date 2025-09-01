@@ -206,14 +206,14 @@ class ReadmooPlatformMigrationValidator {
       if (cachedResult) {
         // 使用快取時仍需更新統計 (快取命中的驗證時間很短)
         this.updateValidationStats(cachedResult, Date.now() - startTime)
-        
+
         // 發送快取驗證結果事件
         await this.emitEvent('PLATFORM.READMOO.VALIDATION.RESULT', {
           result: cachedResult,
           cached: true,
           timestamp: Date.now()
         })
-        
+
         return cachedResult
       }
 
@@ -407,7 +407,7 @@ class ReadmooPlatformMigrationValidator {
     } catch (error) {
       // 區分可重試錯誤和不可重試錯誤
       const isRetryableError = this.isRetryableError(error)
-      
+
       if (isRetryableError) {
         // 重新拋出可重試錯誤，觸發上層重試機制
         throw error
@@ -999,7 +999,6 @@ class ReadmooPlatformMigrationValidator {
     return key.replace(/[^a-zA-Z0-9_]/g, '_').substring(0, 100)
   }
 
-
   /**
    * 快取驗證結果
    * @param {string} cacheKey - 快取鍵
@@ -1144,20 +1143,20 @@ class ReadmooPlatformMigrationValidator {
    */
   isRetryableError (error) {
     const errorMessage = error.message.toLowerCase()
-    
+
     // 明確不可重試的錯誤（優先級高於可重試判斷）
     const nonRetryableMessages = [
-      'network connection failed',  // 完全的網路連接失敗
+      'network connection failed', // 完全的網路連接失敗
       'invalid platform',
       'authentication failed',
       'permission denied'
     ]
-    
+
     // 檢查是否為明確不可重試的錯誤
     if (nonRetryableMessages.some(msg => errorMessage.includes(msg))) {
       return false
     }
-    
+
     // 可重試的錯誤
     const retryableMessages = [
       'temporary network error',
@@ -1168,9 +1167,9 @@ class ReadmooPlatformMigrationValidator {
       'ETIMEDOUT',
       'persistent network error'
     ]
-    
+
     const isRetryable = retryableMessages.some(msg => errorMessage.includes(msg))
-    
+
     return isRetryable
   }
 
@@ -1218,7 +1217,7 @@ class ReadmooPlatformMigrationValidator {
    * 獲取驗證器狀態
    * @returns {string} 驗證器狀態
    */
-  getValidatorStatus() {
+  getValidatorStatus () {
     return this.validationState ? 'initialized' : 'uninitialized'
   }
 
@@ -1226,7 +1225,7 @@ class ReadmooPlatformMigrationValidator {
    * 獲取支援的平台
    * @returns {Array} 支援的平台清單
    */
-  getSupportedPlatforms() {
+  getSupportedPlatforms () {
     return ['readmoo']
   }
 
@@ -1234,14 +1233,14 @@ class ReadmooPlatformMigrationValidator {
    * 獲取驗證統計
    * @returns {Object} 驗證統計資訊
    */
-  getValidationStats() {
+  getValidationStats () {
     return this.validationStats
   }
 
   /**
    * 清理驗證器狀態
    */
-  cleanup() {
+  cleanup () {
     // 清理邏輯
     if (this.validationState) {
       this.validationState.active = false
@@ -1254,14 +1253,14 @@ class ReadmooPlatformMigrationValidator {
    * @param {Object} config - 配置物件
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateConfiguration(platform, config = {}) {
+  async validateConfiguration (platform, config = {}) {
     // Layer 1 配置驗證實作
     const configValidation = {
       layerName: 'configuration',
       isValid: true,
       validatedItems: [
         'platform_config',
-        'event_mappings', 
+        'event_mappings',
         'api_endpoints',
         'extraction_rules'
       ],
@@ -1282,7 +1281,7 @@ class ReadmooPlatformMigrationValidator {
    * @param {string} platform - 平台名稱
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateEventMappings(platform) {
+  async validateEventMappings (platform) {
     return {
       isValid: true,
       mappingCount: 15,
@@ -1295,7 +1294,7 @@ class ReadmooPlatformMigrationValidator {
    * @param {string} eventName - 事件名稱
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateEventConversion(eventName) {
+  async validateEventConversion (eventName) {
     return {
       legacyEvent: eventName,
       modernEvent: `V2.${eventName}`,
@@ -1310,7 +1309,7 @@ class ReadmooPlatformMigrationValidator {
    * @param {Object} data - 事件資料
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateDualTrackHandling(eventName, data) {
+  async validateDualTrackHandling (eventName, data) {
     return {
       legacyHandled: true,
       modernHandled: true,
@@ -1324,7 +1323,7 @@ class ReadmooPlatformMigrationValidator {
    * @param {string} eventName - 事件名稱
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateEventInference(eventName) {
+  async validateEventInference (eventName) {
     return {
       originalEvent: eventName,
       inferredEvent: `INFERRED.${eventName}`,
@@ -1340,29 +1339,29 @@ class ReadmooPlatformMigrationValidator {
    * @param {Object} data - 資料物件
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateDataCollection(data, expectedCount = null) {
+  async validateDataCollection (data, expectedCount = null) {
     // 如果有兩個參數（data 和 expectedCount），處理批量驗證
     if (arguments.length === 2) {
       // 執行原本的兩個參數版本邏輯
       const dataArray = Array.isArray(data) ? data : [data]
       const validationResults = []
-      
+
       for (const item of dataArray) {
         const result = await this.validateSingleDataIntegrity(item)
         validationResults.push(result)
       }
-      
+
       const validItems = validationResults.filter(r => r.dataValid)
       const invalidItems = validationResults.filter(r => !r.dataValid)
-      
+
       return {
         dataValid: validItems.length === dataArray.length,
         totalItems: dataArray.length,
         validItems: validItems.length,
         invalidItems: invalidItems.length,
-        expectedCount: expectedCount,
+        expectedCount,
         countMatches: expectedCount ? dataArray.length === expectedCount : true,
-        validationResults: validationResults
+        validationResults
       }
     }
 
@@ -1373,7 +1372,7 @@ class ReadmooPlatformMigrationValidator {
   /**
    * 驗證單個資料項目的完整性
    */
-  async validateSingleDataIntegrity(data) {
+  async validateSingleDataIntegrity (data) {
     const requiredFields = ['bookId', 'title', 'author', 'progress']
     const missingFields = []
     const dataTypes = {}
@@ -1412,7 +1411,7 @@ class ReadmooPlatformMigrationValidator {
    * @param {Object} context - 驗證上下文
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateWorkflow(workflow, context) {
+  async validateWorkflow (workflow, context) {
     return {
       workflowName: workflow,
       isComplete: true,
@@ -1430,7 +1429,7 @@ class ReadmooPlatformMigrationValidator {
    * @param {Array} modules - 模組清單
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateCrossModuleCommunication(modules) {
+  async validateCrossModuleCommunication (modules) {
     const communicationMatrix = {}
     modules.forEach(module => {
       communicationMatrix[module] = { reachable: true, responseTime: 10 }
@@ -1450,7 +1449,7 @@ class ReadmooPlatformMigrationValidator {
    * @param {string} eventType - 事件類型
    * @returns {Promise<Object>} 驗證結果
    */
-  async validatePerformance(eventType) {
+  async validatePerformance (eventType) {
     const baselineTimes = {
       extraction: 100,
       storage: 50,
@@ -1471,7 +1470,7 @@ class ReadmooPlatformMigrationValidator {
    * 驗證記憶體使用量
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateMemoryUsage() {
+  async validateMemoryUsage () {
     const beforeMigration = 100
     const afterMigration = 110
     const increase = afterMigration - beforeMigration
@@ -1490,7 +1489,7 @@ class ReadmooPlatformMigrationValidator {
    * @param {number} concurrentEvents - 並發事件數量
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateConcurrencyHandling(concurrentEvents) {
+  async validateConcurrencyHandling (concurrentEvents) {
     return {
       totalEvents: concurrentEvents,
       successfulEvents: concurrentEvents,
@@ -1507,7 +1506,7 @@ class ReadmooPlatformMigrationValidator {
    * @param {Object} context - 驗證上下文
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateUserJourney(userJourney, context) {
+  async validateUserJourney (userJourney, context) {
     const stepResults = userJourney.map(step => ({ step, success: true }))
 
     return {
@@ -1522,7 +1521,7 @@ class ReadmooPlatformMigrationValidator {
    * @param {string} scenario - 錯誤情境
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateErrorHandling(scenario) {
+  async validateErrorHandling (scenario) {
     return {
       scenario,
       errorDetected: true,
@@ -1539,7 +1538,7 @@ class ReadmooPlatformMigrationValidator {
    * @param {Object} options - 選項
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateWithRetry(testName, options = {}) {
+  async validateWithRetry (testName, options = {}) {
     const maxRetries = options.maxRetries || 3
     return {
       testName,
@@ -1557,7 +1556,7 @@ class ReadmooPlatformMigrationValidator {
    * @param {string} testName - 測試名稱
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateWithCache(testName) {
+  async validateWithCache (testName) {
     // 模擬快取邏輯
     if (!this._cacheStore) {
       this._cacheStore = new Map()
@@ -1588,7 +1587,7 @@ class ReadmooPlatformMigrationValidator {
    * @param {Array} errors - 錯誤清單
    * @returns {Promise<Object>} 分類結果
    */
-  async categorizeErrors(errors) {
+  async categorizeErrors (errors) {
     const categorized = {
       critical: [],
       warning: [],
@@ -1616,7 +1615,7 @@ class ReadmooPlatformMigrationValidator {
    * 取得詳細統計資料
    * @returns {Object} 詳細統計
    */
-  getDetailedStats() {
+  getDetailedStats () {
     return {
       overview: {
         totalValidations: this.validationStats.totalValidations,
@@ -1647,7 +1646,7 @@ class ReadmooPlatformMigrationValidator {
    * 取得即時監控數據
    * @returns {Object} 即時監控數據
    */
-  getRealtimeMonitoring() {
+  getRealtimeMonitoring () {
     return {
       currentValidations: [],
       systemLoad: 0.3,
@@ -1661,7 +1660,7 @@ class ReadmooPlatformMigrationValidator {
    * 註冊自訂指標
    * @param {Object} metric - 自訂指標
    */
-  registerCustomMetric(metric) {
+  registerCustomMetric (metric) {
     if (!this._customMetrics) {
       this._customMetrics = []
     }
@@ -1673,7 +1672,7 @@ class ReadmooPlatformMigrationValidator {
    * @param {Object} data - 驗證數據
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateCustomMetrics(data) {
+  async validateCustomMetrics (data) {
     const customMetricResults = []
 
     if (this._customMetrics) {
@@ -1700,7 +1699,7 @@ class ReadmooPlatformMigrationValidator {
    * @param {*} input - 輸入數據
    * @returns {Promise<Object>} 驗證結果
    */
-  async validateWithErrorHandling(input) {
+  async validateWithErrorHandling (input) {
     if (input === null || input === undefined) {
       return {
         success: false,
@@ -1721,7 +1720,7 @@ class ReadmooPlatformMigrationValidator {
    * @param {string} scenario - 失敗情境
    * @returns {Promise<Object>} 診斷結果
    */
-  async diagnoseFailure(scenario) {
+  async diagnoseFailure (scenario) {
     return {
       failureType: 'configuration_error',
       rootCause: `Forced failure for scenario: ${scenario}`,

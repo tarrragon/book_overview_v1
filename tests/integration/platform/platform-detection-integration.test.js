@@ -260,7 +260,7 @@ describe('Platform Detection Integration Tests', () => {
     test('應該從 URL 分析錯誤中恢復', async () => {
       // 清除快取以確保每次調用都執行完整的檢測邏輯
       service.detectionCache.clear()
-      
+
       // 模擬 URL 分析失敗但 DOM 分析成功的情況
       jest.spyOn(service, 'analyzeUrlPattern')
         .mockImplementationOnce(() => {
@@ -298,7 +298,7 @@ describe('Platform Detection Integration Tests', () => {
       expect(secondResult.platformId).toBe('READMOO')
       expect(secondResult.confidence).toBeGreaterThan(0)
       expect(secondResult.features).toEqual(expect.arrayContaining(['dom_elements', 'url_pattern']))
-      
+
       // 驗證成功事件被發送
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'PLATFORM.DETECTION.COMPLETED',
@@ -318,7 +318,7 @@ describe('Platform Detection Integration Tests', () => {
 
       // detectPlatform 有完整錯誤處理，不會拋出異常，而是返回錯誤結果
       const result = await service.detectPlatform(context)
-      
+
       // 驗證返回的錯誤結果
       expect(result).toBeDefined()
       expect(result.platformId).toBe('UNKNOWN')
@@ -520,7 +520,7 @@ describe('Platform Detection Integration Tests', () => {
     test('應該在並發錯誤時保持系統穩定', async () => {
       // 清除快取以確保每次調用都執行檢測邏輯
       service.detectionCache.clear()
-      
+
       // 模擬部分檢測失敗 - 每三次調用失敗一次
       let callCount = 0
       jest.spyOn(service, 'analyzeUrlPattern').mockImplementation(() => {
@@ -562,13 +562,13 @@ describe('Platform Detection Integration Tests', () => {
       // 驗證系統穩定性：
       // 1. 所有調用都返回有效結果（沒有未捕獲的異常）
       expect(results).toHaveLength(10)
-      
+
       // 2. 成功的檢測應該基於DOM分析（因為URL分析有部分失敗）
       expect(successfulDetections.length).toBeGreaterThan(0)
       successfulDetections.forEach(result => {
         expect(result.features).toEqual(expect.arrayContaining(['dom_elements']))
       })
-      
+
       // 3. 失敗的檢測應該正確標記
       if (failedDetections.length > 0) {
         failedDetections.forEach(result => {

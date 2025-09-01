@@ -1,13 +1,13 @@
 /**
  * 錯誤恢復策略測試
  * v0.9.32 - TDD Phase 2 錯誤恢復機制測試實作
- * 
+ *
  * 測試目標：
  * - 驗證自動恢復機制的有效性
  * - 測試重試邏輯和指數退避策略
  * - 驗證降級機制的觸發和執行
  * - 確保恢復策略的效能和穩定性
- * 
+ *
  * 恢復策略類型：
  * - RETRY: 重試操作（指數退避）
  * - FALLBACK: 降級到替代方案
@@ -83,7 +83,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       // Then: 應該最終成功
       expect(result).toBe('Success after 3 attempts')
       expect(flakyOperation).toHaveBeenCalledTimes(3)
-      
+
       // 驗證退避延遲時間
       expect(testHelpers.getRetryDelays()).toEqual([100, 200, 400]) // 指數增長
     })
@@ -178,10 +178,10 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
       const fallbackService = {
         isAvailable: () => true,
-        getData: jest.fn().mockResolvedValue({ 
-          books: [], 
+        getData: jest.fn().mockResolvedValue({
+          books: [],
           source: 'cache',
-          message: '使用離線資料' 
+          message: '使用離線資料'
         })
       }
 
@@ -301,7 +301,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
       // When: 等待使用者操作但超時
       const promise = testHelpers.waitForUserAction('RELOAD_EXTENSION', timeoutMs)
-      
+
       // 快進時間超過超時限制
       jest.advanceTimersByTime(31000)
 
@@ -334,7 +334,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
     test('應該維護核心功能可用性', () => {
       // Given: 非核心功能故障
       const failedFeatures = ['export-csv', 'book-statistics', 'theme-customization']
-      
+
       // When: 評估系統可用性
       const availability = testHelpers.evaluateSystemAvailability(failedFeatures)
 
@@ -476,323 +476,323 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
   // Mock 輔助方法實作
   const testHelpers = {
-    async executeRetryWithBackoff(operation, options = {}) {
-    const { maxRetries = 3, baseDelay = 100, maxDelay = 10000, shouldRetry = () => true } = options
-    let lastError = null
-    this.retryDelays = []
+    async executeRetryWithBackoff (operation, options = {}) {
+      const { maxRetries = 3, baseDelay = 100, maxDelay = 10000, shouldRetry = () => true } = options
+      let lastError = null
+      this.retryDelays = []
 
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          return await operation()
+        } catch (error) {
+          lastError = error
+
+          if (attempt === maxRetries || !shouldRetry(error)) {
+            throw error
+          }
+
+          const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay)
+          this.retryDelays.push(delay)
+          await new Promise(resolve => setTimeout(resolve, delay))
+        }
+      }
+
+      throw lastError
+    },
+
+    getRetryDelays () {
+      return this.retryDelays || []
+    },
+
+    async executeRetryWithMetrics (operation, options) {
+      const startTime = Date.now()
+      let attempts = 0
+      let retryCount = 0
+
+      const wrappedOperation = () => {
+        attempts++
+        if (attempts > 1) retryCount++
+        mockMetrics.increment('recovery.retry.attempt')
+        return operation()
+      }
+
       try {
-        return await operation()
-      } catch (error) {
-        lastError = error
-        
-        if (attempt === maxRetries || !shouldRetry(error)) {
-          throw error
-        }
+        const value = await testHelpers.executeRetryWithBackoff(wrappedOperation, options)
+        const totalTime = Date.now() - startTime
 
-        const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay)
-        this.retryDelays.push(delay)
-        await new Promise(resolve => setTimeout(resolve, delay))
-      }
-    }
-    
-    throw lastError
-    },
+        mockMetrics.timing('recovery.retry.duration', totalTime)
 
-    getRetryDelays() {
-    return this.retryDelays || []
-    },
-
-    async executeRetryWithMetrics(operation, options) {
-    const startTime = Date.now()
-    let attempts = 0
-    let retryCount = 0
-
-    const wrappedOperation = () => {
-      attempts++
-      if (attempts > 1) retryCount++
-      mockMetrics.increment('recovery.retry.attempt')
-      return operation()
-    }
-
-    try {
-      const value = await testHelpers.executeRetryWithBackoff(wrappedOperation, options)
-      const totalTime = Date.now() - startTime
-      
-      mockMetrics.timing('recovery.retry.duration', totalTime)
-      
-      return {
-        value,
-        metrics: {
-          totalAttempts: attempts,
-          totalTime,
-          retryCount,
-          strategy: 'EXPONENTIAL_BACKOFF'
-        }
-      }
-    } catch (error) {
-      throw error
-    }
-    },
-
-    async executeFallbackStrategy(primaryService, fallbackService) {
-    try {
-      return await primaryService.getData()
-    } catch (error) {
-      mockLogger.warn('Primary service failed, falling back', { error: error.message })
-      return await fallbackService.getData()
-    }
-    },
-
-    async executeMultiTierFallback(services) {
-    for (const service of services.sort((a, b) => a.priority - b.priority)) {
-      if (service.available) {
         return {
-          selectedService: service.name,
-          fallbackLevel: service.priority
+          value,
+          metrics: {
+            totalAttempts: attempts,
+            totalTime,
+            retryCount,
+            strategy: 'EXPONENTIAL_BACKOFF'
+          }
+        }
+      } catch (error) {
+        throw error
+      }
+    },
+
+    async executeFallbackStrategy (primaryService, fallbackService) {
+      try {
+        return await primaryService.getData()
+      } catch (error) {
+        mockLogger.warn('Primary service failed, falling back', { error: error.message })
+        return await fallbackService.getData()
+      }
+    },
+
+    async executeMultiTierFallback (services) {
+      for (const service of services.sort((a, b) => a.priority - b.priority)) {
+        if (service.available) {
+          return {
+            selectedService: service.name,
+            fallbackLevel: service.priority
+          }
         }
       }
-    }
-    throw new Error('No available services')
+      throw new Error('No available services')
     },
 
-    async executeServiceWithFallback(primaryService, fallbackService) {
-    if (primaryService.isAvailable()) {
-      return await primaryService.getData()
-    } else {
-      return await fallbackService.getData()
-    }
-    },
-
-    createFallbackManager() {
-    const activeFallbacks = new Map()
-    const history = []
-
-    return {
-      activateFallback: (reason, fallback) => {
-        activeFallbacks.set(reason, fallback)
-        history.push({ action: 'activate', reason, fallback, timestamp: Date.now() })
-      },
-      deactivateFallback: (reason) => {
-        activeFallbacks.delete(reason)
-        history.push({ action: 'deactivate', reason, timestamp: Date.now() })
-      },
-      getStats: () => ({
-        activeFallbacks: activeFallbacks.size,
-        totalActivations: history.filter(h => h.action === 'activate').length,
-        totalDeactivations: history.filter(h => h.action === 'deactivate').length,
-        fallbackHistory: history
-      })
-    }
-    },
-
-    async requestUserIntervention(error) {
-    const interventionMap = {
-      'GRANT_PERMISSION': {
-        guidance: '請在瀏覽器設定中授予擴展儲存權限',
-        steps: [
-          '點擊瀏覽器的擴展圖示',
-          '找到本擴展並點擊設定',
-          '啟用「儲存」權限',
-          '重新載入頁面'
-        ]
+    async executeServiceWithFallback (primaryService, fallbackService) {
+      if (primaryService.isAvailable()) {
+        return await primaryService.getData()
+      } else {
+        return await fallbackService.getData()
       }
-    }
-
-    const intervention = interventionMap[error.userAction] || {
-      guidance: '請按照提示完成操作',
-      steps: ['重新整理頁面']
-    }
-
-    return {
-      type: 'USER_INTERVENTION',
-      action: error.userAction,
-      ...intervention
-    }
     },
 
-    async validateUserAction(action) {
-    // 模擬驗證邏輯
-    if (action.type === 'GRANT_PERMISSION' && action.granted) {
+    createFallbackManager () {
+      const activeFallbacks = new Map()
+      const history = []
+
       return {
-        valid: true,
-        canProceed: true,
-        nextStep: 'RETRY_ORIGINAL_OPERATION'
+        activateFallback: (reason, fallback) => {
+          activeFallbacks.set(reason, fallback)
+          history.push({ action: 'activate', reason, fallback, timestamp: Date.now() })
+        },
+        deactivateFallback: (reason) => {
+          activeFallbacks.delete(reason)
+          history.push({ action: 'deactivate', reason, timestamp: Date.now() })
+        },
+        getStats: () => ({
+          activeFallbacks: activeFallbacks.size,
+          totalActivations: history.filter(h => h.action === 'activate').length,
+          totalDeactivations: history.filter(h => h.action === 'deactivate').length,
+          fallbackHistory: history
+        })
       }
-    }
-    
-    return {
-      valid: false,
-      canProceed: false,
-      reason: 'Action not completed'
-    }
     },
 
-    async waitForUserAction(actionType, timeoutMs) {
-    return new Promise((resolve) => {
-      const timer = setTimeout(() => {
-        resolve({
-          timedOut: true,
-          fallbackAction: 'SHOW_MANUAL_INSTRUCTIONS'
-        })
-      }, timeoutMs)
+    async requestUserIntervention (error) {
+      const interventionMap = {
+        GRANT_PERMISSION: {
+          guidance: '請在瀏覽器設定中授予擴展儲存權限',
+          steps: [
+            '點擊瀏覽器的擴展圖示',
+            '找到本擴展並點擊設定',
+            '啟用「儲存」權限',
+            '重新載入頁面'
+          ]
+        }
+      }
+
+      const intervention = interventionMap[error.userAction] || {
+        guidance: '請按照提示完成操作',
+        steps: ['重新整理頁面']
+      }
+
+      return {
+        type: 'USER_INTERVENTION',
+        action: error.userAction,
+        ...intervention
+      }
+    },
+
+    async validateUserAction (action) {
+    // 模擬驗證邏輯
+      if (action.type === 'GRANT_PERMISSION' && action.granted) {
+        return {
+          valid: true,
+          canProceed: true,
+          nextStep: 'RETRY_ORIGINAL_OPERATION'
+        }
+      }
+
+      return {
+        valid: false,
+        canProceed: false,
+        reason: 'Action not completed'
+      }
+    },
+
+    async waitForUserAction (actionType, timeoutMs) {
+      return new Promise((resolve) => {
+        const timer = setTimeout(() => {
+          resolve({
+            timedOut: true,
+            fallbackAction: 'SHOW_MANUAL_INSTRUCTIONS'
+          })
+        }, timeoutMs)
 
       // 在實際實作中，這裡會監聽使用者操作事件
       // 這裡只是模擬超時情況
-    })
-    },
-
-    executeFunctionalDegradation(brokenModule) {
-    const degradationMap = {
-      'AdvancedSearch': {
-        degradedModule: 'BasicSearch',
-        availableFeatures: ['simple-text-search'],
-        unavailableFeatures: ['advanced-filters', 'sorting', 'faceted-search']
-      }
-    }
-
-    const degradation = degradationMap[brokenModule.name] || {
-      degradedModule: 'MinimalFallback',
-      availableFeatures: ['basic-functionality'],
-      unavailableFeatures: ['all-advanced-features']
-    }
-
-    return {
-      ...degradation,
-      userNotification: '部分功能暫時無法使用，已啟用簡化模式'
-    }
-    },
-
-    evaluateSystemAvailability(failedFeatures) {
-    const coreFeatures = ['book-display', 'search', 'data-import', 'basic-export']
-    const hasCoreFailures = failedFeatures.some(feature => coreFeatures.includes(feature))
-    
-    return {
-      coreAvailable: !hasCoreFailures,
-      criticalFunctions: coreFeatures,
-      degradationLevel: failedFeatures.length > 2 ? 'MAJOR' : 'MINOR'
-    }
-    },
-
-    generateDegradationFeedback(degradedState) {
-    const featureMap = {
-      'export-csv': '匯出 CSV',
-      'advanced-search': '進階搜尋'
-    }
-
-    return {
-      message: '部分功能暫時無法使用，核心功能正常運作',
-      affectedList: degradedState.affectedFeatures.map(f => featureMap[f] || f),
-      showRetryOption: true,
-      estimatedRecovery: `約 ${degradedState.estimatedRecovery}後恢復`
-    }
-    },
-
-    async restartComponent(component) {
-    try {
-      const result = await component.restart()
-      return {
-        success: true,
-        newStatus: result.status
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message
-      }
-    }
-    },
-
-    async progressiveRestart(components) {
-    const restartOrder = testHelpers.calculateRestartOrder(components)
-    let totalTime = 0
-
-    for (const componentName of restartOrder) {
-      const component = components.find(c => c.name === componentName)
-      const startTime = Date.now()
-      // 模擬重啟
-      await new Promise(resolve => setTimeout(resolve, component.restartTime))
-      totalTime += Date.now() - startTime
-    }
-
-    return {
-      restartOrder,
-      totalTime,
-      allComponentsRunning: true
-    }
-    },
-
-    calculateRestartOrder(components) {
-    // 簡單的拓撲排序實作
-    const result = []
-    const visited = new Set()
-
-    const visit = (componentName) => {
-      if (visited.has(componentName)) return
-      
-      const component = components.find(c => c.name === componentName)
-      if (component) {
-        component.dependencies.forEach(dep => visit(dep))
-        visited.add(componentName)
-        result.push(componentName)
-      }
-    }
-
-    components.forEach(component => visit(component.name))
-    return result
-    },
-
-    async attemptRestart(component) {
-    try {
-      await component.restart()
-      return {
-        restartFailed: false,
-        rollbackExecuted: false,
-        safeMode: false
-      }
-    } catch (error) {
-      await component.rollback()
-      return {
-        restartFailed: true,
-        rollbackExecuted: true,
-        safeMode: true
-      }
-    }
-    },
-
-    async executeRecovery(error) {
-    // 模擬恢復策略執行
-    const strategies = {
-      'Network timeout': { strategy: 'RETRY', recovered: true },
-      'Data corruption': { strategy: 'FALLBACK', recovered: true },
-      'Permission denied': { strategy: 'USER_INTERVENTION', recovered: false }
-    }
-
-    return strategies[error.message] || { strategy: 'UNKNOWN', recovered: false }
-    },
-
-    createRecoveryManager() {
-    let totalAttempts = 0
-    let successfulRecoveries = 0
-
-    return {
-      attemptRecovery: (error) => {
-        totalAttempts++
-        // 模擬恢復嘗試
-        return { error, timestamp: Date.now() }
-      },
-      recordResult: (result) => {
-        if (result.success) {
-          successfulRecoveries++
-        }
-      },
-      getMetrics: () => ({
-        successRate: totalAttempts > 0 ? successfulRecoveries / totalAttempts : 0,
-        totalAttempts,
-        successfulRecoveries
       })
-    }
+    },
+
+    executeFunctionalDegradation (brokenModule) {
+      const degradationMap = {
+        AdvancedSearch: {
+          degradedModule: 'BasicSearch',
+          availableFeatures: ['simple-text-search'],
+          unavailableFeatures: ['advanced-filters', 'sorting', 'faceted-search']
+        }
+      }
+
+      const degradation = degradationMap[brokenModule.name] || {
+        degradedModule: 'MinimalFallback',
+        availableFeatures: ['basic-functionality'],
+        unavailableFeatures: ['all-advanced-features']
+      }
+
+      return {
+        ...degradation,
+        userNotification: '部分功能暫時無法使用，已啟用簡化模式'
+      }
+    },
+
+    evaluateSystemAvailability (failedFeatures) {
+      const coreFeatures = ['book-display', 'search', 'data-import', 'basic-export']
+      const hasCoreFailures = failedFeatures.some(feature => coreFeatures.includes(feature))
+
+      return {
+        coreAvailable: !hasCoreFailures,
+        criticalFunctions: coreFeatures,
+        degradationLevel: failedFeatures.length > 2 ? 'MAJOR' : 'MINOR'
+      }
+    },
+
+    generateDegradationFeedback (degradedState) {
+      const featureMap = {
+        'export-csv': '匯出 CSV',
+        'advanced-search': '進階搜尋'
+      }
+
+      return {
+        message: '部分功能暫時無法使用，核心功能正常運作',
+        affectedList: degradedState.affectedFeatures.map(f => featureMap[f] || f),
+        showRetryOption: true,
+        estimatedRecovery: `約 ${degradedState.estimatedRecovery}後恢復`
+      }
+    },
+
+    async restartComponent (component) {
+      try {
+        const result = await component.restart()
+        return {
+          success: true,
+          newStatus: result.status
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error.message
+        }
+      }
+    },
+
+    async progressiveRestart (components) {
+      const restartOrder = testHelpers.calculateRestartOrder(components)
+      let totalTime = 0
+
+      for (const componentName of restartOrder) {
+        const component = components.find(c => c.name === componentName)
+        const startTime = Date.now()
+        // 模擬重啟
+        await new Promise(resolve => setTimeout(resolve, component.restartTime))
+        totalTime += Date.now() - startTime
+      }
+
+      return {
+        restartOrder,
+        totalTime,
+        allComponentsRunning: true
+      }
+    },
+
+    calculateRestartOrder (components) {
+    // 簡單的拓撲排序實作
+      const result = []
+      const visited = new Set()
+
+      const visit = (componentName) => {
+        if (visited.has(componentName)) return
+
+        const component = components.find(c => c.name === componentName)
+        if (component) {
+          component.dependencies.forEach(dep => visit(dep))
+          visited.add(componentName)
+          result.push(componentName)
+        }
+      }
+
+      components.forEach(component => visit(component.name))
+      return result
+    },
+
+    async attemptRestart (component) {
+      try {
+        await component.restart()
+        return {
+          restartFailed: false,
+          rollbackExecuted: false,
+          safeMode: false
+        }
+      } catch (error) {
+        await component.rollback()
+        return {
+          restartFailed: true,
+          rollbackExecuted: true,
+          safeMode: true
+        }
+      }
+    },
+
+    async executeRecovery (error) {
+    // 模擬恢復策略執行
+      const strategies = {
+        'Network timeout': { strategy: 'RETRY', recovered: true },
+        'Data corruption': { strategy: 'FALLBACK', recovered: true },
+        'Permission denied': { strategy: 'USER_INTERVENTION', recovered: false }
+      }
+
+      return strategies[error.message] || { strategy: 'UNKNOWN', recovered: false }
+    },
+
+    createRecoveryManager () {
+      let totalAttempts = 0
+      let successfulRecoveries = 0
+
+      return {
+        attemptRecovery: (error) => {
+          totalAttempts++
+          // 模擬恢復嘗試
+          return { error, timestamp: Date.now() }
+        },
+        recordResult: (result) => {
+          if (result.success) {
+            successfulRecoveries++
+          }
+        },
+        getMetrics: () => ({
+          successRate: totalAttempts > 0 ? successfulRecoveries / totalAttempts : 0,
+          totalAttempts,
+          successfulRecoveries
+        })
+      }
     }
   }
 })

@@ -50,24 +50,24 @@ describe('Readmoo 遷移效能驗證整合測試', () => {
   beforeEach(() => {
     eventBus = new EventBus()
     namingCoordinator = new EventNamingUpgradeCoordinator(eventBus)
-    
+
     // 建立 mock readmooAdapter
     const mockReadmooAdapter = {
       extractBookData: jest.fn().mockResolvedValue({ success: true, data: {} }),
       validateExtractedData: jest.fn().mockReturnValue({ valid: true })
     }
-    
+
     // 建立 mock platformDetectionService
     const mockPlatformDetectionService = {
       detectPlatform: jest.fn().mockResolvedValue({ platform: 'readmoo', confidence: 0.95 }),
       validatePlatform: jest.fn().mockReturnValue({ valid: true })
     }
-    
-    migrationValidator = new ReadmooPlatformMigrationValidator({ 
-      eventBus, 
-      namingCoordinator, 
-      readmooAdapter: mockReadmooAdapter, 
-      platformDetectionService: mockPlatformDetectionService 
+
+    migrationValidator = new ReadmooPlatformMigrationValidator({
+      eventBus,
+      namingCoordinator,
+      readmooAdapter: mockReadmooAdapter,
+      platformDetectionService: mockPlatformDetectionService
     })
   })
 

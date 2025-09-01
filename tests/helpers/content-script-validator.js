@@ -3,12 +3,12 @@
  */
 
 class ContentScriptValidator {
-  constructor(testSuite = null) {
+  constructor (testSuite = null) {
     this.validationResults = []
     this.testSuite = testSuite
   }
 
-  validate(contentScript) {
+  validate (contentScript) {
     const result = {
       success: true,
       errors: [],
@@ -24,9 +24,9 @@ class ContentScriptValidator {
     return result
   }
 
-  async validateInjection(options = {}) {
+  async validateInjection (options = {}) {
     const { expectedScript, expectedFeatures } = options
-    
+
     const result = {
       success: true,
       errors: [],
@@ -57,20 +57,20 @@ class ContentScriptValidator {
     return result
   }
 
-  reset() {
+  reset () {
     this.validationResults = []
   }
 
-  async cleanup() {
+  async cleanup () {
     this.reset()
     // 清理任何資源
   }
 
-  async clearSimulatedErrors() {
+  async clearSimulatedErrors () {
     // 清理模擬的錯誤狀態
     this.simulatedErrors = []
     this.errorSimulationActive = false
-    
+
     // 清理 extensionController 的錯誤模擬狀態（不清理測試環境設置如 CSP）
     if (this.testSuite && this.testSuite.extensionController) {
       this.testSuite.extensionController.state.scriptLoadingError = false
@@ -80,18 +80,18 @@ class ContentScriptValidator {
     }
   }
 
-  async simulateScriptLoadingError() {
+  async simulateScriptLoadingError () {
     // 模擬腳本載入錯誤
     this.errorSimulationActive = true
     this.simulatedErrors = ['Script loading failed']
-    
+
     // 如果有 testSuite，也設置 extensionController 的狀態
     if (this.testSuite && this.testSuite.extensionController) {
       this.testSuite.extensionController.state.scriptLoadingError = true
     }
   }
 
-  async validateResourceIsolation(tabIds) {
+  async validateResourceIsolation (tabIds) {
     // 驗證資源隔離
     return {
       isolated: true,
@@ -100,7 +100,7 @@ class ContentScriptValidator {
     }
   }
 
-  async validatePageFunctionality() {
+  async validatePageFunctionality () {
     // 驗證頁面功能性
     return {
       functional: true,

@@ -120,7 +120,7 @@ class E2ETestSuite {
     const { ChromeExtensionController } = require('./chrome-extension-controller')
     this.extensionController = new ChromeExtensionController({
       extensionId: 'test-extension-12345',
-      enableLogging: true,  // 重新啟用詳細記錄來調查剩餘問題
+      enableLogging: true, // 重新啟用詳細記錄來調查剩餘問題
       simulateNetworkDelay: false
     })
 
@@ -165,10 +165,10 @@ class E2ETestSuite {
     // 載入書籍資料
     if (data.books && Array.isArray(data.books)) {
       this.testData.books = [...this.testData.books, ...data.books]
-      
+
       // 模擬將資料存儲到 Chrome Extension Storage
       await this.simulateStorageWrite('books', data.books)
-      
+
       // 同步到 extensionController 的存儲系統
       if (this.extensionController) {
         this.extensionController.state.storage.set('books', data.books)
@@ -179,10 +179,10 @@ class E2ETestSuite {
     // 載入元資料
     if (data.metadata) {
       this.testData.metadata = { ...this.testData.metadata, ...data.metadata }
-      
+
       // 模擬將元資料存儲到 Chrome Extension Storage
       await this.simulateStorageWrite('metadata', data.metadata)
-      
+
       // 同步到 extensionController 的存儲系統
       if (this.extensionController) {
         this.extensionController.state.storage.set('metadata', data.metadata)
@@ -195,10 +195,10 @@ class E2ETestSuite {
     // 載入使用者設定
     if (data.settings) {
       this.testData.settings = { ...this.testData.settings, ...data.settings }
-      
+
       // 模擬將設定存儲到 Chrome Extension Storage
       await this.simulateStorageWrite('settings', data.settings)
-      
+
       // 同步到 extensionController 的存儲系統
       if (this.extensionController) {
         this.extensionController.state.storage.set('settings', data.settings)
@@ -218,9 +218,9 @@ class E2ETestSuite {
     if (!this.testEnvironment.storage) {
       this.testEnvironment.storage = new Map()
     }
-    
+
     this.testEnvironment.storage.set(key, JSON.parse(JSON.stringify(data)))
-    
+
     // 記錄操作用於除錯
     this.metrics.operations.push({
       type: 'storage_write',
@@ -235,9 +235,9 @@ class E2ETestSuite {
     if (!this.testEnvironment.storage) {
       return null
     }
-    
+
     const data = this.testEnvironment.storage.get(key)
-    
+
     // 記錄操作用於除錯
     this.metrics.operations.push({
       type: 'storage_read',
@@ -245,7 +245,7 @@ class E2ETestSuite {
       timestamp: Date.now(),
       found: !!data
     })
-    
+
     return data
   }
 
@@ -254,12 +254,12 @@ class E2ETestSuite {
     if (this.testEnvironment.storage) {
       this.testEnvironment.storage.clear()
     }
-    
+
     // 重置測試資料
     this.testData.books = []
     this.testData.metadata = {}
     this.testData.settings = {}
-    
+
     this.metrics.operations.push({
       type: 'storage_clear',
       timestamp: Date.now()
@@ -269,12 +269,12 @@ class E2ETestSuite {
   /**
    * 通用日誌方法
    */
-  log(message, level = 'info') {
+  log (message, level = 'info') {
     if (this.config.enableLogging !== false) {
       const timestamp = new Date().toISOString()
       console.log(`[E2ETestSuite ${timestamp}] ${message}`)
     }
-    
+
     // 如果啟用詳細日誌，也記錄到操作日誌
     if (this.detailedLogging && this.detailedLogging.enabled) {
       this.logOperation('LOG', { message, level })
@@ -447,7 +447,7 @@ class E2ETestSuite {
   // 模擬測試環境的輔助方法
   async navigateToMockReadmooPage () {
     this.log('導航到模擬Readmoo頁面')
-    
+
     // 設置頁面環境
     if (this.extensionController) {
       this.extensionController.state.pageEnvironment = {
@@ -455,7 +455,7 @@ class E2ETestSuite {
         pageType: 'library'
       }
     }
-    
+
     return { success: true, url: 'https://readmoo.com/library', pageType: 'library' }
   }
 
@@ -488,7 +488,7 @@ class E2ETestSuite {
         }
         this.extensionController.state.testData.set(tabId, {
           books: books || [],
-          tabId: tabId
+          tabId
         })
         this.log(`為 Tab ${tabId} 設置書籍數據: ${(books || []).length} 本書`)
       } else {
@@ -521,10 +521,10 @@ class E2ETestSuite {
     return { success: true, networkDisconnected: true }
   }
 
-  async restoreNormalConditions() {
+  async restoreNormalConditions () {
     // 恢復正常測試環境
     this.log('恢復正常環境')
-    
+
     // 清理 extensionController 的所有錯誤狀態
     if (this.extensionController) {
       this.extensionController.state.tabPermissionsRevoked = false
@@ -534,45 +534,45 @@ class E2ETestSuite {
       this.extensionController.state.cspSettings = null
       this.extensionController.state.maliciousEnvironment = null
     }
-    
+
     return { success: true, restored: true }
   }
 
-  async revokeTabPermissions() {
+  async revokeTabPermissions () {
     this.log('撤銷標籤頁權限')
-    
+
     // 設置 extensionController 的狀態
     if (this.extensionController) {
       this.extensionController.state.tabPermissionsRevoked = true
     }
-    
+
     return { success: true, permissionsRevoked: true }
   }
 
-  async navigateToIncompleteReadmooPage() {
+  async navigateToIncompleteReadmooPage () {
     this.log('導航到不完整的Readmoo頁面')
-    
+
     // 設置 extensionController 的狀態，標記頁面未準備就緒
     if (this.extensionController) {
       this.extensionController.state.pageNotReady = true
     }
-    
+
     return { success: true, pageIncomplete: true }
   }
 
-  async createNewTab(url) {
+  async createNewTab (url) {
     this.log(`創建新標籤頁: ${url}`)
     const tabId = Date.now() + Math.floor(Math.random() * 1000) // 簡單的ID生成
     return {
       id: tabId,
-      url: url,
+      url,
       active: true
     }
   }
 
-  async reloadCurrentPage() {
+  async reloadCurrentPage () {
     this.log('重新載入當前頁面')
-    
+
     // 重載時重置Content Script狀態
     if (this.extensionController) {
       const contentContext = this.extensionController.state.contexts.get('content')
@@ -580,38 +580,38 @@ class E2ETestSuite {
         contentContext.state = 'unloaded' // 重載後設為未載入狀態
       }
     }
-    
+
     return { success: true, reloaded: true }
   }
 
-  async closeTab(tabId) {
+  async closeTab (tabId) {
     this.log(`關閉標籤頁: ${tabId}`)
     return { success: true, tabClosed: tabId }
   }
 
-  async setupCSPTestPage(config) {
+  async setupCSPTestPage (config) {
     this.log(`設置CSP測試頁面: ${config.cspPolicy || 'no CSP'}`)
     return { success: true, cspConfigured: true, config }
   }
 
-  async clearMaliciousPage() {
+  async clearMaliciousPage () {
     this.log('清理惡意頁面環境')
     return { success: true, maliciousPageCleared: true }
   }
 
-  async navigateToPage(url) {
+  async navigateToPage (url) {
     this.log(`導航到頁面: ${url}`)
-    
+
     // 設置頁面環境資訊
     if (this.extensionController) {
       const isReadmooPage = url.includes('readmoo.com')
-      
+
       // 設置頁面環境
       this.extensionController.state.pageEnvironment = {
-        url: url,
+        url,
         pageType: this.determinePageType(url)
       }
-      
+
       // 同時更新存儲狀態
       this.extensionController.state.storage.set('isReadmooPage', isReadmooPage)
       this.extensionController.state.storage.set('currentUrl', url)
@@ -625,11 +625,11 @@ class E2ETestSuite {
         this.extensionController.state.storage.set('errorMessage', null)
       }
     }
-    
+
     return { success: true, url, navigated: true }
   }
-  
-  determinePageType(url) {
+
+  determinePageType (url) {
     if (url.includes('/library')) {
       if (url.includes('category=')) {
         return 'library_filtered'
@@ -675,7 +675,6 @@ class E2ETestSuite {
     }
   }
 
-
   async cleanup () {
     try {
       // 清理測試資料
@@ -703,7 +702,7 @@ class E2ETestSuite {
   /**
    * 讀取匯出檔案內容
    */
-  async readExportedFile(exportedFile) {
+  async readExportedFile (exportedFile) {
     try {
       // 如果是模擬的檔案對象，直接返回資料
       if (exportedFile && exportedFile.data) {
@@ -750,7 +749,7 @@ class E2ETestSuite {
   /**
    * 取得檔案大小
    */
-  async getFileSize(exportedFile) {
+  async getFileSize (exportedFile) {
     try {
       // 如果是模擬的檔案對象
       if (exportedFile && exportedFile.size !== undefined) {
@@ -778,11 +777,11 @@ class E2ETestSuite {
   /**
    * 創建指定版本的匯出檔案
    */
-  async createVersionedExportFile(books, version = '1.0.0', format = 'json') {
+  async createVersionedExportFile (books, version = '1.0.0', format = 'json') {
     try {
       const versionedData = {
-        version: version,
-        format: format,
+        version,
+        format,
         books: books || [],
         exportedAt: new Date().toISOString(),
         compatibility: {
@@ -825,11 +824,11 @@ class E2ETestSuite {
       const fileData = JSON.stringify(versionedData)
 
       return {
-        filename: filename,
+        filename,
         size: fileData.length,
         data: versionedData,
-        format: format,
-        version: version
+        format,
+        version
       }
     } catch (error) {
       console.error('Failed to create versioned export file:', error)
@@ -840,7 +839,7 @@ class E2ETestSuite {
   /**
    * 啟用診斷模式
    */
-  async enableDiagnosticMode(config = {}) {
+  async enableDiagnosticMode (config = {}) {
     this.diagnosticMode = {
       enabled: true,
       verbose: config.verbose || false,
@@ -877,7 +876,7 @@ class E2ETestSuite {
   /**
    * 記錄診斷資訊
    */
-  logDiagnostic(level, message, data = {}) {
+  logDiagnostic (level, message, data = {}) {
     if (!this.diagnosticMode || !this.diagnosticMode.enabled) {
       return
     }
@@ -904,7 +903,7 @@ class E2ETestSuite {
   /**
    * 獲取診斷報告
    */
-  getDiagnosticReport() {
+  getDiagnosticReport () {
     if (!this.diagnosticMode || !this.diagnosticMode.enabled) {
       return { error: '診斷模式未啟用' }
     }
@@ -922,9 +921,9 @@ class E2ETestSuite {
   /**
    * 等待條件滿足
    */
-  async waitForCondition(conditionFn, timeoutMs = 10000, pollIntervalMs = 100) {
+  async waitForCondition (conditionFn, timeoutMs = 10000, pollIntervalMs = 100) {
     const startTime = Date.now()
-    
+
     while (Date.now() - startTime < timeoutMs) {
       try {
         const result = await conditionFn()
@@ -935,25 +934,25 @@ class E2ETestSuite {
         // 忽略條件檢查中的錯誤，繼續等待
         this.logDiagnostic('warn', 'Condition check failed', { error: error.message })
       }
-      
+
       // 等待下次檢查
       await new Promise(resolve => setTimeout(resolve, pollIntervalMs))
     }
-    
+
     throw new Error(`Condition not met within ${timeoutMs}ms timeout`)
   }
 
   /**
    * 等待指定時間
    */
-  async waitForTimeout(ms) {
+  async waitForTimeout (ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
 
   /**
    * 啟用詳細日誌記錄
    */
-  async enableDetailedLogging(config = {}) {
+  async enableDetailedLogging (config = {}) {
     this.detailedLogging = {
       enabled: true,
       logLevel: config.logLevel || 'debug',
@@ -964,9 +963,9 @@ class E2ETestSuite {
 
     this.operationLogs = []
     this.errorLogs = []
-    
+
     this.log('詳細日誌記錄已啟用')
-    
+
     return {
       success: true,
       loggingConfig: this.detailedLogging
@@ -976,20 +975,20 @@ class E2ETestSuite {
   /**
    * 記錄操作日誌
    */
-  logOperation(operation, details = {}) {
+  logOperation (operation, details = {}) {
     if (!this.detailedLogging || !this.detailedLogging.enabled) {
       return
     }
 
     const logEntry = {
       timestamp: new Date().toISOString(),
-      operation: operation,
-      details: details,
+      operation,
+      details,
       level: 'info'
     }
 
     this.operationLogs.push(logEntry)
-    
+
     if (this.detailedLogging.logLevel === 'debug') {
       console.log(`[OPERATION] ${operation}`, details)
     }
@@ -1003,7 +1002,7 @@ class E2ETestSuite {
   /**
    * 記錄錯誤日誌
    */
-  logError(error, context = 'unknown') {
+  logError (error, context = 'unknown') {
     if (!this.detailedLogging || !this.detailedLogging.enabled) {
       return
     }
@@ -1015,12 +1014,12 @@ class E2ETestSuite {
         name: error.name,
         stack: this.detailedLogging.includeStackTrace ? error.stack : undefined
       },
-      context: context,
+      context,
       level: 'error'
     }
 
     this.errorLogs.push(logEntry)
-    
+
     console.error(`[ERROR] ${context}:`, error.message)
 
     // 清理舊日誌
@@ -1032,21 +1031,21 @@ class E2ETestSuite {
   /**
    * 獲取操作日誌
    */
-  getOperationLogs() {
+  getOperationLogs () {
     return this.operationLogs || []
   }
 
   /**
    * 獲取錯誤日誌
    */
-  getErrorLogs() {
+  getErrorLogs () {
     return this.errorLogs || []
   }
 
   /**
    * 模擬系統重啟
    */
-  async simulateSystemRestart() {
+  async simulateSystemRestart () {
     try {
       // 記錄重啟前的狀態
       const preRestartState = {
@@ -1096,9 +1095,9 @@ class E2ETestSuite {
   }
 
   // 添加Content Script測試所需的方法
-  async navigateToCSPRestrictedPage(options = {}) {
+  async navigateToCSPRestrictedPage (options = {}) {
     this.log('導航到CSP受限頁面')
-    
+
     // 模擬CSP受限頁面設置
     const cspSettings = {
       'script-src': "'self'",
@@ -1111,16 +1110,16 @@ class E2ETestSuite {
       await this.extensionController.simulateCSPRestriction(cspSettings)
     }
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       cspApplied: true,
       restrictions: Object.keys(cspSettings)
     }
   }
 
-  async setupComplexJSEnvironmentPage(config = {}) {
+  async setupComplexJSEnvironmentPage (config = {}) {
     this.log('設置複雜JavaScript環境頁面')
-    
+
     const {
       globalVariables = [],
       libraryConflicts = [],
@@ -1148,9 +1147,9 @@ class E2ETestSuite {
     }
   }
 
-  async setupCSPTestPage(config = {}) {
+  async setupCSPTestPage (config = {}) {
     this.log('設置CSP測試頁面')
-    
+
     const { cspPolicy, pageContent } = config
 
     // 模擬CSP測試環境
@@ -1163,19 +1162,19 @@ class E2ETestSuite {
 
     return {
       success: true,
-      cspPolicy: cspPolicy,
+      cspPolicy,
       contentLoaded: true
     }
   }
 
-  async setupMaliciousPage(config = {}) {
+  async setupMaliciousPage (config = {}) {
     this.log('設置惡意頁面測試環境')
-    
+
     const { behavior, targets } = config
 
     // 模擬惡意頁面行為
     const maliciousActions = {
-      behavior: behavior,
+      behavior,
       targets: targets || [],
       timestamp: Date.now()
     }
@@ -1187,17 +1186,17 @@ class E2ETestSuite {
     return {
       success: true,
       maliciousActionsConfigured: true,
-      behavior: behavior
+      behavior
     }
   }
 
-  async createNewTab(url = 'about:blank') {
+  async createNewTab (url = 'about:blank') {
     this.log(`創建新標籤頁: ${url}`)
-    
+
     const tabId = Math.floor(Math.random() * 10000) + 1000
     const tab = {
       id: tabId,
-      url: url,
+      url,
       active: false,
       created: Date.now()
     }
@@ -1209,7 +1208,6 @@ class E2ETestSuite {
 
     return tab
   }
-
 
   // 靜態工廠方法
   static async create (config = {}) {

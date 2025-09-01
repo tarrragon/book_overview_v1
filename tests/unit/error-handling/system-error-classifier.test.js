@@ -1,20 +1,20 @@
 /**
  * 系統錯誤分類器單元測試
  * v0.9.32 - TDD Phase 2 錯誤分類器測試實作
- * 
+ *
  * 測試目標：
  * - 驗證錯誤類型識別的準確性
  * - 測試嚴重程度判斷邏輯
  * - 確保錯誤分類邊界條件處理
  * - 驗證複合錯誤類型的支援
- * 
+ *
  * 錯誤分類體系：
  * - NETWORK: 網路連接、API請求、資源載入錯誤
- * - DATA: 資料格式、驗證、一致性錯誤  
+ * - DATA: 資料格式、驗證、一致性錯誤
  * - SYSTEM: 系統資源、權限、環境錯誤
  * - DOM: 頁面結構、元素訪問、事件處理錯誤
  * - PLATFORM: 瀏覽器相容、API支援、擴展衝突錯誤
- * 
+ *
  * 嚴重程度等級：
  * - MINOR: 不影響核心功能，可自動恢復
  * - MODERATE: 影響單一功能，需使用者介入
@@ -28,7 +28,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
   beforeEach(() => {
     // 重置模組以確保測試隔離
     jest.resetModules()
-    
+
     // Mock SystemErrorClassifier - 在實際實作中會載入真正的類別
     SystemErrorClassifier = {
       classify: jest.fn(),
@@ -398,7 +398,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
   describe('📈 錯誤分類效能測試', () => {
     test('應該在合理時間內完成錯誤分類', () => {
       // Given: 大量錯誤需要分類
-      const errors = Array.from({ length: 1000 }, (_, i) => 
+      const errors = Array.from({ length: 1000 }, (_, i) =>
         new Error(`Test error ${i}`)
       )
 
@@ -420,7 +420,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
     test('應該正確快取分類結果', () => {
       // Given: 相同的錯誤多次分類
       const error = new Error('Test error')
-      
+
       // When: 多次分類相同錯誤
       const result1 = mockClassifyError(error)
       const result2 = mockClassifyError(error)
@@ -429,14 +429,14 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
       // Then: 應該回傳一致的結果
       expect(result1).toEqual(result2)
       expect(result2).toEqual(result3)
-      
+
       // 驗證快取效果（實際實作中會檢查快取命中率）
       expect(mockGetCacheHitRate()).toBeGreaterThan(0.8)
     })
   })
 
   // Mock 輔助方法 - 模擬錯誤分類器的行為
-  function mockClassifyError(error) {
+  function mockClassifyError (error) {
     if (!error) {
       return {
         category: 'UNKNOWN_ERROR',
@@ -472,7 +472,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
     }
 
     // NETWORK 錯誤分類邏輯
-    if (message.includes('fetch') || message.includes('Network') || error.code === 'TIMEOUT' || 
+    if (message.includes('fetch') || message.includes('Network') || error.code === 'TIMEOUT' ||
         message.includes('Resource not found') || error.status === 404 || error.url) {
       if (message.includes('timeout')) {
         return {
@@ -559,7 +559,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
     }
 
     // DOM 錯誤分類邏輯
-    if (message.includes("Cannot read property") && message.includes("of null")) {
+    if (message.includes('Cannot read property') && message.includes('of null')) {
       return {
         category: 'DOM_ERROR',
         severity: 'MODERATE',
@@ -589,7 +589,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
     }
 
     // PLATFORM 錯誤分類邏輯
-    if (message.includes('Extension context') || (message.includes('chrome.') && message.includes('not available')) || 
+    if (message.includes('Extension context') || (message.includes('chrome.') && message.includes('not available')) ||
         (error.api && error.browser)) {
       return {
         category: 'PLATFORM_ERROR',
@@ -638,7 +638,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
     }
   }
 
-  function mockAnalyzeErrorChain(errors) {
+  function mockAnalyzeErrorChain (errors) {
     return {
       rootCause: errors[0],
       errorChain: errors,
@@ -646,7 +646,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
     }
   }
 
-  function mockEvaluateImpact(error) {
+  function mockEvaluateImpact (error) {
     if (error.scope === 'COMPONENT') {
       return { affectedComponents: ['Component-A'] }
     }
@@ -659,7 +659,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
     return { affectedComponents: ['Unknown'] }
   }
 
-  function mockGetCacheHitRate() {
+  function mockGetCacheHitRate () {
     return 0.85 // 85% 快取命中率
   }
 })

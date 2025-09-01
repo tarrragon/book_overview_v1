@@ -53,7 +53,7 @@ class SearchEngine {
     this.indexManager = indexManager
     this.eventBus = eventBus
     this.logger = logger
-    
+
     // 注入的時間函數（用於測試）
     this._timeFunction = getCurrentTime || this._getDefaultTimeFunction()
 
@@ -646,12 +646,12 @@ class SearchEngine {
       if (typeof global !== 'undefined' && global.performance && typeof global.performance.now === 'function') {
         return global.performance.now()
       }
-      
+
       // 在瀏覽器環境中，使用 performance
       if (typeof performance !== 'undefined' && performance.now) {
         return performance.now()
       }
-      
+
       // 後備方案
       return Date.now()
     }

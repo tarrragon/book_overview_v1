@@ -24,16 +24,16 @@ class SyncStrategyProcessor {
   constructor (eventBus, options = {}) {
     this.eventBus = eventBus
     this.logger = options.logger || console
-    
+
     this.state = {
       initialized: false,
       processing: false
     }
-    
+
     // 同步策略配置
     this.strategies = new Map()
     this.activeProcesses = new Map()
-    
+
     // 統計資料
     this.stats = {
       strategiesProcessed: 0,
@@ -41,7 +41,7 @@ class SyncStrategyProcessor {
       conflictsResolved: 0
     }
   }
-  
+
   /**
    * 初始化同步策略處理器
    */
@@ -50,13 +50,13 @@ class SyncStrategyProcessor {
       this.logger.warn('⚠️ 同步策略處理器已初始化')
       return
     }
-    
+
     try {
       this.logger.log('🔄 初始化同步策略處理器')
-      
+
       // 設置預設策略
       this.setupDefaultStrategies()
-      
+
       this.state.initialized = true
       this.logger.log('✅ 同步策略處理器初始化完成')
     } catch (error) {
@@ -64,7 +64,7 @@ class SyncStrategyProcessor {
       throw error
     }
   }
-  
+
   /**
    * 設置預設策略
    */
@@ -75,7 +75,7 @@ class SyncStrategyProcessor {
         processor: this.processPriorityBasedStrategy.bind(this)
       },
       {
-        name: 'timestamp-based', 
+        name: 'timestamp-based',
         processor: this.processTimestampBasedStrategy.bind(this)
       },
       {
@@ -83,14 +83,14 @@ class SyncStrategyProcessor {
         processor: this.processConflictResolutionStrategy.bind(this)
       }
     ]
-    
+
     defaultStrategies.forEach(strategy => {
       this.strategies.set(strategy.name, strategy)
     })
-    
+
     this.logger.log(`✅ 設置了 ${defaultStrategies.length} 個預設同步策略`)
   }
-  
+
   /**
    * 處理同步策略
    */
@@ -98,12 +98,12 @@ class SyncStrategyProcessor {
     if (!this.state.initialized) {
       await this.initialize()
     }
-    
+
     const strategy = this.strategies.get(strategyName)
     if (!strategy) {
       throw new Error(`未知的同步策略: ${strategyName}`)
     }
-    
+
     try {
       this.stats.strategiesProcessed++
       const result = await strategy.processor(data)
@@ -113,13 +113,13 @@ class SyncStrategyProcessor {
       throw error
     }
   }
-  
+
   /**
    * 處理優先級導向策略
    */
   async processPriorityBasedStrategy (data) {
     this.logger.log('🔄 執行優先級導向同步策略')
-    
+
     // 模擬策略處理
     const result = {
       strategy: 'priority-based',
@@ -127,17 +127,17 @@ class SyncStrategyProcessor {
       priority: data.priority || 'normal',
       processed: true
     }
-    
+
     this.stats.decisionsExecuted++
     return result
   }
-  
+
   /**
    * 處理時間戳導向策略
    */
   async processTimestampBasedStrategy (data) {
     this.logger.log('🔄 執行時間戳導向同步策略')
-    
+
     // 模擬策略處理
     const result = {
       strategy: 'timestamp-based',
@@ -145,17 +145,17 @@ class SyncStrategyProcessor {
       timestamp: Date.now(),
       processed: true
     }
-    
+
     this.stats.decisionsExecuted++
     return result
   }
-  
+
   /**
    * 處理衝突解決策略
    */
   async processConflictResolutionStrategy (data) {
     this.logger.log('🔄 執行衝突解決同步策略')
-    
+
     // 模擬策略處理
     const result = {
       strategy: 'conflict-resolution',
@@ -163,11 +163,11 @@ class SyncStrategyProcessor {
       resolution: 'merge',
       processed: true
     }
-    
+
     this.stats.conflictsResolved++
     return result
   }
-  
+
   /**
    * 獲取狀態
    */
@@ -179,7 +179,7 @@ class SyncStrategyProcessor {
       stats: { ...this.stats }
     }
   }
-  
+
   /**
    * 重置狀態
    */

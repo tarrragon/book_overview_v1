@@ -199,7 +199,7 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
       // 發送與原版相容的事件
       this.eventBus.emit('SEARCH.RESULTS_UPDATED', {
         query: data?.query || '',
-        results: results,
+        results,
         totalCount: results.length,
         filteredCount: results.length,
         source: 'BookSearchFilterIntegrated'
@@ -215,7 +215,7 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
       // 發送篩選事件
       this.eventBus.emit('FILTER.APPLIED', {
         filters: data?.filters || {},
-        results: results,
+        results,
         source: 'BookSearchFilterIntegrated'
       })
     })
@@ -300,10 +300,10 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
 
       // 委派給搜尋協調器
       const searchResult = await this.searchCoordinator.executeSearch(query, options)
-      
+
       // 確保返回結果數組 (與原版API相容)
       const rawResults = searchResult?.results || searchResult || []
-      
+
       // 扁平化搜尋結果，確保與測試期待的格式一致
       const results = rawResults.map(result => {
         if (result.originalData) {
@@ -318,7 +318,7 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
         }
         return result
       })
-      
+
       // 更新搜尋狀態
       this.searchState.searchResults = results
       this.searchState.filteredResults = results
@@ -327,8 +327,8 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
 
       // 手動發送搜尋結果更新事件（因為協調器事件不包含results）
       this.eventBus.emit('SEARCH.RESULTS_UPDATED', {
-        query: query,
-        results: results,
+        query,
+        results,
         totalCount: results.length,
         filteredCount: results.length,
         source: 'BookSearchFilterIntegrated'
@@ -358,18 +358,18 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
     try {
       // 委派給搜尋協調器
       const filterResult = await this.searchCoordinator.applyFiltersToResults(this.searchState.searchResults, filters)
-      
+
       // 從 filterResult 中提取結果數組
       const results = filterResult?.results || []
-      
+
       // 更新搜尋狀態
       this.searchState.filteredResults = results
       this.searchState.appliedFilters = filters
 
       // 手動發送篩選應用事件
       this.eventBus.emit('FILTER.APPLIED', {
-        filters: filters,
-        results: results,
+        filters,
+        results,
         source: 'BookSearchFilterIntegrated'
       })
 
@@ -452,7 +452,7 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
       if (this.searchCoordinator && typeof this.searchCoordinator.cleanup === 'function') {
         this.searchCoordinator.cleanup()
       }
-      
+
       // 清理UI控制器
       if (this.searchUIController && typeof this.searchUIController.cleanup === 'function') {
         this.searchUIController.cleanup()

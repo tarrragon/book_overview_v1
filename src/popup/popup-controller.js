@@ -503,7 +503,7 @@ class PopupController {
         // 背景服務檢查失敗，但不阻止初始化
         // 錯誤已經在 communication service 中處理，包含使用者友好的錯誤訊息
         console.warn('Background service check failed:', error.message)
-        
+
         // 在測試環境中，不應該當作錯誤
         if (process.env.NODE_ENV === 'test') {
           console.log('📝 Test environment - background service check skipped')

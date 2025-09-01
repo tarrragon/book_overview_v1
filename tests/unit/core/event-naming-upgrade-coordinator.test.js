@@ -151,13 +151,13 @@ describe('EventNamingUpgradeCoordinator', () => {
 
       // 應該呼叫處理器兩次（Legacy 和 Modern）
       expect(handlerCalls).toHaveLength(2)
-      
+
       // 第一個呼叫應該是 Legacy 事件物件
       expect(handlerCalls[0].eventObject.type).toBe(legacyEvent)
       expect(handlerCalls[0].eventObject.data).toEqual(mockEventData)
       expect(handlerCalls[0].eventObject.isLegacy).toBe(true)
       expect(handlerCalls[0].eventObject.timestamp).toBeDefined()
-      
+
       // 第二個呼叫應該是 Modern 事件物件
       expect(handlerCalls[1].eventObject.type).toBe(modernEvent)
       expect(handlerCalls[1].eventObject.data).toEqual(mockEventData)

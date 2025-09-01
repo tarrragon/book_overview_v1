@@ -83,7 +83,7 @@ async function initializeBackgroundSystem () {
       global.eventBus = backgroundCoordinator.eventBus
       console.log('✅ 全域 EventBus 實例已設定')
     }
-    
+
     if (backgroundCoordinator && backgroundCoordinator.chromeBridge) {
       global.chromeBridge = backgroundCoordinator.chromeBridge
       console.log('✅ 全域 ChromeBridge 實例已設定')

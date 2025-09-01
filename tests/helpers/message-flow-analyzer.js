@@ -3,7 +3,7 @@
  */
 
 class MessageFlowAnalyzer {
-  constructor() {
+  constructor () {
     this.messages = []
     this.flows = []
   }
@@ -11,7 +11,7 @@ class MessageFlowAnalyzer {
   /**
    * 記錄訊息
    */
-  recordMessage(sender, receiver, type, payload) {
+  recordMessage (sender, receiver, type, payload) {
     const message = {
       id: this.generateMessageId(),
       sender,
@@ -28,7 +28,7 @@ class MessageFlowAnalyzer {
   /**
    * 分析訊息流
    */
-  analyzeFlow() {
+  analyzeFlow () {
     const flowAnalysis = {
       totalMessages: this.messages.length,
       senders: this.getUniqueSenders(),
@@ -48,9 +48,9 @@ class MessageFlowAnalyzer {
   /**
    * 驗證訊息順序
    */
-  validateMessageOrder(expectedOrder) {
+  validateMessageOrder (expectedOrder) {
     const actualOrder = this.messages.map(m => m.type)
-    
+
     return {
       isCorrect: JSON.stringify(actualOrder) === JSON.stringify(expectedOrder),
       expected: expectedOrder,
@@ -61,19 +61,19 @@ class MessageFlowAnalyzer {
   /**
    * 私有輔助方法
    */
-  generateMessageId() {
+  generateMessageId () {
     return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`
   }
 
-  getUniqueSenders() {
+  getUniqueSenders () {
     return [...new Set(this.messages.map(m => m.sender))]
   }
 
-  getUniqueReceivers() {
+  getUniqueReceivers () {
     return [...new Set(this.messages.map(m => m.receiver))]
   }
 
-  getMessageTypes() {
+  getMessageTypes () {
     const types = {}
     this.messages.forEach(m => {
       types[m.type] = (types[m.type] || 0) + 1
@@ -81,19 +81,19 @@ class MessageFlowAnalyzer {
     return types
   }
 
-  calculateAverageFlowTime() {
+  calculateAverageFlowTime () {
     if (this.messages.length < 2) return 0
-    
+
     const firstMessage = this.messages[0]
     const lastMessage = this.messages[this.messages.length - 1]
-    
+
     return lastMessage.timestamp - firstMessage.timestamp
   }
 
   /**
    * 重置分析器
    */
-  reset() {
+  reset () {
     this.messages = []
     this.flows = []
   }

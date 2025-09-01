@@ -1,20 +1,20 @@
 /**
  * 跨模組錯誤傳播整合測試
  * v0.9.32 - TDD Phase 2 跨模組錯誤處理測試實作
- * 
+ *
  * 測試目標：
  * - 驗證錯誤在不同模組間的傳播機制
  * - 測試EventBus錯誤通訊的可靠性
  * - 確保錯誤隔離機制的有效性
  * - 驗證級聯錯誤的處理和控制
- * 
+ *
  * 涵蓋模組：
  * - ReadmooAdapter: 資料提取層
  * - DataDomainCoordinator: 資料處理層
  * - OverviewPageController: UI控制層
  * - EventBus: 通訊基礎設施
  * - Chrome Storage: 儲存服務
- * 
+ *
  * 錯誤傳播路徑：
  * 1. DOM Layer → Data Layer → UI Layer
  * 2. Network Layer → Storage Layer → Application Layer
@@ -72,9 +72,9 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       off: jest.fn(),
       _errorHandlers: new Map(),
       _propagationPath: [],
-      
+
       // 模擬錯誤傳播追蹤
-      trackErrorPropagation: function(source, target, error) {
+      trackErrorPropagation: function (source, target, error) {
         this._propagationPath.push({ source, target, error, timestamp: Date.now() })
         errorPropagationLogger.log('propagation', { source, target, error })
       }
@@ -130,7 +130,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       expect(propagatedError.message).toContain('資料處理失敗')
       expect(propagatedError.cause).toBe(domError)
       expect(propagatedError.module).toBe('DataDomainCoordinator')
-      
+
       // 驗證錯誤傳播路徑
       expect(mockEventBus._propagationPath).toHaveLength(1)
       expect(mockEventBus._propagationPath[0].source).toBe('ReadmooAdapter')
@@ -195,7 +195,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       // Given: Chrome Storage不可用
       const storageError = new Error('Extension context invalidated')
       storageError.code = 'CONTEXT_INVALIDATED'
-      
+
       global.chrome.storage.local.get.mockImplementation((keys, callback) => {
         global.chrome.runtime.lastError = { message: 'Extension context invalidated' }
         callback(null)
@@ -223,7 +223,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
     test('應該隔離網路錯誤避免影響離線功能', async () => {
       // Given: 網路完全斷線
       global.fetch = jest.fn().mockRejectedValue(new Error('Network error'))
-      
+
       const networkError = new Error('No internet connection')
       networkError.offline = true
 
@@ -240,7 +240,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       // Then: 在線操作失敗但離線功能正常
       expect(results.onlineOperation.success).toBe(false)
       expect(results.onlineOperation.fallback).toBe('OFFLINE_MODE')
-      
+
       results.offlineOperations.forEach(operation => {
         expect(operation.success).toBe(true)
       })
@@ -281,7 +281,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
     test('應該處理EventBus通訊中斷的影響', async () => {
       // Given: EventBus故障
       mockEventBus.emit.mockRejectedValue(new Error('EventBus communication failed'))
-      
+
       // When: 多個模組嘗試通訊
       const communicationResults = await Promise.allSettled([
         OverviewPageController.notifyDataUpdate(),
@@ -330,7 +330,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       // Then: 錯誤應該被隔離，不影響其他監聽器
       expect(mockEventBus._propagationPath).toHaveLength(1)
       expect(OverviewPageController.isOperational()).toBe(true)
-      
+
       // 其他事件處理器仍然正常
       const testEvent = { type: 'TEST.EVENT' }
       expect(() => mockEventBus.emit('OTHER.EVENT', testEvent)).not.toThrow()
@@ -378,7 +378,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
 
     test('應該實現模組級別的電路斷路器', async () => {
       // Given: 模組連續失敗觸發斷路器
-      const failures = Array.from({ length: 5 }, (_, i) => 
+      const failures = Array.from({ length: 5 }, (_, i) =>
         new Error(`Consecutive failure ${i + 1}`)
       )
 
@@ -399,7 +399,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       // Then: 斷路器應該在第5次失敗後啟動
       const errorAttempts = attempts.filter(a => a.error).length
       expect(errorAttempts).toBe(5) // 前5次失敗
-      
+
       const successAttempts = attempts.filter(a => !a.error).length
       expect(successAttempts).toBe(2) // 後2次被斷路器阻止或成功
 
@@ -411,7 +411,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       // Given: 模組從故障中恢復
       let isModuleHealthy = false
       ReadmooAdapter.isHealthy.mockImplementation(() => isModuleHealthy)
-      
+
       // 模組初始故障
       ErrorIsolationManager.markModuleAsFailed('ReadmooAdapter', new Error('Initial failure'))
 
@@ -422,7 +422,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       // Then: 應該自動恢復模組狀態
       expect(ErrorIsolationManager.isModuleHealthy('ReadmooAdapter')).toBe(true)
       expect(ErrorIsolationManager.getCircuitState('ReadmooAdapter')).toBe('CLOSED')
-      
+
       // 驗證模組重新啟用
       expect(ReadmooAdapter.isEnabled()).toBe(true)
     })
@@ -432,7 +432,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
     test('應該限制錯誤級聯的深度', async () => {
       // Given: 設計會產生級聯錯誤的情境
       const primaryError = new Error('Primary system failure')
-      
+
       ReadmooAdapter.extractBooks.mockRejectedValue(primaryError)
       DataDomainCoordinator.processExtractionData.mockImplementation(() => {
         throw new Error('Secondary failure due to extraction error')
@@ -453,7 +453,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       const errorChain = testHelpers.getErrorChainDepth(finalError)
       expect(errorChain.depth).toBeLessThanOrEqual(3) // 最大深度限制
       expect(errorChain.stopped).toBe(true) // 級聯被阻止
-      
+
       // 系統應該在某個層級停止級聯
       expect(ErrorIsolationManager.isCascadeLimited()).toBe(true)
     })
@@ -491,7 +491,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
 
     test('應該實現錯誤傳播的限流機制', async () => {
       // Given: 短時間內大量錯誤
-      const errors = Array.from({ length: 100 }, (_, i) => 
+      const errors = Array.from({ length: 100 }, (_, i) =>
         new Error(`Burst error ${i}`)
       )
 
@@ -534,7 +534,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       // Then: 恢復順序應該正確
       expect(recoveryResult.recoveryOrder).toEqual([
         'EventBus',
-        'ChromeStorageService', 
+        'ChromeStorageService',
         'ReadmooAdapter',
         'DataDomainCoordinator',
         'OverviewPageController'
@@ -546,216 +546,216 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
   // ===================
   // 輔助方法實作
   // ===================
-  
+
   const testHelpers = {
-    setupMockModules() {
+    setupMockModules () {
     // Mock ReadmooAdapter
-    ReadmooAdapter = {
-      extractBooks: jest.fn(),
-      fetchBookData: jest.fn(),
-      isHealthy: jest.fn().mockReturnValue(true),
-      isEnabled: jest.fn().mockReturnValue(true),
-      isDirectCommunicationMode: jest.fn().mockReturnValue(false)
-    }
-
-    // Mock DataDomainCoordinator  
-    DataDomainCoordinator = {
-      processExtractionData: jest.fn(),
-      validateData: jest.fn(),
-      processBatch: jest.fn(),
-      saveProcessedData: jest.fn(),
-      processData: jest.fn(),
-      broadcastProcessingComplete: jest.fn(),
-      isDirectCommunicationMode: jest.fn().mockReturnValue(false)
-    }
-
-    // Mock OverviewPageController
-    OverviewPageController = {
-      updateBooksDisplay: jest.fn(),
-      loadBooksFromStorage: jest.fn(),
-      showError: jest.fn(),
-      isOperational: jest.fn().mockReturnValue(true),
-      renderExistingBooks: jest.fn(),
-      setupEventListeners: jest.fn(),
-      notifyDataUpdate: jest.fn(),
-      requestDataRefresh: jest.fn(),
-      isDirectCommunicationMode: jest.fn().mockReturnValue(false)
-    }
-
-    // Mock ChromeStorageService
-    ChromeStorageService = {
-      isAvailable: jest.fn().mockReturnValue(true)
-    }
-
-    // Mock ErrorIsolationManager
-    ErrorIsolationManager = {
-      isStorageFallbackActive: jest.fn().mockReturnValue(false),
-      getFallbackStorage: jest.fn().mockReturnValue('LOCAL_STORAGE'),
-      isNetworkIsolated: jest.fn().mockReturnValue(false),
-      getCircuitState: jest.fn().mockReturnValue('CLOSED'),
-      markModuleAsFailed: jest.fn(),
-      performHealthCheck: jest.fn(),
-      isModuleHealthy: jest.fn().mockReturnValue(true),
-      isCascadeLimited: jest.fn().mockReturnValue(false),
-      isCircularErrorDetected: jest.fn().mockReturnValue(false),
-      getCircularCallStack: jest.fn().mockReturnValue([]),
-      getRateLimitStats: jest.fn().mockReturnValue({ droppedErrors: 0, processedErrors: 100 })
-    }
-
-    // 註冊模組
-    moduleRegistry.set('ReadmooAdapter', ReadmooAdapter)
-    moduleRegistry.set('DataDomainCoordinator', DataDomainCoordinator)  
-    moduleRegistry.set('OverviewPageController', OverviewPageController)
-    },
-
-    async handleLargeDataProcessing(dataSize) {
-    try {
-      await DataDomainCoordinator.processBatch({ size: dataSize })
-    } catch (error) {
-      if (error.message.includes('memory')) {
-        return {
-          strategy: 'BATCH_PROCESSING',
-          batchSize: Math.floor(dataSize / 10),
-          totalBatches: 10
-        }
+      ReadmooAdapter = {
+        extractBooks: jest.fn(),
+        fetchBookData: jest.fn(),
+        isHealthy: jest.fn().mockReturnValue(true),
+        isEnabled: jest.fn().mockReturnValue(true),
+        isDirectCommunicationMode: jest.fn().mockReturnValue(false)
       }
-      throw error
-    }
+
+      // Mock DataDomainCoordinator
+      DataDomainCoordinator = {
+        processExtractionData: jest.fn(),
+        validateData: jest.fn(),
+        processBatch: jest.fn(),
+        saveProcessedData: jest.fn(),
+        processData: jest.fn(),
+        broadcastProcessingComplete: jest.fn(),
+        isDirectCommunicationMode: jest.fn().mockReturnValue(false)
+      }
+
+      // Mock OverviewPageController
+      OverviewPageController = {
+        updateBooksDisplay: jest.fn(),
+        loadBooksFromStorage: jest.fn(),
+        showError: jest.fn(),
+        isOperational: jest.fn().mockReturnValue(true),
+        renderExistingBooks: jest.fn(),
+        setupEventListeners: jest.fn(),
+        notifyDataUpdate: jest.fn(),
+        requestDataRefresh: jest.fn(),
+        isDirectCommunicationMode: jest.fn().mockReturnValue(false)
+      }
+
+      // Mock ChromeStorageService
+      ChromeStorageService = {
+        isAvailable: jest.fn().mockReturnValue(true)
+      }
+
+      // Mock ErrorIsolationManager
+      ErrorIsolationManager = {
+        isStorageFallbackActive: jest.fn().mockReturnValue(false),
+        getFallbackStorage: jest.fn().mockReturnValue('LOCAL_STORAGE'),
+        isNetworkIsolated: jest.fn().mockReturnValue(false),
+        getCircuitState: jest.fn().mockReturnValue('CLOSED'),
+        markModuleAsFailed: jest.fn(),
+        performHealthCheck: jest.fn(),
+        isModuleHealthy: jest.fn().mockReturnValue(true),
+        isCascadeLimited: jest.fn().mockReturnValue(false),
+        isCircularErrorDetected: jest.fn().mockReturnValue(false),
+        getCircularCallStack: jest.fn().mockReturnValue([]),
+        getRateLimitStats: jest.fn().mockReturnValue({ droppedErrors: 0, processedErrors: 100 })
+      }
+
+      // 註冊模組
+      moduleRegistry.set('ReadmooAdapter', ReadmooAdapter)
+      moduleRegistry.set('DataDomainCoordinator', DataDomainCoordinator)
+      moduleRegistry.set('OverviewPageController', OverviewPageController)
     },
 
-    async checkSystemHealth() {
-    return {
-      coreModulesOperational: true
-    }
-    },
-
-    async updateUserPreferences(preferences) {
-    return { success: true, fallback: 'memory' }
-    },
-
-    async attemptOnlineDataSync() {
-    try {
-      await fetch('/api/sync')
-      return { success: true }
-    } catch (error) {
-      return { success: false, fallback: 'OFFLINE_MODE' }
-    }
-    },
-
-    async performLocalSearch(query) {
-    return { success: true, results: [] }
-    },
-
-    async exportLocalData() {
-    return { success: true, format: 'json' }
-    },
-
-    async executeDataFetchWithFallback() {
-    let retryAttempts = 0
-    let fallbackUsed = false
-
-    try {
-      return await ReadmooAdapter.fetchBookData()
-    } catch (error) {
-      retryAttempts = 3
-      fallbackUsed = true
-      return { books: [], source: 'cached', retryAttempts, fallbackUsed }
-    }
-    },
-
-    async sendEventWithRetry(eventType, data, maxRetries = 3) {
-    let attempts = 0
-    
-    while (attempts < maxRetries) {
-      attempts++
+    async handleLargeDataProcessing (dataSize) {
       try {
-        await mockEventBus.emit(eventType, data)
-        return { success: true, attempts }
+        await DataDomainCoordinator.processBatch({ size: dataSize })
       } catch (error) {
-        if (attempts >= maxRetries) {
-          throw error
+        if (error.message.includes('memory')) {
+          return {
+            strategy: 'BATCH_PROCESSING',
+            batchSize: Math.floor(dataSize / 10),
+            totalBatches: 10
+          }
         }
-        await new Promise(resolve => setTimeout(resolve, 100 * attempts))
+        throw error
       }
-    }
     },
 
-    async executeSystemHealthCheck() {
+    async checkSystemHealth () {
+      return {
+        coreModulesOperational: true
+      }
+    },
+
+    async updateUserPreferences (preferences) {
+      return { success: true, fallback: 'memory' }
+    },
+
+    async attemptOnlineDataSync () {
+      try {
+        await fetch('/api/sync')
+        return { success: true }
+      } catch (error) {
+        return { success: false, fallback: 'OFFLINE_MODE' }
+      }
+    },
+
+    async performLocalSearch (query) {
+      return { success: true, results: [] }
+    },
+
+    async exportLocalData () {
+      return { success: true, format: 'json' }
+    },
+
+    async executeDataFetchWithFallback () {
+      let retryAttempts = 0
+      let fallbackUsed = false
+
+      try {
+        return await ReadmooAdapter.fetchBookData()
+      } catch (error) {
+        retryAttempts = 3
+        fallbackUsed = true
+        return { books: [], source: 'cached', retryAttempts, fallbackUsed }
+      }
+    },
+
+    async sendEventWithRetry (eventType, data, maxRetries = 3) {
+      let attempts = 0
+
+      while (attempts < maxRetries) {
+        attempts++
+        try {
+          await mockEventBus.emit(eventType, data)
+          return { success: true, attempts }
+        } catch (error) {
+          if (attempts >= maxRetries) {
+            throw error
+          }
+          await new Promise(resolve => setTimeout(resolve, 100 * attempts))
+        }
+      }
+    },
+
+    async executeSystemHealthCheck () {
     // 模擬系統健康檢查
-    const moduleStatuses = Array.from(moduleRegistry.entries()).map(([name, module]) => {
+      const moduleStatuses = Array.from(moduleRegistry.entries()).map(([name, module]) => {
+        try {
+          const isHealthy = module.isHealthy ? module.isHealthy() : true
+          return { name, healthy: isHealthy }
+        } catch (error) {
+          return { name, healthy: false }
+        }
+      })
+
+      const failedModules = moduleStatuses.filter(m => !m.healthy).map(m => m.name)
+      const operationalModules = moduleStatuses.filter(m => m.healthy).map(m => m.name)
+
+      return {
+        failedModules,
+        operationalModules,
+        systemStable: operationalModules.length >= moduleStatuses.length / 2,
+        coreFeatures: ['data-display', 'local-search', 'export']
+      }
+    },
+
+    async attemptDataExtraction () {
       try {
-        const isHealthy = module.isHealthy ? module.isHealthy() : true
-        return { name, healthy: isHealthy }
+        return await ReadmooAdapter.extractBooks()
       } catch (error) {
-        return { name, healthy: false }
-      }
-    })
-
-    const failedModules = moduleStatuses.filter(m => !m.healthy).map(m => m.name)
-    const operationalModules = moduleStatuses.filter(m => m.healthy).map(m => m.name)
-
-    return {
-      failedModules,
-      operationalModules,
-      systemStable: operationalModules.length >= moduleStatuses.length / 2,
-      coreFeatures: ['data-display', 'local-search', 'export']
-    }
-    },
-
-    async attemptDataExtraction() {
-    try {
-      return await ReadmooAdapter.extractBooks()
-    } catch (error) {
       // 檢查斷路器狀態
-      if (ErrorIsolationManager.getCircuitState('ReadmooAdapter') === 'OPEN') {
-        return { blocked: true, reason: 'circuit_breaker' }
+        if (ErrorIsolationManager.getCircuitState('ReadmooAdapter') === 'OPEN') {
+          return { blocked: true, reason: 'circuit_breaker' }
+        }
+        throw error
       }
-      throw error
-    }
     },
 
-    async executeFullDataPipeline() {
-    const extractionData = await ReadmooAdapter.extractBooks()
-    const processedData = await DataDomainCoordinator.processExtractionData(extractionData)
-    return await OverviewPageController.updateBooksDisplay(processedData)
+    async executeFullDataPipeline () {
+      const extractionData = await ReadmooAdapter.extractBooks()
+      const processedData = await DataDomainCoordinator.processExtractionData(extractionData)
+      return await OverviewPageController.updateBooksDisplay(processedData)
     },
 
-    getErrorChainDepth(error) {
-    let depth = 0
-    let currentError = error
-    
-    while (currentError && depth < 10) { // 最大深度限制
-      depth++
-      currentError = currentError.cause
-    }
+    getErrorChainDepth (error) {
+      let depth = 0
+      let currentError = error
 
-    return {
-      depth,
-      stopped: depth >= 3 // 模擬級聯停止條件
-    }
+      while (currentError && depth < 10) { // 最大深度限制
+        depth++
+        currentError = currentError.cause
+      }
+
+      return {
+        depth,
+        stopped: depth >= 3 // 模擬級聯停止條件
+      }
     },
 
-    async simulateErrorPropagation(error) {
+    async simulateErrorPropagation (error) {
     // 模擬錯誤傳播處理
-    await new Promise(resolve => setTimeout(resolve, 10))
-    errorPropagationLogger.log('error_processed', { error })
-    return { processed: true }
+      await new Promise(resolve => setTimeout(resolve, 10))
+      errorPropagationLogger.log('error_processed', { error })
+      return { processed: true }
     },
 
-    async executeSystemRecovery() {
+    async executeSystemRecovery () {
     // 模擬系統恢復流程
-    const recoveryOrder = [
-      'EventBus',
-      'ChromeStorageService',
-      'ReadmooAdapter', 
-      'DataDomainCoordinator',
-      'OverviewPageController'
-    ]
+      const recoveryOrder = [
+        'EventBus',
+        'ChromeStorageService',
+        'ReadmooAdapter',
+        'DataDomainCoordinator',
+        'OverviewPageController'
+      ]
 
-    return {
-      recoveryOrder,
-      allModulesRecovered: true
-    }
+      return {
+        recoveryOrder,
+        allModulesRecovered: true
+      }
     }
   }
 })

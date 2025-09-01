@@ -4,7 +4,7 @@
  */
 
 class CrossDeviceSyncSimulator {
-  constructor() {
+  constructor () {
     this.devices = new Map()
     this.syncStatus = 'idle'
   }
@@ -12,7 +12,7 @@ class CrossDeviceSyncSimulator {
   /**
    * 模擬新增裝置
    */
-  addDevice(deviceId, deviceInfo = {}) {
+  addDevice (deviceId, deviceInfo = {}) {
     this.devices.set(deviceId, {
       id: deviceId,
       name: deviceInfo.name || `Device ${deviceId}`,
@@ -25,26 +25,26 @@ class CrossDeviceSyncSimulator {
   /**
    * 模擬同步過程
    */
-  async simulateSync(fromDevice, toDevice, data) {
+  async simulateSync (fromDevice, toDevice, data) {
     this.syncStatus = 'syncing'
-    
+
     // 模擬同步延遲
     await new Promise(resolve => setTimeout(resolve, 100))
-    
+
     const fromDeviceData = this.devices.get(fromDevice)
     const toDeviceData = this.devices.get(toDevice)
-    
+
     if (!fromDeviceData || !toDeviceData) {
       this.syncStatus = 'error'
       throw new Error('Device not found')
     }
-    
+
     // 更新同步時間
     fromDeviceData.lastSync = new Date()
     toDeviceData.lastSync = new Date()
-    
+
     this.syncStatus = 'completed'
-    
+
     return {
       success: true,
       syncedAt: new Date(),
@@ -55,9 +55,9 @@ class CrossDeviceSyncSimulator {
   /**
    * 模擬同步衝突
    */
-  async simulateSyncConflict(deviceA, deviceB) {
+  async simulateSyncConflict (deviceA, deviceB) {
     this.syncStatus = 'conflict'
-    
+
     return {
       success: false,
       conflict: true,
@@ -69,21 +69,21 @@ class CrossDeviceSyncSimulator {
   /**
    * 獲取裝置狀態
    */
-  getDeviceStatus(deviceId) {
+  getDeviceStatus (deviceId) {
     return this.devices.get(deviceId)
   }
 
   /**
    * 獲取同步狀態
    */
-  getSyncStatus() {
+  getSyncStatus () {
     return this.syncStatus
   }
 
   /**
    * 重置模擬器
    */
-  reset() {
+  reset () {
     this.devices.clear()
     this.syncStatus = 'idle'
   }
@@ -91,13 +91,13 @@ class CrossDeviceSyncSimulator {
   /**
    * 切換到設備B
    */
-  async switchToDeviceB() {
+  async switchToDeviceB () {
     this.currentDevice = 'deviceB'
     this.addDevice('deviceB', { name: 'Device B', status: 'online' })
-    
+
     // 模擬設備切換延遲
     await new Promise(resolve => setTimeout(resolve, 100))
-    
+
     return {
       success: true,
       currentDevice: 'deviceB',
@@ -108,19 +108,19 @@ class CrossDeviceSyncSimulator {
   /**
    * 切換到替代設備（輪換使用）
    */
-  async switchToAlternateDevice() {
+  async switchToAlternateDevice () {
     const currentDevice = this.currentDevice || 'deviceA'
     const alternateDevice = currentDevice === 'deviceA' ? 'deviceB' : 'deviceA'
-    
+
     this.currentDevice = alternateDevice
-    this.addDevice(alternateDevice, { 
-      name: `Device ${alternateDevice.slice(-1).toUpperCase()}`, 
-      status: 'online' 
+    this.addDevice(alternateDevice, {
+      name: `Device ${alternateDevice.slice(-1).toUpperCase()}`,
+      status: 'online'
     })
-    
+
     // 模擬設備切換延遲
     await new Promise(resolve => setTimeout(resolve, 100))
-    
+
     return {
       success: true,
       currentDevice: alternateDevice,
@@ -131,7 +131,7 @@ class CrossDeviceSyncSimulator {
   /**
    * 計算資料摘要（用於驗證資料一致性）
    */
-  async calculateDataDigest(books) {
+  async calculateDataDigest (books) {
     if (!Array.isArray(books)) {
       throw new Error('Books must be an array')
     }
@@ -165,19 +165,19 @@ class CrossDeviceSyncSimulator {
   /**
    * 清理資源
    */
-  async cleanup() {
+  async cleanup () {
     // 停止所有進行中的同步
     this.syncStatus = 'stopped'
-    
+
     // 清理所有設備狀態
     this.devices.clear()
-    
+
     // 重置當前設備
     this.currentDevice = null
-    
+
     // 模擬清理延遲
     await new Promise(resolve => setTimeout(resolve, 50))
-    
+
     return {
       success: true,
       message: 'Cleanup completed',
@@ -188,7 +188,7 @@ class CrossDeviceSyncSimulator {
   /**
    * 模擬設備間資料衝突
    */
-  async simulateConflict(deviceAData, deviceBData, conflictType = 'progress_mismatch') {
+  async simulateConflict (deviceAData, deviceBData, conflictType = 'progress_mismatch') {
     const conflicts = []
 
     // 檢查相同書籍的衝突
@@ -224,7 +224,7 @@ class CrossDeviceSyncSimulator {
 
     return {
       hasConflicts: conflicts.length > 0,
-      conflicts: conflicts,
+      conflicts,
       conflictCount: conflicts.length,
       resolutionStrategy: conflictType === 'progress_mismatch' ? 'auto_resolve' : 'manual_review'
     }
@@ -233,14 +233,14 @@ class CrossDeviceSyncSimulator {
   /**
    * 獲取當前設備
    */
-  getCurrentDevice() {
+  getCurrentDevice () {
     return this.currentDevice || 'deviceA'
   }
 
   /**
    * 模擬網路延遲
    */
-  async simulateNetworkDelay(ms = 200) {
+  async simulateNetworkDelay (ms = 200) {
     await new Promise(resolve => setTimeout(resolve, ms))
   }
 }

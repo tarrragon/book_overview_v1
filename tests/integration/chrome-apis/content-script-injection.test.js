@@ -198,7 +198,7 @@ describe('Content Script 注入整合測試', () => {
         {
           name: 'CSP_VIOLATION',
           setup: async () => {
-            await testSuite.navigateToMockReadmooPage()  // 先設置 Readmoo 頁面環境
+            await testSuite.navigateToMockReadmooPage() // 先設置 Readmoo 頁面環境
             await testSuite.navigateToCSPRestrictedPage() // 然後設置 CSP 限制
           },
           expectedError: 'Content Security Policy violation',
@@ -258,7 +258,7 @@ describe('Content Script 注入整合測試', () => {
           finalSuccess: injectionResult.injected,
           handlingTime
         })
-        
+
         // 調試信息
         console.log(`🔧 Scenario ${scenario.name}: errorHandled=${injectionResult.errorHandled}, injected=${injectionResult.injected}, errorMessage="${injectionResult.errorMessage}"`)
 
@@ -626,7 +626,7 @@ describe('Content Script 注入整合測試', () => {
         const cspTestTime = Date.now() - cspTestStart
 
         console.log(`🔧 測試結果映射 ${scenario.name}: injectionResult.cspViolationDetected=${injectionResult.cspViolationDetected}, injectionResult.behavior=${injectionResult.behavior}, injectionResult.success=${injectionResult.success}`)
-        
+
         cspHandlingResults.push({
           scenario: scenario.name,
           expectedBehavior: scenario.expectedBehavior,
