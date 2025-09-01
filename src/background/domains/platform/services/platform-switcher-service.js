@@ -374,7 +374,7 @@ class PlatformSwitcherService {
           timestamp: Date.now()
         })
         
-        await this.log(`切換請求 ${switchId} 已加入隊列，當前隊列長度: ${this.switchQueue.length}`)
+        this.log(`切換請求 ${switchId} 已加入隊列，當前隊列長度: ${this.switchQueue.length}`)
       })
     }
   }

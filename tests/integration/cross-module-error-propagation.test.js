@@ -96,7 +96,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       }
     }
 
-    this.setupMockModules()
+    testHelpers.setupMockModules()
   })
 
   afterEach(() => {
@@ -177,7 +177,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       DataDomainCoordinator.processBatch.mockRejectedValue(memoryError)
 
       // When: 嘗試處理大批資料
-      const result = await this.handleLargeDataProcessing(50000)
+      const result = await testHelpers.handleLargeDataProcessing(50000)
 
       // Then: 應該自動切換到分批處理模式
       expect(result.strategy).toBe('BATCH_PROCESSING')
@@ -185,7 +185,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       expect(result.totalBatches).toBeGreaterThan(5)
 
       // 驗證錯誤不會影響其他功能
-      const systemHealth = await this.checkSystemHealth()
+      const systemHealth = await testHelpers.checkSystemHealth()
       expect(systemHealth.coreModulesOperational).toBe(true)
     })
   })
@@ -207,7 +207,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       const storageResults = await Promise.allSettled([
         OverviewPageController.loadBooksFromStorage(),
         DataDomainCoordinator.saveProcessedData({ books: [] }),
-        this.updateUserPreferences({ theme: 'dark' })
+        testHelpers.updateUserPreferences({ theme: 'dark' })
       ])
 
       // Then: 所有儲存相關操作都應該降級
@@ -229,11 +229,11 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
 
       // When: 嘗試在線和離線操作
       const results = {
-        onlineOperation: await this.attemptOnlineDataSync(),
+        onlineOperation: await testHelpers.attemptOnlineDataSync(),
         offlineOperations: await Promise.all([
           OverviewPageController.renderExistingBooks(),
-          this.performLocalSearch('test'),
-          this.exportLocalData()
+          testHelpers.performLocalSearch('test'),
+          testHelpers.exportLocalData()
         ])
       }
 
@@ -263,7 +263,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       })
 
       // When: 執行資料獲取
-      const result = await this.executeDataFetchWithFallback()
+      const result = await testHelpers.executeDataFetchWithFallback()
 
       // Then: 應該經過完整的重試和降級流程
       expect(attemptCount).toBe(4) // 3次失敗 + 1次成功
@@ -348,7 +348,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       })
 
       // When: 發送重要事件
-      const result = await this.sendEventWithRetry('CRITICAL.DATA.UPDATE', { books: [] })
+      const result = await testHelpers.sendEventWithRetry('CRITICAL.DATA.UPDATE', { books: [] })
 
       // Then: 事件最終應該成功發送
       expect(result.success).toBe(true)
@@ -365,7 +365,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       })
 
       // When: 系統嘗試運作
-      const systemStatus = await this.executeSystemHealthCheck()
+      const systemStatus = await testHelpers.executeSystemHealthCheck()
 
       // Then: 其他模組應該繼續正常運作
       expect(systemStatus.failedModules).toEqual(['ReadmooAdapter'])
@@ -393,7 +393,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       // When: 連續嘗試操作
       const attempts = []
       for (let i = 0; i < 7; i++) {
-        attempts.push(await this.attemptDataExtraction().catch(e => ({ error: e })))
+        attempts.push(await testHelpers.attemptDataExtraction().catch(e => ({ error: e })))
       }
 
       // Then: 斷路器應該在第5次失敗後啟動
@@ -444,13 +444,13 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       // When: 觸發級聯錯誤
       let finalError = null
       try {
-        await this.executeFullDataPipeline()
+        await testHelpers.executeFullDataPipeline()
       } catch (error) {
         finalError = error
       }
 
       // Then: 級聯深度應該被限制
-      const errorChain = this.getErrorChainDepth(finalError)
+      const errorChain = testHelpers.getErrorChainDepth(finalError)
       expect(errorChain.depth).toBeLessThanOrEqual(3) // 最大深度限制
       expect(errorChain.stopped).toBe(true) // 級聯被阻止
       
@@ -498,7 +498,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       // When: 在短時間內觸發大量錯誤
       const startTime = Date.now()
       const results = await Promise.allSettled(
-        errors.map(error => this.simulateErrorPropagation(error))
+        errors.map(error => testHelpers.simulateErrorPropagation(error))
       )
       const endTime = Date.now()
 
@@ -529,7 +529,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       })
 
       // When: 執行系統恢復
-      const recoveryResult = await this.executeSystemRecovery()
+      const recoveryResult = await testHelpers.executeSystemRecovery()
 
       // Then: 恢復順序應該正確
       expect(recoveryResult.recoveryOrder).toEqual([
@@ -544,10 +544,11 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
   })
 
   // ===================
-  // Mock 方法實作
+  // 輔助方法實作
   // ===================
-
-  setupMockModules() {
+  
+  const testHelpers = {
+    setupMockModules() {
     // Mock ReadmooAdapter
     ReadmooAdapter = {
       extractBooks: jest.fn(),
@@ -605,9 +606,9 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
     moduleRegistry.set('ReadmooAdapter', ReadmooAdapter)
     moduleRegistry.set('DataDomainCoordinator', DataDomainCoordinator)  
     moduleRegistry.set('OverviewPageController', OverviewPageController)
-  }
+    },
 
-  async handleLargeDataProcessing(dataSize) {
+    async handleLargeDataProcessing(dataSize) {
     try {
       await DataDomainCoordinator.processBatch({ size: dataSize })
     } catch (error) {
@@ -620,36 +621,36 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       }
       throw error
     }
-  }
+    },
 
-  async checkSystemHealth() {
+    async checkSystemHealth() {
     return {
       coreModulesOperational: true
     }
-  }
+    },
 
-  async updateUserPreferences(preferences) {
+    async updateUserPreferences(preferences) {
     return { success: true, fallback: 'memory' }
-  }
+    },
 
-  async attemptOnlineDataSync() {
+    async attemptOnlineDataSync() {
     try {
       await fetch('/api/sync')
       return { success: true }
     } catch (error) {
       return { success: false, fallback: 'OFFLINE_MODE' }
     }
-  }
+    },
 
-  async performLocalSearch(query) {
+    async performLocalSearch(query) {
     return { success: true, results: [] }
-  }
+    },
 
-  async exportLocalData() {
+    async exportLocalData() {
     return { success: true, format: 'json' }
-  }
+    },
 
-  async executeDataFetchWithFallback() {
+    async executeDataFetchWithFallback() {
     let retryAttempts = 0
     let fallbackUsed = false
 
@@ -660,9 +661,9 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       fallbackUsed = true
       return { books: [], source: 'cached', retryAttempts, fallbackUsed }
     }
-  }
+    },
 
-  async sendEventWithRetry(eventType, data, maxRetries = 3) {
+    async sendEventWithRetry(eventType, data, maxRetries = 3) {
     let attempts = 0
     
     while (attempts < maxRetries) {
@@ -677,9 +678,9 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
         await new Promise(resolve => setTimeout(resolve, 100 * attempts))
       }
     }
-  }
+    },
 
-  async executeSystemHealthCheck() {
+    async executeSystemHealthCheck() {
     // 模擬系統健康檢查
     const moduleStatuses = Array.from(moduleRegistry.entries()).map(([name, module]) => {
       try {
@@ -699,9 +700,9 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       systemStable: operationalModules.length >= moduleStatuses.length / 2,
       coreFeatures: ['data-display', 'local-search', 'export']
     }
-  }
+    },
 
-  async attemptDataExtraction() {
+    async attemptDataExtraction() {
     try {
       return await ReadmooAdapter.extractBooks()
     } catch (error) {
@@ -711,15 +712,15 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       }
       throw error
     }
-  }
+    },
 
-  async executeFullDataPipeline() {
+    async executeFullDataPipeline() {
     const extractionData = await ReadmooAdapter.extractBooks()
     const processedData = await DataDomainCoordinator.processExtractionData(extractionData)
     return await OverviewPageController.updateBooksDisplay(processedData)
-  }
+    },
 
-  getErrorChainDepth(error) {
+    getErrorChainDepth(error) {
     let depth = 0
     let currentError = error
     
@@ -732,16 +733,16 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       depth,
       stopped: depth >= 3 // 模擬級聯停止條件
     }
-  }
+    },
 
-  async simulateErrorPropagation(error) {
+    async simulateErrorPropagation(error) {
     // 模擬錯誤傳播處理
     await new Promise(resolve => setTimeout(resolve, 10))
     errorPropagationLogger.log('error_processed', { error })
     return { processed: true }
-  }
+    },
 
-  async executeSystemRecovery() {
+    async executeSystemRecovery() {
     // 模擬系統恢復流程
     const recoveryOrder = [
       'EventBus',
@@ -754,6 +755,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
     return {
       recoveryOrder,
       allModulesRecovered: true
+    }
     }
   }
 })

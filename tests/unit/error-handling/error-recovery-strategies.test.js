@@ -74,7 +74,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       })
 
       // When: 執行指數退避重試
-      const result = await this.executeRetryWithBackoff(flakyOperation, {
+      const result = await testHelpers.executeRetryWithBackoff(flakyOperation, {
         maxRetries: 3,
         baseDelay: 100,
         maxDelay: 1000
@@ -85,7 +85,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       expect(flakyOperation).toHaveBeenCalledTimes(3)
       
       // 驗證退避延遲時間
-      expect(this.getRetryDelays()).toEqual([100, 200, 400]) // 指數增長
+      expect(testHelpers.getRetryDelays()).toEqual([100, 200, 400]) // 指數增長
     })
 
     test('應該在超過最大重試次數後失敗', async () => {
@@ -95,7 +95,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       )
 
       // When: 執行重試策略
-      const promise = this.executeRetryWithBackoff(alwaysFailingOperation, {
+      const promise = testHelpers.executeRetryWithBackoff(alwaysFailingOperation, {
         maxRetries: 2,
         baseDelay: 50
       })
@@ -126,7 +126,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       // When: 執行條件重試
       const shouldRetry = (error) => error.retryable === true
 
-      const promise = this.executeRetryWithBackoff(conditionalFailingOperation, {
+      const promise = testHelpers.executeRetryWithBackoff(conditionalFailingOperation, {
         maxRetries: 3,
         baseDelay: 10,
         shouldRetry
@@ -149,7 +149,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       })
 
       // When: 執行重試並收集統計
-      const result = await this.executeRetryWithMetrics(operation, {
+      const result = await testHelpers.executeRetryWithMetrics(operation, {
         maxRetries: 3,
         baseDelay: 10
       })
@@ -186,7 +186,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       }
 
       // When: 執行降級策略
-      const result = await this.executeFallbackStrategy(primaryService, fallbackService)
+      const result = await testHelpers.executeFallbackStrategy(primaryService, fallbackService)
 
       // Then: 應該使用降級服務
       expect(result.source).toBe('cache')
@@ -205,7 +205,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       ]
 
       // When: 執行多層級降級
-      const result = await this.executeMultiTierFallback(services)
+      const result = await testHelpers.executeMultiTierFallback(services)
 
       // Then: 應該選擇第一個可用的服務
       expect(result.selectedService).toBe('cache')
@@ -230,12 +230,12 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       }
 
       // When: 先降級，然後服務恢復
-      let result = await this.executeServiceWithFallback(primaryService, fallbackService)
+      let result = await testHelpers.executeServiceWithFallback(primaryService, fallbackService)
       expect(result.source).toBe('fallback')
 
       // 模擬服務恢復
       serviceAvailable = true
-      result = await this.executeServiceWithFallback(primaryService, fallbackService)
+      result = await testHelpers.executeServiceWithFallback(primaryService, fallbackService)
 
       // Then: 應該切回主服務
       expect(result.source).toBe('primary')
@@ -243,7 +243,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     test('應該維護降級狀態統計', () => {
       // Given: 降級管理器
-      const fallbackManager = this.createFallbackManager()
+      const fallbackManager = testHelpers.createFallbackManager()
 
       // When: 執行多次降級
       fallbackManager.activateFallback('network-error', 'primary-to-cache')
@@ -267,7 +267,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       permissionError.userAction = 'GRANT_PERMISSION'
 
       // When: 請求使用者介入
-      const recovery = await this.requestUserIntervention(permissionError)
+      const recovery = await testHelpers.requestUserIntervention(permissionError)
 
       // Then: 應該提供正確的引導
       expect(recovery.type).toBe('USER_INTERVENTION')
@@ -287,7 +287,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       }
 
       // When: 驗證使用者操作
-      const validation = await this.validateUserAction(userAction)
+      const validation = await testHelpers.validateUserAction(userAction)
 
       // Then: 應該確認操作有效性
       expect(validation.valid).toBe(true)
@@ -300,7 +300,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       const timeoutMs = 30000 // 30秒超時
 
       // When: 等待使用者操作但超時
-      const promise = this.waitForUserAction('RELOAD_EXTENSION', timeoutMs)
+      const promise = testHelpers.waitForUserAction('RELOAD_EXTENSION', timeoutMs)
       
       // 快進時間超過超時限制
       jest.advanceTimersByTime(31000)
@@ -322,7 +322,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       }
 
       // When: 執行功能降級
-      const degradation = this.executeFunctionalDegradation(brokenModule)
+      const degradation = testHelpers.executeFunctionalDegradation(brokenModule)
 
       // Then: 應該提供簡化版功能
       expect(degradation.degradedModule).toBe('BasicSearch')
@@ -336,7 +336,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       const failedFeatures = ['export-csv', 'book-statistics', 'theme-customization']
       
       // When: 評估系統可用性
-      const availability = this.evaluateSystemAvailability(failedFeatures)
+      const availability = testHelpers.evaluateSystemAvailability(failedFeatures)
 
       // Then: 核心功能應該仍然可用
       expect(availability.coreAvailable).toBe(true)
@@ -358,7 +358,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       }
 
       // When: 生成使用者介面回饋
-      const uiFeedback = this.generateDegradationFeedback(degradedState)
+      const uiFeedback = testHelpers.generateDegradationFeedback(degradedState)
 
       // Then: 應該提供清晰的狀態資訊
       expect(uiFeedback.message).toContain('部分功能暫時無法使用')
@@ -379,7 +379,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       }
 
       // When: 執行組件重啟
-      const result = await this.restartComponent(faultyComponent)
+      const result = await testHelpers.restartComponent(faultyComponent)
 
       // Then: 組件應該成功重啟
       expect(result.success).toBe(true)
@@ -396,7 +396,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       ]
 
       // When: 執行漸進式重啟
-      const result = await this.progressiveRestart(components)
+      const result = await testHelpers.progressiveRestart(components)
 
       // Then: 應該按照依賴順序重啟
       expect(result.restartOrder).toEqual(['EventBus', 'StorageManager', 'UIController'])
@@ -413,7 +413,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       }
 
       // When: 嘗試重啟但失敗
-      const result = await this.attemptRestart(unreliableComponent)
+      const result = await testHelpers.attemptRestart(unreliableComponent)
 
       // Then: 應該執行回滾策略
       expect(result.restartFailed).toBe(true)
@@ -435,7 +435,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       // When: 批量執行恢復策略
       const startTime = Date.now()
       const results = await Promise.all(
-        errors.map(error => this.executeRecovery(error))
+        errors.map(error => testHelpers.executeRecovery(error))
       )
       const endTime = Date.now()
 
@@ -450,7 +450,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     test('應該監控恢復成功率', () => {
       // Given: 恢復策略管理器
-      const recoveryManager = this.createRecoveryManager()
+      const recoveryManager = testHelpers.createRecoveryManager()
 
       // When: 執行多次恢復
       const testCases = [
@@ -475,7 +475,8 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
   })
 
   // Mock 輔助方法實作
-  async executeRetryWithBackoff(operation, options = {}) {
+  const testHelpers = {
+    async executeRetryWithBackoff(operation, options = {}) {
     const { maxRetries = 3, baseDelay = 100, maxDelay = 10000, shouldRetry = () => true } = options
     let lastError = null
     this.retryDelays = []
@@ -497,13 +498,13 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
     }
     
     throw lastError
-  }
+    },
 
-  getRetryDelays() {
+    getRetryDelays() {
     return this.retryDelays || []
-  }
+    },
 
-  async executeRetryWithMetrics(operation, options) {
+    async executeRetryWithMetrics(operation, options) {
     const startTime = Date.now()
     let attempts = 0
     let retryCount = 0
@@ -516,7 +517,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
     }
 
     try {
-      const value = await this.executeRetryWithBackoff(wrappedOperation, options)
+      const value = await testHelpers.executeRetryWithBackoff(wrappedOperation, options)
       const totalTime = Date.now() - startTime
       
       mockMetrics.timing('recovery.retry.duration', totalTime)
@@ -533,18 +534,18 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
     } catch (error) {
       throw error
     }
-  }
+    },
 
-  async executeFallbackStrategy(primaryService, fallbackService) {
+    async executeFallbackStrategy(primaryService, fallbackService) {
     try {
       return await primaryService.getData()
     } catch (error) {
       mockLogger.warn('Primary service failed, falling back', { error: error.message })
       return await fallbackService.getData()
     }
-  }
+    },
 
-  async executeMultiTierFallback(services) {
+    async executeMultiTierFallback(services) {
     for (const service of services.sort((a, b) => a.priority - b.priority)) {
       if (service.available) {
         return {
@@ -554,17 +555,17 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       }
     }
     throw new Error('No available services')
-  }
+    },
 
-  async executeServiceWithFallback(primaryService, fallbackService) {
+    async executeServiceWithFallback(primaryService, fallbackService) {
     if (primaryService.isAvailable()) {
       return await primaryService.getData()
     } else {
       return await fallbackService.getData()
     }
-  }
+    },
 
-  createFallbackManager() {
+    createFallbackManager() {
     const activeFallbacks = new Map()
     const history = []
 
@@ -584,9 +585,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
         fallbackHistory: history
       })
     }
-  }
+    },
 
-  async requestUserIntervention(error) {
+    async requestUserIntervention(error) {
     const interventionMap = {
       'GRANT_PERMISSION': {
         guidance: '請在瀏覽器設定中授予擴展儲存權限',
@@ -609,9 +610,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       action: error.userAction,
       ...intervention
     }
-  }
+    },
 
-  async validateUserAction(action) {
+    async validateUserAction(action) {
     // 模擬驗證邏輯
     if (action.type === 'GRANT_PERMISSION' && action.granted) {
       return {
@@ -626,9 +627,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       canProceed: false,
       reason: 'Action not completed'
     }
-  }
+    },
 
-  async waitForUserAction(actionType, timeoutMs) {
+    async waitForUserAction(actionType, timeoutMs) {
     return new Promise((resolve) => {
       const timer = setTimeout(() => {
         resolve({
@@ -640,9 +641,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       // 在實際實作中，這裡會監聽使用者操作事件
       // 這裡只是模擬超時情況
     })
-  }
+    },
 
-  executeFunctionalDegradation(brokenModule) {
+    executeFunctionalDegradation(brokenModule) {
     const degradationMap = {
       'AdvancedSearch': {
         degradedModule: 'BasicSearch',
@@ -661,9 +662,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       ...degradation,
       userNotification: '部分功能暫時無法使用，已啟用簡化模式'
     }
-  }
+    },
 
-  evaluateSystemAvailability(failedFeatures) {
+    evaluateSystemAvailability(failedFeatures) {
     const coreFeatures = ['book-display', 'search', 'data-import', 'basic-export']
     const hasCoreFailures = failedFeatures.some(feature => coreFeatures.includes(feature))
     
@@ -672,9 +673,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       criticalFunctions: coreFeatures,
       degradationLevel: failedFeatures.length > 2 ? 'MAJOR' : 'MINOR'
     }
-  }
+    },
 
-  generateDegradationFeedback(degradedState) {
+    generateDegradationFeedback(degradedState) {
     const featureMap = {
       'export-csv': '匯出 CSV',
       'advanced-search': '進階搜尋'
@@ -686,9 +687,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       showRetryOption: true,
       estimatedRecovery: `約 ${degradedState.estimatedRecovery}後恢復`
     }
-  }
+    },
 
-  async restartComponent(component) {
+    async restartComponent(component) {
     try {
       const result = await component.restart()
       return {
@@ -701,10 +702,10 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
         error: error.message
       }
     }
-  }
+    },
 
-  async progressiveRestart(components) {
-    const restartOrder = this.calculateRestartOrder(components)
+    async progressiveRestart(components) {
+    const restartOrder = testHelpers.calculateRestartOrder(components)
     let totalTime = 0
 
     for (const componentName of restartOrder) {
@@ -720,9 +721,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       totalTime,
       allComponentsRunning: true
     }
-  }
+    },
 
-  calculateRestartOrder(components) {
+    calculateRestartOrder(components) {
     // 簡單的拓撲排序實作
     const result = []
     const visited = new Set()
@@ -740,9 +741,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     components.forEach(component => visit(component.name))
     return result
-  }
+    },
 
-  async attemptRestart(component) {
+    async attemptRestart(component) {
     try {
       await component.restart()
       return {
@@ -758,9 +759,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
         safeMode: true
       }
     }
-  }
+    },
 
-  async executeRecovery(error) {
+    async executeRecovery(error) {
     // 模擬恢復策略執行
     const strategies = {
       'Network timeout': { strategy: 'RETRY', recovered: true },
@@ -769,9 +770,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
     }
 
     return strategies[error.message] || { strategy: 'UNKNOWN', recovered: false }
-  }
+    },
 
-  createRecoveryManager() {
+    createRecoveryManager() {
     let totalAttempts = 0
     let successfulRecoveries = 0
 
@@ -791,6 +792,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
         totalAttempts,
         successfulRecoveries
       })
+    }
     }
   }
 })
