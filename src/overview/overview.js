@@ -15,6 +15,8 @@
  * - 整合現有的事件處理器架構
  */
 
+/* global EventBus, ChromeEventBridge, OverviewPageController */
+
 (function () {
   'use strict'
 

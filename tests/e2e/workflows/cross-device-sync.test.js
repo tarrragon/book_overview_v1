@@ -16,6 +16,9 @@
 
 const path = require('path')
 
+// 工具函數
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
 // 導入測試工具和模擬
 const {
   createSyncTestEnvironment,
