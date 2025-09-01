@@ -29,6 +29,138 @@
 - [ ] 是否想跳過/暫緩任何問題？違反永不放棄原則
 - [ ] 是否發現架構債務？立即停止功能開發優先修正
 
+---
+
+## 🚀 Claude Session 啟動檢查流程
+
+每次啟動新的 Claude Code session 時，必須執行以下標準檢查流程，確保開發環境準備就緒且狀態同步。
+
+### 📋 強制啟動檢查清單
+
+**使用 `/startup-check` 命令執行完整檢查，或手動依序確認：**
+
+#### 1. Git 狀態同步檢查
+- [ ] 檢查遠端分支狀態: `git fetch origin`
+- [ ] 比較本地與遠端進度: `git status -uno`
+- [ ] **如果遠端領先**: 執行 `git pull origin [branch]` 同步
+- [ ] **如果本地領先**: 確認是否需要推送或繼續開發
+- [ ] 確認工作目錄狀態: 無未提交的重要變更
+
+#### 2. TMux 環境檢查
+- [ ] 檢查是否在 tmux 環境: `echo $TMUX`
+- [ ] 確認 session 名稱: `tmux display-message -p '#S'`
+- [ ] **如果在 main_layout session**: 按照 TMux 面板分工配置執行
+- [ ] **如果不在 tmux**: 建議切換至 `main_layout` 以獲得最佳協作體驗
+- [ ] 驗證面板數量: 確認有 5 個面板 (1,2,2 佈局)
+
+#### 3. 專案文件載入確認
+- [ ] 確認已載入 CLAUDE.md 主文件
+- [ ] 確認已載入參考文件:
+  - [ ] docs/workflows/tdd-collaboration-flow.md
+  - [ ] docs/guidelines/document-responsibilities.md
+  - [ ] docs/workflows/agent-collaboration.md
+  - [ ] docs/project/chrome-extension-specs.md
+  - [ ] docs/architecture/event-driven-architecture.md
+- [ ] 檢查 todolist.md 當前狀態和優先級
+
+#### 4. 開發狀態確認
+- [ ] 檢查當前版本號: 查看最新工作日誌
+- [ ] 確認最新 CHANGELOG.md 版本記錄
+- [ ] 識別當前階段: 開發/測試/重構/發布
+- [ ] 確認待處理的緊急問題或技術債務
+
+### ⚡ 快速啟動檢查命令
+
+**建議的啟動檢查指令**:
+```bash
+# 使用 Claude 命令快速檢查
+/startup-check
+
+# 或手動執行關鍵檢查
+git fetch origin && git status -uno
+echo "TMux Session: $(tmux display-message -p '#S' 2>/dev/null || echo 'Not in tmux')"
+echo "當前版本: $(ls docs/work-logs/ | grep '^v[0-9]' | sort -V | tail -1)"
+```
+
+### 🔧 常見啟動情境處理
+
+#### 情境A: 遠端分支領先
+```bash
+git fetch origin
+git pull origin [current-branch]  # 同步遠端變更
+# 檢查是否有合併衝突，如有則先解決
+```
+
+#### 情境B: 不在 TMux 環境
+```bash
+tmux attach-session -t main_layout    # 切換到主佈局
+# 或 tmux switch-client -t main_layout  # 在 tmux 內切換
+```
+
+#### 情境C: 文件載入不完整
+- 確認所有參考文件都在 Claude 的 context 中
+- 重新讀取缺失的關鍵指導文件
+- 檢查 todolist.md 以了解當前工作重點
+
+### 🚨 啟動檢查失敗處理
+
+**如果啟動檢查發現問題**：
+1. **立即停止開發工作**
+2. **優先解決環境同步問題**
+3. **確保所有檢查項目通過後才開始開發**
+4. **記錄問題和解決方案以改善未來啟動流程**
+
+**避免在不完整的環境狀態下開始開發，這會導致：**
+- 版本衝突和合併問題
+- 重複工作和效率損失
+- 不一致的開發決策
+- 技術債務累積
+
+---
+
+## 📝 標準提交流程
+
+### 🎯 Commit-As-Prompt 標準流程
+
+**所有 Git 提交必須使用 `/commit-as-prompt` 指令**，確保高品質的提交訊息和完整的變更管理。
+
+#### 📋 提交前必要步驟
+
+1. **環境檢查**: 確保已執行 `/startup-check` 且所有項目通過
+2. **變更分析**: 理解所有待提交的變更內容和影響
+3. **程式碼清理**: 移除臨時程式碼、無用匯入、除錯語句
+4. **檔案挑選**: 使用 `git add -p` 精準選擇相關變更
+
+#### 🏷️ 提交類型規範
+
+- **prompt:** - 需要轉換為 AI 上下文的功能變更
+- **feat:** - 新增功能
+- **fix:** - 錯誤修復  
+- **docs:** - 文件更新
+- **refactor:** - 重構
+
+#### 📝 WHAT/WHY/HOW 強制格式
+
+每個提交必須包含：
+- **WHAT**: 具體動作與對象（使用祈使句）
+- **WHY**: 業務需求、技術債務背景、問題根因
+- **HOW**: 實作策略、相容性考量、驗證方式
+
+#### 🚀 面板3標準作業
+
+```bash
+# 在面板3執行標準提交流程
+/commit-as-prompt
+
+# 系統將引導完成：
+# 1. 變更檢查與清理
+# 2. 檔案挑選與暫存  
+# 3. 提交訊息撰寫（WHAT/WHY/HOW）
+# 4. 推送與文件同步
+```
+
+---
+
 ### 📚 核心規範快速導覽
 
 **日常開發必讀**：
@@ -135,7 +267,7 @@
 - **面板0（主線程）**: 主要開發工作（測試、編碼）
 - **面板1（中左）**: 文件更新（工作日誌、TODO、CHANGELOG）
 - **面板2（中右）**: 程式碼品質檢查（lint、build、coverage）
-- **面板3（下左）**: Git 操作（狀態檢查、提交準備）
+- **面板3（下左）**: Git 操作（狀態檢查、提交準備）- 標準提交流程使用 `/commit-as-prompt` 指令
 - **面板4（下右）**: 監控和分析（日誌查看、效能監控）
 
 ### TMux 操作指令
