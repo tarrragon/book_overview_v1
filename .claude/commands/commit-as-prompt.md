@@ -42,6 +42,24 @@
 
 以下步驟幫助你快速整理變更並產出符合 WHAT / WHY / HOW 規範的提交：
 
+0. **工作日誌記錄檢查** ⭐ 新增步驟
+
+```bash
+# 執行工作日誌檢查腳本
+./scripts/check-work-log.sh
+```
+
+**檢查項目**：
+- 最新工作日誌是否包含今日日期記錄
+- 當前變更是否已記錄在工作日誌中
+- 文件同步狀態（工作日誌、TODO、CHANGELOG）
+
+**如果檢查不通過**：
+1. 開啟最新的工作日誌檔案 (`docs/work-logs/v*.*.*.md`)
+2. 記錄今日的開發工作內容
+3. 同時暫存工作日誌變更: `git add docs/work-logs/`
+4. 重新執行 `/commit-as-prompt`
+
 1. **檢查工作區變更**
 
 ```bash
@@ -90,6 +108,13 @@ HOW: ...
 5. **推送並同步文件**
 
 ```bash
+# ⚠️  提交前最後確認：確保工作日誌已更新並包含在提交中
+if git diff --cached --name-only | grep -q "docs/work-logs/"; then
+    echo "✅ 工作日誌已包含在提交中"
+else
+    echo "⚠️  工作日誌未包含，建議加入: git add docs/work-logs/"
+fi
+
 # 範例：提交一條 prompt 類型的變更
 git commit -m "prompt(auth): 支援 OAuth2 登入" -m "WHAT: ...
 WHY: ...
@@ -100,9 +125,14 @@ git push
 之後：
 
 ```bash
-# 若變更影響到文檔，請同步更新中文文檔倉庫
-ls docs-cn | grep -E "\.md$" # 檢查需更新的文檔
-# 編輯並提交更新後的文檔
+# 檢查是否需要更新其他文件記錄
+if [[ -f "docs/todolist.md" ]]; then
+    echo "📋 檢查 TODO 清單是否需要更新"
+fi
+
+if [[ -f "CHANGELOG.md" ]]; then
+    echo "📝 檢查變更記錄是否需要更新"
+fi
 ```
 
 ### 📂 檔案挑選原則

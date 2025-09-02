@@ -36,20 +36,40 @@ git status -b --ahead-behind
 - 在正確的開發分支
 - 與遠端同步
 
-### 2. TMux 環境驗證
+### 2. TMux 環境驗證與設定
 
 ```bash
-# 檢查 TMux session 狀態
-echo $TMUX
-tmux list-sessions
-tmux list-windows -t main_layout
-tmux list-panes -t main_layout -F "#{pane_id}: #{pane_width}x#{pane_height}"
+# 檢查 TMux 環境狀態
+if [[ -n "$TMUX" ]]; then
+    echo "✅ 已在 TMux 環境中"
+    current_session=$(tmux display-message -p '#S')
+    echo "當前 Session: $current_session"
+    
+    # 執行 TMux 佈局設定腳本
+    echo "🔧 執行 TMux 佈局設定..."
+    ./scripts/setup-tmux-layout.sh
+    
+    # 驗證設定結果
+    pane_count=$(tmux list-panes | wc -l | tr -d ' ')
+    echo "面板數量: $pane_count"
+    
+    if [[ $pane_count -eq 5 ]]; then
+        echo "✅ TMux 佈局設定完成 (1,2,2 佈局)"
+    else
+        echo "⚠️  面板數量不正確，請檢查佈局設定"
+    fi
+else
+    echo "❌ 未在 TMux 環境中"
+    echo "💡 請執行以下指令進入 TMux 環境："
+    echo "   tmux new-session -s main_layout"
+    echo "   然後重新執行 /startup-check"
+fi
 ```
 
 **預期結果**：
-- 在 `main_layout` session 中
-- 擁有 5 個面板 (0-4)
-- 1,2,2 佈局配置正確
+- 自動重新命名當前 session 為 `main_layout`
+- 自動設定 5 個面板 (0-4) 的 1,2,2 佈局
+- 每個面板都有明確的功能說明
 
 ### 3. 專案檔案載入確認
 
@@ -120,10 +140,16 @@ git add -A
 git commit -m "session startup: commit pending changes"
 ```
 
-**TMux 環境不正確**：
+**TMux 環境問題**：
 ```bash
-# 切換到正確 session
-tmux attach-session -t main_layout
+# 如果不在 TMux 環境中
+tmux new-session -s main_layout
+
+# 如果在 TMux 但非 main_layout session
+# startup-check 會自動執行 setup-tmux-layout.sh 進行設定
+
+# 手動執行佈局設定 (如有需要)
+./scripts/setup-tmux-layout.sh
 ```
 
 **檔案載入失敗**：
