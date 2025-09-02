@@ -1,6 +1,48 @@
 # 📋 Readmoo 書庫提取器 Chrome Extension - 版本變更紀錄
 
-本文檔記錄 Readmoo 書庫數據提取器 Chrome Extension 的所有重要變更和版本發布。
+本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
+
+## [v0.10.7] - 2025-09-02
+
+### 📝 用語規範標準化完成
+
+**主要成果**：
+- 建立完整的專案用語規範字典 (44項標準對照)
+- 修正版本管理系統關鍵邏輯錯誤
+- 完成台灣程式開發環境在地化
+
+**技術改進**：
+- 新增 `docs/guidelines/terminology-dictionary.md` 用語標準
+- 修正 work-log-manager.sh 版本檢測邏輯 (支援 v0.10.x 系列)
+- 更新所有自動化腳本移除模糊概念用語
+- 強化版本號一致性檢查機制
+
+**文件更新**：
+- 更新 CLAUDE.md 用語規範章節
+- 更新 commit-as-prompt.md 精確技術描述
+- 統一台灣程式術語慣例
+
+**版本同步**：CHANGELOG.md v0.10.7 ↔ package.json 0.10.7
+
+---
+
+## [v0.10.6] - 2025-09-02
+
+### 🔧 用語規範與版號管理系統建立
+
+#### feat
+
+- 建立專案用語規範字典 (docs/guidelines/terminology-dictionary.md)
+- 修正所有「智能」用語為精確的技術術語 (自動化腳本、規則比對等)
+- 修正中國用語為台灣用語 (文檔→文件、資料→資料等)
+- 建立版號同步檢查機制，確保 package.json 與 CHANGELOG.md 一致
+
+#### change
+
+- 重命名錯誤的 v1.0.0 工作日誌為 v0.10.x 系列 (5個檔案)
+- 修改版號管理邏輯以 CHANGELOG.md 為權威來源
+- 在 commit-as-prompt 中加入四階段自動化檢查
+- 更新 CLAUDE.md 加入完整的用語規範章節
 
 ## [v0.9.52] - 2025-09-02
 

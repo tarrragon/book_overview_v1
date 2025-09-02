@@ -74,19 +74,69 @@ get_current_project_version() {
     echo "$version"
 }
 
+# 遞增版本號 (用於議題切換時建立新版本)
+increment_version() {
+    local current_version="$1"
+    
+    # 提取版本號組件
+    local major=$(echo "$current_version" | cut -d'.' -f1)
+    local minor=$(echo "$current_version" | cut -d'.' -f2)  
+    local patch=$(echo "$current_version" | cut -d'.' -f3)
+    
+    # 遞增 patch 版本
+    local new_patch=$((patch + 1))
+    
+    echo "$major.$minor.$new_patch"
+}
+
 # 獲取最新的工作日誌檔案
 get_latest_work_log() {
     local work_log_dir="docs/work-logs"
     
-    # 優先獲取最新的版本工作日誌 (排除錯誤的 v1.0.0)
-    local latest_v09=$(ls "$work_log_dir"/v0.9.*.md 2>/dev/null | sort -V | tail -1)
+    # 獲取所有版本的工作日誌，按版本號排序找到最新的
+    local latest_log=$(ls "$work_log_dir"/v*.*.*.md 2>/dev/null | sort -V | tail -1)
     
-    if [[ -n "$latest_v09" ]]; then
-        echo "$latest_v09"
-    else
-        # 如果沒有 v0.9.x，尋找其他版本
-        local latest_log=$(ls "$work_log_dir"/v*.*.*.md 2>/dev/null | sort -V | tail -1)
+    if [[ -n "$latest_log" ]]; then
         echo "$latest_log"
+    else
+        log_warning "找不到版本工作日誌檔案"
+        return 1
+    fi
+}
+
+# 提取工作日誌議題關鍵字
+extract_work_topic() {
+    local log_file="$1"
+    local filename=$(basename "$log_file")
+    
+    # 從檔名提取議題 (v0.10.7-terminology-standardization.md -> terminology-standardization)
+    # 使用 bash 正規表示式來提取議題部分
+    if [[ "$filename" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-(.*).md$ ]]; then
+        local topic="${BASH_REMATCH[1]}"
+        echo "$topic"
+    else
+        # 如果不符合標準格式，返回整個檔名（去除副檔名）
+        echo "$(echo "$filename" | sed 's/\.md$//')"
+    fi
+}
+
+# 檢查是否為不同議題的工作切換
+is_topic_switch() {
+    local current_topic="$1"
+    local previous_log="$2"
+    
+    if [[ -z "$previous_log" ]]; then
+        echo "false"
+        return
+    fi
+    
+    local previous_topic=$(extract_work_topic "$previous_log")
+    
+    # 比較議題關鍵字
+    if [[ "$current_topic" != "$previous_topic" ]]; then
+        echo "true"
+    else
+        echo "false"
     fi
 }
 
@@ -103,12 +153,14 @@ analyze_latest_work_log() {
         has_today_entry=true
     fi
     
-    # 檢查是否有完成標記
+    # 檢查是否有完成標記 (更嚴格的檢查)
     local is_completed=false
-    if grep -qiE "(完成|completed|finished|done|✅.*完成)" "$log_file"; then
-        if grep -qiE "## 總結|## 完成總結|### 工作完成" "$log_file"; then
-            is_completed=true
-        fi
+    if grep -qiE "### 工作完成總結|## ✅ 工作完成總結|## 完成總結" "$log_file"; then
+        is_completed=true
+    elif grep -qiE "\*\*工作狀態\*\*.*✅.*已完成" "$log_file"; then
+        is_completed=true
+    elif grep -qiE "此工作項目已完成" "$log_file"; then
+        is_completed=true
     fi
     
     # 檢查版本號是否正確
@@ -117,7 +169,7 @@ analyze_latest_work_log() {
     local version_correct=false
     
     # 檢查版本是否合理 (應該是當前版本或之前的版本)
-    if [[ "$log_version" =~ ^v0\.9\. ]]; then
+    if [[ "$log_version" =~ ^v0\.(9|10)\. ]]; then
         version_correct=true
     elif [[ "$log_version" == "$current_version" ]]; then
         version_correct=true
@@ -130,9 +182,10 @@ analyze_latest_work_log() {
     echo "current_version:$current_version"
 }
 
-# 決定工作日誌操作類型
+# 決定工作日誌操作類型 (含議題切換檢測)
 determine_work_log_action() {
     local latest_log="$1"
+    local proposed_topic="$2"  # 新增參數：提議的新工作議題
     
     if [[ -z "$latest_log" ]]; then
         echo "create_new"
@@ -144,11 +197,19 @@ determine_work_log_action() {
     local is_completed=$(echo "$analysis" | grep "is_completed:" | cut -d':' -f2)
     local version_correct=$(echo "$analysis" | grep "version_correct:" | cut -d':' -f2)
     
-    # 決策邏輯
+    # 議題切換檢測
+    local is_switching="false"
+    if [[ -n "$proposed_topic" ]]; then
+        is_switching=$(is_topic_switch "$proposed_topic" "$latest_log")
+    fi
+    
+    # 決策邏輯 (含議題切換處理)
     if [[ "$is_completed" == "true" ]]; then
         echo "create_new"  # 上一個工作已完成，建立新的
     elif [[ "$version_correct" == "false" ]]; then
         echo "create_new"  # 版本號錯誤，建立正確版本的新日誌
+    elif [[ "$is_switching" == "true" && "$is_completed" == "false" ]]; then
+        echo "topic_switch_create_new"  # 議題切換且上一個工作未完成
     elif [[ "$has_today_entry" == "true" ]]; then
         echo "update_existing"  # 更新現有的進行中工作
     else
@@ -177,6 +238,85 @@ prompt_work_status() {
             *) echo "無效選擇，請重新輸入 [1-4]" ;;
         esac
     done
+}
+
+# 處理議題切換建立新工作日誌 (自動完結上一個)
+create_new_with_topic_switch() {
+    local latest_log="$1"
+    local current_version=$(get_current_project_version)
+    local new_version="v$(increment_version "$current_version")"
+    local today=$(date +%Y-%m-%d)
+    
+    log_prompt "請輸入新工作項目的簡短描述 (例如: api-refactor, ui-enhancement):"
+    read -p "工作描述: " work_description
+    
+    if [[ -z "$work_description" ]]; then
+        log_error "工作描述不能為空"
+        return 1
+    fi
+    
+    # 先自動完結上一個未完成工作
+    auto_complete_previous_work "$latest_log" "$work_description"
+    
+    # 然後建立新的工作日誌
+    local new_log_file="docs/work-logs/${new_version}-${work_description}.md"
+    
+    log_info "建立新工作日誌: $new_log_file (版本遞增: $current_version → $new_version)"
+    
+    cat > "$new_log_file" << EOF
+# ${new_version} ${work_description} 工作日誌
+
+**開發版本**: ${new_version}  
+**開發日期**: ${today}  
+**主要任務**: ${work_description}  
+**工作狀態**: 🔄 進行中  
+**開發者**: Claude Code
+
+## 🎯 工作目標與背景
+
+### 本期工作重點
+
+(請描述本期工作的主要目標和背景)
+
+## 📅 ${today} 開發記錄
+
+### 完成的工作
+
+- 
+
+### 技術實現要點
+
+- 
+
+### 遇到的問題與解決方案
+
+- 
+
+### 下一步計劃
+
+- 
+
+---
+
+## 工作進度追蹤
+
+- [ ] 需求分析完成
+- [ ] 設計方案確定  
+- [ ] 核心功能實現
+- [ ] 測試驗證
+- [ ] 文件更新
+- [ ] 程式碼審查
+
+---
+
+*📝 工作狀態說明: 此工作日誌記錄 ${work_description} 的開發過程，當前狀態為進行中。*
+EOF
+
+    log_success "新工作日誌已建立: $new_log_file"
+    echo ""
+    log_info "請編輯該檔案並填入具體的工作內容"
+    
+    echo "$new_log_file"
 }
 
 # 建立新的工作日誌檔案
@@ -327,6 +467,133 @@ EOF
     log_info "請編輯檔案並填入具體的工作內容"
 }
 
+# 自動完結上一個未完成工作並新增 TODO 檢查項目
+auto_complete_previous_work() {
+    local previous_log="$1"
+    local current_topic="$2"
+    local today=$(date +%Y-%m-%d)
+    
+    log_warning "檢測到議題切換：正在自動完結上一個未完成工作"
+    
+    local previous_topic=$(extract_work_topic "$previous_log")
+    log_info "上一個工作議題: $previous_topic"
+    log_info "當前工作議題: $current_topic"
+    
+    # 更新上一個工作日誌的狀態
+    sed -i.bak "s/\*\*工作狀態\*\*.*$/\*\*工作狀態\*\*: ⚠️ 未完成 (議題切換自動結案)/" "$previous_log"
+    
+    # 新增自動結案說明
+    cat >> "$previous_log" << EOF
+
+---
+
+## ⚠️ 議題切換自動結案 (${today})
+
+**結案原因**: 檢測到工作議題切換 ($previous_topic → $current_topic)，系統自動結案此工作項目。
+
+**未完成工作狀態**: 此工作項目因議題切換而自動結案，相關未完成工作已記錄到 TODO 清單中以便後續檢查。
+
+### 🔍 後續檢查要點
+
+- 確認此工作是否需要繼續完成
+- 評估未完成工作對專案的影響
+- 決定是否在適當時機重新開始
+
+**📋 檢查項目已新增到**: docs/todolist.md
+
+---
+
+**⚠️ 此工作項目因議題切換自動結案，請檢查 TODO 清單確認後續處理方式。**
+
+*自動結案日期: ${today}*
+EOF
+
+    log_success "已自動完結上一個工作: $previous_log"
+    
+    # 新增 TODO 檢查項目
+    add_todo_incomplete_work_check "$previous_topic" "$previous_log"
+}
+
+# 新增未完成工作檢查項目到 todolist.md
+add_todo_incomplete_work_check() {
+    local work_topic="$1"
+    local work_log_file="$2"
+    local today=$(date +%Y-%m-%d)
+    
+    log_info "新增未完成工作檢查項目到 todolist.md"
+    
+    local todolist_file="docs/todolist.md"
+    local work_log_basename=$(basename "$work_log_file")
+    
+    # 檢查 todolist.md 是否存在
+    if [[ ! -f "$todolist_file" ]]; then
+        log_warning "todolist.md 不存在，將建立新檔案"
+        cat > "$todolist_file" << EOF
+# 📋 Readmoo 書庫提取器開發任務清單
+
+**當前版本**: v$(get_current_project_version)  
+**最後更新**: $today  
+**開發狀態**: 🔧 開發中
+
+## 🎯 當前高優先級任務
+
+### ⚠️ 未完成工作檢查項目 (自動生成)
+
+- [ ] 檢查「${work_topic}」工作是否需要繼續完成
+  - 工作日誌: ${work_log_basename}
+  - 結案原因: 議題切換自動結案
+  - 新增日期: ${today}
+  - 狀態: 待檢查
+
+EOF
+    else
+        # 在現有 todolist.md 中新增檢查項目
+        # 尋找合適的位置插入（在第一個 ## 標題後）
+        local temp_file=$(mktemp)
+        local inserted=false
+        
+        while IFS= read -r line; do
+            echo "$line" >> "$temp_file"
+            
+            # 在第一個 ## 標題後插入
+            if [[ "$line" =~ ^## && "$inserted" == "false" ]]; then
+                cat >> "$temp_file" << EOF
+
+### ⚠️ 未完成工作檢查項目 (${today} 新增)
+
+- [ ] 檢查「${work_topic}」工作是否需要繼續完成
+  - 工作日誌: ${work_log_basename}
+  - 結案原因: 議題切換自動結案
+  - 新增日期: ${today}
+  - 狀態: 待檢查
+  - 🔍 檢查要點: 確認此工作是否需要繼續完成，評估對專案影響，決定後續處理方式
+
+EOF
+                inserted=true
+            fi
+        done < "$todolist_file"
+        
+        # 如果沒有找到合適位置，在檔案末尾新增
+        if [[ "$inserted" == "false" ]]; then
+            cat >> "$temp_file" << EOF
+
+## ⚠️ 未完成工作檢查項目
+
+- [ ] 檢查「${work_topic}」工作是否需要繼續完成
+  - 工作日誌: ${work_log_basename}
+  - 結案原因: 議題切換自動結案
+  - 新增日期: ${today}
+  - 狀態: 待檢查
+
+EOF
+        fi
+        
+        mv "$temp_file" "$todolist_file"
+    fi
+    
+    log_success "已新增未完成工作檢查項目到 todolist.md"
+}
+
 # 完成當前工作日誌
 complete_current_work_log() {
     local log_file="$1"
@@ -378,7 +645,7 @@ EOF
 
 # 主執行函數
 main() {
-    log_info "工作日誌智能管理系統"
+    log_info "工作日誌自動化管理系統"
     echo ""
     
     # 獲取最新工作日誌
@@ -413,6 +680,15 @@ main() {
         "create_new")
             new_log=$(create_new_work_log)
             echo "$new_log"
+            ;;
+        "topic_switch_create_new")
+            if [[ -n "$latest_log" ]]; then
+                new_log=$(create_new_with_topic_switch "$latest_log")
+                echo "$new_log"
+            else
+                log_error "沒有現有工作日誌可處理議題切換"
+                exit 1
+            fi
             ;;
         "complete_current")
             if [[ -n "$latest_log" ]]; then

@@ -87,14 +87,14 @@ get_git_changes() {
     git diff --name-only
 }
 
-# 智能工作日誌管理提示
+# 自動化工作日誌管理提示
 prompt_smart_work_log_management() {
     local log_file="$1"
     
     echo ""
     log_warning "⚠️  工作日誌檢查不通過！"
     echo ""
-    echo "🤖 智能工作日誌管理系統已啟動"
+    echo "🤖 自動化工作日誌管理系統已啟動"
     echo ""
     echo "💡 建議操作："
     echo "1. 執行工作日誌管理腳本："
