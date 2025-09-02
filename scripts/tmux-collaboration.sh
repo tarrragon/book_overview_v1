@@ -35,6 +35,42 @@ check_tmux_environment() {
     echo -e "${GREEN}[INFO]${NC} TMux協作環境檢查通過"
 }
 
+# 面板路由機制 - 判斷任務應該在哪個面板執行
+route_task_to_panel() {
+    local task_type="$1"
+    local file_path="$2"
+    
+    # 面板1: 文件更新任務
+    if [[ "$file_path" =~ (todolist\.md|work-logs/|CHANGELOG\.md|README\.md|\.md$) ]]; then
+        return 1  # 路由到面板1
+    fi
+    
+    # 面板2: 程式碼審查、測試分析
+    if [[ "$task_type" =~ (code-review|test-analysis|documentation|refactoring) ]]; then
+        return 2  # 路由到面板2
+    fi
+    
+    # 面板3: Git操作
+    if [[ "$task_type" =~ (git|commit|push) ]]; then
+        return 3  # 路由到面板3
+    fi
+    
+    return 0  # 預設面板0
+}
+
+# 在面板1執行文件更新
+execute_in_pane1() {
+    local command="$1"
+    local description="$2"
+    
+    tmux send-keys -t 1 "clear" C-m
+    tmux send-keys -t 1 "echo '📝 面板1文件更新任務: $description'" C-m
+    tmux send-keys -t 1 "$command" C-m
+    
+    # 在面板4顯示狀態
+    tmux send-keys -t 4 "echo '📝 面板1: $description'" C-m
+}
+
 # 檢查面板2的Claude狀態
 check_pane2_claude_status() {
     local pane2_command=$(tmux display-message -t 2 -p '#{pane_current_command}')
@@ -213,6 +249,9 @@ delegate_task() {
     
     # 根據任務類型生成相應的指令
     case "$task_type" in
+        "file-update")
+            delegate_file_update "$task_description" "$additional_context"
+            ;;
         "code-review")
             delegate_code_review "$task_description" "$additional_context"
             ;;
@@ -234,7 +273,42 @@ delegate_task() {
             ;;
     esac
     
-    echo -e "${GREEN}[SUCCESS]${NC} 任務已分派給面板2"
+    # 根據任務類型顯示不同的成功訊息
+    if [[ "$task_type" == "file-update" ]]; then
+        echo "" # delegate_file_update 函數會自己顯示成功訊息
+    else
+        echo -e "${GREEN}[SUCCESS]${NC} 任務已分派給面板2"
+        echo -e "${CYAN}[TIP]${NC} 任務完成後可使用 './scripts/tmux-collaboration.sh get-report' 獲取執行結果"
+    fi
+}
+
+# 檔案更新任務 - 在面板1執行
+delegate_file_update() {
+    local file_path="$1"
+    local update_description="$2"
+    
+    tmux send-keys -t 1 "clear" C-m
+    tmux send-keys -t 1 "echo '📝 面板1文件更新任務 (來自面板0)'" C-m
+    tmux send-keys -t 1 "echo '📁 檔案: $file_path'" C-m
+    if [[ -n "$update_description" ]]; then
+        tmux send-keys -t 1 "echo '📋 更新內容: $update_description'" C-m
+    fi
+    tmux send-keys -t 1 "echo ''" C-m
+    
+    # 在面板4顯示狀態更新
+    tmux send-keys -t 4 "echo '📝 面板1執行: 文件更新 - $file_path'" C-m
+    
+    # 根據檔案類型提供編輯指令建議
+    if [[ "$file_path" =~ todolist\.md ]]; then
+        tmux send-keys -t 1 "echo '💡 建議使用: Edit 工具更新 $file_path'" C-m
+    elif [[ "$file_path" =~ work-logs/ ]]; then
+        tmux send-keys -t 1 "echo '💡 建議使用: ./scripts/work-log-manager.sh'" C-m
+    elif [[ "$file_path" =~ CHANGELOG\.md ]]; then
+        tmux send-keys -t 1 "echo '💡 建議使用: Edit 工具更新版本記錄'" C-m
+    fi
+    
+    tmux send-keys -t 1 "" C-m
+    echo -e "${GREEN}[SUCCESS]${NC} 文件更新任務已分派給面板1"
 }
 
 # 程式碼審查任務
@@ -250,14 +324,12 @@ delegate_code_review() {
     fi
     tmux send-keys -t 2 "" C-m
     
-    # 發送實際的審查請求
-    local review_prompt="請協助進行程式碼審查，檢查以下檔案: $files"
+    # 發送實際的審查請求 - 分段發送避免編碼問題
+    tmux send-keys -t 2 "請協助進行程式碼審查，檢查以下檔案: $files" C-m
     if [[ -n "$focus_areas" ]]; then
-        review_prompt="$review_prompt。請特別關注: $focus_areas"
+        tmux send-keys -t 2 "請特別關注: $focus_areas" C-m
     fi
-    review_prompt="$review_prompt。請提供詳細的審查報告，包括潛在問題、改善建議和最佳實踐建議。"
-    
-    tmux send-keys -t 2 "$review_prompt" C-m
+    tmux send-keys -t 2 "請提供詳細的審查報告，包括潛在問題、改善建議和最佳實踐建議。" C-m
 }
 
 # 測試分析任務
@@ -339,7 +411,9 @@ delegate_custom_task() {
     fi
     tmux send-keys -t 2 "" C-m
     
-    tmux send-keys -t 2 "$task_description" C-m
+    # 分段發送避免編碼和長度問題
+    tmux send-keys -t 2 "$task_description" 
+    tmux send-keys -t 2 C-m
 }
 
 # 檢查協作狀態
@@ -363,6 +437,37 @@ check_collaboration_status() {
     esac
     
     return 0
+}
+
+# 獲取面板2的執行結果報告
+get_pane2_report() {
+    echo -e "${BLUE}[INFO]${NC} 正在獲取面板2執行結果..."
+    
+    # 捕獲面板2的輸出內容
+    local pane2_content=$(tmux capture-pane -t 2 -p)
+    
+    # 查找關鍵的結果指標
+    echo -e "${GREEN}[REPORT]${NC} 面板2執行結果摘要:"
+    
+    # 提取重要資訊
+    if echo "$pane2_content" | grep -q "協作狀態.*完成"; then
+        echo "✅ 任務執行狀態: 已完成"
+        
+        # 提取具體結果
+        local suggestions=$(echo "$pane2_content" | grep -A 5 -B 5 "建議\|效果\|狀態")
+        if [[ -n "$suggestions" ]]; then
+            echo -e "${CYAN}[建議]${NC}"
+            echo "$suggestions" | head -10
+        fi
+    else
+        echo "🔄 任務執行狀態: 進行中"
+    fi
+    
+    # 在面板4顯示報告摘要
+    if tmux list-panes 2>/dev/null | grep -q "^4:"; then
+        tmux send-keys -t 4 "echo '📊 面板2報告摘要:'" C-m
+        tmux send-keys -t 4 "echo '$(echo "$pane2_content" | tail -3 | head -1)'" C-m
+    fi
 }
 
 # 清理協作環境
@@ -390,14 +495,16 @@ show_help() {
     echo "可用指令:"
     echo "  init                     初始化面板2協作環境"
     echo "  status                   檢查協作狀態"
+    echo "  get-report               獲取面板2執行結果報告"
     echo "  cleanup                  清理協作環境"
     echo ""
     echo "任務分派指令:"
-    echo "  code-review <檔案> [重點]     分派程式碼審查任務"
-    echo "  test-analysis <檔案> [類型]   分派測試分析任務" 
-    echo "  documentation <類型> [檔案]   分派文件撰寫任務"
-    echo "  refactoring <程式碼> [目標]   分派重構任務"
-    echo "  custom <描述> [背景]          分派自定義任務"
+    echo "  file-update <檔案> [說明]     分派文件更新任務 (面板1)"
+    echo "  code-review <檔案> [重點]     分派程式碼審查任務 (面板2)"
+    echo "  test-analysis <檔案> [類型]   分派測試分析任務 (面板2)" 
+    echo "  documentation <類型> [檔案]   分派文件撰寫任務 (面板2)"
+    echo "  refactoring <程式碼> [目標]   分派重構任務 (面板2)"
+    echo "  custom <描述> [背景]          分派自定義任務 (面板2)"
     echo ""
     echo "範例:"
     echo "  $0 init"
@@ -426,8 +533,14 @@ main() {
         "status")
             check_collaboration_status
             ;;
+        "get-report")
+            get_pane2_report
+            ;;
         "cleanup")
             cleanup_collaboration
+            ;;
+        "file-update")
+            delegate_task "file-update" "$2" "$3"
             ;;
         "code-review")
             delegate_task "code-review" "$2" "$3"

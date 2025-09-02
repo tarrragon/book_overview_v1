@@ -30,9 +30,9 @@ class ValidationEngine {
   }
 
   validateSingleBook (book) {
-    return { 
-      valid: true, 
-      errors: [], 
+    return {
+      valid: true,
+      errors: [],
       warnings: [],
       validatedFields: ['id', 'title', 'author']
     }

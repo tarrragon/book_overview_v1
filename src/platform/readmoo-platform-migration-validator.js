@@ -914,7 +914,7 @@ class ReadmooPlatformMigrationValidator {
   updateValidationStats (result, validationTime) {
     // 確保 validationTime 為正數，快取情況下設定最小時間為 1ms
     validationTime = Math.max(validationTime, 1)
-    
+
     // 基本統計更新
     if (result.isValid) {
       this.validationStats.successfulValidations++

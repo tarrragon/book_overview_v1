@@ -89,7 +89,7 @@ class ErrorSimulator {
    */
   async detectAndClassifyErrors () {
     const detectedErrors = []
-    
+
     // 模擬檢測各種錯誤類型
     const errorTypes = [
       { type: 'NETWORK_ERROR', probability: 0.3, severity: 'high' },

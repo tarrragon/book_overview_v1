@@ -1372,7 +1372,7 @@ class ChromeExtensionController {
   async getStorageData () {
     // 優先使用實際儲存的書籍資料
     const storedBooks = this.state.storage.get('books')
-    
+
     if (storedBooks && Array.isArray(storedBooks) && storedBooks.length > 0) {
       // 如果有實際儲存的書籍資料，直接使用
       return {
@@ -1387,7 +1387,7 @@ class ChromeExtensionController {
     // 如果沒有實際書籍資料，回退到模擬資料
     const mockBooksCount = this.state.storage.get('mockBooksCount') || 20
     const totalBooks = []
-    
+
     for (let i = 0; i < mockBooksCount; i++) {
       totalBooks.push({
         id: `test-book-${i}`,
@@ -1510,7 +1510,7 @@ class ChromeExtensionController {
         canRecover: true
       },
       PERMISSION_ERROR: {
-        errorType: 'PERMISSION_ERROR', 
+        errorType: 'PERMISSION_ERROR',
         errorCategory: 'user-action-required',
         errorDescription: 'Extension權限錯誤',
         errorMessage: '權限不足，無法執行操作',
@@ -1521,7 +1521,7 @@ class ChromeExtensionController {
       },
       STORAGE_QUOTA_ERROR: {
         errorType: 'STORAGE_QUOTA_ERROR',
-        errorCategory: 'recoverable', 
+        errorCategory: 'recoverable',
         errorDescription: 'Chrome Storage配額超限',
         errorMessage: '儲存空間不足，無法繼續操作',
         userGuidance: '請清理瀏覽器儲存空間或刪除不需要的資料',
@@ -1542,7 +1542,7 @@ class ChromeExtensionController {
       TIMEOUT_ERROR: {
         errorType: 'TIMEOUT_ERROR',
         errorCategory: 'recoverable',
-        errorDescription: '操作逾時錯誤', 
+        errorDescription: '操作逾時錯誤',
         errorMessage: '操作逾時，請稍後再試',
         userGuidance: '請重試操作，或檢查網路連線速度',
         recoveryOptions: ['retry', 'increase_timeout', 'batch_processing'],

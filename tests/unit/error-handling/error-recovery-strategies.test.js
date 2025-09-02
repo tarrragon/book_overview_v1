@@ -684,8 +684,8 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       // 轉換時間格式
       const convertTimeFormat = (timeStr) => {
         return timeStr.replace(/(\d+)\s*minutes?/i, '$1 分鐘')
-                     .replace(/(\d+)\s*hours?/i, '$1 小時')
-                     .replace(/(\d+)\s*seconds?/i, '$1 秒')
+          .replace(/(\d+)\s*hours?/i, '$1 小時')
+          .replace(/(\d+)\s*seconds?/i, '$1 秒')
       }
 
       return {
