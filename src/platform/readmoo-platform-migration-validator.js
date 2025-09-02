@@ -912,11 +912,9 @@ class ReadmooPlatformMigrationValidator {
    * @param {number} validationTime - 驗證耗時
    */
   updateValidationStats (result, validationTime) {
-    // 調試信息 - 確保 validationTime 有效
-    if (validationTime <= 0) {
-      console.warn(`Invalid validation time: ${validationTime}`)
-      validationTime = 1 // 設置最小時間避免除零錯誤
-    }
+    // 確保 validationTime 為正數，快取情況下設定最小時間為 1ms
+    validationTime = Math.max(validationTime, 1)
+    
     // 基本統計更新
     if (result.isValid) {
       this.validationStats.successfulValidations++
@@ -927,26 +925,27 @@ class ReadmooPlatformMigrationValidator {
       this._categorizeErrors(result.errors)
 
       if (result.errors.some(error => error.includes('compatibility'))) {
-        this.validationStats.compatibilityIssues++
+        this.validationStats.compatibilityErrors++
+      }
+
+      if (result.errors.some(error => error.includes('timeout'))) {
+        this.validationStats.timeoutErrors++
       }
     }
 
-    // 時間統計更新
-    this.validationStats.lastValidationTime = Date.now()
-    this.validationStats.totalValidationTime += validationTime
+    // 效能統計更新
+    this._updatePerformanceStats(validationTime)
 
-    // 更新效能統計
-    this.validationStats.fastestValidation = Math.min(this.validationStats.fastestValidation, validationTime)
-    this.validationStats.slowestValidation = Math.max(this.validationStats.slowestValidation, validationTime)
+    // 快取統計更新
+    this._updateCacheStats(result, validationTime)
 
-    // 更新平均驗證時間
-    const totalValidations = this.validationStats.totalValidations
-    this.validationStats.averageValidationTime =
-      this.validationStats.totalValidationTime / totalValidations
+    // 輸出整合統計更新
+    this._updateThroughputStats()
 
-    // 效能監控警告
-    if (this.config.enablePerformanceMonitoring && validationTime > this.config.validationTimeout * 0.8) {
-      this._logPerformanceWarning(validationTime)
+    // 記錄最近的驗證時間
+    this.validationStats.recentValidationTimes.push(validationTime)
+    if (this.validationStats.recentValidationTimes.length > 100) {
+      this.validationStats.recentValidationTimes.shift() // 保持最近 100 次記錄
     }
   }
 

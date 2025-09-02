@@ -14,7 +14,16 @@
  * - 支援開發和生產環境的不同需求
  */
 
-console.log('🚀 Readmoo 書庫提取器 Background Service Worker 啟動')
+// 日誌工具 - 僅在開發環境下輸出
+const DEBUG = process.env.NODE_ENV === 'development' || globalThis.chrome?.runtime?.getManifest?.()?.version?.includes('dev')
+
+const log = {
+  info: (message, data) => DEBUG && console.log(message, data || ''),
+  error: (message, error) => console.error(message, error),
+  warn: (message, data) => DEBUG && console.warn(message, data || '')
+}
+
+log.info('🚀 Readmoo 書庫提取器 Background Service Worker 啟動')
 
 // 全域變數
 let backgroundCoordinator = null
@@ -43,12 +52,12 @@ let emergencyMode = false
  */
 async function initializeBackgroundSystem () {
   if (isInitialized) {
-    console.log('⏭️ 系統已初始化，跳過重複初始化')
+    log.info('⏭️ 系統已初始化，跳過重複初始化')
     return backgroundCoordinator
   }
 
   initializationAttempts++
-  console.log(`🔧 開始初始化 Background 系統 (嘗試 ${initializationAttempts}/${MAX_INITIALIZATION_ATTEMPTS})`)
+  log.info(`🔧 開始初始化 Background 系統 (嘗試 ${initializationAttempts}/${MAX_INITIALIZATION_ATTEMPTS})`)
 
   try {
     // 動態載入 BackgroundCoordinator
@@ -58,11 +67,11 @@ async function initializeBackgroundSystem () {
     backgroundCoordinator = new BackgroundCoordinator()
 
     // 執行初始化
-    console.log('🔧 初始化模組協調器...')
+    log.info('🔧 初始化模組協調器...')
     await backgroundCoordinator.initialize()
 
     // 啟動所有模組
-    console.log('▶️ 啟動所有系統模組...')
+    log.info('▶️ 啟動所有系統模組...')
     await backgroundCoordinator.start()
 
     // 標記初始化完成
@@ -70,8 +79,8 @@ async function initializeBackgroundSystem () {
 
     // 記錄成功狀態
     const stats = backgroundCoordinator.getCoordinatorStats()
-    console.log('✅ Background 系統初始化完成')
-    console.log('📊 系統統計:', {
+    log.info('✅ Background 系統初始化完成')
+    log.info('📊 系統統計:', {
       模組數量: stats.moduleCount,
       初始化時間: `${stats.initializationDuration}ms`,
       啟動時間: `${stats.startupDuration}ms`,
@@ -81,12 +90,12 @@ async function initializeBackgroundSystem () {
     // 設定全域實例供測試和外部模組使用
     if (backgroundCoordinator && backgroundCoordinator.eventBus) {
       global.eventBus = backgroundCoordinator.eventBus
-      console.log('✅ 全域 EventBus 實例已設定')
+      log.info('✅ 全域 EventBus 實例已設定')
     }
 
     if (backgroundCoordinator && backgroundCoordinator.chromeBridge) {
       global.chromeBridge = backgroundCoordinator.chromeBridge
-      console.log('✅ 全域 ChromeBridge 實例已設定')
+      log.info('✅ 全域 ChromeBridge 實例已設定')
     }
 
     // 註冊 Service Worker 生命週期事件
@@ -94,11 +103,11 @@ async function initializeBackgroundSystem () {
 
     return backgroundCoordinator
   } catch (error) {
-    console.error(`❌ Background 系統初始化失敗 (嘗試 ${initializationAttempts}):`, error)
+    log.error(`❌ Background 系統初始化失敗 (嘗試 ${initializationAttempts}):`, error)
 
     // 重試邏輯
     if (initializationAttempts < MAX_INITIALIZATION_ATTEMPTS) {
-      console.log(`🔄 ${2000}ms 後重試初始化...`)
+      log.info(`🔄 ${2000}ms 後重試初始化...`)
       await new Promise(resolve => setTimeout(resolve, 2000))
       return await initializeBackgroundSystem()
     }

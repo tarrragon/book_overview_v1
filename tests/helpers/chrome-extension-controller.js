@@ -1370,40 +1370,31 @@ class ChromeExtensionController {
   }
 
   async getStorageData () {
-    const storedBooks = this.state.storage.get('books') || []
-    const mockBooksCount = this.state.storage.get('mockBooksCount') || 0
+    // 優先使用實際儲存的書籍資料
+    const storedBooks = this.state.storage.get('books')
+    
+    if (storedBooks && Array.isArray(storedBooks) && storedBooks.length > 0) {
+      // 如果有實際儲存的書籍資料，直接使用
+      return {
+        books: storedBooks,
+        metadata: {
+          version: '1.0.0',
+          firstInstall: this.state.storage.get('firstInstall') || new Date().toISOString()
+        }
+      }
+    }
 
-    // 計算總書籍數量：基礎書籍(103) + 注入的書籍
-    const baseBooks = 103 // 模擬基礎書籍數量
+    // 如果沒有實際書籍資料，回退到模擬資料
+    const mockBooksCount = this.state.storage.get('mockBooksCount') || 20
     const totalBooks = []
-
-    // 添加基礎書籍（如果還沒有的話）
-    if (storedBooks.length === 0 && mockBooksCount === 0) {
-      // 如果沒有書籍，返回空
-      for (let i = 0; i < baseBooks; i++) {
-        totalBooks.push({
-          id: `base-book-${i}`,
-          title: `基礎書籍 ${i + 1}`,
-          progress: Math.random()
-        })
-      }
-    } else {
-      // 如果有注入的書籍，返回基礎 + 注入的書籍
-      for (let i = 0; i < baseBooks; i++) {
-        totalBooks.push({
-          id: `base-book-${i}`,
-          title: `基礎書籍 ${i + 1}`,
-          progress: Math.random()
-        })
-      }
-      // 添加注入的書籍
-      for (let i = 0; i < mockBooksCount; i++) {
-        totalBooks.push({
-          id: `injected-book-${i}`,
-          title: `注入書籍 ${i + 1}`,
-          progress: Math.random()
-        })
-      }
+    
+    for (let i = 0; i < mockBooksCount; i++) {
+      totalBooks.push({
+        id: `test-book-${i}`,
+        title: `測試書籍 ${i + 1}`,
+        author: `測試作者 ${i + 1}`,
+        progress: Math.random()
+      })
     }
 
     return {
@@ -1506,10 +1497,69 @@ class ChromeExtensionController {
     // 模擬錯誤狀態等待
     await this.simulateDelay(2000)
 
-    return {
+    // 基於錯誤類型提供不同的錯誤狀態資訊
+    const errorStates = {
+      NETWORK_ERROR: {
+        errorType: 'NETWORK_ERROR',
+        errorCategory: 'recoverable',
+        errorDescription: '網路連接錯誤',
+        errorMessage: '網路連線發生問題，請稍後再試',
+        userGuidance: '請檢查網路連線狀態，然後重試操作',
+        recoveryOptions: ['retry', 'offline_mode', 'check_connection'],
+        retryButtonVisible: true,
+        canRecover: true
+      },
+      PERMISSION_ERROR: {
+        errorType: 'PERMISSION_ERROR', 
+        errorCategory: 'user-action-required',
+        errorDescription: 'Extension權限錯誤',
+        errorMessage: '權限不足，無法執行操作',
+        userGuidance: '請重新授權 Extension 權限',
+        recoveryOptions: ['request_permissions', 'restart_extension', 'contact_support'],
+        retryButtonVisible: true,
+        canRecover: true
+      },
+      STORAGE_QUOTA_ERROR: {
+        errorType: 'STORAGE_QUOTA_ERROR',
+        errorCategory: 'recoverable', 
+        errorDescription: 'Chrome Storage配額超限',
+        errorMessage: '儲存空間不足，無法繼續操作',
+        userGuidance: '請清理瀏覽器儲存空間或刪除不需要的資料',
+        recoveryOptions: ['clear_storage', 'selective_delete', 'export_data'],
+        retryButtonVisible: true,
+        canRecover: true
+      },
+      MEMORY_ERROR: {
+        errorType: 'MEMORY_ERROR',
+        errorCategory: 'system-limitation',
+        errorDescription: '記憶體不足錯誤',
+        errorMessage: '記憶體不足，無法繼續操作',
+        userGuidance: '請關閉其他應用程式並重試',
+        recoveryOptions: ['restart_browser', 'reduce_data_size', 'system_cleanup'],
+        retryButtonVisible: false,
+        canRecover: false
+      },
+      TIMEOUT_ERROR: {
+        errorType: 'TIMEOUT_ERROR',
+        errorCategory: 'recoverable',
+        errorDescription: '操作逾時錯誤', 
+        errorMessage: '操作逾時，請稍後再試',
+        userGuidance: '請重試操作，或檢查網路連線速度',
+        recoveryOptions: ['retry', 'increase_timeout', 'batch_processing'],
+        retryButtonVisible: true,
+        canRecover: true
+      }
+    }
+
+    return errorStates[expectedError] || {
       errorType: expectedError,
+      errorCategory: 'unknown',
+      errorDescription: '未知錯誤',
+      errorMessage: '發生未知錯誤，請聯絡技術支援',
+      userGuidance: '請重試操作或聯絡技術支援',
+      recoveryOptions: ['retry', 'contact_support'],
       retryButtonVisible: true,
-      errorMessage: '網路連線發生問題，請稍後再試'
+      canRecover: false
     }
   }
 
@@ -1952,6 +2002,115 @@ class ChromeExtensionController {
         installed: this.state.installed,
         loaded: this.state.loaded,
         activeTab: this.state.activeTab
+      }
+    }
+  }
+
+  /**
+   * 檢查資料完整性
+   * @returns {Promise<Object>} 資料完整性檢查結果
+   */
+  async checkDataIntegrity () {
+    try {
+      const storageData = await this.getStorageData()
+      const integrityResult = {
+        valid: true,
+        totalBooks: storageData?.books?.length || 0,
+        corruptedBooks: 0,
+        missingFields: [],
+        duplicateIds: [],
+        lastCheck: Date.now(),
+        summary: 'Data integrity check passed'
+      }
+
+      // 模擬資料完整性檢查
+      if (storageData?.books) {
+        const bookIds = new Set()
+        let corruptCount = 0
+
+        for (const book of storageData.books) {
+          // 檢查重複ID
+          if (bookIds.has(book.id)) {
+            integrityResult.duplicateIds.push(book.id)
+          } else {
+            bookIds.add(book.id)
+          }
+
+          // 檢查必要欄位
+          const requiredFields = ['id', 'title', 'author']
+          for (const field of requiredFields) {
+            if (!book[field]) {
+              integrityResult.missingFields.push({ bookId: book.id, field })
+              corruptCount++
+            }
+          }
+        }
+
+        integrityResult.corruptedBooks = corruptCount
+        integrityResult.valid = corruptCount === 0 && integrityResult.duplicateIds.length === 0
+
+        if (!integrityResult.valid) {
+          integrityResult.summary = `Found ${corruptCount} corrupted books and ${integrityResult.duplicateIds.length} duplicate IDs`
+        }
+      }
+
+      return integrityResult
+    } catch (error) {
+      return {
+        valid: false,
+        error: error.message,
+        lastCheck: Date.now(),
+        summary: 'Data integrity check failed'
+      }
+    }
+  }
+
+  /**
+   * 獲取 Chrome Storage 使用量
+   * @returns {Promise<Object>} Storage 使用量資訊
+   */
+  async getChromeStorageUsage () {
+    try {
+      // 模擬 Chrome Storage API 的使用量查詢
+      const storageData = await this.getStorageData()
+      const dataSize = JSON.stringify(storageData || {}).length
+
+      const usage = {
+        local: {
+          used: dataSize,
+          available: 5 * 1024 * 1024 - dataSize, // 5MB - used
+          total: 5 * 1024 * 1024, // 5MB quota
+          percentage: (dataSize / (5 * 1024 * 1024)) * 100
+        },
+        sync: {
+          used: 0,
+          available: 100 * 1024, // 100KB quota
+          total: 100 * 1024,
+          percentage: 0
+        },
+        lastUpdated: Date.now()
+      }
+
+      // 確保可用空間不為負數
+      usage.local.available = Math.max(0, usage.local.available)
+
+      return usage
+    } catch (error) {
+      return {
+        local: {
+          used: 0,
+          available: 5 * 1024 * 1024,
+          total: 5 * 1024 * 1024,
+          percentage: 0
+        },
+        sync: {
+          used: 0,
+          available: 100 * 1024,
+          total: 100 * 1024,
+          percentage: 0
+        },
+        error: error.message,
+        lastUpdated: Date.now()
       }
     }
   }

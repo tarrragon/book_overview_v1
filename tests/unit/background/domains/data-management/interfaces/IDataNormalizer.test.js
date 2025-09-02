@@ -41,12 +41,30 @@ class DataNormalizationService {
     return author.trim()
   }
 
+  normalizeAuthors (authors) {
+    if (Array.isArray(authors)) {
+      return authors.map(author => author.trim())
+    }
+    return [authors.trim()]
+  }
+
+  normalizeCover (cover) {
+    if (typeof cover === 'string') {
+      return { url: cover, alt: '' }
+    }
+    return cover
+  }
+
   normalizePublishDate (date) {
     return new Date(date).toISOString().split('T')[0]
   }
 
   validateNormalizedData (data) {
     return { valid: true, issues: [] }
+  }
+
+  get isInitialized () {
+    return true
   }
 }
 

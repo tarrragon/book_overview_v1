@@ -10,8 +10,8 @@
 const { E2ETestSuite } = require('../../helpers/e2e-test-suite')
 const { ChromeExtensionController } = require('../../helpers/chrome-extension-controller')
 const { TestDataGenerator } = require('../../helpers/test-data-generator')
-const { RuntimeMessagingValidator } = require('../../helpers/runtime-messaging-validator')
-const { MessageFlowAnalyzer } = require('../../helpers/message-flow-analyzer')
+const RuntimeMessagingValidator = require('../../helpers/runtime-messaging-validator')
+const MessageFlowAnalyzer = require('../../helpers/message-flow-analyzer')
 
 describe('Chrome Runtime Messaging API 整合測試', () => {
   let testSuite

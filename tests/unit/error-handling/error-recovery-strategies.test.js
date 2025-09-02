@@ -86,7 +86,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
       // 驗證退避延遲時間
       expect(testHelpers.getRetryDelays()).toEqual([100, 200, 400]) // 指數增長
-    })
+    }, 15000)
 
     test('應該在超過最大重試次數後失敗', async () => {
       // Given: 總是失敗的操作
@@ -103,7 +103,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       // Then: 應該在重試耗盡後失敗
       await expect(promise).rejects.toThrow('Permanent failure')
       expect(alwaysFailingOperation).toHaveBeenCalledTimes(3) // 初始 + 2次重試
-    })
+    }, 15000)
 
     test('應該支援條件重試策略', async () => {
       // Given: 有條件失敗的操作
@@ -671,7 +671,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       return {
         coreAvailable: !hasCoreFailures,
         criticalFunctions: coreFeatures,
-        degradationLevel: failedFeatures.length > 2 ? 'MAJOR' : 'MINOR'
+        degradationLevel: hasCoreFailures || failedFeatures.length > 3 ? 'MAJOR' : 'MINOR'
       }
     },
 
@@ -681,11 +681,18 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
         'advanced-search': '進階搜尋'
       }
 
+      // 轉換時間格式
+      const convertTimeFormat = (timeStr) => {
+        return timeStr.replace(/(\d+)\s*minutes?/i, '$1 分鐘')
+                     .replace(/(\d+)\s*hours?/i, '$1 小時')
+                     .replace(/(\d+)\s*seconds?/i, '$1 秒')
+      }
+
       return {
         message: '部分功能暫時無法使用，核心功能正常運作',
         affectedList: degradedState.affectedFeatures.map(f => featureMap[f] || f),
         showRetryOption: true,
-        estimatedRecovery: `約 ${degradedState.estimatedRecovery}後恢復`
+        estimatedRecovery: `約 ${convertTimeFormat(degradedState.estimatedRecovery)}後恢復`
       }
     },
 

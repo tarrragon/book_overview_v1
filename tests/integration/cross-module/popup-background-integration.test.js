@@ -11,7 +11,7 @@ const { E2ETestSuite } = require('../../helpers/e2e-test-suite')
 const { ChromeExtensionController } = require('../../helpers/chrome-extension-controller')
 const { TestDataGenerator } = require('../../helpers/test-data-generator')
 const UIStateTracker = require('../../helpers/ui-state-tracker')
-const { PopupLifecycleManager } = require('../../helpers/popup-lifecycle-manager')
+const PopupLifecycleManager = require('../../helpers/popup-lifecycle-manager')
 
 describe('Popup ↔ Background 跨模組整合測試', () => {
   let testSuite

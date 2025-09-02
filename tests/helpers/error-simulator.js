@@ -85,6 +85,125 @@ class ErrorSimulator {
   }
 
   /**
+   * 執行錯誤檢測和分類
+   */
+  async detectAndClassifyErrors () {
+    const detectedErrors = []
+    
+    // 模擬檢測各種錯誤類型
+    const errorTypes = [
+      { type: 'NETWORK_ERROR', probability: 0.3, severity: 'high' },
+      { type: 'MEMORY_ERROR', probability: 0.1, severity: 'critical' },
+      { type: 'TIMEOUT_ERROR', probability: 0.2, severity: 'medium' },
+      { type: 'PERMISSION_ERROR', probability: 0.15, severity: 'high' },
+      { type: 'STORAGE_ERROR', probability: 0.1, severity: 'medium' }
+    ]
+
+    for (const errorType of errorTypes) {
+      if (Math.random() < errorType.probability) {
+        detectedErrors.push({
+          type: errorType.type,
+          severity: errorType.severity,
+          message: this.getErrorMessage(errorType.type),
+          detectedAt: new Date().toISOString(),
+          canRecover: this.isRecoverable(errorType.type)
+        })
+      }
+    }
+
+    return {
+      success: true,
+      errorCount: detectedErrors.length,
+      errors: detectedErrors,
+      classification: this.classifyErrors(detectedErrors)
+    }
+  }
+
+  /**
+   * 提供錯誤診斷資訊
+   */
+  async provideDiagnosticInfo (errorType) {
+    const diagnostics = {
+      NETWORK_ERROR: {
+        cause: '網路連線問題',
+        impact: '無法進行資料同步',
+        solutions: ['檢查網路連線', '重試操作', '離線模式'],
+        recoverable: true
+      },
+      MEMORY_ERROR: {
+        cause: '記憶體不足',
+        impact: '操作可能失敗',
+        solutions: ['關閉其他程式', '重啟瀏覽器', '減少處理資料量'],
+        recoverable: false
+      },
+      TIMEOUT_ERROR: {
+        cause: '操作逾時',
+        impact: '請求未完成',
+        solutions: ['重試操作', '增加逾時時間', '分批處理'],
+        recoverable: true
+      },
+      PERMISSION_ERROR: {
+        cause: '權限不足',
+        impact: '無法存取資源',
+        solutions: ['重新授權', '檢查權限設定', '聯絡管理員'],
+        recoverable: true
+      },
+      STORAGE_ERROR: {
+        cause: '儲存空間問題',
+        impact: '無法儲存資料',
+        solutions: ['清理儲存空間', '刪除舊資料', '使用外部儲存'],
+        recoverable: true
+      }
+    }
+
+    return {
+      success: true,
+      errorType,
+      diagnostic: diagnostics[errorType] || {
+        cause: '未知錯誤',
+        impact: '影響不明',
+        solutions: ['重試操作', '聯絡技術支援'],
+        recoverable: false
+      }
+    }
+  }
+
+  /**
+   * 取得錯誤訊息
+   */
+  getErrorMessage (errorType) {
+    const messages = {
+      NETWORK_ERROR: '網路連線發生問題',
+      MEMORY_ERROR: '記憶體不足，無法繼續操作',
+      TIMEOUT_ERROR: '操作逾時，請稍後再試',
+      PERMISSION_ERROR: '權限不足，無法執行操作',
+      STORAGE_ERROR: '儲存空間不足或損壞'
+    }
+    return messages[errorType] || '發生未知錯誤'
+  }
+
+  /**
+   * 判斷錯誤是否可恢復
+   */
+  isRecoverable (errorType) {
+    const recoverableErrors = ['NETWORK_ERROR', 'TIMEOUT_ERROR', 'PERMISSION_ERROR', 'STORAGE_ERROR']
+    return recoverableErrors.includes(errorType)
+  }
+
+  /**
+   * 分類錯誤
+   */
+  classifyErrors (errors) {
+    return {
+      critical: errors.filter(e => e.severity === 'critical').length,
+      high: errors.filter(e => e.severity === 'high').length,
+      medium: errors.filter(e => e.severity === 'medium').length,
+      recoverable: errors.filter(e => e.canRecover).length,
+      nonRecoverable: errors.filter(e => !e.canRecover).length
+    }
+  }
+
+  /**
    * 記錄模擬錯誤
    */
   logError (error) {
@@ -186,6 +305,15 @@ class ErrorSimulator {
    * 模擬儲存配額超限
    */
   async simulateStorageQuotaExceeded () {
+    const error = new Error('Storage quota exceeded')
+    this.logError(error)
+    throw error
+  }
+
+  /**
+   * 模擬儲存配額錯誤 - 測試期望的方法名稱
+   */
+  async simulateStorageQuotaError () {
     const error = new Error('Storage quota exceeded')
     this.logError(error)
     throw error
