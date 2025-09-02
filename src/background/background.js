@@ -18,8 +18,11 @@
 const DEBUG = process.env.NODE_ENV === 'development' || globalThis.chrome?.runtime?.getManifest?.()?.version?.includes('dev')
 
 const log = {
+  // eslint-disable-next-line no-console
   info: (message, data) => DEBUG && console.log(message, data || ''),
+  // eslint-disable-next-line no-console
   error: (message, error) => console.error(message, error),
+  // eslint-disable-next-line no-console
   warn: (message, data) => DEBUG && console.warn(message, data || '')
 }
 

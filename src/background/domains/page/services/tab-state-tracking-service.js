@@ -20,7 +20,6 @@
  */
 
 const {
-  PAGE_EVENTS,
   TAB_EVENTS,
   EVENT_PRIORITIES
 } = require('../../../constants/module-constants')
