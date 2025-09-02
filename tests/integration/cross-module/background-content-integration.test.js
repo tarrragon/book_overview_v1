@@ -8,7 +8,6 @@
  */
 
 const { E2ETestSuite } = require('../../helpers/e2e-test-suite')
-const { ChromeExtensionController } = require('../../helpers/chrome-extension-controller')
 const { TestDataGenerator } = require('../../helpers/test-data-generator')
 const MessageFlowTracker = require('../../helpers/message-flow-tracker')
 const LifecycleValidator = require('../../helpers/lifecycle-validator')

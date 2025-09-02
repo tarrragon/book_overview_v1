@@ -8,7 +8,6 @@
  */
 
 const { E2ETestSuite } = require('../../helpers/e2e-test-suite')
-const { ChromeExtensionController } = require('../../helpers/chrome-extension-controller')
 const { TestDataGenerator } = require('../../helpers/test-data-generator')
 const { PerformanceMonitor } = require('../../helpers/performance-monitor')
 
