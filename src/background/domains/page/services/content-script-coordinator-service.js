@@ -540,7 +540,7 @@ class ContentScriptCoordinatorService {
     try {
       this.stats.communicationEvents++
 
-      const { url, title, tabId, pageType } = event.data || {}
+      const { url, tabId, pageType } = event.data || {}
 
       if (tabId && pageType) {
         await this.handleTabUpdate(tabId, url, pageType)
@@ -609,7 +609,7 @@ class ContentScriptCoordinatorService {
   getTabScriptStates (tabId) {
     const states = {}
 
-    for (const [key, state] of this.scriptStates) {
+    for (const [, state] of this.scriptStates) {
       if (state.tabId === tabId) {
         states[state.scriptId] = state
       }

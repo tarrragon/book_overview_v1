@@ -256,7 +256,6 @@ class DataComparisonEngine {
     // 簡單的批次處理實作
     const allItems = [...sourceData, ...targetData]
     for (let i = 0; i < allItems.length; i += batchSize) {
-      const batch = allItems.slice(i, i + batchSize)
       // 處理批次 (這裡是簡化實作)
       await new Promise(resolve => setTimeout(resolve, 1))
       batches++

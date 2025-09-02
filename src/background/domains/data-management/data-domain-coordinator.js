@@ -440,7 +440,7 @@ class DataDomainCoordinator extends BaseModule {
    * 處理資料衝突事件 (v1.0 暫時擱置)
    */
   async handleDataConflict (event) {
-    const { conflictId, platform, conflictData } = event.data || {}
+    const { conflictId, platform } = event.data || {}
 
     try {
       await this.log(`資料衝突處理暫時擱置: ${conflictId} on ${platform}`, 'warn')

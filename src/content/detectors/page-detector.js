@@ -221,7 +221,7 @@ function createPageDetector () {
      * @returns {Object} 更新後的頁面狀態
      */
     refresh () {
-      currentUrl = window.location.href
+      const currentUrl = window.location.href
       return this.detectReadmooPage()
     },
 

@@ -29,8 +29,7 @@ const SessionManagementService = require('./services/session-management-service'
 const {
   MESSAGE_EVENTS,
   SYSTEM_EVENTS,
-  EVENT_PRIORITIES,
-  TIMEOUTS
+  EVENT_PRIORITIES
 } = require('../../constants/module-constants')
 
 class MessagingDomainCoordinator {

@@ -431,7 +431,7 @@ class ValidationServiceCoordinator {
       const batchCancelResult = await this.validationBatchProcessor.cancelBatch(validationId)
 
       // 執行協調清理
-      const coordinationCleanup = await this._performCoordinationCleanup(validationId)
+      await this._performCoordinationCleanup(validationId)
 
       // 移除活躍協調
       this.activeCoordinations.delete(validationId)

@@ -135,7 +135,7 @@ class ChromeExtensionMocksEnhanced {
    * @private
    */
   _setupStorageAPI () {
-    const storageData = new Map()
+    this.storageData = new Map()
 
     global.chrome.storage.local = {
       get: (keys, callback) => {
@@ -157,18 +157,18 @@ class ChromeExtensionMocksEnhanced {
 
         const result = {}
         if (typeof keys === 'string') {
-          result[keys] = storageData.get(keys)
+          result[keys] = this.storageData.get(keys)
         } else if (Array.isArray(keys)) {
           keys.forEach(key => {
-            result[key] = storageData.get(key)
+            result[key] = this.storageData.get(key)
           })
         } else if (typeof keys === 'object' && keys !== null) {
           Object.keys(keys).forEach(key => {
-            result[key] = storageData.get(key) ?? keys[key]
+            result[key] = this.storageData.get(key) ?? keys[key]
           })
         } else {
           // 獲取所有資料
-          for (const [key, value] of storageData) {
+          for (const [key, value] of this.storageData) {
             result[key] = value
           }
         }
@@ -201,10 +201,10 @@ class ChromeExtensionMocksEnhanced {
 
         const keysToRemove = Array.isArray(keys) ? keys : [keys]
         keysToRemove.forEach(key => {
-          const value = storageData.get(key)
+          const value = this.storageData.get(key)
           if (value !== undefined) {
             this.storageQuota.used -= JSON.stringify({ [key]: value }).length
-            storageData.delete(key)
+            this.storageData.delete(key)
           }
         })
 
@@ -223,7 +223,7 @@ class ChromeExtensionMocksEnhanced {
           return
         }
 
-        storageData.clear()
+        this.storageData.clear()
         this.storageQuota.used = 0
 
         if (callback) {
@@ -238,7 +238,7 @@ class ChromeExtensionMocksEnhanced {
         if (keys) {
           const keysToCheck = Array.isArray(keys) ? keys : [keys]
           keysToCheck.forEach(key => {
-            const value = storageData.get(key)
+            const value = this.storageData.get(key)
             if (value !== undefined) {
               size += JSON.stringify({ [key]: value }).length
             }
@@ -491,7 +491,7 @@ class ChromeExtensionMocksEnhanced {
    */
   _storeItems (items) {
     Object.entries(items).forEach(([key, value]) => {
-      storageData.set(key, value)
+      this.storageData.set(key, value)
     })
     this.storageQuota.used += JSON.stringify(items).length
   }

@@ -549,7 +549,7 @@ class ExtractionDomainCoordinator extends BaseModule {
     }
 
     // 統計各微服務健康狀態
-    for (const [serviceName, service] of this.services) {
+    for (const [, service] of this.services) {
       if (typeof service.getHealthStatus === 'function') {
         const healthStatus = service.getHealthStatus()
         if (healthStatus.healthy) {

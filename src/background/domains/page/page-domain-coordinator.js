@@ -282,7 +282,7 @@ class PageDomainCoordinator {
       this.stats.eventsHandled++
       this.stats.pageDetections++
 
-      const { url, title, tabId, pageType } = event.data || {}
+      const { url, pageType } = event.data || {}
 
       this.logger.log(`🔍 檢測到頁面: ${pageType} (${url})`)
 
@@ -323,7 +323,7 @@ class PageDomainCoordinator {
       this.stats.eventsHandled++
       this.stats.contentScriptCoordinations++
 
-      const { tabId, url } = event.data || {}
+      const { url } = event.data || {}
       this.logger.log(`📜 內容腳本就緒: ${url}`)
     } catch (error) {
       this.logger.error('❌ 處理內容腳本就緒事件失敗:', error)
@@ -337,7 +337,7 @@ class PageDomainCoordinator {
     try {
       this.stats.eventsHandled++
 
-      const { tabId, windowId } = event.data || {}
+      const { tabId } = event.data || {}
       this.logger.log(`🔄 分頁啟動: ${tabId}`)
 
       // 可以在此觸發相關的頁面檢測或狀態更新

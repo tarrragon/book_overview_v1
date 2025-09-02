@@ -49,8 +49,6 @@ class DataValidationService {
 
     // 如果使用依賴注入模式（整合測試期望），驗證必要服務
     if (config && (config.validationRuleManager !== undefined || config.services)) {
-      const services = { ...config.services, ...config }
-
       if (config.validationRuleManager === null) {
         throw new Error('ValidationRuleManager is required')
       }

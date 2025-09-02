@@ -4,7 +4,7 @@
  */
 
 class StorageAPIValidator {
-  constructor(options = {}) {
+  constructor (options = {}) {
     this.options = {
       enableQuotaChecking: options.enableQuotaChecking !== false,
       maxRetries: options.maxRetries || 3,
@@ -12,7 +12,7 @@ class StorageAPIValidator {
       enableLogging: options.enableLogging || false,
       ...options
     }
-    
+
     this.stats = {
       validationCount: 0,
       errorCount: 0,
@@ -23,10 +23,10 @@ class StorageAPIValidator {
   /**
    * 驗證儲存空間配額
    */
-  async validateQuota(expectedUsage = null) {
+  async validateQuota (expectedUsage = null) {
     try {
       this.stats.validationCount++
-      
+
       // 模擬配額驗證
       const mockUsage = 1024 * 1024 // 1MB
       const mockQuota = 10 * 1024 * 1024 // 10MB
@@ -52,7 +52,7 @@ class StorageAPIValidator {
   /**
    * 驗證資料完整性
    */
-  async validateDataIntegrity(storageData) {
+  async validateDataIntegrity (storageData) {
     try {
       this.stats.validationCount++
 
@@ -79,7 +79,7 @@ class StorageAPIValidator {
         validations.push({
           test: 'books_structure',
           valid: invalidBooks.length === 0,
-          message: invalidBooks.length > 0 
+          message: invalidBooks.length > 0
             ? `Found ${invalidBooks.length} books with invalid structure`
             : 'All books have valid structure'
         })
@@ -108,7 +108,7 @@ class StorageAPIValidator {
   /**
    * 驗證效能指標
    */
-  async validatePerformance(operation, expectedDuration = null) {
+  async validatePerformance (operation, expectedDuration = null) {
     try {
       this.stats.validationCount++
 
@@ -143,7 +143,7 @@ class StorageAPIValidator {
   /**
    * 重置統計資料
    */
-  resetStats() {
+  resetStats () {
     this.stats = {
       validationCount: 0,
       errorCount: 0,
@@ -154,14 +154,14 @@ class StorageAPIValidator {
   /**
    * 取得統計資料
    */
-  getStats() {
+  getStats () {
     return { ...this.stats }
   }
 
   /**
    * 清理資源
    */
-  async cleanup() {
+  async cleanup () {
     this.resetStats()
   }
 }

@@ -177,7 +177,7 @@ class MessageRoutingService {
 
       // Popup 訊息處理器
       this.messageHandlers.set(MESSAGE_TYPES.POPUP_TO_BACKGROUND, async (message, context) => {
-        const { source, sessionId } = context
+        const { sessionId } = context
 
         this.logger.log(`🎛️ 處理 Popup 訊息: ${message.type || 'unknown'} (Session ${sessionId})`)
 

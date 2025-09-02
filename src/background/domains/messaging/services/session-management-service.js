@@ -20,7 +20,6 @@
  */
 
 const {
-  STORAGE_KEYS,
   LIMITS,
   TIMEOUTS
 } = require('../../../constants/module-constants')

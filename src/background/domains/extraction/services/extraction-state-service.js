@@ -500,12 +500,12 @@ class ExtractionStateService {
     const statuses = {}
 
     // 活動作業
-    for (const [jobId, job] of this.extractionJobs) {
+    for (const [jobId] of this.extractionJobs) {
       statuses[jobId] = this.getJobStatus(jobId)
     }
 
     // 歷史作業
-    for (const [jobId, job] of this.jobHistory) {
+    for (const [jobId] of this.jobHistory) {
       if (!statuses[jobId]) {
         statuses[jobId] = this.getJobStatus(jobId)
       }

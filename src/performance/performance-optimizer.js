@@ -21,6 +21,8 @@
  * @version 1.0.0
  */
 
+/* global gc */
+
 /**
  * PerformanceOptimizer 類別
  *

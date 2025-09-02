@@ -284,7 +284,7 @@ class ReadmooDataConsistencyService extends BaseModule {
   async cleanup () {
     try {
       // 清理進行中的作業
-      for (const [checkId, job] of this.consistencyJobs.entries()) {
+      for (const [, job] of this.consistencyJobs.entries()) {
         if (job.status === 'running') {
           job.status = 'cancelled'
           job.completedAt = Date.now()

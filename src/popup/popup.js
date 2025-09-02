@@ -29,6 +29,8 @@ console.log('🎨 Popup Interface 載入完成')
 
 // ==================== 常數定義 ====================
 
+/* global PopupInitializationTracker, PopupErrorHandler, PopupDiagnosticEnhancer */
+
 /**
  * 狀態類型常數
  */

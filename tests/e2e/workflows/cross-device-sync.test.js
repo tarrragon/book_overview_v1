@@ -16,6 +16,77 @@
 
 const path = require('path')
 
+// Mock 類別定義（TDD Phase 1 - 測試先行）
+class SyncStateTracker {
+  constructor () {
+    this.listeners = new Map()
+    this.progressHistory = []
+  }
+
+  on (event, handler) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, [])
+    }
+    this.listeners.get(event).push(handler)
+  }
+
+  getProgressHistory () {
+    return [...this.progressHistory]
+  }
+}
+
+class PerformanceTracker {
+  constructor () {
+    this.metrics = {}
+  }
+
+  startTracking (name) {
+    this.metrics[name] = Date.now()
+  }
+
+  endTracking (name) {
+    if (this.metrics[name]) {
+      return Date.now() - this.metrics[name]
+    }
+    return 0
+  }
+}
+
+class MemoryMonitor {
+  constructor () {
+    this.baseline = 0
+  }
+
+  setBaseline () {
+    this.baseline = Date.now()
+  }
+
+  getCurrentUsage () {
+    return { heapUsed: 1024 * 1024, heapTotal: 2048 * 1024 }
+  }
+}
+
+class TimezoneValidator {
+  constructor () {}
+
+  validate (data) {
+    return { valid: true, timezone: 'UTC' }
+  }
+}
+
+class FinalConsistencyProcessor {
+  constructor () {}
+
+  async process (data) {
+    return { success: true, processed: data }
+  }
+}
+
+// Mock 函數定義
+function createCorruptedFile () {
+  return { corrupted: true, data: null }
+}
+
 // 工具函數
 const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
