@@ -29,12 +29,20 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# 檢查是否在 tmux 環境中
+# 檢查 TMux 環境和 session 狀態
 check_tmux_environment() {
     if [[ -z "$TMUX" ]]; then
         log_error "未在 TMux 環境中運行"
-        log_info "請先執行: tmux new-session -s main_layout"
-        exit 1
+        
+        # 檢查是否已有 main_layout session 存在
+        if tmux has-session -t main_layout 2>/dev/null; then
+            log_info "發現已存在的 main_layout session"
+            log_info "請執行: tmux attach-session -t main_layout"
+            exit 1
+        else
+            log_info "請先執行: tmux new-session -s main_layout"
+            exit 1
+        fi
     fi
     
     log_success "已在 TMux 環境中"
@@ -108,13 +116,36 @@ setup_main_layout() {
     log_success "TMux 佈局設定完成"
 }
 
+# 檢查面板0是否已有 Claude Code 運行
+check_claude_in_pane0() {
+    local pane0_command=$(tmux display-message -t 0 -p '#{pane_current_command}')
+    local pane0_tty=$(tmux display-message -t 0 -p '#{pane_tty}')
+    
+    log_info "檢查面板0中的程序: $pane0_command"
+    
+    # 檢查是否為互動式 shell 或可能的 Claude Code 環境
+    if [[ "$pane0_command" =~ (bash|zsh|sh|fish)$ ]]; then
+        log_warning "面板0中運行的是 shell ($pane0_command)"
+        log_info "建議在面板0中啟動 Claude Code 以確保最佳開發體驗"
+        return 1
+    else
+        log_info "面板0中運行程序: $pane0_command"
+        return 0
+    fi
+}
+
 # 設定面板標題和初始命令
 setup_pane_titles() {
     log_info "設定面板標題和功能"
     
-    # 面板0: 主要開發工作
-    tmux send-keys -t 0 'echo "面板0: 主要開發工作 (測試、編碼)"' Enter
-    tmux send-keys -t 0 'clear' Enter
+    # 面板0: 主要開發工作 - 特別處理
+    if check_claude_in_pane0; then
+        log_info "面板0似乎已有程序運行，跳過初始化"
+    else
+        tmux send-keys -t 0 'echo "面板0: 主要開發工作 (測試、編碼)"' Enter
+        tmux send-keys -t 0 'echo "💡 建議在此面板啟動 Claude Code"' Enter
+        tmux send-keys -t 0 'clear' Enter
+    fi
     
     # 面板1: 文件更新
     tmux send-keys -t 1 'echo "面板1: 文件更新 (日誌、TODO等)"' Enter

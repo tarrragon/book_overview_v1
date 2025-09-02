@@ -39,7 +39,7 @@ git status -b --ahead-behind
 ### 2. TMux 環境驗證與設定
 
 ```bash
-# 檢查 TMux 環境狀態
+# 檢查 TMux 環境和 session 狀態
 if [[ -n "$TMUX" ]]; then
     echo "✅ 已在 TMux 環境中"
     current_session=$(tmux display-message -p '#S')
@@ -55,13 +55,31 @@ if [[ -n "$TMUX" ]]; then
     
     if [[ $pane_count -eq 5 ]]; then
         echo "✅ TMux 佈局設定完成 (1,2,2 佈局)"
+        
+        # 檢查面板0的程序狀態
+        pane0_command=$(tmux display-message -t 0 -p '#{pane_current_command}')
+        echo "面板0運行程序: $pane0_command"
+        
+        if [[ "$pane0_command" =~ (bash|zsh|sh|fish)$ ]]; then
+            echo "⚠️  面板0運行的是 shell，建議啟動 Claude Code"
+            echo "💡 在面板0中執行 'claude' 命令以獲得最佳開發體驗"
+        fi
     else
         echo "⚠️  面板數量不正確，請檢查佈局設定"
     fi
 else
     echo "❌ 未在 TMux 環境中"
-    echo "💡 請執行以下指令進入 TMux 環境："
-    echo "   tmux new-session -s main_layout"
+    
+    # 檢查是否已有 main_layout session 存在
+    if tmux has-session -t main_layout 2>/dev/null; then
+        echo "📋 發現已存在的 main_layout session"
+        echo "💡 執行以下指令切換到該 session："
+        echo "   tmux attach-session -t main_layout"
+        echo "   或在 TMux 內執行: tmux switch-client -t main_layout"
+    else
+        echo "💡 請執行以下指令建立新的 TMux 環境："
+        echo "   tmux new-session -s main_layout"
+    fi
     echo "   然後重新執行 /startup-check"
 fi
 ```
@@ -75,15 +93,44 @@ fi
 
 ```bash
 # 檢查關鍵專案檔案
-ls -la CLAUDE.md package.json docs/todolist.md
-head -n 5 CLAUDE.md
-tail -n 10 docs/todolist.md
+echo "📋 檢查專案檔案存在性..."
+if [[ -f "CLAUDE.md" ]]; then
+    echo "✅ CLAUDE.md 存在"
+    claude_mod_date=$(stat -c "%Y" CLAUDE.md 2>/dev/null || stat -f "%m" CLAUDE.md)
+    echo "   修改時間: $(date -r $claude_mod_date)"
+else
+    echo "❌ CLAUDE.md 缺失"
+fi
+
+if [[ -f "docs/todolist.md" ]]; then
+    echo "✅ docs/todolist.md 存在"
+else
+    echo "⚠️  docs/todolist.md 不存在"
+fi
+
+# 檢查 Claude Code 是否已載入專案檔案
+echo ""
+echo "🔍 Claude Code 檔案載入狀態檢查:"
+echo "⚠️  重要提醒: 如果您是透過 tmux attach 進入已存在的 session，"
+echo "   請確認 Claude Code 已正確載入以下關鍵檔案："
+echo ""
+echo "   📄 必須載入的檔案："
+echo "   - CLAUDE.md (主要開發規範)"
+echo "   - docs/workflows/tdd-collaboration-flow.md"
+echo "   - docs/guidelines/document-responsibilities.md" 
+echo "   - docs/workflows/agent-collaboration.md"
+echo "   - docs/project/chrome-extension-specs.md"
+echo "   - docs/architecture/event-driven-architecture.md"
+echo ""
+echo "💡 如果 Claude Code 尚未載入這些檔案，建議："
+echo "   1. 在面板0中重新啟動 Claude Code"
+echo "   2. 或請 Claude Code 重新讀取專案檔案"
 ```
 
 **預期結果**：
 - 所有關鍵檔案存在且可讀取
 - CLAUDE.md 包含最新規範
-- todolist.md 反映當前任務狀態
+- Claude Code 已正確載入專案文件上下文
 
 ### 4. 開發狀態檢查
 

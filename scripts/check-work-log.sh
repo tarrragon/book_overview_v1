@@ -87,25 +87,44 @@ get_git_changes() {
     git diff --name-only
 }
 
-# 提示用戶更新工作日誌
-prompt_update_work_log() {
+# 智能工作日誌管理提示
+prompt_smart_work_log_management() {
     local log_file="$1"
     
     echo ""
     log_warning "⚠️  工作日誌檢查不通過！"
     echo ""
-    echo "🔧 請先更新工作日誌再進行提交："
+    echo "🤖 智能工作日誌管理系統已啟動"
     echo ""
-    echo "1. 開啟工作日誌檔案:"
+    echo "💡 建議操作："
+    echo "1. 執行工作日誌管理腳本："
+    echo "   ./scripts/work-log-manager.sh"
+    echo ""
+    echo "2. 或手動更新現有工作日誌："
     echo "   $log_file"
     echo ""
-    echo "2. 記錄今日的開發工作內容，包括："
-    echo "   - 完成的功能或修復"
-    echo "   - 遇到的問題和解決方案" 
-    echo "   - 程式碼變更說明"
-    echo "   - 測試結果"
+    echo "3. 工作日誌更新完成後重新執行 /commit-as-prompt"
     echo ""
-    echo "3. 更新完成後重新執行 /commit-as-prompt"
+    echo "📋 工作日誌管理的三種狀況："
+    echo "   🔄 更新進行中的工作記錄"
+    echo "   🆕 開始新的工作項目"
+    echo "   ✅ 完成當前工作並新增總結"
+    echo ""
+    
+    return 1
+}
+
+# 提示建立新工作日誌
+prompt_create_new_work_log() {
+    echo ""
+    log_warning "⚠️  未找到工作日誌檔案！"
+    echo ""
+    echo "🆕 需要建立新的工作日誌"
+    echo ""
+    echo "💡 建議執行："
+    echo "   ./scripts/work-log-manager.sh"
+    echo ""
+    echo "這將引導您建立正確版本的工作日誌檔案"
     echo ""
     
     return 1
@@ -148,8 +167,9 @@ main() {
     # 獲取最新工作日誌
     local latest_log
     if ! latest_log=$(get_latest_work_log); then
-        log_error "無法找到工作日誌檔案"
-        exit 1
+        log_warning "無法找到工作日誌檔案，需要建立新的工作日誌"
+        prompt_create_new_work_log
+        return 1
     fi
     
     # 顯示當前變更
@@ -165,7 +185,8 @@ main() {
         log_success "✅ 工作日誌檢查通過，可以進行提交"
         return 0
     else
-        prompt_update_work_log "$latest_log"
+        # 使用智能管理系統
+        prompt_smart_work_log_management "$latest_log"
         return 1
     fi
 }
