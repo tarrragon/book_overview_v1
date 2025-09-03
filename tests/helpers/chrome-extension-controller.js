@@ -2230,7 +2230,7 @@ class ChromeExtensionController {
    */
   async getPopupUIElements () {
     const backgroundState = await this.getBackgroundState()
-    
+
     return {
       bookCountDisplay: {
         text: backgroundState.bookCount.toString(),
