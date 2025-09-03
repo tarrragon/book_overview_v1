@@ -122,7 +122,8 @@ describe('Data Validation Service v2.0', () => {
 
       test('應該抛出錯誤當 EventBus 未提供', () => {
         expect(() => {
-          new DataValidationService(null, mockConfig)
+          const service = new DataValidationService(null, mockConfig)
+          return service
         }).toThrow('EventBus is required')
       })
 

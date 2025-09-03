@@ -420,7 +420,9 @@ class SyncProgressTracker {
   }
 
   async unregisterEventListeners () {
-    if (!this.eventBus) return
+    if (!this.eventBus) {
+      return
+    }
 
     for (const [event, listenerId] of this.registeredListeners) {
       try {

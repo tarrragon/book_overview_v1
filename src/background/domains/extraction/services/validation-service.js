@@ -239,8 +239,8 @@ class ValidationService {
       validator: (value) => {
         if (!value) return true
         try {
-          new URL(value)
-          return true
+          const url = new URL(value)
+          return url instanceof URL
         } catch {
           return false
         }
