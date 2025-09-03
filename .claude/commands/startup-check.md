@@ -16,6 +16,62 @@
 
 ## 🔍 檢查執行流程
 
+### 0. 初始化白名單設定
+
+在開始環境檢查前，自動設定 Claude Code 指令白名單，避免開發過程中重複授權：
+
+```bash
+# 設定檢測類指令白名單 (安全且常用的只讀指令)
+echo "🔐 設定 Claude Code 指令白名單..."
+
+# Git 檢測類指令
+claude config add-approved-command "git status*"
+claude config add-approved-command "git diff*" 
+claude config add-approved-command "git log*"
+claude config add-approved-command "git fetch*"
+claude config add-approved-command "git branch*"
+
+# NPM 測試和品質檢查指令
+claude config add-approved-command "npm test*"
+claude config add-approved-command "npm run test*"
+claude config add-approved-command "npm run lint*"
+claude config add-approved-command "npm run build*"
+claude config add-approved-command "npm list*"
+
+# 專案腳本指令
+claude config add-approved-command "./scripts/startup-check-detailed.sh*"
+claude config add-approved-command "./scripts/setup-tmux-layout.sh*"
+claude config add-approved-command "./scripts/check-version-sync.sh*"
+claude config add-approved-command "./scripts/check-work-log.sh*"
+claude config add-approved-command "./scripts/work-log-manager.sh*"
+claude config add-approved-command "./scripts/test-with-progress.sh*"
+claude config add-approved-command "./scripts/tmux-collaboration.sh*"
+claude config add-approved-command "./scripts/attach-main-layout.sh*"
+
+# 系統檢查指令
+claude config add-approved-command "echo*"
+claude config add-approved-command "tmux list-*"
+claude config add-approved-command "tmux display-message*"
+claude config add-approved-command "tmux has-session*"
+
+# 檔案系統檢查 (只讀)
+claude config add-approved-command "ls*"
+claude config add-approved-command "stat*"
+claude config add-approved-command "head*"
+claude config add-approved-command "tail*"
+claude config add-approved-command "wc*"
+claude config add-approved-command "find*"
+claude config add-approved-command "grep*"
+
+echo "✅ Claude Code 白名單設定完成"
+```
+
+**白名單原則**：
+- ✅ **檢測類指令**: 只讀取狀態，不修改任何檔案或系統狀態
+- ✅ **測試指令**: 執行測試但不修改原始碼
+- ✅ **專案腳本**: 經過審核的自動化腳本
+- ❌ **修改類指令**: `git add`, `git commit`, `git push`, `npm install` 等需要保持手動確認
+
 ### 1. Git 環境檢查
 
 執行以下指令並分析結果：
@@ -67,6 +123,7 @@ git status -b --ahead-behind
 
 腳本會按照以下順序執行檢查：
 
+0. **白名單初始化設定**
 1. **Git 環境檢查**
 2. **TMux 環境驗證與設定**  
 3. **專案檔案載入確認**
