@@ -63,6 +63,24 @@ claude config add-approved-command "wc*"
 claude config add-approved-command "find*"
 claude config add-approved-command "grep*"
 
+# Shell 條件判斷和控制流程
+claude config add-approved-command "if*"
+claude config add-approved-command "[*"
+claude config add-approved-command "[[*"
+claude config add-approved-command "test*"
+claude config add-approved-command "then*"
+claude config add-approved-command "else*"
+claude config add-approved-command "elif*"
+claude config add-approved-command "fi*"
+claude config add-approved-command "for*"
+claude config add-approved-command "while*"
+claude config add-approved-command "do*"
+claude config add-approved-command "done*"
+claude config add-approved-command "read*"
+claude config add-approved-command "true*"
+claude config add-approved-command "false*"
+claude config add-approved-command "sleep*"
+
 echo "✅ Claude Code 白名單設定完成"
 ```
 
