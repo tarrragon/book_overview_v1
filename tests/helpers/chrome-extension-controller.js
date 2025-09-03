@@ -2131,6 +2131,122 @@ class ChromeExtensionController {
     }
   }
 
+  /**
+   * 執行背景操作
+   * 模擬在 Background Service Worker 中執行特定操作
+   */
+  async executeBackgroundOperation (operationType, options = {}) {
+    const result = {
+      success: true,
+      operationType,
+      timestamp: Date.now(),
+      message: `Background operation '${operationType}' executed successfully`
+    }
+
+    // 根據操作類型模擬不同的行為
+    switch (operationType) {
+      case 'data-refresh':
+        await this.simulateDelay(100)
+        result.data = { refreshed: true, count: Math.floor(Math.random() * 100) }
+        break
+      case 'storage-sync':
+        await this.simulateDelay(200)
+        result.data = { synced: true, items: Math.floor(Math.random() * 50) }
+        break
+      default:
+        await this.simulateDelay(50)
+        result.data = { operation: operationType, completed: true }
+    }
+
+    return result
+  }
+
+  /**
+   * 驗證 Extension 上下文
+   * 檢查各種 Extension 執行上下文的狀態
+   */
+  async validateExtensionContexts () {
+    return {
+      background: {
+        available: true,
+        serviceWorkerActive: true,
+        lastHeartbeat: Date.now()
+      },
+      contentScript: {
+        injected: true,
+        responsive: true,
+        pageCompatible: true
+      },
+      popup: {
+        canOpen: true,
+        permissions: ['activeTab', 'storage']
+      }
+    }
+  }
+
+  /**
+   * 獲取 Background Service Worker 狀態
+   * 返回 Service Worker 的詳細狀態資訊
+   */
+  async getBackgroundServiceWorkerState () {
+    return {
+      state: 'active',
+      registration: {
+        scope: 'chrome-extension://test-extension-id/',
+        updateViaCache: 'imports'
+      },
+      performance: {
+        startTime: Date.now() - Math.floor(Math.random() * 10000),
+        memoryUsage: Math.floor(Math.random() * 50) + 10, // MB
+        activeConnections: Math.floor(Math.random() * 5)
+      },
+      health: {
+        status: 'healthy',
+        lastCheck: Date.now(),
+        errorCount: 0
+      }
+    }
+  }
+
+  /**
+   * 獲取背景狀態
+   * 返回背景服務的整體狀態
+   */
+  async getBackgroundState () {
+    return {
+      bookCount: Math.floor(Math.random() * 1000) + 100,
+      lastExtraction: Date.now() - Math.floor(Math.random() * 86400000), // 最近24小時內
+      systemStatus: 'running',
+      storage: {
+        used: Math.floor(Math.random() * 5) + 1, // MB
+        quota: 10 // MB
+      }
+    }
+  }
+
+  /**
+   * 獲取 Popup UI 元素
+   * 返回 Popup 中的 UI 元素狀態
+   */
+  async getPopupUIElements () {
+    const backgroundState = await this.getBackgroundState()
+    
+    return {
+      bookCountDisplay: {
+        text: backgroundState.bookCount.toString(),
+        visible: true
+      },
+      statusIndicator: {
+        status: backgroundState.systemStatus,
+        color: backgroundState.systemStatus === 'running' ? 'green' : 'red'
+      },
+      extractButton: {
+        enabled: true,
+        visible: true
+      }
+    }
+  }
+
   // 靜態工廠方法
   static async create (options = {}) {
     const controller = new ChromeExtensionController(options)

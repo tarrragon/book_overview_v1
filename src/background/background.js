@@ -116,7 +116,7 @@ async function initializeBackgroundSystem () {
     }
 
     // 啟動緊急模式
-    console.error('🚨 達到最大重試次數，啟動緊急模式')
+    log.error('🚨 達到最大重試次數，啟動緊急模式')
     await activateEmergencyMode()
     throw error
   }
@@ -133,12 +133,12 @@ async function initializeBackgroundSystem () {
  */
 async function registerServiceWorkerEvents () {
   try {
-    console.log('📝 註冊 Service Worker 生命週期事件')
+    log.info('📝 註冊 Service Worker 生命週期事件')
 
     // Chrome Extension 安裝事件
     if (chrome.runtime.onInstalled) {
       chrome.runtime.onInstalled.addListener(async (details) => {
-        console.log('📦 擴展安裝事件:', details.reason)
+        log.info('📦 擴展安裝事件:', details.reason)
 
         if (backgroundCoordinator && backgroundCoordinator.eventBus) {
           await backgroundCoordinator.eventBus.emit('SYSTEM.INSTALLED', {
@@ -153,7 +153,7 @@ async function registerServiceWorkerEvents () {
     // Chrome Extension 啟動事件
     if (chrome.runtime.onStartup) {
       chrome.runtime.onStartup.addListener(async () => {
-        console.log('▶️ 擴展啟動事件')
+        log.info('▶️ 擴展啟動事件')
 
         if (backgroundCoordinator && backgroundCoordinator.eventBus) {
           await backgroundCoordinator.eventBus.emit('SYSTEM.STARTUP', {
@@ -165,7 +165,7 @@ async function registerServiceWorkerEvents () {
 
     // Service Worker 異常中斷處理
     addEventListener('error', (event) => {
-      console.error('🚨 Service Worker 異常錯誤:', event.error)
+      log.error('🚨 Service Worker 異常錯誤:', event.error)
 
       // 嘗試收集錯誤到錯誤處理器
       if (backgroundCoordinator && backgroundCoordinator.errorHandler) {
@@ -186,7 +186,7 @@ async function registerServiceWorkerEvents () {
 
     // Service Worker 未處理的 Promise 拒絕
     addEventListener('unhandledrejection', (event) => {
-      console.error('🚨 未處理的 Promise 拒絕:', event.reason)
+      log.error('🚨 未處理的 Promise 拒絕:', event.reason)
 
       // 嘗試收集錯誤到錯誤處理器
       if (backgroundCoordinator && backgroundCoordinator.errorHandler) {
@@ -206,9 +206,9 @@ async function registerServiceWorkerEvents () {
       event.preventDefault()
     })
 
-    console.log('✅ Service Worker 生命週期事件註冊完成')
+    log.info('✅ Service Worker 生命週期事件註冊完成')
   } catch (error) {
-    console.error('❌ 註冊 Service Worker 事件失敗:', error)
+    log.error('❌ 註冊 Service Worker 事件失敗:', error)
   }
 }
 
@@ -222,7 +222,7 @@ async function registerServiceWorkerEvents () {
  * - 記錄緊急模式相關的診斷資訊
  */
 async function activateEmergencyMode () {
-  console.log('🚨 啟動緊急模式')
+  log.error('🚨 啟動緊急模式')
   emergencyMode = true
 
   try {
@@ -232,7 +232,7 @@ async function activateEmergencyMode () {
     // 註冊基本的訊息處理
     if (chrome.runtime.onMessage) {
       chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        console.log('📨 [緊急模式] 收到訊息:', message)
+        log.info('📨 [緊急模式] 收到訊息:', message)
 
         // 基本的回應處理
         if (message.type === 'GET_SYSTEM_STATUS') {
@@ -256,9 +256,9 @@ async function activateEmergencyMode () {
       })
     }
 
-    console.log('🚨 緊急模式啟動完成')
+    log.info('🚨 緊急模式啟動完成')
   } catch (error) {
-    console.error('❌ 緊急模式啟動失敗:', error)
+    log.error('❌ 緊急模式啟動失敗:', error)
   }
 }
 
@@ -285,7 +285,7 @@ function createEmergencyEventBus () {
         try {
           await handler({ type: eventType, data, timestamp: Date.now() })
         } catch (error) {
-          console.error(`❌ [緊急模式] 事件處理錯誤 (${eventType}):`, error)
+          log.error(`❌ [緊急模式] 事件處理錯誤 (${eventType}):`, error)
         }
       }
     }
@@ -332,13 +332,13 @@ function getBackgroundCoordinator () {
 }
 
 // 立即啟動系統
-console.log('🏁 開始 Background Service Worker 初始化流程')
+log.info('🏁 開始 Background Service Worker 初始化流程')
 initializeBackgroundSystem()
   .then(() => {
-    console.log('🎉 Background Service Worker 初始化成功完成')
+    log.info('🎉 Background Service Worker 初始化成功完成')
   })
   .catch((error) => {
-    console.error('💥 Background Service Worker 初始化最終失敗:', error)
+    log.error('💥 Background Service Worker 初始化最終失敗:', error)
   })
 
 // 匯出公用介面（用於測試和診斷）

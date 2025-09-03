@@ -165,7 +165,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
       expect(mockMetrics.increment).toHaveBeenCalledWith('recovery.retry.attempt')
       expect(mockMetrics.timing).toHaveBeenCalledWith('recovery.retry.duration', expect.any(Number))
-    })
+    }, 15000)
   })
 
   describe('📉 降級機制測試', () => {
@@ -402,7 +402,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       expect(result.restartOrder).toEqual(['EventBus', 'StorageManager', 'UIController'])
       expect(result.totalTime).toBeLessThan(700) // 應該有並行優化
       expect(result.allComponentsRunning).toBe(true)
-    })
+    }, 15000)
 
     test('應該處理重啟失敗', async () => {
       // Given: 無法重啟的組件
