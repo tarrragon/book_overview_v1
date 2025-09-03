@@ -1004,7 +1004,7 @@ class DataValidationService {
   async _executeValidationLogic (books, platform, source, options, validationId, startTime) {
     // 建立超時控制
     const timeout = this.config.validationTimeout || 5000
-    const timeoutPromise = new Promise((_, reject) => {
+    const timeoutPromise = new Promise((_resolve, reject) => {
       setTimeout(() => reject(new Error('驗證逾時')), timeout)
     })
 
@@ -1511,9 +1511,9 @@ class DataValidationService {
   }
 
   /**
-   * 清理服務
+   * 清理服務快取
    */
-  destroy () {
+  cleanup () {
     if (this.validationCache) {
       this.validationCache.clear()
       this.cacheTimestamps.clear()

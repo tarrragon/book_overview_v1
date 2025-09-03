@@ -752,8 +752,8 @@ class DataQualityAnalyzer {
 
   _isValidUrl (urlString) {
     try {
-      new URL(urlString)
-      return true
+      const url = new URL(urlString)
+      return url instanceof URL
     } catch {
       return false
     }

@@ -993,7 +993,7 @@ class AdapterFactoryService {
    * @param {Object} event - 適配器錯誤事件
    */
   async handleAdapterError (event) {
-    const { platformId, adapterId, error: _error } = event.data || {}
+    const { platformId, adapterId } = event.data || {}
 
     if (platformId && adapterId) {
       const adapter = this.getAdapter(platformId, adapterId)
@@ -1193,7 +1193,7 @@ class AdapterFactoryService {
       const now = Date.now()
 
       // 清理所有平台的閒置適配器
-      for (const [_platformId, pool] of this.adapterPool.entries()) {
+      for (const [, pool] of this.adapterPool.entries()) {
         const availableAdapters = [...pool.available]
 
         for (const adapter of availableAdapters) {
