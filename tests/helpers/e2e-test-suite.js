@@ -387,6 +387,51 @@ class E2ETestSuite {
     return { action: 'wait', duration: params.duration, success: true }
   }
 
+  /**
+   * 模擬內容腳本錯誤
+   */
+  async simulateContentScriptError (errorType) {
+    this.logOperation(`模擬內容腳本錯誤: ${errorType}`)
+
+    const error = new Error(`Content script error: ${errorType}`)
+    this.logError(error)
+
+    // 模擬內容腳本錯誤影響
+    if (this.mockData) {
+      this.mockData.contentScriptError = {
+        type: errorType,
+        timestamp: new Date().toISOString()
+      }
+    }
+
+    throw error
+  }
+
+  /**
+   * 填滿儲存容量
+   */
+  async fillStorageToCapacity () {
+    this.logOperation('填滿儲存容量以觸發配額錯誤')
+
+    // 模擬填滿儲存空間
+    const largeData = 'x'.repeat(1024 * 1024) // 1MB 的資料
+    const fillPromises = []
+
+    for (let i = 0; i < 10; i++) {
+      fillPromises.push(
+        this.simulateStorageWrite(`large_data_${i}`, largeData)
+      )
+    }
+
+    try {
+      await Promise.all(fillPromises)
+    } catch (error) {
+      // 預期會拋出儲存配額錯誤
+      this.logError(error)
+      throw error
+    }
+  }
+
   async simulateVerification (params) {
     // //todo: 改善方向 - 實作真實DOM狀態驗證
     return { action: 'verify', condition: params.condition, success: true }

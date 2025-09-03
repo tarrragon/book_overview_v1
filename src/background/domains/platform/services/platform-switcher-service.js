@@ -728,7 +728,7 @@ class PlatformSwitcherService {
    * @param {Object} event - 平台錯誤事件
    */
   async handlePlatformError (event) {
-    const { platformId, error, severity } = event.data || {}
+    const { platformId, severity } = event.data || {}
 
     // 如果是當前平台的嚴重錯誤，考慮自動切換
     if (platformId === this.currentPlatform &&

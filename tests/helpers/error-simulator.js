@@ -318,6 +318,50 @@ class ErrorSimulator {
     this.logError(error)
     throw error
   }
+
+  /**
+   * 模擬間歇性網路錯誤
+   */
+  simulateIntermittentNetworkErrors (networkInterruptions) {
+    if (!networkInterruptions || !Array.isArray(networkInterruptions)) {
+      throw new Error('Network interruptions array is required')
+    }
+
+    // 模擬間歇性網路中斷
+    networkInterruptions.forEach((interruption, index) => {
+      setTimeout(() => {
+        const error = new Error(`Network interruption ${index + 1}: ${interruption.type}`)
+        this.logError(error)
+      }, interruption.delay || index * 1000)
+    })
+  }
+
+  /**
+   * 模擬系統中斷
+   */
+  async simulateSystemInterruption () {
+    const error = new Error('System interruption detected')
+    this.logError(error)
+    throw error
+  }
+
+  /**
+   * 模擬資料解析錯誤
+   */
+  async simulateDataParsingError () {
+    const error = new Error('Data parsing failed')
+    this.logError(error)
+    throw error
+  }
+
+  /**
+   * 模擬內容腳本錯誤
+   */
+  async simulateContentScriptError (errorType = 'PARSING_ERROR') {
+    const error = new Error(`Content script error: ${errorType}`)
+    this.logError(error)
+    throw error
+  }
 }
 
 module.exports = ErrorSimulator

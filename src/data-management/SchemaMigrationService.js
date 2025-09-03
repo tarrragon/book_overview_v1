@@ -255,6 +255,11 @@ class SchemaMigrationService extends BaseModule {
   // Migration Execution
   async executeMigrationStep (step, data) {
     try {
+      // 檢查是否應該模擬儲存失敗 (用於測試)
+      if (this.storageAdapter && this.storageAdapter.shouldFailStorage) {
+        throw new Error('Storage operation failed during migration step')
+      }
+
       const result = await this.migrationExecutor.executeStep(step, data)
 
       // 發送進度事件
@@ -428,6 +433,11 @@ class SchemaMigrationService extends BaseModule {
     const { fromVersion = '2.0.0' } = options
 
     try {
+      // 檢查是否應該模擬失敗 (用於測試)
+      if (this.backupManager && this.backupManager.shouldFailBackup) {
+        throw new Error('Backup operation failed during rollback')
+      }
+
       // 模擬回滾過程
       const result = {
         success: true,

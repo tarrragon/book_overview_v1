@@ -267,7 +267,6 @@ class PlatformDetectionService {
 
         // 網路API檢測（含timeout處理）
         let apiAnalysis = null
-        let networkTimeoutOccurred = false
         try {
           apiAnalysis = await this.fetchPlatformAPIWithTimeout(context)
         } catch (networkError) {
