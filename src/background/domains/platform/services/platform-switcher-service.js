@@ -255,7 +255,7 @@ class PlatformSwitcherService {
       })
 
       // 執行切換流程
-      const result = await this.executeSwitchProcess(switchId, targetPlatform, options)
+      await this.executeSwitchProcess(switchId, targetPlatform, options)
 
       // 計算切換時間
       const switchTime = Date.now() - startTime

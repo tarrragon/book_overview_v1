@@ -273,7 +273,7 @@ class PlatformDetectionService {
         } catch (networkError) {
           // 網路錯誤不影響主要檢測，但會記錄timeout
           if (networkError.message === 'Network timeout') {
-            networkTimeoutOccurred = true
+            // networkTimeoutOccurred = true // 未來可用於統計
             apiAnalysis = { features: ['network_timeout'] }
           }
         }
@@ -407,9 +407,9 @@ class PlatformDetectionService {
     try {
       const { DOM } = context
       const detectedFeatures = []
-      const confidence = 0
-      const platformId = 'UNKNOWN'
-      const startTime = Date.now()
+      // const confidence = 0 // 未來實作置信度計算
+      // const platformId = 'UNKNOWN' // 未來平台識別
+      // const startTime = Date.now() // 未來效能統計
 
       // DOM分析超時處理
       let timedOut = false
