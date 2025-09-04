@@ -16,19 +16,19 @@
 
 ### 📂 Domain 入口索引
 
-- **API**: `domains/api/` → [⚙️ API 文檔](./domains/api/API.md)
-- **Deployment**: `domains/deployment/` → [🚀 部署指南](./domains/deployment/DEPLOYMENT.md)
-- **Architecture**: `domains/architecture/` → 事件系統、資料流、安全性、平台域規劃
-- **Guidelines**: `domains/guidelines/` → 程式碼品質、命名與路徑語意、範例彙編
-- **Workflows**: `domains/workflows/` → TDD 協作、Agent 協作
-- **Testing**: `domains/testing/` → 覆蓋分析、改進計畫、測試設計
-- **Performance**: `domains/performance/` → 效能優化報告
-- **Project**: `domains/project/` → 發展路線、核心功能、里程碑
-- **Context**: `domains/context/` → 規劃輸出、模板、會議紀要
-- **Refactoring**: `domains/refactoring/` → 重構範例與計畫
-- **Error Handling**: `domains/error-handling/` → 使用者錯誤指南、錯誤處理架構
-- **Archive**: `domains/archive/` → 歷史資料與備份
-- **Analysis**: `domains/analysis/` → 分析與研究
+- **API**: `domains/api/` → [⚙️ API 索引](./domains/api/README.md)
+- **Deployment**: `domains/deployment/` → [🚀 部署索引](./domains/deployment/README.md)
+- **Architecture**: `domains/architecture/` → [🏗️ 架構索引](./domains/architecture/README.md)
+- **Guidelines**: `domains/guidelines/` → [📏 規範索引](./domains/guidelines/README.md)
+- **Workflows**: `domains/workflows/` → [🧭 流程索引](./domains/workflows/README.md)
+- **Testing**: `domains/testing/` → [🧪 測試索引](./domains/testing/README.md)
+- **Performance**: `domains/performance/` → [⚡ 效能索引](./domains/performance/README.md)
+- **Project**: `domains/project/` → [📌 專案索引](./domains/project/README.md)
+- **Context**: `domains/context/` → [🧠 上下文索引](./domains/context/README.md)
+- **Refactoring**: `domains/refactoring/` → [🔧 重構索引](./domains/refactoring/README.md)
+- **Error Handling**: `domains/error-handling/` → [🚑 錯誤處理索引](./domains/error-handling/README.md)
+- **Archive**: `domains/archive/` → [📦 歷史歸檔索引](./domains/archive/README.md)
+- **Analysis**: `domains/analysis/` → [🔍 分析研究索引](./domains/analysis/README.md)
 - **Work Logs**: `work-logs/`（維持原位，不調整階層）
 - **版本記錄**: `../CHANGELOG.md`
 
