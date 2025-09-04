@@ -1,10 +1,13 @@
-## 部署區域索引
+# 部署區域索引
 
-### 建議閱讀順序
+## 建議閱讀順序
+
 1. [DEPLOYMENT.md](./DEPLOYMENT.md)
 
-### 文件清單
+## 文件清單
+
 - [DEPLOYMENT.md](./DEPLOYMENT.md)
 
-### Deprecated
+## Deprecated
+
 - 目前無
