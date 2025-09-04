@@ -1,7 +1,7 @@
 ## 架構區域索引
 
 ### 建議閱讀順序
-1. [event-driven-architecture.md](./event-driven-architecture.md)
+1. [event-driven-architecture.md](../../claude/event-driven-architecture.md)
 2. [event-system.md](./event-system.md)
 3. [event-system-v2-naming-upgrade-strategy.md](./event-system-v2-naming-upgrade-strategy.md)
 4. [event-system-v2-integration-testing-strategy.md](./event-system-v2-integration-testing-strategy.md)

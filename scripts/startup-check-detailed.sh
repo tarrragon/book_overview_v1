@@ -200,7 +200,7 @@ check_project_files() {
         "docs/workflows/agent-collaboration.md"
         "docs/project/chrome-extension-specs.md"
         "docs/architecture/event-driven-architecture.md"
-        "docs/guidelines/code-quality-examples.md"
+        "docs/claude/code-quality-examples.md"
     )
     
     for file in "${files_to_check[@]}"; do
@@ -216,7 +216,7 @@ check_project_files() {
     echo "   1. 在面板0中重新啟動 Claude Code"
     echo "   2. 或請 Claude Code 重新讀取專案檔案"
     echo ""
-    echo "📚 必讀提示：首次或新 session 請先快速瀏覽 'docs/guidelines/code-quality-examples.md' 的範例彙編以對齊規範理解"
+    echo "📚 必讀提示：首次或新 session 請先快速瀏覽 'docs/claude/code-quality-examples.md' 的範例彙編以對齊規範理解"
 }
 
 # ==========================================

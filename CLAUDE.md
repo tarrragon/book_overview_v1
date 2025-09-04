@@ -56,12 +56,12 @@
 #### 3. 專案文件載入確認
 - [ ] 確認已載入 CLAUDE.md 主文件
 - [ ] 確認已載入參考文件:
-  - [ ] docs/domains/workflows/tdd-collaboration-flow.md
-  - [ ] docs/domains/guidelines/document-responsibilities.md
-  - [ ] docs/domains/workflows/agent-collaboration.md
-  - [ ] docs/domains/project/chrome-extension-specs.md
-  - [ ] docs/domains/architecture/event-driven-architecture.md
-  - [ ] docs/domains/guidelines/code-quality-examples.md
+  - [ ] docs/claude/tdd-collaboration-flow.md
+  - [ ] docs/claude/document-responsibilities.md
+  - [ ] docs/claude/agent-collaboration.md
+  - [ ] docs/claude/chrome-extension-specs.md
+  - [ ] docs/claude/event-driven-architecture.md
+  - [ ] docs/claude/code-quality-examples.md
 - [ ] 檢查 todolist.md 當前狀態和優先級
 
 #### 4. 開發狀態確認
@@ -218,20 +218,20 @@ tmux new-session -s main_layout
 ### 📚 核心規範快速導覽
 
 **日常開發必讀**：
-- [🤝 TDD 協作開發流程](docs/domains/workflows/tdd-collaboration-flow.md) - 四階段開發流程
-- [📚 專案文件責任明確區分](docs/domains/guidelines/document-responsibilities.md) - 文件寫作規範
-- [🤖 Agent 協作規範](docs/domains/workflows/agent-collaboration.md) - Sub-agent 使用指南
+[- 🤝 TDD 協作開發流程](docs/claude/tdd-collaboration-flow.md) - 四階段開發流程
+[- 📚 專案文件責任明確區分](docs/claude/document-responsibilities.md) - 文件寫作規範
+[- 🤖 Agent 協作規範](docs/claude/agent-collaboration.md) - Sub-agent 使用指南
 
 **專案特定規範**：
-- [📦 Chrome Extension 與專案規範](docs/domains/project/chrome-extension-specs.md) - 平台特定要求
-- [🎭 事件驅動架構規範](docs/domains/architecture/event-driven-architecture.md) - 架構模式指引
+[- 📦 Chrome Extension 與專案規範](docs/claude/chrome-extension-specs.md) - 平台特定要求
+[- 🎭 事件驅動架構規範](docs/claude/event-driven-architecture.md) - 架構模式指引
 
 ### 🔍 詳細執行指導
 
-- [🚨 違規警報與預防](docs/domains/guidelines/violation-prevention.md)
-- [📋 關鍵情境決策流程](docs/domains/guidelines/decision-workflows.md)
-- [🔍 自我監控與糾錯機制](docs/domains/guidelines/self-monitoring.md)
-- [🧭 程式碼品質範例彙編](docs/domains/guidelines/code-quality-examples.md)
+[- 🚨 違規警報與預防](docs/claude/violation-prevention.md)
+[- 📋 關鍵情境決策流程](docs/claude/decision-workflows.md)
+[- 🔍 自我監控與糾錯機制](docs/claude/self-monitoring.md)
+[- 🧭 程式碼品質範例彙編](docs/claude/code-quality-examples.md)
 
 ---
 
@@ -359,7 +359,7 @@ tmux new-session -s main_layout
 - 變數名稱使用名詞，表意單一且不含糊；布林變數使用 `is`、`has`、`can` 前綴。
 - 一致性：遵循專案既定命名風格與用語，避免非必要縮寫。
 
-範例：請見 `docs/domains/guidelines/code-quality-examples.md`
+範例：請見 `docs/claude/code-quality-examples.md`
 
 **檔案路徑語意規範（強制）**:
 - 路徑需可「單看就理解」來源模組、功能核心與責任邊界（domain-oriented path）。
@@ -367,7 +367,7 @@ tmux new-session -s main_layout
 - **禁止相對深度**：絕不使用 `../../../` 等相對深度計算方式。
 - 匯入時以功能域為單位組織依賴，避免路徑語意與實際責任不一致。
 
-範例：請見 `docs/domains/guidelines/code-quality-examples.md`
+範例：請見 `docs/claude/code-quality-examples.md`
 
 **五事件評估準則（非硬性上限）**:
 - 本專案採事件驅動；函式可協調多個事件/子作業以達成目標。「5」為責任複雜度的警示值，不是硬性行數限制。
@@ -375,7 +375,7 @@ tmux new-session -s main_layout
 - 評估面向：事件（或步驟）數量、分支層級、外部依賴數、狀態轉換次數；任一過高皆應發出重構信號。
 - 行動指引：提煉私有輔助函式以維持公開 API 的單一句意；必要時引入事件總線/協調器拆分責任，確保函式名稱與實際行為保持一致。
 
-範例：請見 `docs/domains/guidelines/code-quality-examples.md`
+範例：請見 `docs/claude/code-quality-examples.md`
 
 **類別命名規範（Class）**:
 - 命名採 PascalCase，格式建議：`<Domain><核心概念><角色/類型>`（例如：`ReadmooCatalogService`、`OverviewPageController`、`StandardError`）。
@@ -401,7 +401,7 @@ tmux new-session -s main_layout
   - 引入協調器：以 `Coordinator` 組裝多個專職服務，維持單一句意的公開 API。
   - 調整命名：讓名稱與實際責任對齊，避免名不副實導致誤用。
 
-範例：請見 `docs/guidelines/code-quality-examples.md`
+範例：請見 `docs/claude/code-quality-examples.md`
 
 ---
 
@@ -561,7 +561,7 @@ npm run clean
 
 ### 📚 專案用語規範
 
-**參考文件**: [專案用語規範字典](docs/guidelines/terminology-dictionary.md)
+**參考文件**: [專案用語規範字典](docs/claude/terminology-dictionary.md)
 
 **核心原則**:
 1. **精確性優先**: 使用具體、明確的技術術語，避免模糊概念詞彙

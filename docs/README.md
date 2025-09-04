@@ -29,6 +29,7 @@
 - **Error Handling**: `domains/error-handling/` → [🚑 錯誤處理索引](./domains/error-handling/README.md)
 - **Archive**: `domains/archive/` → [📦 歷史歸檔索引](./domains/archive/README.md)
 - **Analysis**: `domains/analysis/` → [🔍 分析研究索引](./domains/analysis/README.md)
+- **CLAUDE 附帶知識**: `claude/` → [📖 CLAUDE 附帶知識索引](./claude/README.md)
 - **Work Logs**: `work-logs/`（維持原位，不調整階層）
 - **版本記錄**: `../CHANGELOG.md`
 
