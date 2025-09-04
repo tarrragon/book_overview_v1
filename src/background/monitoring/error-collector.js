@@ -18,8 +18,7 @@ const BaseModule = require('../lifecycle/base-module')
 const {
   SYSTEM_EVENTS,
   EVENT_PRIORITIES,
-  LIMITS,
-  STORAGE_KEYS
+  LIMITS
 } = require('../constants/module-constants')
 
 class ErrorCollector extends BaseModule {

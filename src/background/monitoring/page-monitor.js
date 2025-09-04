@@ -19,8 +19,6 @@ const PageDetector = require('../../content/detectors/page-detector')
 const ContentCoordinator = require('./content-coordinator')
 const {
   PAGE_EVENTS,
-  MESSAGE_EVENTS,
-  SYSTEM_EVENTS,
   EVENT_PRIORITIES
 } = require('../constants/module-constants')
 

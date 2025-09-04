@@ -296,7 +296,7 @@ class HealthMonitoringService {
    * 停止定期監控
    */
   stopPeriodicMonitoring () {
-    for (const [name, timer] of this.timers) {
+    for (const [, timer] of this.timers) {
       clearInterval(timer)
     }
     this.timers.clear()

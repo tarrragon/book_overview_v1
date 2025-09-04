@@ -109,7 +109,7 @@ class ShutdownHandler extends BaseModule {
 
       // 設定超時保護
       const shutdownPromise = this.performShutdown(reason)
-      const timeoutPromise = new Promise((_, reject) => {
+      const timeoutPromise = new Promise((_resolve, reject) => {
         setTimeout(() => reject(new Error('關閉超時')), effectiveTimeout)
       })
 

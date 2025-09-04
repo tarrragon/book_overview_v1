@@ -33,12 +33,7 @@ const PopupUICoordinationService = require('./services/popup-ui-coordination-ser
 const PersonalizationService = require('./services/personalization-service')
 const AccessibilityService = require('./services/accessibility-service')
 
-const {
-  UX_EVENTS,
-  THEME_EVENTS,
-  POPUP_EVENTS,
-  EVENT_PRIORITIES
-} = require('../../constants/module-constants')
+const { EVENT_PRIORITIES } = require('../../constants/module-constants')
 
 class UXDomainCoordinator {
   constructor (dependencies = {}) {

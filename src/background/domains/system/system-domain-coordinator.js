@@ -27,7 +27,6 @@ const DiagnosticService = require('./services/diagnostic-service')
 
 const {
   SYSTEM_EVENTS,
-  LIFECYCLE_EVENTS,
   EVENT_PRIORITIES
 } = require('../../constants/module-constants')
 

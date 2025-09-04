@@ -340,7 +340,7 @@ class PopupMessageHandler extends BaseModule {
       let responseData = {}
 
       switch (dataType) {
-        case 'books':
+        case 'books': {
           const booksData = await chrome.storage.local.get('readmoo_books')
           responseData = {
             books: booksData.readmoo_books?.books || [],
@@ -348,15 +348,17 @@ class PopupMessageHandler extends BaseModule {
             lastExtraction: booksData.readmoo_books?.extractionTimestamp || null
           }
           break
+        }
 
-        case 'extraction_history':
+        case 'extraction_history': {
           const historyData = await chrome.storage.local.get('extraction_history')
           responseData = {
             history: historyData.extraction_history || []
           }
           break
+        }
 
-        case 'system_info':
+        case 'system_info': {
           const manifest = chrome.runtime.getManifest()
           responseData = {
             version: manifest.version,
@@ -364,6 +366,7 @@ class PopupMessageHandler extends BaseModule {
             uptime: Date.now() - (globalThis.backgroundStartTime || Date.now())
           }
           break
+        }
 
         default:
           throw new Error(`未支援的資料類型: ${dataType}`)

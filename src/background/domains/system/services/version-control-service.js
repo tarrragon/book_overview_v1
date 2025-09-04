@@ -21,7 +21,6 @@
 
 const {
   SYSTEM_EVENTS,
-  INSTALL_REASONS,
   STORAGE_KEYS,
   EVENT_PRIORITIES
 } = require('../../../constants/module-constants')

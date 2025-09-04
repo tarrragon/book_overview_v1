@@ -11,7 +11,7 @@ class StorageAPIValidator {
       options = testSuite
       testSuite = null
     }
-    
+
     this.testSuite = testSuite
     this.options = {
       enableQuotaChecking: options.enableQuotaChecking !== false,

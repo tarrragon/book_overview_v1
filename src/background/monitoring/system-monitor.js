@@ -19,8 +19,7 @@ const {
   HEALTH_STATES,
   SYSTEM_EVENTS,
   EVENT_PRIORITIES,
-  TIMEOUTS,
-  LIMITS
+  TIMEOUTS
 } = require('../constants/module-constants')
 
 class SystemMonitor extends BaseModule {

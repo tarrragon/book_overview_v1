@@ -58,14 +58,6 @@ let readmooAdapter = null
 
 // 監聽器和觀察器
 let urlChangeObserver = null
-const currentUrl = window.location.href
-
-// 效能監控
-const performanceStats = {
-  initializationTime: 0,
-  eventProcessingTime: 0,
-  extractionTime: 0
-}
 
 // ====================
 // 簡化版事件系統 (基於 v0.1.0 設計)

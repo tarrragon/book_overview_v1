@@ -21,7 +21,7 @@ const { createLogger } = require('../../core/logging/Logger')
 class EventCoordinator extends BaseModule {
   constructor (dependencies = {}) {
     super(dependencies)
-    
+
     // 確保有 logger
     this.logger = this.logger || createLogger('EventCoordinator')
 
@@ -418,11 +418,7 @@ class EventCoordinator extends BaseModule {
       },
 
       async sendToPopup (message) {
-        try {
-          return { success: true, message: 'Popup communication not implemented' }
-        } catch (error) {
-          return { success: false, error: error.message }
-        }
+        return { success: true, message: 'Popup communication not implemented' }
       },
 
       onMessageFromContent (handler) {

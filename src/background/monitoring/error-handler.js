@@ -19,8 +19,7 @@ const ErrorCollector = require('./error-collector')
 const SystemMonitor = require('./system-monitor')
 const {
   SYSTEM_EVENTS,
-  EVENT_PRIORITIES,
-  HEALTH_STATES
+  EVENT_PRIORITIES
 } = require('../constants/module-constants')
 
 class ErrorHandler extends BaseModule {

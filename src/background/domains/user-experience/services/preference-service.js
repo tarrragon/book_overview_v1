@@ -417,8 +417,9 @@ class PreferenceService {
     }
 
     // 類型驗證
-    if (schema.type && typeof value !== schema.type) {
-      throw new Error(`偏好 ${key} 類型錯誤，期望 ${schema.type}，實際 ${typeof value}`)
+    const actualType = typeof value
+    if (schema.type && actualType !== schema.type) {
+      throw new Error(`偏好 ${key} 類型錯誤，期望 ${schema.type}，實際 ${actualType}`)
     }
 
     // 值域驗證

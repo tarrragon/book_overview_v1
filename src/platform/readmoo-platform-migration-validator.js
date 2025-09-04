@@ -73,7 +73,7 @@ class ReadmooPlatformMigrationValidator {
    */
   constructor (dependencies = {}, options = {}) {
     validatorLogger.info('VALIDATOR_INIT')
-    
+
     // 驗證必要依賴
     this._validateDependencies(dependencies)
 
@@ -114,9 +114,9 @@ class ReadmooPlatformMigrationValidator {
     // 驗證 eventBus 介面
     if (typeof dependencies.eventBus.emit !== 'function' ||
         typeof dependencies.eventBus.on !== 'function') {
-      validatorLogger.error('DEPENDENCY_INTERFACE_INVALID', { 
-        dependency: 'EventBus', 
-        methods: 'emit() and on()' 
+      validatorLogger.error('DEPENDENCY_INTERFACE_INVALID', {
+        dependency: 'EventBus',
+        methods: 'emit() and on()'
       })
       throw new Error('EventBus must implement emit() and on() methods')
     }
@@ -124,9 +124,9 @@ class ReadmooPlatformMigrationValidator {
     // 驗證 readmooAdapter 介面
     if (typeof dependencies.readmooAdapter.extractBookData !== 'function' ||
         typeof dependencies.readmooAdapter.validateExtractedData !== 'function') {
-      validatorLogger.error('DEPENDENCY_INTERFACE_INVALID', { 
-        dependency: 'ReadmooAdapter', 
-        methods: 'extractBookData() and validateExtractedData()' 
+      validatorLogger.error('DEPENDENCY_INTERFACE_INVALID', {
+        dependency: 'ReadmooAdapter',
+        methods: 'extractBookData() and validateExtractedData()'
       })
       throw new Error('ReadmooAdapter must implement extractBookData() and validateExtractedData() methods')
     }
@@ -134,9 +134,9 @@ class ReadmooPlatformMigrationValidator {
     // 驗證 platformDetectionService 介面
     if (typeof dependencies.platformDetectionService.detectPlatform !== 'function' ||
         typeof dependencies.platformDetectionService.validatePlatform !== 'function') {
-      validatorLogger.error('DEPENDENCY_INTERFACE_INVALID', { 
-        dependency: 'PlatformDetectionService', 
-        methods: 'detectPlatform() and validatePlatform()' 
+      validatorLogger.error('DEPENDENCY_INTERFACE_INVALID', {
+        dependency: 'PlatformDetectionService',
+        methods: 'detectPlatform() and validatePlatform()'
       })
       throw new Error('PlatformDetectionService must implement detectPlatform() and validatePlatform() methods')
     }
@@ -165,28 +165,28 @@ class ReadmooPlatformMigrationValidator {
 
     // 配置值驗證
     if (config.maxValidationRetries < 1 || config.maxValidationRetries > 10) {
-      validatorLogger.error('CONFIG_VALIDATION_FAILED', { 
-        field: 'maxValidationRetries', 
-        min: 1, 
-        max: 10 
+      validatorLogger.error('CONFIG_VALIDATION_FAILED', {
+        field: 'maxValidationRetries',
+        min: 1,
+        max: 10
       })
       throw new Error('maxValidationRetries must be between 1 and 10')
     }
 
     if (config.validationTimeout < 1000 || config.validationTimeout > 120000) {
-      validatorLogger.error('CONFIG_VALIDATION_FAILED', { 
-        field: 'validationTimeout', 
-        min: '1000ms', 
-        max: '120000ms' 
+      validatorLogger.error('CONFIG_VALIDATION_FAILED', {
+        field: 'validationTimeout',
+        min: '1000ms',
+        max: '120000ms'
       })
       throw new Error('validationTimeout must be between 1000ms and 120000ms')
     }
 
     if (config.minDetectionConfidence < 0 || config.minDetectionConfidence > 1) {
-      validatorLogger.error('CONFIG_VALIDATION_FAILED', { 
-        field: 'minDetectionConfidence', 
-        min: 0, 
-        max: 1 
+      validatorLogger.error('CONFIG_VALIDATION_FAILED', {
+        field: 'minDetectionConfidence',
+        min: 0,
+        max: 1
       })
       throw new Error('minDetectionConfidence must be between 0 and 1')
     }
@@ -272,7 +272,7 @@ class ReadmooPlatformMigrationValidator {
       if (cachedResult) {
         const cacheAge = Date.now() - startTime
         validatorLogger.info('VALIDATION_CACHE_HIT', { cacheAge })
-        
+
         // 使用快取時仍需更新統計 (快取命中的驗證時間很短)
         this.updateValidationStats(cachedResult, cacheAge)
 
@@ -302,9 +302,9 @@ class ReadmooPlatformMigrationValidator {
 
       // 更新統計
       this.updateValidationStats(result, Date.now() - startTime)
-      validatorLogger.info('VALIDATION_SUCCESS', { 
-        validationId, 
-        duration: Date.now() - startTime 
+      validatorLogger.info('VALIDATION_SUCCESS', {
+        validationId,
+        duration: Date.now() - startTime
       })
 
       // 發送驗證結果事件
@@ -317,11 +317,11 @@ class ReadmooPlatformMigrationValidator {
     } catch (error) {
       this.validationStats.failedValidations++
       this.validationState.lastError = error
-      
-      validatorLogger.error('VALIDATION_FAILED', { 
-        validationId, 
-        error: error.message, 
-        duration: Date.now() - startTime 
+
+      validatorLogger.error('VALIDATION_FAILED', {
+        validationId,
+        error: error.message,
+        duration: Date.now() - startTime
       })
 
       const errorResult = this.createValidationResult(false, [], [
@@ -422,7 +422,7 @@ class ReadmooPlatformMigrationValidator {
       } catch (error) {
         retryCount++
         validatorLogger.warn('VALIDATION_RETRY', { attempt: retryCount, error: error.message })
-        
+
         if (retryCount >= maxRetries) {
           return this.createValidationResult(false, {
             validationDetails: {
@@ -472,9 +472,9 @@ class ReadmooPlatformMigrationValidator {
 
       // 檢查信心度
       if (detectionResult.confidence < this.config.minDetectionConfidence) {
-        validatorLogger.warn('PLATFORM_CONFIDENCE_LOW', { 
-          confidence: detectionResult.confidence, 
-          required: this.config.minDetectionConfidence 
+        validatorLogger.warn('PLATFORM_CONFIDENCE_LOW', {
+          confidence: detectionResult.confidence,
+          required: this.config.minDetectionConfidence
         })
         return this.createValidationResult(false, { detectionResult }, [
           `Low detection confidence: ${detectionResult.confidence} (minimum required: ${this.config.minDetectionConfidence})`
@@ -1066,7 +1066,7 @@ class ReadmooPlatformMigrationValidator {
 
       const currentCount = this.validationStats.errorCategories.get(category) || 0
       this.validationStats.errorCategories.set(category, currentCount + 1)
-      
+
       validatorLogger.info('ERROR_CATEGORIZED', { category, count: currentCount + 1 })
     }
   }
@@ -1084,7 +1084,7 @@ class ReadmooPlatformMigrationValidator {
 
     // 基本效能統計更新
     this.validationStats.totalValidationTime += validationTime
-    this.validationStats.averageValidationTime = 
+    this.validationStats.averageValidationTime =
       this.validationStats.totalValidationTime / this.validationStats.totalValidations
 
     // 記錄最快和最慢時間
@@ -1114,7 +1114,7 @@ class ReadmooPlatformMigrationValidator {
     }
 
     this.validationStats.cacheStats.totalRequests++
-    
+
     // 如果是快取結果（驗證時間很短）
     if (validationTime < 10) {
       this.validationStats.cacheStats.hits++
@@ -1143,14 +1143,14 @@ class ReadmooPlatformMigrationValidator {
     // 每分鐘計算一次輸出統計
     if (timeDiff > 60000) {
       const recentValidations = this.validationStats.totalValidations
-      this.validationStats.throughputStats.validationsPerMinute = 
+      this.validationStats.throughputStats.validationsPerMinute =
         recentValidations / (timeDiff / 60000)
-      
+
       this.validationStats.throughputStats.peakThroughput = Math.max(
         this.validationStats.throughputStats.peakThroughput,
         this.validationStats.throughputStats.validationsPerMinute
       )
-      
+
       this.validationStats.throughputStats.lastCalculated = now
     }
   }
@@ -1205,10 +1205,10 @@ class ReadmooPlatformMigrationValidator {
     if (this.validationCache.size <= this.maxCacheSize) {
       return
     }
-    
-    validatorLogger.info('CACHE_CLEANUP', { 
-      size: this.validationCache.size, 
-      max: this.maxCacheSize 
+
+    validatorLogger.info('CACHE_CLEANUP', {
+      size: this.validationCache.size,
+      max: this.maxCacheSize
     })
 
     // 收集快取項目並按優先級排序
