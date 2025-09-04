@@ -309,27 +309,26 @@ test(export): add CSV export integration tests
 
 ### 🏠 核心架構文件
 
-- **[🔄 事件系統設計](./architecture/event-system.md)** - 中央化事件總線架構
-- **[📊 資料流設計](./architecture/data-extractor-design.md)** - 資料提取和處理流程
-- **[🔒 安全性設計](./architecture/)** - Chrome Extension 安全性規範
+- **[🔄 事件系統設計](./domains/architecture/event-system.md)** - 中央化事件總線架構
+- **[📊 資料流設計](./domains/architecture/data-extractor-design.md)** - 資料提取和處理流程
+- **[🔒 安全性設計](./domains/architecture/)** - Chrome Extension 安全性規範
 
 ### 📝 技術決策記錄
 
-- **[📝 依賴注入債務分析](./architecture/dependency-injection-debt-analysis.md)**
-- **[🔄 重構執行計劃](./architecture/refactoring-execution-plan.md)**
-- **[🚀 效能優化報告](./performance-optimization-report.md)**
+- **[📝 依賴注入債務分析](./domains/architecture/dependency-injection-debt-analysis.md)**
+- **[🔄 重構執行計劃](./domains/architecture/refactoring-execution-plan.md)**
+- **[🚀 效能優化報告](./domains/performance/performance-optimization-report.md)**
 
 ### 📋 開發管理文件
 
-- **[⚙️ 開發環境設置](./DEPLOYMENT.md)** - 本地開發和 CI/CD 配置
-- **[🐛 用戶錯誤指南](./USER_ERROR_GUIDE.md)** - 常見問題診斷和解決
-- **[🤝 貢獻指南](./CONTRIBUTING.md)** - 外部開發者參與流程
+- **[⚙️ 開發環境設置](./domains/deployment/DEPLOYMENT.md)** - 本地開發和 CI/CD 配置
+- **[🐛 用戶錯誤指南](./domains/error-handling/USER_ERROR_GUIDE.md)** - 常見問題診斷和解決
 
 ---
 
 📚 **更多技術細節和開發文件請瀏覽** [📁 docs/ 目錄](./)
 
-🚀 **立即開始開發請參考** [🏠 專案結構設計](./struct.md) 和 [⚙️ API 文檔](./API.md)
+🚀 **立即開始開發請參考** [🏠 專案結構設計](./struct.md) 和 [⚙️ API 文檔](./domains/api/API.md)
 
 ---
 
@@ -337,8 +336,7 @@ test(export): add CSV export integration tests
 
 [🐛 GitHub Issues](https://github.com/your-username/readmoo-book-manager/issues) •
 [💡 Feature Requests](https://github.com/your-username/readmoo-book-manager/discussions) •
-[👨‍💻 貢獻指南](./CONTRIBUTING.md) •
-[📚 API 文件](./API.md)
+[📚 API 文件](./domains/api/API.md)
 
 ---
 
