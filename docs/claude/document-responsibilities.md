@@ -368,5 +368,6 @@ EOF
 
 **🔗 相關文件連結**:
 - [返回主指導文件](../../CLAUDE.md)
-- [TDD 協作開發流程](../workflows/tdd-collaboration-flow.md)
-- [Agent 協作規範](../workflows/agent-collaboration.md)
+- [TDD 協作開發流程](../tdd-collaboration-flow.md)
+- [Agent 協作規範](../agent-collaboration.md)
+- 歷史參考（Architecture）：[v1.0-refactor-plan](../domains/archive/v1.0-refactor-plan.md)，[v1.0-refactor-analysis](../domains/archive/v1.0-refactor-analysis.md)

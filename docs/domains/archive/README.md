@@ -7,6 +7,12 @@
 ## 文件清單（完整）
 
 - [skipped-tests-registry-legacy.md](./skipped-tests-registry-legacy.md)
+- [v1.0-refactor-plan.md](./v1.0-refactor-plan.md)
+- [v1.0-refactor-analysis.md](./v1.0-refactor-analysis.md)
+- [v0.9.8-v0.9.11-service-evaluation.md](./v0.9.8-v0.9.11-service-evaluation.md)
+- [readmoo-migration-validation-plan.md](./readmoo-migration-validation-plan.md)
+- [post-v1-roadmap.md](./post-v1-roadmap.md)
+- [file-responsibility-analysis.md](./file-responsibility-analysis.md)
 - 目錄：[archive/](./archive/)
   - [v0.9.45-duplicates-cleanup-report.md](./archive/v0.9.45-duplicates-cleanup-report.md)
   - 目錄：[v0.9.45-duplicates/](./archive/v0.9.45-duplicates/)

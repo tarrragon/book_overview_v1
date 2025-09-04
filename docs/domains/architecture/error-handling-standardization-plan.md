@@ -282,9 +282,10 @@ Logger.error('BOOK_VALIDATION_FAILED', { bookId, error: error.toJSON() })
 
 ## 📋 相關文件
 
-- [專案用語規範字典](../guidelines/terminology-dictionary.md)
-- [事件驅動架構規範](./event-driven-architecture.md)
-- [TDD 協作開發流程](../workflows/tdd-collaboration-flow.md)
+- [專案用語規範字典](../../claude/terminology-dictionary.md)
+- [事件驅動架構規範](../../claude/event-driven-architecture.md)
+- [TDD 協作開發流程](../../claude/tdd-collaboration-flow.md)
+- 歷史背景： [error-handling-refactoring-design](./error-handling-refactoring-design.md) ・ [error-coordinator-specification](./error-coordinator-specification.md)
 
 ## 🔄 後續擴展
 

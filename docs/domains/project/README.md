@@ -13,9 +13,8 @@
 - [core-functionality.md](./core-functionality.md)
 - [chrome-extension-specs.md](../../claude/chrome-extension-specs.md)
 - [v1.0-release-roadmap.md](./v1.0-release-roadmap.md)
-- [development-roadmap-v0.6.md](./development-roadmap-v0.6.md)
 - [todolist-v2.0.md](./todolist-v2.0.md)
 
-## Deprecated
+## Deprecated / 歷史參考
 
-- 目前無
+- [development-roadmap-v0.6.md](../archive/development-roadmap-v0.6.md)

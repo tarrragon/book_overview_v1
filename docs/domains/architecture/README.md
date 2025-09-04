@@ -31,18 +31,17 @@
 - [event-system-v2-implementation-summary.md](./event-system-v2-implementation-summary.md)
 - [event-system-v2-integration-testing-strategy.md](./event-system-v2-integration-testing-strategy.md)
 - [event-system-v2-naming-upgrade-strategy.md](./event-system-v2-naming-upgrade-strategy.md)
-- [file-responsibility-analysis.md](./file-responsibility-analysis.md)
 - [firefox-extension-planning.md](./firefox-extension-planning.md)
 - [missing-domains-design-v2.md](./missing-domains-design-v2.md)
 - [multi-platform-strategy.md](./multi-platform-strategy.md)
 - [platform-domain-v2.0-specification.md](./platform-domain-v2.0-specification.md)
-- [post-v1-roadmap.md](./post-v1-roadmap.md)
-- [readmoo-migration-validation-plan.md](./readmoo-migration-validation-plan.md)
 - [refactoring-execution-plan.md](./refactoring-execution-plan.md)
-- [v0.9.8-v0.9.11-service-evaluation.md](./v0.9.8-v0.9.11-service-evaluation.md)
-- [v1.0-refactor-analysis.md](./v1.0-refactor-analysis.md)
-- [v1.0-refactor-plan.md](./v1.0-refactor-plan.md)
 
-## Deprecated
+## Deprecated / 歷史參考
 
-- 目前無
+- [file-responsibility-analysis.md](../archive/file-responsibility-analysis.md)
+- [post-v1-roadmap.md](../archive/post-v1-roadmap.md)
+- [readmoo-migration-validation-plan.md](../archive/readmoo-migration-validation-plan.md)
+- [v0.9.8-v0.9.11-service-evaluation.md](../archive/v0.9.8-v0.9.11-service-evaluation.md)
+- [v1.0-refactor-analysis.md](../archive/v1.0-refactor-analysis.md)
+- [v1.0-refactor-plan.md](../archive/v1.0-refactor-plan.md)
