@@ -34,6 +34,7 @@
  */
 
 const BaseModule = require('../../lifecycle/base-module.js')
+const { createLogger } = require('../../../core/logging/Logger')
 
 class PlatformDomainCoordinator extends BaseModule {
   /**
@@ -45,7 +46,7 @@ class PlatformDomainCoordinator extends BaseModule {
     super('PlatformDomainCoordinator')
 
     this.eventBus = eventBus
-    this.logger = dependencies.logger
+    this.logger = dependencies.logger || createLogger('PlatformDomainCoordinator')
     this.config = dependencies.config || {}
 
     // 平台管理服務實例
@@ -546,11 +547,7 @@ class PlatformDomainCoordinator extends BaseModule {
    * @param {string} message - 日誌訊息
    */
   async log (message) {
-    if (this.logger && typeof this.logger.info === 'function') {
-      this.logger.info(`[PlatformDomainCoordinator] ${message}`)
-    } else {
-      console.log(`[PlatformDomainCoordinator] ${message}`)
-    }
+    this.logger.info('PLATFORM_COORDINATOR_LOG', { message })
   }
 
   /**
@@ -559,11 +556,7 @@ class PlatformDomainCoordinator extends BaseModule {
    * @param {Error} error - 錯誤物件
    */
   async logError (message, error) {
-    if (this.logger && typeof this.logger.error === 'function') {
-      this.logger.error(`[PlatformDomainCoordinator] ${message}`, error)
-    } else {
-      console.error(`[PlatformDomainCoordinator] ${message}`, error)
-    }
+    this.logger.error('PLATFORM_COORDINATOR_ERROR', { message, error: error?.message || error })
   }
 }
 

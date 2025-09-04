@@ -26,11 +26,13 @@
  * - UX Domain 中 Popup 相關功能的統一入口
  */
 
+const { createLogger } = require('../../../../core/logging/Logger')
+
 class PopupUICoordinationService {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
-    this.logger = dependencies.logger || console
+    this.logger = dependencies.logger || createLogger('PopupUICoordinationService')
     this.i18nManager = dependencies.i18nManager || null
 
     // 服務狀態
@@ -698,7 +700,7 @@ class PopupStateManager {
       try {
         await callback(this.currentState, oldState)
       } catch (error) {
-        console.error(`狀態訂閱者回調失敗 (${key}):`, error)
+        this.logger.error('POPUP_STATE_CALLBACK_ERROR', { key, error: error?.message || error })
       }
     }
   }

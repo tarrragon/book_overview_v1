@@ -1,3 +1,5 @@
+const { createLogger } = require('../../../../core/logging/Logger')
+
 /**
  * @fileoverview Platform Isolation Service - 平台隔離與安全控制服務
  * @version v2.0.0
@@ -59,7 +61,7 @@ class PlatformIsolationService {
   constructor (eventBus, config = {}) {
     this.eventBus = eventBus
     this.config = config
-    this.logger = config.logger
+    this.logger = config.logger || createLogger('[PlatformIsolationService]')
 
     // 隔離服務核心狀態
     this.isInitialized = false
@@ -1212,9 +1214,9 @@ class PlatformIsolationService {
    */
   async log (message) {
     if (this.logger && typeof this.logger.info === 'function') {
-      this.logger.info(`[PlatformIsolationService] ${message}`)
+      this.logger.info(message)
     } else {
-      console.log(`[PlatformIsolationService] ${message}`)
+      createLogger('[PlatformIsolationService]').info(message)
     }
   }
 
@@ -1225,9 +1227,9 @@ class PlatformIsolationService {
    */
   async logError (message, error) {
     if (this.logger && typeof this.logger.error === 'function') {
-      this.logger.error(`[PlatformIsolationService] ${message}`, error)
+      this.logger.error(message, { error: error?.message || error })
     } else {
-      console.error(`[PlatformIsolationService] ${message}`, error)
+      createLogger('[PlatformIsolationService]').error(message, { error: error?.message || error })
     }
   }
 
@@ -1237,9 +1239,9 @@ class PlatformIsolationService {
    */
   async logWarning (message) {
     if (this.logger && typeof this.logger.warn === 'function') {
-      this.logger.warn(`[PlatformIsolationService] ${message}`)
+      this.logger.warn(message)
     } else {
-      console.warn(`[PlatformIsolationService] ${message}`)
+      createLogger('[PlatformIsolationService]').warn(message)
     }
   }
 

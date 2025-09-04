@@ -34,6 +34,7 @@
  */
 
 const BaseModule = require('../../lifecycle/base-module.js')
+const { createLogger } = require('../../../core/logging/Logger')
 
 class DataDomainCoordinator extends BaseModule {
   /**
@@ -44,12 +45,12 @@ class DataDomainCoordinator extends BaseModule {
   constructor (eventBus, dependencies = {}) {
     super({
       eventBus,
-      logger: dependencies.logger || console,
+      logger: dependencies.logger || createLogger('DataDomainCoordinator'),
       config: dependencies.config || {}
     })
 
     this.eventBus = eventBus
-    this.logger = dependencies.logger || console
+    this.logger = dependencies.logger || createLogger('DataDomainCoordinator')
     this.config = dependencies.config || {}
 
     // 資料管理服務實例 - v1.0 僅實作 Readmoo 所需服務
@@ -600,7 +601,7 @@ class DataDomainCoordinator extends BaseModule {
     }
 
     if (cleanedCount > 0) {
-      this.log(`清理了 ${cleanedCount} 個已完成的操作`)
+      await this.log(`清理了 ${cleanedCount} 個已完成的操作`)
     }
   }
 
@@ -677,13 +678,22 @@ class DataDomainCoordinator extends BaseModule {
    * 日誌記錄包裝方法
    */
   async log (message, level = 'info') {
-    const timestamp = new Date().toISOString()
-    const logMessage = `[${timestamp}] [DataDomainCoordinator] ${message}`
-
-    if (this.logger && this.logger[level]) {
-      this.logger[level](logMessage)
-    } else {
-      console.log(logMessage)
+    // 使用新的 Logger 系統
+    switch (level) {
+      case 'debug':
+        this.logger.debug('DATA_DOMAIN_LOG', { message })
+        break
+      case 'info':
+        this.logger.info('DATA_DOMAIN_LOG', { message })
+        break
+      case 'warn':
+        this.logger.warn('DATA_DOMAIN_LOG', { message })
+        break
+      case 'error':
+        this.logger.error('DATA_DOMAIN_LOG', { message })
+        break
+      default:
+        this.logger.info('DATA_DOMAIN_LOG', { message })
     }
   }
 

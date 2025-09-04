@@ -28,6 +28,8 @@
  * - 平台錯誤時的自動故障轉移
  */
 
+const { createLogger } = require('../../../../core/logging/Logger')
+
 class PlatformSwitcherService {
   /**
    * 初始化平台切換服務
@@ -37,7 +39,7 @@ class PlatformSwitcherService {
   constructor (eventBus, config = {}) {
     this.eventBus = eventBus
     this.config = config
-    this.logger = config.logger
+    this.logger = config.logger || createLogger('PlatformSwitcherService')
 
     // 依賴注入
     this.platformRegistry = config.registry
@@ -910,11 +912,7 @@ class PlatformSwitcherService {
    * @param {string} message - 日誌訊息
    */
   async log (message) {
-    if (this.logger && typeof this.logger.info === 'function') {
-      this.logger.info(`[PlatformSwitcherService] ${message}`)
-    } else {
-      console.log(`[PlatformSwitcherService] ${message}`)
-    }
+    this.logger.info('PLATFORM_SWITCHER_LOG', { message })
   }
 
   /**
@@ -923,11 +921,7 @@ class PlatformSwitcherService {
    * @param {Error} error - 錯誤物件
    */
   async logError (message, error) {
-    if (this.logger && typeof this.logger.error === 'function') {
-      this.logger.error(`[PlatformSwitcherService] ${message}`, error)
-    } else {
-      console.error(`[PlatformSwitcherService] ${message}`, error)
-    }
+    this.logger.error('PLATFORM_SWITCHER_ERROR', { message, error: error?.message || error })
   }
 }
 

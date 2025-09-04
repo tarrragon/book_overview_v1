@@ -4,7 +4,15 @@
  */
 
 class StorageAPIValidator {
-  constructor (options = {}) {
+  constructor (testSuite, options = {}) {
+    // 如果第一個參數是 options 物件而不是 testSuite，進行相容性處理
+    if (testSuite && typeof testSuite === 'object' && !testSuite.setup) {
+      // 第一個參數實際上是 options
+      options = testSuite
+      testSuite = null
+    }
+    
+    this.testSuite = testSuite
     this.options = {
       enableQuotaChecking: options.enableQuotaChecking !== false,
       maxRetries: options.maxRetries || 3,

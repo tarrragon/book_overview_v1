@@ -20,6 +20,7 @@
 
 const BaseModule = require('../../../lifecycle/base-module.js')
 const crypto = require('crypto')
+const { createLogger } = require('../../../../core/logging/Logger')
 
 class DataNormalizationService extends BaseModule {
   /**
@@ -39,7 +40,7 @@ class DataNormalizationService extends BaseModule {
     })
 
     this.eventBus = eventBus
-    this.logger = dependencies.logger || console
+    this.logger = dependencies.logger || createLogger('DataNormalizationService')
 
     // 合併預設配置
     this.config = this.mergeWithDefaults(dependencies.config || {})
@@ -665,13 +666,22 @@ class DataNormalizationService extends BaseModule {
    * @param {string} level - 日誌級別
    */
   async log (message, level = 'info') {
-    const timestamp = new Date().toISOString()
-    const logMessage = `[${timestamp}] [DataNormalizationService] ${message}`
-
-    if (this.logger && this.logger[level]) {
-      this.logger[level](logMessage)
-    } else {
-      console.log(logMessage)
+    // 使用新的 Logger 系統
+    switch (level) {
+      case 'debug':
+        this.logger.debug('DATA_NORMALIZATION_LOG', { message })
+        break
+      case 'info':
+        this.logger.info('DATA_NORMALIZATION_LOG', { message })
+        break
+      case 'warn':
+        this.logger.warn('DATA_NORMALIZATION_LOG', { message })
+        break
+      case 'error':
+        this.logger.error('DATA_NORMALIZATION_LOG', { message })
+        break
+      default:
+        this.logger.info('DATA_NORMALIZATION_LOG', { message })
     }
   }
 }

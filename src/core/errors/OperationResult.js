@@ -1,0 +1,194 @@
+/**
+ * 統一操作結果格式
+ * 
+ * 設計目標：
+ * - 標準化成功/失敗回應格式，取代字串比對測試
+ * - 處理時間 < 0.5ms
+ * - 支援序列化以便於 Chrome Extension 跨環境傳遞
+ * - 提供結構化驗證方法
+ * 
+ * @example
+ * // 成功結果
+ * const result = OperationResult.success({ books: [] })
+ * if (result.isSuccess) { console.log(result.data) }
+ * 
+ * // 失敗結果  
+ * const error = new StandardError('VALIDATION_FAILED', '驗證失敗')
+ * const result = OperationResult.failure(error)
+ * if (result.isFailure) { console.log(result.error.message) }
+ */
+
+// 條件性引入，支援瀏覽器和 Node.js 環境
+let StandardError
+if (typeof require !== 'undefined') {
+  try {
+    StandardError = require('./StandardError').StandardError
+  } catch (e) {
+    // 瀏覽器環境或引入失敗時，假設 StandardError 已全域可用
+  }
+}
+
+class OperationResult {
+  /**
+   * 建立操作結果物件
+   * @param {boolean} success - 操作是否成功
+   * @param {any} data - 成功時的資料
+   * @param {StandardError} error - 失敗時的錯誤物件
+   */
+  constructor(success, data = null, error = null) {
+    this.success = success
+    this.data = data
+    this.error = error
+    this.timestamp = Date.now()
+  }
+  
+  /**
+   * 建立成功結果的快速方法
+   * @param {any} data - 成功的資料
+   * @returns {OperationResult} 成功結果物件
+   */
+  static success(data = null) {
+    return new OperationResult(true, data, null)
+  }
+  
+  /**
+   * 建立失敗結果的快速方法
+   * @param {Error|StandardError} error - 錯誤物件
+   * @returns {OperationResult} 失敗結果物件
+   */
+  static failure(error) {
+    // 確保錯誤是 StandardError 格式
+    let standardError
+    
+    if (error instanceof StandardError) {
+      standardError = error
+    } else if (error instanceof Error) {
+      // 將普通 JavaScript Error 轉換為 StandardError
+      standardError = new StandardError(
+        'UNKNOWN_ERROR', 
+        error.message || 'Unknown error',
+        { 
+          originalError: error.toString(),
+          stack: error.stack 
+        }
+      )
+    } else if (typeof error === 'string') {
+      // 字串錯誤轉換為 StandardError
+      standardError = new StandardError('UNKNOWN_ERROR', error, {})
+    } else {
+      // 其他類型轉換為 StandardError
+      standardError = new StandardError(
+        'UNKNOWN_ERROR', 
+        'Unknown error occurred',
+        { originalError: error }
+      )
+    }
+    
+    return new OperationResult(false, null, standardError)
+  }
+  
+  /**
+   * 檢查是否成功
+   * @returns {boolean} 是否成功
+   */
+  get isSuccess() {
+    return this.success === true
+  }
+  
+  /**
+   * 檢查是否失敗
+   * @returns {boolean} 是否失敗
+   */
+  get isFailure() {
+    return this.success === false
+  }
+  
+  /**
+   * 如果失敗則拋出異常（用於必須成功的場景）
+   * @throws {Error} 當結果為失敗時拋出異常
+   * @returns {any} 成功時的資料
+   */
+  throwIfFailure() {
+    if (this.isFailure && this.error) {
+      throw new Error(`Operation failed: ${this.error.message} (${this.error.code})`)
+    }
+    return this.data
+  }
+  
+  /**
+   * 轉換為 JSON 格式（支援 Chrome Extension 跨環境傳遞）
+   * @returns {Object} JSON 可序列化的物件
+   */
+  toJSON() {
+    return {
+      success: this.success,
+      data: this.data,
+      error: this.error ? this.error.toJSON() : null,
+      timestamp: this.timestamp
+    }
+  }
+  
+  /**
+   * 從 JSON 建立 OperationResult 物件
+   * @param {Object} json - JSON 物件
+   * @returns {OperationResult} OperationResult 實例
+   */
+  static fromJSON(json) {
+    if (!json || typeof json !== 'object') {
+      throw new Error('Invalid JSON data for OperationResult.fromJSON')
+    }
+    
+    let error = null
+    if (json.error) {
+      error = StandardError.fromJSON(json.error)
+    }
+    
+    const result = new OperationResult(json.success, json.data, error)
+    
+    // 恢復原始的 timestamp
+    if (json.timestamp) {
+      result.timestamp = json.timestamp
+    }
+    
+    return result
+  }
+  
+  /**
+   * 將操作結果轉換為舊格式（向下相容）
+   * @returns {Object} 舊格式的結果物件
+   */
+  toLegacyFormat() {
+    if (this.isSuccess) {
+      return {
+        success: true,
+        data: this.data
+      }
+    } else {
+      return {
+        success: false,
+        error: this.error ? this.error.message : 'Unknown error',
+        code: this.error ? this.error.code : 'UNKNOWN_ERROR',
+        details: this.error ? this.error.details : {}
+      }
+    }
+  }
+  
+  /**
+   * 轉換為字串表示
+   * @returns {string} 結果的字串表示
+   */
+  toString() {
+    if (this.isSuccess) {
+      return `OperationResult: Success (${this.data ? 'with data' : 'no data'})`
+    } else {
+      return `OperationResult: Failure - ${this.error ? this.error.toString() : 'Unknown error'}`
+    }
+  }
+}
+
+// 匯出 OperationResult 類別
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { OperationResult }
+} else if (typeof window !== 'undefined') {
+  window.OperationResult = OperationResult
+}

@@ -19,6 +19,7 @@
  */
 
 const BaseModule = require('../../../lifecycle/base-module.js')
+const { createLogger } = require('../../../../core/logging/Logger')
 
 class QualityAssessmentService extends BaseModule {
   /**
@@ -38,7 +39,7 @@ class QualityAssessmentService extends BaseModule {
     })
 
     this.eventBus = eventBus
-    this.logger = dependencies.logger || console
+    this.logger = dependencies.logger || createLogger('QualityAssessmentService')
 
     // 合併預設配置
     this.config = this.mergeWithDefaults(dependencies.config || {})
@@ -755,13 +756,22 @@ class QualityAssessmentService extends BaseModule {
    * @param {string} level - 日誌級別
    */
   async log (message, level = 'info') {
-    const timestamp = new Date().toISOString()
-    const logMessage = `[${timestamp}] [QualityAssessmentService] ${message}`
-
-    if (this.logger && this.logger[level]) {
-      this.logger[level](logMessage)
-    } else {
-      console.log(logMessage)
+    // 使用新的 Logger 系統
+    switch (level) {
+      case 'debug':
+        this.logger.debug('QUALITY_ASSESSMENT_LOG', { message })
+        break
+      case 'info':
+        this.logger.info('QUALITY_ASSESSMENT_LOG', { message })
+        break
+      case 'warn':
+        this.logger.warn('QUALITY_ASSESSMENT_LOG', { message })
+        break
+      case 'error':
+        this.logger.error('QUALITY_ASSESSMENT_LOG', { message })
+        break
+      default:
+        this.logger.info('QUALITY_ASSESSMENT_LOG', { message })
     }
   }
 }

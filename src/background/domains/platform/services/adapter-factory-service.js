@@ -1,3 +1,5 @@
+const { createLogger } = require('../../../../core/logging/Logger')
+
 /**
  * @fileoverview Adapter Factory Service - 適配器工廠服務
  * @version v2.0.0
@@ -38,7 +40,7 @@ class AdapterFactoryService {
    */
   constructor (eventBus, dependencies = {}) {
     this.eventBus = eventBus
-    this.logger = dependencies.logger
+    this.logger = dependencies.logger || createLogger('[AdapterFactoryService]')
     this.config = dependencies.config || {}
     this.platformRegistry = dependencies.platformRegistry
     this.performanceMonitor = dependencies.performanceMonitor
@@ -1428,9 +1430,9 @@ class AdapterFactoryService {
    */
   async log (message) {
     if (this.logger && typeof this.logger.info === 'function') {
-      this.logger.info(`[AdapterFactoryService] ${message}`)
+      this.logger.info(message)
     } else {
-      console.log(`[AdapterFactoryService] ${message}`)
+      createLogger('[AdapterFactoryService]').info(message)
     }
   }
 
@@ -1441,9 +1443,9 @@ class AdapterFactoryService {
    */
   async logError (message, error) {
     if (this.logger && typeof this.logger.error === 'function') {
-      this.logger.error(`[AdapterFactoryService] ${message}`, error)
+      this.logger.error(message, { error: error?.message || error })
     } else {
-      console.error(`[AdapterFactoryService] ${message}`, error)
+      createLogger('[AdapterFactoryService]').error(message, { error: error?.message || error })
     }
   }
 }

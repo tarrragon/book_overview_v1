@@ -1,3 +1,5 @@
+const { createLogger } = require('../../../../core/logging/Logger')
+
 /**
  * @fileoverview Platform Registry Service - 平台註冊管理服務
  * @version v2.0.0
@@ -37,7 +39,7 @@ class PlatformRegistryService {
   constructor (eventBus, config = {}) {
     this.eventBus = eventBus
     this.config = config
-    this.logger = config.logger
+    this.logger = config.logger || createLogger('[PlatformRegistryService]')
 
     // 平台註冊表 - 核心資料結構
     this.platformRegistry = new Map()
@@ -911,9 +913,9 @@ class PlatformRegistryService {
    */
   async log (message) {
     if (this.logger && typeof this.logger.info === 'function') {
-      this.logger.info(`[PlatformRegistryService] ${message}`)
+      this.logger.info(message)
     } else {
-      console.log(`[PlatformRegistryService] ${message}`)
+      createLogger('[PlatformRegistryService]').info(message)
     }
   }
 
@@ -924,9 +926,9 @@ class PlatformRegistryService {
    */
   async logError (message, error) {
     if (this.logger && typeof this.logger.error === 'function') {
-      this.logger.error(`[PlatformRegistryService] ${message}`, error)
+      this.logger.error(message, { error: error?.message || error })
     } else {
-      console.error(`[PlatformRegistryService] ${message}`, error)
+      createLogger('[PlatformRegistryService]').error(message, { error: error?.message || error })
     }
   }
 }

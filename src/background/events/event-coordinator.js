@@ -16,10 +16,14 @@
 
 const BaseModule = require('../lifecycle/base-module')
 const { SYSTEM_EVENTS, EVENT_PRIORITIES } = require('../constants/module-constants')
+const { createLogger } = require('../../core/logging/Logger')
 
 class EventCoordinator extends BaseModule {
   constructor (dependencies = {}) {
     super(dependencies)
+    
+    // 確保有 logger
+    this.logger = this.logger || createLogger('EventCoordinator')
 
     // 事件系統組件
     this.eventSystemInitializer = dependencies.eventSystemInitializer || null
@@ -159,7 +163,7 @@ class EventCoordinator extends BaseModule {
       // 檢查EventBus初始化狀態
       if (!this.eventBusInstance) {
         const error = new Error('EventBus 初始化失敗 - 無法建立 EventBus 實例')
-        console.error('❌ Background 初始化失敗:', error.message)
+        this.logger.error('BACKGROUND_INIT_FAILED', { error: error.message })
         throw error
       }
 
@@ -215,7 +219,7 @@ class EventCoordinator extends BaseModule {
     // 檢查EventBus創建是否成功
     if (!eventBus) {
       const error = new Error('EventBus 初始化失敗 - 無法建立 EventBus 實例')
-      console.error('❌ EventBus 初始化失敗:', error.message)
+      this.logger.error('EVENTBUS_INIT_FAILED', { error: error.message })
       throw error
     }
 
@@ -408,7 +412,7 @@ class EventCoordinator extends BaseModule {
           const response = await chrome.tabs.sendMessage(tabId, message)
           return { success: true, response }
         } catch (error) {
-          console.error('發送訊息失敗', error)
+          this.logger.error('SEND_MESSAGE_FAILED', { error: error?.message || error })
           return { success: false, error: error.message }
         }
       },
