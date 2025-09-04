@@ -1185,57 +1185,57 @@ Array.isArray(results) === true
 - 所有監聽檢查日誌/測試均改用公開 API，不依賴 `listeners` 內部結構。
 - 整合測試在多次啟停/重載下事件處理結果一致。
 
-### Pre-init 佇列與就緒屏障設計（新增）
+### Pre-init 佇列與就緒屏障設計
 
-#### 負責功能：
+#### 負責功能（Overview）
 
 - 暫存系統就緒前抵達的事件，避免資料遺失
 - 在系統就緒後安全重放事件，確保處理順序與一致性
 - 降低 Service Worker 冷啟動時序不確定性對功能的影響
 
-#### 設計考量：
+#### 設計考量（Overview）
 
 - Chrome MV3 Service Worker 可能在任何時間被喚醒/終止
 - Content Script 可能在背景監聽器註冊完成前即開始發送事件
 - 需避免直接依賴內部資料結構（如 listeners Map）
 
-#### 處理流程：
+#### 處理流程（Overview）
 
 1. emit(eventType, data) 在尚無監聽器且未就緒時，將事件推入 pre-init queue 並返回空陣列
 2. on(eventType, handler) 註冊後，非阻塞重放佇列中同型別事件
 3. initializeBackgroundServiceWorker() 完成後呼叫 eventBus.markReady()，重放所有佇列事件
 4. 後續 emit 直接以已註冊監聽器同步/非同步處理，回傳結果陣列
 
-#### 使用情境：
+#### 使用情境（Pre-init）
 
 - 冷啟動立即進行的 `CONTENT.EVENT.FORWARD` 與 `EXTRACTION.*` 事件
 - 背景監聽器註冊落後於訊息入口事件到達的情境
 
-#### 狀態轉換：
+#### 狀態轉換（Pre-init）
 
 - [PreInit] → [Ready] 由 `eventBus.markReady()` 觸發
 - 在 [PreInit] 狀態，事件進入 `preInitQueue`
 - 進入 [Ready] 後，佇列事件依時間順序重放
 
-#### 測試與驗證：
+#### 測試與驗證（Pre-init）
 
 - 新增整合測試：監聽器註冊前 emit，`markReady()` 後 handler 必須收到事件（已通過）
 - 驗證 emit 回傳型別統一為陣列，便於統計處理器執行次數
 
 ### Overview 資料同步設計（透過 chrome.storage.onChanged）
 
-#### 負責功能：
+#### 負責功能
 
 - 讓 Overview 頁面在提取完成後自動更新書庫資料
 - 解耦 Content Script/Background 和 Overview 的跨上下文通訊
 
-#### 設計考量：
+#### 設計考量
 
 - 依據本專案跨上下文通訊規範，Overview ↔ Background 優先透過 `chrome.storage` 進行資料同步
 - Background 在接收到 `EXTRACTION.COMPLETED` 後將資料寫入 `chrome.storage.local.readmoo_books`
 - Overview 監聽 `chrome.storage.onChanged`，一旦 `readmoo_books` 變更立即更新 UI
 
-#### 處理流程：
+#### 處理流程
 
 1. Content Script 觸發提取 → 事件轉發到 Background
 2. Background 監聽 `EXTRACTION.COMPLETED` → 寫入 `chrome.storage.local.readmoo_books`
@@ -1254,7 +1254,7 @@ Array.isArray(results) === true
 - 在 Content Script 先發 `EXTRACTION.COMPLETED` 再完成背景監聽器註冊時，資料仍會被寫入 storage（靠 pre-init queue + 守護）
 - 在任意時序下，`eventBus.hasListener('EXTRACTION.COMPLETED')` 於 emit 前後均為 true 或在 emit 前被補足
 
-#### 介面範例：
+#### 介面範例（Overview 側）
 
 ```js
 // Overview 初始化時註冊 storage 變更監聽
@@ -1267,7 +1267,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
 })
 ```
 
-#### 驗收準則：
+#### 驗收準則（Overview 同步）
 
 - Background 寫入 `readmoo_books` 後，Overview 應無需手動重載即可顯示最新書庫數量
 - 即使 `EXTRACTION.STARTED/PROGRESS` 無監聽器，整體使用者體驗仍正確（完成時自動更新）
@@ -1450,3 +1450,43 @@ test('事件系統統計追蹤', async () => {
 - **v0.8.8**: 新增 `totalEvents` 和 `lastActivity` 欄位，提升與 Background 整合的相容性
 - **v0.8.5**: 建立基礎 `getStats()` 實現，包含監聽器統計
 - **初始版本**: 事件系統核心功能建立
+
+## 🧩 v2 版本沿革與實作摘要
+
+本節彙整 v2 系列文件的核心決策與做法，完整細節請參考歷史文件（已標註為 Superseded）：
+
+- `event-system-v2-naming-upgrade-strategy.md`
+- `event-system-v2-expansion.md`
+- `event-system-v2-integration-testing-strategy.md`
+- `event-system-v2-implementation-summary.md`
+
+### 命名升級摘要（DOMAIN.PLATFORM.ACTION.STATE）
+
+- 從 v1 的 `MODULE.ACTION.STATE` 升級為 v2 的四層結構 `DOMAIN.PLATFORM.ACTION.STATE`。
+- 提供 Legacy → Modern 對應表與智能推斷：確保 100% 向後相容（雙軌並行）。
+- 典型映射：
+
+  - `EXTRACTION.COMPLETED` → `EXTRACTION.READMOO.EXTRACT.COMPLETED`
+  - `STORAGE.SAVE.COMPLETED` → `DATA.READMOO.SAVE.COMPLETED`
+  - `UI.POPUP.OPENED` → `UX.GENERIC.OPEN.COMPLETED`
+
+### 擴展與路由摘要（多平台協調）
+
+- 跨平台協調器：支援 UNIFIED/MULTI 操作，並行觸發各平台事件後彙整結果。
+- 事件路由引擎：支援萬用字元比對與中介層（middleware）。
+- 事件聚合與批次：高頻事件（如進度）聚合成統一進度事件，降低開銷。
+- 安全與隔離：平台資料隔離、敏感欄位清理與必要加密。
+
+### 測試策略摘要（整合與效能）
+
+- 整合測試分層：核心整合 → 平台整合 → Extension 環境 → 端對端 → 效能穩定性。
+- 覆蓋率與基準：轉換延遲 < 5ms、優先級分配 < 1ms、記憶體增長 < 15%。
+- 端對端驗證：Readmoo 提取 → 儲存 → Overview 同步，確保零事件遺失（pre-init queue + listener guard）。
+
+### 實作重點（運作模式與管理）
+
+- 雙軌並行（DUAL_TRACK）：同時支援 Legacy 與 Modern 事件，零中斷升級。
+- 優先級管理：事件分級與動態最佳化，確保互動回應優先。
+- 向後相容層：Modern 與 Legacy 互轉，保留既有 API 接面與體驗一致性。
+
+> 來源與完整細節：見本目錄下 v2* 文件（均已加註 Superseded 標籤），或參考本節所述摘要即可落地實作。

@@ -4,11 +4,10 @@
 
 1. [event-driven-architecture.md](../../claude/event-driven-architecture.md)
 2. [event-system.md](./event-system.md)
-3. [event-system-v2-naming-upgrade-strategy.md](./event-system-v2-naming-upgrade-strategy.md)
-4. [event-system-v2-integration-testing-strategy.md](./event-system-v2-integration-testing-strategy.md)
-5. [domain-architecture-v2-design.md](./domain-architecture-v2-design.md)
-6. [domain-architecture-v2-planning.md](./domain-architecture-v2-planning.md)
-7. [platform-domain-v2.0-specification.md](./platform-domain-v2.0-specification.md)
+3. [event-system.md#v2-版本沿革與實作摘要](./event-system.md#v2-版本沿革與實作摘要)
+4. [domain-architecture-v2-design.md](./domain-architecture-v2-design.md)
+5. [domain-architecture-v2-planning.md](./domain-architecture-v2-planning.md)
+6. [platform-domain-v2.0-specification.md](./platform-domain-v2.0-specification.md)
 
 ## 文件清單（完整）
 
@@ -45,3 +44,8 @@
 - [v0.9.8-v0.9.11-service-evaluation.md](../archive/v0.9.8-v0.9.11-service-evaluation.md)
 - [v1.0-refactor-analysis.md](../archive/v1.0-refactor-analysis.md)
 - [v1.0-refactor-plan.md](../archive/v1.0-refactor-plan.md)
+// v2 系列已由主文件整併，以下保留做為完整細節與歷史脈絡
+- [event-system-v2-naming-upgrade-strategy.md](./event-system-v2-naming-upgrade-strategy.md) — Superseded by [event-system.md#v2-版本沿革與實作摘要](./event-system.md#v2-版本沿革與實作摘要)
+- [event-system-v2-integration-testing-strategy.md](./event-system-v2-integration-testing-strategy.md) — Superseded by [event-system.md#v2-版本沿革與實作摘要](./event-system.md#v2-版本沿革與實作摘要)
+- [event-system-v2-expansion.md](./event-system-v2-expansion.md) — Superseded by [event-system.md#v2-版本沿革與實作摘要](./event-system.md#v2-版本沿革與實作摘要)
+- [event-system-v2-implementation-summary.md](./event-system-v2-implementation-summary.md) — Superseded by [event-system.md#v2-版本沿革與實作摘要](./event-system.md#v2-版本沿革與實作摘要)
