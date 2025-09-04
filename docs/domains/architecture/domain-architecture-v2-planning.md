@@ -1,5 +1,10 @@
 # 📋 Domain 架構 v2.0 完整規劃文件
 
+> 狀態：Superseded（已被主設計文件整併）
+>
+> 本文件內容已整併至 `domain-architecture-v2-design.md`，此檔保留作為歷史背景與細節參考。
+> 最新與權威規範請參考：`docs/domains/architecture/domain-architecture-v2-design.md`
+
 ## 🎯 文件概覽
 
 **文件目的**: 定義支援多平台書城的完整 Domain 架構升級計劃  
@@ -98,7 +103,7 @@ graph TB
 
 **📂 內部服務架構**:
 
-```
+```text
 src/background/domains/platform/
 ├── platform-domain-coordinator.js      # 平台領域協調器 (400行)
 └── services/
@@ -150,7 +155,7 @@ const SupportedPlatforms = {
 
 **📂 內部服務架構**:
 
-```
+```text
 src/background/domains/data-management/
 ├── data-domain-coordinator.js          # 資料領域協調器 (450行)
 └── services/
@@ -258,7 +263,7 @@ const ConflictResolutionStrategies = {
 
 **📂 內部服務架構**:
 
-```
+```text
 src/background/domains/user-experience/
 ├── ux-domain-coordinator.js           # UX 領域協調器 (400行)
 └── services/
@@ -314,7 +319,7 @@ const ThemeManagementConfig = {
 
 **📂 內部服務架構**:
 
-```
+```text
 src/background/domains/analytics/
 ├── analytics-domain-coordinator.js     # 分析領域協調器 (400行)
 └── services/
@@ -380,7 +385,7 @@ const AnalyticsMetrics = {
 
 **📂 內部服務架構**:
 
-```
+```text
 src/background/domains/security/
 ├── security-domain-coordinator.js      # 安全領域協調器 (400行)
 └── services/
@@ -447,7 +452,7 @@ const SecurityPolicies = {
 
 **📂 新增服務**:
 
-```
+```text
 src/background/domains/system/services/
 ├── multi-platform-config-service.js    # 多平台配置管理 (新增 400行)
 ├── cross-domain-lifecycle-service.js   # 跨域生命週期 (新增 350行)
@@ -464,7 +469,7 @@ src/background/domains/system/services/
 
 **📂 重構服務**:
 
-```
+```text
 src/background/domains/page/services/
 ├── multi-platform-detection-service.js # 升級現有檢測服務 (450行)
 ├── cross-platform-navigation-service.js # 新增跨平台導航 (350行)
@@ -481,7 +486,7 @@ src/background/domains/page/services/
 
 **📂 重構服務**:
 
-```
+```text
 src/background/domains/extraction/services/
 ├── multi-adapter-coordination-service.js # 新增多適配器協調 (400行)
 ├── data-normalization-service.js         # 新增資料標準化 (350行)
@@ -498,7 +503,7 @@ src/background/domains/extraction/services/
 
 **📂 重構服務**:
 
-```
+```text
 src/background/domains/messaging/services/
 ├── cross-platform-routing-service.js     # 新增跨平台路由 (400行)
 ├── message-transformation-service.js     # 新增訊息轉換 (350行)
