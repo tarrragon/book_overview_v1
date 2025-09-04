@@ -14,19 +14,51 @@
  * - 支援開發和生產環境的不同需求
  */
 
-// 日誌工具 - 僅在開發環境下輸出
-const DEBUG = process.env.NODE_ENV === 'development' || globalThis.chrome?.runtime?.getManifest?.()?.version?.includes('dev')
+// 統一日誌管理系統
+import { Logger } from '../core/logging/Logger.js'
+import { MessageDictionary } from '../core/messages/MessageDictionary.js'
 
+// 初始化 Logger 實例
+const messages = new MessageDictionary({
+  BACKGROUND_STARTUP: '🚀 Readmoo 書庫提取器 Background Service Worker 啟動',
+  SKIP_DUPLICATE_INIT: '⏭️ 系統已初始化，跳過重複初始化',
+  INIT_ATTEMPT: '🔧 開始初始化 Background 系統 (嘗試 {attempt}/{max})',
+  INIT_COORDINATOR: '🔧 初始化模組協調器...',
+  START_MODULES: '▶️ 啟動所有系統模組...',
+  INIT_COMPLETE: '✅ Background 系統初始化完成',
+  SYSTEM_STATS: '📊 系統統計',
+  EVENTBUS_READY: '✅ 全域 EventBus 實例已設定',
+  CHROMEBRIDGE_READY: '✅ 全域 ChromeBridge 實例已設定',
+  INIT_FAILED: '❌ Background 系統初始化失敗 (嘗試 {attempt})',
+  RETRY_INIT: '🔄 {delay}ms 後重試初始化...',
+  MAX_RETRIES_REACHED: '🚨 達到最大重試次數，啟動緊急模式',
+  REGISTER_LIFECYCLE: '📝 註冊 Service Worker 生命週期事件',
+  EXTENSION_INSTALLED: '📦 擴展安裝事件',
+  EXTENSION_STARTUP: '▶️ 擴展啟動事件',
+  WORKER_ERROR: '🚨 Service Worker 異常錯誤',
+  UNHANDLED_REJECTION: '🚨 未處理的 Promise 拒絕',
+  LIFECYCLE_COMPLETE: '✅ Service Worker 生命週期事件註冊完成',
+  LIFECYCLE_FAILED: '❌ 註冊 Service Worker 事件失敗',
+  EMERGENCY_MODE: '🚨 啟動緊急模式',
+  EMERGENCY_MESSAGE: '📨 [緊急模式] 收到訊息',
+  EMERGENCY_COMPLETE: '🚨 緊急模式啟動完成',
+  EMERGENCY_FAILED: '❌ 緊急模式啟動失敗',
+  EMERGENCY_ERROR: '❌ [緊急模式] 事件處理錯誤 ({eventType})',
+  INIT_FLOW_START: '🏁 開始 Background Service Worker 初始化流程',
+  INIT_FLOW_SUCCESS: '🎉 Background Service Worker 初始化成功完成',
+  INIT_FLOW_FAILED: '💥 Background Service Worker 初始化最終失敗'
+})
+
+const logger = new Logger('BackgroundService', 'INFO', messages)
+
+// 維持向下相容的 log 物件
 const log = {
-  // eslint-disable-next-line no-console
-  info: (message, data) => DEBUG && console.log(message, data || ''),
-  // eslint-disable-next-line no-console
-  error: (message, error) => console.error(message, error),
-  // eslint-disable-next-line no-console
-  warn: (message, data) => DEBUG && console.warn(message, data || '')
+  info: (message, data = {}) => logger.info(message, data),
+  error: (message, error) => logger.error(message, { error: error?.message || error }),
+  warn: (message, data = {}) => logger.warn(message, data)
 }
 
-log.info('🚀 Readmoo 書庫提取器 Background Service Worker 啟動')
+log.info('BACKGROUND_STARTUP')
 
 // 全域變數
 let backgroundCoordinator = null
@@ -55,12 +87,12 @@ let emergencyMode = false
  */
 async function initializeBackgroundSystem () {
   if (isInitialized) {
-    log.info('⏭️ 系統已初始化，跳過重複初始化')
+    log.info('SKIP_DUPLICATE_INIT')
     return backgroundCoordinator
   }
 
   initializationAttempts++
-  log.info(`🔧 開始初始化 Background 系統 (嘗試 ${initializationAttempts}/${MAX_INITIALIZATION_ATTEMPTS})`)
+  log.info('INIT_ATTEMPT', { attempt: initializationAttempts, max: MAX_INITIALIZATION_ATTEMPTS })
 
   try {
     // 動態載入 BackgroundCoordinator
@@ -70,11 +102,11 @@ async function initializeBackgroundSystem () {
     backgroundCoordinator = new BackgroundCoordinator()
 
     // 執行初始化
-    log.info('🔧 初始化模組協調器...')
+    log.info('INIT_COORDINATOR')
     await backgroundCoordinator.initialize()
 
     // 啟動所有模組
-    log.info('▶️ 啟動所有系統模組...')
+    log.info('START_MODULES')
     await backgroundCoordinator.start()
 
     // 標記初始化完成
@@ -82,8 +114,8 @@ async function initializeBackgroundSystem () {
 
     // 記錄成功狀態
     const stats = backgroundCoordinator.getCoordinatorStats()
-    log.info('✅ Background 系統初始化完成')
-    log.info('📊 系統統計:', {
+    log.info('INIT_COMPLETE')
+    log.info('SYSTEM_STATS', {
       模組數量: stats.moduleCount,
       初始化時間: `${stats.initializationDuration}ms`,
       啟動時間: `${stats.startupDuration}ms`,
@@ -93,12 +125,12 @@ async function initializeBackgroundSystem () {
     // 設定全域實例供測試和外部模組使用
     if (backgroundCoordinator && backgroundCoordinator.eventBus) {
       global.eventBus = backgroundCoordinator.eventBus
-      log.info('✅ 全域 EventBus 實例已設定')
+      log.info('EVENTBUS_READY')
     }
 
     if (backgroundCoordinator && backgroundCoordinator.chromeBridge) {
       global.chromeBridge = backgroundCoordinator.chromeBridge
-      log.info('✅ 全域 ChromeBridge 實例已設定')
+      log.info('CHROMEBRIDGE_READY')
     }
 
     // 註冊 Service Worker 生命週期事件
@@ -106,11 +138,11 @@ async function initializeBackgroundSystem () {
 
     return backgroundCoordinator
   } catch (error) {
-    log.error(`❌ Background 系統初始化失敗 (嘗試 ${initializationAttempts}):`, error)
+    log.error('INIT_FAILED', { attempt: initializationAttempts, error })
 
     // 重試邏輯
     if (initializationAttempts < MAX_INITIALIZATION_ATTEMPTS) {
-      log.info(`🔄 ${2000}ms 後重試初始化...`)
+      log.info('RETRY_INIT', { delay: 2000 })
       await new Promise(resolve => setTimeout(resolve, 2000))
       return await initializeBackgroundSystem()
     }

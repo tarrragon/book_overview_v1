@@ -25,7 +25,38 @@
  * - 提供主要的使用者操作界面
  */
 
-console.log('🎨 Popup Interface 載入完成')
+// 統一日誌管理系統
+import { Logger } from '../core/logging/Logger.js'
+import { MessageDictionary } from '../core/messages/MessageDictionary.js'
+
+// 初始化 Popup Logger
+const popupMessages = new MessageDictionary({
+  POPUP_INTERFACE_LOADED: '🎨 Popup Interface 載入完成',
+  POPUP_SCRIPT_LOADED: '✅ Popup Script 載入完成',
+  VERSION_ERROR: '無法獲取版本號',
+  EXTRACTION_ERROR: '❌ 提取錯誤詳情',
+  BACKGROUND_STATUS_CHECK: '🔍 正在檢查 Background Service Worker 狀態...',
+  TEST_ENV_PROCESSING: '📝 Test environment - processing mock response',
+  BACKGROUND_STATUS_OK: '✅ Background Service Worker 狀態正常',
+  EVENT_SYSTEM_STATUS: '📊 事件系統狀態',
+  BACKGROUND_CONNECTION_FAILED: '❌ Background Service Worker 連線失敗',
+  CONTENT_SCRIPT_NOT_READY: 'Content Script 尚未就緒',
+  TAB_CHECK_ERROR: '檢查標籤頁時發生錯誤',
+  EXTRACTION_PROCESS_ERROR: '提取過程發生錯誤',
+  LIBRARY_OVERVIEW_OPEN: '📖 開啟書庫總覽頁面...',
+  LIBRARY_OVERVIEW_ERROR: '❌ 無法開啟書庫頁面',
+  POPUP_INIT_START: '🚀 開始初始化 Popup Interface',
+  POPUP_INIT_COMPLETE: '✅ Popup Interface 初始化完成',
+  POPUP_INIT_ERROR: '❌ 初始化過程發生錯誤',
+  DIAGNOSTIC_INIT_FAILED: '⚠️ 診斷增強器初始化失敗',
+  DIAGNOSTIC_INIT_SUCCESS: '✅ 診斷增強器初始化成功',
+  HEALTH_CHECK_ERROR: '健康檢查錯誤',
+  POPUP_GLOBAL_ERROR: '❌ Popup Interface 錯誤'
+})
+
+const popupLogger = new Logger('PopupInterface', 'INFO', popupMessages)
+
+popupLogger.info('POPUP_INTERFACE_LOADED')
 
 // ==================== 常數定義 ====================
 
@@ -194,7 +225,7 @@ function updateVersionDisplay () {
 
     elements.versionDisplay.textContent = versionText
   } catch (error) {
-    console.warn('無法獲取版本號:', error)
+    popupLogger.warn('VERSION_ERROR', { error: error.message })
     elements.versionDisplay.textContent = 'v?.?.? 未知版本'
   }
 }
@@ -340,7 +371,7 @@ function handleExtractionError (message, error) {
 
   // 記錄詳細錯誤資訊
   if (error) {
-    console.error('❌ 提取錯誤詳情:', error)
+    popupLogger.error('EXTRACTION_ERROR', { error })
   }
 
   // 重置按鈕狀態
@@ -713,7 +744,7 @@ function setupEventListeners () {
  * 4. 完成初始化
  */
 async function initialize () {
-  console.log('🚀 開始初始化 Popup Interface')
+  popupLogger.info('POPUP_INIT_START')
 
   // 初始化進度追蹤器
   if (typeof PopupInitializationTracker !== 'undefined') {
@@ -804,12 +835,12 @@ async function initialize () {
     if (initializationTracker) {
       initializationTracker.startStep('finalization')
     }
-    console.log('✅ Popup Interface 初始化完成')
+    popupLogger.info('POPUP_INIT_COMPLETE')
     if (initializationTracker) {
       initializationTracker.completeStep('finalization', '初始化流程完成')
     }
   } catch (error) {
-    console.error('❌ 初始化過程發生錯誤:', error)
+    popupLogger.error('POPUP_INIT_ERROR', { error })
 
     // 記錄失敗的步驟
     if (initializationTracker && !initializationTracker.isFailed) {
@@ -1090,4 +1121,4 @@ setInterval(periodicStatusUpdate, CONFIG.STATUS_UPDATE_INTERVAL)
 // 全域錯誤處理
 window.addEventListener('error', handleGlobalError)
 
-console.log('✅ Popup Script 載入完成')
+popupLogger.info('POPUP_SCRIPT_LOADED')

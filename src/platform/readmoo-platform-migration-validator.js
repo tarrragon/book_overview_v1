@@ -31,6 +31,37 @@
  * - 生產環境部署前的安全檢查
  */
 
+// 統一日誌管理系統
+const { Logger } = require('../core/logging/Logger')
+const { MessageDictionary } = require('../core/messages/MessageDictionary')
+
+// 初始化 Logger 實例
+const validatorMessages = new MessageDictionary({
+  VALIDATOR_INIT: '🔧 Readmoo 平台遷移驗證器初始化',
+  DEPENDENCY_MISSING: '❌ 缺少必要依賴項: {dependency}',
+  DEPENDENCY_INTERFACE_INVALID: '❌ {dependency} 必須實作 {methods} 方法',
+  CONFIG_VALIDATION_FAILED: '❌ 配置驗證失敗: {field} 必須介於 {min} 和 {max} 之間',
+  VALIDATION_START: '🚀 開始完整 Readmoo 平台遷移驗證',
+  VALIDATION_CACHE_HIT: '⚡ 驗證快取命中 (快取時間: {cacheAge}ms)',
+  VALIDATION_TIMEOUT: '⏰ 驗證超時 ({timeout}ms)',
+  VALIDATION_SUCCESS: '✅ 驗證成功完成',
+  VALIDATION_FAILED: '❌ 驗證失敗',
+  PLATFORM_DETECTION_START: '🔍 開始平台檢測驗證',
+  PLATFORM_DETECTION_FAILED: '❌ 平台檢測失敗: 檢測到 {platform} 平台',
+  PLATFORM_CONFIDENCE_LOW: '⚠️ 檢測信心度過低: {confidence} (最低要求: {required})',
+  DATA_EXTRACTION_START: '📊 開始資料提取驗證',
+  DATA_EXTRACTION_EMPTY: '⚠️ 未從 Readmoo 平台提取到資料',
+  DATA_VALIDATION_FAILED: '❌ 資料格式驗證失敗',
+  EVENT_SYSTEM_START: '🔄 開始事件系統整合驗證',
+  EVENT_EMIT_FAILED: '⚠️ 事件發送失敗 {eventType}: {error}',
+  VALIDATION_RETRY: '🔄 驗證重試 (第 {attempt} 次)',
+  CACHE_CLEANUP: '🧹 執行快取清理 (當前大小: {size}/{max})',
+  PERFORMANCE_WARNING: '⚠️ 效能警告: 驗證耗時 {time}ms (閾值: {threshold}ms)',
+  ERROR_CATEGORIZED: '📊 錯誤分類: {category} ({count} 個錯誤)'
+})
+
+const validatorLogger = new Logger('ReadmooMigrationValidator', 'INFO', validatorMessages)
+
 class ReadmooPlatformMigrationValidator {
   /**
    * 初始化 Readmoo 平台遷移驗證器
@@ -41,6 +72,8 @@ class ReadmooPlatformMigrationValidator {
    * @param {Object} options - 驗證選項配置
    */
   constructor (dependencies = {}, options = {}) {
+    validatorLogger.info('VALIDATOR_INIT')
+    
     // 驗證必要依賴
     this._validateDependencies(dependencies)
 
@@ -73,6 +106,7 @@ class ReadmooPlatformMigrationValidator {
 
     for (const dep of requiredDependencies) {
       if (!dependencies[dep]) {
+        validatorLogger.error('DEPENDENCY_MISSING', { dependency: dep })
         throw new Error(`Missing required dependency: ${dep}`)
       }
     }
@@ -80,18 +114,30 @@ class ReadmooPlatformMigrationValidator {
     // 驗證 eventBus 介面
     if (typeof dependencies.eventBus.emit !== 'function' ||
         typeof dependencies.eventBus.on !== 'function') {
+      validatorLogger.error('DEPENDENCY_INTERFACE_INVALID', { 
+        dependency: 'EventBus', 
+        methods: 'emit() and on()' 
+      })
       throw new Error('EventBus must implement emit() and on() methods')
     }
 
     // 驗證 readmooAdapter 介面
     if (typeof dependencies.readmooAdapter.extractBookData !== 'function' ||
         typeof dependencies.readmooAdapter.validateExtractedData !== 'function') {
+      validatorLogger.error('DEPENDENCY_INTERFACE_INVALID', { 
+        dependency: 'ReadmooAdapter', 
+        methods: 'extractBookData() and validateExtractedData()' 
+      })
       throw new Error('ReadmooAdapter must implement extractBookData() and validateExtractedData() methods')
     }
 
     // 驗證 platformDetectionService 介面
     if (typeof dependencies.platformDetectionService.detectPlatform !== 'function' ||
         typeof dependencies.platformDetectionService.validatePlatform !== 'function') {
+      validatorLogger.error('DEPENDENCY_INTERFACE_INVALID', { 
+        dependency: 'PlatformDetectionService', 
+        methods: 'detectPlatform() and validatePlatform()' 
+      })
       throw new Error('PlatformDetectionService must implement detectPlatform() and validatePlatform() methods')
     }
   }
@@ -119,14 +165,29 @@ class ReadmooPlatformMigrationValidator {
 
     // 配置值驗證
     if (config.maxValidationRetries < 1 || config.maxValidationRetries > 10) {
+      validatorLogger.error('CONFIG_VALIDATION_FAILED', { 
+        field: 'maxValidationRetries', 
+        min: 1, 
+        max: 10 
+      })
       throw new Error('maxValidationRetries must be between 1 and 10')
     }
 
     if (config.validationTimeout < 1000 || config.validationTimeout > 120000) {
+      validatorLogger.error('CONFIG_VALIDATION_FAILED', { 
+        field: 'validationTimeout', 
+        min: '1000ms', 
+        max: '120000ms' 
+      })
       throw new Error('validationTimeout must be between 1000ms and 120000ms')
     }
 
     if (config.minDetectionConfidence < 0 || config.minDetectionConfidence > 1) {
+      validatorLogger.error('CONFIG_VALIDATION_FAILED', { 
+        field: 'minDetectionConfidence', 
+        min: 0, 
+        max: 1 
+      })
       throw new Error('minDetectionConfidence must be between 0 and 1')
     }
 
@@ -149,7 +210,10 @@ class ReadmooPlatformMigrationValidator {
       totalValidationTime: 0,
       fastestValidation: Infinity,
       slowestValidation: 0,
-      errorCategories: new Map()
+      errorCategories: new Map(),
+      recentValidationTimes: [],
+      compatibilityErrors: 0,
+      timeoutErrors: 0
     }
   }
 
@@ -195,6 +259,8 @@ class ReadmooPlatformMigrationValidator {
     const startTime = Date.now()
     const validationId = this.generateValidationId()
 
+    validatorLogger.info('VALIDATION_START', { validationId })
+
     try {
       // 更新統計
       this.validationStats.totalValidations++
@@ -204,8 +270,11 @@ class ReadmooPlatformMigrationValidator {
       const cacheKey = this.generateCacheKey(validationContext)
       const cachedResult = this.getCachedResult(cacheKey)
       if (cachedResult) {
+        const cacheAge = Date.now() - startTime
+        validatorLogger.info('VALIDATION_CACHE_HIT', { cacheAge })
+        
         // 使用快取時仍需更新統計 (快取命中的驗證時間很短)
-        this.updateValidationStats(cachedResult, Date.now() - startTime)
+        this.updateValidationStats(cachedResult, cacheAge)
 
         // 發送快取驗證結果事件
         await this.emitEvent('PLATFORM.READMOO.VALIDATION.RESULT', {
@@ -220,8 +289,10 @@ class ReadmooPlatformMigrationValidator {
       // 設定驗證超時
       const validationPromise = this.performCompleteValidation(validationContext)
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error(`Validation timeout after ${this.config.validationTimeout}ms`)),
-          this.config.validationTimeout)
+        setTimeout(() => {
+          validatorLogger.error('VALIDATION_TIMEOUT', { timeout: this.config.validationTimeout })
+          reject(new Error(`Validation timeout after ${this.config.validationTimeout}ms`))
+        }, this.config.validationTimeout)
       })
 
       const result = await Promise.race([validationPromise, timeoutPromise])
@@ -231,6 +302,10 @@ class ReadmooPlatformMigrationValidator {
 
       // 更新統計
       this.updateValidationStats(result, Date.now() - startTime)
+      validatorLogger.info('VALIDATION_SUCCESS', { 
+        validationId, 
+        duration: Date.now() - startTime 
+      })
 
       // 發送驗證結果事件
       await this.emitEvent('PLATFORM.READMOO.VALIDATION.RESULT', {
@@ -242,6 +317,12 @@ class ReadmooPlatformMigrationValidator {
     } catch (error) {
       this.validationStats.failedValidations++
       this.validationState.lastError = error
+      
+      validatorLogger.error('VALIDATION_FAILED', { 
+        validationId, 
+        error: error.message, 
+        duration: Date.now() - startTime 
+      })
 
       const errorResult = this.createValidationResult(false, [], [
         `Unexpected validation error: ${error.message}`
@@ -280,6 +361,7 @@ class ReadmooPlatformMigrationValidator {
     while (retryCount < maxRetries) {
       try {
         // 1. 平台檢測驗證
+        validatorLogger.info('PLATFORM_DETECTION_START')
         validationResults.platformValidation = await this.validatePlatformDetection(validationContext)
 
         if (!validationResults.platformValidation.isValid) {
@@ -296,6 +378,7 @@ class ReadmooPlatformMigrationValidator {
         }
 
         // 2. 資料提取驗證
+        validatorLogger.info('DATA_EXTRACTION_START')
         validationResults.dataExtractionValidation = await this.validateDataExtraction(validationContext)
 
         if (!validationResults.dataExtractionValidation.isValid) {
@@ -312,6 +395,7 @@ class ReadmooPlatformMigrationValidator {
         }
 
         // 3. 事件系統整合驗證
+        validatorLogger.info('EVENT_SYSTEM_START')
         validationResults.eventSystemValidation = await this.validateEventSystemIntegration({
           platform: 'READMOO',
           context: validationContext
@@ -337,6 +421,8 @@ class ReadmooPlatformMigrationValidator {
         break
       } catch (error) {
         retryCount++
+        validatorLogger.warn('VALIDATION_RETRY', { attempt: retryCount, error: error.message })
+        
         if (retryCount >= maxRetries) {
           return this.createValidationResult(false, {
             validationDetails: {
@@ -386,6 +472,10 @@ class ReadmooPlatformMigrationValidator {
 
       // 檢查信心度
       if (detectionResult.confidence < this.config.minDetectionConfidence) {
+        validatorLogger.warn('PLATFORM_CONFIDENCE_LOW', { 
+          confidence: detectionResult.confidence, 
+          required: this.config.minDetectionConfidence 
+        })
         return this.createValidationResult(false, { detectionResult }, [
           `Low detection confidence: ${detectionResult.confidence} (minimum required: ${this.config.minDetectionConfidence})`
         ])
@@ -432,6 +522,7 @@ class ReadmooPlatformMigrationValidator {
 
       // 檢查是否有提取到資料
       if (!extractedData || extractedData.length === 0) {
+        validatorLogger.warn('DATA_EXTRACTION_EMPTY')
         return this.createValidationResult(false, { extractedData, dataCount: 0 }, [
           'No data extracted from Readmoo platform'
         ])
@@ -441,6 +532,7 @@ class ReadmooPlatformMigrationValidator {
       const isValidData = this.readmooAdapter.validateExtractedData(extractedData)
 
       if (!isValidData) {
+        validatorLogger.warn('DATA_VALIDATION_FAILED', { dataCount: extractedData.length })
         return this.createValidationResult(false, { extractedData, dataCount: extractedData.length }, [
           'Data validation failed: Invalid data format'
         ])
@@ -974,6 +1066,92 @@ class ReadmooPlatformMigrationValidator {
 
       const currentCount = this.validationStats.errorCategories.get(category) || 0
       this.validationStats.errorCategories.set(category, currentCount + 1)
+      
+      validatorLogger.info('ERROR_CATEGORIZED', { category, count: currentCount + 1 })
+    }
+  }
+
+  /**
+   * 更新效能統計
+   * @param {number} validationTime - 驗證耗時
+   * @private
+   */
+  _updatePerformanceStats (validationTime) {
+    // 確保初始化統計結構
+    if (!this.validationStats.recentValidationTimes) {
+      this.validationStats.recentValidationTimes = []
+    }
+
+    // 基本效能統計更新
+    this.validationStats.totalValidationTime += validationTime
+    this.validationStats.averageValidationTime = 
+      this.validationStats.totalValidationTime / this.validationStats.totalValidations
+
+    // 記錄最快和最慢時間
+    this.validationStats.fastestValidation = Math.min(this.validationStats.fastestValidation, validationTime)
+    this.validationStats.slowestValidation = Math.max(this.validationStats.slowestValidation, validationTime)
+
+    // 效能警告
+    if (validationTime > this.config.validationTimeout * 0.8) {
+      this._logPerformanceWarning(validationTime)
+    }
+  }
+
+  /**
+   * 更新快取統計
+   * @param {Object} result - 驗證結果
+   * @param {number} validationTime - 驗證耗時
+   * @private
+   */
+  _updateCacheStats (result, validationTime) {
+    // 初始化快取統計
+    if (!this.validationStats.cacheStats) {
+      this.validationStats.cacheStats = {
+        hits: 0,
+        misses: 0,
+        totalRequests: 0
+      }
+    }
+
+    this.validationStats.cacheStats.totalRequests++
+    
+    // 如果是快取結果（驗證時間很短）
+    if (validationTime < 10) {
+      this.validationStats.cacheStats.hits++
+    } else {
+      this.validationStats.cacheStats.misses++
+    }
+  }
+
+  /**
+   * 更新輸出統計
+   * @private
+   */
+  _updateThroughputStats () {
+    // 初始化輸出統計
+    if (!this.validationStats.throughputStats) {
+      this.validationStats.throughputStats = {
+        validationsPerMinute: 0,
+        peakThroughput: 0,
+        lastCalculated: Date.now()
+      }
+    }
+
+    const now = Date.now()
+    const timeDiff = now - this.validationStats.throughputStats.lastCalculated
+
+    // 每分鐘計算一次輸出統計
+    if (timeDiff > 60000) {
+      const recentValidations = this.validationStats.totalValidations
+      this.validationStats.throughputStats.validationsPerMinute = 
+        recentValidations / (timeDiff / 60000)
+      
+      this.validationStats.throughputStats.peakThroughput = Math.max(
+        this.validationStats.throughputStats.peakThroughput,
+        this.validationStats.throughputStats.validationsPerMinute
+      )
+      
+      this.validationStats.throughputStats.lastCalculated = now
     }
   }
 
@@ -984,7 +1162,8 @@ class ReadmooPlatformMigrationValidator {
    */
   _logPerformanceWarning (validationTime) {
     if (this.config.enableDetailedLogging) {
-      console.warn(`Performance warning: Validation took ${validationTime}ms (threshold: ${this.config.validationTimeout * 0.8}ms)`)
+      const threshold = this.config.validationTimeout * 0.8
+      validatorLogger.warn('PERFORMANCE_WARNING', { time: validationTime, threshold })
     }
   }
 
@@ -1026,6 +1205,11 @@ class ReadmooPlatformMigrationValidator {
     if (this.validationCache.size <= this.maxCacheSize) {
       return
     }
+    
+    validatorLogger.info('CACHE_CLEANUP', { 
+      size: this.validationCache.size, 
+      max: this.maxCacheSize 
+    })
 
     // 收集快取項目並按優先級排序
     const cacheEntries = Array.from(this.validationCache.entries()).map(([key, value]) => ({
@@ -1131,7 +1315,7 @@ class ReadmooPlatformMigrationValidator {
       }
     } catch (error) {
       // 事件發送失敗不應該影響驗證流程
-      console.warn(`Failed to emit event ${eventType}:`, error)
+      validatorLogger.warn('EVENT_EMIT_FAILED', { eventType, error: error.message })
     }
   }
 

@@ -26,8 +26,32 @@
  * @since 2025-08-20
  */
 
+// 統一日誌管理系統
+const { Logger } = require('../core/logging/Logger')
+const { MessageDictionary } = require('../core/messages/MessageDictionary')
+
 const BaseUIHandler = require('./handlers/base-ui-handler')
 const UI_HANDLER_CONFIG = require('./config/ui-handler-config')
+
+// 初始化 Logger 實例
+const searchUIMessages = new MessageDictionary({
+  COMPONENT_INIT: '🔧 BookSearchFilterIntegrated 組件初始化',
+  EVENT_BUS_MISSING: '❌ 事件總線是必需的',
+  MODULAR_COMPONENTS_SUCCESS: '✅ 所有模組化組件初始化完成',
+  MODULAR_COMPONENTS_FAILED: '❌ 模組化組件初始化失敗: {error}',
+  BOOKS_DATA_UPDATE_WARNING: '⚠️ 更新書籍資料失敗：資料必須是陣列',
+  BOOKS_DATA_UPDATED: '✅ 書籍資料更新完成: {count} 本書籍',
+  BOOKS_DATA_UPDATE_ERROR: '❌ 書籍資料更新失敗: {error}',
+  SEARCH_EXECUTION_ERROR: '❌ 搜尋執行失敗: {error}',
+  FILTER_APPLICATION_ERROR: '❌ 篩選套用失敗: {error}',
+  SEARCH_CLEARED: '✅ 搜尋和篩選已清除',
+  SEARCH_CLEAR_ERROR: '❌ 清除搜尋和篩選失敗: {error}',
+  STATISTICS_ERROR: '❌ 獲取搜尋統計失敗: {error}',
+  CLEANUP_SUCCESS: '✅ BookSearchFilterIntegrated 資源清理完成',
+  CLEANUP_ERROR: '❌ 資源清理失敗: {error}'
+})
+
+const searchUILogger = new Logger('BookSearchFilterIntegrated', 'INFO', searchUIMessages)
 
 // 引入模組化組件
 const SearchIndexManager = require('./search/core/search-index-manager')
@@ -47,8 +71,11 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
    */
   constructor (eventBus, document) {
     if (!eventBus) {
+      searchUILogger.error('EVENT_BUS_MISSING')
       throw new Error('事件總線是必需的')
     }
+
+    searchUILogger.info('COMPONENT_INIT')
 
     super('BookSearchFilterIntegrated', 200, eventBus, document)
 
@@ -105,13 +132,13 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
       // 1. 搜尋索引管理器
       this.searchIndexManager = new SearchIndexManager({
         eventBus: this.eventBus,
-        logger: console
+        logger: searchUILogger
       })
 
       // 2. 搜尋快取管理器
       this.searchCacheManager = new SearchCacheManager({
         eventBus: this.eventBus,
-        logger: console,
+        logger: searchUILogger,
         config: {
           maxCacheSize: this.searchConfig.maxCacheEntries,
           ttl: 300000 // 5分鐘
@@ -122,25 +149,25 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
       this.searchEngine = new SearchEngine({
         indexManager: this.searchIndexManager,
         eventBus: this.eventBus,
-        logger: console
+        logger: searchUILogger
       })
 
       // 4. 結果格式化器
       this.searchResultFormatter = new SearchResultFormatter({
         eventBus: this.eventBus,
-        logger: console
+        logger: searchUILogger
       })
 
       // 5. 篩選引擎
       this.filterEngine = new FilterEngine({
         eventBus: this.eventBus,
-        logger: console
+        logger: searchUILogger
       })
 
       // 6. 搜尋協調器
       this.searchCoordinator = new SearchCoordinator({
         eventBus: this.eventBus,
-        logger: console,
+        logger: searchUILogger,
         searchEngine: this.searchEngine,
         filterEngine: this.filterEngine,
         searchResultFormatter: this.searchResultFormatter,
@@ -154,12 +181,12 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
         config: {
           debounceDelay: this.searchConfig.debounceDelay
         },
-        logger: console
+        logger: searchUILogger
       })
 
-      console.log('✅ 所有模組化組件初始化完成')
+      searchUILogger.info('MODULAR_COMPONENTS_SUCCESS')
     } catch (error) {
-      console.error('❌ 模組化組件初始化失敗:', error)
+      searchUILogger.error('MODULAR_COMPONENTS_FAILED', { error: error.message })
       throw new Error(`模組化組件初始化失敗: ${error.message}`)
     }
   }
@@ -257,7 +284,7 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
    */
   updateBooksData (books) {
     if (!Array.isArray(books)) {
-      console.warn('更新書籍資料失敗：資料必須是陣列')
+      searchUILogger.warn('BOOKS_DATA_UPDATE_WARNING')
       return
     }
 
@@ -277,9 +304,9 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
         source: 'BookSearchFilterIntegrated'
       })
 
-      console.log(`✅ 書籍資料更新完成：${books.length} 本書籍`)
+      searchUILogger.info('BOOKS_DATA_UPDATED', { count: books.length })
     } catch (error) {
-      console.error('❌ 書籍資料更新失敗:', error)
+      searchUILogger.error('BOOKS_DATA_UPDATE_ERROR', { error: error.message })
       this.eventBus.emit('SEARCH.ERROR', {
         type: 'data_update_error',
         message: error.message,
@@ -336,7 +363,7 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
 
       return results
     } catch (error) {
-      console.error('❌ 搜尋執行失敗:', error)
+      searchUILogger.error('SEARCH_EXECUTION_ERROR', { error: error.message })
       this.searchState.isSearching = false
 
       this.eventBus.emit('SEARCH.ERROR', {
@@ -375,7 +402,7 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
 
       return results
     } catch (error) {
-      console.error('❌ 篩選套用失敗:', error)
+      searchUILogger.error('FILTER_APPLICATION_ERROR', { error: error.message })
 
       this.eventBus.emit('FILTER.ERROR', {
         type: 'filter_application_error',
@@ -409,9 +436,9 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
         source: 'BookSearchFilterIntegrated'
       })
 
-      console.log('✅ 搜尋和篩選已清除')
+      searchUILogger.info('SEARCH_CLEARED')
     } catch (error) {
-      console.error('❌ 清除搜尋和篩選失敗:', error)
+      searchUILogger.error('SEARCH_CLEAR_ERROR', { error: error.message })
     }
   }
 
@@ -438,7 +465,7 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
         )
       }
     } catch (error) {
-      console.error('❌ 獲取搜尋統計失敗:', error)
+      searchUILogger.error('STATISTICS_ERROR', { error: error.message })
       return {}
     }
   }
@@ -468,9 +495,9 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
         super.cleanup()
       }
 
-      console.log('✅ BookSearchFilterIntegrated 資源清理完成')
+      searchUILogger.info('CLEANUP_SUCCESS')
     } catch (error) {
-      console.error('❌ 資源清理失敗:', error)
+      searchUILogger.error('CLEANUP_ERROR', { error: error.message })
     }
   }
 
