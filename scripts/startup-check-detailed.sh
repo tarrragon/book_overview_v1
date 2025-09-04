@@ -4,7 +4,7 @@
 # Claude Code Session 環境檢查腳本
 # 用於執行詳細的環境初始化和狀態檢查
 
-set -e  # 遇到錯誤立即退出
+set -euo pipefail  # 遇到錯誤立即退出
 
 # 顏色定義
 RED='\033[0;31m'
@@ -171,7 +171,7 @@ check_project_files() {
     if [[ -f "CLAUDE.md" ]]; then
         echo_success "CLAUDE.md 存在"
         claude_mod_date=$(stat -c "%Y" CLAUDE.md 2>/dev/null || stat -f "%m" CLAUDE.md)
-        echo "   修改時間: $(date -r $claude_mod_date)"
+        echo "   修改時間: $(date -r "$claude_mod_date")"
     else
         echo_error "CLAUDE.md 缺失"
     fi
@@ -195,11 +195,11 @@ check_project_files() {
     # 檢查必要檔案
     declare -a files_to_check=(
         "CLAUDE.md"
-        "docs/workflows/tdd-collaboration-flow.md"
-        "docs/guidelines/document-responsibilities.md"
-        "docs/workflows/agent-collaboration.md"
-        "docs/project/chrome-extension-specs.md"
-        "docs/architecture/event-driven-architecture.md"
+        "docs/claude/tdd-collaboration-flow.md"
+        "docs/claude/document-responsibilities.md"
+        "docs/claude/agent-collaboration.md"
+        "docs/claude/chrome-extension-specs.md"
+        "docs/claude/event-driven-architecture.md"
         "docs/claude/code-quality-examples.md"
     )
     

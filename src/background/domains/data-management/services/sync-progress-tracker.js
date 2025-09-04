@@ -412,10 +412,6 @@ class SyncProgressTracker {
   }
 
   async registerEventListeners () {
-    if (!this.eventBus) {
-      return
-    }
-
     // 目前無需監聽特定事件，主要被動接收更新
   }
 

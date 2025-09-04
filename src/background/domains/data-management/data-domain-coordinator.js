@@ -587,7 +587,7 @@ class DataDomainCoordinator extends BaseModule {
   /**
    * 清理完成的操作
    */
-  cleanupCompletedOperations () {
+  async cleanupCompletedOperations () {
     const cutoffTime = Date.now() - (this.effectiveConfig.operationRetentionTime || 3600000) // 1小時
 
     let cleanedCount = 0

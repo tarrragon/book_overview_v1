@@ -1,10 +1,39 @@
 #!/bin/bash
 
-# 工作日誌智能管理腳本
+# 工作日誌管理腳本
 # 處理工作日誌的三種狀況：更新進行中、新建工作、完成總結
 
-set -e
+set -euo pipefail
 
+# ==========================================
+# 設定區塊 - 可外部化的配置項目
+# ==========================================
+readonly WORK_LOGS_DIR="${WORK_LOGS_DIR:-docs/work-logs}"
+readonly TODOLIST_FILE="${TODOLIST_FILE:-docs/todolist.md}"
+readonly EXAMPLES_FILE="${EXAMPLES_FILE:-docs/claude/code-quality-examples.md}"
+
+# 支援的版本前綴 (可透過環境變數覆蓋)
+readonly SUPPORTED_VERSION_PREFIXES="${SUPPORTED_VERSION_PREFIXES:-v0.9 v0.10 v0.11 v0.12 v1.0}"
+
+# 完成標記模式 (可透過環境變數新增更多)
+readonly COMPLETION_PATTERNS="${COMPLETION_PATTERNS:-工作完成總結|✅ 工作完成總結|完成總結|工作狀態.*✅.*已完成|此工作項目已完成}"
+
+# 依賴清單
+readonly REQUIRED_DEPS="${REQUIRED_DEPS:-git date grep sed}"
+
+# 版本檔案設定
+readonly VERSION_SOURCES="${VERSION_SOURCES:-CHANGELOG.md package.json}"
+readonly DEFAULT_VERSION="${DEFAULT_VERSION:-0.10.1}"
+
+# 日期格式設定
+readonly DATE_FORMAT="${DATE_FORMAT:-%Y-%m-%d}"
+
+# 工作狀態設定
+readonly WORK_STATUS_IN_PROGRESS="${WORK_STATUS_IN_PROGRESS:-🔄 進行中}"
+readonly WORK_STATUS_COMPLETED="${WORK_STATUS_COMPLETED:-✅ 已完成}"
+readonly WORK_STATUS_INCOMPLETE="${WORK_STATUS_INCOMPLETE:-⚠️ 未完成 (議題切換自動結案)}"
+
+# ==========================================
 # 顏色定義
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -35,40 +64,214 @@ log_prompt() {
     echo -e "${CYAN}[PROMPT]${NC} $1"
 }
 
-# 獲取當前專案真實版本 (以 CHANGELOG.md 為準)
+# 安全的檔案寫入函數
+write_file_safely() {
+    local target_file="$1"
+    local temp_file
+    
+    temp_file=$(mktemp) || {
+        log_error "無法建立臨時檔案"
+        return 1
+    }
+    
+    # 從標準輸入讀取內容寫入臨時檔案
+    cat > "$temp_file" || {
+        log_error "寫入臨時檔案失敗"
+        rm -f "$temp_file"
+        return 1
+    }
+    
+    # 原子性地移動檔案
+    if ! mv "$temp_file" "$target_file"; then
+        log_error "無法更新檔案: $target_file"
+        rm -f "$temp_file"
+        return 1
+    fi
+    
+    log_success "已安全更新檔案: $target_file"
+}
+
+# 安全建立臨時檔案的通用函數
+create_temp_file() {
+    local temp_file
+    
+    temp_file=$(mktemp) || {
+        log_error "無法建立臨時檔案"
+        return 1
+    }
+    
+    # 將臨時檔案加入清理清單
+    temp_files+=("$temp_file")
+    echo "$temp_file"
+}
+
+# 生成工作日誌基本標頭的共用函數
+generate_work_log_header() {
+    local version="$1"
+    local work_description="$2"
+    local today="$3"
+    local status="${4:-$WORK_STATUS_IN_PROGRESS}"
+    
+    cat << EOF
+# ${version} ${work_description} 工作日誌
+
+**開發版本**: ${version}  
+**開發日期**: ${today}  
+**主要任務**: ${work_description}  
+**工作狀態**: ${status}  
+**開發者**: Claude Code
+
+## 🎯 工作目標與背景
+
+### 本期工作重點
+
+(請描述本期工作的主要目標和背景)
+EOF
+}
+
+# 生成每日工作記錄區塊的共用函數
+generate_daily_work_section() {
+    local date="$1"
+    
+    cat << EOF
+
+## 📅 ${date} 開發記錄
+
+### 完成的工作
+
+- 
+
+### 技術實現要點
+
+- 
+
+### 遇到的問題與解決方案
+
+- 
+
+### 下一步計劃
+
+- 
+
+---
+EOF
+}
+
+# 生成工作進度追蹤區塊的共用函數
+generate_progress_tracking_section() {
+    cat << EOF
+
+## 工作進度追蹤
+
+- [ ] 需求分析完成
+- [ ] 設計方案確定  
+- [ ] 核心功能實現
+- [ ] 測試驗證
+- [ ] 文件更新
+- [ ] 程式碼審查
+
+---
+EOF
+}
+
+# 生成工作日誌結尾的共用函數
+generate_work_log_footer() {
+    local work_description="$1"
+    
+    cat << EOF
+
+*📝 工作狀態說明: 此工作日誌記錄 ${work_description} 的開發過程，當前狀態為進行中。*
+EOF
+}
+
+# 臨時檔案清理
+temp_files=()
+cleanup_temp_files() {
+    # 檢查陣列是否為空，避免 set -u 錯誤
+    if [[ ${#temp_files[@]} -gt 0 ]]; then
+        for temp_file in "${temp_files[@]}"; do
+            [[ -f "$temp_file" ]] && rm -f "$temp_file"
+        done
+    fi
+}
+trap cleanup_temp_files EXIT
+
+# 檢查外部依賴
+check_dependencies() {
+    local deps_array missing_deps=()
+    
+    # 將設定字串轉換為陣列
+    read -ra deps_array <<< "$REQUIRED_DEPS"
+    
+    for dep in "${deps_array[@]}"; do
+        if ! command -v "$dep" >/dev/null 2>&1; then
+            missing_deps+=("$dep")
+        fi
+    done
+    
+    if [[ ${#missing_deps[@]} -gt 0 ]]; then
+        log_error "缺少必要依賴: ${missing_deps[*]}"
+        return 1
+    fi
+}
+
+# 獲取當前專案真實版本 (以最新工作日誌為準)
 get_current_project_version() {
     local version=""
     
-    # 優先從 CHANGELOG.md 獲取最新版本
-    if [[ -f "CHANGELOG.md" ]]; then
-        version=$(grep -E "^## \[v[0-9]+\.[0-9]+\.[0-9]+\]" CHANGELOG.md | head -1 | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' | sed 's/v//')
-    fi
-    
-    # 如果 CHANGELOG 中沒有找到，檢查 package.json
-    if [[ -z "$version" ]]; then
-        if [[ -f "package.json" ]]; then
-            version=$(grep -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' package.json | cut -d'"' -f4)
-        fi
-    fi
-    
-    # 如果都沒找到，根據現有工作日誌推斷下一個版本
-    if [[ -z "$version" ]]; then
-        # 分析最近的工作日誌來推斷版本 (包含 0.9.x 和 0.10.x)
-        local latest_log=$(ls docs/work-logs/v0.*.*.md 2>/dev/null | sort -V | tail -1 | basename)
-        if [[ -n "$latest_log" ]]; then
+    # 檢查工作日誌目錄是否存在
+    if [[ ! -d "$WORK_LOGS_DIR" ]]; then
+        log_warning "工作日誌目錄不存在: $WORK_LOGS_DIR"
+    else
+        # 優先從最新工作日誌獲取版本 (這是最準確的當前版本)
+        local latest_log=$(ls "${WORK_LOGS_DIR}"/v[0-9]*.*.*.md 2>/dev/null | sort -V | tail -1)
+        if [[ -n "$latest_log" && -f "$latest_log" ]]; then
             local latest_version=$(echo "$latest_log" | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+')
             if [[ -n "$latest_version" ]]; then
-                # 提取版本號並加1到patch版本
-                local major=$(echo "$latest_version" | cut -d'.' -f1 | sed 's/v//')
-                local minor=$(echo "$latest_version" | cut -d'.' -f2)  
-                local patch=$(echo "$latest_version" | cut -d'.' -f3)
-                version="$major.$minor.$((patch + 1))"
-            else
-                version="0.9.53"  # 默認下一個版本
+                version=$(echo "$latest_version" | sed 's/v//')
+                # 驗證版本格式
+                if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    log_warning "工作日誌中的版本格式不正確: $version"
+                    version=""
+                fi
+            fi
+        fi
+    fi
+    
+    # 備用：從 CHANGELOG.md 獲取版本 (僅作為 fallback)
+    if [[ -z "$version" ]]; then
+        if [[ -f "CHANGELOG.md" && -r "CHANGELOG.md" ]]; then
+            local changelog_version=$(grep -E "^## \[v[0-9]+\.[0-9]+\.[0-9]+\]" CHANGELOG.md | head -1 | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' | sed 's/v//' 2>/dev/null || true)
+            if [[ -n "$changelog_version" && "$changelog_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                version="$changelog_version"
             fi
         else
-            version="0.9.53"  # 默認版本
+            log_warning "CHANGELOG.md 不存在或不可讀"
         fi
+    fi
+    
+    # 再備用：從 package.json 獲取版本
+    if [[ -z "$version" ]]; then
+        if [[ -f "package.json" && -r "package.json" ]]; then
+            local package_version=$(grep -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' package.json | cut -d'"' -f4 2>/dev/null || true)
+            if [[ -n "$package_version" && "$package_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                version="$package_version"
+            fi
+        else
+            log_warning "package.json 不存在或不可讀"
+        fi
+    fi
+    
+    # 最後備用：設定檔指定的默認版本
+    if [[ -z "$version" ]]; then
+        log_warning "無法從任何來源獲取版本資訊，使用默認版本: $DEFAULT_VERSION"
+        version="$DEFAULT_VERSION"
+    fi
+    
+    # 最終驗證
+    if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        log_error "無效的版本格式: $version"
+        version="$DEFAULT_VERSION"
     fi
     
     echo "$version"
@@ -78,28 +281,106 @@ get_current_project_version() {
 increment_version() {
     local current_version="$1"
     
-    # 提取版本號組件
-    local major=$(echo "$current_version" | cut -d'.' -f1)
-    local minor=$(echo "$current_version" | cut -d'.' -f2)  
-    local patch=$(echo "$current_version" | cut -d'.' -f3)
+    # 輸入驗證
+    if [[ -z "$current_version" ]]; then
+        log_error "increment_version: 版本號不能為空"
+        return 1
+    fi
     
-    # 遞增 patch 版本
-    local new_patch=$((patch + 1))
+    # 驗證版本格式
+    if [[ ! "$current_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        log_error "increment_version: 無效的版本格式: $current_version"
+        return 1
+    fi
+    
+    # 提取版本號組件
+    local major minor patch
+    IFS='.' read -r major minor patch <<< "$current_version"
+    
+    # 檢查是否為有效數字
+    if [[ ! "$major" =~ ^[0-9]+$ ]] || [[ ! "$minor" =~ ^[0-9]+$ ]] || [[ ! "$patch" =~ ^[0-9]+$ ]]; then
+        log_error "increment_version: 版本號組件包含非數字: $current_version"
+        return 1
+    fi
+    
+    # 遞增 patch 版本並檢查溢位
+    local new_patch
+    if (( patch >= 999 )); then
+        log_warning "patch 版本號已達上限 (999)，將遞增 minor 版本"
+        new_patch=0
+        minor=$((minor + 1))
+        if (( minor >= 999 )); then
+            log_warning "minor 版本號已達上限 (999)，將遞增 major 版本"
+            minor=0
+            major=$((major + 1))
+        fi
+    else
+        new_patch=$((patch + 1))
+    fi
     
     echo "$major.$minor.$new_patch"
 }
 
+# 更新 todolist.md 的版本和日期資訊
+update_todolist_version() {
+    local todolist_file="$TODOLIST_FILE"
+    local current_version="v$(get_current_project_version)"
+    local today
+    today=$(date +"$DATE_FORMAT")
+    
+    if [[ ! -f "$todolist_file" ]]; then
+        log_error "todolist.md 不存在，無法更新版本資訊"
+        return 1
+    fi
+    
+    log_info "更新 todolist.md 版本資訊到 $current_version"
+    
+    # 使用安全的檔案寫入
+    {
+        while IFS= read -r line; do
+            if [[ "$line" == "**當前版本"* ]]; then
+                echo "**當前版本**: $current_version  "
+            elif [[ "$line" == "**最後更新"* ]]; then
+                echo "**最後更新**: $today  "
+            else
+                echo "$line"
+            fi
+        done < "$todolist_file"
+    } | write_file_safely "$todolist_file"
+    
+    log_success "已更新 todolist.md 版本資訊: $current_version ($today)"
+}
+
 # 獲取最新的工作日誌檔案
 get_latest_work_log() {
-    local work_log_dir="docs/work-logs"
+    local work_log_dir="$WORK_LOGS_DIR"
+    
+    # 檢查目錄是否存在且可讀
+    if [[ ! -d "$work_log_dir" ]]; then
+        log_error "get_latest_work_log: 工作日誌目錄不存在: $work_log_dir"
+        return 1
+    fi
+    
+    if [[ ! -r "$work_log_dir" ]]; then
+        log_error "get_latest_work_log: 無法讀取工作日誌目錄: $work_log_dir"
+        return 1
+    fi
     
     # 獲取所有版本的工作日誌，按版本號排序找到最新的
-    local latest_log=$(ls "$work_log_dir"/v*.*.*.md 2>/dev/null | sort -V | tail -1)
+    local latest_log
+    latest_log=$(ls "$work_log_dir"/v[0-9]*.*.*.md 2>/dev/null | sort -V | tail -1)
     
-    if [[ -n "$latest_log" ]]; then
-        echo "$latest_log"
+    if [[ -n "$latest_log" && -f "$latest_log" && -r "$latest_log" ]]; then
+        # 驗證檔名格式
+        local filename=$(basename "$latest_log")
+        if [[ "$filename" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-.+\.md$ ]]; then
+            echo "$latest_log"
+        else
+            log_warning "get_latest_work_log: 最新檔案格式不正確: $filename"
+            return 1
+        fi
     else
-        log_warning "找不到版本工作日誌檔案"
+        log_warning "get_latest_work_log: 找不到或無法讀取版本工作日誌檔案"
         return 1
     fi
 }
@@ -140,43 +421,83 @@ is_topic_switch() {
     fi
 }
 
-# 分析最新工作日誌的狀態
+# 檢查工作日誌是否有今日記錄
+has_today_entry() {
+    local log_file="$1"
+    local today
+    today=$(date +"$DATE_FORMAT")
+    
+    if [[ ! -f "$log_file" ]]; then
+        echo "false"
+        return
+    fi
+    
+    if grep -q "$today" "$log_file"; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+# 檢查工作是否已完成
+is_work_completed() {
+    local log_file="$1"
+    
+    if [[ ! -f "$log_file" ]]; then
+        echo "false"
+        return
+    fi
+    
+    # 檢查多種完成標記
+    if grep -qiE "### 工作完成總結|## ✅ 工作完成總結|## 完成總結" "$log_file" || \
+       grep -qiE "\*\*工作狀態\*\*.*✅.*已完成" "$log_file" || \
+       grep -qiE "此工作項目已完成" "$log_file"; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+# 檢查工作日誌版本是否正確
+is_version_correct() {
+    local log_file="$1"
+    local log_version current_version
+    
+    if [[ ! -f "$log_file" ]]; then
+        echo "false"
+        return
+    fi
+    
+    log_version=$(basename "$log_file" | grep -o '^v[0-9]\+\.[0-9]\+\.[0-9]\+')
+    current_version="v$(get_current_project_version)"
+    
+    # 檢查版本是否合理 (移除硬編碼的版本號)
+    if [[ "$log_version" == "$current_version" ]] || [[ -n "$log_version" ]]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+# 分析最新工作日誌狀態 (重構後的簡化版本)
 analyze_latest_work_log() {
     local log_file="$1"
-    local today=$(date +%Y-%m-%d)
+    
+    if [[ ! -f "$log_file" ]]; then
+        log_error "工作日誌檔案不存在: $log_file"
+        return 1
+    fi
     
     log_info "分析工作日誌: $log_file"
     
-    # 檢查是否有今日記錄
-    local has_today_entry=false
-    if grep -q "$today" "$log_file"; then
-        has_today_entry=true
-    fi
-    
-    # 檢查是否有完成標記 (更嚴格的檢查)
-    local is_completed=false
-    if grep -qiE "### 工作完成總結|## ✅ 工作完成總結|## 完成總結" "$log_file"; then
-        is_completed=true
-    elif grep -qiE "\*\*工作狀態\*\*.*✅.*已完成" "$log_file"; then
-        is_completed=true
-    elif grep -qiE "此工作項目已完成" "$log_file"; then
-        is_completed=true
-    fi
-    
-    # 檢查版本號是否正確
+    local has_today=$(has_today_entry "$log_file")
+    local is_completed=$(is_work_completed "$log_file")
+    local version_correct=$(is_version_correct "$log_file")
     local log_version=$(basename "$log_file" | grep -o '^v[0-9]\+\.[0-9]\+\.[0-9]\+')
     local current_version="v$(get_current_project_version)"
-    local version_correct=false
     
-    # 檢查版本是否合理 (應該是當前版本或之前的版本)
-    if [[ "$log_version" =~ ^v0\.(9|10)\. ]]; then
-        version_correct=true
-    elif [[ "$log_version" == "$current_version" ]]; then
-        version_correct=true
-    fi
-    
-    echo "has_today_entry:$has_today_entry"
-    echo "is_completed:$is_completed"  
+    echo "has_today_entry:$has_today"
+    echo "is_completed:$is_completed"
     echo "version_correct:$version_correct"
     echo "log_version:$log_version"
     echo "current_version:$current_version"
@@ -185,7 +506,7 @@ analyze_latest_work_log() {
 # 決定工作日誌操作類型 (含議題切換檢測)
 determine_work_log_action() {
     local latest_log="$1"
-    local proposed_topic="$2"  # 新增參數：提議的新工作議題
+    local proposed_topic="${2:-}"  # 新增參數：提議的新工作議題 (可選)
     
     if [[ -z "$latest_log" ]]; then
         echo "create_new"
@@ -228,15 +549,39 @@ prompt_work_status() {
     echo "4) 🔄 取消操作"
     echo ""
     
-    while true; do
+    local attempts=0
+    local max_attempts=5
+    
+    while (( attempts < max_attempts )); do
         read -p "請選擇 [1-4]: " choice
-        case $choice in
-            1) echo "update_existing"; break ;;
-            2) echo "create_new"; break ;;
-            3) echo "complete_current"; break ;;
-            4) echo "cancel"; break ;;
-            *) echo "無效選擇，請重新輸入 [1-4]" ;;
+        
+        # 移除前後空白
+        choice=$(echo "$choice" | tr -d ' \t')
+        
+        case "$choice" in
+            1|"update_existing") echo "update_existing"; return 0 ;;
+            2|"create_new") echo "create_new"; return 0 ;;
+            3|"complete_current") echo "complete_current"; return 0 ;;
+            4|"cancel"|"q"|"quit") echo "cancel"; return 0 ;;
+            "") 
+                echo "請輸入選擇，不能為空" 
+                ;;
+            *) 
+                echo "無效選擇: '$choice'，請輸入 [1-4]" 
+                ;;
         esac
+        
+        attempts=$((attempts + 1))
+        
+        if (( attempts >= max_attempts )); then
+            log_error "達到最大嘗試次數 ($max_attempts)，操作取消"
+            echo "cancel"
+            return 1
+        fi
+        
+        if (( attempts > 2 )); then
+            echo "(剩餘 $((max_attempts - attempts)) 次嘗試機會)"
+        fi
     done
 }
 
@@ -247,70 +592,56 @@ create_new_with_topic_switch() {
     local new_version="v$(increment_version "$current_version")"
     local today=$(date +%Y-%m-%d)
     
-    log_prompt "請輸入新工作項目的簡短描述 (例如: api-refactor, ui-enhancement):"
-    read -p "工作描述: " work_description
+    # 輸入驗證與重試機制
+    local work_description=""
+    local attempts=0
+    local max_attempts=3
     
-    if [[ -z "$work_description" ]]; then
-        log_error "工作描述不能為空"
-        return 1
-    fi
+    while (( attempts < max_attempts )); do
+        log_prompt "請輸入新工作項目的簡短描述 (例如: api-refactor, ui-enhancement):"
+        read -p "工作描述: " work_description
+        
+        # 移除前後空白
+        work_description=$(echo "$work_description" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        
+        # 驗證輸入
+        if [[ -z "$work_description" ]]; then
+            echo "工作描述不能為空"
+        elif [[ ${#work_description} -lt 3 ]]; then
+            echo "工作描述太短，至少需要 3 個字元"
+        elif [[ ${#work_description} -gt 50 ]]; then
+            echo "工作描述太長，最多 50 個字元"
+        elif [[ "$work_description" =~ [^a-zA-Z0-9\-_] ]]; then
+            echo "工作描述只能包含字母、數字、連字符和底線"
+        else
+            break
+        fi
+        
+        attempts=$((attempts + 1))
+        
+        if (( attempts >= max_attempts )); then
+            log_error "達到最大嘗試次數 ($max_attempts)，操作取消"
+            return 1
+        fi
+        
+        echo "(剩餘 $((max_attempts - attempts)) 次嘗試機會)"
+    done
     
     # 先自動完結上一個未完成工作
     auto_complete_previous_work "$latest_log" "$work_description"
     
     # 然後建立新的工作日誌
-    local new_log_file="docs/work-logs/${new_version}-${work_description}.md"
+    local new_log_file="$WORK_LOGS_DIR/${new_version}-${work_description}.md"
     
     log_info "建立新工作日誌: $new_log_file (版本遞增: $current_version → $new_version)"
     
-    cat > "$new_log_file" << EOF
-# ${new_version} ${work_description} 工作日誌
-
-**開發版本**: ${new_version}  
-**開發日期**: ${today}  
-**主要任務**: ${work_description}  
-**工作狀態**: 🔄 進行中  
-**開發者**: Claude Code
-
-## 🎯 工作目標與背景
-
-### 本期工作重點
-
-(請描述本期工作的主要目標和背景)
-
-## 📅 ${today} 開發記錄
-
-### 完成的工作
-
-- 
-
-### 技術實現要點
-
-- 
-
-### 遇到的問題與解決方案
-
-- 
-
-### 下一步計劃
-
-- 
-
----
-
-## 工作進度追蹤
-
-- [ ] 需求分析完成
-- [ ] 設計方案確定  
-- [ ] 核心功能實現
-- [ ] 測試驗證
-- [ ] 文件更新
-- [ ] 程式碼審查
-
----
-
-*📝 工作狀態說明: 此工作日誌記錄 ${work_description} 的開發過程，當前狀態為進行中。*
-EOF
+    # 使用共用函數產生日誌內容
+    {
+        generate_work_log_header "$new_version" "$work_description" "$today"
+        generate_daily_work_section "$today"
+        generate_progress_tracking_section
+        generate_work_log_footer "$work_description"
+    } > "$new_log_file"
 
     log_success "新工作日誌已建立: $new_log_file"
     echo ""
@@ -324,72 +655,61 @@ create_new_work_log() {
     local version="v$(get_current_project_version)"
     local today=$(date +%Y-%m-%d)
     
-    log_prompt "請輸入新工作項目的簡短描述 (例如: api-refactor, ui-enhancement):"
-    read -p "工作描述: " work_description
+    # 輸入驗證與重試機制
+    local work_description=""
+    local attempts=0
+    local max_attempts=3
     
-    if [[ -z "$work_description" ]]; then
-        log_error "工作描述不能為空"
-        return 1
-    fi
+    while (( attempts < max_attempts )); do
+        log_prompt "請輸入新工作項目的簡短描述 (例如: api-refactor, ui-enhancement):"
+        read -p "工作描述: " work_description
+        
+        # 移除前後空白
+        work_description=$(echo "$work_description" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        
+        # 驗證輸入
+        if [[ -z "$work_description" ]]; then
+            echo "工作描述不能為空"
+        elif [[ ${#work_description} -lt 3 ]]; then
+            echo "工作描述太短，至少需要 3 個字元"
+        elif [[ ${#work_description} -gt 50 ]]; then
+            echo "工作描述太長，最多 50 個字元"
+        elif [[ "$work_description" =~ [^a-zA-Z0-9\-_] ]]; then
+            echo "工作描述只能包含字母、數字、連字符和底線"
+        else
+            break
+        fi
+        
+        attempts=$((attempts + 1))
+        
+        if (( attempts >= max_attempts )); then
+            log_error "達到最大嘗試次數 ($max_attempts)，操作取消"
+            return 1
+        fi
+        
+        echo "(剩餘 $((max_attempts - attempts)) 次嘗試機會)"
+    done
     
-    local new_log_file="docs/work-logs/${version}-${work_description}.md"
+    local new_log_file="$WORK_LOGS_DIR/${version}-${work_description}.md"
     
     log_info "建立新工作日誌: $new_log_file"
     
-    cat > "$new_log_file" << EOF
-# ${version} ${work_description} 工作日誌
-
-**開發版本**: ${version}  
-**開發日期**: ${today}  
-**主要任務**: ${work_description}  
-**工作狀態**: 🔄 進行中  
-**開發者**: Claude Code
-
-## 🎯 工作目標與背景
-
-### 本期工作重點
-
-(請描述本期工作的主要目標和背景)
-
-## 📅 ${today} 開發記錄
-
-### 完成的工作
-
-- 
-
-### 技術實現要點
-
-- 
-
-### 遇到的問題與解決方案
-
-- 
-
-### 下一步計劃
-
-- 
-
----
-
-## 工作進度追蹤
-
-- [ ] 需求分析完成
-- [ ] 設計方案確定  
-- [ ] 核心功能實現
-- [ ] 測試驗證
-- [ ] 文件更新
-- [ ] 程式碼審查
-
----
-
-*📝 工作狀態說明: 此工作日誌記錄 ${work_description} 的開發過程，當前狀態為進行中。*
-EOF
+    # 使用共用函數產生日誌內容
+    {
+        generate_work_log_header "$version" "$work_description" "$today"
+        generate_daily_work_section "$today"
+        generate_progress_tracking_section
+        generate_work_log_footer "$work_description"
+    } > "$new_log_file"
 
     log_success "新工作日誌已建立: $new_log_file"
     echo ""
     log_info "請編輯該檔案並填入具體的工作內容"
     
     echo "$new_log_file"
+    
+    # 更新 todolist.md 版本資訊
+    update_todolist_version
 }
 
 # 更新現有工作日誌
@@ -406,7 +726,8 @@ update_existing_work_log() {
     fi
     
     # 在檔案中新增今日記錄
-    local temp_file=$(mktemp)
+    local temp_file
+    temp_file=$(create_temp_file) || return 1
     local inserted=false
     
     while IFS= read -r line; do
@@ -415,49 +736,14 @@ update_existing_work_log() {
         # 尋找適當位置插入今日記錄
         if [[ "$line" =~ ^## && "$inserted" == "false" ]]; then
             # 在第一個 ## 標題前插入今日記錄
-            cat >> "$temp_file" << EOF
-
-## 📅 ${today} 開發記錄
-
-### 完成的工作
-
-- (請填入今日完成的具體工作內容)
-
-### 技術實現要點
-
-- (請填入重要的技術實現細節)
-
-### 遇到的問題與解決方案
-
-- (請記錄遇到的問題和解決方案)
-
----
-
-EOF
+            generate_daily_work_section "$today" >> "$temp_file"
             inserted=true
         fi
     done < "$log_file"
     
     # 如果沒有找到合適位置，在檔案末尾新增
     if [[ "$inserted" == "false" ]]; then
-        cat >> "$temp_file" << EOF
-
-## 📅 ${today} 開發記錄
-
-### 完成的工作
-
-- (請填入今日完成的具體工作內容)
-
-### 技術實現要點
-
-- (請填入重要的技術實現細節)
-
-### 遇到的問題與解決方案
-
-- (請記錄遇到的問題和解決方案)
-
----
-EOF
+        generate_daily_work_section "$today" >> "$temp_file"
     fi
     
     mv "$temp_file" "$log_file"
@@ -480,7 +766,7 @@ auto_complete_previous_work() {
     log_info "當前工作議題: $current_topic"
     
     # 更新上一個工作日誌的狀態
-    sed -i.bak "s/\*\*工作狀態\*\*.*$/\*\*工作狀態\*\*: ⚠️ 未完成 (議題切換自動結案)/" "$previous_log"
+    sed -i.bak "s/\*\*工作狀態\*\*.*$/\*\*工作狀態\*\*: $WORK_STATUS_INCOMPLETE/" "$previous_log"
     
     # 新增自動結案說明
     cat >> "$previous_log" << EOF
@@ -522,7 +808,7 @@ add_todo_incomplete_work_check() {
     
     log_info "新增未完成工作檢查項目到 todolist.md"
     
-    local todolist_file="docs/todolist.md"
+    local todolist_file="$TODOLIST_FILE"
     local work_log_basename=$(basename "$work_log_file")
     
     # 檢查 todolist.md 是否存在
@@ -547,9 +833,13 @@ add_todo_incomplete_work_check() {
 
 EOF
     else
+        # 先更新版本資訊
+        update_todolist_version
+        
         # 在現有 todolist.md 中新增檢查項目
         # 尋找合適的位置插入（在第一個 ## 標題後）
-        local temp_file=$(mktemp)
+        local temp_file
+        temp_file=$(create_temp_file) || return 1
         local inserted=false
         
         while IFS= read -r line; do
@@ -602,7 +892,7 @@ complete_current_work_log() {
     log_info "為當前工作日誌新增完成總結: $log_file"
     
     # 更新工作狀態
-    sed -i.bak "s/\*\*工作狀態\*\*.*$/\*\*工作狀態\*\*: ✅ 已完成/" "$log_file"
+    sed -i.bak "s/\*\*工作狀態\*\*.*$/\*\*工作狀態\*\*: $WORK_STATUS_COMPLETED/" "$log_file"
     
     # 新增完成總結區塊
     cat >> "$log_file" << EOF
@@ -638,6 +928,10 @@ complete_current_work_log() {
 EOF
 
     log_success "已新增工作完成總結"
+    
+    # 更新 todolist.md 版本資訊
+    update_todolist_version
+    
     echo ""
     log_warning "⚠️  請務必填寫完成總結的具體內容"
     log_info "💡 下次提交時系統將自動建立新的工作日誌"
@@ -645,10 +939,16 @@ EOF
 
 # 主執行函數
 main() {
-    log_info "工作日誌自動化管理系統"
+    # 首先檢查依賴
+    if ! check_dependencies; then
+        log_error "環境檢查失敗，請安裝缺少的依賴後重新執行"
+        exit 1
+    fi
+    
+    log_info "工作日誌管理系統"
     echo ""
     # 必讀文件提示：程式碼品質範例彙編
-    local examples_file="docs/claude/code-quality-examples.md"
+    local examples_file="$EXAMPLES_FILE"
     if [[ -f "$examples_file" ]]; then
         log_prompt "📚 建議：提交或切換工作前，快速瀏覽 $examples_file 對齊命名、路徑與五事件評估"
     else
@@ -715,6 +1015,6 @@ main() {
 }
 
 # 如果直接執行腳本則執行 main 函數
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+if [[ "${BASH_SOURCE[0]:-}" == "${0}" ]]; then
     main "$@"
 fi
