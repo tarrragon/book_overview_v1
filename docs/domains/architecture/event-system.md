@@ -1453,12 +1453,7 @@ test('事件系統統計追蹤', async () => {
 
 ## 🧩 v2 版本沿革與實作摘要
 
-本節彙整 v2 系列文件的核心決策與做法，完整細節請參考歷史文件（已標註為 Superseded）：
-
-- `event-system-v2-naming-upgrade-strategy.md`
-- `event-system-v2-expansion.md`
-- `event-system-v2-integration-testing-strategy.md`
-- `event-system-v2-implementation-summary.md`
+本節彙整 v2 系列文件的核心決策與做法。歷史 v2* 文件已標註為「Superseded」，**請以本節內容為準**。
 
 ### 命名升級摘要（DOMAIN.PLATFORM.ACTION.STATE）
 

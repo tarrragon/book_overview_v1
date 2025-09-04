@@ -366,4 +366,12 @@
 
 ---
 
-**備註**: 這些 Use Cases 涵蓋了系統的核心功能和主要使用場景。每個 Use Case 都應該有對應的測試案例來驗證實現的正確性。
+**備註**: 這些 Use Cases 涵蓋了系統的核心功能和主要使用場景。每個 Use Case 都應該有對應的測試案例來驗證實現的正確性。若本文件與主規格不一致，**以主規格為準**。
+
+---
+
+## 相關規範與連結
+
+- 主規格（錯誤處理）：`./domains/architecture/error-handling-standardization-plan.md`
+- 事件驅動架構：`./claude/event-driven-architecture.md`
+- 術語字典：`./claude/terminology-dictionary.md`

@@ -321,10 +321,9 @@ const suggestions = eventTypes.suggestCorrections('INVALID.EVENT.NAME')
 
 ## 📚 相關文件
 
-### 策略文件
+### 策略文件（以主文件為準）
 
-- `docs/architecture/event-system-v2-naming-upgrade-strategy.md`
-- `docs/architecture/readmoo-migration-validation-plan.md`
+- `./event-system.md#v2-版本沿革與實作摘要`
 
 ### 工作日誌
 

@@ -1,5 +1,7 @@
 # 錯誤處理區域索引
 
+> 備註：本區所有內容 **以主規格為準**：`../architecture/error-handling-standardization-plan.md`
+
 ## 建議閱讀順序
 
 1. [../architecture/error-handling-standardization-plan.md](../architecture/error-handling-standardization-plan.md)

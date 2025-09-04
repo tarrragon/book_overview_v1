@@ -77,7 +77,7 @@
 
 ### 🔁 資料流管理
 
-```
+```text
 使用者觸發 → 事件發布 → 資料提取 → 資料處理 → 儲存更新 → UI 更新
      │              │             │             │             │            │
   Popup Click  → EXTRACT.START → DOM Analysis → Data Format → Chrome API → Component
@@ -226,7 +226,7 @@ test(export): add CSV export integration tests
 - **feature/\*** - 個別功能開發分支
 - **hotfix/\*** - 緊急修復分支
 
-🔍 **詳細開發規範請參考**: [CONTRIBUTING.md](./CONTRIBUTING.md)
+🔍 **錯誤處理主規格請參考**: [錯誤處理標準化方案](./domains/architecture/error-handling-standardization-plan.md)
 
 ## 🗺️ 規劃中 Roadmap 與未來展望
 
@@ -316,13 +316,15 @@ test(export): add CSV export integration tests
 ### 📝 技術決策記錄
 
 - **[📝 依賴注入債務分析](./domains/architecture/dependency-injection-debt-analysis.md)**
-- **[🔄 重構執行計劃](./domains/architecture/refactoring-execution-plan.md)**
 - **[🚀 效能優化報告](./domains/performance/performance-optimization-report.md)**
 
 ### 📋 開發管理文件
 
 - **[⚙️ 開發環境設置](./domains/deployment/DEPLOYMENT.md)** - 本地開發和 CI/CD 配置
 - **[🐛 用戶錯誤指南](./domains/error-handling/USER_ERROR_GUIDE.md)** - 常見問題診斷和解決
+- **[🛡️ 錯誤處理標準化方案](./domains/architecture/error-handling-standardization-plan.md)** - 錯誤處理與文字管理主規格
+
+> 備註：若本文件或其他子文件與上述「錯誤處理標準化方案」敘述不一致，**一律以主規格為準**。
 
 ---
 
@@ -332,12 +334,8 @@ test(export): add CSV export integration tests
 
 ---
 
-<div align="center">
-
 [🐛 GitHub Issues](https://github.com/your-username/readmoo-book-manager/issues) •
 [💡 Feature Requests](https://github.com/your-username/readmoo-book-manager/discussions) •
 [📚 API 文件](./domains/api/API.md)
 
 ---
-
-</div>
