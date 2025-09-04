@@ -1,28 +1,31 @@
 /**
  * 統一操作結果格式
- * 
+ *
  * 設計目標：
  * - 標準化成功/失敗回應格式，取代字串比對測試
  * - 處理時間 < 0.5ms
  * - 支援序列化以便於 Chrome Extension 跨環境傳遞
  * - 提供結構化驗證方法
- * 
+ *
  * @example
  * // 成功結果
  * const result = OperationResult.success({ books: [] })
  * if (result.success) { console.log(result.data) }
- * 
- * // 失敗結果  
+ *
+ * // 失敗結果
  * const error = new StandardError('VALIDATION_FAILED', '驗證失敗')
  * const result = OperationResult.failure(error)
  * if (!result.success) { console.log(result.error.message) }
  */
 
 // 條件性引入，支援瀏覽器和 Node.js 環境
-let StandardError
+let StandardError, OperationStatus, ErrorTypes
 if (typeof require !== 'undefined') {
   try {
     StandardError = require('./StandardError').StandardError
+    const { OperationStatus: OpStatus, ErrorTypes: ErrTypes } = require('../enums')
+    OperationStatus = OpStatus
+    ErrorTypes = ErrTypes
   } catch (e) {
     // 瀏覽器環境或引入失敗時，假設 StandardError 已全域可用
   }
@@ -34,42 +37,61 @@ class OperationResult {
    * @param {boolean} success - 操作是否成功
    * @param {any} data - 成功時的資料
    * @param {StandardError} error - 失敗時的錯誤物件
+   * @param {string} status - 操作狀態 (使用 OperationStatus 枚舉)
+   * @param {Object} metadata - 附加元數據
    */
-  constructor(success, data = null, error = null) {
+  constructor (success, data = null, error = null, status = null, metadata = {}) {
     this.success = success
     this.data = data
     this.error = error
-    this.timestamp = Date.now()
+    this.status = status || (success ? OperationStatus?.SUCCESS || 'SUCCESS' : OperationStatus?.FAILED || 'FAILED')
+    this.metadata = {
+      timestamp: Date.now(),
+      requestId: this._generateRequestId(),
+      version: '1.0.0',
+      ...metadata
+    }
+    // 保持向後相容性
+    this.timestamp = this.metadata.timestamp
   }
-  
+
+  /**
+   * 生成請求 ID
+   * @private
+   * @returns {string} 唯一請求 ID
+   */
+  _generateRequestId () {
+    return `req_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
+  }
+
   /**
    * 建立成功結果的快速方法
    * @param {any} data - 成功的資料
    * @returns {OperationResult} 成功結果物件
    */
-  static success(data = null) {
+  static success (data = null) {
     return new OperationResult(true, data, null)
   }
-  
+
   /**
    * 建立失敗結果的快速方法
    * @param {Error|StandardError} error - 錯誤物件
    * @returns {OperationResult} 失敗結果物件
    */
-  static failure(error) {
+  static failure (error) {
     // 確保錯誤是 StandardError 格式
     let standardError
-    
+
     if (error instanceof StandardError) {
       standardError = error
     } else if (error instanceof Error) {
       // 將普通 JavaScript Error 轉換為 StandardError
       standardError = new StandardError(
-        'UNKNOWN_ERROR', 
+        'UNKNOWN_ERROR',
         error.message || 'Unknown error',
-        { 
+        {
           originalError: error.toString(),
-          stack: error.stack 
+          stack: error.stack
         }
       )
     } else if (typeof error === 'string') {
@@ -78,71 +100,78 @@ class OperationResult {
     } else {
       // 其他類型轉換為 StandardError
       standardError = new StandardError(
-        'UNKNOWN_ERROR', 
+        'UNKNOWN_ERROR',
         'Unknown error occurred',
         { originalError: error }
       )
     }
-    
+
     return new OperationResult(false, null, standardError)
   }
-  
-  
+
   /**
    * 如果失敗則拋出異常（用於必須成功的場景）
    * @throws {Error} 當結果為失敗時拋出異常
    * @returns {any} 成功時的資料
    */
-  throwIfFailure() {
+  throwIfFailure () {
     if (!this.success && this.error) {
       throw new Error(`Operation failed: ${this.error.message} (${this.error.code})`)
     }
     return this.data
   }
-  
+
   /**
-   * 轉換為 JSON 格式（支援 Chrome Extension 跨環境傳遞）
+   * 轉換為 JSON 格式（符合規劃文件的統一回應格式）
    * @returns {Object} JSON 可序列化的物件
    */
-  toJSON() {
+  toJSON () {
     return {
       success: this.success,
       data: this.data,
       error: this.error ? this.error.toJSON() : null,
-      timestamp: this.timestamp
+      status: this.status,
+      metadata: this.metadata
     }
   }
-  
+
   /**
    * 從 JSON 建立 OperationResult 物件
    * @param {Object} json - JSON 物件
    * @returns {OperationResult} OperationResult 實例
    */
-  static fromJSON(json) {
+  static fromJSON (json) {
     if (!json || typeof json !== 'object') {
       throw new Error('Invalid JSON data for OperationResult.fromJSON')
     }
-    
+
     let error = null
     if (json.error) {
       error = StandardError.fromJSON(json.error)
     }
-    
-    const result = new OperationResult(json.success, json.data, error)
-    
-    // 恢復原始的 timestamp
-    if (json.timestamp) {
+
+    const result = new OperationResult(
+      json.success,
+      json.data,
+      error,
+      json.status,
+      json.metadata || {}
+    )
+
+    // 向後相容性：支援舊格式的 timestamp
+    if (json.timestamp && !json.metadata?.timestamp) {
+      result.metadata.timestamp = json.timestamp
       result.timestamp = json.timestamp
     }
-    
+
     return result
   }
-  
+
   /**
    * 將操作結果轉換為 v1 相容格式
    * @returns {Object} v1 相容格式的結果物件
    */
-  toV1Format() {
+  toV1Format () {
     if (this.success) {
       return {
         success: true,
@@ -157,12 +186,12 @@ class OperationResult {
       }
     }
   }
-  
+
   /**
    * 轉換為字串表示
    * @returns {string} 結果的字串表示
    */
-  toString() {
+  toString () {
     if (this.success) {
       return `OperationResult: Success (${this.data ? 'with data' : 'no data'})`
     } else {

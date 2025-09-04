@@ -30,6 +30,10 @@
 
 const crypto = require('crypto')
 
+// 引入新的錯誤類別系統
+const { BookValidationError } = require('../../../core/errors/BookValidationError')
+const { StandardError } = require('../../../core/errors/StandardError')
+
 class DataValidationService {
   constructor (eventBus, config = {}) {
     this._validateConstructorInputs(eventBus, config)
@@ -1805,20 +1809,20 @@ class DataValidationService {
    */
   _validateInputs (books, platform, source) {
     if (books === null || books === undefined) {
-      throw new Error('書籍資料為必要參數')
+      throw BookValidationError.missingFields({ title: '未知書籍' }, ['書籍資料'])
     }
 
     if (!Array.isArray(books)) {
-      throw new Error('書籍資料必須是陣列')
+      throw BookValidationError.invalidFormat({ title: '書籍集合' }, 'books', 'Array')
     }
 
     // 空陣列是合法輸入，不拋出錯誤 - 由調用方處理
     // if (books.length === 0) {
-    //   throw new Error('書籍資料不能為空')
+    //   throw BookValidationError.create({ title: '書籍集合' }, '書籍資料不能為空')
     // }
 
     if (!platform || typeof platform !== 'string' || platform.trim() === '') {
-      throw new Error('平台名稱不能為空')
+      throw new StandardError('PLATFORM_VALIDATION_ERROR', '平台名稱不能為空', { platform })
     }
   }
 
