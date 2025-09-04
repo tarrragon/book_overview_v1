@@ -647,6 +647,14 @@ EOF
 main() {
     log_info "工作日誌自動化管理系統"
     echo ""
+    # 必讀文件提示：程式碼品質範例彙編
+    local examples_file="docs/guidelines/code-quality-examples.md"
+    if [[ -f "$examples_file" ]]; then
+        log_prompt "📚 建議：提交或切換工作前，快速瀏覽 $examples_file 對齊命名、路徑與五事件評估"
+    else
+        log_warning "未找到必讀範例文件：$examples_file，請確認是否被移除或路徑變更"
+    fi
+    echo ""
     
     # 獲取最新工作日誌
     local latest_log=$(get_latest_work_log)

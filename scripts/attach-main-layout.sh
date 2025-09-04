@@ -116,6 +116,7 @@ check_pane0_status() {
         echo "   - docs/workflows/agent-collaboration.md"
         echo "   - docs/project/chrome-extension-specs.md" 
         echo "   - docs/architecture/event-driven-architecture.md"
+        echo "   - docs/guidelines/code-quality-examples.md"
         echo ""
         echo "3. 執行 '/startup-check' 進行完整檢查"
     else

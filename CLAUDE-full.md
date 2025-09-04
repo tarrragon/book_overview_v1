@@ -1456,19 +1456,20 @@ const ReadmooAdapter = require('/Users/tarragon/Projects/book_overview_v1/src/co
 - 新增程式碼如使用相對深度路徑，該 commit 不得通過程式碼審查
 - 路徑不清晰會導致domain結構模糊，嚴重影響程式碼可維護性和除錯效率
 
-#### Five Lines 規則與單一責任原則
+#### 五事件評估準則與單一責任原則
 
-**Five Lines 規則 (強制要求)**:
+**五事件評估準則（非硬性上限）**:
 
-- 每個方法不應超過5行程式碼，排除大括號 `{` 和 `}`
-- 一行指任何以分號結尾的語句：if、for、while、賦值、方法呼叫、return等
-- 空白行和大括號不計算在內
+- 本專案採事件驅動；函式或類別可協調多個事件/子作業以達成目標。「5」為責任複雜度的警示值，不是硬性行數限制。
+- 若一個單元直接協調「超過五個」離散事件、外部依賴或協作者，請檢查是否：a) 職責過於臃腫、b) 命名未對齊行為、c) 應拆分為較小角色或引入協調器。
+- 評估面向：事件（或步驟）數量、分支層級、外部依賴數、狀態轉換次數；任一過高皆應發出重構信號。
+- 行動指引：提煉私有輔助函式/子服務；必要時引入協調器以維持公開 API 的單一句意。
 
 **單一職責原則**:
 
-- 每個函數只負責一個明確定義的功能
+- 每個函數/類別只負責一個明確定義的功能
 - 判斷責任範圍：如需用"和"或"或"描述功能，必須拆分
-- 函數命名必須清楚表達其單一職責和行為目的
+- 函數/類別命名必須清楚表達其單一職責和行為目的
 
 #### 重構專屬原則
 
@@ -1506,6 +1507,11 @@ const ReadmooAdapter = require('/Users/tarragon/Projects/book_overview_v1/src/co
 - 函數名稱以動詞開頭 (如: calculateTotal, validateInput)
 - 變數名稱使用名詞 (如: userProfile, paymentAmount)
 - 布林變數使用 is, has, can 前綴 (如: isValid, hasPermission)
+- 類別（Class）命名採 PascalCase，格式建議：`<Domain><核心概念><角色>`（例如：`ReadmooCatalogService`、`OverviewPageController`）。
+- 檔案命名採 `feature.type.js`（kebab-case + 角色後綴），一檔一類；例：`readmoo-catalog.service.js` 對應 `ReadmooCatalogService`。
+- 資料夾（Domain）採 kebab-case，需能單看路徑理解責任（domain-oriented path）；禁止相對深度匯入。
+
+參考範例：`docs/guidelines/code-quality-examples.md`
 
 **文件規範**:
 

@@ -61,6 +61,7 @@
   - [ ] docs/workflows/agent-collaboration.md
   - [ ] docs/project/chrome-extension-specs.md
   - [ ] docs/architecture/event-driven-architecture.md
+  - [ ] docs/guidelines/code-quality-examples.md
 - [ ] 檢查 todolist.md 當前狀態和優先級
 
 #### 4. 開發狀態確認
@@ -230,6 +231,7 @@ tmux new-session -s main_layout
 - [🚨 違規警報與預防](docs/guidelines/violation-prevention.md)
 - [📋 關鍵情境決策流程](docs/guidelines/decision-workflows.md)
 - [🔍 自我監控與糾錯機制](docs/guidelines/self-monitoring.md)
+- [🧭 程式碼品質範例彙編](docs/guidelines/code-quality-examples.md)
 
 ---
 
@@ -351,18 +353,55 @@ tmux new-session -s main_layout
 
 ### 程式碼品質規範
 
-**檔案路徑規範 (強制要求)**:
-- **完整路徑名稱**: 每個資料夾都明確寫出實際名稱，讓domain結構一目了然
-- **禁止相對深度**: 絕不使用 `../../../` 等相對深度計算方式
+**語意化命名與單一句意原則**:
+- 每個函式必須能以「一句話」清楚描述其目的與產出；無法以一句話表述時，優先檢視是否需「拆分職責」或「調整命名」。
+- 函式名稱以動詞開頭，直接揭示行為與意圖；看到名稱即可推測輸入、輸出與副作用範圍。
+- 變數名稱使用名詞，表意單一且不含糊；布林變數使用 `is`、`has`、`can` 前綴。
+- 一致性：遵循專案既定命名風格與用語，避免非必要縮寫。
 
-**Five Lines 規則**:
-- 每個方法不應超過5行程式碼
-- 重構階段秉持Five Lines規則和單一職責原則進行拆分
+範例：請見 `docs/guidelines/code-quality-examples.md`
 
-**命名規範**:
-- 函數名稱以動詞開頭 (如: calculateTotal, validateInput)
-- 變數名稱使用名詞 (如: userProfile, paymentAmount)
-- 布林變數使用 is, has, can 前綴
+**檔案路徑語意規範（強制）**:
+- 路徑需可「單看就理解」來源模組、功能核心與責任邊界（domain-oriented path）。
+- **完整路徑名稱**：資料夾名稱需具體表意，讓 domain 結構一目了然。
+- **禁止相對深度**：絕不使用 `../../../` 等相對深度計算方式。
+- 匯入時以功能域為單位組織依賴，避免路徑語意與實際責任不一致。
+
+範例：請見 `docs/guidelines/code-quality-examples.md`
+
+**五事件評估準則（非硬性上限）**:
+- 本專案採事件驅動；函式可協調多個事件/子作業以達成目標。「5」為責任複雜度的警示值，不是硬性行數限制。
+- 若函式內直接協調「超過五個」離散事件或明確步驟，請檢查是否：a) 職責過於臃腫、b) 函式名稱未準確對齊行為、c) 應拆分為多個較小函式或委派至協調器。
+- 評估面向：事件（或步驟）數量、分支層級、外部依賴數、狀態轉換次數；任一過高皆應發出重構信號。
+- 行動指引：提煉私有輔助函式以維持公開 API 的單一句意；必要時引入事件總線/協調器拆分責任，確保函式名稱與實際行為保持一致。
+
+範例：請見 `docs/guidelines/code-quality-examples.md`
+
+**類別命名規範（Class）**:
+- 命名採 PascalCase，格式建議：`<Domain><核心概念><角色/類型>`（例如：`ReadmooCatalogService`、`OverviewPageController`、`StandardError`）。
+- 角色/類型常用後綴：`Service`、`Controller`、`Repository`、`Adapter`、`Coordinator`、`Factory`、`Validator`。
+- 單一句意原則：類別名稱必須讓讀者立即理解責任邊界與用途；避免含糊名稱如 `Utils`、`Helper`（除非在該 domain 下有明確職責）。
+- 位置與名稱對齊：類別應放在對應的 domain 路徑下，類別名稱與路徑語意一致（見「檔案路徑語意規範」）。
+- 公開 API 範圍最小化：只暴露必要的公開方法，其餘以私有方法維持內聚。
+
+**檔案與資料夾命名（File/Domain）**:
+- 檔案命名沿用 `docs/README.md` 規範：`feature.type.js`（例如：`book-extractor.handler.js`）。
+- 類別導向檔案：建議一檔一類；檔名以 kebab-case 對應類別語意與角色（例如：`readmoo-catalog.service.js` 對應 `ReadmooCatalogService`）。
+- 資料夾（Domain）採 kebab-case，依功能域劃分；單看路徑即可理解來源與責任（domain-oriented path）。
+- 聚合匯出使用 `index.js` 僅作 barrel；避免在 `index.js` 混合過多邏輯。
+- 匯入寫法需避免相對深度，改用語意化根路徑（見「檔案路徑語意規範」）。
+
+**類別/單檔複雜度拆分準則**:
+- 五協作者/五事件警示：若單一類別或檔案直接協調的事件、外部依賴、協作者超過 5，需檢討是否職責臃腫或命名不符，考慮拆分或引入協調器。
+- 公開方法數警示：公開方法數 > 5 應評估拆分為更聚焦的角色（如 `Validator`、`Repository`、`Coordinator`）。
+- 匯出數警示：單一檔案匯出（default + named）> 3 應評估分檔或聚合至 barrel。
+- 控制流程警示：巢狀層級 > 3、跨域依賴過多、狀態轉換複雜時，優先降低協作面或抽出子模組。
+- 行動指引：
+  - 提煉子服務：把驗證、轉換、存取層抽為專責類別/模組。
+  - 引入協調器：以 `Coordinator` 組裝多個專職服務，維持單一句意的公開 API。
+  - 調整命名：讓名稱與實際責任對齊，避免名不副實導致誤用。
+
+範例：請見 `docs/guidelines/code-quality-examples.md`
 
 ---
 

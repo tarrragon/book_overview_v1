@@ -203,12 +203,17 @@ npm run lint:fix
 
 ### 程式碼撰寫規範
 
-#### 命名規則
+#### 命名與結構規則（統一標準）
 
-- **變數和函數**: camelCase (`getUserData`)
-- **常數**: UPPER_SNAKE_CASE (`MAX_RETRY_COUNT`)
-- **類別**: PascalCase (`BookDataExtractor`)
-- **檔案**: kebab-case (`book-data-extractor.js`)
+- **變數與函式**: camelCase（例：`getUserData`）
+- **常數**: UPPER_SNAKE_CASE（例：`MAX_RETRY_COUNT`）
+- **類別（Class）**: PascalCase，格式建議 `<Domain><核心概念><角色>`（例：`ReadmooCatalogService`, `OverviewPageController`）
+- **檔案（File）**: `feature.type.js`（kebab-case + 角色後綴，例：`readmoo-catalog.service.js` → `ReadmooCatalogService`），一檔一類為優先
+- **資料夾（Domain）**: kebab-case，必須能單看路徑理解來源與責任（domain-oriented path）
+- **匯入路徑**: 禁止相對深度（如 `../../../`），使用語意化根路徑；參考 `CLAUDE.md` 的「檔案路徑語意規範」
+- **複雜度拆分**: 採「五事件/協作者」為警示值（非硬性上限）；公開方法>5、匯出>3、巢狀>3、跨域依賴過多皆需評估拆分
+
+參考範例：`docs/guidelines/code-quality-examples.md`
 
 #### 函數設計原則
 

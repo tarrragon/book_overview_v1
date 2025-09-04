@@ -175,6 +175,13 @@
 - **函式命名**: 動詞開頭的駝駝式 (e.g., `extractBookData`, `handleStorageEvent`)
 - **變數命名**: 名詞或算子語句 (e.g., `bookList`, `isExtracting`)
 
+#### 類別/檔案/Domain 命名與路徑語意（擴充）
+
+- **類別（Class）**: PascalCase，建議 `<Domain><核心概念><角色>`（如 `ReadmooCatalogService`, `OverviewPageController`）
+- **檔案（File）**: `feature.type.js`（kebab-case + 角色後綴；一檔一類優先，例：`readmoo-catalog.service.js`）
+- **資料夾（Domain）**: kebab-case；單看路徑能理解來源與責任；禁止 `../../../` 相對深度，使用語意化根路徑
+- 範例彙編：見 `docs/guidelines/code-quality-examples.md`
+
 #### 注釋與文件
 
 - **檔案標頭** - 每個 JS 檔案都必須有此檔案的目的、功能、依賴關係
