@@ -44,11 +44,11 @@ try {
 console.log('\n📝 測試 OperationResult...')
 try {
   const successResult = OperationResult.success({ count: 5 })
-  console.log(`✅ OperationResult 成功結果: isSuccess=${successResult.isSuccess}, data.count=${successResult.data.count}`)
+  console.log(`✅ OperationResult 成功結果: success=${successResult.success}, data.count=${successResult.data.count}`)
   
   const error = new StandardError('FAIL_TEST', '失敗測試')
   const failureResult = OperationResult.failure(error)
-  console.log(`✅ OperationResult 失敗結果: isFailure=${failureResult.isFailure}, error.code=${failureResult.error.code}`)
+  console.log(`✅ OperationResult 失敗結果: !success=${failureResult.!success}, error.code=${failureResult.error.code}`)
   
   // 測試普通 Error 轉換
   const jsError = new Error('JavaScript error')
@@ -145,7 +145,7 @@ try {
   // 使用錯誤處理包裝
   const result = await ErrorHelper.tryOperation(simulateBookExtraction, 'BOOK_EXTRACTION_FAILED')
   
-  if (result.isSuccess) {
+  if (result.success) {
     logger.info('BOOK_EXTRACTION_COMPLETE', { count: result.data.length })
     console.log(`✅ 整合測試成功: 提取了 ${result.data.length} 本書`)
   } else {

@@ -10,12 +10,12 @@
  * @example
  * // 成功結果
  * const result = OperationResult.success({ books: [] })
- * if (result.isSuccess) { console.log(result.data) }
+ * if (result.success) { console.log(result.data) }
  * 
  * // 失敗結果  
  * const error = new StandardError('VALIDATION_FAILED', '驗證失敗')
  * const result = OperationResult.failure(error)
- * if (result.isFailure) { console.log(result.error.message) }
+ * if (!result.success) { console.log(result.error.message) }
  */
 
 // 條件性引入，支援瀏覽器和 Node.js 環境
@@ -87,21 +87,6 @@ class OperationResult {
     return new OperationResult(false, null, standardError)
   }
   
-  /**
-   * 檢查是否成功
-   * @returns {boolean} 是否成功
-   */
-  get isSuccess() {
-    return this.success === true
-  }
-  
-  /**
-   * 檢查是否失敗
-   * @returns {boolean} 是否失敗
-   */
-  get isFailure() {
-    return this.success === false
-  }
   
   /**
    * 如果失敗則拋出異常（用於必須成功的場景）
@@ -109,7 +94,7 @@ class OperationResult {
    * @returns {any} 成功時的資料
    */
   throwIfFailure() {
-    if (this.isFailure && this.error) {
+    if (!this.success && this.error) {
       throw new Error(`Operation failed: ${this.error.message} (${this.error.code})`)
     }
     return this.data
@@ -154,11 +139,11 @@ class OperationResult {
   }
   
   /**
-   * 將操作結果轉換為舊格式（向下相容）
-   * @returns {Object} 舊格式的結果物件
+   * 將操作結果轉換為 v1 相容格式
+   * @returns {Object} v1 相容格式的結果物件
    */
-  toLegacyFormat() {
-    if (this.isSuccess) {
+  toV1Format() {
+    if (this.success) {
       return {
         success: true,
         data: this.data
@@ -178,7 +163,7 @@ class OperationResult {
    * @returns {string} 結果的字串表示
    */
   toString() {
-    if (this.isSuccess) {
+    if (this.success) {
       return `OperationResult: Success (${this.data ? 'with data' : 'no data'})`
     } else {
       return `OperationResult: Failure - ${this.error ? this.error.toString() : 'Unknown error'}`

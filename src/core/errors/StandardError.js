@@ -41,60 +41,30 @@ class StandardError {
   
   /**
    * 生成唯一識別碼
-   * 在時間異常時提供後備機制
    * @private
    * @returns {string} 唯一識別碼
    */
   _generateId() {
-    try {
-      const timestamp = Date.now()
-      const random = Math.random().toString(36).substr(2, 9)
-      return `err_${timestamp}_${random}`
-    } catch (error) {
-      // 時間異常時的後備機制
-      const fallbackRandom = Math.random().toString(36).substr(2, 15)
-      return `err_fallback_${fallbackRandom}`
-    }
+    const timestamp = Date.now()
+    const random = Math.random().toString(36).slice(2, 11)
+    return `err_${timestamp}_${random}`
   }
   
   /**
-   * 安全複製物件，避免循環參照問題
+   * 安全複製物件，簡化版本
    * @private
    * @param {Object} obj - 要複製的物件
-   * @param {Set} visited - 已訪問的物件集合
    * @returns {Object} 安全的物件複製
    */
-  _safeClone(obj, visited = new Set()) {
-    // 避免循環參照
-    if (visited.has(obj)) {
-      return '[Circular Reference]'
-    }
-    
+  _safeClone(obj) {
     if (obj === null || typeof obj !== 'object') {
       return obj
     }
     
-    visited.add(obj)
-    
     try {
-      const clone = Array.isArray(obj) ? [] : {}
-      
-      for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
-          // 限制嵌套深度為5層
-          if (visited.size <= 5) {
-            clone[key] = this._safeClone(obj[key], visited)
-          } else {
-            clone[key] = '[Max Depth Reached]'
-          }
-        }
-      }
-      
-      visited.delete(obj)
-      return clone
+      return JSON.parse(JSON.stringify(obj))
     } catch (error) {
-      visited.delete(obj)
-      return '[Clone Error]'
+      return '[Serialization Error]'
     }
   }
   

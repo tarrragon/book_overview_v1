@@ -32,8 +32,8 @@ describe('OperationResult 核心功能', () => {
     
     // Then: 驗證成功結果結構
     expect(result.success).toBe(true)
-    expect(result.isSuccess).toBe(true)
-    expect(result.isFailure).toBe(false)
+    expect(result.success).toBe(true)
+    expect(result.!success).toBe(false)
     expect(result.data).toEqual(testData)
     expect(result.error).toBeNull()
     expect(result.timestamp).toBe(1693747200000)
@@ -48,8 +48,8 @@ describe('OperationResult 核心功能', () => {
     
     // Then: 驗證失敗結果結構
     expect(result.success).toBe(false)
-    expect(result.isFailure).toBe(true)
-    expect(result.isSuccess).toBe(false)
+    expect(result.!success).toBe(true)
+    expect(result.success).toBe(false)
     expect(result.data).toBeNull()
     expect(result.error).toBe(standardError)
   })
@@ -258,13 +258,13 @@ describe('OperationResult 序列化功能', () => {
 })
 
 describe('OperationResult 向下相容功能', () => {
-  test('toLegacyFormat應該提供舊格式的成功結果', () => {
+  test('toV1Format應該提供舊格式的成功結果', () => {
     // Given: 成功結果
     const testData = { books: [] }
     const result = OperationResult.success(testData)
     
     // When: 轉換為舊格式
-    const legacy = result.toLegacyFormat()
+    const legacy = result.toV1Format()
     
     // Then: 驗證舊格式
     expect(legacy).toEqual({
@@ -273,13 +273,13 @@ describe('OperationResult 向下相容功能', () => {
     })
   })
   
-  test('toLegacyFormat應該提供舊格式的失敗結果', () => {
+  test('toV1Format應該提供舊格式的失敗結果', () => {
     // Given: 失敗結果
     const error = new StandardError('LEGACY_ERROR', '舊格式錯誤', { field: 'test' })
     const result = OperationResult.failure(error)
     
     // When: 轉換為舊格式
-    const legacy = result.toLegacyFormat()
+    const legacy = result.toV1Format()
     
     // Then: 驗證舊格式
     expect(legacy).toEqual({
@@ -290,12 +290,12 @@ describe('OperationResult 向下相容功能', () => {
     })
   })
   
-  test('toLegacyFormat應該處理無錯誤物件的失敗結果', () => {
+  test('toV1Format應該處理無錯誤物件的失敗結果', () => {
     // Given: 無錯誤物件的失敗結果（直接建構）
     const result = new OperationResult(false, null, null)
     
     // When: 轉換為舊格式
-    const legacy = result.toLegacyFormat()
+    const legacy = result.toV1Format()
     
     // Then: 應該提供預設值
     expect(legacy).toEqual({
@@ -321,7 +321,7 @@ describe('OperationResult 效能測試', () => {
     
     // Then: 建立時間應該小於0.5ms
     expect(durationMs).toBeLessThan(0.5)
-    expect(result.isSuccess).toBe(true)
+    expect(result.success).toBe(true)
   })
   
   test('錯誤轉換應該在合理時間內完成', () => {
@@ -338,7 +338,7 @@ describe('OperationResult 效能測試', () => {
     
     // Then: 轉換時間應該合理
     expect(durationMs).toBeLessThan(2) // 2ms內
-    expect(result.isFailure).toBe(true)
+    expect(result.!success).toBe(true)
     expect(result.error).toBeInstanceOf(StandardError)
   })
 })

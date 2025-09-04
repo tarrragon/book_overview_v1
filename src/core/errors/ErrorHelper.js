@@ -114,15 +114,8 @@ class ErrorHelper {
    * @returns {StandardError} 書庫錯誤物件
    */
   static createBookLibraryError(stage, message, details = {}) {
-    const codeMap = {
-      extraction: 'BOOK_EXTRACTION_FAILED',
-      sync: 'BOOK_SYNC_FAILED',
-      update: 'BOOK_UPDATE_FAILED',
-      classification: 'BOOK_CLASSIFICATION_FAILED',
-      export: 'BOOK_EXPORT_FAILED'
-    }
-    
-    const code = codeMap[stage] || 'BOOK_OPERATION_FAILED'
+    const { getBookErrorCode } = require('./BookErrorCodes')
+    const code = getBookErrorCode(stage)
     
     return new StandardError(code, message, {
       stage,

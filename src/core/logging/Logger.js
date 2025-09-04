@@ -127,7 +127,7 @@ class Logger {
   }
   
   /**
-   * 輸出日誌
+   * 輸出日誌（效能優化版本）
    * @private
    * @param {string} level - 日誌等級
    * @param {string} messageKey - 訊息鍵值
@@ -135,30 +135,41 @@ class Logger {
    */
   _output(level, messageKey, data) {
     try {
-      // 從訊息字典取得訊息
       const message = this.messages.get(messageKey, data)
+      const timestamp = Date.now() // 使用數字時間戳，更高效
       
-      // 建立日誌項目
-      const logEntry = {
-        timestamp: new Date().toISOString(),
-        level,
-        name: this.name,
-        messageKey,
-        message,
-        data: Object.keys(data).length > 0 ? data : undefined
-      }
+      // 延遲物件創建 - 只有在真正需要時才建立完整物件
+      const logEntry = this._createLogEntry(timestamp, level, messageKey, message, data)
       
-      // 根據等級輸出到適當的 console 方法
       this._consoleOutput(level, logEntry)
       
-      // 如果啟用緩衝，加入緩衝區
       if (this._buffer) {
         this._addToBuffer(logEntry)
       }
       
     } catch (error) {
-      // 日誌輸出失敗的後備機制
       this._fallbackOutput(level, messageKey, data, error)
+    }
+  }
+  
+  /**
+   * 創建日誌項目（延遲物件創建）
+   * @private
+   * @param {number} timestamp - 時間戳
+   * @param {string} level - 日誌等級
+   * @param {string} messageKey - 訊息鍵值
+   * @param {string} message - 訊息內容
+   * @param {Object} data - 額外資料
+   * @returns {Object} 日誌項目
+   */
+  _createLogEntry(timestamp, level, messageKey, message, data) {
+    return {
+      timestamp,
+      level,
+      name: this.name,
+      messageKey,
+      message,
+      data: Object.keys(data).length > 0 ? data : undefined
     }
   }
   

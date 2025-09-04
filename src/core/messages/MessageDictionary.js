@@ -92,20 +92,8 @@ class MessageDictionary {
    * @returns {string} 處理後的訊息
    */
   get(key, params = {}) {
-    // 檢查訊息是否存在
-    let message = this.messages[key]
-    
-    if (message === undefined || message === null) {
-      return `[Missing: ${key}]`
-    }
-    
-    // 如果沒有參數，直接返回訊息
-    if (!params || typeof params !== 'object' || Object.keys(params).length === 0) {
-      return message
-    }
-    
-    // 進行參數替換
-    return this._replaceParameters(message, params)
+    const message = this.messages[key]
+    return message ? this._replaceParameters(message, params) : `[Missing: ${key}]`
   }
   
   /**

@@ -64,8 +64,8 @@ describe('錯誤處理系統基本整合測試', () => {
       const successResult = OperationResult.success({ count: 5 })
 
       // Then: 成功結果驗證
-      expect(successResult.isSuccess).toBe(true)
-      expect(successResult.isFailure).toBe(false)
+      expect(successResult.success).toBe(true)
+      expect(successResult.!success).toBe(false)
       expect(successResult.data.count).toBe(5)
       expect(successResult.error).toBeNull()
 
@@ -74,8 +74,8 @@ describe('錯誤處理系統基本整合測試', () => {
       const failureResult = OperationResult.failure(error)
 
       // Then: 失敗結果驗證
-      expect(failureResult.isFailure).toBe(true)
-      expect(failureResult.isSuccess).toBe(false)
+      expect(failureResult.!success).toBe(true)
+      expect(failureResult.success).toBe(false)
       expect(failureResult.error).toBe(error)
       expect(failureResult.data).toBeNull()
     })
@@ -168,11 +168,11 @@ describe('錯誤處理系統基本整合測試', () => {
 
       // Then: 驗證整合功能
       expect(successResult).toBeInstanceOf(OperationResult)
-      expect(successResult.isSuccess).toBe(true)
+      expect(successResult.success).toBe(true)
       expect(successResult.data.count).toBe(2)
 
       expect(failureResult).toBeInstanceOf(OperationResult)
-      expect(failureResult.isFailure).toBe(true)
+      expect(failureResult.!success).toBe(true)
       expect(failureResult.error).toBeInstanceOf(StandardError)
       expect(failureResult.error.code).toBe('FAILURE_TEST')
     })
@@ -201,7 +201,7 @@ describe('錯誤處理系統基本整合測試', () => {
 
       const result = await ErrorHelper.tryOperation(extractBooks, 'BOOK_EXTRACTION_FAILED')
 
-      if (result.isSuccess) {
+      if (result.success) {
         logger.info('BOOK_EXTRACTION_COMPLETE', { count: result.data.length })
       } else {
         logger.error('BOOK_EXTRACTION_COMPLETE', { 
@@ -217,7 +217,7 @@ describe('錯誤處理系統基本整合測試', () => {
         name: 'BookExtraction'
       }))
 
-      if (result.isFailure) {
+      if (result.!success) {
         expect(result.error).toBeInstanceOf(StandardError)
         expect(['NETWORK_ERROR', 'BOOK_EXTRACTION_FAILED']).toContain(result.error.code)
       }
