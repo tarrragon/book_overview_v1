@@ -1,12 +1,12 @@
 /**
  * 錯誤處理系統統一匯出
- * 
+ *
  * 提供所有錯誤處理相關的類別和常數
  * 支援 CommonJS 和瀏覽器環境
  */
 
 const { StandardError } = require('./StandardError')
-const { OperationResult } = require('./OperationResult') 
+const { OperationResult } = require('./OperationResult')
 const { ErrorHelper } = require('./ErrorHelper')
 
 /**
@@ -17,19 +17,19 @@ const ErrorCodes = {
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
   OPERATION_FAILED: 'OPERATION_FAILED',
   OPERATION_TIMEOUT: 'OPERATION_TIMEOUT',
-  
+
   // 驗證錯誤
   VALIDATION_FAILED: 'VALIDATION_FAILED',
-  
+
   // 網路錯誤
   NETWORK_ERROR: 'NETWORK_ERROR',
-  
+
   // 儲存錯誤
   STORAGE_ERROR: 'STORAGE_ERROR',
-  
+
   // 權限錯誤
   PERMISSION_DENIED: 'PERMISSION_DENIED',
-  
+
   // 書庫相關錯誤
   BOOK_EXTRACTION_FAILED: 'BOOK_EXTRACTION_FAILED',
   BOOK_SYNC_FAILED: 'BOOK_SYNC_FAILED',
@@ -37,7 +37,7 @@ const ErrorCodes = {
   BOOK_CLASSIFICATION_FAILED: 'BOOK_CLASSIFICATION_FAILED',
   BOOK_EXPORT_FAILED: 'BOOK_EXPORT_FAILED',
   BOOK_OPERATION_FAILED: 'BOOK_OPERATION_FAILED',
-  
+
   // 批次處理錯誤
   BATCH_OPERATION_FAILED: 'BATCH_OPERATION_FAILED',
   BATCH_PARTIAL_FAILURE: 'BATCH_PARTIAL_FAILURE',
@@ -56,7 +56,7 @@ if (typeof module !== 'undefined' && module.exports) {
   // 瀏覽器環境
   window.ErrorHandling = {
     StandardError,
-    OperationResult, 
+    OperationResult,
     ErrorHelper,
     ErrorCodes
   }

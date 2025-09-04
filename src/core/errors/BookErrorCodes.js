@@ -26,7 +26,7 @@ const DEFAULT_BOOK_ERROR_CODE = 'BOOK_OPERATION_FAILED'
  * @param {string} stage - 操作階段
  * @returns {string} 錯誤代碼
  */
-function getBookErrorCode(stage) {
+function getBookErrorCode (stage) {
   return BOOK_ERROR_CODES[stage] || DEFAULT_BOOK_ERROR_CODE
 }
 
@@ -34,7 +34,7 @@ function getBookErrorCode(stage) {
  * 取得所有支援的書庫操作階段
  * @returns {string[]} 支援的操作階段清單
  */
-function getSupportedBookStages() {
+function getSupportedBookStages () {
   return Object.keys(BOOK_ERROR_CODES)
 }
 
@@ -43,7 +43,7 @@ function getSupportedBookStages() {
  * @param {string} stage - 操作階段
  * @returns {boolean} 是否為有效操作
  */
-function isValidBookStage(stage) {
+function isValidBookStage (stage) {
   return stage in BOOK_ERROR_CODES
 }
 

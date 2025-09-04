@@ -1,6 +1,6 @@
 /**
  * 日誌系統統一匯出
- * 
+ *
  * 提供所有日誌相關的類別和常數
  * 支援 CommonJS 和瀏覽器環境
  */
@@ -12,7 +12,7 @@ const { Logger, createLogger, quickLogger, LOG_LEVELS } = require('./Logger')
  */
 const LogLevels = {
   DEBUG: 'DEBUG',
-  INFO: 'INFO', 
+  INFO: 'INFO',
   WARN: 'WARN',
   ERROR: 'ERROR'
 }

@@ -39,7 +39,7 @@ show_global_progress() {
     ((CURRENT_CHECK_STEP++))
     
     # 只有在 TMux 環境且面板4存在時才顯示
-    if [[ -n "$TMUX" ]] && tmux list-panes 2>/dev/null | grep -q "^4:"; then
+    if [[ -n "${TMUX:-}" ]] && tmux list-panes 2>/dev/null | grep -q "^4:"; then
         local progress_text="🔄 環境檢查進度: 第 $CURRENT_CHECK_STEP 步 / 共 $TOTAL_CHECK_STEPS 步"
         local step_text="📋 當前階段: $step_name"
         
@@ -95,7 +95,7 @@ check_tmux_environment() {
     show_global_progress "TMux 環境驗證與設定"
     echo_info "開始檢查 TMux 環境..."
     
-    if [[ -n "$TMUX" ]]; then
+    if [[ -n "${TMUX:-}" ]]; then
         echo_success "已在 TMux 環境中"
         current_session=$(tmux display-message -p '#S')
         echo "當前 Session: $current_session"
@@ -280,7 +280,7 @@ generate_report() {
     # TMux 環境報告
     echo ""
     echo "**TMux 環境**："
-    if [[ -n "$TMUX" ]]; then
+    if [[ -n "${TMUX:-}" ]]; then
         current_session=$(tmux display-message -p '#S')
         pane_count=$(tmux list-panes | wc -l | tr -d ' ')
         pane0_command=$(tmux display-message -t 0 -p '#{pane_current_command}')
@@ -343,7 +343,7 @@ generate_report() {
     echo "======================================"
     
     # 在面板4顯示完成狀態
-    if [[ -n "$TMUX" ]] && tmux list-panes 2>/dev/null | grep -q "^4:"; then
+    if [[ -n "${TMUX:-}" ]] && tmux list-panes 2>/dev/null | grep -q "^4:"; then
         tmux send-keys -t 4 "clear" C-m
         tmux send-keys -t 4 "echo '✅ 環境檢查進度: 完成 (4/4 步驟)'" C-m
         tmux send-keys -t 4 "echo '📋 所有檢查階段已完成'" C-m
