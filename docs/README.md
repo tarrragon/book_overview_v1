@@ -192,7 +192,7 @@
 - **類別（Class）**: PascalCase，建議 `<Domain><核心概念><角色>`（如 `ReadmooCatalogService`, `OverviewPageController`）
 - **檔案（File）**: `feature.type.js`（kebab-case + 角色後綴；一檔一類優先，例：`readmoo-catalog.service.js`）
 - **資料夾（Domain）**: kebab-case；單看路徑能理解來源與責任；禁止 `../../../` 相對深度，使用語意化根路徑
-- 範例彙編：見 `docs/guidelines/code-quality-examples.md`
+- 範例彙編：見 `docs/claude/code-quality-examples.md`
 
 #### 注釋與文件
 

@@ -1511,7 +1511,7 @@ const ReadmooAdapter = require('/Users/tarragon/Projects/book_overview_v1/src/co
 - 檔案命名採 `feature.type.js`（kebab-case + 角色後綴），一檔一類；例：`readmoo-catalog.service.js` 對應 `ReadmooCatalogService`。
 - 資料夾（Domain）採 kebab-case，需能單看路徑理解責任（domain-oriented path）；禁止相對深度匯入。
 
-參考範例：`docs/guidelines/code-quality-examples.md`
+參考範例：`docs/claude/code-quality-examples.md`
 
 **文件規範**:
 

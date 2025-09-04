@@ -5,7 +5,7 @@
 2. [document-responsibilities.md](../../claude/document-responsibilities.md)
 3. [decision-workflows.md](../../claude/decision-workflows.md)
 4. [violation-prevention.md](../../claude/violation-prevention.md)
-5. [self-monitoring.md](../../claude/self-monitororing.md)
+5. [self-monitoring.md](../../claude/self-monitoring.md)
 6. [terminology-dictionary.md](../../claude/terminology-dictionary.md)
 
 ### 文件清單
@@ -13,7 +13,7 @@
 - [document-responsibilities.md](../../claude/document-responsibilities.md)
 - [decision-workflows.md](../../claude/decision-workflows.md)
 - [violation-prevention.md](../../claude/violation-prevention.md)
-- [self-monitoring.md](../../claude/self-monitororing.md)
+- [self-monitoring.md](../../claude/self-monitoring.md)
 - [terminology-dictionary.md](../../claude/terminology-dictionary.md)
 
 ### Deprecated
