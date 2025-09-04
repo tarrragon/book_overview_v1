@@ -51,3 +51,5 @@
 - [event-system-v2-implementation-summary.md](./event-system-v2-implementation-summary.md) — Superseded by [event-system.md#v2-版本沿革與實作摘要](./event-system.md#v2-版本沿革與實作摘要)
 - [domain-architecture-v2-planning.md](./domain-architecture-v2-planning.md) — Superseded by [domain-architecture-v2-design.md](./domain-architecture-v2-design.md)
 - [refactoring-execution-plan.md](./refactoring-execution-plan.md) — Superseded by [error-handling-standardization-plan.md](./error-handling-standardization-plan.md)
+- [error-handling-refactoring-design.md](./error-handling-refactoring-design.md) — Superseded by [error-handling-standardization-plan.md](./error-handling-standardization-plan.md)
+- [error-coordinator-specification.md](./error-coordinator-specification.md) — Superseded by [error-handling-standardization-plan.md](./error-handling-standardization-plan.md)
