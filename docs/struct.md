@@ -375,7 +375,7 @@ book_overview_v1/
 - 檔案命名採 `feature.type.js`（kebab-case + 角色後綴），建議「一檔一類」。
 - 類別（Class）命名採 PascalCase：`readmoo-catalog.service.js` → `ReadmooCatalogService`。
 - Domain 資料夾使用 kebab-case，確保「單看路徑即可理解來源與責任」；匯入禁止 `../../../`，請使用語意化根路徑。
-- 範例彙編請見：`docs/guidelines/code-quality-examples.md`
+- 範例彙編請見：`docs/claude/code-quality-examples.md`
 
 ### 1. 階層式事件命名規範 v2.0
 
