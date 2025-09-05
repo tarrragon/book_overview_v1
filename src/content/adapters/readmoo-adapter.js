@@ -28,6 +28,9 @@
  * - 書籍資料的標準化和清理
  */
 
+// 導入統一日誌系統
+const { createLogger } = require('../../core/logging/Logger')
+
 /**
  * 建立 Readmoo 適配器實例
  *
@@ -36,6 +39,8 @@
  * @returns {Object} ReadmooAdapter 實例
  */
 function createReadmooAdapter (options = {}) {
+  // 建立專用日誌記錄器
+  const logger = createLogger('ReadmooAdapter')
   const stats = {
     totalExtracted: 0,
     successfulExtractions: 0,
@@ -114,7 +119,7 @@ function createReadmooAdapter (options = {}) {
       try {
         const document = getDocument()
         if (!document) {
-          console.warn('⚠️ document 物件不可用')
+          logger.warn('DOCUMENT_UNAVAILABLE')
           return []
         }
 
@@ -123,13 +128,13 @@ function createReadmooAdapter (options = {}) {
 
         // 備用策略：如果沒有找到主要容器，嘗試其他選擇器
         if (elements.length === 0) {
-          console.log('⚠️ 未找到 .library-item，嘗試備用選擇器...')
+          logger.warn('FALLBACK_SELECTOR_ATTEMPT', { reason: '未找到 .library-item' })
 
           for (const selector of SELECTORS.alternativeContainers) {
             const found = document.querySelectorAll(selector)
             if (found.length > 0) {
               elements = Array.from(found)
-              console.log(`✅ 使用備用選擇器 ${selector} 找到 ${elements.length} 個元素`)
+              logger.info('FALLBACK_SELECTOR_SUCCESS', { selector, count: elements.length })
               break
             }
           }
@@ -137,7 +142,7 @@ function createReadmooAdapter (options = {}) {
 
         // 最後備用策略：直接查找閱讀器連結的父容器
         if (elements.length === 0) {
-          console.log('⚠️ 使用最後備用策略：查找閱讀器連結的父容器...')
+          logger.warn('LAST_RESORT_STRATEGY', { reason: '查找閱讀器連結的父容器' })
           const readerLinks = document.querySelectorAll(SELECTORS.readerLink)
           const containers = new Set()
 
@@ -156,12 +161,12 @@ function createReadmooAdapter (options = {}) {
           elements = Array.from(containers)
         }
 
-        console.log(`📚 找到 ${elements.length} 個書籍容器元素`)
+        logger.info('BOOK_CONTAINERS_FOUND', { count: elements.length })
 
         stats.domQueryTime += performance.now() - startTime
         return elements
       } catch (error) {
-        console.error('❌ DOM 查詢失敗:', error)
+        logger.error('DOM_QUERY_FAILED', { error: error.message, stack: error.stack })
         stats.domQueryTime += performance.now() - startTime
         return []
       }
@@ -183,7 +188,7 @@ function createReadmooAdapter (options = {}) {
           readerLink = element
         }
         if (!readerLink) {
-          console.warn('⚠️ 容器中未找到閱讀器連結:', element)
+          logger.warn('READER_LINK_NOT_FOUND', { elementClass: element.className })
           return null
         }
 
@@ -191,7 +196,7 @@ function createReadmooAdapter (options = {}) {
 
         // 安全檢查 - 過濾惡意URL
         if (this.isUnsafeUrl(href)) {
-          console.warn('⚠️ 檢測到惡意URL，已過濾:', href)
+          logger.warn('UNSAFE_URL_FILTERED', { url: href })
           stats.failedExtractions++
           return null
         }
@@ -199,7 +204,7 @@ function createReadmooAdapter (options = {}) {
         // 提取書籍 ID
         const id = this.extractBookId(href)
         if (!id) {
-          console.warn('⚠️ 無法提取書籍ID:', href)
+          logger.warn('BOOK_ID_EXTRACTION_FAILED', { href })
           return null
         }
 
@@ -218,7 +223,7 @@ function createReadmooAdapter (options = {}) {
 
         // 安全檢查 - 過濾惡意圖片URL
         if (cover && this.isUnsafeUrl(cover)) {
-          console.warn('⚠️ 檢測到惡意圖片URL，已過濾:', cover)
+          logger.warn('UNSAFE_COVER_URL_FILTERED', { coverUrl: cover })
           cover = ''
         }
 
@@ -265,7 +270,7 @@ function createReadmooAdapter (options = {}) {
         stats.parseTime += performance.now() - startTime
         return bookData
       } catch (error) {
-        console.error('❌ 解析書籍容器元素失敗:', error)
+        logger.error('BOOK_ELEMENT_PARSE_FAILED', { error: error.message, stack: error.stack })
         stats.failedExtractions++
         stats.parseTime += performance.now() - startTime
         return null
@@ -300,7 +305,7 @@ function createReadmooAdapter (options = {}) {
             }
           } catch (error) {
             stats.failedExtractions++
-            console.error('❌ 書籍元素解析失敗:', error.message)
+            logger.error('BOOK_BATCH_PARSE_FAILED', { error: error.message })
           }
         }
 
@@ -314,27 +319,41 @@ function createReadmooAdapter (options = {}) {
       const totalTime = performance.now() - extractionStart
 
       // 詳細的提取結果日誌
-      console.log(`📊 提取完成: ${books.length}/${bookElements.length} 本書籍 (${totalTime.toFixed(2)}ms)`)
-      console.log(`✅ 成功: ${stats.successfulExtractions}, ❌ 失敗: ${stats.failedExtractions}`)
+      logger.info('EXTRACTION_COMPLETED', {
+        extracted: books.length,
+        total: bookElements.length,
+        duration: totalTime.toFixed(2) + 'ms',
+        successful: stats.successfulExtractions,
+        failed: stats.failedExtractions
+      })
 
       if (bookElements.length === 0) {
-        console.warn('⚠️ 未找到任何書籍元素，可能的原因：')
-        console.warn('   1. 頁面尚未完全載入')
-        console.warn('   2. Readmoo 變更了頁面結構')
-        console.warn('   3. CSS 選擇器需要更新')
-        console.warn('   4. 不是書庫或書架頁面')
+        logger.warn('NO_BOOK_ELEMENTS_FOUND', {
+          possibleReasons: [
+            '頁面尚未完全載入',
+            'Readmoo 變更了頁面結構',
+            'CSS 選擇器需要更新',
+            '不是書庫或書架頁面'
+          ]
+        })
       } else if (books.length === 0) {
-        console.warn('⚠️ 找到書籍容器但無法解析，可能的原因：')
-        console.warn('   1. 容器結構不符合預期')
-        console.warn('   2. 缺少必要的子元素')
-        console.warn('   3. URL 或圖片格式不符合')
+        logger.warn('BOOK_CONTAINERS_PARSE_FAILED', {
+          possibleReasons: [
+            '容器結構不符合預期',
+            '缺少必要的子元素',
+            'URL 或圖片格式不符合'
+          ]
+        })
       } else if (books.length < bookElements.length) {
-        console.warn(`⚠️ 部分書籍解析失敗 (${stats.failedExtractions}/${bookElements.length})`)
+        logger.warn('PARTIAL_EXTRACTION_FAILURE', {
+          failed: stats.failedExtractions,
+          total: bookElements.length
+        })
       }
 
       // 在開發模式下輸出第一本書的詳細資訊
       if (books.length > 0 && globalThis.DEBUG_MODE) {
-        console.log('📖 第一本書籍資訊範例:', books[0])
+        logger.debug('FIRST_BOOK_SAMPLE', { book: books[0] })
       }
 
       return books
@@ -850,8 +869,12 @@ function createReadmooAdapter (options = {}) {
      * @param {string} context - 額外上下文資訊
      */
     logError (methodName, error, context = '') {
-      const errorMsg = `${methodName} 發生錯誤${context ? ` (${context})` : ''}:`
-      console.warn(errorMsg, error)
+      logger.warn('ADAPTER_METHOD_ERROR', {
+        method: methodName,
+        context,
+        error: error.message,
+        stack: error.stack
+      })
     },
 
     /**

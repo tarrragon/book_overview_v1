@@ -56,6 +56,19 @@ update_package_version() {
     fi
 }
 
+# 版本比較函數 (version1 > version2 返回 0)
+version_compare() {
+    local version1="$1"
+    local version2="$2"
+    
+    # 使用 sort -V 進行版本比較
+    if [[ "$(printf '%s\n' "$version1" "$version2" | sort -V | tail -1)" == "$version1" ]] && [[ "$version1" != "$version2" ]]; then
+        return 0  # version1 > version2
+    else
+        return 1  # version1 <= version2
+    fi
+}
+
 # 主檢查函數
 main() {
     log_info "開始版號同步檢查..."
@@ -77,7 +90,7 @@ main() {
         return 1
     fi
     
-    # 比較版號
+    # 比較版號並智能決定同步方向
     if [[ "$changelog_version" == "$package_version" ]]; then
         log_success "✅ 版號已同步: v$changelog_version"
         return 0
@@ -88,16 +101,24 @@ main() {
         echo "package.json:  v$package_version"
         echo ""
         
-        # 自動同步到 CHANGELOG 版號
-        echo "🔄 自動將 package.json 同步到 CHANGELOG.md 的版號..."
-        if update_package_version "$changelog_version"; then
-            log_success "✅ 版號同步完成: v$changelog_version"
-            echo ""
-            log_info "💡 請記住將 package.json 的變更加入到此次提交中"
-            return 0
-        else
-            log_error "版號同步失敗"
+        # 版本比較邏輯：以較新的版本為準
+        if version_compare "$package_version" "$changelog_version"; then
+            log_info "📈 package.json 版本較新，應更新 CHANGELOG.md"
+            log_warning "⚠️  請手動更新 CHANGELOG.md 到 v$package_version"
+            log_info "💡 或執行 ./scripts/work-log-manager.sh 管理版本記錄"
             return 1
+        else
+            # CHANGELOG 版本較新，同步 package.json
+            echo "🔄 自動將 package.json 同步到 CHANGELOG.md 的版號..."
+            if update_package_version "$changelog_version"; then
+                log_success "✅ 版號同步完成: v$changelog_version"
+                echo ""
+                log_info "💡 請記住將 package.json 的變更加入到此次提交中"
+                return 0
+            else
+                log_error "版號同步失敗"
+                return 1
+            fi
         fi
     fi
 }
