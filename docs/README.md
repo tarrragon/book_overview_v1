@@ -14,24 +14,16 @@
 - **[🗂️ 使用情境](./use-cases.md)** - 主要使用場景與流程
 - 其餘所有文件請從下方 Domain 入口進入
 
-### 📂 Domain 入口索引
+### 🎯 三層漸進式文件系統
 
-- **API**: `domains/api/` → [⚙️ API 索引](./domains/api/README.md)
-- **Deployment**: `domains/deployment/` → [🚀 部署索引](./domains/deployment/README.md)
-- **Architecture**: `domains/architecture/` → [🏗️ 架構索引](./domains/architecture/README.md)
-- **Guidelines**: `domains/guidelines/` → [📏 規範索引](./domains/guidelines/README.md)
-- **Workflows**: `domains/workflows/` → [🧭 流程索引](./domains/workflows/README.md)
-- **Testing**: `domains/testing/` → [🧪 測試索引](./domains/testing/README.md)
-- **Performance**: `domains/performance/` → [⚡ 效能索引](./domains/performance/README.md)
-- **Project**: `domains/project/` → [📌 專案索引](./domains/project/README.md)
-- **Context**: `domains/context/` → [🧠 上下文索引](./domains/context/README.md)
-- **Refactoring**: `domains/refactoring/` → [🔧 重構索引](./domains/refactoring/README.md)
-- **Error Handling**: `domains/error-handling/` → [🚑 錯誤處理索引](./domains/error-handling/README.md)
-- **Archive**: `domains/archive/` → [📦 歷史歸檔索引](./domains/archive/README.md)
-- **Analysis**: `domains/analysis/` → [🔍 分析研究索引](./domains/analysis/README.md)
-- **CLAUDE 附帶知識**: `claude/` → [📖 CLAUDE 附帶知識索引](./claude/README.md)
-- **Work Logs**: `work-logs/`（維持原位，不調整階層）
-- **版本記錄**: `../CHANGELOG.md`
+基於學習進度和角色需求的漸進式文件架構：
+- [技術文件導覽中心](./domains/README.md) - 三層文件系統完整導覽
+
+### 📂 其他重要資源
+
+- **CLAUDE 開發知識**: `claude/` → [📖 CLAUDE 附帶知識索引](./claude/README.md)
+- **工作日誌**: `work-logs/` - 詳細開發過程記錄
+- **版本記錄**: `../CHANGELOG.md` - 版本變更歷史
 
 ### 📋 專案管理
 
@@ -64,16 +56,17 @@
 - **單一責任原則** - 每個模組只負責一個明確功能
 - **依賴注入** - 提升可測試性和維護性
 
-### 📦 模組責任劃分
+### 📦 模組責任劃分 (v0.10.x)
 
-| 模組                | 核心責任           | 主要事件                    |
-| ------------------- | ------------------ | --------------------------- |
-| **Background**      | 擴展生命周期管理   | `EXTENSION.*`, `STORAGE.*`  |
-| **Content Scripts** | 多書城頁面資料提取 | `EXTRACTOR.*`, `DATA.*`     |
-| **Popup**           | 使用者互動控制面板 | `UI.POPUP.*`, `USER.*`      |
-| **Overview**        | 書庫管理主頁面     | `UI.OVERVIEW.*`, `SEARCH.*` |
-| **Storage**         | 資料持久化管理     | `STORAGE.*`, `SYNC.*`       |
-| **Export**          | 多格式資料匯出     | `EXPORT.*`, `FILE.*`        |
+| 模組                | 核心責任           | 主要事件 | v0.10.x 更新 |
+| ------------------- | ------------------ | --------------------------- | ------------ |
+| **Core System** 🆕   | 統一錯誤處理與訊息管理 | `CORE.*`, `ERROR.*` | ✅ 標準化錯誤處理 |
+| **Background**      | 擴展生命周期管理   | `EXTENSION.*`, `STORAGE.*`  | 7個領域協調器 |
+| **Content Scripts** | Readmoo 頁面資料提取 | `EXTRACTOR.*`, `DATA.*`     | 模組化架構 |
+| **Popup**           | 使用者互動控制面板 | `UI.POPUP.*`, `USER.*`      | 結構化錯誤顯示 |
+| **Overview**        | 書庫管理主頁面     | `UI.OVERVIEW.*`, `SEARCH.*` | 增強搜尋引擎 |
+| **Storage**         | 資料持久化管理     | `STORAGE.*`, `SYNC.*`       | 統一回應格式 |
+| **Export**          | 多格式資料匯出     | `EXPORT.*`, `FILE.*`        | 錯誤恢復機制 |
 
 ### 🔁 資料流管理
 
@@ -85,13 +78,20 @@
 
 ## 📋 職責區塊劃分
 
-### 🔴 核心功能區塊 (v1.0 已完成)
+### 🔴 核心功能區塊 (v0.10.x 已完成)
+
+#### 🆕 核心系統層 (Core System) - v0.10.x 重大更新
+
+- **責任範圍**: 統一錯誤處理、結構化異常、訊息字典、日誌系統
+- **主要檔案**: `src/core/error-handling/`, `src/core/errors/`, `src/core/enums/`
+- **核心特性**: 標準化錯誤處理、統一回應格式、Chrome Extension 序列化支援
+- **事件接口**: `CORE.ERROR.CLASSIFIED`, `CORE.MESSAGE.GENERATED`
 
 #### 資料提取層 (Content Scripts)
 
-- **責任範圍**: 多書城 DOM 解析、書籍資料提取、進度追蹤
-- **v1.0 支援**: Readmoo 平台完整實現
-- **v2.0+ 規劃**: Kobo, Kindle, BookWalker, 博客來等書城擴展
+- **責任範圍**: Readmoo DOM 解析、書籍資料提取、進度追蹤
+- **v0.10.x 支援**: Readmoo 平台完整實現，模組化內容腳本架構
+- **v2.0+ 規劃**: 多平台擴展架構已預留
 - **主要檔案**: `src/extractors/`, `src/content/`
 - **事件接口**: `EXTRACTOR.DATA.EXTRACTED`, `EXTRACTOR.PROGRESS.UPDATED`
 
@@ -121,11 +121,12 @@
 - **主要檔案**: `src/export/`, `src/utils/export/`
 - **支援格式**: CSV (已完成), JSON (已完成)
 
-#### 日誌與錯誤處理 (Logging)
+#### 🆕 日誌與錯誤處理系統 (v0.10.x 全面重構)
 
-- **責任範圍**: 事件日誌、錯誤回報、性能監控
-- **主要檔案**: `src/utils/logger/`, `src/error/`
-- **檔案等級**: ERROR, WARN, INFO, DEBUG
+- **責任範圍**: 結構化日誌、統一錯誤處理、使用者友善訊息生成
+- **主要檔案**: `src/core/logging/`, `src/core/error-handling/`, `src/core/errors/`
+- **核心特性**: 標準化錯誤類別、統一回應格式、訊息字典管理
+- **日誌等級**: ERROR, WARN, INFO, DEBUG (結構化輸出)
 
 ### 🔵 多書城擴展區塊 (v2.0+ 核心功能)
 
@@ -226,7 +227,20 @@ test(export): add CSV export integration tests
 - **feature/\*** - 個別功能開發分支
 - **hotfix/\*** - 緊急修復分支
 
-🔍 **錯誤處理主規格請參考**: [錯誤處理標準化方案](./domains/architecture/error-handling-standardization-plan.md)
+### 🆕 v0.10.x 重大架構更新
+
+#### **標準化錯誤處理系統**
+- ✅ **結構化錯誤類別**: StandardError, BookValidationError, NetworkError 等專用錯誤類別
+- ✅ **統一回應格式**: OperationResult 統一所有系統回應格式
+- ✅ **訊息字典管理**: MessageDictionary 集中化訊息管理
+- ✅ **Chrome Extension 相容**: 完整支援跨環境序列化和訊息傳遞
+
+#### **核心系統模組化**
+- ✅ **`src/core/` 核心模組**: 錯誤處理、訊息管理、狀態枚舉、日誌系統
+- ✅ **領域驅動重構**: 7個已實現領域各自負責明確職責
+- ✅ **TMux 協作開發**: 五面板開發環境提升開發效率
+
+🔍 **錯誤處理主規格請參考**: [標準化錯誤處理](./domains/01-getting-started/error-handling-overview.md)
 
 ## 🗺️ 規劃中 Roadmap 與未來展望
 
@@ -309,33 +323,19 @@ test(export): add CSV export integration tests
 
 ### 🏠 核心架構文件
 
-- **[🔄 事件系統設計](./domains/architecture/event-system.md)** - 中央化事件總線架構
-- **[📊 資料流設計](./domains/architecture/data-extractor-design.md)** - 資料提取和處理流程
-- **[🔒 安全性設計](./domains/architecture/)** - Chrome Extension 安全性規範
-
-### 📝 技術決策記錄
-
-- **[📝 依賴注入債務分析](./domains/architecture/dependency-injection-debt-analysis.md)**
-- **[🚀 效能優化報告](./domains/performance/performance-optimization-report.md)**
-
-### 📋 開發管理文件
-
-- **[⚙️ 開發環境設置](./domains/deployment/DEPLOYMENT.md)** - 本地開發和 CI/CD 配置
-- **[🐛 用戶錯誤指南](./domains/error-handling/USER_ERROR_GUIDE.md)** - 常見問題診斷和解決
-- **[🛡️ 錯誤處理標準化方案](./domains/architecture/error-handling-standardization-plan.md)** - 錯誤處理與文字管理主規格
-
-> 備註：若本文件或其他子文件與上述「錯誤處理標準化方案」敘述不一致，**一律以主規格為準**。
+基於三層漸進式文件系統，技術文件已統一整理至：
+- [技術文件導覽中心](./domains/README.md) - 完整導覽和學習路徑
 
 ---
 
 📚 **更多技術細節和開發文件請瀏覽** [📁 docs/ 目錄](./)
 
-🚀 **立即開始開發請參考** [🏠 專案結構設計](./struct.md) 和 [⚙️ API 文檔](./domains/api/API.md)
+🚀 **立即開始開發請參考** [🏠 專案結構設計](./struct.md) 和 [📚 技術文件導覽](./domains/README.md)
 
 ---
 
 [🐛 GitHub Issues](https://github.com/your-username/readmoo-book-manager/issues) •
 [💡 Feature Requests](https://github.com/your-username/readmoo-book-manager/discussions) •
-[📚 API 文件](./domains/api/API.md)
+[📚 技術文件導覽](./domains/README.md)
 
 ---

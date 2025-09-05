@@ -96,16 +96,24 @@ analyze_todolist() {
         
         # 在當前區段內分析任務
         if [[ "$in_current_section" == true ]]; then
-            # 檢查任務項目
-            if [[ "$line" =~ ^[[:space:]]*-[[:space:]]*\[(.)\] ]]; then
+            # 檢查任務項目 - 支援 [x], [ ], 和 ⭕ 格式
+            if [[ "$line" =~ ^[[:space:]]*-[[:space:]]*\[(.)\] ]] || [[ "$line" =~ ^[[:space:]]*-[[:space:]]*⭕ ]]; then
                 ((total_count++))
-                local status="${BASH_REMATCH[1]}"
-                local task_content=$(echo "$line" | sed 's/^[[:space:]]*-[[:space:]]*\[[[:space:]]*.\][[:space:]]*//')
                 
-                if [[ "$status" == " " ]]; then
+                if [[ "$line" =~ ^[[:space:]]*-[[:space:]]*⭕ ]]; then
+                    # ⭕ 符號表示待開始任務
+                    local task_content=$(echo "$line" | sed 's/^[[:space:]]*-[[:space:]]*⭕[[:space:]]*//')
                     pending_tasks+=("$task_content")
-                elif [[ "$status" == "x" || "$status" == "X" ]]; then
-                    ((completed_count++))
+                else
+                    # 標準 [x] 或 [ ] 格式
+                    local status="${BASH_REMATCH[1]}"
+                    local task_content=$(echo "$line" | sed 's/^[[:space:]]*-[[:space:]]*\[[[:space:]]*.\][[:space:]]*//')
+                    
+                    if [[ "$status" == " " ]]; then
+                        pending_tasks+=("$task_content")
+                    elif [[ "$status" == "x" || "$status" == "X" ]]; then
+                        ((completed_count++))
+                    fi
                 fi
             fi
         fi

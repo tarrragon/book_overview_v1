@@ -1,8 +1,8 @@
 # 📋 Readmoo 書庫提取器開發任務清單
 
-**當前版本**: v0.10.12  
-**最後更新**: 2025-09-04  
-**開發狀態**: ✅ TMux面板協作與commit-as-prompt優化完成
+**當前版本**: v0.11.0  
+**最後更新**: 2025-09-05  
+**開發狀態**: 🚀 文件系統三層架構重構完成，進入 v0.11.0 PLACEHOLDER 文件實作階段
 
 ## 🎯 專案當前狀態
 
@@ -34,11 +34,87 @@
 
 ---
 
-## 🏗️ 系統化重構計畫 - 最高優先級 (v0.10.9+)
+## 🎯 v0.11.0 核心目標 - PLACEHOLDER 文件實作完成
+
+### 📋 v0.11.0 當前狀態總覽
+
+**✅ 已完成 (v0.11.0)**:
+- 三層漸進式文件架構設計與實現
+- 連結驗證系統建立與修復
+- 核心文件連結100%有效性確保
+
+**🚀 v0.11.0 主要目標**: 完成 24 個 PLACEHOLDER 文件的實作
+
+### 🔴 Critical Priority - v0.11.0 文件系統完成目標
+
+**v0.11.0 專注目標**: 完整的三層文件系統實作，確保系統具備完整的技術文件基礎設施
+
+### ⭕ 待開始任務 (24個文件實作)
+
+#### **🔴 P0 - 遺留自 v0.10.x (1個)**
+- ⭕ **[development-setup.md](./domains/02-development/workflows/development-setup.md)** - 開發環境配置指南
+  - 狀態: PLACEHOLDER 轉實作 (原定 v0.10.x)  
+  - 重要性: 第二層開發文件，影響新人上手
+
+#### **📊 效能優化專區 (4個)**
+- ⭕ **[monitoring-system.md](./domains/03-reference/performance/monitoring-system.md)** - 效能監控體系
+- ⭕ **[memory-optimization.md](./domains/03-reference/performance/memory-optimization.md)** - 記憶體最佳化  
+- ⭕ **[loading-performance.md](./domains/03-reference/performance/loading-performance.md)** - 載入效能優化
+- ⭕ **[performance-testing.md](./domains/03-reference/performance/performance-testing.md)** - 效能測試方法
+
+#### **🚀 部署維運專區 (5個)**
+- ⭕ **[chrome-store-guide.md](./domains/03-reference/deployment/chrome-store-guide.md)** - Chrome Store 上架指南
+- ⭕ **[cicd-pipeline.md](./domains/03-reference/deployment/cicd-pipeline.md)** - CI/CD 流水線
+- ⭕ **[release-strategy.md](./domains/03-reference/deployment/release-strategy.md)** - 版本發布策略
+- ⭕ **[monitoring-alerts.md](./domains/03-reference/deployment/monitoring-alerts.md)** - 監控與告警
+- ⭕ **[chrome-extension.md](./domains/03-reference/deployment/chrome-extension.md)** - Chrome Extension 部署指南
+
+#### **🔧 重構指南專區 (4個)**
+- ⭕ **[refactoring-decision-tree.md](./domains/03-reference/refactoring/refactoring-decision-tree.md)** - 重構決策樹
+- ⭕ **[technical-debt-management.md](./domains/03-reference/refactoring/technical-debt-management.md)** - 技術債務管理  
+- ⭕ **[code-quality-standards.md](./domains/03-reference/refactoring/code-quality-standards.md)** - 代碼品質標準
+- ⭕ **[case-studies.md](./domains/03-reference/refactoring/case-studies.md)** - 重構案例研究
+
+#### **🚑 問題診斷專區 (2個)**
+- ⭕ **[performance-troubleshooting.md](./domains/03-reference/troubleshooting/performance-troubleshooting.md)** - 效能問題診斷
+- ⭕ **[production-incident-handling.md](./domains/03-reference/troubleshooting/production-incident-handling.md)** - 生產環境問題處理
+
+#### **📦 歷史歸檔專區 (4個)**
+- ⭕ **[architecture-evolution.md](./domains/03-reference/archive/architecture-evolution.md)** - 架構演進史
+- ⭕ **[architecture-decision-records.md](./domains/03-reference/archive/architecture-decision-records.md)** - 重要決策記錄 (ADR)
+- ⭕ **[deprecated-features.md](./domains/03-reference/archive/deprecated-features.md)** - 棄用功能清單
+- ⭕ **[release-history.md](./domains/03-reference/archive/release-history.md)** - 版本發布日誌
+
+#### **🛠️ 文件維護專區 (4個)**
+- ⭕ **[documentation-maintenance.md](./domains/03-reference/maintenance/documentation-maintenance.md)** - 文件維護指南
+- ⭕ **[contributor-guide.md](./domains/03-reference/maintenance/contributor-guide.md)** - 貢獻者指南
+- ⭕ **[documentation-standards.md](./domains/03-reference/maintenance/documentation-standards.md)** - 文件品質標準  
+- ⭕ **[usage-analytics.md](./domains/03-reference/maintenance/usage-analytics.md)** - 文件使用統計
+
+### 📅 v0.11.0 執行時間表
+
+**第一週 (優先完成)**:
+- ✅ development-setup.md (P0 - 立即處理)
+- 📊 效能優化專區 4 個文件
+- 🚀 部署維運專區 5 個文件
+
+**第二週**:  
+- 🔧 重構指南專區 4 個文件
+- 🚑 問題診斷專區 2 個文件
+
+**第三週**:
+- 📦 歷史歸檔專區 4 個文件  
+- 🛠️ 文件維護專區 4 個文件
+
+**預期完成日期**: 2025-09-26 (三週內完成所有 24 個文件)
+
+---
+
+## 🏗️ 系統化重構計畫 - 中期目標 (v0.12.x+)
 
 ### 🎯 系統化錯誤處理與文字管理標準化方案
 
-**架構文件**: [錯誤處理標準化方案](./domains/architecture/error-handling-standardization-plan.md)  
+**架構文件**: [標準化錯誤處理](./domains/01-getting-started/error-handling-overview.md)  
 **重構理由**: 根本解決文字不統一、錯誤處理不規範、測試失敗等核心問題  
 **預期效益**: 測試通過率達100%、lint問題減少90%、維護成本大幅降低
 
