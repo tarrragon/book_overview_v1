@@ -23,6 +23,40 @@ Readmoo 書庫提取器是一個簡潔的 Chrome Extension，專注於從 Readmo
 
 ## 🔧 核心功能模組
 
+### 0. 🚨 錯誤處理核心系統 (Error Handling Core System)
+
+**目的**: 提供統一、類型安全、語意清晰的錯誤處理機制
+
+**主要組件**:
+
+- **枚舉系統** (`src/core/enums/`) - OperationStatus, ErrorTypes, MessageTypes, LogLevel
+- **專用錯誤類別** (`src/core/errors/`) - BookValidationError, NetworkError 等
+- **統一回應格式** - OperationResult 標準化成功/失敗回應
+
+**設計特色**:
+
+- ✅ Linux 專家認可的 v2.0 簡化設計，避免過度工程
+- ✅ 每個錯誤類型負責自己的格式化，無需中央字典
+- ✅ 支援 Chrome Extension 序列化和跨環境傳遞
+- ✅ 保持向後相容性，現有 StandardError 仍可用
+
+**快速使用**:
+
+```javascript
+// 錯誤處理
+const error = BookValidationError.missingFields(book, ['title'])
+const result = OperationResult.failure(error)
+
+// 狀態檢查
+if (result.status === OperationStatus.SUCCESS) {
+  // 成功處理
+}
+```
+
+**📖 完整說明**: [錯誤處理核心系統指南](./error-handling-core-system.md)
+
+---
+
 ### 1. 📖 資料提取模組 (Data Extraction)
 
 **目的**: 從Readmoo網頁提取書籍資料

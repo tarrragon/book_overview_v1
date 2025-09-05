@@ -107,9 +107,9 @@ create_temp_file() {
 
 # 生成工作日誌基本標頭的共用函數
 generate_work_log_header() {
-    local version="$1"
-    local work_description="$2"
-    local today="$3"
+    local version="${1:-}"
+    local work_description="${2:-}"
+    local today="${3:-}"
     local status="${4:-$WORK_STATUS_IN_PROGRESS}"
     
     cat << EOF
@@ -188,7 +188,7 @@ EOF
 temp_files=()
 cleanup_temp_files() {
     # 檢查陣列是否為空，避免 set -u 錯誤
-    if [[ ${#temp_files[@]} -gt 0 ]]; then
+    if [[ ${#temp_files[@]:-0} -gt 0 ]]; then
         for temp_file in "${temp_files[@]}"; do
             [[ -f "$temp_file" ]] && rm -f "$temp_file"
         done
@@ -403,8 +403,8 @@ extract_work_topic() {
 
 # 檢查是否為不同議題的工作切換
 is_topic_switch() {
-    local current_topic="$1"
-    local previous_log="$2"
+    local current_topic="${1:-}"
+    local previous_log="${2:-}"
     
     if [[ -z "$previous_log" ]]; then
         echo "false"
@@ -755,8 +755,8 @@ update_existing_work_log() {
 
 # 自動完結上一個未完成工作並新增 TODO 檢查項目
 auto_complete_previous_work() {
-    local previous_log="$1"
-    local current_topic="$2"
+    local previous_log="${1:-}"
+    local current_topic="${2:-}"
     local today=$(date +%Y-%m-%d)
     
     log_warning "檢測到議題切換：正在自動完結上一個未完成工作"
@@ -802,8 +802,8 @@ EOF
 
 # 新增未完成工作檢查項目到 todolist.md
 add_todo_incomplete_work_check() {
-    local work_topic="$1"
-    local work_log_file="$2"
+    local work_topic="${1:-}"
+    local work_log_file="${2:-}"
     local today=$(date +%Y-%m-%d)
     
     log_info "新增未完成工作檢查項目到 todolist.md"
