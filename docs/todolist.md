@@ -78,7 +78,10 @@
     - 確保路徑語意與實際責任一致
   - ✅ **驗證機制**: 建立檢查腳本防止未來引入相對路徑引用
   
+**執行方式**: 🤖 使用專業 sub-agent `mint-format-specialist` 執行
 **重要性**: 🔴 Critical - 影響文件維護性和新人理解，符合「檔案路徑語意規範（強制）」標準
+
+**Sub-Agent 規劃**: [mint-format-specialist.md](./claude/mint-format-specialist.md) - 專業文件格式化與品質修正專家
 
 ### ⭕ 待開始任務 (24個文件實作)
 
@@ -191,11 +194,15 @@
 
 **說明**: 以下問題將在系統化重構過程中根本性解決
 
-#### 🔴 Lint 問題修復 (3760個問題)
+#### 🔴 Lint 問題修復 (3760個問題) 🤖
+
+**使用專業 Sub-Agent**: `mint-format-specialist` - 批量 Lint 問題修復專家
+
 - **錯誤數量**: 2967 個錯誤
 - **警告數量**: 793 個警告  
 - **主要問題**: trailing spaces, space-before-function-paren, console.log 警告
-- **解決策略**: Phase 3日誌系統重構將解決console.log問題，其他問題配合重構逐步修復
+- **解決策略**: 使用 mint-format-specialist 自動修復格式問題，配合重構解決邏輯問題
+- **執行方式**: 分批次處理，優先自動修正，複雜問題提供專業建議
 
 #### 🔴 測試失敗修復
 - **StorageAPIValidator 構造函數問題**: `TypeError: StorageAPIValidator is not a constructor`
