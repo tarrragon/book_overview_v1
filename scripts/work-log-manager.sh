@@ -656,8 +656,9 @@ create_new_work_log() {
     
     # 🎯 版本推進檢查與自動更新
     log_info "執行版本推進檢查..."
-    if ./scripts/version-progression-check.sh >/dev/null 2>&1; then
-        local check_result=$?
+    ./scripts/version-progression-check.sh >/dev/null 2>&1
+    local check_result=$?
+    if [[ $check_result -ne 0 ]]; then
         case $check_result in
             1)  # patch version
                 local current_version=$(get_current_project_version)
