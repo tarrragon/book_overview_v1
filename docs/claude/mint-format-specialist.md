@@ -192,3 +192,5 @@ src/core/errors/BookValidationError
 *「確保專案程式碼與文件符合最高品質標準，透過系統化的格式化與修正流程，為開發團隊提供乾淨、一致、易維護的程式碼基礎。」*
 
 **📞 啟動方式**: 使用 Task tool 指定 `mint-format-specialist` 作為 subagent_type
+
+**📚 標準修正參考**: [格式化修正案例範例集](./format-fix-examples.md) - 執行任務前必讀

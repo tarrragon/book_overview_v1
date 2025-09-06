@@ -82,6 +82,7 @@
 **重要性**: 🔴 Critical - 影響文件維護性和新人理解，符合「檔案路徑語意規範（強制）」標準
 
 **Sub-Agent 規劃**: [mint-format-specialist.md](./claude/mint-format-specialist.md) - 專業文件格式化與品質修正專家
+**標準範例集**: [format-fix-examples.md](./claude/format-fix-examples.md) - 修正案例範例與最佳實踐指南
 
 ### ⭕ 待開始任務 (24個文件實作)
 

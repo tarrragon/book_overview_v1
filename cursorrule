@@ -315,6 +315,10 @@ tmux new-session -s main_layout
 [- 📦 Chrome Extension 與專案規範](docs/claude/chrome-extension-specs.md) - 平台特定要求
 [- 🎭 事件驅動架構規範](docs/claude/event-driven-architecture.md) - 架構模式指引
 
+**格式化與品質修正**：
+[- 📋 格式化修正案例範例集](docs/claude/format-fix-examples.md) - 標準化修正模式與最佳實踐
+[- 🤖 Mint Format Specialist](docs/claude/mint-format-specialist.md) - 專業格式化 sub-agent
+
 ### 🔍 詳細執行指導
 
 [- 🚨 違規警報與預防](docs/claude/violation-prevention.md)
