@@ -2,12 +2,38 @@
 
 此命令可協助您建立格式良好的提交。
 
+> ⚠️ **重要**: 此指令是 Claude Code 內建功能，在繼續對話或恢復 session 時可能不可用。若指令無效，請使用替代方案：`./scripts/check-work-log.sh` + 標準 `git commit` 流程。
+
 ## 使用方法
 
 要建立提交，只需輸入：
 
 ```
 /commit-as-prompt
+```
+
+## ⚠️ 指令不可用時的替代方案
+
+```bash
+# 手動執行標準提交流程
+./scripts/check-work-log.sh        # 1. 工作日誌檢查
+git add <files>                    # 2. 暫存變更
+git commit -m "$(cat <<'EOF'       # 3. 提交 (WHAT/WHY/HOW格式)
+<type>(<scope>): <description>
+
+## WHAT
+具體動作與對象
+
+## WHY  
+業務需求、技術債務背景、問題根因
+
+## HOW
+實作策略、相容性考量、驗證方式
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
 ```
 
 ## 📝 背景 (Background)
