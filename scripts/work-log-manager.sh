@@ -652,8 +652,64 @@ create_new_with_topic_switch() {
 
 # 建立新的工作日誌檔案
 create_new_work_log() {
-    local version="v$(get_current_project_version)"
     local today=$(date +%Y-%m-%d)
+    
+    # 🎯 版本推進檢查與自動更新
+    log_info "執行版本推進檢查..."
+    if ./scripts/version-progression-check.sh >/dev/null 2>&1; then
+        local check_result=$?
+        case $check_result in
+            1)  # patch version
+                local current_version=$(get_current_project_version)
+                local new_patch_version=$(increment_version "$current_version")
+                log_info "建議小版本推進: $current_version → $new_patch_version"
+                
+                echo ""
+                log_prompt "🔄 檢測到應該推進小版本 (patch)，是否自動更新？"
+                read -p "自動推進版本到 $new_patch_version？ (y/N): " -r
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    # 更新 package.json 版本
+                    if ./scripts/check-version-sync.sh >/dev/null 2>&1 || sed -i.bak "s/\"version\":[[:space:]]*\"[^\"]*\"/\"version\": \"$new_patch_version\"/" package.json; then
+                        log_success "✅ 版本已更新到 $new_patch_version"
+                        echo ""
+                        log_info "💡 請記住將 package.json 的變更加入到此次提交中"
+                    else
+                        log_warning "版本更新失敗，將繼續使用當前版本"
+                    fi
+                fi
+                ;;
+            2)  # minor version
+                local current_version=$(get_current_project_version)
+                local version_parts=(${current_version//./ })
+                local new_minor_version="${version_parts[0]}.$((${version_parts[1]} + 1)).0"
+                log_info "建議中版本推進: $current_version → $new_minor_version"
+                
+                echo ""
+                log_prompt "🎯 檢測到應該推進中版本 (minor)，是否自動更新？"
+                read -p "自動推進版本到 $new_minor_version？ (y/N): " -r
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    # 更新 package.json 版本
+                    if ./scripts/check-version-sync.sh >/dev/null 2>&1 || sed -i.bak "s/\"version\":[[:space:]]*\"[^\"]*\"/\"version\": \"$new_minor_version\"/" package.json; then
+                        log_success "✅ 版本已更新到 $new_minor_version"
+                        echo ""
+                        log_info "💡 請記住將 package.json 的變更加入到此次提交中"
+                        log_info "💡 建議更新 todolist.md 規劃新版本系列目標"
+                    else
+                        log_warning "版本更新失敗，將繼續使用當前版本"
+                    fi
+                fi
+                ;;
+            0|99|*)  # no change or manual decision
+                log_info "無需版本推進或需要手動決策，繼續當前版本開發"
+                ;;
+        esac
+    else
+        log_warning "版本推進檢查執行失敗，繼續使用當前版本"
+    fi
+    echo ""
+    
+    # 重新獲取（可能已更新的）當前版本
+    local version="v$(get_current_project_version)"
     
     # 輸入驗證與重試機制
     local work_description=""
@@ -710,6 +766,12 @@ create_new_work_log() {
     
     # 更新 todolist.md 版本資訊
     update_todolist_version
+    
+    # 同步版本檢查
+    log_info "執行版本同步檢查..."
+    if ! ./scripts/check-version-sync.sh >/dev/null 2>&1; then
+        log_warning "⚠️ 版本可能不同步，建議檢查 package.json 和 CHANGELOG.md"
+    fi
 }
 
 # 更新現有工作日誌
