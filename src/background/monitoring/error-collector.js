@@ -14,12 +14,12 @@
  * - 提供錯誤報告的匯出和分析功能
  */
 
-const BaseModule = require('../lifecycle/base-module')
+const BaseModule = require('src/background/lifecycle/base-module')
 const {
   SYSTEM_EVENTS,
   EVENT_PRIORITIES,
   LIMITS
-} = require('../constants/module-constants')
+} = require('src/background/constants/module-constants')
 
 class ErrorCollector extends BaseModule {
   constructor (dependencies = {}) {

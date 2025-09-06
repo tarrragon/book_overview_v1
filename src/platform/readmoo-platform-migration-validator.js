@@ -32,8 +32,8 @@
  */
 
 // 統一日誌管理系統
-const { Logger } = require('../core/logging/Logger')
-const { MessageDictionary } = require('../core/messages/MessageDictionary')
+const { Logger } = require('src/core/logging/Logger')
+const { MessageDictionary } = require('src/core/messages/MessageDictionary')
 
 // 初始化 Logger 實例
 const validatorMessages = new MessageDictionary({

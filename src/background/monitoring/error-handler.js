@@ -14,13 +14,13 @@
  * - 提供錯誤處理的策略模式和可擴展性
  */
 
-const BaseModule = require('../lifecycle/base-module')
+const BaseModule = require('src/background/lifecycle/base-module')
 const ErrorCollector = require('./error-collector')
 const SystemMonitor = require('./system-monitor')
 const {
   SYSTEM_EVENTS,
   EVENT_PRIORITIES
-} = require('../constants/module-constants')
+} = require('src/background/constants/module-constants')
 
 class ErrorHandler extends BaseModule {
   constructor (dependencies = {}) {

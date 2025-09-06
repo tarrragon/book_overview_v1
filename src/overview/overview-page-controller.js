@@ -756,7 +756,7 @@ class OverviewPageController extends EventHandlerClass {
    */
   _loadFileReaderFactory () {
     if (typeof require !== 'undefined') {
-      return require('../utils/file-reader-factory')
+      return require('src/utils/file-reader-factory')
     }
     return window.FileReaderFactory
   }

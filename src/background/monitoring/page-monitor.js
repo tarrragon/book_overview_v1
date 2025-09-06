@@ -14,13 +14,13 @@
  * - 提供頁面監控的高層抽象介面
  */
 
-const BaseModule = require('../lifecycle/base-module')
-const PageDetector = require('../../content/detectors/page-detector')
+const BaseModule = require('src/background/lifecycle/base-module')
+const PageDetector = require('src/content/detectors/page-detector')
 const ContentCoordinator = require('./content-coordinator')
 const {
   PAGE_EVENTS,
   EVENT_PRIORITIES
-} = require('../constants/module-constants')
+} = require('src/background/constants/module-constants')
 
 class PageMonitor extends BaseModule {
   constructor (dependencies = {}) {

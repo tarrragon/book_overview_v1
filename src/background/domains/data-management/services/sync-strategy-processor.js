@@ -19,7 +19,7 @@
 //   SYNC_EVENTS,
 //   SYNC_STRATEGIES,
 //   EVENT_PRIORITIES
-// } = require('../../../constants/module-constants')
+// } = require('src/background/constants/module-constants')
 
 class SyncStrategyProcessor {
   constructor (eventBus, options = {}) {

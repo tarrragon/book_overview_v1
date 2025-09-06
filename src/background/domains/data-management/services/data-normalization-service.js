@@ -18,9 +18,9 @@
  * - 容錯性：優雅處理缺失或錯誤資料
  */
 
-const BaseModule = require('../../../lifecycle/base-module.js')
+const BaseModule = require('src/background/lifecycle/base-module.js')
 const crypto = require('crypto')
-const { createLogger } = require('../../../../core/logging/Logger')
+const { createLogger } = require('src/core/logging/Logger')
 
 class DataNormalizationService extends BaseModule {
   /**

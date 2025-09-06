@@ -18,7 +18,7 @@ const EventErrorHandler = require('./event-error-handler')
 const MessageTracker = require('./message-tracker')
 const EventTracker = require('./event-tracker')
 const EventPerformanceMonitor = require('./event-performance-monitor')
-const { getErrorConfig, getUserErrorMessage, getDiagnosticSuggestion } = require('../config/error-config')
+const { getErrorConfig, getUserErrorMessage, getDiagnosticSuggestion } = require('src/config/error-config')
 
 /**
  * 錯誤處理系統管理器

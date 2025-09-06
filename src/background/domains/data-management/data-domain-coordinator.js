@@ -33,8 +33,8 @@
  * - 多平台同步和衝突解決 (等待未來實作)
  */
 
-const BaseModule = require('../../lifecycle/base-module.js')
-const { createLogger } = require('../../../core/logging/Logger')
+const BaseModule = require('src/background/lifecycle/base-module.js')
+const { createLogger } = require('src/core/logging/Logger')
 
 class DataDomainCoordinator extends BaseModule {
   /**

@@ -14,7 +14,7 @@
  * - 提供 Content Script 健康狀態監控
  */
 
-const BaseModule = require('../lifecycle/base-module')
+const BaseModule = require('src/background/lifecycle/base-module')
 
 class ContentMessageHandler extends BaseModule {
   constructor (dependencies = {}) {

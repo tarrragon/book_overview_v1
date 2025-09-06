@@ -22,7 +22,7 @@
 const {
   LIMITS,
   TIMEOUTS
-} = require('../../../constants/module-constants')
+} = require('src/background/constants/module-constants')
 
 class SessionManagementService {
   constructor (dependencies = {}) {

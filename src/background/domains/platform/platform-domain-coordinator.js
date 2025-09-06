@@ -33,8 +33,8 @@
  * - 多平台切換與同步 (保留架構但不實作)
  */
 
-const BaseModule = require('../../lifecycle/base-module.js')
-const { createLogger } = require('../../../core/logging/Logger')
+const BaseModule = require('src/background/lifecycle/base-module.js')
+const { createLogger } = require('src/core/logging/Logger')
 
 class PlatformDomainCoordinator extends BaseModule {
   /**

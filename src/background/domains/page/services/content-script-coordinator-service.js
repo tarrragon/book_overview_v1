@@ -23,7 +23,7 @@ const {
   PAGE_EVENTS,
   CONTENT_SCRIPT_EVENTS,
   EVENT_PRIORITIES
-} = require('../../../constants/module-constants')
+} = require('src/background/constants/module-constants')
 
 class ContentScriptCoordinatorService {
   constructor (dependencies = {}) {

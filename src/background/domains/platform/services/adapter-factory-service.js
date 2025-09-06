@@ -1,4 +1,4 @@
-const { createLogger } = require('../../../../core/logging/Logger')
+const { createLogger } = require('src/core/logging/Logger')
 
 /**
  * @fileoverview Adapter Factory Service - 適配器工廠服務

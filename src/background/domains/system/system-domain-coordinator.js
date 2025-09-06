@@ -28,7 +28,7 @@ const DiagnosticService = require('./services/diagnostic-service')
 const {
   SYSTEM_EVENTS,
   EVENT_PRIORITIES
-} = require('../../constants/module-constants')
+} = require('src/background/constants/module-constants')
 
 class SystemDomainCoordinator {
   constructor (dependencies = {}) {

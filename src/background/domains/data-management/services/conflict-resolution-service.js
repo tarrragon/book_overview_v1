@@ -55,7 +55,7 @@
  * - Data Domain Coordinator 協調的衝突解決任務
  */
 
-const BaseModule = require('../../../lifecycle/base-module.js')
+const BaseModule = require('src/background/lifecycle/base-module.js')
 
 class ConflictResolutionService extends BaseModule {
   constructor (eventBus, dependencies = {}) {

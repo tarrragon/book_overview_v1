@@ -24,7 +24,7 @@ const {
   STORAGE_KEYS,
   DEFAULT_CONFIG,
   EVENT_PRIORITIES
-} = require('../../../constants/module-constants')
+} = require('src/background/constants/module-constants')
 
 class ConfigManagementService {
   constructor (dependencies = {}) {

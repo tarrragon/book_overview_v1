@@ -14,7 +14,7 @@
  * - 實現 Chrome API 的版本相容性管理
  */
 
-const BaseModule = require('../lifecycle/base-module')
+const BaseModule = require('src/background/lifecycle/base-module')
 
 class ChromeApiWrapper extends BaseModule {
   constructor (dependencies = {}) {

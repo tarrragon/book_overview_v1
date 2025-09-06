@@ -23,7 +23,7 @@ const NavigationService = require('./services/navigation-service')
 const {
   PAGE_EVENTS,
   EVENT_PRIORITIES
-} = require('../../constants/module-constants')
+} = require('src/background/constants/module-constants')
 
 class PageDomainCoordinator {
   constructor (dependencies = {}) {

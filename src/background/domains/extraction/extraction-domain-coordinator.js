@@ -21,7 +21,7 @@
  * 5. 實現優雅的服務停止和清理機制
  */
 
-const BaseModule = require('../../lifecycle/base-module')
+const BaseModule = require('src/background/lifecycle/base-module')
 
 // 導入所有 Extraction Domain 微服務
 const DataProcessingService = require('./services/data-processing-service')

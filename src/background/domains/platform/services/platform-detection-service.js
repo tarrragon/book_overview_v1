@@ -1,4 +1,4 @@
-const { createLogger } = require('../../../../core/logging/Logger')
+const { createLogger } = require('src/core/logging/Logger')
 
 /**
  * @fileoverview Platform Detection Service - 平台自動檢測和識別服務
@@ -583,7 +583,7 @@ class PlatformDetectionService {
   async fetchPlatformAPIWithTimeout (context) {
     if (!this.fetchPlatformAPI) return null
 
-    const TimeoutHandler = require('../../../utils/timeout-handler')
+    const TimeoutHandler = require('src/background/utils/timeout-handler')
     const timeoutResult = { error: 'Network timeout' }
     return await TimeoutHandler.createTimeout(this.fetchPlatformAPI(context), 2000, timeoutResult)
   }

@@ -18,9 +18,9 @@
  * - 可配置性：靈活的快取策略和參數設定
  */
 
-const BaseModule = require('../../../lifecycle/base-module.js')
+const BaseModule = require('src/background/lifecycle/base-module.js')
 const crypto = require('crypto')
-const { createLogger } = require('../../../../core/logging/Logger')
+const { createLogger } = require('src/core/logging/Logger')
 
 class CacheManagementService extends BaseModule {
   /**

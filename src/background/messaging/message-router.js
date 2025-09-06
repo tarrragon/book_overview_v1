@@ -14,7 +14,7 @@
  * - 提供完整的訊息追蹤和統計功能
  */
 
-const BaseModule = require('../lifecycle/base-module')
+const BaseModule = require('src/background/lifecycle/base-module')
 
 class MessageRouter extends BaseModule {
   constructor (dependencies = {}) {

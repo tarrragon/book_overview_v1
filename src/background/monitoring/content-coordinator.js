@@ -14,13 +14,13 @@
  * - 提供統一的 Content Scripts 狀態監控
  */
 
-const BaseModule = require('../lifecycle/base-module')
+const BaseModule = require('src/background/lifecycle/base-module')
 const {
   CONTENT_SCRIPT_STATES,
   MESSAGE_TYPES,
   TIMEOUTS,
   LIMITS
-} = require('../constants/module-constants')
+} = require('src/background/constants/module-constants')
 
 class ContentCoordinator extends BaseModule {
   constructor (dependencies = {}) {

@@ -22,7 +22,7 @@
 const {
   EXTRACTION_EVENTS,
   EVENT_PRIORITIES
-} = require('../../../constants/module-constants')
+} = require('src/background/constants/module-constants')
 
 class QualityControlService {
   constructor (dependencies = {}) {

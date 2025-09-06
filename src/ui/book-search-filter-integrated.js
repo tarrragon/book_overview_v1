@@ -27,8 +27,8 @@
  */
 
 // 統一日誌管理系統
-const { Logger } = require('../core/logging/Logger')
-const { MessageDictionary } = require('../core/messages/MessageDictionary')
+const { Logger } = require('src/core/logging/Logger')
+const { MessageDictionary } = require('src/core/messages/MessageDictionary')
 
 const BaseUIHandler = require('./handlers/base-ui-handler')
 const UI_HANDLER_CONFIG = require('./config/ui-handler-config')

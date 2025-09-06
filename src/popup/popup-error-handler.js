@@ -33,7 +33,7 @@ let getUserErrorMessage, getDiagnosticSuggestion
 // 嘗試載入錯誤配置
 try {
   if (typeof require !== 'undefined') {
-    const errorConfig = require('../config/error-config')
+    const errorConfig = require('src/config/error-config')
     getUserErrorMessage = errorConfig.getUserErrorMessage
     getDiagnosticSuggestion = errorConfig.getDiagnosticSuggestion
   }

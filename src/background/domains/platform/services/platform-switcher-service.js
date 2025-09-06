@@ -28,7 +28,7 @@
  * - 平台錯誤時的自動故障轉移
  */
 
-const { createLogger } = require('../../../../core/logging/Logger')
+const { createLogger } = require('src/core/logging/Logger')
 
 class PlatformSwitcherService {
   /**

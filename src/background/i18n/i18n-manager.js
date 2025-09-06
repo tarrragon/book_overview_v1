@@ -14,7 +14,7 @@
  * - 提供開發模式的缺失翻譯檢測
  */
 
-const BaseModule = require('../lifecycle/base-module')
+const BaseModule = require('src/background/lifecycle/base-module')
 
 class I18nManager extends BaseModule {
   constructor (dependencies = {}) {

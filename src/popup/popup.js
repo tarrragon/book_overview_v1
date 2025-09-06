@@ -26,8 +26,8 @@
  */
 
 // 統一日誌管理系統
-import { Logger } from '../core/logging/Logger.js'
-import { MessageDictionary } from '../core/messages/MessageDictionary.js'
+import { Logger } from 'src/core/logging/Logger.js'
+import { MessageDictionary } from 'src/core/messages/MessageDictionary.js'
 
 // 初始化 Popup Logger
 const popupMessages = new MessageDictionary({

@@ -1,4 +1,4 @@
-const { createLogger } = require('../../../../core/logging/Logger')
+const { createLogger } = require('src/core/logging/Logger')
 
 /**
  * @fileoverview Platform Registry Service - 平台註冊管理服務

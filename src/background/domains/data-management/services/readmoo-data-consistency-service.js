@@ -18,7 +18,7 @@
  * - 向後相容：保持與原始 API 的相容性
  */
 
-const BaseModule = require('../../../lifecycle/base-module.js')
+const BaseModule = require('src/background/lifecycle/base-module.js')
 const DataDifferenceEngine = require('./data-difference-engine.js')
 const ConflictDetectionService = require('./ConflictDetectionService.js')
 const SyncProgressMonitor = require('./sync-progress-tracker.js')

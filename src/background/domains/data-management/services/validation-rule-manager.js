@@ -18,8 +18,8 @@
  * - 效能優化：規則快取和懶加載機制
  */
 
-const BaseModule = require('../../../lifecycle/base-module.js')
-const { createLogger } = require('../../../../core/logging/Logger')
+const BaseModule = require('src/background/lifecycle/base-module.js')
+const { createLogger } = require('src/core/logging/Logger')
 
 class ValidationRuleManager extends BaseModule {
   /**

@@ -31,7 +31,7 @@
 
 const BaseUIHandler = require('./base-ui-handler')
 const UIEventValidator = require('./ui-event-validator')
-const UI_HANDLER_CONFIG = require('../config/ui-handler-config')
+const UI_HANDLER_CONFIG = require('src/ui/config/ui-handler-config')
 
 class UIProgressHandler extends BaseUIHandler {
   /**

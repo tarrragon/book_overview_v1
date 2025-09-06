@@ -1,4 +1,4 @@
-const { createLogger } = require('../../../../core/logging/Logger')
+const { createLogger } = require('src/core/logging/Logger')
 
 /**
  * @fileoverview Platform Isolation Service - 平台隔離與安全控制服務

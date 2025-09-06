@@ -26,7 +26,7 @@
  * - UX Domain 中 Popup 相關功能的統一入口
  */
 
-const { createLogger } = require('../../../../core/logging/Logger')
+const { createLogger } = require('src/core/logging/Logger')
 
 class PopupUICoordinationService {
   constructor (dependencies = {}) {
@@ -50,15 +50,15 @@ class PopupUICoordinationService {
 
     // 模組載入器映射
     this.moduleLoaders = new Map([
-      ['dom-manager', () => require('../../../popup/ui/popup-dom-manager')],
-      ['status-display', () => require('../../../popup/ui/popup-status-display')],
-      ['progress-display', () => require('../../../popup/ui/popup-progress-display')],
-      ['button-manager', () => require('../../../popup/ui/popup-button-manager')],
-      ['background-bridge', () => require('../../../popup/services/popup-background-bridge')],
-      ['extraction-service', () => require('../../../popup/services/popup-extraction-service')],
-      ['tab-service', () => require('../../../popup/services/popup-tab-service')],
-      ['main-controller', () => require('../../../popup/controllers/popup-main-controller')],
-      ['lifecycle-controller', () => require('../../../popup/controllers/popup-lifecycle-controller')]
+      ['dom-manager', () => require('src/popup/ui/popup-dom-manager')],
+      ['status-display', () => require('src/popup/ui/popup-status-display')],
+      ['progress-display', () => require('src/popup/ui/popup-progress-display')],
+      ['button-manager', () => require('src/popup/ui/popup-button-manager')],
+      ['background-bridge', () => require('src/popup/services/popup-background-bridge')],
+      ['extraction-service', () => require('src/popup/services/popup-extraction-service')],
+      ['tab-service', () => require('src/popup/services/popup-tab-service')],
+      ['main-controller', () => require('src/popup/controllers/popup-main-controller')],
+      ['lifecycle-controller', () => require('src/popup/controllers/popup-lifecycle-controller')]
     ])
 
     // 協調統計
