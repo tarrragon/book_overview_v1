@@ -54,54 +54,8 @@ get_today_date() {
     date +%Y-%m-%d
 }
 
-# 檢查工作日誌是否有今日記錄
-check_todays_entry() {
-    local log_file="$1"
-    local today=$(get_today_date)
-    
-    log_info "檢查工作日誌: $log_file"
-    log_info "尋找今日日期記錄: $today"
-    
-    if grep -q "$today" "$log_file"; then
-        log_success "✅ 找到今日日期記錄"
-        
-        # 進一步檢查：如果今天已有記錄，檢查是否有實質性的工作內容變更需要更新
-        check_work_content_completeness "$log_file"
-        return $?
-    else
-        log_warning "⚠️  未找到今日日期記錄"
-        return 1
-    fi
-}
-
-# 檢查工作內容是否完整記錄
-check_work_content_completeness() {
-    local log_file="$1"
-    
-    # 獲取當前的變更檔案
-    local changed_files=$(git diff --cached --name-only | grep -E '\.(md|js|ts|json)$' | wc -l)
-    local changed_docs=$(git diff --cached --name-only | grep -E 'docs/.*\.md$' | wc -l)
-    
-    # 如果有大量文件變更（超過3個文檔文件），建議檢查工作記錄是否完整
-    if [[ $changed_docs -gt 3 ]]; then
-        log_warning "⚠️  檢測到大量文檔變更 ($changed_docs 個文件)"
-        log_warning "💡 建議確認工作日誌是否完整記錄了這些變更"
-        echo ""
-        echo "📝 變更的文檔文件："
-        git diff --cached --name-only | grep -E 'docs/.*\.md$' | head -5
-        if [[ $changed_docs -gt 5 ]]; then
-            echo "... 以及其他 $((changed_docs - 5)) 個文件"
-        fi
-        echo ""
-        echo "🤔 請確認以上工作是否都已記錄在工作日誌中？"
-        echo "   如果未完整記錄，建議執行: ./scripts/work-log-manager.sh"
-        echo ""
-        
-        return 1  # 建議更新工作日誌
-    fi
-    
-    return 0  # 變更不大，可以繼續
-}
+# 這些函數已不再需要，因為改用直接確認方式
+# check_todays_entry() 和 check_work_content_completeness() 已移除
 
 # 檢查 git 變更內容
 get_git_changes() {
@@ -196,6 +150,12 @@ show_work_log_changes() {
 main() {
     log_info "開始工作日誌檢查..."
     
+    # 首先檢查是否有要提交的變更
+    if git diff --cached --quiet; then
+        log_info "沒有待提交的變更，跳過工作日誌檢查"
+        return 0
+    fi
+    
     # 獲取最新工作日誌
     local latest_log
     if ! latest_log=$(get_latest_work_log); then
@@ -212,13 +172,42 @@ main() {
     show_work_log_changes
     echo ""
     
-    # 檢查今日是否有記錄
-    if check_todays_entry "$latest_log"; then
+    # 🎯 核心修復：強制確認工作日誌
+    log_info "🔍 檢測到待提交的變更"
+    echo ""
+    echo "❓ 本次提交的工作內容是否已記錄在工作日誌中？"
+    echo ""
+    echo "📋 待提交的變更："
+    git diff --cached --name-only | head -10
+    local total_staged=$(git diff --cached --name-only | wc -l)
+    if [[ $total_staged -gt 10 ]]; then
+        echo "... 以及其他 $((total_staged - 10)) 個文件"
+    fi
+    echo ""
+    echo "📝 當前工作日誌: $latest_log"
+    echo ""
+    echo "💭 請確認："
+    echo "   1. 這些變更代表的工作是否已記錄？"
+    echo "   2. 工作進度和成果是否已更新？"
+    echo "   3. 如有重要里程碑，是否已記錄？"
+    echo ""
+    echo "💡 如需更新工作日誌："
+    echo "   ./scripts/work-log-manager.sh"
+    echo ""
+    
+    # 🎯 關鍵：讓用戶確認，不做自動判斷
+    read -p "✅ 工作日誌已完整記錄本次變更？ (y/N): " -r
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
         log_success "✅ 工作日誌檢查通過，可以進行提交"
         return 0
     else
-        # 使用智能管理系統
-        prompt_smart_work_log_management "$latest_log"
+        log_warning "⚠️  請先更新工作日誌再提交"
+        echo ""
+        echo "🤖 建議操作："
+        echo "1. 執行工作日誌管理腳本："
+        echo "   ./scripts/work-log-manager.sh"
+        echo ""
+        echo "2. 工作日誌更新完成後重新執行 /commit-as-prompt"
         return 1
     fi
 }
