@@ -31,8 +31,8 @@
 const crypto = require('crypto')
 
 // 引入新的錯誤類別系統
-const { BookValidationError } = require('../../../core/errors/BookValidationError')
-const { StandardError } = require('../../../core/errors/StandardError')
+const { BookValidationError } = require('src/core/errors/BookValidationError')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class DataValidationService {
   constructor (eventBus, config = {}) {

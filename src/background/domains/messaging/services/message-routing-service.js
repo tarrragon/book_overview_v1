@@ -24,7 +24,7 @@ const {
   MESSAGE_SOURCES,
   EVENT_PRIORITIES,
   TIMEOUTS
-} = require('../../../constants/module-constants')
+} = require('src/background/constants/module-constants')
 
 class MessageRoutingService {
   constructor (dependencies = {}) {

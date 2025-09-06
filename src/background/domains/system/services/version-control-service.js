@@ -23,7 +23,7 @@ const {
   SYSTEM_EVENTS,
   STORAGE_KEYS,
   EVENT_PRIORITIES
-} = require('../../../constants/module-constants')
+} = require('src/background/constants/module-constants')
 
 class VersionControlService {
   constructor (dependencies = {}) {

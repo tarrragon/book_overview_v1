@@ -26,7 +26,7 @@
  * - START_EXTRACTION 等訊息處理問題的診斷
  */
 
-const EventHandler = require('../core/event-handler')
+const EventHandler = require('src/core/event-handler')
 
 class MessageErrorHandler extends EventHandler {
   /**

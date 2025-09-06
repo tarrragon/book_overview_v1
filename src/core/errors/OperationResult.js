@@ -23,7 +23,7 @@ let StandardError, OperationStatus, ErrorTypes
 if (typeof require !== 'undefined') {
   try {
     StandardError = require('./StandardError').StandardError
-    const { OperationStatus: OpStatus, ErrorTypes: ErrTypes } = require('../enums')
+    const { OperationStatus: OpStatus, ErrorTypes: ErrTypes } = require('src/core/enums')
     OperationStatus = OpStatus
     ErrorTypes = ErrTypes
   } catch (e) {

@@ -14,7 +14,7 @@
  * - 提供完整的 Popup 狀態追蹤和統計
  */
 
-const BaseModule = require('../lifecycle/base-module')
+const BaseModule = require('src/background/lifecycle/base-module')
 
 class PopupMessageHandler extends BaseModule {
   constructor (dependencies = {}) {

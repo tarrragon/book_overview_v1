@@ -17,9 +17,9 @@
  * @since 2025-08-08
  */
 
-const EventHandler = require('../../core/event-handler')
-const BookDataExporter = require('../book-data-exporter')
-const { EXPORT_EVENTS } = require('../export-events')
+const EventHandler = require('src/core/event-handler')
+const BookDataExporter = require('src/export/book-data-exporter')
+const { EXPORT_EVENTS } = require('src/export/export-events')
 
 /**
  * Excel 匯出處理器類別

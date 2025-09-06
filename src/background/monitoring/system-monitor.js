@@ -14,13 +14,13 @@
  * - 提供系統狀態的即時監控和歷史追蹤
  */
 
-const BaseModule = require('../lifecycle/base-module')
+const BaseModule = require('src/background/lifecycle/base-module')
 const {
   HEALTH_STATES,
   SYSTEM_EVENTS,
   EVENT_PRIORITIES,
   TIMEOUTS
-} = require('../constants/module-constants')
+} = require('src/background/constants/module-constants')
 
 class SystemMonitor extends BaseModule {
   constructor (dependencies = {}) {

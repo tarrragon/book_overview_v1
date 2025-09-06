@@ -32,7 +32,7 @@
  * - 支援不同載入策略的統一管理
  */
 
-const EventHandler = require('../../core/event-handler')
+const EventHandler = require('src/core/event-handler')
 
 class StorageLoadHandler extends EventHandler {
   /**

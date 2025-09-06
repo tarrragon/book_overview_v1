@@ -18,7 +18,7 @@
 let GlobalMessages
 if (typeof require !== 'undefined') {
   try {
-    GlobalMessages = require('../messages/MessageDictionary').GlobalMessages
+    GlobalMessages = require('src/core/messages/MessageDictionary').GlobalMessages
   } catch (e) {
     // 瀏覽器環境或引入失敗時，使用後備方案
     GlobalMessages = {

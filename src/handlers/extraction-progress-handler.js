@@ -31,7 +31,7 @@
  * - 提供進度預估和完成時間計算時
  */
 
-const EventHandler = require('../core/event-handler')
+const EventHandler = require('src/core/event-handler')
 
 class ExtractionProgressHandler extends EventHandler {
   constructor (options = {}) {

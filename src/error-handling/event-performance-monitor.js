@@ -21,7 +21,7 @@
  * @version 1.0.0
  */
 
-const EventHandler = require('../core/event-handler')
+const EventHandler = require('src/core/event-handler')
 
 /**
  * EventPerformanceMonitor 類別

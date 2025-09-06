@@ -26,7 +26,7 @@
  * - 即時訊息流程監控和分析
  */
 
-const EventHandler = require('../core/event-handler')
+const EventHandler = require('src/core/event-handler')
 
 class MessageTracker extends EventHandler {
   /**

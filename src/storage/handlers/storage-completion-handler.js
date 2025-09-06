@@ -31,7 +31,7 @@
  * @since 2025-07-31
  */
 
-const EventHandler = require('../../core/event-handler')
+const EventHandler = require('src/core/event-handler')
 
 class StorageCompletionHandler extends EventHandler {
   /**

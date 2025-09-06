@@ -27,7 +27,7 @@
  * - Background Script 與 Content Script 的通訊橋梁
  */
 
-const EventHandler = require('../core/event-handler')
+const EventHandler = require('src/core/event-handler')
 
 class PopupEventController extends EventHandler {
   /**

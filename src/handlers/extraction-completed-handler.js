@@ -37,7 +37,7 @@
  * - 實現完整的提取作業閉環處理時
  */
 
-const EventHandler = require('../core/event-handler')
+const EventHandler = require('src/core/event-handler')
 const crypto = require('crypto')
 
 class ExtractionCompletedHandler extends EventHandler {

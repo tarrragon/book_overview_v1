@@ -29,7 +29,7 @@
  * - 實現資料的備份和同步機制
  */
 
-const EventHandler = require('../../core/event-handler')
+const EventHandler = require('src/core/event-handler')
 
 class StorageSaveHandler extends EventHandler {
   /**

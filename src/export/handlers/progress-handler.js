@@ -17,8 +17,8 @@
  * @since 2025-08-08
  */
 
-const EventHandler = require('../../core/event-handler')
-const { EXPORT_EVENTS } = require('../export-events')
+const EventHandler = require('src/core/event-handler')
+const { EXPORT_EVENTS } = require('src/export/export-events')
 
 /**
  * 進度處理器類別

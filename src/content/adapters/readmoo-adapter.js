@@ -29,7 +29,7 @@
  */
 
 // 導入統一日誌系統
-const { createLogger } = require('../../core/logging/Logger')
+const { createLogger } = require('src/core/logging/Logger')
 
 /**
  * 建立 Readmoo 適配器實例

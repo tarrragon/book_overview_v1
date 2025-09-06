@@ -37,7 +37,7 @@ if (typeof window !== 'undefined') {
   }
 } else {
   // Node.js 環境：使用 require
-  EventHandlerClass = require('../core/event-handler')
+  EventHandlerClass = require('src/core/event-handler')
 }
 
 // 常數定義

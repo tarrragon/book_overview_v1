@@ -26,7 +26,7 @@
  * - 自動錯誤恢復和系統自癒
  */
 
-const EventHandler = require('../core/event-handler')
+const EventHandler = require('src/core/event-handler')
 
 class EventErrorHandler extends EventHandler {
   /**

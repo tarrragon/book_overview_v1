@@ -14,9 +14,9 @@
  * - 實現事件系統的優雅啟動和關閉
  */
 
-const BaseModule = require('../lifecycle/base-module')
-const { SYSTEM_EVENTS, EVENT_PRIORITIES } = require('../constants/module-constants')
-const { createLogger } = require('../../core/logging/Logger')
+const BaseModule = require('src/background/lifecycle/base-module')
+const { SYSTEM_EVENTS, EVENT_PRIORITIES } = require('src/background/constants/module-constants')
+const { createLogger } = require('src/core/logging/Logger')
 
 class EventCoordinator extends BaseModule {
   constructor (dependencies = {}) {
