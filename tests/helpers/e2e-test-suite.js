@@ -1339,6 +1339,79 @@ class E2ETestSuite {
   }
 
   /**
+   * 創建多個額外分頁用於多分頁測試
+   */
+  async createAdditionalTabs(urls) {
+    this.log(`創建額外分頁: ${urls.length} 個`)
+    
+    const tabs = []
+    
+    for (let i = 0; i < urls.length; i++) {
+      const url = urls[i]
+      const tabId = `additional-tab-${i + 1}-${Date.now()}`
+      
+      // 創建分頁物件
+      const tab = {
+        id: tabId,
+        url,
+        active: false,
+        windowId: 1,
+        index: i + 2, // 假設主分頁是 index 0，popup 是 index 1
+        status: 'loading'
+      }
+      
+      // 模擬分頁載入過程
+      await new Promise(resolve => setTimeout(resolve, 200))
+      tab.status = 'complete'
+      
+      // 為每個分頁注入 Content Script
+      if (this.extensionController) {
+        await this.extensionController.createTab(tab)
+        
+        // 如果是 Readmoo 頁面，設置相應的測試數據
+        if (url.includes('readmoo.com')) {
+          await this.extensionController.injectContentScriptInTab(tabId)
+          
+          // 為每個分頁注入不同的測試書籍數據
+          const mockBooks = this.testDataGenerator?.generateBooks(20 + i * 10, `tab-${i}`) || []
+          await this.injectMockBooks(mockBooks, tabId)
+        }
+      }
+      
+      tabs.push(tab)
+    }
+    
+    this.log(`成功創建 ${tabs.length} 個額外分頁`)
+    return tabs
+  }
+
+  /**
+   * 關閉額外分頁
+   */
+  async closeAdditionalTabs(tabs) {
+    if (!tabs || tabs.length === 0) return
+    
+    this.log(`關閉額外分頁: ${tabs.length} 個`)
+    
+    for (const tab of tabs) {
+      // 清理分頁相關的 Content Script
+      if (this.extensionController) {
+        await this.extensionController.cleanupContentScript(tab.id)
+        
+        // 從測試數據中移除分頁相關數據
+        if (this.extensionController.state.testData) {
+          this.extensionController.state.testData.delete(tab.id)
+        }
+      }
+      
+      // 模擬分頁關閉延遲
+      await new Promise(resolve => setTimeout(resolve, 50))
+    }
+    
+    this.log(`成功關閉 ${tabs.length} 個額外分頁`)
+  }
+
+  /**
    * 模擬處理程序中斷（如瀏覽器崩潰、網路斷線等）
    */
   async simulateProcessInterruption (interruptionType = 'browser-crash', duration = 3000) {

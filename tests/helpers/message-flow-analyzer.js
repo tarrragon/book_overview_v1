@@ -97,6 +97,14 @@ class MessageFlowAnalyzer {
     this.messages = []
     this.flows = []
   }
+
+  /**
+   * 清理分析器資源
+   */
+  async cleanup() {
+    this.reset()
+    // 清理任何其他資源或監聽器
+  }
 }
 
 module.exports = MessageFlowAnalyzer

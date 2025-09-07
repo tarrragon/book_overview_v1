@@ -1137,6 +1137,363 @@ class ChromeExtensionController {
     // 當前權宜方案：手動在各個handler中記錄
   }
 
+  /**
+   * 發送 Popup 到 Background 的訊息
+   */
+  async sendPopupToBackgroundMessage(message) {
+    const startTime = Date.now()
+    this.log(`[Popup→Background] 發送訊息: ${JSON.stringify(message)}`)
+    
+    // 記錄 API 呼叫
+    this.recordAPICall('sendMessage', { target: 'background', message })
+    
+    // 模擬訊息處理延遲
+    await this.simulateDelay(10)
+    
+    // 根據訊息類型返回對應的模擬回應
+    const response = this._generateBackgroundResponse(message)
+    const responseTime = Date.now() - startTime
+    
+    // 添加 responseTime 到回應中
+    const fullResponse = {
+      ...response,
+      responseTime
+    }
+    
+    // 更新狀態
+    this._updateMessageState('popup', 'background', message, fullResponse)
+    
+    return fullResponse
+  }
+
+  /**
+   * 等待 Content Script 準備就緒
+   */
+  async waitForContentScriptReady(timeout = 5000) {
+    this.log('[Content Script] 等待準備就緒')
+    
+    const startTime = Date.now()
+    
+    while (Date.now() - startTime < timeout) {
+      // 檢查 Content Script 狀態
+      const contentContext = this.state.contexts.get('content')
+      if (contentContext && contentContext.state === 'ready') {
+        this.log('[Content Script] 已準備就緒')
+        return true
+      }
+      
+      // 模擬檢查間隔
+      await this.simulateDelay(100)
+    }
+    
+    throw new Error('Content Script 準備就緒等待超時')
+  }
+
+  /**
+   * 模擬 Content Script 回報資料
+   */
+  async simulateContentScriptReport(reportData) {
+    this.log(`[Content Script→Popup] 模擬回報: ${JSON.stringify(reportData)}`)
+    
+    // 記錄 API 呼叫
+    this.recordAPICall('contentScriptReport', { reportData })
+    
+    // 模擬處理延遲
+    await this.simulateDelay(50)
+    
+    // 更新系統狀態
+    this._updateContentScriptState(reportData)
+    
+    // 回報成功的回應
+    return {
+      success: true,
+      received: reportData,
+      timestamp: Date.now()
+    }
+  }
+
+  /**
+   * 生成 Background 回應的私有方法
+   */
+  _generateBackgroundResponse(message) {
+    switch (message.type || message) {
+      case 'GET_SYSTEM_STATUS':
+        return {
+          success: true,
+          type: 'SYSTEM_STATUS_RESPONSE',
+          data: {
+            serviceWorkerActive: true,
+            extensionEnabled: true,
+            currentTab: this.state.activeTab
+          }
+        }
+      
+      case 'REQUEST_BOOK_COUNT':
+        return {
+          success: true,
+          type: 'BOOK_COUNT_RESPONSE',
+          data: {
+            bookCount: this.state.storage.get('mockBooksCount') || 0
+          }
+        }
+      
+      case 'INITIATE_EXTRACTION':
+        return {
+          success: true,
+          type: 'EXTRACTION_STARTED',
+          data: {
+            extractionId: 'test-extraction-' + Date.now(),
+            status: 'started'
+          }
+        }
+      
+      case 'UPDATE_USER_SETTINGS':
+        return {
+          success: true,
+          type: 'SETTINGS_UPDATED',
+          data: {
+            updated: true
+          }
+        }
+      
+      case 'START_EXTRACTION':
+        return {
+          success: true,
+          type: 'EXTRACTION_STARTED_RESPONSE',
+          data: {
+            extractionId: 'test-extraction-' + Date.now(),
+            status: 'started'
+          }
+        }
+      
+      case 'GET_EXTRACTION_STATUS':
+        return {
+          success: true,
+          type: 'EXTRACTION_STATUS_RESPONSE',
+          data: {
+            status: 'completed',
+            booksFound: this.state.storage.get('mockBooksCount') || 0,
+            progress: 100
+          }
+        }
+      
+      default:
+        return {
+          success: true,
+          type: 'GENERIC_RESPONSE',
+          data: { message: '已收到訊息' }
+        }
+    }
+  }
+
+  /**
+   * 更新訊息傳遞狀態的私有方法
+   */
+  _updateMessageState(sender, receiver, message, response) {
+    if (!this.state.messaging) {
+      this.state.messaging = {
+        history: [],
+        activeConnections: new Set()
+      }
+    }
+    
+    const messageRecord = {
+      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      sender,
+      receiver,
+      message,
+      response,
+      timestamp: Date.now()
+    }
+    
+    this.state.messaging.history.push(messageRecord)
+    this.state.messaging.activeConnections.add(`${sender}-${receiver}`)
+  }
+
+  /**
+   * 更新 Content Script 狀態的私有方法
+   */
+  _updateContentScriptState(reportData) {
+    const contentContext = this.state.contexts.get('content')
+    if (contentContext) {
+      contentContext.lastReport = reportData
+      contentContext.lastReportTime = Date.now()
+      contentContext.state = 'active'
+    }
+    
+    // 更新整體狀態
+    if (reportData.books) {
+      this.state.storage.set('lastExtractedBooks', reportData.books)
+      this.state.storage.set('mockBooksCount', reportData.books.length)
+    }
+  }
+
+  /**
+   * 發送 Background 到 Content Script 的訊息
+   */
+  async sendBackgroundToContentMessage(command, parameters) {
+    this.log(`[Background→Content] 發送指令: ${command}`)
+    
+    this.recordAPICall('sendBackgroundMessage', { command, parameters })
+    
+    // 模擬處理延遲
+    await this.simulateDelay(30)
+    
+    // 根據指令類型返回對應結果
+    const result = this._generateContentScriptResponse(command, parameters)
+    
+    return result
+  }
+
+  /**
+   * 等待 Popup 更新
+   */
+  async waitForPopupUpdate(options = {}) {
+    const { expectedUpdate, timeout = 3000 } = options
+    this.log(`[Popup] 等待更新: ${JSON.stringify(expectedUpdate)}`)
+    
+    const startTime = Date.now()
+    
+    while (Date.now() - startTime < timeout) {
+      // 檢查 Popup 狀態是否有預期的更新
+      const popupState = await this.getPopupState()
+      
+      if (this._checkPopupUpdate(popupState, expectedUpdate)) {
+        return {
+          success: true,
+          update: popupState,
+          waitTime: Date.now() - startTime
+        }
+      }
+      
+      await this.simulateDelay(100)
+    }
+    
+    throw new Error(`等待 Popup 更新超時: ${timeout}ms`)
+  }
+
+  /**
+   * 發送優先級訊息
+   */
+  async sendPriorityMessage(type, data, priority = 'normal') {
+    this.log(`[Priority Message] ${priority}: ${type}`)
+    
+    this.recordAPICall('sendPriorityMessage', { type, data, priority })
+    
+    // 根據優先級調整處理延遲
+    const delays = {
+      high: 10,
+      normal: 50,
+      low: 100
+    }
+    
+    await this.simulateDelay(delays[priority] || 50)
+    
+    return {
+      success: true,
+      messageId: `priority-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      priority,
+      processingTime: delays[priority] || 50
+    }
+  }
+
+  /**
+   * 發送帶錯誤處理的訊息
+   */
+  async sendMessageWithErrorHandling(type, data, options = {}) {
+    this.log(`[Error Handling Message] ${type}`)
+    
+    const { timeout = 5000, retries = 3, errorSimulation } = options
+    
+    // 如果有錯誤模擬配置
+    if (errorSimulation) {
+      return this._simulateMessageError(type, data, errorSimulation, options)
+    }
+    
+    // 正常處理
+    return {
+      success: true,
+      messageId: `error-handled-${Date.now()}`,
+      type,
+      data,
+      attempts: 1
+    }
+  }
+
+  /**
+   * 生成 Content Script 回應的私有方法
+   */
+  _generateContentScriptResponse(command, parameters) {
+    switch (command) {
+      case 'EXTRACT_BOOKS':
+        return {
+          success: true,
+          data: {
+            extractedBooks: this.state.storage.get('lastExtractedBooks') || [],
+            extractionTime: Date.now()
+          }
+        }
+      
+      case 'GET_PAGE_INFO':
+        return {
+          success: true,
+          data: {
+            url: this.state.pageEnvironment?.url || 'https://readmoo.com',
+            readyState: 'complete',
+            booksVisible: true
+          }
+        }
+      
+      default:
+        return {
+          success: true,
+          data: { command, parameters }
+        }
+    }
+  }
+
+  /**
+   * 檢查 Popup 更新的私有方法
+   */
+  _checkPopupUpdate(popupState, expectedUpdate) {
+    if (!expectedUpdate) return true
+    
+    for (const [key, expectedValue] of Object.entries(expectedUpdate)) {
+      if (popupState[key] !== expectedValue) {
+        return false
+      }
+    }
+    
+    return true
+  }
+
+  /**
+   * 模擬訊息錯誤的私有方法
+   */
+  _simulateMessageError(type, data, errorSimulation, options) {
+    const errorTypes = {
+      timeout: () => {
+        throw new Error(`訊息傳遞超時: ${type}`)
+      },
+      network_error: () => {
+        throw new Error(`網路錯誤: ${type}`)
+      },
+      recipient_unavailable: () => {
+        throw new Error(`接收者不可用: ${type}`)
+      }
+    }
+    
+    if (errorTypes[errorSimulation.type]) {
+      errorTypes[errorSimulation.type]()
+    }
+    
+    return {
+      success: false,
+      error: errorSimulation.type,
+      attempts: options.retries || 1
+    }
+  }
+
   recordAPICall (apiName, params) {
     this.metrics.apiCalls.push({
       api: apiName,
