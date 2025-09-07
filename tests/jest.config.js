@@ -49,8 +49,9 @@ module.exports = {
     '<rootDir>/docs/'
   ],
 
-  // 模組名稱映射
+  // 模組名稱映射 - 支援標準化語意路徑
   moduleNameMapper: {
+    '^src/(.*)$': '<rootDir>/src/$1',
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@tests/(.*)$': '<rootDir>/tests/$1',
     '^@mocks/(.*)$': '<rootDir>/tests/mocks/$1',

@@ -73,13 +73,19 @@ class MessagingDomainCoordinator {
    * 初始化所有微服務
    */
   initializeServices (dependencies) {
+    // 導入服務類別
+    const { MessageRoutingService } = require('src/background/domains/messaging/services/message-routing-service')
+    const { SessionManagementService } = require('src/background/domains/messaging/services/session-management-service')
+    const { ConnectionMonitoringService } = require('src/background/domains/messaging/services/connection-monitoring-service')
+    const { MessageValidationService } = require('src/background/domains/messaging/services/message-validation-service')
+    const { QueueManagementService } = require('src/background/domains/messaging/services/queue-management-service')
+
     // 創建微服務實例
-    this.services.set('routing', new MessageRoutingService(dependencies))
+    this.services.set('validation', new MessageValidationService(dependencies))
+    this.services.set('queue', new QueueManagementService(dependencies))
+    this.services.set('connection', new ConnectionMonitoringService(dependencies))
     this.services.set('session', new SessionManagementService(dependencies))
-    // TODO: 等待建立缺失的服務
-    // this.services.set('connection', new ConnectionMonitoringService(dependencies))
-    // this.services.set('validation', new MessageValidationService(dependencies))
-    // this.services.set('queue', new QueueManagementService(dependencies))
+    this.services.set('routing', new MessageRoutingService(dependencies))
 
     // 初始化服務狀態
     for (const serviceName of this.services.keys()) {
@@ -99,15 +105,12 @@ class MessagingDomainCoordinator {
    * 設定服務依賴關係
    */
   setupServiceDependencies () {
-    // 定義服務啟動順序和依賴關係 (暫時只包含現有服務)
-    this.serviceDependencies.set('session', []) // 暫時無依賴
-    this.serviceDependencies.set('routing', ['session']) // 依賴會話管理
-    // TODO: 恢復完整的依賴關係當服務建立後
-    // this.serviceDependencies.set('validation', []) // 無依賴，優先啟動
-    // this.serviceDependencies.set('queue', ['validation']) // 依賴驗證服務
-    // this.serviceDependencies.set('connection', ['validation']) // 依賴驗證服務
-    // this.serviceDependencies.set('session', ['validation', 'connection']) // 依賴驗證和連接監控
-    // this.serviceDependencies.set('routing', ['validation', 'queue', 'connection', 'session']) // 依賴所有其他服務
+    // 定義服務啟動順序和依賴關係（完整服務架構）
+    this.serviceDependencies.set('validation', []) // 無依賴，優先啟動
+    this.serviceDependencies.set('queue', ['validation']) // 依賴驗證服務
+    this.serviceDependencies.set('connection', ['validation']) // 依賴驗證服務
+    this.serviceDependencies.set('session', ['validation', 'connection']) // 依賴驗證和連接監控
+    this.serviceDependencies.set('routing', ['validation', 'queue', 'connection', 'session']) // 依賴所有其他服務
   }
 
   /**

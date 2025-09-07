@@ -18,7 +18,7 @@
  * - 可配置性：靈活的快取策略和參數設定
  */
 
-const BaseModule = require('src/background/lifecycle/base-module.js')
+const BaseModule = require('src/background/lifecycle/base-module')
 const crypto = require('crypto')
 const { createLogger } = require('src/core/logging/Logger')
 

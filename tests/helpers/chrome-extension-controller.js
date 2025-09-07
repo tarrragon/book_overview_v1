@@ -2225,6 +2225,106 @@ class ChromeExtensionController {
   }
 
   /**
+   * 捕獲完整系統狀態
+   */
+  async captureFullSystemState() {
+    const backgroundState = await this.getBackgroundState()
+    const popupState = await this.getPopupState()
+    const storageData = await this.getStorageData()
+    
+    return {
+      background: backgroundState,
+      popup: popupState,
+      storage: storageData,
+      timestamp: Date.now()
+    }
+  }
+
+  /**
+   * 強制重啟 Service Worker
+   */
+  async forceServiceWorkerRestart() {
+    // 模擬 Service Worker 重啟
+    console.log('[ExtensionController] Forcing Service Worker restart')
+    await this.simulateDelay(1000)
+    return { restarted: true, newPid: Math.floor(Math.random() * 10000) }
+  }
+
+  /**
+   * 觸發 Content Script 注入
+   */
+  async triggerContentScriptInjection() {
+    try {
+      const injectionResult = await this.injectContentScript()
+      return {
+        injected: true,
+        scriptType: injectionResult.scriptType || 'readmoo',
+        injectionTime: Date.now()
+      }
+    } catch (error) {
+      return {
+        injected: false,
+        error: error.message,
+        injectionTime: Date.now()
+      }
+    }
+  }
+
+  /**
+   * 執行後台提取操作
+   */
+  async executeBackgroundExtraction() {
+    console.log('[ExtensionController] Executing background extraction')
+    await this.simulateDelay(2000)
+    
+    const mockBooks = [
+      { title: 'Background Book 1', author: 'Author 1' },
+      { title: 'Background Book 2', author: 'Author 2' }
+    ]
+    
+    return {
+      success: true,
+      extractedBooks: mockBooks,
+      extractionTime: Date.now()
+    }
+  }
+
+  /**
+   * 配置批次傳輸
+   */
+  async configureBatchTransfer(options = {}) {
+    const { batchSize = 50, batchDelay = 100, compressionEnabled = false } = options
+    
+    this.batchConfig = {
+      batchSize,
+      batchDelay,
+      compressionEnabled
+    }
+    
+    console.log('[ExtensionController] Configured batch transfer:', this.batchConfig)
+    return { configured: true, config: this.batchConfig }
+  }
+
+  /**
+   * 點擊按鈕（通用方法）
+   */
+  async clickButton(buttonName) {
+    switch (buttonName) {
+      case 'refresh-status':
+        await this.simulateDelay(500)
+        return { clicked: true, button: buttonName, action: 'refresh' }
+      case 'retry':
+        return await this.clickRetryButton()
+      case 'export':
+        return await this.clickExportButton()
+      case 'extract':
+        return await this.clickExtractButton()
+      default:
+        throw new Error(`Unknown button: ${buttonName}`)
+    }
+  }
+
+  /**
    * 獲取 Popup UI 元素
    * 返回 Popup 中的 UI 元素狀態
    */

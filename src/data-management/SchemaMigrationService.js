@@ -1,4 +1,4 @@
-const BaseModule = require('../background/lifecycle/base-module')
+const BaseModule = require('src/background/lifecycle/base-module')
 
 /**
  * Schema Migration Service

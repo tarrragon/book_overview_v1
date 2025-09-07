@@ -32,8 +32,7 @@ describe('OperationResult 核心功能', () => {
     
     // Then: 驗證成功結果結構
     expect(result.success).toBe(true)
-    expect(result.success).toBe(true)
-    expect(result.!success).toBe(false)
+    expect(!result.success).toBe(false)
     expect(result.data).toEqual(testData)
     expect(result.error).toBeNull()
     expect(result.timestamp).toBe(1693747200000)

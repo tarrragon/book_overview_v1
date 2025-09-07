@@ -16,7 +16,7 @@
 
 const BaseModule = require('src/background/lifecycle/base-module')
 const PageDetector = require('src/content/detectors/page-detector')
-const ContentCoordinator = require('./content-coordinator')
+const ContentCoordinator = require('src/background/monitoring/content-coordinator')
 const {
   PAGE_EVENTS,
   EVENT_PRIORITIES

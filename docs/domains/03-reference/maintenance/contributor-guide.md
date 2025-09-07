@@ -395,16 +395,16 @@ Carol: 28 commits, 9 PRs, 12 issues
 ### 常見問題
 
 **Q: 如何設定開發環境？**
-A: 參考 [開發環境設定](../../02-development/workflows/development-setup.md)
+A: 參考 [開發環境設定](./docs/domains/02-development/workflows/development-setup.md)
 
 **Q: 測試要怎麼寫？**  
-A: 參考 [測試金字塔實踐](../../02-development/testing/test-pyramid.md)
+A: 參考 [測試金字塔實踐](./docs/domains/02-development/testing/test-pyramid.md)
 
 **Q: 提交訊息格式？**
 A: 使用 `/commit-as-prompt` 指令，遵循 WHAT/WHY/HOW 結構
 
 **Q: 程式碼審查標準？**
-A: 參考本文件「程式碼審查」章節和 [程式碼品質範例](../../claude/code-quality-examples.md)
+A: 參考本文件「程式碼審查」章節和 [程式碼品質範例](./docs/claude/code-quality-examples.md)
 
 ### 聯絡方式
 
@@ -417,9 +417,9 @@ A: 參考本文件「程式碼審查」章節和 [程式碼品質範例](../../c
 
 ## 📚 相關文件參考
 
-- [Git 協作規範](../../02-development/workflows/git-workflow.md) - 版本控制最佳實務
+- [Git 協作規範](./docs/domains/02-development/workflows/git-workflow.md) - 版本控制最佳實務
 - [文件維護指南](./documentation-maintenance.md) - 文件品質標準
-- [程式碼品質範例](../../claude/code-quality-examples.md) - 具體程式碼規範
+- [程式碼品質範例](./docs/claude/code-quality-examples.md) - 具體程式碼規範
 
 ---
 

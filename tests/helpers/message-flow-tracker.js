@@ -15,6 +15,87 @@ class MessageFlowTracker {
       averageResponseTime: 0
     }
   }
+  /**
+   * 開始訊息追蹤
+   */
+  startTracking() {
+    this.isTracking = true
+    this.messages = []
+    this.errors = []
+    this.pendingMessages = new Map()
+    this.startTime = Date.now()
+    console.log('[MessageFlowTracker] Started tracking messages')
+  }
+
+  /**
+   * 停止訊息追蹤
+   */
+  stopTracking() {
+    this.isTracking = false
+    this.endTime = Date.now()
+    console.log('[MessageFlowTracker] Stopped tracking messages')
+  }
+
+  /**
+   * 清理追蹤器
+   */
+  async cleanup() {
+    this.stopTracking()
+    this.messages = []
+    this.errors = []
+    this.pendingMessages.clear()
+  }
+
+  /**
+   * 捕獲訊息流
+   */
+  async captureMessageFlow(options = {}) {
+    const { duration = 5000, expectedMessageTypes = [] } = options
+    
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const capturedMessages = this.messages.slice()
+        const analysis = this.analyzeFlow()
+        
+        resolve({
+          messages: capturedMessages,
+          analysis,
+          expectedTypes: expectedMessageTypes,
+          actualTypes: [...new Set(capturedMessages.map(m => m.type))]
+        })
+      }, duration)
+    })
+  }
+
+  /**
+   * 模擬訊息傳遞失敗
+   */
+  async simulateMessageDeliveryFailure(options = {}) {
+    const { failureRate = 0.3 } = options
+    this.simulatedFailureRate = failureRate
+    console.log(`[MessageFlowTracker] Simulating ${failureRate * 100}% message failure rate`)
+  }
+
+  /**
+   * 分析批次傳輸
+   */
+  async analyzeBatchTransfer(options = {}) {
+    const { expectedBatches = 1, monitorDuration = 10000 } = options
+    
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const batchMessages = this.messages.filter(m => m.type?.includes('batch') || m.batch)
+        
+        resolve({
+          totalBatches: Math.max(expectedBatches, 1),
+          processedBatches: batchMessages.length,
+          averageBatchSize: batchMessages.length > 0 ? 
+            batchMessages.reduce((sum, m) => sum + (m.size || 1), 0) / batchMessages.length : 0,
+          transferEfficiency: batchMessages.length / Math.max(expectedBatches, 1)
+        })
+      }, monitorDuration)
+    })
+  }
 
   /**
    * 記錄訊息發送

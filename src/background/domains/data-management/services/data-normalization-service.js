@@ -18,7 +18,7 @@
  * - 容錯性：優雅處理缺失或錯誤資料
  */
 
-const BaseModule = require('src/background/lifecycle/base-module.js')
+const BaseModule = require('src/background/lifecycle/base-module')
 const crypto = require('crypto')
 const { createLogger } = require('src/core/logging/Logger')
 

@@ -15,8 +15,8 @@
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
-const ErrorCollector = require('./error-collector')
-const SystemMonitor = require('./system-monitor')
+const ErrorCollector = require('src/background/monitoring/error-collector')
+const SystemMonitor = require('src/background/monitoring/system-monitor')
 const {
   SYSTEM_EVENTS,
   EVENT_PRIORITIES

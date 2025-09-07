@@ -820,6 +820,90 @@ class E2ETestSuite {
   }
 
   /**
+   * 破壞文件以測試錯誤處理
+   */
+  async corruptFile (filePath, corruptionType = 'invalid-json', options = {}) {
+    try {
+      this.log(`破壞文件: ${filePath}, 類型: ${corruptionType}`)
+
+      // 如果是模擬的文件對象
+      if (typeof filePath === 'object' && filePath.data) {
+        const originalData = { ...filePath.data }
+
+        switch (corruptionType) {
+          case 'invalid-json':
+            // 破壞JSON結構
+            filePath.data = { ...originalData, corrupted: '{ invalid json' }
+            filePath.corrupted = true
+            filePath.corruptionType = 'invalid-json'
+            break
+
+          case 'truncate':
+            // 截斷文件內容
+            const percentage = options.percentage || 0.5
+            if (originalData.books && Array.isArray(originalData.books)) {
+              const truncateIndex = Math.floor(originalData.books.length * percentage)
+              filePath.data.books = originalData.books.slice(0, truncateIndex)
+              filePath.data.truncated = true
+            }
+            filePath.corrupted = true
+            filePath.corruptionType = 'truncate'
+            break
+
+          case 'remove-metadata':
+            // 移除重要的元數據
+            if (filePath.data.metadata) {
+              delete filePath.data.metadata
+            }
+            if (filePath.data.version) {
+              delete filePath.data.version
+            }
+            if (filePath.data.exportedAt) {
+              delete filePath.data.exportedAt
+            }
+            filePath.corrupted = true
+            filePath.corruptionType = 'remove-metadata'
+            break
+
+          case 'wrong-version':
+            // 設置不相容的版本
+            filePath.data.version = '999.0.0'
+            filePath.corrupted = true
+            filePath.corruptionType = 'wrong-version'
+            break
+
+          default:
+            throw new Error(`不支援的破壞類型: ${corruptionType}`)
+        }
+
+        this.logOperation('file_corruption', {
+          filePath: typeof filePath === 'string' ? filePath : 'file-object',
+          corruptionType,
+          options,
+          originalSize: JSON.stringify(originalData).length,
+          corruptedSize: JSON.stringify(filePath.data).length
+        })
+
+        return filePath
+      }
+
+      // 如果是文件路徑字符串，創建一個破壞的模擬文件
+      const corruptedFile = {
+        filename: filePath,
+        corrupted: true,
+        corruptionType,
+        data: null,
+        error: `File corrupted: ${corruptionType}`
+      }
+
+      return corruptedFile
+    } catch (error) {
+      this.logError(error, 'corruptFile')
+      throw new Error(`文件破壞失敗: ${error.message}`)
+    }
+  }
+
+  /**
    * 創建指定版本的匯出檔案
    */
   async createVersionedExportFile (books, version = '1.0.0', format = 'json') {

@@ -1194,7 +1194,7 @@ describe('AdapterFactoryService', () => {
     })
 
     test('無 logger 時應該使用 console', async () => {
-      const factoryWithoutLogger = new AdapterFactoryService(eventBus, {})
+      const factoryWithoutLogger = new AdapterFactoryService(eventBus, { logger: null })
 
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation()
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation()

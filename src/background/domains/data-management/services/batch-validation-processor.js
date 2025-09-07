@@ -18,7 +18,7 @@
  * - 可擴展性：支援不同平台的驗證規則
  */
 
-const BaseModule = require('src/background/lifecycle/base-module.js')
+const BaseModule = require('src/background/lifecycle/base-module')
 
 class BatchValidationProcessor extends BaseModule {
   /**

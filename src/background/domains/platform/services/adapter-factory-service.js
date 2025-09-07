@@ -40,7 +40,7 @@ class AdapterFactoryService {
    */
   constructor (eventBus, dependencies = {}) {
     this.eventBus = eventBus
-    this.logger = dependencies.logger || createLogger('[AdapterFactoryService]')
+    this.logger = dependencies.logger !== undefined ? dependencies.logger : createLogger('[AdapterFactoryService]')
     this.config = dependencies.config || {}
     this.platformRegistry = dependencies.platformRegistry
     this.performanceMonitor = dependencies.performanceMonitor
@@ -1430,9 +1430,9 @@ class AdapterFactoryService {
    */
   async log (message) {
     if (this.logger && typeof this.logger.info === 'function') {
-      this.logger.info(message)
+      this.logger.info(`[AdapterFactoryService] ${message}`)
     } else {
-      createLogger('[AdapterFactoryService]').info(message)
+      console.log(`[AdapterFactoryService] ${message}`)
     }
   }
 
@@ -1443,9 +1443,9 @@ class AdapterFactoryService {
    */
   async logError (message, error) {
     if (this.logger && typeof this.logger.error === 'function') {
-      this.logger.error(message, { error: error?.message || error })
+      this.logger.error(`[AdapterFactoryService] ${message}`, error)
     } else {
-      createLogger('[AdapterFactoryService]').error(message, { error: error?.message || error })
+      console.error(`[AdapterFactoryService] ${message}`, error)
     }
   }
 }

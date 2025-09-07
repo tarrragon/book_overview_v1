@@ -16,8 +16,8 @@
  */
 
 const EventHandler = require('src/core/event-handler')
-const UIEventValidator = require('src/ui/handlers/ui-event-validator')
-const UIDOMManager = require('src/ui/handlers/ui-dom-manager')
+const UIEventValidator = require('./ui-event-validator')
+const UIDOMManager = require('./ui-dom-manager')
 
 class BaseUIHandler extends EventHandler {
   /**

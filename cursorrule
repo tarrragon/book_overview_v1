@@ -307,24 +307,24 @@ tmux new-session -s main_layout
 ### 📚 核心規範快速導覽
 
 **日常開發必讀**：
-[- 🤝 TDD 協作開發流程](docs/claude/tdd-collaboration-flow.md) - 四階段開發流程
-[- 📚 專案文件責任明確區分](docs/claude/document-responsibilities.md) - 文件寫作規範
-[- 🤖 Agent 協作規範](docs/claude/agent-collaboration.md) - Sub-agent 使用指南
+[- 🤝 TDD 協作開發流程](./docs/claude/tdd-collaboration-flow.md) - 四階段開發流程
+[- 📚 專案文件責任明確區分](./docs/claude/document-responsibilities.md) - 文件寫作規範
+[- 🤖 Agent 協作規範](./docs/claude/agent-collaboration.md) - Sub-agent 使用指南
 
 **專案特定規範**：
-[- 📦 Chrome Extension 與專案規範](docs/claude/chrome-extension-specs.md) - 平台特定要求
-[- 🎭 事件驅動架構規範](docs/claude/event-driven-architecture.md) - 架構模式指引
+[- 📦 Chrome Extension 與專案規範](./docs/claude/chrome-extension-specs.md) - 平台特定要求
+[- 🎭 事件驅動架構規範](./docs/claude/event-driven-architecture.md) - 架構模式指引
 
 **格式化與品質修正**：
-[- 📋 格式化修正案例範例集](docs/claude/format-fix-examples.md) - 標準化修正模式與最佳實踐
-[- 🤖 Mint Format Specialist](docs/claude/mint-format-specialist.md) - 專業格式化 sub-agent
+[- 📋 格式化修正案例範例集](./docs/claude/format-fix-examples.md) - 標準化修正模式與最佳實踐
+[- 🤖 Mint Format Specialist](./docs/claude/mint-format-specialist.md) - 專業格式化 sub-agent
 
 ### 🔍 詳細執行指導
 
-[- 🚨 違規警報與預防](docs/claude/violation-prevention.md)
-[- 📋 關鍵情境決策流程](docs/claude/decision-workflows.md)
-[- 🔍 自我監控與糾錯機制](docs/claude/self-monitoring.md)
-[- 🧭 程式碼品質範例彙編](docs/claude/code-quality-examples.md)
+[- 🚨 違規警報與預防](./docs/claude/violation-prevention.md)
+[- 📋 關鍵情境決策流程](./docs/claude/decision-workflows.md)
+[- 🔍 自我監控與糾錯機制](./docs/claude/self-monitoring.md)
+[- 🧭 程式碼品質範例彙編](./docs/claude/code-quality-examples.md)
 
 ---
 
@@ -501,12 +501,33 @@ EOF
 範例：請見 `docs/claude/code-quality-examples.md`
 
 **檔案路徑語意規範（強制）**:
-- 路徑需可「單看就理解」來源模組、功能核心與責任邊界（domain-oriented path）。
-- **完整路徑名稱**：資料夾名稱需具體表意，讓 domain 結構一目了然。
-- **禁止相對深度**：絕不使用 `../../../` 等相對深度計算方式。
-- 匯入時以功能域為單位組織依賴，避免路徑語意與實際責任不一致。
 
-範例：請見 `docs/claude/code-quality-examples.md`
+**採用 `./src/` 開頭的專案根相對路徑格式**:
+- ✅ **語意清晰**: 一眼就能理解模組在專案中的位置和責任邊界
+- ✅ **Node.js 相容**: 符合 require() 路徑解析標準，避免模組解析錯誤
+- ✅ **Jest 支援**: 測試環境透過 moduleNameMapper 完全支援
+- ✅ **重構安全**: 移動檔案時影響範圍明確可控，降低破壞性變更風險
+
+**路徑格式要求**:
+- **JavaScript 模組引用**: 使用 `require('./src/模組路徑')` 格式
+- **禁止深層相對路徑**: 絕不使用 `../../../` 等相對深度計算
+- **禁止 src/ 開頭**: `require('src/模組路徑')` 會被 Node.js 視為 npm 模組而失敗
+- **統一起始點**: 所有模組引用都從專案根目錄 (`./`) 開始
+
+**正確範例**:
+```javascript
+// ✅ 正確 - 專案根相對路徑
+const Logger = require('./src/core/logging/Logger')
+const BaseModule = require('./src/background/lifecycle/base-module')
+
+// ❌ 錯誤 - 深層相對路徑
+const Logger = require('../../../core/logging/Logger')
+
+// ❌ 錯誤 - Node.js 無法解析
+const Logger = require('src/core/logging/Logger')
+```
+
+詳細範例：請見 `docs/claude/format-fix-examples.md`
 
 **五事件評估準則（非硬性上限）**:
 - 本專案採事件驅動；函式可協調多個事件/子作業以達成目標。「5」為責任複雜度的警示值，不是硬性行數限制。
@@ -700,7 +721,7 @@ npm run clean
 
 ### 📚 專案用語規範
 
-**參考文件**: [專案用語規範字典](docs/claude/terminology-dictionary.md)
+**參考文件**: [專案用語規範字典](./docs/claude/terminology-dictionary.md)
 
 **核心原則**:
 1. **精確性優先**: 使用具體、明確的技術術語，避免模糊概念詞彙

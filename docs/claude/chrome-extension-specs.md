@@ -60,6 +60,6 @@
 ---
 
 **🔗 相關文件連結**:
-- [返回主指導文件](../../CLAUDE.md)
-- [事件驅動架構規範](../architecture/event-driven-architecture.md)
-- [Agent 協作規範](../workflows/agent-collaboration.md)
+- [返回主指導文件](./../../CLAUDE.md)
+- [事件驅動架構規範](./event-driven-architecture.md)
+- [Agent 協作規範](./agent-collaboration.md)

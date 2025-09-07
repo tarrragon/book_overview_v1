@@ -18,7 +18,7 @@
  * - 統計導向：提供詳細的品質統計和趨勢分析
  */
 
-const BaseModule = require('src/background/lifecycle/base-module.js')
+const BaseModule = require('src/background/lifecycle/base-module')
 const { createLogger } = require('src/core/logging/Logger')
 
 class QualityAssessmentService extends BaseModule {
