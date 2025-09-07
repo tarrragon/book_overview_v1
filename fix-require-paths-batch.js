@@ -11,36 +11,36 @@ const path = require('path');
 // 需要處理的路徑模式映射
 const pathMappings = {
   // BaseModule 引用
-  "require('../lifecycle/base-module')": "require('./src/background/lifecycle/base-module')",
-  "require('../../lifecycle/base-module')": "require('./src/background/lifecycle/base-module')",
-  "require('../../../lifecycle/base-module')": "require('./src/background/lifecycle/base-module')",
-  "require('../lifecycle/base-module.js')": "require('./src/background/lifecycle/base-module')",
-  "require('../../lifecycle/base-module.js')": "require('./src/background/lifecycle/base-module')",
+  "require('../lifecycle/base-module')": "require('src/background/lifecycle/base-module')",
+  "require('../../lifecycle/base-module')": "require('src/background/lifecycle/base-module')",
+  "require('../../../lifecycle/base-module')": "require('src/background/lifecycle/base-module')",
+  "require('../lifecycle/base-module.js')": "require('src/background/lifecycle/base-module')",
+  "require('../../lifecycle/base-module.js')": "require('src/background/lifecycle/base-module')",
   
   // Logger 引用
-  "require('../../core/logging/Logger')": "require('./src/core/logging/Logger')",
-  "require('../../../core/logging/Logger')": "require('./src/core/logging/Logger')",
-  "require('../../../../core/logging/Logger')": "require('./src/core/logging/Logger')",
-  "require('../../../../../core/logging/Logger')": "require('./src/core/logging/Logger')",
+  "require('../../core/logging/Logger')": "require('src/core/logging/Logger')",
+  "require('../../../core/logging/Logger')": "require('src/core/logging/Logger')",
+  "require('../../../../core/logging/Logger')": "require('src/core/logging/Logger')",
+  "require('../../../../../core/logging/Logger')": "require('src/core/logging/Logger')",
   
   // Constants 引用
-  "require('../constants/module-constants')": "require('./src/background/constants/module-constants')",
-  "require('../../constants/module-constants')": "require('./src/background/constants/module-constants')",
-  "require('../../../constants/module-constants')": "require('./src/background/constants/module-constants')",
+  "require('../constants/module-constants')": "require('src/background/constants/module-constants')",
+  "require('../../constants/module-constants')": "require('src/background/constants/module-constants')",
+  "require('../../../constants/module-constants')": "require('src/background/constants/module-constants')",
   
   // Core 引用
-  "require('../core/errors/OperationResult')": "require('./src/core/errors/OperationResult')",
-  "require('../../core/errors/OperationResult')": "require('./src/core/errors/OperationResult')",
-  "require('../../../core/errors/OperationResult')": "require('./src/core/errors/OperationResult')",
+  "require('../core/errors/OperationResult')": "require('src/core/errors/OperationResult')",
+  "require('../../core/errors/OperationResult')": "require('src/core/errors/OperationResult')",
+  "require('../../../core/errors/OperationResult')": "require('src/core/errors/OperationResult')",
   
-  "require('../core/enums')": "require('./src/core/enums')",
-  "require('../../core/enums')": "require('./src/core/enums')",
-  "require('../../../core/enums')": "require('./src/core/enums')",
+  "require('../core/enums')": "require('src/core/enums')",
+  "require('../../core/enums')": "require('src/core/enums')",
+  "require('../../../core/enums')": "require('src/core/enums')",
   
   // 其他常見模式
-  "require('../utils/timeout-handler')": "require('./src/background/utils/timeout-handler')",
-  "require('../../utils/timeout-handler')": "require('./src/background/utils/timeout-handler')",
-  "require('../../../utils/timeout-handler')": "require('./src/background/utils/timeout-handler')",
+  "require('../utils/timeout-handler')": "require('src/background/utils/timeout-handler')",
+  "require('../../utils/timeout-handler')": "require('src/background/utils/timeout-handler')",
+  "require('../../../utils/timeout-handler')": "require('src/background/utils/timeout-handler')",
 };
 
 // 需要處理的檔案列表

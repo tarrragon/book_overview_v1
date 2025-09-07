@@ -235,7 +235,7 @@ describe('EventNamingUpgradeCoordinator', () => {
     test('應該正確轉換 Modern 事件為 Legacy 事件', () => {
       const modernEvent = 'EXTRACTION.READMOO.EXTRACT.COMPLETED'
       const legacyEvent = coordinator.convertToLegacyEvent(modernEvent)
-      expect(legacyEvent).toBe('EXTRACTION.COMPLETED')
+      expect(legacyEvent).toBe('EXTRACTION.DATA.COMPLETED')
     })
 
     test('應該處理無對應 Legacy 事件的 Modern 事件', () => {

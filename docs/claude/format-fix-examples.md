@@ -55,7 +55,7 @@ const BaseModule = require('../../../background/lifecycle/base-module')
 const Logger = require('../../../../core/logging/Logger')
 const MessageDict = require('../../../core/messages/MessageDictionary')
 
-// 錯誤的 ./src/ 格式 - Jest 環境解析失敗
+// 錯誤的 ./src/ 格式 - 在 Node.js 測試中會失敗
 const DataService = require('./src/background/domains/data-management/services/data-service')
 
 // 混合路徑格式 - 維護性差
@@ -276,6 +276,156 @@ Phase 3: 程式碼類路徑修正 (45個三層 + 83個其他)
 - 驗證重點: 模組引用正確性
 - 預估批次: 7批次
 ```
+
+---
+
+## 📦 模組匯入/匯出一致性修正範例
+
+### 🔧 **1. 解構匯入與匯出方式不匹配**
+
+#### ❌ **修正前 (Before)**
+```javascript
+// 檔案: messaging-domain-coordinator.js
+// 錯誤：使用解構匯入，但服務使用直接匯出
+const { MessageRoutingService } = require('src/background/domains/messaging/services/message-routing-service')
+const { SessionManagementService } = require('src/background/domains/messaging/services/session-management-service')
+const { ConnectionMonitoringService } = require('src/background/domains/messaging/services/connection-monitoring-service')
+const { MessageValidationService } = require('src/background/domains/messaging/services/message-validation-service')
+const { QueueManagementService } = require('src/background/domains/messaging/services/queue-management-service')
+
+// 使用服務時會報錯：TypeError: MessageRoutingService is not a constructor
+this.services.set('routing', new MessageRoutingService(dependencies))
+this.services.set('session', new SessionManagementService(dependencies))
+```
+
+#### ✅ **修正後 (After)**
+```javascript
+// 檔案: messaging-domain-coordinator.js
+// 正確：根據服務的實際匯出方式使用對應的匯入語法
+
+// 直接匯出的服務：使用直接匯入
+const MessageRoutingService = require('src/background/domains/messaging/services/message-routing-service')
+const SessionManagementService = require('src/background/domains/messaging/services/session-management-service')
+
+// 物件匯出的服務：使用解構匯入
+const { ConnectionMonitoringService } = require('src/background/domains/messaging/services/connection-monitoring-service')
+const { MessageValidationService } = require('src/background/domains/messaging/services/message-validation-service')
+const { QueueManagementService } = require('src/background/domains/messaging/services/queue-management-service')
+
+// 正常使用服務
+this.services.set('routing', new MessageRoutingService(dependencies))
+this.services.set('session', new SessionManagementService(dependencies))
+```
+
+**修正判斷規則**:
+```javascript
+// 檢查服務檔案的匯出方式
+// 案例 1: 直接匯出 → 使用直接匯入
+module.exports = ServiceClass
+// 對應匯入: const ServiceClass = require('path/to/service')
+
+// 案例 2: 物件匯出 → 使用解構匯入  
+module.exports = { ServiceClass, OTHER_EXPORTS }
+// 對應匯入: const { ServiceClass } = require('path/to/service')
+```
+
+### 🔧 **2. 重複匯入問題修正**
+
+#### ❌ **修正前 (Before)**
+```javascript
+// 檔案頂部已有匯入
+const MessageRoutingService = require('./services/message-routing-service')
+const SessionManagementService = require('./services/session-management-service')
+const { ConnectionMonitoringService } = require('./services/connection-monitoring-service')
+const { MessageValidationService } = require('./services/message-validation-service')
+const { QueueManagementService } = require('./services/queue-management-service')
+
+// 方法內部又重複匯入 - 錯誤！
+initializeServices(dependencies) {
+  // 重複匯入，並且使用錯誤的解構語法
+  const { MessageRoutingService } = require('src/background/domains/messaging/services/message-routing-service')
+  const { SessionManagementService } = require('src/background/domains/messaging/services/session-management-service')
+  const { ConnectionMonitoringService } = require('src/background/domains/messaging/services/connection-monitoring-service')
+  const { MessageValidationService } = require('src/background/domains/messaging/services/message-validation-service')
+  const { QueueManagementService } = require('src/background/domains/messaging/services/queue-management-service')
+
+  // 使用服務...
+}
+```
+
+#### ✅ **修正後 (After)**  
+```javascript
+// 檔案頂部統一匯入
+const MessageRoutingService = require('./services/message-routing-service')
+const SessionManagementService = require('./services/session-management-service')
+const { ConnectionMonitoringService } = require('./services/connection-monitoring-service')
+const { MessageValidationService } = require('./services/message-validation-service')
+const { QueueManagementService } = require('./services/queue-management-service')
+
+// 方法內直接使用已匯入的服務
+initializeServices(dependencies) {
+  // 使用頂部已匯入的服務類別，無需重新載入
+  
+  // 創建微服務實例
+  this.services.set('validation', new MessageValidationService(dependencies))
+  this.services.set('queue', new QueueManagementService(dependencies))
+  this.services.set('connection', new ConnectionMonitoringService(dependencies))
+  this.services.set('session', new SessionManagementService(dependencies))
+  this.services.set('routing', new MessageRoutingService(dependencies))
+}
+```
+
+### 🔧 **3. 混合匯出方式統一化**
+
+#### 📋 **問題識別**
+```javascript
+// 發現專案中服務匯出方式不一致：
+
+// 方式 1: 直接匯出 (2個服務)
+module.exports = SessionManagementService
+module.exports = MessageRoutingService
+
+// 方式 2: 物件匯出 (3個服務) 
+module.exports = { ConnectionMonitoringService, LIMITS, TIMEOUTS }
+module.exports = { MessageValidationService, VALIDATION_RULES, SECURITY_RULES }
+module.exports = { QueueManagementService, QUEUE_CONFIG, PROCESSING_CONFIG }
+```
+
+#### ✅ **統一化建議**
+```javascript
+// 建議：統一使用物件匯出方式，提供更好的擴展性
+// 優點：可以匯出多個相關的類別、常數、工具函數
+
+// 統一格式：
+module.exports = { 
+  SessionManagementService,
+  // 未來可以添加相關常數或工具函數
+}
+
+module.exports = { 
+  MessageRoutingService,
+  // 未來可以添加路由相關常數
+}
+
+// 對應的統一匯入格式：
+const { SessionManagementService } = require('./services/session-management-service')
+const { MessageRoutingService } = require('./services/message-routing-service')
+const { ConnectionMonitoringService } = require('./services/connection-monitoring-service')
+const { MessageValidationService } = require('./services/message-validation-service')
+const { QueueManagementService } = require('./services/queue-management-service')
+```
+
+**修正優先級**:
+1. 🔴 **Critical**: 修正匯入/匯出不匹配導致的運行時錯誤
+2. 🟡 **High**: 消除重複匯入，簡化程式碼結構
+3. 🟢 **Medium**: 統一匯出方式，提升程式碼一致性
+
+**檢查清單**:
+- [ ] 確認每個服務檔案的實際匯出方式
+- [ ] 修正所有匯入語句匹配對應的匯出方式
+- [ ] 消除方法內部的重複匯入
+- [ ] 驗證修正後所有服務能正常實例化
+- [ ] 執行整合測試確保修正無誤
 
 ---
 

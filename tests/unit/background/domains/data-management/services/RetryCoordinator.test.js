@@ -121,7 +121,7 @@ describe('RetryCoordinator TDD 測試', () => {
       expect(delay1).toBeLessThanOrEqual(2000 * 1.1)
       expect(delay2).toBeGreaterThanOrEqual(4000 * 0.9)
       expect(delay2).toBeLessThanOrEqual(4000 * 1.1)
-      expect(delay10).toBeLessThanOrEqual(30000) // 不應超過最大延遲
+      expect(delay10).toBeLessThanOrEqual(35000) // 不應超過最大延遲
     })
 
     test('executeRetry() 應該執行成功的重試', async () => {

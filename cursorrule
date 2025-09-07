@@ -502,29 +502,29 @@ EOF
 
 **檔案路徑語意規範（強制）**:
 
-**採用 `./src/` 開頭的專案根相對路徑格式**:
+**採用 `src/` 開頭的語意化路徑格式**:
 - ✅ **語意清晰**: 一眼就能理解模組在專案中的位置和責任邊界
-- ✅ **Node.js 相容**: 符合 require() 路徑解析標準，避免模組解析錯誤
-- ✅ **Jest 支援**: 測試環境透過 moduleNameMapper 完全支援
+- ✅ **Chrome Extension 相容**: Service Worker 環境完全支援
+- ✅ **Jest 支援**: 測試環境透過 moduleNameMapper 完全支援 (`^src/(.*)$: <rootDir>/src/$1`)
 - ✅ **重構安全**: 移動檔案時影響範圍明確可控，降低破壞性變更風險
 
 **路徑格式要求**:
-- **JavaScript 模組引用**: 使用 `require('./src/模組路徑')` 格式
+- **JavaScript 模組引用**: 使用 `require('src/模組路徑')` 格式
 - **禁止深層相對路徑**: 絕不使用 `../../../` 等相對深度計算
-- **禁止 src/ 開頭**: `require('src/模組路徑')` 會被 Node.js 視為 npm 模組而失敗
-- **統一起始點**: 所有模組引用都從專案根目錄 (`./`) 開始
+- **⚠️ 測試執行限制**: `src/` 路徑僅在 Jest 測試環境中有效，詳見「測試執行規範」
+- **Jest 相容性**: 配合 Jest moduleNameMapper 確保測試正常執行
 
 **正確範例**:
 ```javascript
-// ✅ 正確 - 專案根相對路徑
-const Logger = require('./src/core/logging/Logger')
-const BaseModule = require('./src/background/lifecycle/base-module')
+// ✅ 正確 - Jest 相容的 src/ 格式
+const Logger = require('src/core/logging/Logger')
+const BaseModule = require('src/background/lifecycle/base-module')
 
 // ❌ 錯誤 - 深層相對路徑
 const Logger = require('../../../core/logging/Logger')
 
-// ❌ 錯誤 - Node.js 無法解析
-const Logger = require('src/core/logging/Logger')
+// ❌ 錯誤 - Jest 測試環境無法解析
+const Logger = require('./src/core/logging/Logger')
 ```
 
 詳細範例：請見 `docs/claude/format-fix-examples.md`
@@ -645,6 +645,36 @@ npm run test:e2e
 # 執行測試並產生覆蓋率報告
 npm run test:coverage
 ```
+
+### ⚠️ 測試執行規範 (重要)
+
+**強制要求**: 所有測試必須透過 Jest 執行，**絕不可直接使用 Node.js**
+
+**正確方式**:
+```bash
+# ✅ 正確 - 透過 Jest 執行測試
+npx jest tests/integration/architecture/messaging-services-integration.test.js --verbose
+npm test
+
+# ✅ 正確 - 執行特定測試
+npx jest tests/unit/specific-test.test.js
+```
+
+**錯誤方式**:
+```bash
+# ❌ 錯誤 - 直接使用 Node.js (會導致模組解析失敗)
+node tests/integration/architecture/messaging-services-integration.test.js
+node -e "const Service = require('src/background/...')" 
+```
+
+**技術原因**:
+- 專案使用 `src/` 語意化路徑，透過 Jest 的 `moduleNameMapper` 配置支援
+- Chrome Extension 環境支援 `src/` 路徑，但 Node.js 環境需要 Jest 的模組映射
+- 直接使用 Node.js 會導致 "Cannot find module 'src/..." 錯誤
+
+**除外情況**:
+- 僅當需要測試純粹的模組匯入時，可以暫時使用相對路徑進行 Node.js 測試
+- 生產環境和 Chrome Extension 中的 `src/` 路徑解析正常運作
 
 ### 建置指令
 

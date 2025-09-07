@@ -1338,6 +1338,156 @@ class E2ETestSuite {
     return tab
   }
 
+  /**
+   * 模擬處理程序中斷（如瀏覽器崩潰、網路斷線等）
+   */
+  async simulateProcessInterruption (interruptionType = 'browser-crash', duration = 3000) {
+    try {
+      this.log(`模擬處理程序中斷: ${interruptionType}，持續時間: ${duration}ms`)
+      
+      switch (interruptionType) {
+        case 'browser-crash':
+          // 模擬瀏覽器崩潰 - 關閉所有標籤和連接
+          if (this.extensionController) {
+            await this.extensionController.simulateCrash()
+          }
+          break
+          
+        case 'network-interruption':
+          // 模擬網路中斷
+          if (this.extensionController) {
+            await this.extensionController.setNetworkConditions({ offline: true })
+          }
+          break
+          
+        case 'extension-suspend':
+          // 模擬擴展暫停
+          if (this.extensionController) {
+            await this.extensionController.suspendExtension()
+          }
+          break
+          
+        default:
+          // 通用中斷 - 暫停處理
+          this.log(`執行通用處理中斷: ${duration}ms`)
+      }
+      
+      // 等待中斷持續時間
+      await this.waitForTimeout(duration)
+      
+      // 記錄中斷事件
+      this.logOperation('process_interruption', {
+        type: interruptionType,
+        duration,
+        timestamp: Date.now()
+      })
+      
+      return {
+        success: true,
+        interruptionType,
+        duration,
+        timestamp: Date.now()
+      }
+      
+    } catch (error) {
+      this.logError(error, 'simulateProcessInterruption')
+      throw new Error(`處理程序中斷模擬失敗: ${error.message}`)
+    }
+  }
+
+  /**
+   * 搜索總覽頁面的書籍
+   */
+  async searchOverviewBooks (searchTerm, options = {}) {
+    try {
+      const { limit = 50, sortBy = 'title' } = options
+      this.log(`搜索書籍: "${searchTerm}"，限制: ${limit}，排序: ${sortBy}`)
+      
+      // 模擬搜索操作
+      const mockResults = []
+      for (let i = 0; i < Math.min(limit, 10); i++) {
+        mockResults.push({
+          id: `search-result-${i}`,
+          title: `${searchTerm} 結果 ${i + 1}`,
+          author: `作者 ${i + 1}`,
+          progress: Math.floor(Math.random() * 100),
+          searchRelevance: Math.random()
+        })
+      }
+      
+      // 按搜索相關性或指定方式排序
+      if (sortBy === 'relevance') {
+        mockResults.sort((a, b) => b.searchRelevance - a.searchRelevance)
+      } else if (sortBy === 'title') {
+        mockResults.sort((a, b) => a.title.localeCompare(b.title))
+      }
+      
+      this.logOperation('search_overview_books', {
+        searchTerm,
+        resultCount: mockResults.length,
+        options
+      })
+      
+      return {
+        success: true,
+        results: mockResults,
+        totalResults: mockResults.length,
+        searchTerm,
+        timestamp: Date.now()
+      }
+      
+    } catch (error) {
+      this.logError(error, 'searchOverviewBooks')
+      throw new Error(`書籍搜索失敗: ${error.message}`)
+    }
+  }
+
+  /**
+   * 擷取效能基準線
+   */
+  async capturePerformanceBaseline (operationType = 'general', duration = 5000) {
+    try {
+      this.log(`擷取效能基準線: ${operationType}，測量時間: ${duration}ms`)
+      
+      const startTime = process.hrtime.bigint()
+      const startMemory = process.memoryUsage()
+      
+      // 等待測量期間
+      await this.waitForTimeout(duration)
+      
+      const endTime = process.hrtime.bigint()
+      const endMemory = process.memoryUsage()
+      
+      const baseline = {
+        operationType,
+        duration: Number(endTime - startTime) / 1000000, // 轉換為毫秒
+        memory: {
+          heapUsed: endMemory.heapUsed - startMemory.heapUsed,
+          heapTotal: endMemory.heapTotal - startMemory.heapTotal,
+          rss: endMemory.rss - startMemory.rss
+        },
+        timestamp: Date.now(),
+        metrics: {
+          averageResponseTime: Math.random() * 100 + 50, // 模擬50-150ms
+          operationsPerSecond: Math.floor(Math.random() * 50 + 20), // 模擬20-70 ops/sec
+          memoryEfficiency: Math.random() * 0.3 + 0.7 // 模擬70-100%效率
+        }
+      }
+      
+      this.logOperation('capture_performance_baseline', baseline)
+      
+      return {
+        success: true,
+        baseline,
+        timestamp: Date.now()
+      }
+      
+    } catch (error) {
+      this.logError(error, 'capturePerformanceBaseline')
+      throw new Error(`效能基準線擷取失敗: ${error.message}`)
+    }
+  }
+
   // 靜態工廠方法
   static async create (config = {}) {
     const suite = new E2ETestSuite(config)

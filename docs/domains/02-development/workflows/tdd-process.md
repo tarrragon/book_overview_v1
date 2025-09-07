@@ -672,13 +672,13 @@ module.exports = {
       statements: 80
     },
     // 核心領域要求更高覆蓋率
-    './src/background/domains/data-management/': {
+    'src/background/domains/data-management/': {
       branches: 90,
       functions: 90,
       lines: 90,
       statements: 90
     },
-    './src/background/domains/extraction/': {
+    'src/background/domains/extraction/': {
       branches: 90,
       functions: 90,
       lines: 90,

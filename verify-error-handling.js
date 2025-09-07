@@ -11,11 +11,11 @@ const path = require('path')
 async function main() {
 
 // 加載核心組件
-const { StandardError } = require('./src/core/errors/StandardError')
-const { OperationResult } = require('./src/core/errors/OperationResult')
-const { ErrorHelper } = require('./src/core/errors/ErrorHelper')
-const { MessageDictionary, GlobalMessages } = require('./src/core/messages/MessageDictionary')
-const { Logger, createLogger } = require('./src/core/logging/Logger')
+const { StandardError } = require('src/core/errors/StandardError')
+const { OperationResult } = require('src/core/errors/OperationResult')
+const { ErrorHelper } = require('src/core/errors/ErrorHelper')
+const { MessageDictionary, GlobalMessages } = require('src/core/messages/MessageDictionary')
+const { Logger, createLogger } = require('src/core/logging/Logger')
 
 console.log('🔧 開始驗證錯誤處理系統...\n')
 

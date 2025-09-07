@@ -89,7 +89,9 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
     test('loadPlatformValidationRules() 應該支援規則快取', async () => {
       // 第一次載入
       await ruleManager.loadPlatformValidationRules('READMOO')
-      expect(mockLogger.info).toHaveBeenCalledWith(expect.stringContaining('載入 READMOO 驗證規則'))
+      expect(mockLogger.info).toHaveBeenCalledWith('VALIDATION_RULE_MANAGER_LOG', expect.objectContaining({
+        message: expect.stringContaining('載入 READMOO 驗證規則')
+      }))
 
       // 第二次載入應該使用快取
       mockLogger.info.mockClear()

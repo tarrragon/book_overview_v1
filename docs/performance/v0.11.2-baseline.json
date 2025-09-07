@@ -1,0 +1,135 @@
+{
+  "version": "v0.11.2",
+  "testDate": "2025-09-07T14:53:43.913Z",
+  "testSuite": "基礎效能測試套件 v0.9.35",
+  "environment": {
+    "nodeVersion": "v24.4.1",
+    "testFramework": "Jest",
+    "executionTime": "8.81s"
+  },
+  "summary": {
+    "totalTests": 8,
+    "passedTests": 6,
+    "failedTests": 2,
+    "passRate": 75.0,
+    "status": "warning"
+  },
+  "results": {
+    "uiResponsiveness": {
+      "popupOpenTime": {
+        "actual": 82.43,
+        "threshold": 200.0,
+        "unit": "ms",
+        "status": "pass"
+      },
+      "buttonResponseTime": {
+        "actual": 10.77,
+        "threshold": 100.0,
+        "unit": "ms", 
+        "status": "pass"
+      },
+      "searchResponseTime": {
+        "average": 21.00,
+        "maximum": 21.27,
+        "threshold": 300.0,
+        "unit": "ms",
+        "status": "pass"
+      }
+    },
+    "dataProcessing": {
+      "smallDataExtraction": {
+        "bookCount": 10,
+        "processingTime": 98.73,
+        "successRate": 100.0,
+        "threshold": 1000.0,
+        "unit": "ms",
+        "status": "pass"
+      },
+      "mediumDataExtraction": {
+        "bookCount": 100,
+        "processingTime": 1025.15,
+        "successRate": 95.0,
+        "threshold": 8000.0,
+        "unit": "ms",
+        "status": "pass"
+      },
+      "jsonParsing": {
+        "fileSize": 2.0,
+        "memoryGrowth": 49.82,
+        "memoryThreshold": 3.52,
+        "unit": "MB",
+        "status": "fail",
+        "issue": "記憶體使用超出基準14倍"
+      }
+    },
+    "memoryManagement": {
+      "memoryLeakDetection": {
+        "memoryGrowth": 4.04,
+        "dynamicThreshold": 2.4,
+        "unit": "MB",
+        "status": "fail",
+        "issue": "長時間運行記憶體增長超出68%"
+      }
+    },
+    "chromeExtensionApi": {
+      "storageApi": {
+        "responseTime": 5.69,
+        "unit": "ms",
+        "status": "pass"
+      },
+      "messagingApi": {
+        "responseTime": 11.13,
+        "unit": "ms",
+        "status": "pass"
+      }
+    }
+  },
+  "baselines": {
+    "established": {
+      "uiResponseTime": 100.0,
+      "apiCallResponse": 15.0,
+      "smallDataProcessing": 100.0,
+      "mediumDataProcessing": 2000.0
+    },
+    "needImprovement": {
+      "jsonParsingMemoryEfficiency": "目標 <檔案大小×2",
+      "longRunningStability": "目標 <2.4MB記憶體增長"
+    }
+  },
+  "recommendations": {
+    "immediate": [
+      "記錄效能基準到版本控制"
+    ],
+    "shortTerm": [
+      "修復JSON解析記憶體效率問題",
+      "改善長時間運行穩定性"
+    ],
+    "mediumTerm": [
+      "實作流式JSON解析",
+      "增加垃圾回收機制", 
+      "實作資料分批處理"
+    ],
+    "longTerm": [
+      "建立持續效能監控系統",
+      "實時效能儀表板",
+      "自動化效能回歸檢測"
+    ]
+  },
+  "nextVersionTargets": {
+    "v0.11.3": {
+      "focus": "修復效能測試失敗項目",
+      "targets": [
+        "JSON解析記憶體優化",
+        "記憶體洩漏修復"
+      ]
+    },
+    "v0.12.x": {
+      "focus": "核心功能開發 + 效能優化",
+      "targets": [
+        "流式資料處理",
+        "記憶體管理優化",
+        "效能監控完善"
+      ]
+    }
+  }
+}

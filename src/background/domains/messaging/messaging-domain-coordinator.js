@@ -21,10 +21,9 @@
 
 const MessageRoutingService = require('./services/message-routing-service')
 const SessionManagementService = require('./services/session-management-service')
-// TODO: 建立缺失的服務
-// const ConnectionMonitoringService = require('./services/connection-monitoring-service')
-// const MessageValidationService = require('./services/message-validation-service')
-// const QueueManagementService = require('./services/queue-management-service')
+const { ConnectionMonitoringService } = require('./services/connection-monitoring-service')
+const { MessageValidationService } = require('./services/message-validation-service')
+const { QueueManagementService } = require('./services/queue-management-service')
 
 const {
   MESSAGE_EVENTS,
@@ -73,12 +72,7 @@ class MessagingDomainCoordinator {
    * 初始化所有微服務
    */
   initializeServices (dependencies) {
-    // 導入服務類別
-    const { MessageRoutingService } = require('src/background/domains/messaging/services/message-routing-service')
-    const { SessionManagementService } = require('src/background/domains/messaging/services/session-management-service')
-    const { ConnectionMonitoringService } = require('src/background/domains/messaging/services/connection-monitoring-service')
-    const { MessageValidationService } = require('src/background/domains/messaging/services/message-validation-service')
-    const { QueueManagementService } = require('src/background/domains/messaging/services/queue-management-service')
+    // 使用頂部已匯入的服務類別，無需重新載入
 
     // 創建微服務實例
     this.services.set('validation', new MessageValidationService(dependencies))

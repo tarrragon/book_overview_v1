@@ -5,10 +5,10 @@
  * 驗證核心組件是否正確實作
  */
 
-const EventBus = require('./src/core/event-bus')
-const EventNamingUpgradeCoordinator = require('./src/core/events/event-naming-upgrade-coordinator')
-const EventPriorityManager = require('./src/core/events/event-priority-manager')
-const EventTypeDefinitions = require('./src/core/events/event-type-definitions')
+const EventBus = require('src/core/event-bus')
+const EventNamingUpgradeCoordinator = require('src/core/events/event-naming-upgrade-coordinator')
+const EventPriorityManager = require('src/core/events/event-priority-manager')
+const EventTypeDefinitions = require('src/core/events/event-type-definitions')
 
 console.log('🚀 開始驗證事件系統 v2.0 核心組件...\n')
 
