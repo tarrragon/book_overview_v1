@@ -1,6 +1,6 @@
 /**
  * 錯誤處理系統基本整合測試
- * 
+ *
  * 測試目標：
  * - 驗證所有核心組件能夠正常工作
  * - 測試組件間的整合功能
@@ -65,7 +65,7 @@ describe('錯誤處理系統基本整合測試', () => {
 
       // Then: 成功結果驗證
       expect(successResult.success).toBe(true)
-      expect(successResult.!success).toBe(false)
+      expect(!successResult.success).toBe(false)
       expect(successResult.data.count).toBe(5)
       expect(successResult.error).toBeNull()
 
@@ -74,7 +74,7 @@ describe('錯誤處理系統基本整合測試', () => {
       const failureResult = OperationResult.failure(error)
 
       // Then: 失敗結果驗證
-      expect(failureResult.!success).toBe(true)
+      expect(!failureResult.success).toBe(true)
       expect(failureResult.success).toBe(false)
       expect(failureResult.error).toBe(error)
       expect(failureResult.data).toBeNull()
@@ -172,7 +172,7 @@ describe('錯誤處理系統基本整合測試', () => {
       expect(successResult.data.count).toBe(2)
 
       expect(failureResult).toBeInstanceOf(OperationResult)
-      expect(failureResult.!success).toBe(true)
+      expect(!failureResult.success).toBe(true)
       expect(failureResult.error).toBeInstanceOf(StandardError)
       expect(failureResult.error.code).toBe('FAILURE_TEST')
     })
@@ -183,9 +183,9 @@ describe('錯誤處理系統基本整合測試', () => {
         // 模擬可能失敗的操作
         const random = Math.random()
         if (random < 0.3) {
-          throw ErrorHelper.createNetworkError('網路連線異常', { 
+          throw ErrorHelper.createNetworkError('網路連線異常', {
             url: 'https://readmoo.com/library',
-            retryCount: 3 
+            retryCount: 3
           })
         }
         return [
@@ -204,9 +204,9 @@ describe('錯誤處理系統基本整合測試', () => {
       if (result.success) {
         logger.info('BOOK_EXTRACTION_COMPLETE', { count: result.data.length })
       } else {
-        logger.error('BOOK_EXTRACTION_COMPLETE', { 
+        logger.error('BOOK_EXTRACTION_COMPLETE', {
           error: result.error.code,
-          message: result.error.message 
+          message: result.error.message
         })
       }
 
@@ -217,7 +217,7 @@ describe('錯誤處理系統基本整合測試', () => {
         name: 'BookExtraction'
       }))
 
-      if (result.!success) {
+      if (!result.success) {
         expect(result.error).toBeInstanceOf(StandardError)
         expect(['NETWORK_ERROR', 'BOOK_EXTRACTION_FAILED']).toContain(result.error.code)
       }
@@ -227,7 +227,7 @@ describe('錯誤處理系統基本整合測試', () => {
   describe('StorageAPIValidator 修復驗證', () => {
     test('StorageAPIValidator 構造函數問題已修復', () => {
       // Given & When: 使用不同的構造函數調用方式
-      
+
       // 方式1: 只傳入 options
       const validator1 = new StorageAPIValidator({ enableLogging: true })
       expect(validator1).toBeInstanceOf(StorageAPIValidator)
@@ -252,8 +252,8 @@ describe('錯誤處理系統基本整合測試', () => {
 
       // When: 執行基本驗證功能
       const quotaResult = await validator.validateQuota()
-      const dataResult = await validator.validateDataIntegrity({ 
-        books: [{ id: '1', title: '測試書籍' }] 
+      const dataResult = await validator.validateDataIntegrity({
+        books: [{ id: '1', title: '測試書籍' }]
       })
 
       // Then: 驗證功能正常
@@ -297,7 +297,7 @@ describe('錯誤處理系統基本整合測試', () => {
       // 原：console.log('Processing started')
       logger.info('OPERATION_START')
 
-      // 原：console.warn('Low storage space')  
+      // 原：console.warn('Low storage space')
       logger.warn('STORAGE_ERROR', { message: 'Low storage space' })
 
       // 原：console.error('Network failed', error)
@@ -305,7 +305,7 @@ describe('錯誤處理系統基本整合測試', () => {
 
       // Then: 驗證所有替換都正常工作
       expect(consoleSpy.info).toHaveBeenCalled()
-      expect(consoleSpy.warn).toHaveBeenCalled() 
+      expect(consoleSpy.warn).toHaveBeenCalled()
       expect(consoleSpy.error).toHaveBeenCalled()
     })
   })
@@ -315,10 +315,10 @@ describe('效能和記憶體使用驗證', () => {
   test('系統記憶體使用應該在限制內', () => {
     // Given: 建立多個組件實例
     const components = {
-      errors: Array.from({ length: 10 }, (_, i) => 
+      errors: Array.from({ length: 10 }, (_, i) =>
         new StandardError(`TEST_ERROR_${i}`, `錯誤 ${i}`, { index: i })
       ),
-      results: Array.from({ length: 10 }, (_, i) => 
+      results: Array.from({ length: 10 }, (_, i) =>
         OperationResult.success({ id: i, data: `result_${i}` })
       ),
       logger: createLogger('MemoryTest'),
@@ -351,7 +351,7 @@ describe('效能和記憶體使用驗證', () => {
       () => new StandardError('PERF_TEST', '效能測試'),
       () => OperationResult.success({ test: true }),
       () => ErrorHelper.createNetworkError('測試'),
-      () => { 
+      () => {
         const logger = createLogger('PerfTest')
         logger.info('TEST_MESSAGE')
       }

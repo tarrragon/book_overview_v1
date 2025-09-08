@@ -80,7 +80,6 @@ class QueueManagementService {
    */
   initializeQueues () {
     // 按優先級創建佇列
-    // eslint-disable-next-line no-unused-vars  
     for (const [level, priority] of Object.entries(QUEUE_CONFIG.PRIORITY_LEVELS)) {
       this.messageQueues.set(priority, [])
     }
@@ -237,7 +236,6 @@ class QueueManagementService {
   async dequeueMessage (messageId) {
     try {
       // 搜尋所有佇列
-      // eslint-disable-next-line no-unused-vars
       for (const [priority, queue] of this.messageQueues) {
         const index = queue.findIndex(item => item.id === messageId)
         if (index !== -1) {
@@ -414,7 +412,6 @@ class QueueManagementService {
     try {
       // 觸發具體的訊息處理事件
       if (this.eventBus) {
-        // eslint-disable-next-line no-unused-vars
         const processingEvent = {
           type: 'MESSAGE.PROCESSING.DELEGATE',
           data: {

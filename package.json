@@ -113,7 +113,27 @@
     "rules": {
       "no-console": "warn",
       "no-debugger": "error",
-      "prefer-const": "error"
+      "prefer-const": "error",
+      "no-unused-vars": "warn",
+      "no-case-declarations": "warn",
+      "no-prototype-builtins": "warn",
+      "new-cap": "warn",
+      "no-new": "warn",
+      "no-extend-native": "warn",
+      "promise/param-names": "warn",
+      "n/no-callback-literal": "warn",
+      "no-useless-catch": "warn",
+      "no-unreachable": "warn",
+      "no-empty": "warn",
+      "no-useless-constructor": "warn",
+      "brace-style": "warn",
+      "no-dupe-class-members": "warn",
+      "multiline-ternary": "warn",
+      "no-control-regex": "warn",
+      "no-use-before-define": "warn",
+      "no-eval": "warn",
+      "n/handle-callback-err": "warn",
+      "accessor-pairs": "warn"
     }
   },
   "repository": {
