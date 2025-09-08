@@ -27,7 +27,7 @@ describe('PopupStatusManager 核心功能', () => {
   describe('📊 基本狀態更新功能', () => {
     test('應該正確更新擴展狀態', () => {
       // Given: 狀態管理器和初始狀態
-      const PopupStatusManager = require('../../../src/popup/components/popup-status-manager.js')
+      const PopupStatusManager = require('src/popup/components/popup-status-manager.js')
       statusManager = new PopupStatusManager(mockUIComponents)
 
       // When: 呼叫狀態更新方法
@@ -45,7 +45,7 @@ describe('PopupStatusManager 核心功能', () => {
 
     test('應該正確處理狀態類型驗證', () => {
       // Given: 無效的狀態類型
-      const PopupStatusManager = require('../../../src/popup/components/popup-status-manager.js')
+      const PopupStatusManager = require('src/popup/components/popup-status-manager.js')
       statusManager = new PopupStatusManager(mockUIComponents)
 
       // When: 嘗試更新無效狀態
@@ -64,7 +64,7 @@ describe('PopupStatusManager 核心功能', () => {
 
     test('應該正確初始化默認狀態', () => {
       // Given: 新建狀態管理器
-      const PopupStatusManager = require('../../../src/popup/components/popup-status-manager.js')
+      const PopupStatusManager = require('src/popup/components/popup-status-manager.js')
       statusManager = new PopupStatusManager(mockUIComponents)
 
       // When: 取得初始狀態
@@ -82,7 +82,7 @@ describe('PopupStatusManager 核心功能', () => {
   describe('🔄 狀態同步功能', () => {
     test('應該與 Background Service Worker 狀態同步', () => {
       // Given: Background 狀態變化
-      const PopupStatusManager = require('../../../src/popup/components/popup-status-manager.js')
+      const PopupStatusManager = require('src/popup/components/popup-status-manager.js')
       statusManager = new PopupStatusManager(mockUIComponents)
 
       const backgroundStatus = {
@@ -101,7 +101,7 @@ describe('PopupStatusManager 核心功能', () => {
 
     test('應該正確處理背景狀態同步失敗', () => {
       // Given: 背景同步失敗
-      const PopupStatusManager = require('../../../src/popup/components/popup-status-manager.js')
+      const PopupStatusManager = require('src/popup/components/popup-status-manager.js')
       statusManager = new PopupStatusManager(mockUIComponents)
 
       // When: 背景同步失敗
@@ -118,7 +118,7 @@ describe('PopupStatusManager 核心功能', () => {
   describe('🎯 狀態驗證與錯誤處理', () => {
     test('應該驗證必要的狀態欄位', () => {
       // Given: 缺少必要欄位的狀態
-      const PopupStatusManager = require('../../../src/popup/components/popup-status-manager.js')
+      const PopupStatusManager = require('src/popup/components/popup-status-manager.js')
       statusManager = new PopupStatusManager(mockUIComponents)
 
       // When: 嘗試更新不完整狀態
@@ -132,7 +132,7 @@ describe('PopupStatusManager 核心功能', () => {
 
     test('應該支援有效的狀態類型', () => {
       // Given: 所有有效的狀態類型
-      const PopupStatusManager = require('../../../src/popup/components/popup-status-manager.js')
+      const PopupStatusManager = require('src/popup/components/popup-status-manager.js')
       statusManager = new PopupStatusManager(mockUIComponents)
 
       const validTypes = ['loading', 'ready', 'error', 'extracting', 'completed']

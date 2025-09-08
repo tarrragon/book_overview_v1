@@ -30,7 +30,7 @@
 // 設置測試環境
 global.window = {}
 
-const ChromeStorageAdapter = require('../../../../src/storage/adapters/chrome-storage-adapter')
+const ChromeStorageAdapter = require('src/storage/adapters/chrome-storage-adapter')
 
 describe('ChromeStorageAdapter', () => {
   let adapter

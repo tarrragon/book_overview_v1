@@ -9,7 +9,7 @@
  * - 事件結構完整性
  */
 
-const EventTypeDefinitions = require('../../../src/core/events/event-type-definitions')
+const EventTypeDefinitions = require('src/core/events/event-type-definitions')
 
 describe('EventTypeDefinitions', () => {
   let eventTypes

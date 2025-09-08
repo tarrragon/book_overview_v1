@@ -14,8 +14,8 @@
  * - 提供通知自動消失機制
  */
 
-const UINotificationHandler = require('../../../src/ui/handlers/ui-notification-handler')
-const EventBus = require('../../../src/core/event-bus')
+const UINotificationHandler = require('src/ui/handlers/ui-notification-handler')
+const EventBus = require('src/core/event-bus')
 
 describe('UINotificationHandler', () => {
   let handler

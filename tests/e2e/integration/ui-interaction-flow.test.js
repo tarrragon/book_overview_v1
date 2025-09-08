@@ -391,7 +391,6 @@ describe('🎨 UI 互動流程整合測試', () => {
         })
 
         expect(elementsVisible).toBe(true)
-        console.log(`📱 ${viewport.width}x${viewport.height} 響應式測試通過`)
       }
 
       // 恢復預設尺寸

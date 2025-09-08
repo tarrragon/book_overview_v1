@@ -80,7 +80,7 @@ describe('Background Service Worker Event System Integration', () => {
   async function setupBackgroundEnvironment () {
     try {
       // 直接使用 BackgroundCoordinator 進行初始化
-      const BackgroundCoordinator = require('../../../src/background/background-coordinator')
+      const BackgroundCoordinator = require('src/background/background-coordinator')
 
       // 建立協調器實例並初始化
       const backgroundCoordinator = new BackgroundCoordinator()
@@ -147,7 +147,7 @@ describe('Background Service Worker Event System Integration', () => {
 
     test('應該在 Service Worker 啟動時建立 EventBus 實例', async () => {
       // 直接使用 BackgroundCoordinator 來初始化 EventBus
-      const BackgroundCoordinator = require('../../../src/background/background-coordinator')
+      const BackgroundCoordinator = require('src/background/background-coordinator')
 
       // 清理之前的全域變數
       delete global.eventBus
@@ -509,7 +509,7 @@ describe('Background Service Worker Event System Integration', () => {
 
       try {
         // 測試重新初始化一個會失敗的EventCoordinator
-        const EventCoordinator = require('../../../src/background/events/event-coordinator')
+        const EventCoordinator = require('src/background/events/event-coordinator')
         const failingCoordinator = new EventCoordinator()
 
         // 模擬EventCoordinator內部初始化失敗

@@ -1,6 +1,6 @@
-const SchemaMigrationService = require('../../../src/data-management/SchemaMigrationService')
-const BaseModule = require('../../../src/background/lifecycle/base-module')
-const EventBus = require('../../../src/core/event-bus')
+const SchemaMigrationService = require('src/data-management/SchemaMigrationService')
+const BaseModule = require('src/background/lifecycle/base-module')
+const EventBus = require('src/core/event-bus')
 
 describe('Schema Migration Service', () => {
   let eventBus

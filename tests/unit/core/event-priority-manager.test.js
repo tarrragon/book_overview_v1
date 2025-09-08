@@ -9,8 +9,8 @@
  * - 效能和執行順序
  */
 
-const EventBus = require('../../../src/core/event-bus')
-const EventPriorityManager = require('../../../src/core/events/event-priority-manager')
+const EventBus = require('src/core/event-bus')
+const EventPriorityManager = require('src/core/events/event-priority-manager')
 
 describe('EventPriorityManager', () => {
   let eventBus

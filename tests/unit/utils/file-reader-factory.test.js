@@ -2,7 +2,7 @@
  * FileReaderFactory 測試
  */
 
-const FileReaderFactory = require('../../../src/utils/file-reader-factory')
+const FileReaderFactory = require('src/utils/file-reader-factory')
 
 describe('FileReaderFactory', () => {
   describe('createReader', () => {

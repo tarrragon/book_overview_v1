@@ -414,7 +414,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
     }
 
     // 載入OverviewPageController並建立實例
-    const { OverviewPageController } = require('../../../src/overview/overview-page-controller.js')
+    const { OverviewPageController } = require('src/overview/overview-page-controller.js')
 
     // OverviewPageController建構函數需要eventBus和document參數
     controller = new OverviewPageController(mockEventBus, document)
@@ -487,7 +487,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
       }
 
       // 重新建立controller來測試初始化
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller.js')
+      const { OverviewPageController } = require('src/overview/overview-page-controller.js')
       const testController = new OverviewPageController(mockEventBus, document)
 
       // 缺失元素應該是null但不應該崩潰

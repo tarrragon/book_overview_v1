@@ -15,8 +15,8 @@
  * - UI 事件的觸發和處理
  */
 
-const PopupEventController = require('../../../src/popup/popup-event-controller')
-const EventBus = require('../../../src/core/event-bus')
+const PopupEventController = require('src/popup/popup-event-controller')
+const EventBus = require('src/core/event-bus')
 
 // 模擬 Chrome Extension APIs
 global.chrome = {

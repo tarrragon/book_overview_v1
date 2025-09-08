@@ -6,7 +6,7 @@
  * @date 2025-08-26
  */
 
-const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+const MessageErrorHandler = require('src/error-handling/message-error-handler')
 
 describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
   let messageErrorHandler

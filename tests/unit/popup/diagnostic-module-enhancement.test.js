@@ -8,7 +8,7 @@
  * - 記憶體和效能管理優化
  */
 
-const DiagnosticModule = require('../../../src/popup/diagnostic-module')
+const DiagnosticModule = require('src/popup/diagnostic-module')
 
 describe('🔧 DiagnosticModule Enhancement Tests (TDD循環 #43)', () => {
   let diagnostic

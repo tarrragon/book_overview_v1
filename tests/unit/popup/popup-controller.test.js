@@ -65,7 +65,7 @@ describe('PopupController 基礎架構測試', () => {
     global.document = document
 
     // 載入真正的 PopupController
-    PopupController = require('../../../src/popup/popup-controller.js')
+    PopupController = require('src/popup/popup-controller.js')
   })
 
   afterEach(() => {

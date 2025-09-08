@@ -10,9 +10,9 @@
  * - 錯誤處理和恢復機制
  */
 
-const EventBus = require('../../../src/core/event-bus')
-const EventNamingUpgradeCoordinator = require('../../../src/core/events/event-naming-upgrade-coordinator')
-const ReadmooPlatformMigrationValidator = require('../../../src/platform/readmoo-platform-migration-validator')
+const EventBus = require('src/core/event-bus')
+const EventNamingUpgradeCoordinator = require('src/core/events/event-naming-upgrade-coordinator')
+const ReadmooPlatformMigrationValidator = require('src/platform/readmoo-platform-migration-validator')
 
 describe('ReadmooPlatformMigrationValidator', () => {
   let eventBus

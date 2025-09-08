@@ -10,8 +10,8 @@
  * - 向後相容性保證
  */
 
-const EventBus = require('../../../src/core/event-bus')
-const EventNamingUpgradeCoordinator = require('../../../src/core/events/event-naming-upgrade-coordinator')
+const EventBus = require('src/core/event-bus')
+const EventNamingUpgradeCoordinator = require('src/core/events/event-naming-upgrade-coordinator')
 
 describe('EventNamingUpgradeCoordinator', () => {
   let eventBus

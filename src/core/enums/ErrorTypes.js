@@ -1,6 +1,6 @@
 /**
  * 錯誤類型枚舉
- * 
+ *
  * 定義所有錯誤的標準類型分類，確保系統中錯誤類型的一致性
  * 對應規劃文件中的錯誤分類架構
  */
@@ -16,18 +16,18 @@ const ErrorTypes = Object.freeze({
   AUTHENTICATION_ERROR: 'AUTHENTICATION_ERROR',
   CONFIGURATION_ERROR: 'CONFIGURATION_ERROR',
   EXTERNAL_SERVICE_ERROR: 'EXTERNAL_SERVICE_ERROR',
-  
+
   // Chrome Extension 特定錯誤
   EXTENSION_ERROR: 'EXTENSION_ERROR',
   CONTENT_SCRIPT_ERROR: 'CONTENT_SCRIPT_ERROR',
   BACKGROUND_SCRIPT_ERROR: 'BACKGROUND_SCRIPT_ERROR',
   POPUP_ERROR: 'POPUP_ERROR',
-  
+
   // 書籍處理特定錯誤
   BOOK_EXTRACTION_ERROR: 'BOOK_EXTRACTION_ERROR',
   BOOK_VALIDATION_ERROR: 'BOOK_VALIDATION_ERROR',
   BOOK_SYNC_ERROR: 'BOOK_SYNC_ERROR',
-  
+
   UNKNOWN_ERROR: 'UNKNOWN_ERROR'
 })
 
@@ -36,11 +36,10 @@ const ErrorTypes = Object.freeze({
  */
 const ErrorSeverity = Object.freeze({
   LOW: 'LOW',
-  MEDIUM: 'MEDIUM', 
+  MEDIUM: 'MEDIUM',
   HIGH: 'HIGH',
   CRITICAL: 'CRITICAL'
 })
-
 
 module.exports = {
   ErrorTypes,

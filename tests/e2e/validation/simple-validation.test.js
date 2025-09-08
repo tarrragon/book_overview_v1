@@ -187,8 +187,6 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       expect(firstBook).toHaveProperty('author')
       expect(firstBook).toHaveProperty('progress')
       expect(firstBook).toHaveProperty('purchaseDate')
-
-      console.log(`✅ 測試資料完整: ${testData.books.length} 本書籍`)
     })
   })
 
@@ -199,8 +197,6 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
 
       expect(jestConfigContent).toContain('tests/e2e')
       expect(jestConfigContent).toContain('testMatch')
-
-      console.log('✅ Jest 配置包含端對端測試')
     })
 
     test('package.json 應該有端對端測試腳本', () => {
@@ -210,8 +206,6 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       expect(packageJson.scripts).toHaveProperty('test:e2e')
       expect(packageJson.scripts).toHaveProperty('test:e2e:full')
       expect(packageJson.scripts).toHaveProperty('test:e2e:workflow')
-
-      console.log('✅ package.json 端對端測試腳本配置正確')
     })
 
     test('應該有必要的測試依賴項', () => {
@@ -224,8 +218,6 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       requiredDevDeps.forEach(dep => {
         expect(devDependencies).toHaveProperty(dep)
       })
-
-      console.log('✅ 測試依賴項配置完整')
     })
   })
 
@@ -308,7 +300,6 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       const passedChecks = Object.values(checklist).filter(Boolean).length
       const readinessPercentage = (passedChecks / totalChecks) * 100
 
-      console.log('\n📊 端對端測試準備度評估:')
       Object.entries(checklist).forEach(([check, passed]) => {
         console.log(`  ${passed ? '✅' : '❌'} ${check}`)
       })
@@ -319,7 +310,6 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       expect(readinessPercentage).toBeGreaterThanOrEqual(80)
 
       if (readinessPercentage === 100) {
-        console.log('🎉 端對端測試環境完全就緒！')
       } else {
         console.log('⚠️ 部分檢查未通過，請檢查失敗項目')
       }

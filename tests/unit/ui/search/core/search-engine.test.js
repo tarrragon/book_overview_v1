@@ -140,7 +140,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
   describe('1. Construction & Initialization', () => {
     test('應該正確建構 SearchEngine 實例', () => {
-      const SearchEngine = require('../../../../../src/ui/search/core/search-engine')
+      const SearchEngine = require('src/ui/search/core/search-engine')
 
       searchEngine = new SearchEngine({
         indexManager: mockIndexManager,
@@ -155,7 +155,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('建構時若缺少必要參數應該拋出錯誤', () => {
-      const SearchEngine = require('../../../../../src/ui/search/core/search-engine')
+      const SearchEngine = require('src/ui/search/core/search-engine')
 
       expect(() => {
         new SearchEngine()
@@ -174,7 +174,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該正確初始化搜尋配置', () => {
-      const SearchEngine = require('../../../../../src/ui/search/core/search-engine')
+      const SearchEngine = require('src/ui/search/core/search-engine')
 
       searchEngine = new SearchEngine({
         indexManager: mockIndexManager,
@@ -194,7 +194,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該正確初始化效能統計', () => {
-      const SearchEngine = require('../../../../../src/ui/search/core/search-engine')
+      const SearchEngine = require('src/ui/search/core/search-engine')
 
       searchEngine = new SearchEngine({
         indexManager: mockIndexManager,
@@ -215,7 +215,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該支援自定義配置', () => {
-      const SearchEngine = require('../../../../../src/ui/search/core/search-engine')
+      const SearchEngine = require('src/ui/search/core/search-engine')
 
       const customConfig = {
         maxQueryLength: 200,
@@ -240,7 +240,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
   describe('2. Query Validation & Normalization', () => {
     beforeEach(() => {
-      const SearchEngine = require('../../../../../src/ui/search/core/search-engine')
+      const SearchEngine = require('src/ui/search/core/search-engine')
       searchEngine = new SearchEngine({
         indexManager: mockIndexManager,
         eventBus: mockEventBus,
@@ -311,7 +311,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
   describe('3. Basic Search Functionality', () => {
     beforeEach(() => {
-      const SearchEngine = require('../../../../../src/ui/search/core/search-engine')
+      const SearchEngine = require('src/ui/search/core/search-engine')
       searchEngine = new SearchEngine({
         indexManager: mockIndexManager,
         eventBus: mockEventBus,
@@ -375,7 +375,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
   describe('4. Advanced Search Features', () => {
     beforeEach(() => {
-      const SearchEngine = require('../../../../../src/ui/search/core/search-engine')
+      const SearchEngine = require('src/ui/search/core/search-engine')
       searchEngine = new SearchEngine({
         indexManager: mockIndexManager,
         eventBus: mockEventBus,
@@ -427,7 +427,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該支援搜尋結果限制', async () => {
-      const customEngine = new (require('../../../../../src/ui/search/core/search-engine'))({
+      const customEngine = new (require('src/ui/search/core/search-engine'))({
         indexManager: mockIndexManager,
         eventBus: mockEventBus,
         logger: mockLogger,
@@ -455,7 +455,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
   describe('5. Index-Based Search Optimization', () => {
     beforeEach(() => {
-      const SearchEngine = require('../../../../../src/ui/search/core/search-engine')
+      const SearchEngine = require('src/ui/search/core/search-engine')
       searchEngine = new SearchEngine({
         indexManager: mockIndexManager,
         eventBus: mockEventBus,
@@ -505,7 +505,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
   describe('6. Performance Monitoring', () => {
     beforeEach(() => {
-      const SearchEngine = require('../../../../../src/ui/search/core/search-engine')
+      const SearchEngine = require('src/ui/search/core/search-engine')
       searchEngine = new SearchEngine({
         indexManager: mockIndexManager,
         eventBus: mockEventBus,
@@ -549,7 +549,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
       })
 
       // 創建使用注入時間函數的 SearchEngine 實例
-      const SearchEngine = require('../../../../../src/ui/search/core/search-engine')
+      const SearchEngine = require('src/ui/search/core/search-engine')
       const testSearchEngine = new SearchEngine({
         indexManager: mockIndexManager,
         eventBus: mockEventBus,
@@ -583,7 +583,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
   describe('7. Error Handling & Edge Cases', () => {
     beforeEach(() => {
-      const SearchEngine = require('../../../../../src/ui/search/core/search-engine')
+      const SearchEngine = require('src/ui/search/core/search-engine')
       searchEngine = new SearchEngine({
         indexManager: mockIndexManager,
         eventBus: mockEventBus,
@@ -635,7 +635,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
         }
       }
 
-      const brokenEngine = new (require('../../../../../src/ui/search/core/search-engine'))({
+      const brokenEngine = new (require('src/ui/search/core/search-engine'))({
         indexManager: brokenIndexManager,
         eventBus: mockEventBus,
         logger: mockLogger
@@ -682,7 +682,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
   describe('8. Integration & Event Handling', () => {
     beforeEach(() => {
-      const SearchEngine = require('../../../../../src/ui/search/core/search-engine')
+      const SearchEngine = require('src/ui/search/core/search-engine')
       searchEngine = new SearchEngine({
         indexManager: mockIndexManager,
         eventBus: mockEventBus,

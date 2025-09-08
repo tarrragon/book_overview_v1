@@ -1140,40 +1140,40 @@ class ChromeExtensionController {
   /**
    * 發送 Popup 到 Background 的訊息
    */
-  async sendPopupToBackgroundMessage(message) {
+  async sendPopupToBackgroundMessage (message) {
     const startTime = Date.now()
     this.log(`[Popup→Background] 發送訊息: ${JSON.stringify(message)}`)
-    
+
     // 記錄 API 呼叫
     this.recordAPICall('sendMessage', { target: 'background', message })
-    
+
     // 模擬訊息處理延遲
     await this.simulateDelay(10)
-    
+
     // 根據訊息類型返回對應的模擬回應
     const response = this._generateBackgroundResponse(message)
     const responseTime = Date.now() - startTime
-    
+
     // 添加 responseTime 到回應中
     const fullResponse = {
       ...response,
       responseTime
     }
-    
+
     // 更新狀態
     this._updateMessageState('popup', 'background', message, fullResponse)
-    
+
     return fullResponse
   }
 
   /**
    * 等待 Content Script 準備就緒
    */
-  async waitForContentScriptReady(timeout = 5000) {
+  async waitForContentScriptReady (timeout = 5000) {
     this.log('[Content Script] 等待準備就緒')
-    
+
     const startTime = Date.now()
-    
+
     while (Date.now() - startTime < timeout) {
       // 檢查 Content Script 狀態
       const contentContext = this.state.contexts.get('content')
@@ -1181,29 +1181,29 @@ class ChromeExtensionController {
         this.log('[Content Script] 已準備就緒')
         return true
       }
-      
+
       // 模擬檢查間隔
       await this.simulateDelay(100)
     }
-    
+
     throw new Error('Content Script 準備就緒等待超時')
   }
 
   /**
    * 模擬 Content Script 回報資料
    */
-  async simulateContentScriptReport(reportData) {
+  async simulateContentScriptReport (reportData) {
     this.log(`[Content Script→Popup] 模擬回報: ${JSON.stringify(reportData)}`)
-    
+
     // 記錄 API 呼叫
     this.recordAPICall('contentScriptReport', { reportData })
-    
+
     // 模擬處理延遲
     await this.simulateDelay(50)
-    
+
     // 更新系統狀態
     this._updateContentScriptState(reportData)
-    
+
     // 回報成功的回應
     return {
       success: true,
@@ -1215,7 +1215,7 @@ class ChromeExtensionController {
   /**
    * 生成 Background 回應的私有方法
    */
-  _generateBackgroundResponse(message) {
+  _generateBackgroundResponse (message) {
     switch (message.type || message) {
       case 'GET_SYSTEM_STATUS':
         return {
@@ -1227,7 +1227,7 @@ class ChromeExtensionController {
             currentTab: this.state.activeTab
           }
         }
-      
+
       case 'REQUEST_BOOK_COUNT':
         return {
           success: true,
@@ -1236,7 +1236,7 @@ class ChromeExtensionController {
             bookCount: this.state.storage.get('mockBooksCount') || 0
           }
         }
-      
+
       case 'INITIATE_EXTRACTION':
         return {
           success: true,
@@ -1246,7 +1246,7 @@ class ChromeExtensionController {
             status: 'started'
           }
         }
-      
+
       case 'UPDATE_USER_SETTINGS':
         return {
           success: true,
@@ -1255,7 +1255,7 @@ class ChromeExtensionController {
             updated: true
           }
         }
-      
+
       case 'START_EXTRACTION':
         return {
           success: true,
@@ -1265,7 +1265,7 @@ class ChromeExtensionController {
             status: 'started'
           }
         }
-      
+
       case 'GET_EXTRACTION_STATUS':
         return {
           success: true,
@@ -1276,7 +1276,7 @@ class ChromeExtensionController {
             progress: 100
           }
         }
-      
+
       default:
         return {
           success: true,
@@ -1289,14 +1289,14 @@ class ChromeExtensionController {
   /**
    * 更新訊息傳遞狀態的私有方法
    */
-  _updateMessageState(sender, receiver, message, response) {
+  _updateMessageState (sender, receiver, message, response) {
     if (!this.state.messaging) {
       this.state.messaging = {
         history: [],
         activeConnections: new Set()
       }
     }
-    
+
     const messageRecord = {
       id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       sender,
@@ -1305,7 +1305,7 @@ class ChromeExtensionController {
       response,
       timestamp: Date.now()
     }
-    
+
     this.state.messaging.history.push(messageRecord)
     this.state.messaging.activeConnections.add(`${sender}-${receiver}`)
   }
@@ -1313,14 +1313,14 @@ class ChromeExtensionController {
   /**
    * 更新 Content Script 狀態的私有方法
    */
-  _updateContentScriptState(reportData) {
+  _updateContentScriptState (reportData) {
     const contentContext = this.state.contexts.get('content')
     if (contentContext) {
       contentContext.lastReport = reportData
       contentContext.lastReportTime = Date.now()
       contentContext.state = 'active'
     }
-    
+
     // 更新整體狀態
     if (reportData.books) {
       this.state.storage.set('lastExtractedBooks', reportData.books)
@@ -1331,33 +1331,33 @@ class ChromeExtensionController {
   /**
    * 發送 Background 到 Content Script 的訊息
    */
-  async sendBackgroundToContentMessage(command, parameters) {
+  async sendBackgroundToContentMessage (command, parameters) {
     this.log(`[Background→Content] 發送指令: ${command}`)
-    
+
     this.recordAPICall('sendBackgroundMessage', { command, parameters })
-    
+
     // 模擬處理延遲
     await this.simulateDelay(30)
-    
+
     // 根據指令類型返回對應結果
     const result = this._generateContentScriptResponse(command, parameters)
-    
+
     return result
   }
 
   /**
    * 等待 Popup 更新
    */
-  async waitForPopupUpdate(options = {}) {
+  async waitForPopupUpdate (options = {}) {
     const { expectedUpdate, timeout = 3000 } = options
     this.log(`[Popup] 等待更新: ${JSON.stringify(expectedUpdate)}`)
-    
+
     const startTime = Date.now()
-    
+
     while (Date.now() - startTime < timeout) {
       // 檢查 Popup 狀態是否有預期的更新
       const popupState = await this.getPopupState()
-      
+
       if (this._checkPopupUpdate(popupState, expectedUpdate)) {
         return {
           success: true,
@@ -1365,30 +1365,30 @@ class ChromeExtensionController {
           waitTime: Date.now() - startTime
         }
       }
-      
+
       await this.simulateDelay(100)
     }
-    
+
     throw new Error(`等待 Popup 更新超時: ${timeout}ms`)
   }
 
   /**
    * 發送優先級訊息
    */
-  async sendPriorityMessage(type, data, priority = 'normal') {
+  async sendPriorityMessage (type, data, priority = 'normal') {
     this.log(`[Priority Message] ${priority}: ${type}`)
-    
+
     this.recordAPICall('sendPriorityMessage', { type, data, priority })
-    
+
     // 根據優先級調整處理延遲
     const delays = {
       high: 10,
       normal: 50,
       low: 100
     }
-    
+
     await this.simulateDelay(delays[priority] || 50)
-    
+
     return {
       success: true,
       messageId: `priority-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -1400,16 +1400,16 @@ class ChromeExtensionController {
   /**
    * 發送帶錯誤處理的訊息
    */
-  async sendMessageWithErrorHandling(type, data, options = {}) {
+  async sendMessageWithErrorHandling (type, data, options = {}) {
     this.log(`[Error Handling Message] ${type}`)
-    
+
     const { timeout = 5000, retries = 3, errorSimulation } = options
-    
+
     // 如果有錯誤模擬配置
     if (errorSimulation) {
       return this._simulateMessageError(type, data, errorSimulation, options)
     }
-    
+
     // 正常處理
     return {
       success: true,
@@ -1423,7 +1423,7 @@ class ChromeExtensionController {
   /**
    * 生成 Content Script 回應的私有方法
    */
-  _generateContentScriptResponse(command, parameters) {
+  _generateContentScriptResponse (command, parameters) {
     switch (command) {
       case 'EXTRACT_BOOKS':
         return {
@@ -1433,7 +1433,7 @@ class ChromeExtensionController {
             extractionTime: Date.now()
           }
         }
-      
+
       case 'GET_PAGE_INFO':
         return {
           success: true,
@@ -1443,7 +1443,7 @@ class ChromeExtensionController {
             booksVisible: true
           }
         }
-      
+
       default:
         return {
           success: true,
@@ -1455,22 +1455,22 @@ class ChromeExtensionController {
   /**
    * 檢查 Popup 更新的私有方法
    */
-  _checkPopupUpdate(popupState, expectedUpdate) {
+  _checkPopupUpdate (popupState, expectedUpdate) {
     if (!expectedUpdate) return true
-    
+
     for (const [key, expectedValue] of Object.entries(expectedUpdate)) {
       if (popupState[key] !== expectedValue) {
         return false
       }
     }
-    
+
     return true
   }
 
   /**
    * 模擬訊息錯誤的私有方法
    */
-  _simulateMessageError(type, data, errorSimulation, options) {
+  _simulateMessageError (type, data, errorSimulation, options) {
     const errorTypes = {
       timeout: () => {
         throw new Error(`訊息傳遞超時: ${type}`)
@@ -1482,11 +1482,11 @@ class ChromeExtensionController {
         throw new Error(`接收者不可用: ${type}`)
       }
     }
-    
+
     if (errorTypes[errorSimulation.type]) {
       errorTypes[errorSimulation.type]()
     }
-    
+
     return {
       success: false,
       error: errorSimulation.type,
@@ -2584,11 +2584,11 @@ class ChromeExtensionController {
   /**
    * 捕獲完整系統狀態
    */
-  async captureFullSystemState() {
+  async captureFullSystemState () {
     const backgroundState = await this.getBackgroundState()
     const popupState = await this.getPopupState()
     const storageData = await this.getStorageData()
-    
+
     return {
       background: backgroundState,
       popup: popupState,
@@ -2600,7 +2600,7 @@ class ChromeExtensionController {
   /**
    * 強制重啟 Service Worker
    */
-  async forceServiceWorkerRestart() {
+  async forceServiceWorkerRestart () {
     // 模擬 Service Worker 重啟
     console.log('[ExtensionController] Forcing Service Worker restart')
     await this.simulateDelay(1000)
@@ -2610,7 +2610,7 @@ class ChromeExtensionController {
   /**
    * 觸發 Content Script 注入
    */
-  async triggerContentScriptInjection() {
+  async triggerContentScriptInjection () {
     try {
       const injectionResult = await this.injectContentScript()
       return {
@@ -2630,15 +2630,15 @@ class ChromeExtensionController {
   /**
    * 執行後台提取操作
    */
-  async executeBackgroundExtraction() {
+  async executeBackgroundExtraction () {
     console.log('[ExtensionController] Executing background extraction')
     await this.simulateDelay(2000)
-    
+
     const mockBooks = [
       { title: 'Background Book 1', author: 'Author 1' },
       { title: 'Background Book 2', author: 'Author 2' }
     ]
-    
+
     return {
       success: true,
       extractedBooks: mockBooks,
@@ -2649,15 +2649,15 @@ class ChromeExtensionController {
   /**
    * 配置批次傳輸
    */
-  async configureBatchTransfer(options = {}) {
+  async configureBatchTransfer (options = {}) {
     const { batchSize = 50, batchDelay = 100, compressionEnabled = false } = options
-    
+
     this.batchConfig = {
       batchSize,
       batchDelay,
       compressionEnabled
     }
-    
+
     console.log('[ExtensionController] Configured batch transfer:', this.batchConfig)
     return { configured: true, config: this.batchConfig }
   }
@@ -2665,7 +2665,7 @@ class ChromeExtensionController {
   /**
    * 點擊按鈕（通用方法）
    */
-  async clickButton(buttonName) {
+  async clickButton (buttonName) {
     switch (buttonName) {
       case 'refresh-status':
         await this.simulateDelay(500)

@@ -13,7 +13,7 @@
 const mockWindow = {}
 global.window = mockWindow
 
-const EventHandler = require('../../../src/core/event-handler')
+const EventHandler = require('src/core/event-handler')
 
 describe('StorageSaveHandler 單元測試', () => {
   let storageSaveHandler
@@ -37,7 +37,7 @@ describe('StorageSaveHandler 單元測試', () => {
     }
 
     // StorageSaveHandler 類別將在實現時導入
-    // const StorageSaveHandler = require('../../../src/storage/handlers/storage-save-handler');
+    // const StorageSaveHandler = require('src/storage/handlers/storage-save-handler');
     // storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter);
   })
 
@@ -48,7 +48,7 @@ describe('StorageSaveHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 基本結構測試 ====================
   describe('🟢 綠燈階段 - 基本結構', () => {
     test('應該能創建 StorageSaveHandler 實例', () => {
-      const StorageSaveHandler = require('../../../src/storage/handlers/storage-save-handler')
+      const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
       expect(storageSaveHandler).toBeDefined()
@@ -56,14 +56,14 @@ describe('StorageSaveHandler 單元測試', () => {
     })
 
     test('應該繼承自 EventHandler', () => {
-      const StorageSaveHandler = require('../../../src/storage/handlers/storage-save-handler')
+      const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
       expect(storageSaveHandler).toBeInstanceOf(EventHandler)
     })
 
     test('應該有正確的處理器名稱和優先級', () => {
-      const StorageSaveHandler = require('../../../src/storage/handlers/storage-save-handler')
+      const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
       expect(storageSaveHandler.name).toBe('StorageSaveHandler')
@@ -74,7 +74,7 @@ describe('StorageSaveHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 事件支援測試 ====================
   describe('🟢 綠燈階段 - 事件支援', () => {
     test('應該支援 STORAGE.SAVE.REQUESTED 事件', () => {
-      const StorageSaveHandler = require('../../../src/storage/handlers/storage-save-handler')
+      const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
       const supportedEvents = storageSaveHandler.getSupportedEvents()
@@ -82,7 +82,7 @@ describe('StorageSaveHandler 單元測試', () => {
     })
 
     test('應該能處理 STORAGE.SAVE.REQUESTED 事件', async () => {
-      const StorageSaveHandler = require('../../../src/storage/handlers/storage-save-handler')
+      const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
       // 模擬成功儲存
@@ -114,7 +114,7 @@ describe('StorageSaveHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 儲存處理邏輯測試 ====================
   describe('🟢 綠燈階段 - 儲存處理邏輯', () => {
     test('應該能調用儲存適配器保存資料', async () => {
-      const StorageSaveHandler = require('../../../src/storage/handlers/storage-save-handler')
+      const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
       // 模擬成功儲存
@@ -144,7 +144,7 @@ describe('StorageSaveHandler 單元測試', () => {
     })
 
     test('應該在儲存成功後觸發 STORAGE.SAVE.COMPLETED 事件', async () => {
-      const StorageSaveHandler = require('../../../src/storage/handlers/storage-save-handler')
+      const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
       mockStorageAdapter.save.mockResolvedValue({
@@ -172,7 +172,7 @@ describe('StorageSaveHandler 單元測試', () => {
     })
 
     test('應該能處理儲存失敗情況', async () => {
-      const StorageSaveHandler = require('../../../src/storage/handlers/storage-save-handler')
+      const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
       // 模擬儲存失敗
@@ -200,7 +200,7 @@ describe('StorageSaveHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 資料驗證測試 ====================
   describe('🟢 綠燈階段 - 資料驗證', () => {
     test('應該驗證儲存資料的必要欄位', async () => {
-      const StorageSaveHandler = require('../../../src/storage/handlers/storage-save-handler')
+      const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
       const invalidEvent = {
@@ -221,7 +221,7 @@ describe('StorageSaveHandler 單元測試', () => {
     })
 
     test('應該檢查儲存適配器的可用性', async () => {
-      const StorageSaveHandler = require('../../../src/storage/handlers/storage-save-handler')
+      const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
 
       // 模擬不可用的儲存適配器
       mockStorageAdapter.isAvailable.mockReturnValue(false)
@@ -248,7 +248,7 @@ describe('StorageSaveHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 效能和統計測試 ====================
   describe('🟢 綠燈階段 - 效能和統計', () => {
     test('應該記錄儲存操作的執行時間', async () => {
-      const StorageSaveHandler = require('../../../src/storage/handlers/storage-save-handler')
+      const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
       mockStorageAdapter.save.mockResolvedValue({ success: true })
@@ -266,7 +266,7 @@ describe('StorageSaveHandler 單元測試', () => {
     })
 
     test('應該提供儲存操作的統計資訊', () => {
-      const StorageSaveHandler = require('../../../src/storage/handlers/storage-save-handler')
+      const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
       const stats = storageSaveHandler.getStats()

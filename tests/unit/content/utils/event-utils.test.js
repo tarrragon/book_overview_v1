@@ -18,7 +18,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
 
   beforeAll(() => {
     // 測試執行前載入模組
-    EventUtils = require('../../../../src/content/utils/event-utils.js')
+    EventUtils = require('src/content/utils/event-utils.js')
   })
 
   beforeEach(() => {
@@ -54,7 +54,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
 
     // 重置Chrome消息監聽器狀態 (通過重新載入模組)
     delete require.cache[require.resolve('../../../../src/content/utils/event-utils.js')]
-    EventUtils = require('../../../../src/content/utils/event-utils.js')
+    EventUtils = require('src/content/utils/event-utils.js')
 
     // 重設 DOM 環境
     document.body.innerHTML = ''

@@ -73,8 +73,8 @@ describe('PopupController 通訊服務整合測試', () => {
     global.document = document
 
     // 載入相關模組
-    PopupController = require('../../../src/popup/popup-controller.js')
-    PopupCommunicationService = require('../../../src/popup/services/popup-communication-service.js')
+    PopupController = require('src/popup/popup-controller.js')
+    PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
   })
 
   afterEach(() => {

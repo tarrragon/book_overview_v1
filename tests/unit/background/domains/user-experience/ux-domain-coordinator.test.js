@@ -10,7 +10,7 @@
  * - 事件處理和服務整合
  */
 
-const UXDomainCoordinator = require('../../../../../src/background/domains/user-experience/ux-domain-coordinator')
+const UXDomainCoordinator = require('src/background/domains/user-experience/ux-domain-coordinator')
 
 // Mock 依賴服務
 const mockEventBus = {
@@ -127,12 +127,12 @@ describe('🎨 UX Domain 協調器測試', () => {
     jest.clearAllMocks()
 
     // 手動設定 Mock 服務池 - 確保所有 Mock 方法都可訪問
-    const ThemeManagementService = require('../../../../../src/background/domains/user-experience/services/theme-management-service')
-    const PreferenceService = require('../../../../../src/background/domains/user-experience/services/preference-service')
-    const NotificationService = require('../../../../../src/background/domains/user-experience/services/notification-service')
-    const PopupUICoordinationService = require('../../../../../src/background/domains/user-experience/services/popup-ui-coordination-service')
-    const PersonalizationService = require('../../../../../src/background/domains/user-experience/services/personalization-service')
-    const AccessibilityService = require('../../../../../src/background/domains/user-experience/services/accessibility-service')
+    const ThemeManagementService = require('src/background/domains/user-experience/services/theme-management-service')
+    const PreferenceService = require('src/background/domains/user-experience/services/preference-service')
+    const NotificationService = require('src/background/domains/user-experience/services/notification-service')
+    const PopupUICoordinationService = require('src/background/domains/user-experience/services/popup-ui-coordination-service')
+    const PersonalizationService = require('src/background/domains/user-experience/services/personalization-service')
+    const AccessibilityService = require('src/background/domains/user-experience/services/accessibility-service')
 
     mockServicesPool.ThemeManagementService = ThemeManagementService.mockMethods
     mockServicesPool.PreferenceService = PreferenceService.mockMethods

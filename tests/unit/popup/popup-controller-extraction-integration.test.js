@@ -72,8 +72,8 @@ describe('PopupController 提取服務整合測試', () => {
     global.document = document
 
     // 載入相關模組
-    PopupController = require('../../../src/popup/popup-controller.js')
-    PopupExtractionService = require('../../../src/popup/services/popup-extraction-service.js')
+    PopupController = require('src/popup/popup-controller.js')
+    PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
   })
 
   afterEach(() => {

@@ -29,7 +29,7 @@ describe('Popup Interface 整合測試', () => {
 
     const htmlContent = fs.readFileSync(popupHtmlPath, 'utf8')
     let popupScriptContent = fs.readFileSync(popupJsPath, 'utf8')
-    
+
     // 轉換 ES6 import 語句為適合測試環境的格式
     // 移除 import 語句並提供 mock 替代
     popupScriptContent = popupScriptContent
@@ -39,7 +39,7 @@ describe('Popup Interface 整合測試', () => {
       .replace(/new MessageDictionary\(/g, 'new window.MessageDictionary(')
       // 替換 Logger 的實例化
       .replace(/new Logger\(/g, 'new window.Logger(')
-    
+
     popupScript = popupScriptContent
 
     dom = new JSDOM(htmlContent, {
@@ -75,21 +75,21 @@ describe('Popup Interface 整合測試', () => {
 
     // Mock 模組依賴 - 提供 Logger 和 MessageDictionary 的 mock 實作
     window.Logger = class MockLogger {
-      constructor(namespace) {
+      constructor (namespace) {
         this.namespace = namespace
       }
-      info(msg) { console.log(`[INFO] ${this.namespace}: ${msg}`) }
-      warn(msg) { console.warn(`[WARN] ${this.namespace}: ${msg}`) }
-      error(msg) { console.error(`[ERROR] ${this.namespace}: ${msg}`) }
-      debug(msg) { console.log(`[DEBUG] ${this.namespace}: ${msg}`) }
+
+      info (msg) { console.log(`[INFO] ${this.namespace}: ${msg}`) }
+      warn (msg) { console.warn(`[WARN] ${this.namespace}: ${msg}`) }
+      error (msg) { console.error(`[ERROR] ${this.namespace}: ${msg}`) }
     }
 
     window.MessageDictionary = class MockMessageDictionary {
-      constructor(messages = {}) {
+      constructor (messages = {}) {
         // 將傳入的訊息物件合併到實例中
         Object.assign(this, messages)
       }
-      
+
       // 提供基本的訊息字典結構
       static POPUP = {
         INIT_SUCCESS: 'popup_init_success',

@@ -24,7 +24,7 @@
  * @since 2025-08-13
  */
 
-const PlatformDetectionService = require('../../src/background/domains/platform/services/platform-detection-service')
+const PlatformDetectionService = require('src/background/domains/platform/services/platform-detection-service')
 const { createDetectionContext, scenarioBuilder, performanceHelpers } = require('../mocks/platform-detection.mock')
 const { performanceUtils, reportGenerator } = require('../helpers/platform-test-helpers')
 

@@ -1341,15 +1341,15 @@ class E2ETestSuite {
   /**
    * 創建多個額外分頁用於多分頁測試
    */
-  async createAdditionalTabs(urls) {
+  async createAdditionalTabs (urls) {
     this.log(`創建額外分頁: ${urls.length} 個`)
-    
+
     const tabs = []
-    
+
     for (let i = 0; i < urls.length; i++) {
       const url = urls[i]
       const tabId = `additional-tab-${i + 1}-${Date.now()}`
-      
+
       // 創建分頁物件
       const tab = {
         id: tabId,
@@ -1359,28 +1359,28 @@ class E2ETestSuite {
         index: i + 2, // 假設主分頁是 index 0，popup 是 index 1
         status: 'loading'
       }
-      
+
       // 模擬分頁載入過程
       await new Promise(resolve => setTimeout(resolve, 200))
       tab.status = 'complete'
-      
+
       // 為每個分頁注入 Content Script
       if (this.extensionController) {
         await this.extensionController.createTab(tab)
-        
+
         // 如果是 Readmoo 頁面，設置相應的測試數據
         if (url.includes('readmoo.com')) {
           await this.extensionController.injectContentScriptInTab(tabId)
-          
+
           // 為每個分頁注入不同的測試書籍數據
           const mockBooks = this.testDataGenerator?.generateBooks(20 + i * 10, `tab-${i}`) || []
           await this.injectMockBooks(mockBooks, tabId)
         }
       }
-      
+
       tabs.push(tab)
     }
-    
+
     this.log(`成功創建 ${tabs.length} 個額外分頁`)
     return tabs
   }
@@ -1388,26 +1388,26 @@ class E2ETestSuite {
   /**
    * 關閉額外分頁
    */
-  async closeAdditionalTabs(tabs) {
+  async closeAdditionalTabs (tabs) {
     if (!tabs || tabs.length === 0) return
-    
+
     this.log(`關閉額外分頁: ${tabs.length} 個`)
-    
+
     for (const tab of tabs) {
       // 清理分頁相關的 Content Script
       if (this.extensionController) {
         await this.extensionController.cleanupContentScript(tab.id)
-        
+
         // 從測試數據中移除分頁相關數據
         if (this.extensionController.state.testData) {
           this.extensionController.state.testData.delete(tab.id)
         }
       }
-      
+
       // 模擬分頁關閉延遲
       await new Promise(resolve => setTimeout(resolve, 50))
     }
-    
+
     this.log(`成功關閉 ${tabs.length} 個額外分頁`)
   }
 
@@ -1417,7 +1417,7 @@ class E2ETestSuite {
   async simulateProcessInterruption (interruptionType = 'browser-crash', duration = 3000) {
     try {
       this.log(`模擬處理程序中斷: ${interruptionType}，持續時間: ${duration}ms`)
-      
+
       switch (interruptionType) {
         case 'browser-crash':
           // 模擬瀏覽器崩潰 - 關閉所有標籤和連接
@@ -1425,43 +1425,42 @@ class E2ETestSuite {
             await this.extensionController.simulateCrash()
           }
           break
-          
+
         case 'network-interruption':
           // 模擬網路中斷
           if (this.extensionController) {
             await this.extensionController.setNetworkConditions({ offline: true })
           }
           break
-          
+
         case 'extension-suspend':
           // 模擬擴展暫停
           if (this.extensionController) {
             await this.extensionController.suspendExtension()
           }
           break
-          
+
         default:
           // 通用中斷 - 暫停處理
           this.log(`執行通用處理中斷: ${duration}ms`)
       }
-      
+
       // 等待中斷持續時間
       await this.waitForTimeout(duration)
-      
+
       // 記錄中斷事件
       this.logOperation('process_interruption', {
         type: interruptionType,
         duration,
         timestamp: Date.now()
       })
-      
+
       return {
         success: true,
         interruptionType,
         duration,
         timestamp: Date.now()
       }
-      
     } catch (error) {
       this.logError(error, 'simulateProcessInterruption')
       throw new Error(`處理程序中斷模擬失敗: ${error.message}`)
@@ -1475,7 +1474,7 @@ class E2ETestSuite {
     try {
       const { limit = 50, sortBy = 'title' } = options
       this.log(`搜索書籍: "${searchTerm}"，限制: ${limit}，排序: ${sortBy}`)
-      
+
       // 模擬搜索操作
       const mockResults = []
       for (let i = 0; i < Math.min(limit, 10); i++) {
@@ -1487,20 +1486,20 @@ class E2ETestSuite {
           searchRelevance: Math.random()
         })
       }
-      
+
       // 按搜索相關性或指定方式排序
       if (sortBy === 'relevance') {
         mockResults.sort((a, b) => b.searchRelevance - a.searchRelevance)
       } else if (sortBy === 'title') {
         mockResults.sort((a, b) => a.title.localeCompare(b.title))
       }
-      
+
       this.logOperation('search_overview_books', {
         searchTerm,
         resultCount: mockResults.length,
         options
       })
-      
+
       return {
         success: true,
         results: mockResults,
@@ -1508,7 +1507,6 @@ class E2ETestSuite {
         searchTerm,
         timestamp: Date.now()
       }
-      
     } catch (error) {
       this.logError(error, 'searchOverviewBooks')
       throw new Error(`書籍搜索失敗: ${error.message}`)
@@ -1521,16 +1519,16 @@ class E2ETestSuite {
   async capturePerformanceBaseline (operationType = 'general', duration = 5000) {
     try {
       this.log(`擷取效能基準線: ${operationType}，測量時間: ${duration}ms`)
-      
+
       const startTime = process.hrtime.bigint()
       const startMemory = process.memoryUsage()
-      
+
       // 等待測量期間
       await this.waitForTimeout(duration)
-      
+
       const endTime = process.hrtime.bigint()
       const endMemory = process.memoryUsage()
-      
+
       const baseline = {
         operationType,
         duration: Number(endTime - startTime) / 1000000, // 轉換為毫秒
@@ -1546,15 +1544,14 @@ class E2ETestSuite {
           memoryEfficiency: Math.random() * 0.3 + 0.7 // 模擬70-100%效率
         }
       }
-      
+
       this.logOperation('capture_performance_baseline', baseline)
-      
+
       return {
         success: true,
         baseline,
         timestamp: Date.now()
       }
-      
     } catch (error) {
       this.logError(error, 'capturePerformanceBaseline')
       throw new Error(`效能基準線擷取失敗: ${error.message}`)

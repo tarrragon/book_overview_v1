@@ -17,7 +17,7 @@ describe('ReadmooAdapter', () => {
     jest.resetModules()
 
     try {
-      createReadmooAdapter = require('../../../src/content/adapters/readmoo-adapter')
+      createReadmooAdapter = require('src/content/adapters/readmoo-adapter')
     } catch (error) {
       // 預期在紅燈階段會失敗
       createReadmooAdapter = null

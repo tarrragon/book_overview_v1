@@ -48,7 +48,7 @@ global.URL = {
   revokeObjectURL: jest.fn()
 }
 
-const BookDataExporter = require('../../../src/export/book-data-exporter')
+const BookDataExporter = require('src/export/book-data-exporter')
 
 describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', () => {
   let exporter

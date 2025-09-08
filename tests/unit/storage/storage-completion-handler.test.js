@@ -28,8 +28,8 @@
 // 設置測試環境
 global.window = {}
 
-const StorageCompletionHandler = require('../../../src/storage/handlers/storage-completion-handler')
-const EventHandler = require('../../../src/core/event-handler')
+const StorageCompletionHandler = require('src/storage/handlers/storage-completion-handler')
+const EventHandler = require('src/core/event-handler')
 
 describe('StorageCompletionHandler', () => {
   let handler

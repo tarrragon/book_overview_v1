@@ -9,7 +9,7 @@
  * 4. 診斷資訊收集和報告
  */
 
-const EventHandler = require('../../../src/core/event-handler')
+const EventHandler = require('src/core/event-handler')
 
 describe('MessageErrorHandler - TDD 循環 #31', () => {
   let mockEventBus
@@ -47,7 +47,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
 
   describe('🔧 基本結構和初始化', () => {
     test('應該能夠創建 MessageErrorHandler 實例', () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
 
       expect(() => {
         new MessageErrorHandler(mockEventBus)
@@ -55,7 +55,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該繼承 EventHandler 基底類別', () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       expect(handler).toBeInstanceOf(EventHandler)
@@ -63,7 +63,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該正確設定優先級和支援的事件', () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       expect(handler.priority).toBe(0) // 最高優先級
@@ -73,7 +73,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該初始化錯誤統計和診斷狀態', () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       expect(handler.errorStats).toBeDefined()
@@ -86,7 +86,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
 
   describe('🚨 訊息錯誤捕獲和處理', () => {
     test('應該處理 MESSAGE.ERROR 事件', async () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       const errorEvent = {
@@ -110,7 +110,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該處理未知訊息類型錯誤', async () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       const unknownTypeEvent = {
@@ -138,7 +138,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該處理訊息路由錯誤', async () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       const routingErrorEvent = {
@@ -165,7 +165,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
 
   describe('🔍 診斷和建議系統', () => {
     test('應該提供未知訊息類型的診斷建議', async () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       const suggestion = handler.generateUnknownTypeSuggestion(
@@ -179,7 +179,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該分析訊息路由問題', async () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       const analysis = handler.analyzeRoutingError(
@@ -194,7 +194,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該啟用診斷模式收集詳細資訊', () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       handler.enableDiagnosticMode()
@@ -209,7 +209,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
 
   describe('📊 錯誤統計和報告', () => {
     test('應該追蹤各類型錯誤的統計資訊', async () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       // 模擬多種錯誤
@@ -239,7 +239,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該生成錯誤報告', () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       // 添加一些錯誤記錄
@@ -256,7 +256,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該支援錯誤報告匯出', () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       const exportData = handler.exportErrorData()
@@ -270,7 +270,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
 
   describe('🛠 Chrome Extension 整合', () => {
     test('應該監聽 Chrome Runtime 錯誤', () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       handler.setupChromeErrorListening()
@@ -279,7 +279,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該處理 Chrome Runtime lastError', () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       mockChromeRuntime.lastError = { message: '測試錯誤' }
@@ -296,7 +296,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該提供 Chrome Extension 健康檢查', () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       const healthStatus = handler.getChromeExtensionHealth()
@@ -309,7 +309,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
 
   describe('⚡ 效能和記憶體管理', () => {
     test('應該限制錯誤記錄的數量', async () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       // 添加超過限制的錯誤記錄
@@ -324,7 +324,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該清理過期的錯誤記錄', () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       // 添加過期錯誤記錄
@@ -341,7 +341,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該提供記憶體使用統計', () => {
-      const MessageErrorHandler = require('../../../src/error-handling/message-error-handler')
+      const MessageErrorHandler = require('src/error-handling/message-error-handler')
       const handler = new MessageErrorHandler(mockEventBus)
 
       const memoryStats = handler.getMemoryUsage()

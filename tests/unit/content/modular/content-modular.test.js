@@ -171,11 +171,7 @@ describe('Modular Content Script', () => {
       }
 
       // 在環境設定完成後載入模組
-      const createPageDetector = require('../../../../src/content/detectors/page-detector')
-
-      console.log('Debug - window.location.hostname:', window.location.hostname)
-      console.log('Debug - global.location.hostname:', global.location.hostname)
-      console.log('Debug - globalThis.location.hostname:', globalThis.location.hostname)
+      const createPageDetector = require('src/content/detectors/page-detector')
 
       const pageDetector = createPageDetector()
 
@@ -185,7 +181,7 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠檢測不同的頁面類型', () => {
-      const createPageDetector = require('../../../../src/content/detectors/page-detector')
+      const createPageDetector = require('src/content/detectors/page-detector')
       const pageDetector = createPageDetector()
 
       // 測試 library 頁面
@@ -215,7 +211,7 @@ describe('Modular Content Script', () => {
         toString: () => 'https://readmoo.com/library'
       }
 
-      const createPageDetector = require('../../../../src/content/detectors/page-detector')
+      const createPageDetector = require('src/content/detectors/page-detector')
       const pageDetector = createPageDetector()
 
       const status = pageDetector.getPageStatus()
@@ -232,7 +228,7 @@ describe('Modular Content Script', () => {
     test('應該能夠監聽 URL 變更', (done) => {
       // 在 JSDOM 環境中，MutationObserver 對 Node 類型檢查較嚴格
       // 我們測試 URL 變更檢測邏輯，但跳過實際的 MutationObserver 設置
-      const createPageDetector = require('../../../../src/content/detectors/page-detector')
+      const createPageDetector = require('src/content/detectors/page-detector')
       const pageDetector = createPageDetector()
 
       // 由於 JSDOM 環境限制，我們測試 URL 變更檢測能力而不是觀察機制
@@ -267,7 +263,7 @@ describe('Modular Content Script', () => {
 
   describe('ContentEventBus 模組', () => {
     test('應該能夠註冊和觸發事件', async () => {
-      const createContentEventBus = require('../../../../src/content/core/content-event-bus')
+      const createContentEventBus = require('src/content/core/content-event-bus')
       const eventBus = createContentEventBus()
       const handler = jest.fn()
 
@@ -285,7 +281,7 @@ describe('Modular Content Script', () => {
     })
 
     test('應該支援事件優先級', async () => {
-      const createContentEventBus = require('../../../../src/content/core/content-event-bus')
+      const createContentEventBus = require('src/content/core/content-event-bus')
       const eventBus = createContentEventBus()
       const callOrder = []
 
@@ -299,7 +295,7 @@ describe('Modular Content Script', () => {
     })
 
     test('應該支援一次性監聽器', async () => {
-      const createContentEventBus = require('../../../../src/content/core/content-event-bus')
+      const createContentEventBus = require('src/content/core/content-event-bus')
       const eventBus = createContentEventBus()
       const handler = jest.fn()
 
@@ -312,7 +308,7 @@ describe('Modular Content Script', () => {
     })
 
     test('應該隔離監聽器錯誤', async () => {
-      const createContentEventBus = require('../../../../src/content/core/content-event-bus')
+      const createContentEventBus = require('src/content/core/content-event-bus')
       const eventBus = createContentEventBus()
       const errorHandler = jest.fn(() => { throw new Error('Handler error') })
       const goodHandler = jest.fn()
@@ -332,7 +328,7 @@ describe('Modular Content Script', () => {
 
   describe('ChromeEventBridge 模組', () => {
     test('應該能夠發送訊息到 Background', async () => {
-      const createChromeEventBridge = require('../../../../src/content/bridge/chrome-event-bridge')
+      const createChromeEventBridge = require('src/content/bridge/chrome-event-bridge')
       const bridge = createChromeEventBridge()
 
       chrome.runtime.sendMessage.mockResolvedValue({ success: true })
@@ -358,7 +354,7 @@ describe('Modular Content Script', () => {
     })
 
     test('應該處理發送錯誤', async () => {
-      const createChromeEventBridge = require('../../../../src/content/bridge/chrome-event-bridge')
+      const createChromeEventBridge = require('src/content/bridge/chrome-event-bridge')
       const bridge = createChromeEventBridge()
 
       chrome.runtime.sendMessage.mockRejectedValue(new Error('Connection failed'))
@@ -375,7 +371,7 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠轉發事件到 Background', async () => {
-      const createChromeEventBridge = require('../../../../src/content/bridge/chrome-event-bridge')
+      const createChromeEventBridge = require('src/content/bridge/chrome-event-bridge')
       const bridge = createChromeEventBridge()
 
       chrome.runtime.sendMessage.mockResolvedValue({ success: true })
@@ -396,7 +392,7 @@ describe('Modular Content Script', () => {
 
   describe('ReadmooAdapter 模組', () => {
     test('應該能夠找到書籍元素', () => {
-      const createReadmooAdapter = require('../../../../src/content/adapters/readmoo-adapter')
+      const createReadmooAdapter = require('src/content/adapters/readmoo-adapter')
       const adapter = createReadmooAdapter({ document })
 
       const bookElements = adapter.getBookElements()
@@ -407,7 +403,7 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠解析書籍資料', () => {
-      const createReadmooAdapter = require('../../../../src/content/adapters/readmoo-adapter')
+      const createReadmooAdapter = require('src/content/adapters/readmoo-adapter')
       const adapter = createReadmooAdapter({ document })
       const bookElements = adapter.getBookElements()
 
@@ -441,7 +437,7 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠提取所有書籍', async () => {
-      const createReadmooAdapter = require('../../../../src/content/adapters/readmoo-adapter')
+      const createReadmooAdapter = require('src/content/adapters/readmoo-adapter')
       const adapter = createReadmooAdapter({ document })
 
       const books = await adapter.extractAllBooks()
@@ -452,7 +448,7 @@ describe('Modular Content Script', () => {
     })
 
     test('應該過濾不安全的 URL', () => {
-      const createReadmooAdapter = require('../../../../src/content/adapters/readmoo-adapter')
+      const createReadmooAdapter = require('src/content/adapters/readmoo-adapter')
       const adapter = createReadmooAdapter()
 
       expect(adapter.isUnsafeUrl('javascript:alert(1)')).toBe(true)
@@ -463,7 +459,7 @@ describe('Modular Content Script', () => {
 
   describe('BookDataExtractor 模組', () => {
     test('應該能夠檢測頁面類型', () => {
-      const createBookDataExtractor = require('../../../../src/content/extractors/book-data-extractor')
+      const createBookDataExtractor = require('src/content/extractors/book-data-extractor')
       const extractor = createBookDataExtractor()
 
       const pageType = extractor.getReadmooPageType()
@@ -490,8 +486,8 @@ describe('Modular Content Script', () => {
         toString: () => 'https://readmoo.com/library'
       }
 
-      const createBookDataExtractor = require('../../../../src/content/extractors/book-data-extractor')
-      const createReadmooAdapter = require('../../../../src/content/adapters/readmoo-adapter')
+      const createBookDataExtractor = require('src/content/extractors/book-data-extractor')
+      const createReadmooAdapter = require('src/content/adapters/readmoo-adapter')
       const extractor = createBookDataExtractor()
       const adapter = createReadmooAdapter({ document })
 
@@ -517,9 +513,9 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠啟動提取流程', async () => {
-      const createContentEventBus = require('../../../../src/content/core/content-event-bus')
-      const createBookDataExtractor = require('../../../../src/content/extractors/book-data-extractor')
-      const createReadmooAdapter = require('../../../../src/content/adapters/readmoo-adapter')
+      const createContentEventBus = require('src/content/core/content-event-bus')
+      const createBookDataExtractor = require('src/content/extractors/book-data-extractor')
+      const createReadmooAdapter = require('src/content/adapters/readmoo-adapter')
       const eventBus = createContentEventBus()
       const extractor = createBookDataExtractor()
       const adapter = createReadmooAdapter()
@@ -540,8 +536,8 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠取消提取流程', async () => {
-      const createContentEventBus = require('../../../../src/content/core/content-event-bus')
-      const createBookDataExtractor = require('../../../../src/content/extractors/book-data-extractor')
+      const createContentEventBus = require('src/content/core/content-event-bus')
+      const createBookDataExtractor = require('src/content/extractors/book-data-extractor')
       const eventBus = createContentEventBus()
       const extractor = createBookDataExtractor()
 
@@ -570,11 +566,11 @@ describe('Modular Content Script', () => {
 
   describe('模組整合測試', () => {
     test('應該能夠完整整合所有模組', () => {
-      const createPageDetector = require('../../../../src/content/detectors/page-detector')
-      const createContentEventBus = require('../../../../src/content/core/content-event-bus')
-      const createChromeEventBridge = require('../../../../src/content/bridge/chrome-event-bridge')
-      const createReadmooAdapter = require('../../../../src/content/adapters/readmoo-adapter')
-      const createBookDataExtractor = require('../../../../src/content/extractors/book-data-extractor')
+      const createPageDetector = require('src/content/detectors/page-detector')
+      const createContentEventBus = require('src/content/core/content-event-bus')
+      const createChromeEventBridge = require('src/content/bridge/chrome-event-bridge')
+      const createReadmooAdapter = require('src/content/adapters/readmoo-adapter')
+      const createBookDataExtractor = require('src/content/extractors/book-data-extractor')
       const pageDetector = createPageDetector()
       const eventBus = createContentEventBus()
       const chromeBridge = createChromeEventBridge()
@@ -599,8 +595,8 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠處理事件轉發', async () => {
-      const createContentEventBus = require('../../../../src/content/core/content-event-bus')
-      const createChromeEventBridge = require('../../../../src/content/bridge/chrome-event-bridge')
+      const createContentEventBus = require('src/content/core/content-event-bus')
+      const createChromeEventBridge = require('src/content/bridge/chrome-event-bridge')
       const eventBus = createContentEventBus()
       const chromeBridge = createChromeEventBridge()
 
@@ -626,8 +622,8 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠處理模組錯誤隔離', async () => {
-      const createContentEventBus = require('../../../../src/content/core/content-event-bus')
-      const createBookDataExtractor = require('../../../../src/content/extractors/book-data-extractor')
+      const createContentEventBus = require('src/content/core/content-event-bus')
+      const createBookDataExtractor = require('src/content/extractors/book-data-extractor')
       const eventBus = createContentEventBus()
       const extractor = createBookDataExtractor()
 
@@ -651,7 +647,7 @@ describe('Modular Content Script', () => {
 
   describe('記憶體管理和清理', () => {
     test('PageDetector 應該能夠清理資源', () => {
-      const createPageDetector = require('../../../../src/content/detectors/page-detector')
+      const createPageDetector = require('src/content/detectors/page-detector')
       const pageDetector = createPageDetector()
 
       // 由於 JSDOM 環境限制，我們測試清理函數的存在和調用而不是實際觀察設置
@@ -670,7 +666,7 @@ describe('Modular Content Script', () => {
     })
 
     test('EventBus 應該能夠清理事件監聽器', async () => {
-      const createContentEventBus = require('../../../../src/content/core/content-event-bus')
+      const createContentEventBus = require('src/content/core/content-event-bus')
       const eventBus = createContentEventBus()
 
       eventBus.on('TEST.EVENT', () => {})
@@ -681,7 +677,7 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠清理活動提取流程', () => {
-      const createBookDataExtractor = require('../../../../src/content/extractors/book-data-extractor')
+      const createBookDataExtractor = require('src/content/extractors/book-data-extractor')
       const extractor = createBookDataExtractor()
 
       // 測試取得活動流程列表 (應該是空的)

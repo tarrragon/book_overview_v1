@@ -73,7 +73,7 @@ describe('PopupUIManager 模組化整合測試', () => {
     }
 
     // 載入 PopupUIManager
-    const PopupUIManager = require('../../../src/popup/popup-ui-manager.js')
+    const PopupUIManager = require('src/popup/popup-ui-manager.js')
     uiManager = new PopupUIManager(document)
   })
 

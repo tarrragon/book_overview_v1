@@ -40,8 +40,8 @@ global.performance = {
   measure: jest.fn()
 }
 
-const { PerformanceOptimizer } = require('../../src/performance/performance-optimizer')
-const { LoadingOptimizer } = require('../../src/performance/loading-optimizer')
+const { PerformanceOptimizer } = require('src/performance/performance-optimizer')
+const { LoadingOptimizer } = require('src/performance/loading-optimizer')
 
 describe('🚀 效能優化整合測試', () => {
   let performanceOptimizer

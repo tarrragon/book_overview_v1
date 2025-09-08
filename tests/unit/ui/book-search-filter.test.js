@@ -169,7 +169,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     // 初始化 BookSearchFilter
     // 注意：這裡會失敗因為類別還不存在（TDD 紅燈狀態）
     try {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       searchFilter = new BookSearchFilter(mockEventBus, mockDocument)
     } catch (error) {
       // 預期的失敗狀態，符合 TDD 紅燈階段
@@ -189,7 +189,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
   describe('基本結構和初始化', () => {
     test('應該能夠創建 BookSearchFilter 實例', () => {
       expect(() => {
-        const BookSearchFilter = require('../../../src/ui/book-search-filter')
+        const BookSearchFilter = require('src/ui/book-search-filter')
         const instance = new BookSearchFilter(mockEventBus, mockDocument)
         expect(instance).toBeDefined()
         expect(instance.constructor.name).toBe('BookSearchFilter')
@@ -197,7 +197,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該繼承 BaseUIHandler 並具備基本功能', () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       // 檢查是否具備 BaseUIHandler 的方法
@@ -208,7 +208,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該正確初始化 DOM 元素引用', () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       expect(mockDocument.getElementById).toHaveBeenCalledWith('search-input')
@@ -217,7 +217,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該初始化搜尋狀態和配置', () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       expect(instance.searchHistory).toEqual([])
@@ -227,7 +227,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該註冊必要的事件監聽器', () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       // 檢查是否註冊了搜尋相關事件
@@ -250,7 +250,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援依書名搜尋', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -266,7 +266,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援依作者搜尋', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -277,7 +277,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援依標籤搜尋', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -290,7 +290,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援模糊搜尋和忽略大小寫', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -305,7 +305,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該正確處理空搜尋查詢', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -317,7 +317,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該正確處理無結果的搜尋', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -330,7 +330,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該實現搜尋防抖功能', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -361,7 +361,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援依閱讀狀態篩選', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -378,7 +378,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援依閱讀進度範圍篩選', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -399,7 +399,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援依書籍分類篩選', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -415,7 +415,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援依最近閱讀時間篩選', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -430,7 +430,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援多重篩選條件組合', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -450,7 +450,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援篩選器重置功能', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -465,7 +465,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該正確更新篩選器 UI 狀態', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       const filterOptions = {
@@ -485,7 +485,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
 
   describe('搜尋效能和快取機制', () => {
     test('應該實現搜尋結果快取機制', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -508,7 +508,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該實現搜尋快取大小限制', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
       instance.maxCacheSize = 3 // 設定較小的快取大小用於測試
@@ -523,7 +523,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該實現索引建構提升搜尋效能', () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       instance.buildSearchIndex(mockBooks)
@@ -539,7 +539,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該監控搜尋效能並發出警告', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = new Array(10000).fill(mockBooks[0]) // 大量資料
       instance.performanceWarningThreshold = 50 // 50ms 警告閾值
@@ -552,7 +552,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該實現記憶體清理機制', () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       // 填充快取
@@ -573,7 +573,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
 
   describe('搜尋歷史和建議系統', () => {
     test('應該記錄搜尋歷史', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -586,7 +586,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該限制搜尋歷史大小', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
       instance.maxHistorySize = 3 // 設定較小的歷史大小
@@ -601,7 +601,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該提供搜尋建議功能', () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -612,7 +612,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該基於搜尋歷史提供建議', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -626,7 +626,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援清除搜尋歷史', () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       instance.searchHistory = ['Query1', 'Query2', 'Query3']
@@ -643,7 +643,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
 
   describe('事件整合和通知機制', () => {
     test('應該監聽書籍資料更新事件', () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       expect(mockEventBus.on).toHaveBeenCalledWith(
@@ -653,7 +653,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該處理書籍資料更新事件', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       const eventHandler = mockEventBus.on.mock.calls
@@ -676,7 +676,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該發出搜尋狀態更新事件', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -690,7 +690,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該發出篩選器變更事件', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       const newFilters = { status: 'reading', category: 'technology' }
@@ -705,7 +705,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     // 已移至 docs/testing/red-phase/ 以避免假計時器等待造成逾時
 
     test('應該發出搜尋進度事件', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = new Array(1000).fill(mockBooks[0]) // 大量資料
 
@@ -724,7 +724,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
 
   describe('錯誤處理和邊界條件', () => {
     test('應該處理無效的書籍資料', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       const invalidData = [
@@ -746,7 +746,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該處理極長的搜尋查詢', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -762,7 +762,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該處理特殊字符搜尋查詢', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -783,7 +783,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該處理搜尋過程中的錯誤', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       // 模擬搜尋過程中發生錯誤
@@ -803,7 +803,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
       mockDocument.getElementById = jest.fn().mockReturnValue(null)
 
       expect(() => {
-        const BookSearchFilter = require('../../../src/ui/book-search-filter')
+        const BookSearchFilter = require('src/ui/book-search-filter')
         new BookSearchFilter(mockEventBus, mockDocument)
       }).not.toThrow()
     })
@@ -812,13 +812,13 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
       const invalidEventBus = null
 
       expect(() => {
-        const BookSearchFilter = require('../../../src/ui/book-search-filter')
+        const BookSearchFilter = require('src/ui/book-search-filter')
         new BookSearchFilter(invalidEventBus, mockDocument)
       }).toThrow('事件總線是必需的')
     })
 
     test('應該正確清理資源', () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       // 設置一些資源
@@ -832,7 +832,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該處理記憶體不足情況', async () => {
-      const BookSearchFilter = require('../../../src/ui/book-search-filter')
+      const BookSearchFilter = require('src/ui/book-search-filter')
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       // 模擬記憶體不足錯誤

@@ -12,7 +12,7 @@
  * @since 2025-08-19
  */
 
-const PopupController = require('../../../src/popup/popup-controller.js')
+const PopupController = require('src/popup/popup-controller.js')
 
 // Mock DOM 環境
 const { JSDOM } = require('jsdom')

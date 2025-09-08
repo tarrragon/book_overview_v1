@@ -457,7 +457,7 @@ describe('跨設備同步工作流程整合測試', () => {
 
         const syncedData = await extensionController.getStorageData()
         const expectedCount = 100 + (round * 20) // 初始100 + 每輪20
-        
+
         // TODO: 這是一個功能實現問題，不是預期值問題
         // 多輪同步機制沒有正確工作 - 新書籍沒有累積
         // 暫時使用實際行為進行測試，避免阻塞其他開發
@@ -469,7 +469,7 @@ describe('跨設備同步工作流程整合測試', () => {
         // 驗證新書籍同步問題 - 實際為0但應該為20
         const thisRoundBooks = syncedData.books.filter(book =>
           book.id.includes(`round-${round}`))
-        // TODO: 修復同步機制後應該恢復這個驗證  
+        // TODO: 修復同步機制後應該恢復這個驗證
         // expect(thisRoundBooks.length).toBe(20)
         expect(thisRoundBooks.length).toBe(0) // 實際行為：新書籍沒有同步
 
@@ -478,7 +478,7 @@ describe('跨設備同步工作流程整合測試', () => {
 
       // 最終驗證：所有輪次的資料都完整保存
       const finalData = await extensionController.getStorageData()
-      
+
       // TODO: 修復多輪同步機制後應該恢復這些驗證
       // expect(finalData.books.length).toBe(160) // 100 + 3*20
       expect(finalData.books.length).toBe(100) // 實際行為：同步機制問題，數量保持100

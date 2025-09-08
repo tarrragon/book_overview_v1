@@ -89,7 +89,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
     global.location = dom.window.location
 
     // 載入 PopupErrorHandler
-    PopupErrorHandler = require('../../../src/popup/popup-error-handler')
+    PopupErrorHandler = require('src/popup/popup-error-handler')
   })
 
   const resetDOMState = () => {

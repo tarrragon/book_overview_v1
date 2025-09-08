@@ -104,8 +104,6 @@ describe('🔧 端對端測試環境驗證', () => {
       expect(testData).toBeTruthy()
       expect(testData.books).toBeInstanceOf(Array)
       expect(testData.books.length).toBe(5)
-
-      console.log(`✅ 測試資料提取成功，包含 ${testData.books.length} 本書籍`)
     })
   })
 
@@ -213,8 +211,6 @@ describe('🔧 端對端測試環境驗證', () => {
       // 測試環境應在 15 秒內完成設定
       expect(setupTime).toBeLessThan(15000)
 
-      console.log(`⏱️ 測試環境設定時間: ${setupTime.toFixed(2)}ms`)
-
       await newTestSetup.cleanup()
     })
 
@@ -239,7 +235,6 @@ describe('🔧 端對端測試環境驗證', () => {
   afterAll(async () => {
     if (testSetup) {
       await testSetup.cleanup()
-      console.log('✅ 測試環境清理完成')
     }
   })
 })

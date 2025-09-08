@@ -26,7 +26,7 @@
  * @since 2025-08-08
  */
 
-const EventBus = require('../../../src/core/event-bus')
+const EventBus = require('src/core/event-bus')
 
 // Mock BookDataExporter
 let mockExporterInstance
@@ -148,7 +148,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
   describe('🔴 Red Phase: ExportManager 基本結構', () => {
     test('應該能建立 ExportManager 實例', () => {
       expect(() => {
-        const ExportManager = require('../../../src/export/export-manager')
+        const ExportManager = require('src/export/export-manager')
         exportManager = new ExportManager(eventBus)
       }).not.toThrow()
 
@@ -156,14 +156,14 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('ExportManager 應該接受事件總線作為依賴注入', () => {
-      const ExportManager = require('../../../src/export/export-manager')
+      const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
 
       expect(exportManager.eventBus).toBe(eventBus)
     })
 
     test('ExportManager 應該正確初始化狀態', () => {
-      const ExportManager = require('../../../src/export/export-manager')
+      const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
 
       expect(exportManager.isExporting).toBe(false)
@@ -174,7 +174,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('ExportManager 應該註冊所有必要的事件監聽器', () => {
-      const ExportManager = require('../../../src/export/export-manager')
+      const ExportManager = require('src/export/export-manager')
       const eventBusSpy = jest.spyOn(eventBus, 'on')
 
       exportManager = new ExportManager(eventBus)
@@ -208,7 +208,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
   describe('🔴 Red Phase: CSV 匯出事件處理', () => {
     beforeEach(() => {
-      const ExportManager = require('../../../src/export/export-manager')
+      const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
     })
 
@@ -243,7 +243,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('CSV 匯出失敗時應該觸發失敗事件', async () => {
-      const BookDataExporter = require('../../../src/export/book-data-exporter')
+      const BookDataExporter = require('src/export/book-data-exporter')
 
       // 模擬匯出失敗 - 使用 mockImplementationOnce 避免影響其他測試
       BookDataExporter.mockImplementationOnce(() => ({
@@ -289,7 +289,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
   describe('🔴 Red Phase: JSON 匯出事件處理', () => {
     beforeEach(() => {
-      const ExportManager = require('../../../src/export/export-manager')
+      const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
 
       // 確保 mock 實例被正確重設
@@ -350,7 +350,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
   describe('🔴 Red Phase: 批量匯出事件處理', () => {
     beforeEach(() => {
-      const ExportManager = require('../../../src/export/export-manager')
+      const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
 
       // 確保 mock 實例被正確重設
@@ -415,7 +415,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('批量匯出中部分失敗應該正確處理', async () => {
-      const BookDataExporter = require('../../../src/export/book-data-exporter')
+      const BookDataExporter = require('src/export/book-data-exporter')
 
       // 模擬部分格式匯出失敗 - 使用 mockImplementationOnce
       BookDataExporter.mockImplementationOnce(() => ({
@@ -442,7 +442,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
   describe('🔴 Red Phase: 檔案下載事件處理', () => {
     beforeEach(() => {
-      const ExportManager = require('../../../src/export/export-manager')
+      const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
 
       // 確保 mock 實例被正確重設
@@ -484,7 +484,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('檔案下載失敗時應該觸發失敗事件', async () => {
-      const BookDataExporter = require('../../../src/export/book-data-exporter')
+      const BookDataExporter = require('src/export/book-data-exporter')
 
       // 模擬下載失敗 - 使用 mockImplementationOnce
       BookDataExporter.mockImplementationOnce(() => ({
@@ -510,7 +510,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
   describe('🔴 Red Phase: 進度追蹤和狀態管理', () => {
     beforeEach(() => {
-      const ExportManager = require('../../../src/export/export-manager')
+      const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
     })
 
@@ -577,12 +577,12 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
   describe('🔴 Red Phase: 錯誤處理和恢復', () => {
     beforeEach(() => {
-      const ExportManager = require('../../../src/export/export-manager')
+      const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
     })
 
     test('應該處理 BookDataExporter 實例化失敗', async () => {
-      const BookDataExporter = require('../../../src/export/book-data-exporter')
+      const BookDataExporter = require('src/export/book-data-exporter')
 
       // 模擬建構函數失敗 - 使用 mockImplementationOnce
       BookDataExporter.mockImplementationOnce(() => {
@@ -617,7 +617,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('應該處理記憶體不足的情況', async () => {
-      const BookDataExporter = require('../../../src/export/book-data-exporter')
+      const BookDataExporter = require('src/export/book-data-exporter')
 
       // 模擬記憶體不足錯誤 - 使用 mockImplementationOnce
       BookDataExporter.mockImplementationOnce(() => ({
@@ -644,7 +644,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
     test('應該提供錯誤恢復機制', async () => {
       let attemptCount = 0
-      const BookDataExporter = require('../../../src/export/book-data-exporter')
+      const BookDataExporter = require('src/export/book-data-exporter')
 
       // 模擬第一次失敗，第二次成功 - 使用 mockImplementationOnce
       BookDataExporter.mockImplementationOnce(() => ({
@@ -678,7 +678,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
   describe('🔴 Red Phase: 整合性測試', () => {
     beforeEach(() => {
-      const ExportManager = require('../../../src/export/export-manager')
+      const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
 
       // 確保 mock 實例被正確重設
@@ -747,7 +747,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
   describe('🔴 Red Phase: 性能和資源管理', () => {
     beforeEach(() => {
-      const ExportManager = require('../../../src/export/export-manager')
+      const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
     })
 

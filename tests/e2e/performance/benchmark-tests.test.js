@@ -403,7 +403,6 @@ function generateMockPageWithBooks (bookCount) {
         ${books.join('')}
       </div>
       <script>
-        console.log('📊 效能測試頁面載入完成，包含 ${bookCount} 本書籍');
         document.body.setAttribute('data-books-loaded', 'true');
       </script>
     </body>

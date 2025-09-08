@@ -110,14 +110,14 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
     test('應該能創建 PopupUIComponents 實例', () => {
       // 這個測試應該失敗，因為 PopupUIComponents 類別還不存在
       expect(() => {
-        const { PopupUIComponents } = require('../../../src/popup/popup-ui-components')
+        const { PopupUIComponents } = require('src/popup/popup-ui-components')
         const uiComponents = new PopupUIComponents(document)
         expect(uiComponents).toBeInstanceOf(PopupUIComponents)
       }).not.toThrow()
     })
 
     test('應該能更新狀態指示器的視覺狀態', () => {
-      const { PopupUIComponents } = require('../../../src/popup/popup-ui-components')
+      const { PopupUIComponents } = require('src/popup/popup-ui-components')
       const uiComponents = new PopupUIComponents(document)
 
       // 測試狀態更新方法
@@ -136,7 +136,7 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
     })
 
     test('應該支援多種狀態類型', () => {
-      const { PopupUIComponents } = require('../../../src/popup/popup-ui-components')
+      const { PopupUIComponents } = require('src/popup/popup-ui-components')
       const uiComponents = new PopupUIComponents(document)
 
       // 測試 ready 狀態
@@ -154,7 +154,7 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
     })
 
     test('應該能正確處理狀態轉換動畫', () => {
-      const { PopupUIComponents } = require('../../../src/popup/popup-ui-components')
+      const { PopupUIComponents } = require('src/popup/popup-ui-components')
       const uiComponents = new PopupUIComponents(document)
 
       const statusDot = document.getElementById('statusDot')
@@ -172,7 +172,7 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
 
   describe('🔴 Red Phase: 進度條組件測試', () => {
     test('應該能顯示和隱藏進度容器', () => {
-      const { PopupUIComponents } = require('../../../src/popup/popup-ui-components')
+      const { PopupUIComponents } = require('src/popup/popup-ui-components')
       const uiComponents = new PopupUIComponents(document)
 
       expect(typeof uiComponents.showProgress).toBe('function')
@@ -190,7 +190,7 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
     })
 
     test('應該能更新進度百分比和進度條', () => {
-      const { PopupUIComponents } = require('../../../src/popup/popup-ui-components')
+      const { PopupUIComponents } = require('src/popup/popup-ui-components')
       const uiComponents = new PopupUIComponents(document)
 
       expect(typeof uiComponents.updateProgress).toBe('function')
@@ -208,7 +208,7 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
     })
 
     test('應該能處理進度邊界值', () => {
-      const { PopupUIComponents } = require('../../../src/popup/popup-ui-components')
+      const { PopupUIComponents } = require('src/popup/popup-ui-components')
       const uiComponents = new PopupUIComponents(document)
 
       const progressFill = document.querySelector('.progress-fill')
@@ -230,7 +230,7 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
     })
 
     test('應該支援進度動畫效果', () => {
-      const { PopupUIComponents } = require('../../../src/popup/popup-ui-components')
+      const { PopupUIComponents } = require('src/popup/popup-ui-components')
       const uiComponents = new PopupUIComponents(document)
 
       const progressFill = document.querySelector('.progress-fill')
@@ -246,7 +246,7 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
 
   describe('🔴 Red Phase: 結果展示組件測試', () => {
     test('應該能顯示提取結果', () => {
-      const { PopupUIComponents } = require('../../../src/popup/popup-ui-components')
+      const { PopupUIComponents } = require('src/popup/popup-ui-components')
       const uiComponents = new PopupUIComponents(document)
 
       expect(typeof uiComponents.showResults).toBe('function')
@@ -272,7 +272,7 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
     })
 
     test('應該能啟用結果操作按鈕', () => {
-      const { PopupUIComponents } = require('../../../src/popup/popup-ui-components')
+      const { PopupUIComponents } = require('src/popup/popup-ui-components')
       const uiComponents = new PopupUIComponents(document)
 
       const resultData = {
@@ -291,7 +291,7 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
     })
 
     test('應該能隱藏結果容器', () => {
-      const { PopupUIComponents } = require('../../../src/popup/popup-ui-components')
+      const { PopupUIComponents } = require('src/popup/popup-ui-components')
       const uiComponents = new PopupUIComponents(document)
 
       expect(typeof uiComponents.hideResults).toBe('function')
@@ -305,7 +305,7 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
 
   describe('🔴 Red Phase: 錯誤顯示組件測試', () => {
     test('應該能顯示錯誤訊息', () => {
-      const { PopupUIComponents } = require('../../../src/popup/popup-ui-components')
+      const { PopupUIComponents } = require('src/popup/popup-ui-components')
       const uiComponents = new PopupUIComponents(document)
 
       expect(typeof uiComponents.showError).toBe('function')
@@ -321,7 +321,7 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
     })
 
     test('應該能隱藏錯誤容器', () => {
-      const { PopupUIComponents } = require('../../../src/popup/popup-ui-components')
+      const { PopupUIComponents } = require('src/popup/popup-ui-components')
       const uiComponents = new PopupUIComponents(document)
 
       expect(typeof uiComponents.hideError).toBe('function')
@@ -333,7 +333,7 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
     })
 
     test('應該能設定錯誤操作按鈕的事件處理', () => {
-      const { PopupUIComponents } = require('../../../src/popup/popup-ui-components')
+      const { PopupUIComponents } = require('src/popup/popup-ui-components')
       const uiComponents = new PopupUIComponents(document)
 
       const retryCallback = jest.fn()
@@ -357,7 +357,7 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
 
   describe('🔴 Red Phase: UI 互動組件測試', () => {
     test('應該支援組件狀態重置', () => {
-      const { PopupUIComponents } = require('../../../src/popup/popup-ui-components')
+      const { PopupUIComponents } = require('src/popup/popup-ui-components')
       const uiComponents = new PopupUIComponents(document)
 
       expect(typeof uiComponents.resetAll).toBe('function')
@@ -383,7 +383,7 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
     })
 
     test('應該支援批量狀態更新', () => {
-      const { PopupUIComponents } = require('../../../src/popup/popup-ui-components')
+      const { PopupUIComponents } = require('src/popup/popup-ui-components')
       const uiComponents = new PopupUIComponents(document)
 
       expect(typeof uiComponents.updateUI).toBe('function')
@@ -422,7 +422,7 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
     })
 
     test('應該支援無障礙功能', () => {
-      const { PopupUIComponents } = require('../../../src/popup/popup-ui-components')
+      const { PopupUIComponents } = require('src/popup/popup-ui-components')
       const uiComponents = new PopupUIComponents(document)
 
       expect(typeof uiComponents.setAccessibilityLabels).toBe('function')

@@ -18,7 +18,7 @@ describe('DOMUtils - TDD Red 階段測試', () => {
 
   beforeAll(() => {
     // 測試執行前載入模組
-    DOMUtils = require('../../../../src/content/utils/dom-utils.js')
+    DOMUtils = require('src/content/utils/dom-utils.js')
   })
 
   beforeEach(() => {

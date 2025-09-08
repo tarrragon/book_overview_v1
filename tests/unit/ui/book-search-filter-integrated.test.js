@@ -180,7 +180,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     ]
 
     // 創建整合版本實例
-    const BookSearchFilterIntegrated = require('../../../src/ui/book-search-filter-integrated')
+    const BookSearchFilterIntegrated = require('src/ui/book-search-filter-integrated')
     bookSearchFilter = new BookSearchFilterIntegrated(eventBus, document)
 
     // 設定測試資料

@@ -70,7 +70,7 @@ describe('LocalStorageAdapter', () => {
 
   describe('🔴 TDD Red Phase - 建構和基本功能', () => {
     test('應該能夠建構 LocalStorageAdapter 實例', () => {
-      const LocalStorageAdapter = require('../../../../src/storage/adapters/local-storage-adapter')
+      const LocalStorageAdapter = require('src/storage/adapters/local-storage-adapter')
       adapter = new LocalStorageAdapter()
 
       expect(adapter).toBeDefined()
@@ -79,7 +79,7 @@ describe('LocalStorageAdapter', () => {
     })
 
     test('應該正確檢測 localStorage API 可用性', () => {
-      const LocalStorageAdapter = require('../../../../src/storage/adapters/local-storage-adapter')
+      const LocalStorageAdapter = require('src/storage/adapters/local-storage-adapter')
       adapter = new LocalStorageAdapter()
 
       expect(adapter.isAvailable()).toBe(true)
@@ -88,14 +88,14 @@ describe('LocalStorageAdapter', () => {
     test('應該在 localStorage 不可用時回傳 false', () => {
       delete global.localStorage
 
-      const LocalStorageAdapter = require('../../../../src/storage/adapters/local-storage-adapter')
+      const LocalStorageAdapter = require('src/storage/adapters/local-storage-adapter')
       adapter = new LocalStorageAdapter()
 
       expect(adapter.isAvailable()).toBe(false)
     })
 
     test('應該初始化統計和配置', () => {
-      const LocalStorageAdapter = require('../../../../src/storage/adapters/local-storage-adapter')
+      const LocalStorageAdapter = require('src/storage/adapters/local-storage-adapter')
       adapter = new LocalStorageAdapter()
 
       expect(adapter.stats).toBeDefined()
@@ -108,7 +108,7 @@ describe('LocalStorageAdapter', () => {
     let LocalStorageAdapter
 
     beforeEach(() => {
-      LocalStorageAdapter = require('../../../../src/storage/adapters/local-storage-adapter')
+      LocalStorageAdapter = require('src/storage/adapters/local-storage-adapter')
       adapter = new LocalStorageAdapter()
     })
 
@@ -165,7 +165,7 @@ describe('LocalStorageAdapter', () => {
     let LocalStorageAdapter
 
     beforeEach(() => {
-      LocalStorageAdapter = require('../../../../src/storage/adapters/local-storage-adapter')
+      LocalStorageAdapter = require('src/storage/adapters/local-storage-adapter')
       adapter = new LocalStorageAdapter()
     })
 
@@ -225,7 +225,7 @@ describe('LocalStorageAdapter', () => {
     let LocalStorageAdapter
 
     beforeEach(() => {
-      LocalStorageAdapter = require('../../../../src/storage/adapters/local-storage-adapter')
+      LocalStorageAdapter = require('src/storage/adapters/local-storage-adapter')
       adapter = new LocalStorageAdapter()
     })
 
@@ -291,7 +291,7 @@ describe('LocalStorageAdapter', () => {
     let LocalStorageAdapter
 
     beforeEach(() => {
-      LocalStorageAdapter = require('../../../../src/storage/adapters/local-storage-adapter')
+      LocalStorageAdapter = require('src/storage/adapters/local-storage-adapter')
       adapter = new LocalStorageAdapter()
     })
 

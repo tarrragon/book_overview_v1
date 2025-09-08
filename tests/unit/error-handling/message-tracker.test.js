@@ -9,7 +9,7 @@
  * 4. 記憶體管理和清理機制
  */
 
-const EventHandler = require('../../../src/core/event-handler')
+const EventHandler = require('src/core/event-handler')
 
 describe('MessageTracker - TDD 循環 #33', () => {
   let mockEventBus
@@ -49,7 +49,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
 
   describe('🔧 基本結構和初始化', () => {
     test('應該能夠創建 MessageTracker 實例', () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
 
       expect(() => {
         new MessageTracker(mockEventBus)
@@ -57,7 +57,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
 
     test('應該繼承 EventHandler 基底類別', () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus)
 
       expect(tracker).toBeInstanceOf(EventHandler)
@@ -66,7 +66,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
 
     test('應該正確設定支援的事件類型', () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus)
 
       expect(tracker.supportedEvents).toContain('MESSAGE.SENT')
@@ -76,7 +76,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
 
     test('應該初始化追蹤狀態和資料結構', () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus)
 
       expect(tracker.trackingEnabled).toBe(true)
@@ -88,7 +88,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
 
     test('應該設置 Console 診斷介面', () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       new MessageTracker(mockEventBus)
 
       expect(mockWindow.MessageDiagnostic).toBeDefined()
@@ -101,7 +101,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
 
   describe('📨 訊息追蹤核心功能', () => {
     test('應該處理 MESSAGE.SENT 事件', async () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus)
 
       const sentEvent = {
@@ -131,7 +131,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
 
     test('應該處理 MESSAGE.RECEIVED 事件', async () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus)
 
       // 先發送訊息
@@ -165,7 +165,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
 
     test('應該處理 MESSAGE.PROCESSED 事件', async () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus)
 
       // 先發送和接收訊息
@@ -204,7 +204,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
 
     test('應該處理 MESSAGE.FAILED 事件', async () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus)
 
       // 先發送訊息
@@ -231,7 +231,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
 
     test('應該自動生成訊息 ID', async () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus)
 
       const sentEvent = {
@@ -252,7 +252,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
 
   describe('🖥️ Console 診斷介面', () => {
     test('status() 應該返回追蹤狀態', () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus)
 
       const status = mockWindow.MessageDiagnostic.status()
@@ -265,7 +265,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
 
     test('messages() 應該返回最近的訊息記錄', async () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus)
 
       // 添加一些訊息記錄
@@ -287,7 +287,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
 
     test('clear() 應該清除追蹤記錄', async () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus)
 
       // 添加一些記錄
@@ -305,7 +305,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
 
     test('active() 應該返回活躍訊息', async () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus)
 
       // 添加活躍訊息
@@ -324,7 +324,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
 
   describe('📊 統計和記憶體管理', () => {
     test('應該正確計算處理時間', async () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus)
 
       const startTime = Date.now()
@@ -351,7 +351,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
 
     test('應該限制訊息記錄數量', async () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus, {
         maxMessageRecords: 3
       })
@@ -368,7 +368,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
 
     test('應該清理超時的活躍訊息', async () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus, {
         messageTimeoutMs: 100
       })
@@ -392,7 +392,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
 
     test('應該更新統計資訊', async () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus)
 
       // 發送訊息
@@ -416,7 +416,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
 
   describe('⚙️ 配置和控制', () => {
     test('應該能夠啟用/停用追蹤', async () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus)
 
       // 停用追蹤
@@ -433,7 +433,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
 
     test('應該能夠啟用/停用診斷模式', () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus)
 
       tracker.setDiagnosticMode(true)
@@ -445,7 +445,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
 
     test('應該處理不支援的事件類型', async () => {
-      const MessageTracker = require('../../../src/error-handling/message-tracker')
+      const MessageTracker = require('src/error-handling/message-tracker')
       const tracker = new MessageTracker(mockEventBus)
 
       const result = await tracker.handle({

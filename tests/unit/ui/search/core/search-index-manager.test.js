@@ -85,7 +85,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
   describe('1. Construction & Initialization', () => {
     test('應該正確建構 SearchIndexManager 實例', () => {
-      const SearchIndexManager = require('../../../../../src/ui/search/core/search-index-manager')
+      const SearchIndexManager = require('src/ui/search/core/search-index-manager')
 
       indexManager = new SearchIndexManager({
         eventBus: mockEventBus,
@@ -98,7 +98,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
     })
 
     test('應該初始化空的索引 Maps', () => {
-      const SearchIndexManager = require('../../../../../src/ui/search/core/search-index-manager')
+      const SearchIndexManager = require('src/ui/search/core/search-index-manager')
 
       indexManager = new SearchIndexManager({
         eventBus: mockEventBus,
@@ -114,7 +114,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
     })
 
     test('建構時若缺少必要參數應該拋出錯誤', () => {
-      const SearchIndexManager = require('../../../../../src/ui/search/core/search-index-manager')
+      const SearchIndexManager = require('src/ui/search/core/search-index-manager')
 
       expect(() => {
         new SearchIndexManager()
@@ -126,7 +126,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
     })
 
     test('應該正確初始化統計資料', () => {
-      const SearchIndexManager = require('../../../../../src/ui/search/core/search-index-manager')
+      const SearchIndexManager = require('src/ui/search/core/search-index-manager')
 
       indexManager = new SearchIndexManager({
         eventBus: mockEventBus,
@@ -147,7 +147,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
   describe('2. Index Building & Management', () => {
     beforeEach(() => {
-      const SearchIndexManager = require('../../../../../src/ui/search/core/search-index-manager')
+      const SearchIndexManager = require('src/ui/search/core/search-index-manager')
       indexManager = new SearchIndexManager({
         eventBus: mockEventBus,
         logger: mockLogger
@@ -263,7 +263,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
   describe('3. Index Updates & Rebuilding', () => {
     beforeEach(() => {
-      const SearchIndexManager = require('../../../../../src/ui/search/core/search-index-manager')
+      const SearchIndexManager = require('src/ui/search/core/search-index-manager')
       indexManager = new SearchIndexManager({
         eventBus: mockEventBus,
         logger: mockLogger
@@ -379,7 +379,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
   describe('4. Performance & Memory Management', () => {
     beforeEach(() => {
-      const SearchIndexManager = require('../../../../../src/ui/search/core/search-index-manager')
+      const SearchIndexManager = require('src/ui/search/core/search-index-manager')
       indexManager = new SearchIndexManager({
         eventBus: mockEventBus,
         logger: mockLogger
@@ -463,7 +463,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
   describe('5. Error Handling & Edge Cases', () => {
     beforeEach(() => {
-      const SearchIndexManager = require('../../../../../src/ui/search/core/search-index-manager')
+      const SearchIndexManager = require('src/ui/search/core/search-index-manager')
       indexManager = new SearchIndexManager({
         eventBus: mockEventBus,
         logger: mockLogger
@@ -576,7 +576,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
   describe('6. Integration & Event Handling', () => {
     beforeEach(() => {
-      const SearchIndexManager = require('../../../../../src/ui/search/core/search-index-manager')
+      const SearchIndexManager = require('src/ui/search/core/search-index-manager')
       indexManager = new SearchIndexManager({
         eventBus: mockEventBus,
         logger: mockLogger

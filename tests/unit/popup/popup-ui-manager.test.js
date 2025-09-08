@@ -115,7 +115,7 @@ describe('🎨 PopupUIManager Refactor Tests (TDD循環 #36)', () => {
     document.getElementById('loading-overlay')?.classList.add('hidden')
 
     // Green Phase - PopupUIManager 已實現
-    PopupUIManager = require('../../../src/popup/popup-ui-manager')
+    PopupUIManager = require('src/popup/popup-ui-manager')
     uiManager = new PopupUIManager(document)
   })
 

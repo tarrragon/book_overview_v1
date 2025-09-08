@@ -24,8 +24,8 @@
  * @since 2025-08-09
  */
 
-const EventBus = require('../../../src/core/event-bus')
-const { EXPORT_EVENTS } = require('../../../src/export/export-events')
+const EventBus = require('src/core/event-bus')
+const { EXPORT_EVENTS } = require('src/export/export-events')
 
 // 模擬 Chrome APIs
 global.chrome = {

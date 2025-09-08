@@ -65,8 +65,8 @@ describe('PopupController 進度管理整合測試', () => {
     global.document = document
 
     // 載入相關模組
-    PopupController = require('../../../src/popup/popup-controller.js')
-    PopupProgressManager = require('../../../src/popup/components/popup-progress-manager.js')
+    PopupController = require('src/popup/popup-controller.js')
+    PopupProgressManager = require('src/popup/components/popup-progress-manager.js')
   })
 
   afterEach(() => {

@@ -4,7 +4,7 @@
  * @since 2025-08-15
  */
 
-const DataDomainCoordinator = require('../../../../../src/background/domains/data-management/data-domain-coordinator.js')
+const DataDomainCoordinator = require('src/background/domains/data-management/data-domain-coordinator.js')
 
 // Mock EventBus
 class MockEventBus {

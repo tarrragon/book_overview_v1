@@ -29,7 +29,7 @@ describe('PerformanceUtils', () => {
       }
     }
 
-    PerformanceUtils = require('../../../../src/content/utils/performance-utils')
+    PerformanceUtils = require('src/content/utils/performance-utils')
   })
 
   describe('計時器功能', () => {

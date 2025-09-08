@@ -73,7 +73,6 @@ const log = {
 
   debug: (key, params = {}) => {
     const message = formatMessage(key, params)
-    console.log(`[DEBUG] ${message}`)
   }
 }
 

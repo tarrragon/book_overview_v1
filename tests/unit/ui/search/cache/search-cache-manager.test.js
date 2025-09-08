@@ -75,7 +75,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
   describe('1. Construction & Initialization', () => {
     test('應該正確建構 SearchCacheManager 實例', () => {
-      const SearchCacheManager = require('../../../../../src/ui/search/cache/search-cache-manager')
+      const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
 
       cacheManager = new SearchCacheManager({
         eventBus: mockEventBus,
@@ -88,7 +88,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('建構時若缺少必要參數應該拋出錯誤', () => {
-      const SearchCacheManager = require('../../../../../src/ui/search/cache/search-cache-manager')
+      const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
 
       expect(() => {
         new SearchCacheManager() // eslint-disable-line no-new
@@ -104,7 +104,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該正確初始化快取配置', () => {
-      const SearchCacheManager = require('../../../../../src/ui/search/cache/search-cache-manager')
+      const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
 
       cacheManager = new SearchCacheManager({
         eventBus: mockEventBus,
@@ -121,7 +121,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該正確初始化快取統計', () => {
-      const SearchCacheManager = require('../../../../../src/ui/search/cache/search-cache-manager')
+      const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
 
       cacheManager = new SearchCacheManager({
         eventBus: mockEventBus,
@@ -141,7 +141,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該支援自定義配置', () => {
-      const SearchCacheManager = require('../../../../../src/ui/search/cache/search-cache-manager')
+      const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
 
       const customConfig = {
         maxCacheSize: 50,
@@ -165,7 +165,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
   describe('2. Basic Cache Operations', () => {
     beforeEach(() => {
-      const SearchCacheManager = require('../../../../../src/ui/search/cache/search-cache-manager')
+      const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
       cacheManager = new SearchCacheManager({
         eventBus: mockEventBus,
         logger: mockLogger
@@ -243,7 +243,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
   describe('3. LRU Cache Strategy', () => {
     beforeEach(() => {
-      const SearchCacheManager = require('../../../../../src/ui/search/cache/search-cache-manager')
+      const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
       cacheManager = new SearchCacheManager({
         eventBus: mockEventBus,
         logger: mockLogger,
@@ -311,7 +311,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
   describe('4. Cache Size Management', () => {
     beforeEach(() => {
-      const SearchCacheManager = require('../../../../../src/ui/search/cache/search-cache-manager')
+      const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
       cacheManager = new SearchCacheManager({
         eventBus: mockEventBus,
         logger: mockLogger,
@@ -383,7 +383,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
   describe('5. Statistics & Performance Monitoring', () => {
     beforeEach(() => {
-      const SearchCacheManager = require('../../../../../src/ui/search/cache/search-cache-manager')
+      const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
       cacheManager = new SearchCacheManager({
         eventBus: mockEventBus,
         logger: mockLogger
@@ -447,7 +447,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
   describe('6. Key Normalization', () => {
     beforeEach(() => {
-      const SearchCacheManager = require('../../../../../src/ui/search/cache/search-cache-manager')
+      const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
       cacheManager = new SearchCacheManager({
         eventBus: mockEventBus,
         logger: mockLogger
@@ -482,7 +482,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該能夠禁用鍵正規化', () => {
-      const cacheManagerNoNorm = new (require('../../../../../src/ui/search/cache/search-cache-manager'))({
+      const cacheManagerNoNorm = new (require('src/ui/search/cache/search-cache-manager'))({
         eventBus: mockEventBus,
         logger: mockLogger,
         config: { keyNormalization: false }
@@ -501,7 +501,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
   describe('7. Error Handling & Edge Cases', () => {
     beforeEach(() => {
-      const SearchCacheManager = require('../../../../../src/ui/search/cache/search-cache-manager')
+      const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
       cacheManager = new SearchCacheManager({
         eventBus: mockEventBus,
         logger: mockLogger
@@ -599,7 +599,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
   describe('8. Event System Integration', () => {
     beforeEach(() => {
-      const SearchCacheManager = require('../../../../../src/ui/search/cache/search-cache-manager')
+      const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
       cacheManager = new SearchCacheManager({
         eventBus: mockEventBus,
         logger: mockLogger
@@ -648,7 +648,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     test('快取清理時應該發送事件', () => {
       // 填充快取到觸發清理
       const config = { maxCacheSize: 2, cleanupThreshold: 0.5 }
-      const customCacheManager = new (require('../../../../../src/ui/search/cache/search-cache-manager'))({
+      const customCacheManager = new (require('src/ui/search/cache/search-cache-manager'))({
         eventBus: mockEventBus,
         logger: mockLogger,
         config
@@ -687,7 +687,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該能夠禁用事件發送', () => {
-      const cacheManagerNoEvents = new (require('../../../../../src/ui/search/cache/search-cache-manager'))({
+      const cacheManagerNoEvents = new (require('src/ui/search/cache/search-cache-manager'))({
         eventBus: mockEventBus,
         logger: mockLogger,
         config: { enableEvents: false }

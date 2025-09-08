@@ -3,7 +3,7 @@
  * 測試 UI 事件驗證工具類的功能
  */
 
-const UIEventValidator = require('../../../src/ui/handlers/ui-event-validator')
+const UIEventValidator = require('src/ui/handlers/ui-event-validator')
 
 describe('UIEventValidator', () => {
   describe('事件結構驗證', () => {

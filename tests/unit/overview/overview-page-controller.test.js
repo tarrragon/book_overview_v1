@@ -133,7 +133,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     }
 
     // 載入 EventHandler 並設置到 window
-    const EventHandler = require('../../../src/core/event-handler')
+    const EventHandler = require('src/core/event-handler')
     window.EventHandler = EventHandler
 
     // Mock Chrome APIs for Promise-based usage
@@ -173,14 +173,14 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     test('應該能創建 OverviewPageController 實例', () => {
       // 這個測試應該失敗，因為 OverviewPageController 類別還不存在
       expect(() => {
-        const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+        const { OverviewPageController } = require('src/overview/overview-page-controller')
         const controller = new OverviewPageController(mockEventBus, document)
         expect(controller).toBeInstanceOf(OverviewPageController)
       }).not.toThrow()
     })
 
     test('應該能正確初始化 DOM 元素引用', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       // 檢查關鍵 DOM 元素是否正確引用
@@ -192,7 +192,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
 
     test('應該能與事件系統正確整合', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       // 檢查是否正確設置事件監聽器
@@ -202,7 +202,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
 
     test('應該能正確設置初始狀態', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       // 檢查初始狀態設置
@@ -215,7 +215,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
   describe('🔴 Red Phase: 資料載入和顯示功能', () => {
     test('應該能處理 STORAGE.LOAD.COMPLETED 事件', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.handleStorageLoadCompleted).toBe('function')
@@ -233,7 +233,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
 
     test('應該能更新統計資訊顯示', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       const mockBooks = [
@@ -254,7 +254,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
 
     test('應該能渲染書籍表格', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       const mockBooks = [
@@ -287,7 +287,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
 
     test('應該能處理空資料狀態', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       controller.renderBooksTable([])
@@ -300,7 +300,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
   describe('🔴 Red Phase: 搜尋和篩選功能', () => {
     test('應該能處理搜尋輸入', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.handleSearchInput).toBe('function')
@@ -319,7 +319,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
 
     test('應該能處理搜尋結果為空的情況', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       const mockBooks = [
@@ -334,7 +334,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
 
     test('應該能清除搜尋條件', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       const mockBooks = [
@@ -351,7 +351,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
   describe('🔴 Red Phase: 載入狀態和錯誤處理', () => {
     test('應該能顯示載入狀態', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.showLoading).toBe('function')
@@ -367,7 +367,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
 
     test('應該能隱藏載入狀態', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       controller.hideLoading()
@@ -377,7 +377,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
 
     test('應該能顯示錯誤訊息', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.showError).toBe('function')
@@ -393,7 +393,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
 
     test('應該能隱藏錯誤訊息', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.hideError).toBe('function')
@@ -407,7 +407,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
   describe('🔴 Red Phase: 使用者操作處理', () => {
     test('應該能處理匯出 CSV 操作', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.handleExportCSV).toBe('function')
@@ -431,7 +431,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
 
     test('應該能處理重新載入操作', async () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.handleReload).toBe('function')
@@ -443,7 +443,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
 
     test('應該能處理檔案載入操作', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.handleFileLoad).toBe('function')
@@ -466,8 +466,8 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
   describe('🔴 Red Phase: EventHandler 基底類別整合', () => {
     test('應該正確繼承 EventHandler', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
-      const EventHandler = require('../../../src/core/event-handler')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const EventHandler = require('src/core/event-handler')
 
       const controller = new OverviewPageController(mockEventBus, document)
 
@@ -479,7 +479,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
 
     test('應該正確實現 EventHandler 抽象方法', () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.getSupportedEvents).toBe('function')
@@ -488,7 +488,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
 
     test('應該能追蹤執行統計', async () => {
-      const { OverviewPageController } = require('../../../src/overview/overview-page-controller')
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
       const initialStats = controller.getStats()

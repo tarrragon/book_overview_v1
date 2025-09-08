@@ -26,7 +26,7 @@
  * @since 2025-08-08
  */
 
-const EventBus = require('../../../src/core/event-bus')
+const EventBus = require('src/core/event-bus')
 
 // Mock EventHandler 基底類別
 jest.mock('../../../src/core/event-handler', () => {
@@ -174,7 +174,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
 
     test('應該能建立 CSVExportHandler 實例', () => {
       expect(() => {
-        const CSVExportHandler = require('../../../src/export/handlers/csv-export-handler')
+        const CSVExportHandler = require('src/export/handlers/csv-export-handler')
         csvHandler = new CSVExportHandler()
       }).not.toThrow()
 
@@ -183,8 +183,8 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('CSVExportHandler 應該繼承自 EventHandler', () => {
-      const CSVExportHandler = require('../../../src/export/handlers/csv-export-handler')
-      const EventHandler = require('../../../src/core/event-handler')
+      const CSVExportHandler = require('src/export/handlers/csv-export-handler')
+      const EventHandler = require('src/core/event-handler')
 
       csvHandler = new CSVExportHandler()
 
@@ -192,7 +192,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('CSVExportHandler 應該支援正確的事件類型', () => {
-      const CSVExportHandler = require('../../../src/export/handlers/csv-export-handler')
+      const CSVExportHandler = require('src/export/handlers/csv-export-handler')
       csvHandler = new CSVExportHandler()
 
       const supportedEvents = csvHandler.getSupportedEvents()
@@ -202,7 +202,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('CSVExportHandler 應該能處理 CSV 匯出請求', async () => {
-      const CSVExportHandler = require('../../../src/export/handlers/csv-export-handler')
+      const CSVExportHandler = require('src/export/handlers/csv-export-handler')
       csvHandler = new CSVExportHandler()
 
       const eventData = {
@@ -219,8 +219,8 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('CSVExportHandler 處理失敗時應該正確處理錯誤', async () => {
-      const CSVExportHandler = require('../../../src/export/handlers/csv-export-handler')
-      const BookDataExporter = require('../../../src/export/book-data-exporter')
+      const CSVExportHandler = require('src/export/handlers/csv-export-handler')
+      const BookDataExporter = require('src/export/book-data-exporter')
 
       // 模擬匯出失敗
       BookDataExporter.mockImplementation(() => ({
@@ -241,7 +241,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('CSVExportHandler 應該支援進度回調', async () => {
-      const CSVExportHandler = require('../../../src/export/handlers/csv-export-handler')
+      const CSVExportHandler = require('src/export/handlers/csv-export-handler')
       csvHandler = new CSVExportHandler()
 
       const progressSpy = jest.fn()
@@ -263,7 +263,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
 
     test('應該能建立 JSONExportHandler 實例', () => {
       expect(() => {
-        const JSONExportHandler = require('../../../src/export/handlers/json-export-handler')
+        const JSONExportHandler = require('src/export/handlers/json-export-handler')
         jsonHandler = new JSONExportHandler()
       }).not.toThrow()
 
@@ -272,7 +272,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('JSONExportHandler 應該支援正確的事件類型', () => {
-      const JSONExportHandler = require('../../../src/export/handlers/json-export-handler')
+      const JSONExportHandler = require('src/export/handlers/json-export-handler')
       jsonHandler = new JSONExportHandler()
 
       const supportedEvents = jsonHandler.getSupportedEvents()
@@ -281,7 +281,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('JSONExportHandler 應該能處理 JSON 匯出請求', async () => {
-      const JSONExportHandler = require('../../../src/export/handlers/json-export-handler')
+      const JSONExportHandler = require('src/export/handlers/json-export-handler')
       jsonHandler = new JSONExportHandler()
 
       const eventData = {
@@ -302,8 +302,8 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('JSONExportHandler 應該正確傳遞匯出選項', async () => {
-      const JSONExportHandler = require('../../../src/export/handlers/json-export-handler')
-      const BookDataExporter = require('../../../src/export/book-data-exporter')
+      const JSONExportHandler = require('src/export/handlers/json-export-handler')
+      const BookDataExporter = require('src/export/book-data-exporter')
 
       jsonHandler = new JSONExportHandler()
       const mockInstance = new BookDataExporter()
@@ -323,7 +323,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('JSONExportHandler 應該處理大型資料集', async () => {
-      const JSONExportHandler = require('../../../src/export/handlers/json-export-handler')
+      const JSONExportHandler = require('src/export/handlers/json-export-handler')
       jsonHandler = new JSONExportHandler()
 
       const largeBooks = Array.from({ length: 10000 }, (_, i) => ({
@@ -349,7 +349,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
 
     test('應該能建立 ExcelExportHandler 實例', () => {
       expect(() => {
-        const ExcelExportHandler = require('../../../src/export/handlers/excel-export-handler')
+        const ExcelExportHandler = require('src/export/handlers/excel-export-handler')
         excelHandler = new ExcelExportHandler()
       }).not.toThrow()
 
@@ -358,7 +358,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('ExcelExportHandler 應該支援正確的事件類型', () => {
-      const ExcelExportHandler = require('../../../src/export/handlers/excel-export-handler')
+      const ExcelExportHandler = require('src/export/handlers/excel-export-handler')
       excelHandler = new ExcelExportHandler()
 
       const supportedEvents = excelHandler.getSupportedEvents()
@@ -367,7 +367,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('ExcelExportHandler 應該能處理 Excel 匯出請求', async () => {
-      const ExcelExportHandler = require('../../../src/export/handlers/excel-export-handler')
+      const ExcelExportHandler = require('src/export/handlers/excel-export-handler')
       excelHandler = new ExcelExportHandler()
 
       const eventData = {
@@ -388,7 +388,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('ExcelExportHandler 應該支援多工作表匯出', async () => {
-      const ExcelExportHandler = require('../../../src/export/handlers/excel-export-handler')
+      const ExcelExportHandler = require('src/export/handlers/excel-export-handler')
       excelHandler = new ExcelExportHandler()
 
       const eventData = {
@@ -415,7 +415,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('ExcelExportHandler 應該處理空資料情況', async () => {
-      const ExcelExportHandler = require('../../../src/export/handlers/excel-export-handler')
+      const ExcelExportHandler = require('src/export/handlers/excel-export-handler')
       excelHandler = new ExcelExportHandler()
 
       const eventData = {
@@ -435,7 +435,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
 
     test('應該能建立 ProgressHandler 實例', () => {
       expect(() => {
-        const ProgressHandler = require('../../../src/export/handlers/progress-handler')
+        const ProgressHandler = require('src/export/handlers/progress-handler')
         progressHandler = new ProgressHandler()
       }).not.toThrow()
 
@@ -444,7 +444,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('ProgressHandler 應該支援進度事件', () => {
-      const ProgressHandler = require('../../../src/export/handlers/progress-handler')
+      const ProgressHandler = require('src/export/handlers/progress-handler')
       progressHandler = new ProgressHandler()
 
       const supportedEvents = progressHandler.getSupportedEvents()
@@ -453,7 +453,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('ProgressHandler 應該能處理進度更新', async () => {
-      const ProgressHandler = require('../../../src/export/handlers/progress-handler')
+      const ProgressHandler = require('src/export/handlers/progress-handler')
       progressHandler = new ProgressHandler()
 
       const progressData = {
@@ -474,7 +474,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('ProgressHandler 應該計算正確的百分比', async () => {
-      const ProgressHandler = require('../../../src/export/handlers/progress-handler')
+      const ProgressHandler = require('src/export/handlers/progress-handler')
       progressHandler = new ProgressHandler()
 
       const testCases = [
@@ -496,7 +496,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('ProgressHandler 應該處理無效進度資料', async () => {
-      const ProgressHandler = require('../../../src/export/handlers/progress-handler')
+      const ProgressHandler = require('src/export/handlers/progress-handler')
       progressHandler = new ProgressHandler()
 
       const invalidProgressData = {
@@ -509,7 +509,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('ProgressHandler 應該支援進度回調函數', async () => {
-      const ProgressHandler = require('../../../src/export/handlers/progress-handler')
+      const ProgressHandler = require('src/export/handlers/progress-handler')
       progressHandler = new ProgressHandler()
 
       const progressCallback = jest.fn()
@@ -532,7 +532,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
 
     test('應該能建立 ErrorHandler 實例', () => {
       expect(() => {
-        const ErrorHandler = require('../../../src/export/handlers/error-handler')
+        const ErrorHandler = require('src/export/handlers/error-handler')
         errorHandler = new ErrorHandler()
       }).not.toThrow()
 
@@ -541,7 +541,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('ErrorHandler 應該支援錯誤事件', () => {
-      const ErrorHandler = require('../../../src/export/handlers/error-handler')
+      const ErrorHandler = require('src/export/handlers/error-handler')
       errorHandler = new ErrorHandler()
 
       const supportedEvents = errorHandler.getSupportedEvents()
@@ -553,7 +553,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('ErrorHandler 應該能處理一般匯出錯誤', async () => {
-      const ErrorHandler = require('../../../src/export/handlers/error-handler')
+      const ErrorHandler = require('src/export/handlers/error-handler')
       errorHandler = new ErrorHandler()
 
       const errorData = {
@@ -573,7 +573,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('ErrorHandler 應該記錄錯誤資訊', async () => {
-      const ErrorHandler = require('../../../src/export/handlers/error-handler')
+      const ErrorHandler = require('src/export/handlers/error-handler')
       errorHandler = new ErrorHandler()
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
@@ -592,7 +592,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('ErrorHandler 應該支援錯誤分類處理', async () => {
-      const ErrorHandler = require('../../../src/export/handlers/error-handler')
+      const ErrorHandler = require('src/export/handlers/error-handler')
       errorHandler = new ErrorHandler()
 
       const networkError = {
@@ -617,7 +617,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('ErrorHandler 應該支援錯誤恢復策略', async () => {
-      const ErrorHandler = require('../../../src/export/handlers/error-handler')
+      const ErrorHandler = require('src/export/handlers/error-handler')
       errorHandler = new ErrorHandler()
 
       const recoverableError = {
@@ -641,7 +641,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
 
     test('應該能建立 HandlerRegistry 實例', () => {
       expect(() => {
-        const HandlerRegistry = require('../../../src/export/handlers/handler-registry')
+        const HandlerRegistry = require('src/export/handlers/handler-registry')
         handlerRegistry = new HandlerRegistry(eventBus)
       }).not.toThrow()
 
@@ -649,8 +649,8 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('HandlerRegistry 應該能註冊匯出處理器', () => {
-      const HandlerRegistry = require('../../../src/export/handlers/handler-registry')
-      const CSVExportHandler = require('../../../src/export/handlers/csv-export-handler')
+      const HandlerRegistry = require('src/export/handlers/handler-registry')
+      const CSVExportHandler = require('src/export/handlers/csv-export-handler')
 
       handlerRegistry = new HandlerRegistry(eventBus)
       const csvHandler = new CSVExportHandler()
@@ -662,8 +662,8 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('HandlerRegistry 應該能移除處理器', () => {
-      const HandlerRegistry = require('../../../src/export/handlers/handler-registry')
-      const CSVExportHandler = require('../../../src/export/handlers/csv-export-handler')
+      const HandlerRegistry = require('src/export/handlers/handler-registry')
+      const CSVExportHandler = require('src/export/handlers/csv-export-handler')
 
       handlerRegistry = new HandlerRegistry(eventBus)
       const csvHandler = new CSVExportHandler()
@@ -676,7 +676,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('HandlerRegistry 應該自動註冊預設處理器', () => {
-      const HandlerRegistry = require('../../../src/export/handlers/handler-registry')
+      const HandlerRegistry = require('src/export/handlers/handler-registry')
       handlerRegistry = new HandlerRegistry(eventBus)
 
       handlerRegistry.registerDefaultHandlers()
@@ -689,7 +689,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('HandlerRegistry 應該能列出所有已註冊的處理器', () => {
-      const HandlerRegistry = require('../../../src/export/handlers/handler-registry')
+      const HandlerRegistry = require('src/export/handlers/handler-registry')
       handlerRegistry = new HandlerRegistry(eventBus)
 
       handlerRegistry.registerDefaultHandlers()
@@ -702,7 +702,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     })
 
     test('HandlerRegistry 應該能根據事件類型找到合適的處理器', () => {
-      const HandlerRegistry = require('../../../src/export/handlers/handler-registry')
+      const HandlerRegistry = require('src/export/handlers/handler-registry')
       handlerRegistry = new HandlerRegistry(eventBus)
 
       handlerRegistry.registerDefaultHandlers()
@@ -720,7 +720,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     let handlerRegistry
 
     beforeEach(() => {
-      const HandlerRegistry = require('../../../src/export/handlers/handler-registry')
+      const HandlerRegistry = require('src/export/handlers/handler-registry')
       handlerRegistry = new HandlerRegistry(eventBus)
       handlerRegistry.registerDefaultHandlers()
     })
@@ -766,7 +766,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
        * - 測試 ErrorHandler 時必須提供 exportId 字段
        * - 避免在錯誤處理流程中使用 .on() 持續監聽
        */
-      const BookDataExporter = require('../../../src/export/book-data-exporter')
+      const BookDataExporter = require('src/export/book-data-exporter')
 
       // 模擬匯出失敗
       BookDataExporter.mockImplementation(() => ({
@@ -858,7 +858,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
     let handlerRegistry
 
     beforeEach(() => {
-      const HandlerRegistry = require('../../../src/export/handlers/handler-registry')
+      const HandlerRegistry = require('src/export/handlers/handler-registry')
       handlerRegistry = new HandlerRegistry(eventBus)
       handlerRegistry.registerDefaultHandlers()
     })

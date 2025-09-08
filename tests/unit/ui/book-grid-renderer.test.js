@@ -125,13 +125,13 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
   describe('🏗 基本結構和初始化', () => {
     test('應該能夠創建 BookGridRenderer 實例', () => {
       expect(() => {
-        const BookGridRenderer = require('../../../src/ui/book-grid-renderer')
+        const BookGridRenderer = require('src/ui/book-grid-renderer')
         renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
       }).not.toThrow()
     })
 
     test('應該支援 document 依賴注入', () => {
-      const BookGridRenderer = require('../../../src/ui/book-grid-renderer')
+      const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
 
       // 驗證注入的 document 被正確設置
@@ -139,7 +139,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該在沒有注入 document 時使用全域 document', () => {
-      const BookGridRenderer = require('../../../src/ui/book-grid-renderer')
+      const BookGridRenderer = require('src/ui/book-grid-renderer')
       const originalDocument = global.document
 
       // 模擬瀏覽器環境
@@ -158,7 +158,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該正確初始化基本屬性', () => {
-      const BookGridRenderer = require('../../../src/ui/book-grid-renderer')
+      const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
 
       expect(renderer.container).toBe(mockContainer)
@@ -168,7 +168,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該初始化預設配置', () => {
-      const BookGridRenderer = require('../../../src/ui/book-grid-renderer')
+      const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
 
       expect(renderer.config).toBeDefined()
@@ -179,7 +179,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該註冊事件監聽器', () => {
-      const BookGridRenderer = require('../../../src/ui/book-grid-renderer')
+      const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
 
       expect(mockEventBus.on).toHaveBeenCalledWith('UI.BOOKS.UPDATE', expect.any(Function))
@@ -187,7 +187,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該初始化統計追蹤', () => {
-      const BookGridRenderer = require('../../../src/ui/book-grid-renderer')
+      const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
 
       expect(renderer.stats).toBeDefined()
@@ -199,7 +199,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
   describe('📐 網格計算和佈局', () => {
     beforeEach(() => {
-      const BookGridRenderer = require('../../../src/ui/book-grid-renderer')
+      const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
     })
 
@@ -243,7 +243,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
   describe('🖼 書籍卡片渲染', () => {
     beforeEach(() => {
-      const BookGridRenderer = require('../../../src/ui/book-grid-renderer')
+      const BookGridRenderer = require('src/ui/book-grid-renderer')
       // 使用依賴注入來支援測試
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
     })
@@ -328,7 +328,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
   describe('📱 響應式設計', () => {
     beforeEach(() => {
-      const BookGridRenderer = require('../../../src/ui/book-grid-renderer')
+      const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
     })
 
@@ -385,7 +385,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
   describe('🔄 虛擬滾動功能', () => {
     beforeEach(() => {
-      const BookGridRenderer = require('../../../src/ui/book-grid-renderer')
+      const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
     })
 
@@ -445,7 +445,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
   describe('📊 資料更新和重新渲染', () => {
     beforeEach(() => {
-      const BookGridRenderer = require('../../../src/ui/book-grid-renderer')
+      const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
     })
 
@@ -506,7 +506,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
   describe('⚡ 效能優化', () => {
     beforeEach(() => {
-      const BookGridRenderer = require('../../../src/ui/book-grid-renderer')
+      const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
     })
 
@@ -575,7 +575,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
   describe('🔧 錯誤處理', () => {
     beforeEach(() => {
-      const BookGridRenderer = require('../../../src/ui/book-grid-renderer')
+      const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
     })
 
@@ -593,7 +593,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
     test('應該處理容器不存在的情況', () => {
       expect(() => {
-        const BookGridRenderer = require('../../../src/ui/book-grid-renderer')
+        const BookGridRenderer = require('src/ui/book-grid-renderer')
         new BookGridRenderer(null, mockEventBus)
       }).toThrow()
     })
@@ -621,7 +621,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
   describe('🎯 邊界條件測試', () => {
     beforeEach(() => {
-      const BookGridRenderer = require('../../../src/ui/book-grid-renderer')
+      const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
     })
 

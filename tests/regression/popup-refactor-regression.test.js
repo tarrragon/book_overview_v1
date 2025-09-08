@@ -235,7 +235,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
     test('should fail: Legacy error handling API should remain functional', () => {
       expect(() => {
         // 測試現有的錯誤處理 API
-        const PopupErrorHandler = require('../../../src/popup/popup-error-handler')
+        const PopupErrorHandler = require('src/popup/popup-error-handler')
         const errorHandler = new PopupErrorHandler()
 
         // 這些方法必須繼續存在且正常工作
@@ -261,7 +261,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Existing error message formatting should be preserved', () => {
       expect(() => {
-        const PopupErrorHandler = require('../../../src/popup/popup-error-handler')
+        const PopupErrorHandler = require('src/popup/popup-error-handler')
         const errorHandler = new PopupErrorHandler()
         errorHandler.initialize()
 
@@ -301,7 +301,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Chrome Extension reload functionality should work', () => {
       expect(() => {
-        const PopupErrorHandler = require('../../../src/popup/popup-error-handler')
+        const PopupErrorHandler = require('src/popup/popup-error-handler')
         const errorHandler = new PopupErrorHandler()
         errorHandler.initialize()
 
@@ -324,7 +324,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Tab reload functionality should work correctly', () => {
       expect(() => {
-        const PopupErrorHandler = require('../../../src/popup/popup-error-handler')
+        const PopupErrorHandler = require('src/popup/popup-error-handler')
         const errorHandler = new PopupErrorHandler()
         errorHandler.initialize()
 
@@ -351,7 +351,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
     test('should fail: Progress bar updates should work consistently', () => {
       expect(() => {
         // 載入現有的 popup.js 或重構後的模組
-        const popupModule = require('../../../src/popup/popup')
+        const popupModule = require('src/popup/popup')
 
         // 模擬進度更新序列
         const progressUpdates = [0, 10, 25, 50, 75, 90, 100]
@@ -373,7 +373,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Button states should change correctly during operations', () => {
       expect(() => {
-        const popupModule = require('../../../src/popup/popup')
+        const popupModule = require('src/popup/popup')
 
         const extractButton = document.getElementById('extract-button')
         const stopButton = document.getElementById('stop-button')
@@ -402,7 +402,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Modal dialogs should open and close correctly', () => {
       expect(() => {
-        const popupModule = require('../../../src/popup/popup')
+        const popupModule = require('src/popup/popup')
 
         const diagnosticModal = document.getElementById('diagnostic-modal')
         const diagnosticCloseBtn = document.getElementById('diagnostic-close')
@@ -426,7 +426,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
   describe('🔴 Red Phase - 完整使用者操作流程回歸測試', () => {
     test('should fail: Complete extraction workflow should work end-to-end', async () => {
       expect(async () => {
-        const popupModule = require('../../../src/popup/popup')
+        const popupModule = require('src/popup/popup')
 
         // 1. 初始化
         await popupModule.initialize()
@@ -464,7 +464,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Error recovery workflow should work completely', async () => {
       expect(async () => {
-        const popupModule = require('../../../src/popup/popup')
+        const popupModule = require('src/popup/popup')
 
         // 1. 初始化
         await popupModule.initialize()
@@ -502,7 +502,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Diagnostic workflow should provide comprehensive information', async () => {
       expect(async () => {
-        const popupModule = require('../../../src/popup/popup')
+        const popupModule = require('src/popup/popup')
 
         // 1. 觸發需要診斷的錯誤
         await popupModule.handleError({
@@ -537,7 +537,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
   describe('🔴 Red Phase - 邊界情況和錯誤處理回歸測試', () => {
     test('should fail: Rapid user interactions should be handled gracefully', async () => {
       expect(async () => {
-        const popupModule = require('../../../src/popup/popup')
+        const popupModule = require('src/popup/popup')
         await popupModule.initialize()
 
         const extractButton = document.getElementById('extract-button')
@@ -558,7 +558,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Large error messages should be handled properly', () => {
       expect(() => {
-        const PopupErrorHandler = require('../../../src/popup/popup-error-handler')
+        const PopupErrorHandler = require('src/popup/popup-error-handler')
         const errorHandler = new PopupErrorHandler()
         errorHandler.initialize()
 
@@ -580,7 +580,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Concurrent operations should not interfere', async () => {
       expect(async () => {
-        const popupModule = require('../../../src/popup/popup')
+        const popupModule = require('src/popup/popup')
         await popupModule.initialize()
 
         // 同時觸發多個操作
@@ -602,7 +602,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
   describe('🔴 Red Phase - Chrome Extension API 穩定性回歸測試', () => {
     test('should fail: Chrome API errors should be handled gracefully', async () => {
       expect(async () => {
-        const PopupErrorHandler = require('../../../src/popup/popup-error-handler')
+        const PopupErrorHandler = require('src/popup/popup-error-handler')
         const errorHandler = new PopupErrorHandler()
 
         // 模擬 Chrome API 失敗
@@ -633,7 +633,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
           name: 'Readmoo Book Extractor'
         })
 
-        const popupModule = require('../../../src/popup/popup')
+        const popupModule = require('src/popup/popup')
         popupModule.initialize()
 
         // 版本更新不應該破壞現有功能

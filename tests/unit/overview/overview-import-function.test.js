@@ -272,7 +272,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
       global.window = window
       global.document = document
 
-      const module = require('../../../src/overview/overview-page-controller.js')
+      const module = require('src/overview/overview-page-controller.js')
       OverviewPageController = module.OverviewPageController
 
       // 延遲初始化，確保DOM元素已準備就緒

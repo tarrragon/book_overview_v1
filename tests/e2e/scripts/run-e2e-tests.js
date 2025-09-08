@@ -52,8 +52,6 @@ class E2ETestRunner {
    * 執行完整的端對端測試流程
    */
   async run () {
-    console.log('🚀 開始執行端對端測試...\n')
-
     try {
       await this.preCheck()
       await this.buildExtension()
@@ -61,7 +59,6 @@ class E2ETestRunner {
       await this.runTests()
       await this.generateReport()
 
-      console.log('\n✅ 端對端測試執行完成！')
       process.exit(0)
     } catch (error) {
       console.error('\n❌ 端對端測試執行失敗:', error.message)
@@ -140,8 +137,6 @@ class E2ETestRunner {
    * 設定測試環境
    */
   async setupTestEnvironment () {
-    console.log('🔧 設定測試環境...');
-
     // 建立測試結果目錄
     [this.testResultsDir, this.screenshotsDir].forEach(dir => {
       if (!fs.existsSync(dir)) {
@@ -161,16 +156,12 @@ class E2ETestRunner {
     process.env.EXTENSION_BUILD_PATH = this.buildDir
     process.env.SCREENSHOTS_PATH = this.screenshotsDir
     process.env.TEST_TIMEOUT = this.testConfig.timeout.toString()
-
-    console.log('  ✅ 測試環境設定完成')
   }
 
   /**
    * 執行測試套件
    */
   async runTests () {
-    console.log('🧪 執行端對端測試套件...\n')
-
     const testSuites = [
       {
         name: '完整提取工作流程',
@@ -197,8 +188,6 @@ class E2ETestRunner {
     }
 
     for (const suite of testSuites) {
-      console.log(`📋 執行測試套件: ${suite.name}`)
-
       try {
         const suiteResult = await this.runTestSuite(suite)
         results.suites.push(suiteResult)
@@ -230,8 +219,6 @@ class E2ETestRunner {
     if (results.failed > 0) {
       throw new Error(`${results.failed} 個測試套件執行失敗`)
     }
-
-    console.log(`🎉 所有測試套件執行完成: ${results.passed}/${results.total} 通過`)
   }
 
   /**
@@ -324,11 +311,8 @@ class E2ETestRunner {
    * 生成測試報告
    */
   async generateReport () {
-    console.log('📊 生成測試報告...')
-
     const resultsPath = path.join(this.testResultsDir, 'e2e-results.json')
     if (!fs.existsSync(resultsPath)) {
-      console.log('  ⚠️ 未找到測試結果檔案')
       return
     }
 
@@ -358,7 +342,6 @@ class E2ETestRunner {
       JSON.stringify(summary, null, 2)
     )
 
-    console.log('  ✅ 測試報告生成完成')
     console.log(`  📁 報告位置: ${this.testResultsDir}`)
   }
 
@@ -423,8 +406,6 @@ class E2ETestRunner {
    * 清理測試環境
    */
   async cleanup () {
-    console.log('🧹 清理測試環境...')
-
     // 清理環境變數
     delete process.env.EXTENSION_BUILD_PATH
     delete process.env.SCREENSHOTS_PATH

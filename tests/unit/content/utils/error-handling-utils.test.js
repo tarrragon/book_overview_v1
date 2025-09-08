@@ -18,7 +18,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
 
   beforeAll(() => {
     // 測試執行前載入模組
-    ErrorHandlingUtils = require('../../../../src/content/utils/error-handling-utils.js')
+    ErrorHandlingUtils = require('src/content/utils/error-handling-utils.js')
   })
 
   beforeEach(() => {

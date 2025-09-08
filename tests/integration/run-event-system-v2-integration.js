@@ -564,12 +564,10 @@ if (require.main === module) {
 
   // 處理中斷信號
   process.on('SIGINT', () => {
-    console.log('\n\n⏹️ 測試執行被中斷')
     process.exit(130)
   })
 
   process.on('SIGTERM', () => {
-    console.log('\n\n⏹️ 測試執行被終止')
     process.exit(143)
   })
 

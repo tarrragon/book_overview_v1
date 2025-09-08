@@ -52,7 +52,7 @@ describe('PopupCommunicationService 核心功能', () => {
   describe('📡 Background Service Worker 通訊', () => {
     test('應該正確檢查 Background 狀態', async () => {
       // Given: 在測試環境中，應該直接返回測試模式結果
-      const PopupCommunicationService = require('../../../src/popup/services/popup-communication-service.js')
+      const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
       // When: 檢查 Background 狀態（測試環境）
@@ -75,7 +75,7 @@ describe('PopupCommunicationService 核心功能', () => {
       const originalNodeEnv = process.env.NODE_ENV
       process.env.NODE_ENV = 'development'
 
-      const PopupCommunicationService = require('../../../src/popup/services/popup-communication-service.js')
+      const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
       // 模擬超時（不呼叫 callback）
@@ -99,7 +99,7 @@ describe('PopupCommunicationService 核心功能', () => {
       const originalNodeEnv = process.env.NODE_ENV
       process.env.NODE_ENV = 'development'
 
-      const PopupCommunicationService = require('../../../src/popup/services/popup-communication-service.js')
+      const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
       mockChrome.runtime.lastError = { message: 'Extension context invalidated.' }
@@ -122,7 +122,7 @@ describe('PopupCommunicationService 核心功能', () => {
   describe('📋 Content Script 通訊', () => {
     test('應該正確發送提取開始訊息', async () => {
       // Given: 有效的標籤頁資料
-      const PopupCommunicationService = require('../../../src/popup/services/popup-communication-service.js')
+      const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
       const mockTab = { id: 123, url: 'https://readmoo.com/library' }
@@ -157,7 +157,7 @@ describe('PopupCommunicationService 核心功能', () => {
 
     test('應該正確處理非 Readmoo 頁面', async () => {
       // Given: 非 Readmoo 頁面
-      const PopupCommunicationService = require('../../../src/popup/services/popup-communication-service.js')
+      const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
       const mockTab = { id: 123, url: 'https://google.com' }
@@ -179,7 +179,7 @@ describe('PopupCommunicationService 核心功能', () => {
 
     test('應該正確處理沒有活躍標籤頁的情況', async () => {
       // Given: 沒有活躍標籤頁
-      const PopupCommunicationService = require('../../../src/popup/services/popup-communication-service.js')
+      const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
       mockChrome.tabs.query.mockImplementation((query, callback) => {
@@ -202,7 +202,7 @@ describe('PopupCommunicationService 核心功能', () => {
   describe('📨 訊息監聽和處理', () => {
     test('應該正確註冊訊息監聽器', () => {
       // Given: 通訊服務
-      const PopupCommunicationService = require('../../../src/popup/services/popup-communication-service.js')
+      const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
       // When: 初始化服務（自動註冊監聽器）
@@ -216,7 +216,7 @@ describe('PopupCommunicationService 核心功能', () => {
 
     test('應該正確處理進度更新訊息', () => {
       // Given: 通訊服務和進度更新訊息
-      const PopupCommunicationService = require('../../../src/popup/services/popup-communication-service.js')
+      const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
       const progressMessage = {
@@ -242,7 +242,7 @@ describe('PopupCommunicationService 核心功能', () => {
 
     test('應該正確處理提取完成訊息', () => {
       // Given: 通訊服務和完成訊息
-      const PopupCommunicationService = require('../../../src/popup/services/popup-communication-service.js')
+      const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
       const completionMessage = {
@@ -277,7 +277,7 @@ describe('PopupCommunicationService 核心功能', () => {
   describe('🔧 工具方法和輔助功能', () => {
     test('應該正確檢測 Readmoo 頁面', () => {
       // Given: 通訊服務
-      const PopupCommunicationService = require('../../../src/popup/services/popup-communication-service.js')
+      const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
       // When: 測試各種 URL
@@ -297,7 +297,7 @@ describe('PopupCommunicationService 核心功能', () => {
 
     test('應該正確清理資源', () => {
       // Given: 初始化的通訊服務
-      const PopupCommunicationService = require('../../../src/popup/services/popup-communication-service.js')
+      const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
       communicationService.initialize()
 

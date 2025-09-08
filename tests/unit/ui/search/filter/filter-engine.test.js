@@ -16,7 +16,7 @@
  * 11. Memory Management - 記憶體管理
  */
 
-const FilterEngine = require('../../../../../src/ui/search/filter/filter-engine')
+const FilterEngine = require('src/ui/search/filter/filter-engine')
 
 describe('FilterEngine', () => {
   let filterEngine

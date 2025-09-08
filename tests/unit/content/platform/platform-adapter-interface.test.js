@@ -16,7 +16,7 @@ describe('PlatformAdapterInterface', () => {
 
   beforeAll(() => {
     // 載入抽象介面類別 (使用 CommonJS require)
-    PlatformAdapterInterface = require('../../../../src/content/platform/platform-adapter-interface.js')
+    PlatformAdapterInterface = require('src/content/platform/platform-adapter-interface.js')
   })
 
   beforeEach(() => {

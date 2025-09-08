@@ -14,7 +14,7 @@
 const mockWindow = {}
 global.window = mockWindow
 
-const EventHandler = require('../../../src/core/event-handler')
+const EventHandler = require('src/core/event-handler')
 
 describe('StorageLoadHandler 單元測試', () => {
   let storageLoadHandler
@@ -38,7 +38,7 @@ describe('StorageLoadHandler 單元測試', () => {
     }
 
     // StorageLoadHandler 類別將在實現時導入
-    // const StorageLoadHandler = require('../../../src/storage/handlers/storage-load-handler');
+    // const StorageLoadHandler = require('src/storage/handlers/storage-load-handler');
     // storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter);
   })
 
@@ -49,7 +49,7 @@ describe('StorageLoadHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 基本結構測試 ====================
   describe('🟢 綠燈階段 - 基本結構', () => {
     test('應該能創建 StorageLoadHandler 實例', () => {
-      const StorageLoadHandler = require('../../../src/storage/handlers/storage-load-handler')
+      const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       expect(storageLoadHandler).toBeDefined()
@@ -57,14 +57,14 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該繼承自 EventHandler', () => {
-      const StorageLoadHandler = require('../../../src/storage/handlers/storage-load-handler')
+      const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       expect(storageLoadHandler).toBeInstanceOf(EventHandler)
     })
 
     test('應該有正確的處理器名稱和優先級', () => {
-      const StorageLoadHandler = require('../../../src/storage/handlers/storage-load-handler')
+      const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       expect(storageLoadHandler.name).toBe('StorageLoadHandler')
@@ -75,7 +75,7 @@ describe('StorageLoadHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 事件支援測試 ====================
   describe('🟢 綠燈階段 - 事件支援', () => {
     test('應該支援 STORAGE.LOAD.REQUESTED 事件', () => {
-      const StorageLoadHandler = require('../../../src/storage/handlers/storage-load-handler')
+      const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       const supportedEvents = storageLoadHandler.getSupportedEvents()
@@ -83,7 +83,7 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該能處理 STORAGE.LOAD.REQUESTED 事件', async () => {
-      const StorageLoadHandler = require('../../../src/storage/handlers/storage-load-handler')
+      const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       // 模擬成功載入
@@ -118,7 +118,7 @@ describe('StorageLoadHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 載入處理邏輯測試 ====================
   describe('🟢 綠燈階段 - 載入處理邏輯', () => {
     test('應該能調用儲存適配器載入資料', async () => {
-      const StorageLoadHandler = require('../../../src/storage/handlers/storage-load-handler')
+      const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       // 模擬成功載入
@@ -161,7 +161,7 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該在載入成功後觸發 STORAGE.LOAD.COMPLETED 事件', async () => {
-      const StorageLoadHandler = require('../../../src/storage/handlers/storage-load-handler')
+      const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       const mockLoadedData = {
@@ -195,7 +195,7 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該能處理載入失敗情況', async () => {
-      const StorageLoadHandler = require('../../../src/storage/handlers/storage-load-handler')
+      const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       // 模擬載入失敗
@@ -223,7 +223,7 @@ describe('StorageLoadHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 載入請求驗證測試 ====================
   describe('🟢 綠燈階段 - 載入請求驗證', () => {
     test('應該驗證載入請求的必要欄位', async () => {
-      const StorageLoadHandler = require('../../../src/storage/handlers/storage-load-handler')
+      const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       const invalidEvent = {
@@ -244,7 +244,7 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該驗證載入類型的有效性', async () => {
-      const StorageLoadHandler = require('../../../src/storage/handlers/storage-load-handler')
+      const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       const invalidEvent = {
@@ -268,7 +268,7 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該檢查儲存適配器的可用性', async () => {
-      const StorageLoadHandler = require('../../../src/storage/handlers/storage-load-handler')
+      const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
 
       // 模擬不可用的儲存適配器
       mockStorageAdapter.isAvailable.mockReturnValue(false)
@@ -295,7 +295,7 @@ describe('StorageLoadHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 載入結果處理測試 ====================
   describe('🟢 綠燈階段 - 載入結果處理', () => {
     test('應該驗證載入結果的完整性', async () => {
-      const StorageLoadHandler = require('../../../src/storage/handlers/storage-load-handler')
+      const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       // 模擬返回無效結果的載入
@@ -323,7 +323,7 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該處理空的載入結果', async () => {
-      const StorageLoadHandler = require('../../../src/storage/handlers/storage-load-handler')
+      const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       // 模擬返回空資料的載入
@@ -360,7 +360,7 @@ describe('StorageLoadHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 效能和統計測試 ====================
   describe('🟢 綠燈階段 - 效能和統計', () => {
     test('應該記錄載入操作的執行時間', async () => {
-      const StorageLoadHandler = require('../../../src/storage/handlers/storage-load-handler')
+      const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       mockStorageAdapter.load.mockResolvedValue({
@@ -381,7 +381,7 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該提供載入操作的統計資訊', () => {
-      const StorageLoadHandler = require('../../../src/storage/handlers/storage-load-handler')
+      const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       const stats = storageLoadHandler.getStats()
@@ -393,7 +393,7 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該支援不同的載入類型統計', () => {
-      const StorageLoadHandler = require('../../../src/storage/handlers/storage-load-handler')
+      const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       const stats = storageLoadHandler.getStats()

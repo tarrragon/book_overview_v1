@@ -14,8 +14,8 @@
  * - 提供進度完成回調
  */
 
-const UIProgressHandler = require('../../../src/ui/handlers/ui-progress-handler')
-const EventBus = require('../../../src/core/event-bus')
+const UIProgressHandler = require('src/ui/handlers/ui-progress-handler')
+const EventBus = require('src/core/event-bus')
 
 describe('UIProgressHandler', () => {
   let handler

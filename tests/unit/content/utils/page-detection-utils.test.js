@@ -23,7 +23,7 @@ describe('PageDetectionUtils', () => {
     originalDocument = global.document
 
     // 載入模組
-    PageDetectionUtils = require('../../../../src/content/utils/page-detection-utils.js')
+    PageDetectionUtils = require('src/content/utils/page-detection-utils.js')
   })
 
   afterAll(() => {

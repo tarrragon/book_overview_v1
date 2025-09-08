@@ -10,7 +10,7 @@
  * - 記憶體管理
  */
 
-const EventPerformanceMonitor = require('../../../src/error-handling/event-performance-monitor')
+const EventPerformanceMonitor = require('src/error-handling/event-performance-monitor')
 
 describe('EventPerformanceMonitor', () => {
   let mockEventBus
@@ -46,7 +46,7 @@ describe('EventPerformanceMonitor', () => {
   describe('基本結構和初始化', () => {
     test('應該正確繼承 EventHandler', () => {
       expect(performanceMonitor).toBeInstanceOf(
-        require('../../../src/core/event-handler')
+        require('src/core/event-handler')
       )
       expect(performanceMonitor.name).toBe('EventPerformanceMonitor')
       expect(performanceMonitor.priority).toBe(5) // 中等優先級

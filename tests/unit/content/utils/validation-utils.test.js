@@ -10,7 +10,7 @@ describe('ValidationUtils', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    ValidationUtils = require('../../../../src/content/utils/validation-utils')
+    ValidationUtils = require('src/content/utils/validation-utils')
   })
 
   describe('基本資料類型驗證', () => {

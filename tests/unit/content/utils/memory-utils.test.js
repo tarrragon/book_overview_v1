@@ -18,7 +18,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
 
   beforeAll(() => {
     // 測試執行前載入模組
-    MemoryUtils = require('../../../../src/content/utils/memory-utils.js')
+    MemoryUtils = require('src/content/utils/memory-utils.js')
   })
 
   beforeEach(() => {

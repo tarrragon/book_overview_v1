@@ -10,9 +10,9 @@
  * - 真實場景下的向後相容性和資料完整性
  */
 
-const ReadmooPlatformMigrationValidator = require('../../src/platform/readmoo-platform-migration-validator')
-const EventBus = require('../../src/core/event-bus')
-const PlatformDetectionService = require('../../src/background/domains/platform/services/platform-detection-service')
+const ReadmooPlatformMigrationValidator = require('src/platform/readmoo-platform-migration-validator')
+const EventBus = require('src/core/event-bus')
+const PlatformDetectionService = require('src/background/domains/platform/services/platform-detection-service')
 
 // 模擬 Readmoo 適配器
 class MockReadmooAdapter {

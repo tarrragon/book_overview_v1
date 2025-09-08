@@ -55,7 +55,7 @@ describe('PopupExtractionService 核心功能', () => {
   describe('🏗 建構和初始化', () => {
     test('應該正確初始化提取服務', () => {
       // Given: 提取服務的依賴
-      const PopupExtractionService = require('../../../src/popup/services/popup-extraction-service.js')
+      const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
 
       // When: 建立提取服務
       extractionService = new PopupExtractionService(
@@ -73,7 +73,7 @@ describe('PopupExtractionService 核心功能', () => {
 
     test('應該驗證依賴注入的完整性', () => {
       // Given: 缺少必要依賴
-      const PopupExtractionService = require('../../../src/popup/services/popup-extraction-service.js')
+      const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
 
       // When & Then: 應該拋出錯誤
       expect(() => {
@@ -91,7 +91,7 @@ describe('PopupExtractionService 核心功能', () => {
 
     test('應該支援提取選項配置', () => {
       // Given: 自訂提取選項
-      const PopupExtractionService = require('../../../src/popup/services/popup-extraction-service.js')
+      const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
       const options = {
         maxRetries: 5,
         timeout: 10000,
@@ -115,7 +115,7 @@ describe('PopupExtractionService 核心功能', () => {
 
   describe('🔄 提取流程控制', () => {
     beforeEach(() => {
-      const PopupExtractionService = require('../../../src/popup/services/popup-extraction-service.js')
+      const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
       extractionService = new PopupExtractionService(
         mockStatusManager,
         mockProgressManager,
@@ -182,7 +182,7 @@ describe('PopupExtractionService 核心功能', () => {
 
   describe('⚠️ 錯誤處理和重試機制', () => {
     beforeEach(() => {
-      const PopupExtractionService = require('../../../src/popup/services/popup-extraction-service.js')
+      const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
       extractionService = new PopupExtractionService(
         mockStatusManager,
         mockProgressManager,
@@ -251,7 +251,7 @@ describe('PopupExtractionService 核心功能', () => {
 
   describe('📊 資料處理協調', () => {
     beforeEach(() => {
-      const PopupExtractionService = require('../../../src/popup/services/popup-extraction-service.js')
+      const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
       extractionService = new PopupExtractionService(
         mockStatusManager,
         mockProgressManager,
@@ -330,7 +330,7 @@ describe('PopupExtractionService 核心功能', () => {
 
   describe('🔄 組件協調和狀態同步', () => {
     beforeEach(() => {
-      const PopupExtractionService = require('../../../src/popup/services/popup-extraction-service.js')
+      const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
       extractionService = new PopupExtractionService(
         mockStatusManager,
         mockProgressManager,

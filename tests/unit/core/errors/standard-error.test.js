@@ -8,7 +8,7 @@
  * - 驗證序列化和反序列化
  */
 
-const { StandardError } = require('../../../../src/core/errors/StandardError')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('StandardError 核心功能', () => {
   let mockDateNow

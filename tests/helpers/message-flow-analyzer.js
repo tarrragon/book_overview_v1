@@ -101,7 +101,7 @@ class MessageFlowAnalyzer {
   /**
    * 清理分析器資源
    */
-  async cleanup() {
+  async cleanup () {
     this.reset()
     // 清理任何其他資源或監聽器
   }

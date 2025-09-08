@@ -111,7 +111,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
   describe('🔴 Red Phase - 初始化效能基準測試', () => {
     test('should fail: PopupUIManager initialization should complete within 100ms', async () => {
       expect(async () => {
-        const PopupUIManager = require('../../../src/popup/popup-ui-manager')
+        const PopupUIManager = require('src/popup/popup-ui-manager')
 
         // 記錄開始時間
         const startTime = performance.now()
@@ -137,7 +137,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
 
     test('should fail: PopupErrorHandler initialization should be lightweight', async () => {
       expect(async () => {
-        const PopupErrorHandler = require('../../../src/popup/popup-error-handler')
+        const PopupErrorHandler = require('src/popup/popup-error-handler')
 
         const startMemory = process.memoryUsage().heapUsed
         const startTime = performance.now()
@@ -160,9 +160,9 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
 
     test('should fail: Integrated system initialization performance', async () => {
       expect(async () => {
-        const PopupUIManager = require('../../../src/popup/popup-ui-manager')
-        const PopupErrorHandler = require('../../../src/popup/popup-error-handler')
-        const DiagnosticModule = require('../../../src/popup/diagnostic-module')
+        const PopupUIManager = require('src/popup/popup-ui-manager')
+        const PopupErrorHandler = require('src/popup/popup-error-handler')
+        const DiagnosticModule = require('src/popup/diagnostic-module')
 
         const startTime = performance.now()
         const startMemory = process.memoryUsage().heapUsed
@@ -189,7 +189,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
   describe('🔴 Red Phase - UI 響應效能測試', () => {
     test('should fail: Error display should render within 50ms', async () => {
       expect(async () => {
-        const PopupUIManager = require('../../../src/popup/popup-ui-manager')
+        const PopupUIManager = require('src/popup/popup-ui-manager')
 
         const uiManager = new PopupUIManager()
         await uiManager.initialize()
@@ -214,7 +214,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
 
     test('should fail: Progress updates should maintain 30fps', async () => {
       expect(async () => {
-        const PopupUIManager = require('../../../src/popup/popup-ui-manager')
+        const PopupUIManager = require('src/popup/popup-ui-manager')
 
         const uiManager = new PopupUIManager()
         await uiManager.initialize()
@@ -240,7 +240,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
 
     test('should fail: UI state transitions should be smooth', async () => {
       expect(async () => {
-        const PopupUIManager = require('../../../src/popup/popup-ui-manager')
+        const PopupUIManager = require('src/popup/popup-ui-manager')
 
         const uiManager = new PopupUIManager()
         await uiManager.initialize()
@@ -276,7 +276,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
   describe('🔴 Red Phase - 記憶體使用效能測試', () => {
     test('should fail: Error handler should prevent memory leaks', async () => {
       expect(async () => {
-        const PopupErrorHandler = require('../../../src/popup/popup-error-handler')
+        const PopupErrorHandler = require('src/popup/popup-error-handler')
 
         const errorHandler = new PopupErrorHandler()
         await errorHandler.initialize()
@@ -310,7 +310,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
 
     test('should fail: UI manager should optimize DOM operations', async () => {
       expect(async () => {
-        const PopupUIManager = require('../../../src/popup/popup-ui-manager')
+        const PopupUIManager = require('src/popup/popup-ui-manager')
 
         const uiManager = new PopupUIManager()
         await uiManager.initialize()
@@ -346,7 +346,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
 
     test('should fail: Diagnostic module lazy loading optimization', async () => {
       expect(async () => {
-        const DiagnosticModule = require('../../../src/popup/diagnostic-module')
+        const DiagnosticModule = require('src/popup/diagnostic-module')
 
         const initialMemory = process.memoryUsage().heapUsed
 
@@ -375,8 +375,8 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
   describe('🔴 Red Phase - 事件處理效能測試', () => {
     test('should fail: Event system should handle high-frequency events', async () => {
       expect(async () => {
-        const EventBus = require('../../../src/core/event-bus')
-        const PopupUIManager = require('../../../src/popup/popup-ui-manager')
+        const EventBus = require('src/core/event-bus')
+        const PopupUIManager = require('src/popup/popup-ui-manager')
 
         const eventBus = new EventBus()
         const uiManager = new PopupUIManager({ eventBus })
@@ -407,8 +407,8 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
 
     test('should fail: Error throttling should prevent UI spam', async () => {
       expect(async () => {
-        const PopupErrorHandler = require('../../../src/popup/popup-error-handler')
-        const PopupUIManager = require('../../../src/popup/popup-ui-manager')
+        const PopupErrorHandler = require('src/popup/popup-error-handler')
+        const PopupUIManager = require('src/popup/popup-ui-manager')
 
         const uiManager = new PopupUIManager()
         const errorHandler = new PopupErrorHandler({ uiManager })
@@ -444,7 +444,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
   describe('🔴 Red Phase - Chrome Extension API 效能測試', () => {
     test('should fail: Chrome API calls should be optimized and cached', async () => {
       expect(async () => {
-        const PopupErrorHandler = require('../../../src/popup/popup-error-handler')
+        const PopupErrorHandler = require('src/popup/popup-error-handler')
 
         const errorHandler = new PopupErrorHandler()
         await errorHandler.initialize()
@@ -468,7 +468,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
 
     test('should fail: Background script communication should be efficient', async () => {
       expect(async () => {
-        const PopupErrorHandler = require('../../../src/popup/popup-error-handler')
+        const PopupErrorHandler = require('src/popup/popup-error-handler')
 
         const errorHandler = new PopupErrorHandler()
 

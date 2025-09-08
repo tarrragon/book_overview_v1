@@ -10,7 +10,7 @@
  * - 記憶體管理和清理
  */
 
-const EventTracker = require('../../../src/error-handling/event-tracker')
+const EventTracker = require('src/error-handling/event-tracker')
 
 describe('EventTracker', () => {
   let mockEventBus
@@ -44,7 +44,7 @@ describe('EventTracker', () => {
   describe('基本結構和初始化', () => {
     test('應該正確繼承 EventHandler', () => {
       expect(eventTracker).toBeInstanceOf(
-        require('../../../src/core/event-handler')
+        require('src/core/event-handler')
       )
       expect(eventTracker.name).toBe('EventTracker')
       expect(eventTracker.priority).toBe(3) // 較高優先級，確保事件記錄

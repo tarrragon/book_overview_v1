@@ -15,7 +15,7 @@
  * - 生命週期和資源清理
  */
 
-const SearchUIController = require('../../../../../src/ui/search/ui-controller/search-ui-controller')
+const SearchUIController = require('src/ui/search/ui-controller/search-ui-controller')
 
 describe('SearchUIController', () => {
   let searchUIController

@@ -11,7 +11,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
   let PageDetectionUtils
 
   beforeAll(() => {
-    PageDetectionUtils = require('../../../../src/content/utils/page-detection-utils.js')
+    PageDetectionUtils = require('src/content/utils/page-detection-utils.js')
   })
 
   beforeEach(() => {

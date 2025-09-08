@@ -2,7 +2,7 @@
  * TimeoutHandler 測試
  */
 
-const TimeoutHandler = require('../../../src/utils/timeout-handler')
+const TimeoutHandler = require('src/utils/timeout-handler')
 
 describe('TimeoutHandler', () => {
   describe('createTimeout', () => {

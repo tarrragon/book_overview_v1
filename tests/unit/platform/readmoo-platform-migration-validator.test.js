@@ -12,8 +12,8 @@
  * - 向後相容性和資料完整性驗證
  */
 
-const ReadmooPlatformMigrationValidator = require('../../../src/platform/readmoo-platform-migration-validator')
-const EventBus = require('../../../src/core/event-bus')
+const ReadmooPlatformMigrationValidator = require('src/platform/readmoo-platform-migration-validator')
+const EventBus = require('src/core/event-bus')
 
 // Mock Chrome APIs
 global.chrome = {

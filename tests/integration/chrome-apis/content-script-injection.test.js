@@ -624,8 +624,6 @@ describe('Content Script 注入整合測試', () => {
 
         const cspTestTime = Date.now() - cspTestStart
 
-        console.log(`🔧 測試結果映射 ${scenario.name}: injectionResult.cspViolationDetected=${injectionResult.cspViolationDetected}, injectionResult.behavior=${injectionResult.behavior}, injectionResult.success=${injectionResult.success}`)
-
         cspHandlingResults.push({
           scenario: scenario.name,
           expectedBehavior: scenario.expectedBehavior,

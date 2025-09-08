@@ -28,8 +28,8 @@
  */
 
 const path = require('path')
-const ChromeStoreReadiness = require('../../../src/deployment/chrome-store-readiness')
-const { PerformanceOptimizer } = require('../../../src/performance/performance-optimizer')
+const ChromeStoreReadiness = require('src/deployment/chrome-store-readiness')
+const { PerformanceOptimizer } = require('src/performance/performance-optimizer')
 
 describe('🏪 Chrome Web Store 上架準備整合測試', () => {
   let storeReadiness
@@ -204,8 +204,6 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
       ]
 
       for (const scenario of scenarios) {
-        console.log(`🔄 測試情境: ${scenario.name}`)
-
         const scenarioTime = await measureOperationTime(async () => {
           for (let i = 0; i < scenario.operations; i++) {
             await simulateUserOperation(scenario.dataSize)

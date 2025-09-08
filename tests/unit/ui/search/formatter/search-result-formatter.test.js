@@ -36,7 +36,7 @@ describe('SearchResultFormatter', () => {
 
   describe('建構和初始化', () => {
     test('應該能夠正確建構 SearchResultFormatter 實例', () => {
-      const SearchResultFormatter = require('../../../../../src/ui/search/formatter/search-result-formatter')
+      const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
 
       expect(() => {
         formatter = new SearchResultFormatter({ // eslint-disable-line no-new
@@ -47,7 +47,7 @@ describe('SearchResultFormatter', () => {
     })
 
     test('建構時缺少 eventBus 應該拋出錯誤', () => {
-      const SearchResultFormatter = require('../../../../../src/ui/search/formatter/search-result-formatter')
+      const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
 
       expect(() => {
         new SearchResultFormatter({ logger: mockLogger }) // eslint-disable-line no-new
@@ -55,7 +55,7 @@ describe('SearchResultFormatter', () => {
     })
 
     test('建構時缺少 logger 應該拋出錯誤', () => {
-      const SearchResultFormatter = require('../../../../../src/ui/search/formatter/search-result-formatter')
+      const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
 
       expect(() => {
         new SearchResultFormatter({ eventBus: mockEventBus }) // eslint-disable-line no-new
@@ -63,7 +63,7 @@ describe('SearchResultFormatter', () => {
     })
 
     test('應該正確合併預設配置和自定義配置', () => {
-      const SearchResultFormatter = require('../../../../../src/ui/search/formatter/search-result-formatter')
+      const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
 
       const customConfig = {
         enableStatistics: false,
@@ -86,7 +86,7 @@ describe('SearchResultFormatter', () => {
 
   describe('基本搜尋結果格式化', () => {
     beforeEach(() => {
-      const SearchResultFormatter = require('../../../../../src/ui/search/formatter/search-result-formatter')
+      const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
       formatter = new SearchResultFormatter({
         eventBus: mockEventBus,
         logger: mockLogger
@@ -143,7 +143,7 @@ describe('SearchResultFormatter', () => {
     })
 
     test('應該限制結果數量根據配置設定', () => {
-      const SearchResultFormatter = require('../../../../../src/ui/search/formatter/search-result-formatter')
+      const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
       formatter = new SearchResultFormatter({
         eventBus: mockEventBus,
         logger: mockLogger,
@@ -168,7 +168,7 @@ describe('SearchResultFormatter', () => {
 
   describe('事件發送和通知', () => {
     beforeEach(() => {
-      const SearchResultFormatter = require('../../../../../src/ui/search/formatter/search-result-formatter')
+      const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
       formatter = new SearchResultFormatter({
         eventBus: mockEventBus,
         logger: mockLogger
@@ -224,7 +224,7 @@ describe('SearchResultFormatter', () => {
     })
 
     test('事件發送被禁用時不應該發送事件', () => {
-      const SearchResultFormatter = require('../../../../../src/ui/search/formatter/search-result-formatter')
+      const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
       formatter = new SearchResultFormatter({
         eventBus: mockEventBus,
         logger: mockLogger,
@@ -239,7 +239,7 @@ describe('SearchResultFormatter', () => {
 
   describe('結果分組功能', () => {
     beforeEach(() => {
-      const SearchResultFormatter = require('../../../../../src/ui/search/formatter/search-result-formatter')
+      const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
       formatter = new SearchResultFormatter({
         eventBus: mockEventBus,
         logger: mockLogger,
@@ -292,7 +292,7 @@ describe('SearchResultFormatter', () => {
 
   describe('結果排序功能', () => {
     beforeEach(() => {
-      const SearchResultFormatter = require('../../../../../src/ui/search/formatter/search-result-formatter')
+      const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
       formatter = new SearchResultFormatter({
         eventBus: mockEventBus,
         logger: mockLogger
@@ -346,7 +346,7 @@ describe('SearchResultFormatter', () => {
 
   describe('相關性分數計算', () => {
     beforeEach(() => {
-      const SearchResultFormatter = require('../../../../../src/ui/search/formatter/search-result-formatter')
+      const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
       formatter = new SearchResultFormatter({
         eventBus: mockEventBus,
         logger: mockLogger
@@ -407,7 +407,7 @@ describe('SearchResultFormatter', () => {
 
   describe('統計和效能監控', () => {
     beforeEach(() => {
-      const SearchResultFormatter = require('../../../../../src/ui/search/formatter/search-result-formatter')
+      const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
       formatter = new SearchResultFormatter({
         eventBus: mockEventBus,
         logger: mockLogger,
@@ -454,7 +454,7 @@ describe('SearchResultFormatter', () => {
     })
 
     test('統計功能被禁用時不應該記錄統計', () => {
-      const SearchResultFormatter = require('../../../../../src/ui/search/formatter/search-result-formatter')
+      const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
       formatter = new SearchResultFormatter({
         eventBus: mockEventBus,
         logger: mockLogger,
@@ -470,7 +470,7 @@ describe('SearchResultFormatter', () => {
 
   describe('錯誤處理', () => {
     beforeEach(() => {
-      const SearchResultFormatter = require('../../../../../src/ui/search/formatter/search-result-formatter')
+      const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
       formatter = new SearchResultFormatter({
         eventBus: mockEventBus,
         logger: mockLogger
@@ -528,7 +528,7 @@ describe('SearchResultFormatter', () => {
 
   describe('記憶體管理', () => {
     beforeEach(() => {
-      const SearchResultFormatter = require('../../../../../src/ui/search/formatter/search-result-formatter')
+      const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
       formatter = new SearchResultFormatter({
         eventBus: mockEventBus,
         logger: mockLogger

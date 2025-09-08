@@ -1,13 +1,13 @@
 /**
  * 日誌等級枚舉
- * 
+ *
  * 定義統一的日誌等級，確保系統中日誌記錄的一致性
  * 與 Logger 系統配合使用
  */
 
 const LogLevel = Object.freeze({
   TRACE: 'TRACE',
-  DEBUG: 'DEBUG', 
+  DEBUG: 'DEBUG',
   INFO: 'INFO',
   WARN: 'WARN',
   ERROR: 'ERROR',
@@ -26,7 +26,6 @@ const LogLevelValues = Object.freeze({
   [LogLevel.FATAL]: 5
 })
 
-
 /**
  * 比較兩個日誌等級
  * @param {string} level1 - 第一個日誌等級
@@ -36,11 +35,11 @@ const LogLevelValues = Object.freeze({
 function compareLogLevels (level1, level2) {
   const value1 = LogLevelValues[level1]
   const value2 = LogLevelValues[level2]
-  
+
   if (value1 === undefined || value2 === undefined) {
     throw new Error(`Invalid log level comparison: ${level1} vs ${level2}`)
   }
-  
+
   return value1 < value2 ? -1 : (value1 > value2 ? 1 : 0)
 }
 
@@ -63,12 +62,12 @@ function getLogLevelColor (level) {
   const colorMapping = {
     [LogLevel.TRACE]: '\x1b[90m', // 灰色
     [LogLevel.DEBUG]: '\x1b[36m', // 青色
-    [LogLevel.INFO]: '\x1b[32m',  // 綠色
-    [LogLevel.WARN]: '\x1b[33m',  // 黃色
+    [LogLevel.INFO]: '\x1b[32m', // 綠色
+    [LogLevel.WARN]: '\x1b[33m', // 黃色
     [LogLevel.ERROR]: '\x1b[31m', // 紅色
-    [LogLevel.FATAL]: '\x1b[35m'  // 紫色
+    [LogLevel.FATAL]: '\x1b[35m' // 紫色
   }
-  
+
   return colorMapping[level] || '\x1b[0m'
 }
 

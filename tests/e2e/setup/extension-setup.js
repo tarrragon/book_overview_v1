@@ -76,8 +76,6 @@ class ExtensionTestSetup {
 
       // 設定頁面配置
       await this.configureTestPage()
-
-      console.log(`✅ Extension 測試環境已建立，Extension ID: ${this.extensionId}`)
     } catch (error) {
       console.error('❌ Extension 測試環境建立失敗:', error)
       await this.cleanup()
@@ -147,8 +145,6 @@ class ExtensionTestSetup {
 
       // 等待頁面完全載入
       await this.page.waitForTimeout(2000)
-
-      console.log(`✅ 已導航至測試頁面: ${targetUrl}`)
     } catch (error) {
       throw new Error(`導航到 Readmoo 頁面失敗: ${error.message}`)
     }
@@ -270,8 +266,6 @@ class ExtensionTestSetup {
         await this.browser.close()
         this.browser = null
       }
-
-      console.log('✅ 測試環境已清理')
     } catch (error) {
       console.warn('⚠️ 測試環境清理時發生錯誤:', error)
     }

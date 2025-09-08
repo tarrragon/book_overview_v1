@@ -15,7 +15,7 @@
  * 10. Lifecycle Management - 生命週期管理
  */
 
-const SearchCoordinator = require('../../../../../src/ui/search/coordinator/search-coordinator')
+const SearchCoordinator = require('src/ui/search/coordinator/search-coordinator')
 
 describe('SearchCoordinator', () => {
   let searchCoordinator

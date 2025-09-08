@@ -356,7 +356,7 @@ class MessageValidationService {
         violations.push({
           type: 'security_violation',
           field: 'content',
-          message: `檢測到潛在惡意內容`,
+          message: '檢測到潛在惡意內容',
           severity: 'critical'
         })
       }
@@ -546,7 +546,7 @@ class MessageValidationService {
             violations.push({
               type: 'security_violation',
               field: path || 'url',
-              message: `URL長度超出安全限制`,
+              message: 'URL長度超出安全限制',
               severity: 'medium'
             })
           }
@@ -557,7 +557,7 @@ class MessageValidationService {
               violations.push({
                 type: 'security_violation',
                 field: path || 'url',
-                message: `URL包含被封鎖的域名`,
+                message: 'URL包含被封鎖的域名',
                 severity: 'high'
               })
             }

@@ -31,14 +31,14 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     test('應該定義 EXPORT_EVENTS 常數物件', () => {
       // 這個測試會失敗，因為 EXPORT_EVENTS 尚未實現
       expect(() => {
-        const { EXPORT_EVENTS } = require('../../../src/export/export-events')
+        const { EXPORT_EVENTS } = require('src/export/export-events')
         expect(EXPORT_EVENTS).toBeDefined()
         expect(typeof EXPORT_EVENTS).toBe('object')
       }).not.toThrow()
     })
 
     test('應該定義所有基本匯出事件類型', () => {
-      const { EXPORT_EVENTS } = require('../../../src/export/export-events')
+      const { EXPORT_EVENTS } = require('src/export/export-events')
 
       // 匯出請求事件
       expect(EXPORT_EVENTS.EXPORT_REQUESTED).toBe('EXPORT.REQUEST.INITIATED')
@@ -50,7 +50,7 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     })
 
     test('應該定義格式專用匯出事件', () => {
-      const { EXPORT_EVENTS } = require('../../../src/export/export-events')
+      const { EXPORT_EVENTS } = require('src/export/export-events')
 
       // CSV 匯出事件
       expect(EXPORT_EVENTS.CSV_EXPORT_REQUESTED).toBe('EXPORT.CSV.REQUESTED')
@@ -74,7 +74,7 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     })
 
     test('應該定義批量和壓縮匯出事件', () => {
-      const { EXPORT_EVENTS } = require('../../../src/export/export-events')
+      const { EXPORT_EVENTS } = require('src/export/export-events')
 
       // 批量匯出事件
       expect(EXPORT_EVENTS.BATCH_EXPORT_REQUESTED).toBe('EXPORT.BATCH.REQUESTED')
@@ -91,7 +91,7 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     })
 
     test('應該定義檔案操作相關事件', () => {
-      const { EXPORT_EVENTS } = require('../../../src/export/export-events')
+      const { EXPORT_EVENTS } = require('src/export/export-events')
 
       // 檔案下載事件
       expect(EXPORT_EVENTS.FILE_DOWNLOAD_REQUESTED).toBe('EXPORT.DOWNLOAD.REQUESTED')
@@ -113,14 +113,14 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
 
   describe('🔴 Red Phase: 事件優先級定義', () => {
     test('應該定義 EXPORT_EVENT_PRIORITIES 常數', () => {
-      const { EXPORT_EVENT_PRIORITIES } = require('../../../src/export/export-events')
+      const { EXPORT_EVENT_PRIORITIES } = require('src/export/export-events')
 
       expect(EXPORT_EVENT_PRIORITIES).toBeDefined()
       expect(typeof EXPORT_EVENT_PRIORITIES).toBe('object')
     })
 
     test('應該按照架構規範設定事件優先級', () => {
-      const { EXPORT_EVENT_PRIORITIES } = require('../../../src/export/export-events')
+      const { EXPORT_EVENT_PRIORITIES } = require('src/export/export-events')
 
       // 根據 CLAUDE.md 架構文件：URGENT(0-99), HIGH(100-199), NORMAL(200-299), LOW(300-399)
 
@@ -144,7 +144,7 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     })
 
     test('所有事件類型都應該有對應的優先級設定', () => {
-      const { EXPORT_EVENTS, EXPORT_EVENT_PRIORITIES } = require('../../../src/export/export-events')
+      const { EXPORT_EVENTS, EXPORT_EVENT_PRIORITIES } = require('src/export/export-events')
 
       // 取得所有事件類型
       const allEventTypes = Object.values(EXPORT_EVENTS)
@@ -162,14 +162,14 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
 
   describe('🔴 Red Phase: 事件建立工廠函數', () => {
     test('應該提供 createExportEvent 工廠函數', () => {
-      const { createExportEvent } = require('../../../src/export/export-events')
+      const { createExportEvent } = require('src/export/export-events')
 
       expect(createExportEvent).toBeDefined()
       expect(typeof createExportEvent).toBe('function')
     })
 
     test('createExportEvent 應該建立標準化事件物件', () => {
-      const { createExportEvent, EXPORT_EVENTS } = require('../../../src/export/export-events')
+      const { createExportEvent, EXPORT_EVENTS } = require('src/export/export-events')
 
       const eventData = {
         format: 'csv',
@@ -199,7 +199,7 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
         createJSONExportEvent,
         createExcelExportEvent,
         createPDFExportEvent
-      } = require('../../../src/export/export-events')
+      } = require('src/export/export-events')
 
       expect(createCSVExportEvent).toBeDefined()
       expect(createJSONExportEvent).toBeDefined()
@@ -213,7 +213,7 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     })
 
     test('格式專用建立函數應該產生正確的事件', () => {
-      const { createCSVExportEvent, EXPORT_EVENTS } = require('../../../src/export/export-events')
+      const { createCSVExportEvent, EXPORT_EVENTS } = require('src/export/export-events')
 
       const books = [{ title: 'Test Book', author: 'Test Author' }]
       const options = { delimiter: ',' }
@@ -228,7 +228,7 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     })
 
     test('應該提供批量匯出事件建立函數', () => {
-      const { createBatchExportEvent, EXPORT_EVENTS } = require('../../../src/export/export-events')
+      const { createBatchExportEvent, EXPORT_EVENTS } = require('src/export/export-events')
 
       const formats = ['csv', 'json', 'excel']
       const books = [{ title: 'Test Book' }]
@@ -244,7 +244,7 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     })
 
     test('應該提供進度更新事件建立函數', () => {
-      const { createProgressEvent, EXPORT_EVENTS } = require('../../../src/export/export-events')
+      const { createProgressEvent, EXPORT_EVENTS } = require('src/export/export-events')
 
       const progressData = {
         current: 50,
@@ -264,14 +264,14 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
 
   describe('🔴 Red Phase: 事件驗證工具', () => {
     test('應該提供 validateExportEvent 驗證函數', () => {
-      const { validateExportEvent } = require('../../../src/export/export-events')
+      const { validateExportEvent } = require('src/export/export-events')
 
       expect(validateExportEvent).toBeDefined()
       expect(typeof validateExportEvent).toBe('function')
     })
 
     test('validateExportEvent 應該驗證事件結構', () => {
-      const { validateExportEvent, createExportEvent, EXPORT_EVENTS } = require('../../../src/export/export-events')
+      const { validateExportEvent, createExportEvent, EXPORT_EVENTS } = require('src/export/export-events')
 
       const validEvent = createExportEvent(EXPORT_EVENTS.CSV_EXPORT_REQUESTED, {
         books: [],
@@ -290,7 +290,7 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     })
 
     test('應該提供 isExportEvent 事件類型檢查函數', () => {
-      const { isExportEvent, EXPORT_EVENTS } = require('../../../src/export/export-events')
+      const { isExportEvent, EXPORT_EVENTS } = require('src/export/export-events')
 
       expect(isExportEvent).toBeDefined()
       expect(typeof isExportEvent).toBe('function')
@@ -302,7 +302,7 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     })
 
     test('應該提供 getEventPriority 優先級查詢函數', () => {
-      const { getEventPriority, EXPORT_EVENTS } = require('../../../src/export/export-events')
+      const { getEventPriority, EXPORT_EVENTS } = require('src/export/export-events')
 
       expect(getEventPriority).toBeDefined()
       expect(typeof getEventPriority).toBe('function')
@@ -316,7 +316,7 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
 
   describe('🔴 Red Phase: 事件命名規範驗證', () => {
     test('所有匯出事件應該遵循 MODULE.ACTION.STATE 格式', () => {
-      const { EXPORT_EVENTS } = require('../../../src/export/export-events')
+      const { EXPORT_EVENTS } = require('src/export/export-events')
 
       const eventNamePattern = /^EXPORT\.[A-Z_]+\.[A-Z_]+$/
 
@@ -326,7 +326,7 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     })
 
     test('事件名稱應該具有描述性和一致性', () => {
-      const { EXPORT_EVENTS } = require('../../../src/export/export-events')
+      const { EXPORT_EVENTS } = require('src/export/export-events')
 
       // 檢查請求類事件
       const requestEvents = Object.values(EXPORT_EVENTS).filter(event =>
@@ -350,7 +350,7 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     })
 
     test('事件常數名稱應該與事件類型對應', () => {
-      const { EXPORT_EVENTS } = require('../../../src/export/export-events')
+      const { EXPORT_EVENTS } = require('src/export/export-events')
 
       // 檢查常數名稱與事件值的對應關係
       Object.entries(EXPORT_EVENTS).forEach(([constantName, eventType]) => {
@@ -362,14 +362,14 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
 
   describe('🔴 Red Phase: 事件資料結構標準', () => {
     test('應該定義 EXPORT_EVENT_SCHEMAS 資料結構規範', () => {
-      const { EXPORT_EVENT_SCHEMAS } = require('../../../src/export/export-events')
+      const { EXPORT_EVENT_SCHEMAS } = require('src/export/export-events')
 
       expect(EXPORT_EVENT_SCHEMAS).toBeDefined()
       expect(typeof EXPORT_EVENT_SCHEMAS).toBe('object')
     })
 
     test('應該為每種事件類型定義資料結構', () => {
-      const { EXPORT_EVENT_SCHEMAS, EXPORT_EVENTS } = require('../../../src/export/export-events')
+      const { EXPORT_EVENT_SCHEMAS, EXPORT_EVENTS } = require('src/export/export-events')
 
       // CSV 匯出請求事件的資料結構
       expect(EXPORT_EVENT_SCHEMAS).toHaveProperty('CSV_EXPORT_REQUESTED')
@@ -387,7 +387,7 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     })
 
     test('應該提供事件資料驗證功能', () => {
-      const { validateEventData } = require('../../../src/export/export-events')
+      const { validateEventData } = require('src/export/export-events')
 
       expect(validateEventData).toBeDefined()
       expect(typeof validateEventData).toBe('function')
@@ -409,8 +409,8 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
 
   describe('🔴 Red Phase: 整合性和相容性測試', () => {
     test('匯出事件系統應該與現有 EventBus 相容', () => {
-      const EventBus = require('../../../src/core/event-bus')
-      const { EXPORT_EVENTS, createExportEvent } = require('../../../src/export/export-events')
+      const EventBus = require('src/core/event-bus')
+      const { EXPORT_EVENTS, createExportEvent } = require('src/export/export-events')
 
       const eventBus = new EventBus()
       const mockHandler = jest.fn()
@@ -431,7 +431,7 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     })
 
     test('匯出事件應該支援事件相關性追蹤', () => {
-      const { createExportEvent, EXPORT_EVENTS } = require('../../../src/export/export-events')
+      const { createExportEvent, EXPORT_EVENTS } = require('src/export/export-events')
 
       const requestEvent = createExportEvent(EXPORT_EVENTS.CSV_EXPORT_REQUESTED, {
         books: [],
@@ -447,12 +447,12 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     })
 
     test('事件優先級應該與 EventBus 優先級系統相容', () => {
-      const EventBus = require('../../../src/core/event-bus')
+      const EventBus = require('src/core/event-bus')
       const {
         EXPORT_EVENTS,
         getEventPriority,
         createExportEvent
-      } = require('../../../src/export/export-events')
+      } = require('src/export/export-events')
 
       const eventBus = new EventBus()
       const executionOrder = []

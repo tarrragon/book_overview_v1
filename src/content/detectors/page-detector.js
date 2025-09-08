@@ -58,7 +58,6 @@ function createPageDetector () {
         globalThis: globalThis.location ? 'exists' : 'missing',
         window: (typeof window !== 'undefined' && window?.location) ? 'exists' : 'missing'
       }
-      console.log('Debug - PageDetector location:', locationInfo)
       // 強制輸出到stderr確保在Jest中可見
       if (typeof process !== 'undefined' && process.stderr) {
         process.stderr.write(`PageDetector Debug: ${JSON.stringify(locationInfo)}\n`)

@@ -582,7 +582,6 @@ describe('Content Script Extractor Integration', () => {
           expect(flowStatus).toBeNull() // 已被清理
         } else {
           // 如果流程已經完成，測試仍應通過
-          console.log('提取流程已快速完成，跳過取消測試')
         }
 
         // 等待原始流程完成

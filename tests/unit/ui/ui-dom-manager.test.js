@@ -3,7 +3,7 @@
  * 測試 UI DOM 管理工具類的功能
  */
 
-const UIDOMManager = require('../../../src/ui/handlers/ui-dom-manager')
+const UIDOMManager = require('src/ui/handlers/ui-dom-manager')
 
 describe('UIDOMManager', () => {
   let domManager

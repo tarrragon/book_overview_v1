@@ -67,9 +67,9 @@ describe('PopupController 狀態管理整合測試', () => {
     global.document = document
 
     // 載入相關模組
-    PopupController = require('../../../src/popup/popup-controller.js')
-    PopupStatusManager = require('../../../src/popup/components/popup-status-manager.js')
-    PopupUIManager = require('../../../src/popup/popup-ui-manager.js')
+    PopupController = require('src/popup/popup-controller.js')
+    PopupStatusManager = require('src/popup/components/popup-status-manager.js')
+    PopupUIManager = require('src/popup/popup-ui-manager.js')
   })
 
   afterEach(() => {
