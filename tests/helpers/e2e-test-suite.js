@@ -447,6 +447,67 @@ class E2ETestSuite {
     }
   }
 
+  /**
+   * 測量操作執行時間和效能指標
+   * @param {string} operationName - 操作名稱
+   * @param {Function} operation - 要測量的操作函數
+   * @returns {Promise<Object>} 包含執行時間和其他指標的對象
+   */
+  async measureOperation (operationName, operation) {
+    this.log(`[E2ETestSuite] 開始測量操作: ${operationName}`)
+    
+    const startTime = Date.now()
+    const startMemory = this.getMemoryUsage()
+    
+    let result
+    let error = null
+    
+    try {
+      result = await operation()
+    } catch (err) {
+      error = err
+      this.logError(`操作 ${operationName} 執行失敗`, err)
+    }
+    
+    const endTime = Date.now()
+    const endMemory = this.getMemoryUsage()
+    const executionTime = endTime - startTime
+    
+    const metrics = {
+      operationName,
+      executionTime,
+      memoryUsage: {
+        before: startMemory,
+        after: endMemory,
+        delta: endMemory - startMemory
+      },
+      timestamp: startTime,
+      success: error === null,
+      error: error ? error.message : null,
+      result: error ? null : result
+    }
+    
+    // 記錄到操作日誌
+    this.logOperation(`${operationName} 完成`, {
+      duration: executionTime,
+      success: !error
+    })
+    
+    // 儲存指標到內部追蹤
+    if (!this.performanceMetrics) {
+      this.performanceMetrics = []
+    }
+    this.performanceMetrics.push(metrics)
+    
+    this.log(`[E2ETestSuite] 操作 ${operationName} 測量完成: ${executionTime}ms`)
+    
+    if (error) {
+      throw error
+    }
+    
+    return metrics
+  }
+
   calculateAverageOperationTime () {
     if (this.metrics.operations.length === 0) return 0
 

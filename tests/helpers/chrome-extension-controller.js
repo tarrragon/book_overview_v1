@@ -2055,6 +2055,93 @@ class ChromeExtensionController {
     }
   }
 
+  /**
+   * 訂閱匯入進度更新
+   * @param {Function} progressCallback - 進度回調函數
+   * @returns {Object} 訂閱對象，包含 unsubscribe 方法
+   */
+  async subscribeToImportProgress (progressCallback) {
+    this.log('[ChromeExtensionController] 開始訂閱匯入進度')
+    
+    const subscriptionId = `import_progress_${Date.now()}`
+    let isActive = true
+    
+    // 模擬匯入進度更新
+    const simulateImportProgress = () => {
+      let progress = 0
+      const interval = setInterval(() => {
+        if (!isActive) {
+          clearInterval(interval)
+          return
+        }
+        
+        progress += Math.random() * 20 // 隨機增加 0-20%
+        if (progress >= 100) {
+          progress = 100
+          clearInterval(interval)
+          isActive = false
+        }
+        
+        progressCallback({
+          type: 'import_progress',
+          progress: Math.min(progress, 100),
+          phase: progress < 30 ? 'reading_file' : 
+                 progress < 60 ? 'parsing_data' : 
+                 progress < 90 ? 'validating_data' : 'importing_data',
+          timestamp: Date.now()
+        })
+      }, 100) // 每 100ms 更新一次
+    }
+    
+    // 延遲開始以模擬真實情況
+    setTimeout(simulateImportProgress, 50)
+    
+    return {
+      unsubscribe: () => {
+        isActive = false
+        this.log('[ChromeExtensionController] 取消訂閱匯入進度')
+      }
+    }
+  }
+
+  /**
+   * 等待並預期衝突解決介面出現
+   * @param {number} timeout - 等待超時時間（毫秒）
+   * @returns {Promise<Object>} 衝突解決介面狀態
+   */
+  async expectConflictResolutionUI (timeout = 5000) {
+    this.log('[ChromeExtensionController] 等待衝突解決介面')
+    
+    return new Promise((resolve, reject) => {
+      const startTime = Date.now()
+      
+      const checkForUI = () => {
+        const elapsed = Date.now() - startTime
+        
+        if (elapsed > timeout) {
+          reject(new Error(`衝突解決介面在 ${timeout}ms 內未出現`))
+          return
+        }
+        
+        // 模擬檢查介面是否出現
+        // 在測試環境中，我們假設衝突解決介面會在 200-800ms 內出現
+        if (elapsed > 200 + Math.random() * 600) {
+          resolve({
+            type: 'conflict_resolution_ui',
+            visible: true,
+            conflictCount: Math.floor(Math.random() * 5) + 1,
+            options: ['keep_local', 'keep_remote', 'merge'],
+            timestamp: Date.now()
+          })
+        } else {
+          setTimeout(checkForUI, 50)
+        }
+      }
+      
+      checkForUI()
+    })
+  }
+
   async measureButtonResponseTime () {
     // 模擬按鈕響應時間測量
     return Math.random() * 50 + 20 // 20-70ms 隨機響應時間

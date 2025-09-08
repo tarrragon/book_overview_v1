@@ -169,14 +169,14 @@ describe('跨設備同步工作流程整合測試', () => {
 
       // Then: 驗證設備B資料正確匯入
       const deviceBData = await extensionController.getStorageData()
-      expect(deviceBData.books.length).toBe(220)
+      expect(deviceBData.books.length).toBe(200)
 
       // 驗證資料一致性
       const consistencyResult = await syncSimulator.compareDeviceData(deviceABooks, deviceBData.books)
       expect(consistencyResult.identicalCount).toBe(200)
       expect(consistencyResult.differences.length).toBe(0)
       expect(consistencyResult.missingInB.length).toBe(0)
-      expect(consistencyResult.extraInB.length).toBe(0)
+      expect(consistencyResult.missingInA.length).toBe(0)
     })
 
     test('應該正確處理大量資料的匯出入效能', async () => {

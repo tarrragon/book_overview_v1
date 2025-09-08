@@ -76,16 +76,25 @@ class MockLogger {
     this.logs.push({ level: 'log', message, timestamp: Date.now() })
   }
 
-  info (message) {
-    this.logs.push({ level: 'info', message, timestamp: Date.now() })
+  info (messageKey, data) {
+    // 支援新的 Logger 系統格式：info(messageKey, data)
+    const message = data && data.message ? data.message : messageKey
+    this.logs.push({ level: 'info', message, messageKey, data, timestamp: Date.now() })
   }
 
-  warn (message) {
-    this.logs.push({ level: 'warn', message, timestamp: Date.now() })
+  warn (messageKey, data) {
+    const message = data && data.message ? data.message : messageKey
+    this.logs.push({ level: 'warn', message, messageKey, data, timestamp: Date.now() })
   }
 
-  error (message) {
-    this.logs.push({ level: 'error', message, timestamp: Date.now() })
+  error (messageKey, data) {
+    const message = data && data.message ? data.message : messageKey
+    this.logs.push({ level: 'error', message, messageKey, data, timestamp: Date.now() })
+  }
+
+  debug (messageKey, data) {
+    const message = data && data.message ? data.message : messageKey
+    this.logs.push({ level: 'debug', message, messageKey, data, timestamp: Date.now() })
   }
 
   getLogs () {

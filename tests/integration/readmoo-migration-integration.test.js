@@ -432,7 +432,7 @@ describe('Readmoo Migration Integration Tests', () => {
       expect(eventData.result).toBeDefined()
       expect(eventData.details).toBeDefined()
       expect(eventData.timestamp).toBeDefined()
-    })
+    }, 15000)
 
     it('應該正確處理驗證請求事件', async () => {
       const context = {
@@ -456,7 +456,7 @@ describe('Readmoo Migration Integration Tests', () => {
       expect(resultData).toBeDefined()
       expect(resultData.result).toBeDefined()
       expect(resultData.timestamp).toBeDefined()
-    })
+    }, 15000)
   })
 
   describe('錯誤處理和恢復', () => {

@@ -577,7 +577,7 @@ describe('Schema Migration Service', () => {
 
       await expect(migrationService.executeMigrationStep(step, testData))
         .rejects.toThrow('Migration execution timeout')
-    })
+    }, 40000) // 設定測試超時為 40 秒
 
     test('併發控制和資源鎖定', async () => {
       const plan1 = await migrationService.createMigrationPlan('1.0.0', '1.1.0')

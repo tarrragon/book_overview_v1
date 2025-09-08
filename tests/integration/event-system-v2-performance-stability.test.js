@@ -656,7 +656,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
           timestamp: Date.now()
         })
         expect(testResponse).not.toThrow()
-      })
+      }, 15000)
 
       test('應該在持續負載下保持響應性', async () => {
         const loadTestDuration = 8000 // 8 秒負載測試

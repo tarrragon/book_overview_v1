@@ -238,6 +238,72 @@ class CrossDeviceSyncSimulator {
   }
 
   /**
+   * 比較兩個設備的資料差異
+   * @param {Array} deviceAData - 設備A的資料
+   * @param {Array} deviceBData - 設備B的資料
+   * @returns {Object} 比較結果
+   */
+  async compareDeviceData (deviceAData, deviceBData) {
+    const results = {
+      identicalCount: 0,
+      differences: [],
+      missingInA: [],
+      missingInB: [],
+      totalA: deviceAData.length,
+      totalB: deviceBData.length
+    }
+
+    // 建立資料索引以便快速比較
+    const deviceAIndex = new Map()
+    const deviceBIndex = new Map()
+
+    deviceAData.forEach((item, index) => {
+      const key = item.id || item.title || `item_${index}`
+      deviceAIndex.set(key, item)
+    })
+
+    deviceBData.forEach((item, index) => {
+      const key = item.id || item.title || `item_${index}`
+      deviceBIndex.set(key, item)
+    })
+
+    // 比較 A 中的每個項目
+    for (const [key, itemA] of deviceAIndex) {
+      if (deviceBIndex.has(key)) {
+        const itemB = deviceBIndex.get(key)
+        // 深度比較
+        if (JSON.stringify(itemA) === JSON.stringify(itemB)) {
+          results.identicalCount++
+        } else {
+          results.differences.push({
+            key,
+            deviceA: itemA,
+            deviceB: itemB,
+            type: 'modified'
+          })
+        }
+      } else {
+        results.missingInB.push({
+          key,
+          data: itemA
+        })
+      }
+    }
+
+    // 檢查 B 中有但 A 中沒有的項目
+    for (const [key, itemB] of deviceBIndex) {
+      if (!deviceAIndex.has(key)) {
+        results.missingInA.push({
+          key,
+          data: itemB
+        })
+      }
+    }
+
+    return results
+  }
+
+  /**
    * 模擬網路延遲
    */
   async simulateNetworkDelay (ms = 200) {
