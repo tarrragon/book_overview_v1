@@ -334,6 +334,7 @@ function createChromeEventBridge () {
 
   // 註冊消息監聽器
   if (chrome.runtime && chrome.runtime.onMessage) {
+    // eslint-disable-next-line no-useless-catch
     try {
       chrome.runtime.onMessage.addListener(messageListener)
       bridge.messageListener = messageListener

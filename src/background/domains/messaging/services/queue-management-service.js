@@ -80,6 +80,7 @@ class QueueManagementService {
    */
   initializeQueues () {
     // 按優先級創建佇列
+    // eslint-disable-next-line no-unused-vars  
     for (const [level, priority] of Object.entries(QUEUE_CONFIG.PRIORITY_LEVELS)) {
       this.messageQueues.set(priority, [])
     }
@@ -236,12 +237,13 @@ class QueueManagementService {
   async dequeueMessage (messageId) {
     try {
       // 搜尋所有佇列
+      // eslint-disable-next-line no-unused-vars
       for (const [priority, queue] of this.messageQueues) {
         const index = queue.findIndex(item => item.id === messageId)
         if (index !== -1) {
           const queueItem = queue.splice(index, 1)[0]
           this.stats.currentQueueSize = this.getTotalQueueSize()
-          
+
           this.logger.log(`📤 訊息已從佇列移除: ${messageId}`)
           return {
             success: true,
@@ -324,7 +326,6 @@ class QueueManagementService {
 
       // 更新佇列大小統計
       this.stats.currentQueueSize = this.getTotalQueueSize()
-
     } catch (error) {
       this.logger.error('❌ 處理訊息批次失敗:', error)
     }
@@ -335,30 +336,30 @@ class QueueManagementService {
    */
   getNextMessageBatch (batchSize) {
     const batch = []
-    
+
     // 按優先級順序處理（從高到低）
     const sortedPriorities = Array.from(this.messageQueues.keys()).sort((a, b) => b - a)
-    
+
     for (const priority of sortedPriorities) {
       const queue = this.messageQueues.get(priority)
-      
+
       while (queue.length > 0 && batch.length < batchSize) {
         const queueItem = queue.shift()
-        
+
         // 檢查訊息是否已過期
         if (this.isMessageExpired(queueItem)) {
           this.handleExpiredMessage(queueItem)
           continue
         }
-        
+
         batch.push(queueItem)
       }
-      
+
       if (batch.length >= batchSize) {
         break
       }
     }
-    
+
     return batch
   }
 
@@ -367,7 +368,7 @@ class QueueManagementService {
    */
   async processQueueItem (queueItem) {
     const startTime = Date.now()
-    
+
     try {
       queueItem.status = 'processing'
       queueItem.attempts++
@@ -393,7 +394,6 @@ class QueueManagementService {
       } else {
         await this.handleProcessingFailure(queueItem, processingResult.error)
       }
-
     } catch (error) {
       await this.handleProcessingFailure(queueItem, error.message)
     } finally {
@@ -410,10 +410,11 @@ class QueueManagementService {
   async delegateMessageProcessing (queueItem) {
     // 這裡會根據訊息類型委託給相應的處理器
     // 現在先模擬處理結果
-    
+
     try {
       // 觸發具體的訊息處理事件
       if (this.eventBus) {
+        // eslint-disable-next-line no-unused-vars
         const processingEvent = {
           type: 'MESSAGE.PROCESSING.DELEGATE',
           data: {
@@ -493,7 +494,7 @@ class QueueManagementService {
   async scheduleRetry (queueItem) {
     // 計算重試延遲（指數退避）
     const retryDelay = QUEUE_CONFIG.RETRY_DELAY_BASE * Math.pow(2, queueItem.attempts - 1)
-    
+
     queueItem.status = 'retry_scheduled'
     queueItem.retryAt = Date.now() + retryDelay
 
@@ -578,21 +579,21 @@ class QueueManagementService {
    */
   getQueuePosition (messageId) {
     let position = 0
-    
+
     // 按優先級順序計算位置
     const sortedPriorities = Array.from(this.messageQueues.keys()).sort((a, b) => b - a)
-    
+
     for (const priority of sortedPriorities) {
       const queue = this.messageQueues.get(priority)
       const index = queue.findIndex(item => item.id === messageId)
-      
+
       if (index !== -1) {
         return position + index + 1
       }
-      
+
       position += queue.length
     }
-    
+
     return -1 // 未找到
   }
 
@@ -687,7 +688,7 @@ class QueueManagementService {
    */
   async performHealthCheck () {
     const issues = []
-    
+
     // 檢查佇列大小
     const totalQueueSize = this.getTotalQueueSize()
     if (totalQueueSize > QUEUE_CONFIG.MAX_QUEUE_SIZE * 0.8) {
@@ -797,7 +798,7 @@ class QueueManagementService {
    */
   getQueueStatus () {
     const queueStatus = {}
-    
+
     for (const [priority, queue] of this.messageQueues) {
       queueStatus[`priority_${priority}`] = {
         size: queue.length,

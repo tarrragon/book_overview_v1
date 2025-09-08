@@ -1,6 +1,6 @@
 /**
  * 訊息服務架構整合驗證測試
- * 
+ *
  * 目的：驗證 v0.11.1 中創建的三大訊息服務是否正確整合到系統中
  * 測試範圍：
  * - 服務實例化和初始化
@@ -38,7 +38,7 @@ describe('訊息服務架構整合驗證', () => {
     test('應該成功註冊所有5個訊息服務', () => {
       const expectedServices = [
         'validation',
-        'queue', 
+        'queue',
         'connection',
         'session',
         'routing'
@@ -54,7 +54,7 @@ describe('訊息服務架構整合驗證', () => {
 
     test('應該為每個服務設置正確的初始狀態', () => {
       const expectedServices = ['validation', 'queue', 'connection', 'session', 'routing']
-      
+
       expectedServices.forEach(serviceName => {
         const serviceState = coordinator.serviceStates.get(serviceName)
         expect(serviceState).toEqual({
@@ -71,11 +71,11 @@ describe('訊息服務架構整合驗證', () => {
   describe('新建服務功能驗證', () => {
     test('ConnectionMonitoringService 應該具備基本監控功能', () => {
       const connectionService = coordinator.services.get('connection')
-      
+
       // 驗證服務實例存在
       expect(connectionService).toBeDefined()
       expect(connectionService.constructor.name).toBe('ConnectionMonitoringService')
-      
+
       // 驗證基本屬性
       expect(connectionService).toHaveProperty('activeConnections')
       expect(connectionService).toHaveProperty('connectionHistory')
@@ -84,10 +84,10 @@ describe('訊息服務架構整合驗證', () => {
 
     test('MessageValidationService 應該具備驗證功能', () => {
       const validationService = coordinator.services.get('validation')
-      
+
       expect(validationService).toBeDefined()
       expect(validationService.constructor.name).toBe('MessageValidationService')
-      
+
       // 驗證基本功能方法存在
       expect(typeof validationService.validateMessage).toBe('function')
       expect(typeof validationService.validateMessageSecurity).toBe('function')
@@ -95,10 +95,10 @@ describe('訊息服務架構整合驗證', () => {
 
     test('QueueManagementService 應該具備佇列管理功能', () => {
       const queueService = coordinator.services.get('queue')
-      
+
       expect(queueService).toBeDefined()
       expect(queueService.constructor.name).toBe('QueueManagementService')
-      
+
       // 驗證佇列相關屬性
       expect(queueService).toHaveProperty('messageQueues')
       expect(queueService).toHaveProperty('stats')
@@ -126,10 +126,10 @@ describe('訊息服務架構整合驗證', () => {
   describe('服務協作驗證', () => {
     test('所有服務應該接收相同的依賴注入', () => {
       const services = ['validation', 'queue', 'connection', 'session', 'routing']
-      
+
       services.forEach(serviceName => {
         const service = coordinator.services.get(serviceName)
-        
+
         // 驗證依賴注入
         expect(service.eventBus).toBe(mockDependencies.eventBus)
         expect(service.logger).toBe(mockDependencies.logger)
@@ -148,12 +148,12 @@ describe('訊息服務架構整合驗證', () => {
     test('v0.11.1 新增服務應該與既有服務並存', () => {
       const existingServices = ['session', 'routing']
       const newServices = ['validation', 'queue', 'connection']
-      
+
       // 驗證既有服務仍然存在
       existingServices.forEach(serviceName => {
         expect(coordinator.services.has(serviceName)).toBe(true)
       })
-      
+
       // 驗證新服務已成功整合
       newServices.forEach(serviceName => {
         expect(coordinator.services.has(serviceName)).toBe(true)
@@ -163,7 +163,7 @@ describe('訊息服務架構整合驗證', () => {
     test('訊息服務架構應該支援事件驅動模式', () => {
       // 驗證協調器具備事件處理能力
       expect(coordinator.eventBus).toBe(mockDependencies.eventBus)
-      
+
       // 驗證服務註冊了事件監聽器管理
       expect(coordinator.registeredListeners).toBeInstanceOf(Map)
     })
