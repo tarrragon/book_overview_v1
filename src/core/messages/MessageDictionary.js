@@ -81,7 +81,63 @@ class MessageDictionary {
       DEBUG_MESSAGE: '除錯訊息: {message}',
       INFO_MESSAGE: '資訊: {message}',
       WARN_MESSAGE: '警告: {message}',
-      ERROR_MESSAGE: '錯誤: {message}'
+      ERROR_MESSAGE: '錯誤: {message}',
+
+      // 驗證相關訊息模板
+      VALIDATOR_INIT: '驗證器初始化',
+      VALIDATION_START: '開始資料驗證',
+      VALIDATION_SUCCESS: '資料驗證成功',
+      VALIDATION_TIMEOUT: '驗證逾時',
+      VALIDATION_RETRY: '重新驗證',
+      VALIDATION_CACHE_HIT: '命中驗證快取',
+
+      // 資料提取相關訊息模板
+      DATA_EXTRACTION_START: '開始資料提取',
+      DATA_EXTRACTION_EMPTY: '提取的資料為空',
+      DATA_EXTRACTION_COMPLETE: '資料提取完成',
+      DATA_VALIDATION_FAILED: '資料驗證失敗',
+
+      // 平台檢測相關訊息模板
+      PLATFORM_DETECTION_START: '開始平台檢測',
+      PLATFORM_CONFIDENCE_LOW: '平台檢測信心度較低',
+
+      // 錯誤處理相關訊息模板
+      ERROR_CATEGORIZED: '錯誤已分類',
+      EVENT_SYSTEM_START: '事件系統啟動',
+      EVENT_EMIT_FAILED: '事件發送失敗',
+
+      // 書籍處理相關訊息模板
+      BOOK_CONTAINERS_FOUND: '找到書籍容器',
+      BOOK_CONTAINERS_PARSE_FAILED: '書籍容器解析失敗',
+      BOOK_BATCH_PARSE_FAILED: '批次書籍解析失敗',
+      NO_BOOK_ELEMENTS_FOUND: '未找到書籍元素',
+      BOOKS_DATA_UPDATED: '書籍資料已更新',
+      BOOKS_DATA_UPDATE_WARNING: '書籍資料更新警告',
+
+      // 組件和系統相關訊息模板
+      COMPONENT_INIT: '組件初始化',
+      CLEANUP_SUCCESS: '清理成功',
+      CACHE_CLEANUP: '快取清理',
+      MODULAR_COMPONENTS_SUCCESS: '模組化組件載入成功',
+      EXTRACTION_COMPLETED: '提取作業完成',
+
+      // 搜尋和篩選相關訊息模板
+      SEARCH_CLEARED: '搜尋已清除',
+      SEARCH_EXECUTION_ERROR: '搜尋執行錯誤',
+      FILTER_APPLICATION_ERROR: '篩選應用錯誤',
+      UNSAFE_COVER_URL_FILTERED: '不安全的封面網址已過濾',
+
+      // 回退策略相關訊息模板
+      FALLBACK_SELECTOR_ATTEMPT: '嘗試回退選擇器',
+      LAST_RESORT_STRATEGY: '最後手段策略',
+
+      // 配置相關訊息模板
+      CONFIG_VALIDATION_FAILED: '配置驗證失敗',
+
+      // 多語言支援
+      '未知的篩選條件': '未知的篩選條件',
+      '索引搜尋失敗，回退到線性搜尋': '索引搜尋失敗，回退到線性搜尋',
+      'Event listener registration failed': '事件監聽器註冊失敗'
     }
   }
 

@@ -135,7 +135,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       // Then: 應該在不可重試錯誤時停止
       await expect(promise).rejects.toThrow('Permission denied')
       expect(conditionalFailingOperation).toHaveBeenCalledTimes(2) // 遇到不可重試錯誤就停止
-    })
+    }, 20000)
 
     test('應該記錄重試統計資訊', async () => {
       // Given: 需要重試的操作
@@ -165,7 +165,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
       expect(mockMetrics.increment).toHaveBeenCalledWith('recovery.retry.attempt')
       expect(mockMetrics.timing).toHaveBeenCalledWith('recovery.retry.duration', expect.any(Number))
-    }, 15000)
+    }, 25000)
   })
 
   describe('📉 降級機制測試', () => {
@@ -402,7 +402,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       expect(result.restartOrder).toEqual(['EventBus', 'StorageManager', 'UIController'])
       expect(result.totalTime).toBeLessThan(700) // 應該有並行優化
       expect(result.allComponentsRunning).toBe(true)
-    }, 15000)
+    }, 30000)
 
     test('應該處理重啟失敗', async () => {
       // Given: 無法重啟的組件

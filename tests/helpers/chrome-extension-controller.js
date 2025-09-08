@@ -2104,6 +2104,51 @@ class ChromeExtensionController {
     }
   }
 
+  async subscribeToRetryEvents (eventCallback) {
+    this.log('[ChromeExtensionController] 開始訂閱重試事件')
+    
+    const subscriptionId = `retry_events_${Date.now()}`
+    let isActive = true
+    
+    // 模擬重試事件發生
+    const simulateRetryEvents = () => {
+      let attemptCount = 0
+      const eventInterval = setInterval(() => {
+        if (!isActive) {
+          clearInterval(eventInterval)
+          return
+        }
+        
+        attemptCount++
+        const eventType = attemptCount <= 3 ? 'retry_attempt' : 'retry_success'
+        
+        eventCallback({
+          type: eventType,
+          attempt: attemptCount,
+          maxAttempts: 5,
+          delay: Math.pow(2, attemptCount) * 100, // 指數退避
+          reason: attemptCount <= 3 ? 'network_timeout' : 'operation_completed',
+          timestamp: Date.now()
+        })
+        
+        if (eventType === 'retry_success') {
+          clearInterval(eventInterval)
+          isActive = false
+        }
+      }, 500) // 每 500ms 觸發一次事件
+    }
+    
+    // 延遲開始以模擬真實情況
+    setTimeout(simulateRetryEvents, 100)
+    
+    return {
+      unsubscribe: () => {
+        isActive = false
+        this.log('[ChromeExtensionController] 取消訂閱重試事件')
+      }
+    }
+  }
+
   /**
    * 等待並預期衝突解決介面出現
    * @param {number} timeout - 等待超時時間（毫秒）

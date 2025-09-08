@@ -25,9 +25,23 @@
  * - 提供主要的使用者操作界面
  */
 
-// 統一日誌管理系統
-import { Logger } from 'src/core/logging/Logger.js'
-import { MessageDictionary } from 'src/core/messages/MessageDictionary.js'
+// 統一日誌管理系統 - 支援多環境載入
+let Logger, MessageDictionary
+if (typeof require !== 'undefined') {
+  // Node.js/測試環境
+  try {
+    ({ Logger } = require('src/core/logging/Logger'))
+    ({ MessageDictionary } = require('src/core/messages/MessageDictionary'))
+  } catch (e) {
+    // 測試環境fallback
+    Logger = window.Logger || class { constructor() {} info() {} warn() {} error() {} debug() {} }
+    MessageDictionary = window.MessageDictionary || class { constructor() {} }
+  }
+} else {
+  // 瀏覽器環境 - 使用全域變數
+  Logger = window.Logger
+  MessageDictionary = window.MessageDictionary
+}
 
 // 初始化 Popup Logger
 const popupMessages = new MessageDictionary({

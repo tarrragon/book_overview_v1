@@ -72,6 +72,10 @@ class ValidationEngine {
     this.rules = rules
   }
 
+  getValidationRules (platform) {
+    return this.platformRuleManager.getRulesForPlatform(platform)
+  }
+
   get isInitialized () {
     return true
   }
