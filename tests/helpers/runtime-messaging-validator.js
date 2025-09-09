@@ -440,10 +440,594 @@ class RuntimeMessagingValidator {
   }
 
   /**
+   * 分析優先級處理效能
+   * 分析不同優先級訊息的處理效率和模式
+   */
+  async analyzePriorityProcessing (options = {}) {
+    const {
+      analysisType = 'comprehensive',
+      sampleSize = 100,
+      timeWindow = 30000
+    } = options
+
+    this.testSuite.log(`[MessagingValidator] 分析優先級處理效能: ${analysisType}`)
+
+    if (!this.priorityConfig) {
+      throw new Error('優先級配置未設置，請先調用 configurePriorityTesting()')
+    }
+
+    const analysis = {
+      analysisType,
+      timeWindow,
+      sampleSize,
+      priorityStatistics: {},
+      recommendations: [],
+      timestamp: Date.now()
+    }
+
+    // 分析每個優先級的統計數據
+    for (const priority of this.priorityConfig.priorityLevels) {
+      const queueMessages = this.messageQueue[priority] || []
+      
+      analysis.priorityStatistics[priority] = {
+        totalMessages: queueMessages.length,
+        averageProcessingTime: this._calculateAverageProcessingTime(queueMessages),
+        queueWaitTime: this._calculateQueueWaitTime(queueMessages),
+        throughput: this._calculateThroughput(queueMessages, timeWindow),
+        errorRate: this._calculateErrorRate(queueMessages)
+      }
+    }
+
+    // 比較優先級效能
+    const priorityComparison = this._comparePriorityPerformance(analysis.priorityStatistics)
+    analysis.priorityComparison = priorityComparison
+
+    // 生成建議
+    analysis.recommendations = this._generatePriorityRecommendations(analysis)
+
+    // 檢測異常模式
+    analysis.anomalies = this._detectPriorityAnomalies(analysis.priorityStatistics)
+
+    this.testSuite.log(`優先級分析完成: ${Object.keys(analysis.priorityStatistics).length} 個優先級`)
+
+    return analysis
+  }
+
+  /**
+   * 清理模擬錯誤
+   * 重置所有模擬的錯誤狀態和失敗條件
+   */
+  async clearSimulatedErrors () {
+    this.testSuite.log('[MessagingValidator] 清理模擬錯誤狀態')
+
+    const clearedErrors = {
+      simulatedFailures: 0,
+      unavailableRecipients: 0,
+      networkIssues: 0,
+      contextErrors: 0,
+      timestamp: Date.now()
+    }
+
+    // 清理模擬失敗
+    if (this.simulatedFailures) {
+      clearedErrors.simulatedFailures = this.simulatedFailures.size
+      this.simulatedFailures.clear()
+    }
+
+    // 清理不可用的接收者
+    if (this.unavailableRecipients) {
+      clearedErrors.unavailableRecipients = this.unavailableRecipients.size
+      this.unavailableRecipients.clear()
+    }
+
+    // 重置錯誤統計
+    if (this.retryStats) {
+      this.retryStats.failures = 0
+      this.retryStats.timeouts = 0
+    }
+
+    // 清理錯誤歷史
+    this.messageHistory = this.messageHistory.filter(msg => msg.type !== 'error')
+
+    // 恢復正常狀態
+    this.isTracking = true
+    this.testSuite.log('所有模擬錯誤已清理，系統恢復正常狀態')
+
+    return {
+      success: true,
+      clearedErrors,
+      systemStatus: 'normal',
+      timestamp: Date.now()
+    }
+  }
+
+  /**
+   * 計算平均處理時間
+   * 輔助方法：計算訊息的平均處理時間
+   */
+  _calculateAverageProcessingTime (messages) {
+    if (messages.length === 0) return 0
+    
+    const processingTimes = messages
+      .filter(msg => msg.processingTime)
+      .map(msg => msg.processingTime)
+    
+    if (processingTimes.length === 0) return 0
+    
+    return processingTimes.reduce((sum, time) => sum + time, 0) / processingTimes.length
+  }
+
+  /**
+   * 計算佇列等待時間
+   * 輔助方法：計算訊息在佇列中的等待時間
+   */
+  _calculateQueueWaitTime (messages) {
+    if (messages.length === 0) return 0
+    
+    const currentTime = Date.now()
+    const waitTimes = messages.map(msg => currentTime - msg.timestamp)
+    
+    return waitTimes.reduce((sum, time) => sum + time, 0) / waitTimes.length
+  }
+
+  /**
+   * 計算吞吐量
+   * 輔助方法：計算指定時間窗口內的訊息處理吞吐量
+   */
+  _calculateThroughput (messages, timeWindow) {
+    const recentMessages = messages.filter(msg => 
+      Date.now() - msg.timestamp <= timeWindow
+    )
+    
+    return (recentMessages.length / timeWindow) * 1000 // 每秒處理量
+  }
+
+  /**
+   * 計算錯誤率
+   * 輔助方法：計算訊息處理的錯誤率
+   */
+  _calculateErrorRate (messages) {
+    if (messages.length === 0) return 0
+    
+    const errorMessages = messages.filter(msg => msg.error || msg.failed)
+    return (errorMessages.length / messages.length) * 100
+  }
+
+  /**
+   * 比較優先級效能
+   * 輔助方法：比較不同優先級之間的效能差異
+   */
+  _comparePriorityPerformance (priorityStats) {
+    const priorities = Object.keys(priorityStats)
+    const comparison = {}
+    
+    for (let i = 0; i < priorities.length; i++) {
+      for (let j = i + 1; j < priorities.length; j++) {
+        const priority1 = priorities[i]
+        const priority2 = priorities[j]
+        const stats1 = priorityStats[priority1]
+        const stats2 = priorityStats[priority2]
+        
+        comparison[`${priority1}_vs_${priority2}`] = {
+          processingTimeDiff: stats1.averageProcessingTime - stats2.averageProcessingTime,
+          throughputDiff: stats1.throughput - stats2.throughput,
+          errorRateDiff: stats1.errorRate - stats2.errorRate,
+          recommendation: stats1.averageProcessingTime < stats2.averageProcessingTime 
+            ? `${priority1} 效能較佳` 
+            : `${priority2} 效能較佳`
+        }
+      }
+    }
+    
+    return comparison
+  }
+
+  /**
+   * 生成優先級建議
+   * 輔助方法：基於分析結果生成優化建議
+   */
+  _generatePriorityRecommendations (analysis) {
+    const recommendations = []
+    
+    Object.entries(analysis.priorityStatistics).forEach(([priority, stats]) => {
+      if (stats.averageProcessingTime > 1000) {
+        recommendations.push({
+          priority,
+          type: 'performance',
+          issue: '處理時間過長',
+          currentValue: stats.averageProcessingTime,
+          suggestedAction: '檢查處理邏輯，考慮優化或增加並行處理'
+        })
+      }
+      
+      if (stats.errorRate > 5) {
+        recommendations.push({
+          priority,
+          type: 'reliability',
+          issue: '錯誤率過高',
+          currentValue: stats.errorRate,
+          suggestedAction: '檢查錯誤處理機制，改善錯誤恢復策略'
+        })
+      }
+      
+      if (stats.queueWaitTime > 2000) {
+        recommendations.push({
+          priority,
+          type: 'latency',
+          issue: '佇列等待時間過長',
+          currentValue: stats.queueWaitTime,
+          suggestedAction: '考慮增加處理容量或調整優先級排程'
+        })
+      }
+    })
+    
+    return recommendations
+  }
+
+  /**
+   * 檢測優先級異常
+   * 輔助方法：檢測優先級處理中的異常模式
+   */
+  _detectPriorityAnomalies (priorityStats) {
+    const anomalies = []
+    
+    const priorityLevels = Object.keys(priorityStats)
+    
+    // 檢測優先級倒置 (低優先級比高優先級處理更快)
+    for (let i = 0; i < priorityLevels.length - 1; i++) {
+      const currentPriority = priorityLevels[i]
+      const nextPriority = priorityLevels[i + 1]
+      const currentStats = priorityStats[currentPriority]
+      const nextStats = priorityStats[nextPriority]
+      
+      if (currentStats.averageProcessingTime > nextStats.averageProcessingTime) {
+        anomalies.push({
+          type: 'priority_inversion',
+          description: `${currentPriority} 優先級處理時間比 ${nextPriority} 更長`,
+          severity: 'medium',
+          impact: '可能影響系統響應優先級'
+        })
+      }
+    }
+    
+    // 檢測極端處理時間差異
+    const processingTimes = Object.values(priorityStats).map(stats => stats.averageProcessingTime)
+    const maxTime = Math.max(...processingTimes)
+    const minTime = Math.min(...processingTimes)
+    
+    if (maxTime > minTime * 10) {
+      anomalies.push({
+        type: 'extreme_processing_difference',
+        description: '不同優先級間處理時間差異過大',
+        severity: 'high',
+        impact: '可能導致低優先級訊息餓死'
+      })
+    }
+    
+    return anomalies
+  }
+
+  /**
+   * 啟用序列追蹤
+   * 追蹤訊息的發送和接收順序
+   */
+  async enableSequenceTracking (options = {}) {
+    const {
+      trackOrderConsistency = true,
+      detectOutOfOrder = true,
+      maxSequenceLength = 100
+    } = options
+
+    this.testSuite.log('[MessagingValidator] 啟用序列追蹤')
+
+    this.sequenceTracking = {
+      enabled: true,
+      trackOrderConsistency,
+      detectOutOfOrder,
+      maxSequenceLength,
+      sequences: new Map(),
+      orderViolations: [],
+      startTime: Date.now()
+    }
+
+    // 開始追蹤所有訊息通道
+    await this.startTracking(['popup', 'background', 'content'])
+
+    return {
+      enabled: true,
+      settings: this.sequenceTracking,
+      timestamp: Date.now()
+    }
+  }
+
+  /**
+   * 模擬訊息延遲
+   * 為測試目的模擬不同程度的訊息傳遞延遲
+   */
+  async simulateMessageDelay (options = {}) {
+    const {
+      delayMs = 1000,
+      variance = 200,
+      affectedChannels = ['all'],
+      delayPattern = 'random'
+    } = options
+
+    this.testSuite.log(`[MessagingValidator] 模擬訊息延遲: ${delayMs}ms ±${variance}ms`)
+
+    this.messageDelaySimulation = {
+      active: true,
+      delayMs,
+      variance,
+      affectedChannels,
+      delayPattern,
+      delayedMessages: [],
+      startTime: Date.now()
+    }
+
+    // 根據延遲模式計算實際延遲
+    const actualDelay = this._calculateMessageDelay(delayMs, variance, delayPattern)
+
+    // 模擬延遲期間
+    await new Promise(resolve => setTimeout(resolve, actualDelay))
+
+    // 記錄延遲效果
+    this.messageHistory.push({
+      type: 'message_delay_simulation',
+      delayMs: actualDelay,
+      affectedChannels,
+      timestamp: Date.now()
+    })
+
+    return {
+      success: true,
+      actualDelay,
+      expectedDelay: delayMs,
+      variance,
+      pattern: delayPattern,
+      simulation: this.messageDelaySimulation,
+      timestamp: Date.now()
+    }
+  }
+
+  /**
+   * 計算訊息延遲
+   * 輔助方法：根據延遲模式和參數計算實際延遲時間
+   */
+  _calculateMessageDelay (baseDelay, variance, pattern) {
+    switch (pattern) {
+      case 'fixed':
+        return baseDelay
+
+      case 'random':
+        const randomVariance = (Math.random() - 0.5) * 2 * variance
+        return Math.max(0, baseDelay + randomVariance)
+
+      case 'increasing':
+        const increment = Math.random() * variance
+        return baseDelay + increment
+
+      case 'decreasing':
+        const decrement = Math.random() * variance
+        return Math.max(0, baseDelay - decrement)
+
+      case 'spike':
+        // 偶爾產生高延遲峰值
+        const isSpike = Math.random() < 0.1 // 10% 機率
+        return isSpike ? baseDelay * 3 : baseDelay
+
+      default:
+        return baseDelay
+    }
+  }
+
+  /**
+   * 記錄序列違規
+   * 輔助方法：記錄檢測到的訊息順序違規
+   */
+  _recordSequenceViolation (violation) {
+    if (!this.sequenceTracking?.enabled) return
+
+    this.sequenceTracking.orderViolations.push({
+      ...violation,
+      timestamp: Date.now(),
+      violationId: `seq_violation_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`
+    })
+
+    // 限制違規記錄數量
+    if (this.sequenceTracking.orderViolations.length > 50) {
+      this.sequenceTracking.orderViolations.shift()
+    }
+  }
+
+  /**
+   * 分析序列完整性
+   * 輔助方法：分析訊息序列的完整性和一致性
+   */
+  _analyzeSequenceIntegrity () {
+    if (!this.sequenceTracking?.enabled) {
+      return { error: 'Sequence tracking not enabled' }
+    }
+
+    const analysis = {
+      totalSequences: this.sequenceTracking.sequences.size,
+      totalViolations: this.sequenceTracking.orderViolations.length,
+      integrityScore: 0,
+      recommendations: []
+    }
+
+    // 計算完整性分數
+    if (analysis.totalSequences > 0) {
+      analysis.integrityScore = Math.max(0, 
+        100 - (analysis.totalViolations / analysis.totalSequences * 100)
+      )
+    }
+
+    // 生成建議
+    if (analysis.integrityScore < 95) {
+      analysis.recommendations.push({
+        type: 'integrity_improvement',
+        message: '序列完整性偏低，建議檢查訊息處理邏輯',
+        currentScore: analysis.integrityScore,
+        targetScore: 95
+      })
+    }
+
+    if (analysis.totalViolations > 10) {
+      analysis.recommendations.push({
+        type: 'violation_reduction',
+        message: '序列違規過多，建議優化訊息排序機制',
+        currentViolations: analysis.totalViolations,
+        targetViolations: 5
+      })
+    }
+
+    return analysis
+  }
+
+  /**
    * 模擬延遲（輔助方法）
    */
   async simulateDelay (ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
+  }
+
+  /**
+   * 模擬序列化錯誤
+   * 模擬 JSON 序列化失敗的情況
+   */
+  simulateSerializationError (message = {}) {
+    this.testSuite.log('[MessagingValidator] 模擬序列化錯誤')
+
+    // 模擬包含循環引用的物件
+    const circularRef = { data: message }
+    circularRef.self = circularRef
+
+    try {
+      JSON.stringify(circularRef)
+      return {
+        success: true,
+        error: null,
+        serializable: true
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: {
+          type: 'SERIALIZATION_ERROR',
+          message: error.message,
+          originalMessage: message
+        },
+        serializable: false
+      }
+    }
+  }
+
+  /**
+   * 模擬上下文斷線
+   * 模擬 Chrome Extension context 斷線的情況
+   */
+  simulateContextDisconnection (contextType = 'content') {
+    this.testSuite.log(`[MessagingValidator] 模擬 ${contextType} 上下文斷線`)
+
+    // 模擬斷線狀況
+    const disconnectionEvent = {
+      contextType,
+      disconnectedAt: Date.now(),
+      reason: 'CONTEXT_INVALIDATED',
+      lastKnownState: 'active'
+    }
+
+    // 觸發斷線相關的錯誤
+    const error = new Error(`Receiving end does not exist: ${contextType}`)
+    error.code = 'CONTEXT_DISCONNECTED'
+    error.contextType = contextType
+
+    return {
+      success: false,
+      disconnected: true,
+      event: disconnectionEvent,
+      error: {
+        type: 'CONTEXT_DISCONNECTION',
+        message: error.message,
+        code: error.code,
+        contextType
+      },
+      recoveryOptions: [
+        'refresh_page',
+        'reload_extension',
+        'restart_browser'
+      ]
+    }
+  }
+
+  /**
+   * 取得接收到的訊息順序
+   * 分析訊息接收的順序性
+   */
+  getReceivedMessageOrder (messages = []) {
+    this.testSuite.log('[MessagingValidator] 分析訊息接收順序')
+
+    if (!Array.isArray(messages)) {
+      messages = []
+    }
+
+    const orderAnalysis = {
+      totalMessages: messages.length,
+      orderedMessages: [],
+      outOfOrderMessages: [],
+      sequenceGaps: [],
+      orderViolations: 0
+    }
+
+    if (messages.length === 0) {
+      return orderAnalysis
+    }
+
+    // 按時間戳排序
+    const sortedByTime = [...messages].sort((a, b) => 
+      (a.timestamp || 0) - (b.timestamp || 0)
+    )
+
+    // 按序列ID排序（如果有的話）
+    const sortedBySequence = [...messages].sort((a, b) => 
+      (a.sequenceId || 0) - (b.sequenceId || 0)
+    )
+
+    // 檢查順序違規
+    for (let i = 0; i < sortedByTime.length; i++) {
+      const timeOrderedMsg = sortedByTime[i]
+      const sequenceOrderedMsg = sortedBySequence[i]
+
+      if (timeOrderedMsg.messageId !== sequenceOrderedMsg.messageId) {
+        orderAnalysis.outOfOrderMessages.push({
+          timePosition: i,
+          sequencePosition: sortedBySequence.indexOf(timeOrderedMsg),
+          messageId: timeOrderedMsg.messageId,
+          expectedSequence: sequenceOrderedMsg.sequenceId,
+          actualSequence: timeOrderedMsg.sequenceId
+        })
+        orderAnalysis.orderViolations++
+      } else {
+        orderAnalysis.orderedMessages.push(timeOrderedMsg)
+      }
+    }
+
+    // 檢查序列間隙
+    for (let i = 1; i < sortedBySequence.length; i++) {
+      const current = sortedBySequence[i].sequenceId || 0
+      const previous = sortedBySequence[i-1].sequenceId || 0
+      
+      if (current - previous > 1) {
+        orderAnalysis.sequenceGaps.push({
+          position: i,
+          expectedSequence: previous + 1,
+          actualSequence: current,
+          gapSize: current - previous - 1
+        })
+      }
+    }
+
+    return orderAnalysis
   }
 }
 

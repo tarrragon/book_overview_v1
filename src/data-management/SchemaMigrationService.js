@@ -416,7 +416,11 @@ class SchemaMigrationService extends BaseModule {
     const data = await this.backupManager.restoreBackup(backupId)
     return {
       success: true,
-      restoredVersion: '1.0.0'
+      restoredVersion: '1.0.0',
+      restoredFromBackup: backupId, // 添加期望的屬性
+      autoRecovered: false, // 添加期望的屬性 - 手動恢復不是自動的
+      restoredData: data,
+      timestamp: Date.now()
     }
   }
 

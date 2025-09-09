@@ -36,6 +36,15 @@ class E2ETestSuite {
       errors: [],
       performance: {}
     }
+
+    // 新增 state 屬性初始化
+    this.state = {
+      messageDelaySimulation: null,
+      networkConditions: null,
+      permissionStates: new Map(),
+      environmentOverrides: new Map(),
+      simulationStates: new Map()
+    }
   }
 
   async initialize () {
@@ -1577,6 +1586,352 @@ class E2ETestSuite {
   /**
    * 擷取效能基準線
    */
+  /**
+   * 模擬 Content Script 崩潰
+   * 測試系統對 Content Script 異常終止的處理能力
+   */
+  async simulateContentScriptCrash (options = {}) {
+    const {
+      crashType = 'memory_overflow',
+      recoveryTimeout = 5000,
+      autoRestart = true
+    } = options
+
+    try {
+      this.log(`模擬 Content Script 崩潰: ${crashType}`)
+
+      // 記錄崩潰前狀態
+      const precrashState = {
+        contentScriptActive: true,
+        lastHeartbeat: Date.now(),
+        memoryUsage: Math.random() * 50 + 30 // 模擬30-80MB
+      }
+
+      // 模擬不同類型的崩潰
+      const crashSimulation = {
+        memory_overflow: {
+          errorType: 'RangeError',
+          message: 'Maximum call stack size exceeded',
+          recoveryPossible: true
+        },
+        script_error: {
+          errorType: 'TypeError',
+          message: 'Cannot read property of undefined',
+          recoveryPossible: true
+        },
+        extension_context_invalidated: {
+          errorType: 'ExtensionContextError',
+          message: 'Extension context invalidated',
+          recoveryPossible: false
+        }
+      }
+
+      const crash = crashSimulation[crashType] || crashSimulation.script_error
+
+      // 標記 Content Script 為崩潰狀態
+      if (this.extensionController) {
+        const contentContext = this.extensionController.state.contexts.get('content')
+        if (contentContext) {
+          contentContext.state = 'crashed'
+          contentContext.error = crash
+          contentContext.crashTime = Date.now()
+        }
+      }
+
+      // 模擬崩潰恢復過程
+      if (autoRestart && crash.recoveryPossible) {
+        setTimeout(async () => {
+          this.log('嘗試重啟 Content Script...')
+          if (this.extensionController) {
+            const contentContext = this.extensionController.state.contexts.get('content')
+            if (contentContext) {
+              contentContext.state = 'active'
+              contentContext.error = null
+              contentContext.restartTime = Date.now()
+            }
+          }
+        }, recoveryTimeout)
+      }
+
+      this.logOperation('simulate_content_script_crash', {
+        crashType,
+        crash,
+        precrashState,
+        recoveryTimeout,
+        autoRestart
+      })
+
+      return {
+        success: true,
+        crashType,
+        errorDetails: crash,
+        precrashState,
+        recoveryPossible: crash.recoveryPossible,
+        estimatedRecoveryTime: autoRestart ? recoveryTimeout : null,
+        timestamp: Date.now()
+      }
+    } catch (error) {
+      this.logError(error, 'simulateContentScriptCrash')
+      throw new Error(`Content Script 崩潰模擬失敗: ${error.message}`)
+    }
+  }
+
+  /**
+   * 模擬網路延遲
+   * 測試系統在網路延遲情況下的表現
+   */
+  async simulateNetworkLatency (options = {}) {
+    const {
+      latency = 2000,
+      variance = 500,
+      packetLoss = 0.05,
+      duration = 10000
+    } = options
+
+    try {
+      this.log(`模擬網路延遲: ${latency}ms ±${variance}ms，封包遺失率: ${packetLoss * 100}%`)
+
+      const networkState = {
+        originalLatency: 50, // 原始延遲 50ms
+        simulatedLatency: latency,
+        variance,
+        packetLoss,
+        startTime: Date.now()
+      }
+
+      // 設定網路延遲參數
+      this.state.networkSimulation = {
+        active: true,
+        latency,
+        variance,
+        packetLoss,
+        startTime: Date.now(),
+        affectedOperations: []
+      }
+
+      // 模擬延遲影響的操作記錄
+      const simulationPromise = new Promise((resolve) => {
+        setTimeout(() => {
+          const affectedOperations = [
+            {
+              operation: 'message_delivery',
+              originalTime: 100,
+              delayedTime: 100 + this._calculateNetworkDelay(latency, variance),
+              packetLost: Math.random() < packetLoss
+            },
+            {
+              operation: 'api_call',
+              originalTime: 200,
+              delayedTime: 200 + this._calculateNetworkDelay(latency, variance),
+              packetLost: Math.random() < packetLoss
+            },
+            {
+              operation: 'data_sync',
+              originalTime: 500,
+              delayedTime: 500 + this._calculateNetworkDelay(latency, variance),
+              packetLost: Math.random() < packetLoss
+            }
+          ]
+
+          this.state.networkSimulation.affectedOperations = affectedOperations
+          this.state.networkSimulation.active = false
+          this.state.networkSimulation.endTime = Date.now()
+
+          resolve({
+            success: true,
+            networkState,
+            affectedOperations,
+            duration: Date.now() - networkState.startTime,
+            averageDelay: affectedOperations.reduce((sum, op) => 
+              sum + (op.delayedTime - op.originalTime), 0) / affectedOperations.length,
+            packetLossOccurred: affectedOperations.some(op => op.packetLost),
+            timestamp: Date.now()
+          })
+        }, duration)
+      })
+
+      this.logOperation('simulate_network_latency', {
+        latency,
+        variance,
+        packetLoss,
+        duration
+      })
+
+      return await simulationPromise
+    } catch (error) {
+      this.logError(error, 'simulateNetworkLatency')
+      throw new Error(`網路延遲模擬失敗: ${error.message}`)
+    }
+  }
+
+  /**
+   * 模擬連接問題
+   * 測試系統對連接中斷和恢復的處理
+   */
+  async simulateConnectionIssue (options = {}) {
+    const {
+      issueType = 'intermittent_disconnection',
+      duration = 5000,
+      reconnectDelay = 2000
+    } = options
+
+    try {
+      this.log(`模擬連接問題: ${issueType}，持續時間: ${duration}ms`)
+
+      const connectionIssues = {
+        intermittent_disconnection: {
+          pattern: 'on_off',
+          disconnectDuration: 1000,
+          reconnectDuration: 500,
+          severity: 'medium'
+        },
+        complete_disconnection: {
+          pattern: 'offline',
+          disconnectDuration: duration,
+          reconnectDuration: reconnectDelay,
+          severity: 'high'
+        },
+        slow_connection: {
+          pattern: 'degraded',
+          bandwidth: 0.1, // 10% 正常頻寬
+          latencyMultiplier: 5,
+          severity: 'low'
+        }
+      }
+
+      const issue = connectionIssues[issueType] || connectionIssues.intermittent_disconnection
+
+      // 標記連接狀態
+      this.state.connectionSimulation = {
+        active: true,
+        issueType,
+        issue,
+        startTime: Date.now(),
+        events: []
+      }
+
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          this.state.connectionSimulation.active = false
+          this.state.connectionSimulation.endTime = Date.now()
+
+          const result = {
+            success: true,
+            issueType,
+            issueDetails: issue,
+            duration: Date.now() - this.state.connectionSimulation.startTime,
+            recoveryTime: reconnectDelay,
+            impactAssessment: {
+              messageDeliverySuccess: issueType === 'slow_connection' ? 0.8 : 0.3,
+              averageResponseTime: issueType === 'slow_connection' ? 2000 : 5000,
+              operationsAffected: Math.floor(Math.random() * 20 + 5)
+            },
+            timestamp: Date.now()
+          }
+
+          this.logOperation('simulate_connection_issue', result)
+          resolve(result)
+        }, duration)
+      })
+    } catch (error) {
+      this.logError(error, 'simulateConnectionIssue')
+      throw new Error(`連接問題模擬失敗: ${error.message}`)
+    }
+  }
+
+  /**
+   * 計算網路延遲（含變異數）
+   * 輔助方法：生成具有變異數的延遲時間
+   */
+  _calculateNetworkDelay (baseLatency, variance) {
+    const randomVariance = (Math.random() - 0.5) * 2 * variance
+    return Math.max(0, baseLatency + randomVariance)
+  }
+
+  /**
+   * 模擬訊息延遲
+   * 在testSuite層級模擬訊息傳遞的延遲
+   */
+  async simulateMessageDelay (options = {}) {
+    const {
+      delayMs = 1000,
+      variance = 200,
+      messageTypes = ['all'],
+      duration = 10000
+    } = options
+
+    try {
+      this.log(`模擬訊息延遲: ${delayMs}ms ±${variance}ms，持續時間: ${duration}ms`)
+
+      const messageDelayState = {
+        active: true,
+        delayMs,
+        variance,
+        messageTypes,
+        startTime: Date.now(),
+        affectedMessages: []
+      }
+
+      // 設定訊息延遲狀態
+      this.state.messageDelaySimulation = messageDelayState
+
+      // 模擬延遲期間的訊息處理
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          // 生成受影響的訊息記錄
+          const simulatedMessages = [
+            {
+              type: 'POPUP_TO_BACKGROUND',
+              originalDelay: 50,
+              simulatedDelay: this._calculateNetworkDelay(delayMs, variance),
+              affected: messageTypes.includes('all') || messageTypes.includes('POPUP_TO_BACKGROUND')
+            },
+            {
+              type: 'BACKGROUND_TO_CONTENT',
+              originalDelay: 100,
+              simulatedDelay: this._calculateNetworkDelay(delayMs, variance),
+              affected: messageTypes.includes('all') || messageTypes.includes('BACKGROUND_TO_CONTENT')
+            },
+            {
+              type: 'CONTENT_TO_POPUP',
+              originalDelay: 75,
+              simulatedDelay: this._calculateNetworkDelay(delayMs, variance),
+              affected: messageTypes.includes('all') || messageTypes.includes('CONTENT_TO_POPUP')
+            }
+          ]
+
+          messageDelayState.affectedMessages = simulatedMessages
+          messageDelayState.active = false
+          messageDelayState.endTime = Date.now()
+
+          const result = {
+            success: true,
+            delayConfiguration: {
+              baseDelay: delayMs,
+              variance,
+              messageTypes,
+              duration
+            },
+            affectedMessages: simulatedMessages,
+            totalAffectedMessages: simulatedMessages.filter(m => m.affected).length,
+            averageActualDelay: simulatedMessages
+              .filter(m => m.affected)
+              .reduce((sum, m) => sum + m.simulatedDelay, 0) / 
+              simulatedMessages.filter(m => m.affected).length,
+            simulationDuration: Date.now() - messageDelayState.startTime,
+            timestamp: Date.now()
+          }
+
+          this.logOperation('simulate_message_delay', result)
+          resolve(result)
+        }, duration)
+      })
+    } catch (error) {
+      this.logError(error, 'simulateMessageDelay')
+      throw new Error(`訊息延遲模擬失敗: ${error.message}`)
+    }
+  }
+
   async capturePerformanceBaseline (operationType = 'general', duration = 5000) {
     try {
       this.log(`擷取效能基準線: ${operationType}，測量時間: ${duration}ms`)
@@ -1620,6 +1975,129 @@ class E2ETestSuite {
   }
 
   // 靜態工廠方法
+  /**
+   * 撤銷擴充功能權限
+   * 模擬撤銷 Chrome Extension 權限的情況
+   */
+  async revokeExtensionPermissions (permissions = ['storage', 'tabs']) {
+    this.log(`撤銷擴充功能權限: ${permissions.join(', ')}`)
+    
+    try {
+      // 模擬權限撤銷過程
+      await this.simulateDelay(500)
+
+      const revokeResults = {}
+      
+      for (const permission of permissions) {
+        revokeResults[permission] = {
+          revoked: true,
+          timestamp: Date.now(),
+          previousState: 'granted'
+        }
+      }
+
+      // 模擬權限撤銷後的狀態變化
+      const permissionState = {
+        revokedPermissions: permissions,
+        remainingPermissions: ['basic'],
+        affectedFeatures: permissions.map(p => `${p}_dependent_features`),
+        recoveryRequired: true
+      }
+
+      return {
+        success: true,
+        revokeResults,
+        permissionState,
+        errorType: 'PERMISSION_REVOKED',
+        recoveryOptions: [
+          'request_permissions_again',
+          'show_permission_dialog',
+          'fallback_to_limited_mode'
+        ],
+        timestamp: Date.now()
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        permissions,
+        timestamp: Date.now()
+      }
+    }
+  }
+
+  /**
+   * 導航到不支援的頁面
+   * 模擬導航到擴充功能不支援的頁面類型
+   */
+  async navigateToUnsupportedPage (pageType = 'chrome-extension') {
+    this.log(`導航到不支援的頁面: ${pageType}`)
+    
+    try {
+      // 模擬導航延遲
+      await this.simulateDelay(800)
+
+      const unsupportedPages = {
+        'chrome-extension': 'chrome-extension://internal-page',
+        'chrome-settings': 'chrome://settings/',
+        'chrome-newtab': 'chrome://newtab/',
+        'file-protocol': 'file:///local-file.html',
+        'data-url': 'data:text/html,<html><body>Data URL</body></html>',
+        'about-blank': 'about:blank'
+      }
+
+      const targetUrl = unsupportedPages[pageType] || unsupportedPages['chrome-extension']
+
+      // 模擬頁面導航結果
+      const navigationResult = {
+        url: targetUrl,
+        pageType,
+        supported: false,
+        restrictions: [
+          'content_script_blocked',
+          'dom_access_denied',
+          'extension_api_unavailable'
+        ],
+        errorType: 'INVALID_PAGE_CONTEXT',
+        timestamp: Date.now()
+      }
+
+      // 模擬擴充功能在不支援頁面的行為
+      const extensionBehavior = {
+        contentScriptInjected: false,
+        domAccessible: false,
+        apiCallsBlocked: true,
+        fallbackMode: true,
+        userNotification: `此頁面類型 (${pageType}) 不支援擴充功能功能`
+      }
+
+      return {
+        success: true,
+        navigationResult,
+        extensionBehavior,
+        contextValidation: {
+          valid: false,
+          reason: 'UNSUPPORTED_PAGE_TYPE',
+          pageType,
+          url: targetUrl
+        },
+        recoveryOptions: [
+          'navigate_to_supported_page',
+          'show_compatibility_notice',
+          'enable_fallback_mode'
+        ],
+        timestamp: Date.now()
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        pageType,
+        timestamp: Date.now()
+      }
+    }
+  }
+
   static async create (config = {}) {
     const suite = new E2ETestSuite(config)
     await suite.initialize()

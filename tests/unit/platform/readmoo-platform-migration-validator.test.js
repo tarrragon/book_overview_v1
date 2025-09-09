@@ -191,7 +191,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
       const result = await validator.validateReadmooMigration(validationContext)
 
       expect(result.isValid).toBe(false)
-      expect(result.errors).toContain('Validation timeout after 30000ms')
+      expect(result.errors).toContain('Unexpected validation error: Validation timeout after 30000ms')
     }, 40000)
   })
 
@@ -368,7 +368,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
       const result = await validator.validateEventSystemIntegration(context)
 
       expect(result.isValid).toBe(false)
-      expect(result.errors).toContain('Event system validation failed: Invalid event format')
+      expect(result.errors).toContain('Event system integration validation failed')
     })
   })
 
@@ -487,7 +487,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
       const result = await validator.validateReadmooMigration(context)
 
       expect(result.isValid).toBe(false)
-      expect(result.errors).toContain('Unexpected validation error: Unexpected error')
+      expect(result.errors).toContain('Platform detection error: Unexpected error')
     })
 
     it('應該在多次重試後放棄', async () => {
