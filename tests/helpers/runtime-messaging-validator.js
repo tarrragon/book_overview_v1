@@ -1029,6 +1029,391 @@ class RuntimeMessagingValidator {
 
     return orderAnalysis
   }
+
+  /**
+   * 驗證訊息完整性
+   * @param {Array} receivedOrder - 接收到的訊息順序
+   * @returns {Object} 完整性檢查結果
+   */
+  async verifyMessageIntegrity (receivedOrder) {
+    this.testSuite.log('[MessagingValidator] 驗證訊息完整性')
+
+    if (!Array.isArray(receivedOrder) || receivedOrder.length === 0) {
+      return {
+        valid: true,
+        missingMessages: 0,
+        duplicateMessages: 0,
+        corruptedMessages: 0,
+        totalMessages: 0,
+        integrityScore: 1.0,
+        issues: []
+      }
+    }
+
+    const integrityResult = {
+      valid: true,
+      missingMessages: 0,
+      duplicateMessages: 0,
+      corruptedMessages: 0,
+      totalMessages: receivedOrder.length,
+      integrityScore: 1.0,
+      issues: []
+    }
+
+    const messageIds = new Set()
+    const duplicateIds = new Set()
+    const expectedSequences = new Set()
+
+    // 分析訊息集合
+    receivedOrder.forEach((message, index) => {
+      const messageId = message.messageId || message.id || `msg-${index}`
+      const sequenceId = message.sequenceId || message.partNumber || index
+
+      // 檢查重複訊息
+      if (messageIds.has(messageId)) {
+        duplicateIds.add(messageId)
+        integrityResult.duplicateMessages++
+        integrityResult.issues.push({
+          type: 'duplicate',
+          messageId,
+          position: index,
+          severity: 'medium'
+        })
+      } else {
+        messageIds.add(messageId)
+      }
+
+      // 收集預期序列
+      if (typeof sequenceId === 'number') {
+        expectedSequences.add(sequenceId)
+      }
+
+      // 檢查訊息完整性
+      if (this._isMessageCorrupted(message)) {
+        integrityResult.corruptedMessages++
+        integrityResult.issues.push({
+          type: 'corrupted',
+          messageId,
+          position: index,
+          details: this._getCorruptionDetails(message),
+          severity: 'high'
+        })
+      }
+    })
+
+    // 檢查缺失訊息（基於序列號）
+    if (expectedSequences.size > 0) {
+      const maxSequence = Math.max(...expectedSequences)
+      const minSequence = Math.min(...expectedSequences)
+      
+      for (let i = minSequence; i <= maxSequence; i++) {
+        if (!expectedSequences.has(i)) {
+          integrityResult.missingMessages++
+          integrityResult.issues.push({
+            type: 'missing',
+            sequenceId: i,
+            expectedPosition: i - minSequence,
+            severity: 'high'
+          })
+        }
+      }
+    }
+
+    // 計算完整性分數
+    const totalIssues = integrityResult.missingMessages + 
+                       integrityResult.duplicateMessages + 
+                       integrityResult.corruptedMessages
+
+    if (totalIssues === 0) {
+      integrityResult.integrityScore = 1.0
+      integrityResult.valid = true
+    } else {
+      // 權重：缺失 (0.5), 損壞 (0.3), 重複 (0.2)
+      const weightedScore = 1.0 - (
+        (integrityResult.missingMessages * 0.5 + 
+         integrityResult.corruptedMessages * 0.3 + 
+         integrityResult.duplicateMessages * 0.2) / 
+        Math.max(integrityResult.totalMessages, 1)
+      )
+      
+      integrityResult.integrityScore = Math.max(0, Math.min(1, weightedScore))
+      integrityResult.valid = integrityResult.integrityScore >= 0.95 // 95%以上認為有效
+    }
+
+    return integrityResult
+  }
+
+  /**
+   * 檢查訊息是否損壞
+   * @private
+   */
+  _isMessageCorrupted (message) {
+    if (!message || typeof message !== 'object') {
+      return true
+    }
+
+    // 檢查必要欄位
+    if (!message.type && !message.messageType) {
+      return true
+    }
+
+    // 檢查時間戳合理性
+    if (message.timestamp && (
+      message.timestamp < 0 || 
+      message.timestamp > Date.now() + 60000 // 未來1分鐘內
+    )) {
+      return true
+    }
+
+    // 檢查序列ID合理性
+    if (message.sequenceId !== undefined && (
+      typeof message.sequenceId !== 'number' || 
+      message.sequenceId < 0
+    )) {
+      return true
+    }
+
+    // 檢查資料完整性
+    if (message.checksum && message.content) {
+      const expectedChecksum = this._calculateChecksum(message.content)
+      if (message.checksum !== expectedChecksum) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  /**
+   * 獲取損壞詳情
+   * @private
+   */
+  _getCorruptionDetails (message) {
+    const details = []
+
+    if (!message || typeof message !== 'object') {
+      details.push('Invalid message object')
+      return details
+    }
+
+    if (!message.type && !message.messageType) {
+      details.push('Missing message type')
+    }
+
+    if (message.timestamp && (message.timestamp < 0 || message.timestamp > Date.now() + 60000)) {
+      details.push('Invalid timestamp')
+    }
+
+    if (message.sequenceId !== undefined && (typeof message.sequenceId !== 'number' || message.sequenceId < 0)) {
+      details.push('Invalid sequence ID')
+    }
+
+    if (message.checksum && message.content) {
+      const expectedChecksum = this._calculateChecksum(message.content)
+      if (message.checksum !== expectedChecksum) {
+        details.push('Checksum mismatch')
+      }
+    }
+
+    return details
+  }
+
+  /**
+   * 計算簡單校驗和
+   * @private
+   */
+  _calculateChecksum (content) {
+    if (typeof content !== 'string') {
+      content = JSON.stringify(content)
+    }
+    
+    let checksum = 0
+    for (let i = 0; i < content.length; i++) {
+      checksum = ((checksum << 5) - checksum + content.charCodeAt(i)) & 0xffffffff
+    }
+    return `checksum-${Math.abs(checksum)}`
+  }
+
+  /**
+   * 獲取序列統計資訊
+   * @returns {Object} 序列統計結果
+   */
+  async getSequenceStatistics () {
+    this.testSuite.log('[MessagingValidator] 獲取序列統計資訊')
+
+    const stats = {
+      totalMessages: 0,
+      orderViolations: 0,
+      sequenceGaps: 0,
+      averageProcessingTime: 0,
+      minProcessingTime: Infinity,
+      maxProcessingTime: 0,
+      throughput: 0,
+      duplicates: 0,
+      missingSequences: [],
+      timeDistribution: {
+        under100ms: 0,
+        under500ms: 0,
+        under1s: 0,
+        over1s: 0
+      },
+      channelStats: new Map(),
+      priorityStats: new Map()
+    }
+
+    // 從訊息歷史中獲取資料
+    const messageHistory = this.getMessageHistory()
+    
+    if (!messageHistory || messageHistory.length === 0) {
+      return stats
+    }
+
+    stats.totalMessages = messageHistory.length
+
+    // 分析處理時間
+    const processingTimes = []
+    const sequenceIds = new Set()
+    const messageIds = new Set()
+
+    messageHistory.forEach((message, index) => {
+      // 處理時間分析
+      const processingTime = message.processingTime || 
+                           (message.responseTime - message.sendTime) || 
+                           message.responseTime || 0
+
+      if (processingTime > 0) {
+        processingTimes.push(processingTime)
+        stats.minProcessingTime = Math.min(stats.minProcessingTime, processingTime)
+        stats.maxProcessingTime = Math.max(stats.maxProcessingTime, processingTime)
+
+        // 時間分布統計
+        if (processingTime < 100) {
+          stats.timeDistribution.under100ms++
+        } else if (processingTime < 500) {
+          stats.timeDistribution.under500ms++
+        } else if (processingTime < 1000) {
+          stats.timeDistribution.under1s++
+        } else {
+          stats.timeDistribution.over1s++
+        }
+      }
+
+      // 序列分析
+      const sequenceId = message.sequenceId || message.partNumber || index
+      if (typeof sequenceId === 'number') {
+        if (sequenceIds.has(sequenceId)) {
+          stats.duplicates++
+        } else {
+          sequenceIds.add(sequenceId)
+        }
+      }
+
+      // 訊息ID重複檢查
+      const messageId = message.messageId || message.id || `msg-${index}`
+      if (messageIds.has(messageId)) {
+        stats.duplicates++
+      } else {
+        messageIds.add(messageId)
+      }
+
+      // 通道統計
+      const channel = message.channel || message.source || 'unknown'
+      if (!stats.channelStats.has(channel)) {
+        stats.channelStats.set(channel, {
+          count: 0,
+          avgTime: 0,
+          errors: 0
+        })
+      }
+      const channelStat = stats.channelStats.get(channel)
+      channelStat.count++
+      if (processingTime > 0) {
+        channelStat.avgTime = (channelStat.avgTime * (channelStat.count - 1) + processingTime) / channelStat.count
+      }
+      if (message.error) {
+        channelStat.errors++
+      }
+
+      // 優先級統計
+      const priority = message.priority || 'normal'
+      if (!stats.priorityStats.has(priority)) {
+        stats.priorityStats.set(priority, {
+          count: 0,
+          avgTime: 0,
+          processed: 0
+        })
+      }
+      const priorityStat = stats.priorityStats.get(priority)
+      priorityStat.count++
+      if (processingTime > 0) {
+        priorityStat.avgTime = (priorityStat.avgTime * (priorityStat.processed) + processingTime) / (priorityStat.processed + 1)
+        priorityStat.processed++
+      }
+    })
+
+    // 計算平均處理時間
+    if (processingTimes.length > 0) {
+      stats.averageProcessingTime = processingTimes.reduce((sum, time) => sum + time, 0) / processingTimes.length
+    } else {
+      stats.minProcessingTime = 0
+    }
+
+    // 檢查序列間隙
+    if (sequenceIds.size > 0) {
+      const sequences = Array.from(sequenceIds).sort((a, b) => a - b)
+      const minSeq = sequences[0]
+      const maxSeq = sequences[sequences.length - 1]
+      
+      for (let i = minSeq; i <= maxSeq; i++) {
+        if (!sequenceIds.has(i)) {
+          stats.missingSequences.push(i)
+          stats.sequenceGaps++
+        }
+      }
+    }
+
+    // 檢查順序違規
+    const orderedMessages = [...messageHistory].sort((a, b) => {
+      const aSeq = a.sequenceId || a.partNumber || 0
+      const bSeq = b.sequenceId || b.partNumber || 0
+      return aSeq - bSeq
+    })
+
+    for (let i = 0; i < messageHistory.length; i++) {
+      if (messageHistory[i] !== orderedMessages[i]) {
+        stats.orderViolations++
+      }
+    }
+
+    // 計算吞吐量 (messages per second)
+    const timeSpan = this._getTimeSpan(messageHistory)
+    if (timeSpan > 0) {
+      stats.throughput = stats.totalMessages / (timeSpan / 1000) // messages/second
+    }
+
+    // 轉換 Map 為普通物件以便序列化
+    stats.channelStats = Object.fromEntries(stats.channelStats)
+    stats.priorityStats = Object.fromEntries(stats.priorityStats)
+
+    return stats
+  }
+
+  /**
+   * 計算訊息時間跨度
+   * @private
+   */
+  _getTimeSpan (messages) {
+    if (messages.length < 2) return 0
+
+    const timestamps = messages
+      .map(msg => msg.timestamp || msg.sendTime || 0)
+      .filter(ts => ts > 0)
+      .sort((a, b) => a - b)
+
+    if (timestamps.length < 2) return 0
+    
+    return timestamps[timestamps.length - 1] - timestamps[0]
+  }
 }
 
 module.exports = RuntimeMessagingValidator
