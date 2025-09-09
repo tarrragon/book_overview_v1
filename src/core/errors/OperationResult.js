@@ -141,7 +141,7 @@ class OperationResult {
    * @returns {OperationResult} OperationResult 實例
    */
   static fromJSON (json) {
-    if (!json || typeof json !== 'object') {
+    if (!json || typeof json !== 'object' || Array.isArray(json)) {
       throw new Error('Invalid JSON data for OperationResult.fromJSON')
     }
 

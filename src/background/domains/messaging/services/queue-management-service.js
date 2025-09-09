@@ -80,7 +80,7 @@ class QueueManagementService {
    */
   initializeQueues () {
     // 按優先級創建佇列
-    for (const [level, priority] of Object.entries(QUEUE_CONFIG.PRIORITY_LEVELS)) {
+    for (const [, priority] of Object.entries(QUEUE_CONFIG.PRIORITY_LEVELS)) {
       this.messageQueues.set(priority, [])
     }
     this.logger.log('🗂️ 初始化了優先級佇列結構')
@@ -236,7 +236,7 @@ class QueueManagementService {
   async dequeueMessage (messageId) {
     try {
       // 搜尋所有佇列
-      for (const [priority, queue] of this.messageQueues) {
+      for (const [, queue] of this.messageQueues) {
         const index = queue.findIndex(item => item.id === messageId)
         if (index !== -1) {
           const queueItem = queue.splice(index, 1)[0]
@@ -420,6 +420,9 @@ class QueueManagementService {
             priority: queueItem.priority
           }
         }
+
+        // 發射處理事件
+        await this.eventBus.emit(processingEvent.type, processingEvent.data)
 
         // 等待處理結果（這裡可能需要更複雜的事件協調）
         // 暫時假設處理成功

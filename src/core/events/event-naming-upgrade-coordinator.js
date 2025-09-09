@@ -36,7 +36,7 @@ const EVENT_MIGRATION_MAPPING = {
   'EXTRACTION.PROGRESS': 'EXTRACTION.READMOO.EXTRACT.PROGRESS',
   'EXTRACTION.STARTED': 'EXTRACTION.READMOO.EXTRACT.STARTED',
   'EXTRACTION.FAILED': 'EXTRACTION.READMOO.EXTRACT.FAILED',
-  'EXTRACTION.DATA.COMPLETED': 'EXTRACTION.READMOO.EXTRACT.COMPLETED',
+  'EXTRACTION.DATA.COMPLETED': 'EXTRACTION.READMOO.DATA.COMPLETED',
 
   // 儲存相關事件
   'STORAGE.SAVE.COMPLETED': 'DATA.READMOO.SAVE.COMPLETED',
@@ -162,20 +162,18 @@ class EventNamingUpgradeCoordinator {
         const modernEvent = this.convertToModernEvent(eventName)
         this.recordConversion(eventName, 'LEGACY_TRIGGERED')
         this.recordConversion(modernEvent, 'MODERN_TRIGGERED')
-        await Promise.all([
-          this.eventBus.emit(eventName, data),
-          this.eventBus.emit(modernEvent, data)
-        ])
+
+        // 分別發射兩個事件 - 使用個別的 await 確保兩個都執行
+        await this.eventBus.emit(eventName, data)
+        await this.eventBus.emit(modernEvent, data)
       } else {
         // Modern 事件，檢查是否需要發射對應的 Legacy 事件
         const legacyEvent = this.convertToLegacyEvent(eventName)
         if (legacyEvent) {
           this.recordConversion(eventName, 'MODERN_TRIGGERED')
           this.recordConversion(legacyEvent, 'LEGACY_TRIGGERED')
-          await Promise.all([
-            this.eventBus.emit(eventName, data),
-            this.eventBus.emit(legacyEvent, data)
-          ])
+          await this.eventBus.emit(eventName, data)
+          await this.eventBus.emit(legacyEvent, data)
         } else {
           this.recordConversion(eventName, 'MODERN_TRIGGERED')
           await this.eventBus.emit(eventName, data)
@@ -234,6 +232,7 @@ class EventNamingUpgradeCoordinator {
     }
 
     // 如果無法轉換，保持原事件名稱並記錄警告
+    // eslint-disable-next-line no-console
     console.warn(`Unable to convert legacy event: ${legacyEvent}`)
     return legacyEvent
   }
@@ -320,6 +319,7 @@ class EventNamingUpgradeCoordinator {
    */
   recordConversionError (errorType, message) {
     this.conversionStats.conversionErrors++
+    // eslint-disable-next-line no-console
     console.error(`Conversion error [${errorType}]: ${message}`)
   }
 
