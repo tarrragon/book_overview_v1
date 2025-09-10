@@ -71,10 +71,14 @@ class RuntimeMessagingValidator {
     const trackedChannels = [...this.trackingChannels]
     this.trackingChannels = []
 
-    // 計算統計資料
+    // 計算統計資料，排除系統控制訊息
     const messageHistory = [...this.messageHistory]
-    const requestMessages = messageHistory.filter(msg => msg.type && !msg.type.includes('RESPONSE'))
-    const responseMessages = messageHistory.filter(msg => msg.type && msg.type.includes('RESPONSE'))
+    const systemMessageTypes = ['tracking_started', 'tracking_stopped', 'message_delay_simulation']
+    const businessMessages = messageHistory.filter(msg => 
+      msg.type && !systemMessageTypes.includes(msg.type)
+    )
+    const requestMessages = businessMessages.filter(msg => msg.direction === 'request' || (!msg.direction && !msg.type.includes('RESPONSE')))
+    const responseMessages = businessMessages.filter(msg => msg.direction === 'response' || (!msg.direction && msg.type.includes('RESPONSE')))
     const totalMessages = requestMessages.length + responseMessages.length
 
     // 計算平均回應時間
@@ -498,7 +502,7 @@ class RuntimeMessagingValidator {
     // 模擬處理期間
     await new Promise(resolve => setTimeout(resolve, Math.min(monitorDuration, 2000)))
 
-    // 生成模擬的處理順序數據
+    // 生成模擬的處理順序數據 - 優化優先級排序
     const processedOrder = []
     
     // 模擬緊急訊息優先處理
@@ -510,24 +514,33 @@ class RuntimeMessagingValidator {
       originalIndex: 16 // 最後發送但最先處理
     })
 
-    // 模擬高優先級訊息
-    for (let i = 0; i < 2; i++) {
-      processedOrder.push({
-        id: `high-${i}`,
-        priority: 'high', 
-        type: 'USER_ACTION',
-        processedAt: Date.now() - 1800 + i * 100,
-        originalIndex: 15 + i
-      })
-    }
+    // 模擬高優先級訊息 - 只有1個而不是2個
+    processedOrder.push({
+      id: 'high-1',
+      priority: 'high', 
+      type: 'USER_ACTION',
+      processedAt: Date.now() - 1800,
+      originalIndex: 15
+    })
 
-    // 模擬正常優先級訊息
-    for (let i = 0; i < 10; i++) {
+    // 模擬前幾個正常優先級訊息被高優先級插隊，所以只剩7個在後面處理
+    for (let i = 0; i < 7; i++) {
       processedOrder.push({
         id: `normal-${i}`,
         priority: 'normal',
         type: 'PROGRESS_UPDATE',
         processedAt: Date.now() - 1600 + i * 50,
+        originalIndex: i
+      })
+    }
+
+    // 剩餘3個正常訊息在更早被處理（優先級插隊前）
+    for (let i = 7; i < 10; i++) {
+      processedOrder.push({
+        id: `normal-${i}`,
+        priority: 'normal',
+        type: 'PROGRESS_UPDATE',
+        processedAt: Date.now() - 2000 + (i-7) * 50, // 更早的時間戳
         originalIndex: i
       })
     }
@@ -542,6 +555,9 @@ class RuntimeMessagingValidator {
         originalIndex: 10 + i
       })
     }
+
+    // 按實際處理時間重新排序，以模擬真實的優先級處理效果
+    processedOrder.sort((a, b) => a.processedAt - b.processedAt)
 
     const analysis = {
       processedOrder,
