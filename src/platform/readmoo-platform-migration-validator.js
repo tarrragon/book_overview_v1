@@ -668,7 +668,77 @@ class ReadmooPlatformMigrationValidator {
    * @param {Array} afterData - 遷移後資料
    * @returns {Promise<Object>} 資料完整性驗證結果
    */
-  async validateDataIntegrity (beforeData, afterData) {
+  async validateDataIntegrity (dataOrBeforeData, afterData = null) {
+    try {
+      // 如果有兩個參數，使用原本的比較邏輯
+      if (afterData !== null) {
+        return this._validateDataIntegrityComparison(dataOrBeforeData, afterData)
+      }
+
+      // 單一資料物件驗證邏輯
+      const data = dataOrBeforeData
+      const requiredFields = ['bookId', 'title', 'author', 'progress', 'readingStatus', 'lastReadTime', 'platform']
+      const missingFields = []
+      const dataTypes = {}
+      const validationErrors = []
+
+      // 檢查必要欄位
+      for (const field of requiredFields) {
+        if (!(field in data) || data[field] === null || data[field] === undefined) {
+          missingFields.push(field)
+          validationErrors.push(`Missing required field: ${field}`)
+        } else {
+          dataTypes[field] = typeof data[field]
+        }
+      }
+
+      // 驗證資料類型
+      const typeValidations = {
+        bookId: 'string',
+        title: 'string', 
+        author: 'string',
+        progress: 'number',
+        readingStatus: 'string',
+        lastReadTime: 'number',
+        platform: 'string'
+      }
+
+      for (const [field, expectedType] of Object.entries(typeValidations)) {
+        if (field in data && typeof data[field] !== expectedType) {
+          validationErrors.push(`Invalid type for field ${field}: expected ${expectedType}, got ${typeof data[field]}`)
+        }
+      }
+
+      // 額外的業務邏輯驗證
+      if ('progress' in data && (data.progress < 0 || data.progress > 100)) {
+        validationErrors.push('Progress must be between 0 and 100')
+      }
+
+      if ('platform' in data && data.platform !== 'readmoo') {
+        validationErrors.push('Platform must be "readmoo"')
+      }
+
+      const dataValid = missingFields.length === 0 && validationErrors.length === 0
+
+      return {
+        dataValid,
+        requiredFields,
+        missingFields,
+        dataTypes,
+        validationErrors
+      }
+    } catch (error) {
+      return {
+        dataValid: false,
+        requiredFields: [],
+        missingFields: [],
+        dataTypes: {},
+        validationErrors: [`Data integrity validation failed: ${error.message}`]
+      }
+    }
+  }
+
+  async _validateDataIntegrityComparison (beforeData, afterData) {
     try {
       if (!Array.isArray(beforeData) || !Array.isArray(afterData)) {
         return this.createValidationResult(false, {}, [
