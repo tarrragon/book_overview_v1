@@ -299,6 +299,7 @@ class UIProgressHandler extends BaseUIHandler {
       await this.showProgress()
     } catch (error) {
       // DOM操作錯誤不應該阻止整個處理流程，但在測試中需要拋出
+      // eslint-disable-next-line no-console
       console.warn('[UIProgressHandler] DOM update failed:', error.message)
       if (process.env.NODE_ENV === 'test' && error.message === 'DOM access failed') {
         throw error
@@ -503,6 +504,7 @@ class UIProgressHandler extends BaseUIHandler {
       timestamp: Date.now()
     }
 
+    // eslint-disable-next-line no-console
     console.error(`[UIProgressHandler] Progress update failed for flow ${flowId}:`, error)
   }
 

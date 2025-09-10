@@ -400,6 +400,7 @@ class BookGridRenderer {
    */
   handleCardCreationError (book, error) {
     if (this.config.enableErrorLogging) {
+      // eslint-disable-next-line no-console
       console.error(`[BookGridRenderer] Failed to create card for book ${book.id}:`, error)
     }
 
@@ -449,6 +450,7 @@ class BookGridRenderer {
         card.appendChild(progressContainer)
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn(`[BookGridRenderer] Failed to populate card for book ${book.id}:`, error)
     }
   }
@@ -734,6 +736,7 @@ class BookGridRenderer {
           this.container.appendChild(card)
           this.renderedBooks.push(card)
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.warn('Failed to append book card:', error)
         }
       }
@@ -753,6 +756,7 @@ class BookGridRenderer {
           this.container.removeChild(card)
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn('Failed to remove book card:', error)
       }
     })
@@ -846,6 +850,7 @@ class BookGridRenderer {
         })
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('Failed to notify render complete:', error)
     }
   }

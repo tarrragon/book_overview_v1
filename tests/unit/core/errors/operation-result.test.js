@@ -8,8 +8,8 @@
  * - 驗證序列化和反序列化功能
  */
 
-const { OperationResult } = require('../../../../src/core/errors/OperationResult')
-const { StandardError } = require('../../../../src/core/errors/StandardError')
+const { OperationResult } = require('src/core/errors/OperationResult')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('OperationResult 核心功能', () => {
   let mockDateNow
@@ -172,7 +172,12 @@ describe('OperationResult 序列化功能', () => {
       success: true,
       data: testData,
       error: null,
-      timestamp: 1693747200000
+      status: 'SUCCESS',
+      metadata: {
+        timestamp: 1693747200000,
+        requestId: 'req_1693747200000_4fzzzxjyl',
+        version: '1.0.0'
+      }
     })
   })
 
@@ -188,7 +193,12 @@ describe('OperationResult 序列化功能', () => {
     expect(json.success).toBe(false)
     expect(json.data).toBeNull()
     expect(json.error).toEqual(error.toJSON())
-    expect(json.timestamp).toBe(1693747200000)
+    expect(json.status).toBe('FAILED')
+    expect(json.metadata).toEqual({
+      timestamp: 1693747200000,
+      requestId: 'req_1693747200000_4fzzzxjyl',
+      version: '1.0.0'
+    })
   })
 
   test('應該支援從JSON反序列化', () => {

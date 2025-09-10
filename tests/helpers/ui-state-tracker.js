@@ -198,7 +198,7 @@ class UIStateTracker {
     } = options
 
     const subscriptionId = `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    
+
     const subscription = {
       id: subscriptionId,
       callback,
@@ -290,7 +290,7 @@ class UIStateTracker {
         } = analysisOptions
 
         const currentTime = Date.now()
-        const recentHistory = this.progressTracking.progressHistory.filter(entry => 
+        const recentHistory = this.progressTracking.progressHistory.filter(entry =>
           currentTime - entry.timestamp <= timeWindow
         )
 
@@ -315,24 +315,24 @@ class UIStateTracker {
           estimatedTimeRemaining: 0,
           progressTrend: 'stable',
           recommendations: [],
-          
+
           // 測試期望的進度更新數據
           progressUpdates,
           averageUpdateInterval: updateInterval,
-          
+
           // 計算準確度的方法
           calculateAccuracy: () => ({
             percentageAccuracy: 0.95, // 95% 準確度
             timeEstimationError: 0.15 // 15% 時間估算誤差
           }),
-          
+
           // 用戶體驗指標
           userExperience: {
             clarity: 0.85,
             responsiveness: 0.9,
             informativeness: 0.95
           },
-          
+
           // UI 元素狀態
           uiElements: {
             progressBar: { visible: true, accurate: true },
@@ -340,7 +340,7 @@ class UIStateTracker {
             cancelButton: { accessible: true, functional: true },
             estimatedTime: { accurate: true, helpful: true }
           },
-          
+
           // 批次處理分析
           actualBatches: Math.ceil(updateCount / 10), // 每10個更新為一批
           averageBatchSize: 10,
@@ -365,8 +365,8 @@ class UIStateTracker {
         if (recentHistory.length >= 2) {
           const recentProgress = recentHistory.slice(-2)
           const progressDiff = recentProgress[1].averageProgress - recentProgress[0].averageProgress
-          analysis.progressTrend = progressDiff > 0.1 ? 'improving' : 
-                                   progressDiff < -0.1 ? 'declining' : 'stable'
+          analysis.progressTrend = progressDiff > 0.1 ? 'improving'
+            : progressDiff < -0.1 ? 'declining' : 'stable'
         }
 
         // 估算剩餘時間
@@ -518,7 +518,7 @@ class UIStateTracker {
         })
         subscription.lastCalled = currentTime
       } catch (error) {
-        console.warn(`UIStateTracker subscription callback error:`, error)
+        console.warn('UIStateTracker subscription callback error:', error)
       }
     }
   }
@@ -603,10 +603,10 @@ class UIStateTracker {
     const groups = []
 
     events.forEach(event => {
-      const concurrentEvents = events.filter(e => 
+      const concurrentEvents = events.filter(e =>
         Math.abs(e.timestamp - event.timestamp) <= timeWindow
       )
-      
+
       if (concurrentEvents.length > 1) {
         groups.push(concurrentEvents)
         analysis.maxConcurrency = Math.max(analysis.maxConcurrency, concurrentEvents.length)
@@ -675,19 +675,19 @@ class UIStateTracker {
 
     analysis.batchGroups = batches
     analysis.actualBatches = Math.max(batches.length, Math.ceil(updates.length / 10)) // 確保有合理的批次數
-    analysis.efficiency = analysis.actualBatches > 0 
-      ? updates.length / analysis.actualBatches 
+    analysis.efficiency = analysis.actualBatches > 0
+      ? updates.length / analysis.actualBatches
       : 0
 
     // 新增測試期望的屬性
-    analysis.averageBatchSize = analysis.actualBatches > 0 
-      ? Math.round(updates.length / analysis.actualBatches) 
+    analysis.averageBatchSize = analysis.actualBatches > 0
+      ? Math.round(updates.length / analysis.actualBatches)
       : 10
 
     analysis.batchProcessingTime = Math.max(50, Math.min(150, analysis.actualBatches * 8)) // 批次處理時間 (50-150ms)
-    
+
     analysis.uiSmoothness = Math.max(0.85, Math.min(0.98, 1 - (analysis.actualBatches * 0.01))) // UI流暢度 85-98%
-    
+
     analysis.perceivedDelay = Math.max(20, Math.min(80, analysis.actualBatches * 3)) // 感知延遲 20-80ms
 
     // 生成建議
@@ -727,7 +727,7 @@ class UIStateTracker {
     if (!this.realtimeMonitoring || !this.realtimeMonitoring.enabled) {
       // 基於狀態歷史生成事件日誌
       const eventLog = []
-      
+
       this.stateHistory.forEach((state, index) => {
         eventLog.push({
           id: `state-${index}`,
@@ -739,7 +739,7 @@ class UIStateTracker {
             snapshot: state
           }
         })
-        
+
         // 如果有前一個狀態，也添加狀態轉換事件
         if (index > 0) {
           eventLog.push({
@@ -757,7 +757,7 @@ class UIStateTracker {
           })
         }
       })
-      
+
       return eventLog.sort((a, b) => a.timestamp - b.timestamp)
     }
 

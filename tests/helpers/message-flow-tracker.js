@@ -129,15 +129,15 @@ class MessageFlowTracker {
     return new Promise((resolve) => {
       setTimeout(() => {
         // 從訊息歷史中分析重試模式
-        const retryMessages = this.messageHistory.filter(msg => 
-          msg.message.type?.includes('RETRY') || 
-          msg.message.retryCount || 
+        const retryMessages = this.messageHistory.filter(msg =>
+          msg.message.type?.includes('RETRY') ||
+          msg.message.retryCount ||
           msg.retryAttempt
         )
 
         retryMessages.forEach(msg => {
           const retryCount = msg.message.retryCount || msg.retryAttempt || 1
-          
+
           retryData.attempts.push({
             messageId: msg.id,
             sender: msg.sender,
@@ -156,14 +156,14 @@ class MessageFlowTracker {
           }
 
           retryData.statistics.maxRetryCount = Math.max(
-            retryData.statistics.maxRetryCount, 
+            retryData.statistics.maxRetryCount,
             retryCount
           )
         })
 
         // 計算統計數據
         if (retryData.attempts.length > 0) {
-          const totalDelay = retryData.attempts.reduce((sum, attempt) => 
+          const totalDelay = retryData.attempts.reduce((sum, attempt) =>
             sum + (attempt.responseTime || 0), 0
           )
           retryData.statistics.averageRetryDelay = totalDelay / retryData.attempts.length
@@ -177,8 +177,8 @@ class MessageFlowTracker {
         resolve({
           retryAnalysis: retryData,
           monitoredDuration: monitorDuration,
-          retrySuccessRate: retryData.statistics.totalRetries > 0 
-            ? (retryData.statistics.successfulRetries / retryData.statistics.totalRetries) * 100 
+          retrySuccessRate: retryData.statistics.totalRetries > 0
+            ? (retryData.statistics.successfulRetries / retryData.statistics.totalRetries) * 100
             : 0,
           recommendations: this._generateRetryRecommendations(retryData)
         })
@@ -192,10 +192,10 @@ class MessageFlowTracker {
    */
   _analyzeRetryPatterns (attempts) {
     const patterns = new Map()
-    
+
     attempts.forEach(attempt => {
       const pattern = `${attempt.sender}->${attempt.receiver}`
-      
+
       if (!patterns.has(pattern)) {
         patterns.set(pattern, {
           pattern,
@@ -206,20 +206,20 @@ class MessageFlowTracker {
           examples: []
         })
       }
-      
+
       const patternData = patterns.get(pattern)
       patternData.totalAttempts++
-      
+
       if (attempt.success) {
         patternData.successCount++
       } else {
         patternData.failureCount++
       }
-      
-      patternData.averageRetryCount = 
-        (patternData.averageRetryCount * (patternData.totalAttempts - 1) + attempt.retryCount) 
-        / patternData.totalAttempts
-      
+
+      patternData.averageRetryCount =
+        (patternData.averageRetryCount * (patternData.totalAttempts - 1) + attempt.retryCount) /
+        patternData.totalAttempts
+
       if (patternData.examples.length < 3) {
         patternData.examples.push({
           messageId: attempt.messageId,
@@ -229,7 +229,7 @@ class MessageFlowTracker {
         })
       }
     })
-    
+
     return patterns
   }
 
@@ -239,7 +239,7 @@ class MessageFlowTracker {
    */
   _generateRetryRecommendations (retryData) {
     const recommendations = []
-    
+
     if (retryData.statistics.averageRetryDelay > 5000) {
       recommendations.push({
         type: 'performance',
@@ -248,11 +248,11 @@ class MessageFlowTracker {
         suggestedValue: 2000
       })
     }
-    
-    const successRate = retryData.statistics.totalRetries > 0 
-      ? (retryData.statistics.successfulRetries / retryData.statistics.totalRetries) * 100 
+
+    const successRate = retryData.statistics.totalRetries > 0
+      ? (retryData.statistics.successfulRetries / retryData.statistics.totalRetries) * 100
       : 0
-    
+
     if (successRate < 80) {
       recommendations.push({
         type: 'reliability',
@@ -261,7 +261,7 @@ class MessageFlowTracker {
         suggestedValue: 90
       })
     }
-    
+
     if (retryData.statistics.maxRetryCount > 5) {
       recommendations.push({
         type: 'efficiency',
@@ -270,7 +270,7 @@ class MessageFlowTracker {
         suggestedValue: 3
       })
     }
-    
+
     return recommendations
   }
 
@@ -324,7 +324,7 @@ class MessageFlowTracker {
     if (!this.performanceAnalysis?.enabled) return
 
     const currentTime = Date.now()
-    const recentMessages = this.messageHistory.filter(msg => 
+    const recentMessages = this.messageHistory.filter(msg =>
       currentTime - msg.timestamp <= this.performanceAnalysis.analysisInterval
     )
 
@@ -500,8 +500,8 @@ class MessageFlowTracker {
 
     let trend = 0
     for (let i = 1; i < values.length; i++) {
-      if (values[i-1] !== 0) {
-        trend += (values[i] - values[i-1]) / values[i-1]
+      if (values[i - 1] !== 0) {
+        trend += (values[i] - values[i - 1]) / values[i - 1]
       }
     }
 
@@ -759,12 +759,12 @@ class MessageFlowTracker {
     // 按時間戳分組並發訊息
     const timeWindow = 100 // 100ms內的訊息視為並發
     const groups = []
-    
+
     messages.forEach(message => {
-      const concurrentMessages = messages.filter(m => 
+      const concurrentMessages = messages.filter(m =>
         Math.abs((m.timestamp || 0) - (message.timestamp || 0)) <= timeWindow
       )
-      
+
       if (concurrentMessages.length > 1) {
         groups.push(concurrentMessages)
         analysis.maxConcurrency = Math.max(analysis.maxConcurrency, concurrentMessages.length)
@@ -777,7 +777,7 @@ class MessageFlowTracker {
     const responseTimes = messages
       .filter(m => m.responseTime && !isNaN(m.responseTime))
       .map(m => m.responseTime)
-    
+
     if (responseTimes.length > 0) {
       analysis.averageResponseTime = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length
     }
@@ -787,7 +787,7 @@ class MessageFlowTracker {
       const firstTime = Math.min(...messages.map(m => m.timestamp || 0))
       const lastTime = Math.max(...messages.map(m => m.timestamp || 0))
       const duration = (lastTime - firstTime) / 1000 // 轉換為秒
-      
+
       if (duration > 0) {
         analysis.throughput = messages.length / duration
       }

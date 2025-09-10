@@ -95,6 +95,7 @@ class ConfigUtils {
               timestamp: Date.now()
             })
           } catch (error) {
+            // eslint-disable-next-line no-console
             console.error('Config change listener error:', error)
           }
         })
@@ -468,10 +469,12 @@ class ConfigUtils {
         try {
           handler(logEntry)
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.error('Log handler error:', error)
         }
       })
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Logging error:', error)
     }
   }

@@ -30,12 +30,12 @@ let Logger, MessageDictionary
 if (typeof require !== 'undefined') {
   // Node.js/測試環境
   try {
-    ({ Logger } = require('src/core/logging/Logger'))
+    ({ Logger } = require('src/core/logging/Logger'));
     ({ MessageDictionary } = require('src/core/messages/MessageDictionary'))
   } catch (e) {
     // 測試環境fallback
-    Logger = window.Logger || class { constructor() {} info() {} warn() {} error() {} debug() {} }
-    MessageDictionary = window.MessageDictionary || class { constructor() {} }
+    Logger = window.Logger || class { constructor () {} info () {} warn () {} error () {} debug () {} }
+    MessageDictionary = window.MessageDictionary || class { constructor () {} }
   }
 } else {
   // 瀏覽器環境 - 使用全域變數
@@ -452,8 +452,6 @@ function cancelExtraction () {
  */
 async function checkBackgroundStatus () {
   try {
-    console.log('🔍 正在檢查 Background Service Worker 狀態...')
-
     // 縮短超時時間到 2 秒，提供快速反饋
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Background Service Worker 連線超時 (2秒)')), 2000)
@@ -471,8 +469,6 @@ async function checkBackgroundStatus () {
     }
 
     if (response && response.success) {
-      console.log('✅ Background Service Worker 狀態正常', response)
-
       // 記錄詳細狀態供診斷使用
       if (response.eventSystem) {
         console.log('📊 事件系統狀態:', response.eventSystem)
@@ -484,6 +480,7 @@ async function checkBackgroundStatus () {
       throw new Error('Background Service Worker 回應異常: ' + JSON.stringify(response))
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('❌ Background Service Worker 連線失敗:', error)
 
     // 提供使用者友好的錯誤訊息和操作指引
@@ -575,6 +572,7 @@ async function checkCurrentTab () {
 
     return tab
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('檢查標籤頁時發生錯誤:', error)
     updateStatus('錯誤', '無法檢查頁面狀態', error.message, STATUS_TYPES.ERROR)
     return null
@@ -625,6 +623,7 @@ async function startExtraction () {
       throw new Error(response?.error || '未知錯誤')
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('提取過程發生錯誤:', error)
     updateStatus('失敗', '提取失敗', error.message, STATUS_TYPES.ERROR)
   } finally {
@@ -684,6 +683,7 @@ function openLibraryOverview () {
     console.log('📖 開啟書庫總覽頁面...')
     chrome.runtime.openOptionsPage()
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('❌ 無法開啟書庫頁面:', error)
     window.alert('無法開啟書庫頁面，請稍後再試')
   }
@@ -933,10 +933,9 @@ async function initializeDiagnosticEnhancer () {
     const result = await diagnosticEnhancer.initialize()
 
     if (!result.success) {
+      // eslint-disable-next-line no-console
       console.warn('⚠️ 診斷增強器初始化失敗:', result.error)
     } else {
-      console.log('✅ 診斷增強器初始化成功')
-
       // 設置系統健康檢查按鈕事件監聽器
       const healthCheckBtn = document.getElementById('systemHealthCheckBtn')
       if (healthCheckBtn) {
@@ -948,6 +947,7 @@ async function initializeDiagnosticEnhancer () {
             const healthReport = await diagnosticEnhancer.performSystemHealthCheck()
             displayHealthCheckResults(healthReport)
           } catch (error) {
+            // eslint-disable-next-line no-console
             console.error('健康檢查錯誤:', error)
             alert('健康檢查失敗: ' + error.message)
           } finally {
@@ -1077,6 +1077,7 @@ function showInitializationReport () {
 }
 
 function handleGlobalError (event) {
+  // eslint-disable-next-line no-console
   console.error('❌ Popup Interface 錯誤:', event.error)
 
   // 如果錯誤處理器可用，使用增強的錯誤處理

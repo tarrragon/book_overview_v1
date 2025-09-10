@@ -341,7 +341,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
       test('應該高效處理大量驗證請求', async () => {
         const eventCount = 5000
         const events = Array.from({ length: eventCount }, (_, i) =>
-          `EXTRACTION.READMOO.EXTRACT.COMPLETED`
+          'EXTRACTION.READMOO.EXTRACT.COMPLETED'
         )
 
         const startTime = performance.now()
@@ -579,8 +579,8 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
           // 計算垃圾回收效率，避免除零或負數問題
           const memoryIncrease = afterProcessingMemory.heapUsed - beforeMemory.heapUsed
           const memoryReclaimed = afterProcessingMemory.heapUsed - afterGCMemory.heapUsed
-          const gcEfficiency = memoryIncrease > 1000000 ? // 只有當記憶體增長超過1MB時才計算效率
-            Math.max(0, memoryReclaimed / memoryIncrease) : 0.8 // 預設假設80%效率
+          const gcEfficiency = memoryIncrease > 1000000 // 只有當記憶體增長超過1MB時才計算效率
+            ? Math.max(0, memoryReclaimed / memoryIncrease) : 0.8 // 預設假設80%效率
 
           measurements.push({
             cycle,

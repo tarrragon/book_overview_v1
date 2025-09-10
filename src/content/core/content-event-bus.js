@@ -156,6 +156,7 @@ function createContentEventBus () {
               listenersToRemove.push({ eventType, id: wrapper.id })
             }
           } catch (error) {
+            // eslint-disable-next-line no-console
             console.error(`❌ Content Script 事件處理器錯誤 (${eventType}):`, error)
             results.push({
               success: false,
@@ -198,6 +199,7 @@ function createContentEventBus () {
           listenersCount: eventListeners.length
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error(`❌ Content Script 事件觸發失敗 (${eventType}):`, error)
         return {
           success: false,
@@ -233,8 +235,6 @@ function createContentEventBus () {
       stats.totalExecutionTime = 0
       stats.memoryUsage.totalListeners = 0
       stats.memoryUsage.activeEventTypes = 0
-
-      console.log('🧹 EventBus 已清理完成')
     }
   }
 }

@@ -141,6 +141,7 @@ class HandlerRegistry {
               })
             } catch (errorHandlingErr) {
               // ErrorHandler 本身的錯誤不再遞迴處理，直接記錄
+              // eslint-disable-next-line no-console
               console.error('[HandlerRegistry] Error in error handling:', errorHandlingErr.message)
             } finally {
               // 確保重入保護旗標被重置
@@ -247,6 +248,7 @@ class HandlerRegistry {
 
       console.log('[HandlerRegistry] Default handlers registered successfully')
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('[HandlerRegistry] Failed to register default handlers:', error)
       throw error
     }

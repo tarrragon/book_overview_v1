@@ -291,8 +291,6 @@ class PerformanceOptimizer {
    * 記憶體使用優化
    */
   optimizeMemoryUsage () {
-    console.log('🧹 開始記憶體優化...')
-
     const beforeMemory = this.getMemoryInfo()
     let optimizedBytes = 0
 
@@ -317,8 +315,6 @@ class PerformanceOptimizer {
       memoryFreed,
       optimizedBytes
     })
-
-    console.log(`✅ 記憶體優化完成，釋放了 ${this.formatBytes(memoryFreed)}`)
   }
 
   /**
@@ -390,8 +386,6 @@ class PerformanceOptimizer {
    * @private
    */
   performRoutineOptimization () {
-    console.log('🔄 執行例行效能優化...')
-
     // 1. 預載入關鍵資源
     this.preloadCriticalResources()
 
@@ -402,8 +396,6 @@ class PerformanceOptimizer {
     this.optimizeEventSystem()
 
     this.performanceMetrics.lastOptimization = Date.now()
-
-    console.log('✅ 例行優化完成')
   }
 
   /**
@@ -434,7 +426,6 @@ class PerformanceOptimizer {
   optimizeSearchIndex () {
     // 重建搜尋索引以提升效能
     // 實際實作時會與 BookSearchFilter 整合
-    console.log('🔍 優化搜尋索引...')
   }
 
   /**
@@ -444,7 +435,6 @@ class PerformanceOptimizer {
   optimizeEventSystem () {
     // 清理過期的事件處理器和監聽器
     // 實際實作時會與 EventBus 整合
-    console.log('⚡ 優化事件系統...')
   }
 
   /**
@@ -452,8 +442,6 @@ class PerformanceOptimizer {
    * @private
    */
   triggerAutomaticCleanup () {
-    console.log('🚨 觸發緊急記憶體清理...')
-
     // 立即清理策略
     this.cleanupExpiredCaches()
     this.cleanupEventListeners()
@@ -497,6 +485,8 @@ class PerformanceOptimizer {
       data
     }
 
+    // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console
     console.warn('⚠️ 效能警告:', warning)
 
     // 可以透過事件系統發送警告

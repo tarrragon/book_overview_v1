@@ -226,7 +226,6 @@ class PopupController {
         this._updateStatusElements(statusData)
       },
       showError: (errorInfo) => {
-        console.log('Error displayed:', errorInfo)
       },
       updateProgress: (percentage, status, text) => {
         this._updateProgressElements(percentage, status, text)
@@ -432,6 +431,8 @@ class PopupController {
       this.eventManager = new EventManager(this.document, this.components)
     } catch (error) {
       // 降級到舊式事件處理
+      // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console
       console.warn('EventManager 載入失敗，使用舊式事件處理:', error.message)
       this.eventManager = null
     }
@@ -454,6 +455,8 @@ class PopupController {
       // 事件監聽器設置完成
     } catch (error) {
       // 事件監聽器設置失敗
+      // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console
       console.error('事件監聽器設置失敗:', error.message)
     }
   }
@@ -498,22 +501,24 @@ class PopupController {
       try {
         await this.components.communication.checkBackgroundStatus()
         // 檢查成功，記錄狀態
-        console.log('✅ Background service check completed successfully')
       } catch (error) {
         // 背景服務檢查失敗，但不阻止初始化
         // 錯誤已經在 communication service 中處理，包含使用者友好的錯誤訊息
+        // eslint-disable-next-line no-console
+        // eslint-disable-next-line no-console
         console.warn('Background service check failed:', error.message)
 
         // 在測試環境中，不應該當作錯誤
         if (process.env.NODE_ENV === 'test') {
-          console.log('📝 Test environment - background service check skipped')
+          // 測試環境跳過背景服務檢查
         }
       }
 
       // 初始化檢查完成
-      console.log('✅ Popup initialization checks completed')
     } catch (error) {
       // 初始化檢查失敗
+      // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console
       console.error('❌ Initialization checks failed:', error)
       throw error
     }
@@ -527,6 +532,8 @@ class PopupController {
   async _handleInitializationFailure (error) {
     try {
       // 實作降級機制
+      // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console
       console.warn('初始化失敗，啟動降級模式:', error.message)
 
       // 使用基本 UI 操作

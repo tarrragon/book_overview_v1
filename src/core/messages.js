@@ -63,11 +63,13 @@ const log = {
 
   warn: (key, params = {}) => {
     const message = formatMessage(key, params)
+    // eslint-disable-next-line no-console
     console.warn(`[WARN] ${message}`)
   },
 
   error: (key, params = {}) => {
     const message = formatMessage(key, params)
+    // eslint-disable-next-line no-console
     console.error(`[ERROR] ${message}`)
   },
 
@@ -87,5 +89,6 @@ module.exports = {
 // 舊寫法: console.log('Book extraction started for platform: readmoo')
 // 新寫法: log.info('BOOK_EXTRACTION_START', { platform: 'readmoo' })
 //
-// 舊寫法: console.error('Validation failed:', error.message)
+// 舊寫法: // eslint-disable-next-line no-console
+console.error('Validation failed:', error.message)
 // 新寫法: log.error('VALIDATION_FAILED', { reason: error.message })

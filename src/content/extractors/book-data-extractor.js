@@ -189,6 +189,7 @@ function createBookDataExtractor () {
 
         return flowId
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('❌ 啟動提取流程失敗:', error)
 
         if (eventBus) {

@@ -141,6 +141,7 @@ class DiagnosticModule {
       this.healthData = report
       return report
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('[DiagnosticModule] Failed to generate health report:', error)
       throw error
     }
@@ -180,6 +181,7 @@ class DiagnosticModule {
       // 模擬 content script 狀態檢查
       status.contentScript = 'connected'
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('[DiagnosticModule] Failed to collect system status:', error)
     }
 
@@ -213,6 +215,7 @@ class DiagnosticModule {
         metrics.loadTime = Math.floor(Math.random() * 1000) // 模擬數據
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('[DiagnosticModule] Failed to collect performance metrics:', error)
     }
 
@@ -231,6 +234,7 @@ class DiagnosticModule {
         return chrome.runtime.getManifest().version
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('[DiagnosticModule] Failed to get extension version:', error)
     }
     return '0.6.8' // 預設版本

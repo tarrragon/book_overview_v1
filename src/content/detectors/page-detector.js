@@ -169,7 +169,6 @@ function createPageDetector () {
 
           const newStatus = this.getPageStatus()
 
-          console.log('🔄 頁面 URL 變更:', {
             from: oldUrl,
             to: currentUrl,
             oldStatus,
@@ -187,7 +186,8 @@ function createPageDetector () {
                        oldStatus.isReadmooPage !== newStatus.isReadmooPage
             })
           } catch (error) {
-            console.error('❌ URL 變更回調函數錯誤:', error)
+            // eslint-disable-next-line no-console
+      console.error('❌ URL 變更回調函數錯誤:', error)
           }
         }
       })
@@ -202,7 +202,8 @@ function createPageDetector () {
           subtree: true
         })
       } else {
-        console.warn('⚠️ 無法找到觀察目標元素 (document.body 或 document.documentElement)')
+        // eslint-disable-next-line no-console
+      console.warn('⚠️ 無法找到觀察目標元素 (document.body 或 document.documentElement)')
       }
 
       // 返回停止函數
@@ -293,7 +294,6 @@ function createPageDetector () {
         changeObserver = null
       }
 
-      console.log('🧹 PageDetector 已清理完成')
     },
 
     /**

@@ -136,6 +136,7 @@ class ExcelExportHandler extends EventHandler {
    * 錯誤處理
    */
   async onError (event, error) {
+    // eslint-disable-next-line no-console
     console.error(`[${this.name}] Excel export failed:`, error.message)
   }
 }

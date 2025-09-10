@@ -161,6 +161,7 @@ class MessageErrorHandler extends EventHandler {
           )
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(
         `[MessageErrorHandler] ${MessageErrorHandler.CONSTANTS.ERROR_MESSAGES.PROCESSING_FAILED}:`,
         error

@@ -465,9 +465,9 @@ class ReadmooPlatformMigrationValidator {
 
       // 驗證檢測結果
       if (detectionResult.platformId !== 'READMOO') {
-        return this.createValidationResult(false, { 
+        return this.createValidationResult(false, {
           detectionResult,
-          confidence: detectionResult.confidence || 0  // 確保 confidence 總是存在
+          confidence: detectionResult.confidence || 0 // 確保 confidence 總是存在
         }, [
           `Platform detection failed: ${detectionResult.platformId} platform detected`
         ])
@@ -479,9 +479,9 @@ class ReadmooPlatformMigrationValidator {
           confidence: detectionResult.confidence,
           required: this.config.minDetectionConfidence
         })
-        return this.createValidationResult(false, { 
+        return this.createValidationResult(false, {
           detectionResult,
-          confidence: detectionResult.confidence  // 保持原始 confidence
+          confidence: detectionResult.confidence // 保持原始 confidence
         }, [
           `Low detection confidence: ${detectionResult.confidence} (minimum required: ${this.config.minDetectionConfidence})`
         ])
@@ -491,9 +491,9 @@ class ReadmooPlatformMigrationValidator {
       const validationConfidence = await this.platformDetectionService.validatePlatform('READMOO', context)
 
       if (validationConfidence < this.config.minDetectionConfidence) {
-        return this.createValidationResult(false, { 
-          detectionResult, 
-          confidence: validationConfidence  // 使用驗證信心度
+        return this.createValidationResult(false, {
+          detectionResult,
+          confidence: validationConfidence // 使用驗證信心度
         }, [
           `Platform validation failed: confidence ${validationConfidence}`
         ])
@@ -513,7 +513,7 @@ class ReadmooPlatformMigrationValidator {
       } else {
         // 不可重試錯誤直接返回失敗結果
         return this.createValidationResult(false, {
-          confidence: 0  // 錯誤情況下設置 confidence 為 0
+          confidence: 0 // 錯誤情況下設置 confidence 為 0
         }, [
           `Platform detection error: ${error.message}`
         ])

@@ -214,8 +214,6 @@ class PerformanceIntegration {
    * @returns {Promise<Object>} 啟動結果
    */
   async startPerformanceSystem () {
-    console.log('🚀 啟動 Extension 效能優化系統...')
-
     const startTime = Date.now()
 
     try {
@@ -246,13 +244,12 @@ class PerformanceIntegration {
         monitoringMode: this.config.monitoringMode
       }
 
-      console.log(`✅ 效能系統啟動完成 (${initTime}ms)`)
-
       // 發出初始化完成事件
       this.emitPerformanceEvent('PERFORMANCE.SYSTEM.INITIALIZED', result)
 
       return result
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ 效能系統啟動失敗:', error)
 
       this.emitPerformanceEvent('PERFORMANCE.SYSTEM.FAILED', {
@@ -459,8 +456,6 @@ class PerformanceIntegration {
    * @private
    */
   async optimizeModuleLoading (moduleId) {
-    console.log(`⚡ 優化模組載入: ${moduleId}`)
-
     const modulePerf = this.modulePerformance.get(moduleId)
     if (!modulePerf) return
 
@@ -561,8 +556,6 @@ class PerformanceIntegration {
 
     task.executed = Date.now()
 
-    console.log(`⚡ 執行優化任務: ${task.type} for ${task.moduleId}`)
-
     // 根據任務類型執行相應優化
     switch (task.type) {
       case 'defer_non_critical':
@@ -617,8 +610,6 @@ class PerformanceIntegration {
    * @private
    */
   async performRoutineOptimization () {
-    console.log('🔄 執行例行效能優化...')
-
     // 記憶體優化
     this.performanceOptimizer.performRoutineOptimization()
 
@@ -627,8 +618,6 @@ class PerformanceIntegration {
 
     // 更新模組效能指標
     this.updateModuleMetrics()
-
-    console.log('✅ 例行優化完成')
   }
 
   /**
@@ -687,8 +676,6 @@ class PerformanceIntegration {
     // 發送健康檢查事件
     this.emitPerformanceEvent('PERFORMANCE.HEALTH_CHECK', healthReport)
 
-    console.log(`✅ 健康檢查完成，狀態: ${healthReport.overall}`)
-
     return healthReport
   }
 
@@ -697,8 +684,6 @@ class PerformanceIntegration {
    * @returns {Promise<Object>} 優化結果
    */
   async optimizeNow () {
-    console.log('⚡ 執行即時效能優化...')
-
     const startTime = Date.now()
     const optimizationResults = []
 
@@ -731,10 +716,9 @@ class PerformanceIntegration {
         timestamp: Date.now()
       }
 
-      console.log(`✅ 即時優化完成 (${totalTime}ms)`)
-
       return result
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ 即時優化失敗:', error)
 
       return {
@@ -908,6 +892,7 @@ class PerformanceIntegration {
       try {
         listener(eventType, eventData)
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn('效能事件監聽器錯誤:', error)
       }
     }
@@ -927,6 +912,7 @@ class PerformanceIntegration {
     }
 
     if (this.config.enablePerformanceWarnings) {
+      // eslint-disable-next-line no-console
       console.warn('⚠️ 效能警告:', warning)
     }
 
@@ -1001,8 +987,6 @@ class PerformanceIntegration {
     if (typeof window !== 'undefined' && window.ExtensionPerformance) {
       delete window.ExtensionPerformance
     }
-
-    console.log('✅ 效能系統已停止')
   }
 }
 

@@ -173,6 +173,7 @@ class PopupEventController extends EventHandler {
       // 檢查初始狀態
       await this.checkInitialStatus()
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('[PopupEventController] Initialization failed:', error)
       this.handleInitializationError(error)
     }
@@ -673,6 +674,7 @@ class PopupEventController extends EventHandler {
     this.updateStatus('失敗', '提取失敗', message, this.STATUS_TYPES.ERROR)
 
     if (error) {
+      // eslint-disable-next-line no-console
       console.error('[PopupEventController] Extraction error:', error)
     }
   }

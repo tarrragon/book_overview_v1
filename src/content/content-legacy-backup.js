@@ -39,7 +39,7 @@
  * @author Readmoo Extension Team
  */
 
-console.log('📚 Readmoo Content Script 開始載入')
+// eslint-disable-next-line no-console
 
 // ====================
 // 全域變數和狀態管理
@@ -48,6 +48,7 @@ console.log('📚 Readmoo Content Script 開始載入')
 // 頁面檢測狀態
 let isReadmooPage = false
 let pageType = 'unknown'
+// eslint-disable-next-line no-unused-vars
 const contentScriptReady = false
 
 // 核心模組實例
@@ -210,6 +211,7 @@ function createContentEventBus () {
               listenersToRemove.push({ eventType, id: wrapper.id })
             }
           } catch (error) {
+            // eslint-disable-next-line no-console
             console.error(`❌ Content Script 事件處理器錯誤 (${eventType}):`, error)
             results.push({
               success: false,
@@ -252,6 +254,7 @@ function createContentEventBus () {
           listenersCount: eventListeners.length
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error(`❌ Content Script 事件觸發失敗 (${eventType}):`, error)
         return {
           success: false,
@@ -287,8 +290,6 @@ function createContentEventBus () {
       stats.totalExecutionTime = 0
       stats.memoryUsage.totalListeners = 0
       stats.memoryUsage.activeEventTypes = 0
-
-      console.log('🧹 EventBus 已清理完成')
     }
   }
 }
@@ -393,6 +394,7 @@ function createContentChromeBridge () {
         const latency = performance.now() - startTime
         communicationStats.messagesFailed++
 
+        // eslint-disable-next-line no-console
         console.error('❌ Content Script 發送訊息失敗 (Background):', {
           error: error.message,
           message: message.type,
@@ -613,6 +615,7 @@ function createContentBookDataExtractor () {
 
         return flowId
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('❌ 啟動提取流程失敗:', error)
 
         if (eventBus) {
@@ -884,7 +887,6 @@ function createContentReadmooAdapter () {
             const found = document.querySelectorAll(selector)
             if (found.length > 0) {
               elements = Array.from(found)
-              console.log(`✅ 使用備用選擇器 ${selector} 找到 ${elements.length} 個元素`)
               break
             }
           }
@@ -911,11 +913,10 @@ function createContentReadmooAdapter () {
           elements = Array.from(containers)
         }
 
-        console.log(`📚 找到 ${elements.length} 個書籍容器元素`)
-
         stats.domQueryTime += performance.now() - startTime
         return elements
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('❌ DOM 查詢失敗:', error)
         stats.domQueryTime += performance.now() - startTime
         return []
@@ -938,6 +939,7 @@ function createContentReadmooAdapter () {
           readerLink = element
         }
         if (!readerLink) {
+          // eslint-disable-next-line no-console
           console.warn('⚠️ 容器中未找到閱讀器連結:', element)
           return null
         }
@@ -946,6 +948,7 @@ function createContentReadmooAdapter () {
 
         // 安全檢查 - 過濾惡意URL
         if (this.isUnsafeUrl(href)) {
+          // eslint-disable-next-line no-console
           console.warn('⚠️ 檢測到惡意URL，已過濾:', href)
           stats.failedExtractions++
           return null
@@ -954,6 +957,7 @@ function createContentReadmooAdapter () {
         // 提取書籍 ID
         const id = this.extractBookId(href)
         if (!id) {
+          // eslint-disable-next-line no-console
           console.warn('⚠️ 無法提取書籍ID:', href)
           return null
         }
@@ -973,6 +977,7 @@ function createContentReadmooAdapter () {
 
         // 安全檢查 - 過濾惡意圖片URL
         if (cover && this.isUnsafeUrl(cover)) {
+          // eslint-disable-next-line no-console
           console.warn('⚠️ 檢測到惡意圖片URL，已過濾:', cover)
           cover = ''
         }
@@ -1018,6 +1023,7 @@ function createContentReadmooAdapter () {
         stats.parseTime += performance.now() - startTime
         return bookData
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('❌ 解析書籍容器元素失敗:', error)
         stats.failedExtractions++
         stats.parseTime += performance.now() - startTime
@@ -1063,20 +1069,29 @@ function createContentReadmooAdapter () {
 
       // 詳細的提取結果日誌
       console.log(`📊 提取完成: ${books.length}/${bookElements.length} 本書籍 (${totalTime.toFixed(2)}ms)`)
-      console.log(`✅ 成功: ${stats.successfulExtractions}, ❌ 失敗: ${stats.failedExtractions}`)
 
       if (bookElements.length === 0) {
+        // eslint-disable-next-line no-console
         console.warn('⚠️ 未找到任何書籍元素，可能的原因：')
+        // eslint-disable-next-line no-console
         console.warn('   1. 頁面尚未完全載入')
+        // eslint-disable-next-line no-console
         console.warn('   2. Readmoo 變更了頁面結構')
+        // eslint-disable-next-line no-console
         console.warn('   3. CSS 選擇器需要更新')
+        // eslint-disable-next-line no-console
         console.warn('   4. 不是書庫或書架頁面')
       } else if (books.length === 0) {
+        // eslint-disable-next-line no-console
         console.warn('⚠️ 找到書籍容器但無法解析，可能的原因：')
+        // eslint-disable-next-line no-console
         console.warn('   1. 容器結構不符合預期')
+        // eslint-disable-next-line no-console
         console.warn('   2. 缺少必要的子元素')
+        // eslint-disable-next-line no-console
         console.warn('   3. URL 或圖片格式不符合')
       } else if (books.length < bookElements.length) {
+        // eslint-disable-next-line no-console
         console.warn(`⚠️ 部分書籍解析失敗 (${stats.failedExtractions}/${bookElements.length})`)
       }
 
@@ -1418,8 +1433,6 @@ function detectPageType () {
  */
 async function initializeContentScript () {
   try {
-    console.log('🚀 開始初始化 Content Script')
-
     // 檢測頁面
     detectReadmooPage()
 
@@ -1460,7 +1473,6 @@ async function initializeContentScript () {
     // 設定生命週期管理
     setupLifecycleManagement()
 
-    console.log('✅ Content Script 初始化完成')
     console.log('📊 初始化狀態:', {
       isReadmooPage,
       pageType,
@@ -1473,6 +1485,7 @@ async function initializeContentScript () {
     // 向 Background 報告就緒狀態
     await reportReadyStatus()
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('❌ Content Script 初始化失敗:', error)
     throw error
   }
@@ -1509,7 +1522,6 @@ function setupLifecycleManagement () {
   urlChangeObserver = new MutationObserver(() => {
     if (window.location.href !== currentUrl) {
       currentUrl = window.location.href
-      console.log('🔄 頁面 URL 變更:', currentUrl)
 
       // 重新檢測頁面
       setTimeout(async () => {
@@ -1526,8 +1538,6 @@ function setupLifecycleManagement () {
 
   // 頁面卸載清理
   window.addEventListener('beforeunload', () => {
-    console.log('🧹 頁面卸載，清理資源')
-
     if (bookDataExtractor) {
       const activeFlows = bookDataExtractor.getActiveExtractionFlows()
       activeFlows.forEach(flowId => {
@@ -1588,16 +1598,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 async function handleBackgroundMessage (message, sender, sendResponse) {
   try {
     switch (message.type) {
-      case 'PAGE_READY':
-        console.log('✅ Background 確認頁面就緒')
-
+      case 'PAGE_READY': {
         const pageStatus = await getPageStatus()
         sendResponse({ success: true, ...pageStatus })
         break
+      }
 
       case 'START_EXTRACTION':
       case 'BACKGROUND.COMMAND.START_EXTRACTION':
-        console.log('🚀 收到提取指令')
 
         if (bookDataExtractor) {
           const flowId = await bookDataExtractor.startExtractionFlow(message.data || {})
@@ -1624,10 +1632,12 @@ async function handleBackgroundMessage (message, sender, sendResponse) {
         break
 
       default:
+        // eslint-disable-next-line no-console
         console.warn('⚠️ Content Script 收到未知訊息類型:', message.type)
         sendResponse({ success: false, error: '未知的訊息類型' })
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('❌ 處理 Background 訊息失敗:', error)
     sendResponse({ success: false, error: error.message })
   }
@@ -1681,6 +1691,7 @@ function getHealthStatus () {
  * 全域錯誤處理
  */
 window.addEventListener('error', async (event) => {
+  // eslint-disable-next-line no-console
   console.error('❌ Content Script 全域錯誤:', event.error)
 
   if (contentChromeBridge) {
@@ -1700,6 +1711,7 @@ window.addEventListener('error', async (event) => {
  * 未處理的 Promise 拒絕
  */
 window.addEventListener('unhandledrejection', async (event) => {
+  // eslint-disable-next-line no-console
   console.error('❌ Content Script 未處理的 Promise 拒絕:', event.reason)
 
   if (contentChromeBridge) {
@@ -1725,5 +1737,3 @@ if (document.readyState === 'loading') {
   // 頁面已經載入完成
   initializeContentScript()
 }
-
-console.log('📚 Readmoo Content Script 載入完成')

@@ -10,7 +10,7 @@
  * @jest-environment jsdom
  */
 
-const ISynchronizationCoordinator = require('../../../../../../src/background/domains/data-management/interfaces/ISynchronizationCoordinator.js')
+const ISynchronizationCoordinator = require('src/background/domains/data-management/interfaces/ISynchronizationCoordinator.js')
 
 describe('ISynchronizationCoordinator 抽象介面測試', () => {
   describe('🔴 Red 階段：抽象介面設計驗證', () => {

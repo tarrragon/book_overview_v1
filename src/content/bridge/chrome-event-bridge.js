@@ -212,7 +212,9 @@ function createChromeEventBridge () {
           })
           results.push(result)
         } catch (error) {
-          // 部分分頁失敗使用警告級別日誌
+          // 部分分頁失敗使用警告級別日誌 - 這是重要的錯誤處理訊息
+          // eslint-disable-next-line no-console
+          // eslint-disable-next-line no-console
           console.warn(`Failed to send event to tab ${tab.id}:`, error)
         }
       }
@@ -301,6 +303,8 @@ function createChromeEventBridge () {
      * @private
      */
     _logCommunicationError (target, error, messageType, latency) {
+      // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console
       console.error(`❌ Content Script 發送訊息失敗 (${target}):`, {
         error: error.message,
         message: messageType,

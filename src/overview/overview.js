@@ -43,17 +43,15 @@
    */
   async function initializeEventSystem () {
     try {
-      console.log('📡 Overview 頁面：開始初始化事件系統')
-
       // 檢查 EventBus 是否可用
       if (typeof EventBus !== 'undefined') {
         eventBus = new EventBus()
-        console.log('✅ EventBus 初始化成功')
       } else if (window.eventBus) {
         // 使用全域 EventBus 實例
         eventBus = window.eventBus
-        console.log('✅ 使用全域 EventBus 實例')
       } else {
+        // eslint-disable-next-line no-console
+        // eslint-disable-next-line no-console
         console.warn('⚠️ EventBus 不可用，使用簡化實現')
         eventBus = createFallbackEventBus()
       }
@@ -61,13 +59,12 @@
       // 檢查 ChromeEventBridge 是否可用
       if (typeof ChromeEventBridge !== 'undefined' && typeof chrome !== 'undefined') {
         chromeBridge = new ChromeEventBridge(eventBus)
-        console.log('✅ ChromeEventBridge 初始化成功')
-      } else {
-        console.log('ℹ️ Chrome Extension 環境不可用，跳過 ChromeEventBridge 初始化')
       }
 
       return { eventBus, chromeBridge }
     } catch (error) {
+      // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console
       console.error('❌ 事件系統初始化失敗:', error)
       throw error
     }
@@ -96,6 +93,8 @@
               try {
                 return Promise.resolve(handler({ type: eventType, data }))
               } catch (error) {
+                // eslint-disable-next-line no-console
+                // eslint-disable-next-line no-console
                 console.error(`事件處理錯誤 (${eventType}):`, error)
                 return null
               }
@@ -129,8 +128,6 @@
    */
   async function initializeOverviewController () {
     try {
-      console.log('🎮 Overview 頁面：開始初始化控制器')
-
       // 檢查 OverviewPageController 是否可用
       if (typeof OverviewPageController === 'undefined') {
         throw new Error('OverviewPageController 類別不可用')
@@ -141,7 +138,6 @@
 
       // 控制器已在建構函式中完成初始化
       if (eventBus && overviewController) {
-        console.log('✅ OverviewPageController 初始化成功')
       }
 
       // 觸發頁面就緒事件
@@ -154,6 +150,8 @@
 
       return overviewController
     } catch (error) {
+      // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console
       console.error('❌ Overview 控制器初始化失敗:', error)
       showInitializationError(error)
       throw error
@@ -192,8 +190,6 @@
    */
   async function initializeOverviewPage () {
     try {
-      console.log('🚀 Overview 頁面：開始完整初始化流程')
-
       // 顯示載入狀態
       const loadingIndicator = document.getElementById('loadingIndicator')
       if (loadingIndicator) {
@@ -224,9 +220,9 @@
       if (loadingIndicator) {
         loadingIndicator.style.display = 'none'
       }
-
-      console.log('✅ Overview 頁面初始化完成')
     } catch (error) {
+      // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console
       console.error('❌ Overview 頁面初始化失敗:', error)
 
       // 隱藏載入狀態

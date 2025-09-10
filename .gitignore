@@ -52,4 +52,5 @@ dist/
 build/
 tmp/
 temp/
-.cache/
+.cache/ 
+.serena

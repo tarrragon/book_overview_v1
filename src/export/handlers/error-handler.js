@@ -94,6 +94,7 @@ class ErrorHandler extends EventHandler {
       return result
     } catch (error) {
       // 錯誤處理器自身的錯誤處理
+      // eslint-disable-next-line no-console
       console.error('[ErrorHandler] Failed to process error:', error)
       throw error
     }
@@ -210,6 +211,7 @@ class ErrorHandler extends EventHandler {
       timestamp: new Date().toISOString()
     }
 
+    // eslint-disable-next-line no-console
     console.error('[ErrorHandler] Export error occurred:', logInfo)
   }
 
@@ -274,6 +276,7 @@ class ErrorHandler extends EventHandler {
    * 錯誤處理器自身的錯誤處理
    */
   async onError (event, error) {
+    // eslint-disable-next-line no-console
     console.error(`[${this.name}] Critical: Error handler failed:`, error.message)
   }
 }

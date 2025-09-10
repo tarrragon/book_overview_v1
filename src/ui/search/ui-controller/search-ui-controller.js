@@ -335,6 +335,7 @@ class SearchUIController {
     if (this.logger) {
       this.logger.error('Search input processing error:', error)
     } else {
+      // eslint-disable-next-line no-console
       console.error('Search input processing error:', error)
     }
   }

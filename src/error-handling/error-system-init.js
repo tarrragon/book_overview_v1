@@ -37,6 +37,7 @@ class ErrorSystemManager {
    */
   async initialize (eventBus) {
     if (this.isInitialized) {
+      // eslint-disable-next-line no-console
       console.warn('[ErrorSystemManager] System already initialized')
       return
     }
@@ -68,6 +69,7 @@ class ErrorSystemManager {
         config: this.config
       })
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('[ErrorSystemManager] Failed to initialize error handling system:', error)
       throw error
     }
@@ -217,6 +219,7 @@ class ErrorSystemManager {
       this._queueUserError('SYSTEM_ERROR', errorData)
     }
 
+    // eslint-disable-next-line no-console
     console.error(`[ErrorSystemManager] Global ${type}:`, error)
   }
 
@@ -332,6 +335,7 @@ class ErrorSystemManager {
         try {
           handler.cleanup()
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.warn('[ErrorSystemManager] Cleanup failed for handler:', error)
         }
       }
@@ -436,6 +440,7 @@ class ErrorSystemManager {
         try {
           await handler.destroy()
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.warn('[ErrorSystemManager] Handler cleanup failed:', error)
         }
       }

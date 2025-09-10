@@ -135,7 +135,7 @@ class MessageDictionary {
       CONFIG_VALIDATION_FAILED: '配置驗證失敗',
 
       // 多語言支援
-      '未知的篩選條件': '未知的篩選條件',
+      未知的篩選條件: '未知的篩選條件',
       '索引搜尋失敗，回退到線性搜尋': '索引搜尋失敗，回退到線性搜尋',
       'Event listener registration failed': '事件監聽器註冊失敗'
     }
@@ -246,6 +246,7 @@ class MessageDictionary {
     const itemSize = this._estimateSize({ [key]: message })
 
     if (this._cacheSize + itemSize > this._maxCacheSize) {
+      // eslint-disable-next-line no-console
       console.warn(`MessageDictionary: Adding "${key}" would exceed cache limit (${this._maxCacheSize / 1024}KB)`)
       return false
     }

@@ -197,14 +197,18 @@ class Logger {
         }
         break
       case 'WARN':
-        if (console.warn) {
+        if (// eslint-disable-next-line no-console
+          console.warn) {
+          // eslint-disable-next-line no-console
           console.warn(prefix, logEntry)
         } else {
           console.log(prefix, logEntry)
         }
         break
       case 'ERROR':
-        if (console.error) {
+        if (// eslint-disable-next-line no-console
+          console.error) {
+          // eslint-disable-next-line no-console
           console.error(prefix, logEntry)
         } else {
           console.log(prefix, logEntry)
@@ -227,6 +231,7 @@ class Logger {
     const fallbackMessage = `[${level}][${this.name}] ${messageKey}`
 
     try {
+      // eslint-disable-next-line no-console
       console.error('[Logger Fallback]', {
         level,
         name: this.name,
@@ -236,6 +241,7 @@ class Logger {
       })
     } catch (fallbackError) {
       // 最後的後備機制
+      // eslint-disable-next-line no-console
       console.error(`[Logger Critical] ${fallbackMessage}`)
     }
   }

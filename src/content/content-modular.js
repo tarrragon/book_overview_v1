@@ -33,8 +33,6 @@ const createChromeEventBridge = require('./bridge/chrome-event-bridge')
 const createBookDataExtractor = require('./extractors/book-data-extractor')
 const createReadmooAdapter = require('./adapters/readmoo-adapter')
 
-console.log('📚 Readmoo Content Script (模組化版本) 開始載入')
-
 // ====================
 // 全域狀態管理
 // ====================
@@ -65,8 +63,6 @@ async function initializeContentScript () {
   const initStart = performance.now()
 
   try {
-    console.log('🚀 開始初始化 Content Script (模組化)')
-
     // 第一步：頁面檢測
     pageDetector = createPageDetector()
     const pageStatus = pageDetector.getPageStatus()
@@ -113,7 +109,6 @@ async function initializeContentScript () {
     performanceStats.initializationTime = performance.now() - initStart
     contentScriptReady = true
 
-    console.log('✅ Content Script 初始化完成 (模組化)')
     console.log('📊 初始化狀態:', {
       pageType: pageStatus.pageType,
       initTime: performanceStats.initializationTime.toFixed(2) + 'ms',
@@ -129,6 +124,7 @@ async function initializeContentScript () {
     // 第九步：向 Background 報告就緒狀態
     await reportReadyStatus()
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('❌ Content Script 初始化失敗:', error)
 
     // 清理已建立的組件
@@ -157,6 +153,7 @@ function setupModuleIntegration () {
       try {
         await contentChromeBridge.forwardEventToBackground(eventType, event.data)
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error(`❌ 轉發事件失敗 (${eventType}):`, error)
       }
     })
@@ -172,8 +169,6 @@ function setupLifecycleManagement () {
   // URL 變更監聽 (SPA 導航)
   if (pageDetector) {
     urlChangeStopFunction = pageDetector.onUrlChange(async (changeInfo) => {
-      console.log('🔄 URL 變更處理:', changeInfo)
-
       if (changeInfo.changed) {
         // 延遲重新檢查頁面狀態，等待 DOM 更新
         setTimeout(async () => {
@@ -185,11 +180,8 @@ function setupLifecycleManagement () {
 
   // 頁面卸載清理
   window.addEventListener('beforeunload', () => {
-    console.log('🧹 頁面卸載，清理資源')
     cleanup()
   })
-
-  console.log('🔄 生命週期管理設定完成')
 }
 
 /**
@@ -229,6 +221,7 @@ async function reportReadyStatus () {
     await contentChromeBridge.sendToBackground(status)
     console.log('📡 就緒狀態已報告', status.data)
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('❌ 報告就緒狀態失敗:', error)
   }
 }
@@ -237,8 +230,6 @@ async function reportReadyStatus () {
  * 清理資源
  */
 function cleanup () {
-  console.log('🧹 開始清理 Content Script 資源')
-
   try {
     // 取消提取流程
     if (bookDataExtractor) {
@@ -267,9 +258,8 @@ function cleanup () {
 
     // 重置狀態
     contentScriptReady = false
-
-    console.log('✅ Content Script 資源清理完成')
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('❌ 清理資源時發生錯誤:', error)
   }
 }
@@ -297,7 +287,6 @@ async function handleBackgroundMessage (message, sender, sendResponse) {
   try {
     switch (message.type) {
       case 'PAGE_READY': {
-        console.log('✅ Background 確認頁面就緒')
         const pageStatus = await getPageStatus()
         sendResponse({ success: true, ...pageStatus })
         break
@@ -305,8 +294,6 @@ async function handleBackgroundMessage (message, sender, sendResponse) {
 
       case 'START_EXTRACTION':
       case 'BACKGROUND.COMMAND.START_EXTRACTION': {
-        console.log('🚀 收到提取指令')
-
         if (bookDataExtractor) {
           const flowId = await bookDataExtractor.startExtractionFlow(message.data || {})
           sendResponse({
@@ -333,10 +320,12 @@ async function handleBackgroundMessage (message, sender, sendResponse) {
         break
 
       default:
+        // eslint-disable-next-line no-console
         console.warn('⚠️ Content Script 收到未知訊息類型:', message.type)
         sendResponse({ success: false, error: '未知的訊息類型' })
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('❌ 處理 Background 訊息失敗:', error)
     sendResponse({ success: false, error: error.message })
   }
@@ -399,6 +388,7 @@ function getHealthStatus () {
  * 全域錯誤處理
  */
 window.addEventListener('error', async (event) => {
+  // eslint-disable-next-line no-console
   console.error('❌ Content Script 全域錯誤:', event.error)
 
   if (contentChromeBridge) {
@@ -413,6 +403,7 @@ window.addEventListener('error', async (event) => {
         }
       })
     } catch (bridgeError) {
+      // eslint-disable-next-line no-console
       console.error('❌ 發送錯誤報告失敗:', bridgeError)
     }
   }
@@ -422,6 +413,7 @@ window.addEventListener('error', async (event) => {
  * 未處理的 Promise 拒絕
  */
 window.addEventListener('unhandledrejection', async (event) => {
+  // eslint-disable-next-line no-console
   console.error('❌ Content Script 未處理的 Promise 拒絕:', event.reason)
 
   if (contentChromeBridge) {
@@ -435,6 +427,7 @@ window.addEventListener('unhandledrejection', async (event) => {
         }
       })
     } catch (bridgeError) {
+      // eslint-disable-next-line no-console
       console.error('❌ 發送 Promise 拒絕報告失敗:', bridgeError)
     }
   }
@@ -451,5 +444,3 @@ if (document.readyState === 'loading') {
   // 頁面已經載入完成
   initializeContentScript()
 }
-
-console.log('📚 Readmoo Content Script (模組化版本) 載入完成')

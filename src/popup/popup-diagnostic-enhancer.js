@@ -26,11 +26,11 @@ class PopupDiagnosticEnhancer {
    */
   async initialize () {
     try {
-      console.log('🔍 [診斷系統] 初始化診斷增強器')
       await this.setupSystemChecks()
       this.setupDiagnosticUI()
       return { success: true }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ [診斷系統] 初始化失敗:', error)
       return { success: false, error: error.message }
     }
@@ -40,7 +40,6 @@ class PopupDiagnosticEnhancer {
    * 執行完整的系統健康檢查
    */
   async performSystemHealthCheck () {
-    console.log('🔍 [診斷系統] 開始系統健康檢查')
     this.isCollecting = true
 
     const healthCheckResults = {
@@ -79,10 +78,10 @@ class PopupDiagnosticEnhancer {
       this.generateRecommendations(healthCheckResults)
 
       this.diagnosticData = healthCheckResults
-      console.log('✅ [診斷系統] 系統健康檢查完成', healthCheckResults.summary)
 
       return healthCheckResults
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ [診斷系統] 健康檢查失敗:', error)
       return {
         ...healthCheckResults,

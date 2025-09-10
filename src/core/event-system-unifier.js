@@ -529,6 +529,7 @@ class EventPriorityValidator {
       }
       return true
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('優先級標準化失敗:', error)
       return false
     }
@@ -837,6 +838,7 @@ class EventSystemUnifier {
 
       return true
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('統一化初始化失敗:', error)
       return false
     }
@@ -866,6 +868,7 @@ class EventSystemUnifier {
 
       return true
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('統一化規則應用失敗:', error)
       return false
     }
@@ -895,6 +898,7 @@ class EventSystemUnifier {
 
       return namingValid && priorityValid && collaborationValid && compatibilityValid
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('統一化驗證失敗:', error)
       return false
     }

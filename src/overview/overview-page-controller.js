@@ -195,6 +195,7 @@ class OverviewPageController extends EventHandlerClass {
           }
         } catch (error) {
           // 僅記錄錯誤，不中斷頁面運作
+          // eslint-disable-next-line no-console
           console.warn('⚠️ 處理 storage 變更失敗:', error)
         }
       })
@@ -280,6 +281,7 @@ class OverviewPageController extends EventHandlerClass {
    */
   async loadBooksFromChromeStorage () {
     if (typeof chrome === 'undefined' || !chrome.storage) {
+      // eslint-disable-next-line no-console
       console.warn('⚠️ Chrome Storage API 不可用')
       return
     }
@@ -293,7 +295,6 @@ class OverviewPageController extends EventHandlerClass {
         const books = result.readmoo_books.books
         const timestamp = result.readmoo_books.extractionTimestamp
 
-        console.log(`📚 從 Chrome Storage 載入了 ${books.length} 本書籍`)
         console.log(`📅 提取時間: ${new Date(timestamp).toLocaleString()}`)
 
         this._updateBooksData(books)
@@ -305,6 +306,7 @@ class OverviewPageController extends EventHandlerClass {
         this.renderBooksTable([])
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ 從 Chrome Storage 載入書籍資料失敗:', error)
       this.showError('無法載入書籍資料: ' + error.message)
     }
@@ -1075,6 +1077,7 @@ class OverviewPageController extends EventHandlerClass {
    */
   _checkLargeDataset (books) {
     if (books.length > 1000) {
+      // eslint-disable-next-line no-console
       console.warn('⚠️ 大型資料集，建議分批處理（未來改善）')
     }
   }
@@ -1096,7 +1099,6 @@ class OverviewPageController extends EventHandlerClass {
    * @param {Array} books - 載入的書籍陣列
    */
   _logLoadSuccess (books) {
-    console.log(`✅ 成功載入 ${books.length} 本書籍`)
   }
 
   /**
@@ -1237,6 +1239,7 @@ class OverviewPageController extends EventHandlerClass {
 
       return true
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(`Overview 控制器處理事件失敗: ${eventType}`, error)
       throw error
     }

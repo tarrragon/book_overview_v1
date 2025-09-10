@@ -211,8 +211,6 @@ class LoadingOptimizer {
     const startTime = performance.now()
 
     try {
-      console.log('🚀 開始優化載入流程...')
-
       // 1. 載入關鍵資源
       await this.loadCriticalResources()
 
@@ -235,8 +233,6 @@ class LoadingOptimizer {
       this.loadingState.initialized = true
       this.loadingState.totalLoadTime = totalTime
 
-      console.log(`✅ 優化載入完成，耗時 ${totalTime.toFixed(2)}ms`)
-
       return {
         success: true,
         loadTime: totalTime,
@@ -244,6 +240,7 @@ class LoadingOptimizer {
         metrics: this.getLoadingMetrics()
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ 載入優化失敗:', error)
       this.loadingMetrics.loadingErrors.push({
         error: error.message,
@@ -283,9 +280,11 @@ class LoadingOptimizer {
 
         // 檢查是否超過目標時間
         if (loadTime > LOADING_TARGETS.CRITICAL_RESOURCE) {
+          // eslint-disable-next-line no-console
           console.warn(`⚠️ 關鍵資源 ${resourceName} 載入時間超過目標: ${loadTime.toFixed(2)}ms`)
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error(`❌ 關鍵資源 ${resourceName} 載入失敗:`, error)
         this.loadingMetrics.loadingErrors.push({
           resource: resourceName,
@@ -298,8 +297,6 @@ class LoadingOptimizer {
 
     await Promise.all(loadPromises)
     this.loadingState.criticalResourcesLoaded = true
-
-    console.log('✅ 關鍵資源載入完成')
   }
 
   /**
@@ -334,6 +331,7 @@ class LoadingOptimizer {
             console.log(`📦 已預載入: ${resourceName}`)
           })
           .catch((error) => {
+            // eslint-disable-next-line no-console
             console.warn(`⚠️ 預載入失敗 ${resourceName}:`, error)
           })
       }
@@ -367,8 +365,6 @@ class LoadingOptimizer {
         rootMargin: '50px'
       })
     }
-
-    console.log('🔄 延遲載入系統已啟動')
   }
 
   /**
@@ -388,8 +384,6 @@ class LoadingOptimizer {
 
     // 使用隊列方式逐步載入背景資源
     this.loadResourceQueue(backgroundResources)
-
-    console.log(`🔄 已開始背景載入 ${backgroundResources.length} 個資源`)
   }
 
   /**
@@ -419,8 +413,6 @@ class LoadingOptimizer {
     // 等待剩餘資源載入完成
     await Promise.allSettled(loadingPromises)
     this.loadingState.backgroundResourcesLoaded = true
-
-    console.log('✅ 背景資源載入完成')
   }
 
   /**
@@ -464,6 +456,7 @@ class LoadingOptimizer {
 
       return resource
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(`❌ 載入資源失敗 ${resourceName}:`, error)
       throw error
     }
@@ -630,8 +623,6 @@ class LoadingOptimizer {
     const resource = await this.loadResource(resourceName)
     const endTime = performance.now()
 
-    console.log(`✅ 按需載入完成: ${resourceName} (${(endTime - startTime).toFixed(2)}ms)`)
-
     return resource
   }
 
@@ -645,13 +636,12 @@ class LoadingOptimizer {
 
     const warmupPromises = resourceNames.map(resourceName =>
       this.loadResource(resourceName).catch(error => {
+        // eslint-disable-next-line no-console
         console.warn(`⚠️ 快取預熱失敗 ${resourceName}:`, error)
       })
     )
 
     await Promise.allSettled(warmupPromises)
-
-    console.log('✅ 快取預熱完成')
   }
 
   /**
@@ -686,8 +676,6 @@ class LoadingOptimizer {
       this.resourceCache.delete(resourceName)
       clearedCount++
     }
-
-    console.log(`🧹 已清理 ${clearedCount} 個快取項目`)
   }
 
   /**

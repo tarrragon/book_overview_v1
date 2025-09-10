@@ -409,6 +409,7 @@ class ExportManager {
 
       this.eventBus.emit(EXPORT_EVENTS.EXPORT_PROGRESS, progressData)
         .catch(error => {
+          // eslint-disable-next-line no-console
           console.warn(`Failed to emit progress event for ${exportId}:`, error.message)
         })
     })
@@ -427,6 +428,7 @@ class ExportManager {
   _emitCompletionEvent (format, exportId, data, correlationId) {
     const eventType = this._getCompletionEventType(format)
     if (!eventType) {
+      // eslint-disable-next-line no-console
       console.warn(`Unknown export format for completion event: ${format}`)
       return
     }
@@ -448,6 +450,7 @@ class ExportManager {
   _emitFailureEvent (format, exportId, error, correlationId) {
     const eventType = this._getFailureEventType(format)
     if (!eventType) {
+      // eslint-disable-next-line no-console
       console.warn(`Unknown export format for failure event: ${format}`)
       return
     }
@@ -508,6 +511,7 @@ class ExportManager {
 
         this.eventBus.emit(EXPORT_EVENTS.EXPORT_PROGRESS, progressData)
           .catch(error => {
+            // eslint-disable-next-line no-console
             console.warn(`Failed to emit batch progress event for ${format}:`, error.message)
           })
       })
@@ -606,6 +610,7 @@ class ExportManager {
 
       this.eventBus.emit(EXPORT_EVENTS.FILE_DOWNLOAD_STARTED, eventData)
         .catch(error => {
+          // eslint-disable-next-line no-console
           console.warn('Failed to emit download started event:', error.message)
         })
     })

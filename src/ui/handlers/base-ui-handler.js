@@ -237,8 +237,10 @@ class BaseUIHandler extends EventHandler {
    */
   logError (flowId, error, errorType) {
     if (this.config.enableLogging) {
+      // eslint-disable-next-line no-console
       console.error(`[${this.name}] Error in flow ${flowId} (${errorType}):`, error.message)
       if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
         console.error(error.stack)
       }
     }

@@ -177,8 +177,6 @@ class ChromeStoreReadiness {
    * @returns {Promise<Object>} 檢查結果
    */
   async performReadinessCheck () {
-    console.log('🔍 開始 Chrome Web Store 上架準備檢查...')
-
     const startTime = Date.now()
 
     try {
@@ -222,10 +220,9 @@ class ChromeStoreReadiness {
         timestamp: new Date().toISOString()
       }
 
-      console.log(`✅ 檢查完成，整體分數: ${this.overallScore}/100，狀態: ${this.readinessLevel}`)
-
       return result
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ 上架準備檢查失敗:', error)
       throw error
     }
@@ -537,8 +534,6 @@ class ChromeStoreReadiness {
    * @private
    */
   async checkPerformanceStandards () {
-    console.log('⚡ 檢查效能標準...')
-
     try {
       const { PERFORMANCE } = ChromeStoreReadiness.STANDARDS
 
@@ -585,8 +580,6 @@ class ChromeStoreReadiness {
    * @private
    */
   async checkQualityStandards () {
-    console.log('🎯 檢查品質標準...')
-
     try {
       // 檢查功能完整性
       this.checkItem('functionality_test', () => {

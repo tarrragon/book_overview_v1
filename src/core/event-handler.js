@@ -111,6 +111,7 @@ class EventHandler {
    * @param {Error} error - 錯誤物件
    */
   async onError (event, error) {
+    // eslint-disable-next-line no-console
     console.error(`[${this.name}] Error processing event: ${event.type}`, error)
   }
 

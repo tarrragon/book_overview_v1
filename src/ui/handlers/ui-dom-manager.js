@@ -49,6 +49,7 @@ class UIDOMManager {
         element = searchContext.querySelector(selector)
         if (element) break
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn(`[UIDOMManager] Invalid selector: ${selector}`, error)
       }
     }
@@ -100,6 +101,7 @@ class UIDOMManager {
 
       return element
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('[UIDOMManager] Failed to create element:', error)
       return null
     }
@@ -123,6 +125,7 @@ class UIDOMManager {
       element.addEventListener(eventType, handler, options)
       return true
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('[UIDOMManager] Failed to add event listener:', error)
       return false
     }
@@ -147,6 +150,7 @@ class UIDOMManager {
         }
         return true
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn('[UIDOMManager] Failed to remove element:', error)
         return false
       }
@@ -179,6 +183,7 @@ class UIDOMManager {
       })
       return true
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('[UIDOMManager] Failed to update styles:', error)
       return false
     }

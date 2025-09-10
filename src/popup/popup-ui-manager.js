@@ -315,6 +315,7 @@ class PopupUIManager {
   cacheElements () {
     const doc = this._getDoc()
     if (!doc) {
+      // eslint-disable-next-line no-console
       console.warn('[PopupUIManager] No document available for element caching')
       return
     }
@@ -360,6 +361,7 @@ class PopupUIManager {
           }
         } else {
           // 記錄缺失的元素但不中斷執行
+          // eslint-disable-next-line no-console
           console.warn(`[PopupUIManager] Element not found: ${elementId}`)
         }
       })
@@ -391,6 +393,7 @@ class PopupUIManager {
     ]
     const missingCritical = criticalElementKeys.filter(key => !this.elements[key])
     if (missingCritical.length > 0) {
+      // eslint-disable-next-line no-console
       console.warn(`[PopupUIManager] Missing critical elements: ${missingCritical.join(', ')}`)
     }
   }
@@ -593,6 +596,7 @@ class PopupUIManager {
       if (buttonKey && this.elements[buttonKey]) {
         this._showElement(this.elements[buttonKey])
       } else {
+        // eslint-disable-next-line no-console
         console.warn(`[PopupUIManager] Unknown error action: ${action}`)
       }
     })
@@ -623,6 +627,7 @@ class PopupUIManager {
    */
   showSuccess (message) {
     if (!message || typeof message !== 'string') {
+      // eslint-disable-next-line no-console
       console.warn('[PopupUIManager] showSuccess: Invalid message provided')
       return
     }
@@ -663,6 +668,7 @@ class PopupUIManager {
     this.elements.loadingOverlay = (doc && doc.getElementById('loading-overlay')) || this._getElementByKey('loadingOverlay') || this.elements.loadingOverlay
     this.elements.loadingSpinner = (doc && doc.getElementById('loading-spinner')) || this._getElementByKey('loadingSpinner') || this.elements.loadingSpinner
     if (!this.elements.loadingOverlay) {
+      // eslint-disable-next-line no-console
       console.warn('[PopupUIManager] showLoading: Loading overlay element not found')
       return
     }
@@ -827,6 +833,7 @@ class PopupUIManager {
     const messageElement = (doc && messageId && doc.getElementById(messageId)) || this.elements[messageKey] || this._getElementByKey(messageKey)
 
     if (!container) {
+      // eslint-disable-next-line no-console
       console.warn(`[PopupUIManager] Container element not found: ${containerKey}`)
       return
     }
@@ -879,6 +886,7 @@ class PopupUIManager {
       try {
         updateFn()
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('[PopupUIManager] Update failed:', error)
       }
     })
@@ -901,6 +909,7 @@ class PopupUIManager {
    */
   bindEvent (elementId, eventType, callback) {
     if (!elementId || !eventType || typeof callback !== 'function') {
+      // eslint-disable-next-line no-console
       console.warn('[PopupUIManager] bindEvent: Invalid parameters provided')
       return false
     }
@@ -908,6 +917,7 @@ class PopupUIManager {
     const doc = this._getDoc()
     const element = doc ? doc.getElementById(elementId) : null
     if (!element) {
+      // eslint-disable-next-line no-console
       console.warn(`[PopupUIManager] bindEvent: Element not found: ${elementId}`)
       return false
     }
@@ -948,6 +958,7 @@ class PopupUIManager {
    */
   showDiagnostic (content) {
     if (!content || typeof content !== 'string') {
+      // eslint-disable-next-line no-console
       console.warn('[PopupUIManager] showDiagnostic: Invalid content provided')
       return
     }
@@ -1030,6 +1041,7 @@ class PopupUIManager {
         break
 
       default:
+        // eslint-disable-next-line no-console
         console.warn(`[PopupUIManager] Unknown status event type: ${statusEvent.type}`)
     }
   }
@@ -1045,6 +1057,7 @@ class PopupUIManager {
    */
   updateStatusMessage (message) {
     if (!message || typeof message !== 'string') {
+      // eslint-disable-next-line no-console
       console.warn('[PopupUIManager] updateStatusMessage: Invalid message provided')
       return
     }

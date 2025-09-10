@@ -81,8 +81,6 @@ class PopupInitializationTracker {
    * 開始追蹤初始化過程
    */
   startTracking () {
-    console.log('🔍 [初始化追蹤] 開始追蹤初始化過程')
-
     this.startTime = Date.now()
     this.currentStep = 0
     this.isCompleted = false
@@ -104,6 +102,7 @@ class PopupInitializationTracker {
   startStep (stepId, customName = null, customDescription = null) {
     const stepConfig = this.initializationSteps.find(s => s.id === stepId)
     if (!stepConfig && !customName) {
+      // eslint-disable-next-line no-console
       console.error(`❌ [初始化追蹤] 未知步驟: ${stepId}`)
       return false
     }
@@ -119,8 +118,6 @@ class PopupInitializationTracker {
 
     this.steps.push(step)
     this.currentStep = this.steps.length - 1
-
-    console.log(`🔄 [初始化追蹤] 開始步驟: ${step.name} - ${step.description}`)
 
     // 更新進度顯示
     this.updateProgressDisplay()
@@ -141,6 +138,7 @@ class PopupInitializationTracker {
   completeStep (stepId, result = null) {
     const stepIndex = this.steps.findIndex(s => s.id === stepId)
     if (stepIndex === -1) {
+      // eslint-disable-next-line no-console
       console.warn(`⚠️ [初始化追蹤] 步驟未找到: ${stepId}`)
       return false
     }
@@ -156,8 +154,6 @@ class PopupInitializationTracker {
       clearTimeout(this.stepTimers.get(stepId))
       this.stepTimers.delete(stepId)
     }
-
-    console.log(`✅ [初始化追蹤] 完成步驟: ${step.name} (${step.duration}ms)`)
 
     // 更新進度顯示
     this.updateProgressDisplay()
@@ -176,6 +172,7 @@ class PopupInitializationTracker {
   failStep (stepId, error) {
     const stepIndex = this.steps.findIndex(s => s.id === stepId)
     if (stepIndex === -1) {
+      // eslint-disable-next-line no-console
       console.warn(`⚠️ [初始化追蹤] 步驟未找到: ${stepId}`)
       return false
     }
@@ -192,6 +189,7 @@ class PopupInitializationTracker {
       this.stepTimers.delete(stepId)
     }
 
+    // eslint-disable-next-line no-console
     console.error(`❌ [初始化追蹤] 步驟失敗: ${step.name}`, error)
 
     this.isFailed = true
@@ -205,6 +203,7 @@ class PopupInitializationTracker {
    * 處理步驟超時
    */
   handleStepTimeout (stepId) {
+    // eslint-disable-next-line no-console
     console.error(`⏰ [初始化追蹤] 步驟超時: ${stepId}`)
 
     const step = this.steps.find(s => s.id === stepId)
@@ -217,6 +216,7 @@ class PopupInitializationTracker {
    * 處理總體超時
    */
   handleTotalTimeout () {
+    // eslint-disable-next-line no-console
     console.error('⏰ [初始化追蹤] 初始化總體超時')
 
     this.isFailed = true

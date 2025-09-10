@@ -464,24 +464,24 @@ class E2ETestSuite {
    */
   async measureOperation (operationName, operation) {
     this.log(`[E2ETestSuite] 開始測量操作: ${operationName}`)
-    
+
     const startTime = Date.now()
     const startMemory = this.getMemoryUsage()
-    
+
     let result
     let error = null
-    
+
     try {
       result = await operation()
     } catch (err) {
       error = err
       this.logError(`操作 ${operationName} 執行失敗`, err)
     }
-    
+
     const endTime = Date.now()
     const endMemory = this.getMemoryUsage()
     const executionTime = endTime - startTime
-    
+
     const metrics = {
       operationName,
       executionTime,
@@ -495,25 +495,25 @@ class E2ETestSuite {
       error: error ? error.message : null,
       result: error ? null : result
     }
-    
+
     // 記錄到操作日誌
     this.logOperation(`${operationName} 完成`, {
       duration: executionTime,
       success: !error
     })
-    
+
     // 儲存指標到內部追蹤
     if (!this.performanceMetrics) {
       this.performanceMetrics = []
     }
     this.performanceMetrics.push(metrics)
-    
+
     this.log(`[E2ETestSuite] 操作 ${operationName} 測量完成: ${executionTime}ms`)
-    
+
     if (error) {
       throw error
     }
-    
+
     return metrics
   }
 
@@ -1742,7 +1742,7 @@ class E2ETestSuite {
             networkState,
             affectedOperations,
             duration: Date.now() - networkState.startTime,
-            averageDelay: affectedOperations.reduce((sum, op) => 
+            averageDelay: affectedOperations.reduce((sum, op) =>
               sum + (op.delayedTime - op.originalTime), 0) / affectedOperations.length,
             packetLossOccurred: affectedOperations.some(op => op.packetLost),
             timestamp: Date.now()
@@ -1916,7 +1916,7 @@ class E2ETestSuite {
             totalAffectedMessages: simulatedMessages.filter(m => m.affected).length,
             averageActualDelay: simulatedMessages
               .filter(m => m.affected)
-              .reduce((sum, m) => sum + m.simulatedDelay, 0) / 
+              .reduce((sum, m) => sum + m.simulatedDelay, 0) /
               simulatedMessages.filter(m => m.affected).length,
             simulationDuration: Date.now() - messageDelayState.startTime,
             timestamp: Date.now()
@@ -1981,13 +1981,13 @@ class E2ETestSuite {
    */
   async revokeExtensionPermissions (permissions = ['storage', 'tabs']) {
     this.log(`撤銷擴充功能權限: ${permissions.join(', ')}`)
-    
+
     try {
       // 模擬權限撤銷過程
       await this.simulateDelay(500)
 
       const revokeResults = {}
-      
+
       for (const permission of permissions) {
         revokeResults[permission] = {
           revoked: true,
@@ -2032,7 +2032,7 @@ class E2ETestSuite {
    */
   async navigateToUnsupportedPage (pageType = 'chrome-extension') {
     this.log(`導航到不支援的頁面: ${pageType}`)
-    
+
     try {
       // 模擬導航延遲
       await this.simulateDelay(800)

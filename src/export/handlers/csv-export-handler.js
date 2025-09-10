@@ -163,6 +163,7 @@ class CSVExportHandler extends EventHandler {
    * @param {Error} error - 發生的錯誤
    */
   async onError (event, error) {
+    // eslint-disable-next-line no-console
     console.error(`[${this.name}] CSV export failed:`, error.message)
   }
 }

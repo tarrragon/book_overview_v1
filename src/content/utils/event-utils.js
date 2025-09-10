@@ -81,6 +81,7 @@ class EventUtils {
 
           return result
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.error('Event handler error:', error)
           throw error
         }
@@ -770,6 +771,7 @@ class EventUtils {
       try {
         handler(data)
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Custom event handler error:', error)
       }
     })
@@ -876,6 +878,7 @@ class EventUtils {
             try {
               handler(message, sender, sendResponse)
             } catch (error) {
+              // eslint-disable-next-line no-console
               console.error('Message handler error:', error)
             }
           }

@@ -7,8 +7,8 @@
  * 設計完整測試案例，確保 100% 程式碼覆蓋率
  */
 
-const PlatformDetectionService = require('../../../../../../src/background/domains/platform/services/platform-detection-service.js')
-const EventBus = require('../../../../../../src/core/event-bus.js')
+const PlatformDetectionService = require('src/background/domains/platform/services/platform-detection-service.js')
+const EventBus = require('src/core/event-bus.js')
 
 // 測試專用模擬資料
 const MockPlatformData = {

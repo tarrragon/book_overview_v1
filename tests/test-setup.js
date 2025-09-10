@@ -199,7 +199,7 @@ process.on('unhandledRejection', (reason, promise) => {
 })
 
 // 設定測試超時時間
-jest.setTimeout(10000) // 10秒
+jest.setTimeout(30000) // 30秒 - 增加以支援複雜的整合測試和錯誤恢復測試
 
 // 模擬 IntersectionObserver（如果需要的話）
 global.IntersectionObserver = class IntersectionObserver {

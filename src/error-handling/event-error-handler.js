@@ -198,6 +198,7 @@ class EventErrorHandler extends EventHandler {
           return this.createErrorResponse('不支援的錯誤事件類型', type)
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('[EventErrorHandler] 處理錯誤事件失敗:', error)
       return this.createErrorResponse(error.message)
     }

@@ -10,11 +10,11 @@
  * @jest-environment jsdom
  */
 
-const SynchronizationOrchestrator = require('../../../../../../src/background/domains/data-management/services/SynchronizationOrchestrator.js')
-const ISynchronizationCoordinator = require('../../../../../../src/background/domains/data-management/interfaces/ISynchronizationCoordinator.js')
-const DataComparisonEngine = require('../../../../../../src/background/domains/data-management/services/DataComparisonEngine.js')
-const ConflictDetectionService = require('../../../../../../src/background/domains/data-management/services/ConflictDetectionService.js')
-const RetryCoordinator = require('../../../../../../src/background/domains/data-management/services/RetryCoordinator.js')
+const SynchronizationOrchestrator = require('src/background/domains/data-management/services/SynchronizationOrchestrator.js')
+const ISynchronizationCoordinator = require('src/background/domains/data-management/interfaces/ISynchronizationCoordinator.js')
+const DataComparisonEngine = require('src/background/domains/data-management/services/DataComparisonEngine.js')
+const ConflictDetectionService = require('src/background/domains/data-management/services/ConflictDetectionService.js')
+const RetryCoordinator = require('src/background/domains/data-management/services/RetryCoordinator.js')
 
 describe('SynchronizationOrchestrator TDD 測試', () => {
   let orchestrator

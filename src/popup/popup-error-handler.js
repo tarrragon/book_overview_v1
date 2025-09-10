@@ -38,6 +38,7 @@ try {
     getDiagnosticSuggestion = errorConfig.getDiagnosticSuggestion
   }
 } catch (error) {
+  // eslint-disable-next-line no-console
   console.warn('[PopupErrorHandler] Unable to load error config, using fallback')
 
   // 備用錯誤訊息函數
@@ -58,6 +59,7 @@ try {
     DiagnosticModule = require('./diagnostic-module')
   }
 } catch (error) {
+  // eslint-disable-next-line no-console
   console.warn('[PopupErrorHandler] Unable to load diagnostic module')
 }
 
@@ -249,6 +251,7 @@ class PopupErrorHandler {
       timestamp: Date.now()
     })
 
+    // eslint-disable-next-line no-console
     console.error('[PopupErrorHandler] Initialization failed:', error)
   }
 
@@ -422,6 +425,7 @@ class PopupErrorHandler {
         // 嘗試使用 chrome.runtime.reload()
         chrome.runtime.reload()
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn('[PopupErrorHandler] chrome.runtime.reload() failed, trying alternative methods')
 
         // 備用方法：重新載入所有相關分頁
@@ -449,6 +453,7 @@ class PopupErrorHandler {
         }
       }, 500)
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('[PopupErrorHandler] Soft reload failed, trying force reload')
       this.forceReloadExtension()
     }
@@ -472,6 +477,7 @@ class PopupErrorHandler {
     try {
       window.location.reload()
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('[PopupErrorHandler] Unable to reload popup window:', error)
       // 在測試環境或某些情況下，reload 可能不可用
     }
@@ -508,6 +514,7 @@ class PopupErrorHandler {
         })
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('[PopupErrorHandler] Failed to generate error report:', error)
 
       // 備用方案：顯示手動回報指引
@@ -547,6 +554,7 @@ https://github.com/your-repo/readmoo-extractor/issues
         }
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('[PopupErrorHandler] Failed to collect system diagnostic report:', error)
     }
 

@@ -169,6 +169,7 @@ class JSONExportHandler extends EventHandler {
    * 錯誤處理
    */
   async onError (event, error) {
+    // eslint-disable-next-line no-console
     console.error(`[${this.name}] JSON export failed:`, error.message)
   }
 }

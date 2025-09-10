@@ -221,6 +221,7 @@ class MessageTracker extends EventHandler {
       return await this._dispatchEventHandler(type, data)
     } catch (error) {
       const { ERRORS } = MessageTracker.CONSTANTS
+      // eslint-disable-next-line no-console
       console.error(
         `[MessageTracker] ${ERRORS.MESSAGES.PROCESSING_FAILED}:`,
         error
@@ -589,6 +590,7 @@ class MessageTracker extends EventHandler {
       console.log(CONSOLE.MESSAGES.USAGE_HINT)
     } catch (error) {
       const { ERRORS } = MessageTracker.CONSTANTS
+      // eslint-disable-next-line no-console
       console.warn(
         `[MessageTracker] ${ERRORS.MESSAGES.CONSOLE_UNAVAILABLE}:`,
         error
@@ -638,6 +640,7 @@ class MessageTracker extends EventHandler {
    * @returns {Array} 未知訊息記錄
    */
   getUnknownMessages () {
+    // eslint-disable-next-line no-console
     console.warn('未知訊息類型:', this.unknownMessages)
     return this.unknownMessages
   }
@@ -708,6 +711,7 @@ class MessageTracker extends EventHandler {
     })
 
     if (timeoutMessages.length > 0 && this.diagnosticMode) {
+      // eslint-disable-next-line no-console
       console.warn(
         `[MessageTracker] 清理了 ${timeoutMessages.length} 個超時訊息`
       )
