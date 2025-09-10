@@ -169,11 +169,15 @@ function createPageDetector () {
 
           const newStatus = this.getPageStatus()
 
-            from: oldUrl,
-            to: currentUrl,
-            oldStatus,
-            newStatus
-          })
+          // 記錄 URL 變更事件 (可選的日誌記錄)
+          if (typeof console !== 'undefined' && console.debug) {
+            console.debug('URL 變更檢測:', {
+              from: oldUrl,
+              to: currentUrl,
+              oldStatus,
+              newStatus
+            })
+          }
 
           // 呼叫回調函數
           try {

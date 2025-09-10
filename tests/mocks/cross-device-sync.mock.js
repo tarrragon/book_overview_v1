@@ -337,6 +337,472 @@ class MockDevice {
     }
     return checksum.toString(16)
   }
+
+  async simulateError (errorType, cause) {
+    // 模擬各種錯誤情況
+    const errorMessages = {
+      NETWORK_ERROR: {
+        connection_timeout: '網路連線逾時，無法完成資料同步操作。請檢查您的網路連線狀態，確認網路穩定後重新嘗試同步。',
+        dns_resolution_failed: 'DNS 名稱解析失敗，無法連接到同步伺服器。請檢查您的網路設定和 DNS 配置，或嘗試使用其他網路連線。',
+        server_unreachable: '無法連接到同步伺服器，可能伺服器暫時無法回應。請檢查網路狀態，稍後再次嘗試同步操作。'
+      },
+      FILE_ERROR: {
+        file_corrupted: '選擇的備份檔案已損壞或格式不正確，無法正常讀取和匯入。請檢查檔案完整性或使用其他備份檔案。',
+        permission_denied: '系統權限不足，無法存取指定的檔案或資料夾。請檢查檔案權限設定，或以管理員身分執行此操作。',
+        file_not_found: '系統找不到指定的備份檔案，檔案可能已被移動或刪除。請確認檔案路徑正確，或重新選擇有效的備份檔案。',
+        disk_space_insufficient: '本機磁碟空間不足，無法完成檔案儲存或匯出操作。請清理磁碟空間後重新嘗試此操作。'
+      },
+      PERMISSION_ERROR: {
+        access_denied: '系統存取權限被拒絕，無法執行此操作。請檢查Chrome擴充功能權限設定，或重新授權相關功能使用權限。',
+        storage_quota_exceeded: 'Chrome 瀏覽器儲存配額已達上限，無法儲存更多資料。請清理瀏覽器資料或擴充功能儲存空間後重試。',
+        api_permission_missing: '缺少必要的瀏覽器 API 存取權限，功能無法正常運作。請檢查擴充功能權限設定並重新安裝如有必要。'
+      },
+      STORAGE_ERROR: {
+        quota_exceeded: 'Chrome 瀏覽器本機儲存空間已滿，無法儲存新的書籍資料。請清理擴充功能資料或移除不需要的書籍記錄。',
+        storage_corrupted: '本機儲存的書籍資料已損壞，可能導致功能異常。建議備份現有資料後重置擴充功能並重新匯入。',
+        sync_service_unavailable: '雲端同步服務暫時無法使用，可能因伺服器維護或網路問題。請稍後重試或使用本機匯出功能。'
+      },
+      DATA_ERROR: {
+        invalid_format: '匯入的檔案格式無效或不符合預期的資料結構。請檢查檔案內容格式，確保使用正確的書籍資料匯出檔案。',
+        checksum_mismatch: '資料完整性驗證失敗，檔案內容可能在傳輸過程中已損壞。請重新下載備份檔案或使用其他完整的備份。',
+        version_incompatible: '匯入檔案的資料版本與目前擴充功能版本不相容。請更新擴充功能到最新版本或轉換檔案格式。'
+      }
+    }
+
+    const errorInfo = errorMessages[errorType]?.[cause]
+    if (!errorInfo) {
+      throw new Error(`Unknown error type: ${errorType} with cause: ${cause}`)
+    }
+
+    // 記錄錯誤到日誌
+    this.logger.log('ERROR', `Simulated error: ${errorType}`, { 
+      cause, 
+      deviceId: this.deviceId,
+      timestamp: new Date().toISOString()
+    })
+
+    // 返回錯誤對象
+    const error = new Error(errorInfo)
+    error.type = errorType
+    error.cause = cause
+    error.deviceId = this.deviceId
+    error.timestamp = new Date().toISOString()
+    error.recoverable = this._isRecoverableError(errorType, cause)
+    
+    return error
+  }
+
+  async formatErrorMessage (error) {
+    // 格式化錯誤訊息為用戶友好的形式
+    const suggestions = {
+      NETWORK_ERROR: {
+        connection_timeout: ['檢查網路連線', '重新啟動路由器', '稍後重試'],
+        dns_resolution_failed: ['檢查 DNS 設定', '嘗試使用其他 DNS 伺服器', '聯絡網路管理員'],
+        server_unreachable: ['檢查網路狀態', '稍後重試', '聯絡技術支援']
+      },
+      FILE_ERROR: {
+        file_corrupted: ['重新下載檔案', '檢查原始來源', '嘗試其他備份'],
+        permission_denied: ['檢查檔案權限', '以管理員身分執行', '變更檔案存取權限'],
+        file_not_found: ['確認檔案路徑', '檢查檔案是否存在', '重新匯入檔案'],
+        disk_space_insufficient: ['清理磁碟空間', '移動檔案到其他位置', '刪除不需要的檔案']
+      },
+      PERMISSION_ERROR: {
+        access_denied: ['檢查權限設定', '重新授權應用程式', '聯絡管理員'],
+        storage_quota_exceeded: ['清理儲存空間', '刪除舊資料', '升級儲存方案'],
+        api_permission_missing: ['檢查擴充功能權限', '重新安裝擴充功能', '更新權限設定']
+      },
+      STORAGE_ERROR: {
+        quota_exceeded: ['清理 Chrome 儲存資料', '移除不需要的書籍', '匯出資料後重置'],
+        storage_corrupted: ['重置擴充功能資料', '清除瀏覽器快取', '重新匯入資料'],
+        sync_service_unavailable: ['稍後重試', '檢查網路連線', '聯絡技術支援']
+      },
+      DATA_ERROR: {
+        invalid_format: ['檢查檔案格式', '重新匯出資料', '使用正確的檔案版本'],
+        checksum_mismatch: ['重新下載檔案', '檢查檔案完整性', '嘗試其他備份'],
+        version_incompatible: ['更新擴充功能', '轉換檔案格式', '聯絡技術支援']
+      }
+    }
+
+    const actionSteps = suggestions[error.type]?.[error.cause] || ['聯絡技術支援', '檢查系統狀態', '重試操作']
+
+    return {
+      language: 'zh-TW',
+      severity: this._getErrorSeverity(error.type, error.cause),
+      message: error.message,
+      actionable: true,
+      actions: actionSteps,
+      specificity: {
+        level: this._calculateSpecificityLevel(error.type, error.cause),
+        category: error.type,
+        subCategory: error.cause
+      },
+      technicalDetails: {
+        errorCode: `${error.type}_${error.cause}`,
+        errorType: error.type,
+        cause: error.cause,
+        deviceId: error.deviceId,
+        timestamp: error.timestamp,
+        recoverable: error.recoverable,
+        stackTrace: error.stack || 'No stack trace available'
+      },
+      userFriendlyExplanation: this._generateUserFriendlyExplanation(error.type, error.cause),
+      details: {
+        errorType: error.type,
+        cause: error.cause,
+        deviceId: error.deviceId,
+        timestamp: error.timestamp,
+        recoverable: error.recoverable
+      },
+      userActions: actionSteps,
+      technicalInfo: {
+        errorCode: `${error.type}_${error.cause}`,
+        context: `Device: ${error.deviceId}`,
+        debugInfo: error.stack || 'No stack trace available'
+      },
+      supportContact: {
+        email: 'support@example.com',
+        helpUrl: 'https://example.com/help',
+        reportBugUrl: 'https://example.com/bug-report'
+      }
+    }
+  }
+
+  _isRecoverableError (errorType, cause) {
+    // 判斷錯誤是否可恢復
+    const recoverableErrors = new Set([
+      'NETWORK_ERROR_connection_timeout',
+      'NETWORK_ERROR_server_unreachable', 
+      'STORAGE_ERROR_sync_service_unavailable',
+      'FILE_ERROR_disk_space_insufficient'
+    ])
+    
+    return recoverableErrors.has(`${errorType}_${cause}`)
+  }
+
+  _getErrorSeverity (errorType, cause) {
+    // 判斷錯誤嚴重程度
+    const criticalErrors = new Set([
+      'STORAGE_ERROR_storage_corrupted',
+      'DATA_ERROR_checksum_mismatch',
+      'PERMISSION_ERROR_access_denied'
+    ])
+    
+    const warningErrors = new Set([
+      'NETWORK_ERROR_connection_timeout',
+      'FILE_ERROR_disk_space_insufficient',
+      'STORAGE_ERROR_quota_exceeded'
+    ])
+    
+    const errorKey = `${errorType}_${cause}`
+    
+    if (criticalErrors.has(errorKey)) {
+      return 'critical'
+    } else if (warningErrors.has(errorKey)) {
+      return 'warning'
+    } else {
+      return 'error'
+    }
+  }
+
+  async checkIDConsistency (books) {
+    // 檢查書籍ID一致性
+    const idMap = new Map()
+    const duplicates = []
+    const conflicts = []
+
+    books.forEach((book, index) => {
+      if (idMap.has(book.id)) {
+        const existingBook = idMap.get(book.id)
+        duplicates.push({
+          id: book.id,
+          firstIndex: existingBook.index,
+          duplicateIndex: index,
+          firstBook: existingBook.book,
+          duplicateBook: book
+        })
+
+        // 檢查是否有衝突
+        if (existingBook.book.title !== book.title ||
+            existingBook.book.progress !== book.progress) {
+          conflicts.push({
+            id: book.id,
+            differences: this._findBookDifferences(existingBook.book, book)
+          })
+        }
+      } else {
+        idMap.set(book.id, { book, index })
+      }
+    })
+
+    return {
+      totalBooks: books.length,
+      uniqueBooks: idMap.size,
+      duplicates: duplicates.length,
+      conflicts: conflicts.length,
+      duplicateDetails: duplicates,
+      conflictDetails: conflicts,
+      integrityScore: ((idMap.size / books.length) * 100).toFixed(2)
+    }
+  }
+
+  async importWithMerge (books) {
+    // 執行帶合併策略的匯入
+    const currentBooks = await this.storage.getBooks()
+    const mergeResult = await mergeBookData(currentBooks, books)
+    
+    await this.storage.storeBooks(mergeResult.books)
+
+    return {
+      success: true,
+      imported: mergeResult.imported,
+      skipped: mergeResult.skipped,
+      conflicts: mergeResult.conflicts,
+      bookCount: {
+        before: currentBooks.length,
+        after: mergeResult.books.length,
+        final: mergeResult.books.length
+      },
+      message: `成功合併 ${mergeResult.imported} 本書籍，跳過 ${mergeResult.skipped} 本重複`
+    }
+  }
+
+  async validateDataFormat (data) {
+    // 驗證資料格式
+    const validation = {
+      isValid: true,
+      errors: [],
+      warnings: []
+    }
+
+    if (!Array.isArray(data)) {
+      validation.isValid = false
+      validation.errors.push({
+        field: 'root',
+        message: '資料必須是陣列格式',
+        suggestion: '確認檔案包含書籍陣列'
+      })
+      return validation
+    }
+
+    data.forEach((book, index) => {
+      // 檢查必要欄位
+      if (!book.id) {
+        validation.isValid = false
+        validation.errors.push({
+          field: `[${index}].id`,
+          message: '缺少必要的書籍ID',
+          suggestion: '確保每本書都有唯一ID'
+        })
+      }
+
+      if (!book.title) {
+        validation.warnings.push({
+          field: `[${index}].title`,
+          message: '缺少書籍標題',
+          suggestion: '建議補充書籍標題資訊'
+        })
+      }
+
+      // 檢查資料類型
+      if (book.progress && (typeof book.progress !== 'number' || book.progress < 0 || book.progress > 100)) {
+        validation.isValid = false
+        validation.errors.push({
+          field: `[${index}].progress`,
+          message: '無效的進度值',
+          suggestion: '進度值應為0-100之間的數字'
+        })
+      }
+
+      if (book.extractedAt && isNaN(new Date(book.extractedAt).getTime())) {
+        validation.warnings.push({
+          field: `[${index}].extractedAt`,
+          message: '無效的日期格式',
+          suggestion: '使用 ISO 8601 日期格式'
+        })
+      }
+    })
+
+    return validation
+  }
+
+  async processDuplicates (books) {
+    // 處理重複書籍
+    const bookMap = new Map()
+    const duplicates = []
+    const unique = []
+
+    books.forEach(book => {
+      if (bookMap.has(book.id)) {
+        const existing = bookMap.get(book.id)
+        duplicates.push(book)
+        
+        // 保留較新或進度較高的版本
+        if ((book.progress || 0) > (existing.progress || 0) ||
+            new Date(book.extractedAt || 0) > new Date(existing.extractedAt || 0)) {
+          bookMap.set(book.id, book)
+        }
+      } else {
+        bookMap.set(book.id, book)
+        unique.push(book)
+      }
+    })
+
+    const result = Array.from(bookMap.values())
+
+    return {
+      success: true,
+      books: result,
+      statistics: {
+        original: books.length,
+        duplicatesSkipped: duplicates.length,
+        uniqueBooks: result.length,
+        duplicateRate: duplicates.length / books.length
+      },
+      report: {
+        duplicatesFound: duplicates.length,
+        resolutionStrategy: 'keep_latest_progress'
+      }
+    }
+  }
+
+  async createBackupPoint (name) {
+    // 創建備份點
+    const books = await this.storage.getBooks()
+    const metadata = await this.storage.getMetadata()
+    
+    const backupId = `backup_${Date.now()}_${name}`
+    const backup = {
+      id: backupId,
+      name,
+      timestamp: new Date().toISOString(),
+      books: JSON.parse(JSON.stringify(books)), // 深拷貝
+      metadata: { ...metadata },
+      checksum: await this.calculateChecksum(books)
+    }
+
+    // 模擬保存備份（實際會保存到持久存儲）
+    if (!this._backups) {
+      this._backups = new Map()
+    }
+    this._backups.set(backupId, backup)
+
+    return {
+      success: true,
+      id: backupId,
+      timestamp: backup.timestamp,
+      bookCount: books.length,
+      size: JSON.stringify(backup).length
+    }
+  }
+
+  async restoreFromBackup (backupId) {
+    // 從備份恢復
+    if (!this._backups || !this._backups.has(backupId)) {
+      throw new Error(`Backup not found: ${backupId}`)
+    }
+
+    const backup = this._backups.get(backupId)
+    await this.storage.storeBooks(backup.books)
+    
+    this.logger.log('INFO', `Restored from backup: ${backup.name}`, {
+      backupId,
+      timestamp: backup.timestamp,
+      bookCount: backup.books.length
+    })
+
+    return {
+      success: true,
+      backupId,
+      restoredBooks: backup.books.length,
+      timestamp: backup.timestamp
+    }
+  }
+
+  _findBookDifferences (book1, book2) {
+    // 找出兩本書的差異
+    const differences = []
+    const fields = ['title', 'progress', 'isFinished', 'extractedAt', 'type']
+    
+    fields.forEach(field => {
+      if (book1[field] !== book2[field]) {
+        differences.push({
+          field,
+          value1: book1[field],
+          value2: book2[field]
+        })
+      }
+    })
+
+    return differences
+  }
+
+  _calculateSpecificityLevel (errorType, cause) {
+    // 計算錯誤具體性級別 (0-1)
+    const specificityMap = {
+      NETWORK_ERROR: {
+        connection_timeout: 0.85,
+        dns_resolution_failed: 0.9,
+        server_unreachable: 0.75
+      },
+      FILE_ERROR: {
+        file_corrupted: 0.9,
+        permission_denied: 0.85,
+        file_not_found: 0.9,
+        disk_space_insufficient: 0.85
+      },
+      PERMISSION_ERROR: {
+        access_denied: 0.75,
+        storage_quota_exceeded: 0.9,
+        api_permission_missing: 0.85
+      },
+      STORAGE_ERROR: {
+        quota_exceeded: 0.9,
+        storage_corrupted: 0.85,
+        sync_service_unavailable: 0.75
+      },
+      DATA_ERROR: {
+        invalid_format: 0.85,
+        checksum_mismatch: 0.9,
+        version_incompatible: 0.85
+      }
+    }
+
+    return specificityMap[errorType]?.[cause] || 0.75
+  }
+
+  _generateUserFriendlyExplanation (errorType, cause) {
+    // 生成用戶友好的解釋說明
+    const explanations = {
+      NETWORK_ERROR: {
+        connection_timeout: '這個錯誤通常是因為網路連線不穩定或速度過慢導致的。系統在等待網路回應時超過了預設的時間限制。',
+        dns_resolution_failed: '這個問題發生在系統無法將網域名稱轉換為IP位址時。通常與DNS設定或網路配置有關。',
+        server_unreachable: '系統無法連接到遠端伺服器，可能是因為伺服器暫時離線、網路路由問題，或防火牆阻擋連線。'
+      },
+      FILE_ERROR: {
+        file_corrupted: '檔案在儲存或傳輸過程中可能已經損壞，導致系統無法正確讀取檔案內容。這可能是硬體問題或傳輸錯誤造成的。',
+        permission_denied: '作業系統阻止了檔案存取操作，通常是因為檔案權限設定不當或使用者權限不足。',
+        file_not_found: '系統在指定位置找不到所需的檔案，檔案可能已被移動、重新命名或刪除。',
+        disk_space_insufficient: '系統磁碟空間不足以完成檔案操作，需要釋放更多儲存空間才能繼續。'
+      },
+      PERMISSION_ERROR: {
+        access_denied: 'Chrome 瀏覽器或作業系統限制了擴充功能的存取權限，可能需要重新授權或調整安全設定。',
+        storage_quota_exceeded: 'Chrome 瀏覽器對擴充功能的儲存空間有限制，目前已達到配額上限。',
+        api_permission_missing: '擴充功能缺少執行特定功能所需的瀏覽器API權限，可能需要更新權限設定。'
+      },
+      STORAGE_ERROR: {
+        quota_exceeded: 'Chrome 的本機儲存空間已滿，無法儲存更多書籍資料。這通常發生在長期累積大量資料後。',
+        storage_corrupted: '本機儲存的資料結構已損壞，可能影響擴充功能的正常運作。通常需要重建資料庫。',
+        sync_service_unavailable: '雲端同步服務目前無法使用，可能是伺服器維護或暫時性網路問題。'
+      },
+      DATA_ERROR: {
+        invalid_format: '匯入的檔案格式不符合系統預期，可能是檔案損壞或使用了不相容的檔案版本。',
+        checksum_mismatch: '檔案的完整性檢查失敗，表示檔案內容在傳輸或儲存過程中可能已經改變。',
+        version_incompatible: '檔案是由不同版本的程式產生的，與目前版本存在相容性問題。'
+      }
+    }
+
+    return explanations[errorType]?.[cause] || '發生了未預期的錯誤，建議檢查系統狀態或聯絡技術支援以獲得協助。'
+  }
 }
 
 /**

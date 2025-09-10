@@ -102,7 +102,7 @@ function createChromeEventBridge () {
             sender: 'content-script',
             timestamp: Date.now(),
             version: '0.3.0',
-            url: window.location.href,
+            url: (globalThis.location?.href || global?.location?.href || window.location.href),
             ...message.metadata
           }
         }

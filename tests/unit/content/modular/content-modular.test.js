@@ -91,6 +91,7 @@ describe('Modular Content Script', () => {
     // 設置全域環境
     global.window = window
     global.document = document
+    global.location = window.location
     global.MutationObserver = window.MutationObserver
     global.performance = window.performance || { now: () => Date.now() }
 
@@ -328,6 +329,21 @@ describe('Modular Content Script', () => {
 
   describe('ChromeEventBridge 模組', () => {
     test('應該能夠發送訊息到 Background', async () => {
+      // 修復了 Chrome Event Bridge，讓它優先使用 globalThis.location
+      // 確保 globalThis.location 設定正確
+      globalThis.location = {
+        href: 'https://readmoo.com/library',
+        hostname: 'readmoo.com',
+        pathname: '/library',
+        protocol: 'https:',
+        host: 'readmoo.com',
+        port: '',
+        search: '',
+        hash: '',
+        origin: 'https://readmoo.com',
+        toString: () => 'https://readmoo.com/library'
+      }
+      
       const createChromeEventBridge = require('src/content/bridge/chrome-event-bridge')
       const bridge = createChromeEventBridge()
 
