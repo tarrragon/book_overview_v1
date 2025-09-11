@@ -5,7 +5,7 @@
  * 目標：將資料正規化邏輯從 DataValidationService 中提取
  */
 
-const DataNormalizationService = require('../../../../../../src/background/domains/data-management/services/data-normalization-service.js')
+const DataNormalizationService = require('src/background/domains/data-management/services/data-normalization-service.js')
 
 describe('DataNormalizationService - 資料正規化服務', () => {
   let normalizer

@@ -3,7 +3,7 @@
  * TDD 循環 1: 抽象介面與基礎功能測試
  */
 
-const ReadmooDataConsistencyService = require('../../../../../../src/background/domains/data-management/services/readmoo-data-consistency-service')
+const ReadmooDataConsistencyService = require('src/background/domains/data-management/services/readmoo-data-consistency-service')
 
 describe('ReadmooDataConsistencyService', () => {
   let service

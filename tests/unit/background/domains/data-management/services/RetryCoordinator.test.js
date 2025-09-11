@@ -10,7 +10,7 @@
  * @jest-environment jsdom
  */
 
-const RetryCoordinator = require('../../../../../../src/background/domains/data-management/services/RetryCoordinator.js')
+const RetryCoordinator = require('src/background/domains/data-management/services/RetryCoordinator.js')
 
 describe('RetryCoordinator TDD 測試', () => {
   let coordinator

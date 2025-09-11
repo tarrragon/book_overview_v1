@@ -99,7 +99,7 @@ describe('IValidationServiceCoordinator TDD 介面契約測試', () => {
     }
 
     // 實例化 ValidationServiceCoordinator
-    const ValidationServiceCoordinator = require('../../../../../../src/background/domains/data-management/services/ValidationServiceCoordinator.js')
+    const ValidationServiceCoordinator = require('src/background/domains/data-management/services/ValidationServiceCoordinator.js')
     validationServiceCoordinator = new ValidationServiceCoordinator({
       eventBus: mockEventBus,
       validationEngine: mockValidationEngine,
@@ -592,7 +592,7 @@ describe('IValidationServiceCoordinator TDD 介面契約測試', () => {
 
       // When & Then: 應該拋出依賴檢查錯誤
       expect(() => {
-        new (require('../../../../../../src/background/domains/data-management/services/ValidationServiceCoordinator.js'))(incompleteServices)
+        new (require('src/background/domains/data-management/services/ValidationServiceCoordinator.js'))(incompleteServices)
       }).toThrow('ValidationEngine is not properly initialized')
     })
 

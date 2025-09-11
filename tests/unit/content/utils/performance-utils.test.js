@@ -12,7 +12,7 @@ describe('PerformanceUtils', () => {
     jest.clearAllMocks()
 
     // 清除模組快取
-    delete require.cache[require.resolve('../../../../src/content/utils/performance-utils')]
+    delete require.cache[require.resolve('src/content/utils/performance-utils')]
 
     // Mock performance API
     global.performance = {

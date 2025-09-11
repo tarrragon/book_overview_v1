@@ -10,7 +10,7 @@
  * @jest-environment jsdom
  */
 
-const ConflictDetectionService = require('../../../../../../src/background/domains/data-management/services/ConflictDetectionService.js')
+const ConflictDetectionService = require('src/background/domains/data-management/services/ConflictDetectionService.js')
 
 describe('ConflictDetectionService TDD 測試', () => {
   let service

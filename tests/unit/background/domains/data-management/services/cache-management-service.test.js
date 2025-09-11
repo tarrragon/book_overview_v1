@@ -5,7 +5,7 @@
  * 目標：將快取管理邏輯從 DataValidationService 中提取
  */
 
-const CacheManagementService = require('../../../../../../src/background/domains/data-management/services/cache-management-service.js')
+const CacheManagementService = require('src/background/domains/data-management/services/cache-management-service.js')
 
 describe('CacheManagementService - 快取管理服務', () => {
   let cacheService

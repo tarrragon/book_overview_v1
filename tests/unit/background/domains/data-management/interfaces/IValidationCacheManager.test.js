@@ -29,7 +29,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
     mockEvictionCallback = jest.fn()
 
     // 實例化 ValidationCacheManager
-    const ValidationCacheManager = require('../../../../../../src/background/domains/data-management/services/ValidationCacheManager.js')
+    const ValidationCacheManager = require('src/background/domains/data-management/services/ValidationCacheManager.js')
     validationCacheManager = new ValidationCacheManager({
       storage: mockStorage,
       maxMemoryCache: 1000,
@@ -412,7 +412,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
 
     test('應該處理記憶體限制和驅逐策略', async () => {
       // Given: 接近記憶體限制的快取管理器
-      const smallCacheManager = new (require('../../../../../../src/background/domains/data-management/services/ValidationCacheManager.js'))({
+      const smallCacheManager = new (require('src/background/domains/data-management/services/ValidationCacheManager.js'))({
         maxMemoryCache: 3, // 很小的限制
         evictionStrategy: 'lru'
       })

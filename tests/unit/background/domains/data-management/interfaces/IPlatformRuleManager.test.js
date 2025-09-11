@@ -15,7 +15,7 @@ describe('IPlatformRuleManager TDD 介面契約測試', () => {
 
   beforeEach(() => {
     // 這裡會實例化 PlatformRuleManager，目前會失敗因為類別尚未建立
-    const PlatformRuleManager = require('../../../../../../src/background/domains/data-management/services/PlatformRuleManager.js')
+    const PlatformRuleManager = require('src/background/domains/data-management/services/PlatformRuleManager.js')
     platformRuleManager = new PlatformRuleManager({
       enableCache: true,
       cacheTimeout: 300000,

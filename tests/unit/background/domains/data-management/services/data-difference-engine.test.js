@@ -3,7 +3,7 @@
  * TDD 循環 2: 純粹資料差異計算演算法測試
  */
 
-const DataDifferenceEngine = require('../../../../../../src/background/domains/data-management/services/data-difference-engine')
+const DataDifferenceEngine = require('src/background/domains/data-management/services/data-difference-engine')
 
 describe('DataDifferenceEngine', () => {
   let engine

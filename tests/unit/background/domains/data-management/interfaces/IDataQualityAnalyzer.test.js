@@ -37,7 +37,7 @@ describe('IDataQualityAnalyzer TDD 介面契約測試', () => {
     }
 
     // 這裡會實例化 DataQualityAnalyzer，目前會失敗因為類別尚未建立
-    const DataQualityAnalyzer = require('../../../../../../src/background/domains/data-management/services/DataQualityAnalyzer.js')
+    const DataQualityAnalyzer = require('src/background/domains/data-management/services/DataQualityAnalyzer.js')
     dataQualityAnalyzer = new DataQualityAnalyzer({
       validationEngine: mockValidationEngine,
       dataNormalizer: mockDataNormalizer,

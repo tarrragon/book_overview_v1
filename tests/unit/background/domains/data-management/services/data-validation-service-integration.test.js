@@ -5,7 +5,7 @@
  * 目標：將 DataValidationService 重構為整合所有子服務的協調器
  */
 
-const DataValidationService = require('../../../../../../src/background/domains/data-management/services/data-validation-service.js')
+const DataValidationService = require('src/background/domains/data-management/services/data-validation-service.js')
 
 describe('DataValidationService - 服務整合測試', () => {
   let validationService

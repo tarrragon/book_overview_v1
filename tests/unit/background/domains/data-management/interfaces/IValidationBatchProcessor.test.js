@@ -33,7 +33,7 @@ describe('IValidationBatchProcessor TDD 介面契約測試', () => {
     mockProgressCallback = jest.fn()
 
     // 實例化 ValidationBatchProcessor
-    const ValidationBatchProcessor = require('../../../../../../src/background/domains/data-management/services/ValidationBatchProcessor.js')
+    const ValidationBatchProcessor = require('src/background/domains/data-management/services/ValidationBatchProcessor.js')
     validationBatchProcessor = new ValidationBatchProcessor({
       validationEngine: mockValidationEngine,
       dataQualityAnalyzer: mockDataQualityAnalyzer,

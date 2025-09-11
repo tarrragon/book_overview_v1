@@ -5,7 +5,7 @@
  * 目標：將批次驗證處理邏輯從 DataValidationService 中提取
  */
 
-const BatchValidationProcessor = require('../../../../../../src/background/domains/data-management/services/batch-validation-processor.js')
+const BatchValidationProcessor = require('src/background/domains/data-management/services/batch-validation-processor.js')
 
 describe('BatchValidationProcessor - 批次驗證處理服務', () => {
   let processor

@@ -5,7 +5,7 @@
  * 目標：將品質評估邏輯從 DataValidationService 中提取
  */
 
-const QualityAssessmentService = require('../../../../../../src/background/domains/data-management/services/quality-assessment-service.js')
+const QualityAssessmentService = require('src/background/domains/data-management/services/quality-assessment-service.js')
 
 describe('QualityAssessmentService - 品質評估服務', () => {
   let assessor

@@ -5,7 +5,7 @@
  * 目標：將驗證規則管理邏輯從 DataValidationService 中提取
  */
 
-const ValidationRuleManager = require('../../../../../../src/background/domains/data-management/services/validation-rule-manager.js')
+const ValidationRuleManager = require('src/background/domains/data-management/services/validation-rule-manager.js')
 
 describe('ValidationRuleManager - 驗證規則管理服務', () => {
   let ruleManager

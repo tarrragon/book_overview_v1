@@ -9,7 +9,7 @@
  * 4. 效能和資源管理最佳化
  */
 
-const DataValidationService = require('../../../../../../src/background/domains/data-management/services/data-validation-service.js')
+const DataValidationService = require('src/background/domains/data-management/services/data-validation-service.js')
 
 // Mock 所有子服務
 const MockValidationEngine = {

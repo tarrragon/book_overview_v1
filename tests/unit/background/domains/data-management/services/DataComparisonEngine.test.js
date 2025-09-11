@@ -10,7 +10,7 @@
  * @jest-environment jsdom
  */
 
-const DataComparisonEngine = require('../../../../../../src/background/domains/data-management/services/DataComparisonEngine.js')
+const DataComparisonEngine = require('src/background/domains/data-management/services/DataComparisonEngine.js')
 
 describe('DataComparisonEngine TDD 測試', () => {
   let engine
