@@ -24,7 +24,7 @@
  * 7. 統一資料模型輸出測試
  */
 
-const DataValidationService = require('@/background/domains/data-management/services/data-validation-service')
+const DataValidationService = require('src/background/domains/data-management/services/data-validation-service')
 const MockEventBusMock = require('@mocks/chrome-api.mock')
 const MockEventBus = MockEventBusMock.createEventBusMock()
 const sampleBooks = require('@fixtures/sample-books.json')
@@ -652,33 +652,69 @@ describe('Data Validation Service v2.0', () => {
 
     describe('輸入驗證', () => {
       test('應該處理 null 或 undefined 輸入', async () => {
+        // 測試 null 輸入
         await expect(
           dataValidationService.validateAndNormalize(null, 'READMOO', 'NULL_TEST')
-        ).rejects.toThrow('書籍資料為必要參數')
+        ).rejects.toMatchObject({
+          code: 'BOOK_VALIDATION_FAILED',
+          details: expect.objectContaining({
+            failures: '缺少必要欄位: 書籍資料',
+            category: 'validation'
+          })
+        })
 
+        // 測試 undefined 輸入
         await expect(
           dataValidationService.validateAndNormalize(undefined, 'READMOO', 'UNDEFINED_TEST')
-        ).rejects.toThrow('書籍資料為必要參數')
+        ).rejects.toMatchObject({
+          code: 'BOOK_VALIDATION_FAILED',
+          details: expect.objectContaining({
+            failures: '缺少必要欄位: 書籍資料',
+            category: 'validation'
+          })
+        })
       })
 
       test('應該處理非陣列輸入', async () => {
+        // 測試字串輸入
         await expect(
           dataValidationService.validateAndNormalize('not an array', 'READMOO', 'STRING_TEST')
-        ).rejects.toThrow('書籍資料必須是陣列')
+        ).rejects.toMatchObject({
+          code: 'BOOK_VALIDATION_FAILED',
+          details: expect.objectContaining({
+            failures: 'books 格式無效，期望格式: Array',
+            category: 'validation'
+          })
+        })
 
+        // 測試數字輸入
         await expect(
           dataValidationService.validateAndNormalize(123, 'READMOO', 'NUMBER_TEST')
-        ).rejects.toThrow('書籍資料必須是陣列')
+        ).rejects.toMatchObject({
+          code: 'BOOK_VALIDATION_FAILED',
+          details: expect.objectContaining({
+            failures: 'books 格式無效，期望格式: Array',
+            category: 'validation'
+          })
+        })
       })
 
       test('應該處理空字串平台名稱', async () => {
+        // 測試空字串平台
         await expect(
           dataValidationService.validateAndNormalize([validBookData], '', 'EMPTY_PLATFORM_TEST')
-        ).rejects.toThrow('平台名稱不能為空')
+        ).rejects.toMatchObject({
+          code: 'PLATFORM_VALIDATION_ERROR',
+          message: '平台名稱不能為空'
+        })
 
+        // 測試 null 平台
         await expect(
           dataValidationService.validateAndNormalize([validBookData], null, 'NULL_PLATFORM_TEST')
-        ).rejects.toThrow('平台名稱不能為空')
+        ).rejects.toMatchObject({
+          code: 'PLATFORM_VALIDATION_ERROR',
+          message: '平台名稱不能為空'
+        })
       })
 
       test('應該處理超大陣列輸入', async () => {
