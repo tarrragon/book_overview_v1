@@ -30,6 +30,25 @@
  * @since 2025-08-18
  */
 
+// 動態 StandardError 匯入 (支援瀏覽器和 Node.js)
+let StandardError
+if (typeof window !== 'undefined' && window.StandardError) {
+  StandardError = window.StandardError
+} else {
+  try {
+    ({ StandardError } = require('src/core/errors/StandardError'))
+  } catch (e) {
+    // 如果無法載入 StandardError，使用原生 Error
+    StandardError = class extends Error {
+      constructor (type, message, metadata = {}) {
+        super(message)
+        this.type = type
+        this.metadata = metadata
+      }
+    }
+  }
+}
+
 class PopupController {
   /**
    * 建構 PopupController
@@ -206,7 +225,7 @@ class PopupController {
       // UI 管理器初始化完成
     } catch (error) {
       // UI 管理器初始化失敗
-      throw new Error(`UI Manager initialization failed: ${error.message}`)
+      throw new StandardError('INITIALIZATION_ERROR', `UI Manager initialization failed: ${error.message}`, { category: 'initialization' })
     }
   }
 
@@ -341,7 +360,7 @@ class PopupController {
       // 狀態管理器初始化完成
     } catch (error) {
       // 狀態管理器初始化失敗
-      throw new Error(`Status Manager initialization failed: ${error.message}`)
+      throw new StandardError('INITIALIZATION_ERROR', `Status Manager initialization failed: ${error.message}`, { category: 'initialization' })
     }
   }
 
@@ -358,7 +377,7 @@ class PopupController {
       // 進度管理器初始化完成
     } catch (error) {
       // 進度管理器初始化失敗
-      throw new Error(`Progress Manager initialization failed: ${error.message}`)
+      throw new StandardError('INITIALIZATION_ERROR', `Progress Manager initialization failed: ${error.message}`, { category: 'initialization' })
     }
   }
 
@@ -378,7 +397,7 @@ class PopupController {
       // 通訊服務初始化完成
     } catch (error) {
       // 通訊服務初始化失敗
-      throw new Error(`Communication Service initialization failed: ${error.message}`)
+      throw new StandardError('INITIALIZATION_ERROR', `Communication Service initialization failed: ${error.message}`, { category: 'initialization' })
     }
   }
 
@@ -399,7 +418,7 @@ class PopupController {
       // 提取服務初始化完成
     } catch (error) {
       // 提取服務初始化失敗
-      throw new Error(`Extraction Service initialization failed: ${error.message}`)
+      throw new StandardError('INITIALIZATION_ERROR', `Extraction Service initialization failed: ${error.message}`, { category: 'initialization' })
     }
   }
 
@@ -494,7 +513,7 @@ class PopupController {
       const missingComponents = requiredComponents.filter(name => !this.components[name])
 
       if (missingComponents.length > 0) {
-        throw new Error(`Missing components: ${missingComponents.join(', ')}`)
+        throw new StandardError('VALIDATION_ERROR', `Missing components: ${missingComponents.join(', ')}`, { category: 'validation' })
       }
 
       // 執行 Background Service Worker 狀態檢查

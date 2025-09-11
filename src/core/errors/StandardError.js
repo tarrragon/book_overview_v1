@@ -110,7 +110,10 @@ class StandardError {
    */
   static fromJSON (json) {
     if (!json || typeof json !== 'object') {
-      throw new Error('Invalid JSON data for StandardError.fromJSON')
+      throw new StandardError('INVALID_JSON_DATA', 'Invalid JSON data for StandardError.fromJSON', { 
+        receivedType: typeof json, 
+        receivedValue: json 
+      })
     }
 
     const error = new StandardError(json.code, json.message, json.details)

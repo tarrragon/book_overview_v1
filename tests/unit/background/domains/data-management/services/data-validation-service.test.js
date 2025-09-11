@@ -124,7 +124,10 @@ describe('Data Validation Service v2.0', () => {
         expect(() => {
           const service = new DataValidationService(null, mockConfig)
           return service
-        }).toThrow('EventBus is required')
+        }).toThrow(expect.objectContaining({
+          code: expect.any(String),
+          message: expect.stringContaining('EventBus')
+        }))
       })
 
       test('應該正確設定服務名稱', () => {
@@ -174,7 +177,10 @@ describe('Data Validation Service v2.0', () => {
           throw new Error('事件系統無法使用')
         })
 
-        await expect(dataValidationService.initialize()).rejects.toThrow('初始化失敗')
+        await expect(dataValidationService.initialize()).rejects.toMatchObject({
+          code: expect.any(String),
+          message: expect.stringContaining('初始化失敗')
+        })
       })
     })
 
@@ -199,7 +205,10 @@ describe('Data Validation Service v2.0', () => {
       test('應該處理不支援平台的情況', async () => {
         await expect(
           dataValidationService.loadPlatformValidationRules('UNSUPPORTED_PLATFORM')
-        ).rejects.toThrow('不支援的平台')
+        ).rejects.toMatchObject({
+          code: expect.any(String),
+          message: expect.stringContaining('不支援的平台')
+        })
       })
 
       test('應該快取已載入的驗證規則', async () => {
@@ -746,7 +755,10 @@ describe('Data Validation Service v2.0', () => {
 
         await expect(
           dataValidationService.validateAndNormalize([validBookData], 'READMOO', 'MEMORY_TEST')
-        ).rejects.toThrow('heap out of memory')
+        ).rejects.toMatchObject({
+          code: expect.any(String),
+          message: expect.stringContaining('heap out of memory')
+        })
 
         mockOutOfMemory.mockRestore()
       })
@@ -761,7 +773,10 @@ describe('Data Validation Service v2.0', () => {
 
         await expect(
           dataValidationService.loadPlatformValidationRules('READMOO')
-        ).rejects.toThrow('載入驗證規則失敗')
+        ).rejects.toMatchObject({
+          code: expect.any(String),
+          message: expect.stringContaining('載入驗證規則失敗')
+        })
       })
 
       test('應該處理並發存取衝突', async () => {
@@ -789,7 +804,10 @@ describe('Data Validation Service v2.0', () => {
 
         await expect(
           dataValidationService.validateSingleBook(validBookData, 'CORRUPTED_PLATFORM', 'CORRUPTED_TEST')
-        ).rejects.toThrow('驗證規則損壞')
+        ).rejects.toMatchObject({
+          code: expect.any(String),
+          message: expect.stringContaining('驗證規則損壞')
+        })
       })
     })
 
@@ -804,7 +822,10 @@ describe('Data Validation Service v2.0', () => {
 
         await expect(
           dataValidationService.validateAndNormalize([validBookData], 'READMOO', 'TIMEOUT_TEST')
-        ).rejects.toThrow('驗證逾時')
+        ).rejects.toMatchObject({
+          code: expect.any(String),
+          message: expect.stringContaining('驗證逾時')
+        })
       })
 
       test('應該處理批次大小限制', async () => {
@@ -933,7 +954,10 @@ describe('Data Validation Service v2.0', () => {
 
         await expect(
           dataValidationService.validateAndNormalize([validBookData], 'READMOO', 'EVENT_FAIL_TEST')
-        ).rejects.toThrow('模擬驗證錯誤')
+        ).rejects.toMatchObject({
+          code: expect.any(String),
+          message: expect.stringContaining('模擬驗證錯誤')
+        })
 
         expect(mockEventBus.emit).toHaveBeenCalledWith(
           'DATA.VALIDATION.FAILED',

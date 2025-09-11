@@ -19,7 +19,10 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       // When & Then: 應該拋出錯誤
       expect(() => {
         new ISynchronizationCoordinator()
-      }).toThrow('ISynchronizationCoordinator 是抽象類別，不能直接實例化')
+      }).toThrow(expect.objectContaining({
+        code: 'ABSTRACT_CLASS_INSTANTIATION',
+        message: expect.stringContaining('ISynchronizationCoordinator 是抽象類別，不能直接實例化')
+      }))
     })
 
     test('應該支援依賴注入機制', () => {
@@ -77,7 +80,10 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
 
       // When & Then: 調用未實作的抽象方法應該拋出錯誤
       await expect(coordinator.initializeSync('test-sync-id'))
-        .rejects.toThrow('initializeSync() 必須在子類別中實作')
+        .rejects.toMatchObject({
+          code: 'METHOD_NOT_IMPLEMENTED',
+          message: expect.stringContaining('initializeSync() 必須在子類別中實作')
+        })
     })
 
     test('executeSync() 應該是抽象方法', async () => {
@@ -92,7 +98,10 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
       await expect(coordinator.executeSync('sync-id', [], [], 'MERGE'))
-        .rejects.toThrow('executeSync() 必須在子類別中實作')
+        .rejects.toMatchObject({
+          code: 'METHOD_NOT_IMPLEMENTED',
+          message: expect.stringContaining('executeSync() 必須在子類別中實作')
+        })
     })
 
     test('cancelSync() 應該是抽象方法', async () => {
@@ -107,7 +116,10 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
       await expect(coordinator.cancelSync('sync-id', 'test'))
-        .rejects.toThrow('cancelSync() 必須在子類別中實作')
+        .rejects.toMatchObject({
+          code: 'METHOD_NOT_IMPLEMENTED',
+          message: expect.stringContaining('cancelSync() 必須在子類別中實作')
+        })
     })
 
     test('getSyncStatus() 應該是抽象方法', async () => {
@@ -122,7 +134,10 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
       await expect(coordinator.getSyncStatus('sync-id'))
-        .rejects.toThrow('getSyncStatus() 必須在子類別中實作')
+        .rejects.toMatchObject({
+          code: 'METHOD_NOT_IMPLEMENTED',
+          message: expect.stringContaining('getSyncStatus() 必須在子類別中實作')
+        })
     })
 
     test('getSyncProgress() 應該是抽象方法', async () => {
@@ -137,7 +152,10 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
       await expect(coordinator.getSyncProgress('sync-id'))
-        .rejects.toThrow('getSyncProgress() 必須在子類別中實作')
+        .rejects.toMatchObject({
+          code: 'METHOD_NOT_IMPLEMENTED',
+          message: expect.stringContaining('getSyncProgress() 必須在子類別中實作')
+        })
     })
 
     test('cleanupSync() 應該是抽象方法', async () => {
@@ -152,7 +170,10 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
       await expect(coordinator.cleanupSync('sync-id'))
-        .rejects.toThrow('cleanupSync() 必須在子類別中實作')
+        .rejects.toMatchObject({
+          code: 'METHOD_NOT_IMPLEMENTED',
+          message: expect.stringContaining('cleanupSync() 必須在子類別中實作')
+        })
     })
 
     test('getSyncHistory() 應該是抽象方法', async () => {
@@ -167,7 +188,10 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
       await expect(coordinator.getSyncHistory({}))
-        .rejects.toThrow('getSyncHistory() 必須在子類別中實作')
+        .rejects.toMatchObject({
+          code: 'METHOD_NOT_IMPLEMENTED',
+          message: expect.stringContaining('getSyncHistory() 必須在子類別中實作')
+        })
     })
 
     test('estimateSyncTime() 應該是抽象方法', async () => {
@@ -182,7 +206,10 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
       await expect(coordinator.estimateSyncTime([], [], 'MERGE'))
-        .rejects.toThrow('estimateSyncTime() 必須在子類別中實作')
+        .rejects.toMatchObject({
+          code: 'METHOD_NOT_IMPLEMENTED',
+          message: expect.stringContaining('estimateSyncTime() 必須在子類別中實作')
+        })
     })
 
     test('validateSyncParams() 應該是抽象方法', async () => {
@@ -197,7 +224,10 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
       await expect(coordinator.validateSyncParams({}))
-        .rejects.toThrow('validateSyncParams() 必須在子類別中實作')
+        .rejects.toMatchObject({
+          code: 'METHOD_NOT_IMPLEMENTED',
+          message: expect.stringContaining('validateSyncParams() 必須在子類別中實作')
+        })
     })
 
     test('dryRun() 應該是抽象方法', async () => {
@@ -212,7 +242,10 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
       await expect(coordinator.dryRun('sync-id', [], [], 'MERGE'))
-        .rejects.toThrow('dryRun() 必須在子類別中實作')
+        .rejects.toMatchObject({
+          code: 'METHOD_NOT_IMPLEMENTED',
+          message: expect.stringContaining('dryRun() 必須在子類別中實作')
+        })
     })
 
     test('setProgressCallback() 應該是抽象方法', async () => {
@@ -227,7 +260,10 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
       await expect(coordinator.setProgressCallback('sync-id', jest.fn()))
-        .rejects.toThrow('setProgressCallback() 必須在子類別中實作')
+        .rejects.toMatchObject({
+          code: 'METHOD_NOT_IMPLEMENTED',
+          message: expect.stringContaining('setProgressCallback() 必須在子類別中實作')
+        })
     })
 
     test('getSupportedStrategies() 應該是抽象方法', async () => {
@@ -242,7 +278,10 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
       await expect(coordinator.getSupportedStrategies())
-        .rejects.toThrow('getSupportedStrategies() 必須在子類別中實作')
+        .rejects.toMatchObject({
+          code: 'METHOD_NOT_IMPLEMENTED',
+          message: expect.stringContaining('getSupportedStrategies() 必須在子類別中實作')
+        })
     })
 
     test('getSyncStatistics() 應該是抽象方法', async () => {
@@ -257,7 +296,10 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
       await expect(coordinator.getSyncStatistics({}))
-        .rejects.toThrow('getSyncStatistics() 必須在子類別中實作')
+        .rejects.toMatchObject({
+          code: 'METHOD_NOT_IMPLEMENTED',
+          message: expect.stringContaining('getSyncStatistics() 必須在子類別中實作')
+        })
     })
   })
 

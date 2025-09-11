@@ -22,6 +22,9 @@
  * - 確保平台實作的一致性和可替換性
  */
 
+// 引入錯誤處理系統
+const { StandardError } = require('src/core/errors/StandardError')
+
 /**
  * 平台適配器抽象介面
  *
@@ -47,7 +50,10 @@ class PlatformAdapterInterface {
    * @abstract
    */
   async getPageType () {
-    throw new Error('Must implement getPageType()')
+    throw new StandardError('NOT_IMPLEMENTED', 'Must implement getPageType()', {
+      method: 'getPageType',
+      class: 'PlatformAdapterInterface'
+    })
   }
 
   /**
@@ -56,7 +62,10 @@ class PlatformAdapterInterface {
    * @abstract
    */
   async isExtractablePage () {
-    throw new Error('Must implement isExtractablePage()')
+    throw new StandardError('NOT_IMPLEMENTED', 'Must implement isExtractablePage()', {
+      method: 'isExtractablePage',
+      class: 'PlatformAdapterInterface'
+    })
   }
 
   /**
@@ -65,7 +74,7 @@ class PlatformAdapterInterface {
    * @abstract
    */
   async checkPageReady () {
-    throw new Error('Must implement checkPageReady()')
+    throw new StandardError('NOT_IMPLEMENTED', 'Must implement checkPageReady()')
   }
 
   /**
@@ -75,7 +84,7 @@ class PlatformAdapterInterface {
    * @abstract
    */
   isValidDomain (url = window.location.href) {
-    throw new Error('Must implement isValidDomain()')
+    throw new StandardError('NOT_IMPLEMENTED', 'Must implement isValidDomain()')
   }
 
   // ==================
@@ -88,7 +97,7 @@ class PlatformAdapterInterface {
    * @abstract
    */
   getBookElements () {
-    throw new Error('Must implement getBookElements()')
+    throw new StandardError('NOT_IMPLEMENTED', 'Must implement getBookElements()')
   }
 
   /**
@@ -97,7 +106,7 @@ class PlatformAdapterInterface {
    * @abstract
    */
   getBookCount () {
-    throw new Error('Must implement getBookCount()')
+    throw new StandardError('NOT_IMPLEMENTED', 'Must implement getBookCount()')
   }
 
   /**
@@ -106,7 +115,7 @@ class PlatformAdapterInterface {
    * @abstract
    */
   findBookContainer () {
-    throw new Error('Must implement findBookContainer()')
+    throw new StandardError('NOT_IMPLEMENTED', 'Must implement findBookContainer()')
   }
 
   // ==================
@@ -120,7 +129,7 @@ class PlatformAdapterInterface {
    * @abstract
    */
   parseBookElement (element) {
-    throw new Error('Must implement parseBookElement()')
+    throw new StandardError('NOT_IMPLEMENTED', 'Must implement parseBookElement()')
   }
 
   /**
@@ -129,7 +138,7 @@ class PlatformAdapterInterface {
    * @abstract
    */
   async extractAllBooks () {
-    throw new Error('Must implement extractAllBooks()')
+    throw new StandardError('NOT_IMPLEMENTED', 'Must implement extractAllBooks()')
   }
 
   /**
@@ -139,7 +148,7 @@ class PlatformAdapterInterface {
    * @abstract
    */
   extractBookData (element) {
-    throw new Error('Must implement extractBookData()')
+    throw new StandardError('NOT_IMPLEMENTED', 'Must implement extractBookData()')
   }
 
   // ==================
@@ -153,7 +162,7 @@ class PlatformAdapterInterface {
    * @abstract
    */
   sanitizeData (data) {
-    throw new Error('Must implement sanitizeData()')
+    throw new StandardError('NOT_IMPLEMENTED', 'Must implement sanitizeData()')
   }
 
   /**
@@ -162,7 +171,7 @@ class PlatformAdapterInterface {
    * @abstract
    */
   getStats () {
-    throw new Error('Must implement getStats()')
+    throw new StandardError('NOT_IMPLEMENTED', 'Must implement getStats()')
   }
 
   /**
@@ -170,7 +179,7 @@ class PlatformAdapterInterface {
    * @abstract
    */
   reset () {
-    throw new Error('Must implement reset()')
+    throw new StandardError('NOT_IMPLEMENTED', 'Must implement reset()')
   }
 
   // ==================

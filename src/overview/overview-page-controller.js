@@ -29,15 +29,23 @@
 
 // 動態取得 EventHandler（支援瀏覽器和 Node.js）
 let EventHandlerClass
+let StandardError
 if (typeof window !== 'undefined') {
   // 瀏覽器環境：從全域變數取得（應該已由 event-handler.js 載入）
   EventHandlerClass = window.EventHandler
+  StandardError = window.StandardError
   if (!EventHandlerClass) {
-    throw new Error('EventHandler 未在全域變數中找到，請確認 event-handler.js 已正確載入')
+    if (StandardError) {
+      throw new StandardError('DEPENDENCY_ERROR', 'EventHandler 未在全域變數中找到，請確認 event-handler.js 已正確載入', { category: 'dependency' })
+    } else {
+      throw new Error('EventHandler 未在全域變數中找到，請確認 event-handler.js 已正確載入')
+    }
   }
 } else {
   // Node.js 環境：使用 require
   EventHandlerClass = require('src/core/event-handler')
+  const { StandardError: StandardErrorClass } = require('src/core/errors/StandardError')
+  StandardError = StandardErrorClass
 }
 
 // 常數定義
@@ -689,11 +697,11 @@ class OverviewPageController extends EventHandlerClass {
   _validateFileBasics (file) {
     if (!file) {
       this.showError('請先選擇一個 JSON 檔案！')
-      throw new Error('檔案不存在')
+      throw new StandardError('VALIDATION_ERROR', '檔案不存在', { category: 'validation' })
     }
     if (!this._isJSONFile(file)) {
       this.showError('請選擇 JSON 格式的檔案！')
-      throw new Error('檔案格式不正確')
+      throw new StandardError('VALIDATION_ERROR', '檔案格式不正確', { category: 'validation' })
     }
   }
 
@@ -723,7 +731,7 @@ class OverviewPageController extends EventHandlerClass {
     const maxSize = 10 * 1024 * 1024 // 10MB
     if (file.size > maxSize) {
       this.showError('檔案過大，請選擇小於 10MB 的檔案！')
-      throw new Error('檔案大小超出限制')
+      throw new StandardError('VALIDATION_ERROR', '檔案大小超出限制', { category: 'validation' })
     }
   }
 
@@ -1015,7 +1023,7 @@ class OverviewPageController extends EventHandlerClass {
    */
   _validateAndCleanContent (content) {
     if (!content || content.trim() === '') {
-      throw new Error('檔案內容為空')
+      throw new StandardError('VALIDATION_ERROR', '檔案內容為空', { category: 'validation' })
     }
     return this._removeBOM(content)
   }
@@ -1041,7 +1049,7 @@ class OverviewPageController extends EventHandlerClass {
       return JSON.parse(content)
     } catch (error) {
       if (error instanceof SyntaxError) {
-        throw new Error('JSON 檔案格式不正確')
+        throw new StandardError('PARSING_ERROR', 'JSON 檔案格式不正確', { category: 'parsing' })
       }
       throw error
     }
@@ -1118,7 +1126,7 @@ class OverviewPageController extends EventHandlerClass {
       return [] // 空對象回傳空陣列
     }
 
-    throw new Error('JSON 檔案應該包含一個陣列或包含books屬性的物件')
+    throw new StandardError('VALIDATION_ERROR', 'JSON 檔案應該包含一個陣列或包含books屬性的物件', { category: 'validation' })
   }
 
   /**

@@ -259,7 +259,10 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
 
       await expect(
         ErrorHandlingUtils.retryWithBackoff(alwaysFailingFunction, { maxRetries: 2 })
-      ).rejects.toThrow('Always fails')
+      ).rejects.toMatchObject({
+        code: expect.any(String),
+        message: expect.stringContaining('Always fails')
+      })
 
       expect(alwaysFailingFunction).toHaveBeenCalledTimes(3) // 初始 + 2 次重試
     })
@@ -288,7 +291,10 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
           conditionallyFailingFunction,
           { maxRetries: 3, shouldRetry }
         )
-      ).rejects.toThrow('Permanent failure')
+      ).rejects.toMatchObject({
+        code: expect.any(String),
+        message: expect.stringContaining('Permanent failure')
+      })
 
       expect(conditionallyFailingFunction).toHaveBeenCalledTimes(2)
     })

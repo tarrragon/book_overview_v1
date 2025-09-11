@@ -104,7 +104,7 @@ describe('OperationResult 方法測試', () => {
     const failureResult = OperationResult.failure(error)
 
     // When & Then: throwIfFailure應該拋出異常
-    expect(() => failureResult.throwIfFailure()).toThrow('Operation failed: Throw測試錯誤 (THROW_TEST)')
+    expect(() => failureResult.throwIfFailure()).toThrow(expect.objectContaining({ message: 'Operation failed: Throw測試錯誤 (THROW_TEST)' }))
   })
 
   test('throwIfFailure方法應該返回成功結果的資料', () => {
@@ -261,7 +261,7 @@ describe('OperationResult 序列化功能', () => {
 
     invalidJsonCases.forEach(invalidJson => {
       // When & Then: fromJSON應該拋出錯誤
-      expect(() => OperationResult.fromJSON(invalidJson)).toThrow('Invalid JSON data for OperationResult.fromJSON')
+      expect(() => OperationResult.fromJSON(invalidJson)).toThrow(expect.objectContaining({ message: 'Invalid JSON data for OperationResult.fromJSON' }))
     })
   })
 })

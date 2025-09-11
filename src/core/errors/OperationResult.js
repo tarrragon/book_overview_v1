@@ -116,7 +116,13 @@ class OperationResult {
    */
   throwIfFailure () {
     if (!this.success && this.error) {
-      throw new Error(`Operation failed: ${this.error.message} (${this.error.code})`)
+      // 使用 StandardError 重新拋出，保留原始錯誤資訊
+      const { StandardError } = require('./StandardError')
+      throw new StandardError(
+        this.error.code || 'OPERATION_FAILED',
+        this.error.message || 'Operation failed',
+        this.error.details || {}
+      )
     }
     return this.data
   }
@@ -142,7 +148,11 @@ class OperationResult {
    */
   static fromJSON (json) {
     if (!json || typeof json !== 'object' || Array.isArray(json)) {
-      throw new Error('Invalid JSON data for OperationResult.fromJSON')
+      const { StandardError } = require('./StandardError')
+      throw new StandardError('INVALID_JSON_DATA', 'Invalid JSON data for OperationResult.fromJSON', {
+        receivedType: Array.isArray(json) ? 'array' : typeof json,
+        receivedValue: json
+      })
     }
 
     let error = null

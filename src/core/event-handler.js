@@ -1,3 +1,5 @@
+const { StandardError } = require('src/core/errors/StandardError')
+
 /**
  * 事件處理器基底類別
  * 提供統一的事件處理介面和統計功能
@@ -83,7 +85,7 @@ class EventHandler {
    * @returns {Promise<any>} 處理結果
    */
   async process (event) {
-    throw new Error('Process method must be implemented by subclass')
+    throw new StandardError('IMPLEMENTATION_ERROR', 'Process method must be implemented by subclass')
   }
 
   /**
@@ -140,7 +142,7 @@ class EventHandler {
    * @returns {string[]} 支援的事件類型列表
    */
   getSupportedEvents () {
-    throw new Error('getSupportedEvents method must be implemented by subclass')
+    throw new StandardError('IMPLEMENTATION_ERROR', 'getSupportedEvents method must be implemented by subclass')
   }
 
   /**

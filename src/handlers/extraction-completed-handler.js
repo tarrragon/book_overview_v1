@@ -38,6 +38,7 @@
  */
 
 const EventHandler = require('src/core/event-handler')
+const { StandardError } = require('src/core/errors/StandardError')
 const crypto = require('crypto')
 
 class ExtractionCompletedHandler extends EventHandler {
@@ -143,22 +144,22 @@ class ExtractionCompletedHandler extends EventHandler {
     try {
       // 驗證事件基本結構
       if (!event.data) {
-        throw new Error('Missing required completion data')
+        throw new StandardError('VALIDATION_ERROR', 'Missing required completion data', { category: 'validation' })
       }
 
       if (typeof event.data !== 'object') {
-        throw new Error('Invalid completion data format')
+        throw new StandardError('VALIDATION_ERROR', 'Invalid completion data format', { category: 'validation' })
       }
 
       // 驗證 EventBus 配置
       if (!this.eventBus) {
-        throw new Error('EventBus not configured')
+        throw new StandardError('CONFIGURATION_ERROR', 'EventBus not configured', { category: 'configuration' })
       }
 
       // 驗證完成資料
       const validationResult = this.validateCompletionData(event.data)
       if (!validationResult.valid) {
-        throw new Error(`Invalid completion data: ${validationResult.errors.join(', ')}`)
+        throw new StandardError('VALIDATION_ERROR', `Invalid completion data: ${validationResult.errors.join(', ')}`, { category: 'validation' })
       }
 
       const { books, bookstore, count } = event.data

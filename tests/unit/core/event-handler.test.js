@@ -162,7 +162,7 @@ describe('🎭 事件處理器基底類別測試', () => {
       handler.onError = jest.fn()
 
       // Act & Assert
-      await expect(handler.handle(mockEvent)).rejects.toThrow('Test error in process')
+      await expect(handler.handle(mockEvent)).rejects.toMatchObject(expect.objectContaining({ message: 'Test error in process' }))
       expect(handler.onError).toHaveBeenCalledWith(mockEvent, expect.any(Error))
       expect(handler.executionCount).toBe(1) // 統計應該仍然更新
     })
@@ -267,8 +267,8 @@ describe('🎭 事件處理器基底類別測試', () => {
       const mockEvent = { type: 'test.event', data: {} }
 
       // Act & Assert
-      await expect(handler.process(mockEvent)).rejects.toThrow('Process method must be implemented by subclass')
-      expect(() => handler.getSupportedEvents()).toThrow('getSupportedEvents method must be implemented by subclass')
+      await expect(handler.process(mockEvent)).rejects.toMatchObject(expect.objectContaining({ message: 'Process method must be implemented by subclass' }))
+      expect(() => handler.getSupportedEvents()).toThrow(expect.objectContaining({ message: 'getSupportedEvents method must be implemented by subclass' }))
     })
 
     test('子類別必須實現所有抽象方法', () => {
@@ -284,8 +284,8 @@ describe('🎭 事件處理器基底類別測試', () => {
       const mockEvent = { type: 'test.event', data: {} }
 
       // Act & Assert
-      expect(() => handler.getSupportedEvents()).toThrow('getSupportedEvents method must be implemented by subclass')
-      expect(handler.process(mockEvent)).rejects.toThrow('Process method must be implemented by subclass')
+      expect(() => handler.getSupportedEvents()).toThrow(expect.objectContaining({ message: 'getSupportedEvents method must be implemented by subclass' }))
+      expect(handler.process(mockEvent)).rejects.toMatchObject(expect.objectContaining({ message: 'Process method must be implemented by subclass' }))
     })
   })
 
@@ -302,7 +302,7 @@ describe('🎭 事件處理器基底類別測試', () => {
       handler.onError = jest.fn()
 
       // Act & Assert
-      await expect(handler.handle(mockEvent)).rejects.toThrow('Before handle error')
+      await expect(handler.handle(mockEvent)).rejects.toMatchObject(expect.objectContaining({ message: 'Before handle error' }))
       expect(handler.process).not.toHaveBeenCalled()
       expect(handler.afterHandle).not.toHaveBeenCalled()
       expect(handler.onError).toHaveBeenCalledWith(mockEvent, beforeError)
@@ -319,7 +319,7 @@ describe('🎭 事件處理器基底類別測試', () => {
       handler.onError = jest.fn()
 
       // Act & Assert
-      await expect(handler.handle(mockEvent)).rejects.toThrow('Test error in process')
+      await expect(handler.handle(mockEvent)).rejects.toMatchObject(expect.objectContaining({ message: 'Test error in process' }))
       expect(handler.beforeHandle).toHaveBeenCalled()
       expect(handler.afterHandle).not.toHaveBeenCalled()
       expect(handler.onError).toHaveBeenCalled()
@@ -335,7 +335,7 @@ describe('🎭 事件處理器基底類別測試', () => {
       handler.onError = jest.fn()
 
       // Act & Assert
-      await expect(handler.handle(mockEvent)).rejects.toThrow('After handle error')
+      await expect(handler.handle(mockEvent)).rejects.toMatchObject(expect.objectContaining({ message: 'After handle error' }))
       expect(handler.onError).toHaveBeenCalledWith(mockEvent, afterError)
       expect(handler.executionCount).toBe(1) // 統計仍應更新
     })
