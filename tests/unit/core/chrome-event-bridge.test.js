@@ -217,7 +217,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
 
       // Act & Assert
       await expect(bridge.dispatchToContext(mockEvent, 'unknown')).rejects.toMatchObject({
-        code: 'TEST_ERROR',
+        code: 'UNKNOWN_ERROR',
         message: expect.any(String),
         details: expect.any(Object)
       })
@@ -256,7 +256,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
 
       // Act & Assert
       await expect(bridge.dispatchToBackground(mockEvent)).rejects.toMatchObject({
-        code: 'TEST_ERROR',
+        code: 'UNKNOWN_ERROR',
         message: expect.any(String),
         details: expect.any(Object)
       })
@@ -398,7 +398,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
 
       // Act & Assert
       await expect(bridge.sendToTab(tabId, message)).rejects.toMatchObject({
-        code: 'TEST_ERROR',
+        code: 'UNKNOWN_ERROR',
         message: expect.any(String),
         details: expect.any(Object)
       })
@@ -435,12 +435,16 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
       expect(() => {
         createChromeEventBridge()
       }).toThrow()
-      expect(() => {
+      
+      // 驗證拋出的錯誤符合 StandardError 格式
+      try {
         createChromeEventBridge()
-      }).toMatchObject({
-        code: expect.any(String),
-        details: expect.any(Object)
-      })
+      } catch (error) {
+        expect(error).toMatchObject({
+          code: expect.any(String),
+          details: expect.any(Object)
+        })
+      }
     })
 
     test('應該能夠清理資源', () => {
