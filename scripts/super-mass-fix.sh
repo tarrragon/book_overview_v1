@@ -5,7 +5,9 @@
 
 set -euo pipefail
 
-PROJECT_ROOT="/Users/mac-eric/project/book_overview_v1"
+# 動態獲取專案根目錄路徑
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 echo "🚀 開始超級批量修復作業..."

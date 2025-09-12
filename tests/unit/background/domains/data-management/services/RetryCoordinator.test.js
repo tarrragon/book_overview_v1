@@ -104,11 +104,12 @@ describe('RetryCoordinator TDD 測試', () => {
       expect(coordinator.selectRetryStrategy(unknownAnalysis)).toBe('LINEAR_BACKOFF')
 
       // 不可重試的錯誤應該拋出異常
-      expect(() => coordinator.selectRetryStrategy(nonRetryableAnalysis)).toThrow()
-      expect(() => coordinator.selectRetryStrategy(nonRetryableAnalysis)).toMatchObject({
-        code: expect.any(String),
-        details: expect.any(Object)
-      })
+      expect(() => coordinator.selectRetryStrategy(nonRetryableAnalysis)).toThrowError(
+        expect.objectContaining({
+          code: expect.any(String),
+          details: expect.any(Object)
+        })
+      )
     })
 
     test('calculateBackoffDelay() 應該正確計算退避延遲', () => {

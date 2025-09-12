@@ -5,8 +5,9 @@
 
 set -e
 
-# 專案配置
-PROJECT_ROOT="/Users/tarragon/Projects/book_overview_v1"
+# 專案配置 - 動態獲取專案根目錄路徑
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 BACKUP_DIR="$PROJECT_ROOT/.backup/comprehensive_lint_fix_$(date +%Y%m%d_%H%M%S)"
 LOG_FILE="$PROJECT_ROOT/scripts/comprehensive-lint-fix.log"
 PROGRESS_FILE="$PROJECT_ROOT/scripts/lint-fix-progress.txt"

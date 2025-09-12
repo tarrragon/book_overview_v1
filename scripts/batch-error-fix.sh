@@ -5,7 +5,9 @@
 
 set -e  # 遇到錯誤就停止
 
-PROJECT_ROOT="/Users/mac-eric/project/book_overview_v1"
+# 動態獲取專案根目錄路徑
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 BACKUP_DIR="$PROJECT_ROOT/.backup/$(date +%Y%m%d_%H%M%S)"
 LOG_FILE="$PROJECT_ROOT/scripts/batch-fix.log"
 

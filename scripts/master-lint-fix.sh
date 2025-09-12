@@ -5,7 +5,9 @@
 
 set -e
 
-PROJECT_ROOT="/Users/tarragon/Projects/book_overview_v1"
+# 動態獲取專案根目錄路徑
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 MASTER_LOG="$PROJECT_ROOT/scripts/master-lint-fix.log"
 PROGRESS_DIR="$PROJECT_ROOT/.master-fix-progress"
 

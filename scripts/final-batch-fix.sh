@@ -3,7 +3,9 @@
 # 最終批次修復腳本 - 基於手動驗證成功的修復模式
 set -e
 
-PROJECT_ROOT="/Users/mac-eric/project/book_overview_v1"
+# 動態獲取專案根目錄路徑
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 BACKUP_DIR="$PROJECT_ROOT/.backup/final_fix_$(date +%Y%m%d_%H%M%S)"
 LOG_FILE="$PROJECT_ROOT/scripts/final-fix.log"
 

@@ -41,7 +41,8 @@ describe('StandardError 核心功能', () => {
     expect(error.message).toBe(message)
     expect(error.details).toEqual(details)
     expect(error.timestamp).toBe(1693747200000)
-    expect(error.id).toBe('err_1693747200000_44cdfb37a')
+    // 驗證 ID 格式而非具體值（因為包含隨機部分）
+    expect(error.id).toMatch(/^err_1693747200000_[a-z0-9]+$/)
   })
 
   test('應該支援JSON序列化和反序列化', () => {
@@ -141,9 +142,9 @@ describe('StandardError 邊界條件', () => {
 
 describe('StandardError 異常處理', () => {
   test('generateId方法在時間異常時的處理', () => {
-    // Given: Mock Date.now 拋出異常
+    // Given: Mock Date.now 拋出異常（避免遞迴）
     const originalDateNow = Date.now
-    Date.now = jest.fn(() => { throw new StandardError('TEST_ERROR', 'Time error', { category: 'testing' }) })
+    Date.now = jest.fn(() => { throw new Error('Time error') })
 
     try {
       // When: 建立錯誤物件
@@ -168,12 +169,24 @@ describe('StandardError 異常處理', () => {
     ]
 
     invalidJsonCases.forEach(invalidJson => {
-      // When & Then: fromJSON應該拋出錯誤
+      // When & Then: fromJSON應該拋出StandardError
       expect(() => StandardError.fromJSON(invalidJson)).toThrow()
-      expect(() => StandardError.fromJSON(invalidJson)).toMatchObject({
-        code: expect.any(String),
-        details: expect.any(Object)
-      })
+      
+      try {
+        StandardError.fromJSON(invalidJson)
+      } catch (error) {
+        expect(error).toBeInstanceOf(StandardError)
+        expect(error.code).toBe('INVALID_JSON_DATA')
+        expect(error.details.receivedType).toBe(typeof invalidJson)
+        // 只有非 undefined 值才檢查 receivedValue
+        if (invalidJson !== undefined) {
+          if (Array.isArray(invalidJson)) {
+            expect(error.details.receivedValue).toEqual(invalidJson)
+          } else {
+            expect(error.details.receivedValue).toBe(invalidJson)
+          }
+        }
+      }
     })
   })
 

@@ -251,27 +251,19 @@ describe('Schema Migration Service', () => {
   // 1. Construction & Initialization (8 tests)
   describe('Construction & Initialization', () => {
     test('建構函數參數驗證 - eventBus 必填', () => {
-      expect(() => new SchemaMigrationService()).toMatchObject({
-        message: expect.stringContaining('EventBus is required')
-      })
+      expect(() => new SchemaMigrationService()).toThrow('EventBus is required')
     })
 
     test('建構函數參數驗證 - eventBus 無效', () => {
-      expect(() => new SchemaMigrationService({})).toMatchObject({
-        message: expect.stringContaining('EventBus is required')
-      })
+      expect(() => new SchemaMigrationService({})).toThrow('EventBus is required')
     })
 
     test('建構函數參數驗證 - logger 必填', () => {
-      expect(() => new SchemaMigrationService(eventBus)).toMatchObject({
-        message: expect.stringContaining('Logger is required')
-      })
+      expect(() => new SchemaMigrationService(eventBus)).toThrow('Logger is required')
     })
 
     test('建構函數參數驗證 - config 必填', () => {
-      expect(() => new SchemaMigrationService(eventBus, logger)).toMatchObject({
-        message: expect.stringContaining('Config is required')
-      })
+      expect(() => new SchemaMigrationService(eventBus, logger)).toThrow('Config is required')
     })
 
     test('BaseModule 繼承正確性', () => {

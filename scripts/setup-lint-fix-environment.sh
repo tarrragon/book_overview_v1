@@ -5,7 +5,9 @@
 
 set -e
 
-PROJECT_ROOT="/Users/tarragon/Projects/book_overview_v1"
+# 動態獲取專案根目錄路徑
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SCRIPTS_DIR="$PROJECT_ROOT/scripts"
 
 echo "🔧 Lint 修正環境設定開始"
@@ -150,7 +152,7 @@ echo "🔍 快速 Lint 狀況檢查"
 echo "執行時間: $(date)"
 echo "================================"
 
-cd "/Users/tarragon/Projects/book_overview_v1"
+cd "$PROJECT_ROOT"
 
 # 執行 lint 並取得基本統計
 npm run lint 2>&1 | head -30

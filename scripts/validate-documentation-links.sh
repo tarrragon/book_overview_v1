@@ -6,8 +6,9 @@
 echo "🔍 開始驗證文件連結有效性..."
 echo "==============================================="
 
-# 設置基礎路徑
-BASE_DIR="/Users/mac-eric/project/book_overview_v1"
+# 動態獲取專案根目錄路徑
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 DOCS_DIR="$BASE_DIR/docs"
 DOMAINS_DIR="$DOCS_DIR/domains"
 

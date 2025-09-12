@@ -5,7 +5,9 @@
 
 set -e
 
-PROJECT_ROOT="/Users/tarragon/Projects/book_overview_v1"
+# 動態獲取專案根目錄路徑
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 VALIDATION_LOG="$PROJECT_ROOT/scripts/lint-fix-validation.log"
 REPORT_DIR="$PROJECT_ROOT/.validation-reports"
 

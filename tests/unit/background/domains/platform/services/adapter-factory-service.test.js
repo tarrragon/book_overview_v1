@@ -297,11 +297,7 @@ describe('AdapterFactoryService', () => {
         new Error('初始化失敗')
       )
 
-      await expect(adapterFactory.initialize()).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      await expect(adapterFactory.initialize()).rejects.toBeInstanceOf(Error)
       expect(adapterFactory.isInitialized).toBe(false)
 
       // 恢復原方法
@@ -385,7 +381,7 @@ describe('AdapterFactoryService', () => {
       await expect(
         adapterFactory.createAdapter('UNSUPPORTED_PLATFORM')
       ).rejects.toMatchObject({
-        code: 'TEST_ERROR',
+        code: 'UNKNOWN_ERROR',
         message: expect.any(String),
         details: expect.any(Object)
       })

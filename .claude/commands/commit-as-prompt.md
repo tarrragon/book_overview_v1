@@ -159,7 +159,7 @@ fi
 - 重新命名臨時或非正式識別（如 `V2`, `TEMP`, `TEST` 等）
 
 - 刪除臨時測試、鷹架或文檔
-  如需自動修復，可執行： validate-redux --project-root 加指定路徑解決問題，例如 validate-redux --project-root /Users/link/github/redux-realtime-starter
+  如需自動修復，可執行： validate-redux --project-root 加指定路徑解決問題，例如 validate-redux --project-root ./project-directory
 
 3. **選擇應納入本次提交的文件**
 

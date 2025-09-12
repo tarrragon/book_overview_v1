@@ -669,7 +669,13 @@ describe('PlatformDetectionService', () => {
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'PLATFORM.DETECTION.FAILED',
         expect.objectContaining({
-          error: expect.any(Error),
+          error: expect.objectContaining({
+            code: 'TEST_ERROR',
+            message: 'Analysis failed',
+            details: expect.objectContaining({
+              category: 'testing'
+            })
+          }),
           context,
           timestamp: expect.any(Number)
         })
