@@ -130,7 +130,7 @@ class ChromeApiWrapper extends BaseModule {
 
     if (missingApis.length > 0) {
       throw new StandardError('MISSING_REQUIRED_DATA', `缺少必要的 Chrome API: ${missingApis.join(', ', {
-          "category": "general"
+          category: 'general'
       })}`)
     }
 
@@ -159,8 +159,8 @@ class ChromeApiWrapper extends BaseModule {
       // 驗證 API 支援
       if (!this.supportedApis.has(apiPath)) {
         throw new StandardError('UNKNOWN_ERROR', `不支援的 API: ${apiPath}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       // 更新統計
@@ -206,8 +206,8 @@ class ChromeApiWrapper extends BaseModule {
     for (const part of apiParts) {
       if (!api[part]) {
         throw new StandardError('UNKNOWN_ERROR', `API 不存在: ${apiPath}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
       api = api[part]
     }
@@ -226,8 +226,8 @@ class ChromeApiWrapper extends BaseModule {
             // callback 模式，檢查 chrome.runtime.lastError
             if (chrome.runtime.lastError) {
               reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-          "category": "general"
-      }))
+                category: 'general'
+              }))
             } else {
               resolve(result)
             }
@@ -238,7 +238,7 @@ class ChromeApiWrapper extends BaseModule {
       })
     } else {
       throw new StandardError('UNKNOWN_ERROR', `${apiPath} 不是一個函數`, {
-          "category": "general"
+        category: 'general'
       })
     }
   }
@@ -257,7 +257,7 @@ class ChromeApiWrapper extends BaseModule {
 
     if (retryCount >= maxRetries) {
       throw new StandardError('UNKNOWN_ERROR', `API 調用重試次數已達上限: ${apiPath}`, {
-          "category": "general"
+        category: 'general'
       })
     }
 

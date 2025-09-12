@@ -44,7 +44,7 @@ class SearchResultFormatter {
 
     if (!eventBus || !logger) {
       throw new StandardError('EVENTBUS_ERROR', 'EventBus 和 Logger 是必需的', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -95,7 +95,7 @@ class SearchResultFormatter {
   formatResults (query, rawResults) {
     if (this._isDestroyed) {
       throw new StandardError('UNKNOWN_ERROR', '格式化器已被銷毀', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -335,13 +335,13 @@ class SearchResultFormatter {
   _validateInputs (query, results) {
     if (typeof query !== 'string') {
       throw new StandardError('UNKNOWN_ERROR', '查詢參數必須是字串', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
     if (!Array.isArray(results)) {
       throw new StandardError('UNKNOWN_ERROR', '結果參數必須是陣列', {
-          "category": "ui"
+        category: 'ui'
       })
     }
   }

@@ -451,7 +451,7 @@ describe('Readmoo Migration Integration Tests', () => {
       try {
         // 等待事件或超時
         const eventData = await Promise.race([validationEventPromise, timeoutPromise])
-        
+
         expect(eventData).toBeDefined()
         expect(eventData.result).toBeDefined()
         expect(eventData.details).toBeDefined()
@@ -489,7 +489,7 @@ describe('Readmoo Migration Integration Tests', () => {
       try {
         // 等待結果或超時
         const resultData = await Promise.race([resultEventPromise, timeoutPromise])
-        
+
         expect(resultData).toBeDefined()
         expect(resultData.result).toBeDefined()
         expect(resultData.timestamp).toBeDefined()

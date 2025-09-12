@@ -835,7 +835,7 @@ class ChromeExtensionController {
 
   async getContentScriptStatus () {
     const contentContext = this.state.contexts.get('content')
-    
+
     return {
       responsive: contentContext?.state === 'ready' || contentContext?.state === 'injected',
       commandsProcessed: this.state.commandsProcessed || 4,
@@ -1192,14 +1192,16 @@ class ChromeExtensionController {
    */
   async sendPopupToBackgroundMessage (typeOrMessage, data = null) {
     const startTime = Date.now()
-    
+
     // 支援兩種呼叫方式：
     // 1. sendPopupToBackgroundMessage(messageObject)
     // 2. sendPopupToBackgroundMessage(type, data)
-    const message = typeof typeOrMessage === 'string' ? {
-      type: typeOrMessage,
-      data: data
-    } : typeOrMessage
+    const message = typeof typeOrMessage === 'string'
+      ? {
+          type: typeOrMessage,
+          data
+        }
+      : typeOrMessage
 
     this.log(`[Popup→Background] 發送訊息: ${JSON.stringify(message)}`)
 
@@ -1491,7 +1493,7 @@ class ChromeExtensionController {
 
     // 模擬短暫延遲後更新成功
     await this.simulateDelay(200)
-    
+
     // 模擬更新成功的情況
     // 處理三種情況：字串、物件的updateType屬性、物件的expectedUpdate屬性
     let updateType
@@ -1500,10 +1502,10 @@ class ChromeExtensionController {
     } else {
       updateType = expectedUpdate?.updateType || expectedUpdate?.expectedUpdate || 'unknown_update'
     }
-    
+
     return {
       updated: true,
-      updateType: updateType,
+      updateType,
       popupState: await this.getPopupState(),
       waitTime: Date.now() - startTime,
       timestamp: Date.now()
@@ -1520,10 +1522,10 @@ class ChromeExtensionController {
 
     // 根據優先級調整處理延遲 - 降低延遲以滿足效能基準
     const delays = {
-      urgent: 5,    // 緊急消息最快處理
-      high: 15,     // 高優先級稍快
-      normal: 25,   // 普通優先級適中
-      low: 50       // 低優先級較慢但仍在合理範圍
+      urgent: 5, // 緊急消息最快處理
+      high: 15, // 高優先級稍快
+      normal: 25, // 普通優先級適中
+      low: 50 // 低優先級較慢但仍在合理範圍
     }
 
     await this.simulateDelay(delays[priority] || 25)
@@ -1542,11 +1544,11 @@ class ChromeExtensionController {
   async sendMessageWithErrorHandling (type, data, options = {}) {
     this.log(`[Error Handling Message] ${type}`)
 
-    const { 
-      timeout = 5000, 
-      maxRetries = 3, 
+    const {
+      timeout = 5000,
+      maxRetries = 3,
       enableRetry = true,
-      fallbackRouting = true 
+      fallbackRouting = true
     } = options
 
     // 模擬重試過程 - 確保可恢復的錯誤能夠恢復
@@ -1555,7 +1557,7 @@ class ChromeExtensionController {
 
     if (enableRetry) {
       retryCount = Math.floor(Math.random() * maxRetries) + 1
-      
+
       // 對於已知的可恢復錯誤類型，在重試後應該成功
       // 測試中期望這些錯誤在清理後能夠恢復
       recovered = true // 簡化為總是恢復成功，因為測試會清理錯誤狀態
@@ -1611,7 +1613,7 @@ class ChromeExtensionController {
    */
   async sendOrderedMessage (type, data, options = {}) {
     const { sequenceId, enforceOrder = true } = options
-    
+
     this.log(`[Ordered Message] ${type}, sequence: ${sequenceId}`)
 
     // 模擬有序處理
@@ -2450,7 +2452,7 @@ class ChromeExtensionController {
             }
           }
         }
-        
+
         // 為所有衝突（包括新發現的）創建用戶選擇
         conflicts.forEach((conflict, index) => {
           userChoices.push({
@@ -2459,7 +2461,7 @@ class ChromeExtensionController {
             timestamp: new Date().toISOString()
           })
         })
-        
+
         // 即使沒有衝突，也要為測試提供用戶選擇記錄
         if (userChoices.length === 0) {
           userChoices.push({
@@ -2547,7 +2549,7 @@ class ChromeExtensionController {
           return
         }
 
-        // 確保穩定的進度增長，讓所有階段都能被觸發  
+        // 確保穩定的進度增長，讓所有階段都能被觸發
         progress += Math.random() * 12 + 18 // 增加 18-30%，確保快速完成
         if (progress >= 100) {
           progress = 100
@@ -2566,8 +2568,10 @@ class ChromeExtensionController {
         progressCallback({
           type: 'import_progress',
           progress: Math.min(progress, 100),
-          stage: progress < 25 ? 'validating'
-            : progress < 50 ? 'processing'
+          stage: progress < 25
+            ? 'validating'
+            : progress < 50
+              ? 'processing'
               : progress < 75 ? 'saving' : 'completed',
           timestamp: Date.now()
         })
@@ -2666,7 +2670,7 @@ class ChromeExtensionController {
                 lastModified: new Date(Date.now() - 3600000).toISOString() // 1小時前
               },
               incomingVersion: {
-                progress: 40, 
+                progress: 40,
                 lastModified: new Date(Date.now() - 7200000).toISOString() // 2小時前
               },
               recommendedAction: 'keep-current'
@@ -2691,10 +2695,10 @@ class ChromeExtensionController {
    */
   async resolveConflict (conflictId, resolution) {
     this.log(`[ChromeExtensionController] 解決衝突 ${conflictId}: ${resolution}`)
-    
+
     // 模擬衝突解決處理時間
     await this.simulateDelay(100)
-    
+
     return {
       success: true,
       conflictId,
@@ -3329,8 +3333,10 @@ class ChromeExtensionController {
       })
     }
 
-    // 更新 storage 中的書籍資料
-    this.state.storage.set('books', mockBooks)
+    // 將新書籍添加到現有書籍中（而不是覆蓋）
+    const existingBooks = this.state.storage.get('books') || []
+    const allBooks = [...existingBooks, ...mockBooks]
+    this.state.storage.set('books', allBooks)
     this.state.storage.set('lastExtraction', {
       timestamp: Date.now(),
       count: mockBooks.length,
@@ -3516,9 +3522,9 @@ class ChromeExtensionController {
    */
   async broadcastMessage (type, data, options = {}) {
     const { target = 'all_contexts' } = options
-    
+
     this.log(`廣播訊息: ${type} 到 ${target}`)
-    
+
     // 根據目標計算接收者數量
     let expectedRecipients = 0
     switch (target) {
@@ -4098,7 +4104,7 @@ class ChromeExtensionController {
           default:
             successRate = 0.3 // 預設30%成功率
         }
-        
+
         const success = Math.random() < successRate
 
         if (success) {
@@ -4137,7 +4143,7 @@ class ChromeExtensionController {
             default:
               currentDelay = retryDelay * attempt
           }
-          
+
           totalDelay += currentDelay
           await this.simulateDelay(currentDelay)
         }
@@ -4388,7 +4394,7 @@ class ChromeExtensionController {
     context.lastExternalChange = {
       type: changeType,
       timestamp: Date.now(),
-      previousState: previousState
+      previousState
     }
 
     // 通知其他contexts
@@ -4531,7 +4537,7 @@ class ChromeExtensionController {
   async sendOrderedMessage (messageType, data, options = {}) {
     const sequenceId = options.sequenceId || `seq-${Date.now()}`
     const targetContext = options.targetContext || 'background'
-    
+
     this.log(`發送有序訊息 (序列: ${sequenceId}) 類型: ${messageType}`)
 
     try {
@@ -4546,7 +4552,7 @@ class ChromeExtensionController {
         }
         this.state.contexts.set(targetContext, context)
       }
-      
+
       if (context.state === 'inactive') {
         context.state = 'active' // 自動激活
       }

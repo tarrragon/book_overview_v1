@@ -62,8 +62,8 @@ function createContentEventBus () {
     on (eventType, handler, options = {}) {
       if (typeof eventType !== 'string' || typeof handler !== 'function') {
         throw new StandardError('EVENTBUS_ERROR', 'EventBus.on: eventType 必須是字串，handler 必須是函數', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       if (!listeners.has(eventType)) {

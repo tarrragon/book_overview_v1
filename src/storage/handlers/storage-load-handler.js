@@ -797,8 +797,8 @@ class StorageLoadHandler extends EventHandler {
   createError (type, message, originalError) {
     const prefix = this.getErrorPrefix(type)
     const error = new StandardError('UNKNOWN_ERROR', `${prefix}: ${message}`, {
-          "category": "storage"
-      })
+      category: 'storage'
+    })
     error.type = type
     if (originalError) {
       error.originalError = originalError

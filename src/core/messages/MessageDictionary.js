@@ -209,7 +209,7 @@ class MessageDictionary {
   set (key, message) {
     if (typeof key !== 'string' || typeof message !== 'string') {
       throw new StandardError('UNKNOWN_ERROR', 'Message key and value must be strings', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -227,8 +227,8 @@ class MessageDictionary {
   addMessages (messages) {
     if (!messages || typeof messages !== 'object') {
       throw new StandardError('UNKNOWN_ERROR', 'Messages must be an object', {
-          "dataType": "object",
-          "category": "general"
+        dataType: 'object',
+        category: 'general'
       })
     }
 
@@ -236,7 +236,7 @@ class MessageDictionary {
     const estimatedSize = this._estimateSize(messages)
     if (this._cacheSize + estimatedSize > this._maxCacheSize) {
       throw new StandardError('LIMIT_EXCEEDED', 'Adding messages would exceed cache size limit', {
-          "category": "general"
+        category: 'general'
       })
     }
 

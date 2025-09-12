@@ -152,7 +152,7 @@ class MessagingDomainCoordinator {
   async start () {
     if (!this.state.initialized) {
       throw new StandardError('UNKNOWN_ERROR', '協調器尚未初始化', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -245,8 +245,8 @@ class MessagingDomainCoordinator {
       } catch (error) {
         this.logger.error(`❌ 通訊服務初始化失敗: ${serviceName}`, error)
         throw new StandardError('UNKNOWN_ERROR', `微服務 ${serviceName} 初始化失敗: ${error.message}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -591,7 +591,7 @@ class MessagingDomainCoordinator {
       return await routingService.routeMessage(message, context)
     } else {
       throw new StandardError('UNKNOWN_ERROR', '路由服務不可用', {
-          "category": "general"
+        category: 'general'
       })
     }
   }

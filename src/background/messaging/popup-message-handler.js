@@ -128,8 +128,8 @@ class PopupMessageHandler extends BaseModule {
       // 驗證訊息格式
       if (!this.validateMessage(message, sender)) {
         throw new StandardError('UNKNOWN_ERROR', `無效的訊息格式或類型: ${message.type}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       // 更新統計
@@ -234,8 +234,8 @@ class PopupMessageHandler extends BaseModule {
 
       default:
         throw new StandardError('UNKNOWN_ERROR', `未支援的訊息類型: ${message.type}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
     }
   }
 
@@ -375,8 +375,8 @@ class PopupMessageHandler extends BaseModule {
 
         default:
           throw new StandardError('UNKNOWN_ERROR', `未支援的資料類型: ${dataType}`, {
-          "category": "general"
-      })
+            category: 'general'
+          })
       }
 
       sendResponse({
@@ -439,8 +439,8 @@ class PopupMessageHandler extends BaseModule {
 
         default:
           throw new StandardError('UNKNOWN_ERROR', `未支援的操作: ${operation}`, {
-          "category": "general"
-      })
+            category: 'general'
+          })
       }
 
       sendResponse({
@@ -569,8 +569,8 @@ class PopupMessageHandler extends BaseModule {
       const activeTab = await this.getCurrentActiveTab()
       if (!activeTab || !activeTab.url || !activeTab.url.includes('readmoo.com')) {
         throw new StandardError('UNKNOWN_ERROR', '當前標籤頁不是 Readmoo 頁面', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       this.logger.log('🚀 開始從 Popup 觸發的提取操作')
@@ -674,8 +674,8 @@ class PopupMessageHandler extends BaseModule {
       const activeTab = await this.getCurrentActiveTab()
       if (!activeTab) {
         throw new StandardError('UNKNOWN_ERROR', '操作需要活躍的標籤頁', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -683,8 +683,8 @@ class PopupMessageHandler extends BaseModule {
       const activeTab = await this.getCurrentActiveTab()
       if (!activeTab || !activeTab.url || !activeTab.url.includes('readmoo.com')) {
         throw new StandardError('UNKNOWN_ERROR', '操作需要 Readmoo 頁面', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -692,14 +692,14 @@ class PopupMessageHandler extends BaseModule {
       const data = await chrome.storage.local.get('readmoo_books')
       if (!data.readmoo_books || !data.readmoo_books.books || data.readmoo_books.books.length === 0) {
         throw new StandardError('UNKNOWN_ERROR', '操作需要已提取的資料', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
     if (permissions.requiresConfirmation && !params.confirmed) {
       throw new StandardError('UNKNOWN_ERROR', '操作需要使用者確認', {
-          "category": "general"
+        category: 'general'
       })
     }
   }
@@ -759,8 +759,8 @@ class PopupMessageHandler extends BaseModule {
 
       default:
         throw new StandardError('UNKNOWN_ERROR', `未支援的清除類型: ${clearType}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
     }
 
     // 觸發儲存清除事件
@@ -810,7 +810,7 @@ class PopupMessageHandler extends BaseModule {
     const url = params.url
     if (!url) {
       throw new StandardError('UNKNOWN_ERROR', '導航需要 URL', {
-          "category": "general"
+        category: 'general'
       })
     }
 

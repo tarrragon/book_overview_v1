@@ -37,7 +37,7 @@ class HandlerRegistry {
   constructor (eventBus) {
     if (!eventBus) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required for HandlerRegistry', {
-          "category": "export"
+        category: 'export'
       })
     }
 
@@ -89,19 +89,19 @@ class HandlerRegistry {
   register (handler) {
     if (!handler) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Handler is required for registration', {
-          "category": "export"
+        category: 'export'
       })
     }
 
     if (!handler.name) {
       throw new StandardError('UNKNOWN_ERROR', 'Handler must have a name', {
-          "category": "export"
+        category: 'export'
       })
     }
 
     if (this.handlers.has(handler.name)) {
       throw new StandardError('UNKNOWN_ERROR', `Handler '${handler.name}' is already registered`, {
-          "category": "export"
+        category: 'export'
       })
     }
 

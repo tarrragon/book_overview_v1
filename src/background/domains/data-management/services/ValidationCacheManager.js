@@ -133,7 +133,7 @@ class ValidationCacheManager {
       }
     } catch (error) {
       throw new StandardError('OPERATION_FAILED', `Cache validation result failed: ${error.message}`, {
-          "category": "validation"
+        category: 'validation'
       })
     }
   }
@@ -183,7 +183,7 @@ class ValidationCacheManager {
     } catch (error) {
       this._updateGetStatistics(false, null, 'validation')
       throw new StandardError('OPERATION_FAILED', `Get cached validation failed: ${error.message}`, {
-          "category": "validation"
+        category: 'validation'
       })
     }
   }
@@ -220,7 +220,7 @@ class ValidationCacheManager {
       }
     } catch (error) {
       throw new StandardError('OPERATION_FAILED', `Cache quality analysis failed: ${error.message}`, {
-          "category": "general"
+        category: 'general'
       })
     }
   }
@@ -291,7 +291,7 @@ class ValidationCacheManager {
       }
     } catch (error) {
       throw new StandardError('OPERATION_FAILED', `Cache platform rules failed: ${error.message}`, {
-          "category": "general"
+        category: 'general'
       })
     }
   }
@@ -410,7 +410,7 @@ class ValidationCacheManager {
       }
     } catch (error) {
       throw new StandardError('INVALID_DATA_FORMAT', `Cache invalidation failed: ${error.message}`, {
-          "category": "validation"
+        category: 'validation'
       })
     }
   }
@@ -491,7 +491,7 @@ class ValidationCacheManager {
       }
     } catch (error) {
       throw new StandardError('OPERATION_FAILED', `Cache clearing failed: ${error.message}`, {
-          "category": "general"
+        category: 'general'
       })
     }
   }
@@ -572,7 +572,7 @@ class ValidationCacheManager {
       return optimization
     } catch (error) {
       throw new StandardError('OPERATION_FAILED', `Cache optimization failed: ${error.message}`, {
-          "category": "general"
+        category: 'general'
       })
     }
   }
@@ -624,7 +624,7 @@ class ValidationCacheManager {
       return results
     } catch (error) {
       throw new StandardError('OPERATION_FAILED', `Batch cache operation failed: ${error.message}`, {
-          "category": "general"
+        category: 'general'
       })
     }
   }
@@ -653,7 +653,7 @@ class ValidationCacheManager {
       return results
     } catch (error) {
       throw new StandardError('OPERATION_FAILED', `Batch get operation failed: ${error.message}`, {
-          "category": "general"
+        category: 'general'
       })
     }
   }
@@ -665,15 +665,15 @@ class ValidationCacheManager {
   _validateCacheKey (cacheKey) {
     if (!cacheKey || typeof cacheKey !== 'string') {
       throw new StandardError('UNKNOWN_ERROR', 'Cache key must be a non-empty string', {
-          "category": "general"
+        category: 'general'
       })
     }
     if (cacheKey.length > 250) {
       throw new StandardError('UNKNOWN_ERROR', 'Cache key too long (maximum 250 characters)', {
-          "values": [
-              "250"
-          ],
-          "category": "general"
+        values: [
+          '250'
+        ],
+        category: 'general'
       })
     }
   }
@@ -685,7 +685,7 @@ class ValidationCacheManager {
   _validateCacheData (data) {
     if (data === null || data === undefined) {
       throw new StandardError('UNKNOWN_ERROR', 'Cache data cannot be null or undefined', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -779,7 +779,7 @@ class ValidationCacheManager {
       this.persistentKeys.add(key)
     } catch (error) {
       throw new StandardError('OPERATION_FAILED', `Persistent cache set failed: ${error.message}`, {
-          "category": "general"
+        category: 'general'
       })
     }
   }

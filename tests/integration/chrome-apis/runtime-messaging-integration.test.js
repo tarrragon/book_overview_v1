@@ -32,7 +32,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
     testDataGenerator = new TestDataGenerator()
     messagingValidator = new RuntimeMessagingValidator(testSuite)
     flowAnalyzer = new MessageFlowAnalyzer()
-    
+
     // 建立 extensionController 與 messagingValidator 的連接
     extensionController.messagingValidator = messagingValidator
   })

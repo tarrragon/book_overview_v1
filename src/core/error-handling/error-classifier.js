@@ -66,9 +66,9 @@ const ERROR_CLASSIFICATION_RULES = {
 function classifyError (error) {
   if (!error) {
     throw new StandardError('REQUIRED_FIELD_MISSING', 'Error object is required for classification', {
-          "dataType": "object",
-          "category": "ui"
-      })
+      dataType: 'object',
+      category: 'ui'
+    })
   }
 
   const errorMessage = error.message || error.toString()

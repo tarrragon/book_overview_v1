@@ -30,13 +30,13 @@ class BatchValidationProcessor extends BaseModule {
   constructor (eventBus, dependencies = {}) {
     if (!eventBus) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required', {
-          "category": "validation"
+        category: 'validation'
       })
     }
 
     if (!dependencies.validationRuleManager) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'ValidationRuleManager is required', {
-          "category": "validation"
+        category: 'validation'
       })
     }
 

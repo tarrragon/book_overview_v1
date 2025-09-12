@@ -380,16 +380,16 @@ describe('SearchCoordinator', () => {
     it('should validate filter parameters', async () => {
       await expect(searchCoordinator.applyFiltersToResults(null, {}))
         .rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+          code: 'TEST_ERROR',
+          message: expect.any(String),
+          details: expect.any(Object)
+        })
       await expect(searchCoordinator.applyFiltersToResults([], null))
         .rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+          code: 'TEST_ERROR',
+          message: expect.any(String),
+          details: expect.any(Object)
+        })
     })
   })
 
@@ -449,10 +449,10 @@ describe('SearchCoordinator', () => {
 
       await expect(searchCoordinator.executeSearch('test', {}))
         .rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+          code: 'TEST_ERROR',
+          message: expect.any(String),
+          details: expect.any(Object)
+        })
 
       expect(mockLogger.error).toHaveBeenCalledWith('搜尋執行失敗', expect.any(Object))
     })
@@ -581,10 +581,10 @@ describe('SearchCoordinator', () => {
 
       await expect(searchCoordinator.executeSearch('test', { status: 'reading' }))
         .rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+          code: 'TEST_ERROR',
+          message: expect.any(String),
+          details: expect.any(Object)
+        })
 
       expect(mockLogger.error).toHaveBeenCalled()
     })
@@ -608,10 +608,10 @@ describe('SearchCoordinator', () => {
 
       await expect(searchCoordinator.executeSearch('test', {}))
         .rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+          code: 'TEST_ERROR',
+          message: expect.any(String),
+          details: expect.any(Object)
+        })
     })
   })
 
@@ -879,10 +879,10 @@ describe('SearchCoordinator', () => {
 
       await expect(searchCoordinator.executeSearch('test', {}))
         .rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+          code: 'TEST_ERROR',
+          message: expect.any(String),
+          details: expect.any(Object)
+        })
     })
 
     it('should handle graceful shutdown', async () => {

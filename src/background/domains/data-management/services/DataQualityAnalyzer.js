@@ -40,17 +40,17 @@ class DataQualityAnalyzer {
     // 驗證必要依賴
     if (!options.validationEngine) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'ValidationEngine is required', {
-          "category": "validation"
+        category: 'validation'
       })
     }
     if (!options.dataNormalizer) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'DataNormalizer is required', {
-          "category": "ui"
+        category: 'ui'
       })
     }
     if (!options.platformRuleManager) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'PlatformRuleManager is required', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -164,7 +164,7 @@ class DataQualityAnalyzer {
     } catch (error) {
       this._updateStatistics({ processingTime: Date.now() - startTime }, true)
       throw new StandardError('OPERATION_FAILED', `Quality analysis failed: ${error.message}`, {
-          "category": "general"
+        category: 'general'
       })
     }
   }
@@ -181,8 +181,8 @@ class DataQualityAnalyzer {
 
     if (!Array.isArray(books) || books.length === 0) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Books array is required and must not be empty', {
-          "dataType": "array",
-          "category": "ui"
+        dataType: 'array',
+        category: 'ui'
       })
     }
 
@@ -477,12 +477,12 @@ class DataQualityAnalyzer {
   _validateInputs (book, platform) {
     if (!book || typeof book !== 'object') {
       throw new StandardError('INVALID_DATA_FORMAT', 'Invalid book data', {
-          "category": "general"
+        category: 'general'
       })
     }
     if (!platform || typeof platform !== 'string') {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Platform is required', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -490,7 +490,7 @@ class DataQualityAnalyzer {
     const platformSupport = this.platformRuleManager.validatePlatformSupport(platform)
     if (!platformSupport.isSupported) {
       throw new StandardError('FEATURE_NOT_SUPPORTED', `Platform not supported: ${platform}`, {
-          "category": "general"
+        category: 'general'
       })
     }
   }

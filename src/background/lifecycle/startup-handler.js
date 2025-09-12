@@ -219,8 +219,8 @@ class StartupHandler extends BaseModule {
         // 根據模組的重要性決定是否繼續
         if (this.isCriticalModule(moduleName)) {
           throw new StandardError('UNKNOWN_ERROR', `關鍵模組啟動失敗: ${moduleName}`, {
-          "category": "general"
-      })
+            category: 'general'
+          })
         }
       }
     }

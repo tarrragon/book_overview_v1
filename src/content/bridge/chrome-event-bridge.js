@@ -95,8 +95,8 @@ function createChromeEventBridge () {
         // 訊息格式驗證
         if (!message || typeof message.type !== 'string') {
           throw new StandardError('UNKNOWN_ERROR', '無效的訊息格式：缺少 type 欄位', {
-          "category": "general"
-      })
+            category: 'general'
+          })
         }
 
         // 添加元資料
@@ -174,8 +174,8 @@ function createChromeEventBridge () {
           return await this.dispatchToPopup(event)
         default:
           throw new StandardError('UNKNOWN_ERROR', `Unknown target context: ${targetContext}`, {
-          "category": "general"
-      })
+            category: 'general'
+          })
       }
     },
 
@@ -193,8 +193,8 @@ function createChromeEventBridge () {
         }, (response) => {
           if (chrome.runtime.lastError) {
             reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-          "category": "general"
-      }))
+              category: 'general'
+            }))
           } else {
             resolve(response)
           }
@@ -253,8 +253,8 @@ function createChromeEventBridge () {
         }, (tabs) => {
           if (chrome.runtime.lastError) {
             reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-          "category": "general"
-      }))
+              category: 'general'
+            }))
           } else {
             resolve(tabs || [])
           }
@@ -274,8 +274,8 @@ function createChromeEventBridge () {
         chrome.tabs.sendMessage(tabId, message, (response) => {
           if (chrome.runtime.lastError) {
             reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-          "category": "general"
-      }))
+              category: 'general'
+            }))
           } else {
             resolve(response)
           }

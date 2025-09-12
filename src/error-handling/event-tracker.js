@@ -259,8 +259,8 @@ class EventTracker extends EventHandler {
         return this._createErrorResponse(
           'UNSUPPORTED_EVENT_TYPE',
           new StandardError('UNKNOWN_ERROR', `不支援的事件類型: ${eventData.type}`, {
-          "category": "general"
-      }),
+            category: 'general'
+          }),
           eventData
         )
     }
@@ -717,8 +717,8 @@ class EventTracker extends EventHandler {
         return this._convertToCSV(records)
       default:
         throw new StandardError('UNKNOWN_ERROR', `不支援的匯出格式: ${format}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
     }
   }
 

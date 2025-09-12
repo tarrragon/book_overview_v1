@@ -61,9 +61,9 @@ const ERROR_RECOVERY_CONFIG = {
 function createErrorRecovery (error, errorCategory = null) {
   if (!error) {
     throw new StandardError('REQUIRED_FIELD_MISSING', 'Error object is required for recovery planning', {
-          "dataType": "object",
-          "category": "ui"
-      })
+      dataType: 'object',
+      category: 'ui'
+    })
   }
 
   // 如果沒有提供錯誤分類，先進行分類
@@ -100,8 +100,8 @@ function createErrorRecovery (error, errorCategory = null) {
 async function executeRecoveryStrategy (recoveryPlan, originalOperation) {
   if (!recoveryPlan || !originalOperation) {
     throw new StandardError('REQUIRED_FIELD_MISSING', 'Recovery plan and original operation are required', {
-          "category": "ui"
-      })
+      category: 'ui'
+    })
   }
 
   if (recoveryPlan.canRetry) {
@@ -148,11 +148,11 @@ async function retryOperation (operation, options = {}) {
       lastError = error
       if (attempt === maxRetries) {
         throw new StandardError('OPERATION_FAILED', `Operation failed after ${maxRetries + 1} attempts: ${error.message}`, {
-          "values": [
-              "1"
+          values: [
+            '1'
           ],
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
   }

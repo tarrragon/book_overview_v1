@@ -471,7 +471,7 @@ class MessageErrorHandler extends EventHandler {
 
     if (chrome.runtime.lastError) {
       const error = new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-          "category": "general"
+        category: 'general'
       })
 
       this.eventBus.emit('MESSAGE.ERROR', {

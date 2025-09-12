@@ -114,7 +114,7 @@ class PermissionManagementService {
   async start () {
     if (!this.state.initialized) {
       throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
-          "category": "permission"
+        category: 'permission'
       })
     }
 
@@ -298,7 +298,7 @@ class PermissionManagementService {
     const config = this.requiredPermissions.get(permissionKey)
     if (!config) {
       throw new StandardError('PERMISSION_DENIED', `未知的權限: ${permissionKey}`, {
-          "category": "permission"
+        category: 'permission'
       })
     }
 
@@ -428,7 +428,7 @@ class PermissionManagementService {
     const config = this.requiredPermissions.get(permissionKey)
     if (!config) {
       throw new StandardError('PERMISSION_DENIED', `未知的權限: ${permissionKey}`, {
-          "category": "permission"
+        category: 'permission'
       })
     }
 
@@ -627,8 +627,8 @@ class PermissionManagementService {
 
       if (!permission) {
         throw new StandardError('PERMISSION_DENIED', '權限請求事件缺少 permission 參數', {
-          "category": "permission"
-      })
+          category: 'permission'
+        })
       }
 
       const granted = await this.requestPermission(permission, userInitiated)
@@ -685,8 +685,8 @@ class PermissionManagementService {
 
       if (!permission) {
         throw new StandardError('PERMISSION_DENIED', '權限撤銷事件缺少 permission 參數', {
-          "category": "permission"
-      })
+          category: 'permission'
+        })
       }
 
       const revoked = await this.revokePermission(permission)

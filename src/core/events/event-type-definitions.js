@@ -218,7 +218,7 @@ class EventTypeDefinitions {
     const parts = eventName.split('.')
     if (parts.length !== 4) {
       throw new StandardError('INVALID_DATA_FORMAT', 'Invalid event name format', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -277,22 +277,22 @@ class EventTypeDefinitions {
   buildEventName (domain, platform, action, state) {
     if (!this.isValidDomain(domain)) {
       throw new StandardError('INVALID_DATA_FORMAT', 'Invalid domain', {
-          "category": "general"
+        category: 'general'
       })
     }
     if (!this.isValidPlatform(platform)) {
       throw new StandardError('INVALID_DATA_FORMAT', 'Invalid platform', {
-          "category": "general"
+        category: 'general'
       })
     }
     if (!this.isValidAction(action)) {
       throw new StandardError('INVALID_DATA_FORMAT', 'Invalid action', {
-          "category": "general"
+        category: 'general'
       })
     }
     if (!this.isValidState(state)) {
       throw new StandardError('INVALID_DATA_FORMAT', 'Invalid state', {
-          "category": "general"
+        category: 'general'
       })
     }
 

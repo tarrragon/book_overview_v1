@@ -454,14 +454,14 @@ class ChromeStoreReadiness {
 
         if (hasUnsafeInline) {
           throw new StandardError('UNSAFE_CSP_INLINE', '檢測到 unsafe-inline CSP 配置', {
-            cspPolicy: manifest.content_security_policy,
+            cspPolicy: this.manifest?.content_security_policy || 'unknown',
             category: 'security_validation'
           })
         }
 
         if (hasUnsafeEval) {
           throw new StandardError('UNSAFE_CSP_EVAL', '檢測到 unsafe-eval CSP 配置', {
-            cspPolicy: manifest.content_security_policy,
+            cspPolicy: this.manifest?.content_security_policy || 'unknown',
             category: 'security_validation'
           })
         }

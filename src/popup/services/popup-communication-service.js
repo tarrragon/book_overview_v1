@@ -85,8 +85,8 @@ class PopupCommunicationService {
         })
 
         reject(new StandardError('UNKNOWN_ERROR', errorMsg, {
-          "category": "general"
-      }))
+          category: 'general'
+        }))
       }, 2000) // 改為 2 秒超時
 
       chrome.runtime.sendMessage({ type: 'GET_STATUS' }, (response) => {
@@ -112,8 +112,8 @@ class PopupCommunicationService {
           })
 
           reject(new StandardError('UNKNOWN_ERROR', errorMsg, {
-          "category": "general"
-      }))
+            category: 'general'
+          }))
           return
         }
 
@@ -128,8 +128,8 @@ class PopupCommunicationService {
           })
 
           reject(new StandardError('UNKNOWN_ERROR', errorMsg, {
-          "category": "general"
-      }))
+            category: 'general'
+          }))
           return
         }
 
@@ -161,8 +161,8 @@ class PopupCommunicationService {
             info: '請確保有開啟的瀏覽器標籤頁'
           })
           reject(new StandardError('UNKNOWN_ERROR', errorMsg, {
-          "category": "general"
-      }))
+            category: 'general'
+          }))
           return
         }
 
@@ -177,8 +177,8 @@ class PopupCommunicationService {
             info: '需要在 Readmoo 書庫頁面使用此功能'
           })
           reject(new StandardError('UNKNOWN_ERROR', errorMsg, {
-          "category": "general"
-      }))
+            category: 'general'
+          }))
           return
         }
 
@@ -188,8 +188,8 @@ class PopupCommunicationService {
             const errorMsg = `Content script communication error: ${chrome.runtime.lastError.message}`
             this.statusManager.handleSyncFailure(errorMsg)
             reject(new StandardError('UNKNOWN_ERROR', errorMsg, {
-          "category": "general"
-      }))
+              category: 'general'
+            }))
             return
           }
 
@@ -311,8 +311,8 @@ class PopupCommunicationService {
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
         reject(new StandardError('UNKNOWN_ERROR', errorMessage, {
-          "category": "general"
-      }))
+          category: 'general'
+        }))
       }, timeout)
 
       const cleanup = () => {
@@ -340,7 +340,7 @@ class PopupCommunicationService {
       const errorMsg = `${context} error: ${chrome.runtime.lastError.message}`
       this.statusManager.handleSyncFailure(errorMsg)
       throw new StandardError('UNKNOWN_ERROR', errorMsg, {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -348,7 +348,7 @@ class PopupCommunicationService {
       const errorMsg = `${context} returned no response`
       this.statusManager.handleSyncFailure(errorMsg)
       throw new StandardError('UNKNOWN_ERROR', errorMsg, {
-          "category": "general"
+        category: 'general'
       })
     }
 

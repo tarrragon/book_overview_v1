@@ -122,8 +122,8 @@ class ContentMessageHandler extends BaseModule {
       // 驗證訊息格式
       if (!this.validateMessage(message, sender)) {
         throw new StandardError('UNKNOWN_ERROR', `無效的訊息格式或類型: ${message.type}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       // 更新統計
@@ -219,8 +219,8 @@ class ContentMessageHandler extends BaseModule {
 
       default:
         throw new StandardError('UNKNOWN_ERROR', `未支援的訊息類型: ${message.type}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
     }
   }
 
@@ -268,7 +268,7 @@ class ContentMessageHandler extends BaseModule {
     // 驗證事件轉發格式
     if (!message.eventType) {
       throw new StandardError('UNKNOWN_ERROR', '事件類型不能為空', {
-          "category": "general"
+        category: 'general'
       })
     }
 

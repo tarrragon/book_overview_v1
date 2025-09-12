@@ -275,7 +275,7 @@ class ValidationServiceCoordinator {
       }
     } catch (error) {
       throw new StandardError('OPERATION_FAILED', `Batch validation coordination failed: ${error.message}`, {
-          "category": "validation"
+        category: 'validation'
       })
     }
   }
@@ -339,7 +339,7 @@ class ValidationServiceCoordinator {
       }
     } catch (error) {
       throw new StandardError('OPERATION_FAILED', `Priority validation coordination failed: ${error.message}`, {
-          "category": "validation"
+        category: 'validation'
       })
     }
   }
@@ -379,7 +379,7 @@ class ValidationServiceCoordinator {
       }
     } catch (error) {
       throw new StandardError('OPERATION_FAILED', `Parallel validation coordination failed: ${error.message}`, {
-          "category": "validation"
+        category: 'validation'
       })
     }
   }
@@ -604,7 +604,7 @@ class ValidationServiceCoordinator {
       return optimizationResult
     } catch (error) {
       throw new StandardError('OPERATION_FAILED', `Service optimization failed: ${error.message}`, {
-          "category": "general"
+        category: 'general'
       })
     }
   }
@@ -652,7 +652,7 @@ class ValidationServiceCoordinator {
       return clearResult
     } catch (error) {
       throw new StandardError('OPERATION_FAILED', `Service cache clearing failed: ${error.message}`, {
-          "category": "general"
+        category: 'general'
       })
     }
   }
@@ -675,15 +675,15 @@ class ValidationServiceCoordinator {
     for (const service of requiredServices) {
       if (!options[service]) {
         throw new StandardError('REQUIRED_FIELD_MISSING', `${service} is required`, {
-          "category": "ui"
-      })
+          category: 'ui'
+        })
       }
 
       if (service !== 'eventBus' && options[service].isInitialized === false) {
         const serviceName = service.charAt(0).toUpperCase() + service.slice(1)
         throw new StandardError('UNKNOWN_ERROR', `${serviceName} is not properly initialized`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
   }
@@ -706,7 +706,7 @@ class ValidationServiceCoordinator {
     const supportResult = this.platformRuleManager.validatePlatformSupport(platform)
     if (!supportResult.isSupported) {
       throw new StandardError('FEATURE_NOT_SUPPORTED', `Platform ${platform} is not supported`, {
-          "category": "general"
+        category: 'general'
       })
     }
 

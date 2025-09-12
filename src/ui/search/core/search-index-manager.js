@@ -42,7 +42,7 @@ class SearchIndexManager {
 
     if (!eventBus || !logger) {
       throw new StandardError('EVENTBUS_ERROR', 'EventBus 和 Logger 是必需的', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -144,8 +144,8 @@ class SearchIndexManager {
       // 檢查記憶體限制
       if (books.length > this.memoryLimit) {
         const error = new StandardError('UNKNOWN_ERROR', '記憶體不足', {
-          "category": "ui"
-      })
+          category: 'ui'
+        })
         this.eventBus.emit('SEARCH.WARNING', {
           message: '記憶體不足，無法建構搜尋索引',
           error: error.message,

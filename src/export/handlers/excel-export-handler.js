@@ -108,14 +108,14 @@ class ExcelExportHandler extends EventHandler {
   _validateEventData (eventData) {
     if (!eventData) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Event data is required', {
-          "category": "export"
+        category: 'export'
       })
     }
 
     if (!eventData.books || !Array.isArray(eventData.books)) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Books array is required for Excel export', {
-          "dataType": "array",
-          "category": "export"
+        dataType: 'array',
+        category: 'export'
       })
     }
 

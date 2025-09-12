@@ -77,7 +77,7 @@ class RuntimeMessagingValidator {
     // 計算統計資料，排除系統控制訊息
     const messageHistory = [...this.messageHistory]
     const systemMessageTypes = ['tracking_started', 'tracking_stopped', 'message_delay_simulation']
-    const businessMessages = messageHistory.filter(msg => 
+    const businessMessages = messageHistory.filter(msg =>
       msg.type && !systemMessageTypes.includes(msg.type)
     )
     const requestMessages = businessMessages.filter(msg => msg.direction === 'request' || (!msg.direction && !msg.type.includes('RESPONSE')))
@@ -147,7 +147,7 @@ class RuntimeMessagingValidator {
     if (controller?.state?.messageHistory) {
       return controller.state.messageHistory
     }
-    
+
     // 如果沒有 extensionController 資料，回退到本地歷史
     return this.messageHistory
   }
@@ -353,10 +353,10 @@ class RuntimeMessagingValidator {
 
     // 生成真實的路由模式數據
     const routingPatterns = {
-      popupToBackground: Math.floor(Math.random() * 5) + 6,    // 6-10 個訊息
-      backgroundToContent: Math.floor(Math.random() * 10) + 11, // 11-20 個訊息  
+      popupToBackground: Math.floor(Math.random() * 5) + 6, // 6-10 個訊息
+      backgroundToContent: Math.floor(Math.random() * 10) + 11, // 11-20 個訊息
       contentToBackground: Math.floor(Math.random() * 10) + 16, // 16-25 個訊息
-      backgroundToPopup: Math.floor(Math.random() * 5) + 9,    // 9-13 個訊息
+      backgroundToPopup: Math.floor(Math.random() * 5) + 9 // 9-13 個訊息
     }
 
     const analysis = {
@@ -514,7 +514,7 @@ class RuntimeMessagingValidator {
 
     // 生成模擬的處理順序數據 - 優化優先級排序
     const processedOrder = []
-    
+
     // 模擬緊急訊息優先處理
     processedOrder.push({
       id: 'urgent-1',
@@ -527,7 +527,7 @@ class RuntimeMessagingValidator {
     // 模擬高優先級訊息 - 只有1個而不是2個
     processedOrder.push({
       id: 'high-1',
-      priority: 'high', 
+      priority: 'high',
       type: 'USER_ACTION',
       processedAt: Date.now() - 1800,
       originalIndex: 15
@@ -550,7 +550,7 @@ class RuntimeMessagingValidator {
         id: `normal-${i}`,
         priority: 'normal',
         type: 'PROGRESS_UPDATE',
-        processedAt: Date.now() - 2000 + (i-7) * 50, // 更早的時間戳
+        processedAt: Date.now() - 2000 + (i - 7) * 50, // 更早的時間戳
         originalIndex: i
       })
     }
@@ -560,7 +560,7 @@ class RuntimeMessagingValidator {
       processedOrder.push({
         id: `low-${i}`,
         priority: 'low',
-        type: 'DEBUG_INFO', 
+        type: 'DEBUG_INFO',
         processedAt: Date.now() - 1100 + i * 80,
         originalIndex: 10 + i
       })
@@ -1060,7 +1060,7 @@ class RuntimeMessagingValidator {
     // 從 extensionController 的 messageHistory 中提取實際的訊息
     const controller = this.testSuite.extensionController
     const messageHistory = controller?.state?.messageHistory || []
-    
+
     this.testSuite.log(`[MessagingValidator] messageHistory 總長度: ${messageHistory.length}`)
 
     // 過濾出順序訊息並按 sequenceId 排序
@@ -1353,7 +1353,7 @@ class RuntimeMessagingValidator {
     const totalMessages = receivedOrder.length
 
     const stats = {
-      totalMessages: totalMessages,
+      totalMessages,
       orderViolations: 0, // 基於我們的排序邏輯，順序應該是正確的
       sequenceGaps: Math.max(0, 20 - totalMessages), // 期望20個訊息
       averageDeliveryTime: 150, // 基於我們的 50ms 延遲

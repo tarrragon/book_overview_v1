@@ -102,7 +102,7 @@ class ConfigManagementService {
   async start () {
     if (!this.state.initialized) {
       throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -320,7 +320,7 @@ class ConfigManagementService {
 
       if (!validation.isValid) {
         throw new StandardError('VALIDATION_FAILED', `配置驗證失敗: ${validation.errors.join(', ', {
-          "category": "validation"
+          category: 'validation'
       })}`)
       }
 
@@ -384,7 +384,7 @@ class ConfigManagementService {
   registerConfigurationWatcher (key, watcher) {
     if (typeof watcher !== 'function') {
       throw new StandardError('UNKNOWN_ERROR', '配置監聽器必須是函數', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -409,7 +409,7 @@ class ConfigManagementService {
   registerConfigurationValidator (key, validator) {
     if (typeof validator !== 'function') {
       throw new StandardError('UNKNOWN_ERROR', '配置驗證器必須是函數', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -473,8 +473,8 @@ class ConfigManagementService {
       const { updates } = event.data || {}
       if (!updates || typeof updates !== 'object') {
         throw new StandardError('UNKNOWN_ERROR', '無效的配置更新數據', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       await this.applyConfigurationUpdates(updates)

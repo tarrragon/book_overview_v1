@@ -111,7 +111,7 @@ class DataProcessingService {
   async start () {
     if (!this.state.initialized) {
       throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -192,8 +192,8 @@ class DataProcessingService {
 
       if (!rawData || !Array.isArray(rawData.books)) {
         throw new StandardError('UNKNOWN_ERROR', '無效的書籍資料格式', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       const processedBooks = []
@@ -343,8 +343,8 @@ class DataProcessingService {
       const processor = this.dataProcessors.get(dataType)
       if (!processor) {
         throw new StandardError('UNKNOWN_ERROR', `未找到資料處理器: ${dataType}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       // 選擇處理管道
@@ -592,9 +592,11 @@ class DataProcessingService {
    * 驗證方法
    */
   validateInput (data) {
-    if (!data) throw new StandardError('UNKNOWN_ERROR', '輸入資料不能為空', {
-          "category": "general"
+    if (!data) {
+      throw new StandardError('UNKNOWN_ERROR', '輸入資料不能為空', {
+        category: 'general'
       })
+    }
   }
 
   basicValidation (data) {
@@ -602,9 +604,11 @@ class DataProcessingService {
   }
 
   validateOutput (data) {
-    if (!data) throw new StandardError('UNKNOWN_ERROR', '輸出資料不能為空', {
-          "category": "general"
+    if (!data) {
+      throw new StandardError('UNKNOWN_ERROR', '輸出資料不能為空', {
+        category: 'general'
       })
+    }
   }
 
   performQualityCheck (data) {

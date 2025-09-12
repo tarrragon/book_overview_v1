@@ -435,7 +435,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
       expect(() => {
         createChromeEventBridge()
       }).toThrow()
-      
+
       // 驗證拋出的錯誤符合 StandardError 格式
       try {
         createChromeEventBridge()

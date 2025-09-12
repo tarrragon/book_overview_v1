@@ -9,6 +9,8 @@
  * @version v0.9.38-refactor
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 const ChromeAPIMockRegistry = require('../infrastructure/chrome-api-mock-registry')
 
 /**

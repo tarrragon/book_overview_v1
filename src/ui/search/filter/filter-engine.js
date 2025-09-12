@@ -43,7 +43,7 @@ class FilterEngine {
 
     if (!eventBus || !logger) {
       throw new StandardError('EVENTBUS_ERROR', 'EventBus 和 Logger 是必需的', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -108,7 +108,7 @@ class FilterEngine {
   async applyFilters (books, filters) {
     if (this._isDestroyed) {
       throw new StandardError('UNKNOWN_ERROR', '篩選器已被銷毀', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -296,12 +296,12 @@ class FilterEngine {
       filterDate = new Date(dateString)
       if (isNaN(filterDate.getTime())) {
         throw new StandardError('INVALID_DATA_FORMAT', 'Invalid date', {
-          "category": "ui"
-      })
+          category: 'ui'
+        })
       }
     } catch (error) {
       throw new StandardError('UNKNOWN_ERROR', '無效的日期格式', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -421,19 +421,19 @@ class FilterEngine {
   _validateInputs (books, filters) {
     if (!Array.isArray(books)) {
       throw new StandardError('UNKNOWN_ERROR', '書籍陣列是必需的', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
     if (filters === null || filters === undefined) {
       throw new StandardError('UNKNOWN_ERROR', '篩選條件是必需的', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
     if (typeof filters !== 'object') {
       throw new StandardError('UNKNOWN_ERROR', '篩選條件必須是物件', {
-          "category": "ui"
+        category: 'ui'
       })
     }
   }

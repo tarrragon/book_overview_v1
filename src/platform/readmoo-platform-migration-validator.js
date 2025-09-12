@@ -109,8 +109,8 @@ class ReadmooPlatformMigrationValidator {
       if (!dependencies[dep]) {
         validatorLogger.error('DEPENDENCY_MISSING', { dependency: dep })
         throw new StandardError('REQUIRED_FIELD_MISSING', `Missing required dependency: ${dep}`, {
-          "category": "data_migration"
-      })
+          category: 'data_migration'
+        })
       }
     }
 
@@ -122,7 +122,7 @@ class ReadmooPlatformMigrationValidator {
         methods: 'emit() and on()'
       })
       throw new StandardError('EVENTBUS_ERROR', 'EventBus must implement emit() and on() methods', {
-          "category": "data_migration"
+        category: 'data_migration'
       })
     }
 
@@ -134,7 +134,7 @@ class ReadmooPlatformMigrationValidator {
         methods: 'extractBookData() and validateExtractedData()'
       })
       throw new StandardError('UNKNOWN_ERROR', 'ReadmooAdapter must implement extractBookData() and validateExtractedData() methods', {
-          "category": "data_migration"
+        category: 'data_migration'
       })
     }
 
@@ -146,7 +146,7 @@ class ReadmooPlatformMigrationValidator {
         methods: 'detectPlatform() and validatePlatform()'
       })
       throw new StandardError('UNKNOWN_ERROR', 'PlatformDetectionService must implement detectPlatform() and validatePlatform() methods', {
-          "category": "data_migration"
+        category: 'data_migration'
       })
     }
   }
@@ -180,11 +180,11 @@ class ReadmooPlatformMigrationValidator {
         max: 10
       })
       throw new StandardError('VALIDATION_FAILED', 'maxValidationRetries must be between 1 and 10', {
-          "values": [
-              "1",
-              "10"
-          ],
-          "category": "data_migration"
+        values: [
+          '1',
+          '10'
+        ],
+        category: 'data_migration'
       })
     }
 
@@ -195,11 +195,11 @@ class ReadmooPlatformMigrationValidator {
         max: '120000ms'
       })
       throw new StandardError('OPERATION_TIMEOUT', 'validationTimeout must be between 1000ms and 120000ms', {
-          "values": [
-              "1000",
-              "120000"
-          ],
-          "category": "data_migration"
+        values: [
+          '1000',
+          '120000'
+        ],
+        category: 'data_migration'
       })
     }
 
@@ -210,11 +210,11 @@ class ReadmooPlatformMigrationValidator {
         max: 1
       })
       throw new StandardError('UNKNOWN_ERROR', 'minDetectionConfidence must be between 0 and 1', {
-          "values": [
-              "0",
-              "1"
-          ],
-          "category": "data_migration"
+        values: [
+          '0',
+          '1'
+        ],
+        category: 'data_migration'
       })
     }
 
@@ -319,8 +319,8 @@ class ReadmooPlatformMigrationValidator {
         setTimeout(() => {
           validatorLogger.error('VALIDATION_TIMEOUT', { timeout: this.config.validationTimeout })
           reject(new StandardError('OPERATION_TIMEOUT', `Validation timeout after ${this.config.validationTimeout}ms`, {
-          "category": "data_migration"
-      }))
+            category: 'data_migration'
+          }))
         }, this.config.validationTimeout)
       })
 
@@ -724,7 +724,7 @@ class ReadmooPlatformMigrationValidator {
       // 驗證資料類型
       const typeValidations = {
         bookId: 'string',
-        title: 'string', 
+        title: 'string',
         author: 'string',
         progress: 'number',
         readingStatus: 'string',

@@ -144,8 +144,8 @@ class PopupEventController extends EventHandler {
           break
         default:
           throw new StandardError('UNKNOWN_ERROR', `Unsupported event type: ${type}`, {
-          "category": "general"
-      })
+            category: 'general'
+          })
       }
 
       this.messageCount++
@@ -192,7 +192,7 @@ class PopupEventController extends EventHandler {
   initializeElements () {
     if (!this.document) {
       throw new StandardError('RESOURCE_NOT_AVAILABLE', 'Document not available', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -238,8 +238,8 @@ class PopupEventController extends EventHandler {
     for (const elementName of requiredElements) {
       if (!this.elements[elementName]) {
         throw new StandardError('REQUIRED_FIELD_MISSING', `Required element not found: ${elementName}`, {
-          "category": "ui"
-      })
+          category: 'ui'
+        })
       }
     }
   }
@@ -304,8 +304,8 @@ class PopupEventController extends EventHandler {
     try {
       if (!this.chrome || !this.chrome.runtime) {
         throw new StandardError('RESOURCE_NOT_AVAILABLE', 'Chrome runtime not available', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       const response = await this.chrome.runtime.sendMessage({
@@ -317,8 +317,8 @@ class PopupEventController extends EventHandler {
         return true
       } else {
         throw new StandardError('UNKNOWN_ERROR', 'Background Service Worker 回應異常', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     } catch (error) {
       this.updateStatus('離線', 'Service Worker 離線', '請重新載入擴展', this.STATUS_TYPES.ERROR)
@@ -340,8 +340,8 @@ class PopupEventController extends EventHandler {
     try {
       if (!this.chrome || !this.chrome.tabs) {
         throw new StandardError('RESOURCE_NOT_AVAILABLE', 'Chrome tabs API not available', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       const [tab] = await this.chrome.tabs.query({ active: true, currentWindow: true })
@@ -533,7 +533,7 @@ class PopupEventController extends EventHandler {
     const tab = await this.checkCurrentTab()
     if (!tab || !this.contentScriptReady) {
       throw new StandardError('UNKNOWN_ERROR', '頁面或 Content Script 未就緒', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -551,8 +551,8 @@ class PopupEventController extends EventHandler {
         console.log('[PopupEventController] Extraction started successfully')
       } else {
         throw new StandardError('UNKNOWN_ERROR', response?.error || '未知錯誤', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     } catch (error) {
       this.extractionInProgress = false

@@ -58,7 +58,7 @@ class BookGridRenderer {
   constructor (container, eventBus, options = {}, document = null) {
     if (!container) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Container is required', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -75,7 +75,7 @@ class BookGridRenderer {
     if (!this.document) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Document is required for BookGridRenderer. ' +
                      'In test environments, please inject a mock document.', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 

@@ -48,8 +48,8 @@ class MemoryUtils {
         return {
           success: false,
           error: new StandardError('RESOURCE_NOT_AVAILABLE', 'Performance memory API not available', {
-          "category": "general"
-      }),
+            category: 'general'
+          }),
           fallback: true
         }
       }
@@ -89,8 +89,8 @@ class MemoryUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid snapshot label', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -316,8 +316,8 @@ class MemoryUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid cache configuration', {
-          "category": "configuration"
-      })
+          category: 'configuration'
+        })
       }
     }
 
@@ -325,8 +325,8 @@ class MemoryUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid maxSize configuration', {
-          "category": "configuration"
-      })
+          category: 'configuration'
+        })
       }
     }
 
@@ -373,8 +373,8 @@ class MemoryUtils {
       return {
         success: false,
         error: new StandardError('RESOURCE_NOT_FOUND', 'Cache not found', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -428,8 +428,8 @@ class MemoryUtils {
       return {
         found: false,
         error: new StandardError('RESOURCE_NOT_FOUND', 'Cache not found', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -534,8 +534,8 @@ class MemoryUtils {
     if (!cache) {
       return {
         error: new StandardError('RESOURCE_NOT_FOUND', 'Cache not found', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -641,8 +641,8 @@ class MemoryUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid tracking label', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -765,8 +765,8 @@ class MemoryUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid timer name', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -801,8 +801,8 @@ class MemoryUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid timer name', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -812,8 +812,8 @@ class MemoryUtils {
       return {
         success: false,
         error: new StandardError('RESOURCE_NOT_FOUND', 'Timer not found', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -847,8 +847,8 @@ class MemoryUtils {
     if (typeof fn !== 'function') {
       return {
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid function provided', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -893,8 +893,8 @@ class MemoryUtils {
     if (typeof fn !== 'function') {
       return {
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid function provided', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 

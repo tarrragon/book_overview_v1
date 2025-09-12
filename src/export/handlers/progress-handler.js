@@ -126,31 +126,31 @@ class ProgressHandler extends EventHandler {
   _validateProgressData (progressData) {
     if (!progressData) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Progress data is required', {
-          "category": "export"
+        category: 'export'
       })
     }
 
     if (!progressData.exportId) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Export ID is required for progress tracking', {
-          "category": "export"
+        category: 'export'
       })
     }
 
     if (typeof progressData.current !== 'number' || progressData.current < 0) {
       throw new StandardError('INVALID_DATA_FORMAT', 'Invalid current progress value', {
-          "category": "export"
+        category: 'export'
       })
     }
 
     if (typeof progressData.total !== 'number' || progressData.total <= 0) {
       throw new StandardError('INVALID_DATA_FORMAT', 'Invalid total progress value', {
-          "category": "export"
+        category: 'export'
       })
     }
 
     if (progressData.current > progressData.total) {
       throw new StandardError('LIMIT_EXCEEDED', 'Current progress cannot exceed total progress', {
-          "category": "export"
+        category: 'export'
       })
     }
   }

@@ -128,7 +128,7 @@ class DataNormalizationService {
       }
     } catch (error) {
       throw new StandardError('OPERATION_FAILED', `Normalization failed: ${error.message}`, {
-          "category": "general"
+        category: 'general'
       })
     }
   }
@@ -396,12 +396,12 @@ class DataNormalizationService {
   _validateInputs (book, platform) {
     if (!book || typeof book !== 'object') {
       throw new StandardError('INVALID_DATA_FORMAT', 'Invalid book data', {
-          "category": "general"
+        category: 'general'
       })
     }
     if (!platform || typeof platform !== 'string') {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Platform is required', {
-          "category": "ui"
+        category: 'ui'
       })
     }
   }

@@ -332,7 +332,7 @@ class EventNamingUpgradeCoordinator {
   setConversionMode (mode) {
     if (!this.isValidConversionMode(mode)) {
       throw new StandardError('INVALID_DATA_FORMAT', 'Invalid conversion mode', {
-          "category": "general"
+        category: 'general'
       })
     }
     this.conversionMode = mode

@@ -124,7 +124,7 @@ class PersonalizationService {
   async start () {
     if (!this.state.initialized) {
       throw new StandardError('UNKNOWN_ERROR', '個人化服務尚未初始化', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -319,8 +319,8 @@ class PersonalizationService {
       const suggestion = this.userProfile.recommendations.find(r => r.id === suggestionId)
       if (!suggestion) {
         throw new StandardError('UNKNOWN_ERROR', `找不到建議: ${suggestionId}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       // 根據建議類型執行相應操作
@@ -337,8 +337,8 @@ class PersonalizationService {
           break
         default:
           throw new StandardError('UNKNOWN_ERROR', `不支援的建議類型: ${suggestion.type}`, {
-          "category": "general"
-      })
+            category: 'general'
+          })
       }
 
       // 標記建議為已應用

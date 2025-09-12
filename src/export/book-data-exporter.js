@@ -807,7 +807,7 @@ class BookDataExporter {
   async saveToFile (format, options = {}) {
     if (!window.showSaveFilePicker) {
       throw new StandardError('FEATURE_NOT_SUPPORTED', 'File System Access API not supported', {
-          "category": "export"
+        category: 'export'
       })
     }
 
@@ -829,8 +829,8 @@ class BookDataExporter {
           break
         default:
           throw new StandardError('UNKNOWN_ERROR', `Unsupported format: ${format}`, {
-          "category": "export"
-      })
+            category: 'export'
+          })
       }
 
       const fileHandle = await window.showSaveFilePicker({
@@ -859,7 +859,7 @@ class BookDataExporter {
   async copyToClipboard (format, options = {}) {
     if (!global.navigator || !global.navigator.clipboard || !global.navigator.clipboard.writeText) {
       throw new StandardError('FEATURE_NOT_SUPPORTED', 'Clipboard API not supported', {
-          "category": "export"
+        category: 'export'
       })
     }
 
@@ -875,8 +875,8 @@ class BookDataExporter {
           break
         default:
           throw new StandardError('UNKNOWN_ERROR', `Unsupported format for clipboard: ${format}`, {
-          "category": "export"
-      })
+            category: 'export'
+          })
       }
 
       await global.navigator.clipboard.writeText(data)
@@ -905,7 +905,7 @@ class BookDataExporter {
       this.templates.set(template.name, template)
     } else {
       throw new StandardError('INVALID_DATA_FORMAT', 'Invalid template format', {
-          "category": "export"
+        category: 'export'
       })
     }
   }
@@ -936,7 +936,7 @@ class BookDataExporter {
     const template = this.templates.get(templateName)
     if (!template) {
       throw new StandardError('RESOURCE_NOT_FOUND', `Template not found: ${templateName}`, {
-          "category": "export"
+        category: 'export'
       })
     }
 
@@ -956,8 +956,8 @@ class BookDataExporter {
         return this.exportToPDF(options)
       default:
         throw new StandardError('UNKNOWN_ERROR', `Unsupported template format: ${template.format}`, {
-          "category": "export"
-      })
+          category: 'export'
+        })
     }
   }
 
@@ -980,8 +980,8 @@ class BookDataExporter {
         return this.exportToPDF(options)
       default:
         throw new StandardError('EXPORT_OPERATION_FAILED', `Unsupported export format: ${format}`, {
-          "category": "export"
-      })
+          category: 'export'
+        })
     }
   }
 

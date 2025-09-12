@@ -367,8 +367,8 @@ class ErrorHandlingUtils {
       // 檢查結果是否為 null (表示找不到元素)
       if (result === null || result === undefined) {
         const error = new StandardError('RESOURCE_NOT_FOUND', 'DOM element not found', {
-          "category": "general"
-      })
+          category: 'general'
+        })
         this.recordError(error, context)
 
         return {
@@ -404,8 +404,8 @@ class ErrorHandlingUtils {
     try {
       if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.lastError) {
         const error = new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-          "category": "general"
-      })
+          category: 'general'
+        })
         this.recordError(error, `CHROME_API_${apiName.toUpperCase()}`)
 
         return {

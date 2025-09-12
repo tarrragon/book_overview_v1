@@ -455,8 +455,8 @@ class PlatformIsolationService {
 
       if (!platformId || !this.supportedPlatforms.includes(platformId)) {
         throw new StandardError('UNKNOWN_ERROR', `不支援的平台: ${platformId}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       // 檢查是否已存在容器
@@ -605,7 +605,7 @@ class PlatformIsolationService {
 
     if (!container || !quota) {
       throw new StandardError('UNKNOWN_ERROR', `平台 ${platformId} 容器或配額不存在`, {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -666,8 +666,8 @@ class PlatformIsolationService {
       const quota = this.resourceQuotas.get(platformId)
       if (!quota) {
         throw new StandardError('UNKNOWN_ERROR', `平台 ${platformId} 配額不存在`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       switch (action) {
@@ -755,7 +755,7 @@ class PlatformIsolationService {
     const container = this.isolationContainers.get(platformId)
     if (!container) {
       throw new StandardError('UNKNOWN_ERROR', `平台 ${platformId} 容器不存在`, {
-          "category": "general"
+        category: 'general'
       })
     }
 

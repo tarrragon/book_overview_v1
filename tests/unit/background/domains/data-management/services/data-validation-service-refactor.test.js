@@ -85,10 +85,10 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
     test('loadPlatformValidationRules() 應該拒絕不支援的平台', async () => {
       await expect(ruleManager.loadPlatformValidationRules('UNSUPPORTED'))
         .rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+          code: 'TEST_ERROR',
+          message: expect.any(String),
+          details: expect.any(Object)
+        })
     })
 
     test('loadPlatformValidationRules() 應該支援規則快取', async () => {
@@ -243,10 +243,10 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
 
       await expect(ruleManager.loadPlatformValidationRules('READMOO'))
         .rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+          code: 'TEST_ERROR',
+          message: expect.any(String),
+          details: expect.any(Object)
+        })
     })
 
     test('應該處理損壞的規則檔案', async () => {
@@ -254,10 +254,10 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
 
       await expect(ruleManager.loadPlatformValidationRules('READMOO'))
         .rejects.toMatchObject({
-        code: 'VALIDATION_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+          code: 'VALIDATION_ERROR',
+          message: expect.any(String),
+          details: expect.any(Object)
+        })
     })
   })
 })

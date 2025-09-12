@@ -103,7 +103,7 @@ class LifecycleManagementService {
   async start () {
     if (!this.state.initialized) {
       throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
-          "category": "general"
+        category: 'general'
       })
     }
 

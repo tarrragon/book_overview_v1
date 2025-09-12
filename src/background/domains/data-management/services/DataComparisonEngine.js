@@ -44,8 +44,8 @@ class DataComparisonEngine {
     // 輸入驗證
     if (!Array.isArray(sourceData) || !Array.isArray(targetData)) {
       throw new StandardError('UNKNOWN_ERROR', 'Source and target data must be arrays', {
-          "dataType": "array",
-          "category": "general"
+        dataType: 'array',
+        category: 'general'
       })
     }
 

@@ -24,8 +24,8 @@ class FileReaderFactory {
     if (global.FileReader) return new global.FileReader()
     if (typeof FileReader !== 'undefined') return new FileReader()
     throw new StandardError('UNKNOWN_ERROR', '檔案讀取功能不支援', {
-          "category": "general"
-      })
+      category: 'general'
+    })
   }
 
   /**

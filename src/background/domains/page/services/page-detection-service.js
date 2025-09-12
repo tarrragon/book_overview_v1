@@ -102,7 +102,7 @@ class PageDetectionService {
   async start () {
     if (!this.state.initialized) {
       throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -421,7 +421,7 @@ class PageDetectionService {
   registerDetectionRule (name, rule) {
     if (!rule.urlPattern || !rule.pageType) {
       throw new StandardError('UNKNOWN_ERROR', '檢測規則必須包含 urlPattern 和 pageType', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -507,8 +507,8 @@ class PageDetectionService {
 
       if (!url) {
         throw new StandardError('UNKNOWN_ERROR', '檢測請求必須包含 URL', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       const result = await this.detectPageType(url, title, tabId)
@@ -542,8 +542,8 @@ class PageDetectionService {
 
       if (!Array.isArray(pages)) {
         throw new StandardError('UNKNOWN_ERROR', '批量檢測請求必須包含頁面陣列', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       const results = await this.batchDetectPages(pages)

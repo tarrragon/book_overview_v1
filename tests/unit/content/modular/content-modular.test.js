@@ -344,7 +344,7 @@ describe('Modular Content Script', () => {
         origin: 'https://readmoo.com',
         toString: () => 'https://readmoo.com/library'
       }
-      
+
       const createChromeEventBridge = require('src/content/bridge/chrome-event-bridge')
       const bridge = createChromeEventBridge()
 

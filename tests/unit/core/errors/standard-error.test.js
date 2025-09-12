@@ -171,7 +171,7 @@ describe('StandardError 異常處理', () => {
     invalidJsonCases.forEach(invalidJson => {
       // When & Then: fromJSON應該拋出StandardError
       expect(() => StandardError.fromJSON(invalidJson)).toThrow()
-      
+
       try {
         StandardError.fromJSON(invalidJson)
       } catch (error) {

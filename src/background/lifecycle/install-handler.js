@@ -372,7 +372,7 @@ class InstallHandler extends BaseModule {
 
       if (missingAPIs.length > 0) {
         throw new StandardError('MISSING_REQUIRED_DATA', `缺少必要的 Chrome API: ${missingAPIs.join(', ', {
-          "category": "general"
+          category: 'general'
       })}`)
       }
 

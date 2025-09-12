@@ -147,7 +147,7 @@ class SystemDomainCoordinator {
   async start () {
     if (!this.state.initialized) {
       throw new StandardError('UNKNOWN_ERROR', '協調器尚未初始化', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -240,8 +240,8 @@ class SystemDomainCoordinator {
       } catch (error) {
         this.logger.error(`❌ 服務初始化失敗: ${serviceName}`, error)
         throw new StandardError('UNKNOWN_ERROR', `微服務 ${serviceName} 初始化失敗: ${error.message}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 

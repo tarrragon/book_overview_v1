@@ -61,7 +61,7 @@ class BookSearchFilter extends BaseUIHandler {
   constructor (eventBus, document) {
     if (!eventBus) {
       throw new StandardError('UNKNOWN_ERROR', '事件總線是必需的', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -463,7 +463,7 @@ class BookSearchFilter extends BaseUIHandler {
     } catch (error) {
       // 如果搜尋過程中遇到無效資料，拋出錯誤讓上層處理
       const searchError = new StandardError('UNKNOWN_ERROR', `搜尋過程中遇到無效資料: ${error.message}`, {
-          "category": "ui"
+        category: 'ui'
       })
       searchError.originalError = error
       throw searchError
@@ -483,13 +483,13 @@ class BookSearchFilter extends BaseUIHandler {
     // 嚴格驗證書籍資料結構
     if (!book || typeof book !== 'object') {
       throw new StandardError('UNKNOWN_ERROR', '無效的書籍資料格式', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
     if (!book.title || typeof book.title !== 'string') {
       throw new StandardError('UNKNOWN_ERROR', '書籍缺少有效的標題', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -516,7 +516,7 @@ class BookSearchFilter extends BaseUIHandler {
       return false
     } catch (error) {
       throw new StandardError('UNKNOWN_ERROR', `搜尋條件檢查失敗: ${error.message}`, {
-          "category": "ui"
+        category: 'ui'
       })
     }
   }
@@ -697,8 +697,8 @@ class BookSearchFilter extends BaseUIHandler {
       // 檢查記憶體限制 - 模擬大量資料處理
       if (books.length > 50000) {
         throw new StandardError('UNKNOWN_ERROR', '記憶體不足', {
-          "category": "ui"
-      })
+          category: 'ui'
+        })
       }
 
       this.titleIndex.clear()
@@ -1030,8 +1030,8 @@ class BookSearchFilter extends BaseUIHandler {
         return this.handleProcessingError(
           event.flowId || 'unknown',
           new StandardError('UNKNOWN_ERROR', validation.error, {
-          "category": "ui"
-      }),
+            category: 'ui'
+          }),
           'VALIDATION'
         )
       }
@@ -1075,8 +1075,8 @@ class BookSearchFilter extends BaseUIHandler {
         return { status: 'filters-reset' }
       default:
         throw new StandardError('UNKNOWN_ERROR', `未知的搜尋動作: ${data.action}`, {
-          "category": "ui"
-      })
+          category: 'ui'
+        })
     }
   }
 }

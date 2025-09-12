@@ -149,8 +149,8 @@ function createPageDetector () {
     onUrlChange (callback) {
       if (typeof callback !== 'function') {
         throw new StandardError('UNKNOWN_ERROR', 'callback 必須是函數', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       // 如果已有觀察器，先清理
@@ -195,7 +195,7 @@ function createPageDetector () {
             })
           } catch (error) {
             // eslint-disable-next-line no-console
-      console.error('❌ URL 變更回調函數錯誤:', error)
+            console.error('❌ URL 變更回調函數錯誤:', error)
           }
         }
       })
@@ -211,7 +211,7 @@ function createPageDetector () {
         })
       } else {
         // eslint-disable-next-line no-console
-      console.warn('⚠️ 無法找到觀察目標元素 (document.body 或 document.documentElement)')
+        console.warn('⚠️ 無法找到觀察目標元素 (document.body 或 document.documentElement)')
       }
 
       // 返回停止函數
@@ -277,8 +277,8 @@ function createPageDetector () {
           document.removeEventListener('DOMContentLoaded', readyHandler)
           document.removeEventListener('readystatechange', readyHandler)
           reject(new StandardError('UNKNOWN_ERROR', '等待頁面準備超時', {
-          "category": "general"
-      }))
+            category: 'general'
+          }))
         }, timeout)
 
         // 設定事件監聽器
@@ -303,7 +303,6 @@ function createPageDetector () {
         changeObserver.disconnect()
         changeObserver = null
       }
-
     },
 
     /**

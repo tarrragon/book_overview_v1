@@ -32,8 +32,7 @@ if (typeof require !== 'undefined') {
   try {
     ({ Logger } = require('src/core/logging/Logger'));
     ({ MessageDictionary } = require('src/core/messages/MessageDictionary'))
-const { StandardError } = require('src/core/errors/StandardError')
-
+    const { StandardError } = require('src/core/errors/StandardError')
   } catch (e) {
     // 測試環境fallback
     Logger = window.Logger || class { constructor () {} info () {} warn () {} error () {} debug () {} }
@@ -457,10 +456,10 @@ async function checkBackgroundStatus () {
     // 縮短超時時間到 2 秒，提供快速反饋
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new StandardError('UNKNOWN_ERROR', 'Background Service Worker 連線超時 (2秒)', {
-          "values": [
-              "2"
-          ],
-          "category": "general"
+        values: [
+          '2'
+        ],
+        category: 'general'
       })), 2000)
     })
 
@@ -485,7 +484,7 @@ async function checkBackgroundStatus () {
       return true
     } else {
       throw new StandardError('UNKNOWN_ERROR', 'Background Service Worker 回應異常: ' + JSON.stringify(response, {
-          "category": "general"
+        category: 'general'
       }))
     }
   } catch (error) {
@@ -630,7 +629,7 @@ async function startExtraction () {
       }
     } else {
       throw new StandardError('UNKNOWN_ERROR', response?.error || '未知錯誤', {
-          "category": "general"
+        category: 'general'
       })
     }
   } catch (error) {
@@ -831,8 +830,8 @@ async function initialize () {
     if (!backgroundOk) {
       if (initializationTracker) {
         initializationTracker.failStep('background_check', new StandardError('UNKNOWN_ERROR', 'Background Service Worker 連線失敗', {
-          "category": "general"
-      }))
+          category: 'general'
+        }))
       }
 
       // 觸發系統初始化錯誤

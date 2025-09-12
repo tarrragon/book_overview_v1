@@ -130,7 +130,7 @@ class RetryCoordinator {
   selectRetryStrategy (analysis) {
     if (!analysis.retryable) {
       throw new StandardError('UNKNOWN_ERROR', `錯誤不可重試: ${analysis.category}`, {
-          "category": "general"
+        category: 'general'
       })
     }
 

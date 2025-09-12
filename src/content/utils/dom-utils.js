@@ -48,8 +48,8 @@ class DOMUtils {
           success: false,
           element: null,
           error: new StandardError('INVALID_DATA_FORMAT', 'Invalid selector', {
-          "category": "general"
-      })
+            category: 'general'
+          })
         }
       }
 
@@ -58,8 +58,8 @@ class DOMUtils {
           success: false,
           element: null,
           error: new StandardError('INVALID_DATA_FORMAT', 'Invalid container', {
-          "category": "general"
-      })
+            category: 'general'
+          })
         }
       }
 
@@ -70,8 +70,8 @@ class DOMUtils {
           success: false,
           element: null,
           error: new StandardError('RESOURCE_NOT_FOUND', 'Element not found', {
-          "category": "general"
-      })
+            category: 'general'
+          })
         }
       }
 
@@ -103,8 +103,8 @@ class DOMUtils {
           elements: [],
           count: 0,
           error: new StandardError('INVALID_DATA_FORMAT', 'Invalid selector', {
-          "category": "general"
-      })
+            category: 'general'
+          })
         }
       }
 
@@ -298,8 +298,8 @@ class DOMUtils {
         original: '',
         length: 0,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid element', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -443,8 +443,8 @@ class DOMUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid element', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -474,8 +474,8 @@ class DOMUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid element', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -505,8 +505,8 @@ class DOMUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid element', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -571,8 +571,8 @@ class DOMUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid container or element', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -719,8 +719,8 @@ class DOMUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid container', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 

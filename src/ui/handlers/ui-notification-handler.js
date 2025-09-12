@@ -313,7 +313,7 @@ class UINotificationHandler extends BaseUIHandler {
   async createNotification (data, flowId) {
     if (!this.document) {
       throw new StandardError('RESOURCE_NOT_AVAILABLE', 'Document not available', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -325,7 +325,7 @@ class UINotificationHandler extends BaseUIHandler {
 
     if (!notification) {
       throw new StandardError('OPERATION_FAILED', 'Failed to create notification element', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 

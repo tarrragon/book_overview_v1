@@ -97,7 +97,7 @@ class BaseModule {
   async start () {
     if (!this.isInitialized) {
       throw new StandardError('UNKNOWN_ERROR', `${this.moduleName} 模組尚未初始化，無法啟動`, {
-          "category": "general"
+        category: 'general'
       })
     }
 

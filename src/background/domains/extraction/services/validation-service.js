@@ -114,7 +114,7 @@ class ValidationService {
   async start () {
     if (!this.state.initialized) {
       throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
-          "category": "validation"
+        category: 'validation'
       })
     }
 
@@ -397,8 +397,8 @@ class ValidationService {
       const rules = this.ruleGroups.get(ruleGroup)
       if (!rules) {
         throw new StandardError('UNKNOWN_ERROR', `未找到規則群組: ${ruleGroup}`, {
-          "category": "validation"
-      })
+          category: 'validation'
+        })
       }
 
       // 執行驗證
@@ -479,8 +479,8 @@ class ValidationService {
         const validationRule = this.validationRules.get(rule)
         if (!validationRule) {
           throw new StandardError('UNKNOWN_ERROR', `未找到驗證規則: ${rule}`, {
-          "category": "validation"
-      })
+            category: 'validation'
+          })
         }
 
         const isValid = validationRule.validator(value, options)

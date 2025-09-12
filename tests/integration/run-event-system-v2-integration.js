@@ -137,7 +137,7 @@ class EventSystemV2IntegrationTestRunner {
     for (const module of requiredModules) {
       try {
         require(module)
-const { StandardError } = require('src/core/errors/StandardError')
+        const { StandardError } = require('src/core/errors/StandardError')
         this.verbose(`✓ ${module} 可用`)
       } catch (error) {
         throw new StandardError('TEST_ERROR', `缺少必要模組: ${module}`, { category: 'testing' })

@@ -162,10 +162,10 @@ describe('PopupExtractionService 核心功能', () => {
       // When: 嘗試再次開始提取
       await expect(extractionService.startExtraction())
         .rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+          code: 'TEST_ERROR',
+          message: expect.any(String),
+          details: expect.any(Object)
+        })
 
       // Then: 不應該重複呼叫通訊服務
       expect(mockCommunicationService.startExtraction).not.toHaveBeenCalled()
@@ -227,10 +227,10 @@ describe('PopupExtractionService 核心功能', () => {
       // When: 嘗試開始提取
       await expect(extractionService.startExtraction())
         .rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+          code: 'TEST_ERROR',
+          message: expect.any(String),
+          details: expect.any(Object)
+        })
 
       // Then: 達到最大重試次數
       expect(mockCommunicationService.startExtraction).toHaveBeenCalledTimes(3)

@@ -160,7 +160,7 @@ class AccessibilityService {
   async start () {
     if (!this.state.initialized) {
       throw new StandardError('UNKNOWN_ERROR', '無障礙服務尚未初始化', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -204,8 +204,8 @@ class AccessibilityService {
       const modeConfig = this.accessibilityModes[mode]
       if (!modeConfig) {
         throw new StandardError('UNKNOWN_ERROR', `不支援的無障礙模式: ${mode}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       // 統計模式啟用
@@ -243,8 +243,8 @@ class AccessibilityService {
       // 檢查設定是否支援
       if (!(setting in this.accessibilitySettings)) {
         throw new StandardError('UNKNOWN_ERROR', `不支援的無障礙設定: ${setting}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       // 啟用設定
@@ -284,8 +284,8 @@ class AccessibilityService {
       // 檢查設定是否支援
       if (!(setting in this.accessibilitySettings)) {
         throw new StandardError('UNKNOWN_ERROR', `不支援的無障礙設定: ${setting}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       // 停用設定

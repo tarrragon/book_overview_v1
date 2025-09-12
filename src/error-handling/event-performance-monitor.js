@@ -209,11 +209,11 @@ class EventPerformanceMonitor extends EventHandler {
         const { ERRORS } = EventPerformanceMonitor.CONSTANTS
         return this._createErrorResponse(
           'UNSUPPORTED_EVENT_TYPE',
-          new StandardError('UNKNOWN_ERROR', 
+          new StandardError('UNKNOWN_ERROR',
             `${ERRORS.MESSAGES.UNSUPPORTED_EVENT_TYPE}: ${eventData.type}`
-          , {
-          "category": "general"
-      }),
+            , {
+              category: 'general'
+            }),
           eventData
         )
     }

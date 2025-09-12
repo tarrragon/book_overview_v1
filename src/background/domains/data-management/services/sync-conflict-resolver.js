@@ -240,7 +240,7 @@ class SyncConflictResolver {
 
     if (!strategyProcessor) {
       throw new StandardError('UNKNOWN_ERROR', `未支援的衝突解決策略: ${strategy}`, {
-          "category": "general"
+        category: 'general'
       })
     }
 

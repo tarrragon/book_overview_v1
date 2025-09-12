@@ -88,7 +88,7 @@ class SessionManagementService {
   async start () {
     if (!this.state.initialized) {
       throw new StandardError('UNKNOWN_ERROR', '會話管理服務尚未初始化', {
-          "category": "general"
+        category: 'general'
       })
     }
 

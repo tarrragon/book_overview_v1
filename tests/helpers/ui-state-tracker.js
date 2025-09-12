@@ -366,7 +366,8 @@ class UIStateTracker {
         if (recentHistory.length >= 2) {
           const recentProgress = recentHistory.slice(-2)
           const progressDiff = recentProgress[1].averageProgress - recentProgress[0].averageProgress
-          analysis.progressTrend = progressDiff > 0.1 ? 'improving'
+          analysis.progressTrend = progressDiff > 0.1
+            ? 'improving'
             : progressDiff < -0.1 ? 'declining' : 'stable'
         }
 

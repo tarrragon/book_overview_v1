@@ -118,7 +118,7 @@ class PopupUICoordinationService {
   async start () {
     if (!this.state.initialized) {
       throw new StandardError('UI_OPERATION_FAILED', 'Popup UI 協調服務尚未初始化', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -252,8 +252,8 @@ class PopupUICoordinationService {
       const ModuleLoader = this.moduleLoaders.get(moduleId)
       if (!ModuleLoader) {
         throw new StandardError('UNKNOWN_ERROR', `未找到模組載入器: ${moduleId}`, {
-          "category": "ui"
-      })
+          category: 'ui'
+        })
       }
 
       const ModuleClass = ModuleLoader()
@@ -315,8 +315,8 @@ class PopupUICoordinationService {
       const extractionService = this.popupModules.get('extraction-service')
       if (!extractionService) {
         throw new StandardError('UNKNOWN_ERROR', '提取服務模組未載入', {
-          "category": "ui"
-      })
+          category: 'ui'
+        })
       }
 
       // 協調提取流程

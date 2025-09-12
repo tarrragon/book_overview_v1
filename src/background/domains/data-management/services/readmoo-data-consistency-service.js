@@ -34,7 +34,7 @@ class ReadmooDataConsistencyService extends BaseModule {
   constructor (eventBus, dependencies = {}) {
     if (!eventBus) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 

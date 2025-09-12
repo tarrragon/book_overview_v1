@@ -9,6 +9,8 @@
  * @version v0.9.38-refactor
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 /**
  * 錯誤注入器 - 重構版
  * 統一管理各種錯誤場景的模擬

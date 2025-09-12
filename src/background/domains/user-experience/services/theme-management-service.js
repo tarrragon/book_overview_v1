@@ -153,7 +153,7 @@ class ThemeManagementService {
   async start () {
     if (!this.state.initialized) {
       throw new StandardError('UNKNOWN_ERROR', '主題管理服務尚未初始化', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -194,8 +194,8 @@ class ThemeManagementService {
       // 驗證主題有效性
       if (!this.isValidTheme(theme)) {
         throw new StandardError('UNKNOWN_ERROR', `無效的主題: ${theme}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       // 統計主題變更
@@ -276,8 +276,8 @@ class ThemeManagementService {
       // 驗證提供者介面
       if (!provider || typeof provider.updateTheme !== 'function') {
         throw new StandardError('UNKNOWN_ERROR', `主題提供者 ${providerId} 必須實現 updateTheme 方法`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       // 註冊提供者

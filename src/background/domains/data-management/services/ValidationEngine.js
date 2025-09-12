@@ -40,7 +40,7 @@ class ValidationEngine {
     // 驗證必要依賴
     if (!options.platformRuleManager) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'PlatformRuleManager is required', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -144,7 +144,7 @@ class ValidationEngine {
     } catch (error) {
       this._updateStatistics(Date.now() - startTime, false)
       throw new StandardError('OPERATION_FAILED', `Validation failed: ${error.message}`, {
-          "category": "validation"
+        category: 'validation'
       })
     }
   }
@@ -272,17 +272,17 @@ class ValidationEngine {
   _validateInputs (book, platform, source) {
     if (!book || typeof book !== 'object') {
       throw new StandardError('INVALID_DATA_FORMAT', 'Invalid book data', {
-          "category": "general"
+        category: 'general'
       })
     }
     if (!platform || typeof platform !== 'string') {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Platform is required', {
-          "category": "ui"
+        category: 'ui'
       })
     }
     if (!source || typeof source !== 'string') {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Source is required', {
-          "category": "ui"
+        category: 'ui'
       })
     }
   }

@@ -43,7 +43,7 @@ class SearchCacheManager {
 
     if (!eventBus || !logger) {
       throw new StandardError('EVENTBUS_ERROR', 'EventBus 和 Logger 是必需的', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -92,7 +92,7 @@ class SearchCacheManager {
   normalizeKey (key) {
     if (typeof key !== 'string') {
       throw new StandardError('UNKNOWN_ERROR', '快取鍵必須是字串', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 

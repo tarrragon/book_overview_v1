@@ -504,8 +504,8 @@ describe('ExportUserFeedback', () => {
         expect(() => {
           const humanMessage = userFeedback.humanizeError(error)
         }).toMatchObject({
-        message: expect.stringContaining('ExportUserFeedback.humanizeError() not implemented - Red phase')
-      })
+          message: expect.stringContaining('ExportUserFeedback.humanizeError() not implemented - Red phase')
+        })
       })
 
       // Red 階段：測試將驗證錯誤友好化
@@ -1006,8 +1006,8 @@ describe('NotificationService', () => {
         expect(() => {
           notificationService.playSoundAlert(soundType)
         }).toMatchObject({
-        message: expect.stringContaining('NotificationService.playSoundAlert() not implemented - Red phase')
-      })
+          message: expect.stringContaining('NotificationService.playSoundAlert() not implemented - Red phase')
+        })
       })
 
       // Red 階段：測試將驗證音效通知

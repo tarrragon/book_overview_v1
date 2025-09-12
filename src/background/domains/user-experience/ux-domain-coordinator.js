@@ -160,7 +160,7 @@ class UXDomainCoordinator {
   async start () {
     if (!this.state.initialized) {
       throw new StandardError('UNKNOWN_ERROR', 'UX 協調器尚未初始化', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -339,8 +339,8 @@ class UXDomainCoordinator {
       } catch (error) {
         this.logger.error(`❌ UX 服務初始化失敗: ${serviceName}`, error)
         throw new StandardError('UNKNOWN_ERROR', `UX 服務 ${serviceName} 初始化失敗: ${error.message}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 

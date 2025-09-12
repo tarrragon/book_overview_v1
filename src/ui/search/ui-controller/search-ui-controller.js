@@ -64,7 +64,7 @@ class SearchUIController {
     // 驗證必要依賴
     if (!eventBus || !document) {
       throw new StandardError('EVENTBUS_ERROR', 'EventBus 和 Document 是必需的', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -227,7 +227,7 @@ class SearchUIController {
   handleSearchInput (event) {
     if (this.isCleanedUp) {
       throw new StandardError('UI_OPERATION_FAILED', 'SearchUIController 已被清理', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 

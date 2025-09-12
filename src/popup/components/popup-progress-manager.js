@@ -55,14 +55,14 @@ class PopupProgressManager {
     // 驗證必要欄位
     if (!progressData || typeof progressData.percentage !== 'number' || !progressData.status) {
       throw new StandardError('UNKNOWN_ERROR', 'Progress data must include percentage and status fields', {
-          "category": "general"
+        category: 'general'
       })
     }
 
     // 驗證狀態類型
     if (!this.validProgressStates.includes(progressData.status)) {
       throw new StandardError('INVALID_DATA_FORMAT', `Invalid progress status: ${progressData.status}`, {
-          "category": "general"
+        category: 'general'
       })
     }
 

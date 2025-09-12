@@ -160,8 +160,8 @@ function createBookDataExtractor () {
         // 檢查頁面是否可提取
         if (!this.isExtractableReadmooPage()) {
           throw new StandardError('UNKNOWN_ERROR', `不支援的頁面類型: ${pageType}`, {
-          "category": "general"
-      })
+            category: 'general'
+          })
         }
 
         // 建立流程狀態
@@ -218,8 +218,8 @@ function createBookDataExtractor () {
       const flowState = activeExtractionFlows.get(flowId)
       if (!flowState || !readmooAdapter) {
         throw new StandardError('UNKNOWN_ERROR', '流程狀態或適配器不存在', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       try {

@@ -256,8 +256,8 @@ class ChromeStorageAdapter {
             break
           default:
             throw new StandardError('UNKNOWN_ERROR', `Unsupported operation type: ${operation.type}`, {
-          "category": "storage"
-      })
+              category: 'storage'
+            })
         }
 
         results.push({ success: true, result, operation })
@@ -329,8 +329,8 @@ class ChromeStorageAdapter {
           break
         default:
           throw new StandardError('UNKNOWN_ERROR', `Unsupported cleanup strategy: ${strategy}`, {
-          "category": "storage"
-      })
+            category: 'storage'
+          })
       }
 
       return result
@@ -414,13 +414,13 @@ class ChromeStorageAdapter {
   async checkApiAvailability () {
     if (!this.isAvailable()) {
       throw new StandardError('RESOURCE_NOT_AVAILABLE', 'Chrome Storage API is not available', {
-          "category": "storage"
+        category: 'storage'
       })
     }
 
     if (chrome.runtime.lastError) {
       throw new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-          "category": "storage"
+        category: 'storage'
       })
     }
   }
@@ -433,8 +433,8 @@ class ChromeStorageAdapter {
       chrome.storage.local.getBytesInUse(null, (bytes) => {
         if (chrome.runtime.lastError) {
           reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-          "category": "storage"
-      }))
+            category: 'storage'
+          }))
         } else {
           resolve(bytes)
         }
@@ -450,8 +450,8 @@ class ChromeStorageAdapter {
       chrome.storage.local.set({ [key]: data }, () => {
         if (chrome.runtime.lastError) {
           reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-          "category": "storage"
-      }))
+            category: 'storage'
+          }))
         } else {
           resolve({
             success: true,
@@ -475,8 +475,8 @@ class ChromeStorageAdapter {
       chrome.storage.local.get([key], (result) => {
         if (chrome.runtime.lastError) {
           reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-          "category": "storage"
-      }))
+            category: 'storage'
+          }))
         } else {
           resolve(result[key] || null)
         }
@@ -492,8 +492,8 @@ class ChromeStorageAdapter {
       chrome.storage.local.remove([key], () => {
         if (chrome.runtime.lastError) {
           reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-          "category": "storage"
-      }))
+            category: 'storage'
+          }))
         } else {
           resolve({
             success: true,
@@ -513,8 +513,8 @@ class ChromeStorageAdapter {
       chrome.storage.local.clear(() => {
         if (chrome.runtime.lastError) {
           reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-          "category": "storage"
-      }))
+            category: 'storage'
+          }))
         } else {
           resolve()
         }
@@ -583,8 +583,8 @@ class ChromeStorageAdapter {
    */
   createError (type, message, originalError = null) {
     const error = new StandardError('UNKNOWN_ERROR', message, {
-          "category": "storage"
-      })
+      category: 'storage'
+    })
     error.name = 'ChromeStorageAdapterError'
     error.type = type
     error.timestamp = Date.now()

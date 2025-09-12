@@ -75,8 +75,8 @@ class ConfigUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid configuration key', {
-          "category": "configuration"
-      })
+          category: 'configuration'
+        })
       }
     }
 
@@ -128,8 +128,8 @@ class ConfigUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid configuration key', {
-          "category": "configuration"
-      })
+          category: 'configuration'
+        })
       }
     }
 
@@ -162,8 +162,8 @@ class ConfigUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid configuration path', {
-          "category": "configuration"
-      })
+          category: 'configuration'
+        })
       }
     }
 
@@ -176,8 +176,8 @@ class ConfigUtils {
         return {
           success: false,
           error: new StandardError('RESOURCE_NOT_FOUND', 'Configuration not found', {
-          "category": "configuration"
-      })
+            category: 'configuration'
+          })
         }
       }
 
@@ -189,8 +189,8 @@ class ConfigUtils {
           return {
             success: false,
             error: new StandardError('RESOURCE_NOT_FOUND', 'Path not found', {
-          "category": "general"
-      })
+              category: 'general'
+            })
           }
         }
       }
@@ -385,8 +385,8 @@ class ConfigUtils {
       return {
         success: false,
         error: new StandardError('RESOURCE_NOT_FOUND', 'Configuration not found', {
-          "category": "configuration"
-      })
+          category: 'configuration'
+        })
       }
     } catch (error) {
       return {
@@ -616,8 +616,8 @@ class ConfigUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid operation name', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -648,8 +648,8 @@ class ConfigUtils {
       return {
         success: false,
         error: new StandardError('RESOURCE_NOT_FOUND', 'Performance log not found', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -692,8 +692,8 @@ class ConfigUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid extractor config', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -723,8 +723,8 @@ class ConfigUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid platform', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -953,8 +953,8 @@ class ConfigUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid import data', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 

@@ -27,6 +27,7 @@
  */
 
 const EventHandler = require('src/core/event-handler')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class MessageTracker extends EventHandler {
   /**

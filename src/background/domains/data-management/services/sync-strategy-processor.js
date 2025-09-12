@@ -104,7 +104,7 @@ class SyncStrategyProcessor {
     const strategy = this.strategies.get(strategyName)
     if (!strategy) {
       throw new StandardError('UNKNOWN_ERROR', `未知的同步策略: ${strategyName}`, {
-          "category": "general"
+        category: 'general'
       })
     }
 

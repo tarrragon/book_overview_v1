@@ -580,8 +580,8 @@ class ConflictResolutionService extends BaseModule {
           try {
             if (!sourceBook || !targetBook) {
               throw new StandardError('INVALID_DATA_FORMAT', 'Invalid book data', {
-          "category": "general"
-      })
+                category: 'general'
+              })
             }
 
             const conflicts = await this.detectConflicts(sourceBook, targetBook)

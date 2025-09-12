@@ -65,8 +65,8 @@ class EventUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -148,8 +148,8 @@ class EventUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid listener ID', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -159,8 +159,8 @@ class EventUtils {
       return {
         success: false,
         error: new StandardError('RESOURCE_NOT_FOUND', 'Listener not found', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -197,8 +197,8 @@ class EventUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -289,8 +289,8 @@ class EventUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid message', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -300,8 +300,8 @@ class EventUtils {
           resolve({
             success: false,
             error: new StandardError('RESOURCE_NOT_AVAILABLE', 'Chrome runtime not available', {
-          "category": "general"
-      })
+              category: 'general'
+            })
           })
           return
         }
@@ -416,8 +416,8 @@ class EventUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -455,8 +455,8 @@ class EventUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -506,8 +506,8 @@ class EventUtils {
       return {
         success: false,
         error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -558,8 +558,8 @@ class EventUtils {
       return {
         success: false,
         error: new StandardError('RESOURCE_NOT_FOUND', 'Batch not found', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     }
 
@@ -664,7 +664,7 @@ class EventUtils {
     return {
       success: false,
       error: new StandardError('RESOURCE_NOT_FOUND', 'Debounce timer not found', {
-          "category": "general"
+        category: 'general'
       })
     }
   }

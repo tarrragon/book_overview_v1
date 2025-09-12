@@ -406,8 +406,8 @@ class PlatformRuleManager {
 
       default:
         throw new StandardError('UNKNOWN_ERROR', `Unsupported platform: ${platform}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
     }
   }
 
@@ -447,12 +447,12 @@ class PlatformRuleManager {
   _validatePlatform (platform) {
     if (!platform || typeof platform !== 'string') {
       throw new StandardError('INVALID_DATA_FORMAT', 'Invalid platform', {
-          "category": "general"
+        category: 'general'
       })
     }
     if (!this._isPlatformSupported(platform)) {
       throw new StandardError('UNKNOWN_ERROR', `Unsupported platform: ${platform}`, {
-          "category": "general"
+        category: 'general'
       })
     }
   }

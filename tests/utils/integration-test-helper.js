@@ -481,7 +481,7 @@ class IntegrationTestHelper {
       await new Promise(resolve => setTimeout(resolve, interval))
     }
 
-    throw new StandardError('VALIDATION_ERROR', 'Condition not met within ${timeout}ms', { category: 'validation' })
+    throw new StandardError('VALIDATION_ERROR', `Condition not met within ${timeout}ms`, { category: 'validation' })
   }
 
   /**
@@ -502,7 +502,7 @@ class IntegrationTestHelper {
         result = await this._simulateNavigation(params)
         break
       default:
-        throw new StandardError('VALIDATION_ERROR', 'Unknown action type: ${actionType}', { category: 'validation' })
+        throw new StandardError('VALIDATION_ERROR', `Unknown action type: ${actionType}`, { category: 'validation' })
     }
 
     this._recordPerformanceOperation('user-action', performance.now() - startTime)

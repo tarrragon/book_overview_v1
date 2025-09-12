@@ -54,14 +54,14 @@ class PopupStatusManager {
     // 驗證必要欄位
     if (!statusData || !statusData.type || !statusData.text) {
       throw new StandardError('UNKNOWN_ERROR', 'Status must include type and text fields', {
-          "category": "general"
+        category: 'general'
       })
     }
 
     // 驗證狀態類型
     if (!this.validStatusTypes.includes(statusData.type)) {
       throw new StandardError('INVALID_DATA_FORMAT', `Invalid status type: ${statusData.type}`, {
-          "category": "general"
+        category: 'general'
       })
     }
 

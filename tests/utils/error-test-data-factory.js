@@ -6,6 +6,8 @@
  * @date 2025-08-25
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class ErrorTestDataFactory {
   constructor () {
     this.errorTypes = {

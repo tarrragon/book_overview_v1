@@ -545,19 +545,19 @@ class EventManager {
   _validateEventConfig (config) {
     if (!config.elementId || typeof config.elementId !== 'string' || config.elementId.trim() === '') {
       throw new StandardError('UNKNOWN_ERROR', '無效的事件配置: elementId 必須是非空字符串', {
-          "category": "general"
+        category: 'general'
       })
     }
 
     if (!config.eventType || typeof config.eventType !== 'string') {
       throw new StandardError('UNKNOWN_ERROR', '無效的事件配置: eventType 必須是字符串', {
-          "category": "general"
+        category: 'general'
       })
     }
 
     if (config.handler && typeof config.handler !== 'function') {
       throw new StandardError('UNKNOWN_ERROR', '無效的事件配置: handler 必須是函數', {
-          "category": "general"
+        category: 'general'
       })
     }
   }

@@ -239,7 +239,7 @@ class EventPriorityManager {
     const config = this.priorityConfig[category]
     if (!config) {
       throw new StandardError('INVALID_DATA_FORMAT', `Invalid priority category: ${category}`, {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -257,7 +257,7 @@ class EventPriorityManager {
     if (!this.isValidPriority(newPriority)) {
       this.priorityStats.errors++
       throw new StandardError('INVALID_DATA_FORMAT', 'Invalid priority value', {
-          "category": "general"
+        category: 'general'
       })
     }
 

@@ -74,7 +74,7 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
     if (!eventBus) {
       searchUILogger.error('EVENT_BUS_MISSING')
       throw new StandardError('UNKNOWN_ERROR', '事件總線是必需的', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -191,7 +191,7 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
     } catch (error) {
       searchUILogger.error('MODULAR_COMPONENTS_FAILED', { error: error.message })
       throw new StandardError('UNKNOWN_ERROR', `模組化組件初始化失敗: ${error.message}`, {
-          "category": "ui"
+        category: 'ui'
       })
     }
   }

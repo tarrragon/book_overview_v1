@@ -388,8 +388,8 @@ class AdapterFactoryService {
       // 驗證平台支援
       if (!this.supportedPlatforms.includes(platformId)) {
         throw new StandardError('UNKNOWN_ERROR', `不支援的平台: ${platformId}`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       // 檢查是否可以從池中重用
@@ -478,7 +478,7 @@ class AdapterFactoryService {
     const adapterType = this.adapterTypes.get(platformId)
     if (!adapterType) {
       throw new StandardError('UNKNOWN_ERROR', `找不到適配器類型配置: ${platformId}`, {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -492,7 +492,7 @@ class AdapterFactoryService {
     const AdapterConstructor = this.adapterConstructors.get(platformId)
     if (!AdapterConstructor) {
       throw new StandardError('UNKNOWN_ERROR', `找不到適配器構造函數: ${platformId}`, {
-          "category": "general"
+        category: 'general'
       })
     }
 

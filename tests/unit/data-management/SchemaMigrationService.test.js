@@ -344,10 +344,10 @@ describe('Schema Migration Service', () => {
     test('無效版本號處理', async () => {
       await expect(migrationService.setTargetVersion('invalid.version'))
         .rejects.toMatchObject({
-        code: 'INVALID_INPUT_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+          code: 'INVALID_INPUT_ERROR',
+          message: expect.any(String),
+          details: expect.any(Object)
+        })
     })
 
     test('版本歷史記錄管理', async () => {
@@ -360,10 +360,10 @@ describe('Schema Migration Service', () => {
 
       await expect(migrationService.acquireVersionLock('1.0.0'))
         .rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+          code: 'TEST_ERROR',
+          message: expect.any(String),
+          details: expect.any(Object)
+        })
     })
 
     test('版本資訊快取機制', async () => {
@@ -457,10 +457,10 @@ describe('Schema Migration Service', () => {
 
       await expect(migrationService.validateMigrationPlan(invalidPlan))
         .rejects.toMatchObject({
-        code: 'INVALID_INPUT_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+          code: 'INVALID_INPUT_ERROR',
+          message: expect.any(String),
+          details: expect.any(Object)
+        })
     })
 
     test('多步驟 Migration 協調', async () => {
@@ -590,10 +590,10 @@ describe('Schema Migration Service', () => {
 
       await expect(migrationService.executeMigrationStep(step, testData))
         .rejects.toMatchObject({
-        code: 'TIMEOUT_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+          code: 'TIMEOUT_ERROR',
+          message: expect.any(String),
+          details: expect.any(Object)
+        })
     }, 40000) // 設定測試超時為 40 秒
 
     test('併發控制和資源鎖定', async () => {
@@ -604,10 +604,10 @@ describe('Schema Migration Service', () => {
 
       await expect(migrationService.executeMultiStepMigration(plan2))
         .rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+          code: 'TEST_ERROR',
+          message: expect.any(String),
+          details: expect.any(Object)
+        })
 
       await execution1Promise
     })

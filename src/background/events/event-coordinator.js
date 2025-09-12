@@ -164,8 +164,8 @@ class EventCoordinator extends BaseModule {
       // 檢查EventBus初始化狀態
       if (!this.eventBusInstance) {
         const error = new StandardError('EVENTBUS_ERROR', 'EventBus 初始化失敗 - 無法建立 EventBus 實例', {
-          "category": "general"
-      })
+          category: 'general'
+        })
         this.logger.error('BACKGROUND_INIT_FAILED', { error: error.message })
         throw error
       }
@@ -222,7 +222,7 @@ class EventCoordinator extends BaseModule {
     // 檢查EventBus創建是否成功
     if (!eventBus) {
       const error = new StandardError('EVENTBUS_ERROR', 'EventBus 初始化失敗 - 無法建立 EventBus 實例', {
-          "category": "general"
+        category: 'general'
       })
       this.logger.error('EVENTBUS_INIT_FAILED', { error: error.message })
       throw error
@@ -710,7 +710,7 @@ class EventCoordinator extends BaseModule {
   async emit (eventType, data = {}) {
     if (!this.eventBusInstance) {
       throw new StandardError('EVENTBUS_ERROR', 'EventBus 實例不存在', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -727,7 +727,7 @@ class EventCoordinator extends BaseModule {
   on (eventType, handler, options = {}) {
     if (!this.eventBusInstance) {
       throw new StandardError('EVENTBUS_ERROR', 'EventBus 實例不存在', {
-          "category": "general"
+        category: 'general'
       })
     }
 

@@ -237,13 +237,13 @@ class ErrorHandler extends EventHandler {
   _validateErrorData (errorData) {
     if (!errorData) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Error data is required', {
-          "category": "export"
+        category: 'export'
       })
     }
 
     if (!errorData.exportId) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Export ID is required for error tracking', {
-          "category": "export"
+        category: 'export'
       })
     }
 

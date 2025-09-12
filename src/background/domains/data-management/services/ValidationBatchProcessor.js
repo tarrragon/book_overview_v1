@@ -40,12 +40,12 @@ class ValidationBatchProcessor {
     // 驗證必要依賴
     if (!options.validationEngine) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'ValidationEngine is required', {
-          "category": "validation"
+        category: 'validation'
       })
     }
     if (!options.dataQualityAnalyzer) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'DataQualityAnalyzer is required', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -174,7 +174,7 @@ class ValidationBatchProcessor {
       batchStatus.endTime = Date.now()
       this.activeBatches.delete(batchId)
       throw new StandardError('OPERATION_FAILED', `Batch processing failed: ${error.message}`, {
-          "category": "general"
+        category: 'general'
       })
     }
   }
@@ -191,8 +191,8 @@ class ValidationBatchProcessor {
 
     if (!Array.isArray(prioritizedBatches)) {
       throw new StandardError('UNKNOWN_ERROR', 'Prioritized batches must be an array', {
-          "dataType": "array",
-          "category": "general"
+        dataType: 'array',
+        category: 'general'
       })
     }
 
@@ -241,8 +241,8 @@ class ValidationBatchProcessor {
 
     if (!Array.isArray(parallelBatches)) {
       throw new StandardError('UNKNOWN_ERROR', 'Parallel batches must be an array', {
-          "dataType": "array",
-          "category": "general"
+        dataType: 'array',
+        category: 'general'
       })
     }
 
@@ -446,26 +446,26 @@ class ValidationBatchProcessor {
   _validateBatchInputs (books, platform) {
     if (!books) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Books parameter is required', {
-          "category": "ui"
+        category: 'ui'
       })
     }
     if (!Array.isArray(books) || books.length === 0) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Books array is required and must not be empty', {
-          "dataType": "array",
-          "category": "ui"
+        dataType: 'array',
+        category: 'ui'
       })
     }
     if (!platform || typeof platform !== 'string' || platform.trim() === '') {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Platform is required and must be a non-empty string', {
-          "category": "ui"
+        category: 'ui'
       })
     }
     if (books.length > 10000) {
       throw new StandardError('UNKNOWN_ERROR', 'Batch size too large (maximum 10000 books)', {
-          "values": [
-              "10000"
-          ],
-          "category": "general"
+        values: [
+          '10000'
+        ],
+        category: 'general'
       })
     }
 
@@ -473,7 +473,7 @@ class ValidationBatchProcessor {
     const supportedPlatforms = ['READMOO', 'KINDLE', 'KOBO', 'BOOKWALKER', 'BOOKS_COM']
     if (!supportedPlatforms.includes(platform)) {
       throw new StandardError('UNKNOWN_ERROR', `Unsupported platform: ${platform}`, {
-          "category": "general"
+        category: 'general'
       })
     }
   }

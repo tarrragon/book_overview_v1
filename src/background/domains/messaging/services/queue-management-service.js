@@ -117,7 +117,7 @@ class QueueManagementService {
   async start () {
     if (!this.state.initialized) {
       throw new StandardError('UNKNOWN_ERROR', '佇列管理服務尚未初始化', {
-          "category": "general"
+        category: 'general'
       })
     }
 

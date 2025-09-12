@@ -102,7 +102,7 @@ class VersionControlService {
   async start () {
     if (!this.state.initialized) {
       throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -424,7 +424,7 @@ class VersionControlService {
   registerMigrationStrategy (key, strategy) {
     if (typeof strategy !== 'function') {
       throw new StandardError('UNKNOWN_ERROR', '遷移策略必須是函數', {
-          "category": "general"
+        category: 'general'
       })
     }
 

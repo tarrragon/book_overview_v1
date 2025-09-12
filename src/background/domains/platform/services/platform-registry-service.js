@@ -324,7 +324,7 @@ class PlatformRegistryService {
       const validationResult = await this.validatePlatformConfig(platformId, platformConfig)
       if (!validationResult.isValid) {
         throw new StandardError('VALIDATION_FAILED', `平台配置驗證失敗: ${validationResult.errors.join(', ', {
-          "category": "validation"
+          category: 'validation'
       })}`)
       }
 
@@ -401,15 +401,15 @@ class PlatformRegistryService {
       const existingRecord = this.platformRegistry.get(platformId)
       if (!existingRecord) {
         throw new StandardError('UNKNOWN_ERROR', `平台 ${platformId} 不存在`, {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
 
       // 驗證新配置
       const validationResult = await this.validatePlatformConfig(platformId, newConfig)
       if (!validationResult.isValid) {
         throw new StandardError('VALIDATION_FAILED', `平台配置驗證失敗: ${validationResult.errors.join(', ', {
-          "category": "validation"
+          category: 'validation'
       })}`)
       }
 
@@ -814,7 +814,7 @@ class PlatformRegistryService {
 
     if (issues.length > 0) {
       await this.logError('註冊表完整性檢查發現問題', new StandardError('UNKNOWN_ERROR', issues.join('; ', {
-          "category": "general"
+        category: 'general'
       })))
       return false
     }

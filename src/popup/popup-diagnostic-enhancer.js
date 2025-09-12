@@ -223,8 +223,8 @@ class PopupDiagnosticEnhancer {
         chrome.storage.local.set({ [testKey]: testValue }, () => {
           if (chrome.runtime.lastError) {
             reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-          "category": "general"
-      }))
+              category: 'general'
+            }))
           } else {
             resolve()
           }
@@ -236,8 +236,8 @@ class PopupDiagnosticEnhancer {
         chrome.storage.local.get(testKey, (result) => {
           if (chrome.runtime.lastError) {
             reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-          "category": "general"
-      }))
+              category: 'general'
+            }))
           } else {
             resolve(result)
           }

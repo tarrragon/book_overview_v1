@@ -125,8 +125,8 @@ class ExportService {
       const exportFormat = this.exportFormats.get(format)
       if (!exportFormat) {
         throw new StandardError('UNKNOWN_ERROR', `不支援的匯出格式: ${format}`, {
-          "category": "export"
-      })
+          category: 'export'
+        })
       }
 
       // 建立匯出任務

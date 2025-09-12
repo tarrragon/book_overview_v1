@@ -331,22 +331,22 @@ class ExportManager {
   _validateExportData (exportData, format) {
     if (!exportData || !exportData.books) {
       throw new StandardError('REQUIRED_FIELD_MISSING', `Invalid ${format} export data: books array is required`, {
-          "dataType": "array",
-          "category": "export"
+        dataType: 'array',
+        category: 'export'
       })
     }
 
     if (!Array.isArray(exportData.books)) {
       throw new StandardError('INVALID_DATA_FORMAT', `Invalid ${format} export data: books must be an array`, {
-          "dataType": "array",
-          "category": "export"
+        dataType: 'array',
+        category: 'export'
       })
     }
 
     if (exportData.books.length === 0) {
       throw new StandardError('INVALID_DATA_FORMAT', `Invalid ${format} export data: books array cannot be empty`, {
-          "dataType": "array",
-          "category": "export"
+        dataType: 'array',
+        category: 'export'
       })
     }
   }
@@ -491,8 +491,8 @@ class ExportManager {
 
       if (formats.length === 0) {
         throw new StandardError('UI_OPERATION_FAILED', 'Batch export requires at least one format', {
-          "category": "export"
-      })
+          category: 'export'
+        })
       }
 
       // 發送批量匯出開始事件
@@ -596,13 +596,13 @@ class ExportManager {
   _validateDownloadData (downloadData) {
     if (!downloadData || !downloadData.data || !downloadData.filename) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'Invalid download data: data and filename are required', {
-          "category": "export"
+        category: 'export'
       })
     }
 
     if (typeof downloadData.filename !== 'string' || downloadData.filename.trim() === '') {
       throw new StandardError('INVALID_DATA_FORMAT', 'Invalid download data: filename must be a non-empty string', {
-          "category": "export"
+        category: 'export'
       })
     }
 
@@ -610,7 +610,7 @@ class ExportManager {
     const invalidChars = /[<>:"/\\|?*]/
     if (invalidChars.test(downloadData.filename)) {
       throw new StandardError('INVALID_DATA_FORMAT', 'Invalid download data: filename contains illegal characters', {
-          "category": "export"
+        category: 'export'
       })
     }
   }

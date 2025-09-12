@@ -32,7 +32,7 @@ class DataNormalizationService extends BaseModule {
   constructor (eventBus, dependencies = {}) {
     if (!eventBus) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -98,7 +98,7 @@ class DataNormalizationService extends BaseModule {
   _validateBookData (book) {
     if (!book) {
       throw new StandardError('UNKNOWN_ERROR', '書籍資料為空', {
-          "category": "general"
+        category: 'general'
       })
     }
   }
@@ -579,7 +579,7 @@ class DataNormalizationService extends BaseModule {
     if (book === null || book === undefined) {
       errors.push({ index, error: '書籍資料為空' })
       throw new StandardError('UNKNOWN_ERROR', '書籍資料為空', {
-          "category": "general"
+        category: 'general'
       })
     }
   }

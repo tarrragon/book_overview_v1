@@ -626,8 +626,8 @@ class LocalStorageAdapter {
    */
   createError (type, message, originalError = null) {
     const error = new StandardError('UNKNOWN_ERROR', message, {
-          "category": "storage"
-      })
+      category: 'storage'
+    })
     error.type = type
     error.originalError = originalError
     error.timestamp = Date.now()

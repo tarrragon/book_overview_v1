@@ -112,8 +112,8 @@ class ShutdownHandler extends BaseModule {
       const shutdownPromise = this.performShutdown(reason)
       const timeoutPromise = new Promise((_resolve, reject) => {
         setTimeout(() => reject(new StandardError('UNKNOWN_ERROR', '關閉超時', {
-          "category": "general"
-      })), effectiveTimeout)
+          category: 'general'
+        })), effectiveTimeout)
       })
 
       // 競賽條件：正常關閉 vs 超時

@@ -427,7 +427,7 @@ describe('QualityAssessmentService - 品質評估服務', () => {
       expect(() => {
         new QualityAssessmentService()
       }).toThrow()
-      
+
       expect(() => {
         new QualityAssessmentService()
       }).toMatchObject({

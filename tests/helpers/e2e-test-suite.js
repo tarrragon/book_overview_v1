@@ -5,6 +5,8 @@
  * 負責測試環境設置、Chrome Extension模擬、測試資料管理
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class E2ETestSuite {
   constructor (config = {}) {
     this.config = {
@@ -146,7 +148,6 @@ class E2ETestSuite {
 
   async prepareTestData () {
     const { TestDataGenerator } = require('./test-data-generator')
-const { StandardError } = require('src/core/errors/StandardError')
     const generator = new TestDataGenerator()
 
     switch (this.config.testDataSize) {

@@ -531,8 +531,8 @@ class ContentCoordinator extends BaseModule {
         contentScript.healthCheckFailures = 0
       } else {
         throw new StandardError('OPERATION_FAILED', 'Health check failed', {
-          "category": "general"
-      })
+          category: 'general'
+        })
       }
     } catch (error) {
       const contentScript = this.contentScripts.get(tabId)

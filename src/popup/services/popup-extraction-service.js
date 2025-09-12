@@ -45,17 +45,17 @@ class PopupExtractionService {
     // 驗證必要依賴
     if (!statusManager) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'StatusManager is required', {
-          "category": "ui"
+        category: 'ui'
       })
     }
     if (!progressManager) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'ProgressManager is required', {
-          "category": "ui"
+        category: 'ui'
       })
     }
     if (!communicationService) {
       throw new StandardError('REQUIRED_FIELD_MISSING', 'CommunicationService is required', {
-          "category": "ui"
+        category: 'ui'
       })
     }
 
@@ -92,7 +92,7 @@ class PopupExtractionService {
     // 防止重複提取
     if (this.isExtracting) {
       throw new StandardError('EXTRACTION_FAILED', 'Extraction already in progress', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -202,7 +202,7 @@ class PopupExtractionService {
         info: '提取結果格式無效'
       })
       throw new StandardError('INVALID_DATA_FORMAT', 'Invalid extraction result format', {
-          "category": "general"
+        category: 'general'
       })
     }
 
@@ -419,8 +419,8 @@ class PopupExtractionService {
     }
 
     throw new StandardError('OPERATION_FAILED', `Extraction failed after ${this.config.maxRetries} retries: ${lastError.message}`, {
-          "category": "general"
-      })
+      category: 'general'
+    })
   }
 
   /**

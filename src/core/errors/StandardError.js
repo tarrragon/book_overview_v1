@@ -82,28 +82,28 @@ class StandardError {
    */
   _handleCircularReferences (obj) {
     const seen = new WeakMap()
-    
+
     const deepClone = (source) => {
       if (source === null || typeof source !== 'object') {
         return source
       }
-      
+
       if (seen.has(source)) {
         return '[Circular Reference]'
       }
-      
+
       const result = Array.isArray(source) ? [] : {}
       seen.set(source, result)
-      
+
       for (const key in source) {
         if (source.hasOwnProperty(key)) {
           result[key] = deepClone(source[key])
         }
       }
-      
+
       return result
     }
-    
+
     return deepClone(obj)
   }
 
@@ -137,7 +137,7 @@ class StandardError {
         }
         return value
       })
-      
+
       if (jsonString.length > 15 * 1024) { // 15KB 限制
         // 簡化 details 以符合大小限制
         json.details = {

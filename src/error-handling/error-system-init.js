@@ -196,9 +196,11 @@ class ErrorSystemManager {
    */
   _handleGlobalError (error, type, context = {}) {
     const errorData = {
-      error: error instanceof Error ? error : new StandardError('UNKNOWN_ERROR', String(error, {
-          "category": "general"
-      })),
+      error: error instanceof Error
+        ? error
+        : new StandardError('UNKNOWN_ERROR', String(error, {
+          category: 'general'
+        })),
       type,
       context,
       timestamp: Date.now(),

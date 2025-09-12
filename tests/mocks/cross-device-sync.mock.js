@@ -380,8 +380,8 @@ class MockDevice {
     }
 
     // 記錄錯誤到日誌
-    this.logger.log('ERROR', `Simulated error: ${errorType}`, { 
-      cause, 
+    this.logger.log('ERROR', `Simulated error: ${errorType}`, {
+      cause,
       deviceId: this.deviceId,
       timestamp: new Date().toISOString()
     })
@@ -393,7 +393,7 @@ class MockDevice {
     error.deviceId = this.deviceId
     error.timestamp = new Date().toISOString()
     error.recoverable = this._isRecoverableError(errorType, cause)
-    
+
     return error
   }
 
@@ -476,11 +476,11 @@ class MockDevice {
     // 判斷錯誤是否可恢復
     const recoverableErrors = new Set([
       'NETWORK_ERROR_connection_timeout',
-      'NETWORK_ERROR_server_unreachable', 
+      'NETWORK_ERROR_server_unreachable',
       'STORAGE_ERROR_sync_service_unavailable',
       'FILE_ERROR_disk_space_insufficient'
     ])
-    
+
     return recoverableErrors.has(`${errorType}_${cause}`)
   }
 
@@ -491,15 +491,15 @@ class MockDevice {
       'DATA_ERROR_checksum_mismatch',
       'PERMISSION_ERROR_access_denied'
     ])
-    
+
     const warningErrors = new Set([
       'NETWORK_ERROR_connection_timeout',
       'FILE_ERROR_disk_space_insufficient',
       'STORAGE_ERROR_quota_exceeded'
     ])
-    
+
     const errorKey = `${errorType}_${cause}`
-    
+
     if (criticalErrors.has(errorKey)) {
       return 'critical'
     } else if (warningErrors.has(errorKey)) {
@@ -554,7 +554,7 @@ class MockDevice {
     // 執行帶合併策略的匯入
     const currentBooks = await this.storage.getBooks()
     const mergeResult = await mergeBookData(currentBooks, books)
-    
+
     await this.storage.storeBooks(mergeResult.books)
 
     return {
@@ -640,7 +640,7 @@ class MockDevice {
       if (bookMap.has(book.id)) {
         const existing = bookMap.get(book.id)
         duplicates.push(book)
-        
+
         // 保留較新或進度較高的版本
         if ((book.progress || 0) > (existing.progress || 0) ||
             new Date(book.extractedAt || 0) > new Date(existing.extractedAt || 0)) {
@@ -674,7 +674,7 @@ class MockDevice {
     // 創建備份點
     const books = await this.storage.getBooks()
     const metadata = await this.storage.getMetadata()
-    
+
     const backupId = `backup_${Date.now()}_${name}`
     const backup = {
       id: backupId,
@@ -708,7 +708,7 @@ class MockDevice {
 
     const backup = this._backups.get(backupId)
     await this.storage.storeBooks(backup.books)
-    
+
     this.logger.log('INFO', `Restored from backup: ${backup.name}`, {
       backupId,
       timestamp: backup.timestamp,
@@ -727,7 +727,7 @@ class MockDevice {
     // 找出兩本書的差異
     const differences = []
     const fields = ['title', 'progress', 'isFinished', 'extractedAt', 'type']
-    
+
     fields.forEach(field => {
       if (book1[field] !== book2[field]) {
         differences.push({

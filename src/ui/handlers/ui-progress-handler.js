@@ -215,7 +215,7 @@ class UIProgressHandler extends BaseUIHandler {
     const validationResult = this.validateEventData(event)
     if (!validationResult.isValid) {
       throw new StandardError('OPERATION_FAILED', `Event validation failed: ${validationResult.error}`, {
-          "category": "ui"
+        category: 'ui'
       })
     }
   }
