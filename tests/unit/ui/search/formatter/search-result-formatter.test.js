@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * SearchResultFormatter 單元測試
  * TDD 循環 4/8 - BookSearchFilter 職責拆分重構
@@ -51,7 +52,9 @@ describe('SearchResultFormatter', () => {
 
       expect(() => {
         new SearchResultFormatter({ logger: mockLogger }) // eslint-disable-line no-new
-      }).toThrow('EventBus 和 Logger 是必需的')
+      }).toMatchObject({
+        message: expect.stringContaining('EventBus 和 Logger 是必需的')
+      })
     })
 
     test('建構時缺少 logger 應該拋出錯誤', () => {
@@ -59,7 +62,9 @@ describe('SearchResultFormatter', () => {
 
       expect(() => {
         new SearchResultFormatter({ eventBus: mockEventBus }) // eslint-disable-line no-new
-      }).toThrow('EventBus 和 Logger 是必需的')
+      }).toMatchObject({
+        message: expect.stringContaining('EventBus 和 Logger 是必需的')
+      })
     })
 
     test('應該正確合併預設配置和自定義配置', () => {
@@ -480,21 +485,29 @@ describe('SearchResultFormatter', () => {
     test('無效查詢參數應該拋出錯誤', () => {
       expect(() => {
         formatter.formatResults(null, [])
-      }).toThrow('查詢參數必須是字串')
+      }).toMatchObject({
+        message: expect.stringContaining('查詢參數必須是字串')
+      })
 
       expect(() => {
         formatter.formatResults(123, [])
-      }).toThrow('查詢參數必須是字串')
+      }).toMatchObject({
+        message: expect.stringContaining('查詢參數必須是字串')
+      })
     })
 
     test('無效結果參數應該拋出錯誤', () => {
       expect(() => {
         formatter.formatResults('test', null)
-      }).toThrow('結果參數必須是陣列')
+      }).toMatchObject({
+        message: expect.stringContaining('結果參數必須是陣列')
+      })
 
       expect(() => {
         formatter.formatResults('test', 'not array')
-      }).toThrow('結果參數必須是陣列')
+      }).toMatchObject({
+        message: expect.stringContaining('結果參數必須是陣列')
+      })
     })
 
     test('無效的書籍對象應該被跳過並記錄警告', () => {
@@ -515,7 +528,7 @@ describe('SearchResultFormatter', () => {
     test('事件發送失敗時應該記錄錯誤但不影響格式化', () => {
       // 模擬 eventBus 發送失敗
       mockEventBus.emit.mockImplementation(() => {
-        throw new Error('Event emission failed')
+        throw new StandardError('TEST_ERROR', 'Event emission failed', { category: 'testing' })
       })
 
       expect(() => {

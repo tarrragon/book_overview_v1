@@ -15,6 +15,7 @@
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class PopupMessageHandler extends BaseModule {
   constructor (dependencies = {}) {
@@ -126,7 +127,9 @@ class PopupMessageHandler extends BaseModule {
 
       // 驗證訊息格式
       if (!this.validateMessage(message, sender)) {
-        throw new Error(`無效的訊息格式或類型: ${message.type}`)
+        throw new StandardError('UNKNOWN_ERROR', `無效的訊息格式或類型: ${message.type}`, {
+          "category": "general"
+      })
       }
 
       // 更新統計
@@ -230,7 +233,9 @@ class PopupMessageHandler extends BaseModule {
         return await this.handlePopupExportRequest(message, sender, sendResponse)
 
       default:
-        throw new Error(`未支援的訊息類型: ${message.type}`)
+        throw new StandardError('UNKNOWN_ERROR', `未支援的訊息類型: ${message.type}`, {
+          "category": "general"
+      })
     }
   }
 
@@ -369,7 +374,9 @@ class PopupMessageHandler extends BaseModule {
         }
 
         default:
-          throw new Error(`未支援的資料類型: ${dataType}`)
+          throw new StandardError('UNKNOWN_ERROR', `未支援的資料類型: ${dataType}`, {
+          "category": "general"
+      })
       }
 
       sendResponse({
@@ -431,7 +438,9 @@ class PopupMessageHandler extends BaseModule {
           break
 
         default:
-          throw new Error(`未支援的操作: ${operation}`)
+          throw new StandardError('UNKNOWN_ERROR', `未支援的操作: ${operation}`, {
+          "category": "general"
+      })
       }
 
       sendResponse({
@@ -559,7 +568,9 @@ class PopupMessageHandler extends BaseModule {
       // 檢查當前標籤頁是否為 Readmoo 頁面
       const activeTab = await this.getCurrentActiveTab()
       if (!activeTab || !activeTab.url || !activeTab.url.includes('readmoo.com')) {
-        throw new Error('當前標籤頁不是 Readmoo 頁面')
+        throw new StandardError('UNKNOWN_ERROR', '當前標籤頁不是 Readmoo 頁面', {
+          "category": "general"
+      })
       }
 
       this.logger.log('🚀 開始從 Popup 觸發的提取操作')
@@ -662,26 +673,34 @@ class PopupMessageHandler extends BaseModule {
     if (permissions.requiresActiveTab) {
       const activeTab = await this.getCurrentActiveTab()
       if (!activeTab) {
-        throw new Error('操作需要活躍的標籤頁')
+        throw new StandardError('UNKNOWN_ERROR', '操作需要活躍的標籤頁', {
+          "category": "general"
+      })
       }
     }
 
     if (permissions.requiresReadmoo) {
       const activeTab = await this.getCurrentActiveTab()
       if (!activeTab || !activeTab.url || !activeTab.url.includes('readmoo.com')) {
-        throw new Error('操作需要 Readmoo 頁面')
+        throw new StandardError('UNKNOWN_ERROR', '操作需要 Readmoo 頁面', {
+          "category": "general"
+      })
       }
     }
 
     if (permissions.requiresData) {
       const data = await chrome.storage.local.get('readmoo_books')
       if (!data.readmoo_books || !data.readmoo_books.books || data.readmoo_books.books.length === 0) {
-        throw new Error('操作需要已提取的資料')
+        throw new StandardError('UNKNOWN_ERROR', '操作需要已提取的資料', {
+          "category": "general"
+      })
       }
     }
 
     if (permissions.requiresConfirmation && !params.confirmed) {
-      throw new Error('操作需要使用者確認')
+      throw new StandardError('UNKNOWN_ERROR', '操作需要使用者確認', {
+          "category": "general"
+      })
     }
   }
 
@@ -739,7 +758,9 @@ class PopupMessageHandler extends BaseModule {
         break
 
       default:
-        throw new Error(`未支援的清除類型: ${clearType}`)
+        throw new StandardError('UNKNOWN_ERROR', `未支援的清除類型: ${clearType}`, {
+          "category": "general"
+      })
     }
 
     // 觸發儲存清除事件
@@ -788,7 +809,9 @@ class PopupMessageHandler extends BaseModule {
   async handleTabNavigate (params) {
     const url = params.url
     if (!url) {
-      throw new Error('導航需要 URL')
+      throw new StandardError('UNKNOWN_ERROR', '導航需要 URL', {
+          "category": "general"
+      })
     }
 
     this.logger.log(`🧭 處理標籤頁導航: ${url}`)

@@ -29,6 +29,8 @@
  * - 系統初始化的規則預載
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class PlatformRuleManager {
   /**
    * 建構平台規則管理器
@@ -403,7 +405,9 @@ class PlatformRuleManager {
         return baseRules
 
       default:
-        throw new Error(`Unsupported platform: ${platform}`)
+        throw new StandardError('UNKNOWN_ERROR', `Unsupported platform: ${platform}`, {
+          "category": "general"
+      })
     }
   }
 
@@ -442,10 +446,14 @@ class PlatformRuleManager {
    */
   _validatePlatform (platform) {
     if (!platform || typeof platform !== 'string') {
-      throw new Error('Invalid platform')
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid platform', {
+          "category": "general"
+      })
     }
     if (!this._isPlatformSupported(platform)) {
-      throw new Error(`Unsupported platform: ${platform}`)
+      throw new StandardError('UNKNOWN_ERROR', `Unsupported platform: ${platform}`, {
+          "category": "general"
+      })
     }
   }
 

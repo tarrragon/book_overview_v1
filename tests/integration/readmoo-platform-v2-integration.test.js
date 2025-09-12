@@ -24,6 +24,7 @@
 const EventBus = require('@/core/event-bus')
 const ReadmooPlatformMigrationValidator = require('@/platform/readmoo-platform-migration-validator')
 const EventNamingUpgradeCoordinator = require('@/core/events/event-naming-upgrade-coordinator')
+const { StandardError } = require('src/core/errors/StandardError')
 
 // 模擬依賴
 const mockReadmooAdapter = {
@@ -588,7 +589,7 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
         mockPlatformDetectionService.detectPlatform.mockImplementation(() => {
           attemptCount++
           if (attemptCount < 3) {
-            throw new Error('Temporary network error')
+            throw new StandardError('NETWORK_ERROR', 'Temporary network error', { category: 'testing' })
           }
           return Promise.resolve({
             platformId: 'READMOO',

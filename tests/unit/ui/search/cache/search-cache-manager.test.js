@@ -25,6 +25,7 @@
 
 // 測試環境設定
 require('../../../../test-setup')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('SearchCacheManager - TDD 循環 3/8', () => {
   let cacheManager
@@ -92,15 +93,21 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
       expect(() => {
         new SearchCacheManager() // eslint-disable-line no-new
-      }).toThrow('EventBus 和 Logger 是必需的')
+      }).toMatchObject({
+        message: expect.stringContaining('EventBus 和 Logger 是必需的')
+      })
 
       expect(() => {
         new SearchCacheManager({ eventBus: mockEventBus }) // eslint-disable-line no-new
-      }).toThrow('EventBus 和 Logger 是必需的')
+      }).toMatchObject({
+        message: expect.stringContaining('EventBus 和 Logger 是必需的')
+      })
 
       expect(() => {
         new SearchCacheManager({ logger: mockLogger }) // eslint-disable-line no-new
-      }).toThrow('EventBus 和 Logger 是必需的')
+      }).toMatchObject({
+        message: expect.stringContaining('EventBus 和 Logger 是必需的')
+      })
     })
 
     test('應該正確初始化快取配置', () => {
@@ -511,29 +518,41 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     test('應該正確處理 null 或 undefined 鍵', () => {
       expect(() => {
         cacheManager.set(null, ['result'])
-      }).toThrow('快取鍵必須是字串')
+      }).toMatchObject({
+        message: expect.stringContaining('快取鍵必須是字串')
+      })
 
       expect(() => {
         cacheManager.set(undefined, ['result'])
-      }).toThrow('快取鍵必須是字串')
+      }).toMatchObject({
+        message: expect.stringContaining('快取鍵必須是字串')
+      })
 
       expect(() => {
         cacheManager.get(null)
-      }).toThrow('快取鍵必須是字串')
+      }).toMatchObject({
+        message: expect.stringContaining('快取鍵必須是字串')
+      })
     })
 
     test('應該正確處理非字串鍵', () => {
       expect(() => {
         cacheManager.set(123, ['result'])
-      }).toThrow('快取鍵必須是字串')
+      }).toMatchObject({
+        message: expect.stringContaining('快取鍵必須是字串')
+      })
 
       expect(() => {
         cacheManager.set(['array'], ['result'])
-      }).toThrow('快取鍵必須是字串')
+      }).toMatchObject({
+        message: expect.stringContaining('快取鍵必須是字串')
+      })
 
       expect(() => {
         cacheManager.get(true)
-      }).toThrow('快取鍵必須是字串')
+      }).toMatchObject({
+        message: expect.stringContaining('快取鍵必須是字串')
+      })
     })
 
     test('應該正確處理空字串鍵', () => {

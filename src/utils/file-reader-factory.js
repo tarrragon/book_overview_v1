@@ -12,6 +12,8 @@
  * - 更專業的錯誤訊息
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class FileReaderFactory {
   /**
    * 建立 FileReader 實例
@@ -21,7 +23,9 @@ class FileReaderFactory {
   static createReader () {
     if (global.FileReader) return new global.FileReader()
     if (typeof FileReader !== 'undefined') return new FileReader()
-    throw new Error('檔案讀取功能不支援')
+    throw new StandardError('UNKNOWN_ERROR', '檔案讀取功能不支援', {
+          "category": "general"
+      })
   }
 
   /**

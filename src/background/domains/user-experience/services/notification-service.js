@@ -26,6 +26,8 @@
  * - 成功操作確認
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class NotificationService {
   constructor (dependencies = {}) {
     // 依賴注入
@@ -132,7 +134,9 @@ class NotificationService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new Error('通知管理服務尚未初始化')
+      throw new StandardError('UNKNOWN_ERROR', '通知管理服務尚未初始化', {
+          "category": "general"
+      })
     }
 
     if (this.state.active) {
@@ -358,11 +362,15 @@ class NotificationService {
 
     // 驗證必要欄位
     if (!notification.type || !this.notificationTypes[notification.type]) {
-      throw new Error(`無效的通知類型: ${notification.type}`)
+      throw new StandardError('UNKNOWN_ERROR', `無效的通知類型: ${notification.type}`, {
+          "category": "general"
+      })
     }
 
     if (!notification.title && !notification.message) {
-      throw new Error('通知必須包含標題或訊息')
+      throw new StandardError('UNKNOWN_ERROR', '通知必須包含標題或訊息', {
+          "category": "general"
+      })
     }
 
     // 標準化通知結構

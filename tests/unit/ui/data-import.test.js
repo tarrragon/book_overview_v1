@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * UC-04 資料匯入功能測試套件
  * 測試目標：loadFromFile() 完整功能覆蓋 10% → 90%
@@ -58,14 +59,14 @@ function loadFromFile () {
 
       // 驗證 JSON 格式
       if (!Array.isArray(jsonData)) {
-        throw new Error('JSON 檔案應該包含一個陣列')
+        throw new StandardError('TEST_ERROR', 'JSON 檔案應該包含一個陣列', { category: 'testing' })
       }
 
       // 驗證每個書籍物件的格式
       for (let i = 0; i < jsonData.length; i++) {
         const book = jsonData[i]
         if (!book.id || !book.title || !book.cover) {
-          throw new Error(`第 ${i + 1} 個書籍缺少必要欄位 (id, title, cover)`)
+          throw new StandardError('TEST_ERROR', `第 ${i + 1} 個書籍缺少必要欄位 (id, title, cover)`, { category: 'testing' })
         }
       }
 

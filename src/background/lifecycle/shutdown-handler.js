@@ -18,6 +18,7 @@
  */
 
 const BaseModule = require('./base-module')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class ShutdownHandler extends BaseModule {
   constructor (dependencies = {}) {
@@ -110,7 +111,9 @@ class ShutdownHandler extends BaseModule {
       // 設定超時保護
       const shutdownPromise = this.performShutdown(reason)
       const timeoutPromise = new Promise((_resolve, reject) => {
-        setTimeout(() => reject(new Error('關閉超時')), effectiveTimeout)
+        setTimeout(() => reject(new StandardError('UNKNOWN_ERROR', '關閉超時', {
+          "category": "general"
+      })), effectiveTimeout)
       })
 
       // 競賽條件：正常關閉 vs 超時

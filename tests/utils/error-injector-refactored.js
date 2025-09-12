@@ -53,7 +53,7 @@ class ErrorInjector {
    */
   _validateInjectionParameters (api, method, error) {
     if (!api || !method || !error) {
-      throw new Error('All parameters are required for error injection')
+      throw new StandardError('ERROR_INJECTION_NOT_ENABLED', 'All parameters are required for error injection', { category: 'testing' })
     }
   }
 
@@ -99,7 +99,7 @@ class ErrorInjector {
   _validateNetworkErrorType (type) {
     const validTypes = ['timeout', 'network', 'dns']
     if (!validTypes.includes(type)) {
-      throw new Error(`Invalid network error type: ${type}`)
+      throw new StandardError('VALIDATION_FAILED', `Invalid network error type: ${type}`, { category: 'testing' })
     }
   }
 
@@ -174,7 +174,7 @@ class ErrorInjector {
    */
   _validateDomSelector (selector) {
     if (!selector || typeof selector !== 'string') {
-      throw new Error('Selector must be a non-empty string')
+      throw new StandardError('TEST_ERROR', 'Selector must be a non-empty string', { category: 'testing' })
     }
   }
 
@@ -260,7 +260,7 @@ class ErrorInjector {
   _validateDataMethod (method) {
     const validMethods = ['JSON.parse', 'JSON.stringify']
     if (!validMethods.includes(method)) {
-      throw new Error(`Invalid data processing method: ${method}`)
+      throw new StandardError('VALIDATION_FAILED', `Invalid data processing method: ${method}`, { category: 'testing' })
     }
   }
 
@@ -381,7 +381,7 @@ class ErrorInjector {
    */
   _validateProbability (probability) {
     if (typeof probability !== 'number' || probability < 0 || probability > 1) {
-      throw new Error('Probability must be a number between 0 and 1')
+      throw new StandardError('TEST_ERROR', 'Probability must be a number between 0 and 1', { category: 'testing' })
     }
   }
 

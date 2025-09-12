@@ -1,3 +1,5 @@
+const { StandardError } = require('src/core/errors/StandardError')
+
 const { createLogger } = require('src/core/logging/Logger')
 
 /**
@@ -321,7 +323,9 @@ class PlatformRegistryService {
       // 驗證平台配置
       const validationResult = await this.validatePlatformConfig(platformId, platformConfig)
       if (!validationResult.isValid) {
-        throw new Error(`平台配置驗證失敗: ${validationResult.errors.join(', ')}`)
+        throw new StandardError('VALIDATION_FAILED', `平台配置驗證失敗: ${validationResult.errors.join(', ', {
+          "category": "validation"
+      })}`)
       }
 
       // 檢查是否已經註冊
@@ -396,13 +400,17 @@ class PlatformRegistryService {
     try {
       const existingRecord = this.platformRegistry.get(platformId)
       if (!existingRecord) {
-        throw new Error(`平台 ${platformId} 不存在`)
+        throw new StandardError('UNKNOWN_ERROR', `平台 ${platformId} 不存在`, {
+          "category": "general"
+      })
       }
 
       // 驗證新配置
       const validationResult = await this.validatePlatformConfig(platformId, newConfig)
       if (!validationResult.isValid) {
-        throw new Error(`平台配置驗證失敗: ${validationResult.errors.join(', ')}`)
+        throw new StandardError('VALIDATION_FAILED', `平台配置驗證失敗: ${validationResult.errors.join(', ', {
+          "category": "validation"
+      })}`)
       }
 
       // 合併配置（保留註冊時間等元資料）
@@ -805,7 +813,9 @@ class PlatformRegistryService {
     }
 
     if (issues.length > 0) {
-      await this.logError('註冊表完整性檢查發現問題', new Error(issues.join('; ')))
+      await this.logError('註冊表完整性檢查發現問題', new StandardError('UNKNOWN_ERROR', issues.join('; ', {
+          "category": "general"
+      })))
       return false
     }
 

@@ -49,6 +49,7 @@ global.URL = {
 }
 
 const BookDataExporter = require('src/export/book-data-exporter')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', () => {
   let exporter
@@ -661,14 +662,20 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
       // 模擬 URL.createObjectURL 失敗
       const originalCreateObjectURL = global.URL.createObjectURL
       global.URL.createObjectURL = jest.fn(() => {
-        throw new Error('URL creation failed')
+        throw new StandardError('TEST_ERROR', 'URL creation failed', { category: 'testing' })
       })
 
       try {
         // 下載應該拋出錯誤但被捕獲
         expect(() => {
           exporter.downloadCSV()
-        }).toThrow('URL creation failed')
+        }).toThrow()
+        expect(() => {
+          exporter.downloadCSV()
+        }).toMatchObject({
+          code: expect.any(String),
+          details: expect.any(Object)
+        })
 
         // 應該記錄錯誤
         const errorLog = exporter.getErrorLog()

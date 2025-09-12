@@ -3,6 +3,7 @@
  */
 
 const FileReaderFactory = require('src/utils/file-reader-factory')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('FileReaderFactory', () => {
   describe('createReader', () => {
@@ -20,7 +21,12 @@ describe('FileReaderFactory', () => {
       delete global.FileReader
       global.FileReader = undefined
 
-      expect(() => FileReaderFactory.createReader()).toThrow('檔案讀取功能不支援')
+      expect(() => FileReaderFactory.createReader()).toThrow()
+      expect(() => FileReaderFactory.createReader()).toMatchObject({
+        code: 'FILE_READER_NOT_SUPPORTED',
+        message: expect.stringContaining('檔案讀取功能不支援'),
+        details: expect.any(Object)
+      })
     })
   })
 

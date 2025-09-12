@@ -29,6 +29,7 @@
  */
 
 const { createLogger } = require('src/core/logging/Logger')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class PlatformSwitcherService {
   /**
@@ -122,16 +123,22 @@ class PlatformSwitcherService {
    */
   async validateDependencies () {
     if (!this.platformRegistry) {
-      throw new Error('Platform Registry Service 依賴缺失')
+      throw new StandardError('UNKNOWN_ERROR', 'Platform Registry Service 依賴缺失', {
+          "category": "general"
+      })
     }
 
     if (!this.adapterFactory) {
-      throw new Error('Adapter Factory Service 依賴缺失')
+      throw new StandardError('UNKNOWN_ERROR', 'Adapter Factory Service 依賴缺失', {
+          "category": "general"
+      })
     }
 
     // 檢查依賴服務是否已初始化
     if (typeof this.platformRegistry.getActivePlatforms !== 'function') {
-      throw new Error('Platform Registry Service 尚未正確初始化')
+      throw new StandardError('UNKNOWN_ERROR', 'Platform Registry Service 尚未正確初始化', {
+          "category": "general"
+      })
     }
   }
 
@@ -194,7 +201,9 @@ class PlatformSwitcherService {
   async requestPlatformDetection () {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
-        reject(new Error('平台檢測超時'))
+        reject(new StandardError('UNKNOWN_ERROR', '平台檢測超時', {
+          "category": "general"
+      }))
       }, 5000)
 
       // 監聽檢測結果
@@ -229,7 +238,9 @@ class PlatformSwitcherService {
       // 驗證切換請求
       const validation = await this.validateSwitchRequest(targetPlatform, options)
       if (!validation.isValid) {
-        throw new Error(`切換請求驗證失敗: ${validation.error}`)
+        throw new StandardError('VALIDATION_FAILED', `切換請求驗證失敗: ${validation.error}`, {
+          "category": "validation"
+      })
       }
 
       // 檢查並發限制
@@ -447,7 +458,9 @@ class PlatformSwitcherService {
         adapter = await this.adapterFactory.createAdapter(targetPlatform)
 
         if (!adapter) {
-          throw new Error(`無法創建 ${targetPlatform} 適配器`)
+          throw new StandardError('UNKNOWN_ERROR', `無法創建 ${targetPlatform} 適配器`, {
+          "category": "general"
+      })
         }
 
         // 緩存適配器
@@ -534,20 +547,26 @@ class PlatformSwitcherService {
   async validateSwitchCompletion (targetPlatform) {
     // 檢查當前平台是否正確設定
     if (this.currentPlatform !== targetPlatform) {
-      throw new Error(`切換驗證失敗: 期望 ${targetPlatform}, 實際 ${this.currentPlatform}`)
+      throw new StandardError('UNKNOWN_ERROR', `切換驗證失敗: 期望 ${targetPlatform}, 實際 ${this.currentPlatform}`, {
+          "category": "general"
+      })
     }
 
     // 檢查適配器是否正常運作
     const adapter = this.platformRegistry.getAdapterCache(targetPlatform)
     if (!adapter) {
-      throw new Error(`切換驗證失敗: ${targetPlatform} 適配器不存在`)
+      throw new StandardError('UNKNOWN_ERROR', `切換驗證失敗: ${targetPlatform} 適配器不存在`, {
+          "category": "general"
+      })
     }
 
     // 執行適配器健康檢查
     if (typeof adapter.healthCheck === 'function') {
       const healthStatus = await adapter.healthCheck()
       if (!healthStatus.healthy) {
-        throw new Error(`切換驗證失敗: ${targetPlatform} 適配器健康檢查失敗`)
+        throw new StandardError('UNKNOWN_ERROR', `切換驗證失敗: ${targetPlatform} 適配器健康檢查失敗`, {
+          "category": "general"
+      })
       }
     }
 
@@ -574,7 +593,9 @@ class PlatformSwitcherService {
         if (fallbackResult.success) {
           await this.log(`故障轉移成功，已切換回 ${this.previousPlatform}`)
         } else {
-          await this.logError('故障轉移失敗', new Error(fallbackResult.error))
+          await this.logError('故障轉移失敗', new StandardError('UNKNOWN_ERROR', fallbackResult.error, {
+          "category": "general"
+      }))
         }
       } else {
         // 嘗試切換到任何可用的活躍平台
@@ -681,7 +702,9 @@ class PlatformSwitcherService {
     const { targetPlatform, options, responseCallback } = event.data || {}
 
     if (!targetPlatform) {
-      await this.logError('收到無效的切換請求', new Error('缺少目標平台'))
+      await this.logError('收到無效的切換請求', new StandardError('UNKNOWN_ERROR', '缺少目標平台', {
+          "category": "general"
+      }))
       return
     }
 
@@ -854,7 +877,9 @@ class PlatformSwitcherService {
 
     // 清理排隊的請求
     this.switchQueue.forEach(queued => {
-      queued.reject(new Error('服務已停止'))
+      queued.reject(new StandardError('UNKNOWN_ERROR', '服務已停止', {
+          "category": "general"
+      }))
     })
     this.switchQueue = []
 

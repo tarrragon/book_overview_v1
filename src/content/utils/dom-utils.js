@@ -26,6 +26,8 @@
 /**
  * DOM 操作工具類
  */
+const { StandardError } = require('src/core/errors/StandardError')
+
 class DOMUtils {
   constructor () {
     this.queryCache = new Map()
@@ -45,7 +47,9 @@ class DOMUtils {
         return {
           success: false,
           element: null,
-          error: new Error('Invalid selector')
+          error: new StandardError('INVALID_DATA_FORMAT', 'Invalid selector', {
+          "category": "general"
+      })
         }
       }
 
@@ -53,7 +57,9 @@ class DOMUtils {
         return {
           success: false,
           element: null,
-          error: new Error('Invalid container')
+          error: new StandardError('INVALID_DATA_FORMAT', 'Invalid container', {
+          "category": "general"
+      })
         }
       }
 
@@ -63,7 +69,9 @@ class DOMUtils {
         return {
           success: false,
           element: null,
-          error: new Error('Element not found')
+          error: new StandardError('RESOURCE_NOT_FOUND', 'Element not found', {
+          "category": "general"
+      })
         }
       }
 
@@ -94,7 +102,9 @@ class DOMUtils {
           success: false,
           elements: [],
           count: 0,
-          error: new Error('Invalid selector')
+          error: new StandardError('INVALID_DATA_FORMAT', 'Invalid selector', {
+          "category": "general"
+      })
         }
       }
 
@@ -287,7 +297,9 @@ class DOMUtils {
         content: '',
         original: '',
         length: 0,
-        error: new Error('Invalid element')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid element', {
+          "category": "general"
+      })
       }
     }
 
@@ -430,7 +442,9 @@ class DOMUtils {
     if (!element) {
       return {
         success: false,
-        error: new Error('Invalid element')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid element', {
+          "category": "general"
+      })
       }
     }
 
@@ -459,7 +473,9 @@ class DOMUtils {
     if (!this.elementExists(element)) {
       return {
         success: false,
-        error: new Error('Invalid element')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid element', {
+          "category": "general"
+      })
       }
     }
 
@@ -488,7 +504,9 @@ class DOMUtils {
     if (!this.elementExists(element)) {
       return {
         success: false,
-        error: new Error('Invalid element')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid element', {
+          "category": "general"
+      })
       }
     }
 
@@ -552,7 +570,9 @@ class DOMUtils {
     if (!this.elementExists(container) || !this.elementExists(element)) {
       return {
         success: false,
-        error: new Error('Invalid container or element')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid container or element', {
+          "category": "general"
+      })
       }
     }
 
@@ -698,7 +718,9 @@ class DOMUtils {
     if (!this.elementExists(container)) {
       return {
         success: false,
-        error: new Error('Invalid container')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid container', {
+          "category": "general"
+      })
       }
     }
 

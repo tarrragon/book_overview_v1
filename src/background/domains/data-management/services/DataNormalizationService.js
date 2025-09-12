@@ -30,6 +30,7 @@
  */
 
 const crypto = require('crypto')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class DataNormalizationService {
   /**
@@ -126,7 +127,9 @@ class DataNormalizationService {
         timestamp: Date.now()
       }
     } catch (error) {
-      throw new Error(`Normalization failed: ${error.message}`)
+      throw new StandardError('OPERATION_FAILED', `Normalization failed: ${error.message}`, {
+          "category": "general"
+      })
     }
   }
 
@@ -392,10 +395,14 @@ class DataNormalizationService {
    */
   _validateInputs (book, platform) {
     if (!book || typeof book !== 'object') {
-      throw new Error('Invalid book data')
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid book data', {
+          "category": "general"
+      })
     }
     if (!platform || typeof platform !== 'string') {
-      throw new Error('Platform is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'Platform is required', {
+          "category": "ui"
+      })
     }
   }
 

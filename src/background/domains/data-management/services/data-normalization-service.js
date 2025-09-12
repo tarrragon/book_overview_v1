@@ -21,6 +21,7 @@
 const BaseModule = require('src/background/lifecycle/base-module')
 const crypto = require('crypto')
 const { createLogger } = require('src/core/logging/Logger')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class DataNormalizationService extends BaseModule {
   /**
@@ -30,7 +31,9 @@ class DataNormalizationService extends BaseModule {
    */
   constructor (eventBus, dependencies = {}) {
     if (!eventBus) {
-      throw new Error('EventBus is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required', {
+          "category": "ui"
+      })
     }
 
     super({
@@ -94,7 +97,9 @@ class DataNormalizationService extends BaseModule {
    */
   _validateBookData (book) {
     if (!book) {
-      throw new Error('書籍資料為空')
+      throw new StandardError('UNKNOWN_ERROR', '書籍資料為空', {
+          "category": "general"
+      })
     }
   }
 
@@ -573,7 +578,9 @@ class DataNormalizationService extends BaseModule {
   _validateBatchBookData (book, index, errors) {
     if (book === null || book === undefined) {
       errors.push({ index, error: '書籍資料為空' })
-      throw new Error('書籍資料為空')
+      throw new StandardError('UNKNOWN_ERROR', '書籍資料為空', {
+          "category": "general"
+      })
     }
   }
 

@@ -48,17 +48,23 @@ class DataValidationService {
 
   _validateConstructorInputs (eventBus, config) {
     if (!eventBus) {
-      throw new Error('EventBus is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required', {
+          "category": "validation"
+      })
     }
 
     // 如果使用依賴注入模式（整合測試期望），驗證必要服務
     if (config && (config.validationRuleManager !== undefined || config.services)) {
       if (config.validationRuleManager === null) {
-        throw new Error('ValidationRuleManager is required')
+        throw new StandardError('REQUIRED_FIELD_MISSING', 'ValidationRuleManager is required', {
+          "category": "validation"
+      })
       }
 
       if (config.batchValidationProcessor === null) {
-        throw new Error('BatchValidationProcessor is required')
+        throw new StandardError('REQUIRED_FIELD_MISSING', 'BatchValidationProcessor is required', {
+          "category": "validation"
+      })
       }
     }
   }
@@ -928,7 +934,9 @@ class DataValidationService {
 
       this.isInitialized = true
     } catch (error) {
-      throw new Error(`初始化失敗: ${error.message}`)
+      throw new StandardError('UNKNOWN_ERROR', `初始化失敗: ${error.message}`, {
+          "category": "validation"
+      })
     }
   }
 
@@ -937,7 +945,9 @@ class DataValidationService {
    */
   async loadPlatformValidationRules (platform) {
     if (!this.config.supportedPlatforms.includes(platform)) {
-      throw new Error(`不支援的平台: ${platform}`)
+      throw new StandardError('UNKNOWN_ERROR', `不支援的平台: ${platform}`, {
+          "category": "validation"
+      })
     }
 
     // 檢查快取
@@ -948,7 +958,9 @@ class DataValidationService {
     try {
       await this.loadRulesForPlatform(platform)
     } catch (error) {
-      throw new Error(`載入驗證規則失敗: ${error.message}`)
+      throw new StandardError('UNKNOWN_ERROR', `載入驗證規則失敗: ${error.message}`, {
+          "category": "validation"
+      })
     }
   }
 
@@ -1010,7 +1022,9 @@ class DataValidationService {
     // 建立超時控制
     const timeout = this.config.validationTimeout || 5000
     const timeoutPromise = new Promise((_resolve, reject) => {
-      setTimeout(() => reject(new Error('驗證逾時')), timeout)
+      setTimeout(() => reject(new StandardError('UNKNOWN_ERROR', '驗證逾時', {
+          "category": "validation"
+      })), timeout)
     })
 
     const validationPromise = (async () => {
@@ -1334,7 +1348,9 @@ class DataValidationService {
       // 取得驗證規則
       const rules = this._getValidationRules(platform)
       if (!rules) {
-        throw new Error('驗證規則損壞')
+        throw new StandardError('UNKNOWN_ERROR', '驗證規則損壞', {
+          "category": "validation"
+      })
       }
 
       // 執行預處理修復（在驗證之前）

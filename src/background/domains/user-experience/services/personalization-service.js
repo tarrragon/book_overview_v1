@@ -26,6 +26,8 @@
  * - 使用習慣分析
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class PersonalizationService {
   constructor (dependencies = {}) {
     // 依賴注入
@@ -121,7 +123,9 @@ class PersonalizationService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new Error('個人化服務尚未初始化')
+      throw new StandardError('UNKNOWN_ERROR', '個人化服務尚未初始化', {
+          "category": "general"
+      })
     }
 
     if (this.state.active) {
@@ -314,7 +318,9 @@ class PersonalizationService {
     try {
       const suggestion = this.userProfile.recommendations.find(r => r.id === suggestionId)
       if (!suggestion) {
-        throw new Error(`找不到建議: ${suggestionId}`)
+        throw new StandardError('UNKNOWN_ERROR', `找不到建議: ${suggestionId}`, {
+          "category": "general"
+      })
       }
 
       // 根據建議類型執行相應操作
@@ -330,7 +336,9 @@ class PersonalizationService {
           result = await this.applyFeatureSuggestion(suggestion)
           break
         default:
-          throw new Error(`不支援的建議類型: ${suggestion.type}`)
+          throw new StandardError('UNKNOWN_ERROR', `不支援的建議類型: ${suggestion.type}`, {
+          "category": "general"
+      })
       }
 
       // 標記建議為已應用

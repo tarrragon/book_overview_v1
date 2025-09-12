@@ -208,7 +208,11 @@ describe('StorageLoadHandler 單元測試', () => {
         flowId: 'test-load-flow-123'
       }
 
-      await expect(storageLoadHandler.handle(loadEvent)).rejects.toThrow('Load operation failed: Data not found')
+      await expect(storageLoadHandler.handle(loadEvent)).rejects.toMatchObject({
+        code: 'NOT_FOUND_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'STORAGE.ERROR',
@@ -232,7 +236,11 @@ describe('StorageLoadHandler 單元測試', () => {
         flowId: 'test-load-flow-123'
       }
 
-      await expect(storageLoadHandler.handle(invalidEvent)).rejects.toThrow('Invalid load request')
+      await expect(storageLoadHandler.handle(invalidEvent)).rejects.toMatchObject({
+        code: 'INVALID_INPUT_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'STORAGE.ERROR',
@@ -256,7 +264,11 @@ describe('StorageLoadHandler 單元測試', () => {
         flowId: 'test-load-flow-123'
       }
 
-      await expect(storageLoadHandler.handle(invalidEvent)).rejects.toThrow('Invalid load type')
+      await expect(storageLoadHandler.handle(invalidEvent)).rejects.toMatchObject({
+        code: 'INVALID_INPUT_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'STORAGE.ERROR',
@@ -280,7 +292,11 @@ describe('StorageLoadHandler 單元測試', () => {
         flowId: 'test-load-flow-123'
       }
 
-      await expect(storageLoadHandler.handle(loadEvent)).rejects.toThrow('Storage adapter not available')
+      await expect(storageLoadHandler.handle(loadEvent)).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'STORAGE.ERROR',
@@ -311,7 +327,11 @@ describe('StorageLoadHandler 單元測試', () => {
         flowId: 'test-load-flow-123'
       }
 
-      await expect(storageLoadHandler.handle(loadEvent)).rejects.toThrow('Load operation failed: No data found')
+      await expect(storageLoadHandler.handle(loadEvent)).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'STORAGE.ERROR',

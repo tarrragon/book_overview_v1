@@ -15,6 +15,7 @@
  */
 
 const BaseModule = require('./base-module')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class InstallHandler extends BaseModule {
   constructor (dependencies = {}) {
@@ -370,7 +371,9 @@ class InstallHandler extends BaseModule {
       const missingAPIs = requiredAPIs.filter(api => !chrome[api])
 
       if (missingAPIs.length > 0) {
-        throw new Error(`缺少必要的 Chrome API: ${missingAPIs.join(', ')}`)
+        throw new StandardError('MISSING_REQUIRED_DATA', `缺少必要的 Chrome API: ${missingAPIs.join(', ', {
+          "category": "general"
+      })}`)
       }
 
       this.logger.log('✅ 相容性檢查通過')

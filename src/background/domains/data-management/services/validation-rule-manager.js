@@ -20,6 +20,7 @@
 
 const BaseModule = require('src/background/lifecycle/base-module')
 const { createLogger } = require('src/core/logging/Logger')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class ValidationRuleManager extends BaseModule {
   /**
@@ -29,7 +30,9 @@ class ValidationRuleManager extends BaseModule {
    */
   constructor (eventBus, dependencies = {}) {
     if (!eventBus) {
-      throw new Error('EventBus is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required', {
+          "category": "validation"
+      })
     }
 
     super({
@@ -124,7 +127,9 @@ class ValidationRuleManager extends BaseModule {
   async updatePlatformRules (platform, newRules) {
     try {
       if (!this.validateRuleStructure(newRules)) {
-        throw new Error('Invalid rule structure')
+        throw new StandardError('INVALID_DATA_FORMAT', 'Invalid rule structure', {
+          "category": "validation"
+      })
       }
 
       this.validationRules.set(platform, newRules)
@@ -330,7 +335,9 @@ class ValidationRuleManager extends BaseModule {
    */
   validatePlatformSupported (platform) {
     if (!this.supportedPlatforms.includes(platform)) {
-      throw new Error(`Platform ${platform} is not supported`)
+      throw new StandardError('FEATURE_NOT_SUPPORTED', `Platform ${platform} is not supported`, {
+          "category": "validation"
+      })
     }
   }
 
@@ -376,10 +383,14 @@ class ValidationRuleManager extends BaseModule {
    */
   validateLoadedRules (platform, rules) {
     if (!rules) {
-      throw new Error(`Failed to load validation rules for platform ${platform}`)
+      throw new StandardError('OPERATION_FAILED', `Failed to load validation rules for platform ${platform}`, {
+          "category": "validation"
+      })
     }
     if (!this.validateRuleStructure(rules)) {
-      throw new Error(`Invalid rule structure for platform ${platform}`)
+      throw new StandardError('INVALID_DATA_FORMAT', `Invalid rule structure for platform ${platform}`, {
+          "category": "validation"
+      })
     }
   }
 

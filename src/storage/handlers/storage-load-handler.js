@@ -33,6 +33,7 @@
  */
 
 const EventHandler = require('src/core/event-handler')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class StorageLoadHandler extends EventHandler {
   /**
@@ -795,7 +796,9 @@ class StorageLoadHandler extends EventHandler {
    */
   createError (type, message, originalError) {
     const prefix = this.getErrorPrefix(type)
-    const error = new Error(`${prefix}: ${message}`)
+    const error = new StandardError('UNKNOWN_ERROR', `${prefix}: ${message}`, {
+          "category": "storage"
+      })
     error.type = type
     if (originalError) {
       error.originalError = originalError

@@ -20,6 +20,7 @@
 const EventHandler = require('src/core/event-handler')
 const BookDataExporter = require('src/export/book-data-exporter')
 const { EXPORT_EVENTS } = require('src/export/export-events')
+const { StandardError } = require('src/core/errors/StandardError')
 
 /**
  * JSON 匯出處理器類別
@@ -139,11 +140,16 @@ class JSONExportHandler extends EventHandler {
    */
   _validateEventData (eventData) {
     if (!eventData) {
-      throw new Error('Event data is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'Event data is required', {
+          "category": "export"
+      })
     }
 
     if (!eventData.books || !Array.isArray(eventData.books)) {
-      throw new Error('Books array is required for JSON export')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'Books array is required for JSON export', {
+          "dataType": "array",
+          "category": "export"
+      })
     }
 
     if (!eventData.options || typeof eventData.options !== 'object') {

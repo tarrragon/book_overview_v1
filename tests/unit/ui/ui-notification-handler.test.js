@@ -16,6 +16,7 @@
 
 const UINotificationHandler = require('src/ui/handlers/ui-notification-handler')
 const EventBus = require('src/core/event-bus')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('UINotificationHandler', () => {
   let handler
@@ -388,7 +389,7 @@ describe('UINotificationHandler', () => {
     test('應該處理 DOM 操作錯誤', async () => {
       // 模擬 DOM 操作失敗
       mockDocument.createElement.mockImplementation(() => {
-        throw new Error('DOM creation failed')
+        throw new StandardError('TEST_ERROR', 'DOM creation failed', { category: 'testing' })
       })
 
       const event = {

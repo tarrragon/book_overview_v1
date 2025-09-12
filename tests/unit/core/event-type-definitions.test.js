@@ -165,19 +165,35 @@ describe('EventTypeDefinitions', () => {
     test('應該拒絕無效的事件建構參數', () => {
       expect(() => {
         eventTypes.buildEventName('INVALID', 'READMOO', 'EXTRACT', 'COMPLETED')
-      }).toThrow('Invalid domain')
+      }).toMatchObject({
+        code: expect.any(String),
+        message: expect.stringContaining('Invalid domain'),
+        details: expect.any(Object)
+      })
 
       expect(() => {
         eventTypes.buildEventName('EXTRACTION', 'INVALID', 'EXTRACT', 'COMPLETED')
-      }).toThrow('Invalid platform')
+      }).toMatchObject({
+        code: expect.any(String),
+        message: expect.stringContaining('Invalid platform'),
+        details: expect.any(Object)
+      })
 
       expect(() => {
         eventTypes.buildEventName('EXTRACTION', 'READMOO', 'INVALID', 'COMPLETED')
-      }).toThrow('Invalid action')
+      }).toMatchObject({
+        code: expect.any(String),
+        message: expect.stringContaining('Invalid action'),
+        details: expect.any(Object)
+      })
 
       expect(() => {
         eventTypes.buildEventName('EXTRACTION', 'READMOO', 'EXTRACT', 'INVALID')
-      }).toThrow('Invalid state')
+      }).toMatchObject({
+        code: expect.any(String),
+        message: expect.stringContaining('Invalid state'),
+        details: expect.any(Object)
+      })
     })
 
     test('應該支援部分事件名稱建構', () => {

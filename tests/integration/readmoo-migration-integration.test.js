@@ -13,6 +13,7 @@
 const ReadmooPlatformMigrationValidator = require('src/platform/readmoo-platform-migration-validator')
 const EventBus = require('src/core/event-bus')
 const PlatformDetectionService = require('src/background/domains/platform/services/platform-detection-service')
+const { StandardError } = require('src/core/errors/StandardError')
 
 // 模擬 Readmoo 適配器
 class MockReadmooAdapter {
@@ -46,7 +47,7 @@ class MockReadmooAdapter {
     if (context.url && context.url.includes('readmoo.com')) {
       return [...this.mockBooks]
     } else {
-      throw new Error('Invalid Readmoo URL')
+      throw new StandardError('INVALID_INPUT_ERROR', 'Invalid Readmoo URL', { category: 'testing' })
     }
   }
 

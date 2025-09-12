@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * Storage Local Mock - 單一責任原則實現
  * 遵循 Five Lines 規則，每個方法職責明確
@@ -122,7 +123,7 @@ class StorageLocalMock {
    */
   _validateItems (items) {
     if (!items || typeof items !== 'object') {
-      throw new Error('Items must be an object')
+      throw new StandardError('TEST_ERROR', 'Items must be an object', { category: 'testing' })
     }
   }
 
@@ -146,7 +147,7 @@ class StorageLocalMock {
    */
   _validateQuotaLimit (itemsSize) {
     if (this._used + itemsSize > this._quota) {
-      throw new Error('Storage quota exceeded')
+      throw new StandardError('TEST_ERROR', 'Storage quota exceeded', { category: 'testing' })
     }
   }
 

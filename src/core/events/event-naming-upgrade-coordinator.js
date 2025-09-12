@@ -30,6 +30,8 @@
  * Legacy → Modern 事件轉換對應表
  * 基於策略文件中定義的標準轉換規則
  */
+const { StandardError } = require('src/core/errors/StandardError')
+
 const EVENT_MIGRATION_MAPPING = {
   // Readmoo 平台核心事件
   'EXTRACTION.COMPLETED': 'EXTRACTION.READMOO.EXTRACT.COMPLETED',
@@ -329,7 +331,9 @@ class EventNamingUpgradeCoordinator {
    */
   setConversionMode (mode) {
     if (!this.isValidConversionMode(mode)) {
-      throw new Error('Invalid conversion mode')
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid conversion mode', {
+          "category": "general"
+      })
     }
     this.conversionMode = mode
   }

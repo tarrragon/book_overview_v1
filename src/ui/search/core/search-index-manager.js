@@ -27,6 +27,8 @@
  * @since 2025-08-20
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class SearchIndexManager {
   /**
    * 建構 SearchIndexManager 實例
@@ -39,7 +41,9 @@ class SearchIndexManager {
     const { eventBus, logger } = options
 
     if (!eventBus || !logger) {
-      throw new Error('EventBus 和 Logger 是必需的')
+      throw new StandardError('EVENTBUS_ERROR', 'EventBus 和 Logger 是必需的', {
+          "category": "ui"
+      })
     }
 
     this.eventBus = eventBus
@@ -139,7 +143,9 @@ class SearchIndexManager {
     try {
       // 檢查記憶體限制
       if (books.length > this.memoryLimit) {
-        const error = new Error('記憶體不足')
+        const error = new StandardError('UNKNOWN_ERROR', '記憶體不足', {
+          "category": "ui"
+      })
         this.eventBus.emit('SEARCH.WARNING', {
           message: '記憶體不足，無法建構搜尋索引',
           error: error.message,

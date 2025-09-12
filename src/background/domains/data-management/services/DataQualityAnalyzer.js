@@ -29,6 +29,8 @@
  * - 品質趨勢分析和預測
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class DataQualityAnalyzer {
   /**
    * 建構資料品質分析器
@@ -37,13 +39,19 @@ class DataQualityAnalyzer {
   constructor (options = {}) {
     // 驗證必要依賴
     if (!options.validationEngine) {
-      throw new Error('ValidationEngine is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'ValidationEngine is required', {
+          "category": "validation"
+      })
     }
     if (!options.dataNormalizer) {
-      throw new Error('DataNormalizer is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'DataNormalizer is required', {
+          "category": "ui"
+      })
     }
     if (!options.platformRuleManager) {
-      throw new Error('PlatformRuleManager is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'PlatformRuleManager is required', {
+          "category": "ui"
+      })
     }
 
     // 注入依賴服務
@@ -155,7 +163,9 @@ class DataQualityAnalyzer {
       return analysis
     } catch (error) {
       this._updateStatistics({ processingTime: Date.now() - startTime }, true)
-      throw new Error(`Quality analysis failed: ${error.message}`)
+      throw new StandardError('OPERATION_FAILED', `Quality analysis failed: ${error.message}`, {
+          "category": "general"
+      })
     }
   }
 
@@ -170,7 +180,10 @@ class DataQualityAnalyzer {
     const startTime = Date.now()
 
     if (!Array.isArray(books) || books.length === 0) {
-      throw new Error('Books array is required and must not be empty')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'Books array is required and must not be empty', {
+          "dataType": "array",
+          "category": "ui"
+      })
     }
 
     const batchResults = {
@@ -463,16 +476,22 @@ class DataQualityAnalyzer {
    */
   _validateInputs (book, platform) {
     if (!book || typeof book !== 'object') {
-      throw new Error('Invalid book data')
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid book data', {
+          "category": "general"
+      })
     }
     if (!platform || typeof platform !== 'string') {
-      throw new Error('Platform is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'Platform is required', {
+          "category": "ui"
+      })
     }
 
     // 驗證平台支援
     const platformSupport = this.platformRuleManager.validatePlatformSupport(platform)
     if (!platformSupport.isSupported) {
-      throw new Error(`Platform not supported: ${platform}`)
+      throw new StandardError('FEATURE_NOT_SUPPORTED', `Platform not supported: ${platform}`, {
+          "category": "general"
+      })
     }
   }
 

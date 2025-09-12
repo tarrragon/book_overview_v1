@@ -26,6 +26,8 @@
 /**
  * 事件處理工具類
  */
+const { StandardError } = require('src/core/errors/StandardError')
+
 class EventUtils {
   constructor () {
     this.listeners = new Map()
@@ -62,7 +64,9 @@ class EventUtils {
     if (!element || typeof type !== 'string' || typeof handler !== 'function') {
       return {
         success: false,
-        error: new Error('Invalid parameters')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {
+          "category": "general"
+      })
       }
     }
 
@@ -143,7 +147,9 @@ class EventUtils {
     if (!listenerId || typeof listenerId !== 'string') {
       return {
         success: false,
-        error: new Error('Invalid listener ID')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid listener ID', {
+          "category": "general"
+      })
       }
     }
 
@@ -152,7 +158,9 @@ class EventUtils {
     if (!listener) {
       return {
         success: false,
-        error: new Error('Listener not found')
+        error: new StandardError('RESOURCE_NOT_FOUND', 'Listener not found', {
+          "category": "general"
+      })
       }
     }
 
@@ -188,7 +196,9 @@ class EventUtils {
     if (!element || !Array.isArray(eventConfigs)) {
       return {
         success: false,
-        error: new Error('Invalid parameters')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {
+          "category": "general"
+      })
       }
     }
 
@@ -278,7 +288,9 @@ class EventUtils {
     if (!message || typeof message !== 'object') {
       return {
         success: false,
-        error: new Error('Invalid message')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid message', {
+          "category": "general"
+      })
       }
     }
 
@@ -287,7 +299,9 @@ class EventUtils {
         if (!chrome || !chrome.runtime) {
           resolve({
             success: false,
-            error: new Error('Chrome runtime not available')
+            error: new StandardError('RESOURCE_NOT_AVAILABLE', 'Chrome runtime not available', {
+          "category": "general"
+      })
           })
           return
         }
@@ -401,7 +415,9 @@ class EventUtils {
     if (!messageType || typeof handler !== 'function') {
       return {
         success: false,
-        error: new Error('Invalid parameters')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {
+          "category": "general"
+      })
       }
     }
 
@@ -438,7 +454,9 @@ class EventUtils {
     if (!container || !selector || !type || typeof handler !== 'function') {
       return {
         success: false,
-        error: new Error('Invalid parameters')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {
+          "category": "general"
+      })
       }
     }
 
@@ -487,7 +505,9 @@ class EventUtils {
     if (!Array.isArray(elements) || !type || typeof handler !== 'function') {
       return {
         success: false,
-        error: new Error('Invalid parameters')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {
+          "category": "general"
+      })
       }
     }
 
@@ -537,7 +557,9 @@ class EventUtils {
     if (!batch) {
       return {
         success: false,
-        error: new Error('Batch not found')
+        error: new StandardError('RESOURCE_NOT_FOUND', 'Batch not found', {
+          "category": "general"
+      })
       }
     }
 
@@ -641,7 +663,9 @@ class EventUtils {
 
     return {
       success: false,
-      error: new Error('Debounce timer not found')
+      error: new StandardError('RESOURCE_NOT_FOUND', 'Debounce timer not found', {
+          "category": "general"
+      })
     }
   }
 

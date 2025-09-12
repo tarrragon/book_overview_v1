@@ -179,7 +179,11 @@ describe('PopupController 通訊服務整合測試', () => {
 
       // When: 檢查背景狀態
       // Then: 應該在超時後拋出錯誤
-      await expect(communicationService.checkBackgroundStatus()).rejects.toThrow('Background communication timeout')
+      await expect(communicationService.checkBackgroundStatus()).rejects.toMatchObject({
+        code: 'TIMEOUT_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // 恢復測試環境
       process.env.NODE_ENV = originalEnv
@@ -204,7 +208,11 @@ describe('PopupController 通訊服務整合測試', () => {
 
       // When: 檢查背景狀態
       // Then: 應該拋出錯誤
-      await expect(communicationService.checkBackgroundStatus()).rejects.toThrow('Chrome API error: Extension context invalidated')
+      await expect(communicationService.checkBackgroundStatus()).rejects.toMatchObject({
+        code: 'INVALID_INPUT_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // 恢復測試環境
       process.env.NODE_ENV = originalEnv
@@ -284,7 +292,11 @@ describe('PopupController 通訊服務整合測試', () => {
 
       // When: 嘗試開始提取
       // Then: 應該拋出錯誤並更新狀態
-      await expect(communicationService.startExtraction()).rejects.toThrow('Not on Readmoo page')
+      await expect(communicationService.startExtraction()).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // 狀態應該已更新
       expect(document.getElementById('status-text').textContent).toBe('請前往 Readmoo 網站')
@@ -305,7 +317,11 @@ describe('PopupController 通訊服務整合測試', () => {
 
       // When: 嘗試開始提取
       // Then: 應該拋出錯誤並更新狀態
-      await expect(communicationService.startExtraction()).rejects.toThrow('No active tab found')
+      await expect(communicationService.startExtraction()).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // 狀態應該已更新
       expect(document.getElementById('status-text').textContent).toBe('找不到活躍標籤頁')

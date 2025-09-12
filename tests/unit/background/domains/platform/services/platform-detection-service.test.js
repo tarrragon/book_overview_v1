@@ -9,6 +9,7 @@
 
 const PlatformDetectionService = require('src/background/domains/platform/services/platform-detection-service.js')
 const EventBus = require('src/core/event-bus.js')
+const { StandardError } = require('src/core/errors/StandardError')
 
 // 測試專用模擬資料
 const MockPlatformData = {
@@ -393,7 +394,7 @@ describe('PlatformDetectionService', () => {
 
     test('should handle DOM query errors gracefully', async () => {
       mockDOM.querySelector = jest.fn().mockImplementation(() => {
-        throw new Error('DOM query failed')
+        throw new StandardError('TEST_ERROR', 'DOM query failed', { category: 'testing' })
       })
 
       const context = {
@@ -655,7 +656,7 @@ describe('PlatformDetectionService', () => {
     test('should emit detection failed event on error', async () => {
       // Force an error
       service.analyzeUrlPattern = jest.fn().mockImplementation(() => {
-        throw new Error('Analysis failed')
+        throw new StandardError('TEST_ERROR', 'Analysis failed', { category: 'testing' })
       })
 
       const context = {
@@ -1040,10 +1041,10 @@ describe('PlatformDetectionService', () => {
       // 創建一個有問題的 EventBus mock 來模擬初始化錯誤
       const problematicEventBus = {
         on: jest.fn().mockImplementation(() => {
-          throw new Error('EventBus listener registration failed')
+          throw new StandardError('TEST_ERROR', 'EventBus listener registration failed', { category: 'testing' })
         }),
         emit: jest.fn().mockImplementation(() => {
-          throw new Error('EventBus emit failed')
+          throw new StandardError('TEST_ERROR', 'EventBus emit failed', { category: 'testing' })
         })
       }
 
@@ -1061,7 +1062,7 @@ describe('PlatformDetectionService', () => {
 
     test('should handle pattern initialization errors', () => {
       service.initializePlatformPatterns = jest.fn().mockImplementation(() => {
-        throw new Error('Pattern initialization failed')
+        throw new StandardError('TEST_ERROR', 'Pattern initialization failed', { category: 'testing' })
       })
 
       // Should handle gracefully

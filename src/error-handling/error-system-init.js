@@ -19,6 +19,7 @@ const MessageTracker = require('./message-tracker')
 const EventTracker = require('./event-tracker')
 const EventPerformanceMonitor = require('./event-performance-monitor')
 const { getErrorConfig, getUserErrorMessage, getDiagnosticSuggestion } = require('src/config/error-config')
+const { StandardError } = require('src/core/errors/StandardError')
 
 /**
  * 錯誤處理系統管理器
@@ -195,7 +196,9 @@ class ErrorSystemManager {
    */
   _handleGlobalError (error, type, context = {}) {
     const errorData = {
-      error: error instanceof Error ? error : new Error(String(error)),
+      error: error instanceof Error ? error : new StandardError('UNKNOWN_ERROR', String(error, {
+          "category": "general"
+      })),
       type,
       context,
       timestamp: Date.now(),

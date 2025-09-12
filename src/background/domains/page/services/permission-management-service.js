@@ -23,6 +23,7 @@ const {
   PERMISSION_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class PermissionManagementService {
   constructor (dependencies = {}) {
@@ -112,7 +113,9 @@ class PermissionManagementService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new Error('服務尚未初始化')
+      throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
+          "category": "permission"
+      })
     }
 
     if (this.state.active) {
@@ -294,7 +297,9 @@ class PermissionManagementService {
   async requestPermission (permissionKey, userInitiated = false) {
     const config = this.requiredPermissions.get(permissionKey)
     if (!config) {
-      throw new Error(`未知的權限: ${permissionKey}`)
+      throw new StandardError('PERMISSION_DENIED', `未知的權限: ${permissionKey}`, {
+          "category": "permission"
+      })
     }
 
     if (this.grantedPermissions.has(permissionKey)) {
@@ -422,7 +427,9 @@ class PermissionManagementService {
   async revokePermission (permissionKey) {
     const config = this.requiredPermissions.get(permissionKey)
     if (!config) {
-      throw new Error(`未知的權限: ${permissionKey}`)
+      throw new StandardError('PERMISSION_DENIED', `未知的權限: ${permissionKey}`, {
+          "category": "permission"
+      })
     }
 
     if (typeof chrome === 'undefined' || !chrome.permissions) {
@@ -619,7 +626,9 @@ class PermissionManagementService {
       const { permission, userInitiated, requestId } = event.data || {}
 
       if (!permission) {
-        throw new Error('權限請求事件缺少 permission 參數')
+        throw new StandardError('PERMISSION_DENIED', '權限請求事件缺少 permission 參數', {
+          "category": "permission"
+      })
       }
 
       const granted = await this.requestPermission(permission, userInitiated)
@@ -675,7 +684,9 @@ class PermissionManagementService {
       const { permission, requestId } = event.data || {}
 
       if (!permission) {
-        throw new Error('權限撤銷事件缺少 permission 參數')
+        throw new StandardError('PERMISSION_DENIED', '權限撤銷事件缺少 permission 參數', {
+          "category": "permission"
+      })
       }
 
       const revoked = await this.revokePermission(permission)

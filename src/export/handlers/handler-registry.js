@@ -22,6 +22,7 @@ const JSONExportHandler = require('./json-export-handler')
 const ExcelExportHandler = require('./excel-export-handler')
 const ProgressHandler = require('./progress-handler')
 const ErrorHandler = require('./error-handler')
+const { StandardError } = require('src/core/errors/StandardError')
 
 /**
  * 處理器註冊中心類別
@@ -35,7 +36,9 @@ class HandlerRegistry {
    */
   constructor (eventBus) {
     if (!eventBus) {
-      throw new Error('EventBus is required for HandlerRegistry')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required for HandlerRegistry', {
+          "category": "export"
+      })
     }
 
     /**
@@ -85,15 +88,21 @@ class HandlerRegistry {
    */
   register (handler) {
     if (!handler) {
-      throw new Error('Handler is required for registration')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'Handler is required for registration', {
+          "category": "export"
+      })
     }
 
     if (!handler.name) {
-      throw new Error('Handler must have a name')
+      throw new StandardError('UNKNOWN_ERROR', 'Handler must have a name', {
+          "category": "export"
+      })
     }
 
     if (this.handlers.has(handler.name)) {
-      throw new Error(`Handler '${handler.name}' is already registered`)
+      throw new StandardError('UNKNOWN_ERROR', `Handler '${handler.name}' is already registered`, {
+          "category": "export"
+      })
     }
 
     // 註冊處理器

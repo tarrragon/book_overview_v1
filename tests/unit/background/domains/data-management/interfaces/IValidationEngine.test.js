@@ -297,15 +297,27 @@ describe('IValidationEngine TDD 介面契約測試', () => {
       // When & Then: 應該拋出適當錯誤
       await expect(
         validationEngine.validateSingleBook(nullBook, 'READMOO', 'test')
-      ).rejects.toThrow('Invalid book data')
+      ).rejects.toMatchObject({
+        code: 'INVALID_INPUT_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       await expect(
         validationEngine.validateSingleBook({ id: '1' }, emptyPlatform, 'test')
-      ).rejects.toThrow('Platform is required')
+      ).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       await expect(
         validationEngine.validateSingleBook({ id: '1' }, 'READMOO', undefinedSource)
-      ).rejects.toThrow('Source is required')
+      ).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     test('應該支援依賴注入配置', () => {

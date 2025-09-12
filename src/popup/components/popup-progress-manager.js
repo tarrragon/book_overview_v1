@@ -22,6 +22,8 @@
  * @since 2025-08-18
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class PopupProgressManager {
   /**
    * 建構 PopupProgressManager
@@ -52,12 +54,16 @@ class PopupProgressManager {
   updateProgress (progressData) {
     // 驗證必要欄位
     if (!progressData || typeof progressData.percentage !== 'number' || !progressData.status) {
-      throw new Error('Progress data must include percentage and status fields')
+      throw new StandardError('UNKNOWN_ERROR', 'Progress data must include percentage and status fields', {
+          "category": "general"
+      })
     }
 
     // 驗證狀態類型
     if (!this.validProgressStates.includes(progressData.status)) {
-      throw new Error(`Invalid progress status: ${progressData.status}`)
+      throw new StandardError('INVALID_DATA_FORMAT', `Invalid progress status: ${progressData.status}`, {
+          "category": "general"
+      })
     }
 
     // 限制百分比在 0-100 範圍內（避免視覺異常）

@@ -35,6 +35,7 @@
 
 const { EXPORT_EVENTS, EXPORT_EVENT_PRIORITIES, createExportEvent } = require('./export-events')
 const BookDataExporter = require('./book-data-exporter')
+const { StandardError } = require('src/core/errors/StandardError')
 
 /**
  * 匯出管理器類別
@@ -48,7 +49,10 @@ class ExportManager {
    */
   constructor (eventBus) {
     if (!eventBus) {
-      throw new Error('EventBus is required for ExportManager')
+      throw new StandardError('EVENTBUS_REQUIRED', 'EventBus is required for ExportManager', {
+        category: 'initialization',
+        requiredDependency: 'EventBus'
+      })
     }
 
     /**
@@ -249,7 +253,9 @@ class ExportManager {
 
     // 檢查並發限制
     if (this.currentExports.size >= this.maxConcurrentExports) {
-      throw new Error(`Maximum concurrent exports (${this.maxConcurrentExports}) exceeded`)
+      throw new StandardError('EXPORT_OPERATION_FAILED', `Maximum concurrent exports (${this.maxConcurrentExports}, {
+          "category": "export"
+      }) exceeded`)
     }
 
     // 記錄匯出開始
@@ -324,15 +330,24 @@ class ExportManager {
    */
   _validateExportData (exportData, format) {
     if (!exportData || !exportData.books) {
-      throw new Error(`Invalid ${format} export data: books array is required`)
+      throw new StandardError('REQUIRED_FIELD_MISSING', `Invalid ${format} export data: books array is required`, {
+          "dataType": "array",
+          "category": "export"
+      })
     }
 
     if (!Array.isArray(exportData.books)) {
-      throw new Error(`Invalid ${format} export data: books must be an array`)
+      throw new StandardError('INVALID_DATA_FORMAT', `Invalid ${format} export data: books must be an array`, {
+          "dataType": "array",
+          "category": "export"
+      })
     }
 
     if (exportData.books.length === 0) {
-      throw new Error(`Invalid ${format} export data: books array cannot be empty`)
+      throw new StandardError('INVALID_DATA_FORMAT', `Invalid ${format} export data: books array cannot be empty`, {
+          "dataType": "array",
+          "category": "export"
+      })
     }
   }
 
@@ -475,7 +490,9 @@ class ExportManager {
       const formats = exportData.formats || []
 
       if (formats.length === 0) {
-        throw new Error('Batch export requires at least one format')
+        throw new StandardError('UI_OPERATION_FAILED', 'Batch export requires at least one format', {
+          "category": "export"
+      })
       }
 
       // 發送批量匯出開始事件
@@ -578,17 +595,23 @@ class ExportManager {
    */
   _validateDownloadData (downloadData) {
     if (!downloadData || !downloadData.data || !downloadData.filename) {
-      throw new Error('Invalid download data: data and filename are required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'Invalid download data: data and filename are required', {
+          "category": "export"
+      })
     }
 
     if (typeof downloadData.filename !== 'string' || downloadData.filename.trim() === '') {
-      throw new Error('Invalid download data: filename must be a non-empty string')
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid download data: filename must be a non-empty string', {
+          "category": "export"
+      })
     }
 
     // 檢查檔名是否包含非法字元
     const invalidChars = /[<>:"/\\|?*]/
     if (invalidChars.test(downloadData.filename)) {
-      throw new Error('Invalid download data: filename contains illegal characters')
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid download data: filename contains illegal characters', {
+          "category": "export"
+      })
     }
   }
 

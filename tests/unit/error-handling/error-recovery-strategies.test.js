@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * 錯誤恢復策略測試
  * v0.9.32 - TDD Phase 2 錯誤恢復機制測試實作
@@ -68,7 +69,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       const flakyOperation = jest.fn().mockImplementation(() => {
         attemptCount++
         if (attemptCount < 3) {
-          throw new Error(`Temporary failure ${attemptCount}`)
+          throw new StandardError('TEST_ERROR', `Temporary failure ${attemptCount}`, { category: 'testing' })
         }
         return `Success after ${attemptCount} attempts`
       })
@@ -101,7 +102,11 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       })
 
       // Then: 應該在重試耗盡後失敗
-      await expect(promise).rejects.toThrow('Permanent failure')
+      await expect(promise).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
       expect(alwaysFailingOperation).toHaveBeenCalledTimes(3) // 初始 + 2次重試
     }, 15000)
 
@@ -133,7 +138,11 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       })
 
       // Then: 應該在不可重試錯誤時停止
-      await expect(promise).rejects.toThrow('Permission denied')
+      await expect(promise).rejects.toMatchObject({
+        code: 'PERMISSION_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
       expect(conditionalFailingOperation).toHaveBeenCalledTimes(2) // 遇到不可重試錯誤就停止
     }, 20000)
 
@@ -143,7 +152,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       const operation = jest.fn().mockImplementation(() => {
         attempts++
         if (attempts < 2) {
-          throw new Error('Retry needed')
+          throw new StandardError('TEST_ERROR', 'Retry needed', { category: 'testing' })
         }
         return 'success'
       })
@@ -221,7 +230,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
           if (serviceAvailable) {
             return Promise.resolve({ books: [], source: 'primary' })
           }
-          throw new Error('Service down')
+          throw new StandardError('TEST_ERROR', 'Service down', { category: 'testing' })
         })
       }
 
@@ -554,7 +563,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
           }
         }
       }
-      throw new Error('No available services')
+      throw new StandardError('TEST_ERROR', 'No available services', { category: 'testing' })
     },
 
     async executeServiceWithFallback (primaryService, fallbackService) {

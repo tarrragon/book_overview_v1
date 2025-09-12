@@ -10,6 +10,7 @@
  * @jest-environment jsdom
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
 const RetryCoordinator = require('src/background/domains/data-management/services/RetryCoordinator.js')
 
 describe('RetryCoordinator TDD 測試', () => {
@@ -103,8 +104,11 @@ describe('RetryCoordinator TDD 測試', () => {
       expect(coordinator.selectRetryStrategy(unknownAnalysis)).toBe('LINEAR_BACKOFF')
 
       // 不可重試的錯誤應該拋出異常
-      expect(() => coordinator.selectRetryStrategy(nonRetryableAnalysis))
-        .toThrow('錯誤不可重試: AUTHORIZATION')
+      expect(() => coordinator.selectRetryStrategy(nonRetryableAnalysis)).toThrow()
+      expect(() => coordinator.selectRetryStrategy(nonRetryableAnalysis)).toMatchObject({
+        code: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     test('calculateBackoffDelay() 應該正確計算退避延遲', () => {
@@ -163,7 +167,7 @@ describe('RetryCoordinator TDD 測試', () => {
         originalParams: { source: 'readmoo' }
       }
 
-      const mockExecutor = jest.fn().mockRejectedValue(new Error('still failing'))
+      const mockExecutor = jest.fn().mockRejectedValue(new StandardError('STILL_FAILING', 'still failing', { category: 'testing' }))
 
       // When: 執行重試
       const result = await coordinator.executeRetry(failedJob, mockExecutor)

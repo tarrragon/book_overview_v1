@@ -30,6 +30,8 @@
  * - 企業級驗證服務架構
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class ValidationServiceCoordinator {
   /**
    * 建構驗證服務協調器
@@ -272,7 +274,9 @@ class ValidationServiceCoordinator {
         coordinationTime: Date.now() - startTime
       }
     } catch (error) {
-      throw new Error(`Batch validation coordination failed: ${error.message}`)
+      throw new StandardError('OPERATION_FAILED', `Batch validation coordination failed: ${error.message}`, {
+          "category": "validation"
+      })
     }
   }
 
@@ -334,7 +338,9 @@ class ValidationServiceCoordinator {
         coordinationTime: Date.now() - startTime
       }
     } catch (error) {
-      throw new Error(`Priority validation coordination failed: ${error.message}`)
+      throw new StandardError('OPERATION_FAILED', `Priority validation coordination failed: ${error.message}`, {
+          "category": "validation"
+      })
     }
   }
 
@@ -372,7 +378,9 @@ class ValidationServiceCoordinator {
         coordinationTime: Date.now() - startTime
       }
     } catch (error) {
-      throw new Error(`Parallel validation coordination failed: ${error.message}`)
+      throw new StandardError('OPERATION_FAILED', `Parallel validation coordination failed: ${error.message}`, {
+          "category": "validation"
+      })
     }
   }
 
@@ -595,7 +603,9 @@ class ValidationServiceCoordinator {
 
       return optimizationResult
     } catch (error) {
-      throw new Error(`Service optimization failed: ${error.message}`)
+      throw new StandardError('OPERATION_FAILED', `Service optimization failed: ${error.message}`, {
+          "category": "general"
+      })
     }
   }
 
@@ -641,7 +651,9 @@ class ValidationServiceCoordinator {
 
       return clearResult
     } catch (error) {
-      throw new Error(`Service cache clearing failed: ${error.message}`)
+      throw new StandardError('OPERATION_FAILED', `Service cache clearing failed: ${error.message}`, {
+          "category": "general"
+      })
     }
   }
 
@@ -662,12 +674,16 @@ class ValidationServiceCoordinator {
 
     for (const service of requiredServices) {
       if (!options[service]) {
-        throw new Error(`${service} is required`)
+        throw new StandardError('REQUIRED_FIELD_MISSING', `${service} is required`, {
+          "category": "ui"
+      })
       }
 
       if (service !== 'eventBus' && options[service].isInitialized === false) {
         const serviceName = service.charAt(0).toUpperCase() + service.slice(1)
-        throw new Error(`${serviceName} is not properly initialized`)
+        throw new StandardError('UNKNOWN_ERROR', `${serviceName} is not properly initialized`, {
+          "category": "general"
+      })
       }
     }
   }
@@ -689,7 +705,9 @@ class ValidationServiceCoordinator {
   async _ensurePlatformRulesLoaded (platform) {
     const supportResult = this.platformRuleManager.validatePlatformSupport(platform)
     if (!supportResult.isSupported) {
-      throw new Error(`Platform ${platform} is not supported`)
+      throw new StandardError('FEATURE_NOT_SUPPORTED', `Platform ${platform} is not supported`, {
+          "category": "general"
+      })
     }
 
     await this.platformRuleManager.loadPlatformRules(platform)

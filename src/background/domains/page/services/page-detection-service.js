@@ -23,6 +23,7 @@ const {
   PAGE_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class PageDetectionService {
   constructor (dependencies = {}) {
@@ -100,7 +101,9 @@ class PageDetectionService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new Error('服務尚未初始化')
+      throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
+          "category": "general"
+      })
     }
 
     if (this.state.active) {
@@ -417,7 +420,9 @@ class PageDetectionService {
    */
   registerDetectionRule (name, rule) {
     if (!rule.urlPattern || !rule.pageType) {
-      throw new Error('檢測規則必須包含 urlPattern 和 pageType')
+      throw new StandardError('UNKNOWN_ERROR', '檢測規則必須包含 urlPattern 和 pageType', {
+          "category": "general"
+      })
     }
 
     this.detectionRules.set(name, {
@@ -501,7 +506,9 @@ class PageDetectionService {
       const { url, title, tabId, requestId } = event.data || {}
 
       if (!url) {
-        throw new Error('檢測請求必須包含 URL')
+        throw new StandardError('UNKNOWN_ERROR', '檢測請求必須包含 URL', {
+          "category": "general"
+      })
       }
 
       const result = await this.detectPageType(url, title, tabId)
@@ -534,7 +541,9 @@ class PageDetectionService {
       const { pages, requestId } = event.data || {}
 
       if (!Array.isArray(pages)) {
-        throw new Error('批量檢測請求必須包含頁面陣列')
+        throw new StandardError('UNKNOWN_ERROR', '批量檢測請求必須包含頁面陣列', {
+          "category": "general"
+      })
       }
 
       const results = await this.batchDetectPages(pages)

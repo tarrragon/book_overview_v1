@@ -9,6 +9,8 @@
  *
  * TDD實作：根據測試驅動的最小可行實作
  */
+const { StandardError } = require('src/core/errors/StandardError')
+
 class RetryCoordinator {
   constructor (config = {}) {
     // 預設配置
@@ -127,7 +129,9 @@ class RetryCoordinator {
    */
   selectRetryStrategy (analysis) {
     if (!analysis.retryable) {
-      throw new Error(`錯誤不可重試: ${analysis.category}`)
+      throw new StandardError('UNKNOWN_ERROR', `錯誤不可重試: ${analysis.category}`, {
+          "category": "general"
+      })
     }
 
     switch (analysis.category) {

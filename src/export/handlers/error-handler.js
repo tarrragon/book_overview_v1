@@ -19,6 +19,7 @@
 
 const EventHandler = require('src/core/event-handler')
 const { EXPORT_EVENTS } = require('src/export/export-events')
+const { StandardError } = require('src/core/errors/StandardError')
 
 /**
  * 錯誤處理器類別
@@ -235,11 +236,15 @@ class ErrorHandler extends EventHandler {
    */
   _validateErrorData (errorData) {
     if (!errorData) {
-      throw new Error('Error data is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'Error data is required', {
+          "category": "export"
+      })
     }
 
     if (!errorData.exportId) {
-      throw new Error('Export ID is required for error tracking')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'Export ID is required for error tracking', {
+          "category": "export"
+      })
     }
 
     // error 可能為 null，這在某些情況下是允許的

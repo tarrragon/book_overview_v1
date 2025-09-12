@@ -13,6 +13,8 @@
  * - 支援不同 UI 處理器的特定需求
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class UIEventValidator {
   /**
    * 驗證事件的基本結構
@@ -22,11 +24,16 @@ class UIEventValidator {
    */
   static validateEventStructure (event) {
     if (!event || typeof event !== 'object') {
-      throw new Error('Event must be a valid object')
+      throw new StandardError('UNKNOWN_ERROR', 'Event must be a valid object', {
+          "dataType": "object",
+          "category": "ui"
+      })
     }
 
     if (!event.flowId) {
-      throw new Error('Event must have a flowId')
+      throw new StandardError('UNKNOWN_ERROR', 'Event must have a flowId', {
+          "category": "ui"
+      })
     }
   }
 
@@ -39,7 +46,10 @@ class UIEventValidator {
    */
   static validateDataStructure (data, dataType = 'data') {
     if (!data || typeof data !== 'object') {
-      throw new Error(`${dataType} must be a valid object`)
+      throw new StandardError('UNKNOWN_ERROR', `${dataType} must be a valid object`, {
+          "dataType": "object",
+          "category": "ui"
+      })
     }
   }
 
@@ -58,15 +68,21 @@ class UIEventValidator {
     const { required = true, minLength = 0, maxLength = Infinity } = options
 
     if (required && (!value || typeof value !== 'string' || value.trim() === '')) {
-      throw new Error(`${fieldName} must be a non-empty string`)
+      throw new StandardError('UNKNOWN_ERROR', `${fieldName} must be a non-empty string`, {
+          "category": "ui"
+      })
     }
 
     if (value && typeof value === 'string') {
       if (value.length < minLength) {
-        throw new Error(`${fieldName} must be at least ${minLength} characters long`)
+        throw new StandardError('UNKNOWN_ERROR', `${fieldName} must be at least ${minLength} characters long`, {
+          "category": "ui"
+      })
       }
       if (value.length > maxLength) {
-        throw new Error(`${fieldName} must be no more than ${maxLength} characters long`)
+        throw new StandardError('UNKNOWN_ERROR', `${fieldName} must be no more than ${maxLength} characters long`, {
+          "category": "ui"
+      })
       }
     }
   }
@@ -87,18 +103,26 @@ class UIEventValidator {
     const { required = true, min = -Infinity, max = Infinity, integer = false } = options
 
     if (required && (typeof value !== 'number' || isNaN(value))) {
-      throw new Error(`${fieldName} must be a number`)
+      throw new StandardError('UNKNOWN_ERROR', `${fieldName} must be a number`, {
+          "category": "ui"
+      })
     }
 
     if (typeof value === 'number' && !isNaN(value)) {
       if (value < min) {
-        throw new Error(`${fieldName} must be at least ${min}`)
+        throw new StandardError('UNKNOWN_ERROR', `${fieldName} must be at least ${min}`, {
+          "category": "ui"
+      })
       }
       if (value > max) {
-        throw new Error(`${fieldName} must be no more than ${max}`)
+        throw new StandardError('UNKNOWN_ERROR', `${fieldName} must be no more than ${max}`, {
+          "category": "ui"
+      })
       }
       if (integer && !Number.isInteger(value)) {
-        throw new Error(`${fieldName} must be an integer`)
+        throw new StandardError('UNKNOWN_ERROR', `${fieldName} must be an integer`, {
+          "category": "ui"
+      })
       }
     }
   }
@@ -117,11 +141,15 @@ class UIEventValidator {
     const { required = true } = options
 
     if (required && value === undefined) {
-      throw new Error(`${fieldName} is required`)
+      throw new StandardError('REQUIRED_FIELD_MISSING', `${fieldName} is required`, {
+          "category": "ui"
+      })
     }
 
     if (value !== undefined && !validValues.includes(value)) {
-      throw new Error(`Invalid ${fieldName}: ${value}. Valid values: ${validValues.join(', ')}`)
+      throw new StandardError('INVALID_DATA_FORMAT', `Invalid ${fieldName}: ${value}. Valid values: ${validValues.join(', ', {
+          "category": "ui"
+      })}`)
     }
   }
 }

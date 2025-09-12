@@ -262,11 +262,19 @@ describe('IDataNormalizer TDD 介面契約測試', () => {
       // When & Then: 應該優雅處理錯誤
       await expect(
         dataNormalizer.normalizeBook(nullBook, 'READMOO')
-      ).rejects.toThrow('Invalid book data')
+      ).rejects.toMatchObject({
+        code: 'INVALID_INPUT_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       await expect(
         dataNormalizer.normalizeBook(emptyBook, invalidPlatform)
-      ).rejects.toThrow('Platform is required')
+      ).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     test('應該支援配置選項', () => {

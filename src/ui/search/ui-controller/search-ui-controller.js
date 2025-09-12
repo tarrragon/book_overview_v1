@@ -46,6 +46,8 @@
  * @lastModified 2025-08-20
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class SearchUIController {
   /**
    * 建構 SearchUIController 實例
@@ -61,7 +63,9 @@ class SearchUIController {
 
     // 驗證必要依賴
     if (!eventBus || !document) {
-      throw new Error('EventBus 和 Document 是必需的')
+      throw new StandardError('EVENTBUS_ERROR', 'EventBus 和 Document 是必需的', {
+          "category": "ui"
+      })
     }
 
     // 核心依賴
@@ -222,7 +226,9 @@ class SearchUIController {
    */
   handleSearchInput (event) {
     if (this.isCleanedUp) {
-      throw new Error('SearchUIController 已被清理')
+      throw new StandardError('UI_OPERATION_FAILED', 'SearchUIController 已被清理', {
+          "category": "ui"
+      })
     }
 
     try {

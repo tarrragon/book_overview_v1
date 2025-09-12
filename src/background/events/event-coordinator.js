@@ -17,6 +17,7 @@
 const BaseModule = require('src/background/lifecycle/base-module')
 const { SYSTEM_EVENTS, EVENT_PRIORITIES } = require('src/background/constants/module-constants')
 const { createLogger } = require('src/core/logging/Logger')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class EventCoordinator extends BaseModule {
   constructor (dependencies = {}) {
@@ -162,7 +163,9 @@ class EventCoordinator extends BaseModule {
 
       // 檢查EventBus初始化狀態
       if (!this.eventBusInstance) {
-        const error = new Error('EventBus 初始化失敗 - 無法建立 EventBus 實例')
+        const error = new StandardError('EVENTBUS_ERROR', 'EventBus 初始化失敗 - 無法建立 EventBus 實例', {
+          "category": "general"
+      })
         this.logger.error('BACKGROUND_INIT_FAILED', { error: error.message })
         throw error
       }
@@ -218,7 +221,9 @@ class EventCoordinator extends BaseModule {
 
     // 檢查EventBus創建是否成功
     if (!eventBus) {
-      const error = new Error('EventBus 初始化失敗 - 無法建立 EventBus 實例')
+      const error = new StandardError('EVENTBUS_ERROR', 'EventBus 初始化失敗 - 無法建立 EventBus 實例', {
+          "category": "general"
+      })
       this.logger.error('EVENTBUS_INIT_FAILED', { error: error.message })
       throw error
     }
@@ -704,7 +709,9 @@ class EventCoordinator extends BaseModule {
    */
   async emit (eventType, data = {}) {
     if (!this.eventBusInstance) {
-      throw new Error('EventBus 實例不存在')
+      throw new StandardError('EVENTBUS_ERROR', 'EventBus 實例不存在', {
+          "category": "general"
+      })
     }
 
     return await this.eventBusInstance.emit(eventType, data)
@@ -719,7 +726,9 @@ class EventCoordinator extends BaseModule {
    */
   on (eventType, handler, options = {}) {
     if (!this.eventBusInstance) {
-      throw new Error('EventBus 實例不存在')
+      throw new StandardError('EVENTBUS_ERROR', 'EventBus 實例不存在', {
+          "category": "general"
+      })
     }
 
     return this.eventBusInstance.on(eventType, handler, options)

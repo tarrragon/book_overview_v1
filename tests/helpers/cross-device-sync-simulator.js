@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * Cross Device Sync Simulator - 跨裝置同步模擬器
  * 模擬跨裝置同步的各種情境
@@ -36,7 +37,7 @@ class CrossDeviceSyncSimulator {
 
     if (!fromDeviceData || !toDeviceData) {
       this.syncStatus = 'error'
-      throw new Error('Device not found')
+      throw new StandardError('NOT_FOUND_ERROR', 'Device not found', { category: 'testing' })
     }
 
     // 更新同步時間
@@ -133,7 +134,7 @@ class CrossDeviceSyncSimulator {
    */
   async calculateDataDigest (books) {
     if (!Array.isArray(books)) {
-      throw new Error('Books must be an array')
+      throw new StandardError('TEST_ERROR', 'Books must be an array', { category: 'testing' })
     }
 
     // 創建用於計算摘要的標準化資料

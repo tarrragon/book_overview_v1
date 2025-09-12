@@ -27,6 +27,7 @@
  */
 
 const EventBus = require('src/core/event-bus')
+const { StandardError } = require('src/core/errors/StandardError')
 
 // Mock EventHandler 基底類別
 jest.mock('../../../src/core/event-handler', () => {
@@ -59,7 +60,7 @@ jest.mock('../../../src/core/event-handler', () => {
     }
 
     async process (event) {
-      throw new Error('Process method must be implemented by subclass')
+      throw new StandardError('TEST_ERROR', 'Process method must be implemented by subclass', { category: 'testing' })
     }
 
     async beforeHandle (event) {}
@@ -78,7 +79,7 @@ jest.mock('../../../src/core/event-handler', () => {
     }
 
     getSupportedEvents () {
-      throw new Error('getSupportedEvents method must be implemented by subclass')
+      throw new StandardError('TEST_ERROR', 'getSupportedEvents method must be implemented by subclass', { category: 'testing' })
     }
 
     setEnabled (enabled) {
@@ -225,7 +226,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
       // 模擬匯出失敗
       BookDataExporter.mockImplementation(() => ({
         exportToCSV: jest.fn().mockImplementation(() => {
-          throw new Error('CSV export failed')
+          throw new StandardError('TEST_ERROR', 'CSV export failed', { category: 'testing' })
         }),
         setProgressCallback: jest.fn()
       }))
@@ -237,7 +238,11 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
         options: {}
       }
 
-      await expect(csvHandler.process(eventData)).rejects.toThrow('CSV export failed')
+      await expect(csvHandler.process(eventData)).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     test('CSVExportHandler 應該支援進度回調', async () => {
@@ -771,7 +776,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
       // 模擬匯出失敗
       BookDataExporter.mockImplementation(() => ({
         exportToCSV: jest.fn().mockImplementation(() => {
-          throw new Error('Simulated export failure')
+          throw new StandardError('TEST_ERROR', 'Simulated export failure', { category: 'testing' })
         }),
         setProgressCallback: jest.fn()
       }))

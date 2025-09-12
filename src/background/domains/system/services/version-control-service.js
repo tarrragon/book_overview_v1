@@ -24,6 +24,7 @@ const {
   STORAGE_KEYS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class VersionControlService {
   constructor (dependencies = {}) {
@@ -100,7 +101,9 @@ class VersionControlService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new Error('服務尚未初始化')
+      throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
+          "category": "general"
+      })
     }
 
     if (this.state.active) {
@@ -420,7 +423,9 @@ class VersionControlService {
    */
   registerMigrationStrategy (key, strategy) {
     if (typeof strategy !== 'function') {
-      throw new Error('遷移策略必須是函數')
+      throw new StandardError('UNKNOWN_ERROR', '遷移策略必須是函數', {
+          "category": "general"
+      })
     }
 
     this.migrationStrategies.set(key, strategy)

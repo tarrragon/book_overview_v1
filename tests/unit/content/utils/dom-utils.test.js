@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * @fileoverview DOM Utils TDD 測試
  * @version v1.0.0
@@ -374,7 +375,7 @@ describe('DOMUtils - TDD Red 階段測試', () => {
       const elements = document.querySelectorAll('.item')
       const processor = (element, index) => {
         if (index === 1) {
-          throw new Error('處理失敗')
+          throw new StandardError('TEST_ERROR', '處理失敗', { category: 'testing' })
         }
         return { success: true, data: element.textContent }
       }
@@ -498,7 +499,7 @@ describe('DOMUtils - TDD Red 階段測試', () => {
       // 建立一個會拋出錯誤的 mock 元素
       const mockElement = {
         setAttribute: jest.fn(() => {
-          throw new Error('DOM 操作失敗')
+          throw new StandardError('TEST_ERROR', 'DOM 操作失敗', { category: 'testing' })
         })
       }
 

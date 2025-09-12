@@ -11,6 +11,7 @@
 
 // Mock DOM 環境
 const { JSDOM } = require('jsdom')
+const { StandardError } = require('src/core/errors/StandardError')
 
 // Mock Chrome Extension APIs
 global.chrome = {
@@ -198,7 +199,11 @@ describe('PopupController 進度管理整合測試', () => {
       // Then: 應該拋出錯誤
       expect(() => {
         progressManager.updateProgress(invalidProgress)
-      }).toThrow('Invalid progress status: invalid_status')
+      }).toMatchObject({
+        code: expect.any(String),
+        message: expect.stringContaining('Invalid progress status: invalid_status'),
+        details: expect.any(Object)
+      })
     })
 
     test('應該處理必要欄位缺失的錯誤', async () => {
@@ -217,7 +222,11 @@ describe('PopupController 進度管理整合測試', () => {
       // Then: 應該拋出錯誤
       expect(() => {
         progressManager.updateProgress(incompleteProgress)
-      }).toThrow('Progress data must include percentage and status fields')
+      }).toMatchObject({
+        code: expect.any(String),
+        message: expect.stringContaining('Progress data must include percentage and status fields'),
+        details: expect.any(Object)
+      })
     })
 
     test('應該支援進度生命週期管理', async () => {
@@ -314,7 +323,7 @@ describe('PopupController 進度管理整合測試', () => {
       progressManager.uiComponents = {
         ...progressManager.uiComponents,
         updateProgress: jest.fn(() => {
-          throw new Error('DOM 更新失敗')
+          throw new StandardError('TEST_ERROR', 'DOM 更新失敗', { category: 'testing' })
         }),
         showError: mockShowError
       }

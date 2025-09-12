@@ -16,6 +16,7 @@
  */
 
 const SearchUIController = require('src/ui/search/ui-controller/search-ui-controller')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('SearchUIController', () => {
   let searchUIController
@@ -136,15 +137,21 @@ describe('SearchUIController', () => {
     test('應該拋出錯誤當缺少必要依賴', () => {
       expect(() => {
         new SearchUIController({})
-      }).toThrow('EventBus 和 Document 是必需的')
+      }).toMatchObject({
+        message: expect.stringContaining('EventBus 和 Document 是必需的')
+      })
 
       expect(() => {
         new SearchUIController({ eventBus: mockEventBus })
-      }).toThrow('EventBus 和 Document 是必需的')
+      }).toMatchObject({
+        message: expect.stringContaining('EventBus 和 Document 是必需的')
+      })
 
       expect(() => {
         new SearchUIController({ document: mockDocument })
-      }).toThrow('EventBus 和 Document 是必需的')
+      }).toMatchObject({
+        message: expect.stringContaining('EventBus 和 Document 是必需的')
+      })
     })
 
     test('應該初始化預設 UI 配置', () => {
@@ -824,7 +831,9 @@ describe('SearchUIController', () => {
       expect(() => {
         const mockEvent = { target: { value: 'test' } }
         searchUIController.handleSearchInput(mockEvent)
-      }).toThrow('SearchUIController 已被清理')
+      }).toMatchObject({
+        message: expect.stringContaining('SearchUIController 已被清理')
+      })
     })
   })
 
@@ -934,7 +943,7 @@ describe('SearchUIController', () => {
       // 模擬處理過程中的記憶體問題
       const originalNormalize = searchUIController.normalizeSearchQuery
       searchUIController.normalizeSearchQuery = jest.fn().mockImplementation(() => {
-        throw new Error('Memory allocation failed')
+        throw new StandardError('TEST_ERROR', 'Memory allocation failed', { category: 'testing' })
       })
 
       expect(() => {

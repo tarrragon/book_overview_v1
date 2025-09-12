@@ -10,6 +10,7 @@
  */
 
 const DataValidationService = require('src/background/domains/data-management/services/data-validation-service.js')
+const { StandardError } = require('src/core/errors/StandardError')
 
 // Mock 所有子服務
 const MockValidationEngine = {
@@ -412,7 +413,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
     test('應該在子服務異常時發出警告', async () => {
       // Arrange
       MockValidationEngine.validateSingle.mockImplementation(() => {
-        throw new Error('Service unavailable')
+        throw new StandardError('TEST_ERROR', 'Service unavailable', { category: 'testing' })
       })
 
       // Act

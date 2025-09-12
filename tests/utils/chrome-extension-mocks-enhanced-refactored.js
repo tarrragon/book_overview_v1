@@ -126,7 +126,7 @@ class ChromeExtensionMocksEnhanced {
    */
   _validatePermissionName (permission) {
     if (!permission || typeof permission !== 'string') {
-      throw new Error('Permission name must be a non-empty string')
+      throw new StandardError('PERMISSION_DENIED', 'Permission name must be a non-empty string', { category: 'testing' })
     }
   }
 
@@ -158,7 +158,7 @@ class ChromeExtensionMocksEnhanced {
    */
   _validateUsedBytes (usedBytes) {
     if (typeof usedBytes !== 'number' || usedBytes < 0) {
-      throw new Error('Used bytes must be a non-negative number')
+      throw new StandardError('TEST_ERROR', 'Used bytes must be a non-negative number', { category: 'testing' })
     }
   }
 

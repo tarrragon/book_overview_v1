@@ -6,6 +6,7 @@
  */
 
 const DataNormalizationService = require('src/background/domains/data-management/services/data-normalization-service.js')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('DataNormalizationService - 資料正規化服務', () => {
   let normalizer
@@ -414,12 +415,14 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     test('constructor 應該要求 eventBus 參數', () => {
       expect(() => {
         new DataNormalizationService()
-      }).toThrow('EventBus is required')
+      }).toMatchObject({
+        message: expect.stringContaining('EventBus is required')
+      })
     })
 
     test('應該處理正規化過程中的錯誤', async () => {
       // 模擬錯誤情況
-      const invalidBook = { toString: () => { throw new Error('轉換錯誤') } }
+      const invalidBook = { toString: () => { throw new StandardError('TEST_ERROR', '轉換錯誤', { category: 'testing' }) } }
 
       const result = await normalizer.normalizeBook(invalidBook, 'READMOO')
 

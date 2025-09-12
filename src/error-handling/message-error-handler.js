@@ -27,6 +27,7 @@
  */
 
 const EventHandler = require('src/core/event-handler')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class MessageErrorHandler extends EventHandler {
   /**
@@ -469,7 +470,9 @@ class MessageErrorHandler extends EventHandler {
     if (!this.chromeAvailable) return false
 
     if (chrome.runtime.lastError) {
-      const error = new Error(chrome.runtime.lastError.message)
+      const error = new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
+          "category": "general"
+      })
 
       this.eventBus.emit('MESSAGE.ERROR', {
         error,

@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * IValidationServiceCoordinator 介面測試
  *
@@ -593,7 +594,9 @@ describe('IValidationServiceCoordinator TDD 介面契約測試', () => {
       // When & Then: 應該拋出依賴檢查錯誤
       expect(() => {
         new (require('src/background/domains/data-management/services/ValidationServiceCoordinator.js'))(incompleteServices)
-      }).toThrow('ValidationEngine is not properly initialized')
+      }).toMatchObject({
+        message: expect.stringContaining('ValidationEngine is not properly initialized')
+      })
     })
 
     test('應該處理事件協調和錯誤傳播', async () => {
@@ -606,7 +609,11 @@ describe('IValidationServiceCoordinator TDD 介面契約測試', () => {
       // When: 驗證過程發生錯誤
       await expect(
         validationServiceCoordinator.validateAndNormalize(books, platform)
-      ).rejects.toThrow('驗證引擎錯誤')
+      ).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Then: 應該發送錯誤事件
       expect(mockEventBus.emit).toHaveBeenCalledWith('VALIDATION.COORDINATION.FAILED', expect.objectContaining({

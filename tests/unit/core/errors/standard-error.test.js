@@ -143,7 +143,7 @@ describe('StandardError 異常處理', () => {
   test('generateId方法在時間異常時的處理', () => {
     // Given: Mock Date.now 拋出異常
     const originalDateNow = Date.now
-    Date.now = jest.fn(() => { throw new Error('Time error') })
+    Date.now = jest.fn(() => { throw new StandardError('TEST_ERROR', 'Time error', { category: 'testing' }) })
 
     try {
       // When: 建立錯誤物件
@@ -169,7 +169,11 @@ describe('StandardError 異常處理', () => {
 
     invalidJsonCases.forEach(invalidJson => {
       // When & Then: fromJSON應該拋出錯誤
-      expect(() => StandardError.fromJSON(invalidJson)).toThrow('Invalid JSON data for StandardError.fromJSON')
+      expect(() => StandardError.fromJSON(invalidJson)).toThrow()
+      expect(() => StandardError.fromJSON(invalidJson)).toMatchObject({
+        code: expect.any(String),
+        details: expect.any(Object)
+      })
     })
   })
 

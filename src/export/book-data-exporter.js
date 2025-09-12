@@ -25,6 +25,8 @@
  */
 
 // 常數定義 - 分層組織架構
+const { StandardError } = require('src/core/errors/StandardError')
+
 const CONSTANTS = {
   // 配置管理
   CONFIG: {
@@ -804,7 +806,9 @@ class BookDataExporter {
    */
   async saveToFile (format, options = {}) {
     if (!window.showSaveFilePicker) {
-      throw new Error('File System Access API not supported')
+      throw new StandardError('FEATURE_NOT_SUPPORTED', 'File System Access API not supported', {
+          "category": "export"
+      })
     }
 
     try {
@@ -824,7 +828,9 @@ class BookDataExporter {
           defaultName = 'books.json'
           break
         default:
-          throw new Error(`Unsupported format: ${format}`)
+          throw new StandardError('UNKNOWN_ERROR', `Unsupported format: ${format}`, {
+          "category": "export"
+      })
       }
 
       const fileHandle = await window.showSaveFilePicker({
@@ -852,7 +858,9 @@ class BookDataExporter {
    */
   async copyToClipboard (format, options = {}) {
     if (!global.navigator || !global.navigator.clipboard || !global.navigator.clipboard.writeText) {
-      throw new Error('Clipboard API not supported')
+      throw new StandardError('FEATURE_NOT_SUPPORTED', 'Clipboard API not supported', {
+          "category": "export"
+      })
     }
 
     try {
@@ -866,7 +874,9 @@ class BookDataExporter {
           data = this.exportToJSON(options)
           break
         default:
-          throw new Error(`Unsupported format for clipboard: ${format}`)
+          throw new StandardError('UNKNOWN_ERROR', `Unsupported format for clipboard: ${format}`, {
+          "category": "export"
+      })
       }
 
       await global.navigator.clipboard.writeText(data)
@@ -894,7 +904,9 @@ class BookDataExporter {
     if (this.validateTemplate(template)) {
       this.templates.set(template.name, template)
     } else {
-      throw new Error('Invalid template format')
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid template format', {
+          "category": "export"
+      })
     }
   }
 
@@ -923,7 +935,9 @@ class BookDataExporter {
   exportWithTemplate (templateName) {
     const template = this.templates.get(templateName)
     if (!template) {
-      throw new Error(`Template not found: ${templateName}`)
+      throw new StandardError('RESOURCE_NOT_FOUND', `Template not found: ${templateName}`, {
+          "category": "export"
+      })
     }
 
     const options = {
@@ -941,7 +955,9 @@ class BookDataExporter {
       case 'pdf':
         return this.exportToPDF(options)
       default:
-        throw new Error(`Unsupported template format: ${template.format}`)
+        throw new StandardError('UNKNOWN_ERROR', `Unsupported template format: ${template.format}`, {
+          "category": "export"
+      })
     }
   }
 
@@ -963,7 +979,9 @@ class BookDataExporter {
       case 'pdf':
         return this.exportToPDF(options)
       default:
-        throw new Error(`Unsupported export format: ${format}`)
+        throw new StandardError('EXPORT_OPERATION_FAILED', `Unsupported export format: ${format}`, {
+          "category": "export"
+      })
     }
   }
 

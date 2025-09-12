@@ -96,7 +96,7 @@ class ExtensionTestSetup {
       )
 
       if (!extensionTarget) {
-        throw new Error('找不到 Extension Service Worker')
+        throw new StandardError('TEST_ERROR', '找不到 Extension Service Worker', { category: 'testing' })
       }
 
       const extensionUrl = extensionTarget.url()
@@ -104,7 +104,7 @@ class ExtensionTestSetup {
 
       return extensionId
     } catch (error) {
-      throw new Error(`取得 Extension ID 失敗: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `取得 Extension ID 失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -146,7 +146,7 @@ class ExtensionTestSetup {
       // 等待頁面完全載入
       await this.page.waitForTimeout(2000)
     } catch (error) {
-      throw new Error(`導航到 Readmoo 頁面失敗: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `導航到 Readmoo 頁面失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -173,7 +173,7 @@ class ExtensionTestSetup {
       console.log('✅ Extension Popup 已開啟')
       return popupPage
     } catch (error) {
-      throw new Error(`開啟 Extension Popup 失敗: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `開啟 Extension Popup 失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -190,13 +190,13 @@ class ExtensionTestSetup {
       )
 
       if (!backgroundTarget) {
-        throw new Error('找不到 Background Script')
+        throw new StandardError('TEST_ERROR', '找不到 Background Script', { category: 'testing' })
       }
 
       this.backgroundPage = await backgroundTarget.page()
       return this.backgroundPage
     } catch (error) {
-      throw new Error(`取得 Background Script 失敗: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `取得 Background Script 失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -210,7 +210,7 @@ class ExtensionTestSetup {
     try {
       return await this.page.evaluate(script, ...args)
     } catch (error) {
-      throw new Error(`執行 Content Script 失敗: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `執行 Content Script 失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -224,7 +224,7 @@ class ExtensionTestSetup {
     try {
       return await this.page.waitForSelector(selector, { timeout })
     } catch (error) {
-      throw new Error(`等待元素 "${selector}" 超時: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `等待元素 "${selector}" 超時: ${error.message}`, { category: 'testing' })
     }
   }
 

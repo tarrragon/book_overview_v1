@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * 效能監控系統
  *
@@ -161,7 +162,7 @@ class PerformanceMonitor {
 
   startTimer (operationName) {
     if (this.timers.has(operationName)) {
-      throw new Error(`Timer ${operationName} already running`)
+      throw new StandardError('TEST_ERROR', `Timer ${operationName} already running`, { category: 'testing' })
     }
 
     this.timers.set(operationName, {
@@ -172,7 +173,7 @@ class PerformanceMonitor {
 
   endTimer (operationName) {
     if (!this.timers.has(operationName)) {
-      throw new Error(`Timer ${operationName} not found`)
+      throw new StandardError('NOT_FOUND_ERROR', `Timer ${operationName} not found`, { category: 'testing' })
     }
 
     const timer = this.timers.get(operationName)
@@ -407,7 +408,7 @@ class PerformanceMonitor {
   // 高精度記憶體洩漏檢測 (重構版)
   detectMemoryLeaks (baselineSnapshot, currentSnapshot) {
     if (!baselineSnapshot || !currentSnapshot) {
-      throw new Error('需要基準和當前記憶體快照進行比較')
+      throw new StandardError('TEST_ERROR', '需要基準和當前記憶體快照進行比較', { category: 'testing' })
     }
 
     const memoryProfile = this.analyzeMemoryProfile([baselineSnapshot, currentSnapshot])

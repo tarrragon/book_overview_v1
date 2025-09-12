@@ -35,6 +35,7 @@
  */
 
 const UI_HANDLER_CONFIG = require('./config/ui-handler-config')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class BookGridRenderer {
   /**
@@ -56,7 +57,9 @@ class BookGridRenderer {
    */
   constructor (container, eventBus, options = {}, document = null) {
     if (!container) {
-      throw new Error('Container is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'Container is required', {
+          "category": "ui"
+      })
     }
 
     this.container = container
@@ -70,8 +73,10 @@ class BookGridRenderer {
     this.document = document || (typeof window !== 'undefined' ? window.document : null)
 
     if (!this.document) {
-      throw new Error('Document is required for BookGridRenderer. ' +
-                     'In test environments, please inject a mock document.')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'Document is required for BookGridRenderer. ' +
+                     'In test environments, please inject a mock document.', {
+          "category": "ui"
+      })
     }
 
     // 初始化資料

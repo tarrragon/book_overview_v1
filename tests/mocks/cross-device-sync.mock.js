@@ -8,6 +8,11 @@
  * - 模擬真實的多設備同步環境
  * - 提供可控制的測試條件
  * - 支援效能和錯誤場景測試
+ */
+
+const { StandardError } = require('src/core/errors/StandardError')
+
+/**
  * - 確保測試的可重現性和隔離性
  */
 
@@ -156,7 +161,7 @@ class MockDevice {
 
       // 驗證資料格式
       if (!data.books || !Array.isArray(data.books)) {
-        throw new Error('Invalid file format: missing books array')
+        throw new StandardError('INVALID_FILE_FORMAT', 'Invalid file format: missing books array', { category: 'testing' })
       }
 
       const currentBooks = await this.storage.getBooks()
@@ -254,7 +259,7 @@ class MockDevice {
       // 驗證備份檔案
       const validation = await this.validateImportFile(backupFile.data)
       if (!validation.valid) {
-        throw new Error(`備份檔案驗證失敗: ${validation.errors.join(', ')}`)
+        throw new StandardError('VALIDATION_ERROR', `備份檔案驗證失敗: ${validation.errors.join(', ')}`, { category: 'testing' })
       }
 
       // 執行匯入
@@ -371,7 +376,7 @@ class MockDevice {
 
     const errorInfo = errorMessages[errorType]?.[cause]
     if (!errorInfo) {
-      throw new Error(`Unknown error type: ${errorType} with cause: ${cause}`)
+      throw new StandardError('TEST_ERROR', `Unknown error type: ${errorType} with cause: ${cause}`, { category: 'testing' })
     }
 
     // 記錄錯誤到日誌
@@ -698,7 +703,7 @@ class MockDevice {
   async restoreFromBackup (backupId) {
     // 從備份恢復
     if (!this._backups || !this._backups.has(backupId)) {
-      throw new Error(`Backup not found: ${backupId}`)
+      throw new StandardError('NOT_FOUND_ERROR', `Backup not found: ${backupId}`, { category: 'testing' })
     }
 
     const backup = this._backups.get(backupId)
@@ -923,7 +928,7 @@ class PerformanceMonitor {
 
   stop () {
     if (!this.startTime) {
-      throw new Error('Performance monitor not started')
+      throw new StandardError('TEST_ERROR', 'Performance monitor not started', { category: 'testing' })
     }
 
     const endTime = Date.now()
@@ -984,7 +989,7 @@ class NetworkSimulator {
 
   async simulateRequest (size = 1024) {
     if (this.condition === 'disconnected') {
-      throw new Error('Network disconnected')
+      throw new StandardError('NETWORK_ERROR', 'Network disconnected', { category: 'testing' })
     }
 
     // 模擬網路延遲
@@ -992,7 +997,7 @@ class NetworkSimulator {
 
     // 模擬可靠性
     if (Math.random() > this.reliability) {
-      throw new Error('Network request failed due to poor connection')
+      throw new StandardError('NETWORK_ERROR', 'Network request failed due to poor connection', { category: 'testing' })
     }
 
     // 模擬頻寬限制
@@ -1681,58 +1686,58 @@ module.exports = {
   },
 
   executeTrackedSync: async (sourceDevice, targetDevice, stateTracker) => {
-    throw new Error('executeTrackedSync function not implemented - awaiting TDD Phase 3')
+    throw new StandardError('TEST_ERROR', 'executeTrackedSync function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   getSyncHistory: async (device) => {
-    throw new Error('getSyncHistory function not implemented - awaiting TDD Phase 3')
+    throw new StandardError('TEST_ERROR', 'getSyncHistory function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   executeUserWorkflow: async (config) => {
-    throw new Error('executeUserWorkflow function not implemented - awaiting TDD Phase 3')
+    throw new StandardError('TEST_ERROR', 'executeUserWorkflow function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   calculateDataChecksum: async (data) => {
-    throw new Error('calculateDataChecksum function not implemented - awaiting TDD Phase 3')
+    throw new StandardError('TEST_ERROR', 'calculateDataChecksum function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   createDataSnapshot: async (deviceDataSets) => {
-    throw new Error('createDataSnapshot function not implemented - awaiting TDD Phase 3')
+    throw new StandardError('TEST_ERROR', 'createDataSnapshot function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   compareDataSnapshots: async (preSyncSnapshot, postSyncSnapshot) => {
-    throw new Error('compareDataSnapshots function not implemented - awaiting TDD Phase 3')
+    throw new StandardError('TEST_ERROR', 'compareDataSnapshots function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   createExportData: async (books) => {
-    throw new Error('createExportData function not implemented - awaiting TDD Phase 3')
+    throw new StandardError('TEST_ERROR', 'createExportData function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   validateSampleIntegrity: async (originalData, comparedData, options) => {
-    throw new Error('validateSampleIntegrity function not implemented - awaiting TDD Phase 3')
+    throw new StandardError('TEST_ERROR', 'validateSampleIntegrity function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   checkDataRaceConditions: async (finalBooks) => {
-    throw new Error('checkDataRaceConditions function not implemented - awaiting TDD Phase 3')
+    throw new StandardError('TEST_ERROR', 'checkDataRaceConditions function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   detectSyncConflicts: async (deviceA, deviceB) => {
-    throw new Error('detectSyncConflicts function not implemented - awaiting TDD Phase 3')
+    throw new StandardError('TEST_ERROR', 'detectSyncConflicts function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   setupConflictResolver: async () => {
-    throw new Error('setupConflictResolver function not implemented - awaiting TDD Phase 3')
+    throw new StandardError('TEST_ERROR', 'setupConflictResolver function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   checkVersionCompatibility: async (fromDevice, toDevice) => {
-    throw new Error('checkVersionCompatibility function not implemented - awaiting TDD Phase 3')
+    throw new StandardError('TEST_ERROR', 'checkVersionCompatibility function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   calculateUpgradePath: async (fromVersion, toVersion) => {
-    throw new Error('calculateUpgradePath function not implemented - awaiting TDD Phase 3')
+    throw new StandardError('TEST_ERROR', 'calculateUpgradePath function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   validateDataPropagation: async (devices) => {
-    throw new Error('validateDataPropagation function not implemented - awaiting TDD Phase 3')
+    throw new StandardError('TEST_ERROR', 'validateDataPropagation function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   }
 }

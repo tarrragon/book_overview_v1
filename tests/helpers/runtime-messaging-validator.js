@@ -1,6 +1,9 @@
 /**
  * Runtime Messaging Validator Test Helper
  */
+
+const { StandardError } = require('src/core/errors/StandardError')
+
 class RuntimeMessagingValidator {
   constructor (testSuite) {
     this.testSuite = testSuite
@@ -233,7 +236,7 @@ class RuntimeMessagingValidator {
    */
   async validateMessageRouting (message, expectedRoute) {
     if (!this.routingAnalysis?.enabled) {
-      throw new Error('路由分析未啟用，請先調用 enableRoutingAnalysis()')
+      throw new StandardError('ROUTING_ANALYSIS_NOT_ENABLED', '路由分析未啟用，請先調用 enableRoutingAnalysis()', { category: 'testing' })
     }
 
     const routeKey = `${message.sender}-${message.receiver}`
@@ -263,7 +266,7 @@ class RuntimeMessagingValidator {
    */
   async testPriorityMessage (priority, message) {
     if (!this.priorityConfig) {
-      throw new Error('優先級配置未設置，請先調用 configurePriorityTesting()')
+      throw new StandardError('PRIORITY_CONFIG_NOT_SET', '優先級配置未設置，請先調用 configurePriorityTesting()', { category: 'testing' })
     }
 
     const startTime = Date.now()
@@ -290,7 +293,7 @@ class RuntimeMessagingValidator {
    */
   async testMessageRetry (message, shouldFail = false) {
     if (!this.retryConfig) {
-      throw new Error('重試配置未設置，請先調用 configureRetryTesting()')
+      throw new StandardError('RETRY_CONFIG_NOT_SET', '重試配置未設置，請先調用 configureRetryTesting()', { category: 'testing' })
     }
 
     this.retryStats.attempts++
@@ -298,7 +301,7 @@ class RuntimeMessagingValidator {
     // 模擬失敗情況
     if (shouldFail && this.retryStats.attempts <= this.retryConfig.maxRetries) {
       this.retryStats.failures++
-      throw new Error(`訊息傳遞失敗 (嘗試 ${this.retryStats.attempts}/${this.retryConfig.maxRetries})`)
+      throw new StandardError('MESSAGE_DELIVERY_FAILED', `訊息傳遞失敗 (嘗試 ${this.retryStats.attempts}/${this.retryConfig.maxRetries})`, { category: 'testing', attempts: this.retryStats.attempts, maxRetries: this.retryConfig.maxRetries })
     }
 
     this.retryStats.successes++
@@ -431,7 +434,7 @@ class RuntimeMessagingValidator {
    */
   async testBroadcastMessage (message, recipients) {
     if (!this.multicastConfig?.enabled) {
-      throw new Error('多播測試未啟用，請先調用 enableMulticastTesting()')
+      throw new StandardError('MULTICAST_TESTING_NOT_ENABLED', '多播測試未啟用，請先調用 enableMulticastTesting()', { category: 'testing' })
     }
 
     this.testSuite.log(`[MessagingValidator] 測試廣播訊息到 ${recipients.length} 個接收者`)
@@ -474,7 +477,7 @@ class RuntimeMessagingValidator {
    */
   async testUnicastMessage (message, sender, receiver) {
     if (!this.multicastConfig?.enabled) {
-      throw new Error('多播測試未啟用，請先調用 enableMulticastTesting()')
+      throw new StandardError('MULTICAST_TESTING_NOT_ENABLED', '多播測試未啟用，請先調用 enableMulticastTesting()', { category: 'testing' })
     }
 
     this.testSuite.log(`[MessagingValidator] 測試點對點訊息: ${sender} -> ${receiver}`)

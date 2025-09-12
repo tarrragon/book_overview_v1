@@ -29,6 +29,8 @@
  * - 並行處理優化和資源管理
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class ValidationBatchProcessor {
   /**
    * 建構批次驗證處理器
@@ -37,10 +39,14 @@ class ValidationBatchProcessor {
   constructor (options = {}) {
     // 驗證必要依賴
     if (!options.validationEngine) {
-      throw new Error('ValidationEngine is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'ValidationEngine is required', {
+          "category": "validation"
+      })
     }
     if (!options.dataQualityAnalyzer) {
-      throw new Error('DataQualityAnalyzer is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'DataQualityAnalyzer is required', {
+          "category": "ui"
+      })
     }
 
     // 注入依賴服務
@@ -167,7 +173,9 @@ class ValidationBatchProcessor {
       batchStatus.error = error.message
       batchStatus.endTime = Date.now()
       this.activeBatches.delete(batchId)
-      throw new Error(`Batch processing failed: ${error.message}`)
+      throw new StandardError('OPERATION_FAILED', `Batch processing failed: ${error.message}`, {
+          "category": "general"
+      })
     }
   }
 
@@ -182,7 +190,10 @@ class ValidationBatchProcessor {
     const startTime = Date.now()
 
     if (!Array.isArray(prioritizedBatches)) {
-      throw new Error('Prioritized batches must be an array')
+      throw new StandardError('UNKNOWN_ERROR', 'Prioritized batches must be an array', {
+          "dataType": "array",
+          "category": "general"
+      })
     }
 
     // 按優先級排序
@@ -229,7 +240,10 @@ class ValidationBatchProcessor {
     const startTime = Date.now()
 
     if (!Array.isArray(parallelBatches)) {
-      throw new Error('Parallel batches must be an array')
+      throw new StandardError('UNKNOWN_ERROR', 'Parallel batches must be an array', {
+          "dataType": "array",
+          "category": "general"
+      })
     }
 
     const maxParallelBatches = options.maxParallelBatches || this.config.maxConcurrency
@@ -431,22 +445,36 @@ class ValidationBatchProcessor {
    */
   _validateBatchInputs (books, platform) {
     if (!books) {
-      throw new Error('Books parameter is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'Books parameter is required', {
+          "category": "ui"
+      })
     }
     if (!Array.isArray(books) || books.length === 0) {
-      throw new Error('Books array is required and must not be empty')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'Books array is required and must not be empty', {
+          "dataType": "array",
+          "category": "ui"
+      })
     }
     if (!platform || typeof platform !== 'string' || platform.trim() === '') {
-      throw new Error('Platform is required and must be a non-empty string')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'Platform is required and must be a non-empty string', {
+          "category": "ui"
+      })
     }
     if (books.length > 10000) {
-      throw new Error('Batch size too large (maximum 10000 books)')
+      throw new StandardError('UNKNOWN_ERROR', 'Batch size too large (maximum 10000 books)', {
+          "values": [
+              "10000"
+          ],
+          "category": "general"
+      })
     }
 
     // 檢查平台是否為已知支援的平台
     const supportedPlatforms = ['READMOO', 'KINDLE', 'KOBO', 'BOOKWALKER', 'BOOKS_COM']
     if (!supportedPlatforms.includes(platform)) {
-      throw new Error(`Unsupported platform: ${platform}`)
+      throw new StandardError('UNKNOWN_ERROR', `Unsupported platform: ${platform}`, {
+          "category": "general"
+      })
     }
   }
 

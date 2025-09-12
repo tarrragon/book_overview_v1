@@ -24,6 +24,7 @@ const SessionManagementService = require('./services/session-management-service'
 const { ConnectionMonitoringService } = require('./services/connection-monitoring-service')
 const { MessageValidationService } = require('./services/message-validation-service')
 const { QueueManagementService } = require('./services/queue-management-service')
+const { StandardError } = require('src/core/errors/StandardError')
 
 const {
   MESSAGE_EVENTS,
@@ -150,7 +151,9 @@ class MessagingDomainCoordinator {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new Error('協調器尚未初始化')
+      throw new StandardError('UNKNOWN_ERROR', '協調器尚未初始化', {
+          "category": "general"
+      })
     }
 
     if (this.state.active) {
@@ -241,7 +244,9 @@ class MessagingDomainCoordinator {
         this.logger.log(`✅ 通訊服務初始化完成: ${serviceName}`)
       } catch (error) {
         this.logger.error(`❌ 通訊服務初始化失敗: ${serviceName}`, error)
-        throw new Error(`微服務 ${serviceName} 初始化失敗: ${error.message}`)
+        throw new StandardError('UNKNOWN_ERROR', `微服務 ${serviceName} 初始化失敗: ${error.message}`, {
+          "category": "general"
+      })
       }
     }
 
@@ -585,7 +590,9 @@ class MessagingDomainCoordinator {
     if (routingService) {
       return await routingService.routeMessage(message, context)
     } else {
-      throw new Error('路由服務不可用')
+      throw new StandardError('UNKNOWN_ERROR', '路由服務不可用', {
+          "category": "general"
+      })
     }
   }
 

@@ -20,6 +20,7 @@ const {
   SYNC_STRATEGIES,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class CrossDeviceSyncService {
   constructor (dependencies = {}) {
@@ -117,7 +118,9 @@ class CrossDeviceSyncService {
 
       const validationResult = await this.validateSyncOptions(options)
       if (!validationResult.valid) {
-        throw new Error(`同步參數驗證失敗: ${validationResult.message}`)
+        throw new StandardError('VALIDATION_FAILED', `同步參數驗證失敗: ${validationResult.message}`, {
+          "category": "validation"
+      })
       }
 
       // Phase 2: 匯出階段
@@ -185,7 +188,9 @@ class CrossDeviceSyncService {
 
   async performExport (syncId, options) {
     if (!this.exportService) {
-      throw new Error('Export service not available')
+      throw new StandardError('RESOURCE_NOT_AVAILABLE', 'Export service not available', {
+          "category": "general"
+      })
     }
 
     // todo: 整合實際的export service
@@ -212,7 +217,9 @@ class CrossDeviceSyncService {
 
   async performImport (syncId, transferResult, options) {
     if (!this.importService) {
-      throw new Error('Import service not available')
+      throw new StandardError('RESOURCE_NOT_AVAILABLE', 'Import service not available', {
+          "category": "general"
+      })
     }
 
     // todo: 整合實際的import service

@@ -19,6 +19,7 @@
 
 const EventHandler = require('src/core/event-handler')
 const { EXPORT_EVENTS } = require('src/export/export-events')
+const { StandardError } = require('src/core/errors/StandardError')
 
 /**
  * 進度處理器類別
@@ -124,23 +125,33 @@ class ProgressHandler extends EventHandler {
    */
   _validateProgressData (progressData) {
     if (!progressData) {
-      throw new Error('Progress data is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'Progress data is required', {
+          "category": "export"
+      })
     }
 
     if (!progressData.exportId) {
-      throw new Error('Export ID is required for progress tracking')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'Export ID is required for progress tracking', {
+          "category": "export"
+      })
     }
 
     if (typeof progressData.current !== 'number' || progressData.current < 0) {
-      throw new Error('Invalid current progress value')
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid current progress value', {
+          "category": "export"
+      })
     }
 
     if (typeof progressData.total !== 'number' || progressData.total <= 0) {
-      throw new Error('Invalid total progress value')
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid total progress value', {
+          "category": "export"
+      })
     }
 
     if (progressData.current > progressData.total) {
-      throw new Error('Current progress cannot exceed total progress')
+      throw new StandardError('LIMIT_EXCEEDED', 'Current progress cannot exceed total progress', {
+          "category": "export"
+      })
     }
   }
 

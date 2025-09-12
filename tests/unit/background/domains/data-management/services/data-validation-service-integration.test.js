@@ -6,6 +6,7 @@
  */
 
 const DataValidationService = require('src/background/domains/data-management/services/data-validation-service.js')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('DataValidationService - 服務整合測試', () => {
   let validationService
@@ -146,14 +147,18 @@ describe('DataValidationService - 服務整合測試', () => {
         new DataValidationService(mockEventBus, {
           validationRuleManager: null
         })
-      }).toThrow('ValidationRuleManager is required')
+      }).toMatchObject({
+        message: expect.stringContaining('ValidationRuleManager is required')
+      })
 
       expect(() => {
         new DataValidationService(mockEventBus, {
           validationRuleManager: mockValidationRuleManager,
           batchValidationProcessor: null
         })
-      }).toThrow('BatchValidationProcessor is required')
+      }).toMatchObject({
+        message: expect.stringContaining('BatchValidationProcessor is required')
+      })
     })
   })
 
@@ -200,7 +205,11 @@ describe('DataValidationService - 服務整合測試', () => {
 
       await expect(
         validationService.validateAndNormalize(books, 'READMOO', 'test')
-      ).rejects.toThrow('批次處理失敗')
+      ).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'DATA.VALIDATION.FAILED',
@@ -225,7 +234,11 @@ describe('DataValidationService - 服務整合測試', () => {
 
       await expect(
         validationService.validateAndNormalize(books, 'READMOO', 'test')
-      ).rejects.toThrow('驗證逾時')
+      ).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     test('應該在正常時間內完成驗證', async () => {
@@ -281,7 +294,11 @@ describe('DataValidationService - 服務整合測試', () => {
 
       await expect(
         validationService.validateAndNormalize(books, 'READMOO', 'test')
-      ).rejects.toThrow('規則載入失敗')
+      ).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'DATA.VALIDATION.FAILED',
@@ -296,7 +313,11 @@ describe('DataValidationService - 服務整合測試', () => {
     test('應該驗證必要輸入參數', async () => {
       await expect(
         validationService.validateAndNormalize(null, 'READMOO', 'test')
-      ).rejects.toThrow('書籍資料為必要參數')
+      ).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // 空陣列應該返回空結果，不拋出錯誤
       const emptyResult = await validationService.validateAndNormalize([], 'READMOO', 'test')
@@ -305,7 +326,11 @@ describe('DataValidationService - 服務整合測試', () => {
 
       await expect(
         validationService.validateAndNormalize([{ id: 'book1' }], '', 'test')
-      ).rejects.toThrow('平台名稱不能為空')
+      ).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     test('應該處理大批次資料分割', async () => {

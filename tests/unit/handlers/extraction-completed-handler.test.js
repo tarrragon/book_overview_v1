@@ -31,6 +31,7 @@
  */
 
 const EventHandler = require('@/core/event-handler')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('ExtractionCompletedHandler', () => {
   let ExtractionCompletedHandler
@@ -261,7 +262,7 @@ describe('ExtractionCompletedHandler', () => {
     test('應該處理儲存事件觸發失敗', async () => {
       mockEventBus.emit.mockImplementation((eventType) => {
         if (eventType === 'STORAGE.SAVE.REQUESTED') {
-          throw new Error('Storage service unavailable')
+          throw new StandardError('TEST_ERROR', 'Storage service unavailable', { category: 'testing' })
         }
         return Promise.resolve(true)
       })
@@ -358,7 +359,7 @@ describe('ExtractionCompletedHandler', () => {
     test('應該在通知觸發失敗時繼續處理', async () => {
       mockEventBus.emit.mockImplementation((eventType) => {
         if (eventType === 'UI.NOTIFICATION.SHOW') {
-          throw new Error('UI service unavailable')
+          throw new StandardError('TEST_ERROR', 'UI service unavailable', { category: 'testing' })
         }
         return Promise.resolve(true)
       })
@@ -581,7 +582,7 @@ describe('ExtractionCompletedHandler', () => {
       mockEventBus.emit.mockImplementation((eventType) => {
         callCount++
         if (eventType === 'STORAGE.SAVE.REQUESTED' && callCount === 1) {
-          throw new Error('Storage temporarily unavailable')
+          throw new StandardError('TEST_ERROR', 'Storage temporarily unavailable', { category: 'testing' })
         }
         return Promise.resolve(true)
       })

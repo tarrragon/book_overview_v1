@@ -49,6 +49,7 @@
 
 const BaseUIHandler = require('./handlers/base-ui-handler')
 const UI_HANDLER_CONFIG = require('./config/ui-handler-config')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class BookSearchFilter extends BaseUIHandler {
   /**
@@ -59,7 +60,9 @@ class BookSearchFilter extends BaseUIHandler {
    */
   constructor (eventBus, document) {
     if (!eventBus) {
-      throw new Error('事件總線是必需的')
+      throw new StandardError('UNKNOWN_ERROR', '事件總線是必需的', {
+          "category": "ui"
+      })
     }
 
     super('BookSearchFilter', 200, eventBus, document)
@@ -459,7 +462,9 @@ class BookSearchFilter extends BaseUIHandler {
       }
     } catch (error) {
       // 如果搜尋過程中遇到無效資料，拋出錯誤讓上層處理
-      const searchError = new Error(`搜尋過程中遇到無效資料: ${error.message}`)
+      const searchError = new StandardError('UNKNOWN_ERROR', `搜尋過程中遇到無效資料: ${error.message}`, {
+          "category": "ui"
+      })
       searchError.originalError = error
       throw searchError
     }
@@ -477,11 +482,15 @@ class BookSearchFilter extends BaseUIHandler {
   matchesSearchCriteria (book, query) {
     // 嚴格驗證書籍資料結構
     if (!book || typeof book !== 'object') {
-      throw new Error('無效的書籍資料格式')
+      throw new StandardError('UNKNOWN_ERROR', '無效的書籍資料格式', {
+          "category": "ui"
+      })
     }
 
     if (!book.title || typeof book.title !== 'string') {
-      throw new Error('書籍缺少有效的標題')
+      throw new StandardError('UNKNOWN_ERROR', '書籍缺少有效的標題', {
+          "category": "ui"
+      })
     }
 
     try {
@@ -506,7 +515,9 @@ class BookSearchFilter extends BaseUIHandler {
 
       return false
     } catch (error) {
-      throw new Error(`搜尋條件檢查失敗: ${error.message}`)
+      throw new StandardError('UNKNOWN_ERROR', `搜尋條件檢查失敗: ${error.message}`, {
+          "category": "ui"
+      })
     }
   }
 
@@ -685,7 +696,9 @@ class BookSearchFilter extends BaseUIHandler {
     try {
       // 檢查記憶體限制 - 模擬大量資料處理
       if (books.length > 50000) {
-        throw new Error('記憶體不足')
+        throw new StandardError('UNKNOWN_ERROR', '記憶體不足', {
+          "category": "ui"
+      })
       }
 
       this.titleIndex.clear()
@@ -1016,7 +1029,9 @@ class BookSearchFilter extends BaseUIHandler {
       if (!validation.isValid) {
         return this.handleProcessingError(
           event.flowId || 'unknown',
-          new Error(validation.error),
+          new StandardError('UNKNOWN_ERROR', validation.error, {
+          "category": "ui"
+      }),
           'VALIDATION'
         )
       }
@@ -1059,7 +1074,9 @@ class BookSearchFilter extends BaseUIHandler {
         await this.resetFilters()
         return { status: 'filters-reset' }
       default:
-        throw new Error(`未知的搜尋動作: ${data.action}`)
+        throw new StandardError('UNKNOWN_ERROR', `未知的搜尋動作: ${data.action}`, {
+          "category": "ui"
+      })
     }
   }
 }

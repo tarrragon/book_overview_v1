@@ -1,3 +1,5 @@
+const { StandardError } = require('src/core/errors/StandardError')
+
 const { EVENT_PRIORITIES, CONNECTION_EVENTS } = require('src/core/event-bus')
 
 /**
@@ -85,7 +87,9 @@ class ConnectionMonitoringService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new Error('連接監控服務尚未初始化')
+      throw new StandardError('UNKNOWN_ERROR', '連接監控服務尚未初始化', {
+          "category": "general"
+      })
     }
 
     if (this.state.active) {

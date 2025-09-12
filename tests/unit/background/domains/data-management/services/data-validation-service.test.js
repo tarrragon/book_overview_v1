@@ -28,6 +28,7 @@ const DataValidationService = require('src/background/domains/data-management/se
 const MockEventBusMock = require('@mocks/chrome-api.mock')
 const MockEventBus = MockEventBusMock.createEventBusMock()
 const sampleBooks = require('@fixtures/sample-books.json')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('Data Validation Service v2.0', () => {
   let dataValidationService
@@ -174,7 +175,7 @@ describe('Data Validation Service v2.0', () => {
 
       test('應該在初始化失敗時抛出有意義的錯誤', async () => {
         mockEventBus.on.mockImplementationOnce(() => {
-          throw new Error('事件系統無法使用')
+          throw new StandardError('TEST_ERROR', '事件系統無法使用', { category: 'testing' })
         })
 
         await expect(dataValidationService.initialize()).rejects.toMatchObject({
@@ -750,7 +751,7 @@ describe('Data Validation Service v2.0', () => {
       test('應該處理記憶體不足錯誤', async () => {
         // 模擬記憶體不足情況
         const mockOutOfMemory = jest.spyOn(JSON, 'stringify').mockImplementation(() => {
-          throw new Error('JavaScript heap out of memory')
+          throw new StandardError('TEST_ERROR', 'JavaScript heap out of memory', { category: 'testing' })
         })
 
         await expect(

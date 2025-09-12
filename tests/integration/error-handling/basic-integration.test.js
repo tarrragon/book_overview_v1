@@ -159,7 +159,7 @@ describe('錯誤處理系統基本整合測試', () => {
       }
 
       const failureOperation = async () => {
-        throw new Error('模擬操作失敗')
+        throw new StandardError('TEST_ERROR', '模擬操作失敗', { category: 'testing' })
       }
 
       // When: 使用 ErrorHelper 包裝操作

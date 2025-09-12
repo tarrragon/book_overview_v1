@@ -32,6 +32,7 @@
 const BaseUIHandler = require('./base-ui-handler')
 const UIEventValidator = require('./ui-event-validator')
 const UI_HANDLER_CONFIG = require('src/ui/config/ui-handler-config')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class UIProgressHandler extends BaseUIHandler {
   /**
@@ -213,7 +214,9 @@ class UIProgressHandler extends BaseUIHandler {
   validateProgressEvent (event) {
     const validationResult = this.validateEventData(event)
     if (!validationResult.isValid) {
-      throw new Error(`Event validation failed: ${validationResult.error}`)
+      throw new StandardError('OPERATION_FAILED', `Event validation failed: ${validationResult.error}`, {
+          "category": "ui"
+      })
     }
   }
 

@@ -25,6 +25,7 @@ const {
   EVENT_PRIORITIES,
   TIMEOUTS
 } = require('src/background/constants/module-constants')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class MessageRoutingService {
   constructor (dependencies = {}) {
@@ -95,7 +96,9 @@ class MessageRoutingService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new Error('路由服務尚未初始化')
+      throw new StandardError('UNKNOWN_ERROR', '路由服務尚未初始化', {
+          "category": "general"
+      })
     }
 
     if (this.state.active) {

@@ -1,3 +1,5 @@
+const { StandardError } = require('src/core/errors/StandardError')
+
 const { EVENT_PRIORITIES, MESSAGE_EVENTS } = require('src/core/event-bus')
 
 /**
@@ -106,7 +108,9 @@ class MessageValidationService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new Error('訊息驗證服務尚未初始化')
+      throw new StandardError('UNKNOWN_ERROR', '訊息驗證服務尚未初始化', {
+          "category": "validation"
+      })
     }
 
     if (this.state.active) {

@@ -15,6 +15,7 @@
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class ContentMessageHandler extends BaseModule {
   constructor (dependencies = {}) {
@@ -120,7 +121,9 @@ class ContentMessageHandler extends BaseModule {
 
       // 驗證訊息格式
       if (!this.validateMessage(message, sender)) {
-        throw new Error(`無效的訊息格式或類型: ${message.type}`)
+        throw new StandardError('UNKNOWN_ERROR', `無效的訊息格式或類型: ${message.type}`, {
+          "category": "general"
+      })
       }
 
       // 更新統計
@@ -215,7 +218,9 @@ class ContentMessageHandler extends BaseModule {
         return await this.handleContentScriptError(message, sender, sendResponse)
 
       default:
-        throw new Error(`未支援的訊息類型: ${message.type}`)
+        throw new StandardError('UNKNOWN_ERROR', `未支援的訊息類型: ${message.type}`, {
+          "category": "general"
+      })
     }
   }
 
@@ -262,7 +267,9 @@ class ContentMessageHandler extends BaseModule {
 
     // 驗證事件轉發格式
     if (!message.eventType) {
-      throw new Error('事件類型不能為空')
+      throw new StandardError('UNKNOWN_ERROR', '事件類型不能為空', {
+          "category": "general"
+      })
     }
 
     // 更新事件轉發統計

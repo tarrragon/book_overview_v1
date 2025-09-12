@@ -156,9 +156,11 @@ describe('PlatformAdapterInterface', () => {
 
       for (const check of errorChecks) {
         if (check.async) {
-          await expect(adapter[check.method](...(check.args || []))).rejects.toThrow(
-            `Must implement ${check.method}()`
-          )
+          await expect(adapter[check.method](...(check.args || []))).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
         } else {
           expect(() => adapter[check.method](...(check.args || []))).toThrow(
             `Must implement ${check.method}()`

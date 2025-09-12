@@ -24,6 +24,7 @@
 
 // 測試環境設定
 require('../../../../test-setup')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('SearchEngine - TDD 循環 2/8', () => {
   let searchEngine
@@ -159,18 +160,24 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
       expect(() => {
         new SearchEngine()
-      }).toThrow('IndexManager、EventBus 和 Logger 是必需的')
+      }).toMatchObject({
+        message: expect.stringContaining('IndexManager、EventBus 和 Logger 是必需的')
+      })
 
       expect(() => {
         new SearchEngine({ indexManager: mockIndexManager })
-      }).toThrow('IndexManager、EventBus 和 Logger 是必需的')
+      }).toMatchObject({
+        message: expect.stringContaining('IndexManager、EventBus 和 Logger 是必需的')
+      })
 
       expect(() => {
         new SearchEngine({
           indexManager: mockIndexManager,
           eventBus: mockEventBus
         })
-      }).toThrow('IndexManager、EventBus 和 Logger 是必需的')
+      }).toMatchObject({
+        message: expect.stringContaining('IndexManager、EventBus 和 Logger 是必需的')
+      })
     })
 
     test('應該正確初始化搜尋配置', () => {
@@ -629,7 +636,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
         ...mockIndexManager,
         titleIndex: {
           get: jest.fn(() => {
-            throw new Error('索引讀取失敗')
+            throw new StandardError('TEST_ERROR', '索引讀取失敗', { category: 'testing' })
           }),
           has: jest.fn(() => true)
         }

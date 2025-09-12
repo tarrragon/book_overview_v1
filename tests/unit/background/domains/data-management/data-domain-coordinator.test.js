@@ -5,6 +5,7 @@
  */
 
 const DataDomainCoordinator = require('src/background/domains/data-management/data-domain-coordinator.js')
+const { StandardError } = require('src/core/errors/StandardError')
 
 // Mock EventBus
 class MockEventBus {
@@ -629,7 +630,7 @@ describe('DataDomainCoordinator', () => {
       // 創建一個會導致錯誤的模擬方法
       const originalHandleExtraction = coordinator.handleExtractionCompleted
       coordinator.handleExtractionCompleted = async function (event) {
-        throw new Error('Simulated processing error')
+        throw new StandardError('TEST_ERROR', 'Simulated processing error', { category: 'testing' })
       }
 
       // 模擬事件數據

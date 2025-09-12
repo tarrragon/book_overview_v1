@@ -35,6 +35,7 @@ global.chrome = mockChrome
 
 // Mock DOM
 const { JSDOM } = require('jsdom')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
   let PopupErrorHandler
@@ -364,7 +365,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
 
     test('應該能處理重新載入失敗的情況', () => {
       mockChrome.runtime.reload.mockImplementation(() => {
-        throw new Error('Reload failed')
+        throw new StandardError('TEST_ERROR', 'Reload failed', { category: 'testing' })
       })
 
       const reloadAllExtensionPagesSpy = jest.spyOn(errorHandler, 'reloadAllExtensionPages').mockImplementation()

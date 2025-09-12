@@ -29,6 +29,8 @@
 /**
  * v2.0 事件類型定義配置
  */
+const { StandardError } = require('src/core/errors/StandardError')
+
 const EVENT_TYPE_CONFIG = {
   // 領域定義
   DOMAINS: [
@@ -215,7 +217,9 @@ class EventTypeDefinitions {
   parseEventName (eventName) {
     const parts = eventName.split('.')
     if (parts.length !== 4) {
-      throw new Error('Invalid event name format')
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid event name format', {
+          "category": "general"
+      })
     }
 
     return {
@@ -272,16 +276,24 @@ class EventTypeDefinitions {
    */
   buildEventName (domain, platform, action, state) {
     if (!this.isValidDomain(domain)) {
-      throw new Error('Invalid domain')
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid domain', {
+          "category": "general"
+      })
     }
     if (!this.isValidPlatform(platform)) {
-      throw new Error('Invalid platform')
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid platform', {
+          "category": "general"
+      })
     }
     if (!this.isValidAction(action)) {
-      throw new Error('Invalid action')
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid action', {
+          "category": "general"
+      })
     }
     if (!this.isValidState(state)) {
-      throw new Error('Invalid state')
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid state', {
+          "category": "general"
+      })
     }
 
     return `${domain}.${platform}.${action}.${state}`

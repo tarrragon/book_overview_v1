@@ -1,6 +1,7 @@
 const SchemaMigrationService = require('src/data-management/SchemaMigrationService')
 const BaseModule = require('src/background/lifecycle/base-module')
 const EventBus = require('src/core/event-bus')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('Schema Migration Service', () => {
   let eventBus
@@ -107,7 +108,7 @@ describe('Schema Migration Service', () => {
       await new Promise(resolve => setTimeout(resolve, this.executionDelay))
 
       if (this.shouldFail) {
-        throw new Error('Simulated migration execution failure')
+        throw new StandardError('TEST_ERROR', 'Simulated migration execution failure', { category: 'testing' })
       }
 
       switch (step.type) {
@@ -118,7 +119,7 @@ describe('Schema Migration Service', () => {
         case 'DELETE_FIELD':
           return this.simulateDeleteField(step, data)
         default:
-          throw new Error(`Unsupported migration step: ${step.type}`)
+          throw new StandardError('TEST_ERROR', `Unsupported migration step: ${step.type}`, { category: 'testing' })
       }
     }
 
@@ -158,7 +159,7 @@ describe('Schema Migration Service', () => {
       await new Promise(resolve => setTimeout(resolve, this.backupDelay))
 
       if (this.shouldFailBackup) {
-        throw new Error('Simulated backup creation failure')
+        throw new StandardError('TEST_ERROR', 'Simulated backup creation failure', { category: 'testing' })
       }
 
       const backupId = `backup_${version}_${Date.now()}`
@@ -175,12 +176,12 @@ describe('Schema Migration Service', () => {
 
     async restoreBackup (backupId) {
       if (this.shouldFailBackup) {
-        throw new Error('Simulated backup restore failure')
+        throw new StandardError('TEST_ERROR', 'Simulated backup restore failure', { category: 'testing' })
       }
 
       const backup = this.backups.get(backupId)
       if (!backup) {
-        throw new Error(`Backup not found: ${backupId}`)
+        throw new StandardError('NOT_FOUND_ERROR', `Backup not found: ${backupId}`, { category: 'testing' })
       }
 
       return backup.data
@@ -198,7 +199,7 @@ describe('Schema Migration Service', () => {
       await new Promise(resolve => setTimeout(resolve, this.storageDelay))
 
       if (this.shouldFailStorage) {
-        throw new Error('Simulated storage read failure')
+        throw new StandardError('TEST_ERROR', 'Simulated storage read failure', { category: 'testing' })
       }
 
       return this.storage.get(key)
@@ -208,7 +209,7 @@ describe('Schema Migration Service', () => {
       await new Promise(resolve => setTimeout(resolve, this.storageDelay))
 
       if (this.shouldFailStorage) {
-        throw new Error('Simulated storage write failure')
+        throw new StandardError('TEST_ERROR', 'Simulated storage write failure', { category: 'testing' })
       }
 
       this.storage.set(key, JSON.parse(JSON.stringify(value)))
@@ -218,7 +219,7 @@ describe('Schema Migration Service', () => {
       await new Promise(resolve => setTimeout(resolve, this.storageDelay))
 
       if (this.shouldFailStorage) {
-        throw new Error('Simulated storage remove failure')
+        throw new StandardError('TEST_ERROR', 'Simulated storage remove failure', { category: 'testing' })
       }
 
       return this.storage.delete(key)
@@ -250,19 +251,27 @@ describe('Schema Migration Service', () => {
   // 1. Construction & Initialization (8 tests)
   describe('Construction & Initialization', () => {
     test('建構函數參數驗證 - eventBus 必填', () => {
-      expect(() => new SchemaMigrationService()).toThrow('EventBus is required')
+      expect(() => new SchemaMigrationService()).toMatchObject({
+        message: expect.stringContaining('EventBus is required')
+      })
     })
 
     test('建構函數參數驗證 - eventBus 無效', () => {
-      expect(() => new SchemaMigrationService({})).toThrow('EventBus is required')
+      expect(() => new SchemaMigrationService({})).toMatchObject({
+        message: expect.stringContaining('EventBus is required')
+      })
     })
 
     test('建構函數參數驗證 - logger 必填', () => {
-      expect(() => new SchemaMigrationService(eventBus)).toThrow('Logger is required')
+      expect(() => new SchemaMigrationService(eventBus)).toMatchObject({
+        message: expect.stringContaining('Logger is required')
+      })
     })
 
     test('建構函數參數驗證 - config 必填', () => {
-      expect(() => new SchemaMigrationService(eventBus, logger)).toThrow('Config is required')
+      expect(() => new SchemaMigrationService(eventBus, logger)).toMatchObject({
+        message: expect.stringContaining('Config is required')
+      })
     })
 
     test('BaseModule 繼承正確性', () => {
@@ -342,7 +351,11 @@ describe('Schema Migration Service', () => {
 
     test('無效版本號處理', async () => {
       await expect(migrationService.setTargetVersion('invalid.version'))
-        .rejects.toThrow('Invalid version format')
+        .rejects.toMatchObject({
+        code: 'INVALID_INPUT_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     test('版本歷史記錄管理', async () => {
@@ -354,7 +367,11 @@ describe('Schema Migration Service', () => {
       await migrationService.acquireVersionLock('1.0.0')
 
       await expect(migrationService.acquireVersionLock('1.0.0'))
-        .rejects.toThrow('Version is already locked')
+        .rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     test('版本資訊快取機制', async () => {
@@ -447,7 +464,11 @@ describe('Schema Migration Service', () => {
       const invalidPlan = { steps: [] }
 
       await expect(migrationService.validateMigrationPlan(invalidPlan))
-        .rejects.toThrow('Invalid migration plan')
+        .rejects.toMatchObject({
+        code: 'INVALID_INPUT_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     test('多步驟 Migration 協調', async () => {
@@ -576,7 +597,11 @@ describe('Schema Migration Service', () => {
       const testData = createTestSchemaVersions().v1_0_0
 
       await expect(migrationService.executeMigrationStep(step, testData))
-        .rejects.toThrow('Migration execution timeout')
+        .rejects.toMatchObject({
+        code: 'TIMEOUT_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     }, 40000) // 設定測試超時為 40 秒
 
     test('併發控制和資源鎖定', async () => {
@@ -586,7 +611,11 @@ describe('Schema Migration Service', () => {
       const execution1Promise = migrationService.executeMultiStepMigration(plan1)
 
       await expect(migrationService.executeMultiStepMigration(plan2))
-        .rejects.toThrow('Another migration is already in progress')
+        .rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       await execution1Promise
     })
@@ -911,7 +940,7 @@ describe('Schema Migration Service', () => {
       mockMigrationExecutor.executeStep = jest.fn().mockImplementation(() => {
         attemptCount++
         if (attemptCount < 3) {
-          throw new Error('Temporary failure')
+          throw new StandardError('TEST_ERROR', 'Temporary failure', { category: 'testing' })
         }
         return { success: true, modifiedRecords: 1 }
       })

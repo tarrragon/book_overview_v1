@@ -31,6 +31,8 @@
  * @since 2025-08-18
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class PopupExtractionService {
   /**
    * 建構 PopupExtractionService
@@ -42,13 +44,19 @@ class PopupExtractionService {
   constructor (statusManager, progressManager, communicationService, options = {}) {
     // 驗證必要依賴
     if (!statusManager) {
-      throw new Error('StatusManager is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'StatusManager is required', {
+          "category": "ui"
+      })
     }
     if (!progressManager) {
-      throw new Error('ProgressManager is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'ProgressManager is required', {
+          "category": "ui"
+      })
     }
     if (!communicationService) {
-      throw new Error('CommunicationService is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'CommunicationService is required', {
+          "category": "ui"
+      })
     }
 
     // 儲存依賴實例
@@ -83,7 +91,9 @@ class PopupExtractionService {
   async startExtraction (extractionOptions = {}) {
     // 防止重複提取
     if (this.isExtracting) {
-      throw new Error('Extraction already in progress')
+      throw new StandardError('EXTRACTION_FAILED', 'Extraction already in progress', {
+          "category": "general"
+      })
     }
 
     try {
@@ -191,7 +201,9 @@ class PopupExtractionService {
         text: '資料處理失敗',
         info: '提取結果格式無效'
       })
-      throw new Error('Invalid extraction result format')
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid extraction result format', {
+          "category": "general"
+      })
     }
 
     const { books, totalProcessed, successCount, failureCount } = extractionResult
@@ -406,7 +418,9 @@ class PopupExtractionService {
       }
     }
 
-    throw new Error(`Extraction failed after ${this.config.maxRetries} retries: ${lastError.message}`)
+    throw new StandardError('OPERATION_FAILED', `Extraction failed after ${this.config.maxRetries} retries: ${lastError.message}`, {
+          "category": "general"
+      })
   }
 
   /**

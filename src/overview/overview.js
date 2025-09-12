@@ -15,6 +15,16 @@
  * - 整合現有的事件處理器架構
  */
 
+// 引入標準化錯誤處理 (瀏覽器環境)
+if (typeof window !== 'undefined' && window.StandardError) {
+  // StandardError 已在全域可用
+} else if (typeof require !== 'undefined') {
+  const { StandardError } = require('src/core/errors/StandardError')
+  if (typeof window !== 'undefined') {
+    window.StandardError = StandardError
+  }
+}
+
 /* global EventBus, ChromeEventBridge, OverviewPageController */
 
 (function () {
@@ -130,7 +140,11 @@
     try {
       // 檢查 OverviewPageController 是否可用
       if (typeof OverviewPageController === 'undefined') {
-        throw new Error('OverviewPageController 類別不可用')
+        throw new StandardError('OVERVIEW_CONTROLLER_UNAVAILABLE', 'OverviewPageController 類別不可用', {
+          category: 'initialization',
+          requiredClass: 'OverviewPageController',
+          context: 'chrome_extension'
+        })
       }
 
       // 創建控制器實例

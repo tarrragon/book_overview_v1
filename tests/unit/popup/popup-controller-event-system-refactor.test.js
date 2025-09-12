@@ -16,6 +16,7 @@ const PopupController = require('src/popup/popup-controller.js')
 
 // Mock DOM 環境
 const { JSDOM } = require('jsdom')
+const { StandardError } = require('src/core/errors/StandardError')
 const dom = new JSDOM(`
   <!DOCTYPE html>
   <html>
@@ -257,7 +258,7 @@ describe('PopupController 事件系統重構', () => {
       // 模擬組件方法拋出錯誤
       controller.components.extraction = {
         ...controller.components.extraction,
-        startExtraction: jest.fn(() => { throw new Error('提取失敗') })
+        startExtraction: jest.fn(() => { throw new StandardError('TEST_ERROR', '提取失敗', { category: 'testing' }) })
       }
 
       // 重新建立事件管理器以使用新的組件
@@ -298,7 +299,7 @@ describe('PopupController 事件系統重構', () => {
         startExtraction: jest.fn(() => {
           callCount++
           if (callCount <= 2) {
-            throw new Error('暫時失敗')
+            throw new StandardError('TEST_ERROR', '暫時失敗', { category: 'testing' })
           }
           return 'success'
         })
@@ -474,7 +475,11 @@ describe('PopupController 事件系統重構', () => {
 
       expect(() => {
         controller.eventManager.addEventConfig('invalid', invalidConfig)
-      }).toThrow(/無效的事件配置/)
+      }).toMatchObject({
+        code: expect.any(String),
+        message: expect.stringContaining('無效的事件配置'),
+        details: expect.any(Object)
+      })
     })
   })
 })

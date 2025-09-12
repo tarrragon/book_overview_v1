@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * UI State Tracker - UI狀態追蹤工具
  * 用於測試中追蹤和驗證UI元素的狀態變化
@@ -70,7 +71,7 @@ class UIStateTracker {
     const state2 = this.findState(state2Name)
 
     if (!state1 || !state2) {
-      throw new Error(`無法找到狀態: ${state1Name} 或 ${state2Name}`)
+      throw new StandardError('TEST_ERROR', `無法找到狀態: ${state1Name} 或 ${state2Name}`, { category: 'testing' })
     }
 
     return this._deepCompare(state1.elements, state2.elements)
@@ -135,7 +136,7 @@ class UIStateTracker {
     const recentStates = this.stateHistory.slice(-2)
 
     if (recentStates.length < 2) {
-      throw new Error('需要至少兩個狀態來驗證轉換')
+      throw new StandardError('TEST_ERROR', '需要至少兩個狀態來驗證轉換', { category: 'testing' })
     }
 
     const [previousState, currentState] = recentStates

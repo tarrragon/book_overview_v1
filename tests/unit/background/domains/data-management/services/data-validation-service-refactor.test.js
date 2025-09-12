@@ -6,6 +6,7 @@
  */
 
 const ValidationRuleManager = require('src/background/domains/data-management/services/validation-rule-manager.js')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('ValidationRuleManager - 驗證規則管理服務', () => {
   let ruleManager
@@ -83,7 +84,11 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
 
     test('loadPlatformValidationRules() 應該拒絕不支援的平台', async () => {
       await expect(ruleManager.loadPlatformValidationRules('UNSUPPORTED'))
-        .rejects.toThrow('Platform UNSUPPORTED is not supported')
+        .rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     test('loadPlatformValidationRules() 應該支援規則快取', async () => {
@@ -227,7 +232,9 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
     test('constructor 應該要求 eventBus 參數', () => {
       expect(() => {
         new ValidationRuleManager()
-      }).toThrow('EventBus is required')
+      }).toMatchObject({
+        message: expect.stringContaining('EventBus is required')
+      })
     })
 
     test('應該處理規則載入失敗', async () => {
@@ -235,14 +242,22 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
       jest.spyOn(ruleManager, '_loadRulesForPlatform').mockRejectedValue(new Error('載入失敗'))
 
       await expect(ruleManager.loadPlatformValidationRules('READMOO'))
-        .rejects.toThrow('載入失敗')
+        .rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     test('應該處理損壞的規則檔案', async () => {
       jest.spyOn(ruleManager, '_loadRulesForPlatform').mockResolvedValue(null)
 
       await expect(ruleManager.loadPlatformValidationRules('READMOO'))
-        .rejects.toThrow('Failed to load validation rules for platform READMOO')
+        .rejects.toMatchObject({
+        code: 'VALIDATION_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
   })
 })

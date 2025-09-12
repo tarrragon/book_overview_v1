@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * 背景服務事件系統單元測試
  * 測試Chrome Extension的事件驅動架構
@@ -255,7 +256,7 @@ describe('🎭 背景服務事件系統測試', () => {
       // Arrange
       const errorHandler = jest.fn()
       const faultyHandler = jest.fn(() => {
-        throw new Error('Handler error')
+        throw new StandardError('TEST_ERROR', 'Handler error', { category: 'testing' })
       })
 
       // Act & Assert
@@ -275,7 +276,7 @@ describe('🎭 背景服務事件系統測試', () => {
 
     test('應該在處理器錯誤後繼續執行其他處理器', async () => {
       // Arrange
-      const handler1 = jest.fn(() => { throw new Error('Error in handler1') })
+      const handler1 = jest.fn(() => { throw new StandardError('TEST_ERROR', 'Error in handler1', { category: 'testing' }) })
       const handler2 = jest.fn()
       const handler3 = jest.fn()
       const errorLog = []

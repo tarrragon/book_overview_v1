@@ -34,6 +34,7 @@
 // 統一日誌管理系統
 const { Logger } = require('src/core/logging/Logger')
 const { MessageDictionary } = require('src/core/messages/MessageDictionary')
+const { StandardError } = require('src/core/errors/StandardError')
 
 // 初始化 Logger 實例
 const validatorMessages = new MessageDictionary({
@@ -107,7 +108,9 @@ class ReadmooPlatformMigrationValidator {
     for (const dep of requiredDependencies) {
       if (!dependencies[dep]) {
         validatorLogger.error('DEPENDENCY_MISSING', { dependency: dep })
-        throw new Error(`Missing required dependency: ${dep}`)
+        throw new StandardError('REQUIRED_FIELD_MISSING', `Missing required dependency: ${dep}`, {
+          "category": "data_migration"
+      })
       }
     }
 
@@ -118,7 +121,9 @@ class ReadmooPlatformMigrationValidator {
         dependency: 'EventBus',
         methods: 'emit() and on()'
       })
-      throw new Error('EventBus must implement emit() and on() methods')
+      throw new StandardError('EVENTBUS_ERROR', 'EventBus must implement emit() and on() methods', {
+          "category": "data_migration"
+      })
     }
 
     // 驗證 readmooAdapter 介面
@@ -128,7 +133,9 @@ class ReadmooPlatformMigrationValidator {
         dependency: 'ReadmooAdapter',
         methods: 'extractBookData() and validateExtractedData()'
       })
-      throw new Error('ReadmooAdapter must implement extractBookData() and validateExtractedData() methods')
+      throw new StandardError('UNKNOWN_ERROR', 'ReadmooAdapter must implement extractBookData() and validateExtractedData() methods', {
+          "category": "data_migration"
+      })
     }
 
     // 驗證 platformDetectionService 介面
@@ -138,7 +145,9 @@ class ReadmooPlatformMigrationValidator {
         dependency: 'PlatformDetectionService',
         methods: 'detectPlatform() and validatePlatform()'
       })
-      throw new Error('PlatformDetectionService must implement detectPlatform() and validatePlatform() methods')
+      throw new StandardError('UNKNOWN_ERROR', 'PlatformDetectionService must implement detectPlatform() and validatePlatform() methods', {
+          "category": "data_migration"
+      })
     }
   }
 
@@ -170,7 +179,13 @@ class ReadmooPlatformMigrationValidator {
         min: 1,
         max: 10
       })
-      throw new Error('maxValidationRetries must be between 1 and 10')
+      throw new StandardError('VALIDATION_FAILED', 'maxValidationRetries must be between 1 and 10', {
+          "values": [
+              "1",
+              "10"
+          ],
+          "category": "data_migration"
+      })
     }
 
     if (config.validationTimeout < 1000 || config.validationTimeout > 120000) {
@@ -179,7 +194,13 @@ class ReadmooPlatformMigrationValidator {
         min: '1000ms',
         max: '120000ms'
       })
-      throw new Error('validationTimeout must be between 1000ms and 120000ms')
+      throw new StandardError('OPERATION_TIMEOUT', 'validationTimeout must be between 1000ms and 120000ms', {
+          "values": [
+              "1000",
+              "120000"
+          ],
+          "category": "data_migration"
+      })
     }
 
     if (config.minDetectionConfidence < 0 || config.minDetectionConfidence > 1) {
@@ -188,7 +209,13 @@ class ReadmooPlatformMigrationValidator {
         min: 0,
         max: 1
       })
-      throw new Error('minDetectionConfidence must be between 0 and 1')
+      throw new StandardError('UNKNOWN_ERROR', 'minDetectionConfidence must be between 0 and 1', {
+          "values": [
+              "0",
+              "1"
+          ],
+          "category": "data_migration"
+      })
     }
 
     return config
@@ -291,7 +318,9 @@ class ReadmooPlatformMigrationValidator {
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => {
           validatorLogger.error('VALIDATION_TIMEOUT', { timeout: this.config.validationTimeout })
-          reject(new Error(`Validation timeout after ${this.config.validationTimeout}ms`))
+          reject(new StandardError('OPERATION_TIMEOUT', `Validation timeout after ${this.config.validationTimeout}ms`, {
+          "category": "data_migration"
+      }))
         }, this.config.validationTimeout)
       })
 

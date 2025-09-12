@@ -4,6 +4,7 @@
  */
 
 const ReadmooDataConsistencyService = require('src/background/domains/data-management/services/readmoo-data-consistency-service')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('ReadmooDataConsistencyService', () => {
   let service
@@ -78,10 +79,14 @@ describe('ReadmooDataConsistencyService', () => {
     test('initialize() 失敗時應該拋出錯誤', async () => {
       // 模擬 eventBus.on 拋出錯誤
       mockEventBus.on.mockImplementation(() => {
-        throw new Error('Event registration failed')
+        throw new StandardError('TEST_ERROR', 'Event registration failed', { category: 'testing' })
       })
 
-      await expect(service.initialize()).rejects.toThrow('Event registration failed')
+      await expect(service.initialize()).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
       expect(service.isInitialized).toBe(false)
     })
 
@@ -211,10 +216,14 @@ describe('ReadmooDataConsistencyService', () => {
 
       // 模擬 emit 失敗
       mockEventBus.emit.mockImplementation(() => {
-        throw new Error('Event emission failed')
+        throw new StandardError('TEST_ERROR', 'Event emission failed', { category: 'testing' })
       })
 
-      await expect(service.performConsistencyCheck(checkId)).rejects.toThrow('Event emission failed')
+      await expect(service.performConsistencyCheck(checkId)).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       const job = service.consistencyJobs.get(checkId)
       expect(job.status).toBe('failed')

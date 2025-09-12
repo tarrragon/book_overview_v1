@@ -3,6 +3,8 @@
  * 提供各種錯誤情境的模擬功能
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class ErrorSimulator {
   constructor (testSuite) {
     this.testSuite = testSuite
@@ -20,35 +22,35 @@ class ErrorSimulator {
    * 模擬網路錯誤
    */
   simulateNetworkError () {
-    throw new Error(this.errorTypes.NETWORK_ERROR)
+    throw new StandardError('NETWORK_ERROR', this.errorTypes.NETWORK_ERROR, { category: 'testing' })
   }
 
   /**
    * 模擬記憶體錯誤
    */
   simulateMemoryError () {
-    throw new Error(this.errorTypes.MEMORY_ERROR)
+    throw new StandardError('MEMORY_ERROR', this.errorTypes.MEMORY_ERROR, { category: 'testing' })
   }
 
   /**
    * 模擬超時錯誤
    */
   simulateTimeoutError () {
-    throw new Error(this.errorTypes.TIMEOUT_ERROR)
+    throw new StandardError('TIMEOUT_ERROR', this.errorTypes.TIMEOUT_ERROR, { category: 'testing' })
   }
 
   /**
    * 模擬權限錯誤
    */
   simulatePermissionError () {
-    throw new Error(this.errorTypes.PERMISSION_ERROR)
+    throw new StandardError('PERMISSION_ERROR', this.errorTypes.PERMISSION_ERROR, { category: 'testing' })
   }
 
   /**
    * 模擬儲存錯誤
    */
   simulateStorageError () {
-    throw new Error(this.errorTypes.STORAGE_ERROR)
+    throw new StandardError('STORAGE_ERROR', this.errorTypes.STORAGE_ERROR, { category: 'testing' })
   }
 
   /**
@@ -324,7 +326,7 @@ class ErrorSimulator {
    */
   simulateIntermittentNetworkErrors (networkInterruptions) {
     if (!networkInterruptions || !Array.isArray(networkInterruptions)) {
-      throw new Error('Network interruptions array is required')
+      throw new StandardError('INVALID_ARGUMENT', 'Network interruptions array is required', { category: 'testing' })
     }
 
     // 模擬間歇性網路中斷

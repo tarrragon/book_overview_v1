@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * stable-id-generation.test.js
  *
@@ -374,7 +375,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         // 模擬URL構造函數被安全策略阻止
         const originalURL = global.URL
         global.URL = function () {
-          throw new Error('Blocked by security policy')
+          throw new StandardError('TEST_ERROR', 'Blocked by security policy', { category: 'testing' })
         }
 
         const result = adapter.generateStableBookId(

@@ -185,7 +185,11 @@ describe('StorageSaveHandler 單元測試', () => {
         flowId: 'test-flow-123'
       }
 
-      await expect(storageSaveHandler.handle(saveEvent)).rejects.toThrow('Storage quota exceeded')
+      await expect(storageSaveHandler.handle(saveEvent)).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'STORAGE.ERROR',
@@ -209,7 +213,11 @@ describe('StorageSaveHandler 單元測試', () => {
         flowId: 'test-flow-123'
       }
 
-      await expect(storageSaveHandler.handle(invalidEvent)).rejects.toThrow('Invalid data')
+      await expect(storageSaveHandler.handle(invalidEvent)).rejects.toMatchObject({
+        code: 'INVALID_INPUT_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'STORAGE.ERROR',
@@ -233,7 +241,11 @@ describe('StorageSaveHandler 單元測試', () => {
         flowId: 'test-flow-123'
       }
 
-      await expect(storageSaveHandler.handle(saveEvent)).rejects.toThrow('Storage adapter not available')
+      await expect(storageSaveHandler.handle(saveEvent)).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'STORAGE.ERROR',

@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * Message Flow Tracker - 訊息流追蹤工具
  * 用於追蹤和分析Chrome Extension中的訊息傳遞流程
@@ -537,7 +538,7 @@ class MessageFlowTracker {
     const originalMessage = this.activeFlows.get(messageId)
 
     if (!originalMessage) {
-      throw new Error(`找不到訊息ID: ${messageId}`)
+      throw new StandardError('TEST_ERROR', `找不到訊息ID: ${messageId}`, { category: 'testing' })
     }
 
     const responseTime = timestamp - originalMessage.timestamp
@@ -562,7 +563,7 @@ class MessageFlowTracker {
     const originalMessage = this.activeFlows.get(messageId)
 
     if (!originalMessage) {
-      throw new Error(`找不到訊息ID: ${messageId}`)
+      throw new StandardError('TEST_ERROR', `找不到訊息ID: ${messageId}`, { category: 'testing' })
     }
 
     const responseTime = timestamp - originalMessage.timestamp

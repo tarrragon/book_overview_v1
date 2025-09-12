@@ -3,6 +3,8 @@
  * 負責將各種錯誤分類為5大類型，並判斷嚴重程度
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 const ERROR_TYPES = {
   NETWORK_ERROR: 'NETWORK_ERROR',
   DATA_ERROR: 'DATA_ERROR',
@@ -63,7 +65,10 @@ const ERROR_CLASSIFICATION_RULES = {
  */
 function classifyError (error) {
   if (!error) {
-    throw new Error('Error object is required for classification')
+    throw new StandardError('REQUIRED_FIELD_MISSING', 'Error object is required for classification', {
+          "dataType": "object",
+          "category": "ui"
+      })
   }
 
   const errorMessage = error.message || error.toString()

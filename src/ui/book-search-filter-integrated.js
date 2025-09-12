@@ -32,6 +32,7 @@ const { MessageDictionary } = require('src/core/messages/MessageDictionary')
 
 const BaseUIHandler = require('./handlers/base-ui-handler')
 const UI_HANDLER_CONFIG = require('./config/ui-handler-config')
+const { StandardError } = require('src/core/errors/StandardError')
 
 // 初始化 Logger 實例
 const searchUIMessages = new MessageDictionary({
@@ -72,7 +73,9 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
   constructor (eventBus, document) {
     if (!eventBus) {
       searchUILogger.error('EVENT_BUS_MISSING')
-      throw new Error('事件總線是必需的')
+      throw new StandardError('UNKNOWN_ERROR', '事件總線是必需的', {
+          "category": "ui"
+      })
     }
 
     searchUILogger.info('COMPONENT_INIT')
@@ -187,7 +190,9 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
       searchUILogger.info('MODULAR_COMPONENTS_SUCCESS')
     } catch (error) {
       searchUILogger.error('MODULAR_COMPONENTS_FAILED', { error: error.message })
-      throw new Error(`模組化組件初始化失敗: ${error.message}`)
+      throw new StandardError('UNKNOWN_ERROR', `模組化組件初始化失敗: ${error.message}`, {
+          "category": "ui"
+      })
     }
   }
 

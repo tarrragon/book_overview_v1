@@ -22,6 +22,7 @@ const path = require('path')
 // 模擬 Service Worker 全域環境
 global.self = global
 global.chrome = require('jest-chrome').chrome
+const { StandardError } = require('src/core/errors/StandardError')
 
 // 模擬 DOM 環境變數（PageDetector 需要）
 global.globalThis = global
@@ -562,7 +563,7 @@ describe('Background Service Worker Event System Integration', () => {
       if (eventBus) {
         // 註冊一個會拋出異常的處理器
         const faultyHandler = jest.fn(() => {
-          throw new Error('Handler error')
+          throw new StandardError('TEST_ERROR', 'Handler error', { category: 'testing' })
         })
 
         eventBus.on('FAULTY.EVENT', faultyHandler)

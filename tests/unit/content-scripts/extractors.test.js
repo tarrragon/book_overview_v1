@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * 資料提取器單元測試
  * 測試內容腳本中的資料提取功能
@@ -261,7 +262,11 @@ describe('📚 資料提取器測試', () => {
 
       // Act & Assert
       await expect(Promise.reject(mockNetworkError))
-        .rejects.toThrow('Network error')
+        .rejects.toMatchObject({
+        code: 'NETWORK_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     test('應該能夠處理無效的書籍ID格式', () => {

@@ -15,6 +15,7 @@
 
 const ChromeExtensionMocksEnhanced = require('../utils/chrome-extension-mocks-enhanced')
 const ErrorInjector = require('../utils/error-injector')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class E2EIntegrationTestCoordinator {
   constructor () {
@@ -72,7 +73,7 @@ class E2EIntegrationTestCoordinator {
 
       return this.testEnvironment
     } catch (error) {
-      throw new Error(`Failed to initialize test environment: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `Failed to initialize test environment: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -172,12 +173,12 @@ class E2EIntegrationTestCoordinator {
   async verifyInitializationPhase (scenario) {
     // 驗證測試環境已正確設置
     if (!this.testState.initialized) {
-      throw new Error('Test environment not initialized')
+      throw new StandardError('TEST_ERROR', 'Test environment not initialized', { category: 'testing' })
     }
 
     // 驗證必要的模擬器已設置
     if (!this.extensionSimulator || !this.pageSimulator) {
-      throw new Error('Required simulators not available')
+      throw new StandardError('TEST_ERROR', 'Required simulators not available', { category: 'testing' })
     }
 
     // 模擬Extension context設置
@@ -214,7 +215,7 @@ class E2EIntegrationTestCoordinator {
         result.interactionsSuccessful = true
       }
     } catch (error) {
-      throw new Error(`User interaction simulation failed: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `User interaction simulation failed: ${error.message}`, { category: 'testing' })
     }
 
     return result
@@ -241,7 +242,7 @@ class E2EIntegrationTestCoordinator {
 
       result.extractionSuccessful = true
     } catch (error) {
-      throw new Error(`Data extraction verification failed: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `Data extraction verification failed: ${error.message}`, { category: 'testing' })
     }
 
     return result
@@ -270,7 +271,7 @@ class E2EIntegrationTestCoordinator {
 
       result.validationPassed = true
     } catch (error) {
-      throw new Error(`Results verification failed: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `Results verification failed: ${error.message}`, { category: 'testing' })
     }
 
     return result

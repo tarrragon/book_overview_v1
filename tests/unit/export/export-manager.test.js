@@ -27,6 +27,7 @@
  */
 
 const EventBus = require('src/core/event-bus')
+const { StandardError } = require('src/core/errors/StandardError')
 
 // Mock BookDataExporter
 let mockExporterInstance
@@ -248,7 +249,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
       // 模擬匯出失敗 - 使用 mockImplementationOnce 避免影響其他測試
       BookDataExporter.mockImplementationOnce(() => ({
         exportToCSV: jest.fn().mockImplementation(() => {
-          throw new Error('CSV export failed')
+          throw new StandardError('TEST_ERROR', 'CSV export failed', { category: 'testing' })
         }),
         setProgressCallback: jest.fn()
       }))
@@ -420,7 +421,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
       // 模擬部分格式匯出失敗 - 使用 mockImplementationOnce
       BookDataExporter.mockImplementationOnce(() => ({
         batchExport: jest.fn().mockImplementation(() => {
-          throw new Error('Some formats failed')
+          throw new StandardError('TEST_ERROR', 'Some formats failed', { category: 'testing' })
         }),
         setProgressCallback: jest.fn()
       }))
@@ -489,7 +490,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
       // 模擬下載失敗 - 使用 mockImplementationOnce
       BookDataExporter.mockImplementationOnce(() => ({
         downloadFile: jest.fn().mockImplementation(() => {
-          throw new Error('Download failed')
+          throw new StandardError('TEST_ERROR', 'Download failed', { category: 'testing' })
         })
       }))
 
@@ -586,7 +587,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
       // 模擬建構函數失敗 - 使用 mockImplementationOnce
       BookDataExporter.mockImplementationOnce(() => {
-        throw new Error('Exporter initialization failed')
+        throw new StandardError('TEST_ERROR', 'Exporter initialization failed', { category: 'testing' })
       })
 
       const failedEventSpy = jest.fn()
@@ -651,7 +652,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
         exportToCSV: jest.fn().mockImplementation(() => {
           attemptCount++
           if (attemptCount === 1) {
-            throw new Error('Temporary failure')
+            throw new StandardError('TEST_ERROR', 'Temporary failure', { category: 'testing' })
           }
           return 'mock-csv-data'
         }),

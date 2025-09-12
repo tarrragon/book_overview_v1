@@ -308,8 +308,16 @@ describe('DataComparisonEngine TDD 測試', () => {
       // Given: 無效的輸入資料
 
       // When & Then: 應該拋出錯誤
-      await expect(engine.calculateDataDifferences('not-array', [])).rejects.toThrow('Source and target data must be arrays')
-      await expect(engine.calculateDataDifferences([], 'not-array')).rejects.toThrow('Source and target data must be arrays')
+      await expect(engine.calculateDataDifferences('not-array', [])).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
+      await expect(engine.calculateDataDifferences([], 'not-array')).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     test('應該優雅處理空資料', async () => {

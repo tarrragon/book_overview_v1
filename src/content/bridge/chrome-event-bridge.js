@@ -35,6 +35,8 @@
  *
  * @returns {Object} ChromeEventBridge 實例
  */
+const { StandardError } = require('src/core/errors/StandardError')
+
 function createChromeEventBridge () {
   let eventBus = null
   let messageListener = null
@@ -92,7 +94,9 @@ function createChromeEventBridge () {
       try {
         // 訊息格式驗證
         if (!message || typeof message.type !== 'string') {
-          throw new Error('無效的訊息格式：缺少 type 欄位')
+          throw new StandardError('UNKNOWN_ERROR', '無效的訊息格式：缺少 type 欄位', {
+          "category": "general"
+      })
         }
 
         // 添加元資料
@@ -169,7 +173,9 @@ function createChromeEventBridge () {
         case 'popup':
           return await this.dispatchToPopup(event)
         default:
-          throw new Error(`Unknown target context: ${targetContext}`)
+          throw new StandardError('UNKNOWN_ERROR', `Unknown target context: ${targetContext}`, {
+          "category": "general"
+      })
       }
     },
 
@@ -186,7 +192,9 @@ function createChromeEventBridge () {
           event
         }, (response) => {
           if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message))
+            reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
+          "category": "general"
+      }))
           } else {
             resolve(response)
           }
@@ -244,7 +252,9 @@ function createChromeEventBridge () {
           url: ['*://readmoo.com/*', '*://*.readmoo.com/*']
         }, (tabs) => {
           if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message))
+            reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
+          "category": "general"
+      }))
           } else {
             resolve(tabs || [])
           }
@@ -263,7 +273,9 @@ function createChromeEventBridge () {
       return new Promise((resolve, reject) => {
         chrome.tabs.sendMessage(tabId, message, (response) => {
           if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message))
+            reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
+          "category": "general"
+      }))
           } else {
             resolve(response)
           }

@@ -33,6 +33,8 @@
  *
  * @returns {Object} BookDataExtractor 實例
  */
+const { StandardError } = require('src/core/errors/StandardError')
+
 function createBookDataExtractor () {
   let eventBus = null
   let readmooAdapter = null
@@ -157,7 +159,9 @@ function createBookDataExtractor () {
       try {
         // 檢查頁面是否可提取
         if (!this.isExtractableReadmooPage()) {
-          throw new Error(`不支援的頁面類型: ${pageType}`)
+          throw new StandardError('UNKNOWN_ERROR', `不支援的頁面類型: ${pageType}`, {
+          "category": "general"
+      })
         }
 
         // 建立流程狀態
@@ -213,7 +217,9 @@ function createBookDataExtractor () {
     async performActualExtraction (flowId) {
       const flowState = activeExtractionFlows.get(flowId)
       if (!flowState || !readmooAdapter) {
-        throw new Error('流程狀態或適配器不存在')
+        throw new StandardError('UNKNOWN_ERROR', '流程狀態或適配器不存在', {
+          "category": "general"
+      })
       }
 
       try {

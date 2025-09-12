@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * PopupProgressManager 單元測試
  *
@@ -187,7 +188,11 @@ describe('PopupProgressManager 核心功能', () => {
       // Then: 應該拋出錯誤
       expect(() => {
         progressManager.updateProgress({ percentage: 50, status: invalidStatus, text: '測試' })
-      }).toThrow(`Invalid progress status: ${invalidStatus}`)
+      }).toMatchObject({
+        code: expect.any(String),
+        message: expect.stringContaining(`Invalid progress status: ${invalidStatus}`),
+        details: expect.any(Object)
+      })
     })
 
     test('應該正確處理進度狀態轉換', () => {
@@ -222,7 +227,7 @@ describe('PopupProgressManager 核心功能', () => {
       progressManager = new PopupProgressManager(mockUIComponents)
 
       mockUIComponents.updateProgress.mockImplementation(() => {
-        throw new Error('UI update failed')
+        throw new StandardError('TEST_ERROR', 'UI update failed', { category: 'testing' })
       })
 
       // When: 嘗試更新進度
@@ -252,7 +257,11 @@ describe('PopupProgressManager 核心功能', () => {
       // Then: 應該拋出驗證錯誤
       expect(() => {
         progressManager.updateProgress(incompleteData)
-      }).toThrow('Progress data must include percentage and status fields')
+      }).toMatchObject({
+        code: expect.any(String),
+        message: expect.stringContaining('Progress data must include percentage and status fields'),
+        details: expect.any(Object)
+      })
     })
   })
 })

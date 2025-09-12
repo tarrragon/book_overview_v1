@@ -88,7 +88,7 @@ class E2ETestRunner {
     for (const file of requiredFiles) {
       const filePath = path.join(this.projectRoot, file)
       if (!fs.existsSync(filePath)) {
-        throw new Error(`必要文件不存在: ${file}`)
+        throw new StandardError('TEST_ERROR', `必要文件不存在: ${file}`, { category: 'testing' })
       }
     }
 
@@ -124,12 +124,12 @@ class E2ETestRunner {
 
       // 驗證建置結果
       if (!fs.existsSync(this.buildDir)) {
-        throw new Error('Extension 建置失敗')
+        throw new StandardError('TEST_ERROR', 'Extension 建置失敗', { category: 'testing' })
       }
 
       console.log('  ✅ Extension 建置完成')
     } catch (error) {
-      throw new Error(`Extension 建置失敗: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `Extension 建置失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -217,7 +217,7 @@ class E2ETestRunner {
     )
 
     if (results.failed > 0) {
-      throw new Error(`${results.failed} 個測試套件執行失敗`)
+      throw new StandardError('TEST_ERROR', `${results.failed} 個測試套件執行失敗`, { category: 'testing' })
     }
   }
 

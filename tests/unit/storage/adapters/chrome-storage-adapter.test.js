@@ -312,7 +312,11 @@ describe('ChromeStorageAdapter', () => {
         })
       }
 
-      await expect(adapter.save('large_data', largeData)).rejects.toThrow('Storage quota exceeded')
+      await expect(adapter.save('large_data', largeData)).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     test('應該執行清理策略', async () => {
@@ -356,7 +360,11 @@ describe('ChromeStorageAdapter', () => {
         setTimeout(() => callback && callback(), 0)
       })
 
-      await expect(adapter.save('test_key', { data: 'test' })).rejects.toThrow('QUOTA_EXCEEDED_ERR')
+      await expect(adapter.save('test_key', { data: 'test' })).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // 清理錯誤狀態
       mockChrome.runtime.lastError = null
@@ -365,7 +373,11 @@ describe('ChromeStorageAdapter', () => {
     test('應該處理 chrome.runtime.lastError', async () => {
       mockChrome.runtime.lastError = { message: 'Extension context invalidated' }
 
-      await expect(adapter.load('test_key')).rejects.toThrow('Extension context invalidated')
+      await expect(adapter.load('test_key')).rejects.toMatchObject({
+        code: 'INVALID_INPUT_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     test('應該重試失敗的操作', async () => {
@@ -378,7 +390,11 @@ describe('ChromeStorageAdapter', () => {
       adapter = new ChromeStorageAdapter({ retryAttempts: 3 })
 
       // 期望操作失敗，因為沒有實際的重試實現
-      await expect(adapter.save('retry_test', { data: 'test' })).rejects.toThrow('Temporary failure')
+      await expect(adapter.save('retry_test', { data: 'test' })).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // 清理錯誤狀態
       mockChrome.runtime.lastError = null

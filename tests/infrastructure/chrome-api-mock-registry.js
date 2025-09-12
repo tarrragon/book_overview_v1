@@ -8,6 +8,7 @@
  * @version v0.9.38-refactor
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
 const StorageLocalMock = require('../mocks/storage-local-mock')
 const StorageSyncMock = require('../mocks/storage-sync-mock')
 const RuntimeMock = require('../mocks/runtime-mock')
@@ -56,7 +57,7 @@ class ChromeAPIMockRegistry {
    */
   _validateApiPath (apiPath) {
     if (!apiPath || typeof apiPath !== 'string') {
-      throw new Error('API path must be a non-empty string')
+      throw new StandardError('INVALID_API_PATH', 'API path must be a non-empty string', { category: 'testing' })
     }
   }
 
@@ -65,7 +66,7 @@ class ChromeAPIMockRegistry {
    */
   _validateMockImplementation (mockImplementation) {
     if (!mockImplementation) {
-      throw new Error('Mock implementation cannot be null or undefined')
+      throw new StandardError('INVALID_MOCK_IMPLEMENTATION', 'Mock implementation cannot be null or undefined', { category: 'testing' })
     }
   }
 

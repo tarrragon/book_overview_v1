@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * 儲存適配器單元測試
  * 測試不同儲存機制的適配器功能
@@ -145,7 +146,11 @@ describe('💾 儲存適配器測試', () => {
         })
       }
 
-      await expect(saveOperation('large-data')).rejects.toThrow('QUOTA_EXCEEDED_ERR')
+      await expect(saveOperation('large-data')).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Cleanup - 重設模擬狀態
       chrome.storage.local.set.mockRestore()
@@ -416,7 +421,7 @@ describe('💾 儲存適配器測試', () => {
       const saveWithRollback = async (data, backup) => {
         try {
           // 模擬儲存失敗
-          throw new Error('Storage failed')
+          throw new StandardError('TEST_ERROR', 'Storage failed', { category: 'testing' })
         } catch (error) {
           // 回復到原始資料
           return backup

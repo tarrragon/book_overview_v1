@@ -26,6 +26,7 @@
 
 const EventBus = require('src/core/event-bus')
 const { EXPORT_EVENTS } = require('src/export/export-events')
+const { StandardError } = require('src/core/errors/StandardError')
 
 // 模擬 Chrome APIs
 global.chrome = {
@@ -54,7 +55,7 @@ class ExportProgressNotifier {
    */
   initialize () {
     // 測試將驗證此初始化流程
-    throw new Error('ExportProgressNotifier.initialize() not implemented - Red phase')
+    throw new StandardError('TEST_ERROR', 'ExportProgressNotifier.initialize() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -64,7 +65,7 @@ class ExportProgressNotifier {
    */
   registerProgressCallback (exportId, callback) {
     // 測試將驗證回調註冊和管理
-    throw new Error('ExportProgressNotifier.registerProgressCallback() not implemented - Red phase')
+    throw new StandardError('TEST_ERROR', 'ExportProgressNotifier.registerProgressCallback() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -74,7 +75,7 @@ class ExportProgressNotifier {
    */
   updateProgress (exportId, progressData) {
     // 測試將驗證進度更新邏輯
-    throw new Error('ExportProgressNotifier.updateProgress() not implemented - Red phase')
+    throw new StandardError('TEST_ERROR', 'ExportProgressNotifier.updateProgress() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -84,7 +85,7 @@ class ExportProgressNotifier {
    */
   startTracking (exportId, format) {
     // 測試將驗證進度追蹤的開始
-    throw new Error('ExportProgressNotifier.startTracking() not implemented - Red phase')
+    throw new StandardError('TEST_ERROR', 'ExportProgressNotifier.startTracking() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -93,7 +94,7 @@ class ExportProgressNotifier {
    */
   completeTracking (exportId) {
     // 測試將驗證進度追蹤的完成
-    throw new Error('ExportProgressNotifier.completeTracking() not implemented - Red phase')
+    throw new StandardError('TEST_ERROR', 'ExportProgressNotifier.completeTracking() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -102,7 +103,7 @@ class ExportProgressNotifier {
    */
   cancelTracking (exportId) {
     // 測試將驗證進度追蹤的取消
-    throw new Error('ExportProgressNotifier.cancelTracking() not implemented - Red phase')
+    throw new StandardError('TEST_ERROR', 'ExportProgressNotifier.cancelTracking() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -110,7 +111,7 @@ class ExportProgressNotifier {
    */
   getAllProgress () {
     // 測試將驗證進度資料的取得
-    throw new Error('ExportProgressNotifier.getAllProgress() not implemented - Red phase')
+    throw new StandardError('TEST_ERROR', 'ExportProgressNotifier.getAllProgress() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -118,7 +119,7 @@ class ExportProgressNotifier {
    */
   cleanup () {
     // 測試將驗證進度記錄的清理
-    throw new Error('ExportProgressNotifier.cleanup() not implemented - Red phase')
+    throw new StandardError('TEST_ERROR', 'ExportProgressNotifier.cleanup() not implemented - Red phase', { category: 'testing' })
   }
 }
 
@@ -139,7 +140,13 @@ describe('ExportProgressNotifier', () => {
     test('應該正確初始化進度通知器', () => {
       expect(() => {
         progressNotifier.initialize()
-      }).toThrow('ExportProgressNotifier.initialize() not implemented - Red phase')
+      }).toThrow()
+      expect(() => {
+        progressNotifier.initialize()
+      }).toMatchObject({
+        code: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Red 階段：測試將驗證初始化邏輯
       // - 事件監聽器註冊
@@ -171,7 +178,13 @@ describe('ExportProgressNotifier', () => {
 
       expect(() => {
         progressNotifier.registerProgressCallback(exportId, callback)
-      }).toThrow('ExportProgressNotifier.registerProgressCallback() not implemented - Red phase')
+      }).toThrow()
+      expect(() => {
+        progressNotifier.registerProgressCallback(exportId, callback)
+      }).toMatchObject({
+        code: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Red 階段：測試將驗證回調註冊
       // - 回調函數保存
@@ -197,7 +210,13 @@ describe('ExportProgressNotifier', () => {
 
       expect(() => {
         progressNotifier.completeTracking(exportId)
-      }).toThrow('ExportProgressNotifier.completeTracking() not implemented - Red phase')
+      }).toThrow()
+      expect(() => {
+        progressNotifier.completeTracking(exportId)
+      }).toMatchObject({
+        code: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Red 階段：測試將驗證回調清理
       // - 已完成匯出的回調移除
@@ -220,7 +239,13 @@ describe('ExportProgressNotifier', () => {
 
       expect(() => {
         progressNotifier.updateProgress(exportId, progressData)
-      }).toThrow('ExportProgressNotifier.updateProgress() not implemented - Red phase')
+      }).toThrow()
+      expect(() => {
+        progressNotifier.updateProgress(exportId, progressData)
+      }).toMatchObject({
+        code: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Red 階段：測試將驗證進度更新邏輯
       // - 進度資料驗證
@@ -292,7 +317,14 @@ describe('ExportProgressNotifier', () => {
       expect(() => {
         progressNotifier.startTracking(csvExportId, 'csv')
         progressNotifier.startTracking(jsonExportId, 'json')
-      }).toThrow('ExportProgressNotifier.startTracking() not implemented - Red phase')
+      }).toThrow()
+      expect(() => {
+        progressNotifier.startTracking(csvExportId, 'csv')
+        progressNotifier.startTracking(jsonExportId, 'json')
+      }).toMatchObject({
+        code: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Red 階段：測試將驗證並行追蹤
       // - 獨立進度維護
@@ -381,7 +413,13 @@ describe('ExportProgressNotifier', () => {
 
       expect(() => {
         progressNotifier.cancelTracking(exportId)
-      }).toThrow('ExportProgressNotifier.cancelTracking() not implemented - Red phase')
+      }).toThrow()
+      expect(() => {
+        progressNotifier.cancelTracking(exportId)
+      }).toMatchObject({
+        code: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Red 階段：測試將驗證取消機制
       // - 進度追蹤停止
@@ -406,7 +444,13 @@ describe('ExportProgressNotifier', () => {
     test('應該提供當前進度查詢', () => {
       expect(() => {
         const allProgress = progressNotifier.getAllProgress()
-      }).toThrow('ExportProgressNotifier.getAllProgress() not implemented - Red phase')
+      }).toThrow()
+      expect(() => {
+        const allProgress = progressNotifier.getAllProgress()
+      }).toMatchObject({
+        code: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Red 階段：測試將驗證進度查詢
       // - 即時進度資料
@@ -441,7 +485,13 @@ describe('ExportProgressNotifier', () => {
     test('應該自動清理過期的進度記錄', () => {
       expect(() => {
         progressNotifier.cleanup()
-      }).toThrow('ExportProgressNotifier.cleanup() not implemented - Red phase')
+      }).toThrow()
+      expect(() => {
+        progressNotifier.cleanup()
+      }).toMatchObject({
+        code: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Red 階段：測試將驗證自動清理
       // - 定時清理機制

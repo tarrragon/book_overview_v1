@@ -1,3 +1,5 @@
+const { StandardError } = require('src/core/errors/StandardError')
+
 const { EVENT_PRIORITIES, MESSAGE_EVENTS } = require('src/core/event-bus')
 
 /**
@@ -114,7 +116,9 @@ class QueueManagementService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new Error('佇列管理服務尚未初始化')
+      throw new StandardError('UNKNOWN_ERROR', '佇列管理服務尚未初始化', {
+          "category": "general"
+      })
     }
 
     if (this.state.active) {

@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * PopupExtractionService 單元測試
  *
@@ -78,15 +79,21 @@ describe('PopupExtractionService 核心功能', () => {
       // When & Then: 應該拋出錯誤
       expect(() => {
         new PopupExtractionService(null, mockProgressManager, mockCommunicationService)
-      }).toThrow('StatusManager is required')
+      }).toMatchObject({
+        message: expect.stringContaining('StatusManager is required')
+      })
 
       expect(() => {
         new PopupExtractionService(mockStatusManager, null, mockCommunicationService)
-      }).toThrow('ProgressManager is required')
+      }).toMatchObject({
+        message: expect.stringContaining('ProgressManager is required')
+      })
 
       expect(() => {
         new PopupExtractionService(mockStatusManager, mockProgressManager, null)
-      }).toThrow('CommunicationService is required')
+      }).toMatchObject({
+        message: expect.stringContaining('CommunicationService is required')
+      })
     })
 
     test('應該支援提取選項配置', () => {
@@ -154,7 +161,11 @@ describe('PopupExtractionService 核心功能', () => {
 
       // When: 嘗試再次開始提取
       await expect(extractionService.startExtraction())
-        .rejects.toThrow('Extraction already in progress')
+        .rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Then: 不應該重複呼叫通訊服務
       expect(mockCommunicationService.startExtraction).not.toHaveBeenCalled()
@@ -215,7 +226,11 @@ describe('PopupExtractionService 核心功能', () => {
 
       // When: 嘗試開始提取
       await expect(extractionService.startExtraction())
-        .rejects.toThrow('Extraction failed after 3 retries')
+        .rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Then: 達到最大重試次數
       expect(mockCommunicationService.startExtraction).toHaveBeenCalledTimes(3)
@@ -295,7 +310,11 @@ describe('PopupExtractionService 核心功能', () => {
       // When: 嘗試處理結果
       expect(() => {
         extractionService.processExtractionResult(invalidResult)
-      }).toThrow('Invalid extraction result format')
+      }).toMatchObject({
+        code: expect.any(String),
+        message: expect.stringContaining('Invalid extraction result format'),
+        details: expect.any(Object)
+      })
 
       // Then: 錯誤狀態正確更新
       expect(mockStatusManager.updateStatus).toHaveBeenCalledWith({
@@ -375,7 +394,7 @@ describe('PopupExtractionService 核心功能', () => {
     test('應該處理組件間通訊錯誤', () => {
       // Given: StatusManager 更新失敗
       mockStatusManager.updateStatus.mockImplementation(() => {
-        throw new Error('Status update failed')
+        throw new StandardError('TEST_ERROR', 'Status update failed', { category: 'testing' })
       })
 
       // When: 嘗試更新狀態

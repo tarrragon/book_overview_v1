@@ -28,6 +28,8 @@
  * @since 2025-08-20
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class SearchResultFormatter {
   /**
    * 建構 SearchResultFormatter 實例
@@ -41,7 +43,9 @@ class SearchResultFormatter {
     const { eventBus, logger, config = {} } = options
 
     if (!eventBus || !logger) {
-      throw new Error('EventBus 和 Logger 是必需的')
+      throw new StandardError('EVENTBUS_ERROR', 'EventBus 和 Logger 是必需的', {
+          "category": "ui"
+      })
     }
 
     this.eventBus = eventBus
@@ -90,7 +94,9 @@ class SearchResultFormatter {
    */
   formatResults (query, rawResults) {
     if (this._isDestroyed) {
-      throw new Error('格式化器已被銷毀')
+      throw new StandardError('UNKNOWN_ERROR', '格式化器已被銷毀', {
+          "category": "ui"
+      })
     }
 
     // 驗證輸入參數
@@ -328,11 +334,15 @@ class SearchResultFormatter {
    */
   _validateInputs (query, results) {
     if (typeof query !== 'string') {
-      throw new Error('查詢參數必須是字串')
+      throw new StandardError('UNKNOWN_ERROR', '查詢參數必須是字串', {
+          "category": "ui"
+      })
     }
 
     if (!Array.isArray(results)) {
-      throw new Error('結果參數必須是陣列')
+      throw new StandardError('UNKNOWN_ERROR', '結果參數必須是陣列', {
+          "category": "ui"
+      })
     }
   }
 

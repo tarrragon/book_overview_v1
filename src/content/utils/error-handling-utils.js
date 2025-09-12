@@ -26,6 +26,8 @@
 /**
  * 錯誤處理工具類
  */
+const { StandardError } = require('src/core/errors/StandardError')
+
 class ErrorHandlingUtils {
   constructor () {
     this.errorHistory = []
@@ -364,7 +366,9 @@ class ErrorHandlingUtils {
 
       // 檢查結果是否為 null (表示找不到元素)
       if (result === null || result === undefined) {
-        const error = new Error('DOM element not found')
+        const error = new StandardError('RESOURCE_NOT_FOUND', 'DOM element not found', {
+          "category": "general"
+      })
         this.recordError(error, context)
 
         return {
@@ -399,7 +403,9 @@ class ErrorHandlingUtils {
   handleChromeAPIError (apiName, args = []) {
     try {
       if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.lastError) {
-        const error = new Error(chrome.runtime.lastError.message)
+        const error = new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
+          "category": "general"
+      })
         this.recordError(error, `CHROME_API_${apiName.toUpperCase()}`)
 
         return {

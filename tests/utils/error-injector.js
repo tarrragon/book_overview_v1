@@ -6,6 +6,8 @@
  * @date 2025-08-25
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class ErrorInjector {
   constructor () {
     this.originalMethods = new Map()
@@ -50,13 +52,13 @@ class ErrorInjector {
 
       switch (type) {
         case 'timeout':
-          throw new Error('Request timeout')
+          throw new StandardError('TIMEOUT_ERROR', 'Request timeout', { category: 'testing' })
         case 'network':
-          throw new Error('Network error')
+          throw new StandardError('NETWORK_ERROR', 'Network error', { category: 'testing' })
         case 'dns':
-          throw new Error('DNS resolution failed')
+          throw new StandardError('DNS_ERROR', 'DNS resolution failed', { category: 'testing' })
         default:
-          throw new Error('Unknown network error')
+          throw new StandardError('UNKNOWN_NETWORK_ERROR', 'Unknown network error', { category: 'testing' })
       }
     }
   }
@@ -121,7 +123,7 @@ class ErrorInjector {
 
     window.Array = function (...args) {
       if (args.length === 1 && args[0] > 1000000) {
-        throw new Error('Out of memory')
+        throw new StandardError('OUT_OF_MEMORY', 'Out of memory', { category: 'testing' })
       }
       return new originalArrayConstructor(...args)
     }

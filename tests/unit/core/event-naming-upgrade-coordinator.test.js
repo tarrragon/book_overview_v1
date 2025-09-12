@@ -12,6 +12,7 @@
 
 const EventBus = require('src/core/event-bus')
 const EventNamingUpgradeCoordinator = require('src/core/events/event-naming-upgrade-coordinator')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('EventNamingUpgradeCoordinator', () => {
   let eventBus
@@ -292,7 +293,11 @@ describe('EventNamingUpgradeCoordinator', () => {
     test('應該拒絕無效的轉換模式', () => {
       expect(() => {
         coordinator.setConversionMode('INVALID_MODE')
-      }).toThrow('Invalid conversion mode')
+      }).toMatchObject({
+        code: expect.any(String),
+        message: expect.stringContaining('Invalid conversion mode'),
+        details: expect.any(Object)
+      })
     })
 
     test('應該提供轉換模式驗證', () => {
@@ -306,7 +311,7 @@ describe('EventNamingUpgradeCoordinator', () => {
   describe('錯誤處理', () => {
     test('應該處理事件處理器中的錯誤', async () => {
       const errorHandler = () => {
-        throw new Error('Handler error')
+        throw new StandardError('TEST_ERROR', 'Handler error', { category: 'testing' })
       }
 
       coordinator.registerDualTrackListener('EXTRACTION.COMPLETED', errorHandler)

@@ -91,7 +91,11 @@ describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
       }
 
       // Then: 應該拋出注入的錯誤
-      await expect(storageOperation()).rejects.toThrow('Storage operation failed')
+      await expect(storageOperation()).rejects.toThrow()
+      await expect(storageOperation()).rejects.toMatchObject({
+        code: 'STORAGE_OPERATION_FAILED',
+        details: expect.any(Object)
+      })
     })
   })
 

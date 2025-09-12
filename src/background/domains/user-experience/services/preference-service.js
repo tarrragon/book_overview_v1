@@ -26,6 +26,8 @@
  * - 功能開關管理
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class PreferenceService {
   constructor (dependencies = {}) {
     // 依賴注入
@@ -116,7 +118,9 @@ class PreferenceService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new Error('偏好設定服務尚未初始化')
+      throw new StandardError('UNKNOWN_ERROR', '偏好設定服務尚未初始化', {
+          "category": "general"
+      })
     }
 
     if (this.state.active) {
@@ -413,34 +417,46 @@ class PreferenceService {
     const schema = this.preferenceSchema.get(key)
 
     if (!schema) {
-      throw new Error(`未知的偏好鍵: ${key}`)
+      throw new StandardError('UNKNOWN_ERROR', `未知的偏好鍵: ${key}`, {
+          "category": "general"
+      })
     }
 
     // 類型驗證
     const actualType = typeof value
     if (schema.type && actualType !== schema.type) {
-      throw new Error(`偏好 ${key} 類型錯誤，期望 ${schema.type}，實際 ${actualType}`)
+      throw new StandardError('UNKNOWN_ERROR', `偏好 ${key} 類型錯誤，期望 ${schema.type}，實際 ${actualType}`, {
+          "category": "general"
+      })
     }
 
     // 值域驗證
     if (schema.enum && !schema.enum.includes(value)) {
-      throw new Error(`偏好 ${key} 值無效，可接受值: ${schema.enum.join(', ')}`)
+      throw new StandardError('UNKNOWN_ERROR', `偏好 ${key} 值無效，可接受值: ${schema.enum.join(', ', {
+          "category": "general"
+      })}`)
     }
 
     // 範圍驗證
     if (schema.min !== undefined && value < schema.min) {
-      throw new Error(`偏好 ${key} 值太小，最小值: ${schema.min}`)
+      throw new StandardError('UNKNOWN_ERROR', `偏好 ${key} 值太小，最小值: ${schema.min}`, {
+          "category": "general"
+      })
     }
 
     if (schema.max !== undefined && value > schema.max) {
-      throw new Error(`偏好 ${key} 值太大，最大值: ${schema.max}`)
+      throw new StandardError('UNKNOWN_ERROR', `偏好 ${key} 值太大，最大值: ${schema.max}`, {
+          "category": "general"
+      })
     }
 
     // 自定義驗證
     if (schema.validator && typeof schema.validator === 'function') {
       const isValid = await schema.validator(value)
       if (!isValid) {
-        throw new Error(`偏好 ${key} 自定義驗證失敗`)
+        throw new StandardError('UNKNOWN_ERROR', `偏好 ${key} 自定義驗證失敗`, {
+          "category": "general"
+      })
       }
     }
   }

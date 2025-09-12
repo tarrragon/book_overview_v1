@@ -26,6 +26,8 @@
 /**
  * 配置管理和日誌工具類
  */
+const { StandardError } = require('src/core/errors/StandardError')
+
 class ConfigUtils {
   constructor () {
     this.configs = new Map()
@@ -72,7 +74,9 @@ class ConfigUtils {
     if (!key || typeof key !== 'string') {
       return {
         success: false,
-        error: new Error('Invalid configuration key')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid configuration key', {
+          "category": "configuration"
+      })
       }
     }
 
@@ -123,7 +127,9 @@ class ConfigUtils {
     if (!key || typeof key !== 'string') {
       return {
         success: false,
-        error: new Error('Invalid configuration key')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid configuration key', {
+          "category": "configuration"
+      })
       }
     }
 
@@ -155,7 +161,9 @@ class ConfigUtils {
     if (!path || typeof path !== 'string') {
       return {
         success: false,
-        error: new Error('Invalid configuration path')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid configuration path', {
+          "category": "configuration"
+      })
       }
     }
 
@@ -167,7 +175,9 @@ class ConfigUtils {
       if (!config) {
         return {
           success: false,
-          error: new Error('Configuration not found')
+          error: new StandardError('RESOURCE_NOT_FOUND', 'Configuration not found', {
+          "category": "configuration"
+      })
         }
       }
 
@@ -178,7 +188,9 @@ class ConfigUtils {
         } else {
           return {
             success: false,
-            error: new Error('Path not found')
+            error: new StandardError('RESOURCE_NOT_FOUND', 'Path not found', {
+          "category": "general"
+      })
           }
         }
       }
@@ -372,7 +384,9 @@ class ConfigUtils {
 
       return {
         success: false,
-        error: new Error('Configuration not found')
+        error: new StandardError('RESOURCE_NOT_FOUND', 'Configuration not found', {
+          "category": "configuration"
+      })
       }
     } catch (error) {
       return {
@@ -601,7 +615,9 @@ class ConfigUtils {
     if (!name || typeof name !== 'string') {
       return {
         success: false,
-        error: new Error('Invalid operation name')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid operation name', {
+          "category": "general"
+      })
       }
     }
 
@@ -631,7 +647,9 @@ class ConfigUtils {
     if (!name || !this.performanceLogs.has(name)) {
       return {
         success: false,
-        error: new Error('Performance log not found')
+        error: new StandardError('RESOURCE_NOT_FOUND', 'Performance log not found', {
+          "category": "general"
+      })
       }
     }
 
@@ -673,7 +691,9 @@ class ConfigUtils {
     if (!platform || !config) {
       return {
         success: false,
-        error: new Error('Invalid extractor config')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid extractor config', {
+          "category": "general"
+      })
       }
     }
 
@@ -702,7 +722,9 @@ class ConfigUtils {
     if (!platform) {
       return {
         success: false,
-        error: new Error('Invalid platform')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid platform', {
+          "category": "general"
+      })
       }
     }
 
@@ -930,7 +952,9 @@ class ConfigUtils {
     if (!data || typeof data !== 'object') {
       return {
         success: false,
-        error: new Error('Invalid import data')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid import data', {
+          "category": "general"
+      })
       }
     }
 

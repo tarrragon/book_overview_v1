@@ -13,6 +13,8 @@
  * - 支援開發者調試和使用者自助診斷
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class PopupDiagnosticEnhancer {
   constructor () {
     this.diagnosticData = {}
@@ -220,7 +222,9 @@ class PopupDiagnosticEnhancer {
       await new Promise((resolve, reject) => {
         chrome.storage.local.set({ [testKey]: testValue }, () => {
           if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message))
+            reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
+          "category": "general"
+      }))
           } else {
             resolve()
           }
@@ -231,7 +235,9 @@ class PopupDiagnosticEnhancer {
       const result = await new Promise((resolve, reject) => {
         chrome.storage.local.get(testKey, (result) => {
           if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message))
+            reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
+          "category": "general"
+      }))
           } else {
             resolve(result)
           }

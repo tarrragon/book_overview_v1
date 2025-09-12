@@ -21,6 +21,7 @@
 const BaseModule = require('src/background/lifecycle/base-module')
 const crypto = require('crypto')
 const { createLogger } = require('src/core/logging/Logger')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class CacheManagementService extends BaseModule {
   /**
@@ -30,7 +31,9 @@ class CacheManagementService extends BaseModule {
    */
   constructor (eventBus, dependencies = {}) {
     if (!eventBus) {
-      throw new Error('EventBus is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required', {
+          "category": "ui"
+      })
     }
 
     super({

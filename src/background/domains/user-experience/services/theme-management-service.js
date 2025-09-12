@@ -26,6 +26,8 @@
  * - 跨模組主題同步
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class ThemeManagementService {
   constructor (dependencies = {}) {
     // 依賴注入
@@ -150,7 +152,9 @@ class ThemeManagementService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new Error('主題管理服務尚未初始化')
+      throw new StandardError('UNKNOWN_ERROR', '主題管理服務尚未初始化', {
+          "category": "general"
+      })
     }
 
     if (this.state.active) {
@@ -189,7 +193,9 @@ class ThemeManagementService {
     try {
       // 驗證主題有效性
       if (!this.isValidTheme(theme)) {
-        throw new Error(`無效的主題: ${theme}`)
+        throw new StandardError('UNKNOWN_ERROR', `無效的主題: ${theme}`, {
+          "category": "general"
+      })
       }
 
       // 統計主題變更
@@ -269,7 +275,9 @@ class ThemeManagementService {
     try {
       // 驗證提供者介面
       if (!provider || typeof provider.updateTheme !== 'function') {
-        throw new Error(`主題提供者 ${providerId} 必須實現 updateTheme 方法`)
+        throw new StandardError('UNKNOWN_ERROR', `主題提供者 ${providerId} 必須實現 updateTheme 方法`, {
+          "category": "general"
+      })
       }
 
       // 註冊提供者

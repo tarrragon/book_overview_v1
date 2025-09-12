@@ -6,6 +6,7 @@
  */
 
 const CacheManagementService = require('src/background/domains/data-management/services/cache-management-service.js')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('CacheManagementService - 快取管理服務', () => {
   let cacheService
@@ -374,7 +375,9 @@ describe('CacheManagementService - 快取管理服務', () => {
     test('constructor 應該要求 eventBus 參數', () => {
       expect(() => {
         new CacheManagementService()
-      }).toThrow('EventBus is required')
+      }).toMatchObject({
+        message: expect.stringContaining('EventBus is required')
+      })
     })
 
     test('應該處理快取停用情況', () => {

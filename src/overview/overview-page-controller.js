@@ -38,7 +38,9 @@ if (typeof window !== 'undefined') {
     if (StandardError) {
       throw new StandardError('DEPENDENCY_ERROR', 'EventHandler 未在全域變數中找到，請確認 event-handler.js 已正確載入', { category: 'dependency' })
     } else {
-      throw new Error('EventHandler 未在全域變數中找到，請確認 event-handler.js 已正確載入')
+      throw new StandardError('UNKNOWN_ERROR', 'EventHandler 未在全域變數中找到，請確認 event-handler.js 已正確載入', {
+          "category": "general"
+      })
     }
   }
 } else {
@@ -807,7 +809,9 @@ class OverviewPageController extends EventHandlerClass {
   _handleReaderError (reject) {
     const errorMsg = '讀取檔案時發生錯誤'
     this.showError(errorMsg)
-    reject(new Error(errorMsg))
+    reject(new StandardError('UNKNOWN_ERROR', errorMsg, {
+          "category": "general"
+      }))
   }
 
   /**

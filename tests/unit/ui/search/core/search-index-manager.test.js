@@ -22,6 +22,7 @@
 
 // 測試環境設定
 require('../../../../test-setup')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('SearchIndexManager - TDD 循環 1/8', () => {
   let indexManager
@@ -118,11 +119,15 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
       expect(() => {
         new SearchIndexManager()
-      }).toThrow('EventBus 和 Logger 是必需的')
+      }).toMatchObject({
+        message: expect.stringContaining('EventBus 和 Logger 是必需的')
+      })
 
       expect(() => {
         new SearchIndexManager({ eventBus: mockEventBus })
-      }).toThrow('EventBus 和 Logger 是必需的')
+      }).toMatchObject({
+        message: expect.stringContaining('EventBus 和 Logger 是必需的')
+      })
     })
 
     test('應該正確初始化統計資料', () => {
@@ -397,7 +402,9 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
       expect(() => {
         indexManager.buildIndex(largeBookArray)
-      }).toThrow('記憶體不足')
+      }).toMatchObject({
+        message: expect.stringContaining('記憶體不足')
+      })
 
       // 檢查錯誤事件是否被發送
       expect(mockEventBus.emit).toHaveBeenCalledWith('SEARCH.WARNING', expect.objectContaining({
@@ -559,12 +566,14 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
       // Mock Map 拋出錯誤
       const originalSet = Map.prototype.set
       Map.prototype.set = jest.fn().mockImplementation(() => {
-        throw new Error('索引操作失敗')
+        throw new StandardError('TEST_ERROR', '索引操作失敗', { category: 'testing' })
       })
 
       expect(() => {
         indexManager.buildIndex(mockBooks)
-      }).toThrow('索引操作失敗')
+      }).toMatchObject({
+        message: expect.stringContaining('索引操作失敗')
+      })
 
       // 檢查錯誤是否被記錄
       expect(mockLogger.error).toHaveBeenCalled()

@@ -14,6 +14,8 @@
  * - 提供健康狀態監控，支援系統診斷
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class BaseModule {
   /**
    * 建構函數
@@ -94,7 +96,9 @@ class BaseModule {
    */
   async start () {
     if (!this.isInitialized) {
-      throw new Error(`${this.moduleName} 模組尚未初始化，無法啟動`)
+      throw new StandardError('UNKNOWN_ERROR', `${this.moduleName} 模組尚未初始化，無法啟動`, {
+          "category": "general"
+      })
     }
 
     if (this.isRunning) {

@@ -16,6 +16,7 @@
 
 const ChromeExtensionMocksEnhancedV2 = require('./chrome-extension-mocks-enhanced-v2')
 const TestDataFactory = require('./test-data-factory')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class IntegrationTestHelper {
   constructor (config = {}) {
@@ -480,7 +481,7 @@ class IntegrationTestHelper {
       await new Promise(resolve => setTimeout(resolve, interval))
     }
 
-    throw new Error(`Condition not met within ${timeout}ms`)
+    throw new StandardError('VALIDATION_ERROR', 'Condition not met within ${timeout}ms', { category: 'validation' })
   }
 
   /**
@@ -501,7 +502,7 @@ class IntegrationTestHelper {
         result = await this._simulateNavigation(params)
         break
       default:
-        throw new Error(`Unknown action type: ${actionType}`)
+        throw new StandardError('VALIDATION_ERROR', 'Unknown action type: ${actionType}', { category: 'validation' })
     }
 
     this._recordPerformanceOperation('user-action', performance.now() - startTime)

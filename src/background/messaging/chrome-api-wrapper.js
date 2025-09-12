@@ -15,6 +15,7 @@
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class ChromeApiWrapper extends BaseModule {
   constructor (dependencies = {}) {
@@ -128,7 +129,9 @@ class ChromeApiWrapper extends BaseModule {
     }
 
     if (missingApis.length > 0) {
-      throw new Error(`缺少必要的 Chrome API: ${missingApis.join(', ')}`)
+      throw new StandardError('MISSING_REQUIRED_DATA', `缺少必要的 Chrome API: ${missingApis.join(', ', {
+          "category": "general"
+      })}`)
     }
 
     // 檢查 Manifest V3 支援
@@ -155,7 +158,9 @@ class ChromeApiWrapper extends BaseModule {
 
       // 驗證 API 支援
       if (!this.supportedApis.has(apiPath)) {
-        throw new Error(`不支援的 API: ${apiPath}`)
+        throw new StandardError('UNKNOWN_ERROR', `不支援的 API: ${apiPath}`, {
+          "category": "general"
+      })
       }
 
       // 更新統計
@@ -200,7 +205,9 @@ class ChromeApiWrapper extends BaseModule {
     // 遍歷 API 路徑
     for (const part of apiParts) {
       if (!api[part]) {
-        throw new Error(`API 不存在: ${apiPath}`)
+        throw new StandardError('UNKNOWN_ERROR', `API 不存在: ${apiPath}`, {
+          "category": "general"
+      })
       }
       api = api[part]
     }
@@ -218,7 +225,9 @@ class ChromeApiWrapper extends BaseModule {
           } else {
             // callback 模式，檢查 chrome.runtime.lastError
             if (chrome.runtime.lastError) {
-              reject(new Error(chrome.runtime.lastError.message))
+              reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
+          "category": "general"
+      }))
             } else {
               resolve(result)
             }
@@ -228,7 +237,9 @@ class ChromeApiWrapper extends BaseModule {
         }
       })
     } else {
-      throw new Error(`${apiPath} 不是一個函數`)
+      throw new StandardError('UNKNOWN_ERROR', `${apiPath} 不是一個函數`, {
+          "category": "general"
+      })
     }
   }
 
@@ -245,7 +256,9 @@ class ChromeApiWrapper extends BaseModule {
     const maxRetries = options.maxRetries || this.retryConfig.maxRetries
 
     if (retryCount >= maxRetries) {
-      throw new Error(`API 調用重試次數已達上限: ${apiPath}`)
+      throw new StandardError('UNKNOWN_ERROR', `API 調用重試次數已達上限: ${apiPath}`, {
+          "category": "general"
+      })
     }
 
     // 延遲重試

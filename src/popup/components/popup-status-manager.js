@@ -22,6 +22,8 @@
  * @since 2025-08-18
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class PopupStatusManager {
   /**
    * 建構 PopupStatusManager
@@ -51,12 +53,16 @@ class PopupStatusManager {
   updateStatus (statusData) {
     // 驗證必要欄位
     if (!statusData || !statusData.type || !statusData.text) {
-      throw new Error('Status must include type and text fields')
+      throw new StandardError('UNKNOWN_ERROR', 'Status must include type and text fields', {
+          "category": "general"
+      })
     }
 
     // 驗證狀態類型
     if (!this.validStatusTypes.includes(statusData.type)) {
-      throw new Error(`Invalid status type: ${statusData.type}`)
+      throw new StandardError('INVALID_DATA_FORMAT', `Invalid status type: ${statusData.type}`, {
+          "category": "general"
+      })
     }
 
     // 更新內部狀態

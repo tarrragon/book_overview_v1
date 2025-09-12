@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * Readmoo Page Simulator
  * 模擬真實的Readmoo書庫頁面環境，支援動態內容和使用者互動
@@ -58,7 +59,7 @@ class ReadmooPageSimulator {
 
       return this.mockDocument
     } catch (error) {
-      throw new Error(`Failed to create mock shelf page: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `Failed to create mock shelf page: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -672,7 +673,7 @@ class ReadmooPageSimulator {
           break
       }
     } catch (error) {
-      throw new Error(`Failed to modify page content: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `Failed to modify page content: ${error.message}`, { category: 'testing' })
     }
   }
 

@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * 事件處理器基底類別單元測試
  * 測試事件處理器的抽象基底類別功能
@@ -54,7 +55,7 @@ describe('🎭 事件處理器基底類別測試', () => {
 
       async process (event) {
         if (this.shouldThrowError) {
-          throw new Error('Test error in process')
+          throw new StandardError('TEST_ERROR', 'Test error in process', { category: 'testing' })
         }
         return this.processResult
       }

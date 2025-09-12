@@ -8,6 +8,7 @@
  * @version v0.9.38-refactor
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
 const ChromeAPIMockRegistry = require('./chrome-api-mock-registry')
 const ErrorInjector = require('../utils/error-injector')
 const { PerformanceMonitor } = require('../helpers/performance-monitor')
@@ -132,7 +133,7 @@ class E2ETestEnvironment {
    */
   _validateEnvironmentReady () {
     if (!this._isSetup) {
-      throw new Error('Environment not setup. Call setup() first.')
+      throw new StandardError('ENVIRONMENT_NOT_SETUP', 'Environment not setup. Call setup() first.', { category: 'testing' })
     }
   }
 
@@ -218,7 +219,7 @@ class E2ETestEnvironment {
    */
   _validateErrorInjectorAvailable () {
     if (!this._errorInjector) {
-      throw new Error('Error injection not enabled')
+      throw new StandardError('ERROR_INJECTION_NOT_ENABLED', 'Error injection not enabled', { category: 'testing' })
     }
   }
 
@@ -245,7 +246,7 @@ class E2ETestEnvironment {
     this._errorInjector.injectChromeApiError(
       'chrome.storage.local',
       'set',
-      new Error('Storage operation failed')
+      new StandardError('STORAGE_OPERATION_FAILED', 'Storage operation failed', { category: 'testing' })
     )
   }
 
@@ -368,7 +369,7 @@ class E2ETestEnvironment {
       switch (errorType) {
         case 'storage-failure':
           this._errorInjector.injectChromeApiError('chrome.storage.local', 'set',
-            new Error('Storage operation failed'))
+            new StandardError('STORAGE_OPERATION_FAILED', 'Storage operation failed', { category: 'testing' }))
           break
         case 'network-error':
         case 'network-timeout':

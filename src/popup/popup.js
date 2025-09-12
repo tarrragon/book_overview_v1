@@ -32,6 +32,8 @@ if (typeof require !== 'undefined') {
   try {
     ({ Logger } = require('src/core/logging/Logger'));
     ({ MessageDictionary } = require('src/core/messages/MessageDictionary'))
+const { StandardError } = require('src/core/errors/StandardError')
+
   } catch (e) {
     // 測試環境fallback
     Logger = window.Logger || class { constructor () {} info () {} warn () {} error () {} debug () {} }
@@ -454,7 +456,12 @@ async function checkBackgroundStatus () {
   try {
     // 縮短超時時間到 2 秒，提供快速反饋
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Background Service Worker 連線超時 (2秒)')), 2000)
+      setTimeout(() => reject(new StandardError('UNKNOWN_ERROR', 'Background Service Worker 連線超時 (2秒)', {
+          "values": [
+              "2"
+          ],
+          "category": "general"
+      })), 2000)
     })
 
     const messagePromise = chrome.runtime.sendMessage({ type: MESSAGE_TYPES.GET_STATUS })
@@ -477,7 +484,9 @@ async function checkBackgroundStatus () {
       updateStatus('線上', 'Background Service Worker 連線正常', '系統就緒', STATUS_TYPES.READY)
       return true
     } else {
-      throw new Error('Background Service Worker 回應異常: ' + JSON.stringify(response))
+      throw new StandardError('UNKNOWN_ERROR', 'Background Service Worker 回應異常: ' + JSON.stringify(response, {
+          "category": "general"
+      }))
     }
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -620,7 +629,9 @@ async function startExtraction () {
         elements.bookCount.textContent = response.booksDetected
       }
     } else {
-      throw new Error(response?.error || '未知錯誤')
+      throw new StandardError('UNKNOWN_ERROR', response?.error || '未知錯誤', {
+          "category": "general"
+      })
     }
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -819,7 +830,9 @@ async function initialize () {
     const backgroundOk = await checkBackgroundStatus()
     if (!backgroundOk) {
       if (initializationTracker) {
-        initializationTracker.failStep('background_check', new Error('Background Service Worker 連線失敗'))
+        initializationTracker.failStep('background_check', new StandardError('UNKNOWN_ERROR', 'Background Service Worker 連線失敗', {
+          "category": "general"
+      }))
       }
 
       // 觸發系統初始化錯誤

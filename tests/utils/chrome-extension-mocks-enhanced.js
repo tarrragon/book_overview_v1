@@ -307,7 +307,7 @@ class ChromeExtensionMocksEnhanced {
 
     global.chrome.runtime.connect = (extensionId, connectInfo) => {
       if (!this.contextValid) {
-        throw new Error('Extension context invalidated')
+        throw new StandardError('VALIDATION_FAILED', 'Extension context invalidated', { category: 'testing' })
       }
 
       return {
@@ -323,7 +323,7 @@ class ChromeExtensionMocksEnhanced {
         },
         postMessage: (message) => {
           if (!this.contextValid) {
-            throw new Error('Port disconnected')
+            throw new StandardError('TEST_ERROR', 'Port disconnected', { category: 'testing' })
           }
         },
         disconnect: () => {}
@@ -332,7 +332,7 @@ class ChromeExtensionMocksEnhanced {
 
     global.chrome.runtime.getURL = (path) => {
       if (!this.contextValid) {
-        throw new Error('Extension context invalidated')
+        throw new StandardError('VALIDATION_FAILED', 'Extension context invalidated', { category: 'testing' })
       }
       return `chrome-extension://test-extension-id/${path}`
     }

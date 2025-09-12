@@ -137,9 +137,10 @@ class EventSystemV2IntegrationTestRunner {
     for (const module of requiredModules) {
       try {
         require(module)
+const { StandardError } = require('src/core/errors/StandardError')
         this.verbose(`✓ ${module} 可用`)
       } catch (error) {
-        throw new Error(`缺少必要模組: ${module}`)
+        throw new StandardError('TEST_ERROR', `缺少必要模組: ${module}`, { category: 'testing' })
       }
     }
 
@@ -148,7 +149,7 @@ class EventSystemV2IntegrationTestRunner {
       const jestPath = require.resolve('jest')
       this.verbose(`✓ Jest 可用於 ${jestPath}`)
     } catch (error) {
-      throw new Error('Jest 測試框架不可用')
+      throw new StandardError('TEST_ERROR', 'Jest 測試框架不可用', { category: 'testing' })
     }
 
     // 檢查測試檔案存在
@@ -156,7 +157,7 @@ class EventSystemV2IntegrationTestRunner {
     for (const suite of this.testSuites) {
       const testFile = path.join(integrationDir, suite.file)
       if (!fs.existsSync(testFile)) {
-        throw new Error(`測試檔案不存在: ${suite.file}`)
+        throw new StandardError('TEST_ERROR', `測試檔案不存在: ${suite.file}`, { category: 'testing' })
       }
       this.verbose(`✓ ${suite.file} 存在`)
     }
@@ -227,7 +228,7 @@ class EventSystemV2IntegrationTestRunner {
         this.logError(`❌ Phase ${suite.phase} 失敗`, testResult.errors)
 
         if (suite.required) {
-          throw new Error(`必要測試階段失敗: ${suite.name}`)
+          throw new StandardError('TEST_ERROR', `必要測試階段失敗: ${suite.name}`, { category: 'testing' })
         }
       }
     } catch (error) {

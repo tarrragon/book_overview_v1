@@ -24,6 +24,7 @@ const {
   CONTENT_SCRIPT_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class ContentScriptCoordinatorService {
   constructor (dependencies = {}) {
@@ -102,7 +103,9 @@ class ContentScriptCoordinatorService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new Error('服務尚未初始化')
+      throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
+          "category": "general"
+      })
     }
 
     if (this.state.active) {

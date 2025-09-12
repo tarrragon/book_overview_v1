@@ -26,6 +26,8 @@
 /**
  * 記憶體管理工具類
  */
+const { StandardError } = require('src/core/errors/StandardError')
+
 class MemoryUtils {
   constructor () {
     this.memorySnapshots = []
@@ -45,7 +47,9 @@ class MemoryUtils {
       if (!this._isPerformanceMemoryAvailable()) {
         return {
           success: false,
-          error: new Error('Performance memory API not available'),
+          error: new StandardError('RESOURCE_NOT_AVAILABLE', 'Performance memory API not available', {
+          "category": "general"
+      }),
           fallback: true
         }
       }
@@ -84,7 +88,9 @@ class MemoryUtils {
     if (!label || typeof label !== 'string') {
       return {
         success: false,
-        error: new Error('Invalid snapshot label')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid snapshot label', {
+          "category": "general"
+      })
       }
     }
 
@@ -309,14 +315,18 @@ class MemoryUtils {
     if (!config || typeof config !== 'object' || !config.name) {
       return {
         success: false,
-        error: new Error('Invalid cache configuration')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid cache configuration', {
+          "category": "configuration"
+      })
       }
     }
 
     if (typeof config.maxSize !== 'number' || config.maxSize <= 0) {
       return {
         success: false,
-        error: new Error('Invalid maxSize configuration')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid maxSize configuration', {
+          "category": "configuration"
+      })
       }
     }
 
@@ -362,7 +372,9 @@ class MemoryUtils {
     if (!cache) {
       return {
         success: false,
-        error: new Error('Cache not found')
+        error: new StandardError('RESOURCE_NOT_FOUND', 'Cache not found', {
+          "category": "general"
+      })
       }
     }
 
@@ -415,7 +427,9 @@ class MemoryUtils {
     if (!cache) {
       return {
         found: false,
-        error: new Error('Cache not found')
+        error: new StandardError('RESOURCE_NOT_FOUND', 'Cache not found', {
+          "category": "general"
+      })
       }
     }
 
@@ -519,7 +533,9 @@ class MemoryUtils {
 
     if (!cache) {
       return {
-        error: new Error('Cache not found')
+        error: new StandardError('RESOURCE_NOT_FOUND', 'Cache not found', {
+          "category": "general"
+      })
       }
     }
 
@@ -624,7 +640,9 @@ class MemoryUtils {
     if (!label || typeof label !== 'string') {
       return {
         success: false,
-        error: new Error('Invalid tracking label')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid tracking label', {
+          "category": "general"
+      })
       }
     }
 
@@ -746,7 +764,9 @@ class MemoryUtils {
     if (!name || typeof name !== 'string') {
       return {
         success: false,
-        error: new Error('Invalid timer name')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid timer name', {
+          "category": "general"
+      })
       }
     }
 
@@ -780,7 +800,9 @@ class MemoryUtils {
     if (!name || typeof name !== 'string') {
       return {
         success: false,
-        error: new Error('Invalid timer name')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid timer name', {
+          "category": "general"
+      })
       }
     }
 
@@ -789,7 +811,9 @@ class MemoryUtils {
     if (!timer) {
       return {
         success: false,
-        error: new Error('Timer not found')
+        error: new StandardError('RESOURCE_NOT_FOUND', 'Timer not found', {
+          "category": "general"
+      })
       }
     }
 
@@ -822,7 +846,9 @@ class MemoryUtils {
   measurePerformance (fn, name = 'anonymous') {
     if (typeof fn !== 'function') {
       return {
-        error: new Error('Invalid function provided')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid function provided', {
+          "category": "general"
+      })
       }
     }
 
@@ -866,7 +892,9 @@ class MemoryUtils {
   benchmark (fn, options = {}) {
     if (typeof fn !== 'function') {
       return {
-        error: new Error('Invalid function provided')
+        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid function provided', {
+          "category": "general"
+      })
       }
     }
 

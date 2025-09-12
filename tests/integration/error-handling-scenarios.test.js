@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * 系統性錯誤處理場景整合測試
  * v0.9.32 - TDD Phase 3 實作測試
@@ -20,7 +21,7 @@
 
 // 暫時建立基礎實作供測試使用
 const classifyError = (error) => {
-  if (!error) throw new Error('Error object is required')
+  if (!error) throw new StandardError('TEST_ERROR', 'Error object is required', { category: 'testing' })
 
   const message = error.message.toLowerCase()
   if (/network|timeout|connection/i.test(message)) {

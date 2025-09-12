@@ -8,6 +8,7 @@
  */
 
 const StorageLocalMock = require('./storage-local-mock')
+const { StandardError } = require('src/core/errors/StandardError')
 
 /**
  * Chrome Storage Sync API Mock
@@ -53,7 +54,7 @@ class StorageSyncMock extends StorageLocalMock {
    */
   _validateItemsLimit (totalItems) {
     if (totalItems > this._maxItems) {
-      throw new Error('Too many items in sync storage')
+      throw new StandardError('TEST_ERROR', 'Too many items in sync storage', { category: 'testing' })
     }
   }
 
@@ -62,7 +63,7 @@ class StorageSyncMock extends StorageLocalMock {
    */
   _checkSyncAvailability () {
     if (!this._syncEnabled) {
-      throw new Error('Sync is disabled')
+      throw new StandardError('TEST_ERROR', 'Sync is disabled', { category: 'testing' })
     }
   }
 

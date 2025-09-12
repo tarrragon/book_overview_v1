@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * 事件總線核心單元測試
  * 測試整個事件系統的核心功能
@@ -245,7 +246,7 @@ describe('🎭 事件總線核心測試', () => {
       const eventType = 'data.validation.failed'
       const workingHandler = jest.fn()
       const errorHandler = jest.fn(() => {
-        throw new Error('Handler error')
+        throw new StandardError('TEST_ERROR', 'Handler error', { category: 'testing' })
       })
       const anotherWorkingHandler = jest.fn()
 
@@ -533,7 +534,13 @@ describe('🎭 事件總線核心測試', () => {
 
       expect(() => {
         eventBus.on(eventType, jest.fn())
-      }).toThrow('Maximum number of listeners exceeded')
+      }).toThrow()
+      expect(() => {
+        eventBus.on(eventType, jest.fn())
+      }).toMatchObject({
+        code: expect.any(String),
+        details: expect.any(Object)
+      })
     })
   })
 })

@@ -26,6 +26,8 @@
  * - 無障礙合規性驗證
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class AccessibilityService {
   constructor (dependencies = {}) {
     // 依賴注入
@@ -157,7 +159,9 @@ class AccessibilityService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new Error('無障礙服務尚未初始化')
+      throw new StandardError('UNKNOWN_ERROR', '無障礙服務尚未初始化', {
+          "category": "general"
+      })
     }
 
     if (this.state.active) {
@@ -199,7 +203,9 @@ class AccessibilityService {
     try {
       const modeConfig = this.accessibilityModes[mode]
       if (!modeConfig) {
-        throw new Error(`不支援的無障礙模式: ${mode}`)
+        throw new StandardError('UNKNOWN_ERROR', `不支援的無障礙模式: ${mode}`, {
+          "category": "general"
+      })
       }
 
       // 統計模式啟用
@@ -236,7 +242,9 @@ class AccessibilityService {
     try {
       // 檢查設定是否支援
       if (!(setting in this.accessibilitySettings)) {
-        throw new Error(`不支援的無障礙設定: ${setting}`)
+        throw new StandardError('UNKNOWN_ERROR', `不支援的無障礙設定: ${setting}`, {
+          "category": "general"
+      })
       }
 
       // 啟用設定
@@ -275,7 +283,9 @@ class AccessibilityService {
     try {
       // 檢查設定是否支援
       if (!(setting in this.accessibilitySettings)) {
-        throw new Error(`不支援的無障礙設定: ${setting}`)
+        throw new StandardError('UNKNOWN_ERROR', `不支援的無障礙設定: ${setting}`, {
+          "category": "general"
+      })
       }
 
       // 停用設定

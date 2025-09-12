@@ -6,6 +6,7 @@
  */
 
 const BatchValidationProcessor = require('src/background/domains/data-management/services/batch-validation-processor.js')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('BatchValidationProcessor - 批次驗證處理服務', () => {
   let processor
@@ -356,13 +357,17 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     test('constructor 應該要求 eventBus 參數', () => {
       expect(() => {
         new BatchValidationProcessor()
-      }).toThrow('EventBus is required')
+      }).toMatchObject({
+        message: expect.stringContaining('EventBus is required')
+      })
     })
 
     test('constructor 應該要求 validationRuleManager', () => {
       expect(() => {
         new BatchValidationProcessor(mockEventBus, { logger: mockLogger })
-      }).toThrow('ValidationRuleManager is required')
+      }).toMatchObject({
+        message: expect.stringContaining('ValidationRuleManager is required')
+      })
     })
 
     test('應該處理驗證規則載入失敗', async () => {

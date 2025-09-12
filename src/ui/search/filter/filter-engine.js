@@ -27,6 +27,8 @@
  * @since 2025-08-20
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class FilterEngine {
   /**
    * 建構 FilterEngine 實例
@@ -40,7 +42,9 @@ class FilterEngine {
     const { eventBus, logger, config = {} } = options
 
     if (!eventBus || !logger) {
-      throw new Error('EventBus 和 Logger 是必需的')
+      throw new StandardError('EVENTBUS_ERROR', 'EventBus 和 Logger 是必需的', {
+          "category": "ui"
+      })
     }
 
     this.eventBus = eventBus
@@ -103,7 +107,9 @@ class FilterEngine {
    */
   async applyFilters (books, filters) {
     if (this._isDestroyed) {
-      throw new Error('篩選器已被銷毀')
+      throw new StandardError('UNKNOWN_ERROR', '篩選器已被銷毀', {
+          "category": "ui"
+      })
     }
 
     // 驗證輸入參數
@@ -289,10 +295,14 @@ class FilterEngine {
     try {
       filterDate = new Date(dateString)
       if (isNaN(filterDate.getTime())) {
-        throw new Error('Invalid date')
+        throw new StandardError('INVALID_DATA_FORMAT', 'Invalid date', {
+          "category": "ui"
+      })
       }
     } catch (error) {
-      throw new Error('無效的日期格式')
+      throw new StandardError('UNKNOWN_ERROR', '無效的日期格式', {
+          "category": "ui"
+      })
     }
 
     return books.filter(book => {
@@ -410,15 +420,21 @@ class FilterEngine {
    */
   _validateInputs (books, filters) {
     if (!Array.isArray(books)) {
-      throw new Error('書籍陣列是必需的')
+      throw new StandardError('UNKNOWN_ERROR', '書籍陣列是必需的', {
+          "category": "ui"
+      })
     }
 
     if (filters === null || filters === undefined) {
-      throw new Error('篩選條件是必需的')
+      throw new StandardError('UNKNOWN_ERROR', '篩選條件是必需的', {
+          "category": "ui"
+      })
     }
 
     if (typeof filters !== 'object') {
-      throw new Error('篩選條件必須是物件')
+      throw new StandardError('UNKNOWN_ERROR', '篩選條件必須是物件', {
+          "category": "ui"
+      })
     }
   }
 

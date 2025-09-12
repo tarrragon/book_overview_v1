@@ -56,6 +56,7 @@
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class ConflictResolutionService extends BaseModule {
   constructor (eventBus, dependencies = {}) {
@@ -578,7 +579,9 @@ class ConflictResolutionService extends BaseModule {
 
           try {
             if (!sourceBook || !targetBook) {
-              throw new Error('Invalid book data')
+              throw new StandardError('INVALID_DATA_FORMAT', 'Invalid book data', {
+          "category": "general"
+      })
             }
 
             const conflicts = await this.detectConflicts(sourceBook, targetBook)

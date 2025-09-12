@@ -13,6 +13,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('Popup 版本號顯示', () => {
   let popupScript
@@ -81,7 +82,7 @@ describe('Popup 版本號顯示', () => {
 
   test('getManifest 例外時應顯示未知版本字串', () => {
     // 模擬例外
-    global.chrome.runtime.getManifest = jest.fn(() => { throw new Error('mock failure') })
+    global.chrome.runtime.getManifest = jest.fn(() => { throw new StandardError('TEST_ERROR', 'mock failure', { category: 'testing' }) })
 
     loadPopupScript()
 

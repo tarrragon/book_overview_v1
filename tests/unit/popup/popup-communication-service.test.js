@@ -85,7 +85,11 @@ describe('PopupCommunicationService 核心功能', () => {
 
       // When: 執行狀態檢查（應該超時）
       await expect(communicationService.checkBackgroundStatus())
-        .rejects.toThrow('Background communication timeout')
+        .rejects.toMatchObject({
+        code: 'TIMEOUT_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Then: 正確處理超時
       expect(mockStatusManager.handleSyncFailure).toHaveBeenCalledWith('Background communication timeout')
@@ -109,7 +113,11 @@ describe('PopupCommunicationService 核心功能', () => {
 
       // When: 執行狀態檢查
       await expect(communicationService.checkBackgroundStatus())
-        .rejects.toThrow('Chrome API error: Extension context invalidated.')
+        .rejects.toMatchObject({
+        code: 'INVALID_INPUT_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Then: 錯誤被正確處理
       expect(mockStatusManager.handleSyncFailure).toHaveBeenCalledWith('Chrome API error: Extension context invalidated.')
@@ -167,7 +175,11 @@ describe('PopupCommunicationService 核心功能', () => {
 
       // When: 嘗試開始提取
       await expect(communicationService.startExtraction())
-        .rejects.toThrow('Not on Readmoo page')
+        .rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Then: 狀態正確更新
       expect(mockStatusManager.updateStatus).toHaveBeenCalledWith({
@@ -188,7 +200,11 @@ describe('PopupCommunicationService 核心功能', () => {
 
       // When: 嘗試開始提取
       await expect(communicationService.startExtraction())
-        .rejects.toThrow('No active tab found')
+        .rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Then: 錯誤被正確處理
       expect(mockStatusManager.updateStatus).toHaveBeenCalledWith({

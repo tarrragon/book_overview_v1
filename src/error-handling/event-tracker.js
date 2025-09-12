@@ -29,6 +29,7 @@
  */
 
 const EventHandler = require('src/core/event-handler')
+const { StandardError } = require('src/core/errors/StandardError')
 
 /**
  * EventTracker 類別
@@ -257,7 +258,9 @@ class EventTracker extends EventHandler {
       default:
         return this._createErrorResponse(
           'UNSUPPORTED_EVENT_TYPE',
-          new Error(`不支援的事件類型: ${eventData.type}`),
+          new StandardError('UNKNOWN_ERROR', `不支援的事件類型: ${eventData.type}`, {
+          "category": "general"
+      }),
           eventData
         )
     }
@@ -713,7 +716,9 @@ class EventTracker extends EventHandler {
       case EXPORT.FORMATS.CSV:
         return this._convertToCSV(records)
       default:
-        throw new Error(`不支援的匯出格式: ${format}`)
+        throw new StandardError('UNKNOWN_ERROR', `不支援的匯出格式: ${format}`, {
+          "category": "general"
+      })
     }
   }
 

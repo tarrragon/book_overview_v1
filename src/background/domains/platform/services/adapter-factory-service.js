@@ -1,3 +1,5 @@
+const { StandardError } = require('src/core/errors/StandardError')
+
 const { createLogger } = require('src/core/logging/Logger')
 
 /**
@@ -385,7 +387,9 @@ class AdapterFactoryService {
 
       // 驗證平台支援
       if (!this.supportedPlatforms.includes(platformId)) {
-        throw new Error(`不支援的平台: ${platformId}`)
+        throw new StandardError('UNKNOWN_ERROR', `不支援的平台: ${platformId}`, {
+          "category": "general"
+      })
       }
 
       // 檢查是否可以從池中重用
@@ -473,7 +477,9 @@ class AdapterFactoryService {
     // 取得適配器類型配置
     const adapterType = this.adapterTypes.get(platformId)
     if (!adapterType) {
-      throw new Error(`找不到適配器類型配置: ${platformId}`)
+      throw new StandardError('UNKNOWN_ERROR', `找不到適配器類型配置: ${platformId}`, {
+          "category": "general"
+      })
     }
 
     // 取得平台註冊資訊
@@ -485,7 +491,9 @@ class AdapterFactoryService {
     // 取得構造函數
     const AdapterConstructor = this.adapterConstructors.get(platformId)
     if (!AdapterConstructor) {
-      throw new Error(`找不到適配器構造函數: ${platformId}`)
+      throw new StandardError('UNKNOWN_ERROR', `找不到適配器構造函數: ${platformId}`, {
+          "category": "general"
+      })
     }
 
     // 建立配置物件

@@ -1198,7 +1198,7 @@ describe('UC-05 跨設備同步工作流程測試', () => {
       const flakyNetwork = () => {
         attemptCount++
         if (attemptCount <= 2) {
-          throw new Error('TEMPORARY_NETWORK_ERROR')
+          throw new StandardError('NETWORK_ERROR', 'TEMPORARY_NETWORK_ERROR', { category: 'testing' })
         }
         return { success: true }
       }
@@ -1217,7 +1217,7 @@ describe('UC-05 跨設備同步工作流程測試', () => {
 
       // 測試最大重試次數
       const maxRetryResult = await device.executeWithRetry(
-        () => { throw new Error('PERSISTENT_ERROR') },
+        () => { throw new StandardError('TEST_ERROR', 'PERSISTENT_ERROR', { category: 'testing' }) },
         { maxRetries: 3 }
       )
 

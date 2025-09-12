@@ -345,7 +345,11 @@ describe('StorageCompletionHandler', () => {
         metadata: { timestamp: Date.now() }
       }
 
-      await expect(handler.handle(event)).rejects.toThrow('Invalid completion result')
+      await expect(handler.handle(event)).rejects.toMatchObject({
+        code: 'INVALID_INPUT_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     test('應該驗證錯誤資料結構', async () => {
@@ -358,7 +362,11 @@ describe('StorageCompletionHandler', () => {
         metadata: { timestamp: Date.now() }
       }
 
-      await expect(handler.handle(event)).rejects.toThrow('Invalid error data')
+      await expect(handler.handle(event)).rejects.toMatchObject({
+        code: 'INVALID_INPUT_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
   })
 

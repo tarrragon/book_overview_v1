@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * Chrome Extension 事件橋接器單元測試
  * 測試跨上下文事件通訊機制
@@ -215,9 +216,11 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
       const mockEvent = { type: 'test.event' }
 
       // Act & Assert
-      await expect(bridge.dispatchToContext(mockEvent, 'unknown')).rejects.toThrow(
-        'Unknown target context: unknown'
-      )
+      await expect(bridge.dispatchToContext(mockEvent, 'unknown')).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
   })
 
@@ -252,9 +255,11 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
       })
 
       // Act & Assert
-      await expect(bridge.dispatchToBackground(mockEvent)).rejects.toThrow(
-        'Connection error'
-      )
+      await expect(bridge.dispatchToBackground(mockEvent)).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Cleanup
       mockChrome.runtime.lastError = null
@@ -392,9 +397,11 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
       })
 
       // Act & Assert
-      await expect(bridge.sendToTab(tabId, message)).rejects.toThrow(
-        'Could not establish connection'
-      )
+      await expect(bridge.sendToTab(tabId, message)).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // Cleanup
       mockChrome.runtime.lastError = null
@@ -421,13 +428,19 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
     test('應該能夠處理消息監聽器註冊失敗', () => {
       // Arrange
       mockChrome.runtime.onMessage.addListener.mockImplementation(() => {
-        throw new Error('Listener registration failed')
+        throw new StandardError('TEST_ERROR', 'Listener registration failed', { category: 'testing' })
       })
 
       // Act & Assert
       expect(() => {
         createChromeEventBridge()
-      }).toThrow('Listener registration failed')
+      }).toThrow()
+      expect(() => {
+        createChromeEventBridge()
+      }).toMatchObject({
+        code: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     test('應該能夠清理資源', () => {

@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * Runtime Mock - Chrome Runtime API 模擬
  * 遵循 Five Lines 規則和單一責任原則
@@ -68,7 +69,7 @@ class RuntimeMock {
    */
   _validateContext () {
     if (!this._contextValid) {
-      throw new Error('Extension context invalidated')
+      throw new StandardError('INVALID_INPUT_ERROR', 'Extension context invalidated', { category: 'testing' })
     }
   }
 
@@ -161,7 +162,7 @@ class RuntimeMock {
    */
   _validatePortContext () {
     if (!this._contextValid) {
-      throw new Error('Port disconnected')
+      throw new StandardError('TEST_ERROR', 'Port disconnected', { category: 'testing' })
     }
   }
 

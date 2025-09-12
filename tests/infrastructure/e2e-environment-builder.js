@@ -159,7 +159,7 @@ class E2EEnvironmentBuilder {
    */
   _validateConfigObject () {
     if (!this._config || typeof this._config !== 'object') {
-      throw new Error('Invalid configuration object')
+      throw new StandardError('VALIDATION_FAILED', 'Invalid configuration object', { category: 'testing' })
     }
   }
 
@@ -169,7 +169,7 @@ class E2EEnvironmentBuilder {
   _validateRequiredFeatures () {
     const hasAnyFeature = this._hasAnyFeatureEnabled()
     if (!hasAnyFeature) {
-      throw new Error('At least one testing feature must be enabled')
+      throw new StandardError('TEST_ERROR', 'At least one testing feature must be enabled', { category: 'testing' })
     }
   }
 

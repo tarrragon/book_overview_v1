@@ -24,6 +24,7 @@ const ConfigManagementService = require('./services/config-management-service')
 const VersionControlService = require('./services/version-control-service')
 const HealthMonitoringService = require('./services/health-monitoring-service')
 const DiagnosticService = require('./services/diagnostic-service')
+const { StandardError } = require('src/core/errors/StandardError')
 
 const {
   SYSTEM_EVENTS,
@@ -145,7 +146,9 @@ class SystemDomainCoordinator {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new Error('協調器尚未初始化')
+      throw new StandardError('UNKNOWN_ERROR', '協調器尚未初始化', {
+          "category": "general"
+      })
     }
 
     if (this.state.active) {
@@ -236,7 +239,9 @@ class SystemDomainCoordinator {
         this.logger.log(`✅ 服務初始化完成: ${serviceName}`)
       } catch (error) {
         this.logger.error(`❌ 服務初始化失敗: ${serviceName}`, error)
-        throw new Error(`微服務 ${serviceName} 初始化失敗: ${error.message}`)
+        throw new StandardError('UNKNOWN_ERROR', `微服務 ${serviceName} 初始化失敗: ${error.message}`, {
+          "category": "general"
+      })
       }
     }
 

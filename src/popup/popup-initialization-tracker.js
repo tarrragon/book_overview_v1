@@ -13,6 +13,8 @@
  * - 超時處理和錯誤恢復
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class PopupInitializationTracker {
   constructor () {
     this.steps = []
@@ -208,7 +210,9 @@ class PopupInitializationTracker {
 
     const step = this.steps.find(s => s.id === stepId)
     if (step) {
-      this.failStep(stepId, new Error(`步驟超時 (${step.timeout}ms)`))
+      this.failStep(stepId, new StandardError('OPERATION_TIMEOUT', `步驟超時 (${step.timeout}ms, {
+          "category": "general"
+      })`))
     }
   }
 

@@ -19,6 +19,7 @@
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class BatchValidationProcessor extends BaseModule {
   /**
@@ -28,11 +29,15 @@ class BatchValidationProcessor extends BaseModule {
    */
   constructor (eventBus, dependencies = {}) {
     if (!eventBus) {
-      throw new Error('EventBus is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required', {
+          "category": "validation"
+      })
     }
 
     if (!dependencies.validationRuleManager) {
-      throw new Error('ValidationRuleManager is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'ValidationRuleManager is required', {
+          "category": "validation"
+      })
     }
 
     super({

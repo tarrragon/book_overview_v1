@@ -23,6 +23,7 @@ const DataDifferenceEngine = require('./data-difference-engine.js')
 const ConflictDetectionService = require('./ConflictDetectionService.js')
 const SyncProgressMonitor = require('./sync-progress-tracker.js')
 const SyncStrategyProcessor = require('./sync-strategy-processor.js')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class ReadmooDataConsistencyService extends BaseModule {
   /**
@@ -32,7 +33,9 @@ class ReadmooDataConsistencyService extends BaseModule {
    */
   constructor (eventBus, dependencies = {}) {
     if (!eventBus) {
-      throw new Error('EventBus is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required', {
+          "category": "ui"
+      })
     }
 
     super({

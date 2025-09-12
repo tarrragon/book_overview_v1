@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * ReadmooAdapter 單元測試
  *
@@ -610,7 +611,7 @@ describe('ReadmooAdapter', () => {
     test('應該記錄錯誤統計', async () => {
       // 模擬解析錯誤
       jest.spyOn(adapter, 'parseBookElement').mockImplementation(() => {
-        throw new Error('解析錯誤')
+        throw new StandardError('TEST_ERROR', '解析錯誤', { category: 'testing' })
       })
 
       document.body.innerHTML = `

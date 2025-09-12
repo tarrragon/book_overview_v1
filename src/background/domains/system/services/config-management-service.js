@@ -25,6 +25,7 @@ const {
   DEFAULT_CONFIG,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class ConfigManagementService {
   constructor (dependencies = {}) {
@@ -100,7 +101,9 @@ class ConfigManagementService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new Error('服務尚未初始化')
+      throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
+          "category": "general"
+      })
     }
 
     if (this.state.active) {
@@ -316,7 +319,9 @@ class ConfigManagementService {
       const validation = await this.validateConfiguration(newConfig)
 
       if (!validation.isValid) {
-        throw new Error(`配置驗證失敗: ${validation.errors.join(', ')}`)
+        throw new StandardError('VALIDATION_FAILED', `配置驗證失敗: ${validation.errors.join(', ', {
+          "category": "validation"
+      })}`)
       }
 
       // 保存舊配置到歷史
@@ -378,7 +383,9 @@ class ConfigManagementService {
    */
   registerConfigurationWatcher (key, watcher) {
     if (typeof watcher !== 'function') {
-      throw new Error('配置監聽器必須是函數')
+      throw new StandardError('UNKNOWN_ERROR', '配置監聽器必須是函數', {
+          "category": "general"
+      })
     }
 
     this.configurationWatchers.set(key, watcher)
@@ -401,7 +408,9 @@ class ConfigManagementService {
    */
   registerConfigurationValidator (key, validator) {
     if (typeof validator !== 'function') {
-      throw new Error('配置驗證器必須是函數')
+      throw new StandardError('UNKNOWN_ERROR', '配置驗證器必須是函數', {
+          "category": "general"
+      })
     }
 
     this.configurationValidators.set(key, validator)
@@ -463,7 +472,9 @@ class ConfigManagementService {
     try {
       const { updates } = event.data || {}
       if (!updates || typeof updates !== 'object') {
-        throw new Error('無效的配置更新數據')
+        throw new StandardError('UNKNOWN_ERROR', '無效的配置更新數據', {
+          "category": "general"
+      })
       }
 
       await this.applyConfigurationUpdates(updates)

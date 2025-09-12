@@ -27,6 +27,8 @@
  * @since 2025-08-20
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class SearchCacheManager {
   /**
    * 建構 SearchCacheManager 實例
@@ -40,7 +42,9 @@ class SearchCacheManager {
     const { eventBus, logger, config = {} } = options
 
     if (!eventBus || !logger) {
-      throw new Error('EventBus 和 Logger 是必需的')
+      throw new StandardError('EVENTBUS_ERROR', 'EventBus 和 Logger 是必需的', {
+          "category": "ui"
+      })
     }
 
     this.eventBus = eventBus
@@ -87,7 +91,9 @@ class SearchCacheManager {
    */
   normalizeKey (key) {
     if (typeof key !== 'string') {
-      throw new Error('快取鍵必須是字串')
+      throw new StandardError('UNKNOWN_ERROR', '快取鍵必須是字串', {
+          "category": "ui"
+      })
     }
 
     if (!this.config.keyNormalization) {

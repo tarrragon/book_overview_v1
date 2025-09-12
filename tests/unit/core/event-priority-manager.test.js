@@ -11,6 +11,7 @@
 
 const EventBus = require('src/core/event-bus')
 const EventPriorityManager = require('src/core/events/event-priority-manager')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('EventPriorityManager', () => {
   let eventBus
@@ -322,11 +323,19 @@ describe('EventPriorityManager', () => {
 
       expect(() => {
         priorityManager.adjustEventPriority(eventName, -1)
-      }).toThrow('Invalid priority value')
+      }).toMatchObject({
+        code: expect.any(String),
+        message: expect.stringContaining('Invalid priority value'),
+        details: expect.any(Object)
+      })
 
       expect(() => {
         priorityManager.adjustEventPriority(eventName, 1000)
-      }).toThrow('Invalid priority value')
+      }).toMatchObject({
+        code: expect.any(String),
+        message: expect.stringContaining('Invalid priority value'),
+        details: expect.any(Object)
+      })
     })
 
     test('應該記錄優先級錯誤統計', () => {

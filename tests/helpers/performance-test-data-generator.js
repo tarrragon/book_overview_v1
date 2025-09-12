@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * 效能測試資料生成器
  *
@@ -284,7 +285,7 @@ class PerformanceTestDataGenerator {
 
   parseSize (sizeString) {
     const match = sizeString.match(/^(\d+(?:\.\d+)?)(KB|MB|GB)?$/i)
-    if (!match) throw new Error(`Invalid size format: ${sizeString}`)
+    if (!match) throw new StandardError('INVALID_INPUT_ERROR', `Invalid size format: ${sizeString}`, { category: 'testing' })
 
     const value = parseFloat(match[1])
     const unit = (match[2] || 'B').toUpperCase()
@@ -540,7 +541,7 @@ class PerformanceTestDataGenerator {
       case 'large_dataset':
         return this.generateLargeDatasetScenario()
       default:
-        throw new Error(`Unknown scenario type: ${scenarioType}`)
+        throw new StandardError('TEST_ERROR', `Unknown scenario type: ${scenarioType}`, { category: 'testing' })
     }
   }
 

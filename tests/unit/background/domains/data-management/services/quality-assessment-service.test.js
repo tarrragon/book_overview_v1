@@ -6,6 +6,7 @@
  */
 
 const QualityAssessmentService = require('src/background/domains/data-management/services/quality-assessment-service.js')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('QualityAssessmentService - 品質評估服務', () => {
   let assessor
@@ -425,14 +426,21 @@ describe('QualityAssessmentService - 品質評估服務', () => {
     test('constructor 應該要求 eventBus 參數', () => {
       expect(() => {
         new QualityAssessmentService()
-      }).toThrow('EventBus is required')
+      }).toThrow()
+      
+      expect(() => {
+        new QualityAssessmentService()
+      }).toMatchObject({
+        code: 'INVALID_ARGUMENT',
+        details: expect.any(Object)
+      })
     })
 
     test('應該處理評估過程中的錯誤', () => {
       // 模擬一個會導致錯誤的書籍物件
       const invalidBook = {
         title: 'Test Book', // 有標題會有一些分數
-        toString: () => { throw new Error('轉換錯誤') }
+        toString: () => { throw new StandardError('TEST_ERROR', '轉換錯誤', { category: 'testing' }) }
       }
 
       const result = assessor.assessDataQuality(invalidBook)

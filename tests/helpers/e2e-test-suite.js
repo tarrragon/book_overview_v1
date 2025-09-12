@@ -65,7 +65,7 @@ class E2ETestSuite {
       this.testEnvironment.initialized = true
     } catch (error) {
       await this.cleanup()
-      throw new Error(`E2E測試套件初始化失敗: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `E2E測試套件初始化失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -146,6 +146,7 @@ class E2ETestSuite {
 
   async prepareTestData () {
     const { TestDataGenerator } = require('./test-data-generator')
+const { StandardError } = require('src/core/errors/StandardError')
     const generator = new TestDataGenerator()
 
     switch (this.config.testDataSize) {
@@ -168,7 +169,7 @@ class E2ETestSuite {
 
   async loadInitialData (data = {}) {
     if (!this.testEnvironment.initialized) {
-      throw new Error('測試套件未初始化，請先呼叫 initialize()')
+      throw new StandardError('TEST_ERROR', '測試套件未初始化，請先呼叫 initialize()', { category: 'testing' })
     }
 
     // 載入書籍資料
@@ -292,7 +293,7 @@ class E2ETestSuite {
 
   async executeWorkflow (workflowName, steps = []) {
     if (!this.testEnvironment.initialized) {
-      throw new Error('測試套件未初始化，請先呼叫 initialize()')
+      throw new StandardError('TEST_ERROR', '測試套件未初始化，請先呼叫 initialize()', { category: 'testing' })
     }
 
     const workflow = {
@@ -310,7 +311,7 @@ class E2ETestSuite {
         workflow.steps.push(stepResult)
 
         if (!stepResult.success) {
-          throw new Error(`工作流程步驟 ${i + 1} 失敗: ${stepResult.error}`)
+          throw new StandardError('TEST_ERROR', `工作流程步驟 ${i + 1} 失敗: ${stepResult.error}`, { category: 'testing' })
         }
       }
 
@@ -355,7 +356,7 @@ class E2ETestSuite {
           result = await this.simulateVerification(step.params)
           break
         default:
-          throw new Error(`未支援的步驟類型: ${step.type}`)
+          throw new StandardError('TEST_ERROR', `未支援的步驟類型: ${step.type}`, { category: 'testing' })
       }
 
       return {
@@ -854,7 +855,7 @@ class E2ETestSuite {
         }
       }
 
-      throw new Error('Invalid exported file format')
+      throw new StandardError('INVALID_INPUT_ERROR', 'Invalid exported file format', { category: 'testing' })
     } catch (error) {
       console.error('Failed to read exported file:', error)
       throw error
@@ -943,7 +944,7 @@ class E2ETestSuite {
             break
 
           default:
-            throw new Error(`不支援的破壞類型: ${corruptionType}`)
+            throw new StandardError('TEST_ERROR', `不支援的破壞類型: ${corruptionType}`, { category: 'testing' })
         }
 
         this.logOperation('file_corruption', {
@@ -969,7 +970,7 @@ class E2ETestSuite {
       return corruptedFile
     } catch (error) {
       this.logError(error, 'corruptFile')
-      throw new Error(`文件破壞失敗: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `文件破壞失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -1138,7 +1139,7 @@ class E2ETestSuite {
       await new Promise(resolve => setTimeout(resolve, pollIntervalMs))
     }
 
-    throw new Error(`Condition not met within ${timeoutMs}ms timeout`)
+    throw new StandardError('TIMEOUT_ERROR', `Condition not met within ${timeoutMs}ms timeout`, { category: 'testing' })
   }
 
   /**
@@ -1289,7 +1290,7 @@ class E2ETestSuite {
       }
     } catch (error) {
       this.logError(error, 'simulateSystemRestart')
-      throw new Error(`系統重啟模擬失敗: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `系統重啟模擬失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -1533,7 +1534,7 @@ class E2ETestSuite {
       }
     } catch (error) {
       this.logError(error, 'simulateProcessInterruption')
-      throw new Error(`處理程序中斷模擬失敗: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `處理程序中斷模擬失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -1579,7 +1580,7 @@ class E2ETestSuite {
       }
     } catch (error) {
       this.logError(error, 'searchOverviewBooks')
-      throw new Error(`書籍搜索失敗: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `書籍搜索失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -1672,7 +1673,7 @@ class E2ETestSuite {
       }
     } catch (error) {
       this.logError(error, 'simulateContentScriptCrash')
-      throw new Error(`Content Script 崩潰模擬失敗: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `Content Script 崩潰模擬失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -1760,7 +1761,7 @@ class E2ETestSuite {
       return await simulationPromise
     } catch (error) {
       this.logError(error, 'simulateNetworkLatency')
-      throw new Error(`網路延遲模擬失敗: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `網路延遲模擬失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -1835,7 +1836,7 @@ class E2ETestSuite {
       })
     } catch (error) {
       this.logError(error, 'simulateConnectionIssue')
-      throw new Error(`連接問題模擬失敗: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `連接問題模擬失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -1928,7 +1929,7 @@ class E2ETestSuite {
       })
     } catch (error) {
       this.logError(error, 'simulateMessageDelay')
-      throw new Error(`訊息延遲模擬失敗: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `訊息延遲模擬失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -1970,7 +1971,7 @@ class E2ETestSuite {
       }
     } catch (error) {
       this.logError(error, 'capturePerformanceBaseline')
-      throw new Error(`效能基準線擷取失敗: ${error.message}`)
+      throw new StandardError('TEST_ERROR', `效能基準線擷取失敗: ${error.message}`, { category: 'testing' })
     }
   }
 

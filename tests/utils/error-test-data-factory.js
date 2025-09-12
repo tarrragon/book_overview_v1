@@ -99,7 +99,7 @@ class ErrorTestDataFactory {
         }
 
       default:
-        throw new Error(`Unknown Chrome Extension error scenario: ${scenario}`)
+        throw new StandardError('TEST_ERROR', `Unknown Chrome Extension error scenario: ${scenario}`, { category: 'testing' })
     }
   }
 
@@ -171,7 +171,7 @@ class ErrorTestDataFactory {
         }
 
       default:
-        throw new Error(`Unknown network error scenario: ${scenario}`)
+        throw new StandardError('NETWORK_ERROR', `Unknown network error scenario: ${scenario}`, { category: 'testing' })
     }
   }
 
@@ -232,7 +232,7 @@ class ErrorTestDataFactory {
         }
 
       default:
-        throw new Error(`Unknown DOM error scenario: ${scenario}`)
+        throw new StandardError('TEST_ERROR', `Unknown DOM error scenario: ${scenario}`, { category: 'testing' })
     }
   }
 
@@ -295,7 +295,7 @@ class ErrorTestDataFactory {
         }
 
       default:
-        throw new Error(`Unknown data processing error scenario: ${scenario}`)
+        throw new StandardError('TEST_ERROR', `Unknown data processing error scenario: ${scenario}`, { category: 'testing' })
     }
   }
 
@@ -342,7 +342,7 @@ class ErrorTestDataFactory {
         }
 
       default:
-        throw new Error(`Unknown memory error scenario: ${scenario}`)
+        throw new StandardError('TEST_ERROR', `Unknown memory error scenario: ${scenario}`, { category: 'testing' })
     }
   }
 
@@ -374,7 +374,7 @@ class ErrorTestDataFactory {
         case 'memory':
           return this.createMemoryError(specificScenario)
         default:
-          throw new Error(`Unknown error type: ${type}`)
+          throw new StandardError('TEST_ERROR', `Unknown error type: ${type}`, { category: 'testing' })
       }
     })
 

@@ -17,6 +17,7 @@
  */
 
 const FilterEngine = require('src/ui/search/filter/filter-engine')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('FilterEngine', () => {
   let filterEngine
@@ -104,13 +105,27 @@ describe('FilterEngine', () => {
     it('should throw error when EventBus is missing', () => {
       expect(() => {
         new FilterEngine({ logger: mockLogger })
-      }).toThrow('EventBus 和 Logger 是必需的')
+      }).toThrow()
+      expect(() => {
+        new FilterEngine({ logger: mockLogger })
+      }).toMatchObject({
+        code: 'REQUIRED_PARAMETER_MISSING',
+        message: expect.stringContaining('EventBus 和 Logger 是必需的'),
+        details: expect.any(Object)
+      })
     })
 
     it('should throw error when Logger is missing', () => {
       expect(() => {
         new FilterEngine({ eventBus: mockEventBus })
-      }).toThrow('EventBus 和 Logger 是必需的')
+      }).toThrow()
+      expect(() => {
+        new FilterEngine({ eventBus: mockEventBus })
+      }).toMatchObject({
+        code: 'REQUIRED_PARAMETER_MISSING',
+        message: expect.stringContaining('EventBus 和 Logger 是必需的'),
+        details: expect.any(Object)
+      })
     })
 
     it('should initialize with default configuration', () => {
@@ -169,9 +184,21 @@ describe('FilterEngine', () => {
     })
 
     it('should validate input parameters', async () => {
-      await expect(filterEngine.applyFilters(null, {})).rejects.toThrow('書籍陣列是必需的')
-      await expect(filterEngine.applyFilters(testBooks, null)).rejects.toThrow('篩選條件是必需的')
-      await expect(filterEngine.applyFilters('invalid', {})).rejects.toThrow('書籍陣列是必需的')
+      await expect(filterEngine.applyFilters(null, {})).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
+      await expect(filterEngine.applyFilters(testBooks, null)).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
+      await expect(filterEngine.applyFilters('invalid', {})).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     it('should emit filter application events when enabled', async () => {
@@ -339,7 +366,11 @@ describe('FilterEngine', () => {
     it('should handle invalid date format gracefully', async () => {
       await expect(filterEngine.applyFilters(testBooks, {
         lastReadAfter: 'invalid-date'
-      })).rejects.toThrow('無效的日期格式')
+      })).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
   })
 
@@ -532,7 +563,11 @@ describe('FilterEngine', () => {
     it('should throw error when FilterEngine is destroyed', async () => {
       filterEngine.destroy()
 
-      await expect(filterEngine.applyFilters(testBooks, {})).rejects.toThrow('篩選器已被銷毀')
+      await expect(filterEngine.applyFilters(testBooks, {})).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
 
     it('should handle invalid filter criteria gracefully', async () => {

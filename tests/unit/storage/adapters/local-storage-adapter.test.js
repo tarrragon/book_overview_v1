@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * LocalStorageAdapter 單元測試
  *
@@ -241,7 +242,7 @@ describe('LocalStorageAdapter', () => {
     test('應該統計失敗的操作', async () => {
       // 強制 localStorage 拋出錯誤
       mockLocalStorage.setItem.mockImplementation(() => {
-        throw new Error('Storage error')
+        throw new StandardError('TEST_ERROR', 'Storage error', { category: 'testing' })
       })
 
       await adapter.save('test-key', { data: 'test' })

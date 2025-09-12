@@ -20,6 +20,7 @@
 
 const BaseModule = require('src/background/lifecycle/base-module')
 const { createLogger } = require('src/core/logging/Logger')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class QualityAssessmentService extends BaseModule {
   /**
@@ -29,7 +30,9 @@ class QualityAssessmentService extends BaseModule {
    */
   constructor (eventBus, dependencies = {}) {
     if (!eventBus) {
-      throw new Error('EventBus is required')
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required', {
+          "category": "ui"
+      })
     }
 
     super({

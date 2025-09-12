@@ -14,6 +14,8 @@
  * messages.set('CUSTOM_MESSAGE', '自訂訊息: {value}')
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 class MessageDictionary {
   /**
    * 建立訊息字典實例
@@ -206,7 +208,9 @@ class MessageDictionary {
    */
   set (key, message) {
     if (typeof key !== 'string' || typeof message !== 'string') {
-      throw new Error('Message key and value must be strings')
+      throw new StandardError('UNKNOWN_ERROR', 'Message key and value must be strings', {
+          "category": "general"
+      })
     }
 
     // 檢查快取大小限制
@@ -222,13 +226,18 @@ class MessageDictionary {
    */
   addMessages (messages) {
     if (!messages || typeof messages !== 'object') {
-      throw new Error('Messages must be an object')
+      throw new StandardError('UNKNOWN_ERROR', 'Messages must be an object', {
+          "dataType": "object",
+          "category": "general"
+      })
     }
 
     // 檢查總大小限制
     const estimatedSize = this._estimateSize(messages)
     if (this._cacheSize + estimatedSize > this._maxCacheSize) {
-      throw new Error('Adding messages would exceed cache size limit')
+      throw new StandardError('LIMIT_EXCEEDED', 'Adding messages would exceed cache size limit', {
+          "category": "general"
+      })
     }
 
     Object.assign(this.messages, messages)

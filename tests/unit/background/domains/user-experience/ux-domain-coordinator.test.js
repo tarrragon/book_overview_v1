@@ -304,7 +304,11 @@ describe('🎨 UX Domain 協調器測試', () => {
       mockServicesPool.ThemeManagementService.setTheme.mockRejectedValue(new Error('Invalid theme'))
 
       // 執行主題協調並期望錯誤
-      await expect(coordinator.coordinateThemeChange(invalidTheme)).rejects.toThrow('Invalid theme')
+      await expect(coordinator.coordinateThemeChange(invalidTheme)).rejects.toMatchObject({
+        code: 'INVALID_INPUT_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // 驗證錯誤日誌
       expect(mockLogger.error).toHaveBeenCalledWith(
@@ -540,7 +544,11 @@ describe('🎨 UX Domain 協調器測試', () => {
 
     test('應該處理未初始化時的啟動請求', async () => {
       // 未初始化就啟動
-      await expect(coordinator.start()).rejects.toThrow('UX 協調器尚未初始化')
+      await expect(coordinator.start()).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
   })
 

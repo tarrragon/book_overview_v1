@@ -1,3 +1,4 @@
+const { StandardError } = require('src/core/errors/StandardError')
 /**
  * EventBus getStats 整合測試
  * 驗證getStats在實際場景中的行為
@@ -262,7 +263,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
       // Arrange
       const workingHandler = jest.fn(() => 'success')
       const errorHandler = jest.fn(() => {
-        throw new Error('處理器錯誤')
+        throw new StandardError('TEST_ERROR', '處理器錯誤', { category: 'testing' })
       })
 
       eventBus.on('ERROR.TEST', workingHandler)

@@ -6,6 +6,7 @@
 
 // ===== 全域環境設置 =====
 const path = require('path')
+const { StandardError } = require('src/core/errors/StandardError')
 
 // 設定JSDOM環境
 Object.defineProperty(window, 'localStorage', {
@@ -845,7 +846,11 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
       mockFileReader.simulateSuccess(invalidJSON)
 
       // 等待 Promise 被拒絕
-      await expect(loadPromise).rejects.toThrow('JSON 檔案格式不正確')
+      await expect(loadPromise).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       // 應該顯示錯誤訊息
       expect(DOMTestUtils.verifyTableState.showsError()).toBe(true)
@@ -869,7 +874,11 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
       mockFileReader.simulateError()
 
       // 等待 Promise 被拒絕
-      await expect(loadPromise).rejects.toThrow('讀取檔案時發生錯誤')
+      await expect(loadPromise).rejects.toMatchObject({
+        code: 'TEST_ERROR',
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
 
       expect(DOMTestUtils.verifyTableState.showsError()).toBe(true)
     })
