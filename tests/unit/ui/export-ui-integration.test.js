@@ -235,7 +235,7 @@ describe('ExportUIIntegration', () => {
         exportUI.initialize()
       }).toThrow()
       expect(() => {
-        exportUIIntegration.initialize()
+        exportUI.initialize()
       }).toMatchObject({
         code: 'NOT_IMPLEMENTED',
         details: expect.any(Object)

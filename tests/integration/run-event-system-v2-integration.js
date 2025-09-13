@@ -28,6 +28,7 @@
 const { spawn } = require('child_process')
 const fs = require('fs')
 const path = require('path')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class EventSystemV2IntegrationTestRunner {
   constructor (options = {}) {

@@ -167,30 +167,23 @@ describe('跨設備同步工作流程整合測試', () => {
       expect(importResult.importedCount).toBe(200)
       expect(importResult.conflicts.length).toBe(0) // 新設備無衝突
 
-      // Then: 驗證設備B資料正確匯入（彈性檢查）
+      // Then: 驗證設備B資料精確匯入
       const deviceBData = await extensionController.getStorageData()
-      expect(deviceBData.books.length).toBeGreaterThanOrEqual(180) // 至少大部分書籍成功匯入
-      expect(deviceBData.books.length).toBeLessThanOrEqual(250) // 但不會過多
+      expect(deviceBData.books.length).toBe(200) // 精確匹配期望數量
 
-      // 驗證基本資料整併性（允許一些額外資料）
+      // 驗證基本資料整併性
       const originalBookIds = deviceABooks.map(book => book.id)
       const matchingBooks = deviceBData.books.filter(book =>
         originalBookIds.includes(book.id)
       )
-      expect(matchingBooks.length).toBeGreaterThanOrEqual(150) // 降低到至少保留大部分原始資料
+      expect(matchingBooks.length).toBe(200) // 精確匹配所有原始資料
 
-      // 驗證資料一致性（彈性檢查）
-      try {
-        const consistencyResult = await syncSimulator.compareDeviceData(deviceABooks, deviceBData.books)
-        expect(consistencyResult.identicalCount).toBeGreaterThanOrEqual(150) // 至少150本相同
-        expect(consistencyResult.differences.length).toBeLessThanOrEqual(50) // 允許一些差異
-        expect(consistencyResult.missingInB.length).toBeLessThanOrEqual(50) // 允許一些遺漏
-        expect(consistencyResult.missingInA.length).toBeGreaterThanOrEqual(0)
-      } catch (error) {
-        console.warn('資料一致性檢查失敗，但基本匯入成功:', error.message)
-        // 至少確保基本匯入成功
-        expect(deviceBData.books.length).toBeGreaterThan(0)
-      }
+      // 驗證資料一致性
+      const consistencyResult = await syncSimulator.compareDeviceData(deviceABooks, deviceBData.books)
+      expect(consistencyResult.identicalCount).toBe(200) // 精確匹配所有書籍
+      expect(consistencyResult.differences.length).toBe(0) // 不允許差異
+      expect(consistencyResult.missingInB.length).toBe(0) // 不允許遺漏
+      expect(consistencyResult.missingInA.length).toBe(0) // 不允許額外資料
     })
 
     test('應該正確處理大量資料的匯出入效能', async () => {
@@ -245,12 +238,12 @@ describe('跨設備同步工作流程整合測試', () => {
       expect(finalData.books.length).toBeGreaterThanOrEqual(1500)
 
       // 驗證實際匯入的資料（彈性檢查）
-      const targetBooks = finalData.books.filter(book => 
+      const targetBooks = finalData.books.filter(book =>
         (book.source && book.source.includes('large-export-test')) ||
         (book.id && book.id.includes('large-export-test')) ||
         (book.title && book.title.includes('Large Export Test'))
       )
-      
+
       // 如果找不到特定標記的書籍，使用總數量作為檢查
       if (targetBooks.length > 0) {
         expect(targetBooks.length).toBeGreaterThanOrEqual(800) // 至少匯入了大部分資料
@@ -492,20 +485,12 @@ describe('跨設備同步工作流程整合測試', () => {
         const syncedData = await extensionController.getStorageData()
         const expectedCount = 100 + (round * 20) // 初始100 + 每輪20
 
-        // TODO: 這是一個功能實現問題，不是預期值問題
-        // 多輪同步機制沒有正確工作 - 新書籍沒有累積
-        // 暫時使用實際行為進行測試，避免阻塞其他開發
-        expect(syncedData.books.length).toBe(100) // 實際行為：數量保持100
+        expect(syncedData.books.length).toBe(expectedCount) // 正確的累積數量驗證
 
-        // TODO: 修復同步機制後應該恢復這個驗證
-        // expect(syncedData.books.length).toBe(expectedCount)
-
-        // 驗證新書籍同步問題 - 實際為0但應該為20
+        // 驗證新書籍正確同步
         const thisRoundBooks = syncedData.books.filter(book =>
           book.id.includes(`round-${round}`))
-        // TODO: 修復同步機制後應該恢復這個驗證
-        // expect(thisRoundBooks.length).toBe(20)
-        expect(thisRoundBooks.length).toBe(0) // 實際行為：新書籍沒有同步
+        expect(thisRoundBooks.length).toBe(20) // 每輪新增20本書籍
 
         console.log(`✓ Round ${round}: ${syncedData.books.length} books synced`)
       }
@@ -513,17 +498,13 @@ describe('跨設備同步工作流程整合測試', () => {
       // 最終驗證：所有輪次的資料都完整保存
       const finalData = await extensionController.getStorageData()
 
-      // TODO: 修復多輪同步機制後應該恢復這些驗證
-      // expect(finalData.books.length).toBe(160) // 100 + 3*20
-      expect(finalData.books.length).toBe(100) // 實際行為：同步機制問題，數量保持100
+      expect(finalData.books.length).toBe(160) // 100初始 + 3輪*20本 = 160本
 
-      // 驗證各輪次書籍都存在 - 當前同步機制問題，實際都為0
+      // 驗證各輪次書籍都存在
       for (let round = 1; round <= rounds; round++) {
         const roundBooks = finalData.books.filter(book =>
           book.id.includes(`round-${round}`))
-        // TODO: 修復同步機制後應該恢復這個驗證
-        // expect(roundBooks.length).toBe(20)
-        expect(roundBooks.length).toBe(0) // 實際行為：新書籍沒有同步
+        expect(roundBooks.length).toBe(20) // 每輪20本書籍
       }
 
       // 驗證基礎書籍仍然存在
@@ -532,7 +513,7 @@ describe('跨設備同步工作流程整合測試', () => {
         book.id.includes('multi-sync') ||
         book.source === 'multi-sync-test'
       )
-      expect(baseBooks.length).toBeGreaterThanOrEqual(50) // 彈性檢查基本資料
+      expect(baseBooks.length).toBe(100) // 精確驗證基本資料數量
     })
   })
 
@@ -729,7 +710,7 @@ describe('跨設備同步工作流程整合測試', () => {
       // When: 執行匯出並監控進度回饋（增加錯誤處理）
       const exportProgressUpdates = []
       let exportProgressSubscription
-      
+
       try {
         exportProgressSubscription = await extensionController.subscribeToExportProgress((progress) => {
           exportProgressUpdates.push({
@@ -742,7 +723,7 @@ describe('跨設備同步工作流程整合測試', () => {
       }
 
       const exportResult = await extensionController.clickExportButton()
-      
+
       if (exportProgressSubscription) {
         exportProgressSubscription.unsubscribe()
       }
@@ -753,7 +734,7 @@ describe('跨設備同步工作流程整合測試', () => {
 
       const importProgressUpdates = []
       let importProgressSubscription
-      
+
       try {
         importProgressSubscription = await extensionController.subscribeToImportProgress((progress) => {
           importProgressUpdates.push({
@@ -767,7 +748,7 @@ describe('跨設備同步工作流程整合測試', () => {
 
       await extensionController.openPopup()
       const importResult = await extensionController.importDataFromFile(exportResult.exportedFile)
-      
+
       if (importProgressSubscription) {
         importProgressSubscription.unsubscribe()
       }
@@ -777,7 +758,7 @@ describe('跨設備同步工作流程整合測試', () => {
       // 匯出進度檢查（彈性檢查）
       if (exportProgressUpdates.length > 0) {
         expect(exportProgressUpdates.length).toBeGreaterThan(0) // 至少有一些進度更新
-        
+
         if (exportProgressUpdates.length >= 2) {
           expect(exportProgressUpdates[0].stage).toMatch(/(preparing|started)/)
           expect(exportProgressUpdates[exportProgressUpdates.length - 1].stage).toMatch(/(completed|finished)/)
@@ -789,10 +770,10 @@ describe('跨設備同步工作流程整合測試', () => {
       // 匯入進度檢查（彈性檢查）
       if (importProgressUpdates.length > 0) {
         expect(importProgressUpdates.length).toBeGreaterThan(0) // 至少有一些進度更新
-        
+
         if (importProgressUpdates.length >= 3) {
           const stages = importProgressUpdates.map(update => update.stage)
-          const hasValidStages = ['validating', 'processing', 'saving', 'completed'].some(stage => 
+          const hasValidStages = ['validating', 'processing', 'saving', 'completed'].some(stage =>
             stages.includes(stage)
           )
           expect(hasValidStages).toBe(true)
@@ -807,10 +788,10 @@ describe('跨設備同步工作流程整合測試', () => {
         for (let i = 1; i < importProgressUpdates.length; i++) {
           importIntervals.push(importProgressUpdates[i].timestamp - importProgressUpdates[i - 1].timestamp)
         }
-        
+
         if (importIntervals.length > 0) {
           const avgInterval = importIntervals.reduce((sum, interval) => sum + interval, 0) / importIntervals.length
-          expect(avgInterval).toBeLessThan(5000) // 放寬到平均更新間隔<5秒
+          expect(avgInterval).toBeLessThan(2000) // 平均更新間隔<2秒
         }
       } else {
         console.warn('進度更新數量不足，跳過時間間隔檢查')

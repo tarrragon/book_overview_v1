@@ -223,7 +223,7 @@ describe('Modular Content Script', () => {
         url: 'https://readmoo.com/library',
         hostname: 'readmoo.com',
         pathname: '/library',
-        timestamp: expect.any(Number)
+        timestamp: expect.toBeGreaterThan(0)
       })
     })
 
@@ -277,8 +277,8 @@ describe('Modular Content Script', () => {
       expect(handler).toHaveBeenCalledWith({
         type: 'TEST.EVENT',
         data: { message: 'test' },
-        timestamp: expect.any(Number),
-        id: expect.any(String)
+        timestamp: expect.toBeGreaterThan(0),
+        id: expect.stringMatching(/^[a-f0-9-]{36}$/)
       })
     })
 
@@ -363,7 +363,7 @@ describe('Modular Content Script', () => {
         data: { test: 'data' },
         metadata: {
           sender: 'content-script',
-          timestamp: expect.any(Number),
+          timestamp: expect.toBeGreaterThan(0),
           version: '0.3.0',
           url: expect.stringContaining('readmoo.com')
         }
@@ -399,7 +399,7 @@ describe('Modular Content Script', () => {
         type: 'CONTENT.EVENT.FORWARD',
         eventType: 'EXTRACTION.COMPLETED',
         data: { flowId: 'test' },
-        timestamp: expect.any(Number),
+        timestamp: expect.toBeGreaterThan(0),
         metadata: expect.objectContaining({
           sender: 'content-script'
         })
@@ -432,7 +432,7 @@ describe('Modular Content Script', () => {
         cover: 'https://cdn.readmoo.com/cover/ab/12345_210x315.jpg',
         progress: 45,
         type: 'EPUB',
-        extractedAt: expect.any(String),
+        extractedAt: expect.stringMatching(/^[a-f0-9-]{36}$/),
         url: 'https://readmoo.com/api/reader/12345',
         source: 'readmoo',
         identifiers: expect.objectContaining({
@@ -518,7 +518,7 @@ describe('Modular Content Script', () => {
         bookCount: 2,
         extractable: true,
         url: 'https://readmoo.com/library',
-        timestamp: expect.any(Number)
+        timestamp: expect.toBeGreaterThan(0)
       })
 
       // 恢復原始設置
@@ -631,7 +631,7 @@ describe('Modular Content Script', () => {
         type: 'CONTENT.EVENT.FORWARD',
         eventType: 'EXTRACTION.COMPLETED',
         data: { flowId: 'test-123' },
-        timestamp: expect.any(Number),
+        timestamp: expect.toBeGreaterThan(0),
         metadata: expect.objectContaining({
           sender: 'content-script'
         })

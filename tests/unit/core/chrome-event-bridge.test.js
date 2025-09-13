@@ -428,7 +428,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
     test('應該能夠處理消息監聽器註冊失敗', () => {
       // Arrange
       mockChrome.runtime.onMessage.addListener.mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', 'Listener registration failed', { category: 'testing' })
+        throw new StandardError('UNKNOWN_ERROR', 'Listener registration failed', { category: 'testing' })
       })
 
       // Act & Assert

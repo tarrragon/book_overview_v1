@@ -66,30 +66,23 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       const popupState = await extensionController.openPopup()
       const popupOpenTime = Date.now() - popupOpenStart
 
-      // Then: 驗證狀態同步（使用彈性檢查）
-      expect(popupOpenTime).toBeLessThan(2000) // Popup開啟<2秒（放寬限制）
+      // Then: 驗證狀態同步精確性
+      expect(popupOpenTime).toBeLessThan(1000) // Popup開啟時間恢復正常要求
       expect(popupState.synced).toBe(true)
 
-      // 檢查關鍵狀態項目同步（彈性檢查）
-      expect(popupState.bookCount).toBeGreaterThanOrEqual(backgroundState.bookCount - 10)
-      expect(popupState.bookCount).toBeLessThanOrEqual(backgroundState.bookCount + 10)
-      
+      // 檢查關鍵狀態項目同步的精確性
+      expect(popupState.bookCount).toBe(backgroundState.bookCount) // 精確匹配，不允許差異
+
       if (backgroundState.lastExtraction) {
         expect(popupState.lastExtraction).toBeDefined()
       }
       expect(popupState.systemStatus).toBe(backgroundState.systemStatus)
 
-      // 驗證UI元素狀態正確反映Background狀態（錯誤容錯）
-      try {
-        const uiElements = await extensionController.getPopupUIElements()
-        expect(parseInt(uiElements.bookCountDisplay.text)).toBeCloseTo(backgroundState.bookCount, 5)
-        expect(uiElements.extractButton.enabled).toBe(backgroundState.extractionPossible)
-        expect(uiElements.overviewButton.enabled).toBe(backgroundState.bookCount > 0)
-      } catch (error) {
-        console.warn('UI元素檢查失敗，但狀態同步正常:', error.message)
-        // 至少確保基本狀態正確
-        expect(popupState.bookCount).toBeGreaterThan(0)
-      }
+      // 驗證UI元素狀態正確反映Background狀態
+      const uiElements = await extensionController.getPopupUIElements()
+      expect(parseInt(uiElements.bookCountDisplay.text)).toBe(backgroundState.bookCount) // 精確匹配顯示數量
+      expect(uiElements.extractButton.enabled).toBe(backgroundState.extractionPossible)
+      expect(uiElements.overviewButton.enabled).toBe(backgroundState.bookCount > 0)
     })
 
     test('應該處理Popup快速開關的狀態管理', async () => {
@@ -127,8 +120,8 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       // Then: 驗證快速操作的穩定性
       rapidOperations.forEach((operation, index) => {
         expect(operation.openState.synced).toBe(true)
-        expect(operation.openTime).toBeLessThan(800) // 每次開啟<800ms
-        expect(operation.closeTime).toBeLessThan(1200) // 完整週期<1.2秒
+        expect(operation.openTime).toBeLessThan(500) // 每次開啟<500ms
+        expect(operation.closeTime).toBeLessThan(800) // 完整週期<800ms
 
         if (index > 0) {
           // 檢查狀態連續性
@@ -172,30 +165,23 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
 
       // Then: 驗證Popup能正確反映所有Background狀態變化
       expect(reopenedPopupState.bookCount).toBe(initialBookCount + 30)
-      
+
       if (reopenedPopupState.lastExtraction) {
         expect(reopenedPopupState.lastExtraction).toBeDefined()
       }
       expect(reopenedPopupState.systemStatus).toBe('processing_complete')
-      
+
       // 彈性檢查操作計數
       if (reopenedPopupState.totalOperations && initialPopupState.totalOperations) {
         expect(reopenedPopupState.totalOperations).toBeGreaterThanOrEqual(initialPopupState.totalOperations)
       }
 
-      // 驗證UI元素正確更新（錯誤容錯）
-      try {
-        const updatedUIElements = await extensionController.getPopupUIElements()
-        const displayedCount = parseInt(updatedUIElements.bookCountDisplay.text)
-        expect(displayedCount).toBeGreaterThanOrEqual(initialBookCount + 15)
-        expect(displayedCount).toBeLessThanOrEqual(initialBookCount + 60)
-        expect(updatedUIElements.statusIndicator.status).toBe('complete')
-        expect(updatedUIElements.lastUpdateTime.visible).toBe(true)
-      } catch (error) {
-        console.warn('UI元素更新檢查失敗，但狀態變化正常:', error.message)
-        // 至少確保狀態變化有效
-        expect(reopenedPopupState.bookCount).toBeGreaterThan(initialBookCount)
-      }
+      // 驗證UI元素正確更新
+      const updatedUIElements = await extensionController.getPopupUIElements()
+      const displayedCount = parseInt(updatedUIElements.bookCountDisplay.text)
+      expect(displayedCount).toBe(initialBookCount + 30) // 精確驗證：注入30本書應該顯示30本
+      expect(updatedUIElements.statusIndicator.status).toBe('complete')
+      expect(updatedUIElements.lastUpdateTime.visible).toBe(true)
     })
   })
 
@@ -229,14 +215,14 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
 
       // Then: 驗證即時更新的效果（彈性檢查）
       expect(operationResult.success).toBe(true)
-      
+
       // 如果狀態更新系統正常，應該有更新；如果沒有，可能是訂閱機制問題
       if (stateUpdates.length > 0) {
         expect(stateUpdates.length).toBeGreaterThanOrEqual(1)
-        
+
         // 檢查更新時序和內容（有資料時才檢查）
         const updateTypes = stateUpdates.map(update => update.type)
-        
+
         // 彈性檢查：至少包含一種期望的事件類型
         const expectedTypes = ['extraction_started', 'progress_updated', 'extraction_completed']
         const hasExpectedType = expectedTypes.some(type => updateTypes.includes(type))
@@ -249,17 +235,17 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
             updateIntervals.push(stateUpdates[i].timestamp - stateUpdates[i - 1].timestamp)
           }
           const avgUpdateInterval = updateIntervals.reduce((sum, interval) => sum + interval, 0) / updateIntervals.length
-          expect(avgUpdateInterval).toBeLessThan(5000) // 放寬到平均更新間隔<5秒
+          expect(avgUpdateInterval).toBeLessThan(2000) // 平均更新間隔<2秒
         }
 
         // 驗證UI響應性（有延遲資料時才檢查）
         const validResponseTimes = stateUpdates
           .map(update => update.uiUpdateDelay)
           .filter(delay => typeof delay === 'number' && delay >= 0)
-        
+
         if (validResponseTimes.length > 0) {
           const avgResponseTime = validResponseTimes.reduce((sum, time) => sum + time, 0) / validResponseTimes.length
-          expect(avgResponseTime).toBeLessThan(500) // 放寬到平均UI響應<500ms
+          expect(avgResponseTime).toBeLessThan(200) // 平均UI響應<200ms
         }
       } else {
         console.warn('狀態更新訂閱沒有正常工作，跳過狀態更新檢查')
@@ -296,12 +282,12 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       const successfulOperations = results.filter(result =>
         result.status === 'fulfilled' && result.value && result.value.success
       ).length
-      expect(successfulOperations).toBeGreaterThanOrEqual(2) // 至少2個操作成功（降低要求）
+      expect(successfulOperations).toBeGreaterThanOrEqual(3) // 至少3個操作成功
 
       // 檢查競態條件處理（彈性檢查）
       if (concurrencyAnalysis.raceConditionsDetected !== undefined) {
         expect(concurrencyAnalysis.raceConditionsDetected).toBeGreaterThanOrEqual(0)
-        
+
         if (concurrencyAnalysis.raceConditionsDetected > 0) {
           expect(concurrencyAnalysis.raceConditionsResolved).toBeGreaterThanOrEqual(0)
           // 解決比例應該合理，但不要求100%
@@ -314,7 +300,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       if (concurrencyAnalysis.stateConflicts !== undefined) {
         expect(concurrencyAnalysis.stateConflicts).toBeLessThanOrEqual(2) // 允許少量衝突
       }
-      
+
       if (concurrencyAnalysis.finalStateConsistent !== undefined) {
         expect(concurrencyAnalysis.finalStateConsistent).toBe(true)
       } else {
@@ -373,10 +359,9 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       expect(batchAnalysis.uiSmoothness).toBeGreaterThan(0.9) // UI流暢度>90%
       expect(batchAnalysis.perceivedDelay).toBeLessThan(100) // 感知延遲<100ms
 
-      // 確認最終狀態正確（彈性檢查）
+      // 確認最終狀態正確
       const finalState = await extensionController.getPopupState()
-      expect(finalState.bookCount).toBeGreaterThanOrEqual(200) // 至少有大部分書籍
-      expect(finalState.bookCount).toBeLessThanOrEqual(250) // 但不會過多
+      expect(finalState.bookCount).toBe(225) // 精確期望值：75基礎 + 150注入書籍
     })
   })
 

@@ -27,6 +27,7 @@
 
 const puppeteer = require('puppeteer')
 const path = require('path')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class ExtensionTestSetup {
   constructor () {

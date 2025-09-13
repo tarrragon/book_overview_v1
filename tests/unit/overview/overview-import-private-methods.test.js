@@ -292,7 +292,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // When & Then: 應該拋出格式錯誤
         await expect(controller.handleFileLoad(invalidFile))
           .rejects.toMatchObject({
-            code: expect.any(String),
+            code: 'INVALID_FILE_FORMAT',
             message: expect.stringContaining('檔案格式不正確')
           })
       })
@@ -313,7 +313,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // When & Then: 應該拋出檔案驗證錯誤
         await expect(controller.handleFileLoad(nullFile))
           .rejects.toMatchObject({
-            code: expect.any(String),
+            code: 'FILE_NOT_FOUND',
             message: expect.stringContaining('檔案不存在')
           })
       })
@@ -341,7 +341,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // When & Then: 應該拋出檔案大小錯誤
         await expect(controller.handleFileLoad(hugeFile))
           .rejects.toMatchObject({
-            code: expect.any(String),
+            code: 'FILE_SIZE_EXCEEDED',
             message: expect.stringContaining('檔案大小超出限制')
           })
       })
@@ -358,7 +358,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // When & Then: 應該成功處理（但內容驗證會失敗）
         await expect(controller.handleFileLoad(emptyFile))
           .rejects.toMatchObject({
-            code: expect.any(String),
+            code: 'VALIDATION_ERROR',
             message: expect.stringContaining('檔案內容為空')
           })
       })
@@ -396,7 +396,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // When & Then: 應該拋出格式錯誤
         await expect(controller.handleFileLoad(wrongFile))
           .rejects.toMatchObject({
-            code: expect.any(String),
+            code: 'VALIDATION_ERROR',
             message: expect.stringContaining('檔案格式不正確')
           })
       })
@@ -483,7 +483,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // When & Then: 應該拋出讀取錯誤
         await expect(controller.handleFileLoad(validFile))
           .rejects.toMatchObject({
-            code: expect.any(String),
+            code: 'VALIDATION_ERROR',
             message: expect.stringContaining('讀取檔案時發生錯誤')
           })
       })
@@ -522,7 +522,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // When & Then: 應該正確處理非同步錯誤
         await expect(controller.handleFileLoad(validFile))
           .rejects.toMatchObject({
-            code: expect.any(String),
+            code: 'VALIDATION_ERROR',
             message: expect.stringContaining('讀取檔案時發生錯誤')
           })
       })
@@ -556,7 +556,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // When & Then: 應該拋出空內容錯誤
         await expect(controller.handleFileLoad(emptyFile))
           .rejects.toMatchObject({
-            code: expect.any(String),
+            code: 'VALIDATION_ERROR',
             message: expect.stringContaining('檔案內容為空')
           })
       })
@@ -572,7 +572,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // When & Then: 應該拋出空內容錯誤
         await expect(controller.handleFileLoad(whitespaceFile))
           .rejects.toMatchObject({
-            code: expect.any(String),
+            code: 'VALIDATION_ERROR',
             message: expect.stringContaining('檔案內容為空')
           })
       })
@@ -660,7 +660,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // When & Then: 應該拋出 JSON 格式錯誤
         await expect(controller.handleFileLoad(invalidFile))
           .rejects.toMatchObject({
-            code: expect.any(String),
+            code: 'VALIDATION_ERROR',
             message: expect.stringContaining('JSON 檔案格式不正確')
           })
       })

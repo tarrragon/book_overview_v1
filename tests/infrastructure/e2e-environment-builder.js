@@ -10,6 +10,7 @@
 
 const E2ETestEnvironment = require('./e2e-test-environment')
 const ChromeAPIMockRegistry = require('./chrome-api-mock-registry')
+const { StandardError } = require('src/core/errors/StandardError')
 
 /**
  * E2E測試環境建構器

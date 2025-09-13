@@ -251,19 +251,51 @@ describe('Schema Migration Service', () => {
   // 1. Construction & Initialization (8 tests)
   describe('Construction & Initialization', () => {
     test('建構函數參數驗證 - eventBus 必填', () => {
-      expect(() => new SchemaMigrationService()).toThrow('EventBus is required')
+      expect(() => new SchemaMigrationService()).toThrowError(
+        expect.objectContaining({
+          code: 'REQUIRED_FIELD_MISSING',
+          message: 'EventBus is required',
+          details: expect.objectContaining({
+            category: 'ui'
+          })
+        })
+      )
     })
 
     test('建構函數參數驗證 - eventBus 無效', () => {
-      expect(() => new SchemaMigrationService({})).toThrow('EventBus is required')
+      expect(() => new SchemaMigrationService({})).toThrowError(
+        expect.objectContaining({
+          code: 'REQUIRED_FIELD_MISSING',
+          message: 'EventBus is required',
+          details: expect.objectContaining({
+            category: 'ui'
+          })
+        })
+      )
     })
 
     test('建構函數參數驗證 - logger 必填', () => {
-      expect(() => new SchemaMigrationService(eventBus)).toThrow('Logger is required')
+      expect(() => new SchemaMigrationService(eventBus)).toThrowError(
+        expect.objectContaining({
+          code: 'REQUIRED_FIELD_MISSING',
+          message: 'Logger is required',
+          details: expect.objectContaining({
+            category: 'ui'
+          })
+        })
+      )
     })
 
     test('建構函數參數驗證 - config 必填', () => {
-      expect(() => new SchemaMigrationService(eventBus, logger)).toThrow('Config is required')
+      expect(() => new SchemaMigrationService(eventBus, logger)).toThrowError(
+        expect.objectContaining({
+          code: 'REQUIRED_FIELD_MISSING',
+          message: 'Config is required',
+          details: expect.objectContaining({
+            category: 'ui'
+          })
+        })
+      )
     })
 
     test('BaseModule 繼承正確性', () => {

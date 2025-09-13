@@ -1086,52 +1086,6 @@ class RuntimeMessagingValidator {
     }))
 
     return orderedMessages
-
-    // 按時間戳排序
-    const sortedByTime = [...messages].sort((a, b) =>
-      (a.timestamp || 0) - (b.timestamp || 0)
-    )
-
-    // 按序列ID排序（如果有的話）
-    const sortedBySequence = [...messages].sort((a, b) =>
-      (a.sequenceId || 0) - (b.sequenceId || 0)
-    )
-
-    // 檢查順序違規
-    for (let i = 0; i < sortedByTime.length; i++) {
-      const timeOrderedMsg = sortedByTime[i]
-      const sequenceOrderedMsg = sortedBySequence[i]
-
-      if (timeOrderedMsg.messageId !== sequenceOrderedMsg.messageId) {
-        orderAnalysis.outOfOrderMessages.push({
-          timePosition: i,
-          sequencePosition: sortedBySequence.indexOf(timeOrderedMsg),
-          messageId: timeOrderedMsg.messageId,
-          expectedSequence: sequenceOrderedMsg.sequenceId,
-          actualSequence: timeOrderedMsg.sequenceId
-        })
-        orderAnalysis.orderViolations++
-      } else {
-        orderAnalysis.orderedMessages.push(timeOrderedMsg)
-      }
-    }
-
-    // 檢查序列間隙
-    for (let i = 1; i < sortedBySequence.length; i++) {
-      const current = sortedBySequence[i].sequenceId || 0
-      const previous = sortedBySequence[i - 1].sequenceId || 0
-
-      if (current - previous > 1) {
-        orderAnalysis.sequenceGaps.push({
-          position: i,
-          expectedSequence: previous + 1,
-          actualSequence: current,
-          gapSize: current - previous - 1
-        })
-      }
-    }
-
-    return orderAnalysis
   }
 
   /**

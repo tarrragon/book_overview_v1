@@ -15,6 +15,7 @@
  */
 
 const path = require('path')
+const { StandardError } = require('src/core/errors/StandardError')
 
 // Mock 類別定義（TDD Phase 1 - 測試先行）
 class SyncStateTracker {

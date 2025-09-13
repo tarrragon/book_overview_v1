@@ -247,7 +247,7 @@ describe('PopupController 事件系統重構', () => {
       const failedBindings = controller.eventManager.getFailedBindings()
       expect(failedBindings).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ elementId: 'extract-button', reason: expect.any(String) })
+          expect.objectContaining({ elementId: 'extract-button', reason: 'Element not found' })
         ])
       )
     })
@@ -357,10 +357,10 @@ describe('PopupController 事件系統重構', () => {
       expect(trackedListeners).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            element: expect.any(Object),
+            element: expect.objectContaining({ id: 'extract-button' }),
             eventType: 'click',
-            listener: expect.any(Function),
-            category: expect.any(String)
+            listener: expect.any(Function), // 函數無法精確比較，保持通用檢查
+            category: 'user_action'
           })
         ])
       )
@@ -416,14 +416,16 @@ describe('PopupController 事件系統重構', () => {
       const stats = controller.eventManager.getStats()
 
       expect(stats).toEqual(expect.objectContaining({
-        totalEvents: expect.any(Number),
-        totalTriggers: expect.any(Number),
-        errorCount: expect.any(Number),
-        retryCount: expect.any(Number),
-        categories: expect.any(Object)
+        totalEvents: 3, // 精確期望值：初始化 + 測試 + 驗證
+        totalTriggers: 3, // 精確期望值：與 totalEvents 對應
+        errorCount: 0, // 正常操作不應有錯誤
+        retryCount: 0, // 正常操作不應觸發重試
+        categories: {
+          'user_action': 1,
+          'system_event': 1, 
+          'validation': 1
+        }
       }))
-
-      expect(stats.totalTriggers).toBeGreaterThanOrEqual(3)
     })
   })
 
@@ -476,9 +478,12 @@ describe('PopupController 事件系統重構', () => {
       expect(() => {
         controller.eventManager.addEventConfig('invalid', invalidConfig)
       }).toMatchObject({
-        code: expect.any(String),
+        code: 'INVALID_CONFIG',
         message: expect.stringContaining('無效的事件配置'),
-        details: expect.any(Object)
+        details: expect.objectContaining({
+          configKey: 'invalid',
+          validationErrors: expect.arrayContaining([expect.any(String)])
+        })
       })
     })
   })
