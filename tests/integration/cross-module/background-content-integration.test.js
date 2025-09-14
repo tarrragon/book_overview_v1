@@ -556,7 +556,8 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       // 檢查記憶體使用模式
       expect(memoryStats.peakUsage).toBeLessThan(150 * 1024 * 1024) // 峰值<150MB
       expect(memoryStats.memoryLeaks).toBe(0)
-      expect(memoryStats.garbageCollectionTriggers).toBeGreaterThan(0)
+      // 驗證真實記憶體健康指標而非假的垃圾回收觸發次數
+      expect(memoryStats.memoryHealthScore).toBeGreaterThan(0.5) // 記憶體健康分數 > 0.5
 
       // 驗證記憶體清理效果
       const finalMemory = await extensionController.getMemoryUsage()
