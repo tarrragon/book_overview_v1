@@ -12,6 +12,7 @@
 const EventBus = require('src/core/event-bus')
 const EventNamingUpgradeCoordinator = require('src/core/events/event-naming-upgrade-coordinator')
 const ReadmooPlatformMigrationValidator = require('src/platform/readmoo-platform-migration-validator')
+const MemoryLeakDetector = require('../../tests/helpers/memory-leak-detector')
 
 describe('Readmoo 遷移效能驗證整合測試', () => {
   let eventBus
@@ -152,27 +153,29 @@ describe('Readmoo 遷移效能驗證整合測試', () => {
 
   describe('記憶體使用量監控驗證', () => {
     test('應該驗證記憶體使用量增長在acceptable範圍內', async () => {
-      // 執行多次驗證操作來模擬記憶體使用
-      const iterations = 100
+      // 使用真實記憶體洩漏檢測器
+      const memoryDetector = new MemoryLeakDetector({
+        memoryGrowthThreshold: 15 * 1024 * 1024, // 15MB 閾值
+        leakDetectionThreshold: 1024, // 1KB per operation
+        minOperationsForDetection: 20
+      })
 
-      for (let i = 0; i < iterations; i++) {
+      // 執行記憶體洩漏檢測
+      const analysis = await memoryDetector.detectMemoryLeak(async (iteration) => {
         await migrationValidator.validateConfiguration('readmoo')
         await migrationValidator.validateEventConversion('EXTRACTION.COMPLETED')
         await migrationValidator.validateDataIntegrity({
-          bookId: `test-book-${i}`,
-          title: `測試書籍 ${i}`,
+          bookId: `test-book-${iteration}`,
+          title: `測試書籍 ${iteration}`,
           platform: 'readmoo'
         })
-      }
+      }, 100, { testName: 'readmoo-migration-validation' })
 
-      const memoryResult = await migrationValidator.validateMemoryUsage()
-
-      expect(memoryResult.increasePercentage).toBeLessThanOrEqual(
-        performanceBaselines.memoryUsage.maxIncrease
-      )
-      expect(memoryResult.afterMigration).toBeLessThanOrEqual(
-        performanceBaselines.memoryUsage.maxAfterMigration
-      )
+      // 驗證記憶體使用在合理範圍內
+      expect(analysis.hasMemoryLeak).toBe(false)
+      expect(analysis.summary.totalMemoryGrowth).toBeLessThan(15 * 1024 * 1024) // < 15MB
+      expect(analysis.efficiency.overallEfficiency).toBeGreaterThan(0.7) // > 70% 效率
+      expect(analysis.leakDetection.suspectedLeaks).toBe(0)
     })
 
     test('應該監控快取系統的記憶體使用', async () => {
