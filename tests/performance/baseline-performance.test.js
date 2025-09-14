@@ -45,12 +45,8 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
     // 每個測試後檢查記憶體使用
     performanceMonitor.captureMemorySnapshot('test-end')
 
-    // 強制垃圾回收
-    if (global.gc) {
-      global.gc()
-      // 等待垃圾回收完成
-      await new Promise(resolve => setTimeout(resolve, 100))
-    }
+    // 等待記憶體穩定化
+    await new Promise(resolve => setTimeout(resolve, 100))
   })
 
   describe('🎯 A1. UI回應時間基準測試', () => {
@@ -267,9 +263,8 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
         })
         await simulateBookExtraction(await setupMockWebPage(books), 10)
 
-        // 每10次操作強制垃圾回收
-        if (i % 10 === 9 && global.gc) {
-          global.gc()
+        // 每10次操作等待記憶體穩定化
+        if (i % 10 === 9) {
           await new Promise(resolve => setTimeout(resolve, 50))
         }
       }

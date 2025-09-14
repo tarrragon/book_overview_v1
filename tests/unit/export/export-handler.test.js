@@ -920,10 +920,8 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
         await eventBus.emit('EXPORT.CSV.REQUESTED', csvExportData)
       }
 
-      // 觸發垃圾回收
-      if (global.gc) {
-        global.gc()
-      }
+      // 等待記憶體穩定化
+      await new Promise(resolve => setTimeout(resolve, 150))
 
       const finalMemory = process.memoryUsage().heapUsed
 

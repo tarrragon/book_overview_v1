@@ -880,10 +880,8 @@ describe('🧪 事件系統 v2.0 核心整合測試', () => {
 
       await Promise.all(promises)
 
-      // 強制垃圾回收 (如果可用)
-      if (global.gc) {
-        global.gc()
-      }
+      // 等待記憶體穩定化
+      await new Promise(resolve => setTimeout(resolve, 150))
 
       // 檢查最終記憶體使用
       const finalMemory = process.memoryUsage()

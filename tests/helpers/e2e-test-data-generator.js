@@ -127,7 +127,7 @@ class E2ETestDataGenerator {
       expectedResults: {
         success: true,
         extractionTime: 3000,
-        memoryUsage: 50 * 1024 * 1024
+        memoryUsage: process.memoryUsage().heapUsed // Real memory usage in bytes
       }
     })
 

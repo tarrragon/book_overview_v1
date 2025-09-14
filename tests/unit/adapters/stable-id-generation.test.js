@@ -43,8 +43,8 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
     if (adapter) {
       adapter = null
     }
-    // 清理記憶體
-    if (global.gc) global.gc()
+    // 等待記憶體穩定化
+    return new Promise(resolve => setTimeout(resolve, 10))
   })
 
   afterAll(() => {
@@ -597,8 +597,8 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         )
       }
 
-      // 強制垃圾收集
-      if (global.gc) global.gc()
+      // 等待記憶體穩定化
+      await new Promise(resolve => setTimeout(resolve, 50))
 
       const finalMemory = process.memoryUsage ? process.memoryUsage().heapUsed : 0
       const memoryIncrease = finalMemory - initialMemory

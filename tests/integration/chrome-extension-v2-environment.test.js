@@ -833,10 +833,8 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
           })
         }
 
-        // 強制垃圾回收
-        if (global.gc) {
-          global.gc()
-        }
+        // 等待記憶體穩定化
+        await new Promise(resolve => setTimeout(resolve, 100))
 
         const finalMemory = process.memoryUsage()
         const memoryGrowth = (finalMemory.heapUsed - initialMemory.heapUsed) / initialMemory.heapUsed

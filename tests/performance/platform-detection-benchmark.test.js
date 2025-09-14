@@ -63,14 +63,12 @@ describe('Platform Detection Performance Benchmarks', () => {
     service = new PlatformDetectionService(mockEventBus)
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     jest.clearAllMocks()
     service = null
 
-    // 強制垃圾回收（如果可用）
-    if (global.gc) {
-      global.gc()
-    }
+    // 等待記憶體穩定化
+    await new Promise(resolve => setTimeout(resolve, 10))
   })
 
   describe('⚡ 檢測速度效能基準', () => {
@@ -280,10 +278,7 @@ describe('Platform Detection Performance Benchmarks', () => {
       // 清理快取
       service.clearCache()
 
-      // 等待垃圾回收
-      if (global.gc) {
-        global.gc()
-      }
+      // 等待記憶體釋放
       await new Promise(resolve => setTimeout(resolve, 100))
 
       const afterCleanupMemory = process.memoryUsage()

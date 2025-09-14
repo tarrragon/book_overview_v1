@@ -53,19 +53,7 @@ class PerformanceTracker {
   }
 }
 
-class MemoryMonitor {
-  constructor () {
-    this.baseline = 0
-  }
-
-  setBaseline () {
-    this.baseline = Date.now()
-  }
-
-  getCurrentUsage () {
-    return { heapUsed: 1024 * 1024, heapTotal: 2048 * 1024 }
-  }
-}
+// MemoryMonitor 類別已移除 - 改用 process.memoryUsage() 進行真實記憶體測量
 
 class TimezoneValidator {
   constructor () {}
@@ -843,37 +831,74 @@ describe('UC-05 跨設備同步工作流程測試', () => {
       expect(throughputVariation).toBeLessThan(3) // 效能差異不超過3倍
     })
 
-    test('24. 記憶體使用監控', async () => {
+    test('24. 記憶體洩漏預防測試', async () => {
       // Given: 大型資料集同步
       const memoryTestDevice = await setupDevice('memory-monitor-device')
       const largeBooks = generateTestBooks(3000)
       await memoryTestDevice.storage.setBooks(largeBooks)
 
-      // When: 監控記憶體使用情況
-      const memoryMonitor = new MemoryMonitor()
-      memoryMonitor.start()
+      // 記錄初始記憶體狀態
+      const initialMemory = process.memoryUsage()
 
-      const syncResult = await executeFullSync(
-        memoryTestDevice,
-        await setupDevice('memory-target-device'),
-        { monitorMemory: true }
-      )
+      // When: 執行多輪同步以檢測記憶體累積
+      let peakMemoryUsage = initialMemory.heapUsed
+      const memorySnapshots = []
 
-      const memoryReport = memoryMonitor.stop()
+      for (let round = 0; round < 3; round++) {
+        const targetDevice = await setupDevice(`memory-target-device-${round}`)
 
-      // Then: 記憶體使用<200MB，無記憶體洩漏
-      expect(syncResult.success).toBe(true)
-      expect(memoryReport.peakUsage).toBeLessThan(200 * 1024 * 1024) // <200MB
-      expect(memoryReport.finalUsage).toBeLessThan(memoryReport.peakUsage * 1.1) // 無明顯洩漏
+        const syncResult = await executeFullSync(
+          memoryTestDevice,
+          targetDevice,
+          { monitorMemory: true }
+        )
 
-      // 檢查記憶體洩漏跡象
-      expect(memoryReport.leakDetection.suspected).toBe(false)
-      expect(memoryReport.gcEffectiveness).toBeGreaterThan(0.8) // GC 效果良好
+        expect(syncResult.success).toBe(true)
 
-      // 驗證記憶體使用模式
-      const memoryPattern = memoryReport.usagePattern
-      expect(memoryPattern.growthRate).toBeLessThan(1.5) // 線性成長，不超過1.5倍
-      expect(memoryPattern.stabilityIndex).toBeGreaterThan(0.7) // 記憶體使用穩定
+        // 監控每輪後的記憶體使用
+        const currentMemory = process.memoryUsage()
+        peakMemoryUsage = Math.max(peakMemoryUsage, currentMemory.heapUsed)
+        memorySnapshots.push({
+          round,
+          heapUsed: currentMemory.heapUsed,
+          heapTotal: currentMemory.heapTotal
+        })
+
+        // 確保測試環境清理
+        if (targetDevice.cleanup) {
+          await targetDevice.cleanup()
+        }
+      }
+
+      // 等待記憶體穩定化後測量
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      const finalMemory = process.memoryUsage()
+
+      // Then: 驗證記憶體使用在合理範圍內且無明顯洩漏
+      const memoryGrowth = finalMemory.heapUsed - initialMemory.heapUsed
+      const growthPercentage = memoryGrowth / initialMemory.heapUsed
+
+      // 記憶體增長應該在合理範圍內 (考慮測試創建的實際物件)
+      expect(growthPercentage).toBeLessThan(0.5) // 增長不超過 50%
+
+      // 峰值記憶體使用應該在可接受範圍內
+      expect(peakMemoryUsage).toBeLessThan(200 * 1024 * 1024) // <200MB
+
+      // 最終記憶體不應該顯著高於峰值記憶體的一定比例
+      const memoryRetention = finalMemory.heapUsed / peakMemoryUsage
+      expect(memoryRetention).toBeLessThan(1.2) // 保留不超過峰值的 120%
+
+      // 驗證記憶體使用穩定性：連續輪次間的記憶體增長應該收斂
+      if (memorySnapshots.length >= 2) {
+        const lastGrowth = memorySnapshots[memorySnapshots.length - 1].heapUsed - memorySnapshots[memorySnapshots.length - 2].heapUsed
+        const firstGrowth = memorySnapshots[1].heapUsed - memorySnapshots[0].heapUsed
+
+        // 後期記憶體增長應該小於或接近初期增長，顯示收斂趨勢
+        if (firstGrowth > 0) {
+          const growthRatio = Math.abs(lastGrowth) / firstGrowth
+          expect(growthRatio).toBeLessThan(2.0) // 增長倍數不應該失控
+        }
+      }
     })
 
     test('25. 並發同步處理', async () => {

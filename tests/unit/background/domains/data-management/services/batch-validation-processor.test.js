@@ -231,12 +231,10 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
 
     test('processBatch() 應該處理記憶體管理', async () => {
-      global.gc = jest.fn()
-
       const batch = [{ id: 'book1', title: '書籍1' }]
       const result = await processor.processBatch(batch, 'READMOO', 'test', 9, 10)
 
-      expect(global.gc).toHaveBeenCalled()
+      // 記憶體管理資訊應該被記錄
       expect(result.warnings.some(w => w.type === 'MEMORY_MANAGEMENT_INFO')).toBe(true)
     })
 

@@ -151,12 +151,8 @@ describe('📊 Chrome Extension 效能基準測試', () => {
 
         await popupPage.close()
 
-        // 強制垃圾回收（如果可用）
-        if (global.gc) {
-          global.gc()
-        }
-
-        await testSetup.page.waitForTimeout(1000) // 等待清理
+        // 等待資源釋放和記憶體穩定化
+        await testSetup.page.waitForTimeout(1500) // 等待資源清理完成
       }
 
       console.log('🔍 記憶體洩漏檢測結果:')

@@ -842,7 +842,7 @@ class ChromeExtensionController {
       commandsProcessed: this.state.commandsProcessed || 4,
       errors: this.state.contentScriptErrors || 0,
       lastActivity: Date.now(),
-      memoryUsage: Math.floor(Math.random() * 20) + 50, // 50-70MB
+      memoryUsage: Math.round(process.memoryUsage().heapUsed / (1024 * 1024)), // Real memory usage in MB
       taskQueue: Math.floor(Math.random() * 3) // 0-2 tasks
     }
   }
@@ -3244,7 +3244,7 @@ class ChromeExtensionController {
       },
       performance: {
         startTime: Date.now() - Math.floor(Math.random() * 10000),
-        memoryUsage: Math.floor(Math.random() * 50) + 10, // MB
+        memoryUsage: Math.round(process.memoryUsage().heapUsed / (1024 * 1024)), // Real memory usage in MB
         activeConnections: Math.floor(Math.random() * 5)
       },
       health: {

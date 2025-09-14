@@ -393,16 +393,15 @@ class E2EIntegrationTestCoordinator {
       return process.memoryUsage().heapUsed
     }
     // 在瀏覽器環境中的估計
-    return global.gc ? global.gc() || 10 * 1024 * 1024 : 10 * 1024 * 1024
+    return 10 * 1024 * 1024
   }
 
   /**
    * 執行記憶體清理
    */
   async performMemoryCleanup () {
-    if (global.gc) {
-      global.gc()
-    }
+    // 等待記憶體穩定化
+    await new Promise(resolve => setTimeout(resolve, 100))
 
     // 清理測試資料暫存
     if (this.testState.currentScenario) {

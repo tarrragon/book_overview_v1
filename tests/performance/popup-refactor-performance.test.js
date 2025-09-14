@@ -295,10 +295,8 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
         // 清理錯誤歷史
         errorHandler.clearErrorHistory()
 
-        // 強制垃圾回收
-        if (global.gc) {
-          global.gc()
-        }
+        // 等待記憶體穩定化
+        await new Promise(resolve => setTimeout(resolve, 50))
 
         const finalMemory = process.memoryUsage().heapUsed
         const memoryIncrease = finalMemory - initialMemory

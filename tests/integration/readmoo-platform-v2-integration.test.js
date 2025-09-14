@@ -664,10 +664,8 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
           expect(result.isValid).toBe(true)
         }
 
-        // 強制垃圾回收
-        if (global.gc) {
-          global.gc()
-        }
+        // 等待記憶體穩定化
+        await new Promise(resolve => setTimeout(resolve, 200))
 
         const finalMemory = process.memoryUsage()
         const memoryGrowth = (finalMemory.heapUsed - initialMemory.heapUsed) / initialMemory.heapUsed

@@ -445,10 +445,8 @@ describe('Platform Detection Integration Tests', () => {
       // 清理快取
       service.clearCache()
 
-      // 強制垃圾回收（如果可用）
-      if (global.gc) {
-        global.gc()
-      }
+      // 等待記憶體穩定化
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       const afterClearMemory = process.memoryUsage()
 
