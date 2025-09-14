@@ -341,7 +341,7 @@ describe('效能和記憶體使用驗證', () => {
       components.errors.forEach(err => err.toJSON())
       components.results.forEach(res => res.toJSON())
       components.logger.info('MEMORY_TEST', { iteration })
-      
+
       // 模擬清理操作
       components.errors.length = 0
       components.results.length = 0
@@ -358,7 +358,7 @@ describe('效能和記憶體使用驗證', () => {
     expect(analysis.passesThresholds.overallOk).toBe(true)
     expect(analysis.leakDetection.leakSeverity).not.toBe('critical')
     expect(analysis.leakDetection.leakSeverity).not.toBe('high')
-    
+
     // 記憶體效率應該良好
     expect(analysis.efficiency.overallEfficiency).toBeGreaterThan(0.7)
   })

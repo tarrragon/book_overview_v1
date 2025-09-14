@@ -811,7 +811,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
           options: {}
         }
         await eventBus.emit('EXPORT.CSV.REQUESTED', csvExportData)
-        
+
         // 獲取當前記憶體使用情況
         const currentUsage = exportManager.getMemoryUsage()
         expect(currentUsage).toBeDefined()

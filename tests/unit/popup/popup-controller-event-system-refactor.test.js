@@ -421,9 +421,9 @@ describe('PopupController 事件系統重構', () => {
         errorCount: 0, // 正常操作不應有錯誤
         retryCount: 0, // 正常操作不應觸發重試
         categories: {
-          'user_action': 1,
-          'system_event': 1, 
-          'validation': 1
+          user_action: 1,
+          system_event: 1,
+          validation: 1
         }
       }))
     })

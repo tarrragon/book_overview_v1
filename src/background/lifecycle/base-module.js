@@ -72,7 +72,7 @@ class BaseModule {
         })
       }
     } catch (error) {
-      this.initializationError = error
+      this.initializationError = _error
       this.logger.error(`❌ ${this.moduleName} 模組初始化失敗:`, error)
 
       // 觸發初始化失敗事件

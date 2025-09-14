@@ -20,7 +20,7 @@
 
 const BaseModule = require('src/background/lifecycle/base-module')
 const { createLogger } = require('src/core/logging/Logger')
-const { StandardError } = require('src/core/errors/StandardError')
+const { StandardError: StandardError } = // require StandardError (unused)')
 
 class ValidationRuleManager extends BaseModule {
   /**

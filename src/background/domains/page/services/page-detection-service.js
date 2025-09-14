@@ -23,7 +23,7 @@ const {
   PAGE_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
-const { StandardError } = require('src/core/errors/StandardError')
+const { StandardError: StandardError } = // require StandardError (unused)')
 
 class PageDetectionService {
   constructor (dependencies = {}) {

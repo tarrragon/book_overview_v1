@@ -1,3 +1,4 @@
+const Logger = require("src/core/logging/Logger")
 /**
  * Popup 初始化進度追蹤器
  *
@@ -105,7 +106,7 @@ class PopupInitializationTracker {
     const stepConfig = this.initializationSteps.find(s => s.id === stepId)
     if (!stepConfig && !customName) {
       // eslint-disable-next-line no-console
-      console.error(`❌ [初始化追蹤] 未知步驟: ${stepId}`)
+      Logger.error(`❌ [初始化追蹤] 未知步驟: ${stepId}`)
       return false
     }
 
@@ -141,7 +142,7 @@ class PopupInitializationTracker {
     const stepIndex = this.steps.findIndex(s => s.id === stepId)
     if (stepIndex === -1) {
       // eslint-disable-next-line no-console
-      console.warn(`⚠️ [初始化追蹤] 步驟未找到: ${stepId}`)
+      Logger.warn(`⚠️ [初始化追蹤] 步驟未找到: ${stepId}`)
       return false
     }
 
@@ -175,7 +176,7 @@ class PopupInitializationTracker {
     const stepIndex = this.steps.findIndex(s => s.id === stepId)
     if (stepIndex === -1) {
       // eslint-disable-next-line no-console
-      console.warn(`⚠️ [初始化追蹤] 步驟未找到: ${stepId}`)
+      Logger.warn(`⚠️ [初始化追蹤] 步驟未找到: ${stepId}`)
       return false
     }
 
@@ -192,7 +193,7 @@ class PopupInitializationTracker {
     }
 
     // eslint-disable-next-line no-console
-    console.error(`❌ [初始化追蹤] 步驟失敗: ${step.name}`, error)
+    Logger.error(`❌ [初始化追蹤] 步驟失敗: ${step.name}`, error)
 
     this.isFailed = true
     this.updateProgressDisplay()
@@ -206,7 +207,7 @@ class PopupInitializationTracker {
    */
   handleStepTimeout (stepId) {
     // eslint-disable-next-line no-console
-    console.error(`⏰ [初始化追蹤] 步驟超時: ${stepId}`)
+    Logger.error(`⏰ [初始化追蹤] 步驟超時: ${stepId}`)
 
     const step = this.steps.find(s => s.id === stepId)
     if (step) {
@@ -221,7 +222,7 @@ class PopupInitializationTracker {
    */
   handleTotalTimeout () {
     // eslint-disable-next-line no-console
-    console.error('⏰ [初始化追蹤] 初始化總體超時')
+    Logger.error('⏰ [初始化追蹤] 初始化總體超時')
 
     this.isFailed = true
 
@@ -239,7 +240,7 @@ class PopupInitializationTracker {
    * 完成初始化
    */
   completeInitialization () {
-    console.log('🎉 [初始化追蹤] 初始化完成')
+    Logger.info('🎉 [初始化追蹤] 初始化完成')
 
     this.isCompleted = true
     this.endTime = Date.now()

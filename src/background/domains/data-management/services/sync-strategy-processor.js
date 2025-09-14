@@ -20,7 +20,7 @@
 //   SYNC_STRATEGIES,
 //   EVENT_PRIORITIES
 // } = require('src/background/constants/module-constants')
-const { StandardError } = require('src/core/errors/StandardError')
+const { StandardError: StandardError } = // require StandardError (unused)')
 
 class SyncStrategyProcessor {
   constructor (eventBus, options = {}) {

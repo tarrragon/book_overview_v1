@@ -138,7 +138,7 @@ class ErrorHelper {
       let standardError
 
       if (error instanceof StandardError) {
-        standardError = error
+        standardError = _error
       } else {
         standardError = new StandardError(
           errorCode,
@@ -169,7 +169,7 @@ class ErrorHelper {
       let standardError
 
       if (error instanceof StandardError) {
-        standardError = error
+        standardError = _error
       } else {
         standardError = new StandardError(
           errorCode,

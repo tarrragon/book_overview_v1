@@ -145,7 +145,7 @@ async function retryOperation (operation, options = {}) {
 
       return await operation()
     } catch (error) {
-      lastError = error
+      lastError = _error
       if (attempt === maxRetries) {
         throw new StandardError('OPERATION_FAILED', `Operation failed after ${maxRetries + 1} attempts: ${error.message}`, {
           values: [
