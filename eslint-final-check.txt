@@ -1,0 +1,1255 @@
+
+> readmoo-book-extractor@0.12.9 lint
+> eslint src/ tests/
+
+
+/Users/tarragon/Projects/book_overview_v1/src/content/content-modular.js
+   71:7  warning  Unexpected console statement                  no-console
+   75:5  warning  Unexpected console statement                  no-console
+  112:5  warning  Unexpected console statement                  no-console
+  162:3  warning  Unexpected console statement                  no-console
+  222:5  warning  Unexpected console statement                  no-console
+  275:3  warning  Unexpected console statement                  no-console
+  314:9  warning  Unexpected lexical declaration in case block  no-case-declarations
+
+/Users/tarragon/Projects/book_overview_v1/src/content/detectors/page-detector.js
+   70:7   warning  Unexpected console statement                     no-console
+  177:49  warning  Unexpected console statement                     no-console
+  178:13  warning  Unexpected console statement                     no-console
+  232:13  warning  'currentUrl' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/content/utils/config-utils.js
+  1169:27  warning  Unexpected console statement  no-console
+  1169:45  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/ErrorHelper.js
+  198:43  warning  Promise constructor parameters must be named to match "^_?resolve$"  promise/param-names
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/OperationResult.js
+  28:5  warning  'ErrorTypes' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/StandardError.js
+  99:20  warning  Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+
+/Users/tarragon/Projects/book_overview_v1/src/core/event-handler.js
+   97:5  warning  Unexpected console statement  no-console
+  107:5  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/core/event-system-unifier.js
+   47:7   warning  'EventHandler' is assigned a value but never used  no-unused-vars
+  657:17  warning  'chainName' is assigned a value but never used     no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/core/events/event-naming-upgrade-coordinator.js
+  299:31  warning  Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+
+/Users/tarragon/Projects/book_overview_v1/src/core/events/event-priority-manager.js
+  317:11  warning  'eventConflicts' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/core/logging/Logger.js
+  186:13  warning  Unexpected console statement  no-console
+  187:11  warning  Unexpected console statement  no-console
+  189:11  warning  Unexpected console statement  no-console
+  193:13  warning  Unexpected console statement  no-console
+  194:11  warning  Unexpected console statement  no-console
+  196:11  warning  Unexpected console statement  no-console
+  205:11  warning  Unexpected console statement  no-console
+  214:11  warning  Unexpected console statement  no-console
+  218:9   warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/core/messages.js
+  61:5   warning  Unexpected console statement                  no-console
+  77:11  warning  'message' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/core/messages/MessageDictionary.js
+  294:26  warning  Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+
+/Users/tarragon/Projects/book_overview_v1/src/deployment/chrome-store-readiness.js
+  240:5  warning  Unexpected console statement                      no-console
+  345:5  warning  Unexpected console statement                      no-console
+  446:5  warning  Unexpected console statement                      no-console
+  527:5  warning  Unexpected console statement                      no-console
+  753:7  warning  'totalPassed' is assigned a value but never used  no-unused-vars
+  754:7  warning  'totalChecks' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/error-handling/error-system-init.js
+   21:46  warning  'getDiagnosticSuggestion' is assigned a value but never used  no-unused-vars
+   47:7   warning  Unexpected console statement                                  no-console
+   65:7   warning  Unexpected console statement                                  no-console
+   99:5   warning  Unexpected console statement                                  no-console
+  128:5   warning  Unexpected console statement                                  no-console
+  393:5   warning  Unexpected console statement                                  no-console
+  406:5   warning  Unexpected console statement                                  no-console
+  440:5   warning  Unexpected console statement                                  no-console
+  458:5   warning  Unexpected console statement                                  no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/error-handling/event-error-handler.js
+  316:24  warning  'error' is assigned a value but never used      no-unused-vars
+  601:17  warning  'component' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/error-handling/event-performance-monitor.js
+  209:9  warning  Unexpected lexical declaration in case block  no-case-declarations
+
+/Users/tarragon/Projects/book_overview_v1/src/error-handling/message-error-handler.js
+  460:9  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/error-handling/message-tracker.js
+   30:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+  590:7   warning  Unexpected console statement                        no-console
+  591:7   warning  Unexpected console statement                        no-console
+  616:5   warning  Unexpected console statement                        no-console
+  626:13  warning  'CONFIG' is assigned a value but never used         no-unused-vars
+  630:5   warning  Unexpected console statement                        no-console
+  632:7   warning  Unexpected console statement                        no-console
+  634:5   warning  Unexpected console statement                        no-console
+  655:5   warning  Unexpected console statement                        no-console
+  676:5   warning  Unexpected console statement                        no-console
+  685:13  warning  'CONFIG' is assigned a value but never used         no-unused-vars
+  744:5   warning  Unexpected console statement                        no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/export/book-data-exporter.js
+  285:22  warning  Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+  476:13  warning  'template' is assigned a value but never used                              no-unused-vars
+  478:13  warning  'includeCharts' is assigned a value but never used                         no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/export/export-events.js
+  344:16  warning  Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+
+/Users/tarragon/Projects/book_overview_v1/src/export/export-manager.js
+  36:49  warning  'createExportEvent' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/export/handlers/csv-export-handler.js
+   68:5  warning  Unnecessary try/catch wrapper  no-useless-catch
+  151:5  warning  Unexpected console statement   no-console
+  162:5  warning  Unexpected console statement   no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/export/handlers/excel-export-handler.js
+   56:5  warning  Unnecessary try/catch wrapper  no-useless-catch
+  131:5  warning  Unexpected console statement   no-console
+  138:5  warning  Unexpected console statement   no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/export/handlers/handler-registry.js
+  168:5  warning  Unexpected console statement  no-console
+  210:5  warning  Unexpected console statement  no-console
+  258:7  warning  Unexpected console statement  no-console
+  290:5  warning  Unexpected console statement  no-console
+  333:5  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/export/handlers/json-export-handler.js
+   56:5  warning  Unnecessary try/catch wrapper  no-useless-catch
+  164:5  warning  Unexpected console statement   no-console
+  171:5  warning  Unexpected console statement   no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/export/handlers/progress-handler.js
+  58:5  warning  Unnecessary try/catch wrapper  no-useless-catch
+
+/Users/tarragon/Projects/book_overview_v1/src/handlers/extraction-completed-handler.js
+  190:9  warning  'hasUIError' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/overview/overview-page-controller.js
+  308:9  warning  Unexpected console statement  no-console
+  313:9  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/overview/overview.js
+  154:43  warning  Empty block statement  no-empty
+
+/Users/tarragon/Projects/book_overview_v1/src/performance/loading-optimizer.js
+  316:5   warning  Unexpected console statement                       no-console
+  331:13  warning  Unexpected console statement                       no-console
+  620:5   warning  Unexpected console statement                       no-console
+  622:11  warning  'startTime' is assigned a value but never used     no-unused-vars
+  624:11  warning  'endTime' is assigned a value but never used       no-unused-vars
+  635:5   warning  Unexpected console statement                       no-console
+  658:13  warning  'shouldClear' is assigned a value but never used   no-unused-vars
+  677:7   warning  'clearedCount' is assigned a value but never used  no-unused-vars
+  699:5   warning  Unexpected console statement                       no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/performance/performance-integration.js
+   23:9   warning  'PerformanceOptimizer' is assigned a value but never used  no-unused-vars
+   24:9   warning  'LoadingOptimizer' is assigned a value but never used      no-unused-vars
+  271:5   warning  Unexpected console statement                               no-console
+  273:13  warning  'CONFIG' is assigned a value but never used                no-unused-vars
+  482:5   warning  Unexpected console statement                               no-console
+  628:5   warning  Unexpected console statement                               no-console
+  838:5   warning  Unexpected console statement                               no-console
+  960:17  warning  'moduleId' is assigned a value but never used              no-unused-vars
+  969:5   warning  Unexpected console statement                               no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/performance/performance-optimizer.js
+  360:17  warning  'poolName' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/platform/readmoo-platform-migration-validator.js
+  318:43  warning  Promise constructor parameters must be named to match "^_?resolve$"  promise/param-names
+  611:25  warning  'context' is assigned a value but never used                         no-unused-vars
+  664:25  warning  'context' is assigned a value but never used                         no-unused-vars
+  894:21  warning  Unreachable code                                                     no-unreachable
+  908:21  warning  Unreachable code                                                     no-unreachable
+  922:21  warning  Unreachable code                                                     no-unreachable
+  936:21  warning  Unreachable code                                                     no-unreachable
+
+/Users/tarragon/Projects/book_overview_v1/src/popup/diagnostic-module.js
+  115:5  warning  Unexpected console statement                           no-console
+  497:7  warning  'checkInterval' is assigned a value but never used     no-unused-vars
+  498:7  warning  'alertThresholds' is assigned a value but never used   no-unused-vars
+  787:7  warning  'includeCallStack' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/popup/popup-diagnostic-enhancer.js
+  397:17  warning  'response' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/popup/popup-error-handler.js
+   52:3  warning  'getDiagnosticSuggestion' is assigned a value but never used  no-unused-vars
+  123:7  warning  Unexpected console statement                                  no-console
+  131:5  warning  Unexpected console statement                                  no-console
+  621:5  warning  Unexpected console statement                                  no-console
+  640:5  warning  Unexpected console statement                                  no-console
+  652:5  warning  Unexpected console statement                                  no-console
+  912:5  warning  Unexpected console statement                                  no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/popup/popup-event-controller.js
+  415:5  warning  Unexpected console statement  no-console
+  526:5  warning  Unexpected console statement  no-console
+  551:9  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/popup/popup-initialization-tracker.js
+  242:5  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/popup/popup-ui-manager.js
+  324:7   warning  Unexpected console statement  no-console
+  526:11  warning  Unexpected console statement  no-console
+  529:11  warning  Unexpected console statement  no-console
+  553:11  warning  Unexpected console statement  no-console
+  653:60  warning  Unexpected console statement  no-console
+  690:11  warning  Unexpected console statement  no-console
+  735:13  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/popup/popup.js
+   38:39  warning  Useless constructor                                                  no-useless-constructor
+   39:61  warning  Useless constructor                                                  no-useless-constructor
+  465:41  warning  Promise constructor parameters must be named to match "^_?resolve$"  promise/param-names
+  480:7   warning  Unexpected console statement                                         no-console
+  488:9   warning  Unexpected console statement                                         no-console
+  581:9   warning  Unexpected console statement                                         no-console
+  701:5   warning  Unexpected console statement                                         no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/popup/utils/event-manager.js
+  330:9  warning  Unexpected console statement  no-console
+  343:9  warning  Unexpected console statement  no-console
+  384:9  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/storage/adapters/chrome-storage-adapter.js
+  298:11  warning  'usedBytes' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/storage/handlers/storage-load-handler.js
+  544:28  warning  Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+
+/Users/tarragon/Projects/book_overview_v1/src/ui/book-search-filter-integrated.js
+  34:7  warning  'UI_HANDLER_CONFIG' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/ui/handlers/ui-notification-handler.js
+  172:27  warning  'timestamp' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/ui/search/core/search-engine.js
+  682:27  warning  'options' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/ui/search/filter/filter-engine.js
+  505:41  warning  Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+
+/Users/tarragon/Projects/book_overview_v1/src/ui/search/formatter/search-result-formatter.js
+  219:9  warning  Unexpected lexical declaration in case block  no-case-declarations
+
+/Users/tarragon/Projects/book_overview_v1/tests/e2e/deployment/chrome-store-readiness-integration.test.js
+   76:7   warning  Unexpected console statement  no-console
+   93:7   warning  Unexpected console statement  no-console
+   94:7   warning  Unexpected console statement  no-console
+   95:7   warning  Unexpected console statement  no-console
+  116:7   warning  Unexpected console statement  no-console
+  129:7   warning  Unexpected console statement  no-console
+  133:9   warning  Unexpected console statement  no-console
+  150:7   warning  Unexpected console statement  no-console
+  163:7   warning  Unexpected console statement  no-console
+  169:7   warning  Unexpected console statement  no-console
+  193:7   warning  Unexpected console statement  no-console
+  194:7   warning  Unexpected console statement  no-console
+  195:7   warning  Unexpected console statement  no-console
+  196:7   warning  Unexpected console statement  no-console
+  221:9   warning  Unexpected console statement  no-console
+  240:7   warning  Unexpected console statement  no-console
+  241:7   warning  Unexpected console statement  no-console
+  242:7   warning  Unexpected console statement  no-console
+  253:7   warning  Unexpected console statement  no-console
+  273:7   warning  Unexpected console statement  no-console
+  274:7   warning  Unexpected console statement  no-console
+  275:7   warning  Unexpected console statement  no-console
+  276:7   warning  Unexpected console statement  no-console
+  279:7   warning  Unexpected console statement  no-console
+  281:9   warning  Unexpected console statement  no-console
+  300:9   warning  Unexpected console statement  no-console
+  302:11  warning  Unexpected console statement  no-console
+  304:13  warning  Unexpected console statement  no-console
+  308:9   warning  Unexpected console statement  no-console
+  315:7   warning  Unexpected console statement  no-console
+  331:7   warning  Unexpected console statement  no-console
+  333:9   warning  Unexpected console statement  no-console
+  341:7   warning  Unexpected console statement  no-console
+  342:7   warning  Unexpected console statement  no-console
+  343:7   warning  Unexpected console statement  no-console
+  346:9   warning  Unexpected console statement  no-console
+  420:3   warning  Unexpected console statement  no-console
+  426:5   warning  Unexpected console statement  no-console
+  427:5   warning  Unexpected console statement  no-console
+  428:5   warning  Unexpected console statement  no-console
+  434:9   warning  Unexpected console statement  no-console
+  442:9   warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/e2e/deployment/chrome-store-readiness.test.js
+  275:9  warning  Unexpected console statement  no-console
+  326:9  warning  Unexpected console statement  no-console
+  429:7  warning  Unexpected console statement  no-console
+  431:9  warning  Unexpected console statement  no-console
+  434:7  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/e2e/integration/uc01-complete-extraction-workflow-refactored.test.js
+  123:13  warning  'expectedEvents' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/e2e/integration/ui-interaction-flow.test.js
+  158:9   warning  Unexpected console statement  no-console
+  160:9   warning  Unexpected console statement  no-console
+  164:9   warning  Unexpected console statement  no-console
+  186:9   warning  Unexpected console statement  no-console
+  205:9   warning  Unexpected console statement  no-console
+  214:9   warning  Unexpected console statement  no-console
+  233:9   warning  Unexpected console statement  no-console
+  264:11  warning  Unexpected console statement  no-console
+  266:11  warning  Unexpected console statement  no-console
+  311:11  warning  Unexpected console statement  no-console
+  313:11  warning  Unexpected console statement  no-console
+  345:9   warning  Unexpected console statement  no-console
+  365:7   warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/e2e/performance/benchmark-tests.test.js
+   35:7   warning  'backgroundPage' is assigned a value but never used  no-unused-vars
+   70:7   warning  Unexpected console statement                         no-console
+   92:7   warning  Unexpected console statement                         no-console
+  116:7   warning  Unexpected console statement                         no-console
+  143:7   warning  Unexpected console statement                         no-console
+  144:7   warning  Unexpected console statement                         no-console
+  145:7   warning  Unexpected console statement                         no-console
+  146:7   warning  Unexpected console statement                         no-console
+  147:7   warning  Unexpected console statement                         no-console
+  171:7   warning  Unexpected console statement                         no-console
+  172:7   warning  Unexpected console statement                         no-console
+  173:7   warning  Unexpected console statement                         no-console
+  174:7   warning  Unexpected console statement                         no-console
+  175:7   warning  Unexpected console statement                         no-console
+  176:7   warning  Unexpected console statement                         no-console
+  214:7   warning  Unexpected console statement                         no-console
+  252:9   warning  Unexpected console statement                         no-console
+  295:11  warning  Unexpected console statement                         no-console
+  297:11  warning  Unexpected console statement                         no-console
+  331:9   warning  Unexpected console statement                         no-console
+  341:13  warning  Unexpected console statement                         no-console
+  354:16  warning  'measureMemoryUsage' is defined but never used       no-unused-vars
+  371:5   warning  Unexpected console statement                         no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/e2e/scripts/run-e2e-tests.js
+   65:7   warning  Unexpected console statement  no-console
+   75:5   warning  Unexpected console statement  no-console
+   79:5   warning  Unexpected console statement  no-console
+   98:7   warning  Unexpected console statement  no-console
+  105:5   warning  Unexpected console statement  no-console
+  112:5   warning  Unexpected console statement  no-console
+  131:7   warning  Unexpected console statement  no-console
+  199:9   warning  Unexpected console statement  no-console
+  201:9   warning  Unexpected console statement  no-console
+  346:5   warning  Unexpected console statement  no-console
+  416:5   warning  Unexpected console statement  no-console
+  423:22  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/e2e/setup/extension-setup.js
+   81:7  warning  Unexpected console statement  no-console
+  123:9  warning  Unexpected console statement  no-console
+  129:7  warning  Unexpected console statement  no-console
+  174:7  warning  Unexpected console statement  no-console
+  244:7  warning  Unexpected console statement  no-console
+  246:7  warning  Unexpected console statement  no-console
+  271:7  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/e2e/validation/setup-validation.test.js
+   55:7  warning  Unexpected console statement  no-console
+   66:7  warning  Unexpected console statement  no-console
+   82:7  warning  Unexpected console statement  no-console
+   96:7  warning  Unexpected console statement  no-console
+  125:7  warning  Unexpected console statement  no-console
+  137:7  warning  Unexpected console statement  no-console
+  157:7  warning  Unexpected console statement  no-console
+  164:7  warning  Unexpected console statement  no-console
+  171:7  warning  Unexpected console statement  no-console
+  196:7  warning  Unexpected console statement  no-console
+  230:9  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/e2e/validation/simple-validation.test.js
+   52:9   warning  Unexpected console statement                       no-console
+   69:9   warning  Unexpected console statement                       no-console
+   86:9   warning  Unexpected console statement                       no-console
+  101:7   warning  Unexpected console statement                       no-console
+  113:7   warning  Unexpected console statement                       no-console
+  123:7   warning  Unexpected console statement                       no-console
+  135:7   warning  Unexpected console statement                       no-console
+  149:7   warning  Unexpected console statement                       no-console
+  168:7   warning  Unexpected console statement                       no-console
+  241:17  warning  'syntaxIssues' is assigned a value but never used  no-unused-vars
+  246:11  warning  Unexpected console statement                       no-console
+  264:11  warning  Unexpected console statement                       no-console
+  282:11  warning  Unexpected console statement                       no-console
+  304:9   warning  Unexpected console statement                       no-console
+  307:7   warning  Unexpected console statement                       no-console
+  312:40  warning  Empty block statement                              no-empty
+  314:9   warning  Unexpected console statement                       no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/e2e/workflows/complete-extraction-workflow.test.js
+   31:7  warning  'path' is assigned a value but never used  no-unused-vars
+  282:7  warning  Unexpected console statement               no-console
+  305:9  warning  Unexpected console statement               no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/e2e/workflows/cross-device-sync.test.js
+    17:7   warning  'path' is assigned a value but never used                 no-unused-vars
+    59:3   warning  Useless constructor                                       no-useless-constructor
+    67:3   warning  Useless constructor                                       no-useless-constructor
+    87:3   warning  'createCorruptedData' is assigned a value but never used  no-unused-vars
+   294:13  warning  'sync1' is assigned a value but never used                no-unused-vars
+   298:13  warning  'sync2' is assigned a value but never used                no-unused-vars
+   806:15  warning  'exportResult' is assigned a value but never used         no-unused-vars
+  1132:13  warning  'syncProcess' is assigned a value but never used          no-unused-vars
+  1334:13  warning  'syncWithLogging' is assigned a value but never used      no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/chrome-extension-controller.js
+     9:7   warning  'MemoryLeakDetector' is assigned a value but never used                       no-unused-vars
+   280:9   warning  Unexpected console statement                                                  no-console
+   296:7   warning  'skipUnsupported' is assigned a value but never used                          no-unused-vars
+   304:7   warning  'detectCSPViolations' is assigned a value but never used                      no-unused-vars
+   354:11  warning  Closing curly brace does not appear on the same line as the subsequent block  brace-style
+   368:11  warning  Closing curly brace does not appear on the same line as the subsequent block  brace-style
+   374:11  warning  Closing curly brace does not appear on the same line as the subsequent block  brace-style
+   715:5   warning  Unexpected console statement                                                  no-console
+   716:5   warning  Unexpected console statement                                                  no-console
+   746:7   warning  Unexpected console statement                                                  no-console
+   766:13  warning  'timeout' is assigned a value but never used                                  no-unused-vars
+   792:5   warning  Closing curly brace does not appear on the same line as the subsequent block  brace-style
+   796:5   warning  Closing curly brace does not appear on the same line as the subsequent block  brace-style
+   800:5   warning  Closing curly brace does not appear on the same line as the subsequent block  brace-style
+   867:3   warning  Duplicate name 'executeContentScriptExtraction'                               no-dupe-class-members
+   870:7   warning  'validateDOMIntegrity' is assigned a value but never used                     no-unused-vars
+   928:64  warning  'validateAfter' is assigned a value but never used                            no-unused-vars
+  1490:29  warning  'timeout' is assigned a value but never used                                  no-unused-vars
+  1549:7   warning  'timeout' is assigned a value but never used                                  no-unused-vars
+  1589:7   warning  'monitorRetryProcess' is assigned a value but never used                      no-unused-vars
+  1769:7   warning  Unexpected console statement                                                  no-console
+  1775:7   warning  Unexpected console statement                                                  no-console
+  1970:13  warning  'timeout' is assigned a value but never used                                  no-unused-vars
+  2235:13  warning  'timeout' is assigned a value but never used                                  no-unused-vars
+  2397:11  warning  Unexpected lexical declaration in case block                                  no-case-declarations
+  2435:11  warning  Unexpected lexical declaration in case block                                  no-case-declarations
+  2559:11  warning  'subscriptionId' is assigned a value but never used                           no-unused-vars
+  2614:11  warning  'subscriptionId' is assigned a value but never used                           no-unused-vars
+  3312:5   warning  Unexpected console statement                                                  no-console
+  3341:5   warning  Unexpected console statement                                                  no-console
+  3387:5   warning  Unexpected console statement                                                  no-console
+  3416:11  warning  'popupState' is assigned a value but never used                               no-unused-vars
+  3961:11  warning  'crashDetection' is assigned a value but never used                           no-unused-vars
+  4245:3   warning  Duplicate name 'sendMessageWithRetry'                                         no-dupe-class-members
+  4249:7   warning  'timeoutMs' is assigned a value but never used                                no-unused-vars
+  4674:3   warning  Duplicate name 'sendDirectMessage'                                            no-dupe-class-members
+  4709:3   warning  Duplicate name 'sendOrderedMessage'                                           no-dupe-class-members
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/chrome-extension-environment-simulator.js
+  159:9  warning  Unexpected console statement  no-console
+  458:9  warning  Unexpected console statement  no-console
+  476:9  warning  Unexpected console statement  no-console
+  491:9  warning  Unexpected console statement  no-console
+  493:9  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/e2e-integration-test-coordinator.js
+  365:7  warning  Unexpected console statement  no-console
+  463:7  warning  Unexpected console statement  no-console
+  492:7  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/e2e-test-data-generator.js
+  546:3  warning  Duplicate name 'generateEdgeCaseBooks'  no-dupe-class-members
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/e2e-test-suite.js
+   285:7   warning  Unexpected console statement                         no-console
+   530:3   warning  Duplicate name 'clearAllStorageData'                 no-dupe-class-members
+   802:11  warning  Unexpected console statement                         no-console
+   815:7   warning  Unexpected console statement                         no-console
+   861:7   warning  Unexpected console statement                         no-console
+   889:7   warning  Unexpected console statement                         no-console
+   915:13  warning  Unexpected lexical declaration in case block         no-case-declarations
+  1035:7   warning  Unexpected console statement                         no-console
+  1093:7   warning  Unexpected console statement                         no-console
+  1149:3   warning  Duplicate name 'waitForTimeout'                      no-dupe-class-members
+  1194:7   warning  Unexpected console statement                         no-console
+  1224:5   warning  Unexpected console statement                         no-console
+  1351:3   warning  Duplicate name 'setupCSPTestPage'                    no-dupe-class-members
+  1394:3   warning  Duplicate name 'createNewTab'                        no-dupe-class-members
+  2128:11  warning  'heapTotalDelta' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/event-flow-validator.js
+   90:5  warning  Unexpected console statement  no-console
+  145:5  warning  Unexpected console statement  no-console
+  159:9  warning  Unexpected console statement  no-console
+  201:7  warning  Unexpected console statement  no-console
+  215:7  warning  Unexpected console statement  no-console
+  224:9  warning  Unexpected console statement  no-console
+  325:9  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/event-system-analyzer.js
+   245:11  error    Identifier 'between50_100' is not in camel case                          camelcase
+   246:11  error    Identifier 'between100_200' is not in camel case                         camelcase
+   251:31  error    Identifier 'between50_100' is not in camel case                          camelcase
+   252:32  error    Identifier 'between100_200' is not in camel case                         camelcase
+   849:11  warning  'initialMemory' is assigned a value but never used                       no-unused-vars
+   855:11  warning  'finalMemory' is assigned a value but never used                         no-unused-vars
+   856:11  warning  'actualDuration' is assigned a value but never used                      no-unused-vars
+  1364:11  warning  'monitorDuration' is assigned a value but never used                     no-unused-vars
+  1705:26  warning  'replaySpeed' is assigned a value but never used                         no-unused-vars
+  1746:13  warning  'monitorDuration' is assigned a value but never used                     no-unused-vars
+  1876:11  warning  'startTime' is assigned a value but never used                           no-unused-vars
+  1945:3   warning  Duplicate name 'enableEventReplay'                                       no-dupe-class-members
+  1967:31  warning  'trackThroughput' is assigned a value but never used                     no-unused-vars
+  1967:55  warning  'trackLatency' is assigned a value but never used                        no-unused-vars
+  1988:63  error    'eventData' is not defined                                               no-undef
+  2111:3   warning  Duplicate name 'configureErrorSimulation'                                no-dupe-class-members
+  2328:11  warning  'initialMemory' is assigned a value but never used                       no-unused-vars
+  2333:11  warning  'finalMemory' is assigned a value but never used                         no-unused-vars
+  2741:3   warning  Duplicate name 'analyzePerformanceMetrics'                               no-dupe-class-members
+  2750:11  warning  'monitoringStartTime' is assigned a value but never used                 no-unused-vars
+  2753:11  warning  'performanceSnapshots' is assigned a value but never used                no-unused-vars
+  2893:29  warning  Expected newline between test and consequent of ternary expression       multiline-ternary
+  2893:62  warning  Expected newline between consequent and alternate of ternary expression  multiline-ternary
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/memory-leak-detector.js
+   43:5   warning  Unexpected console statement                   no-console
+  128:5   warning  Unexpected console statement                   no-console
+  142:5   warning  Unexpected console statement                   no-console
+  144:11  warning  'analysis' is assigned a value but never used  no-unused-vars
+  153:9   warning  Unexpected console statement                   no-console
+  162:9   warning  Unexpected console statement                   no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/message-flow-tracker.js
+   29:5  warning  Unexpected console statement                        no-console
+   38:5  warning  Unexpected console statement                        no-console
+   80:5  warning  Unexpected console statement                        no-console
+  111:7  warning  'maxRetries' is assigned a value but never used     no-unused-vars
+  112:7  warning  'retryInterval' is assigned a value but never used  no-unused-vars
+  117:5  warning  Unexpected console statement                        no-console
+  296:5  warning  Unexpected console statement                        no-console
+  803:5  warning  Unexpected console statement                        no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/performance-test-data-generator.js
+  233:7   warning  'compression' is assigned a value but never used  no-unused-vars
+  311:11  warning  'genre' is assigned a value but never used        no-unused-vars
+  434:11  warning  Unexpected lexical declaration in case block      no-case-declarations
+  435:11  warning  Unexpected lexical declaration in case block      no-case-declarations
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/readmoo-page-simulator.js
+  123:21  warning  'key' is assigned a value but never used                     no-unused-vars
+  139:23  warning  'key' is assigned a value but never used                     no-unused-vars
+  154:23  warning  'key' is assigned a value but never used                     no-unused-vars
+  396:26  warning  Unexpected control character(s) in regular expression: \x00  no-control-regex
+  521:7   warning  Unexpected console statement                                 no-console
+  574:11  warning  Unexpected console statement                                 no-console
+  627:11  warning  Unexpected console statement                                 no-console
+  652:5   warning  Unexpected console statement                                 no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/runtime-messaging-validator.js
+  338:7  warning  'trackAllModules' is assigned a value but never used           no-unused-vars
+  339:7  warning  'analyzeRoutingPatterns' is assigned a value but never used    no-unused-vars
+  340:7  warning  'measureRoutingEfficiency' is assigned a value but never used  no-unused-vars
+  424:9  warning  Unexpected lexical declaration in case block                   no-case-declarations
+  504:7  warning  'sampleSize' is assigned a value but never used                no-unused-vars
+  505:7  warning  'timeWindow' is assigned a value but never used                no-unused-vars
+  506:7  warning  'expectedMessages' is assigned a value but never used          no-unused-vars
+  892:9  warning  Unexpected lexical declaration in case block                   no-case-declarations
+  896:9  warning  Unexpected lexical declaration in case block                   no-case-declarations
+  900:9  warning  Unexpected lexical declaration in case block                   no-case-declarations
+  905:9  warning  Unexpected lexical declaration in case block                   no-case-declarations
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/test-data-generator.js
+  221:11  warning  Unexpected lexical declaration in case block  no-case-declarations
+  222:11  warning  Unexpected lexical declaration in case block  no-case-declarations
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/testing-integrity-checker.js
+   66:5   warning  Unexpected console statement                          no-console
+   83:7   warning  Unexpected console statement                          no-console
+  322:11  warning  'totalViolations' is assigned a value but never used  no-unused-vars
+  440:5   warning  Unexpected console statement                          no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/ui-state-tracker.js
+  177:24  warning  'expected' was used before it was defined                   no-use-before-define
+  290:11  warning  'monitorUserExperience' is assigned a value but never used  no-unused-vars
+  352:21  warning  'id' is assigned a value but never used                     no-unused-vars
+  523:9   warning  Unexpected console statement                                no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/infrastructure/e2e-environment-builder.js
+  12:7  warning  'ChromeAPIMockRegistry' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/infrastructure/e2e-test-environment.js
+  264:5   warning  Unexpected console statement             no-console
+  349:3   warning  Duplicate name '_getCurrentMemoryUsage'  no-dupe-class-members
+  367:3   warning  Duplicate name 'injectError'             no-dupe-class-members
+  379:11  warning  Unexpected console statement             no-console
+  389:3   warning  Duplicate name 'executeWorkflow'         no-dupe-class-members
+
+/Users/tarragon/Projects/book_overview_v1/tests/infrastructure/unit-test-environment.js
+   57:32  warning  Unexpected console statement  no-console
+   58:5   warning  Unexpected console statement  no-console
+  101:7   warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration-helpers/chrome-extension-mocks-enhanced-v2.test.js
+   80:11  warning  'changeEventReceived' is assigned a value but never used  no-unused-vars
+  129:13  warning  'tab' is assigned a value but never used                  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration-helpers/integration-test-helper.test.js
+   80:13  warning  'testContext' is assigned a value but never used  no-unused-vars
+  280:13  warning  'testContext' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration-helpers/stage3-integration-improvement.test.js
+  221:13  warning  'testContext' is assigned a value but never used  no-unused-vars
+  248:13  warning  'tab' is assigned a value but never used          no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/chrome-apis/content-script-injection.test.js
+  109:9  warning  Unexpected console statement  no-console
+  262:9  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/chrome-apis/runtime-messaging-integration.test.js
+  649:13  warning  'totalErrors' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/chrome-apis/storage-api-integration.test.js
+  304:11  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/chrome-extension-v2-environment.test.js
+   39:7   warning  'extensionEnvironment' is assigned a value but never used  no-unused-vars
+  134:15  warning  'preRestartStats' is assigned a value but never used       no-unused-vars
+  217:15  warning  'extractionStatus' is assigned a value but never used      no-unused-vars
+  289:17  warning  'expectedModern' is assigned a value but never used        no-unused-vars
+  875:15  warning  'startTime' is assigned a value but never used             no-unused-vars
+  891:15  warning  'endTime' is assigned a value but never used               no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/chrome-extension/background-event-system.test.js
+   39:7   warning  'backgroundScript' is defined but never used       no-unused-vars
+   40:7   warning  'mockEventBus' is defined but never used           no-unused-vars
+   41:7   warning  'mockChromeBridge' is defined but never used       no-unused-vars
+   74:7   warning  Unexpected console statement                       no-console
+  103:7   warning  Unexpected console statement                       no-console
+  113:18  warning  'loadBackgroundScript' is defined but never used   no-unused-vars
+  125:7   warning  eval can be harmful                                no-eval
+  130:7   warning  Unexpected console statement                       no-console
+  286:9   warning  Unexpected console statement                       no-console
+  324:9   warning  Unexpected console statement                       no-console
+  489:15  warning  'beforeSleep' is assigned a value but never used   no-unused-vars
+  605:15  warning  'initialStats' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/chrome-extension/content-script-extractor.test.js
+   30:7   warning  'contentScript' is defined but never used              no-unused-vars
+   31:7   warning  'mockBookDataExtractor' is defined but never used      no-unused-vars
+   32:7   warning  'mockReadmooAdapter' is defined but never used         no-unused-vars
+  631:11  warning  Unexpected console statement                           no-console
+  656:13  warning  'originalLocation' is assigned a value but never used  no-unused-vars
+  809:7   warning  eval can be harmful                                    no-eval
+  821:7   warning  Unexpected console statement                           no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/chrome-extension/event-bus-stats.test.js
+  30:7  warning  'testUtils' is defined but never used                    no-unused-vars
+  31:7  warning  'backgroundHandlers' is assigned a value but never used  no-unused-vars
+  81:9  warning  Unexpected console statement                             no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/chrome-extension/popup-interface.test.js
+   18:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+   83:20  warning  Unexpected console statement                        no-console
+   84:20  warning  Unexpected console statement                        no-console
+   85:21  warning  Unexpected console statement                        no-console
+  179:7   warning  eval can be harmful                                 no-eval
+  196:9   warning  eval can be harmful                                 no-eval
+  201:7   warning  eval can be harmful                                 no-eval
+  211:7   warning  eval can be harmful                                 no-eval
+  220:7   warning  eval can be harmful                                 no-eval
+  253:7   warning  eval can be harmful                                 no-eval
+  321:7   warning  eval can be harmful                                 no-eval
+  355:7   warning  eval can be harmful                                 no-eval
+  406:7   warning  eval can be harmful                                 no-eval
+  434:7   warning  eval can be harmful                                 no-eval
+  442:7   warning  eval can be harmful                                 no-eval
+  488:9   warning  eval can be harmful                                 no-eval
+  501:9   warning  eval can be harmful                                 no-eval
+  518:9   warning  eval can be harmful                                 no-eval
+  542:9   warning  eval can be harmful                                 no-eval
+  562:9   warning  eval can be harmful                                 no-eval
+  586:9   warning  eval can be harmful                                 no-eval
+  614:9   warning  eval can be harmful                                 no-eval
+  625:9   warning  eval can be harmful                                 no-eval
+  656:9   warning  eval can be harmful                                 no-eval
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/cross-module-error-propagation.test.js
+  503:13  warning  'results' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/cross-module/background-content-integration.test.js
+  173:9  warning  Unexpected console statement  no-console
+  228:9  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/cross-module/event-system-integration.test.js
+   20:7   warning  'flowValidator' is assigned a value but never used      no-unused-vars
+  587:13  warning  'replayTestPromise' is assigned a value but never used  no-unused-vars
+  676:34  warning  'parallelResults' is assigned a value but never used    no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/cross-module/popup-background-integration.test.js
+   20:7   warning  'lifecycleManager' is assigned a value but never used      no-unused-vars
+  208:13  warning  'updateMonitoring' is assigned a value but never used      no-unused-vars
+  251:9   warning  Unexpected console statement                               no-console
+  307:9   warning  Unexpected console statement                               no-console
+  414:15  warning  'actionResult' is assigned a value but never used          no-unused-vars
+  651:13  warning  'longOperationPromise' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/error-handling-scenarios.test.js
+  132:7  warning  'mockDocument' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/error-handling/basic-integration.test.js
+   14:9  warning  'Logger' is assigned a value but never used  no-unused-vars
+  350:5  warning  Unexpected console statement                 no-console
+  351:5  warning  Unexpected console statement                 no-console
+  352:5  warning  Unexpected console statement                 no-console
+  353:5  warning  Unexpected console statement                 no-console
+  354:5  warning  Unexpected console statement                 no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/event-system-v2-core-integration.test.js
+   33:7   warning  'integrationSystem' is assigned a value but never used          no-unused-vars
+  350:15  warning  'totalTime' is assigned a value but never used                  no-unused-vars
+  742:15  warning  'preRestartConversionStats' is assigned a value but never used  no-unused-vars
+  743:15  warning  'preRestartPriorityStats' is assigned a value but never used    no-unused-vars
+  744:15  warning  'preRestartUsageStats' is assigned a value but never used       no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/event-system-v2-performance-stability.test.js
+   483:15  warning  'withListenersMemory' is assigned a value but never used  no-unused-vars
+   516:15  warning  'withCacheMemory' is assigned a value but never used      no-unused-vars
+   568:9   warning  Unexpected console statement                              no-console
+   569:9   warning  Unexpected console statement                              no-console
+   636:17  warning  'testEvent' is assigned a value but never used            no-unused-vars
+   642:11  error    'fail' is not defined                                     no-undef
+   852:9   warning  Unexpected console statement                              no-console
+   861:9   warning  Unexpected console statement                              no-console
+   972:21  warning  'eventType' is assigned a value but never used            no-unused-vars
+  1114:19  warning  'levelTime' is assigned a value but never used            no-unused-vars
+  1127:15  warning  Unexpected console statement                              no-console
+  1219:10  warning  'isMemoryTrendStable' is defined but never used           no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/platform/platform-detection-integration.test.js
+  30:33  warning  'validateDetectionResult' is assigned a value but never used  no-unused-vars
+  30:58  warning  'performanceHelpers' is assigned a value but never used       no-unused-vars
+  31:42  warning  'dataGenerators' is assigned a value but never used           no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/readmoo-migration-integration.test.js
+  147:9   warning  Unexpected console statement                                         no-console
+  436:43  warning  Promise constructor parameters must be named to match "^_?resolve$"  promise/param-names
+  449:7   warning  Unexpected console statement                                         no-console
+  461:9   warning  Unexpected console statement                                         no-console
+  474:43  warning  Promise constructor parameters must be named to match "^_?resolve$"  promise/param-names
+  499:9   warning  Unexpected console statement                                         no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/run-event-system-v2-integration.js
+  141:17  warning  'StandardError' is assigned a value but never used  no-unused-vars
+  519:5   warning  Unexpected console statement                        no-console
+  524:7   warning  Unexpected console statement                        no-console
+  529:5   warning  Unexpected console statement                        no-console
+  532:9   warning  Unexpected console statement                        no-console
+  534:9   warning  Unexpected console statement                        no-console
+  577:5   warning  Unexpected console statement                        no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/workflows/cross-device-sync-workflow.test.js
+  251:9   warning  Unexpected console statement                       no-console
+  495:9   warning  Unexpected console statement                       no-console
+  580:9   warning  Unexpected console statement                       no-console
+  697:9   warning  Unexpected console statement                       no-console
+  722:9   warning  Unexpected console statement                       no-console
+  746:9   warning  Unexpected console statement                       no-console
+  750:13  warning  'importResult' is assigned a value but never used  no-unused-vars
+  767:9   warning  Unexpected console statement                       no-console
+  782:9   warning  Unexpected console statement                       no-console
+  797:9   warning  Unexpected console statement                       no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/workflows/daily-usage-workflow.test.js
+  102:13  warning  'initialDisplayCount' is assigned a value but never used  no-unused-vars
+  135:13  warning  'preSyncCount' is assigned a value but never used         no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/workflows/error-recovery-workflow.test.js
+   95:15  warning  'operationPromise' is assigned a value but never used         no-unused-vars
+  113:9   warning  Unexpected console statement                                  no-console
+  195:15  warning  'operationPromise' is assigned a value but never used         no-unused-vars
+  218:9   warning  Unexpected console statement                                  no-console
+  309:9   warning  Unexpected console statement                                  no-console
+  324:13  warning  'extractionPromise' is assigned a value but never used        no-unused-vars
+  430:9   warning  Unexpected console statement                                  no-console
+  522:9   warning  Unexpected console statement                                  no-console
+  523:9   warning  Unexpected console statement                                  no-console
+  536:13  warning  'extractionPromise' is assigned a value but never used        no-unused-vars
+  659:13  warning  'extractionPromise' is assigned a value but never used        no-unused-vars
+  750:13  warning  'complexRecoveryPromise' is assigned a value but never used   no-unused-vars
+  802:9   warning  Unexpected console statement                                  no-console
+  836:13  warning  'loggedExtractionPromise' is assigned a value but never used  no-unused-vars
+  844:13  warning  'errorRecoveryResult' is assigned a value but never used      no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/workflows/new-user-onboarding.test.js
+   46:5   warning  Unexpected console statement                             no-console
+  168:13  warning  'initialPermissions' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/jest-resolver.js
+  28:5  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/mocks/chrome-api.mock.js
+  454:9   warning  'listeners' is assigned a value but never used     no-unused-vars
+  455:9   warning  'eventHistory' is assigned a value but never used  no-unused-vars
+  498:13  warning  Unexpected console statement                       no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/mocks/cross-device-sync.mock.js
+   20:7   warning  'chromeMock' is assigned a value but never used  no-unused-vars
+  903:11  warning  'warnLogs' is assigned a value but never used    no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/mocks/platform-detection.mock.js
+  310:9  warning  'getMetaTags' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/performance/baseline-performance.test.js
+   39:9   warning  Unexpected console statement                      no-console
+   85:7   warning  Unexpected console statement                      no-console
+  118:7   warning  Unexpected console statement                      no-console
+  157:7   warning  Unexpected console statement                      no-console
+  189:7   warning  Unexpected console statement                      no-console
+  220:7   warning  Unexpected console statement                      no-console
+  254:7   warning  Unexpected console statement                      no-console
+  280:7   warning  Unexpected console statement                      no-console
+  281:7   warning  Unexpected console statement                      no-console
+  282:7   warning  Unexpected console statement                      no-console
+  283:7   warning  Unexpected console statement                      no-console
+  284:7   warning  Unexpected console statement                      no-console
+  285:7   warning  Unexpected console statement                      no-console
+  286:7   warning  Unexpected console statement                      no-console
+  326:7   warning  Unexpected console statement                      no-console
+  327:7   warning  Unexpected console statement                      no-console
+  484:16  warning  'bookElement' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/performance/performance-optimization.test.js
+   49:7   warning  'mockEventBus' is assigned a value but never used   no-unused-vars
+  187:7   warning  Unexpected console statement                        no-console
+  201:7   warning  Unexpected console statement                        no-console
+  222:7   warning  Unexpected console statement                        no-console
+  237:7   warning  Unexpected console statement                        no-console
+  252:7   warning  Unexpected console statement                        no-console
+  266:7   warning  Unexpected console statement                        no-console
+  288:7   warning  Unexpected console statement                        no-console
+  312:13  warning  'initialMemory' is assigned a value but never used  no-unused-vars
+  351:7   warning  Unexpected console statement                        no-console
+  352:7   warning  Unexpected console statement                        no-console
+  353:7   warning  Unexpected console statement                        no-console
+  354:7   warning  Unexpected console statement                        no-console
+  370:7   warning  Unexpected console statement                        no-console
+  396:7   warning  Unexpected console statement                        no-console
+  397:7   warning  Unexpected console statement                        no-console
+  398:7   warning  Unexpected console statement                        no-console
+  399:7   warning  Unexpected console statement                        no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/performance/platform-detection-benchmark.test.js
+   28:50  warning  'performanceHelpers' is assigned a value but never used  no-unused-vars
+   86:7   warning  Unexpected console statement                             no-console
+  106:7   warning  Unexpected console statement                             no-console
+  139:7   warning  Unexpected console statement                             no-console
+  176:7   warning  Unexpected console statement                             no-console
+  214:7   warning  Unexpected console statement                             no-console
+  235:7   warning  Unexpected console statement                             no-console
+  257:7   warning  Unexpected console statement                             no-console
+  258:7   warning  Unexpected console statement                             no-console
+  287:7   warning  Unexpected console statement                             no-console
+  319:7   warning  Unexpected console statement                             no-console
+  367:7   warning  Unexpected console statement                             no-console
+  413:7   warning  Unexpected console statement                             no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/performance/popup-refactor-performance.test.js
+  165:15  warning  'DiagnosticModule' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/processors/test-results-processor.js
+  8:3  warning  Unexpected console statement  no-console
+  9:3  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/regression/popup-refactor-regression.test.js
+  71:7  warning  'window' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/test-setup.js
+  180:7  warning  'originalConsole' is assigned a value but never used  no-unused-vars
+  198:3  warning  Unexpected console statement                          no-console
+  206:3  warning  Useless constructor                                   no-useless-constructor
+  214:3  warning  Useless constructor                                   no-useless-constructor
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/adapters/stable-id-generation.test.js
+  601:7  error  Parsing error: Cannot use keyword 'await' outside an async function
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/data-domain-coordinator.test.js
+  34:13  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/interfaces/IDataQualityAnalyzer.test.js
+  387:13  warning  'analysis1' is assigned a value but never used  no-unused-vars
+  388:13  warning  'analysis2' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/interfaces/ISynchronizationCoordinator.test.js
+   21:9  warning  Do not use 'new' for side effects  no-new
+   31:9  warning  Useless constructor                no-useless-constructor
+   59:9  warning  Useless constructor                no-useless-constructor
+   74:9  warning  Useless constructor                no-useless-constructor
+   92:9  warning  Useless constructor                no-useless-constructor
+  110:9  warning  Useless constructor                no-useless-constructor
+  128:9  warning  Useless constructor                no-useless-constructor
+  146:9  warning  Useless constructor                no-useless-constructor
+  164:9  warning  Useless constructor                no-useless-constructor
+  182:9  warning  Useless constructor                no-useless-constructor
+  200:9  warning  Useless constructor                no-useless-constructor
+  218:9  warning  Useless constructor                no-useless-constructor
+  236:9  warning  Useless constructor                no-useless-constructor
+  254:9  warning  Useless constructor                no-useless-constructor
+  272:9  warning  Useless constructor                no-useless-constructor
+  290:9  warning  Useless constructor                no-useless-constructor
+  337:9  warning  Useless constructor                no-useless-constructor
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/interfaces/IValidationServiceCoordinator.test.js
+    1:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+  371:13  warning  'validationId' is assigned a value but never used   no-unused-vars
+  596:9   warning  Do not use 'new' for side effects                   no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/ConflictDetectionService.test.js
+  464:13  warning  'originalThreshold' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/DataComparisonEngine.test.js
+  241:13  warning  'initialConfig' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/RetryCoordinator.test.js
+  229:13  warning  'originalDelay' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/SynchronizationOrchestrator.test.js
+  14:7  warning  'ISynchronizationCoordinator' is assigned a value but never used  no-unused-vars
+  15:7  warning  'DataComparisonEngine' is assigned a value but never used         no-unused-vars
+  16:7  warning  'ConflictDetectionService' is assigned a value but never used     no-unused-vars
+  17:7  warning  'RetryCoordinator' is assigned a value but never used             no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/batch-validation-processor.test.js
+    9:9  warning  'StandardError' is assigned a value but never used  no-unused-vars
+  357:9  warning  Do not use 'new' for side effects                   no-new
+  365:9  warning  Do not use 'new' for side effects                   no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/cache-management-service.test.js
+    9:9  warning  'StandardError' is assigned a value but never used  no-unused-vars
+  377:9  warning  Do not use 'new' for side effects                   no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/data-difference-engine.test.js
+  332:13  warning  'result' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/data-normalization-service.test.js
+  417:9  warning  Do not use 'new' for side effects  no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/data-validation-service-integration.test.js
+    9:9  warning  'StandardError' is assigned a value but never used  no-unused-vars
+  147:9  warning  Do not use 'new' for side effects                   no-new
+  155:9  warning  Do not use 'new' for side effects                   no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/data-validation-service-refactor.test.js
+    9:9  warning  'StandardError' is assigned a value but never used  no-unused-vars
+  234:9  warning  Do not use 'new' for side effects                   no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/quality-assessment-service.test.js
+  428:9  warning  Do not use 'new' for side effects  no-new
+  432:9  warning  Do not use 'new' for side effects  no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/readmoo-data-consistency-service.test.js
+  160:13  warning  'performCheckSpy' is assigned a value but never used  no-unused-vars
+  312:9   warning  Do not use 'new' for side effects                     no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/platform/platform-domain.test.suite.js
+  37:5  warning  Unexpected console statement  no-console
+  38:5  warning  Unexpected console statement  no-console
+  42:5  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/platform/services/adapter-factory-service.test.js
+  619:13  warning  'errorSpy' is assigned a value but never used  no-unused-vars
+  941:13  warning  'adapter3' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/platform/services/platform-detection-service.test.js
+    11:7   warning  'EventBus' is assigned a value but never used                        no-unused-vars
+    15:7   warning  'MockPlatformData' is assigned a value but never used                no-unused-vars
+   667:13  warning  'result' is assigned a value but never used                          no-unused-vars
+  1016:28  warning  Unexpected console statement                                         no-console
+  1017:7   warning  Unexpected console statement                                         no-console
+  1030:14  warning  Unexpected console statement                                         no-console
+  1033:7   warning  Unexpected console statement                                         no-console
+  1082:29  warning  Promise constructor parameters must be named to match "^_?resolve$"  promise/param-names
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/events.test.js
+   25:7   warning  'eventSystem' is defined but never used         no-unused-vars
+  135:13  warning  'eventType' is assigned a value but never used  no-unused-vars
+  162:13  warning  'eventType' is assigned a value but never used  no-unused-vars
+  191:13  warning  'eventType' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/content-scripts/extractors.test.js
+    1:9   warning  'StandardError' is assigned a value but never used    no-unused-vars
+   25:7   warning  'bookDataExtractor' is defined but never used         no-unused-vars
+   26:7   warning  'progressExtractor' is defined but never used         no-unused-vars
+   27:7   warning  'metadataExtractor' is defined but never used         no-unused-vars
+  180:15  warning  'mockProgressBar' is assigned a value but never used  no-unused-vars
+  203:15  warning  'mockProgressBar' is assigned a value but never used  no-unused-vars
+  296:15  warning  'mockLink' is assigned a value but never used         no-unused-vars
+  306:25  warning  'storeName' is assigned a value but never used        no-unused-vars
+  345:25  warning  'storeName' is assigned a value but never used        no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/content/modular/content-modular.test.js
+  19:7  warning  'fs' is assigned a value but never used    no-unused-vars
+  20:7  warning  'path' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/content/utils/config-utils.test.js
+    1:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+  233:14  warning  Unexpected console statement                        no-console
+  238:14  warning  Unexpected console statement                        no-console
+  243:14  warning  Unexpected console statement                        no-console
+  248:14  warning  Unexpected console statement                        no-console
+  263:14  warning  Unexpected console statement                        no-console
+  264:14  warning  Unexpected console statement                        no-console
+  265:14  warning  Unexpected console statement                        no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/content/utils/memory-utils.test.js
+  320:9  warning  'sum' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/core/event-handler.test.js
+  261:9  warning  Do not use 'new' for side effects  no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/core/event-priority-manager.test.js
+   14:9   warning  'StandardError' is assigned a value but never used     no-unused-vars
+  182:13  warning  'originalPriority' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/data-management/SchemaMigrationService.test.js
+    49:9   warning  'createTestMigrations' is assigned a value but never used  no-unused-vars
+   671:13  warning  'result' is assigned a value but never used                no-unused-vars
+  1084:13  warning  'result' is assigned a value but never used                no-unused-vars
+  1152:13  warning  'beforeMemory' is assigned a value but never used          no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/error-handling/error-recovery-strategies.test.js
+   22:7   warning  'ErrorRecoveryManager' is assigned a value but never used  no-unused-vars
+   23:19  warning  'mockNotifier' is assigned a value but never used          no-unused-vars
+  528:7   warning  Unnecessary try/catch wrapper                              no-useless-catch
+  643:15  warning  'timer' is assigned a value but never used                 no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/error-handling/event-error-handler.test.js
+  13:9  warning  'StandardError' is assigned a value but never used  no-unused-vars
+  35:9  warning  Do not use 'new' for side effects                   no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/error-handling/event-tracker.test.js
+  265:13  warning  'oneHourAgo' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/error-handling/message-error-handler.test.js
+  13:9  warning  'StandardError' is assigned a value but never used  no-unused-vars
+  54:9  warning  Do not use 'new' for side effects                   no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/error-handling/message-tracker.test.js
+   13:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+   56:9   warning  Do not use 'new' for side effects                   no-new
+   93:7   warning  Do not use 'new' for side effects                   no-new
+  257:13  warning  'tracker' is assigned a value but never used        no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/error-handling/system-error-classifier.test.js
+  26:7  warning  'SystemErrorClassifier' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/export/export-events.test.js
+  372:37  warning  'EXPORT_EVENTS' is assigned a value but never used      no-unused-vars
+  454:9   warning  'createExportEvent' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/export/export-handler.test.js
+  910:13  warning  'csvHandler' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/export/export-manager.test.js
+  820:7  warning  Unexpected console statement  no-console
+  821:7  warning  Unexpected console statement  no-console
+  822:7  warning  Unexpected console statement  no-console
+  823:7  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/export/export-progress-notifier.test.js
+  337:13  warning  'formats' is assigned a value but never used      no-unused-vars
+  446:15  warning  'allProgress' is assigned a value but never used  no-unused-vars
+  449:15  warning  'allProgress' is assigned a value but never used  no-unused-vars
+  467:15  warning  'stats' is assigned a value but never used        no-unused-vars
+  479:15  warning  'history' is assigned a value but never used      no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/export/export-user-feedback.test.js
+   28:9   warning  'EXPORT_EVENTS' is assigned a value but never used  no-unused-vars
+  191:17  warning  Expected error to be handled                        n/handle-callback-err
+  505:17  warning  'humanMessage' is assigned a value but never used   no-unused-vars
+  629:15  warning  'history' is assigned a value but never used        no-unused-vars
+  656:15  warning  'searchResults' is assigned a value but never used  no-unused-vars
+  681:15  warning  'statistics' is assigned a value but never used     no-unused-vars
+  699:17  warning  'stats' is assigned a value but never used          no-unused-vars
+  710:13  warning  'benchmarkData' is assigned a value but never used  no-unused-vars
+  721:15  warning  'benchmark' is assigned a value but never used      no-unused-vars
+  809:15  warning  'merged' is assigned a value but never used         no-unused-vars
+  831:17  warning  'message' is assigned a value but never used        no-unused-vars
+  846:17  warning  'formatted' is assigned a value but never used      no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/extractors/readmoo-data-validator.test.js
+  608:13  warning  'initialCacheSize' is assigned a value but never used    no-unused-vars
+  609:13  warning  'initialMemoryUsage' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/handlers/extraction-completed-handler.test.js
+  216:11  error  Parsing error: Unexpected token flowId
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/overview/overview-import-function.test.js
+   33:9  warning  'edgeCaseBooks' is assigned a value but never used   no-unused-vars
+  149:9  warning  'mockFileReader' is assigned a value but never used  no-unused-vars
+  311:7  warning  Unexpected console statement                         no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/overview/overview-import-private-methods.test.js
+   11:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+  106:7   warning  Getter is not present for setter 'onloadstart'      accessor-pairs
+  107:7   warning  Getter is not present for setter 'onprogress'       accessor-pairs
+  507:16  warning  Unexpected console statement                        no-console
+  682:16  warning  Unexpected console statement                        no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/overview/overview-page-controller.test.js
+   27:7   warning  'OverviewPageController' is assigned a value but never used  no-unused-vars
+  196:13  warning  'controller' is assigned a value but never used              no-unused-vars
+  470:13  warning  'EventHandler' is assigned a value but never used            no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-controller-event-system-refactor.test.js
+  20:7  warning  'dom' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-controller-extraction-integration.test.js
+  172:9  warning  Do not use 'new' for side effects  no-new
+  178:9  warning  Do not use 'new' for side effects  no-new
+  184:9  warning  Do not use 'new' for side effects  no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-controller-status-integration.test.js
+  37:7  warning  'PopupUIManager' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-event-integration.test.js
+  37:9  warning  'JSDOM' is assigned a value but never used  no-unused-vars
+  38:7  warning  'fs' is assigned a value but never used     no-unused-vars
+  39:7  warning  'path' is assigned a value but never used   no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-extraction-service.test.js
+  81:9  warning  Do not use 'new' for side effects  no-new
+  87:9  warning  Do not use 'new' for side effects  no-new
+  93:9  warning  Do not use 'new' for side effects  no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-ui-components.test.js
+   25:7   warning  'PopupUIComponents' is assigned a value but never used  no-unused-vars
+  234:13  warning  'uiComponents' is assigned a value but never used       no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-ui-manager-integration.test.js
+  20:7  warning  'mockStatusManager' is assigned a value but never used    no-unused-vars
+  21:7  warning  'mockProgressManager' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/storage/adapters.test.js
+   25:7   warning  'chromeStorageAdapter' is defined but never used  no-unused-vars
+   26:7   warning  'localStorageAdapter' is defined but never used   no-unused-vars
+   27:7   warning  'indexedDbAdapter' is defined but never used      no-unused-vars
+  402:11  warning  Do not use 'new' for side effects                 no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/storage/adapters/chrome-storage-adapter-simple.test.js
+   32:40  warning  Unexpected literal in error position of callback  n/no-callback-literal
+  198:38  warning  Unexpected literal in error position of callback  n/no-callback-literal
+  211:38  warning  Unexpected literal in error position of callback  n/no-callback-literal
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/storage/adapters/chrome-storage-adapter.test.js
+   57:40  warning  Unexpected literal in error position of callback  n/no-callback-literal
+  171:38  warning  Unexpected literal in error position of callback  n/no-callback-literal
+  277:38  warning  Unexpected literal in error position of callback  n/no-callback-literal
+  292:38  warning  Unexpected literal in error position of callback  n/no-callback-literal
+  304:38  warning  Unexpected literal in error position of callback  n/no-callback-literal
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/system/chrome-extension-error-handling.test.js
+  75:9  warning  Unexpected literal in error position of callback  n/no-callback-literal
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/book-grid-renderer.test.js
+  323:13  warning  'card' is assigned a value but never used     no-unused-vars
+  598:9   warning  Do not use 'new' for side effects             no-new
+  646:15  warning  'columns' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/book-search-filter-integrated.test.js
+   73:11  warning  Unexpected console statement                        no-console
+  318:13  warning  'searchResults' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/book-search-filter.test.js
+  213:13  warning  'instance' is assigned a value but never used    no-unused-vars
+  232:13  warning  'instance' is assigned a value but never used    no-unused-vars
+  494:13  warning  'startTime1' is assigned a value but never used  no-unused-vars
+  496:13  warning  'endTime1' is assigned a value but never used    no-unused-vars
+  499:13  warning  'startTime2' is assigned a value but never used  no-unused-vars
+  501:13  warning  'endTime2' is assigned a value but never used    no-unused-vars
+  648:13  warning  'instance' is assigned a value but never used    no-unused-vars
+  808:9   warning  Do not use 'new' for side effects                no-new
+  817:9   warning  Do not use 'new' for side effects                no-new
+  821:9   warning  Do not use 'new' for side effects                no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/export-ui-integration.test.js
+  564:7  warning  Unexpected console statement  no-console
+  565:7  warning  Unexpected console statement  no-console
+  566:7  warning  Unexpected console statement  no-console
+  567:7  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/overview-page.test.js
+  8:7  warning  'path' is assigned a value but never used           no-unused-vars
+  9:9  warning  'StandardError' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/search/cache/search-cache-manager.test.js
+  28:9  warning  'StandardError' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/search/coordinator/search-coordinator.test.js
+   19:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+  151:9   warning  Do not use 'new' for side effects                   no-new
+  165:9   warning  Do not use 'new' for side effects                   no-new
+  179:9   warning  Do not use 'new' for side effects                   no-new
+  287:13  warning  'result' is assigned a value but never used         no-unused-vars
+  320:13  warning  'promise1' is assigned a value but never used       no-unused-vars
+  326:13  warning  'result' is assigned a value but never used         no-unused-vars
+  633:13  warning  'cacheKey' is assigned a value but never used       no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/search/core/search-engine.test.js
+  162:9  warning  Do not use 'new' for side effects  no-new
+  168:9  warning  Do not use 'new' for side effects  no-new
+  174:9  warning  Do not use 'new' for side effects  no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/search/core/search-index-manager.test.js
+  121:9  warning  Do not use 'new' for side effects                           no-new
+  127:9  warning  Do not use 'new' for side effects                           no-new
+  568:7  warning  Map prototype is read only, properties should not be added  no-extend-native
+  582:7  warning  Map prototype is read only, properties should not be added  no-extend-native
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/search/filter/filter-engine.test.js
+   20:9  warning  'StandardError' is assigned a value but never used  no-unused-vars
+  107:9  warning  Do not use 'new' for side effects                   no-new
+  110:9  warning  Do not use 'new' for side effects                   no-new
+  120:9  warning  Do not use 'new' for side effects                   no-new
+  123:9  warning  Do not use 'new' for side effects                   no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/search/ui-controller/search-ui-controller.test.js
+  139:9   warning  Do not use 'new' for side effects  no-new
+  145:9   warning  Do not use 'new' for side effects  no-new
+  151:9   warning  Do not use 'new' for side effects  no-new
+  938:29  warning  Unexpected console statement       no-console
+  939:7   warning  Unexpected console statement       no-console
+  953:14  warning  Unexpected console statement       no-console
+  957:7   warning  Unexpected console statement       no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/utils/file-reader-factory.test.js
+  6:9  warning  'StandardError' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/utils/chrome-extension-mocks-enhanced-refactored.js
+  238:5  warning  Unexpected console statement  no-console
+  248:5  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/utils/chrome-extension-mocks-enhanced.js
+  292:15  warning  'error' is assigned a value but never used  no-unused-vars
+  349:15  warning  'error' is assigned a value but never used  no-unused-vars
+  377:15  warning  'error' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/utils/error-injector.js
+  128:18  warning  A constructor name should not start with a lowercase letter  new-cap
+
+✖ 878 problems (8 errors, 870 warnings)
+
