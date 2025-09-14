@@ -212,7 +212,7 @@ describe('ExtractionCompletedHandler', () => {
         'STORAGE.SAVE.REQUESTED',
         expect.objectContaining({
           type: 'STORAGE.SAVE.REQUESTED',
-          timestamp: expect.toBeGreaterThan(Date.now() - 10000) // 最近10秒內的時間戳, // 有效的時間戳格式
+          timestamp: expect.toBeGreaterThan(Date.now() - 10000), // 最近10秒內的時間戳，有效的時間戳格式
           flowId: 'flow-storage',
           data: expect.objectContaining({
             key: 'extracted_books',
@@ -503,7 +503,7 @@ describe('ExtractionCompletedHandler', () => {
           flowId: 'flow-history',
           bookstore: 'readmoo',
           count: 1,
-          timestamp: expect.toBeGreaterThan(Date.now() - 10000) // 最近10秒內的時間戳,
+          timestamp: expect.toBeGreaterThan(Date.now() - 10000), // 最近10秒內的時間戳
           processingTime: expect.toBeGreaterThan(0), // 處理時間必須大於 0ms
           success: true
         })

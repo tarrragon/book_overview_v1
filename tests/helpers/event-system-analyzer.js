@@ -242,14 +242,14 @@ class EventSystemAnalyzer {
 
     const total = latencies.length
     const under50 = latencies.filter(l => l < 50).length
-    const between50_100 = latencies.filter(l => l >= 50 && l < 100).length
-    const between100_200 = latencies.filter(l => l >= 100 && l < 200).length
+    const between50And100 = latencies.filter(l => l >= 50 && l < 100).length
+    const between100And200 = latencies.filter(l => l >= 100 && l < 200).length
     const over200 = latencies.filter(l => l >= 200).length
 
     return {
       'under-50ms': Math.round((under50 / total) * 100) / 100,
-      '50-100ms': Math.round((between50_100 / total) * 100) / 100,
-      '100-200ms': Math.round((between100_200 / total) * 100) / 100,
+      '50-100ms': Math.round((between50And100 / total) * 100) / 100,
+      '100-200ms': Math.round((between100And200 / total) * 100) / 100,
       'over-200ms': Math.round((over200 / total) * 100) / 100
     }
   }
@@ -1985,7 +1985,7 @@ class EventSystemAnalyzer {
       performanceConsistency: 0.89, // >0.8
       resourceEfficiency: {
         cpuUtilization: '68%',
-        memoryEfficiency: this._calculateRealMemoryEfficiency(eventData),
+        memoryEfficiency: this._calculateRealMemoryEfficiency(config),
         eventQueueUtilization: '45%'
       },
       bottleneckAnalysis: {

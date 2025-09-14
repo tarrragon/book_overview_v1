@@ -585,7 +585,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       expect(duration).toBeLessThan(10) // 10ms內完成
     })
 
-    test('記憶體使用測試 - 不應該有記憶體洩漏', () => {
+    test('記憶體使用測試 - 不應該有記憶體洩漏', async () => {
       const initialMemory = process.memoryUsage ? process.memoryUsage().heapUsed : 0
 
       // 執行大量操作

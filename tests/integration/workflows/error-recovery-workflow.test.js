@@ -474,14 +474,13 @@ describe('錯誤恢復工作流程整合測試', () => {
       const result = await extractionPromise
       retrySubscription.unsubscribe()
 
-
       // Then: 驗證自動重試成功執行
       expect(result.success).toBe(true)
       expect(result.extractedCount).toBe(80)
 
       // 📊 重要修復：強健且精確的重試邏輯驗證
       // 解決原始問題：不應該因為測試不穩定就降低驗證標準
-      
+
       // 1. 核心業務邏輯驗證 - 這些必須100%可靠
       expect(result.recoveredFromErrors).toBe(true)
       expect(result.recoveryStrategies).toContain('retry')
@@ -489,7 +488,7 @@ describe('錯誤恢復工作流程整合測試', () => {
 
       // 2. 重試事件基本要求 - 至少要有重試發生
       expect(retryEvents.length).toBeGreaterThanOrEqual(1) // 至少有一次重試事件
-      
+
       const retryAttemptEvents = retryEvents.filter(event => event.type === 'retry_attempt')
       expect(retryAttemptEvents.length).toBeGreaterThanOrEqual(1) // 至少有一次重試嘗試
 
@@ -504,11 +503,11 @@ describe('錯誤恢復工作流程整合測試', () => {
 
       // 4. 策略驗證 - 確保配置的重試策略確實生效
       // 使用已定義的 retryConfig (line 447-451)
-      
+
       // 驗證重試次數沒有超過配置的最大值
       const maxAttempt = Math.max(...retryAttemptEvents.map(e => e.attempt))
       expect(maxAttempt).toBeLessThanOrEqual(retryConfig.maxAttempts)
-      
+
       // 如果有多次重試，驗證指數退避
       if (retryAttemptEvents.length >= 2) {
         const delays = retryAttemptEvents.map(e => e.delay)
@@ -518,7 +517,7 @@ describe('錯誤恢復工作流程整合測試', () => {
       // 5. 重要：記錄實際行為用於品質分析
       const actualRetryCount = retryAttemptEvents.length
       const expectedMinRetries = 2 // 基於網路中斷配置
-      
+
       if (actualRetryCount < expectedMinRetries) {
         console.warn(`⚠️ 測試品質提醒: 期望至少 ${expectedMinRetries} 次重試，實際 ${actualRetryCount} 次`)
         console.warn('這可能表示：1) 模擬環境時序問題 2) 重試邏輯需要改進')
@@ -599,7 +598,7 @@ describe('錯誤恢復工作流程整合測試', () => {
 
       // 模擬系統中斷
       await errorSimulator.simulateSystemInterruption()
-      progressSubscription.unsubscribe()
+      await progressSubscription.unsubscribe()
 
       const interruptionResult = await extractionPromise.catch(error => ({
         success: false,
