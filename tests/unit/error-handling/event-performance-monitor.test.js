@@ -63,7 +63,7 @@ describe('EventPerformanceMonitor', () => {
       const customConfig = {
         warningThresholds: {
           eventProcessingTime: 100,
-          memoryUsage: 50 * 1024 * 1024
+          memoryUsage: Math.round(process.memoryUsage().heapUsed * 1.5) // 當前記憶體的 1.5 倍作為警告閾值
         },
         sampleRate: 0.5,
         maxRecords: 500

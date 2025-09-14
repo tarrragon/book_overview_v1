@@ -28,6 +28,7 @@
 
 const EventBus = require('src/core/event-bus')
 const { StandardError } = require('src/core/errors/StandardError')
+const MemoryLeakDetector = require('../../helpers/memory-leak-detector')
 
 // Mock BookDataExporter
 let mockExporterInstance
@@ -111,6 +112,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
   let exportManager
   let eventBus
   let mockBooks
+  let memoryDetector
 
   beforeEach(() => {
     // 準備測試資料
@@ -135,6 +137,12 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
     // 建立新的事件總線
     eventBus = new EventBus()
+
+    // 初始化記憶體洩漏檢測器
+    memoryDetector = new MemoryLeakDetector({
+      memoryGrowthThreshold: 10 * 1024 * 1024, // 10MB for unit tests
+      leakDetectionThreshold: 1024 // 1KB per operation
+    })
 
     // 清理所有模擬，但保持 mock 實例引用
     if (mockExporterInstance) {
@@ -786,13 +794,38 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
       expect(exportManager.currentExports.size).toBe(0)
     })
 
-    test('應該提供記憶體使用監控', () => {
+    test('應該提供記憶體使用監控', async () => {
+      // 測試 ExportManager 的記憶體使用監控功能
       expect(exportManager.getMemoryUsage).toBeDefined()
       expect(typeof exportManager.getMemoryUsage).toBe('function')
 
       const memoryUsage = exportManager.getMemoryUsage()
       expect(memoryUsage).toBeDefined()
       expect(typeof memoryUsage).toBe('object')
+
+      // 使用 MemoryLeakDetector 進行更深入的記憶體分析
+      const analysis = await memoryDetector.detectMemoryLeak(async (iteration) => {
+        // 模擬多次匯出操作來測試記憶體使用
+        const csvExportData = {
+          books: mockBooks,
+          options: {}
+        }
+        await eventBus.emit('EXPORT.CSV.REQUESTED', csvExportData)
+        
+        // 獲取當前記憶體使用情況
+        const currentUsage = exportManager.getMemoryUsage()
+        expect(currentUsage).toBeDefined()
+      }, 10, { testName: 'export-manager-memory-monitoring' })
+
+      console.log('📊 ExportManager 記憶體監控分析:')
+      console.log(`  平均每操作記憶體增長: ${analysis.leakDetection.formattedAverageGrowth}`)
+      console.log(`  記憶體效率: ${(analysis.efficiency.overallEfficiency * 100).toFixed(1)}%`)
+      console.log(`  洩漏嚴重程度: ${analysis.leakDetection.leakSeverity}`)
+
+      // 驗證記憶體健康度
+      expect(analysis.hasMemoryLeak).toBe(false)
+      expect(analysis.passesThresholds.overallOk).toBe(true)
+      expect(analysis.leakDetection.leakSeverity).not.toBe('critical')
     })
   })
 })

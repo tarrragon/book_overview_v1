@@ -1176,7 +1176,7 @@ describe('Schema Migration Service', () => {
       expect(rejected).toBe(2) // 其他被併發控制拒絕
     })
 
-    test('資源清理和垃圾回收', async () => {
+    test('資源清理和記憶體管理', async () => {
       const plan = await migrationService.createMigrationPlan('1.0.0', '2.0.0')
       await migrationService.executeMultiStepMigration(plan)
 

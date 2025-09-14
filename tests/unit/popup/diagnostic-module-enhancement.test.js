@@ -76,7 +76,7 @@ describe('🔧 DiagnosticModule Enhancement Tests (TDD循環 #43)', () => {
         diagnostic.enableRealtimeMonitoring({
           checkInterval: 1000, // 1秒
           alertThresholds: {
-            memoryUsage: 50000000, // 50MB
+            memoryUsage: Math.round(process.memoryUsage().heapUsed * 2), // 當前記憶體的 2 倍作為警告閾值
             errorRate: 10, // 每分鐘10個錯誤
             responseTime: 500 // 500ms
           }

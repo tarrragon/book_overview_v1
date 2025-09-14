@@ -7,17 +7,23 @@
 
 const { PerformanceMonitor, ChromeExtensionPerformanceMonitor } = require('../helpers/performance-monitor')
 const { PerformanceTestDataGenerator } = require('../helpers/performance-test-data-generator')
+const MemoryLeakDetector = require('../helpers/memory-leak-detector')
 
 describe('📊 基礎效能測試套件 v0.9.35', () => {
   let performanceMonitor
   let chromePerformanceMonitor
   let dataGenerator
+  let memoryDetector
   let testCleanup
 
   beforeAll(async () => {
     performanceMonitor = new PerformanceMonitor()
     chromePerformanceMonitor = new ChromeExtensionPerformanceMonitor()
     dataGenerator = new PerformanceTestDataGenerator()
+    memoryDetector = new MemoryLeakDetector({
+      memoryGrowthThreshold: 50 * 1024 * 1024, // 50MB for performance tests
+      leakDetectionThreshold: 2 * 1024 // 2KB per operation for performance tests
+    })
     testCleanup = []
 
     // 建立效能測試基準環境
@@ -251,35 +257,46 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
 
   describe('🧠 A3. 記憶體使用監控測試', () => {
     test('A3-1: 記憶體洩漏檢測 - 長時間運行不應超過基準20MB', async () => {
-      // Given: 建立記憶體基準
-      const baselineSnapshot = performanceMonitor.captureMemorySnapshot('memory-baseline')
-      const operationCount = 50
-      const maxMemoryGrowthMB = 20
-
-      // When: 執行多次操作模擬長時間運行
-      for (let i = 0; i < operationCount; i++) {
+      // 使用 MemoryLeakDetector 進行專業記憶體洩漏檢測
+      const analysis = await memoryDetector.detectMemoryLeak(async (iteration) => {
+        // Given: 模擬長時間運行的操作
         const books = dataGenerator.generateRealisticBooks(10, {
           complexityDistribution: { simple: 90, normal: 10, complex: 0 }
         })
-        await simulateBookExtraction(await setupMockWebPage(books), 10)
-
+        
+        // When: 執行書籍提取操作
+        const mockWebPage = await setupMockWebPage(books)
+        await simulateBookExtraction(mockWebPage, 10)
+        
+        // 模擬清理操作（測試記憶體回收）
+        books.length = 0
+        
         // 每10次操作等待記憶體穩定化
-        if (i % 10 === 9) {
+        if (iteration % 10 === 9) {
           await new Promise(resolve => setTimeout(resolve, 50))
         }
-      }
+      }, 50, { testName: 'long-running-performance-test' })
 
-      const finalSnapshot = performanceMonitor.captureMemorySnapshot('memory-final')
+      console.log('🧠 記憶體洩漏檢測結果:')
+      console.log(`  基準記憶體: ${analysis.summary.formattedGrowth}`)
+      console.log(`  平均每操作記憶體增長: ${analysis.leakDetection.formattedAverageGrowth}`)
+      console.log(`  洩漏嚴重程度: ${analysis.leakDetection.leakSeverity}`)
+      console.log(`  記憶體增長趨勢: ${analysis.leakDetection.memoryGrowthTrend}`)
+      console.log(`  記憶體回收率: ${(analysis.efficiency.memoryRecoveryRate * 100).toFixed(1)}%`)
+      console.log(`  信心度: ${(analysis.passesThresholds.overallOk ? '通過' : '未通過')}`)
 
-      // Then: 使用高精度記憶體洩漏檢測
-      const leakAnalysis = performanceMonitor.detectMemoryLeaks(baselineSnapshot, finalSnapshot)
-      expect(leakAnalysis.memoryGrowthMB).toBeLessThan(leakAnalysis.dynamicThreshold || maxMemoryGrowthMB)
-      expect(leakAnalysis.isPotentialLeak).toBe(false)
-      expect(leakAnalysis.confidenceLevel).toBeGreaterThan(0.7)
-      expect(leakAnalysis.riskLevel).not.toBe('high')
-
-      console.log(`✅ 記憶體增長: ${leakAnalysis.memoryGrowthMB}MB (閥值: ${leakAnalysis.dynamicThreshold}MB)`)
-      console.log(`   信心度: ${(leakAnalysis.confidenceLevel * 100).toFixed(1)}%, 風險等級: ${leakAnalysis.riskLevel}`)
+      // Then: 驗證記憶體健康度
+      expect(analysis.hasMemoryLeak).toBe(false)
+      expect(analysis.passesThresholds.overallOk).toBe(true)
+      expect(analysis.leakDetection.leakSeverity).not.toBe('critical')
+      expect(analysis.leakDetection.leakSeverity).not.toBe('high')
+      
+      // 記憶體效率應該良好（長時間運行的效能測試）
+      expect(analysis.efficiency.memoryRecoveryRate).toBeGreaterThan(0.6) // 60% 回收率
+      expect(analysis.efficiency.overallEfficiency).toBeGreaterThan(0.5) // 50% 整體效率
+      
+      // 總記憶體增長應該在合理範圍內
+      expect(analysis.summary.totalMemoryGrowth).toBeLessThan(20 * 1024 * 1024) // 20MB 閾值
     })
 
     test('A3-2: Chrome Extension API 效能測試', async () => {

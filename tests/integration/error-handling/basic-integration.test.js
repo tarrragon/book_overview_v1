@@ -16,6 +16,7 @@ const { MessageDictionary, GlobalMessages } = require('src/core/messages/Message
 
 // 測試 StorageAPIValidator 修復
 const { StorageAPIValidator } = require('../../helpers/storage-api-validator')
+const MemoryLeakDetector = require('../../helpers/memory-leak-detector')
 
 describe('錯誤處理系統基本整合測試', () => {
   let consoleSpy
@@ -312,37 +313,54 @@ describe('錯誤處理系統基本整合測試', () => {
 })
 
 describe('效能和記憶體使用驗證', () => {
-  test('系統記憶體使用應該在限制內', () => {
-    // Given: 建立多個組件實例
-    const components = {
-      errors: Array.from({ length: 10 }, (_, i) =>
-        new StandardError(`TEST_ERROR_${i}`, `錯誤 ${i}`, { index: i })
-      ),
-      results: Array.from({ length: 10 }, (_, i) =>
-        OperationResult.success({ id: i, data: `result_${i}` })
-      ),
-      logger: createLogger('MemoryTest'),
-      messages: new MessageDictionary()
-    }
+  let memoryDetector
 
-    // When: 估算記憶體使用
-    const estimateMemoryUsage = (obj) => {
-      try {
-        return JSON.stringify(obj).length * 2 // 粗略估算 (每字符約2bytes)
-      } catch (e) {
-        return 1000 // 預設估算
+  beforeEach(() => {
+    memoryDetector = new MemoryLeakDetector({
+      memoryGrowthThreshold: 10 * 1024 * 1024, // 10MB
+      leakDetectionThreshold: 1024 // 1KB per operation
+    })
+  })
+
+  test('系統記憶體使用應該在限制內', async () => {
+    // 使用 MemoryLeakDetector 進行精確記憶體測量
+    const analysis = await memoryDetector.detectMemoryLeak(async (iteration) => {
+      // Given: 建立多個組件實例
+      const components = {
+        errors: Array.from({ length: 10 }, (_, i) =>
+          new StandardError(`TEST_ERROR_${i}`, `錯誤 ${i}`, { index: i })
+        ),
+        results: Array.from({ length: 10 }, (_, i) =>
+          OperationResult.success({ id: i, data: `result_${i}` })
+        ),
+        logger: createLogger('MemoryTest'),
+        messages: new MessageDictionary()
       }
-    }
 
-    const errorMemory = components.errors.reduce((sum, err) => sum + estimateMemoryUsage(err.toJSON()), 0)
-    const resultMemory = components.results.reduce((sum, res) => sum + estimateMemoryUsage(res.toJSON()), 0)
-    const messageMemory = estimateMemoryUsage(components.messages.export())
+      // When: 執行操作以測試記憶體使用
+      components.errors.forEach(err => err.toJSON())
+      components.results.forEach(res => res.toJSON())
+      components.logger.info('MEMORY_TEST', { iteration })
+      
+      // 模擬清理操作
+      components.errors.length = 0
+      components.results.length = 0
+    }, 20, { testName: 'error-handling-system-memory' })
 
-    const totalMemory = errorMemory + resultMemory + messageMemory
+    console.log('📊 錯誤處理系統記憶體分析:')
+    console.log(`  平均每操作記憶體增長: ${analysis.leakDetection.formattedAverageGrowth}`)
+    console.log(`  記憶體效率: ${(analysis.efficiency.overallEfficiency * 100).toFixed(1)}%`)
+    console.log(`  洩漏嚴重程度: ${analysis.leakDetection.leakSeverity}`)
+    console.log(`  記憶體回收率: ${(analysis.efficiency.memoryRecoveryRate * 100).toFixed(1)}%`)
 
     // Then: 記憶體使用應該在合理範圍內
-    expect(totalMemory).toBeLessThan(100 * 1024) // 小於100KB
-    expect(errorMemory / components.errors.length).toBeLessThan(1024) // 每個錯誤<1KB
+    expect(analysis.hasMemoryLeak).toBe(false)
+    expect(analysis.passesThresholds.overallOk).toBe(true)
+    expect(analysis.leakDetection.leakSeverity).not.toBe('critical')
+    expect(analysis.leakDetection.leakSeverity).not.toBe('high')
+    
+    // 記憶體效率應該良好
+    expect(analysis.efficiency.overallEfficiency).toBeGreaterThan(0.7)
   })
 
   test('系統響應時間應該在限制內', async () => {

@@ -27,6 +27,7 @@
 const EventBus = require('src/core/event-bus')
 const { EXPORT_EVENTS } = require('src/export/export-events')
 const { StandardError } = require('src/core/errors/StandardError')
+const MemoryLeakDetector = require('../../helpers/memory-leak-detector')
 
 // 模擬 Chrome APIs
 global.chrome = {
@@ -219,10 +220,15 @@ class ProgressIndicator {
 describe('ExportUIIntegration', () => {
   let eventBus
   let exportUI
+  let memoryDetector
 
   beforeEach(() => {
     eventBus = new EventBus()
     exportUI = new ExportUIIntegration(eventBus)
+    memoryDetector = new MemoryLeakDetector({
+      memoryGrowthThreshold: 5 * 1024 * 1024, // 5MB for UI tests
+      leakDetectionThreshold: 512 // 512B per operation for UI
+    })
   })
 
   afterEach(() => {
@@ -523,7 +529,7 @@ describe('ExportUIIntegration', () => {
       }).toThrow()
     })
 
-    test('應該清理 UI 資源', () => {
+    test('應該清理 UI 資源', async () => {
       expect(() => {
         exportUI.cleanup()
       }).toMatchObject({
@@ -535,6 +541,34 @@ describe('ExportUIIntegration', () => {
       // - DOM 元素清理
       // - 記憶體釋放
       // - 定時器清除
+
+      // 記憶體洩漏檢測：驗證清理操作不會造成記憶體洩漏
+      const analysis = await memoryDetector.detectMemoryLeak(async (iteration) => {
+        const tempExportUI = new ExportUIIntegration(eventBus)
+        
+        // 模擬初始化和使用
+        try {
+          tempExportUI.initialize()
+        } catch (error) {
+          // Red phase: expected to throw
+        }
+        
+        // 模擬清理操作
+        try {
+          tempExportUI.cleanup()
+        } catch (error) {
+          // Red phase: expected to throw
+        }
+      }, 20, { testName: 'ui-resource-cleanup' })
+
+      console.log('🧹 UI 資源清理記憶體分析:')
+      console.log(`  平均每清理操作記憶體增長: ${analysis.leakDetection.formattedAverageGrowth}`)
+      console.log(`  記憶體回收率: ${(analysis.efficiency.memoryRecoveryRate * 100).toFixed(1)}%`)
+      console.log(`  清理效率: ${(analysis.efficiency.overallEfficiency * 100).toFixed(1)}%`)
+
+      // 清理操作不應該造成記憶體洩漏
+      expect(analysis.hasMemoryLeak).toBe(false)
+      expect(analysis.efficiency.memoryRecoveryRate).toBeGreaterThan(0.8) // 80% 記憶體回收率
     })
   })
 

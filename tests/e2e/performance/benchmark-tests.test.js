@@ -28,10 +28,12 @@
  */
 
 const ExtensionTestSetup = require('../setup/extension-setup')
+const MemoryLeakDetector = require('../../helpers/memory-leak-detector')
 
 describe('📊 Chrome Extension 效能基準測試', () => {
   let testSetup
   let backgroundPage
+  let memoryDetector
 
   jest.setTimeout(120000) // 2 分鐘超時
 
@@ -39,6 +41,10 @@ describe('📊 Chrome Extension 效能基準測試', () => {
     testSetup = new ExtensionTestSetup()
     await testSetup.setup({ headless: true })
     backgroundPage = await testSetup.getBackgroundPage()
+    memoryDetector = new MemoryLeakDetector({
+      memoryGrowthThreshold: 100 * 1024 * 1024, // 100MB for E2E tests
+      leakDetectionThreshold: 5 * 1024 // 5KB per operation for UI operations
+    })
   })
 
   afterAll(async () => {
@@ -115,59 +121,68 @@ describe('📊 Chrome Extension 效能基準測試', () => {
 
   describe('💾 記憶體使用測試', () => {
     test('基準記憶體使用測量', async () => {
-      // 測量初始記憶體使用
-      const initialMemory = await measureMemoryUsage(testSetup.page)
+      // 使用 MemoryLeakDetector 進行精確記憶體監控
+      memoryDetector.startMonitoring()
+      
+      // 記錄初始狀態
+      const initialOpId = memoryDetector.recordOperationStart('initial-state', { phase: 'baseline' })
+      await memoryDetector.recordOperationEnd(initialOpId)
 
+      // 記錄導航操作
+      const navOpId = memoryDetector.recordOperationStart('navigate-to-readmoo')
       await testSetup.navigateToReadmoo()
-      const afterNavigationMemory = await measureMemoryUsage(testSetup.page)
+      await memoryDetector.recordOperationEnd(navOpId)
 
+      // 記錄彈出視窗操作
+      const popupOpId = memoryDetector.recordOperationStart('open-extension-popup')
       const popupPage = await testSetup.openExtensionPopup()
-      const afterPopupMemory = await measureMemoryUsage(popupPage)
+      const popupOperation = await memoryDetector.recordOperationEnd(popupOpId)
+
+      const analysis = await memoryDetector.stopMonitoring()
 
       console.log('📊 記憶體使用分析:')
-      console.log(`  初始狀態: ${initialMemory.toFixed(2)}MB`)
-      console.log(`  導航後: ${afterNavigationMemory.toFixed(2)}MB`)
-      console.log(`  開啟 Popup 後: ${afterPopupMemory.toFixed(2)}MB`)
+      console.log(`  基準記憶體: ${analysis.summary.formattedGrowth}`)
+      console.log(`  總記憶體增長: ${analysis.summary.formattedGrowth}`)
+      console.log(`  彈出視窗操作記憶體增長: ${memoryDetector._formatMemorySize(popupOperation.memoryDelta)}`)
+      console.log(`  記憶體效率: ${(analysis.efficiency.overallEfficiency * 100).toFixed(1)}%`)
 
       // 驗證記憶體使用在合理範圍內
-      expect(afterPopupMemory).toBeLessThan(100) // 少於 100MB
+      expect(analysis.summary.totalMemoryGrowth).toBeLessThan(100 * 1024 * 1024) // 少於 100MB
+      expect(analysis.passesThresholds.memoryGrowthOk).toBe(true)
+      expect(popupOperation.memoryDelta).toBeLessThan(50 * 1024 * 1024) // 彈出視窗不應占用超過 50MB
 
       await popupPage.close()
     })
 
     test('記憶體洩漏檢測', async () => {
-      const iterations = 5
-      const memoryReadings = []
-
-      for (let i = 0; i < iterations; i++) {
+      // 使用 MemoryLeakDetector 進行專業記憶體洩漏檢測
+      const analysis = await memoryDetector.detectMemoryLeak(async (iteration) => {
         // 執行一次完整的提取流程
         const popupPage = await testSetup.openExtensionPopup()
         await popupPage.click('#extractButton')
         await popupPage.waitForSelector('.status-completed', { timeout: 20000 })
-
-        // 測量記憶體
-        const memory = await measureMemoryUsage(popupPage)
-        memoryReadings.push(memory)
-
+        
         await popupPage.close()
-
-        // 等待資源釋放和記憶體穩定化
-        await testSetup.page.waitForTimeout(1500) // 等待資源清理完成
-      }
+        
+        // 等待資源釋放
+        await testSetup.page.waitForTimeout(800)
+      }, 5, { testName: 'extension-popup-extraction-cycle' })
 
       console.log('🔍 記憶體洩漏檢測結果:')
-      memoryReadings.forEach((reading, index) => {
-        console.log(`  第 ${index + 1} 次: ${reading.toFixed(2)}MB`)
-      })
+      console.log(`  基準記憶體: ${analysis.summary.formattedGrowth}`)
+      console.log(`  平均每操作記憶體增長: ${analysis.leakDetection.formattedAverageGrowth}`)
+      console.log(`  洩漏嚴重程度: ${analysis.leakDetection.leakSeverity}`)
+      console.log(`  記憶體增長趨勢: ${analysis.leakDetection.memoryGrowthTrend}`)
+      console.log(`  記憶體回收率: ${(analysis.efficiency.memoryRecoveryRate * 100).toFixed(1)}%`)
 
-      // 檢測記憶體是否持續增長（簡單的洩漏檢測）
-      const avgFirst2 = (memoryReadings[0] + memoryReadings[1]) / 2
-      const avgLast2 = (memoryReadings[iterations - 2] + memoryReadings[iterations - 1]) / 2
-      const growthRate = (avgLast2 - avgFirst2) / avgFirst2
-
-      // 記憶體增長不應超過 50%
-      expect(growthRate).toBeLessThan(0.5)
-      console.log(`📈 記憶體增長率: ${(growthRate * 100).toFixed(2)}%`)
+      // 驗證記憶體健康度
+      expect(analysis.hasMemoryLeak).toBe(false)
+      expect(analysis.passesThresholds.overallOk).toBe(true)
+      expect(analysis.leakDetection.leakSeverity).not.toBe('critical')
+      expect(analysis.leakDetection.leakSeverity).not.toBe('high')
+      
+      // 記憶體回收率應該良好
+      expect(analysis.efficiency.memoryRecoveryRate).toBeGreaterThan(0.6)
     })
   })
 
