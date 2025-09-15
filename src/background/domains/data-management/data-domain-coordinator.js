@@ -34,7 +34,7 @@
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
-const { createLogger } = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 
 class DataDomainCoordinator extends BaseModule {
   /**
@@ -45,12 +45,12 @@ class DataDomainCoordinator extends BaseModule {
   constructor (eventBus, dependencies = {}) {
     super({
       eventBus,
-      logger: dependencies.logger || createLogger('DataDomainCoordinator'),
+      logger: dependencies.logger || new Logger('DataDomainCoordinator'),
       config: dependencies.config || {}
     })
 
     this.eventBus = eventBus
-    this.logger = dependencies.logger || createLogger('DataDomainCoordinator')
+    this.logger = dependencies.logger || new Logger('DataDomainCoordinator')
     this.config = dependencies.config || {}
 
     // 資料管理服務實例 - v1.0 僅實作 Readmoo 所需服務

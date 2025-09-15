@@ -19,7 +19,7 @@
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
-const { createLogger } = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 const { StandardError } = require('src/core/errors/StandardError')
 
 class QualityAssessmentService extends BaseModule {
@@ -42,7 +42,7 @@ class QualityAssessmentService extends BaseModule {
     })
 
     this.eventBus = eventBus
-    this.logger = dependencies.logger || createLogger('QualityAssessmentService')
+    this.logger = dependencies.logger || new Logger('QualityAssessmentService')
 
     // 合併預設配置
     this.config = this.mergeWithDefaults(dependencies.config || {})

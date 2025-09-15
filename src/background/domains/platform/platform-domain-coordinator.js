@@ -34,7 +34,7 @@
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
-const { createLogger } = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 
 class PlatformDomainCoordinator extends BaseModule {
   /**
@@ -46,7 +46,7 @@ class PlatformDomainCoordinator extends BaseModule {
     super('PlatformDomainCoordinator')
 
     this.eventBus = eventBus
-    this.logger = dependencies.logger || createLogger('PlatformDomainCoordinator')
+    this.logger = dependencies.logger || new Logger('PlatformDomainCoordinator')
     this.config = dependencies.config || {}
 
     // 平台管理服務實例

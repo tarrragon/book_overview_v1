@@ -19,8 +19,8 @@
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
-const { createLogger } = require('src/core/logging/Logger')
-const { StandardError: StandardError } = // require StandardError (unused)')
+const { Logger } = require('src/core/logging/Logger')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class ValidationRuleManager extends BaseModule {
   /**
@@ -42,7 +42,7 @@ class ValidationRuleManager extends BaseModule {
     })
 
     this.eventBus = eventBus
-    this.logger = dependencies.logger || createLogger('ValidationRuleManager')
+    this.logger = dependencies.logger || new Logger('ValidationRuleManager')
 
     // 合併預設配置
     this.effectiveConfig = this.mergeWithDefaults(dependencies.config || {})

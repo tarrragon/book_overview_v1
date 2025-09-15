@@ -20,7 +20,7 @@
 
 const BaseModule = require('src/background/lifecycle/base-module')
 const crypto = require('crypto')
-const { createLogger } = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 const { StandardError } = require('src/core/errors/StandardError')
 
 class DataNormalizationService extends BaseModule {
@@ -43,7 +43,7 @@ class DataNormalizationService extends BaseModule {
     })
 
     this.eventBus = eventBus
-    this.logger = dependencies.logger || createLogger('DataNormalizationService')
+    this.logger = dependencies.logger || new Logger('DataNormalizationService')
 
     // 合併預設配置
     this.config = this.mergeWithDefaults(dependencies.config || {})

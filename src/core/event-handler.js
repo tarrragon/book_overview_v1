@@ -1,4 +1,4 @@
-const Logger = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 const { StandardError } = require('src/core/errors/StandardError')
 
 /**
@@ -43,6 +43,7 @@ class EventHandler {
     this.executionCount = 0
     this.lastExecutionTime = null
     this.averageExecutionTime = 0
+    this.logger = new Logger(name || 'EventHandler')
   }
 
   /**
@@ -95,7 +96,7 @@ class EventHandler {
    */
   async beforeHandle (event) {
     // 預設實現：記錄日誌
-    Logger.info(`[${this.name}] Processing event: ${event.type}`)
+    this.logger.info('EVENT_PROCESSING_START', { eventType: event.type })
   }
 
   /**
@@ -105,7 +106,7 @@ class EventHandler {
    */
   async afterHandle (event, result) {
     // 預設實現：記錄結果
-    Logger.info(`[${this.name}] Completed event: ${event.type}`)
+    this.logger.info('EVENT_PROCESSING_COMPLETE', { eventType: event.type })
   }
 
   /**
@@ -115,7 +116,7 @@ class EventHandler {
    */
   async onError (event, error) {
     // eslint-disable-next-line no-console
-    Logger.error(`[${this.name}] Error processing event: ${event.type}`, error)
+    this.logger.error('EVENT_PROCESSING_ERROR', { eventType: event.type, error: error.message })
   }
 
   /**

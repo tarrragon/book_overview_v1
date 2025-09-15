@@ -138,7 +138,7 @@ async function initializeBackgroundSystem () {
 
     return backgroundCoordinator
   } catch (error) {
-    log.error('INIT_FAILED', { attempt: initializationAttempts, error: error })
+    log.error('INIT_FAILED', { attempt: initializationAttempts, error })
 
     // 重試邏輯
     if (initializationAttempts < MAX_INITIALIZATION_ATTEMPTS) {

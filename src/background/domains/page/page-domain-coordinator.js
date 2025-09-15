@@ -19,7 +19,7 @@ const ContentScriptCoordinatorService = require('./services/content-script-coord
 const TabStateTrackingService = require('./services/tab-state-tracking-service')
 const PermissionManagementService = require('./services/permission-management-service')
 const NavigationService = require('./services/navigation-service')
-const { StandardError: StandardError } = // require StandardError (unused)')
+const { StandardError } = require('src/core/errors/StandardError')
 
 const {
   PAGE_EVENTS,

@@ -29,7 +29,7 @@
  */
 
 // 導入統一日誌系統
-const { createLogger } = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 
 /**
  * 建立 Readmoo 適配器實例
@@ -40,7 +40,7 @@ const { createLogger } = require('src/core/logging/Logger')
  */
 function createReadmooAdapter (options = {}) {
   // 建立專用日誌記錄器
-  const logger = createLogger('ReadmooAdapter')
+  const logger = new Logger('ReadmooAdapter')
   const stats = {
     totalExtracted: 0,
     successfulExtractions: 0,

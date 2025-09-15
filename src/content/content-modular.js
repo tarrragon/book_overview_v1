@@ -1,4 +1,4 @@
-const Logger = require("src/core/logging/Logger")
+const Logger = require('src/core/logging/Logger')
 /**
  * content-modular.js
  *

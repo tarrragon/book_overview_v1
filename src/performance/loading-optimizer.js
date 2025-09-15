@@ -1,4 +1,4 @@
-const Logger = require("src/core/logging/Logger")
+const Logger = require('src/core/logging/Logger')
 /**
  * @fileoverview LoadingOptimizer - 載入速度優化系統
  * TDD 循環 #35: Chrome Extension 載入效能優化

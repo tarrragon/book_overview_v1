@@ -1,6 +1,6 @@
 const { StandardError } = require('src/core/errors/StandardError')
 
-const { createLogger } = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 
 /**
  * @fileoverview Adapter Factory Service - 適配器工廠服務
@@ -42,7 +42,7 @@ class AdapterFactoryService {
    */
   constructor (eventBus, dependencies = {}) {
     this.eventBus = eventBus
-    this.logger = dependencies.logger !== undefined ? dependencies.logger : createLogger('[AdapterFactoryService]')
+    this.logger = dependencies.logger !== undefined ? dependencies.logger : new Logger('[AdapterFactoryService]')
     this.config = dependencies.config || {}
     this.platformRegistry = dependencies.platformRegistry
     this.performanceMonitor = dependencies.performanceMonitor
@@ -1441,7 +1441,7 @@ class AdapterFactoryService {
       this.logger.info(`[AdapterFactoryService] ${message}`)
     } else {
       // eslint-disable-next-line no-console
-      Logger.info(`[AdapterFactoryService] ${message}`)
+      console.info(`[AdapterFactoryService] ${message}`)
     }
   }
 
@@ -1456,7 +1456,7 @@ class AdapterFactoryService {
     } else {
       // eslint-disable-next-line no-console
       // eslint-disable-next-line no-console
-      Logger.error(`[AdapterFactoryService] ${message}`, error)
+      console.error(`[AdapterFactoryService] ${message}`, error)
     }
   }
 }

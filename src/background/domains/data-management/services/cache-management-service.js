@@ -20,7 +20,7 @@
 
 const BaseModule = require('src/background/lifecycle/base-module')
 const crypto = require('crypto')
-const { createLogger } = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 const { StandardError } = require('src/core/errors/StandardError')
 
 class CacheManagementService extends BaseModule {
@@ -52,7 +52,7 @@ class CacheManagementService extends BaseModule {
    */
   initializeBaseServices (eventBus, dependencies) {
     this.eventBus = eventBus
-    this.logger = dependencies.logger || createLogger('CacheManagementService')
+    this.logger = dependencies.logger || new Logger('CacheManagementService')
   }
 
   /**

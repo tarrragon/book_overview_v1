@@ -9,7 +9,7 @@
  * - 支援 Chrome Extension 環境
  *
  * @example
- * const logger = new Logger('BookExtraction')
+ * const logger = createLogger('BookExtraction')
  * logger.info('OPERATION_COMPLETE', { bookCount: 5 })
  * logger.error('VALIDATION_FAILED', { field: 'title', error: 'required' })
  */
@@ -349,13 +349,44 @@ class Logger {
   }
 }
 
-// 匯出類別
+/**
+ * 建立 Logger 實例的工廠函數
+ * @param {string} name - Logger 名稱
+ * @param {string} level - 日誌等級（可選）
+ * @returns {Logger} Logger 實例
+ */
+function createLogger (name, level = 'INFO') {
+  return new Logger(name, level)
+}
+
+/**
+ * 建立快捷 Logger（用於快速替換 console.log）
+ * @param {string} name - Logger 名稱
+ * @returns {Object} 包含常用方法的物件
+ */
+function quickLogger (name) {
+  const logger = new Logger(name)
+
+  return {
+    log: (messageKey, data) => logger.info(messageKey, data),
+    info: (messageKey, data) => logger.info(messageKey, data),
+    warn: (messageKey, data) => logger.warn(messageKey, data),
+    error: (messageKey, data) => logger.error(messageKey, data),
+    debug: (messageKey, data) => logger.debug(messageKey, data)
+  }
+}
+
+// 匯出類別和函數
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     Logger,
+    createLogger,
+    quickLogger,
     LOG_LEVELS
   }
 } else if (typeof window !== 'undefined') {
   window.Logger = Logger
+  window.createLogger = createLogger
+  window.quickLogger = quickLogger
   window.LOG_LEVELS = LOG_LEVELS
 }

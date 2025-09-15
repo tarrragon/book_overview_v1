@@ -1,4 +1,4 @@
-const Logger = require("src/core/logging/Logger")
+const Logger = require('src/core/logging/Logger')
 /**
  * PopupErrorHandler - 重構版錯誤處理器 (TDD 循環 #42)
  *

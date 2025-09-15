@@ -16,7 +16,7 @@
 
 const BaseModule = require('src/background/lifecycle/base-module')
 const { SYSTEM_EVENTS, EVENT_PRIORITIES } = require('src/background/constants/module-constants')
-const { createLogger } = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 const { StandardError } = require('src/core/errors/StandardError')
 
 class EventCoordinator extends BaseModule {
@@ -24,7 +24,7 @@ class EventCoordinator extends BaseModule {
     super(dependencies)
 
     // 確保有 logger
-    this.logger = this.logger || createLogger('EventCoordinator')
+    this.logger = this.logger || new Logger('EventCoordinator')
 
     // 事件系統組件
     this.eventSystemInitializer = dependencies.eventSystemInitializer || null

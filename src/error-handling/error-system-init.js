@@ -1,4 +1,3 @@
-const Logger = require("src/core/logging/Logger")
 /**
  * 錯誤處理系統初始化器
  *
@@ -14,6 +13,7 @@ const Logger = require("src/core/logging/Logger")
  * - 生產環境錯誤監控設定
  */
 
+const Logger = require('src/core/logging/Logger')
 const MessageErrorHandler = require('./message-error-handler')
 const EventErrorHandler = require('./event-error-handler')
 const MessageTracker = require('./message-tracker')

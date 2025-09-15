@@ -1,4 +1,4 @@
-const { createLogger } = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 
 /**
  * @fileoverview Platform Detection Service - 平台自動檢測和識別服務
@@ -39,7 +39,7 @@ class PlatformDetectionService {
   constructor (eventBus, config = {}) {
     try {
       this.eventBus = eventBus
-      this.logger = config.logger || createLogger('[PlatformDetectionService]')
+      this.logger = config.logger || new Logger('[PlatformDetectionService]')
       this.confidenceThreshold = 0.8
       this.detectionCache = new Map()
       this.cacheTimeout = 5 * 60 * 1000 // 5 minutes
@@ -63,12 +63,12 @@ class PlatformDetectionService {
         this.registerEventListeners()
       } catch (listenerError) {
         // 監聽器註冊失敗不影響服務創建
-        this.logger ? this.logger.warn('Event listener registration failed', { error: listenerError.message }) : createLogger('[PlatformDetectionService]').warn('Event listener registration failed', { error: listenerError.message })
+        this.logger ? this.logger.warn('Event listener registration failed', { error: listenerError.message }) : new Logger('[PlatformDetectionService]').warn('Event listener registration failed', { error: listenerError.message })
       }
     } catch (initError) {
       // 即使初始化失敗，也要創建服務的基本狀態
       this.eventBus = null
-      this.logger = config.logger || createLogger('[PlatformDetectionService]')
+      this.logger = config.logger || new Logger('[PlatformDetectionService]')
       this.confidenceThreshold = 0.8
       this.detectionCache = new Map()
       this.cacheTimeout = 5 * 60 * 1000
@@ -82,7 +82,7 @@ class PlatformDetectionService {
         cacheStats: { hits: 0, misses: 0 }
       }
       this.platformPatterns = this.initializePlatformPatterns()
-      createLogger('[PlatformDetectionService]').warn('Service initialization partially failed', { error: initError.message })
+      new Logger('[PlatformDetectionService]').warn('Service initialization partially failed', { error: initError.message })
     }
   }
 
@@ -763,7 +763,7 @@ class PlatformDetectionService {
       })
     } catch (eventError) {
       // 事件發送失敗不應該影響檢測結果
-      this.logger ? this.logger.warn('Failed to emit detection events', { error: eventError?.message || eventError }) : createLogger('[PlatformDetectionService]').warn('Failed to emit detection events', { error: eventError?.message || eventError })
+      this.logger ? this.logger.warn('Failed to emit detection events', { error: eventError?.message || eventError }) : new Logger('[PlatformDetectionService]').warn('Failed to emit detection events', { error: eventError?.message || eventError })
     }
   }
 
@@ -993,7 +993,7 @@ class PlatformDetectionService {
       }
     } catch (error) {
       // 事件發送失敗不應該影響服務運作
-      this.logger ? this.logger.warn(`Failed to emit event ${eventType}`, { error: error?.message || error }) : createLogger('[PlatformDetectionService]').warn(`Failed to emit event ${eventType}`, { error: error?.message || error })
+      this.logger ? this.logger.warn(`Failed to emit event ${eventType}`, { error: error?.message || error }) : new Logger('[PlatformDetectionService]').warn(`Failed to emit event ${eventType}`, { error: error?.message || error })
     }
   }
 

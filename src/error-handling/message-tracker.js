@@ -1,4 +1,4 @@
-const Logger = require("src/core/logging/Logger")
+const Logger = require('src/core/logging/Logger')
 /**
  * MessageTracker - 即時訊息追蹤診斷系統
  * TDD 循環 #33: 即時診斷系統

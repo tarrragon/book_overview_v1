@@ -1,6 +1,6 @@
 const { StandardError } = require('src/core/errors/StandardError')
 
-const { createLogger } = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 
 /**
  * @fileoverview Platform Registry Service - 平台註冊管理服務
@@ -41,7 +41,7 @@ class PlatformRegistryService {
   constructor (eventBus, config = {}) {
     this.eventBus = eventBus
     this.config = config
-    this.logger = config.logger || createLogger('[PlatformRegistryService]')
+    this.logger = config.logger || new Logger('[PlatformRegistryService]')
 
     // 平台註冊表 - 核心資料結構
     this.platformRegistry = new Map()
@@ -925,7 +925,7 @@ class PlatformRegistryService {
     if (this.logger && typeof this.logger.info === 'function') {
       this.logger.info(message)
     } else {
-      createLogger('[PlatformRegistryService]').info(message)
+      new Logger('[PlatformRegistryService]').info(message)
     }
   }
 
@@ -938,7 +938,7 @@ class PlatformRegistryService {
     if (this.logger && typeof this.logger.error === 'function') {
       this.logger.error(message, { error: error?.message || error })
     } else {
-      createLogger('[PlatformRegistryService]').error(message, { error: error?.message || error })
+      new Logger('[PlatformRegistryService]').error(message, { error: error?.message || error })
     }
   }
 }

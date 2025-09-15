@@ -5,10 +5,10 @@
  * 支援 CommonJS 和瀏覽器環境
  */
 
-const { Logger, createLogger, quickLogger, LOG_LEVELS } = require('./Logger')
+const { Logger, LOG_LEVELS } = require('./Logger')
 
 /**
- * 預設日誌等級
+ * 預設日誌等級 (向下相容)
  */
 const LogLevels = {
   DEBUG: 'DEBUG',
@@ -17,12 +17,10 @@ const LogLevels = {
   ERROR: 'ERROR'
 }
 
-// 匯出所有日誌系統組件
+// 匯出日誌系統組件
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     Logger,
-    createLogger,
-    quickLogger,
     LOG_LEVELS,
     LogLevels
   }
@@ -30,8 +28,6 @@ if (typeof module !== 'undefined' && module.exports) {
   // 瀏覽器環境
   window.LoggingSystem = {
     Logger,
-    createLogger,
-    quickLogger,
     LOG_LEVELS,
     LogLevels
   }

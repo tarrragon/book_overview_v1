@@ -1,2430 +1,1285 @@
 /**
-const Logger = require("src/core/logging/Logger")
  * Overview 頁面控制器 - TDD 循環 #26
-const Logger = require("src/core/logging/Logger")
  * 基於 EventHandler 實現 Overview 頁面與事件系統的整合
-const Logger = require("src/core/logging/Logger")
  *
-const Logger = require("src/core/logging/Logger")
  * 負責功能：
-const Logger = require("src/core/logging/Logger")
  * - 管理 Overview 頁面的初始化和資料顯示
-const Logger = require("src/core/logging/Logger")
  * - 處理事件驅動的資料載入和更新
-const Logger = require("src/core/logging/Logger")
  * - 提供搜尋、篩選和匯出功能
-const Logger = require("src/core/logging/Logger")
  * - 整合儲存系統和 UI 狀態管理
-const Logger = require("src/core/logging/Logger")
  *
-const Logger = require("src/core/logging/Logger")
  * 設計考量：
-const Logger = require("src/core/logging/Logger")
  * - 繼承 EventHandler 提供標準化的事件處理流程
-const Logger = require("src/core/logging/Logger")
  * - 響應式資料更新機制
-const Logger = require("src/core/logging/Logger")
  * - 完整的錯誤處理和載入狀態管理
-const Logger = require("src/core/logging/Logger")
  * - 支援多種資料來源和格式
-const Logger = require("src/core/logging/Logger")
  *
-const Logger = require("src/core/logging/Logger")
  * 處理流程：
-const Logger = require("src/core/logging/Logger")
  * 1. 初始化 DOM 元素引用和事件監聽器
-const Logger = require("src/core/logging/Logger")
  * 2. 處理儲存系統載入完成事件
-const Logger = require("src/core/logging/Logger")
  * 3. 管理書籍資料的顯示和篩選
-const Logger = require("src/core/logging/Logger")
  * 4. 提供使用者操作功能（搜尋、匯出、重載）
-const Logger = require("src/core/logging/Logger")
  * 5. 維護頁面狀態和統計資訊
-const Logger = require("src/core/logging/Logger")
  *
-const Logger = require("src/core/logging/Logger")
  * 使用情境：
-const Logger = require("src/core/logging/Logger")
  * - Overview 頁面的主要控制器
-const Logger = require("src/core/logging/Logger")
  * - 事件驅動的資料管理
-const Logger = require("src/core/logging/Logger")
  * - 使用者互動功能的協調中心
-const Logger = require("src/core/logging/Logger")
  */
 
 // 動態取得 EventHandler（支援瀏覽器和 Node.js）
-const Logger = require("src/core/logging/Logger")
 let EventHandlerClass
-const Logger = require("src/core/logging/Logger")
 let StandardError
-const Logger = require("src/core/logging/Logger")
 if (typeof window !== 'undefined') {
-const Logger = require("src/core/logging/Logger")
   // 瀏覽器環境：從全域變數取得（應該已由 event-handler.js 載入）
-const Logger = require("src/core/logging/Logger")
   EventHandlerClass = window.EventHandler
-const Logger = require("src/core/logging/Logger")
   StandardError = window.StandardError
-const Logger = require("src/core/logging/Logger")
   if (!EventHandlerClass) {
-const Logger = require("src/core/logging/Logger")
     if (StandardError) {
-const Logger = require("src/core/logging/Logger")
       throw new StandardError('DEPENDENCY_ERROR', 'EventHandler 未在全域變數中找到，請確認 event-handler.js 已正確載入', { category: 'dependency' })
-const Logger = require("src/core/logging/Logger")
     } else {
-const Logger = require("src/core/logging/Logger")
       throw new StandardError('UNKNOWN_ERROR', 'EventHandler 未在全域變數中找到，請確認 event-handler.js 已正確載入', {
-const Logger = require("src/core/logging/Logger")
         category: 'general'
-const Logger = require("src/core/logging/Logger")
       })
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
-const Logger = require("src/core/logging/Logger")
 } else {
-const Logger = require("src/core/logging/Logger")
   // Node.js 環境：使用 require
-const Logger = require("src/core/logging/Logger")
   EventHandlerClass = require('src/core/event-handler')
-const Logger = require("src/core/logging/Logger")
   const { StandardError: StandardErrorClass } = require('src/core/errors/StandardError')
-const Logger = require("src/core/logging/Logger")
   StandardError = StandardErrorClass
-const Logger = require("src/core/logging/Logger")
 }
 
 // 常數定義
-const Logger = require("src/core/logging/Logger")
 const CONSTANTS = {
-const Logger = require("src/core/logging/Logger")
   // 控制器配置
-const Logger = require("src/core/logging/Logger")
   PRIORITY: 2,
 
-const Logger = require("src/core/logging/Logger")
   // UI 訊息
-const Logger = require("src/core/logging/Logger")
   MESSAGES: {
-const Logger = require("src/core/logging/Logger")
     DEFAULT_LOAD: '載入中...',
-const Logger = require("src/core/logging/Logger")
     RELOAD: '重新載入書籍資料...',
-const Logger = require("src/core/logging/Logger")
     EMPTY_BOOKS: '📚 目前沒有書籍資料',
-const Logger = require("src/core/logging/Logger")
     NO_DATA_EXPORT: '沒有資料可以匯出',
-const Logger = require("src/core/logging/Logger")
     FILE_PARSE_ERROR: '檔案解析失敗',
-const Logger = require("src/core/logging/Logger")
     FILE_READ_ERROR: '檔案讀取失敗',
-const Logger = require("src/core/logging/Logger")
     INVALID_JSON: '無效的 JSON 格式'
-const Logger = require("src/core/logging/Logger")
   },
 
-const Logger = require("src/core/logging/Logger")
   // 表格配置
-const Logger = require("src/core/logging/Logger")
   TABLE: {
-const Logger = require("src/core/logging/Logger")
     COLUMNS: 5,
-const Logger = require("src/core/logging/Logger")
     COVER_SIZE: { WIDTH: 50, HEIGHT: 75 },
-const Logger = require("src/core/logging/Logger")
     DEFAULT_COVER: '📚'
-const Logger = require("src/core/logging/Logger")
   },
 
-const Logger = require("src/core/logging/Logger")
   // 事件配置
-const Logger = require("src/core/logging/Logger")
   EVENTS: {
-const Logger = require("src/core/logging/Logger")
     SUPPORTED: [
-const Logger = require("src/core/logging/Logger")
       'STORAGE.LOAD.COMPLETED',
-const Logger = require("src/core/logging/Logger")
       'EXTRACTION.COMPLETED',
-const Logger = require("src/core/logging/Logger")
       'UI.BOOKS.UPDATE'
-const Logger = require("src/core/logging/Logger")
     ],
-const Logger = require("src/core/logging/Logger")
     STORAGE_LOAD_REQUEST: 'STORAGE.LOAD.REQUESTED'
-const Logger = require("src/core/logging/Logger")
   },
 
-const Logger = require("src/core/logging/Logger")
   // 匯出配置
-const Logger = require("src/core/logging/Logger")
   EXPORT: {
-const Logger = require("src/core/logging/Logger")
     CSV_HEADERS: ['書名', '書城來源', '進度', '狀態', '封面URL'],
-const Logger = require("src/core/logging/Logger")
     FILE_TYPE: 'text/csv;charset=utf-8;',
-const Logger = require("src/core/logging/Logger")
     FILENAME_PREFIX: '書籍資料_',
-const Logger = require("src/core/logging/Logger")
     JSON_MIME: 'application/json;charset=utf-8;',
-const Logger = require("src/core/logging/Logger")
     JSON_FILENAME_PREFIX: '書籍資料_'
-const Logger = require("src/core/logging/Logger")
   },
 
-const Logger = require("src/core/logging/Logger")
   // 元素選取器
-const Logger = require("src/core/logging/Logger")
   SELECTORS: {
-const Logger = require("src/core/logging/Logger")
     LOADING_TEXT: '.loading-text'
-const Logger = require("src/core/logging/Logger")
   }
-const Logger = require("src/core/logging/Logger")
 }
 
-const Logger = require("src/core/logging/Logger")
 class OverviewPageController extends EventHandlerClass {
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 建構 Overview 頁面控制器
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * @param {Object} eventBus - 事件總線實例
-const Logger = require("src/core/logging/Logger")
    * @param {Document} document - DOM 文檔物件
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 初始化事件處理器基本配置
-const Logger = require("src/core/logging/Logger")
    * - 設定 DOM 文檔引用
-const Logger = require("src/core/logging/Logger")
    * - 初始化頁面狀態和元素引用
-const Logger = require("src/core/logging/Logger")
    * - 設置事件監聽器
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   constructor (eventBus, document) {
-const Logger = require("src/core/logging/Logger")
     super('OverviewPageController', CONSTANTS.PRIORITY)
 
-const Logger = require("src/core/logging/Logger")
     this.eventBus = eventBus
-const Logger = require("src/core/logging/Logger")
     this.document = document
 
-const Logger = require("src/core/logging/Logger")
     // 初始化頁面狀態
-const Logger = require("src/core/logging/Logger")
     this.currentBooks = []
-const Logger = require("src/core/logging/Logger")
     this.filteredBooks = []
-const Logger = require("src/core/logging/Logger")
     this.isLoading = false
-const Logger = require("src/core/logging/Logger")
     this.searchTerm = ''
 
-const Logger = require("src/core/logging/Logger")
     // 初始化 DOM 元素引用
-const Logger = require("src/core/logging/Logger")
     this.initializeElements()
 
-const Logger = require("src/core/logging/Logger")
     // 設置事件監聽器
-const Logger = require("src/core/logging/Logger")
     this.setupEventListeners()
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   // Getter 方法：為了向後相容，提供 books 屬性存取
-const Logger = require("src/core/logging/Logger")
   get books () {
-const Logger = require("src/core/logging/Logger")
     return this.currentBooks
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   // Setter 方法：統一書籍資料設定
-const Logger = require("src/core/logging/Logger")
   set books (value) {
-const Logger = require("src/core/logging/Logger")
     this.currentBooks = value
-const Logger = require("src/core/logging/Logger")
     this.filteredBooks = [...value] // 預設顯示全部書籍
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 初始化 DOM 元素引用
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 取得所有必要的 DOM 元素引用
-const Logger = require("src/core/logging/Logger")
    * - 建立元素快取以提高效能
-const Logger = require("src/core/logging/Logger")
    * - 分類組織元素引用
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   initializeElements () {
-const Logger = require("src/core/logging/Logger")
     // 定義元素映射表，提高可維護性
-const Logger = require("src/core/logging/Logger")
     const elementMap = {
-const Logger = require("src/core/logging/Logger")
       // 統計相關元素
-const Logger = require("src/core/logging/Logger")
       statistics: ['totalBooks', 'displayedBooks'],
-const Logger = require("src/core/logging/Logger")
       // 搜尋相關元素
-const Logger = require("src/core/logging/Logger")
       search: ['searchBox'],
-const Logger = require("src/core/logging/Logger")
       // 表格相關元素
-const Logger = require("src/core/logging/Logger")
       table: ['tableBody', 'booksTable'],
-const Logger = require("src/core/logging/Logger")
       // 操作按鈕元素
-const Logger = require("src/core/logging/Logger")
       buttons: ['exportCSVBtn', 'exportJSONBtn', 'importJSONBtn', 'copyTextBtn', 'selectAllBtn', 'reloadBtn'],
-const Logger = require("src/core/logging/Logger")
       // 檔案載入相關元素
-const Logger = require("src/core/logging/Logger")
       fileLoad: ['fileUploader', 'jsonFileInput', 'loadFileBtn', 'loadSampleBtn', 'sortSelect', 'sortDirection'],
-const Logger = require("src/core/logging/Logger")
       // 狀態顯示元素
-const Logger = require("src/core/logging/Logger")
       status: ['loadingIndicator', 'errorContainer', 'errorMessage', 'retryBtn']
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     // 批量取得元素引用
-const Logger = require("src/core/logging/Logger")
     this.elements = {}
-const Logger = require("src/core/logging/Logger")
     Object.values(elementMap).flat().forEach(id => {
-const Logger = require("src/core/logging/Logger")
       this.elements[id] = this.document.getElementById(id)
-const Logger = require("src/core/logging/Logger")
     })
 
-const Logger = require("src/core/logging/Logger")
     // 快取常用元素
-const Logger = require("src/core/logging/Logger")
     this.cachedElements = {
-const Logger = require("src/core/logging/Logger")
       loadingText: this.document.querySelector(CONSTANTS.SELECTORS.LOADING_TEXT)
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 設置事件監聽器
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 註冊系統事件監聽器
-const Logger = require("src/core/logging/Logger")
    * - 設置 DOM 事件監聽器
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   setupEventListeners () {
-const Logger = require("src/core/logging/Logger")
     // 註冊系統事件監聽器
-const Logger = require("src/core/logging/Logger")
     if (this.eventBus) {
-const Logger = require("src/core/logging/Logger")
       this.eventBus.on('STORAGE.LOAD.COMPLETED', this.handleStorageLoadCompleted.bind(this))
-const Logger = require("src/core/logging/Logger")
       this.eventBus.on('EXTRACTION.COMPLETED', this.handleExtractionCompleted.bind(this))
-const Logger = require("src/core/logging/Logger")
       this.eventBus.on('UI.BOOKS.UPDATE', this.handleBooksUpdate.bind(this))
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     // 監聽 Chrome Storage 資料變更，實現跨上下文的自動資料同步
-const Logger = require("src/core/logging/Logger")
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
-const Logger = require("src/core/logging/Logger")
       chrome.storage.onChanged.addListener((changes, area) => {
-const Logger = require("src/core/logging/Logger")
         try {
-const Logger = require("src/core/logging/Logger")
           if (area === 'local' && changes.readmoo_books && changes.readmoo_books.newValue) {
-const Logger = require("src/core/logging/Logger")
             const newValue = changes.readmoo_books.newValue
-const Logger = require("src/core/logging/Logger")
             const books = Array.isArray(newValue.books) ? newValue.books : []
-const Logger = require("src/core/logging/Logger")
             this._updateBooksData(books)
-const Logger = require("src/core/logging/Logger")
             this.updateDisplay()
-const Logger = require("src/core/logging/Logger")
           }
-const Logger = require("src/core/logging/Logger")
         } catch (error) {
-const Logger = require("src/core/logging/Logger")
           // 僅記錄錯誤，不中斷頁面運作
-const Logger = require("src/core/logging/Logger")
           // eslint-disable-next-line no-console
-const Logger = require("src/core/logging/Logger")
-          Logger.warn('⚠️ 處理 storage 變更失敗:', error)
-const Logger = require("src/core/logging/Logger")
+          console.warn('⚠️ 處理 storage 變更失敗:', error)
         }
-const Logger = require("src/core/logging/Logger")
       })
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     // 設置 DOM 事件監聽器
-const Logger = require("src/core/logging/Logger")
     if (this.elements.searchBox) {
-const Logger = require("src/core/logging/Logger")
       this.elements.searchBox.addEventListener('input', (e) => {
-const Logger = require("src/core/logging/Logger")
         this.handleSearchInput(e.target.value)
-const Logger = require("src/core/logging/Logger")
       })
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     if (this.elements.reloadBtn) {
-const Logger = require("src/core/logging/Logger")
       this.elements.reloadBtn.addEventListener('click', () => {
-const Logger = require("src/core/logging/Logger")
         this.handleReload()
-const Logger = require("src/core/logging/Logger")
       })
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     if (this.elements.exportCSVBtn) {
-const Logger = require("src/core/logging/Logger")
       this.elements.exportCSVBtn.addEventListener('click', () => {
-const Logger = require("src/core/logging/Logger")
         this.handleExportCSV()
-const Logger = require("src/core/logging/Logger")
       })
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     if (this.elements.exportJSONBtn) {
-const Logger = require("src/core/logging/Logger")
       this.elements.exportJSONBtn.addEventListener('click', () => {
-const Logger = require("src/core/logging/Logger")
         this.handleExportJSON()
-const Logger = require("src/core/logging/Logger")
       })
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     if (this.elements.importJSONBtn) {
-const Logger = require("src/core/logging/Logger")
       this.elements.importJSONBtn.addEventListener('click', () => {
-const Logger = require("src/core/logging/Logger")
         if (this.elements.fileUploader) {
-const Logger = require("src/core/logging/Logger")
           this.elements.fileUploader.style.display = this.elements.fileUploader.style.display === 'none' ? 'block' : 'none'
-const Logger = require("src/core/logging/Logger")
         }
-const Logger = require("src/core/logging/Logger")
       })
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     if (this.elements.loadFileBtn && this.elements.jsonFileInput) {
-const Logger = require("src/core/logging/Logger")
       this.elements.loadFileBtn.addEventListener('click', () => {
-const Logger = require("src/core/logging/Logger")
         const fileInput = this.elements.jsonFileInput
-const Logger = require("src/core/logging/Logger")
         if (fileInput && fileInput.files && fileInput.files[0]) {
-const Logger = require("src/core/logging/Logger")
           this.handleFileLoad(fileInput.files[0])
-const Logger = require("src/core/logging/Logger")
         }
-const Logger = require("src/core/logging/Logger")
       })
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     if (this.elements.sortSelect) {
-const Logger = require("src/core/logging/Logger")
       this.elements.sortSelect.addEventListener('change', () => this.applyCurrentFilter())
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
     if (this.elements.sortDirection) {
-const Logger = require("src/core/logging/Logger")
       this.elements.sortDirection.addEventListener('change', () => this.applyCurrentFilter())
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   // ========== 事件處理方法 ==========
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 處理儲存系統載入完成事件
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * @param {Object} eventData - 事件資料
-const Logger = require("src/core/logging/Logger")
    * @param {Array} eventData.books - 書籍資料陣列
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 接收載入完成的書籍資料
-const Logger = require("src/core/logging/Logger")
    * - 更新當前書籍列表
-const Logger = require("src/core/logging/Logger")
    * - 觸發頁面重新渲染
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   handleStorageLoadCompleted (eventData) {
-const Logger = require("src/core/logging/Logger")
     if (this._validateEventData(eventData, 'books')) {
-const Logger = require("src/core/logging/Logger")
       this._updateBooksData(eventData.books)
-const Logger = require("src/core/logging/Logger")
       this.updateDisplay()
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 從 Chrome Storage 載入書籍資料
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 直接從 Chrome Storage 讀取書籍資料
-const Logger = require("src/core/logging/Logger")
    * - 處理載入錯誤和空資料狀況
-const Logger = require("src/core/logging/Logger")
    * - 更新頁面顯示
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   async loadBooksFromChromeStorage () {
-const Logger = require("src/core/logging/Logger")
     if (typeof chrome === 'undefined' || !chrome.storage) {
-const Logger = require("src/core/logging/Logger")
       // eslint-disable-next-line no-console
-const Logger = require("src/core/logging/Logger")
-      Logger.warn('⚠️ Chrome Storage API 不可用')
-const Logger = require("src/core/logging/Logger")
+      console.warn('⚠️ Chrome Storage API 不可用')
       return
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     try {
-const Logger = require("src/core/logging/Logger")
       this.showLoading('從儲存載入書籍資料...')
 
-const Logger = require("src/core/logging/Logger")
       const result = await chrome.storage.local.get(['readmoo_books'])
 
-const Logger = require("src/core/logging/Logger")
       if (result.readmoo_books && result.readmoo_books.books) {
-const Logger = require("src/core/logging/Logger")
         const books = result.readmoo_books.books
-const Logger = require("src/core/logging/Logger")
         const timestamp = result.readmoo_books.extractionTimestamp
 
-const Logger = require("src/core/logging/Logger")
-        Logger.info(`📅 提取時間: ${new Date(timestamp).toLocaleString()}`)
+        console.log(`📅 提取時間: ${new Date(timestamp).toLocaleString()}`)
 
-const Logger = require("src/core/logging/Logger")
         this._updateBooksData(books)
-const Logger = require("src/core/logging/Logger")
         this.updateDisplay()
-const Logger = require("src/core/logging/Logger")
       } else {
-const Logger = require("src/core/logging/Logger")
-        Logger.info('📂 Chrome Storage 中沒有書籍資料')
-const Logger = require("src/core/logging/Logger")
+        console.log('📂 Chrome Storage 中沒有書籍資料')
         this.hideLoading()
-const Logger = require("src/core/logging/Logger")
         // 顯示空資料狀態，但不顯示錯誤
-const Logger = require("src/core/logging/Logger")
         this.renderBooksTable([])
-const Logger = require("src/core/logging/Logger")
       }
-const Logger = require("src/core/logging/Logger")
     } catch (error) {
-const Logger = require("src/core/logging/Logger")
       // eslint-disable-next-line no-console
-const Logger = require("src/core/logging/Logger")
-      Logger.error('❌ 從 Chrome Storage 載入書籍資料失敗:', error)
-const Logger = require("src/core/logging/Logger")
+      console.error('❌ 從 Chrome Storage 載入書籍資料失敗:', error)
       this.showError('無法載入書籍資料: ' + error.message)
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 處理提取完成事件
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * @param {Object} eventData - 事件資料
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 處理新的書籍提取完成
-const Logger = require("src/core/logging/Logger")
    * - 觸發資料重新載入
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   handleExtractionCompleted (eventData) {
-const Logger = require("src/core/logging/Logger")
     this.handleReload()
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 處理書籍更新事件
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * @param {Object} eventData - 事件資料
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 處理書籍資料更新
-const Logger = require("src/core/logging/Logger")
    * - 重新渲染頁面
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   handleBooksUpdate (eventData) {
-const Logger = require("src/core/logging/Logger")
     if (this._validateEventData(eventData, 'books')) {
-const Logger = require("src/core/logging/Logger")
       this._updateBooksData(eventData.books)
-const Logger = require("src/core/logging/Logger")
       this.applyCurrentFilter()
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 處理搜尋輸入
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * @param {string} searchTerm - 搜尋詞
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 根據搜尋詞篩選書籍
-const Logger = require("src/core/logging/Logger")
    * - 更新顯示的書籍列表
-const Logger = require("src/core/logging/Logger")
    * - 更新統計資訊
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   handleSearchInput (searchTerm) {
-const Logger = require("src/core/logging/Logger")
     this.searchTerm = searchTerm.toLowerCase().trim()
-const Logger = require("src/core/logging/Logger")
     this.applyCurrentFilter()
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 應用當前篩選條件
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 根據搜尋詞篩選書籍
-const Logger = require("src/core/logging/Logger")
    * - 更新篩選結果
-const Logger = require("src/core/logging/Logger")
    * - 觸發顯示更新
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   applyCurrentFilter () {
-const Logger = require("src/core/logging/Logger")
     // 搜尋
-const Logger = require("src/core/logging/Logger")
     const base = !this.searchTerm
-const Logger = require("src/core/logging/Logger")
       ? [...this.currentBooks]
-const Logger = require("src/core/logging/Logger")
       : this.currentBooks.filter(book => book.title && book.title.toLowerCase().includes(this.searchTerm))
 
-const Logger = require("src/core/logging/Logger")
     // 排序
-const Logger = require("src/core/logging/Logger")
     const sortKey = this.elements.sortSelect ? this.elements.sortSelect.value : 'title'
-const Logger = require("src/core/logging/Logger")
     const direction = this.elements.sortDirection ? this.elements.sortDirection.value : 'asc'
-const Logger = require("src/core/logging/Logger")
     const sign = direction === 'desc' ? -1 : 1
 
-const Logger = require("src/core/logging/Logger")
     const normalizeTitle = (t) => (t || '').toString().toLowerCase()
-const Logger = require("src/core/logging/Logger")
     const getSource = (b) => this._formatBookSource(b)
 
-const Logger = require("src/core/logging/Logger")
     const compare = (a, b) => {
-const Logger = require("src/core/logging/Logger")
       if (sortKey === 'title') {
-const Logger = require("src/core/logging/Logger")
         return normalizeTitle(a.title).localeCompare(normalizeTitle(b.title)) * sign
-const Logger = require("src/core/logging/Logger")
       }
-const Logger = require("src/core/logging/Logger")
       if (sortKey === 'progress') {
-const Logger = require("src/core/logging/Logger")
         const pa = Number(a.progress || 0)
-const Logger = require("src/core/logging/Logger")
         const pb = Number(b.progress || 0)
-const Logger = require("src/core/logging/Logger")
         return (pa - pb) * sign
-const Logger = require("src/core/logging/Logger")
       }
-const Logger = require("src/core/logging/Logger")
       if (sortKey === 'source') {
-const Logger = require("src/core/logging/Logger")
         return String(getSource(a)).localeCompare(String(getSource(b))) * sign
-const Logger = require("src/core/logging/Logger")
       }
-const Logger = require("src/core/logging/Logger")
       return 0
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     this.filteredBooks = base.sort(compare)
-const Logger = require("src/core/logging/Logger")
     this.updateDisplay()
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 更新頁面顯示
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 更新統計資訊
-const Logger = require("src/core/logging/Logger")
    * - 重新渲染書籍表格
-const Logger = require("src/core/logging/Logger")
    * - 隱藏載入和錯誤狀態
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   updateDisplay () {
-const Logger = require("src/core/logging/Logger")
     this.updateStatistics(this.filteredBooks)
-const Logger = require("src/core/logging/Logger")
     this.renderBooksTable(this.filteredBooks)
-const Logger = require("src/core/logging/Logger")
     this.hideLoading()
-const Logger = require("src/core/logging/Logger")
     this.hideError()
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 更新統計資訊顯示
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * @param {Array} books - 要統計的書籍陣列
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 更新總書籍數
-const Logger = require("src/core/logging/Logger")
    * - 更新顯示中的書籍數
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   updateStatistics (books) {
-const Logger = require("src/core/logging/Logger")
     if (this.elements.totalBooks) {
-const Logger = require("src/core/logging/Logger")
       this.elements.totalBooks.textContent = this.currentBooks.length.toString()
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     if (this.elements.displayedBooks) {
-const Logger = require("src/core/logging/Logger")
       this.elements.displayedBooks.textContent = books.length.toString()
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 渲染書籍表格
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * @param {Array} books - 要顯示的書籍陣列
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 清空現有表格內容
-const Logger = require("src/core/logging/Logger")
    * - 渲染書籍資料行
-const Logger = require("src/core/logging/Logger")
    * - 處理空資料狀態
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   renderBooksTable (books) {
-const Logger = require("src/core/logging/Logger")
     if (!this.elements.tableBody) return
 
-const Logger = require("src/core/logging/Logger")
     this.clearTableContent()
 
-const Logger = require("src/core/logging/Logger")
     if (!books || books.length === 0) {
-const Logger = require("src/core/logging/Logger")
       this.renderEmptyState()
-const Logger = require("src/core/logging/Logger")
       return
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     this.renderBookRows(books)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 清空表格內容
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   clearTableContent () {
-const Logger = require("src/core/logging/Logger")
     this.elements.tableBody.innerHTML = ''
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 渲染空資料狀態
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   renderEmptyState () {
-const Logger = require("src/core/logging/Logger")
     const emptyRow = this._createEmptyTableRow()
-const Logger = require("src/core/logging/Logger")
     this.elements.tableBody.appendChild(emptyRow)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 渲染書籍資料行
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   renderBookRows (books) {
-const Logger = require("src/core/logging/Logger")
     books.forEach(book => {
-const Logger = require("src/core/logging/Logger")
       const row = this.createBookRow(book)
-const Logger = require("src/core/logging/Logger")
       this.elements.tableBody.appendChild(row)
-const Logger = require("src/core/logging/Logger")
     })
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 創建書籍資料行
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * @param {Object} book - 書籍資料
-const Logger = require("src/core/logging/Logger")
    * @returns {HTMLElement} 表格行元素
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 創建單個書籍的表格行
-const Logger = require("src/core/logging/Logger")
    * - 格式化書籍資料顯示
-const Logger = require("src/core/logging/Logger")
    * - 處理缺失資料
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   createBookRow (book) {
-const Logger = require("src/core/logging/Logger")
     const row = this.document.createElement('tr')
-const Logger = require("src/core/logging/Logger")
     const rowData = this._formatBookRowData(book)
 
-const Logger = require("src/core/logging/Logger")
     row.innerHTML = `
-const Logger = require("src/core/logging/Logger")
       <td>${rowData.cover}</td>
-const Logger = require("src/core/logging/Logger")
       <td>${rowData.title}</td>
-const Logger = require("src/core/logging/Logger")
       <td>${rowData.source}</td>
-const Logger = require("src/core/logging/Logger")
       <td>${rowData.progress}</td>
-const Logger = require("src/core/logging/Logger")
       <td>${rowData.status}</td>
-const Logger = require("src/core/logging/Logger")
     `
 
-const Logger = require("src/core/logging/Logger")
     return row
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   // ========== 狀態管理方法 ==========
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 顯示載入狀態
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * @param {string} message - 載入訊息
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 顯示載入指示器
-const Logger = require("src/core/logging/Logger")
    * - 更新載入訊息
-const Logger = require("src/core/logging/Logger")
    * - 設置載入狀態標記
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   showLoading (message = CONSTANTS.MESSAGES.DEFAULT_LOAD) {
-const Logger = require("src/core/logging/Logger")
     this.isLoading = true
-const Logger = require("src/core/logging/Logger")
     this._toggleElement('loadingIndicator', true)
-const Logger = require("src/core/logging/Logger")
     this._updateLoadingText(message)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 隱藏載入狀態
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 隱藏載入指示器
-const Logger = require("src/core/logging/Logger")
    * - 清除載入狀態標記
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   hideLoading () {
-const Logger = require("src/core/logging/Logger")
     this.isLoading = false
-const Logger = require("src/core/logging/Logger")
     this._toggleElement('loadingIndicator', false)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 顯示錯誤訊息
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * @param {string} message - 錯誤訊息
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 顯示錯誤容器
-const Logger = require("src/core/logging/Logger")
    * - 更新錯誤訊息文字
-const Logger = require("src/core/logging/Logger")
    * - 隱藏載入狀態
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   showError (message) {
-const Logger = require("src/core/logging/Logger")
     this.hideLoading()
-const Logger = require("src/core/logging/Logger")
     this._toggleElement('errorContainer', true)
-const Logger = require("src/core/logging/Logger")
     this._updateErrorText(message)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 隱藏錯誤訊息
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 隱藏錯誤容器
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   hideError () {
-const Logger = require("src/core/logging/Logger")
     this._toggleElement('errorContainer', false)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 處理匯出 CSV 操作
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 將當前篩選的書籍資料匯出為 CSV
-const Logger = require("src/core/logging/Logger")
    * - 創建下載連結
-const Logger = require("src/core/logging/Logger")
    * - 觸發下載
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   handleExportCSV () {
-const Logger = require("src/core/logging/Logger")
     if (!this.filteredBooks || this.filteredBooks.length === 0) {
-const Logger = require("src/core/logging/Logger")
       alert(CONSTANTS.MESSAGES.NO_DATA_EXPORT)
-const Logger = require("src/core/logging/Logger")
       return
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     const csvContent = this.generateCSVContent()
-const Logger = require("src/core/logging/Logger")
     this.downloadCSVFile(csvContent)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   // ========== CSV 匯出相關方法 ==========
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 生成 CSV 內容
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   generateCSVContent () {
-const Logger = require("src/core/logging/Logger")
     const csvRows = [
-const Logger = require("src/core/logging/Logger")
       CONSTANTS.EXPORT.CSV_HEADERS.join(','),
-const Logger = require("src/core/logging/Logger")
       ...this.filteredBooks.map(book => this._bookToCSVRow(book))
-const Logger = require("src/core/logging/Logger")
     ]
-const Logger = require("src/core/logging/Logger")
     return csvRows.join('\n')
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   // ========== JSON 匯出相關方法 ==========
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 處理匯出 JSON 操作
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   handleExportJSON () {
-const Logger = require("src/core/logging/Logger")
     if (!this.filteredBooks || this.filteredBooks.length === 0) {
-const Logger = require("src/core/logging/Logger")
       alert(CONSTANTS.MESSAGES.NO_DATA_EXPORT)
-const Logger = require("src/core/logging/Logger")
       return
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     const json = this.generateJSONContent()
-const Logger = require("src/core/logging/Logger")
     this.downloadJSONFile(json)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 生成 JSON 內容（表格欄位對應）
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   generateJSONContent () {
-const Logger = require("src/core/logging/Logger")
     const rows = this.filteredBooks.map(book => ({
-const Logger = require("src/core/logging/Logger")
       id: book.id || '',
-const Logger = require("src/core/logging/Logger")
       title: book.title || '',
-const Logger = require("src/core/logging/Logger")
       progress: Number(book.progress || 0),
-const Logger = require("src/core/logging/Logger")
       status: book.status || '',
-const Logger = require("src/core/logging/Logger")
       cover: book.cover || '',
-const Logger = require("src/core/logging/Logger")
       tags: Array.isArray(book.tags) ? book.tags : (book.tag ? [book.tag] : ['readmoo'])
-const Logger = require("src/core/logging/Logger")
     }))
-const Logger = require("src/core/logging/Logger")
     return JSON.stringify({ books: rows }, null, 2)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 下載 JSON 檔案
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   downloadJSONFile (jsonContent) {
-const Logger = require("src/core/logging/Logger")
     const blob = new Blob([jsonContent], { type: CONSTANTS.EXPORT.JSON_MIME })
-const Logger = require("src/core/logging/Logger")
     const date = new Date().toISOString().slice(0, 10)
-const Logger = require("src/core/logging/Logger")
     const filename = `${CONSTANTS.EXPORT.JSON_FILENAME_PREFIX}${date}.json`
-const Logger = require("src/core/logging/Logger")
     this._triggerFileDownload(blob, filename)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 下載 CSV 檔案
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   downloadCSVFile (csvContent) {
-const Logger = require("src/core/logging/Logger")
     const blob = new Blob([csvContent], { type: CONSTANTS.EXPORT.FILE_TYPE })
-const Logger = require("src/core/logging/Logger")
     const filename = this._generateCSVFilename()
-const Logger = require("src/core/logging/Logger")
     this._triggerFileDownload(blob, filename)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 處理重新載入操作
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 從 Chrome Storage 重新載入資料
-const Logger = require("src/core/logging/Logger")
    * - 顯示載入狀態
-const Logger = require("src/core/logging/Logger")
    * - 重置搜尋條件
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   async handleReload () {
-const Logger = require("src/core/logging/Logger")
     this._resetSearchState()
 
-const Logger = require("src/core/logging/Logger")
     // 優先使用 Chrome Storage 載入
-const Logger = require("src/core/logging/Logger")
     if (typeof chrome !== 'undefined' && chrome.storage) {
-const Logger = require("src/core/logging/Logger")
       await this.loadBooksFromChromeStorage()
-const Logger = require("src/core/logging/Logger")
     } else {
-const Logger = require("src/core/logging/Logger")
       // 降級方案：使用事件系統
-const Logger = require("src/core/logging/Logger")
       this.showLoading(CONSTANTS.MESSAGES.RELOAD)
-const Logger = require("src/core/logging/Logger")
       this._emitStorageLoadRequest('overview-reload')
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 處理檔案載入操作 - 重構版本
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * @param {File} file - 要載入的檔案
-const Logger = require("src/core/logging/Logger")
    * @returns {Promise<void>} 載入完成Promise
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * 負責功能：
-const Logger = require("src/core/logging/Logger")
    * - 協調檔案載入流程
-const Logger = require("src/core/logging/Logger")
    * - 整合驗證和讀取步驟
-const Logger = require("src/core/logging/Logger")
    * - 管理載入狀態
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   async handleFileLoad (file) {
-const Logger = require("src/core/logging/Logger")
     this._validateFileBasics(file)
-const Logger = require("src/core/logging/Logger")
     this._validateFileSize(file)
-const Logger = require("src/core/logging/Logger")
     this.showLoading('正在讀取檔案...')
-const Logger = require("src/core/logging/Logger")
     return this._readFileWithReader(file)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 驗證檔案基本要求
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {File} file - 要驗證的檔案
-const Logger = require("src/core/logging/Logger")
    * @throws {Error} 檔案不符合基本要求時拋出錯誤
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _validateFileBasics (file) {
-const Logger = require("src/core/logging/Logger")
     if (!file) {
-const Logger = require("src/core/logging/Logger")
       this.showError('請先選擇一個 JSON 檔案！')
-const Logger = require("src/core/logging/Logger")
       throw new StandardError('VALIDATION_ERROR', '檔案不存在', { category: 'validation' })
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
     if (!this._isJSONFile(file)) {
-const Logger = require("src/core/logging/Logger")
       this.showError('請選擇 JSON 格式的檔案！')
-const Logger = require("src/core/logging/Logger")
       throw new StandardError('VALIDATION_ERROR', '檔案格式不正確', { category: 'validation' })
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 檢查是否為JSON檔案
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {File} file - 要檢查的檔案
-const Logger = require("src/core/logging/Logger")
    * @returns {boolean} 是否為JSON檔案
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _isJSONFile (file) {
-const Logger = require("src/core/logging/Logger")
     // 檢查副檔名
-const Logger = require("src/core/logging/Logger")
     const hasJsonExtension = file.name.toLowerCase().endsWith('.json')
 
-const Logger = require("src/core/logging/Logger")
     // 檢查 MIME 類型
-const Logger = require("src/core/logging/Logger")
     const hasJsonMimeType = file.type === 'application/json'
 
-const Logger = require("src/core/logging/Logger")
     return hasJsonExtension || hasJsonMimeType
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 驗證檔案大小
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {File} file - 要驗證的檔案
-const Logger = require("src/core/logging/Logger")
    * @throws {Error} 檔案過大時拋出錯誤
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _validateFileSize (file) {
-const Logger = require("src/core/logging/Logger")
     const maxSize = 10 * 1024 * 1024 // 10MB
-const Logger = require("src/core/logging/Logger")
     if (file.size > maxSize) {
-const Logger = require("src/core/logging/Logger")
       this.showError('檔案過大，請選擇小於 10MB 的檔案！')
-const Logger = require("src/core/logging/Logger")
       throw new StandardError('VALIDATION_ERROR', '檔案大小超出限制', { category: 'validation' })
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 使用FileReader讀取檔案
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {File} file - 要讀取的檔案
-const Logger = require("src/core/logging/Logger")
    * @returns {Promise<void>} 讀取完成Promise
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _readFileWithReader (file) {
-const Logger = require("src/core/logging/Logger")
     return new Promise((resolve, reject) => {
-const Logger = require("src/core/logging/Logger")
       const reader = this._createFileReader()
-const Logger = require("src/core/logging/Logger")
       this._setupReaderHandlers(reader, resolve, reject)
-const Logger = require("src/core/logging/Logger")
       reader.readAsText(file, 'utf-8')
-const Logger = require("src/core/logging/Logger")
     })
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 建立FileReader實例
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @returns {FileReader} FileReader實例
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _createFileReader () {
-const Logger = require("src/core/logging/Logger")
     const FileReaderFactory = this._loadFileReaderFactory()
-const Logger = require("src/core/logging/Logger")
     return FileReaderFactory.createReader()
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 載入FileReaderFactory
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @returns {Object} FileReaderFactory類
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _loadFileReaderFactory () {
-const Logger = require("src/core/logging/Logger")
     if (typeof require !== 'undefined') {
-const Logger = require("src/core/logging/Logger")
       return require('src/utils/file-reader-factory')
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
     return window.FileReaderFactory
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 設定FileReader事件處理器
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {FileReader} reader - FileReader實例
-const Logger = require("src/core/logging/Logger")
    * @param {Function} resolve - Promise resolve函數
-const Logger = require("src/core/logging/Logger")
    * @param {Function} reject - Promise reject函數
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _setupReaderHandlers (reader, resolve, reject) {
-const Logger = require("src/core/logging/Logger")
     reader.onload = (e) => this._handleReaderSuccess(e, resolve, reject)
-const Logger = require("src/core/logging/Logger")
     reader.onerror = () => this._handleReaderError(reject)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 處理FileReader成功事件
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {Event} e - 載入事件
-const Logger = require("src/core/logging/Logger")
    * @param {Function} resolve - Promise resolve函數
-const Logger = require("src/core/logging/Logger")
    * @param {Function} reject - Promise reject函數
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _handleReaderSuccess (e, resolve, reject) {
-const Logger = require("src/core/logging/Logger")
     try {
-const Logger = require("src/core/logging/Logger")
       this._handleFileContent(e.target.result)
-const Logger = require("src/core/logging/Logger")
       resolve()
-const Logger = require("src/core/logging/Logger")
     } catch (error) {
-const Logger = require("src/core/logging/Logger")
       this._handleFileProcessError(error, reject)
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 處理FileReader錯誤事件
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {Function} reject - Promise reject函數
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _handleReaderError (reject) {
-const Logger = require("src/core/logging/Logger")
     const errorMsg = '讀取檔案時發生錯誤'
-const Logger = require("src/core/logging/Logger")
     this.showError(errorMsg)
-const Logger = require("src/core/logging/Logger")
     reject(new StandardError('UNKNOWN_ERROR', errorMsg, {
-const Logger = require("src/core/logging/Logger")
       category: 'general'
-const Logger = require("src/core/logging/Logger")
     }))
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 處理檔案處理錯誤
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {Error} error - 錯誤對象
-const Logger = require("src/core/logging/Logger")
    * @param {Function} reject - Promise reject函數
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _handleFileProcessError (error, reject) {
-const Logger = require("src/core/logging/Logger")
     this.showError(`載入檔案失敗：${error.message}`)
-const Logger = require("src/core/logging/Logger")
     reject(error)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   // EventHandler 抽象方法實現
 
-const Logger = require("src/core/logging/Logger")
   // ========== 私有輔助方法 ==========
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 驗證事件資料的有效性
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _validateEventData (eventData, property) {
-const Logger = require("src/core/logging/Logger")
     return eventData && eventData[property] && Array.isArray(eventData[property])
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 更新書籍資料
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _updateBooksData (books) {
-const Logger = require("src/core/logging/Logger")
     this.currentBooks = books
-const Logger = require("src/core/logging/Logger")
     this.filteredBooks = [...books]
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 切換元素的顯示/隱藏狀態
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _toggleElement (elementKey, show) {
-const Logger = require("src/core/logging/Logger")
     const element = this.elements[elementKey]
-const Logger = require("src/core/logging/Logger")
     if (element) {
-const Logger = require("src/core/logging/Logger")
       element.style.display = show ? 'block' : 'none'
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 更新載入文字
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _updateLoadingText (message) {
-const Logger = require("src/core/logging/Logger")
     if (this.cachedElements.loadingText) {
-const Logger = require("src/core/logging/Logger")
       this.cachedElements.loadingText.textContent = message
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 更新錯誤文字
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _updateErrorText (message) {
-const Logger = require("src/core/logging/Logger")
     if (this.elements.errorMessage && message) {
-const Logger = require("src/core/logging/Logger")
       this.elements.errorMessage.textContent = message
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 創建空表格行
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _createEmptyTableRow () {
-const Logger = require("src/core/logging/Logger")
     const emptyRow = this.document.createElement('tr')
-const Logger = require("src/core/logging/Logger")
     emptyRow.innerHTML = `
-const Logger = require("src/core/logging/Logger")
       <td colspan="${CONSTANTS.TABLE.COLUMNS}" style="text-align: center; padding: 40px; color: #666;">
-const Logger = require("src/core/logging/Logger")
         ${CONSTANTS.MESSAGES.EMPTY_BOOKS}
-const Logger = require("src/core/logging/Logger")
       </td>
-const Logger = require("src/core/logging/Logger")
     `
-const Logger = require("src/core/logging/Logger")
     return emptyRow
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 格式化書籍行資料
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _formatBookRowData (book) {
-const Logger = require("src/core/logging/Logger")
     const { WIDTH, HEIGHT } = CONSTANTS.TABLE.COVER_SIZE
 
-const Logger = require("src/core/logging/Logger")
     return {
-const Logger = require("src/core/logging/Logger")
       cover: book.cover
-const Logger = require("src/core/logging/Logger")
         ? `<img src="${book.cover}" alt="封面" style="width: ${WIDTH}px; height: ${HEIGHT}px; object-fit: cover;">`
-const Logger = require("src/core/logging/Logger")
         : CONSTANTS.TABLE.DEFAULT_COVER,
-const Logger = require("src/core/logging/Logger")
       title: book.title || '未知書名',
-const Logger = require("src/core/logging/Logger")
       source: this._formatBookSource(book),
-const Logger = require("src/core/logging/Logger")
       progress: book.progress ? `${book.progress}%` : '-',
-const Logger = require("src/core/logging/Logger")
       status: book.status || '未知'
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 格式化書城來源顯示
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {Object} book - 書籍資料
-const Logger = require("src/core/logging/Logger")
    * @returns {string} 格式化的書城來源
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _formatBookSource (book) {
-const Logger = require("src/core/logging/Logger")
     // 優先使用 tags 陣列
-const Logger = require("src/core/logging/Logger")
     if (Array.isArray(book.tags) && book.tags.length > 0) {
-const Logger = require("src/core/logging/Logger")
       // 如果有多個來源，顯示所有，以逗號分隔
-const Logger = require("src/core/logging/Logger")
       return book.tags.join(', ')
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     // 其次使用單一 tag 或 store 字段
-const Logger = require("src/core/logging/Logger")
     if (book.tag) {
-const Logger = require("src/core/logging/Logger")
       return book.tag
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     if (book.store) {
-const Logger = require("src/core/logging/Logger")
       return book.store
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     // 最後檢查 source 字段
-const Logger = require("src/core/logging/Logger")
     if (book.source) {
-const Logger = require("src/core/logging/Logger")
       return book.source
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     // 默認值
-const Logger = require("src/core/logging/Logger")
     return 'readmoo'
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 將書籍資料轉換為 CSV 行
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _bookToCSVRow (book) {
-const Logger = require("src/core/logging/Logger")
     return [
-const Logger = require("src/core/logging/Logger")
       `"${book.title || ''}"`,
-const Logger = require("src/core/logging/Logger")
       `"${this._formatBookSource(book)}"`,
-const Logger = require("src/core/logging/Logger")
       `"${book.progress || 0}"`,
-const Logger = require("src/core/logging/Logger")
       `"${book.status || ''}"`,
-const Logger = require("src/core/logging/Logger")
       `"${book.cover || ''}"`
-const Logger = require("src/core/logging/Logger")
     ].join(',')
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 生成 CSV 檔案名
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _generateCSVFilename () {
-const Logger = require("src/core/logging/Logger")
     const date = new Date().toISOString().slice(0, 10)
-const Logger = require("src/core/logging/Logger")
     return `${CONSTANTS.EXPORT.FILENAME_PREFIX}${date}.csv`
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 觸發檔案下載
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _triggerFileDownload (blob, filename) {
-const Logger = require("src/core/logging/Logger")
     const link = this.document.createElement('a')
-const Logger = require("src/core/logging/Logger")
     const url = URL.createObjectURL(blob)
 
-const Logger = require("src/core/logging/Logger")
     link.setAttribute('href', url)
-const Logger = require("src/core/logging/Logger")
     link.setAttribute('download', filename)
-const Logger = require("src/core/logging/Logger")
     link.style.visibility = 'hidden'
 
-const Logger = require("src/core/logging/Logger")
     this.document.body.appendChild(link)
-const Logger = require("src/core/logging/Logger")
     link.click()
-const Logger = require("src/core/logging/Logger")
     this.document.body.removeChild(link)
 
-const Logger = require("src/core/logging/Logger")
     URL.revokeObjectURL(url)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 重置搜尋狀態
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _resetSearchState () {
-const Logger = require("src/core/logging/Logger")
     this.searchTerm = ''
-const Logger = require("src/core/logging/Logger")
     if (this.elements.searchBox) {
-const Logger = require("src/core/logging/Logger")
       this.elements.searchBox.value = ''
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 發送儲存載入請求
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _emitStorageLoadRequest (source) {
-const Logger = require("src/core/logging/Logger")
     if (this.eventBus) {
-const Logger = require("src/core/logging/Logger")
       this.eventBus.emit(CONSTANTS.EVENTS.STORAGE_LOAD_REQUEST, {
-const Logger = require("src/core/logging/Logger")
         source,
-const Logger = require("src/core/logging/Logger")
         timestamp: Date.now()
-const Logger = require("src/core/logging/Logger")
       })
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 處理檔案內容 - 重構版本
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * @param {string} content - 檔案內容
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _handleFileContent (content) {
-const Logger = require("src/core/logging/Logger")
     const cleanContent = this._validateAndCleanContent(content)
-const Logger = require("src/core/logging/Logger")
     const data = this._parseJSONContent(cleanContent)
-const Logger = require("src/core/logging/Logger")
     const books = this._processBookData(data)
-const Logger = require("src/core/logging/Logger")
     this._updateUIWithBooks(books)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 驗證並清理檔案內容
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {string} content - 原始檔案內容
-const Logger = require("src/core/logging/Logger")
    * @returns {string} 清理後的內容
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _validateAndCleanContent (content) {
-const Logger = require("src/core/logging/Logger")
     if (!content || content.trim() === '') {
-const Logger = require("src/core/logging/Logger")
       throw new StandardError('VALIDATION_ERROR', '檔案內容為空', { category: 'validation' })
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
     return this._removeBOM(content)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 移除UTF-8 BOM標記
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {string} content - 檔案內容
-const Logger = require("src/core/logging/Logger")
    * @returns {string} 移除BOM後的內容
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _removeBOM (content) {
-const Logger = require("src/core/logging/Logger")
     return content.replace(/^\uFEFF/, '')
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 解析JSON內容
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {string} content - 要解析的JSON內容
-const Logger = require("src/core/logging/Logger")
    * @returns {any} 解析後的資料
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _parseJSONContent (content) {
-const Logger = require("src/core/logging/Logger")
     try {
-const Logger = require("src/core/logging/Logger")
       return JSON.parse(content)
-const Logger = require("src/core/logging/Logger")
     } catch (error) {
-const Logger = require("src/core/logging/Logger")
       if (error instanceof SyntaxError) {
-const Logger = require("src/core/logging/Logger")
         throw new StandardError('PARSING_ERROR', 'JSON 檔案格式不正確', { category: 'parsing' })
-const Logger = require("src/core/logging/Logger")
       }
-const Logger = require("src/core/logging/Logger")
       throw error
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 處理書籍資料
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {any} data - 解析後的JSON資料
-const Logger = require("src/core/logging/Logger")
    * @returns {Array} 驗證後的書籍陣列
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _processBookData (data) {
-const Logger = require("src/core/logging/Logger")
     const books = this._extractBooksFromData(data)
-const Logger = require("src/core/logging/Logger")
     const validBooks = this._filterValidBooks(books)
-const Logger = require("src/core/logging/Logger")
     this._checkLargeDataset(validBooks)
-const Logger = require("src/core/logging/Logger")
     return validBooks
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 過濾有效書籍
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {Array} books - 書籍陣列
-const Logger = require("src/core/logging/Logger")
    * @returns {Array} 有效書籍陣列
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _filterValidBooks (books) {
-const Logger = require("src/core/logging/Logger")
     return books.filter(book => this._isValidBook(book))
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 檢查大型資料集
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {Array} books - 書籍陣列
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _checkLargeDataset (books) {
-const Logger = require("src/core/logging/Logger")
     if (books.length > 1000) {
-const Logger = require("src/core/logging/Logger")
       // eslint-disable-next-line no-console
-const Logger = require("src/core/logging/Logger")
-      Logger.warn('⚠️ 大型資料集，建議分批處理（未來改善）')
-const Logger = require("src/core/logging/Logger")
+      console.warn('⚠️ 大型資料集，建議分批處理（未來改善）')
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 更新UI與書籍資料
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {Array} books - 書籍陣列
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _updateUIWithBooks (books) {
-const Logger = require("src/core/logging/Logger")
     this._updateBooksData(books)
-const Logger = require("src/core/logging/Logger")
     this.updateDisplay()
-const Logger = require("src/core/logging/Logger")
     this._logLoadSuccess(books)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 記錄載入成功訊息
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {Array} books - 載入的書籍陣列
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _logLoadSuccess (books) {
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 從資料中提取書籍陣列 - 重構版本
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * @param {any} data - 解析後的JSON資料
-const Logger = require("src/core/logging/Logger")
    * @returns {Array} 書籍陣列
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _extractBooksFromData (data) {
-const Logger = require("src/core/logging/Logger")
     if (this._isDirectArrayFormat(data)) return data
-const Logger = require("src/core/logging/Logger")
     if (this._isWrappedBooksFormat(data)) return data.books
-const Logger = require("src/core/logging/Logger")
     if (this._isMetadataWrapFormat(data)) return data.data
 
-const Logger = require("src/core/logging/Logger")
     // 處理空 JSON 對象的情況
-const Logger = require("src/core/logging/Logger")
     if (data && typeof data === 'object' && Object.keys(data).length === 0) {
-const Logger = require("src/core/logging/Logger")
       return [] // 空對象回傳空陣列
-const Logger = require("src/core/logging/Logger")
     }
 
-const Logger = require("src/core/logging/Logger")
     throw new StandardError('VALIDATION_ERROR', 'JSON 檔案應該包含一個陣列或包含books屬性的物件', { category: 'validation' })
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 檢查是否為直接陣列格式
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {any} data - 要檢查的資料
-const Logger = require("src/core/logging/Logger")
    * @returns {boolean} 是否為直接陣列格式
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _isDirectArrayFormat (data) {
-const Logger = require("src/core/logging/Logger")
     return Array.isArray(data)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 檢查是否為包裝books格式
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {any} data - 要檢查的資料
-const Logger = require("src/core/logging/Logger")
    * @returns {boolean} 是否為包裝books格式
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _isWrappedBooksFormat (data) {
-const Logger = require("src/core/logging/Logger")
     return data &&
-const Logger = require("src/core/logging/Logger")
            typeof data === 'object' &&
-const Logger = require("src/core/logging/Logger")
            Array.isArray(data.books)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 檢查是否為metadata包裝格式
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {any} data - 要檢查的資料
-const Logger = require("src/core/logging/Logger")
    * @returns {boolean} 是否為metadata包裝格式
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _isMetadataWrapFormat (data) {
-const Logger = require("src/core/logging/Logger")
     return data &&
-const Logger = require("src/core/logging/Logger")
            data.data &&
-const Logger = require("src/core/logging/Logger")
            Array.isArray(data.data)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 驗證書籍資料是否有效 - 重構版本
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * @param {Object} book - 書籍物件
-const Logger = require("src/core/logging/Logger")
    * @returns {boolean} 是否有效
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _isValidBook (book) {
-const Logger = require("src/core/logging/Logger")
     return this._validateBookStructure(book) &&
-const Logger = require("src/core/logging/Logger")
            this._validateRequiredFields(book) &&
-const Logger = require("src/core/logging/Logger")
            this._validateFieldTypes(book)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 驗證書籍基本結構
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {any} book - 要驗證的書籍對象
-const Logger = require("src/core/logging/Logger")
    * @returns {boolean} 結構是否有效
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _validateBookStructure (book) {
-const Logger = require("src/core/logging/Logger")
     return book && typeof book === 'object'
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 驗證必要欄位存在
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {Object} book - 書籍物件
-const Logger = require("src/core/logging/Logger")
    * @returns {boolean} 必要欄位是否都存在
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _validateRequiredFields (book) {
-const Logger = require("src/core/logging/Logger")
     return Boolean(book.id) &&
-const Logger = require("src/core/logging/Logger")
            Boolean(book.title) &&
-const Logger = require("src/core/logging/Logger")
            Boolean(book.cover)
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 驗證欄位類型
-const Logger = require("src/core/logging/Logger")
    * @private
-const Logger = require("src/core/logging/Logger")
    * @param {Object} book - 書籍物件
-const Logger = require("src/core/logging/Logger")
    * @returns {boolean} 欄位類型是否正確
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   _validateFieldTypes (book) {
-const Logger = require("src/core/logging/Logger")
     return typeof book.id === 'string' &&
-const Logger = require("src/core/logging/Logger")
            typeof book.title === 'string' &&
-const Logger = require("src/core/logging/Logger")
            typeof book.cover === 'string'
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   // ========== EventHandler 抽象方法實現 ==========
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 取得支援的事件類型
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * @returns {string[]} 支援的事件類型列表
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   getSupportedEvents () {
-const Logger = require("src/core/logging/Logger")
     return [...CONSTANTS.EVENTS.SUPPORTED]
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 處理事件的主要邏輯
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * @param {Object} event - 事件物件
-const Logger = require("src/core/logging/Logger")
    * @returns {Promise<boolean>} 處理結果
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   async process (event) {
-const Logger = require("src/core/logging/Logger")
     const { type: eventType, data: eventData } = event
 
-const Logger = require("src/core/logging/Logger")
     try {
-const Logger = require("src/core/logging/Logger")
       switch (eventType) {
-const Logger = require("src/core/logging/Logger")
         case 'STORAGE.LOAD.COMPLETED':
-const Logger = require("src/core/logging/Logger")
           this.handleStorageLoadCompleted(eventData)
-const Logger = require("src/core/logging/Logger")
           break
-const Logger = require("src/core/logging/Logger")
         case 'EXTRACTION.COMPLETED':
-const Logger = require("src/core/logging/Logger")
           this.handleExtractionCompleted(eventData)
-const Logger = require("src/core/logging/Logger")
           break
-const Logger = require("src/core/logging/Logger")
         case 'UI.BOOKS.UPDATE':
-const Logger = require("src/core/logging/Logger")
           this.handleBooksUpdate(eventData)
-const Logger = require("src/core/logging/Logger")
           break
-const Logger = require("src/core/logging/Logger")
         default:
-const Logger = require("src/core/logging/Logger")
           return false
-const Logger = require("src/core/logging/Logger")
       }
 
-const Logger = require("src/core/logging/Logger")
       return true
-const Logger = require("src/core/logging/Logger")
     } catch (error) {
-const Logger = require("src/core/logging/Logger")
       // eslint-disable-next-line no-console
-const Logger = require("src/core/logging/Logger")
-      Logger.error(`Overview 控制器處理事件失敗: ${eventType}`, error)
-const Logger = require("src/core/logging/Logger")
+      console.error(`Overview 控制器處理事件失敗: ${eventType}`, error)
       throw error
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
 
-const Logger = require("src/core/logging/Logger")
   /**
-const Logger = require("src/core/logging/Logger")
    * 取得當前狀態
-const Logger = require("src/core/logging/Logger")
    *
-const Logger = require("src/core/logging/Logger")
    * @returns {Object} 當前狀態資訊
-const Logger = require("src/core/logging/Logger")
    */
-const Logger = require("src/core/logging/Logger")
   getStatus () {
-const Logger = require("src/core/logging/Logger")
     return {
-const Logger = require("src/core/logging/Logger")
       name: this.name,
-const Logger = require("src/core/logging/Logger")
       isLoading: this.isLoading,
-const Logger = require("src/core/logging/Logger")
       booksCount: this.currentBooks.length,
-const Logger = require("src/core/logging/Logger")
       filteredCount: this.filteredBooks.length,
-const Logger = require("src/core/logging/Logger")
       searchTerm: this.searchTerm,
-const Logger = require("src/core/logging/Logger")
       lastUpdate: new Date().toISOString()
-const Logger = require("src/core/logging/Logger")
     }
-const Logger = require("src/core/logging/Logger")
   }
-const Logger = require("src/core/logging/Logger")
 }
 
 // 瀏覽器環境：將 OverviewPageController 定義為全域變數
-const Logger = require("src/core/logging/Logger")
 if (typeof window !== 'undefined') {
-const Logger = require("src/core/logging/Logger")
   window.OverviewPageController = OverviewPageController
-const Logger = require("src/core/logging/Logger")
 }
 
 // Node.js 環境：保持 CommonJS 匯出
-const Logger = require("src/core/logging/Logger")
 if (typeof module !== 'undefined' && module.exports) {
-const Logger = require("src/core/logging/Logger")
   module.exports = { OverviewPageController }
-const Logger = require("src/core/logging/Logger")
 }

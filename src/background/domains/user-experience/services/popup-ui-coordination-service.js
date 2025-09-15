@@ -26,14 +26,14 @@
  * - UX Domain 中 Popup 相關功能的統一入口
  */
 
-const { createLogger } = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 const { StandardError } = require('src/core/errors/StandardError')
 
 class PopupUICoordinationService {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
-    this.logger = dependencies.logger || createLogger('PopupUICoordinationService')
+    this.logger = dependencies.logger || new Logger('PopupUICoordinationService')
     this.i18nManager = dependencies.i18nManager || null
 
     // 服務狀態

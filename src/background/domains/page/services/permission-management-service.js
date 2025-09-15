@@ -23,7 +23,7 @@ const {
   PERMISSION_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
-const { StandardError: StandardError } = // require StandardError (unused)')
+const { StandardError } = require('src/core/errors/StandardError')
 
 class PermissionManagementService {
   constructor (dependencies = {}) {

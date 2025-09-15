@@ -28,7 +28,7 @@
  * - 平台錯誤時的自動故障轉移
  */
 
-const { createLogger } = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 const { StandardError } = require('src/core/errors/StandardError')
 
 class PlatformSwitcherService {
@@ -40,7 +40,7 @@ class PlatformSwitcherService {
   constructor (eventBus, config = {}) {
     this.eventBus = eventBus
     this.config = config
-    this.logger = config.logger || createLogger('PlatformSwitcherService')
+    this.logger = config.logger || new Logger('PlatformSwitcherService')
 
     // 依賴注入
     this.platformRegistry = config.registry
