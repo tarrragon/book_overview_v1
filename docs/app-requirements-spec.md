@@ -558,6 +558,83 @@ INSERT INTO platforms (name, display_name, icon_url) VALUES
 
 ---
 
+# 🚨 錯誤處理需求概述
+
+**基本需求**: Flutter APP 需要具備完整的錯誤處理機制，確保在各種異常情況下都能提供良好的使用者體驗。
+
+## 錯誤處理基本要求
+
+### 核心原則
+- **場景驅動**: 基於實際 Use Case 分析可能的錯誤情況
+- **使用者友善**: 提供清楚易懂的錯誤訊息和解決建議
+- **自動恢復**: 儘可能自動處理錯誤，減少使用者介入
+- **漸進學習**: 從實際運作中學習新的錯誤模式
+
+### 基本錯誤分類
+- **網路錯誤**: API 請求失敗、網路連接問題
+- **檔案錯誤**: JSON 匯入格式問題、檔案損壞
+- **相機錯誤**: 權限拒絕、硬體故障、掃描失敗
+- **系統錯誤**: 記憶體不足、儲存空間問題
+- **資料錯誤**: 書籍驗證失敗、資料格式錯誤
+
+### 處理策略要求
+- **重試機制**: 針對不同錯誤類型提供適當的重試策略
+- **降級服務**: 在部分功能失效時提供基本功能
+- **使用者通知**: 根據錯誤嚴重程度提供適當的通知方式
+- **錯誤記錄**: 記錄錯誤資訊供分析和改善使用
+
+## TDD 測試要求
+
+### 錯誤處理測試案例
+錯誤處理功能需要完整的測試覆蓋，包括：
+
+```dart
+// Phase 1: 基礎錯誤處理測試
+test('should create StandardError with required fields', () {
+  // 驗證基本錯誤物件建立
+});
+
+test('should classify errors correctly', () {
+  // 驗證錯誤分類機制
+});
+
+test('should handle network errors gracefully', () {
+  // 驗證網路錯誤處理
+});
+
+// Phase 2: 具體場景錯誤測試
+test('should handle file import errors', () {
+  // 驗證檔案匯入錯誤處理
+});
+
+test('should handle camera permission errors', () {
+  // 驗證相機權限錯誤處理
+});
+
+test('should handle memory pressure gracefully', () {
+  // 驗證記憶體壓力處理
+});
+```
+
+## 與 Chrome Extension 整合
+
+### 錯誤格式相容性
+- Flutter APP 的錯誤處理格式需與 Chrome Extension 保持一致
+- 支援跨平台錯誤記錄同步
+- 提供統一的錯誤分析和報告機制
+
+### 詳細設計文件參照
+錯誤處理系統的完整設計思路、流程和實作指引請參考：
+**[APP 錯誤處理系統設計文件](./app-error-handling-design.md)**
+
+該文件包含：
+- 詳細的設計思路與方法論
+- 完整的錯誤處理流程設計
+- 具體的實作指引和驗證方法
+- 動態錯誤學習和系統進化機制
+
+---
+
 # 程式碼品質與 Flutter 特定指引
 
 * **Null Safety**：嚴格遵循Flutter 3.x的null safety規範
