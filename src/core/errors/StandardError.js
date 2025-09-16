@@ -12,7 +12,7 @@
  * console.log(error.toJSON()) // 可序列化的錯誤物件
  */
 
-class StandardError {
+class StandardError extends Error {
   /**
    * 建立標準錯誤物件
    * @param {string} code - 錯誤代碼
@@ -20,9 +20,14 @@ class StandardError {
    * @param {Object} details - 附加資訊
    */
   constructor (code, message, details = {}) {
+    // 讓原生 Error 處理 message 和 stack trace
+    super(message || 'Unknown error')
+
+    // 設定錯誤名稱
+    this.name = 'StandardError'
+
     // 處理空值和無效參數
     this.code = code || 'UNKNOWN_ERROR'
-    this.message = message || 'Unknown error'
 
     // 處理 details 參數
     if (details === null || details === undefined) {
@@ -41,6 +46,11 @@ class StandardError {
       this.timestamp = 0 // 後備時間戳
     }
     this.id = this._generateId()
+
+    // 確保 stack trace 正確設定 (針對不同 JavaScript 引擎)
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, StandardError)
+    }
   }
 
   /**
@@ -114,11 +124,13 @@ class StandardError {
    */
   toJSON () {
     const json = {
+      name: this.name,
       code: this.code,
       message: this.message,
       details: this.details,
       timestamp: this.timestamp,
-      id: this.id
+      id: this.id,
+      stack: this.stack // 包含原生 stack trace
     }
 
     try {
@@ -180,12 +192,18 @@ class StandardError {
 
     const error = new StandardError(json.code, json.message, json.details)
 
-    // 恢復原始的 timestamp 和 id
+    // 恢復原始的 timestamp, id 和 stack
     if (json.timestamp) {
       error.timestamp = json.timestamp
     }
     if (json.id) {
       error.id = json.id
+    }
+    if (json.stack) {
+      error.stack = json.stack
+    }
+    if (json.name) {
+      error.name = json.name
     }
 
     return error
