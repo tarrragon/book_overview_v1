@@ -8,6 +8,10 @@
 
 **設計原則**: 基於實際使用場景分析，透過測試與實際運作發現邊界狀況，漸進式完善 StandardError 體系。
 
+**🚨 跨平台一致性更新 (v0.12.13+)**: 為確保 Chrome Extension 和 Flutter APP 的錯誤處理體系一致性，StandardError 在兩個平台都採用繼承原生錯誤類別的設計：
+- **Chrome Extension**: `class StandardError extends Error`
+- **Flutter APP**: `class StandardError extends Exception` (Dart 平台)
+
 ---
 
 ## 🎯 設計思路與方法論
@@ -62,6 +66,37 @@ graph TD
 **目標**: 完整捕獲錯誤資訊，避免遺漏關鍵上下文
 
 ```dart
+// v0.12.13+ 繼承設計
+class StandardError extends Exception {
+  final String code;
+  final String message;
+  final Map<String, dynamic> details;
+  final DateTime timestamp;
+  final String id;
+
+  StandardError(this.code, this.message, {this.details = const {}})
+      : timestamp = DateTime.now(),
+        id = _generateId();
+
+  // 提供與 JavaScript 版本一致的 API
+  Map<String, dynamic> toJSON() => {
+    'code': code,
+    'message': message,
+    'details': details,
+    'timestamp': timestamp.toIso8601String(),
+    'id': id,
+  };
+
+  @override
+  String toString() => 'StandardError [$code]: $message';
+
+  static String _generateId() {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final random = (DateTime.now().microsecond * 1000).toString();
+    return 'err_${timestamp}_$random';
+  }
+}
+
 class ErrorCaptureService {
   static StandardError captureAndAnalyze(dynamic error, StackTrace? stackTrace) {
     // 1. 收集基本錯誤資訊
@@ -73,7 +108,7 @@ class ErrorCaptureService {
     // 3. 分析錯誤類型和可能原因
     final analysis = _performInitialAnalysis(error, stackTrace);
 
-    // 4. 建立 StandardError 實例
+    // 4. 建立 StandardError 實例 (繼承 Exception)
     return StandardError(
       analysis.suggestedCode,
       analysis.primaryMessage,
@@ -82,6 +117,7 @@ class ErrorCaptureService {
         'context': context,
         'analysis': analysis.toMap(),
         'timestamp': DateTime.now().toIso8601String(),
+        'stackTrace': stackTrace?.toString(), // 原生支援 Stack trace
       },
     );
   }

@@ -38,7 +38,9 @@ const result = new OperationResult(true, data, null, OperationStatus.SUCCESS)
 
 ### 2. 專用錯誤類別系統 (`src/core/errors/`)
 
-每個錯誤類型負責自己的格式化，提供類型安全和語意清晰的錯誤處理：
+每個錯誤類型負責自己的格式化，提供類型安全和語意清晰的錯誤處理。
+
+**🚨 重要設計更新 (v0.12.13+)**: StandardError 現在繼承自 JavaScript 原生 Error 類別，提供更好的 JavaScript 生態系統兼容性、除錯體驗和跨平台一致性。
 
 #### BookValidationError - 書籍驗證錯誤
 
