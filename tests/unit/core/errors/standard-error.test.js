@@ -45,6 +45,18 @@ describe('StandardError 核心功能', () => {
     expect(error.id).toMatch(/^err_1693747200000_[a-z0-9]+$/)
   })
 
+  test('應該繼承自 Error 類別', () => {
+    // Given: StandardError 實例
+    const error = new StandardError('INHERITANCE_TEST', '繼承測試')
+
+    // Then: 驗證繼承關係
+    expect(error).toBeInstanceOf(Error)
+    expect(error).toBeInstanceOf(StandardError)
+    expect(error.name).toBe('StandardError')
+    expect(error.stack).toBeDefined() // 應該有 stack trace
+    expect(typeof error.stack).toBe('string')
+  })
+
   test('應該支援JSON序列化和反序列化', () => {
     // Given: 原始錯誤物件
     const originalError = new StandardError('SERIALIZE_TEST', '序列化測試', { test: true })
@@ -255,19 +267,26 @@ describe('StandardError 效能測試', () => {
 })
 
 describe('StandardError 記憶體使用', () => {
-  test('單個錯誤物件記憶體使用應該小於1KB', () => {
+  test('單個錯誤物件記憶體使用應該合理', () => {
     // Given: 標準大小的錯誤物件
     const details = {
       operation: 'test',
-      context: { url: 'https://example.com', method: 'GET' },
-      stack: 'Error stack trace...'
+      context: { url: 'https://example.com', method: 'GET' }
     }
 
     // When: 建立錯誤物件
     const error = new StandardError('MEMORY_TEST', '記憶體測試', details)
 
     // Then: 估算記憶體使用（透過JSON序列化）
+    // 注意: 包含 stack trace 後大小會增加，但應該保持合理範圍
     const serializedSize = JSON.stringify(error.toJSON()).length
-    expect(serializedSize).toBeLessThan(1024) // 小於1KB
+    expect(serializedSize).toBeLessThan(3 * 1024) // 小於3KB (包含 stack trace)
+
+    // 確保基本屬性存在
+    const json = error.toJSON()
+    expect(json.name).toBe('StandardError')
+    expect(json.code).toBe('MEMORY_TEST')
+    expect(json.stack).toBeDefined() // 應該包含 stack trace
+    expect(typeof json.stack).toBe('string')
   })
 })

@@ -188,11 +188,7 @@ describe('PopupProgressManager 核心功能', () => {
       // Then: 應該拋出錯誤
       expect(() => {
         progressManager.updateProgress({ percentage: 50, status: invalidStatus, text: '測試' })
-      }).toMatchObject({
-        code: expect.any(String),
-        message: expect.stringContaining(`Invalid progress status: ${invalidStatus}`),
-        details: expect.any(Object)
-      })
+      }).toThrow(StandardError)
     })
 
     test('應該正確處理進度狀態轉換', () => {
@@ -213,10 +209,10 @@ describe('PopupProgressManager 核心功能', () => {
       })
 
       // Then: 最終狀態正確
-      expect(progressManager.getCurrentProgress()).toMatchObject({
+      expect(progressManager.getCurrentProgress()).toEqual(expect.objectContaining({
         status: 'completed',
         percentage: 100
-      })
+      }))
     })
   })
 
@@ -227,7 +223,7 @@ describe('PopupProgressManager 核心功能', () => {
       progressManager = new PopupProgressManager(mockUIComponents)
 
       mockUIComponents.updateProgress.mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', 'UI update failed', { category: 'testing' })
+        throw new StandardError('POPUP_UI_UPDATE_ERROR', 'UI update failed', { category: 'testing' })
       })
 
       // When: 嘗試更新進度

@@ -1239,7 +1239,7 @@ describe('UC-05 跨設備同步工作流程測試', () => {
 
       // 測試最大重試次數
       const maxRetryResult = await device.executeWithRetry(
-        () => { throw new StandardError('TEST_ERROR', 'PERSISTENT_ERROR', { category: 'testing' }) },
+        () => { throw new StandardError('E2E_PERSISTENT_ERROR', 'PERSISTENT_ERROR', { category: 'testing' }) },
         { maxRetries: 3 }
       )
 

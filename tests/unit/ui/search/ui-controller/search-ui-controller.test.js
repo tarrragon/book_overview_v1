@@ -948,7 +948,7 @@ describe('SearchUIController', () => {
       // 模擬處理過程中的記憶體問題
       const originalNormalize = searchUIController.normalizeSearchQuery
       searchUIController.normalizeSearchQuery = jest.fn().mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', 'Memory allocation failed', { category: 'testing' })
+        throw new StandardError('SEARCH_UI_MEMORY_ERROR', 'Memory allocation failed', { category: 'testing' })
       })
 
       expect(() => {

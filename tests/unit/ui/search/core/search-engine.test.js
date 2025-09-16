@@ -639,7 +639,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
         ...mockIndexManager,
         titleIndex: {
           get: jest.fn(() => {
-            throw new StandardError('TEST_ERROR', '索引讀取失敗', { category: 'testing' })
+            throw new StandardError('SEARCH_RESULT_EVENT_ERROR', '索引讀取失敗', { category: 'testing' })
           }),
           has: jest.fn(() => true)
         }

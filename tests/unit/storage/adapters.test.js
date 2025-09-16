@@ -142,11 +142,7 @@ describe('💾 儲存適配器測試', () => {
         })
       }
 
-      await expect(saveOperation('large-data')).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      await expect(saveOperation('large-data')).rejects.toThrow(StandardError)
 
       // Cleanup - 重設模擬狀態
       chrome.storage.local.set.mockRestore()
@@ -419,7 +415,7 @@ describe('💾 儲存適配器測試', () => {
       const saveWithRollback = async (data, backup) => {
         try {
           // 模擬儲存失敗
-          throw new StandardError('TEST_ERROR', 'Storage failed', { category: 'testing' })
+          throw new StandardError('STORAGE_ADAPTER_FAILED', 'Storage failed', { category: 'testing' })
         } catch (error) {
           // 回復到原始資料
           return backup

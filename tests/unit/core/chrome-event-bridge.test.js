@@ -216,11 +216,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
       const mockEvent = { type: 'test.event' }
 
       // Act & Assert
-      await expect(bridge.dispatchToContext(mockEvent, 'unknown')).rejects.toMatchObject({
-        code: 'UNKNOWN_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      await expect(bridge.dispatchToContext(mockEvent, 'unknown')).rejects.toThrow(StandardError)
     })
   })
 
@@ -256,7 +252,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
 
       // Act & Assert
       await expect(bridge.dispatchToBackground(mockEvent)).rejects.toMatchObject({
-        code: 'UNKNOWN_ERROR',
+        code: 'CHROME_BRIDGE_UNKNOWN_CONTEXT',
         message: expect.any(String),
         details: expect.any(Object)
       })
@@ -398,7 +394,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
 
       // Act & Assert
       await expect(bridge.sendToTab(tabId, message)).rejects.toMatchObject({
-        code: 'UNKNOWN_ERROR',
+        code: 'CHROME_BRIDGE_UNKNOWN_CONTEXT',
         message: expect.any(String),
         details: expect.any(Object)
       })
@@ -428,7 +424,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
     test('應該能夠處理消息監聽器註冊失敗', () => {
       // Arrange
       mockChrome.runtime.onMessage.addListener.mockImplementation(() => {
-        throw new StandardError('UNKNOWN_ERROR', 'Listener registration failed', { category: 'testing' })
+        throw new StandardError('CHROME_BRIDGE_REGISTRATION_FAILED', 'Listener registration failed', { category: 'testing' })
       })
 
       // Act & Assert

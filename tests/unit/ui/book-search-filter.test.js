@@ -813,16 +813,18 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
         const BookSearchFilter = require('src/ui/book-search-filter')
         const filter = new BookSearchFilter(invalidEventBus, mockDocument)
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toThrow()
-      expect(() => {
+      }).toThrow(StandardError)
+
+      // 如果需要檢查特定錯誤屬性，使用 try-catch 模式
+      try {
         const BookSearchFilter = require('src/ui/book-search-filter')
-        const filter = new BookSearchFilter(invalidEventBus, mockDocument)
-        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toMatchObject({
-        code: 'REQUIRED_PARAMETER_MISSING',
-        message: expect.stringContaining('事件總線是必需的'),
-        details: expect.any(Object)
-      })
+        new BookSearchFilter(invalidEventBus, mockDocument)
+      } catch (error) {
+        expect(error).toBeInstanceOf(StandardError)
+        expect(error.code).toBe('REQUIRED_PARAMETER_MISSING')
+        expect(error.message).toContain('事件總線是必需的')
+        expect(error.details).toBeDefined()
+      }
     })
 
     test('應該正確清理資源', () => {
@@ -845,7 +847,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
 
       // 模擬記憶體不足錯誤
       jest.spyOn(instance, 'buildSearchIndex').mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', '記憶體不足', { category: 'testing' })
+        throw new StandardError('MEMORY_INSUFFICIENT_ERROR', '記憶體不足', { category: 'testing' })
       })
 
       const hugeData = new Array(100000).fill(mockBooks[0])

@@ -266,7 +266,7 @@ describe('Platform Detection Integration Tests', () => {
       // 模擬 URL 分析失敗但 DOM 分析成功的情況
       jest.spyOn(service, 'analyzeUrlPattern')
         .mockImplementationOnce(() => {
-          throw new StandardError('TEST_ERROR', 'URL Analysis Failed', { category: 'testing' })
+          throw new StandardError('URL_ANALYSIS_FAILURE', 'URL Analysis Failed', { category: 'testing' })
         })
         .mockImplementation(() => ({ platformId: 'READMOO', confidence: 0.9, features: ['url_pattern'] }))
 
@@ -526,7 +526,7 @@ describe('Platform Detection Integration Tests', () => {
       jest.spyOn(service, 'analyzeUrlPattern').mockImplementation(() => {
         callCount++
         if (callCount % 3 === 0) {
-          throw new StandardError('TEST_ERROR', `Simulated concurrent error ${callCount}`, { category: 'testing' })
+          throw new StandardError('CONCURRENT_OPERATION_ERROR', `Simulated concurrent error ${callCount}`, { category: 'testing' })
         }
         return { platformId: 'READMOO', confidence: 0.8, features: ['url_pattern'] }
       })

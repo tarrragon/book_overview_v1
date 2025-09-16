@@ -2623,7 +2623,7 @@ class ChromeExtensionController {
         const elapsed = Date.now() - startTime
 
         if (elapsed > timeout) {
-          reject(new Error(`衝突解決介面在 ${timeout}ms 內未出現`))
+          reject(new StandardError('E2E_CONFLICT_RESOLUTION_UI_TIMEOUT', `衝突解決介面在 ${timeout}ms 內未出現`, { category: 'testing' }))
           return
         }
 

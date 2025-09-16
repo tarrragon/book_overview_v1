@@ -1027,7 +1027,7 @@ class RuntimeMessagingValidator {
     }
 
     // 觸發斷線相關的錯誤
-    const error = new Error(`Receiving end does not exist: ${contextType}`)
+    const error = new StandardError('E2E_CONTEXT_DISCONNECTED', `Receiving end does not exist: ${contextType}`, { category: 'testing' })
     error.code = 'CONTEXT_DISCONNECTED'
     error.contextType = contextType
 

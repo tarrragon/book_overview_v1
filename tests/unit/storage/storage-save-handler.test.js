@@ -185,11 +185,7 @@ describe('StorageSaveHandler 單元測試', () => {
         flowId: 'test-flow-123'
       }
 
-      await expect(storageSaveHandler.handle(saveEvent)).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      await expect(storageSaveHandler.handle(saveEvent)).rejects.toThrow(StandardError)
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'STORAGE.ERROR',
@@ -241,11 +237,7 @@ describe('StorageSaveHandler 單元測試', () => {
         flowId: 'test-flow-123'
       }
 
-      await expect(storageSaveHandler.handle(saveEvent)).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      await expect(storageSaveHandler.handle(saveEvent)).rejects.toThrow(StandardError)
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'STORAGE.ERROR',

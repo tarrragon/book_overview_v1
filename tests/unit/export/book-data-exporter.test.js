@@ -662,20 +662,14 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
       // 模擬 URL.createObjectURL 失敗
       const originalCreateObjectURL = global.URL.createObjectURL
       global.URL.createObjectURL = jest.fn(() => {
-        throw new StandardError('TEST_ERROR', 'URL creation failed', { category: 'testing' })
+        throw new StandardError('EXPORT_URL_CREATION_FAILED', 'URL creation failed', { category: 'testing' })
       })
 
       try {
         // 下載應該拋出錯誤但被捕獲
         expect(() => {
           exporter.downloadCSV()
-        }).toThrow()
-        expect(() => {
-          exporter.downloadCSV()
-        }).toMatchObject({
-          code: expect.any(String),
-          details: expect.any(Object)
-        })
+        }).toThrow(StandardError)
 
         // 應該記錄錯誤
         const errorLog = exporter.getErrorLog()

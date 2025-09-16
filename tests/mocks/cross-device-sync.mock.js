@@ -376,7 +376,7 @@ class MockDevice {
 
     const errorInfo = errorMessages[errorType]?.[cause]
     if (!errorInfo) {
-      throw new StandardError('TEST_ERROR', `Unknown error type: ${errorType} with cause: ${cause}`, { category: 'testing' })
+      throw new StandardError('TEST_MOCK_ERROR', `Unknown error type: ${errorType} with cause: ${cause}`, { category: 'testing' })
     }
 
     // 記錄錯誤到日誌
@@ -928,7 +928,7 @@ class PerformanceMonitor {
 
   stop () {
     if (!this.startTime) {
-      throw new StandardError('TEST_ERROR', 'Performance monitor not started', { category: 'testing' })
+      throw new StandardError('TEST_MOCK_ERROR', 'Performance monitor not started', { category: 'testing' })
     }
 
     const endTime = Date.now()
@@ -1686,58 +1686,58 @@ module.exports = {
   },
 
   executeTrackedSync: async (sourceDevice, targetDevice, stateTracker) => {
-    throw new StandardError('TEST_ERROR', 'executeTrackedSync function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw new StandardError('TEST_MOCK_ERROR', 'executeTrackedSync function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   getSyncHistory: async (device) => {
-    throw new StandardError('TEST_ERROR', 'getSyncHistory function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw new StandardError('TEST_MOCK_ERROR', 'getSyncHistory function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   executeUserWorkflow: async (config) => {
-    throw new StandardError('TEST_ERROR', 'executeUserWorkflow function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw new StandardError('TEST_MOCK_ERROR', 'executeUserWorkflow function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   calculateDataChecksum: async (data) => {
-    throw new StandardError('TEST_ERROR', 'calculateDataChecksum function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw new StandardError('TEST_MOCK_ERROR', 'calculateDataChecksum function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   createDataSnapshot: async (deviceDataSets) => {
-    throw new StandardError('TEST_ERROR', 'createDataSnapshot function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw new StandardError('TEST_MOCK_ERROR', 'createDataSnapshot function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   compareDataSnapshots: async (preSyncSnapshot, postSyncSnapshot) => {
-    throw new StandardError('TEST_ERROR', 'compareDataSnapshots function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw new StandardError('TEST_MOCK_ERROR', 'compareDataSnapshots function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   createExportData: async (books) => {
-    throw new StandardError('TEST_ERROR', 'createExportData function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw new StandardError('TEST_MOCK_ERROR', 'createExportData function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   validateSampleIntegrity: async (originalData, comparedData, options) => {
-    throw new StandardError('TEST_ERROR', 'validateSampleIntegrity function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw new StandardError('TEST_MOCK_ERROR', 'validateSampleIntegrity function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   checkDataRaceConditions: async (finalBooks) => {
-    throw new StandardError('TEST_ERROR', 'checkDataRaceConditions function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw new StandardError('TEST_MOCK_ERROR', 'checkDataRaceConditions function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   detectSyncConflicts: async (deviceA, deviceB) => {
-    throw new StandardError('TEST_ERROR', 'detectSyncConflicts function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw new StandardError('TEST_MOCK_ERROR', 'detectSyncConflicts function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   setupConflictResolver: async () => {
-    throw new StandardError('TEST_ERROR', 'setupConflictResolver function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw new StandardError('TEST_MOCK_ERROR', 'setupConflictResolver function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   checkVersionCompatibility: async (fromDevice, toDevice) => {
-    throw new StandardError('TEST_ERROR', 'checkVersionCompatibility function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw new StandardError('TEST_MOCK_ERROR', 'checkVersionCompatibility function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   calculateUpgradePath: async (fromVersion, toVersion) => {
-    throw new StandardError('TEST_ERROR', 'calculateUpgradePath function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw new StandardError('TEST_MOCK_ERROR', 'calculateUpgradePath function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   },
 
   validateDataPropagation: async (devices) => {
-    throw new StandardError('TEST_ERROR', 'validateDataPropagation function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw new StandardError('TEST_MOCK_ERROR', 'validateDataPropagation function not implemented - awaiting TDD Phase 3', { category: 'testing' })
   }
 }

@@ -103,7 +103,7 @@ class ExportUserFeedback {
    */
   async initialize () {
     // 測試將驗證初始化流程
-    throw new StandardError('TEST_ERROR', 'ExportUserFeedback.initialize() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_USER_FEEDBACK_INIT_ERROR', 'ExportUserFeedback.initialize() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -111,7 +111,7 @@ class ExportUserFeedback {
    */
   async loadUserPreferences () {
     // 測試將驗證偏好載入
-    throw new StandardError('TEST_ERROR', 'ExportUserFeedback.loadUserPreferences() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_USER_PREFERENCES_LOAD_ERROR', 'ExportUserFeedback.loadUserPreferences() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -120,7 +120,7 @@ class ExportUserFeedback {
    */
   async saveUserPreferences (preferences) {
     // 測試將驗證偏好儲存
-    throw new StandardError('TEST_ERROR', 'ExportUserFeedback.saveUserPreferences() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_USER_PREFERENCES_SAVE_ERROR', 'ExportUserFeedback.saveUserPreferences() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -129,7 +129,7 @@ class ExportUserFeedback {
    */
   notifyExportStarted (exportInfo) {
     // 測試將驗證開始通知
-    throw new StandardError('TEST_ERROR', 'ExportUserFeedback.notifyExportStarted() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_NOTIFICATION_START_ERROR', 'ExportUserFeedback.notifyExportStarted() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -138,7 +138,7 @@ class ExportUserFeedback {
    */
   notifyExportCompleted (exportResult) {
     // 測試將驗證完成通知
-    throw new StandardError('TEST_ERROR', 'ExportUserFeedback.notifyExportCompleted() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_NOTIFICATION_COMPLETE_ERROR', 'ExportUserFeedback.notifyExportCompleted() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -147,7 +147,7 @@ class ExportUserFeedback {
    */
   notifyExportError (errorInfo) {
     // 測試將驗證錯誤通知
-    throw new StandardError('TEST_ERROR', 'ExportUserFeedback.notifyExportError() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_NOTIFICATION_ERROR_ALERT', 'ExportUserFeedback.notifyExportError() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -156,7 +156,7 @@ class ExportUserFeedback {
    */
   showDownloadConfirmation (downloadInfo) {
     // 測試將驗證下載確認
-    throw new StandardError('TEST_ERROR', 'ExportUserFeedback.showDownloadConfirmation() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_DOWNLOAD_CONFIRMATION_ERROR', 'ExportUserFeedback.showDownloadConfirmation() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -165,7 +165,7 @@ class ExportUserFeedback {
    */
   getExportHistory (filters = {}) {
     // 測試將驗證歷史查詢
-    throw new StandardError('TEST_ERROR', 'ExportUserFeedback.getExportHistory() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_HISTORY_QUERY_ERROR', 'ExportUserFeedback.getExportHistory() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -173,7 +173,7 @@ class ExportUserFeedback {
    */
   getExportStatistics () {
     // 測試將驗證統計資訊
-    throw new StandardError('TEST_ERROR', 'ExportUserFeedback.getExportStatistics() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_STATISTICS_QUERY_ERROR', 'ExportUserFeedback.getExportStatistics() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -181,7 +181,7 @@ class ExportUserFeedback {
    */
   cleanupExpiredNotifications () {
     // 測試將驗證通知清理
-    throw new StandardError('TEST_ERROR', 'ExportUserFeedback.cleanupExpiredNotifications() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_NOTIFICATION_CLEANUP_ERROR', 'ExportUserFeedback.cleanupExpiredNotifications() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -190,7 +190,102 @@ class ExportUserFeedback {
    */
   humanizeError (error) {
     // 測試將驗證錯誤友好化
-    throw new StandardError('TEST_ERROR', 'ExportUserFeedback.humanizeError() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_ERROR_HUMANIZATION_ERROR', 'ExportUserFeedback.humanizeError() not implemented - Red phase', { category: 'testing' })
+  }
+
+  /**
+   * 搜尋匯出歷史記錄
+   * @param {Object} searchFilters - 搜尋篩選條件
+   */
+  searchExportHistory (searchFilters) {
+    throw new StandardError('EXPORT_HISTORY_SEARCH_ERROR', 'ExportUserFeedback.searchExportHistory() not implemented - Red phase', { category: 'testing' })
+  }
+
+  /**
+   * 匯出歷史記錄
+   * @param {Object} exportOptions - 匯出選項
+   */
+  exportHistory (exportOptions) {
+    throw new StandardError('EXPORT_HISTORY_EXPORT_ERROR', 'ExportUserFeedback.exportHistory() not implemented - Red phase', { category: 'testing' })
+  }
+
+  /**
+   * 取得指定時間範圍的統計資訊
+   * @param {string} range - 時間範圍
+   */
+  getStatisticsForRange (range) {
+    throw new StandardError('EXPORT_STATISTICS_RANGE_ERROR', 'ExportUserFeedback.getStatisticsForRange() not implemented - Red phase', { category: 'testing' })
+  }
+
+  /**
+   * 取得效能基準比較
+   */
+  getBenchmarkComparison () {
+    throw new StandardError('EXPORT_BENCHMARK_COMPARISON_ERROR', 'ExportUserFeedback.getBenchmarkComparison() not implemented - Red phase', { category: 'testing' })
+  }
+
+  /**
+   * 新增通知
+   * @param {Object} notification - 通知物件
+   */
+  addNotification (notification) {
+    throw new StandardError('EXPORT_NOTIFICATION_ADD_ERROR', 'ExportUserFeedback.addNotification() not implemented - Red phase', { category: 'testing' })
+  }
+
+  /**
+   * 建立通知群組
+   * @param {Object} groupedNotifications - 群組化通知
+   */
+  createNotificationGroup (groupedNotifications) {
+    throw new StandardError('EXPORT_NOTIFICATION_GROUP_ERROR', 'ExportUserFeedback.createNotificationGroup() not implemented - Red phase', { category: 'testing' })
+  }
+
+  /**
+   * 驗證偏好設定
+   * @param {Object} preferences - 偏好設定
+   */
+  validatePreferences (preferences) {
+    throw new StandardError('EXPORT_PREFERENCES_VALIDATION_ERROR', 'ExportUserFeedback.validatePreferences() not implemented - Red phase', { category: 'testing' })
+  }
+
+  /**
+   * 與預設偏好合併
+   * @param {Object} partialPreferences - 部分偏好設定
+   */
+  mergeWithDefaults (partialPreferences) {
+    throw new StandardError('EXPORT_PREFERENCES_MERGE_ERROR', 'ExportUserFeedback.mergeWithDefaults() not implemented - Red phase', { category: 'testing' })
+  }
+
+  /**
+   * 重置偏好設定
+   */
+  resetPreferences () {
+    throw new StandardError('EXPORT_PREFERENCES_RESET_ERROR', 'ExportUserFeedback.resetPreferences() not implemented - Red phase', { category: 'testing' })
+  }
+
+  /**
+   * 設定語言
+   * @param {string} language - 語言代碼
+   */
+  setLanguage (language) {
+    throw new StandardError('EXPORT_LANGUAGE_SET_ERROR', 'ExportUserFeedback.setLanguage() not implemented - Red phase', { category: 'testing' })
+  }
+
+  /**
+   * 取得本地化訊息
+   * @param {string} messageKey - 訊息鍵值
+   */
+  getLocalizedMessage (messageKey) {
+    throw new StandardError('EXPORT_LOCALIZATION_ERROR', 'ExportUserFeedback.getLocalizedMessage() not implemented - Red phase', { category: 'testing' })
+  }
+
+  /**
+   * 格式化日期時間
+   * @param {Date} date - 日期
+   * @param {string} timezone - 時區
+   */
+  formatDateTime (date, timezone) {
+    throw new StandardError('EXPORT_DATETIME_FORMAT_ERROR', 'ExportUserFeedback.formatDateTime() not implemented - Red phase', { category: 'testing' })
   }
 }
 
@@ -211,7 +306,7 @@ class NotificationService {
    */
   sendBrowserNotification (title, options) {
     // 測試將驗證 Browser 通知
-    throw new StandardError('TEST_ERROR', 'NotificationService.sendBrowserNotification() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('NOTIFICATION_BROWSER_SEND_ERROR', 'NotificationService.sendBrowserNotification() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -221,7 +316,7 @@ class NotificationService {
    */
   sendChromeNotification (notificationId, options) {
     // 測試將驗證 Chrome 通知
-    throw new StandardError('TEST_ERROR', 'NotificationService.sendChromeNotification() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('NOTIFICATION_CHROME_SEND_ERROR', 'NotificationService.sendChromeNotification() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -230,7 +325,7 @@ class NotificationService {
    */
   sendUINotification (notificationData) {
     // 測試將驗證 UI 通知
-    throw new StandardError('TEST_ERROR', 'NotificationService.sendUINotification() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('NOTIFICATION_UI_SEND_ERROR', 'NotificationService.sendUINotification() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -239,7 +334,7 @@ class NotificationService {
    */
   playSoundAlert (soundType) {
     // 測試將驗證音效通知
-    throw new StandardError('TEST_ERROR', 'NotificationService.playSoundAlert() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('NOTIFICATION_SOUND_PLAY_ERROR', 'NotificationService.playSoundAlert() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -248,7 +343,22 @@ class NotificationService {
    */
   clearNotification (notificationId) {
     // 測試將驗證通知清除
-    throw new StandardError('TEST_ERROR', 'NotificationService.clearNotification() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('NOTIFICATION_CLEAR_ERROR', 'NotificationService.clearNotification() not implemented - Red phase', { category: 'testing' })
+  }
+
+  /**
+   * 批量清除多個通知
+   * @param {Array} notificationIds - 通知ID陣列
+   */
+  clearMultipleNotifications (notificationIds) {
+    throw new StandardError('NOTIFICATION_BATCH_CLEAR_ERROR', 'NotificationService.clearMultipleNotifications() not implemented - Red phase', { category: 'testing' })
+  }
+
+  /**
+   * 清理過期通知
+   */
+  cleanupExpiredNotifications () {
+    throw new StandardError('NOTIFICATION_CLEANUP_EXPIRED_ERROR', 'NotificationService.cleanupExpiredNotifications() not implemented - Red phase', { category: 'testing' })
   }
 }
 
@@ -272,11 +382,7 @@ describe('ExportUserFeedback', () => {
     test('應該正確初始化使用者回饋系統', async () => {
       await expect(async () => {
         await userFeedback.initialize()
-      }).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      }).rejects.toThrow(StandardError)
 
       // Red 階段：測試將驗證初始化流程
       // - 事件監聽器註冊
@@ -296,11 +402,7 @@ describe('ExportUserFeedback', () => {
 
       await expect(async () => {
         await userFeedback.loadUserPreferences()
-      }).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      }).rejects.toThrow(StandardError)
 
       // Red 階段：測試將驗證偏好載入
       // - Chrome Storage 讀取
@@ -318,11 +420,7 @@ describe('ExportUserFeedback', () => {
 
       await expect(async () => {
         await userFeedback.saveUserPreferences(newPreferences)
-      }).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      }).rejects.toThrow(StandardError)
 
       // Red 階段：測試將驗證偏好儲存
       // - 偏好驗證
@@ -343,9 +441,7 @@ describe('ExportUserFeedback', () => {
 
       expect(() => {
         userFeedback.notifyExportStarted(exportInfo)
-      }).toMatchObject({
-        message: expect.stringContaining('ExportUserFeedback.notifyExportStarted() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證開始通知
       // - 通知內容格式化
@@ -406,9 +502,7 @@ describe('ExportUserFeedback', () => {
 
       expect(() => {
         userFeedback.notifyExportCompleted(exportResult)
-      }).toMatchObject({
-        message: expect.stringContaining('ExportUserFeedback.notifyExportCompleted() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證完成通知
       // - 成功訊息顯示
@@ -470,7 +564,7 @@ describe('ExportUserFeedback', () => {
     test('應該發送使用者友好的錯誤通知', () => {
       const errorInfo = {
         exportId: 'error-notification-001',
-        error: new Error('Network request failed'),
+        error: new StandardError('NETWORK_REQUEST_FAILED', 'Network request failed'),
         format: 'pdf',
         context: {
           bookCount: 100,
@@ -481,9 +575,7 @@ describe('ExportUserFeedback', () => {
 
       expect(() => {
         userFeedback.notifyExportError(errorInfo)
-      }).toMatchObject({
-        message: expect.stringContaining('ExportUserFeedback.notifyExportError() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證錯誤通知
       // - 使用者友好錯誤訊息
@@ -494,18 +586,16 @@ describe('ExportUserFeedback', () => {
 
     test('應該將技術錯誤轉為使用者友好訊息', () => {
       const technicalErrors = [
-        { error: new Error('ENOTFOUND example.com'), expected: '網路連線問題' },
-        { error: new Error('QuotaExceededError'), expected: '儲存空間不足' },
-        { error: new Error('SecurityError'), expected: '權限不足' },
-        { error: new Error('OutOfMemoryError'), expected: '記憶體不足' }
+        { error: new StandardError('ENOTFOUND_ERROR', 'ENOTFOUND example.com'), expected: '網路連線問題' },
+        { error: new StandardError('QUOTA_EXCEEDED_ERROR', 'QuotaExceededError'), expected: '儲存空間不足' },
+        { error: new StandardError('SECURITY_ERROR', 'SecurityError'), expected: '權限不足' },
+        { error: new StandardError('OUT_OF_MEMORY_ERROR', 'OutOfMemoryError'), expected: '記憶體不足' }
       ]
 
       technicalErrors.forEach(({ error, expected }) => {
         expect(() => {
           const humanMessage = userFeedback.humanizeError(error)
-        }).toMatchObject({
-          message: expect.stringContaining('ExportUserFeedback.humanizeError() not implemented - Red phase')
-        })
+        }).toThrow(StandardError)
       })
 
       // Red 階段：測試將驗證錯誤友好化
@@ -518,7 +608,7 @@ describe('ExportUserFeedback', () => {
     test('應該提供錯誤恢復選項', () => {
       const recoverableError = {
         exportId: 'recoverable-error-001',
-        error: new Error('Temporary network failure'),
+        error: new StandardError('TEMPORARY_NETWORK_FAILURE', 'Temporary network failure'),
         isRecoverable: true,
         context: {
           format: 'csv',
@@ -557,9 +647,7 @@ describe('ExportUserFeedback', () => {
 
       expect(() => {
         userFeedback.showDownloadConfirmation(downloadInfo)
-      }).toMatchObject({
-        message: expect.stringContaining('ExportUserFeedback.showDownloadConfirmation() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證下載確認
       // - 檔案資訊顯示
@@ -627,9 +715,7 @@ describe('ExportUserFeedback', () => {
 
       expect(() => {
         const history = userFeedback.getExportHistory(filters)
-      }).toMatchObject({
-        message: expect.stringContaining('ExportUserFeedback.getExportHistory() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證歷史查詢
       // - 日期範圍篩選
@@ -679,9 +765,7 @@ describe('ExportUserFeedback', () => {
     test('應該提供詳細匯出統計', () => {
       expect(() => {
         const statistics = userFeedback.getExportStatistics()
-      }).toMatchObject({
-        message: expect.stringContaining('ExportUserFeedback.getExportStatistics() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證統計資訊
       // - 總匯出次數
@@ -727,9 +811,7 @@ describe('ExportUserFeedback', () => {
     test('應該清理過期通知', () => {
       expect(() => {
         userFeedback.cleanupExpiredNotifications()
-      }).toMatchObject({
-        message: expect.stringContaining('ExportUserFeedback.cleanupExpiredNotifications() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證通知清理
       // - 過期時間檢查
@@ -883,9 +965,7 @@ describe('NotificationService', () => {
 
       expect(() => {
         notificationService.sendBrowserNotification(title, options)
-      }).toMatchObject({
-        message: expect.stringContaining('NotificationService.sendBrowserNotification() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證 Browser 通知
       // - 權限檢查
@@ -919,9 +999,7 @@ describe('NotificationService', () => {
 
       expect(() => {
         notificationService.sendChromeNotification(notificationId, options)
-      }).toMatchObject({
-        message: expect.stringContaining('NotificationService.sendChromeNotification() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證 Chrome 通知
       // - Chrome API 調用
@@ -967,9 +1045,7 @@ describe('NotificationService', () => {
 
       expect(() => {
         notificationService.sendUINotification(notificationData)
-      }).toMatchObject({
-        message: expect.stringContaining('NotificationService.sendUINotification() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證 UI 通知
       // - UI 元素建立
@@ -1005,9 +1081,7 @@ describe('NotificationService', () => {
       soundTypes.forEach(soundType => {
         expect(() => {
           notificationService.playSoundAlert(soundType)
-        }).toMatchObject({
-          message: expect.stringContaining('NotificationService.playSoundAlert() not implemented - Red phase')
-        })
+        }).toThrow(StandardError)
       })
 
       // Red 階段：測試將驗證音效通知
@@ -1039,9 +1113,7 @@ describe('NotificationService', () => {
 
       expect(() => {
         notificationService.clearNotification(notificationId)
-      }).toMatchObject({
-        message: expect.stringContaining('NotificationService.clearNotification() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證通知清除
       // - Chrome 通知清除

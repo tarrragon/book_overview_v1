@@ -246,7 +246,7 @@ describe('🎭 事件總線核心測試', () => {
       const eventType = 'data.validation.failed'
       const workingHandler = jest.fn()
       const errorHandler = jest.fn(() => {
-        throw new StandardError('TEST_ERROR', 'Handler error', { category: 'testing' })
+        throw new StandardError('CORE_EVENTBUS_HANDLER_ERROR', 'Handler error', { category: 'testing' })
       })
       const anotherWorkingHandler = jest.fn()
 

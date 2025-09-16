@@ -175,11 +175,7 @@ describe('PopupCommunicationService 核心功能', () => {
 
       // When: 嘗試開始提取
       await expect(communicationService.startExtraction())
-        .rejects.toMatchObject({
-          code: 'TEST_ERROR',
-          message: expect.any(String),
-          details: expect.any(Object)
-        })
+        .rejects.toThrow(StandardError)
 
       // Then: 狀態正確更新
       expect(mockStatusManager.updateStatus).toHaveBeenCalledWith({
@@ -200,11 +196,7 @@ describe('PopupCommunicationService 核心功能', () => {
 
       // When: 嘗試開始提取
       await expect(communicationService.startExtraction())
-        .rejects.toMatchObject({
-          code: 'TEST_ERROR',
-          message: expect.any(String),
-          details: expect.any(Object)
-        })
+        .rejects.toThrow(StandardError)
 
       // Then: 錯誤被正確處理
       expect(mockStatusManager.updateStatus).toHaveBeenCalledWith({

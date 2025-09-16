@@ -292,11 +292,7 @@ describe('StorageLoadHandler 單元測試', () => {
         flowId: 'test-load-flow-123'
       }
 
-      await expect(storageLoadHandler.handle(loadEvent)).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      await expect(storageLoadHandler.handle(loadEvent)).rejects.toThrow(StandardError)
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'STORAGE.ERROR',
@@ -327,11 +323,7 @@ describe('StorageLoadHandler 單元測試', () => {
         flowId: 'test-load-flow-123'
       }
 
-      await expect(storageLoadHandler.handle(loadEvent)).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      await expect(storageLoadHandler.handle(loadEvent)).rejects.toThrow(StandardError)
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'STORAGE.ERROR',

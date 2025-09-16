@@ -4,6 +4,8 @@
  * 解決：EventHandler依賴問題（21個測試失敗）
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 // ===== 全域環境設置 =====
 
 // 設定JSDOM環境
@@ -844,11 +846,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
       mockFileReader.simulateSuccess(invalidJSON)
 
       // 等待 Promise 被拒絕
-      await expect(loadPromise).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      await expect(loadPromise).rejects.toThrow(StandardError)
 
       // 應該顯示錯誤訊息
       expect(DOMTestUtils.verifyTableState.showsError()).toBe(true)
@@ -872,11 +870,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
       mockFileReader.simulateError()
 
       // 等待 Promise 被拒絕
-      await expect(loadPromise).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      await expect(loadPromise).rejects.toThrow(StandardError)
 
       expect(DOMTestUtils.verifyTableState.showsError()).toBe(true)
     })

@@ -311,7 +311,7 @@ describe('EventNamingUpgradeCoordinator', () => {
   describe('錯誤處理', () => {
     test('應該處理事件處理器中的錯誤', async () => {
       const errorHandler = () => {
-        throw new StandardError('TEST_ERROR', 'Handler error', { category: 'testing' })
+        throw new StandardError('CORE_HANDLER_ERROR', 'Handler error', { category: 'testing' })
       }
 
       coordinator.registerDualTrackListener('EXTRACTION.COMPLETED', errorHandler)
@@ -328,7 +328,7 @@ describe('EventNamingUpgradeCoordinator', () => {
       const initialErrors = initialStats.conversionErrors
 
       // 觸發轉換錯誤
-      coordinator.recordConversionError('TEST_ERROR', 'Test error message')
+      coordinator.recordConversionError('CORE_CONVERSION_ERROR', 'Test error message')
 
       const updatedStats = coordinator.getConversionStats()
       expect(updatedStats.conversionErrors).toBe(initialErrors + 1)

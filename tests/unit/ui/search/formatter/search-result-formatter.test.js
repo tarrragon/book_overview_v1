@@ -531,7 +531,7 @@ describe('SearchResultFormatter', () => {
     test('事件發送失敗時應該記錄錯誤但不影響格式化', () => {
       // 模擬 eventBus 發送失敗
       mockEventBus.emit.mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', 'Event emission failed', { category: 'testing' })
+        throw new StandardError('MEMORY_INSUFFICIENT_ERROR', 'Event emission failed', { category: 'testing' })
       })
 
       expect(() => {

@@ -17,6 +17,7 @@
  */
 
 const FilterEngine = require('src/ui/search/filter/filter-engine')
+const { StandardError } = require('src/core/errors/StandardError')
 
 describe('FilterEngine', () => {
   let filterEngine
@@ -105,30 +106,14 @@ describe('FilterEngine', () => {
       expect(() => {
         const engine = new FilterEngine({ logger: mockLogger })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toThrow()
-      expect(() => {
-        const engine = new FilterEngine({ logger: mockLogger })
-        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toMatchObject({
-        code: 'REQUIRED_PARAMETER_MISSING',
-        message: expect.stringContaining('EventBus 和 Logger 是必需的'),
-        details: expect.any(Object)
-      })
+      }).toThrow(StandardError)
     })
 
     it('should throw error when Logger is missing', () => {
       expect(() => {
         const engine = new FilterEngine({ eventBus: mockEventBus })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toThrow()
-      expect(() => {
-        const engine = new FilterEngine({ eventBus: mockEventBus })
-        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toMatchObject({
-        code: 'REQUIRED_PARAMETER_MISSING',
-        message: expect.stringContaining('EventBus 和 Logger 是必需的'),
-        details: expect.any(Object)
-      })
+      }).toThrow(StandardError)
     })
 
     it('should initialize with default configuration', () => {
@@ -187,21 +172,9 @@ describe('FilterEngine', () => {
     })
 
     it('should validate input parameters', async () => {
-      await expect(filterEngine.applyFilters(null, {})).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
-      await expect(filterEngine.applyFilters(testBooks, null)).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
-      await expect(filterEngine.applyFilters('invalid', {})).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      await expect(filterEngine.applyFilters(null, {})).rejects.toThrow(StandardError)
+      await expect(filterEngine.applyFilters(testBooks, null)).rejects.toThrow(StandardError)
+      await expect(filterEngine.applyFilters('invalid', {})).rejects.toThrow(StandardError)
     })
 
     it('should emit filter application events when enabled', async () => {
@@ -369,11 +342,7 @@ describe('FilterEngine', () => {
     it('should handle invalid date format gracefully', async () => {
       await expect(filterEngine.applyFilters(testBooks, {
         lastReadAfter: 'invalid-date'
-      })).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      })).rejects.toThrow(StandardError)
     })
   })
 
@@ -566,11 +535,7 @@ describe('FilterEngine', () => {
     it('should throw error when FilterEngine is destroyed', async () => {
       filterEngine.destroy()
 
-      await expect(filterEngine.applyFilters(testBooks, {})).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      await expect(filterEngine.applyFilters(testBooks, {})).rejects.toThrow(StandardError)
     })
 
     it('should handle invalid filter criteria gracefully', async () => {

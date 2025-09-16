@@ -69,7 +69,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       const flakyOperation = jest.fn().mockImplementation(() => {
         attemptCount++
         if (attemptCount < 3) {
-          throw new StandardError('TEST_ERROR', `Temporary failure ${attemptCount}`, { category: 'testing' })
+          throw new StandardError('ERROR_RECOVERY_TEMPORARY_FAILURE', `Temporary failure ${attemptCount}`, { category: 'testing' })
         }
         return `Success after ${attemptCount} attempts`
       })

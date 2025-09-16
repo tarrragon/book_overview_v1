@@ -310,7 +310,7 @@ describe('Modular Content Script', () => {
     test('應該隔離監聽器錯誤', async () => {
       const createContentEventBus = require('src/content/core/content-event-bus')
       const eventBus = createContentEventBus()
-      const errorHandler = jest.fn(() => { throw new StandardError('TEST_ERROR', 'Handler error', { category: 'testing' }) })
+      const errorHandler = jest.fn(() => { throw new StandardError('CONTENT_HANDLER_ERROR', 'Handler error', { category: 'testing' }) })
       const goodHandler = jest.fn()
 
       eventBus.on('ERROR.TEST', errorHandler)

@@ -302,7 +302,7 @@ class E2EIntegrationTestCoordinator {
     switch (errorType) {
       case 'storageError':
         errorInjector.injectChromeApiError('chrome.storage.local', 'set',
-          new Error('Storage quota exceeded'))
+          new StandardError('E2E_STORAGE_QUOTA_EXCEEDED', 'Storage quota exceeded', { category: 'testing' }))
         break
       case 'networkError':
         errorInjector.injectNetworkError('timeout', 5000)

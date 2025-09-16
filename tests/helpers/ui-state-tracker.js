@@ -71,7 +71,7 @@ class UIStateTracker {
     const state2 = this.findState(state2Name)
 
     if (!state1 || !state2) {
-      throw new StandardError('TEST_ERROR', `無法找到狀態: ${state1Name} 或 ${state2Name}`, { category: 'testing' })
+      throw new StandardError('TEST_VALIDATION_ERROR', `無法找到狀態: ${state1Name} 或 ${state2Name}`, { category: 'testing' })
     }
 
     return this._deepCompare(state1.elements, state2.elements)
@@ -136,7 +136,7 @@ class UIStateTracker {
     const recentStates = this.stateHistory.slice(-2)
 
     if (recentStates.length < 2) {
-      throw new StandardError('TEST_ERROR', '需要至少兩個狀態來驗證轉換', { category: 'testing' })
+      throw new StandardError('TEST_VALIDATION_ERROR', '需要至少兩個狀態來驗證轉換', { category: 'testing' })
     }
 
     const [previousState, currentState] = recentStates

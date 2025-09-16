@@ -40,10 +40,10 @@ describe('錯誤處理系統基本整合測試', () => {
   describe('核心組件基本功能驗證', () => {
     test('StandardError 基本功能正常', () => {
       // Given: 建立錯誤物件
-      const error = new StandardError('TEST_ERROR', '測試錯誤', { test: true })
+      const error = new StandardError('INTEGRATION_TEST_ERROR', '測試錯誤', { test: true })
 
       // When & Then: 基本功能驗證
-      expect(error.code).toBe('TEST_ERROR')
+      expect(error.code).toBe('INTEGRATION_TEST_ERROR')
       expect(error.message).toBe('測試錯誤')
       expect(error.details.test).toBe(true)
       expect(error.id).toMatch(/^err_\d+_[a-z0-9]{9}$/)
@@ -51,7 +51,7 @@ describe('錯誤處理系統基本整合測試', () => {
 
       // JSON 序列化功能
       const json = error.toJSON()
-      expect(json.code).toBe('TEST_ERROR')
+      expect(json.code).toBe('INTEGRATION_TEST_ERROR')
       expect(json.message).toBe('測試錯誤')
 
       // 反序列化功能
@@ -160,7 +160,7 @@ describe('錯誤處理系統基本整合測試', () => {
       }
 
       const failureOperation = async () => {
-        throw new StandardError('TEST_ERROR', '模擬操作失敗', { category: 'testing' })
+        throw new StandardError('INTEGRATION_OPERATION_ERROR', '模擬操作失敗', { category: 'testing' })
       }
 
       // When: 使用 ErrorHelper 包裝操作
@@ -328,7 +328,7 @@ describe('效能和記憶體使用驗證', () => {
       // Given: 建立多個組件實例
       const components = {
         errors: Array.from({ length: 10 }, (_, i) =>
-          new StandardError(`TEST_ERROR_${i}`, `錯誤 ${i}`, { index: i })
+          new StandardError(`MEMORY_TEST_ERROR_${i}`, `錯誤 ${i}`, { index: i })
         ),
         results: Array.from({ length: 10 }, (_, i) =>
           OperationResult.success({ id: i, data: `result_${i}` })

@@ -59,14 +59,14 @@ function loadFromFile () {
 
       // 驗證 JSON 格式
       if (!Array.isArray(jsonData)) {
-        throw new StandardError('TEST_ERROR', 'JSON 檔案應該包含一個陣列', { category: 'testing' })
+        throw new StandardError('DATA_IMPORT_FORMAT_ERROR', 'JSON 檔案應該包含一個陣列', { category: 'testing' })
       }
 
       // 驗證每個書籍物件的格式
       for (let i = 0; i < jsonData.length; i++) {
         const book = jsonData[i]
         if (!book.id || !book.title || !book.cover) {
-          throw new StandardError('TEST_ERROR', `第 ${i + 1} 個書籍缺少必要欄位 (id, title, cover)`, { category: 'testing' })
+          throw new StandardError('DATA_IMPORT_FIELD_ERROR', `第 ${i + 1} 個書籍缺少必要欄位 (id, title, cover)`, { category: 'testing' })
         }
       }
 

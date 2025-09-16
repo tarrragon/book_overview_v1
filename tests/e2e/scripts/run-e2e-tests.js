@@ -92,7 +92,7 @@ class E2ETestRunner {
     for (const file of requiredFiles) {
       const filePath = path.join(this.projectRoot, file)
       if (!fs.existsSync(filePath)) {
-        throw new StandardError('TEST_ERROR', `必要文件不存在: ${file}`, { category: 'testing' })
+        throw new StandardError('E2E_REQUIRED_FILE_NOT_FOUND', `必要文件不存在: ${file}`, { category: 'testing' })
       }
     }
 
@@ -131,13 +131,13 @@ class E2ETestRunner {
 
       // 驗證建置結果
       if (!fs.existsSync(this.buildDir)) {
-        throw new StandardError('TEST_ERROR', 'Extension 建置失敗', { category: 'testing' })
+        throw new StandardError('E2E_EXTENSION_BUILD_FAILED', 'Extension 建置失敗', { category: 'testing' })
       }
 
       // eslint-disable-next-line no-console
       console.log('  ✅ Extension 建置完成')
     } catch (error) {
-      throw new StandardError('TEST_ERROR', `Extension 建置失敗: ${error.message}`, { category: 'testing' })
+      throw new StandardError('E2E_EXTENSION_BUILD_ERROR', `Extension 建置失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -227,7 +227,7 @@ class E2ETestRunner {
     )
 
     if (results.failed > 0) {
-      throw new StandardError('TEST_ERROR', `${results.failed} 個測試套件執行失敗`, { category: 'testing' })
+      throw new StandardError('E2E_TEST_SUITE_FAILURES', `${results.failed} 個測試套件執行失敗`, { category: 'testing' })
     }
   }
 
@@ -282,12 +282,12 @@ class E2ETestRunner {
         if (code === 0) {
           resolve(result)
         } else {
-          reject(new Error(`測試套件執行失敗 (exit code: ${code})`))
+          reject(new StandardError('E2E_TEST_SUITE_EXECUTION_FAILED', `測試套件執行失敗 (exit code: ${code})`, { category: 'testing' }))
         }
       })
 
       jestProcess.on('error', (error) => {
-        reject(new Error(`無法執行測試套件: ${error.message}`))
+        reject(new StandardError('E2E_TEST_SUITE_EXECUTION_ERROR', `無法執行測試套件: ${error.message}`, { category: 'testing' }))
       })
     })
   }

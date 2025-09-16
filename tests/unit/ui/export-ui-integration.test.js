@@ -74,7 +74,7 @@ class ExportUIIntegration {
    */
   initialize () {
     // 測試將驗證 UI 整合初始化
-    throw new StandardError('TEST_ERROR', 'ExportUIIntegration.initialize() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_UI_INIT_ERROR', 'ExportUIIntegration.initialize() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -82,7 +82,7 @@ class ExportUIIntegration {
    */
   initializePopupExport () {
     // 測試將驗證 Popup 匯出按鈕初始化
-    throw new StandardError('TEST_ERROR', 'ExportUIIntegration.initializePopupExport() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_POPUP_INIT_ERROR', 'ExportUIIntegration.initializePopupExport() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -90,7 +90,7 @@ class ExportUIIntegration {
    */
   initializeOverviewExport () {
     // 測試將驗證 Overview 匯出功能初始化
-    throw new StandardError('TEST_ERROR', 'ExportUIIntegration.initializeOverviewExport() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_OVERVIEW_INIT_ERROR', 'ExportUIIntegration.initializeOverviewExport() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -99,7 +99,7 @@ class ExportUIIntegration {
    */
   showFormatSelector (availableFormats) {
     // 測試將驗證格式選擇器顯示
-    throw new StandardError('TEST_ERROR', 'ExportUIIntegration.showFormatSelector() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_FORMAT_SELECTOR_ERROR', 'ExportUIIntegration.showFormatSelector() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -109,7 +109,7 @@ class ExportUIIntegration {
    */
   startExport (format, books) {
     // 測試將驗證匯出開始流程
-    throw new StandardError('TEST_ERROR', 'ExportUIIntegration.startExport() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_START_ERROR', 'ExportUIIntegration.startExport() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -119,7 +119,7 @@ class ExportUIIntegration {
    */
   updateProgressUI (exportId, progressData) {
     // 測試將驗證進度 UI 更新
-    throw new StandardError('TEST_ERROR', 'ExportUIIntegration.updateProgressUI() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_PROGRESS_UPDATE_ERROR', 'ExportUIIntegration.updateProgressUI() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -129,7 +129,7 @@ class ExportUIIntegration {
    */
   showExportComplete (exportId, result) {
     // 測試將驗證完成 UI 顯示
-    throw new StandardError('TEST_ERROR', 'ExportUIIntegration.showExportComplete() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_COMPLETE_UI_ERROR', 'ExportUIIntegration.showExportComplete() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -139,7 +139,7 @@ class ExportUIIntegration {
    */
   showExportError (exportId, error) {
     // 測試將驗證錯誤 UI 顯示
-    throw new StandardError('TEST_ERROR', 'ExportUIIntegration.showExportError() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_ERROR_UI_ERROR', 'ExportUIIntegration.showExportError() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -148,7 +148,7 @@ class ExportUIIntegration {
    */
   cancelExport (exportId) {
     // 測試將驗證取消 UI 流程
-    throw new StandardError('TEST_ERROR', 'ExportUIIntegration.cancelExport() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_CANCEL_ERROR', 'ExportUIIntegration.cancelExport() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -156,7 +156,7 @@ class ExportUIIntegration {
    */
   cleanup () {
     // 測試將驗證 UI 清理
-    throw new StandardError('TEST_ERROR', 'ExportUIIntegration.cleanup() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('EXPORT_UI_CLEANUP_ERROR', 'ExportUIIntegration.cleanup() not implemented - Red phase', { category: 'testing' })
   }
 }
 
@@ -178,7 +178,7 @@ class ProgressIndicator {
    */
   initialize () {
     // 測試將驗證進度指示器初始化
-    throw new StandardError('TEST_ERROR', 'ProgressIndicator.initialize() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('PROGRESS_INDICATOR_INIT_ERROR', 'ProgressIndicator.initialize() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -188,7 +188,7 @@ class ProgressIndicator {
    */
   updateProgress (percentage, message) {
     // 測試將驗證進度更新顯示
-    throw new StandardError('TEST_ERROR', 'ProgressIndicator.updateProgress() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('PROGRESS_INDICATOR_UPDATE_ERROR', 'ProgressIndicator.updateProgress() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -197,7 +197,7 @@ class ProgressIndicator {
    */
   setStyle (style) {
     // 測試將驗證樣式設定
-    throw new StandardError('TEST_ERROR', 'ProgressIndicator.setStyle() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('PROGRESS_INDICATOR_STYLE_ERROR', 'ProgressIndicator.setStyle() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -205,7 +205,7 @@ class ProgressIndicator {
    */
   hide () {
     // 測試將驗證隱藏邏輯
-    throw new StandardError('TEST_ERROR', 'ProgressIndicator.hide() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('PROGRESS_INDICATOR_HIDE_ERROR', 'ProgressIndicator.hide() not implemented - Red phase', { category: 'testing' })
   }
 
   /**
@@ -213,7 +213,7 @@ class ProgressIndicator {
    */
   show () {
     // 測試將驗證顯示邏輯
-    throw new StandardError('TEST_ERROR', 'ProgressIndicator.show() not implemented - Red phase', { category: 'testing' })
+    throw new StandardError('PROGRESS_INDICATOR_SHOW_ERROR', 'ProgressIndicator.show() not implemented - Red phase', { category: 'testing' })
   }
 }
 
@@ -242,10 +242,7 @@ describe('ExportUIIntegration', () => {
       }).toThrow()
       expect(() => {
         exportUI.initialize()
-      }).toMatchObject({
-        code: 'NOT_IMPLEMENTED',
-        details: expect.any(Object)
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證初始化流程
       // - 事件監聽器註冊
@@ -257,9 +254,7 @@ describe('ExportUIIntegration', () => {
     test('應該初始化 Popup 匯出按鈕', () => {
       expect(() => {
         exportUI.initializePopupExport()
-      }).toMatchObject({
-        message: expect.stringContaining('ExportUIIntegration.initializePopupExport() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證 Popup 初始化
       // - 匯出按鈕事件綁定
@@ -270,9 +265,7 @@ describe('ExportUIIntegration', () => {
     test('應該初始化 Overview 頁面匯出功能', () => {
       expect(() => {
         exportUI.initializeOverviewExport()
-      }).toMatchObject({
-        message: expect.stringContaining('ExportUIIntegration.initializeOverviewExport() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證 Overview 初始化
       // - 批量選取功能
@@ -287,9 +280,7 @@ describe('ExportUIIntegration', () => {
 
       expect(() => {
         exportUI.showFormatSelector(availableFormats)
-      }).toMatchObject({
-        message: expect.stringContaining('ExportUIIntegration.showFormatSelector() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證格式選擇器
       // - 動態格式選項產生
@@ -335,9 +326,7 @@ describe('ExportUIIntegration', () => {
 
       expect(() => {
         exportUI.startExport(format, books)
-      }).toMatchObject({
-        message: expect.stringContaining('ExportUIIntegration.startExport() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證匯出開始流程
       // - 確認對話框顯示
@@ -389,9 +378,7 @@ describe('ExportUIIntegration', () => {
 
       expect(() => {
         exportUI.updateProgressUI(exportId, progressData)
-      }).toMatchObject({
-        message: expect.stringContaining('ExportUIIntegration.updateProgressUI() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證進度 UI 更新
       // - 進度條動畫更新
@@ -452,9 +439,7 @@ describe('ExportUIIntegration', () => {
 
       expect(() => {
         exportUI.showExportComplete(exportId, result)
-      }).toMatchObject({
-        message: expect.stringContaining('ExportUIIntegration.showExportComplete() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證完成 UI
       // - 成功訊息顯示
@@ -470,9 +455,7 @@ describe('ExportUIIntegration', () => {
 
       expect(() => {
         exportUI.showExportError(exportId, error)
-      }).toMatchObject({
-        message: expect.stringContaining('ExportUIIntegration.showExportError() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證錯誤 UI
       // - 使用者友好錯誤訊息
@@ -506,9 +489,7 @@ describe('ExportUIIntegration', () => {
 
       expect(() => {
         exportUI.cancelExport(exportId)
-      }).toMatchObject({
-        message: expect.stringContaining('ExportUIIntegration.cancelExport() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證取消處理
       // - 取消確認對話框
@@ -532,9 +513,7 @@ describe('ExportUIIntegration', () => {
     test('應該清理 UI 資源', async () => {
       expect(() => {
         exportUI.cleanup()
-      }).toMatchObject({
-        message: expect.stringContaining('ExportUIIntegration.cleanup() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證資源清理
       // - 事件監聽器移除
@@ -659,9 +638,7 @@ describe('ProgressIndicator', () => {
     test('應該正確初始化進度指示器', () => {
       expect(() => {
         progressIndicator.initialize()
-      }).toMatchObject({
-        message: expect.stringContaining('ProgressIndicator.initialize() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證進度指示器初始化
       // - 進度條元素創建
@@ -692,9 +669,7 @@ describe('ProgressIndicator', () => {
 
       expect(() => {
         progressIndicator.updateProgress(percentage, message)
-      }).toMatchObject({
-        message: expect.stringContaining('ProgressIndicator.updateProgress() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證進度更新
       // - 進度條寬度更新
@@ -734,9 +709,7 @@ describe('ProgressIndicator', () => {
         progressIndicator.setStyle('success')
         progressIndicator.setStyle('warning')
         progressIndicator.setStyle('error')
-      }).toMatchObject({
-        message: expect.stringContaining('ProgressIndicator.setStyle() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證樣式設定
       // - 成功主題（綠色）
@@ -760,15 +733,11 @@ describe('ProgressIndicator', () => {
     test('應該正確顯示和隱藏進度指示器', () => {
       expect(() => {
         progressIndicator.show()
-      }).toMatchObject({
-        message: expect.stringContaining('ProgressIndicator.show() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       expect(() => {
         progressIndicator.hide()
-      }).toMatchObject({
-        message: expect.stringContaining('ProgressIndicator.hide() not implemented - Red phase')
-      })
+      }).toThrow(StandardError)
 
       // Red 階段：測試將驗證顯示控制
       // - 平滑淡入淡出效果

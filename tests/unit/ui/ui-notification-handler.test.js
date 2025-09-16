@@ -389,7 +389,7 @@ describe('UINotificationHandler', () => {
     test('應該處理 DOM 操作錯誤', async () => {
       // 模擬 DOM 操作失敗
       mockDocument.createElement.mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', 'DOM creation failed', { category: 'testing' })
+        throw new StandardError('UI_NOTIFICATION_DOM_ERROR', 'DOM creation failed', { category: 'testing' })
       })
 
       const event = {

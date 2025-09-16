@@ -257,7 +257,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
       // 模擬匯出失敗 - 使用 mockImplementationOnce 避免影響其他測試
       BookDataExporter.mockImplementationOnce(() => ({
         exportToCSV: jest.fn().mockImplementation(() => {
-          throw new StandardError('TEST_ERROR', 'CSV export failed', { category: 'testing' })
+          throw new StandardError('EXPORT_CSV_FAILED', 'CSV export failed', { category: 'testing' })
         }),
         setProgressCallback: jest.fn()
       }))
@@ -429,7 +429,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
       // 模擬部分格式匯出失敗 - 使用 mockImplementationOnce
       BookDataExporter.mockImplementationOnce(() => ({
         batchExport: jest.fn().mockImplementation(() => {
-          throw new StandardError('TEST_ERROR', 'Some formats failed', { category: 'testing' })
+          throw new StandardError('EXPORT_BATCH_PARTIAL_FAILURE', 'Some formats failed', { category: 'testing' })
         }),
         setProgressCallback: jest.fn()
       }))
@@ -498,7 +498,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
       // 模擬下載失敗 - 使用 mockImplementationOnce
       BookDataExporter.mockImplementationOnce(() => ({
         downloadFile: jest.fn().mockImplementation(() => {
-          throw new StandardError('TEST_ERROR', 'Download failed', { category: 'testing' })
+          throw new StandardError('EXPORT_DOWNLOAD_FAILED', 'Download failed', { category: 'testing' })
         })
       }))
 
@@ -595,7 +595,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
       // 模擬建構函數失敗 - 使用 mockImplementationOnce
       BookDataExporter.mockImplementationOnce(() => {
-        throw new StandardError('TEST_ERROR', 'Exporter initialization failed', { category: 'testing' })
+        throw new StandardError('EXPORT_MANAGER_INIT_FAILED', 'Exporter initialization failed', { category: 'testing' })
       })
 
       const failedEventSpy = jest.fn()
@@ -631,7 +631,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
       // 模擬記憶體不足錯誤 - 使用 mockImplementationOnce
       BookDataExporter.mockImplementationOnce(() => ({
         exportToCSV: jest.fn().mockImplementation(() => {
-          const error = new Error('Out of memory')
+          const error = new StandardError('OUT_OF_MEMORY', 'Out of memory')
           error.name = 'RangeError'
           throw error
         }),
@@ -660,7 +660,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
         exportToCSV: jest.fn().mockImplementation(() => {
           attemptCount++
           if (attemptCount === 1) {
-            throw new StandardError('TEST_ERROR', 'Temporary failure', { category: 'testing' })
+            throw new StandardError('EXPORT_TEMPORARY_FAILURE', 'Temporary failure', { category: 'testing' })
           }
           return 'mock-csv-data'
         }),

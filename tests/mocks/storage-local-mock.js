@@ -123,7 +123,7 @@ class StorageLocalMock {
    */
   _validateItems (items) {
     if (!items || typeof items !== 'object') {
-      throw new StandardError('TEST_ERROR', 'Items must be an object', { category: 'testing' })
+      throw new StandardError('TEST_VALIDATION_ERROR', 'Items must be an object', { category: 'testing' })
     }
   }
 
@@ -147,7 +147,7 @@ class StorageLocalMock {
    */
   _validateQuotaLimit (itemsSize) {
     if (this._used + itemsSize > this._quota) {
-      throw new StandardError('TEST_ERROR', 'Storage quota exceeded', { category: 'testing' })
+      throw new StandardError('TEST_STORAGE_ERROR', 'Storage quota exceeded', { category: 'testing' })
     }
   }
 

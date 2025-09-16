@@ -55,7 +55,7 @@ describe('🎭 事件處理器基底類別測試', () => {
 
       async process (event) {
         if (this.shouldThrowError) {
-          throw new StandardError('TEST_ERROR', 'Test error in process', { category: 'testing' })
+          throw new StandardError('CORE_PROCESS_ERROR', 'Test error in process', { category: 'testing' })
         }
         return this.processResult
       }

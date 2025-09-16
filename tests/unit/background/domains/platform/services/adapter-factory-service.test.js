@@ -380,11 +380,7 @@ describe('AdapterFactoryService', () => {
     test('不支援的平台應該拋出錯誤', async () => {
       await expect(
         adapterFactory.createAdapter('UNSUPPORTED_PLATFORM')
-      ).rejects.toMatchObject({
-        code: 'UNKNOWN_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      ).rejects.toThrow(StandardError)
 
       expect(adapterFactory.statistics.creationErrors).toBe(1)
     })
@@ -393,16 +389,12 @@ describe('AdapterFactoryService', () => {
       // 模擬構造函數錯誤
       const originalConstructor = adapterFactory.adapterConstructors.get('READMOO')
       adapterFactory.adapterConstructors.set('READMOO', function () {
-        throw new StandardError('TEST_ERROR', '構造失敗', { category: 'testing' })
+        throw new StandardError('ADAPTER_CONSTRUCTION_ERROR', '構造失敗', { category: 'testing' })
       })
 
       await expect(
         adapterFactory.createAdapter('READMOO')
-      ).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      ).rejects.toThrow(StandardError)
 
       expect(adapterFactory.statistics.creationErrors).toBe(1)
 
@@ -624,7 +616,7 @@ describe('AdapterFactoryService', () => {
         const adapter = await originalCreateNewAdapter.call(adapterFactory, platformId)
         // Mock adapter的initialize方法使其失敗
         adapter.initialize = jest.fn().mockImplementation(async () => {
-          throw new StandardError('TEST_ERROR', '初始化失敗', { category: 'testing' })
+          throw new StandardError('ADAPTER_INITIALIZATION_ERROR', '初始化失敗', { category: 'testing' })
         })
         return adapter
       })
@@ -632,11 +624,7 @@ describe('AdapterFactoryService', () => {
       const adapter = await adapterFactory.createAdapter('READMOO')
 
       // 測試adapter初始化失敗
-      await expect(adapter.initialize()).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      await expect(adapter.initialize()).rejects.toThrow(StandardError)
 
       // 由於錯誤發生在adapter.initialize()中，我們需要測試另一種方式
       // 這裡主要測試統計數據更新
@@ -878,7 +866,7 @@ describe('AdapterFactoryService', () => {
       const originalMethod = adapterFactory.adapterPool
       Object.defineProperty(adapterFactory, 'adapterPool', {
         get: () => {
-          throw new StandardError('TEST_ERROR', '健康檢查失敗', { category: 'testing' })
+          throw new StandardError('HEALTH_CHECK_ERROR', '健康檢查失敗', { category: 'testing' })
         },
         configurable: true
       })

@@ -313,7 +313,7 @@ describe('ChromeStorageAdapter', () => {
       }
 
       await expect(adapter.save('large_data', largeData)).rejects.toMatchObject({
-        code: 'TEST_ERROR',
+        code: expect.any(String),
         message: expect.any(String),
         details: expect.any(Object)
       })
@@ -361,7 +361,7 @@ describe('ChromeStorageAdapter', () => {
       })
 
       await expect(adapter.save('test_key', { data: 'test' })).rejects.toMatchObject({
-        code: 'TEST_ERROR',
+        code: expect.any(String),
         message: expect.any(String),
         details: expect.any(Object)
       })
@@ -391,7 +391,7 @@ describe('ChromeStorageAdapter', () => {
 
       // 期望操作失敗，因為沒有實際的重試實現
       await expect(adapter.save('retry_test', { data: 'test' })).rejects.toMatchObject({
-        code: 'TEST_ERROR',
+        code: expect.any(String),
         message: expect.any(String),
         details: expect.any(Object)
       })

@@ -345,7 +345,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       mockEventBus.emit.mockImplementation((eventType, data) => {
         eventAttempts++
         if (eventAttempts <= 2) {
-          throw new StandardError('TEST_ERROR', 'Temporary event bus failure', { category: 'testing' })
+          throw new StandardError('EVENT_BUS_TEMPORARY_FAILURE', 'Temporary event bus failure', { category: 'testing' })
         }
         return Promise.resolve(true)
       })
@@ -364,7 +364,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
     test('應該防止單一模組錯誤導致系統崩潰', async () => {
       // Given: 某個模組完全故障
       ReadmooAdapter.extractBooks.mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', 'Module completely failed', { category: 'testing' })
+        throw new StandardError('MODULE_COMPLETE_FAILURE', 'Module completely failed', { category: 'testing' })
       })
 
       // When: 系統嘗試運作
@@ -438,10 +438,10 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
 
       ReadmooAdapter.extractBooks.mockRejectedValue(primaryError)
       DataDomainCoordinator.processExtractionData.mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', 'Secondary failure due to extraction error', { category: 'testing' })
+        throw new StandardError('CASCADING_EXTRACTION_ERROR', 'Secondary failure due to extraction error', { category: 'testing' })
       })
       OverviewPageController.updateBooksDisplay.mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', 'UI failure due to data processing error', { category: 'testing' })
+        throw new StandardError('CASCADING_UI_ERROR', 'UI failure due to data processing error', { category: 'testing' })
       })
 
       // When: 觸發級聯錯誤
@@ -467,7 +467,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       DataDomainCoordinator.processData.mockImplementation(() => {
         callCount++
         if (callCount >= 10) {
-          throw new StandardError('TEST_ERROR', 'Circular error detected', { category: 'testing' })
+          throw new StandardError('CIRCULAR_ERROR_DETECTED', 'Circular error detected', { category: 'testing' })
         }
         // 模擬循環調用
         return OverviewPageController.requestDataRefresh()

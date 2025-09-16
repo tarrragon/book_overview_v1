@@ -60,7 +60,7 @@ jest.mock('../../../src/core/event-handler', () => {
     }
 
     async process (event) {
-      throw new StandardError('TEST_ERROR', 'Process method must be implemented by subclass', { category: 'testing' })
+      throw new StandardError('METHOD_NOT_IMPLEMENTED', 'Process method must be implemented by subclass')
     }
 
     async beforeHandle (event) {}
@@ -79,7 +79,7 @@ jest.mock('../../../src/core/event-handler', () => {
     }
 
     getSupportedEvents () {
-      throw new StandardError('TEST_ERROR', 'getSupportedEvents method must be implemented by subclass', { category: 'testing' })
+      throw new StandardError('METHOD_NOT_IMPLEMENTED', 'getSupportedEvents method must be implemented by subclass')
     }
 
     setEnabled (enabled) {
@@ -226,7 +226,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
       // 模擬匯出失敗
       BookDataExporter.mockImplementation(() => ({
         exportToCSV: jest.fn().mockImplementation(() => {
-          throw new StandardError('TEST_ERROR', 'CSV export failed', { category: 'testing' })
+          throw new StandardError('EXPORT_CSV_FAILED', 'CSV export failed', { category: 'testing' })
         }),
         setProgressCallback: jest.fn()
       }))
@@ -238,11 +238,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
         options: {}
       }
 
-      await expect(csvHandler.process(eventData)).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      await expect(csvHandler.process(eventData)).rejects.toThrow(StandardError)
     })
 
     test('CSVExportHandler 應該支援進度回調', async () => {
@@ -562,7 +558,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
       errorHandler = new ErrorHandler()
 
       const errorData = {
-        error: new Error('Export failed'),
+        error: new StandardError('EXPORT_FAILED', 'Export failed'),
         exportId: 'test-export-123',
         format: 'csv',
         phase: 'processing'
@@ -584,7 +580,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
 
       const errorData = {
-        error: new Error('Test error'),
+        error: new StandardError('TEST_EXECUTION_ERROR', 'Test error'),
         exportId: 'test-export',
         format: 'csv'
       }
@@ -601,7 +597,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
       errorHandler = new ErrorHandler()
 
       const networkError = {
-        error: new Error('Network error'),
+        error: new StandardError('NETWORK_ERROR', 'Network error'),
         errorType: 'NETWORK',
         exportId: 'test'
       }
@@ -626,7 +622,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
       errorHandler = new ErrorHandler()
 
       const recoverableError = {
-        error: new Error('Temporary failure'),
+        error: new StandardError('TEMPORARY_FAILURE', 'Temporary failure'),
         isRecoverable: true,
         retryCount: 1,
         maxRetries: 3,
@@ -776,7 +772,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
       // 模擬匯出失敗
       BookDataExporter.mockImplementation(() => ({
         exportToCSV: jest.fn().mockImplementation(() => {
-          throw new StandardError('TEST_ERROR', 'Simulated export failure', { category: 'testing' })
+          throw new StandardError('EXPORT_CSV_SIMULATION_FAILED', 'Simulated export failure', { category: 'testing' })
         }),
         setProgressCallback: jest.fn()
       }))

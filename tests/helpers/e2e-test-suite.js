@@ -66,7 +66,7 @@ class E2ETestSuite {
       this.testEnvironment.initialized = true
     } catch (error) {
       await this.cleanup()
-      throw new StandardError('TEST_ERROR', `E2E測試套件初始化失敗: ${error.message}`, { category: 'testing' })
+      throw new StandardError('TEST_INITIALIZATION_ERROR', `E2E測試套件初始化失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -169,7 +169,7 @@ class E2ETestSuite {
 
   async loadInitialData (data = {}) {
     if (!this.testEnvironment.initialized) {
-      throw new StandardError('TEST_ERROR', '測試套件未初始化，請先呼叫 initialize()', { category: 'testing' })
+      throw new StandardError('TEST_ENVIRONMENT_ERROR', '測試套件未初始化，請先呼叫 initialize()', { category: 'testing' })
     }
 
     // 載入書籍資料
@@ -293,7 +293,7 @@ class E2ETestSuite {
 
   async executeWorkflow (workflowName, steps = []) {
     if (!this.testEnvironment.initialized) {
-      throw new StandardError('TEST_ERROR', '測試套件未初始化，請先呼叫 initialize()', { category: 'testing' })
+      throw new StandardError('TEST_ENVIRONMENT_ERROR', '測試套件未初始化，請先呼叫 initialize()', { category: 'testing' })
     }
 
     const workflow = {
@@ -311,7 +311,7 @@ class E2ETestSuite {
         workflow.steps.push(stepResult)
 
         if (!stepResult.success) {
-          throw new StandardError('TEST_ERROR', `工作流程步驟 ${i + 1} 失敗: ${stepResult.error}`, { category: 'testing' })
+          throw new StandardError('TEST_WORKFLOW_ERROR', `工作流程步驟 ${i + 1} 失敗: ${stepResult.error}`, { category: 'testing' })
         }
       }
 
@@ -356,7 +356,7 @@ class E2ETestSuite {
           result = await this.simulateVerification(step.params)
           break
         default:
-          throw new StandardError('TEST_ERROR', `未支援的步驟類型: ${step.type}`, { category: 'testing' })
+          throw new StandardError('TEST_EXECUTION_ERROR', `未支援的步驟類型: ${step.type}`, { category: 'testing' })
       }
 
       return {
@@ -403,7 +403,7 @@ class E2ETestSuite {
   async simulateContentScriptError (errorType) {
     this.logOperation(`模擬內容腳本錯誤: ${errorType}`)
 
-    const error = new Error(`Content script error: ${errorType}`)
+    const error = new StandardError('E2E_CONTENT_SCRIPT_ERROR', `Content script error: ${errorType}`, { category: 'testing' })
     this.logError(error)
 
     // 模擬內容腳本錯誤影響
@@ -946,7 +946,7 @@ class E2ETestSuite {
             break
 
           default:
-            throw new StandardError('TEST_ERROR', `不支援的破壞類型: ${corruptionType}`, { category: 'testing' })
+            throw new StandardError('TEST_SIMULATOR_ERROR', `不支援的破壞類型: ${corruptionType}`, { category: 'testing' })
         }
 
         this.logOperation('file_corruption', {
@@ -972,7 +972,7 @@ class E2ETestSuite {
       return corruptedFile
     } catch (error) {
       this.logError(error, 'corruptFile')
-      throw new StandardError('TEST_ERROR', `文件破壞失敗: ${error.message}`, { category: 'testing' })
+      throw new StandardError('TEST_SIMULATOR_ERROR', `文件破壞失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -1292,7 +1292,7 @@ class E2ETestSuite {
       }
     } catch (error) {
       this.logError(error, 'simulateSystemRestart')
-      throw new StandardError('TEST_ERROR', `系統重啟模擬失敗: ${error.message}`, { category: 'testing' })
+      throw new StandardError('TEST_SIMULATOR_ERROR', `系統重啟模擬失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -1536,7 +1536,7 @@ class E2ETestSuite {
       }
     } catch (error) {
       this.logError(error, 'simulateProcessInterruption')
-      throw new StandardError('TEST_ERROR', `處理程序中斷模擬失敗: ${error.message}`, { category: 'testing' })
+      throw new StandardError('TEST_SIMULATOR_ERROR', `處理程序中斷模擬失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -1595,7 +1595,7 @@ class E2ETestSuite {
       }
     } catch (error) {
       this.logError(error, 'searchOverviewBooks')
-      throw new StandardError('TEST_ERROR', `書籍搜尋失敗: ${error.message}`, { category: 'testing' })
+      throw new StandardError('TEST_EXECUTION_ERROR', `書籍搜尋失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
@@ -1689,7 +1689,7 @@ class E2ETestSuite {
       }
     } catch (error) {
       this.logError(error, 'simulateContentScriptCrash')
-      throw new StandardError('TEST_ERROR', `Content Script 崩潰模擬失敗: ${error.message}`, { category: 'testing' })
+      throw new StandardError('TEST_SIMULATOR_ERROR', `Content Script 崩潰模擬失敗: ${error.message}`, { category: 'testing' })
     }
   }
 
