@@ -58,6 +58,7 @@ function formatMessage (messageKey, params = {}) {
 const log = {
   info: (key, params = {}) => {
     const message = formatMessage(key, params)
+    // eslint-disable-next-line no-console
     console.log(`[INFO] ${message}`)
   },
 
@@ -74,7 +75,8 @@ const log = {
   },
 
   debug: (key, params = {}) => {
-    const message = formatMessage(key, params)
+    // TODO: 實作 debug 訊息處理
+    formatMessage(key, params)
   }
 }
 

@@ -16,7 +16,6 @@
  */
 
 const SearchCoordinator = require('src/ui/search/coordinator/search-coordinator')
-const { StandardError } = require('src/core/errors/StandardError')
 
 describe('SearchCoordinator', () => {
   let searchCoordinator
@@ -317,13 +316,13 @@ describe('SearchCoordinator', () => {
     it('should handle debounced search execution', async () => {
       jest.useFakeTimers()
 
-      const promise1 = searchCoordinator.debouncedSearch('test', {})
+      searchCoordinator.debouncedSearch('test', {})
       const promise2 = searchCoordinator.debouncedSearch('testing', {})
 
       // Fast-forward time
       jest.advanceTimersByTime(300)
 
-      const result = await promise2
+      await promise2
 
       expect(mockSearchEngine.search).toHaveBeenCalledTimes(1)
       expect(mockSearchEngine.search).toHaveBeenCalledWith('testing', testBooks)
@@ -630,7 +629,6 @@ describe('SearchCoordinator', () => {
     })
 
     it('should coordinate cache operations across search flow', async () => {
-      const cacheKey = 'search:test:filter:status-reading'
       const cachedResult = { results: [testBooks[0]], cached: true }
 
       mockSearchCacheManager.get.mockResolvedValue(cachedResult)

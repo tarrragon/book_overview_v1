@@ -341,7 +341,7 @@ function validateExportEvent (event) {
   // 檢查必要屬性
   const requiredProperties = ['id', 'type', 'data', 'timestamp', 'priority']
   for (const prop of requiredProperties) {
-    if (!event.hasOwnProperty(prop)) {
+    if (!Object.prototype.hasOwnProperty.call(event, prop)) {
       return false
     }
   }

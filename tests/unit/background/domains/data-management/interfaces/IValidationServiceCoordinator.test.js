@@ -1,4 +1,3 @@
-const { StandardError } = require('src/core/errors/StandardError')
 /**
  * IValidationServiceCoordinator 介面測試
  *

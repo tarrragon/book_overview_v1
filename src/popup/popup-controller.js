@@ -451,7 +451,6 @@ class PopupController {
     } catch (error) {
       // 降級到舊式事件處理
       // eslint-disable-next-line no-console
-      // eslint-disable-next-line no-console
       console.warn('EventManager 載入失敗，使用舊式事件處理:', error.message)
       this.eventManager = null
     }
@@ -474,7 +473,6 @@ class PopupController {
       // 事件監聽器設置完成
     } catch (error) {
       // 事件監聽器設置失敗
-      // eslint-disable-next-line no-console
       // eslint-disable-next-line no-console
       console.error('事件監聽器設置失敗:', error.message)
     }
@@ -537,7 +535,6 @@ class PopupController {
     } catch (error) {
       // 初始化檢查失敗
       // eslint-disable-next-line no-console
-      // eslint-disable-next-line no-console
       console.error('❌ Initialization checks failed:', error)
       throw error
     }
@@ -551,7 +548,6 @@ class PopupController {
   async _handleInitializationFailure (error) {
     try {
       // 實作降級機制
-      // eslint-disable-next-line no-console
       // eslint-disable-next-line no-console
       console.warn('初始化失敗，啟動降級模式:', error.message)
 

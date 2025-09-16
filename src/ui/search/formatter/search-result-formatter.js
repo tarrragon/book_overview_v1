@@ -214,7 +214,7 @@ class SearchResultFormatter {
     const sortedResults = [...results]
 
     switch (sortBy) {
-      case 'relevance':
+      case 'relevance': {
         // 先計算相關性分數（如果還沒有）
         const withRelevance = sortedResults.map(result => {
           if (result.relevanceScore === undefined) {
@@ -224,6 +224,7 @@ class SearchResultFormatter {
           return result
         })
         return withRelevance.sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0))
+      }
 
       case 'title':
         return sortedResults.sort((a, b) => {

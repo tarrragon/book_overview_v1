@@ -502,7 +502,7 @@ class FilterEngine {
 
     // 記錄篩選條件使用次數
     for (const criterion in filters) {
-      if (this.statistics.criteriaUsage.hasOwnProperty(criterion)) {
+      if (Object.prototype.hasOwnProperty.call(this.statistics.criteriaUsage, criterion)) {
         this.statistics.criteriaUsage[criterion]++
       }
     }

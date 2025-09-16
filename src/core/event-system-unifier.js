@@ -45,7 +45,6 @@ const Logger = require('src/core/logging/Logger')
  */
 
 const EventBus = require('./event-bus')
-const EventHandler = require('./event-handler')
 
 /**
  * 企業級事件系統統一化配置常數
@@ -655,7 +654,7 @@ class EventCollaborationManager {
    */
   validateEventFlow () {
     // 檢查事件鏈的完整性
-    for (const [chainName, events] of this.eventChains.entries()) {
+    for (const [, events] of this.eventChains.entries()) {
       if (!this.isValidEventChain(events)) {
         return false
       }

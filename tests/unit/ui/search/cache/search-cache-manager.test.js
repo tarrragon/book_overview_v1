@@ -25,7 +25,6 @@
 
 // 測試環境設定
 require('../../../../test-setup')
-const { StandardError } = require('src/core/errors/StandardError')
 
 describe('SearchCacheManager - TDD 循環 3/8', () => {
   let cacheManager

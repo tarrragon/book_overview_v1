@@ -130,7 +130,6 @@ class ExtractionCompletedHandler extends EventHandler {
   async process (event) {
     const startTime = performance.now()
     let hasStorageError = false
-    let hasUIError = false
 
     const result = {
       success: false,
@@ -187,7 +186,6 @@ class ExtractionCompletedHandler extends EventHandler {
         await this.triggerNotificationEvent(event)
         result.eventsTriggered.push('UI.NOTIFICATION.SHOW')
       } catch (error) {
-        hasUIError = true
         result.warnings.push('UI notification failed')
         // 通知失敗不阻止整體處理
       }

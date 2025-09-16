@@ -10,14 +10,12 @@
 const { E2ETestSuite } = require('../../helpers/e2e-test-suite')
 const { TestDataGenerator } = require('../../helpers/test-data-generator')
 const UIStateTracker = require('../../helpers/ui-state-tracker')
-const PopupLifecycleManager = require('../../helpers/popup-lifecycle-manager')
 
 describe('Popup ↔ Background 跨模組整合測試', () => {
   let testSuite
   let extensionController
   let testDataGenerator
   let uiStateTracker
-  let lifecycleManager
 
   beforeAll(async () => {
     testSuite = new E2ETestSuite({
@@ -31,7 +29,6 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
     extensionController = testSuite.extensionController
     testDataGenerator = new TestDataGenerator()
     uiStateTracker = new UIStateTracker(testSuite)
-    lifecycleManager = new PopupLifecycleManager()
   })
 
   afterAll(async () => {
@@ -205,7 +202,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       const realtimeOperationPromise = extensionController.clickExtractButton()
 
       // 監控即時更新
-      const updateMonitoring = await uiStateTracker.monitorRealtimeUpdates({
+      await uiStateTracker.monitorRealtimeUpdates({
         expectedUpdates: ['started', 'progress', 'progress', 'progress', 'completed'],
         timeout: 15000
       })
@@ -411,7 +408,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
         const startTime = Date.now()
 
         // 執行交互
-        const actionResult = await interaction.action()
+        await interaction.action()
 
         // 等待事件傳遞和Background響應
         const eventResponse = await extensionController.waitForEventResponse({
@@ -648,7 +645,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       await extensionController.openPopup()
 
       // 開始長時間操作
-      const longOperationPromise = extensionController.clickExtractButton()
+      extensionController.clickExtractButton()
 
       // 等待操作進行中
       await testSuite.waitForCondition(async () => {

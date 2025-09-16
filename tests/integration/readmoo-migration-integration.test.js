@@ -433,7 +433,7 @@ describe('Readmoo Migration Integration Tests', () => {
       }
 
       // 設置超時處理
-      const timeoutPromise = new Promise((_, reject) => {
+      const timeoutPromise = new Promise((_resolve, reject) => {
         setTimeout(() => reject(new Error('Event timeout after 5 seconds')), 5000)
       })
 
@@ -472,7 +472,7 @@ describe('Readmoo Migration Integration Tests', () => {
       }
 
       // 設置超時處理
-      const timeoutPromise = new Promise((_, reject) => {
+      const timeoutPromise = new Promise((_resolve, reject) => {
         setTimeout(() => reject(new Error('Event timeout after 5 seconds')), 5000)
       })
 

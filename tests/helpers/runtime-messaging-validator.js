@@ -335,9 +335,6 @@ class RuntimeMessagingValidator {
    */
   async analyzeMessageRouting (options = {}) {
     const {
-      trackAllModules = true,
-      analyzeRoutingPatterns = true,
-      measureRoutingEfficiency = true,
       monitorDuration = 12000
     } = options
 
@@ -419,13 +416,14 @@ class RuntimeMessagingValidator {
         // 模擬 Service Worker 崩潰
         this.testSuite.extensionController.state.serviceWorkerActive = false
         break
-      case 'content_script_unresponsive':
+      case 'content_script_unresponsive': {
         // 模擬 Content Script 無回應
         const contentContext = this.testSuite.extensionController.state.contexts.get('content')
         if (contentContext) {
           contentContext.state = 'unresponsive'
         }
         break
+      }
     }
   }
 
@@ -501,9 +499,6 @@ class RuntimeMessagingValidator {
   async analyzePriorityProcessing (options = {}) {
     const {
       analysisType = 'comprehensive',
-      sampleSize = 100,
-      timeWindow = 30000,
-      expectedMessages = 17,
       monitorDuration = 8000
     } = options
 
@@ -888,22 +883,26 @@ class RuntimeMessagingValidator {
       case 'fixed':
         return baseDelay
 
-      case 'random':
+      case 'random': {
         const randomVariance = (Math.random() - 0.5) * 2 * variance
         return Math.max(0, baseDelay + randomVariance)
+      }
 
-      case 'increasing':
+      case 'increasing': {
         const increment = Math.random() * variance
         return baseDelay + increment
+      }
 
-      case 'decreasing':
+      case 'decreasing': {
         const decrement = Math.random() * variance
         return Math.max(0, baseDelay - decrement)
+      }
 
-      case 'spike':
+      case 'spike': {
         // 偶爾產生高延遲峰值
         const isSpike = Math.random() < 0.1 // 10% 機率
         return isSpike ? baseDelay * 3 : baseDelay
+      }
 
       default:
         return baseDelay

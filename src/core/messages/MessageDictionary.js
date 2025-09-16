@@ -292,7 +292,7 @@ class MessageDictionary {
    * @returns {boolean} 是否存在
    */
   has (key) {
-    return this.messages.hasOwnProperty(key)
+    return Object.prototype.hasOwnProperty.call(this.messages, key)
   }
 
   /**

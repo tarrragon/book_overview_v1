@@ -77,14 +77,12 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
 
     test('應該正確觸發storage.onChanged事件', (done) => {
       const testData = { changeKey: 'changeValue' }
-      let changeEventReceived = false
 
       // 註冊變更監聽器
       chromeAPI.storage.onChanged.addListener((changes, areaName) => {
         expect(changes).toHaveProperty('changeKey')
         expect(changes.changeKey.newValue).toBe('changeValue')
         expect(areaName).toBe('local')
-        changeEventReceived = true
         done()
       })
 
@@ -126,7 +124,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
 
     test('應該支援tabs.query操作', async () => {
       // 創建測試標籤頁
-      const tab = await chromeAPI.tabs.create({
+      await chromeAPI.tabs.create({
         url: 'https://readmoo.com/test',
         active: true
       })

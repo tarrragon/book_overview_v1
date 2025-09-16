@@ -216,11 +216,12 @@ class TestDataGenerator {
         case 'wrongType':
           corruptedBook.id = 123 // should be string
           break
-        default:
+        default: {
           // 隨機破壞
           const keys = Object.keys(corruptedBook)
           const randomKey = this.randomChoice(keys)
           corruptedBook[randomKey] = undefined
+        }
       }
 
       corruptedBook.testMetadata = {

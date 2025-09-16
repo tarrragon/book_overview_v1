@@ -33,7 +33,7 @@
  * @since 2025-08-08
  */
 
-const { EXPORT_EVENTS, EXPORT_EVENT_PRIORITIES, createExportEvent } = require('./export-events')
+const { EXPORT_EVENTS, EXPORT_EVENT_PRIORITIES } = require('./export-events')
 const BookDataExporter = require('./book-data-exporter')
 const { StandardError } = require('src/core/errors/StandardError')
 

@@ -316,7 +316,6 @@ function createChromeEventBridge () {
      */
     _logCommunicationError (target, error, messageType, latency) {
       // eslint-disable-next-line no-console
-      // eslint-disable-next-line no-console
       console.error(`❌ Content Script 發送訊息失敗 (${target}):`, {
         error: error.message,
         message: messageType,

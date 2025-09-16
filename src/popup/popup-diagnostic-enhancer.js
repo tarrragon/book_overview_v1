@@ -395,7 +395,7 @@ class PopupDiagnosticEnhancer {
       for (const url of testUrls) {
         try {
           const startTime = Date.now()
-          const response = await fetch(url, {
+          await fetch(url, {
             method: 'HEAD',
             mode: 'no-cors',
             cache: 'no-cache',

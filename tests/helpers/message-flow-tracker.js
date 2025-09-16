@@ -108,8 +108,6 @@ class MessageFlowTracker {
    */
   async captureRetryBehavior (options = {}) {
     const {
-      maxRetries = 3,
-      retryInterval = 1000,
       monitorDuration = 10000,
       trackFailurePatterns = true
     } = options

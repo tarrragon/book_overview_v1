@@ -29,14 +29,13 @@ const Logger = require('src/core/logging/Logger')
  */
 
 // 錯誤配置函數（需要支援瀏覽器環境）
-let getUserErrorMessage, getDiagnosticSuggestion
+let getUserErrorMessage
 
 // 嘗試載入錯誤配置
 try {
   if (typeof require !== 'undefined') {
     const errorConfig = require('src/config/error-config')
     getUserErrorMessage = errorConfig.getUserErrorMessage
-    getDiagnosticSuggestion = errorConfig.getDiagnosticSuggestion
   }
 } catch (error) {
   // eslint-disable-next-line no-console
@@ -49,8 +48,6 @@ try {
     actions: ['重新載入擴展', '重新整理頁面'],
     severity: 'error'
   })
-
-  getDiagnosticSuggestion = () => null
 }
 
 // 嘗試載入診斷模組

@@ -120,12 +120,6 @@ describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
 
     test('TC-E2E-002: 事件序列正確性驗證', async () => {
       // Given: 事件模擬已啟用
-      const expectedEvents = [
-        'workflow.started',
-        'data.extraction.completed',
-        'storage.save.completed'
-      ]
-
       // When: 執行工作流程
       const result = await testEnvironment.executeWorkflow('basic-extraction')
 

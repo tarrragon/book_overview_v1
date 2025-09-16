@@ -6,7 +6,6 @@
  */
 
 const CacheManagementService = require('src/background/domains/data-management/services/cache-management-service.js')
-const { StandardError } = require('src/core/errors/StandardError')
 
 describe('CacheManagementService - 快取管理服務', () => {
   let cacheService

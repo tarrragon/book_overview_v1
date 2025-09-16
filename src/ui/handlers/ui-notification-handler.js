@@ -169,7 +169,7 @@ class UINotificationHandler extends BaseUIHandler {
    * - 優化的DOM操作避免性能問題
    */
   async process (event) {
-    const { data, flowId, timestamp } = event
+    const { data, flowId } = event
 
     try {
       // 執行完整的通知處理流程

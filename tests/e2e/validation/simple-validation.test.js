@@ -238,10 +238,6 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
           expect(content.length).toBeGreaterThan(0)
 
           // 檢查是否有明顯的語法問題
-          const syntaxIssues = [
-            /function\s*\(/, // 應該有適當的函數定義
-            /\}\s*$/m // 應該有適當的結尾
-          ]
 
           console.log(`✅ ${file} 語法檢查通過 (${content.length} 字符)`)
         }

@@ -120,7 +120,7 @@ class ReadmooPageSimulator {
       documentElement: null,
 
       getElementById: (id) => {
-        for (const [key, element] of elements) {
+        for (const [, element] of elements) {
           if (element.id === id) {
             return element
           }
@@ -136,7 +136,7 @@ class ReadmooPageSimulator {
 
         if (selector.startsWith('.')) {
           const className = selector.substring(1)
-          for (const [key, element] of elements) {
+          for (const [, element] of elements) {
             if (element.className && element.className.includes(className)) {
               return element
             }
@@ -151,7 +151,7 @@ class ReadmooPageSimulator {
 
         if (selector.startsWith('.')) {
           const className = selector.substring(1)
-          for (const [key, element] of elements) {
+          for (const [, element] of elements) {
             if (element.className && element.className.includes(className)) {
               results.push(element)
             }

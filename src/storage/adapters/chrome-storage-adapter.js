@@ -295,7 +295,6 @@ class ChromeStorageAdapter {
    * @returns {Promise<Object>} 儲存資訊
    */
   async getStorageInfo () {
-    const usedBytes = await this.getBytesInUse()
     const quotaInfo = await this.checkQuota()
 
     return {

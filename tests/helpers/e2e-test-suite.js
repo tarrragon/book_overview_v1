@@ -910,7 +910,7 @@ class E2ETestSuite {
             filePath.corruptionType = 'invalid-json'
             break
 
-          case 'truncate':
+          case 'truncate': {
             // 截斷文件內容
             const percentage = options.percentage || 0.5
             if (originalData.books && Array.isArray(originalData.books)) {
@@ -920,6 +920,7 @@ class E2ETestSuite {
             }
             filePath.corrupted = true
             filePath.corruptionType = 'truncate'
+          }
             break
 
           case 'remove-metadata':
@@ -2125,7 +2126,6 @@ class E2ETestSuite {
 
     // 計算記憶體使用效率
     const heapUsedDelta = endMemory.heapUsed - startMemory.heapUsed
-    const heapTotalDelta = endMemory.heapTotal - startMemory.heapTotal
 
     // 如果記憶體沒有明顯增長，表示效率很高
     if (Math.abs(heapUsedDelta) < 1024 * 1024) { // < 1MB

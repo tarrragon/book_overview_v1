@@ -16,8 +16,6 @@
  * - 確認錯誤隔離機制
  */
 
-const fs = require('fs')
-const path = require('path')
 const { JSDOM } = require('jsdom')
 
 // 模擬 Content Script 環境 - 強化Chrome Extension API模擬

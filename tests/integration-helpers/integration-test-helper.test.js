@@ -77,7 +77,7 @@ describe('IntegrationTestHelper', () => {
     })
 
     test('應該設定Chrome Extension環境變數', async () => {
-      const testContext = await testHelper.setupIntegrationTest()
+      await testHelper.setupIntegrationTest()
 
       // 驗證全域Chrome API
       expect(global.chrome).toBeDefined()
@@ -277,7 +277,7 @@ describe('IntegrationTestHelper', () => {
     })
 
     test('應該檢測效能問題', async () => {
-      const testContext = await testHelper.setupIntegrationTest()
+      await testHelper.setupIntegrationTest()
 
       // 模擬慢操作
       testHelper.performance.operations.push({

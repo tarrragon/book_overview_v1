@@ -6,7 +6,6 @@
  */
 
 const BatchValidationProcessor = require('src/background/domains/data-management/services/batch-validation-processor.js')
-const { StandardError } = require('src/core/errors/StandardError')
 
 describe('BatchValidationProcessor - 批次驗證處理服務', () => {
   let processor

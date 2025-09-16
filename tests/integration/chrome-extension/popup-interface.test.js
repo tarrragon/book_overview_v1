@@ -15,7 +15,6 @@
 const fs = require('fs')
 const path = require('path')
 const { JSDOM } = require('jsdom')
-const { StandardError } = require('src/core/errors/StandardError')
 
 describe('Popup Interface 整合測試', () => {
   let dom

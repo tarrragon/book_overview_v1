@@ -28,7 +28,6 @@ const Logger = require('src/core/logging/Logger')
  */
 
 const EventHandler = require('src/core/event-handler')
-const { StandardError } = require('src/core/errors/StandardError')
 
 class MessageTracker extends EventHandler {
   /**
@@ -624,7 +623,6 @@ class MessageTracker extends EventHandler {
    * @returns {Array} 訊息記錄
    */
   getRecentMessages (limit) {
-    const { CONFIG } = MessageTracker.CONSTANTS
     const actualLimit = limit || this.config.consoleLogLimit
     const messages = this.messageLog.slice(-actualLimit)
 
@@ -683,8 +681,6 @@ class MessageTracker extends EventHandler {
    * @private
    */
   _setupCleanupTimer () {
-    const { CONFIG } = MessageTracker.CONSTANTS
-
     setInterval(() => {
       this._cleanupTimeoutMessages()
     }, this.config.cleanupIntervalMs)

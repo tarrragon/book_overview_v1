@@ -141,7 +141,7 @@ class MemoryLeakDetector {
 
     console.log(`[MemoryLeakDetector] Starting leak detection for "${testName}" with ${iterations} iterations`)
 
-    const analysis = this.startMonitoring()
+    this.startMonitoring()
 
     // 執行多次操作來檢測記憶體洩漏
     for (let i = 0; i < iterations; i++) {

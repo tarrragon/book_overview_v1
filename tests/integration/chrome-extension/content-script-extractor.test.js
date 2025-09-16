@@ -27,9 +27,6 @@ describe('Content Script Extractor Integration', () => {
   let dom
   let window
   let document
-  let contentScript
-  let mockBookDataExtractor
-  let mockReadmooAdapter
 
   beforeEach(async () => {
     // 重置 Chrome API mocks
@@ -653,8 +650,6 @@ describe('Content Script Extractor Integration', () => {
       await loadContentScript()
 
       // 模擬 URL 變更
-      const originalLocation = window.location.href
-
       // 觸發 URL 變更事件（如果有 MutationObserver）
       if (global.urlChangeObserver) {
         // 模擬 URL 變更

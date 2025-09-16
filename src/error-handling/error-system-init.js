@@ -19,7 +19,7 @@ const EventErrorHandler = require('./event-error-handler')
 const MessageTracker = require('./message-tracker')
 const EventTracker = require('./event-tracker')
 const EventPerformanceMonitor = require('./event-performance-monitor')
-const { getErrorConfig, getUserErrorMessage, getDiagnosticSuggestion } = require('src/config/error-config')
+const { getErrorConfig, getUserErrorMessage } = require('src/config/error-config')
 const { StandardError } = require('src/core/errors/StandardError')
 
 /**

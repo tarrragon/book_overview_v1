@@ -541,7 +541,7 @@ class StorageLoadHandler extends EventHandler {
    * - 避免未知類型造成的錯誤
    */
   updateLoadTypeCount (loadType) {
-    if (this.loadTypeStats.hasOwnProperty(loadType)) {
+    if (Object.prototype.hasOwnProperty.call(this.loadTypeStats, loadType)) {
       this.loadTypeStats[loadType]++
     }
   }

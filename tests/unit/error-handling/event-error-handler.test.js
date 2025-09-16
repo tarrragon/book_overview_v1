@@ -10,7 +10,6 @@
  */
 
 const EventHandler = require('src/core/event-handler')
-const { StandardError } = require('src/core/errors/StandardError')
 
 describe('EventErrorHandler - TDD 循環 #32', () => {
   let mockEventBus

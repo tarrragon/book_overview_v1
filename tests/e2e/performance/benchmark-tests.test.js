@@ -32,7 +32,6 @@ const MemoryLeakDetector = require('../../helpers/memory-leak-detector')
 
 describe('📊 Chrome Extension 效能基準測試', () => {
   let testSetup
-  let backgroundPage
   let memoryDetector
 
   jest.setTimeout(120000) // 2 分鐘超時
@@ -40,7 +39,7 @@ describe('📊 Chrome Extension 效能基準測試', () => {
   beforeAll(async () => {
     testSetup = new ExtensionTestSetup()
     await testSetup.setup({ headless: true })
-    backgroundPage = await testSetup.getBackgroundPage()
+    await testSetup.getBackgroundPage()
     memoryDetector = new MemoryLeakDetector({
       memoryGrowthThreshold: 100 * 1024 * 1024, // 100MB for E2E tests
       leakDetectionThreshold: 5 * 1024 // 5KB per operation for UI operations
@@ -346,32 +345,6 @@ describe('📊 Chrome Extension 效能基準測試', () => {
   })
 })
 
-/**
- * 測量頁面記憶體使用量
- * @param {Page} page - Puppeteer 頁面物件
- * @returns {Promise<number>} 記憶體使用量（MB）
- */
-async function measureMemoryUsage (page) {
-  try {
-    const memoryInfo = await page.evaluate(() => {
-      if (performance.memory) {
-        return {
-          usedJSHeapSize: performance.memory.usedJSHeapSize,
-          totalJSHeapSize: performance.memory.totalJSHeapSize
-        }
-      }
-      return null
-    })
-
-    if (memoryInfo) {
-      return memoryInfo.usedJSHeapSize / 1024 / 1024 // 轉換為 MB
-    }
-    return 0
-  } catch (error) {
-    console.warn('記憶體測量失敗:', error)
-    return 0
-  }
-}
 
 /**
  * 生成包含指定數量書籍的模擬頁面

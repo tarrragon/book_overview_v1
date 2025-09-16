@@ -319,7 +319,6 @@ class TestingIntegrityChecker {
    * @private
    */
   _calculateIntegrityScore () {
-    const totalViolations = this.results.violations.length
     const totalFiles = this.results.checkedFiles
 
     if (totalFiles === 0) return 1.0

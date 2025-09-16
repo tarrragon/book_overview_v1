@@ -5,8 +5,6 @@
  */
 
 // ===== 全域環境設置 =====
-const path = require('path')
-const { StandardError } = require('src/core/errors/StandardError')
 
 // 設定JSDOM環境
 Object.defineProperty(window, 'localStorage', {

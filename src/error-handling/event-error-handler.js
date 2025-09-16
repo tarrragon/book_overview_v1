@@ -314,7 +314,7 @@ class EventErrorHandler extends EventHandler {
    * @returns {Object} 處理結果
    */
   async handleCircuitBreakerError (errorData) {
-    const { component, error, timestamp } = errorData
+    const { component, timestamp } = errorData
 
     // 更新統計
     this.errorStats.totalErrors++
@@ -599,7 +599,7 @@ class EventErrorHandler extends EventHandler {
     const { CIRCUIT_BREAKER_STATES } = EventErrorHandler.CONSTANTS
     const now = Date.now()
 
-    for (const [component, breaker] of this.circuitBreakers.entries()) {
+    for (const [, breaker] of this.circuitBreakers.entries()) {
       if (
         breaker.state === CIRCUIT_BREAKER_STATES.OPEN &&
         now >= breaker.nextAttemptTime

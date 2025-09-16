@@ -112,6 +112,7 @@ class DiagnosticModule {
     this.initialized = true
     DiagnosticModule.isLoaded = true
 
+    // eslint-disable-next-line no-console
     console.log('[DiagnosticModule] Diagnostic module initialized')
   }
 
@@ -493,10 +494,6 @@ class DiagnosticModule {
    * @param {Object} options - 監控選項
    */
   enableRealtimeMonitoring (options = {}) {
-    const {
-      checkInterval = DiagnosticModule.CONSTANTS.DEFAULT_CHECK_INTERVAL,
-      alertThresholds = {}
-    } = options
 
     this.realtimeMonitor = {
       _active: true,
@@ -784,7 +781,6 @@ class DiagnosticModule {
   detectPerformanceBottlenecks (options = {}) {
     const {
       analysisDepth = 'shallow',
-      includeCallStack = false,
       measureExecutionTime = false,
       trackMemoryAllocations = false
     } = options

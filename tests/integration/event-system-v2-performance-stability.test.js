@@ -480,8 +480,6 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
           listeners.push({ eventType, handler })
         }
 
-        const withListenersMemory = process.memoryUsage()
-
         // 移除所有監聽器
         for (const { eventType, handler } of listeners) {
           eventBus.off(eventType, handler)
@@ -512,8 +510,6 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
 
           await migrationValidator.validateReadmooMigration(context)
         }
-
-        const withCacheMemory = process.memoryUsage()
 
         // 觸發快取清理
         migrationValidator._cleanupCache()
@@ -633,7 +629,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
 
         // 驗證系統仍然可以正常處理新事件
         try {
-          const testEvent = await namingCoordinator.intelligentEmit('POST.LOAD.TEST', {
+          await namingCoordinator.intelligentEmit('POST.LOAD.TEST', {
             test: 'system-recovery'
           })
           // 只要沒有拋出異常，就認為系統恢復正常
@@ -969,7 +965,7 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
         expect(totalTime).toBeLessThan(5000) // 總時間少於 5 秒
 
         // 驗證各事件類型的處理平衡
-        for (const [eventType, count] of processedEvents) {
+        for (const [, count] of processedEvents) {
           const expectedCount = Math.floor(concurrentEventCount / eventTypes.length)
           expect(count).toBeGreaterThanOrEqual(expectedCount - 1)
           expect(count).toBeLessThanOrEqual(expectedCount + 1)
@@ -1109,9 +1105,6 @@ describe('🧪 事件系統 v2.0 效能和穩定性整合測試', () => {
             }
 
             await Promise.all(levelPromises)
-
-            const levelEndTime = performance.now()
-            const levelTime = levelEndTime - levelStartTime
 
             // 檢查系統是否仍然響應
             const healthCheckStart = performance.now()

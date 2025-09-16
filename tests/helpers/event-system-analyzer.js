@@ -845,15 +845,8 @@ class EventSystemAnalyzer {
     const { trackModuleInteractions = true, identifyBottlenecks = true, measureSyncEfficiency = true } = config
 
     // 實際監控跨模組事件流動
-    const startTime = Date.now()
-    const initialMemory = process.memoryUsage()
-
     // 進行真實監控以獲取實際數據
     await new Promise(resolve => setTimeout(resolve, Math.min(1000, 15000 / 15)))
-
-    const endTime = Date.now()
-    const finalMemory = process.memoryUsage()
-    const actualDuration = endTime - startTime
 
     // 基於真實事件歷史分析跨模組流動
     const recentEvents = this._getRecentEvents(15000)
@@ -1354,14 +1347,11 @@ class EventSystemAnalyzer {
     const { expectedErrors = [], trackRecoveryAttempts = false, measureRecoveryTime = false } = config
 
     // 實際監控錯誤處理行為
-    const startTime = Date.now()
     const initialMemory = process.memoryUsage()
 
     await new Promise(resolve => setTimeout(resolve, 100))
 
-    const endTime = Date.now()
     const finalMemory = process.memoryUsage()
-    const monitorDuration = endTime - startTime
 
     // 基於真實事件歷史分析錯誤處理
     const recentEvents = this._getRecentEvents(15000)
@@ -1702,7 +1692,7 @@ class EventSystemAnalyzer {
    * 重放事件
    */
   async replayEvents (config) {
-    const { events = [], replaySpeed = 1, validateReplay = true } = config
+    const { events = [], validateReplay = true } = config
 
     const replayResults = events.map((event, index) => ({
       eventId: `replay_${index}`,
@@ -1743,7 +1733,7 @@ class EventSystemAnalyzer {
    * 分析熔斷器狀態轉換 - 修復測試期望的 stateTransitions 屬性
    */
   async analyzeStateTransitions (config) {
-    const { monitorDuration = 5000, expectedTransitions = [] } = config
+    const { expectedTransitions = [] } = config
 
     return {
       success: true,
@@ -1873,7 +1863,6 @@ class EventSystemAnalyzer {
     const { errorThreshold = 0.5, recoveryTimeout = 30000, monitorDuration = 15000 } = config
 
     // 實際監控指定時間段
-    const startTime = Date.now()
     const initialMemory = process.memoryUsage()
 
     await new Promise(resolve => setTimeout(resolve, Math.min(200, monitorDuration / 100)))
@@ -1964,7 +1953,7 @@ class EventSystemAnalyzer {
   }
 
   async analyzePerformanceMetrics (config) {
-    const { duration = 10000, trackThroughput = true, trackLatency = true } = config
+    const { duration = 10000 } = config
 
     await new Promise(resolve => setTimeout(resolve, Math.min(150, duration / 100)))
 
@@ -2325,12 +2314,10 @@ class EventSystemAnalyzer {
 
     // 實際執行事件重放過程
     const startTime = Date.now()
-    const initialMemory = process.memoryUsage()
 
     await new Promise(resolve => setTimeout(resolve, Math.min(100, replayTimeout / 50)))
 
     const endTime = Date.now()
-    const finalMemory = process.memoryUsage()
     const actualReplayTime = endTime - startTime
 
     // 基於真實事件歷史執行重放分析
@@ -2747,10 +2734,8 @@ class EventSystemAnalyzer {
     let peakMemoryUsage = initialMemory.heapUsed
 
     // 監控期間的實際測量
-    const monitoringStartTime = Date.now()
     const samplingInterval = Math.min(100, monitorDuration / 50) // 最多50個樣本
     const memorySnapshots = []
-    const performanceSnapshots = []
 
     // 收集真實的效能數據
     const sampleCount = Math.floor(monitorDuration / samplingInterval)

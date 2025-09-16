@@ -315,7 +315,7 @@ class ReadmooPlatformMigrationValidator {
 
       // 設定驗證超時
       const validationPromise = this.performCompleteValidation(validationContext)
-      const timeoutPromise = new Promise((_, reject) => {
+      const timeoutPromise = new Promise((_resolve, reject) => {
         setTimeout(() => {
           validatorLogger.error('VALIDATION_TIMEOUT', { timeout: this.config.validationTimeout })
           reject(new StandardError('OPERATION_TIMEOUT', `Validation timeout after ${this.config.validationTimeout}ms`, {
@@ -608,7 +608,7 @@ class ReadmooPlatformMigrationValidator {
    */
   async validateEventSystemIntegration (options) {
     try {
-      const { platform, context } = options
+      const { platform } = options
 
       // 測試 v2.0 事件格式
       const v2EventTest = await this.testV2EventFormats(platform)
@@ -661,7 +661,7 @@ class ReadmooPlatformMigrationValidator {
       }
 
       // 原本的邏輯保持不變
-      const { platform, context } = legacyFunctions
+      const { platform } = legacyFunctions
 
       // 檢查舊版事件支援
       const legacyEventsSupported = await this._checkLegacyEventSupport(platform)

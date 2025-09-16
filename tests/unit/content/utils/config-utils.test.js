@@ -1,4 +1,3 @@
-const { StandardError } = require('src/core/errors/StandardError')
 /**
  * @fileoverview Config Utils TDD 測試
  * @version v1.0.0

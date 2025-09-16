@@ -14,14 +14,12 @@
 const { E2ETestSuite } = require('../../helpers/e2e-test-suite')
 const { TestDataGenerator } = require('../../helpers/test-data-generator')
 const { EventSystemAnalyzer } = require('../../helpers/event-system-analyzer')
-const { EventFlowValidator } = require('../../helpers/event-flow-validator')
 
 describe('事件系統跨模組整合測試', () => {
   let testSuite
   let extensionController
   let testDataGenerator
   let eventAnalyzer
-  let flowValidator
 
   beforeAll(async () => {
     testSuite = new E2ETestSuite({
@@ -35,7 +33,6 @@ describe('事件系統跨模組整合測試', () => {
     extensionController = testSuite.extensionController
     testDataGenerator = new TestDataGenerator()
     eventAnalyzer = new EventSystemAnalyzer(testSuite)
-    flowValidator = new EventFlowValidator()
   })
 
   afterAll(async () => {
@@ -609,7 +606,7 @@ describe('事件系統跨模組整合測試', () => {
       await extensionController.openPopup()
 
       // 開始操作並記錄事件
-      const replayTestPromise = extensionController.clickExtractButton()
+      extensionController.clickExtractButton()
 
       // 等待操作進行到一半後模擬系統中斷
       await testSuite.waitForCondition(async () => {
@@ -703,7 +700,7 @@ describe('事件系統跨模組整合測試', () => {
         identifyPerformanceBottlenecks: true
       })
 
-      const [operationResult, ...parallelResults] = await Promise.all([
+      const [operationResult] = await Promise.all([
         performanceTestPromise,
         ...parallelOperations
       ])

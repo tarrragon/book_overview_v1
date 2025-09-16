@@ -668,7 +668,7 @@ describe('Schema Migration Service', () => {
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: null }
       const testData = createTestSchemaVersions().v1_0_0
 
-      const result = await migrationService.executeMigrationStep(step, testData)
+      await migrationService.executeMigrationStep(step, testData)
       const validation = await migrationService.validateDataIntegrity()
 
       expect(validation.isValid).toBe(true)
@@ -1081,7 +1081,7 @@ describe('Schema Migration Service', () => {
       const coordinatorSpy = jest.fn()
       eventBus.on('DATA_DOMAIN.MIGRATION_STATUS', coordinatorSpy)
 
-      const result = await migrationService.rollbackToVersion('1.0.0')
+      await migrationService.rollbackToVersion('1.0.0')
 
       expect(coordinatorSpy).toHaveBeenCalledWith(
         expect.objectContaining({

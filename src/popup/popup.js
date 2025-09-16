@@ -462,7 +462,7 @@ function cancelExtraction () {
 async function checkBackgroundStatus () {
   try {
     // 縮短超時時間到 2 秒，提供快速反饋
-    const timeoutPromise = new Promise((_, reject) => {
+    const timeoutPromise = new Promise((_resolve, reject) => {
       setTimeout(() => reject(new StandardError('UNKNOWN_ERROR', 'Background Service Worker 連線超時 (2秒)', {
         values: [
           '2'

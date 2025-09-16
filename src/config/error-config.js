@@ -306,20 +306,11 @@ const getUserErrorMessage = (errorType, defaultMessage = null) => {
 }
 
 /**
- * 取得診斷建議
- */
-const getDiagnosticSuggestion = (problemType) => {
-  return DIAGNOSTIC_SUGGESTIONS[problemType] || null
-}
-
-/**
  * 導出配置和工具函數
  */
 module.exports = {
   getErrorConfig,
   getUserErrorMessage,
-  getDiagnosticSuggestion,
-  isProduction,
 
   // 常數導出
   ERROR_SEVERITY: {

@@ -620,9 +620,7 @@ class LoadingOptimizer {
   async loadOnDemand (resourceName) {
     Logger.info(`📦 按需載入資源: ${resourceName}`)
 
-    const startTime = performance.now()
     const resource = await this.loadResource(resourceName)
-    const endTime = performance.now()
 
     return resource
   }
@@ -656,8 +654,6 @@ class LoadingOptimizer {
     let clearedCount = 0
 
     for (const [resourceName, resource] of this.resourceCache) {
-      const shouldClear = false
-
       // 保留關鍵資源
       if (keepCritical) {
         const config = this.resourceMap.get(resourceName)
@@ -677,6 +673,8 @@ class LoadingOptimizer {
       this.resourceCache.delete(resourceName)
       clearedCount++
     }
+
+    return clearedCount
   }
 
   /**

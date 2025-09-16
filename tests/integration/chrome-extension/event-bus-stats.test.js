@@ -27,8 +27,6 @@ const { StandardError } = require('src/core/errors/StandardError')
 
 describe('🔍 EventBus getStats 整合測試', () => {
   let eventBus
-  let testUtils
-  let backgroundHandlers = {}
 
   beforeEach(() => {
     // 重置測試環境
@@ -55,7 +53,6 @@ describe('🔍 EventBus getStats 整合測試', () => {
     }
 
     // 重置處理器
-    backgroundHandlers = {}
   })
 
   afterEach(() => {

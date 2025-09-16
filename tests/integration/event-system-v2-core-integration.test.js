@@ -30,7 +30,6 @@ describe('🧪 事件系統 v2.0 核心整合測試', () => {
   let namingCoordinator
   let priorityManager
   let typeDefinitions
-  let integrationSystem
 
   beforeEach(async () => {
     // 初始化完整的事件系統 v2.0 整合環境
@@ -38,14 +37,6 @@ describe('🧪 事件系統 v2.0 核心整合測試', () => {
     priorityManager = new EventPriorityManager()
     typeDefinitions = new EventTypeDefinitions()
     namingCoordinator = new EventNamingUpgradeCoordinator(eventBus)
-
-    // 建立整合系統實例
-    integrationSystem = {
-      eventBus,
-      namingCoordinator,
-      priorityManager,
-      typeDefinitions
-    }
 
     // 等待系統初始化完成
     await new Promise(resolve => setTimeout(resolve, 50))
@@ -339,15 +330,10 @@ describe('🧪 事件系統 v2.0 核心整合測試', () => {
       test('應該準確追蹤優先級分配效能', async () => {
         const testEvents = Array.from({ length: 100 }, (_, i) => `TEST.EVENT.${i}`)
 
-        const startTime = performance.now()
-
         // 批量分配優先級
         for (const event of testEvents) {
           priorityManager.assignEventPriority(event)
         }
-
-        const endTime = performance.now()
-        const totalTime = endTime - startTime
 
         // 驗證效能統計
         const stats = priorityManager.getPriorityStats()
@@ -737,11 +723,6 @@ describe('🧪 事件系統 v2.0 核心整合測試', () => {
           priorityManager.assignEventPriority(namingCoordinator.convertToModernEvent(event))
           typeDefinitions.recordEventUsage(event)
         }
-
-        // 記錄重啟前的統計
-        const preRestartConversionStats = namingCoordinator.getConversionStats()
-        const preRestartPriorityStats = priorityManager.getPriorityStats()
-        const preRestartUsageStats = typeDefinitions.getUsageStats()
 
         // 模擬系統重啟 (重新初始化組件)
         const newEventBus = new EventBus()

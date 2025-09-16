@@ -19,13 +19,12 @@
  */
 
 // 條件性引入，支援瀏覽器和 Node.js 環境
-let StandardError, OperationStatus, ErrorTypes
+let StandardError, OperationStatus
 if (typeof require !== 'undefined') {
   try {
     StandardError = require('./StandardError').StandardError
-    const { OperationStatus: OpStatus, ErrorTypes: ErrTypes } = require('src/core/enums')
+    const { OperationStatus: OpStatus } = require('src/core/enums')
     OperationStatus = OpStatus
-    ErrorTypes = ErrTypes
   } catch (e) {
     // 瀏覽器環境或引入失敗時，假設 StandardError 已全域可用
   }

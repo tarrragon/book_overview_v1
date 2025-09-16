@@ -6,7 +6,6 @@
  */
 
 const ValidationRuleManager = require('src/background/domains/data-management/services/validation-rule-manager.js')
-const { StandardError } = require('src/core/errors/StandardError')
 
 describe('ValidationRuleManager - 驗證規則管理服務', () => {
   let ruleManager

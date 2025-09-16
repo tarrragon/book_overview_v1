@@ -218,7 +218,7 @@ describe('Stage 3 整合改善驗證測試', () => {
     })
 
     test('應該檢測測試環境問題', async () => {
-      const testContext = await testHelper.setupIntegrationTest()
+      await testHelper.setupIntegrationTest()
 
       // 模擬一些效能問題
       testHelper.performance.operations.push({
@@ -245,7 +245,7 @@ describe('Stage 3 整合改善驗證測試', () => {
       expect(pageData.books).toHaveLength(20)
 
       // 模擬提取過程
-      const tab = await testContext.chrome.tabs.create({
+      await testContext.chrome.tabs.create({
         url: pageData.url,
         active: true
       })

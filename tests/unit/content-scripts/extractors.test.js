@@ -1,4 +1,3 @@
-const { StandardError } = require('src/core/errors/StandardError')
 /**
  * 資料提取器單元測試
  * 測試內容腳本中的資料提取功能
@@ -22,7 +21,6 @@ const { StandardError } = require('src/core/errors/StandardError')
  */
 
 describe('📚 資料提取器測試', () => {
-  let bookDataExtractor
   let progressExtractor
   let metadataExtractor
 

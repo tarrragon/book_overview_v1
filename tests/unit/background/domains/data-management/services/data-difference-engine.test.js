@@ -329,7 +329,7 @@ describe('DataDifferenceEngine', () => {
         { id: '1', title: 'Book A', progress: 50 }
       ]
 
-      const result = engine.calculateDifferences(sourceData, targetData)
+      engine.calculateDifferences(sourceData, targetData)
       const stats = engine.getStatistics()
 
       expect(stats).toEqual({

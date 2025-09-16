@@ -210,7 +210,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
 
     test('應該正確初始化 DOM 元素引用', () => {
       const BookSearchFilter = require('src/ui/book-search-filter')
-      const instance = new BookSearchFilter(mockEventBus, mockDocument)
+      new BookSearchFilter(mockEventBus, mockDocument)
 
       expect(mockDocument.getElementById).toHaveBeenCalledWith('search-input')
       expect(mockDocument.getElementById).toHaveBeenCalledWith('filter-container')
@@ -229,7 +229,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
 
     test('應該註冊必要的事件監聽器', () => {
       const BookSearchFilter = require('src/ui/book-search-filter')
-      const instance = new BookSearchFilter(mockEventBus, mockDocument)
+      new BookSearchFilter(mockEventBus, mockDocument)
 
       // 檢查是否註冊了搜尋相關事件
       expect(mockEventBus.on).toHaveBeenCalledWith('BOOKS.DATA.UPDATED', expect.any(Function))
@@ -491,14 +491,10 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
       instance.booksData = mockBooks
 
       // 第一次搜尋
-      const startTime1 = performance.now()
       const results1 = await instance.searchBooks('JavaScript')
-      const endTime1 = performance.now()
 
       // 第二次相同搜尋（應該使用快取）
-      const startTime2 = performance.now()
       const results2 = await instance.searchBooks('JavaScript')
-      const endTime2 = performance.now()
 
       expect(results1).toEqual(results2)
       expect(instance.searchCache.has('javascript')).toBe(true)
@@ -645,7 +641,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
   describe('事件整合和通知機制', () => {
     test('應該監聽書籍資料更新事件', () => {
       const BookSearchFilter = require('src/ui/book-search-filter')
-      const instance = new BookSearchFilter(mockEventBus, mockDocument)
+      new BookSearchFilter(mockEventBus, mockDocument)
 
       expect(mockEventBus.on).toHaveBeenCalledWith(
         'BOOKS.DATA.UPDATED',

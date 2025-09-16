@@ -311,7 +311,7 @@ async function handleBackgroundMessage (message, sender, sendResponse) {
         break
       }
 
-      case 'PING':
+      case 'PING': {
         const healthStatus = getHealthStatus()
         sendResponse({
           success: true,
@@ -319,6 +319,7 @@ async function handleBackgroundMessage (message, sender, sendResponse) {
           ...healthStatus
         })
         break
+      }
 
       default:
         // eslint-disable-next-line no-console

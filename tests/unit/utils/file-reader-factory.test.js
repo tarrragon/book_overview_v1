@@ -3,7 +3,6 @@
  */
 
 const FileReaderFactory = require('src/utils/file-reader-factory')
-const { StandardError } = require('src/core/errors/StandardError')
 
 describe('FileReaderFactory', () => {
   describe('createReader', () => {

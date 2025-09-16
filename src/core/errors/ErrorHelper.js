@@ -195,7 +195,7 @@ class ErrorHelper {
    */
   static async tryWithTimeout (operation, timeoutMs, errorCode = 'OPERATION_FAILED') {
     try {
-      const timeoutPromise = new Promise((_, reject) => {
+      const timeoutPromise = new Promise((_resolve, reject) => {
         setTimeout(() => {
           reject(this.createTimeoutError('async_operation', timeoutMs, { errorCode }))
         }, timeoutMs)

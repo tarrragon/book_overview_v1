@@ -296,7 +296,7 @@ class EventNamingUpgradeCoordinator {
    */
   isLegacyEvent (eventName) {
     // 檢查是否在Legacy事件映射表中存在
-    return this.conversionMap.hasOwnProperty(eventName)
+    return Object.prototype.hasOwnProperty.call(this.conversionMap, eventName)
   }
 
   /**

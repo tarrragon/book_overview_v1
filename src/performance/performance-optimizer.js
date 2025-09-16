@@ -357,7 +357,7 @@ class PerformanceOptimizer {
   resetResourcePools () {
     let freedBytes = 0
 
-    for (const [poolName, pool] of this.resourcePools) {
+    for (const [, pool] of this.resourcePools) {
       if (pool && pool.length > 10) {
         const beforeSize = pool.length
         pool.splice(10) // 保留前10個，清理其餘
@@ -485,7 +485,6 @@ class PerformanceOptimizer {
       data
     }
 
-    // eslint-disable-next-line no-console
     // eslint-disable-next-line no-console
     console.warn('⚠️ 效能警告:', warning)
 

@@ -28,7 +28,6 @@
  */
 
 const ExtensionTestSetup = require('../setup/extension-setup')
-const path = require('path')
 
 describe('📚 完整書籍資料提取工作流程', () => {
   let testSetup

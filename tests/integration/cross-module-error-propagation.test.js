@@ -500,7 +500,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
 
       // When: 在短時間內觸發大量錯誤
       const startTime = Date.now()
-      const results = await Promise.allSettled(
+      await Promise.allSettled(
         errors.map(error => testHelpers.simulateErrorPropagation(error))
       )
       const endTime = Date.now()

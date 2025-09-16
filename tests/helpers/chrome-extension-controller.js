@@ -6,7 +6,6 @@
  */
 
 const { StandardError } = require('src/core/errors/StandardError')
-const MemoryLeakDetector = require('./memory-leak-detector')
 
 class ChromeExtensionController {
   constructor (options = {}) {
@@ -293,15 +292,13 @@ class ChromeExtensionController {
 
   async attemptContentScriptInjection (options = {}) {
     const {
-      skipUnsupported = true, // 預設跳過不支援的頁面
       checkCompatibility = true,
       expectedFailures = [],
       enableErrorHandling = false,
       retryOnFailure = false,
       maxRetries = 3,
       enableCSPDetection = false,
-      enableFallbackMethods = false,
-      detectCSPViolations = false
+      enableFallbackMethods = false
     } = options
 
     this.log(`嘗試Content Script注入... enableErrorHandling=${enableErrorHandling}, retryOnFailure=${retryOnFailure}, enableCSPDetection=${enableCSPDetection}`)
@@ -763,7 +760,6 @@ class ChromeExtensionController {
   }
 
   async waitForContentScriptInitialization (options = {}) {
-    const { timeout = 5000 } = options
     this.log('等待Content Script初始化...')
 
     // 模擬初始化等待
@@ -867,7 +863,6 @@ class ChromeExtensionController {
   async executeContentScriptExtraction (options = {}) {
     const {
       securityMode = false,
-      validateDOMIntegrity = false,
       detectInterference = false
     } = options
 
@@ -925,7 +920,7 @@ class ChromeExtensionController {
   }
 
   async reinjectContentScript (options = {}) {
-    const { detectPreviousScript = true, cleanupBefore = true, validateAfter = true } = options
+    const { detectPreviousScript = true, cleanupBefore = true } = options
     this.log('重新注入Content Script...')
 
     let previousScriptDetected = false
@@ -1487,7 +1482,7 @@ class ChromeExtensionController {
    * 等待 Popup 更新
    */
   async waitForPopupUpdate (options = {}) {
-    const { expectedUpdate, timeout = 3000 } = options
+    const { expectedUpdate } = options
     this.log(`[Popup] 等待更新: ${JSON.stringify(expectedUpdate)}`)
 
     const startTime = Date.now()
@@ -1546,7 +1541,6 @@ class ChromeExtensionController {
     this.log(`[Error Handling Message] ${type}`)
 
     const {
-      timeout = 5000,
       maxRetries = 3,
       enableRetry = true,
       fallbackRouting = true
@@ -1585,8 +1579,7 @@ class ChromeExtensionController {
 
     const {
       retryStrategy = 'exponential_backoff',
-      enableDegradation = true,
-      monitorRetryProcess = true
+      enableDegradation = true
     } = options
 
     // 模擬重試次數
@@ -1967,7 +1960,7 @@ class ChromeExtensionController {
   }
 
   async waitForExtractionComplete (options = {}) {
-    const { timeout = 10000, expectedBookCount } = options
+    const { expectedBookCount } = options
 
     // 使用實際的 mockBooksCount，如果沒有則使用 expectedBookCount，最後才使用預設值 50
     const actualCount = this.state.storage.get('mockBooksCount') || expectedBookCount || 50
@@ -2232,7 +2225,7 @@ class ChromeExtensionController {
   }
 
   async waitForErrorState (options = {}) {
-    const { timeout = 5000, expectedError = 'NETWORK_ERROR' } = options
+    const { expectedError = 'NETWORK_ERROR' } = options
 
     // 模擬錯誤狀態等待
     await this.simulateDelay(2000)
@@ -2392,7 +2385,7 @@ class ChromeExtensionController {
       const conflicts = []
 
       switch (options.mode) {
-        case 'merge':
+        case 'merge': {
           // 合併模式：保留兩邊的書籍，處理衝突
           const bookMap = new Map()
 
@@ -2424,13 +2417,14 @@ class ChromeExtensionController {
 
           finalBooks = Array.from(bookMap.values())
           break
+        }
 
         case 'replace':
           // 替換模式：完全使用匯入資料
           finalBooks = importBooks
           break
 
-        default:
+        default: {
           // 預設模式：智能判斷 - 如果是新設備或沒有實際書籍，使用替換模式
           const hasRealBooks = currentBooks.length > 0 && currentBooks.some(book => !book.id.startsWith('test-book-'))
           if (!hasRealBooks || currentBooks.length === 0) {
@@ -2442,6 +2436,7 @@ class ChromeExtensionController {
             const newBooks = importBooks.filter(book => !existingIds.has(book.id))
             finalBooks = [...currentBooks, ...newBooks]
           }
+        }
       }
 
       // 更新儲存
@@ -2556,7 +2551,6 @@ class ChromeExtensionController {
   async subscribeToImportProgress (progressCallback) {
     this.log('[ChromeExtensionController] 開始訂閱匯入進度')
 
-    const subscriptionId = `import_progress_${Date.now()}`
     let isActive = true
 
     // 模擬匯入進度更新 - 確保所有階段都會被觸發
@@ -2611,7 +2605,6 @@ class ChromeExtensionController {
   async subscribeToRetryEvents (eventCallback) {
     this.log('[ChromeExtensionController] 開始訂閱重試事件')
 
-    const subscriptionId = `retry_events_${Date.now()}`
     let isActive = true
 
     // 模擬重試事件發生
@@ -3413,7 +3406,6 @@ class ChromeExtensionController {
    */
   async getPopupUIElements () {
     const backgroundState = await this.getBackgroundState()
-    const popupState = await this.getPopupState()
 
     return {
       bookCountDisplay: {
@@ -3958,11 +3950,6 @@ class ChromeExtensionController {
     this.log(`等待崩潰檢測: 監控組件 ${monitoredComponents.join(', ')}`)
 
     const startTime = Date.now()
-    const crashDetection = {
-      monitoring: true,
-      detectedCrashes: [],
-      startTime
-    }
 
     return new Promise((resolve) => {
       const checkInterval = setInterval(() => {
@@ -4246,7 +4233,6 @@ class ChromeExtensionController {
     const {
       maxRetries = 3,
       retryDelay = 1000,
-      timeoutMs = 5000,
       retryStrategy = 'exponential_backoff' // 新增重試策略參數
     } = options
 

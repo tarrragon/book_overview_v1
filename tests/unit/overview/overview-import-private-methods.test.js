@@ -8,7 +8,6 @@
  */
 
 const { JSDOM } = require('jsdom')
-const { StandardError } = require('src/core/errors/StandardError')
 
 describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => {
   let dom

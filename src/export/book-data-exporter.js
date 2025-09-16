@@ -282,7 +282,7 @@ class BookDataExporter {
         data = this.books.map(book => {
           const filteredBook = {}
           fields.forEach(field => {
-            if (book.hasOwnProperty(field)) {
+            if (Object.prototype.hasOwnProperty.call(book, field)) {
               filteredBook[field] = book[field]
             }
           })
@@ -473,9 +473,7 @@ class BookDataExporter {
     this.updateProgress(0)
 
     try {
-      const template = options.template || 'default'
       const includeStats = options.includeStats || false
-      const includeCharts = options.includeCharts || false
       const title = options.title || '書籍閱讀報告'
 
       this.updateProgress(25)

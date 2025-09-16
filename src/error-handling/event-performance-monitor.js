@@ -205,7 +205,7 @@ class EventPerformanceMonitor extends EventHandler {
         return this._handleProcessingFailed(eventData.data)
       case EVENTS.INPUT.MONITOR_REQUEST:
         return this._handleMonitorRequest(eventData.data)
-      default:
+      default: {
         const { ERRORS } = EventPerformanceMonitor.CONSTANTS
         return this._createErrorResponse(
           'UNSUPPORTED_EVENT_TYPE',
@@ -216,6 +216,7 @@ class EventPerformanceMonitor extends EventHandler {
             }),
           eventData
         )
+      }
     }
   }
 

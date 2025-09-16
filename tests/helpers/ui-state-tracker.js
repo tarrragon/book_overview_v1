@@ -286,8 +286,7 @@ class UIStateTracker {
           includeEstimations = true,
           generateRecommendations = true,
           expectedDuration = 10000,
-          expectedProgressUpdates = 10,
-          monitorUserExperience = false
+          expectedProgressUpdates = 10
         } = analysisOptions
 
         const currentTime = Date.now()
@@ -349,7 +348,7 @@ class UIStateTracker {
         }
 
         // 計算完成的操作數
-        for (const [id, operation] of this.progressTracking.trackedOperations) {
+        for (const [, operation] of this.progressTracking.trackedOperations) {
           if (operation.progress >= 1.0) {
             analysis.completedOperations++
           }
@@ -494,7 +493,7 @@ class UIStateTracker {
   _notifyStateUpdate (stateName, changeDetails) {
     const currentTime = Date.now()
 
-    for (const [id, subscription] of this.watchers) {
+    for (const [, subscription] of this.watchers) {
       if (!subscription.active) continue
 
       // 檢查防抖

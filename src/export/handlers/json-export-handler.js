@@ -161,6 +161,7 @@ class JSONExportHandler extends EventHandler {
    * 事件處理前的預處理
    */
   async beforeHandle (event) {
+    // eslint-disable-next-line no-console
     console.log(`[${this.name}] Processing JSON export request`)
   }
 
@@ -168,6 +169,7 @@ class JSONExportHandler extends EventHandler {
    * 事件處理後的後處理
    */
   async afterHandle (event, result) {
+    // eslint-disable-next-line no-console
     console.log(`[${this.name}] JSON export completed successfully`)
   }
 

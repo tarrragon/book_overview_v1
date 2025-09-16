@@ -148,6 +148,7 @@ class CSVExportHandler extends EventHandler {
    */
   async beforeHandle (event) {
     // 記錄處理開始
+    // eslint-disable-next-line no-console
     console.log(`[${this.name}] Processing CSV export request`)
   }
 
@@ -159,6 +160,7 @@ class CSVExportHandler extends EventHandler {
    */
   async afterHandle (event, result) {
     // 記錄處理完成
+    // eslint-disable-next-line no-console
     console.log(`[${this.name}] CSV export completed successfully`)
   }
 

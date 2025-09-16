@@ -11,7 +11,6 @@
 
 const EventBus = require('src/core/event-bus')
 const EventPriorityManager = require('src/core/events/event-priority-manager')
-const { StandardError } = require('src/core/errors/StandardError')
 
 describe('EventPriorityManager', () => {
   let eventBus

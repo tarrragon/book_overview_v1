@@ -305,11 +305,13 @@ class OverviewPageController extends EventHandlerClass {
         const books = result.readmoo_books.books
         const timestamp = result.readmoo_books.extractionTimestamp
 
+        // eslint-disable-next-line no-console
         console.log(`📅 提取時間: ${new Date(timestamp).toLocaleString()}`)
 
         this._updateBooksData(books)
         this.updateDisplay()
       } else {
+        // eslint-disable-next-line no-console
         console.log('📂 Chrome Storage 中沒有書籍資料')
         this.hideLoading()
         // 顯示空資料狀態，但不顯示錯誤

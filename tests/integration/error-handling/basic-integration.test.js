@@ -11,7 +11,7 @@
 const { StandardError } = require('src/core/errors/StandardError')
 const { OperationResult } = require('src/core/errors/OperationResult')
 const { ErrorHelper } = require('src/core/errors/ErrorHelper')
-const { Logger, createLogger } = require('src/core/logging/Logger')
+const { createLogger } = require('src/core/logging/Logger')
 const { MessageDictionary, GlobalMessages } = require('src/core/messages/MessageDictionary')
 
 // 測試 StorageAPIValidator 修復

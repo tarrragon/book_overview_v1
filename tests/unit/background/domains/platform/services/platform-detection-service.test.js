@@ -8,11 +8,10 @@
  */
 
 const PlatformDetectionService = require('src/background/domains/platform/services/platform-detection-service.js')
-const EventBus = require('src/core/event-bus.js')
 const { StandardError } = require('src/core/errors/StandardError')
 
 // 測試專用模擬資料
-const MockPlatformData = {
+const mockPlatformDataDefinition = {
   // Readmoo 平台測試資料
   READMOO: {
     urls: [
@@ -664,7 +663,7 @@ describe('PlatformDetectionService', () => {
         hostname: 'readmoo.com'
       }
 
-      const result = await service.detectPlatform(context)
+      await service.detectPlatform(context)
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'PLATFORM.DETECTION.FAILED',
@@ -1079,7 +1078,7 @@ describe('PlatformDetectionService', () => {
     test('should handle network timeouts during detection', async () => {
       // Simulate network timeout
       service.fetchPlatformAPIWithTimeout = jest.fn().mockImplementation(() => {
-        return new Promise((_, reject) => {
+        return new Promise((_resolve, reject) => {
           setTimeout(() => reject(new Error('Network timeout')), 100)
         })
       })

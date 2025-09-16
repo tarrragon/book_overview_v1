@@ -1166,12 +1166,15 @@ class ConfigUtils {
    * @private
    */
   _outputToConsole (level, formatted, metadata) {
+    // eslint-disable-next-line no-console
     const consoleMethod = console[level] || console.log
 
     // 統一的格式：formatted 訊息 + metadata 物件（如果有的話）
     if (Object.keys(metadata).length > 0) {
+      // eslint-disable-next-line no-console
       consoleMethod(formatted, metadata)
     } else {
+      // eslint-disable-next-line no-console
       consoleMethod(formatted)
     }
   }

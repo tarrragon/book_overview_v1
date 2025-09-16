@@ -21,8 +21,8 @@ const Logger = require('src/core/logging/Logger')
  * @version 1.0.0
  */
 
-const { PerformanceOptimizer, getPerformanceOptimizer } = require('./performance-optimizer')
-const { LoadingOptimizer, getLoadingOptimizer } = require('./loading-optimizer')
+const { getPerformanceOptimizer } = require('./performance-optimizer')
+const { getLoadingOptimizer } = require('./loading-optimizer')
 
 /**
  * PerformanceIntegration 類別
@@ -270,8 +270,6 @@ class PerformanceIntegration {
    */
   registerModule (moduleId, moduleConfig = {}) {
     Logger.info(`📋 註冊模組效能優化: ${moduleId}`)
-
-    const { CONFIG } = PerformanceIntegration
 
     // 建立模組特定的效能配置
     const performanceConfig = {
@@ -958,7 +956,7 @@ class PerformanceIntegration {
   updateModuleMetrics () {
     const currentMemory = this.performanceOptimizer.getMemoryInfo().usedJSHeapSize
 
-    for (const [moduleId, modulePerf] of this.modulePerformance) {
+    for (const [, modulePerf] of this.modulePerformance) {
       modulePerf.metrics.memoryUsage = currentMemory / this.integrationState.activeModules.size
     }
   }

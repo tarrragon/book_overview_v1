@@ -132,7 +132,6 @@ describe('🎭 背景服務事件系統測試', () => {
 
     test('應該按照註冊順序執行多個處理器', async () => {
       // Arrange
-      const eventType = 'storage.save.completed'
       const executionOrder = []
 
       const handler1 = jest.fn(() => executionOrder.push('handler1'))
@@ -159,7 +158,6 @@ describe('🎭 背景服務事件系統測試', () => {
 
     test('應該能夠傳遞複雜的事件資料', async () => {
       // Arrange
-      const eventType = 'books.extracted'
       const complexEventData = {
         books: global.testUtils.createMockBooks(3),
         metadata: {

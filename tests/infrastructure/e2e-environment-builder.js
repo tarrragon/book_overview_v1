@@ -9,7 +9,6 @@
  */
 
 const E2ETestEnvironment = require('./e2e-test-environment')
-const ChromeAPIMockRegistry = require('./chrome-api-mock-registry')
 const { StandardError } = require('src/core/errors/StandardError')
 
 /**

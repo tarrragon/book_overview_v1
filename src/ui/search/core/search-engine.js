@@ -679,7 +679,7 @@ class SearchEngine {
    * @param {Object} request - 搜尋請求 { query, books, options }
    */
   handleSearchRequest (request) {
-    const { query, books, options = {} } = request
+    const { query, books } = request
 
     // 發送請求接收事件
     this.eventBus.emit('SEARCH.REQUEST.RECEIVED', {

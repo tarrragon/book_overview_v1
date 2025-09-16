@@ -22,10 +22,6 @@ const { StandardError } = require('src/core/errors/StandardError')
  */
 
 describe('💾 儲存適配器測試', () => {
-  let chromeStorageAdapter
-  let localStorageAdapter
-  let indexedDbAdapter
-
   beforeEach(() => {
     // 重置測試環境
     global.testUtils.cleanup()

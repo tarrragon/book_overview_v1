@@ -129,7 +129,6 @@ const retryOperation = async (operation, options = {}) => {
 
 describe('系統性錯誤處理場景測試', () => {
   let mockChrome
-  let mockDocument
 
   beforeEach(() => {
     // Mock Chrome API
@@ -145,9 +144,6 @@ describe('系統性錯誤處理場景測試', () => {
       }
     }
     global.chrome = mockChrome
-
-    // Mock DOM
-    mockDocument = document
   })
 
   describe('🌐 NETWORK錯誤處理測試', () => {

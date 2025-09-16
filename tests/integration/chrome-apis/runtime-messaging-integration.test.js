@@ -646,7 +646,6 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       })
 
       // 檢查整體錯誤處理效能
-      const totalErrors = failureHandlingResults.filter(r => r.errorDetected).length
       const totalRecovered = failureHandlingResults.filter(r => r.finalSuccess).length
       const recoveryRate = totalRecovered / failureHandlingResults.length
 

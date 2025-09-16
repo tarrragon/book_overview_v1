@@ -237,6 +237,7 @@ class ChromeStoreReadiness {
    * @private
    */
   async checkManifestCompliance () {
+    // eslint-disable-next-line no-console
     console.log('📋 檢查 Manifest 合規性...')
 
     try {
@@ -342,6 +343,7 @@ class ChromeStoreReadiness {
    * @private
    */
   async checkFileRequirements () {
+    // eslint-disable-next-line no-console
     console.log('📁 檢查檔案要求...')
 
     try {
@@ -443,6 +445,7 @@ class ChromeStoreReadiness {
    * @private
    */
   async checkSecurityCompliance () {
+    // eslint-disable-next-line no-console
     console.log('🔒 檢查安全性合規...')
 
     try {
@@ -524,6 +527,7 @@ class ChromeStoreReadiness {
    * @private
    */
   async checkPrivacyCompliance () {
+    // eslint-disable-next-line no-console
     console.log('🛡️ 檢查隱私合規...')
 
     try {
@@ -731,8 +735,8 @@ class ChromeStoreReadiness {
    * @private
    */
   calculateOverallScore () {
-    let totalPassed = 0
-    let totalChecks = 0
+    // let totalPassed = 0
+    // let totalChecks = 0
     let weightedScore = 0
 
     const categoryWeights = {
@@ -750,8 +754,9 @@ class ChromeStoreReadiness {
       const weight = categoryWeights[category] || 10
 
       weightedScore += (categoryScore * weight) / 100
-      totalPassed += results.passed
-      totalChecks += categoryTotal
+      // TODO: 使用 totalPassed 和 totalChecks 計算統計
+      // totalPassed += results.passed
+      // totalChecks += categoryTotal
     }
 
     // 關鍵問題會大幅降低分數

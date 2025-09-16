@@ -67,6 +67,7 @@ function createPageDetector () {
       isReadmooPage = location.hostname && location.hostname.includes('readmoo.com')
       pageType = isReadmooPage ? this.detectPageType() : 'unknown'
 
+      // eslint-disable-next-line no-console
       console.log(`📍 頁面檢測: ${isReadmooPage ? 'Readmoo' : '非Readmoo'} 頁面 (${pageType})`)
 
       return { isReadmooPage, pageType }
@@ -175,6 +176,7 @@ function createPageDetector () {
 
           // 記錄 URL 變更事件 (可選的日誌記錄)
           if (typeof console !== 'undefined' && console.debug) {
+            // eslint-disable-next-line no-console
             console.debug('URL 變更檢測:', {
               from: oldUrl,
               to: currentUrl,
@@ -229,7 +231,6 @@ function createPageDetector () {
      * @returns {Object} 更新後的頁面狀態
      */
     refresh () {
-      const currentUrl = window.location.href
       return this.detectReadmooPage()
     },
 

@@ -17,7 +17,6 @@
  */
 
 const FilterEngine = require('src/ui/search/filter/filter-engine')
-const { StandardError } = require('src/core/errors/StandardError')
 
 describe('FilterEngine', () => {
   let filterEngine

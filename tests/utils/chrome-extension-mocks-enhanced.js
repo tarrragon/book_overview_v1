@@ -289,7 +289,6 @@ class ChromeExtensionMocksEnhanced {
 
       // 模擬擴展上下文失效
       if (!this.contextValid) {
-        const error = new Error('Extension context invalidated')
         if (callback) {
           global.chrome.runtime.lastError = { message: 'Extension context invalidated' }
           setTimeout(() => callback(), 0)
@@ -346,7 +345,6 @@ class ChromeExtensionMocksEnhanced {
   _setupTabsAPI () {
     global.chrome.tabs.query = (queryInfo, callback) => {
       if (!this.permissions.tabs) {
-        const error = new Error('Permission denied')
         if (callback) {
           global.chrome.runtime.lastError = { message: 'Permission denied' }
           callback([])
@@ -374,7 +372,6 @@ class ChromeExtensionMocksEnhanced {
 
     global.chrome.tabs.sendMessage = (tabId, message, options, callback) => {
       if (!this.permissions.activeTab && !this.permissions.tabs) {
-        const error = new Error('Permission denied')
         if (callback) {
           global.chrome.runtime.lastError = { message: 'Permission denied' }
           callback()

@@ -320,7 +320,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
         progress: 60
       }
 
-      const card = renderer.createBookCard(book)
+      renderer.createBookCard(book)
 
       // 檢查是否創建了進度指示器元素
       expect(mockDocument.createElement).toHaveBeenCalledWith('div')
@@ -643,7 +643,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
       })
 
       expect(() => {
-        const columns = renderer.calculateColumns(0)
+        renderer.calculateColumns(0)
       }).not.toThrow()
     })
 

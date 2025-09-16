@@ -230,7 +230,6 @@ class PerformanceTestDataGenerator {
   generateJSONFile (targetSize, options = {}) {
     const {
       format = 'standard',
-      compression = 'none',
       includeMetadata = true,
       complexity = 'normal'
     } = options
@@ -308,7 +307,6 @@ class PerformanceTestDataGenerator {
   // 輔助方法
   generateTitle (titlePatterns, genres) {
     const pattern = this.selectRandom(titlePatterns)
-    const genre = this.selectRandom(genres)
     const randomWord = this.generateRandomWord()
     return pattern.replace(/xxx/g, randomWord)
   }
@@ -429,7 +427,7 @@ class PerformanceTestDataGenerator {
       const errorType = this.selectRandom(['missing_field', 'invalid_format', 'encoding_issue', 'truncated_data'])
 
       switch (errorType) {
-        case 'missing_field':
+        case 'missing_field': {
           // 隨機移除某個欄位
           const fieldsToRemove = ['author', 'publishDate', 'genre', 'description']
           const fieldToRemove = this.selectRandom(fieldsToRemove)
@@ -439,6 +437,7 @@ class PerformanceTestDataGenerator {
             book[fieldToRemove] = null
           }
           break
+        }
 
         case 'invalid_format':
           // 格式錯誤

@@ -14,7 +14,6 @@
  * 等待 TDD Phase 3 實作對應的同步功能
  */
 
-const path = require('path')
 const { StandardError } = require('src/core/errors/StandardError')
 
 // Mock 類別定義（TDD Phase 1 - 測試先行）
@@ -84,7 +83,6 @@ const {
   createSyncTestEnvironment,
   resetSyncTestEnvironment,
   generateTestBooks,
-  createCorruptedData,
   simulateNetworkConditions,
   measurePerformance,
   validateDataIntegrity,
@@ -291,11 +289,11 @@ describe('UC-05 跨設備同步工作流程測試', () => {
       await deviceA.storage.setBooks(generateTestBooks(50))
 
       // When: 執行多次同步並查看歷史
-      const sync1 = await executeFullSync(deviceA, deviceB)
+      await executeFullSync(deviceA, deviceB)
       await wait(100) // 確保時間戳不同
 
       await deviceA.storage.addBooks(generateTestBooks(25, 'batch2'))
-      const sync2 = await executeFullSync(deviceA, deviceB)
+      await executeFullSync(deviceA, deviceB)
 
       const syncHistory = await getSyncHistory(deviceB)
 
@@ -803,7 +801,7 @@ describe('UC-05 跨設備同步工作流程測試', () => {
         await benchmarkDevice.storage.setBooks(testBooks)
 
         const startTime = Date.now()
-        const exportResult = await benchmarkDevice.exportData()
+        await benchmarkDevice.exportData()
         const endTime = Date.now()
 
         const throughput = size / ((endTime - startTime) / 1000) // 本/秒
@@ -1129,7 +1127,7 @@ describe('UC-05 跨設備同步工作流程測試', () => {
       await device.storage.setBooks(generateTestBooks(200))
 
       // 開始同步並模擬中斷
-      const syncProcess = await device.startSync()
+      await device.startSync()
       await device.simulateProgress(50) // 同步到50%
 
       // 模擬瀏覽器崩潰
@@ -1331,7 +1329,7 @@ describe('UC-05 跨設備同步工作流程測試', () => {
       await device.storage.setBooks(generateTestBooks(100))
 
       // When: 記錄錯誤和警告
-      const syncWithLogging = await device.syncWithLogging({
+      await device.syncWithLogging({
         simulateWarnings: true,
         simulateErrors: true
       })

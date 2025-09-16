@@ -36,7 +36,6 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
   let namingCoordinator
   let priorityManager
   let mockTabId
-  let extensionEnvironment
 
   beforeEach(async () => {
     // 重置 Chrome API mocks
@@ -60,14 +59,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
     priorityManager = new EventPriorityManager()
     chromeBridge = new ChromeEventBridge(eventBus)
 
-    // 建立整合環境
-    extensionEnvironment = {
-      eventBus,
-      chromeBridge,
-      namingCoordinator,
-      priorityManager,
-      mockTabId
-    }
+    // 建立整合環境完成
 
     // 等待初始化完成
     await new Promise(resolve => setTimeout(resolve, 50))
@@ -131,10 +123,6 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
         priorityManager.assignEventPriority(testEvent)
 
         // 記錄重啟前的狀態
-        const preRestartStats = {
-          conversionStats: namingCoordinator.getConversionStats(),
-          priorityStats: priorityManager.getPriorityStats()
-        }
 
         // 模擬 Service Worker 重啟
         await chromeBridge.handleServiceWorkerRestart()
@@ -214,12 +202,6 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
         const mockSendResponse = jest.fn()
 
         // 設置狀態回應
-        const extractionStatus = {
-          isActive: true,
-          progress: 75,
-          totalBooks: 10,
-          extractedBooks: 7
-        }
 
         // 處理來自 Popup 的訊息
         await chromeBridge.handleMessageFromPopup(popupMessage, mockSender, mockSendResponse)
@@ -277,16 +259,9 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
           'UI.POPUP.OPENED'
         ]
 
-        const modernEvents = [
-          'EXTRACTION.READMOO.EXTRACT.COMPLETED',
-          'DATA.READMOO.SAVE.COMPLETED',
-          'UX.GENERIC.OPEN.COMPLETED'
-        ]
-
         // 設置雙軌監聽器
         for (let i = 0; i < legacyEvents.length; i++) {
           const legacyEvent = legacyEvents[i]
-          const expectedModern = modernEvents[i]
 
           const handler = jest.fn()
           namingCoordinator.registerDualTrackListener(legacyEvent, handler)
@@ -872,7 +847,6 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
     describe('長時間運行穩定性', () => {
       test('應該在長時間運行後保持響應性', async () => {
         const testDuration = 5000 // 5 秒模擬長時間運行
-        const startTime = Date.now()
         let eventCount = 0
 
         // 設置定期事件觸發
@@ -887,8 +861,6 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
         // 運行指定時間
         await new Promise(resolve => setTimeout(resolve, testDuration))
         clearInterval(interval)
-
-        const endTime = Date.now()
 
         // 驗證系統仍然響應
         const responseTest = await chromeBridge.ping()

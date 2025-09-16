@@ -184,15 +184,19 @@ class Logger {
     switch (level) {
       case 'DEBUG':
         if (console.debug) {
+          // eslint-disable-next-line no-console
           console.debug(prefix, logEntry)
         } else {
+          // eslint-disable-next-line no-console
           console.log(prefix, logEntry)
         }
         break
       case 'INFO':
         if (console.info) {
+          // eslint-disable-next-line no-console
           console.info(prefix, logEntry)
         } else {
+          // eslint-disable-next-line no-console
           console.log(prefix, logEntry)
         }
         break
@@ -211,10 +215,12 @@ class Logger {
           // eslint-disable-next-line no-console
           console.error(prefix, logEntry)
         } else {
+          // eslint-disable-next-line no-console
           console.log(prefix, logEntry)
         }
         break
       default:
+        // eslint-disable-next-line no-console
         console.log(prefix, logEntry)
     }
   }

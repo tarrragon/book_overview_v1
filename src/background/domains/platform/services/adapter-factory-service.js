@@ -1455,7 +1455,6 @@ class AdapterFactoryService {
       this.logger.error(`[AdapterFactoryService] ${message}`, error)
     } else {
       // eslint-disable-next-line no-console
-      // eslint-disable-next-line no-console
       console.error(`[AdapterFactoryService] ${message}`, error)
     }
   }

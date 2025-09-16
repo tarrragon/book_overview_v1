@@ -36,9 +36,6 @@ global.window = {
 }
 
 describe('Background Service Worker Event System Integration', () => {
-  let backgroundScript
-  let mockEventBus
-  let mockChromeBridge
 
   beforeEach(async () => {
     // 重置 Chrome API mocks
@@ -107,29 +104,6 @@ describe('Background Service Worker Event System Integration', () => {
     }
   }
 
-  /**
-   * 載入並執行 background script（作為備用方法）
-   */
-  async function loadBackgroundScript () {
-    const fs = require('fs')
-    const path = require('path')
-
-    // 讀取 background.js 內容
-    const backgroundPath = path.join(__dirname, '../../../src/background/background.js')
-    const backgroundContent = fs.readFileSync(backgroundPath, 'utf8')
-
-    // 在測試環境中執行 background script
-    // 由於它包含 IIFE，我們需要小心處理
-    try {
-      // 使用 eval 在當前上下文中執行
-      eval(backgroundContent)
-
-      // 等待一小段時間讓異步初始化完成
-      await new Promise(resolve => setTimeout(resolve, 100))
-    } catch (error) {
-      console.warn('Background script 執行錯誤 (可能是正常的測試環境限制):', error.message)
-    }
-  }
 
   describe('🔧 EventBus 初始化與配置', () => {
     test('應該成功載入並初始化 EventBus', async () => {
@@ -486,8 +460,6 @@ describe('Background Service Worker Event System Integration', () => {
 
       if (eventBus) {
         // 測試事件系統狀態持久性
-        const beforeSleep = eventBus.getStats()
-
         // 模擬休眠後喚醒
         // Service Worker 可能會重新載入，但事件處理器應該可以重新註冊
         expect(() => {
@@ -602,8 +574,6 @@ describe('Background Service Worker Event System Integration', () => {
 
       if (eventBus) {
         // 測試大量事件處理後的記憶體清理
-        const initialStats = eventBus.getStats()
-
         // 註冊和取消大量事件監聽器
         for (let i = 0; i < 100; i++) {
           const handler = () => {}

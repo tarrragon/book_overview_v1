@@ -17,8 +17,6 @@ describe('PopupUIManager 模組化整合測試', () => {
   let document
   let window
   let uiManager
-  let mockStatusManager
-  let mockProgressManager
 
   beforeEach(() => {
     // 建立 JSDOM 環境
@@ -52,25 +50,6 @@ describe('PopupUIManager 模組化整合測試', () => {
     document = window.document
     global.window = window
     global.document = document
-
-    // 建立 Mock 狀態和進度管理器
-    mockStatusManager = {
-      updateStatus: jest.fn(),
-      getCurrentStatus: jest.fn().mockReturnValue({
-        type: 'ready',
-        text: '就緒',
-        info: ''
-      })
-    }
-
-    mockProgressManager = {
-      updateProgress: jest.fn(),
-      getCurrentProgress: jest.fn().mockReturnValue({
-        percentage: 0,
-        status: 'idle',
-        isVisible: false
-      })
-    }
 
     // 載入 PopupUIManager
     const PopupUIManager = require('src/popup/popup-ui-manager.js')

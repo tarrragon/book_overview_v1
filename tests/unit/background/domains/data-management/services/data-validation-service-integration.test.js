@@ -6,7 +6,6 @@
  */
 
 const DataValidationService = require('src/background/domains/data-management/services/data-validation-service.js')
-const { StandardError } = require('src/core/errors/StandardError')
 
 describe('DataValidationService - 服務整合測試', () => {
   let validationService

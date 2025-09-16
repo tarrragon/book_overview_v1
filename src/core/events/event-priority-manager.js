@@ -314,7 +314,6 @@ class EventPriorityManager {
    */
   detectPriorityConflicts () {
     const conflicts = []
-    const eventConflicts = new Map()
 
     // 檢查相同事件的不同優先級分配
     for (const [eventName, history] of this.priorityHistory.entries()) {
