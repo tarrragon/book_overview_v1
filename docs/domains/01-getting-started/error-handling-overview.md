@@ -31,21 +31,22 @@ return { valid: false, message: 'failed' };
 引入完整的標準化錯誤處理系統：
 
 ```javascript
-// ✅ v0.10.x 標準化做法
-import { BookValidationError, OperationResult } from '../core/errors';
+// ✅ v0.12.x+ 標準化做法 (ErrorCodes 方案)
+import { ErrorCodes } from '../core/errors/ErrorCodes';
+import { StandardError, OperationResult } from '../core/errors';
 
 try {
   const result = await validateBook(bookData);
   return OperationResult.success(result);
 } catch (error) {
-  if (error instanceof BookValidationError) {
+  if (error.code === ErrorCodes.BOOK_VALIDATION_FAILED) {
     return OperationResult.failure(
       'VALIDATION_ERROR',
       error.code,
       error.details
     );
   }
-  throw new StandardError('SYSTEM_ERROR', error);
+  throw new StandardError(ErrorCodes.SYSTEM_ERROR, 'Unexpected system error', { originalError: error });
 }
 ```
 
@@ -94,25 +95,29 @@ graph TB
 
 ## 💻 實踐指南
 
-### **1. 結構化錯誤類別使用**
+### **1. ErrorCodes 常量與 StandardError 使用**
 
 ```javascript
-import { BookValidationError, NetworkError, StandardError } from '../core/errors';
+import { ErrorCodes } from '../core/errors/ErrorCodes';
+import { StandardError } from '../core/errors';
 
 // 業務邏輯錯誤
 class BookExtractor {
   async extractBook(element) {
     const title = element.querySelector('.title')?.textContent;
-    
+
     if (!title) {
-      // ✅ 使用專用錯誤類別
-      throw new BookValidationError(
-        'TITLE_MISSING',
+      // ✅ 使用 ErrorCodes 常量，避免魔法字串
+      throw new StandardError(
+        ErrorCodes.BOOK_VALIDATION_FAILED,
         '書籍標題不能為空',
-        { element: element.outerHTML }
+        {
+          missingField: 'title',
+          element: element.outerHTML
+        }
       );
     }
-    
+
     return { title, /* other fields */ };
   }
 }
@@ -123,21 +128,22 @@ class DataSyncer {
     try {
       await fetch('/api/sync', { method: 'POST', body: JSON.stringify(data) });
     } catch (error) {
-      // ✅ 使用專用網路錯誤
-      throw new NetworkError(
-        'SYNC_FAILED',
+      // ✅ 使用 ErrorCodes 常量統一管理
+      throw new StandardError(
+        ErrorCodes.NETWORK_SYNC_FAILED,
         '資料同步失敗，請檢查網路連線',
-        { originalError: error, data }
+        { originalError: error.message, data }
       );
     }
   }
 }
 ```
 
-### **2. 統一回應格式應用**
+### **2. 統一回應格式與錯誤代碼應用**
 
 ```javascript
-import { OperationResult } from '../core/errors';
+import { ErrorCodes } from '../core/errors/ErrorCodes';
+import { StandardError, OperationResult } from '../core/errors';
 
 class BookService {
   async getBooks() {
@@ -149,8 +155,8 @@ class BookService {
         lastUpdated: new Date().toISOString()
       });
     } catch (error) {
-      // ✅ 錯誤回應統一格式  
-      if (error instanceof BookValidationError) {
+      // ✅ 錯誤回應使用 ErrorCodes 常量
+      if (error.code === ErrorCodes.BOOK_VALIDATION_FAILED) {
         return OperationResult.failure(
           'VALIDATION_ERROR',
           error.code,
@@ -158,11 +164,12 @@ class BookService {
           error.details
         );
       }
-      
+
       return OperationResult.failure(
         'SYSTEM_ERROR',
-        'UNKNOWN_ERROR',
-        '系統發生未知錯誤，請稍後再試'
+        ErrorCodes.SYSTEM_UNKNOWN_ERROR,
+        '系統發生未知錯誤，請稍後再試',
+        { originalError: error.message }
       );
     }
   }
@@ -172,41 +179,55 @@ class BookService {
 ### **3. 錯誤處理最佳實踐**
 
 ```javascript
-// ✅ 完整的錯誤處理流程
+import { ErrorCodes } from '../core/errors/ErrorCodes';
+import { StandardError, OperationResult } from '../core/errors';
+
+// ✅ 完整的錯誤處理流程 (ErrorCodes 方案)
 class ExtractionController {
   async handleExtraction(request) {
     try {
       // 1. 輸入驗證
       const validatedInput = await this.validateRequest(request);
-      
+
       // 2. 業務邏輯執行
       const result = await this.processExtraction(validatedInput);
-      
+
       // 3. 結果驗證
       const validatedResult = await this.validateResult(result);
-      
+
       return OperationResult.success(validatedResult);
-      
+
     } catch (error) {
-      // 4. 錯誤分類和處理
-      const classifiedError = ErrorClassifier.classify(error);
-      
-      // 5. 用戶友善訊息生成
-      const userMessage = UserMessageGenerator.generate(classifiedError);
-      
-      // 6. 錯誤記錄 (用於監控和分析)
+      // 4. 錯誤分類和處理 (使用 ErrorCodes 常量)
+      let errorCode, errorType, userMessage;
+
+      if (error.code === ErrorCodes.BOOK_VALIDATION_FAILED) {
+        errorCode = error.code;
+        errorType = 'VALIDATION_ERROR';
+        userMessage = '書籍資料驗證失敗，請檢查資料格式';
+      } else if (error.code === ErrorCodes.NETWORK_CONNECTION_FAILED) {
+        errorCode = error.code;
+        errorType = 'NETWORK_ERROR';
+        userMessage = '網路連線失敗，請稍後再試';
+      } else {
+        errorCode = ErrorCodes.SYSTEM_UNKNOWN_ERROR;
+        errorType = 'SYSTEM_ERROR';
+        userMessage = '系統發生未知錯誤，請稍後再試';
+      }
+
+      // 5. 錯誤記錄 (用於監控和分析)
       Logger.error('EXTRACTION_FAILED', {
-        errorType: classifiedError.type,
-        errorCode: classifiedError.code,
+        errorType,
+        errorCode,
         request,
         error: error.toJSON()
       });
-      
+
       return OperationResult.failure(
-        classifiedError.type,
-        classifiedError.code,
+        errorType,
+        errorCode,
         userMessage,
-        classifiedError.details
+        error.details
       );
     }
   }
@@ -217,35 +238,47 @@ class ExtractionController {
 
 ## 🧪 測試策略改進
 
-### **結構化測試驗證**
+### **結構化測試驗證 (ErrorCodes 方案)**
 
-v0.10.x 錯誤處理系統讓測試更穩定可靠：
+使用 ErrorCodes 常量讓測試更穩定可靠：
 
 ```javascript
-// ✅ 新版本: 結構化驗證
+import { ErrorCodes } from '../core/errors/ErrorCodes';
+
+// ✅ ErrorCodes 方案: 結構化驗證
 describe('BookExtractor', () => {
-  it('should throw BookValidationError when title is missing', async () => {
+  it('should throw StandardError with correct code when title is missing', async () => {
     const mockElement = createMockElement({ title: null });
-    
+
     await expect(bookExtractor.extractBook(mockElement))
       .rejects
-      .toThrow(BookValidationError);
-      
-    // 進一步驗證錯誤詳情
-    try {
-      await bookExtractor.extractBook(mockElement);
-    } catch (error) {
-      expect(error.code).toBe('TITLE_MISSING');
-      expect(error.details).toHaveProperty('element');
-    }
+      .toMatchObject({
+        code: ErrorCodes.BOOK_VALIDATION_FAILED,
+        message: expect.stringContaining('書籍標題不能為空'),
+        details: expect.objectContaining({
+          missingField: 'title'
+        })
+      });
   });
-  
+
   it('should return success OperationResult', async () => {
     const result = await bookService.getBooks();
-    
+
     expect(result.success).toBe(true);
     expect(result.data).toBeInstanceOf(Array);
     expect(result.error).toBeNull();
+  });
+
+  it('should handle network errors with correct error code', async () => {
+    // 模擬網路錯誤
+    fetchMock.mockRejectOnce(new Error('Network failed'));
+
+    await expect(dataSyncer.syncToServer({}))
+      .rejects
+      .toMatchObject({
+        code: ErrorCodes.NETWORK_SYNC_FAILED,
+        message: expect.stringContaining('資料同步失敗')
+      });
   });
 });
 
@@ -258,27 +291,62 @@ describe('BookExtractor (舊版)', () => {
 });
 ```
 
-### **錯誤場景覆蓋**
+### **錯誤場景覆蓋 (ErrorCodes 方案)**
 
 ```javascript
-// 完整的錯誤場景測試
+import { ErrorCodes } from '../core/errors/ErrorCodes';
+
+// 完整的錯誤場景測試 (使用 ErrorCodes 常量)
 describe('Error Handling Scenarios', () => {
-  describe('BookValidationError scenarios', () => {
-    it('handles missing title');
-    it('handles invalid ISBN');
-    it('handles malformed data');
+  describe('Book validation scenarios', () => {
+    it('handles missing title', async () => {
+      await expect(bookExtractor.extractBook(mockElementWithoutTitle))
+        .rejects.toMatchObject({ code: ErrorCodes.BOOK_VALIDATION_FAILED });
+    });
+
+    it('handles invalid ISBN', async () => {
+      await expect(bookValidator.validateISBN('invalid-isbn'))
+        .rejects.toMatchObject({ code: ErrorCodes.BOOK_ISBN_INVALID });
+    });
+
+    it('handles malformed data', async () => {
+      await expect(bookParser.parseBookData(malformedData))
+        .rejects.toMatchObject({ code: ErrorCodes.BOOK_DATA_MALFORMED });
+    });
   });
-  
-  describe('NetworkError scenarios', () => {
-    it('handles connection timeout');
-    it('handles server 5xx errors');
-    it('handles rate limiting');
+
+  describe('Network error scenarios', () => {
+    it('handles connection timeout', async () => {
+      await expect(networkService.request(timeoutUrl))
+        .rejects.toMatchObject({ code: ErrorCodes.NETWORK_CONNECTION_TIMEOUT });
+    });
+
+    it('handles server 5xx errors', async () => {
+      await expect(networkService.request(server500Url))
+        .rejects.toMatchObject({ code: ErrorCodes.NETWORK_SERVER_ERROR });
+    });
+
+    it('handles authentication failures', async () => {
+      await expect(networkService.authenticatedRequest(invalidToken))
+        .rejects.toMatchObject({ code: ErrorCodes.NETWORK_AUTHENTICATION_FAILED });
+    });
   });
-  
-  describe('SystemError scenarios', () => {
-    it('handles Chrome API failures');
-    it('handles storage quota exceeded');
-    it('handles unexpected exceptions');
+
+  describe('System error scenarios', () => {
+    it('handles Chrome API failures', async () => {
+      await expect(chromeApiService.getStorageData())
+        .rejects.toMatchObject({ code: ErrorCodes.CHROME_API_UNAVAILABLE });
+    });
+
+    it('handles storage quota exceeded', async () => {
+      await expect(storageService.saveData(largeData))
+        .rejects.toMatchObject({ code: ErrorCodes.STORAGE_QUOTA_EXCEEDED });
+    });
+
+    it('handles unexpected exceptions', async () => {
+      await expect(systemService.processUnknownError())
+        .rejects.toMatchObject({ code: ErrorCodes.SYSTEM_UNKNOWN_ERROR });
+    });
   });
 });
 ```
@@ -371,12 +439,14 @@ class ContentErrorHandler {
 
 確保錯誤對象能在 Chrome Extension 環境間正確傳遞：
 
+**🚨 設計更新 (v0.12.13+)**: StandardError 現已繼承 Error 類別，搭配 ErrorCodes 常量系統，提供原生 Stack trace 和更好的 JavaScript 生態系統支援。
+
 ```javascript
 class StandardError extends Error {
   constructor(code, message, details = {}) {
-    super(message);
+    super(message); // 讓原生 Error 處理 message 和 stack trace
     this.name = 'StandardError';
-    this.code = code;
+    this.code = code || 'UNKNOWN_ERROR';
     this.details = details;
     this.timestamp = new Date().toISOString();
   }
@@ -456,4 +526,4 @@ class StandardError extends Error {
 
 ---
 
-**🎯 成功指標**: 能夠在實際開發中正確應用 v0.10.x 錯誤處理系統，寫出穩定可維護的錯誤處理程式碼。
+**🎯 成功指標**: 能夠在實際開發中正確應用 ErrorCodes 常量系統配合 StandardError，寫出穩定可維護且無魔法字串的錯誤處理程式碼。

@@ -11,8 +11,9 @@
 ### 強制執行的規範
 
 1. **統一異常管理**: 禁止使用原生 `Error`，強制使用 `StandardError` 體系
-2. **結構化測試方法**: 禁止測試中的字串錯誤比較，強制使用 `toMatchObject()`
-3. **標準化回應格式**: 建議使用 `OperationResult` 統一格式
+2. **ErrorCodes 常量使用**: 禁止在 StandardError 中使用魔法字串，強制使用 `ErrorCodes` 常量
+3. **結構化測試方法**: 禁止測試中的字串錯誤比較，強制使用 `toMatchObject()`
+4. **標準化回應格式**: 建議使用 `OperationResult` 統一格式
 
 ## 🚨 規則詳情
 
@@ -48,7 +49,25 @@ throw new StandardError('OPERATION_FAILED', 'Something went wrong', {
 
 **錯誤訊息**: `🚨 不允許使用原生 Error。請使用 StandardError 或其子類，提供錯誤代碼和結構化詳情`
 
-### 規則 3: 禁止測試中字串錯誤比較
+### 規則 3: 禁止 StandardError 中使用魔法字串
+**規則 ID**: `no-restricted-syntax` (NewExpression[callee.name="StandardError"] > Literal:first-child)
+
+```javascript
+// ❌ 違規 - 會被 ESLint 報錯
+const { StandardError } = require('src/core/errors')
+throw new StandardError('VALIDATION_FAILED', 'Validation failed', {})
+throw new StandardError('NETWORK_ERROR', 'Network error')
+
+// ✅ 正確 - 符合規範
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { StandardError } = require('src/core/errors')
+throw new StandardError(ErrorCodes.VALIDATION_FAILED, 'Validation failed', {})
+throw new StandardError(ErrorCodes.NETWORK_ERROR, 'Network error')
+```
+
+**錯誤訊息**: `🚨 不允許在 StandardError 中使用魔法字串。請使用 ErrorCodes 常量`
+
+### 規則 4: 禁止測試中字串錯誤比較
 **適用範圍**: `**/*.test.js`, `**/test/**/*.js`  
 **規則 ID**: `no-restricted-syntax` (CallExpression[callee.property.name="toThrow"] > Literal)
 
@@ -77,14 +96,15 @@ expect(asyncFunction()).rejects.toMatchObject({
 
 ## 📊 檢測結果
 
-### 專案目前狀況 (2025-09-11)
+### 專案目前狀況 (2025-09-16)
 
 ```bash
 npm run lint 2>&1 | grep "🚨" | wc -l
 ```
 
 - **原生 Error 使用**: ~200+ 處違規
-- **測試字串錯誤比較**: ~385 處違規  
+- **StandardError 魔法字串**: ~267+ 處違規 (UNKNOWN_ERROR 等)
+- **測試字串錯誤比較**: ~385 處違規
 - **字串錯誤拋出**: 少量違規
 
 ### 規則生效驗證
@@ -98,6 +118,7 @@ npm run lint 2>&1 | grep "🚨"
 
 # 統計各類違規數量
 npm run lint 2>&1 | grep "🚨.*不允許使用原生 Error" | wc -l
+npm run lint 2>&1 | grep "🚨.*不允許在 StandardError 中使用魔法字串" | wc -l
 npm run lint 2>&1 | grep "🚨.*測試中不允許使用字串比較錯誤" | wc -l
 ```
 
@@ -141,6 +162,10 @@ npm run lint 2>&1 | grep "🚨.*測試中不允許使用字串比較錯誤" | wc
             {
               "selector": "ThrowStatement > NewExpression[callee.name=\"Error\"]",
               "message": "🚨 不允許使用原生 Error。請使用 StandardError 或其子類"
+            },
+            {
+              "selector": "NewExpression[callee.name=\"StandardError\"] > Literal:first-child",
+              "message": "🚨 不允許在 StandardError 中使用魔法字串。請使用 ErrorCodes 常量"
             }
           ]
         }
@@ -151,8 +176,20 @@ npm run lint 2>&1 | grep "🚨.*測試中不允許使用字串比較錯誤" | wc
           "no-restricted-syntax": [
             "error",
             {
+              "selector": "ThrowStatement > Literal",
+              "message": "🚨 測試中不允許拋出字串錯誤。請使用 StandardError 或其子類"
+            },
+            {
               "selector": "CallExpression[callee.property.name=\"toThrow\"] > Literal",
               "message": "🚨 測試中不允許使用字串比較錯誤。請使用 toMatchObject() 驗證錯誤結構"
+            },
+            {
+              "selector": "CallExpression[callee.object.property.name=\"rejects\"][callee.property.name=\"toThrow\"] > Literal",
+              "message": "🚨 測試中不允許使用字串比較錯誤。請使用 toMatchObject() 驗證錯誤結構"
+            },
+            {
+              "selector": "NewExpression[callee.name=\"StandardError\"] > Literal:first-child",
+              "message": "🚨 測試中不允許在 StandardError 中使用魔法字串。請使用 ErrorCodes 常量"
             }
           ]
         }

@@ -148,6 +148,10 @@
             {
               "selector": "ThrowStatement > NewExpression[callee.name=\"Error\"]",
               "message": "🚨 不允許使用原生 Error。請使用 StandardError 或其子類，提供錯誤代碼和結構化詳情"
+            },
+            {
+              "selector": "NewExpression[callee.name=\"StandardError\"] > Literal:first-child",
+              "message": "🚨 不允許在 StandardError 中使用魔法字串。請使用 ErrorCodes 常量"
             }
           ]
         }
@@ -168,6 +172,10 @@
             {
               "selector": "CallExpression[callee.object.property.name=\"rejects\"][callee.property.name=\"toThrow\"] > Literal",
               "message": "🚨 測試中不允許使用字串比較錯誤。請使用 toMatchObject() 驗證錯誤結構，包含 code 和 details"
+            },
+            {
+              "selector": "NewExpression[callee.name=\"StandardError\"] > Literal:first-child",
+              "message": "🚨 測試中不允許在 StandardError 中使用魔法字串。請使用 ErrorCodes 常量"
             }
           ]
         }
