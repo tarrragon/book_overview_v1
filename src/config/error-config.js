@@ -245,7 +245,9 @@ const USER_ERROR_MESSAGES = {
 
 /**
  * 診斷建議映射
+ * Note: 暫時未使用，保留供未來擴展診斷功能使用
  */
+// eslint-disable-next-line no-unused-vars
 const DIAGNOSTIC_SUGGESTIONS = {
   START_EXTRACTION_ERROR: {
     problem: 'START_EXTRACTION 訊息處理失敗',

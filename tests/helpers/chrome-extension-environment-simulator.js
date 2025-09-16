@@ -156,6 +156,7 @@ class ChromeExtensionEnvironmentSimulator {
           listener(message, { id: extensionId }, callback)
         }, Math.random() * 10) // 隨機延遲模擬真實情況
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn('Message listener error:', error)
       }
     })
@@ -455,6 +456,7 @@ class ChromeExtensionEnvironmentSimulator {
       try {
         listener(message, { tab: { id: 1 } })
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn('Background message delivery error:', error)
       }
     })
@@ -473,6 +475,7 @@ class ChromeExtensionEnvironmentSimulator {
           this.popupInstance.controller.statusManager.updateStatus('提取完成')
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn('Popup message delivery error:', error)
       }
     }
@@ -488,8 +491,10 @@ class ChromeExtensionEnvironmentSimulator {
       // 觸發Content Script的訊息處理
       try {
         // 模擬訊息處理
+        // eslint-disable-next-line no-console
         console.log('Content Script received message:', message)
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn('Content Script message delivery error:', error)
       }
     }

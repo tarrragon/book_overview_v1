@@ -78,6 +78,7 @@ class ExtensionTestSetup {
       // 設定頁面配置
       await this.configureTestPage()
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ Extension 測試環境建立失敗:', error)
       await this.cleanup()
       throw error
@@ -120,12 +121,14 @@ class ExtensionTestSetup {
     // 攔截 Console 訊息
     this.page.on('console', msg => {
       if (msg.type() === 'error') {
+        // eslint-disable-next-line no-console
         console.warn('🔶 頁面 Console Error:', msg.text())
       }
     })
 
     // 攔截頁面錯誤
     this.page.on('pageerror', error => {
+      // eslint-disable-next-line no-console
       console.warn('🔶 頁面錯誤:', error.message)
     })
   }
@@ -171,6 +174,7 @@ class ExtensionTestSetup {
       const popupPage = await this.browser.newPage()
       await popupPage.goto(popupUrl)
 
+      // eslint-disable-next-line no-console
       console.log('✅ Extension Popup 已開啟')
       return popupPage
     } catch (error) {
@@ -241,8 +245,10 @@ class ExtensionTestSetup {
         path: screenshotPath,
         fullPage: true
       })
+      // eslint-disable-next-line no-console
       console.log(`📷 截圖已儲存: ${screenshotPath}`)
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn(`📷 截圖失敗: ${error.message}`)
     }
   }
@@ -268,6 +274,7 @@ class ExtensionTestSetup {
         this.browser = null
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('⚠️ 測試環境清理時發生錯誤:', error)
     }
   }

@@ -395,7 +395,9 @@ describe('💾 儲存適配器測試', () => {
 
         // 驗證 cover 是有效的 URL
         try {
-          new URL(book.cover)
+          const url = new URL(book.cover)
+          // URL 驗證成功，變數賦值確保 new URL 的結果被正確處理
+          // 只要能成功建立 URL 物件即表示格式有效
         } catch {
           return false
         }

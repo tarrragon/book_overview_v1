@@ -87,6 +87,7 @@ class EventFlowValidator {
    */
   setupGlobalEventListener (eventType, listener) {
     // 這個方法可以被外部系統覆寫以整合真實的事件系統
+    // eslint-disable-next-line no-console
     console.log(`Global listener setup for: ${eventType}`)
   }
 
@@ -142,6 +143,7 @@ class EventFlowValidator {
       })
     }
 
+    // eslint-disable-next-line no-console
     console.log(`Event received: ${eventType} at ${timestamp}`)
   }
 
@@ -156,6 +158,7 @@ class EventFlowValidator {
       try {
         listener(eventData)
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn(`Event listener error for ${eventType}:`, error)
       }
     })
@@ -198,6 +201,7 @@ class EventFlowValidator {
                            result.noDuplicateEvents &&
                            result.dataComplete
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Event flow validation error:', error)
       result.error = error.message
     }
@@ -212,6 +216,7 @@ class EventFlowValidator {
    */
   compareEventSequences () {
     if (this.expectedEventSequence.length !== this.actualEventSequence.length) {
+      // eslint-disable-next-line no-console
       console.warn('Event sequence length mismatch:', {
         expected: this.expectedEventSequence.length,
         actual: this.actualEventSequence.length
@@ -221,6 +226,7 @@ class EventFlowValidator {
 
     for (let i = 0; i < this.expectedEventSequence.length; i++) {
       if (this.expectedEventSequence[i] !== this.actualEventSequence[i]) {
+        // eslint-disable-next-line no-console
         console.warn('Event sequence mismatch at index', i, {
           expected: this.expectedEventSequence[i],
           actual: this.actualEventSequence[i]
@@ -322,6 +328,7 @@ class EventFlowValidator {
     // 檢查是否有事件出現多次 (除非明確允許)
     for (const [eventType, count] of eventCounts) {
       if (count > 1 && !this.isRepeatAllowed(eventType)) {
+        // eslint-disable-next-line no-console
         console.warn(`Duplicate event detected: ${eventType} (${count} times)`)
         return false
       }

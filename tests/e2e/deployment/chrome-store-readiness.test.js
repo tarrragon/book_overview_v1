@@ -272,6 +272,7 @@ describe('🏪 Chrome Web Store 上架準備測試', () => {
         expect(errorText).toMatch(/錯誤|失敗|無法|問題/)
         expect(errorText.length).toBeGreaterThan(5)
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn('錯誤處理測試可能需要調整')
       }
 
@@ -323,6 +324,7 @@ describe('🏪 Chrome Web Store 上架準備測試', () => {
         const errorShown = await popupPage.$('.status-error, .network-error')
         expect(errorShown).toBeTruthy()
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn('網路錯誤處理測試需要調整')
       }
 
@@ -426,11 +428,14 @@ describe('🏪 Chrome Web Store 上架準備測試', () => {
 
       const allPassed = Object.values(checklist).every(check => check === true)
 
+      // eslint-disable-next-line no-console
       console.log('🏪 Chrome Web Store 上架準備清單:')
       Object.entries(checklist).forEach(([item, passed]) => {
+        // eslint-disable-next-line no-console
         console.log(`  ${passed ? '✅' : '❌'} ${item}`)
       })
 
+      // eslint-disable-next-line no-console
       console.log(`\n📊 總體準備度: ${Object.values(checklist).filter(Boolean).length}/${Object.keys(checklist).length}`)
 
       // 建議所有檢查都通過

@@ -887,13 +887,9 @@ class ReadmooPlatformMigrationValidator {
    * @returns {Promise<Object>} 轉換測試結果
    */
   async testEventConversion (platform) {
-    try {
-      // 這裡應該測試事件轉換的準確性
-      // 目前返回模擬的高準確性結果
-      return { accuracy: 0.98, totalTests: 10, passedTests: 10 }
-    } catch (error) {
-      return { accuracy: 0, error: error.message }
-    }
+    // 這裡應該測試事件轉換的準確性
+    // 目前返回模擬的高準確性結果
+    return { accuracy: 0.98, totalTests: 10, passedTests: 10 }
   }
 
   /**
@@ -902,12 +898,8 @@ class ReadmooPlatformMigrationValidator {
    * @returns {Promise<boolean>} 是否支援
    */
   async _checkLegacyEventSupport (platform) {
-    try {
-      // 測試是否能正常發送和接收舊版事件
-      return true // 簡化實作
-    } catch (error) {
-      return false
-    }
+    // 測試是否能正常發送和接收舊版事件
+    return true // 簡化實作
   }
 
   /**
@@ -916,12 +908,8 @@ class ReadmooPlatformMigrationValidator {
    * @returns {boolean} 是否支援
    */
   _checkLegacyApiSupport (platform) {
-    try {
-      // 檢查舊版 API 是否仍然可用
-      return true // 簡化實作
-    } catch (error) {
-      return false
-    }
+    // 檢查舊版 API 是否仍然可用
+    return true // 簡化實作
   }
 
   /**
@@ -930,12 +918,8 @@ class ReadmooPlatformMigrationValidator {
    * @returns {Promise<boolean>} 是否已遷移
    */
   async _checkConfigurationMigration (platform) {
-    try {
-      // 檢查配置是否已正確遷移到新格式
-      return true // 簡化實作
-    } catch (error) {
-      return false
-    }
+    // 檢查配置是否已正確遷移到新格式
+    return true // 簡化實作
   }
 
   /**

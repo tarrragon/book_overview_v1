@@ -122,7 +122,8 @@ describe('🔍 EventBus getStats 整合測試', () => {
       // Assert - 驗證處理器都被正確調用
       expect(extractionCompletedHandler).toHaveBeenCalledWith(extractionData)
       expect(uiUpdateHandler).toHaveBeenCalledWith({ progress: 100 })
-      expect(errorHandler).toHaveBeenCalledWith(new Error('測試錯誤'))
+      const testError = new Error('測試錯誤')
+      expect(errorHandler).toHaveBeenCalledWith(testError)
 
       // 驗證處理結果
       expect(extractionResults).toHaveLength(1)

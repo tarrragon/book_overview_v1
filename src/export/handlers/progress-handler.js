@@ -55,34 +55,30 @@ class ProgressHandler extends EventHandler {
    * @returns {Promise<Object>} 處理結果
    */
   async process (progressData) {
-    try {
-      this._validateProgressData(progressData)
+    this._validateProgressData(progressData)
 
-      const percentage = this._calculatePercentage(
-        progressData.current,
-        progressData.total
-      )
+    const percentage = this._calculatePercentage(
+      progressData.current,
+      progressData.total
+    )
 
-      // 呼叫進度回調
-      if (this.progressCallback) {
-        this.progressCallback(percentage)
-      }
-
-      const result = {
-        success: true,
-        exportId: progressData.exportId,
-        current: progressData.current,
-        total: progressData.total,
-        percentage,
-        phase: progressData.phase || 'processing',
-        message: progressData.message || '',
-        timestamp: new Date().toISOString()
-      }
-
-      return result
-    } catch (error) {
-      throw error
+    // 呼叫進度回調
+    if (this.progressCallback) {
+      this.progressCallback(percentage)
     }
+
+    const result = {
+      success: true,
+      exportId: progressData.exportId,
+      current: progressData.current,
+      total: progressData.total,
+      percentage,
+      phase: progressData.phase || 'processing',
+      message: progressData.message || '',
+      timestamp: new Date().toISOString()
+    }
+
+    return result
   }
 
   /**

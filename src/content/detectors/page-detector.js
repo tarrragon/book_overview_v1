@@ -175,6 +175,7 @@ function createPageDetector () {
           const newStatus = this.getPageStatus()
 
           // 記錄 URL 變更事件 (可選的日誌記錄)
+          // eslint-disable-next-line no-console
           if (typeof console !== 'undefined' && console.debug) {
             // eslint-disable-next-line no-console
             console.debug('URL 變更檢測:', {

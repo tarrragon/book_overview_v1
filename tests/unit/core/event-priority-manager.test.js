@@ -199,7 +199,8 @@ describe('EventPriorityManager', () => {
 
       // 應該只有一個優先級分配
       const priorities = priorityManager.getEventPriorities(eventName)
-      expect(new Set(priorities).size).toBe(1)
+      const uniquePriorities = new Set(priorities)
+      expect(uniquePriorities.size).toBe(1)
     })
 
     test('應該根據效能統計調整優先級', () => {

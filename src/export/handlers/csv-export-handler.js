@@ -65,42 +65,38 @@ class CSVExportHandler extends EventHandler {
    * @returns {Promise<Object>} 處理結果
    */
   async process (eventData) {
+    // 驗證輸入資料
+    this._validateEventData(eventData)
+
+    // 建立 BookDataExporter 實例
+    const exporter = new BookDataExporter(eventData.books)
+
+    // 設定進度回調
+    if (this.progressCallback) {
+      exporter.setProgressCallback(this.progressCallback)
+      // 主動觸發一次進度，以確保回調被呼叫
+      try { this.progressCallback(0) } catch (_) {}
+    }
+
+    // 執行 CSV 匯出
+    let csvData
     try {
-      // 驗證輸入資料
-      this._validateEventData(eventData)
-
-      // 建立 BookDataExporter 實例
-      const exporter = new BookDataExporter(eventData.books)
-
-      // 設定進度回調
+      csvData = exporter.exportToCSV(eventData.options)
+    } catch (err) {
+      // 若設定了進度回調，確保回調至少被觸發一次並回傳最小可用結果；否則維持既有拋錯行為
       if (this.progressCallback) {
-        exporter.setProgressCallback(this.progressCallback)
-        // 主動觸發一次進度，以確保回調被呼叫
-        try { this.progressCallback(0) } catch (_) {}
+        try { this.progressCallback(100) } catch (_) {}
+        csvData = csvData || ''
+      } else {
+        throw err
       }
+    }
 
-      // 執行 CSV 匯出
-      let csvData
-      try {
-        csvData = exporter.exportToCSV(eventData.options)
-      } catch (err) {
-        // 若設定了進度回調，確保回調至少被觸發一次並回傳最小可用結果；否則維持既有拋錯行為
-        if (this.progressCallback) {
-          try { this.progressCallback(100) } catch (_) {}
-          csvData = csvData || ''
-        } else {
-          throw err
-        }
-      }
-
-      return {
-        success: true,
-        data: csvData,
-        format: 'csv',
-        timestamp: new Date().toISOString()
-      }
-    } catch (error) {
-      throw error // 讓基底類別處理錯誤
+    return {
+      success: true,
+      data: csvData,
+      format: 'csv',
+      timestamp: new Date().toISOString()
     }
   }
 

@@ -155,6 +155,8 @@ if (typeof window !== 'undefined' && window.StandardError) {
 
       // 控制器已在建構函式中完成初始化
       if (eventBus && overviewController) {
+        // 控制器初始化成功，eventBus 和 controller 都已準備就緒
+        // 繼續執行後續的頁面就緒事件觸發
       }
 
       // 觸發頁面就緒事件

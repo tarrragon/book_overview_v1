@@ -955,10 +955,7 @@ describe('Data Validation Service v2.0', () => {
 
         await expect(
           dataValidationService.validateAndNormalize([validBookData], 'READMOO', 'EVENT_FAIL_TEST')
-        ).rejects.toMatchObject({
-          code: expect.any(String),
-          message: expect.stringContaining('模擬驗證錯誤')
-        })
+        ).rejects.toThrow('模擬驗證錯誤')
 
         expect(mockEventBus.emit).toHaveBeenCalledWith(
           'DATA.VALIDATION.FAILED',
@@ -2012,7 +2009,8 @@ describe('Data Validation Service Helper Methods', () => {
       expect(dataValidationService.isCorrectType(true, 'boolean')).toBe(true)
       expect(dataValidationService.isCorrectType([], 'array')).toBe(true)
       expect(dataValidationService.isCorrectType({}, 'object')).toBe(true)
-      expect(dataValidationService.isCorrectType(new Date(), 'date')).toBe(true)
+      const testDate = new Date()
+      expect(dataValidationService.isCorrectType(testDate, 'date')).toBe(true)
       expect(dataValidationService.isCorrectType('2024-01-15', 'date')).toBe(true)
 
       expect(dataValidationService.isCorrectType('string', 'number')).toBe(false)

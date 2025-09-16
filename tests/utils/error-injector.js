@@ -118,14 +118,14 @@ class ErrorInjector {
    */
   injectMemoryError () {
     // 模擬記憶體不足情況
-    const originalArrayConstructor = Array
-    this.originalMethods.set('Array', originalArrayConstructor)
+    const OriginalArrayConstructor = Array
+    this.originalMethods.set('Array', OriginalArrayConstructor)
 
     window.Array = function (...args) {
       if (args.length === 1 && args[0] > 1000000) {
         throw new StandardError('OUT_OF_MEMORY', 'Out of memory', { category: 'testing' })
       }
-      return new originalArrayConstructor(...args)
+      return new OriginalArrayConstructor(...args)
     }
   }
 

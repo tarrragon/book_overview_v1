@@ -393,9 +393,15 @@ describe('DataDifferenceEngine', () => {
     })
 
     test('應該處理不合法的配置值', () => {
-      expect(() => new DataDifferenceEngine({ compareFields: null })).not.toThrow()
-      expect(() => new DataDifferenceEngine({ caseSensitive: 'invalid' })).not.toThrow()
-      expect(() => new DataDifferenceEngine({ numericTolerance: 'not-a-number' })).not.toThrow()
+      expect(() => {
+        const engine1 = new DataDifferenceEngine({ compareFields: null })
+      }).not.toThrow()
+      expect(() => {
+        const engine2 = new DataDifferenceEngine({ caseSensitive: 'invalid' })
+      }).not.toThrow()
+      expect(() => {
+        const engine3 = new DataDifferenceEngine({ numericTolerance: 'not-a-number' })
+      }).not.toThrow()
     })
   })
 })

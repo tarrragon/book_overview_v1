@@ -104,7 +104,6 @@ describe('Background Service Worker Event System Integration', () => {
     }
   }
 
-
   describe('🔧 EventBus 初始化與配置', () => {
     test('應該成功載入並初始化 EventBus', async () => {
       // 檢查 EventBus 模組是否可被載入

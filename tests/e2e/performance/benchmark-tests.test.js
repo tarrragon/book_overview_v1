@@ -66,6 +66,7 @@ describe('📊 Chrome Extension 效能基準測試', () => {
 
       // 效能基準：小量資料應在 5 秒內完成
       expect(extractionTime).toBeLessThan(5000)
+      // eslint-disable-next-line no-console
       console.log(`📈 小量資料提取時間: ${extractionTime.toFixed(2)}ms`)
 
       await popupPage.close()
@@ -88,6 +89,7 @@ describe('📊 Chrome Extension 效能基準測試', () => {
 
       // 效能基準：中量資料應在 15 秒內完成
       expect(extractionTime).toBeLessThan(15000)
+      // eslint-disable-next-line no-console
       console.log(`📊 中量資料提取時間: ${extractionTime.toFixed(2)}ms`)
 
       await popupPage.close()
@@ -112,6 +114,7 @@ describe('📊 Chrome Extension 效能基準測試', () => {
 
       // 效能基準：大量資料應在 30 秒內完成
       expect(extractionTime).toBeLessThan(30000)
+      // eslint-disable-next-line no-console
       console.log(`📈 大量資料提取時間: ${extractionTime.toFixed(2)}ms`)
 
       await popupPage.close()
@@ -139,10 +142,15 @@ describe('📊 Chrome Extension 效能基準測試', () => {
 
       const analysis = await memoryDetector.stopMonitoring()
 
+      // eslint-disable-next-line no-console
       console.log('📊 記憶體使用分析:')
+      // eslint-disable-next-line no-console
       console.log(`  基準記憶體: ${analysis.summary.formattedGrowth}`)
+      // eslint-disable-next-line no-console
       console.log(`  總記憶體增長: ${analysis.summary.formattedGrowth}`)
+      // eslint-disable-next-line no-console
       console.log(`  彈出視窗操作記憶體增長: ${memoryDetector._formatMemorySize(popupOperation.memoryDelta)}`)
+      // eslint-disable-next-line no-console
       console.log(`  記憶體效率: ${(analysis.efficiency.overallEfficiency * 100).toFixed(1)}%`)
 
       // 驗證記憶體使用在合理範圍內
@@ -167,11 +175,17 @@ describe('📊 Chrome Extension 效能基準測試', () => {
         await testSetup.page.waitForTimeout(800)
       }, 5, { testName: 'extension-popup-extraction-cycle' })
 
+      // eslint-disable-next-line no-console
       console.log('🔍 記憶體洩漏檢測結果:')
+      // eslint-disable-next-line no-console
       console.log(`  基準記憶體: ${analysis.summary.formattedGrowth}`)
+      // eslint-disable-next-line no-console
       console.log(`  平均每操作記憶體增長: ${analysis.leakDetection.formattedAverageGrowth}`)
+      // eslint-disable-next-line no-console
       console.log(`  洩漏嚴重程度: ${analysis.leakDetection.leakSeverity}`)
+      // eslint-disable-next-line no-console
       console.log(`  記憶體增長趨勢: ${analysis.leakDetection.memoryGrowthTrend}`)
+      // eslint-disable-next-line no-console
       console.log(`  記憶體回收率: ${(analysis.efficiency.memoryRecoveryRate * 100).toFixed(1)}%`)
 
       // 驗證記憶體健康度
@@ -210,6 +224,7 @@ describe('📊 Chrome Extension 效能基準測試', () => {
 
       // 效能基準：Overview 頁面應在 3 秒內完成初始渲染
       expect(renderTime).toBeLessThan(3000)
+      // eslint-disable-next-line no-console
       console.log(`🎨 Overview 頁面渲染時間: ${renderTime.toFixed(2)}ms`)
 
       await overviewPage.close()
@@ -248,6 +263,7 @@ describe('📊 Chrome Extension 效能基準測試', () => {
 
         // 效能基準：搜尋響應時間應在 1 秒內
         expect(avgSearchTime).toBeLessThan(1000)
+        // eslint-disable-next-line no-console
         console.log(`🔍 平均搜尋響應時間: ${avgSearchTime.toFixed(2)}ms`)
       }
 
@@ -291,8 +307,10 @@ describe('📊 Chrome Extension 效能基準測試', () => {
 
           // 效能基準：匯出應在 5 秒內完成
           expect(exportTime).toBeLessThan(5000)
+          // eslint-disable-next-line no-console
           console.log(`📤 匯出處理時間: ${exportTime.toFixed(2)}ms`)
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.warn('⚠️ 匯出功能測試超時')
         }
       }
@@ -327,6 +345,7 @@ describe('📊 Chrome Extension 效能基準測試', () => {
         const endTime = performance.now()
         const totalTime = endTime - startTime
 
+        // eslint-disable-next-line no-console
         console.log(`🔄 並行處理完成時間: ${totalTime.toFixed(2)}ms`)
 
         // 驗證系統在並行操作下仍能正常工作
@@ -337,6 +356,7 @@ describe('📊 Chrome Extension 效能基準測試', () => {
           try {
             await popupPage.close()
           } catch (error) {
+            // eslint-disable-next-line no-console
             console.warn('清理 Popup 時發生錯誤:', error)
           }
         }
@@ -344,7 +364,6 @@ describe('📊 Chrome Extension 效能基準測試', () => {
     })
   })
 })
-
 
 /**
  * 生成包含指定數量書籍的模擬頁面

@@ -54,7 +54,7 @@ describe('ChromeStorageAdapter', () => {
           setTimeout(() => callback && callback(), 0)
         }),
         getBytesInUse: jest.fn().mockImplementation((keys, callback) => {
-          setTimeout(() => callback && callback(0), 0)
+          setTimeout(() => callback && callback(null, 0), 0)
         })
       }
     }
@@ -168,7 +168,7 @@ describe('ChromeStorageAdapter', () => {
 
     test('應該檢查儲存空間使用情況', async () => {
       mockChromeStorage.local.getBytesInUse.mockImplementation((keys, callback) => {
-        setTimeout(() => callback && callback(1048576), 0) // 1MB
+        setTimeout(() => callback && callback(null, 1048576), 0) // 1MB
       })
 
       const storageInfo = await adapter.getStorageInfo()
@@ -274,7 +274,7 @@ describe('ChromeStorageAdapter', () => {
     test('應該檢查儲存配額', async () => {
       // 修復：使用正確的回調函數模擬
       mockChromeStorage.local.getBytesInUse.mockImplementation((keys, callback) => {
-        setTimeout(() => callback && callback(524288), 0) // 0.5MB
+        setTimeout(() => callback && callback(null, 524288), 0) // 0.5MB
       })
 
       const quotaInfo = await adapter.checkQuota()
@@ -289,7 +289,7 @@ describe('ChromeStorageAdapter', () => {
     test('應該偵測配額接近限制', async () => {
       // 修復：使用正確的回調函數模擬
       mockChromeStorage.local.getBytesInUse.mockImplementation((keys, callback) => {
-        setTimeout(() => callback && callback(943718), 0) // 90%
+        setTimeout(() => callback && callback(null, 943718), 0) // 90%
       })
 
       const quotaInfo = await adapter.checkQuota()
@@ -301,7 +301,7 @@ describe('ChromeStorageAdapter', () => {
     test('應該拒絕超出配額的儲存', async () => {
       // 修復：使用正確的回調函數模擬
       mockChromeStorage.local.getBytesInUse.mockImplementation((keys, callback) => {
-        setTimeout(() => callback && callback(1000000), 0) // 接近滿
+        setTimeout(() => callback && callback(null, 1000000), 0) // 接近滿
       })
 
       const largeData = {

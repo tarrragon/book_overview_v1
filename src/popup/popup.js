@@ -35,8 +35,8 @@ if (typeof require !== 'undefined') {
     ({ StandardError } = require('src/core/errors/StandardError'))
   } catch (e) {
     // 測試環境fallback
-    Logger = window.Logger || class { constructor () {} info () {} warn () {} error () {} debug () {} }
-    MessageDictionary = window.MessageDictionary || class { constructor () {} }
+    Logger = window.Logger || class { info () {} warn () {} error () {} debug () {} }
+    MessageDictionary = window.MessageDictionary || class {}
     StandardError = window.StandardError || class extends Error {
       constructor (type, message, metadata = {}) {
         super(message)

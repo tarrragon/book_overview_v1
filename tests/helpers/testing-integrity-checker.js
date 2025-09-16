@@ -63,6 +63,7 @@ class TestingIntegrityChecker {
    * 執行完整性檢查
    */
   async runIntegrityCheck () {
+    // eslint-disable-next-line no-console
     console.log('[TestingIntegrityChecker] 開始執行測試完整性檢查...')
 
     try {
@@ -80,6 +81,7 @@ class TestingIntegrityChecker {
       // 4. 提供建議
       this._generateRecommendations()
 
+      // eslint-disable-next-line no-console
       console.log(`[TestingIntegrityChecker] 檢查完成: ${this.results.checkedFiles} 文件已檢查`)
 
       return this.results
@@ -436,6 +438,7 @@ class TestingIntegrityChecker {
     const reportContent = JSON.stringify(report, null, 2)
 
     fs.writeFileSync(outputPath, reportContent, 'utf8')
+    // eslint-disable-next-line no-console
     console.log(`[TestingIntegrityChecker] 報告已儲存至: ${outputPath}`)
 
     return outputPath

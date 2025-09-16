@@ -40,6 +40,7 @@ class MemoryLeakDetector {
     this.startTime = Date.now()
     this.baselineMemory = this._getCurrentMemoryUsage()
 
+    // eslint-disable-next-line no-console
     console.log(`[MemoryLeakDetector] Started monitoring. Baseline: ${this._formatMemorySize(this.baselineMemory.heapUsed)}`)
     return this.baselineMemory
   }
@@ -125,6 +126,7 @@ class MemoryLeakDetector {
 
     const analysis = this._analyzeMemoryUsage()
 
+    // eslint-disable-next-line no-console
     console.log(`[MemoryLeakDetector] Stopped monitoring. Final: ${this._formatMemorySize(this.finalMemory.heapUsed)}`)
 
     return analysis
@@ -139,6 +141,7 @@ class MemoryLeakDetector {
   async detectMemoryLeak (operationFunction, iterations = 100, options = {}) {
     const testName = options.testName || 'unknown-operation'
 
+    // eslint-disable-next-line no-console
     console.log(`[MemoryLeakDetector] Starting leak detection for "${testName}" with ${iterations} iterations`)
 
     this.startMonitoring()
@@ -150,6 +153,7 @@ class MemoryLeakDetector {
       try {
         await operationFunction(i)
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn(`[MemoryLeakDetector] Operation ${i} failed:`, error.message)
       }
 
@@ -159,6 +163,7 @@ class MemoryLeakDetector {
       if ((i + 1) % 10 === 0) {
         const currentMemory = this._getCurrentMemoryUsage()
         const growth = currentMemory.heapUsed - this.baselineMemory.heapUsed
+        // eslint-disable-next-line no-console
         console.log(`[MemoryLeakDetector] After ${i + 1} operations: ${this._formatMemorySize(growth)} growth`)
       }
     }

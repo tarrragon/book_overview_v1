@@ -309,7 +309,8 @@ describe('ReadmooDataConsistencyService', () => {
   describe('⚠️ 錯誤處理', () => {
     test('constructor 應該要求 eventBus 參數', () => {
       expect(() => {
-        new ReadmooDataConsistencyService()
+        const service = new ReadmooDataConsistencyService()
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toThrow()
     })
 

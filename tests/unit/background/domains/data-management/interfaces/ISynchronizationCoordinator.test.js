@@ -18,7 +18,8 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       // Given: 嘗試直接實例化抽象類別
       // When & Then: 應該拋出錯誤
       expect(() => {
-        new ISynchronizationCoordinator()
+        const coordinator = new ISynchronizationCoordinator()
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toThrow(expect.objectContaining({
         code: 'ABSTRACT_CLASS_INSTANTIATION',
         message: expect.stringContaining('ISynchronizationCoordinator 是抽象類別，不能直接實例化')
@@ -28,9 +29,6 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
     test('應該支援依賴注入機制', () => {
       // Given: 創建測試實作類別
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
-        constructor (dependencies) {
-          super(dependencies)
-        }
       }
 
       const mockLogger = { info: jest.fn(), error: jest.fn() }
@@ -56,9 +54,6 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
     test('應該提供預設的 logger 依賴', () => {
       // Given: 創建測試實作類別
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
-        constructor (dependencies) {
-          super(dependencies)
-        }
       }
 
       // When: 不提供 logger 依賴

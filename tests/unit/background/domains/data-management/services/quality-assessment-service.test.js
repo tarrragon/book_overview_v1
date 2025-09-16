@@ -425,11 +425,13 @@ describe('QualityAssessmentService - 品質評估服務', () => {
   describe('⚠️ 錯誤處理', () => {
     test('constructor 應該要求 eventBus 參數', () => {
       expect(() => {
-        new QualityAssessmentService()
+        const service = new QualityAssessmentService()
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toThrow()
 
       expect(() => {
-        new QualityAssessmentService()
+        const service = new QualityAssessmentService()
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         code: 'INVALID_ARGUMENT',
         details: expect.any(Object)

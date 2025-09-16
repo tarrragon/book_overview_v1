@@ -155,12 +155,15 @@ describe('🎨 UI 互動流程整合測試', () => {
         const bookElements = await overviewPage.$$('.book-grid-item, .book-item, .book-card')
         expect(bookElements.length).toBeGreaterThan(0)
 
+        // eslint-disable-next-line no-console
         console.log(`📚 找到 ${bookElements.length} 本書籍`)
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn('⚠️ 書籍網格載入超時，檢查頁面狀態')
 
         // 檢查頁面內容
         const bodyText = await overviewPage.evaluate(() => document.body.textContent)
+        // eslint-disable-next-line no-console
         console.log('頁面內容:', bodyText.substring(0, 200))
       }
     })
@@ -183,6 +186,7 @@ describe('🎨 UI 互動流程整合測試', () => {
         const searchResults = await overviewPage.$$('.book-grid-item, .book-item')
         expect(searchResults.length).toBeGreaterThanOrEqual(0)
 
+        // eslint-disable-next-line no-console
         console.log(`🔍 搜尋 'JavaScript' 找到 ${searchResults.length} 個結果`)
       }
     })
@@ -202,6 +206,7 @@ describe('🎨 UI 互動流程整合測試', () => {
 
         // 驗證篩選結果
         const filteredResults = await overviewPage.$$('.book-grid-item, .book-item')
+        // eslint-disable-next-line no-console
         console.log(`📂 篩選 '程式設計' 類別找到 ${filteredResults.length} 個結果`)
       }
 
@@ -211,6 +216,7 @@ describe('🎨 UI 互動流程整合測試', () => {
         await overviewPage.waitForTimeout(1000)
 
         const buttonResults = await overviewPage.$$('.book-grid-item, .book-item')
+        // eslint-disable-next-line no-console
         console.log(`🔘 按鈕篩選找到 ${buttonResults.length} 個結果`)
       }
     })
@@ -230,6 +236,7 @@ describe('🎨 UI 互動流程整合測試', () => {
         const newView = await overviewPage.$eval('body', el => el.className)
         expect(newView).not.toBe(currentView)
 
+        // eslint-disable-next-line no-console
         console.log('🔄 檢視模式切換成功')
       }
     })
@@ -261,8 +268,10 @@ describe('🎨 UI 互動流程整合測試', () => {
           const exportModal = await overviewPage.$('.export-modal, .export-panel, .export-options')
           expect(exportModal).toBeTruthy()
 
+          // eslint-disable-next-line no-console
           console.log('📤 匯出對話框開啟成功')
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.warn('⚠️ 匯出對話框載入超時')
         }
       }
@@ -308,8 +317,10 @@ describe('🎨 UI 互動流程整合測試', () => {
                    document.body.textContent.includes('下載完成')
           }, { timeout: 10000 })
 
+          // eslint-disable-next-line no-console
           console.log('📥 匯出功能執行成功')
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.warn('⚠️ 匯出完成確認超時')
         }
       }
@@ -342,6 +353,7 @@ describe('🎨 UI 互動流程整合測試', () => {
                  document.querySelector('.empty-state')
         })
 
+        // eslint-disable-next-line no-console
         console.log('📭 空狀態處理驗證:', emptyStateMessage ? '✅ 已顯示' : '❌ 未顯示')
       }
     })
@@ -362,6 +374,7 @@ describe('🎨 UI 互動流程整合測試', () => {
       // 等待載入完成
       await overviewPage.waitForTimeout(3000)
 
+      // eslint-disable-next-line no-console
       console.log('⏳ 載入狀態指示器:', hasLoadingIndicator ? '✅ 已顯示' : '❌ 未顯示')
     })
   })

@@ -136,19 +136,22 @@ describe('SearchUIController', () => {
 
     test('應該拋出錯誤當缺少必要依賴', () => {
       expect(() => {
-        new SearchUIController({})
+        const controller = new SearchUIController({})
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('EventBus 和 Document 是必需的')
       })
 
       expect(() => {
-        new SearchUIController({ eventBus: mockEventBus })
+        const controller = new SearchUIController({ eventBus: mockEventBus })
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('EventBus 和 Document 是必需的')
       })
 
       expect(() => {
-        new SearchUIController({ document: mockDocument })
+        const controller = new SearchUIController({ document: mockDocument })
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('EventBus 和 Document 是必需的')
       })
@@ -935,7 +938,9 @@ describe('SearchUIController', () => {
 
     test('應該處理記憶體不足情況', () => {
       // 模擬記憶體不足
+      // eslint-disable-next-line no-console
       const originalError = console.error
+      // eslint-disable-next-line no-console
       console.error = jest.fn()
 
       const mockEvent = { target: { value: 'test' } }
@@ -950,10 +955,12 @@ describe('SearchUIController', () => {
         searchUIController.handleSearchInput(mockEvent)
       }).not.toThrow()
 
+      // eslint-disable-next-line no-console
       expect(console.error).toHaveBeenCalled()
 
       // 恢復原始方法和控制台
       searchUIController.normalizeSearchQuery = originalNormalize
+      // eslint-disable-next-line no-console
       console.error = originalError
     })
   })

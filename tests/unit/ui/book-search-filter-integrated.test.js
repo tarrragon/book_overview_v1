@@ -70,6 +70,7 @@ class MockEventBus {
         try {
           handler(data)
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.error(`事件處理器錯誤 (${eventType}):`, error)
         }
       })

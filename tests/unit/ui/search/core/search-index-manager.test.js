@@ -118,13 +118,15 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
       const SearchIndexManager = require('src/ui/search/core/search-index-manager')
 
       expect(() => {
-        new SearchIndexManager()
+        const manager = new SearchIndexManager()
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('EventBus 和 Logger 是必需的')
       })
 
       expect(() => {
-        new SearchIndexManager({ eventBus: mockEventBus })
+        const manager = new SearchIndexManager({ eventBus: mockEventBus })
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('EventBus 和 Logger 是必需的')
       })
@@ -563,9 +565,8 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
     })
 
     test('索引操作過程中發生錯誤時應該正確處理', () => {
-      // Mock Map 拋出錯誤
-      const originalSet = Map.prototype.set
-      Map.prototype.set = jest.fn().mockImplementation(() => {
+      // 使用 spy 來模擬 Map 操作錯誤，而不是修改 prototype
+      const mapSetSpy = jest.spyOn(Map.prototype, 'set').mockImplementation(() => {
         throw new StandardError('TEST_ERROR', '索引操作失敗', { category: 'testing' })
       })
 
@@ -578,8 +579,8 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
       // 檢查錯誤是否被記錄
       expect(mockLogger.error).toHaveBeenCalled()
 
-      // 復原 Map.prototype.set
-      Map.prototype.set = originalSet
+      // 復原 spy
+      mapSetSpy.mockRestore()
     })
   })
 

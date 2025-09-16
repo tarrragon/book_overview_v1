@@ -72,11 +72,12 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
     test('CE002: 應該處理權限請求被使用者拒絕的情況', () => {
       // Given: Mock 權限請求被拒絕
       global.chrome.permissions.request.mockImplementation((permissions, callback) => {
-        callback(false) // 權限被拒絕
+        callback(null, false) // 權限被拒絕
       })
 
       // When & Then: 測試權限請求處理
-      global.chrome.permissions.request({ permissions: ['storage'] }, (granted) => {
+      global.chrome.permissions.request({ permissions: ['storage'] }, (error, granted) => {
+        expect(error).toBeNull()
         expect(granted).toBe(false)
         expect(global.chrome.permissions.request).toHaveBeenCalledWith(
           { permissions: ['storage'] },

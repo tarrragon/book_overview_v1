@@ -426,7 +426,8 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
 
       expect(recentBooks).toHaveLength(2) // 2024-08-07, 2024-07-15
       recentBooks.forEach(book => {
-        expect(new Date(book.lastRead)).toBeInstanceOf(Date)
+        const lastReadDate = new Date(book.lastRead)
+        expect(lastReadDate).toBeInstanceOf(Date)
       })
     })
 
@@ -810,11 +811,13 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
 
       expect(() => {
         const BookSearchFilter = require('src/ui/book-search-filter')
-        new BookSearchFilter(invalidEventBus, mockDocument)
+        const filter = new BookSearchFilter(invalidEventBus, mockDocument)
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toThrow()
       expect(() => {
         const BookSearchFilter = require('src/ui/book-search-filter')
-        new BookSearchFilter(invalidEventBus, mockDocument)
+        const filter = new BookSearchFilter(invalidEventBus, mockDocument)
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         code: 'REQUIRED_PARAMETER_MISSING',
         message: expect.stringContaining('事件總線是必需的'),

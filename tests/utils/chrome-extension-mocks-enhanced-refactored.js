@@ -235,6 +235,7 @@ class ChromeExtensionMocksEnhanced {
    * @deprecated 請使用 initializeAll() 替代
    */
   setupBasicMocks () {
+    // eslint-disable-next-line no-console
     console.warn('setupBasicMocks() is deprecated. Use initializeAll() instead.')
     this.initializeAll()
   }
@@ -245,6 +246,7 @@ class ChromeExtensionMocksEnhanced {
    * @returns {Object}
    */
   getChrome () {
+    // eslint-disable-next-line no-console
     console.warn('getChrome() is deprecated. Use global.chrome directly.')
     return global.chrome
   }

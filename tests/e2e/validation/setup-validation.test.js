@@ -52,6 +52,7 @@ describe('🔧 端對端測試環境驗證', () => {
       expect(testSetup.extensionId).toBeTruthy()
       expect(testSetup.extensionId.length).toBeGreaterThan(10)
 
+      // eslint-disable-next-line no-console
       console.log(`✅ Extension 載入成功，ID: ${testSetup.extensionId}`)
     })
 
@@ -63,6 +64,7 @@ describe('🔧 端對端測試環境驗證', () => {
       const backgroundUrl = backgroundPage.url()
       expect(backgroundUrl).toContain(testSetup.extensionId)
 
+      // eslint-disable-next-line no-console
       console.log('✅ Background Script 頁面連接成功')
     })
   })
@@ -79,6 +81,7 @@ describe('🔧 端對端測試環境驗證', () => {
       const bookItems = await testSetup.page.$$('.book-item')
       expect(bookItems.length).toBeGreaterThan(0)
 
+      // eslint-disable-next-line no-console
       console.log(`✅ 模擬頁面載入成功，找到 ${bookItems.length} 本書籍`)
     })
 
@@ -93,6 +96,7 @@ describe('🔧 端對端測試環境驗證', () => {
       )
       expect(isLoaded).toBe('true')
 
+      // eslint-disable-next-line no-console
       console.log('✅ 動態內容載入驗證通過')
     })
 
@@ -122,6 +126,7 @@ describe('🔧 端對端測試環境驗證', () => {
       const bodyContent = await popupPage.$eval('body', el => el.textContent)
       expect(bodyContent.length).toBeGreaterThan(0)
 
+      // eslint-disable-next-line no-console
       console.log('✅ Extension Popup 開啟成功')
 
       await popupPage.close()
@@ -134,6 +139,7 @@ describe('🔧 端對端測試環境驗證', () => {
       const buttons = await popupPage.$$('button, .button, input[type="button"]')
       expect(buttons.length).toBeGreaterThan(0)
 
+      // eslint-disable-next-line no-console
       console.log(`✅ 找到 ${buttons.length} 個可互動元素`)
 
       await popupPage.close()
@@ -154,6 +160,7 @@ describe('🔧 端對端測試環境驗證', () => {
       expect(result.userAgent).toContain('Chrome')
       expect(result.timestamp).toBeGreaterThan(0)
 
+      // eslint-disable-next-line no-console
       console.log('✅ JavaScript 執行功能驗證通過')
     })
 
@@ -161,6 +168,7 @@ describe('🔧 端對端測試環境驗證', () => {
       const element = await testSetup.waitForElement('.book-item', 5000)
       expect(element).toBeTruthy()
 
+      // eslint-disable-next-line no-console
       console.log('✅ 元素等待功能驗證通過')
     })
 
@@ -168,6 +176,7 @@ describe('🔧 端對端測試環境驗證', () => {
       await testSetup.takeScreenshot('validation-test')
 
       // 截圖功能主要是為了除錯，不檢查檔案存在
+      // eslint-disable-next-line no-console
       console.log('✅ 截圖功能執行完成')
     })
   })
@@ -193,6 +202,7 @@ describe('🔧 端對端測試環境驗證', () => {
 
       expect(storageTest).toBe(true)
 
+      // eslint-disable-next-line no-console
       console.log('✅ Chrome Storage API 功能驗證通過')
     })
   })
@@ -227,6 +237,7 @@ describe('🔧 端對端測試環境驗證', () => {
 
       if (memoryInfo) {
         expect(memoryInfo.used).toBeLessThan(100) // 少於 100MB
+        // eslint-disable-next-line no-console
         console.log(`💾 記憶體使用: ${memoryInfo.used.toFixed(2)}MB / ${memoryInfo.total.toFixed(2)}MB`)
       }
     })

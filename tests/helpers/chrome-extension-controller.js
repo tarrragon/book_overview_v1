@@ -348,9 +348,8 @@ class ChromeExtensionController {
             result.skipReason = 'browser_internal_page'
             result.actualReason = 'browser_internal_page'
             result.errorMessage = '瀏覽器內部頁面無法使用此功能'
-          }
-          // 再檢查 Readmoo 域名內的特定頁面
-          else if (url.includes('readmoo.com') && url.includes('/login')) {
+          } else if (url.includes('readmoo.com') && url.includes('/login')) {
+            // 再檢查 Readmoo 域名內的特定頁面
             result.skipReason = 'authentication_page'
             result.actualReason = 'authentication_page'
             result.errorMessage = '登入頁面不支援書籍提取功能'
@@ -362,15 +361,13 @@ class ChromeExtensionController {
             result.skipReason = 'static_content_page'
             result.actualReason = 'static_content_page'
             result.errorMessage = '靜態內容頁面不支援書籍提取'
-          }
-          // 最後檢查非 Readmoo 域名
-          else if (!url.includes('readmoo.com')) {
+          } else if (!url.includes('readmoo.com')) {
+            // 最後檢查非 Readmoo 域名
             result.skipReason = 'not_readmoo_domain'
             result.actualReason = 'not_readmoo_domain'
             result.errorMessage = '請在Readmoo網站上使用此延伸功能'
-          }
-          // 其他不支援的情況
-          else {
+          } else {
+            // 其他不支援的情況
             result.skipReason = 'unsupported_page'
             result.actualReason = 'unsupported_page'
             result.errorMessage = '當前頁面不支援書籍提取功能'
@@ -769,41 +766,6 @@ class ChromeExtensionController {
       initialized: true,
       initializationTime: 100,
       version: '1.0.0'
-    }
-  }
-
-  async executeContentScriptExtraction (options = {}) {
-    const { securityMode = false } = options
-    this.log('執行Content Script提取...')
-
-    // 模擬提取過程
-    await this.simulateDelay(200)
-
-    // 嘗試從多個源獲取書籍數量
-    let extractedCount = 0
-
-    // 從特定Tab的測試資料中獲取
-    if (this.state.testData?.get(this.state.activeTab)?.books) {
-      extractedCount = this.state.testData.get(this.state.activeTab).books.length
-    }
-    // 從儲存中獲取預期書籍數量
-    else if (this.state.storage.has('expectedBookCount')) {
-      extractedCount = this.state.storage.get('expectedBookCount')
-    }
-    // 從儲存中獲取模擬書籍數量
-    else if (this.state.storage.has('mockBooksCount')) {
-      extractedCount = this.state.storage.get('mockBooksCount')
-    }
-    // 預設值
-    else {
-      extractedCount = 100
-    }
-
-    return {
-      success: true,
-      extractedCount,
-      protected: securityMode,
-      extractionTime: 200
     }
   }
 

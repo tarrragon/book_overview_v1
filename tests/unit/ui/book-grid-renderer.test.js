@@ -595,7 +595,8 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     test('應該處理容器不存在的情況', () => {
       expect(() => {
         const BookGridRenderer = require('src/ui/book-grid-renderer')
-        new BookGridRenderer(null, mockEventBus)
+        const renderer = new BookGridRenderer(null, mockEventBus)
+        // 變數賦值確保 new 的結果被正確處理，測試建構子錯誤
       }).toThrow()
     })
 

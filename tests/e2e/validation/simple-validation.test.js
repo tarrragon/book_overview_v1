@@ -49,6 +49,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       expectedDirectories.forEach(dir => {
         const dirPath = path.join(e2eTestsPath, dir)
         expect(fs.existsSync(dirPath)).toBe(true)
+        // eslint-disable-next-line no-console
         console.log(`✅ 目錄存在: ${dir}`)
       })
     })
@@ -66,6 +67,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       expectedFiles.forEach(file => {
         const filePath = path.join(e2eTestsPath, file)
         expect(fs.existsSync(filePath)).toBe(true)
+        // eslint-disable-next-line no-console
         console.log(`✅ 檔案存在: ${file}`)
       })
     })
@@ -83,6 +85,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       requiredFiles.forEach(file => {
         const filePath = path.join(buildPath, file)
         expect(fs.existsSync(filePath)).toBe(true)
+        // eslint-disable-next-line no-console
         console.log(`✅ 建置檔案存在: ${file}`)
       })
     })
@@ -98,6 +101,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
 
     test('應該使用 Manifest V3', () => {
       expect(manifest.manifest_version).toBe(3)
+      // eslint-disable-next-line no-console
       console.log('✅ Manifest V3 配置正確')
     })
 
@@ -110,6 +114,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       expect(manifest.version).toMatch(/^\d+\.\d+(\.\d+)?$/)
       expect(manifest.description.length).toBeGreaterThan(10)
 
+      // eslint-disable-next-line no-console
       console.log(`✅ Extension 基本資訊: ${manifest.name} v${manifest.version}`)
     })
 
@@ -120,6 +125,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       const serviceWorkerPath = path.join(buildPath, manifest.background.service_worker)
       expect(fs.existsSync(serviceWorkerPath)).toBe(true)
 
+      // eslint-disable-next-line no-console
       console.log(`✅ Service Worker: ${manifest.background.service_worker}`)
     })
 
@@ -132,6 +138,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
         expect(manifest.permissions).not.toContain(perm)
       })
 
+      // eslint-disable-next-line no-console
       console.log(`✅ 權限配置合理: ${manifest.permissions.join(', ')}`)
     })
 
@@ -146,6 +153,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
         expect(fs.existsSync(iconPath)).toBe(true)
       })
 
+      // eslint-disable-next-line no-console
       console.log('✅ 圖示配置完整')
     })
   })
@@ -165,6 +173,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       expect(mockPageContent).toContain('testBookData')
       expect(mockPageContent).toContain('getTestBookData')
 
+      // eslint-disable-next-line no-console
       console.log('✅ 模擬 Readmoo 頁面結構正確')
     })
 
@@ -239,6 +248,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
 
           // 檢查是否有明顯的語法問題
 
+          // eslint-disable-next-line no-console
           console.log(`✅ ${file} 語法檢查通過 (${content.length} 字符)`)
         }
       })
@@ -257,6 +267,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
           expect(content).toContain('<head>')
           expect(content).toContain('<body>')
 
+          // eslint-disable-next-line no-console
           console.log(`✅ ${file} HTML 結構正確`)
         }
       })
@@ -275,6 +286,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
           const stats = fs.statSync(filePath)
           expect(stats.size).toBeLessThan(maxSize)
 
+          // eslint-disable-next-line no-console
           console.log(`✅ ${file} 大小合理: ${(stats.size / 1024).toFixed(2)}KB`)
         }
       })
@@ -297,9 +309,11 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       const readinessPercentage = (passedChecks / totalChecks) * 100
 
       Object.entries(checklist).forEach(([check, passed]) => {
+        // eslint-disable-next-line no-console
         console.log(`  ${passed ? '✅' : '❌'} ${check}`)
       })
 
+      // eslint-disable-next-line no-console
       console.log(`\n🎯 總體準備度: ${readinessPercentage.toFixed(1)}% (${passedChecks}/${totalChecks})`)
 
       // 至少 80% 準備度才算合格
@@ -307,6 +321,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
 
       if (readinessPercentage === 100) {
       } else {
+        // eslint-disable-next-line no-console
         console.log('⚠️ 部分檢查未通過，請檢查失敗項目')
       }
     })

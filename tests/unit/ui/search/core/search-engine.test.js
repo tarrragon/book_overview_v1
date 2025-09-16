@@ -159,22 +159,25 @@ describe('SearchEngine - TDD 循環 2/8', () => {
       const SearchEngine = require('src/ui/search/core/search-engine')
 
       expect(() => {
-        new SearchEngine()
+        const engine = new SearchEngine()
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('IndexManager、EventBus 和 Logger 是必需的')
       })
 
       expect(() => {
-        new SearchEngine({ indexManager: mockIndexManager })
+        const engine = new SearchEngine({ indexManager: mockIndexManager })
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('IndexManager、EventBus 和 Logger 是必需的')
       })
 
       expect(() => {
-        new SearchEngine({
+        const engine = new SearchEngine({
           indexManager: mockIndexManager,
           eventBus: mockEventBus
         })
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('IndexManager、EventBus 和 Logger 是必需的')
       })

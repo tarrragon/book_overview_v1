@@ -359,7 +359,8 @@ describe('🎭 事件總線核心測試', () => {
       expect(secondStats.totalEvents).toBe(2)
       expect(secondStats.totalEmissions).toBe(2)
       expect(secondStats.totalExecutionTime).toBeGreaterThan(firstStats.totalExecutionTime)
-      expect(new Date(secondStats.lastActivity).getTime()).toBeGreaterThan(firstActivityTime.getTime())
+      const secondActivityTime = new Date(secondStats.lastActivity)
+      expect(secondActivityTime.getTime()).toBeGreaterThan(firstActivityTime.getTime())
 
       // 確認監聽器統計未變
       expect(secondStats.totalEventTypes).toBe(2)

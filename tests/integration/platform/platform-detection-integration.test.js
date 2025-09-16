@@ -183,7 +183,8 @@ describe('Platform Detection Integration Tests', () => {
       // 驗證每個平台都有獨立的快取項目
       const cacheKeys = Array.from(service.detectionCache.keys())
       expect(cacheKeys).toHaveLength(3)
-      expect(new Set(cacheKeys).size).toBe(3) // 確保所有鍵都是唯一的
+      const uniqueKeys = new Set(cacheKeys)
+      expect(uniqueKeys.size).toBe(3) // 確保所有鍵都是唯一的
     })
 
     test('應該在快取達到限制時執行清理', async () => {

@@ -62,6 +62,7 @@ class E2ETestRunner {
 
       process.exit(0)
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('\n❌ 端對端測試執行失敗:', error.message)
       await this.cleanup()
       process.exit(1)
@@ -72,10 +73,12 @@ class E2ETestRunner {
    * 執行前置檢查
    */
   async preCheck () {
+    // eslint-disable-next-line no-console
     console.log('🔍 執行前置檢查...')
 
     // 檢查 Node.js 版本
     const nodeVersion = process.version
+    // eslint-disable-next-line no-console
     console.log(`  Node.js 版本: ${nodeVersion}`)
 
     // 檢查必要文件
@@ -95,6 +98,7 @@ class E2ETestRunner {
 
     // 檢查依賴項是否安裝
     if (!fs.existsSync(path.join(this.projectRoot, 'node_modules'))) {
+      // eslint-disable-next-line no-console
       console.log('  🔧 安裝依賴項...')
       execSync('npm install --legacy-peer-deps', {
         cwd: this.projectRoot,
@@ -102,6 +106,7 @@ class E2ETestRunner {
       })
     }
 
+    // eslint-disable-next-line no-console
     console.log('  ✅ 前置檢查通過')
   }
 
@@ -109,6 +114,7 @@ class E2ETestRunner {
    * 建置 Extension
    */
   async buildExtension () {
+    // eslint-disable-next-line no-console
     console.log('🏗️ 建置 Chrome Extension...')
 
     try {
@@ -128,6 +134,7 @@ class E2ETestRunner {
         throw new StandardError('TEST_ERROR', 'Extension 建置失敗', { category: 'testing' })
       }
 
+      // eslint-disable-next-line no-console
       console.log('  ✅ Extension 建置完成')
     } catch (error) {
       throw new StandardError('TEST_ERROR', `Extension 建置失敗: ${error.message}`, { category: 'testing' })
@@ -196,8 +203,10 @@ class E2ETestRunner {
         results.passed += suiteResult.passed
         results.failed += suiteResult.failed
 
+        // eslint-disable-next-line no-console
         console.log(`  ✅ ${suite.name}: ${suiteResult.passed}/${suiteResult.total} 通過\n`)
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.log(`  ❌ ${suite.name} 執行失敗: ${error.message}\n`)
         results.suites.push({
           name: suite.name,
@@ -343,6 +352,7 @@ class E2ETestRunner {
       JSON.stringify(summary, null, 2)
     )
 
+    // eslint-disable-next-line no-console
     console.log(`  📁 報告位置: ${this.testResultsDir}`)
   }
 
@@ -413,6 +423,7 @@ class E2ETestRunner {
     delete process.env.TEST_TIMEOUT
     delete process.env.HEADLESS
 
+    // eslint-disable-next-line no-console
     console.log('  ✅ 清理完成')
   }
 }
@@ -420,6 +431,7 @@ class E2ETestRunner {
 // 執行測試
 if (require.main === module) {
   const runner = new E2ETestRunner()
+  // eslint-disable-next-line no-console
   runner.run().catch(console.error)
 }
 

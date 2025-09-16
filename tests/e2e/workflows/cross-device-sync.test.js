@@ -55,16 +55,12 @@ class PerformanceTracker {
 // MemoryMonitor 類別已移除 - 改用 process.memoryUsage() 進行真實記憶體測量
 
 class TimezoneValidator {
-  constructor () {}
-
   validate (data) {
     return { valid: true, timezone: 'UTC' }
   }
 }
 
 class FinalConsistencyProcessor {
-  constructor () {}
-
   async process (data) {
     return { success: true, processed: data }
   }
@@ -309,7 +305,9 @@ describe('UC-05 跨設備同步工作流程測試', () => {
       expect(secondSync.bookCount.updated).toBe(50)
 
       // 驗證時間戳順序
-      expect(new Date(secondSync.timestamp) > new Date(firstSync.timestamp)).toBe(true)
+      const firstSyncTime = new Date(firstSync.timestamp)
+      const secondSyncTime = new Date(secondSync.timestamp)
+      expect(secondSyncTime > firstSyncTime).toBe(true)
     })
 
     test('8. 使用者流程完整驗證', async () => {

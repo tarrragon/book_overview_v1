@@ -76,7 +76,9 @@ const log = {
 
   debug: (key, params = {}) => {
     // TODO: 實作 debug 訊息處理
-    formatMessage(key, params)
+    const message = formatMessage(key, params)
+    // eslint-disable-next-line no-console
+    console.debug(`[DEBUG] ${message}`)
   }
 }
 

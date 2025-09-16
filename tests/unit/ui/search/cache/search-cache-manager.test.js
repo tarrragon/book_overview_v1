@@ -91,19 +91,22 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
       const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
 
       expect(() => {
-        new SearchCacheManager() // eslint-disable-line no-new
+        const invalidManager = new SearchCacheManager()
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('EventBus 和 Logger 是必需的')
       })
 
       expect(() => {
-        new SearchCacheManager({ eventBus: mockEventBus }) // eslint-disable-line no-new
+        const invalidManager = new SearchCacheManager({ eventBus: mockEventBus })
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('EventBus 和 Logger 是必需的')
       })
 
       expect(() => {
-        new SearchCacheManager({ logger: mockLogger }) // eslint-disable-line no-new
+        const invalidManager = new SearchCacheManager({ logger: mockLogger })
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('EventBus 和 Logger 是必需的')
       })

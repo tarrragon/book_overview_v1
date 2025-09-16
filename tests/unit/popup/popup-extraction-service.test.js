@@ -78,19 +78,22 @@ describe('PopupExtractionService 核心功能', () => {
 
       // When & Then: 應該拋出錯誤
       expect(() => {
-        new PopupExtractionService(null, mockProgressManager, mockCommunicationService)
+        const service = new PopupExtractionService(null, mockProgressManager, mockCommunicationService)
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('StatusManager is required')
       })
 
       expect(() => {
-        new PopupExtractionService(mockStatusManager, null, mockCommunicationService)
+        const service = new PopupExtractionService(mockStatusManager, null, mockCommunicationService)
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('ProgressManager is required')
       })
 
       expect(() => {
-        new PopupExtractionService(mockStatusManager, mockProgressManager, null)
+        const service = new PopupExtractionService(mockStatusManager, mockProgressManager, null)
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('CommunicationService is required')
       })

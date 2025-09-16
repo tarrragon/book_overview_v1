@@ -561,9 +561,13 @@ describe('ExportUIIntegration', () => {
         }
       }, 20, { testName: 'ui-resource-cleanup' })
 
+      // eslint-disable-next-line no-console
       console.log('🧹 UI 資源清理記憶體分析:')
+      // eslint-disable-next-line no-console
       console.log(`  平均每清理操作記憶體增長: ${analysis.leakDetection.formattedAverageGrowth}`)
+      // eslint-disable-next-line no-console
       console.log(`  記憶體回收率: ${(analysis.efficiency.memoryRecoveryRate * 100).toFixed(1)}%`)
+      // eslint-disable-next-line no-console
       console.log(`  清理效率: ${(analysis.efficiency.overallEfficiency * 100).toFixed(1)}%`)
 
       // 清理操作不應該造成記憶體洩漏

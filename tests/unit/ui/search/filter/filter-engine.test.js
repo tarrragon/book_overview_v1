@@ -103,10 +103,12 @@ describe('FilterEngine', () => {
 
     it('should throw error when EventBus is missing', () => {
       expect(() => {
-        new FilterEngine({ logger: mockLogger })
+        const engine = new FilterEngine({ logger: mockLogger })
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toThrow()
       expect(() => {
-        new FilterEngine({ logger: mockLogger })
+        const engine = new FilterEngine({ logger: mockLogger })
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         code: 'REQUIRED_PARAMETER_MISSING',
         message: expect.stringContaining('EventBus 和 Logger 是必需的'),
@@ -116,10 +118,12 @@ describe('FilterEngine', () => {
 
     it('should throw error when Logger is missing', () => {
       expect(() => {
-        new FilterEngine({ eventBus: mockEventBus })
+        const engine = new FilterEngine({ eventBus: mockEventBus })
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toThrow()
       expect(() => {
-        new FilterEngine({ eventBus: mockEventBus })
+        const engine = new FilterEngine({ eventBus: mockEventBus })
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         code: 'REQUIRED_PARAMETER_MISSING',
         message: expect.stringContaining('EventBus 和 Logger 是必需的'),

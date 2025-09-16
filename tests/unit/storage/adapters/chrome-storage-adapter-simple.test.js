@@ -29,7 +29,7 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
           setTimeout(() => callback && callback(), 0)
         }),
         getBytesInUse: jest.fn((keys, callback) => {
-          setTimeout(() => callback && callback(100), 0)
+          setTimeout(() => callback && callback(null, 100), 0)
         })
       }
     }
@@ -195,7 +195,7 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
 
     test('應該檢查儲存配額', async () => {
       mockChromeStorage.local.getBytesInUse.mockImplementation((keys, callback) => {
-        setTimeout(() => callback && callback(524288), 0) // 0.5MB
+        setTimeout(() => callback && callback(null, 524288), 0) // 0.5MB
       })
 
       const quotaInfo = await adapter.checkQuota()
@@ -208,7 +208,7 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
 
     test('應該偵測配額接近限制', async () => {
       mockChromeStorage.local.getBytesInUse.mockImplementation((keys, callback) => {
-        setTimeout(() => callback && callback(943718), 0) // 90%
+        setTimeout(() => callback && callback(null, 943718), 0) // 90%
       })
 
       const quotaInfo = await adapter.checkQuota()

@@ -183,6 +183,7 @@ class Logger {
 
     switch (level) {
       case 'DEBUG':
+        // eslint-disable-next-line no-console
         if (console.debug) {
           // eslint-disable-next-line no-console
           console.debug(prefix, logEntry)
@@ -192,6 +193,7 @@ class Logger {
         }
         break
       case 'INFO':
+        // eslint-disable-next-line no-console
         if (console.info) {
           // eslint-disable-next-line no-console
           console.info(prefix, logEntry)
@@ -201,17 +203,18 @@ class Logger {
         }
         break
       case 'WARN':
-        if (// eslint-disable-next-line no-console
-          console.warn) {
+        // eslint-disable-next-line no-console
+        if (console.warn) {
           // eslint-disable-next-line no-console
           console.warn(prefix, logEntry)
         } else {
+          // eslint-disable-next-line no-console
           console.log(prefix, logEntry)
         }
         break
       case 'ERROR':
-        if (// eslint-disable-next-line no-console
-          console.error) {
+        // eslint-disable-next-line no-console
+        if (console.error) {
           // eslint-disable-next-line no-console
           console.error(prefix, logEntry)
         } else {

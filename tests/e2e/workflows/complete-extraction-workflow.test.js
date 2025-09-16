@@ -168,7 +168,8 @@ describe('📚 完整書籍資料提取工作流程', () => {
 
       expect(metadata).toBeDefined()
       expect(metadata.extractionTime).toBeDefined()
-      expect(new Date(metadata.extractionTime)).toBeInstanceOf(Date)
+      const extractionDate = new Date(metadata.extractionTime)
+      expect(extractionDate).toBeInstanceOf(Date)
     })
   })
 

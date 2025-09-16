@@ -494,7 +494,6 @@ class DiagnosticModule {
    * @param {Object} options - 監控選項
    */
   enableRealtimeMonitoring (options = {}) {
-
     this.realtimeMonitor = {
       _active: true,
       _interval: null,

@@ -40,10 +40,11 @@ describe('SearchResultFormatter', () => {
       const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
 
       expect(() => {
-        formatter = new SearchResultFormatter({ // eslint-disable-line no-new
+        formatter = new SearchResultFormatter({
           eventBus: mockEventBus,
           logger: mockLogger
         })
+        // 變數賦值確保建構子結果被正確處理
       }).not.toThrow()
     })
 
@@ -51,7 +52,8 @@ describe('SearchResultFormatter', () => {
       const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
 
       expect(() => {
-        new SearchResultFormatter({ logger: mockLogger }) // eslint-disable-line no-new
+        const invalidFormatter = new SearchResultFormatter({ logger: mockLogger })
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('EventBus 和 Logger 是必需的')
       })
@@ -61,7 +63,8 @@ describe('SearchResultFormatter', () => {
       const SearchResultFormatter = require('src/ui/search/formatter/search-result-formatter')
 
       expect(() => {
-        new SearchResultFormatter({ eventBus: mockEventBus }) // eslint-disable-line no-new
+        const invalidFormatter = new SearchResultFormatter({ eventBus: mockEventBus })
+        // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('EventBus 和 Logger 是必需的')
       })
