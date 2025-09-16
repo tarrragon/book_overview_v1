@@ -1,6 +1,6 @@
 {
   "name": "readmoo-book-extractor",
-  "version": "0.12.11",
+  "version": "0.12.13",
   "description": "一個專為Readmoo電子書平台設計的Chrome擴充功能，能夠自動提取使用者書庫資料，並提供本地化的書目管理與匯出功能。",
   "main": "src/background/service-worker.js",
   "scripts": {

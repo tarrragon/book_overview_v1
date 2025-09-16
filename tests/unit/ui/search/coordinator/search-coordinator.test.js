@@ -16,6 +16,20 @@
  */
 
 const SearchCoordinator = require('src/ui/search/coordinator/search-coordinator')
+const { StandardError } = require('src/core/errors')
+
+// 測試輔助函數：驗證異步StandardError
+const expectAsyncStandardError = async (promise, expectedCode = 'SEARCH_VALIDATION_ERROR') => {
+  try {
+    await promise
+    fail('Expected promise to throw StandardError')
+  } catch (error) {
+    expect(error).toBeInstanceOf(StandardError)
+    expect(error.code).toBe(expectedCode)
+    expect(error.message).toBeDefined()
+    expect(error.details).toBeDefined()
+  }
+}
 
 describe('SearchCoordinator', () => {
   let searchCoordinator
@@ -147,44 +161,68 @@ describe('SearchCoordinator', () => {
 
     it('should throw error when EventBus is missing', () => {
       expect(() => {
-        new SearchCoordinator({
+        const coordinator = new SearchCoordinator({
           logger: mockLogger,
           searchEngine: mockSearchEngine,
           filterEngine: mockFilterEngine,
           searchResultFormatter: mockSearchResultFormatter,
           searchCacheManager: mockSearchCacheManager
         })
-      }).toMatchObject({
-        message: expect.stringContaining('EventBus 是必需的')
-      })
+      }).toThrow(StandardError)
+
+      expect(() => {
+        const coordinator = new SearchCoordinator({
+          logger: mockLogger,
+          searchEngine: mockSearchEngine,
+          filterEngine: mockFilterEngine,
+          searchResultFormatter: mockSearchResultFormatter,
+          searchCacheManager: mockSearchCacheManager
+        })
+      }).toThrow('EventBus 是必需的')
     })
 
     it('should throw error when Logger is missing', () => {
       expect(() => {
-        new SearchCoordinator({
+        const coordinator = new SearchCoordinator({
           eventBus: mockEventBus,
           searchEngine: mockSearchEngine,
           filterEngine: mockFilterEngine,
           searchResultFormatter: mockSearchResultFormatter,
           searchCacheManager: mockSearchCacheManager
         })
-      }).toMatchObject({
-        message: expect.stringContaining('Logger 是必需的')
-      })
+      }).toThrow(StandardError)
+
+      expect(() => {
+        const coordinator = new SearchCoordinator({
+          eventBus: mockEventBus,
+          searchEngine: mockSearchEngine,
+          filterEngine: mockFilterEngine,
+          searchResultFormatter: mockSearchResultFormatter,
+          searchCacheManager: mockSearchCacheManager
+        })
+      }).toThrow('Logger 是必需的')
     })
 
     it('should throw error when SearchEngine is missing', () => {
       expect(() => {
-        new SearchCoordinator({
+        const coordinator = new SearchCoordinator({
           eventBus: mockEventBus,
           logger: mockLogger,
           filterEngine: mockFilterEngine,
           searchResultFormatter: mockSearchResultFormatter,
           searchCacheManager: mockSearchCacheManager
         })
-      }).toMatchObject({
-        message: expect.stringContaining('SearchEngine 是必需的')
-      })
+      }).toThrow(StandardError)
+
+      expect(() => {
+        const coordinator = new SearchCoordinator({
+          eventBus: mockEventBus,
+          logger: mockLogger,
+          filterEngine: mockFilterEngine,
+          searchResultFormatter: mockSearchResultFormatter,
+          searchCacheManager: mockSearchCacheManager
+        })
+      }).toThrow('SearchEngine 是必需的')
     })
 
     it('should initialize with default configuration', () => {
@@ -290,16 +328,23 @@ describe('SearchCoordinator', () => {
     })
 
     it('should validate search query before execution', async () => {
-      await expect(searchCoordinator.executeSearch(null, {})).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
-      await expect(searchCoordinator.executeSearch(undefined, {})).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      try {
+        await searchCoordinator.executeSearch(null, {})
+      } catch (error) {
+        expect(error).toBeInstanceOf(StandardError)
+        expect(error.code).toBe('SEARCH_VALIDATION_ERROR')
+        expect(error.message).toBeDefined()
+        expect(error.details).toBeDefined()
+      }
+
+      try {
+        await searchCoordinator.executeSearch(undefined, {})
+      } catch (error) {
+        expect(error).toBeInstanceOf(StandardError)
+        expect(error.code).toBe('SEARCH_VALIDATION_ERROR')
+        expect(error.message).toBeDefined()
+        expect(error.details).toBeDefined()
+      }
     })
 
     it('should emit search events during orchestration', async () => {
@@ -377,18 +422,14 @@ describe('SearchCoordinator', () => {
     })
 
     it('should validate filter parameters', async () => {
-      await expect(searchCoordinator.applyFiltersToResults(null, {}))
-        .rejects.toMatchObject({
-          code: 'TEST_ERROR',
-          message: expect.any(String),
-          details: expect.any(Object)
-        })
-      await expect(searchCoordinator.applyFiltersToResults([], null))
-        .rejects.toMatchObject({
-          code: 'TEST_ERROR',
-          message: expect.any(String),
-          details: expect.any(Object)
-        })
+      await expectAsyncStandardError(
+        searchCoordinator.applyFiltersToResults(null, {}),
+        'FILTER_VALIDATION_ERROR'
+      )
+      await expectAsyncStandardError(
+        searchCoordinator.applyFiltersToResults([], null),
+        'FILTER_VALIDATION_ERROR'
+      )
     })
   })
 
@@ -446,12 +487,10 @@ describe('SearchCoordinator', () => {
     it('should handle module communication errors gracefully', async () => {
       mockSearchEngine.search.mockRejectedValue(new Error('Search engine error'))
 
-      await expect(searchCoordinator.executeSearch('test', {}))
-        .rejects.toMatchObject({
-          code: 'TEST_ERROR',
-          message: expect.any(String),
-          details: expect.any(Object)
-        })
+      await expectAsyncStandardError(
+        searchCoordinator.executeSearch('test', {}),
+        'SEARCH_COORDINATION_ERROR'
+      )
 
       expect(mockLogger.error).toHaveBeenCalledWith('搜尋執行失敗', expect.any(Object))
     })
@@ -556,11 +595,10 @@ describe('SearchCoordinator', () => {
       const searchError = new Error('Search failed')
       mockSearchEngine.search.mockRejectedValue(searchError)
 
-      await expect(searchCoordinator.executeSearch('test', {})).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      await expectAsyncStandardError(
+        searchCoordinator.executeSearch('test', {}),
+        'SEARCH_COORDINATION_ERROR'
+      )
 
       expect(mockLogger.error).toHaveBeenCalledWith('搜尋執行失敗', expect.objectContaining({
         error: 'Search failed',
@@ -578,12 +616,10 @@ describe('SearchCoordinator', () => {
       mockSearchEngine.search.mockResolvedValue([testBooks[0]])
       mockFilterEngine.applyFilters.mockRejectedValue(new Error('Filter failed'))
 
-      await expect(searchCoordinator.executeSearch('test', { status: 'reading' }))
-        .rejects.toMatchObject({
-          code: 'TEST_ERROR',
-          message: expect.any(String),
-          details: expect.any(Object)
-        })
+      await expectAsyncStandardError(
+        searchCoordinator.executeSearch('test', { status: 'reading' }),
+        'SEARCH_COORDINATION_ERROR'
+      )
 
       expect(mockLogger.error).toHaveBeenCalled()
     })
@@ -593,11 +629,10 @@ describe('SearchCoordinator', () => {
       mockSearchEngine.search.mockResolvedValue([testBooks[0]])
       mockFilterEngine.applyFilters.mockResolvedValue({ filteredBooks: [testBooks[0]], totalCount: 1 })
 
-      await expect(searchCoordinator.executeSearch('test', {})).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
-      })
+      await expectAsyncStandardError(
+        searchCoordinator.executeSearch('test', {}),
+        'SEARCH_COORDINATION_ERROR'
+      )
 
       expect(mockEventBus.emit).toHaveBeenCalledWith('COORDINATOR.ERROR', expect.any(Object))
     })
@@ -605,12 +640,10 @@ describe('SearchCoordinator', () => {
     it('should handle SearchCoordinator destruction gracefully', async () => {
       await searchCoordinator.destroy()
 
-      await expect(searchCoordinator.executeSearch('test', {}))
-        .rejects.toMatchObject({
-          code: 'TEST_ERROR',
-          message: expect.any(String),
-          details: expect.any(Object)
-        })
+      await expectAsyncStandardError(
+        searchCoordinator.executeSearch('test', {}),
+        'COORDINATOR_STATE_ERROR'
+      )
     })
   })
 
@@ -875,12 +908,10 @@ describe('SearchCoordinator', () => {
     it('should prevent operations after destruction', async () => {
       await searchCoordinator.destroy()
 
-      await expect(searchCoordinator.executeSearch('test', {}))
-        .rejects.toMatchObject({
-          code: 'TEST_ERROR',
-          message: expect.any(String),
-          details: expect.any(Object)
-        })
+      await expectAsyncStandardError(
+        searchCoordinator.executeSearch('test', {}),
+        'COORDINATOR_STATE_ERROR'
+      )
     })
 
     it('should handle graceful shutdown', async () => {

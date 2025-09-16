@@ -429,6 +429,202 @@ const { QueueManagementService } = require('./services/queue-management-service'
 
 ---
 
+## 🚨 StandardError 錯誤代碼語意化修正範例
+
+### 🎯 **錯誤代碼語意化原則**
+
+**✅ 語意化錯誤代碼設計**:
+- ✅ **具體化**: 使用具體的錯誤代碼而非 `UNKNOWN_ERROR`
+- ✅ **領域導向**: 錯誤代碼反映所屬領域和操作類型
+- ✅ **一致性**: 同類型錯誤使用統一的命名模式
+- ✅ **可維護**: 錯誤代碼有明確的業務含義
+
+**📋 錯誤代碼分類與命名規範**:
+1. **驗證錯誤**: `{DOMAIN}_VALIDATION_ERROR` 或 `{OPERATION}_VALIDATION_FAILED`
+2. **操作錯誤**: `{DOMAIN}_{OPERATION}_ERROR`
+3. **系統錯誤**: `{COMPONENT}_ERROR` 或 `{SERVICE}_SYSTEM_ERROR`
+4. **配置錯誤**: `{COMPONENT}_CONFIG_ERROR`
+
+### 🔧 **1. 搜尋協調器錯誤代碼修正**
+
+#### ❌ **修正前 (Before)**
+```javascript
+// 使用泛用的 UNKNOWN_ERROR - 缺乏語意
+_validateSearchInputs (query, filters) {
+  if (query === null || query === undefined) {
+    throw new StandardError('UNKNOWN_ERROR', '搜尋查詢是必需的', {
+      category: 'ui'
+    })
+  }
+
+  if (typeof query !== 'string') {
+    throw new StandardError('UNKNOWN_ERROR', '搜尋查詢必須是字串', {
+      category: 'ui'
+    })
+  }
+
+  if (filters === null || filters === undefined) {
+    throw new StandardError('UNKNOWN_ERROR', '篩選條件是必需的', {
+      category: 'ui'
+    })
+  }
+}
+
+_validateFilterInputs (searchResults, filters) {
+  if (!Array.isArray(searchResults)) {
+    throw new StandardError('UNKNOWN_ERROR', '搜尋結果陣列是必需的', {
+      category: 'ui'
+    })
+  }
+}
+
+// 運行時錯誤
+async executeSearch (query, filters = {}) {
+  try {
+    // ... 執行邏輯
+  } catch (error) {
+    throw new StandardError('UNKNOWN_ERROR', '搜尋協調失敗: ' + error.message, {
+      category: 'ui'
+    })
+  }
+}
+```
+
+#### ✅ **修正後 (After)**
+```javascript
+// 使用語意化的錯誤代碼 - 明確的業務含義
+_validateSearchInputs (query, filters) {
+  if (query === null || query === undefined) {
+    throw new StandardError('SEARCH_VALIDATION_ERROR', '搜尋查詢是必需的', {
+      category: 'ui',
+      field: 'query',
+      validationType: 'required'
+    })
+  }
+
+  if (typeof query !== 'string') {
+    throw new StandardError('SEARCH_VALIDATION_ERROR', '搜尋查詢必須是字串', {
+      category: 'ui',
+      field: 'query',
+      validationType: 'type',
+      expectedType: 'string',
+      actualType: typeof query
+    })
+  }
+
+  if (filters === null || filters === undefined) {
+    throw new StandardError('FILTER_VALIDATION_ERROR', '篩選條件是必需的', {
+      category: 'ui',
+      field: 'filters',
+      validationType: 'required'
+    })
+  }
+}
+
+_validateFilterInputs (searchResults, filters) {
+  if (!Array.isArray(searchResults)) {
+    throw new StandardError('FILTER_VALIDATION_ERROR', '搜尋結果陣列是必需的', {
+      category: 'ui',
+      field: 'searchResults',
+      validationType: 'type',
+      expectedType: 'array',
+      actualType: typeof searchResults
+    })
+  }
+}
+
+// 運行時錯誤
+async executeSearch (query, filters = {}) {
+  try {
+    // ... 執行邏輯
+  } catch (error) {
+    throw new StandardError('SEARCH_COORDINATION_ERROR', '搜尋協調失敗: ' + error.message, {
+      category: 'ui',
+      operation: 'executeSearch',
+      originalError: error.message
+    })
+  }
+}
+```
+
+### 🔧 **2. 測試期望更新**
+
+#### ❌ **修正前 (Before)**
+```javascript
+// 測試期望使用 TEST_ERROR - 與實際錯誤代碼不符
+const expectAsyncStandardError = async (promise, expectedCode = 'TEST_ERROR') => {
+  try {
+    await promise
+    fail('Expected promise to throw StandardError')
+  } catch (error) {
+    expect(error).toBeInstanceOf(StandardError)
+    expect(error.code).toBe('TEST_ERROR')  // 硬編碼測試用錯誤代碼
+    expect(error.message).toBeDefined()
+    expect(error.details).toBeDefined()
+  }
+}
+
+it('should validate search query before execution', async () => {
+  try {
+    await searchCoordinator.executeSearch(null, {})
+  } catch (error) {
+    expect(error.code).toBe('TEST_ERROR')  // 與實際不符
+  }
+})
+```
+
+#### ✅ **修正後 (After)**
+```javascript
+// 測試期望使用實際的語意化錯誤代碼
+const expectAsyncStandardError = async (promise, expectedCode = 'SEARCH_VALIDATION_ERROR') => {
+  try {
+    await promise
+    fail('Expected promise to throw StandardError')
+  } catch (error) {
+    expect(error).toBeInstanceOf(StandardError)
+    expect(error.code).toBe(expectedCode)  // 使用實際的錯誤代碼
+    expect(error.message).toBeDefined()
+    expect(error.details).toBeDefined()
+  }
+}
+
+it('should validate search query before execution', async () => {
+  // 測試搜尋查詢驗證
+  try {
+    await searchCoordinator.executeSearch(null, {})
+  } catch (error) {
+    expect(error.code).toBe('SEARCH_VALIDATION_ERROR')  // 對應實際錯誤代碼
+    expect(error.details.field).toBe('query')
+    expect(error.details.validationType).toBe('required')
+  }
+
+  // 測試篩選條件驗證
+  try {
+    await searchCoordinator.applyFiltersToResults([], null)
+  } catch (error) {
+    expect(error.code).toBe('FILTER_VALIDATION_ERROR')  // 篩選相關錯誤
+    expect(error.details.field).toBe('filters')
+  }
+})
+```
+
+### 📋 **修正效益**
+
+**✅ 修正成果**:
+- 🎯 **語意清晰**: 錯誤代碼直接反映問題域和類型
+- 🔍 **除錯容易**: 開發者可立即識別錯誤來源和類型
+- 📊 **統計友善**: 可按錯誤類型進行監控和分析
+- 🧪 **測試準確**: 測試期望與實際錯誤代碼完全對應
+- 📝 **文件一致**: 錯誤處理策略與專案規範一致
+
+**🎯 應用場景**:
+- 搜尋功能錯誤處理改善
+- 篩選器驗證錯誤分類
+- 協調器運行時錯誤追蹤
+- 測試斷言準確性提升
+
+---
+
 ## 🧹 Lint 問題修正範例
 
 ### 🔧 **1. 格式化問題修正**
