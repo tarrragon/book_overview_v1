@@ -138,7 +138,8 @@ const localStorageMock = {
   key: jest.fn()
 }
 Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock
+  value: localStorageMock,
+  writable: true
 })
 global.localStorage = localStorageMock
 
