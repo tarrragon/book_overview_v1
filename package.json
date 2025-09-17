@@ -1,6 +1,6 @@
 {
   "name": "readmoo-book-extractor",
-  "version": "0.12.13",
+  "version": "0.12.19",
   "description": "一個專為Readmoo電子書平台設計的Chrome擴充功能，能夠自動提取使用者書庫資料，並提供本地化的書目管理與匯出功能。",
   "main": "src/background/service-worker.js",
   "scripts": {
@@ -46,9 +46,12 @@
   "author": "開發者名稱",
   "license": "MIT",
   "devDependencies": {
+    "@babel/core": "^7.28.4",
+    "@babel/preset-env": "^7.28.3",
     "@testing-library/jest-dom": "^6.6.4",
     "@types/chrome": "^0.0.246",
     "@types/jest": "^29.5.5",
+    "babel-jest": "^30.1.2",
     "eslint": "^8.50.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.32.0",
@@ -90,6 +93,9 @@
       "^@tests/(.*)$": "<rootDir>/tests/$1",
       "^@mocks/(.*)$": "<rootDir>/tests/mocks/$1",
       "^@fixtures/(.*)$": "<rootDir>/tests/fixtures/$1"
+    },
+    "transform": {
+      "^.+\\.js$": "babel-jest"
     },
     "testPathIgnorePatterns": [
       "<rootDir>/node_modules/",
@@ -137,7 +143,9 @@
     },
     "overrides": [
       {
-        "files": ["**/*.js"],
+        "files": [
+          "**/*.js"
+        ],
         "rules": {
           "no-restricted-syntax": [
             "error",
@@ -157,7 +165,10 @@
         }
       },
       {
-        "files": ["**/*.test.js", "**/test/**/*.js"],
+        "files": [
+          "**/*.test.js",
+          "**/test/**/*.js"
+        ],
         "rules": {
           "no-restricted-syntax": [
             "error",
