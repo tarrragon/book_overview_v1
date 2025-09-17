@@ -46,14 +46,7 @@
 - [ ] **如果本地領先**: 確認是否需要推送或繼續開發
 - [ ] 確認工作目錄狀態: 無未提交的重要變更
 
-#### 2. TMux 環境檢查
-- [ ] 檢查是否在 tmux 環境: `echo $TMUX`
-- [ ] 確認 session 名稱: `tmux display-message -p '#S'`
-- [ ] **如果在 main_layout session**: 按照 TMux 面板分工配置執行
-- [ ] **如果不在 tmux**: 建議切換至 `main_layout` 以獲得最佳協作體驗
-- [ ] 驗證面板數量: 確認有 5 個面板 (1,2,2 佈局)
-
-#### 3. 專案文件載入確認
+#### 2. 專案文件載入確認
 - [ ] 確認已載入 CLAUDE.md 主文件
 - [ ] 確認已載入參考文件:
   - [ ] docs/claude/tdd-collaboration-flow.md
@@ -79,7 +72,6 @@
 
 # 或手動執行關鍵檢查
 git fetch origin && git status -uno
-echo "TMux Session: $(tmux display-message -p '#S' 2>/dev/null || echo 'Not in tmux')"
 echo "當前版本: $(ls docs/work-logs/ | grep '^v[0-9]' | sort -V | tail -1)"
 ```
 
@@ -92,23 +84,7 @@ git pull origin [current-branch]  # 同步遠端變更
 # 檢查是否有合併衝突，如有則先解決
 ```
 
-#### 情境B: 需要進入 TMux 環境
-```bash
-# 推薦使用統一連接腳本 (自動處理各種情境)
-./scripts/attach-main-layout.sh
-
-# 或手動處理：
-# 如果已有 main_layout session
-tmux attach-session -t main_layout
-
-# 在 tmux 內切換到 main_layout
-tmux switch-client -t main_layout
-
-# 建立新的 main_layout session
-tmux new-session -s main_layout
-```
-
-#### 情境C: 文件載入不完整
+#### 情境B: 文件載入不完整
 - 確認所有參考文件都在 Claude 的 context 中
 - 重新讀取缺失的關鍵指導文件
 - 檢查 todolist.md 以了解當前工作重點
@@ -351,9 +327,8 @@ tmux new-session -s main_layout
 
 **檢查項目**:
 1. **Git 狀態同步**: 檢查本地與遠端分支狀態
-2. **TMux 環境設定**: 自動設定標準 1,2,2 佈局 (5個面板)  
-3. **專案檔案載入**: 確認關鍵檔案存在且 Claude Code 已正確載入
-4. **開發狀態確認**: 檢查版本、測試狀態、程式碼品質
+2. **專案檔案載入**: 確認關鍵檔案存在且 Claude Code 已正確載入
+3. **開發狀態確認**: 檢查版本、測試狀態、程式碼品質
 
 **使用時機**:
 - 每次啟動新的 Claude Code session
@@ -364,8 +339,6 @@ tmux new-session -s main_layout
 ```bash
 # 手動執行啟動檢查
 git fetch origin && git status -uno
-echo "TMux Session: $(tmux display-message -p '#S' 2>/dev/null || echo 'Not in tmux')"
-./scripts/setup-tmux-layout.sh  # 如果需要設定 TMux 佈局
 ```
 
 ### `/smart-version-check` - 版本推進檢查指令
@@ -447,25 +420,6 @@ EOF
 - 避免版本號錯誤判斷
 - 提供標準化的工作日誌模板
 
-### `./scripts/setup-tmux-layout.sh` - TMux 佈局設定腳本
-
-**功能**: 設定標準的開發環境佈局
-
-**佈局特色**:
-- 1,2,2 佈局 (5個面板)
-- 自動重新命名 session 為 `main_layout`
-- 自動化處理已存在的 session
-- 檢測面板中運行的程序，避免覆蓋重要工作
-
-### `./scripts/attach-main-layout.sh` - TMux 連接腳本
-
-**功能**: 統一處理各種 TMux 連接情境
-
-**處理情況**:
-- 新建 main_layout session
-- 連接已存在的 session  
-- 從其他 session 切換
-- 確保文件載入一致性
 
 ---
 
@@ -627,69 +581,6 @@ const Logger = require('./src/core/logging/Logger')
 
 ---
 
-## 🖥 開發環境配置
-
-### TMux 面板分工配置 (1,2,2 佈局)
-
-使用 `main_layout` session 的五面板配置來實現高效的 TDD 協作開發：
-
-```
-┌─────────────────────────────────────┐
-│      面板0: 主要開發工作            │  (上層全幅)
-│      (測試、編碼)                   │
-├─────────────────┬───────────────────┤
-│    面板1:       │     面板2:        │  (中層左右)
-│   文件更新      │   程式碼品質檢查   │
-│ (日誌、TODO等)  │ (lint、build等)   │
-├─────────────────┼───────────────────┤
-│    面板3:       │     面板4:        │  (下層左右)
-│   Git 操作      │   監控和分析      │
-│ (提交、狀態等)  │ (日誌、效能等)    │
-└─────────────────┴───────────────────┘
-```
-
-### 面板職責分工
-
-- **面板0（主線程）**: 主要開發工作（測試、編碼）
-- **面板1（中左）**: 文件更新（工作日誌、TODO、CHANGELOG）
-- **面板2（中右）**: 程式碼品質檢查（lint、build、coverage）
-- **面板3（下左）**: Git 操作（狀態檢查、提交準備）- 標準提交流程使用 `/commit-as-prompt` 指令
-- **面板4（下右）**: 監控和分析（日誌查看、效能監控）
-
-### TMux 操作指令
-
-```bash
-# 建立/切換到主佈局
-tmux attach-session -t main_layout
-
-# 在 tmux 內部切換 session（推薦）
-tmux switch-client -t main_layout
-
-# 使用快捷鍵切換
-# Ctrl+b 然後按 s -> 選擇 main_layout -> Enter
-
-# 面板間切換
-# Ctrl+b 然後按方向鍵
-# 或 Ctrl+b 然後按面板編號 (0-4)
-```
-
-### 開發工作流程與監控機制
-
-此配置的核心目的是**實時監控並確認正確觸發指定的開發流程**：
-
-1. **主線程（面板0）**: 執行核心 TDD 循環（Red-Green-Refactor）
-2. **文件同步（面板1）**: 即時更新工作日誌、TODO 狀態、版本記錄
-3. **品質把關（面板2）**: 持續執行 lint、build、coverage 檢查
-4. **版本控制（面板3）**: 監控 git 狀態，適時提醒提交節點
-5. **系統監控（面板4）**: 觀察效能指標、錯誤日誌、建置狀態
-
-### 流程觸發檢查點
-
-- **文件更新觸發時機**: 完成 TDD 循環、功能里程碑、問題解決
-- **代碼審查介入點**: lint 失敗、coverage 下降、架構債務發現
-- **提交準備檢查**: 測試通過、文件同步、品質標準達成
-
----
 
 ## 🔧 開發工具和指令
 
