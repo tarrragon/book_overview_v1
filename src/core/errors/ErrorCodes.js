@@ -2,7 +2,7 @@
  * 錯誤代碼常數定義 - 專家優化版
  *
  * 設計原則（基於 Linux/John Carmack 專家建議）：
- * - 精簡至 15 個核心代碼，避免過度分類
+ * - 精簡至 17 個核心代碼，避免過度分類
  * - 使用描述性名稱，涵蓋主要錯誤域
  * - 零運行時開銷，編譯時常數
  * - Chrome Extension ES modules 專用
@@ -17,7 +17,7 @@
  */
 
 /**
- * 系統錯誤代碼常數 - 15個核心代碼
+ * 系統錯誤代碼常數 - 17個核心代碼
  * @readonly
  * @enum {string}
  */
@@ -63,6 +63,12 @@ export const ErrorCodes = {
 
   // 設定錯誤
   CONFIG_ERROR: 'CONFIG_ERROR',
+
+  // 渲染錯誤
+  RENDER_ERROR: 'RENDER_ERROR',
+
+  // 效能錯誤
+  PERFORMANCE_ERROR: 'PERFORMANCE_ERROR',
 
   // 未知錯誤
   UNKNOWN_ERROR: 'UNKNOWN_ERROR'
