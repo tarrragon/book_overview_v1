@@ -239,7 +239,7 @@ class SystemDomainCoordinator {
         this.logger.log(`✅ 服務初始化完成: ${serviceName}`)
       } catch (error) {
         this.logger.error(`❌ 服務初始化失敗: ${serviceName}`, error)
-        throw new StandardError('UNKNOWN_ERROR', `微服務 ${serviceName} 初始化失敗: ${error.message}`, {
+        throw new StandardError('UNKNOWN_ERROR', '微服務 ${serviceName} 初始化失敗: ${error.message}', {
           category: 'general'
         })
       }

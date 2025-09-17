@@ -47,6 +47,7 @@
  */
 
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { Logger } = require('src/core/logging')
 
 class SearchUIController {
@@ -64,9 +65,10 @@ class SearchUIController {
 
     // 驗證必要依賴
     if (!eventBus || !document) {
-      throw new StandardError('EVENTBUS_ERROR', 'EventBus 和 Document 是必需的', {
-        category: 'ui'
-      })
+      const error = new Error('EventBus 和 Document 是必需的')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     // 核心依賴
@@ -227,9 +229,10 @@ class SearchUIController {
    */
   handleSearchInput (event) {
     if (this.isCleanedUp) {
-      throw new StandardError('UI_OPERATION_FAILED', 'SearchUIController 已被清理', {
-        category: 'ui'
-      })
+      const error = new Error('SearchUIController 已被清理')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     try {

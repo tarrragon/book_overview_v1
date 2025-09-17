@@ -108,7 +108,7 @@ class ReadmooPlatformMigrationValidator {
     for (const dep of requiredDependencies) {
       if (!dependencies[dep]) {
         validatorLogger.error('DEPENDENCY_MISSING', { dependency: dep })
-        throw new StandardError('REQUIRED_FIELD_MISSING', `Missing required dependency: ${dep}`, {
+        throw new StandardError('REQUIRED_FIELD_MISSING', 'Missing required dependency: ${dep}', {
           category: 'data_migration'
         })
       }
@@ -318,7 +318,7 @@ class ReadmooPlatformMigrationValidator {
       const timeoutPromise = new Promise((_resolve, reject) => {
         setTimeout(() => {
           validatorLogger.error('VALIDATION_TIMEOUT', { timeout: this.config.validationTimeout })
-          reject(new StandardError('OPERATION_TIMEOUT', `Validation timeout after ${this.config.validationTimeout}ms`, {
+          reject(new StandardError('OPERATION_TIMEOUT', 'Validation timeout after ${this.config.validationTimeout}ms', {
             category: 'data_migration'
           }))
         }, this.config.validationTimeout)

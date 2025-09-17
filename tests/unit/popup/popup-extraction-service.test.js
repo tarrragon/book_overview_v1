@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * PopupExtractionService 單元測試
  *
@@ -80,17 +80,23 @@ describe('PopupExtractionService 核心功能', () => {
       expect(() => {
         const service = new PopupExtractionService(null, mockProgressManager, mockCommunicationService)
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toThrow(StandardError)
+      }).toThrowError(expect.objectContaining({
+        code: ErrorCodes.VALIDATION_ERROR
+      }))
 
       expect(() => {
         const service = new PopupExtractionService(mockStatusManager, null, mockCommunicationService)
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toThrow(StandardError)
+      }).toThrowError(expect.objectContaining({
+        code: ErrorCodes.VALIDATION_ERROR
+      }))
 
       expect(() => {
         const service = new PopupExtractionService(mockStatusManager, mockProgressManager, null)
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toThrow(StandardError)
+      }).toThrowError(expect.objectContaining({
+        code: ErrorCodes.VALIDATION_ERROR
+      }))
     })
 
     test('應該支援提取選項配置', () => {
@@ -158,7 +164,9 @@ describe('PopupExtractionService 核心功能', () => {
 
       // When: 嘗試再次開始提取
       await expect(extractionService.startExtraction())
-        .rejects.toThrow(StandardError)
+        .rejects.toThrowError(expect.objectContaining({
+          code: ErrorCodes.OPERATION_ERROR
+        }))
 
       // Then: 不應該重複呼叫通訊服務
       expect(mockCommunicationService.startExtraction).not.toHaveBeenCalled()
@@ -219,7 +227,9 @@ describe('PopupExtractionService 核心功能', () => {
 
       // When: 嘗試開始提取
       await expect(extractionService.startExtraction())
-        .rejects.toThrow(StandardError)
+        .rejects.toThrowError(expect.objectContaining({
+          code: ErrorCodes.OPERATION_ERROR
+        }))
 
       // Then: 達到最大重試次數
       expect(mockCommunicationService.startExtraction).toHaveBeenCalledTimes(3)
@@ -299,7 +309,9 @@ describe('PopupExtractionService 核心功能', () => {
       // When: 嘗試處理結果
       expect(() => {
         extractionService.processExtractionResult(invalidResult)
-      }).toThrow(StandardError)
+      }).toThrowError(expect.objectContaining({
+        code: ErrorCodes.VALIDATION_ERROR
+      }))
 
       // Then: 錯誤狀態正確更新
       expect(mockStatusManager.updateStatus).toHaveBeenCalledWith({
@@ -379,7 +391,10 @@ describe('PopupExtractionService 核心功能', () => {
     test('應該處理組件間通訊錯誤', () => {
       // Given: StatusManager 更新失敗
       mockStatusManager.updateStatus.mockImplementation(() => {
-        throw new StandardError('POPUP_STATUS_UPDATE_ERROR', 'Status update failed', { category: 'testing' })
+        const error = new Error('Status update failed')
+        error.code = ErrorCodes.OPERATION_ERROR
+        error.details = { category: 'testing' }
+        throw error
       })
 
       // When: 嘗試更新狀態
@@ -388,10 +403,10 @@ describe('PopupExtractionService 核心功能', () => {
 
       // Then: 錯誤被優雅處理
       expect(extractionService.componentErrors).toHaveLength(1)
-      expect(extractionService.componentErrors[0]).toEqual({
+      expect(extractionService.componentErrors[0]).toEqual(expect.objectContaining({
         component: 'StatusManager',
         error: 'Status update failed'
-      })
+      }))
     })
 
     test('應該正確處理提取完成事件', () => {

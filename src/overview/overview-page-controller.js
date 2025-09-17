@@ -29,25 +29,22 @@
 
 // 動態取得 EventHandler（支援瀏覽器和 Node.js）
 let EventHandlerClass
-let StandardError
+let ErrorCodes
 if (typeof window !== 'undefined') {
   // 瀏覽器環境：從全域變數取得（應該已由 event-handler.js 載入）
   EventHandlerClass = window.EventHandler
-  StandardError = window.StandardError
+  ErrorCodes = window.ErrorCodes
   if (!EventHandlerClass) {
-    if (StandardError) {
-      throw new StandardError('DEPENDENCY_ERROR', 'EventHandler 未在全域變數中找到，請確認 event-handler.js 已正確載入', { category: 'dependency' })
-    } else {
-      throw new StandardError('UNKNOWN_ERROR', 'EventHandler 未在全域變數中找到，請確認 event-handler.js 已正確載入', {
-        category: 'general'
-      })
-    }
+    const error = new Error('EventHandler 未在全域變數中找到，請確認 event-handler.js 已正確載入')
+    error.code = ErrorCodes?.DEPENDENCY_ERROR || 'DEPENDENCY_ERROR'
+    error.details = { category: 'dependency' }
+    throw error
   }
 } else {
   // Node.js 環境：使用 require
   EventHandlerClass = require('src/core/event-handler')
-  const { StandardError: StandardErrorClass } = require('src/core/errors/StandardError')
-  StandardError = StandardErrorClass
+  const { ErrorCodes: ErrorCodesClass } = require('src/core/errors/ErrorCodes')
+  ErrorCodes = ErrorCodesClass
 }
 
 // 常數定義
@@ -701,11 +698,17 @@ class OverviewPageController extends EventHandlerClass {
   _validateFileBasics (file) {
     if (!file) {
       this.showError('請先選擇一個 JSON 檔案！')
-      throw new StandardError('VALIDATION_ERROR', '檔案不存在', { category: 'validation' })
+      const error = new Error('檔案不存在')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'validation' }
+      throw error
     }
     if (!this._isJSONFile(file)) {
       this.showError('請選擇 JSON 格式的檔案！')
-      throw new StandardError('VALIDATION_ERROR', '檔案格式不正確', { category: 'validation' })
+      const error = new Error('檔案格式不正確')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'validation' }
+      throw error
     }
   }
 
@@ -735,7 +738,10 @@ class OverviewPageController extends EventHandlerClass {
     const maxSize = 10 * 1024 * 1024 // 10MB
     if (file.size > maxSize) {
       this.showError('檔案過大，請選擇小於 10MB 的檔案！')
-      throw new StandardError('VALIDATION_ERROR', '檔案大小超出限制', { category: 'validation' })
+      const error = new Error('檔案大小超出限制')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'validation' }
+      throw error
     }
   }
 
@@ -811,9 +817,10 @@ class OverviewPageController extends EventHandlerClass {
   _handleReaderError (reject) {
     const errorMsg = '讀取檔案時發生錯誤'
     this.showError(errorMsg)
-    reject(new StandardError('UNKNOWN_ERROR', errorMsg, {
-      category: 'general'
-    }))
+    const error = new Error(errorMsg)
+    error.code = ErrorCodes.UNKNOWN_ERROR
+    error.details = { category: 'general' }
+    reject(error)
   }
 
   /**
@@ -1029,7 +1036,10 @@ class OverviewPageController extends EventHandlerClass {
    */
   _validateAndCleanContent (content) {
     if (!content || content.trim() === '') {
-      throw new StandardError('VALIDATION_ERROR', '檔案內容為空', { category: 'validation' })
+      const error = new Error('檔案內容為空')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'validation' }
+      throw error
     }
     return this._removeBOM(content)
   }
@@ -1055,7 +1065,10 @@ class OverviewPageController extends EventHandlerClass {
       return JSON.parse(content)
     } catch (error) {
       if (error instanceof SyntaxError) {
-        throw new StandardError('PARSING_ERROR', 'JSON 檔案格式不正確', { category: 'parsing' })
+        const error = new Error('JSON 檔案格式不正確')
+        error.code = ErrorCodes.PARSE_ERROR
+        error.details = { category: 'parsing' }
+        throw error
       }
       throw error
     }
@@ -1132,7 +1145,10 @@ class OverviewPageController extends EventHandlerClass {
       return [] // 空對象回傳空陣列
     }
 
-    throw new StandardError('VALIDATION_ERROR', 'JSON 檔案應該包含一個陣列或包含books屬性的物件', { category: 'validation' })
+    const error = new Error('JSON 檔案應該包含一個陣列或包含books屬性的物件')
+    error.code = ErrorCodes.VALIDATION_ERROR
+    error.details = { category: 'validation' }
+    throw error
   }
 
   /**

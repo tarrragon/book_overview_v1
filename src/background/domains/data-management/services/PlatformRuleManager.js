@@ -405,7 +405,7 @@ class PlatformRuleManager {
         return baseRules
 
       default:
-        throw new StandardError('UNKNOWN_ERROR', `Unsupported platform: ${platform}`, {
+        throw new StandardError('UNKNOWN_ERROR', 'Unsupported platform: ${platform}', {
           category: 'general'
         })
     }
@@ -451,7 +451,7 @@ class PlatformRuleManager {
       })
     }
     if (!this._isPlatformSupported(platform)) {
-      throw new StandardError('UNKNOWN_ERROR', `Unsupported platform: ${platform}`, {
+      throw new StandardError('UNKNOWN_ERROR', 'Unsupported platform: ${platform}', {
         category: 'general'
       })
     }

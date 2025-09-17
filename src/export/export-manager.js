@@ -330,21 +330,21 @@ class ExportManager {
    */
   _validateExportData (exportData, format) {
     if (!exportData || !exportData.books) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', `Invalid ${format} export data: books array is required`, {
+      throw new StandardError('REQUIRED_FIELD_MISSING', 'Invalid ${format} export data: books array is required', {
         dataType: 'array',
         category: 'export'
       })
     }
 
     if (!Array.isArray(exportData.books)) {
-      throw new StandardError('INVALID_DATA_FORMAT', `Invalid ${format} export data: books must be an array`, {
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid ${format} export data: books must be an array', {
         dataType: 'array',
         category: 'export'
       })
     }
 
     if (exportData.books.length === 0) {
-      throw new StandardError('INVALID_DATA_FORMAT', `Invalid ${format} export data: books array cannot be empty`, {
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid ${format} export data: books array cannot be empty', {
         dataType: 'array',
         category: 'export'
       })

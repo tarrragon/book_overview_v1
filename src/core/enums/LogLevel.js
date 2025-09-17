@@ -39,7 +39,7 @@ function compareLogLevels (level1, level2) {
   const value2 = LogLevelValues[level2]
 
   if (value1 === undefined || value2 === undefined) {
-    throw new StandardError('INVALID_LOG_LEVEL', `Invalid log level comparison: ${level1} vs ${level2}`, {
+    throw new StandardError('INVALID_LOG_LEVEL', 'Invalid log level comparison: ${level1} vs ${level2}', {
       level1,
       level2,
       validLevels: Object.keys(LogLevelValues),

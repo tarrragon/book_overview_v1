@@ -148,9 +148,8 @@ async function retryOperation (operation, options = {}) {
       lastError = error
       if (attempt === maxRetries) {
         throw new StandardError('OPERATION_FAILED', `Operation failed after ${maxRetries + 1} attempts: ${error.message}`, {
-          values: [
-            '1'
-          ],
+          attempts: maxRetries + 1,
+          originalError: error.message,
           category: 'general'
         })
       }

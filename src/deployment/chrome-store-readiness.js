@@ -247,7 +247,7 @@ class ChromeStoreReadiness {
       // 檢查 Manifest 版本
       this.checkItem('manifest_version', () => {
         if (manifest.manifest_version !== MANIFEST.REQUIRED_VERSION) {
-          throw new StandardError('MANIFEST_VERSION_INVALID', `必須使用 Manifest V${MANIFEST.REQUIRED_VERSION}，目前版本: ${manifest.manifest_version}`, {
+          throw new StandardError('MANIFEST_VERSION_INVALID', '必須使用 Manifest V${MANIFEST.REQUIRED_VERSION}，目前版本: ${manifest.manifest_version}', {
             required: MANIFEST.REQUIRED_VERSION,
             current: manifest.manifest_version,
             category: 'manifest_validation'
@@ -353,7 +353,7 @@ class ChromeStoreReadiness {
       // 檢查總檔案大小
       this.checkItem('total_size_check', () => {
         if (fileStats.totalSize > FILE_SIZE.MAX_TOTAL_SIZE) {
-          throw new StandardError('FILE_SIZE_EXCEEDED', `總檔案大小超限 (${this.formatBytes(fileStats.totalSize)}/${this.formatBytes(FILE_SIZE.MAX_TOTAL_SIZE)})`, {
+          throw new StandardError('FILE_SIZE_EXCEEDED', '總檔案大小超限 (${this.formatBytes(fileStats.totalSize)}/${this.formatBytes(FILE_SIZE.MAX_TOTAL_SIZE)})', {
             totalSize: fileStats.totalSize,
             maxSize: FILE_SIZE.MAX_TOTAL_SIZE,
             category: 'file_size_validation'
@@ -581,7 +581,7 @@ class ChromeStoreReadiness {
         const startupTime = 800 // 模擬啟動時間 (ms)
 
         if (startupTime > PERFORMANCE.MAX_STARTUP_TIME) {
-          throw new StandardError('PERFORMANCE_STARTUP_TOO_SLOW', `啟動時間過長: ${startupTime}ms > ${PERFORMANCE.MAX_STARTUP_TIME}ms`, {
+          throw new StandardError('PERFORMANCE_STARTUP_TOO_SLOW', '啟動時間過長: ${startupTime}ms > ${PERFORMANCE.MAX_STARTUP_TIME}ms', {
             startupTime,
             maxStartupTime: PERFORMANCE.MAX_STARTUP_TIME,
             category: 'performance_validation'
@@ -596,7 +596,7 @@ class ChromeStoreReadiness {
         const memoryUsage = 35 * 1024 * 1024 // 模擬記憶體使用 (35MB)
 
         if (memoryUsage > PERFORMANCE.MAX_MEMORY_USAGE) {
-          throw new StandardError('PERFORMANCE_MEMORY_TOO_HIGH', `記憶體使用過高: ${this.formatBytes(memoryUsage)} > ${this.formatBytes(PERFORMANCE.MAX_MEMORY_USAGE)}`, {
+          throw new StandardError('PERFORMANCE_MEMORY_TOO_HIGH', '記憶體使用過高: ${this.formatBytes(memoryUsage)} > ${this.formatBytes(PERFORMANCE.MAX_MEMORY_USAGE)}', {
             memoryUsage,
             maxMemoryUsage: PERFORMANCE.MAX_MEMORY_USAGE,
             category: 'performance_validation'
@@ -634,7 +634,7 @@ class ChromeStoreReadiness {
         const { MIN_FUNCTIONALITY_SCORE } = ChromeStoreReadiness.STANDARDS.QUALITY
 
         if (functionalityScore < MIN_FUNCTIONALITY_SCORE) {
-          throw new StandardError('FUNCTIONALITY_SCORE_TOO_LOW', `功能完整性分數不足: ${functionalityScore} < ${MIN_FUNCTIONALITY_SCORE}`, {
+          throw new StandardError('FUNCTIONALITY_SCORE_TOO_LOW', '功能完整性分數不足: ${functionalityScore} < ${MIN_FUNCTIONALITY_SCORE}', {
             functionalityScore,
             minFunctionalityScore: MIN_FUNCTIONALITY_SCORE,
             category: 'functionality_validation'

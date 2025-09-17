@@ -127,7 +127,7 @@ class DataNormalizationService {
         timestamp: Date.now()
       }
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', `Normalization failed: ${error.message}`, {
+      throw new StandardError('OPERATION_FAILED', 'Normalization failed: ${error.message}', {
         category: 'general'
       })
     }

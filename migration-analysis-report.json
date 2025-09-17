@@ -1,0 +1,614 @@
+{
+  "summary": {
+    "timestamp": "2025-09-17T06:06:45.428Z",
+    "totalFiles": 213,
+    "affectedFiles": 17,
+    "totalUsages": 31,
+    "overallRiskLevel": "MEDIUM",
+    "migrationPhases": 17
+  },
+  "detailedAnalysis": {
+    "usagePatterns": {
+      "mostCommonErrors": {
+        "UNKNOWN_ERROR": 28,
+        "UNKNOWN": 2,
+        "OPERATION_TIMEOUT": 1
+      },
+      "moduleDistribution": {
+        "background": 4,
+        "content": 2,
+        "core": 2,
+        "other": 6,
+        "storage": 2,
+        "ui": 1
+      },
+      "complexityDistribution": {
+        "low": 0,
+        "medium": 2,
+        "high": 15
+      },
+      "migrationStrategies": {
+        "DIRECT_REPLACEMENT": 28,
+        "NEEDS_REVIEW": 2,
+        "ADAPTER_MIGRATION": 1
+      }
+    },
+    "riskAssessment": {
+      "riskFactors": {
+        "fileComplexity": 49,
+        "moduleInterdependency": 0,
+        "testCoverage": 0,
+        "criticalPath": 15
+      },
+      "totalRisk": 64,
+      "averageRisk": 3.764705882352941,
+      "overallRiskLevel": "MEDIUM",
+      "recommendations": [
+        "分階段遷移",
+        "加強測試覆蓋"
+      ]
+    },
+    "migrationPlan": [
+      {
+        "phase": 1,
+        "files": [
+          {
+            "filePath": "src/popup/popup-initialization-tracker.js",
+            "usages": [
+              {
+                "lineNumber": 214,
+                "lineContent": "this.failStep(stepId, new StandardError('OPERATION_TIMEOUT', `步驟超時 (${step.timeout}ms, {",
+                "errorCode": "OPERATION_TIMEOUT",
+                "suggestedMigration": {
+                  "targetErrorCode": "TIMEOUT_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              }
+            ],
+            "moduleType": "other",
+            "complexity": "medium"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "LOW"
+      },
+      {
+        "phase": 2,
+        "files": [
+          {
+            "filePath": "src/ui/book-search-filter.js",
+            "usages": [
+              {
+                "lineNumber": 1032,
+                "lineContent": "new StandardError('UNKNOWN_ERROR', validation.error, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "ui",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 3,
+        "files": [
+          {
+            "filePath": "src/error-handling/error-system-init.js",
+            "usages": [
+              {
+                "lineNumber": 202,
+                "lineContent": ": new StandardError('UNKNOWN_ERROR', String(error, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "other",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 4,
+        "files": [
+          {
+            "filePath": "src/error-handling/message-error-handler.js",
+            "usages": [
+              {
+                "lineNumber": 474,
+                "lineContent": "const error = new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "other",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 5,
+        "files": [
+          {
+            "filePath": "src/overview/overview-page-controller.js",
+            "usages": [
+              {
+                "lineNumber": 814,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', errorMsg, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "other",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 6,
+        "files": [
+          {
+            "filePath": "src/popup/popup-diagnostic-enhancer.js",
+            "usages": [
+              {
+                "lineNumber": 226,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 239,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "other",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 7,
+        "files": [
+          {
+            "filePath": "src/popup/services/popup-communication-service.js",
+            "usages": [
+              {
+                "lineNumber": 87,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', errorMsg, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 114,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', errorMsg, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 130,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', errorMsg, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 163,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', errorMsg, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 179,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', errorMsg, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 190,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', errorMsg, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 313,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', errorMessage, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "other",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 8,
+        "files": [
+          {
+            "filePath": "src/storage/adapters/chrome-storage-adapter.js",
+            "usages": [
+              {
+                "lineNumber": 434,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 451,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 476,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 493,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 514,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 584,
+                "lineContent": "const error = new StandardError('UNKNOWN_ERROR', message, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "storage",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 9,
+        "files": [
+          {
+            "filePath": "src/storage/adapters/local-storage-adapter.js",
+            "usages": [
+              {
+                "lineNumber": 628,
+                "lineContent": "const error = new StandardError('UNKNOWN_ERROR', message, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "storage",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 10,
+        "files": [
+          {
+            "filePath": "src/content/bridge/chrome-event-bridge.js",
+            "usages": [
+              {
+                "lineNumber": 195,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 255,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 276,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "content",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 11,
+        "files": [
+          {
+            "filePath": "src/content/utils/error-handling-utils.js",
+            "usages": [
+              {
+                "lineNumber": 406,
+                "lineContent": "const error = new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "content",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 12,
+        "files": [
+          {
+            "filePath": "src/core/errors/StandardError.js",
+            "usages": [
+              {
+                "lineNumber": 196,
+                "lineContent": "const error = new StandardError(json.code, json.message, json.details)",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "core",
+            "complexity": "medium"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 13,
+        "files": [
+          {
+            "filePath": "src/background/domains/extraction/services/extraction-state-service.js",
+            "usages": [
+              {
+                "lineNumber": 785,
+                "lineContent": "await this.failExtractionJob(jobId, new StandardError('UNKNOWN_ERROR', error, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 14,
+        "files": [
+          {
+            "filePath": "src/background/domains/platform/services/platform-registry-service.js",
+            "usages": [
+              {
+                "lineNumber": 816,
+                "lineContent": "await this.logError('註冊表完整性檢查發現問題', new StandardError('UNKNOWN_ERROR', issues.join('; ', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 15,
+        "files": [
+          {
+            "filePath": "src/background/domains/platform/services/platform-switcher-service.js",
+            "usages": [
+              {
+                "lineNumber": 596,
+                "lineContent": "await this.logError('故障轉移失敗', new StandardError('UNKNOWN_ERROR', fallbackResult.error, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 16,
+        "files": [
+          {
+            "filePath": "src/background/messaging/chrome-api-wrapper.js",
+            "usages": [
+              {
+                "lineNumber": 228,
+                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 17,
+        "files": [
+          {
+            "filePath": "src/core/migration/StandardErrorMigrationAnalyzer.js",
+            "usages": [
+              {
+                "lineNumber": 158,
+                "lineContent": "// 匹配 new StandardError( 模式",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "core",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      }
+    ]
+  },
+  "recommendations": [
+    "建議採用分階段謹慎遷移",
+    "每階段完成後進行完整測試"
+  ],
+  "nextSteps": [
+    "1. 建立 StandardError 到 ErrorCodes 的向後相容包裝器",
+    "2. 實作自動化遷移工具",
+    "3. 建立遷移測試套件",
+    "4. 執行第一階段遷移（低風險模組）",
+    "5. 驗證遷移結果並調整策略",
+    "6. 繼續後續階段的遷移"
+  ]
+}

@@ -239,7 +239,7 @@ class SyncConflictResolver {
     const strategyProcessor = this.conflictStrategies.get(strategy)
 
     if (!strategyProcessor) {
-      throw new StandardError('UNKNOWN_ERROR', `未支援的衝突解決策略: ${strategy}`, {
+      throw new StandardError('UNKNOWN_ERROR', '未支援的衝突解決策略: ${strategy}', {
         category: 'general'
       })
     }

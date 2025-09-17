@@ -935,7 +935,7 @@ class DataValidationService {
 
       this.isInitialized = true
     } catch (error) {
-      throw new StandardError('UNKNOWN_ERROR', `初始化失敗: ${error.message}`, {
+      throw new StandardError('UNKNOWN_ERROR', '初始化失敗: ${error.message}', {
         category: 'validation'
       })
     }
@@ -946,7 +946,7 @@ class DataValidationService {
    */
   async loadPlatformValidationRules (platform) {
     if (!this.config.supportedPlatforms.includes(platform)) {
-      throw new StandardError('UNKNOWN_ERROR', `不支援的平台: ${platform}`, {
+      throw new StandardError('UNKNOWN_ERROR', '不支援的平台: ${platform}', {
         category: 'validation'
       })
     }
@@ -959,7 +959,7 @@ class DataValidationService {
     try {
       await this.loadRulesForPlatform(platform)
     } catch (error) {
-      throw new StandardError('UNKNOWN_ERROR', `載入驗證規則失敗: ${error.message}`, {
+      throw new StandardError('UNKNOWN_ERROR', '載入驗證規則失敗: ${error.message}', {
         category: 'validation'
       })
     }

@@ -335,7 +335,7 @@ class ValidationRuleManager extends BaseModule {
    */
   validatePlatformSupported (platform) {
     if (!this.supportedPlatforms.includes(platform)) {
-      throw new StandardError('FEATURE_NOT_SUPPORTED', `Platform ${platform} is not supported`, {
+      throw new StandardError('FEATURE_NOT_SUPPORTED', 'Platform ${platform} is not supported', {
         category: 'validation'
       })
     }
@@ -383,12 +383,12 @@ class ValidationRuleManager extends BaseModule {
    */
   validateLoadedRules (platform, rules) {
     if (!rules) {
-      throw new StandardError('OPERATION_FAILED', `Failed to load validation rules for platform ${platform}`, {
+      throw new StandardError('OPERATION_FAILED', 'Failed to load validation rules for platform ${platform}', {
         category: 'validation'
       })
     }
     if (!this.validateRuleStructure(rules)) {
-      throw new StandardError('INVALID_DATA_FORMAT', `Invalid rule structure for platform ${platform}`, {
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid rule structure for platform ${platform}', {
         category: 'validation'
       })
     }

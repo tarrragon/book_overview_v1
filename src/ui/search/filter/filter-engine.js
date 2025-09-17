@@ -28,6 +28,7 @@
  */
 
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class FilterEngine {
   /**
@@ -42,9 +43,10 @@ class FilterEngine {
     const { eventBus, logger, config = {} } = options
 
     if (!eventBus || !logger) {
-      throw new StandardError('EVENTBUS_ERROR', 'EventBus 和 Logger 是必需的', {
-        category: 'ui'
-      })
+      const error = new Error('EventBus 和 Logger 是必需的')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     this.eventBus = eventBus
@@ -107,9 +109,10 @@ class FilterEngine {
    */
   async applyFilters (books, filters) {
     if (this._isDestroyed) {
-      throw new StandardError('UNKNOWN_ERROR', '篩選器已被銷毀', {
-        category: 'ui'
-      })
+      const error = new Error('篩選器已被銷毀')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     // 驗證輸入參數
@@ -295,14 +298,16 @@ class FilterEngine {
     try {
       filterDate = new Date(dateString)
       if (isNaN(filterDate.getTime())) {
-        throw new StandardError('INVALID_DATA_FORMAT', 'Invalid date', {
-          category: 'ui'
-        })
+        const error = new Error('Invalid date')
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'ui' }
+        throw error
       }
     } catch (error) {
-      throw new StandardError('UNKNOWN_ERROR', '無效的日期格式', {
-        category: 'ui'
-      })
+      const dateError = new Error('無效的日期格式')
+      dateError.code = ErrorCodes.VALIDATION_ERROR
+      dateError.details = { category: 'ui' }
+      throw dateError
     }
 
     return books.filter(book => {
@@ -420,21 +425,24 @@ class FilterEngine {
    */
   _validateInputs (books, filters) {
     if (!Array.isArray(books)) {
-      throw new StandardError('UNKNOWN_ERROR', '書籍陣列是必需的', {
-        category: 'ui'
-      })
+      const error = new Error('書籍陣列是必需的')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     if (filters === null || filters === undefined) {
-      throw new StandardError('UNKNOWN_ERROR', '篩選條件是必需的', {
-        category: 'ui'
-      })
+      const error = new Error('篩選條件是必需的')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     if (typeof filters !== 'object') {
-      throw new StandardError('UNKNOWN_ERROR', '篩選條件必須是物件', {
-        category: 'ui'
-      })
+      const error = new Error('篩選條件必須是物件')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
   }
 

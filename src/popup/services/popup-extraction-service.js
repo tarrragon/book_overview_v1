@@ -31,7 +31,7 @@
  * @since 2025-08-18
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class PopupExtractionService {
   /**
@@ -44,19 +44,22 @@ class PopupExtractionService {
   constructor (statusManager, progressManager, communicationService, options = {}) {
     // 驗證必要依賴
     if (!statusManager) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'StatusManager is required', {
-        category: 'ui'
-      })
+      const error = new Error('StatusManager is required')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui', field: 'statusManager' }
+      throw error
     }
     if (!progressManager) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'ProgressManager is required', {
-        category: 'ui'
-      })
+      const error = new Error('ProgressManager is required')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
     if (!communicationService) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'CommunicationService is required', {
-        category: 'ui'
-      })
+      const error = new Error('CommunicationService is required')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     // 儲存依賴實例
@@ -91,9 +94,10 @@ class PopupExtractionService {
   async startExtraction (extractionOptions = {}) {
     // 防止重複提取
     if (this.isExtracting) {
-      throw new StandardError('EXTRACTION_FAILED', 'Extraction already in progress', {
-        category: 'general'
-      })
+      const error = new Error('Extraction already in progress')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'general', operation: 'extraction' }
+      throw error
     }
 
     try {
@@ -201,9 +205,10 @@ class PopupExtractionService {
         text: '資料處理失敗',
         info: '提取結果格式無效'
       })
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid extraction result format', {
-        category: 'general'
-      })
+      const error = new Error('Invalid extraction result format')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general', dataType: 'extractionResult' }
+      throw error
     }
 
     const { books, totalProcessed, successCount, failureCount } = extractionResult
@@ -418,9 +423,10 @@ class PopupExtractionService {
       }
     }
 
-    throw new StandardError('OPERATION_FAILED', `Extraction failed after ${this.config.maxRetries} retries: ${lastError.message}`, {
-      category: 'general'
-    })
+    const error = new Error(`Extraction failed after ${this.config.maxRetries} retries: ${lastError.message}`)
+    error.code = ErrorCodes.OPERATION_ERROR
+    error.details = { category: 'general', maxRetries: this.config.maxRetries, lastError: lastError.message }
+    throw error
   }
 
   /**

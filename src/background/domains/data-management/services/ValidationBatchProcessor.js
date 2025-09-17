@@ -173,7 +173,7 @@ class ValidationBatchProcessor {
       batchStatus.error = error.message
       batchStatus.endTime = Date.now()
       this.activeBatches.delete(batchId)
-      throw new StandardError('OPERATION_FAILED', `Batch processing failed: ${error.message}`, {
+      throw new StandardError('OPERATION_FAILED', 'Batch processing failed: ${error.message}', {
         category: 'general'
       })
     }
@@ -472,7 +472,7 @@ class ValidationBatchProcessor {
     // 檢查平台是否為已知支援的平台
     const supportedPlatforms = ['READMOO', 'KINDLE', 'KOBO', 'BOOKWALKER', 'BOOKS_COM']
     if (!supportedPlatforms.includes(platform)) {
-      throw new StandardError('UNKNOWN_ERROR', `Unsupported platform: ${platform}`, {
+      throw new StandardError('UNKNOWN_ERROR', 'Unsupported platform: ${platform}', {
         category: 'general'
       })
     }

@@ -173,7 +173,7 @@ function createChromeEventBridge () {
         case 'popup':
           return await this.dispatchToPopup(event)
         default:
-          throw new StandardError('UNKNOWN_ERROR', `Unknown target context: ${targetContext}`, {
+          throw new StandardError('UNKNOWN_ERROR', 'Unknown target context: ${targetContext}', {
             category: 'general'
           })
       }

@@ -396,7 +396,7 @@ class ValidationService {
       // 獲取驗證規則
       const rules = this.ruleGroups.get(ruleGroup)
       if (!rules) {
-        throw new StandardError('UNKNOWN_ERROR', `未找到規則群組: ${ruleGroup}`, {
+        throw new StandardError('UNKNOWN_ERROR', '未找到規則群組: ${ruleGroup}', {
           category: 'validation'
         })
       }
@@ -478,7 +478,7 @@ class ValidationService {
         // 使用標準驗證規則
         const validationRule = this.validationRules.get(rule)
         if (!validationRule) {
-          throw new StandardError('UNKNOWN_ERROR', `未找到驗證規則: ${rule}`, {
+          throw new StandardError('UNKNOWN_ERROR', '未找到驗證規則: ${rule}', {
             category: 'validation'
           })
         }

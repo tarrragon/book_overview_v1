@@ -184,13 +184,13 @@ class I18nManager extends BaseModule {
           resource = require('./locales/en-us')
           break
         default:
-          throw new StandardError('UNKNOWN_ERROR', `不支援的語言代碼: ${languageCode}`, {
+          throw new StandardError('UNKNOWN_ERROR', '不支援的語言代碼: ${languageCode}', {
             category: 'general'
           })
       }
 
       if (!resource || typeof resource !== 'object') {
-        throw new StandardError('UNKNOWN_ERROR', `語言資源格式錯誤: ${languageCode}`, {
+        throw new StandardError('UNKNOWN_ERROR', '語言資源格式錯誤: ${languageCode}', {
           category: 'general'
         })
       }

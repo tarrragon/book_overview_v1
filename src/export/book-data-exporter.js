@@ -826,7 +826,7 @@ class BookDataExporter {
           defaultName = 'books.json'
           break
         default:
-          throw new StandardError('UNKNOWN_ERROR', `Unsupported format: ${format}`, {
+          throw new StandardError('UNKNOWN_ERROR', 'Unsupported format: ${format}', {
             category: 'export'
           })
       }
@@ -872,7 +872,7 @@ class BookDataExporter {
           data = this.exportToJSON(options)
           break
         default:
-          throw new StandardError('UNKNOWN_ERROR', `Unsupported format for clipboard: ${format}`, {
+          throw new StandardError('UNKNOWN_ERROR', 'Unsupported format for clipboard: ${format}', {
             category: 'export'
           })
       }
@@ -933,7 +933,7 @@ class BookDataExporter {
   exportWithTemplate (templateName) {
     const template = this.templates.get(templateName)
     if (!template) {
-      throw new StandardError('RESOURCE_NOT_FOUND', `Template not found: ${templateName}`, {
+      throw new StandardError('RESOURCE_NOT_FOUND', 'Template not found: ${templateName}', {
         category: 'export'
       })
     }
@@ -953,7 +953,7 @@ class BookDataExporter {
       case 'pdf':
         return this.exportToPDF(options)
       default:
-        throw new StandardError('UNKNOWN_ERROR', `Unsupported template format: ${template.format}`, {
+        throw new StandardError('UNKNOWN_ERROR', 'Unsupported template format: ${template.format}', {
           category: 'export'
         })
     }
@@ -977,7 +977,7 @@ class BookDataExporter {
       case 'pdf':
         return this.exportToPDF(options)
       default:
-        throw new StandardError('EXPORT_OPERATION_FAILED', `Unsupported export format: ${format}`, {
+        throw new StandardError('EXPORT_OPERATION_FAILED', 'Unsupported export format: ${format}', {
           category: 'export'
         })
     }

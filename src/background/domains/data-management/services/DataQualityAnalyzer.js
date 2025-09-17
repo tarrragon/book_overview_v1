@@ -163,7 +163,7 @@ class DataQualityAnalyzer {
       return analysis
     } catch (error) {
       this._updateStatistics({ processingTime: Date.now() - startTime }, true)
-      throw new StandardError('OPERATION_FAILED', `Quality analysis failed: ${error.message}`, {
+      throw new StandardError('OPERATION_FAILED', 'Quality analysis failed: ${error.message}', {
         category: 'general'
       })
     }
@@ -489,7 +489,7 @@ class DataQualityAnalyzer {
     // 驗證平台支援
     const platformSupport = this.platformRuleManager.validatePlatformSupport(platform)
     if (!platformSupport.isSupported) {
-      throw new StandardError('FEATURE_NOT_SUPPORTED', `Platform not supported: ${platform}`, {
+      throw new StandardError('FEATURE_NOT_SUPPORTED', 'Platform not supported: ${platform}', {
         category: 'general'
       })
     }

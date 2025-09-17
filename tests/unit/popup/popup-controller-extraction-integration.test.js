@@ -11,7 +11,7 @@
 
 // Mock DOM 環境
 const { JSDOM } = require('jsdom')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 // Mock Chrome Extension APIs
 const mockChromeAPI = {
@@ -170,15 +170,21 @@ describe('PopupController 提取服務整合測試', () => {
       // Then: 應該拋出錯誤
       expect(() => {
         new PopupExtractionService(null, {}, {})
-      }).toThrow(StandardError)
+      }).toThrowError(expect.objectContaining({
+        code: ErrorCodes.VALIDATION_ERROR
+      }))
 
       expect(() => {
         new PopupExtractionService({}, null, {})
-      }).toThrow(StandardError)
+      }).toThrowError(expect.objectContaining({
+        code: ErrorCodes.VALIDATION_ERROR
+      }))
 
       expect(() => {
         new PopupExtractionService({}, {}, null)
-      }).toThrow(StandardError)
+      }).toThrowError(expect.objectContaining({
+        code: ErrorCodes.VALIDATION_ERROR
+      }))
     })
 
     test('應該防止重複提取', async () => {
@@ -205,7 +211,9 @@ describe('PopupController 提取服務整合測試', () => {
       await extractionService.startExtraction()
 
       // Then: 第二次提取應該被拒絕
-      await expect(extractionService.startExtraction()).rejects.toThrow(StandardError)
+      await expect(extractionService.startExtraction()).rejects.toThrowError(expect.objectContaining({
+        code: ErrorCodes.OPERATION_ERROR
+      }))
     })
 
     test('應該支援提取取消功能', async () => {
@@ -272,11 +280,15 @@ describe('PopupController 提取服務整合測試', () => {
       // Then: 應該拋出錯誤並更新狀態
       expect(() => {
         extractionService.processExtractionResult(null)
-      }).toThrow(StandardError)
+      }).toThrowError(expect.objectContaining({
+        code: ErrorCodes.VALIDATION_ERROR
+      }))
 
       expect(() => {
         extractionService.processExtractionResult({ books: [] })
-      }).toThrow(StandardError)
+      }).toThrowError(expect.objectContaining({
+        code: ErrorCodes.VALIDATION_ERROR
+      }))
 
       // 狀態應該顯示錯誤
       expect(document.getElementById('status-text').textContent).toBe('資料處理失敗')
@@ -395,7 +407,9 @@ describe('PopupController 提取服務整合測試', () => {
 
       // When: 嘗試開始提取
       // Then: 應該在重試耗盡後拋出錯誤
-      await expect(extractionService.startExtraction()).rejects.toThrow(StandardError)
+      await expect(extractionService.startExtraction()).rejects.toThrowError(expect.objectContaining({
+        code: ErrorCodes.OPERATION_ERROR
+      }))
 
       // 狀態應該顯示錯誤
       expect(document.getElementById('status-text').textContent).toBe('提取失敗')
@@ -490,7 +504,10 @@ describe('PopupController 提取服務整合測試', () => {
       // Mock StatusManager 拋出錯誤
       const statusManager = controller.getComponent('status')
       jest.spyOn(statusManager, 'updateStatus').mockImplementation(() => {
-        throw new StandardError('POPUP_STATUS_UPDATE_ERROR', 'Status update failed', { category: 'testing' })
+        const error = new Error('Status update failed')
+        error.code = ErrorCodes.OPERATION_ERROR
+        error.details = { category: 'testing' }
+        throw error
       })
 
       // When: 嘗試協調狀態更新

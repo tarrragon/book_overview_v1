@@ -28,6 +28,7 @@ const EventHandler = require('src/core/event-handler')
 const BookDataExporter = require('src/export/book-data-exporter')
 const { EXPORT_EVENTS } = require('src/export/export-events')
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 /**
  * CSV 匯出處理器類別
@@ -120,16 +121,20 @@ class CSVExportHandler extends EventHandler {
    */
   _validateEventData (eventData) {
     if (!eventData) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'Event data is required', {
-        category: 'export'
-      })
+      const error = new Error('Event data is required')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'export' }
+      throw error
     }
 
     if (!eventData.books || !Array.isArray(eventData.books)) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'Books array is required for CSV export', {
+      const error = new Error('Books array is required for CSV export')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         dataType: 'array',
         category: 'export'
-      })
+      }
+      throw error
     }
 
     if (!eventData.options || typeof eventData.options !== 'object') {

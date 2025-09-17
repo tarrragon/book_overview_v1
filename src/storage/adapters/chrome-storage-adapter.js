@@ -255,7 +255,7 @@ class ChromeStorageAdapter {
             result = await this.delete(operation.key)
             break
           default:
-            throw new StandardError('UNKNOWN_ERROR', `Unsupported operation type: ${operation.type}`, {
+            throw new StandardError('UNKNOWN_ERROR', 'Unsupported operation type: ${operation.type}', {
               category: 'storage'
             })
         }
@@ -327,7 +327,7 @@ class ChromeStorageAdapter {
           result = await this.cleanupAuto(options)
           break
         default:
-          throw new StandardError('UNKNOWN_ERROR', `Unsupported cleanup strategy: ${strategy}`, {
+          throw new StandardError('UNKNOWN_ERROR', 'Unsupported cleanup strategy: ${strategy}', {
             category: 'storage'
           })
       }

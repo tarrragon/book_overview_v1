@@ -132,7 +132,7 @@ class ValidationCacheManager {
         processingTime: Date.now() - startTime
       }
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', `Cache validation result failed: ${error.message}`, {
+      throw new StandardError('OPERATION_FAILED', 'Cache validation result failed: ${error.message}', {
         category: 'validation'
       })
     }
@@ -182,7 +182,7 @@ class ValidationCacheManager {
       }
     } catch (error) {
       this._updateGetStatistics(false, null, 'validation')
-      throw new StandardError('OPERATION_FAILED', `Get cached validation failed: ${error.message}`, {
+      throw new StandardError('OPERATION_FAILED', 'Get cached validation failed: ${error.message}', {
         category: 'validation'
       })
     }
@@ -219,7 +219,7 @@ class ValidationCacheManager {
         size: cacheEntry.size
       }
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', `Cache quality analysis failed: ${error.message}`, {
+      throw new StandardError('OPERATION_FAILED', 'Cache quality analysis failed: ${error.message}', {
         category: 'general'
       })
     }
@@ -290,7 +290,7 @@ class ValidationCacheManager {
         expiresAt: cacheEntry.expiresAt
       }
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', `Cache platform rules failed: ${error.message}`, {
+      throw new StandardError('OPERATION_FAILED', 'Cache platform rules failed: ${error.message}', {
         category: 'general'
       })
     }
@@ -409,7 +409,7 @@ class ValidationCacheManager {
         criteria
       }
     } catch (error) {
-      throw new StandardError('INVALID_DATA_FORMAT', `Cache invalidation failed: ${error.message}`, {
+      throw new StandardError('INVALID_DATA_FORMAT', 'Cache invalidation failed: ${error.message}', {
         category: 'validation'
       })
     }
@@ -490,7 +490,7 @@ class ValidationCacheManager {
         preserveRules
       }
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', `Cache clearing failed: ${error.message}`, {
+      throw new StandardError('OPERATION_FAILED', 'Cache clearing failed: ${error.message}', {
         category: 'general'
       })
     }
@@ -571,7 +571,7 @@ class ValidationCacheManager {
 
       return optimization
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', `Cache optimization failed: ${error.message}`, {
+      throw new StandardError('OPERATION_FAILED', 'Cache optimization failed: ${error.message}', {
         category: 'general'
       })
     }
@@ -623,7 +623,7 @@ class ValidationCacheManager {
 
       return results
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', `Batch cache operation failed: ${error.message}`, {
+      throw new StandardError('OPERATION_FAILED', 'Batch cache operation failed: ${error.message}', {
         category: 'general'
       })
     }
@@ -652,7 +652,7 @@ class ValidationCacheManager {
 
       return results
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', `Batch get operation failed: ${error.message}`, {
+      throw new StandardError('OPERATION_FAILED', 'Batch get operation failed: ${error.message}', {
         category: 'general'
       })
     }
@@ -778,7 +778,7 @@ class ValidationCacheManager {
       await this.storage.set(key, entry)
       this.persistentKeys.add(key)
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', `Persistent cache set failed: ${error.message}`, {
+      throw new StandardError('OPERATION_FAILED', 'Persistent cache set failed: ${error.message}', {
         category: 'general'
       })
     }

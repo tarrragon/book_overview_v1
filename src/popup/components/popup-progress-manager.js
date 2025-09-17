@@ -61,7 +61,7 @@ class PopupProgressManager {
 
     // 驗證狀態類型
     if (!this.validProgressStates.includes(progressData.status)) {
-      throw new StandardError('INVALID_DATA_FORMAT', `Invalid progress status: ${progressData.status}`, {
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid progress status: ${progressData.status}', {
         category: 'general'
       })
     }

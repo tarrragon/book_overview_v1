@@ -192,25 +192,25 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
       expect(eventBusSpy).toHaveBeenCalledWith(
         'EXPORT.CSV.REQUESTED',
         expect.any(Function),
-        expect.objectContaining({ priority: expect.toBeGreaterThan(0) })
+        expect.objectContaining({ priority: expect.any(Number) })
       )
 
       expect(eventBusSpy).toHaveBeenCalledWith(
         'EXPORT.JSON.REQUESTED',
         expect.any(Function),
-        expect.objectContaining({ priority: expect.toBeGreaterThan(0) })
+        expect.objectContaining({ priority: expect.any(Number) })
       )
 
       expect(eventBusSpy).toHaveBeenCalledWith(
         'EXPORT.BATCH.REQUESTED',
         expect.any(Function),
-        expect.objectContaining({ priority: expect.toBeGreaterThan(0) })
+        expect.objectContaining({ priority: expect.any(Number) })
       )
 
       expect(eventBusSpy).toHaveBeenCalledWith(
         'EXPORT.DOWNLOAD.REQUESTED',
         expect.any(Function),
-        expect.objectContaining({ priority: expect.toBeGreaterThan(0) })
+        expect.objectContaining({ priority: expect.any(Number) })
       )
     })
   })

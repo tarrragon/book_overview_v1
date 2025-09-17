@@ -297,7 +297,7 @@ class PermissionManagementService {
   async requestPermission (permissionKey, userInitiated = false) {
     const config = this.requiredPermissions.get(permissionKey)
     if (!config) {
-      throw new StandardError('PERMISSION_DENIED', `未知的權限: ${permissionKey}`, {
+      throw new StandardError('PERMISSION_DENIED', '未知的權限: ${permissionKey}', {
         category: 'permission'
       })
     }
@@ -427,7 +427,7 @@ class PermissionManagementService {
   async revokePermission (permissionKey) {
     const config = this.requiredPermissions.get(permissionKey)
     if (!config) {
-      throw new StandardError('PERMISSION_DENIED', `未知的權限: ${permissionKey}`, {
+      throw new StandardError('PERMISSION_DENIED', '未知的權限: ${permissionKey}', {
         category: 'permission'
       })
     }

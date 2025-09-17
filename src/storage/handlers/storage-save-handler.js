@@ -462,7 +462,7 @@ class StorageSaveHandler extends EventHandler {
         prefix = 'Storage error'
     }
 
-    const error = new StandardError('UNKNOWN_ERROR', `${prefix}: ${message}`, {
+    const error = new StandardError('UNKNOWN_ERROR', '${prefix}: ${message}', {
       category: 'storage'
     })
     error.type = type

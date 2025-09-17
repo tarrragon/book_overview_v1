@@ -362,7 +362,7 @@ class NotificationService {
 
     // 驗證必要欄位
     if (!notification.type || !this.notificationTypes[notification.type]) {
-      throw new StandardError('UNKNOWN_ERROR', `無效的通知類型: ${notification.type}`, {
+      throw new StandardError('UNKNOWN_ERROR', '無效的通知類型: ${notification.type}', {
         category: 'general'
       })
     }

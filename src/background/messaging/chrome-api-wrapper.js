@@ -15,7 +15,7 @@
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class ChromeApiWrapper extends BaseModule {
   constructor (dependencies = {}) {
@@ -129,9 +129,13 @@ class ChromeApiWrapper extends BaseModule {
     }
 
     if (missingApis.length > 0) {
-      throw new StandardError('MISSING_REQUIRED_DATA', `缺少必要的 Chrome API: ${missingApis.join(', ', {
-          category: 'general'
-      })}`)
+      const error = new Error(`缺少必要的 Chrome API: ${missingApis.join(', ')}`)
+      error.code = ErrorCodes.MISSING_REQUIRED_DATA
+      error.details = {
+        category: 'general',
+        missingApis
+      }
+      throw error
     }
 
     // 檢查 Manifest V3 支援
@@ -158,9 +162,10 @@ class ChromeApiWrapper extends BaseModule {
 
       // 驗證 API 支援
       if (!this.supportedApis.has(apiPath)) {
-        throw new StandardError('UNKNOWN_ERROR', `不支援的 API: ${apiPath}`, {
-          category: 'general'
-        })
+        const error = new Error(`不支援的 API: ${apiPath}`)
+        error.code = ErrorCodes.UNSUPPORTED_OPERATION
+        error.details = { category: 'general', apiPath }
+        throw error
       }
 
       // 更新統計
@@ -205,9 +210,10 @@ class ChromeApiWrapper extends BaseModule {
     // 遍歷 API 路徑
     for (const part of apiParts) {
       if (!api[part]) {
-        throw new StandardError('UNKNOWN_ERROR', `API 不存在: ${apiPath}`, {
-          category: 'general'
-        })
+        const error = new Error(`API 不存在: ${apiPath}`)
+        error.code = ErrorCodes.MISSING_REQUIRED_DATA
+        error.details = { category: 'general', apiPath }
+        throw error
       }
       api = api[part]
     }
@@ -225,9 +231,10 @@ class ChromeApiWrapper extends BaseModule {
           } else {
             // callback 模式，檢查 chrome.runtime.lastError
             if (chrome.runtime.lastError) {
-              reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-                category: 'general'
-              }))
+              const error = new Error(chrome.runtime.lastError.message)
+              error.code = ErrorCodes.UNKNOWN_ERROR
+              error.details = { category: 'general', source: 'chrome_runtime' }
+              reject(error)
             } else {
               resolve(result)
             }
@@ -237,9 +244,10 @@ class ChromeApiWrapper extends BaseModule {
         }
       })
     } else {
-      throw new StandardError('UNKNOWN_ERROR', `${apiPath} 不是一個函數`, {
-        category: 'general'
-      })
+      const error = new Error(`${apiPath} 不是一個函數`)
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general', apiPath, expectedType: 'function' }
+      throw error
     }
   }
 
@@ -256,9 +264,10 @@ class ChromeApiWrapper extends BaseModule {
     const maxRetries = options.maxRetries || this.retryConfig.maxRetries
 
     if (retryCount >= maxRetries) {
-      throw new StandardError('UNKNOWN_ERROR', `API 調用重試次數已達上限: ${apiPath}`, {
-        category: 'general'
-      })
+      const error = new Error(`API 調用重試次數已達上限: ${apiPath}`)
+      error.code = ErrorCodes.OPERATION_TIMEOUT
+      error.details = { category: 'general', apiPath, maxRetries: this.maxRetries }
+      throw error
     }
 
     // 延遲重試

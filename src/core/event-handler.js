@@ -1,5 +1,6 @@
 const { Logger } = require('src/core/logging/Logger')
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 /**
  * 事件處理器基底類別
@@ -87,7 +88,10 @@ class EventHandler {
    * @returns {Promise<any>} 處理結果
    */
   async process (event) {
-    throw new StandardError('IMPLEMENTATION_ERROR', 'Process method must be implemented by subclass')
+    const error = new Error('Process method must be implemented by subclass')
+    error.code = ErrorCodes.OPERATION_ERROR
+    error.details = { category: 'implementation' }
+    throw error
   }
 
   /**
@@ -144,7 +148,10 @@ class EventHandler {
    * @returns {string[]} 支援的事件類型列表
    */
   getSupportedEvents () {
-    throw new StandardError('IMPLEMENTATION_ERROR', 'getSupportedEvents method must be implemented by subclass')
+    const error = new Error('getSupportedEvents method must be implemented by subclass')
+    error.code = ErrorCodes.OPERATION_ERROR
+    error.details = { category: 'implementation' }
+    throw error
   }
 
   /**

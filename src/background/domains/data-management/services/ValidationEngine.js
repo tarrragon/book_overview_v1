@@ -143,7 +143,7 @@ class ValidationEngine {
       }
     } catch (error) {
       this._updateStatistics(Date.now() - startTime, false)
-      throw new StandardError('OPERATION_FAILED', `Validation failed: ${error.message}`, {
+      throw new StandardError('OPERATION_FAILED', 'Validation failed: ${error.message}', {
         category: 'validation'
       })
     }

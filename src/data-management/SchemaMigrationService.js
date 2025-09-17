@@ -716,7 +716,7 @@ class MockBackupManager {
   async restoreBackup (backupId) {
     const backup = this.backups.get(backupId)
     if (!backup) {
-      throw new StandardError('RESOURCE_NOT_FOUND', `Backup not found: ${backupId}`, {
+      throw new StandardError('RESOURCE_NOT_FOUND', 'Backup not found: ${backupId}', {
         category: 'general'
       })
     }

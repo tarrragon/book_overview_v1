@@ -1,6 +1,6 @@
 {
   "name": "readmoo-book-extractor",
-  "version": "0.12.19",
+  "version": "0.13.0",
   "description": "一個專為Readmoo電子書平台設計的Chrome擴充功能，能夠自動提取使用者書庫資料，並提供本地化的書目管理與匯出功能。",
   "main": "src/background/service-worker.js",
   "scripts": {
@@ -33,7 +33,19 @@
     "format:docs": "prettier --write \"docs/**/*.md\"",
     "serve": "http-server build/development -p 8080",
     "clean": "rimraf build/ coverage/ test-results/",
-    "docs": "jsdoc src/ -r -d docs/generated"
+    "docs": "jsdoc src/ -r -d docs/generated",
+    "migration:analyze": "node scripts/analyze-standarderror-migration.js",
+    "migration:auto": "node scripts/run-auto-migration.js",
+    "migration:suggest": "node scripts/run-auto-migration.js --mode=suggest_only",
+    "migration:convert": "node scripts/run-auto-migration.js --mode=auto_convert --risk-threshold=low",
+    "migration:manual": "node scripts/run-auto-migration.js --mode=manual_assist",
+    "migration:validate": "node scripts/validate-monitoring-system.js",
+    "migration:performance": "node scripts/run-performance-tests.js",
+    "migration:test-dual": "node scripts/test-dual-error-system.js",
+    "migration:progress": "node scripts/migration-progress-manager.js",
+    "migration:start": "node scripts/migration-progress-manager.js start",
+    "migration:status": "node scripts/migration-progress-manager.js status",
+    "migration:report": "node scripts/migration-progress-manager.js report"
   },
   "keywords": [
     "chrome-extension",

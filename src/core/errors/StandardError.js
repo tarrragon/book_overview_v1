@@ -187,7 +187,10 @@ class StandardError extends Error {
       if (json !== undefined) {
         details.receivedValue = json
       }
-      throw new StandardError('INVALID_JSON_DATA', 'Invalid JSON data for StandardError.fromJSON', details)
+      const error = new Error('Invalid JSON data for StandardError.fromJSON')
+      error.code = 'INVALID_JSON_DATA'
+      error.details = details
+      throw error
     }
 
     const error = new StandardError(json.code, json.message, json.details)
@@ -218,9 +221,5 @@ class StandardError extends Error {
   }
 }
 
-// 匯出 StandardError 類別
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { StandardError }
-} else if (typeof window !== 'undefined') {
-  window.StandardError = StandardError
-}
+// 匯出 StandardError 類別 (統一使用 ES Module 格式)
+export { StandardError }

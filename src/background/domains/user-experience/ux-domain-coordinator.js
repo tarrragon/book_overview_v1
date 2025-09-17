@@ -338,7 +338,7 @@ class UXDomainCoordinator {
         this.logger.log(`✅ UX 服務初始化完成: ${serviceName}`)
       } catch (error) {
         this.logger.error(`❌ UX 服務初始化失敗: ${serviceName}`, error)
-        throw new StandardError('UNKNOWN_ERROR', `UX 服務 ${serviceName} 初始化失敗: ${error.message}`, {
+        throw new StandardError('UNKNOWN_ERROR', 'UX 服務 ${serviceName} 初始化失敗: ${error.message}', {
           category: 'general'
         })
       }

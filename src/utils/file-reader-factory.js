@@ -13,6 +13,7 @@
  */
 
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class FileReaderFactory {
   /**
@@ -23,9 +24,10 @@ class FileReaderFactory {
   static createReader () {
     if (global.FileReader) return new global.FileReader()
     if (typeof FileReader !== 'undefined') return new FileReader()
-    throw new StandardError('UNKNOWN_ERROR', '檔案讀取功能不支援', {
-      category: 'general'
-    })
+    const error = new Error('檔案讀取功能不支援')
+    error.code = ErrorCodes.FILE_ERROR
+    error.details = { category: 'general' }
+    throw error
   }
 
   /**

@@ -203,7 +203,7 @@ class AccessibilityService {
     try {
       const modeConfig = this.accessibilityModes[mode]
       if (!modeConfig) {
-        throw new StandardError('UNKNOWN_ERROR', `不支援的無障礙模式: ${mode}`, {
+        throw new StandardError('UNKNOWN_ERROR', '不支援的無障礙模式: ${mode}', {
           category: 'general'
         })
       }
@@ -242,7 +242,7 @@ class AccessibilityService {
     try {
       // 檢查設定是否支援
       if (!(setting in this.accessibilitySettings)) {
-        throw new StandardError('UNKNOWN_ERROR', `不支援的無障礙設定: ${setting}`, {
+        throw new StandardError('UNKNOWN_ERROR', '不支援的無障礙設定: ${setting}', {
           category: 'general'
         })
       }
@@ -283,7 +283,7 @@ class AccessibilityService {
     try {
       // 檢查設定是否支援
       if (!(setting in this.accessibilitySettings)) {
-        throw new StandardError('UNKNOWN_ERROR', `不支援的無障礙設定: ${setting}`, {
+        throw new StandardError('UNKNOWN_ERROR', '不支援的無障礙設定: ${setting}', {
           category: 'general'
         })
       }

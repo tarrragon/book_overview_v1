@@ -29,7 +29,7 @@
  */
 
 // 引入錯誤處理系統
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 /**
  * 事件監聽器包裝器
@@ -74,21 +74,27 @@ class EventBus {
    */
   on (eventType, handler, options = {}) {
     if (typeof handler !== 'function') {
-      throw new StandardError('INVALID_HANDLER', 'Handler must be a function', {
+      const error = new Error('Handler must be a function')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         eventType,
         handlerType: typeof handler,
         receivedValue: handler
-      })
+      }
+      throw error
     }
 
     // 檢查最大監聽器限制
     const currentCount = this.getListenerCount(eventType)
     if (currentCount >= this.options.maxListeners) {
-      throw new StandardError('MAX_LISTENERS_EXCEEDED', 'Maximum number of listeners exceeded', {
+      const error = new Error('Maximum number of listeners exceeded')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         eventType,
         currentCount,
         maxListeners: this.options.maxListeners
-      })
+      }
+      throw error
     }
 
     // 建立監聽器包裝器

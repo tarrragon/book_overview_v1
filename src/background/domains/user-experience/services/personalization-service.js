@@ -318,7 +318,7 @@ class PersonalizationService {
     try {
       const suggestion = this.userProfile.recommendations.find(r => r.id === suggestionId)
       if (!suggestion) {
-        throw new StandardError('UNKNOWN_ERROR', `找不到建議: ${suggestionId}`, {
+        throw new StandardError('UNKNOWN_ERROR', '找不到建議: ${suggestionId}', {
           category: 'general'
         })
       }
@@ -336,7 +336,7 @@ class PersonalizationService {
           result = await this.applyFeatureSuggestion(suggestion)
           break
         default:
-          throw new StandardError('UNKNOWN_ERROR', `不支援的建議類型: ${suggestion.type}`, {
+          throw new StandardError('UNKNOWN_ERROR', '不支援的建議類型: ${suggestion.type}', {
             category: 'general'
           })
       }

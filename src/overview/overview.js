@@ -19,16 +19,16 @@
 const { Logger } = require('src/core/logging')
 
 // 引入標準化錯誤處理 (瀏覽器環境)
-if (typeof window !== 'undefined' && window.StandardError) {
-  // StandardError 已在全域可用
+if (typeof window !== 'undefined' && window.ErrorCodes) {
+  // ErrorCodes 已在全域可用
 } else if (typeof require !== 'undefined') {
-  const { StandardError } = require('src/core/errors/StandardError')
+  const { ErrorCodes } = require('src/core/errors/ErrorCodes')
   if (typeof window !== 'undefined') {
-    window.StandardError = StandardError
+    window.ErrorCodes = ErrorCodes
   }
 }
 
-/* global EventBus, ChromeEventBridge, OverviewPageController, StandardError */
+/* global EventBus, ChromeEventBridge, OverviewPageController, ErrorCodes */
 
 (function () {
   'use strict'
@@ -143,11 +143,14 @@ if (typeof window !== 'undefined' && window.StandardError) {
     try {
       // 檢查 OverviewPageController 是否可用
       if (typeof OverviewPageController === 'undefined') {
-        throw new StandardError('OVERVIEW_CONTROLLER_UNAVAILABLE', 'OverviewPageController 類別不可用', {
+        const error = new Error('OverviewPageController 類別不可用')
+        error.code = (typeof window !== 'undefined' && window.ErrorCodes) ? window.ErrorCodes.CONFIG_ERROR : 'CONFIG_ERROR'
+        error.details = {
           category: 'initialization',
           requiredClass: 'OverviewPageController',
           context: 'chrome_extension'
-        })
+        }
+        throw error
       }
 
       // 創建控制器實例

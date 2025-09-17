@@ -32,7 +32,7 @@
  *
  * @returns {Object} PageDetector 實例
  */
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 function createPageDetector () {
   let isReadmooPage = false
@@ -149,9 +149,10 @@ function createPageDetector () {
      */
     onUrlChange (callback) {
       if (typeof callback !== 'function') {
-        throw new StandardError('UNKNOWN_ERROR', 'callback 必須是函數', {
-          category: 'general'
-        })
+        const error = new Error('callback 必須是函數')
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general', parameter: 'callback', expectedType: 'function' }
+        throw error
       }
 
       // 如果已有觀察器，先清理
@@ -278,9 +279,10 @@ function createPageDetector () {
         const timeoutId = setTimeout(() => {
           document.removeEventListener('DOMContentLoaded', readyHandler)
           document.removeEventListener('readystatechange', readyHandler)
-          reject(new StandardError('UNKNOWN_ERROR', '等待頁面準備超時', {
-            category: 'general'
-          }))
+          const error = new Error('等待頁面準備超時')
+          error.code = ErrorCodes.TIMEOUT_ERROR
+          error.details = { category: 'general', timeout, operation: 'waitForPageReady' }
+          reject(error)
         }, timeout)
 
         // 設定事件監聽器

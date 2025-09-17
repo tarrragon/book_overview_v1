@@ -193,7 +193,7 @@ class ThemeManagementService {
     try {
       // 驗證主題有效性
       if (!this.isValidTheme(theme)) {
-        throw new StandardError('UNKNOWN_ERROR', `無效的主題: ${theme}`, {
+        throw new StandardError('UNKNOWN_ERROR', '無效的主題: ${theme}', {
           category: 'general'
         })
       }
@@ -275,7 +275,7 @@ class ThemeManagementService {
     try {
       // 驗證提供者介面
       if (!provider || typeof provider.updateTheme !== 'function') {
-        throw new StandardError('UNKNOWN_ERROR', `主題提供者 ${providerId} 必須實現 updateTheme 方法`, {
+        throw new StandardError('UNKNOWN_ERROR', '主題提供者 ${providerId} 必須實現 updateTheme 方法', {
           category: 'general'
         })
       }

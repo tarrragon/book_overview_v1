@@ -189,7 +189,7 @@ class BookSearchFilterIntegrated extends BaseUIHandler {
       searchUILogger.info('MODULAR_COMPONENTS_SUCCESS')
     } catch (error) {
       searchUILogger.error('MODULAR_COMPONENTS_FAILED', { error: error.message })
-      throw new StandardError('UNKNOWN_ERROR', `模組化組件初始化失敗: ${error.message}`, {
+      throw new StandardError('UNKNOWN_ERROR', '模組化組件初始化失敗: ${error.message}', {
         category: 'ui'
       })
     }

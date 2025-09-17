@@ -17,8 +17,8 @@
  * }, 'FETCH_DATA_FAILED')
  */
 
-const { StandardError } = require('./StandardError')
-const { OperationResult } = require('./OperationResult')
+import { ErrorCodes } from './ErrorCodes.js'
+import { OperationResult } from './OperationResult.js'
 
 class ErrorHelper {
   /**
@@ -29,7 +29,10 @@ class ErrorHelper {
    * @returns {StandardError} 標準錯誤物件
    */
   static createError (code, message, details = {}) {
-    return new StandardError(code, message, details)
+    const error = new Error(message || 'Unknown error')
+    error.code = ErrorCodes.UNKNOWN_ERROR
+    error.details = { ...details, originalCode: code }
+    return error
   }
 
   /**
@@ -39,10 +42,10 @@ class ErrorHelper {
    * @returns {StandardError} 網路錯誤物件
    */
   static createNetworkError (message, details = {}) {
-    return new StandardError('NETWORK_ERROR', message, {
-      type: 'network',
-      ...details
-    })
+    const error = new Error(message || 'Network operation failed')
+    error.code = ErrorCodes.NETWORK_ERROR
+    error.details = { type: 'network', ...details }
+    return error
   }
 
   /**
@@ -53,11 +56,10 @@ class ErrorHelper {
    * @returns {StandardError} 驗證錯誤物件
    */
   static createValidationError (field, message, details = {}) {
-    return new StandardError('VALIDATION_FAILED', message, {
-      field,
-      type: 'validation',
-      ...details
-    })
+    const error = new Error(message || 'Validation failed')
+    error.code = ErrorCodes.VALIDATION_ERROR
+    error.details = { field, type: 'validation', ...details }
+    return error
   }
 
   /**
@@ -68,11 +70,10 @@ class ErrorHelper {
    * @returns {StandardError} 儲存錯誤物件
    */
   static createStorageError (operation, message, details = {}) {
-    return new StandardError('STORAGE_ERROR', message, {
-      operation,
-      type: 'storage',
-      ...details
-    })
+    const error = new Error(message || 'Storage operation failed')
+    error.code = ErrorCodes.STORAGE_ERROR
+    error.details = { operation, type: 'storage', ...details }
+    return error
   }
 
   /**
@@ -83,11 +84,10 @@ class ErrorHelper {
    * @returns {StandardError} 權限錯誤物件
    */
   static createPermissionError (action, message, details = {}) {
-    return new StandardError('PERMISSION_DENIED', message, {
-      action,
-      type: 'permission',
-      ...details
-    })
+    const error = new Error(message || 'Permission denied')
+    error.code = ErrorCodes.PERMISSION_ERROR
+    error.details = { action, type: 'permission', ...details }
+    return error
   }
 
   /**
@@ -98,12 +98,10 @@ class ErrorHelper {
    * @returns {StandardError} 超時錯誤物件
    */
   static createTimeoutError (operation, timeout, details = {}) {
-    return new StandardError('OPERATION_TIMEOUT', `Operation '${operation}' timed out after ${timeout}ms`, {
-      operation,
-      timeout,
-      type: 'timeout',
-      ...details
-    })
+    const error = new Error(`Operation '${operation}' timed out after ${timeout}ms`)
+    error.code = ErrorCodes.TIMEOUT_ERROR
+    error.details = { operation, timeout, type: 'timeout', ...details }
+    return error
   }
 
   /**
@@ -117,11 +115,10 @@ class ErrorHelper {
     const { getBookErrorCode } = require('./BookErrorCodes')
     const code = getBookErrorCode(stage)
 
-    return new StandardError(code, message, {
-      stage,
-      type: 'book_library',
-      ...details
-    })
+    const error = new Error(message || 'Book library operation failed')
+    error.code = ErrorCodes.BOOK_ERROR
+    error.details = { stage, type: 'book_library', originalCode: code, ...details }
+    return error
   }
 
   /**
@@ -137,18 +134,17 @@ class ErrorHelper {
     } catch (error) {
       let standardError
 
-      if (error instanceof StandardError) {
+      if (error.code && Object.values(ErrorCodes).includes(error.code)) {
         standardError = error
       } else {
-        standardError = new StandardError(
-          errorCode,
-          error.message || 'Operation failed',
-          {
-            originalError: error.toString(),
-            stack: error.stack,
-            type: 'async_operation'
-          }
-        )
+        standardError = new Error(error.message || 'Operation failed')
+        standardError.code = ErrorCodes.OPERATION_ERROR
+        standardError.details = {
+          originalError: error.toString(),
+          stack: error.stack,
+          type: 'async_operation',
+          originalCode: errorCode
+        }
       }
 
       return OperationResult.failure(standardError)
@@ -168,18 +164,17 @@ class ErrorHelper {
     } catch (error) {
       let standardError
 
-      if (error instanceof StandardError) {
+      if (error.code && Object.values(ErrorCodes).includes(error.code)) {
         standardError = error
       } else {
-        standardError = new StandardError(
-          errorCode,
-          error.message || 'Operation failed',
-          {
-            originalError: error.toString(),
-            stack: error.stack,
-            type: 'sync_operation'
-          }
-        )
+        standardError = new Error(error.message || 'Operation failed')
+        standardError.code = ErrorCodes.OPERATION_ERROR
+        standardError.details = {
+          originalError: error.toString(),
+          stack: error.stack,
+          type: 'sync_operation',
+          originalCode: errorCode
+        }
       }
 
       return OperationResult.failure(standardError)
@@ -208,18 +203,17 @@ class ErrorHelper {
 
       return OperationResult.success(result)
     } catch (error) {
-      if (error instanceof StandardError) {
+      if (error.code && Object.values(ErrorCodes).includes(error.code)) {
         return OperationResult.failure(error)
       } else {
-        const standardError = new StandardError(
-          errorCode,
-          error.message || 'Operation failed',
-          {
-            originalError: error.toString(),
-            timeout: timeoutMs,
-            type: 'timeout_operation'
-          }
-        )
+        const standardError = new Error(error.message || 'Operation failed')
+        standardError.code = ErrorCodes.OPERATION_ERROR
+        standardError.details = {
+          originalError: error.toString(),
+          timeout: timeoutMs,
+          type: 'timeout_operation',
+          originalCode: errorCode
+        }
         return OperationResult.failure(standardError)
       }
     }
@@ -269,17 +263,19 @@ class ErrorHelper {
     }
 
     // 所有重試都失敗
-    const standardError = lastError instanceof StandardError
+    const standardError = (lastError?.code && Object.values(ErrorCodes).includes(lastError.code))
       ? lastError
-      : new StandardError(
-        'RETRY_OPERATION_FAILED',
-        `Operation failed after ${maxRetries} retries: ${lastError?.message || 'Unknown error'}`,
-        {
-          maxRetries,
-          lastError: lastError?.toString(),
-          type: 'retry_operation'
-        }
-      )
+      : (() => {
+          const error = new Error(`Operation failed after ${maxRetries} retries: ${lastError?.message || 'Unknown error'}`)
+          error.code = ErrorCodes.OPERATION_ERROR
+          error.details = {
+            maxRetries,
+            lastError: lastError?.toString(),
+            type: 'retry_operation',
+            originalCode: 'RETRY_OPERATION_FAILED'
+          }
+          return error
+        })()
 
     return OperationResult.failure(standardError)
   }
@@ -302,12 +298,18 @@ class ErrorHelper {
         const result = await operations[i]()
         results.push({ index: i, success: true, data: result })
       } catch (error) {
-        const standardError = error instanceof StandardError
+        const standardError = (error?.code && Object.values(ErrorCodes).includes(error.code))
           ? error
-          : new StandardError('BATCH_OPERATION_FAILED', error.message || 'Batch operation failed', {
-            index: i,
-            originalError: error.toString()
-          })
+          : (() => {
+              const err = new Error(error.message || 'Batch operation failed')
+              err.code = ErrorCodes.OPERATION_ERROR
+              err.details = {
+                index: i,
+                originalError: error.toString(),
+                originalCode: 'BATCH_OPERATION_FAILED'
+              }
+              return err
+            })()
 
         errors.push({ index: i, error: standardError })
         results.push({ index: i, success: false, error: standardError })
@@ -326,26 +328,21 @@ class ErrorHelper {
         errorCount: 0
       })
     } else {
-      const batchError = new StandardError(
-        'BATCH_PARTIAL_FAILURE',
-        `Batch operation completed with ${errors.length} errors out of ${operations.length} operations`,
-        {
-          results,
-          errors,
-          totalCount: operations.length,
-          successCount: results.filter(r => r.success).length,
-          errorCount: errors.length
-        }
-      )
+      const batchError = new Error(`Batch operation completed with ${errors.length} errors out of ${operations.length} operations`)
+      batchError.code = ErrorCodes.OPERATION_ERROR
+      batchError.details = {
+        results,
+        errors,
+        totalCount: operations.length,
+        successCount: results.filter(r => r.success).length,
+        errorCount: errors.length,
+        originalCode: 'BATCH_PARTIAL_FAILURE'
+      }
 
       return OperationResult.failure(batchError)
     }
   }
 }
 
-// 匯出 ErrorHelper 類別
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { ErrorHelper }
-} else if (typeof window !== 'undefined') {
-  window.ErrorHelper = ErrorHelper
-}
+// 匯出 ErrorHelper 類別 (統一使用 ES Module 格式)
+export { ErrorHelper }

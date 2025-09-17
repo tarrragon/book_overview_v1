@@ -29,6 +29,7 @@
  */
 
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class SearchResultFormatter {
   /**
@@ -43,9 +44,10 @@ class SearchResultFormatter {
     const { eventBus, logger, config = {} } = options
 
     if (!eventBus || !logger) {
-      throw new StandardError('EVENTBUS_ERROR', 'EventBus 和 Logger 是必需的', {
-        category: 'ui'
-      })
+      const error = new Error('EventBus 和 Logger 是必需的')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     this.eventBus = eventBus
@@ -94,9 +96,10 @@ class SearchResultFormatter {
    */
   formatResults (query, rawResults) {
     if (this._isDestroyed) {
-      throw new StandardError('UNKNOWN_ERROR', '格式化器已被銷毀', {
-        category: 'ui'
-      })
+      const error = new Error('格式化器已被銷毀')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     // 驗證輸入參數
@@ -335,15 +338,17 @@ class SearchResultFormatter {
    */
   _validateInputs (query, results) {
     if (typeof query !== 'string') {
-      throw new StandardError('UNKNOWN_ERROR', '查詢參數必須是字串', {
-        category: 'ui'
-      })
+      const error = new Error('查詢參數必須是字串')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     if (!Array.isArray(results)) {
-      throw new StandardError('UNKNOWN_ERROR', '結果參數必須是陣列', {
-        category: 'ui'
-      })
+      const error = new Error('結果參數必須是陣列')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
   }
 

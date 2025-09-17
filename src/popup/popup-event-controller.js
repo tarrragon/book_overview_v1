@@ -144,7 +144,7 @@ class PopupEventController extends EventHandler {
           result = await this.handleStatusUpdate(data, flowId)
           break
         default:
-          throw new StandardError('UNKNOWN_ERROR', `Unsupported event type: ${type}`, {
+          throw new StandardError('UNKNOWN_ERROR', 'Unsupported event type: ${type}', {
             category: 'general'
           })
       }
@@ -238,7 +238,7 @@ class PopupEventController extends EventHandler {
     const requiredElements = ['statusDot', 'statusText', 'extractBtn']
     for (const elementName of requiredElements) {
       if (!this.elements[elementName]) {
-        throw new StandardError('REQUIRED_FIELD_MISSING', `Required element not found: ${elementName}`, {
+        throw new StandardError('REQUIRED_FIELD_MISSING', 'Required element not found: ${elementName}', {
           category: 'ui'
         })
       }

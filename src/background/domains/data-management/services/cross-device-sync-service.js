@@ -118,7 +118,7 @@ class CrossDeviceSyncService {
 
       const validationResult = await this.validateSyncOptions(options)
       if (!validationResult.valid) {
-        throw new StandardError('VALIDATION_FAILED', `同步參數驗證失敗: ${validationResult.message}`, {
+        throw new StandardError('VALIDATION_FAILED', '同步參數驗證失敗: ${validationResult.message}', {
           category: 'validation'
         })
       }

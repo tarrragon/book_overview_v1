@@ -16,6 +16,7 @@
 
 const BaseModule = require('./base-module')
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class StartupHandler extends BaseModule {
   constructor (dependencies = {}) {
@@ -218,9 +219,10 @@ class StartupHandler extends BaseModule {
 
         // 根據模組的重要性決定是否繼續
         if (this.isCriticalModule(moduleName)) {
-          throw new StandardError('UNKNOWN_ERROR', `關鍵模組啟動失敗: ${moduleName}`, {
-            category: 'general'
-          })
+          const error = new Error(`關鍵模組啟動失敗: ${moduleName}`)
+          error.code = ErrorCodes.OPERATION_ERROR
+          error.details = { category: 'general' }
+          throw error
         }
       }
     }

@@ -342,7 +342,7 @@ class DataProcessingService {
       // 選擇處理器
       const processor = this.dataProcessors.get(dataType)
       if (!processor) {
-        throw new StandardError('UNKNOWN_ERROR', `未找到資料處理器: ${dataType}`, {
+        throw new StandardError('UNKNOWN_ERROR', '未找到資料處理器: ${dataType}', {
           category: 'general'
         })
       }

@@ -13,21 +13,21 @@
  * if (result.success) { console.log(result.data) }
  *
  * // 失敗結果
- * const error = new StandardError('VALIDATION_FAILED', '驗證失敗')
+ * const error = new Error('驗證失敗')
+ * error.code = ErrorCodes.VALIDATION_ERROR
  * const result = OperationResult.failure(error)
  * if (!result.success) { console.log(result.error.message) }
  */
 
-// 條件性引入，支援瀏覽器和 Node.js 環境
-let StandardError, OperationStatus
-if (typeof require !== 'undefined') {
-  try {
-    StandardError = require('./StandardError').StandardError
-    const { OperationStatus: OpStatus } = require('src/core/enums')
-    OperationStatus = OpStatus
-  } catch (e) {
-    // 瀏覽器環境或引入失敗時，假設 StandardError 已全域可用
-  }
+// 使用 ES Module 匯入
+import { ErrorCodes } from './ErrorCodes.js'
+
+// OperationStatus 枚舉定義
+const OperationStatus = {
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED',
+  PENDING: 'PENDING',
+  CANCELLED: 'CANCELLED'
 }
 
 class OperationResult {
@@ -81,28 +81,26 @@ class OperationResult {
     // 確保錯誤是 StandardError 格式
     let standardError
 
-    if (error instanceof StandardError) {
+    if (error?.code && Object.values(ErrorCodes).includes(error.code)) {
       standardError = error
     } else if (error instanceof Error) {
-      // 將普通 JavaScript Error 轉換為 StandardError
-      standardError = new StandardError(
-        'UNKNOWN_ERROR',
-        error.message || 'Unknown error',
-        {
-          originalError: error.toString(),
-          stack: error.stack
-        }
-      )
+      // 將普通 JavaScript Error 轉換為 ErrorCodes 格式
+      standardError = new Error(error.message || 'Unknown error')
+      standardError.code = ErrorCodes.UNKNOWN_ERROR
+      standardError.details = {
+        originalError: error.toString(),
+        stack: error.stack
+      }
     } else if (typeof error === 'string') {
-      // 字串錯誤轉換為 StandardError
-      standardError = new StandardError('UNKNOWN_ERROR', error, {})
+      // 字串錯誤轉換為 ErrorCodes 格式
+      standardError = new Error(error)
+      standardError.code = ErrorCodes.UNKNOWN_ERROR
+      standardError.details = {}
     } else {
-      // 其他類型轉換為 StandardError
-      standardError = new StandardError(
-        'UNKNOWN_ERROR',
-        'Unknown error occurred',
-        { originalError: error }
-      )
+      // 其他類型轉換為 ErrorCodes 格式
+      standardError = new Error('Unknown error occurred')
+      standardError.code = ErrorCodes.UNKNOWN_ERROR
+      standardError.details = { originalError: error }
     }
 
     return new OperationResult(false, null, standardError)
@@ -115,13 +113,11 @@ class OperationResult {
    */
   throwIfFailure () {
     if (!this.success && this.error) {
-      // 使用 StandardError 重新拋出，保留原始錯誤資訊
-      const { StandardError } = require('./StandardError')
-      throw new StandardError(
-        this.error.code || 'OPERATION_FAILED',
-        this.error.message || 'Operation failed',
-        this.error.details || {}
-      )
+      // 使用 ErrorCodes 格式重新拋出，保留原始錯誤資訊
+      const error = new Error(this.error.message || 'Operation failed')
+      error.code = this.error.code || ErrorCodes.OPERATION_ERROR
+      error.details = this.error.details || {}
+      throw error
     }
     return this.data
   }
@@ -148,10 +144,13 @@ class OperationResult {
   static fromJSON (json) {
     if (!json || typeof json !== 'object' || Array.isArray(json)) {
       const { StandardError } = require('./StandardError')
-      throw new StandardError('INVALID_JSON_DATA', 'Invalid JSON data for OperationResult.fromJSON', {
+      const error = new Error('Invalid JSON data for OperationResult.fromJSON')
+      error.code = ErrorCodes.PARSE_ERROR
+      error.details = {
         receivedType: Array.isArray(json) ? 'array' : typeof json,
         receivedValue: json
-      })
+      }
+      throw error
     }
 
     let error = null
@@ -209,9 +208,5 @@ class OperationResult {
   }
 }
 
-// 匯出 OperationResult 類別
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { OperationResult }
-} else if (typeof window !== 'undefined') {
-  window.OperationResult = OperationResult
-}
+// 匯出 OperationResult 類別 (統一使用 ES Module 格式)
+export { OperationResult }

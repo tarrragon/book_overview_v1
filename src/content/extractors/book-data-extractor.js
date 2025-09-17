@@ -159,7 +159,7 @@ function createBookDataExtractor () {
       try {
         // 檢查頁面是否可提取
         if (!this.isExtractableReadmooPage()) {
-          throw new StandardError('UNKNOWN_ERROR', `不支援的頁面類型: ${pageType}`, {
+          throw new StandardError('UNKNOWN_ERROR', '不支援的頁面類型: ${pageType}', {
             category: 'general'
           })
         }

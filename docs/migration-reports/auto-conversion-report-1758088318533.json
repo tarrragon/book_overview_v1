@@ -1,0 +1,149 @@
+{
+  "metadata": {
+    "timestamp": "2025-09-17T05:51:58.532Z",
+    "version": "1.0.0",
+    "mode": "auto_convert",
+    "configuration": {
+      "mode": "auto_convert",
+      "sourceDir": "src",
+      "excludePatterns": [
+        "node_modules",
+        "dist",
+        ".git"
+      ],
+      "includeExtensions": [
+        ".js",
+        ".ts"
+      ],
+      "backupBeforeConvert": true,
+      "reportPath": "docs/migration-reports",
+      "riskThreshold": "low"
+    }
+  },
+  "summary": {
+    "totalFiles": 213,
+    "affectedFiles": 156,
+    "conversionOpportunities": 401,
+    "riskDistribution": {
+      "medium": 166,
+      "low": 201,
+      "high": 33,
+      "critical": 1
+    },
+    "overallRisk": "medium"
+  },
+  "analysis": {
+    "affectedFiles": 152,
+    "topRiskyFiles": [
+      {
+        "file": "src/ui/search/coordinator/search-coordinator.js",
+        "riskScore": 40,
+        "opportunities": 3
+      },
+      {
+        "file": "src/core/errors/UC02ErrorAdapter.js",
+        "riskScore": 36,
+        "opportunities": 1
+      },
+      {
+        "file": "src/core/migration/DualErrorSystemBridge.js",
+        "riskScore": 33,
+        "opportunities": 2
+      },
+      {
+        "file": "src/background/domains/data-management/interfaces/ISynchronizationCoordinator.js",
+        "riskScore": 31,
+        "opportunities": 3
+      },
+      {
+        "file": "src/background/domains/data-management/services/ValidationCacheManager.js",
+        "riskScore": 30,
+        "opportunities": 3
+      },
+      {
+        "file": "src/content/platform/platform-adapter-interface.js",
+        "riskScore": 29,
+        "opportunities": 3
+      },
+      {
+        "file": "src/ui/handlers/ui-event-validator.js",
+        "riskScore": 26,
+        "opportunities": 3
+      },
+      {
+        "file": "src/background/messaging/popup-message-handler.js",
+        "riskScore": 25,
+        "opportunities": 3
+      },
+      {
+        "file": "src/deployment/chrome-store-readiness.js",
+        "riskScore": 24,
+        "opportunities": 3
+      },
+      {
+        "file": "src/background/domains/data-management/services/ValidationBatchProcessor.js",
+        "riskScore": 23,
+        "opportunities": 3
+      }
+    ],
+    "conversionStrategies": {
+      "import": {
+        "count": 135,
+        "files": 134,
+        "riskDistribution": {
+          "medium": 134
+        }
+      },
+      "throw": {
+        "count": 443,
+        "files": 120,
+        "riskDistribution": {
+          "low": 120
+        }
+      },
+      "codeAccess": {
+        "count": 84,
+        "files": 18,
+        "riskDistribution": {
+          "medium": 18
+        }
+      }
+    },
+    "estimatedEffort": {
+      "totalHours": 510,
+      "totalDays": 64,
+      "taskBreakdown": {
+        "low": 366,
+        "medium": 34,
+        "high": 1,
+        "veryHigh": 0
+      },
+      "recommendation": "建議分階段執行"
+    }
+  },
+  "recommendations": {
+    "immediate": [
+      "立即開始轉換 201 個低風險項目",
+      "確保所有依賴項目已正確安裝",
+      "建立完整的代碼備份"
+    ],
+    "shortTerm": [
+      "制定計畫轉換 166 個中等風險項目",
+      "建立轉換進度追蹤機制",
+      "設置自動化測試驗證",
+      "培訓團隊成員了解新的錯誤處理模式"
+    ],
+    "longTerm": [
+      "謹慎處理 34 個高風險項目",
+      "建立 ErrorCodes 最佳實踐指南",
+      "定期檢視和優化錯誤處理策略",
+      "考慮逐步淘汰 StandardError 舊式用法"
+    ]
+  },
+  "next_steps": [
+    "驗證自動轉換結果",
+    "處理剩餘的手動轉換項目",
+    "執行完整測試確保功能正常",
+    "更新相關文件"
+  ]
+}

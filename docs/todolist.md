@@ -1,8 +1,8 @@
 # 📋 Readmoo 書庫提取器開發任務清單
 
-**當前版本**: v0.12.19  
-**最後更新**: 2025-09-17  
-**開發狀態**: ✅ v0.12.19 ErrorCodes 遷移系列完成，🚀 v0.13.0 系統整合與品質保證準備中
+**當前版本**: v0.13.0
+**最後更新**: 2025-09-17
+**開發狀態**: 🔄 v0.13.0 StandardError 最終遷移進行中，🎯 核心基礎設施 ErrorCodes 完全整合
 
 ## 🎯 專案當前狀態
 
@@ -38,35 +38,43 @@
 
 ---
 
-## 🚀 v0.13.0 當前開發準備 - ErrorCodes 系統整合與品質保證
+## 🔄 v0.13.0 當前開發 - StandardError 最終遷移與核心系統完善
 
 ### 📋 當前開發狀況 (2025-09-17)
 
-**🏆 v0.12.19 已完成的重大成就**:
-- ✅ **ErrorCodes 遷移完成**: UC-01~UC-07 全部 7 個 Use Case 100% 遷移
-- ✅ **測試覆蓋率突破**: 607 個測試案例 100% 通過 (14 Unit + 7 Integration)
+**🏆 v0.12.19 基礎建設成就**:
+- ✅ **ErrorCodes 遷移大突破**: 92.1% 完成 (512/557 項目)，131個檔案完全遷移
+- ✅ **業務邏輯層完成**: 所有 UC-01~UC-07 + 業務功能已脫離 StandardError
 - ✅ **架構模式統一**: 14 個 Adapter/Factory 檔案，完全一致的設計模式
 - ✅ **Chrome Extension 現代化**: ES modules + JSON 序列化 + 效能優化
-- ✅ **技術債務清零**: 分散錯誤處理 → 統一 ErrorCodes v5.0.0 系統
 
-### 🔴 Critical Priority - v0.13.0 核心任務
+### 🔴 Critical Priority - v0.13.0 最終遷移任務
 
-**ErrorCodes 系統整合與實際應用** (新基礎設施啟用):
+**剩餘 45 個高風險核心基礎設施項目** (需要精細手動遷移):
 
-**Phase 1: 整合測試與驗證** (準備開始)
-- ⭕ **跨 UC 整合測試**: 確保 7 個 UC 錯誤處理無衝突
-- ⭕ **效能基準建立**: 各 UC ErrorFactory 效能基準和監控
-- ⭕ **Chrome Extension 整合**: 實際環境中的錯誤處理驗證
+**Phase 1: 高風險項目分析 ✅** (已完成)
+- ✅ **核心系統盤點**: 4大系統分類 (ErrorHelper、Chrome API、Storage、Communication)
+- ✅ **精細遷移策略**: 5階段漸進式遷移框架建立
+- ✅ **風險評估**: 多層安全網機制設計完成
 
-**Phase 2: 現有系統遷移**  
-- ⭕ **舊版 StandardError 替換**: 逐步遷移現有程式碼到新 ErrorCodes
-- ⭕ **錯誤監控部署**: 生產環境錯誤統計和報告機制
-- ⭕ **文件系統更新**: API 文檔和開發指南更新
+**Phase 2: 核心通訊系統遷移** 🔄 (進行中)
+- 🔄 **content-message-handler.js** (3處) - Background↔Content 通訊核心
+- 🔄 **popup-message-handler.js** (11處) - Popup UI 錯誤展示系統
+- ⭕ **跨Context通訊整合測試** - Chrome Extension 環境驗證
 
-**Phase 3: 品質保證與優化**
-- ⭕ **記憶體效能優化**: ErrorFactory 快取機制和記憶體管理
-- ⭕ **錯誤追蹤整合**: 結構化錯誤日誌和分析工具
-- ⭕ **開發者體驗**: IDE 支援和偵錯工具改善
+**Phase 3: 系統核心模組遷移** ⭕
+- ⭕ **popup-controller.js** (6處) - UI 控制邏輯核心
+- ⭕ **chrome-api-wrapper.js** (6處) - Chrome API 抽象層
+- ⭕ **chrome-storage-adapter.js** (10處) - 儲存系統核心
+
+**Phase 4: ErrorHelper 系統重構** ⭕
+- ⭕ **ErrorHelper.js** (12處) - 錯誤建立工廠核心，最高風險項目
+- ⭕ **向後相容性保證** - 漸進式切換機制實作
+
+**Phase 5: 品質保證與文件更新** ⭕
+- ⭕ **100% StandardError 移除驗證** - 完全遷移確認
+- ⭕ **整合測試與效能基準** - 系統整體品質保證
+- ⭕ **開發文檔更新** - ErrorCodes 系統完整指南
 
 ### 🟡 準備中 - v0.13.x 進階開發
 
@@ -121,17 +129,18 @@
 
 ### v0.13.0 完成標準
 
-- [ ] ErrorCodes 系統完整整合測試通過
-- [ ] 現有 StandardError 使用完全遷移到新系統
-- [ ] 錯誤監控和報告機制部署完成
-- [ ] Chrome Extension 實際環境錯誤處理驗證通過
+- [x] 45個高風險項目完整分析和遷移策略制定 ✅
+- [ ] 14個通訊系統項目 StandardError → ErrorCodes 遷移完成
+- [ ] 22個核心模組項目遷移完成且測試通過
+- [ ] ErrorHelper.js 核心重構完成，100% StandardError 移除
+- [ ] 整合測試全部通過，Chrome Extension 實際環境驗證
 
-### ErrorCodes 品質門檻
-- [x] 7 個 UC ErrorCodes 遷移 100% 完成 ✅
-- [x] 607 個測試案例 100% 通過 ✅
-- [x] Chrome Extension ES modules 相容性驗證 ✅
-- [ ] 跨 UC 整合測試無衝突
-- [ ] 效能基準建立和監控機制部署
+### StandardError 最終遷移品質門檻
+- [x] v0.12.19 基礎: 92.1% 遷移完成 (512/557 項目) ✅
+- [x] 業務邏輯層: 131個檔案完全脫離 StandardError ✅
+- [x] 架構設計: 漸進式遷移框架和安全網機制 ✅
+- [ ] 核心基礎設施: 45個高風險項目完全遷移
+- [ ] 品質保證: 100% 測試通過，零破壞性變更
 
 *📝 本 todolist 已更新至 v0.12.19 狀態，專注 ErrorCodes 系統整合和下一階段發展*
 

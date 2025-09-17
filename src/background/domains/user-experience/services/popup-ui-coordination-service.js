@@ -251,7 +251,7 @@ class PopupUICoordinationService {
       // 動態載入模組類別
       const ModuleLoader = this.moduleLoaders.get(moduleId)
       if (!ModuleLoader) {
-        throw new StandardError('UNKNOWN_ERROR', `未找到模組載入器: ${moduleId}`, {
+        throw new StandardError('UNKNOWN_ERROR', '未找到模組載入器: ${moduleId}', {
           category: 'ui'
         })
       }

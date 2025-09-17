@@ -238,7 +238,7 @@ class PlatformSwitcherService {
       // 驗證切換請求
       const validation = await this.validateSwitchRequest(targetPlatform, options)
       if (!validation.isValid) {
-        throw new StandardError('VALIDATION_FAILED', `切換請求驗證失敗: ${validation.error}`, {
+        throw new StandardError('VALIDATION_FAILED', '切換請求驗證失敗: ${validation.error}', {
           category: 'validation'
         })
       }
@@ -458,7 +458,7 @@ class PlatformSwitcherService {
         adapter = await this.adapterFactory.createAdapter(targetPlatform)
 
         if (!adapter) {
-          throw new StandardError('UNKNOWN_ERROR', `無法創建 ${targetPlatform} 適配器`, {
+          throw new StandardError('UNKNOWN_ERROR', '無法創建 ${targetPlatform} 適配器', {
             category: 'general'
           })
         }
@@ -547,7 +547,7 @@ class PlatformSwitcherService {
   async validateSwitchCompletion (targetPlatform) {
     // 檢查當前平台是否正確設定
     if (this.currentPlatform !== targetPlatform) {
-      throw new StandardError('UNKNOWN_ERROR', `切換驗證失敗: 期望 ${targetPlatform}, 實際 ${this.currentPlatform}`, {
+      throw new StandardError('UNKNOWN_ERROR', '切換驗證失敗: 期望 ${targetPlatform}, 實際 ${this.currentPlatform}', {
         category: 'general'
       })
     }
@@ -555,7 +555,7 @@ class PlatformSwitcherService {
     // 檢查適配器是否正常運作
     const adapter = this.platformRegistry.getAdapterCache(targetPlatform)
     if (!adapter) {
-      throw new StandardError('UNKNOWN_ERROR', `切換驗證失敗: ${targetPlatform} 適配器不存在`, {
+      throw new StandardError('UNKNOWN_ERROR', '切換驗證失敗: ${targetPlatform} 適配器不存在', {
         category: 'general'
       })
     }
@@ -564,7 +564,7 @@ class PlatformSwitcherService {
     if (typeof adapter.healthCheck === 'function') {
       const healthStatus = await adapter.healthCheck()
       if (!healthStatus.healthy) {
-        throw new StandardError('UNKNOWN_ERROR', `切換驗證失敗: ${targetPlatform} 適配器健康檢查失敗`, {
+        throw new StandardError('UNKNOWN_ERROR', '切換驗證失敗: ${targetPlatform} 適配器健康檢查失敗', {
           category: 'general'
         })
       }

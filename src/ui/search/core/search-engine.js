@@ -33,6 +33,7 @@
  */
 
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class SearchEngine {
   /**
@@ -49,9 +50,10 @@ class SearchEngine {
     const { indexManager, eventBus, logger, config = {}, getCurrentTime } = options
 
     if (!indexManager || !eventBus || !logger) {
-      throw new StandardError('EVENTBUS_ERROR', 'IndexManager、EventBus 和 Logger 是必需的', {
-        category: 'ui'
-      })
+      const error = new Error('IndexManager、EventBus 和 Logger 是必需的')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     this.indexManager = indexManager
@@ -275,9 +277,10 @@ class SearchEngine {
 
     // 如果索引搜尋沒有結果，回退到線性搜尋
     if (results.size === 0) {
-      throw new StandardError('UNKNOWN_ERROR', '索引搜尋無結果，需要線性搜尋', {
-        category: 'ui'
-      })
+      const error = new Error('索引搜尋無結果，需要線性搜尋')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     return Array.from(results)
@@ -316,9 +319,10 @@ class SearchEngine {
    */
   _matchesSearchCriteria (book, query) {
     if (!book || typeof book !== 'object') {
-      throw new StandardError('UNKNOWN_ERROR', '無效的書籍資料格式', {
-        category: 'ui'
-      })
+      const error = new Error('無效的書籍資料格式')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     // 檢查書名

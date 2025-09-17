@@ -60,7 +60,7 @@ class PopupStatusManager {
 
     // 驗證狀態類型
     if (!this.validStatusTypes.includes(statusData.type)) {
-      throw new StandardError('INVALID_DATA_FORMAT', `Invalid status type: ${statusData.type}`, {
+      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid status type: ${statusData.type}', {
         category: 'general'
       })
     }

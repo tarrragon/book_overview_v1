@@ -244,7 +244,7 @@ class MessagingDomainCoordinator {
         this.logger.log(`✅ 通訊服務初始化完成: ${serviceName}`)
       } catch (error) {
         this.logger.error(`❌ 通訊服務初始化失敗: ${serviceName}`, error)
-        throw new StandardError('UNKNOWN_ERROR', `微服務 ${serviceName} 初始化失敗: ${error.message}`, {
+        throw new StandardError('UNKNOWN_ERROR', '微服務 ${serviceName} 初始化失敗: ${error.message}', {
           category: 'general'
         })
       }

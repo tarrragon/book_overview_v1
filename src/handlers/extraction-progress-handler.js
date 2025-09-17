@@ -33,6 +33,7 @@
 
 const EventHandler = require('src/core/event-handler')
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class ExtractionProgressHandler extends EventHandler {
   constructor (options = {}) {
@@ -123,28 +124,37 @@ class ExtractionProgressHandler extends EventHandler {
     try {
       // 驗證事件基本結構
       if (!event.data) {
-        throw new StandardError('MISSING_PROGRESS_DATA', 'Missing required progress data', {
+        const error = new Error('Missing required progress data')
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = {
           category: 'validation',
           expectedFields: ['flowId', 'percentage', 'step']
-        })
+        }
+        throw error
       }
 
       if (typeof event.data !== 'object') {
-        throw new StandardError('INVALID_PROGRESS_FORMAT', 'Invalid progress data format', {
+        const error = new Error('Invalid progress data format')
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = {
           category: 'validation',
           receivedType: typeof event.data,
           expectedType: 'object'
-        })
+        }
+        throw error
       }
 
       // 驗證進度資料
       const validationResult = await this.validateProgressData(event.data)
       if (!validationResult.valid) {
-        throw new StandardError('PROGRESS_DATA_VALIDATION_FAILED', `Invalid progress data: ${validationResult.errors.join(', ')}`, {
+        const error = new Error(`Invalid progress data: ${validationResult.errors.join(', ')}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = {
           category: 'validation',
           validationErrors: validationResult.errors,
           data: event.data
-        })
+        }
+        throw error
       }
 
       // 更新流程狀態 (總是執行，即使沒有 EventBus)
@@ -161,19 +171,25 @@ class ExtractionProgressHandler extends EventHandler {
           await this.triggerUIProgressUpdate(event)
           uiUpdateTriggered = true
         } catch (error) {
-          throw new StandardError('UI_EVENT_FAILED', `UI event failed: ${error.message}`, {
+          const uiError = new Error(`UI event failed: ${error.message}`)
+          uiError.code = ErrorCodes.OPERATION_ERROR
+          uiError.details = {
             category: 'ui_operation',
             originalError: error.message,
             eventType: 'UI.PROGRESS.UPDATE'
-          })
+          }
+          throw uiError
         }
       } else if (!event._testMode) {
         // 生產環境中必須有 EventBus
-        throw new StandardError('EVENTBUS_NOT_CONFIGURED', 'EventBus not configured', {
+        const configError = new Error('EventBus not configured')
+        configError.code = ErrorCodes.CONFIG_ERROR
+        configError.details = {
           category: 'configuration',
           requiredComponent: 'EventBus',
           context: 'production_environment'
-        })
+        }
+        throw configError
       }
 
       this.progressStats.successfulUpdates++
@@ -299,11 +315,14 @@ class ExtractionProgressHandler extends EventHandler {
     try {
       await this.eventBus.emit('UI.PROGRESS.UPDATE', uiEvent)
     } catch (error) {
-      throw new StandardError('UI_EVENT_TRIGGER_FAILED', `UI event failed: ${error.message}`, {
+      const triggerError = new Error(`UI event failed: ${error.message}`)
+      triggerError.code = ErrorCodes.OPERATION_ERROR
+      triggerError.details = {
         category: 'ui_operation',
         originalError: error.message,
         operation: 'triggerUIProgressUpdate'
-      })
+      }
+      throw triggerError
     }
   }
 

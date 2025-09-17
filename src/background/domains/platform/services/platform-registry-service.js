@@ -400,7 +400,7 @@ class PlatformRegistryService {
     try {
       const existingRecord = this.platformRegistry.get(platformId)
       if (!existingRecord) {
-        throw new StandardError('UNKNOWN_ERROR', `平台 ${platformId} 不存在`, {
+        throw new StandardError('UNKNOWN_ERROR', '平台 ${platformId} 不存在', {
           category: 'general'
         })
       }

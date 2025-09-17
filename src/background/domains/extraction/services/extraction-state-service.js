@@ -255,13 +255,13 @@ class ExtractionStateService {
     try {
       const job = this.extractionJobs.get(jobId)
       if (!job) {
-        throw new StandardError('UNKNOWN_ERROR', `提取作業不存在: ${jobId}`, {
+        throw new StandardError('UNKNOWN_ERROR', '提取作業不存在: ${jobId}', {
           category: 'general'
         })
       }
 
       if (job.state !== this.JOB_STATES.PENDING && job.state !== this.JOB_STATES.RETRYING) {
-        throw new StandardError('UNKNOWN_ERROR', `作業狀態無效，無法啟動: ${job.state}`, {
+        throw new StandardError('UNKNOWN_ERROR', '作業狀態無效，無法啟動: ${job.state}', {
           category: 'general'
         })
       }
@@ -308,7 +308,7 @@ class ExtractionStateService {
     try {
       const job = this.extractionJobs.get(jobId)
       if (!job) {
-        throw new StandardError('UNKNOWN_ERROR', `提取作業不存在: ${jobId}`, {
+        throw new StandardError('UNKNOWN_ERROR', '提取作業不存在: ${jobId}', {
           category: 'general'
         })
       }
@@ -344,7 +344,7 @@ class ExtractionStateService {
     try {
       const job = this.extractionJobs.get(jobId)
       if (!job) {
-        throw new StandardError('UNKNOWN_ERROR', `提取作業不存在: ${jobId}`, {
+        throw new StandardError('UNKNOWN_ERROR', '提取作業不存在: ${jobId}', {
           category: 'general'
         })
       }
@@ -392,7 +392,7 @@ class ExtractionStateService {
     try {
       const job = this.extractionJobs.get(jobId)
       if (!job) {
-        throw new StandardError('UNKNOWN_ERROR', `提取作業不存在: ${jobId}`, {
+        throw new StandardError('UNKNOWN_ERROR', '提取作業不存在: ${jobId}', {
           category: 'general'
         })
       }
@@ -447,7 +447,7 @@ class ExtractionStateService {
     try {
       const job = this.extractionJobs.get(jobId)
       if (!job) {
-        throw new StandardError('UNKNOWN_ERROR', `提取作業不存在: ${jobId}`, {
+        throw new StandardError('UNKNOWN_ERROR', '提取作業不存在: ${jobId}', {
           category: 'general'
         })
       }

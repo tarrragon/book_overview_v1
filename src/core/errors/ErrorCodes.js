@@ -100,3 +100,12 @@ function createError(code, message) {
   error.code = code
   return error
 }
+
+// CommonJS 支援
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    ErrorCodes,
+    CommonErrors,
+    createError
+  }
+}

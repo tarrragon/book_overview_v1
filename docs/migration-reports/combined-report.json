@@ -1,0 +1,881 @@
+{
+  "migration": {
+    "metadata": {
+      "generatedAt": "2025-09-17T04:18:18.617Z",
+      "version": "1.0.0",
+      "startTime": "2025-09-17T04:17:38.138Z"
+    },
+    "progress": {
+      "total": 502,
+      "completed": 0,
+      "percentage": 0,
+      "statusDistribution": {
+        "pending": 502,
+        "in_progress": 0,
+        "completed": 0,
+        "failed": 0,
+        "verified": 0,
+        "rollback": 0
+      },
+      "typeDistribution": {
+        "import": 0,
+        "throw": 502,
+        "code_access": 0,
+        "test": 0
+      },
+      "files": {
+        "total": 129,
+        "processed": 0
+      },
+      "sessions": 2,
+      "lastUpdate": "2025-09-17T04:18:18.614Z"
+    },
+    "riskAnalysis": {
+      "low": 0,
+      "medium": 502,
+      "high": 0,
+      "critical": 0
+    },
+    "failureAnalysis": {
+      "count": 0,
+      "patterns": {}
+    },
+    "files": [
+      {
+        "path": "src/background/domains/data-management/interfaces/ISynchronizationCoordinator.js",
+        "status": "pending",
+        "itemCount": 14,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/DataComparisonEngine.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/DataNormalizationService.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/DataQualityAnalyzer.js",
+        "status": "pending",
+        "itemCount": 8,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/PlatformRuleManager.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/RetryCoordinator.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/ValidationBatchProcessor.js",
+        "status": "pending",
+        "itemCount": 10,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/ValidationCacheManager.js",
+        "status": "pending",
+        "itemCount": 13,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/ValidationEngine.js",
+        "status": "pending",
+        "itemCount": 5,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/ValidationServiceCoordinator.js",
+        "status": "pending",
+        "itemCount": 8,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/batch-validation-processor.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/cache-management-service.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/conflict-resolution-service.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/cross-device-sync-service.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/data-normalization-service.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/data-validation-service.js",
+        "status": "pending",
+        "itemCount": 9,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/quality-assessment-service.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/readmoo-data-consistency-service.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/sync-conflict-resolver.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/sync-strategy-processor.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/data-management/services/validation-rule-manager.js",
+        "status": "pending",
+        "itemCount": 5,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/extraction/services/data-processing-service.js",
+        "status": "pending",
+        "itemCount": 5,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/extraction/services/export-service.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/extraction/services/extraction-state-service.js",
+        "status": "pending",
+        "itemCount": 9,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/extraction/services/quality-control-service.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/extraction/services/validation-service.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/messaging/messaging-domain-coordinator.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/messaging/services/connection-monitoring-service.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/messaging/services/message-routing-service.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/messaging/services/message-validation-service.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/messaging/services/queue-management-service.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/messaging/services/session-management-service.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/page/page-domain-coordinator.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/page/services/content-script-coordinator-service.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/page/services/navigation-service.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/page/services/page-detection-service.js",
+        "status": "pending",
+        "itemCount": 4,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/page/services/permission-management-service.js",
+        "status": "pending",
+        "itemCount": 5,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/page/services/tab-state-tracking-service.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/platform/services/adapter-factory-service.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/platform/services/platform-isolation-service.js",
+        "status": "pending",
+        "itemCount": 4,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/platform/services/platform-registry-service.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/platform/services/platform-switcher-service.js",
+        "status": "pending",
+        "itemCount": 11,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/system/services/config-management-service.js",
+        "status": "pending",
+        "itemCount": 5,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/system/services/diagnostic-service.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/system/services/health-monitoring-service.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/system/services/lifecycle-management-service.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/system/services/version-control-service.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/system/system-domain-coordinator.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/user-experience/services/accessibility-service.js",
+        "status": "pending",
+        "itemCount": 4,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/user-experience/services/notification-service.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/user-experience/services/personalization-service.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/user-experience/services/popup-ui-coordination-service.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/user-experience/services/preference-service.js",
+        "status": "pending",
+        "itemCount": 7,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/user-experience/services/theme-management-service.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/domains/user-experience/ux-domain-coordinator.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/events/event-coordinator.js",
+        "status": "pending",
+        "itemCount": 4,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/i18n/i18n-manager.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/lifecycle/base-module.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/lifecycle/install-handler.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/lifecycle/shutdown-handler.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/lifecycle/startup-handler.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/messaging/chrome-api-wrapper.js",
+        "status": "pending",
+        "itemCount": 5,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/messaging/content-message-handler.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/messaging/popup-message-handler.js",
+        "status": "pending",
+        "itemCount": 11,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/background/monitoring/content-coordinator.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/content/bridge/chrome-event-bridge.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/content/core/content-event-bus.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/content/detectors/page-detector.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/content/extractors/book-data-extractor.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/content/platform/platform-adapter-interface.js",
+        "status": "pending",
+        "itemCount": 13,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/content/utils/config-utils.js",
+        "status": "pending",
+        "itemCount": 11,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/content/utils/dom-utils.js",
+        "status": "pending",
+        "itemCount": 10,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/content/utils/error-handling-utils.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/content/utils/event-utils.js",
+        "status": "pending",
+        "itemCount": 11,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/content/utils/memory-utils.js",
+        "status": "pending",
+        "itemCount": 13,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/core/enums/LogLevel.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/core/error-handling/error-classifier.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/core/error-handling/error-recovery-coordinator.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/core/error-handling/system-error-handler.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/core/errors/ErrorHelper.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/core/errors/OperationResult.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/core/errors/StandardError.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/core/event-bus.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/core/event-handler.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/core/events/event-naming-upgrade-coordinator.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/core/events/event-priority-manager.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/core/events/event-type-definitions.js",
+        "status": "pending",
+        "itemCount": 5,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/core/messages/MessageDictionary.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/data-management/SchemaMigrationService.js",
+        "status": "pending",
+        "itemCount": 10,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/deployment/chrome-store-readiness.js",
+        "status": "pending",
+        "itemCount": 12,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/error-handling/event-tracker.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/export/book-data-exporter.js",
+        "status": "pending",
+        "itemCount": 8,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/export/export-manager.js",
+        "status": "pending",
+        "itemCount": 8,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/export/handlers/csv-export-handler.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/export/handlers/error-handler.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/export/handlers/excel-export-handler.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/export/handlers/handler-registry.js",
+        "status": "pending",
+        "itemCount": 4,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/export/handlers/json-export-handler.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/export/handlers/progress-handler.js",
+        "status": "pending",
+        "itemCount": 5,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/handlers/extraction-completed-handler.js",
+        "status": "pending",
+        "itemCount": 4,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/handlers/extraction-progress-handler.js",
+        "status": "pending",
+        "itemCount": 6,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/overview/overview-page-controller.js",
+        "status": "pending",
+        "itemCount": 8,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/overview/overview.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/platform/readmoo-platform-migration-validator.js",
+        "status": "pending",
+        "itemCount": 8,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/popup/components/popup-progress-manager.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/popup/components/popup-status-manager.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/popup/popup-controller.js",
+        "status": "pending",
+        "itemCount": 6,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/popup/popup-event-controller.js",
+        "status": "pending",
+        "itemCount": 7,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/popup/popup.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/popup/services/popup-extraction-service.js",
+        "status": "pending",
+        "itemCount": 6,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/popup/utils/event-manager.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/storage/adapters/chrome-storage-adapter.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/storage/handlers/storage-completion-handler.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/storage/handlers/storage-load-handler.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/storage/handlers/storage-save-handler.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/ui/book-grid-renderer.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/ui/book-search-filter-integrated.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/ui/book-search-filter.js",
+        "status": "pending",
+        "itemCount": 7,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/ui/handlers/ui-event-validator.js",
+        "status": "pending",
+        "itemCount": 12,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/ui/handlers/ui-notification-handler.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/ui/handlers/ui-progress-handler.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/ui/search/cache/search-cache-manager.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/ui/search/coordinator/search-coordinator.js",
+        "status": "pending",
+        "itemCount": 20,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/ui/search/core/search-engine.js",
+        "status": "pending",
+        "itemCount": 3,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/ui/search/core/search-index-manager.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/ui/search/filter/filter-engine.js",
+        "status": "pending",
+        "itemCount": 7,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/ui/search/formatter/search-result-formatter.js",
+        "status": "pending",
+        "itemCount": 4,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/ui/search/ui-controller/search-ui-controller.js",
+        "status": "pending",
+        "itemCount": 2,
+        "lastProcessed": null
+      },
+      {
+        "path": "src/utils/file-reader-factory.js",
+        "status": "pending",
+        "itemCount": 1,
+        "lastProcessed": null
+      }
+    ],
+    "sessions": [
+      {
+        "id": "migration_1758082658138_mjawctkxz",
+        "startTime": "2025-09-17T04:17:38.138Z",
+        "mode": "SUGGEST_ONLY",
+        "riskThreshold": "medium",
+        "targetFiles": [],
+        "status": "ACTIVE",
+        "progress": {
+          "analyzed": 0,
+          "converted": 0,
+          "verified": 0,
+          "failed": 0
+        }
+      },
+      {
+        "id": "migration_1758082698189_njsv0ltm3",
+        "startTime": "2025-09-17T04:18:18.189Z",
+        "mode": "SUGGEST_ONLY",
+        "riskThreshold": "medium",
+        "targetFiles": [],
+        "status": "ACTIVE",
+        "progress": {
+          "analyzed": 0,
+          "converted": 0,
+          "verified": 0,
+          "failed": 0
+        }
+      }
+    ],
+    "recommendations": [
+      {
+        "type": "progress",
+        "priority": "medium",
+        "message": "建議優先處理低風險項目以快速提升進度"
+      }
+    ]
+  },
+  "validation": {
+    "timestamp": "2025-09-17T04:18:18.617Z",
+    "overall": "fail",
+    "validations": {
+      "build": {
+        "result": "pass",
+        "message": "專案建置成功"
+      },
+      "tests": {
+        "result": "fail",
+        "message": "測試失敗: spawnSync /bin/sh ENOBUFS"
+      },
+      "lint": {
+        "result": "warning",
+        "message": "Lint 檢查發現問題: Command failed: npm run lint"
+      },
+      "dependencies": {
+        "result": "pass",
+        "message": "依賴關係正常"
+      }
+    },
+    "metrics": {}
+  },
+  "generatedAt": "2025-09-17T04:18:35.210Z"
+}

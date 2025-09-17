@@ -462,7 +462,7 @@ class BookSearchFilter extends BaseUIHandler {
       }
     } catch (error) {
       // 如果搜尋過程中遇到無效資料，拋出錯誤讓上層處理
-      const searchError = new StandardError('UNKNOWN_ERROR', `搜尋過程中遇到無效資料: ${error.message}`, {
+      const searchError = new StandardError('UNKNOWN_ERROR', '搜尋過程中遇到無效資料: ${error.message}', {
         category: 'ui'
       })
       searchError.originalError = error
@@ -515,7 +515,7 @@ class BookSearchFilter extends BaseUIHandler {
 
       return false
     } catch (error) {
-      throw new StandardError('UNKNOWN_ERROR', `搜尋條件檢查失敗: ${error.message}`, {
+      throw new StandardError('UNKNOWN_ERROR', '搜尋條件檢查失敗: ${error.message}', {
         category: 'ui'
       })
     }
@@ -1074,7 +1074,7 @@ class BookSearchFilter extends BaseUIHandler {
         await this.resetFilters()
         return { status: 'filters-reset' }
       default:
-        throw new StandardError('UNKNOWN_ERROR', `未知的搜尋動作: ${data.action}`, {
+        throw new StandardError('UNKNOWN_ERROR', '未知的搜尋動作: ${data.action}', {
           category: 'ui'
         })
     }
