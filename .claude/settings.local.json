@@ -1,0 +1,220 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/startup-check-hook.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/prompt-submit-hook.sh"
+          },
+          {
+            "type": "command",
+            "command": "./scripts/task-avoidance-detection-hook.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/task-avoidance-block-check.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash.*git commit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/pre-commit-hook.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash.*npm test|Bash.*npx jest",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/pre-test-hook.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/performance-monitor-hook.sh post-edit start"
+          },
+          {
+            "type": "command",
+            "command": "./scripts/post-edit-hook.sh"
+          },
+          {
+            "type": "command",
+            "command": "./scripts/code-smell-detection-hook.sh"
+          },
+          {
+            "type": "command",
+            "command": "./scripts/auto-documentation-update-hook.sh"
+          },
+          {
+            "type": "command",
+            "command": "./scripts/performance-monitor-hook.sh post-edit end"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash.*npm test|Bash.*npx jest",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/performance-monitor-hook.sh test start"
+          },
+          {
+            "type": "command",
+            "command": "./scripts/post-test-hook.sh"
+          },
+          {
+            "type": "command",
+            "command": "./scripts/performance-monitor-hook.sh test end"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/stop-hook.sh"
+          },
+          {
+            "type": "command",
+            "command": "./scripts/pm-trigger-hook.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.anthropic.com)",
+      "mcp__serena__*",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(git:*)",
+      "Bash(tmux:*)",
+      "Bash(./scripts/:*)",
+      "Bash(timeout:*)",
+      "Bash(echo:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(sed:*)",
+      "Bash(awk:*)",
+      "Bash(sort:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(tr:*)",
+      "Bash(ls:*)",
+      "Bash(stat:*)",
+      "Bash(date:*)",
+      "Bash(chmod:*)",
+      "Bash(sleep:*)",
+      "Bash(current_session=:*)",
+      "Bash(pane_count=:*)",
+      "Bash(pane0_command=:*)",
+      "Bash(claude_mod_date=:*)",
+      "Bash(task_count=:*)",
+      "Bash(files_to_check=:*)",
+      "Bash(if [[ -f:*)",
+      "mcp__serena__get_symbols_overview",
+      "mcp__serena__find_symbol",
+      "mcp__serena__search_for_pattern",
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__list_dir",
+      "mcp__serena__find_file",
+      "Bash(source:*)",
+      "Bash(update_todolist_version)",
+      "Bash(get_current_project_version)",
+      "Bash(bash:*)",
+      "mcp__serena__think_about_whether_you_are_done",
+      "mcp__serena__think_about_task_adherence",
+      "mcp__serena__replace_symbol_body",
+      "mcp__serena__think_about_collected_information",
+      "mcp__serena__onboarding",
+      "mcp__serena__read_memory",
+      "mcp__serena__list_memories",
+      "mcp__serena__insert_after_symbol",
+      "Bash(if [[ -n \"$TMUX\" ]])",
+      "Bash(else echo \"未在tmux環境中\")",
+      "Bash(fi)",
+      "Bash(cat:*)",
+      "Bash(then ./scripts/check-version-sync.sh)",
+      "Bash(else echo \"版號同步檢查腳本不存在，執行手動檢查\")",
+      "Bash(else echo \"工作日誌檢查腳本不存在，跳過\")",
+      "Bash(else echo \"工作日誌檢查腳本不存在，手動檢查\")",
+      "Bash(else echo \"版本推進檢查腳本不存在，手動分析\")",
+      "Bash(then ./scripts/setup-tmux-layout.sh)",
+      "Bash(else echo \"TMux 佈局腳本不存在，檢查手動佈局\")",
+      "Bash(then echo \"執行第三輪測試錯誤處理修正\")",
+      "Bash(else echo \"測試修正腳本不存在\")",
+      "Bash(then echo \"執行最終階段全面修正腳本\")",
+      "Bash(else echo \"最終修正腳本不存在，檢查可用腳本\")",
+      "Bash(then echo \"執行最終 toThrow 批量修正腳本\")",
+      "Bash(else if [[ -f \"./scripts/batch-fix-tothrow.js\" ]])",
+      "Bash(then echo \"使用備用 toThrow 修正腳本\")",
+      "Bash(else echo \"檢查可用的修正腳本\")",
+      "Bash(xargs:*)",
+      "Bash(./fix-standard-error-globals.sh:*)",
+      "mcp__serena__find_referencing_symbols",
+      "mcp__serena__insert_before_symbol",
+      "Bash(./console-cleanup.sh:*)",
+      "Bash(./console-cleanup-batch2.sh:*)",
+      "Bash(./console-cleanup-final.sh:*)",
+      "Bash(./batch-fix-logger.sh:*)",
+      "Bash(./fix-logger-pollution.sh:*)",
+      "Bash(./fix-logger-position.sh:*)",
+      "Bash(while read location)",
+      "Bash(do echo \"=== $location ===\")",
+      "Bash(done)",
+      "Bash(else echo \"詳細檢查腳本不存在，執行手動檢查\")",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/core/errors/UC02ErrorAdapter.test.js --verbose)",
+      "mcp__serena__write_memory",
+      "Bash(/dev/null)",
+      "Bash(for file in src/core/errors/UC*ErrorAdapter.js)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(while read file)",
+      "Bash(for file in config-management-service.js lifecycle-management-service.js health-monitoring-service.js version-control-service.js)",
+      "Bash(do echo \"處理 $file\")",
+      "Bash(for file in lifecycle-management-service.js health-monitoring-service.js)",
+      "Bash(do echo \"檢查 $file:\")",
+      "Bash(for file in system-domain-coordinator.js services/*.js)",
+      "Bash(for file in conflict-resolution-service.js quality-assessment-service.js DataComparisonEngine.js cache-management-service.js readmoo-data-consistency-service.js)",
+      "Bash(do echo \"=== Processing $file ===\")",
+      "Bash(for file in data-normalization-service.js cross-device-sync-service.js PlatformRuleManager.js DataNormalizationService.js)",
+      "Bash(for file in data-validation-service.js ValidationCacheManager.js DataQualityAnalyzer.js ValidationBatchProcessor.js)",
+      "Bash(do echo \"=== Verifying $file ===\")",
+      "Read(//Users/tarragon/.claude/**)",
+      "WebFetch(domain:docs.claude.com)"
+    ],
+    "deny": []
+  }
+}
