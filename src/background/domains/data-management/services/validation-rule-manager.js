@@ -20,7 +20,7 @@
 
 const BaseModule = require('src/background/lifecycle/base-module')
 const { Logger } = require('src/core/logging/Logger')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class ValidationRuleManager extends BaseModule {
   /**
@@ -30,9 +30,10 @@ class ValidationRuleManager extends BaseModule {
    */
   constructor (eventBus, dependencies = {}) {
     if (!eventBus) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required', {
-        category: 'validation'
-      })
+      const error = new Error('EventBus is required')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'validation', timestamp: Date.now() }
+      throw error
     }
 
     super({
@@ -127,9 +128,10 @@ class ValidationRuleManager extends BaseModule {
   async updatePlatformRules (platform, newRules) {
     try {
       if (!this.validateRuleStructure(newRules)) {
-        throw new StandardError('INVALID_DATA_FORMAT', 'Invalid rule structure', {
-          category: 'validation'
-        })
+        const error = new Error('Invalid rule structure')
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'validation', timestamp: Date.now() }
+        throw error
       }
 
       this.validationRules.set(platform, newRules)
@@ -335,9 +337,10 @@ class ValidationRuleManager extends BaseModule {
    */
   validatePlatformSupported (platform) {
     if (!this.supportedPlatforms.includes(platform)) {
-      throw new StandardError('FEATURE_NOT_SUPPORTED', 'Platform ${platform} is not supported', {
-        category: 'validation'
-      })
+      const error = new Error(`Platform ${platform} is not supported`)
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'validation', timestamp: Date.now() }
+      throw error
     }
   }
 
@@ -383,14 +386,16 @@ class ValidationRuleManager extends BaseModule {
    */
   validateLoadedRules (platform, rules) {
     if (!rules) {
-      throw new StandardError('OPERATION_FAILED', 'Failed to load validation rules for platform ${platform}', {
-        category: 'validation'
-      })
+      const error = new Error(`Failed to load validation rules for platform ${platform}`)
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'validation', timestamp: Date.now() }
+      throw error
     }
     if (!this.validateRuleStructure(rules)) {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid rule structure for platform ${platform}', {
-        category: 'validation'
-      })
+      const error = new Error(`Invalid rule structure for platform ${platform}`)
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'validation', timestamp: Date.now() }
+      throw error
     }
   }
 

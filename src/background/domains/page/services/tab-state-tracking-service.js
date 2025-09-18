@@ -23,7 +23,7 @@ const {
   TAB_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class TabStateTrackingService {
   constructor (dependencies = {}) {
@@ -99,7 +99,9 @@ class TabStateTrackingService {
 
       // 發送初始化完成事件
       if (this.eventBus) {
-        await this.eventBus.emit('PAGE.TAB_STATE.INITIALIZED', {
+        await this.eventBus.emit('PAGE.TAB_STATE.INITIALIZED')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
           serviceName: 'TabStateTrackingService',
           tabsTracked: this.tabStates.size
         })
@@ -115,7 +117,9 @@ class TabStateTrackingService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
+      const error = new Error('服務尚未初始化')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
         category: 'general'
       })
     }
@@ -138,7 +142,9 @@ class TabStateTrackingService {
 
       // 發送啟動完成事件
       if (this.eventBus) {
-        await this.eventBus.emit('PAGE.TAB_STATE.STARTED', {
+        await this.eventBus.emit('PAGE.TAB_STATE.STARTED')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
           serviceName: 'TabStateTrackingService'
         })
       }
@@ -177,7 +183,9 @@ class TabStateTrackingService {
 
       // 發送停止完成事件
       if (this.eventBus) {
-        await this.eventBus.emit('PAGE.TAB_STATE.STOPPED', {
+        await this.eventBus.emit('PAGE.TAB_STATE.STOPPED')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
           serviceName: 'TabStateTrackingService',
           finalStats: { ...this.stats }
         })
@@ -420,7 +428,9 @@ class TabStateTrackingService {
       // 如果URL變化，發送導航事件
       if (changeInfo.url) {
         if (this.eventBus) {
-          await this.eventBus.emit('PAGE.NAVIGATION.CHANGED', {
+          await this.eventBus.emit('PAGE.NAVIGATION.CHANGED')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
             tabId,
             url: changeInfo.url,
             previousUrl: this.tabStates.get(tabId)?.url
@@ -431,7 +441,9 @@ class TabStateTrackingService {
       // 如果狀態變為完成，發送就緒事件
       if (changeInfo.status === 'complete' && this.isReadmooPage(tab.url)) {
         if (this.eventBus) {
-          await this.eventBus.emit('PAGE.READY', {
+          await this.eventBus.emit('PAGE.READY')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
             tabId,
             url: tab.url,
             title: tab.title
@@ -459,7 +471,9 @@ class TabStateTrackingService {
 
       // 發送分頁啟動事件
       if (this.eventBus) {
-        await this.eventBus.emit('PAGE.TAB.ACTIVATED', {
+        await this.eventBus.emit('PAGE.TAB.ACTIVATED')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
           tabId,
           windowId,
           timestamp: Date.now()
@@ -481,7 +495,9 @@ class TabStateTrackingService {
       this.activeTabIds.delete(tabId)
 
       // 標記為已移除但保留狀態一段時間
-      await this.updateTabState(tabId, {
+      await this.updateTabState(tabId)
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
         removed: true,
         removeInfo,
         lastUpdate: Date.now()
@@ -489,7 +505,9 @@ class TabStateTrackingService {
 
       // 發送分頁移除事件
       if (this.eventBus) {
-        await this.eventBus.emit('PAGE.TAB.REMOVED', {
+        await this.eventBus.emit('PAGE.TAB.REMOVED')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
           tabId,
           removeInfo,
           timestamp: Date.now()
@@ -511,7 +529,9 @@ class TabStateTrackingService {
 
       // 發送分頁創建事件
       if (this.eventBus) {
-        await this.eventBus.emit('PAGE.TAB.CREATED', {
+        await this.eventBus.emit('PAGE.TAB.CREATED')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
           tabId: tab.id,
           url: tab.url,
           timestamp: Date.now()
@@ -704,7 +724,9 @@ class TabStateTrackingService {
       }
 
       if (this.eventBus) {
-        await this.eventBus.emit('PAGE.TAB_STATE.RESPONSE', {
+        await this.eventBus.emit('PAGE.TAB_STATE.RESPONSE')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
           requestId,
           tabId,
           result
@@ -727,7 +749,9 @@ class TabStateTrackingService {
         : this.getAllTabHistories()
 
       if (this.eventBus) {
-        await this.eventBus.emit('PAGE.TAB_HISTORY.RESPONSE', {
+        await this.eventBus.emit('PAGE.TAB_HISTORY.RESPONSE')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
           requestId,
           tabId,
           result

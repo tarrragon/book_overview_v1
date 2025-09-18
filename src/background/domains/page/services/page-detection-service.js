@@ -23,7 +23,7 @@ const {
   PAGE_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class PageDetectionService {
   constructor (dependencies = {}) {
@@ -101,9 +101,10 @@ class PageDetectionService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
-        category: 'general'
-      })
+      const error = new Error('服務尚未初始化')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     if (this.state.active) {
@@ -420,9 +421,10 @@ class PageDetectionService {
    */
   registerDetectionRule (name, rule) {
     if (!rule.urlPattern || !rule.pageType) {
-      throw new StandardError('UNKNOWN_ERROR', '檢測規則必須包含 urlPattern 和 pageType', {
-        category: 'general'
-      })
+      const error = new Error('檢測規則必須包含 urlPattern 和 pageType')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general', rule }
+      throw error
     }
 
     this.detectionRules.set(name, {
@@ -506,9 +508,10 @@ class PageDetectionService {
       const { url, title, tabId, requestId } = event.data || {}
 
       if (!url) {
-        throw new StandardError('UNKNOWN_ERROR', '檢測請求必須包含 URL', {
-          category: 'general'
-        })
+        const error = new Error('檢測請求必須包含 URL')
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general', event: event.data }
+        throw error
       }
 
       const result = await this.detectPageType(url, title, tabId)
@@ -541,9 +544,10 @@ class PageDetectionService {
       const { pages, requestId } = event.data || {}
 
       if (!Array.isArray(pages)) {
-        throw new StandardError('UNKNOWN_ERROR', '批量檢測請求必須包含頁面陣列', {
-          category: 'general'
-        })
+        const error = new Error('批量檢測請求必須包含頁面陣列')
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general', event: event.data }
+        throw error
       }
 
       const results = await this.batchDetectPages(pages)

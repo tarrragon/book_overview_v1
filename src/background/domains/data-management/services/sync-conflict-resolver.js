@@ -18,7 +18,7 @@ const {
   SYNC_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class SyncConflictResolver {
   constructor (dependencies = {}) {
@@ -239,9 +239,10 @@ class SyncConflictResolver {
     const strategyProcessor = this.conflictStrategies.get(strategy)
 
     if (!strategyProcessor) {
-      throw new StandardError('UNKNOWN_ERROR', '未支援的衝突解決策略: ${strategy}', {
-        category: 'general'
-      })
+      const error = new Error(`未支援的衝突解決策略: ${strategy}`)
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general', strategy }
+      throw error
     }
 
     this.logger.log(`⚖️ 開始解決 ${conflicts.length} 個衝突，策略: ${strategy}`)

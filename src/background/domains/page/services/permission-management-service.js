@@ -23,7 +23,7 @@ const {
   PERMISSION_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class PermissionManagementService {
   constructor (dependencies = {}) {
@@ -113,9 +113,12 @@ class PermissionManagementService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
+      const error = new Error('服務尚未初始化')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
         category: 'permission'
-      })
+      }
+      throw error
     }
 
     if (this.state.active) {
@@ -297,9 +300,13 @@ class PermissionManagementService {
   async requestPermission (permissionKey, userInitiated = false) {
     const config = this.requiredPermissions.get(permissionKey)
     if (!config) {
-      throw new StandardError('PERMISSION_DENIED', '未知的權限: ${permissionKey}', {
-        category: 'permission'
-      })
+      const error = new Error(`未知的權限: ${permissionKey}`)
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
+        category: 'permission',
+        permissionKey
+      }
+      throw error
     }
 
     if (this.grantedPermissions.has(permissionKey)) {
@@ -427,9 +434,13 @@ class PermissionManagementService {
   async revokePermission (permissionKey) {
     const config = this.requiredPermissions.get(permissionKey)
     if (!config) {
-      throw new StandardError('PERMISSION_DENIED', '未知的權限: ${permissionKey}', {
-        category: 'permission'
-      })
+      const error = new Error(`未知的權限: ${permissionKey}`)
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
+        category: 'permission',
+        permissionKey
+      }
+      throw error
     }
 
     if (typeof chrome === 'undefined' || !chrome.permissions) {
@@ -626,9 +637,12 @@ class PermissionManagementService {
       const { permission, userInitiated, requestId } = event.data || {}
 
       if (!permission) {
-        throw new StandardError('PERMISSION_DENIED', '權限請求事件缺少 permission 參數', {
+        const error = new Error('權限請求事件缺少 permission 參數')
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = {
           category: 'permission'
-        })
+        }
+        throw error
       }
 
       const granted = await this.requestPermission(permission, userInitiated)
@@ -684,9 +698,12 @@ class PermissionManagementService {
       const { permission, requestId } = event.data || {}
 
       if (!permission) {
-        throw new StandardError('PERMISSION_DENIED', '權限撤銷事件缺少 permission 參數', {
+        const error = new Error('權限撤銷事件缺少 permission 參數')
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = {
           category: 'permission'
-        })
+        }
+        throw error
       }
 
       const revoked = await this.revokePermission(permission)

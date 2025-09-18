@@ -29,7 +29,7 @@
  * - 品質趨勢分析和預測
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class DataQualityAnalyzer {
   /**
@@ -39,19 +39,22 @@ class DataQualityAnalyzer {
   constructor (options = {}) {
     // 驗證必要依賴
     if (!options.validationEngine) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'ValidationEngine is required', {
-        category: 'validation'
-      })
+      const error = new Error('ValidationEngine is required')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'validation', timestamp: Date.now() }
+      throw error
     }
     if (!options.dataNormalizer) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'DataNormalizer is required', {
-        category: 'ui'
-      })
+      const error = new Error('DataNormalizer is required')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui', timestamp: Date.now() }
+      throw error
     }
     if (!options.platformRuleManager) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'PlatformRuleManager is required', {
-        category: 'ui'
-      })
+      const error = new Error('PlatformRuleManager is required')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui', timestamp: Date.now() }
+      throw error
     }
 
     // 注入依賴服務
@@ -163,9 +166,10 @@ class DataQualityAnalyzer {
       return analysis
     } catch (error) {
       this._updateStatistics({ processingTime: Date.now() - startTime }, true)
-      throw new StandardError('OPERATION_FAILED', 'Quality analysis failed: ${error.message}', {
-        category: 'general'
-      })
+      const newError = new Error(`Quality analysis failed: ${error.message}`)
+      newError.code = ErrorCodes.OPERATION_ERROR
+      newError.details = { category: 'general', timestamp: Date.now(), originalError: error.message }
+      throw newError
     }
   }
 
@@ -180,10 +184,10 @@ class DataQualityAnalyzer {
     const startTime = Date.now()
 
     if (!Array.isArray(books) || books.length === 0) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'Books array is required and must not be empty', {
-        dataType: 'array',
-        category: 'ui'
-      })
+      const error = new Error('Books array is required and must not be empty')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { dataType: 'array', category: 'ui', timestamp: Date.now() }
+      throw error
     }
 
     const batchResults = {
@@ -476,22 +480,25 @@ class DataQualityAnalyzer {
    */
   _validateInputs (book, platform) {
     if (!book || typeof book !== 'object') {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid book data', {
-        category: 'general'
-      })
+      const error = new Error('Invalid book data')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general', timestamp: Date.now() }
+      throw error
     }
     if (!platform || typeof platform !== 'string') {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'Platform is required', {
-        category: 'ui'
-      })
+      const error = new Error('Platform is required')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui', timestamp: Date.now() }
+      throw error
     }
 
     // 驗證平台支援
     const platformSupport = this.platformRuleManager.validatePlatformSupport(platform)
     if (!platformSupport.isSupported) {
-      throw new StandardError('FEATURE_NOT_SUPPORTED', 'Platform not supported: ${platform}', {
-        category: 'general'
-      })
+      const error = new Error(`Platform not supported: ${platform}`)
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'general', platform, timestamp: Date.now() }
+      throw error
     }
   }
 

@@ -30,7 +30,7 @@
  * - 企業級驗證服務架構
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class ValidationServiceCoordinator {
   /**
@@ -274,9 +274,10 @@ class ValidationServiceCoordinator {
         coordinationTime: Date.now() - startTime
       }
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', 'Batch validation coordination failed: ${error.message}', {
-        category: 'validation'
-      })
+      const err = new Error(`Batch validation coordination failed: ${error.message}`)
+      err.code = ErrorCodes.OPERATION_ERROR
+      err.details = { category: 'validation', timestamp: Date.now() }
+      throw err
     }
   }
 
@@ -338,9 +339,10 @@ class ValidationServiceCoordinator {
         coordinationTime: Date.now() - startTime
       }
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', 'Priority validation coordination failed: ${error.message}', {
-        category: 'validation'
-      })
+      const err = new Error(`Priority validation coordination failed: ${error.message}`)
+      err.code = ErrorCodes.OPERATION_ERROR
+      err.details = { category: 'validation', timestamp: Date.now() }
+      throw err
     }
   }
 
@@ -378,9 +380,10 @@ class ValidationServiceCoordinator {
         coordinationTime: Date.now() - startTime
       }
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', 'Parallel validation coordination failed: ${error.message}', {
-        category: 'validation'
-      })
+      const err = new Error(`Parallel validation coordination failed: ${error.message}`)
+      err.code = ErrorCodes.OPERATION_ERROR
+      err.details = { category: 'validation', timestamp: Date.now() }
+      throw err
     }
   }
 
@@ -603,9 +606,10 @@ class ValidationServiceCoordinator {
 
       return optimizationResult
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', 'Service optimization failed: ${error.message}', {
-        category: 'general'
-      })
+      const err = new Error(`Service optimization failed: ${error.message}`)
+      err.code = ErrorCodes.OPERATION_ERROR
+      err.details = { category: 'general', timestamp: Date.now() }
+      throw err
     }
   }
 
@@ -651,9 +655,10 @@ class ValidationServiceCoordinator {
 
       return clearResult
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', 'Service cache clearing failed: ${error.message}', {
-        category: 'general'
-      })
+      const err = new Error(`Service cache clearing failed: ${error.message}`)
+      err.code = ErrorCodes.OPERATION_ERROR
+      err.details = { category: 'general', timestamp: Date.now() }
+      throw err
     }
   }
 
@@ -674,16 +679,18 @@ class ValidationServiceCoordinator {
 
     for (const service of requiredServices) {
       if (!options[service]) {
-        throw new StandardError('REQUIRED_FIELD_MISSING', '${service} is required', {
-          category: 'ui'
-        })
+        const error = new Error(`${service} is required`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'ui', timestamp: Date.now() }
+        throw error
       }
 
       if (service !== 'eventBus' && options[service].isInitialized === false) {
         const serviceName = service.charAt(0).toUpperCase() + service.slice(1)
-        throw new StandardError('UNKNOWN_ERROR', '${serviceName} is not properly initialized', {
-          category: 'general'
-        })
+        const error = new Error(`${serviceName} is not properly initialized`)
+        error.code = ErrorCodes.OPERATION_ERROR
+        error.details = { category: 'general', timestamp: Date.now() }
+        throw error
       }
     }
   }
@@ -705,9 +712,10 @@ class ValidationServiceCoordinator {
   async _ensurePlatformRulesLoaded (platform) {
     const supportResult = this.platformRuleManager.validatePlatformSupport(platform)
     if (!supportResult.isSupported) {
-      throw new StandardError('FEATURE_NOT_SUPPORTED', 'Platform ${platform} is not supported', {
-        category: 'general'
-      })
+      const error = new Error(`Platform ${platform} is not supported`)
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'general', timestamp: Date.now() }
+      throw error
     }
 
     await this.platformRuleManager.loadPlatformRules(platform)

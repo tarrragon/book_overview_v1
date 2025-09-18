@@ -33,7 +33,7 @@ const crypto = require('crypto')
 
 // 引入新的錯誤類別系統
 const { BookValidationError } = require('src/core/errors/BookValidationError')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class DataValidationService {
   constructor (eventBus, config = {}) {
@@ -49,23 +49,26 @@ class DataValidationService {
 
   _validateConstructorInputs (eventBus, config) {
     if (!eventBus) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required', {
-        category: 'validation'
-      })
+      const error = new Error('EventBus is required')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'validation', timestamp: Date.now() }
+      throw error
     }
 
     // 如果使用依賴注入模式（整合測試期望），驗證必要服務
     if (config && (config.validationRuleManager !== undefined || config.services)) {
       if (config.validationRuleManager === null) {
-        throw new StandardError('REQUIRED_FIELD_MISSING', 'ValidationRuleManager is required', {
-          category: 'validation'
-        })
+        const error = new Error('ValidationRuleManager is required')
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'validation', timestamp: Date.now() }
+        throw error
       }
 
       if (config.batchValidationProcessor === null) {
-        throw new StandardError('REQUIRED_FIELD_MISSING', 'BatchValidationProcessor is required', {
-          category: 'validation'
-        })
+        const error = new Error('BatchValidationProcessor is required')
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'validation', timestamp: Date.now() }
+        throw error
       }
     }
   }
@@ -935,9 +938,10 @@ class DataValidationService {
 
       this.isInitialized = true
     } catch (error) {
-      throw new StandardError('UNKNOWN_ERROR', '初始化失敗: ${error.message}', {
-        category: 'validation'
-      })
+      const newError = new Error(`初始化失敗: ${error.message}`)
+      newError.code = ErrorCodes.OPERATION_ERROR
+      newError.details = { category: 'validation', timestamp: Date.now(), originalError: error.message }
+      throw newError
     }
   }
 
@@ -946,9 +950,10 @@ class DataValidationService {
    */
   async loadPlatformValidationRules (platform) {
     if (!this.config.supportedPlatforms.includes(platform)) {
-      throw new StandardError('UNKNOWN_ERROR', '不支援的平台: ${platform}', {
-        category: 'validation'
-      })
+      const error = new Error(`不支援的平台: ${platform}`)
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'validation', platform, timestamp: Date.now() }
+      throw error
     }
 
     // 檢查快取
@@ -959,9 +964,10 @@ class DataValidationService {
     try {
       await this.loadRulesForPlatform(platform)
     } catch (error) {
-      throw new StandardError('UNKNOWN_ERROR', '載入驗證規則失敗: ${error.message}', {
-        category: 'validation'
-      })
+      const newError = new Error(`載入驗證規則失敗: ${error.message}`)
+      newError.code = ErrorCodes.OPERATION_ERROR
+      newError.details = { category: 'validation', platform, timestamp: Date.now(), originalError: error.message }
+      throw newError
     }
   }
 
@@ -1023,9 +1029,12 @@ class DataValidationService {
     // 建立超時控制
     const timeout = this.config.validationTimeout || 5000
     const timeoutPromise = new Promise((_resolve, reject) => {
-      setTimeout(() => reject(new StandardError('UNKNOWN_ERROR', '驗證逾時', {
-        category: 'validation'
-      })), timeout)
+      setTimeout(() => {
+        const error = new Error('驗證逾時')
+        error.code = ErrorCodes.OPERATION_ERROR
+        error.details = { category: 'validation', timeout, timestamp: Date.now() }
+        reject(error)
+      }, timeout)
     })
 
     const validationPromise = (async () => {
@@ -1349,9 +1358,10 @@ class DataValidationService {
       // 取得驗證規則
       const rules = this._getValidationRules(platform)
       if (!rules) {
-        throw new StandardError('UNKNOWN_ERROR', '驗證規則損壞', {
-          category: 'validation'
-        })
+        const error = new Error('驗證規則損壞')
+        error.code = ErrorCodes.OPERATION_ERROR
+        error.details = { category: 'validation', platform, timestamp: Date.now() }
+        throw error
       }
 
       // 執行預處理修復（在驗證之前）
@@ -1840,7 +1850,7 @@ class DataValidationService {
     // }
 
     if (!platform || typeof platform !== 'string' || platform.trim() === '') {
-      throw new StandardError('PLATFORM_VALIDATION_ERROR', '平台名稱不能為空', { platform })
+      const error = new Error('平台名稱不能為空'); error.code = ErrorCodes.VALIDATION_ERROR; error.details = { category: 'general', platform, timestamp: Date.now() }; throw error
     }
   }
 

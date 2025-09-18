@@ -30,7 +30,7 @@
  */
 
 const crypto = require('crypto')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class ValidationCacheManager {
   /**
@@ -132,9 +132,10 @@ class ValidationCacheManager {
         processingTime: Date.now() - startTime
       }
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', 'Cache validation result failed: ${error.message}', {
-        category: 'validation'
-      })
+      const newError = new Error(`Cache validation result failed: ${error.message}`)
+      newError.code = ErrorCodes.OPERATION_ERROR
+      newError.details = { category: 'validation', timestamp: Date.now(), originalError: error.message }
+      throw newError
     }
   }
 
@@ -182,9 +183,10 @@ class ValidationCacheManager {
       }
     } catch (error) {
       this._updateGetStatistics(false, null, 'validation')
-      throw new StandardError('OPERATION_FAILED', 'Get cached validation failed: ${error.message}', {
-        category: 'validation'
-      })
+      const newError = new Error(`Get cached validation failed: ${error.message}`)
+      newError.code = ErrorCodes.OPERATION_ERROR
+      newError.details = { category: 'validation', timestamp: Date.now(), originalError: error.message }
+      throw newError
     }
   }
 
@@ -219,9 +221,10 @@ class ValidationCacheManager {
         size: cacheEntry.size
       }
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', 'Cache quality analysis failed: ${error.message}', {
-        category: 'general'
-      })
+      const newError = new Error(`Cache quality analysis failed: ${error.message}`)
+      newError.code = ErrorCodes.OPERATION_ERROR
+      newError.details = { category: 'general', timestamp: Date.now(), originalError: error.message }
+      throw newError
     }
   }
 
@@ -290,9 +293,10 @@ class ValidationCacheManager {
         expiresAt: cacheEntry.expiresAt
       }
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', 'Cache platform rules failed: ${error.message}', {
-        category: 'general'
-      })
+      const newError = new Error(`Cache platform rules failed: ${error.message}`)
+      newError.code = ErrorCodes.OPERATION_ERROR
+      newError.details = { category: 'general', timestamp: Date.now(), originalError: error.message }
+      throw newError
     }
   }
 
@@ -409,9 +413,10 @@ class ValidationCacheManager {
         criteria
       }
     } catch (error) {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Cache invalidation failed: ${error.message}', {
-        category: 'validation'
-      })
+      const newError = new Error(`Cache invalidation failed: ${error.message}`)
+      newError.code = ErrorCodes.VALIDATION_ERROR
+      newError.details = { category: 'validation', timestamp: Date.now(), originalError: error.message }
+      throw newError
     }
   }
 
@@ -490,9 +495,10 @@ class ValidationCacheManager {
         preserveRules
       }
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', 'Cache clearing failed: ${error.message}', {
-        category: 'general'
-      })
+      const newError = new Error(`Cache clearing failed: ${error.message}`)
+      newError.code = ErrorCodes.OPERATION_ERROR
+      newError.details = { category: 'general', timestamp: Date.now(), originalError: error.message }
+      throw newError
     }
   }
 
@@ -571,9 +577,10 @@ class ValidationCacheManager {
 
       return optimization
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', 'Cache optimization failed: ${error.message}', {
-        category: 'general'
-      })
+      const newError = new Error(`Cache optimization failed: ${error.message}`)
+      newError.code = ErrorCodes.OPERATION_ERROR
+      newError.details = { category: 'general', timestamp: Date.now(), originalError: error.message }
+      throw newError
     }
   }
 
@@ -623,9 +630,10 @@ class ValidationCacheManager {
 
       return results
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', 'Batch cache operation failed: ${error.message}', {
-        category: 'general'
-      })
+      const newError = new Error(`Batch cache operation failed: ${error.message}`)
+      newError.code = ErrorCodes.OPERATION_ERROR
+      newError.details = { category: 'general', timestamp: Date.now(), originalError: error.message }
+      throw newError
     }
   }
 
@@ -652,9 +660,10 @@ class ValidationCacheManager {
 
       return results
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', 'Batch get operation failed: ${error.message}', {
-        category: 'general'
-      })
+      const newError = new Error(`Batch get operation failed: ${error.message}`)
+      newError.code = ErrorCodes.OPERATION_ERROR
+      newError.details = { category: 'general', timestamp: Date.now(), originalError: error.message }
+      throw newError
     }
   }
 
@@ -664,17 +673,21 @@ class ValidationCacheManager {
    */
   _validateCacheKey (cacheKey) {
     if (!cacheKey || typeof cacheKey !== 'string') {
-      throw new StandardError('UNKNOWN_ERROR', 'Cache key must be a non-empty string', {
-        category: 'general'
-      })
+      const error = new Error('Cache key must be a non-empty string')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general', timestamp: Date.now() }
+      throw error
     }
     if (cacheKey.length > 250) {
-      throw new StandardError('UNKNOWN_ERROR', 'Cache key too long (maximum 250 characters)', {
-        values: [
-          '250'
-        ],
-        category: 'general'
-      })
+      const error = new Error('Cache key too long (maximum 250 characters)')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
+        category: 'general',
+        maxLength: 250,
+        actualLength: cacheKey.length,
+        timestamp: Date.now()
+      }
+      throw error
     }
   }
 
@@ -684,16 +697,23 @@ class ValidationCacheManager {
    */
   _validateCacheData (data) {
     if (data === null || data === undefined) {
-      throw new StandardError('UNKNOWN_ERROR', 'Cache data cannot be null or undefined', {
-        category: 'general'
-      })
+      const error = new Error('Cache data cannot be null or undefined')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general', timestamp: Date.now() }
+      throw error
     }
 
     const dataSize = this._calculateDataSize(data)
     if (dataSize > this.config.maxCacheEntrySize) {
-      throw new StandardError('UNKNOWN_ERROR', `Cache entry too large: ${dataSize} bytes (max: ${this.config.maxCacheEntrySize}, {
-          "category": "general"
-      })`)
+      const error = new Error(`Cache entry too large: ${dataSize} bytes (max: ${this.config.maxCacheEntrySize})`)
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
+        category: 'general',
+        dataSize,
+        maxSize: this.config.maxCacheEntrySize,
+        timestamp: Date.now()
+      }
+      throw error
     }
   }
 
@@ -778,9 +798,10 @@ class ValidationCacheManager {
       await this.storage.set(key, entry)
       this.persistentKeys.add(key)
     } catch (error) {
-      throw new StandardError('OPERATION_FAILED', 'Persistent cache set failed: ${error.message}', {
-        category: 'general'
-      })
+      const newError = new Error(`Persistent cache set failed: ${error.message}`)
+      newError.code = ErrorCodes.OPERATION_ERROR
+      newError.details = { category: 'general', key, timestamp: Date.now(), originalError: error.message }
+      throw newError
     }
   }
 

@@ -25,7 +25,7 @@ const {
   DEFAULT_CONFIG,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class ConfigManagementService {
   constructor (dependencies = {}) {
@@ -101,9 +101,12 @@ class ConfigManagementService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
+      const error = new Error('服務尚未初始化')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
         category: 'general'
-      })
+      }
+      throw error
     }
 
     if (this.state.active) {
@@ -319,9 +322,12 @@ class ConfigManagementService {
       const validation = await this.validateConfiguration(newConfig)
 
       if (!validation.isValid) {
-        throw new StandardError('VALIDATION_FAILED', `配置驗證失敗: ${validation.errors.join(', ', {
+        const error = new Error(`配置驗證失敗: ${validation.errors.join(', ')}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = {
           category: 'validation'
-      })}`)
+        }
+        throw error
       }
 
       // 保存舊配置到歷史
@@ -383,9 +389,12 @@ class ConfigManagementService {
    */
   registerConfigurationWatcher (key, watcher) {
     if (typeof watcher !== 'function') {
-      throw new StandardError('UNKNOWN_ERROR', '配置監聽器必須是函數', {
+      const error = new Error('配置監聽器必須是函數')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         category: 'general'
-      })
+      }
+      throw error
     }
 
     this.configurationWatchers.set(key, watcher)
@@ -408,9 +417,12 @@ class ConfigManagementService {
    */
   registerConfigurationValidator (key, validator) {
     if (typeof validator !== 'function') {
-      throw new StandardError('UNKNOWN_ERROR', '配置驗證器必須是函數', {
+      const error = new Error('配置驗證器必須是函數')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         category: 'general'
-      })
+      }
+      throw error
     }
 
     this.configurationValidators.set(key, validator)
@@ -472,9 +484,12 @@ class ConfigManagementService {
     try {
       const { updates } = event.data || {}
       if (!updates || typeof updates !== 'object') {
-        throw new StandardError('UNKNOWN_ERROR', '無效的配置更新數據', {
+        const error = new Error('無效的配置更新數據')
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = {
           category: 'general'
-        })
+        }
+        throw error
       }
 
       await this.applyConfigurationUpdates(updates)

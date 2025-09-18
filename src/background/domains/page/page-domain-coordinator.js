@@ -19,7 +19,7 @@ const ContentScriptCoordinatorService = require('./services/content-script-coord
 const TabStateTrackingService = require('./services/tab-state-tracking-service')
 const PermissionManagementService = require('./services/permission-management-service')
 const NavigationService = require('./services/navigation-service')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 const {
   PAGE_EVENTS,
@@ -130,9 +130,10 @@ class PageDomainCoordinator {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '協調器尚未初始化', {
-        category: 'general'
-      })
+      const error = new Error('協調器尚未初始化')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     if (this.state.active) {

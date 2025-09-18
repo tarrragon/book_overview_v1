@@ -20,7 +20,8 @@
  * - 同步編排器的依賴注入目標
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+// ErrorCodes is already imported by the file header
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 /**
  * 同步協調器抽象介面
@@ -35,10 +36,13 @@ class ISynchronizationCoordinator {
    */
   constructor (dependencies = {}) {
     if (new.target === ISynchronizationCoordinator) {
-      throw new StandardError('ABSTRACT_CLASS_INSTANTIATION', 'ISynchronizationCoordinator 是抽象類別，不能直接實例化', {
+      const error = new Error('ISynchronizationCoordinator 是抽象類別，不能直接實例化')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
         className: 'ISynchronizationCoordinator',
         category: 'instantiation'
-      })
+      }
+      throw error
     }
 
     this.logger = dependencies.logger || console
@@ -55,11 +59,14 @@ class ISynchronizationCoordinator {
    * @abstract
    */
   async initializeSync (syncId, options = {}) {
-    throw new StandardError('METHOD_NOT_IMPLEMENTED', 'initializeSync() 必須在子類別中實作', {
+    const error = new Error('initializeSync() 必須在子類別中實作')
+    error.code = ErrorCodes.OPERATION_ERROR
+    error.details = {
       method: 'initializeSync',
       className: 'ISynchronizationCoordinator',
       category: 'implementation'
-    })
+    }
+    throw error
   }
 
   /**
@@ -72,11 +79,14 @@ class ISynchronizationCoordinator {
    * @abstract
    */
   async executeSync (syncId, sourceData, targetData, strategy = 'MERGE') {
-    throw new StandardError('METHOD_NOT_IMPLEMENTED', 'executeSync() 必須在子類別中實作', {
+    const error = new Error('executeSync() 必須在子類別中實作')
+    error.code = ErrorCodes.OPERATION_ERROR
+    error.details = {
       method: 'executeSync',
       className: 'ISynchronizationCoordinator',
       category: 'implementation'
-    })
+    }
+    throw error
   }
 
   /**
@@ -87,11 +97,14 @@ class ISynchronizationCoordinator {
    * @abstract
    */
   async cancelSync (syncId, reason = 'User requested') {
-    throw new StandardError('METHOD_NOT_IMPLEMENTED', 'cancelSync() 必須在子類別中實作', {
+    const error = new Error('cancelSync() 必須在子類別中實作')
+    error.code = ErrorCodes.OPERATION_ERROR
+    error.details = {
       method: 'cancelSync',
       className: 'ISynchronizationCoordinator',
       category: 'implementation'
-    })
+    }
+    throw error
   }
 
   /**
@@ -101,11 +114,14 @@ class ISynchronizationCoordinator {
    * @abstract
    */
   async getSyncStatus (syncId) {
-    throw new StandardError('METHOD_NOT_IMPLEMENTED', 'getSyncStatus() 必須在子類別中實作', {
+    const error = new Error('getSyncStatus() 必須在子類別中實作')
+    error.code = ErrorCodes.OPERATION_ERROR
+    error.details = {
       method: 'getSyncStatus',
       className: 'ISynchronizationCoordinator',
       category: 'implementation'
-    })
+    }
+    throw error
   }
 
   /**
@@ -115,11 +131,14 @@ class ISynchronizationCoordinator {
    * @abstract
    */
   async getSyncProgress (syncId) {
-    throw new StandardError('METHOD_NOT_IMPLEMENTED', 'getSyncProgress() 必須在子類別中實作', {
+    const error = new Error('getSyncProgress() 必須在子類別中實作')
+    error.code = ErrorCodes.OPERATION_ERROR
+    error.details = {
       method: 'getSyncProgress',
       className: 'ISynchronizationCoordinator',
       category: 'implementation'
-    })
+    }
+    throw error
   }
 
   /**
@@ -129,11 +148,14 @@ class ISynchronizationCoordinator {
    * @abstract
    */
   async cleanupSync (syncId) {
-    throw new StandardError('METHOD_NOT_IMPLEMENTED', 'cleanupSync() 必須在子類別中實作', {
+    const error = new Error('cleanupSync() 必須在子類別中實作')
+    error.code = ErrorCodes.OPERATION_ERROR
+    error.details = {
       method: 'cleanupSync',
       className: 'ISynchronizationCoordinator',
       category: 'implementation'
-    })
+    }
+    throw error
   }
 
   /**
@@ -143,11 +165,14 @@ class ISynchronizationCoordinator {
    * @abstract
    */
   async getSyncHistory (filters = {}) {
-    throw new StandardError('METHOD_NOT_IMPLEMENTED', 'getSyncHistory() 必須在子類別中實作', {
+    const error = new Error('getSyncHistory() 必須在子類別中實作')
+    error.code = ErrorCodes.OPERATION_ERROR
+    error.details = {
       method: 'getSyncHistory',
       className: 'ISynchronizationCoordinator',
       category: 'implementation'
-    })
+    }
+    throw error
   }
 
   /**
@@ -159,11 +184,14 @@ class ISynchronizationCoordinator {
    * @abstract
    */
   async estimateSyncTime (sourceData, targetData, strategy = 'MERGE') {
-    throw new StandardError('METHOD_NOT_IMPLEMENTED', 'estimateSyncTime() 必須在子類別中實作', {
+    const error = new Error('estimateSyncTime() 必須在子類別中實作')
+    error.code = ErrorCodes.OPERATION_ERROR
+    error.details = {
       method: 'estimateSyncTime',
       className: 'ISynchronizationCoordinator',
       category: 'implementation'
-    })
+    }
+    throw error
   }
 
   /**
@@ -173,11 +201,14 @@ class ISynchronizationCoordinator {
    * @abstract
    */
   async validateSyncParams (params) {
-    throw new StandardError('METHOD_NOT_IMPLEMENTED', 'validateSyncParams() 必須在子類別中實作', {
+    const error = new Error('validateSyncParams() 必須在子類別中實作')
+    error.code = ErrorCodes.OPERATION_ERROR
+    error.details = {
       method: 'validateSyncParams',
       className: 'ISynchronizationCoordinator',
       category: 'implementation'
-    })
+    }
+    throw error
   }
 
   /**
@@ -190,11 +221,14 @@ class ISynchronizationCoordinator {
    * @abstract
    */
   async dryRun (syncId, sourceData, targetData, strategy = 'MERGE') {
-    throw new StandardError('METHOD_NOT_IMPLEMENTED', 'dryRun() 必須在子類別中實作', {
+    const error = new Error('dryRun() 必須在子類別中實作')
+    error.code = ErrorCodes.OPERATION_ERROR
+    error.details = {
       method: 'dryRun',
       className: 'ISynchronizationCoordinator',
       category: 'implementation'
-    })
+    }
+    throw error
   }
 
   /**
@@ -205,11 +239,14 @@ class ISynchronizationCoordinator {
    * @abstract
    */
   async setProgressCallback (syncId, callback) {
-    throw new StandardError('METHOD_NOT_IMPLEMENTED', 'setProgressCallback() 必須在子類別中實作', {
+    const error = new Error('setProgressCallback() 必須在子類別中實作')
+    error.code = ErrorCodes.OPERATION_ERROR
+    error.details = {
       method: 'setProgressCallback',
       className: 'ISynchronizationCoordinator',
       category: 'implementation'
-    })
+    }
+    throw error
   }
 
   /**
@@ -218,11 +255,14 @@ class ISynchronizationCoordinator {
    * @abstract
    */
   async getSupportedStrategies () {
-    throw new StandardError('METHOD_NOT_IMPLEMENTED', 'getSupportedStrategies() 必須在子類別中實作', {
+    const error = new Error('getSupportedStrategies() 必須在子類別中實作')
+    error.code = ErrorCodes.OPERATION_ERROR
+    error.details = {
       method: 'getSupportedStrategies',
       className: 'ISynchronizationCoordinator',
       category: 'implementation'
-    })
+    }
+    throw error
   }
 
   /**
@@ -232,11 +272,14 @@ class ISynchronizationCoordinator {
    * @abstract
    */
   async getSyncStatistics (filters = {}) {
-    throw new StandardError('METHOD_NOT_IMPLEMENTED', 'getSyncStatistics() 必須在子類別中實作', {
+    const error = new Error('getSyncStatistics() 必須在子類別中實作')
+    error.code = ErrorCodes.OPERATION_ERROR
+    error.details = {
       method: 'getSyncStatistics',
       className: 'ISynchronizationCoordinator',
       category: 'implementation'
-    })
+    }
+    throw error
   }
 }
 

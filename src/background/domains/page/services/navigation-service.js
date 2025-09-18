@@ -23,7 +23,7 @@ const {
   NAVIGATION_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class NavigationService {
   constructor (dependencies = {}) {
@@ -99,7 +99,9 @@ class NavigationService {
 
       // 發送初始化完成事件
       if (this.eventBus) {
-        await this.eventBus.emit('PAGE.NAVIGATION.INITIALIZED', {
+        await this.eventBus.emit('PAGE.NAVIGATION.INITIALIZED')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
           serviceName: 'NavigationService'
         })
       }
@@ -114,7 +116,9 @@ class NavigationService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
+      const error = new Error('服務尚未初始化')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
         category: 'general'
       })
     }
@@ -134,7 +138,9 @@ class NavigationService {
 
       // 發送啟動完成事件
       if (this.eventBus) {
-        await this.eventBus.emit('PAGE.NAVIGATION.STARTED', {
+        await this.eventBus.emit('PAGE.NAVIGATION.STARTED')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
           serviceName: 'NavigationService'
         })
       }
@@ -170,7 +176,9 @@ class NavigationService {
 
       // 發送停止完成事件
       if (this.eventBus) {
-        await this.eventBus.emit('PAGE.NAVIGATION.STOPPED', {
+        await this.eventBus.emit('PAGE.NAVIGATION.STOPPED')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
           serviceName: 'NavigationService',
           finalStats: { ...this.stats }
         })
@@ -357,7 +365,9 @@ class NavigationService {
 
       // 發送導航變更事件
       if (this.eventBus) {
-        await this.eventBus.emit('PAGE.NAVIGATION.COMMITTED', {
+        await this.eventBus.emit('PAGE.NAVIGATION.COMMITTED')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
           tabId,
           url,
           transitionType,
@@ -399,7 +409,9 @@ class NavigationService {
 
       // 發送導航完成事件
       if (this.eventBus) {
-        await this.eventBus.emit('PAGE.NAVIGATION.COMPLETED', {
+        await this.eventBus.emit('PAGE.NAVIGATION.COMPLETED')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
           tabId,
           url,
           navigation: currentNav
@@ -435,7 +447,9 @@ class NavigationService {
 
       // 發送導航錯誤事件
       if (this.eventBus) {
-        await this.eventBus.emit('PAGE.NAVIGATION.ERROR', {
+        await this.eventBus.emit('PAGE.NAVIGATION.ERROR')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
           tabId,
           url,
           error,
@@ -479,7 +493,9 @@ class NavigationService {
 
       // 發送歷史更新事件
       if (this.eventBus) {
-        await this.eventBus.emit('PAGE.NAVIGATION.HISTORY_UPDATED', {
+        await this.eventBus.emit('PAGE.NAVIGATION.HISTORY_UPDATED')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
           tabId,
           url,
           navigation
@@ -593,7 +609,9 @@ class NavigationService {
 
           // 發送模式檢測事件
           if (this.eventBus) {
-            await this.eventBus.emit('PAGE.NAVIGATION.PATTERN_DETECTED', {
+            await this.eventBus.emit('PAGE.NAVIGATION.PATTERN_DETECTED')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
               tabId,
               patterns,
               analyzer: name
@@ -718,7 +736,9 @@ class NavigationService {
       }
 
       if (this.eventBus) {
-        await this.eventBus.emit('PAGE.NAVIGATION.HISTORY_RESPONSE', {
+        await this.eventBus.emit('PAGE.NAVIGATION.HISTORY_RESPONSE')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
           requestId,
           tabId,
           result
@@ -743,7 +763,9 @@ class NavigationService {
       }
 
       if (this.eventBus) {
-        await this.eventBus.emit('PAGE.NAVIGATION.PATTERN_RESPONSE', {
+        await this.eventBus.emit('PAGE.NAVIGATION.PATTERN_RESPONSE')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
           requestId,
           result
         })

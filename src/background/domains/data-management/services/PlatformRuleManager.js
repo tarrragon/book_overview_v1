@@ -29,7 +29,7 @@
  * - 系統初始化的規則預載
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class PlatformRuleManager {
   /**
@@ -405,9 +405,10 @@ class PlatformRuleManager {
         return baseRules
 
       default:
-        throw new StandardError('UNKNOWN_ERROR', 'Unsupported platform: ${platform}', {
-          category: 'general'
-        })
+        const error = new Error(`Unsupported platform: ${platform}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general', timestamp: Date.now() }
+        throw error
     }
   }
 
@@ -446,14 +447,16 @@ class PlatformRuleManager {
    */
   _validatePlatform (platform) {
     if (!platform || typeof platform !== 'string') {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid platform', {
-        category: 'general'
-      })
+      const error = new Error('Invalid platform')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general', timestamp: Date.now() }
+      throw error
     }
     if (!this._isPlatformSupported(platform)) {
-      throw new StandardError('UNKNOWN_ERROR', 'Unsupported platform: ${platform}', {
-        category: 'general'
-      })
+      const error = new Error(`Unsupported platform: ${platform}`)
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general', timestamp: Date.now() }
+      throw error
     }
   }
 

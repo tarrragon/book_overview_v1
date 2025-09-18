@@ -8,7 +8,7 @@
  *
  * TDD實作：根據測試驅動的最小可行實作
  */
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class DataComparisonEngine {
   constructor (config = {}) {
@@ -43,10 +43,10 @@ class DataComparisonEngine {
 
     // 輸入驗證
     if (!Array.isArray(sourceData) || !Array.isArray(targetData)) {
-      throw new StandardError('UNKNOWN_ERROR', 'Source and target data must be arrays', {
-        dataType: 'array',
-        category: 'general'
-      })
+      const error = new Error('Source and target data must be arrays')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { dataType: 'array', category: 'general', sourceData, targetData }
+      throw error
     }
 
     // 過濾有效項目

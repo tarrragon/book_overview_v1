@@ -23,7 +23,7 @@ const {
   SYSTEM_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class DiagnosticService {
   constructor (dependencies = {}) {
@@ -117,9 +117,12 @@ class DiagnosticService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
+      const error = new Error('服務尚未初始化')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
         category: 'general'
-      })
+      }
+      throw error
     }
 
     if (this.state.active) {

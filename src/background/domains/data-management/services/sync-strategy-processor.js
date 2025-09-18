@@ -20,7 +20,7 @@
 //   SYNC_STRATEGIES,
 //   EVENT_PRIORITIES
 // } = require('src/background/constants/module-constants')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class SyncStrategyProcessor {
   constructor (eventBus, options = {}) {
@@ -103,9 +103,10 @@ class SyncStrategyProcessor {
 
     const strategy = this.strategies.get(strategyName)
     if (!strategy) {
-      throw new StandardError('UNKNOWN_ERROR', '未知的同步策略: ${strategyName}', {
-        category: 'general'
-      })
+      const error = new Error(`未知的同步策略: ${strategyName}`)
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general', strategyName }
+      throw error
     }
 
     try {
