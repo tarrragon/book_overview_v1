@@ -1,5 +1,5 @@
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
+
 
 const { EVENT_PRIORITIES, MESSAGE_EVENTS } = require('src/core/event-bus')
 
@@ -123,9 +123,10 @@ class QueueManagementService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError(ErrorCodes.CONFIG_ERROR, '佇列管理服務尚未初始化', {
-        category: 'general'
-      })
+      const error = new Error('佇列管理服務尚未初始化')
+      error.code = ErrorCodes.CONFIG_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     if (this.state.active) {

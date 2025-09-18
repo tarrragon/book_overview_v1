@@ -18,8 +18,8 @@ const {
   EXTRACTION_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
+
 
 class ExportService {
   constructor (dependencies = {}) {
@@ -130,9 +130,10 @@ class ExportService {
 
       const exportFormat = this.exportFormats.get(format)
       if (!exportFormat) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `不支援的匯出格式: ${format}`, {
-          category: 'export'
-        })
+        const error = new Error(`不支援的匯出格式: ${format}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'export' }
+        throw error
       }
 
       // 建立匯出任務

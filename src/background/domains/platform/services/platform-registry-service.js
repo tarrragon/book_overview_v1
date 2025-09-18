@@ -1,5 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 const { Logger } = require('src/core/logging/Logger')
 
@@ -324,9 +323,10 @@ class PlatformRegistryService {
       // 驗證平台配置
       const validationResult = await this.validatePlatformConfig(platformId, platformConfig)
       if (!validationResult.isValid) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `平台配置驗證失敗: ${validationResult.errors.join(', ')}`, {
-          category: 'validation'
-        })
+        const error = new Error(`平台配置驗證失敗: ${validationResult.errors.join(', ')}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'validation' }
+        throw error
       }
 
       // 檢查是否已經註冊
@@ -401,17 +401,19 @@ class PlatformRegistryService {
     try {
       const existingRecord = this.platformRegistry.get(platformId)
       if (!existingRecord) {
-        throw new StandardError(ErrorCodes.CHROME_ERROR, `平台 ${platformId} 不存在`, {
-          category: 'general'
-        })
+        const error = new Error(`平台 ${platformId} 不存在`)
+        error.code = ErrorCodes.CHROME_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       // 驗證新配置
       const validationResult = await this.validatePlatformConfig(platformId, newConfig)
       if (!validationResult.isValid) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `平台配置驗證失敗: ${validationResult.errors.join(', ')}`, {
-          category: 'validation'
-        })
+        const error = new Error(`平台配置驗證失敗: ${validationResult.errors.join(', ')}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'validation' }
+        throw error
       }
 
       // 合併配置（保留註冊時間等元資料）
@@ -814,9 +816,10 @@ class PlatformRegistryService {
     }
 
     if (issues.length > 0) {
-      await this.logError('註冊表完整性檢查發現問題', new StandardError(ErrorCodes.VALIDATION_ERROR, issues.join('; '), {
-        category: 'general'
-      }))
+      const error = new Error(issues.join('; '))
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general' }
+      await this.logError('註冊表完整性檢查發現問題', error)
       return false
     }
 

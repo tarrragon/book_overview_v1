@@ -238,7 +238,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
         options: {}
       }
 
-      await expect(csvHandler.process(eventData)).rejects.toThrow(StandardError)
+      await expect(csvHandler.process(eventData)).rejects.toThrow(Error)
     })
 
     test('CSVExportHandler 應該支援進度回調', async () => {

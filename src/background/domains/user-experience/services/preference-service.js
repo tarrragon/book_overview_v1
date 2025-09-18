@@ -26,8 +26,7 @@
  * - 功能開關管理
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 class PreferenceService {
   constructor (dependencies = {}) {
@@ -125,9 +124,10 @@ class PreferenceService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError(ErrorCodes.OPERATION_ERROR, '偏好設定服務尚未初始化', {
-        category: 'general'
-      })
+      const error = new Error('偏好設定服務尚未初始化')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     if (this.state.active) {
@@ -424,46 +424,52 @@ class PreferenceService {
     const schema = this.preferenceSchema.get(key)
 
     if (!schema) {
-      throw new StandardError(ErrorCodes.VALIDATION_ERROR, `未知的偏好鍵: ${key}`, {
-        category: 'general'
-      })
+      const error = new Error(`未知的偏好鍵: ${key}`)
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     // 類型驗證
     const actualType = typeof value
     if (schema.type && actualType !== schema.type) {
-      throw new StandardError(ErrorCodes.VALIDATION_ERROR, `偏好 ${key} 類型錯誤，期望 ${schema.type}，實際 ${actualType}`, {
-        category: 'general'
-      })
+      const error = new Error(`偏好 ${key} 類型錯誤，期望 ${schema.type}，實際 ${actualType}`)
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     // 值域驗證
     if (schema.enum && !schema.enum.includes(value)) {
-      throw new StandardError(ErrorCodes.VALIDATION_ERROR, `偏好 ${key} 值無效，可接受值: ${schema.enum.join(', ')}`, {
-        category: 'general'
-      })
+      const error = new Error(`偏好 ${key} 值無效，可接受值: ${schema.enum.join(', ')}`)
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     // 範圍驗證
     if (schema.min !== undefined && value < schema.min) {
-      throw new StandardError(ErrorCodes.VALIDATION_ERROR, `偏好 ${key} 值太小，最小值: ${schema.min}`, {
-        category: 'general'
-      })
+      const error = new Error(`偏好 ${key} 值太小，最小值: ${schema.min}`)
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     if (schema.max !== undefined && value > schema.max) {
-      throw new StandardError(ErrorCodes.VALIDATION_ERROR, `偏好 ${key} 值太大，最大值: ${schema.max}`, {
-        category: 'general'
-      })
+      const error = new Error(`偏好 ${key} 值太大，最大值: ${schema.max}`)
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     // 自定義驗證
     if (schema.validator && typeof schema.validator === 'function') {
       const isValid = await schema.validator(value)
       if (!isValid) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `偏好 ${key} 自定義驗證失敗`, {
-          category: 'general'
-        })
+        const error = new Error(`偏好 ${key} 自定義驗證失敗`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
     }
   }

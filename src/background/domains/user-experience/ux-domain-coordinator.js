@@ -34,8 +34,7 @@ const PersonalizationService = require('./services/personalization-service')
 const AccessibilityService = require('./services/accessibility-service')
 
 const { EVENT_PRIORITIES } = require('src/background/constants/module-constants')
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 class UXDomainCoordinator {
   constructor (dependencies = {}) {
@@ -166,9 +165,10 @@ class UXDomainCoordinator {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError(ErrorCodes.OPERATION_ERROR, 'UX 協調器尚未初始化', {
-        category: 'general'
-      })
+      const error = new Error('UX 協調器尚未初始化')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     if (this.state.active) {
@@ -345,9 +345,10 @@ class UXDomainCoordinator {
         this.logger.log(`✅ UX 服務初始化完成: ${serviceName}`)
       } catch (error) {
         this.logger.error(`❌ UX 服務初始化失敗: ${serviceName}`, error)
-        throw new StandardError(ErrorCodes.OPERATION_ERROR, `UX 服務 ${serviceName} 初始化失敗: ${error.message}`, {
-          category: 'general'
-        })
+        const newError = new Error(`UX 服務 ${serviceName} 初始化失敗: ${error.message}`)
+        newError.code = ErrorCodes.OPERATION_ERROR
+        newError.details = { category: 'general' }
+        throw newError
       }
     }
 

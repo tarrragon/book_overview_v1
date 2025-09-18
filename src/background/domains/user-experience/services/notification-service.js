@@ -26,8 +26,7 @@
  * - 成功操作確認
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 class NotificationService {
   constructor (dependencies = {}) {
@@ -141,9 +140,10 @@ class NotificationService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError(ErrorCodes.OPERATION_ERROR, '通知管理服務尚未初始化', {
-        category: 'general'
-      })
+      const error = new Error('通知管理服務尚未初始化')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     if (this.state.active) {
@@ -369,15 +369,17 @@ class NotificationService {
 
     // 驗證必要欄位
     if (!notification.type || !this.notificationTypes[notification.type]) {
-      throw new StandardError(ErrorCodes.VALIDATION_ERROR, `無效的通知類型: ${notification.type}`, {
-        category: 'general'
-      })
+      const error = new Error(`無效的通知類型: ${notification.type}`)
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     if (!notification.title && !notification.message) {
-      throw new StandardError(ErrorCodes.VALIDATION_ERROR, '通知必須包含標題或訊息', {
-        category: 'general'
-      })
+      const error = new Error('通知必須包含標題或訊息')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     // 標準化通知結構

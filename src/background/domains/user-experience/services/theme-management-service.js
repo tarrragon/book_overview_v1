@@ -26,8 +26,7 @@
  * - 跨模組主題同步
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 class ThemeManagementService {
   constructor (dependencies = {}) {
@@ -159,9 +158,10 @@ class ThemeManagementService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError(ErrorCodes.OPERATION_ERROR, '主題管理服務尚未初始化', {
-        category: 'general'
-      })
+      const error = new Error('主題管理服務尚未初始化')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     if (this.state.active) {
@@ -200,9 +200,10 @@ class ThemeManagementService {
     try {
       // 驗證主題有效性
       if (!this.isValidTheme(theme)) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `無效的主題: ${theme}`, {
-          category: 'general'
-        })
+        const error = new Error(`無效的主題: ${theme}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       // 統計主題變更
@@ -282,9 +283,10 @@ class ThemeManagementService {
     try {
       // 驗證提供者介面
       if (!provider || typeof provider.updateTheme !== 'function') {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `主題提供者 ${providerId} 必須實現 updateTheme 方法`, {
-          category: 'general'
-        })
+        const error = new Error(`主題提供者 ${providerId} 必須實現 updateTheme 方法`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       // 註冊提供者

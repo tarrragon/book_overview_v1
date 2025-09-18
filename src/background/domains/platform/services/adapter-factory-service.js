@@ -1,5 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 const { Logger } = require('src/core/logging/Logger')
 
@@ -388,9 +387,10 @@ class AdapterFactoryService {
 
       // 驗證平台支援
       if (!this.supportedPlatforms.includes(platformId)) {
-        throw new StandardError(ErrorCodes.CHROME_ERROR, `不支援的平台: ${platformId}`, {
-          category: 'general'
-        })
+        const error = new Error(`不支援的平台: ${platformId}`)
+        error.code = ErrorCodes.CHROME_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       // 檢查是否可以從池中重用
@@ -478,9 +478,10 @@ class AdapterFactoryService {
     // 取得適配器類型配置
     const adapterType = this.adapterTypes.get(platformId)
     if (!adapterType) {
-      throw new StandardError(ErrorCodes.CONFIG_ERROR, `找不到適配器類型配置: ${platformId}`, {
-        category: 'general'
-      })
+      const error = new Error(`找不到適配器類型配置: ${platformId}`)
+      error.code = ErrorCodes.CONFIG_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     // 取得平台註冊資訊
@@ -492,9 +493,10 @@ class AdapterFactoryService {
     // 取得構造函數
     const AdapterConstructor = this.adapterConstructors.get(platformId)
     if (!AdapterConstructor) {
-      throw new StandardError(ErrorCodes.CONFIG_ERROR, `找不到適配器構造函數: ${platformId}`, {
-        category: 'general'
-      })
+      const error = new Error(`找不到適配器構造函數: ${platformId}`)
+      error.code = ErrorCodes.CONFIG_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     // 建立配置物件

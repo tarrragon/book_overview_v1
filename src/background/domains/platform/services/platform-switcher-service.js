@@ -29,8 +29,7 @@
  */
 
 const { Logger } = require('src/core/logging/Logger')
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 class PlatformSwitcherService {
   /**
@@ -124,22 +123,25 @@ class PlatformSwitcherService {
    */
   async validateDependencies () {
     if (!this.platformRegistry) {
-      throw new StandardError(ErrorCodes.CONFIG_ERROR, 'Platform Registry Service 依賴缺失', {
-        category: 'general'
-      })
+      const error = new Error('Platform Registry Service 依賴缺失')
+      error.code = ErrorCodes.CONFIG_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     if (!this.adapterFactory) {
-      throw new StandardError(ErrorCodes.CONFIG_ERROR, 'Adapter Factory Service 依賴缺失', {
-        category: 'general'
-      })
+      const error = new Error('Adapter Factory Service 依賴缺失')
+      error.code = ErrorCodes.CONFIG_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     // 檢查依賴服務是否已初始化
     if (typeof this.platformRegistry.getActivePlatforms !== 'function') {
-      throw new StandardError(ErrorCodes.CONFIG_ERROR, 'Platform Registry Service 尚未正確初始化', {
-        category: 'general'
-      })
+      const error = new Error('Platform Registry Service 尚未正確初始化')
+      error.code = ErrorCodes.CONFIG_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
   }
 
@@ -202,9 +204,10 @@ class PlatformSwitcherService {
   async requestPlatformDetection () {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
-        reject(new StandardError(ErrorCodes.OPERATION_ERROR, '平台檢測超時', {
-          category: 'general'
-        }))
+        const error = new Error('平台檢測超時')
+        error.code = ErrorCodes.OPERATION_ERROR
+        error.details = { category: 'general' }
+        reject(error)
       }, 5000)
 
       // 監聽檢測結果
@@ -239,9 +242,10 @@ class PlatformSwitcherService {
       // 驗證切換請求
       const validation = await this.validateSwitchRequest(targetPlatform, options)
       if (!validation.isValid) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `切換請求驗證失敗: ${validation.error}`, {
-          category: 'validation'
-        })
+        const error = new Error(`切換請求驗證失敗: ${validation.error}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'validation' }
+        throw error
       }
 
       // 檢查並發限制
@@ -459,9 +463,10 @@ class PlatformSwitcherService {
         adapter = await this.adapterFactory.createAdapter(targetPlatform)
 
         if (!adapter) {
-          throw new StandardError(ErrorCodes.OPERATION_ERROR, `無法創建 ${targetPlatform} 適配器`, {
-            category: 'general'
-          })
+          const error = new Error(`無法創建 ${targetPlatform} 適配器`)
+          error.code = ErrorCodes.OPERATION_ERROR
+          error.details = { category: 'general' }
+          throw error
         }
 
         // 緩存適配器
@@ -548,26 +553,29 @@ class PlatformSwitcherService {
   async validateSwitchCompletion (targetPlatform) {
     // 檢查當前平台是否正確設定
     if (this.currentPlatform !== targetPlatform) {
-      throw new StandardError(ErrorCodes.VALIDATION_ERROR, `切換驗證失敗: 期望 ${targetPlatform}, 實際 ${this.currentPlatform}`, {
-        category: 'general'
-      })
+      const error = new Error(`切換驗證失敗: 期望 ${targetPlatform}, 實際 ${this.currentPlatform}`)
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     // 檢查適配器是否正常運作
     const adapter = this.platformRegistry.getAdapterCache(targetPlatform)
     if (!adapter) {
-      throw new StandardError(ErrorCodes.OPERATION_ERROR, `切換驗證失敗: ${targetPlatform} 適配器不存在`, {
-        category: 'general'
-      })
+      const error = new Error(`切換驗證失敗: ${targetPlatform} 適配器不存在`)
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     // 執行適配器健康檢查
     if (typeof adapter.healthCheck === 'function') {
       const healthStatus = await adapter.healthCheck()
       if (!healthStatus.healthy) {
-        throw new StandardError(ErrorCodes.OPERATION_ERROR, `切換驗證失敗: ${targetPlatform} 適配器健康檢查失敗`, {
-          category: 'general'
-        })
+        const error = new Error(`切換驗證失敗: ${targetPlatform} 適配器健康檢查失敗`)
+        error.code = ErrorCodes.OPERATION_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
     }
 
@@ -594,9 +602,10 @@ class PlatformSwitcherService {
         if (fallbackResult.success) {
           await this.log(`故障轉移成功，已切換回 ${this.previousPlatform}`)
         } else {
-          await this.logError('故障轉移失敗', new StandardError(ErrorCodes.OPERATION_ERROR, fallbackResult.error, {
-            category: 'general'
-          }))
+          const error = new Error(fallbackResult.error)
+          error.code = ErrorCodes.OPERATION_ERROR
+          error.details = { category: 'general' }
+          await this.logError('故障轉移失敗', error)
         }
       } else {
         // 嘗試切換到任何可用的活躍平台
@@ -703,9 +712,10 @@ class PlatformSwitcherService {
     const { targetPlatform, options, responseCallback } = event.data || {}
 
     if (!targetPlatform) {
-      await this.logError('收到無效的切換請求', new StandardError(ErrorCodes.VALIDATION_ERROR, '缺少目標平台', {
-        category: 'general'
-      }))
+      const error = new Error('缺少目標平台')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general' }
+      await this.logError('收到無效的切換請求', error)
       return
     }
 
@@ -878,9 +888,10 @@ class PlatformSwitcherService {
 
     // 清理排隊的請求
     this.switchQueue.forEach(queued => {
-      queued.reject(new StandardError(ErrorCodes.OPERATION_ERROR, '服務已停止', {
-        category: 'general'
-      }))
+      const error = new Error('服務已停止')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'general' }
+      queued.reject(error)
     })
     this.switchQueue = []
 

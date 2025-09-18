@@ -26,8 +26,7 @@
  * - 使用習慣分析
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 class PersonalizationService {
   constructor (dependencies = {}) {
@@ -130,9 +129,10 @@ class PersonalizationService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError(ErrorCodes.OPERATION_ERROR, '個人化服務尚未初始化', {
-        category: 'general'
-      })
+      const error = new Error('個人化服務尚未初始化')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     if (this.state.active) {
@@ -325,9 +325,10 @@ class PersonalizationService {
     try {
       const suggestion = this.userProfile.recommendations.find(r => r.id === suggestionId)
       if (!suggestion) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `找不到建議: ${suggestionId}`, {
-          category: 'general'
-        })
+        const error = new Error(`找不到建議: ${suggestionId}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       // 根據建議類型執行相應操作
@@ -343,9 +344,10 @@ class PersonalizationService {
           result = await this.applyFeatureSuggestion(suggestion)
           break
         default:
-          throw new StandardError(ErrorCodes.VALIDATION_ERROR, `不支援的建議類型: ${suggestion.type}`, {
-            category: 'general'
-          })
+          const error = new Error(`不支援的建議類型: ${suggestion.type}`)
+          error.code = ErrorCodes.VALIDATION_ERROR
+          error.details = { category: 'general' }
+          throw error
       }
 
       // 標記建議為已應用

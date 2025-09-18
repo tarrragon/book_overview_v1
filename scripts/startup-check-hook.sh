@@ -11,6 +11,9 @@ LOG_FILE="$PROJECT_ROOT/.claude/hook-logs/startup-$(date +%Y%m%d_%H%M%S).log"
 # 確保日誌目錄存在
 mkdir -p "$PROJECT_ROOT/.claude/hook-logs"
 
+# SessionStart 時總是執行清理 (因為是新會話開始)
+"$SCRIPT_DIR/cleanup-hook-logs.sh" >/dev/null 2>&1 &
+
 # 日誌函數
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"

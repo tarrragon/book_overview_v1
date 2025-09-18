@@ -24,8 +24,7 @@ const SessionManagementService = require('./services/session-management-service'
 const { ConnectionMonitoringService } = require('./services/connection-monitoring-service')
 const { MessageValidationService } = require('./services/message-validation-service')
 const { QueueManagementService } = require('./services/queue-management-service')
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 const {
   MESSAGE_EVENTS,
@@ -158,9 +157,10 @@ class MessagingDomainCoordinator {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError(ErrorCodes.CONFIG_ERROR, '協調器尚未初始化', {
-        category: 'general'
-      })
+      const error = new Error('協調器尚未初始化')
+      error.code = ErrorCodes.CONFIG_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     if (this.state.active) {
@@ -251,9 +251,10 @@ class MessagingDomainCoordinator {
         this.logger.log(`✅ 通訊服務初始化完成: ${serviceName}`)
       } catch (error) {
         this.logger.error(`❌ 通訊服務初始化失敗: ${serviceName}`, error)
-        throw new StandardError(ErrorCodes.CONFIG_ERROR, `微服務 ${serviceName} 初始化失敗: ${error.message}`, {
-          category: 'general'
-        })
+        const newError = new Error(`微服務 ${serviceName} 初始化失敗: ${error.message}`)
+        newError.code = ErrorCodes.CONFIG_ERROR
+        newError.details = { category: 'general' }
+        throw newError
       }
     }
 
@@ -597,9 +598,10 @@ class MessagingDomainCoordinator {
     if (routingService) {
       return await routingService.routeMessage(message, context)
     } else {
-      throw new StandardError(ErrorCodes.CONNECTION_ERROR, '路由服務不可用', {
-        category: 'general'
-      })
+      const error = new Error('路由服務不可用')
+      error.code = ErrorCodes.CONNECTION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
   }
 

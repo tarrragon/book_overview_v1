@@ -669,7 +669,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
         // 下載應該拋出錯誤但被捕獲
         expect(() => {
           exporter.downloadCSV()
-        }).toThrow(StandardError)
+        }).toThrow(Error)
 
         // 應該記錄錯誤
         const errorLog = exporter.getErrorLog()

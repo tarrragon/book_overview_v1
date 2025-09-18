@@ -49,7 +49,7 @@
 
 const BaseUIHandler = require('./handlers/base-ui-handler')
 const UI_HANDLER_CONFIG = require('./config/ui-handler-config')
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 class BookSearchFilter extends BaseUIHandler {
   /**
@@ -60,9 +60,10 @@ class BookSearchFilter extends BaseUIHandler {
    */
   constructor (eventBus, document) {
     if (!eventBus) {
-      throw new StandardError('UNKNOWN_ERROR', '事件總線是必需的', {
-        category: 'ui'
-      })
+      const error = new Error('事件總線是必需的')
+      error.code = ErrorCodes.UNKNOWN_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     super('BookSearchFilter', 200, eventBus, document)
@@ -462,9 +463,9 @@ class BookSearchFilter extends BaseUIHandler {
       }
     } catch (error) {
       // 如果搜尋過程中遇到無效資料，拋出錯誤讓上層處理
-      const searchError = new StandardError('UNKNOWN_ERROR', '搜尋過程中遇到無效資料: ${error.message}', {
-        category: 'ui'
-      })
+      const searchError = new Error(`搜尋過程中遇到無效資料: ${error.message}`)
+      searchError.code = ErrorCodes.UNKNOWN_ERROR
+      searchError.details = { category: 'ui' }
       searchError.originalError = error
       throw searchError
     }
@@ -482,15 +483,17 @@ class BookSearchFilter extends BaseUIHandler {
   matchesSearchCriteria (book, query) {
     // 嚴格驗證書籍資料結構
     if (!book || typeof book !== 'object') {
-      throw new StandardError('UNKNOWN_ERROR', '無效的書籍資料格式', {
-        category: 'ui'
-      })
+      const error = new Error('無效的書籍資料格式')
+      error.code = ErrorCodes.UNKNOWN_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     if (!book.title || typeof book.title !== 'string') {
-      throw new StandardError('UNKNOWN_ERROR', '書籍缺少有效的標題', {
-        category: 'ui'
-      })
+      const error = new Error('書籍缺少有效的標題')
+      error.code = ErrorCodes.UNKNOWN_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     try {
@@ -515,9 +518,10 @@ class BookSearchFilter extends BaseUIHandler {
 
       return false
     } catch (error) {
-      throw new StandardError('UNKNOWN_ERROR', '搜尋條件檢查失敗: ${error.message}', {
-        category: 'ui'
-      })
+      const newError = new Error(`搜尋條件檢查失敗: ${error.message}`)
+      newError.code = ErrorCodes.UNKNOWN_ERROR
+      newError.details = { category: 'ui' }
+      throw newError
     }
   }
 
@@ -696,9 +700,10 @@ class BookSearchFilter extends BaseUIHandler {
     try {
       // 檢查記憶體限制 - 模擬大量資料處理
       if (books.length > 50000) {
-        throw new StandardError('UNKNOWN_ERROR', '記憶體不足', {
-          category: 'ui'
-        })
+        const error = new Error('記憶體不足')
+        error.code = ErrorCodes.UNKNOWN_ERROR
+        error.details = { category: 'ui' }
+        throw error
       }
 
       this.titleIndex.clear()
@@ -1027,11 +1032,12 @@ class BookSearchFilter extends BaseUIHandler {
       // 基本事件驗證
       const validation = this.validateEventData(event)
       if (!validation.isValid) {
+        const error = new Error(validation.error)
+        error.code = ErrorCodes.UNKNOWN_ERROR
+        error.details = { category: 'ui' }
         return this.handleProcessingError(
           event.flowId || 'unknown',
-          new StandardError('UNKNOWN_ERROR', validation.error, {
-            category: 'ui'
-          }),
+          error,
           'VALIDATION'
         )
       }
@@ -1074,9 +1080,10 @@ class BookSearchFilter extends BaseUIHandler {
         await this.resetFilters()
         return { status: 'filters-reset' }
       default:
-        throw new StandardError('UNKNOWN_ERROR', '未知的搜尋動作: ${data.action}', {
-          category: 'ui'
-        })
+        const error = new Error(`未知的搜尋動作: ${data.action}`)
+        error.code = ErrorCodes.UNKNOWN_ERROR
+        error.details = { category: 'ui' }
+        throw error
     }
   }
 }

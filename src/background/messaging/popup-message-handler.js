@@ -15,8 +15,7 @@
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 class PopupMessageHandler extends BaseModule {
   constructor (dependencies = {}) {
@@ -129,12 +128,15 @@ class PopupMessageHandler extends BaseModule {
       // 驗證訊息格式
       const validationResult = this.validateMessage(message, sender)
       if (!validationResult.isValid) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, validationResult.errorMessage, {
+        const error = new Error(validationResult.errorMessage)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = {
           category: 'general',
           validationFailure: validationResult.reason,
           messageType: message?.type || 'unknown',
           senderUrl: sender?.url || 'unknown'
-        })
+        }
+        throw error
       }
 
       // 更新統計
@@ -262,10 +264,13 @@ class PopupMessageHandler extends BaseModule {
         return await this.handlePopupExportRequest(message, sender, sendResponse)
 
       default:
-        throw new StandardError(ErrorCodes.UNSUPPORTED_OPERATION, `未支援的訊息類型: ${message.type}`, {
+        const error = new Error(`未支援的訊息類型: ${message.type}`)
+        error.code = ErrorCodes.UNSUPPORTED_OPERATION
+        error.details = {
           category: 'general',
           messageType: message.type
-        })
+        }
+        throw error
     }
   }
 
@@ -404,10 +409,13 @@ class PopupMessageHandler extends BaseModule {
         }
 
         default:
-          throw new StandardError(ErrorCodes.UNSUPPORTED_OPERATION, `未支援的資料類型: ${dataType}`, {
+          const error = new Error(`未支援的資料類型: ${dataType}`)
+          error.code = ErrorCodes.UNSUPPORTED_OPERATION
+          error.details = {
             category: 'general',
             dataType
-          })
+          }
+          throw error
       }
 
       sendResponse({
@@ -469,10 +477,13 @@ class PopupMessageHandler extends BaseModule {
           break
 
         default:
-          throw new StandardError(ErrorCodes.UNSUPPORTED_OPERATION, `未支援的操作: ${operation}`, {
+          const error = new Error(`未支援的操作: ${operation}`)
+          error.code = ErrorCodes.UNSUPPORTED_OPERATION
+          error.details = {
             category: 'general',
             operation
-          })
+          }
+          throw error
       }
 
       sendResponse({
@@ -600,10 +611,13 @@ class PopupMessageHandler extends BaseModule {
       // 檢查當前標籤頁是否為 Readmoo 頁面
       const activeTab = await this.getCurrentActiveTab()
       if (!activeTab || !activeTab.url || !activeTab.url.includes('readmoo.com')) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, '當前標籤頁不是 Readmoo 頁面', {
+        const error = new Error('當前標籤頁不是 Readmoo 頁面')
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = {
           category: 'general',
           requirement: 'readmoo_page'
-        })
+        }
+        throw error
       }
 
       this.logger.log('🚀 開始從 Popup 觸發的提取操作')
@@ -706,38 +720,50 @@ class PopupMessageHandler extends BaseModule {
     if (permissions.requiresActiveTab) {
       const activeTab = await this.getCurrentActiveTab()
       if (!activeTab) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, '操作需要活躍的標籤頁', {
+        const error = new Error('操作需要活躍的標籤頁')
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = {
           category: 'general',
           requirement: 'active_tab'
-        })
+        }
+        throw error
       }
     }
 
     if (permissions.requiresReadmoo) {
       const activeTab = await this.getCurrentActiveTab()
       if (!activeTab || !activeTab.url || !activeTab.url.includes('readmoo.com')) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, '操作需要 Readmoo 頁面', {
+        const error = new Error('操作需要 Readmoo 頁面')
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = {
           category: 'general',
           requirement: 'readmoo_page'
-        })
+        }
+        throw error
       }
     }
 
     if (permissions.requiresData) {
       const data = await chrome.storage.local.get('readmoo_books')
       if (!data.readmoo_books || !data.readmoo_books.books || data.readmoo_books.books.length === 0) {
-        throw new StandardError(ErrorCodes.MISSING_REQUIRED_DATA, '操作需要已提取的資料', {
+        const error = new Error('操作需要已提取的資料')
+        error.code = ErrorCodes.MISSING_REQUIRED_DATA
+        error.details = {
           category: 'general',
           requirement: 'extracted_data'
-        })
+        }
+        throw error
       }
     }
 
     if (permissions.requiresConfirmation && !params.confirmed) {
-      throw new StandardError(ErrorCodes.VALIDATION_ERROR, '操作需要使用者確認', {
+      const error = new Error('操作需要使用者確認')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         category: 'general',
         requirement: 'user_confirmation'
-      })
+      }
+      throw error
     }
   }
 
@@ -795,10 +821,13 @@ class PopupMessageHandler extends BaseModule {
         break
 
       default:
-        throw new StandardError(ErrorCodes.UNSUPPORTED_OPERATION, `未支援的清除類型: ${clearType}`, {
+        const error = new Error(`未支援的清除類型: ${clearType}`)
+        error.code = ErrorCodes.UNSUPPORTED_OPERATION
+        error.details = {
           category: 'general',
           clearType
-        })
+        }
+        throw error
     }
 
     // 觸發儲存清除事件
@@ -847,10 +876,13 @@ class PopupMessageHandler extends BaseModule {
   async handleTabNavigate (params) {
     const url = params.url
     if (!url) {
-      throw new StandardError(ErrorCodes.MISSING_REQUIRED_DATA, '導航需要 URL', {
+      const error = new Error('導航需要 URL')
+      error.code = ErrorCodes.MISSING_REQUIRED_DATA
+      error.details = {
         category: 'general',
         parameter: 'url'
-      })
+      }
+      throw error
     }
 
     this.logger.log(`🧭 處理標籤頁導航: ${url}`)

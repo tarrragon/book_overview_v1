@@ -380,7 +380,7 @@ describe('AdapterFactoryService', () => {
     test('不支援的平台應該拋出錯誤', async () => {
       await expect(
         adapterFactory.createAdapter('UNSUPPORTED_PLATFORM')
-      ).rejects.toThrow(StandardError)
+      ).rejects.toThrow(Error)
 
       expect(adapterFactory.statistics.creationErrors).toBe(1)
     })

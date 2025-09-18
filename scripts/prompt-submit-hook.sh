@@ -11,6 +11,20 @@ LOG_FILE="$PROJECT_ROOT/.claude/hook-logs/prompt-submit-$(date +%Y%m%d_%H%M%S).l
 # 確保日誌目錄存在
 mkdir -p "$PROJECT_ROOT/.claude/hook-logs"
 
+# 執行日誌清理 (每10次觸發清理一次)
+CLEANUP_TRIGGER="$PROJECT_ROOT/.claude/hook-logs/.cleanup_counter"
+if [ ! -f "$CLEANUP_TRIGGER" ]; then
+    echo "1" > "$CLEANUP_TRIGGER"
+else
+    COUNTER=$(cat "$CLEANUP_TRIGGER")
+    if [ "$COUNTER" -ge 10 ]; then
+        "$SCRIPT_DIR/cleanup-hook-logs.sh" >/dev/null 2>&1 &
+        echo "1" > "$CLEANUP_TRIGGER"
+    else
+        echo $((COUNTER + 1)) > "$CLEANUP_TRIGGER"
+    fi
+fi
+
 # 日誌函數
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"

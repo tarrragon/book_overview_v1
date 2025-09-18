@@ -15,7 +15,7 @@
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 class I18nManager extends BaseModule {
   constructor (dependencies = {}) {
@@ -184,15 +184,17 @@ class I18nManager extends BaseModule {
           resource = require('./locales/en-us')
           break
         default:
-          throw new StandardError('UNKNOWN_ERROR', '不支援的語言代碼: ${languageCode}', {
-            category: 'general'
-          })
+          const error = new Error(`不支援的語言代碼: ${languageCode}`)
+          error.code = ErrorCodes.UNKNOWN_ERROR
+          error.details = { category: 'general' }
+          throw error
       }
 
       if (!resource || typeof resource !== 'object') {
-        throw new StandardError('UNKNOWN_ERROR', '語言資源格式錯誤: ${languageCode}', {
-          category: 'general'
-        })
+        const error = new Error(`語言資源格式錯誤: ${languageCode}`)
+        error.code = ErrorCodes.UNKNOWN_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       return resource

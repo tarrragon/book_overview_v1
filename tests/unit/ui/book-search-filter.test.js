@@ -813,14 +813,14 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
         const BookSearchFilter = require('src/ui/book-search-filter')
         const filter = new BookSearchFilter(invalidEventBus, mockDocument)
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // 如果需要檢查特定錯誤屬性，使用 try-catch 模式
       try {
         const BookSearchFilter = require('src/ui/book-search-filter')
         new BookSearchFilter(invalidEventBus, mockDocument)
       } catch (error) {
-        expect(error).toBeInstanceOf(StandardError)
+        expect(error).toBeInstanceOf(Error)
         expect(error.code).toBe('REQUIRED_PARAMETER_MISSING')
         expect(error.message).toContain('事件總線是必需的')
         expect(error.details).toBeDefined()

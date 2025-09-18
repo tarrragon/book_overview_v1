@@ -101,7 +101,10 @@
       "Bash(do echo \"=== Verifying $file ===\")",
       "Read(//Users/tarragon/.claude/**)",
       "WebFetch(domain:docs.claude.com)",
-      "Bash(for file in \"ui-dom-manager.js\" \"base-ui-handler.js\" \"ui-event-validator.js\")"
+      "Bash(for file in \"ui-dom-manager.js\" \"base-ui-handler.js\" \"ui-event-validator.js\")",
+      "Bash(scripts/cleanup-hook-logs.sh:*)",
+      "Bash(for:*)",
+      "Bash(do)"
     ],
     "deny": []
   },

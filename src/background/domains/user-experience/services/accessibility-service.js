@@ -26,8 +26,7 @@
  * - 無障礙合規性驗證
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 class AccessibilityService {
   constructor (dependencies = {}) {
@@ -166,9 +165,10 @@ class AccessibilityService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError(ErrorCodes.OPERATION_ERROR, '無障礙服務尚未初始化', {
-        category: 'general'
-      })
+      const error = new Error('無障礙服務尚未初始化')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     if (this.state.active) {
@@ -210,9 +210,10 @@ class AccessibilityService {
     try {
       const modeConfig = this.accessibilityModes[mode]
       if (!modeConfig) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `不支援的無障礙模式: ${mode}`, {
-          category: 'general'
-        })
+        const error = new Error(`不支援的無障礙模式: ${mode}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       // 統計模式啟用
@@ -249,9 +250,10 @@ class AccessibilityService {
     try {
       // 檢查設定是否支援
       if (!(setting in this.accessibilitySettings)) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `不支援的無障礙設定: ${setting}`, {
-          category: 'general'
-        })
+        const error = new Error(`不支援的無障礙設定: ${setting}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       // 啟用設定
@@ -290,9 +292,10 @@ class AccessibilityService {
     try {
       // 檢查設定是否支援
       if (!(setting in this.accessibilitySettings)) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `不支援的無障礙設定: ${setting}`, {
-          category: 'general'
-        })
+        const error = new Error(`不支援的無障礙設定: ${setting}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       // 停用設定

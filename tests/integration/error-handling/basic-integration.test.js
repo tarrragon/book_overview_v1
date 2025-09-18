@@ -174,7 +174,7 @@ describe('錯誤處理系統基本整合測試', () => {
 
       expect(failureResult).toBeInstanceOf(OperationResult)
       expect(!failureResult.success).toBe(true)
-      expect(failureResult.error).toBeInstanceOf(StandardError)
+      expect(failureResult.error).toBeInstanceOf(Error)
       expect(failureResult.error.code).toBe('FAILURE_TEST')
     })
 
@@ -219,7 +219,7 @@ describe('錯誤處理系統基本整合測試', () => {
       }))
 
       if (!result.success) {
-        expect(result.error).toBeInstanceOf(StandardError)
+        expect(result.error).toBeInstanceOf(Error)
         expect(['NETWORK_ERROR', 'BOOK_EXTRACTION_FAILED']).toContain(result.error.code)
       }
     })

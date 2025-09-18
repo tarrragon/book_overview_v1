@@ -27,8 +27,7 @@
  */
 
 const { Logger } = require('src/core/logging/Logger')
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 class PopupUICoordinationService {
   constructor (dependencies = {}) {
@@ -123,9 +122,10 @@ class PopupUICoordinationService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError(ErrorCodes.OPERATION_ERROR, 'Popup UI 協調服務尚未初始化', {
-        category: 'ui'
-      })
+      const error = new Error('Popup UI 協調服務尚未初始化')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     if (this.state.active) {
@@ -257,9 +257,10 @@ class PopupUICoordinationService {
       // 動態載入模組類別
       const ModuleLoader = this.moduleLoaders.get(moduleId)
       if (!ModuleLoader) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `未找到模組載入器: ${moduleId}`, {
-          category: 'ui'
-        })
+        const error = new Error(`未找到模組載入器: ${moduleId}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'ui' }
+        throw error
       }
 
       const ModuleClass = ModuleLoader()
@@ -320,9 +321,10 @@ class PopupUICoordinationService {
       // 獲取提取服務模組
       const extractionService = this.popupModules.get('extraction-service')
       if (!extractionService) {
-        throw new StandardError(ErrorCodes.OPERATION_ERROR, '提取服務模組未載入', {
-          category: 'ui'
-        })
+        const error = new Error('提取服務模組未載入')
+        error.code = ErrorCodes.OPERATION_ERROR
+        error.details = { category: 'ui' }
+        throw error
       }
 
       // 協調提取流程

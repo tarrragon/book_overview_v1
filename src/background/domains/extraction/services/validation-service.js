@@ -23,8 +23,8 @@ const {
   EXTRACTION_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
+
 
 class ValidationService {
   constructor (dependencies = {}) {
@@ -119,9 +119,10 @@ class ValidationService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError(ErrorCodes.SERVICE_INITIALIZATION_ERROR, '服務尚未初始化', {
-        category: 'validation'
-      })
+      const error = new Error('服務尚未初始化')
+      error.code = ErrorCodes.SERVICE_INITIALIZATION_ERROR
+      error.details = { category: 'validation' }
+      throw error
     }
 
     if (this.state.active) {
@@ -402,9 +403,10 @@ class ValidationService {
       // 獲取驗證規則
       const rules = this.ruleGroups.get(ruleGroup)
       if (!rules) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `未找到規則群組: ${ruleGroup}`, {
-          category: 'validation'
-        })
+        const error = new Error(`未找到規則群組: ${ruleGroup}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'validation' }
+        throw error
       }
 
       // 執行驗證
@@ -484,9 +486,10 @@ class ValidationService {
         // 使用標準驗證規則
         const validationRule = this.validationRules.get(rule)
         if (!validationRule) {
-          throw new StandardError(ErrorCodes.VALIDATION_ERROR, `未找到驗證規則: ${rule}`, {
-            category: 'validation'
-          })
+          const error = new Error(`未找到驗證規則: ${rule}`)
+          error.code = ErrorCodes.VALIDATION_ERROR
+          error.details = { category: 'validation' }
+          throw error
         }
 
         const isValid = validationRule.validator(value, options)

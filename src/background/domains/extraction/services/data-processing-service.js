@@ -23,8 +23,7 @@ const {
   EXTRACTION_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 class DataProcessingService {
   constructor (dependencies = {}) {
@@ -116,9 +115,10 @@ class DataProcessingService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError(ErrorCodes.SERVICE_INITIALIZATION_ERROR, '服務尚未初始化', {
-        category: 'general'
-      })
+      const error = new Error('服務尚未初始化')
+      error.code = ErrorCodes.SERVICE_INITIALIZATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     if (this.state.active) {
@@ -197,9 +197,10 @@ class DataProcessingService {
       this.logger.log('📚 處理 Readmoo 書籍資料')
 
       if (!rawData || !Array.isArray(rawData.books)) {
-        throw new StandardError('UNKNOWN_ERROR', '無效的書籍資料格式', {
-          category: 'general'
-        })
+        const error = new Error('無效的書籍資料格式')
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       const processedBooks = []
@@ -348,9 +349,10 @@ class DataProcessingService {
       // 選擇處理器
       const processor = this.dataProcessors.get(dataType)
       if (!processor) {
-        throw new StandardError('UNKNOWN_ERROR', '未找到資料處理器: ${dataType}', {
-          category: 'general'
-        })
+        const error = new Error(`未找到資料處理器: ${dataType}`)
+        error.code = ErrorCodes.CONFIG_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       // 選擇處理管道
@@ -599,9 +601,10 @@ class DataProcessingService {
    */
   validateInput (data) {
     if (!data) {
-      throw new StandardError('UNKNOWN_ERROR', '輸入資料不能為空', {
-        category: 'general'
-      })
+      const error = new Error('輸入資料不能為空')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
   }
 
@@ -611,9 +614,10 @@ class DataProcessingService {
 
   validateOutput (data) {
     if (!data) {
-      throw new StandardError('UNKNOWN_ERROR', '輸出資料不能為空', {
-        category: 'general'
-      })
+      const error = new Error('輸出資料不能為空')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
   }
 

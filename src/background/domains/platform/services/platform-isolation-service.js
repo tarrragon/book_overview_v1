@@ -1,5 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 const { Logger } = require('src/core/logging/Logger')
 
@@ -455,9 +454,10 @@ class PlatformIsolationService {
       const { platformId, isolationLevel } = event.data || {}
 
       if (!platformId || !this.supportedPlatforms.includes(platformId)) {
-        throw new StandardError(ErrorCodes.CHROME_ERROR, `不支援的平台: ${platformId}`, {
-          category: 'general'
-        })
+        const error = new Error(`不支援的平台: ${platformId}`)
+        error.code = ErrorCodes.CHROME_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       // 檢查是否已存在容器
@@ -605,9 +605,10 @@ class PlatformIsolationService {
     const quota = this.resourceQuotas.get(platformId)
 
     if (!container || !quota) {
-      throw new StandardError(ErrorCodes.OPERATION_ERROR, `平台 ${platformId} 容器或配額不存在`, {
-        category: 'general'
-      })
+      const error = new Error(`平台 ${platformId} 容器或配額不存在`)
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     // 更新資源使用統計
@@ -666,9 +667,10 @@ class PlatformIsolationService {
 
       const quota = this.resourceQuotas.get(platformId)
       if (!quota) {
-        throw new StandardError(ErrorCodes.CONFIG_ERROR, `平台 ${platformId} 配額不存在`, {
-          category: 'general'
-        })
+        const error = new Error(`平台 ${platformId} 配額不存在`)
+        error.code = ErrorCodes.CONFIG_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       switch (action) {
@@ -755,9 +757,10 @@ class PlatformIsolationService {
   async performContaminationCheck (platformId) {
     const container = this.isolationContainers.get(platformId)
     if (!container) {
-      throw new StandardError(ErrorCodes.OPERATION_ERROR, `平台 ${platformId} 容器不存在`, {
-        category: 'general'
-      })
+      const error = new Error(`平台 ${platformId} 容器不存在`)
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     const contamination = {

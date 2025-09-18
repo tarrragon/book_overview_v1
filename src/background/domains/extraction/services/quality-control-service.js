@@ -23,8 +23,8 @@ const {
   EXTRACTION_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
+
 
 class QualityControlService {
   constructor (dependencies = {}) {
@@ -148,9 +148,10 @@ class QualityControlService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError(ErrorCodes.SERVICE_INITIALIZATION_ERROR, '服務尚未初始化', {
-        category: 'general'
-      })
+      const error = new Error('服務尚未初始化')
+      error.code = ErrorCodes.SERVICE_INITIALIZATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     if (this.state.active) {

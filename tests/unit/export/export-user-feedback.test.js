@@ -382,7 +382,7 @@ describe('ExportUserFeedback', () => {
     test('應該正確初始化使用者回饋系統', async () => {
       await expect(async () => {
         await userFeedback.initialize()
-      }).rejects.toThrow(StandardError)
+      }).rejects.toThrow(Error)
 
       // Red 階段：測試將驗證初始化流程
       // - 事件監聽器註冊
@@ -402,7 +402,7 @@ describe('ExportUserFeedback', () => {
 
       await expect(async () => {
         await userFeedback.loadUserPreferences()
-      }).rejects.toThrow(StandardError)
+      }).rejects.toThrow(Error)
 
       // Red 階段：測試將驗證偏好載入
       // - Chrome Storage 讀取
@@ -420,7 +420,7 @@ describe('ExportUserFeedback', () => {
 
       await expect(async () => {
         await userFeedback.saveUserPreferences(newPreferences)
-      }).rejects.toThrow(StandardError)
+      }).rejects.toThrow(Error)
 
       // Red 階段：測試將驗證偏好儲存
       // - 偏好驗證
@@ -441,7 +441,7 @@ describe('ExportUserFeedback', () => {
 
       expect(() => {
         userFeedback.notifyExportStarted(exportInfo)
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證開始通知
       // - 通知內容格式化
@@ -502,7 +502,7 @@ describe('ExportUserFeedback', () => {
 
       expect(() => {
         userFeedback.notifyExportCompleted(exportResult)
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證完成通知
       // - 成功訊息顯示
@@ -575,7 +575,7 @@ describe('ExportUserFeedback', () => {
 
       expect(() => {
         userFeedback.notifyExportError(errorInfo)
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證錯誤通知
       // - 使用者友好錯誤訊息
@@ -595,7 +595,7 @@ describe('ExportUserFeedback', () => {
       technicalErrors.forEach(({ error, expected }) => {
         expect(() => {
           const humanMessage = userFeedback.humanizeError(error)
-        }).toThrow(StandardError)
+        }).toThrow(Error)
       })
 
       // Red 階段：測試將驗證錯誤友好化
@@ -647,7 +647,7 @@ describe('ExportUserFeedback', () => {
 
       expect(() => {
         userFeedback.showDownloadConfirmation(downloadInfo)
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證下載確認
       // - 檔案資訊顯示
@@ -715,7 +715,7 @@ describe('ExportUserFeedback', () => {
 
       expect(() => {
         const history = userFeedback.getExportHistory(filters)
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證歷史查詢
       // - 日期範圍篩選
@@ -765,7 +765,7 @@ describe('ExportUserFeedback', () => {
     test('應該提供詳細匯出統計', () => {
       expect(() => {
         const statistics = userFeedback.getExportStatistics()
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證統計資訊
       // - 總匯出次數
@@ -811,7 +811,7 @@ describe('ExportUserFeedback', () => {
     test('應該清理過期通知', () => {
       expect(() => {
         userFeedback.cleanupExpiredNotifications()
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證通知清理
       // - 過期時間檢查
@@ -965,7 +965,7 @@ describe('NotificationService', () => {
 
       expect(() => {
         notificationService.sendBrowserNotification(title, options)
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證 Browser 通知
       // - 權限檢查
@@ -999,7 +999,7 @@ describe('NotificationService', () => {
 
       expect(() => {
         notificationService.sendChromeNotification(notificationId, options)
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證 Chrome 通知
       // - Chrome API 調用
@@ -1045,7 +1045,7 @@ describe('NotificationService', () => {
 
       expect(() => {
         notificationService.sendUINotification(notificationData)
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證 UI 通知
       // - UI 元素建立
@@ -1081,7 +1081,7 @@ describe('NotificationService', () => {
       soundTypes.forEach(soundType => {
         expect(() => {
           notificationService.playSoundAlert(soundType)
-        }).toThrow(StandardError)
+        }).toThrow(Error)
       })
 
       // Red 階段：測試將驗證音效通知
@@ -1113,7 +1113,7 @@ describe('NotificationService', () => {
 
       expect(() => {
         notificationService.clearNotification(notificationId)
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證通知清除
       // - Chrome 通知清除

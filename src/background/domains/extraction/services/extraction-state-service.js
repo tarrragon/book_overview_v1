@@ -23,8 +23,7 @@ const {
   EXTRACTION_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 class ExtractionStateService {
   constructor (dependencies = {}) {
@@ -129,9 +128,10 @@ class ExtractionStateService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError(ErrorCodes.SERVICE_INITIALIZATION_ERROR, '服務尚未初始化', {
-        category: 'general'
-      })
+      const error = new Error('服務尚未初始化')
+      error.code = ErrorCodes.SERVICE_INITIALIZATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     if (this.state.active) {
@@ -261,22 +261,25 @@ class ExtractionStateService {
     try {
       const job = this.extractionJobs.get(jobId)
       if (!job) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `提取作業不存在: ${jobId}`, {
-          category: 'general'
-        })
+        const error = new Error(`提取作業不存在: ${jobId}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       if (job.state !== this.JOB_STATES.PENDING && job.state !== this.JOB_STATES.RETRYING) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `作業狀態無效，無法啟動: ${job.state}`, {
-          category: 'general'
-        })
+        const error = new Error(`作業狀態無效，無法啟動: ${job.state}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       // 檢查同時進行的作業數量
       if (this.activeJobs.size >= this.config.maxActiveJobs) {
-        throw new StandardError(ErrorCodes.RESOURCE_EXHAUSTED, '已達到最大同時作業數量限制', {
-          category: 'general'
-        })
+        const error = new Error('已達到最大同時作業數量限制')
+        error.code = ErrorCodes.RESOURCE_EXHAUSTED
+        error.details = { category: 'general' }
+        throw error
       }
 
       // 更新作業狀態
@@ -314,9 +317,10 @@ class ExtractionStateService {
     try {
       const job = this.extractionJobs.get(jobId)
       if (!job) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `提取作業不存在: ${jobId}`, {
-          category: 'general'
-        })
+        const error = new Error(`提取作業不存在: ${jobId}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       // 更新進度
@@ -350,9 +354,10 @@ class ExtractionStateService {
     try {
       const job = this.extractionJobs.get(jobId)
       if (!job) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `提取作業不存在: ${jobId}`, {
-          category: 'general'
-        })
+        const error = new Error(`提取作業不存在: ${jobId}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       // 更新作業狀態
@@ -398,9 +403,10 @@ class ExtractionStateService {
     try {
       const job = this.extractionJobs.get(jobId)
       if (!job) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `提取作業不存在: ${jobId}`, {
-          category: 'general'
-        })
+        const error = new Error(`提取作業不存在: ${jobId}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       // 記錄錯誤
@@ -453,9 +459,10 @@ class ExtractionStateService {
     try {
       const job = this.extractionJobs.get(jobId)
       if (!job) {
-        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `提取作業不存在: ${jobId}`, {
-          category: 'general'
-        })
+        const error = new Error(`提取作業不存在: ${jobId}`)
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       job.state = this.JOB_STATES.CANCELLED
@@ -630,9 +637,10 @@ class ExtractionStateService {
     setTimeout(async () => {
       const job = this.extractionJobs.get(jobId)
       if (job && job.state === this.JOB_STATES.RUNNING) {
-        await this.failExtractionJob(jobId, new StandardError(ErrorCodes.TIMEOUT_ERROR, '作業執行超時', {
-          category: 'general'
-        }))
+        const error = new Error('作業執行超時')
+        error.code = ErrorCodes.TIMEOUT_ERROR
+        error.details = { category: 'general' }
+        await this.failExtractionJob(jobId, error)
       }
     }, this.config.jobTimeout)
   }
@@ -788,9 +796,10 @@ class ExtractionStateService {
   async handleJobFailRequest (event) {
     try {
       const { jobId, error } = event.data || {}
-      await this.failExtractionJob(jobId, new StandardError(ErrorCodes.OPERATION_ERROR, error, {
-        category: 'general'
-      }))
+      const newError = new Error(error.message || error)
+      newError.code = ErrorCodes.OPERATION_ERROR
+      newError.details = { category: 'general' }
+      await this.failExtractionJob(jobId, newError)
     } catch (error) {
       this.logger.error('❌ 處理作業失敗請求失敗:', error)
     }
