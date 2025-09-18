@@ -855,7 +855,7 @@ describe('SearchUIController', () => {
       expect(() => {
         const mockEvent = { target: { value: 'test' } }
         searchUIController.handleSearchInput(mockEvent)
-      }).toThrow('SearchUIController 已被清理')
+      }).toMatchObject(expect.objectContaining({ message: 'SearchUIController 已被清理' }))
     })
   })
 

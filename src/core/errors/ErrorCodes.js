@@ -1,3 +1,5 @@
+const { StandardError } = require('src/core/errors/StandardError')
+
 /**
  * 錯誤代碼常數定義 - 專家優化版
  *
@@ -8,7 +10,7 @@
  * - Chrome Extension ES modules 專用
  *
  * 使用方式：
- * throw new Error(`${ErrorCodes.VALIDATION_ERROR}: Email is required`)
+ * throw new StandardError(`IMPLEMENTATION_ERROR`, `${ErrorCodes.VALIDATION_ERROR}: Email is required`)
  *
  * 效能優化使用方式：
  * const error = new Error(message)
@@ -97,7 +99,7 @@ export const CommonErrors = {
  * @param {string} message - 錯誤訊息
  * @returns {Error} 帶有 code 屬性的 Error 物件
  */
-function createError(code, message) {
+function createError (code, message) {
   const error = new Error(message)
   error.code = code
   return error

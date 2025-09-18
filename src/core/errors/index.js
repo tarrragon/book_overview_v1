@@ -17,7 +17,7 @@ export { ErrorCodes, CommonErrors }
  * @param {Object} details - 可選的額外資訊
  * @returns {Error} 帶有 code 屬性的 Error 物件
  */
-export function createError(code, message, details = {}) {
+export function createError (code, message, details = {}) {
   const error = new Error(message)
   error.code = code
 
@@ -37,7 +37,7 @@ export function createError(code, message, details = {}) {
  * @param {string} code - 錯誤代碼
  * @returns {Object} 標準化結果物件
  */
-export function createResult(success, data = null, error = null, code = null) {
+export function createResult (success, data = null, error = null, code = null) {
   const result = { success }
 
   if (success) {

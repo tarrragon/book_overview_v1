@@ -332,7 +332,7 @@ describe('InstallHandler', () => {
     test('應該處理配置設定錯誤', async () => {
       mockChrome.storage.local.set.mockRejectedValue(new Error('儲存失敗'))
 
-      await expect(installHandler.setupDefaultConfiguration()).rejects.toThrow('儲存失敗')
+      await expect(installHandler.setupDefaultConfiguration()).rejects.toMatchObject(expect.objectContaining({ message: '儲存失敗' }))
       expect(mockLogger.error).toHaveBeenCalledWith('❌ 設定預設配置失敗:', expect.any(Error))
     })
   })
@@ -355,10 +355,12 @@ describe('InstallHandler', () => {
 
     test('應該跳過已存在的儲存項目', async () => {
       mockChrome.storage.local.get.mockImplementation((keys, callback) => {
-        if (callback) callback({
-          readmoo_books: 'existing_data',
-          extraction_history: ['some_history']
-        })
+        if (callback) {
+          callback({
+            readmoo_books: 'existing_data',
+            extraction_history: ['some_history']
+          })
+        }
         return Promise.resolve({
           readmoo_books: 'existing_data',
           extraction_history: ['some_history']
@@ -375,7 +377,7 @@ describe('InstallHandler', () => {
     test('應該處理儲存初始化錯誤', async () => {
       mockChrome.storage.local.set.mockRejectedValue(new Error('儲存初始化失敗'))
 
-      await expect(installHandler.initializeStorage()).rejects.toThrow('儲存初始化失敗')
+      await expect(installHandler.initializeStorage()).rejects.toMatchObject(expect.objectContaining({ message: '儲存初始化失敗' }))
       expect(mockLogger.error).toHaveBeenCalledWith('❌ 初始化儲存系統失敗:', expect.any(Error))
     })
   })
@@ -418,7 +420,7 @@ describe('InstallHandler', () => {
         previousVersion: '0.9.0'
       }
 
-      await expect(installHandler.handleUpdate(updateDetails)).rejects.toThrow('遷移失敗')
+      await expect(installHandler.handleUpdate(updateDetails)).rejects.toMatchObject(expect.objectContaining({ message: '遷移失敗' }))
     })
   })
 
@@ -439,7 +441,7 @@ describe('InstallHandler', () => {
     test('應該處理服務重新初始化錯誤', async () => {
       mockStorageService.initialize.mockRejectedValue(new Error('服務初始化失敗'))
 
-      await expect(installHandler.reinitializeServices()).rejects.toThrow('服務初始化失敗')
+      await expect(installHandler.reinitializeServices()).rejects.toMatchObject(expect.objectContaining({ message: '服務初始化失敗' }))
       expect(mockLogger.error).toHaveBeenCalledWith('❌ 服務重新初始化失敗:', expect.any(Error))
     })
   })
@@ -546,7 +548,7 @@ describe('InstallHandler', () => {
 
       const installDetails = { reason: 'install' }
 
-      await expect(installHandler.handleInstall(installDetails)).rejects.toThrow('儲存失敗')
+      await expect(installHandler.handleInstall(installDetails)).rejects.toMatchObject(expect.objectContaining({ message: '儲存失敗' }))
 
       expect(mockEventBus.emit).toHaveBeenCalledWith('SYSTEM.INSTALL.FAILED', {
         reason: 'install',

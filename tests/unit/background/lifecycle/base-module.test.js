@@ -109,7 +109,7 @@ describe('BaseModule', () => {
       // 模擬初始化失敗
       baseModule._doInitialize = jest.fn().mockRejectedValue(new Error('初始化失敗'))
 
-      await expect(baseModule.initialize()).rejects.toThrow('初始化失敗')
+      await expect(baseModule.initialize()).rejects.toMatchObject(expect.objectContaining({ message: '初始化失敗' }))
       expect(baseModule.isInitialized).toBe(false)
       expect(baseModule.initializationError).toEqual(expect.any(Error))
     })
@@ -179,7 +179,7 @@ describe('BaseModule', () => {
       await baseModule.initialize()
       baseModule._doStart = jest.fn().mockRejectedValue(new Error('啟動失敗'))
 
-      await expect(baseModule.start()).rejects.toThrow('啟動失敗')
+      await expect(baseModule.start()).rejects.toMatchObject(expect.objectContaining({ message: '啟動失敗' }))
       expect(baseModule.isRunning).toBe(false)
     })
 
@@ -234,7 +234,7 @@ describe('BaseModule', () => {
       await baseModule.start()
       baseModule._doStop = jest.fn().mockRejectedValue(new Error('停止失敗'))
 
-      await expect(baseModule.stop()).rejects.toThrow('停止失敗')
+      await expect(baseModule.stop()).rejects.toMatchObject(expect.objectContaining({ message: '停止失敗' }))
     })
 
     test('應該觸發停止完成事件', async () => {
@@ -349,7 +349,7 @@ describe('BaseModule', () => {
     test('應該處理清理錯誤', async () => {
       baseModule._doCleanup = jest.fn().mockRejectedValue(new Error('清理失敗'))
 
-      await expect(baseModule.cleanup()).rejects.toThrow('清理失敗')
+      await expect(baseModule.cleanup()).rejects.toMatchObject(expect.objectContaining({ message: '清理失敗' }))
     })
 
     test('應該觸發清理完成事件', async () => {
@@ -378,7 +378,7 @@ describe('BaseModule', () => {
   describe('抽象方法', () => {
     test('_doInitialize 方法應該可以被子類別覆寫', async () => {
       class TestModule extends BaseModule {
-        async _doInitialize() {
+        async _doInitialize () {
           this.customInitialized = true
         }
       }
@@ -391,7 +391,7 @@ describe('BaseModule', () => {
 
     test('_doStart 方法應該可以被子類別覆寫', async () => {
       class TestModule extends BaseModule {
-        async _doStart() {
+        async _doStart () {
           await super._doStart()
           this.customStarted = true
         }
@@ -406,7 +406,7 @@ describe('BaseModule', () => {
 
     test('_doStop 方法應該可以被子類別覆寫', async () => {
       class TestModule extends BaseModule {
-        async _doStop() {
+        async _doStop () {
           this.customStopped = true
         }
       }
@@ -421,7 +421,7 @@ describe('BaseModule', () => {
 
     test('_doCleanup 方法應該可以被子類別覆寫', async () => {
       class TestModule extends BaseModule {
-        async _doCleanup() {
+        async _doCleanup () {
           this.customCleaned = true
         }
       }
@@ -434,7 +434,7 @@ describe('BaseModule', () => {
 
     test('_getCustomHealthStatus 方法應該可以被子類別覆寫', () => {
       class TestModule extends BaseModule {
-        _getCustomHealthStatus() {
+        _getCustomHealthStatus () {
           return { customHealth: 'excellent' }
         }
       }

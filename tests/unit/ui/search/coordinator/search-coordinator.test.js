@@ -179,7 +179,7 @@ describe('SearchCoordinator', () => {
           searchResultFormatter: mockSearchResultFormatter,
           searchCacheManager: mockSearchCacheManager
         })
-      }).toThrow('EventBus 是必需的')
+      }).toMatchObject(expect.objectContaining({ message: 'EventBus 是必需的' }))
     })
 
     it('should throw error when Logger is missing', () => {
@@ -201,7 +201,7 @@ describe('SearchCoordinator', () => {
           searchResultFormatter: mockSearchResultFormatter,
           searchCacheManager: mockSearchCacheManager
         })
-      }).toThrow('Logger 是必需的')
+      }).toMatchObject(expect.objectContaining({ message: 'Logger 是必需的' }))
     })
 
     it('should throw error when SearchEngine is missing', () => {
@@ -223,7 +223,7 @@ describe('SearchCoordinator', () => {
           searchResultFormatter: mockSearchResultFormatter,
           searchCacheManager: mockSearchCacheManager
         })
-      }).toThrow('SearchEngine 是必需的')
+      }).toMatchObject(expect.objectContaining({ message: 'SearchEngine 是必需的' }))
     })
 
     it('should initialize with default configuration', () => {

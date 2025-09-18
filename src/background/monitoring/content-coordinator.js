@@ -15,7 +15,7 @@
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 const {
   CONTENT_SCRIPT_STATES,
@@ -530,9 +530,10 @@ class ContentCoordinator extends BaseModule {
         contentScript.lastActivity = Date.now()
         contentScript.healthCheckFailures = 0
       } else {
-        throw new StandardError('OPERATION_FAILED', 'Health check failed', {
-          category: 'general'
-        })
+        const error = new Error('Health check failed')
+        error.code = ErrorCodes.OPERATION_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
     } catch (error) {
       const contentScript = this.contentScripts.get(tabId)

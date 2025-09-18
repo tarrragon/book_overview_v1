@@ -941,7 +941,7 @@ describe('Data Validation Service v2.0', () => {
 
         await expect(
           dataValidationService.validateAndNormalize([validBookData], 'READMOO', 'EVENT_FAIL_TEST')
-        ).rejects.toThrow('模擬驗證錯誤')
+        ).rejects.toMatchObject(expect.objectContaining({ message: '模擬驗證錯誤' }))
 
         expect(mockEventBus.emit).toHaveBeenCalledWith(
           'DATA.VALIDATION.FAILED',

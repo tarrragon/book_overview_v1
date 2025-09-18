@@ -10,6 +10,8 @@
  * Phase 3: StandardError 自動轉換機制實作
  */
 
+const { StandardError } = require('src/core/errors/StandardError')
+
 const fs = require('fs').promises
 const path = require('path')
 
@@ -17,20 +19,20 @@ const path = require('path')
  * 轉換模式定義
  */
 const CONVERSION_MODES = {
-  SCAN_ONLY: 'scan_only',           // 僅掃描，不進行轉換
-  SUGGEST_ONLY: 'suggest_only',     // 產生轉換建議
-  AUTO_CONVERT: 'auto_convert',     // 自動轉換
-  MANUAL_ASSIST: 'manual_assist'    // 輔助手動轉換
+  SCAN_ONLY: 'scan_only', // 僅掃描，不進行轉換
+  SUGGEST_ONLY: 'suggest_only', // 產生轉換建議
+  AUTO_CONVERT: 'auto_convert', // 自動轉換
+  MANUAL_ASSIST: 'manual_assist' // 輔助手動轉換
 }
 
 /**
  * 轉換風險等級
  */
 const CONVERSION_RISKS = {
-  LOW: 'low',                       // 安全轉換
-  MEDIUM: 'medium',                 // 需要驗證
-  HIGH: 'high',                     // 需要人工確認
-  CRITICAL: 'critical'              // 不建議自動轉換
+  LOW: 'low', // 安全轉換
+  MEDIUM: 'medium', // 需要驗證
+  HIGH: 'high', // 需要人工確認
+  CRITICAL: 'critical' // 不建議自動轉換
 }
 
 /**
@@ -72,7 +74,7 @@ const CODE_PATTERNS = {
  * 自動遷移轉換器
  */
 class AutoMigrationConverter {
-  constructor(options = {}) {
+  constructor (options = {}) {
     this.config = {
       mode: options.mode || CONVERSION_MODES.SUGGEST_ONLY,
       sourceDir: options.sourceDir || 'src',
@@ -104,7 +106,7 @@ class AutoMigrationConverter {
    * 初始化轉換策略
    * @private
    */
-  _initializeConversionStrategies() {
+  _initializeConversionStrategies () {
     // StandardError 建構函式轉換策略
     this.conversionStrategies.set('constructor', {
       pattern: CODE_PATTERNS.CONSTRUCTOR_USAGE.pattern,
@@ -150,7 +152,7 @@ class AutoMigrationConverter {
    * 執行自動遷移轉換
    * @returns {Object} 轉換結果
    */
-  async executeAutoConversion() {
+  async executeAutoConversion () {
     console.log('🚀 開始執行 StandardError 自動遷移轉換...')
 
     try {
@@ -171,7 +173,6 @@ class AutoMigrationConverter {
 
       console.log('✅ StandardError 自動遷移轉換完成')
       return report
-
     } catch (error) {
       console.error('❌ 自動遷移轉換失敗:', error)
       throw error
@@ -182,7 +183,7 @@ class AutoMigrationConverter {
    * 掃描原始碼檔案
    * @private
    */
-  async _scanSourceFiles() {
+  async _scanSourceFiles () {
     console.log('📁 掃描原始碼檔案...')
 
     const files = await this._getSourceFiles(this.config.sourceDir)
@@ -204,7 +205,6 @@ class AutoMigrationConverter {
         if (fileInfo.hasStandardError) {
           this.conversionResults.statistics.affectedFiles++
         }
-
       } catch (error) {
         console.warn(`⚠️ 無法讀取檔案 ${filePath}:`, error.message)
       }
@@ -219,7 +219,7 @@ class AutoMigrationConverter {
    * @returns {Array} 檔案路徑清單
    * @private
    */
-  async _getSourceFiles(dir) {
+  async _getSourceFiles (dir) {
     const files = []
 
     const scanDirectory = async (dirPath) => {
@@ -253,7 +253,7 @@ class AutoMigrationConverter {
    * @returns {boolean} 是否包含 StandardError
    * @private
    */
-  _containsStandardError(content) {
+  _containsStandardError (content) {
     return /StandardError/.test(content)
   }
 
@@ -263,7 +263,7 @@ class AutoMigrationConverter {
    * @returns {Array} 偵測到的模式
    * @private
    */
-  _detectPatterns(content) {
+  _detectPatterns (content) {
     const detectedPatterns = []
 
     for (const [strategyName, strategy] of this.conversionStrategies) {
@@ -289,7 +289,7 @@ class AutoMigrationConverter {
    * 分析轉換機會
    * @private
    */
-  async _analyzeConversionOpportunities() {
+  async _analyzeConversionOpportunities () {
     console.log('🔍 分析轉換機會...')
 
     for (const fileInfo of this.conversionResults.scannedFiles) {
@@ -330,7 +330,7 @@ class AutoMigrationConverter {
    * @returns {boolean} 是否適合自動轉換
    * @private
    */
-  _isAutoConvertible(risk) {
+  _isAutoConvertible (risk) {
     const riskOrder = [CONVERSION_RISKS.LOW, CONVERSION_RISKS.MEDIUM, CONVERSION_RISKS.HIGH, CONVERSION_RISKS.CRITICAL]
     const thresholdIndex = riskOrder.indexOf(this.config.riskThreshold)
     const riskIndex = riskOrder.indexOf(risk)
@@ -344,7 +344,7 @@ class AutoMigrationConverter {
    * @returns {Array} 轉換建議
    * @private
    */
-  _generateConversionSuggestions(pattern) {
+  _generateConversionSuggestions (pattern) {
     const suggestions = []
 
     switch (pattern.strategy) {
@@ -381,7 +381,7 @@ class AutoMigrationConverter {
    * 評估轉換風險
    * @private
    */
-  async _assessConversionRisks() {
+  async _assessConversionRisks () {
     console.log('⚠️ 評估轉換風險...')
 
     for (const candidate of this.conversionResults.conversionCandidates) {
@@ -407,7 +407,7 @@ class AutoMigrationConverter {
    * @returns {Object} 風險詳情
    * @private
    */
-  _calculateDetailedRisk(opportunity) {
+  _calculateDetailedRisk (opportunity) {
     const baseRisk = opportunity.risk
     let adjustedRisk = baseRisk
 
@@ -440,7 +440,7 @@ class AutoMigrationConverter {
    * @returns {string} 降低後的風險等級
    * @private
    */
-  _lowerRisk(risk) {
+  _lowerRisk (risk) {
     const risks = [CONVERSION_RISKS.CRITICAL, CONVERSION_RISKS.HIGH, CONVERSION_RISKS.MEDIUM, CONVERSION_RISKS.LOW]
     const index = risks.indexOf(risk)
     return index < risks.length - 1 ? risks[index + 1] : risk
@@ -452,7 +452,7 @@ class AutoMigrationConverter {
    * @returns {string} 提高後的風險等級
    * @private
    */
-  _raiseRisk(risk) {
+  _raiseRisk (risk) {
     const risks = [CONVERSION_RISKS.LOW, CONVERSION_RISKS.MEDIUM, CONVERSION_RISKS.HIGH, CONVERSION_RISKS.CRITICAL]
     const index = risks.indexOf(risk)
     return index < risks.length - 1 ? risks[index + 1] : risk
@@ -464,7 +464,7 @@ class AutoMigrationConverter {
    * @returns {Array} 風險因子清單
    * @private
    */
-  _identifyRiskFactors(opportunity) {
+  _identifyRiskFactors (opportunity) {
     const factors = []
 
     if (opportunity.file.includes('core')) {
@@ -492,7 +492,7 @@ class AutoMigrationConverter {
    * @returns {Array} 緩解措施建議
    * @private
    */
-  _suggestRiskMitigation(risk) {
+  _suggestRiskMitigation (risk) {
     const mitigations = []
 
     switch (risk) {
@@ -529,7 +529,7 @@ class AutoMigrationConverter {
    * @returns {number} 優先級分數 (1-10)
    * @private
    */
-  _calculatePriority(risk, usage) {
+  _calculatePriority (risk, usage) {
     const riskScores = {
       [CONVERSION_RISKS.LOW]: 8,
       [CONVERSION_RISKS.MEDIUM]: 6,
@@ -545,7 +545,7 @@ class AutoMigrationConverter {
    * 根據模式執行轉換
    * @private
    */
-  async _executeConversionByMode() {
+  async _executeConversionByMode () {
     console.log(`🔧 執行轉換 (模式: ${this.config.mode})...`)
 
     switch (this.config.mode) {
@@ -566,7 +566,7 @@ class AutoMigrationConverter {
         break
 
       default:
-        throw new Error(`未知的轉換模式: ${this.config.mode}`)
+        throw new StandardError('IMPLEMENTATION_ERROR', `未知的轉換模式: ${this.config.mode}`)
     }
   }
 
@@ -574,7 +574,7 @@ class AutoMigrationConverter {
    * 產生轉換建議
    * @private
    */
-  async _generateSuggestions() {
+  async _generateSuggestions () {
     console.log('💡 產生轉換建議...')
 
     for (const candidate of this.conversionResults.conversionCandidates) {
@@ -606,7 +606,7 @@ class AutoMigrationConverter {
    * @returns {string} 工作量估算
    * @private
    */
-  _estimateConversionEffort(opportunity) {
+  _estimateConversionEffort (opportunity) {
     const baseEffort = {
       constructor: '低',
       import: '低',
@@ -633,7 +633,7 @@ class AutoMigrationConverter {
    * 執行自動轉換
    * @private
    */
-  async _performAutoConversion() {
+  async _performAutoConversion () {
     console.log('🤖 執行自動轉換...')
 
     let convertedFiles = 0
@@ -662,7 +662,6 @@ class AutoMigrationConverter {
         } else {
           console.warn(`⚠️ 轉換失敗: ${candidate.file} - ${result.error}`)
         }
-
       } catch (error) {
         console.error(`❌ 轉換檔案時發生錯誤 ${candidate.file}:`, error.message)
       }
@@ -676,7 +675,7 @@ class AutoMigrationConverter {
    * @param {string} filePath - 檔案路徑
    * @private
    */
-  async _backupFile(filePath) {
+  async _backupFile (filePath) {
     const backupDir = path.join(this.config.reportPath, 'backups')
     await fs.mkdir(backupDir, { recursive: true })
 
@@ -691,7 +690,7 @@ class AutoMigrationConverter {
    * @returns {Object} 轉換結果
    * @private
    */
-  async _convertFile(filePath, opportunities) {
+  async _convertFile (filePath, opportunities) {
     const content = await fs.readFile(filePath, 'utf8')
     let convertedContent = content
     let convertedItems = 0
@@ -726,7 +725,7 @@ class AutoMigrationConverter {
    * @returns {Object} 轉換結果
    * @private
    */
-  _convertConstructorUsage(content, opportunity) {
+  _convertConstructorUsage (content, opportunity) {
     const pattern = CODE_PATTERNS.CONSTRUCTOR_USAGE.pattern
     let count = 0
 
@@ -750,7 +749,7 @@ class AutoMigrationConverter {
    * @returns {Object} 轉換結果
    * @private
    */
-  _convertImportStatement(content, opportunity) {
+  _convertImportStatement (content, opportunity) {
     let count = 0
 
     // 簡化的匯入轉換 - 添加 StandardError 匯入
@@ -777,7 +776,7 @@ class AutoMigrationConverter {
    * @returns {Object} 轉換結果
    * @private
    */
-  _convertThrowStatement(content, opportunity) {
+  _convertThrowStatement (content, opportunity) {
     const pattern = /throw\s+new\s+StandardError\s*\(/g
     let count = 0
 
@@ -800,7 +799,7 @@ class AutoMigrationConverter {
    * @returns {Object} 轉換結果
    * @private
    */
-  _convertErrorHandling(content, opportunity) {
+  _convertErrorHandling (content, opportunity) {
     // 這是高風險轉換，暫時不自動執行
     return {
       converted: false,
@@ -817,7 +816,7 @@ class AutoMigrationConverter {
    * @returns {Object} 轉換結果
    * @private
    */
-  _convertCodeAccess(content, opportunity) {
+  _convertCodeAccess (content, opportunity) {
     // 暫時保持原樣，需要更謹慎的分析
     return {
       converted: false,
@@ -831,7 +830,7 @@ class AutoMigrationConverter {
    * 準備手動輔助
    * @private
    */
-  async _prepareManualAssistance() {
+  async _prepareManualAssistance () {
     console.log('🛠 準備手動轉換輔助...')
 
     // 產生詳細的手動轉換指南
@@ -847,7 +846,7 @@ class AutoMigrationConverter {
    * 產生手動轉換指南
    * @private
    */
-  async _generateManualConversionGuide() {
+  async _generateManualConversionGuide () {
     const guide = {
       overview: {
         totalFiles: this.conversionResults.statistics.affectedFiles,
@@ -870,7 +869,7 @@ class AutoMigrationConverter {
    * @returns {Array} 逐步指南
    * @private
    */
-  _createStepByStepGuide() {
+  _createStepByStepGuide () {
     return [
       {
         step: 1,
@@ -925,7 +924,7 @@ class AutoMigrationConverter {
    * @returns {Array} 檔案分析結果
    * @private
    */
-  _createFileByFileAnalysis() {
+  _createFileByFileAnalysis () {
     return this.conversionResults.conversionCandidates.map(candidate => ({
       file: candidate.file,
       totalOpportunities: candidate.opportunities.length,
@@ -948,7 +947,7 @@ class AutoMigrationConverter {
    * @returns {Object} 風險評估結果
    * @private
    */
-  _createRiskAssessment() {
+  _createRiskAssessment () {
     return {
       overallRisk: this._calculateOverallRisk(),
       riskFactors: this._identifyOverallRiskFactors(),
@@ -962,7 +961,7 @@ class AutoMigrationConverter {
    * @returns {string} 整體風險等級
    * @private
    */
-  _calculateOverallRisk() {
+  _calculateOverallRisk () {
     const riskCounts = this.conversionResults.statistics.riskDistribution
     const total = Array.from(riskCounts.values()).reduce((sum, count) => sum + count, 0)
 
@@ -983,7 +982,7 @@ class AutoMigrationConverter {
    * @returns {Array} 風險因子
    * @private
    */
-  _identifyOverallRiskFactors() {
+  _identifyOverallRiskFactors () {
     const factors = []
     const stats = this.conversionResults.statistics
 
@@ -1008,7 +1007,7 @@ class AutoMigrationConverter {
    * @returns {Array} 緩解策略
    * @private
    */
-  _createOverallMitigationStrategy() {
+  _createOverallMitigationStrategy () {
     const overallRisk = this._calculateOverallRisk()
     const strategies = []
 
@@ -1030,7 +1029,7 @@ class AutoMigrationConverter {
    * @returns {Object} 應急計畫
    * @private
    */
-  _createContingencyPlan() {
+  _createContingencyPlan () {
     return {
       backupStrategy: '自動備份所有修改檔案',
       rollbackProcedure: '使用 Git 回滾到轉換前狀態',
@@ -1055,7 +1054,7 @@ class AutoMigrationConverter {
    * @returns {Array} 測試建議
    * @private
    */
-  _createTestingRecommendations() {
+  _createTestingRecommendations () {
     return [
       {
         phase: '轉換前',
@@ -1089,7 +1088,7 @@ class AutoMigrationConverter {
    * 產生轉換清單
    * @private
    */
-  async _generateConversionChecklist() {
+  async _generateConversionChecklist () {
     const checklist = this.conversionResults.conversionCandidates.map(candidate => ({
       file: candidate.file,
       status: 'pending',
@@ -1112,7 +1111,7 @@ class AutoMigrationConverter {
    * @returns {Object} 轉換報告
    * @private
    */
-  async _generateConversionReport() {
+  async _generateConversionReport () {
     console.log('📊 產生轉換報告...')
 
     const report = {
@@ -1156,7 +1155,7 @@ class AutoMigrationConverter {
    * @returns {Array} 高風險檔案
    * @private
    */
-  _getTopRiskyFiles(limit = 10) {
+  _getTopRiskyFiles (limit = 10) {
     return this.conversionResults.conversionCandidates
       .map(candidate => ({
         file: candidate.file,
@@ -1173,7 +1172,7 @@ class AutoMigrationConverter {
    * @returns {number} 風險分數
    * @private
    */
-  _calculateFileRiskScore(candidate) {
+  _calculateFileRiskScore (candidate) {
     const riskWeights = {
       [CONVERSION_RISKS.LOW]: 1,
       [CONVERSION_RISKS.MEDIUM]: 3,
@@ -1191,7 +1190,7 @@ class AutoMigrationConverter {
    * @returns {Object} 策略總結
    * @private
    */
-  _summarizeStrategies() {
+  _summarizeStrategies () {
     const strategySummary = {}
 
     for (const candidate of this.conversionResults.conversionCandidates) {
@@ -1225,23 +1224,25 @@ class AutoMigrationConverter {
    * @returns {Object} 工作量估算
    * @private
    */
-  _estimateOverallEffort() {
+  _estimateOverallEffort () {
     const effortEstimates = {
-      low: 1,    // 1 人時
+      low: 1, // 1 人時
       medium: 4, // 4 人時
-      high: 8,   // 8 人時
+      high: 8, // 8 人時
       veryHigh: 16 // 16 人時
     }
 
     let totalHours = 0
-    let taskBreakdown = { low: 0, medium: 0, high: 0, veryHigh: 0 }
+    const taskBreakdown = { low: 0, medium: 0, high: 0, veryHigh: 0 }
 
     for (const candidate of this.conversionResults.conversionCandidates) {
       for (const opportunity of candidate.opportunities) {
         const effort = this._estimateConversionEffort(opportunity)
-        const effortKey = effort === '很高' ? 'veryHigh' :
-                         effort === '高' ? 'high' :
-                         effort === '中' ? 'medium' : 'low'
+        const effortKey = effort === '很高'
+          ? 'veryHigh'
+          : effort === '高'
+            ? 'high'
+            : effort === '中' ? 'medium' : 'low'
 
         // 確保 effortKey 有效
         if (effortEstimates[effortKey] !== undefined) {
@@ -1268,7 +1269,7 @@ class AutoMigrationConverter {
    * @returns {Array} 立即行動建議
    * @private
    */
-  _getImmediateRecommendations() {
+  _getImmediateRecommendations () {
     const recommendations = []
 
     // 基於風險分布的建議
@@ -1297,7 +1298,7 @@ class AutoMigrationConverter {
    * @returns {Array} 短期建議
    * @private
    */
-  _getShortTermRecommendations() {
+  _getShortTermRecommendations () {
     const recommendations = []
 
     const mediumRiskCount = this.conversionResults.statistics.riskDistribution.get(CONVERSION_RISKS.MEDIUM) || 0
@@ -1317,7 +1318,7 @@ class AutoMigrationConverter {
    * @returns {Array} 長期建議
    * @private
    */
-  _getLongTermRecommendations() {
+  _getLongTermRecommendations () {
     const recommendations = []
 
     const highRiskCount = this.conversionResults.statistics.riskDistribution.get(CONVERSION_RISKS.HIGH) || 0
@@ -1339,7 +1340,7 @@ class AutoMigrationConverter {
    * @returns {Array} 下一步行動清單
    * @private
    */
-  _generateNextSteps() {
+  _generateNextSteps () {
     const nextSteps = []
 
     switch (this.config.mode) {
@@ -1375,9 +1376,9 @@ class AutoMigrationConverter {
  * 遷移模式常數 (從 StandardError 引用)
  */
 const MIGRATION_MODES = {
-  LEGACY_ONLY: 'legacy_only',       // 僅支援原始 StandardError
-  WRAPPER_MODE: 'wrapper_mode',     // 包裝器模式 (預設)
-  DUAL_MODE: 'dual_mode',           // 雙重系統模式
+  LEGACY_ONLY: 'legacy_only', // 僅支援原始 StandardError
+  WRAPPER_MODE: 'wrapper_mode', // 包裝器模式 (預設)
+  DUAL_MODE: 'dual_mode', // 雙重系統模式
   ERRORCODES_ONLY: 'errorcodes_only' // 僅支援 ErrorCodes
 }
 

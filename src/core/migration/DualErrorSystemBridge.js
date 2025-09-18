@@ -16,28 +16,28 @@ const { StandardError, MIGRATION_MODES } = require('./StandardError')
  * 雙重系統操作模式
  */
 const DUAL_SYSTEM_MODES = {
-  LEGACY_FIRST: 'legacy_first',         // 優先使用 StandardError
+  LEGACY_FIRST: 'legacy_first', // 優先使用 StandardError
   ERRORCODES_FIRST: 'errorcodes_first', // 優先使用 ErrorCodes
-  PARALLEL: 'parallel',                 // 平行處理兩套系統
-  TRANSITIONAL: 'transitional'          // 過渡模式，基於配置決定
+  PARALLEL: 'parallel', // 平行處理兩套系統
+  TRANSITIONAL: 'transitional' // 過渡模式，基於配置決定
 }
 
 /**
  * 錯誤相容性等級
  */
 const COMPATIBILITY_LEVELS = {
-  STRICT: 'strict',       // 嚴格相容性檢查
-  LOOSE: 'loose',         // 寬鬆相容性檢查
-  FLEXIBLE: 'flexible'    // 彈性相容性檢查
+  STRICT: 'strict', // 嚴格相容性檢查
+  LOOSE: 'loose', // 寬鬆相容性檢查
+  FLEXIBLE: 'flexible' // 彈性相容性檢查
 }
 
 /**
  * 系統狀態追蹤
  */
 const SYSTEM_STATES = {
-  FULL_LEGACY: 'full_legacy',           // 完全使用舊系統
+  FULL_LEGACY: 'full_legacy', // 完全使用舊系統
   MIGRATION_ACTIVE: 'migration_active', // 遷移進行中
-  DUAL_ACTIVE: 'dual_active',           // 雙系統並行
+  DUAL_ACTIVE: 'dual_active', // 雙系統並行
   MIGRATION_COMPLETE: 'migration_complete' // 遷移完成
 }
 
@@ -45,7 +45,7 @@ const SYSTEM_STATES = {
  * 雙重錯誤系統橋接器
  */
 class DualErrorSystemBridge {
-  constructor(options = {}) {
+  constructor (options = {}) {
     this.config = {
       mode: options.mode || DUAL_SYSTEM_MODES.TRANSITIONAL,
       compatibilityLevel: options.compatibilityLevel || COMPATIBILITY_LEVELS.LOOSE,
@@ -91,7 +91,7 @@ class DualErrorSystemBridge {
    * 初始化相容性驗證器
    * @private
    */
-  _initializeCompatibilityValidators() {
+  _initializeCompatibilityValidators () {
     // StandardError 到 ErrorCodes 驗證器
     this.compatibilityValidators.set('standard_to_errorcodes', {
       validate: this._validateStandardToErrorCodes.bind(this),
@@ -115,9 +115,9 @@ class DualErrorSystemBridge {
    * 初始化系統狀態
    * @private
    */
-  _initializeSystemState() {
+  _initializeSystemState () {
     if (this.config.enableLogging) {
-      console.log(`🔗 雙重錯誤系統橋接器啟動`)
+      console.log('🔗 雙重錯誤系統橋接器啟動')
       console.log(`   模式: ${this.config.mode}`)
       console.log(`   相容性等級: ${this.config.compatibilityLevel}`)
       console.log(`   系統狀態: ${this.systemState.currentState}`)
@@ -130,7 +130,7 @@ class DualErrorSystemBridge {
    * @param {Object} options - 橋接選項
    * @returns {Object} 橋接後的錯誤
    */
-  bridgeError(error, options = {}) {
+  bridgeError (error, options = {}) {
     const startTime = performance.now()
     this.performanceMetrics.bridgingOperations++
 
@@ -154,12 +154,11 @@ class DualErrorSystemBridge {
       this.performanceMetrics.conversionTimes.push(conversionTime)
 
       return bridgedError
-
     } catch (bridgeError) {
       this._updateErrorStats('unknown', 'failed')
 
       if (this.config.fallbackToLegacy) {
-        console.warn(`⚠️ 橋接失敗，回退到原始錯誤:`, bridgeError.message)
+        console.warn('⚠️ 橋接失敗，回退到原始錯誤:', bridgeError.message)
         return error
       }
 
@@ -173,7 +172,7 @@ class DualErrorSystemBridge {
    * @returns {string} 錯誤類型
    * @private
    */
-  _detectErrorType(error) {
+  _detectErrorType (error) {
     if (!error) return 'unknown'
 
     // 檢查是否為 StandardError 或其包裝器
@@ -207,7 +206,7 @@ class DualErrorSystemBridge {
    * @returns {Object} 處理後的錯誤
    * @private
    */
-  _processByMode(error, errorType, options) {
+  _processByMode (error, errorType, options) {
     switch (this.config.mode) {
       case DUAL_SYSTEM_MODES.LEGACY_FIRST:
         return this._processLegacyFirst(error, errorType, options)
@@ -222,7 +221,7 @@ class DualErrorSystemBridge {
         return this._processTransitional(error, errorType, options)
 
       default:
-        throw new Error(`未知的雙重系統模式: ${this.config.mode}`)
+        throw new StandardError('IMPLEMENTATION_ERROR', `未知的雙重系統模式: ${this.config.mode}`)
     }
   }
 
@@ -234,7 +233,7 @@ class DualErrorSystemBridge {
    * @returns {Object} 處理後的錯誤
    * @private
    */
-  _processLegacyFirst(error, errorType, options) {
+  _processLegacyFirst (error, errorType, options) {
     if (errorType === 'standard') {
       // 已經是 StandardError，直接返回
       this._updateErrorStats('legacy', 'success')
@@ -261,7 +260,7 @@ class DualErrorSystemBridge {
    * @returns {Object} 處理後的錯誤
    * @private
    */
-  _processErrorCodesFirst(error, errorType, options) {
+  _processErrorCodesFirst (error, errorType, options) {
     if (errorType === 'errorcodes') {
       // 已經是 ErrorCodes 格式，直接返回
       this._updateErrorStats('errorCodes', 'success')
@@ -288,7 +287,7 @@ class DualErrorSystemBridge {
    * @returns {Object} 處理後的錯誤
    * @private
    */
-  _processParallel(error, errorType, options) {
+  _processParallel (error, errorType, options) {
     const result = {
       bridgeType: 'parallel',
       original: error,
@@ -315,7 +314,7 @@ class DualErrorSystemBridge {
    * @returns {Object} 處理後的錯誤
    * @private
    */
-  _processTransitional(error, errorType, options) {
+  _processTransitional (error, errorType, options) {
     // 基於系統狀態和遷移進度決定處理方式
     const migrationProgress = this.systemState.migrationProgress
 
@@ -337,7 +336,7 @@ class DualErrorSystemBridge {
    * @returns {Object} StandardError 格式錯誤
    * @private
    */
-  _convertToStandardError(error) {
+  _convertToStandardError (error) {
     // 檢查快取
     const cacheKey = this._generateCacheKey(error, 'standard')
     if (this.errorMappingCache.has(cacheKey)) {
@@ -390,7 +389,7 @@ class DualErrorSystemBridge {
    * @returns {Object} ErrorCodes 格式錯誤
    * @private
    */
-  _convertToErrorCodes(error) {
+  _convertToErrorCodes (error) {
     // 檢查快取
     const cacheKey = this._generateCacheKey(error, 'errorcodes')
     if (this.errorMappingCache.has(cacheKey)) {
@@ -453,18 +452,18 @@ class DualErrorSystemBridge {
    * @returns {string} StandardError 代碼
    * @private
    */
-  _mapErrorCodeToStandard(errorCode) {
+  _mapErrorCodeToStandard (errorCode) {
     const mapping = {
-      'VALIDATION_ERROR': 'VALIDATION_ERROR',
-      'BOOK_ERROR': 'BOOK_ERROR',
-      'DOM_ERROR': 'DOM_ERROR',
-      'TIMEOUT_ERROR': 'TIMEOUT_ERROR',
-      'OPERATION_ERROR': 'OPERATION_FAILED',
-      'NETWORK_ERROR': 'NETWORK_ERROR',
-      'CONNECTION_ERROR': 'CONNECTION_FAILED',
-      'CHROME_ERROR': 'CHROME_API_ERROR',
-      'STORAGE_ERROR': 'STORAGE_ERROR',
-      'UNKNOWN_ERROR': 'UNKNOWN_ERROR'
+      VALIDATION_ERROR: 'VALIDATION_ERROR',
+      BOOK_ERROR: 'BOOK_ERROR',
+      DOM_ERROR: 'DOM_ERROR',
+      TIMEOUT_ERROR: 'TIMEOUT_ERROR',
+      OPERATION_ERROR: 'OPERATION_FAILED',
+      NETWORK_ERROR: 'NETWORK_ERROR',
+      CONNECTION_ERROR: 'CONNECTION_FAILED',
+      CHROME_ERROR: 'CHROME_API_ERROR',
+      STORAGE_ERROR: 'STORAGE_ERROR',
+      UNKNOWN_ERROR: 'UNKNOWN_ERROR'
     }
 
     return mapping[errorCode] || 'UNKNOWN_ERROR'
@@ -476,18 +475,18 @@ class DualErrorSystemBridge {
    * @returns {string} ErrorCode
    * @private
    */
-  _mapStandardToErrorCode(standardCode) {
+  _mapStandardToErrorCode (standardCode) {
     const mapping = {
-      'VALIDATION_ERROR': 'VALIDATION_ERROR',
-      'BOOK_ERROR': 'BOOK_ERROR',
-      'DOM_ERROR': 'DOM_ERROR',
-      'TIMEOUT_ERROR': 'TIMEOUT_ERROR',
-      'OPERATION_FAILED': 'OPERATION_ERROR',
-      'NETWORK_ERROR': 'NETWORK_ERROR',
-      'CONNECTION_FAILED': 'CONNECTION_ERROR',
-      'CHROME_API_ERROR': 'CHROME_ERROR',
-      'STORAGE_ERROR': 'STORAGE_ERROR',
-      'UNKNOWN_ERROR': 'UNKNOWN_ERROR'
+      VALIDATION_ERROR: 'VALIDATION_ERROR',
+      BOOK_ERROR: 'BOOK_ERROR',
+      DOM_ERROR: 'DOM_ERROR',
+      TIMEOUT_ERROR: 'TIMEOUT_ERROR',
+      OPERATION_FAILED: 'OPERATION_ERROR',
+      NETWORK_ERROR: 'NETWORK_ERROR',
+      CONNECTION_FAILED: 'CONNECTION_ERROR',
+      CHROME_API_ERROR: 'CHROME_ERROR',
+      STORAGE_ERROR: 'STORAGE_ERROR',
+      UNKNOWN_ERROR: 'UNKNOWN_ERROR'
     }
 
     return mapping[standardCode] || 'UNKNOWN_ERROR'
@@ -499,7 +498,7 @@ class DualErrorSystemBridge {
    * @returns {string} 子類型
    * @private
    */
-  _generateSubType(code) {
+  _generateSubType (code) {
     return code.replace(/_ERROR$/, '').toLowerCase()
       .split('_')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -512,7 +511,7 @@ class DualErrorSystemBridge {
    * @returns {string} 嚴重程度
    * @private
    */
-  _determineSeverity(error) {
+  _determineSeverity (error) {
     if (error.severity) return error.severity
 
     const code = error.code || error.errorCode || ''
@@ -530,7 +529,7 @@ class DualErrorSystemBridge {
    * @returns {string} 快取鍵值
    * @private
    */
-  _generateCacheKey(error, targetType) {
+  _generateCacheKey (error, targetType) {
     const errorKey = error.code || error.errorCode || error.message || 'unknown'
     return `${targetType}_${errorKey}_${error.timestamp || 'no_time'}`
   }
@@ -542,7 +541,7 @@ class DualErrorSystemBridge {
    * @param {string} errorType - 錯誤類型
    * @private
    */
-  _validateCompatibility(bridgedError, originalError, errorType) {
+  _validateCompatibility (bridgedError, originalError, errorType) {
     const startTime = performance.now()
 
     try {
@@ -555,12 +554,11 @@ class DualErrorSystemBridge {
 
       const validationTime = performance.now() - startTime
       this.performanceMetrics.validationTimes.push(validationTime)
-
     } catch (validationError) {
       if (this.config.compatibilityLevel === COMPATIBILITY_LEVELS.STRICT) {
         throw validationError
       } else {
-        console.warn(`⚠️ 相容性驗證警告:`, validationError.message)
+        console.warn('⚠️ 相容性驗證警告:', validationError.message)
       }
     }
   }
@@ -571,7 +569,7 @@ class DualErrorSystemBridge {
    * @returns {Array} 驗證器清單
    * @private
    */
-  _selectValidators(errorType) {
+  _selectValidators (errorType) {
     const validators = []
 
     switch (this.config.compatibilityLevel) {
@@ -606,13 +604,13 @@ class DualErrorSystemBridge {
    * @param {Object} originalError - 原始錯誤
    * @private
    */
-  _validateStandardToErrorCodes(bridgedError, originalError) {
+  _validateStandardToErrorCodes (bridgedError, originalError) {
     if (!bridgedError.errorCode) {
-      throw new Error('橋接後的錯誤缺少 errorCode 屬性')
+      throw new StandardError('IMPLEMENTATION_ERROR', '橋接後的錯誤缺少 errorCode 屬性')
     }
 
     if (!bridgedError.message) {
-      throw new Error('橋接後的錯誤缺少 message 屬性')
+      throw new StandardError('IMPLEMENTATION_ERROR', '橋接後的錯誤缺少 message 屬性')
     }
 
     // 驗證訊息一致性
@@ -627,13 +625,13 @@ class DualErrorSystemBridge {
    * @param {Object} originalError - 原始錯誤
    * @private
    */
-  _validateErrorCodesToStandard(bridgedError, originalError) {
+  _validateErrorCodesToStandard (bridgedError, originalError) {
     if (!bridgedError.code) {
-      throw new Error('橋接後的錯誤缺少 code 屬性')
+      throw new StandardError('IMPLEMENTATION_ERROR', '橋接後的錯誤缺少 code 屬性')
     }
 
     if (!bridgedError.name || bridgedError.name !== 'StandardError') {
-      throw new Error('橋接後的錯誤 name 屬性不正確')
+      throw new StandardError('IMPLEMENTATION_ERROR', '橋接後的錯誤 name 屬性不正確')
     }
 
     // 驗證類別一致性
@@ -648,10 +646,10 @@ class DualErrorSystemBridge {
    * @param {Object} originalError - 原始錯誤
    * @private
    */
-  _validateBidirectionalCompatibility(bridgedError, originalError) {
+  _validateBidirectionalCompatibility (bridgedError, originalError) {
     // 基本屬性檢查
     if (!bridgedError.message) {
-      throw new Error('橋接後的錯誤缺少基本訊息')
+      throw new StandardError('IMPLEMENTATION_ERROR', '橋接後的錯誤缺少基本訊息')
     }
 
     if (!bridgedError.timestamp) {
@@ -673,7 +671,7 @@ class DualErrorSystemBridge {
    * @param {string} operation - 操作類型
    * @private
    */
-  _updateErrorStats(type, operation) {
+  _updateErrorStats (type, operation) {
     if (type === 'legacy' || type === 'standard') {
       this.systemState.errorCounts.legacy++
     } else if (type === 'errorcodes') {
@@ -689,7 +687,7 @@ class DualErrorSystemBridge {
    * 更新遷移進度
    * @param {number} progress - 進度 (0-1)
    */
-  updateMigrationProgress(progress) {
+  updateMigrationProgress (progress) {
     const oldProgress = this.systemState.migrationProgress
     this.systemState.migrationProgress = Math.max(0, Math.min(1, progress))
     this.systemState.lastStateChange = Date.now()
@@ -714,7 +712,7 @@ class DualErrorSystemBridge {
    * 取得系統狀態報告
    * @returns {Object} 系統狀態報告
    */
-  getSystemStatusReport() {
+  getSystemStatusReport () {
     const now = Date.now()
     const runtime = now - (this.systemState.lastStateChange || now)
 
@@ -747,7 +745,7 @@ class DualErrorSystemBridge {
    * @returns {number} 平均值
    * @private
    */
-  _calculateAverage(values) {
+  _calculateAverage (values) {
     if (values.length === 0) return 0
     return values.reduce((sum, val) => sum + val, 0) / values.length
   }
@@ -757,7 +755,7 @@ class DualErrorSystemBridge {
    * @returns {Object} 健康指標
    * @private
    */
-  _generateHealthIndicators() {
+  _generateHealthIndicators () {
     const totalErrors = Object.values(this.systemState.errorCounts).reduce((sum, count) => sum + count, 0)
     const failureRate = totalErrors > 0 ? this.systemState.errorCounts.failed / totalErrors : 0
     const cacheHitRate = this.performanceMetrics.cacheHits / (this.performanceMetrics.cacheHits + this.performanceMetrics.cacheMisses) || 0
@@ -778,7 +776,7 @@ class DualErrorSystemBridge {
    * @returns {string} 健康狀態
    * @private
    */
-  _calculateOverallHealth(failureRate, cacheHitRate) {
+  _calculateOverallHealth (failureRate, cacheHitRate) {
     if (failureRate < 0.02 && cacheHitRate > 0.8) return 'excellent'
     if (failureRate < 0.05 && cacheHitRate > 0.6) return 'good'
     if (failureRate < 0.1 && cacheHitRate > 0.4) return 'fair'
@@ -788,7 +786,7 @@ class DualErrorSystemBridge {
   /**
    * 清理資源
    */
-  cleanup() {
+  cleanup () {
     this.errorMappingCache.clear()
     this.performanceMetrics.conversionTimes = []
     this.performanceMetrics.validationTimes = []

@@ -1,3 +1,5 @@
+const { StandardError } = require('src/core/errors/StandardError')
+
 /**
  * StandardError 向後相容包裝器
  *
@@ -420,7 +422,7 @@ export class StandardError extends Error {
       this.migrationConfig.mode = mode
       console.log(`[StandardError 遷移] 模式已設定為: ${mode}`)
     } else {
-      throw new Error(`無效的遷移模式: ${mode}`)
+      throw new StandardError(`IMPLEMENTATION_ERROR`, `無效的遷移模式: ${mode}`)
     }
   }
 
