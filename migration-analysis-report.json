@@ -1,47 +1,81 @@
 {
   "summary": {
-    "timestamp": "2025-09-17T06:06:45.428Z",
+    "timestamp": "2025-09-18T06:02:09.575Z",
     "totalFiles": 213,
-    "affectedFiles": 17,
-    "totalUsages": 31,
+    "affectedFiles": 71,
+    "totalUsages": 314,
     "overallRiskLevel": "MEDIUM",
-    "migrationPhases": 17
+    "migrationPhases": 71
   },
   "detailedAnalysis": {
     "usagePatterns": {
       "mostCommonErrors": {
-        "UNKNOWN_ERROR": 28,
-        "UNKNOWN": 2,
-        "OPERATION_TIMEOUT": 1
+        "UNKNOWN": 106,
+        "UNKNOWN_ERROR": 52,
+        "EVENTBUS_ERROR": 6,
+        "OPERATION_FAILED": 6,
+        "NOT_IMPLEMENTED": 13,
+        "INVALID_DATA_FORMAT": 49,
+        "RESOURCE_NOT_FOUND": 15,
+        "RESOURCE_NOT_AVAILABLE": 3,
+        "REQUIRED_FIELD_MISSING": 20,
+        "VALIDATION_FAILED": 2,
+        "${code}": 1,
+        "MIGRATION_FAILED": 1,
+        "MANIFEST_VERSION_INVALID": 1,
+        "MANIFEST_MISSING_FIELDS": 1,
+        "MISSING_EXTENSION_ICON": 1,
+        "FILE_SIZE_EXCEEDED": 1,
+        "LARGE_FILES_DETECTED": 1,
+        "UNSAFE_CSP_INLINE": 1,
+        "UNSAFE_CSP_EVAL": 1,
+        "CODE_INJECTION_RISK": 1,
+        "PRIVACY_UNDECLARED_DATA_COLLECTION": 1,
+        "PERFORMANCE_STARTUP_TOO_SLOW": 1,
+        "PERFORMANCE_MEMORY_TOO_HIGH": 1,
+        "FUNCTIONALITY_SCORE_TOO_LOW": 1,
+        "FEATURE_NOT_SUPPORTED": 2,
+        "EXPORT_OPERATION_FAILED": 2,
+        "EVENTBUS_REQUIRED": 1,
+        "UI_OPERATION_FAILED": 1,
+        "LIMIT_EXCEEDED": 1,
+        "OPERATION_TIMEOUT": 2,
+        "COORDINATOR_CONFIG_ERROR": 5,
+        "COORDINATOR_STATE_ERROR": 4,
+        "SEARCH_COORDINATION_ERROR": 1,
+        "FILTER_COORDINATION_ERROR": 2,
+        "SEARCH_VALIDATION_ERROR": 2,
+        "FILTER_VALIDATION_ERROR": 5
       },
       "moduleDistribution": {
-        "background": 4,
-        "content": 2,
-        "core": 2,
-        "other": 6,
-        "storage": 2,
-        "ui": 1
+        "background": 30,
+        "content": 8,
+        "core": 9,
+        "other": 7,
+        "export": 5,
+        "storage": 5,
+        "ui": 7
       },
       "complexityDistribution": {
         "low": 0,
-        "medium": 2,
-        "high": 15
+        "medium": 3,
+        "high": 68
       },
       "migrationStrategies": {
-        "DIRECT_REPLACEMENT": 28,
-        "NEEDS_REVIEW": 2,
-        "ADAPTER_MIGRATION": 1
+        "NEEDS_REVIEW": 231,
+        "DIRECT_REPLACEMENT": 52,
+        "ADAPTER_MIGRATION": 31
       }
     },
     "riskAssessment": {
       "riskFactors": {
-        "fileComplexity": 49,
+        "fileComplexity": 210,
         "moduleInterdependency": 0,
         "testCoverage": 0,
-        "criticalPath": 15
+        "criticalPath": 50
       },
-      "totalRisk": 64,
-      "averageRisk": 3.764705882352941,
+      "totalRisk": 260,
+      "averageRisk": 3.6619718309859155,
       "overallRiskLevel": "MEDIUM",
       "recommendations": [
         "分階段遷移",
@@ -53,35 +87,55 @@
         "phase": 1,
         "files": [
           {
-            "filePath": "src/popup/popup-initialization-tracker.js",
+            "filePath": "src/ui/book-grid-renderer.js",
             "usages": [
               {
-                "lineNumber": 214,
-                "lineContent": "this.failStep(stepId, new StandardError('OPERATION_TIMEOUT', `步驟超時 (${step.timeout}ms, {",
-                "errorCode": "OPERATION_TIMEOUT",
+                "lineNumber": 61,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'Container is required', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
                 "suggestedMigration": {
-                  "targetErrorCode": "TIMEOUT_ERROR",
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 77,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'Document is required for BookGridRenderer. ' +",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
                   "confidence": "HIGH",
                   "strategy": "ADAPTER_MIGRATION"
                 }
               }
             ],
-            "moduleType": "other",
-            "complexity": "medium"
+            "moduleType": "ui",
+            "complexity": "high"
           }
         ],
         "estimatedEffort": "LOW",
-        "riskLevel": "LOW"
+        "riskLevel": "HIGH"
       },
       {
         "phase": 2,
         "files": [
           {
-            "filePath": "src/ui/book-search-filter.js",
+            "filePath": "src/ui/book-search-filter-integrated.js",
             "usages": [
               {
-                "lineNumber": 1032,
-                "lineContent": "new StandardError('UNKNOWN_ERROR', validation.error, {",
+                "lineNumber": 75,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '事件總線是必需的', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 192,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '模組化組件初始化失敗: ${error.message}', {",
                 "errorCode": "UNKNOWN_ERROR",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
@@ -99,6 +153,754 @@
       },
       {
         "phase": 3,
+        "files": [
+          {
+            "filePath": "src/ui/book-search-filter.js",
+            "usages": [
+              {
+                "lineNumber": 63,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '事件總線是必需的', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 465,
+                "lineContent": "const searchError = new StandardError('UNKNOWN_ERROR', '搜尋過程中遇到無效資料: ${error.message}', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 485,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '無效的書籍資料格式', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 491,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '書籍缺少有效的標題', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 518,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '搜尋條件檢查失敗: ${error.message}', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 699,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '記憶體不足', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 1032,
+                "lineContent": "new StandardError('UNKNOWN_ERROR', validation.error, {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 1077,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '未知的搜尋動作: ${data.action}', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "ui",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 4,
+        "files": [
+          {
+            "filePath": "src/ui/handlers/ui-event-validator.js",
+            "usages": [
+              {
+                "lineNumber": 27,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', 'Event must be a valid object', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 34,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', 'Event must have a flowId', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 49,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '${dataType} must be a valid object', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 71,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '${fieldName} must be a non-empty string', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 78,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '${fieldName} must be at least ${minLength} characters long', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 83,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '${fieldName} must be no more than ${maxLength} characters long', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 106,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '${fieldName} must be a number', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 113,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '${fieldName} must be at least ${min}', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 118,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '${fieldName} must be no more than ${max}', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 123,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '${fieldName} must be an integer', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 144,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', '${fieldName} is required', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 150,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', `Invalid ${fieldName}: ${value}. Valid values: ${validValues.join(', ', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "ui",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 5,
+        "files": [
+          {
+            "filePath": "src/ui/handlers/ui-notification-handler.js",
+            "usages": [
+              {
+                "lineNumber": 315,
+                "lineContent": "throw new StandardError('RESOURCE_NOT_AVAILABLE', 'Document not available', {",
+                "errorCode": "RESOURCE_NOT_AVAILABLE",
+                "suggestedMigration": {
+                  "targetErrorCode": "OPERATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 327,
+                "lineContent": "throw new StandardError('OPERATION_FAILED', 'Failed to create notification element', {",
+                "errorCode": "OPERATION_FAILED",
+                "suggestedMigration": {
+                  "targetErrorCode": "OPERATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              }
+            ],
+            "moduleType": "ui",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 6,
+        "files": [
+          {
+            "filePath": "src/ui/handlers/ui-progress-handler.js",
+            "usages": [
+              {
+                "lineNumber": 218,
+                "lineContent": "throw new StandardError('OPERATION_FAILED', 'Event validation failed: ${validationResult.error}', {",
+                "errorCode": "OPERATION_FAILED",
+                "suggestedMigration": {
+                  "targetErrorCode": "OPERATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              }
+            ],
+            "moduleType": "ui",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 7,
+        "files": [
+          {
+            "filePath": "src/ui/search/coordinator/search-coordinator.js",
+            "usages": [
+              {
+                "lineNumber": 61,
+                "lineContent": "throw new StandardError('EVENTBUS_ERROR', 'EventBus 是必需的', {",
+                "errorCode": "EVENTBUS_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 66,
+                "lineContent": "throw new StandardError('COORDINATOR_CONFIG_ERROR', 'Logger 是必需的', {",
+                "errorCode": "COORDINATOR_CONFIG_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 73,
+                "lineContent": "throw new StandardError('COORDINATOR_CONFIG_ERROR', 'SearchEngine 是必需的', {",
+                "errorCode": "COORDINATOR_CONFIG_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 80,
+                "lineContent": "throw new StandardError('COORDINATOR_CONFIG_ERROR', 'FilterEngine 是必需的', {",
+                "errorCode": "COORDINATOR_CONFIG_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 87,
+                "lineContent": "throw new StandardError('COORDINATOR_CONFIG_ERROR', 'SearchResultFormatter 是必需的', {",
+                "errorCode": "COORDINATOR_CONFIG_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 94,
+                "lineContent": "throw new StandardError('COORDINATOR_CONFIG_ERROR', 'SearchCacheManager 是必需的', {",
+                "errorCode": "COORDINATOR_CONFIG_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 208,
+                "lineContent": "throw new StandardError('COORDINATOR_STATE_ERROR', '協調器已被銷毀', {",
+                "errorCode": "COORDINATOR_STATE_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 295,
+                "lineContent": "throw new StandardError('SEARCH_COORDINATION_ERROR', '搜尋協調失敗: ' + error.message, {",
+                "errorCode": "SEARCH_COORDINATION_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 371,
+                "lineContent": "throw new StandardError('COORDINATOR_STATE_ERROR', '協調器已被銷毀', {",
+                "errorCode": "COORDINATOR_STATE_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 411,
+                "lineContent": "throw new StandardError('FILTER_COORDINATION_ERROR', '篩選協調失敗: ' + error.message, {",
+                "errorCode": "FILTER_COORDINATION_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 424,
+                "lineContent": "throw new StandardError('COORDINATOR_STATE_ERROR', '協調器已被銷毀', {",
+                "errorCode": "COORDINATOR_STATE_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 442,
+                "lineContent": "throw new StandardError('FILTER_COORDINATION_ERROR', '篩選重置協調失敗: ' + error.message, {",
+                "errorCode": "FILTER_COORDINATION_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 457,
+                "lineContent": "throw new StandardError('COORDINATOR_STATE_ERROR', '協調器已被銷毀', {",
+                "errorCode": "COORDINATOR_STATE_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 650,
+                "lineContent": "throw new StandardError('SEARCH_VALIDATION_ERROR', '搜尋查詢是必需的', {",
+                "errorCode": "SEARCH_VALIDATION_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 658,
+                "lineContent": "throw new StandardError('SEARCH_VALIDATION_ERROR', '搜尋查詢必須是字串', {",
+                "errorCode": "SEARCH_VALIDATION_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 668,
+                "lineContent": "throw new StandardError('FILTER_VALIDATION_ERROR', '篩選條件是必需的', {",
+                "errorCode": "FILTER_VALIDATION_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 676,
+                "lineContent": "throw new StandardError('FILTER_VALIDATION_ERROR', '篩選條件必須是物件', {",
+                "errorCode": "FILTER_VALIDATION_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 692,
+                "lineContent": "throw new StandardError('FILTER_VALIDATION_ERROR', '搜尋結果陣列是必需的', {",
+                "errorCode": "FILTER_VALIDATION_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 702,
+                "lineContent": "throw new StandardError('FILTER_VALIDATION_ERROR', '篩選條件是必需的', {",
+                "errorCode": "FILTER_VALIDATION_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 710,
+                "lineContent": "throw new StandardError('FILTER_VALIDATION_ERROR', '篩選條件必須是物件', {",
+                "errorCode": "FILTER_VALIDATION_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "ui",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 8,
+        "files": [
+          {
+            "filePath": "src/data-management/SchemaMigrationService.js",
+            "usages": [
+              {
+                "lineNumber": 30,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 35,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'Logger is required', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 40,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'Config is required', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 125,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', 'Invalid version format', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 158,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', 'Version is already locked', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 248,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', 'Invalid migration plan', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 274,
+                "lineContent": "throw new StandardError('OPERATION_FAILED', 'Storage operation failed during migration step', {",
+                "errorCode": "OPERATION_FAILED",
+                "suggestedMigration": {
+                  "targetErrorCode": "OPERATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 313,
+                "lineContent": "throw new StandardError('MIGRATION_FAILED', 'Another migration is already in progress', {",
+                "errorCode": "MIGRATION_FAILED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 460,
+                "lineContent": "throw new StandardError('OPERATION_FAILED', 'Backup operation failed during rollback', {",
+                "errorCode": "OPERATION_FAILED",
+                "suggestedMigration": {
+                  "targetErrorCode": "OPERATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 719,
+                "lineContent": "throw new StandardError('RESOURCE_NOT_FOUND', 'Backup not found: ${backupId}', {",
+                "errorCode": "RESOURCE_NOT_FOUND",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "other",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 9,
+        "files": [
+          {
+            "filePath": "src/deployment/chrome-store-readiness.js",
+            "usages": [
+              {
+                "lineNumber": 250,
+                "lineContent": "throw new StandardError('MANIFEST_VERSION_INVALID', '必須使用 Manifest V${MANIFEST.REQUIRED_VERSION}，目前版本: ${manifest.manifest_version}', {",
+                "errorCode": "MANIFEST_VERSION_INVALID",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 263,
+                "lineContent": "throw new StandardError('MANIFEST_MISSING_FIELDS', `缺少必要欄位: ${missingFields.join(', ')}`, {",
+                "errorCode": "MANIFEST_MISSING_FIELDS",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 291,
+                "lineContent": "throw new StandardError('MISSING_EXTENSION_ICON', '缺少 Extension 圖示', {",
+                "errorCode": "MISSING_EXTENSION_ICON",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 356,
+                "lineContent": "throw new StandardError('FILE_SIZE_EXCEEDED', '總檔案大小超限 (${this.formatBytes(fileStats.totalSize)}/${this.formatBytes(FILE_SIZE.MAX_TOTAL_SIZE)})', {",
+                "errorCode": "FILE_SIZE_EXCEEDED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 374,
+                "lineContent": "throw new StandardError('LARGE_FILES_DETECTED', `發現過大檔案: ${largeFiles.map(f => `${f.name} (${this.formatBytes(f.size)})`).join(', ')}`, {",
+                "errorCode": "LARGE_FILES_DETECTED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 459,
+                "lineContent": "throw new StandardError('UNSAFE_CSP_INLINE', '檢測到 unsafe-inline CSP 配置', {",
+                "errorCode": "UNSAFE_CSP_INLINE",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 466,
+                "lineContent": "throw new StandardError('UNSAFE_CSP_EVAL', '檢測到 unsafe-eval CSP 配置', {",
+                "errorCode": "UNSAFE_CSP_EVAL",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 491,
+                "lineContent": "throw new StandardError('CODE_INJECTION_RISK', `發現潛在程式碼注入風險: ${riskyPatterns.join(', ')}`, {",
+                "errorCode": "CODE_INJECTION_RISK",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 550,
+                "lineContent": "throw new StandardError('PRIVACY_UNDECLARED_DATA_COLLECTION', '收集使用者資料但未聲明', {",
+                "errorCode": "PRIVACY_UNDECLARED_DATA_COLLECTION",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 584,
+                "lineContent": "throw new StandardError('PERFORMANCE_STARTUP_TOO_SLOW', '啟動時間過長: ${startupTime}ms > ${PERFORMANCE.MAX_STARTUP_TIME}ms', {",
+                "errorCode": "PERFORMANCE_STARTUP_TOO_SLOW",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 599,
+                "lineContent": "throw new StandardError('PERFORMANCE_MEMORY_TOO_HIGH', '記憶體使用過高: ${this.formatBytes(memoryUsage)} > ${this.formatBytes(PERFORMANCE.MAX_MEMORY_USAGE)}', {",
+                "errorCode": "PERFORMANCE_MEMORY_TOO_HIGH",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 637,
+                "lineContent": "throw new StandardError('FUNCTIONALITY_SCORE_TOO_LOW', '功能完整性分數不足: ${functionalityScore} < ${MIN_FUNCTIONALITY_SCORE}', {",
+                "errorCode": "FUNCTIONALITY_SCORE_TOO_LOW",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "other",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 10,
         "files": [
           {
             "filePath": "src/error-handling/error-system-init.js",
@@ -122,7 +924,65 @@
         "riskLevel": "HIGH"
       },
       {
-        "phase": 4,
+        "phase": 11,
+        "files": [
+          {
+            "filePath": "src/error-handling/event-performance-monitor.js",
+            "usages": [
+              {
+                "lineNumber": 212,
+                "lineContent": "new StandardError('UNKNOWN_ERROR', '${ERRORS.MESSAGES.UNSUPPORTED_EVENT_TYPE}: ${eventData.type}', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "other",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 12,
+        "files": [
+          {
+            "filePath": "src/error-handling/event-tracker.js",
+            "usages": [
+              {
+                "lineNumber": 262,
+                "lineContent": "new StandardError('UNKNOWN_ERROR', '不支援的事件類型: ${eventData.type}', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 720,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '不支援的匯出格式: ${format}', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "other",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 13,
         "files": [
           {
             "filePath": "src/error-handling/message-error-handler.js",
@@ -146,38 +1006,24 @@
         "riskLevel": "HIGH"
       },
       {
-        "phase": 5,
+        "phase": 14,
         "files": [
           {
-            "filePath": "src/overview/overview-page-controller.js",
+            "filePath": "src/export/book-data-exporter.js",
             "usages": [
               {
-                "lineNumber": 814,
-                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', errorMsg, {",
-                "errorCode": "UNKNOWN_ERROR",
+                "lineNumber": 807,
+                "lineContent": "throw new StandardError('FEATURE_NOT_SUPPORTED', 'File System Access API not supported', {",
+                "errorCode": "FEATURE_NOT_SUPPORTED",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
-                  "confidence": "HIGH",
-                  "strategy": "DIRECT_REPLACEMENT"
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
                 }
-              }
-            ],
-            "moduleType": "other",
-            "complexity": "high"
-          }
-        ],
-        "estimatedEffort": "LOW",
-        "riskLevel": "HIGH"
-      },
-      {
-        "phase": 6,
-        "files": [
-          {
-            "filePath": "src/popup/popup-diagnostic-enhancer.js",
-            "usages": [
+              },
               {
-                "lineNumber": 226,
-                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
+                "lineNumber": 829,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', 'Unsupported format: ${format}', {",
                 "errorCode": "UNKNOWN_ERROR",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
@@ -185,18 +1031,206 @@
                   "strategy": "DIRECT_REPLACEMENT"
                 }
               },
+              {
+                "lineNumber": 859,
+                "lineContent": "throw new StandardError('FEATURE_NOT_SUPPORTED', 'Clipboard API not supported', {",
+                "errorCode": "FEATURE_NOT_SUPPORTED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 875,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', 'Unsupported format for clipboard: ${format}', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 905,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', 'Invalid template format', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 936,
+                "lineContent": "throw new StandardError('RESOURCE_NOT_FOUND', 'Template not found: ${templateName}', {",
+                "errorCode": "RESOURCE_NOT_FOUND",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 956,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', 'Unsupported template format: ${template.format}', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 980,
+                "lineContent": "throw new StandardError('EXPORT_OPERATION_FAILED', 'Unsupported export format: ${format}', {",
+                "errorCode": "EXPORT_OPERATION_FAILED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "export",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 15,
+        "files": [
+          {
+            "filePath": "src/export/export-manager.js",
+            "usages": [
+              {
+                "lineNumber": 52,
+                "lineContent": "throw new StandardError('EVENTBUS_REQUIRED', 'EventBus is required for ExportManager', {",
+                "errorCode": "EVENTBUS_REQUIRED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 256,
+                "lineContent": "throw new StandardError('EXPORT_OPERATION_FAILED', `Maximum concurrent exports (${this.maxConcurrentExports}, {",
+                "errorCode": "EXPORT_OPERATION_FAILED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 333,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'Invalid ${format} export data: books array is required', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 340,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', 'Invalid ${format} export data: books must be an array', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 347,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', 'Invalid ${format} export data: books array cannot be empty', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 493,
+                "lineContent": "throw new StandardError('UI_OPERATION_FAILED', 'Batch export requires at least one format', {",
+                "errorCode": "UI_OPERATION_FAILED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 598,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'Invalid download data: data and filename are required', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 604,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', 'Invalid download data: filename must be a non-empty string', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 612,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', 'Invalid download data: filename contains illegal characters', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "export",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 16,
+        "files": [
+          {
+            "filePath": "src/export/handlers/error-handler.js",
+            "usages": [
               {
                 "lineNumber": 239,
-                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
-                "errorCode": "UNKNOWN_ERROR",
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'Error data is required', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
                 "suggestedMigration": {
-                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "targetErrorCode": "VALIDATION_ERROR",
                   "confidence": "HIGH",
-                  "strategy": "DIRECT_REPLACEMENT"
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 245,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'Export ID is required for error tracking', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
                 }
               }
             ],
-            "moduleType": "other",
+            "moduleType": "export",
             "complexity": "high"
           }
         ],
@@ -204,14 +1238,34 @@
         "riskLevel": "HIGH"
       },
       {
-        "phase": 7,
+        "phase": 17,
         "files": [
           {
-            "filePath": "src/popup/services/popup-communication-service.js",
+            "filePath": "src/export/handlers/handler-registry.js",
             "usages": [
               {
-                "lineNumber": 87,
-                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', errorMsg, {",
+                "lineNumber": 40,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required for HandlerRegistry', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 92,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'Handler is required for registration', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 98,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', 'Handler must have a name', {",
                 "errorCode": "UNKNOWN_ERROR",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
@@ -220,18 +1274,116 @@
                 }
               },
               {
-                "lineNumber": 114,
-                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', errorMsg, {",
+                "lineNumber": 104,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', `Handler '${handler.name}' is already registered`, {",
                 "errorCode": "UNKNOWN_ERROR",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
                   "confidence": "HIGH",
                   "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "export",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 18,
+        "files": [
+          {
+            "filePath": "src/export/handlers/progress-handler.js",
+            "usages": [
+              {
+                "lineNumber": 124,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'Progress data is required', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
                 }
               },
               {
                 "lineNumber": 130,
-                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', errorMsg, {",
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'Export ID is required for progress tracking', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 136,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', 'Invalid current progress value', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 142,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', 'Invalid total progress value', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 148,
+                "lineContent": "throw new StandardError('LIMIT_EXCEEDED', 'Current progress cannot exceed total progress', {",
+                "errorCode": "LIMIT_EXCEEDED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "export",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 19,
+        "files": [
+          {
+            "filePath": "src/platform/readmoo-platform-migration-validator.js",
+            "usages": [
+              {
+                "lineNumber": 111,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'Missing required dependency: ${dep}', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 124,
+                "lineContent": "throw new StandardError('EVENTBUS_ERROR', 'EventBus must implement emit() and on() methods', {",
+                "errorCode": "EVENTBUS_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 136,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', 'ReadmooAdapter must implement extractBookData() and validateExtractedData() methods', {",
                 "errorCode": "UNKNOWN_ERROR",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
@@ -240,8 +1392,8 @@
                 }
               },
               {
-                "lineNumber": 163,
-                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', errorMsg, {",
+                "lineNumber": 148,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', 'PlatformDetectionService must implement detectPlatform() and validatePlatform() methods', {",
                 "errorCode": "UNKNOWN_ERROR",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
@@ -250,8 +1402,28 @@
                 }
               },
               {
-                "lineNumber": 179,
-                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', errorMsg, {",
+                "lineNumber": 182,
+                "lineContent": "throw new StandardError('VALIDATION_FAILED', 'maxValidationRetries must be between 1 and 10', {",
+                "errorCode": "VALIDATION_FAILED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 197,
+                "lineContent": "throw new StandardError('OPERATION_TIMEOUT', 'validationTimeout must be between 1000ms and 120000ms', {",
+                "errorCode": "OPERATION_TIMEOUT",
+                "suggestedMigration": {
+                  "targetErrorCode": "TIMEOUT_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 212,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', 'minDetectionConfidence must be between 0 and 1', {",
                 "errorCode": "UNKNOWN_ERROR",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
@@ -260,23 +1432,13 @@
                 }
               },
               {
-                "lineNumber": 190,
-                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', errorMsg, {",
-                "errorCode": "UNKNOWN_ERROR",
+                "lineNumber": 321,
+                "lineContent": "reject(new StandardError('OPERATION_TIMEOUT', 'Validation timeout after ${this.config.validationTimeout}ms', {",
+                "errorCode": "OPERATION_TIMEOUT",
                 "suggestedMigration": {
-                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "targetErrorCode": "TIMEOUT_ERROR",
                   "confidence": "HIGH",
-                  "strategy": "DIRECT_REPLACEMENT"
-                }
-              },
-              {
-                "lineNumber": 313,
-                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', errorMessage, {",
-                "errorCode": "UNKNOWN_ERROR",
-                "suggestedMigration": {
-                  "targetErrorCode": "UNKNOWN_ERROR",
-                  "confidence": "HIGH",
-                  "strategy": "DIRECT_REPLACEMENT"
+                  "strategy": "ADAPTER_MIGRATION"
                 }
               }
             ],
@@ -288,69 +1450,109 @@
         "riskLevel": "HIGH"
       },
       {
-        "phase": 8,
+        "phase": 20,
         "files": [
           {
             "filePath": "src/storage/adapters/chrome-storage-adapter.js",
             "usages": [
               {
-                "lineNumber": 434,
-                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
-                "errorCode": "UNKNOWN_ERROR",
+                "lineNumber": 259,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `Unsupported operation type: ${operation.type}`, {",
+                "errorCode": "UNKNOWN",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
-                  "confidence": "HIGH",
-                  "strategy": "DIRECT_REPLACEMENT"
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
                 }
               },
               {
-                "lineNumber": 451,
-                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
-                "errorCode": "UNKNOWN_ERROR",
+                "lineNumber": 331,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `Unsupported cleanup strategy: ${strategy}`, {",
+                "errorCode": "UNKNOWN",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
-                  "confidence": "HIGH",
-                  "strategy": "DIRECT_REPLACEMENT"
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
                 }
               },
               {
-                "lineNumber": 476,
-                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
-                "errorCode": "UNKNOWN_ERROR",
+                "lineNumber": 416,
+                "lineContent": "throw new StandardError(ErrorCodes.CHROME_ERROR, 'Chrome Storage API is not available', {",
+                "errorCode": "UNKNOWN",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
-                  "confidence": "HIGH",
-                  "strategy": "DIRECT_REPLACEMENT"
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
                 }
               },
               {
-                "lineNumber": 493,
-                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
-                "errorCode": "UNKNOWN_ERROR",
+                "lineNumber": 422,
+                "lineContent": "throw new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
-                  "confidence": "HIGH",
-                  "strategy": "DIRECT_REPLACEMENT"
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
                 }
               },
               {
-                "lineNumber": 514,
-                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
-                "errorCode": "UNKNOWN_ERROR",
+                "lineNumber": 435,
+                "lineContent": "reject(new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
-                  "confidence": "HIGH",
-                  "strategy": "DIRECT_REPLACEMENT"
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
                 }
               },
               {
-                "lineNumber": 584,
-                "lineContent": "const error = new StandardError('UNKNOWN_ERROR', message, {",
-                "errorCode": "UNKNOWN_ERROR",
+                "lineNumber": 452,
+                "lineContent": "reject(new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
-                  "confidence": "HIGH",
-                  "strategy": "DIRECT_REPLACEMENT"
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 477,
+                "lineContent": "reject(new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 494,
+                "lineContent": "reject(new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 515,
+                "lineContent": "reject(new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 585,
+                "lineContent": "const error = new StandardError(ErrorCodes.OPERATION_ERROR, message, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
                 }
               }
             ],
@@ -362,7 +1564,7 @@
         "riskLevel": "HIGH"
       },
       {
-        "phase": 9,
+        "phase": 21,
         "files": [
           {
             "filePath": "src/storage/adapters/local-storage-adapter.js",
@@ -386,11 +1588,103 @@
         "riskLevel": "HIGH"
       },
       {
-        "phase": 10,
+        "phase": 22,
+        "files": [
+          {
+            "filePath": "src/storage/handlers/storage-completion-handler.js",
+            "usages": [
+              {
+                "lineNumber": 559,
+                "lineContent": "const error = new StandardError('UNKNOWN_ERROR', '${prefix}: ${message}', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "storage",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 23,
+        "files": [
+          {
+            "filePath": "src/storage/handlers/storage-load-handler.js",
+            "usages": [
+              {
+                "lineNumber": 799,
+                "lineContent": "const error = new StandardError('UNKNOWN_ERROR', '${prefix}: ${message}', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "storage",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 24,
+        "files": [
+          {
+            "filePath": "src/storage/handlers/storage-save-handler.js",
+            "usages": [
+              {
+                "lineNumber": 465,
+                "lineContent": "const error = new StandardError('UNKNOWN_ERROR', '${prefix}: ${message}', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "storage",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 25,
         "files": [
           {
             "filePath": "src/content/bridge/chrome-event-bridge.js",
             "usages": [
+              {
+                "lineNumber": 97,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '無效的訊息格式：缺少 type 欄位', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 176,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', 'Unknown target context: ${targetContext}', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
               {
                 "lineNumber": 195,
                 "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
@@ -426,15 +1720,441 @@
             "complexity": "high"
           }
         ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 26,
+        "files": [
+          {
+            "filePath": "src/content/extractors/book-data-extractor.js",
+            "usages": [
+              {
+                "lineNumber": 162,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '不支援的頁面類型: ${pageType}', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 220,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '流程狀態或適配器不存在', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "content",
+            "complexity": "high"
+          }
+        ],
         "estimatedEffort": "LOW",
         "riskLevel": "HIGH"
       },
       {
-        "phase": 11,
+        "phase": 27,
+        "files": [
+          {
+            "filePath": "src/content/platform/platform-adapter-interface.js",
+            "usages": [
+              {
+                "lineNumber": 53,
+                "lineContent": "throw new StandardError('NOT_IMPLEMENTED', 'Must implement getPageType()', {",
+                "errorCode": "NOT_IMPLEMENTED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 65,
+                "lineContent": "throw new StandardError('NOT_IMPLEMENTED', 'Must implement isExtractablePage()', {",
+                "errorCode": "NOT_IMPLEMENTED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 77,
+                "lineContent": "throw new StandardError('NOT_IMPLEMENTED', 'Must implement checkPageReady()')",
+                "errorCode": "NOT_IMPLEMENTED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 87,
+                "lineContent": "throw new StandardError('NOT_IMPLEMENTED', 'Must implement isValidDomain()')",
+                "errorCode": "NOT_IMPLEMENTED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 100,
+                "lineContent": "throw new StandardError('NOT_IMPLEMENTED', 'Must implement getBookElements()')",
+                "errorCode": "NOT_IMPLEMENTED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 109,
+                "lineContent": "throw new StandardError('NOT_IMPLEMENTED', 'Must implement getBookCount()')",
+                "errorCode": "NOT_IMPLEMENTED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 118,
+                "lineContent": "throw new StandardError('NOT_IMPLEMENTED', 'Must implement findBookContainer()')",
+                "errorCode": "NOT_IMPLEMENTED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 132,
+                "lineContent": "throw new StandardError('NOT_IMPLEMENTED', 'Must implement parseBookElement()')",
+                "errorCode": "NOT_IMPLEMENTED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 141,
+                "lineContent": "throw new StandardError('NOT_IMPLEMENTED', 'Must implement extractAllBooks()')",
+                "errorCode": "NOT_IMPLEMENTED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 151,
+                "lineContent": "throw new StandardError('NOT_IMPLEMENTED', 'Must implement extractBookData()')",
+                "errorCode": "NOT_IMPLEMENTED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 165,
+                "lineContent": "throw new StandardError('NOT_IMPLEMENTED', 'Must implement sanitizeData()')",
+                "errorCode": "NOT_IMPLEMENTED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 174,
+                "lineContent": "throw new StandardError('NOT_IMPLEMENTED', 'Must implement getStats()')",
+                "errorCode": "NOT_IMPLEMENTED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 182,
+                "lineContent": "throw new StandardError('NOT_IMPLEMENTED', 'Must implement reset()')",
+                "errorCode": "NOT_IMPLEMENTED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "content",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 28,
+        "files": [
+          {
+            "filePath": "src/content/utils/config-utils.js",
+            "usages": [
+              {
+                "lineNumber": 77,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid configuration key', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 130,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid configuration key', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 164,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid configuration path', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 178,
+                "lineContent": "error: new StandardError('RESOURCE_NOT_FOUND', 'Configuration not found', {",
+                "errorCode": "RESOURCE_NOT_FOUND",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 191,
+                "lineContent": "error: new StandardError('RESOURCE_NOT_FOUND', 'Path not found', {",
+                "errorCode": "RESOURCE_NOT_FOUND",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 387,
+                "lineContent": "error: new StandardError('RESOURCE_NOT_FOUND', 'Configuration not found', {",
+                "errorCode": "RESOURCE_NOT_FOUND",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 618,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid operation name', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 650,
+                "lineContent": "error: new StandardError('RESOURCE_NOT_FOUND', 'Performance log not found', {",
+                "errorCode": "RESOURCE_NOT_FOUND",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 694,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid extractor config', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 725,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid platform', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 955,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid import data', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "content",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 29,
+        "files": [
+          {
+            "filePath": "src/content/utils/dom-utils.js",
+            "usages": [
+              {
+                "lineNumber": 50,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid selector', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 60,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid container', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 72,
+                "lineContent": "error: new StandardError('RESOURCE_NOT_FOUND', 'Element not found', {",
+                "errorCode": "RESOURCE_NOT_FOUND",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 105,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid selector', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 300,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid element', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 445,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid element', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 476,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid element', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 507,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid element', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 573,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid container or element', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 721,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid container', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "content",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 30,
         "files": [
           {
             "filePath": "src/content/utils/error-handling-utils.js",
             "usages": [
+              {
+                "lineNumber": 369,
+                "lineContent": "const error = new StandardError('RESOURCE_NOT_FOUND', 'DOM element not found', {",
+                "errorCode": "RESOURCE_NOT_FOUND",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
               {
                 "lineNumber": 406,
                 "lineContent": "const error = new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
@@ -454,11 +2174,289 @@
         "riskLevel": "HIGH"
       },
       {
-        "phase": 12,
+        "phase": 31,
+        "files": [
+          {
+            "filePath": "src/content/utils/event-utils.js",
+            "usages": [
+              {
+                "lineNumber": 67,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 150,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid listener ID', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 161,
+                "lineContent": "error: new StandardError('RESOURCE_NOT_FOUND', 'Listener not found', {",
+                "errorCode": "RESOURCE_NOT_FOUND",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 199,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 291,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid message', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 302,
+                "lineContent": "error: new StandardError('RESOURCE_NOT_AVAILABLE', 'Chrome runtime not available', {",
+                "errorCode": "RESOURCE_NOT_AVAILABLE",
+                "suggestedMigration": {
+                  "targetErrorCode": "OPERATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 418,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 457,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 508,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 560,
+                "lineContent": "error: new StandardError('RESOURCE_NOT_FOUND', 'Batch not found', {",
+                "errorCode": "RESOURCE_NOT_FOUND",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 666,
+                "lineContent": "error: new StandardError('RESOURCE_NOT_FOUND', 'Debounce timer not found', {",
+                "errorCode": "RESOURCE_NOT_FOUND",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "content",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 32,
+        "files": [
+          {
+            "filePath": "src/content/utils/memory-utils.js",
+            "usages": [
+              {
+                "lineNumber": 50,
+                "lineContent": "error: new StandardError('RESOURCE_NOT_AVAILABLE', 'Performance memory API not available', {",
+                "errorCode": "RESOURCE_NOT_AVAILABLE",
+                "suggestedMigration": {
+                  "targetErrorCode": "OPERATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 91,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid snapshot label', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 318,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid cache configuration', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 327,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid maxSize configuration', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 375,
+                "lineContent": "error: new StandardError('RESOURCE_NOT_FOUND', 'Cache not found', {",
+                "errorCode": "RESOURCE_NOT_FOUND",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 430,
+                "lineContent": "error: new StandardError('RESOURCE_NOT_FOUND', 'Cache not found', {",
+                "errorCode": "RESOURCE_NOT_FOUND",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 536,
+                "lineContent": "error: new StandardError('RESOURCE_NOT_FOUND', 'Cache not found', {",
+                "errorCode": "RESOURCE_NOT_FOUND",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 643,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid tracking label', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 767,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid timer name', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 803,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid timer name', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 814,
+                "lineContent": "error: new StandardError('RESOURCE_NOT_FOUND', 'Timer not found', {",
+                "errorCode": "RESOURCE_NOT_FOUND",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 849,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid function provided', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 895,
+                "lineContent": "error: new StandardError('INVALID_DATA_FORMAT', 'Invalid function provided', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "content",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 33,
         "files": [
           {
             "filePath": "src/core/errors/StandardError.js",
             "usages": [
+              {
+                "lineNumber": 11,
+                "lineContent": "* const error = new StandardError('VALIDATION_FAILED', '資料驗證失敗', { field: 'email' })",
+                "errorCode": "VALIDATION_FAILED",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
               {
                 "lineNumber": 196,
                 "lineContent": "const error = new StandardError(json.code, json.message, json.details)",
@@ -478,19 +2476,279 @@
         "riskLevel": "HIGH"
       },
       {
-        "phase": 13,
+        "phase": 34,
+        "files": [
+          {
+            "filePath": "src/core/events/event-priority-manager.js",
+            "usages": [
+              {
+                "lineNumber": 241,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', `Invalid priority category: ${category}`, {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 259,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', 'Invalid priority value', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "core",
+            "complexity": "medium"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 35,
+        "files": [
+          {
+            "filePath": "src/core/migration/StandardErrorWrapper.js",
+            "usages": [
+              {
+                "lineNumber": 482,
+                "lineContent": "const error = new StandardError(testCase.code, testCase.message)",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "core",
+            "complexity": "medium"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "LOW"
+      },
+      {
+        "phase": 36,
+        "files": [
+          {
+            "filePath": "src/background/domains/extraction/services/data-processing-service.js",
+            "usages": [
+              {
+                "lineNumber": 114,
+                "lineContent": "throw new StandardError(ErrorCodes.SERVICE_INITIALIZATION_ERROR, '服務尚未初始化', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 195,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '無效的書籍資料格式', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 346,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '未找到資料處理器: ${dataType}', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 597,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '輸入資料不能為空', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 609,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '輸出資料不能為空', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 37,
+        "files": [
+          {
+            "filePath": "src/background/domains/extraction/services/export-service.js",
+            "usages": [
+              {
+                "lineNumber": 128,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `不支援的匯出格式: ${format}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 38,
         "files": [
           {
             "filePath": "src/background/domains/extraction/services/extraction-state-service.js",
             "usages": [
               {
-                "lineNumber": 785,
-                "lineContent": "await this.failExtractionJob(jobId, new StandardError('UNKNOWN_ERROR', error, {",
-                "errorCode": "UNKNOWN_ERROR",
+                "lineNumber": 127,
+                "lineContent": "throw new StandardError(ErrorCodes.SERVICE_INITIALIZATION_ERROR, '服務尚未初始化', {",
+                "errorCode": "UNKNOWN",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
-                  "confidence": "HIGH",
-                  "strategy": "DIRECT_REPLACEMENT"
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 259,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `提取作業不存在: ${jobId}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 265,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `作業狀態無效，無法啟動: ${job.state}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 272,
+                "lineContent": "throw new StandardError(ErrorCodes.RESOURCE_EXHAUSTED, '已達到最大同時作業數量限制', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 312,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `提取作業不存在: ${jobId}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 348,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `提取作業不存在: ${jobId}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 396,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `提取作業不存在: ${jobId}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 451,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `提取作業不存在: ${jobId}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 628,
+                "lineContent": "await this.failExtractionJob(jobId, new StandardError(ErrorCodes.TIMEOUT_ERROR, '作業執行超時', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 786,
+                "lineContent": "await this.failExtractionJob(jobId, new StandardError(ErrorCodes.OPERATION_ERROR, error, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 39,
+        "files": [
+          {
+            "filePath": "src/background/domains/extraction/services/quality-control-service.js",
+            "usages": [
+              {
+                "lineNumber": 146,
+                "lineContent": "throw new StandardError(ErrorCodes.SERVICE_INITIALIZATION_ERROR, '服務尚未初始化', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
                 }
               }
             ],
@@ -502,19 +2760,355 @@
         "riskLevel": "HIGH"
       },
       {
-        "phase": 14,
+        "phase": 40,
+        "files": [
+          {
+            "filePath": "src/background/domains/extraction/services/validation-service.js",
+            "usages": [
+              {
+                "lineNumber": 117,
+                "lineContent": "throw new StandardError(ErrorCodes.SERVICE_INITIALIZATION_ERROR, '服務尚未初始化', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 400,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `未找到規則群組: ${ruleGroup}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 482,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `未找到驗證規則: ${rule}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 41,
+        "files": [
+          {
+            "filePath": "src/background/domains/messaging/messaging-domain-coordinator.js",
+            "usages": [
+              {
+                "lineNumber": 155,
+                "lineContent": "throw new StandardError(ErrorCodes.CONFIG_ERROR, '協調器尚未初始化', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 248,
+                "lineContent": "throw new StandardError(ErrorCodes.CONFIG_ERROR, `微服務 ${serviceName} 初始化失敗: ${error.message}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 594,
+                "lineContent": "throw new StandardError(ErrorCodes.CONNECTION_ERROR, '路由服務不可用', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 42,
+        "files": [
+          {
+            "filePath": "src/background/domains/messaging/services/connection-monitoring-service.js",
+            "usages": [
+              {
+                "lineNumber": 91,
+                "lineContent": "throw new StandardError(ErrorCodes.CONFIG_ERROR, '連接監控服務尚未初始化', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 43,
+        "files": [
+          {
+            "filePath": "src/background/domains/messaging/services/message-routing-service.js",
+            "usages": [
+              {
+                "lineNumber": 100,
+                "lineContent": "throw new StandardError(ErrorCodes.CONFIG_ERROR, '路由服務尚未初始化', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 44,
+        "files": [
+          {
+            "filePath": "src/background/domains/messaging/services/message-validation-service.js",
+            "usages": [
+              {
+                "lineNumber": 112,
+                "lineContent": "throw new StandardError(ErrorCodes.CONFIG_ERROR, '訊息驗證服務尚未初始化', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 45,
+        "files": [
+          {
+            "filePath": "src/background/domains/messaging/services/queue-management-service.js",
+            "usages": [
+              {
+                "lineNumber": 120,
+                "lineContent": "throw new StandardError(ErrorCodes.CONFIG_ERROR, '佇列管理服務尚未初始化', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 46,
+        "files": [
+          {
+            "filePath": "src/background/domains/messaging/services/session-management-service.js",
+            "usages": [
+              {
+                "lineNumber": 91,
+                "lineContent": "throw new StandardError(ErrorCodes.CONFIG_ERROR, '會話管理服務尚未初始化', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 47,
+        "files": [
+          {
+            "filePath": "src/background/domains/platform/services/adapter-factory-service.js",
+            "usages": [
+              {
+                "lineNumber": 391,
+                "lineContent": "throw new StandardError(ErrorCodes.CHROME_ERROR, `不支援的平台: ${platformId}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 481,
+                "lineContent": "throw new StandardError(ErrorCodes.CONFIG_ERROR, `找不到適配器類型配置: ${platformId}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 495,
+                "lineContent": "throw new StandardError(ErrorCodes.CONFIG_ERROR, `找不到適配器構造函數: ${platformId}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 48,
+        "files": [
+          {
+            "filePath": "src/background/domains/platform/services/platform-isolation-service.js",
+            "usages": [
+              {
+                "lineNumber": 458,
+                "lineContent": "throw new StandardError(ErrorCodes.CHROME_ERROR, `不支援的平台: ${platformId}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 608,
+                "lineContent": "throw new StandardError(ErrorCodes.OPERATION_ERROR, `平台 ${platformId} 容器或配額不存在`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 669,
+                "lineContent": "throw new StandardError(ErrorCodes.CONFIG_ERROR, `平台 ${platformId} 配額不存在`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 758,
+                "lineContent": "throw new StandardError(ErrorCodes.OPERATION_ERROR, `平台 ${platformId} 容器不存在`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 49,
         "files": [
           {
             "filePath": "src/background/domains/platform/services/platform-registry-service.js",
             "usages": [
               {
-                "lineNumber": 816,
-                "lineContent": "await this.logError('註冊表完整性檢查發現問題', new StandardError('UNKNOWN_ERROR', issues.join('; ', {",
-                "errorCode": "UNKNOWN_ERROR",
+                "lineNumber": 327,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `平台配置驗證失敗: ${validationResult.errors.join(', ')}`, {",
+                "errorCode": "UNKNOWN",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
-                  "confidence": "HIGH",
-                  "strategy": "DIRECT_REPLACEMENT"
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 404,
+                "lineContent": "throw new StandardError(ErrorCodes.CHROME_ERROR, `平台 ${platformId} 不存在`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 412,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `平台配置驗證失敗: ${validationResult.errors.join(', ')}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 817,
+                "lineContent": "await this.logError('註冊表完整性檢查發現問題', new StandardError(ErrorCodes.VALIDATION_ERROR, issues.join('; '), {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
                 }
               }
             ],
@@ -522,18 +3116,564 @@
             "complexity": "high"
           }
         ],
-        "estimatedEffort": "LOW",
+        "estimatedEffort": "MEDIUM",
         "riskLevel": "HIGH"
       },
       {
-        "phase": 15,
+        "phase": 50,
         "files": [
           {
             "filePath": "src/background/domains/platform/services/platform-switcher-service.js",
             "usages": [
               {
-                "lineNumber": 596,
-                "lineContent": "await this.logError('故障轉移失敗', new StandardError('UNKNOWN_ERROR', fallbackResult.error, {",
+                "lineNumber": 127,
+                "lineContent": "throw new StandardError(ErrorCodes.CONFIG_ERROR, 'Platform Registry Service 依賴缺失', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 133,
+                "lineContent": "throw new StandardError(ErrorCodes.CONFIG_ERROR, 'Adapter Factory Service 依賴缺失', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 140,
+                "lineContent": "throw new StandardError(ErrorCodes.CONFIG_ERROR, 'Platform Registry Service 尚未正確初始化', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 205,
+                "lineContent": "reject(new StandardError(ErrorCodes.OPERATION_ERROR, '平台檢測超時', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 242,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `切換請求驗證失敗: ${validation.error}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 462,
+                "lineContent": "throw new StandardError(ErrorCodes.OPERATION_ERROR, `無法創建 ${targetPlatform} 適配器`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 551,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `切換驗證失敗: 期望 ${targetPlatform}, 實際 ${this.currentPlatform}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 559,
+                "lineContent": "throw new StandardError(ErrorCodes.OPERATION_ERROR, `切換驗證失敗: ${targetPlatform} 適配器不存在`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 568,
+                "lineContent": "throw new StandardError(ErrorCodes.OPERATION_ERROR, `切換驗證失敗: ${targetPlatform} 適配器健康檢查失敗`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 597,
+                "lineContent": "await this.logError('故障轉移失敗', new StandardError(ErrorCodes.OPERATION_ERROR, fallbackResult.error, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 706,
+                "lineContent": "await this.logError('收到無效的切換請求', new StandardError(ErrorCodes.VALIDATION_ERROR, '缺少目標平台', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 881,
+                "lineContent": "queued.reject(new StandardError(ErrorCodes.OPERATION_ERROR, '服務已停止', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 51,
+        "files": [
+          {
+            "filePath": "src/background/domains/user-experience/services/accessibility-service.js",
+            "usages": [
+              {
+                "lineNumber": 163,
+                "lineContent": "throw new StandardError(ErrorCodes.OPERATION_ERROR, '無障礙服務尚未初始化', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 207,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `不支援的無障礙模式: ${mode}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 246,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `不支援的無障礙設定: ${setting}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 287,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `不支援的無障礙設定: ${setting}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 52,
+        "files": [
+          {
+            "filePath": "src/background/domains/user-experience/services/notification-service.js",
+            "usages": [
+              {
+                "lineNumber": 138,
+                "lineContent": "throw new StandardError(ErrorCodes.OPERATION_ERROR, '通知管理服務尚未初始化', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 366,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `無效的通知類型: ${notification.type}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 372,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, '通知必須包含標題或訊息', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 53,
+        "files": [
+          {
+            "filePath": "src/background/domains/user-experience/services/personalization-service.js",
+            "usages": [
+              {
+                "lineNumber": 127,
+                "lineContent": "throw new StandardError(ErrorCodes.OPERATION_ERROR, '個人化服務尚未初始化', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 322,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `找不到建議: ${suggestionId}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 340,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `不支援的建議類型: ${suggestion.type}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 54,
+        "files": [
+          {
+            "filePath": "src/background/domains/user-experience/services/popup-ui-coordination-service.js",
+            "usages": [
+              {
+                "lineNumber": 121,
+                "lineContent": "throw new StandardError(ErrorCodes.OPERATION_ERROR, 'Popup UI 協調服務尚未初始化', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 255,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `未找到模組載入器: ${moduleId}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 318,
+                "lineContent": "throw new StandardError(ErrorCodes.OPERATION_ERROR, '提取服務模組未載入', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 55,
+        "files": [
+          {
+            "filePath": "src/background/domains/user-experience/services/preference-service.js",
+            "usages": [
+              {
+                "lineNumber": 122,
+                "lineContent": "throw new StandardError(ErrorCodes.OPERATION_ERROR, '偏好設定服務尚未初始化', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 421,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `未知的偏好鍵: ${key}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 429,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `偏好 ${key} 類型錯誤，期望 ${schema.type}，實際 ${actualType}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 436,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `偏好 ${key} 值無效，可接受值: ${schema.enum.join(', ')}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 443,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `偏好 ${key} 值太小，最小值: ${schema.min}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 449,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `偏好 ${key} 值太大，最大值: ${schema.max}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 458,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `偏好 ${key} 自定義驗證失敗`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 56,
+        "files": [
+          {
+            "filePath": "src/background/domains/user-experience/services/theme-management-service.js",
+            "usages": [
+              {
+                "lineNumber": 156,
+                "lineContent": "throw new StandardError(ErrorCodes.OPERATION_ERROR, '主題管理服務尚未初始化', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 197,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `無效的主題: ${theme}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 279,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, `主題提供者 ${providerId} 必須實現 updateTheme 方法`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 57,
+        "files": [
+          {
+            "filePath": "src/background/domains/user-experience/ux-domain-coordinator.js",
+            "usages": [
+              {
+                "lineNumber": 163,
+                "lineContent": "throw new StandardError(ErrorCodes.OPERATION_ERROR, 'UX 協調器尚未初始化', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 342,
+                "lineContent": "throw new StandardError(ErrorCodes.OPERATION_ERROR, `UX 服務 ${serviceName} 初始化失敗: ${error.message}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 58,
+        "files": [
+          {
+            "filePath": "src/background/events/event-coordinator.js",
+            "usages": [
+              {
+                "lineNumber": 166,
+                "lineContent": "const error = new StandardError('EVENTBUS_ERROR', 'EventBus 初始化失敗 - 無法建立 EventBus 實例', {",
+                "errorCode": "EVENTBUS_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 224,
+                "lineContent": "const error = new StandardError('EVENTBUS_ERROR', 'EventBus 初始化失敗 - 無法建立 EventBus 實例', {",
+                "errorCode": "EVENTBUS_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 712,
+                "lineContent": "throw new StandardError('EVENTBUS_ERROR', 'EventBus 實例不存在', {",
+                "errorCode": "EVENTBUS_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 729,
+                "lineContent": "throw new StandardError('EVENTBUS_ERROR', 'EventBus 實例不存在', {",
+                "errorCode": "EVENTBUS_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 59,
+        "files": [
+          {
+            "filePath": "src/background/i18n/i18n-manager.js",
+            "usages": [
+              {
+                "lineNumber": 187,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '不支援的語言代碼: ${languageCode}', {",
+                "errorCode": "UNKNOWN_ERROR",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "DIRECT_REPLACEMENT"
+                }
+              },
+              {
+                "lineNumber": 193,
+                "lineContent": "throw new StandardError('UNKNOWN_ERROR', '語言資源格式錯誤: ${languageCode}', {",
                 "errorCode": "UNKNOWN_ERROR",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
@@ -546,23 +3686,293 @@
             "complexity": "high"
           }
         ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 60,
+        "files": [
+          {
+            "filePath": "src/background/lifecycle/base-module.js",
+            "usages": [
+              {
+                "lineNumber": 100,
+                "lineContent": "throw new StandardError(ErrorCodes.SERVICE_INITIALIZATION_ERROR, `${this.moduleName} 模組尚未初始化，無法啟動`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
         "estimatedEffort": "LOW",
         "riskLevel": "HIGH"
       },
       {
-        "phase": 16,
+        "phase": 61,
+        "files": [
+          {
+            "filePath": "src/background/lifecycle/install-handler.js",
+            "usages": [
+              {
+                "lineNumber": 375,
+                "lineContent": "throw new StandardError(ErrorCodes.CHROME_ERROR, `缺少必要的 Chrome API: ${missingAPIs.join(', ')}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 62,
+        "files": [
+          {
+            "filePath": "src/background/lifecycle/shutdown-handler.js",
+            "usages": [
+              {
+                "lineNumber": 115,
+                "lineContent": "setTimeout(() => reject(new StandardError(ErrorCodes.TIMEOUT_ERROR, '關閉超時', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "LOW",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 63,
         "files": [
           {
             "filePath": "src/background/messaging/chrome-api-wrapper.js",
             "usages": [
               {
-                "lineNumber": 228,
-                "lineContent": "reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {",
-                "errorCode": "UNKNOWN_ERROR",
+                "lineNumber": 133,
+                "lineContent": "throw new StandardError(ErrorCodes.CHROME_ERROR, `缺少必要的 Chrome API: ${missingApis.join(', ')}`, {",
+                "errorCode": "UNKNOWN",
                 "suggestedMigration": {
                   "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 163,
+                "lineContent": "throw new StandardError(ErrorCodes.CHROME_ERROR, `不支援的 API: ${apiPath}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 211,
+                "lineContent": "throw new StandardError(ErrorCodes.CHROME_ERROR, `API 不存在: ${apiPath}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 232,
+                "lineContent": "reject(new StandardError(ErrorCodes.CHROME_ERROR, chrome.runtime.lastError.message, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 245,
+                "lineContent": "throw new StandardError(ErrorCodes.CHROME_ERROR, `${apiPath} 不是一個函數`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 266,
+                "lineContent": "throw new StandardError(ErrorCodes.TIMEOUT_ERROR, `API 調用重試次數已達上限: ${apiPath}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 64,
+        "files": [
+          {
+            "filePath": "src/background/messaging/popup-message-handler.js",
+            "usages": [
+              {
+                "lineNumber": 132,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, validationResult.errorMessage, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 265,
+                "lineContent": "throw new StandardError(ErrorCodes.UNSUPPORTED_OPERATION, `未支援的訊息類型: ${message.type}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 407,
+                "lineContent": "throw new StandardError(ErrorCodes.UNSUPPORTED_OPERATION, `未支援的資料類型: ${dataType}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 472,
+                "lineContent": "throw new StandardError(ErrorCodes.UNSUPPORTED_OPERATION, `未支援的操作: ${operation}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 603,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, '當前標籤頁不是 Readmoo 頁面', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 709,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, '操作需要活躍的標籤頁', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 719,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, '操作需要 Readmoo 頁面', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 729,
+                "lineContent": "throw new StandardError(ErrorCodes.MISSING_REQUIRED_DATA, '操作需要已提取的資料', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 737,
+                "lineContent": "throw new StandardError(ErrorCodes.VALIDATION_ERROR, '操作需要使用者確認', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 798,
+                "lineContent": "throw new StandardError(ErrorCodes.UNSUPPORTED_OPERATION, `未支援的清除類型: ${clearType}`, {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 850,
+                "lineContent": "throw new StandardError(ErrorCodes.MISSING_REQUIRED_DATA, '導航需要 URL', {",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "background",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 65,
+        "files": [
+          {
+            "filePath": "src/background/monitoring/content-coordinator.js",
+            "usages": [
+              {
+                "lineNumber": 533,
+                "lineContent": "throw new StandardError('OPERATION_FAILED', 'Health check failed', {",
+                "errorCode": "OPERATION_FAILED",
+                "suggestedMigration": {
+                  "targetErrorCode": "OPERATION_ERROR",
                   "confidence": "HIGH",
-                  "strategy": "DIRECT_REPLACEMENT"
+                  "strategy": "ADAPTER_MIGRATION"
                 }
               }
             ],
@@ -574,7 +3984,217 @@
         "riskLevel": "HIGH"
       },
       {
-        "phase": 17,
+        "phase": 66,
+        "files": [
+          {
+            "filePath": "src/core/error-handling/error-recovery-coordinator.js",
+            "usages": [
+              {
+                "lineNumber": 63,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'Error object is required for recovery planning', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 102,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'Recovery plan and original operation are required', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 150,
+                "lineContent": "throw new StandardError('OPERATION_FAILED', `Operation failed after ${maxRetries + 1} attempts: ${error.message}`, {",
+                "errorCode": "OPERATION_FAILED",
+                "suggestedMigration": {
+                  "targetErrorCode": "OPERATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              }
+            ],
+            "moduleType": "core",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 67,
+        "files": [
+          {
+            "filePath": "src/core/error-handling/system-error-handler.js",
+            "usages": [
+              {
+                "lineNumber": 228,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'Error, source, and destination are required for error propagation', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 260,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'Error array is required for cascading error handling', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              },
+              {
+                "lineNumber": 302,
+                "lineContent": "throw new StandardError('REQUIRED_FIELD_MISSING', 'Error object is required for UI creation', {",
+                "errorCode": "REQUIRED_FIELD_MISSING",
+                "suggestedMigration": {
+                  "targetErrorCode": "VALIDATION_ERROR",
+                  "confidence": "HIGH",
+                  "strategy": "ADAPTER_MIGRATION"
+                }
+              }
+            ],
+            "moduleType": "core",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 68,
+        "files": [
+          {
+            "filePath": "src/core/events/event-naming-upgrade-coordinator.js",
+            "usages": [
+              {
+                "lineNumber": 334,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', 'Invalid conversion mode', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "core",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 69,
+        "files": [
+          {
+            "filePath": "src/core/events/event-type-definitions.js",
+            "usages": [
+              {
+                "lineNumber": 220,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', 'Invalid event name format', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 279,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', 'Invalid domain', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 284,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', 'Invalid platform', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 289,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', 'Invalid action', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 294,
+                "lineContent": "throw new StandardError('INVALID_DATA_FORMAT', 'Invalid state', {",
+                "errorCode": "INVALID_DATA_FORMAT",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "core",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 70,
+        "files": [
+          {
+            "filePath": "src/core/migration/AutoMigrationConverter.js",
+            "usages": [
+              {
+                "lineNumber": 736,
+                "lineContent": "return `new StandardError('${code}', '${message}'${detailsStr})`",
+                "errorCode": "${code}",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              },
+              {
+                "lineNumber": 786,
+                "lineContent": "return 'throw new StandardError('",
+                "errorCode": "UNKNOWN",
+                "suggestedMigration": {
+                  "targetErrorCode": "UNKNOWN_ERROR",
+                  "confidence": "MEDIUM",
+                  "strategy": "NEEDS_REVIEW"
+                }
+              }
+            ],
+            "moduleType": "core",
+            "complexity": "high"
+          }
+        ],
+        "estimatedEffort": "MEDIUM",
+        "riskLevel": "HIGH"
+      },
+      {
+        "phase": 71,
         "files": [
           {
             "filePath": "src/core/migration/StandardErrorMigrationAnalyzer.js",

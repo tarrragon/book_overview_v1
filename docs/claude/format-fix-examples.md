@@ -813,6 +813,132 @@ function test() {
 
 ---
 
+## 🔧 Logger 使用模式標準化範例
+
+### 🎯 **Logger 使用模式分類**
+
+**三種標準化 Logger 使用模式**:
+
+#### **模式1: Background Services (系統服務)**
+```javascript
+// ❌ Before: 缺乏設計理念註釋
+this.logger = dependencies.logger || console
+
+// ✅ After: 完整設計理念說明
+// Logger 模式: Background Service (系統服務設計)
+// 設計理念: 長期運行的系統服務需要完整日誌記錄能力
+// 資源考量: Service Worker 環境資源充足，優先診斷能力
+// 後備機制: console 提供基本日誌功能但功能有限
+// 建議: 應優先使用完整 Logger 實例以獲得最佳診斷能力
+this.logger = dependencies.logger || console
+```
+
+#### **模式2: UI Components (輕量化設計)**
+```javascript
+// ❌ Before: 混淆的 logger 初始化模式
+this.logger = logger
+if (this.logger) {
+  this.logger.error(message, data)
+} else {
+  console.error(message, data)
+}
+
+// ✅ After: 明確的設計理念和使用模式
+// Logger 模式: UI Component (輕量化設計)
+// 設計理念: 短期存在的 UI 組件，優先效能和輕量化
+// 資源考量: 頻繁創建/銷毀，避免不必要的物件分配
+// 依賴注入: 外部提供 logger，可能為 null
+this.logger = logger
+
+// UI Component Logger 模式: 後備機制確保基本除錯能力
+// 設計考量: 避免因 logger 不存在導致錯誤無法追蹤
+// 效能優先: console.error 提供輕量級的錯誤記錄
+if (this.logger) {
+  this.logger.error(message, data)
+} else {
+  // 後備機制: 確保錯誤仍能被記錄和除錯
+  console.error(message, data)
+}
+```
+
+#### **模式3: Core Framework (基礎框架元件)**
+```javascript
+// ❌ Before: 缺乏架構考量說明
+this.logger = new Logger(name || 'EventHandler')
+
+// ✅ After: 完整的架構設計考量
+// Logger 模式: Core EventHandler (基礎框架元件)
+// 設計理念: 作為所有事件處理的基礎類別，必須提供完整日誌功能
+// 架構考量: 核心元件負責統一的事件處理和錯誤記錄
+// 繼承考量: 子類別可以依賴 this.logger 的存在，無需重新初始化
+this.logger = new Logger(name || 'EventHandler')
+```
+
+### 🚨 **不一致案例修正**
+
+#### **問題案例: 混合使用模式**
+```javascript
+// ❌ Before: UI Handler 錯誤地強制實例化 Logger
+class BaseUIHandler extends EventHandler {
+  constructor() {
+    super()
+    if (!this.logger) {
+      this.logger = new Logger('BaseUIHandler') // ❌ 違反 UI 輕量化原則
+    }
+  }
+}
+
+// ✅ After: 符合架構分層的使用模式
+class BaseUIHandler extends EventHandler {
+  constructor() {
+    super() // EventHandler 已提供 logger
+
+    // Logger 模式: UI Handler (混合設計)
+    // 設計理念: UI Handler 需要確保日誌功能可用性
+    // 架構考量: 繼承自 EventHandler，可能已有 logger
+    // 後備機制: 當 logger 未初始化時提供基本實例
+    // 注意: 這個模式需要優化為純依賴注入模式
+    if (!this.logger) {
+      this.logger = new Logger('BaseUIHandler')
+    }
+  }
+}
+```
+
+### 📋 **標準註釋模板**
+
+**Background Services 模板**:
+```javascript
+// Logger 模式: Background Service (系統服務設計)
+// 設計理念: 長期運行的系統服務需要完整日誌記錄能力
+// 資源考量: Service Worker 環境資源充足，優先診斷能力
+// 後備機制: console 提供基本日誌功能但功能有限
+// 建議: 應優先使用完整 Logger 實例以獲得最佳診斷能力
+this.logger = dependencies.logger || console
+```
+
+**UI Components 模板**:
+```javascript
+// Logger 模式: UI Component (輕量化設計)
+// 設計理念: 短期存在的 UI 組件，優先效能和輕量化
+// 資源考量: 頻繁創建/銷毀，避免不必要的物件分配
+// 依賴注入: 外部提供 logger，可能為 null
+this.logger = logger
+
+// 使用時的後備機制模板:
+// UI Component Logger 模式: 後備機制確保基本除錯能力
+// 設計考量: 避免因 logger 不存在導致錯誤無法追蹤
+// 效能優先: console.error 提供輕量級的錯誤記錄
+if (this.logger) {
+  this.logger.error(messageKey, data)
+} else {
+  // 後備機制: 確保錯誤仍能被記錄和除錯
+  console.error(message, data)
+}
+```
+
+---
+
 ## 🎯 檔案命名規範修正範例
 
 ### 🔧 **1. 檔名格式標準化**
