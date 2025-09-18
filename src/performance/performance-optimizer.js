@@ -485,6 +485,11 @@ class PerformanceOptimizer {
       data
     }
 
+    // Logger 後備方案: 效能監控記錄
+    // 設計理念: 效能警告需要即時可見，不能等待 Logger 系統處理
+    // 效能考量: Logger 可能影響效能測量準確性，console 更輕量
+    // 後備機制: console.warn 提供原生效能警告輸出
+    // 監控需求: 效能問題需要立即提醒開發者注意
     // eslint-disable-next-line no-console
     console.warn('⚠️ 效能警告:', warning)
 

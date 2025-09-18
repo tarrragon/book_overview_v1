@@ -20,7 +20,7 @@
 const EventHandler = require('src/core/event-handler')
 const BookDataExporter = require('src/export/book-data-exporter')
 const { EXPORT_EVENTS } = require('src/export/export-events')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 /**
  * JSON 匯出處理器類別
@@ -136,16 +136,20 @@ class JSONExportHandler extends EventHandler {
    */
   _validateEventData (eventData) {
     if (!eventData) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'Event data is required', {
-        category: 'export'
-      })
+      const error = new Error('Event data is required')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'export' }
+      throw error
     }
 
     if (!eventData.books || !Array.isArray(eventData.books)) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'Books array is required for JSON export', {
+      const error = new Error('Books array is required for JSON export')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         dataType: 'array',
         category: 'export'
-      })
+      }
+      throw error
     }
 
     if (!eventData.options || typeof eventData.options !== 'object') {
@@ -157,6 +161,10 @@ class JSONExportHandler extends EventHandler {
    * 事件處理前的預處理
    */
   async beforeHandle (event) {
+    // Logger 後備方案: Export Handler 處理記錄
+    // 設計理念: Export 處理過程需要明確的開始記錄，便於追蹤和除錯
+    // 後備機制: console.log 提供處理流程的可見性
+    // 使用場景: JSON 匯出請求開始時的處理狀態記錄
     // eslint-disable-next-line no-console
     console.log(`[${this.name}] Processing JSON export request`)
   }
@@ -165,6 +173,10 @@ class JSONExportHandler extends EventHandler {
    * 事件處理後的後處理
    */
   async afterHandle (event, result) {
+    // Logger 後備方案: Export Handler 完成記錄
+    // 設計理念: Export 處理完成狀態需要明確記錄，確認處理成功
+    // 後備機制: console.log 提供完成狀態的可見性
+    // 使用場景: JSON 匯出成功完成時的狀態確認
     // eslint-disable-next-line no-console
     console.log(`[${this.name}] JSON export completed successfully`)
   }
@@ -173,6 +185,10 @@ class JSONExportHandler extends EventHandler {
    * 錯誤處理
    */
   async onError (event, error) {
+    // Logger 後備方案: Export Handler 錯誤記錄
+    // 設計理念: Export 處理失敗是關鍵錯誤，必須被記錄和追蹤
+    // 後備機制: console.error 確保錯誤可見性，即使在 Logger 不可用時
+    // 使用場景: JSON 匯出處理失敗時的錯誤記錄和除錯資訊
     // eslint-disable-next-line no-console
     console.error(`[${this.name}] JSON export failed:`, error.message)
   }

@@ -15,7 +15,6 @@
  */
 
 const BaseModule = require('./base-module')
-const { StandardError } = require('src/core/errors/StandardError')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class StartupHandler extends BaseModule {

@@ -57,7 +57,7 @@ class ErrorHelper {
    */
   static createValidationError (field, message, details = {}) {
     const error = new Error(message || 'Validation failed')
-    error.code = ErrorCodes.VALIDATION_ERROR
+    error.code = ErrorCodes.VALIDATION_FAILED
     error.details = { field, type: 'validation', ...details }
     return error
   }

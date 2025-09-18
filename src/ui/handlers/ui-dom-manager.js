@@ -51,7 +51,13 @@ class UIDOMManager {
         element = searchContext.querySelector(selector)
         if (element) break
       } catch (error) {
-        Logger.warn(`[UIDOMManager] Invalid selector: ${selector}`, error)
+        // 使用受保護的日誌記錄，兼容測試環境
+        if (typeof Logger !== 'undefined' && Logger.warn && typeof Logger.warn === 'function') {
+          Logger.warn(`[UIDOMManager] Invalid selector: ${selector}`, error)
+        } else {
+          // eslint-disable-next-line no-console
+          console.warn(`[UIDOMManager] Invalid selector: ${selector}`, error)
+        }
       }
     }
 
@@ -102,7 +108,13 @@ class UIDOMManager {
 
       return element
     } catch (error) {
-      Logger.error('[UIDOMManager] Failed to create element:', error)
+      // 使用受保護的日誌記錄，兼容測試環境
+      if (typeof Logger !== 'undefined' && Logger.error && typeof Logger.error === 'function') {
+        Logger.error('[UIDOMManager] Failed to create element:', error)
+      } else {
+        // eslint-disable-next-line no-console
+        console.error('[UIDOMManager] Failed to create element:', error)
+      }
       return null
     }
   }
@@ -125,7 +137,13 @@ class UIDOMManager {
       element.addEventListener(eventType, handler, options)
       return true
     } catch (error) {
-      Logger.error('[UIDOMManager] Failed to add event listener:', error)
+      // 使用受保護的日誌記錄，兼容測試環境
+      if (typeof Logger !== 'undefined' && Logger.error && typeof Logger.error === 'function') {
+        Logger.error('[UIDOMManager] Failed to add event listener:', error)
+      } else {
+        // eslint-disable-next-line no-console
+        console.error('[UIDOMManager] Failed to add event listener:', error)
+      }
       return false
     }
   }
@@ -149,7 +167,13 @@ class UIDOMManager {
         }
         return true
       } catch (error) {
-        Logger.warn('[UIDOMManager] Failed to remove element:', error)
+        // 使用受保護的日誌記錄，兼容測試環境
+        if (typeof Logger !== 'undefined' && Logger.warn && typeof Logger.warn === 'function') {
+          Logger.warn('[UIDOMManager] Failed to remove element:', error)
+        } else {
+          // eslint-disable-next-line no-console
+          console.warn('[UIDOMManager] Failed to remove element:', error)
+        }
         return false
       }
     }
@@ -181,7 +205,13 @@ class UIDOMManager {
       })
       return true
     } catch (error) {
-      Logger.error('[UIDOMManager] Failed to update styles:', error)
+      // 使用受保護的日誌記錄，兼容測試環境
+      if (typeof Logger !== 'undefined' && Logger.error && typeof Logger.error === 'function') {
+        Logger.error('[UIDOMManager] Failed to update styles:', error)
+      } else {
+        // eslint-disable-next-line no-console
+        console.error('[UIDOMManager] Failed to update styles:', error)
+      }
       return false
     }
   }

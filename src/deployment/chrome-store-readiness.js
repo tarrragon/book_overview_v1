@@ -225,6 +225,11 @@ class ChromeStoreReadiness {
 
       return result
     } catch (error) {
+      // Logger 後備方案: 部署工具錯誤記錄
+      // 設計理念: 部署檢查工具需要立即可見的錯誤輸出
+      // 執行環境: Node.js 或瀏覽器環境，Logger 系統可能不可用
+      // 後備機制: console.error 確保部署失敗能被立即發現
+      // 用戶需求: 開發者需要即時了解部署問題以快速修正
       // eslint-disable-next-line no-console
       console.error('❌ 上架準備檢查失敗:', error)
       throw error
@@ -237,6 +242,11 @@ class ChromeStoreReadiness {
    * @private
    */
   async checkManifestCompliance () {
+    // Logger 後備方案: 部署工具進度記錄
+    // 設計理念: 部署檢查過程需要清晰的進度提示
+    // 執行環境: 開發工具環境，Logger 系統可能未初始化
+    // 後備機制: console.log 提供部署步驟的即時反饋
+    // 用戶體驗: 開發者需要了解檢查進度和當前步驟
     // eslint-disable-next-line no-console
     console.log('📋 檢查 Manifest 合規性...')
 
@@ -343,6 +353,11 @@ class ChromeStoreReadiness {
    * @private
    */
   async checkFileRequirements () {
+    // Logger 後備方案: 部署工具進度記錄
+    // 設計理念: 檔案檢查是部署流程的關鍵步驟，需要進度反饋
+    // 執行環境: 開發工具環境，依賴檔案系統操作
+    // 後備機制: console.log 提供檔案檢查步驟的即時狀態
+    // 用戶體驗: 開發者需要了解檔案檢查的進度和結果
     // eslint-disable-next-line no-console
     console.log('📁 檢查檔案要求...')
 
@@ -445,6 +460,11 @@ class ChromeStoreReadiness {
    * @private
    */
   async checkSecurityCompliance () {
+    // Logger 後備方案: 部署工具進度記錄
+    // 設計理念: 安全性檢查是 Chrome Store 審核的關鍵要求
+    // 執行環境: 開發工具環境，進行代碼安全分析
+    // 後備機制: console.log 提供安全檢查步驟的即時狀態
+    // 重要性: 安全問題會導致上架被拒，必須有清晰的檢查進度
     // eslint-disable-next-line no-console
     console.log('🔒 檢查安全性合規...')
 
@@ -527,6 +547,11 @@ class ChromeStoreReadiness {
    * @private
    */
   async checkPrivacyCompliance () {
+    // Logger 後備方案: 部署工具進度記錄
+    // 設計理念: 隱私合規是 Chrome Store 審核的強制要求
+    // 執行環境: 開發工具環境，進行隱私政策和資料收集檢查
+    // 後備機制: console.log 提供隱私檢查步驟的即時狀態
+    // 法規重要性: 隱私問題會導致法律風險和審核被拒
     // eslint-disable-next-line no-console
     console.log('🛡️ 檢查隱私合規...')
 

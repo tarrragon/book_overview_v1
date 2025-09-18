@@ -32,7 +32,7 @@
 const BaseUIHandler = require('./base-ui-handler')
 const UIEventValidator = require('./ui-event-validator')
 const UI_HANDLER_CONFIG = require('src/ui/config/ui-handler-config')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { Logger } = require('src/core/logging')
 
 class UIProgressHandler extends BaseUIHandler {
@@ -212,12 +212,19 @@ class UIProgressHandler extends BaseUIHandler {
    * @param {Object} event - 事件物件
    * @throws {Error} 事件結構無效時拋出錯誤
    */
+  /**
+   * 驗證進度事件
+   *
+   * @param {Object} event - 事件物件
+   * @throws {Error} 事件結構無效時拋出錯誤
+   */
   validateProgressEvent (event) {
     const validationResult = this.validateEventData(event)
     if (!validationResult.isValid) {
-      throw new StandardError('OPERATION_FAILED', 'Event validation failed: ${validationResult.error}', {
-        category: 'ui'
-      })
+      const error = new Error(`Event validation failed: ${validationResult.error}`)
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'ui', component: 'UIProgressHandler', operation: 'validateProgressEvent' }
+      throw error
     }
   }
 
@@ -303,8 +310,19 @@ class UIProgressHandler extends BaseUIHandler {
       await this.showProgress()
     } catch (error) {
       // DOM操作錯誤不應該阻止整個處理流程，但在測試中需要拋出
-      // eslint-disable-next-line no-console
-      Logger.warn('[UIProgressHandler] DOM update failed:', error.message)
+      if (this.logger && typeof this.logger.warn === 'function') {
+        this.logger.warn('DOM_UPDATE_WARNING', {
+          component: 'UIProgressHandler',
+          error: error.message
+        })
+      } else {
+        // Logger 後備方案: UI Handler DOM 錯誤記錄
+        // 設計理念: UI Handler 可能在 logger 不可用環境中運行，需要後備記錄
+        // 後備機制: console.warn 提供 DOM 操作失敗的可見性
+        // 使用場景: DOM 更新失敗但不應阻止處理流程的警告記錄
+        // eslint-disable-next-line no-console
+        console.warn('[UIProgressHandler] DOM update failed:', error.message)
+      }
       if (process.env.NODE_ENV === 'test' && error.message === 'DOM access failed') {
         throw error
       }
@@ -508,8 +526,20 @@ class UIProgressHandler extends BaseUIHandler {
       timestamp: Date.now()
     }
 
-    // eslint-disable-next-line no-console
-    Logger.error(`[UIProgressHandler] Progress update failed for flow ${flowId}:`, error)
+    if (this.logger && typeof this.logger.error === 'function') {
+      this.logger.error('PROGRESS_UPDATE_ERROR', {
+        flowId,
+        error: error.message,
+        component: 'UIProgressHandler'
+      })
+    } else {
+      // Logger 後備方案: UI Handler 進度更新錯誤
+      // 設計理念: 進度更新失敗是影響用戶體驗的重要錯誤，必須記錄
+      // 後備機制: console.error 確保錯誤可見性和除錯能力
+      // 使用場景: 進度更新處理失敗時的錯誤追蹤和流程診斷
+      // eslint-disable-next-line no-console
+      console.error(`[UIProgressHandler] Progress update failed for flow ${flowId}:`, error)
+    }
   }
 
   /**

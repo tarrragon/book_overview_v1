@@ -3,7 +3,7 @@
  * 負責將各種錯誤分類為5大類型，並判斷嚴重程度
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 const ERROR_TYPES = {
   NETWORK_ERROR: 'NETWORK_ERROR',
@@ -65,10 +65,13 @@ const ERROR_CLASSIFICATION_RULES = {
  */
 function classifyError (error) {
   if (!error) {
-    throw new StandardError('REQUIRED_FIELD_MISSING', 'Error object is required for classification', {
+    const errorObj = new Error('Error object is required for classification')
+    errorObj.code = ErrorCodes.VALIDATION_ERROR
+    errorObj.details = {
       dataType: 'object',
       category: 'ui'
-    })
+    }
+    throw errorObj
   }
 
   const errorMessage = error.message || error.toString()

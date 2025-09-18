@@ -27,7 +27,7 @@
  * @since 2025-08-20
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class SearchCacheManager {
   /**
@@ -42,9 +42,10 @@ class SearchCacheManager {
     const { eventBus, logger, config = {} } = options
 
     if (!eventBus || !logger) {
-      throw new StandardError('EVENTBUS_ERROR', 'EventBus 和 Logger 是必需的', {
-        category: 'ui'
-      })
+      const error = new Error('EventBus 和 Logger 是必需的')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     this.eventBus = eventBus
@@ -91,9 +92,10 @@ class SearchCacheManager {
    */
   normalizeKey (key) {
     if (typeof key !== 'string') {
-      throw new StandardError('UNKNOWN_ERROR', '快取鍵必須是字串', {
-        category: 'ui'
-      })
+      const error = new Error('快取鍵必須是字串')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'ui' }
+      throw error
     }
 
     if (!this.config.keyNormalization) {

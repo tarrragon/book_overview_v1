@@ -33,7 +33,7 @@
  *
  * @returns {Object} EventBus 實例
  */
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 function createContentEventBus () {
   const listeners = new Map()
@@ -61,9 +61,10 @@ function createContentEventBus () {
      */
     on (eventType, handler, options = {}) {
       if (typeof eventType !== 'string' || typeof handler !== 'function') {
-        throw new StandardError('EVENTBUS_ERROR', 'EventBus.on: eventType 必須是字串，handler 必須是函數', {
-          category: 'general'
-        })
+        const error = new Error('EventBus.on: eventType 必須是字串，handler 必須是函數')
+        error.code = ErrorCodes.VALIDATION_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       if (!listeners.has(eventType)) {

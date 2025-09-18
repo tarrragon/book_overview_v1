@@ -44,6 +44,11 @@ class EventHandler {
     this.executionCount = 0
     this.lastExecutionTime = null
     this.averageExecutionTime = 0
+
+    // Logger 模式: Core EventHandler (基礎框架元件)
+    // 設計理念: 作為所有事件處理的基礎類別，必須提供完整日誌功能
+    // 架構考量: 核心元件負責統一的事件處理和錯誤記錄
+    // 繼承考量: 子類別可以依賴 this.logger 的存在，無需重新初始化
     this.logger = new Logger(name || 'EventHandler')
   }
 
@@ -119,8 +124,23 @@ class EventHandler {
    * @param {Error} error - 錯誤物件
    */
   async onError (event, error) {
-    // eslint-disable-next-line no-console
-    this.logger.error('EVENT_PROCESSING_ERROR', { eventType: event.type, error: error.message })
+    try {
+      // Core EventHandler Logger 模式: 理論上 logger 必定存在
+      // 設計原則: EventHandler 構造函數保證 logger 已初始化
+      // 防禦性檢查: 但仍進行驗證以處理極端異常情況
+      // 後備機制: 測試環境或極端錯誤情況的兜底處理
+      if (this.logger && typeof this.logger.error === 'function') {
+        this.logger.error('EVENT_PROCESSING_ERROR', { eventType: event.type, error: error.message })
+      } else {
+        // 後備機制: 測試環境或 logger 初始化異常時的基本錯誤記錄
+        // eslint-disable-next-line no-console
+        console.error(`[${this.name}] Event processing error:`, error.message)
+      }
+    } catch (logError) {
+      // 終極後備: 當日誌系統本身發生錯誤時確保錯誤不會被遺失
+      // eslint-disable-next-line no-console
+      console.error(`[${this.name}] Logging failed, original error:`, error.message)
+    }
   }
 
   /**

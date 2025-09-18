@@ -27,7 +27,6 @@
  * @since 2025-08-20
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class FilterEngine {
@@ -50,6 +49,11 @@ class FilterEngine {
     }
 
     this.eventBus = eventBus
+
+    // Logger 模式: UI Component (強制依賴注入)
+    // 設計理念: 過濾引擎需要確保日誌功能可用於除錯複雜過濾邏輯
+    // 架構考量: 通過構造函數驗證確保 logger 存在，避免 null 檢查
+    // 效能考量: UI 組件但需要詳細的過濾過程記錄
     this.logger = logger
 
     // 合併預設配置和自定義配置

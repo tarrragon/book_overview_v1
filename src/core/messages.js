@@ -58,18 +58,30 @@ function formatMessage (messageKey, params = {}) {
 const log = {
   info: (key, params = {}) => {
     const message = formatMessage(key, params)
+    // Logger 後備方案: Core Messages 統一輸出系統
+    // 設計理念: 專門的 console 封裝模組，目的是統一和規範化所有文字輸出
+    // 後備機制: 直接使用 console，這就是此模組的核心功能
+    // 使用場景: 統一處理 3760+ 個分散的 console.log 問題
     // eslint-disable-next-line no-console
     console.log(`[INFO] ${message}`)
   },
 
   warn: (key, params = {}) => {
     const message = formatMessage(key, params)
+    // Logger 後備方案: Core Messages 統一輸出系統
+    // 設計理念: 專門的 console 封裝模組，提供標準化的警告輸出
+    // 後備機制: 直接使用 console，這是設計核心而非後備
+    // 使用場景: 系統級警告訊息的統一管理和輸出
     // eslint-disable-next-line no-console
     console.warn(`[WARN] ${message}`)
   },
 
   error: (key, params = {}) => {
     const message = formatMessage(key, params)
+    // Logger 後備方案: Core Messages 統一輸出系統
+    // 設計理念: 專門的 console 封裝模組，提供標準化的錯誤輸出
+    // 後備機制: 直接使用 console，這是核心功能而非退而求其次
+    // 使用場景: 系統級錯誤訊息的統一管理、格式化和輸出
     // eslint-disable-next-line no-console
     console.error(`[ERROR] ${message}`)
   },
@@ -77,6 +89,10 @@ const log = {
   debug: (key, params = {}) => {
     // TODO: 實作 debug 訊息處理
     const message = formatMessage(key, params)
+    // Logger 後備方案: Core Messages 統一輸出系統
+    // 設計理念: 專門的 console 封裝模組，提供標準化的除錯輸出
+    // 後備機制: 直接使用 console，這是設計意圖而非備用選擇
+    // 使用場景: 開發階段除錯訊息的統一管理和輸出
     // eslint-disable-next-line no-console
     console.debug(`[DEBUG] ${message}`)
   }

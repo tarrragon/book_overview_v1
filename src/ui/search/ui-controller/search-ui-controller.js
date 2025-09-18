@@ -46,7 +46,6 @@
  * @lastModified 2025-08-20
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { Logger } = require('src/core/logging')
 
@@ -74,6 +73,11 @@ class SearchUIController {
     // 核心依賴
     this.eventBus = eventBus
     this.document = document
+
+    // Logger 模式: UI Component (輕量化設計)
+    // 設計理念: 短期存在的 UI 組件，優先效能和輕量化
+    // 資源考量: 頻繁創建/銷毀，避免不必要的物件分配
+    // 依賴注入: 外部提供 logger，可能為 null
     this.logger = logger
     this.isCleanedUp = false
 
@@ -342,11 +346,15 @@ class SearchUIController {
    * @param {Error} error - 錯誤物件
    */
   handleInputProcessingError (error) {
+    // UI Component Logger 模式: 後備機制確保基本除錯能力
+    // 設計考量: 避免因 logger 不存在導致錯誤無法追蹤
+    // 效能優先: console.error 提供輕量級的錯誤記錄
     if (this.logger) {
       this.logger.error('Search input processing error:', error)
     } else {
+      // 後備機制: 確保錯誤仍能被記錄和除錯
       // eslint-disable-next-line no-console
-      Logger.error('Search input processing error:', error)
+      console.error('Search input processing error:', error)
     }
   }
 

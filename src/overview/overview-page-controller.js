@@ -201,7 +201,10 @@ class OverviewPageController extends EventHandlerClass {
             this.updateDisplay()
           }
         } catch (error) {
-          // 僅記錄錯誤，不中斷頁面運作
+          // Logger 後備方案: UI Component 輕量化設計
+          // 設計理念: Overview 頁面組件優先保持輕量，避免依賴重量級 Logger
+          // 後備機制: console.warn 提供 storage 事件處理錯誤的基本可見性
+          // 使用場景: Chrome Storage API 事件監聽錯誤，不應中斷頁面功能
           // eslint-disable-next-line no-console
           console.warn('⚠️ 處理 storage 變更失敗:', error)
         }
@@ -288,6 +291,10 @@ class OverviewPageController extends EventHandlerClass {
    */
   async loadBooksFromChromeStorage () {
     if (typeof chrome === 'undefined' || !chrome.storage) {
+      // Logger 後備方案: 環境檢測警告
+      // 設計理念: Chrome API 可用性檢測需要立即可見的警告
+      // 後備機制: console.warn 確保環境問題能被立即發現
+      // 使用場景: 非 Chrome Extension 環境或 API 不可用時的即時提醒
       // eslint-disable-next-line no-console
       console.warn('⚠️ Chrome Storage API 不可用')
       return
@@ -302,12 +309,20 @@ class OverviewPageController extends EventHandlerClass {
         const books = result.readmoo_books.books
         const timestamp = result.readmoo_books.extractionTimestamp
 
+        // Logger 後備方案: UI Component 資訊記錄
+        // 設計理念: Overview 頁面載入時的關鍵資訊需要用戶可見
+        // 後備機制: console.log 提供資料時間戳記錄，便於除錯
+        // 使用場景: 顯示書籍資料的提取時間，幫助用戶了解資料新舊程度
         // eslint-disable-next-line no-console
         console.log(`📅 提取時間: ${new Date(timestamp).toLocaleString()}`)
 
         this._updateBooksData(books)
         this.updateDisplay()
       } else {
+        // Logger 後備方案: UI Component 狀態記錄
+        // 設計理念: 空資料狀態需要明確記錄，便於使用者理解和開發者除錯
+        // 後備機制: console.log 提供資料載入狀態的可見性
+        // 使用場景: Chrome Storage 無書籍資料時的狀態說明
         // eslint-disable-next-line no-console
         console.log('📂 Chrome Storage 中沒有書籍資料')
         this.hideLoading()
@@ -315,6 +330,10 @@ class OverviewPageController extends EventHandlerClass {
         this.renderBooksTable([])
       }
     } catch (error) {
+      // Logger 後備方案: UI Component 關鍵錯誤記錄
+      // 設計理念: Chrome Storage 載入失敗是嚴重錯誤，必須記錄
+      // 後備機制: console.error 確保錯誤可見性，即使在無 Logger 環境
+      // 使用場景: 頁面核心功能無法運作時的錯誤追蹤
       // eslint-disable-next-line no-console
       console.error('❌ 從 Chrome Storage 載入書籍資料失敗:', error)
       this.showError('無法載入書籍資料: ' + error.message)
@@ -1104,6 +1123,10 @@ class OverviewPageController extends EventHandlerClass {
    */
   _checkLargeDataset (books) {
     if (books.length > 1000) {
+      // Logger 後備方案: UI Component 效能警告
+      // 設計理念: 大資料集處理警告需要開發者和用戶立即可見
+      // 後備機制: console.warn 提供效能問題的即時提醒
+      // 使用場景: 超過 1000 本書籍時的效能警告，提示未來優化需求
       // eslint-disable-next-line no-console
       console.warn('⚠️ 大型資料集，建議分批處理（未來改善）')
     }
@@ -1269,6 +1292,10 @@ class OverviewPageController extends EventHandlerClass {
 
       return true
     } catch (error) {
+      // Logger 後備方案: UI Component 事件處理錯誤
+      // 設計理念: 事件處理失敗是控制器層級的嚴重錯誤，必須記錄
+      // 後備機制: console.error 確保事件處理錯誤的可追蹤性
+      // 使用場景: Overview 控制器事件處理失敗時的錯誤記錄
       // eslint-disable-next-line no-console
       console.error(`Overview 控制器處理事件失敗: ${eventType}`, error)
       throw error

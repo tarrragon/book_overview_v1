@@ -37,6 +37,15 @@ class BaseUIHandler extends EventHandler {
     this.domManager = new UIDOMManager(document)
     this.validator = new UIEventValidator()
 
+    // Logger 模式: UI Handler (混合設計)
+    // 設計理念: UI Handler 需要確保日誌功能可用性
+    // 架構考量: 繼承自 EventHandler，可能已有 logger
+    // 後備機制: 當 logger 未初始化時提供基本實例
+    // 注意: 這個模式需要優化為純依賴注入模式
+    if (!this.logger) {
+      this.logger = new Logger(handlerName || 'BaseUIHandler')
+    }
+
     // 初始化共同狀態
     this.initializeCommonState()
 
@@ -238,11 +247,22 @@ class BaseUIHandler extends EventHandler {
    */
   logError (flowId, error, errorType) {
     if (this.config.enableLogging) {
-      // eslint-disable-next-line no-console
-      Logger.error(`[${this.name}] Error in flow ${flowId} (${errorType}):`, error.message)
-      if (process.env.NODE_ENV === 'development') {
+      // UI Handler Logger 模式: 防禦性程式設計
+      // 設計考量: 即使在 logger 已初始化的情況下，仍需驗證方法可用性
+      // 測試環境: console.error 後備確保測試環境的錯誤可見性
+      // 環境適應: 開發環境提供完整 stack trace，生產環境只記錄關鍵資訊
+      if (this.logger && typeof this.logger.error === 'function') {
+        this.logger.error('UI_HANDLER_ERROR', {
+          handler: this.name,
+          flowId,
+          errorType,
+          message: error.message,
+          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        })
+      } else {
+        // 後備機制: 測試環境或 logger 方法不可用時的基本錯誤記錄
         // eslint-disable-next-line no-console
-        Logger.error(error.stack)
+        console.error(`[${this.name}] Error in flow ${flowId} (${errorType}):`, error.message)
       }
     }
   }

@@ -35,7 +35,7 @@
  *
  * @returns {Object} ChromeEventBridge 實例
  */
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 function createChromeEventBridge () {
   let eventBus = null
@@ -94,9 +94,14 @@ function createChromeEventBridge () {
       try {
         // 訊息格式驗證
         if (!message || typeof message.type !== 'string') {
-          throw new StandardError('UNKNOWN_ERROR', '無效的訊息格式：缺少 type 欄位', {
-            category: 'general'
-          })
+          const error = new Error('無效的訊息格式：缺少 type 欄位')
+          error.code = ErrorCodes.VALIDATION_ERROR
+          error.details = {
+            category: 'general',
+            component: 'ChromeEventBridge',
+            message
+          }
+          throw error
         }
 
         // 添加元資料
@@ -173,9 +178,14 @@ function createChromeEventBridge () {
         case 'popup':
           return await this.dispatchToPopup(event)
         default:
-          throw new StandardError('UNKNOWN_ERROR', 'Unknown target context: ${targetContext}', {
-            category: 'general'
-          })
+          const error = new Error(`Unknown target context: ${targetContext}`)
+          error.code = ErrorCodes.VALIDATION_ERROR
+          error.details = {
+            category: 'general',
+            component: 'ChromeEventBridge',
+            targetContext
+          }
+          throw error
       }
     },
 
@@ -192,9 +202,16 @@ function createChromeEventBridge () {
           event
         }, (response) => {
           if (chrome.runtime.lastError) {
-            reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-              category: 'general'
-            }))
+            reject((() => {
+              const error = new Error(chrome.runtime.lastError.message)
+              error.code = ErrorCodes.SYSTEM_ERROR
+              error.details = {
+                category: 'general',
+                component: 'ChromeEventBridge',
+                source: 'chrome.runtime.sendMessage'
+              }
+              return error
+            })())
           } else {
             resolve(response)
           }
@@ -252,9 +269,16 @@ function createChromeEventBridge () {
           url: ['*://readmoo.com/*', '*://*.readmoo.com/*']
         }, (tabs) => {
           if (chrome.runtime.lastError) {
-            reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-              category: 'general'
-            }))
+            reject((() => {
+              const error = new Error(chrome.runtime.lastError.message)
+              error.code = ErrorCodes.SYSTEM_ERROR
+              error.details = {
+                category: 'general',
+                component: 'ChromeEventBridge',
+                source: 'chrome.tabs.query'
+              }
+              return error
+            })())
           } else {
             resolve(tabs || [])
           }
@@ -273,9 +297,16 @@ function createChromeEventBridge () {
       return new Promise((resolve, reject) => {
         chrome.tabs.sendMessage(tabId, message, (response) => {
           if (chrome.runtime.lastError) {
-            reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-              category: 'general'
-            }))
+            reject((() => {
+              const error = new Error(chrome.runtime.lastError.message)
+              error.code = ErrorCodes.SYSTEM_ERROR
+              error.details = {
+                category: 'general',
+                component: 'ChromeEventBridge',
+                source: 'chrome.tabs.sendMessage'
+              }
+              return error
+            })())
           } else {
             resolve(response)
           }

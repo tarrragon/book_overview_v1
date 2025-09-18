@@ -32,6 +32,7 @@
  */
 
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class ChromeStorageAdapter {
   /**
@@ -255,7 +256,7 @@ class ChromeStorageAdapter {
             result = await this.delete(operation.key)
             break
           default:
-            throw new StandardError('UNKNOWN_ERROR', 'Unsupported operation type: ${operation.type}', {
+            throw new StandardError(ErrorCodes.VALIDATION_ERROR, `Unsupported operation type: ${operation.type}`, {
               category: 'storage'
             })
         }
@@ -327,7 +328,7 @@ class ChromeStorageAdapter {
           result = await this.cleanupAuto(options)
           break
         default:
-          throw new StandardError('UNKNOWN_ERROR', 'Unsupported cleanup strategy: ${strategy}', {
+          throw new StandardError(ErrorCodes.VALIDATION_ERROR, `Unsupported cleanup strategy: ${strategy}`, {
             category: 'storage'
           })
       }
@@ -412,13 +413,13 @@ class ChromeStorageAdapter {
    */
   async checkApiAvailability () {
     if (!this.isAvailable()) {
-      throw new StandardError('RESOURCE_NOT_AVAILABLE', 'Chrome Storage API is not available', {
+      throw new StandardError(ErrorCodes.CHROME_ERROR, 'Chrome Storage API is not available', {
         category: 'storage'
       })
     }
 
     if (chrome.runtime.lastError) {
-      throw new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
+      throw new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {
         category: 'storage'
       })
     }
@@ -431,7 +432,7 @@ class ChromeStorageAdapter {
     return new Promise((resolve, reject) => {
       chrome.storage.local.getBytesInUse(null, (bytes) => {
         if (chrome.runtime.lastError) {
-          reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
+          reject(new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {
             category: 'storage'
           }))
         } else {
@@ -448,7 +449,7 @@ class ChromeStorageAdapter {
     return new Promise((resolve, reject) => {
       chrome.storage.local.set({ [key]: data }, () => {
         if (chrome.runtime.lastError) {
-          reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
+          reject(new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {
             category: 'storage'
           }))
         } else {
@@ -473,7 +474,7 @@ class ChromeStorageAdapter {
     return new Promise((resolve, reject) => {
       chrome.storage.local.get([key], (result) => {
         if (chrome.runtime.lastError) {
-          reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
+          reject(new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {
             category: 'storage'
           }))
         } else {
@@ -490,7 +491,7 @@ class ChromeStorageAdapter {
     return new Promise((resolve, reject) => {
       chrome.storage.local.remove([key], () => {
         if (chrome.runtime.lastError) {
-          reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
+          reject(new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {
             category: 'storage'
           }))
         } else {
@@ -511,7 +512,7 @@ class ChromeStorageAdapter {
     return new Promise((resolve, reject) => {
       chrome.storage.local.clear(() => {
         if (chrome.runtime.lastError) {
-          reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
+          reject(new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {
             category: 'storage'
           }))
         } else {
@@ -581,7 +582,7 @@ class ChromeStorageAdapter {
    * @returns {Error} 標準化錯誤
    */
   createError (type, message, originalError = null) {
-    const error = new StandardError('UNKNOWN_ERROR', message, {
+    const error = new StandardError(ErrorCodes.OPERATION_ERROR, message, {
       category: 'storage'
     })
     error.name = 'ChromeStorageAdapterError'

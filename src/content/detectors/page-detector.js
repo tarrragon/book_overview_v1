@@ -67,6 +67,10 @@ function createPageDetector () {
       isReadmooPage = location.hostname && location.hostname.includes('readmoo.com')
       pageType = isReadmooPage ? this.detectPageType() : 'unknown'
 
+      // Logger 後備方案: Content Script 頁面檢測記錄
+      // 設計理念: Content Script 運行在網頁環境，Logger 服務可能不可用
+      // 後備機制: console.log 提供頁面檢測結果的直接可見性
+      // 使用場景: Readmoo 頁面檢測結果記錄，便於開發者除錯和確認
       // eslint-disable-next-line no-console
       console.log(`📍 頁面檢測: ${isReadmooPage ? 'Readmoo' : '非Readmoo'} 頁面 (${pageType})`)
 
@@ -175,7 +179,10 @@ function createPageDetector () {
 
           const newStatus = this.getPageStatus()
 
-          // 記錄 URL 變更事件 (可選的日誌記錄)
+          // Logger 後備方案: Content Script URL 變更除錯記錄
+          // 設計理念: URL 變更檢測需要詳細除錯資訊，但不應影響效能
+          // 後備機制: 僅在 console.debug 可用時記錄，避免生產環境影響
+          // 使用場景: SPA 頁面導航檢測的除錯追蹤，提供狀態變更詳細資訊
           // eslint-disable-next-line no-console
           if (typeof console !== 'undefined' && console.debug) {
             // eslint-disable-next-line no-console
@@ -198,6 +205,10 @@ function createPageDetector () {
                        oldStatus.isReadmooPage !== newStatus.isReadmooPage
             })
           } catch (error) {
+            // Logger 後備方案: Content Script 回調錯誤記錄
+            // 設計理念: 回調函數錯誤不應影響檢測器功能，但必須記錄
+            // 後備機制: console.error 確保錯誤可見性和除錯能力
+            // 使用場景: URL 變更回調執行失敗時的錯誤追蹤
             // eslint-disable-next-line no-console
             console.error('❌ URL 變更回調函數錯誤:', error)
           }
@@ -214,6 +225,10 @@ function createPageDetector () {
           subtree: true
         })
       } else {
+        // Logger 後備方案: Content Script 環境檢測警告
+        // 設計理念: DOM 環境問題需要立即警告，確保開發者了解執行環境限制
+        // 後備機制: console.warn 提供環境問題的即時提醒
+        // 使用場景: 無法取得觀察目標元素時的環境診斷資訊
         // eslint-disable-next-line no-console
         console.warn('⚠️ 無法找到觀察目標元素 (document.body 或 document.documentElement)')
       }

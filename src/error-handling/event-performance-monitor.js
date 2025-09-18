@@ -22,7 +22,7 @@
  */
 
 const EventHandler = require('src/core/event-handler')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 /**
  * EventPerformanceMonitor 類別
@@ -209,9 +209,16 @@ class EventPerformanceMonitor extends EventHandler {
         const { ERRORS } = EventPerformanceMonitor.CONSTANTS
         return this._createErrorResponse(
           'UNSUPPORTED_EVENT_TYPE',
-          new StandardError('UNKNOWN_ERROR', '${ERRORS.MESSAGES.UNSUPPORTED_EVENT_TYPE}: ${eventData.type}', {
-              category: 'general'
-            }),
+          (() => {
+            const error = new Error(`${ERRORS.MESSAGES.UNSUPPORTED_EVENT_TYPE}: ${eventData.type}`)
+            error.code = ErrorCodes.VALIDATION_ERROR
+            error.details = {
+              category: 'general',
+              component: 'EventPerformanceMonitor',
+              eventType: eventData.type
+            }
+            return error
+          })(),
           eventData
         )
       }

@@ -148,7 +148,10 @@ class CSVExportHandler extends EventHandler {
    * @param {Object} event - 原始事件物件
    */
   async beforeHandle (event) {
-    // 記錄處理開始
+    // Logger 後備方案: Export Handler 處理記錄
+    // 設計理念: Export 處理過程需要明確的開始記錄，便於追蹤和除錯
+    // 後備機制: console.log 提供處理流程的可見性
+    // 使用場景: CSV 匯出請求開始時的處理狀態記錄
     // eslint-disable-next-line no-console
     console.log(`[${this.name}] Processing CSV export request`)
   }
@@ -160,7 +163,10 @@ class CSVExportHandler extends EventHandler {
    * @param {Object} result - 處理結果
    */
   async afterHandle (event, result) {
-    // 記錄處理完成
+    // Logger 後備方案: Export Handler 完成記錄
+    // 設計理念: Export 處理完成狀態需要明確記錄，確認處理成功
+    // 後備機制: console.log 提供完成狀態的可見性
+    // 使用場景: CSV 匯出成功完成時的狀態確認
     // eslint-disable-next-line no-console
     console.log(`[${this.name}] CSV export completed successfully`)
   }
@@ -172,6 +178,10 @@ class CSVExportHandler extends EventHandler {
    * @param {Error} error - 發生的錯誤
    */
   async onError (event, error) {
+    // Logger 後備方案: Export Handler 錯誤記錄
+    // 設計理念: Export 處理失敗是關鍵錯誤，必須被記錄和追蹤
+    // 後備機制: console.error 確保錯誤可見性，即使在 Logger 不可用時
+    // 使用場景: CSV 匯出處理失敗時的錯誤記錄和除錯資訊
     // eslint-disable-next-line no-console
     console.error(`[${this.name}] CSV export failed:`, error.message)
   }

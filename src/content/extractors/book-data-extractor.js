@@ -33,7 +33,7 @@
  *
  * @returns {Object} BookDataExtractor 實例
  */
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 function createBookDataExtractor () {
   let eventBus = null
@@ -159,9 +159,14 @@ function createBookDataExtractor () {
       try {
         // 檢查頁面是否可提取
         if (!this.isExtractableReadmooPage()) {
-          throw new StandardError('UNKNOWN_ERROR', '不支援的頁面類型: ${pageType}', {
-            category: 'general'
-          })
+          const error = new Error(`不支援的頁面類型: ${pageType}`)
+          error.code = ErrorCodes.VALIDATION_ERROR
+          error.details = {
+            category: 'general',
+            component: 'BookDataExtractor',
+            pageType
+          }
+          throw error
         }
 
         // 建立流程狀態
@@ -193,6 +198,11 @@ function createBookDataExtractor () {
 
         return flowId
       } catch (error) {
+        // Logger 後備方案: Content Script 環境適應
+        // 設計理念: Content Script 運行在網頁環境，與擴展環境隔離
+        // 執行環境: 網頁上下文，Logger 服務可能不可用
+        // 後備機制: console 是唯一可靠的錯誤輸出
+        // 安全考量: 提取流程失敗是關鍵錯誤，必須被記錄
         // eslint-disable-next-line no-console
         console.error('❌ 啟動提取流程失敗:', error)
 
@@ -217,9 +227,16 @@ function createBookDataExtractor () {
     async performActualExtraction (flowId) {
       const flowState = activeExtractionFlows.get(flowId)
       if (!flowState || !readmooAdapter) {
-        throw new StandardError('UNKNOWN_ERROR', '流程狀態或適配器不存在', {
-          category: 'general'
-        })
+        const error = new Error('流程狀態或適配器不存在')
+        error.code = ErrorCodes.SYSTEM_ERROR
+        error.details = {
+          category: 'general',
+          component: 'BookDataExtractor',
+          flowId,
+          hasFlowState: !!flowState,
+          hasAdapter: !!readmooAdapter
+        }
+        throw error
       }
 
       try {

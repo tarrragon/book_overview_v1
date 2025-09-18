@@ -28,7 +28,6 @@
  * @since 2025-08-20
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class SearchResultFormatter {

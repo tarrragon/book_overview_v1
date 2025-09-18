@@ -15,7 +15,7 @@
  */
 
 const BaseModule = require('./base-module')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class InstallHandler extends BaseModule {
   constructor (dependencies = {}) {
@@ -53,6 +53,16 @@ class InstallHandler extends BaseModule {
 
     // 設定當前版本
     const manifest = chrome.runtime.getManifest()
+    if (!manifest) {
+      const error = new Error('無法取得 Chrome Extension Manifest')
+      error.code = ErrorCodes.CHROME_ERROR
+      error.details = {
+        category: 'general',
+        component: 'InstallHandler',
+        operation: 'getManifest'
+      }
+      throw error
+    }
     this.defaultConfig.version = manifest.version
 
     // 初始化相關服務
@@ -371,9 +381,14 @@ class InstallHandler extends BaseModule {
       const missingAPIs = requiredAPIs.filter(api => !chrome[api])
 
       if (missingAPIs.length > 0) {
-        throw new StandardError('MISSING_REQUIRED_DATA', `缺少必要的 Chrome API: ${missingAPIs.join(', ', {
-          category: 'general'
-      })}`)
+        const error = new Error(`缺少必要的 Chrome API: ${missingAPIs.join(', ')}`)
+        error.code = ErrorCodes.CHROME_ERROR
+        error.details = {
+          category: 'general',
+          component: 'InstallHandler',
+          missingAPIs
+        }
+        throw error
       }
 
       this.logger.log('✅ 相容性檢查通過')

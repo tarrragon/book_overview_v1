@@ -85,6 +85,11 @@ export class StandardErrorMigrationAnalyzer {
    * @returns {Object} 分析結果
    */
   async analyzeForMigration() {
+    // Logger 後備方案: 開發工具進度記錄
+    // 設計理念: 遷移分析工具需要清晰的執行進度提示
+    // 執行環境: Node.js 開發環境，作為獨立工具運行
+    // 後備機制: console.log 提供遷移分析的即時狀態反饋
+    // 開發需求: 長時間運行的分析需要進度可見性
     console.log('🔍 開始 StandardError 遷移分析...\n')
 
     try {

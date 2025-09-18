@@ -34,7 +34,7 @@
 const BaseUIHandler = require('./base-ui-handler')
 const UIEventValidator = require('./ui-event-validator')
 const UI_HANDLER_CONFIG = require('src/ui/config/ui-handler-config')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class UINotificationHandler extends BaseUIHandler {
   /**
@@ -312,9 +312,10 @@ class UINotificationHandler extends BaseUIHandler {
    */
   async createNotification (data, flowId) {
     if (!this.document) {
-      throw new StandardError('RESOURCE_NOT_AVAILABLE', 'Document not available', {
-        category: 'ui'
-      })
+      const error = new Error('Document not available')
+      error.code = ErrorCodes.SYSTEM_ERROR
+      error.details = { category: 'ui', component: 'UINotificationHandler', resource: 'document' }
+      throw error
     }
 
     // 創建主通知元素
@@ -324,9 +325,10 @@ class UINotificationHandler extends BaseUIHandler {
     })
 
     if (!notification) {
-      throw new StandardError('OPERATION_FAILED', 'Failed to create notification element', {
-        category: 'ui'
-      })
+      const error = new Error('Failed to create notification element')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'ui', component: 'UINotificationHandler', operation: 'createElement' }
+      throw error
     }
 
     // 設定通知內容

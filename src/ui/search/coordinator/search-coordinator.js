@@ -30,7 +30,7 @@
  * @since 2025-08-20
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class SearchCoordinator {
   /**
@@ -58,44 +58,62 @@ class SearchCoordinator {
 
     // 驗證必需依賴
     if (!eventBus) {
-      throw new StandardError('EVENTBUS_ERROR', 'EventBus 是必需的', {
+      const error = new Error('EventBus 是必需的')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         category: 'ui'
-      })
+      }
+      throw error
     }
     if (!logger) {
-      throw new StandardError('COORDINATOR_CONFIG_ERROR', 'Logger 是必需的', {
+      const error = new Error('Logger 是必需的')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         category: 'ui',
         component: 'SearchCoordinator',
         field: 'logger'
-      })
+      }
+      throw error
     }
     if (!searchEngine) {
-      throw new StandardError('COORDINATOR_CONFIG_ERROR', 'SearchEngine 是必需的', {
+      const error = new Error('SearchEngine 是必需的')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         category: 'ui',
         component: 'SearchCoordinator',
         field: 'searchEngine'
-      })
+      }
+      throw error
     }
     if (!filterEngine) {
-      throw new StandardError('COORDINATOR_CONFIG_ERROR', 'FilterEngine 是必需的', {
+      const error = new Error('FilterEngine 是必需的')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         category: 'ui',
         component: 'SearchCoordinator',
         field: 'filterEngine'
-      })
+      }
+      throw error
     }
     if (!searchResultFormatter) {
-      throw new StandardError('COORDINATOR_CONFIG_ERROR', 'SearchResultFormatter 是必需的', {
+      const error = new Error('SearchResultFormatter 是必需的')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         category: 'ui',
         component: 'SearchCoordinator',
         field: 'searchResultFormatter'
-      })
+      }
+      throw error
     }
     if (!searchCacheManager) {
-      throw new StandardError('COORDINATOR_CONFIG_ERROR', 'SearchCacheManager 是必需的', {
+      const error = new Error('SearchCacheManager 是必需的')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         category: 'ui',
         component: 'SearchCoordinator',
         field: 'searchCacheManager'
-      })
+      }
+      throw error
     }
 
     // 保存依賴
@@ -205,11 +223,14 @@ class SearchCoordinator {
    */
   async executeSearch (query, filters = {}) {
     if (this._isDestroyed) {
-      throw new StandardError('COORDINATOR_STATE_ERROR', '協調器已被銷毀', {
+      const error = new Error('協調器已被銷毀')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
         category: 'ui',
         component: 'SearchCoordinator',
         state: 'destroyed'
-      })
+      }
+      throw error
     }
 
     // 驗證輸入
@@ -292,11 +313,14 @@ class SearchCoordinator {
     } catch (error) {
       this._updateSearchState(query, filters, false)
       this._handleCoordinationError('search', error, { query, filters })
-      throw new StandardError('SEARCH_COORDINATION_ERROR', '搜尋協調失敗: ' + error.message, {
+      const wrappedError = new Error('搜尋協調失敗: ' + error.message)
+      wrappedError.code = ErrorCodes.OPERATION_ERROR
+      wrappedError.details = {
         category: 'ui',
         operation: 'executeSearch',
         originalError: error.message
-      })
+      }
+      throw wrappedError
     }
   }
 
@@ -368,11 +392,14 @@ class SearchCoordinator {
    */
   async applyFiltersToResults (searchResults, filters) {
     if (this._isDestroyed) {
-      throw new StandardError('COORDINATOR_STATE_ERROR', '協調器已被銷毀', {
+      const error = new Error('協調器已被銷毀')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
         category: 'ui',
         component: 'SearchCoordinator',
         state: 'destroyed'
-      })
+      }
+      throw error
     }
 
     // 驗證輸入
@@ -408,11 +435,14 @@ class SearchCoordinator {
       return result
     } catch (error) {
       this._handleCoordinationError('filter', error, { searchResults, filters })
-      throw new StandardError('FILTER_COORDINATION_ERROR', '篩選協調失敗: ' + error.message, {
+      const wrappedError = new Error('篩選協調失敗: ' + error.message)
+      wrappedError.code = ErrorCodes.OPERATION_ERROR
+      wrappedError.details = {
         category: 'ui',
         operation: 'applyFiltersToResults',
         originalError: error.message
-      })
+      }
+      throw wrappedError
     }
   }
 
@@ -421,11 +451,14 @@ class SearchCoordinator {
    */
   async resetFilters () {
     if (this._isDestroyed) {
-      throw new StandardError('COORDINATOR_STATE_ERROR', '協調器已被銷毀', {
+      const error = new Error('協調器已被銷毀')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
         category: 'ui',
         component: 'SearchCoordinator',
         state: 'destroyed'
-      })
+      }
+      throw error
     }
 
     try {
@@ -439,11 +472,14 @@ class SearchCoordinator {
       }
     } catch (error) {
       this._handleCoordinationError('resetFilters', error, {})
-      throw new StandardError('FILTER_COORDINATION_ERROR', '篩選重置協調失敗: ' + error.message, {
+      const wrappedError = new Error('篩選重置協調失敗: ' + error.message)
+      wrappedError.code = ErrorCodes.OPERATION_ERROR
+      wrappedError.details = {
         category: 'ui',
         operation: 'resetFilters',
         originalError: error.message
-      })
+      }
+      throw wrappedError
     }
   }
 
@@ -454,11 +490,14 @@ class SearchCoordinator {
    */
   async updateBooksData (newBooks) {
     if (this._isDestroyed) {
-      throw new StandardError('COORDINATOR_STATE_ERROR', '協調器已被銷毀', {
+      const error = new Error('協調器已被銷毀')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = {
         category: 'ui',
         component: 'SearchCoordinator',
         state: 'destroyed'
-      })
+      }
+      throw error
     }
 
     this.booksData = newBooks
@@ -647,39 +686,51 @@ class SearchCoordinator {
    */
   _validateSearchInputs (query, filters) {
     if (query === null || query === undefined) {
-      throw new StandardError('SEARCH_VALIDATION_ERROR', '搜尋查詢是必需的', {
+      const error = new Error('搜尋查詢是必需的')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         category: 'ui',
         field: 'query',
         validationType: 'required'
-      })
+      }
+      throw error
     }
 
     if (typeof query !== 'string') {
-      throw new StandardError('SEARCH_VALIDATION_ERROR', '搜尋查詢必須是字串', {
+      const error = new Error('搜尋查詢必須是字串')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         category: 'ui',
         field: 'query',
         validationType: 'type',
         expectedType: 'string',
         actualType: typeof query
-      })
+      }
+      throw error
     }
 
     if (filters === null || filters === undefined) {
-      throw new StandardError('FILTER_VALIDATION_ERROR', '篩選條件是必需的', {
+      const error = new Error('篩選條件是必需的')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         category: 'ui',
         field: 'filters',
         validationType: 'required'
-      })
+      }
+      throw error
     }
 
     if (typeof filters !== 'object') {
-      throw new StandardError('FILTER_VALIDATION_ERROR', '篩選條件必須是物件', {
+      const error = new Error('篩選條件必須是物件')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         category: 'ui',
         field: 'filters',
         validationType: 'type',
         expectedType: 'object',
         actualType: typeof filters
-      })
+      }
+      throw error
     }
   }
 
@@ -689,31 +740,40 @@ class SearchCoordinator {
    */
   _validateFilterInputs (searchResults, filters) {
     if (!Array.isArray(searchResults)) {
-      throw new StandardError('FILTER_VALIDATION_ERROR', '搜尋結果陣列是必需的', {
+      const error = new Error('搜尋結果陣列是必需的')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         category: 'ui',
         field: 'searchResults',
         validationType: 'type',
         expectedType: 'array',
         actualType: typeof searchResults
-      })
+      }
+      throw error
     }
 
     if (filters === null || filters === undefined) {
-      throw new StandardError('FILTER_VALIDATION_ERROR', '篩選條件是必需的', {
+      const error = new Error('篩選條件是必需的')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         category: 'ui',
         field: 'filters',
         validationType: 'required'
-      })
+      }
+      throw error
     }
 
     if (typeof filters !== 'object') {
-      throw new StandardError('FILTER_VALIDATION_ERROR', '篩選條件必須是物件', {
+      const error = new Error('篩選條件必須是物件')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         category: 'ui',
         field: 'filters',
         validationType: 'type',
         expectedType: 'object',
         actualType: typeof filters
-      })
+      }
+      throw error
     }
   }
 

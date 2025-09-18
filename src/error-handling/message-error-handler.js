@@ -28,7 +28,7 @@ const Logger = require('src/core/logging/Logger')
  */
 
 const EventHandler = require('src/core/event-handler')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class MessageErrorHandler extends EventHandler {
   /**
@@ -471,9 +471,13 @@ class MessageErrorHandler extends EventHandler {
     if (!this.chromeAvailable) return false
 
     if (chrome.runtime.lastError) {
-      const error = new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-        category: 'general'
-      })
+      const error = new Error(chrome.runtime.lastError.message)
+      error.code = ErrorCodes.SYSTEM_ERROR
+      error.details = {
+        category: 'general',
+        component: 'MessageErrorHandler',
+        source: 'chrome.runtime.lastError'
+      }
 
       this.eventBus.emit('MESSAGE.ERROR', {
         error,

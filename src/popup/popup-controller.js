@@ -457,6 +457,10 @@ class PopupController {
       this.eventManager = new EventManager(this.document, this.components)
     } catch (error) {
       // 降級到舊式事件處理
+      // Logger 後備方案: Popup Component 降級警告
+      // 設計理念: Popup 組件需要在 EventManager 不可用時正常工作
+      // 後備機制: console.warn 提供降級狀態的可見性
+      // 使用場景: EventManager 載入失敗時的降級處理警告
       // eslint-disable-next-line no-console
       console.warn('EventManager 載入失敗，使用舊式事件處理:', error.message)
       this.eventManager = null

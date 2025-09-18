@@ -5,7 +5,7 @@
  * 與 Logger 系統配合使用
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 const LogLevel = Object.freeze({
   TRACE: 'TRACE',
@@ -39,12 +39,15 @@ function compareLogLevels (level1, level2) {
   const value2 = LogLevelValues[level2]
 
   if (value1 === undefined || value2 === undefined) {
-    throw new StandardError('INVALID_LOG_LEVEL', 'Invalid log level comparison: ${level1} vs ${level2}', {
+    const error = new Error('Invalid log level comparison: ${level1} vs ${level2}')
+    error.code = ErrorCodes.VALIDATION_ERROR
+    error.details = {
       level1,
       level2,
       validLevels: Object.keys(LogLevelValues),
       category: 'validation'
-    })
+    }
+    throw error
   }
 
   return value1 < value2 ? -1 : (value1 > value2 ? 1 : 0)

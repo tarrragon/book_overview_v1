@@ -15,7 +15,7 @@ const Logger = require('src/core/logging/Logger')
  * messages.set('CUSTOM_MESSAGE', '自訂訊息: {value}')
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class MessageDictionary {
   /**
@@ -209,9 +209,10 @@ class MessageDictionary {
    */
   set (key, message) {
     if (typeof key !== 'string' || typeof message !== 'string') {
-      throw new StandardError('UNKNOWN_ERROR', 'Message key and value must be strings', {
-        category: 'general'
-      })
+      const error = new Error('Message key and value must be strings')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     // 檢查快取大小限制
@@ -227,18 +228,22 @@ class MessageDictionary {
    */
   addMessages (messages) {
     if (!messages || typeof messages !== 'object') {
-      throw new StandardError('UNKNOWN_ERROR', 'Messages must be an object', {
+      const error = new Error('Messages must be an object')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = {
         dataType: 'object',
         category: 'general'
-      })
+      }
+      throw error
     }
 
     // 檢查總大小限制
     const estimatedSize = this._estimateSize(messages)
     if (this._cacheSize + estimatedSize > this._maxCacheSize) {
-      throw new StandardError('LIMIT_EXCEEDED', 'Adding messages would exceed cache size limit', {
-        category: 'general'
-      })
+      const error = new Error('Adding messages would exceed cache size limit')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     Object.assign(this.messages, messages)
