@@ -8,7 +8,7 @@
  * @author Claude Code Assistant
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 const fs = require('fs').promises
 const path = require('path')
@@ -170,7 +170,10 @@ class MigrationProgressTracker {
   async updateItemStatus (itemId, status, details = {}) {
     const item = this.migrationState.items.get(itemId)
     if (!item) {
-      throw new StandardError('IMPLEMENTATION_ERROR', `遷移項目不存在: ${itemId}`)
+      const error = new Error(`遷移項目不存在: ${itemId}`)
+      error.code = ErrorCodes.IMPLEMENTATION_ERROR
+      error.details = { itemId, category: 'migration' }
+      throw error
     }
 
     const oldStatus = item.status

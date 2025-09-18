@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 /**
  * StandardError 向後相容包裝器
@@ -422,7 +422,10 @@ export class StandardError extends Error {
       this.migrationConfig.mode = mode
       console.log(`[StandardError 遷移] 模式已設定為: ${mode}`)
     } else {
-      throw new StandardError(`IMPLEMENTATION_ERROR`, `無效的遷移模式: ${mode}`)
+      const error = new Error(`無效的遷移模式: ${mode}`)
+      error.code = ErrorCodes.IMPLEMENTATION_ERROR
+      error.details = { mode, category: 'migration' }
+      throw error
     }
   }
 
@@ -481,7 +484,9 @@ export class StandardError extends Error {
 
     const results = testCases.map(testCase => {
       try {
-        const error = new StandardError(testCase.code, testCase.message)
+        const error = new Error(testCase.message)
+        error.code = ErrorCodes[testCase.code] || ErrorCodes.UNKNOWN_ERROR
+        error.details = { testCase: testCase.code, category: 'testing' }
         return {
           testCase,
           success: true,

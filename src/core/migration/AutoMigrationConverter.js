@@ -10,7 +10,7 @@
  * Phase 3: StandardError 自動轉換機制實作
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 const fs = require('fs').promises
 const path = require('path')
@@ -566,7 +566,10 @@ class AutoMigrationConverter {
         break
 
       default:
-        throw new StandardError('IMPLEMENTATION_ERROR', `未知的轉換模式: ${this.config.mode}`)
+        const error = new Error(`未知的轉換模式: ${this.config.mode}`)
+        error.code = ErrorCodes.IMPLEMENTATION_ERROR
+        error.details = { mode: this.config.mode, category: 'migration' }
+        throw error
     }
   }
 

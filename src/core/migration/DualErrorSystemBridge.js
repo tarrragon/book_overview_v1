@@ -10,7 +10,8 @@
  * Phase 3: 雙重錯誤系統支援實作
  */
 
-const { StandardError, MIGRATION_MODES } = require('./StandardError')
+const { StandardError, MIGRATION_MODES } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 /**
  * 雙重系統操作模式
@@ -221,7 +222,10 @@ class DualErrorSystemBridge {
         return this._processTransitional(error, errorType, options)
 
       default:
-        throw new StandardError('IMPLEMENTATION_ERROR', `未知的雙重系統模式: ${this.config.mode}`)
+        const implementationError = new Error(`未知的雙重系統模式: ${this.config.mode}`)
+        implementationError.code = ErrorCodes.IMPLEMENTATION_ERROR
+        implementationError.details = { mode: this.config.mode, category: 'migration' }
+        throw implementationError
     }
   }
 
@@ -606,11 +610,17 @@ class DualErrorSystemBridge {
    */
   _validateStandardToErrorCodes (bridgedError, originalError) {
     if (!bridgedError.errorCode) {
-      throw new StandardError('IMPLEMENTATION_ERROR', '橋接後的錯誤缺少 errorCode 屬性')
+      const validationError = new Error('橋接後的錯誤缺少 errorCode 屬性')
+      validationError.code = ErrorCodes.IMPLEMENTATION_ERROR
+      validationError.details = { category: 'validation', bridgedError }
+      throw validationError
     }
 
     if (!bridgedError.message) {
-      throw new StandardError('IMPLEMENTATION_ERROR', '橋接後的錯誤缺少 message 屬性')
+      const validationError = new Error('橋接後的錯誤缺少 message 屬性')
+      validationError.code = ErrorCodes.IMPLEMENTATION_ERROR
+      validationError.details = { category: 'validation', bridgedError }
+      throw validationError
     }
 
     // 驗證訊息一致性
@@ -627,11 +637,17 @@ class DualErrorSystemBridge {
    */
   _validateErrorCodesToStandard (bridgedError, originalError) {
     if (!bridgedError.code) {
-      throw new StandardError('IMPLEMENTATION_ERROR', '橋接後的錯誤缺少 code 屬性')
+      const validationError = new Error('橋接後的錯誤缺少 code 屬性')
+      validationError.code = ErrorCodes.IMPLEMENTATION_ERROR
+      validationError.details = { category: 'validation', bridgedError }
+      throw validationError
     }
 
     if (!bridgedError.name || bridgedError.name !== 'StandardError') {
-      throw new StandardError('IMPLEMENTATION_ERROR', '橋接後的錯誤 name 屬性不正確')
+      const validationError = new Error('橋接後的錯誤 name 屬性不正確')
+      validationError.code = ErrorCodes.IMPLEMENTATION_ERROR
+      validationError.details = { category: 'validation', expectedName: 'StandardError', actualName: bridgedError.name }
+      throw validationError
     }
 
     // 驗證類別一致性
@@ -649,7 +665,10 @@ class DualErrorSystemBridge {
   _validateBidirectionalCompatibility (bridgedError, originalError) {
     // 基本屬性檢查
     if (!bridgedError.message) {
-      throw new StandardError('IMPLEMENTATION_ERROR', '橋接後的錯誤缺少基本訊息')
+      const validationError = new Error('橋接後的錯誤缺少基本訊息')
+      validationError.code = ErrorCodes.IMPLEMENTATION_ERROR
+      validationError.details = { category: 'validation', bridgedError }
+      throw validationError
     }
 
     if (!bridgedError.timestamp) {
