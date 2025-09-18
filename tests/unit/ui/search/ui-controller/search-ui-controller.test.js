@@ -16,7 +16,7 @@
  */
 
 const SearchUIController = require('src/ui/search/ui-controller/search-ui-controller')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('SearchUIController', () => {
   let searchUIController
@@ -135,26 +135,47 @@ describe('SearchUIController', () => {
     })
 
     test('應該拋出錯誤當缺少必要依賴', () => {
-      expect(() => {
+      try {
         const controller = new SearchUIController({})
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toMatchObject({
-        message: expect.stringContaining('EventBus 和 Document 是必需的')
-      })
+        fail('應該拋出錯誤')
+      } catch (error) {
+        expect(error).toMatchObject({
+          code: ErrorCodes.VALIDATION_ERROR,
+          message: 'EventBus 和 Document 是必需的',
+          details: expect.objectContaining({
+            category: 'ui'
+          })
+        })
+      }
 
-      expect(() => {
+      try {
         const controller = new SearchUIController({ eventBus: mockEventBus })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toMatchObject({
-        message: expect.stringContaining('EventBus 和 Document 是必需的')
-      })
+        fail('應該拋出錯誤')
+      } catch (error) {
+        expect(error).toMatchObject({
+          code: ErrorCodes.VALIDATION_ERROR,
+          message: 'EventBus 和 Document 是必需的',
+          details: expect.objectContaining({
+            category: 'ui'
+          })
+        })
+      }
 
-      expect(() => {
+      try {
         const controller = new SearchUIController({ document: mockDocument })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toMatchObject({
-        message: expect.stringContaining('EventBus 和 Document 是必需的')
-      })
+        fail('應該拋出錯誤')
+      } catch (error) {
+        expect(error).toMatchObject({
+          code: ErrorCodes.VALIDATION_ERROR,
+          message: 'EventBus 和 Document 是必需的',
+          details: expect.objectContaining({
+            category: 'ui'
+          })
+        })
+      }
     })
 
     test('應該初始化預設 UI 配置', () => {
@@ -834,9 +855,7 @@ describe('SearchUIController', () => {
       expect(() => {
         const mockEvent = { target: { value: 'test' } }
         searchUIController.handleSearchInput(mockEvent)
-      }).toMatchObject({
-        message: expect.stringContaining('SearchUIController 已被清理')
-      })
+      }).toThrow('SearchUIController 已被清理')
     })
   })
 
@@ -948,7 +967,10 @@ describe('SearchUIController', () => {
       // 模擬處理過程中的記憶體問題
       const originalNormalize = searchUIController.normalizeSearchQuery
       searchUIController.normalizeSearchQuery = jest.fn().mockImplementation(() => {
-        throw new StandardError('SEARCH_UI_MEMORY_ERROR', 'Memory allocation failed', { category: 'testing' })
+        const error = new Error('Memory allocation failed')
+        error.code = 'SEARCH_UI_MEMORY_ERROR'
+        error.details = { category: 'testing' }
+        throw error
       })
 
       expect(() => {

@@ -21,10 +21,10 @@
  * - 長時間運行穩定性驗證
  */
 
-const EventBus = require('@/core/event-bus')
-const ChromeEventBridge = require('@/core/chrome-event-bridge')
-const EventNamingUpgradeCoordinator = require('@/core/events/event-naming-upgrade-coordinator')
-const EventPriorityManager = require('@/core/events/event-priority-manager')
+const EventBus = require('src/core/event-bus')
+const ChromeEventBridge = require('src/content/bridge/chrome-event-bridge')
+const EventNamingUpgradeCoordinator = require('src/core/events/event-naming-upgrade-coordinator')
+const EventPriorityManager = require('src/core/events/event-priority-manager')
 
 // 模擬 Chrome Extension 環境
 global.chrome = require('jest-chrome').chrome

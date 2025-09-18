@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * SearchResultFormatter 單元測試
  * TDD 循環 4/8 - BookSearchFilter 職責拆分重構
@@ -531,7 +531,10 @@ describe('SearchResultFormatter', () => {
     test('事件發送失敗時應該記錄錯誤但不影響格式化', () => {
       // 模擬 eventBus 發送失敗
       mockEventBus.emit.mockImplementation(() => {
-        throw new StandardError('MEMORY_INSUFFICIENT_ERROR', 'Event emission failed', { category: 'testing' })
+        const error = new Error('Event emission failed')
+        error.code = 'MEMORY_INSUFFICIENT_ERROR'
+        error.details = { category: 'testing' }
+        throw error
       })
 
       expect(() => {

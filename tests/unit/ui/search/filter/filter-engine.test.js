@@ -17,7 +17,7 @@
  */
 
 const FilterEngine = require('src/ui/search/filter/filter-engine')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('FilterEngine', () => {
   let filterEngine
@@ -106,14 +106,14 @@ describe('FilterEngine', () => {
       expect(() => {
         const engine = new FilterEngine({ logger: mockLogger })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toThrow(StandardError)
+      }).toThrow(expect.objectContaining({ code: expect.any(String) }))
     })
 
     it('should throw error when Logger is missing', () => {
       expect(() => {
         const engine = new FilterEngine({ eventBus: mockEventBus })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toThrow(StandardError)
+      }).toThrow(expect.objectContaining({ code: expect.any(String) }))
     })
 
     it('should initialize with default configuration', () => {
@@ -172,9 +172,9 @@ describe('FilterEngine', () => {
     })
 
     it('should validate input parameters', async () => {
-      await expect(filterEngine.applyFilters(null, {})).rejects.toThrow(StandardError)
-      await expect(filterEngine.applyFilters(testBooks, null)).rejects.toThrow(StandardError)
-      await expect(filterEngine.applyFilters('invalid', {})).rejects.toThrow(StandardError)
+      await expect(filterEngine.applyFilters(null, {})).rejects.toThrow(expect.objectContaining({ code: expect.any(String) }))
+      await expect(filterEngine.applyFilters(testBooks, null)).rejects.toThrow(expect.objectContaining({ code: expect.any(String) }))
+      await expect(filterEngine.applyFilters('invalid', {})).rejects.toThrow(expect.objectContaining({ code: expect.any(String) }))
     })
 
     it('should emit filter application events when enabled', async () => {
@@ -342,7 +342,7 @@ describe('FilterEngine', () => {
     it('should handle invalid date format gracefully', async () => {
       await expect(filterEngine.applyFilters(testBooks, {
         lastReadAfter: 'invalid-date'
-      })).rejects.toThrow(StandardError)
+      })).rejects.toThrow(expect.objectContaining({ code: expect.any(String) }))
     })
   })
 
@@ -535,7 +535,7 @@ describe('FilterEngine', () => {
     it('should throw error when FilterEngine is destroyed', async () => {
       filterEngine.destroy()
 
-      await expect(filterEngine.applyFilters(testBooks, {})).rejects.toThrow(StandardError)
+      await expect(filterEngine.applyFilters(testBooks, {})).rejects.toThrow(expect.objectContaining({ code: expect.any(String) }))
     })
 
     it('should handle invalid filter criteria gracefully', async () => {

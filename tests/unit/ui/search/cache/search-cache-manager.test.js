@@ -93,23 +93,26 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
       expect(() => {
         const invalidManager = new SearchCacheManager()
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toMatchObject({
+      }).toThrow(expect.objectContaining({
+        code: 'VALIDATION_ERROR',
         message: expect.stringContaining('EventBus 和 Logger 是必需的')
-      })
+      }))
 
       expect(() => {
         const invalidManager = new SearchCacheManager({ eventBus: mockEventBus })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toMatchObject({
+      }).toThrow(expect.objectContaining({
+        code: 'VALIDATION_ERROR',
         message: expect.stringContaining('EventBus 和 Logger 是必需的')
-      })
+      }))
 
       expect(() => {
         const invalidManager = new SearchCacheManager({ logger: mockLogger })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toMatchObject({
+      }).toThrow(expect.objectContaining({
+        code: 'VALIDATION_ERROR',
         message: expect.stringContaining('EventBus 和 Logger 是必需的')
-      })
+      }))
     })
 
     test('應該正確初始化快取配置', () => {
@@ -520,41 +523,47 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     test('應該正確處理 null 或 undefined 鍵', () => {
       expect(() => {
         cacheManager.set(null, ['result'])
-      }).toMatchObject({
+      }).toThrow(expect.objectContaining({
+        code: 'VALIDATION_ERROR',
         message: expect.stringContaining('快取鍵必須是字串')
-      })
+      }))
 
       expect(() => {
         cacheManager.set(undefined, ['result'])
-      }).toMatchObject({
+      }).toThrow(expect.objectContaining({
+        code: 'VALIDATION_ERROR',
         message: expect.stringContaining('快取鍵必須是字串')
-      })
+      }))
 
       expect(() => {
         cacheManager.get(null)
-      }).toMatchObject({
+      }).toThrow(expect.objectContaining({
+        code: 'VALIDATION_ERROR',
         message: expect.stringContaining('快取鍵必須是字串')
-      })
+      }))
     })
 
     test('應該正確處理非字串鍵', () => {
       expect(() => {
         cacheManager.set(123, ['result'])
-      }).toMatchObject({
+      }).toThrow(expect.objectContaining({
+        code: 'VALIDATION_ERROR',
         message: expect.stringContaining('快取鍵必須是字串')
-      })
+      }))
 
       expect(() => {
         cacheManager.set(['array'], ['result'])
-      }).toMatchObject({
+      }).toThrow(expect.objectContaining({
+        code: 'VALIDATION_ERROR',
         message: expect.stringContaining('快取鍵必須是字串')
-      })
+      }))
 
       expect(() => {
         cacheManager.get(true)
-      }).toMatchObject({
+      }).toThrow(expect.objectContaining({
+        code: 'VALIDATION_ERROR',
         message: expect.stringContaining('快取鍵必須是字串')
-      })
+      }))
     })
 
     test('應該正確處理空字串鍵', () => {

@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * Chrome Extension 事件橋接器單元測試
  * 測試跨上下文事件通訊機制
@@ -216,7 +216,11 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
       const mockEvent = { type: 'test.event' }
 
       // Act & Assert
-      await expect(bridge.dispatchToContext(mockEvent, 'unknown')).rejects.toThrow(StandardError)
+      await expect(bridge.dispatchToContext(mockEvent, 'unknown')).rejects.toMatchObject({
+        code: ErrorCodes.VALIDATION_ERROR,
+        message: expect.any(String),
+        details: expect.any(Object)
+      })
     })
   })
 
@@ -252,7 +256,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
 
       // Act & Assert
       await expect(bridge.dispatchToBackground(mockEvent)).rejects.toMatchObject({
-        code: 'CHROME_BRIDGE_UNKNOWN_CONTEXT',
+        code: ErrorCodes.SYSTEM_ERROR,
         message: expect.any(String),
         details: expect.any(Object)
       })
@@ -394,7 +398,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
 
       // Act & Assert
       await expect(bridge.sendToTab(tabId, message)).rejects.toMatchObject({
-        code: 'CHROME_BRIDGE_UNKNOWN_CONTEXT',
+        code: ErrorCodes.SYSTEM_ERROR,
         message: expect.any(String),
         details: expect.any(Object)
       })
@@ -424,7 +428,10 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
     test('應該能夠處理消息監聽器註冊失敗', () => {
       // Arrange
       mockChrome.runtime.onMessage.addListener.mockImplementation(() => {
-        throw new StandardError('CHROME_BRIDGE_REGISTRATION_FAILED', 'Listener registration failed', { category: 'testing' })
+        const error = new Error('Listener registration failed')
+        error.code = ErrorCodes.SYSTEM_ERROR
+        error.details = { category: 'testing', component: 'ChromeEventBridge' }
+        throw error
       })
 
       // Act & Assert
@@ -432,12 +439,12 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
         createChromeEventBridge()
       }).toThrow()
 
-      // 驗證拋出的錯誤符合 StandardError 格式
+      // 驗證拋出的錯誤符合預期格式
       try {
         createChromeEventBridge()
       } catch (error) {
         expect(error).toMatchObject({
-          code: expect.any(String),
+          code: ErrorCodes.SYSTEM_ERROR,
           details: expect.any(Object)
         })
       }

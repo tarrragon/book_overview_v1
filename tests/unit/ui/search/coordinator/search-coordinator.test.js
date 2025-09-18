@@ -16,18 +16,19 @@
  */
 
 const SearchCoordinator = require('src/ui/search/coordinator/search-coordinator')
-const { StandardError } = require('src/core/errors')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
-// 測試輔助函數：驗證異步StandardError
-const expectAsyncStandardError = async (promise, expectedCode = 'SEARCH_VALIDATION_ERROR') => {
+// 測試輔助函數：驗證異步錯誤
+const expectAsyncError = async (promise, expectedCode = 'VALIDATION_ERROR') => {
   try {
     await promise
-    fail('Expected promise to throw StandardError')
+    fail('Expected promise to throw Error')
   } catch (error) {
-    expect(error).toBeInstanceOf(StandardError)
-    expect(error.code).toBe(expectedCode)
-    expect(error.message).toBeDefined()
-    expect(error.details).toBeDefined()
+    expect(error).toMatchObject({
+      code: expectedCode,
+      message: expect.any(String),
+      details: expect.any(Object)
+    })
   }
 }
 
@@ -168,7 +169,7 @@ describe('SearchCoordinator', () => {
           searchResultFormatter: mockSearchResultFormatter,
           searchCacheManager: mockSearchCacheManager
         })
-      }).toThrow(StandardError)
+      }).toThrow(expect.objectContaining({ code: ErrorCodes.VALIDATION_ERROR }))
 
       expect(() => {
         const coordinator = new SearchCoordinator({
@@ -190,7 +191,7 @@ describe('SearchCoordinator', () => {
           searchResultFormatter: mockSearchResultFormatter,
           searchCacheManager: mockSearchCacheManager
         })
-      }).toThrow(StandardError)
+      }).toThrow(expect.objectContaining({ code: ErrorCodes.VALIDATION_ERROR }))
 
       expect(() => {
         const coordinator = new SearchCoordinator({
@@ -212,7 +213,7 @@ describe('SearchCoordinator', () => {
           searchResultFormatter: mockSearchResultFormatter,
           searchCacheManager: mockSearchCacheManager
         })
-      }).toThrow(StandardError)
+      }).toThrow(expect.objectContaining({ code: ErrorCodes.VALIDATION_ERROR }))
 
       expect(() => {
         const coordinator = new SearchCoordinator({
@@ -331,8 +332,8 @@ describe('SearchCoordinator', () => {
       try {
         await searchCoordinator.executeSearch(null, {})
       } catch (error) {
-        expect(error).toBeInstanceOf(StandardError)
-        expect(error.code).toBe('SEARCH_VALIDATION_ERROR')
+        expect(error).toMatchObject({ code: expect.any(String) })
+        expect(error.code).toBe('VALIDATION_ERROR')
         expect(error.message).toBeDefined()
         expect(error.details).toBeDefined()
       }
@@ -340,8 +341,8 @@ describe('SearchCoordinator', () => {
       try {
         await searchCoordinator.executeSearch(undefined, {})
       } catch (error) {
-        expect(error).toBeInstanceOf(StandardError)
-        expect(error.code).toBe('SEARCH_VALIDATION_ERROR')
+        expect(error).toMatchObject({ code: expect.any(String) })
+        expect(error.code).toBe('VALIDATION_ERROR')
         expect(error.message).toBeDefined()
         expect(error.details).toBeDefined()
       }
@@ -422,13 +423,13 @@ describe('SearchCoordinator', () => {
     })
 
     it('should validate filter parameters', async () => {
-      await expectAsyncStandardError(
+      await expectAsyncError(
         searchCoordinator.applyFiltersToResults(null, {}),
-        'FILTER_VALIDATION_ERROR'
+        'VALIDATION_ERROR'
       )
-      await expectAsyncStandardError(
+      await expectAsyncError(
         searchCoordinator.applyFiltersToResults([], null),
-        'FILTER_VALIDATION_ERROR'
+        'VALIDATION_ERROR'
       )
     })
   })
@@ -487,9 +488,9 @@ describe('SearchCoordinator', () => {
     it('should handle module communication errors gracefully', async () => {
       mockSearchEngine.search.mockRejectedValue(new Error('Search engine error'))
 
-      await expectAsyncStandardError(
+      await expectAsyncError(
         searchCoordinator.executeSearch('test', {}),
-        'SEARCH_COORDINATION_ERROR'
+        'OPERATION_ERROR'
       )
 
       expect(mockLogger.error).toHaveBeenCalledWith('搜尋執行失敗', expect.any(Object))
@@ -595,9 +596,9 @@ describe('SearchCoordinator', () => {
       const searchError = new Error('Search failed')
       mockSearchEngine.search.mockRejectedValue(searchError)
 
-      await expectAsyncStandardError(
+      await expectAsyncError(
         searchCoordinator.executeSearch('test', {}),
-        'SEARCH_COORDINATION_ERROR'
+        'OPERATION_ERROR'
       )
 
       expect(mockLogger.error).toHaveBeenCalledWith('搜尋執行失敗', expect.objectContaining({
@@ -616,9 +617,9 @@ describe('SearchCoordinator', () => {
       mockSearchEngine.search.mockResolvedValue([testBooks[0]])
       mockFilterEngine.applyFilters.mockRejectedValue(new Error('Filter failed'))
 
-      await expectAsyncStandardError(
+      await expectAsyncError(
         searchCoordinator.executeSearch('test', { status: 'reading' }),
-        'SEARCH_COORDINATION_ERROR'
+        'OPERATION_ERROR'
       )
 
       expect(mockLogger.error).toHaveBeenCalled()
@@ -629,9 +630,9 @@ describe('SearchCoordinator', () => {
       mockSearchEngine.search.mockResolvedValue([testBooks[0]])
       mockFilterEngine.applyFilters.mockResolvedValue({ filteredBooks: [testBooks[0]], totalCount: 1 })
 
-      await expectAsyncStandardError(
+      await expectAsyncError(
         searchCoordinator.executeSearch('test', {}),
-        'SEARCH_COORDINATION_ERROR'
+        'OPERATION_ERROR'
       )
 
       expect(mockEventBus.emit).toHaveBeenCalledWith('COORDINATOR.ERROR', expect.any(Object))
@@ -640,9 +641,9 @@ describe('SearchCoordinator', () => {
     it('should handle SearchCoordinator destruction gracefully', async () => {
       await searchCoordinator.destroy()
 
-      await expectAsyncStandardError(
+      await expectAsyncError(
         searchCoordinator.executeSearch('test', {}),
-        'COORDINATOR_STATE_ERROR'
+        'OPERATION_ERROR'
       )
     })
   })
@@ -908,9 +909,9 @@ describe('SearchCoordinator', () => {
     it('should prevent operations after destruction', async () => {
       await searchCoordinator.destroy()
 
-      await expectAsyncStandardError(
+      await expectAsyncError(
         searchCoordinator.executeSearch('test', {}),
-        'COORDINATOR_STATE_ERROR'
+        'OPERATION_ERROR'
       )
     })
 

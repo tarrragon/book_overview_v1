@@ -22,7 +22,7 @@
 
 // 測試環境設定
 require('../../../../test-setup')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('SearchIndexManager - TDD 循環 1/8', () => {
   let indexManager
@@ -567,7 +567,10 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
     test('索引操作過程中發生錯誤時應該正確處理', () => {
       // 使用 spy 來模擬 Map 操作錯誤，而不是修改 prototype
       const mapSetSpy = jest.spyOn(Map.prototype, 'set').mockImplementation(() => {
-        throw new StandardError('SEARCH_INDEX_READ_ERROR', '索引操作失敗', { category: 'testing' })
+        const error = new Error('索引操作失敗')
+        error.code = ErrorCodes.SYSTEM_ERROR
+        error.details = { category: 'testing' }
+        throw error
       })
 
       expect(() => {

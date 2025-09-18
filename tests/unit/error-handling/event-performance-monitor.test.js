@@ -228,7 +228,7 @@ describe('EventPerformanceMonitor', () => {
         eventType: 'SLOW.EVENT',
         processingTime: 100,
         threshold: warningThreshold,
-        timestamp: expect.toBeGreaterThan(0)
+        timestamp: expect.any(Number)
       })
     })
 
@@ -249,7 +249,7 @@ describe('EventPerformanceMonitor', () => {
         usedMemory: 80 * 1024 * 1024,
         threshold: 70 * 1024 * 1024,
         memoryUsagePercent: 80,
-        timestamp: expect.toBeGreaterThan(0)
+        timestamp: expect.any(Number)
       })
     })
 
@@ -268,7 +268,7 @@ describe('EventPerformanceMonitor', () => {
         type: 'HIGH_ACTIVE_EVENT_COUNT',
         activeEventCount: 6,
         threshold: 5,
-        timestamp: expect.toBeGreaterThan(0)
+        timestamp: expect.any(Number)
       })
     })
 
@@ -315,7 +315,7 @@ describe('EventPerformanceMonitor', () => {
           requestId: 'req-123',
           report: expect.any(Object),
           history: expect.any(Array),
-          timestamp: expect.toBeGreaterThan(0)
+          timestamp: expect.any(Number)
         }
       )
     })

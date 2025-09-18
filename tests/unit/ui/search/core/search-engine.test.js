@@ -24,7 +24,7 @@
 
 // 測試環境設定
 require('../../../../test-setup')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('SearchEngine - TDD 循環 2/8', () => {
   let searchEngine
@@ -639,7 +639,10 @@ describe('SearchEngine - TDD 循環 2/8', () => {
         ...mockIndexManager,
         titleIndex: {
           get: jest.fn(() => {
-            throw new StandardError('SEARCH_RESULT_EVENT_ERROR', '索引讀取失敗', { category: 'testing' })
+            const error = new Error('索引讀取失敗')
+            error.code = 'SEARCH_RESULT_EVENT_ERROR'
+            error.details = { category: 'testing' }
+            throw error
           }),
           has: jest.fn(() => true)
         }

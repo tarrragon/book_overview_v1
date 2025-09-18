@@ -28,7 +28,7 @@ const DataValidationService = require('src/background/domains/data-management/se
 const MockEventBusMock = require('@mocks/chrome-api.mock')
 const MockEventBus = MockEventBusMock.createEventBusMock()
 const sampleBooks = require('@fixtures/sample-books.json')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('Data Validation Service v2.0', () => {
   let dataValidationService
@@ -125,7 +125,9 @@ describe('Data Validation Service v2.0', () => {
         expect(() => {
           const service = new DataValidationService(null, mockConfig)
           return service
-        }).toThrow(StandardError)
+        }).toThrow(expect.objectContaining({
+          code: ErrorCodes.VALIDATION_ERROR
+        }))
       })
 
       test('應該正確設定服務名稱', () => {
@@ -172,10 +174,15 @@ describe('Data Validation Service v2.0', () => {
 
       test('應該在初始化失敗時抛出有意義的錯誤', async () => {
         mockEventBus.on.mockImplementationOnce(() => {
-          throw new StandardError('DATA_VALIDATION_INIT_ERROR', '事件系統無法使用', { category: 'testing' })
+          const error = new Error('事件系統無法使用')
+          error.code = ErrorCodes.VALIDATION_ERROR
+          error.details = { category: 'testing' }
+          throw error
         })
 
-        await expect(dataValidationService.initialize()).rejects.toThrow(StandardError)
+        await expect(dataValidationService.initialize()).rejects.toThrow(expect.objectContaining({
+          code: ErrorCodes.OPERATION_ERROR
+        }))
       })
     })
 
@@ -200,7 +207,9 @@ describe('Data Validation Service v2.0', () => {
       test('應該處理不支援平台的情況', async () => {
         await expect(
           dataValidationService.loadPlatformValidationRules('UNSUPPORTED_PLATFORM')
-        ).rejects.toThrow(StandardError)
+        ).rejects.toThrow(expect.objectContaining({
+          code: ErrorCodes.VALIDATION_ERROR
+        }))
       })
 
       test('應該快取已載入的驗證規則', async () => {
@@ -656,36 +665,48 @@ describe('Data Validation Service v2.0', () => {
         // 測試 null 輸入
         await expect(
           dataValidationService.validateAndNormalize(null, 'READMOO', 'NULL_TEST')
-        ).rejects.toThrow(StandardError)
+        ).rejects.toThrow(expect.objectContaining({
+          code: 'BOOK_VALIDATION_FAILED'
+        }))
 
         // 測試 undefined 輸入
         await expect(
           dataValidationService.validateAndNormalize(undefined, 'READMOO', 'UNDEFINED_TEST')
-        ).rejects.toThrow(StandardError)
+        ).rejects.toThrow(expect.objectContaining({
+          code: 'BOOK_VALIDATION_FAILED'
+        }))
       })
 
       test('應該處理非陣列輸入', async () => {
         // 測試字串輸入
         await expect(
           dataValidationService.validateAndNormalize('not an array', 'READMOO', 'STRING_TEST')
-        ).rejects.toThrow(StandardError)
+        ).rejects.toThrow(expect.objectContaining({
+          code: 'BOOK_VALIDATION_FAILED'
+        }))
 
         // 測試數字輸入
         await expect(
           dataValidationService.validateAndNormalize(123, 'READMOO', 'NUMBER_TEST')
-        ).rejects.toThrow(StandardError)
+        ).rejects.toThrow(expect.objectContaining({
+          code: 'BOOK_VALIDATION_FAILED'
+        }))
       })
 
       test('應該處理空字串平台名稱', async () => {
         // 測試空字串平台
         await expect(
           dataValidationService.validateAndNormalize([validBookData], '', 'EMPTY_PLATFORM_TEST')
-        ).rejects.toThrow(StandardError)
+        ).rejects.toThrow(expect.objectContaining({
+          code: ErrorCodes.VALIDATION_ERROR
+        }))
 
         // 測試 null 平台
         await expect(
           dataValidationService.validateAndNormalize([validBookData], null, 'NULL_PLATFORM_TEST')
-        ).rejects.toThrow(StandardError)
+        ).rejects.toThrow(expect.objectContaining({
+          code: ErrorCodes.VALIDATION_ERROR
+        }))
       })
 
       test('應該處理超大陣列輸入', async () => {
@@ -711,15 +732,25 @@ describe('Data Validation Service v2.0', () => {
     describe('系統錯誤處理', () => {
       test('應該處理記憶體不足錯誤', async () => {
         // 模擬記憶體不足情況
-        const mockOutOfMemory = jest.spyOn(JSON, 'stringify').mockImplementation(() => {
-          throw new StandardError('MEMORY_EXHAUSTION_ERROR', 'JavaScript heap out of memory', { category: 'testing' })
+        const originalStringify = JSON.stringify
+        const mockOutOfMemory = jest.spyOn(JSON, 'stringify').mockImplementationOnce(() => {
+          const error = new Error('JavaScript heap out of memory')
+          error.code = ErrorCodes.SYSTEM_ERROR
+          error.details = { category: 'testing' }
+          throw error
         })
 
-        await expect(
-          dataValidationService.validateAndNormalize([validBookData], 'READMOO', 'MEMORY_TEST')
-        ).rejects.toThrow(StandardError)
-
-        mockOutOfMemory.mockRestore()
+        try {
+          await expect(
+            dataValidationService.validateAndNormalize([validBookData], 'READMOO', 'MEMORY_TEST')
+          ).rejects.toThrow(expect.objectContaining({
+            code: ErrorCodes.SYSTEM_ERROR
+          }))
+        } finally {
+          // 確保恢復原始實作
+          JSON.stringify = originalStringify
+          mockOutOfMemory.mockRestore()
+        }
       })
 
       test('應該處理網路逾時錯誤', async () => {
@@ -732,7 +763,9 @@ describe('Data Validation Service v2.0', () => {
 
         await expect(
           dataValidationService.loadPlatformValidationRules('READMOO')
-        ).rejects.toThrow(StandardError)
+        ).rejects.toThrow(expect.objectContaining({
+          code: ErrorCodes.OPERATION_ERROR
+        }))
       })
 
       test('應該處理並發存取衝突', async () => {
@@ -760,7 +793,9 @@ describe('Data Validation Service v2.0', () => {
 
         await expect(
           dataValidationService.validateSingleBook(validBookData, 'CORRUPTED_PLATFORM', 'CORRUPTED_TEST')
-        ).rejects.toThrow(StandardError)
+        ).rejects.toThrow(expect.objectContaining({
+          code: ErrorCodes.OPERATION_ERROR
+        }))
       })
     })
 
@@ -775,7 +810,9 @@ describe('Data Validation Service v2.0', () => {
 
         await expect(
           dataValidationService.validateAndNormalize([validBookData], 'READMOO', 'TIMEOUT_TEST')
-        ).rejects.toThrow(StandardError)
+        ).rejects.toThrow(expect.objectContaining({
+          code: ErrorCodes.OPERATION_ERROR
+        }))
       })
 
       test('應該處理批次大小限制', async () => {
