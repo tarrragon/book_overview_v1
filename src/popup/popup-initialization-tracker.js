@@ -14,7 +14,7 @@ const Logger = require('src/core/logging/Logger')
  * - 超時處理和錯誤恢復
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class PopupInitializationTracker {
   constructor () {
@@ -211,9 +211,10 @@ class PopupInitializationTracker {
 
     const step = this.steps.find(s => s.id === stepId)
     if (step) {
-      this.failStep(stepId, new StandardError('OPERATION_TIMEOUT', `步驟超時 (${step.timeout}ms, {
-          "category": "general"
-      })`))
+      const error = new Error(`步驟超時 (${step.timeout}ms)`)
+      error.code = ErrorCodes.TIMEOUT_ERROR
+      error.details = { category: 'general', stepId, timeout: step.timeout }
+      this.failStep(stepId, error)
     }
   }
 

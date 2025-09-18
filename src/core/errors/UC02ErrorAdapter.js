@@ -332,5 +332,3 @@ export class UC02ErrorAdapter {
     return error
   }
 }
-
-export { UC02ErrorAdapter }

@@ -80,6 +80,13 @@ class EventHandlerMock {
 // 將Mock設為全域可用 - 支援兩種載入方式
 global.EventHandler = EventHandlerMock
 
+// Mock ErrorCodes for browser environment
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+global.ErrorCodes = ErrorCodes
+if (typeof window !== 'undefined') {
+  window.ErrorCodes = ErrorCodes
+}
+
 // Mock Node.js模組系統中的EventHandler載入
 jest.doMock('../../../src/core/event-handler.js', () => EventHandlerMock)
 

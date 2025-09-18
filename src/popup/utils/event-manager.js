@@ -30,7 +30,7 @@ const Logger = require('src/core/logging/Logger')
  * @since 2025-08-19
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class EventManager {
   /**
@@ -545,21 +545,24 @@ class EventManager {
    */
   _validateEventConfig (config) {
     if (!config.elementId || typeof config.elementId !== 'string' || config.elementId.trim() === '') {
-      throw new StandardError('UNKNOWN_ERROR', '無效的事件配置: elementId 必須是非空字符串', {
-        category: 'general'
-      })
+      const error = new Error('無效的事件配置: elementId 必須是非空字符串')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general', elementId: config.elementId }
+      throw error
     }
 
     if (!config.eventType || typeof config.eventType !== 'string') {
-      throw new StandardError('UNKNOWN_ERROR', '無效的事件配置: eventType 必須是字符串', {
-        category: 'general'
-      })
+      const error = new Error('無效的事件配置: eventType 必須是字符串')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general', eventType: config.eventType }
+      throw error
     }
 
     if (config.handler && typeof config.handler !== 'function') {
-      throw new StandardError('UNKNOWN_ERROR', '無效的事件配置: handler 必須是函數', {
-        category: 'general'
-      })
+      const error = new Error('無效的事件配置: handler 必須是函數')
+      error.code = ErrorCodes.VALIDATION_ERROR
+      error.details = { category: 'general', handler: typeof config.handler }
+      throw error
     }
   }
 }

@@ -28,7 +28,7 @@
  */
 
 const EventHandler = require('src/core/event-handler')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { Logger } = require('src/core/logging')
 
 class PopupEventController extends EventHandler {
@@ -144,9 +144,10 @@ class PopupEventController extends EventHandler {
           result = await this.handleStatusUpdate(data, flowId)
           break
         default:
-          throw new StandardError('UNKNOWN_ERROR', 'Unsupported event type: ${type}', {
-            category: 'general'
-          })
+          const error = new Error(`Unsupported event type: ${type}`)
+          error.code = ErrorCodes.UNKNOWN_ERROR
+          error.details = { category: 'general', type }
+          throw error
       }
 
       this.messageCount++
@@ -192,9 +193,10 @@ class PopupEventController extends EventHandler {
    */
   initializeElements () {
     if (!this.document) {
-      throw new StandardError('RESOURCE_NOT_AVAILABLE', 'Document not available', {
-        category: 'general'
-      })
+      const error = new Error('Document not available')
+      error.code = ErrorCodes.DOM_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     this.elements = {
@@ -238,9 +240,10 @@ class PopupEventController extends EventHandler {
     const requiredElements = ['statusDot', 'statusText', 'extractBtn']
     for (const elementName of requiredElements) {
       if (!this.elements[elementName]) {
-        throw new StandardError('REQUIRED_FIELD_MISSING', 'Required element not found: ${elementName}', {
-          category: 'ui'
-        })
+        const error = new Error(`Required element not found: ${elementName}`)
+        error.code = ErrorCodes.DOM_ERROR
+        error.details = { category: 'ui', elementName }
+        throw error
       }
     }
   }
@@ -304,9 +307,10 @@ class PopupEventController extends EventHandler {
   async checkBackgroundStatus () {
     try {
       if (!this.chrome || !this.chrome.runtime) {
-        throw new StandardError('RESOURCE_NOT_AVAILABLE', 'Chrome runtime not available', {
-          category: 'general'
-        })
+        const error = new Error('Chrome runtime not available')
+        error.code = ErrorCodes.CHROME_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       const response = await this.chrome.runtime.sendMessage({
@@ -317,9 +321,10 @@ class PopupEventController extends EventHandler {
         this.updateStatus('線上', 'Background Service Worker 連線正常', '系統就緒', this.STATUS_TYPES.READY)
         return true
       } else {
-        throw new StandardError('UNKNOWN_ERROR', 'Background Service Worker 回應異常', {
-          category: 'general'
-        })
+        const error = new Error('Background Service Worker 回應異常')
+        error.code = ErrorCodes.CHROME_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
     } catch (error) {
       this.updateStatus('離線', 'Service Worker 離線', '請重新載入擴展', this.STATUS_TYPES.ERROR)
@@ -340,9 +345,10 @@ class PopupEventController extends EventHandler {
   async checkCurrentTab () {
     try {
       if (!this.chrome || !this.chrome.tabs) {
-        throw new StandardError('RESOURCE_NOT_AVAILABLE', 'Chrome tabs API not available', {
-          category: 'general'
-        })
+        const error = new Error('Chrome tabs API not available')
+        error.code = ErrorCodes.CHROME_ERROR
+        error.details = { category: 'general' }
+        throw error
       }
 
       const [tab] = await this.chrome.tabs.query({ active: true, currentWindow: true })
@@ -533,9 +539,10 @@ class PopupEventController extends EventHandler {
   async startExtraction () {
     const tab = await this.checkCurrentTab()
     if (!tab || !this.contentScriptReady) {
-      throw new StandardError('UNKNOWN_ERROR', '頁面或 Content Script 未就緒', {
-        category: 'general'
-      })
+      const error = new Error('頁面或 Content Script 未就緒')
+      error.code = ErrorCodes.CHROME_ERROR
+      error.details = { category: 'general' }
+      throw error
     }
 
     this.extractionInProgress = true
@@ -551,9 +558,10 @@ class PopupEventController extends EventHandler {
         // 提取成功，等待後續事件
         Logger.info('[PopupEventController] Extraction started successfully')
       } else {
-        throw new StandardError('UNKNOWN_ERROR', response?.error || '未知錯誤', {
-          category: 'general'
-        })
+        const error = new Error(response?.error || '未知錯誤')
+        error.code = ErrorCodes.OPERATION_ERROR
+        error.details = { category: 'general', response }
+        throw error
       }
     } catch (error) {
       this.extractionInProgress = false

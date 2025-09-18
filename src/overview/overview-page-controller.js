@@ -43,8 +43,8 @@ if (typeof window !== 'undefined') {
 } else {
   // Node.js 環境：使用 require
   EventHandlerClass = require('src/core/event-handler')
-  const { ErrorCodes: ErrorCodesClass } = require('src/core/errors/ErrorCodes')
-  ErrorCodes = ErrorCodesClass
+  const { ErrorCodes: ImportedErrorCodes } = require('src/core/errors/ErrorCodes')
+  ErrorCodes = ImportedErrorCodes
 }
 
 // 常數定義

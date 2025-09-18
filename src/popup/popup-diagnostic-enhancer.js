@@ -14,7 +14,7 @@ const Logger = require('src/core/logging/Logger')
  * - 支援開發者調試和使用者自助診斷
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class PopupDiagnosticEnhancer {
   constructor () {
@@ -223,9 +223,10 @@ class PopupDiagnosticEnhancer {
       await new Promise((resolve, reject) => {
         chrome.storage.local.set({ [testKey]: testValue }, () => {
           if (chrome.runtime.lastError) {
-            reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-              category: 'general'
-            }))
+            const error = new Error(chrome.runtime.lastError.message)
+            error.code = ErrorCodes.CHROME_ERROR
+            error.details = { category: 'general' }
+            reject(error)
           } else {
             resolve()
           }
@@ -236,9 +237,10 @@ class PopupDiagnosticEnhancer {
       const result = await new Promise((resolve, reject) => {
         chrome.storage.local.get(testKey, (result) => {
           if (chrome.runtime.lastError) {
-            reject(new StandardError('UNKNOWN_ERROR', chrome.runtime.lastError.message, {
-              category: 'general'
-            }))
+            const error = new Error(chrome.runtime.lastError.message)
+            error.code = ErrorCodes.CHROME_ERROR
+            error.details = { category: 'general' }
+            reject(error)
           } else {
             resolve(result)
           }

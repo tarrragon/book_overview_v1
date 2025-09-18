@@ -26,30 +26,28 @@
  */
 
 // 統一日誌管理系統 - 支援多環境載入
-let Logger, MessageDictionary, StandardError
+let Logger, MessageDictionary, ErrorCodes
 if (typeof require !== 'undefined') {
   // Node.js/測試環境
   try {
     ({ Logger } = require('src/core/logging/Logger'));
     ({ MessageDictionary } = require('src/core/messages/MessageDictionary'));
-    ({ StandardError } = require('src/core/errors/StandardError'))
+    ({ ErrorCodes } = require('src/core/errors/ErrorCodes'))
   } catch (e) {
     // 測試環境fallback
     Logger = window.Logger || class { info () {} warn () {} error () {} debug () {} }
     MessageDictionary = window.MessageDictionary || class {}
-    StandardError = window.StandardError || class extends Error {
-      constructor (type, message, metadata = {}) {
-        super(message)
-        this.type = type
-        this.metadata = metadata
-      }
+    ErrorCodes = window.ErrorCodes || {
+      UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+      CHROME_ERROR: 'CHROME_ERROR',
+      OPERATION_ERROR: 'OPERATION_ERROR'
     }
   }
 } else {
   // 瀏覽器環境 - 使用全域變數
   Logger = window.Logger
   MessageDictionary = window.MessageDictionary
-  StandardError = window.StandardError
+  ErrorCodes = window.ErrorCodes
 }
 
 // 初始化 Popup Logger
@@ -463,12 +461,12 @@ async function checkBackgroundStatus () {
   try {
     // 縮短超時時間到 2 秒，提供快速反饋
     const timeoutPromise = new Promise((_resolve, reject) => {
-      setTimeout(() => reject(new StandardError('UNKNOWN_ERROR', 'Background Service Worker 連線超時 (2秒)', {
-        values: [
-          '2'
-        ],
-        category: 'general'
-      })), 2000)
+      setTimeout(() => {
+        const error = new Error('Background Service Worker 連線超時 (2秒)')
+        error.code = ErrorCodes.CHROME_ERROR
+        error.details = { values: ['2'], category: 'general' }
+        reject(error)
+      }, 2000)
     })
 
     const messagePromise = chrome.runtime.sendMessage({ type: MESSAGE_TYPES.GET_STATUS })
@@ -491,9 +489,10 @@ async function checkBackgroundStatus () {
       updateStatus('線上', 'Background Service Worker 連線正常', '系統就緒', STATUS_TYPES.READY)
       return true
     } else {
-      throw new StandardError('UNKNOWN_ERROR', 'Background Service Worker 回應異常: ' + JSON.stringify(response, {
-        category: 'general'
-      }))
+      const error = new Error('Background Service Worker 回應異常: ' + JSON.stringify(response))
+      error.code = ErrorCodes.CHROME_ERROR
+      error.details = { category: 'general', response }
+      throw error
     }
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -636,9 +635,10 @@ async function startExtraction () {
         elements.bookCount.textContent = response.booksDetected
       }
     } else {
-      throw new StandardError('UNKNOWN_ERROR', response?.error || '未知錯誤', {
-        category: 'general'
-      })
+      const error = new Error(response?.error || '未知錯誤')
+      error.code = ErrorCodes.OPERATION_ERROR
+      error.details = { category: 'general', response }
+      throw error
     }
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -837,9 +837,10 @@ async function initialize () {
     const backgroundOk = await checkBackgroundStatus()
     if (!backgroundOk) {
       if (initializationTracker) {
-        initializationTracker.failStep('background_check', new StandardError('UNKNOWN_ERROR', 'Background Service Worker 連線失敗', {
-          category: 'general'
-        }))
+        const error = new Error('Background Service Worker 連線失敗')
+        error.code = ErrorCodes.CHROME_ERROR
+        error.details = { category: 'general' }
+        initializationTracker.failStep('background_check', error)
       }
 
       // 觸發系統初始化錯誤
