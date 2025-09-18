@@ -25,6 +25,12 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 class CrossDeviceSyncService {
   constructor (dependencies = {}) {
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 跨設備同步服務作為資料同步協調中心，負責記錄同步過程和跨設備通訊
+    // 執行環境: Service Worker 初始化階段，依賴注入可能不完整
+    // 後備機制: console 確保同步事件和跨設備協調過程能被追蹤
+    // 風險考量: 理想上應確保 Logger 完整可用，此為過渡性保護
     this.logger = dependencies.logger || console
     this.exportService = dependencies.exportService || null
     this.importService = dependencies.importService || null

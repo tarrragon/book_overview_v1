@@ -27,11 +27,18 @@
  */
 
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class NotificationService {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 通知管理服務統一處理用戶界面通知顯示和優先級協調
+    // 執行環境: Service Worker 初始化階段，依賴注入可能不完整
+    // 後備機制: console 確保模組生命週期錯誤能被追蹤
+    // 風險考量: 理想上應確保 Logger 完整可用，此為過渡性保護
     this.logger = dependencies.logger || console
     this.preferenceService = dependencies.preferenceService || null
 
@@ -134,7 +141,7 @@ class NotificationService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '通知管理服務尚未初始化', {
+      throw new StandardError(ErrorCodes.OPERATION_ERROR, '通知管理服務尚未初始化', {
         category: 'general'
       })
     }
@@ -362,13 +369,13 @@ class NotificationService {
 
     // 驗證必要欄位
     if (!notification.type || !this.notificationTypes[notification.type]) {
-      throw new StandardError('UNKNOWN_ERROR', '無效的通知類型: ${notification.type}', {
+      throw new StandardError(ErrorCodes.VALIDATION_ERROR, `無效的通知類型: ${notification.type}`, {
         category: 'general'
       })
     }
 
     if (!notification.title && !notification.message) {
-      throw new StandardError('UNKNOWN_ERROR', '通知必須包含標題或訊息', {
+      throw new StandardError(ErrorCodes.VALIDATION_ERROR, '通知必須包含標題或訊息', {
         category: 'general'
       })
     }

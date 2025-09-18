@@ -29,6 +29,12 @@ class PageDetectionService {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 頁面檢測服務作為頁面狀態感知核心，負責追蹤頁面變化和檢測結果
+    // 執行環境: Service Worker 初始化階段，依賴注入可能不完整
+    // 後備機制: console 確保頁面檢測事件和錯誤狀況能被追蹤
+    // 風險考量: 理想上應確保 Logger 完整可用，此為過渡性保護
     this.logger = dependencies.logger || console
     this.i18nManager = dependencies.i18nManager || null
 

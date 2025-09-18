@@ -27,6 +27,18 @@ const {
 } = require('src/background/constants/module-constants')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
+/**
+ * Logger 後備方案設計理念：
+ * - 生命週期管理服務是系統核心，需要記錄所有關鍵生命週期事件
+ * - 在 Chrome Extension Service Worker 環境中，console 物件提供基本的日誌輸出能力
+ * - 當專用 Logger 不可用時，console 後備方案確保：
+ *   1. 系統初始化、啟動、停止等關鍵階段的狀態記錄
+ *   2. 服務註冊、生命週期協調的執行過程追蹤
+ *   3. Chrome Storage API 狀態持久化和恢復的操作記錄
+ *   4. 系統健康檢查和維護模式切換的重要事件記錄
+ * - 此後備機制對整個系統的穩定運行和問題診斷至關重要
+ */
+
 class LifecycleManagementService {
   constructor (dependencies = {}) {
     // 依賴注入

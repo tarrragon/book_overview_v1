@@ -27,11 +27,18 @@
  */
 
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class PersonalizationService {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 個人化服務管理用戶個性化設定和客製化體驗
+    // 執行環境: Service Worker 初始化階段，依賴注入可能不完整
+    // 後備機制: console 確保模組生命週期錯誤能被追蹤
+    // 風險考量: 理想上應確保 Logger 完整可用，此為過渡性保護
     this.logger = dependencies.logger || console
     this.preferenceService = dependencies.preferenceService || null
     this.storageService = dependencies.storageService || null
@@ -123,7 +130,7 @@ class PersonalizationService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '個人化服務尚未初始化', {
+      throw new StandardError(ErrorCodes.OPERATION_ERROR, '個人化服務尚未初始化', {
         category: 'general'
       })
     }
@@ -318,7 +325,7 @@ class PersonalizationService {
     try {
       const suggestion = this.userProfile.recommendations.find(r => r.id === suggestionId)
       if (!suggestion) {
-        throw new StandardError('UNKNOWN_ERROR', '找不到建議: ${suggestionId}', {
+        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `找不到建議: ${suggestionId}`, {
           category: 'general'
         })
       }
@@ -336,7 +343,7 @@ class PersonalizationService {
           result = await this.applyFeatureSuggestion(suggestion)
           break
         default:
-          throw new StandardError('UNKNOWN_ERROR', '不支援的建議類型: ${suggestion.type}', {
+          throw new StandardError(ErrorCodes.VALIDATION_ERROR, `不支援的建議類型: ${suggestion.type}`, {
             category: 'general'
           })
       }

@@ -49,6 +49,12 @@ class BatchValidationProcessor extends BaseModule {
     })
 
     this.eventBus = eventBus
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 批次驗證處理器作為大量資料處理中心，負責記錄批次處理進度和驗證結果
+    // 執行環境: Service Worker 初始化階段，依賴注入可能不完整
+    // 後備機制: console 確保批次處理事件和驗證結果能被追蹤
+    // 風險考量: 理想上應確保 Logger 完整可用，此為過渡性保護
     this.logger = dependencies.logger || console
     this.validationRuleManager = dependencies.validationRuleManager
 

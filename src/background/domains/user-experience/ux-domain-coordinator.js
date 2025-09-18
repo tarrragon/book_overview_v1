@@ -35,11 +35,18 @@ const AccessibilityService = require('./services/accessibility-service')
 
 const { EVENT_PRIORITIES } = require('src/background/constants/module-constants')
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class UXDomainCoordinator {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: UX 領域協調器統籌用戶體驗各服務，確保主題、偏好、通知的一致性
+    // 執行環境: Service Worker 初始化階段，依賴注入可能不完整
+    // 後備機制: console 確保模組生命週期錯誤能被追蹤
+    // 風險考量: 理想上應確保 Logger 完整可用，此為過渡性保護
     this.logger = dependencies.logger || console
     this.i18nManager = dependencies.i18nManager || null
 
@@ -159,7 +166,7 @@ class UXDomainCoordinator {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', 'UX 協調器尚未初始化', {
+      throw new StandardError(ErrorCodes.OPERATION_ERROR, 'UX 協調器尚未初始化', {
         category: 'general'
       })
     }
@@ -338,7 +345,7 @@ class UXDomainCoordinator {
         this.logger.log(`✅ UX 服務初始化完成: ${serviceName}`)
       } catch (error) {
         this.logger.error(`❌ UX 服務初始化失敗: ${serviceName}`, error)
-        throw new StandardError('UNKNOWN_ERROR', 'UX 服務 ${serviceName} 初始化失敗: ${error.message}', {
+        throw new StandardError(ErrorCodes.OPERATION_ERROR, `UX 服務 ${serviceName} 初始化失敗: ${error.message}`, {
           category: 'general'
         })
       }

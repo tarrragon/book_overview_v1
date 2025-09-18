@@ -26,6 +26,18 @@ const {
 } = require('src/background/constants/module-constants')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
+/**
+ * Logger 後備方案設計理念：
+ * - 版本控制服務需要記錄版本變更和遷移過程的關鍵事件
+ * - 在 Chrome Extension Service Worker 環境中，console 物件提供基本的日誌輸出能力
+ * - 當專用 Logger 不可用時，console 後備方案確保：
+ *   1. 版本檢測、變更和遷移策略執行的追蹤記錄
+ *   2. Chrome Storage API 互動和版本資訊保存的狀態記錄
+ *   3. 版本相容性檢查和遷移失敗的診斷資訊
+ *   4. 事件監聽器註冊和版本相關事件的處理記錄
+ * - 此後備機制對擴展升級過程的穩定性和問題排查至關重要
+ */
+
 class VersionControlService {
   constructor (dependencies = {}) {
     // 依賴注入

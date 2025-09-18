@@ -22,6 +22,12 @@ const {
 class SyncProgressTracker {
   constructor (dependencies = {}) {
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 同步進度追蹤器作為進度監控中心，負責記錄同步階段和狀態變化
+    // 執行環境: Service Worker 初始化階段，依賴注入可能不完整
+    // 後備機制: console 確保進度事件和追蹤狀態能被追蹤
+    // 風險考量: 理想上應確保 Logger 完整可用，此為過渡性保護
     this.logger = dependencies.logger || console
 
     this.state = {

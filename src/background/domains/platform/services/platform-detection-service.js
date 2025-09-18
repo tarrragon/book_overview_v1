@@ -39,6 +39,11 @@ class PlatformDetectionService {
   constructor (eventBus, config = {}) {
     try {
       this.eventBus = eventBus
+
+      // Logger 模式: Platform Service (核心系統服務)
+      // 設計理念: 平台偵測是核心系統功能，需要完整日誌記錄
+      // 資源考量: 長期運行服務，強制提供 Logger 實例確保診斷能力
+      // 命名規範: 使用 [ServiceName] 格式便於日誌識別
       this.logger = config.logger || new Logger('[PlatformDetectionService]')
       this.confidenceThreshold = 0.8
       this.detectionCache = new Map()
@@ -63,11 +68,15 @@ class PlatformDetectionService {
         this.registerEventListeners()
       } catch (listenerError) {
         // 監聽器註冊失敗不影響服務創建
-        this.logger ? this.logger.warn('Event listener registration failed', { error: listenerError.message }) : new Logger('[PlatformDetectionService]').warn('Event listener registration failed', { error: listenerError.message })
+        // 使用已初始化的 logger，此時 logger 必然存在
+        this.logger.warn('Event listener registration failed', { error: listenerError.message })
       }
     } catch (initError) {
       // 即使初始化失敗，也要創建服務的基本狀態
       this.eventBus = null
+
+      // Logger 後備機制: 確保錯誤處理時仍有日誌功能
+      // 此處與主要初始化使用相同模式保持一致性
       this.logger = config.logger || new Logger('[PlatformDetectionService]')
       this.confidenceThreshold = 0.8
       this.detectionCache = new Map()

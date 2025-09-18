@@ -27,11 +27,18 @@
  */
 
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class ThemeManagementService {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 主題管理服務統籌深色/淺色主題切換和跨組件同步
+    // 執行環境: Service Worker 初始化階段，依賴注入可能不完整
+    // 後備機制: console 確保模組生命週期錯誤能被追蹤
+    // 風險考量: 理想上應確保 Logger 完整可用，此為過渡性保護
     this.logger = dependencies.logger || console
     this.storageService = dependencies.storageService || null
 
@@ -152,7 +159,7 @@ class ThemeManagementService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '主題管理服務尚未初始化', {
+      throw new StandardError(ErrorCodes.OPERATION_ERROR, '主題管理服務尚未初始化', {
         category: 'general'
       })
     }
@@ -193,7 +200,7 @@ class ThemeManagementService {
     try {
       // 驗證主題有效性
       if (!this.isValidTheme(theme)) {
-        throw new StandardError('UNKNOWN_ERROR', '無效的主題: ${theme}', {
+        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `無效的主題: ${theme}`, {
           category: 'general'
         })
       }
@@ -275,7 +282,7 @@ class ThemeManagementService {
     try {
       // 驗證提供者介面
       if (!provider || typeof provider.updateTheme !== 'function') {
-        throw new StandardError('UNKNOWN_ERROR', '主題提供者 ${providerId} 必須實現 updateTheme 方法', {
+        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `主題提供者 ${providerId} 必須實現 updateTheme 方法`, {
           category: 'general'
         })
       }

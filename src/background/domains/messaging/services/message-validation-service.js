@@ -1,4 +1,5 @@
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 const { EVENT_PRIORITIES, MESSAGE_EVENTS } = require('src/core/event-bus')
 
@@ -46,6 +47,12 @@ class MessageValidationService {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 訊息驗證服務作為通訊安全的核心基礎設施
+    // 執行環境: Service Worker 長期運行，需要完整的日誌追蹤能力
+    // 後備機制: console 確保安全驗證錯誤能被記錄
+    // 安全考量: 訊息驗證失敗必須被追蹤，避免安全漏洞
     this.logger = dependencies.logger || console
     this.i18nManager = dependencies.i18nManager || null
 
@@ -108,7 +115,7 @@ class MessageValidationService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '訊息驗證服務尚未初始化', {
+      throw new StandardError(ErrorCodes.CONFIG_ERROR, '訊息驗證服務尚未初始化', {
         category: 'validation'
       })
     }

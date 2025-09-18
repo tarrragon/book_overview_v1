@@ -1,4 +1,5 @@
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 const { Logger } = require('src/core/logging/Logger')
 
@@ -387,7 +388,7 @@ class AdapterFactoryService {
 
       // 驗證平台支援
       if (!this.supportedPlatforms.includes(platformId)) {
-        throw new StandardError('UNKNOWN_ERROR', '不支援的平台: ${platformId}', {
+        throw new StandardError(ErrorCodes.CHROME_ERROR, `不支援的平台: ${platformId}`, {
           category: 'general'
         })
       }
@@ -477,7 +478,7 @@ class AdapterFactoryService {
     // 取得適配器類型配置
     const adapterType = this.adapterTypes.get(platformId)
     if (!adapterType) {
-      throw new StandardError('UNKNOWN_ERROR', '找不到適配器類型配置: ${platformId}', {
+      throw new StandardError(ErrorCodes.CONFIG_ERROR, `找不到適配器類型配置: ${platformId}`, {
         category: 'general'
       })
     }
@@ -491,7 +492,7 @@ class AdapterFactoryService {
     // 取得構造函數
     const AdapterConstructor = this.adapterConstructors.get(platformId)
     if (!AdapterConstructor) {
-      throw new StandardError('UNKNOWN_ERROR', '找不到適配器構造函數: ${platformId}', {
+      throw new StandardError(ErrorCodes.CONFIG_ERROR, `找不到適配器構造函數: ${platformId}`, {
         category: 'general'
       })
     }
@@ -1440,6 +1441,10 @@ class AdapterFactoryService {
     if (this.logger && typeof this.logger.info === 'function') {
       this.logger.info(`[AdapterFactoryService] ${message}`)
     } else {
+      // Logger 後備方案: Background Service 初始化保護
+      // 設計理念: Background Service 初始化階段 logger 可能尚未完全就緒
+      // 後備機制: console.info 確保服務運行狀態的基本可見性
+      // 風險考量: Background Service 理想上應確保 logger 可用，此為過渡性保護
       // eslint-disable-next-line no-console
       console.info(`[AdapterFactoryService] ${message}`)
     }
@@ -1454,6 +1459,10 @@ class AdapterFactoryService {
     if (this.logger && typeof this.logger.error === 'function') {
       this.logger.error(`[AdapterFactoryService] ${message}`, error)
     } else {
+      // Logger 後備方案: Background Service 關鍵錯誤保護
+      // 設計理念: 背景服務的錯誤必須被記錄，即使在 logger 故障時
+      // 後備機制: console.error 提供關鍵錯誤的最後防線記錄
+      // 風險考量: 此情況不應常見，建議優化服務初始化確保 logger 可用
       // eslint-disable-next-line no-console
       console.error(`[AdapterFactoryService] ${message}`, error)
     }

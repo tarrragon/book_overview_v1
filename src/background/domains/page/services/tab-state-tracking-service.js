@@ -25,6 +25,18 @@ const {
 } = require('src/background/constants/module-constants')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
+/**
+ * Logger 後備方案設計理念：
+ * - 分頁狀態追蹤服務需要記錄用戶瀏覽行為和分頁生命週期事件
+ * - 在 Chrome Extension Service Worker 環境中，console 物件提供基本的日誌輸出能力
+ * - 當專用 Logger 不可用時，console 後備方案確保：
+ *   1. 分頁建立、更新、關閉等生命週期事件的追蹤記錄
+ *   2. 分頁狀態快取和持久化操作的執行狀態記錄
+ *   3. 跨分頁資料同步和狀態協調的過程追蹤
+ *   4. Chrome Tabs API 互動和異常情況的診斷記錄
+ * - 此後備機制對用戶行為分析和分頁管理功能至關重要
+ */
+
 class TabStateTrackingService {
   constructor (dependencies = {}) {
     // 依賴注入

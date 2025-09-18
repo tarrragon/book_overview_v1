@@ -28,11 +28,17 @@
 
 const { Logger } = require('src/core/logging/Logger')
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class PopupUICoordinationService {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 模式: UI Coordination Service (混合系統服務)
+    // 設計理念: UI 協調服務連接 Background 和 UI，需要完整日誌記錄
+    // 資源考量: 作為背景服務運行，有充足資源提供完整 Logger 實例
+    // 職責考量: 協調服務需要追蹤複雜的 UI 狀態變化和通訊
     this.logger = dependencies.logger || new Logger('PopupUICoordinationService')
     this.i18nManager = dependencies.i18nManager || null
 
@@ -117,7 +123,7 @@ class PopupUICoordinationService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UI_OPERATION_FAILED', 'Popup UI 協調服務尚未初始化', {
+      throw new StandardError(ErrorCodes.OPERATION_ERROR, 'Popup UI 協調服務尚未初始化', {
         category: 'ui'
       })
     }
@@ -251,7 +257,7 @@ class PopupUICoordinationService {
       // 動態載入模組類別
       const ModuleLoader = this.moduleLoaders.get(moduleId)
       if (!ModuleLoader) {
-        throw new StandardError('UNKNOWN_ERROR', '未找到模組載入器: ${moduleId}', {
+        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `未找到模組載入器: ${moduleId}`, {
           category: 'ui'
         })
       }
@@ -314,7 +320,7 @@ class PopupUICoordinationService {
       // 獲取提取服務模組
       const extractionService = this.popupModules.get('extraction-service')
       if (!extractionService) {
-        throw new StandardError('UNKNOWN_ERROR', '提取服務模組未載入', {
+        throw new StandardError(ErrorCodes.OPERATION_ERROR, '提取服務模組未載入', {
           category: 'ui'
         })
       }

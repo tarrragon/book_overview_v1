@@ -26,11 +26,18 @@ const {
   TIMEOUTS
 } = require('src/background/constants/module-constants')
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class MessageRoutingService {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 訊息路由服務是整個通訊系統的核心樞紐
+    // 執行環境: Service Worker 持續運作，處理所有跨環境通訊
+    // 後備機制: console 確保路由錯誤和通訊失敗能被追蹤
+    // 重要性: 路由失敗會導致整個擴展通訊中斷，必須有可靠記錄
     this.logger = dependencies.logger || console
     this.i18nManager = dependencies.i18nManager || null
 
@@ -96,7 +103,7 @@ class MessageRoutingService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '路由服務尚未初始化', {
+      throw new StandardError(ErrorCodes.CONFIG_ERROR, '路由服務尚未初始化', {
         category: 'general'
       })
     }

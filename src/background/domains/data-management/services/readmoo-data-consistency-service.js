@@ -46,6 +46,12 @@ class ReadmooDataConsistencyService extends BaseModule {
     })
 
     this.eventBus = eventBus
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: Readmoo 資料一致性服務作為資料品質監控中心，負責記錄一致性檢查和修復過程
+    // 執行環境: Service Worker 初始化階段，依賴注入可能不完整
+    // 後備機制: console 確保資料一致性事件和品質問題能被追蹤
+    // 風險考量: 理想上應確保 Logger 完整可用，此為過渡性保護
     this.logger = dependencies.logger || console
     this.config = dependencies.config || {}
 

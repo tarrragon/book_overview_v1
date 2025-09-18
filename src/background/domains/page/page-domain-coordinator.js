@@ -30,6 +30,12 @@ class PageDomainCoordinator {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 頁面領域協調器統籌頁面檢測、內容腳本和權限管理微服務
+    // 執行環境: Service Worker 初始化階段，依賴注入可能不完整
+    // 後備機制: console 確保模組生命週期錯誤能被追蹤
+    // 風險考量: 理想上應確保 Logger 完整可用，此為過渡性保護
     this.logger = dependencies.logger || console
     this.i18nManager = dependencies.i18nManager || null
 

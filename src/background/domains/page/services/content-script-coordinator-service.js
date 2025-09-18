@@ -30,6 +30,12 @@ class ContentScriptCoordinatorService {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 內容腳本協調服務作為跨環境通訊樞紐，負責記錄腳本狀態和協調過程
+    // 執行環境: Service Worker 初始化階段，依賴注入可能不完整
+    // 後備機制: console 確保腳本注入事件和協調錯誤能被追蹤
+    // 風險考量: 理想上應確保 Logger 完整可用，此為過渡性保護
     this.logger = dependencies.logger || console
     this.i18nManager = dependencies.i18nManager || null
 

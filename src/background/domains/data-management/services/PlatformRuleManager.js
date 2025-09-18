@@ -404,11 +404,12 @@ class PlatformRuleManager {
       case 'BOOKS_COM':
         return baseRules
 
-      default:
+      default: {
         const error = new Error(`Unsupported platform: ${platform}`)
         error.code = ErrorCodes.VALIDATION_ERROR
         error.details = { category: 'general', timestamp: Date.now() }
         throw error
+      }
     }
   }
 

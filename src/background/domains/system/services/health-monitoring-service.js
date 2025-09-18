@@ -25,6 +25,18 @@ const {
 } = require('src/background/constants/module-constants')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
+/**
+ * Logger 後備方案設計理念：
+ * - 健康監控服務需要持續記錄系統效能和健康狀況指標
+ * - 在 Chrome Extension Service Worker 環境中，console 物件提供基本的日誌輸出能力
+ * - 當專用 Logger 不可用時，console 後備方案確保：
+ *   1. 系統健康檢查和效能監控的結果記錄
+ *   2. 警報觸發、閾值判定和自動修復的狀態追蹤
+ *   3. 定期監控任務和健康報告生成的執行記錄
+ *   4. 系統異常檢測和緊急狀況的重要事件記錄
+ * - 此後備機制對系統監控和預防性維護至關重要
+ */
+
 class HealthMonitoringService {
   constructor (dependencies = {}) {
     // 依賴注入

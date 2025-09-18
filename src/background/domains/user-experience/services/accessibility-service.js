@@ -27,11 +27,18 @@
  */
 
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class AccessibilityService {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 無障礙服務確保WCAG合規性和輔助功能正常運作
+    // 執行環境: Service Worker 初始化階段，依賴注入可能不完整
+    // 後備機制: console 確保模組生命週期錯誤能被追蹤
+    // 風險考量: 理想上應確保 Logger 完整可用，此為過渡性保護
     this.logger = dependencies.logger || console
     this.preferenceService = dependencies.preferenceService || null
     this.themeService = dependencies.themeService || null
@@ -159,7 +166,7 @@ class AccessibilityService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '無障礙服務尚未初始化', {
+      throw new StandardError(ErrorCodes.OPERATION_ERROR, '無障礙服務尚未初始化', {
         category: 'general'
       })
     }
@@ -203,7 +210,7 @@ class AccessibilityService {
     try {
       const modeConfig = this.accessibilityModes[mode]
       if (!modeConfig) {
-        throw new StandardError('UNKNOWN_ERROR', '不支援的無障礙模式: ${mode}', {
+        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `不支援的無障礙模式: ${mode}`, {
           category: 'general'
         })
       }
@@ -242,7 +249,7 @@ class AccessibilityService {
     try {
       // 檢查設定是否支援
       if (!(setting in this.accessibilitySettings)) {
-        throw new StandardError('UNKNOWN_ERROR', '不支援的無障礙設定: ${setting}', {
+        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `不支援的無障礙設定: ${setting}`, {
           category: 'general'
         })
       }
@@ -283,7 +290,7 @@ class AccessibilityService {
     try {
       // 檢查設定是否支援
       if (!(setting in this.accessibilitySettings)) {
-        throw new StandardError('UNKNOWN_ERROR', '不支援的無障礙設定: ${setting}', {
+        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `不支援的無障礙設定: ${setting}`, {
           category: 'general'
         })
       }

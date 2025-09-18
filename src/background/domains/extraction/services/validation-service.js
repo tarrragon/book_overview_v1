@@ -24,11 +24,17 @@ const {
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class ValidationService {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 驗證服務需要記錄資料驗證過程和完整性檢查結果
+    // 執行環境: Service Worker 初始化階段，依賴注入可能不完整
+    // 後備機制: console 確保模組生命週期錯誤能被追蹤
+    // 風險考量: 理想上應確保 Logger 完整可用，此為過渡性保護
     this.logger = dependencies.logger || console
     this.i18nManager = dependencies.i18nManager || null
 
@@ -113,7 +119,7 @@ class ValidationService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
+      throw new StandardError(ErrorCodes.SERVICE_INITIALIZATION_ERROR, '服務尚未初始化', {
         category: 'validation'
       })
     }
@@ -396,7 +402,7 @@ class ValidationService {
       // 獲取驗證規則
       const rules = this.ruleGroups.get(ruleGroup)
       if (!rules) {
-        throw new StandardError('UNKNOWN_ERROR', '未找到規則群組: ${ruleGroup}', {
+        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `未找到規則群組: ${ruleGroup}`, {
           category: 'validation'
         })
       }
@@ -478,7 +484,7 @@ class ValidationService {
         // 使用標準驗證規則
         const validationRule = this.validationRules.get(rule)
         if (!validationRule) {
-          throw new StandardError('UNKNOWN_ERROR', '未找到驗證規則: ${rule}', {
+          throw new StandardError(ErrorCodes.VALIDATION_ERROR, `未找到驗證規則: ${rule}`, {
             category: 'validation'
           })
         }

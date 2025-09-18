@@ -1,4 +1,5 @@
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 const { Logger } = require('src/core/logging/Logger')
 
@@ -454,7 +455,7 @@ class PlatformIsolationService {
       const { platformId, isolationLevel } = event.data || {}
 
       if (!platformId || !this.supportedPlatforms.includes(platformId)) {
-        throw new StandardError('UNKNOWN_ERROR', '不支援的平台: ${platformId}', {
+        throw new StandardError(ErrorCodes.CHROME_ERROR, `不支援的平台: ${platformId}`, {
           category: 'general'
         })
       }
@@ -604,7 +605,7 @@ class PlatformIsolationService {
     const quota = this.resourceQuotas.get(platformId)
 
     if (!container || !quota) {
-      throw new StandardError('UNKNOWN_ERROR', '平台 ${platformId} 容器或配額不存在', {
+      throw new StandardError(ErrorCodes.OPERATION_ERROR, `平台 ${platformId} 容器或配額不存在`, {
         category: 'general'
       })
     }
@@ -665,7 +666,7 @@ class PlatformIsolationService {
 
       const quota = this.resourceQuotas.get(platformId)
       if (!quota) {
-        throw new StandardError('UNKNOWN_ERROR', '平台 ${platformId} 配額不存在', {
+        throw new StandardError(ErrorCodes.CONFIG_ERROR, `平台 ${platformId} 配額不存在`, {
           category: 'general'
         })
       }
@@ -754,7 +755,7 @@ class PlatformIsolationService {
   async performContaminationCheck (platformId) {
     const container = this.isolationContainers.get(platformId)
     if (!container) {
-      throw new StandardError('UNKNOWN_ERROR', '平台 ${platformId} 容器不存在', {
+      throw new StandardError(ErrorCodes.OPERATION_ERROR, `平台 ${platformId} 容器不存在`, {
         category: 'general'
       })
     }

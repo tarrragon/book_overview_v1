@@ -24,11 +24,18 @@ const {
   TIMEOUTS
 } = require('src/background/constants/module-constants')
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class SessionManagementService {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 會話管理服務負責跨環境通訊的狀態持續性
+    // 執行環境: Service Worker 長期運行，會話失效會影響用戶體驗
+    // 後備機制: console 確保會話管理錯誤能被記錄和除錯
+    // 重要性: 會話失敗會導致用戶需要重新操作，影響使用體驗
     this.logger = dependencies.logger || console
     this.i18nManager = dependencies.i18nManager || null
 
@@ -87,7 +94,7 @@ class SessionManagementService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '會話管理服務尚未初始化', {
+      throw new StandardError(ErrorCodes.CONFIG_ERROR, '會話管理服務尚未初始化', {
         category: 'general'
       })
     }

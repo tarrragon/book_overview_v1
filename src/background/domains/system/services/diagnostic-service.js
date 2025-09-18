@@ -25,6 +25,18 @@ const {
 } = require('src/background/constants/module-constants')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
+/**
+ * Logger 後備方案設計理念：
+ * - 診斷服務需要詳細記錄系統診斷過程和故障排除步驟
+ * - 在 Chrome Extension Service Worker 環境中，console 物件提供基本的日誌輸出能力
+ * - 當專用 Logger 不可用時，console 後備方案確保：
+ *   1. 系統診斷規則執行和故障檢測的詳細記錄
+ *   2. 日誌收集、分析和診斷報告生成的過程追蹤
+ *   3. 故障恢復建議和自動修復嘗試的狀態記錄
+ *   4. 診斷資料收集和隱私保護措施的執行記錄
+ * - 此後備機制對系統故障排除和技術支援至關重要
+ */
+
 class DiagnosticService {
   constructor (dependencies = {}) {
     // 依賴注入

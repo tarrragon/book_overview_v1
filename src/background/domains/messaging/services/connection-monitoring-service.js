@@ -1,4 +1,5 @@
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 const { EVENT_PRIORITIES, CONNECTION_EVENTS } = require('src/core/event-bus')
 
@@ -26,6 +27,12 @@ class ConnectionMonitoringService {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 連接監控服務負責通訊穩定性的核心監控任務
+    // 執行環境: Service Worker 持續監控，連接異常必須被追蹤
+    // 後備機制: console 確保連接問題能被記錄和除錯
+    // 監控重要性: 連接失敗會影響整個擴展功能，必須有可靠記錄
     this.logger = dependencies.logger || console
     this.i18nManager = dependencies.i18nManager || null
 
@@ -87,7 +94,7 @@ class ConnectionMonitoringService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '連接監控服務尚未初始化', {
+      throw new StandardError(ErrorCodes.CONFIG_ERROR, '連接監控服務尚未初始化', {
         category: 'general'
       })
     }

@@ -27,11 +27,18 @@
  */
 
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class PreferenceService {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 偏好設定服務管理跨平台用戶偏好持久化和同步
+    // 執行環境: Service Worker 初始化階段，依賴注入可能不完整
+    // 後備機制: console 確保模組生命週期錯誤能被追蹤
+    // 風險考量: 理想上應確保 Logger 完整可用，此為過渡性保護
     this.logger = dependencies.logger || console
     this.storageService = dependencies.storageService || null
 
@@ -118,7 +125,7 @@ class PreferenceService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '偏好設定服務尚未初始化', {
+      throw new StandardError(ErrorCodes.OPERATION_ERROR, '偏好設定服務尚未初始化', {
         category: 'general'
       })
     }
@@ -417,7 +424,7 @@ class PreferenceService {
     const schema = this.preferenceSchema.get(key)
 
     if (!schema) {
-      throw new StandardError('UNKNOWN_ERROR', '未知的偏好鍵: ${key}', {
+      throw new StandardError(ErrorCodes.VALIDATION_ERROR, `未知的偏好鍵: ${key}`, {
         category: 'general'
       })
     }
@@ -425,27 +432,27 @@ class PreferenceService {
     // 類型驗證
     const actualType = typeof value
     if (schema.type && actualType !== schema.type) {
-      throw new StandardError('UNKNOWN_ERROR', '偏好 ${key} 類型錯誤，期望 ${schema.type}，實際 ${actualType}', {
+      throw new StandardError(ErrorCodes.VALIDATION_ERROR, `偏好 ${key} 類型錯誤，期望 ${schema.type}，實際 ${actualType}`, {
         category: 'general'
       })
     }
 
     // 值域驗證
     if (schema.enum && !schema.enum.includes(value)) {
-      throw new StandardError('UNKNOWN_ERROR', `偏好 ${key} 值無效，可接受值: ${schema.enum.join(', ', {
-          category: 'general'
-      })}`)
+      throw new StandardError(ErrorCodes.VALIDATION_ERROR, `偏好 ${key} 值無效，可接受值: ${schema.enum.join(', ')}`, {
+        category: 'general'
+      })
     }
 
     // 範圍驗證
     if (schema.min !== undefined && value < schema.min) {
-      throw new StandardError('UNKNOWN_ERROR', '偏好 ${key} 值太小，最小值: ${schema.min}', {
+      throw new StandardError(ErrorCodes.VALIDATION_ERROR, `偏好 ${key} 值太小，最小值: ${schema.min}`, {
         category: 'general'
       })
     }
 
     if (schema.max !== undefined && value > schema.max) {
-      throw new StandardError('UNKNOWN_ERROR', '偏好 ${key} 值太大，最大值: ${schema.max}', {
+      throw new StandardError(ErrorCodes.VALIDATION_ERROR, `偏好 ${key} 值太大，最大值: ${schema.max}`, {
         category: 'general'
       })
     }
@@ -454,7 +461,7 @@ class PreferenceService {
     if (schema.validator && typeof schema.validator === 'function') {
       const isValid = await schema.validator(value)
       if (!isValid) {
-        throw new StandardError('UNKNOWN_ERROR', '偏好 ${key} 自定義驗證失敗', {
+        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `偏好 ${key} 自定義驗證失敗`, {
           category: 'general'
         })
       }

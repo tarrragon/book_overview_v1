@@ -27,6 +27,18 @@ const {
 } = require('src/background/constants/module-constants')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
+/**
+ * Logger 後備方案設計理念：
+ * - 配置管理服務需要記錄所有配置變更和驗證過程
+ * - 在 Chrome Extension Service Worker 環境中，console 物件提供基本的日誌輸出能力
+ * - 當專用 Logger 不可用時，console 後備方案確保：
+ *   1. 配置載入、保存和驗證過程的詳細記錄
+ *   2. 配置變更監聽器和通知機制的狀態追蹤
+ *   3. Chrome Storage API 操作和配置同步的執行記錄
+ *   4. 配置驗證失敗和回滾操作的重要事件記錄
+ * - 此後備機制對系統配置穩定性和故障恢復至關重要
+ */
+
 class ConfigManagementService {
   constructor (dependencies = {}) {
     // 依賴注入

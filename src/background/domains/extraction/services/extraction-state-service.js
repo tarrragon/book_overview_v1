@@ -24,11 +24,18 @@ const {
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+
 
 class ExtractionStateService {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 提取狀態服務需要追蹤作業生命週期和狀態變化的關鍵事件
+    // 執行環境: Service Worker 初始化階段，依賴注入可能不完整
+    // 後備機制: console 確保模組生命週期錯誤能被追蹤
+    // 風險考量: 理想上應確保 Logger 完整可用，此為過渡性保護
     this.logger = dependencies.logger || console
     this.i18nManager = dependencies.i18nManager || null
 
@@ -123,7 +130,7 @@ class ExtractionStateService {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '服務尚未初始化', {
+      throw new StandardError(ErrorCodes.SERVICE_INITIALIZATION_ERROR, '服務尚未初始化', {
         category: 'general'
       })
     }
@@ -255,20 +262,20 @@ class ExtractionStateService {
     try {
       const job = this.extractionJobs.get(jobId)
       if (!job) {
-        throw new StandardError('UNKNOWN_ERROR', '提取作業不存在: ${jobId}', {
+        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `提取作業不存在: ${jobId}`, {
           category: 'general'
         })
       }
 
       if (job.state !== this.JOB_STATES.PENDING && job.state !== this.JOB_STATES.RETRYING) {
-        throw new StandardError('UNKNOWN_ERROR', '作業狀態無效，無法啟動: ${job.state}', {
+        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `作業狀態無效，無法啟動: ${job.state}`, {
           category: 'general'
         })
       }
 
       // 檢查同時進行的作業數量
       if (this.activeJobs.size >= this.config.maxActiveJobs) {
-        throw new StandardError('UNKNOWN_ERROR', '已達到最大同時作業數量限制', {
+        throw new StandardError(ErrorCodes.RESOURCE_EXHAUSTED, '已達到最大同時作業數量限制', {
           category: 'general'
         })
       }
@@ -308,7 +315,7 @@ class ExtractionStateService {
     try {
       const job = this.extractionJobs.get(jobId)
       if (!job) {
-        throw new StandardError('UNKNOWN_ERROR', '提取作業不存在: ${jobId}', {
+        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `提取作業不存在: ${jobId}`, {
           category: 'general'
         })
       }
@@ -344,7 +351,7 @@ class ExtractionStateService {
     try {
       const job = this.extractionJobs.get(jobId)
       if (!job) {
-        throw new StandardError('UNKNOWN_ERROR', '提取作業不存在: ${jobId}', {
+        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `提取作業不存在: ${jobId}`, {
           category: 'general'
         })
       }
@@ -392,7 +399,7 @@ class ExtractionStateService {
     try {
       const job = this.extractionJobs.get(jobId)
       if (!job) {
-        throw new StandardError('UNKNOWN_ERROR', '提取作業不存在: ${jobId}', {
+        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `提取作業不存在: ${jobId}`, {
           category: 'general'
         })
       }
@@ -447,7 +454,7 @@ class ExtractionStateService {
     try {
       const job = this.extractionJobs.get(jobId)
       if (!job) {
-        throw new StandardError('UNKNOWN_ERROR', '提取作業不存在: ${jobId}', {
+        throw new StandardError(ErrorCodes.VALIDATION_ERROR, `提取作業不存在: ${jobId}`, {
           category: 'general'
         })
       }
@@ -624,7 +631,7 @@ class ExtractionStateService {
     setTimeout(async () => {
       const job = this.extractionJobs.get(jobId)
       if (job && job.state === this.JOB_STATES.RUNNING) {
-        await this.failExtractionJob(jobId, new StandardError('UNKNOWN_ERROR', '作業執行超時', {
+        await this.failExtractionJob(jobId, new StandardError(ErrorCodes.TIMEOUT_ERROR, '作業執行超時', {
           category: 'general'
         }))
       }
@@ -782,7 +789,7 @@ class ExtractionStateService {
   async handleJobFailRequest (event) {
     try {
       const { jobId, error } = event.data || {}
-      await this.failExtractionJob(jobId, new StandardError('UNKNOWN_ERROR', error, {
+      await this.failExtractionJob(jobId, new StandardError(ErrorCodes.OPERATION_ERROR, error, {
         category: 'general'
       }))
     } catch (error) {

@@ -25,6 +25,7 @@ const { ConnectionMonitoringService } = require('./services/connection-monitorin
 const { MessageValidationService } = require('./services/message-validation-service')
 const { QueueManagementService } = require('./services/queue-management-service')
 const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 const {
   MESSAGE_EVENTS,
@@ -36,6 +37,12 @@ class MessagingDomainCoordinator {
   constructor (dependencies = {}) {
     // 依賴注入
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 通訊領域協調器統籌跨上下文通訊和微服務架構管理
+    // 執行環境: Service Worker 初始化階段，依賴注入可能不完整
+    // 後備機制: console 確保模組生命週期錯誤能被追蹤
+    // 風險考量: 理想上應確保 Logger 完整可用，此為過渡性保護
     this.logger = dependencies.logger || console
     this.i18nManager = dependencies.i18nManager || null
 
@@ -151,7 +158,7 @@ class MessagingDomainCoordinator {
    */
   async start () {
     if (!this.state.initialized) {
-      throw new StandardError('UNKNOWN_ERROR', '協調器尚未初始化', {
+      throw new StandardError(ErrorCodes.CONFIG_ERROR, '協調器尚未初始化', {
         category: 'general'
       })
     }
@@ -244,7 +251,7 @@ class MessagingDomainCoordinator {
         this.logger.log(`✅ 通訊服務初始化完成: ${serviceName}`)
       } catch (error) {
         this.logger.error(`❌ 通訊服務初始化失敗: ${serviceName}`, error)
-        throw new StandardError('UNKNOWN_ERROR', '微服務 ${serviceName} 初始化失敗: ${error.message}', {
+        throw new StandardError(ErrorCodes.CONFIG_ERROR, `微服務 ${serviceName} 初始化失敗: ${error.message}`, {
           category: 'general'
         })
       }
@@ -590,7 +597,7 @@ class MessagingDomainCoordinator {
     if (routingService) {
       return await routingService.routeMessage(message, context)
     } else {
-      throw new StandardError('UNKNOWN_ERROR', '路由服務不可用', {
+      throw new StandardError(ErrorCodes.CONNECTION_ERROR, '路由服務不可用', {
         category: 'general'
       })
     }

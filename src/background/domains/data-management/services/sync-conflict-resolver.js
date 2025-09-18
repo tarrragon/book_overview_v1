@@ -23,6 +23,12 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 class SyncConflictResolver {
   constructor (dependencies = {}) {
     this.eventBus = dependencies.eventBus || null
+
+    // Logger 後備方案: Background Service 初始化保護
+    // 設計理念: 同步衝突解決器作為資料一致性保證中心，負責記錄衝突解決過程和決策邏輯
+    // 執行環境: Service Worker 初始化階段，依賴注入可能不完整
+    // 後備機制: console 確保衝突檢測和解決過程能被追蹤
+    // 風險考量: 理想上應確保 Logger 完整可用，此為過渡性保護
     this.logger = dependencies.logger || console
 
     this.state = {
