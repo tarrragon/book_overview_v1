@@ -104,7 +104,9 @@
       "Bash(for file in \"ui-dom-manager.js\" \"base-ui-handler.js\" \"ui-event-validator.js\")",
       "Bash(scripts/cleanup-hook-logs.sh:*)",
       "Bash(for:*)",
-      "Bash(do)"
+      "Bash(do)",
+      "Bash(paste:*)",
+      "Bash(bc)"
     ],
     "deny": []
   },
