@@ -1,6 +1,5 @@
 const { Logger } = require('src/core/logging/Logger')
-const { StandardError } = require('src/core/errors/StandardError')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 /**
  * 事件處理器基底類別

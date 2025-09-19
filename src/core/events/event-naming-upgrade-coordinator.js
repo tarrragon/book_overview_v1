@@ -30,7 +30,7 @@
  * Legacy → Modern 事件轉換對應表
  * 基於策略文件中定義的標準轉換規則
  */
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 const EVENT_MIGRATION_MAPPING = {
   // Readmoo 平台核心事件
@@ -331,9 +331,12 @@ class EventNamingUpgradeCoordinator {
    */
   setConversionMode (mode) {
     if (!this.isValidConversionMode(mode)) {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid conversion mode', {
+      const conversionError = new Error('Invalid conversion mode')
+      conversionError.code = ErrorCodes.INVALID_DATA_FORMAT
+      conversionError.details = {
         category: 'general'
-      })
+      }
+      throw conversionError
     }
     this.conversionMode = mode
   }

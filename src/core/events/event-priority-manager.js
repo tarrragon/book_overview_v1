@@ -29,7 +29,7 @@
 /**
  * v2.0 事件優先級架構配置
  */
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 const PRIORITY_CONFIG = {
   // 系統關鍵 (0-99)
@@ -238,9 +238,12 @@ class EventPriorityManager {
   generatePriorityInCategory (category) {
     const config = this.priorityConfig[category]
     if (!config) {
-      throw new StandardError('INVALID_DATA_FORMAT', `Invalid priority category: ${category}`, {
+      const categoryError = new Error(`Invalid priority category: ${category}`)
+      categoryError.code = ErrorCodes.INVALID_DATA_FORMAT
+      categoryError.details = {
         category: 'general'
-      })
+      }
+      throw categoryError
     }
 
     const [min, max] = config.range
@@ -256,9 +259,12 @@ class EventPriorityManager {
   adjustEventPriority (eventName, newPriority) {
     if (!this.isValidPriority(newPriority)) {
       this.priorityStats.errors++
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid priority value', {
+      const priorityError = new Error('Invalid priority value')
+      priorityError.code = ErrorCodes.INVALID_DATA_FORMAT
+      priorityError.details = {
         category: 'general'
-      })
+      }
+      throw priorityError
     }
 
     const oldPriority = this.eventPriorities.get(eventName)

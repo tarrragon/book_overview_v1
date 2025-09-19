@@ -7,7 +7,7 @@ import { classifyError as classifyErrorInternal } from './error-classifier.js'
 import { createErrorRecovery as createErrorRecoveryInternal, retryOperation as retryOperationInternal } from './error-recovery-coordinator.js'
 import { getUserFriendlyMessage as getUserFriendlyMessageInternal } from './user-message-generator.js'
 
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 /**
  * 錯誤分類函數 - 測試接口
@@ -225,9 +225,13 @@ function checkPlatformSupport () {
  */
 function propagateError (error, source, destination) {
   if (!error || !source || !destination) {
-    throw new StandardError('REQUIRED_FIELD_MISSING', 'Error, source, and destination are required for error propagation', {
-      category: 'ui'
-    })
+    const propagationError = new Error('Error, source, and destination are required for error propagation')
+    propagationError.code = ErrorCodes.REQUIRED_FIELD_MISSING
+    propagationError.details = {
+      category: 'ui',
+      missingFields: [!error && 'error', !source && 'source', !destination && 'destination'].filter(Boolean)
+    }
+    throw propagationError
   }
 
   const propagationData = {
@@ -257,10 +261,14 @@ function propagateError (error, source, destination) {
  */
 function handleCascadingErrors (errors) {
   if (!Array.isArray(errors) || errors.length === 0) {
-    throw new StandardError('REQUIRED_FIELD_MISSING', 'Error array is required for cascading error handling', {
+    const cascadingError = new Error('Error array is required for cascading error handling')
+    cascadingError.code = ErrorCodes.REQUIRED_FIELD_MISSING
+    cascadingError.details = {
       dataType: 'array',
-      category: 'ui'
-    })
+      category: 'ui',
+      provided: errors
+    }
+    throw cascadingError
   }
 
   // 分類所有錯誤
@@ -299,10 +307,14 @@ function handleCascadingErrors (errors) {
  */
 function createErrorUI (error) {
   if (!error) {
-    throw new StandardError('REQUIRED_FIELD_MISSING', 'Error object is required for UI creation', {
+    const uiError = new Error('Error object is required for UI creation')
+    uiError.code = ErrorCodes.REQUIRED_FIELD_MISSING
+    uiError.details = {
       dataType: 'object',
-      category: 'ui'
-    })
+      category: 'ui',
+      provided: error
+    }
+    throw uiError
   }
 
   const classification = classifyErrorInternal(error)

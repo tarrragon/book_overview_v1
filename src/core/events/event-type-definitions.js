@@ -29,7 +29,7 @@
 /**
  * v2.0 事件類型定義配置
  */
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 const EVENT_TYPE_CONFIG = {
   // 領域定義
@@ -217,9 +217,12 @@ class EventTypeDefinitions {
   parseEventName (eventName) {
     const parts = eventName.split('.')
     if (parts.length !== 4) {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid event name format', {
+      const eventNameError = new Error('Invalid event name format')
+      eventNameError.code = ErrorCodes.INVALID_DATA_FORMAT
+      eventNameError.details = {
         category: 'general'
-      })
+      }
+      throw eventNameError
     }
 
     return {
@@ -276,24 +279,36 @@ class EventTypeDefinitions {
    */
   buildEventName (domain, platform, action, state) {
     if (!this.isValidDomain(domain)) {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid domain', {
+      const domainError = new Error('Invalid domain')
+      domainError.code = ErrorCodes.INVALID_DATA_FORMAT
+      domainError.details = {
         category: 'general'
-      })
+      }
+      throw domainError
     }
     if (!this.isValidPlatform(platform)) {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid platform', {
+      const platformError = new Error('Invalid platform')
+      platformError.code = ErrorCodes.INVALID_DATA_FORMAT
+      platformError.details = {
         category: 'general'
-      })
+      }
+      throw platformError
     }
     if (!this.isValidAction(action)) {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid action', {
+      const actionError = new Error('Invalid action')
+      actionError.code = ErrorCodes.INVALID_DATA_FORMAT
+      actionError.details = {
         category: 'general'
-      })
+      }
+      throw actionError
     }
     if (!this.isValidState(state)) {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid state', {
+      const stateError = new Error('Invalid state')
+      stateError.code = ErrorCodes.INVALID_DATA_FORMAT
+      stateError.details = {
         category: 'general'
-      })
+      }
+      throw stateError
     }
 
     return `${domain}.${platform}.${action}.${state}`
