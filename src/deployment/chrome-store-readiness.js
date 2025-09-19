@@ -22,7 +22,7 @@
  */
 
 // 引入標準化錯誤處理
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 /**
  * ChromeStoreReadiness 類別
@@ -257,11 +257,16 @@ class ChromeStoreReadiness {
       // 檢查 Manifest 版本
       this.checkItem('manifest_version', () => {
         if (manifest.manifest_version !== MANIFEST.REQUIRED_VERSION) {
-          throw new StandardError('MANIFEST_VERSION_INVALID', '必須使用 Manifest V${MANIFEST.REQUIRED_VERSION}，目前版本: ${manifest.manifest_version}', {
-            required: MANIFEST.REQUIRED_VERSION,
-            current: manifest.manifest_version,
-            category: 'manifest_validation'
-          })
+          throw (() => {
+            const error = new Error('必須使用 Manifest V${MANIFEST.REQUIRED_VERSION}，目前版本: ${manifest.manifest_version}')
+            error.code = ErrorCodes.MANIFEST_VERSION_INVALID
+            error.details = {
+              required: MANIFEST.REQUIRED_VERSION,
+              current: manifest.manifest_version,
+              category: 'manifest_validation'
+            }
+            return error
+          })()
         }
         return { passed: true, message: `Manifest V${MANIFEST.REQUIRED_VERSION} 合規` }
       })
@@ -270,11 +275,16 @@ class ChromeStoreReadiness {
       this.checkItem('required_fields', () => {
         const missingFields = MANIFEST.REQUIRED_FIELDS.filter(field => !manifest[field])
         if (missingFields.length > 0) {
-          throw new StandardError('MANIFEST_MISSING_FIELDS', `缺少必要欄位: ${missingFields.join(', ')}`, {
-            missingFields,
-            requiredFields: MANIFEST.REQUIRED_FIELDS,
-            category: 'manifest_validation'
-          })
+          throw (() => {
+            const error = new Error(`缺少必要欄位: ${missingFields.join(', ')}`)
+            error.code = ErrorCodes.MANIFEST_MISSING_FIELDS
+            error.details = {
+              missingFields,
+              requiredFields: MANIFEST.REQUIRED_FIELDS,
+              category: 'manifest_validation'
+            }
+            return error
+          })()
         }
         return { passed: true, message: '所有必要欄位都存在' }
       })
@@ -298,10 +308,15 @@ class ChromeStoreReadiness {
       // 檢查圖示
       this.checkItem('icons_validation', () => {
         if (!manifest.icons) {
-          throw new StandardError('MISSING_EXTENSION_ICON', '缺少 Extension 圖示', {
-            category: 'manifest_validation',
-            iconSizes: MANIFEST.ICON_SIZES
-          })
+          throw (() => {
+            const error = new Error('缺少 Extension 圖示')
+            error.code = ErrorCodes.MISSING_EXTENSION_ICON
+            error.details = {
+              category: 'manifest_validation',
+              iconSizes: MANIFEST.ICON_SIZES
+            }
+            return error
+          })()
         }
 
         const existingIcons = Object.keys(manifest.icons).map(Number)
@@ -368,11 +383,16 @@ class ChromeStoreReadiness {
       // 檢查總檔案大小
       this.checkItem('total_size_check', () => {
         if (fileStats.totalSize > FILE_SIZE.MAX_TOTAL_SIZE) {
-          throw new StandardError('FILE_SIZE_EXCEEDED', '總檔案大小超限 (${this.formatBytes(fileStats.totalSize)}/${this.formatBytes(FILE_SIZE.MAX_TOTAL_SIZE)})', {
-            totalSize: fileStats.totalSize,
-            maxSize: FILE_SIZE.MAX_TOTAL_SIZE,
-            category: 'file_size_validation'
-          })
+          throw (() => {
+            const error = new Error('總檔案大小超限 (${this.formatBytes(fileStats.totalSize)}/${this.formatBytes(FILE_SIZE.MAX_TOTAL_SIZE)})')
+            error.code = ErrorCodes.FILE_SIZE_EXCEEDED
+            error.details = {
+              totalSize: fileStats.totalSize,
+              maxSize: FILE_SIZE.MAX_TOTAL_SIZE,
+              category: 'file_size_validation'
+            }
+            return error
+          })()
         }
 
         if (fileStats.totalSize > FILE_SIZE.RECOMMENDED_TOTAL) {
@@ -386,11 +406,16 @@ class ChromeStoreReadiness {
       this.checkItem('single_file_check', () => {
         const largeFiles = fileStats.files.filter(file => file.size > FILE_SIZE.MAX_SINGLE_FILE)
         if (largeFiles.length > 0) {
-          throw new StandardError('LARGE_FILES_DETECTED', `發現過大檔案: ${largeFiles.map(f => `${f.name} (${this.formatBytes(f.size)})`).join(', ')}`, {
-            largeFiles: largeFiles.map(f => ({ name: f.name, size: f.size })),
-            maxFileSize: FILE_SIZE.MAX_FILE_SIZE,
-            category: 'file_size_validation'
-          })
+          throw (() => {
+            const error = new Error(`發現過大檔案: ${largeFiles.map(f => `${f.name} (${this.formatBytes(f.size)})`).join(', ')}`)
+            error.code = ErrorCodes.LARGE_FILES_DETECTED
+            error.details = {
+              largeFiles: largeFiles.map(f => ({ name: f.name, size: f.size })),
+              maxFileSize: FILE_SIZE.MAX_FILE_SIZE,
+              category: 'file_size_validation'
+            }
+            return error
+          })()
         }
 
         return { passed: true, message: '所有檔案大小都在合理範圍內' }
@@ -476,17 +501,27 @@ class ChromeStoreReadiness {
         const hasUnsafeEval = false
 
         if (hasUnsafeInline) {
-          throw new StandardError('UNSAFE_CSP_INLINE', '檢測到 unsafe-inline CSP 配置', {
-            cspPolicy: this.manifest?.content_security_policy || 'unknown',
-            category: 'security_validation'
-          })
+          throw (() => {
+            const error = new Error('檢測到 unsafe-inline CSP 配置')
+            error.code = ErrorCodes.UNSAFE_CSP_INLINE
+            error.details = {
+              cspPolicy: this.manifest?.content_security_policy || 'unknown',
+              category: 'security_validation'
+            }
+            return error
+          })()
         }
 
         if (hasUnsafeEval) {
-          throw new StandardError('UNSAFE_CSP_EVAL', '檢測到 unsafe-eval CSP 配置', {
-            cspPolicy: this.manifest?.content_security_policy || 'unknown',
-            category: 'security_validation'
-          })
+          throw (() => {
+            const error = new Error('檢測到 unsafe-eval CSP 配置')
+            error.code = ErrorCodes.UNSAFE_CSP_EVAL
+            error.details = {
+              cspPolicy: this.manifest?.content_security_policy || 'unknown',
+              category: 'security_validation'
+            }
+            return error
+          })()
         }
 
         return { passed: true, message: 'CSP 配置安全' }
@@ -508,10 +543,15 @@ class ChromeStoreReadiness {
         const riskyPatterns = this.findCodeInjectionRisks()
 
         if (riskyPatterns.length > 0) {
-          throw new StandardError('CODE_INJECTION_RISK', `發現潛在程式碼注入風險: ${riskyPatterns.join(', ')}`, {
-            riskyPatterns,
-            category: 'security_validation'
-          })
+          throw (() => {
+            const error = new Error(`發現潛在程式碼注入風險: ${riskyPatterns.join(', ')}`)
+            error.code = ErrorCodes.CODE_INJECTION_RISK
+            error.details = {
+              riskyPatterns,
+              category: 'security_validation'
+            }
+            return error
+          })()
         }
 
         return { passed: true, message: '程式碼注入風險檢查通過' }
@@ -572,11 +612,16 @@ class ChromeStoreReadiness {
         const collectsUserData = false // 本專案不收集使用者資料
 
         if (collectsUserData) {
-          throw new StandardError('PRIVACY_UNDECLARED_DATA_COLLECTION', '收集使用者資料但未聲明', {
-            detectedDataCollection: true,
-            privacyPolicyRequired: true,
-            category: 'privacy_validation'
-          })
+          throw (() => {
+            const error = new Error('收集使用者資料但未聲明')
+            error.code = ErrorCodes.PRIVACY_UNDECLARED_DATA_COLLECTION
+            error.details = {
+              detectedDataCollection: true,
+              privacyPolicyRequired: true,
+              category: 'privacy_validation'
+            }
+            return error
+          })()
         }
 
         return { passed: true, message: '不收集使用者資料，合規' }
@@ -606,11 +651,16 @@ class ChromeStoreReadiness {
         const startupTime = 800 // 模擬啟動時間 (ms)
 
         if (startupTime > PERFORMANCE.MAX_STARTUP_TIME) {
-          throw new StandardError('PERFORMANCE_STARTUP_TOO_SLOW', '啟動時間過長: ${startupTime}ms > ${PERFORMANCE.MAX_STARTUP_TIME}ms', {
-            startupTime,
-            maxStartupTime: PERFORMANCE.MAX_STARTUP_TIME,
-            category: 'performance_validation'
-          })
+          throw (() => {
+            const error = new Error('啟動時間過長: ${startupTime}ms > ${PERFORMANCE.MAX_STARTUP_TIME}ms')
+            error.code = ErrorCodes.PERFORMANCE_STARTUP_TOO_SLOW
+            error.details = {
+              startupTime,
+              maxStartupTime: PERFORMANCE.MAX_STARTUP_TIME,
+              category: 'performance_validation'
+            }
+            return error
+          })()
         }
 
         return { passed: true, message: `啟動時間: ${startupTime}ms` }
@@ -621,11 +671,16 @@ class ChromeStoreReadiness {
         const memoryUsage = 35 * 1024 * 1024 // 模擬記憶體使用 (35MB)
 
         if (memoryUsage > PERFORMANCE.MAX_MEMORY_USAGE) {
-          throw new StandardError('PERFORMANCE_MEMORY_TOO_HIGH', '記憶體使用過高: ${this.formatBytes(memoryUsage)} > ${this.formatBytes(PERFORMANCE.MAX_MEMORY_USAGE)}', {
-            memoryUsage,
-            maxMemoryUsage: PERFORMANCE.MAX_MEMORY_USAGE,
-            category: 'performance_validation'
-          })
+          throw (() => {
+            const error = new Error('記憶體使用過高: ${this.formatBytes(memoryUsage)} > ${this.formatBytes(PERFORMANCE.MAX_MEMORY_USAGE)}')
+            error.code = ErrorCodes.PERFORMANCE_MEMORY_TOO_HIGH
+            error.details = {
+              memoryUsage,
+              maxMemoryUsage: PERFORMANCE.MAX_MEMORY_USAGE,
+              category: 'performance_validation'
+            }
+            return error
+          })()
         }
 
         return { passed: true, message: `記憶體使用: ${this.formatBytes(memoryUsage)}` }
@@ -659,11 +714,16 @@ class ChromeStoreReadiness {
         const { MIN_FUNCTIONALITY_SCORE } = ChromeStoreReadiness.STANDARDS.QUALITY
 
         if (functionalityScore < MIN_FUNCTIONALITY_SCORE) {
-          throw new StandardError('FUNCTIONALITY_SCORE_TOO_LOW', '功能完整性分數不足: ${functionalityScore} < ${MIN_FUNCTIONALITY_SCORE}', {
-            functionalityScore,
-            minFunctionalityScore: MIN_FUNCTIONALITY_SCORE,
-            category: 'functionality_validation'
-          })
+          throw (() => {
+            const error = new Error('功能完整性分數不足: ${functionalityScore} < ${MIN_FUNCTIONALITY_SCORE}')
+            error.code = ErrorCodes.FUNCTIONALITY_SCORE_TOO_LOW
+            error.details = {
+              functionalityScore,
+              minFunctionalityScore: MIN_FUNCTIONALITY_SCORE,
+              category: 'functionality_validation'
+            }
+            return error
+          })()
         }
 
         return { passed: true, message: `功能完整性分數: ${functionalityScore}/10` }

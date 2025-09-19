@@ -26,7 +26,7 @@
 /**
  * 事件處理工具類
  */
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 class EventUtils {
   constructor () {
@@ -64,9 +64,12 @@ class EventUtils {
     if (!element || typeof type !== 'string' || typeof handler !== 'function') {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid parameters')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -147,9 +150,12 @@ class EventUtils {
     if (!listenerId || typeof listenerId !== 'string') {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid listener ID', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid listener ID')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -158,9 +164,12 @@ class EventUtils {
     if (!listener) {
       return {
         success: false,
-        error: new StandardError('RESOURCE_NOT_FOUND', 'Listener not found', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Listener not found')
+          error.code = ErrorCodes.RESOURCE_NOT_FOUND
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -196,9 +205,12 @@ class EventUtils {
     if (!element || !Array.isArray(eventConfigs)) {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid parameters')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -288,9 +300,12 @@ class EventUtils {
     if (!message || typeof message !== 'object') {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid message', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid message')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -299,9 +314,12 @@ class EventUtils {
         if (!chrome || !chrome.runtime) {
           resolve({
             success: false,
-            error: new StandardError('RESOURCE_NOT_AVAILABLE', 'Chrome runtime not available', {
-              category: 'general'
-            })
+            error: (() => {
+              const error = new Error('Chrome runtime not available')
+              error.code = ErrorCodes.RESOURCE_NOT_AVAILABLE
+              error.details = { category: 'general' }
+              return error
+            })()
           })
           return
         }
@@ -415,9 +433,12 @@ class EventUtils {
     if (!messageType || typeof handler !== 'function') {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid parameters')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -454,9 +475,12 @@ class EventUtils {
     if (!container || !selector || !type || typeof handler !== 'function') {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid parameters')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -505,9 +529,12 @@ class EventUtils {
     if (!Array.isArray(elements) || !type || typeof handler !== 'function') {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid parameters', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid parameters')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -557,9 +584,12 @@ class EventUtils {
     if (!batch) {
       return {
         success: false,
-        error: new StandardError('RESOURCE_NOT_FOUND', 'Batch not found', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Batch not found')
+          error.code = ErrorCodes.RESOURCE_NOT_FOUND
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -663,9 +693,12 @@ class EventUtils {
 
     return {
       success: false,
-      error: new StandardError('RESOURCE_NOT_FOUND', 'Debounce timer not found', {
-        category: 'general'
-      })
+      error: (() => {
+        const error = new Error('Debounce timer not found')
+        error.code = ErrorCodes.RESOURCE_NOT_FOUND
+        error.details = { category: 'general' }
+        return error
+      })()
     }
   }
 

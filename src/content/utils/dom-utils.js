@@ -26,7 +26,7 @@
 /**
  * DOM 操作工具類
  */
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 class DOMUtils {
   constructor () {
@@ -47,9 +47,12 @@ class DOMUtils {
         return {
           success: false,
           element: null,
-          error: new StandardError('INVALID_DATA_FORMAT', 'Invalid selector', {
-            category: 'general'
-          })
+          error: (() => {
+            const error = new Error('Invalid selector')
+            error.code = ErrorCodes.INVALID_DATA_FORMAT
+            error.details = { category: 'general' }
+            return error
+          })()
         }
       }
 
@@ -57,9 +60,12 @@ class DOMUtils {
         return {
           success: false,
           element: null,
-          error: new StandardError('INVALID_DATA_FORMAT', 'Invalid container', {
-            category: 'general'
-          })
+          error: (() => {
+            const error = new Error('Invalid container')
+            error.code = ErrorCodes.INVALID_DATA_FORMAT
+            error.details = { category: 'general' }
+            return error
+          })()
         }
       }
 
@@ -69,9 +75,12 @@ class DOMUtils {
         return {
           success: false,
           element: null,
-          error: new StandardError('RESOURCE_NOT_FOUND', 'Element not found', {
-            category: 'general'
-          })
+          error: (() => {
+            const error = new Error('Element not found')
+            error.code = ErrorCodes.RESOURCE_NOT_FOUND
+            error.details = { category: 'general' }
+            return error
+          })()
         }
       }
 
@@ -102,9 +111,12 @@ class DOMUtils {
           success: false,
           elements: [],
           count: 0,
-          error: new StandardError('INVALID_DATA_FORMAT', 'Invalid selector', {
-            category: 'general'
-          })
+          error: (() => {
+            const error = new Error('Invalid selector')
+            error.code = ErrorCodes.INVALID_DATA_FORMAT
+            error.details = { category: 'general' }
+            return error
+          })()
         }
       }
 
@@ -297,9 +309,12 @@ class DOMUtils {
         content: '',
         original: '',
         length: 0,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid element', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid element')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -442,9 +457,12 @@ class DOMUtils {
     if (!element) {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid element', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid element')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -473,9 +491,12 @@ class DOMUtils {
     if (!this.elementExists(element)) {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid element', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid element')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -504,9 +525,12 @@ class DOMUtils {
     if (!this.elementExists(element)) {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid element', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid element')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -570,9 +594,12 @@ class DOMUtils {
     if (!this.elementExists(container) || !this.elementExists(element)) {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid container or element', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid container or element')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -718,9 +745,12 @@ class DOMUtils {
     if (!this.elementExists(container)) {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid container', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid container')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 

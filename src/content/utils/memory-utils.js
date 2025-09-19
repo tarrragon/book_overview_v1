@@ -26,7 +26,7 @@
 /**
  * 記憶體管理工具類
  */
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 class MemoryUtils {
   constructor () {
@@ -47,9 +47,12 @@ class MemoryUtils {
       if (!this._isPerformanceMemoryAvailable()) {
         return {
           success: false,
-          error: new StandardError('RESOURCE_NOT_AVAILABLE', 'Performance memory API not available', {
-            category: 'general'
-          }),
+          error: (() => {
+            const error = new Error('Performance memory API not available')
+            error.code = ErrorCodes.RESOURCE_NOT_AVAILABLE
+            error.details = { category: 'general' }
+            return error
+          })(),
           fallback: true
         }
       }
@@ -88,9 +91,12 @@ class MemoryUtils {
     if (!label || typeof label !== 'string') {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid snapshot label', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid snapshot label')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -315,18 +321,24 @@ class MemoryUtils {
     if (!config || typeof config !== 'object' || !config.name) {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid cache configuration', {
-          category: 'configuration'
-        })
+        error: (() => {
+          const error = new Error('Invalid cache configuration')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'configuration' }
+          return error
+        })()
       }
     }
 
     if (typeof config.maxSize !== 'number' || config.maxSize <= 0) {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid maxSize configuration', {
-          category: 'configuration'
-        })
+        error: (() => {
+          const error = new Error('Invalid maxSize configuration')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'configuration' }
+          return error
+        })()
       }
     }
 
@@ -372,9 +384,12 @@ class MemoryUtils {
     if (!cache) {
       return {
         success: false,
-        error: new StandardError('RESOURCE_NOT_FOUND', 'Cache not found', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Cache not found')
+          error.code = ErrorCodes.RESOURCE_NOT_FOUND
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -427,9 +442,12 @@ class MemoryUtils {
     if (!cache) {
       return {
         found: false,
-        error: new StandardError('RESOURCE_NOT_FOUND', 'Cache not found', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Cache not found')
+          error.code = ErrorCodes.RESOURCE_NOT_FOUND
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -533,9 +551,12 @@ class MemoryUtils {
 
     if (!cache) {
       return {
-        error: new StandardError('RESOURCE_NOT_FOUND', 'Cache not found', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Cache not found')
+          error.code = ErrorCodes.RESOURCE_NOT_FOUND
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -640,9 +661,12 @@ class MemoryUtils {
     if (!label || typeof label !== 'string') {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid tracking label', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid tracking label')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -764,9 +788,12 @@ class MemoryUtils {
     if (!name || typeof name !== 'string') {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid timer name', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid timer name')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -800,9 +827,12 @@ class MemoryUtils {
     if (!name || typeof name !== 'string') {
       return {
         success: false,
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid timer name', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid timer name')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -811,9 +841,12 @@ class MemoryUtils {
     if (!timer) {
       return {
         success: false,
-        error: new StandardError('RESOURCE_NOT_FOUND', 'Timer not found', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Timer not found')
+          error.code = ErrorCodes.RESOURCE_NOT_FOUND
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -846,9 +879,12 @@ class MemoryUtils {
   measurePerformance (fn, name = 'anonymous') {
     if (typeof fn !== 'function') {
       return {
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid function provided', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid function provided')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 
@@ -892,9 +928,12 @@ class MemoryUtils {
   benchmark (fn, options = {}) {
     if (typeof fn !== 'function') {
       return {
-        error: new StandardError('INVALID_DATA_FORMAT', 'Invalid function provided', {
-          category: 'general'
-        })
+        error: (() => {
+          const error = new Error('Invalid function provided')
+          error.code = ErrorCodes.INVALID_DATA_FORMAT
+          error.details = { category: 'general' }
+          return error
+        })()
       }
     }
 

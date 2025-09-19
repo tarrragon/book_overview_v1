@@ -23,7 +23,7 @@
  */
 
 // 引入錯誤處理系統
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 /**
  * 平台適配器抽象介面
@@ -50,10 +50,15 @@ class PlatformAdapterInterface {
    * @abstract
    */
   async getPageType () {
-    throw new StandardError('NOT_IMPLEMENTED', 'Must implement getPageType()', {
-      method: 'getPageType',
-      class: 'PlatformAdapterInterface'
-    })
+    throw (() => {
+      const error = new Error('Must implement getPageType()')
+      error.code = ErrorCodes.NOT_IMPLEMENTED
+      error.details = {
+        method: 'getPageType',
+        class: 'PlatformAdapterInterface'
+      }
+      return error
+    })()
   }
 
   /**
@@ -62,10 +67,15 @@ class PlatformAdapterInterface {
    * @abstract
    */
   async isExtractablePage () {
-    throw new StandardError('NOT_IMPLEMENTED', 'Must implement isExtractablePage()', {
-      method: 'isExtractablePage',
-      class: 'PlatformAdapterInterface'
-    })
+    throw (() => {
+      const error = new Error('Must implement isExtractablePage()')
+      error.code = ErrorCodes.NOT_IMPLEMENTED
+      error.details = {
+        method: 'isExtractablePage',
+        class: 'PlatformAdapterInterface'
+      }
+      return error
+    })()
   }
 
   /**
@@ -74,7 +84,11 @@ class PlatformAdapterInterface {
    * @abstract
    */
   async checkPageReady () {
-    throw new StandardError('NOT_IMPLEMENTED', 'Must implement checkPageReady()')
+    throw (() => {
+      const error = new Error('Must implement checkPageReady()')
+      error.code = ErrorCodes.NOT_IMPLEMENTED
+      return error
+    })()
   }
 
   /**
@@ -84,7 +98,11 @@ class PlatformAdapterInterface {
    * @abstract
    */
   isValidDomain (url = window.location.href) {
-    throw new StandardError('NOT_IMPLEMENTED', 'Must implement isValidDomain()')
+    throw (() => {
+      const error = new Error('Must implement isValidDomain()')
+      error.code = ErrorCodes.NOT_IMPLEMENTED
+      return error
+    })()
   }
 
   // ==================
@@ -97,7 +115,11 @@ class PlatformAdapterInterface {
    * @abstract
    */
   getBookElements () {
-    throw new StandardError('NOT_IMPLEMENTED', 'Must implement getBookElements()')
+    throw (() => {
+      const error = new Error('Must implement getBookElements()')
+      error.code = ErrorCodes.NOT_IMPLEMENTED
+      return error
+    })()
   }
 
   /**
@@ -106,7 +128,11 @@ class PlatformAdapterInterface {
    * @abstract
    */
   getBookCount () {
-    throw new StandardError('NOT_IMPLEMENTED', 'Must implement getBookCount()')
+    throw (() => {
+      const error = new Error('Must implement getBookCount()')
+      error.code = ErrorCodes.NOT_IMPLEMENTED
+      return error
+    })()
   }
 
   /**
@@ -115,7 +141,11 @@ class PlatformAdapterInterface {
    * @abstract
    */
   findBookContainer () {
-    throw new StandardError('NOT_IMPLEMENTED', 'Must implement findBookContainer()')
+    throw (() => {
+      const error = new Error('Must implement findBookContainer()')
+      error.code = ErrorCodes.NOT_IMPLEMENTED
+      return error
+    })()
   }
 
   // ==================
@@ -129,7 +159,11 @@ class PlatformAdapterInterface {
    * @abstract
    */
   parseBookElement (element) {
-    throw new StandardError('NOT_IMPLEMENTED', 'Must implement parseBookElement()')
+    throw (() => {
+      const error = new Error('Must implement parseBookElement()')
+      error.code = ErrorCodes.NOT_IMPLEMENTED
+      return error
+    })()
   }
 
   /**
@@ -138,7 +172,11 @@ class PlatformAdapterInterface {
    * @abstract
    */
   async extractAllBooks () {
-    throw new StandardError('NOT_IMPLEMENTED', 'Must implement extractAllBooks()')
+    throw (() => {
+      const error = new Error('Must implement extractAllBooks()')
+      error.code = ErrorCodes.NOT_IMPLEMENTED
+      return error
+    })()
   }
 
   /**
@@ -148,7 +186,11 @@ class PlatformAdapterInterface {
    * @abstract
    */
   extractBookData (element) {
-    throw new StandardError('NOT_IMPLEMENTED', 'Must implement extractBookData()')
+    throw (() => {
+      const error = new Error('Must implement extractBookData()')
+      error.code = ErrorCodes.NOT_IMPLEMENTED
+      return error
+    })()
   }
 
   // ==================
@@ -162,7 +204,11 @@ class PlatformAdapterInterface {
    * @abstract
    */
   sanitizeData (data) {
-    throw new StandardError('NOT_IMPLEMENTED', 'Must implement sanitizeData()')
+    throw (() => {
+      const error = new Error('Must implement sanitizeData()')
+      error.code = ErrorCodes.NOT_IMPLEMENTED
+      return error
+    })()
   }
 
   /**
@@ -171,7 +217,11 @@ class PlatformAdapterInterface {
    * @abstract
    */
   getStats () {
-    throw new StandardError('NOT_IMPLEMENTED', 'Must implement getStats()')
+    throw (() => {
+      const error = new Error('Must implement getStats()')
+      error.code = ErrorCodes.NOT_IMPLEMENTED
+      return error
+    })()
   }
 
   /**
@@ -179,7 +229,11 @@ class PlatformAdapterInterface {
    * @abstract
    */
   reset () {
-    throw new StandardError('NOT_IMPLEMENTED', 'Must implement reset()')
+    throw (() => {
+      const error = new Error('Must implement reset()')
+      error.code = ErrorCodes.NOT_IMPLEMENTED
+      return error
+    })()
   }
 
   // ==================
