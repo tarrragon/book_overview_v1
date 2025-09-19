@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * UI State Tracker - UI狀態追蹤工具
  * 用於測試中追蹤和驗證UI元素的狀態變化
@@ -71,7 +71,7 @@ class UIStateTracker {
     const state2 = this.findState(state2Name)
 
     if (!state1 || !state2) {
-      throw new StandardError('TEST_VALIDATION_ERROR', `無法找到狀態: ${state1Name} 或 ${state2Name}`, { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_VALIDATION_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     return this._deepCompare(state1.elements, state2.elements)
@@ -136,7 +136,7 @@ class UIStateTracker {
     const recentStates = this.stateHistory.slice(-2)
 
     if (recentStates.length < 2) {
-      throw new StandardError('TEST_VALIDATION_ERROR', '需要至少兩個狀態來驗證轉換', { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_VALIDATION_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     const [previousState, currentState] = recentStates
@@ -493,7 +493,7 @@ class UIStateTracker {
   _notifyStateUpdate (stateName, changeDetails) {
     const currentTime = Date.now()
 
-    for (const [, subscription] of this.watchers) {
+    for (const [id, subscription] of this.watchers) {
       if (!subscription.active) continue
 
       // 檢查防抖

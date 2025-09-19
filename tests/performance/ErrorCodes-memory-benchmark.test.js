@@ -25,7 +25,6 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { UC01ErrorFactory } = require('src/core/errors/UC01ErrorFactory')
 const { UC02ErrorFactory } = require('src/core/errors/UC02ErrorFactory')
 const { UC03ErrorFactory } = require('src/core/errors/UC03ErrorFactory')
-const { StandardError } = require('src/core/errors/StandardError')
 
 describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
   let memoryMonitor
@@ -412,16 +411,17 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
 
       const standardErrors = []
       for (let i = 0; i < 200; i++) {
-        const error = new StandardError(
-          'DATA_PROGRESS_VALIDATION_ERROR',
-          `StandardError 測試錯誤 ${i}`,
-          {
+        const error = (() => {
+          const error = new Error(`StandardError 測試錯誤 ${i}`)
+          error.code = ErrorCodes.VALIDATION_ERROR
+          error.details = {
             bookId: `book_${i}`,
             invalidProgress: Math.random() * 100,
             expectedRange: '0-100%',
             timestamp: Date.now()
           }
-        )
+          return error
+        })()
         standardErrors.push(error)
       }
 
@@ -538,10 +538,14 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
         cycleErrors.forEach(error => {
           // 觸發 toJSON() 方法
           JSON.stringify(error)
-          // 存取屬性
-          error.code
-          error.message
-          error.details
+          // 存取屬性（記憶體測試需要）
+          const code = error.code
+          const message = error.message
+          const details = error.details
+          // 防止變數未使用警告（記憶體測試需要這些存取）
+          if (code && message && details) {
+            // 記憶體測試：確保屬性被存取
+          }
         })
 
         // 清理引用
