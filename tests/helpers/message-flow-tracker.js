@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * Message Flow Tracker - 訊息流追蹤工具
  * 用於追蹤和分析Chrome Extension中的訊息傳遞流程
@@ -26,6 +26,7 @@ class MessageFlowTracker {
     this.errors = []
     this.pendingMessages = new Map()
     this.startTime = Date.now()
+    // eslint-disable-next-line no-console
     console.log('[MessageFlowTracker] Started tracking messages')
   }
 
@@ -35,6 +36,7 @@ class MessageFlowTracker {
   stopTracking () {
     this.isTracking = false
     this.endTime = Date.now()
+    // eslint-disable-next-line no-console
     console.log('[MessageFlowTracker] Stopped tracking messages')
   }
 
@@ -538,7 +540,7 @@ class MessageFlowTracker {
     const originalMessage = this.activeFlows.get(messageId)
 
     if (!originalMessage) {
-      throw new StandardError('TEST_ERROR', `找不到訊息ID: ${messageId}`, { category: 'testing' })
+      throw (() => { const error = new Error(`找不到訊息ID: ${messageId}`); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     const responseTime = timestamp - originalMessage.timestamp
@@ -563,7 +565,7 @@ class MessageFlowTracker {
     const originalMessage = this.activeFlows.get(messageId)
 
     if (!originalMessage) {
-      throw new StandardError('TEST_ERROR', `找不到訊息ID: ${messageId}`, { category: 'testing' })
+      throw (() => { const error = new Error(`找不到訊息ID: ${messageId}`); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     const responseTime = timestamp - originalMessage.timestamp

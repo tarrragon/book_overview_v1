@@ -153,6 +153,7 @@ class AutoMigrationConverter {
    * @returns {Object} 轉換結果
    */
   async executeAutoConversion () {
+    // eslint-disable-next-line no-console
     console.log('🚀 開始執行 StandardError 自動遷移轉換...')
 
     try {
@@ -171,9 +172,11 @@ class AutoMigrationConverter {
       // 5. 產生轉換報告
       const report = await this._generateConversionReport()
 
+      // eslint-disable-next-line no-console
       console.log('✅ StandardError 自動遷移轉換完成')
       return report
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ 自動遷移轉換失敗:', error)
       throw error
     }
@@ -184,6 +187,7 @@ class AutoMigrationConverter {
    * @private
    */
   async _scanSourceFiles () {
+    // eslint-disable-next-line no-console
     console.log('📁 掃描原始碼檔案...')
 
     const files = await this._getSourceFiles(this.config.sourceDir)
@@ -206,10 +210,12 @@ class AutoMigrationConverter {
           this.conversionResults.statistics.affectedFiles++
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn(`⚠️ 無法讀取檔案 ${filePath}:`, error.message)
       }
     }
 
+    // eslint-disable-next-line no-console
     console.log(`📊 掃描完成: ${this.conversionResults.statistics.totalFiles} 個檔案，${this.conversionResults.statistics.affectedFiles} 個包含 StandardError`)
   }
 
@@ -290,6 +296,7 @@ class AutoMigrationConverter {
    * @private
    */
   async _analyzeConversionOpportunities () {
+    // eslint-disable-next-line no-console
     console.log('🔍 分析轉換機會...')
 
     for (const fileInfo of this.conversionResults.scannedFiles) {
@@ -321,6 +328,7 @@ class AutoMigrationConverter {
       }
     }
 
+    // eslint-disable-next-line no-console
     console.log(`🎯 發現 ${this.conversionResults.statistics.conversionOpportunities} 個轉換機會`)
   }
 
@@ -382,6 +390,7 @@ class AutoMigrationConverter {
    * @private
    */
   async _assessConversionRisks () {
+    // eslint-disable-next-line no-console
     console.log('⚠️ 評估轉換風險...')
 
     for (const candidate of this.conversionResults.conversionCandidates) {
@@ -398,6 +407,7 @@ class AutoMigrationConverter {
       }
     }
 
+    // eslint-disable-next-line no-console
     console.log('📊 風險評估完成')
   }
 
@@ -546,10 +556,12 @@ class AutoMigrationConverter {
    * @private
    */
   async _executeConversionByMode () {
+    // eslint-disable-next-line no-console
     console.log(`🔧 執行轉換 (模式: ${this.config.mode})...`)
 
     switch (this.config.mode) {
       case CONVERSION_MODES.SCAN_ONLY:
+        // eslint-disable-next-line no-console
         console.log('📋 僅掃描模式 - 跳過實際轉換')
         break
 
@@ -565,11 +577,12 @@ class AutoMigrationConverter {
         await this._prepareManualAssistance()
         break
 
-      default:
+      default: {
         const error = new Error(`未知的轉換模式: ${this.config.mode}`)
         error.code = ErrorCodes.IMPLEMENTATION_ERROR
         error.details = { mode: this.config.mode, category: 'migration' }
         throw error
+      }
     }
   }
 
@@ -578,6 +591,7 @@ class AutoMigrationConverter {
    * @private
    */
   async _generateSuggestions () {
+    // eslint-disable-next-line no-console
     console.log('💡 產生轉換建議...')
 
     for (const candidate of this.conversionResults.conversionCandidates) {
@@ -600,6 +614,7 @@ class AutoMigrationConverter {
     // 按優先級排序建議
     this.conversionResults.suggestions.sort((a, b) => b.priority - a.priority)
 
+    // eslint-disable-next-line no-console
     console.log(`💡 產生了 ${this.conversionResults.suggestions.length} 個轉換建議`)
   }
 
@@ -620,6 +635,7 @@ class AutoMigrationConverter {
 
     // 調試輸出
     if (!baseEffort[opportunity.strategy]) {
+      // eslint-disable-next-line no-console
       console.warn(`⚠️ 未知的策略類型: ${opportunity.strategy}`)
     }
 
@@ -637,6 +653,7 @@ class AutoMigrationConverter {
    * @private
    */
   async _performAutoConversion () {
+    // eslint-disable-next-line no-console
     console.log('🤖 執行自動轉換...')
 
     let convertedFiles = 0
@@ -661,15 +678,19 @@ class AutoMigrationConverter {
         if (result.success) {
           convertedFiles++
           convertedItems += result.convertedItems
+          // eslint-disable-next-line no-console
           console.log(`✅ 轉換完成: ${candidate.file} (${result.convertedItems} 項)`)
         } else {
+          // eslint-disable-next-line no-console
           console.warn(`⚠️ 轉換失敗: ${candidate.file} - ${result.error}`)
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error(`❌ 轉換檔案時發生錯誤 ${candidate.file}:`, error.message)
       }
     }
 
+    // eslint-disable-next-line no-console
     console.log(`🎉 自動轉換完成: ${convertedFiles} 個檔案，共 ${convertedItems} 項轉換`)
   }
 
@@ -735,7 +756,7 @@ class AutoMigrationConverter {
     const convertedContent = content.replace(pattern, (match, code, message, details) => {
       count++
       const detailsStr = details ? `, ${details}` : ''
-      return `new StandardError('${code}', '${message}'${detailsStr})`
+      return `(() => { const error = new Error('${message}'); error.code = ErrorCodes.${code}${detailsStr ? `; error.details = ${detailsStr}` : ''}; return error })()`
     })
 
     return {
@@ -785,7 +806,7 @@ class AutoMigrationConverter {
 
     const convertedContent = content.replace(pattern, (match) => {
       count++
-      return 'throw new StandardError('
+      return 'throw (() => { const error = new Error('
     })
 
     return {
@@ -834,6 +855,7 @@ class AutoMigrationConverter {
    * @private
    */
   async _prepareManualAssistance () {
+    // eslint-disable-next-line no-console
     console.log('🛠 準備手動轉換輔助...')
 
     // 產生詳細的手動轉換指南
@@ -842,6 +864,7 @@ class AutoMigrationConverter {
     // 產生轉換清單
     await this._generateConversionChecklist()
 
+    // eslint-disable-next-line no-console
     console.log('📋 手動轉換輔助資料已準備完成')
   }
 
@@ -1115,6 +1138,7 @@ class AutoMigrationConverter {
    * @private
    */
   async _generateConversionReport () {
+    // eslint-disable-next-line no-console
     console.log('📊 產生轉換報告...')
 
     const report = {
@@ -1148,6 +1172,7 @@ class AutoMigrationConverter {
     await fs.mkdir(path.dirname(reportPath), { recursive: true })
     await fs.writeFile(reportPath, JSON.stringify(report, null, 2))
 
+    // eslint-disable-next-line no-console
     console.log(`📋 轉換報告已產生: ${reportPath}`)
     return report
   }
@@ -1252,6 +1277,7 @@ class AutoMigrationConverter {
           taskBreakdown[effortKey]++
           totalHours += effortEstimates[effortKey]
         } else {
+          // eslint-disable-next-line no-console
           console.warn(`⚠️ 未知的工作量等級: ${effort} -> ${effortKey}`)
           taskBreakdown.medium++
           totalHours += effortEstimates.medium

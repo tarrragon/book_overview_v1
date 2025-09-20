@@ -9,7 +9,7 @@
  * @version v0.9.38-refactor
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 /**
  * 錯誤注入器 - 重構版
@@ -55,7 +55,7 @@ class ErrorInjector {
    */
   _validateInjectionParameters (api, method, error) {
     if (!api || !method || !error) {
-      throw new StandardError('ERROR_INJECTION_NOT_ENABLED', 'All parameters are required for error injection', { category: 'testing' })
+      throw (() => { const error = new Error('All parameters are required for error injection'); error.code = ErrorCodes.INITIALIZATION_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 
@@ -101,7 +101,7 @@ class ErrorInjector {
   _validateNetworkErrorType (type) {
     const validTypes = ['timeout', 'network', 'dns']
     if (!validTypes.includes(type)) {
-      throw new StandardError('VALIDATION_FAILED', `Invalid network error type: ${type}`, { category: 'testing' })
+      throw (() => { const error = new Error(`Invalid network error type: ${type}`); error.code = ErrorCodes.VALIDATION_FAILED; error.details = { category: 'testing' }; return error })()
     }
   }
 
@@ -176,7 +176,7 @@ class ErrorInjector {
    */
   _validateDomSelector (selector) {
     if (!selector || typeof selector !== 'string') {
-      throw new StandardError('TEST_ERROR', 'Selector must be a non-empty string', { category: 'testing' })
+      throw (() => { const error = new Error('Selector must be a non-empty string'); error.code = ErrorCodes.SYSTEM_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 
@@ -262,7 +262,7 @@ class ErrorInjector {
   _validateDataMethod (method) {
     const validMethods = ['JSON.parse', 'JSON.stringify']
     if (!validMethods.includes(method)) {
-      throw new StandardError('VALIDATION_FAILED', `Invalid data processing method: ${method}`, { category: 'testing' })
+      throw (() => { const error = new Error(`Invalid data processing method: ${method}`); error.code = ErrorCodes.VALIDATION_FAILED; error.details = { category: 'testing' }; return error })()
     }
   }
 
@@ -383,7 +383,7 @@ class ErrorInjector {
    */
   _validateProbability (probability) {
     if (typeof probability !== 'number' || probability < 0 || probability > 1) {
-      throw new StandardError('TEST_ERROR', 'Probability must be a number between 0 and 1', { category: 'testing' })
+      throw (() => { const error = new Error('Probability must be a number between 0 and 1'); error.code = ErrorCodes.SYSTEM_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 

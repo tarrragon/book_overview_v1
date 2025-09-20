@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * PopupProgressManager 單元測試
  *
@@ -188,7 +188,7 @@ describe('PopupProgressManager 核心功能', () => {
       // Then: 應該拋出錯誤
       expect(() => {
         progressManager.updateProgress({ percentage: 50, status: invalidStatus, text: '測試' })
-      }).toThrow(StandardError)
+      }).toThrow(Error)
     })
 
     test('應該正確處理進度狀態轉換', () => {
@@ -223,7 +223,7 @@ describe('PopupProgressManager 核心功能', () => {
       progressManager = new PopupProgressManager(mockUIComponents)
 
       mockUIComponents.updateProgress.mockImplementation(() => {
-        throw new StandardError('POPUP_UI_UPDATE_ERROR', 'UI update failed', { category: 'testing' })
+        throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.POPUP_UI_UPDATE_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
       // When: 嘗試更新進度

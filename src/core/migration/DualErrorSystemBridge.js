@@ -118,9 +118,13 @@ class DualErrorSystemBridge {
    */
   _initializeSystemState () {
     if (this.config.enableLogging) {
+      // eslint-disable-next-line no-console
       console.log('🔗 雙重錯誤系統橋接器啟動')
+      // eslint-disable-next-line no-console
       console.log(`   模式: ${this.config.mode}`)
+      // eslint-disable-next-line no-console
       console.log(`   相容性等級: ${this.config.compatibilityLevel}`)
+      // eslint-disable-next-line no-console
       console.log(`   系統狀態: ${this.systemState.currentState}`)
     }
   }
@@ -159,6 +163,7 @@ class DualErrorSystemBridge {
       this._updateErrorStats('unknown', 'failed')
 
       if (this.config.fallbackToLegacy) {
+        // eslint-disable-next-line no-console
         console.warn('⚠️ 橋接失敗，回退到原始錯誤:', bridgeError.message)
         return error
       }
@@ -562,6 +567,7 @@ class DualErrorSystemBridge {
       if (this.config.compatibilityLevel === COMPATIBILITY_LEVELS.STRICT) {
         throw validationError
       } else {
+        // eslint-disable-next-line no-console
         console.warn('⚠️ 相容性驗證警告:', validationError.message)
       }
     }
@@ -625,6 +631,7 @@ class DualErrorSystemBridge {
 
     // 驗證訊息一致性
     if (originalError.message && bridgedError.message !== originalError.message) {
+      // eslint-disable-next-line no-console
       console.warn(`⚠️ 錯誤訊息不一致: "${originalError.message}" vs "${bridgedError.message}"`)
     }
   }
@@ -652,6 +659,7 @@ class DualErrorSystemBridge {
 
     // 驗證類別一致性
     if (originalError.details && !bridgedError.details) {
+      // eslint-disable-next-line no-console
       console.warn('⚠️ 橋接過程中遺失了錯誤詳細資訊')
     }
   }
@@ -672,6 +680,7 @@ class DualErrorSystemBridge {
     }
 
     if (!bridgedError.timestamp) {
+      // eslint-disable-next-line no-console
       console.warn('⚠️ 橋接後的錯誤缺少時間戳')
     }
 
@@ -680,6 +689,7 @@ class DualErrorSystemBridge {
     const bridgedKeys = Object.keys(bridgedError)
 
     if (originalKeys.length > bridgedKeys.length + 2) { // 允許一些轉換損失
+      // eslint-disable-next-line no-console
       console.warn('⚠️ 橋接過程可能遺失了一些屬性')
     }
   }
@@ -723,6 +733,7 @@ class DualErrorSystemBridge {
     }
 
     if (this.config.enableLogging && Math.abs(progress - oldProgress) > 0.1) {
+      // eslint-disable-next-line no-console
       console.log(`📊 遷移進度更新: ${(progress * 100).toFixed(1)}% (狀態: ${this.systemState.currentState})`)
     }
   }
@@ -811,6 +822,7 @@ class DualErrorSystemBridge {
     this.performanceMetrics.validationTimes = []
 
     if (this.config.enableLogging) {
+      // eslint-disable-next-line no-console
       console.log('🧹 雙重錯誤系統橋接器資源已清理')
     }
   }

@@ -27,7 +27,7 @@
 
 const puppeteer = require('puppeteer')
 const path = require('path')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class ExtensionTestSetup {
   constructor () {
@@ -98,7 +98,12 @@ class ExtensionTestSetup {
       )
 
       if (!extensionTarget) {
-        throw new StandardError('E2E_EXTENSION_SERVICE_WORKER_NOT_FOUND', '找不到 Extension Service Worker', { category: 'testing' })
+        throw (() => {
+          const error = new Error('找不到 Extension Service Worker')
+          error.code = ErrorCodes.RESOURCE_NOT_FOUND
+          error.details = { category: 'testing', originalCode: 'E2E_EXTENSION_SERVICE_WORKER_NOT_FOUND' }
+          return error
+        })()
       }
 
       const extensionUrl = extensionTarget.url()
@@ -106,7 +111,12 @@ class ExtensionTestSetup {
 
       return extensionId
     } catch (error) {
-      throw new StandardError('E2E_EXTENSION_ID_RETRIEVAL_FAILED', `取得 Extension ID 失敗: ${error.message}`, { category: 'testing' })
+      throw (() => {
+        const retrievalError = new Error(`取得 Extension ID 失敗: ${error.message}`)
+        retrievalError.code = ErrorCodes.OPERATION_FAILED
+        retrievalError.details = { category: 'testing', originalCode: 'E2E_EXTENSION_ID_RETRIEVAL_FAILED' }
+        return retrievalError
+      })()
     }
   }
 
@@ -150,7 +160,12 @@ class ExtensionTestSetup {
       // 等待頁面完全載入
       await this.page.waitForTimeout(2000)
     } catch (error) {
-      throw new StandardError('E2E_READMOO_NAVIGATION_FAILED', `導航到 Readmoo 頁面失敗: ${error.message}`, { category: 'testing' })
+      throw (() => {
+        const navError = new Error(`導航到 Readmoo 頁面失敗: ${error.message}`)
+        navError.code = ErrorCodes.OPERATION_FAILED
+        navError.details = { category: 'testing', originalCode: 'E2E_READMOO_NAVIGATION_FAILED' }
+        return navError
+      })()
     }
   }
 
@@ -178,7 +193,12 @@ class ExtensionTestSetup {
       console.log('✅ Extension Popup 已開啟')
       return popupPage
     } catch (error) {
-      throw new StandardError('E2E_EXTENSION_POPUP_OPEN_FAILED', `開啟 Extension Popup 失敗: ${error.message}`, { category: 'testing' })
+      throw (() => {
+        const popupError = new Error(`開啟 Extension Popup 失敗: ${error.message}`)
+        popupError.code = ErrorCodes.OPERATION_FAILED
+        popupError.details = { category: 'testing', originalCode: 'E2E_EXTENSION_POPUP_OPEN_FAILED' }
+        return popupError
+      })()
     }
   }
 
@@ -195,13 +215,23 @@ class ExtensionTestSetup {
       )
 
       if (!backgroundTarget) {
-        throw new StandardError('E2E_BACKGROUND_SCRIPT_NOT_FOUND', '找不到 Background Script', { category: 'testing' })
+        throw (() => {
+          const error = new Error('找不到 Background Script')
+          error.code = ErrorCodes.RESOURCE_NOT_FOUND
+          error.details = { category: 'testing', originalCode: 'E2E_BACKGROUND_SCRIPT_NOT_FOUND' }
+          return error
+        })()
       }
 
       this.backgroundPage = await backgroundTarget.page()
       return this.backgroundPage
     } catch (error) {
-      throw new StandardError('E2E_BACKGROUND_SCRIPT_RETRIEVAL_FAILED', `取得 Background Script 失敗: ${error.message}`, { category: 'testing' })
+      throw (() => {
+        const scriptError = new Error(`取得 Background Script 失敗: ${error.message}`)
+        scriptError.code = ErrorCodes.OPERATION_FAILED
+        scriptError.details = { category: 'testing', originalCode: 'E2E_BACKGROUND_SCRIPT_RETRIEVAL_FAILED' }
+        return scriptError
+      })()
     }
   }
 
@@ -215,7 +245,12 @@ class ExtensionTestSetup {
     try {
       return await this.page.evaluate(script, ...args)
     } catch (error) {
-      throw new StandardError('E2E_CONTENT_SCRIPT_EXECUTION_FAILED', `執行 Content Script 失敗: ${error.message}`, { category: 'testing' })
+      throw (() => {
+        const execError = new Error(`執行 Content Script 失敗: ${error.message}`)
+        execError.code = ErrorCodes.OPERATION_FAILED
+        execError.details = { category: 'testing', originalCode: 'E2E_CONTENT_SCRIPT_EXECUTION_FAILED' }
+        return execError
+      })()
     }
   }
 
@@ -229,7 +264,12 @@ class ExtensionTestSetup {
     try {
       return await this.page.waitForSelector(selector, { timeout })
     } catch (error) {
-      throw new StandardError('E2E_ELEMENT_WAIT_TIMEOUT', `等待元素 "${selector}" 超時: ${error.message}`, { category: 'testing' })
+      throw (() => {
+        const timeoutError = new Error(`等待元素 "${selector}" 超時: ${error.message}`)
+        timeoutError.code = ErrorCodes.TIMEOUT_ERROR
+        timeoutError.details = { category: 'testing', originalCode: 'E2E_ELEMENT_WAIT_TIMEOUT' }
+        return timeoutError
+      })()
     }
   }
 

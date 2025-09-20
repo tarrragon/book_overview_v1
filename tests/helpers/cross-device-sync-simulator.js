@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * Cross Device Sync Simulator - 跨裝置同步模擬器
  * 模擬跨裝置同步的各種情境
@@ -37,7 +37,7 @@ class CrossDeviceSyncSimulator {
 
     if (!fromDeviceData || !toDeviceData) {
       this.syncStatus = 'error'
-      throw new StandardError('NOT_FOUND_ERROR', 'Device not found', { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.NOT_FOUND_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     // 更新同步時間
@@ -134,7 +134,7 @@ class CrossDeviceSyncSimulator {
    */
   async calculateDataDigest (books) {
     if (!Array.isArray(books)) {
-      throw new StandardError('TEST_ERROR', 'Books must be an array', { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     // 創建用於計算摘要的標準化資料

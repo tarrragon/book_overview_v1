@@ -33,7 +33,8 @@ const BaseUIHandler = require('./base-ui-handler')
 const UIEventValidator = require('./ui-event-validator')
 const UI_HANDLER_CONFIG = require('src/ui/config/ui-handler-config')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
-const { Logger } = require('src/core/logging')
+// Logger 用於錯誤處理和除錯記錄，在多個方法中被使用
+const { Logger } = require('src/core/logging/Logger')
 
 class UIProgressHandler extends BaseUIHandler {
   /**

@@ -1,4 +1,4 @@
-const Logger = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 /**
  * 集中化訊息字典系統
  *

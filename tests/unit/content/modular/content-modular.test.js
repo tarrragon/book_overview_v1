@@ -20,7 +20,7 @@ const { JSDOM } = require('jsdom')
 
 // 模擬 Content Script 環境 - 強化Chrome Extension API模擬
 global.chrome = require('jest-chrome').chrome
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 // 強化chrome.runtime.sendMessage的模擬行為
 global.chrome.runtime.sendMessage.mockImplementation((message, callback) => {
@@ -310,7 +310,7 @@ describe('Modular Content Script', () => {
     test('應該隔離監聽器錯誤', async () => {
       const createContentEventBus = require('src/content/core/content-event-bus')
       const eventBus = createContentEventBus()
-      const errorHandler = jest.fn(() => { throw new StandardError('CONTENT_HANDLER_ERROR', 'Handler error', { category: 'testing' }) })
+      const errorHandler = jest.fn(() => { throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.CONTENT_HANDLER_ERROR; error.details = { category: 'testing' }; return error })() })
       const goodHandler = jest.fn()
 
       eventBus.on('ERROR.TEST', errorHandler)

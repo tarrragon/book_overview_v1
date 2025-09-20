@@ -13,7 +13,7 @@
  * - 支援元素快取以提高效能
  */
 
-const { Logger } = require('src/core/logging')
+const { Logger } = require('src/core/logging/Logger')
 
 class UIDOMManager {
   /**

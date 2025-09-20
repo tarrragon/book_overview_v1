@@ -12,9 +12,9 @@
  */
 
 import { UC07ErrorAdapter } from './UC07ErrorAdapter.js'
-import { ErrorCodes } from './ErrorCodes.js'
+const { ErrorCodes } = require('./ErrorCodes')
 
-export class UC07ErrorFactory {
+class UC07ErrorFactory {
   /**
    * 常用錯誤快取
    * @private
@@ -506,3 +506,5 @@ export class UC07ErrorFactory {
     return keyFields
   }
 }
+
+module.exports = { UC07ErrorFactory }

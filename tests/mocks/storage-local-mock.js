@@ -1,3 +1,4 @@
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { StandardError } = require('src/core/errors/StandardError')
 /**
  * Storage Local Mock - 單一責任原則實現
@@ -123,7 +124,7 @@ class StorageLocalMock {
    */
   _validateItems (items) {
     if (!items || typeof items !== 'object') {
-      throw new StandardError('TEST_VALIDATION_ERROR', 'Items must be an object', { category: 'testing' })
+      throw (() => { const error = new Error('Items must be an object'); error.code = ErrorCodes.TEST_VALIDATION_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 
@@ -147,7 +148,7 @@ class StorageLocalMock {
    */
   _validateQuotaLimit (itemsSize) {
     if (this._used + itemsSize > this._quota) {
-      throw new StandardError('TEST_STORAGE_ERROR', 'Storage quota exceeded', { category: 'testing' })
+      throw (() => { const error = new Error('Storage quota exceeded'); error.code = ErrorCodes.TEST_STORAGE_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 

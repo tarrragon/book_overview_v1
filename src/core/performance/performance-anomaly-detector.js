@@ -223,6 +223,7 @@ export class PerformanceAnomalyDetector {
 
       this.lastDetectionTime = Date.now()
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('異常檢測過程發生錯誤:', error)
     }
   }
@@ -402,6 +403,7 @@ export class PerformanceAnomalyDetector {
    * @private
    */
   _handleMemoryLeakResponse (anomaly) {
+    // eslint-disable-next-line no-console
     console.warn('檢測到記憶體洩漏，觸發自動回應:', anomaly)
 
     // 強制垃圾回收
@@ -425,6 +427,7 @@ export class PerformanceAnomalyDetector {
    * @private
    */
   _handleMemorySpikeResponse (anomaly) {
+    // eslint-disable-next-line no-console
     console.warn('檢測到記憶體激增，觸發自動回應:', anomaly)
 
     // 減少數據窗口大小
@@ -442,6 +445,7 @@ export class PerformanceAnomalyDetector {
    * @private
    */
   _handleSlowCreationResponse (anomaly) {
+    // eslint-disable-next-line no-console
     console.warn('檢測到錯誤建立緩慢，觸發自動回應:', anomaly)
 
     // 建議使用 CommonErrors
@@ -458,6 +462,7 @@ export class PerformanceAnomalyDetector {
    * @private
    */
   _handleBatchDegradationResponse (anomaly) {
+    // eslint-disable-next-line no-console
     console.warn('檢測到批次效能下降，觸發自動回應:', anomaly)
 
     // 建議減少批次大小
@@ -495,6 +500,7 @@ export class PerformanceAnomalyDetector {
     }
 
     // 在實際應用中，這裡可以發送到監控系統
+    // eslint-disable-next-line no-console
     console.log(`[效能異常警報] ${alertData.severity}:`, alertData.message)
   }
 

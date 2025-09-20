@@ -3,6 +3,7 @@
  * TDD 循環 1: 抽象介面與基礎功能測試
  */
 
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const ReadmooDataConsistencyService = require('src/background/domains/data-management/services/readmoo-data-consistency-service')
 const { StandardError } = require('src/core/errors/StandardError')
 
@@ -79,7 +80,7 @@ describe('ReadmooDataConsistencyService', () => {
     test('initialize() 失敗時應該拋出錯誤', async () => {
       // 模擬 eventBus.on 拋出錯誤
       mockEventBus.on.mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', 'Event registration failed', { category: 'testing' })
+        throw (() => { const error = new Error('Event registration failed'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
       await expect(service.initialize()).rejects.toMatchObject({
@@ -216,7 +217,7 @@ describe('ReadmooDataConsistencyService', () => {
 
       // 模擬 emit 失敗
       mockEventBus.emit.mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', 'Event emission failed', { category: 'testing' })
+        throw (() => { const error = new Error('Event emission failed'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
       await expect(service.performConsistencyCheck(checkId)).rejects.toMatchObject({

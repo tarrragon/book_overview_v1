@@ -32,7 +32,7 @@
  * @since 2025-08-06
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class LocalStorageAdapter {
   /**
@@ -625,9 +625,9 @@ class LocalStorageAdapter {
    * - 添加錯誤類型標識
    */
   createError (type, message, originalError = null) {
-    const error = new StandardError('UNKNOWN_ERROR', message, {
-      category: 'storage'
-    })
+    const error = new Error(message)
+    error.code = ErrorCodes.UNKNOWN_ERROR
+    error.details = { category: 'storage' }
     error.type = type
     error.originalError = originalError
     error.timestamp = Date.now()

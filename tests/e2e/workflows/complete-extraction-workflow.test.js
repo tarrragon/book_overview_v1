@@ -279,6 +279,7 @@ describe('📚 完整書籍資料提取工作流程', () => {
 
       // 驗證提取時間在 20 秒內
       expect(extractionTime).toBeLessThan(20000)
+      // eslint-disable-next-line no-console
       console.log(`⏱️ 提取完成時間: ${extractionTime}ms`)
 
       await perfPopupPage.close()
@@ -302,6 +303,7 @@ describe('📚 完整書籍資料提取工作流程', () => {
 
         // 驗證記憶體使用少於 100MB
         expect(memoryUsageMB).toBeLessThan(100)
+        // eslint-disable-next-line no-console
         console.log(`💾 記憶體使用量: ${memoryUsageMB.toFixed(2)}MB`)
       }
     })

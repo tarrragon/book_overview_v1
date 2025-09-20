@@ -1,4 +1,4 @@
-const Logger = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 /**
  * @fileoverview PerformanceIntegration - 效能優化整合系統
  * TDD 循環 #35: 將效能優化整合到現有 Extension 架構

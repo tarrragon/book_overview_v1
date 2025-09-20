@@ -26,7 +26,7 @@
  * - 使用習慣分析
  */
 
-const ErrorCodes = require('src/core/errors/ErrorCodes')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class PersonalizationService {
   constructor (dependencies = {}) {
@@ -343,11 +343,12 @@ class PersonalizationService {
         case 'feature':
           result = await this.applyFeatureSuggestion(suggestion)
           break
-        default:
+        default: {
           const error = new Error(`不支援的建議類型: ${suggestion.type}`)
           error.code = ErrorCodes.VALIDATION_ERROR
           error.details = { category: 'general' }
           throw error
+        }
       }
 
       // 標記建議為已應用

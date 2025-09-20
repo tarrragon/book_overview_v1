@@ -13,7 +13,7 @@
 
 const fs = require('fs')
 const path = require('path')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('Popup 版本號顯示', () => {
   let popupScript
@@ -24,8 +24,9 @@ describe('Popup 版本號顯示', () => {
     // 評估腳本到當前 jsdom 的 window 環境
     // 注意：popup.js 會註冊一些事件與計時器，但不會自動執行初始化（需 DOMContentLoaded）
     // 測試中改為直接呼叫 window.updateVersionDisplay()
-    // eslint-disable-next-line no-eval
-    eval(popupScript)
+    // 使用 Function constructor 代替 eval
+    const scriptFunction = new Function(popupScript)
+    scriptFunction.call(window)
   }
 
   beforeEach(() => {
@@ -82,7 +83,7 @@ describe('Popup 版本號顯示', () => {
 
   test('getManifest 例外時應顯示未知版本字串', () => {
     // 模擬例外
-    global.chrome.runtime.getManifest = jest.fn(() => { throw new StandardError('TEST_ERROR', 'mock failure', { category: 'testing' }) })
+    global.chrome.runtime.getManifest = jest.fn(() => { throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })() })
 
     loadPopupScript()
 

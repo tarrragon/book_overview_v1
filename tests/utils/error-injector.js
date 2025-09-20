@@ -6,6 +6,7 @@
  * @date 2025-08-25
  */
 
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { StandardError } = require('src/core/errors/StandardError')
 
 class ErrorInjector {
@@ -52,13 +53,13 @@ class ErrorInjector {
 
       switch (type) {
         case 'timeout':
-          throw new StandardError('TIMEOUT_ERROR', 'Request timeout', { category: 'testing' })
+          throw (() => { const error = new Error('Request timeout'); error.code = ErrorCodes.TIMEOUT_ERROR; error.details = { category: 'testing' }; return error })()
         case 'network':
-          throw new StandardError('NETWORK_ERROR', 'Network error', { category: 'testing' })
+          throw (() => { const error = new Error('Network error'); error.code = ErrorCodes.NETWORK_ERROR; error.details = { category: 'testing' }; return error })()
         case 'dns':
-          throw new StandardError('DNS_ERROR', 'DNS resolution failed', { category: 'testing' })
+          throw (() => { const error = new Error('DNS resolution failed'); error.code = ErrorCodes.DNS_ERROR; error.details = { category: 'testing' }; return error })()
         default:
-          throw new StandardError('UNKNOWN_NETWORK_ERROR', 'Unknown network error', { category: 'testing' })
+          throw (() => { const error = new Error('Unknown network error'); error.code = ErrorCodes.UNKNOWN_NETWORK_ERROR; error.details = { category: 'testing' }; return error })()
       }
     }
   }
@@ -123,7 +124,7 @@ class ErrorInjector {
 
     window.Array = function (...args) {
       if (args.length === 1 && args[0] > 1000000) {
-        throw new StandardError('OUT_OF_MEMORY', 'Out of memory', { category: 'testing' })
+        throw (() => { const error = new Error('Out of memory'); error.code = ErrorCodes.OUT_OF_MEMORY; error.details = { category: 'testing' }; return error })()
       }
       return new OriginalArrayConstructor(...args)
     }

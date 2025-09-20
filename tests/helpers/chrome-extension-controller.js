@@ -5,7 +5,7 @@
  * 提供跨Context通訊、API模擬、狀態管理等功能
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class ChromeExtensionController {
   constructor (options = {}) {
@@ -67,7 +67,12 @@ class ChromeExtensionController {
 
   async loadExtension () {
     if (!this.state.installed) {
-      throw new StandardError('EXTENSION_NOT_INSTALLED', 'Extension未安裝，請先呼叫installExtension()', { category: 'testing' })
+      throw (() => {
+        const error = new Error('Extension未安裝，請先呼叫installExtension()')
+        error.code = ErrorCodes.INITIALIZATION_ERROR
+        error.details = { category: 'testing', originalCode: 'EXTENSION_NOT_INSTALLED' }
+        return error
+      })()
     }
 
     if (this.state.loaded) return
@@ -200,7 +205,7 @@ class ChromeExtensionController {
 
   async startServiceWorker () {
     const bgContext = this.state.contexts.get('background')
-    if (!bgContext) throw new StandardError('BACKGROUND_CONTEXT_NOT_INITIALIZED', 'Background context未初始化', { category: 'testing' })
+    if (!bgContext) throw (() => { const error = new Error('Background context未初始化'); error.code = ErrorCodes.BACKGROUND_CONTEXT_NOT_INITIALIZED; error.details = { category: 'testing' }; return error })()
 
     this.log('啟動Service Worker...')
 
@@ -276,6 +281,7 @@ class ChromeExtensionController {
 
       if (currentInterference) {
         result.securityViolations = 1
+        // eslint-disable-next-line no-console
         console.log('🔧 Security violation detected:', currentInterference)
 
         if (enableCountermeasures) {
@@ -444,7 +450,7 @@ class ChromeExtensionController {
                 this.log(`嚴格CSP限制檢測到，但使用fallback方法繞過 (retry: ${retryCount})`)
               } else {
                 this.log(`觸發嚴格CSP錯誤 (retry: ${retryCount})`)
-                throw new StandardError('CSP_VIOLATION', 'Content Security Policy violation', { category: 'testing' })
+                throw (() => { const error = new Error('Content Security Policy violation'); error.code = ErrorCodes.CSP_VIOLATION; error.details = { category: 'testing' }; return error })()
               }
             } else if (this.state.cspTestConfig.restrictive === 'moderate') {
               // 中度限制性 CSP - 只有在沒有 fallback 時才拋出錯誤
@@ -453,7 +459,7 @@ class ChromeExtensionController {
               } else if (!enableCSPDetection) {
                 // 如果沒有啟用 CSP 檢測，中度 CSP 仍然會拋出錯誤
                 this.log(`觸發中度CSP錯誤 (retry: ${retryCount})`)
-                throw new StandardError('CSP_VIOLATION', 'Content Security Policy violation', { category: 'testing' })
+                throw (() => { const error = new Error('Content Security Policy violation'); error.code = ErrorCodes.CSP_VIOLATION; error.details = { category: 'testing' }; return error })()
               }
             }
           }
@@ -461,26 +467,26 @@ class ChromeExtensionController {
           // 檢查權限撤銷
           if (this.state.tabPermissionsRevoked) {
             this.log(`觸發權限錯誤 (retry: ${retryCount})`)
-            throw new StandardError('INSUFFICIENT_PERMISSIONS', 'Insufficient permissions', { category: 'testing' })
+            throw (() => { const error = new Error('Insufficient permissions'); error.code = ErrorCodes.INSUFFICIENT_PERMISSIONS; error.details = { category: 'testing' }; return error })()
           }
 
           // 檢查腳本載入錯誤模擬
           if (this.state.scriptLoadingError) {
             this.log(`觸發腳本載入錯誤 (retry: ${retryCount})`)
-            throw new StandardError('SCRIPT_LOADING_FAILED', 'Script loading failed', { category: 'testing' })
+            throw (() => { const error = new Error('Script loading failed'); error.code = ErrorCodes.SCRIPT_LOADING_FAILED; error.details = { category: 'testing' }; return error })()
           }
 
           // 檢查頁面未準備狀態
           if (this.state.pageNotReady) {
             this.log(`觸發頁面未準備錯誤 (retry: ${retryCount})`)
-            throw new StandardError('PAGE_NOT_READY', 'Page not ready', { category: 'testing' })
+            throw (() => { const error = new Error('Page not ready'); error.code = ErrorCodes.PAGE_NOT_READY; error.details = { category: 'testing' }; return error })()
           }
 
           // 檢查預期失敗（保留原有邏輯）- 只在第一次重試時執行
           if (retryCount === 0 && expectedFailures.length > 0) {
             const randomFailure = expectedFailures[Math.floor(Math.random() * expectedFailures.length)]
             this.log(`觸發預期失敗錯誤: ${randomFailure}`)
-            throw new StandardError('RANDOM_FAILURE', randomFailure, { category: 'testing' })
+            throw (() => { const error = new Error(randomFailure); error.code = ErrorCodes.RANDOM_FAILURE; error.details = { category: 'testing' }; return error })()
           }
 
           injectionResult = await this.injectContentScript(tabId)
@@ -706,7 +712,9 @@ class ChromeExtensionController {
       timestamp: Date.now()
     }
 
+    // eslint-disable-next-line no-console
     console.log('🔧 CSP Test Environment setup:', this.state.cspTestConfig)
+    // eslint-disable-next-line no-console
     console.log('🔧 Page Environment for CSP test:', this.state.pageEnvironment.url)
 
     return { success: true, testEnvironmentReady: true }
@@ -737,6 +745,7 @@ class ChromeExtensionController {
         timestamp: Date.now(),
         actions
       }
+      // eslint-disable-next-line no-console
       console.log('🔧 Malicious environment set:', this.state.maliciousEnvironment)
     }
 
@@ -1230,7 +1239,7 @@ class ChromeExtensionController {
       await this.simulateDelay(100)
     }
 
-    throw new StandardError('CONTENT_SCRIPT_TIMEOUT', 'Content Script 準備就緒等待超時', { category: 'testing' })
+    throw (() => { const error = new Error('Content Script 準備就緒等待超時'); error.code = ErrorCodes.CONTENT_SCRIPT_TIMEOUT; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -1534,57 +1543,6 @@ class ChromeExtensionController {
   }
 
   /**
-   * 發送帶重試機制的訊息
-   */
-  async sendMessageWithRetry (type, data, options = {}) {
-    this.log(`[Retry Message] ${type}`)
-
-    const {
-      retryStrategy = 'exponential_backoff',
-      enableDegradation = true
-    } = options
-
-    // 模擬重試次數
-    const retryAttempts = Math.floor(Math.random() * 4) + 1
-
-    // 根據重試策略確定恢復方法
-    const recoveryMethods = {
-      exponential_backoff: 'exponential_delay_recovery',
-      immediate_retry: 'immediate_retry_recovery',
-      linear_backoff: 'linear_delay_recovery'
-    }
-
-    return {
-      success: true,
-      retryAttempts,
-      degradationApplied: enableDegradation && retryAttempts > 2,
-      recoveryMethod: recoveryMethods[retryStrategy] || 'default_recovery',
-      messageId: `retry-${Date.now()}`,
-      timestamp: Date.now()
-    }
-  }
-
-  /**
-   * 發送有序訊息
-   */
-  async sendOrderedMessage (type, data, options = {}) {
-    const { sequenceId, enforceOrder = true } = options
-
-    this.log(`[Ordered Message] ${type}, sequence: ${sequenceId}`)
-
-    // 模擬有序處理
-    await this.simulateDelay(50)
-
-    return {
-      success: true,
-      sequenceId,
-      messageId: `ordered-${sequenceId}-${Date.now()}`,
-      enforceOrder,
-      timestamp: Date.now()
-    }
-  }
-
-  /**
    * 生成 Content Script 回應的私有方法
    */
   _generateContentScriptResponse (command, parameters) {
@@ -1684,13 +1642,13 @@ class ChromeExtensionController {
   _simulateMessageError (type, data, errorSimulation, options) {
     const errorTypes = {
       timeout: () => {
-        throw new StandardError('MESSAGE_TIMEOUT', `訊息傳遞超時: ${type}`, { category: 'testing', messageType: type })
+        throw (() => { const error = new Error(`訊息傳遞超時: ${type}`); error.code = ErrorCodes.MESSAGE_TIMEOUT; error.details = { category: 'testing', messageType: type }; return error })()
       },
       network_error: () => {
-        throw new StandardError('NETWORK_ERROR', `網路錯誤: ${type}`, { category: 'testing', messageType: type })
+        throw (() => { const error = new Error(`網路錯誤: ${type}`); error.code = ErrorCodes.NETWORK_ERROR; error.details = { category: 'testing', messageType: type }; return error })()
       },
       recipient_unavailable: () => {
-        throw new StandardError('RECEIVER_UNAVAILABLE', `接收者不可用: ${type}`, { category: 'testing', messageType: type })
+        throw (() => { const error = new Error(`接收者不可用: ${type}`); error.code = ErrorCodes.RECEIVER_UNAVAILABLE; error.details = { category: 'testing', messageType: type }; return error })()
       }
     }
 
@@ -1721,12 +1679,14 @@ class ChromeExtensionController {
 
   log (message) {
     if (this.options.enableLogging) {
+      // eslint-disable-next-line no-console
       console.log(`[ChromeExtensionController] ${message}`)
     }
   }
 
   logError (message, error) {
     if (this.options.enableLogging) {
+      // eslint-disable-next-line no-console
       console.error(`[ChromeExtensionController] ${message}`, error)
     }
   }
@@ -2336,7 +2296,7 @@ class ChromeExtensionController {
           source: 'file-import'
         }
       } else {
-        throw new StandardError('INVALID_IMPORT_FORMAT', 'Invalid import file format', { category: 'testing' })
+        throw (() => { const error = new Error('Invalid import file format'); error.code = ErrorCodes.INVALID_IMPORT_FORMAT; error.details = { category: 'testing' }; return error })()
       }
 
       const currentStorageData = await this.getStorageData()
@@ -2623,7 +2583,7 @@ class ChromeExtensionController {
         const elapsed = Date.now() - startTime
 
         if (elapsed > timeout) {
-          reject(new StandardError('E2E_CONFLICT_RESOLUTION_UI_TIMEOUT', `衝突解決介面在 ${timeout}ms 內未出現`, { category: 'testing' }))
+          reject((() => { const error = new Error(`衝突解決介面在 ${timeout}ms 內未出現`); error.code = ErrorCodes.E2E_CONFLICT_RESOLUTION_UI_TIMEOUT; error.details = { category: 'testing' }; return error })())
           return
         }
 
@@ -2818,7 +2778,7 @@ class ChromeExtensionController {
       }
     }
 
-    throw new StandardError('MAX_RETRIES_EXCEEDED', `Max retries (${this.retryConfig.maxRetries}) exceeded for ${context}: ${lastError.message}`, { category: 'testing', context, maxRetries: this.retryConfig.maxRetries })
+    throw (() => { const error = new Error(`Max retries (${this.retryConfig.maxRetries}) exceeded for ${context}: ${lastError.message}`); error.code = ErrorCodes.MAX_RETRIES_EXCEEDED; error.details = { category: 'testing', context, maxRetries: this.retryConfig.maxRetries }; return error })()
   }
 
   /**
@@ -3268,6 +3228,7 @@ class ChromeExtensionController {
    */
   async forceServiceWorkerRestart () {
     // 模擬 Service Worker 重啟
+    // eslint-disable-next-line no-console
     console.log('[ExtensionController] Forcing Service Worker restart')
     await this.simulateDelay(1000)
     return { restarted: true, newPid: Math.floor(Math.random() * 10000) }
@@ -3297,6 +3258,7 @@ class ChromeExtensionController {
    * 執行後台提取操作
    */
   async executeBackgroundExtraction () {
+    // eslint-disable-next-line no-console
     console.log('[ExtensionController] Executing background extraction')
     await this.simulateDelay(2000)
 
@@ -3343,6 +3305,7 @@ class ChromeExtensionController {
       compressionEnabled
     }
 
+    // eslint-disable-next-line no-console
     console.log('[ExtensionController] Configured batch transfer:', this.batchConfig)
     return { configured: true, config: this.batchConfig }
   }
@@ -3362,7 +3325,7 @@ class ChromeExtensionController {
       case 'extract':
         return await this.clickExtractButton()
       default:
-        throw new StandardError('UNKNOWN_BUTTON', `Unknown button: ${buttonName}`, { category: 'testing', buttonName })
+        throw (() => { const error = new Error(`Unknown button: ${buttonName}`); error.code = ErrorCodes.UNKNOWN_BUTTON; error.details = { category: 'testing', buttonName }; return error })()
     }
   }
 
@@ -3555,25 +3518,6 @@ class ChromeExtensionController {
     }
 
     return broadcastResult
-  }
-
-  /**
-   * 發送直接點對點訊息
-   */
-  async sendDirectMessage (from, to, message) {
-    this.log(`[P2P] ${from} -> ${to}: ${message.type}`)
-
-    // 模擬點對點延遲
-    await this.simulateDelay(80)
-
-    return {
-      delivered: true,
-      responseReceived: true,
-      from,
-      to,
-      messageId: `p2p-${Date.now()}`,
-      timestamp: Date.now()
-    }
   }
 
   /**
@@ -3813,7 +3757,7 @@ class ChromeExtensionController {
 
     const popupContext = this.state.contexts.get('popup')
     if (!popupContext) {
-      throw new StandardError('POPUP_CONTEXT_NOT_FOUND', 'Popup context not found', { category: 'testing' })
+      throw (() => { const error = new Error('Popup context not found'); error.code = ErrorCodes.POPUP_CONTEXT_NOT_FOUND; error.details = { category: 'testing' }; return error })()
     }
 
     const stateSnapshot = {
@@ -4245,7 +4189,7 @@ class ChromeExtensionController {
             timestamp: Date.now()
           }
         } else {
-          throw new StandardError('MESSAGE_DELIVERY_FAILED', `Message delivery failed (attempt ${attempt})`, { category: 'testing', attempt })
+          throw (() => { const error = new Error(`Message delivery failed (attempt ${attempt})`); error.code = ErrorCodes.MESSAGE_DELIVERY_FAILED; error.details = { category: 'testing', attempt }; return error })()
         }
       } catch (error) {
         lastError = error
@@ -4406,7 +4350,7 @@ class ChromeExtensionController {
     this.log(`更新背景計數器: ${counterType} = ${newValue}`)
 
     if (validateValue && (typeof newValue !== 'number' || newValue < 0)) {
-      throw new StandardError('INVALID_COUNTER_VALUE', `Invalid counter value: ${newValue}`, { category: 'testing', value: newValue })
+      throw (() => { const error = new Error(`Invalid counter value: ${newValue}`); error.code = ErrorCodes.INVALID_COUNTER_VALUE; error.details = { category: 'testing', value: newValue }; return error })()
     }
 
     // 更新背景狀態
@@ -4439,7 +4383,7 @@ class ChromeExtensionController {
       }
     }
 
-    throw new StandardError('BACKGROUND_CONTEXT_NOT_AVAILABLE', 'Background context not available', { category: 'testing' })
+    throw (() => { const error = new Error('Background context not available'); error.code = ErrorCodes.BACKGROUND_CONTEXT_NOT_AVAILABLE; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -4507,7 +4451,7 @@ class ChromeExtensionController {
 
     const context = this.state.contexts.get(affectedContext)
     if (!context) {
-      throw new StandardError('CONTEXT_NOT_FOUND', `Context not found: ${affectedContext}`, { category: 'testing', context: affectedContext })
+      throw (() => { const error = new Error(`Context not found: ${affectedContext}`); error.code = ErrorCodes.CONTEXT_NOT_FOUND; error.details = { category: 'testing', context: affectedContext }; return error })()
     }
 
     // 記錄變更前狀態
@@ -4629,7 +4573,7 @@ class ChromeExtensionController {
     try {
       const context = this.state.contexts.get(targetContext)
       if (!context || context.state === 'inactive') {
-        throw new StandardError('TARGET_CONTEXT_UNAVAILABLE', `Target context ${targetContext} is not available`, { category: 'testing', targetContext })
+        throw (() => { const error = new Error(`Target context ${targetContext} is not available`); error.code = ErrorCodes.TARGET_CONTEXT_UNAVAILABLE; error.details = { category: 'testing', targetContext }; return error })()
       }
 
       await this.simulateDelay(100)

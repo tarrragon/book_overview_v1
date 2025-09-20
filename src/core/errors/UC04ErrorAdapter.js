@@ -11,7 +11,7 @@
  * - 1個 STORAGE_ERROR: 儲存空間溢出錯誤
  */
 
-import { ErrorCodes } from './ErrorCodes.js'
+const { ErrorCodes } = require('./ErrorCodes')
 
 /**
  * UC04ErrorAdapter
@@ -20,7 +20,7 @@ import { ErrorCodes } from './ErrorCodes.js'
  * 設計模式：複用UC-01/UC-02/UC-03成功架構，針對資料匯入場景優化
  * 效能目標：<1ms 轉換時間，零記憶體洩漏
  */
-export class UC04ErrorAdapter {
+class UC04ErrorAdapter {
   /**
    * 獲取UC-04錯誤映射表
    * @returns {Object} StandardError代碼到ErrorCodes的映射
@@ -170,3 +170,5 @@ export class UC04ErrorAdapter {
            typeof error.details === 'object'
   }
 }
+
+module.exports = { UC04ErrorAdapter }

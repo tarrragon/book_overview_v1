@@ -26,7 +26,7 @@
 
 const EventBus = require('src/core/event-bus')
 const { EXPORT_EVENTS } = require('src/export/export-events')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 // 模擬 Chrome APIs
 global.chrome = {
@@ -103,7 +103,7 @@ class ExportUserFeedback {
    */
   async initialize () {
     // 測試將驗證初始化流程
-    throw new StandardError('EXPORT_USER_FEEDBACK_INIT_ERROR', 'ExportUserFeedback.initialize() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.initialize() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_USER_FEEDBACK_INIT_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -111,7 +111,7 @@ class ExportUserFeedback {
    */
   async loadUserPreferences () {
     // 測試將驗證偏好載入
-    throw new StandardError('EXPORT_USER_PREFERENCES_LOAD_ERROR', 'ExportUserFeedback.loadUserPreferences() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.loadUserPreferences() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_USER_PREFERENCES_LOAD_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -120,7 +120,7 @@ class ExportUserFeedback {
    */
   async saveUserPreferences (preferences) {
     // 測試將驗證偏好儲存
-    throw new StandardError('EXPORT_USER_PREFERENCES_SAVE_ERROR', 'ExportUserFeedback.saveUserPreferences() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.saveUserPreferences() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_USER_PREFERENCES_SAVE_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -129,7 +129,7 @@ class ExportUserFeedback {
    */
   notifyExportStarted (exportInfo) {
     // 測試將驗證開始通知
-    throw new StandardError('EXPORT_NOTIFICATION_START_ERROR', 'ExportUserFeedback.notifyExportStarted() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.notifyExportStarted() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_NOTIFICATION_START_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -138,7 +138,7 @@ class ExportUserFeedback {
    */
   notifyExportCompleted (exportResult) {
     // 測試將驗證完成通知
-    throw new StandardError('EXPORT_NOTIFICATION_COMPLETE_ERROR', 'ExportUserFeedback.notifyExportCompleted() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.notifyExportCompleted() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_NOTIFICATION_COMPLETE_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -147,7 +147,7 @@ class ExportUserFeedback {
    */
   notifyExportError (errorInfo) {
     // 測試將驗證錯誤通知
-    throw new StandardError('EXPORT_NOTIFICATION_ERROR_ALERT', 'ExportUserFeedback.notifyExportError() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.notifyExportError() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_NOTIFICATION_ERROR_ALERT; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -156,7 +156,7 @@ class ExportUserFeedback {
    */
   showDownloadConfirmation (downloadInfo) {
     // 測試將驗證下載確認
-    throw new StandardError('EXPORT_DOWNLOAD_CONFIRMATION_ERROR', 'ExportUserFeedback.showDownloadConfirmation() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.showDownloadConfirmation() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_DOWNLOAD_CONFIRMATION_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -165,7 +165,7 @@ class ExportUserFeedback {
    */
   getExportHistory (filters = {}) {
     // 測試將驗證歷史查詢
-    throw new StandardError('EXPORT_HISTORY_QUERY_ERROR', 'ExportUserFeedback.getExportHistory() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.getExportHistory() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_HISTORY_QUERY_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -173,7 +173,7 @@ class ExportUserFeedback {
    */
   getExportStatistics () {
     // 測試將驗證統計資訊
-    throw new StandardError('EXPORT_STATISTICS_QUERY_ERROR', 'ExportUserFeedback.getExportStatistics() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.getExportStatistics() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_STATISTICS_QUERY_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -181,7 +181,7 @@ class ExportUserFeedback {
    */
   cleanupExpiredNotifications () {
     // 測試將驗證通知清理
-    throw new StandardError('EXPORT_NOTIFICATION_CLEANUP_ERROR', 'ExportUserFeedback.cleanupExpiredNotifications() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.cleanupExpiredNotifications() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_NOTIFICATION_CLEANUP_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -190,7 +190,7 @@ class ExportUserFeedback {
    */
   humanizeError (error) {
     // 測試將驗證錯誤友好化
-    throw new StandardError('EXPORT_ERROR_HUMANIZATION_ERROR', 'ExportUserFeedback.humanizeError() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.humanizeError() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_ERROR_HUMANIZATION_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -198,7 +198,7 @@ class ExportUserFeedback {
    * @param {Object} searchFilters - 搜尋篩選條件
    */
   searchExportHistory (searchFilters) {
-    throw new StandardError('EXPORT_HISTORY_SEARCH_ERROR', 'ExportUserFeedback.searchExportHistory() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.searchExportHistory() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_HISTORY_SEARCH_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -206,7 +206,7 @@ class ExportUserFeedback {
    * @param {Object} exportOptions - 匯出選項
    */
   exportHistory (exportOptions) {
-    throw new StandardError('EXPORT_HISTORY_EXPORT_ERROR', 'ExportUserFeedback.exportHistory() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.exportHistory() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_HISTORY_EXPORT_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -214,14 +214,14 @@ class ExportUserFeedback {
    * @param {string} range - 時間範圍
    */
   getStatisticsForRange (range) {
-    throw new StandardError('EXPORT_STATISTICS_RANGE_ERROR', 'ExportUserFeedback.getStatisticsForRange() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.getStatisticsForRange() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_STATISTICS_RANGE_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
    * 取得效能基準比較
    */
   getBenchmarkComparison () {
-    throw new StandardError('EXPORT_BENCHMARK_COMPARISON_ERROR', 'ExportUserFeedback.getBenchmarkComparison() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.getBenchmarkComparison() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_BENCHMARK_COMPARISON_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -229,7 +229,7 @@ class ExportUserFeedback {
    * @param {Object} notification - 通知物件
    */
   addNotification (notification) {
-    throw new StandardError('EXPORT_NOTIFICATION_ADD_ERROR', 'ExportUserFeedback.addNotification() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.addNotification() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_NOTIFICATION_ADD_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -237,7 +237,7 @@ class ExportUserFeedback {
    * @param {Object} groupedNotifications - 群組化通知
    */
   createNotificationGroup (groupedNotifications) {
-    throw new StandardError('EXPORT_NOTIFICATION_GROUP_ERROR', 'ExportUserFeedback.createNotificationGroup() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.createNotificationGroup() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_NOTIFICATION_GROUP_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -245,7 +245,7 @@ class ExportUserFeedback {
    * @param {Object} preferences - 偏好設定
    */
   validatePreferences (preferences) {
-    throw new StandardError('EXPORT_PREFERENCES_VALIDATION_ERROR', 'ExportUserFeedback.validatePreferences() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.validatePreferences() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_PREFERENCES_VALIDATION_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -253,14 +253,14 @@ class ExportUserFeedback {
    * @param {Object} partialPreferences - 部分偏好設定
    */
   mergeWithDefaults (partialPreferences) {
-    throw new StandardError('EXPORT_PREFERENCES_MERGE_ERROR', 'ExportUserFeedback.mergeWithDefaults() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.mergeWithDefaults() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_PREFERENCES_MERGE_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
    * 重置偏好設定
    */
   resetPreferences () {
-    throw new StandardError('EXPORT_PREFERENCES_RESET_ERROR', 'ExportUserFeedback.resetPreferences() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.resetPreferences() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_PREFERENCES_RESET_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -268,7 +268,7 @@ class ExportUserFeedback {
    * @param {string} language - 語言代碼
    */
   setLanguage (language) {
-    throw new StandardError('EXPORT_LANGUAGE_SET_ERROR', 'ExportUserFeedback.setLanguage() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.setLanguage() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_LANGUAGE_SET_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -276,7 +276,7 @@ class ExportUserFeedback {
    * @param {string} messageKey - 訊息鍵值
    */
   getLocalizedMessage (messageKey) {
-    throw new StandardError('EXPORT_LOCALIZATION_ERROR', 'ExportUserFeedback.getLocalizedMessage() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.getLocalizedMessage() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_LOCALIZATION_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -285,7 +285,7 @@ class ExportUserFeedback {
    * @param {string} timezone - 時區
    */
   formatDateTime (date, timezone) {
-    throw new StandardError('EXPORT_DATETIME_FORMAT_ERROR', 'ExportUserFeedback.formatDateTime() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportUserFeedback.formatDateTime() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_DATETIME_FORMAT_ERROR; error.details = { category: 'testing' }; return error })()
   }
 }
 
@@ -306,7 +306,7 @@ class NotificationService {
    */
   sendBrowserNotification (title, options) {
     // 測試將驗證 Browser 通知
-    throw new StandardError('NOTIFICATION_BROWSER_SEND_ERROR', 'NotificationService.sendBrowserNotification() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('NotificationService.sendBrowserNotification() not implemented - Red phase'); error.code = ErrorCodes.NOTIFICATION_BROWSER_SEND_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -316,7 +316,7 @@ class NotificationService {
    */
   sendChromeNotification (notificationId, options) {
     // 測試將驗證 Chrome 通知
-    throw new StandardError('NOTIFICATION_CHROME_SEND_ERROR', 'NotificationService.sendChromeNotification() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('NotificationService.sendChromeNotification() not implemented - Red phase'); error.code = ErrorCodes.NOTIFICATION_CHROME_SEND_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -325,7 +325,7 @@ class NotificationService {
    */
   sendUINotification (notificationData) {
     // 測試將驗證 UI 通知
-    throw new StandardError('NOTIFICATION_UI_SEND_ERROR', 'NotificationService.sendUINotification() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('NotificationService.sendUINotification() not implemented - Red phase'); error.code = ErrorCodes.NOTIFICATION_UI_SEND_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -334,7 +334,7 @@ class NotificationService {
    */
   playSoundAlert (soundType) {
     // 測試將驗證音效通知
-    throw new StandardError('NOTIFICATION_SOUND_PLAY_ERROR', 'NotificationService.playSoundAlert() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('NotificationService.playSoundAlert() not implemented - Red phase'); error.code = ErrorCodes.NOTIFICATION_SOUND_PLAY_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -343,7 +343,7 @@ class NotificationService {
    */
   clearNotification (notificationId) {
     // 測試將驗證通知清除
-    throw new StandardError('NOTIFICATION_CLEAR_ERROR', 'NotificationService.clearNotification() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('NotificationService.clearNotification() not implemented - Red phase'); error.code = ErrorCodes.NOTIFICATION_CLEAR_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -351,14 +351,14 @@ class NotificationService {
    * @param {Array} notificationIds - 通知ID陣列
    */
   clearMultipleNotifications (notificationIds) {
-    throw new StandardError('NOTIFICATION_BATCH_CLEAR_ERROR', 'NotificationService.clearMultipleNotifications() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('NotificationService.clearMultipleNotifications() not implemented - Red phase'); error.code = ErrorCodes.NOTIFICATION_BATCH_CLEAR_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
    * 清理過期通知
    */
   cleanupExpiredNotifications () {
-    throw new StandardError('NOTIFICATION_CLEANUP_EXPIRED_ERROR', 'NotificationService.cleanupExpiredNotifications() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('NotificationService.cleanupExpiredNotifications() not implemented - Red phase'); error.code = ErrorCodes.NOTIFICATION_CLEANUP_EXPIRED_ERROR; error.details = { category: 'testing' }; return error })()
   }
 }
 
@@ -564,7 +564,7 @@ describe('ExportUserFeedback', () => {
     test('應該發送使用者友好的錯誤通知', () => {
       const errorInfo = {
         exportId: 'error-notification-001',
-        error: new StandardError('NETWORK_REQUEST_FAILED', 'Network request failed'),
+        error: (() => { const error = new Error('Network request failed'); error.code = ErrorCodes.NETWORK_REQUEST_FAILED; return error })(),
         format: 'pdf',
         context: {
           bookCount: 100,
@@ -586,10 +586,10 @@ describe('ExportUserFeedback', () => {
 
     test('應該將技術錯誤轉為使用者友好訊息', () => {
       const technicalErrors = [
-        { error: new StandardError('ENOTFOUND_ERROR', 'ENOTFOUND example.com'), expected: '網路連線問題' },
-        { error: new StandardError('QUOTA_EXCEEDED_ERROR', 'QuotaExceededError'), expected: '儲存空間不足' },
-        { error: new StandardError('SECURITY_ERROR', 'SecurityError'), expected: '權限不足' },
-        { error: new StandardError('OUT_OF_MEMORY_ERROR', 'OutOfMemoryError'), expected: '記憶體不足' }
+        { error: (() => { const error = new Error('ENOTFOUND example.com'); error.code = ErrorCodes.ENOTFOUND_ERROR; return error })(), expected: '網路連線問題' },
+        { error: (() => { const error = new Error('QuotaExceededError'); error.code = ErrorCodes.QUOTA_EXCEEDED_ERROR; return error })(), expected: '儲存空間不足' },
+        { error: (() => { const error = new Error('SecurityError'); error.code = ErrorCodes.SECURITY_ERROR; return error })(), expected: '權限不足' },
+        { error: (() => { const error = new Error('OutOfMemoryError'); error.code = ErrorCodes.OUT_OF_MEMORY_ERROR; return error })(), expected: '記憶體不足' }
       ]
 
       technicalErrors.forEach(({ error, expected }) => {
@@ -608,7 +608,7 @@ describe('ExportUserFeedback', () => {
     test('應該提供錯誤恢復選項', () => {
       const recoverableError = {
         exportId: 'recoverable-error-001',
-        error: new StandardError('TEMPORARY_NETWORK_FAILURE', 'Temporary network failure'),
+        error: (() => { const error = new Error('Temporary network failure'); error.code = ErrorCodes.TEMPORARY_NETWORK_FAILURE; return error })(),
         isRecoverable: true,
         context: {
           format: 'csv',

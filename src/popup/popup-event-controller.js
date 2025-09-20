@@ -29,7 +29,7 @@
 
 const EventHandler = require('src/core/event-handler')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
-const { Logger } = require('src/core/logging')
+const { Logger } = require('src/core/logging/Logger')
 
 class PopupEventController extends EventHandler {
   /**

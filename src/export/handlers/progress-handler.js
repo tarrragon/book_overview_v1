@@ -19,7 +19,7 @@
 
 const EventHandler = require('src/core/event-handler')
 const { EXPORT_EVENTS } = require('src/export/export-events')
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 /**
  * 進度處理器類別
@@ -121,33 +121,48 @@ class ProgressHandler extends EventHandler {
    */
   _validateProgressData (progressData) {
     if (!progressData) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'Progress data is required', {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error('Progress data is required')
+        error.code = ErrorCodes.REQUIRED_FIELD_MISSING
+        error.details = { category: 'export' }
+        return error
+      })()
     }
 
     if (!progressData.exportId) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'Export ID is required for progress tracking', {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error('Export ID is required for progress tracking')
+        error.code = ErrorCodes.REQUIRED_FIELD_MISSING
+        error.details = { category: 'export' }
+        return error
+      })()
     }
 
     if (typeof progressData.current !== 'number' || progressData.current < 0) {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid current progress value', {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error('Invalid current progress value')
+        error.code = ErrorCodes.INVALID_DATA_FORMAT
+        error.details = { category: 'export' }
+        return error
+      })()
     }
 
     if (typeof progressData.total !== 'number' || progressData.total <= 0) {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid total progress value', {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error('Invalid total progress value')
+        error.code = ErrorCodes.INVALID_DATA_FORMAT
+        error.details = { category: 'export' }
+        return error
+      })()
     }
 
     if (progressData.current > progressData.total) {
-      throw new StandardError('LIMIT_EXCEEDED', 'Current progress cannot exceed total progress', {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error('Current progress cannot exceed total progress')
+        error.code = ErrorCodes.LIMIT_EXCEEDED
+        error.details = { category: 'export' }
+        return error
+      })()
     }
   }
 

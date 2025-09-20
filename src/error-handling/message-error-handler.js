@@ -1,4 +1,4 @@
-const Logger = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 /**
  * MessageErrorHandler - Chrome Extension 訊息錯誤處理器
  * TDD 循環 #31: 訊息處理錯誤監控

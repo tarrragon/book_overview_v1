@@ -19,8 +19,8 @@
  * if (!result.success) { console.log(result.error.message) }
  */
 
-// 使用 ES Module 匯入
-import { ErrorCodes } from './ErrorCodes.js'
+// 使用 CommonJS 匯入
+const { ErrorCodes } = require('./ErrorCodes')
 
 // OperationStatus 枚舉定義
 const OperationStatus = {
@@ -35,7 +35,7 @@ class OperationResult {
    * 建立操作結果物件
    * @param {boolean} success - 操作是否成功
    * @param {any} data - 成功時的資料
-   * @param {StandardError} error - 失敗時的錯誤物件
+   * @param {Error} error - 失敗時的錯誤物件
    * @param {string} status - 操作狀態 (使用 OperationStatus 枚舉)
    * @param {Object} metadata - 附加元數據
    */
@@ -74,11 +74,11 @@ class OperationResult {
 
   /**
    * 建立失敗結果的快速方法
-   * @param {Error|StandardError} error - 錯誤物件
+   * @param {Error} error - 錯誤物件
    * @returns {OperationResult} 失敗結果物件
    */
   static failure (error) {
-    // 確保錯誤是 StandardError 格式
+    // 確保錯誤是標準格式
     let standardError
 
     if (error?.code && Object.values(ErrorCodes).includes(error.code)) {
@@ -143,7 +143,7 @@ class OperationResult {
    */
   static fromJSON (json) {
     if (!json || typeof json !== 'object' || Array.isArray(json)) {
-      const { StandardError } = require('./StandardError')
+      // 創建錯誤物件
       const error = new Error('Invalid JSON data for OperationResult.fromJSON')
       error.code = ErrorCodes.PARSE_ERROR
       error.details = {
@@ -155,7 +155,13 @@ class OperationResult {
 
     let error = null
     if (json.error) {
-      error = StandardError.fromJSON(json.error)
+      // 直接使用 ErrorCodes 創建錯誤
+      error = (() => {
+        const err = new Error(json.error.message || 'Unknown error')
+        err.code = json.error.code || ErrorCodes.UNKNOWN_ERROR
+        err.details = json.error.details || {}
+        return err
+      })()
     }
 
     const result = new OperationResult(
@@ -208,5 +214,5 @@ class OperationResult {
   }
 }
 
-// 匯出 OperationResult 類別 (統一使用 ES Module 格式)
-export { OperationResult }
+// 匯出 OperationResult 類別 (統一使用 CommonJS 格式)
+module.exports = { OperationResult }

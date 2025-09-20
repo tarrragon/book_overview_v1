@@ -263,7 +263,7 @@ class PopupMessageHandler extends BaseModule {
       case 'POPUP.EXPORT.REQUEST':
         return await this.handlePopupExportRequest(message, sender, sendResponse)
 
-      default:
+      default: {
         const error = new Error(`未支援的訊息類型: ${message.type}`)
         error.code = ErrorCodes.UNSUPPORTED_OPERATION
         error.details = {
@@ -271,6 +271,7 @@ class PopupMessageHandler extends BaseModule {
           messageType: message.type
         }
         throw error
+      }
     }
   }
 
@@ -408,7 +409,7 @@ class PopupMessageHandler extends BaseModule {
           break
         }
 
-        default:
+        default: {
           const error = new Error(`未支援的資料類型: ${dataType}`)
           error.code = ErrorCodes.UNSUPPORTED_OPERATION
           error.details = {
@@ -416,6 +417,7 @@ class PopupMessageHandler extends BaseModule {
             dataType
           }
           throw error
+        }
       }
 
       sendResponse({
@@ -476,7 +478,7 @@ class PopupMessageHandler extends BaseModule {
           result = await this.handleTabNavigate(params)
           break
 
-        default:
+        default: {
           const error = new Error(`未支援的操作: ${operation}`)
           error.code = ErrorCodes.UNSUPPORTED_OPERATION
           error.details = {
@@ -484,6 +486,7 @@ class PopupMessageHandler extends BaseModule {
             operation
           }
           throw error
+        }
       }
 
       sendResponse({
@@ -820,7 +823,7 @@ class PopupMessageHandler extends BaseModule {
         clearedItems.push('all_data')
         break
 
-      default:
+      default: {
         const error = new Error(`未支援的清除類型: ${clearType}`)
         error.code = ErrorCodes.UNSUPPORTED_OPERATION
         error.details = {
@@ -828,6 +831,7 @@ class PopupMessageHandler extends BaseModule {
           clearType
         }
         throw error
+      }
     }
 
     // 觸發儲存清除事件

@@ -32,7 +32,7 @@
 const { execSync, spawn } = require('child_process')
 const fs = require('fs')
 const path = require('path')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class E2ETestRunner {
   constructor () {
@@ -92,7 +92,12 @@ class E2ETestRunner {
     for (const file of requiredFiles) {
       const filePath = path.join(this.projectRoot, file)
       if (!fs.existsSync(filePath)) {
-        throw new StandardError('E2E_REQUIRED_FILE_NOT_FOUND', `必要文件不存在: ${file}`, { category: 'testing' })
+        throw (() => {
+          const error = new Error(`必要文件不存在: ${file}`)
+          error.code = ErrorCodes.RESOURCE_NOT_FOUND
+          error.details = { category: 'testing', originalCode: 'E2E_REQUIRED_FILE_NOT_FOUND' }
+          return error
+        })()
       }
     }
 
@@ -131,13 +136,23 @@ class E2ETestRunner {
 
       // 驗證建置結果
       if (!fs.existsSync(this.buildDir)) {
-        throw new StandardError('E2E_EXTENSION_BUILD_FAILED', 'Extension 建置失敗', { category: 'testing' })
+        throw (() => {
+          const error = new Error('Extension 建置失敗')
+          error.code = ErrorCodes.OPERATION_FAILED
+          error.details = { category: 'testing', originalCode: 'E2E_EXTENSION_BUILD_FAILED' }
+          return error
+        })()
       }
 
       // eslint-disable-next-line no-console
       console.log('  ✅ Extension 建置完成')
     } catch (error) {
-      throw new StandardError('E2E_EXTENSION_BUILD_ERROR', `Extension 建置失敗: ${error.message}`, { category: 'testing' })
+      throw (() => {
+        const buildError = new Error(`Extension 建置失敗: ${error.message}`)
+        buildError.code = ErrorCodes.OPERATION_ERROR
+        buildError.details = { category: 'testing', originalCode: 'E2E_EXTENSION_BUILD_ERROR' }
+        return buildError
+      })()
     }
   }
 
@@ -227,7 +242,12 @@ class E2ETestRunner {
     )
 
     if (results.failed > 0) {
-      throw new StandardError('E2E_TEST_SUITE_FAILURES', `${results.failed} 個測試套件執行失敗`, { category: 'testing' })
+      throw (() => {
+        const error = new Error(`${results.failed} 個測試套件執行失敗`)
+        error.code = ErrorCodes.OPERATION_FAILED
+        error.details = { category: 'testing', originalCode: 'E2E_TEST_SUITE_FAILURES' }
+        return error
+      })()
     }
   }
 
@@ -282,12 +302,22 @@ class E2ETestRunner {
         if (code === 0) {
           resolve(result)
         } else {
-          reject(new StandardError('E2E_TEST_SUITE_EXECUTION_FAILED', `測試套件執行失敗 (exit code: ${code})`, { category: 'testing' }))
+          reject((() => {
+            const error = new Error(`測試套件執行失敗 (exit code: ${code})`)
+            error.code = ErrorCodes.OPERATION_FAILED
+            error.details = { category: 'testing', originalCode: 'E2E_TEST_SUITE_EXECUTION_FAILED' }
+            return error
+          })())
         }
       })
 
       jestProcess.on('error', (error) => {
-        reject(new StandardError('E2E_TEST_SUITE_EXECUTION_ERROR', `無法執行測試套件: ${error.message}`, { category: 'testing' }))
+        reject((() => {
+          const execError = new Error(`無法執行測試套件: ${error.message}`)
+          execError.code = ErrorCodes.OPERATION_ERROR
+          execError.details = { category: 'testing', originalCode: 'E2E_TEST_SUITE_EXECUTION_ERROR' }
+          return execError
+        })())
       })
     })
   }

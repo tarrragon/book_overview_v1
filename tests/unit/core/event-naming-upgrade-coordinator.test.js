@@ -12,7 +12,7 @@
 
 const EventBus = require('src/core/event-bus')
 const EventNamingUpgradeCoordinator = require('src/core/events/event-naming-upgrade-coordinator')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('EventNamingUpgradeCoordinator', () => {
   let eventBus
@@ -311,7 +311,7 @@ describe('EventNamingUpgradeCoordinator', () => {
   describe('錯誤處理', () => {
     test('應該處理事件處理器中的錯誤', async () => {
       const errorHandler = () => {
-        throw new StandardError('CORE_HANDLER_ERROR', 'Handler error', { category: 'testing' })
+        throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.CORE_HANDLER_ERROR; error.details = { category: 'testing' }; return error })()
       }
 
       coordinator.registerDualTrackListener('EXTRACTION.COMPLETED', errorHandler)

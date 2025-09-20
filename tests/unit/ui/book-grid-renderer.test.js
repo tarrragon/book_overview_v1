@@ -23,7 +23,6 @@
 
 // 測試環境設定
 require('../../test-setup')
-const { StandardError } = require('src/core/errors/StandardError')
 
 describe('BookGridRenderer - TDD 循環 #27', () => {
   let renderer
@@ -602,7 +601,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
     test('應該處理事件總線錯誤', () => {
       mockEventBus.emit = jest.fn().mockImplementation(() => {
-        throw new StandardError('GRID_EVENT_BUS_ERROR', 'Event bus error', { category: 'testing' })
+        throw new Error('Event bus error')
       })
 
       expect(() => {
@@ -612,7 +611,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
     test('應該在 DOM 操作失敗時優雅降級', () => {
       mockContainer.appendChild = jest.fn().mockImplementation(() => {
-        throw new StandardError('GRID_DOM_OPERATION_ERROR', 'DOM error', { category: 'testing' })
+        throw new Error('DOM error')
       })
 
       const books = [{ id: 'book-1', title: 'Book 1' }]

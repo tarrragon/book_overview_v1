@@ -4,6 +4,7 @@
  * 提供完整的Chrome Extension整合測試基礎設施
  * 負責測試環境設置、Chrome Extension模擬、測試資料管理
  */
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { StandardError } = require('src/core/errors/StandardError')
 
 class E2ETestSuite {
@@ -66,7 +67,7 @@ class E2ETestSuite {
       this.testEnvironment.initialized = true
     } catch (error) {
       await this.cleanup()
-      throw new StandardError('TEST_INITIALIZATION_ERROR', `E2E測試套件初始化失敗: ${error.message}`, { category: 'testing' })
+      throw (() => { const err = new Error(`E2E測試套件初始化失敗: ${error.message}`); err.code = ErrorCodes.TEST_INITIALIZATION_ERROR; err.details = { category: 'testing' }; return err })()
     }
   }
 
@@ -169,7 +170,7 @@ class E2ETestSuite {
 
   async loadInitialData (data = {}) {
     if (!this.testEnvironment.initialized) {
-      throw new StandardError('TEST_ENVIRONMENT_ERROR', '測試套件未初始化，請先呼叫 initialize()', { category: 'testing' })
+      throw (() => { const error = new Error('測試套件未初始化，請先呼叫 initialize()'); error.code = ErrorCodes.TEST_ENVIRONMENT_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     // 載入書籍資料
@@ -259,23 +260,6 @@ class E2ETestSuite {
     return data
   }
 
-  async clearAllStorageData () {
-    // 清除所有模擬的儲存資料
-    if (this.testEnvironment.storage) {
-      this.testEnvironment.storage.clear()
-    }
-
-    // 重置測試資料
-    this.testData.books = []
-    this.testData.metadata = {}
-    this.testData.settings = {}
-
-    this.metrics.operations.push({
-      type: 'storage_clear',
-      timestamp: Date.now()
-    })
-  }
-
   /**
    * 通用日誌方法
    */
@@ -293,7 +277,7 @@ class E2ETestSuite {
 
   async executeWorkflow (workflowName, steps = []) {
     if (!this.testEnvironment.initialized) {
-      throw new StandardError('TEST_ENVIRONMENT_ERROR', '測試套件未初始化，請先呼叫 initialize()', { category: 'testing' })
+      throw (() => { const error = new Error('測試套件未初始化，請先呼叫 initialize()'); error.code = ErrorCodes.TEST_ENVIRONMENT_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     const workflow = {
@@ -311,7 +295,7 @@ class E2ETestSuite {
         workflow.steps.push(stepResult)
 
         if (!stepResult.success) {
-          throw new StandardError('TEST_WORKFLOW_ERROR', `工作流程步驟 ${i + 1} 失敗: ${stepResult.error}`, { category: 'testing' })
+          throw (() => { const error = new Error(`工作流程步驟 ${i + 1} 失敗: ${stepResult.error}`); error.code = ErrorCodes.TEST_WORKFLOW_ERROR; error.details = { category: 'testing' }; return error })()
         }
       }
 
@@ -356,7 +340,7 @@ class E2ETestSuite {
           result = await this.simulateVerification(step.params)
           break
         default:
-          throw new StandardError('TEST_EXECUTION_ERROR', `未支援的步驟類型: ${step.type}`, { category: 'testing' })
+          throw (() => { const error = new Error(`未支援的步驟類型: ${step.type}`); error.code = ErrorCodes.TEST_EXECUTION_ERROR; error.details = { category: 'testing' }; return error })()
       }
 
       return {
@@ -403,7 +387,7 @@ class E2ETestSuite {
   async simulateContentScriptError (errorType) {
     this.logOperation(`模擬內容腳本錯誤: ${errorType}`)
 
-    const error = new StandardError('E2E_CONTENT_SCRIPT_ERROR', `Content script error: ${errorType}`, { category: 'testing' })
+    const error = (() => { const error = new Error(`Content script error: ${errorType}`); error.code = ErrorCodes.E2E_CONTENT_SCRIPT_ERROR; error.details = { category: 'testing' }; return error })()
     this.logError(error)
 
     // 模擬內容腳本錯誤影響
@@ -677,16 +661,6 @@ class E2ETestSuite {
     return { success: true, pageIncomplete: true }
   }
 
-  async createNewTab (url) {
-    this.log(`創建新標籤頁: ${url}`)
-    const tabId = Date.now() + (Date.now() % 1000) // 確定性ID生成
-    return {
-      id: tabId,
-      url,
-      active: true
-    }
-  }
-
   async reloadCurrentPage () {
     this.log('重新載入當前頁面')
 
@@ -704,11 +678,6 @@ class E2ETestSuite {
   async closeTab (tabId) {
     this.log(`關閉標籤頁: ${tabId}`)
     return { success: true, tabClosed: tabId }
-  }
-
-  async setupCSPTestPage (config) {
-    this.log(`設置CSP測試頁面: ${config.cspPolicy || 'no CSP'}`)
-    return { success: true, cspConfigured: true, config }
   }
 
   async clearMaliciousPage () {
@@ -856,7 +825,7 @@ class E2ETestSuite {
         }
       }
 
-      throw new StandardError('INVALID_INPUT_ERROR', 'Invalid exported file format', { category: 'testing' })
+      throw (() => { const error = new Error('Invalid exported file format'); error.code = ErrorCodes.INVALID_INPUT_ERROR; error.details = { category: 'testing' }; return error })()
     } catch (error) {
       console.error('Failed to read exported file:', error)
       throw error
@@ -946,7 +915,7 @@ class E2ETestSuite {
             break
 
           default:
-            throw new StandardError('TEST_SIMULATOR_ERROR', `不支援的破壞類型: ${corruptionType}`, { category: 'testing' })
+            throw (() => { const error = new Error(`不支援的破壞類型: ${corruptionType}`); error.code = ErrorCodes.TEST_SIMULATOR_ERROR; error.details = { category: 'testing' }; return error })()
         }
 
         this.logOperation('file_corruption', {
@@ -972,7 +941,7 @@ class E2ETestSuite {
       return corruptedFile
     } catch (error) {
       this.logError(error, 'corruptFile')
-      throw new StandardError('TEST_SIMULATOR_ERROR', `文件破壞失敗: ${error.message}`, { category: 'testing' })
+      throw (() => { const err = new Error(`文件破壞失敗: ${error.message}`); err.code = ErrorCodes.TEST_SIMULATOR_ERROR; err.details = { category: 'testing' }; return err })()
     }
   }
 
@@ -1141,14 +1110,7 @@ class E2ETestSuite {
       await new Promise(resolve => setTimeout(resolve, pollIntervalMs))
     }
 
-    throw new StandardError('TIMEOUT_ERROR', `Condition not met within ${timeoutMs}ms timeout`, { category: 'testing' })
-  }
-
-  /**
-   * 等待指定時間
-   */
-  async waitForTimeout (ms) {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    throw (() => { const error = new Error(`Condition not met within ${timeoutMs}ms timeout`); error.code = ErrorCodes.TIMEOUT_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -1292,7 +1254,7 @@ class E2ETestSuite {
       }
     } catch (error) {
       this.logError(error, 'simulateSystemRestart')
-      throw new StandardError('TEST_SIMULATOR_ERROR', `系統重啟模擬失敗: ${error.message}`, { category: 'testing' })
+      throw (() => { const err = new Error(`系統重啟模擬失敗: ${error.message}`); err.code = ErrorCodes.TEST_SIMULATOR_ERROR; err.details = { category: 'testing' }; return err })()
     }
   }
 
@@ -1536,7 +1498,7 @@ class E2ETestSuite {
       }
     } catch (error) {
       this.logError(error, 'simulateProcessInterruption')
-      throw new StandardError('TEST_SIMULATOR_ERROR', `處理程序中斷模擬失敗: ${error.message}`, { category: 'testing' })
+      throw (() => { const err = new Error(`處理程序中斷模擬失敗: ${error.message}`); err.code = ErrorCodes.TEST_SIMULATOR_ERROR; err.details = { category: 'testing' }; return err })()
     }
   }
 
@@ -1595,7 +1557,7 @@ class E2ETestSuite {
       }
     } catch (error) {
       this.logError(error, 'searchOverviewBooks')
-      throw new StandardError('TEST_EXECUTION_ERROR', `書籍搜尋失敗: ${error.message}`, { category: 'testing' })
+      throw (() => { const err = new Error(`書籍搜尋失敗: ${error.message}`); err.code = ErrorCodes.TEST_EXECUTION_ERROR; err.details = { category: 'testing' }; return err })()
     }
   }
 
@@ -1689,7 +1651,7 @@ class E2ETestSuite {
       }
     } catch (error) {
       this.logError(error, 'simulateContentScriptCrash')
-      throw new StandardError('TEST_SIMULATOR_ERROR', `Content Script 崩潰模擬失敗: ${error.message}`, { category: 'testing' })
+      throw (() => { const err = new Error(`Content Script 崩潰模擬失敗: ${error.message}`); err.code = ErrorCodes.TEST_SIMULATOR_ERROR; err.details = { category: 'testing' }; return err })()
     }
   }
 
@@ -1777,7 +1739,7 @@ class E2ETestSuite {
       return await simulationPromise
     } catch (error) {
       this.logError(error, 'simulateNetworkLatency')
-      throw new StandardError('TEST_ERROR', `網路延遲模擬失敗: ${error.message}`, { category: 'testing' })
+      throw (() => { const err = new Error(`網路延遲模擬失敗: ${error.message}`); err.code = ErrorCodes.TEST_ERROR; err.details = { category: 'testing' }; return err })()
     }
   }
 
@@ -1852,7 +1814,7 @@ class E2ETestSuite {
       })
     } catch (error) {
       this.logError(error, 'simulateConnectionIssue')
-      throw new StandardError('TEST_ERROR', `連接問題模擬失敗: ${error.message}`, { category: 'testing' })
+      throw (() => { const err = new Error(`連接問題模擬失敗: ${error.message}`); err.code = ErrorCodes.TEST_ERROR; err.details = { category: 'testing' }; return err })()
     }
   }
 
@@ -1948,7 +1910,7 @@ class E2ETestSuite {
       })
     } catch (error) {
       this.logError(error, 'simulateMessageDelay')
-      throw new StandardError('TEST_ERROR', `訊息延遲模擬失敗: ${error.message}`, { category: 'testing' })
+      throw (() => { const err = new Error(`訊息延遲模擬失敗: ${error.message}`); err.code = ErrorCodes.TEST_ERROR; err.details = { category: 'testing' }; return err })()
     }
   }
 
@@ -2245,7 +2207,7 @@ class E2ETestSuite {
       }
     } catch (error) {
       this.logError(error, 'capturePerformanceBaseline')
-      throw new StandardError('TEST_ERROR', `效能基準線擷取失敗: ${error.message}`, { category: 'testing' })
+      throw (() => { const err = new Error(`效能基準線擷取失敗: ${error.message}`); err.code = ErrorCodes.TEST_ERROR; err.details = { category: 'testing' }; return err })()
     }
   }
 

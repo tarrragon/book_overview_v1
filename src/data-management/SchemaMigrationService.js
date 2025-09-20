@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 const BaseModule = require('src/background/lifecycle/base-module')
 
@@ -27,19 +27,28 @@ const BaseModule = require('src/background/lifecycle/base-module')
 class SchemaMigrationService extends BaseModule {
   constructor (eventBus, logger, config, dependencies = {}) {
     if (!eventBus || (typeof eventBus === 'object' && Object.keys(eventBus).length === 0 && !eventBus.on)) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required', {
-        category: 'ui'
-      })
+      throw (() => {
+        const error = new Error('EventBus is required')
+        error.code = ErrorCodes.REQUIRED_FIELD_MISSING
+        error.details = { category: 'ui' }
+        return error
+      })()
     }
     if (!logger) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'Logger is required', {
-        category: 'ui'
-      })
+      throw (() => {
+        const error = new Error('Logger is required')
+        error.code = ErrorCodes.REQUIRED_FIELD_MISSING
+        error.details = { category: 'ui' }
+        return error
+      })()
     }
     if (!config) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'Config is required', {
-        category: 'ui'
-      })
+      throw (() => {
+        const error = new Error('Config is required')
+        error.code = ErrorCodes.REQUIRED_FIELD_MISSING
+        error.details = { category: 'ui' }
+        return error
+      })()
     }
 
     super({ eventBus, logger, config })
@@ -122,9 +131,12 @@ class SchemaMigrationService extends BaseModule {
 
   async setTargetVersion (version) {
     if (!/^\d+\.\d+\.\d+$/.test(version)) {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid version format', {
-        category: 'general'
-      })
+      throw (() => {
+        const error = new Error('Invalid version format')
+        error.code = ErrorCodes.INVALID_DATA_FORMAT
+        error.details = { category: 'general' }
+        return error
+      })()
     }
 
     return {
@@ -155,9 +167,12 @@ class SchemaMigrationService extends BaseModule {
 
   async acquireVersionLock (version) {
     if (this.versionLocks.has(version)) {
-      throw new StandardError('UNKNOWN_ERROR', 'Version is already locked', {
-        category: 'general'
-      })
+      throw (() => {
+        const error = new Error('Version is already locked')
+        error.code = ErrorCodes.UNKNOWN_ERROR
+        error.details = { category: 'general' }
+        return error
+      })()
     }
     this.versionLocks.add(version)
   }
@@ -245,9 +260,12 @@ class SchemaMigrationService extends BaseModule {
 
   async validateMigrationPlan (plan) {
     if (!plan.steps || plan.steps.length === 0) {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid migration plan', {
-        category: 'general'
-      })
+      throw (() => {
+        const error = new Error('Invalid migration plan')
+        error.code = ErrorCodes.INVALID_DATA_FORMAT
+        error.details = { category: 'general' }
+        return error
+      })()
     }
     return true
   }
@@ -271,9 +289,12 @@ class SchemaMigrationService extends BaseModule {
     try {
       // 檢查是否應該模擬儲存失敗 (用於測試)
       if (this.storageAdapter && this.storageAdapter.shouldFailStorage) {
-        throw new StandardError('OPERATION_FAILED', 'Storage operation failed during migration step', {
-          category: 'general'
-        })
+        throw (() => {
+          const error = new Error('Storage operation failed during migration step')
+          error.code = ErrorCodes.OPERATION_FAILED
+          error.details = { category: 'general' }
+          return error
+        })()
       }
 
       const result = await this.migrationExecutor.executeStep(step, data)
@@ -310,9 +331,12 @@ class SchemaMigrationService extends BaseModule {
 
   async executeMultiStepMigration (plan) {
     if (this.migrationStatus === 'running') {
-      throw new StandardError('MIGRATION_FAILED', 'Another migration is already in progress', {
-        category: 'general'
-      })
+      throw (() => {
+        const error = new Error('Another migration is already in progress')
+        error.code = ErrorCodes.OPERATION_FAILED
+        error.details = { category: 'general' }
+        return error
+      })()
     }
 
     this.migrationStatus = 'running'
@@ -457,9 +481,12 @@ class SchemaMigrationService extends BaseModule {
     try {
       // 檢查是否應該模擬失敗 (用於測試)
       if (this.backupManager && this.backupManager.shouldFailBackup) {
-        throw new StandardError('OPERATION_FAILED', 'Backup operation failed during rollback', {
-          category: 'general'
-        })
+        throw (() => {
+          const error = new Error('Backup operation failed during rollback')
+          error.code = ErrorCodes.OPERATION_FAILED
+          error.details = { category: 'general' }
+          return error
+        })()
       }
 
       // 模擬回滾過程
@@ -716,9 +743,12 @@ class MockBackupManager {
   async restoreBackup (backupId) {
     const backup = this.backups.get(backupId)
     if (!backup) {
-      throw new StandardError('RESOURCE_NOT_FOUND', 'Backup not found: ${backupId}', {
-        category: 'general'
-      })
+      throw (() => {
+        const error = new Error(`Backup not found: ${backupId}`)
+        error.code = ErrorCodes.RESOURCE_NOT_FOUND
+        error.details = { category: 'general' }
+        return error
+      })()
     }
     return backup.data
   }

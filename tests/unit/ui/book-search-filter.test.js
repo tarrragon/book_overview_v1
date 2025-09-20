@@ -23,7 +23,6 @@
 
 // 測試環境設定
 require('../../test-setup')
-const { StandardError } = require('src/core/errors/StandardError')
 
 describe('BookSearchFilter - TDD 循環 #28', () => {
   let searchFilter
@@ -847,7 +846,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
 
       // 模擬記憶體不足錯誤
       jest.spyOn(instance, 'buildSearchIndex').mockImplementation(() => {
-        throw new StandardError('MEMORY_INSUFFICIENT_ERROR', '記憶體不足', { category: 'testing' })
+        throw new Error('記憶體不足')
       })
 
       const hugeData = new Array(100000).fill(mockBooks[0])

@@ -7,6 +7,7 @@
  * 設計完整測試案例，確保 100% 程式碼覆蓋率
  */
 
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const PlatformDetectionService = require('src/background/domains/platform/services/platform-detection-service.js')
 const { StandardError } = require('src/core/errors/StandardError')
 
@@ -393,7 +394,7 @@ describe('PlatformDetectionService', () => {
 
     test('should handle DOM query errors gracefully', async () => {
       mockDOM.querySelector = jest.fn().mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', 'DOM query failed', { category: 'testing' })
+        throw (() => { const error = new Error('DOM query failed'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
       const context = {
@@ -655,7 +656,7 @@ describe('PlatformDetectionService', () => {
     test('should emit detection failed event on error', async () => {
       // Force an error
       service.analyzeUrlPattern = jest.fn().mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', 'Analysis failed', { category: 'testing' })
+        throw (() => { const error = new Error('Analysis failed'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
       const context = {
@@ -1046,10 +1047,10 @@ describe('PlatformDetectionService', () => {
       // 創建一個有問題的 EventBus mock 來模擬初始化錯誤
       const problematicEventBus = {
         on: jest.fn().mockImplementation(() => {
-          throw new StandardError('TEST_ERROR', 'EventBus listener registration failed', { category: 'testing' })
+          throw (() => { const error = new Error('EventBus listener registration failed'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
         }),
         emit: jest.fn().mockImplementation(() => {
-          throw new StandardError('TEST_ERROR', 'EventBus emit failed', { category: 'testing' })
+          throw (() => { const error = new Error('EventBus emit failed'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
         })
       }
 
@@ -1067,7 +1068,7 @@ describe('PlatformDetectionService', () => {
 
     test('should handle pattern initialization errors', () => {
       service.initializePlatformPatterns = jest.fn().mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', 'Pattern initialization failed', { category: 'testing' })
+        throw (() => { const error = new Error('Pattern initialization failed'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
       // Should handle gracefully

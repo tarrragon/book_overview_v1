@@ -10,13 +10,13 @@
  * - 測試驅動：符合TDD Phase 2的12個核心測試案例
  */
 
-import { ErrorCodes } from './ErrorCodes.js'
+const { ErrorCodes } = require('./ErrorCodes')
 
 /**
  * UC-02 專用錯誤轉換適配器
  * 負責將15個StandardError轉換為對應的ErrorCodes
  */
-export class UC02ErrorAdapter {
+class UC02ErrorAdapter {
   // 快取映射表，避免重複建立
   static _errorMapping = null
 
@@ -246,7 +246,7 @@ export class UC02ErrorAdapter {
       }
     }
 
-    const strategy = adaptationStrategies[uc01Error.code]
+    let strategy = adaptationStrategies[uc01Error.code]
 
     if (!strategy) {
       // 對於未知的 UC-01 錯誤，使用一般性適配
@@ -332,3 +332,5 @@ export class UC02ErrorAdapter {
     return error
   }
 }
+
+module.exports = { UC02ErrorAdapter }

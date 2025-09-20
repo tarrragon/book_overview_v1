@@ -22,7 +22,7 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const expectAsyncError = async (promise, expectedCode = 'VALIDATION_ERROR') => {
   try {
     await promise
-    fail('Expected promise to throw Error')
+    throw new Error('Expected promise to throw Error')
   } catch (error) {
     expect(error).toMatchObject({
       code: expectedCode,

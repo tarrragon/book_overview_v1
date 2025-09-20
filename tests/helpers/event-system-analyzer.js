@@ -405,14 +405,6 @@ class EventSystemAnalyzer {
   }
 
   /**
-   * 配置錯誤模擬
-   */
-  async configureErrorSimulation (errorScenarios) {
-    this.errorScenarios = errorScenarios
-    return { success: true, errorScenarios }
-  }
-
-  /**
    * 配置熔斷器
    */
   async configureCircuitBreaker (config) {
@@ -425,15 +417,6 @@ class EventSystemAnalyzer {
    */
   async simulateHighErrorRate (config) {
     this.highErrorRateConfig = config
-    return { success: true, config }
-  }
-
-  /**
-   * 啟用事件重放
-   */
-  async enableEventReplay (config) {
-    this.eventReplayConfig = config
-    this.eventBuffer = []
     return { success: true, config }
   }
 
@@ -1948,41 +1931,6 @@ class EventSystemAnalyzer {
         pointInTimeReplay: true,
         selectiveReplay: true,
         bulkReplay: true
-      }
-    }
-  }
-
-  async analyzePerformanceMetrics (config) {
-    const { duration = 10000 } = config
-
-    await new Promise(resolve => setTimeout(resolve, Math.min(150, duration / 100)))
-
-    return {
-      success: true,
-      monitoringDuration: duration,
-      // 測試期望的吞吐量指標
-      averageThroughput: 28, // >25 events/sec
-      peakThroughput: 55, // >50 events/sec
-      // 測試期望的延遲指標
-      averageLatency: 95, // <200ms
-      medianLatency: 78,
-      percentile95Latency: 180, // <500ms
-      maxLatency: 245,
-      // 測試期望的穩定性指標
-      throughputStability: 0.87, // >0.8
-      latencyStability: 0.92, // >0.8
-      performanceConsistency: 0.89, // >0.8
-      resourceEfficiency: {
-        cpuUtilization: '68%',
-        memoryEfficiency: this._calculateRealMemoryEfficiency(config),
-        eventQueueUtilization: '45%'
-      },
-      bottleneckAnalysis: {
-        identifiedBottlenecks: [],
-        performanceRecommendations: [
-          'Consider increasing buffer size for peak loads',
-          'Monitor memory usage during high throughput periods'
-        ]
       }
     }
   }

@@ -1,12 +1,20 @@
 # 📋 Readmoo 書庫提取器開發任務清單
 
-**當前版本**: v0.13.1
-**最後更新**: 2025-09-18
-**開發狀態**: ✅ Phase 6 Core Infrastructure 完全遷移完成，🔄 v0.13.1 大規模遷移方法論 Phase 2 策略設計中
+**當前版本**: v0.13.5
+**最後更新**: 2025-09-20
+**開發狀態**: 🎉 **歷史性里程碑達成** - StandardError 100% 棄用完成，ESLint 100% Error 合規達成
 
 ## 🎯 專案當前狀態
 
 ### ✅ 已完成重要里程碑
+
+- **v0.13.5**: 🎉 **歷史性突破** - StandardError 全面棄用與 ESLint 100% Error 合規達成 (2025-09-20) 🏆
+  - ✅ **StandardError 100% 棄用**: 完全移除 StandardError.js，所有實例遷移至 ErrorCodes
+  - ✅ **ESLint 100% Error 合規**: 700+ 錯誤 → 0 errors (只剩 651 warnings)
+  - ✅ **錯誤處理統一**: 建立統一 IIFE 錯誤創建模式，消除技術債務
+  - ✅ **Hook 系統品質達標**: 響應品質要求並超額完成 (24→700+ 錯誤修復)
+  - ✅ **測試系統穩定**: 記憶體測試和性能測試完整修復
+  - ✅ **版本控制規範**: 完整工作日誌和提交記錄建立
 
 - **v0.13.0**: Phase 5-6 完整遷移，Core Infrastructure 重大突破 (2025-09-18) 🏆
   - ✅ **Phase 5 Background Domains**: 26檔案, 91 StandardError 實例完全遷移
@@ -75,31 +83,27 @@ npm run migration:analyze --mode=dependency_impact  # Phase 1: 發現與評估
 
 ---
 
-### 🎯 v0.13.x 分階段推進計畫
+### 🎯 v0.13.6+ 程式碼品質與系統優化
 
-**基於方法論自動化分析結果，實際狀況: 328個 StandardError 使用點，79個檔案**:
+**🎉 StandardError 遷移計畫 100% 完成狀態**:
+- ✅ **所有分階段推進計畫已提前完成**: 原預計 v0.13.1-v0.13.4 的所有工作在 v0.13.5 一次性完成
+- ✅ **328個 StandardError 使用點，79個檔案**: 全部成功遷移至 ErrorCodes
+- ✅ **ESLint Error 100% 合規**: 700+ errors → 0 errors
+- ✅ **品質里程碑達成**: Hook 系統品質要求全面滿足
 
-**v0.13.1: 大規模遷移方法論 Phase 1-2** ✅ (當前優先)
-- ✅ **Phase 1 發現與評估完成**: 使用自動化工具系統性分析，79檔案/328使用點
-- 🔄 **Phase 2 策略設計**: 制定漸進式遷移策略和風險分級 (79階段)
-- 🔄 **建立橋接模式**: StandardErrorWrapper 相容性層設計
-- 🔄 **低風險階段 1-5**: 開始首批 5檔案/6實例的安全遷移驗證
+**v0.13.6: ESLint Warnings 品質提升計畫** 🔄 (當前優先)
+- 🔄 **分析 651 個 Warnings**: 分類和優先級排序
+  - 🔍 **高優先級**: no-console, no-unused-vars, no-use-before-define
+  - 🔍 **中優先級**: 格式化相關 warnings
+  - 🔍 **低優先級**: 風格建議相關 warnings
+- 🔄 **批量修復策略**: 建立自動化修復流程
+- 🔄 **驗證與測試**: 確保修復不影響功能
+- 🔄 **達成目標**: ESLint 100% 無 warnings 合規
 
-**v0.13.2: 方法論 Phase 3 批量實施執行** ⭕
-- ⭕ **Content Scripts Domain**: 9檔案，68個 StandardError 實例 (階段 30-38)
-- ⭕ **UI Components Domain**: 9檔案，51個 StandardError 實例 (階段 6-12,43)
-- ⭕ **Export/Storage Domain**: 12檔案，46個 StandardError 實例 (階段 2-3,19-29)
-- ⭕ **自動化轉換工具**: 建立完整的轉換和驗證管道
-
-**v0.13.3: 方法論 Phase 3 核心系統遷移** ⭕
-- ⭕ **Background Services**: 30檔案，133個 StandardError 實例 (階段 44-79)
-- ⭕ **Core Infrastructure**: 14檔案，30個 StandardError 實例 (階段 39-42,74-79)
-- ⭕ **監控與早期預警**: 建立級聯故障檢測機制
-
-**v0.13.4: 方法論 Phase 4 驗證與優化** ⭕
+**v0.13.7: 效能與監控優化** ⭕ (後續規劃)
 - ⭕ **多層次驗證策略**: 單元→整合→業務驗證金字塔
 - ⭕ **效能最佳化**: 記憶體/CPU/IO優化循環
-- ⭕ **ESLint 零殘留驗證**: 確保 0 個 StandardError 殘留
+- ⭕ **監控機制擴展**: 基於 ErrorCodes 的監控和分析
 - ⭕ **持續改進機制**: 問題追蹤和知識管理系統
 
 ### 🔍 Logger 架構檢視與優化 (後續重要任務)

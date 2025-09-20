@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * 錯誤恢復策略測試
  * v0.9.32 - TDD Phase 2 錯誤恢復機制測試實作
@@ -69,7 +69,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       const flakyOperation = jest.fn().mockImplementation(() => {
         attemptCount++
         if (attemptCount < 3) {
-          throw new StandardError('ERROR_RECOVERY_TEMPORARY_FAILURE', `Temporary failure ${attemptCount}`, { category: 'testing' })
+          throw (() => { const error = new Error(`Temporary failure ${attemptCount}`); error.code = ErrorCodes.ERROR_RECOVERY_TEMPORARY_FAILURE; error.details = { category: 'testing' }; return error })()
         }
         return `Success after ${attemptCount} attempts`
       })
@@ -152,7 +152,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       const operation = jest.fn().mockImplementation(() => {
         attempts++
         if (attempts < 2) {
-          throw new StandardError('TEST_ERROR', 'Retry needed', { category: 'testing' })
+          throw (() => { const error = new Error('Retry needed'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
         }
         return 'success'
       })
@@ -230,7 +230,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
           if (serviceAvailable) {
             return Promise.resolve({ books: [], source: 'primary' })
           }
-          throw new StandardError('TEST_ERROR', 'Service down', { category: 'testing' })
+          throw (() => { const error = new Error('Service down'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
         })
       }
 
@@ -563,7 +563,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
           }
         }
       }
-      throw new StandardError('TEST_ERROR', 'No available services', { category: 'testing' })
+      throw (() => { const error = new Error('No available services'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
     },
 
     async executeServiceWithFallback (primaryService, fallbackService) {

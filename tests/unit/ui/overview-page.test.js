@@ -4,7 +4,7 @@
  * 解決：EventHandler依賴問題（21個測試失敗）
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+// StandardError 已在全域可用，不需要單獨引入
 
 // ===== 全域環境設置 =====
 

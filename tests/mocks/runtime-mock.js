@@ -1,3 +1,4 @@
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { StandardError } = require('src/core/errors/StandardError')
 /**
  * Runtime Mock - Chrome Runtime API 模擬
@@ -69,7 +70,7 @@ class RuntimeMock {
    */
   _validateContext () {
     if (!this._contextValid) {
-      throw new StandardError('INVALID_INPUT_ERROR', 'Extension context invalidated', { category: 'testing' })
+      throw (() => { const error = new Error('Extension context invalidated'); error.code = ErrorCodes.INVALID_INPUT_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 
@@ -162,7 +163,7 @@ class RuntimeMock {
    */
   _validatePortContext () {
     if (!this._contextValid) {
-      throw new StandardError('TEST_ERROR', 'Port disconnected', { category: 'testing' })
+      throw (() => { const error = new Error('Port disconnected'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 

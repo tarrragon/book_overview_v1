@@ -174,12 +174,12 @@ class UIStateTracker {
 
     // 檢查是否有未預期的變化
     for (const actualChange of actual) {
-      const expected = expected.find(change =>
+      const expectedChange = expected.find(change =>
         change.element === actualChange.element &&
         change.property === actualChange.property
       )
 
-      if (!expected) {
+      if (!expectedChange) {
         results.unexpectedChanges.push(actualChange)
       }
     }
@@ -519,6 +519,7 @@ class UIStateTracker {
         })
         subscription.lastCalled = currentTime
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn('UIStateTracker subscription callback error:', error)
       }
     }

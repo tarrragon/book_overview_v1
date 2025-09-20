@@ -66,9 +66,6 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
     test('initializeSync() 應該是抽象方法', async () => {
       // Given: 創建測試實作類別但不實作該方法
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
-        constructor () {
-          super()
-        }
       }
 
       const coordinator = new TestSynchronizationCoordinator()
@@ -84,9 +81,6 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
     test('executeSync() 應該是抽象方法', async () => {
       // Given: 測試實作類別
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
-        constructor () {
-          super()
-        }
       }
 
       const coordinator = new TestSynchronizationCoordinator()
@@ -102,9 +96,6 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
     test('cancelSync() 應該是抽象方法', async () => {
       // Given: 測試實作類別
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
-        constructor () {
-          super()
-        }
       }
 
       const coordinator = new TestSynchronizationCoordinator()
@@ -120,9 +111,6 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
     test('getSyncStatus() 應該是抽象方法', async () => {
       // Given: 測試實作類別
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
-        constructor () {
-          super()
-        }
       }
 
       const coordinator = new TestSynchronizationCoordinator()
@@ -138,9 +126,6 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
     test('getSyncProgress() 應該是抽象方法', async () => {
       // Given: 測試實作類別
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
-        constructor () {
-          super()
-        }
       }
 
       const coordinator = new TestSynchronizationCoordinator()
@@ -156,9 +141,6 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
     test('cleanupSync() 應該是抽象方法', async () => {
       // Given: 測試實作類別
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
-        constructor () {
-          super()
-        }
       }
 
       const coordinator = new TestSynchronizationCoordinator()
@@ -174,9 +156,6 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
     test('getSyncHistory() 應該是抽象方法', async () => {
       // Given: 測試實作類別
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
-        constructor () {
-          super()
-        }
       }
 
       const coordinator = new TestSynchronizationCoordinator()
@@ -192,9 +171,6 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
     test('estimateSyncTime() 應該是抽象方法', async () => {
       // Given: 測試實作類別
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
-        constructor () {
-          super()
-        }
       }
 
       const coordinator = new TestSynchronizationCoordinator()
@@ -210,9 +186,6 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
     test('validateSyncParams() 應該是抽象方法', async () => {
       // Given: 測試實作類別
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
-        constructor () {
-          super()
-        }
       }
 
       const coordinator = new TestSynchronizationCoordinator()
@@ -228,9 +201,6 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
     test('dryRun() 應該是抽象方法', async () => {
       // Given: 測試實作類別
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
-        constructor () {
-          super()
-        }
       }
 
       const coordinator = new TestSynchronizationCoordinator()
@@ -246,9 +216,6 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
     test('setProgressCallback() 應該是抽象方法', async () => {
       // Given: 測試實作類別
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
-        constructor () {
-          super()
-        }
       }
 
       const coordinator = new TestSynchronizationCoordinator()
@@ -264,9 +231,6 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
     test('getSupportedStrategies() 應該是抽象方法', async () => {
       // Given: 測試實作類別
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
-        constructor () {
-          super()
-        }
       }
 
       const coordinator = new TestSynchronizationCoordinator()
@@ -282,9 +246,6 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
     test('getSyncStatistics() 應該是抽象方法', async () => {
       // Given: 測試實作類別
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
-        constructor () {
-          super()
-        }
       }
 
       const coordinator = new TestSynchronizationCoordinator()
@@ -329,10 +290,6 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
     test('應該支援完整的方法實作', async () => {
       // Given: 創建完整實作的測試類別
       class CompleteSyncCoordinator extends ISynchronizationCoordinator {
-        constructor () {
-          super()
-        }
-
         async initializeSync () { return { initialized: true } }
         async executeSync () { return { executed: true } }
         async cancelSync () { return true }

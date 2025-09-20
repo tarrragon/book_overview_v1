@@ -8,6 +8,7 @@
  * - 驗證序列化和反序列化功能
  */
 
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { OperationResult } = require('src/core/errors/OperationResult')
 const { StandardError } = require('src/core/errors/StandardError')
 
@@ -40,7 +41,7 @@ describe('OperationResult 核心功能', () => {
 
   test('應該正確建立失敗結果（使用StandardError）', () => {
     // Given: StandardError錯誤物件
-    const standardError = new StandardError('OPERATION_FAILED', '操作失敗', { operation: 'test' })
+    const standardError = (() => { const error = new Error('操作失敗'); error.code = ErrorCodes.OPERATION_FAILED; error.details = { operation: 'test' }; return error })()
 
     // When: 建立失敗結果
     const result = OperationResult.failure(standardError)
@@ -100,7 +101,7 @@ describe('OperationResult 核心功能', () => {
 describe('OperationResult 方法測試', () => {
   test('throwIfFailure方法應該正確處理失敗結果', () => {
     // Given: 失敗的操作結果
-    const error = new StandardError('THROW_TEST', 'Throw測試錯誤')
+    const error = (() => { const error = new Error('Throw測試錯誤'); error.code = ErrorCodes.THROW_TEST; return error })()
     const failureResult = OperationResult.failure(error)
 
     // When & Then: throwIfFailure應該拋出異常
@@ -122,7 +123,7 @@ describe('OperationResult 方法測試', () => {
   test('toString方法應該提供清楚的字串表示', () => {
     // Given: 成功和失敗的結果
     const successResult = OperationResult.success({ count: 5 })
-    const failureResult = OperationResult.failure(new StandardError('TEST_ERROR', '測試錯誤'))
+    const failureResult = OperationResult.failure((() => { const error = new Error('測試錯誤'); error.code = ErrorCodes.TEST_ERROR; return error })())
 
     // When: 轉換為字串
     const successString = successResult.toString()
@@ -183,7 +184,7 @@ describe('OperationResult 序列化功能', () => {
 
   test('應該正確序列化失敗結果', () => {
     // Given: 失敗結果
-    const error = new StandardError('SERIALIZE_ERROR', '序列化錯誤', { test: true })
+    const error = (() => { const error = new Error('序列化錯誤'); error.code = ErrorCodes.SERIALIZE_ERROR; error.details = { test: true }; return error })()
     const result = OperationResult.failure(error)
 
     // When: 序列化
@@ -284,7 +285,7 @@ describe('OperationResult 向下相容功能', () => {
 
   test('toV1Format應該提供舊格式的失敗結果', () => {
     // Given: 失敗結果
-    const error = new StandardError('LEGACY_ERROR', '舊格式錯誤', { field: 'test' })
+    const error = (() => { const error = new Error('舊格式錯誤'); error.code = ErrorCodes.LEGACY_ERROR; error.details = { field: 'test' }; return error })()
     const result = OperationResult.failure(error)
 
     // When: 轉換為舊格式

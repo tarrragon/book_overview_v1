@@ -258,7 +258,7 @@ class ChromeStoreReadiness {
       this.checkItem('manifest_version', () => {
         if (manifest.manifest_version !== MANIFEST.REQUIRED_VERSION) {
           throw (() => {
-            const error = new Error('必須使用 Manifest V${MANIFEST.REQUIRED_VERSION}，目前版本: ${manifest.manifest_version}')
+            const error = new Error(`必須使用 Manifest V${MANIFEST.REQUIRED_VERSION}，目前版本: ${manifest.manifest_version}`)
             error.code = ErrorCodes.MANIFEST_VERSION_INVALID
             error.details = {
               required: MANIFEST.REQUIRED_VERSION,
@@ -384,7 +384,7 @@ class ChromeStoreReadiness {
       this.checkItem('total_size_check', () => {
         if (fileStats.totalSize > FILE_SIZE.MAX_TOTAL_SIZE) {
           throw (() => {
-            const error = new Error('總檔案大小超限 (${this.formatBytes(fileStats.totalSize)}/${this.formatBytes(FILE_SIZE.MAX_TOTAL_SIZE)})')
+            const error = new Error(`總檔案大小超限 (${this.formatBytes(fileStats.totalSize)}/${this.formatBytes(FILE_SIZE.MAX_TOTAL_SIZE)})`)
             error.code = ErrorCodes.FILE_SIZE_EXCEEDED
             error.details = {
               totalSize: fileStats.totalSize,
@@ -652,7 +652,7 @@ class ChromeStoreReadiness {
 
         if (startupTime > PERFORMANCE.MAX_STARTUP_TIME) {
           throw (() => {
-            const error = new Error('啟動時間過長: ${startupTime}ms > ${PERFORMANCE.MAX_STARTUP_TIME}ms')
+            const error = new Error(`啟動時間過長: ${startupTime}ms > ${PERFORMANCE.MAX_STARTUP_TIME}ms`)
             error.code = ErrorCodes.PERFORMANCE_STARTUP_TOO_SLOW
             error.details = {
               startupTime,
@@ -672,7 +672,7 @@ class ChromeStoreReadiness {
 
         if (memoryUsage > PERFORMANCE.MAX_MEMORY_USAGE) {
           throw (() => {
-            const error = new Error('記憶體使用過高: ${this.formatBytes(memoryUsage)} > ${this.formatBytes(PERFORMANCE.MAX_MEMORY_USAGE)}')
+            const error = new Error(`記憶體使用過高: ${this.formatBytes(memoryUsage)} > ${this.formatBytes(PERFORMANCE.MAX_MEMORY_USAGE)}`)
             error.code = ErrorCodes.PERFORMANCE_MEMORY_TOO_HIGH
             error.details = {
               memoryUsage,
@@ -715,7 +715,7 @@ class ChromeStoreReadiness {
 
         if (functionalityScore < MIN_FUNCTIONALITY_SCORE) {
           throw (() => {
-            const error = new Error('功能完整性分數不足: ${functionalityScore} < ${MIN_FUNCTIONALITY_SCORE}')
+            const error = new Error(`功能完整性分數不足: ${functionalityScore} < ${MIN_FUNCTIONALITY_SCORE}`)
             error.code = ErrorCodes.FUNCTIONALITY_SCORE_TOO_LOW
             error.details = {
               functionalityScore,

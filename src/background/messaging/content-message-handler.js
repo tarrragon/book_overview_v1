@@ -218,11 +218,12 @@ class ContentMessageHandler extends BaseModule {
       case 'CONTENT.SCRIPT.ERROR':
         return await this.handleContentScriptError(message, sender, sendResponse)
 
-      default:
+      default: {
         const error = new Error(`未支援的訊息類型: ${message.type}`)
         error.code = ErrorCodes.UNSUPPORTED_OPERATION
         error.details = { category: 'general', messageType: message.type }
         throw error
+      }
     }
   }
 

@@ -14,7 +14,7 @@
 
 const ReadmooPlatformMigrationValidator = require('src/platform/readmoo-platform-migration-validator')
 const EventBus = require('src/core/event-bus')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 // Mock Chrome APIs
 global.chrome = {
@@ -361,7 +361,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
       // 模擬事件格式錯誤
       jest.spyOn(eventBus, 'emit').mockImplementation((eventType) => {
         if (eventType.includes('PLATFORM.READMOO')) {
-          throw new StandardError('INVALID_INPUT_ERROR', 'Invalid event format', { category: 'testing' })
+          throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.INVALID_INPUT_ERROR; error.details = { category: 'testing' }; return error })()
         }
         return Promise.resolve()
       })
@@ -482,7 +482,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
 
       // 模擬意外錯誤
       mockPlatformDetectionService.detectPlatform.mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', 'Unexpected error', { category: 'testing' })
+        throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
       const result = await validator.validateReadmooMigration(context)

@@ -1,21 +1,13 @@
 /**
  * 書籍驗證錯誤類別
  *
- * 專用錯誤類別，不依賴中央字典，直接處理書籍驗證失敗的情況
+ * 專用錯誤類別，使用 ErrorCodes 系統處理書籍驗證失敗的情況
  * 遵循 Linux 專家建議的簡化設計原則
  */
 
-// 條件性引入，支援瀏覽器和 Node.js 環境
-let StandardError
-if (typeof require !== 'undefined') {
-  try {
-    StandardError = require('./StandardError').StandardError
-  } catch (e) {
-    // 瀏覽器環境或引入失敗時，假設 StandardError 已全域可用
-  }
-}
+const { ErrorCodes } = require('./ErrorCodes')
 
-class BookValidationError extends StandardError {
+class BookValidationError extends Error {
   /**
    * 建立書籍驗證錯誤
    * @param {Object} book - 書籍物件
@@ -38,11 +30,14 @@ class BookValidationError extends StandardError {
 
     const message = `書籍驗證失敗: "${bookTitle}" - ${failureMessage}`
 
-    super('BOOK_VALIDATION_FAILED', message, {
+    super(message)
+    this.code = ErrorCodes.VALIDATION_FAILED
+    this.details = {
       book: { id: bookId, title: bookTitle },
       failures: validationFailures,
       category: 'validation'
-    })
+    }
+    this.name = 'BookValidationError'
   }
 
   /**

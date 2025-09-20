@@ -15,8 +15,8 @@
  * - 整合現有的事件處理器架構
  */
 
-// 引入核心模組
-const { Logger } = require('src/core/logging')
+// 引入核心模組 - Logger 在此模組中用於錯誤記錄和除錯
+const { Logger } = require('src/core/logging/Logger')
 
 // 引入標準化錯誤處理 (瀏覽器環境)
 if (typeof window !== 'undefined' && window.ErrorCodes) {
@@ -160,6 +160,7 @@ if (typeof window !== 'undefined' && window.ErrorCodes) {
       if (eventBus && overviewController) {
         // 控制器初始化成功，eventBus 和 controller 都已準備就緒
         // 繼續執行後續的頁面就緒事件觸發
+        Logger.info('Controller and EventBus ready')
       }
 
       // 觸發頁面就緒事件

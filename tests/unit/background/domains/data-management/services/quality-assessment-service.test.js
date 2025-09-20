@@ -5,6 +5,7 @@
  * 目標：將品質評估邏輯從 DataValidationService 中提取
  */
 
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const QualityAssessmentService = require('src/background/domains/data-management/services/quality-assessment-service.js')
 const { StandardError } = require('src/core/errors/StandardError')
 
@@ -442,7 +443,7 @@ describe('QualityAssessmentService - 品質評估服務', () => {
       // 模擬一個會導致錯誤的書籍物件
       const invalidBook = {
         title: 'Test Book', // 有標題會有一些分數
-        toString: () => { throw new StandardError('TEST_ERROR', '轉換錯誤', { category: 'testing' }) }
+        toString: () => { throw (() => { const error = new Error('轉換錯誤'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })() }
       }
 
       const result = assessor.assessDataQuality(invalidBook)

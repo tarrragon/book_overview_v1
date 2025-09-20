@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * E2E Test Data Generator
  * 產生端到端測試所需的各種測試資料和測試場景配置
@@ -341,7 +341,7 @@ class E2ETestDataGenerator {
     const template = this.scenarioTemplates.get(scenarioType)
 
     if (!template) {
-      throw new StandardError('TEST_ERROR', `Unknown scenario type: ${scenarioType}`, { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     // 克隆模板並添加動態資料

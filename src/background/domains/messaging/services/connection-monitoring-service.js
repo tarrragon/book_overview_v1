@@ -1,6 +1,5 @@
 const ErrorCodes = require('src/core/errors/ErrorCodes')
 
-
 const { EVENT_PRIORITIES, CONNECTION_EVENTS } = require('src/core/event-bus')
 
 /**

@@ -10,7 +10,7 @@ const { expect } = require('@jest/globals')
 const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 // 測試輔助函數
-function expectErrorWithCode(fn, expectedCode) {
+function expectErrorWithCode (fn, expectedCode) {
   return expect(fn).toThrow(expect.objectContaining({
     code: expectedCode,
     details: expect.any(Object)
@@ -115,7 +115,7 @@ describe('SystemErrorHandler ErrorCodes Migration', () => {
       testCases.forEach(testCase => {
         try {
           testCase()
-          fail('Should have thrown an error')
+          throw new Error('Should have thrown an error')
         } catch (error) {
           expect(error).toHaveProperty('code', ErrorCodes.REQUIRED_FIELD_MISSING)
           expect(error).toHaveProperty('details')

@@ -19,7 +19,7 @@
 
 const EventHandler = require('src/core/event-handler')
 const { EXPORT_EVENTS } = require('src/export/export-events')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 /**
  * 錯誤處理器類別
@@ -236,15 +236,21 @@ class ErrorHandler extends EventHandler {
    */
   _validateErrorData (errorData) {
     if (!errorData) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'Error data is required', {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error('Error data is required')
+        error.code = ErrorCodes.REQUIRED_FIELD_MISSING
+        error.details = { category: 'export' }
+        return error
+      })()
     }
 
     if (!errorData.exportId) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'Export ID is required for error tracking', {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error('Export ID is required for error tracking')
+        error.code = ErrorCodes.REQUIRED_FIELD_MISSING
+        error.details = { category: 'export' }
+        return error
+      })()
     }
 
     // error 可能為 null，這在某些情況下是允許的

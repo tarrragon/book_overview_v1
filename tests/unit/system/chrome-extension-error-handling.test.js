@@ -72,7 +72,8 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
     test('CE002: 應該處理權限請求被使用者拒絕的情況', () => {
       // Given: Mock 權限請求被拒絕
       global.chrome.permissions.request.mockImplementation((permissions, callback) => {
-        callback(null, false) // 權限被拒絕
+        const error = null
+        callback(error, false) // 權限被拒絕
       })
 
       // When & Then: 測試權限請求處理

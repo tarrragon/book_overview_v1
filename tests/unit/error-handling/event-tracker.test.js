@@ -11,7 +11,7 @@
  */
 
 const EventTracker = require('src/error-handling/event-tracker')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('EventTracker', () => {
   let mockEventBus
@@ -203,7 +203,7 @@ describe('EventTracker', () => {
 
     test('應該處理持久化失敗的情況', () => {
       global.localStorage.setItem.mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', 'Storage quota exceeded', { category: 'testing' })
+        throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
       const eventData = { type: 'STORAGE.ERROR.TEST', data: {} }

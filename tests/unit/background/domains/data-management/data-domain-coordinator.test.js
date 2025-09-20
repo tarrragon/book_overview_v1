@@ -4,6 +4,7 @@
  * @since 2025-08-15
  */
 
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const DataDomainCoordinator = require('src/background/domains/data-management/data-domain-coordinator.js')
 const { StandardError } = require('src/core/errors/StandardError')
 
@@ -630,7 +631,7 @@ describe('DataDomainCoordinator', () => {
       // 創建一個會導致錯誤的模擬方法
       const originalHandleExtraction = coordinator.handleExtractionCompleted
       coordinator.handleExtractionCompleted = async function (event) {
-        throw new StandardError('TEST_ERROR', 'Simulated processing error', { category: 'testing' })
+        throw (() => { const error = new Error('Simulated processing error'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       }
 
       // 模擬事件數據

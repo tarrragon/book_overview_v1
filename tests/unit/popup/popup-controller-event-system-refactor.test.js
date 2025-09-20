@@ -12,6 +12,7 @@
  * @since 2025-08-19
  */
 
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const PopupController = require('src/popup/popup-controller.js')
 
 // Mock DOM 環境
@@ -258,7 +259,7 @@ describe('PopupController 事件系統重構', () => {
       // 模擬組件方法拋出錯誤
       controller.components.extraction = {
         ...controller.components.extraction,
-        startExtraction: jest.fn(() => { throw new StandardError('TEST_ERROR', '提取失敗', { category: 'testing' }) })
+        startExtraction: jest.fn(() => { throw (() => { const error = new Error('提取失敗'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })() })
       }
 
       // 重新建立事件管理器以使用新的組件
@@ -299,7 +300,7 @@ describe('PopupController 事件系統重構', () => {
         startExtraction: jest.fn(() => {
           callCount++
           if (callCount <= 2) {
-            throw new StandardError('TEST_ERROR', '暫時失敗', { category: 'testing' })
+            throw (() => { const error = new Error('暫時失敗'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
           }
           return 'success'
         })

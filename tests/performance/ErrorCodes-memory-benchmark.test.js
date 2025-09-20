@@ -159,6 +159,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       expect(error.message).toContain('Readmoo')
 
       // 記憶體使用驗證 (目標: 400-1000 bytes)
+      // eslint-disable-next-line no-console
       console.log(`單一錯誤物件記憶體使用: ${delta.heapUsedDelta} bytes`)
       expect(delta.heapUsedDelta).toBeGreaterThanOrEqual(100) // 至少 100 bytes (寬鬆下限)
       expect(delta.heapUsedDelta).toBeLessThanOrEqual(2000) // 最多 2000 bytes (寬鬆上限)
@@ -217,6 +218,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       expect(error.details.books).toHaveLength(100)
 
       // 大型錯誤物件的記憶體使用 (預期會更大，但仍在合理範圍)
+      // eslint-disable-next-line no-console
       console.log(`大型錯誤物件記憶體使用: ${delta.heapUsedDelta} bytes`)
       expect(delta.heapUsedDelta).toBeGreaterThanOrEqual(1000) // 至少 1KB
       expect(delta.heapUsedDelta).toBeLessThanOrEqual(50000) // 最多 50KB
@@ -285,7 +287,9 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
 
       // 累積記憶體使用驗證 (目標: < 1MB)
       const totalMemoryMB = finalDelta.heapUsedDelta / (1024 * 1024)
+      // eslint-disable-next-line no-console
       console.log(`1000個錯誤物件總記憶體使用: ${totalMemoryMB.toFixed(2)} MB`)
+      // eslint-disable-next-line no-console
       console.log(`建立時間: ${timing.duration.toFixed(2)} ms`)
 
       expect(totalMemoryMB).toBeLessThanOrEqual(2.0) // 最多 2MB (寬鬆限制)
@@ -293,6 +297,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
 
       // 平均每個錯誤物件的記憶體使用
       const avgMemoryPerError = finalDelta.heapUsedDelta / 1000
+      // eslint-disable-next-line no-console
       console.log(`平均每個錯誤物件記憶體: ${avgMemoryPerError.toFixed(0)} bytes`)
       expect(avgMemoryPerError).toBeLessThanOrEqual(2000) // 平均不超過 2KB
 
@@ -316,6 +321,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
         const lastAvg = memoryGrowthPattern[memoryGrowthPattern.length - 1].avgPerError
         const variation = Math.abs(lastAvg - firstAvg) / firstAvg
 
+        // eslint-disable-next-line no-console
         console.log('記憶體增長模式:', memoryGrowthPattern)
         expect(variation).toBeLessThanOrEqual(0.5) // 變異不超過 50%
       }
@@ -355,7 +361,9 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       const creationDelta = memoryMonitor.calculateDelta('gc_test_start', 'after_creation')
       const finalDelta = memoryMonitor.calculateDelta('gc_test_start', 'after_gc')
 
+      // eslint-disable-next-line no-console
       console.log(`建立 ${errorCount} 個錯誤物件後記憶體增長: ${creationDelta.heapUsedDelta} bytes`)
+      // eslint-disable-next-line no-console
       console.log(`垃圾回收後最終記憶體增長: ${finalDelta.heapUsedDelta} bytes`)
 
       // 驗證記憶體回收效果
@@ -364,6 +372,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       // 如果有垃圾回收，最終記憶體使用應該明顯小於建立時的峰值
       if (global.gc) {
         const recoveryRate = (creationDelta.heapUsedDelta - finalDelta.heapUsedDelta) / creationDelta.heapUsedDelta
+        // eslint-disable-next-line no-console
         console.log(`記憶體回收率: ${(recoveryRate * 100).toFixed(1)}%`)
         expect(recoveryRate).toBeGreaterThanOrEqual(0.1) // 至少回收 10%
       }
@@ -435,14 +444,22 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       const memoryImprovement = (comparisonResults.standardError.memory - comparisonResults.errorCodes.memory) / comparisonResults.standardError.memory
       const timingImprovement = (comparisonResults.standardError.timing - comparisonResults.errorCodes.timing) / comparisonResults.standardError.timing
 
+      // eslint-disable-next-line no-console
       console.log('記憶體使用比較:')
+      // eslint-disable-next-line no-console
       console.log(`  ErrorCodes: ${comparisonResults.errorCodes.memory} bytes`)
+      // eslint-disable-next-line no-console
       console.log(`  StandardError: ${comparisonResults.standardError.memory} bytes`)
+      // eslint-disable-next-line no-console
       console.log(`  記憶體改善: ${(memoryImprovement * 100).toFixed(1)}%`)
 
+      // eslint-disable-next-line no-console
       console.log('建立時間比較:')
+      // eslint-disable-next-line no-console
       console.log(`  ErrorCodes: ${comparisonResults.errorCodes.timing.toFixed(2)} ms`)
+      // eslint-disable-next-line no-console
       console.log(`  StandardError: ${comparisonResults.standardError.timing.toFixed(2)} ms`)
+      // eslint-disable-next-line no-console
       console.log(`  時間改善: ${(timingImprovement * 100).toFixed(1)}%`)
 
       // 驗證 ErrorCodes 的效率優勢
@@ -455,6 +472,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
 
         // 如果有改善，記錄實際改善程度
         if (memoryImprovement > 0) {
+          // eslint-disable-next-line no-console
           console.log(`✅ ErrorCodes 記憶體效率優於 StandardError ${(memoryImprovement * 100).toFixed(1)}%`)
         }
       }
@@ -568,10 +586,15 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       // 分析記憶體趨勢
       const trend = leakDetector.analyzeTrend()
 
+      // eslint-disable-next-line no-console
       console.log('記憶體洩漏檢測結果:')
+      // eslint-disable-next-line no-console
       console.log(`  總記憶體增長: ${trend.totalGrowth} bytes`)
+      // eslint-disable-next-line no-console
       console.log(`  測試時間: ${trend.timespan} ms`)
+      // eslint-disable-next-line no-console
       console.log(`  增長率: ${(trend.growthRate * 1000).toFixed(2)} bytes/sec`)
+      // eslint-disable-next-line no-console
       console.log(`  平均每採樣增長: ${trend.avgMemoryPerSample.toFixed(0)} bytes`)
 
       // 驗證沒有嚴重的記憶體洩漏
@@ -587,8 +610,10 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
 
       // 如果記憶體增長很小，認為沒有洩漏
       if (trend.totalGrowth < 100000) { // 小於 100KB
+        // eslint-disable-next-line no-console
         console.log('✅ 沒有檢測到明顯的記憶體洩漏')
       } else {
+        // eslint-disable-next-line no-console
         console.warn('⚠️ 檢測到潛在的記憶體增長，需要進一步調查')
       }
     })
@@ -596,23 +621,32 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
 
   afterAll(() => {
     // 輸出完整的記憶體分析報告
+    // eslint-disable-next-line no-console
     console.log('\n📊 ErrorCodes 記憶體基準測試完整報告:')
+    // eslint-disable-next-line no-console
     console.log('========================================')
 
     const finalMemory = memoryMonitor.measure('test_complete')
     const totalDelta = memoryMonitor.calculateDelta('test_start')
 
+    // eslint-disable-next-line no-console
     console.log(`測試開始記憶體: ${(baselineMemory.heapUsed / 1024 / 1024).toFixed(2)} MB`)
+    // eslint-disable-next-line no-console
     console.log(`測試結束記憶體: ${(finalMemory.heapUsed / 1024 / 1024).toFixed(2)} MB`)
+    // eslint-disable-next-line no-console
     console.log(`總記憶體變化: ${(totalDelta.heapUsedDelta / 1024).toFixed(2)} KB`)
 
+    // eslint-disable-next-line no-console
     console.log('\n效能統計:')
     performanceTracker.timings.forEach(timing => {
+      // eslint-disable-next-line no-console
       console.log(`  ${timing.label}: ${timing.duration.toFixed(2)} ms (記憶體變化: ${timing.memoryDelta} bytes)`)
     })
 
+    // eslint-disable-next-line no-console
     console.log('\n記憶體測量點:')
     memoryMonitor.measurements.slice(-10).forEach(measurement => {
+      // eslint-disable-next-line no-console
       console.log(`  ${measurement.label}: ${(measurement.heapUsed / 1024).toFixed(0)} KB`)
     })
   })

@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * @fileoverview Error Handling Utils TDD 測試
  * @version v1.0.0
@@ -239,7 +239,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
       const failingFunction = jest.fn(() => {
         attempts++
         if (attempts < 3) {
-          throw new StandardError('TEST_ERROR', `Attempt ${attempts} failed`, { category: 'testing' })
+          throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
         }
         return 'success'
       })
@@ -255,7 +255,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
 
     test('應該在超過重試次數後失敗', async () => {
       const alwaysFailingFunction = jest.fn(() => {
-        throw new StandardError('TEST_ERROR', 'Always fails', { category: 'testing' })
+        throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
       await expect(

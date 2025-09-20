@@ -177,7 +177,7 @@ function createChromeEventBridge () {
           return await this.dispatchToContent(event)
         case 'popup':
           return await this.dispatchToPopup(event)
-        default:
+        default: {
           const error = new Error(`Unknown target context: ${targetContext}`)
           error.code = ErrorCodes.VALIDATION_ERROR
           error.details = {
@@ -186,6 +186,7 @@ function createChromeEventBridge () {
             targetContext
           }
           throw error
+        }
       }
     },
 

@@ -39,7 +39,7 @@ function compareLogLevels (level1, level2) {
   const value2 = LogLevelValues[level2]
 
   if (value1 === undefined || value2 === undefined) {
-    const error = new Error('Invalid log level comparison: ${level1} vs ${level2}')
+    const error = new Error(`Invalid log level comparison: ${level1} vs ${level2}`)
     error.code = ErrorCodes.VALIDATION_ERROR
     error.details = {
       level1,

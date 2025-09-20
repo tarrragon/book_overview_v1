@@ -1,3 +1,4 @@
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const SchemaMigrationService = require('src/data-management/SchemaMigrationService')
 const BaseModule = require('src/background/lifecycle/base-module')
 const EventBus = require('src/core/event-bus')
@@ -108,7 +109,7 @@ describe('Schema Migration Service', () => {
       await new Promise(resolve => setTimeout(resolve, this.executionDelay))
 
       if (this.shouldFail) {
-        throw new StandardError('TEST_ERROR', 'Simulated migration execution failure', { category: 'testing' })
+        throw (() => { const error = new Error('Simulated migration execution failure'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       }
 
       switch (step.type) {
@@ -119,7 +120,7 @@ describe('Schema Migration Service', () => {
         case 'DELETE_FIELD':
           return this.simulateDeleteField(step, data)
         default:
-          throw new StandardError('TEST_ERROR', `Unsupported migration step: ${step.type}`, { category: 'testing' })
+          throw (() => { const error = new Error(`Unsupported migration step: ${step.type}`); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       }
     }
 
@@ -159,7 +160,7 @@ describe('Schema Migration Service', () => {
       await new Promise(resolve => setTimeout(resolve, this.backupDelay))
 
       if (this.shouldFailBackup) {
-        throw new StandardError('TEST_ERROR', 'Simulated backup creation failure', { category: 'testing' })
+        throw (() => { const error = new Error('Simulated backup creation failure'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       }
 
       const backupId = `backup_${version}_${Date.now()}`
@@ -176,12 +177,12 @@ describe('Schema Migration Service', () => {
 
     async restoreBackup (backupId) {
       if (this.shouldFailBackup) {
-        throw new StandardError('TEST_ERROR', 'Simulated backup restore failure', { category: 'testing' })
+        throw (() => { const error = new Error('Simulated backup restore failure'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       }
 
       const backup = this.backups.get(backupId)
       if (!backup) {
-        throw new StandardError('NOT_FOUND_ERROR', `Backup not found: ${backupId}`, { category: 'testing' })
+        throw (() => { const error = new Error(`Backup not found: ${backupId}`); error.code = ErrorCodes.NOT_FOUND_ERROR; error.details = { category: 'testing' }; return error })()
       }
 
       return backup.data
@@ -199,7 +200,7 @@ describe('Schema Migration Service', () => {
       await new Promise(resolve => setTimeout(resolve, this.storageDelay))
 
       if (this.shouldFailStorage) {
-        throw new StandardError('TEST_ERROR', 'Simulated storage read failure', { category: 'testing' })
+        throw (() => { const error = new Error('Simulated storage read failure'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       }
 
       return this.storage.get(key)
@@ -209,7 +210,7 @@ describe('Schema Migration Service', () => {
       await new Promise(resolve => setTimeout(resolve, this.storageDelay))
 
       if (this.shouldFailStorage) {
-        throw new StandardError('TEST_ERROR', 'Simulated storage write failure', { category: 'testing' })
+        throw (() => { const error = new Error('Simulated storage write failure'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       }
 
       this.storage.set(key, JSON.parse(JSON.stringify(value)))
@@ -219,7 +220,7 @@ describe('Schema Migration Service', () => {
       await new Promise(resolve => setTimeout(resolve, this.storageDelay))
 
       if (this.shouldFailStorage) {
-        throw new StandardError('TEST_ERROR', 'Simulated storage remove failure', { category: 'testing' })
+        throw (() => { const error = new Error('Simulated storage remove failure'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       }
 
       return this.storage.delete(key)
@@ -972,7 +973,7 @@ describe('Schema Migration Service', () => {
       mockMigrationExecutor.executeStep = jest.fn().mockImplementation(() => {
         attemptCount++
         if (attemptCount < 3) {
-          throw new StandardError('TEST_ERROR', 'Temporary failure', { category: 'testing' })
+          throw (() => { const error = new Error('Temporary failure'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
         }
         return { success: true, modifiedRecords: 1 }
       })

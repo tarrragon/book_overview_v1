@@ -11,7 +11,7 @@
 
 // Mock DOM 環境
 const { JSDOM } = require('jsdom')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 // Mock Chrome Extension APIs
 global.chrome = {
@@ -323,7 +323,7 @@ describe('PopupController 進度管理整合測試', () => {
       progressManager.uiComponents = {
         ...progressManager.uiComponents,
         updateProgress: jest.fn(() => {
-          throw new StandardError('TEST_ERROR', 'DOM 更新失敗', { category: 'testing' })
+          throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
         }),
         showError: mockShowError
       }

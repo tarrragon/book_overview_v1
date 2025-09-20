@@ -25,7 +25,7 @@
  */
 
 // 常數定義 - 分層組織架構
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 const CONSTANTS = {
   // 配置管理
@@ -804,9 +804,12 @@ class BookDataExporter {
    */
   async saveToFile (format, options = {}) {
     if (!window.showSaveFilePicker) {
-      throw new StandardError('FEATURE_NOT_SUPPORTED', 'File System Access API not supported', {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error('File System Access API not supported')
+        error.code = ErrorCodes.FEATURE_NOT_SUPPORTED
+        error.details = { category: 'export' }
+        return error
+      })()
     }
 
     try {
@@ -826,9 +829,12 @@ class BookDataExporter {
           defaultName = 'books.json'
           break
         default:
-          throw new StandardError('UNKNOWN_ERROR', 'Unsupported format: ${format}', {
-            category: 'export'
-          })
+          throw (() => {
+            const error = new Error(`Unsupported format: ${format}`)
+            error.code = ErrorCodes.UNKNOWN_ERROR
+            error.details = { category: 'export' }
+            return error
+          })()
       }
 
       const fileHandle = await window.showSaveFilePicker({
@@ -856,9 +862,12 @@ class BookDataExporter {
    */
   async copyToClipboard (format, options = {}) {
     if (!global.navigator || !global.navigator.clipboard || !global.navigator.clipboard.writeText) {
-      throw new StandardError('FEATURE_NOT_SUPPORTED', 'Clipboard API not supported', {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error('Clipboard API not supported')
+        error.code = ErrorCodes.FEATURE_NOT_SUPPORTED
+        error.details = { category: 'export' }
+        return error
+      })()
     }
 
     try {
@@ -872,9 +881,12 @@ class BookDataExporter {
           data = this.exportToJSON(options)
           break
         default:
-          throw new StandardError('UNKNOWN_ERROR', 'Unsupported format for clipboard: ${format}', {
-            category: 'export'
-          })
+          throw (() => {
+            const error = new Error(`Unsupported format for clipboard: ${format}`)
+            error.code = ErrorCodes.UNKNOWN_ERROR
+            error.details = { category: 'export' }
+            return error
+          })()
       }
 
       await global.navigator.clipboard.writeText(data)
@@ -902,9 +914,12 @@ class BookDataExporter {
     if (this.validateTemplate(template)) {
       this.templates.set(template.name, template)
     } else {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid template format', {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error('Invalid template format')
+        error.code = ErrorCodes.INVALID_DATA_FORMAT
+        error.details = { category: 'export' }
+        return error
+      })()
     }
   }
 
@@ -933,9 +948,12 @@ class BookDataExporter {
   exportWithTemplate (templateName) {
     const template = this.templates.get(templateName)
     if (!template) {
-      throw new StandardError('RESOURCE_NOT_FOUND', 'Template not found: ${templateName}', {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error(`Template not found: ${templateName}`)
+        error.code = ErrorCodes.RESOURCE_NOT_FOUND
+        error.details = { category: 'export' }
+        return error
+      })()
     }
 
     const options = {
@@ -953,9 +971,12 @@ class BookDataExporter {
       case 'pdf':
         return this.exportToPDF(options)
       default:
-        throw new StandardError('UNKNOWN_ERROR', 'Unsupported template format: ${template.format}', {
-          category: 'export'
-        })
+        throw (() => {
+          const error = new Error(`Unsupported template format: ${template.format}`)
+          error.code = ErrorCodes.UNKNOWN_ERROR
+          error.details = { category: 'export' }
+          return error
+        })()
     }
   }
 
@@ -977,9 +998,12 @@ class BookDataExporter {
       case 'pdf':
         return this.exportToPDF(options)
       default:
-        throw new StandardError('EXPORT_OPERATION_FAILED', 'Unsupported export format: ${format}', {
-          category: 'export'
-        })
+        throw (() => {
+          const error = new Error(`Unsupported export format: ${format}`)
+          error.code = ErrorCodes.EXPORT_OPERATION_FAILED
+          error.details = { category: 'export' }
+          return error
+        })()
     }
   }
 

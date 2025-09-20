@@ -35,7 +35,7 @@
 
 const { EXPORT_EVENTS, EXPORT_EVENT_PRIORITIES } = require('./export-events')
 const BookDataExporter = require('./book-data-exporter')
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 /**
  * 匯出管理器類別
@@ -49,10 +49,15 @@ class ExportManager {
    */
   constructor (eventBus) {
     if (!eventBus) {
-      throw new StandardError('EVENTBUS_REQUIRED', 'EventBus is required for ExportManager', {
-        category: 'initialization',
-        requiredDependency: 'EventBus'
-      })
+      throw (() => {
+        const error = new Error('EventBus is required for ExportManager')
+        error.code = ErrorCodes.EVENTBUS_REQUIRED
+        error.details = {
+          category: 'initialization',
+          requiredDependency: 'EventBus'
+        }
+        return error
+      })()
     }
 
     /**
@@ -253,9 +258,12 @@ class ExportManager {
 
     // 檢查並發限制
     if (this.currentExports.size >= this.maxConcurrentExports) {
-      throw new StandardError('EXPORT_OPERATION_FAILED', `Maximum concurrent exports (${this.maxConcurrentExports}, {
-          "category": "export"
-      }) exceeded`)
+      throw (() => {
+        const error = new Error(`Maximum concurrent exports (${this.maxConcurrentExports}) exceeded`)
+        error.code = ErrorCodes.EXPORT_OPERATION_FAILED
+        error.details = { category: 'export' }
+        return error
+      })()
     }
 
     // 記錄匯出開始
@@ -330,24 +338,39 @@ class ExportManager {
    */
   _validateExportData (exportData, format) {
     if (!exportData || !exportData.books) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'Invalid ${format} export data: books array is required', {
-        dataType: 'array',
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error(`Invalid ${format} export data: books array is required`)
+        error.code = ErrorCodes.REQUIRED_FIELD_MISSING
+        error.details = {
+          dataType: 'array',
+          category: 'export'
+        }
+        return error
+      })()
     }
 
     if (!Array.isArray(exportData.books)) {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid ${format} export data: books must be an array', {
-        dataType: 'array',
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error(`Invalid ${format} export data: books must be an array`)
+        error.code = ErrorCodes.INVALID_DATA_FORMAT
+        error.details = {
+          dataType: 'array',
+          category: 'export'
+        }
+        return error
+      })()
     }
 
     if (exportData.books.length === 0) {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid ${format} export data: books array cannot be empty', {
-        dataType: 'array',
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error(`Invalid ${format} export data: books array cannot be empty`)
+        error.code = ErrorCodes.INVALID_DATA_FORMAT
+        error.details = {
+          dataType: 'array',
+          category: 'export'
+        }
+        return error
+      })()
     }
   }
 
@@ -490,9 +513,12 @@ class ExportManager {
       const formats = exportData.formats || []
 
       if (formats.length === 0) {
-        throw new StandardError('UI_OPERATION_FAILED', 'Batch export requires at least one format', {
-          category: 'export'
-        })
+        throw (() => {
+          const error = new Error('Batch export requires at least one format')
+          error.code = ErrorCodes.UI_OPERATION_FAILED
+          error.details = { category: 'export' }
+          return error
+        })()
       }
 
       // 發送批量匯出開始事件
@@ -595,23 +621,32 @@ class ExportManager {
    */
   _validateDownloadData (downloadData) {
     if (!downloadData || !downloadData.data || !downloadData.filename) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'Invalid download data: data and filename are required', {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error('Invalid download data: data and filename are required')
+        error.code = ErrorCodes.REQUIRED_FIELD_MISSING
+        error.details = { category: 'export' }
+        return error
+      })()
     }
 
     if (typeof downloadData.filename !== 'string' || downloadData.filename.trim() === '') {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid download data: filename must be a non-empty string', {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error('Invalid download data: filename must be a non-empty string')
+        error.code = ErrorCodes.INVALID_DATA_FORMAT
+        error.details = { category: 'export' }
+        return error
+      })()
     }
 
     // 檢查檔名是否包含非法字元
     const invalidChars = /[<>:"/\\|?*]/
     if (invalidChars.test(downloadData.filename)) {
-      throw new StandardError('INVALID_DATA_FORMAT', 'Invalid download data: filename contains illegal characters', {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error('Invalid download data: filename contains illegal characters')
+        error.code = ErrorCodes.INVALID_DATA_FORMAT
+        error.details = { category: 'export' }
+        return error
+      })()
     }
   }
 

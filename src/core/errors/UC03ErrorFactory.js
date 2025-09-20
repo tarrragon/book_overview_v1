@@ -12,13 +12,13 @@
  */
 
 import { UC03ErrorAdapter } from './UC03ErrorAdapter.js'
-import { ErrorCodes } from './ErrorCodes.js'
+const { ErrorCodes } = require('./ErrorCodes')
 
 /**
  * UC03ErrorFactory
  * UC-03專用的錯誤建立工廠
  */
-export class UC03ErrorFactory {
+class UC03ErrorFactory {
   /**
    * 建立通用的UC-03錯誤
    * @param {string} originalCode 原始錯誤代碼
@@ -288,3 +288,5 @@ export class UC03ErrorFactory {
     }
   }
 }
+
+module.exports = { UC03ErrorFactory }

@@ -24,6 +24,7 @@
  * @since 2025-08-09
  */
 
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const EventBus = require('src/core/event-bus')
 const { EXPORT_EVENTS } = require('src/export/export-events')
 const { StandardError } = require('src/core/errors/StandardError')
@@ -55,7 +56,7 @@ class ExportProgressNotifier {
    */
   initialize () {
     // 測試將驗證此初始化流程
-    throw new StandardError('EXPORT_PROGRESS_NOTIFIER_INIT_ERROR', 'ExportProgressNotifier.initialize() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportProgressNotifier.initialize() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_PROGRESS_NOTIFIER_INIT_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -65,7 +66,7 @@ class ExportProgressNotifier {
    */
   registerProgressCallback (exportId, callback) {
     // 測試將驗證回調註冊和管理
-    throw new StandardError('EXPORT_PROGRESS_CALLBACK_REGISTRATION_ERROR', 'ExportProgressNotifier.registerProgressCallback() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportProgressNotifier.registerProgressCallback() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_PROGRESS_CALLBACK_REGISTRATION_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -75,7 +76,7 @@ class ExportProgressNotifier {
    */
   updateProgress (exportId, progressData) {
     // 測試將驗證進度更新邏輯
-    throw new StandardError('EXPORT_PROGRESS_UPDATE_ERROR', 'ExportProgressNotifier.updateProgress() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportProgressNotifier.updateProgress() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_PROGRESS_UPDATE_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -85,7 +86,7 @@ class ExportProgressNotifier {
    */
   startTracking (exportId, format) {
     // 測試將驗證進度追蹤的開始
-    throw new StandardError('EXPORT_PROGRESS_TRACKING_START_ERROR', 'ExportProgressNotifier.startTracking() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportProgressNotifier.startTracking() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_PROGRESS_TRACKING_START_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -94,7 +95,7 @@ class ExportProgressNotifier {
    */
   completeTracking (exportId) {
     // 測試將驗證進度追蹤的完成
-    throw new StandardError('EXPORT_PROGRESS_TRACKING_COMPLETE_ERROR', 'ExportProgressNotifier.completeTracking() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportProgressNotifier.completeTracking() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_PROGRESS_TRACKING_COMPLETE_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -103,7 +104,7 @@ class ExportProgressNotifier {
    */
   cancelTracking (exportId) {
     // 測試將驗證進度追蹤的取消
-    throw new StandardError('EXPORT_PROGRESS_TRACKING_CANCEL_ERROR', 'ExportProgressNotifier.cancelTracking() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportProgressNotifier.cancelTracking() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_PROGRESS_TRACKING_CANCEL_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -111,7 +112,7 @@ class ExportProgressNotifier {
    */
   getAllProgress () {
     // 測試將驗證進度資料的取得
-    throw new StandardError('EXPORT_PROGRESS_QUERY_ERROR', 'ExportProgressNotifier.getAllProgress() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportProgressNotifier.getAllProgress() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_PROGRESS_QUERY_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -119,7 +120,7 @@ class ExportProgressNotifier {
    */
   cleanup () {
     // 測試將驗證進度記錄的清理
-    throw new StandardError('EXPORT_PROGRESS_CLEANUP_ERROR', 'ExportProgressNotifier.cleanup() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportProgressNotifier.cleanup() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_PROGRESS_CLEANUP_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -127,7 +128,7 @@ class ExportProgressNotifier {
    */
   getExportStats () {
     // 測試將驗證統計資訊取得
-    throw new StandardError('EXPORT_PROGRESS_STATS_ERROR', 'ExportProgressNotifier.getExportStats() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportProgressNotifier.getExportStats() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_PROGRESS_STATS_ERROR; error.details = { category: 'testing' }; return error })()
   }
 
   /**
@@ -136,7 +137,7 @@ class ExportProgressNotifier {
    */
   getExportHistory (exportId) {
     // 測試將驗證歷史記錄取得
-    throw new StandardError('EXPORT_PROGRESS_HISTORY_ERROR', 'ExportProgressNotifier.getExportHistory() not implemented - Red phase', { category: 'testing' })
+    throw (() => { const error = new Error('ExportProgressNotifier.getExportHistory() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_PROGRESS_HISTORY_ERROR; error.details = { category: 'testing' }; return error })()
   }
 }
 
@@ -350,7 +351,7 @@ describe('ExportProgressNotifier', () => {
   describe('錯誤處理', () => {
     test('應該處理匯出失敗時的進度清理', () => {
       const exportId = 'failed-export-001'
-      const error = new StandardError('EXPORT_FAILED', 'Export failed')
+      const error = (() => { const error = new Error('Export failed'); error.code = ErrorCodes.EXPORT_FAILED; return error })()
 
       // Red 階段：測試將驗證失敗處理
       // - 錯誤狀態設定

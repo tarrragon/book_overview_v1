@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * 效能監控系統
  *
@@ -162,7 +162,7 @@ class PerformanceMonitor {
 
   startTimer (operationName) {
     if (this.timers.has(operationName)) {
-      throw new StandardError('TEST_ERROR', `Timer ${operationName} already running`, { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     this.timers.set(operationName, {
@@ -173,7 +173,7 @@ class PerformanceMonitor {
 
   endTimer (operationName) {
     if (!this.timers.has(operationName)) {
-      throw new StandardError('NOT_FOUND_ERROR', `Timer ${operationName} not found`, { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.NOT_FOUND_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     const timer = this.timers.get(operationName)
@@ -408,7 +408,7 @@ class PerformanceMonitor {
   // 高精度記憶體洩漏檢測 (重構版)
   detectMemoryLeaks (baselineSnapshot, currentSnapshot) {
     if (!baselineSnapshot || !currentSnapshot) {
-      throw new StandardError('TEST_ERROR', '需要基準和當前記憶體快照進行比較', { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     const memoryProfile = this.analyzeMemoryProfile([baselineSnapshot, currentSnapshot])

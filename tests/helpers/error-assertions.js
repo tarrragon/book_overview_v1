@@ -36,14 +36,14 @@ const ErrorCodes = require('src/core/errors/ErrorCodes')
  * @param {string} [expectedMessage] - 期望的錯誤訊息（可選）
  * @returns {Promise<Error>} - 捕獲的錯誤物件
  */
-async function expectErrorWithCode(fn, expectedCode, expectedMessage) {
+async function expectErrorWithCode (fn, expectedCode, expectedMessage) {
   let caughtError
 
   try {
     if (typeof fn === 'function') {
       await fn()
     } else {
-      await fn  // 假設是 Promise
+      await fn // 假設是 Promise
     }
     throw new Error('Expected function to throw an error, but it did not')
   } catch (error) {
@@ -72,7 +72,7 @@ async function expectErrorWithCode(fn, expectedCode, expectedMessage) {
  * @param {string} [expected.message] - 期望的錯誤訊息
  * @param {Object} [expected.details] - 期望的錯誤詳情
  */
-function expectErrorDetails(error, expected) {
+function expectErrorDetails (error, expected) {
   expect(error).toBeInstanceOf(Error)
   expect(error.code).toBe(expected.code)
 
@@ -90,7 +90,7 @@ function expectErrorDetails(error, expected) {
  * @param {Function} fn - 要執行的函數
  * @returns {Promise<Error|null>} - 捕獲的錯誤或null
  */
-async function getError(fn) {
+async function getError (fn) {
   try {
     await fn()
     return null
@@ -103,7 +103,7 @@ async function getError(fn) {
  * 驗證Jest expect.rejects的ErrorCodes相容性
  * 使用方式：await expect(fn()).rejects.toMatchErrorCode(ErrorCodes.VALIDATION_ERROR)
  */
-function toMatchErrorCode(received, expectedCode) {
+function toMatchErrorCode (received, expectedCode) {
   const pass = received.code === expectedCode
 
   if (pass) {

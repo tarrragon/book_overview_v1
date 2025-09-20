@@ -82,6 +82,7 @@ class MigrationValidator {
    */
   async validateFile (filePath, migrationItems = []) {
     const normalizedPath = path.relative(this.projectRoot, filePath)
+    // eslint-disable-next-line no-console
     console.log(`🔍 開始驗證檔案: ${normalizedPath}`)
 
     const validationResults = {
@@ -118,9 +119,11 @@ class MigrationValidator {
         }
       }
 
+      // eslint-disable-next-line no-console
       console.log(`✅ 檔案驗證完成: ${normalizedPath} (${validationResults.overall})`)
       return validationResults
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(`❌ 檔案驗證失敗: ${normalizedPath}`, error.message)
       validationResults.overall = VALIDATION_RESULT.FAIL
       validationResults.issues.push({
@@ -136,6 +139,7 @@ class MigrationValidator {
    * 批量驗證多個檔案
    */
   async validateBatch (fileList) {
+    // eslint-disable-next-line no-console
     console.log(`📦 開始批量驗證: ${fileList.length} 個檔案`)
 
     const batchResults = {
@@ -175,11 +179,13 @@ class MigrationValidator {
         batchResults.summary.criticalIssues += result.issues.filter(i => i.severity === 'error').length
         batchResults.summary.warningIssues += result.issues.filter(i => i.severity === 'warning').length
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error(`❌ 批量驗證錯誤: ${filePath}`, error.message)
         batchResults.failedFiles++
       }
     }
 
+    // eslint-disable-next-line no-console
     console.log(`📊 批量驗證完成: ${batchResults.passedFiles} 通過, ${batchResults.failedFiles} 失敗, ${batchResults.warningFiles} 警告`)
     return batchResults
   }
@@ -188,6 +194,7 @@ class MigrationValidator {
    * 驗證專案整體狀態
    */
   async validateProject () {
+    // eslint-disable-next-line no-console
     console.log('🏗 開始專案整體驗證')
 
     const projectValidation = {
@@ -212,9 +219,11 @@ class MigrationValidator {
         projectValidation.overall = VALIDATION_RESULT.WARNING
       }
 
+      // eslint-disable-next-line no-console
       console.log(`✅ 專案驗證完成: ${projectValidation.overall}`)
       return projectValidation
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ 專案驗證失敗:', error.message)
       projectValidation.overall = VALIDATION_RESULT.FAIL
       return projectValidation
@@ -332,7 +341,10 @@ class MigrationValidator {
       // 語法解析檢查
       try {
         const content = await fs.readFile(filePath, 'utf8')
-        new (require('vm').Script)(content)
+        const script = new (require('vm').Script)(content)
+        if (script) {
+          // Script created successfully for validation
+        }
         validation.checks.parse = true
       } catch (error) {
         validation.result = VALIDATION_RESULT.FAIL

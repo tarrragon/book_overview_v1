@@ -29,7 +29,7 @@
 const PlatformDetectionService = require('src/background/domains/platform/services/platform-detection-service')
 const { createDetectionContext, validateDetectionResult, performanceHelpers, scenarioBuilder } = require('../../mocks/platform-detection.mock')
 const { setupCustomMatchers, assertions, dataGenerators, performanceUtils } = require('../../helpers/platform-test-helpers')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('Platform Detection Integration Tests', () => {
   let service
@@ -119,7 +119,7 @@ describe('Platform Detection Integration Tests', () => {
     test('應該在檢測失敗時發送錯誤事件', async () => {
       // 模擬內部方法失敗 - 由於 analyzeUrlPattern 是同步方法，使用 mockImplementation
       jest.spyOn(service, 'analyzeUrlPattern').mockImplementation(() => {
-        throw new StandardError('NETWORK_ERROR', 'Network Error', { category: 'testing' })
+        throw (() => { const error = new Error('Network Error'); error.code = ErrorCodes.NETWORK_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
       const context = testContexts.readmoo
@@ -266,7 +266,7 @@ describe('Platform Detection Integration Tests', () => {
       // 模擬 URL 分析失敗但 DOM 分析成功的情況
       jest.spyOn(service, 'analyzeUrlPattern')
         .mockImplementationOnce(() => {
-          throw new StandardError('URL_ANALYSIS_FAILURE', 'URL Analysis Failed', { category: 'testing' })
+          throw (() => { const error = new Error('URL Analysis Failed'); error.code = ErrorCodes.URL_ANALYSIS_FAILURE; error.details = { category: 'testing' }; return error })()
         })
         .mockImplementation(() => ({ platformId: 'READMOO', confidence: 0.9, features: ['url_pattern'] }))
 
@@ -526,7 +526,7 @@ describe('Platform Detection Integration Tests', () => {
       jest.spyOn(service, 'analyzeUrlPattern').mockImplementation(() => {
         callCount++
         if (callCount % 3 === 0) {
-          throw new StandardError('CONCURRENT_OPERATION_ERROR', `Simulated concurrent error ${callCount}`, { category: 'testing' })
+          throw (() => { const error = new Error(`Simulated concurrent error ${callCount}`); error.code = ErrorCodes.CONCURRENT_OPERATION_ERROR; error.details = { category: 'testing' }; return error })()
         }
         return { platformId: 'READMOO', confidence: 0.8, features: ['url_pattern'] }
       })

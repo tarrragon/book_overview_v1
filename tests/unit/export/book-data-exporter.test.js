@@ -49,7 +49,7 @@ global.URL = {
 }
 
 const BookDataExporter = require('src/export/book-data-exporter')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', () => {
   let exporter
@@ -662,7 +662,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
       // 模擬 URL.createObjectURL 失敗
       const originalCreateObjectURL = global.URL.createObjectURL
       global.URL.createObjectURL = jest.fn(() => {
-        throw new StandardError('EXPORT_URL_CREATION_FAILED', 'URL creation failed', { category: 'testing' })
+        throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.EXPORT_URL_CREATION_FAILED; error.details = { category: 'testing' }; return error })()
       })
 
       try {

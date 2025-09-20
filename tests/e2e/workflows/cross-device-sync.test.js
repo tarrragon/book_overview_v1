@@ -14,7 +14,7 @@
  * 等待 TDD Phase 3 實作對應的同步功能
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 // Mock 類別定義（TDD Phase 1 - 測試先行）
 class SyncStateTracker {
@@ -1220,7 +1220,7 @@ describe('UC-05 跨設備同步工作流程測試', () => {
       const flakyNetwork = () => {
         attemptCount++
         if (attemptCount <= 2) {
-          throw new StandardError('NETWORK_ERROR', 'TEMPORARY_NETWORK_ERROR', { category: 'testing' })
+          throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.NETWORK_ERROR; error.details = { category: 'testing' }; return error })()
         }
         return { success: true }
       }
@@ -1239,7 +1239,7 @@ describe('UC-05 跨設備同步工作流程測試', () => {
 
       // 測試最大重試次數
       const maxRetryResult = await device.executeWithRetry(
-        () => { throw new StandardError('E2E_PERSISTENT_ERROR', 'PERSISTENT_ERROR', { category: 'testing' }) },
+        () => { throw (() => { const error = new Error('E2E persistent error'); error.code = ErrorCodes.E2E_PERSISTENT_ERROR; error.details = { category: 'testing' }; return error })() },
         { maxRetries: 3 }
       )
 

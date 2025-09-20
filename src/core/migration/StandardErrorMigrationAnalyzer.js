@@ -90,6 +90,7 @@ export class StandardErrorMigrationAnalyzer {
     // 執行環境: Node.js 開發環境，作為獨立工具運行
     // 後備機制: console.log 提供遷移分析的即時狀態反饋
     // 開發需求: 長時間運行的分析需要進度可見性
+    // eslint-disable-next-line no-console
     console.log('🔍 開始 StandardError 遷移分析...\n')
 
     try {
@@ -108,9 +109,11 @@ export class StandardErrorMigrationAnalyzer {
       // 階段 5: 生成分析報告
       const report = this._generateAnalysisReport()
 
+      // eslint-disable-next-line no-console
       console.log('✅ StandardError 遷移分析完成')
       return report
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ 遷移分析失敗:', error.message)
       throw error
     }
@@ -121,6 +124,7 @@ export class StandardErrorMigrationAnalyzer {
    * @private
    */
   async _scanStandardErrorUsage () {
+    // eslint-disable-next-line no-console
     console.log('📂 掃描 StandardError 使用情況...')
 
     const srcPath = path.join(this.config.projectRoot, this.config.srcDirectory)
@@ -144,7 +148,9 @@ export class StandardErrorMigrationAnalyzer {
       }
     }
 
+    // eslint-disable-next-line no-console
     console.log(`   📊 掃描 ${this.analysisResults.totalFiles} 個檔案`)
+    // eslint-disable-next-line no-console
     console.log(`   🎯 發現 ${this.analysisResults.affectedFiles.length} 個檔案使用 StandardError`)
   }
 
@@ -275,6 +281,7 @@ export class StandardErrorMigrationAnalyzer {
    * @private
    */
   async _analyzeUsagePatterns () {
+    // eslint-disable-next-line no-console
     console.log('📈 分析使用模式...')
 
     const patterns = {
@@ -304,11 +311,13 @@ export class StandardErrorMigrationAnalyzer {
 
     this.analysisResults.usagePatterns = patterns
 
+    // eslint-disable-next-line no-console
     console.log('   📊 最常見錯誤類型:')
     Object.entries(patterns.mostCommonErrors)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 5)
       .forEach(([code, count]) => {
+        // eslint-disable-next-line no-console
         console.log(`      ${code}: ${count} 次`)
       })
   }
@@ -318,6 +327,7 @@ export class StandardErrorMigrationAnalyzer {
    * @private
    */
   async _assessMigrationRisks () {
+    // eslint-disable-next-line no-console
     console.log('⚠️  評估遷移風險...')
 
     const riskFactors = {
@@ -370,7 +380,9 @@ export class StandardErrorMigrationAnalyzer {
       recommendations: this._generateRiskRecommendations(overallRiskLevel)
     }
 
+    // eslint-disable-next-line no-console
     console.log(`   📊 整體風險等級: ${overallRiskLevel}`)
+    // eslint-disable-next-line no-console
     console.log(`   🎯 平均風險分數: ${averageRisk.toFixed(2)}`)
   }
 
@@ -379,6 +391,7 @@ export class StandardErrorMigrationAnalyzer {
    * @private
    */
   async _createMigrationPlan () {
+    // eslint-disable-next-line no-console
     console.log('📋 建立遷移計畫...')
 
     // 按風險和複雜度排序檔案
@@ -437,8 +450,10 @@ export class StandardErrorMigrationAnalyzer {
 
     this.analysisResults.migrationPlan = phases
 
+    // eslint-disable-next-line no-console
     console.log(`   📊 建立 ${phases.length} 個遷移階段`)
     phases.forEach(phase => {
+      // eslint-disable-next-line no-console
       console.log(`      階段 ${phase.phase}: ${phase.files.length} 檔案 (風險: ${phase.riskLevel})`)
     })
   }

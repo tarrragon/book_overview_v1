@@ -6,6 +6,7 @@
  * @date 2025-08-25
  */
 
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { StandardError } = require('src/core/errors/StandardError')
 
 class ErrorTestDataFactory {
@@ -101,7 +102,7 @@ class ErrorTestDataFactory {
         }
 
       default:
-        throw new StandardError('TEST_GENERATION_ERROR', `Unknown Chrome Extension error scenario: ${scenario}`, { category: 'testing' })
+        throw (() => { const error = new Error(`Unknown Chrome Extension error scenario: ${scenario}`); error.code = ErrorCodes.TEST_GENERATION_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 
@@ -173,7 +174,7 @@ class ErrorTestDataFactory {
         }
 
       default:
-        throw new StandardError('NETWORK_ERROR', `Unknown network error scenario: ${scenario}`, { category: 'testing' })
+        throw (() => { const error = new Error(`Unknown network error scenario: ${scenario}`); error.code = ErrorCodes.NETWORK_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 
@@ -234,7 +235,7 @@ class ErrorTestDataFactory {
         }
 
       default:
-        throw new StandardError('TEST_GENERATION_ERROR', `Unknown DOM error scenario: ${scenario}`, { category: 'testing' })
+        throw (() => { const error = new Error(`Unknown DOM error scenario: ${scenario}`); error.code = ErrorCodes.TEST_GENERATION_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 
@@ -297,7 +298,7 @@ class ErrorTestDataFactory {
         }
 
       default:
-        throw new StandardError('TEST_GENERATION_ERROR', `Unknown data processing error scenario: ${scenario}`, { category: 'testing' })
+        throw (() => { const error = new Error(`Unknown data processing error scenario: ${scenario}`); error.code = ErrorCodes.TEST_GENERATION_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 
@@ -344,7 +345,7 @@ class ErrorTestDataFactory {
         }
 
       default:
-        throw new StandardError('TEST_GENERATION_ERROR', `Unknown memory error scenario: ${scenario}`, { category: 'testing' })
+        throw (() => { const error = new Error(`Unknown memory error scenario: ${scenario}`); error.code = ErrorCodes.TEST_GENERATION_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 
@@ -376,7 +377,7 @@ class ErrorTestDataFactory {
         case 'memory':
           return this.createMemoryError(specificScenario)
         default:
-          throw new StandardError('TEST_GENERATION_ERROR', `Unknown error type: ${type}`, { category: 'testing' })
+          throw (() => { const error = new Error(`Unknown error type: ${type}`); error.code = ErrorCodes.TEST_GENERATION_ERROR; error.details = { category: 'testing' }; return error })()
       }
     })
 

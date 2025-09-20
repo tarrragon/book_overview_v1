@@ -9,7 +9,7 @@
  * @version v0.9.38-refactor
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const ChromeAPIMockRegistry = require('../infrastructure/chrome-api-mock-registry')
 
 class ChromeExtensionMocksEnhanced {
@@ -307,7 +307,7 @@ class ChromeExtensionMocksEnhanced {
 
     global.chrome.runtime.connect = (extensionId, connectInfo) => {
       if (!this.contextValid) {
-        throw new StandardError('VALIDATION_FAILED', 'Extension context invalidated', { category: 'testing' })
+        throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.VALIDATION_FAILED; error.details = { category: 'testing' }; return error })()
       }
 
       return {
@@ -323,7 +323,7 @@ class ChromeExtensionMocksEnhanced {
         },
         postMessage: (message) => {
           if (!this.contextValid) {
-            throw new StandardError('TEST_ERROR', 'Port disconnected', { category: 'testing' })
+            throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
           }
         },
         disconnect: () => {}
@@ -332,7 +332,7 @@ class ChromeExtensionMocksEnhanced {
 
     global.chrome.runtime.getURL = (path) => {
       if (!this.contextValid) {
-        throw new StandardError('VALIDATION_FAILED', 'Extension context invalidated', { category: 'testing' })
+        throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.VALIDATION_FAILED; error.details = { category: 'testing' }; return error })()
       }
       return `chrome-extension://test-extension-id/${path}`
     }

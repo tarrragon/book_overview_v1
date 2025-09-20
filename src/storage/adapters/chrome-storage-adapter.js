@@ -31,7 +31,6 @@
  * @since 2025-07-31
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class ChromeStorageAdapter {
@@ -256,9 +255,12 @@ class ChromeStorageAdapter {
             result = await this.delete(operation.key)
             break
           default:
-            throw new StandardError(ErrorCodes.VALIDATION_ERROR, `Unsupported operation type: ${operation.type}`, {
-              category: 'storage'
-            })
+            throw (() => {
+              const error = new Error(`Unsupported operation type: ${operation.type}`)
+              error.code = ErrorCodes.VALIDATION_ERROR
+              error.details = { category: 'storage' }
+              return error
+            })()
         }
 
         results.push({ success: true, result, operation })
@@ -328,9 +330,12 @@ class ChromeStorageAdapter {
           result = await this.cleanupAuto(options)
           break
         default:
-          throw new StandardError(ErrorCodes.VALIDATION_ERROR, `Unsupported cleanup strategy: ${strategy}`, {
-            category: 'storage'
-          })
+          throw (() => {
+            const error = new Error(`Unsupported cleanup strategy: ${strategy}`)
+            error.code = ErrorCodes.VALIDATION_ERROR
+            error.details = { category: 'storage' }
+            return error
+          })()
       }
 
       return result
@@ -413,15 +418,21 @@ class ChromeStorageAdapter {
    */
   async checkApiAvailability () {
     if (!this.isAvailable()) {
-      throw new StandardError(ErrorCodes.CHROME_ERROR, 'Chrome Storage API is not available', {
-        category: 'storage'
-      })
+      throw (() => {
+        const error = new Error('Chrome Storage API is not available')
+        error.code = ErrorCodes.CHROME_ERROR
+        error.details = { category: 'storage' }
+        return error
+      })()
     }
 
     if (chrome.runtime.lastError) {
-      throw new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {
-        category: 'storage'
-      })
+      throw (() => {
+        const error = new Error(chrome.runtime.lastError.message)
+        error.code = ErrorCodes.INVALID_INPUT_ERROR
+        error.details = { category: 'storage' }
+        return error
+      })()
     }
   }
 
@@ -432,9 +443,12 @@ class ChromeStorageAdapter {
     return new Promise((resolve, reject) => {
       chrome.storage.local.getBytesInUse(null, (bytes) => {
         if (chrome.runtime.lastError) {
-          reject(new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {
-            category: 'storage'
-          }))
+          reject((() => {
+            const error = new Error(chrome.runtime.lastError.message)
+            error.code = ErrorCodes.INVALID_INPUT_ERROR
+            error.details = { category: 'storage' }
+            return error
+          })())
         } else {
           resolve(bytes)
         }
@@ -449,9 +463,12 @@ class ChromeStorageAdapter {
     return new Promise((resolve, reject) => {
       chrome.storage.local.set({ [key]: data }, () => {
         if (chrome.runtime.lastError) {
-          reject(new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {
-            category: 'storage'
-          }))
+          reject((() => {
+            const error = new Error(chrome.runtime.lastError.message)
+            error.code = ErrorCodes.INVALID_INPUT_ERROR
+            error.details = { category: 'storage' }
+            return error
+          })())
         } else {
           resolve({
             success: true,
@@ -474,9 +491,12 @@ class ChromeStorageAdapter {
     return new Promise((resolve, reject) => {
       chrome.storage.local.get([key], (result) => {
         if (chrome.runtime.lastError) {
-          reject(new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {
-            category: 'storage'
-          }))
+          reject((() => {
+            const error = new Error(chrome.runtime.lastError.message)
+            error.code = ErrorCodes.INVALID_INPUT_ERROR
+            error.details = { category: 'storage' }
+            return error
+          })())
         } else {
           resolve(result[key] || null)
         }
@@ -491,9 +511,12 @@ class ChromeStorageAdapter {
     return new Promise((resolve, reject) => {
       chrome.storage.local.remove([key], () => {
         if (chrome.runtime.lastError) {
-          reject(new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {
-            category: 'storage'
-          }))
+          reject((() => {
+            const error = new Error(chrome.runtime.lastError.message)
+            error.code = ErrorCodes.INVALID_INPUT_ERROR
+            error.details = { category: 'storage' }
+            return error
+          })())
         } else {
           resolve({
             success: true,
@@ -512,9 +535,12 @@ class ChromeStorageAdapter {
     return new Promise((resolve, reject) => {
       chrome.storage.local.clear(() => {
         if (chrome.runtime.lastError) {
-          reject(new StandardError(ErrorCodes.INVALID_INPUT_ERROR, chrome.runtime.lastError.message, {
-            category: 'storage'
-          }))
+          reject((() => {
+            const error = new Error(chrome.runtime.lastError.message)
+            error.code = ErrorCodes.INVALID_INPUT_ERROR
+            error.details = { category: 'storage' }
+            return error
+          })())
         } else {
           resolve()
         }
@@ -582,9 +608,9 @@ class ChromeStorageAdapter {
    * @returns {Error} 標準化錯誤
    */
   createError (type, message, originalError = null) {
-    const error = new StandardError(ErrorCodes.OPERATION_ERROR, message, {
-      category: 'storage'
-    })
+    const error = new Error(message)
+    error.code = ErrorCodes.OPERATION_ERROR
+    error.details = { category: 'storage' }
     error.name = 'ChromeStorageAdapterError'
     error.type = type
     error.timestamp = Date.now()

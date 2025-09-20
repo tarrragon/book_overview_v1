@@ -106,7 +106,15 @@
       "Bash(for:*)",
       "Bash(do)",
       "Bash(paste:*)",
-      "Bash(bc)"
+      "Bash(bc)",
+      "Bash(/Users/tarragon/Projects/book_overview_v1/scripts/fix-error-adapters-modules.sh:*)",
+      "Bash(/Users/tarragon/Projects/book_overview_v1/scripts/fix-standarderror-universal.sh:*)",
+      "Bash(\"/Users/tarragon/Projects/book_overview_v1/tests/unit/core/errors/standard-error.test.js\" )",
+      "Bash(\"/Users/tarragon/Projects/book_overview_v1/tests/unit/export/export-progress-notifier.test.js\" )",
+      "Bash(\"/Users/tarragon/Projects/book_overview_v1/tests/unit/data-management/SchemaMigrationService.test.js\" )",
+      "Bash(\"/Users/tarragon/Projects/book_overview_v1/tests/unit/export/export-handler.test.js\")",
+      "Bash(/Users/tarragon/Projects/book_overview_v1/scripts/final-cleanup-standarderror.sh:*)",
+      "Read(///**)"
     ],
     "deny": []
   },

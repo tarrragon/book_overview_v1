@@ -12,7 +12,7 @@
  * - 1個 DATA_ERROR: 初始化資料損壞
  */
 
-import { ErrorCodes } from './ErrorCodes.js'
+const { ErrorCodes } = require('./ErrorCodes')
 
 /**
  * UC01ErrorAdapter
@@ -197,3 +197,5 @@ class UC01ErrorAdapter {
 }
 
 export { UC01ErrorAdapter }
+
+module.exports = { UC01ErrorAdapter }

@@ -36,7 +36,7 @@
 
 const UI_HANDLER_CONFIG = require('./config/ui-handler-config')
 const ErrorCodes = require('src/core/errors/ErrorCodes')
-const { Logger } = require('src/core/logging')
+const { Logger } = require('src/core/logging/Logger')
 
 class BookGridRenderer {
   /**

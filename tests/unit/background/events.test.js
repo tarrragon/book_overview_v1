@@ -1,3 +1,4 @@
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { StandardError } = require('src/core/errors/StandardError')
 /**
  * 背景服務事件系統單元測試
@@ -254,7 +255,7 @@ describe('🎭 背景服務事件系統測試', () => {
       // Arrange
       const errorHandler = jest.fn()
       const faultyHandler = jest.fn(() => {
-        throw new StandardError('TEST_EXECUTION_ERROR', 'Handler error', { category: 'testing' })
+        throw (() => { const error = new Error('Handler error'); error.code = ErrorCodes.TEST_EXECUTION_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
       // Act & Assert
@@ -274,7 +275,7 @@ describe('🎭 背景服務事件系統測試', () => {
 
     test('應該在處理器錯誤後繼續執行其他處理器', async () => {
       // Arrange
-      const handler1 = jest.fn(() => { throw new StandardError('TEST_EXECUTION_ERROR', 'Error in handler1', { category: 'testing' }) })
+      const handler1 = jest.fn(() => { throw (() => { const error = new Error('Error in handler1'); error.code = ErrorCodes.TEST_EXECUTION_ERROR; error.details = { category: 'testing' }; return error })() })
       const handler2 = jest.fn()
       const handler3 = jest.fn()
       const errorLog = []

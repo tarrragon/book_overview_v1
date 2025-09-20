@@ -13,7 +13,7 @@
  */
 
 import { UC04ErrorAdapter } from './UC04ErrorAdapter.js'
-import { ErrorCodes } from './ErrorCodes.js'
+const { ErrorCodes } = require('./ErrorCodes')
 
 /**
  * UC04ErrorFactory
@@ -22,7 +22,7 @@ import { ErrorCodes } from './ErrorCodes.js'
  * 設計模式：複用UC-01/UC-02/UC-03成功架構，針對資料匯入場景優化
  * 效能目標：<200ms 建立100個錯誤，快取機制減少記憶體使用
  */
-export class UC04ErrorFactory {
+class UC04ErrorFactory {
   static _cache = new Map()
 
   /**
@@ -414,3 +414,5 @@ export class UC04ErrorFactory {
            (error.subType.includes('IMPORT_') || error.subType.includes('UC04'))
   }
 }
+
+module.exports = { UC04ErrorFactory }

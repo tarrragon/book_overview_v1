@@ -1,0 +1,1276 @@
+
+> readmoo-book-extractor@0.13.3 lint
+> eslint src/ tests/
+
+
+/Users/tarragon/Projects/book_overview_v1/src/background/domains/user-experience/services/personalization-service.js
+  347:11  warning  Unexpected lexical declaration in case block  no-case-declarations
+
+/Users/tarragon/Projects/book_overview_v1/src/background/i18n/i18n-manager.js
+  187:11  warning  Unexpected lexical declaration in case block  no-case-declarations
+
+/Users/tarragon/Projects/book_overview_v1/src/background/messaging/content-message-handler.js
+  222:9  warning  Unexpected lexical declaration in case block  no-case-declarations
+
+/Users/tarragon/Projects/book_overview_v1/src/background/messaging/popup-message-handler.js
+  267:9   warning  Unexpected lexical declaration in case block  no-case-declarations
+  412:11  warning  Unexpected lexical declaration in case block  no-case-declarations
+  480:11  warning  Unexpected lexical declaration in case block  no-case-declarations
+  824:9   warning  Unexpected lexical declaration in case block  no-case-declarations
+
+/Users/tarragon/Projects/book_overview_v1/src/content/bridge/chrome-event-bridge.js
+  181:11  warning  Unexpected lexical declaration in case block  no-case-declarations
+
+/Users/tarragon/Projects/book_overview_v1/src/core/enums/LogLevel.js
+  42:29  error  Unexpected template string expression  no-template-curly-in-string
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/ErrorCodes.js
+  154:2  error  Newline required at end of file but not found  eol-last
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/UC01ErrorAdapter.js
+  15:32  error  Strings must use singlequote  quotes
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/UC01ErrorFactory.js
+   14:32  error    Strings must use singlequote                                               quotes
+  285:47  warning  Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/UC02ErrorAdapter.js
+  253:7  error  'strategy' is constant  no-const-assign
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/UC02ErrorFactory.js
+   13:21  warning  'createError' is assigned a value but never used   no-unused-vars
+   13:34  warning  'createResult' is assigned a value but never used  no-unused-vars
+  492:9   warning  Unexpected console statement                       no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/UC03ErrorAdapter.js
+  13:32  error  Strings must use singlequote  quotes
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/UC03ErrorFactory.js
+  15:32  error  Strings must use singlequote  quotes
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/UC04ErrorAdapter.js
+  14:32  error  Strings must use singlequote  quotes
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/UC04ErrorFactory.js
+  16:32  error  Strings must use singlequote  quotes
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/UC05ErrorAdapter.js
+  13:32  error  Strings must use singlequote  quotes
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/UC05ErrorFactory.js
+  16:32  error  Strings must use singlequote  quotes
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/UC06ErrorAdapter.js
+  14:32  error  Strings must use singlequote  quotes
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/UC06ErrorFactory.js
+  15:32  error  Strings must use singlequote  quotes
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/UC07ErrorAdapter.js
+  14:32  error  Strings must use singlequote  quotes
+
+/Users/tarragon/Projects/book_overview_v1/src/core/errors/UC07ErrorFactory.js
+  15:32  error  Strings must use singlequote  quotes
+
+/Users/tarragon/Projects/book_overview_v1/src/core/migration/AutoMigrationConverter.js
+   156:5   warning  Unexpected console statement                  no-console
+   174:7   warning  Unexpected console statement                  no-console
+   177:7   warning  Unexpected console statement                  no-console
+   187:5   warning  Unexpected console statement                  no-console
+   209:9   warning  Unexpected console statement                  no-console
+   213:5   warning  Unexpected console statement                  no-console
+   293:5   warning  Unexpected console statement                  no-console
+   324:5   warning  Unexpected console statement                  no-console
+   385:5   warning  Unexpected console statement                  no-console
+   401:5   warning  Unexpected console statement                  no-console
+   549:5   warning  Unexpected console statement                  no-console
+   553:9   warning  Unexpected console statement                  no-console
+   569:9   warning  Unexpected lexical declaration in case block  no-case-declarations
+   581:5   warning  Unexpected console statement                  no-console
+   603:5   warning  Unexpected console statement                  no-console
+   623:7   warning  Unexpected console statement                  no-console
+   640:5   warning  Unexpected console statement                  no-console
+   664:11  warning  Unexpected console statement                  no-console
+   666:11  warning  Unexpected console statement                  no-console
+   669:9   warning  Unexpected console statement                  no-console
+   673:5   warning  Unexpected console statement                  no-console
+   837:5   warning  Unexpected console statement                  no-console
+   845:5   warning  Unexpected console statement                  no-console
+  1118:5   warning  Unexpected console statement                  no-console
+  1151:5   warning  Unexpected console statement                  no-console
+  1255:11  warning  Unexpected console statement                  no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/core/migration/DualErrorSystemBridge.js
+   13:24  warning  'MIGRATION_MODES' is assigned a value but never used  no-unused-vars
+  121:7   warning  Unexpected console statement                          no-console
+  122:7   warning  Unexpected console statement                          no-console
+  123:7   warning  Unexpected console statement                          no-console
+  124:7   warning  Unexpected console statement                          no-console
+  162:9   warning  Unexpected console statement                          no-console
+  225:9   warning  Unexpected lexical declaration in case block          no-case-declarations
+  565:9   warning  Unexpected console statement                          no-console
+  628:7   warning  Unexpected console statement                          no-console
+  655:7   warning  Unexpected console statement                          no-console
+  675:7   warning  Unexpected console statement                          no-console
+  683:7   warning  Unexpected console statement                          no-console
+  726:7   warning  Unexpected console statement                          no-console
+  814:7   warning  Unexpected console statement                          no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/core/migration/MigrationProgressTracker.js
+   77:7  warning  Unexpected console statement  no-console
+   79:7  warning  Unexpected console statement  no-console
+  116:5  warning  Unexpected console statement  no-console
+  163:5  warning  Unexpected console statement  no-console
+  202:5  warning  Unexpected console statement  no-console
+  213:5  warning  Unexpected console statement  no-console
+  241:7  warning  Unexpected console statement  no-console
+  244:7  warning  Unexpected console statement  no-console
+  351:7  warning  Unexpected console statement  no-console
+  353:7  warning  Unexpected console statement  no-console
+  389:9  warning  Unexpected console statement  no-console
+  392:7  warning  Unexpected console statement  no-console
+  410:7  warning  Unexpected console statement  no-console
+  421:7  warning  Unexpected console statement  no-console
+  423:7  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/core/migration/MigrationValidator.js
+   85:5  warning  Unexpected console statement       no-console
+  121:7  warning  Unexpected console statement       no-console
+  124:7  warning  Unexpected console statement       no-console
+  139:5  warning  Unexpected console statement       no-console
+  178:9  warning  Unexpected console statement       no-console
+  183:5  warning  Unexpected console statement       no-console
+  191:5  warning  Unexpected console statement       no-console
+  215:7  warning  Unexpected console statement       no-console
+  218:7  warning  Unexpected console statement       no-console
+  335:9  warning  Do not use 'new' for side effects  no-new
+
+/Users/tarragon/Projects/book_overview_v1/src/core/migration/StandardErrorMigrationAnalyzer.js
+   93:5  warning  Unexpected console statement  no-console
+  111:7  warning  Unexpected console statement  no-console
+  114:7  warning  Unexpected console statement  no-console
+  124:5  warning  Unexpected console statement  no-console
+  147:5  warning  Unexpected console statement  no-console
+  148:5  warning  Unexpected console statement  no-console
+  278:5  warning  Unexpected console statement  no-console
+  307:5  warning  Unexpected console statement  no-console
+  312:9  warning  Unexpected console statement  no-console
+  321:5  warning  Unexpected console statement  no-console
+  373:5  warning  Unexpected console statement  no-console
+  374:5  warning  Unexpected console statement  no-console
+  382:5  warning  Unexpected console statement  no-console
+  440:5  warning  Unexpected console statement  no-console
+  442:7  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/core/migration/StandardErrorWrapper.js
+  21:10  error  Parsing error: Identifier 'ErrorCodes' has already been declared
+
+/Users/tarragon/Projects/book_overview_v1/src/core/performance/performance-anomaly-detector.js
+   17:10  warning  'ErrorCodes' is defined but never used  no-unused-vars
+  226:7   warning  Unexpected console statement            no-console
+  405:5   warning  Unexpected console statement            no-console
+  428:5   warning  Unexpected console statement            no-console
+  445:5   warning  Unexpected console statement            no-console
+  461:5   warning  Unexpected console statement            no-console
+  498:5   warning  Unexpected console statement            no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/deployment/chrome-store-readiness.js
+  261:37  error  Unexpected template string expression  no-template-curly-in-string
+  387:37  error  Unexpected template string expression  no-template-curly-in-string
+  655:37  error  Unexpected template string expression  no-template-curly-in-string
+  675:37  error  Unexpected template string expression  no-template-curly-in-string
+  718:37  error  Unexpected template string expression  no-template-curly-in-string
+
+/Users/tarragon/Projects/book_overview_v1/src/error-handling/event-performance-monitor.js
+  1087:5  warning  Unexpected console statement  no-console
+  1097:5  warning  Unexpected console statement  no-console
+  1121:5  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/src/export/handlers/csv-export-handler.js
+  30:9  warning  'StandardError' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/handlers/extraction-completed-handler.js
+  41:9  warning  'StandardError' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/handlers/extraction-progress-handler.js
+  35:9  warning  'StandardError' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/overview/overview.js
+  31:64  warning  'ErrorCodes' is defined but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/popup/popup-event-controller.js
+  147:11  warning  Unexpected lexical declaration in case block  no-case-declarations
+
+/Users/tarragon/Projects/book_overview_v1/src/ui/book-search-filter.js
+  1083:9  warning  Unexpected lexical declaration in case block  no-case-declarations
+
+/Users/tarragon/Projects/book_overview_v1/src/ui/handlers/ui-progress-handler.js
+  36:9  warning  'Logger' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/ui/search/ui-controller/search-ui-controller.js
+  50:9  warning  'Logger' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/src/utils/file-reader-factory.js
+  15:9  warning  'StandardError' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/e2e/validation/simple-validation.test.js
+  322:40  warning  Empty block statement  no-empty
+
+/Users/tarragon/Projects/book_overview_v1/tests/e2e/workflows/complete-extraction-workflow.test.js
+  282:7  warning  Unexpected console statement  no-console
+  305:9  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/e2e/workflows/cross-device-sync.test.js
+  1223:102  error  Parsing error: Unexpected token 'NETWORK_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/chrome-extension-controller.js
+   284:9  warning  Unexpected console statement           no-console
+   714:5  warning  Unexpected console statement           no-console
+   715:5  warning  Unexpected console statement           no-console
+   745:7  warning  Unexpected console statement           no-console
+  1729:7  warning  Unexpected console statement           no-console
+  1735:7  warning  Unexpected console statement           no-console
+  3276:5  warning  Unexpected console statement           no-console
+  3305:5  warning  Unexpected console statement           no-console
+  3351:5  warning  Unexpected console statement           no-console
+  4203:3  warning  Duplicate name 'sendMessageWithRetry'  no-dupe-class-members
+  4631:3  warning  Duplicate name 'sendDirectMessage'     no-dupe-class-members
+  4666:3  warning  Duplicate name 'sendOrderedMessage'    no-dupe-class-members
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/chrome-extension-environment-simulator.js
+  219:120  error  Parsing error: Unexpected token 'TEST_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/cross-device-sync-simulator.js
+  40:91  error  Parsing error: Unexpected token 'NOT_FOUND_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/e2e-integration-test-coordinator.js
+   18:9    warning  'StandardError' is assigned a value but never used  no-unused-vars
+   76:88   warning  'error' was used before it was defined              no-use-before-define
+   76:119  error    'ErrorCodes' is not defined                         no-undef
+  176:96   error    'ErrorCodes' is not defined                         no-undef
+  181:97   error    'ErrorCodes' is not defined                         no-undef
+  218:85   warning  'error' was used before it was defined              no-use-before-define
+  218:116  error    'ErrorCodes' is not defined                         no-undef
+  245:86   warning  'error' was used before it was defined              no-use-before-define
+  245:117  error    'ErrorCodes' is not defined                         no-undef
+  274:78   warning  'error' was used before it was defined              no-use-before-define
+  274:109  error    'ErrorCodes' is not defined                         no-undef
+  305:84   error    'ErrorCodes' is not defined                         no-undef
+  365:7    warning  Unexpected console statement                        no-console
+  463:7    warning  Unexpected console statement                        no-console
+  492:7    warning  Unexpected console statement                        no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/e2e-test-data-generator.js
+  344:113  error  Parsing error: Unexpected token 'TEST_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/e2e-test-suite.js
+     7:9    warning  'StandardError' is assigned a value but never used  no-unused-vars
+    69:63   warning  'error' was used before it was defined              no-use-before-define
+    69:94   error    'ErrorCodes' is not defined                         no-undef
+   172:90   error    'ErrorCodes' is not defined                         no-undef
+   285:7    warning  Unexpected console statement                        no-console
+   296:90   error    'ErrorCodes' is not defined                         no-undef
+   314:107  error    'ErrorCodes' is not defined                         no-undef
+   359:90   error    'ErrorCodes' is not defined                         no-undef
+   406:104  error    'ErrorCodes' is not defined                         no-undef
+   530:3    warning  Duplicate name 'clearAllStorageData'                no-dupe-class-members
+   802:11   warning  Unexpected console statement                        no-console
+   815:7    warning  Unexpected console statement                        no-console
+   859:92   error    'ErrorCodes' is not defined                         no-undef
+   861:7    warning  Unexpected console statement                        no-console
+   889:7    warning  Unexpected console statement                        no-console
+   949:97   error    'ErrorCodes' is not defined                         no-undef
+   975:57   warning  'error' was used before it was defined              no-use-before-define
+   975:88   error    'ErrorCodes' is not defined                         no-undef
+  1036:7    warning  Unexpected console statement                        no-console
+  1094:7    warning  Unexpected console statement                        no-console
+  1144:109  error    'ErrorCodes' is not defined                         no-undef
+  1150:3    warning  Duplicate name 'waitForTimeout'                     no-dupe-class-members
+  1195:7    warning  Unexpected console statement                        no-console
+  1225:5    warning  Unexpected console statement                        no-console
+  1295:59   warning  'error' was used before it was defined              no-use-before-define
+  1295:90   error    'ErrorCodes' is not defined                         no-undef
+  1352:3    warning  Duplicate name 'setupCSPTestPage'                   no-dupe-class-members
+  1395:3    warning  Duplicate name 'createNewTab'                       no-dupe-class-members
+  1539:61   warning  'error' was used before it was defined              no-use-before-define
+  1539:92   error    'ErrorCodes' is not defined                         no-undef
+  1598:57   warning  'error' was used before it was defined              no-use-before-define
+  1598:88   error    'ErrorCodes' is not defined                         no-undef
+  1692:72   warning  'error' was used before it was defined              no-use-before-define
+  1692:103  error    'ErrorCodes' is not defined                         no-undef
+  1780:59   warning  'error' was used before it was defined              no-use-before-define
+  1780:90   error    'ErrorCodes' is not defined                         no-undef
+  1855:59   warning  'error' was used before it was defined              no-use-before-define
+  1855:90   error    'ErrorCodes' is not defined                         no-undef
+  1951:59   warning  'error' was used before it was defined              no-use-before-define
+  1951:90   error    'ErrorCodes' is not defined                         no-undef
+  2248:60   warning  'error' was used before it was defined              no-use-before-define
+  2248:91   error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/error-simulator.js
+    6:9    warning  'StandardError' is assigned a value but never used  no-unused-vars
+   25:89   error    'ErrorCodes' is not defined                         no-undef
+   32:88   error    'ErrorCodes' is not defined                         no-undef
+   39:89   error    'ErrorCodes' is not defined                         no-undef
+   46:92   error    'ErrorCodes' is not defined                         no-undef
+   53:89   error    'ErrorCodes' is not defined                         no-undef
+   62:74   error    'ErrorCodes' is not defined                         no-undef
+  244:90   error    'ErrorCodes' is not defined                         no-undef
+  254:93   error    'ErrorCodes' is not defined                         no-undef
+  263:94   error    'ErrorCodes' is not defined                         no-undef
+  272:85   error    'ErrorCodes' is not defined                         no-undef
+  281:91   error    'ErrorCodes' is not defined                         no-undef
+  290:97   error    'ErrorCodes' is not defined                         no-undef
+  301:106  error    'ErrorCodes' is not defined                         no-undef
+  310:92   error    'ErrorCodes' is not defined                         no-undef
+  319:92   error    'ErrorCodes' is not defined                         no-undef
+  329:103  error    'ErrorCodes' is not defined                         no-undef
+  335:129  error    'ErrorCodes' is not defined                         no-undef
+  345:98   error    'ErrorCodes' is not defined                         no-undef
+  354:89   error    'ErrorCodes' is not defined                         no-undef
+  363:104  error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/event-system-analyzer.js
+  1934:3   warning  Duplicate name 'enableEventReplay'                                       no-dupe-class-members
+  2100:3   warning  Duplicate name 'configureErrorSimulation'                                no-dupe-class-members
+  2728:3   warning  Duplicate name 'analyzePerformanceMetrics'                               no-dupe-class-members
+  2878:29  warning  Expected newline between test and consequent of ternary expression       multiline-ternary
+  2878:62  warning  Expected newline between consequent and alternate of ternary expression  multiline-ternary
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/memory-leak-detector.js
+  55:83  error  Parsing error: Unexpected token 'MEMORY_DETECTOR_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/message-flow-tracker.js
+   29:5   warning  Unexpected console statement                                                                           no-console
+   38:5   warning  Unexpected console statement                                                                           no-console
+   80:5   warning  Unexpected console statement                                                                           no-console
+  115:5   warning  Unexpected console statement                                                                           no-console
+  294:5   warning  Unexpected console statement                                                                           no-console
+  541:13  error    🚨 StandardError 已棄用。請使用 ErrorCodes 模式：const error = new Error(message); error.code = ErrorCodes.CODE  no-restricted-syntax
+  566:13  error    🚨 StandardError 已棄用。請使用 ErrorCodes 模式：const error = new Error(message); error.code = ErrorCodes.CODE  no-restricted-syntax
+  801:5   warning  Unexpected console statement                                                                           no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/performance-monitor.js
+  165:113  error  Parsing error: Unexpected token 'TEST_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/performance-test-data-generator.js
+  287:119  error  Parsing error: Unexpected token 'INVALID_INPUT_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/readmoo-page-simulator.js
+  62:125  error  Parsing error: Unexpected token 'TEST_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/runtime-messaging-validator.js
+     5:9    warning  'StandardError' is assigned a value but never used  no-unused-vars
+   239:100  error    'ErrorCodes' is not defined                         no-undef
+   269:104  error    'ErrorCodes' is not defined                         no-undef
+   296:100  error    'ErrorCodes' is not defined                         no-undef
+   304:134  error    'ErrorCodes' is not defined                         no-undef
+   435:101  error    'ErrorCodes' is not defined                         no-undef
+   478:101  error    'ErrorCodes' is not defined                         no-undef
+  1030:114  error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/testing-integrity-checker.js
+  89:20  warning  Statement inside of curly braces should be on next line                                                        brace-style
+  89:60  warning  'error' was used before it was defined                                                                         no-use-before-define
+  92:23  warning  Closing curly brace should be on the same line as opening curly brace or on the line after the previous block  brace-style
+
+/Users/tarragon/Projects/book_overview_v1/tests/helpers/ui-state-tracker.js
+  74:113  error  Parsing error: Unexpected token 'TEST_VALIDATION_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/infrastructure/chrome-api-mock-registry.js
+  60:111  error  Parsing error: Unexpected token 'INVALID_API_PATH'
+
+/Users/tarragon/Projects/book_overview_v1/tests/infrastructure/e2e-environment-builder.js
+  162:104  error  Parsing error: Unexpected token 'VALIDATION_FAILED'
+
+/Users/tarragon/Projects/book_overview_v1/tests/infrastructure/e2e-test-environment.js
+  136:110  error  Parsing error: Unexpected token ENVIRONMENT_NOT_SETUP
+
+/Users/tarragon/Projects/book_overview_v1/tests/infrastructure/unit-test-environment.js
+   57:32  warning  Unexpected console statement  no-console
+   58:5   warning  Unexpected console statement  no-console
+  101:7   warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/chrome-apis/content-script-injection.test.js
+  109:9  warning  Unexpected console statement  no-console
+  262:9  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/chrome-extension/background-event-system.test.js
+   70:7   warning  Unexpected console statement                       no-console
+   99:7   warning  Unexpected console statement                       no-console
+  258:9   warning  Unexpected console statement                       no-console
+  296:9   warning  Unexpected console statement                       no-console
+  536:17  error    🚨 測試中 StandardError 已棄用。請使用 ErrorCodes 模式或測試輔助工具  no-restricted-syntax
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/chrome-extension/content-script-extractor.test.js
+  628:11  warning  Unexpected console statement  no-console
+  804:7   warning  eval can be harmful           no-eval
+  816:7   warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/chrome-extension/event-bus-stats.test.js
+   78:9   warning  Unexpected console statement                       no-console
+  264:15  error    🚨 測試中 StandardError 已棄用。請使用 ErrorCodes 模式或測試輔助工具  no-restricted-syntax
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/chrome-extension/popup-interface.test.js
+   82:20  warning  Unexpected console statement  no-console
+   83:20  warning  Unexpected console statement  no-console
+   84:21  warning  Unexpected console statement  no-console
+  178:7   warning  eval can be harmful           no-eval
+  195:9   warning  eval can be harmful           no-eval
+  200:7   warning  eval can be harmful           no-eval
+  210:7   warning  eval can be harmful           no-eval
+  219:7   warning  eval can be harmful           no-eval
+  252:7   warning  eval can be harmful           no-eval
+  320:7   warning  eval can be harmful           no-eval
+  354:7   warning  eval can be harmful           no-eval
+  405:7   warning  eval can be harmful           no-eval
+  433:7   warning  eval can be harmful           no-eval
+  441:7   warning  eval can be harmful           no-eval
+  487:9   warning  eval can be harmful           no-eval
+  500:9   warning  eval can be harmful           no-eval
+  517:9   warning  eval can be harmful           no-eval
+  541:9   warning  eval can be harmful           no-eval
+  561:9   warning  eval can be harmful           no-eval
+  585:9   warning  eval can be harmful           no-eval
+  613:9   warning  eval can be harmful           no-eval
+  624:9   warning  eval can be harmful           no-eval
+  655:9   warning  eval can be harmful           no-eval
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/core/errors/UC03ErrorSystem.test.js
+  237:13  warning  'fullExportError' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/core/errors/UC04ErrorSystem.test.js
+  302:13  warning  'fullImportError' is assigned a value but never used  no-unused-vars
+  501:13  warning  'mergeError' is assigned a value but never used       no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/cross-module-error-propagation.test.js
+  348:107  error  Parsing error: Unexpected token 'EVENT_BUS_TEMPORARY_FAILURE'
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/cross-module/background-content-integration.test.js
+  173:9  warning  Unexpected console statement  no-console
+  228:9  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/cross-module/event-system-integration.test.js
+  578:9  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/cross-module/popup-background-integration.test.js
+  248:9  warning  Unexpected console statement  no-console
+  304:9  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/cross-uc/UC01-UC02-error-propagation.test.js
+   21:9   warning  'UC01ErrorAdapter' is assigned a value but never used  no-unused-vars
+   28:7   warning  'mockEventBus' is defined but never used               no-unused-vars
+  546:13  warning  'uc01Error' is assigned a value but never used         no-unused-vars
+  560:13  warning  'uc01Error' is assigned a value but never used         no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/error-handling-scenarios.test.js
+  24:108  error  Parsing error: Unexpected token 'TEST_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/error-handling/basic-integration.test.js
+  43:88  error  Parsing error: Unexpected token 'INTEGRATION_TEST_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/event-system-v2-performance-stability.test.js
+   564:9   warning  Unexpected console statement                         no-console
+   565:9   warning  Unexpected console statement                         no-console
+   848:9   warning  Unexpected console statement                         no-console
+   857:9   warning  Unexpected console statement                         no-console
+  1082:19  warning  'levelStartTime' is assigned a value but never used  no-unused-vars
+  1120:15  warning  Unexpected console statement                         no-console
+  1212:10  warning  'isMemoryTrendStable' is defined but never used      no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/performance/performance-monitoring-integration.test.js
+  406:7  warning  Unexpected console statement  no-console
+  407:7  warning  Unexpected console statement  no-console
+  449:9  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/platform/platform-detection-integration.test.js
+   30:33  warning  'validateDetectionResult' is assigned a value but never used  no-unused-vars
+   30:58  warning  'performanceHelpers' is assigned a value but never used       no-unused-vars
+   31:42  warning  'dataGenerators' is assigned a value but never used           no-unused-vars
+  122:15  error    🚨 測試中 StandardError 已棄用。請使用 ErrorCodes 模式或測試輔助工具             no-restricted-syntax
+  269:17  error    🚨 測試中 StandardError 已棄用。請使用 ErrorCodes 模式或測試輔助工具             no-restricted-syntax
+  529:17  error    🚨 測試中 StandardError 已棄用。請使用 ErrorCodes 模式或測試輔助工具             no-restricted-syntax
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/readmoo-migration-integration.test.js
+  50:95  error  Parsing error: Unexpected token 'INVALID_INPUT_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/readmoo-platform-v2-integration.test.js
+  592:105  error  Parsing error: Unexpected token 'NETWORK_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/run-event-system-v2-integration.js
+  143:95  error  Parsing error: Unexpected token 'TEST_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/uc-02/uc02-errorcodes-migration.test.js
+   69:9  error  'fail' is not defined  no-undef
+   80:9  error  'fail' is not defined  no-undef
+   90:9  error  'fail' is not defined  no-undef
+  100:9  error  'fail' is not defined  no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/workflows/cross-device-sync-workflow.test.js
+  251:9   warning  Unexpected console statement                       no-console
+  495:9   warning  Unexpected console statement                       no-console
+  580:9   warning  Unexpected console statement                       no-console
+  697:9   warning  Unexpected console statement                       no-console
+  722:9   warning  Unexpected console statement                       no-console
+  746:9   warning  Unexpected console statement                       no-console
+  750:13  warning  'importResult' is assigned a value but never used  no-unused-vars
+  767:9   warning  Unexpected console statement                       no-console
+  782:9   warning  Unexpected console statement                       no-console
+  797:9   warning  Unexpected console statement                       no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/workflows/daily-usage-workflow.test.js
+  102:13  warning  'initialDisplayCount' is assigned a value but never used  no-unused-vars
+  135:13  warning  'preSyncCount' is assigned a value but never used         no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/workflows/error-recovery-workflow.test.js
+   95:15  warning  'operationPromise' is assigned a value but never used         no-unused-vars
+  113:9   warning  Unexpected console statement                                  no-console
+  195:15  warning  'operationPromise' is assigned a value but never used         no-unused-vars
+  218:9   warning  Unexpected console statement                                  no-console
+  309:9   warning  Unexpected console statement                                  no-console
+  324:13  warning  'extractionPromise' is assigned a value but never used        no-unused-vars
+  430:9   warning  Unexpected console statement                                  no-console
+  522:9   warning  Unexpected console statement                                  no-console
+  523:9   warning  Unexpected console statement                                  no-console
+  536:13  warning  'extractionPromise' is assigned a value but never used        no-unused-vars
+  659:13  warning  'extractionPromise' is assigned a value but never used        no-unused-vars
+  750:13  warning  'complexRecoveryPromise' is assigned a value but never used   no-unused-vars
+  802:9   warning  Unexpected console statement                                  no-console
+  836:13  warning  'loggedExtractionPromise' is assigned a value but never used  no-unused-vars
+  844:13  warning  'errorRecoveryResult' is assigned a value but never used      no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/integration/workflows/new-user-onboarding.test.js
+   46:5   warning  Unexpected console statement                             no-console
+  168:13  warning  'initialPermissions' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/jest-resolver.js
+  28:5  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/mocks/chrome-api.mock.js
+  454:9   warning  'listeners' is assigned a value but never used     no-unused-vars
+  455:9   warning  'eventHistory' is assigned a value but never used  no-unused-vars
+  498:13  warning  Unexpected console statement                       no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/mocks/cross-device-sync.mock.js
+    20:7    warning  'chromeMock' is assigned a value but never used                                                        no-unused-vars
+   164:106  error    'ErrorCodes' is not defined                                                                            no-undef
+   262:15   error    🚨 StandardError 已棄用。請使用 ErrorCodes 模式：const error = new Error(message); error.code = ErrorCodes.CODE  no-restricted-syntax
+   379:117  error    'ErrorCodes' is not defined                                                                            no-undef
+   706:93   error    'ErrorCodes' is not defined                                                                            no-undef
+   903:11   warning  'warnLogs' is assigned a value but never used                                                          no-unused-vars
+   931:95   error    'ErrorCodes' is not defined                                                                            no-undef
+   992:84   error    'ErrorCodes' is not defined                                                                            no-undef
+  1000:109  error    'ErrorCodes' is not defined                                                                            no-undef
+  1689:128  error    'ErrorCodes' is not defined                                                                            no-undef
+  1693:124  error    'ErrorCodes' is not defined                                                                            no-undef
+  1697:129  error    'ErrorCodes' is not defined                                                                            no-undef
+  1701:131  error    'ErrorCodes' is not defined                                                                            no-undef
+  1705:128  error    'ErrorCodes' is not defined                                                                            no-undef
+  1709:130  error    'ErrorCodes' is not defined                                                                            no-undef
+  1713:126  error    'ErrorCodes' is not defined                                                                            no-undef
+  1717:133  error    'ErrorCodes' is not defined                                                                            no-undef
+  1721:133  error    'ErrorCodes' is not defined                                                                            no-undef
+  1725:129  error    'ErrorCodes' is not defined                                                                            no-undef
+  1729:131  error    'ErrorCodes' is not defined                                                                            no-undef
+  1733:135  error    'ErrorCodes' is not defined                                                                            no-undef
+  1737:130  error    'ErrorCodes' is not defined                                                                            no-undef
+  1741:133  error    'ErrorCodes' is not defined                                                                            no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/mocks/platform-detection.mock.js
+  310:9  warning  'getMetaTags' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/mocks/runtime-mock.js
+    1:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+   72:93  error    'ErrorCodes' is not defined                         no-undef
+  165:81  error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/mocks/storage-local-mock.js
+    1:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+  126:87  error    'ErrorCodes' is not defined                         no-undef
+  150:86  error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/mocks/storage-sync-mock.js
+  11:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+  57:94  error    'ErrorCodes' is not defined                         no-undef
+  66:80  error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/performance/ErrorCodes-creation-benchmark.test.js
+   27:9   warning  'UC03ErrorFactory' is assigned a value but never used  no-unused-vars
+   29:9   warning  'UC02ErrorAdapter' is assigned a value but never used  no-unused-vars
+  212:7   warning  Unexpected console statement                           no-console
+  213:7   warning  Unexpected console statement                           no-console
+  214:7   warning  Unexpected console statement                           no-console
+  215:7   warning  Unexpected console statement                           no-console
+  216:7   warning  Unexpected console statement                           no-console
+  217:7   warning  Unexpected console statement                           no-console
+  250:7   warning  Unexpected console statement                           no-console
+  251:7   warning  Unexpected console statement                           no-console
+  252:7   warning  Unexpected console statement                           no-console
+  253:7   warning  Unexpected console statement                           no-console
+  299:7   warning  Unexpected console statement                           no-console
+  300:7   warning  Unexpected console statement                           no-console
+  301:7   warning  Unexpected console statement                           no-console
+  303:7   warning  Unexpected console statement                           no-console
+  304:7   warning  Unexpected console statement                           no-console
+  305:7   warning  Unexpected console statement                           no-console
+  307:7   warning  Unexpected console statement                           no-console
+  308:7   warning  Unexpected console statement                           no-console
+  347:9   warning  Unexpected console statement                           no-console
+  356:7   warning  Unexpected console statement                           no-console
+  438:7   warning  Unexpected console statement                           no-console
+  439:7   warning  Unexpected console statement                           no-console
+  440:7   warning  Unexpected console statement                           no-console
+  442:7   warning  Unexpected console statement                           no-console
+  443:7   warning  Unexpected console statement                           no-console
+  444:7   warning  Unexpected console statement                           no-console
+  446:7   warning  Unexpected console statement                           no-console
+  472:15  warning  'oldError' is assigned a value but never used          no-unused-vars
+  500:7   warning  Unexpected console statement                           no-console
+  501:7   warning  Unexpected console statement                           no-console
+  502:7   warning  Unexpected console statement                           no-console
+  504:7   warning  Unexpected console statement                           no-console
+  505:7   warning  Unexpected console statement                           no-console
+  506:7   warning  Unexpected console statement                           no-console
+  508:7   warning  Unexpected console statement                           no-console
+  562:7   warning  Unexpected console statement                           no-console
+  563:7   warning  Unexpected console statement                           no-console
+  564:7   warning  Unexpected console statement                           no-console
+  566:7   warning  Unexpected console statement                           no-console
+  567:7   warning  Unexpected console statement                           no-console
+  568:7   warning  Unexpected console statement                           no-console
+  570:7   warning  Unexpected console statement                           no-console
+  575:11  warning  Unexpected console statement                           no-console
+  577:11  warning  Unexpected console statement                           no-console
+  580:9   warning  Unexpected console statement                           no-console
+  596:5   warning  Unexpected console statement                           no-console
+  597:5   warning  Unexpected console statement                           no-console
+  599:5   warning  Unexpected console statement                           no-console
+  601:7   warning  Unexpected console statement                           no-console
+  602:7   warning  Unexpected console statement                           no-console
+  603:7   warning  Unexpected console statement                           no-console
+  604:7   warning  Unexpected console statement                           no-console
+  607:5   warning  Unexpected console statement                           no-console
+  619:9   warning  Unexpected console statement                           no-console
+  623:5   warning  Unexpected console statement                           no-console
+  632:9   warning  Unexpected console statement                           no-console
+  634:9   warning  Unexpected console statement                           no-console
+  638:5   warning  Unexpected console statement                           no-console
+  639:5   warning  Unexpected console statement                           no-console
+  640:5   warning  Unexpected console statement                           no-console
+  641:5   warning  Unexpected console statement                           no-console
+  642:5   warning  Unexpected console statement                           no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/performance/ErrorCodes-memory-benchmark.test.js
+  154:13  warning  'afterCreation' is assigned a value but never used                     no-unused-vars
+  163:7   warning  Unexpected console statement                                           no-console
+  212:13  warning  'afterCreation' is assigned a value but never used                     no-unused-vars
+  221:7   warning  Unexpected console statement                                           no-console
+  289:7   warning  Unexpected console statement                                           no-console
+  290:7   warning  Unexpected console statement                                           no-console
+  297:7   warning  Unexpected console statement                                           no-console
+  320:9   warning  Unexpected console statement                                           no-console
+  342:13  warning  'afterCreation' is assigned a value but never used                     no-unused-vars
+  353:13  warning  'afterGC' is assigned a value but never used                           no-unused-vars
+  359:7   warning  Unexpected console statement                                           no-console
+  360:7   warning  Unexpected console statement                                           no-console
+  368:9   warning  Unexpected console statement                                           no-console
+  415:23  error    🚨 測試中 StandardError 已棄用。請使用 ErrorCodes 模式或測試輔助工具                      no-restricted-syntax
+  438:7   warning  Unexpected console statement                                           no-console
+  439:7   warning  Unexpected console statement                                           no-console
+  440:7   warning  Unexpected console statement                                           no-console
+  441:7   warning  Unexpected console statement                                           no-console
+  443:7   warning  Unexpected console statement                                           no-console
+  444:7   warning  Unexpected console statement                                           no-console
+  445:7   warning  Unexpected console statement                                           no-console
+  446:7   warning  Unexpected console statement                                           no-console
+  458:11  warning  Unexpected console statement                                           no-console
+  504:17  warning  'middle' is assigned a value but never used                            no-unused-vars
+  542:11  error    Expected an assignment or function call and instead saw an expression  no-unused-expressions
+  543:11  error    Expected an assignment or function call and instead saw an expression  no-unused-expressions
+  544:11  error    Expected an assignment or function call and instead saw an expression  no-unused-expressions
+  567:7   warning  Unexpected console statement                                           no-console
+  568:7   warning  Unexpected console statement                                           no-console
+  569:7   warning  Unexpected console statement                                           no-console
+  570:7   warning  Unexpected console statement                                           no-console
+  571:7   warning  Unexpected console statement                                           no-console
+  586:9   warning  Unexpected console statement                                           no-console
+  588:9   warning  Unexpected console statement                                           no-console
+  595:5   warning  Unexpected console statement                                           no-console
+  596:5   warning  Unexpected console statement                                           no-console
+  601:5   warning  Unexpected console statement                                           no-console
+  602:5   warning  Unexpected console statement                                           no-console
+  603:5   warning  Unexpected console statement                                           no-console
+  605:5   warning  Unexpected console statement                                           no-console
+  607:7   warning  Unexpected console statement                                           no-console
+  610:5   warning  Unexpected console statement                                           no-console
+  612:7   warning  Unexpected console statement                                           no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/performance/baseline-performance.test.js
+   39:9   warning  Unexpected console statement                      no-console
+   85:7   warning  Unexpected console statement                      no-console
+  118:7   warning  Unexpected console statement                      no-console
+  157:7   warning  Unexpected console statement                      no-console
+  189:7   warning  Unexpected console statement                      no-console
+  220:7   warning  Unexpected console statement                      no-console
+  254:7   warning  Unexpected console statement                      no-console
+  280:7   warning  Unexpected console statement                      no-console
+  281:7   warning  Unexpected console statement                      no-console
+  282:7   warning  Unexpected console statement                      no-console
+  283:7   warning  Unexpected console statement                      no-console
+  284:7   warning  Unexpected console statement                      no-console
+  285:7   warning  Unexpected console statement                      no-console
+  286:7   warning  Unexpected console statement                      no-console
+  326:7   warning  Unexpected console statement                      no-console
+  327:7   warning  Unexpected console statement                      no-console
+  484:16  warning  'bookElement' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/performance/performance-optimization.test.js
+   49:7   warning  'mockEventBus' is assigned a value but never used   no-unused-vars
+  187:7   warning  Unexpected console statement                        no-console
+  201:7   warning  Unexpected console statement                        no-console
+  222:7   warning  Unexpected console statement                        no-console
+  237:7   warning  Unexpected console statement                        no-console
+  252:7   warning  Unexpected console statement                        no-console
+  266:7   warning  Unexpected console statement                        no-console
+  288:7   warning  Unexpected console statement                        no-console
+  312:13  warning  'initialMemory' is assigned a value but never used  no-unused-vars
+  351:7   warning  Unexpected console statement                        no-console
+  352:7   warning  Unexpected console statement                        no-console
+  353:7   warning  Unexpected console statement                        no-console
+  354:7   warning  Unexpected console statement                        no-console
+  370:7   warning  Unexpected console statement                        no-console
+  396:7   warning  Unexpected console statement                        no-console
+  397:7   warning  Unexpected console statement                        no-console
+  398:7   warning  Unexpected console statement                        no-console
+  399:7   warning  Unexpected console statement                        no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/performance/platform-detection-benchmark.test.js
+   28:50  warning  'performanceHelpers' is assigned a value but never used  no-unused-vars
+   86:7   warning  Unexpected console statement                             no-console
+  106:7   warning  Unexpected console statement                             no-console
+  139:7   warning  Unexpected console statement                             no-console
+  176:7   warning  Unexpected console statement                             no-console
+  214:7   warning  Unexpected console statement                             no-console
+  235:7   warning  Unexpected console statement                             no-console
+  257:7   warning  Unexpected console statement                             no-console
+  258:7   warning  Unexpected console statement                             no-console
+  287:7   warning  Unexpected console statement                             no-console
+  319:7   warning  Unexpected console statement                             no-console
+  367:7   warning  Unexpected console statement                             no-console
+  413:7   warning  Unexpected console statement                             no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/performance/popup-refactor-performance.test.js
+  165:15  warning  'DiagnosticModule' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/processors/test-results-processor.js
+  8:3  warning  Unexpected console statement  no-console
+  9:3  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/regression/popup-refactor-regression.test.js
+  71:7  warning  'window' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/test-setup.js
+  181:7  warning  'originalConsole' is assigned a value but never used  no-unused-vars
+  199:3  warning  Unexpected console statement                          no-console
+  207:3  warning  Useless constructor                                   no-useless-constructor
+  215:3  warning  Useless constructor                                   no-useless-constructor
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/adapters/readmoo-adapter.test.js
+  614:82  error  Parsing error: Unexpected token 'TEST_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/adapters/stable-id-generation.test.js
+   36:7   warning  Unexpected console statement                       no-console
+   56:9   warning  'testData' is assigned a value but never used      no-unused-vars
+  378:17  error    🚨 測試中 StandardError 已棄用。請使用 ErrorCodes 模式或測試輔助工具  no-restricted-syntax
+  546:15  warning  'books' is assigned a value but never used         no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/data-domain-coordinator.test.js
+    8:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+   34:13  warning  Unexpected console statement                        no-console
+  633:92  error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/interfaces/IDataQualityAnalyzer.test.js
+  387:13  warning  'analysis1' is assigned a value but never used  no-unused-vars
+  388:13  warning  'analysis2' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/interfaces/ISynchronizationCoordinator.test.js
+   21:15  warning  'coordinator' is assigned a value but never used  no-unused-vars
+   69:9   warning  Useless constructor                               no-useless-constructor
+   87:9   warning  Useless constructor                               no-useless-constructor
+  105:9   warning  Useless constructor                               no-useless-constructor
+  123:9   warning  Useless constructor                               no-useless-constructor
+  141:9   warning  Useless constructor                               no-useless-constructor
+  159:9   warning  Useless constructor                               no-useless-constructor
+  177:9   warning  Useless constructor                               no-useless-constructor
+  195:9   warning  Useless constructor                               no-useless-constructor
+  213:9   warning  Useless constructor                               no-useless-constructor
+  231:9   warning  Useless constructor                               no-useless-constructor
+  249:9   warning  Useless constructor                               no-useless-constructor
+  267:9   warning  Useless constructor                               no-useless-constructor
+  285:9   warning  Useless constructor                               no-useless-constructor
+  332:9   warning  Useless constructor                               no-useless-constructor
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/interfaces/IValidationServiceCoordinator.test.js
+  370:13  warning  'validationId' is assigned a value but never used  no-unused-vars
+  595:9   warning  Do not use 'new' for side effects                  no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/ConflictDetectionService.test.js
+  464:13  warning  'originalThreshold' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/DataComparisonEngine.test.js
+  241:13  warning  'initialConfig' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/RetryCoordinator.test.js
+   13:9    warning  'StandardError' is assigned a value but never used  no-unused-vars
+  171:120  error    'ErrorCodes' is not defined                         no-undef
+  229:13   warning  'originalDelay' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/SynchronizationOrchestrator.test.js
+  14:7  warning  'ISynchronizationCoordinator' is assigned a value but never used  no-unused-vars
+  15:7  warning  'DataComparisonEngine' is assigned a value but never used         no-unused-vars
+  16:7  warning  'ConflictDetectionService' is assigned a value but never used     no-unused-vars
+  17:7  warning  'RetryCoordinator' is assigned a value but never used             no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/batch-validation-processor.test.js
+  356:9  warning  Do not use 'new' for side effects  no-new
+  364:9  warning  Do not use 'new' for side effects  no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/cache-management-service.test.js
+  376:9  warning  Do not use 'new' for side effects  no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/data-difference-engine.test.js
+  397:15  warning  'engine1' is assigned a value but never used  no-unused-vars
+  400:15  warning  'engine2' is assigned a value but never used  no-unused-vars
+  403:15  warning  'engine3' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/data-normalization-service.test.js
+    9:9    warning  'StandardError' is assigned a value but never used  no-unused-vars
+  417:9    warning  Do not use 'new' for side effects                   no-new
+  425:108  error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/data-validation-service-complete-integration.test.js
+   13:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+  416:85  error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/data-validation-service-integration.test.js
+  146:9  warning  Do not use 'new' for side effects  no-new
+  154:9  warning  Do not use 'new' for side effects  no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/data-validation-service-refactor.test.js
+  233:9  warning  Do not use 'new' for side effects  no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/quality-assessment-service.test.js
+    9:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+  428:15  warning  'service' is assigned a value but never used        no-unused-vars
+  433:15  warning  'service' is assigned a value but never used        no-unused-vars
+  445:88  error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/data-management/services/readmoo-data-consistency-service.test.js
+    7:9   warning  'StandardError' is assigned a value but never used    no-unused-vars
+   82:91  error    'ErrorCodes' is not defined                           no-undef
+  160:13  warning  'performCheckSpy' is assigned a value but never used  no-unused-vars
+  219:87  error    'ErrorCodes' is not defined                           no-undef
+  312:15  warning  'service' is assigned a value but never used          no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/platform/platform-domain.test.suite.js
+  37:5  warning  Unexpected console statement  no-console
+  38:5  warning  Unexpected console statement  no-console
+  42:5  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/platform/services/adapter-factory-service.test.js
+  392:70  error    'ErrorCodes' is not defined                    no-undef
+  611:13  warning  'errorSpy' is assigned a value but never used  no-unused-vars
+  619:73  error    'ErrorCodes' is not defined                    no-undef
+  869:74  error    'ErrorCodes' is not defined                    no-undef
+  929:13  warning  'adapter3' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/domains/platform/services/platform-detection-service.test.js
+    11:9    warning  'StandardError' is assigned a value but never used               no-unused-vars
+    14:7    warning  'mockPlatformDataDefinition' is assigned a value but never used  no-unused-vars
+   396:82   error    'ErrorCodes' is not defined                                      no-undef
+   658:81   error    'ErrorCodes' is not defined                                      no-undef
+  1015:28   warning  Unexpected console statement                                     no-console
+  1016:7    warning  Unexpected console statement                                     no-console
+  1029:14   warning  Unexpected console statement                                     no-console
+  1032:7    warning  Unexpected console statement                                     no-console
+  1049:105  error    'ErrorCodes' is not defined                                      no-undef
+  1052:88   error    'ErrorCodes' is not defined                                      no-undef
+  1070:95   error    'ErrorCodes' is not defined                                      no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/events.test.js
+    1:9    warning  'StandardError' is assigned a value but never used  no-unused-vars
+   25:7    warning  'eventSystem' is defined but never used             no-unused-vars
+  189:13   warning  'eventType' is assigned a value but never used      no-unused-vars
+  257:79   error    'ErrorCodes' is not defined                         no-undef
+  277:114  error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/messaging/chrome-api-wrapper.test.js
+  15:9  warning  'StandardError' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/background/messaging/popup-message-handler.test.js
+  21:9  warning  'StandardError' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/content-scripts/extractors.test.js
+   24:7   warning  'progressExtractor' is defined but never used         no-unused-vars
+   25:7   warning  'metadataExtractor' is defined but never used         no-unused-vars
+  178:15  warning  'mockProgressBar' is assigned a value but never used  no-unused-vars
+  201:15  warning  'mockProgressBar' is assigned a value but never used  no-unused-vars
+  294:15  warning  'mockLink' is assigned a value but never used         no-unused-vars
+  304:25  warning  'storeName' is assigned a value but never used        no-unused-vars
+  343:25  warning  'storeName' is assigned a value but never used        no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/content/modular/content-modular.test.js
+  313:126  error  Parsing error: Unexpected token 'CONTENT_HANDLER_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/content/utils/config-utils.test.js
+  232:14  warning  Unexpected console statement  no-console
+  237:14  warning  Unexpected console statement  no-console
+  242:14  warning  Unexpected console statement  no-console
+  247:14  warning  Unexpected console statement  no-console
+  262:14  warning  Unexpected console statement  no-console
+  263:14  warning  Unexpected console statement  no-console
+  264:14  warning  Unexpected console statement  no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/content/utils/dom-utils.test.js
+  378:84  error  Parsing error: Unexpected token 'TEST_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/content/utils/error-handling-utils.test.js
+  242:106  error  Parsing error: Unexpected token 'TEST_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/content/utils/memory-utils.test.js
+  320:9   warning  'sum' is assigned a value but never used           no-unused-vars
+  525:15  error    🚨 測試中 StandardError 已棄用。請使用 ErrorCodes 模式或測試輔助工具  no-restricted-syntax
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/core/error-handling/system-error-handler.test.js
+  118:11  error  'fail' is not defined  no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/core/errors/operation-result.test.js
+   43:82   error  'ErrorCodes' is not defined  no-undef
+  103:79   error  'ErrorCodes' is not defined  no-undef
+  125:106  error  'ErrorCodes' is not defined  no-undef
+  186:75   error  'ErrorCodes' is not defined  no-undef
+  287:75   error  'ErrorCodes' is not defined  no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/core/event-bus.test.js
+  249:91  error  Parsing error: Unexpected token 'CORE_EVENTBUS_HANDLER_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/core/event-handler.test.js
+  58:101  error  Parsing error: Unexpected token 'CORE_PROCESS_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/core/event-naming-upgrade-coordinator.test.js
+  314:91  error  Parsing error: Unexpected token 'CORE_HANDLER_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/core/event-priority-manager.test.js
+  181:13  warning  'originalPriority' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/data-management/SchemaMigrationService.test.js
+     4:9    warning  'StandardError' is assigned a value but never used         no-unused-vars
+    49:9    warning  'createTestMigrations' is assigned a value but never used  no-unused-vars
+   111:103  error    'ErrorCodes' is not defined                                no-undef
+   122:108  error    'ErrorCodes' is not defined                                no-undef
+   162:99   error    'ErrorCodes' is not defined                                no-undef
+   179:98   error    'ErrorCodes' is not defined                                no-undef
+   184:95   error    'ErrorCodes' is not defined                                no-undef
+   202:96   error    'ErrorCodes' is not defined                                no-undef
+   212:97   error    'ErrorCodes' is not defined                                no-undef
+   222:98   error    'ErrorCodes' is not defined                                no-undef
+   255:15   warning  'service' is assigned a value but never used               no-unused-vars
+   269:15   warning  'service' is assigned a value but never used               no-unused-vars
+   283:15   warning  'service' is assigned a value but never used               no-unused-vars
+   297:15   warning  'service' is assigned a value but never used               no-unused-vars
+   975:85   error    'ErrorCodes' is not defined                                no-undef
+  1160:13   warning  'beforeMemory' is assigned a value but never used          no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/error-handling/error-recovery-strategies.test.js
+   22:7   warning  'ErrorRecoveryManager' is assigned a value but never used  no-unused-vars
+   23:19  warning  'mockNotifier' is assigned a value but never used          no-unused-vars
+   72:17  error    🚨 測試中 StandardError 已棄用。請使用 ErrorCodes 模式或測試輔助工具          no-restricted-syntax
+  155:17  error    🚨 測試中 StandardError 已棄用。請使用 ErrorCodes 模式或測試輔助工具          no-restricted-syntax
+  233:17  error    🚨 測試中 StandardError 已棄用。請使用 ErrorCodes 模式或測試輔助工具          no-restricted-syntax
+  528:7   warning  Unnecessary try/catch wrapper                              no-useless-catch
+  566:13  error    🚨 測試中 StandardError 已棄用。請使用 ErrorCodes 模式或測試輔助工具          no-restricted-syntax
+  643:15  warning  'timer' is assigned a value but never used                 no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/error-handling/event-error-handler.test.js
+  34:9  warning  Do not use 'new' for side effects  no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/error-handling/event-tracker.test.js
+  206:100  error  Parsing error: Unexpected token 'TEST_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/error-handling/message-error-handler.test.js
+  53:9  warning  Do not use 'new' for side effects  no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/error-handling/message-tracker.test.js
+   55:9   warning  Do not use 'new' for side effects             no-new
+   92:7   warning  Do not use 'new' for side effects             no-new
+  256:13  warning  'tracker' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/error-handling/system-error-classifier.test.js
+  26:7  warning  'SystemErrorClassifier' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/export/book-data-exporter.test.js
+  665:97  error  Parsing error: Unexpected token 'EXPORT_URL_CREATION_FAILED'
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/export/export-events.test.js
+  372:37  warning  'EXPORT_EVENTS' is assigned a value but never used      no-unused-vars
+  454:9   warning  'createExportEvent' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/export/export-handler.test.js
+   30:9    warning  'StandardError' is assigned a value but never used  no-unused-vars
+   63:110  error    'ErrorCodes' is not defined                         no-undef
+   82:121  error    'ErrorCodes' is not defined                         no-undef
+  229:85   error    'ErrorCodes' is not defined                         no-undef
+  561:80   error    'ErrorCodes' is not defined                         no-undef
+  583:77   error    'ErrorCodes' is not defined                         no-undef
+  600:80   error    'ErrorCodes' is not defined                         no-undef
+  625:84   error    'ErrorCodes' is not defined                         no-undef
+  775:92   error    'ErrorCodes' is not defined                         no-undef
+  906:13   warning  'csvHandler' is assigned a value but never used     no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/export/export-manager.test.js
+   30:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+  260:85  error    'ErrorCodes' is not defined                         no-undef
+  432:87  error    'ErrorCodes' is not defined                         no-undef
+  501:83  error    'ErrorCodes' is not defined                         no-undef
+  598:96  error    'ErrorCodes' is not defined                         no-undef
+  634:89  error    'ErrorCodes' is not defined                         no-undef
+  663:87  error    'ErrorCodes' is not defined                         no-undef
+  820:7   warning  Unexpected console statement                        no-console
+  821:7   warning  Unexpected console statement                        no-console
+  822:7   warning  Unexpected console statement                        no-console
+  823:7   warning  Unexpected console statement                        no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/export/export-progress-notifier.test.js
+   58:125  error    'ErrorCodes' is not defined                       no-undef
+   68:139  error    'ErrorCodes' is not defined                       no-undef
+   78:129  error    'ErrorCodes' is not defined                       no-undef
+   88:128  error    'ErrorCodes' is not defined                       no-undef
+   97:131  error    'ErrorCodes' is not defined                       no-undef
+  106:129  error    'ErrorCodes' is not defined                       no-undef
+  114:129  error    'ErrorCodes' is not defined                       no-undef
+  122:122  error    'ErrorCodes' is not defined                       no-undef
+  130:129  error    'ErrorCodes' is not defined                       no-undef
+  139:131  error    'ErrorCodes' is not defined                       no-undef
+  323:13   warning  'formats' is assigned a value but never used      no-unused-vars
+  353:85   error    'ErrorCodes' is not defined                       no-undef
+  426:15   warning  'allProgress' is assigned a value but never used  no-unused-vars
+  441:15   warning  'stats' is assigned a value but never used        no-unused-vars
+  453:15   warning  'history' is assigned a value but never used      no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/export/export-user-feedback.test.js
+   28:9   warning  'EXPORT_EVENTS' is assigned a value but never used  no-unused-vars
+  191:17  warning  Expected error to be handled                        n/handle-callback-err
+  597:17  warning  'humanMessage' is assigned a value but never used   no-unused-vars
+  717:15  warning  'history' is assigned a value but never used        no-unused-vars
+  742:15  warning  'searchResults' is assigned a value but never used  no-unused-vars
+  767:15  warning  'statistics' is assigned a value but never used     no-unused-vars
+  783:17  warning  'stats' is assigned a value but never used          no-unused-vars
+  794:13  warning  'benchmarkData' is assigned a value but never used  no-unused-vars
+  805:15  warning  'benchmark' is assigned a value but never used      no-unused-vars
+  891:15  warning  'merged' is assigned a value but never used         no-unused-vars
+  913:17  warning  'message' is assigned a value but never used        no-unused-vars
+  928:17  warning  'formatted' is assigned a value but never used      no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/extractors/readmoo-data-validator.test.js
+  608:13  warning  'initialCacheSize' is assigned a value but never used    no-unused-vars
+  609:13  warning  'initialMemoryUsage' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/handlers/extraction-completed-handler.test.js
+  265:107  error  Parsing error: Unexpected token 'HANDLER_STORAGE_SERVICE_UNAVAILABLE'
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/overview/overview-import-function.test.js
+   33:9  warning  'edgeCaseBooks' is assigned a value but never used   no-unused-vars
+  149:9  warning  'mockFileReader' is assigned a value but never used  no-unused-vars
+  311:7  warning  Unexpected console statement                         no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/overview/overview-import-private-methods.test.js
+  105:7   warning  Getter is not present for setter 'onloadstart'  accessor-pairs
+  106:7   warning  Getter is not present for setter 'onprogress'   accessor-pairs
+  506:16  warning  Unexpected console statement                    no-console
+  681:16  warning  Unexpected console statement                    no-console
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/overview/overview-page-controller.test.js
+   27:7   warning  'OverviewPageController' is assigned a value but never used  no-unused-vars
+  196:13  warning  'controller' is assigned a value but never used              no-unused-vars
+  470:13  warning  'EventHandler' is assigned a value but never used            no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/platform/readmoo-platform-migration-validator.test.js
+  364:100  error  Parsing error: Unexpected token 'INVALID_INPUT_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-controller-communication-integration.test.js
+  295:76  error  'StandardError' is not defined  no-undef
+  316:76  error  'StandardError' is not defined  no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-controller-event-system-refactor.test.js
+   19:9    warning  'StandardError' is assigned a value but never used  no-unused-vars
+   20:7    warning  'dom' is assigned a value but never used            no-unused-vars
+  261:103  error    'ErrorCodes' is not defined                         no-undef
+  302:74   error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-controller-extraction-integration.test.js
+  172:9  warning  Do not use 'new' for side effects  no-new
+  178:9  warning  Do not use 'new' for side effects  no-new
+  184:9  warning  Do not use 'new' for side effects  no-new
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-controller-final-integration-optimization.test.js
+  374:84  error  Parsing error: Unexpected token 'TEST_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-controller-progress-integration.test.js
+  326:88  error  Parsing error: Unexpected token 'TEST_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-controller-status-integration.test.js
+  37:7  warning  'PopupUIManager' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-error-handler.test.js
+   38:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+  368:79  error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-event-integration.test.js
+  37:9  warning  'JSDOM' is assigned a value but never used  no-unused-vars
+  38:7  warning  'fs' is assigned a value but never used     no-unused-vars
+  39:7  warning  'path' is assigned a value but never used   no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-extraction-service.test.js
+  81:15  warning  'service' is assigned a value but never used  no-unused-vars
+  88:15  warning  'service' is assigned a value but never used  no-unused-vars
+  95:15  warning  'service' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-progress-manager.test.js
+  226:94  error  Parsing error: Unexpected token 'POPUP_UI_UPDATE_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/popup-ui-components.test.js
+   25:7   warning  'PopupUIComponents' is assigned a value but never used  no-unused-vars
+  234:13  warning  'uiComponents' is assigned a value but never used       no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/popup/version-display.test.js
+  85:138  error  Parsing error: Unexpected token 'TEST_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/storage/adapters.test.js
+  394:17  warning  'url' is assigned a value but never used           no-unused-vars
+  418:17  error    🚨 測試中 StandardError 已棄用。請使用 ErrorCodes 模式或測試輔助工具  no-restricted-syntax
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/storage/adapters/chrome-storage-adapter.test.js
+  277:26  warning  Unexpected literal in error position of callback  n/no-callback-literal
+  292:26  warning  Unexpected literal in error position of callback  n/no-callback-literal
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/storage/adapters/local-storage-adapter.test.js
+  245:91  error  Parsing error: Unexpected token 'STORAGE_LOCAL_ERROR'
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/storage/storage-load-handler.test.js
+  295:74  error  'StandardError' is not defined  no-undef
+  326:74  error  'StandardError' is not defined  no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/storage/storage-save-handler.test.js
+  188:74  error  'StandardError' is not defined  no-undef
+  240:74  error  'StandardError' is not defined  no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/book-grid-renderer.test.js
+   26:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+  598:15  warning  'renderer' is assigned a value but never used       no-unused-vars
+  605:81  error    'ErrorCodes' is not defined                         no-undef
+  615:75  error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/book-search-filter-integrated.test.js
+  319:13  warning  'searchResults' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/book-search-filter.test.js
+   26:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+  213:7   warning  Do not use 'new' for side effects                   no-new
+  232:7   warning  Do not use 'new' for side effects                   no-new
+  645:7   warning  Do not use 'new' for side effects                   no-new
+  805:9   warning  Do not use 'new' for side effects                   no-new
+  814:15  warning  'filter' is assigned a value but never used         no-unused-vars
+  821:9   warning  Do not use 'new' for side effects                   no-new
+  850:71  error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/data-import.test.js
+  62:81  error  'ErrorCodes' is not defined                        no-undef
+  69:17  error  🚨 測試中 StandardError 已棄用。請使用 ErrorCodes 模式或測試輔助工具  no-restricted-syntax
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/overview-page.test.js
+  7:9  warning  'StandardError' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/search/cache/search-cache-manager.test.js
+   94:15  warning  'invalidManager' is assigned a value but never used  no-unused-vars
+  102:15  warning  'invalidManager' is assigned a value but never used  no-unused-vars
+  110:15  warning  'invalidManager' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/search/coordinator/search-coordinator.test.js
+   25:5   error    'fail' is not defined                             no-undef
+  165:15  warning  'coordinator' is assigned a value but never used  no-unused-vars
+  175:15  warning  'coordinator' is assigned a value but never used  no-unused-vars
+  187:15  warning  'coordinator' is assigned a value but never used  no-unused-vars
+  197:15  warning  'coordinator' is assigned a value but never used  no-unused-vars
+  209:15  warning  'coordinator' is assigned a value but never used  no-unused-vars
+  219:15  warning  'coordinator' is assigned a value but never used  no-unused-vars
+  325:13  warning  'result' is assigned a value but never used       no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/search/core/search-engine.test.js
+   27:9   warning  'ErrorCodes' is assigned a value but never used  no-unused-vars
+  162:15  warning  'engine' is assigned a value but never used      no-unused-vars
+  169:15  warning  'engine' is assigned a value but never used      no-unused-vars
+  176:15  warning  'engine' is assigned a value but never used      no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/search/core/search-index-manager.test.js
+  121:15  warning  'manager' is assigned a value but never used  no-unused-vars
+  128:15  warning  'manager' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/search/filter/filter-engine.test.js
+   20:9   warning  'ErrorCodes' is assigned a value but never used  no-unused-vars
+  107:15  warning  'engine' is assigned a value but never used      no-unused-vars
+  114:15  warning  'engine' is assigned a value but never used      no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/search/formatter/search-result-formatter.test.js
+   1:9   warning  'ErrorCodes' is assigned a value but never used        no-unused-vars
+  55:15  warning  'invalidFormatter' is assigned a value but never used  no-unused-vars
+  66:15  warning  'invalidFormatter' is assigned a value but never used  no-unused-vars
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/search/ui-controller/search-ui-controller.test.js
+  139:15  warning  'controller' is assigned a value but never used  no-unused-vars
+  141:9   error    'fail' is not defined                            no-undef
+  153:15  warning  'controller' is assigned a value but never used  no-unused-vars
+  155:9   error    'fail' is not defined                            no-undef
+  167:15  warning  'controller' is assigned a value but never used  no-unused-vars
+  169:9   error    'fail' is not defined                            no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/unit/ui/ui-notification-handler.test.js
+   19:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+  392:85  error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/utils/chrome-extension-mocks-enhanced-refactored.js
+  131:118  error  Parsing error: Unexpected token 'PERMISSION_DENIED'
+
+/Users/tarragon/Projects/book_overview_v1/tests/utils/chrome-extension-mocks-enhanced.js
+  310:107  error  Parsing error: Unexpected token 'VALIDATION_FAILED'
+
+/Users/tarragon/Projects/book_overview_v1/tests/utils/error-injector-refactored.js
+   12:9    warning  'StandardError' is assigned a value but never used  no-unused-vars
+   58:111  error    'ErrorCodes' is not defined                         no-undef
+  104:99   error    'ErrorCodes' is not defined                         no-undef
+  179:99   error    'ErrorCodes' is not defined                         no-undef
+  265:105  error    'ErrorCodes' is not defined                         no-undef
+  386:108  error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/utils/error-injector.js
+    9:9   warning  'StandardError' is assigned a value but never used  no-unused-vars
+   55:83  error    'ErrorCodes' is not defined                         no-undef
+   57:81  error    'ErrorCodes' is not defined                         no-undef
+   59:89  error    'ErrorCodes' is not defined                         no-undef
+   61:89  error    'ErrorCodes' is not defined                         no-undef
+  126:79  error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/utils/error-test-data-factory.js
+    9:9    warning  'StandardError' is assigned a value but never used  no-unused-vars
+  104:118  error    'ErrorCodes' is not defined                         no-undef
+  176:109  error    'ErrorCodes' is not defined                         no-undef
+  237:105  error    'ErrorCodes' is not defined                         no-undef
+  300:117  error    'ErrorCodes' is not defined                         no-undef
+  347:108  error    'ErrorCodes' is not defined                         no-undef
+  379:95   error    'ErrorCodes' is not defined                         no-undef
+
+/Users/tarragon/Projects/book_overview_v1/tests/utils/integration-test-helper.js
+  484:111  error  Parsing error: Unexpected token 'VALIDATION_ERROR'
+
+✖ 878 problems (251 errors, 627 warnings)
+  13 errors and 2 warnings potentially fixable with the `--fix` option.
+

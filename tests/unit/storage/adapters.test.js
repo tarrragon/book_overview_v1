@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * 儲存適配器單元測試
  * 測試不同儲存機制的適配器功能
@@ -142,7 +142,7 @@ describe('💾 儲存適配器測試', () => {
         })
       }
 
-      await expect(saveOperation('large-data')).rejects.toThrow(StandardError)
+      await expect(saveOperation('large-data')).rejects.toThrow(Error)
 
       // Cleanup - 重設模擬狀態
       chrome.storage.local.set.mockRestore()
@@ -415,7 +415,7 @@ describe('💾 儲存適配器測試', () => {
       const saveWithRollback = async (data, backup) => {
         try {
           // 模擬儲存失敗
-          throw new StandardError('STORAGE_ADAPTER_FAILED', 'Storage failed', { category: 'testing' })
+          throw (() => { const error = new Error('Storage failed'); error.code = ErrorCodes.STORAGE_ADAPTER_FAILED; error.details = { category: 'testing' }; return error })()
         } catch (error) {
           // 回復到原始資料
           return backup

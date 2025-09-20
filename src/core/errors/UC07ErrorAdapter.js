@@ -11,9 +11,9 @@
  * - 錯誤學習資料過載
  */
 
-import { ErrorCodes } from './ErrorCodes.js'
+const { ErrorCodes } = require('./ErrorCodes')
 
-export class UC07ErrorAdapter {
+class UC07ErrorAdapter {
   /**
    * UC-07 StandardError 到 ErrorCodes 的映射表
    * @private
@@ -175,3 +175,5 @@ export class UC07ErrorAdapter {
            error.details !== null
   }
 }
+
+module.exports = { UC07ErrorAdapter }

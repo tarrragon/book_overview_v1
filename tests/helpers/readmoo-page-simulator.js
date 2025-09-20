@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * Readmoo Page Simulator
  * 模擬真實的Readmoo書庫頁面環境，支援動態內容和使用者互動
@@ -59,7 +59,7 @@ class ReadmooPageSimulator {
 
       return this.mockDocument
     } catch (error) {
-      throw new StandardError('TEST_ERROR', `Failed to create mock shelf page: ${error.message}`, { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 
@@ -518,6 +518,7 @@ class ReadmooPageSimulator {
       // 記錄使用者行為軌跡供分析
       this.trackUserBehaviorForAnalysis(action, target)
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('User interaction simulation failed:', error.message)
     }
   }
@@ -571,6 +572,7 @@ class ReadmooPageSimulator {
             stopPropagation: () => {}
           })
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.warn('Click handler error:', error)
         }
       })
@@ -624,6 +626,7 @@ class ReadmooPageSimulator {
             keyCode: 13
           })
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.warn('Keyboard handler error:', error)
         }
       })
@@ -649,6 +652,7 @@ class ReadmooPageSimulator {
     }
 
     // 在實際應用中，這裡會發送到分析服務
+    // eslint-disable-next-line no-console
     console.log('User behavior tracked:', behaviorData)
   }
 
@@ -673,7 +677,7 @@ class ReadmooPageSimulator {
           break
       }
     } catch (error) {
-      throw new StandardError('TEST_ERROR', `Failed to modify page content: ${error.message}`, { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 

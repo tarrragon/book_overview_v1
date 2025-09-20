@@ -1084,6 +1084,7 @@ class ErrorCodesPerformanceMonitor {
    */
   _recordBatchPerformance (batchData) {
     // 這裡可以記錄批次效能數據以供後續分析
+    // eslint-disable-next-line no-console
     console.log(`批次效能記錄: ${JSON.stringify(batchData, null, 2)}`)
   }
 
@@ -1094,6 +1095,7 @@ class ErrorCodesPerformanceMonitor {
    * @private
    */
   _recordErrorCreationFailure (error, context) {
+    // eslint-disable-next-line no-console
     console.error('ErrorCodes 建立失敗:', error.message, context)
   }
 
@@ -1118,6 +1120,7 @@ class ErrorCodesPerformanceMonitor {
     }
 
     // 輸出警告到控制台（在生產環境中可以發送到監控系統）
+    // eslint-disable-next-line no-console
     console.warn(`[ErrorCodes 效能警告] ${warningType}:`, warningData)
   }
 

@@ -22,8 +22,8 @@ const JSONExportHandler = require('./json-export-handler')
 const ExcelExportHandler = require('./excel-export-handler')
 const ProgressHandler = require('./progress-handler')
 const ErrorHandler = require('./error-handler')
-const { StandardError } = require('src/core/errors/StandardError')
-const { Logger } = require('src/core/logging')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
+const { Logger } = require('src/core/logging/Logger')
 
 /**
  * 處理器註冊中心類別
@@ -37,9 +37,12 @@ class HandlerRegistry {
    */
   constructor (eventBus) {
     if (!eventBus) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'EventBus is required for HandlerRegistry', {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error('EventBus is required for HandlerRegistry')
+        error.code = ErrorCodes.REQUIRED_FIELD_MISSING
+        error.details = { category: 'export' }
+        return error
+      })()
     }
 
     /**
@@ -89,21 +92,30 @@ class HandlerRegistry {
    */
   register (handler) {
     if (!handler) {
-      throw new StandardError('REQUIRED_FIELD_MISSING', 'Handler is required for registration', {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error('Handler is required for registration')
+        error.code = ErrorCodes.REQUIRED_FIELD_MISSING
+        error.details = { category: 'export' }
+        return error
+      })()
     }
 
     if (!handler.name) {
-      throw new StandardError('UNKNOWN_ERROR', 'Handler must have a name', {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error('Handler must have a name')
+        error.code = ErrorCodes.UNKNOWN_ERROR
+        error.details = { category: 'export' }
+        return error
+      })()
     }
 
     if (this.handlers.has(handler.name)) {
-      throw new StandardError('UNKNOWN_ERROR', `Handler '${handler.name}' is already registered`, {
-        category: 'export'
-      })
+      throw (() => {
+        const error = new Error(`Handler '${handler.name}' is already registered`)
+        error.code = ErrorCodes.UNKNOWN_ERROR
+        error.details = { category: 'export' }
+        return error
+      })()
     }
 
     // 註冊處理器

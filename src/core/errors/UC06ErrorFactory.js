@@ -12,7 +12,7 @@
  */
 
 import { UC06ErrorAdapter } from './UC06ErrorAdapter.js'
-import { ErrorCodes } from './ErrorCodes.js'
+const { ErrorCodes } = require('./ErrorCodes')
 
 /**
  * UC06ErrorFactory
@@ -21,7 +21,7 @@ import { ErrorCodes } from './ErrorCodes.js'
  * 設計模式：工廠模式，提供語義化的錯誤建立介面
  * 效能優化：內建快取機制，減少重複建立開銷
  */
-export class UC06ErrorFactory {
+class UC06ErrorFactory {
   static _cache = new Map()
 
   /**
@@ -576,3 +576,5 @@ export class UC06ErrorFactory {
     return helpText[editType] || '請檢查輸入格式是否正確'
   }
 }
+
+module.exports = { UC06ErrorFactory }

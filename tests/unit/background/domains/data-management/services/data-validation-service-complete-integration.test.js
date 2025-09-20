@@ -9,6 +9,7 @@
  * 4. 效能和資源管理最佳化
  */
 
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const DataValidationService = require('src/background/domains/data-management/services/data-validation-service.js')
 const { StandardError } = require('src/core/errors/StandardError')
 
@@ -413,7 +414,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
     test('應該在子服務異常時發出警告', async () => {
       // Arrange
       MockValidationEngine.validateSingle.mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', 'Service unavailable', { category: 'testing' })
+        throw (() => { const error = new Error('Service unavailable'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
       // Act

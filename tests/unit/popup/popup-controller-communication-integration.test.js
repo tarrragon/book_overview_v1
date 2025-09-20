@@ -292,7 +292,7 @@ describe('PopupController 通訊服務整合測試', () => {
 
       // When: 嘗試開始提取
       // Then: 應該拋出錯誤並更新狀態
-      await expect(communicationService.startExtraction()).rejects.toThrow(StandardError)
+      await expect(communicationService.startExtraction()).rejects.toThrow(Error)
 
       // 狀態應該已更新
       expect(document.getElementById('status-text').textContent).toBe('請前往 Readmoo 網站')
@@ -313,7 +313,7 @@ describe('PopupController 通訊服務整合測試', () => {
 
       // When: 嘗試開始提取
       // Then: 應該拋出錯誤並更新狀態
-      await expect(communicationService.startExtraction()).rejects.toThrow(StandardError)
+      await expect(communicationService.startExtraction()).rejects.toThrow(Error)
 
       // 狀態應該已更新
       expect(document.getElementById('status-text').textContent).toBe('找不到活躍標籤頁')

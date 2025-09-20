@@ -8,7 +8,7 @@
  * 3. 基於實際記憶體使用量，而非假定效率百分比
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class MemoryLeakDetector {
   constructor (options = {}) {
@@ -52,7 +52,7 @@ class MemoryLeakDetector {
    */
   recordOperationStart (operationName, context = {}) {
     if (!this.isMonitoring) {
-      throw new StandardError('MEMORY_DETECTOR_ERROR', '記憶體監控未啟動', { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.MEMORY_DETECTOR_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     const memoryUsage = this._getCurrentMemoryUsage()
@@ -86,7 +86,7 @@ class MemoryLeakDetector {
   async recordOperationEnd (operationId) {
     const operation = this.operationHistory.find(op => op.id === operationId)
     if (!operation) {
-      throw new StandardError('MEMORY_DETECTOR_ERROR', `找不到操作ID: ${operationId}`, { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.MEMORY_DETECTOR_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     // 等待記憶體穩定

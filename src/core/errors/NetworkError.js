@@ -5,17 +5,9 @@
  * 遵循 Linux 專家建議的簡化設計原則
  */
 
-// 條件性引入，支援瀏覽器和 Node.js 環境
-let StandardError
-if (typeof require !== 'undefined') {
-  try {
-    StandardError = require('./StandardError').StandardError
-  } catch (e) {
-    // 瀏覽器環境或引入失敗時，假設 StandardError 已全域可用
-  }
-}
+const { ErrorCodes } = require('./ErrorCodes')
 
-class NetworkError extends StandardError {
+class NetworkError extends Error {
   /**
    * 建立網路錯誤
    * @param {string} endpoint - 請求端點或 URL
@@ -51,14 +43,17 @@ class NetworkError extends StandardError {
 
     const message = `網路請求失敗: ${endpoint} - ${statusInfo}`
 
-    super('NETWORK_ERROR', message, {
+    super(message)
+    this.name = 'NetworkError'
+    this.code = ErrorCodes.NETWORK_ERROR
+    this.details = {
       endpoint,
       statusCode,
       method: options.method || 'GET',
       timeout: options.timeout,
       retryCount: options.retryCount || 0,
       category: 'network'
-    })
+    }
   }
 
   /**

@@ -320,6 +320,8 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       expect(readinessPercentage).toBeGreaterThanOrEqual(80)
 
       if (readinessPercentage === 100) {
+        // eslint-disable-next-line no-console
+        console.log('🎉 所有檢查項目通過！準備進行完整端對端測試')
       } else {
         // eslint-disable-next-line no-console
         console.log('⚠️ 部分檢查未通過，請檢查失敗項目')

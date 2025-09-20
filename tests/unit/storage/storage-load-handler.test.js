@@ -292,7 +292,7 @@ describe('StorageLoadHandler 單元測試', () => {
         flowId: 'test-load-flow-123'
       }
 
-      await expect(storageLoadHandler.handle(loadEvent)).rejects.toThrow(StandardError)
+      await expect(storageLoadHandler.handle(loadEvent)).rejects.toThrow(Error)
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'STORAGE.ERROR',
@@ -323,7 +323,7 @@ describe('StorageLoadHandler 單元測試', () => {
         flowId: 'test-load-flow-123'
       }
 
-      await expect(storageLoadHandler.handle(loadEvent)).rejects.toThrow(StandardError)
+      await expect(storageLoadHandler.handle(loadEvent)).rejects.toThrow(Error)
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'STORAGE.ERROR',

@@ -10,7 +10,7 @@
  * - 支援效能和錯誤場景測試
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 /**
  * - 確保測試的可重現性和隔離性
@@ -161,7 +161,7 @@ class MockDevice {
 
       // 驗證資料格式
       if (!data.books || !Array.isArray(data.books)) {
-        throw new StandardError('INVALID_FILE_FORMAT', 'Invalid file format: missing books array', { category: 'testing' })
+        throw (() => { const error = new Error('Invalid file format: missing books array'); error.code = ErrorCodes.INVALID_FILE_FORMAT; error.details = { category: 'testing' }; return error })()
       }
 
       const currentBooks = await this.storage.getBooks()
@@ -259,7 +259,7 @@ class MockDevice {
       // 驗證備份檔案
       const validation = await this.validateImportFile(backupFile.data)
       if (!validation.valid) {
-        throw new StandardError('VALIDATION_ERROR', `備份檔案驗證失敗: ${validation.errors.join(', ')}`, { category: 'testing' })
+        throw (() => { const error = new Error(`備份檔案驗證失敗: ${validation.errors.join(', ')}`); error.code = ErrorCodes.VALIDATION_ERROR; error.details = { category: 'testing' }; return error })()
       }
 
       // 執行匯入
@@ -376,7 +376,7 @@ class MockDevice {
 
     const errorInfo = errorMessages[errorType]?.[cause]
     if (!errorInfo) {
-      throw new StandardError('TEST_MOCK_ERROR', `Unknown error type: ${errorType} with cause: ${cause}`, { category: 'testing' })
+      throw (() => { const error = new Error(`Unknown error type: ${errorType} with cause: ${cause}`); error.code = ErrorCodes.TEST_MOCK_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     // 記錄錯誤到日誌
@@ -703,7 +703,7 @@ class MockDevice {
   async restoreFromBackup (backupId) {
     // 從備份恢復
     if (!this._backups || !this._backups.has(backupId)) {
-      throw new StandardError('NOT_FOUND_ERROR', `Backup not found: ${backupId}`, { category: 'testing' })
+      throw (() => { const error = new Error(`Backup not found: ${backupId}`); error.code = ErrorCodes.NOT_FOUND_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     const backup = this._backups.get(backupId)
@@ -928,7 +928,7 @@ class PerformanceMonitor {
 
   stop () {
     if (!this.startTime) {
-      throw new StandardError('TEST_MOCK_ERROR', 'Performance monitor not started', { category: 'testing' })
+      throw (() => { const error = new Error('Performance monitor not started'); error.code = ErrorCodes.TEST_MOCK_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     const endTime = Date.now()
@@ -989,7 +989,7 @@ class NetworkSimulator {
 
   async simulateRequest (size = 1024) {
     if (this.condition === 'disconnected') {
-      throw new StandardError('NETWORK_ERROR', 'Network disconnected', { category: 'testing' })
+      throw (() => { const error = new Error('Network disconnected'); error.code = ErrorCodes.NETWORK_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     // 模擬網路延遲
@@ -997,7 +997,7 @@ class NetworkSimulator {
 
     // 模擬可靠性
     if (Math.random() > this.reliability) {
-      throw new StandardError('NETWORK_ERROR', 'Network request failed due to poor connection', { category: 'testing' })
+      throw (() => { const error = new Error('Network request failed due to poor connection'); error.code = ErrorCodes.NETWORK_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     // 模擬頻寬限制
@@ -1686,58 +1686,58 @@ module.exports = {
   },
 
   executeTrackedSync: async (sourceDevice, targetDevice, stateTracker) => {
-    throw new StandardError('TEST_MOCK_ERROR', 'executeTrackedSync function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw (() => { const error = new Error('executeTrackedSync function not implemented - awaiting TDD Phase 3'); error.code = ErrorCodes.TEST_MOCK_ERROR; error.details = { category: 'testing' }; return error })()
   },
 
   getSyncHistory: async (device) => {
-    throw new StandardError('TEST_MOCK_ERROR', 'getSyncHistory function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw (() => { const error = new Error('getSyncHistory function not implemented - awaiting TDD Phase 3'); error.code = ErrorCodes.TEST_MOCK_ERROR; error.details = { category: 'testing' }; return error })()
   },
 
   executeUserWorkflow: async (config) => {
-    throw new StandardError('TEST_MOCK_ERROR', 'executeUserWorkflow function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw (() => { const error = new Error('executeUserWorkflow function not implemented - awaiting TDD Phase 3'); error.code = ErrorCodes.TEST_MOCK_ERROR; error.details = { category: 'testing' }; return error })()
   },
 
   calculateDataChecksum: async (data) => {
-    throw new StandardError('TEST_MOCK_ERROR', 'calculateDataChecksum function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw (() => { const error = new Error('calculateDataChecksum function not implemented - awaiting TDD Phase 3'); error.code = ErrorCodes.TEST_MOCK_ERROR; error.details = { category: 'testing' }; return error })()
   },
 
   createDataSnapshot: async (deviceDataSets) => {
-    throw new StandardError('TEST_MOCK_ERROR', 'createDataSnapshot function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw (() => { const error = new Error('createDataSnapshot function not implemented - awaiting TDD Phase 3'); error.code = ErrorCodes.TEST_MOCK_ERROR; error.details = { category: 'testing' }; return error })()
   },
 
   compareDataSnapshots: async (preSyncSnapshot, postSyncSnapshot) => {
-    throw new StandardError('TEST_MOCK_ERROR', 'compareDataSnapshots function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw (() => { const error = new Error('compareDataSnapshots function not implemented - awaiting TDD Phase 3'); error.code = ErrorCodes.TEST_MOCK_ERROR; error.details = { category: 'testing' }; return error })()
   },
 
   createExportData: async (books) => {
-    throw new StandardError('TEST_MOCK_ERROR', 'createExportData function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw (() => { const error = new Error('createExportData function not implemented - awaiting TDD Phase 3'); error.code = ErrorCodes.TEST_MOCK_ERROR; error.details = { category: 'testing' }; return error })()
   },
 
   validateSampleIntegrity: async (originalData, comparedData, options) => {
-    throw new StandardError('TEST_MOCK_ERROR', 'validateSampleIntegrity function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw (() => { const error = new Error('validateSampleIntegrity function not implemented - awaiting TDD Phase 3'); error.code = ErrorCodes.TEST_MOCK_ERROR; error.details = { category: 'testing' }; return error })()
   },
 
   checkDataRaceConditions: async (finalBooks) => {
-    throw new StandardError('TEST_MOCK_ERROR', 'checkDataRaceConditions function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw (() => { const error = new Error('checkDataRaceConditions function not implemented - awaiting TDD Phase 3'); error.code = ErrorCodes.TEST_MOCK_ERROR; error.details = { category: 'testing' }; return error })()
   },
 
   detectSyncConflicts: async (deviceA, deviceB) => {
-    throw new StandardError('TEST_MOCK_ERROR', 'detectSyncConflicts function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw (() => { const error = new Error('detectSyncConflicts function not implemented - awaiting TDD Phase 3'); error.code = ErrorCodes.TEST_MOCK_ERROR; error.details = { category: 'testing' }; return error })()
   },
 
   setupConflictResolver: async () => {
-    throw new StandardError('TEST_MOCK_ERROR', 'setupConflictResolver function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw (() => { const error = new Error('setupConflictResolver function not implemented - awaiting TDD Phase 3'); error.code = ErrorCodes.TEST_MOCK_ERROR; error.details = { category: 'testing' }; return error })()
   },
 
   checkVersionCompatibility: async (fromDevice, toDevice) => {
-    throw new StandardError('TEST_MOCK_ERROR', 'checkVersionCompatibility function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw (() => { const error = new Error('checkVersionCompatibility function not implemented - awaiting TDD Phase 3'); error.code = ErrorCodes.TEST_MOCK_ERROR; error.details = { category: 'testing' }; return error })()
   },
 
   calculateUpgradePath: async (fromVersion, toVersion) => {
-    throw new StandardError('TEST_MOCK_ERROR', 'calculateUpgradePath function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw (() => { const error = new Error('calculateUpgradePath function not implemented - awaiting TDD Phase 3'); error.code = ErrorCodes.TEST_MOCK_ERROR; error.details = { category: 'testing' }; return error })()
   },
 
   validateDataPropagation: async (devices) => {
-    throw new StandardError('TEST_MOCK_ERROR', 'validateDataPropagation function not implemented - awaiting TDD Phase 3', { category: 'testing' })
+    throw (() => { const error = new Error('validateDataPropagation function not implemented - awaiting TDD Phase 3'); error.code = ErrorCodes.TEST_MOCK_ERROR; error.details = { category: 'testing' }; return error })()
   }
 }

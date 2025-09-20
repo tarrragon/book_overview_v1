@@ -74,8 +74,10 @@ class MigrationProgressTracker {
       await this._loadState()
 
       this.initialized = true
+      // eslint-disable-next-line no-console
       console.log('🎯 MigrationProgressTracker 初始化完成')
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ 追蹤器初始化失敗:', error.message)
       throw error
     }
@@ -113,6 +115,7 @@ class MigrationProgressTracker {
 
     await this._saveState()
 
+    // eslint-disable-next-line no-console
     console.log(`🚀 開始遷移會話: ${session.id}`)
     return session.id
   }
@@ -160,6 +163,7 @@ class MigrationProgressTracker {
 
     await this._saveState()
 
+    // eslint-disable-next-line no-console
     console.log(`📝 註冊遷移項目: ${itemId}`)
     return itemId
   }
@@ -199,6 +203,7 @@ class MigrationProgressTracker {
     this.migrationState.metadata.lastUpdate = new Date().toISOString()
     await this._saveState()
 
+    // eslint-disable-next-line no-console
     console.log(`🔄 更新項目狀態: ${itemId} ${oldStatus} → ${status}`)
   }
 
@@ -210,6 +215,7 @@ class MigrationProgressTracker {
       await this.updateItemStatus(itemId, status, details)
     }
 
+    // eslint-disable-next-line no-console
     console.log(`📦 批量更新完成: ${updates.length} 個項目`)
   }
 
@@ -238,9 +244,11 @@ class MigrationProgressTracker {
         this.migrationState.files.get(normalizedPath).backupPath = backupPath
       }
 
+      // eslint-disable-next-line no-console
       console.log(`💾 建立備份: ${filePath} → ${backupPath}`)
       return backupPath
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(`❌ 備份失敗: ${filePath}`, error.message)
       throw error
     }
@@ -348,8 +356,10 @@ class MigrationProgressTracker {
       // 歸檔舊的報告
       await this._archiveOldReports()
 
+      // eslint-disable-next-line no-console
       console.log('🧹 追蹤器清理完成')
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ 清理失敗:', error.message)
       throw error
     }
@@ -386,9 +396,11 @@ class MigrationProgressTracker {
         this.migrationState.metadata = { ...this.migrationState.metadata, ...state.metadata }
         this.migrationState.sessions = state.sessions || []
 
+        // eslint-disable-next-line no-console
         console.log('📂 載入現有遷移狀態')
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('⚠️ 無法載入現有狀態，使用新狀態:', error.message)
     }
   }
@@ -407,6 +419,7 @@ class MigrationProgressTracker {
 
       await fs.writeFile(this.stateFile, JSON.stringify(stateData, null, 2), 'utf8')
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ 狀態保存失敗:', error.message)
       throw error
     }
@@ -418,8 +431,10 @@ class MigrationProgressTracker {
   async _saveReport (report) {
     try {
       await fs.writeFile(this.progressFile, JSON.stringify(report, null, 2), 'utf8')
+      // eslint-disable-next-line no-console
       console.log(`📊 進度報告已保存: ${this.progressFile}`)
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ 報告保存失敗:', error.message)
       throw error
     }

@@ -28,7 +28,7 @@
 const { spawn } = require('child_process')
 const fs = require('fs')
 const path = require('path')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class EventSystemV2IntegrationTestRunner {
   constructor (options = {}) {
@@ -140,7 +140,7 @@ class EventSystemV2IntegrationTestRunner {
         require(module)
         this.verbose(`✓ ${module} 可用`)
       } catch (error) {
-        throw new StandardError('TEST_ERROR', `缺少必要模組: ${module}`, { category: 'testing' })
+        throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       }
     }
 
@@ -149,7 +149,7 @@ class EventSystemV2IntegrationTestRunner {
       const jestPath = require.resolve('jest')
       this.verbose(`✓ Jest 可用於 ${jestPath}`)
     } catch (error) {
-      throw new StandardError('TEST_ERROR', 'Jest 測試框架不可用', { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     // 檢查測試檔案存在
@@ -157,7 +157,7 @@ class EventSystemV2IntegrationTestRunner {
     for (const suite of this.testSuites) {
       const testFile = path.join(integrationDir, suite.file)
       if (!fs.existsSync(testFile)) {
-        throw new StandardError('TEST_ERROR', `測試檔案不存在: ${suite.file}`, { category: 'testing' })
+        throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       }
       this.verbose(`✓ ${suite.file} 存在`)
     }
@@ -228,7 +228,7 @@ class EventSystemV2IntegrationTestRunner {
         this.logError(`❌ Phase ${suite.phase} 失敗`, testResult.errors)
 
         if (suite.required) {
-          throw new StandardError('TEST_ERROR', `必要測試階段失敗: ${suite.name}`, { category: 'testing' })
+          throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
         }
       }
     } catch (error) {

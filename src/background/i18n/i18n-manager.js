@@ -183,11 +183,12 @@ class I18nManager extends BaseModule {
         case 'en-us':
           resource = require('./locales/en-us')
           break
-        default:
+        default: {
           const error = new Error(`不支援的語言代碼: ${languageCode}`)
           error.code = ErrorCodes.UNKNOWN_ERROR
           error.details = { category: 'general' }
           throw error
+        }
       }
 
       if (!resource || typeof resource !== 'object') {

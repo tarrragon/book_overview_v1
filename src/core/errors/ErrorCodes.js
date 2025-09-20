@@ -1,5 +1,3 @@
-const { StandardError } = require('src/core/errors/StandardError')
-
 /**
  * 錯誤代碼常數定義 - 專家優化版
  *
@@ -10,7 +8,9 @@ const { StandardError } = require('src/core/errors/StandardError')
  * - Chrome Extension ES modules 專用
  *
  * 使用方式：
- * throw new StandardError(`IMPLEMENTATION_ERROR`, `${ErrorCodes.VALIDATION_ERROR}: Email is required`)
+ * const error = new Error(`${ErrorCodes.VALIDATION_ERROR}: Email is required`)
+ * error.code = ErrorCodes.IMPLEMENTATION_ERROR
+ * throw error
  *
  * 效能優化使用方式：
  * const error = new Error(message)
@@ -23,14 +23,18 @@ const { StandardError } = require('src/core/errors/StandardError')
  * @readonly
  * @enum {string}
  */
-export const ErrorCodes = {
+const ErrorCodes = {
   // 驗證相關錯誤
   VALIDATION_ERROR: 'VALIDATION_ERROR',
   VALIDATION_FAILED: 'VALIDATION_FAILED',
   INVALID_INPUT_ERROR: 'INVALID_INPUT_ERROR',
+  INVALID_DATA_FORMAT: 'INVALID_DATA_FORMAT',
+  REQUIRED_FIELD_MISSING: 'REQUIRED_FIELD_MISSING',
 
   // 網路相關錯誤
   NETWORK_ERROR: 'NETWORK_ERROR',
+  CONNECTION_ERROR: 'CONNECTION_ERROR',
+  TIMEOUT_ERROR: 'TIMEOUT_ERROR',
 
   // 儲存相關錯誤
   STORAGE_ERROR: 'STORAGE_ERROR',
@@ -49,21 +53,21 @@ export const ErrorCodes = {
 
   // 檔案處理錯誤
   FILE_ERROR: 'FILE_ERROR',
+  FILE_SIZE_EXCEEDED: 'FILE_SIZE_EXCEEDED',
+  LARGE_FILES_DETECTED: 'LARGE_FILES_DETECTED',
 
   // 操作執行錯誤
   OPERATION_ERROR: 'OPERATION_ERROR',
+  OPERATION_FAILED: 'OPERATION_FAILED',
+  EXPORT_OPERATION_FAILED: 'EXPORT_OPERATION_FAILED',
+  UI_OPERATION_FAILED: 'UI_OPERATION_FAILED',
+  UNSUPPORTED_OPERATION: 'UNSUPPORTED_OPERATION',
 
   // 權限相關錯誤
   PERMISSION_ERROR: 'PERMISSION_ERROR',
 
-  // 逾時錯誤
-  TIMEOUT_ERROR: 'TIMEOUT_ERROR',
-
   // 解析錯誤
   PARSE_ERROR: 'PARSE_ERROR',
-
-  // 連線錯誤
-  CONNECTION_ERROR: 'CONNECTION_ERROR',
 
   // 設定錯誤
   CONFIG_ERROR: 'CONFIG_ERROR',
@@ -73,6 +77,43 @@ export const ErrorCodes = {
 
   // 效能錯誤
   PERFORMANCE_ERROR: 'PERFORMANCE_ERROR',
+  PERFORMANCE_MEMORY_TOO_HIGH: 'PERFORMANCE_MEMORY_TOO_HIGH',
+  PERFORMANCE_STARTUP_TOO_SLOW: 'PERFORMANCE_STARTUP_TOO_SLOW',
+
+  // 資源相關錯誤
+  RESOURCE_NOT_FOUND: 'RESOURCE_NOT_FOUND',
+  RESOURCE_NOT_AVAILABLE: 'RESOURCE_NOT_AVAILABLE',
+  RESOURCE_EXHAUSTED: 'RESOURCE_EXHAUSTED',
+  MISSING_REQUIRED_DATA: 'MISSING_REQUIRED_DATA',
+
+  // 系統相關錯誤
+  SYSTEM_ERROR: 'SYSTEM_ERROR',
+  INITIALIZATION_ERROR: 'INITIALIZATION_ERROR',
+  SERVICE_INITIALIZATION_ERROR: 'SERVICE_INITIALIZATION_ERROR',
+  IMPLEMENTATION_ERROR: 'IMPLEMENTATION_ERROR',
+  NOT_IMPLEMENTED: 'NOT_IMPLEMENTED',
+  FEATURE_NOT_SUPPORTED: 'FEATURE_NOT_SUPPORTED',
+
+  // 事件總線錯誤
+  EVENTBUS_ERROR: 'EVENTBUS_ERROR',
+  EVENTBUS_REQUIRED: 'EVENTBUS_REQUIRED',
+
+  // 限制相關錯誤
+  LIMIT_EXCEEDED: 'LIMIT_EXCEEDED',
+
+  // 安全相關錯誤
+  CODE_INJECTION_RISK: 'CODE_INJECTION_RISK',
+  UNSAFE_CSP_EVAL: 'UNSAFE_CSP_EVAL',
+  UNSAFE_CSP_INLINE: 'UNSAFE_CSP_INLINE',
+  PRIVACY_UNDECLARED_DATA_COLLECTION: 'PRIVACY_UNDECLARED_DATA_COLLECTION',
+
+  // Manifest 相關錯誤
+  MANIFEST_MISSING_FIELDS: 'MANIFEST_MISSING_FIELDS',
+  MANIFEST_VERSION_INVALID: 'MANIFEST_VERSION_INVALID',
+  MISSING_EXTENSION_ICON: 'MISSING_EXTENSION_ICON',
+
+  // 品質評估錯誤
+  FUNCTIONALITY_SCORE_TOO_LOW: 'FUNCTIONALITY_SCORE_TOO_LOW',
 
   // 未知錯誤
   UNKNOWN_ERROR: 'UNKNOWN_ERROR'
@@ -85,7 +126,7 @@ Object.freeze(ErrorCodes)
  * 預編譯常用錯誤模式（John Carmack 效能優化建議）
  * 避免熱路徑中的字串拼接成本
  */
-export const CommonErrors = {
+const CommonErrors = {
   EMAIL_REQUIRED: Object.freeze(createError(ErrorCodes.VALIDATION_ERROR, 'Email is required')),
   TITLE_REQUIRED: Object.freeze(createError(ErrorCodes.VALIDATION_ERROR, 'Title is required')),
   NETWORK_TIMEOUT: Object.freeze(createError(ErrorCodes.TIMEOUT_ERROR, 'Network request timeout')),
@@ -106,10 +147,8 @@ function createError (code, message) {
 }
 
 // CommonJS 支援
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    ErrorCodes,
-    CommonErrors,
-    createError
-  }
+module.exports = {
+  ErrorCodes,
+  CommonErrors,
+  createError
 }

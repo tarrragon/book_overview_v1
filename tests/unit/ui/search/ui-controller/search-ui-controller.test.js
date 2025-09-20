@@ -138,7 +138,7 @@ describe('SearchUIController', () => {
       try {
         const controller = new SearchUIController({})
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-        fail('應該拋出錯誤')
+        throw new Error('應該拋出錯誤')
       } catch (error) {
         expect(error).toMatchObject({
           code: ErrorCodes.VALIDATION_ERROR,
@@ -152,7 +152,7 @@ describe('SearchUIController', () => {
       try {
         const controller = new SearchUIController({ eventBus: mockEventBus })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-        fail('應該拋出錯誤')
+        throw new Error('應該拋出錯誤')
       } catch (error) {
         expect(error).toMatchObject({
           code: ErrorCodes.VALIDATION_ERROR,
@@ -166,7 +166,7 @@ describe('SearchUIController', () => {
       try {
         const controller = new SearchUIController({ document: mockDocument })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-        fail('應該拋出錯誤')
+        throw new Error('應該拋出錯誤')
       } catch (error) {
         expect(error).toMatchObject({
           code: ErrorCodes.VALIDATION_ERROR,

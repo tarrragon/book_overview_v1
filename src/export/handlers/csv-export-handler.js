@@ -27,7 +27,6 @@
 const EventHandler = require('src/core/event-handler')
 const BookDataExporter = require('src/export/book-data-exporter')
 const { EXPORT_EVENTS } = require('src/export/export-events')
-const { StandardError } = require('src/core/errors/StandardError')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 /**

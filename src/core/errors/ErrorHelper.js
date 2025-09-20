@@ -4,7 +4,7 @@
  * 設計目標：
  * - 提供便利的錯誤建立方法，簡化常見錯誤處理
  * - 包裝既有的 try-catch 結構，支援同步和非同步操作
- * - 與 StandardError 和 OperationResult 整合
+ * - 與 ErrorCodes 和 OperationResult 整合
  * - 支援現有程式碼的漸進式遷移
  *
  * @example
@@ -26,7 +26,7 @@ class ErrorHelper {
    * @param {string} code - 錯誤代碼
    * @param {string} message - 錯誤訊息
    * @param {Object} details - 附加資訊
-   * @returns {StandardError} 標準錯誤物件
+   * @returns {Error} 標準錯誤物件
    */
   static createError (code, message, details = {}) {
     const error = new Error(message || 'Unknown error')
@@ -39,7 +39,7 @@ class ErrorHelper {
    * 建立網路錯誤
    * @param {string} message - 錯誤訊息
    * @param {Object} details - 附加資訊（如 URL、狀態碼等）
-   * @returns {StandardError} 網路錯誤物件
+   * @returns {Error} 網路錯誤物件
    */
   static createNetworkError (message, details = {}) {
     const error = new Error(message || 'Network operation failed')
@@ -53,7 +53,7 @@ class ErrorHelper {
    * @param {string} field - 驗證失敗的欄位
    * @param {string} message - 錯誤訊息
    * @param {Object} details - 附加資訊（如驗證規則、實際值等）
-   * @returns {StandardError} 驗證錯誤物件
+   * @returns {Error} 驗證錯誤物件
    */
   static createValidationError (field, message, details = {}) {
     const error = new Error(message || 'Validation failed')
@@ -67,7 +67,7 @@ class ErrorHelper {
    * @param {string} operation - 儲存操作類型（如 'save', 'load', 'delete'）
    * @param {string} message - 錯誤訊息
    * @param {Object} details - 附加資訊
-   * @returns {StandardError} 儲存錯誤物件
+   * @returns {Error} 儲存錯誤物件
    */
   static createStorageError (operation, message, details = {}) {
     const error = new Error(message || 'Storage operation failed')
@@ -81,7 +81,7 @@ class ErrorHelper {
    * @param {string} action - 需要權限的動作
    * @param {string} message - 錯誤訊息
    * @param {Object} details - 附加資訊
-   * @returns {StandardError} 權限錯誤物件
+   * @returns {Error} 權限錯誤物件
    */
   static createPermissionError (action, message, details = {}) {
     const error = new Error(message || 'Permission denied')
@@ -95,7 +95,7 @@ class ErrorHelper {
    * @param {string} operation - 超時的操作
    * @param {number} timeout - 超時時間（毫秒）
    * @param {Object} details - 附加資訊
-   * @returns {StandardError} 超時錯誤物件
+   * @returns {Error} 超時錯誤物件
    */
   static createTimeoutError (operation, timeout, details = {}) {
     const error = new Error(`Operation '${operation}' timed out after ${timeout}ms`)
@@ -109,7 +109,7 @@ class ErrorHelper {
    * @param {string} stage - 處理階段（'extraction', 'sync', 'update', 'classification', 'export'）
    * @param {string} message - 錯誤訊息
    * @param {Object} details - 附加資訊
-   * @returns {StandardError} 書庫錯誤物件
+   * @returns {Error} 書庫錯誤物件
    */
   static createBookLibraryError (stage, message, details = {}) {
     const { getBookErrorCode } = require('./BookErrorCodes')

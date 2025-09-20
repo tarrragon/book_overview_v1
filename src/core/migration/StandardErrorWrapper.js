@@ -1,4 +1,14 @@
-const ErrorCodes = require('src/core/errors/ErrorCodes')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+
+// 條件性引入 Logger，支援不同執行環境
+let Logger
+try {
+  const LoggerModule = require('src/core/logging/Logger')
+  Logger = LoggerModule.Logger
+} catch (e) {
+  // Logger 不可用時使用後備方案
+  Logger = null
+}
 
 /**
  * StandardError 向後相容包裝器
@@ -18,16 +28,16 @@ const ErrorCodes = require('src/core/errors/ErrorCodes')
  * - 可觀測性：記錄遷移使用情況以便追蹤進度
  */
 
-import { ErrorCodes } from '../errors/ErrorCodes.js'
+// ErrorCodes 已在第1行導入
 
 /**
  * 遷移模式配置
  */
 const MIGRATION_MODES = {
-  LEGACY_ONLY: 'legacy_only',           // 只使用舊的 StandardError
-  WRAPPER_MODE: 'wrapper_mode',         // 包裝器模式（預設）
-  DUAL_MODE: 'dual_mode',              // 雙重系統並行
-  ERRORCODES_ONLY: 'errorcodes_only'   // 只使用新的 ErrorCodes
+  LEGACY_ONLY: 'legacy_only', // 只使用舊的 StandardError
+  WRAPPER_MODE: 'wrapper_mode', // 包裝器模式（預設）
+  DUAL_MODE: 'dual_mode', // 雙重系統並行
+  ERRORCODES_ONLY: 'errorcodes_only' // 只使用新的 ErrorCodes
 }
 
 /**
@@ -40,75 +50,75 @@ export class StandardError extends Error {
   /**
    * StandardError 到 ErrorCodes 的映射表
    */
-  static get ERROR_CODE_MAPPING() {
+  static get ERROR_CODE_MAPPING () {
     return {
       // 驗證相關錯誤
-      'VALIDATION_ERROR': ErrorCodes.VALIDATION_ERROR,
-      'REQUIRED_FIELD_MISSING': ErrorCodes.VALIDATION_ERROR,
-      'INVALID_DATA_FORMAT': ErrorCodes.VALIDATION_ERROR,
-      'INVALID_FORMAT': ErrorCodes.VALIDATION_ERROR,
-      'DATA_VALIDATION_FAILED': ErrorCodes.VALIDATION_ERROR,
+      VALIDATION_ERROR: ErrorCodes.VALIDATION_ERROR,
+      REQUIRED_FIELD_MISSING: ErrorCodes.VALIDATION_ERROR,
+      INVALID_DATA_FORMAT: ErrorCodes.VALIDATION_ERROR,
+      INVALID_FORMAT: ErrorCodes.VALIDATION_ERROR,
+      DATA_VALIDATION_FAILED: ErrorCodes.VALIDATION_ERROR,
 
       // 操作相關錯誤
-      'OPERATION_FAILED': ErrorCodes.OPERATION_ERROR,
-      'OPERATION_TIMEOUT': ErrorCodes.TIMEOUT_ERROR,
-      'OPERATION_ABORTED': ErrorCodes.OPERATION_ERROR,
-      'OPERATION_NOT_SUPPORTED': ErrorCodes.OPERATION_ERROR,
+      OPERATION_FAILED: ErrorCodes.OPERATION_ERROR,
+      OPERATION_TIMEOUT: ErrorCodes.TIMEOUT_ERROR,
+      OPERATION_ABORTED: ErrorCodes.OPERATION_ERROR,
+      OPERATION_NOT_SUPPORTED: ErrorCodes.OPERATION_ERROR,
 
       // 配置相關錯誤
-      'CONFIGURATION_ERROR': ErrorCodes.OPERATION_ERROR,
-      'CONFIGURATION_MISSING': ErrorCodes.OPERATION_ERROR,
-      'EVENTBUS_NOT_CONFIGURED': ErrorCodes.OPERATION_ERROR,
-      'INVALID_CONFIGURATION': ErrorCodes.OPERATION_ERROR,
+      CONFIGURATION_ERROR: ErrorCodes.OPERATION_ERROR,
+      CONFIGURATION_MISSING: ErrorCodes.OPERATION_ERROR,
+      EVENTBUS_NOT_CONFIGURED: ErrorCodes.OPERATION_ERROR,
+      INVALID_CONFIGURATION: ErrorCodes.OPERATION_ERROR,
 
       // 資源相關錯誤
-      'RESOURCE_NOT_AVAILABLE': ErrorCodes.OPERATION_ERROR,
-      'RESOURCE_NOT_FOUND': ErrorCodes.OPERATION_ERROR,
-      'RESOURCE_UNAVAILABLE': ErrorCodes.OPERATION_ERROR,
-      'RESOURCE_ACCESS_DENIED': ErrorCodes.CHROME_ERROR,
+      RESOURCE_NOT_AVAILABLE: ErrorCodes.OPERATION_ERROR,
+      RESOURCE_NOT_FOUND: ErrorCodes.OPERATION_ERROR,
+      RESOURCE_UNAVAILABLE: ErrorCodes.OPERATION_ERROR,
+      RESOURCE_ACCESS_DENIED: ErrorCodes.CHROME_ERROR,
 
       // 網路相關錯誤
-      'NETWORK_ERROR': ErrorCodes.NETWORK_ERROR,
-      'NETWORK_TIMEOUT': ErrorCodes.TIMEOUT_ERROR,
-      'CONNECTION_FAILED': ErrorCodes.CONNECTION_ERROR,
-      'CONNECTION_TIMEOUT': ErrorCodes.TIMEOUT_ERROR,
-      'REQUEST_FAILED': ErrorCodes.NETWORK_ERROR,
+      NETWORK_ERROR: ErrorCodes.NETWORK_ERROR,
+      NETWORK_TIMEOUT: ErrorCodes.TIMEOUT_ERROR,
+      CONNECTION_FAILED: ErrorCodes.CONNECTION_ERROR,
+      CONNECTION_TIMEOUT: ErrorCodes.TIMEOUT_ERROR,
+      REQUEST_FAILED: ErrorCodes.NETWORK_ERROR,
 
       // DOM 相關錯誤
-      'DOM_ERROR': ErrorCodes.DOM_ERROR,
-      'DOM_ELEMENT_NOT_FOUND': ErrorCodes.DOM_ERROR,
-      'DOM_MANIPULATION_FAILED': ErrorCodes.DOM_ERROR,
-      'DOM_ACCESS_DENIED': ErrorCodes.DOM_ERROR,
+      DOM_ERROR: ErrorCodes.DOM_ERROR,
+      DOM_ELEMENT_NOT_FOUND: ErrorCodes.DOM_ERROR,
+      DOM_MANIPULATION_FAILED: ErrorCodes.DOM_ERROR,
+      DOM_ACCESS_DENIED: ErrorCodes.DOM_ERROR,
 
       // 儲存相關錯誤
-      'STORAGE_ERROR': ErrorCodes.STORAGE_ERROR,
-      'STORAGE_QUOTA_EXCEEDED': ErrorCodes.STORAGE_ERROR,
-      'STORAGE_ACCESS_DENIED': ErrorCodes.STORAGE_ERROR,
-      'STORAGE_UNAVAILABLE': ErrorCodes.STORAGE_ERROR,
+      STORAGE_ERROR: ErrorCodes.STORAGE_ERROR,
+      STORAGE_QUOTA_EXCEEDED: ErrorCodes.STORAGE_ERROR,
+      STORAGE_ACCESS_DENIED: ErrorCodes.STORAGE_ERROR,
+      STORAGE_UNAVAILABLE: ErrorCodes.STORAGE_ERROR,
 
       // Chrome Extension 相關錯誤
-      'CHROME_API_ERROR': ErrorCodes.CHROME_ERROR,
-      'CHROME_PERMISSION_DENIED': ErrorCodes.CHROME_ERROR,
-      'PERMISSION_DENIED': ErrorCodes.CHROME_ERROR,
-      'API_UNAVAILABLE': ErrorCodes.CHROME_ERROR,
+      CHROME_API_ERROR: ErrorCodes.CHROME_ERROR,
+      CHROME_PERMISSION_DENIED: ErrorCodes.CHROME_ERROR,
+      PERMISSION_DENIED: ErrorCodes.CHROME_ERROR,
+      API_UNAVAILABLE: ErrorCodes.CHROME_ERROR,
 
       // 書籍相關錯誤
-      'BOOK_ERROR': ErrorCodes.BOOK_ERROR,
-      'BOOK_NOT_FOUND': ErrorCodes.BOOK_ERROR,
-      'BOOK_DATA_INVALID': ErrorCodes.BOOK_ERROR,
-      'BOOK_EXTRACTION_FAILED': ErrorCodes.BOOK_ERROR,
+      BOOK_ERROR: ErrorCodes.BOOK_ERROR,
+      BOOK_NOT_FOUND: ErrorCodes.BOOK_ERROR,
+      BOOK_DATA_INVALID: ErrorCodes.BOOK_ERROR,
+      BOOK_EXTRACTION_FAILED: ErrorCodes.BOOK_ERROR,
 
       // UI 相關錯誤
-      'UI_ERROR': ErrorCodes.OPERATION_ERROR,
-      'UI_ELEMENT_NOT_FOUND': ErrorCodes.DOM_ERROR,
-      'UI_EVENT_FAILED': ErrorCodes.OPERATION_ERROR,
-      'UI_RENDERING_FAILED': ErrorCodes.OPERATION_ERROR,
+      UI_ERROR: ErrorCodes.OPERATION_ERROR,
+      UI_ELEMENT_NOT_FOUND: ErrorCodes.DOM_ERROR,
+      UI_EVENT_FAILED: ErrorCodes.OPERATION_ERROR,
+      UI_RENDERING_FAILED: ErrorCodes.OPERATION_ERROR,
 
       // 其他常見錯誤
-      'UNKNOWN_ERROR': ErrorCodes.UNKNOWN_ERROR,
-      'INTERNAL_ERROR': ErrorCodes.UNKNOWN_ERROR,
-      'UNEXPECTED_ERROR': ErrorCodes.UNKNOWN_ERROR,
-      'GENERIC_ERROR': ErrorCodes.UNKNOWN_ERROR
+      UNKNOWN_ERROR: ErrorCodes.UNKNOWN_ERROR,
+      INTERNAL_ERROR: ErrorCodes.UNKNOWN_ERROR,
+      UNEXPECTED_ERROR: ErrorCodes.UNKNOWN_ERROR,
+      GENERIC_ERROR: ErrorCodes.UNKNOWN_ERROR
     }
   }
 
@@ -140,7 +150,7 @@ export class StandardError extends Error {
    * @param {string} message - 錯誤訊息
    * @param {Object} options - 錯誤選項
    */
-  constructor(code, message, options = {}) {
+  constructor (code, message, options = {}) {
     // 呼叫父類別建構函式
     super(message)
 
@@ -182,7 +192,7 @@ export class StandardError extends Error {
    * @returns {string} 對應的 ErrorCode
    * @private
    */
-  _mapToErrorCode(standardCode) {
+  _mapToErrorCode (standardCode) {
     const mapping = StandardError.ERROR_CODE_MAPPING
     const errorCode = mapping[standardCode]
 
@@ -201,7 +211,7 @@ export class StandardError extends Error {
    * @returns {string} 子類型
    * @private
    */
-  _generateSubType(standardCode) {
+  _generateSubType (standardCode) {
     // 移除常見前綴並轉換為子類型格式
     const subType = standardCode
       .replace(/^(DATA_|DOM_|NETWORK_|STORAGE_|CHROME_|UI_)/, '')
@@ -221,7 +231,7 @@ export class StandardError extends Error {
    * @returns {string} 嚴重程度
    * @private
    */
-  _determineSeverity(code, options) {
+  _determineSeverity (code, options) {
     // 如果明確指定嚴重程度則使用
     if (options.severity) {
       return options.severity
@@ -252,7 +262,7 @@ export class StandardError extends Error {
    * @param {string} code - 錯誤代碼
    * @private
    */
-  _updateMigrationStats(code) {
+  _updateMigrationStats (code) {
     const stats = StandardError.migrationStats
 
     stats.totalUsages++
@@ -278,9 +288,14 @@ export class StandardError extends Error {
    * @param {string} code - 未知的錯誤代碼
    * @private
    */
-  _logUnknownErrorCode(code) {
+  _logUnknownErrorCode (code) {
     if (StandardError.migrationConfig.enableLogging) {
-      console.warn(`[StandardError 遷移] 未知錯誤代碼: ${code}`)
+      // 在生產環境中記錄到 Logger 而非 console
+      if (Logger && Logger.warn) {
+        Logger.warn(`[StandardError 遷移] 未知錯誤代碼: ${code}`)
+      } else if (typeof console !== 'undefined') {
+        console.warn(`[StandardError 遷移] 未知錯誤代碼: ${code}`)
+      }
     }
   }
 
@@ -288,7 +303,7 @@ export class StandardError extends Error {
    * 處理不同的遷移模式
    * @private
    */
-  _handleMigrationMode() {
+  _handleMigrationMode () {
     const mode = StandardError.migrationConfig.mode
 
     switch (mode) {
@@ -319,11 +334,16 @@ export class StandardError extends Error {
    * 雙重系統記錄
    * @private
    */
-  _logToDualSystems() {
+  _logToDualSystems () {
     // 可以在這裡同時記錄到舊系統和新系統
     // 用於並行驗證和比較
     if (StandardError.migrationConfig.enableLogging) {
-      console.log(`[雙重系統] StandardError: ${this.code} → ErrorCodes: ${this.errorCode}`)
+      // 在生產環境中記錄到 Logger 而非 console
+      if (Logger && Logger.info) {
+        Logger.info(`[雙重系統] StandardError: ${this.code} → ErrorCodes: ${this.errorCode}`)
+      } else if (typeof console !== 'undefined') {
+        console.info(`[雙重系統] StandardError: ${this.code} → ErrorCodes: ${this.errorCode}`)
+      }
     }
   }
 
@@ -331,7 +351,7 @@ export class StandardError extends Error {
    * 添加序列化支援
    * @private
    */
-  _addSerializationSupport() {
+  _addSerializationSupport () {
     this.toJSON = () => ({
       name: this.name,
       message: this.message,
@@ -351,14 +371,14 @@ export class StandardError extends Error {
    * 報告遷移進度
    * @private
    */
-  _reportMigrationProgress() {
+  _reportMigrationProgress () {
     const stats = StandardError.migrationStats
     const now = Date.now()
     const runtime = now - stats.startTime
 
     const report = {
       timestamp: now,
-      runtime: runtime,
+      runtime,
       totalUsages: stats.totalUsages,
       usageRate: stats.totalUsages / (runtime / 1000), // 每秒使用次數
       topErrorTypes: this._getTopErrorTypes(5),
@@ -367,7 +387,12 @@ export class StandardError extends Error {
     }
 
     if (StandardError.migrationConfig.enableLogging) {
-      console.log('[StandardError 遷移進度]', report)
+      // 在生產環境中記錄到 Logger 而非 console
+      if (Logger && Logger.info) {
+        Logger.info('[StandardError 遷移進度]', report)
+      } else if (typeof console !== 'undefined') {
+        console.info('[StandardError 遷移進度]', report)
+      }
     }
 
     stats.lastReportTime = now
@@ -380,10 +405,10 @@ export class StandardError extends Error {
    * @returns {Array} 錯誤類型排行
    * @private
    */
-  _getTopErrorTypes(limit = 5) {
+  _getTopErrorTypes (limit = 5) {
     const stats = StandardError.migrationStats
     return Array.from(stats.errorTypeUsage.entries())
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .slice(0, limit)
       .map(([type, count]) => ({ type, count }))
   }
@@ -393,7 +418,7 @@ export class StandardError extends Error {
    * @returns {Array} 建議列表
    * @private
    */
-  _generateMigrationRecommendations() {
+  _generateMigrationRecommendations () {
     const stats = StandardError.migrationStats
     const recommendations = []
 
@@ -417,10 +442,15 @@ export class StandardError extends Error {
    * 設定遷移模式
    * @param {string} mode - 遷移模式
    */
-  static setMigrationMode(mode) {
+  static setMigrationMode (mode) {
     if (Object.values(MIGRATION_MODES).includes(mode)) {
       this.migrationConfig.mode = mode
-      console.log(`[StandardError 遷移] 模式已設定為: ${mode}`)
+      // 在生產環境中記錄到 Logger 而非 console
+      if (Logger && Logger.info) {
+        Logger.info(`[StandardError 遷移] 模式已設定為: ${mode}`)
+      } else if (typeof console !== 'undefined') {
+        console.info(`[StandardError 遷移] 模式已設定為: ${mode}`)
+      }
     } else {
       const error = new Error(`無效的遷移模式: ${mode}`)
       error.code = ErrorCodes.IMPLEMENTATION_ERROR
@@ -433,7 +463,7 @@ export class StandardError extends Error {
    * 獲取遷移統計資料
    * @returns {Object} 統計資料
    */
-  static getMigrationStats() {
+  static getMigrationStats () {
     return {
       ...this.migrationStats,
       config: { ...this.migrationConfig }
@@ -443,7 +473,7 @@ export class StandardError extends Error {
   /**
    * 重置遷移統計資料
    */
-  static resetMigrationStats() {
+  static resetMigrationStats () {
     this.migrationStats = {
       totalUsages: 0,
       errorTypeUsage: new Map(),
@@ -458,7 +488,7 @@ export class StandardError extends Error {
    * @param {string} code - 錯誤代碼
    * @returns {boolean} 是否支援
    */
-  static isSupportedErrorCode(code) {
+  static isSupportedErrorCode (code) {
     return code in this.ERROR_CODE_MAPPING
   }
 
@@ -467,7 +497,7 @@ export class StandardError extends Error {
    * @param {string} standardCode - StandardError 代碼
    * @returns {string} 建議的 ErrorCode
    */
-  static getSuggestedErrorCode(standardCode) {
+  static getSuggestedErrorCode (standardCode) {
     return this.ERROR_CODE_MAPPING[standardCode] || ErrorCodes.UNKNOWN_ERROR
   }
 
@@ -475,7 +505,7 @@ export class StandardError extends Error {
    * 驗證遷移包裝器功能
    * @returns {Object} 驗證結果
    */
-  static validateWrapper() {
+  static validateWrapper () {
     const testCases = [
       { code: 'VALIDATION_ERROR', message: '測試驗證錯誤' },
       { code: 'OPERATION_FAILED', message: '測試操作失敗' },
@@ -510,8 +540,7 @@ export class StandardError extends Error {
   }
 }
 
-// 為了向後相容，也提供直接的 StandardError 別名
-export const StandardError = StandardError
+// 為了向後相容，StandardError 類別已經上方導出
 
 // 提供遷移模式常數
 export { MIGRATION_MODES }

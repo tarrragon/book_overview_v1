@@ -14,6 +14,7 @@
  * - 提供通知自動消失機制
  */
 
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const UINotificationHandler = require('src/ui/handlers/ui-notification-handler')
 const EventBus = require('src/core/event-bus')
 const { StandardError } = require('src/core/errors/StandardError')
@@ -389,7 +390,7 @@ describe('UINotificationHandler', () => {
     test('應該處理 DOM 操作錯誤', async () => {
       // 模擬 DOM 操作失敗
       mockDocument.createElement.mockImplementation(() => {
-        throw new StandardError('UI_NOTIFICATION_DOM_ERROR', 'DOM creation failed', { category: 'testing' })
+        throw (() => { const error = new Error('DOM creation failed'); error.code = ErrorCodes.UI_NOTIFICATION_DOM_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
       const event = {

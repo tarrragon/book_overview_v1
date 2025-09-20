@@ -11,7 +11,7 @@
  */
 
 import { UC01ErrorAdapter } from './UC01ErrorAdapter.js'
-import { ErrorCodes } from './ErrorCodes.js'
+const { ErrorCodes } = require('./ErrorCodes')
 
 /**
  * UC01ErrorFactory
@@ -282,8 +282,10 @@ class UC01ErrorFactory {
     return UC01ErrorAdapter.isValidErrorCodesError(error) &&
            error.details &&
            error.details.originalCode &&
-           UC01ErrorAdapter.getErrorMapping().hasOwnProperty(error.details.originalCode)
+           Object.prototype.hasOwnProperty.call(UC01ErrorAdapter.getErrorMapping(), error.details.originalCode)
   }
 }
 
 export { UC01ErrorFactory }
+
+module.exports = { UC01ErrorFactory }

@@ -16,7 +16,7 @@ const PopupController = require('src/popup/popup-controller.js')
 
 // Mock DOM 環境
 const { JSDOM } = require('jsdom')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 // Mock 組件依賴
 jest.mock('../../../src/popup/components/popup-status-manager.js', () => {
@@ -371,7 +371,7 @@ describe('PopupController 最終整合和優化', () => {
 
       // 模擬提取過程中的錯誤
       controller.components.extraction.startExtraction.mockImplementation(() => {
-        throw new StandardError('TEST_ERROR', '網路連接失敗', { category: 'testing' })
+        throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
       const extractButton = mockDocument.getElementById('extract-button')

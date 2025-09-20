@@ -10,14 +10,14 @@
  * - 向後相容：保持與現有API的一致性
  */
 
-import { ErrorCodes, createError, createResult } from './index.js'
-import { UC02ErrorAdapter } from './UC02ErrorAdapter.js'
+const { ErrorCodes } = require('./ErrorCodes')
+const { UC02ErrorAdapter } = require('./UC02ErrorAdapter')
 
 /**
  * UC-02 專用錯誤工廠
  * 提供類型安全的錯誤建立方法和標準化操作結果
  */
-export class UC02ErrorFactory {
+class UC02ErrorFactory {
   // 預建立的常用錯誤快取
   static _commonErrors = new Map()
 
@@ -489,7 +489,7 @@ export class UC02ErrorFactory {
         const data = await chrome.storage.local.get(null)
         return new Blob([JSON.stringify(data)]).size
       } catch (error) {
-        console.warn('無法獲取 Chrome Storage 使用量:', error)
+        // 生產環境中不輸出 storage 錯誤，使用預設值
         return 5 * 1024 * 1024 // 預設 5MB
       }
     }
@@ -548,3 +548,5 @@ export class UC02ErrorFactory {
     }
   }
 }
+
+module.exports = { UC02ErrorFactory }

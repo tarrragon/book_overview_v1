@@ -16,7 +16,7 @@
 
 const fs = require('fs')
 const path = require('path')
-const { StandardError } = require('../../src/core/errors/StandardError')
+const { ErrorCodes } = require('../../src/core/errors/ErrorCodes')
 
 class TestingIntegrityChecker {
   constructor (options = {}) {
@@ -86,10 +86,12 @@ class TestingIntegrityChecker {
 
       return this.results
     } catch (error) {
-      throw new StandardError('TESTING_INTEGRITY_ERROR', `測試完整性檢查失敗: ${error.message}`, {
-        category: 'testing',
-        originalError: error
-      })
+      throw (() => {
+        const err = new Error(`測試完整性檢查失敗: ${error.message}`); err.code = ErrorCodes.TESTING_INTEGRITY_ERROR; err.details = {
+          category: 'testing',
+          originalError: error
+        }; return err
+      })()
     }
   }
 

@@ -7,7 +7,7 @@ const ErrorCodes = require('src/core/errors/ErrorCodes')
 const { createErrorRecovery, retryOperation } = require('src/core/error-handling/error-recovery-coordinator')
 
 // 測試輔助函數
-function expectErrorWithCode(fn, expectedCode) {
+function expectErrorWithCode (fn, expectedCode) {
   return expect(fn).toThrow(expect.objectContaining({
     code: expectedCode,
     details: expect.any(Object)

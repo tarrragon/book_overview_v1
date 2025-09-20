@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * UC-04 資料匯入功能測試套件
  * 測試目標：loadFromFile() 完整功能覆蓋 10% → 90%
@@ -59,14 +59,14 @@ function loadFromFile () {
 
       // 驗證 JSON 格式
       if (!Array.isArray(jsonData)) {
-        throw new StandardError('DATA_IMPORT_FORMAT_ERROR', 'JSON 檔案應該包含一個陣列', { category: 'testing' })
+        throw (() => { const error = new Error('JSON 檔案應該包含一個陣列'); error.code = ErrorCodes.DATA_IMPORT_FORMAT_ERROR; error.details = { category: 'testing' }; return error })()
       }
 
       // 驗證每個書籍物件的格式
       for (let i = 0; i < jsonData.length; i++) {
         const book = jsonData[i]
         if (!book.id || !book.title || !book.cover) {
-          throw new StandardError('DATA_IMPORT_FIELD_ERROR', `第 ${i + 1} 個書籍缺少必要欄位 (id, title, cover)`, { category: 'testing' })
+          throw (() => { const error = new Error(`第 ${i + 1} 個書籍缺少必要欄位 (id, title, cover)`); error.code = ErrorCodes.DATA_IMPORT_FIELD_ERROR; error.details = { category: 'testing' }; return error })()
         }
       }
 

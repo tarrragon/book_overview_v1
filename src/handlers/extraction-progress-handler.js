@@ -32,7 +32,6 @@
  */
 
 const EventHandler = require('src/core/event-handler')
-const { StandardError } = require('src/core/errors/StandardError')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class ExtractionProgressHandler extends EventHandler {

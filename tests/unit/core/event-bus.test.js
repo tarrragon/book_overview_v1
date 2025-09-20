@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * 事件總線核心單元測試
  * 測試整個事件系統的核心功能
@@ -246,7 +246,7 @@ describe('🎭 事件總線核心測試', () => {
       const eventType = 'data.validation.failed'
       const workingHandler = jest.fn()
       const errorHandler = jest.fn(() => {
-        throw new StandardError('CORE_EVENTBUS_HANDLER_ERROR', 'Handler error', { category: 'testing' })
+        throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.CORE_EVENTBUS_HANDLER_ERROR; error.details = { category: 'testing' }; return error })()
       })
       const anotherWorkingHandler = jest.fn()
 

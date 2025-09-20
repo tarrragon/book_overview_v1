@@ -66,7 +66,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
       // 階段1: 重複檢測錯誤
       try {
         await mockBookExtractionWorkflow.detectDuplicates([])
-        fail('Should have thrown duplicate detection error')
+        throw new Error('Should have thrown duplicate detection error')
       } catch (error) {
         expect(error.code).toBe(ErrorCodes.VALIDATION_ERROR)
         expect(error.subType).toBe('DUPLICATE_DETECTION_FAILED')
@@ -77,7 +77,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
       // 階段2: 進度驗證錯誤
       try {
         await mockBookExtractionWorkflow.validateProgress({ progress: '150%' })
-        fail('Should have thrown progress validation error')
+        throw new Error('Should have thrown progress validation error')
       } catch (error) {
         expect(error.code).toBe(ErrorCodes.VALIDATION_ERROR)
         expect(error.subType).toBe('PROGRESS_VALIDATION_ERROR')
@@ -87,7 +87,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
       // 階段3: 增量更新錯誤
       try {
         await mockBookExtractionWorkflow.performIncrementalUpdate([])
-        fail('Should have thrown incremental update error')
+        throw new Error('Should have thrown incremental update error')
       } catch (error) {
         expect(error.code).toBe(ErrorCodes.BOOK_ERROR)
         expect(error.subType).toBe('INCREMENTAL_UPDATE_CONFLICT')
@@ -97,7 +97,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
       // 階段4: DOM適應錯誤
       try {
         await mockBookExtractionWorkflow.adaptToPageChanges()
-        fail('Should have thrown page structure error')
+        throw new Error('Should have thrown page structure error')
       } catch (error) {
         expect(error.code).toBe(ErrorCodes.DOM_ERROR)
         expect(error.subType).toBe('PAGE_STRUCTURE_CHANGED')

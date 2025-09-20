@@ -14,7 +14,7 @@
  */
 
 const ChromeExtensionMocksEnhanced = require('../utils/chrome-extension-mocks-enhanced')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class ChromeExtensionEnvironmentSimulator {
   constructor () {
@@ -216,7 +216,7 @@ class ChromeExtensionEnvironmentSimulator {
       this.popupInstance = popupInstance
       return popupInstance
     } catch (error) {
-      throw new StandardError('TEST_ERROR', `Failed to open popup window: ${error.message}`, { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 
@@ -350,7 +350,7 @@ class ChromeExtensionEnvironmentSimulator {
       this.contentScriptInstance = contentScriptInstance
       return contentScriptInstance
     } catch (error) {
-      throw new StandardError('TEST_ERROR', `Failed to inject content script: ${error.message}`, { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 

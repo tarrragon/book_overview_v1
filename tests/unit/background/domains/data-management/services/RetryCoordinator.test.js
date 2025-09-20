@@ -10,6 +10,7 @@
  * @jest-environment jsdom
  */
 
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { StandardError } = require('src/core/errors/StandardError')
 const RetryCoordinator = require('src/background/domains/data-management/services/RetryCoordinator.js')
 
@@ -168,7 +169,7 @@ describe('RetryCoordinator TDD 測試', () => {
         originalParams: { source: 'readmoo' }
       }
 
-      const mockExecutor = jest.fn().mockRejectedValue(new StandardError('STILL_FAILING', 'still failing', { category: 'testing' }))
+      const mockExecutor = jest.fn().mockRejectedValue((() => { const error = new Error('still failing'); error.code = ErrorCodes.STILL_FAILING; error.details = { category: 'testing' }; return error })())
 
       // When: 執行重試
       const result = await coordinator.executeRetry(failedJob, mockExecutor)

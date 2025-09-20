@@ -9,7 +9,7 @@
  */
 
 const E2ETestEnvironment = require('./e2e-test-environment')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 /**
  * E2E測試環境建構器
@@ -159,7 +159,7 @@ class E2EEnvironmentBuilder {
    */
   _validateConfigObject () {
     if (!this._config || typeof this._config !== 'object') {
-      throw new StandardError('VALIDATION_FAILED', 'Invalid configuration object', { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.VALIDATION_FAILED; error.details = { category: 'testing' }; return error })()
     }
   }
 
@@ -169,7 +169,7 @@ class E2EEnvironmentBuilder {
   _validateRequiredFeatures () {
     const hasAnyFeature = this._hasAnyFeatureEnabled()
     if (!hasAnyFeature) {
-      throw new StandardError('TEST_ERROR', 'At least one testing feature must be enabled', { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 

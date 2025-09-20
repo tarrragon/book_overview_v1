@@ -13,6 +13,7 @@
  * @version v0.9.38
  */
 
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const ChromeExtensionMocksEnhanced = require('../utils/chrome-extension-mocks-enhanced')
 const ErrorInjector = require('../utils/error-injector')
 const { StandardError } = require('src/core/errors/StandardError')
@@ -73,7 +74,7 @@ class E2EIntegrationTestCoordinator {
 
       return this.testEnvironment
     } catch (error) {
-      throw new StandardError('TEST_ERROR', `Failed to initialize test environment: ${error.message}`, { category: 'testing' })
+      throw (() => { const err = new Error(`Failed to initialize test environment: ${error.message}`); err.code = ErrorCodes.TEST_ERROR; err.details = { category: 'testing' }; return err })()
     }
   }
 
@@ -173,12 +174,12 @@ class E2EIntegrationTestCoordinator {
   async verifyInitializationPhase (scenario) {
     // 驗證測試環境已正確設置
     if (!this.testState.initialized) {
-      throw new StandardError('TEST_ERROR', 'Test environment not initialized', { category: 'testing' })
+      throw (() => { const error = new Error('Test environment not initialized'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     // 驗證必要的模擬器已設置
     if (!this.extensionSimulator || !this.pageSimulator) {
-      throw new StandardError('TEST_ERROR', 'Required simulators not available', { category: 'testing' })
+      throw (() => { const error = new Error('Required simulators not available'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
     }
 
     // 模擬Extension context設置
@@ -215,7 +216,7 @@ class E2EIntegrationTestCoordinator {
         result.interactionsSuccessful = true
       }
     } catch (error) {
-      throw new StandardError('TEST_ERROR', `User interaction simulation failed: ${error.message}`, { category: 'testing' })
+      throw (() => { const err = new Error(`User interaction simulation failed: ${error.message}`); err.code = ErrorCodes.TEST_ERROR; err.details = { category: 'testing' }; return err })()
     }
 
     return result
@@ -242,7 +243,7 @@ class E2EIntegrationTestCoordinator {
 
       result.extractionSuccessful = true
     } catch (error) {
-      throw new StandardError('TEST_ERROR', `Data extraction verification failed: ${error.message}`, { category: 'testing' })
+      throw (() => { const err = new Error(`Data extraction verification failed: ${error.message}`); err.code = ErrorCodes.TEST_ERROR; err.details = { category: 'testing' }; return err })()
     }
 
     return result
@@ -271,7 +272,7 @@ class E2EIntegrationTestCoordinator {
 
       result.validationPassed = true
     } catch (error) {
-      throw new StandardError('TEST_ERROR', `Results verification failed: ${error.message}`, { category: 'testing' })
+      throw (() => { const err = new Error(`Results verification failed: ${error.message}`); err.code = ErrorCodes.TEST_ERROR; err.details = { category: 'testing' }; return err })()
     }
 
     return result
@@ -302,7 +303,7 @@ class E2EIntegrationTestCoordinator {
     switch (errorType) {
       case 'storageError':
         errorInjector.injectChromeApiError('chrome.storage.local', 'set',
-          new StandardError('E2E_STORAGE_QUOTA_EXCEEDED', 'Storage quota exceeded', { category: 'testing' }))
+          (() => { const error = new Error('Storage quota exceeded'); error.code = ErrorCodes.E2E_STORAGE_QUOTA_EXCEEDED; error.details = { category: 'testing' }; return error })())
         break
       case 'networkError':
         errorInjector.injectNetworkError('timeout', 5000)

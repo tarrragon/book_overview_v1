@@ -1,4 +1,4 @@
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * @fileoverview Memory Utils TDD 測試
  * @version v1.0.0
@@ -522,7 +522,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
     test('應該安全處理記憶體測量異常', () => {
       // Mock performance.now 拋出錯誤
       global.performance.now = jest.fn(() => {
-        throw new StandardError('TEST_ERROR', 'Performance API error', { category: 'testing' })
+        throw (() => { const error = new Error('Performance API error'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
       expect(() => MemoryUtils.startTimer('error-test')).not.toThrow()

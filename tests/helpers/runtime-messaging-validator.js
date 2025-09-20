@@ -2,6 +2,7 @@
  * Runtime Messaging Validator Test Helper
  */
 
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { StandardError } = require('src/core/errors/StandardError')
 
 class RuntimeMessagingValidator {
@@ -236,7 +237,7 @@ class RuntimeMessagingValidator {
    */
   async validateMessageRouting (message, expectedRoute) {
     if (!this.routingAnalysis?.enabled) {
-      throw new StandardError('ROUTING_ANALYSIS_NOT_ENABLED', '路由分析未啟用，請先調用 enableRoutingAnalysis()', { category: 'testing' })
+      throw (() => { const error = new Error('路由分析未啟用，請先調用 enableRoutingAnalysis()'); error.code = ErrorCodes.ROUTING_ANALYSIS_NOT_ENABLED; error.details = { category: 'testing' }; return error })()
     }
 
     const routeKey = `${message.sender}-${message.receiver}`
@@ -266,7 +267,7 @@ class RuntimeMessagingValidator {
    */
   async testPriorityMessage (priority, message) {
     if (!this.priorityConfig) {
-      throw new StandardError('PRIORITY_CONFIG_NOT_SET', '優先級配置未設置，請先調用 configurePriorityTesting()', { category: 'testing' })
+      throw (() => { const error = new Error('優先級配置未設置，請先調用 configurePriorityTesting()'); error.code = ErrorCodes.PRIORITY_CONFIG_NOT_SET; error.details = { category: 'testing' }; return error })()
     }
 
     const startTime = Date.now()
@@ -293,7 +294,7 @@ class RuntimeMessagingValidator {
    */
   async testMessageRetry (message, shouldFail = false) {
     if (!this.retryConfig) {
-      throw new StandardError('RETRY_CONFIG_NOT_SET', '重試配置未設置，請先調用 configureRetryTesting()', { category: 'testing' })
+      throw (() => { const error = new Error('重試配置未設置，請先調用 configureRetryTesting()'); error.code = ErrorCodes.RETRY_CONFIG_NOT_SET; error.details = { category: 'testing' }; return error })()
     }
 
     this.retryStats.attempts++
@@ -301,7 +302,7 @@ class RuntimeMessagingValidator {
     // 模擬失敗情況
     if (shouldFail && this.retryStats.attempts <= this.retryConfig.maxRetries) {
       this.retryStats.failures++
-      throw new StandardError('MESSAGE_DELIVERY_FAILED', `訊息傳遞失敗 (嘗試 ${this.retryStats.attempts}/${this.retryConfig.maxRetries})`, { category: 'testing', attempts: this.retryStats.attempts, maxRetries: this.retryConfig.maxRetries })
+      throw (() => { const error = new Error(`訊息傳遞失敗 (嘗試 ${this.retryStats.attempts}/${this.retryConfig.maxRetries})`); error.code = ErrorCodes.MESSAGE_DELIVERY_FAILED; error.details = { category: 'testing', attempts: this.retryStats.attempts, maxRetries: this.retryConfig.maxRetries }; return error })()
     }
 
     this.retryStats.successes++
@@ -432,7 +433,7 @@ class RuntimeMessagingValidator {
    */
   async testBroadcastMessage (message, recipients) {
     if (!this.multicastConfig?.enabled) {
-      throw new StandardError('MULTICAST_TESTING_NOT_ENABLED', '多播測試未啟用，請先調用 enableMulticastTesting()', { category: 'testing' })
+      throw (() => { const error = new Error('多播測試未啟用，請先調用 enableMulticastTesting()'); error.code = ErrorCodes.MULTICAST_TESTING_NOT_ENABLED; error.details = { category: 'testing' }; return error })()
     }
 
     this.testSuite.log(`[MessagingValidator] 測試廣播訊息到 ${recipients.length} 個接收者`)
@@ -475,7 +476,7 @@ class RuntimeMessagingValidator {
    */
   async testUnicastMessage (message, sender, receiver) {
     if (!this.multicastConfig?.enabled) {
-      throw new StandardError('MULTICAST_TESTING_NOT_ENABLED', '多播測試未啟用，請先調用 enableMulticastTesting()', { category: 'testing' })
+      throw (() => { const error = new Error('多播測試未啟用，請先調用 enableMulticastTesting()'); error.code = ErrorCodes.MULTICAST_TESTING_NOT_ENABLED; error.details = { category: 'testing' }; return error })()
     }
 
     this.testSuite.log(`[MessagingValidator] 測試點對點訊息: ${sender} -> ${receiver}`)
@@ -1027,7 +1028,7 @@ class RuntimeMessagingValidator {
     }
 
     // 觸發斷線相關的錯誤
-    const error = new StandardError('E2E_CONTEXT_DISCONNECTED', `Receiving end does not exist: ${contextType}`, { category: 'testing' })
+    const error = (() => { const error = new Error(`Receiving end does not exist: ${contextType}`); error.code = ErrorCodes.E2E_CONTEXT_DISCONNECTED; error.details = { category: 'testing' }; return error })()
     error.code = 'CONTEXT_DISCONNECTED'
     error.contextType = contextType
 

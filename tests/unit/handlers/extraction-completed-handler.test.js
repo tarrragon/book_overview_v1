@@ -31,7 +31,7 @@
  */
 
 const EventHandler = require('@/core/event-handler')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('ExtractionCompletedHandler', () => {
   let ExtractionCompletedHandler
@@ -262,7 +262,7 @@ describe('ExtractionCompletedHandler', () => {
     test('應該處理儲存事件觸發失敗', async () => {
       mockEventBus.emit.mockImplementation((eventType) => {
         if (eventType === 'STORAGE.SAVE.REQUESTED') {
-          throw new StandardError('HANDLER_STORAGE_SERVICE_UNAVAILABLE', 'Storage service unavailable', { category: 'testing' })
+          throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.HANDLER_STORAGE_SERVICE_UNAVAILABLE; error.details = { category: 'testing' }; return error })()
         }
         return Promise.resolve(true)
       })
@@ -359,7 +359,7 @@ describe('ExtractionCompletedHandler', () => {
     test('應該在通知觸發失敗時繼續處理', async () => {
       mockEventBus.emit.mockImplementation((eventType) => {
         if (eventType === 'UI.NOTIFICATION.SHOW') {
-          throw new StandardError('HANDLER_UI_SERVICE_UNAVAILABLE', 'UI service unavailable', { category: 'testing' })
+          throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.HANDLER_UI_SERVICE_UNAVAILABLE; error.details = { category: 'testing' }; return error })()
         }
         return Promise.resolve(true)
       })
@@ -582,7 +582,7 @@ describe('ExtractionCompletedHandler', () => {
       mockEventBus.emit.mockImplementation((eventType) => {
         callCount++
         if (eventType === 'STORAGE.SAVE.REQUESTED' && callCount === 1) {
-          throw new StandardError('HANDLER_STORAGE_TEMPORARY_UNAVAILABLE', 'Storage temporarily unavailable', { category: 'testing' })
+          throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.HANDLER_STORAGE_TEMPORARY_UNAVAILABLE; error.details = { category: 'testing' }; return error })()
         }
         return Promise.resolve(true)
       })

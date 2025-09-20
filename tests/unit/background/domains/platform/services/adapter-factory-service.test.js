@@ -7,6 +7,7 @@
  * 設計完整測試案例，確保 100% 程式碼覆蓋率
  */
 
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const AdapterFactoryService = require('src/background/domains/platform/services/adapter-factory-service.js')
 const EventBus = require('src/core/event-bus.js')
 const { StandardError } = require('src/core/errors/StandardError')
@@ -389,7 +390,7 @@ describe('AdapterFactoryService', () => {
       // 模擬構造函數錯誤
       const originalConstructor = adapterFactory.adapterConstructors.get('READMOO')
       adapterFactory.adapterConstructors.set('READMOO', function () {
-        throw new StandardError('ADAPTER_CONSTRUCTION_ERROR', '構造失敗', { category: 'testing' })
+        throw (() => { const error = new Error('構造失敗'); error.code = ErrorCodes.ADAPTER_CONSTRUCTION_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
       await expect(
@@ -616,7 +617,7 @@ describe('AdapterFactoryService', () => {
         const adapter = await originalCreateNewAdapter.call(adapterFactory, platformId)
         // Mock adapter的initialize方法使其失敗
         adapter.initialize = jest.fn().mockImplementation(async () => {
-          throw new StandardError('ADAPTER_INITIALIZATION_ERROR', '初始化失敗', { category: 'testing' })
+          throw (() => { const error = new Error('初始化失敗'); error.code = ErrorCodes.ADAPTER_INITIALIZATION_ERROR; error.details = { category: 'testing' }; return error })()
         })
         return adapter
       })
@@ -866,7 +867,7 @@ describe('AdapterFactoryService', () => {
       const originalMethod = adapterFactory.adapterPool
       Object.defineProperty(adapterFactory, 'adapterPool', {
         get: () => {
-          throw new StandardError('HEALTH_CHECK_ERROR', '健康檢查失敗', { category: 'testing' })
+          throw (() => { const error = new Error('健康檢查失敗'); error.code = ErrorCodes.HEALTH_CHECK_ERROR; error.details = { category: 'testing' }; return error })()
         },
         configurable: true
       })

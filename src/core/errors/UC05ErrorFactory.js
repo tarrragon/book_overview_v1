@@ -13,7 +13,7 @@
  */
 
 import { UC05ErrorAdapter } from './UC05ErrorAdapter.js'
-import { ErrorCodes } from './ErrorCodes.js'
+const { ErrorCodes } = require('./ErrorCodes')
 
 /**
  * UC05ErrorFactory
@@ -22,7 +22,7 @@ import { ErrorCodes } from './ErrorCodes.js'
  * 設計模式：複用UC-01/UC-02/UC-03/UC-04成功架構，針對同步場景優化
  * 效能目標：<200ms 建立100個錯誤，快取機制減少記憶體使用
  */
-export class UC05ErrorFactory {
+class UC05ErrorFactory {
   static _cache = new Map()
 
   /**
@@ -664,3 +664,5 @@ export class UC05ErrorFactory {
     return timeEstimates[corruptionType] || '15-30 minutes'
   }
 }
+
+module.exports = { UC05ErrorFactory }

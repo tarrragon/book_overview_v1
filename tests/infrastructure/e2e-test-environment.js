@@ -8,7 +8,7 @@
  * @version v0.9.38-refactor
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const ChromeAPIMockRegistry = require('./chrome-api-mock-registry')
 const ErrorInjector = require('../utils/error-injector')
 const { PerformanceMonitor } = require('../helpers/performance-monitor')
@@ -133,7 +133,7 @@ class E2ETestEnvironment {
    */
   _validateEnvironmentReady () {
     if (!this._isSetup) {
-      throw new StandardError('ENVIRONMENT_NOT_SETUP', 'Environment not setup. Call setup() first.', { category: 'testing' })
+      throw (() => { const error = new Error('E2E test environment not setup'); error.code = ErrorCodes.ENVIRONMENT_NOT_SETUP; error.details = { category: 'testing' }; return error })()
     }
   }
 
@@ -219,7 +219,7 @@ class E2ETestEnvironment {
    */
   _validateErrorInjectorAvailable () {
     if (!this._errorInjector) {
-      throw new StandardError('ERROR_INJECTION_NOT_ENABLED', 'Error injection not enabled', { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.ERROR_INJECTION_NOT_ENABLED; error.details = { category: 'testing' }; return error })()
     }
   }
 
@@ -246,7 +246,7 @@ class E2ETestEnvironment {
     this._errorInjector.injectChromeApiError(
       'chrome.storage.local',
       'set',
-      new StandardError('STORAGE_OPERATION_FAILED', 'Storage operation failed', { category: 'testing' })
+      (() => { const error = new Error('error occurred'); error.code = ErrorCodes.STORAGE_OPERATION_FAILED; error.details = { category: 'testing' }; return error })()
     )
   }
 
@@ -261,6 +261,7 @@ class E2ETestEnvironment {
    * 注入通用錯誤
    */
   _injectGenericError (errorType) {
+    // eslint-disable-next-line no-console
     console.warn(`Unknown error type: ${errorType}`)
   }
 
@@ -369,13 +370,14 @@ class E2ETestEnvironment {
       switch (errorType) {
         case 'storage-failure':
           this._errorInjector.injectChromeApiError('chrome.storage.local', 'set',
-            new StandardError('STORAGE_OPERATION_FAILED', 'Storage operation failed', { category: 'testing' }))
+            (() => { const error = new Error('error occurred'); error.code = ErrorCodes.STORAGE_OPERATION_FAILED; error.details = { category: 'testing' }; return error })())
           break
         case 'network-error':
         case 'network-timeout':
           this._errorInjector.injectNetworkError('timeout', 5000)
           break
         default:
+          // eslint-disable-next-line no-console
           console.warn(`Unknown error type: ${errorType}`)
       }
     }

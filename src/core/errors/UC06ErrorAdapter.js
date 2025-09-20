@@ -11,7 +11,7 @@
  * - 1個 VALIDATION_ERROR: 編輯驗證衝突
  */
 
-import { ErrorCodes } from './ErrorCodes.js'
+const { ErrorCodes } = require('./ErrorCodes')
 
 /**
  * UC06ErrorAdapter
@@ -20,7 +20,7 @@ import { ErrorCodes } from './ErrorCodes.js'
  * 設計模式：複用UC-01~UC-05成功架構，針對資料管理UI場景優化
  * 效能目標：<1ms 轉換時間，零記憶體洩漏
  */
-export class UC06ErrorAdapter {
+class UC06ErrorAdapter {
   /**
    * 獲取UC-06錯誤映射表
    * @returns {Object} StandardError代碼到ErrorCodes的映射
@@ -172,3 +172,5 @@ export class UC06ErrorAdapter {
            typeof error.details === 'object'
   }
 }
+
+module.exports = { UC06ErrorAdapter }

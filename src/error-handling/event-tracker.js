@@ -1,4 +1,4 @@
-const Logger = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 /**
  * @fileoverview EventTracker - 事件記錄和追蹤系統
  * TDD 循環 #35: 事件記錄、查詢和診斷資料匯出
@@ -30,7 +30,7 @@ const Logger = require('src/core/logging/Logger')
  */
 
 const EventHandler = require('src/core/event-handler')
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 /**
  * EventTracker 類別
@@ -259,9 +259,12 @@ class EventTracker extends EventHandler {
       default:
         return this._createErrorResponse(
           'UNSUPPORTED_EVENT_TYPE',
-          new StandardError('UNKNOWN_ERROR', '不支援的事件類型: ${eventData.type}', {
-            category: 'general'
-          }),
+          (() => {
+            const error = new Error(`不支援的事件類型: ${eventData.type}`)
+            error.code = ErrorCodes.UNKNOWN_ERROR
+            error.details = { category: 'general' }
+            return error
+          })(),
           eventData
         )
     }
@@ -717,9 +720,12 @@ class EventTracker extends EventHandler {
       case EXPORT.FORMATS.CSV:
         return this._convertToCSV(records)
       default:
-        throw new StandardError('UNKNOWN_ERROR', '不支援的匯出格式: ${format}', {
-          category: 'general'
-        })
+        throw (() => {
+          const error = new Error(`不支援的匯出格式: ${format}`)
+          error.code = ErrorCodes.UNKNOWN_ERROR
+          error.details = { category: 'general' }
+          return error
+        })()
     }
   }
 

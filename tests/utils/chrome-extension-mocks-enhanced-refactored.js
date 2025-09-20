@@ -9,7 +9,7 @@
  * @version v0.9.38-refactor
  */
 
-const { StandardError } = require('src/core/errors/StandardError')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 const ChromeAPIMockRegistry = require('../infrastructure/chrome-api-mock-registry')
 
@@ -128,7 +128,7 @@ class ChromeExtensionMocksEnhanced {
    */
   _validatePermissionName (permission) {
     if (!permission || typeof permission !== 'string') {
-      throw new StandardError('PERMISSION_DENIED', 'Permission name must be a non-empty string', { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.PERMISSION_DENIED; error.details = { category: 'testing' }; return error })()
     }
   }
 
@@ -160,7 +160,7 @@ class ChromeExtensionMocksEnhanced {
    */
   _validateUsedBytes (usedBytes) {
     if (typeof usedBytes !== 'number' || usedBytes < 0) {
-      throw new StandardError('TEST_ERROR', 'Used bytes must be a non-negative number', { category: 'testing' })
+      throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
     }
   }
 
