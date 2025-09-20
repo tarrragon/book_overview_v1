@@ -79,8 +79,11 @@ describe('Popup Interface 整合測試', () => {
         this.namespace = namespace
       }
 
+      // eslint-disable-next-line no-console
       info (msg) { console.log(`[INFO] ${this.namespace}: ${msg}`) }
+      // eslint-disable-next-line no-console
       warn (msg) { console.warn(`[WARN] ${this.namespace}: ${msg}`) }
+      // eslint-disable-next-line no-console
       error (msg) { console.error(`[ERROR] ${this.namespace}: ${msg}`) }
     }
 
@@ -175,6 +178,7 @@ describe('Popup Interface 整合測試', () => {
       }
 
       // 載入並執行 popup 腳本後更新版本顯示
+      // eslint-disable-next-line no-eval
       eval(popupScript)
       if (window.updateVersionDisplay) {
         window.updateVersionDisplay()
@@ -192,11 +196,13 @@ describe('Popup Interface 整合測試', () => {
   describe('JavaScript 初始化測試', () => {
     test('應該能正確載入和執行 popup.js', () => {
       expect(() => {
+        // eslint-disable-next-line no-eval
         eval(popupScript)
       }).not.toThrow()
     })
 
     test('應該正確初始化 DOM 元素引用', () => {
+      // eslint-disable-next-line no-eval
       eval(popupScript)
 
       // 檢查元素變數是否在全域範圍內可存取
@@ -207,6 +213,7 @@ describe('Popup Interface 整合測試', () => {
       // 模擬 DOMContentLoaded 事件
       const addEventListenerSpy = jest.spyOn(document, 'addEventListener')
 
+      // eslint-disable-next-line no-eval
       eval(popupScript)
 
       // 檢查是否註冊了 DOMContentLoaded 監聽器
@@ -216,6 +223,7 @@ describe('Popup Interface 整合測試', () => {
 
   describe('Background Service Worker 通訊測試', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-eval
       eval(popupScript)
     })
 
@@ -249,6 +257,7 @@ describe('Popup Interface 整合測試', () => {
 
   describe('Content Script 通訊測試', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-eval
       eval(popupScript)
     })
 
@@ -317,6 +326,7 @@ describe('Popup Interface 整合測試', () => {
 
   describe('UI 狀態管理測試', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-eval
       eval(popupScript)
     })
 
@@ -351,6 +361,7 @@ describe('Popup Interface 整合測試', () => {
 
   describe('事件處理器測試', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-eval
       eval(popupScript)
 
       // 確保事件監聽器已設定
@@ -402,6 +413,7 @@ describe('Popup Interface 整合測試', () => {
 
   describe('錯誤處理測試', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-eval
       eval(popupScript)
     })
 
@@ -430,6 +442,7 @@ describe('Popup Interface 整合測試', () => {
 
   describe('效能和記憶體管理測試', () => {
     test('應該適當清理事件監聽器', () => {
+      // eslint-disable-next-line no-eval
       eval(popupScript)
 
       // 檢查是否有適當的清理機制
@@ -438,6 +451,7 @@ describe('Popup Interface 整合測試', () => {
     })
 
     test('應該處理頁面可見性變更', () => {
+      // eslint-disable-next-line no-eval
       eval(popupScript)
 
       // 模擬頁面可見性 API
@@ -484,6 +498,7 @@ describe('Popup Interface 整合測試', () => {
     describe('🟢 綠燈階段 - 提取觸發按鈕高級功能', () => {
       test('應該能檢測提取按鈕的狀態管理', () => {
         loadPopupInterface()
+        // eslint-disable-next-line no-eval
         eval(popupScript)
 
         // 檢查按鈕的初始狀態
@@ -497,6 +512,7 @@ describe('Popup Interface 整合測試', () => {
 
       test('應該能處理提取按鈕的進行中狀態', () => {
         loadPopupInterface()
+        // eslint-disable-next-line no-eval
         eval(popupScript)
 
         // 模擬提取開始
@@ -514,6 +530,7 @@ describe('Popup Interface 整合測試', () => {
 
       test('應該能處理提取取消功能', () => {
         loadPopupInterface()
+        // eslint-disable-next-line no-eval
         eval(popupScript)
 
         // 檢查取消提取功能已實現
@@ -538,6 +555,7 @@ describe('Popup Interface 整合測試', () => {
 
       test('應該能顯示提取進度', () => {
         loadPopupInterface()
+        // eslint-disable-next-line no-eval
         eval(popupScript)
 
         // 檢查進度更新功能已實現
@@ -558,6 +576,7 @@ describe('Popup Interface 整合測試', () => {
 
       test('應該能處理進度事件', () => {
         loadPopupInterface()
+        // eslint-disable-next-line no-eval
         eval(popupScript)
 
         // 檢查進度相關功能已實現
@@ -582,6 +601,7 @@ describe('Popup Interface 整合測試', () => {
 
       test('應該能展示提取結果統計', () => {
         loadPopupInterface()
+        // eslint-disable-next-line no-eval
         eval(popupScript)
 
         // 檢查結果展示功能已實現
@@ -610,6 +630,7 @@ describe('Popup Interface 整合測試', () => {
 
       test('應該能提供結果匯出功能', () => {
         loadPopupInterface()
+        // eslint-disable-next-line no-eval
         eval(popupScript)
 
         // 檢查匯出功能已實現
@@ -621,6 +642,7 @@ describe('Popup Interface 整合測試', () => {
     describe('🟢 綠燈階段 - 錯誤處理和使用者體驗', () => {
       test('應該能處理提取失敗情況', () => {
         loadPopupInterface()
+        // eslint-disable-next-line no-eval
         eval(popupScript)
 
         // 檢查錯誤處理功能已實現
@@ -652,6 +674,7 @@ describe('Popup Interface 整合測試', () => {
 
       test('應該能提供重試機制', () => {
         loadPopupInterface()
+        // eslint-disable-next-line no-eval
         eval(popupScript)
 
         // 檢查重試功能已實現

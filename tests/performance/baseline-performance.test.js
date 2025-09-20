@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * v0.9.35 基礎效能測試套件
  *

@@ -75,6 +75,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
       })
 
       const errorHandler = jest.fn((error) => {
+        // eslint-disable-next-line no-console
         console.log('處理錯誤:', error.message)
         return { errorHandled: true }
       })

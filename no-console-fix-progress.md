@@ -103,6 +103,43 @@ find tests/ -name "*.js" -exec sed -i '/console\./i\
 
 **第101-150個警告修復完成，共處理 43+ 個 console 語句**
 
+## 🎯 第二輪修復完成 (第151-173個警告)
+
+### 第151-173個警告修復檔案
+1. ✅ `src/core/migration/StandardErrorWrapper.js` - 4個 console 語句 (條件性 Logger 替代，新增 eslint-disable 後備方案)
+2. ✅ `tests/helpers/e2e-integration-test-coordinator.js` - 3個 console.warn 語句 (測試協調器，新增 eslint-disable)
+3. ✅ `tests/helpers/e2e-test-suite.js` - 8個 console 語句 (測試套件，新增 eslint-disable)
+4. ✅ `tests/helpers/message-flow-tracker.js` - 4個 console 語句 (測試追蹤器，新增 eslint-disable)
+5. ✅ `tests/infrastructure/unit-test-environment.js` - 已檢查，console 使用為 mock 設置，無需修復
+
+### 第二輪修復策略
+
+#### 生產代碼 (StandardErrorWrapper.js)
+```javascript
+// 優先使用 Logger 系統，console 作為後備方案
+if (Logger && Logger.warn) {
+  Logger.warn(`[StandardError 遷移] 未知錯誤代碼: ${code}`)
+} else if (typeof console !== 'undefined') {
+  // eslint-disable-next-line no-console
+  console.warn(`[StandardError 遷移] 未知錯誤代碼: ${code}`)
+}
+```
+
+#### 測試輔助檔案統一處理
+```javascript
+// 測試環境日誌輸出
+// eslint-disable-next-line no-console
+console.log(`[E2ETestSuite ${timestamp}] ${message}`)
+```
+
+### 累計修復統計 (第151-173個)
+- **條件性 Logger 替代**: 4 處 (StandardErrorWrapper.js)
+- **測試協調器註解**: 3 處 (e2e-integration-test-coordinator.js)
+- **測試套件註解**: 8 處 (e2e-test-suite.js)
+- **訊息追蹤器註解**: 4 處 (message-flow-tracker.js)
+
+**第二輪修復完成，共處理 19 個 console 語句**
+
 ## 🔧 驗證指令
 
 ```bash
@@ -111,5 +148,19 @@ npm run lint 2>&1 | grep "no-console" | wc -l
 
 # 檢查特定檔案
 npm run lint src/core/migration/StandardErrorWrapper.js
-npm run lint tests/performance/ErrorCodes-memory-benchmark.test.js
+npm run lint tests/helpers/e2e-test-suite.js
+npm run lint tests/helpers/message-flow-tracker.js
 ```
+
+## 📈 總體修復進度
+
+### 已完成修復輪次
+- **第一輪 (第101-150個)**: 43+ 個 console 語句 ✅
+- **第二輪 (第151-173個)**: 19 個 console 語句 ✅
+- **總計**: 62+ 個 console 語句已修復
+
+### 修復品質標準
+1. **生產代碼**: 優先 Logger 替代，後備 eslint-disable
+2. **測試代碼**: 統一 eslint-disable 註解
+3. **工具代碼**: 保留功能，新增 eslint-disable
+4. **Mock 代碼**: 保持原樣，無需修復

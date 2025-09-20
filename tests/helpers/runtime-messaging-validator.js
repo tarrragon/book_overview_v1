@@ -3,7 +3,6 @@
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
-const { StandardError } = require('src/core/errors/StandardError')
 
 class RuntimeMessagingValidator {
   constructor (testSuite) {

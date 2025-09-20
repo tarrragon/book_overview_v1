@@ -625,6 +625,7 @@ describe('Content Script Extractor Integration', () => {
           expect(flow2).toBeDefined()
           expect(flow1).not.toBe(flow2)
 
+          // eslint-disable-next-line no-console
           console.log('提取流程快速完成，驗證不同的flowID')
         }
       }
@@ -801,6 +802,7 @@ describe('Content Script Extractor Integration', () => {
       const contentContent = fs.readFileSync(contentPath, 'utf8')
 
       // 在當前上下文中執行 content script
+      // eslint-disable-next-line no-eval
       eval(contentContent)
 
       // 等待初始化完成
@@ -813,6 +815,7 @@ describe('Content Script Extractor Integration', () => {
       // 再次等待事件處理
       await new Promise(resolve => setTimeout(resolve, 200))
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('Content script 載入錯誤 (測試環境預期):', error.message)
     }
   }

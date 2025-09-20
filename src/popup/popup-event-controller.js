@@ -143,11 +143,12 @@ class PopupEventController extends EventHandler {
         case 'POPUP.STATUS.UPDATE':
           result = await this.handleStatusUpdate(data, flowId)
           break
-        default:
+        default: {
           const error = new Error(`Unsupported event type: ${type}`)
           error.code = ErrorCodes.UNKNOWN_ERROR
           error.details = { category: 'general', type }
           throw error
+        }
       }
 
       this.messageCount++

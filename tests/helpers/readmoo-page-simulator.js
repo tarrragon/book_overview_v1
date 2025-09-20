@@ -393,7 +393,7 @@ class ReadmooPageSimulator {
         category: book.category || '一般書籍',
         description: book.description || `這是書籍 ${index + 1} 的描述`,
         // 特殊情況處理
-        hasSpecialChars: /[^\x00-\x7F]/.test(book.title || ''),
+        hasSpecialChars: /[^\u0000-\u007F]/.test(book.title || ''),
         hasEmoji: /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]/u.test(book.title || ''),
         isLongTitle: (book.title || '').length > 50
       }

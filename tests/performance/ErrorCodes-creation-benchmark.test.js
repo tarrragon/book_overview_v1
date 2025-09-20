@@ -2,6 +2,8 @@
  * @jest-environment jsdom
  */
 
+/* eslint-disable no-console */
+
 /**
  * ErrorCodes 錯誤建立效能基準測試
  * v0.13.0 - Phase 2 效能基準建立與監控機制

@@ -223,57 +223,6 @@ class E2ETestDataGenerator {
   }
 
   /**
-   * 生成邊界條件書籍
-   * @returns {Array} 邊界條件書籍資料
-   * @private
-   */
-  generateEdgeCaseBooks () {
-    const edgeCases = [
-      // Unicode和emoji書籍
-      {
-        id: 'unicode-book',
-        title: '📚 Unicode測試書籍 🌟 包含各種特殊字符：中文、日文、韓文、阿拉伯文',
-        author: 'Unicode作者 👤',
-        progress: 50
-      },
-      // 長標題書籍
-      {
-        id: 'long-title-book',
-        title: '這是一個非常非常長的書籍標題，用來測試系統對超長標題的處理能力，包含多種文字和標點符號，以及數字1234567890'.repeat(3),
-        author: '長名稱作者'.repeat(10),
-        progress: 25
-      },
-      // 空值和null值書籍
-      {
-        id: 'null-values-book',
-        title: '',
-        author: null,
-        progress: null,
-        cover: null,
-        status: undefined
-      },
-      // 特殊字符書籍
-      {
-        id: 'special-chars-book',
-        title: '特殊字符測試：<>&"\'`~!@#$%^&*()_+-={}[]|\\:";\'<>?,./',
-        author: 'HTML & XML 作者',
-        progress: 75
-      },
-      // 極端數值書籍
-      {
-        id: 'extreme-values-book',
-        title: '極端數值測試',
-        author: '極端作者',
-        progress: -1, // 負數
-        rating: 10, // 超出範圍
-        pageCount: 0 // 零頁
-      }
-    ]
-
-    return edgeCases
-  }
-
-  /**
    * 生成混合書籍集合
    * @param {Array} mixConfig - 混合配置
    * @returns {Array} 混合書籍資料
@@ -548,10 +497,29 @@ class E2ETestDataGenerator {
       longTitles = true,
       missingData = true,
       corruptedData = true,
-      oversizedData = true
+      oversizedData = true,
+      includeUnicodeBooks = true
     } = config
 
     const books = []
+
+    // Unicode和emoji書籍
+    if (includeUnicodeBooks) {
+      books.push(
+        {
+          id: 'unicode-book',
+          title: '📚 Unicode測試書籍 🌟 包含各種特殊字符：中文、日文、韓文、阿拉伯文',
+          author: 'Unicode作者 👤',
+          progress: 50
+        },
+        {
+          id: 'special-chars-book',
+          title: '特殊字符測試：<>&"\'`~!@#$%^&*()_+-={}[]|\\:";\'<>?,./',
+          author: 'HTML & XML 作者',
+          progress: 75
+        }
+      )
+    }
 
     if (longTitles) {
       books.push({
@@ -583,18 +551,36 @@ class E2ETestDataGenerator {
           author: null,
           progress: null,
           cover: null
+        },
+        {
+          id: 'null-values-book',
+          title: '',
+          author: null,
+          progress: null,
+          cover: null,
+          status: undefined
         }
       )
     }
 
     if (corruptedData) {
-      books.push({
-        id: 'corrupted-book',
-        title: 'JSON測試："\\u0000\\u0001\\u0002',
-        author: '特殊控制字符作者',
-        progress: 'invalid', // 非數字進度
-        invalidField: { circular: null }
-      })
+      books.push(
+        {
+          id: 'corrupted-book',
+          title: 'JSON測試："\\u0000\\u0001\\u0002',
+          author: '特殊控制字符作者',
+          progress: 'invalid', // 非數字進度
+          invalidField: { circular: null }
+        },
+        {
+          id: 'extreme-values-book',
+          title: '極端數值測試',
+          author: '極端作者',
+          progress: -1, // 負數
+          rating: 10, // 超出範圍
+          pageCount: 0 // 零頁
+        }
+      )
     }
 
     if (oversizedData) {

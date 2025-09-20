@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * 效能優化整合測試
  *

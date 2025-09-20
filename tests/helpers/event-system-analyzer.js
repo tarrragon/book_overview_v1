@@ -578,7 +578,9 @@ class EventSystemAnalyzer {
           missingEvents: []
         }))
         : [],
-      timingAnalysis: analyzeEventTiming ? this.analyzeEventTiming() : null,
+      timingAnalysis: analyzeEventTiming
+        ? this.analyzeEventTiming()
+        : null,
       captureDetails: {
         duration,
         eventsPerSecond: mockEvents.length / (duration / 1000),
@@ -780,13 +782,17 @@ class EventSystemAnalyzer {
       dependencies: expectedDependencies,
       violations: [],
       // 測試期望的 dependencyViolations 屬性
-      dependencyViolations: trackViolations ? [] : null,
+      dependencyViolations: trackViolations
+        ? []
+        : null,
       // 測試期望的 allDependenciesSatisfied 屬性
       allDependenciesSatisfied: true,
       // 測試期望的 eventExecutionSequence 屬性
       eventExecutionSequence: eventSequence,
       // 測試期望的 averageDependencyLatency 屬性
-      averageDependencyLatency: measureDependencyLatency ? 145 : null,
+      averageDependencyLatency: measureDependencyLatency
+        ? 145
+        : null,
       // 測試期望的 parallelExecutions 屬性
       parallelExecutions: 4,
       latencyMeasurements: measureDependencyLatency

@@ -16,7 +16,6 @@
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const ChromeExtensionMocksEnhanced = require('../utils/chrome-extension-mocks-enhanced')
 const ErrorInjector = require('../utils/error-injector')
-const { StandardError } = require('src/core/errors/StandardError')
 
 class E2EIntegrationTestCoordinator {
   constructor () {
@@ -363,6 +362,7 @@ class E2EIntegrationTestCoordinator {
         result.averageLatency = latencies.reduce((a, b) => a + b, 0) / latencies.length
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('Cross-context communication test failed:', error.message)
     }
 
@@ -461,6 +461,7 @@ class E2EIntegrationTestCoordinator {
       // 執行記憶體清理
       await this.performMemoryCleanup()
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('Cleanup warning:', error.message)
     }
   }
@@ -490,6 +491,7 @@ class E2EIntegrationTestCoordinator {
       result.specialCharsPreserved = true
       result.noDataLoss = true
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('Data integrity validation failed:', error.message)
     }
 

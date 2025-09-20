@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * Platform Detection Service 效能基準測試
  *

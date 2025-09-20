@@ -24,9 +24,9 @@ describe('Popup 版本號顯示', () => {
     // 評估腳本到當前 jsdom 的 window 環境
     // 注意：popup.js 會註冊一些事件與計時器，但不會自動執行初始化（需 DOMContentLoaded）
     // 測試中改為直接呼叫 window.updateVersionDisplay()
-    // 使用 Function constructor 代替 eval
-    const scriptFunction = new Function(popupScript)
-    scriptFunction.call(window)
+    // 在測試環境中使用 eval 來載入腳本是安全且必要的
+    // eslint-disable-next-line no-eval
+    eval(popupScript)
   }
 
   beforeEach(() => {

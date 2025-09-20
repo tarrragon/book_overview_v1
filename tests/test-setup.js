@@ -196,6 +196,7 @@ afterEach(() => {
 
 // 全域錯誤處理
 process.on('unhandledRejection', (reason, promise) => {
+  // eslint-disable-next-line no-console
   console.error('Unhandled Rejection at:', promise, 'reason:', reason)
 })
 

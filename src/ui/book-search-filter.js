@@ -1079,11 +1079,12 @@ class BookSearchFilter extends BaseUIHandler {
       case 'reset':
         await this.resetFilters()
         return { status: 'filters-reset' }
-      default:
+      default: {
         const error = new Error(`未知的搜尋動作: ${data.action}`)
         error.code = ErrorCodes.UNKNOWN_ERROR
         error.details = { category: 'ui' }
         throw error
+      }
     }
   }
 }

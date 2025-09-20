@@ -14,7 +14,7 @@
  * - 可調參數：允許根據環境調整檢測靈敏度
  */
 
-import { ErrorCodes } from '../errors/ErrorCodes.js'
+// ErrorCodes 預留未來錯誤處理使用
 
 /**
  * 效能異常檢測器

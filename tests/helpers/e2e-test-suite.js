@@ -5,7 +5,6 @@
  * 負責測試環境設置、Chrome Extension模擬、測試資料管理
  */
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
-const { StandardError } = require('src/core/errors/StandardError')
 
 class E2ETestSuite {
   constructor (config = {}) {
@@ -266,6 +265,7 @@ class E2ETestSuite {
   log (message, level = 'info') {
     if (this.config.enableLogging !== false) {
       const timestamp = new Date().toISOString()
+      // eslint-disable-next-line no-console
       console.log(`[E2ETestSuite ${timestamp}] ${message}`)
     }
 
@@ -768,6 +768,7 @@ class E2ETestSuite {
         try {
           cleanupFn()
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.warn('清理操作失敗:', error.message)
         }
       })
@@ -781,6 +782,7 @@ class E2ETestSuite {
         delete global.chrome
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('測試套件清理失敗:', error.message)
     }
   }
@@ -827,6 +829,7 @@ class E2ETestSuite {
 
       throw (() => { const error = new Error('Invalid exported file format'); error.code = ErrorCodes.INVALID_INPUT_ERROR; error.details = { category: 'testing' }; return error })()
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to read exported file:', error)
       throw error
     }
@@ -855,6 +858,7 @@ class E2ETestSuite {
 
       return 0
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to get file size:', error)
       return 0
     }
@@ -1002,6 +1006,7 @@ class E2ETestSuite {
         version
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to create versioned export file:', error)
       throw error
     }
@@ -1060,6 +1065,7 @@ class E2ETestSuite {
     }
 
     if (this.diagnosticMode.verbose || level === 'error') {
+      // eslint-disable-next-line no-console
       console.log(`[DIAGNOSTIC ${level.toUpperCase()}]`, message, data)
     }
 
@@ -1154,6 +1160,7 @@ class E2ETestSuite {
     this.operationLogs.push(logEntry)
 
     if (this.detailedLogging.logLevel === 'debug') {
+      // eslint-disable-next-line no-console
       console.log(`[OPERATION] ${operation}`, details)
     }
 
@@ -1184,6 +1191,7 @@ class E2ETestSuite {
 
     this.errorLogs.push(logEntry)
 
+    // eslint-disable-next-line no-console
     console.error(`[ERROR] ${context}:`, error.message)
 
     // 清理舊日誌

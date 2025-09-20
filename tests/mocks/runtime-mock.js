@@ -1,5 +1,4 @@
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
-const { StandardError } = require('src/core/errors/StandardError')
 /**
  * Runtime Mock - Chrome Runtime API 模擬
  * 遵循 Five Lines 規則和單一責任原則

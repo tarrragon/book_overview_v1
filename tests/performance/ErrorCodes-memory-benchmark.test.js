@@ -2,6 +2,8 @@
  * @jest-environment jsdom
  */
 
+/* eslint-disable no-console */
+
 /**
  * ErrorCodes 記憶體使用基準測試
  * v0.13.0 - Phase 2 效能基準建立與監控機制

@@ -10,7 +10,7 @@
  * Phase 3: 雙重錯誤系統支援實作
  */
 
-const { StandardError, MIGRATION_MODES } = require('src/core/errors/StandardError')
+const { StandardError } = require('src/core/errors/StandardError')
 const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 /**
@@ -226,11 +226,12 @@ class DualErrorSystemBridge {
       case DUAL_SYSTEM_MODES.TRANSITIONAL:
         return this._processTransitional(error, errorType, options)
 
-      default:
+      default: {
         const implementationError = new Error(`未知的雙重系統模式: ${this.config.mode}`)
         implementationError.code = ErrorCodes.IMPLEMENTATION_ERROR
         implementationError.details = { mode: this.config.mode, category: 'migration' }
         throw implementationError
+      }
     }
   }
 

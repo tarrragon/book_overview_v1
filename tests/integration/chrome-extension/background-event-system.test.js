@@ -67,6 +67,7 @@ describe('Background Service Worker Event System Integration', () => {
       // 使用直接初始化的方式來確保全域變數設定
       await setupBackgroundEnvironment()
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('設定 background 環境失敗:', error)
     }
   })
@@ -96,6 +97,7 @@ describe('Background Service Worker Event System Integration', () => {
       // 保存協調器實例供其他測試使用
       global.backgroundCoordinator = backgroundCoordinator
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('Background 環境設定錯誤:', error.message)
       // 提供基本的 fallback
       global.eventBus = null
@@ -255,6 +257,7 @@ describe('Background Service Worker Event System Integration', () => {
         expect(mockSendResponse).toHaveBeenCalled()
       } else {
         // 如果 chromeBridge 不存在，跳過測試但不失敗
+        // eslint-disable-next-line no-console
         console.warn('ChromeBridge not available, skipping test')
       }
     })
@@ -293,6 +296,7 @@ describe('Background Service Worker Event System Integration', () => {
         expect(mockSendResponse).toHaveBeenCalled()
       } else {
         // 如果 chromeBridge 不存在，跳過測試但不失敗
+        // eslint-disable-next-line no-console
         console.warn('ChromeBridge not available, skipping test')
       }
     })

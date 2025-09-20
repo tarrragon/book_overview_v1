@@ -276,7 +276,7 @@ describe('ChromeStorageAdapter', () => {
     test('應該檢查儲存配額', async () => {
       // 修復：Chrome Storage API getBytesInUse 正確的回調格式
       mockChromeStorage.local.getBytesInUse.mockImplementation((keys, callback) => {
-        setTimeout(() => callback(524288), 0) // 0.5MB
+        setTimeout(() => callback && callback(524288), 0) // 0.5MB
       })
 
       const quotaInfo = await adapter.checkQuota()
@@ -291,7 +291,7 @@ describe('ChromeStorageAdapter', () => {
     test('應該偵測配額接近限制', async () => {
       // 修復：Chrome Storage API getBytesInUse 正確的回調格式
       mockChromeStorage.local.getBytesInUse.mockImplementation((keys, callback) => {
-        setTimeout(() => callback(943718), 0) // 90% 使用率
+        setTimeout(() => callback && callback(943718), 0) // 90% 使用率
       })
 
       const quotaInfo = await adapter.checkQuota()

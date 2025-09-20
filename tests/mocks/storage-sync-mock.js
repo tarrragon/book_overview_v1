@@ -9,7 +9,6 @@
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const StorageLocalMock = require('./storage-local-mock')
-const { StandardError } = require('src/core/errors/StandardError')
 
 /**
  * Chrome Storage Sync API Mock

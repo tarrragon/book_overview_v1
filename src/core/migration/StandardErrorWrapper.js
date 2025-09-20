@@ -294,6 +294,7 @@ export class StandardError extends Error {
       if (Logger && Logger.warn) {
         Logger.warn(`[StandardError 遷移] 未知錯誤代碼: ${code}`)
       } else if (typeof console !== 'undefined') {
+        // eslint-disable-next-line no-console
         console.warn(`[StandardError 遷移] 未知錯誤代碼: ${code}`)
       }
     }
@@ -342,6 +343,7 @@ export class StandardError extends Error {
       if (Logger && Logger.info) {
         Logger.info(`[雙重系統] StandardError: ${this.code} → ErrorCodes: ${this.errorCode}`)
       } else if (typeof console !== 'undefined') {
+        // eslint-disable-next-line no-console
         console.info(`[雙重系統] StandardError: ${this.code} → ErrorCodes: ${this.errorCode}`)
       }
     }
@@ -391,6 +393,7 @@ export class StandardError extends Error {
       if (Logger && Logger.info) {
         Logger.info('[StandardError 遷移進度]', report)
       } else if (typeof console !== 'undefined') {
+        // eslint-disable-next-line no-console
         console.info('[StandardError 遷移進度]', report)
       }
     }
@@ -449,6 +452,7 @@ export class StandardError extends Error {
       if (Logger && Logger.info) {
         Logger.info(`[StandardError 遷移] 模式已設定為: ${mode}`)
       } else if (typeof console !== 'undefined') {
+        // eslint-disable-next-line no-console
         console.info(`[StandardError 遷移] 模式已設定為: ${mode}`)
       }
     } else {

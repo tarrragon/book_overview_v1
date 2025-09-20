@@ -79,6 +79,7 @@ class MessageFlowTracker {
   async simulateMessageDeliveryFailure (options = {}) {
     const { failureRate = 0.3 } = options
     this.simulatedFailureRate = failureRate
+    // eslint-disable-next-line no-console
     console.log(`[MessageFlowTracker] Simulating ${failureRate * 100}% message failure rate`)
   }
 
@@ -114,6 +115,7 @@ class MessageFlowTracker {
       trackFailurePatterns = true
     } = options
 
+    // eslint-disable-next-line no-console
     console.log('[MessageFlowTracker] 開始捕獲重試行為分析')
 
     const retryData = {
@@ -293,6 +295,7 @@ class MessageFlowTracker {
       }
     } = options
 
+    // eslint-disable-next-line no-console
     console.log('[MessageFlowTracker] 啟用效能分析')
 
     this.performanceAnalysis = {
@@ -800,6 +803,7 @@ class MessageFlowTracker {
       })
     }
 
+    // eslint-disable-next-line no-console
     console.log(`[MessageFlowTracker] Generated ${messageCount} mock messages for ${monitorDuration}ms duration`)
     return messages
   }
