@@ -795,7 +795,11 @@ class DualErrorSystemBridge {
       overall: this._calculateOverallHealth(failureRate, cacheHitRate),
       failureRate,
       cacheEfficiency: cacheHitRate,
-      systemStability: failureRate < 0.05 ? 'stable' : failureRate < 0.1 ? 'moderate' : 'unstable',
+      systemStability: failureRate < 0.05
+        ? 'stable'
+        : failureRate < 0.1
+          ? 'moderate'
+          : 'unstable',
       migrationReadiness: this.systemState.migrationProgress > 0.8 ? 'ready' : 'in_progress'
     }
   }

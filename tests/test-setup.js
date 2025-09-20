@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * Jest 測試環境設定檔案
  * 負責設定測試所需的全域變數、模擬物件和通用測試工具

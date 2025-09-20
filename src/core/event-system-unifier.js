@@ -654,6 +654,7 @@ class EventCollaborationManager {
    */
   validateEventFlow () {
     // 檢查事件鏈的完整性
+    // eslint-disable-next-line no-unused-vars
     for (const [, events] of this.eventChains.entries()) {
       if (!this.isValidEventChain(events)) {
         return false

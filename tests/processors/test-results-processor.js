@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * 測試結果處理器
  * 處理 Jest 測試結果並產生自定義報告

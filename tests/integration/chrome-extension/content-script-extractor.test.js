@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * Chrome Extension Content Script 提取器整合測試
  *

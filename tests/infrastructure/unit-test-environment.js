@@ -54,7 +54,9 @@ class UnitTestEnvironment {
    * 設置Console Log Mock
    */
   _setupConsoleLog () {
+    // eslint-disable-next-line no-console
     const originalConsoleLog = console.log
+    // eslint-disable-next-line no-console
     console.log = jest.fn()
     this._mocks.set('console.log', originalConsoleLog)
   }
@@ -98,6 +100,7 @@ class UnitTestEnvironment {
    */
   _restoreMethod (path, original) {
     if (path === 'console.log') {
+      // eslint-disable-next-line no-console
       console.log = original
     } else if (path === 'Date.now') {
       Date.now = original

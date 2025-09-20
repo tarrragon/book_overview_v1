@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * Chrome Extension - Popup Interface 整合測試
  *

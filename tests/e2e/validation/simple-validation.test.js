@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * 簡化版端對端測試環境驗證
  *

@@ -495,6 +495,7 @@ const createEventBusMock = () => {
           try {
             handler(data)
           } catch (error) {
+            // eslint-disable-next-line no-console
             console.error(`Error in event handler for ${eventName}:`, error)
           }
         })

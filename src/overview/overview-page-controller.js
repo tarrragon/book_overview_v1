@@ -645,7 +645,9 @@ class OverviewPageController extends EventHandlerClass {
       progress: Number(book.progress || 0),
       status: book.status || '',
       cover: book.cover || '',
-      tags: Array.isArray(book.tags) ? book.tags : (book.tag ? [book.tag] : ['readmoo'])
+      tags: Array.isArray(book.tags)
+        ? book.tags
+        : (book.tag ? [book.tag] : ['readmoo'])
     }))
     return JSON.stringify({ books: rows }, null, 2)
   }

@@ -473,7 +473,11 @@ class UC06ErrorFactory {
    */
   static _calculateIndexHealth (corruptedFields, searchAccuracy) {
     const fieldPenalty = corruptedFields.length * 20
-    const accuracyScore = searchAccuracy === 'normal' ? 100 : searchAccuracy === 'degraded' ? 50 : 0
+    const accuracyScore = searchAccuracy === 'normal'
+      ? 100
+      : searchAccuracy === 'degraded'
+        ? 50
+        : 0
     return Math.max(0, accuracyScore - fieldPenalty)
   }
 

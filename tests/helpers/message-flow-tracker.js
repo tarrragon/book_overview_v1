@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * Message Flow Tracker - 訊息流追蹤工具

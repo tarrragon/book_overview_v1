@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * Chrome Web Store 上架準備整合測試
  *

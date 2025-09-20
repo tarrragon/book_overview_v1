@@ -30,11 +30,16 @@ class FinalWarningsFixer {
         console.log('🔍 分析當前 warnings 分佈...');
 
         try {
-            const lintOutput = execSync('npm run lint', { encoding: 'utf8', stdio: 'pipe' });
+            const lintOutput = execSync('npm run lint 2>&1', {
+                encoding: 'utf8',
+                cwd: process.cwd(),
+                maxBuffer: 1024 * 1024 * 10
+            });
             return this.parseLintOutput(lintOutput);
         } catch (error) {
             // ESLint 有 warnings 時會返回非零退出碼
-            return this.parseLintOutput(error.stdout || error.message);
+            const output = error.stdout || error.stderr || error.message || '';
+            return this.parseLintOutput(output);
         }
     }
 
@@ -391,10 +396,12 @@ class FinalWarningsFixer {
         // 驗證修復結果
         console.log('\n🔍 驗證修復結果...');
         try {
+            // 等待檔案寫入完成
+            await new Promise(resolve => setTimeout(resolve, 1000));
             const finalWarnings = this.analyzeWarnings();
             const remainingCount = finalWarnings.length;
             const improvement = warnings.length - remainingCount;
-            const improvementPercent = ((improvement / warnings.length) * 100).toFixed(1);
+            const improvementPercent = warnings.length > 0 ? ((improvement / warnings.length) * 100).toFixed(1) : '0.0';
 
             console.log(`📈 改善統計:`);
             console.log(`  修復前: ${warnings.length} warnings`);

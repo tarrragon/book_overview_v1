@@ -245,6 +245,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
           expect(avgResponseTime).toBeLessThan(200) // 平均UI響應<200ms
         }
       } else {
+        // eslint-disable-next-line no-console
         console.warn('狀態更新訂閱沒有正常工作，跳過狀態更新檢查')
         expect(operationResult.success).toBe(true) // 至少驗證操作成功
       }
@@ -301,6 +302,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       if (concurrencyAnalysis.finalStateConsistent !== undefined) {
         expect(concurrencyAnalysis.finalStateConsistent).toBe(true)
       } else {
+        // eslint-disable-next-line no-console
         console.warn('並發分析資料不完整，跳過部分檢查')
       }
 

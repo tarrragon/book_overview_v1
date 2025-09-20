@@ -238,3 +238,8 @@
 - 影響評估: Critical
 - 發現時間: Sat Sep 20 23:45:53 CST 2025
 
+## 🚨 需要追蹤的問題 - Sun Sep 21 00:17:44 CST 2025
+- ESLint 錯誤需要立即修復
+- 影響評估: Critical
+- 發現時間: Sun Sep 21 00:17:44 CST 2025
+

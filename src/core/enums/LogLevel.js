@@ -50,7 +50,9 @@ function compareLogLevels (level1, level2) {
     throw error
   }
 
-  return value1 < value2 ? -1 : (value1 > value2 ? 1 : 0)
+  return value1 < value2
+    ? -1
+    : (value1 > value2 ? 1 : 0)
 }
 
 /**

@@ -575,6 +575,7 @@ describe('事件系統跨模組整合測試', () => {
         expect(recoveryAnalysis.recoveryTime).toBeLessThan(8000) // 恢復時間<8秒
       } else {
         // 如果恢復時間為 undefined，跳過檢查（v0.12.9 修正：允許恢復指標為 undefined）
+        // eslint-disable-next-line no-console
         console.log('恢復時間和恢復成功狀態皆為 undefined，跳過檢查')
       }
       // v0.12.9 修正: 僅在 recoverySuccess 定義時檢查

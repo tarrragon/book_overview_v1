@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * 端到端測試套件框架
  *

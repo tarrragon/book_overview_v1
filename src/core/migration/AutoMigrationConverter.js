@@ -642,7 +642,11 @@ class AutoMigrationConverter {
     const effort = baseEffort[opportunity.strategy] || '中'
 
     if (opportunity.matchCount > 10) {
-      return effort === '低' ? '中' : effort === '中' ? '高' : '很高'
+      return effort === '低'
+        ? '中'
+        : effort === '中'
+          ? '高'
+          : '很高'
     }
 
     return effort

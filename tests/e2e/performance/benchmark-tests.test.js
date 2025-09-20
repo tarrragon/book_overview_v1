@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * Chrome Extension 效能基準測試
  *

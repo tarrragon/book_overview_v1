@@ -449,7 +449,11 @@ class PerformanceMonitor {
       const mean = profile.growthPattern.reduce((a, b) => a + b, 0) / profile.growthPattern.length
       const variance = profile.growthPattern.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / profile.growthPattern.length
       profile.variability = Math.sqrt(variance)
-      profile.trend = mean > 0 ? 'growing' : mean < 0 ? 'decreasing' : 'stable'
+      profile.trend = mean > 0
+        ? 'growing'
+        : mean < 0
+          ? 'decreasing'
+          : 'stable'
     }
 
     return profile

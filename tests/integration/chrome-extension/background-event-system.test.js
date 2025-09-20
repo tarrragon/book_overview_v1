@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * Chrome Extension Background Service Worker 事件系統整合測試
  *

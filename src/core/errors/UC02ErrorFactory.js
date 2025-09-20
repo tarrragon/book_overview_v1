@@ -542,7 +542,11 @@ class UC02ErrorFactory {
     return {
       estimatedDuration: estimatedTime,
       complexityScore,
-      riskLevel: complexityScore > 4 ? 'HIGH' : complexityScore > 2 ? 'MEDIUM' : 'LOW',
+      riskLevel: complexityScore > 4
+        ? 'HIGH'
+        : complexityScore > 2
+          ? 'MEDIUM'
+          : 'LOW',
       recommendedBatchSize: cleanupPlan.batchSizeReduction || 1,
       canRunInBackground: complexityScore <= 3
     }

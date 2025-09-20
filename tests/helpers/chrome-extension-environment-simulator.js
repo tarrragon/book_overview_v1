@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * Chrome Extension Environment Simulator
  * 模擬真實的Chrome Extension執行環境，支援多上下文和API互動

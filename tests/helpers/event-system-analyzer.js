@@ -1990,24 +1990,40 @@ class EventSystemAnalyzer {
       healthIndicators: {
         event_processing_rate: {
           score: Math.round(eventRateScore * 100) / 100,
-          status: eventRateScore > 0.8 ? 'healthy' : eventRateScore > 0.6 ? 'warning' : 'critical',
+          status: eventRateScore > 0.8
+            ? 'healthy'
+            : eventRateScore > 0.6
+              ? 'warning'
+              : 'critical',
           trend: 'measured',
           actualRate: Math.round(eventProcessingRate * 100) / 100
         },
         error_rate: {
           score: Math.round(errorRateScore * 100) / 100,
-          status: errorRateScore > 0.9 ? 'excellent' : errorRateScore > 0.7 ? 'good' : 'poor',
+          status: errorRateScore > 0.9
+            ? 'excellent'
+            : errorRateScore > 0.7
+              ? 'good'
+              : 'poor',
           trend: 'measured',
           actualErrorRate: Math.round(errorRate * 10000) / 100 // percentage
         },
         memory_usage: {
           score: Math.round(memoryScore * 100) / 100,
-          status: memoryScore > 0.7 ? 'good' : memoryScore > 0.5 ? 'warning' : 'critical',
+          status: memoryScore > 0.7
+            ? 'good'
+            : memoryScore > 0.5
+              ? 'warning'
+              : 'critical',
           trend: memoryGrowthMB < 5 ? 'stable' : 'growing',
           memoryGrowthMB: Math.round(memoryGrowthMB * 100) / 100
         },
         queue_depth: {
-          score: recentEvents.length < 100 ? 0.9 : recentEvents.length < 200 ? 0.7 : 0.5,
+          score: recentEvents.length < 100
+            ? 0.9
+            : recentEvents.length < 200
+              ? 0.7
+              : 0.5,
           status: recentEvents.length < 100 ? 'healthy' : 'warning',
           trend: 'measured',
           currentQueueSize: recentEvents.length
@@ -2148,19 +2164,31 @@ class EventSystemAnalyzer {
       healthIndicators: {
         event_processing_rate: {
           score: Math.round(eventRateScore * 100) / 100,
-          status: eventRateScore > 0.8 ? 'healthy' : eventRateScore > 0.6 ? 'warning' : 'critical',
+          status: eventRateScore > 0.8
+            ? 'healthy'
+            : eventRateScore > 0.6
+              ? 'warning'
+              : 'critical',
           trend: 'measured',
           actualRate: Math.round(eventProcessingRate * 100) / 100
         },
         error_rate: {
           score: Math.round(errorRateScore * 100) / 100,
-          status: errorRateScore > 0.9 ? 'excellent' : errorRateScore > 0.7 ? 'good' : 'poor',
+          status: errorRateScore > 0.9
+            ? 'excellent'
+            : errorRateScore > 0.7
+              ? 'good'
+              : 'poor',
           trend: errorRate < 0.05 ? 'improving' : 'stable',
           actualErrorRate: Math.round(errorRate * 10000) / 100 // percentage
         },
         memory_usage: {
           score: Math.round(memoryScore * 100) / 100,
-          status: memoryScore > 0.7 ? 'good' : memoryScore > 0.5 ? 'warning' : 'critical',
+          status: memoryScore > 0.7
+            ? 'good'
+            : memoryScore > 0.5
+              ? 'warning'
+              : 'critical',
           trend: memoryGrowthMB < 5 ? 'stable' : 'growing',
           memoryUsagePercent: Math.round(memoryUsagePercent * 100)
         },
@@ -2183,7 +2211,11 @@ class EventSystemAnalyzer {
         healthy: 0.8
       },
       healthMonitoring: {
-        overallHealth: overallHealthScore > 0.8 ? 'healthy' : overallHealthScore > 0.6 ? 'warning' : 'critical',
+        overallHealth: overallHealthScore > 0.8
+          ? 'healthy'
+          : overallHealthScore > 0.6
+            ? 'warning'
+            : 'critical',
         healthScore: Math.round(overallHealthScore * 100) / 100,
         componentHealth: componentHealthAnalysis,
         performanceMetrics: {
@@ -2200,7 +2232,11 @@ class EventSystemAnalyzer {
           ? [{
               timestamp: Date.now(),
               reportType: 'comprehensive',
-              healthStatus: overallHealthScore > 0.8 ? 'green' : overallHealthScore > 0.6 ? 'yellow' : 'red',
+              healthStatus: overallHealthScore > 0.8
+                ? 'green'
+                : overallHealthScore > 0.6
+                  ? 'yellow'
+                  : 'red',
               criticalIssues: diagnosticsResults.criticalIssues,
               warnings: diagnosticsResults.warnings,
               recommendations: diagnosticsResults.recommendations.slice(0, 3)
@@ -2240,7 +2276,11 @@ class EventSystemAnalyzer {
         timestamp: Date.now(),
         completeness: diagnosticsResults.completeness,
         actionableInsights: diagnosticsResults.recommendations.length,
-        severity: overallHealthScore > 0.8 ? 'low' : overallHealthScore > 0.6 ? 'medium' : 'high',
+        severity: overallHealthScore > 0.8
+          ? 'low'
+          : overallHealthScore > 0.6
+            ? 'medium'
+            : 'high',
         recommendations: diagnosticsResults.recommendations
       }],
 
@@ -3082,8 +3122,16 @@ class EventSystemAnalyzer {
     const errorRate = totalEvents > 0 ? errorEvents.length / totalEvents : 0
 
     // 基於實際指標評估組件健康狀態
-    const eventBusHealth = errorRate < 0.05 ? 'healthy' : errorRate < 0.15 ? 'warning' : 'critical'
-    const messageQueueHealth = totalEvents < 1000 ? 'healthy' : totalEvents < 2000 ? 'warning' : 'critical'
+    const eventBusHealth = errorRate < 0.05
+      ? 'healthy'
+      : errorRate < 0.15
+        ? 'warning'
+        : 'critical'
+    const messageQueueHealth = totalEvents < 1000
+      ? 'healthy'
+      : totalEvents < 2000
+        ? 'warning'
+        : 'critical'
     const eventHandlersHealth = errorRate < 0.1 ? 'healthy' : 'warning'
     const circuitBreakersHealth = errorRate < 0.2 ? 'healthy' : 'warning'
 
@@ -3200,8 +3248,16 @@ class EventSystemAnalyzer {
     const degradationEvents = Math.min(2, Math.floor(errorEvents.length / 20))
 
     // 預測健康分數
-    const trend = errorEvents.length < 5 ? 'improving' : errorEvents.length > 20 ? 'degrading' : 'stable'
-    const trendFactor = trend === 'improving' ? 1.05 : trend === 'degrading' ? 0.95 : 1.0
+    const trend = errorEvents.length < 5
+      ? 'improving'
+      : errorEvents.length > 20
+        ? 'degrading'
+        : 'stable'
+    const trendFactor = trend === 'improving'
+      ? 1.05
+      : trend === 'degrading'
+        ? 0.95
+        : 1.0
     const projectedHealth = Math.min(1.0, Math.max(0.6, currentHealthScore * trendFactor))
 
     return {

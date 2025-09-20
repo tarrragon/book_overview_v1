@@ -294,7 +294,15 @@ class MemoryUtils {
     const fragmentationScore = 100 - Math.min(trend.growth.percentage * 2, 100)
     const score = Math.round((cleanupRate + fragmentationScore) / 2)
 
-    const grade = score >= 90 ? 'A' : score >= 80 ? 'B' : score >= 70 ? 'C' : score >= 60 ? 'D' : 'F'
+    const grade = score >= 90
+      ? 'A'
+      : score >= 80
+        ? 'B'
+        : score >= 70
+          ? 'C'
+          : score >= 60
+            ? 'D'
+            : 'F'
 
     return {
       allocation: {

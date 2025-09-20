@@ -25,6 +25,7 @@ module.exports = (request, options) => {
     }
 
     // 如果沒找到，回傳原始請求讓預設解析器處理
+    // eslint-disable-next-line no-console
     console.warn(`Jest resolver: 無法解析路徑 ${request} -> ${absolutePath}`)
   }
 

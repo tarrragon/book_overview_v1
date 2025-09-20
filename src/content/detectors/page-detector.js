@@ -167,6 +167,7 @@ function createPageDetector () {
       // 建立新的觀察器
       changeObserver = new MutationObserver(() => {
         const location = getLocation()
+        // eslint-disable-next-line no-unused-vars
         const currentUrl = location.href || ''
         const cachedUrl = detector._cachedUrl || ''
 

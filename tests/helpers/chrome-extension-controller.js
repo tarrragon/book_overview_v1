@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * Chrome Extension 控制器
  *
@@ -2956,7 +2958,11 @@ class ChromeExtensionController {
         currentOperation: this.state.storage.get('currentOperation') || 'idle',
         estimatedTimeRemaining: Math.max(0, (1 - currentProgress) * 60000), // 估計剩餘時間（毫秒）
         operationsPerSecond: this.state.storage.get('operationSpeed') || 1.5,
-        status: currentProgress >= 1.0 ? 'completed' : currentProgress > 0 ? 'processing' : 'ready'
+        status: currentProgress >= 1.0
+          ? 'completed'
+          : currentProgress > 0
+            ? 'processing'
+            : 'ready'
       },
 
       // 額外的系統狀態資訊
