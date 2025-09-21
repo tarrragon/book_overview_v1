@@ -10,15 +10,18 @@
  * - 事件處理和服務整合
  */
 
+// eslint-disable-next-line no-unused-vars
 const UXDomainCoordinator = require('src/background/domains/user-experience/ux-domain-coordinator')
 
 // Mock 依賴服務
+// eslint-disable-next-line no-unused-vars
 const mockEventBus = {
   emit: jest.fn(),
   on: jest.fn(),
   off: jest.fn()
 }
 
+// eslint-disable-next-line no-unused-vars
 const mockLogger = {
   log: jest.fn(),
   warn: jest.fn(),
@@ -27,10 +30,13 @@ const mockLogger = {
 
 // 建立共用的 Mock 服務實例
 // 這裡創建一個全局的 Mock 服務池，讓所有實例共用相同的 Mock 方法
+// eslint-disable-next-line no-unused-vars
 const mockServicesPool = {}
 
+// eslint-disable-next-line no-unused-vars
 const createMockService = (serviceName, extraMethods = {}) => {
   // 創建共用的 Mock 方法集合
+  // eslint-disable-next-line no-unused-vars
   const mockMethods = {
     initialize: jest.fn().mockResolvedValue(),
     start: jest.fn().mockResolvedValue(),
@@ -39,9 +45,11 @@ const createMockService = (serviceName, extraMethods = {}) => {
   }
 
   // 返回 Mock 構造函數
+  // eslint-disable-next-line no-unused-vars
   const MockConstructor = jest.fn().mockImplementation(function () {
     // 將共用的 Mock 方法分配給實例
     // 使用 Object.defineProperties 來創建引用，確保動態更新
+    // eslint-disable-next-line no-unused-vars
     const instance = this
     Object.keys(mockMethods).forEach(methodName => {
       Object.defineProperty(instance, methodName, {
@@ -120,6 +128,7 @@ jest.mock('../../../../../src/background/constants/module-constants', () => ({
 }))
 
 describe('🎨 UX Domain 協調器測試', () => {
+  // eslint-disable-next-line no-unused-vars
   let coordinator
   let dependencies
 
@@ -127,11 +136,17 @@ describe('🎨 UX Domain 協調器測試', () => {
     jest.clearAllMocks()
 
     // 手動設定 Mock 服務池 - 確保所有 Mock 方法都可訪問
+    // eslint-disable-next-line no-unused-vars
     const ThemeManagementService = require('src/background/domains/user-experience/services/theme-management-service')
+    // eslint-disable-next-line no-unused-vars
     const PreferenceService = require('src/background/domains/user-experience/services/preference-service')
+    // eslint-disable-next-line no-unused-vars
     const NotificationService = require('src/background/domains/user-experience/services/notification-service')
+    // eslint-disable-next-line no-unused-vars
     const PopupUICoordinationService = require('src/background/domains/user-experience/services/popup-ui-coordination-service')
+    // eslint-disable-next-line no-unused-vars
     const PersonalizationService = require('src/background/domains/user-experience/services/personalization-service')
+    // eslint-disable-next-line no-unused-vars
     const AccessibilityService = require('src/background/domains/user-experience/services/accessibility-service')
 
     mockServicesPool.ThemeManagementService = ThemeManagementService.mockMethods
@@ -263,12 +278,15 @@ describe('🎨 UX Domain 協調器測試', () => {
     })
 
     test('應該正確協調主題變更', async () => {
+      // eslint-disable-next-line no-unused-vars
       const theme = 'dark'
 
       // 記錄初始統計 - 因為初始化時可能已經設定過預設主題
+      // eslint-disable-next-line no-unused-vars
       const initialThemeChanges = coordinator.stats.themeChanges
 
       // 執行主題協調
+      // eslint-disable-next-line no-unused-vars
       const result = await coordinator.coordinateThemeChange(theme)
 
       // 驗證結果
@@ -298,6 +316,7 @@ describe('🎨 UX Domain 協調器測試', () => {
     })
 
     test('應該處理無效主題錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidTheme = 'invalid-theme'
 
       // Mock 主題服務拋出錯誤 - 使用 mockServicesPool 訪問
@@ -325,12 +344,14 @@ describe('🎨 UX Domain 協調器測試', () => {
     })
 
     test('應該正確協調 Popup 狀態', async () => {
+      // eslint-disable-next-line no-unused-vars
       const popupState = {
         status: 'ready',
         currentPage: { url: 'https://readmoo.com' }
       }
 
       // 執行 Popup 狀態協調
+      // eslint-disable-next-line no-unused-vars
       const result = await coordinator.coordinatePopupState(popupState)
 
       // 驗證結果
@@ -356,12 +377,14 @@ describe('🎨 UX Domain 協調器測試', () => {
     })
 
     test('應該處理錯誤狀態並顯示通知', async () => {
+      // eslint-disable-next-line no-unused-vars
       const errorState = {
         status: 'error',
         error: { message: '提取失敗' }
       }
 
       // Mock 通知服務 - 使用 mockServicesPool 更新 Mock 行為
+      // eslint-disable-next-line no-unused-vars
       const showNotificationSpy = jest.fn().mockResolvedValue()
       mockServicesPool.NotificationService.showNotification = showNotificationSpy
 
@@ -384,10 +407,13 @@ describe('🎨 UX Domain 協調器測試', () => {
     })
 
     test('應該正確協調偏好設定更新', async () => {
+      // eslint-disable-next-line no-unused-vars
       const key = 'ui.language'
+      // eslint-disable-next-line no-unused-vars
       const value = 'zh-TW'
 
       // 執行偏好設定協調
+      // eslint-disable-next-line no-unused-vars
       const result = await coordinator.coordinatePreferenceUpdate(key, value)
 
       // 驗證結果
@@ -412,10 +438,13 @@ describe('🎨 UX Domain 協調器測試', () => {
     })
 
     test('應該協調主題相關偏好變更', async () => {
+      // eslint-disable-next-line no-unused-vars
       const themeKey = 'theme'
+      // eslint-disable-next-line no-unused-vars
       const themeValue = 'dark'
 
       // Mock coordinateThemeChange 方法
+      // eslint-disable-next-line no-unused-vars
       const coordinateThemeChangeSpy = jest.spyOn(coordinator, 'coordinateThemeChange')
         .mockResolvedValue({ success: true })
 
@@ -430,7 +459,9 @@ describe('🎨 UX Domain 協調器測試', () => {
     })
 
     test('應該協調 Popup 相關偏好變更', async () => {
+      // eslint-disable-next-line no-unused-vars
       const popupKey = 'popup.autoClose'
+      // eslint-disable-next-line no-unused-vars
       const popupValue = true
 
       // 執行 Popup 偏好協調
@@ -448,6 +479,7 @@ describe('🎨 UX Domain 協調器測試', () => {
 
     test('應該正確執行 UX 就緒檢查', async () => {
       // 執行就緒檢查
+      // eslint-disable-next-line no-unused-vars
       const result = await coordinator.performUXReadinessCheck()
 
       // 驗證檢查結果
@@ -465,6 +497,7 @@ describe('🎨 UX Domain 協調器測試', () => {
       mockServicesPool.ThemeManagementService.getHealthStatus.mockReturnValue({ healthy: false })
 
       // 執行就緒檢查
+      // eslint-disable-next-line no-unused-vars
       const result = await coordinator.performUXReadinessCheck()
 
       // 驗證檢查結果
@@ -474,6 +507,7 @@ describe('🎨 UX Domain 協調器測試', () => {
     })
 
     test('應該獲取正確的狀態資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const status = coordinator.getStatus()
 
       // 驗證狀態結構
@@ -490,6 +524,7 @@ describe('🎨 UX Domain 協調器測試', () => {
     })
 
     test('應該獲取正確的健康狀態', () => {
+      // eslint-disable-next-line no-unused-vars
       const healthStatus = coordinator.getHealthStatus()
 
       // 驗證健康狀態結構
@@ -558,8 +593,11 @@ describe('🎨 UX Domain 協調器測試', () => {
       await coordinator.start()
 
       // 記錄初始統計值 - 因為初始化過程可能已執行某些操作
+      // eslint-disable-next-line no-unused-vars
       const initialThemeChanges = coordinator.stats.themeChanges
+      // eslint-disable-next-line no-unused-vars
       const initialPopupCoordinations = coordinator.stats.popupCoordinations
+      // eslint-disable-next-line no-unused-vars
       const initialPreferencesUpdated = coordinator.stats.preferencesUpdated
 
       // 執行各種操作

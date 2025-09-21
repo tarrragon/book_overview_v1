@@ -9,12 +9,16 @@
  * - 依賴注入功能
  */
 
+// eslint-disable-next-line no-unused-vars
 const BaseModule = require('src/background/lifecycle/base-module')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('BaseModule', () => {
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockLogger
+  // eslint-disable-next-line no-unused-vars
   let mockConfig
   let dependencies
   let baseModule
@@ -74,11 +78,13 @@ describe('BaseModule', () => {
     })
 
     test('應該使用預設的 console 當 logger 未提供', () => {
+      // eslint-disable-next-line no-unused-vars
       const moduleWithoutLogger = new BaseModule({ eventBus: mockEventBus })
       expect(moduleWithoutLogger.logger).toBe(console)
     })
 
     test('應該允許空的依賴項', () => {
+      // eslint-disable-next-line no-unused-vars
       const moduleWithEmptyDeps = new BaseModule()
       expect(moduleWithEmptyDeps.eventBus).toBe(null)
       expect(moduleWithEmptyDeps.logger).toBe(console)
@@ -98,6 +104,7 @@ describe('BaseModule', () => {
 
     test('應該防止重複初始化', async () => {
       await baseModule.initialize()
+      // eslint-disable-next-line no-unused-vars
       const firstState = baseModule.isInitialized
 
       await baseModule.initialize()
@@ -168,6 +175,7 @@ describe('BaseModule', () => {
     test('應該跳過重複啟動', async () => {
       await baseModule.initialize()
       await baseModule.start()
+      // eslint-disable-next-line no-unused-vars
       const firstStartTime = baseModule.startTime
 
       await baseModule.start()
@@ -272,6 +280,7 @@ describe('BaseModule', () => {
   // ==================== 健康狀態檢查 ====================
   describe('健康狀態檢查', () => {
     test('應該返回基本健康狀態', () => {
+      // eslint-disable-next-line no-unused-vars
       const health = baseModule.getHealthStatus()
 
       expect(health).toEqual({
@@ -294,6 +303,7 @@ describe('BaseModule', () => {
       // 等待一小段時間
       await new Promise(resolve => setTimeout(resolve, 10))
 
+      // eslint-disable-next-line no-unused-vars
       const health = baseModule.getHealthStatus()
       expect(health.uptime).toBeGreaterThan(0)
       expect(health.isRunning).toBe(true)
@@ -302,6 +312,7 @@ describe('BaseModule', () => {
 
     test('應該正確報告模組狀態', async () => {
       await baseModule.initialize()
+      // eslint-disable-next-line no-unused-vars
       const health = baseModule.getHealthStatus()
 
       expect(health.isInitialized).toBe(true)
@@ -318,6 +329,7 @@ describe('BaseModule', () => {
         // 預期的錯誤
       }
 
+      // eslint-disable-next-line no-unused-vars
       const health = baseModule.getHealthStatus()
       expect(health.hasInitializationError).toBe(true)
       expect(health.initializationError).toBe('初始化失敗')
@@ -342,6 +354,7 @@ describe('BaseModule', () => {
       await baseModule.start()
       await baseModule.cleanup()
 
+      // eslint-disable-next-line no-unused-vars
       const health = baseModule.getHealthStatus()
       expect(health.uptime).toBe(0)
     })
@@ -367,6 +380,7 @@ describe('BaseModule', () => {
       await baseModule.initialize()
       await baseModule.start()
 
+      // eslint-disable-next-line no-unused-vars
       const stopSpy = jest.spyOn(baseModule, 'stop')
       await baseModule.cleanup()
 
@@ -383,6 +397,7 @@ describe('BaseModule', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const testModule = new TestModule(dependencies)
       await testModule.initialize()
 
@@ -397,6 +412,7 @@ describe('BaseModule', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const testModule = new TestModule(dependencies)
       await testModule.initialize()
       await testModule.start()
@@ -411,6 +427,7 @@ describe('BaseModule', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const testModule = new TestModule(dependencies)
       await testModule.initialize()
       await testModule.start()
@@ -426,6 +443,7 @@ describe('BaseModule', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const testModule = new TestModule(dependencies)
       await testModule.cleanup()
 
@@ -439,7 +457,9 @@ describe('BaseModule', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const testModule = new TestModule(dependencies)
+      // eslint-disable-next-line no-unused-vars
       const health = testModule.getHealthStatus()
 
       expect(health.customHealth).toBe('excellent')

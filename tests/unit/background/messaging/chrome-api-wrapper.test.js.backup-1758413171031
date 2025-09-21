@@ -10,17 +10,13 @@
  * 6. Manifest V3 版本相容性檢查
  */
 
-// eslint-disable-next-line no-unused-vars
 const ChromeApiWrapper = require('src/background/messaging/chrome-api-wrapper')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
-// eslint-disable-next-line no-unused-vars
 const { StandardError } = require('src/core/errors/StandardError')
 
 describe('ChromeApiWrapper', () => {
   let chromeApiWrapper
-  // eslint-disable-next-line no-unused-vars
   let mockChrome
-  // eslint-disable-next-line no-unused-vars
   let mockLogger
 
   beforeEach(async () => {
@@ -186,12 +182,10 @@ describe('ChromeApiWrapper', () => {
     })
 
     test('應該在沒有 lastError 時正常回傳結果', async () => {
-      // eslint-disable-next-line no-unused-vars
       const mockResult = { data: 'test' }
       mockChrome.runtime.lastError = null
       mockChrome.storage.local.get.mockReturnValue(mockResult)
 
-      // eslint-disable-next-line no-unused-vars
       const result = await chromeApiWrapper.executeApiCall('storage.local.get', [{}])
 
       expect(result).toBe(mockResult)
@@ -200,18 +194,15 @@ describe('ChromeApiWrapper', () => {
 
   describe('Promise 處理', () => {
     test('應該正確處理 Promise 回應', async () => {
-      // eslint-disable-next-line no-unused-vars
       const mockResult = { data: 'test' }
       mockChrome.storage.local.get.mockReturnValue(Promise.resolve(mockResult))
 
-      // eslint-disable-next-line no-unused-vars
       const result = await chromeApiWrapper.executeApiCall('storage.local.get', [{}])
 
       expect(result).toBe(mockResult)
     })
 
     test('應該正確處理 Promise 拒絕', async () => {
-      // eslint-disable-next-line no-unused-vars
       const mockError = new Error('Storage error')
       mockChrome.storage.local.get.mockReturnValue(Promise.reject(mockError))
 
@@ -223,33 +214,25 @@ describe('ChromeApiWrapper', () => {
 
   describe('重試邏輯', () => {
     test('應該在禁用重試時不重試', () => {
-      // eslint-disable-next-line no-unused-vars
       const error = new Error('Network error')
-      // eslint-disable-next-line no-unused-vars
       const options = { noRetry: true }
 
-      // eslint-disable-next-line no-unused-vars
       const result = chromeApiWrapper.shouldRetry(error, options)
 
       expect(result).toBe(false)
     })
 
     test('應該在達到最大重試次數時不重試', () => {
-      // eslint-disable-next-line no-unused-vars
       const error = new Error('Network error')
-      // eslint-disable-next-line no-unused-vars
       const options = { retryCount: 3, maxRetries: 3 }
 
-      // eslint-disable-next-line no-unused-vars
       const result = chromeApiWrapper.shouldRetry(error, options)
 
       expect(result).toBe(false)
     })
 
     test('應該在錯誤可重試時允許重試', () => {
-      // eslint-disable-next-line no-unused-vars
       const error = new Error('Network error')
-      // eslint-disable-next-line no-unused-vars
       const options = { retryCount: 1, maxRetries: 3 }
 
       // 設置可重試錯誤配置
@@ -258,16 +241,13 @@ describe('ChromeApiWrapper', () => {
         retryableErrors: ['Network error', 'Timeout']
       }
 
-      // eslint-disable-next-line no-unused-vars
       const result = chromeApiWrapper.shouldRetry(error, options)
 
       expect(result).toBe(true)
     })
 
     test('應該在錯誤不可重試時拒絕重試', () => {
-      // eslint-disable-next-line no-unused-vars
       const error = new Error('Permission denied')
-      // eslint-disable-next-line no-unused-vars
       const options = { retryCount: 1, maxRetries: 3 }
 
       // 設置可重試錯誤配置
@@ -276,7 +256,6 @@ describe('ChromeApiWrapper', () => {
         retryableErrors: ['Network error', 'Timeout']
       }
 
-      // eslint-disable-next-line no-unused-vars
       const result = chromeApiWrapper.shouldRetry(error, options)
 
       expect(result).toBe(false)
@@ -285,13 +264,10 @@ describe('ChromeApiWrapper', () => {
 
   describe('API 方法測試', () => {
     test('storageGet 應該正確調用 callChromeApi', async () => {
-      // eslint-disable-next-line no-unused-vars
       const mockResult = { key: 'value' }
-      // eslint-disable-next-line no-unused-vars
       const spy = jest.spyOn(chromeApiWrapper, 'callChromeApi')
         .mockResolvedValue(mockResult)
 
-      // eslint-disable-next-line no-unused-vars
       const result = await chromeApiWrapper.storageGet({ key: null })
 
       expect(spy).toHaveBeenCalledWith('storage.local.get', [{ key: null }])
@@ -301,15 +277,11 @@ describe('ChromeApiWrapper', () => {
     })
 
     test('tabsQuery 應該正確調用 callChromeApi', async () => {
-      // eslint-disable-next-line no-unused-vars
       const mockTabs = [{ id: 1, url: 'https://example.com' }]
-      // eslint-disable-next-line no-unused-vars
       const spy = jest.spyOn(chromeApiWrapper, 'callChromeApi')
         .mockResolvedValue(mockTabs)
 
-      // eslint-disable-next-line no-unused-vars
       const query = { active: true }
-      // eslint-disable-next-line no-unused-vars
       const result = await chromeApiWrapper.tabsQuery(query)
 
       expect(spy).toHaveBeenCalledWith('tabs.query', [query])
@@ -319,15 +291,11 @@ describe('ChromeApiWrapper', () => {
     })
 
     test('runtimeSendMessage 應該正確調用 callChromeApi', async () => {
-      // eslint-disable-next-line no-unused-vars
       const mockResponse = { success: true }
-      // eslint-disable-next-line no-unused-vars
       const spy = jest.spyOn(chromeApiWrapper, 'callChromeApi')
         .mockResolvedValue(mockResponse)
 
-      // eslint-disable-next-line no-unused-vars
       const message = { type: 'test' }
-      // eslint-disable-next-line no-unused-vars
       const result = await chromeApiWrapper.runtimeSendMessage(message)
 
       expect(spy).toHaveBeenCalledWith('runtime.sendMessage', [message, {}])
@@ -339,14 +307,12 @@ describe('ChromeApiWrapper', () => {
 
   describe('錯誤統計與狀態管理', () => {
     test('updateApiStats 應該正確更新統計資料', () => {
-      // eslint-disable-next-line no-unused-vars
       const apiPath = 'storage.local.get'
 
       // 先調用 attempt，再調用 success
       chromeApiWrapper.updateApiStats(apiPath, 'attempt')
       chromeApiWrapper.updateApiStats(apiPath, 'success', 100)
 
-      // eslint-disable-next-line no-unused-vars
       const stats = chromeApiWrapper.apiStats
       expect(stats.byApi.get(apiPath)).toBeDefined()
       expect(stats.success).toBe(1)
@@ -354,12 +320,10 @@ describe('ChromeApiWrapper', () => {
     })
 
     test('updateErrorStats 應該正確更新錯誤統計', () => {
-      // eslint-disable-next-line no-unused-vars
       const errorMessage = 'Network connection failed'
 
       chromeApiWrapper.updateErrorStats(errorMessage)
 
-      // eslint-disable-next-line no-unused-vars
       const stats = chromeApiWrapper.apiStats
       expect(stats.byError.size).toBeGreaterThan(0)
     })
@@ -370,7 +334,6 @@ describe('ChromeApiWrapper', () => {
       chromeApiWrapper.apiStats.success = 8
       chromeApiWrapper.apiStats.failed = 2
 
-      // eslint-disable-next-line no-unused-vars
       const status = chromeApiWrapper.getChromeApiStatus()
 
       expect(status.stats.total).toBe(10)
