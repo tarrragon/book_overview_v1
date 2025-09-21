@@ -9,6 +9,7 @@
  */
 
 // Mock Chrome API
+// eslint-disable-next-line no-unused-vars
 const mockChrome = {
   runtime: {
     sendMessage: jest.fn(),
@@ -28,7 +29,9 @@ global.chrome = mockChrome
 
 describe('PopupCommunicationService 核心功能', () => {
   let communicationService
+  // eslint-disable-next-line no-unused-vars
   let mockStatusManager
+  // eslint-disable-next-line no-unused-vars
   let mockProgressManager
 
   beforeEach(() => {
@@ -52,10 +55,12 @@ describe('PopupCommunicationService 核心功能', () => {
   describe('📡 Background Service Worker 通訊', () => {
     test('應該正確檢查 Background 狀態', async () => {
       // Given: 在測試環境中，應該直接返回測試模式結果
+      // eslint-disable-next-line no-unused-vars
       const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
       // When: 檢查 Background 狀態（測試環境）
+      // eslint-disable-next-line no-unused-vars
       const result = await communicationService.checkBackgroundStatus()
 
       // Then: 測試環境應該返回測試模式結果
@@ -72,9 +77,11 @@ describe('PopupCommunicationService 核心功能', () => {
 
     test('應該正確處理通訊超時', async () => {
       // Given: 模擬非測試環境
+      // eslint-disable-next-line no-unused-vars
       const originalNodeEnv = process.env.NODE_ENV
       process.env.NODE_ENV = 'development'
 
+      // eslint-disable-next-line no-unused-vars
       const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
@@ -100,9 +107,11 @@ describe('PopupCommunicationService 核心功能', () => {
 
     test('應該正確處理 Chrome API 錯誤', async () => {
       // Given: 模擬非測試環境
+      // eslint-disable-next-line no-unused-vars
       const originalNodeEnv = process.env.NODE_ENV
       process.env.NODE_ENV = 'development'
 
+      // eslint-disable-next-line no-unused-vars
       const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
@@ -130,14 +139,17 @@ describe('PopupCommunicationService 核心功能', () => {
   describe('📋 Content Script 通訊', () => {
     test('應該正確發送提取開始訊息', async () => {
       // Given: 有效的標籤頁資料
+      // eslint-disable-next-line no-unused-vars
       const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
+      // eslint-disable-next-line no-unused-vars
       const mockTab = { id: 123, url: 'https://readmoo.com/library' }
       mockChrome.tabs.query.mockImplementation((query, callback) => {
         callback([mockTab])
       })
 
+      // eslint-disable-next-line no-unused-vars
       const mockExtractionResponse = {
         success: true,
         message: '提取已開始',
@@ -148,6 +160,7 @@ describe('PopupCommunicationService 核心功能', () => {
       })
 
       // When: 發送提取開始訊息
+      // eslint-disable-next-line no-unused-vars
       const result = await communicationService.startExtraction()
 
       // Then: 訊息正確發送並處理回應
@@ -165,9 +178,11 @@ describe('PopupCommunicationService 核心功能', () => {
 
     test('應該正確處理非 Readmoo 頁面', async () => {
       // Given: 非 Readmoo 頁面
+      // eslint-disable-next-line no-unused-vars
       const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
+      // eslint-disable-next-line no-unused-vars
       const mockTab = { id: 123, url: 'https://google.com' }
       mockChrome.tabs.query.mockImplementation((query, callback) => {
         callback([mockTab])
@@ -187,6 +202,7 @@ describe('PopupCommunicationService 核心功能', () => {
 
     test('應該正確處理沒有活躍標籤頁的情況', async () => {
       // Given: 沒有活躍標籤頁
+      // eslint-disable-next-line no-unused-vars
       const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
@@ -210,6 +226,7 @@ describe('PopupCommunicationService 核心功能', () => {
   describe('📨 訊息監聽和處理', () => {
     test('應該正確註冊訊息監聽器', () => {
       // Given: 通訊服務
+      // eslint-disable-next-line no-unused-vars
       const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
@@ -224,9 +241,11 @@ describe('PopupCommunicationService 核心功能', () => {
 
     test('應該正確處理進度更新訊息', () => {
       // Given: 通訊服務和進度更新訊息
+      // eslint-disable-next-line no-unused-vars
       const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
+      // eslint-disable-next-line no-unused-vars
       const progressMessage = {
         type: 'EXTRACTION_PROGRESS',
         data: {
@@ -237,6 +256,7 @@ describe('PopupCommunicationService 核心功能', () => {
       }
 
       // When: 處理訊息
+      // eslint-disable-next-line no-unused-vars
       const messageHandler = mockChrome.runtime.onMessage.addListener.mock.calls[0][0]
       messageHandler(progressMessage, {}, jest.fn())
 
@@ -250,9 +270,11 @@ describe('PopupCommunicationService 核心功能', () => {
 
     test('應該正確處理提取完成訊息', () => {
       // Given: 通訊服務和完成訊息
+      // eslint-disable-next-line no-unused-vars
       const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
+      // eslint-disable-next-line no-unused-vars
       const completionMessage = {
         type: 'EXTRACTION_COMPLETED',
         data: {
@@ -264,6 +286,7 @@ describe('PopupCommunicationService 核心功能', () => {
       }
 
       // When: 處理訊息
+      // eslint-disable-next-line no-unused-vars
       const messageHandler = mockChrome.runtime.onMessage.addListener.mock.calls[0][0]
       messageHandler(completionMessage, {}, jest.fn())
 
@@ -285,10 +308,12 @@ describe('PopupCommunicationService 核心功能', () => {
   describe('🔧 工具方法和輔助功能', () => {
     test('應該正確檢測 Readmoo 頁面', () => {
       // Given: 通訊服務
+      // eslint-disable-next-line no-unused-vars
       const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
 
       // When: 測試各種 URL
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { url: 'https://readmoo.com/library', expected: true },
         { url: 'https://www.readmoo.com/books', expected: true },
@@ -298,6 +323,7 @@ describe('PopupCommunicationService 核心功能', () => {
       ]
 
       testCases.forEach(({ url, expected }) => {
+        // eslint-disable-next-line no-unused-vars
         const result = communicationService.isReadmooPage(url)
         expect(result).toBe(expected)
       })
@@ -305,6 +331,7 @@ describe('PopupCommunicationService 核心功能', () => {
 
     test('應該正確清理資源', () => {
       // Given: 初始化的通訊服務
+      // eslint-disable-next-line no-unused-vars
       const PopupCommunicationService = require('src/popup/services/popup-communication-service.js')
       communicationService = new PopupCommunicationService(mockStatusManager, mockProgressManager)
       communicationService.initialize()

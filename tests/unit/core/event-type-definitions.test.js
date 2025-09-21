@@ -9,6 +9,7 @@
  * - 事件結構完整性
  */
 
+// eslint-disable-next-line no-unused-vars
 const EventTypeDefinitions = require('src/core/events/event-type-definitions')
 
 describe('EventTypeDefinitions', () => {
@@ -27,6 +28,7 @@ describe('EventTypeDefinitions', () => {
     })
 
     test('應該載入完整的領域定義', () => {
+      // eslint-disable-next-line no-unused-vars
       const expectedDomains = [
         'SYSTEM', 'PLATFORM', 'EXTRACTION', 'DATA',
         'MESSAGING', 'PAGE', 'UX', 'SECURITY', 'ANALYTICS'
@@ -38,6 +40,7 @@ describe('EventTypeDefinitions', () => {
     })
 
     test('應該載入完整的平台定義', () => {
+      // eslint-disable-next-line no-unused-vars
       const expectedPlatforms = [
         'READMOO', 'KINDLE', 'KOBO', 'BOOKS_COM',
         'BOOKWALKER', 'UNIFIED', 'MULTI', 'GENERIC'
@@ -49,6 +52,7 @@ describe('EventTypeDefinitions', () => {
     })
 
     test('應該載入完整的動作定義', () => {
+      // eslint-disable-next-line no-unused-vars
       const expectedActions = [
         'INIT', 'START', 'STOP', 'EXTRACT', 'SAVE', 'LOAD',
         'DETECT', 'SWITCH', 'VALIDATE', 'PROCESS', 'SYNC',
@@ -61,6 +65,7 @@ describe('EventTypeDefinitions', () => {
     })
 
     test('應該載入完整的狀態定義', () => {
+      // eslint-disable-next-line no-unused-vars
       const expectedStates = [
         'REQUESTED', 'STARTED', 'PROGRESS', 'COMPLETED',
         'FAILED', 'CANCELLED', 'TIMEOUT', 'SUCCESS', 'ERROR'
@@ -74,6 +79,7 @@ describe('EventTypeDefinitions', () => {
 
   describe('事件名稱格式驗證', () => {
     test('應該驗證正確的 v2.0 事件名稱格式', () => {
+      // eslint-disable-next-line no-unused-vars
       const validEvents = [
         'EXTRACTION.READMOO.EXTRACT.COMPLETED',
         'DATA.READMOO.SAVE.COMPLETED',
@@ -88,6 +94,7 @@ describe('EventTypeDefinitions', () => {
     })
 
     test('應該拒絕無效的事件名稱格式', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidEvents = [
         'EXTRACTION.COMPLETED', // 舊格式
         'EXTRACTION.READMOO.EXTRACT', // 缺少狀態
@@ -103,6 +110,7 @@ describe('EventTypeDefinitions', () => {
     })
 
     test('應該驗證事件名稱各部分的有效性', () => {
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         ['EXTRACTION.READMOO.EXTRACT.COMPLETED', true],
         ['INVALID_DOMAIN.READMOO.EXTRACT.COMPLETED', false],
@@ -119,7 +127,9 @@ describe('EventTypeDefinitions', () => {
 
   describe('事件類型分解和驗證', () => {
     test('應該正確分解事件名稱', () => {
+      // eslint-disable-next-line no-unused-vars
       const eventName = 'EXTRACTION.READMOO.EXTRACT.COMPLETED'
+      // eslint-disable-next-line no-unused-vars
       const parts = eventTypes.parseEventName(eventName)
 
       expect(parts.domain).toBe('EXTRACTION')
@@ -158,45 +168,55 @@ describe('EventTypeDefinitions', () => {
 
   describe('事件類型建構', () => {
     test('應該建構有效的事件名稱', () => {
+      // eslint-disable-next-line no-unused-vars
       const eventName = eventTypes.buildEventName('EXTRACTION', 'READMOO', 'EXTRACT', 'COMPLETED')
       expect(eventName).toBe('EXTRACTION.READMOO.EXTRACT.COMPLETED')
     })
 
     test('應該拒絕無效的事件建構參數', () => {
-      expect(() => {
+      // 測試無效的 domain
+      try {
         eventTypes.buildEventName('INVALID', 'READMOO', 'EXTRACT', 'COMPLETED')
-      }).toMatchObject({
-        code: expect.any(String),
-        message: expect.stringContaining('Invalid domain'),
-        details: expect.any(Object)
-      })
+        throw new Error('Should have thrown an error')
+      } catch (error) {
+        expect(error.message).toContain('Invalid domain')
+        expect(error.code).toBeDefined()
+        expect(error.details).toBeDefined()
+      }
 
-      expect(() => {
+      // 測試無效的 platform
+      try {
         eventTypes.buildEventName('EXTRACTION', 'INVALID', 'EXTRACT', 'COMPLETED')
-      }).toMatchObject({
-        code: expect.any(String),
-        message: expect.stringContaining('Invalid platform'),
-        details: expect.any(Object)
-      })
+        throw new Error('Should have thrown an error')
+      } catch (error) {
+        expect(error.message).toContain('Invalid platform')
+        expect(error.code).toBeDefined()
+        expect(error.details).toBeDefined()
+      }
 
-      expect(() => {
+      // 測試無效的 action
+      try {
         eventTypes.buildEventName('EXTRACTION', 'READMOO', 'INVALID', 'COMPLETED')
-      }).toMatchObject({
-        code: expect.any(String),
-        message: expect.stringContaining('Invalid action'),
-        details: expect.any(Object)
-      })
+        throw new Error('Should have thrown an error')
+      } catch (error) {
+        expect(error.message).toContain('Invalid action')
+        expect(error.code).toBeDefined()
+        expect(error.details).toBeDefined()
+      }
 
-      expect(() => {
+      // 測試無效的 state
+      try {
         eventTypes.buildEventName('EXTRACTION', 'READMOO', 'EXTRACT', 'INVALID')
-      }).toMatchObject({
-        code: expect.any(String),
-        message: expect.stringContaining('Invalid state'),
-        details: expect.any(Object)
-      })
+        throw new Error('Should have thrown an error')
+      } catch (error) {
+        expect(error.message).toContain('Invalid state')
+        expect(error.code).toBeDefined()
+        expect(error.details).toBeDefined()
+      }
     })
 
     test('應該支援部分事件名稱建構', () => {
+      // eslint-disable-next-line no-unused-vars
       const partialName = eventTypes.buildPartialEventName('EXTRACTION', 'READMOO')
       expect(partialName).toBe('EXTRACTION.READMOO')
     })
@@ -204,6 +224,7 @@ describe('EventTypeDefinitions', () => {
 
   describe('事件類型查詢', () => {
     test('應該根據領域查詢相關平台', () => {
+      // eslint-disable-next-line no-unused-vars
       const extractionPlatforms = eventTypes.getPlatformsForDomain('EXTRACTION')
       expect(extractionPlatforms).toContain('READMOO')
       expect(extractionPlatforms).toContain('KINDLE')
@@ -211,6 +232,7 @@ describe('EventTypeDefinitions', () => {
     })
 
     test('應該根據平台查詢相關動作', () => {
+      // eslint-disable-next-line no-unused-vars
       const readmooActions = eventTypes.getActionsForPlatform('READMOO')
       expect(readmooActions).toContain('EXTRACT')
       expect(readmooActions).toContain('SAVE')
@@ -219,6 +241,7 @@ describe('EventTypeDefinitions', () => {
     })
 
     test('應該根據動作查詢相關狀態', () => {
+      // eslint-disable-next-line no-unused-vars
       const extractStates = eventTypes.getStatesForAction('EXTRACT')
       expect(extractStates).toContain('STARTED')
       expect(extractStates).toContain('PROGRESS')
@@ -227,6 +250,7 @@ describe('EventTypeDefinitions', () => {
     })
 
     test('應該查詢事件類型的完整定義', () => {
+      // eslint-disable-next-line no-unused-vars
       const definition = eventTypes.getEventDefinition('EXTRACTION.READMOO.EXTRACT.COMPLETED')
 
       expect(definition.domain).toBe('EXTRACTION')
@@ -240,6 +264,7 @@ describe('EventTypeDefinitions', () => {
 
   describe('事件類型分類', () => {
     test('應該正確分類系統相關事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const systemEvents = [
         'SYSTEM.GENERIC.INIT.COMPLETED',
         'SYSTEM.GENERIC.ERROR.DETECTED',
@@ -247,12 +272,14 @@ describe('EventTypeDefinitions', () => {
       ]
 
       systemEvents.forEach(eventName => {
+        // eslint-disable-next-line no-unused-vars
         const category = eventTypes.getEventCategory(eventName)
         expect(category).toBe('SYSTEM')
       })
     })
 
     test('應該正確分類業務處理事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const businessEvents = [
         'EXTRACTION.READMOO.EXTRACT.COMPLETED',
         'DATA.READMOO.SAVE.COMPLETED',
@@ -260,12 +287,14 @@ describe('EventTypeDefinitions', () => {
       ]
 
       businessEvents.forEach(eventName => {
+        // eslint-disable-next-line no-unused-vars
         const category = eventTypes.getEventCategory(eventName)
         expect(category).toBe('BUSINESS')
       })
     })
 
     test('應該正確分類使用者介面事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const uiEvents = [
         'UX.GENERIC.OPEN.COMPLETED',
         'UX.GENERIC.CLOSE.COMPLETED',
@@ -273,12 +302,14 @@ describe('EventTypeDefinitions', () => {
       ]
 
       uiEvents.forEach(eventName => {
+        // eslint-disable-next-line no-unused-vars
         const category = eventTypes.getEventCategory(eventName)
         expect(category).toBe('UI')
       })
     })
 
     test('應該正確分類平台管理事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const platformEvents = [
         'PLATFORM.READMOO.DETECT.COMPLETED',
         'PLATFORM.READMOO.SWITCH.REQUESTED',
@@ -286,6 +317,7 @@ describe('EventTypeDefinitions', () => {
       ]
 
       platformEvents.forEach(eventName => {
+        // eslint-disable-next-line no-unused-vars
         const category = eventTypes.getEventCategory(eventName)
         expect(category).toBe('PLATFORM')
       })
@@ -294,11 +326,13 @@ describe('EventTypeDefinitions', () => {
 
   describe('事件類型驗證規則', () => {
     test('應該驗證事件名稱長度限制', () => {
+      // eslint-disable-next-line no-unused-vars
       const longEventName = 'A'.repeat(100) + '.READMOO.EXTRACT.COMPLETED'
       expect(eventTypes.isValidEventName(longEventName)).toBe(false)
     })
 
     test('應該驗證事件名稱字符限制', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidChars = [
         'EXTRACTION.READMOO.EXTRACT.COMPLETED!',
         'EXTRACTION.READMOO.EXTRACT.COMPLETED@',
@@ -325,6 +359,7 @@ describe('EventTypeDefinitions', () => {
 
   describe('事件類型建議', () => {
     test('應該為無效事件名稱提供建議', () => {
+      // eslint-disable-next-line no-unused-vars
       const suggestions = eventTypes.suggestCorrections('EXTRACTION.COMPLETED')
 
       expect(suggestions.length).toBeGreaterThan(0)
@@ -332,12 +367,14 @@ describe('EventTypeDefinitions', () => {
     })
 
     test('應該為拼寫錯誤提供建議', () => {
+      // eslint-disable-next-line no-unused-vars
       const suggestions = eventTypes.suggestCorrections('EXTRACTOIN.READMOO.EXTRACT.COMPLETED')
 
       expect(suggestions).toContain('EXTRACTION.READMOO.EXTRACT.COMPLETED')
     })
 
     test('應該為部分匹配提供多個建議', () => {
+      // eslint-disable-next-line no-unused-vars
       const suggestions = eventTypes.suggestCorrections('PLATFORM.READMOO.DET')
 
       expect(suggestions.length).toBeGreaterThan(0)
@@ -352,6 +389,7 @@ describe('EventTypeDefinitions', () => {
       eventTypes.recordEventUsage('DATA.READMOO.SAVE.COMPLETED')
       eventTypes.recordEventUsage('EXTRACTION.READMOO.EXTRACT.COMPLETED')
 
+      // eslint-disable-next-line no-unused-vars
       const stats = eventTypes.getUsageStats()
       expect(stats.totalEvents).toBe(3)
       expect(stats.uniqueEvents).toBe(2)
@@ -364,6 +402,7 @@ describe('EventTypeDefinitions', () => {
       eventTypes.recordEventUsage('DATA.READMOO.SAVE.COMPLETED')
       eventTypes.recordEventUsage('UX.GENERIC.OPEN.COMPLETED')
 
+      // eslint-disable-next-line no-unused-vars
       const distribution = eventTypes.getDomainDistribution()
       expect(distribution.EXTRACTION).toBe(1)
       expect(distribution.DATA).toBe(1)
@@ -375,6 +414,7 @@ describe('EventTypeDefinitions', () => {
       eventTypes.recordEventUsage('EXTRACTION.KINDLE.EXTRACT.COMPLETED')
       eventTypes.recordEventUsage('UX.GENERIC.OPEN.COMPLETED')
 
+      // eslint-disable-next-line no-unused-vars
       const distribution = eventTypes.getPlatformDistribution()
       expect(distribution.READMOO).toBe(1)
       expect(distribution.KINDLE).toBe(1)
@@ -399,6 +439,7 @@ describe('EventTypeDefinitions', () => {
       eventTypes.isValidEventName('INVALID.FORMAT')
       eventTypes.isValidEventName('ANOTHER.INVALID')
 
+      // eslint-disable-next-line no-unused-vars
       const errorStats = eventTypes.getValidationErrorStats()
       expect(errorStats.totalErrors).toBe(2)
       expect(errorStats.errorTypes.INVALID_FORMAT).toBeGreaterThan(0)
@@ -407,25 +448,30 @@ describe('EventTypeDefinitions', () => {
 
   describe('效能測試', () => {
     test('應該快速驗證大量事件名稱', () => {
+      // eslint-disable-next-line no-unused-vars
       const eventNames = []
       for (let i = 0; i < 1000; i++) {
         eventNames.push(`EXTRACTION.READMOO.EXTRACT.COMPLETED_${i}`)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
       eventNames.forEach(name => eventTypes.isValidEventName(name))
+      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
 
       expect(endTime - startTime).toBeLessThan(100) // 應該在 100ms 內完成
     })
 
     test('應該快速建構大量事件名稱', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
       for (let i = 0; i < 1000; i++) {
         eventTypes.buildEventName('EXTRACTION', 'READMOO', 'EXTRACT', 'COMPLETED')
       }
 
+      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
       expect(endTime - startTime).toBeLessThan(50) // 應該在 50ms 內完成
     })

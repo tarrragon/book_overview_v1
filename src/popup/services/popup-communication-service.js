@@ -85,7 +85,7 @@ class PopupCommunicationService {
         })
 
         const error = new Error(errorMsg)
-        error.code = ErrorCodes.CHROME_ERROR
+        error.code = ErrorCodes.TIMEOUT_ERROR
         error.details = { category: 'general' }
         reject(error)
       }, 2000) // 改為 2 秒超時
@@ -113,7 +113,7 @@ class PopupCommunicationService {
           })
 
           const error = new Error(errorMsg)
-          error.code = ErrorCodes.CHROME_ERROR
+          error.code = ErrorCodes.INVALID_INPUT_ERROR
           error.details = { category: 'general' }
           reject(error)
           return

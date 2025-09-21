@@ -114,7 +114,10 @@ class OperationResult {
   throwIfFailure () {
     if (!this.success && this.error) {
       // 使用 ErrorCodes 格式重新拋出，保留原始錯誤資訊
-      const error = new Error(this.error.message || 'Operation failed')
+      const errorMessage = this.error.code
+        ? `Operation failed: ${this.error.message} (${this.error.code})`
+        : this.error.message || 'Operation failed'
+      const error = new Error(errorMessage)
       error.code = this.error.code || ErrorCodes.OPERATION_ERROR
       error.details = this.error.details || {}
       throw error
@@ -130,7 +133,13 @@ class OperationResult {
     return {
       success: this.success,
       data: this.data,
-      error: this.error ? this.error.toJSON() : null,
+      error: this.error
+        ? {
+            message: this.error.message,
+            code: this.error.code,
+            details: this.error.details
+          }
+        : null,
       status: this.status,
       metadata: this.metadata
     }
@@ -209,7 +218,10 @@ class OperationResult {
     if (this.success) {
       return `OperationResult: Success (${this.data ? 'with data' : 'no data'})`
     } else {
-      return `OperationResult: Failure - ${this.error ? this.error.toString() : 'Unknown error'}`
+      const errorStr = this.error
+        ? `Error [${this.error.code || 'UNKNOWN'}]: ${this.error.message}`
+        : 'Unknown error'
+      return `OperationResult: Failure - ${errorStr}`
     }
   }
 }

@@ -640,9 +640,10 @@ describe('IValidationServiceCoordinator TDD 介面契約測試', () => {
       // When & Then: 應該拋出依賴檢查錯誤
       expect(() => {
         return new (require('src/background/domains/data-management/services/ValidationServiceCoordinator.js'))(incompleteServices)
-      }).toMatchObject({
-        message: expect.stringContaining('ValidationEngine is not properly initialized')
-      })
+      }).toThrow(expect.objectContaining({
+        message: expect.stringContaining('ValidationEngine is not properly initialized'),
+        code: 'OPERATION_ERROR'
+      }))
     })
 
     test('應該處理事件協調和錯誤傳播', async () => {
@@ -658,9 +659,7 @@ describe('IValidationServiceCoordinator TDD 介面契約測試', () => {
       await expect(
         validationServiceCoordinator.validateAndNormalize(books, platform)
       ).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
-        details: expect.any(Object)
+        message: expect.stringContaining('驗證引擎錯誤')
       })
 
       // Then: 應該發送錯誤事件

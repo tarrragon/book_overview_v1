@@ -29,7 +29,7 @@
 /**
  * v2.0 事件類型定義配置
  */
-const ErrorCodes = require('src/core/errors/ErrorCodes')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 const EVENT_TYPE_CONFIG = {
   // 領域定義
