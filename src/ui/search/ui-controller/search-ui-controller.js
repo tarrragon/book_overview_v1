@@ -47,7 +47,8 @@
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
-const { Logger } = require('src/core/logging/Logger')
+// eslint-disable-next-line no-unused-vars
+const { _Logger } = require('src/core/logging/Logger')
 
 class SearchUIController {
   /**
