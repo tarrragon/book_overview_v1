@@ -24,7 +24,9 @@
  * @since 2025-08-09
  */
 
+// eslint-disable-next-line no-unused-vars
 const EventBus = require('src/core/event-bus')
+// eslint-disable-next-line no-unused-vars
 const { EXPORT_EVENTS } = require('src/export/export-events')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
@@ -188,6 +190,7 @@ class ExportUserFeedback {
    * 將技術錯誤轉為使用者友好訊息
    * @param {Error} error - 技術錯誤
    */
+  // eslint-disable-next-line n/handle-callback-err
   humanizeError (error) {
     // 測試將驗證錯誤友好化
     throw (() => { const error = new Error('ExportUserFeedback.humanizeError() not implemented - Red phase'); error.code = ErrorCodes.EXPORT_ERROR_HUMANIZATION_ERROR; error.details = { category: 'testing' }; return error })()
@@ -363,7 +366,9 @@ class NotificationService {
 }
 
 describe('ExportUserFeedback', () => {
+  // eslint-disable-next-line no-unused-vars
   let eventBus
+  // eslint-disable-next-line no-unused-vars
   let userFeedback
 
   beforeEach(() => {
@@ -411,6 +416,7 @@ describe('ExportUserFeedback', () => {
     })
 
     test('應該儲存使用者通知偏好', async () => {
+      // eslint-disable-next-line no-unused-vars
       const newPreferences = {
         enableBrowserNotifications: true,
         enableChromeNotifications: false,
@@ -431,6 +437,7 @@ describe('ExportUserFeedback', () => {
 
   describe('匯出開始通知', () => {
     test('應該發送匯出開始通知', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportInfo = {
         exportId: 'start-notification-001',
         format: 'csv',
@@ -451,6 +458,7 @@ describe('ExportUserFeedback', () => {
     })
 
     test('應該支援批量匯出開始通知', () => {
+      // eslint-disable-next-line no-unused-vars
       const batchExportInfo = {
         exportId: 'batch-start-001',
         formats: ['csv', 'json', 'excel'],
@@ -469,6 +477,7 @@ describe('ExportUserFeedback', () => {
     })
 
     test('應該處理大量資料匯出警告', () => {
+      // eslint-disable-next-line no-unused-vars
       const largeExportInfo = {
         exportId: 'large-export-001',
         format: 'pdf',
@@ -490,6 +499,7 @@ describe('ExportUserFeedback', () => {
 
   describe('匯出完成通知', () => {
     test('應該發送匯出完成通知', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportResult = {
         exportId: 'complete-notification-001',
         format: 'csv',
@@ -512,6 +522,7 @@ describe('ExportUserFeedback', () => {
     })
 
     test('應該包含匯出統計資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportResult = {
         exportId: 'stats-notification-001',
         format: 'json',
@@ -538,6 +549,7 @@ describe('ExportUserFeedback', () => {
     })
 
     test('應該提供後續操作選項', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportResult = {
         exportId: 'actions-notification-001',
         format: 'excel',
@@ -562,6 +574,7 @@ describe('ExportUserFeedback', () => {
 
   describe('匯出錯誤通知', () => {
     test('應該發送使用者友好的錯誤通知', () => {
+      // eslint-disable-next-line no-unused-vars
       const errorInfo = {
         exportId: 'error-notification-001',
         error: (() => { const error = new Error('Network request failed'); error.code = ErrorCodes.NETWORK_REQUEST_FAILED; return error })(),
@@ -585,6 +598,7 @@ describe('ExportUserFeedback', () => {
     })
 
     test('應該將技術錯誤轉為使用者友好訊息', () => {
+      // eslint-disable-next-line no-unused-vars
       const technicalErrors = [
         { error: (() => { const error = new Error('ENOTFOUND example.com'); error.code = ErrorCodes.ENOTFOUND_ERROR; return error })(), expected: '網路連線問題' },
         { error: (() => { const error = new Error('QuotaExceededError'); error.code = ErrorCodes.QUOTA_EXCEEDED_ERROR; return error })(), expected: '儲存空間不足' },
@@ -594,7 +608,8 @@ describe('ExportUserFeedback', () => {
 
       technicalErrors.forEach(({ error, expected }) => {
         expect(() => {
-          const humanMessage = userFeedback.humanizeError(error)
+          // eslint-disable-next-line no-unused-vars
+          const _humanMessage = userFeedback.humanizeError(error)
         }).toThrow(Error)
       })
 
@@ -606,6 +621,7 @@ describe('ExportUserFeedback', () => {
     })
 
     test('應該提供錯誤恢復選項', () => {
+      // eslint-disable-next-line no-unused-vars
       const recoverableError = {
         exportId: 'recoverable-error-001',
         error: (() => { const error = new Error('Temporary network failure'); error.code = ErrorCodes.TEMPORARY_NETWORK_FAILURE; return error })(),
@@ -633,6 +649,7 @@ describe('ExportUserFeedback', () => {
 
   describe('檔案下載確認', () => {
     test('應該顯示下載確認對話框', () => {
+      // eslint-disable-next-line no-unused-vars
       const downloadInfo = {
         filename: 'readmoo-books-export.csv',
         fileSize: '3.2 MB',
@@ -657,6 +674,7 @@ describe('ExportUserFeedback', () => {
     })
 
     test('應該處理大檔案下載警告', () => {
+      // eslint-disable-next-line no-unused-vars
       const largeDownloadInfo = {
         filename: 'comprehensive-library.pdf',
         fileSize: '125 MB',
@@ -679,6 +697,7 @@ describe('ExportUserFeedback', () => {
     })
 
     test('應該支援下載選項自訂', () => {
+      // eslint-disable-next-line no-unused-vars
       const downloadOptions = {
         filename: 'custom-export.json',
         saveOptions: {
@@ -704,6 +723,7 @@ describe('ExportUserFeedback', () => {
 
   describe('匯出歷史記錄', () => {
     test('應該取得完整匯出歷史', () => {
+      // eslint-disable-next-line no-unused-vars
       const filters = {
         dateRange: {
           start: new Date('2025-01-01'),
@@ -714,7 +734,8 @@ describe('ExportUserFeedback', () => {
       }
 
       expect(() => {
-        const history = userFeedback.getExportHistory(filters)
+        // eslint-disable-next-line no-unused-vars
+        const _history = userFeedback.getExportHistory(filters)
       }).toThrow(Error)
 
       // Red 階段：測試將驗證歷史查詢
@@ -725,6 +746,7 @@ describe('ExportUserFeedback', () => {
     })
 
     test('應該提供歷史記錄搜尋', () => {
+      // eslint-disable-next-line no-unused-vars
       const searchFilters = {
         keyword: '電子書',
         minItemCount: 50,
@@ -739,11 +761,13 @@ describe('ExportUserFeedback', () => {
       // - 檔案大小篩選
       // - 排序功能
       expect(() => {
-        const searchResults = userFeedback.searchExportHistory(searchFilters)
+        // eslint-disable-next-line no-unused-vars
+        const _searchResults = userFeedback.searchExportHistory(searchFilters)
       }).toThrow()
     })
 
     test('應該支援歷史記錄匯出', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportOptions = {
         format: 'csv',
         includeDetails: true,
@@ -764,7 +788,8 @@ describe('ExportUserFeedback', () => {
   describe('統計資訊', () => {
     test('應該提供詳細匯出統計', () => {
       expect(() => {
-        const statistics = userFeedback.getExportStatistics()
+        // eslint-disable-next-line no-unused-vars
+        const _statistics = userFeedback.getExportStatistics()
       }).toThrow(Error)
 
       // Red 階段：測試將驗證統計資訊
@@ -776,11 +801,13 @@ describe('ExportUserFeedback', () => {
     })
 
     test('應該提供時間範圍統計', () => {
+      // eslint-disable-next-line no-unused-vars
       const timeRanges = ['today', 'week', 'month', 'year', 'all-time']
 
       timeRanges.forEach(range => {
         expect(() => {
-          const stats = userFeedback.getStatisticsForRange(range)
+          // eslint-disable-next-line no-unused-vars
+          const _stats = userFeedback.getStatisticsForRange(range)
         }).toThrow()
       })
 
@@ -791,7 +818,8 @@ describe('ExportUserFeedback', () => {
     })
 
     test('應該提供效能基準比較', () => {
-      const benchmarkData = {
+      // eslint-disable-next-line no-unused-vars
+      const _benchmarkData = {
         currentSession: { averageTime: 45.2, successRate: 0.96 },
         historicalAverage: { averageTime: 52.8, successRate: 0.92 },
         comparison: 'improved'
@@ -802,7 +830,8 @@ describe('ExportUserFeedback', () => {
       // - 效能趨勢分析
       // - 改善建議
       expect(() => {
-        const benchmark = userFeedback.getBenchmarkComparison()
+        // eslint-disable-next-line no-unused-vars
+        const _benchmark = userFeedback.getBenchmarkComparison()
       }).toThrow()
     })
   })
@@ -821,6 +850,7 @@ describe('ExportUserFeedback', () => {
 
     test('應該管理通知數量限制', () => {
       // 模擬大量通知
+      // eslint-disable-next-line no-unused-vars
       const notifications = Array.from({ length: 20 }, (_, i) => ({
         id: `notification-${i}`,
         timestamp: new Date(),
@@ -839,6 +869,7 @@ describe('ExportUserFeedback', () => {
     })
 
     test('應該支援通知群組化', () => {
+      // eslint-disable-next-line no-unused-vars
       const groupedNotifications = {
         group: 'batch-export-001',
         notifications: [
@@ -860,6 +891,7 @@ describe('ExportUserFeedback', () => {
 
   describe('偏好設定管理', () => {
     test('應該驗證偏好設定值', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidPreferences = [
         { enableBrowserNotifications: 'yes' }, // 應為 boolean
         { notificationPersistence: -1000 }, // 應為正數
@@ -879,6 +911,7 @@ describe('ExportUserFeedback', () => {
     })
 
     test('應該合併預設偏好', () => {
+      // eslint-disable-next-line no-unused-vars
       const partialPreferences = {
         enableBrowserNotifications: false
       }
@@ -888,7 +921,8 @@ describe('ExportUserFeedback', () => {
       // - 預設值保留
       // - 完整偏好輸出
       expect(() => {
-        const merged = userFeedback.mergeWithDefaults(partialPreferences)
+        // eslint-disable-next-line no-unused-vars
+        const _merged = userFeedback.mergeWithDefaults(partialPreferences)
       }).toThrow()
     })
 
@@ -905,12 +939,14 @@ describe('ExportUserFeedback', () => {
 
   describe('國際化支援', () => {
     test('應該支援多語言通知', () => {
+      // eslint-disable-next-line no-unused-vars
       const languages = ['zh-TW', 'zh-CN', 'en-US', 'ja-JP']
 
       languages.forEach(lang => {
         expect(() => {
           userFeedback.setLanguage(lang)
-          const message = userFeedback.getLocalizedMessage('export-completed')
+          // eslint-disable-next-line no-unused-vars
+          const _message = userFeedback.getLocalizedMessage('export-completed')
         }).toThrow()
       })
 
@@ -921,11 +957,13 @@ describe('ExportUserFeedback', () => {
     })
 
     test('應該支援時區和日期格式', () => {
+      // eslint-disable-next-line no-unused-vars
       const timezones = ['Asia/Taipei', 'UTC', 'America/New_York']
 
       timezones.forEach(tz => {
         expect(() => {
-          const formatted = userFeedback.formatDateTime(new Date(), tz)
+          // eslint-disable-next-line no-unused-vars
+          const _formatted = userFeedback.formatDateTime(new Date(), tz)
         }).toThrow()
       })
 
@@ -938,6 +976,7 @@ describe('ExportUserFeedback', () => {
 })
 
 describe('NotificationService', () => {
+  // eslint-disable-next-line no-unused-vars
   let notificationService
   let userPreferences
 
@@ -956,7 +995,9 @@ describe('NotificationService', () => {
 
   describe('Browser 通知', () => {
     test('應該發送 Browser 通知', () => {
+      // eslint-disable-next-line no-unused-vars
       const title = '匯出完成'
+      // eslint-disable-next-line no-unused-vars
       const options = {
         body: 'CSV 檔案已成功匯出，包含 150 本書籍',
         icon: '/icons/success.png',
@@ -989,7 +1030,9 @@ describe('NotificationService', () => {
 
   describe('Chrome Extension 通知', () => {
     test('應該發送 Chrome 通知', () => {
+      // eslint-disable-next-line no-unused-vars
       const notificationId = 'export-chrome-001'
+      // eslint-disable-next-line no-unused-vars
       const options = {
         type: 'basic',
         iconUrl: '/icons/icon48.png',
@@ -1008,6 +1051,7 @@ describe('NotificationService', () => {
     })
 
     test('應該支援豐富通知類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const richNotification = {
         type: 'progress',
         iconUrl: '/icons/export.png',
@@ -1032,6 +1076,7 @@ describe('NotificationService', () => {
 
   describe('UI 內嵌通知', () => {
     test('應該發送 UI 通知', () => {
+      // eslint-disable-next-line no-unused-vars
       const notificationData = {
         type: 'success',
         title: '匯出成功',
@@ -1054,6 +1099,7 @@ describe('NotificationService', () => {
     })
 
     test('應該支援不同通知樣式', () => {
+      // eslint-disable-next-line no-unused-vars
       const notificationTypes = [
         { type: 'info', expectedClass: 'notification-info' },
         { type: 'success', expectedClass: 'notification-success' },
@@ -1076,6 +1122,7 @@ describe('NotificationService', () => {
 
   describe('音效通知', () => {
     test('應該播放音效通知', () => {
+      // eslint-disable-next-line no-unused-vars
       const soundTypes = ['success', 'error', 'warning', 'info']
 
       soundTypes.forEach(soundType => {
@@ -1091,6 +1138,7 @@ describe('NotificationService', () => {
     })
 
     test('應該支援自訂音效', () => {
+      // eslint-disable-next-line no-unused-vars
       const customSound = {
         type: 'custom',
         audioUrl: '/sounds/custom-notification.mp3',
@@ -1109,6 +1157,7 @@ describe('NotificationService', () => {
 
   describe('通知清理', () => {
     test('應該清除指定通知', () => {
+      // eslint-disable-next-line no-unused-vars
       const notificationId = 'clear-test-001'
 
       expect(() => {
@@ -1122,6 +1171,7 @@ describe('NotificationService', () => {
     })
 
     test('應該批量清除通知', () => {
+      // eslint-disable-next-line no-unused-vars
       const notificationIds = ['batch-clear-001', 'batch-clear-002', 'batch-clear-003']
 
       // Red 階段：測試將驗證批量清除

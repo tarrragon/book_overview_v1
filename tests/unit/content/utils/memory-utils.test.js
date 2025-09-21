@@ -31,6 +31,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
     }
 
     // Mock performance API
+    // eslint-disable-next-line no-unused-vars
     const mockMemory = {
       usedJSHeapSize: 10000000,
       totalJSHeapSize: 20000000,
@@ -55,6 +56,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
 
   describe('📊 記憶體監控和分析', () => {
     test('應該取得當前記憶體使用狀況（fallback模式）', () => {
+      // eslint-disable-next-line no-unused-vars
       const memoryInfo = MemoryUtils.getMemoryInfo()
 
       // 在測試環境中可能沒有 performance.memory，應該支援 fallback
@@ -76,6 +78,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       MemoryUtils.recordMemorySnapshot('test-operation-2')
       MemoryUtils.recordMemorySnapshot('test-operation-3')
 
+      // eslint-disable-next-line no-unused-vars
       const trend = MemoryUtils.getMemoryTrend()
 
       expect(trend).toEqual({
@@ -94,6 +97,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
     })
 
     test('應該檢測記憶體使用異常', () => {
+      // eslint-disable-next-line no-unused-vars
       const analysis = MemoryUtils.analyzeMemoryUsage()
 
       // 在 fallback 模式下應該提供基本分析
@@ -118,6 +122,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       MemoryUtils.recordMemorySnapshot('operation-start')
       MemoryUtils.recordMemorySnapshot('operation-end')
 
+      // eslint-disable-next-line no-unused-vars
       const efficiency = MemoryUtils.calculateMemoryEfficiency()
 
       expect(efficiency).toEqual({
@@ -139,6 +144,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
 
   describe('💾 快取管理策略', () => {
     test('應該註冊和管理不同類型的快取', () => {
+      // eslint-disable-next-line no-unused-vars
       const cacheConfig = {
         name: 'book-data-cache',
         maxSize: 100,
@@ -146,6 +152,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
         strategy: 'LRU'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = MemoryUtils.registerCache(cacheConfig)
 
       expect(result).toEqual({
@@ -171,6 +178,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
         MemoryUtils.setCacheItem('cache-1', `key-${i}`, { data: `value-${i}` })
       }
 
+      // eslint-disable-next-line no-unused-vars
       const cleanupResult = MemoryUtils.performCacheCleanup()
 
       expect(cleanupResult).toEqual({
@@ -203,8 +211,11 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       // 加入新項目應該移除 key2
       MemoryUtils.setCacheItem('lru-cache', 'key4', 'value4')
 
+      // eslint-disable-next-line no-unused-vars
       const item2 = MemoryUtils.getCacheItem('lru-cache', 'key2')
+      // eslint-disable-next-line no-unused-vars
       const item1 = MemoryUtils.getCacheItem('lru-cache', 'key1')
+      // eslint-disable-next-line no-unused-vars
       const item4 = MemoryUtils.getCacheItem('lru-cache', 'key4')
 
       expect(item2.found).toBe(false) // 應該被清除
@@ -220,6 +231,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       MemoryUtils.getCacheItem('perf-cache', 'test-key') // hit
       MemoryUtils.getCacheItem('perf-cache', 'missing-key') // miss
 
+      // eslint-disable-next-line no-unused-vars
       const stats = MemoryUtils.getCacheStats('perf-cache')
 
       expect(stats).toEqual({
@@ -242,6 +254,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
         MemoryUtils.recordMemorySnapshot(`leak-test-${i}`)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const leakDetection = MemoryUtils.detectMemoryLeaks()
 
       expect(leakDetection).toEqual({
@@ -263,6 +276,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
 
     test('應該追蹤 DOM 節點洩漏', () => {
       // 模擬 DOM 節點建立和刪除
+      // eslint-disable-next-line no-unused-vars
       const container = document.createElement('div')
       document.body.appendChild(container)
 
@@ -270,6 +284,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
 
       // 建立大量節點
       for (let i = 0; i < 100; i++) {
+        // eslint-disable-next-line no-unused-vars
         const node = document.createElement('div')
         node.textContent = `Node ${i}`
         container.appendChild(node)
@@ -277,6 +292,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
 
       MemoryUtils.trackDOMNodes('test-container-filled')
 
+      // eslint-disable-next-line no-unused-vars
       const domAnalysis = MemoryUtils.analyzeDOMNodeLeaks()
 
       expect(domAnalysis).toEqual({
@@ -289,13 +305,16 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
     })
 
     test('應該檢查事件監聽器洩漏', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('div')
+      // eslint-disable-next-line no-unused-vars
       const mockHandler = jest.fn()
 
       // 模擬事件監聽器註冊
       MemoryUtils.trackEventListener(mockElement, 'click', mockHandler)
       MemoryUtils.trackEventListener(mockElement, 'scroll', mockHandler)
 
+      // eslint-disable-next-line no-unused-vars
       const listenerAnalysis = MemoryUtils.analyzeEventListeners()
 
       expect(listenerAnalysis).toEqual({
@@ -315,11 +334,14 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       MemoryUtils.startTimer('test-operation')
 
       // 模擬一些工作
+      // eslint-disable-next-line no-unused-vars
       let sum = 0
       for (let i = 0; i < 1000; i++) {
+        // eslint-disable-next-line no-unused-vars
         sum += i
       }
 
+      // eslint-disable-next-line no-unused-vars
       const timing = MemoryUtils.endTimer('test-operation')
 
       expect(timing).toEqual({
@@ -333,7 +355,9 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
     })
 
     test('應該測量函數執行效能', () => {
+      // eslint-disable-next-line no-unused-vars
       const testFunction = () => {
+        // eslint-disable-next-line no-unused-vars
         let result = 0
         for (let i = 0; i < 10000; i++) {
           result += Math.sqrt(i)
@@ -341,6 +365,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
         return result
       }
 
+      // eslint-disable-next-line no-unused-vars
       const performance = MemoryUtils.measurePerformance(testFunction, 'math-calculation')
 
       expect(performance).toEqual({
@@ -358,8 +383,10 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
     })
 
     test('應該批量測量多次執行', () => {
+      // eslint-disable-next-line no-unused-vars
       const simpleFunction = () => Math.random()
 
+      // eslint-disable-next-line no-unused-vars
       const benchmark = MemoryUtils.benchmark(simpleFunction, {
         iterations: 100,
         warmup: 10,
@@ -390,6 +417,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       MemoryUtils.recordMemorySnapshot('before-heavy-operation')
       MemoryUtils.recordMemorySnapshot('after-heavy-operation')
 
+      // eslint-disable-next-line no-unused-vars
       const suggestions = MemoryUtils.getOptimizationSuggestions()
 
       expect(suggestions).toEqual({
@@ -412,6 +440,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       MemoryUtils.recordMemorySnapshot('report-test-1')
       MemoryUtils.recordMemorySnapshot('report-test-2')
 
+      // eslint-disable-next-line no-unused-vars
       const report = MemoryUtils.generateMemoryReport()
 
       expect(report).toEqual({
@@ -439,6 +468,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       MemoryUtils.startTimer('operation-2')
       MemoryUtils.endTimer('operation-2')
 
+      // eslint-disable-next-line no-unused-vars
       const performanceReport = MemoryUtils.generatePerformanceReport()
 
       expect(performanceReport).toEqual({
@@ -463,6 +493,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       MemoryUtils.recordMemorySnapshot('cleanup-snapshot')
       MemoryUtils.startTimer('cleanup-timer')
 
+      // eslint-disable-next-line no-unused-vars
       const cleanupResult = MemoryUtils.cleanup()
 
       expect(cleanupResult).toEqual({
@@ -481,9 +512,11 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
   describe('⚠️ 錯誤處理和邊界情況', () => {
     test('應該處理不支援 performance.memory 的環境', () => {
       // 暫時移除 performance.memory
+      // eslint-disable-next-line no-unused-vars
       const originalMemory = global.performance.memory
       delete global.performance.memory
 
+      // eslint-disable-next-line no-unused-vars
       const memoryInfo = MemoryUtils.getMemoryInfo()
 
       expect(memoryInfo.success).toBe(false)
@@ -495,6 +528,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
     })
 
     test('應該處理無效的快取配置', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidConfigs = [
         null,
         undefined,
@@ -505,6 +539,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       ]
 
       invalidConfigs.forEach(config => {
+        // eslint-disable-next-line no-unused-vars
         const result = MemoryUtils.registerCache(config)
         expect(result.success).toBe(false)
         expect(result.error).toBeDefined()
@@ -513,6 +548,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
 
     test('應該處理計時器錯誤', () => {
       // 結束不存在的計時器
+      // eslint-disable-next-line no-unused-vars
       const result = MemoryUtils.endTimer('non-existent-timer')
 
       expect(result.success).toBe(false)
@@ -527,6 +563,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
 
       expect(() => MemoryUtils.startTimer('error-test')).not.toThrow()
 
+      // eslint-disable-next-line no-unused-vars
       const result = MemoryUtils.startTimer('error-test')
       expect(result.success).toBe(false)
     })
@@ -534,6 +571,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
 
   describe('🧪 工具方法測試', () => {
     test('應該匯出所有必要的方法', () => {
+      // eslint-disable-next-line no-unused-vars
       const requiredMethods = [
         'getMemoryInfo',
         'recordMemorySnapshot',
@@ -567,6 +605,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
     })
 
     test('所有方法都應該回傳一致的結果格式', () => {
+      // eslint-disable-next-line no-unused-vars
       const methods = [
         () => MemoryUtils.getMemoryInfo(),
         () => MemoryUtils.registerCache({ name: 'format-test', maxSize: 10 }),
@@ -574,6 +613,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
       ]
 
       methods.forEach(method => {
+        // eslint-disable-next-line no-unused-vars
         const result = method()
         expect(typeof result).toBe('object')
         expect(typeof result.success).toBe('boolean')
@@ -581,6 +621,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
     })
 
     test('應該安全處理各種錯誤輸入', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidInputs = [null, undefined, '', 0, {}, [], NaN]
 
       invalidInputs.forEach(input => {

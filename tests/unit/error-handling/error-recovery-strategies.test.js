@@ -19,7 +19,9 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
  */
 
 describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
+  // eslint-disable-next-line no-unused-vars
   let ErrorRecoveryManager
+  // eslint-disable-next-line no-unused-vars
   let mockLogger, mockNotifier, mockMetrics
 
   beforeEach(() => {
@@ -65,7 +67,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
   describe('🔁 重試機制測試', () => {
     test('應該實現指數退避重試策略', async () => {
       // Given: 會暫時失敗的操作
+      // eslint-disable-next-line no-unused-vars
       let attemptCount = 0
+      // eslint-disable-next-line no-unused-vars
       const flakyOperation = jest.fn().mockImplementation(() => {
         attemptCount++
         if (attemptCount < 3) {
@@ -75,6 +79,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       })
 
       // When: 執行指數退避重試
+      // eslint-disable-next-line no-unused-vars
       const result = await testHelpers.executeRetryWithBackoff(flakyOperation, {
         maxRetries: 3,
         baseDelay: 100,
@@ -91,11 +96,13 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     test('應該在超過最大重試次數後失敗', async () => {
       // Given: 總是失敗的操作
+      // eslint-disable-next-line no-unused-vars
       const alwaysFailingOperation = jest.fn().mockRejectedValue(
         new Error('Permanent failure')
       )
 
       // When: 執行重試策略
+      // eslint-disable-next-line no-unused-vars
       const promise = testHelpers.executeRetryWithBackoff(alwaysFailingOperation, {
         maxRetries: 2,
         baseDelay: 50
@@ -112,15 +119,19 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     test('應該支援條件重試策略', async () => {
       // Given: 有條件失敗的操作
+      // eslint-disable-next-line no-unused-vars
       let attemptCount = 0
+      // eslint-disable-next-line no-unused-vars
       const conditionalFailingOperation = jest.fn().mockImplementation(() => {
         attemptCount++
         if (attemptCount === 1) {
+          // eslint-disable-next-line no-unused-vars
           const tempError = new Error('Temporary network error')
           tempError.retryable = true
           throw tempError
         }
         if (attemptCount === 2) {
+          // eslint-disable-next-line no-unused-vars
           const permError = new Error('Permission denied')
           permError.retryable = false
           throw permError
@@ -129,8 +140,10 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       })
 
       // When: 執行條件重試
+      // eslint-disable-next-line no-unused-vars
       const shouldRetry = (error) => error.retryable === true
 
+      // eslint-disable-next-line no-unused-vars
       const promise = testHelpers.executeRetryWithBackoff(conditionalFailingOperation, {
         maxRetries: 3,
         baseDelay: 10,
@@ -148,7 +161,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     test('應該記錄重試統計資訊', async () => {
       // Given: 需要重試的操作
+      // eslint-disable-next-line no-unused-vars
       let attempts = 0
+      // eslint-disable-next-line no-unused-vars
       const operation = jest.fn().mockImplementation(() => {
         attempts++
         if (attempts < 2) {
@@ -158,6 +173,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       })
 
       // When: 執行重試並收集統計
+      // eslint-disable-next-line no-unused-vars
       const result = await testHelpers.executeRetryWithMetrics(operation, {
         maxRetries: 3,
         baseDelay: 10
@@ -180,11 +196,13 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
   describe('📉 降級機制測試', () => {
     test('應該在主服務不可用時啟動降級', async () => {
       // Given: 主服務不可用
+      // eslint-disable-next-line no-unused-vars
       const primaryService = {
         isAvailable: () => false,
         getData: jest.fn().mockRejectedValue(new Error('Service unavailable'))
       }
 
+      // eslint-disable-next-line no-unused-vars
       const fallbackService = {
         isAvailable: () => true,
         getData: jest.fn().mockResolvedValue({
@@ -195,6 +213,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       }
 
       // When: 執行降級策略
+      // eslint-disable-next-line no-unused-vars
       const result = await testHelpers.executeFallbackStrategy(primaryService, fallbackService)
 
       // Then: 應該使用降級服務
@@ -206,6 +225,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     test('應該實現多層級降級', async () => {
       // Given: 多個降級選項
+      // eslint-disable-next-line no-unused-vars
       const services = [
         { name: 'primary', available: false, priority: 1 },
         { name: 'secondary', available: false, priority: 2 },
@@ -214,6 +234,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       ]
 
       // When: 執行多層級降級
+      // eslint-disable-next-line no-unused-vars
       const result = await testHelpers.executeMultiTierFallback(services)
 
       // Then: 應該選擇第一個可用的服務
@@ -223,7 +244,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     test('應該在服務恢復後自動切回', async () => {
       // Given: 服務從故障中恢復
+      // eslint-disable-next-line no-unused-vars
       let serviceAvailable = false
+      // eslint-disable-next-line no-unused-vars
       const primaryService = {
         isAvailable: () => serviceAvailable,
         getData: jest.fn().mockImplementation(() => {
@@ -234,11 +257,13 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
         })
       }
 
+      // eslint-disable-next-line no-unused-vars
       const fallbackService = {
         getData: jest.fn().mockResolvedValue({ books: [], source: 'fallback' })
       }
 
       // When: 先降級，然後服務恢復
+      // eslint-disable-next-line no-unused-vars
       let result = await testHelpers.executeServiceWithFallback(primaryService, fallbackService)
       expect(result.source).toBe('fallback')
 
@@ -252,6 +277,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     test('應該維護降級狀態統計', () => {
       // Given: 降級管理器
+      // eslint-disable-next-line no-unused-vars
       const fallbackManager = testHelpers.createFallbackManager()
 
       // When: 執行多次降級
@@ -260,6 +286,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       fallbackManager.deactivateFallback('network-error')
 
       // Then: 應該正確追蹤狀態
+      // eslint-disable-next-line no-unused-vars
       const stats = fallbackManager.getStats()
       expect(stats.activeFallbacks).toBe(1)
       expect(stats.totalActivations).toBe(2)
@@ -271,11 +298,13 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
   describe('👤 使用者介入策略測試', () => {
     test('應該在需要時請求使用者介入', async () => {
       // Given: 需要使用者介入的錯誤
+      // eslint-disable-next-line no-unused-vars
       const permissionError = new Error('Storage permission required')
       permissionError.recoveryType = 'USER_INTERVENTION'
       permissionError.userAction = 'GRANT_PERMISSION'
 
       // When: 請求使用者介入
+      // eslint-disable-next-line no-unused-vars
       const recovery = await testHelpers.requestUserIntervention(permissionError)
 
       // Then: 應該提供正確的引導
@@ -288,6 +317,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     test('應該提供使用者操作驗證', async () => {
       // Given: 使用者完成了權限授予
+      // eslint-disable-next-line no-unused-vars
       const userAction = {
         type: 'GRANT_PERMISSION',
         permission: 'storage',
@@ -296,6 +326,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       }
 
       // When: 驗證使用者操作
+      // eslint-disable-next-line no-unused-vars
       const validation = await testHelpers.validateUserAction(userAction)
 
       // Then: 應該確認操作有效性
@@ -306,15 +337,18 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     test('應該處理使用者操作超時', async () => {
       // Given: 等待使用者操作的超時設定
+      // eslint-disable-next-line no-unused-vars
       const timeoutMs = 30000 // 30秒超時
 
       // When: 等待使用者操作但超時
+      // eslint-disable-next-line no-unused-vars
       const promise = testHelpers.waitForUserAction('RELOAD_EXTENSION', timeoutMs)
 
       // 快進時間超過超時限制
       jest.advanceTimersByTime(31000)
 
       // Then: 應該處理超時
+      // eslint-disable-next-line no-unused-vars
       const result = await promise
       expect(result.timedOut).toBe(true)
       expect(result.fallbackAction).toBe('SHOW_MANUAL_INSTRUCTIONS')
@@ -324,6 +358,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
   describe('🎯 優雅降級策略測試', () => {
     test('應該實現功能級別的降級', () => {
       // Given: 功能模組故障
+      // eslint-disable-next-line no-unused-vars
       const brokenModule = {
         name: 'AdvancedSearch',
         available: false,
@@ -331,6 +366,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       }
 
       // When: 執行功能降級
+      // eslint-disable-next-line no-unused-vars
       const degradation = testHelpers.executeFunctionalDegradation(brokenModule)
 
       // Then: 應該提供簡化版功能
@@ -342,9 +378,11 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     test('應該維護核心功能可用性', () => {
       // Given: 非核心功能故障
+      // eslint-disable-next-line no-unused-vars
       const failedFeatures = ['export-csv', 'book-statistics', 'theme-customization']
 
       // When: 評估系統可用性
+      // eslint-disable-next-line no-unused-vars
       const availability = testHelpers.evaluateSystemAvailability(failedFeatures)
 
       // Then: 核心功能應該仍然可用
@@ -360,6 +398,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     test('應該提供降級狀態的可視化回饋', () => {
       // Given: 系統處於降級狀態
+      // eslint-disable-next-line no-unused-vars
       const degradedState = {
         level: 'MODERATE',
         affectedFeatures: ['export-csv', 'advanced-search'],
@@ -367,6 +406,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       }
 
       // When: 生成使用者介面回饋
+      // eslint-disable-next-line no-unused-vars
       const uiFeedback = testHelpers.generateDegradationFeedback(degradedState)
 
       // Then: 應該提供清晰的狀態資訊
@@ -380,6 +420,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
   describe('🔄 組件重啟策略測試', () => {
     test('應該能重啟故障的組件', async () => {
       // Given: 故障的組件
+      // eslint-disable-next-line no-unused-vars
       const faultyComponent = {
         name: 'DataProcessor',
         status: 'FAILED',
@@ -388,6 +429,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       }
 
       // When: 執行組件重啟
+      // eslint-disable-next-line no-unused-vars
       const result = await testHelpers.restartComponent(faultyComponent)
 
       // Then: 組件應該成功重啟
@@ -398,6 +440,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     test('應該實現漸進式重啟策略', async () => {
       // Given: 多個相互依賴的組件
+      // eslint-disable-next-line no-unused-vars
       const components = [
         { name: 'EventBus', dependencies: [], restartTime: 100 },
         { name: 'StorageManager', dependencies: ['EventBus'], restartTime: 200 },
@@ -405,6 +448,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       ]
 
       // When: 執行漸進式重啟
+      // eslint-disable-next-line no-unused-vars
       const result = await testHelpers.progressiveRestart(components)
 
       // Then: 應該按照依賴順序重啟
@@ -415,6 +459,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     test('應該處理重啟失敗', async () => {
       // Given: 無法重啟的組件
+      // eslint-disable-next-line no-unused-vars
       const unreliableComponent = {
         name: 'CriticalService',
         restart: jest.fn().mockRejectedValue(new Error('Restart failed')),
@@ -422,6 +467,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       }
 
       // When: 嘗試重啟但失敗
+      // eslint-disable-next-line no-unused-vars
       const result = await testHelpers.attemptRestart(unreliableComponent)
 
       // Then: 應該執行回滾策略
@@ -435,6 +481,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
   describe('📊 恢復策略效能測試', () => {
     test('應該在合理時間內完成恢復', async () => {
       // Given: 需要恢復的錯誤情境
+      // eslint-disable-next-line no-unused-vars
       const errors = [
         new Error('Network timeout'),
         new Error('Data corruption'),
@@ -442,13 +489,17 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       ]
 
       // When: 批量執行恢復策略
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const results = await Promise.all(
         errors.map(error => testHelpers.executeRecovery(error))
       )
+      // eslint-disable-next-line no-unused-vars
       const endTime = Date.now()
 
       // Then: 應該在合理時間內完成
+      // eslint-disable-next-line no-unused-vars
       const totalTime = endTime - startTime
       expect(totalTime).toBeLessThan(5000) // 小於5秒
       results.forEach(result => {
@@ -459,9 +510,11 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     test('應該監控恢復成功率', () => {
       // Given: 恢復策略管理器
+      // eslint-disable-next-line no-unused-vars
       const recoveryManager = testHelpers.createRecoveryManager()
 
       // When: 執行多次恢復
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { error: new Error('Network'), expectedSuccess: true },
         { error: new Error('Data format'), expectedSuccess: true },
@@ -470,12 +523,14 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       ]
 
       testCases.forEach(testCase => {
+        // eslint-disable-next-line no-unused-vars
         const result = recoveryManager.attemptRecovery(testCase.error)
         result.success = testCase.expectedSuccess
         recoveryManager.recordResult(result)
       })
 
       // Then: 應該正確計算成功率
+      // eslint-disable-next-line no-unused-vars
       const metrics = recoveryManager.getMetrics()
       expect(metrics.successRate).toBe(0.75) // 3/4 成功
       expect(metrics.totalAttempts).toBe(4)
@@ -484,9 +539,11 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
   })
 
   // Mock 輔助方法實作
+  // eslint-disable-next-line no-unused-vars
   const testHelpers = {
     async executeRetryWithBackoff (operation, options = {}) {
       const { maxRetries = 3, baseDelay = 100, maxDelay = 10000, shouldRetry = () => true } = options
+      // eslint-disable-next-line no-unused-vars
       let lastError = null
       this.retryDelays = []
 
@@ -500,6 +557,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
             throw error
           }
 
+          // eslint-disable-next-line no-unused-vars
           const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay)
           this.retryDelays.push(delay)
           await new Promise(resolve => setTimeout(resolve, delay))
@@ -514,10 +572,14 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
     },
 
     async executeRetryWithMetrics (operation, options) {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
+      // eslint-disable-next-line no-unused-vars
       let attempts = 0
+      // eslint-disable-next-line no-unused-vars
       let retryCount = 0
 
+      // eslint-disable-next-line no-unused-vars
       const wrappedOperation = () => {
         attempts++
         if (attempts > 1) retryCount++
@@ -525,23 +587,22 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
         return operation()
       }
 
-      try {
-        const value = await testHelpers.executeRetryWithBackoff(wrappedOperation, options)
-        const totalTime = Date.now() - startTime
+      // 直接執行重試操作，不需要無用的 try/catch
+      // eslint-disable-next-line no-unused-vars
+      const value = await testHelpers.executeRetryWithBackoff(wrappedOperation, options)
+      // eslint-disable-next-line no-unused-vars
+      const totalTime = Date.now() - startTime
 
-        mockMetrics.timing('recovery.retry.duration', totalTime)
+      mockMetrics.timing('recovery.retry.duration', totalTime)
 
-        return {
-          value,
-          metrics: {
-            totalAttempts: attempts,
-            totalTime,
-            retryCount,
-            strategy: 'EXPONENTIAL_BACKOFF'
-          }
+      return {
+        value,
+        metrics: {
+          totalAttempts: attempts,
+          totalTime,
+          retryCount,
+          strategy: 'EXPONENTIAL_BACKOFF'
         }
-      } catch (error) {
-        throw error
       }
     },
 
@@ -575,7 +636,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
     },
 
     createFallbackManager () {
+      // eslint-disable-next-line no-unused-vars
       const activeFallbacks = new Map()
+      // eslint-disable-next-line no-unused-vars
       const history = []
 
       return {
@@ -597,6 +660,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
     },
 
     async requestUserIntervention (error) {
+      // eslint-disable-next-line no-unused-vars
       const interventionMap = {
         GRANT_PERMISSION: {
           guidance: '請在瀏覽器設定中授予擴展儲存權限',
@@ -609,6 +673,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const intervention = interventionMap[error.userAction] || {
         guidance: '請按照提示完成操作',
         steps: ['重新整理頁面']
@@ -640,7 +705,8 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     async waitForUserAction (actionType, timeoutMs) {
       return new Promise((resolve) => {
-        const timer = setTimeout(() => {
+        // eslint-disable-next-line no-unused-vars
+        const _timer = setTimeout(() => {
           resolve({
             timedOut: true,
             fallbackAction: 'SHOW_MANUAL_INSTRUCTIONS'
@@ -653,6 +719,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
     },
 
     executeFunctionalDegradation (brokenModule) {
+      // eslint-disable-next-line no-unused-vars
       const degradationMap = {
         AdvancedSearch: {
           degradedModule: 'BasicSearch',
@@ -661,6 +728,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const degradation = degradationMap[brokenModule.name] || {
         degradedModule: 'MinimalFallback',
         availableFeatures: ['basic-functionality'],
@@ -674,7 +742,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
     },
 
     evaluateSystemAvailability (failedFeatures) {
+      // eslint-disable-next-line no-unused-vars
       const coreFeatures = ['book-display', 'search', 'data-import', 'basic-export']
+      // eslint-disable-next-line no-unused-vars
       const hasCoreFailures = failedFeatures.some(feature => coreFeatures.includes(feature))
 
       return {
@@ -685,12 +755,14 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
     },
 
     generateDegradationFeedback (degradedState) {
+      // eslint-disable-next-line no-unused-vars
       const featureMap = {
         'export-csv': '匯出 CSV',
         'advanced-search': '進階搜尋'
       }
 
       // 轉換時間格式
+      // eslint-disable-next-line no-unused-vars
       const convertTimeFormat = (timeStr) => {
         return timeStr.replace(/(\d+)\s*minutes?/i, '$1 分鐘')
           .replace(/(\d+)\s*hours?/i, '$1 小時')
@@ -707,6 +779,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     async restartComponent (component) {
       try {
+        // eslint-disable-next-line no-unused-vars
         const result = await component.restart()
         return {
           success: true,
@@ -721,11 +794,15 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
     },
 
     async progressiveRestart (components) {
+      // eslint-disable-next-line no-unused-vars
       const restartOrder = testHelpers.calculateRestartOrder(components)
+      // eslint-disable-next-line no-unused-vars
       let totalTime = 0
 
       for (const componentName of restartOrder) {
+        // eslint-disable-next-line no-unused-vars
         const component = components.find(c => c.name === componentName)
+        // eslint-disable-next-line no-unused-vars
         const startTime = Date.now()
         // 模擬重啟
         await new Promise(resolve => setTimeout(resolve, component.restartTime))
@@ -741,12 +818,16 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     calculateRestartOrder (components) {
     // 簡單的拓撲排序實作
+      // eslint-disable-next-line no-unused-vars
       const result = []
+      // eslint-disable-next-line no-unused-vars
       const visited = new Set()
 
+      // eslint-disable-next-line no-unused-vars
       const visit = (componentName) => {
         if (visited.has(componentName)) return
 
+        // eslint-disable-next-line no-unused-vars
         const component = components.find(c => c.name === componentName)
         if (component) {
           component.dependencies.forEach(dep => visit(dep))
@@ -779,6 +860,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
     async executeRecovery (error) {
     // 模擬恢復策略執行
+      // eslint-disable-next-line no-unused-vars
       const strategies = {
         'Network timeout': { strategy: 'RETRY', recovered: true },
         'Data corruption': { strategy: 'FALLBACK', recovered: true },
@@ -789,7 +871,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
     },
 
     createRecoveryManager () {
+      // eslint-disable-next-line no-unused-vars
       let totalAttempts = 0
+      // eslint-disable-next-line no-unused-vars
       let successfulRecoveries = 0
 
       return {

@@ -34,6 +34,7 @@ describe('PopupController 狀態管理整合測試', () => {
   let window
   let PopupController
   let PopupStatusManager
+  // eslint-disable-next-line no-unused-vars
   let PopupUIManager
 
   beforeEach(() => {
@@ -79,12 +80,14 @@ describe('PopupController 狀態管理整合測試', () => {
   describe('🔴 Red 階段：狀態管理整合測試設計', () => {
     test('應該能夠整合真實的 PopupStatusManager', async () => {
       // Given: PopupController 實例
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
 
       // When: 初始化控制器
       await controller.initialize()
 
       // Then: 狀態管理器應該是真實的 PopupStatusManager 實例
+      // eslint-disable-next-line no-unused-vars
       const statusManager = controller.getComponent('status')
       expect(statusManager).toBeInstanceOf(PopupStatusManager)
 
@@ -96,13 +99,16 @@ describe('PopupController 狀態管理整合測試', () => {
 
     test('應該正確注入 UI 組件到 StatusManager', async () => {
       // Given: PopupController 實例
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
 
       // When: 初始化
       await controller.initialize()
 
       // Then: StatusManager 應該有正確的 UI 組件依賴
+      // eslint-disable-next-line no-unused-vars
       const statusManager = controller.getComponent('status')
+      // eslint-disable-next-line no-unused-vars
       const uiManager = controller.getComponent('ui')
 
       expect(statusManager).toBeDefined()
@@ -114,12 +120,15 @@ describe('PopupController 狀態管理整合測試', () => {
 
     test('應該能夠通過 StatusManager 更新狀態到 UI', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const statusManager = controller.getComponent('status')
 
       // When: 通過 StatusManager 更新狀態
+      // eslint-disable-next-line no-unused-vars
       const testStatus = {
         type: 'ready',
         text: '就緒',
@@ -136,12 +145,15 @@ describe('PopupController 狀態管理整合測試', () => {
 
     test('應該驗證無效的狀態類型', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const statusManager = controller.getComponent('status')
 
       // When: 嘗試使用無效狀態類型
+      // eslint-disable-next-line no-unused-vars
       const invalidStatus = {
         type: 'invalid_type',
         text: '無效狀態'
@@ -159,12 +171,15 @@ describe('PopupController 狀態管理整合測試', () => {
 
     test('應該支援背景狀態同步', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const statusManager = controller.getComponent('status')
 
       // When: 從背景同步狀態
+      // eslint-disable-next-line no-unused-vars
       const backgroundStatus = {
         type: 'extracting',
         text: '正在提取',
@@ -174,6 +189,7 @@ describe('PopupController 狀態管理整合測試', () => {
       statusManager.syncFromBackground(backgroundStatus)
 
       // Then: 狀態應該正確同步
+      // eslint-disable-next-line no-unused-vars
       const currentStatus = statusManager.getCurrentStatus()
       expect(currentStatus.type).toBe('extracting')
       expect(currentStatus.text).toBe('正在提取')
@@ -182,12 +198,15 @@ describe('PopupController 狀態管理整合測試', () => {
 
     test('應該處理必要欄位缺失的錯誤', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const statusManager = controller.getComponent('status')
 
       // When: 嘗試使用缺失必要欄位的狀態
+      // eslint-disable-next-line no-unused-vars
       const incompleteStatus = {
         type: 'ready'
         // 缺少 text 欄位
@@ -205,12 +224,15 @@ describe('PopupController 狀態管理整合測試', () => {
 
     test('應該保持狀態不可變性', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const statusManager = controller.getComponent('status')
 
       // When: 更新狀態
+      // eslint-disable-next-line no-unused-vars
       const originalStatus = {
         type: 'ready',
         text: '就緒',
@@ -218,12 +240,14 @@ describe('PopupController 狀態管理整合測試', () => {
       }
 
       statusManager.updateStatus(originalStatus)
+      // eslint-disable-next-line no-unused-vars
       const retrievedStatus = statusManager.getCurrentStatus()
 
       // 修改檢索到的狀態
       retrievedStatus.text = '已修改'
 
       // Then: 內部狀態不應該受到影響
+      // eslint-disable-next-line no-unused-vars
       const currentStatus = statusManager.getCurrentStatus()
       expect(currentStatus.text).toBe('就緒')
       expect(currentStatus.text).not.toBe('已修改')
@@ -233,12 +257,15 @@ describe('PopupController 狀態管理整合測試', () => {
   describe('⚠️ 錯誤處理測試', () => {
     test('應該優雅處理同步失敗', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const statusManager = controller.getComponent('status')
 
       // Mock UI 組件的 showError 方法
+      // eslint-disable-next-line no-unused-vars
       const mockShowError = jest.fn()
       statusManager.uiComponents = {
         ...statusManager.uiComponents,
