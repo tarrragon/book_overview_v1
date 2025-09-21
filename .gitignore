@@ -52,5 +52,8 @@ dist/
 build/
 tmp/
 temp/
-.cache/ 
+.cache/
 .serena/
+
+# Claude Hook System logs (auto-generated)
+.claude/hook-logs/
