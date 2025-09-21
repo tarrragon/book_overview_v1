@@ -14,6 +14,7 @@ const { JSDOM } = require('jsdom')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 // Mock Chrome Extension APIs
+// eslint-disable-next-line no-unused-vars
 const mockChromeAPI = {
   runtime: {
     getManifest: jest.fn(() => ({ version: '0.9.8' })),
@@ -84,12 +85,14 @@ describe('PopupController 提取服務整合測試', () => {
   describe('🔴 Red 階段：提取服務整合測試設計', () => {
     test('應該能夠整合真實的 PopupExtractionService', async () => {
       // Given: PopupController 實例
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
 
       // When: 初始化控制器
       await controller.initialize()
 
       // Then: 提取服務應該是真實的 PopupExtractionService 實例
+      // eslint-disable-next-line no-unused-vars
       const extractionService = controller.getComponent('extraction')
       expect(extractionService).toBeInstanceOf(PopupExtractionService)
 
@@ -102,15 +105,20 @@ describe('PopupController 提取服務整合測試', () => {
 
     test('應該正確注入依賴到 ExtractionService', async () => {
       // Given: PopupController 實例
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
 
       // When: 初始化
       await controller.initialize()
 
       // Then: ExtractionService 應該有正確的依賴注入
+      // eslint-disable-next-line no-unused-vars
       const extractionService = controller.getComponent('extraction')
+      // eslint-disable-next-line no-unused-vars
       const statusManager = controller.getComponent('status')
+      // eslint-disable-next-line no-unused-vars
       const progressManager = controller.getComponent('progress')
+      // eslint-disable-next-line no-unused-vars
       const communicationService = controller.getComponent('communication')
 
       expect(extractionService).toBeDefined()
@@ -126,9 +134,11 @@ describe('PopupController 提取服務整合測試', () => {
 
     test('應該能夠通過 ExtractionService 開始提取流程', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const extractionService = controller.getComponent('extraction')
 
       // Mock Chrome API 回應
@@ -149,6 +159,7 @@ describe('PopupController 提取服務整合測試', () => {
       })
 
       // When: 開始提取
+      // eslint-disable-next-line no-unused-vars
       const extractionResult = await extractionService.startExtraction()
 
       // Then: 應該正確開始提取並更新狀態
@@ -169,18 +180,21 @@ describe('PopupController 提取服務整合測試', () => {
       // When: 嘗試建立 ExtractionService
       // Then: 應該拋出錯誤
       expect(() => {
+        // eslint-disable-next-line no-new
         new PopupExtractionService(null, {}, {})
       }).toThrowError(expect.objectContaining({
         code: ErrorCodes.VALIDATION_ERROR
       }))
 
       expect(() => {
+        // eslint-disable-next-line no-new
         new PopupExtractionService({}, null, {})
       }).toThrowError(expect.objectContaining({
         code: ErrorCodes.VALIDATION_ERROR
       }))
 
       expect(() => {
+        // eslint-disable-next-line no-new
         new PopupExtractionService({}, {}, null)
       }).toThrowError(expect.objectContaining({
         code: ErrorCodes.VALIDATION_ERROR
@@ -189,9 +203,11 @@ describe('PopupController 提取服務整合測試', () => {
 
     test('應該防止重複提取', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const extractionService = controller.getComponent('extraction')
 
       // Mock Chrome API 回應
@@ -218,9 +234,11 @@ describe('PopupController 提取服務整合測試', () => {
 
     test('應該支援提取取消功能', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const extractionService = controller.getComponent('extraction')
 
       // Mock 進行中的提取
@@ -228,6 +246,7 @@ describe('PopupController 提取服務整合測試', () => {
       extractionService.currentExtractionId = 'test_extraction'
 
       // When: 取消提取
+      // eslint-disable-next-line no-unused-vars
       const cancelResult = await extractionService.cancelExtraction('使用者手動取消')
 
       // Then: 應該正確取消並更新狀態
@@ -245,12 +264,15 @@ describe('PopupController 提取服務整合測試', () => {
 
     test('應該處理提取結果驗證', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const extractionService = controller.getComponent('extraction')
 
       // When: 處理有效的提取結果
+      // eslint-disable-next-line no-unused-vars
       const validResult = {
         books: [{ id: 1, title: '測試書籍' }],
         totalProcessed: 100,
@@ -258,6 +280,7 @@ describe('PopupController 提取服務整合測試', () => {
         failureCount: 5
       }
 
+      // eslint-disable-next-line no-unused-vars
       const processedResult = extractionService.processExtractionResult(validResult)
 
       // Then: 應該正確處理結果
@@ -271,9 +294,11 @@ describe('PopupController 提取服務整合測試', () => {
 
     test('應該處理無效的提取結果', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const extractionService = controller.getComponent('extraction')
 
       // When: 處理無效的提取結果
@@ -297,12 +322,15 @@ describe('PopupController 提取服務整合測試', () => {
 
     test('應該支援批次進度更新', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const extractionService = controller.getComponent('extraction')
 
       // When: 更新批次進度
+      // eslint-disable-next-line no-unused-vars
       const batchProgress = {
         currentBatch: 3,
         totalBatches: 10,
@@ -321,14 +349,17 @@ describe('PopupController 提取服務整合測試', () => {
 
     test('應該處理提取完成事件', async () => {
       // Given: 已初始化的控制器且正在提取
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const extractionService = controller.getComponent('extraction')
       extractionService.isExtracting = true
       extractionService.currentExtractionId = 'test_extraction'
 
       // When: 處理完成事件
+      // eslint-disable-next-line no-unused-vars
       const completionData = {
         totalProcessed: 150,
         successCount: 145,
@@ -349,12 +380,15 @@ describe('PopupController 提取服務整合測試', () => {
 
     test('應該支援重試機制', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const extractionService = controller.getComponent('extraction')
 
       // Mock Chrome API 前兩次失敗，第三次成功
+      // eslint-disable-next-line no-unused-vars
       let callCount = 0
       mockChromeAPI.tabs.query.mockImplementation((queryInfo, callback) => {
         callback([{
@@ -376,6 +410,7 @@ describe('PopupController 提取服務整合測試', () => {
       })
 
       // When: 開始提取（會重試）
+      // eslint-disable-next-line no-unused-vars
       const result = await extractionService.startExtraction()
 
       // Then: 應該在重試後成功
@@ -386,9 +421,11 @@ describe('PopupController 提取服務整合測試', () => {
 
     test('應該處理重試耗盡的情況', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const extractionService = controller.getComponent('extraction')
 
       // Mock Chrome API 持續失敗
@@ -418,15 +455,18 @@ describe('PopupController 提取服務整合測試', () => {
 
     test('應該維護提取統計', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const extractionService = controller.getComponent('extraction')
 
       // When: 模擬完成一次提取
       extractionService.currentExtractionId = 'test_stats'
       extractionService._recordExtractionStart({ estimatedCount: 100 })
 
+      // eslint-disable-next-line no-unused-vars
       const completionData = {
         totalProcessed: 100,
         successCount: 95,
@@ -435,6 +475,7 @@ describe('PopupController 提取服務整合測試', () => {
       extractionService._recordExtractionCompletion(completionData)
 
       // Then: 統計應該正確記錄
+      // eslint-disable-next-line no-unused-vars
       const stats = extractionService.getExtractionStatistics()
       expect(stats.totalExtractions).toBe(1)
       expect(stats.totalBooksProcessed).toBe(100)
@@ -444,11 +485,15 @@ describe('PopupController 提取服務整合測試', () => {
 
     test('應該支援狀態一致性驗證', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const extractionService = controller.getComponent('extraction')
+      // eslint-disable-next-line no-unused-vars
       const statusManager = controller.getComponent('status')
+      // eslint-disable-next-line no-unused-vars
       const progressManager = controller.getComponent('progress')
 
       // When: 設置一致的狀態
@@ -470,13 +515,17 @@ describe('PopupController 提取服務整合測試', () => {
   describe('⚠️ 錯誤處理測試', () => {
     test('應該能夠清理資源', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const extractionService = controller.getComponent('extraction')
+      // eslint-disable-next-line no-unused-vars
       const communicationService = controller.getComponent('communication')
 
       // Mock cleanup 方法
+      // eslint-disable-next-line no-unused-vars
       const cleanupSpy = jest.spyOn(communicationService, 'cleanup')
 
       // 設置一些狀態
@@ -496,14 +545,18 @@ describe('PopupController 提取服務整合測試', () => {
 
     test('應該優雅處理組件錯誤', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const extractionService = controller.getComponent('extraction')
 
       // Mock StatusManager 拋出錯誤
+      // eslint-disable-next-line no-unused-vars
       const statusManager = controller.getComponent('status')
       jest.spyOn(statusManager, 'updateStatus').mockImplementation(() => {
+        // eslint-disable-next-line no-unused-vars
         const error = new Error('Status update failed')
         error.code = ErrorCodes.OPERATION_ERROR
         error.details = { category: 'testing' }

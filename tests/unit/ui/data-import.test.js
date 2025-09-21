@@ -39,7 +39,9 @@ global.document = {
 
 // 要測試的 loadFromFile 函數
 function loadFromFile () {
+  // eslint-disable-next-line no-unused-vars
   const fileInput = document.getElementById('jsonFileInput')
+  // eslint-disable-next-line no-unused-vars
   const file = fileInput.files[0]
 
   if (!file) {
@@ -52,9 +54,11 @@ function loadFromFile () {
     return
   }
 
+  // eslint-disable-next-line no-unused-vars
   const reader = new FileReader()
   reader.onload = function (e) {
     try {
+      // eslint-disable-next-line no-unused-vars
       const jsonData = JSON.parse(e.target.result)
 
       // 驗證 JSON 格式
@@ -64,6 +68,7 @@ function loadFromFile () {
 
       // 驗證每個書籍物件的格式
       for (let i = 0; i < jsonData.length; i++) {
+        // eslint-disable-next-line no-unused-vars
         const book = jsonData[i]
         if (!book.id || !book.title || !book.cover) {
           throw (() => { const error = new Error(`第 ${i + 1} 個書籍缺少必要欄位 (id, title, cover)`); error.code = ErrorCodes.DATA_IMPORT_FIELD_ERROR; error.details = { category: 'testing' }; return error })()
@@ -94,6 +99,7 @@ function loadFromFile () {
 }
 
 describe('🎯 UC-04 資料匯入功能測試套件', () => {
+  // eslint-disable-next-line no-unused-vars
   let mockFileReader
   let originalFileReader
 
@@ -172,6 +178,7 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
     })
 
     test('應該在選擇非 JSON 檔案時顯示錯誤訊息', () => {
+      // eslint-disable-next-line no-unused-vars
       const txtFile = createMockFile('test content', 'test.txt')
       mockFileInput(txtFile)
 
@@ -181,6 +188,7 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
     })
 
     test('應該接受 JSON 檔案（小寫副檔名）', () => {
+      // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile('[]', 'test.json')
       mockFileInput(jsonFile)
 
@@ -190,6 +198,7 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
     })
 
     test('應該接受 JSON 檔案（大寫副檔名）', () => {
+      // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile('[]', 'TEST.JSON')
       mockFileInput(jsonFile)
 
@@ -201,6 +210,7 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
 
   describe('📚 JSON 內容驗證測試', () => {
     test('應該拒絕非陣列格式的 JSON', async () => {
+      // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile('{}', 'test.json')
       mockFileInput(jsonFile)
 
@@ -214,6 +224,7 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
     })
 
     test('應該接受空陣列', async () => {
+      // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile('[]', 'test.json')
       mockFileInput(jsonFile)
 
@@ -226,7 +237,9 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
     })
 
     test('應該驗證書籍物件必要欄位 - 缺少 id', async () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidBook = [{ title: 'Test Book', cover: 'test.jpg' }]
+      // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile(JSON.stringify(invalidBook), 'test.json')
       mockFileInput(jsonFile)
 
@@ -239,7 +252,9 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
     })
 
     test('應該驗證書籍物件必要欄位 - 缺少 title', async () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidBook = [{ id: '123', cover: 'test.jpg' }]
+      // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile(JSON.stringify(invalidBook), 'test.json')
       mockFileInput(jsonFile)
 
@@ -252,7 +267,9 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
     })
 
     test('應該驗證書籍物件必要欄位 - 缺少 cover', async () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidBook = [{ id: '123', title: 'Test Book' }]
+      // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile(JSON.stringify(invalidBook), 'test.json')
       mockFileInput(jsonFile)
 
@@ -267,10 +284,12 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
 
   describe('✅ 成功載入測試', () => {
     test('應該成功載入有效的書籍資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const validBooks = [
         { id: '1', title: '測試書籍1', cover: 'cover1.jpg' },
         { id: '2', title: '測試書籍2', cover: 'cover2.jpg' }
       ]
+      // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile(JSON.stringify(validBooks), 'test.json')
       mockFileInput(jsonFile)
 
@@ -288,9 +307,11 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
       // 預先設置一些資料
       global.booksData.push({ id: 'old', title: 'Old Book', cover: 'old.jpg' })
 
+      // eslint-disable-next-line no-unused-vars
       const newBooks = [
         { id: '1', title: '新書籍', cover: 'new.jpg' }
       ]
+      // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile(JSON.stringify(newBooks), 'test.json')
       mockFileInput(jsonFile)
 
@@ -304,7 +325,9 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
     })
 
     test('應該隱藏檔案上傳介面', async () => {
+      // eslint-disable-next-line no-unused-vars
       const validBooks = [{ id: '1', title: 'Test', cover: 'test.jpg' }]
+      // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile(JSON.stringify(validBooks), 'test.json')
       mockFileInput(jsonFile)
 
@@ -313,6 +336,7 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
       mockFileReader.result = JSON.stringify(validBooks)
       mockFileReader.onload({ target: { result: JSON.stringify(validBooks) } })
 
+      // eslint-disable-next-line no-unused-vars
       const fileUploader = document.getElementById('fileUploader')
       expect(fileUploader.style.display).toBe('none')
     })
@@ -320,6 +344,7 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
 
   describe('🔧 FileReader 錯誤處理測試', () => {
     test('應該處理 FileReader 讀取錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile('[]', 'test.json')
       mockFileInput(jsonFile)
 
@@ -332,6 +357,7 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
     })
 
     test('應該處理 JSON 解析錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile('invalid json', 'test.json')
       mockFileInput(jsonFile)
 
@@ -346,6 +372,7 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
 
   describe('🎯 邊界情況測試', () => {
     test('應該處理包含完整書籍資訊的複雜物件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const complexBook = [{
         id: '123',
         title: '複雜測試書籍',
@@ -355,6 +382,7 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
         pages: 300,
         genres: ['科幻', '冒險']
       }]
+      // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile(JSON.stringify(complexBook), 'test.json')
       mockFileInput(jsonFile)
 
@@ -368,11 +396,13 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
     })
 
     test('應該處理大量書籍資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const manyBooks = Array.from({ length: 100 }, (_, i) => ({
         id: `book_${i}`,
         title: `書籍 ${i}`,
         cover: `cover_${i}.jpg`
       }))
+      // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile(JSON.stringify(manyBooks), 'test.json')
       mockFileInput(jsonFile)
 
@@ -386,11 +416,13 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
     })
 
     test('應該處理包含特殊字符的書籍資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const specialBook = [{
         id: 'special-123',
         title: '特殊字符書籍 "引號" & <標籤>',
         cover: 'special.jpg'
       }]
+      // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile(JSON.stringify(specialBook), 'test.json')
       mockFileInput(jsonFile)
 
@@ -412,9 +444,11 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
         { id: 'old2', title: '舊書2', cover: 'old2.jpg' }
       )
 
+      // eslint-disable-next-line no-unused-vars
       const newBooks = [
         { id: 'new1', title: '新書1', cover: 'new1.jpg' }
       ]
+      // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile(JSON.stringify(newBooks), 'test.json')
       mockFileInput(jsonFile)
 

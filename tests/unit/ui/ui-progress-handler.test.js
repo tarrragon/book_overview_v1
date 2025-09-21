@@ -14,15 +14,23 @@
  * - 提供進度完成回調
  */
 
+// eslint-disable-next-line no-unused-vars
 const UIProgressHandler = require('src/ui/handlers/ui-progress-handler')
+// eslint-disable-next-line no-unused-vars
 const EventBus = require('src/core/event-bus')
 
 describe('UIProgressHandler', () => {
+  // eslint-disable-next-line no-unused-vars
   let handler
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockDocument
+  // eslint-disable-next-line no-unused-vars
   let mockProgressElement
+  // eslint-disable-next-line no-unused-vars
   let mockProgressBar
+  // eslint-disable-next-line no-unused-vars
   let mockProgressText
 
   beforeEach(() => {
@@ -83,6 +91,7 @@ describe('UIProgressHandler', () => {
     })
 
     test('應該支援 UI.PROGRESS.UPDATE 事件類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const supportedEvents = handler.getSupportedEvents()
       expect(supportedEvents).toContain('UI.PROGRESS.UPDATE')
       expect(handler.canHandle('UI.PROGRESS.UPDATE')).toBe(true)
@@ -98,6 +107,7 @@ describe('UIProgressHandler', () => {
 
   describe('UI.PROGRESS.UPDATE 事件處理 (TDD循環 #22)', () => {
     test('應該能處理有效的進度更新事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.PROGRESS.UPDATE',
         data: {
@@ -109,6 +119,7 @@ describe('UIProgressHandler', () => {
         timestamp: Date.now()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(event)
 
       expect(result).toBeDefined()
@@ -118,6 +129,7 @@ describe('UIProgressHandler', () => {
     })
 
     test('應該能處理不同百分比的進度更新', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { percentage: 0, expected: '0%' },
         { percentage: 25, expected: '25%' },
@@ -126,6 +138,7 @@ describe('UIProgressHandler', () => {
       ]
 
       for (const testCase of testCases) {
+        // eslint-disable-next-line no-unused-vars
         const event = {
           type: 'UI.PROGRESS.UPDATE',
           data: {
@@ -144,6 +157,7 @@ describe('UIProgressHandler', () => {
 
     test('應該能處理進度狀態變化', async () => {
       // 測試開始狀態
+      // eslint-disable-next-line no-unused-vars
       const startEvent = {
         type: 'UI.PROGRESS.UPDATE',
         data: {
@@ -161,6 +175,7 @@ describe('UIProgressHandler', () => {
       expect(mockProgressElement.classList.add).toHaveBeenCalledWith('progress-active')
 
       // 測試完成狀態
+      // eslint-disable-next-line no-unused-vars
       const completeEvent = {
         type: 'UI.PROGRESS.UPDATE',
         data: {
@@ -178,6 +193,7 @@ describe('UIProgressHandler', () => {
     })
 
     test('應該驗證進度事件資料的有效性', async () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidEvents = [
         {
           type: 'UI.PROGRESS.UPDATE',
@@ -229,11 +245,13 @@ describe('UIProgressHandler', () => {
 
     test('應該能處理缺少 DOM 元素的情況', () => {
       // 創建沒有進度元素的文檔
+      // eslint-disable-next-line no-unused-vars
       const emptyDocument = {
         querySelector: jest.fn().mockReturnValue(null),
         getElementById: jest.fn().mockReturnValue(null)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const handlerWithoutElement = new UIProgressHandler(mockEventBus, emptyDocument)
 
       expect(() => handlerWithoutElement.getProgressElement()).not.toThrow()
@@ -241,6 +259,7 @@ describe('UIProgressHandler', () => {
     })
 
     test('應該能設置進度條動畫', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.PROGRESS.UPDATE',
         data: {
@@ -260,6 +279,7 @@ describe('UIProgressHandler', () => {
 
   describe('進度狀態管理 (TDD循環 #22)', () => {
     test('應該追蹤多個流程的進度狀態', async () => {
+      // eslint-disable-next-line no-unused-vars
       const flow1Event = {
         type: 'UI.PROGRESS.UPDATE',
         data: {
@@ -271,6 +291,7 @@ describe('UIProgressHandler', () => {
         timestamp: Date.now()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const flow2Event = {
         type: 'UI.PROGRESS.UPDATE',
         data: {
@@ -285,6 +306,7 @@ describe('UIProgressHandler', () => {
       await handler.handle(flow1Event)
       await handler.handle(flow2Event)
 
+      // eslint-disable-next-line no-unused-vars
       const progressState = handler.getProgressState()
       expect(progressState['flow-1']).toBeDefined()
       expect(progressState['flow-1'].percentage).toBe(30)
@@ -293,6 +315,7 @@ describe('UIProgressHandler', () => {
     })
 
     test('應該能清理完成的流程狀態', async () => {
+      // eslint-disable-next-line no-unused-vars
       const completeEvent = {
         type: 'UI.PROGRESS.UPDATE',
         data: {
@@ -309,12 +332,14 @@ describe('UIProgressHandler', () => {
 
       // 應該自動清理完成的流程
       setTimeout(() => {
+        // eslint-disable-next-line no-unused-vars
         const progressState = handler.getProgressState()
         expect(progressState['completed-flow']).toBeUndefined()
       }, 100)
     })
 
     test('應該提供進度狀態查詢方法', () => {
+      // eslint-disable-next-line no-unused-vars
       const stats = handler.getStats()
       expect(stats).toHaveProperty('updateCount')
       expect(stats).toHaveProperty('activeFlows')
@@ -328,6 +353,7 @@ describe('UIProgressHandler', () => {
       // 模擬 DOM 操作失敗
       mockProgressBar.style = null
 
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.PROGRESS.UPDATE',
         data: {
@@ -344,8 +370,10 @@ describe('UIProgressHandler', () => {
     })
 
     test('應該處理 EventBus 未設置的情況', async () => {
+      // eslint-disable-next-line no-unused-vars
       const handlerWithoutEventBus = new UIProgressHandler(null, mockDocument)
 
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.PROGRESS.UPDATE',
         data: {
@@ -358,12 +386,14 @@ describe('UIProgressHandler', () => {
       }
 
       // 應該能處理但不會發送事件
+      // eslint-disable-next-line no-unused-vars
       const result = await handlerWithoutEventBus.handle(event)
       expect(result.success).toBe(true)
     })
 
     test('應該記錄和報告錯誤統計', async () => {
       // 強制產生錯誤（無效的進度資料）
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.PROGRESS.UPDATE',
         data: {
@@ -377,6 +407,7 @@ describe('UIProgressHandler', () => {
 
       await expect(handler.handle(event)).rejects.toThrow()
 
+      // eslint-disable-next-line no-unused-vars
       const stats = handler.getStats()
       expect(stats.errorCount).toBeGreaterThan(0)
     })
@@ -390,6 +421,7 @@ describe('UIProgressHandler', () => {
     })
 
     test('應該追蹤執行統計', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.PROGRESS.UPDATE',
         data: {
@@ -401,11 +433,14 @@ describe('UIProgressHandler', () => {
         timestamp: Date.now()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const initialStats = handler.getStats()
+      // eslint-disable-next-line no-unused-vars
       const initialCount = initialStats.executionCount
 
       await handler.handle(event)
 
+      // eslint-disable-next-line no-unused-vars
       const updatedStats = handler.getStats()
       expect(updatedStats.executionCount).toBe(initialCount + 1)
       expect(updatedStats.lastExecutionTime).toBeGreaterThan(0)
@@ -414,6 +449,7 @@ describe('UIProgressHandler', () => {
     test('應該支援啟用/停用功能', async () => {
       handler.setEnabled(false)
 
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.PROGRESS.UPDATE',
         data: {
@@ -425,6 +461,7 @@ describe('UIProgressHandler', () => {
         timestamp: Date.now()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(event)
       expect(result).toBeNull() // 停用時應該返回 null
     })

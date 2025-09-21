@@ -52,6 +52,7 @@ describe('PopupUIManager 模組化整合測試', () => {
     global.document = document
 
     // 載入 PopupUIManager
+    // eslint-disable-next-line no-unused-vars
     const PopupUIManager = require('src/popup/popup-ui-manager.js')
     uiManager = new PopupUIManager(document)
   })
@@ -65,6 +66,7 @@ describe('PopupUIManager 模組化整合測試', () => {
       // Given: UIManager 已初始化
 
       // When: 檢查核心元素
+      // eslint-disable-next-line no-unused-vars
       const coreElements = [
         'errorContainer', 'successContainer', 'statusMessage',
         'loadingOverlay', 'progressBar', 'diagnosticPanel'
@@ -81,7 +83,9 @@ describe('PopupUIManager 模組化整合測試', () => {
       // Given: UIManager 已初始化
 
       // When: 使用 elements 屬性存取元素
+      // eslint-disable-next-line no-unused-vars
       const errorContainer = uiManager.elements.errorContainer
+      // eslint-disable-next-line no-unused-vars
       const statusMessage = uiManager.elements.statusMessage
 
       // Then: 應該返回正確的 DOM 元素
@@ -93,6 +97,7 @@ describe('PopupUIManager 模組化整合測試', () => {
   describe('🎨 UI 顯示控制 (視覺層職責)', () => {
     test('應該能顯示錯誤訊息 (純 UI 操作)', () => {
       // Given: 錯誤資料
+      // eslint-disable-next-line no-unused-vars
       const errorData = {
         title: '提取失敗',
         message: '無法連接到服務器',
@@ -110,6 +115,7 @@ describe('PopupUIManager 模組化整合測試', () => {
 
     test('應該能顯示成功訊息', () => {
       // Given: 成功訊息
+      // eslint-disable-next-line no-unused-vars
       const successMessage = '資料提取完成'
 
       // When: 顯示成功訊息
@@ -122,6 +128,7 @@ describe('PopupUIManager 模組化整合測試', () => {
 
     test('應該能控制載入狀態顯示', () => {
       // Given: 載入訊息
+      // eslint-disable-next-line no-unused-vars
       const loadingMessage = '正在提取資料...'
 
       // When: 顯示載入狀態
@@ -141,18 +148,21 @@ describe('PopupUIManager 模組化整合測試', () => {
   describe('📊 進度條控制', () => {
     test('應該能更新進度條顯示', () => {
       // Given: 進度百分比
+      // eslint-disable-next-line no-unused-vars
       const percentage = 65
 
       // When: 更新進度條
       uiManager.updateProgress(percentage)
 
       // Then: 進度條寬度應該正確設置
+      // eslint-disable-next-line no-unused-vars
       const progressBar = document.getElementById('progress-bar')
       expect(progressBar.style.width).toBe('65%')
     })
 
     test('應該正確處理進度邊界值', () => {
       // Given: 邊界值測試案例
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { input: -10, expected: '0%' },
         { input: 0, expected: '0%' },
@@ -166,6 +176,7 @@ describe('PopupUIManager 模組化整合測試', () => {
         uiManager.updateProgress(input)
 
         // Then: 進度條應該被正確限制
+        // eslint-disable-next-line no-unused-vars
         const progressBar = document.getElementById('progress-bar')
         expect(progressBar.style.width).toBe(expected)
       })
@@ -181,6 +192,7 @@ describe('PopupUIManager 模組化整合測試', () => {
       expect(uiManager.currentState).toBeUndefined()
 
       // getCurrentState 應該只返回診斷資訊，不包含業務狀態
+      // eslint-disable-next-line no-unused-vars
       const state = uiManager.getCurrentState()
       expect(state).toHaveProperty('queuedUpdates')
       expect(state).toHaveProperty('updateScheduled')

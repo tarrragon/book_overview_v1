@@ -11,6 +11,7 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('PopupProgressManager 核心功能', () => {
   let progressManager
+  // eslint-disable-next-line no-unused-vars
   let mockUIComponents
 
   beforeEach(() => {
@@ -29,10 +30,12 @@ describe('PopupProgressManager 核心功能', () => {
   describe('📊 基本進度管理功能', () => {
     test('應該正確初始化進度管理器', () => {
       // Given: 進度管理器初始化
+      // eslint-disable-next-line no-unused-vars
       const PopupProgressManager = require('src/popup/components/popup-progress-manager.js')
       progressManager = new PopupProgressManager(mockUIComponents)
 
       // When: 取得初始狀態
+      // eslint-disable-next-line no-unused-vars
       const initialState = progressManager.getCurrentProgress()
 
       // Then: 應有正確的初始狀態
@@ -46,10 +49,12 @@ describe('PopupProgressManager 核心功能', () => {
 
     test('應該正確更新進度百分比', () => {
       // Given: 進度管理器
+      // eslint-disable-next-line no-unused-vars
       const PopupProgressManager = require('src/popup/components/popup-progress-manager.js')
       progressManager = new PopupProgressManager(mockUIComponents)
 
       // When: 更新進度
+      // eslint-disable-next-line no-unused-vars
       const progressData = {
         percentage: 45,
         status: 'extracting',
@@ -73,10 +78,12 @@ describe('PopupProgressManager 核心功能', () => {
 
     test('應該正確處理進度邊界值', () => {
       // Given: 進度管理器
+      // eslint-disable-next-line no-unused-vars
       const PopupProgressManager = require('src/popup/components/popup-progress-manager.js')
       progressManager = new PopupProgressManager(mockUIComponents)
 
       // When: 測試邊界值
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { input: -10, expected: 0 }, // 負數應該被限制為 0
         { input: 0, expected: 0 }, // 最小值
@@ -95,10 +102,12 @@ describe('PopupProgressManager 核心功能', () => {
   describe('🎯 進度顯示生命週期', () => {
     test('應該正確開始進度顯示', () => {
       // Given: 進度管理器
+      // eslint-disable-next-line no-unused-vars
       const PopupProgressManager = require('src/popup/components/popup-progress-manager.js')
       progressManager = new PopupProgressManager(mockUIComponents)
 
       // When: 開始進度顯示
+      // eslint-disable-next-line no-unused-vars
       const startData = {
         title: '開始提取書庫資料',
         estimatedTotal: 100
@@ -117,11 +126,13 @@ describe('PopupProgressManager 核心功能', () => {
 
     test('應該正確完成進度顯示', () => {
       // Given: 進行中的進度
+      // eslint-disable-next-line no-unused-vars
       const PopupProgressManager = require('src/popup/components/popup-progress-manager.js')
       progressManager = new PopupProgressManager(mockUIComponents)
       progressManager.startProgress({ title: '測試', estimatedTotal: 100 })
 
       // When: 完成進度
+      // eslint-disable-next-line no-unused-vars
       const completionData = {
         totalProcessed: 95,
         successCount: 93,
@@ -141,6 +152,7 @@ describe('PopupProgressManager 核心功能', () => {
 
     test('應該正確取消進度顯示', () => {
       // Given: 進行中的進度
+      // eslint-disable-next-line no-unused-vars
       const PopupProgressManager = require('src/popup/components/popup-progress-manager.js')
       progressManager = new PopupProgressManager(mockUIComponents)
       progressManager.startProgress({ title: '測試', estimatedTotal: 100 })
@@ -162,9 +174,11 @@ describe('PopupProgressManager 核心功能', () => {
   describe('🔄 進度狀態管理', () => {
     test('應該支援有效的進度狀態', () => {
       // Given: 進度管理器和有效狀態
+      // eslint-disable-next-line no-unused-vars
       const PopupProgressManager = require('src/popup/components/popup-progress-manager.js')
       progressManager = new PopupProgressManager(mockUIComponents)
 
+      // eslint-disable-next-line no-unused-vars
       const validStates = ['idle', 'starting', 'extracting', 'processing', 'completed', 'cancelled', 'error']
 
       // When & Then: 每個有效狀態都應該被接受
@@ -179,10 +193,12 @@ describe('PopupProgressManager 核心功能', () => {
 
     test('應該拒絕無效的進度狀態', () => {
       // Given: 進度管理器
+      // eslint-disable-next-line no-unused-vars
       const PopupProgressManager = require('src/popup/components/popup-progress-manager.js')
       progressManager = new PopupProgressManager(mockUIComponents)
 
       // When: 嘗試使用無效狀態
+      // eslint-disable-next-line no-unused-vars
       const invalidStatus = 'invalid_status'
 
       // Then: 應該拋出錯誤
@@ -193,10 +209,12 @@ describe('PopupProgressManager 核心功能', () => {
 
     test('應該正確處理進度狀態轉換', () => {
       // Given: 進度管理器
+      // eslint-disable-next-line no-unused-vars
       const PopupProgressManager = require('src/popup/components/popup-progress-manager.js')
       progressManager = new PopupProgressManager(mockUIComponents)
 
       // When: 執行狀態轉換序列
+      // eslint-disable-next-line no-unused-vars
       const stateTransitions = [
         { status: 'starting', percentage: 0 },
         { status: 'extracting', percentage: 25 },
@@ -219,6 +237,7 @@ describe('PopupProgressManager 核心功能', () => {
   describe('⚠️ 錯誤處理', () => {
     test('應該處理進度更新時的錯誤', () => {
       // Given: 進度管理器，模擬 UI 組件錯誤
+      // eslint-disable-next-line no-unused-vars
       const PopupProgressManager = require('src/popup/components/popup-progress-manager.js')
       progressManager = new PopupProgressManager(mockUIComponents)
 
@@ -227,6 +246,7 @@ describe('PopupProgressManager 核心功能', () => {
       })
 
       // When: 嘗試更新進度
+      // eslint-disable-next-line no-unused-vars
       const progressData = { percentage: 50, status: 'extracting', text: '測試' }
 
       // Then: 應該優雅處理錯誤
@@ -244,10 +264,12 @@ describe('PopupProgressManager 核心功能', () => {
 
     test('應該驗證必要的進度資料欄位', () => {
       // Given: 進度管理器
+      // eslint-disable-next-line no-unused-vars
       const PopupProgressManager = require('src/popup/components/popup-progress-manager.js')
       progressManager = new PopupProgressManager(mockUIComponents)
 
       // When: 嘗試更新不完整的進度資料
+      // eslint-disable-next-line no-unused-vars
       const incompleteData = { percentage: 50 } // 缺少 status
 
       // Then: 應該拋出驗證錯誤

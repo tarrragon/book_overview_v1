@@ -8,6 +8,7 @@
  * - 記憶體和效能管理優化
  */
 
+// eslint-disable-next-line no-unused-vars
 const DiagnosticModule = require('src/popup/diagnostic-module')
 
 describe('🔧 DiagnosticModule Enhancement Tests (TDD循環 #43)', () => {
@@ -30,6 +31,7 @@ describe('🔧 DiagnosticModule Enhancement Tests (TDD循環 #43)', () => {
     test('should fail: Diagnostic module should support lazy initialization with performance tracking', () => {
       expect(() => {
         // 測試延遲初始化效能追蹤
+        // eslint-disable-next-line no-unused-vars
         const startTime = performance.now()
 
         diagnostic.initializeWithPerformanceTracking({
@@ -38,6 +40,7 @@ describe('🔧 DiagnosticModule Enhancement Tests (TDD循環 #43)', () => {
           memoryThreshold: 5000000 // 5MB
         })
 
+        // eslint-disable-next-line no-unused-vars
         const initTime = performance.now() - startTime
 
         expect(diagnostic.initializationMetrics).toBeDefined()
@@ -92,6 +95,7 @@ describe('🔧 DiagnosticModule Enhancement Tests (TDD循環 #43)', () => {
       expect(() => {
         diagnostic.initialize()
 
+        // eslint-disable-next-line no-unused-vars
         const degradationReport = diagnostic.detectSystemDegradation({
           analysisWindow: 300000, // 5分鐘
           degradationIndicators: [
@@ -114,6 +118,7 @@ describe('🔧 DiagnosticModule Enhancement Tests (TDD循環 #43)', () => {
         diagnostic.initialize()
 
         // 預測性健康分析
+        // eslint-disable-next-line no-unused-vars
         const forecast = diagnostic.predictSystemHealth({
           forecastPeriod: 3600000, // 1小時
           dataPoints: 100,
@@ -134,6 +139,7 @@ describe('🔧 DiagnosticModule Enhancement Tests (TDD循環 #43)', () => {
       expect(() => {
         diagnostic.initialize()
 
+        // eslint-disable-next-line no-unused-vars
         const exportResult = diagnostic.exportDiagnosticData({
           format: 'zip',
           compression: true,
@@ -175,6 +181,7 @@ describe('🔧 DiagnosticModule Enhancement Tests (TDD循環 #43)', () => {
       expect(() => {
         diagnostic.initialize()
 
+        // eslint-disable-next-line no-unused-vars
         const anonymizedExport = diagnostic.exportDiagnosticData({
           anonymize: true,
           sensitiveFields: ['user_id', 'session_id', 'ip_address'],
@@ -217,6 +224,7 @@ describe('🔧 DiagnosticModule Enhancement Tests (TDD循環 #43)', () => {
       expect(() => {
         diagnostic.initialize()
 
+        // eslint-disable-next-line no-unused-vars
         const bottlenecks = diagnostic.detectPerformanceBottlenecks({
           analysisDepth: 'deep',
           includeCallStack: true,
@@ -269,6 +277,7 @@ describe('🔧 DiagnosticModule Enhancement Tests (TDD循環 #43)', () => {
           context: { attempts: 3, lastError: 'DOM_TIMEOUT' }
         })
 
+        // eslint-disable-next-line no-unused-vars
         const rootCauseAnalysis = diagnostic.analyzeRootCause({
           errorId: diagnostic.errorHistory[0].id,
           analysisDepth: 'comprehensive',
@@ -303,6 +312,7 @@ describe('🔧 DiagnosticModule Enhancement Tests (TDD循環 #43)', () => {
         expect(diagnostic.workflows.size).toBe(1)
         expect(diagnostic.workflows.has('extraction_failure_workflow')).toBe(true)
 
+        // eslint-disable-next-line no-unused-vars
         const workflow = diagnostic.workflows.get('extraction_failure_workflow')
         expect(workflow.isAutoExecuteEnabled()).toBe(true)
         expect(workflow.getSteps()).toHaveLength(5)

@@ -15,21 +15,15 @@
  * - 生命週期和資源清理
  */
 
-// eslint-disable-next-line no-unused-vars
 const SearchUIController = require('src/ui/search/ui-controller/search-ui-controller')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('SearchUIController', () => {
   let searchUIController
-  // eslint-disable-next-line no-unused-vars
   let mockEventBus
-  // eslint-disable-next-line no-unused-vars
   let mockDocument
-  // eslint-disable-next-line no-unused-vars
   let mockSearchInput
-  // eslint-disable-next-line no-unused-vars
   let mockFilterContainer
-  // eslint-disable-next-line no-unused-vars
   let mockResultContainer
 
   beforeEach(() => {
@@ -142,8 +136,7 @@ describe('SearchUIController', () => {
 
     test('應該拋出錯誤當缺少必要依賴', () => {
       try {
-        // eslint-disable-next-line no-unused-vars
-        const _controller = new SearchUIController({})
+        const controller = new SearchUIController({})
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
         throw new Error('應該拋出錯誤')
       } catch (error) {
@@ -157,7 +150,6 @@ describe('SearchUIController', () => {
       }
 
       try {
-        // eslint-disable-next-line no-unused-vars
         const _controller = new SearchUIController({ eventBus: mockEventBus })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
         throw new Error('應該拋出錯誤')
@@ -172,7 +164,6 @@ describe('SearchUIController', () => {
       }
 
       try {
-        // eslint-disable-next-line no-unused-vars
         const _controller = new SearchUIController({ document: mockDocument })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
         throw new Error('應該拋出錯誤')
@@ -200,7 +191,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該允許自訂 UI 配置覆蓋', () => {
-      // eslint-disable-next-line no-unused-vars
       const customConfig = {
         debounceDelay: 500,
         animationDuration: 300,
@@ -236,7 +226,6 @@ describe('SearchUIController', () => {
     test('應該處理 DOM 元素不存在的情況', () => {
       mockDocument.getElementById.mockReturnValue(null)
 
-      // eslint-disable-next-line no-unused-vars
       const controller = new SearchUIController({
         eventBus: mockEventBus,
         document: mockDocument
@@ -280,7 +269,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該處理搜尋輸入事件', () => {
-      // eslint-disable-next-line no-unused-vars
       const mockEvent = {
         target: { value: 'test query' }
       }
@@ -291,7 +279,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該觸發搜尋輸入變更事件', () => {
-      // eslint-disable-next-line no-unused-vars
       const mockEvent = {
         target: { value: 'javascript' }
       }
@@ -305,7 +292,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該處理空輸入值', () => {
-      // eslint-disable-next-line no-unused-vars
       const mockEvent = {
         target: { value: '' }
       }
@@ -319,7 +305,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該正規化輸入查詢', () => {
-      // eslint-disable-next-line no-unused-vars
       const mockEvent = {
         target: { value: '  JavaScript  Programming  ' }
       }
@@ -330,7 +315,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該處理特殊字符輸入', () => {
-      // eslint-disable-next-line no-unused-vars
       const mockEvent = {
         target: { value: 'test@#$%^&*()' }
       }
@@ -350,9 +334,7 @@ describe('SearchUIController', () => {
     })
 
     test('應該實現搜尋防抖機制', () => {
-      // eslint-disable-next-line no-unused-vars
       const mockEvent1 = { target: { value: 'java' } }
-      // eslint-disable-next-line no-unused-vars
       const mockEvent2 = { target: { value: 'javascript' } }
 
       searchUIController.handleSearchInput(mockEvent1)
@@ -373,12 +355,9 @@ describe('SearchUIController', () => {
     })
 
     test('應該清除之前的防抖計時器', () => {
-      // eslint-disable-next-line no-unused-vars
       const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout')
 
-      // eslint-disable-next-line no-unused-vars
       const mockEvent1 = { target: { value: 'java' } }
-      // eslint-disable-next-line no-unused-vars
       const mockEvent2 = { target: { value: 'javascript' } }
 
       searchUIController.handleSearchInput(mockEvent1)
@@ -388,14 +367,12 @@ describe('SearchUIController', () => {
     })
 
     test('應該支援自訂防抖延遲時間', () => {
-      // eslint-disable-next-line no-unused-vars
       const customController = new SearchUIController({
         eventBus: mockEventBus,
         document: mockDocument,
         config: { debounceDelay: 500 }
       })
 
-      // eslint-disable-next-line no-unused-vars
       const mockEvent = { target: { value: 'test' } }
       customController.handleSearchInput(mockEvent)
 
@@ -413,9 +390,7 @@ describe('SearchUIController', () => {
     })
 
     test('應該取消防抖當輸入為空', () => {
-      // eslint-disable-next-line no-unused-vars
       const mockEvent1 = { target: { value: 'test' } }
-      // eslint-disable-next-line no-unused-vars
       const mockEvent2 = { target: { value: '' } }
 
       searchUIController.handleSearchInput(mockEvent1)
@@ -471,7 +446,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該管理錯誤狀態', () => {
-      // eslint-disable-next-line no-unused-vars
       const errorMessage = '搜尋發生錯誤'
 
       searchUIController.setErrorState(true, errorMessage)
@@ -498,7 +472,6 @@ describe('SearchUIController', () => {
       searchUIController.setLoadingState(true)
       searchUIController.setErrorState(true, '測試錯誤')
 
-      // eslint-disable-next-line no-unused-vars
       const state = searchUIController.getUIState()
 
       expect(state).toEqual({
@@ -521,7 +494,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該更新篩選器 UI', () => {
-      // eslint-disable-next-line no-unused-vars
       const filterOptions = {
         categories: ['技術', '文學'],
         status: ['已讀', '未讀'],
@@ -537,7 +509,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該處理篩選器選擇變更', () => {
-      // eslint-disable-next-line no-unused-vars
       const mockEvent = {
         target: {
           name: 'category',
@@ -575,7 +546,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該處理篩選器錯誤狀態', () => {
-      // eslint-disable-next-line no-unused-vars
       const errorMessage = '篩選器載入失敗'
 
       searchUIController.setFilterErrorState(errorMessage)
@@ -596,7 +566,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該顯示搜尋結果', () => {
-      // eslint-disable-next-line no-unused-vars
       const searchResults = [
         { id: 1, title: 'JavaScript Guide', author: 'John Doe' },
         { id: 2, title: 'React Handbook', author: 'Jane Smith' }
@@ -630,7 +599,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該顯示搜尋結果統計', () => {
-      // eslint-disable-next-line no-unused-vars
       const statistics = {
         totalResults: 150,
         searchTime: 23,
@@ -668,7 +636,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該顯示搜尋錯誤', () => {
-      // eslint-disable-next-line no-unused-vars
       const error = new Error('搜尋服務暫時不可用')
 
       searchUIController.handleSearchError(error)
@@ -680,7 +647,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該顯示驗證錯誤', () => {
-      // eslint-disable-next-line no-unused-vars
       const validationError = {
         field: 'query',
         message: '搜尋關鍵字太短'
@@ -696,7 +662,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該顯示網絡錯誤', () => {
-      // eslint-disable-next-line no-unused-vars
       const networkError = {
         type: 'network',
         message: '網絡連線中斷'
@@ -734,7 +699,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該顯示效能警告', () => {
-      // eslint-disable-next-line no-unused-vars
       const performanceData = {
         searchTime: 2500,
         threshold: 2000,
@@ -752,7 +716,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該更新效能指標顯示', () => {
-      // eslint-disable-next-line no-unused-vars
       const metrics = {
         avgSearchTime: 156,
         totalSearches: 45,
@@ -795,12 +758,10 @@ describe('SearchUIController', () => {
     })
 
     test('應該處理搜尋結果就緒事件', () => {
-      // eslint-disable-next-line no-unused-vars
       const eventHandler = mockEventBus.on.mock.calls.find(
         call => call[0] === 'SEARCH.RESULTS.READY'
       )[1]
 
-      // eslint-disable-next-line no-unused-vars
       const mockEvent = {
         results: [{ id: 1, title: 'Test Book' }],
         query: 'test',
@@ -813,12 +774,10 @@ describe('SearchUIController', () => {
     })
 
     test('應該處理主題變更事件', () => {
-      // eslint-disable-next-line no-unused-vars
       const eventHandler = mockEventBus.on.mock.calls.find(
         call => call[0] === 'UI.THEME.CHANGED'
       )[1]
 
-      // eslint-disable-next-line no-unused-vars
       const themeEvent = { theme: 'dark' }
       eventHandler(themeEvent)
 
@@ -866,10 +825,8 @@ describe('SearchUIController', () => {
 
     test('應該清除所有計時器', () => {
       jest.useFakeTimers()
-      // eslint-disable-next-line no-unused-vars
       const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout')
 
-      // eslint-disable-next-line no-unused-vars
       const mockEvent = { target: { value: 'test' } }
       searchUIController.handleSearchInput(mockEvent)
 
@@ -896,7 +853,6 @@ describe('SearchUIController', () => {
       searchUIController.cleanup()
 
       expect(() => {
-        // eslint-disable-next-line no-unused-vars
         const mockEvent = { target: { value: 'test' } }
         searchUIController.handleSearchInput(mockEvent)
       }).toMatchObject(expect.objectContaining({ message: 'SearchUIController 已被清理' }))
@@ -912,7 +868,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該與協調器正確整合', () => {
-      // eslint-disable-next-line no-unused-vars
       const coordinatorEvent = {
         type: 'COORDINATOR.SEARCH.COMPLETED',
         data: {
@@ -931,7 +886,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該處理搜尋引擎事件', () => {
-      // eslint-disable-next-line no-unused-vars
       const searchEngineEvent = {
         type: 'SEARCH.ENGINE.PROGRESS',
         progress: 75,
@@ -948,7 +902,6 @@ describe('SearchUIController', () => {
     })
 
     test('應該回應篩選引擎更新', () => {
-      // eslint-disable-next-line no-unused-vars
       const filterEngineEvent = {
         type: 'FILTER.ENGINE.OPTIONS.UPDATED',
         options: {
@@ -978,7 +931,6 @@ describe('SearchUIController', () => {
       searchUIController.eventBus = null
 
       expect(() => {
-        // eslint-disable-next-line no-unused-vars
         const mockEvent = { target: { value: 'test' } }
         searchUIController.handleSearchInput(mockEvent)
       }).not.toThrow()
@@ -987,7 +939,6 @@ describe('SearchUIController', () => {
     test('應該處理 DOM 元素意外移除', () => {
       searchUIController.searchInput = null
 
-      // eslint-disable-next-line no-unused-vars
       const mockEvent = { target: { value: 'test' } }
 
       expect(() => {
@@ -996,9 +947,7 @@ describe('SearchUIController', () => {
     })
 
     test('應該處理異常大的搜尋查詢', () => {
-      // eslint-disable-next-line no-unused-vars
       const longQuery = 'a'.repeat(10000)
-      // eslint-disable-next-line no-unused-vars
       const mockEvent = { target: { value: longQuery } }
 
       searchUIController.handleSearchInput(mockEvent)
@@ -1013,14 +962,11 @@ describe('SearchUIController', () => {
       // eslint-disable-next-line no-console
       console.error = jest.fn()
 
-      // eslint-disable-next-line no-unused-vars
       const mockEvent = { target: { value: 'test' } }
 
       // 模擬處理過程中的記憶體問題
-      // eslint-disable-next-line no-unused-vars
       const originalNormalize = searchUIController.normalizeSearchQuery
       searchUIController.normalizeSearchQuery = jest.fn().mockImplementation(() => {
-        // eslint-disable-next-line no-unused-vars
         const error = new Error('Memory allocation failed')
         error.code = 'SEARCH_UI_MEMORY_ERROR'
         error.details = { category: 'testing' }
@@ -1050,24 +996,19 @@ describe('SearchUIController', () => {
     })
 
     test('應該在要求的時間內處理輸入事件', () => {
-      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
-      // eslint-disable-next-line no-unused-vars
       const mockEvent = { target: { value: 'test query' } }
       searchUIController.handleSearchInput(mockEvent)
 
-      // eslint-disable-next-line no-unused-vars
       const executionTime = performance.now() - startTime
       expect(executionTime).toBeLessThan(10) // 應在10ms內完成
     })
 
     test('應該高效處理大量快速輸入', () => {
-      // eslint-disable-next-line no-unused-vars
       const inputCount = 100
 
       for (let i = 0; i < inputCount; i++) {
-        // eslint-disable-next-line no-unused-vars
         const mockEvent = { target: { value: `query${i}` } }
         searchUIController.handleSearchInput(mockEvent)
       }

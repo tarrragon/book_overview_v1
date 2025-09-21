@@ -64,7 +64,9 @@ class EventHandlerMock {
 
   removeEventListener (element, event, handler) {
     if (this.eventListeners.has(element)) {
+      // eslint-disable-next-line no-unused-vars
       const listeners = this.eventListeners.get(element)
+      // eslint-disable-next-line no-unused-vars
       const index = listeners.findIndex(l => l.event === event && l.handler === handler)
       if (index !== -1) {
         listeners.splice(index, 1)
@@ -163,6 +165,7 @@ global.URL = {
 }
 
 // ===== DOM 測試輔助函數 =====
+// eslint-disable-next-line no-unused-vars
 const DOMTestUtils = {
   // 建立完整的DOM結構 - 根據OverviewPageController的elementMap
   createCompleteDOM () {
@@ -241,10 +244,12 @@ const DOMTestUtils = {
   // 驗證表格狀態
   verifyTableState: {
     isEmpty () {
+      // eslint-disable-next-line no-unused-vars
       const tbody = document.getElementById('tableBody')
       if (!tbody) return false
       // 檢查是否顯示空狀態訊息
       if (tbody.children.length === 1) {
+        // eslint-disable-next-line no-unused-vars
         const firstRow = tbody.children[0]
         return firstRow.textContent.includes('📚 目前沒有書籍資料') || firstRow.textContent.includes('沒有符合條件的書籍')
       }
@@ -252,17 +257,21 @@ const DOMTestUtils = {
     },
 
     hasData (expectedCount) {
+      // eslint-disable-next-line no-unused-vars
       const tbody = document.getElementById('tableBody')
       return tbody && tbody.children.length === expectedCount
     },
 
     showsLoading () {
+      // eslint-disable-next-line no-unused-vars
       const loading = document.getElementById('loadingIndicator')
       return loading && loading.style.display !== 'none'
     },
 
     showsError (expectedMessage = null) {
+      // eslint-disable-next-line no-unused-vars
       const error = document.getElementById('errorMessage')
+      // eslint-disable-next-line no-unused-vars
       const isVisible = error && error.style.display !== 'none'
       if (expectedMessage) {
         return isVisible && error.textContent.includes(expectedMessage)
@@ -273,6 +282,7 @@ const DOMTestUtils = {
 }
 
 // ===== 測試資料工廠 =====
+// eslint-disable-next-line no-unused-vars
 const TestDataFactory = {
   // 標準書籍資料
   createStandardBook (overrides = {}) {
@@ -394,7 +404,9 @@ const TestDataFactory = {
 // ===== 實際測試開始 =====
 
 describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
+  // eslint-disable-next-line no-unused-vars
   let controller
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
 
   // ===== 測試環境初始化 =====
@@ -489,6 +501,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
 
     test('當DOM元素缺失時應該優雅處理', () => {
       // 移除部分DOM元素
+      // eslint-disable-next-line no-unused-vars
       const searchBox = document.getElementById('searchBox')
       if (searchBox) {
         searchBox.remove()
@@ -496,6 +509,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
 
       // 重新建立controller來測試初始化
       const { OverviewPageController } = require('src/overview/overview-page-controller.js')
+      // eslint-disable-next-line no-unused-vars
       const testController = new OverviewPageController(mockEventBus, document)
 
       // 缺失元素應該是null但不應該崩潰
@@ -524,6 +538,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
     })
 
     test('應該正確處理初始資料載入', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testBooks = TestDataFactory.createBooksList(3)
 
       // 模擬Chrome storage返回資料 - 根據實際程式碼的期望格式
@@ -544,6 +559,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
       // Mock renderBooksTable方法
       jest.spyOn(controller, 'renderBooksTable').mockImplementation(() => {
         // 模擬清空表格內容
+        // eslint-disable-next-line no-unused-vars
         const tableBody = document.getElementById('tableBody')
         if (tableBody) {
           tableBody.innerHTML = ''
@@ -574,9 +590,11 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
     })
 
     test('應該正確響應資料更新事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const testBooks = TestDataFactory.createBooksList(2)
 
       // 觸發資料更新事件 - 根據實際程式碼的事件名稱 UI.BOOKS.UPDATE
+      // eslint-disable-next-line no-unused-vars
       const updateHandler = mockEventBus.on.mock.calls
         .find(call => call[0] === 'UI.BOOKS.UPDATE')
 
@@ -602,18 +620,21 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
       await controller.setupEventListeners()
 
       // 設置測試資料
+      // eslint-disable-next-line no-unused-vars
       const testBooks = TestDataFactory.createSearchTestData()
       controller.currentBooks = testBooks
       controller.filteredBooks = testBooks
     })
 
     test('應該正確執行書名搜尋', () => {
+      // eslint-disable-next-line no-unused-vars
       const searchInput = document.getElementById('searchBox')
       if (searchInput) {
         searchInput.value = 'JavaScript'
 
         // Mock handleSearchInput方法
         jest.spyOn(controller, 'handleSearchInput').mockImplementation((searchTerm = '') => {
+          // eslint-disable-next-line no-unused-vars
           const term = searchTerm || searchInput.value
           controller.filteredBooks = controller.currentBooks.filter(book =>
             book.title.toLowerCase().includes(term.toLowerCase())
@@ -629,12 +650,14 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
     })
 
     test('應該支援模糊搜尋', () => {
+      // eslint-disable-next-line no-unused-vars
       const searchInput = document.getElementById('searchBox')
       if (searchInput) {
         searchInput.value = 'js' // 模糊搜尋
 
         // Mock handleSearchInput方法進行模糊搜尋
         jest.spyOn(controller, 'handleSearchInput').mockImplementation((searchTerm = '') => {
+          // eslint-disable-next-line no-unused-vars
           const term = searchTerm || searchInput.value
           controller.filteredBooks = controller.currentBooks.filter(book =>
             book.title.toLowerCase().includes(term.toLowerCase())
@@ -684,18 +707,22 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
       controller.applyCurrentFilter()
 
       // 驗證排序結果
+      // eslint-disable-next-line no-unused-vars
       const titles = controller.filteredBooks.map(book => book.title)
+      // eslint-disable-next-line no-unused-vars
       const sortedTitles = [...controller.currentBooks.map(book => book.title)].sort()
       expect(titles).toEqual(sortedTitles)
     })
 
     test('搜尋結果為空時應該顯示適當訊息', () => {
+      // eslint-disable-next-line no-unused-vars
       const searchInput = document.getElementById('searchBox')
       if (searchInput) {
         searchInput.value = 'notfound'
 
         // Mock handleSearchInput方法
         jest.spyOn(controller, 'handleSearchInput').mockImplementation((searchTerm = '') => {
+          // eslint-disable-next-line no-unused-vars
           const term = searchTerm || searchInput.value
           controller.filteredBooks = controller.currentBooks.filter(book =>
             book.title.toLowerCase().includes(term.toLowerCase())
@@ -714,6 +741,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
   describe('🎨 階段5：表格渲染與UI狀態管理', () => {
     beforeEach(async () => {
       await controller.initializeElements()
+      // eslint-disable-next-line no-unused-vars
       const testBooks = TestDataFactory.createBooksList(5)
       controller.currentBooks = testBooks
       controller.filteredBooks = testBooks
@@ -722,10 +750,12 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
     test('應該正確渲染書籍表格', () => {
       controller.renderBooksTable(controller.filteredBooks)
 
+      // eslint-disable-next-line no-unused-vars
       const tableBody = document.getElementById('tableBody')
       expect(tableBody.children.length).toBe(5)
 
       // 驗證第一行內容
+      // eslint-disable-next-line no-unused-vars
       const firstRow = tableBody.children[0]
       expect(firstRow.textContent).toContain('測試書籍 1')
     })
@@ -743,6 +773,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
     })
 
     test('應該正確顯示錯誤訊息', () => {
+      // eslint-disable-next-line no-unused-vars
       const errorMessage = '載入失敗，請重試'
       controller.showError(errorMessage)
 
@@ -752,12 +783,14 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
     test('應該正確更新書籍總數顯示', () => {
       controller.updateStatistics(controller.filteredBooks)
 
+      // eslint-disable-next-line no-unused-vars
       const totalBooksElement = document.getElementById('totalBooks')
       expect(totalBooksElement.textContent).toBe('5')
     })
 
     test('應該正確處理分頁顯示', () => {
       // 設置大量資料測試分頁
+      // eslint-disable-next-line no-unused-vars
       const largeDataset = TestDataFactory.createLargeDataset(150)
       controller.filteredBooks = largeDataset
       controller.currentBooks = largeDataset
@@ -765,9 +798,11 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
       // 使用 updateStatistics 來更新統計資訊
       controller.updateStatistics(controller.filteredBooks)
 
+      // eslint-disable-next-line no-unused-vars
       const displayedBooksElement = document.getElementById('displayedBooks')
       expect(displayedBooksElement.textContent).toBe('150')
 
+      // eslint-disable-next-line no-unused-vars
       const totalBooksElement = document.getElementById('totalBooks')
       expect(totalBooksElement.textContent).toBe('150')
     })
@@ -785,6 +820,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
   describe('💾 階段6：檔案匯入匯出功能', () => {
     beforeEach(async () => {
       await controller.initializeElements()
+      // eslint-disable-next-line no-unused-vars
       const testBooks = TestDataFactory.createBooksList(3)
       controller.currentBooks = testBooks
       controller.filteredBooks = testBooks
@@ -792,6 +828,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
 
     test('應該正確處理CSV匯出', () => {
       // Mock downloadCSVFile 方法來捕獲 CSV 內容
+      // eslint-disable-next-line no-unused-vars
       const downloadCSVSpy = jest.spyOn(controller, 'downloadCSVFile').mockImplementation((csvContent) => {
         expect(csvContent).toContain('書名') // 驗證 CSV 內容包含標題
         expect(csvContent).toContain('測試書籍 1') // 驗證包含測試資料
@@ -805,8 +842,10 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
 
     test('應該正確處理JSON匯出', () => {
       // Mock downloadJSONFile 方法來捕獲 JSON 內容
+      // eslint-disable-next-line no-unused-vars
       const downloadJSONSpy = jest.spyOn(controller, 'downloadJSONFile').mockImplementation((jsonContent) => {
         expect(() => JSON.parse(jsonContent)).not.toThrow() // 驗證是有效的 JSON
+        // eslint-disable-next-line no-unused-vars
         const parsedData = JSON.parse(jsonContent)
         expect(parsedData.books).toHaveLength(3) // 驗證包含 3 本測試書籍
       })
@@ -818,7 +857,9 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
     })
 
     test('應該正確處理檔案載入', () => {
+      // eslint-disable-next-line no-unused-vars
       const fileContent = TestDataFactory.createFileTestData.validJSON()
+      // eslint-disable-next-line no-unused-vars
       const mockFile = new File([fileContent], 'test.json', { type: 'application/json' })
 
       // 模擬檔案驗證方法
@@ -834,12 +875,16 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
     })
 
     test('應該正確處理無效JSON檔案', async () => {
+      // eslint-disable-next-line no-unused-vars
       const mockFileReader = new FileReaderMock()
       jest.spyOn(global, 'FileReader').mockImplementation(() => mockFileReader)
 
+      // eslint-disable-next-line no-unused-vars
       const invalidJSON = TestDataFactory.createFileTestData.invalidJSON()
+      // eslint-disable-next-line no-unused-vars
       const mockFile = new File([invalidJSON], 'invalid.json', { type: 'application/json' })
 
+      // eslint-disable-next-line no-unused-vars
       const fileInput = document.getElementById('jsonFileInput')
       Object.defineProperty(fileInput, 'files', {
         value: [mockFile],
@@ -847,6 +892,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
       })
 
       // handleFileLoad 應該返回被拒絕的 Promise
+      // eslint-disable-next-line no-unused-vars
       const loadPromise = controller.handleFileLoad(mockFile)
 
       // 模擬FileReader讀取完成，但內容無效
@@ -860,10 +906,13 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
     })
 
     test('應該正確處理檔案讀取失敗', async () => {
+      // eslint-disable-next-line no-unused-vars
       const mockFileReader = new FileReaderMock()
       jest.spyOn(global, 'FileReader').mockImplementation(() => mockFileReader)
 
+      // eslint-disable-next-line no-unused-vars
       const mockFile = new File(['test'], 'test.json', { type: 'application/json' })
+      // eslint-disable-next-line no-unused-vars
       const fileInput = document.getElementById('jsonFileInput')
       Object.defineProperty(fileInput, 'files', {
         value: [mockFile],
@@ -871,6 +920,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
       })
 
       // handleFileLoad 應該返回被拒絕的 Promise
+      // eslint-disable-next-line no-unused-vars
       const loadPromise = controller.handleFileLoad(mockFile)
 
       // 模擬檔案讀取失敗
@@ -886,6 +936,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
   // ===== 邊界條件和異常處理測試 =====
   describe('⚠️ 邊界條件和異常處理', () => {
     test('應該正確處理邊界條件資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const edgeCaseData = TestDataFactory.createEdgeCaseData()
       controller.currentBooks = edgeCaseData
       controller.filteredBooks = edgeCaseData
@@ -895,13 +946,16 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
     })
 
     test('應該正確處理大型資料集', async () => {
+      // eslint-disable-next-line no-unused-vars
       const largeDataset = TestDataFactory.createLargeDataset(1000)
       controller.currentBooks = largeDataset
       controller.filteredBooks = largeDataset
 
       // 性能測試 - 渲染應該在合理時間內完成
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
       controller.renderBooksTable()
+      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
 
       expect(endTime - startTime).toBeLessThan(1000) // 1秒內完成
@@ -909,6 +963,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
 
     test('應該正確處理Chrome API錯誤', async () => {
       // 暫存原始chrome物件
+      // eslint-disable-next-line no-unused-vars
       const originalChrome = global.chrome
 
       // 模擬Chrome API不可用
@@ -939,6 +994,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
       await controller.initializeElements()
       await controller.setupEventListeners()
 
+      // eslint-disable-next-line no-unused-vars
       const testBooks = TestDataFactory.createBooksList(5)
 
       // 正確設置 Chrome Storage mock，使用 Promise 版本以配合實作中的 await
@@ -958,18 +1014,22 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
     })
 
     test('應該完整執行搜尋→篩選→排序流程', () => {
+      // eslint-disable-next-line no-unused-vars
       const testBooks = TestDataFactory.createSearchTestData()
       controller.currentBooks = testBooks
       controller.filteredBooks = testBooks
 
       // 1. 搜尋
+      // eslint-disable-next-line no-unused-vars
       const searchInput = document.getElementById('searchBox')
       searchInput.value = 'React'
       controller.handleSearchInput(searchInput.value)
 
       // 2. 篩選 & 排序 (使用統一的過濾方法)
+      // eslint-disable-next-line no-unused-vars
       const statusFilter = document.getElementById('statusFilter')
       statusFilter.value = 'all'
+      // eslint-disable-next-line no-unused-vars
       const sortBy = document.getElementById('sortBy')
       sortBy.value = 'title'
       controller.applyCurrentFilter()

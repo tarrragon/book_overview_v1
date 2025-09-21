@@ -12,7 +12,6 @@
 const { JSDOM } = require('jsdom')
 
 // 模擬 DOM 環境
-// eslint-disable-next-line no-unused-vars
 const dom = new JSDOM(`
 <!DOCTYPE html>
 <html>
@@ -83,9 +82,7 @@ class MockEventBus {
       return this
     }
 
-    // eslint-disable-next-line no-unused-vars
     const listeners = this.listeners.get(eventType)
-    // eslint-disable-next-line no-unused-vars
     const filteredListeners = listeners.filter(listener => listener !== handler)
 
     if (filteredListeners.length === 0) {
@@ -109,9 +106,7 @@ class MockEventBus {
 
 describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
   let bookSearchFilter
-  // eslint-disable-next-line no-unused-vars
   let eventBus
-  // eslint-disable-next-line no-unused-vars
   let testBooks
 
   beforeEach(() => {
@@ -186,7 +181,6 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     ]
 
     // 創建整合版本實例
-    // eslint-disable-next-line no-unused-vars
     const BookSearchFilterIntegrated = require('src/ui/book-search-filter-integrated')
     bookSearchFilter = new BookSearchFilterIntegrated(eventBus, document)
 
@@ -208,7 +202,6 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     })
 
     test('應該正確初始化所有模組化組件', () => {
-      // eslint-disable-next-line no-unused-vars
       const health = bookSearchFilter.getModuleHealth()
 
       expect(health.searchIndexManager).toBe(true)
@@ -244,7 +237,6 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
 
   describe('即時搜尋功能整合', () => {
     test('應該支援依書名搜尋', async () => {
-      // eslint-disable-next-line no-unused-vars
       const results = await bookSearchFilter.performSearch('JavaScript')
 
       expect(Array.isArray(results)).toBe(true)
@@ -253,7 +245,6 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     })
 
     test('應該支援依作者搜尋', async () => {
-      // eslint-disable-next-line no-unused-vars
       const results = await bookSearchFilter.performSearch('David Flanagan')
 
       expect(Array.isArray(results)).toBe(true)
@@ -262,7 +253,6 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     })
 
     test('應該支援模糊搜尋', async () => {
-      // eslint-disable-next-line no-unused-vars
       const results = await bookSearchFilter.performSearch('javascrpt') // 拼字錯誤
 
       expect(Array.isArray(results)).toBe(true)
@@ -270,7 +260,6 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     })
 
     test('應該正確處理空搜尋查詢', async () => {
-      // eslint-disable-next-line no-unused-vars
       const results = await bookSearchFilter.performSearch('')
 
       expect(Array.isArray(results)).toBe(true)
@@ -278,7 +267,6 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     })
 
     test('應該正確處理無結果的搜尋', async () => {
-      // eslint-disable-next-line no-unused-vars
       const results = await bookSearchFilter.performSearch('不存在的書籍名稱')
 
       expect(Array.isArray(results)).toBe(true)
@@ -288,9 +276,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
 
   describe('多維度篩選功能整合', () => {
     test('應該支援依閱讀狀態篩選', async () => {
-      // eslint-disable-next-line no-unused-vars
       const filters = { status: 'completed' }
-      // eslint-disable-next-line no-unused-vars
       const results = await bookSearchFilter.applyFilters(filters)
 
       expect(Array.isArray(results)).toBe(true)
@@ -298,9 +284,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     })
 
     test('應該支援依閱讀進度範圍篩選', async () => {
-      // eslint-disable-next-line no-unused-vars
       const filters = { progress: { min: 50, max: 100 } }
-      // eslint-disable-next-line no-unused-vars
       const results = await bookSearchFilter.applyFilters(filters)
 
       expect(Array.isArray(results)).toBe(true)
@@ -308,9 +292,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     })
 
     test('應該支援依書籍分類篩選', async () => {
-      // eslint-disable-next-line no-unused-vars
       const filters = { category: 'tech' }
-      // eslint-disable-next-line no-unused-vars
       const results = await bookSearchFilter.applyFilters(filters)
 
       expect(Array.isArray(results)).toBe(true)
@@ -318,12 +300,10 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     })
 
     test('應該支援多重篩選條件組合', async () => {
-      // eslint-disable-next-line no-unused-vars
       const filters = {
         status: 'reading',
         category: 'tech'
       }
-      // eslint-disable-next-line no-unused-vars
       const results = await bookSearchFilter.applyFilters(filters)
 
       expect(Array.isArray(results)).toBe(true)
@@ -336,11 +316,9 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
   describe('搜尋和篩選整合流程', () => {
     test('應該能夠執行搜尋後再篩選', async () => {
       // 先搜尋技術相關書籍
-      // eslint-disable-next-line no-unused-vars
-      const _searchResults = await bookSearchFilter.performSearch('tech')
+      const searchResults = await bookSearchFilter.performSearch('tech')
 
       // 再篩選正在閱讀的書籍
-      // eslint-disable-next-line no-unused-vars
       const filteredResults = await bookSearchFilter.applyFilters({ status: 'reading' })
 
       expect(Array.isArray(filteredResults)).toBe(true)
@@ -361,7 +339,6 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     test('應該發出搜尋結果更新事件', async () => {
       await bookSearchFilter.performSearch('JavaScript')
 
-      // eslint-disable-next-line no-unused-vars
       const searchEvents = eventBus.getEventHistory().filter(
         event => event.eventType === 'SEARCH.RESULTS_UPDATED'
       )
@@ -373,7 +350,6 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     test('應該發出篩選應用事件', async () => {
       await bookSearchFilter.applyFilters({ status: 'completed' })
 
-      // eslint-disable-next-line no-unused-vars
       const filterEvents = eventBus.getEventHistory().filter(
         event => event.eventType === 'FILTER.APPLIED' && event.data.source === 'BookSearchFilterIntegrated'
       )
@@ -383,7 +359,6 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     })
 
     test('應該監聽書籍資料更新事件', () => {
-      // eslint-disable-next-line no-unused-vars
       const newBooks = [...testBooks, {
         id: '5',
         title: '新增的書籍',
@@ -404,7 +379,6 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
       await bookSearchFilter.performSearch('JavaScript')
       await bookSearchFilter.applyFilters({ status: 'completed' })
 
-      // eslint-disable-next-line no-unused-vars
       const stats = bookSearchFilter.getSearchStatistics()
 
       expect(typeof stats).toBe('object')
@@ -417,7 +391,6 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
       // 執行搜尋操作
       await bookSearchFilter.performSearch('test')
 
-      // eslint-disable-next-line no-unused-vars
       const stats = bookSearchFilter.getSearchStatistics()
       expect(stats.averageSearchTime).toBeGreaterThanOrEqual(0)
     })
@@ -485,9 +458,7 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
       // 執行操作並檢查事件
       await bookSearchFilter.performSearch('test')
 
-      // eslint-disable-next-line no-unused-vars
       const events = eventBus.getEventHistory()
-      // eslint-disable-next-line no-unused-vars
       const searchEvents = events.filter(e => e.eventType.startsWith('SEARCH.'))
 
       expect(searchEvents.length).toBeGreaterThan(0)
@@ -496,7 +467,6 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
 
   describe('模組間協調驗證', () => {
     test('應該正確協調搜尋引擎和索引管理器', async () => {
-      // eslint-disable-next-line no-unused-vars
       const results = await bookSearchFilter.performSearch('JavaScript')
 
       // 驗證搜尋引擎能夠使用索引管理器
@@ -504,7 +474,6 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     })
 
     test('應該正確協調篩選引擎和結果格式化器', async () => {
-      // eslint-disable-next-line no-unused-vars
       const results = await bookSearchFilter.applyFilters({ status: 'reading' })
 
       // 驗證篩選結果被正確格式化
@@ -520,7 +489,6 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
       await bookSearchFilter.performSearch('JavaScript')
       await bookSearchFilter.performSearch('JavaScript')
 
-      // eslint-disable-next-line no-unused-vars
       const stats = bookSearchFilter.getSearchStatistics()
       // 第二次搜尋應該更快 (使用快取)
       expect(typeof stats.cacheHitRate).toBe('number')

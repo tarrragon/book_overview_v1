@@ -15,6 +15,7 @@
  */
 
 // Mock Chrome Extension APIs
+// eslint-disable-next-line no-unused-vars
 const mockChrome = {
   runtime: {
     reload: jest.fn(),
@@ -175,11 +176,13 @@ describe('🎨 PopupUIManager Refactor Tests (TDD循環 #36)', () => {
     test('PopupUIManager should update progress bar', () => {
       uiManager.updateProgress(65)
 
+      // eslint-disable-next-line no-unused-vars
       const progressBar = document.getElementById('progress-bar')
       expect(progressBar.style.width).toBe('65%')
     })
 
     test('PopupUIManager should bind event listeners', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockCallback = jest.fn()
       uiManager.bindEvent('extract-button', 'click', mockCallback)
 
@@ -196,6 +199,7 @@ describe('🎨 PopupUIManager Refactor Tests (TDD循環 #36)', () => {
     })
 
     test('PopupUIManager should clean up event listeners', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockCallback = jest.fn()
       uiManager.bindEvent('extract-button', 'click', mockCallback)
       uiManager.cleanup()
@@ -208,6 +212,7 @@ describe('🎨 PopupUIManager Refactor Tests (TDD循環 #36)', () => {
   describe('🟢 Green Phase - PopupUIManager 與現有系統相容性測試', () => {
     test('PopupUIManager should maintain compatibility with existing error handler', () => {
       // 測試與現有 PopupErrorHandler 的相容性
+      // eslint-disable-next-line no-unused-vars
       const errorData = {
         title: '系統錯誤',
         message: '發生未預期的錯誤',
@@ -221,6 +226,7 @@ describe('🎨 PopupUIManager Refactor Tests (TDD循環 #36)', () => {
 
     test('PopupUIManager should support event-driven updates', () => {
       // 測試事件驅動的狀態更新
+      // eslint-disable-next-line no-unused-vars
       const statusEvent = {
         type: 'STATUS_UPDATE',
         data: {
@@ -252,12 +258,14 @@ describe('🎨 PopupUIManager Refactor Tests (TDD循環 #36)', () => {
       }
 
       // 重構後：應該有去重機制，避免過度渲染
+      // eslint-disable-next-line no-unused-vars
       const currentState = uiManager.getCurrentState()
       expect(currentState.queuedUpdates).toBeLessThan(10)
     })
 
     test('PopupUIManager should optimize DOM queries', () => {
       // 測試 DOM 元素快取機制
+      // eslint-disable-next-line no-unused-vars
       const querySelectorSpy = jest.spyOn(document, 'getElementById')
 
       uiManager.showError({ message: '測試' })

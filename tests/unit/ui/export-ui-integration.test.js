@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * 匯出 UI 整合測試 - TDD 循環 #30 Red 階段
  *
@@ -24,9 +26,11 @@
  * @since 2025-08-09
  */
 
+// eslint-disable-next-line no-unused-vars
 const EventBus = require('src/core/event-bus')
 const { EXPORT_EVENTS } = require('src/export/export-events')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+// eslint-disable-next-line no-unused-vars
 const MemoryLeakDetector = require('../../helpers/memory-leak-detector')
 
 // 模擬 Chrome APIs
@@ -74,6 +78,7 @@ class ExportUIIntegration {
    */
   initialize () {
     // 測試將驗證 UI 整合初始化
+    // eslint-disable-next-line no-unused-vars
     const error = new Error('ExportUIIntegration.initialize() not implemented - Red phase')
     error.code = ErrorCodes.OPERATION_ERROR
     error.details = { category: 'testing', operation: 'initialize' }
@@ -85,6 +90,7 @@ class ExportUIIntegration {
    */
   initializePopupExport () {
     // 測試將驗證 Popup 匯出按鈕初始化
+    // eslint-disable-next-line no-unused-vars
     const error = new Error('ExportUIIntegration.initializePopupExport() not implemented - Red phase')
     error.code = ErrorCodes.OPERATION_ERROR
     error.details = { category: 'testing', operation: 'initializePopupExport' }
@@ -96,6 +102,7 @@ class ExportUIIntegration {
    */
   initializeOverviewExport () {
     // 測試將驗證 Overview 匯出功能初始化
+    // eslint-disable-next-line no-unused-vars
     const error = new Error('ExportUIIntegration.initializeOverviewExport() not implemented - Red phase')
     error.code = ErrorCodes.OPERATION_ERROR
     error.details = { category: 'testing', operation: 'initializeOverviewExport' }
@@ -108,6 +115,7 @@ class ExportUIIntegration {
    */
   showFormatSelector (availableFormats) {
     // 測試將驗證格式選擇器顯示
+    // eslint-disable-next-line no-unused-vars
     const error = new Error('ExportUIIntegration.showFormatSelector() not implemented - Red phase')
     error.code = ErrorCodes.OPERATION_ERROR
     error.details = { category: 'testing', operation: 'showFormatSelector' }
@@ -121,6 +129,7 @@ class ExportUIIntegration {
    */
   startExport (format, books) {
     // 測試將驗證匯出開始流程
+    // eslint-disable-next-line no-unused-vars
     const error = new Error('ExportUIIntegration.startExport() not implemented - Red phase')
     error.code = ErrorCodes.OPERATION_ERROR
     error.details = { category: 'testing', operation: 'startExport' }
@@ -134,6 +143,7 @@ class ExportUIIntegration {
    */
   updateProgressUI (exportId, progressData) {
     // 測試將驗證進度 UI 更新
+    // eslint-disable-next-line no-unused-vars
     const error = new Error('ExportUIIntegration.updateProgressUI() not implemented - Red phase')
     error.code = ErrorCodes.OPERATION_ERROR
     error.details = { category: 'testing', operation: 'updateProgressUI' }
@@ -147,6 +157,7 @@ class ExportUIIntegration {
    */
   showExportComplete (exportId, result) {
     // 測試將驗證完成 UI 顯示
+    // eslint-disable-next-line no-unused-vars
     const error = new Error('ExportUIIntegration.showExportComplete() not implemented - Red phase')
     error.code = ErrorCodes.OPERATION_ERROR
     error.details = { category: 'testing', operation: 'showExportComplete' }
@@ -160,6 +171,7 @@ class ExportUIIntegration {
    */
   showExportError (exportId, error) {
     // 測試將驗證錯誤 UI 顯示
+    // eslint-disable-next-line no-unused-vars
     const newError = new Error('ExportUIIntegration.showExportError() not implemented - Red phase')
     newError.code = ErrorCodes.OPERATION_ERROR
     newError.details = { category: 'testing', operation: 'showExportError' }
@@ -172,6 +184,7 @@ class ExportUIIntegration {
    */
   cancelExport (exportId) {
     // 測試將驗證取消 UI 流程
+    // eslint-disable-next-line no-unused-vars
     const error = new Error('ExportUIIntegration.cancelExport() not implemented - Red phase')
     error.code = ErrorCodes.OPERATION_ERROR
     error.details = { category: 'testing', operation: 'cancelExport' }
@@ -183,6 +196,7 @@ class ExportUIIntegration {
    */
   cleanup () {
     // 測試將驗證 UI 清理
+    // eslint-disable-next-line no-unused-vars
     const error = new Error('ExportUIIntegration.cleanup() not implemented - Red phase')
     error.code = ErrorCodes.OPERATION_ERROR
     error.details = { category: 'testing', operation: 'cleanup' }
@@ -208,6 +222,7 @@ class ProgressIndicator {
    */
   initialize () {
     // 測試將驗證進度指示器初始化
+    // eslint-disable-next-line no-unused-vars
     const error = new Error('ProgressIndicator.initialize() not implemented - Red phase')
     error.code = ErrorCodes.OPERATION_ERROR
     error.details = { category: 'testing', operation: 'initialize' }
@@ -221,6 +236,7 @@ class ProgressIndicator {
    */
   updateProgress (percentage, message) {
     // 測試將驗證進度更新顯示
+    // eslint-disable-next-line no-unused-vars
     const error = new Error('ProgressIndicator.updateProgress() not implemented - Red phase')
     error.code = ErrorCodes.OPERATION_ERROR
     error.details = { category: 'testing', operation: 'updateProgress' }
@@ -233,6 +249,7 @@ class ProgressIndicator {
    */
   setStyle (style) {
     // 測試將驗證樣式設定
+    // eslint-disable-next-line no-unused-vars
     const error = new Error('ProgressIndicator.setStyle() not implemented - Red phase')
     error.code = ErrorCodes.OPERATION_ERROR
     error.details = { category: 'testing', operation: 'setStyle' }
@@ -244,6 +261,7 @@ class ProgressIndicator {
    */
   hide () {
     // 測試將驗證隱藏邏輯
+    // eslint-disable-next-line no-unused-vars
     const error = new Error('ProgressIndicator.hide() not implemented - Red phase')
     error.code = ErrorCodes.OPERATION_ERROR
     error.details = { category: 'testing', operation: 'hide' }
@@ -255,6 +273,7 @@ class ProgressIndicator {
    */
   show () {
     // 測試將驗證顯示邏輯
+    // eslint-disable-next-line no-unused-vars
     const error = new Error('ProgressIndicator.show() not implemented - Red phase')
     error.code = ErrorCodes.OPERATION_ERROR
     error.details = { category: 'testing', operation: 'show' }
@@ -263,6 +282,7 @@ class ProgressIndicator {
 }
 
 describe('ExportUIIntegration', () => {
+  // eslint-disable-next-line no-unused-vars
   let eventBus
   let exportUI
   let memoryDetector
@@ -366,6 +386,7 @@ describe('ExportUIIntegration', () => {
 
   describe('格式選擇器', () => {
     test('應該顯示可用格式選擇器', () => {
+      // eslint-disable-next-line no-unused-vars
       const availableFormats = ['csv', 'json', 'excel', 'pdf']
 
       expect(() => {
@@ -381,7 +402,9 @@ describe('ExportUIIntegration', () => {
     })
 
     test('應該支援格式預覽功能', () => {
+      // eslint-disable-next-line no-unused-vars
       const format = 'csv'
+      // eslint-disable-next-line no-unused-vars
       const sampleData = [
         { title: '測試書籍', author: '測試作者', price: 299 }
       ]
@@ -396,6 +419,7 @@ describe('ExportUIIntegration', () => {
     })
 
     test('應該處理格式不可用情況', () => {
+      // eslint-disable-next-line no-unused-vars
       const unavailableFormats = []
 
       // Red 階段：測試將驗證不可用格式處理
@@ -410,7 +434,9 @@ describe('ExportUIIntegration', () => {
 
   describe('匯出流程 UI', () => {
     test('應該正確啟動匯出 UI 流程', () => {
+      // eslint-disable-next-line no-unused-vars
       const format = 'csv'
+      // eslint-disable-next-line no-unused-vars
       const books = [
         { id: '1', title: '測試書籍 1' },
         { id: '2', title: '測試書籍 2' }
@@ -429,6 +455,7 @@ describe('ExportUIIntegration', () => {
     })
 
     test('應該顯示匯出確認對話框', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportConfig = {
         format: 'excel',
         bookCount: 150,
@@ -445,7 +472,9 @@ describe('ExportUIIntegration', () => {
     })
 
     test('應該支援批量匯出 UI', () => {
+      // eslint-disable-next-line no-unused-vars
       const formats = ['csv', 'json']
+      // eslint-disable-next-line no-unused-vars
       const books = [{ id: '1', title: '測試書籍' }]
 
       // Red 階段：測試將驗證批量匯出 UI
@@ -460,7 +489,9 @@ describe('ExportUIIntegration', () => {
 
   describe('進度顯示', () => {
     test('應該正確更新進度 UI', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'progress-ui-001'
+      // eslint-disable-next-line no-unused-vars
       const progressData = {
         current: 75,
         total: 100,
@@ -484,12 +515,14 @@ describe('ExportUIIntegration', () => {
     })
 
     test('應該支援進度動畫效果', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'animation-test-001'
 
       // Red 階段：測試將驗證動畫效果
       // - 平滑進度過渡
       // - 載入動畫指示
       // - 視覺回饋效果
+      // eslint-disable-next-line no-unused-vars
       const progressSequence = [10, 25, 50, 75, 100]
 
       expect(() => {
@@ -500,7 +533,9 @@ describe('ExportUIIntegration', () => {
     })
 
     test('應該顯示詳細進度資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'detail-progress-001'
+      // eslint-disable-next-line no-unused-vars
       const detailedProgress = {
         percentage: 60,
         processedItems: 120,
@@ -524,7 +559,9 @@ describe('ExportUIIntegration', () => {
 
   describe('完成和錯誤 UI', () => {
     test('應該顯示匯出完成 UI', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'complete-ui-001'
+      // eslint-disable-next-line no-unused-vars
       const result = {
         format: 'csv',
         filename: 'readmoo-books-export.csv',
@@ -547,7 +584,9 @@ describe('ExportUIIntegration', () => {
     })
 
     test('應該顯示使用者友好的錯誤訊息', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'error-ui-001'
+      // eslint-disable-next-line no-unused-vars
       const error = new Error('Network connection failed')
       error.code = 'NETWORK_ERROR'
 
@@ -565,7 +604,9 @@ describe('ExportUIIntegration', () => {
     })
 
     test('應該提供錯誤報告功能', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'error-report-001'
+      // eslint-disable-next-line no-unused-vars
       const error = {
         message: 'Unexpected error occurred',
         stack: 'Error stack trace...',
@@ -585,6 +626,7 @@ describe('ExportUIIntegration', () => {
 
   describe('取消和清理', () => {
     test('應該正確處理匯出取消', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'cancel-ui-001'
 
       expect(() => {
@@ -601,6 +643,7 @@ describe('ExportUIIntegration', () => {
     })
 
     test('應該支援批量取消', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportIds = ['batch-cancel-001', 'batch-cancel-002']
 
       // Red 階段：測試將驗證批量取消
@@ -626,7 +669,9 @@ describe('ExportUIIntegration', () => {
       // - 定時器清除
 
       // 記憶體洩漏檢測：驗證清理操作不會造成記憶體洩漏
+      // eslint-disable-next-line no-unused-vars
       const analysis = await memoryDetector.detectMemoryLeak(async (iteration) => {
+        // eslint-disable-next-line no-unused-vars
         const tempExportUI = new ExportUIIntegration(eventBus)
 
         // 模擬初始化和使用
@@ -664,6 +709,7 @@ describe('ExportUIIntegration', () => {
       console.log(`  清理效率: ${(analysis.efficiency.overallEfficiency * 100).toFixed(1)}%`)
 
       // 清理操作記憶體分析
+      // eslint-disable-next-line no-unused-vars
       const memoryPerOp = analysis.leakDetection.averageMemoryPerOperation || 0
 
       // eslint-disable-next-line no-console
@@ -691,6 +737,7 @@ describe('ExportUIIntegration', () => {
       // - 小螢幕適配
       // - 觸控操作支援
       // - 簡化 UI 元素
+      // eslint-disable-next-line no-unused-vars
       const mobileViewport = { width: 375, height: 667 }
 
       expect(() => {
@@ -703,6 +750,7 @@ describe('ExportUIIntegration', () => {
       // - 高對比模式
       // - 螢幕閱讀器支援
       // - 鍵盤導航
+      // eslint-disable-next-line no-unused-vars
       const accessibilityOptions = {
         highContrast: true,
         screenReader: true,
@@ -721,6 +769,7 @@ describe('ExportUIIntegration', () => {
       // - 匯出開始事件監聽
       // - 進度更新事件處理
       // - 完成和失敗事件響應
+      // eslint-disable-next-line no-unused-vars
       const exportStartEvent = {
         exportId: 'event-integration-001',
         format: 'csv',
@@ -737,6 +786,7 @@ describe('ExportUIIntegration', () => {
       // - UI 觸發匯出事件
       // - 匯出狀態更新 UI
       // - 使用者操作事件處理
+      // eslint-disable-next-line no-unused-vars
       const userAction = {
         type: 'export-button-click',
         format: 'json',
@@ -751,6 +801,7 @@ describe('ExportUIIntegration', () => {
 })
 
 describe('ProgressIndicator', () => {
+  // eslint-disable-next-line no-unused-vars
   let mockContainer
   let progressIndicator
 
@@ -825,7 +876,9 @@ describe('ProgressIndicator', () => {
 
   describe('進度更新', () => {
     test('應該正確更新進度顯示', () => {
+      // eslint-disable-next-line no-unused-vars
       const percentage = 65
+      // eslint-disable-next-line no-unused-vars
       const message = '正在處理第 65/100 本書...'
 
       expect(() => {
@@ -927,7 +980,9 @@ describe('ProgressIndicator', () => {
       // - 最小顯示時間
       // - 快速操作不顯示
       // - 延遲顯示機制
+      // eslint-disable-next-line no-unused-vars
       const shortDuration = 100 // 100ms，太短不顯示
+      // eslint-disable-next-line no-unused-vars
       const longDuration = 2000 // 2s，需要顯示進度
 
       expect(() => {
