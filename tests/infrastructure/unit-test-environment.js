@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * 單元測試環境
  * 提供輕量級的單元測試執行環境

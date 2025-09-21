@@ -38,7 +38,9 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
 
   describe('🏷️ 錯誤分類和嚴重性', () => {
     test('應該正確分類 DOM 相關錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const domError = new Error('Cannot read property \'querySelector\' of null')
+      // eslint-disable-next-line no-unused-vars
       const classification = ErrorHandlingUtils.classifyError(domError)
 
       expect(classification).toEqual({
@@ -50,7 +52,9 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
 
     test('應該正確分類網路相關錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const networkError = new Error('Failed to fetch')
+      // eslint-disable-next-line no-unused-vars
       const classification = ErrorHandlingUtils.classifyError(networkError)
 
       expect(classification).toEqual({
@@ -62,7 +66,9 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
 
     test('應該正確分類資料驗證錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const validationError = new Error('Invalid book ID format')
+      // eslint-disable-next-line no-unused-vars
       const classification = ErrorHandlingUtils.classifyError(validationError)
 
       expect(classification).toEqual({
@@ -74,7 +80,9 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
 
     test('應該正確分類系統關鍵錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const systemError = new Error('Chrome Extension API not available')
+      // eslint-disable-next-line no-unused-vars
       const classification = ErrorHandlingUtils.classifyError(systemError)
 
       expect(classification).toEqual({
@@ -86,7 +94,9 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
 
     test('應該處理未知錯誤類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const unknownError = new Error('Something unexpected happened')
+      // eslint-disable-next-line no-unused-vars
       const classification = ErrorHandlingUtils.classifyError(unknownError)
 
       expect(classification.category).toBe('UNKNOWN_ERROR')
@@ -95,6 +105,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
 
     test('應該處理字串錯誤訊息', () => {
+      // eslint-disable-next-line no-unused-vars
       const classification = ErrorHandlingUtils.classifyError('Simple error message')
 
       expect(classification.category).toBe('UNKNOWN_ERROR')
@@ -104,9 +115,11 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
 
   describe('📝 錯誤訊息格式化', () => {
     test('應該格式化 Error 物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = new Error('Test error message')
       error.stack = 'Error: Test error message\n    at test.js:1:1'
 
+      // eslint-disable-next-line no-unused-vars
       const formatted = ErrorHandlingUtils.formatError(error)
 
       expect(formatted).toEqual({
@@ -120,6 +133,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
 
     test('應該格式化字串錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const formatted = ErrorHandlingUtils.formatError('Simple string error')
 
       expect(formatted).toEqual({
@@ -133,13 +147,16 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
 
     test('應該包含額外的上下文資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = new Error('Context test')
+      // eslint-disable-next-line no-unused-vars
       const context = {
         url: 'https://readmoo.com/library',
         action: 'book-extraction',
         pageType: 'library'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const formatted = ErrorHandlingUtils.formatError(error, context)
 
       expect(formatted.additionalContext).toEqual(context)
@@ -147,7 +164,9 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
 
     test('應該清理敏感資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = new Error('Error with token: abc123token and password: secret123')
+      // eslint-disable-next-line no-unused-vars
       const formatted = ErrorHandlingUtils.formatError(error)
 
       expect(formatted.message).not.toContain('abc123token')
@@ -159,6 +178,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
       expect(() => ErrorHandlingUtils.formatError(null)).not.toThrow()
       expect(() => ErrorHandlingUtils.formatError(undefined)).not.toThrow()
 
+      // eslint-disable-next-line no-unused-vars
       const nullFormatted = ErrorHandlingUtils.formatError(null)
       expect(nullFormatted.message).toBe('Unknown error (null)')
     })
@@ -166,10 +186,12 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
 
   describe('📊 錯誤記錄和統計', () => {
     test('應該記錄錯誤到歷史記錄', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = new Error('Recorded error')
 
       ErrorHandlingUtils.recordError(error, 'TEST_CONTEXT')
 
+      // eslint-disable-next-line no-unused-vars
       const history = ErrorHandlingUtils.getErrorHistory()
       expect(history).toHaveLength(1)
       expect(history[0].error.message).toBe('Recorded error')
@@ -182,6 +204,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
         ErrorHandlingUtils.recordError(new Error(`Error ${i}`), 'TEST')
       }
 
+      // eslint-disable-next-line no-unused-vars
       const history = ErrorHandlingUtils.getErrorHistory()
       expect(history.length).toBeLessThanOrEqual(100) // 假設最大限制為 100
     })
@@ -192,6 +215,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
       ErrorHandlingUtils.recordError(new Error('Failed to fetch'), 'NETWORK_REQUEST')
       ErrorHandlingUtils.recordError(new Error('DOM error 2'), 'DOM_OPERATION')
 
+      // eslint-disable-next-line no-unused-vars
       const stats = ErrorHandlingUtils.getErrorStats()
 
       expect(stats).toEqual({
@@ -219,6 +243,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
 
     test('應該檢測錯誤模式和頻率', () => {
+      // eslint-disable-next-line no-unused-vars
       const sameError = 'Repeated error message'
 
       // 記錄相同錯誤多次
@@ -226,6 +251,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
         ErrorHandlingUtils.recordError(new Error(sameError), 'TEST')
       }
 
+      // eslint-disable-next-line no-unused-vars
       const patterns = ErrorHandlingUtils.detectErrorPatterns()
       expect(patterns.repeatedErrors).toHaveLength(1)
       expect(patterns.repeatedErrors[0].message).toBe(sameError)
@@ -235,7 +261,9 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
 
   describe('🔄 重試機制', () => {
     test('應該實作指數退避重試', async () => {
+      // eslint-disable-next-line no-unused-vars
       let attempts = 0
+      // eslint-disable-next-line no-unused-vars
       const failingFunction = jest.fn(() => {
         attempts++
         if (attempts < 3) {
@@ -244,6 +272,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
         return 'success'
       })
 
+      // eslint-disable-next-line no-unused-vars
       const result = await ErrorHandlingUtils.retryWithBackoff(
         failingFunction,
         { maxRetries: 3, baseDelay: 10 }
@@ -254,6 +283,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
 
     test('應該在超過重試次數後失敗', async () => {
+      // eslint-disable-next-line no-unused-vars
       const alwaysFailingFunction = jest.fn(() => {
         throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       })
@@ -269,15 +299,19 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
 
     test('應該支援自定義重試條件', async () => {
+      // eslint-disable-next-line no-unused-vars
       let attempts = 0
+      // eslint-disable-next-line no-unused-vars
       const conditionallyFailingFunction = jest.fn(() => {
         attempts++
         if (attempts === 1) {
+          // eslint-disable-next-line no-unused-vars
           const error = new Error('Temporary failure')
           error.code = 'TEMPORARY'
           throw error
         }
         if (attempts === 2) {
+          // eslint-disable-next-line no-unused-vars
           const error = new Error('Permanent failure')
           error.code = 'PERMANENT'
           throw error
@@ -285,6 +319,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
         return 'success'
       })
 
+      // eslint-disable-next-line no-unused-vars
       const shouldRetry = (error) => error.code === 'TEMPORARY'
 
       await expect(
@@ -303,8 +338,10 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
 
   describe('🚨 Content Script 特定錯誤處理', () => {
     test('應該處理 DOM 查詢失敗', () => {
+      // eslint-disable-next-line no-unused-vars
       const domQueryError = () => document.querySelector('.non-existent')
 
+      // eslint-disable-next-line no-unused-vars
       const result = ErrorHandlingUtils.safelyExecuteDOM(domQueryError, 'QUERY_BOOKS')
 
       expect(result.success).toBe(false)
@@ -324,6 +361,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = ErrorHandlingUtils.handleChromeAPIError('sendMessage', ['test message'])
 
       expect(result.success).toBe(false)
@@ -331,16 +369,20 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
 
     test('應該格式化使用者友善的錯誤訊息', () => {
+      // eslint-disable-next-line no-unused-vars
       const techError = new Error('TypeError: Cannot read property \'book_id\' of undefined')
 
+      // eslint-disable-next-line no-unused-vars
       const userMessage = ErrorHandlingUtils.getUserFriendlyMessage(techError)
 
       expect(userMessage).toBe('資料載入時發生問題，請重新整理頁面後再試')
     })
 
     test('應該處理頁面導航錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const navigationError = new Error('Navigation blocked by user agent')
 
+      // eslint-disable-next-line no-unused-vars
       const handled = ErrorHandlingUtils.handleNavigationError(navigationError, {
         currentUrl: 'https://readmoo.com/library',
         targetUrl: 'https://readmoo.com/shelf'
@@ -353,8 +395,10 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
 
   describe('⚙️ 錯誤恢復策略', () => {
     test('應該建議 DOM 錯誤的恢復策略', () => {
+      // eslint-disable-next-line no-unused-vars
       const domError = new Error('Cannot read property \'textContent\' of null')
 
+      // eslint-disable-next-line no-unused-vars
       const strategy = ErrorHandlingUtils.getRecoveryStrategy(domError, 'BOOK_EXTRACTION')
 
       expect(strategy).toEqual({
@@ -365,8 +409,10 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
 
     test('應該建議網路錯誤的恢復策略', () => {
+      // eslint-disable-next-line no-unused-vars
       const networkError = new Error('Failed to fetch')
 
+      // eslint-disable-next-line no-unused-vars
       const strategy = ErrorHandlingUtils.getRecoveryStrategy(networkError, 'API_REQUEST')
 
       expect(strategy.immediate).toContain('retry-with-backoff')
@@ -374,10 +420,12 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
 
     test('應該執行自動恢復操作', async () => {
+      // eslint-disable-next-line no-unused-vars
       const mockFailingOperation = jest.fn()
         .mockRejectedValueOnce(new Error('Temporary failure'))
         .mockResolvedValueOnce('success')
 
+      // eslint-disable-next-line no-unused-vars
       const result = await ErrorHandlingUtils.attemptAutoRecovery(
         mockFailingOperation,
         'TEMPORARY_FAILURE',
@@ -396,6 +444,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
       ErrorHandlingUtils.recordError(new Error('Error 1'), 'CONTEXT_1')
       ErrorHandlingUtils.recordError(new Error('Error 2'), 'CONTEXT_2')
 
+      // eslint-disable-next-line no-unused-vars
       const report = ErrorHandlingUtils.generateErrorReport()
 
       expect(report).toEqual({
@@ -416,7 +465,9 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
 
     test('應該通知嚴重錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const criticalError = new Error('System crash imminent')
+      // eslint-disable-next-line no-unused-vars
       const mockNotificationHandler = jest.fn()
 
       ErrorHandlingUtils.setNotificationHandler(mockNotificationHandler)
@@ -435,12 +486,14 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
       ErrorHandlingUtils.recordError(new Error('Network timeout'), 'NETWORK_OP')
       ErrorHandlingUtils.recordError(new Error('Another DOM error'), 'DOM_OP')
 
+      // eslint-disable-next-line no-unused-vars
       const domErrors = ErrorHandlingUtils.filterErrors({
         category: 'DOM_ERROR'
       })
 
       expect(domErrors).toHaveLength(2)
 
+      // eslint-disable-next-line no-unused-vars
       const networkErrors = ErrorHandlingUtils.filterErrors({
         messageContains: 'Network'
       })
@@ -451,6 +504,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
 
   describe('🧪 工具方法測試', () => {
     test('應該匯出所有必要的方法', () => {
+      // eslint-disable-next-line no-unused-vars
       const requiredMethods = [
         'classifyError',
         'formatError',
@@ -484,6 +538,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
 
     test('應該安全處理各種錯誤輸入', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidInputs = [null, undefined, '', 0, {}, [], NaN]
 
       invalidInputs.forEach(input => {

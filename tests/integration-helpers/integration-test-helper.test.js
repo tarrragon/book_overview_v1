@@ -7,9 +7,11 @@
  * @version v0.9.45
  */
 
+// eslint-disable-next-line no-unused-vars
 const IntegrationTestHelper = require('../utils/integration-test-helper')
 
 describe('IntegrationTestHelper', () => {
+  // eslint-disable-next-line no-unused-vars
   let testHelper
 
   beforeEach(() => {
@@ -33,6 +35,7 @@ describe('IntegrationTestHelper', () => {
     })
 
     test('應該正確合併配置', () => {
+      // eslint-disable-next-line no-unused-vars
       const customHelper = new IntegrationTestHelper({
         timeout: 8000,
         enableMemoryTracking: false
@@ -46,6 +49,7 @@ describe('IntegrationTestHelper', () => {
 
   describe('🏗️ 測試環境設定', () => {
     test('應該成功設定整合測試環境', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest({
         modules: ['background', 'content'],
         chromeAPI: ['storage', 'runtime']
@@ -62,6 +66,7 @@ describe('IntegrationTestHelper', () => {
     })
 
     test('應該正確初始化模組狀態', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest({
         modules: ['background', 'popup']
       })
@@ -69,6 +74,7 @@ describe('IntegrationTestHelper', () => {
       expect(testContext.modules).toHaveProperty('background')
       expect(testContext.modules).toHaveProperty('popup')
 
+      // eslint-disable-next-line no-unused-vars
       const backgroundState = testContext.modules.background.getState()
       expect(backgroundState).toHaveProperty('initialized')
       expect(backgroundState).toHaveProperty('events')
@@ -91,12 +97,14 @@ describe('IntegrationTestHelper', () => {
 
   describe('📊 效能監控功能', () => {
     test('應該追蹤測試執行效能', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
 
       // 模擬一些操作
       await testContext.chrome.storage.local.set({ testKey: 'testValue' })
       await new Promise(resolve => setTimeout(resolve, 100))
 
+      // eslint-disable-next-line no-unused-vars
       const performanceReport = testContext.getPerformanceReport()
 
       expect(performanceReport.enabled).toBe(true)
@@ -105,8 +113,10 @@ describe('IntegrationTestHelper', () => {
     })
 
     test('應該追蹤記憶體使用情況', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
 
+      // eslint-disable-next-line no-unused-vars
       const performanceReport = testContext.getPerformanceReport()
 
       if (performanceReport.memoryUsage.enabled) {
@@ -119,6 +129,7 @@ describe('IntegrationTestHelper', () => {
 
   describe('🔄 模組間通訊測試', () => {
     test('應該記錄模組間訊息', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest({
         modules: ['background', 'content']
       })
@@ -131,6 +142,7 @@ describe('IntegrationTestHelper', () => {
       })
 
       // 驗證訊息記錄
+      // eslint-disable-next-line no-unused-vars
       const backgroundEvents = testContext.modules.background.getEventHistory()
       expect(backgroundEvents.some(event =>
         event.type === 'inter-module-message'
@@ -138,6 +150,7 @@ describe('IntegrationTestHelper', () => {
     })
 
     test('應該驗證模組間通訊', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
 
       // 記錄一些通訊事件
@@ -147,6 +160,7 @@ describe('IntegrationTestHelper', () => {
         message: { test: true }
       })
 
+      // eslint-disable-next-line no-unused-vars
       const verification = testContext.verifyModuleCommunication('background', 'content', [])
 
       expect(verification.verified).toBe(true)
@@ -156,8 +170,10 @@ describe('IntegrationTestHelper', () => {
 
   describe('🎭 使用者互動模擬', () => {
     test('應該模擬點擊操作', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
 
+      // eslint-disable-next-line no-unused-vars
       const result = await testContext.simulateUserAction('click', {
         selector: '#test-button',
         moduleName: 'popup'
@@ -167,6 +183,7 @@ describe('IntegrationTestHelper', () => {
       expect(result.selector).toBe('#test-button')
 
       // 驗證事件記錄
+      // eslint-disable-next-line no-unused-vars
       const popupEvents = testContext.modules.popup.getEventHistory()
       expect(popupEvents.some(event =>
         event.type === 'user-click' && event.selector === '#test-button'
@@ -174,8 +191,10 @@ describe('IntegrationTestHelper', () => {
     })
 
     test('應該模擬輸入操作', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
 
+      // eslint-disable-next-line no-unused-vars
       const result = await testContext.simulateUserAction('input', {
         selector: '#search-input',
         value: 'test search term'
@@ -186,8 +205,10 @@ describe('IntegrationTestHelper', () => {
     })
 
     test('應該模擬導航操作', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
 
+      // eslint-disable-next-line no-unused-vars
       const result = await testContext.simulateUserAction('navigation', {
         url: 'https://readmoo.com/library',
         moduleName: 'content'
@@ -200,8 +221,10 @@ describe('IntegrationTestHelper', () => {
 
   describe('⏱️ 等待和同步功能', () => {
     test('應該支援條件等待', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
 
+      // eslint-disable-next-line no-unused-vars
       let condition = false
 
       // 設定延遲改變條件
@@ -209,6 +232,7 @@ describe('IntegrationTestHelper', () => {
         condition = true
       }, 200)
 
+      // eslint-disable-next-line no-unused-vars
       const result = await testContext.waitFor(
         () => condition,
         { timeout: 1000, interval: 50 }
@@ -218,6 +242,7 @@ describe('IntegrationTestHelper', () => {
     })
 
     test('應該在超時時拋出錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
 
       await expect(testContext.waitFor(
@@ -231,12 +256,14 @@ describe('IntegrationTestHelper', () => {
 
   describe('📊 測試資料工廠整合', () => {
     test('應該提供測試資料工廠', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
 
       expect(testContext.data).toBeDefined()
       expect(typeof testContext.data.createBookDataSet).toBe('function')
 
       // 測試資料生成
+      // eslint-disable-next-line no-unused-vars
       const books = testContext.data.createBookDataSet(5, 'mixed')
       expect(books).toHaveLength(5)
       expect(books[0]).toHaveProperty('id')
@@ -244,8 +271,10 @@ describe('IntegrationTestHelper', () => {
     })
 
     test('應該生成Chrome消息資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
 
+      // eslint-disable-next-line no-unused-vars
       const messages = testContext.data.createChromeMessages(3, ['EXTRACTION'])
       expect(messages).toHaveLength(3)
       expect(messages[0]).toHaveProperty('type')
@@ -256,11 +285,14 @@ describe('IntegrationTestHelper', () => {
 
   describe('🔍 狀態驗證和錯誤處理', () => {
     test('應該記錄模組錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
 
+      // eslint-disable-next-line no-unused-vars
       const testError = new Error('Test error')
       testContext.modules.background.simulateError(testError)
 
+      // eslint-disable-next-line no-unused-vars
       const backgroundState = testContext.modules.background.getState()
       expect(backgroundState.errors).toHaveLength(1)
       expect(backgroundState.errors[0].error.message).toBe('Test error')
@@ -269,6 +301,7 @@ describe('IntegrationTestHelper', () => {
     test('應該驗證測試環境狀態', async () => {
       await testHelper.setupIntegrationTest()
 
+      // eslint-disable-next-line no-unused-vars
       const validation = testHelper.validateTestEnvironment()
 
       expect(validation).toHaveProperty('isValid')
@@ -286,6 +319,7 @@ describe('IntegrationTestHelper', () => {
         timestamp: Date.now()
       })
 
+      // eslint-disable-next-line no-unused-vars
       const validation = testHelper.validateTestEnvironment()
 
       expect(validation.issues.some(issue =>
@@ -328,12 +362,14 @@ describe('IntegrationTestHelper', () => {
 
   describe('🔗 完整整合場景測試', () => {
     test('應該支援完整的Chrome Extension工作流程測試', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest({
         modules: ['background', 'content', 'popup'],
         chromeAPI: ['storage', 'runtime', 'tabs']
       })
 
       // 1. 生成測試資料
+      // eslint-disable-next-line no-unused-vars
       const books = testContext.data.createBookDataSet(10, 'reading')
 
       // 2. 模擬content script提取資料
@@ -353,16 +389,20 @@ describe('IntegrationTestHelper', () => {
       })
 
       // 5. 驗證資料流
+      // eslint-disable-next-line no-unused-vars
       const storageData = await testContext.chrome.storage.local.get('extractedBooks')
       expect(storageData.extractedBooks).toHaveLength(5)
 
+      // eslint-disable-next-line no-unused-vars
       const contentEvents = testContext.modules.content.getEventHistory()
       expect(contentEvents.some(event => event.type === 'data-extraction')).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const popupEvents = testContext.modules.popup.getEventHistory()
       expect(popupEvents.some(event => event.type === 'user-click')).toBe(true)
 
       // 6. 檢查效能
+      // eslint-disable-next-line no-unused-vars
       const performanceReport = testContext.getPerformanceReport()
       expect(performanceReport.enabled).toBe(true)
       expect(performanceReport.operations.length).toBeGreaterThan(0)

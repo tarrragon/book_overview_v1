@@ -30,12 +30,15 @@
  * - 追蹤提取完成統計時
  */
 
+// eslint-disable-next-line no-unused-vars
 const EventHandler = require('@/core/event-handler')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('ExtractionCompletedHandler', () => {
   let ExtractionCompletedHandler
+  // eslint-disable-next-line no-unused-vars
   let handler
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
 
   beforeEach(async () => {
@@ -77,6 +80,7 @@ describe('ExtractionCompletedHandler', () => {
     })
 
     test('應該支援 EXTRACTION.COMPLETED 事件類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const supportedEvents = handler.getSupportedEvents()
       expect(supportedEvents).toContain('EXTRACTION.COMPLETED')
       expect(handler.isEventSupported('EXTRACTION.COMPLETED')).toBe(true)
@@ -97,6 +101,7 @@ describe('ExtractionCompletedHandler', () => {
     })
 
     test('應該能處理有效的完成事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const completionEvent = {
         type: 'EXTRACTION.COMPLETED',
         timestamp: Date.now(),
@@ -114,6 +119,7 @@ describe('ExtractionCompletedHandler', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(completionEvent)
 
       expect(result.success).toBe(true)
@@ -125,9 +131,11 @@ describe('ExtractionCompletedHandler', () => {
     })
 
     test('應該能處理不同書城的完成事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const bookstores = ['readmoo', 'bookclub', 'kobo']
 
       for (const bookstore of bookstores) {
+        // eslint-disable-next-line no-unused-vars
         const completionEvent = {
           type: 'EXTRACTION.COMPLETED',
           flowId: `flow-${bookstore}`,
@@ -138,6 +146,7 @@ describe('ExtractionCompletedHandler', () => {
           }
         }
 
+        // eslint-disable-next-line no-unused-vars
         const result = await handler.handle(completionEvent)
         expect(result.success).toBe(true)
         expect(result.bookstore).toBe(bookstore)
@@ -147,6 +156,7 @@ describe('ExtractionCompletedHandler', () => {
     })
 
     test('應該驗證完成事件資料的完整性', async () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidCompletionEvent = {
         type: 'EXTRACTION.COMPLETED',
         flowId: 'flow-invalid',
@@ -157,6 +167,7 @@ describe('ExtractionCompletedHandler', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(invalidCompletionEvent)
 
       expect(result.success).toBe(false)
@@ -165,12 +176,14 @@ describe('ExtractionCompletedHandler', () => {
     })
 
     test('應該處理大量書籍資料的完成事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const largeBookSet = Array.from({ length: 100 }, (_, i) => ({
         id: `book${i}`,
         title: `測試書籍 ${i}`,
         cover: `cover${i}.jpg`
       }))
 
+      // eslint-disable-next-line no-unused-vars
       const completionEvent = {
         type: 'EXTRACTION.COMPLETED',
         flowId: 'flow-large',
@@ -181,6 +194,7 @@ describe('ExtractionCompletedHandler', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(completionEvent)
 
       expect(result.success).toBe(true)
@@ -195,6 +209,7 @@ describe('ExtractionCompletedHandler', () => {
     })
 
     test('應該觸發正確格式的儲存事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const completionEvent = {
         type: 'EXTRACTION.COMPLETED',
         flowId: 'flow-storage',
@@ -234,12 +249,14 @@ describe('ExtractionCompletedHandler', () => {
     })
 
     test('應該根據資料大小選擇壓縮選項', async () => {
+      // eslint-disable-next-line no-unused-vars
       const largeBookSet = Array.from({ length: 500 }, (_, i) => ({
         id: `book${i}`,
         title: `測試書籍 ${i}`,
         content: 'x'.repeat(1000) // 增加資料大小
       }))
 
+      // eslint-disable-next-line no-unused-vars
       const completionEvent = {
         type: 'EXTRACTION.COMPLETED',
         flowId: 'flow-compress',
@@ -252,6 +269,7 @@ describe('ExtractionCompletedHandler', () => {
 
       await handler.handle(completionEvent)
 
+      // eslint-disable-next-line no-unused-vars
       const storageCall = mockEventBus.emit.mock.calls.find(
         call => call[0] === 'STORAGE.SAVE.REQUESTED'
       )
@@ -267,6 +285,7 @@ describe('ExtractionCompletedHandler', () => {
         return Promise.resolve(true)
       })
 
+      // eslint-disable-next-line no-unused-vars
       const completionEvent = {
         type: 'EXTRACTION.COMPLETED',
         flowId: 'flow-storage-fail',
@@ -277,6 +296,7 @@ describe('ExtractionCompletedHandler', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(completionEvent)
 
       expect(result.success).toBe(false)
@@ -291,6 +311,7 @@ describe('ExtractionCompletedHandler', () => {
     })
 
     test('應該觸發成功通知事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const completionEvent = {
         type: 'EXTRACTION.COMPLETED',
         flowId: 'flow-notification',
@@ -321,6 +342,7 @@ describe('ExtractionCompletedHandler', () => {
     })
 
     test('應該根據提取數量調整通知訊息', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { count: 0, expectedMessage: '未找到任何書籍資料' },
         { count: 1, expectedMessage: '成功提取 1 本 readmoo 書籍資料' },
@@ -331,6 +353,7 @@ describe('ExtractionCompletedHandler', () => {
       for (const testCase of testCases) {
         mockEventBus.emit.mockClear()
 
+        // eslint-disable-next-line no-unused-vars
         const completionEvent = {
           type: 'EXTRACTION.COMPLETED',
           flowId: `flow-${testCase.count}`,
@@ -343,6 +366,7 @@ describe('ExtractionCompletedHandler', () => {
 
         await handler.handle(completionEvent)
 
+        // eslint-disable-next-line no-unused-vars
         const notificationCall = mockEventBus.emit.mock.calls.find(
           call => call[0] === 'UI.NOTIFICATION.SHOW'
         )
@@ -364,6 +388,7 @@ describe('ExtractionCompletedHandler', () => {
         return Promise.resolve(true)
       })
 
+      // eslint-disable-next-line no-unused-vars
       const completionEvent = {
         type: 'EXTRACTION.COMPLETED',
         flowId: 'flow-ui-fail',
@@ -374,6 +399,7 @@ describe('ExtractionCompletedHandler', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(completionEvent)
 
       // 即使通知失敗，整體處理應該仍然成功
@@ -388,6 +414,7 @@ describe('ExtractionCompletedHandler', () => {
     })
 
     test('應該觸發分析統計事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const completionEvent = {
         type: 'EXTRACTION.COMPLETED',
         flowId: 'flow-analytics',
@@ -418,6 +445,7 @@ describe('ExtractionCompletedHandler', () => {
     })
 
     test('應該收集詳細的分析資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const completionEvent = {
         type: 'EXTRACTION.COMPLETED',
         flowId: 'flow-detailed-analytics',
@@ -435,6 +463,7 @@ describe('ExtractionCompletedHandler', () => {
 
       await handler.handle(completionEvent)
 
+      // eslint-disable-next-line no-unused-vars
       const analyticsCall = mockEventBus.emit.mock.calls.find(
         call => call[0] === 'ANALYTICS.EXTRACTION.COMPLETED'
       )
@@ -456,6 +485,7 @@ describe('ExtractionCompletedHandler', () => {
     })
 
     test('應該正確追蹤完成統計', async () => {
+      // eslint-disable-next-line no-unused-vars
       const completionEvents = [
         {
           type: 'EXTRACTION.COMPLETED',
@@ -473,6 +503,7 @@ describe('ExtractionCompletedHandler', () => {
         await handler.handle(event)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const stats = handler.getCompletionStats()
       expect(stats.totalCompletions).toBe(2)
       expect(stats.successfulSaves).toBe(2)
@@ -484,6 +515,7 @@ describe('ExtractionCompletedHandler', () => {
     })
 
     test('應該維護處理歷史記錄', async () => {
+      // eslint-disable-next-line no-unused-vars
       const completionEvent = {
         type: 'EXTRACTION.COMPLETED',
         flowId: 'flow-history',
@@ -496,6 +528,7 @@ describe('ExtractionCompletedHandler', () => {
 
       await handler.handle(completionEvent)
 
+      // eslint-disable-next-line no-unused-vars
       const history = handler.getProcessingHistory()
       expect(history).toHaveLength(1)
       expect(history[0]).toEqual(
@@ -536,12 +569,14 @@ describe('ExtractionCompletedHandler', () => {
     })
 
     test('應該處理缺少必要完成資料的事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const incompleteEvent = {
         type: 'EXTRACTION.COMPLETED',
         flowId: 'flow-incomplete'
         // 缺少 data 欄位
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(incompleteEvent)
 
       expect(result.success).toBe(false)
@@ -550,12 +585,14 @@ describe('ExtractionCompletedHandler', () => {
     })
 
     test('應該處理完成資料格式錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const malformedEvent = {
         type: 'EXTRACTION.COMPLETED',
         flowId: 'flow-malformed',
         data: 'invalid-data-format' // 應該是 object
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(malformedEvent)
 
       expect(result.success).toBe(false)
@@ -565,12 +602,14 @@ describe('ExtractionCompletedHandler', () => {
     test('應該處理 EventBus 未設置的情況', async () => {
       handler.setEventBus(null)
 
+      // eslint-disable-next-line no-unused-vars
       const completionEvent = {
         type: 'EXTRACTION.COMPLETED',
         flowId: 'flow-no-bus',
         data: { books: [], bookstore: 'readmoo', count: 0 }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(completionEvent)
 
       expect(result.success).toBe(false)
@@ -578,6 +617,7 @@ describe('ExtractionCompletedHandler', () => {
     })
 
     test('應該在部分事件觸發失敗時繼續處理', async () => {
+      // eslint-disable-next-line no-unused-vars
       let callCount = 0
       mockEventBus.emit.mockImplementation((eventType) => {
         callCount++
@@ -587,12 +627,14 @@ describe('ExtractionCompletedHandler', () => {
         return Promise.resolve(true)
       })
 
+      // eslint-disable-next-line no-unused-vars
       const completionEvent = {
         type: 'EXTRACTION.COMPLETED',
         flowId: 'flow-partial-fail',
         data: { books: [{ id: 'book1' }], bookstore: 'readmoo', count: 1 }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(completionEvent)
 
       expect(result.success).toBe(false)
@@ -612,6 +654,7 @@ describe('ExtractionCompletedHandler', () => {
     test('應該追蹤執行統計', async () => {
       handler.setEventBus(mockEventBus)
 
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'EXTRACTION.COMPLETED',
         flowId: 'flow-stats',
@@ -620,6 +663,7 @@ describe('ExtractionCompletedHandler', () => {
 
       await handler.handle(event)
 
+      // eslint-disable-next-line no-unused-vars
       const stats = handler.getStats()
       expect(stats.executionCount).toBe(1)
       expect(stats.lastExecutionTime).toBeGreaterThan(0)
@@ -630,12 +674,14 @@ describe('ExtractionCompletedHandler', () => {
       handler.setEnabled(false)
       handler.setEventBus(mockEventBus)
 
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'EXTRACTION.COMPLETED',
         flowId: 'flow-disabled',
         data: { books: [], bookstore: 'readmoo', count: 0 }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(event)
 
       // 停用時應該跳過處理
@@ -651,8 +697,10 @@ describe('ExtractionCompletedHandler', () => {
     })
 
     test('應該在處理大量資料時保持效能', async () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
+      // eslint-disable-next-line no-unused-vars
       const largeDataEvent = {
         type: 'EXTRACTION.COMPLETED',
         flowId: 'flow-performance',
@@ -669,6 +717,7 @@ describe('ExtractionCompletedHandler', () => {
 
       await handler.handle(largeDataEvent)
 
+      // eslint-disable-next-line no-unused-vars
       const processingTime = performance.now() - startTime
 
       // 處理1000本書應該在合理時間內完成 (< 1秒)

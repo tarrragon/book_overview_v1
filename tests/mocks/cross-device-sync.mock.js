@@ -17,6 +17,7 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
  */
 
 // 導入基礎Chrome API Mock
+// eslint-disable-next-line no-unused-vars
 const chromeMock = require('./chrome-api.mock')
 
 /**
@@ -900,7 +901,8 @@ class MockLogger {
 
   analyzeDiagnosticValue () {
     const errorLogs = this.logs.filter(log => log.level === 'ERROR')
-    const warnLogs = this.logs.filter(log => log.level === 'WARN')
+    // eslint-disable-next-line no-unused-vars
+    const _warnLogs = this.logs.filter(log => log.level === 'WARN')
     const infoLogs = this.logs.filter(log => log.level === 'INFO')
 
     return {

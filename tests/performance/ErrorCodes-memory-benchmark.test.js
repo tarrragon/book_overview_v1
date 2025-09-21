@@ -46,7 +46,9 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
           global.gc()
         }
 
+        // eslint-disable-next-line no-unused-vars
         const usage = process.memoryUsage()
+        // eslint-disable-next-line no-unused-vars
         const measurement = {
           label,
           timestamp: Date.now(),
@@ -62,6 +64,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
 
       // 設定基準線
       setBaseline (label) {
+        // eslint-disable-next-line no-unused-vars
         const measurement = this.measure(`baseline_${label}`)
         this.baselines.set(label, measurement)
         return measurement
@@ -69,7 +72,9 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
 
       // 計算相對於基準線的記憶體增長
       calculateDelta (baselineLabel, currentLabel = null) {
+        // eslint-disable-next-line no-unused-vars
         const baseline = this.baselines.get(baselineLabel)
+        // eslint-disable-next-line no-unused-vars
         const current = currentLabel
           ? this.measurements.find(m => m.label === currentLabel)
           : this.measurements[this.measurements.length - 1]
@@ -110,9 +115,12 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
 
       // 結束計時並記錄
       end (timer) {
+        // eslint-disable-next-line no-unused-vars
         const endTime = process.hrtime.bigint()
+        // eslint-disable-next-line no-unused-vars
         const endMemory = memoryMonitor.measure(`end_${timer.label}`)
 
+        // eslint-disable-next-line no-unused-vars
         const timing = {
           label: timer.label,
           duration: Number(endTime - timer.startTime) / 1000000, // 轉換為毫秒
@@ -141,6 +149,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       memoryMonitor.setBaseline('single_error_start')
 
       // 建立單一 ErrorCodes 錯誤物件
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createError(
         'DOM_READMOO_PAGE_NOT_DETECTED',
         '無法檢測到 Readmoo 書庫頁面',
@@ -152,7 +161,9 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
         }
       )
 
-      const afterCreation = memoryMonitor.measure('single_error_created')
+      // eslint-disable-next-line no-unused-vars
+      const _afterCreation = memoryMonitor.measure('single_error_created')
+      // eslint-disable-next-line no-unused-vars
       const delta = memoryMonitor.calculateDelta('single_error_start')
 
       // 驗證錯誤物件建立成功
@@ -167,6 +178,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       expect(delta.heapUsedDelta).toBeLessThanOrEqual(2000) // 最多 2000 bytes (寬鬆上限)
 
       // 記錄實際使用量以供分析
+      // eslint-disable-next-line no-unused-vars
       const actualUsage = delta.heapUsedDelta
       expect(actualUsage).toBeGreaterThan(0) // 必須有記憶體使用
 
@@ -180,6 +192,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       memoryMonitor.setBaseline('large_error_start')
 
       // 建立包含大量資料的錯誤物件
+      // eslint-disable-next-line no-unused-vars
       const largeDetails = {
         books: new Array(100).fill(null).map((_, i) => ({
           id: `book_${i}`,
@@ -205,13 +218,16 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorFactory.createError(
         'DATA_INCREMENTAL_UPDATE_CONFLICT',
         '增量更新時發生大量資料衝突',
         largeDetails
       )
 
-      const afterCreation = memoryMonitor.measure('large_error_created')
+      // eslint-disable-next-line no-unused-vars
+      const _afterCreation = memoryMonitor.measure('large_error_created')
+      // eslint-disable-next-line no-unused-vars
       const delta = memoryMonitor.calculateDelta('large_error_start')
 
       // 驗證錯誤物件建立成功
@@ -226,6 +242,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       expect(delta.heapUsedDelta).toBeLessThanOrEqual(50000) // 最多 50KB
 
       // 驗證記憶體效率（大量資料不應導致過度記憶體使用）
+      // eslint-disable-next-line no-unused-vars
       const bytesPerBook = delta.heapUsedDelta / largeDetails.books.length
       expect(bytesPerBook).toBeLessThanOrEqual(500) // 每本書不超過 500 bytes
     })
@@ -234,8 +251,10 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
   describe('📈 大量錯誤處理記憶體累積測試', () => {
     test('應該測量 1000 個錯誤物件的累積記憶體使用', () => {
       memoryMonitor.setBaseline('batch_errors_start')
+      // eslint-disable-next-line no-unused-vars
       const errors = []
 
+      // eslint-disable-next-line no-unused-vars
       const timer = performanceTracker.start('create_1000_errors')
 
       // 建立 1000 個不同類型的錯誤物件
@@ -280,7 +299,9 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const timing = performanceTracker.end(timer)
+      // eslint-disable-next-line no-unused-vars
       const finalDelta = memoryMonitor.calculateDelta('batch_errors_start')
 
       // 驗證錯誤物件建立成功
@@ -288,6 +309,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       expect(errors.every(e => e instanceof Error)).toBe(true)
 
       // 累積記憶體使用驗證 (目標: < 1MB)
+      // eslint-disable-next-line no-unused-vars
       const totalMemoryMB = finalDelta.heapUsedDelta / (1024 * 1024)
       // eslint-disable-next-line no-console
       console.log(`1000個錯誤物件總記憶體使用: ${totalMemoryMB.toFixed(2)} MB`)
@@ -298,16 +320,20 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       expect(timing.duration).toBeLessThanOrEqual(100) // 建立時間不超過 100ms
 
       // 平均每個錯誤物件的記憶體使用
+      // eslint-disable-next-line no-unused-vars
       const avgMemoryPerError = finalDelta.heapUsedDelta / 1000
       // eslint-disable-next-line no-console
       console.log(`平均每個錯誤物件記憶體: ${avgMemoryPerError.toFixed(0)} bytes`)
       expect(avgMemoryPerError).toBeLessThanOrEqual(2000) // 平均不超過 2KB
 
       // 檢查記憶體增長模式（應該是線性的，不是指數的）
+      // eslint-disable-next-line no-unused-vars
       const memoryGrowthPattern = []
       for (let i = 200; i <= 1000; i += 200) {
+        // eslint-disable-next-line no-unused-vars
         const measurement = memoryMonitor.measurements.find(m => m.label === `batch_${i}_errors`)
         if (measurement) {
+          // eslint-disable-next-line no-unused-vars
           const delta = memoryMonitor.calculateDelta('batch_errors_start', `batch_${i}_errors`)
           memoryGrowthPattern.push({
             errorCount: i,
@@ -319,8 +345,11 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
 
       // 驗證記憶體增長是線性的（每個錯誤的平均記憶體使用應該保持穩定）
       if (memoryGrowthPattern.length >= 2) {
+        // eslint-disable-next-line no-unused-vars
         const firstAvg = memoryGrowthPattern[0].avgPerError
+        // eslint-disable-next-line no-unused-vars
         const lastAvg = memoryGrowthPattern[memoryGrowthPattern.length - 1].avgPerError
+        // eslint-disable-next-line no-unused-vars
         const variation = Math.abs(lastAvg - firstAvg) / firstAvg
 
         // eslint-disable-next-line no-console
@@ -333,7 +362,9 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       memoryMonitor.setBaseline('gc_test_start')
 
       // 建立大量錯誤物件後立即丟棄
+      // eslint-disable-next-line no-unused-vars
       const createAndDiscardErrors = () => {
+        // eslint-disable-next-line no-unused-vars
         const tempErrors = []
         for (let i = 0; i < 500; i++) {
           tempErrors.push(UC01ErrorFactory.createError(
@@ -345,8 +376,10 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
         return tempErrors.length // 只回傳數量，不回傳引用
       }
 
+      // eslint-disable-next-line no-unused-vars
       const errorCount = createAndDiscardErrors()
-      const afterCreation = memoryMonitor.measure('after_creation')
+      // eslint-disable-next-line no-unused-vars
+      const _afterCreation = memoryMonitor.measure('after_creation')
 
       // 強制垃圾回收（如果可用）
       if (global.gc) {
@@ -357,10 +390,13 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       // 等待一小段時間讓垃圾回收完成
       await new Promise(resolve => setTimeout(resolve, 100))
 
-      const afterGC = memoryMonitor.measure('after_gc')
+      // eslint-disable-next-line no-unused-vars
+      const _afterGC = memoryMonitor.measure('after_gc')
 
       // 計算記憶體變化
+      // eslint-disable-next-line no-unused-vars
       const creationDelta = memoryMonitor.calculateDelta('gc_test_start', 'after_creation')
+      // eslint-disable-next-line no-unused-vars
       const finalDelta = memoryMonitor.calculateDelta('gc_test_start', 'after_gc')
 
       // eslint-disable-next-line no-console
@@ -373,6 +409,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
 
       // 如果有垃圾回收，最終記憶體使用應該明顯小於建立時的峰值
       if (global.gc) {
+        // eslint-disable-next-line no-unused-vars
         const recoveryRate = (creationDelta.heapUsedDelta - finalDelta.heapUsedDelta) / creationDelta.heapUsedDelta
         // eslint-disable-next-line no-console
         console.log(`記憶體回收率: ${(recoveryRate * 100).toFixed(1)}%`)
@@ -386,6 +423,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
 
   describe('⚖️ ErrorCodes vs StandardError 記憶體效率比較', () => {
     test('應該比較 ErrorCodes 與 StandardError 的記憶體使用效率', () => {
+      // eslint-disable-next-line no-unused-vars
       const comparisonResults = {
         errorCodes: { memory: 0, timing: 0 },
         standardError: { memory: 0, timing: 0 }
@@ -393,10 +431,13 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
 
       // 測試 ErrorCodes 效能
       memoryMonitor.setBaseline('errorcodes_comparison')
+      // eslint-disable-next-line no-unused-vars
       const errorCodesTimer = performanceTracker.start('errorcodes_batch')
 
+      // eslint-disable-next-line no-unused-vars
       const errorCodesErrors = []
       for (let i = 0; i < 200; i++) {
+        // eslint-disable-next-line no-unused-vars
         const error = UC02ErrorFactory.createError(
           'DATA_PROGRESS_VALIDATION_ERROR',
           `ErrorCodes 測試錯誤 ${i}`,
@@ -410,7 +451,9 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
         errorCodesErrors.push(error)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const errorCodesResult = performanceTracker.end(errorCodesTimer)
+      // eslint-disable-next-line no-unused-vars
       const errorCodesDelta = memoryMonitor.calculateDelta('errorcodes_comparison')
 
       comparisonResults.errorCodes.memory = errorCodesDelta.heapUsedDelta
@@ -418,11 +461,15 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
 
       // 清理並測試 StandardError 效能
       memoryMonitor.setBaseline('standarderror_comparison')
+      // eslint-disable-next-line no-unused-vars
       const standardErrorTimer = performanceTracker.start('standarderror_batch')
 
+      // eslint-disable-next-line no-unused-vars
       const standardErrors = []
       for (let i = 0; i < 200; i++) {
+        // eslint-disable-next-line no-unused-vars
         const error = (() => {
+          // eslint-disable-next-line no-unused-vars
           const error = new Error(`StandardError 測試錯誤 ${i}`)
           error.code = ErrorCodes.VALIDATION_ERROR
           error.details = {
@@ -436,14 +483,18 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
         standardErrors.push(error)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const standardErrorResult = performanceTracker.end(standardErrorTimer)
+      // eslint-disable-next-line no-unused-vars
       const standardErrorDelta = memoryMonitor.calculateDelta('standarderror_comparison')
 
       comparisonResults.standardError.memory = standardErrorDelta.heapUsedDelta
       comparisonResults.standardError.timing = standardErrorResult.duration
 
       // 計算效率比較
+      // eslint-disable-next-line no-unused-vars
       const memoryImprovement = (comparisonResults.standardError.memory - comparisonResults.errorCodes.memory) / comparisonResults.standardError.memory
+      // eslint-disable-next-line no-unused-vars
       const timingImprovement = (comparisonResults.standardError.timing - comparisonResults.errorCodes.timing) / comparisonResults.standardError.timing
 
       // eslint-disable-next-line no-console
@@ -483,7 +534,9 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       expect(timingImprovement).toBeGreaterThanOrEqual(-0.5) // 允許最多慢 50%
 
       // 驗證物件功能等效性
+      // eslint-disable-next-line no-unused-vars
       const errorCodesError = errorCodesErrors[0]
+      // eslint-disable-next-line no-unused-vars
       const standardError = standardErrors[0]
 
       expect(errorCodesError.message).toBeDefined()
@@ -496,6 +549,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
 
   describe('🔍 記憶體洩漏檢測', () => {
     test('應該檢測潛在的記憶體洩漏模式', async () => {
+      // eslint-disable-next-line no-unused-vars
       const leakDetector = {
         samples: [],
 
@@ -503,7 +557,9 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
         sample (label) {
           if (global.gc) global.gc()
 
+          // eslint-disable-next-line no-unused-vars
           const usage = process.memoryUsage()
+          // eslint-disable-next-line no-unused-vars
           const sample = {
             label,
             timestamp: Date.now(),
@@ -519,12 +575,18 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
         analyzeTrend () {
           if (this.samples.length < 3) return null
 
+          // eslint-disable-next-line no-unused-vars
           const first = this.samples[0]
+          // eslint-disable-next-line no-unused-vars
           const last = this.samples[this.samples.length - 1]
-          const middle = this.samples[Math.floor(this.samples.length / 2)]
+          // eslint-disable-next-line no-unused-vars
+          const _middle = this.samples[Math.floor(this.samples.length / 2)]
 
+          // eslint-disable-next-line no-unused-vars
           const totalGrowth = last.heapUsed - first.heapUsed
+          // eslint-disable-next-line no-unused-vars
           const timespan = last.timestamp - first.timestamp
+          // eslint-disable-next-line no-unused-vars
           const growthRate = totalGrowth / timespan // bytes per millisecond
 
           return {
@@ -543,6 +605,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       // 模擬多輪錯誤建立和清理週期
       for (let cycle = 0; cycle < 5; cycle++) {
         // 建立一批錯誤物件
+        // eslint-disable-next-line no-unused-vars
         const cycleErrors = []
         for (let i = 0; i < 100; i++) {
           cycleErrors.push(UC01ErrorFactory.createError(
@@ -559,8 +622,11 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
           // 觸發 toJSON() 方法
           JSON.stringify(error)
           // 存取屬性（記憶體測試需要）
+          // eslint-disable-next-line no-unused-vars
           const code = error.code
+          // eslint-disable-next-line no-unused-vars
           const message = error.message
+          // eslint-disable-next-line no-unused-vars
           const details = error.details
           // 防止變數未使用警告（記憶體測試需要這些存取）
           if (code && message && details) {
@@ -586,6 +652,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       leakDetector.sample('final')
 
       // 分析記憶體趨勢
+      // eslint-disable-next-line no-unused-vars
       const trend = leakDetector.analyzeTrend()
 
       // eslint-disable-next-line no-console
@@ -604,7 +671,9 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       expect(trend.samples).toBe(leakDetector.samples.length)
 
       // 記憶體洩漏閾值檢查
+      // eslint-disable-next-line no-unused-vars
       const maxAcceptableGrowth = 500000 // 500KB
+      // eslint-disable-next-line no-unused-vars
       const maxAcceptableRate = 100 // 100 bytes/ms
 
       expect(trend.totalGrowth).toBeLessThanOrEqual(maxAcceptableGrowth)
@@ -628,7 +697,9 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
     // eslint-disable-next-line no-console
     console.log('========================================')
 
+    // eslint-disable-next-line no-unused-vars
     const finalMemory = memoryMonitor.measure('test_complete')
+    // eslint-disable-next-line no-unused-vars
     const totalDelta = memoryMonitor.calculateDelta('test_start')
 
     // eslint-disable-next-line no-console

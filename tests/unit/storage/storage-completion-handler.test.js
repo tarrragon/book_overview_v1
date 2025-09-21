@@ -28,12 +28,17 @@
 // 設置測試環境
 global.window = {}
 
+// eslint-disable-next-line no-unused-vars
 const StorageCompletionHandler = require('src/storage/handlers/storage-completion-handler')
+// eslint-disable-next-line no-unused-vars
 const EventHandler = require('src/core/event-handler')
 
 describe('StorageCompletionHandler', () => {
+  // eslint-disable-next-line no-unused-vars
   let handler
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockStorageAdapter
 
   beforeEach(() => {
@@ -99,16 +104,19 @@ describe('StorageCompletionHandler', () => {
     })
 
     test('應該支援 STORAGE.SAVE.COMPLETED 事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const supports = handler.supportsEvent('STORAGE.SAVE.COMPLETED')
       expect(supports).toBe(true)
     })
 
     test('應該支援 STORAGE.ERROR 事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const supports = handler.supportsEvent('STORAGE.ERROR')
       expect(supports).toBe(true)
     })
 
     test('應該拒絕不支援的事件類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const unsupportedEvents = [
         'STORAGE.LOAD.REQUESTED',
         'EXTRACTION.COMPLETED',
@@ -117,6 +125,7 @@ describe('StorageCompletionHandler', () => {
       ]
 
       unsupportedEvents.forEach(eventType => {
+        // eslint-disable-next-line no-unused-vars
         const supports = handler.supportsEvent(eventType)
         expect(supports).toBe(false)
       })
@@ -129,6 +138,7 @@ describe('StorageCompletionHandler', () => {
     })
 
     test('應該處理成功的儲存完成事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'STORAGE.SAVE.COMPLETED',
         data: {
@@ -168,6 +178,7 @@ describe('StorageCompletionHandler', () => {
     })
 
     test('應該處理失敗的儲存完成事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'STORAGE.SAVE.COMPLETED',
         data: {
@@ -199,6 +210,7 @@ describe('StorageCompletionHandler', () => {
     })
 
     test('應該更新完成統計資訊', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'STORAGE.SAVE.COMPLETED',
         data: {
@@ -212,8 +224,10 @@ describe('StorageCompletionHandler', () => {
         metadata: { timestamp: Date.now() }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const initialStats = handler.getCompletionStats()
       await handler.handle(event)
+      // eslint-disable-next-line no-unused-vars
       const updatedStats = handler.getCompletionStats()
 
       expect(updatedStats.totalCompletions).toBe(initialStats.totalCompletions + 1)
@@ -228,6 +242,7 @@ describe('StorageCompletionHandler', () => {
     })
 
     test('應該處理儲存錯誤事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'STORAGE.ERROR',
         data: {
@@ -268,6 +283,7 @@ describe('StorageCompletionHandler', () => {
     })
 
     test('應該分析錯誤類型並提供適當策略', async () => {
+      // eslint-disable-next-line no-unused-vars
       const errorTypes = [
         { type: 'QUOTA_EXCEEDED', expectedRecovery: 'cleanup' },
         { type: 'NETWORK_ERROR', expectedRecovery: 'retry' },
@@ -276,6 +292,7 @@ describe('StorageCompletionHandler', () => {
       ]
 
       for (const errorType of errorTypes) {
+        // eslint-disable-next-line no-unused-vars
         const event = {
           type: 'STORAGE.ERROR',
           data: {
@@ -297,6 +314,7 @@ describe('StorageCompletionHandler', () => {
     })
 
     test('應該更新錯誤統計資訊', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'STORAGE.ERROR',
         data: {
@@ -306,8 +324,10 @@ describe('StorageCompletionHandler', () => {
         metadata: { timestamp: Date.now() }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const initialStats = handler.getErrorStats()
       await handler.handle(event)
+      // eslint-disable-next-line no-unused-vars
       const updatedStats = handler.getErrorStats()
 
       expect(updatedStats.totalErrors).toBe(initialStats.totalErrors + 1)
@@ -323,6 +343,7 @@ describe('StorageCompletionHandler', () => {
     })
 
     test('應該驗證事件結構完整性', async () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidEvents = [
         { type: 'STORAGE.SAVE.COMPLETED' }, // 缺少 data
         { data: { flowId: 'test' } }, // 缺少 type
@@ -336,6 +357,7 @@ describe('StorageCompletionHandler', () => {
     })
 
     test('應該驗證完成結果資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'STORAGE.SAVE.COMPLETED',
         data: {
@@ -353,6 +375,7 @@ describe('StorageCompletionHandler', () => {
     })
 
     test('應該驗證錯誤資料結構', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'STORAGE.ERROR',
         data: {
@@ -376,6 +399,7 @@ describe('StorageCompletionHandler', () => {
     })
 
     test('應該提供完成統計資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const stats = handler.getCompletionStats()
 
       expect(stats).toHaveProperty('totalCompletions')
@@ -390,6 +414,7 @@ describe('StorageCompletionHandler', () => {
     })
 
     test('應該提供錯誤統計資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const stats = handler.getErrorStats()
 
       expect(stats).toHaveProperty('totalErrors')
@@ -402,6 +427,7 @@ describe('StorageCompletionHandler', () => {
     })
 
     test('應該追蹤處理時間', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'STORAGE.SAVE.COMPLETED',
         data: {
@@ -411,10 +437,13 @@ describe('StorageCompletionHandler', () => {
         metadata: { timestamp: Date.now() }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
       await handler.handle(event)
+      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
 
+      // eslint-disable-next-line no-unused-vars
       const stats = handler.getProcessingStats()
       expect(stats.lastProcessingTime).toBeGreaterThan(0)
       expect(stats.lastProcessingTime).toBeLessThan(endTime - startTime + 10) // 允許小誤差
@@ -441,6 +470,7 @@ describe('StorageCompletionHandler', () => {
         metadata: { timestamp: Date.now() }
       })
 
+      // eslint-disable-next-line no-unused-vars
       const stats = handler.getCompletionStats()
       expect(stats.successRate).toBe(50) // 50% 成功率
     })
@@ -452,6 +482,7 @@ describe('StorageCompletionHandler', () => {
     })
 
     test('應該為配額超限錯誤提供清理策略', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'STORAGE.ERROR',
         data: {
@@ -474,6 +505,7 @@ describe('StorageCompletionHandler', () => {
     })
 
     test('應該為網路錯誤提供重試策略', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'STORAGE.ERROR',
         data: {
@@ -497,6 +529,7 @@ describe('StorageCompletionHandler', () => {
     })
 
     test('應該記錄恢復嘗試統計', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'STORAGE.ERROR',
         data: {
@@ -506,8 +539,10 @@ describe('StorageCompletionHandler', () => {
         metadata: { timestamp: Date.now() }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const initialStats = handler.getErrorStats()
       await handler.handle(event)
+      // eslint-disable-next-line no-unused-vars
       const updatedStats = handler.getErrorStats()
 
       expect(updatedStats.recoveryAttempts).toBe(initialStats.recoveryAttempts + 1)

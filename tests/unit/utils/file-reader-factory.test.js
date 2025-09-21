@@ -2,11 +2,13 @@
  * FileReaderFactory 測試
  */
 
+// eslint-disable-next-line no-unused-vars
 const FileReaderFactory = require('src/utils/file-reader-factory')
 
 describe('FileReaderFactory', () => {
   describe('createReader', () => {
     it('應該優先使用global.FileReader', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockFileReader = jest.fn()
       global.FileReader = mockFileReader
 

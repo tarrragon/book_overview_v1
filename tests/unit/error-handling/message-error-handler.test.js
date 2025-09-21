@@ -9,10 +9,13 @@
  * 4. 診斷資訊收集和報告
  */
 
+// eslint-disable-next-line no-unused-vars
 const EventHandler = require('src/core/event-handler')
 
 describe('MessageErrorHandler - TDD 循環 #31', () => {
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockChromeRuntime
 
   beforeEach(() => {
@@ -47,15 +50,19 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
 
   describe('🔧 基本結構和初始化', () => {
     test('應該能夠創建 MessageErrorHandler 實例', () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
 
       expect(() => {
+        // eslint-disable-next-line no-new
         new MessageErrorHandler(mockEventBus)
       }).not.toThrow()
     })
 
     test('應該繼承 EventHandler 基底類別', () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
       expect(handler).toBeInstanceOf(EventHandler)
@@ -63,7 +70,9 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該正確設定優先級和支援的事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
       expect(handler.priority).toBe(0) // 最高優先級
@@ -73,7 +82,9 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該初始化錯誤統計和診斷狀態', () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
       expect(handler.errorStats).toBeDefined()
@@ -86,9 +97,12 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
 
   describe('🚨 訊息錯誤捕獲和處理', () => {
     test('應該處理 MESSAGE.ERROR 事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
+      // eslint-disable-next-line no-unused-vars
       const errorEvent = {
         type: 'MESSAGE.ERROR',
         data: {
@@ -99,6 +113,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(errorEvent)
 
       expect(result.success).toBe(true)
@@ -110,9 +125,12 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該處理未知訊息類型錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
+      // eslint-disable-next-line no-unused-vars
       const unknownTypeEvent = {
         type: 'MESSAGE.UNKNOWN_TYPE',
         data: {
@@ -124,6 +142,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(unknownTypeEvent)
 
       expect(result.success).toBe(true)
@@ -138,9 +157,12 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該處理訊息路由錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
+      // eslint-disable-next-line no-unused-vars
       const routingErrorEvent = {
         type: 'MESSAGE.ROUTING_ERROR',
         data: {
@@ -152,6 +174,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(routingErrorEvent)
 
       expect(result.success).toBe(true)
@@ -165,9 +188,12 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
 
   describe('🔍 診斷和建議系統', () => {
     test('應該提供未知訊息類型的診斷建議', async () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
+      // eslint-disable-next-line no-unused-vars
       const suggestion = handler.generateUnknownTypeSuggestion(
         'START_EXTRACTION',
         ['PAGE_READY', 'PING']
@@ -179,9 +205,12 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該分析訊息路由問題', async () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
+      // eslint-disable-next-line no-unused-vars
       const analysis = handler.analyzeRoutingError(
         'popup',
         'content-script',
@@ -194,7 +223,9 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該啟用診斷模式收集詳細資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
       handler.enableDiagnosticMode()
@@ -209,7 +240,9 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
 
   describe('📊 錯誤統計和報告', () => {
     test('應該追蹤各類型錯誤的統計資訊', async () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
       // 模擬多種錯誤
@@ -230,6 +263,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
         data: { error: new Error('路由錯誤') }
       })
 
+      // eslint-disable-next-line no-unused-vars
       const stats = handler.getErrorStatistics()
 
       expect(stats.totalErrors).toBe(4)
@@ -239,7 +273,9 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該生成錯誤報告', () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
       // 添加一些錯誤記錄
@@ -247,6 +283,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
       handler.errorStats.unknownMessageTypes = 2
       handler.errorStats.routingErrors = 1
 
+      // eslint-disable-next-line no-unused-vars
       const report = handler.generateErrorReport()
 
       expect(report).toContain('訊息錯誤統計報告')
@@ -256,9 +293,12 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該支援錯誤報告匯出', () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
+      // eslint-disable-next-line no-unused-vars
       const exportData = handler.exportErrorData()
 
       expect(exportData).toHaveProperty('statistics')
@@ -270,7 +310,9 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
 
   describe('🛠 Chrome Extension 整合', () => {
     test('應該監聽 Chrome Runtime 錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
       handler.setupChromeErrorListening()
@@ -279,11 +321,14 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該處理 Chrome Runtime lastError', () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
       mockChromeRuntime.lastError = { message: '測試錯誤' }
 
+      // eslint-disable-next-line no-unused-vars
       const hasError = handler.checkChromeLastError()
 
       expect(hasError).toBe(true)
@@ -296,9 +341,12 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該提供 Chrome Extension 健康檢查', () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
+      // eslint-disable-next-line no-unused-vars
       const healthStatus = handler.getChromeExtensionHealth()
 
       expect(healthStatus).toHaveProperty('runtimeAvailable')
@@ -309,7 +357,9 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
 
   describe('⚡ 效能和記憶體管理', () => {
     test('應該限制錯誤記錄的數量', async () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
       // 添加超過限制的錯誤記錄
@@ -324,10 +374,13 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該清理過期的錯誤記錄', () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
       // 添加過期錯誤記錄
+      // eslint-disable-next-line no-unused-vars
       const oldTimestamp = Date.now() - 25 * 60 * 60 * 1000 // 25小時前
       handler.recentErrors.push({
         timestamp: oldTimestamp,
@@ -341,9 +394,12 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
 
     test('應該提供記憶體使用統計', () => {
+      // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new MessageErrorHandler(mockEventBus)
 
+      // eslint-disable-next-line no-unused-vars
       const memoryStats = handler.getMemoryUsage()
 
       expect(memoryStats).toHaveProperty('errorRecordsCount')

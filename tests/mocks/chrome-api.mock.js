@@ -451,8 +451,10 @@ const createChromeMock = () => {
 
 // 模擬事件系統
 const createEventBusMock = () => {
-  const listeners = new Map()
-  const eventHistory = []
+  // eslint-disable-next-line no-unused-vars
+  const _listeners = new Map()
+  // eslint-disable-next-line no-unused-vars
+  const _eventHistory = []
 
   class MockEventBus {
     constructor () {

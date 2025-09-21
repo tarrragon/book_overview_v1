@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * Chrome Extension Enhanced Mocks - 重構版
  * 遵循 Five Lines 規則和單一責任原則

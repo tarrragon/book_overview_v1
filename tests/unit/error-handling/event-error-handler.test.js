@@ -9,9 +9,11 @@
  * 4. 系統級錯誤監控和統計
  */
 
+// eslint-disable-next-line no-unused-vars
 const EventHandler = require('src/core/event-handler')
 
 describe('EventErrorHandler - TDD 循環 #32', () => {
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
 
   beforeEach(() => {
@@ -28,15 +30,19 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
 
   describe('🔧 基本結構和初始化', () => {
     test('應該能夠創建 EventErrorHandler 實例', () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
 
       expect(() => {
+        // eslint-disable-next-line no-new
         new EventErrorHandler(mockEventBus)
       }).not.toThrow()
     })
 
     test('應該繼承 EventHandler 基底類別', () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus)
 
       expect(handler).toBeInstanceOf(EventHandler)
@@ -44,7 +50,9 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
     })
 
     test('應該正確設定優先級和支援的事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus)
 
       expect(handler.priority).toBe(0) // 最高優先級
@@ -54,7 +62,9 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
     })
 
     test('應該初始化錯誤統計和斷路器狀態', () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus)
 
       expect(handler.errorStats).toBeDefined()
@@ -67,9 +77,12 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
 
   describe('🚨 統一錯誤處理系統', () => {
     test('應該處理 ERROR.SYSTEM 事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus)
 
+      // eslint-disable-next-line no-unused-vars
       const systemErrorEvent = {
         type: 'ERROR.SYSTEM',
         data: {
@@ -80,6 +93,7 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(systemErrorEvent)
 
       expect(result.success).toBe(true)
@@ -91,9 +105,12 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
     })
 
     test('應該處理 ERROR.HANDLER 事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus)
 
+      // eslint-disable-next-line no-unused-vars
       const handlerErrorEvent = {
         type: 'ERROR.HANDLER',
         data: {
@@ -104,6 +121,7 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(handlerErrorEvent)
 
       expect(result.success).toBe(true)
@@ -115,9 +133,12 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
     })
 
     test('應該分類錯誤嚴重程度', async () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus)
 
+      // eslint-disable-next-line no-unused-vars
       const criticalError = {
         type: 'ERROR.SYSTEM',
         data: {
@@ -141,7 +162,9 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
 
   describe('⚡ 斷路器模式實現', () => {
     test('應該創建組件斷路器', () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus)
 
       handler.createCircuitBreaker('TestComponent', {
@@ -150,13 +173,16 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
       })
 
       expect(handler.circuitBreakers.has('TestComponent')).toBe(true)
+      // eslint-disable-next-line no-unused-vars
       const breaker = handler.circuitBreakers.get('TestComponent')
       expect(breaker.state).toBe('CLOSED')
       expect(breaker.failureCount).toBe(0)
     })
 
     test('應該在錯誤達到閾值時開啟斷路器', async () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus)
 
       handler.createCircuitBreaker('TestComponent', {
@@ -175,6 +201,7 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
         })
       }
 
+      // eslint-disable-next-line no-unused-vars
       const breaker = handler.circuitBreakers.get('TestComponent')
       expect(breaker.state).toBe('OPEN')
       expect(mockEventBus.emit).toHaveBeenCalledWith(
@@ -184,7 +211,9 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
     })
 
     test('應該在超時後嘗試半開狀態', async () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus)
 
       handler.createCircuitBreaker('TestComponent', {
@@ -207,15 +236,19 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
       await new Promise((resolve) => setTimeout(resolve, 150))
 
       // 檢查斷路器狀態
+      // eslint-disable-next-line no-unused-vars
       const canExecute = handler.canExecute('TestComponent')
       expect(canExecute).toBe(true) // 應該允許嘗試執行
 
+      // eslint-disable-next-line no-unused-vars
       const breaker = handler.circuitBreakers.get('TestComponent')
       expect(breaker.state).toBe('HALF_OPEN')
     })
 
     test('應該在成功執行後關閉斷路器', async () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus)
 
       handler.createCircuitBreaker('TestComponent', {
@@ -240,6 +273,7 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
       // 記錄成功執行
       handler.recordSuccess('TestComponent')
 
+      // eslint-disable-next-line no-unused-vars
       const breaker = handler.circuitBreakers.get('TestComponent')
       expect(breaker.state).toBe('CLOSED')
       expect(breaker.failureCount).toBe(0)
@@ -252,9 +286,12 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
 
   describe('🔍 錯誤隔離和恢復機制', () => {
     test('應該隔離有問題的事件處理器', async () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus)
 
+      // eslint-disable-next-line no-unused-vars
       const isolationEvent = {
         type: 'ERROR.HANDLER',
         data: {
@@ -265,6 +302,7 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(isolationEvent)
 
       expect(result.success).toBe(true)
@@ -278,7 +316,9 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
     })
 
     test('應該提供處理器恢復機制', () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus)
 
       // 先隔離處理器
@@ -297,7 +337,9 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
     })
 
     test('應該自動嘗試恢復隔離的處理器', async () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus, {
         autoRecoveryInterval: 100 // 100ms 自動恢復間隔
       })
@@ -318,7 +360,9 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
 
   describe('📊 系統健康監控', () => {
     test('應該追蹤系統整體健康狀態', async () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus)
 
       // 初始狀態應該是健康的
@@ -333,13 +377,16 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
         }
       })
 
+      // eslint-disable-next-line no-unused-vars
       const health = handler.getSystemHealth()
       expect(health.totalErrors).toBe(1)
       expect(health.status).toBe('HEALTHY') // 輕微錯誤不影響整體健康
     })
 
     test('應該在嚴重錯誤過多時標記系統不健康', async () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus, {
         healthThreshold: 2 // 2個嚴重錯誤就標記不健康
       })
@@ -355,6 +402,7 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
         })
       }
 
+      // eslint-disable-next-line no-unused-vars
       const health = handler.getSystemHealth()
       expect(health.status).toBe('UNHEALTHY')
       expect(mockEventBus.emit).toHaveBeenCalledWith(
@@ -364,7 +412,9 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
     })
 
     test('應該生成系統健康報告', () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus)
 
       // 添加一些統計資料
@@ -372,6 +422,7 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
       handler.errorStats.criticalErrors = 2
       handler.errorStats.handlerErrors = 3
 
+      // eslint-disable-next-line no-unused-vars
       const report = handler.generateHealthReport()
 
       expect(report).toContain('系統健康狀態報告')
@@ -383,7 +434,9 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
 
   describe('⚡ 效能和記憶體管理', () => {
     test('應該限制錯誤記錄的數量', async () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus, {
         maxErrorRecords: 5
       })
@@ -402,7 +455,9 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
     })
 
     test('應該清理過期的斷路器', () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus)
 
       // 創建一個斷路器並設置為過期
@@ -411,6 +466,7 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
         timeout: 1000
       })
 
+      // eslint-disable-next-line no-unused-vars
       const breaker = handler.circuitBreakers.get('ExpiredComponent')
       breaker.lastFailureTime = Date.now() - 2000 // 2秒前
       breaker.state = 'OPEN'
@@ -419,14 +475,18 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
       handler.cleanupExpiredCircuitBreakers()
 
       // 檢查是否已清理（或重置為半開狀態）
+      // eslint-disable-next-line no-unused-vars
       const cleanedBreaker = handler.circuitBreakers.get('ExpiredComponent')
       expect(cleanedBreaker.state).toBe('HALF_OPEN')
     })
 
     test('應該提供記憶體使用統計', () => {
+      // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventErrorHandler(mockEventBus)
 
+      // eslint-disable-next-line no-unused-vars
       const memoryStats = handler.getMemoryUsage()
 
       expect(memoryStats).toHaveProperty('errorRecordsCount')

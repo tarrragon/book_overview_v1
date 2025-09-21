@@ -15,6 +15,7 @@
  */
 
 // Mock Chrome Extension APIs with complete coverage
+// eslint-disable-next-line no-unused-vars
 const mockChrome = {
   runtime: {
     reload: jest.fn(() => Promise.resolve()),
@@ -68,6 +69,7 @@ const { JSDOM } = require('jsdom')
 describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
   let dom
   let document
+  // eslint-disable-next-line no-unused-vars
   let window
 
   beforeAll(() => {
@@ -235,7 +237,9 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
     test('should fail: Legacy error handling API should remain functional', () => {
       expect(() => {
         // 測試現有的錯誤處理 API
+        // eslint-disable-next-line no-unused-vars
         const PopupErrorHandler = require('src/popup/popup-error-handler')
+        // eslint-disable-next-line no-unused-vars
         const errorHandler = new PopupErrorHandler()
 
         // 這些方法必須繼續存在且正常工作
@@ -261,11 +265,14 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Existing error message formatting should be preserved', () => {
       expect(() => {
+        // eslint-disable-next-line no-unused-vars
         const PopupErrorHandler = require('src/popup/popup-error-handler')
+        // eslint-disable-next-line no-unused-vars
         const errorHandler = new PopupErrorHandler()
         errorHandler.initialize()
 
         // 測試現有的錯誤訊息格式
+        // eslint-disable-next-line no-unused-vars
         const testCases = [
           {
             input: { type: 'EXTRACTION_ERROR', message: '資料提取失敗' },
@@ -291,6 +298,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
             .toBe(testCase.expectedTitle)
 
           testCase.expectedActions.forEach(action => {
+            // eslint-disable-next-line no-unused-vars
             const actionButton = Array.from(document.querySelectorAll('#error-actions button'))
               .find(btn => btn.textContent.includes(action))
             expect(actionButton).toBeDefined()
@@ -301,7 +309,9 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Chrome Extension reload functionality should work', () => {
       expect(() => {
+        // eslint-disable-next-line no-unused-vars
         const PopupErrorHandler = require('src/popup/popup-error-handler')
+        // eslint-disable-next-line no-unused-vars
         const errorHandler = new PopupErrorHandler()
         errorHandler.initialize()
 
@@ -324,7 +334,9 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Tab reload functionality should work correctly', () => {
       expect(() => {
+        // eslint-disable-next-line no-unused-vars
         const PopupErrorHandler = require('src/popup/popup-error-handler')
+        // eslint-disable-next-line no-unused-vars
         const errorHandler = new PopupErrorHandler()
         errorHandler.initialize()
 
@@ -351,15 +363,19 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
     test('should fail: Progress bar updates should work consistently', () => {
       expect(() => {
         // 載入現有的 popup.js 或重構後的模組
+        // eslint-disable-next-line no-unused-vars
         const popupModule = require('src/popup/popup')
 
         // 模擬進度更新序列
+        // eslint-disable-next-line no-unused-vars
         const progressUpdates = [0, 10, 25, 50, 75, 90, 100]
 
         progressUpdates.forEach(progress => {
           popupModule.updateProgress(progress)
 
+          // eslint-disable-next-line no-unused-vars
           const progressBar = document.getElementById('progress-fill')
+          // eslint-disable-next-line no-unused-vars
           const progressText = document.getElementById('progress-text')
 
           expect(progressBar.style.width).toBe(`${progress}%`)
@@ -373,10 +389,14 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Button states should change correctly during operations', () => {
       expect(() => {
+        // eslint-disable-next-line no-unused-vars
         const popupModule = require('src/popup/popup')
 
+        // eslint-disable-next-line no-unused-vars
         const extractButton = document.getElementById('extract-button')
+        // eslint-disable-next-line no-unused-vars
         const stopButton = document.getElementById('stop-button')
+        // eslint-disable-next-line no-unused-vars
         const exportButton = document.getElementById('export-button')
 
         // 初始狀態驗證
@@ -402,9 +422,12 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Modal dialogs should open and close correctly', () => {
       expect(() => {
+        // eslint-disable-next-line no-unused-vars
         const popupModule = require('src/popup/popup')
 
+        // eslint-disable-next-line no-unused-vars
         const diagnosticModal = document.getElementById('diagnostic-modal')
+        // eslint-disable-next-line no-unused-vars
         const diagnosticCloseBtn = document.getElementById('diagnostic-close')
 
         // 初始狀態
@@ -426,6 +449,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
   describe('🔴 Red Phase - 完整使用者操作流程回歸測試', () => {
     test('should fail: Complete extraction workflow should work end-to-end', async () => {
       expect(async () => {
+        // eslint-disable-next-line no-unused-vars
         const popupModule = require('src/popup/popup')
 
         // 1. 初始化
@@ -464,6 +488,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Error recovery workflow should work completely', async () => {
       expect(async () => {
+        // eslint-disable-next-line no-unused-vars
         const popupModule = require('src/popup/popup')
 
         // 1. 初始化
@@ -502,6 +527,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Diagnostic workflow should provide comprehensive information', async () => {
       expect(async () => {
+        // eslint-disable-next-line no-unused-vars
         const popupModule = require('src/popup/popup')
 
         // 1. 觸發需要診斷的錯誤
@@ -520,6 +546,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
         await new Promise(resolve => setTimeout(resolve, 100))
 
         // 4. 驗證診斷內容
+        // eslint-disable-next-line no-unused-vars
         const diagnosticContent = document.getElementById('diagnostic-content')
         expect(diagnosticContent.textContent).toContain('擴展版本: 0.6.8')
         expect(diagnosticContent.textContent).toContain('Chrome 版本')
@@ -537,9 +564,11 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
   describe('🔴 Red Phase - 邊界情況和錯誤處理回歸測試', () => {
     test('should fail: Rapid user interactions should be handled gracefully', async () => {
       expect(async () => {
+        // eslint-disable-next-line no-unused-vars
         const popupModule = require('src/popup/popup')
         await popupModule.initialize()
 
+        // eslint-disable-next-line no-unused-vars
         const extractButton = document.getElementById('extract-button')
 
         // 快速點擊多次
@@ -558,11 +587,14 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Large error messages should be handled properly', () => {
       expect(() => {
+        // eslint-disable-next-line no-unused-vars
         const PopupErrorHandler = require('src/popup/popup-error-handler')
+        // eslint-disable-next-line no-unused-vars
         const errorHandler = new PopupErrorHandler()
         errorHandler.initialize()
 
         // 非常長的錯誤訊息
+        // eslint-disable-next-line no-unused-vars
         const longMessage = 'A'.repeat(10000)
 
         errorHandler.handleError({
@@ -570,6 +602,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
           message: longMessage
         })
 
+        // eslint-disable-next-line no-unused-vars
         const errorMessageEl = document.getElementById('error-message')
 
         // 錯誤訊息應該被適當截斷或處理
@@ -580,19 +613,23 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
 
     test('should fail: Concurrent operations should not interfere', async () => {
       expect(async () => {
+        // eslint-disable-next-line no-unused-vars
         const popupModule = require('src/popup/popup')
         await popupModule.initialize()
 
         // 同時觸發多個操作
+        // eslint-disable-next-line no-unused-vars
         const operations = [
           popupModule.startExtraction(),
           popupModule.updateSettings({ theme: 'dark' }),
           popupModule.exportData({ format: 'csv' })
         ]
 
+        // eslint-disable-next-line no-unused-vars
         const results = await Promise.allSettled(operations)
 
         // 操作應該按優先級正確處理，不應該全部失敗
+        // eslint-disable-next-line no-unused-vars
         const rejectedCount = results.filter(r => r.status === 'rejected').length
         expect(rejectedCount).toBeLessThan(results.length)
       }).rejects.toThrow()
@@ -602,7 +639,9 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
   describe('🔴 Red Phase - Chrome Extension API 穩定性回歸測試', () => {
     test('should fail: Chrome API errors should be handled gracefully', async () => {
       expect(async () => {
+        // eslint-disable-next-line no-unused-vars
         const PopupErrorHandler = require('src/popup/popup-error-handler')
+        // eslint-disable-next-line no-unused-vars
         const errorHandler = new PopupErrorHandler()
 
         // 模擬 Chrome API 失敗
@@ -633,6 +672,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
           name: 'Readmoo Book Extractor'
         })
 
+        // eslint-disable-next-line no-unused-vars
         const popupModule = require('src/popup/popup')
         popupModule.initialize()
 

@@ -95,6 +95,7 @@ describe('PlatformAdapterInterface', () => {
 
   describe('📚 資料提取方法契約', () => {
     test('parseBookElement() 應該拋出未實作錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('div')
       expect(() => adapter.parseBookElement(mockElement)).toThrow(expect.objectContaining({
         code: expect.any(String),
@@ -110,6 +111,7 @@ describe('PlatformAdapterInterface', () => {
     })
 
     test('extractBookData() 應該拋出未實作錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('div')
       expect(() => adapter.extractBookData(mockElement)).toThrow(expect.objectContaining({
         code: expect.any(String),
@@ -143,6 +145,7 @@ describe('PlatformAdapterInterface', () => {
 
   describe('⚠️ 錯誤處理測試', () => {
     test('抽象方法應該提供清楚的錯誤訊息', async () => {
+      // eslint-disable-next-line no-unused-vars
       const errorChecks = [
         { method: 'getPageType', async: true },
         { method: 'isExtractablePage', async: true },
@@ -196,6 +199,7 @@ describe('PlatformAdapterInterface', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const mockAdapter = new MockAdapter()
       expect(mockAdapter).toBeInstanceOf(PlatformAdapterInterface)
       expect(mockAdapter.platformName).toBe('Mock')
@@ -210,6 +214,7 @@ describe('PlatformAdapterInterface', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const partialAdapter = new PartialAdapter()
       expect(partialAdapter.getPageType()).toBe('library')
       expect(() => partialAdapter.getBookElements()).toThrow(expect.objectContaining({
@@ -221,6 +226,7 @@ describe('PlatformAdapterInterface', () => {
 
   describe('📊 介面契約驗證', () => {
     test('應該定義所有必需的抽象方法', () => {
+      // eslint-disable-next-line no-unused-vars
       const requiredMethods = [
         'getPageType',
         'isExtractablePage',
@@ -252,6 +258,7 @@ describe('PlatformAdapterInterface', () => {
 
   describe('🔧 工具方法行為', () => {
     test('toString() 應該回傳平台資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = adapter.toString()
       expect(typeof result).toBe('string')
       expect(result).toContain('PlatformAdapterInterface')
