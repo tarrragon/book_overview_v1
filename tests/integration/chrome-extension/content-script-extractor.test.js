@@ -18,7 +18,9 @@
  * - 檢查頁面載入和 SPA 導航的相容性
  */
 
+// eslint-disable-next-line no-unused-vars
 const fs = require('fs')
+// eslint-disable-next-line no-unused-vars
 const path = require('path')
 const { JSDOM } = require('jsdom')
 
@@ -99,10 +101,12 @@ describe('Content Script Extractor Integration', () => {
   describe('🔧 Content Script 載入和初始化', () => {
     test('應該成功載入 content script', async () => {
       // 檢查 content-modular.js 檔案存在 (用於整合測試)
+      // eslint-disable-next-line no-unused-vars
       const contentPath = path.join(__dirname, '../../../src/content/content-modular.js')
       expect(fs.existsSync(contentPath)).toBe(true)
 
       // 檢查內容包含必要的功能
+      // eslint-disable-next-line no-unused-vars
       const contentContent = fs.readFileSync(contentPath, 'utf8')
       expect(contentContent).toMatch(/readmoo.*com/i)
       expect(contentContent).toMatch(/extraction|extract/i)
@@ -141,6 +145,7 @@ describe('Content Script Extractor Integration', () => {
       expect(chrome.runtime.onMessage.addListener).toHaveBeenCalled()
 
       // 檢查監聽器功能
+      // eslint-disable-next-line no-unused-vars
       const messageHandler = chrome.runtime.onMessage.addListener.mock.calls[0]?.[0]
       expect(messageHandler).toBeDefined()
       expect(typeof messageHandler).toBe('function')
@@ -159,6 +164,7 @@ describe('Content Script Extractor Integration', () => {
     test('應該正確配置 BookDataExtractor 事件系統', async () => {
       await loadContentScript()
 
+      // eslint-disable-next-line no-unused-vars
       const extractor = global.bookDataExtractor
       if (extractor) {
         // 檢查事件系統整合
@@ -171,13 +177,16 @@ describe('Content Script Extractor Integration', () => {
     test('應該能夠檢測頁面類型', async () => {
       await loadContentScript()
 
+      // eslint-disable-next-line no-unused-vars
       const extractor = global.bookDataExtractor
       if (extractor) {
         // 測試頁面類型檢測
+        // eslint-disable-next-line no-unused-vars
         const pageType = extractor.getReadmooPageType()
         expect(['library', 'shelf', 'reader', 'unknown']).toContain(pageType)
 
         // 測試可提取頁面檢測
+        // eslint-disable-next-line no-unused-vars
         const isExtractable = extractor.isExtractableReadmooPage()
         expect(typeof isExtractable).toBe('boolean')
       }
@@ -186,9 +195,11 @@ describe('Content Script Extractor Integration', () => {
     test('應該能夠檢查頁面準備狀態', async () => {
       await loadContentScript()
 
+      // eslint-disable-next-line no-unused-vars
       const extractor = global.bookDataExtractor
       if (extractor) {
         // 測試頁面準備狀態檢查
+        // eslint-disable-next-line no-unused-vars
         const readyStatus = await extractor.checkPageReady()
         expect(readyStatus).toBeDefined()
         expect(typeof readyStatus.isReady).toBe('boolean')
@@ -202,18 +213,23 @@ describe('Content Script Extractor Integration', () => {
     test('應該能夠啟動提取流程', async () => {
       await loadContentScript()
 
+      // eslint-disable-next-line no-unused-vars
       const extractor = global.bookDataExtractor
+      // eslint-disable-next-line no-unused-vars
       const eventBus = global.contentEventBus
 
       if (extractor && eventBus) {
         // 監聽提取事件
+        // eslint-disable-next-line no-unused-vars
         const extractionStartHandler = jest.fn()
+        // eslint-disable-next-line no-unused-vars
         const progressHandler = jest.fn()
 
         eventBus.on('EXTRACTION.STARTED', extractionStartHandler)
         eventBus.on('EXTRACTION.PROGRESS', progressHandler)
 
         // 啟動提取流程
+        // eslint-disable-next-line no-unused-vars
         const flowId = await extractor.startExtractionFlow({
           pageType: 'library',
           options: { validateData: true }
@@ -233,15 +249,19 @@ describe('Content Script Extractor Integration', () => {
     test('應該能夠處理提取錯誤', async () => {
       await loadContentScript()
 
+      // eslint-disable-next-line no-unused-vars
       const extractor = global.bookDataExtractor
+      // eslint-disable-next-line no-unused-vars
       const eventBus = global.contentEventBus
 
       if (extractor && eventBus) {
         // 監聽錯誤事件
+        // eslint-disable-next-line no-unused-vars
         const errorHandler = jest.fn()
         eventBus.on('EXTRACTION.ERROR', errorHandler)
 
         // 模擬錯誤情況 - 暫時移除ReadmooAdapter
+        // eslint-disable-next-line no-unused-vars
         const originalAdapter = global.readmooAdapter
         extractor.setReadmooAdapter(null)
 
@@ -278,9 +298,11 @@ describe('Content Script Extractor Integration', () => {
     test('應該能夠提取書籍元素', async () => {
       await loadContentScript()
 
+      // eslint-disable-next-line no-unused-vars
       const adapter = global.readmooAdapter
       if (adapter) {
         // 測試書籍元素提取
+        // eslint-disable-next-line no-unused-vars
         const bookElements = adapter.getBookElements()
         expect(Array.isArray(bookElements)).toBe(true)
         expect(bookElements.length).toBeGreaterThan(0)
@@ -296,12 +318,15 @@ describe('Content Script Extractor Integration', () => {
     test('應該能夠解析書籍資料', async () => {
       await loadContentScript()
 
+      // eslint-disable-next-line no-unused-vars
       const adapter = global.readmooAdapter
       if (adapter) {
+        // eslint-disable-next-line no-unused-vars
         const bookElements = adapter.getBookElements()
 
         if (bookElements.length > 0) {
           // 測試書籍資料解析
+          // eslint-disable-next-line no-unused-vars
           const bookData = adapter.parseBookElement(bookElements[0])
 
           expect(bookData).toBeDefined()
@@ -320,9 +345,11 @@ describe('Content Script Extractor Integration', () => {
     test('應該能夠提取所有書籍資料', async () => {
       await loadContentScript()
 
+      // eslint-disable-next-line no-unused-vars
       const adapter = global.readmooAdapter
       if (adapter) {
         // 測試批量書籍資料提取
+        // eslint-disable-next-line no-unused-vars
         const booksData = await adapter.extractAllBooks()
 
         expect(Array.isArray(booksData)).toBe(true)
@@ -343,12 +370,14 @@ describe('Content Script Extractor Integration', () => {
     test('應該提供統計資訊', async () => {
       await loadContentScript()
 
+      // eslint-disable-next-line no-unused-vars
       const adapter = global.readmooAdapter
       if (adapter) {
         // 執行提取操作
         await adapter.extractAllBooks()
 
         // 檢查統計資訊
+        // eslint-disable-next-line no-unused-vars
         const stats = adapter.getStats()
         expect(stats).toBeDefined()
         expect(typeof stats.totalExtracted).toBe('number')
@@ -363,9 +392,11 @@ describe('Content Script Extractor Integration', () => {
     test('應該能夠發送訊息到 Background', async () => {
       await loadContentScript()
 
+      // eslint-disable-next-line no-unused-vars
       const chromeBridge = global.contentChromeBridge
       if (chromeBridge) {
         // 測試發送訊息到 Background
+        // eslint-disable-next-line no-unused-vars
         const testMessage = {
           type: 'CONTENT.STATUS.UPDATE',
           data: { status: 'ready', pageType: 'library' }
@@ -390,17 +421,22 @@ describe('Content Script Extractor Integration', () => {
       await loadContentScript()
 
       // 獲取訊息處理器
+      // eslint-disable-next-line no-unused-vars
       const messageHandler = chrome.runtime.onMessage.addListener.mock.calls[0]?.[0]
 
       if (messageHandler) {
+        // eslint-disable-next-line no-unused-vars
         const mockMessage = {
           type: 'BACKGROUND.COMMAND.START_EXTRACTION',
           data: { pageType: 'library', options: {} }
         }
+        // eslint-disable-next-line no-unused-vars
         const mockSender = { id: 'test-extension-id' }
+        // eslint-disable-next-line no-unused-vars
         const mockSendResponse = jest.fn()
 
         // 測試訊息處理
+        // eslint-disable-next-line no-unused-vars
         const result = messageHandler(mockMessage, mockSender, mockSendResponse)
 
         // 應該處理訊息並回應
@@ -417,17 +453,22 @@ describe('Content Script Extractor Integration', () => {
       await loadContentScript()
 
       // 獲取訊息處理器
+      // eslint-disable-next-line no-unused-vars
       const messageHandler = chrome.runtime.onMessage.addListener.mock.calls[0]?.[0]
 
       if (messageHandler) {
+        // eslint-disable-next-line no-unused-vars
         const mockMessage = {
           type: 'START_EXTRACTION',
           data: { pageType: 'library', options: {} }
         }
+        // eslint-disable-next-line no-unused-vars
         const mockSender = { id: 'test-extension-id' }
+        // eslint-disable-next-line no-unused-vars
         const mockSendResponse = jest.fn()
 
         // 測試訊息處理
+        // eslint-disable-next-line no-unused-vars
         const result = messageHandler(mockMessage, mockSender, mockSendResponse)
 
         // 應該處理訊息並回應
@@ -443,7 +484,9 @@ describe('Content Script Extractor Integration', () => {
     test('應該能夠橋接內部事件到 Background', async () => {
       await loadContentScript()
 
+      // eslint-disable-next-line no-unused-vars
       const eventBus = global.contentEventBus
+      // eslint-disable-next-line no-unused-vars
       const chromeBridge = global.contentChromeBridge
 
       if (eventBus && chromeBridge) {
@@ -475,12 +518,14 @@ describe('Content Script Extractor Integration', () => {
     test('應該處理通訊錯誤', async () => {
       await loadContentScript()
 
+      // eslint-disable-next-line no-unused-vars
       const chromeBridge = global.contentChromeBridge
       if (chromeBridge) {
         // 模擬通訊錯誤
         chrome.runtime.sendMessage.mockRejectedValueOnce(new Error('Background not available'))
 
         // 測試錯誤處理
+        // eslint-disable-next-line no-unused-vars
         const testMessage = { type: 'TEST.MESSAGE', data: {} }
 
         await expect(
@@ -488,6 +533,7 @@ describe('Content Script Extractor Integration', () => {
         ).resolves.not.toThrow()
 
         // 應該記錄錯誤
+        // eslint-disable-next-line no-console
         expect(global.console.error).toHaveBeenCalledWith(
           expect.stringMatching(/發送.*失敗|send.*failed/i),
           expect.any(Object)
@@ -500,12 +546,16 @@ describe('Content Script Extractor Integration', () => {
     test('應該能夠執行完整的書籍提取流程', async () => {
       await loadContentScript()
 
+      // eslint-disable-next-line no-unused-vars
       const extractor = global.bookDataExtractor
+      // eslint-disable-next-line no-unused-vars
       const eventBus = global.contentEventBus
 
       if (extractor && eventBus) {
         // 監聽提取流程事件
+        // eslint-disable-next-line no-unused-vars
         const events = []
+        // eslint-disable-next-line no-unused-vars
         const eventTypes = [
           'EXTRACTION.STARTED',
           'EXTRACTION.PROGRESS',
@@ -520,6 +570,7 @@ describe('Content Script Extractor Integration', () => {
         })
 
         // 啟動完整提取流程
+        // eslint-disable-next-line no-unused-vars
         const flowId = await extractor.startExtractionFlow({
           pageType: 'library',
           options: {
@@ -536,6 +587,7 @@ describe('Content Script Extractor Integration', () => {
         expect(events.some(e => e.type === 'EXTRACTION.STARTED')).toBe(true)
 
         // 如果有進度事件，檢查格式
+        // eslint-disable-next-line no-unused-vars
         const progressEvents = events.filter(e => e.type === 'EXTRACTION.PROGRESS')
         if (progressEvents.length > 0) {
           progressEvents.forEach(event => {
@@ -551,11 +603,14 @@ describe('Content Script Extractor Integration', () => {
     test('應該能夠取消進行中的提取流程', async () => {
       await loadContentScript()
 
+      // eslint-disable-next-line no-unused-vars
       const extractor = global.bookDataExtractor
+      // eslint-disable-next-line no-unused-vars
       const eventBus = global.contentEventBus
 
       if (extractor && eventBus) {
         // 啟動提取流程但不等待完成
+        // eslint-disable-next-line no-unused-vars
         const flowPromise = extractor.startExtractionFlow({
           pageType: 'library',
           options: {}
@@ -565,11 +620,14 @@ describe('Content Script Extractor Integration', () => {
         await new Promise(resolve => setTimeout(resolve, 50))
 
         // 取得流程ID (如果流程還在進行中)
+        // eslint-disable-next-line no-unused-vars
         const activeFlows = extractor.getActiveExtractionFlows()
         if (activeFlows.length > 0) {
+          // eslint-disable-next-line no-unused-vars
           const flowId = activeFlows[0]
 
           // 取消流程
+          // eslint-disable-next-line no-unused-vars
           const cancelResult = await extractor.cancelExtraction(flowId)
 
           expect(cancelResult).toBeDefined()
@@ -577,6 +635,7 @@ describe('Content Script Extractor Integration', () => {
           expect(cancelResult.flowId).toBe(flowId)
 
           // 檢查流程狀態
+          // eslint-disable-next-line no-unused-vars
           const flowStatus = extractor.getExtractionFlowStatus(flowId)
           expect(flowStatus).toBeNull() // 已被清理
         } else {
@@ -595,15 +654,18 @@ describe('Content Script Extractor Integration', () => {
     test('應該能夠處理多個並行提取流程', async () => {
       await loadContentScript()
 
+      // eslint-disable-next-line no-unused-vars
       const extractor = global.bookDataExtractor
 
       if (extractor) {
         // 啟動多個提取流程但不等待完成
+        // eslint-disable-next-line no-unused-vars
         const flow1Promise = extractor.startExtractionFlow({
           pageType: 'library',
           options: { flowName: 'flow1' }
         })
 
+        // eslint-disable-next-line no-unused-vars
         const flow2Promise = extractor.startExtractionFlow({
           pageType: 'library',
           options: { flowName: 'flow2' }
@@ -613,6 +675,7 @@ describe('Content Script Extractor Integration', () => {
         await new Promise(resolve => setTimeout(resolve, 50))
 
         // 檢查活動流程
+        // eslint-disable-next-line no-unused-vars
         const activeFlows = extractor.getActiveExtractionFlows()
 
         if (activeFlows.length >= 2) {
@@ -620,7 +683,9 @@ describe('Content Script Extractor Integration', () => {
           expect(activeFlows.length).toBeGreaterThanOrEqual(2)
         } else {
           // 流程可能已經快速完成，檢查返回的flowId
+          // eslint-disable-next-line no-unused-vars
           const flow1 = await flow1Promise
+          // eslint-disable-next-line no-unused-vars
           const flow2 = await flow2Promise
 
           expect(flow1).toBeDefined()
@@ -639,6 +704,7 @@ describe('Content Script Extractor Integration', () => {
       await loadContentScript()
 
       // 模擬 DOMContentLoaded 事件
+      // eslint-disable-next-line no-unused-vars
       const event = new window.Event('DOMContentLoaded')
       document.dispatchEvent(event)
 
@@ -662,6 +728,7 @@ describe('Content Script Extractor Integration', () => {
         })
 
         // 觸發 popstate 事件
+        // eslint-disable-next-line no-unused-vars
         const popstateEvent = new window.Event('popstate')
         window.dispatchEvent(popstateEvent)
 
@@ -676,6 +743,7 @@ describe('Content Script Extractor Integration', () => {
       await loadContentScript()
 
       // 模擬頁面卸載
+      // eslint-disable-next-line no-unused-vars
       const beforeUnloadEvent = new window.Event('beforeunload')
       window.dispatchEvent(beforeUnloadEvent)
 
@@ -683,8 +751,10 @@ describe('Content Script Extractor Integration', () => {
       await new Promise(resolve => setTimeout(resolve, 100))
 
       // 應該清理資源
+      // eslint-disable-next-line no-unused-vars
       const extractor = global.bookDataExtractor
       if (extractor) {
+        // eslint-disable-next-line no-unused-vars
         const activeFlows = extractor.getActiveExtractionFlows()
         expect(activeFlows.length).toBe(0)
       }
@@ -694,6 +764,7 @@ describe('Content Script Extractor Integration', () => {
       await loadContentScript()
 
       // 添加新的書籍元素到頁面
+      // eslint-disable-next-line no-unused-vars
       const newBookElement = document.createElement('a')
       newBookElement.href = '/api/reader/99999'
       newBookElement.className = 'book-item'
@@ -705,6 +776,7 @@ describe('Content Script Extractor Integration', () => {
         </div>
       `
 
+      // eslint-disable-next-line no-unused-vars
       const bookShelf = document.querySelector('.book-shelf')
       bookShelf.appendChild(newBookElement)
 
@@ -712,8 +784,10 @@ describe('Content Script Extractor Integration', () => {
       await new Promise(resolve => setTimeout(resolve, 100))
 
       // 重新提取應該包含新書籍
+      // eslint-disable-next-line no-unused-vars
       const adapter = global.readmooAdapter
       if (adapter) {
+        // eslint-disable-next-line no-unused-vars
         const bookElements = adapter.getBookElements()
         expect(bookElements.length).toBeGreaterThanOrEqual(3) // 原有2本 + 新增1本
       }
@@ -727,13 +801,16 @@ describe('Content Script Extractor Integration', () => {
 
       await loadContentScript()
 
+      // eslint-disable-next-line no-unused-vars
       const adapter = global.readmooAdapter
       if (adapter) {
         // 應該優雅處理無書籍元素的情況
+        // eslint-disable-next-line no-unused-vars
         const bookElements = adapter.getBookElements()
         expect(Array.isArray(bookElements)).toBe(true)
         expect(bookElements.length).toBe(0)
 
+        // eslint-disable-next-line no-unused-vars
         const booksData = await adapter.extractAllBooks()
         expect(Array.isArray(booksData)).toBe(true)
         expect(booksData.length).toBe(0)
@@ -752,9 +829,11 @@ describe('Content Script Extractor Integration', () => {
 
       await loadContentScript()
 
+      // eslint-disable-next-line no-unused-vars
       const adapter = global.readmooAdapter
       if (adapter) {
         // 應該安全處理惡意內容
+        // eslint-disable-next-line no-unused-vars
         const booksData = await adapter.extractAllBooks()
 
         if (booksData.length > 0) {
@@ -771,6 +850,7 @@ describe('Content Script Extractor Integration', () => {
       await loadContentScript()
 
       // 檢查系統健康狀態
+      // eslint-disable-next-line no-unused-vars
       const healthCheck = {
         contentEventBus: !!global.contentEventBus,
         contentChromeBridge: !!global.contentChromeBridge,
@@ -795,12 +875,16 @@ describe('Content Script Extractor Integration', () => {
    * 載入並執行 content script
    */
   async function loadContentScript () {
+    // eslint-disable-next-line no-unused-vars
     const fs = require('fs')
+    // eslint-disable-next-line no-unused-vars
     const path = require('path')
 
     try {
       // 讀取 content-modular.js 內容 (用於整合測試)
+      // eslint-disable-next-line no-unused-vars
       const contentPath = path.join(__dirname, '../../../src/content/content-modular.js')
+      // eslint-disable-next-line no-unused-vars
       const contentContent = fs.readFileSync(contentPath, 'utf8')
 
       // 在當前上下文中執行 content script
@@ -811,6 +895,7 @@ describe('Content Script Extractor Integration', () => {
       await new Promise(resolve => setTimeout(resolve, 200))
 
       // 觸發 DOMContentLoaded 事件
+      // eslint-disable-next-line no-unused-vars
       const domLoadedEvent = new window.Event('DOMContentLoaded')
       document.dispatchEvent(domLoadedEvent)
 

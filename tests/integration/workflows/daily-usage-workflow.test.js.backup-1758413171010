@@ -9,14 +9,11 @@
 
 const { E2ETestSuite } = require('../../helpers/e2e-test-suite')
 const { TestDataGenerator } = require('../../helpers/test-data-generator')
-// eslint-disable-next-line no-unused-vars
 const DataConsistencyChecker = require('../../helpers/data-consistency-checker')
 
 describe('日常使用工作流程整合測試', () => {
-  // eslint-disable-next-line no-unused-vars
   let testSuite
   let extensionController
-  // eslint-disable-next-line no-unused-vars
   let testDataGenerator
   let consistencyChecker
 
@@ -42,7 +39,6 @@ describe('日常使用工作流程整合測試', () => {
     await testSuite.clearAllStorageData()
 
     // 預載入一些既有書籍資料，模擬已使用一段時間的狀態
-    // eslint-disable-next-line no-unused-vars
     const existingBooks = testDataGenerator.generateBooks(200, 'existing-data')
     await testSuite.loadInitialData({
       books: existingBooks,
@@ -57,7 +53,6 @@ describe('日常使用工作流程整合測試', () => {
   describe('Given Extension已安裝並有既有資料', () => {
     test('應該正確載入和顯示既有資料狀態', async () => {
       // When: 開啟Extension Popup
-      // eslint-disable-next-line no-unused-vars
       const popupState = await extensionController.openPopup()
 
       // Then: 應該顯示正確的既有資料狀態
@@ -75,7 +70,6 @@ describe('日常使用工作流程整合測試', () => {
 
     test('應該正確檢測資料完整性', async () => {
       // When: 執行資料完整性檢查
-      // eslint-disable-next-line no-unused-vars
       const integrityResult = await extensionController.checkDataIntegrity()
 
       // Then: 應該確認資料完整性正常
@@ -93,38 +87,32 @@ describe('日常使用工作流程整合測試', () => {
       await extensionController.openPopup()
 
       // When: 點擊檢視詳細資料，開啟Overview頁面
-      // eslint-disable-next-line no-unused-vars
       const overviewResult = await extensionController.clickOverviewButton()
       expect(overviewResult.success).toBe(true)
 
       await testSuite.waitForPageLoad(overviewResult.pageUrl)
 
       // Then: 驗證書籍列表正確顯示
-      // eslint-disable-next-line no-unused-vars
       const overviewData = await testSuite.getOverviewPageData()
 
       expect(overviewData.bookCount).toBe(200)
       expect(overviewData.booksDisplayed.length).toBeGreaterThan(0)
 
       // 測試分頁功能
-      // eslint-disable-next-line no-unused-vars
       const initialDisplayCount = overviewData.booksDisplayed.length
       if (overviewData.totalPages > 1) {
         await testSuite.clickOverviewPagination(2)
-        // eslint-disable-next-line no-unused-vars
         const page2Data = await testSuite.getOverviewPageData()
         expect(page2Data.currentPage).toBe(2)
         expect(page2Data.booksDisplayed.length).toBeGreaterThan(0)
       }
 
       // 測試搜尋功能
-      // eslint-disable-next-line no-unused-vars
       const searchResult = await testSuite.searchOverviewBooks('測試')
       expect(searchResult.resultsFound).toBeGreaterThan(0)
       expect(searchResult.displayedBooks.length).toBeGreaterThan(0)
 
       // 測試篩選功能
-      // eslint-disable-next-line no-unused-vars
       const filterResult = await testSuite.filterOverviewBooks({
         progressRange: { min: 50, max: 100 }
       })
@@ -137,34 +125,27 @@ describe('日常使用工作流程整合測試', () => {
 
     test('應該正確執行資料同步流程', async () => {
       // Given: 準備新的Readmoo頁面資料
-      // eslint-disable-next-line no-unused-vars
       const newBooks = testDataGenerator.generateBooks(50, 'sync-test')
       await testSuite.setupMockReadmooPage()
       await testSuite.injectMockBooks([...newBooks,
         ...testDataGenerator.generateBooks(200, 'existing-data')]) // 包含既有資料
 
       // 記錄同步前狀態
-      // eslint-disable-next-line no-unused-vars
       const preSyncState = await extensionController.getStorageData()
-      // eslint-disable-next-line no-unused-vars
       const _preSyncCount = preSyncState.books.length
 
       // When: 執行同步操作
       await extensionController.openPopup()
 
-      // eslint-disable-next-line no-unused-vars
       const syncStarted = await extensionController.clickExtractButton()
       expect(syncStarted.success).toBe(true)
 
       // 監控同步進度
-      // eslint-disable-next-line no-unused-vars
       const progressUpdates = []
-      // eslint-disable-next-line no-unused-vars
       const progressSubscription = await extensionController.subscribeToProgress((progress) => {
         progressUpdates.push(progress)
       })
 
-      // eslint-disable-next-line no-unused-vars
       const syncResult = await extensionController.waitForExtractionComplete({
         timeout: 30000
       })
@@ -174,18 +155,14 @@ describe('日常使用工作流程整合測試', () => {
       // Then: 驗證同步結果
       expect(syncResult.success).toBe(true)
 
-      // eslint-disable-next-line no-unused-vars
       const postSyncState = await extensionController.getStorageData()
-      // eslint-disable-next-line no-unused-vars
       const postSyncCount = postSyncState.books.length
 
       // 驗證資料同步正確性
       expect(postSyncCount).toBe(250) // 200個既有 + 50個新增
 
       // 驗證去重功能 - 既有書籍不應重複
-      // eslint-disable-next-line no-unused-vars
       const bookIds = postSyncState.books.map(book => book.id)
-      // eslint-disable-next-line no-unused-vars
       const uniqueIds = [...new Set(bookIds)]
       expect(uniqueIds.length).toBe(bookIds.length)
 
@@ -196,7 +173,6 @@ describe('日常使用工作流程整合測試', () => {
 
     test('應該正確顯示和更新統計資訊', async () => {
       // Given: 執行一次同步操作
-      // eslint-disable-next-line no-unused-vars
       const newBooks = testDataGenerator.generateBooks(30, 'stats-test')
       await testSuite.setupMockReadmooPage()
       await testSuite.injectMockBooks([...newBooks,
@@ -207,7 +183,6 @@ describe('日常使用工作流程整合測試', () => {
       await extensionController.waitForExtractionComplete()
 
       // When: 檢查統計資訊
-      // eslint-disable-next-line no-unused-vars
       const updatedState = await extensionController.getPopupState()
 
       // Then: 驗證統計資訊正確性
@@ -219,7 +194,6 @@ describe('日常使用工作流程整合測試', () => {
 
       // 驗證統計資訊在Overview頁面的顯示
       await extensionController.clickOverviewButton()
-      // eslint-disable-next-line no-unused-vars
       const overviewStats = await testSuite.getOverviewStatistics()
 
       expect(overviewStats.totalBooks).toBe(230)
@@ -232,7 +206,6 @@ describe('日常使用工作流程整合測試', () => {
   describe('Then 每個步驟都應正常執行並提供適當的UI回饋', () => {
     test('應該在每個操作步驟提供即時UI回饋', async () => {
       // Given: 準備測試環境
-      // eslint-disable-next-line no-unused-vars
       const testBooks = testDataGenerator.generateBooks(100, 'ui-feedback-test')
       await testSuite.setupMockReadmooPage()
       await testSuite.injectMockBooks([...testBooks,
@@ -241,33 +214,26 @@ describe('日常使用工作流程整合測試', () => {
       // When & Then: 驗證每個步驟的UI回饋
 
       // 步驟1: 開啟Extension的載入回饋
-      // eslint-disable-next-line no-unused-vars
       const loadingStart = Date.now()
-      // eslint-disable-next-line no-unused-vars
       const popupState = await extensionController.openPopup()
-      // eslint-disable-next-line no-unused-vars
       const loadingTime = Date.now() - loadingStart
 
       expect(loadingTime).toBeLessThan(500) // 載入時間<500ms
       expect(popupState.loadingIndicatorShown).toBe(false) // 載入完成後隱藏
 
       // 步驟2: 同步按鈕的狀態變化回饋
-      // eslint-disable-next-line no-unused-vars
       const buttonStateBeforeClick = await extensionController.getButtonState('extract')
       expect(buttonStateBeforeClick.enabled).toBe(true)
       expect(buttonStateBeforeClick.loading).toBe(false)
 
       await extensionController.clickExtractButton()
 
-      // eslint-disable-next-line no-unused-vars
       const buttonStateDuringExtraction = await extensionController.getButtonState('extract')
       expect(buttonStateDuringExtraction.enabled).toBe(false)
       expect(buttonStateDuringExtraction.loading).toBe(true)
 
       // 步驟3: 進度指示器的更新回饋
-      // eslint-disable-next-line no-unused-vars
       const progressCallback = jest.fn()
-      // eslint-disable-next-line no-unused-vars
       const progressSubscription = await extensionController.subscribeToProgress(progressCallback)
 
       await extensionController.waitForExtractionComplete()
@@ -276,26 +242,21 @@ describe('日常使用工作流程整合測試', () => {
       // 驗證進度回調被調用
       expect(progressCallback).toHaveBeenCalled()
 
-      // eslint-disable-next-line no-unused-vars
       const progressCalls = progressCallback.mock.calls
       expect(progressCalls.length).toBeGreaterThan(3) // 至少3次進度更新
 
       // 驗證進度遞增
       for (let i = 1; i < progressCalls.length; i++) {
-        // eslint-disable-next-line no-unused-vars
         const prevProgress = progressCalls[i - 1][0]
-        // eslint-disable-next-line no-unused-vars
         const currProgress = progressCalls[i][0]
         expect(currProgress.processedCount).toBeGreaterThanOrEqual(prevProgress.processedCount)
       }
 
       // 步驟4: 完成後的狀態回饋
-      // eslint-disable-next-line no-unused-vars
       const finalButtonState = await extensionController.getButtonState('extract')
       expect(finalButtonState.enabled).toBe(true)
       expect(finalButtonState.loading).toBe(false)
 
-      // eslint-disable-next-line no-unused-vars
       const finalPopupState = await extensionController.getPopupState()
       expect(finalPopupState.completionMessageShown).toBe(true)
       expect(finalPopupState.bookCount).toBe(300) // 200 + 100
@@ -309,12 +270,10 @@ describe('日常使用工作流程整合測試', () => {
       await extensionController.openPopup()
 
       // When: 嘗試並發執行同步操作
-      // eslint-disable-next-line no-unused-vars
       const firstExtractionPromise = extensionController.clickExtractButton()
 
       // 立即嘗試第二次點擊
       await testSuite.waitForTimeout(100) // 等待第一次點擊處理
-      // eslint-disable-next-line no-unused-vars
       const secondExtractionPromise = extensionController.clickExtractButton()
 
       const [firstResult, secondResult] = await Promise.all([
@@ -331,7 +290,6 @@ describe('日常使用工作流程整合測試', () => {
       await extensionController.waitForExtractionComplete()
 
       // 驗證最終狀態正確
-      // eslint-disable-next-line no-unused-vars
       const finalState = await extensionController.getPopupState()
       expect(finalState.bookCount).toBe(250) // 200 (既有) + 50 (新增)
     })
@@ -353,7 +311,6 @@ describe('日常使用工作流程整合測試', () => {
       await testSuite.simulateContentScriptError('PARSING_ERROR')
 
       // Then: 驗證錯誤處理和UI回饋
-      // eslint-disable-next-line no-unused-vars
       const errorState = await extensionController.waitForErrorState({
         timeout: 10000,
         expectedError: 'PARSING_ERROR'
@@ -366,14 +323,12 @@ describe('日常使用工作流程整合測試', () => {
 
       // 測試重試功能
       await testSuite.clearContentScriptError()
-      // eslint-disable-next-line no-unused-vars
       const retryResult = await extensionController.clickRetryButton()
 
       expect(retryResult.success).toBe(true)
 
       // 驗證重試後成功完成
       await extensionController.waitForExtractionComplete()
-      // eslint-disable-next-line no-unused-vars
       const finalState = await extensionController.getPopupState()
       expect(finalState.bookCount).toBe(250)
     })
@@ -382,7 +337,6 @@ describe('日常使用工作流程整合測試', () => {
   describe('資料一致性和完整性驗證', () => {
     test('應該在多次同步操作間保持資料一致性', async () => {
       // Given: 進行第一次同步
-      // eslint-disable-next-line no-unused-vars
       const batch1Books = testDataGenerator.generateBooks(50, 'consistency-batch1')
       await testSuite.setupMockReadmooPage()
       await testSuite.injectMockBooks([...batch1Books,
@@ -392,11 +346,9 @@ describe('日常使用工作流程整合測試', () => {
       await extensionController.clickExtractButton()
       await extensionController.waitForExtractionComplete()
 
-      // eslint-disable-next-line no-unused-vars
       const firstSyncData = await extensionController.getStorageData()
 
       // When: 進行第二次同步（部分重疊資料）
-      // eslint-disable-next-line no-unused-vars
       const batch2Books = [
         ...testDataGenerator.generateBooks(30, 'consistency-batch2'),
         ...batch1Books.slice(0, 20) // 20個重疊的書籍
@@ -408,14 +360,12 @@ describe('日常使用工作流程整合測試', () => {
       await extensionController.clickExtractButton()
       await extensionController.waitForExtractionComplete()
 
-      // eslint-disable-next-line no-unused-vars
       const secondSyncData = await extensionController.getStorageData()
 
       // Then: 驗證資料一致性
       expect(secondSyncData.books.length).toBe(280) // 200 + 50 + 30 (重疊的20個不重複計算)
 
       // 使用一致性檢查器驗證
-      // eslint-disable-next-line no-unused-vars
       const consistencyResult = await consistencyChecker.verifyRealTimeConsistency(
         firstSyncData,
         secondSyncData
@@ -429,7 +379,6 @@ describe('日常使用工作流程整合測試', () => {
 
     test('應該正確處理資料更新和版本管理', async () => {
       // Given: 有一本書籍的進度需要更新
-      // eslint-disable-next-line no-unused-vars
       const existingBook = {
         id: 'update-test-001',
         title: '更新測試書籍',
@@ -438,7 +387,6 @@ describe('日常使用工作流程整合測試', () => {
       }
 
       // 預設既有資料包含這本書
-      // eslint-disable-next-line no-unused-vars
       const existingData = [
         existingBook,
         ...testDataGenerator.generateBooks(199, 'existing-data')
@@ -447,7 +395,6 @@ describe('日常使用工作流程整合測試', () => {
       await testSuite.loadInitialData({ books: existingData })
 
       // When: 同步時發現相同書籍但進度已更新
-      // eslint-disable-next-line no-unused-vars
       const updatedBook = {
         ...existingBook,
         progress: 75, // 進度更新
@@ -465,9 +412,7 @@ describe('日常使用工作流程整合測試', () => {
       await extensionController.waitForExtractionComplete()
 
       // Then: 驗證資料更新正確處理
-      // eslint-disable-next-line no-unused-vars
       const finalData = await extensionController.getStorageData()
-      // eslint-disable-next-line no-unused-vars
       const updatedBookInStorage = finalData.books.find(book => book.id === 'update-test-001')
 
       expect(updatedBookInStorage).toBeDefined()
@@ -475,7 +420,6 @@ describe('日常使用工作流程整合測試', () => {
       expect(updatedBookInStorage.lastModified).toBe(updatedBook.lastModified)
 
       // 確認沒有重複記錄
-      // eslint-disable-next-line no-unused-vars
       const sameIdBooks = finalData.books.filter(book => book.id === 'update-test-001')
       expect(sameIdBooks.length).toBe(1)
 
@@ -487,37 +431,31 @@ describe('日常使用工作流程整合測試', () => {
   describe('效能和穩定性驗證', () => {
     test('日常使用工作流程應該保持良好效能', async () => {
       // Given: 模擬真實日常使用場景的資料量
-      // eslint-disable-next-line no-unused-vars
       const dailyNewBooks = testDataGenerator.generateBooks(20, 'daily-new')
       await testSuite.setupMockReadmooPage()
       await testSuite.injectMockBooks([...dailyNewBooks,
         ...testDataGenerator.generateBooks(200, 'existing-data')])
 
       // When: 執行完整日常工作流程並監控效能
-      // eslint-disable-next-line no-unused-vars
       const performanceStart = await testSuite.capturePerformanceBaseline()
 
       // 步驟1: 開啟Extension
-      // eslint-disable-next-line no-unused-vars
       const popupOpenTime = await testSuite.measureOperation('popup-open', async () => {
         await extensionController.openPopup()
       })
 
       // 步驟2: 檢查資料同步
-      // eslint-disable-next-line no-unused-vars
       const syncTime = await testSuite.measureOperation('data-sync', async () => {
         await extensionController.clickExtractButton()
         await extensionController.waitForExtractionComplete()
       })
 
       // 步驟3: 檢視Overview
-      // eslint-disable-next-line no-unused-vars
       const overviewTime = await testSuite.measureOperation('overview-access', async () => {
         await extensionController.clickOverviewButton()
         await testSuite.waitForPageLoad()
       })
 
-      // eslint-disable-next-line no-unused-vars
       const performanceEnd = await testSuite.capturePerformanceBaseline()
 
       // Then: 驗證效能指標
@@ -526,7 +464,6 @@ describe('日常使用工作流程整合測試', () => {
       expect(overviewTime).toBeLessThan(1000) // Overview開啟<1秒
 
       // 記憶體使用檢查
-      // eslint-disable-next-line no-unused-vars
       const memoryUsage = performanceEnd.memory.used - performanceStart.memory.used
       expect(memoryUsage).toBeLessThan(30 * 1024 * 1024) // 記憶體增長<30MB
 
@@ -536,20 +473,15 @@ describe('日常使用工作流程整合測試', () => {
 
     test('應該支援多次連續使用且保持穩定', async () => {
       // Given: 準備多輪操作的測試資料
-      // eslint-disable-next-line no-unused-vars
       const operationCount = 5
-      // eslint-disable-next-line no-unused-vars
       const performanceHistory = []
 
       for (let i = 0; i < operationCount; i++) {
         // When: 執行第i輪日常操作
-        // eslint-disable-next-line no-unused-vars
         const roundStart = Date.now()
-        // eslint-disable-next-line no-unused-vars
         const startMemory = await testSuite.getMemoryUsage()
 
         // 準備這一輪的新書籍
-        // eslint-disable-next-line no-unused-vars
         const newBooks = testDataGenerator.generateBooks(10, `round-${i}`)
         await testSuite.setupMockReadmooPage()
         await testSuite.injectMockBooks([...newBooks,
@@ -560,9 +492,7 @@ describe('日常使用工作流程整合測試', () => {
         await extensionController.clickExtractButton()
         await extensionController.waitForExtractionComplete()
 
-        // eslint-disable-next-line no-unused-vars
         const roundEnd = Date.now()
-        // eslint-disable-next-line no-unused-vars
         const endMemory = await testSuite.getMemoryUsage()
 
         // 記錄這一輪的效能
@@ -580,27 +510,21 @@ describe('日常使用工作流程整合測試', () => {
       // Then: 驗證多輪操作的穩定性
 
       // 驗證效能沒有顯著退化
-      // eslint-disable-next-line no-unused-vars
       const avgExecutionTime = performanceHistory.reduce((sum, record) =>
         sum + record.executionTime, 0) / operationCount
       expect(avgExecutionTime).toBeLessThan(10000) // 平均執行時間<10秒
 
       // 驗證最後一輪不比第一輪慢太多
-      // eslint-disable-next-line no-unused-vars
       const firstRoundTime = performanceHistory[0].executionTime
-      // eslint-disable-next-line no-unused-vars
       const lastRoundTime = performanceHistory[operationCount - 1].executionTime
       expect(lastRoundTime).toBeLessThan(firstRoundTime * 1.5) // 不超過首輪1.5倍
 
       // 驗證記憶體使用穩定
-      // eslint-disable-next-line no-unused-vars
       const memoryUsages = performanceHistory.map(record => record.memoryUsage)
-      // eslint-disable-next-line no-unused-vars
       const maxMemoryUsage = Math.max(...memoryUsages)
       expect(maxMemoryUsage).toBeLessThan(50 * 1024 * 1024) // 單輪記憶體<50MB
 
       // 驗證資料一致性
-      // eslint-disable-next-line no-unused-vars
       const finalState = await extensionController.getStorageData()
       expect(finalState.books.length).toBe(250) // 200 + 5*10
     })

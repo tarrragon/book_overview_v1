@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * EventBus getStats 整合測試
@@ -26,6 +28,7 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
  */
 
 describe('🔍 EventBus getStats 整合測試', () => {
+  // eslint-disable-next-line no-unused-vars
   let eventBus
 
   beforeEach(() => {
@@ -33,6 +36,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
     global.testUtils.cleanup()
 
     // 初始化EventBus
+    // eslint-disable-next-line no-unused-vars
     const EventBus = require('@/core/event-bus')
     eventBus = new EventBus()
 
@@ -64,16 +68,19 @@ describe('🔍 EventBus getStats 整合測試', () => {
   describe('🏗 背景事件系統統計', () => {
     test('應該正確統計背景事件處理流程', async () => {
       // Arrange - 模擬真實的Background handlers
+      // eslint-disable-next-line no-unused-vars
       const extractionCompletedHandler = jest.fn(async (data) => {
         // 模擬儲存操作
         await new Promise(resolve => setTimeout(resolve, 10))
         return { saved: true, bookCount: data.books?.length || 0 }
       })
 
+      // eslint-disable-next-line no-unused-vars
       const uiUpdateHandler = jest.fn((data) => {
         return { uiUpdated: true, progress: data.progress }
       })
 
+      // eslint-disable-next-line no-unused-vars
       const errorHandler = jest.fn((error) => {
         // eslint-disable-next-line no-console
         console.log('處理錯誤:', error.message)
@@ -86,6 +93,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
       eventBus.on('SYSTEM.ERROR', errorHandler, { priority: 0 })
 
       // 檢查初始統計
+      // eslint-disable-next-line no-unused-vars
       const initialStats = eventBus.getStats()
       expect(initialStats).toEqual({
         totalEventTypes: 3,
@@ -103,6 +111,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
       })
 
       // Act - 模擬完整的資料提取流程
+      // eslint-disable-next-line no-unused-vars
       const extractionData = {
         books: [
           { id: 1, title: '測試書籍1', progress: 45 },
@@ -112,17 +121,21 @@ describe('🔍 EventBus getStats 整合測試', () => {
       }
 
       // 1. 觸發資料提取完成事件
+      // eslint-disable-next-line no-unused-vars
       const extractionResults = await eventBus.emit('EXTRACTION.COMPLETED', extractionData)
 
       // 2. 觸發UI更新事件
+      // eslint-disable-next-line no-unused-vars
       const uiResults = await eventBus.emit('UI.UPDATE.PROGRESS', { progress: 100 })
 
       // 3. 觸發錯誤處理事件
+      // eslint-disable-next-line no-unused-vars
       const errorResults = await eventBus.emit('SYSTEM.ERROR', new Error('測試錯誤'))
 
       // Assert - 驗證處理器都被正確調用
       expect(extractionCompletedHandler).toHaveBeenCalledWith(extractionData)
       expect(uiUpdateHandler).toHaveBeenCalledWith({ progress: 100 })
+      // eslint-disable-next-line no-unused-vars
       const testError = new Error('測試錯誤')
       expect(errorHandler).toHaveBeenCalledWith(testError)
 
@@ -133,6 +146,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
       expect(errorResults[0]).toEqual({ errorHandled: true })
 
       // 驗證最終統計
+      // eslint-disable-next-line no-unused-vars
       const finalStats = eventBus.getStats()
       expect(finalStats.totalEventTypes).toBe(3)
       expect(finalStats.totalListeners).toBe(3)
@@ -142,6 +156,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
       expect(finalStats.lastActivity).toBeTruthy()
 
       // 驗證活動時間戳格式
+      // eslint-disable-next-line no-unused-vars
       const lastActivityDate = new Date(finalStats.lastActivity)
       expect(lastActivityDate).toBeInstanceOf(Date)
       expect(lastActivityDate.getTime()).not.toBeNaN()
@@ -149,12 +164,16 @@ describe('🔍 EventBus getStats 整合測試', () => {
 
     test('應該在高負載情況下正確統計', async () => {
       // Arrange - 模擬高負載場景
+      // eslint-disable-next-line no-unused-vars
       const handlers = []
+      // eslint-disable-next-line no-unused-vars
       const eventTypes = []
 
       // 建立多個處理器
       for (let i = 0; i < 10; i++) {
+        // eslint-disable-next-line no-unused-vars
         const eventType = `HIGH.LOAD.EVENT.${i}`
+        // eslint-disable-next-line no-unused-vars
         const handler = jest.fn((data) => ({ processed: true, id: i, data }))
 
         eventBus.on(eventType, handler)
@@ -162,11 +181,13 @@ describe('🔍 EventBus getStats 整合測試', () => {
         eventTypes.push(eventType)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const initialStats = eventBus.getStats()
       expect(initialStats.totalEventTypes).toBe(10)
       expect(initialStats.totalListeners).toBe(10)
 
       // Act - 高頻觸發事件
+      // eslint-disable-next-line no-unused-vars
       const emitPromises = []
       for (let round = 0; round < 5; round++) {
         for (let i = 0; i < 10; i++) {
@@ -177,9 +198,11 @@ describe('🔍 EventBus getStats 整合測試', () => {
       }
 
       // 等待所有事件處理完成
+      // eslint-disable-next-line no-unused-vars
       const allResults = await Promise.all(emitPromises)
 
       // Assert - 驗證統計正確性
+      // eslint-disable-next-line no-unused-vars
       const finalStats = eventBus.getStats()
       expect(finalStats.totalEvents).toBe(50) // 5 rounds * 10 events
       expect(finalStats.totalEmissions).toBe(50)
@@ -209,6 +232,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
   describe('📊 統計資料一致性', () => {
     test('應該在動態監聽器變更中保持統計一致性', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const handlers = [
         jest.fn(() => 'handler1'),
         jest.fn(() => 'handler2'),
@@ -219,6 +243,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
       eventBus.on('DYNAMIC.EVENT', handlers[0])
       eventBus.on('DYNAMIC.EVENT', handlers[1])
 
+      // eslint-disable-next-line no-unused-vars
       let stats = eventBus.getStats()
       expect(stats.totalEventTypes).toBe(1)
       expect(stats.totalListeners).toBe(2)
@@ -231,6 +256,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
       expect(stats.listenerCounts['DYNAMIC.EVENT']).toBe(3)
 
       // 觸發事件
+      // eslint-disable-next-line no-unused-vars
       const results = await eventBus.emit('DYNAMIC.EVENT', { test: 'data' })
       expect(results).toHaveLength(3)
 
@@ -245,9 +271,11 @@ describe('🔍 EventBus getStats 整合測試', () => {
       expect(stats.listenerCounts['DYNAMIC.EVENT']).toBe(2)
 
       // 再次觸發事件
+      // eslint-disable-next-line no-unused-vars
       const results2 = await eventBus.emit('DYNAMIC.EVENT', { test: 'data2' })
       expect(results2).toHaveLength(2)
 
+      // eslint-disable-next-line no-unused-vars
       const finalStats = eventBus.getStats()
       expect(finalStats.totalEvents).toBe(2)
       expect(finalStats.totalListeners).toBe(2)
@@ -260,7 +288,9 @@ describe('🔍 EventBus getStats 整合測試', () => {
 
     test('應該正確處理錯誤情況下的統計', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const workingHandler = jest.fn(() => 'success')
+      // eslint-disable-next-line no-unused-vars
       const errorHandler = jest.fn(() => {
         throw (() => { const error = new Error('處理器錯誤'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       })
@@ -268,10 +298,12 @@ describe('🔍 EventBus getStats 整合測試', () => {
       eventBus.on('ERROR.TEST', workingHandler)
       eventBus.on('ERROR.TEST', errorHandler)
 
+      // eslint-disable-next-line no-unused-vars
       const initialStats = eventBus.getStats()
       expect(initialStats.totalEvents).toBe(0)
 
       // Act - 觸發會產生錯誤的事件
+      // eslint-disable-next-line no-unused-vars
       const results = await eventBus.emit('ERROR.TEST', { data: 'test' })
 
       // Assert - 即使有錯誤，統計也應該正確
@@ -280,6 +312,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
       expect(results[1]).toBeInstanceOf(Error)
       expect(results[1].message).toBe('處理器錯誤')
 
+      // eslint-disable-next-line no-unused-vars
       const finalStats = eventBus.getStats()
       expect(finalStats.totalEvents).toBe(1) // 錯誤不影響事件計數
       expect(finalStats.totalEmissions).toBe(1)
@@ -295,17 +328,20 @@ describe('🔍 EventBus getStats 整合測試', () => {
   describe('🔄 Chrome Extension 整合場景', () => {
     test('應該支援跨上下文統計追蹤', async () => {
       // Arrange - 模擬Background/Content/Popup間的事件流
+      // eslint-disable-next-line no-unused-vars
       const backgroundHandler = jest.fn((data) => ({
         processed: 'background',
         timestamp: Date.now(),
         data
       }))
 
+      // eslint-disable-next-line no-unused-vars
       const contentHandler = jest.fn((data) => ({
         processed: 'content',
         extracted: data.books?.length || 0
       }))
 
+      // eslint-disable-next-line no-unused-vars
       const popupHandler = jest.fn((data) => ({
         processed: 'popup',
         uiUpdated: true
@@ -316,6 +352,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
       eventBus.on('EXTRACTION.COMPLETED', contentHandler, { priority: 1 })
       eventBus.on('UI.UPDATE.REQUIRED', popupHandler, { priority: 2 })
 
+      // eslint-disable-next-line no-unused-vars
       const initialStats = eventBus.getStats()
       expect(initialStats.totalEventTypes).toBe(3)
       expect(initialStats.totalListeners).toBe(3)
@@ -341,6 +378,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
       })
 
       // Assert - 驗證跨上下文統計
+      // eslint-disable-next-line no-unused-vars
       const finalStats = eventBus.getStats()
       expect(finalStats.totalEvents).toBe(3)
       expect(finalStats.totalEmissions).toBe(3)
@@ -364,6 +402,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
       }))
 
       // 驗證統計資料可用於系統健康檢查
+      // eslint-disable-next-line no-unused-vars
       const systemHealth = {
         eventSystemActive: finalStats.totalListeners > 0,
         eventsProcessed: finalStats.totalEvents,

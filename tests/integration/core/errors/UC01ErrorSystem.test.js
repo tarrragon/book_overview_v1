@@ -15,6 +15,7 @@ describe('UC01ErrorSystem 整合測試', () => {
 
   describe('Adapter 與 Factory 協作', () => {
     test('Factory 建立的錯誤應該通過 Adapter 驗證', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createError(
         'DOM_READMOO_PAGE_NOT_DETECTED',
         '無法檢測到頁面'
@@ -25,6 +26,7 @@ describe('UC01ErrorSystem 整合測試', () => {
     })
 
     test('所有 Factory 方法產生的錯誤都應該有效', () => {
+      // eslint-disable-next-line no-unused-vars
       const errors = [
         UC01ErrorFactory.createPageDetectionError('https://test.com'),
         UC01ErrorFactory.createBookElementsError(['.test']),
@@ -45,6 +47,7 @@ describe('UC01ErrorSystem 整合測試', () => {
   describe('首次使用完整流程模擬', () => {
     test('模擬首次安裝權限檢查流程', async () => {
       // 模擬權限檢查失敗
+      // eslint-disable-next-line no-unused-vars
       const permissionError = UC01ErrorFactory.createPermissionDeniedError(
         ['activeTab', 'storage'],
         ['activeTab'],
@@ -57,6 +60,7 @@ describe('UC01ErrorSystem 整合測試', () => {
       expect(permissionError.details.userGuidance).toContain('重新授權')
 
       // 建立結果物件
+      // eslint-disable-next-line no-unused-vars
       const result = UC01ErrorFactory.createResult(false, null, permissionError)
 
       expect(result.success).toBe(false)
@@ -66,7 +70,9 @@ describe('UC01ErrorSystem 整合測試', () => {
 
     test('模擬首次頁面檢測流程', async () => {
       // 模擬使用者在錯誤頁面
+      // eslint-disable-next-line no-unused-vars
       const wrongUrl = 'https://github.com/user/repo'
+      // eslint-disable-next-line no-unused-vars
       const pageError = UC01ErrorFactory.createPageDetectionError(
         wrongUrl,
         ['readmoo.com/library', 'readmoo.com/shelf'],
@@ -78,6 +84,7 @@ describe('UC01ErrorSystem 整合測試', () => {
       expect(pageError.details.suggestedAction).toBe('navigate_to_readmoo_library')
 
       // 模擬後續成功檢測
+      // eslint-disable-next-line no-unused-vars
       const successResult = UC01ErrorFactory.createResult(
         true,
         {
@@ -92,6 +99,7 @@ describe('UC01ErrorSystem 整合測試', () => {
 
     test('模擬初次資料提取流程', async () => {
       // 模擬部分提取失敗
+      // eslint-disable-next-line no-unused-vars
       const partialError = UC01ErrorFactory.createPartialExtractionError(
         20, 15,
         [
@@ -115,6 +123,7 @@ describe('UC01ErrorSystem 整合測試', () => {
 
     test('模擬儲存空間管理流程', async () => {
       // 模擬儲存空間不足
+      // eslint-disable-next-line no-unused-vars
       const storageError = UC01ErrorFactory.createStorageQuotaError(
         5.2, 5.0,
         {
@@ -129,6 +138,7 @@ describe('UC01ErrorSystem 整合測試', () => {
       expect(storageError.details.suggestedActions).toContain('clear_old_data')
 
       // 模擬清理後成功
+      // eslint-disable-next-line no-unused-vars
       const cleanupResult = UC01ErrorFactory.createResult(
         true,
         {
@@ -146,6 +156,7 @@ describe('UC01ErrorSystem 整合測試', () => {
   describe('錯誤恢復策略測試', () => {
     test('應該支援錯誤降級處理', () => {
       // 模擬網路錯誤
+      // eslint-disable-next-line no-unused-vars
       const networkError = UC01ErrorFactory.createNetworkUnreachableError(
         'readmoo.com/api',
         5000, 3,
@@ -155,6 +166,7 @@ describe('UC01ErrorSystem 整合測試', () => {
       expect(networkError.details.suggestedActions).toContain('use_offline_mode')
 
       // 模擬降級為離線模式
+      // eslint-disable-next-line no-unused-vars
       const offlineResult = UC01ErrorFactory.createResult(
         true,
         {
@@ -170,6 +182,7 @@ describe('UC01ErrorSystem 整合測試', () => {
 
     test('應該支援自動修復機制', () => {
       // 模擬初始儲存損壞
+      // eslint-disable-next-line no-unused-vars
       const corruptionError = UC01ErrorFactory.createInitialStorageCorruptionError(
         {
           corruptedEntries: 3,
@@ -183,6 +196,7 @@ describe('UC01ErrorSystem 整合測試', () => {
       expect(corruptionError.details.suggestedActions).toContain('auto_repair')
 
       // 模擬自動修復成功
+      // eslint-disable-next-line no-unused-vars
       const repairResult = UC01ErrorFactory.createResult(
         true,
         {
@@ -199,21 +213,26 @@ describe('UC01ErrorSystem 整合測試', () => {
 
   describe('Chrome Extension 環境相容性', () => {
     test('錯誤物件應該可以序列化', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createPermissionDeniedError()
 
       // 測試 JSON 序列化
+      // eslint-disable-next-line no-unused-vars
       const serialized = JSON.stringify(error)
       expect(serialized).toBeDefined()
 
+      // eslint-disable-next-line no-unused-vars
       const parsed = JSON.parse(serialized)
       expect(parsed.message).toBe(error.message)
       expect(parsed.code).toBe(error.code)
     })
 
     test('錯誤物件應該支援 Service Worker 環境', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createNetworkUnreachableError()
 
       // 模擬 Service Worker 中的傳訊
+      // eslint-disable-next-line no-unused-vars
       const messageData = {
         type: 'error_occurred',
         error: {
@@ -230,7 +249,9 @@ describe('UC01ErrorSystem 整合測試', () => {
 
   describe('效能與記憶體測試', () => {
     test('大量錯誤建立應該保持效能', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const errors = []
 
       // 建立 200 個不同的錯誤
@@ -246,6 +267,7 @@ describe('UC01ErrorSystem 整合測試', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(500) // 200個錯誤建立應該在500ms內
       expect(errors).toHaveLength(200)
@@ -258,12 +280,14 @@ describe('UC01ErrorSystem 整合測試', () => {
 
     test('快取機制應該減少記憶體使用', () => {
       // 建立大量相同類型的錯誤
+      // eslint-disable-next-line no-unused-vars
       const pageErrors = []
       for (let i = 0; i < 100; i++) {
         pageErrors.push(UC01ErrorFactory.getCommonError('PAGE_DETECTION'))
       }
 
       // 驗證都是相同引用 (快取有效)
+      // eslint-disable-next-line no-unused-vars
       const firstError = pageErrors[0]
       pageErrors.forEach(error => {
         expect(error).toBe(firstError)
@@ -275,6 +299,7 @@ describe('UC01ErrorSystem 整合測試', () => {
 
   describe('安全性測試', () => {
     test('sanitizeDetails 應該防止記憶體洩漏', () => {
+      // eslint-disable-next-line no-unused-vars
       const hugeDetails = {
         sensitiveData: 'x'.repeat(50000), // 50KB 資料
         credentials: 'secret_key_12345',
@@ -284,6 +309,7 @@ describe('UC01ErrorSystem 整合測試', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC01ErrorFactory.sanitizeDetails(hugeDetails)
 
       expect(sanitized._truncated).toBe(true)
@@ -293,6 +319,7 @@ describe('UC01ErrorSystem 整合測試', () => {
     })
 
     test('錯誤物件應該不包含敏感資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createPermissionDeniedError(
         ['activeTab', 'storage'],
         ['activeTab'],

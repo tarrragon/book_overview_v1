@@ -18,14 +18,12 @@
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
-// eslint-disable-next-line no-unused-vars
 const { UC01ErrorAdapter } = require('src/core/errors/UC01ErrorAdapter')
 const { UC02ErrorAdapter } = require('src/core/errors/UC02ErrorAdapter')
 const { UC01ErrorFactory } = require('src/core/errors/UC01ErrorFactory')
 const { UC02ErrorFactory } = require('src/core/errors/UC02ErrorFactory')
 
 describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
-  // eslint-disable-next-line no-unused-vars
   let mockChrome
   // eslint-disable-next-line no-unused-vars
   let mockEventBus
@@ -96,7 +94,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
   describe('🚨 UC-01 初始化失敗 → UC-02 錯誤適應', () => {
     test('應該正確處理 DOM_READMOO_PAGE_NOT_DETECTED 從 UC-01 到 UC-02 的傳播', async () => {
       // Arrange: UC-01 頁面檢測失敗
-      // eslint-disable-next-line no-unused-vars
       const uc01DomError = UC01ErrorFactory.createError('DOM_READMOO_PAGE_NOT_DETECTED', {
         currentUrl: 'https://readmoo.com/unknown-page',
         detectedType: 'unknown',
@@ -108,7 +105,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
       uc01Context.recoveryState = 'failed'
 
       // Act: UC-02 嘗試執行增量更新，應該繼承 UC-01 的錯誤模式
-      // eslint-disable-next-line no-unused-vars
       const uc02AdaptedError = UC02ErrorAdapter.adaptFromUC01Error(uc01DomError, {
         context: 'incremental_update',
         previousFailures: crossUCErrorLogger.uc01Errors
@@ -146,7 +142,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
 
     test('應該正確處理 SYSTEM_STORAGE_QUOTA_EXCEEDED 在增量更新時的再次觸發', async () => {
       // Arrange: UC-01 儲存配額不足
-      // eslint-disable-next-line no-unused-vars
       const uc01StorageError = UC01ErrorFactory.createError('SYSTEM_STORAGE_QUOTA_EXCEEDED', {
         required: 10000000, // 10MB
         available: 5000000, // 5MB
@@ -163,7 +158,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
       })
 
       // Act: UC-02 嘗試增量更新，應該檢測到潛在的儲存問題
-      // eslint-disable-next-line no-unused-vars
       const uc02StorageCheck = await UC02ErrorFactory.validateStorageCapacity({
         newDataSize: 3000000, // 3MB 新資料
         inheritedProblems: crossUCErrorLogger.uc01Errors
@@ -195,7 +189,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
 
   describe('🔄 統一錯誤恢復機制驗證', () => {
     test('應該正確應用 4 級嚴重程度的恢復策略', async () => {
-      // eslint-disable-next-line no-unused-vars
       const testCases = [
         {
           severity: 'MINOR',
@@ -221,16 +214,13 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
 
       for (const testCase of testCases) {
         // Arrange
-        // eslint-disable-next-line no-unused-vars
         const uc01Error = UC01ErrorFactory.createError(testCase.uc01Error, {
           severity: testCase.severity,
           timestamp: Date.now()
         })
 
         // Act: 應用統一恢復策略
-        // eslint-disable-next-line no-unused-vars
         const recoveryStrategy = errorRecoveryCoordinator.severityLevels[testCase.severity]
-        // eslint-disable-next-line no-unused-vars
         const appliedStrategy = {
           errorCode: uc01Error.code,
           severity: testCase.severity,
@@ -242,7 +232,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
         errorRecoveryCoordinator.appliedStrategies.push(appliedStrategy)
 
         // UC-02 繼承相同的恢復策略
-        // eslint-disable-next-line no-unused-vars
         const uc02InheritedStrategy = {
           ...appliedStrategy,
           source: 'inherited_from_UC-01',
@@ -275,7 +264,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
 
     test('應該實作錯誤學習與系統演進機制', async () => {
       // Arrange: 模擬 UC-01 的錯誤模式歷史
-      // eslint-disable-next-line no-unused-vars
       const uc01ErrorHistory = [
         { code: ErrorCodes.DOM_ERROR, frequency: 5, lastOccurred: Date.now() - 86400000 }, // 1天前
         { code: ErrorCodes.NETWORK_ERROR, frequency: 3, lastOccurred: Date.now() - 3600000 }, // 1小時前
@@ -283,7 +271,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
       ]
 
       // Act: UC-02 分析 UC-01 的錯誤模式並調整預防策略
-      // eslint-disable-next-line no-unused-vars
       const learningResults = {
         identifiedPatterns: [],
         preventiveMeasures: [],
@@ -309,7 +296,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
       }
 
       // 關聯分析：檢測錯誤間的因果關係
-      // eslint-disable-next-line no-unused-vars
       const correlationAnalysis = {
         'DOM_ERROR -> NETWORK_ERROR': 0.8, // 高相關性
         'NETWORK_ERROR -> STORAGE_ERROR': 0.3 // 低相關性
@@ -332,7 +318,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
       expect(learningResults.adaptationStrategies).toHaveLength(1) // DOM_ERROR -> NETWORK_ERROR
 
       // 驗證具體的預防措施
-      // eslint-disable-next-line no-unused-vars
       const domErrorPrevention = learningResults.preventiveMeasures.find(
         measure => measure.targetError === ErrorCodes.DOM_ERROR
       )
@@ -340,7 +325,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
       expect(domErrorPrevention.strategy).toBe('enhanced_dom_error_prevention')
 
       // 驗證級聯預防策略
-      // eslint-disable-next-line no-unused-vars
       const cascadePrevention = learningResults.adaptationStrategies.find(
         strategy => strategy.adaptiveAction === 'cascade_prevention'
       )
@@ -356,21 +340,18 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
   describe('🌐 Chrome Extension 實際環境驗證', () => {
     test('應該正確處理 Service Worker 環境中的跨 UC 錯誤序列化', async () => {
       // Arrange: 模擬 Background Script 環境
-      // eslint-disable-next-line no-unused-vars
       const backgroundContext = {
         isServiceWorker: true,
         crossUCErrorBuffer: [],
         messageQueue: []
       }
 
-      // eslint-disable-next-line no-unused-vars
       const uc01Error = UC01ErrorFactory.createError('PLATFORM_EXTENSION_PERMISSIONS_DENIED', 'Extension permissions denied', {
         missingPermissions: ['storage', 'activeTab'],
         requestedBy: 'UC-01_initialization'
       })
 
       // Act: 錯誤在 Background Script 中序列化
-      // eslint-disable-next-line no-unused-vars
       const serializedError = {
         message: uc01Error.message,
         code: uc01Error.code,
@@ -384,7 +365,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
       backgroundContext.crossUCErrorBuffer.push(serializedError)
 
       // 模擬傳送到 Content Script (UC-02)
-      // eslint-disable-next-line no-unused-vars
       const messageToUC02 = {
         type: 'CROSS_UC_ERROR_PROPAGATION',
         source: 'UC-01',
@@ -396,7 +376,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
       backgroundContext.messageQueue.push(messageToUC02)
 
       // Content Script 接收並反序列化
-      // eslint-disable-next-line no-unused-vars
       const receivedInUC02 = UC02ErrorAdapter.deserializeFromCrossUC(messageToUC02.error)
 
       // Assert: 驗證跨 Context 錯誤傳遞的完整性
@@ -411,7 +390,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
       expect(messageToUC02.propagationId).toMatch(/^\d+-UC01-UC02$/)
 
       // 驗證 UC-02 基於接收到的錯誤調整行為
-      // eslint-disable-next-line no-unused-vars
       const uc02Response = {
         acknowledgedError: receivedInUC02.code,
         adaptiveAction: 'permission_request_bypass',
@@ -424,7 +402,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
 
     test('應該驗證 ES modules 在 Manifest V3 環境的錯誤處理相容性', async () => {
       // Arrange: 模擬 Manifest V3 環境限制
-      // eslint-disable-next-line no-unused-vars
       const manifestV3Context = {
         dynamicImportSupported: true,
         topLevelAwaitSupported: false,
@@ -435,7 +412,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
       // Act: 動態載入錯誤處理模組
       try {
         // 模擬動態匯入 ErrorCodes 模組
-        // eslint-disable-next-line no-unused-vars
         const errorModules = await Promise.all([
           import('src/core/errors/UC01ErrorAdapter'),
           import('src/core/errors/UC02ErrorAdapter'),
@@ -447,16 +423,13 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
         // 測試跨 UC 錯誤處理在動態載入後的運作
         const [UC01Module, UC02Module, ErrorCodesModule] = errorModules
 
-        // eslint-disable-next-line no-unused-vars
         const testError = {
           code: ErrorCodesModule.ErrorCodes.DOM_ERROR,
           message: 'Manifest V3 錯誤測試',
           details: { environment: 'service_worker' }
         }
 
-        // eslint-disable-next-line no-unused-vars
         const uc01ProcessedError = UC01Module.UC01ErrorAdapter.convertToErrorCodes(testError)
-        // eslint-disable-next-line no-unused-vars
         const uc02AdaptedError = UC02Module.UC02ErrorAdapter.adaptFromUC01Error(uc01ProcessedError)
 
         // Assert: 驗證 Manifest V3 環境相容性
@@ -468,7 +441,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
         // 如果動態匯入失敗，應該有適當的降級處理
         manifestV3Context.errorModulesLoaded = false
 
-        // eslint-disable-next-line no-unused-vars
         const fallbackError = {
           code: 'MODULE_IMPORT_FAILED',
           message: 'Manifest V3 模組載入失敗',
@@ -484,7 +456,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
   describe('📊 整合測試結果驗證', () => {
     test('應該達成跨 UC 錯誤傳播 100% 場景覆蓋', async () => {
       // Arrange: 定義所有需要測試的錯誤傳播場景
-      // eslint-disable-next-line no-unused-vars
       const requiredScenarios = [
         'UC01_DOM_ERROR_TO_UC02_ADAPTATION',
         'UC01_STORAGE_ERROR_TO_UC02_PREVENTION',
@@ -495,42 +466,34 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
         'CHROME_EXTENSION_ENVIRONMENT_COMPATIBILITY'
       ]
 
-      // eslint-disable-next-line no-unused-vars
       const completedScenarios = new Set()
 
       // Act: 執行並記錄所有場景
       // 場景 1: DOM 錯誤適應
-      // eslint-disable-next-line no-unused-vars
       const domScenario = await simulateUC01DOMErrorToUC02Adaptation()
       if (domScenario.success) completedScenarios.add('UC01_DOM_ERROR_TO_UC02_ADAPTATION')
 
       // 場景 2: 儲存錯誤預防
-      // eslint-disable-next-line no-unused-vars
       const storageScenario = await simulateUC01StorageErrorToUC02Prevention()
       if (storageScenario.success) completedScenarios.add('UC01_STORAGE_ERROR_TO_UC02_PREVENTION')
 
       // 場景 3: 網路錯誤重試策略
-      // eslint-disable-next-line no-unused-vars
       const networkScenario = await simulateUC01NetworkErrorToUC02RetryStrategy()
       if (networkScenario.success) completedScenarios.add('UC01_NETWORK_ERROR_TO_UC02_RETRY_STRATEGY')
 
       // 場景 4: 權限錯誤降級
-      // eslint-disable-next-line no-unused-vars
       const permissionScenario = await simulateUC01PermissionErrorToUC02Fallback()
       if (permissionScenario.success) completedScenarios.add('UC01_PERMISSION_ERROR_TO_UC02_FALLBACK')
 
       // 場景 5: 跨 UC 恢復協調
-      // eslint-disable-next-line no-unused-vars
       const recoveryScenario = await simulateCrossUCRecoveryCoordination()
       if (recoveryScenario.success) completedScenarios.add('CROSS_UC_RECOVERY_COORDINATION')
 
       // 場景 6: 錯誤學習系統演進
-      // eslint-disable-next-line no-unused-vars
       const learningScenario = await simulateErrorLearningSystemEvolution()
       if (learningScenario.success) completedScenarios.add('ERROR_LEARNING_SYSTEM_EVOLUTION')
 
       // 場景 7: Chrome Extension 環境相容性
-      // eslint-disable-next-line no-unused-vars
       const chromeScenario = await simulateChromeExtensionEnvironmentCompatibility()
       if (chromeScenario.success) completedScenarios.add('CHROME_EXTENSION_ENVIRONMENT_COMPATIBILITY')
 
@@ -542,7 +505,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
       }
 
       // 驗證整體測試品質指標
-      // eslint-disable-next-line no-unused-vars
       const testQualityMetrics = {
         scenarioCoverage: (completedScenarios.size / requiredScenarios.length) * 100,
         errorPropagationAccuracy: 100, // 所有錯誤都正確傳播
@@ -560,9 +522,7 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
   // 輔助函數：模擬各種錯誤傳播場景
   async function simulateUC01DOMErrorToUC02Adaptation () {
     try {
-      // eslint-disable-next-line no-unused-vars
       const uc01Error = UC01ErrorFactory.createError('DOM_READMOO_PAGE_NOT_DETECTED')
-      // eslint-disable-next-line no-unused-vars
       const uc02Adapted = UC02ErrorAdapter.adaptFromUC01Error(uc01Error)
       return { success: uc02Adapted.code === ErrorCodes.DOM_ERROR }
     } catch (error) {
@@ -572,9 +532,7 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
 
   async function simulateUC01StorageErrorToUC02Prevention () {
     try {
-      // eslint-disable-next-line no-unused-vars
       const uc01Error = UC01ErrorFactory.createError('SYSTEM_STORAGE_QUOTA_EXCEEDED')
-      // eslint-disable-next-line no-unused-vars
       const uc02Prevention = await UC02ErrorFactory.validateStorageCapacity({
         inheritedProblems: [uc01Error]
       })
@@ -588,7 +546,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
     try {
       // eslint-disable-next-line no-unused-vars
       const uc01Error = UC01ErrorFactory.createError('NETWORK_READMOO_UNREACHABLE')
-      // eslint-disable-next-line no-unused-vars
       const uc02Strategy = {
         retryCount: 3,
         backoffStrategy: 'exponential',
@@ -604,7 +561,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
     try {
       // eslint-disable-next-line no-unused-vars
       const uc01Error = UC01ErrorFactory.createError('PLATFORM_EXTENSION_PERMISSIONS_DENIED')
-      // eslint-disable-next-line no-unused-vars
       const uc02Fallback = {
         mode: 'limited_functionality',
         adaptedFromUC01: true
@@ -617,7 +573,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
 
   async function simulateCrossUCRecoveryCoordination () {
     try {
-      // eslint-disable-next-line no-unused-vars
       const recoveryCoordination = {
         uc01Status: 'partial_recovery',
         uc02Status: 'adaptive_mode',
@@ -631,7 +586,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
 
   async function simulateErrorLearningSystemEvolution () {
     try {
-      // eslint-disable-next-line no-unused-vars
       const learningSystem = {
         patternsIdentified: 3,
         adaptationsApplied: 2,
@@ -645,7 +599,6 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
 
   async function simulateChromeExtensionEnvironmentCompatibility () {
     try {
-      // eslint-disable-next-line no-unused-vars
       const chromeCompatibility = {
         serviceWorkerSupport: true,
         crossContextMessaging: true,

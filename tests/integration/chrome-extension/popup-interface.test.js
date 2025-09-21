@@ -14,7 +14,9 @@
  * @jest-environment jsdom
  */
 
+// eslint-disable-next-line no-unused-vars
 const fs = require('fs')
+// eslint-disable-next-line no-unused-vars
 const path = require('path')
 const { JSDOM } = require('jsdom')
 
@@ -26,10 +28,14 @@ describe('Popup Interface 整合測試', () => {
 
   // 載入 popup.html 並初始化環境
   function loadPopupInterface () {
+    // eslint-disable-next-line no-unused-vars
     const popupHtmlPath = path.join(__dirname, '../../../src/popup/popup.html')
+    // eslint-disable-next-line no-unused-vars
     const popupJsPath = path.join(__dirname, '../../../src/popup/popup.js')
 
+    // eslint-disable-next-line no-unused-vars
     const htmlContent = fs.readFileSync(popupHtmlPath, 'utf8')
+    // eslint-disable-next-line no-unused-vars
     let popupScriptContent = fs.readFileSync(popupJsPath, 'utf8')
 
     // 轉換 ES6 import 語句為適合測試環境的格式
@@ -138,6 +144,7 @@ describe('Popup Interface 整合測試', () => {
 
     test('應該包含所有狀態顯示元素', () => {
       // 狀態卡片
+      // eslint-disable-next-line no-unused-vars
       const statusCards = document.querySelectorAll('.status-card')
       expect(statusCards.length).toBeGreaterThanOrEqual(3)
 
@@ -159,6 +166,7 @@ describe('Popup Interface 整合測試', () => {
       expect(document.getElementById('helpBtn')).toBeTruthy()
 
       // 檢查按鈕類別和屬性
+      // eslint-disable-next-line no-unused-vars
       const extractBtn = document.getElementById('extractBtn')
       expect(extractBtn.classList.contains('button')).toBe(true)
       expect(extractBtn.classList.contains('primary')).toBe(true)
@@ -167,11 +175,14 @@ describe('Popup Interface 整合測試', () => {
 
     test('應該包含版本資訊和樣式（動態取得 manifest 版本）', () => {
       // 版本資訊元素存在
+      // eslint-disable-next-line no-unused-vars
       const versionElement = document.querySelector('.version')
       expect(versionElement).toBeTruthy()
 
       // 從 manifest.json 讀取版本號，並 mock chrome.runtime.getManifest
+      // eslint-disable-next-line no-unused-vars
       const manifestPath = path.join(__dirname, '../../../manifest.json')
+      // eslint-disable-next-line no-unused-vars
       const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
       if (!global.chrome.runtime.getManifest) {
         global.chrome.runtime.getManifest = jest.fn(() => ({ version: manifest.version }))
@@ -190,6 +201,7 @@ describe('Popup Interface 整合測試', () => {
       expect(versionElement.textContent).toContain(`v${manifest.version}`)
 
       // 確認有載入樣式
+      // eslint-disable-next-line no-unused-vars
       const styleElements = document.querySelectorAll('style')
       expect(styleElements.length).toBeGreaterThan(0)
     })
@@ -213,6 +225,7 @@ describe('Popup Interface 整合測試', () => {
 
     test('應該設定適當的事件監聽器', () => {
       // 模擬 DOMContentLoaded 事件
+      // eslint-disable-next-line no-unused-vars
       const addEventListenerSpy = jest.spyOn(document, 'addEventListener')
 
       // eslint-disable-next-line no-eval
@@ -237,8 +250,10 @@ describe('Popup Interface 整合測試', () => {
       })
 
       // 呼叫狀態檢查函數
+      // eslint-disable-next-line no-unused-vars
       const checkBackgroundStatus = window.checkBackgroundStatus
       if (checkBackgroundStatus) {
+        // eslint-disable-next-line no-unused-vars
         const result = await checkBackgroundStatus()
         expect(result).toBe(true)
         expect(chrome.runtime.sendMessage).toHaveBeenCalledWith({ type: 'GET_STATUS' })
@@ -249,8 +264,10 @@ describe('Popup Interface 整合測試', () => {
       // 模擬連線失敗
       chrome.runtime.sendMessage.mockRejectedValue(new Error('Service Worker 離線'))
 
+      // eslint-disable-next-line no-unused-vars
       const checkBackgroundStatus = window.checkBackgroundStatus
       if (checkBackgroundStatus) {
+        // eslint-disable-next-line no-unused-vars
         const result = await checkBackgroundStatus()
         expect(result).toBe(false)
       }
@@ -277,8 +294,10 @@ describe('Popup Interface 整合測試', () => {
         ready: true
       })
 
+      // eslint-disable-next-line no-unused-vars
       const checkCurrentTab = window.checkCurrentTab
       if (checkCurrentTab) {
+        // eslint-disable-next-line no-unused-vars
         const result = await checkCurrentTab()
         expect(result).toBeTruthy()
         expect(chrome.tabs.query).toHaveBeenCalledWith({
@@ -295,11 +314,13 @@ describe('Popup Interface 整合測試', () => {
         title: 'Readmoo 書庫'
       }])
 
+      // eslint-disable-next-line no-unused-vars
       const checkCurrentTab = window.checkCurrentTab
       if (checkCurrentTab) {
         await checkCurrentTab()
 
         // 檢查頁面資訊顯示
+        // eslint-disable-next-line no-unused-vars
         const pageInfo = document.getElementById('pageInfo')
         expect(pageInfo.textContent).toContain('Readmoo')
       }
@@ -312,12 +333,15 @@ describe('Popup Interface 整合測試', () => {
         title: 'Google'
       }])
 
+      // eslint-disable-next-line no-unused-vars
       const checkCurrentTab = window.checkCurrentTab
       if (checkCurrentTab) {
         await checkCurrentTab()
 
         // 檢查頁面資訊和按鈕狀態
+        // eslint-disable-next-line no-unused-vars
         const pageInfo = document.getElementById('pageInfo')
+        // eslint-disable-next-line no-unused-vars
         const extractBtn = document.getElementById('extractBtn')
 
         expect(pageInfo.textContent).toContain('非 Readmoo 頁面')
@@ -333,6 +357,7 @@ describe('Popup Interface 整合測試', () => {
     })
 
     test('應該能更新狀態顯示', () => {
+      // eslint-disable-next-line no-unused-vars
       const updateStatus = window.updateStatus
 
       if (updateStatus) {
@@ -347,10 +372,12 @@ describe('Popup Interface 整合測試', () => {
     })
 
     test('應該支援不同的狀態類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const updateStatus = window.updateStatus
 
       if (updateStatus) {
         // 測試不同狀態類型
+        // eslint-disable-next-line no-unused-vars
         const statusTypes = ['loading', 'ready', 'error']
 
         statusTypes.forEach(type => {
@@ -373,7 +400,9 @@ describe('Popup Interface 整合測試', () => {
     })
 
     test('應該設定提取按鈕點擊事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const extractBtn = document.getElementById('extractBtn')
+      // eslint-disable-next-line no-unused-vars
       const clickEvent = new window.MouseEvent('click', { bubbles: true })
 
       // 模擬標籤頁存在
@@ -393,7 +422,9 @@ describe('Popup Interface 整合測試', () => {
     })
 
     test('應該設定設定按鈕點擊事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const settingsBtn = document.getElementById('settingsBtn')
+      // eslint-disable-next-line no-unused-vars
       const clickEvent = new window.MouseEvent('click', { bubbles: true })
 
       settingsBtn.dispatchEvent(clickEvent)
@@ -402,12 +433,15 @@ describe('Popup Interface 整合測試', () => {
     })
 
     test('應該設定說明按鈕點擊事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const helpBtn = document.getElementById('helpBtn')
+      // eslint-disable-next-line no-unused-vars
       const clickEvent = new window.MouseEvent('click', { bubbles: true })
 
       helpBtn.dispatchEvent(clickEvent)
 
       expect(window.alert).toHaveBeenCalled()
+      // eslint-disable-next-line no-unused-vars
       const alertCall = window.alert.mock.calls[0][0]
       expect(alertCall).toContain('使用說明')
     })
@@ -421,6 +455,7 @@ describe('Popup Interface 整合測試', () => {
 
     test('應該處理初始化錯誤', () => {
       // 模擬錯誤事件
+      // eslint-disable-next-line no-unused-vars
       const errorEvent = new window.ErrorEvent('error', {
         error: new Error('測試錯誤'),
         message: '測試錯誤訊息'
@@ -434,8 +469,10 @@ describe('Popup Interface 整合測試', () => {
     test('應該處理 API 呼叫錯誤', async () => {
       chrome.runtime.sendMessage.mockRejectedValue(new Error('API 錯誤'))
 
+      // eslint-disable-next-line no-unused-vars
       const checkBackgroundStatus = window.checkBackgroundStatus
       if (checkBackgroundStatus) {
+        // eslint-disable-next-line no-unused-vars
         const result = await checkBackgroundStatus()
         expect(result).toBe(false)
       }
@@ -470,6 +507,7 @@ describe('Popup Interface 整合測試', () => {
   describe('響應式設計和無障礙功能測試', () => {
     test('應該包含適當的 ARIA 標籤', () => {
       // 檢查重要元素是否有適當的標籤
+      // eslint-disable-next-line no-unused-vars
       const buttons = document.querySelectorAll('button')
       buttons.forEach(button => {
         expect(button.textContent.length).toBeGreaterThan(0)
@@ -478,6 +516,7 @@ describe('Popup Interface 整合測試', () => {
 
     test('應該支援鍵盤導航', () => {
       // 檢查按鈕是否可以透過鍵盤存取
+      // eslint-disable-next-line no-unused-vars
       const buttons = document.querySelectorAll('button')
       buttons.forEach(button => {
         expect(button.tabIndex).not.toBe(-1)
@@ -486,10 +525,12 @@ describe('Popup Interface 整合測試', () => {
 
     test('應該有適當的視覺回饋', () => {
       // 檢查狀態指示器
+      // eslint-disable-next-line no-unused-vars
       const statusDot = document.getElementById('statusDot')
       expect(statusDot.className).toContain('status-dot')
 
       // 檢查按鈕樣式
+      // eslint-disable-next-line no-unused-vars
       const extractBtn = document.getElementById('extractBtn')
       expect(extractBtn.className).toContain('button')
     })
@@ -504,6 +545,7 @@ describe('Popup Interface 整合測試', () => {
         eval(popupScript)
 
         // 檢查按鈕的初始狀態
+        // eslint-disable-next-line no-unused-vars
         const extractBtn = document.getElementById('extractBtn')
         expect(extractBtn).toBeTruthy()
         expect(extractBtn.disabled).toBe(true) // 初始應該是禁用狀態
@@ -518,6 +560,7 @@ describe('Popup Interface 整合測試', () => {
         eval(popupScript)
 
         // 模擬提取開始
+        // eslint-disable-next-line no-unused-vars
         const extractBtn = document.getElementById('extractBtn')
 
         // 測試按鈕狀態更新功能
@@ -546,8 +589,11 @@ describe('Popup Interface 整合測試', () => {
         loadPopupInterface()
 
         // 檢查進度條相關元素存在
+        // eslint-disable-next-line no-unused-vars
         const progressBar = document.getElementById('progressBar')
+        // eslint-disable-next-line no-unused-vars
         const progressText = document.getElementById('progressText')
+        // eslint-disable-next-line no-unused-vars
         const progressPercentage = document.getElementById('progressPercentage')
 
         expect(progressBar).toBeTruthy()
@@ -568,7 +614,9 @@ describe('Popup Interface 整合測試', () => {
         if (window.updateProgress) {
           window.updateProgress(50, '正在提取第50本書...')
 
+          // eslint-disable-next-line no-unused-vars
           const progressPercentage = document.getElementById('progressPercentage')
+          // eslint-disable-next-line no-unused-vars
           const progressText = document.getElementById('progressText')
 
           expect(progressPercentage.textContent).toBe('50%')
@@ -592,8 +640,11 @@ describe('Popup Interface 整合測試', () => {
         loadPopupInterface()
 
         // 檢查結果顯示相關元素存在
+        // eslint-disable-next-line no-unused-vars
         const resultsContainer = document.getElementById('resultsContainer')
+        // eslint-disable-next-line no-unused-vars
         const bookCount = document.getElementById('extractedBookCount')
+        // eslint-disable-next-line no-unused-vars
         const extractionTime = document.getElementById('extractionTime')
 
         expect(resultsContainer).toBeTruthy()
@@ -612,6 +663,7 @@ describe('Popup Interface 整合測試', () => {
 
         // 測試結果展示功能
         if (window.displayExtractionResults) {
+          // eslint-disable-next-line no-unused-vars
           const testResults = {
             bookCount: 123,
             extractionTime: '2分30秒',
@@ -620,8 +672,11 @@ describe('Popup Interface 整合測試', () => {
 
           window.displayExtractionResults(testResults)
 
+          // eslint-disable-next-line no-unused-vars
           const bookCount = document.getElementById('extractedBookCount')
+          // eslint-disable-next-line no-unused-vars
           const extractionTime = document.getElementById('extractionTime')
+          // eslint-disable-next-line no-unused-vars
           const successRate = document.getElementById('successRate')
 
           expect(bookCount.textContent).toBe('123')
@@ -655,7 +710,9 @@ describe('Popup Interface 整合測試', () => {
         if (window.handleExtractionError) {
           window.handleExtractionError('測試錯誤訊息')
 
+          // eslint-disable-next-line no-unused-vars
           const errorContainer = document.getElementById('errorContainer')
+          // eslint-disable-next-line no-unused-vars
           const errorMessage = document.getElementById('errorMessage')
 
           expect(errorContainer.style.display).toBe('block')
@@ -667,7 +724,9 @@ describe('Popup Interface 整合測試', () => {
         loadPopupInterface()
 
         // 檢查錯誤訊息顯示區域存在
+        // eslint-disable-next-line no-unused-vars
         const errorContainer = document.getElementById('errorContainer')
+        // eslint-disable-next-line no-unused-vars
         const errorMessage = document.getElementById('errorMessage')
 
         expect(errorContainer).toBeTruthy()

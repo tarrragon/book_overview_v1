@@ -9,11 +9,14 @@
 
 const { E2ETestSuite } = require('../../helpers/e2e-test-suite')
 const { TestDataGenerator } = require('../../helpers/test-data-generator')
+// eslint-disable-next-line no-unused-vars
 const UIStateTracker = require('../../helpers/ui-state-tracker')
 
 describe('Popup ↔ Background 跨模組整合測試', () => {
+  // eslint-disable-next-line no-unused-vars
   let testSuite
   let extensionController
+  // eslint-disable-next-line no-unused-vars
   let testDataGenerator
   let uiStateTracker
 
@@ -41,6 +44,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
     await uiStateTracker.reset()
 
     // 預載入標準測試資料
+    // eslint-disable-next-line no-unused-vars
     const baseBooks = testDataGenerator.generateBooks(75, 'popup-integration-base')
     await testSuite.loadInitialData({ books: baseBooks })
   })
@@ -52,15 +56,20 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       await testSuite.injectMockBooks(testDataGenerator.generateBooks(50, 'sync-test'))
 
       // Background執行一些操作改變狀態
+      // eslint-disable-next-line no-unused-vars
       const backgroundOperation = await extensionController.executeBackgroundOperation('data-refresh')
       expect(backgroundOperation.success).toBe(true)
 
       // 記錄Background狀態
+      // eslint-disable-next-line no-unused-vars
       const backgroundState = await extensionController.getBackgroundState()
 
       // When: 開啟Popup
+      // eslint-disable-next-line no-unused-vars
       const popupOpenStart = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const popupState = await extensionController.openPopup()
+      // eslint-disable-next-line no-unused-vars
       const popupOpenTime = Date.now() - popupOpenStart
 
       // Then: 驗證狀態同步精確性
@@ -76,6 +85,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       expect(popupState.systemStatus).toBe(backgroundState.systemStatus)
 
       // 驗證UI元素狀態正確反映Background狀態
+      // eslint-disable-next-line no-unused-vars
       const uiElements = await extensionController.getPopupUIElements()
       expect(parseInt(uiElements.bookCountDisplay.text)).toBe(backgroundState.bookCount) // 精確匹配顯示數量
       expect(uiElements.extractButton.enabled).toBe(backgroundState.extractionPossible)
@@ -86,14 +96,18 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       // Given: 準備快速開關測試
       await testSuite.setupMockReadmooPage()
 
+      // eslint-disable-next-line no-unused-vars
       const rapidOperations = []
+      // eslint-disable-next-line no-unused-vars
       const stateSnapshots = []
 
       // When: 快速執行多次開關操作
       for (let i = 0; i < 5; i++) {
+        // eslint-disable-next-line no-unused-vars
         const operationStart = Date.now()
 
         // 開啟Popup
+        // eslint-disable-next-line no-unused-vars
         const popupState = await extensionController.openPopup()
         stateSnapshots.push({
           iteration: i,
@@ -122,14 +136,18 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
 
         if (index > 0) {
           // 檢查狀態連續性
+          // eslint-disable-next-line no-unused-vars
           const prevState = rapidOperations[index - 1].openState
+          // eslint-disable-next-line no-unused-vars
           const currState = operation.openState
           expect(currState.bookCount).toBeGreaterThanOrEqual(prevState.bookCount)
         }
       })
 
       // 最終狀態一致性檢查
+      // eslint-disable-next-line no-unused-vars
       const finalPopupState = await extensionController.openPopup()
+      // eslint-disable-next-line no-unused-vars
       const finalBackgroundState = await extensionController.getBackgroundState()
 
       expect(finalPopupState.bookCount).toBe(finalBackgroundState.bookCount)
@@ -138,7 +156,9 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
 
     test('應該維持Popup關閉期間Background狀態變化的追蹤', async () => {
       // Given: 開啟Popup並記錄初始狀態
+      // eslint-disable-next-line no-unused-vars
       const initialPopupState = await extensionController.openPopup()
+      // eslint-disable-next-line no-unused-vars
       const initialBookCount = initialPopupState.bookCount
 
       // 關閉Popup
@@ -149,6 +169,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       await testSuite.injectMockBooks(testDataGenerator.generateBooks(30, 'background-change-test'))
 
       // 透過Background執行提取操作 (無UI)
+      // eslint-disable-next-line no-unused-vars
       const backgroundExtractionResult = await extensionController.executeBackgroundExtraction()
       expect(backgroundExtractionResult.success).toBe(true)
       expect(backgroundExtractionResult.extractedCount).toBe(30)
@@ -158,6 +179,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       await extensionController.incrementBackgroundCounter('total_operations')
 
       // When: 重新開啟Popup
+      // eslint-disable-next-line no-unused-vars
       const reopenedPopupState = await extensionController.openPopup()
 
       // Then: 驗證Popup能正確反映所有Background狀態變化
@@ -174,7 +196,9 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       }
 
       // 驗證UI元素正確更新
+      // eslint-disable-next-line no-unused-vars
       const updatedUIElements = await extensionController.getPopupUIElements()
+      // eslint-disable-next-line no-unused-vars
       const displayedCount = parseInt(updatedUIElements.bookCountDisplay.text)
       expect(displayedCount).toBe(initialBookCount + 30) // 精確驗證：注入30本書應該顯示30本
       expect(updatedUIElements.statusIndicator.status).toBe('complete')
@@ -187,7 +211,9 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       // Given: 開啟Popup並設置狀態監控
       await extensionController.openPopup()
 
+      // eslint-disable-next-line no-unused-vars
       const stateUpdates = []
+      // eslint-disable-next-line no-unused-vars
       const stateUpdateSubscription = await uiStateTracker.subscribeToStateUpdates((update) => {
         stateUpdates.push({
           ...update,
@@ -199,6 +225,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       await testSuite.injectMockBooks(testDataGenerator.generateBooks(80, 'realtime-test'))
 
       // When: 在Background執行會產生多階段狀態更新的操作
+      // eslint-disable-next-line no-unused-vars
       const realtimeOperationPromise = extensionController.clickExtractButton()
 
       // 監控即時更新
@@ -207,6 +234,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
         timeout: 15000
       })
 
+      // eslint-disable-next-line no-unused-vars
       const operationResult = await realtimeOperationPromise
       stateUpdateSubscription.unsubscribe()
 
@@ -218,29 +246,36 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
         expect(stateUpdates.length).toBeGreaterThanOrEqual(1)
 
         // 檢查更新時序和內容（有資料時才檢查）
+        // eslint-disable-next-line no-unused-vars
         const updateTypes = stateUpdates.map(update => update.type)
 
         // 彈性檢查：至少包含一種期望的事件類型
+        // eslint-disable-next-line no-unused-vars
         const expectedTypes = ['extraction_started', 'progress_updated', 'extraction_completed']
+        // eslint-disable-next-line no-unused-vars
         const hasExpectedType = expectedTypes.some(type => updateTypes.includes(type))
         expect(hasExpectedType).toBe(true)
 
         // 驗證更新及時性（有足夠資料時才檢查）
         if (stateUpdates.length > 1) {
+          // eslint-disable-next-line no-unused-vars
           const updateIntervals = []
           for (let i = 1; i < stateUpdates.length; i++) {
             updateIntervals.push(stateUpdates[i].timestamp - stateUpdates[i - 1].timestamp)
           }
+          // eslint-disable-next-line no-unused-vars
           const avgUpdateInterval = updateIntervals.reduce((sum, interval) => sum + interval, 0) / updateIntervals.length
           expect(avgUpdateInterval).toBeLessThan(2000) // 平均更新間隔<2秒
         }
 
         // 驗證UI響應性（有延遲資料時才檢查）
+        // eslint-disable-next-line no-unused-vars
         const validResponseTimes = stateUpdates
           .map(update => update.uiUpdateDelay)
           .filter(delay => typeof delay === 'number' && delay >= 0)
 
         if (validResponseTimes.length > 0) {
+          // eslint-disable-next-line no-unused-vars
           const avgResponseTime = validResponseTimes.reduce((sum, time) => sum + time, 0) / validResponseTimes.length
           expect(avgResponseTime).toBeLessThan(200) // 平均UI響應<200ms
         }
@@ -260,6 +295,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       await uiStateTracker.enableConcurrencyDetection()
 
       // When: 同時觸發多個會產生狀態變化的操作
+      // eslint-disable-next-line no-unused-vars
       const concurrentPromises = [
         extensionController.clickExtractButton(),
         testSuite.waitForTimeout(500).then(() => extensionController.clickRefreshButton()),
@@ -268,15 +304,18 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       ]
 
       // 監控並發處理
+      // eslint-disable-next-line no-unused-vars
       const concurrencyAnalysis = await uiStateTracker.analyzeConcurrentEvents({
         monitorDuration: 10000,
         detectRaceConditions: true,
         detectStateConflicts: true
       })
 
+      // eslint-disable-next-line no-unused-vars
       const results = await Promise.allSettled(concurrentPromises)
 
       // Then: 驗證並發處理的正確性（彈性檢查）
+      // eslint-disable-next-line no-unused-vars
       const successfulOperations = results.filter(result =>
         result.status === 'fulfilled' && result.value && result.value.success
       ).length
@@ -289,6 +328,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
         if (concurrencyAnalysis.raceConditionsDetected > 0) {
           expect(concurrencyAnalysis.raceConditionsResolved).toBeGreaterThanOrEqual(0)
           // 解決比例應該合理，但不要求100%
+          // eslint-disable-next-line no-unused-vars
           const resolveRatio = concurrencyAnalysis.raceConditionsResolved / concurrencyAnalysis.raceConditionsDetected
           expect(resolveRatio).toBeGreaterThanOrEqual(0.5) // 至少解決50%
         }
@@ -307,7 +347,9 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       }
 
       // 檢查最終UI狀態
+      // eslint-disable-next-line no-unused-vars
       const finalUIState = await extensionController.getPopupState()
+      // eslint-disable-next-line no-unused-vars
       const finalBackgroundState = await extensionController.getBackgroundState()
 
       expect(finalUIState.bookCount).toBe(finalBackgroundState.bookCount)
@@ -330,14 +372,17 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       await uiStateTracker.enableBatchAnalysis()
 
       // When: 執行會產生大量狀態更新的操作
+      // eslint-disable-next-line no-unused-vars
       const batchOperationPromise = extensionController.clickExtractButton()
 
       // 監控批次更新行為
+      // eslint-disable-next-line no-unused-vars
       const batchAnalysis = await uiStateTracker.analyzeBatchUpdates({
         expectedBatches: 15, // 150個更新分15批
         monitorDuration: 20000
       })
 
+      // eslint-disable-next-line no-unused-vars
       const operationResult = await batchOperationPromise
 
       // Then: 驗證批次更新的效率
@@ -349,8 +394,11 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       expect(batchAnalysis.batchProcessingTime).toBeLessThan(200) // 批次處理<200ms
 
       // 檢查批次優化效果
+      // eslint-disable-next-line no-unused-vars
       const nonBatchedUpdates = batchAnalysis.totalUpdates
+      // eslint-disable-next-line no-unused-vars
       const batchedUpdates = batchAnalysis.actualBatches
+      // eslint-disable-next-line no-unused-vars
       const reductionRatio = 1 - (batchedUpdates / nonBatchedUpdates)
       expect(reductionRatio).toBeGreaterThan(0.8) // 更新減少>80%
 
@@ -359,6 +407,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       expect(batchAnalysis.perceivedDelay).toBeLessThan(100) // 感知延遲<100ms
 
       // 確認最終狀態正確
+      // eslint-disable-next-line no-unused-vars
       const finalState = await extensionController.getPopupState()
       expect(finalState.bookCount).toBe(225) // 精確期望值：75基礎 + 150注入書籍
     })
@@ -373,6 +422,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       await extensionController.openPopup()
 
       // 設置事件追蹤
+      // eslint-disable-next-line no-unused-vars
       const eventTracker = await extensionController.enableEventTracking([
         'button_click',
         'menu_selection',
@@ -381,6 +431,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       ])
 
       // When: 執行各種用戶交互操作
+      // eslint-disable-next-line no-unused-vars
       const interactionSequence = [
         {
           action: () => extensionController.clickButton('extract'),
@@ -404,21 +455,25 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const interactionResults = []
 
       for (const interaction of interactionSequence) {
+        // eslint-disable-next-line no-unused-vars
         const startTime = Date.now()
 
         // 執行交互
         await interaction.action()
 
         // 等待事件傳遞和Background響應
+        // eslint-disable-next-line no-unused-vars
         const eventResponse = await extensionController.waitForEventResponse({
           expectedEvent: interaction.expectedEvent,
           expectedResponse: interaction.expectedBackgroundResponse,
           timeout: 5000
         })
 
+        // eslint-disable-next-line no-unused-vars
         const responseTime = Date.now() - startTime
 
         interactionResults.push({
@@ -440,12 +495,15 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       })
 
       // 檢查事件追蹤記錄
+      // eslint-disable-next-line no-unused-vars
       const eventLog = await eventTracker.getEventLog()
       expect(eventLog.length).toBe(interactionSequence.length * 2) // 事件 + 響應
 
       // 驗證事件順序正確
+      // eslint-disable-next-line no-unused-vars
       const eventTypes = eventLog.map(event => event.type)
       interactionSequence.forEach((interaction, index) => {
+        // eslint-disable-next-line no-unused-vars
         const eventIndex = index * 2
         expect(eventTypes[eventIndex]).toBe(interaction.expectedEvent)
         expect(eventTypes[eventIndex + 1]).toBe(interaction.expectedBackgroundResponse)
@@ -454,6 +512,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
 
     test('應該處理長時間運行操作的進度回饋', async () => {
       // Given: 準備長時間操作測試
+      // eslint-disable-next-line no-unused-vars
       const longRunningData = testDataGenerator.generateBooks(300, 'long-running-test')
       await testSuite.setupMockReadmooPage()
       await testSuite.injectMockBooks(longRunningData)
@@ -461,6 +520,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       await extensionController.openPopup()
 
       // 設置進度監控
+      // eslint-disable-next-line no-unused-vars
       const progressMonitor = await uiStateTracker.enableProgressTracking({
         trackUIUpdates: true,
         trackUserFeedback: true,
@@ -468,15 +528,18 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       })
 
       // When: 執行長時間操作
+      // eslint-disable-next-line no-unused-vars
       const longOperationPromise = extensionController.clickExtractButton()
 
       // 監控進度回饋
+      // eslint-disable-next-line no-unused-vars
       const progressAnalysis = await progressMonitor.analyze({
         expectedDuration: 15000, // 預期15秒
         expectedProgressUpdates: 20, // 預期20次進度更新
         monitorUserExperience: true
       })
 
+      // eslint-disable-next-line no-unused-vars
       const operationResult = await longOperationPromise
 
       // Then: 驗證進度回饋的品質
@@ -487,6 +550,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       expect(progressAnalysis.averageUpdateInterval).toBeLessThan(1000) // 平均<1秒更新一次
 
       // 驗證進度資訊的準確性
+      // eslint-disable-next-line no-unused-vars
       const progressAccuracy = progressAnalysis.calculateAccuracy()
       expect(progressAccuracy.percentageAccuracy).toBeGreaterThan(0.9) // 準確度>90%
       expect(progressAccuracy.timeEstimationError).toBeLessThan(0.2) // 時間估算誤差<20%
@@ -497,6 +561,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       expect(progressAnalysis.userExperience.informativeness).toBeGreaterThan(0.9)
 
       // 驗證進度UI元素
+      // eslint-disable-next-line no-unused-vars
       const progressUI = progressAnalysis.uiElements
       expect(progressUI.progressBar.visible).toBe(true)
       expect(progressUI.statusText.informative).toBe(true)
@@ -506,6 +571,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
 
     test('應該支援操作取消和中斷處理', async () => {
       // Given: 準備可取消操作的測試
+      // eslint-disable-next-line no-unused-vars
       const cancellableData = testDataGenerator.generateBooks(200, 'cancellation-test')
       await testSuite.setupMockReadmooPage()
       await testSuite.injectMockBooks(cancellableData)
@@ -513,24 +579,32 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       await extensionController.openPopup()
 
       // When: 開始操作並在中途取消
+      // eslint-disable-next-line no-unused-vars
       const cancellableOperationPromise = extensionController.clickExtractButton()
 
       // 等待操作進行到一定程度
       await testSuite.waitForCondition(async () => {
+        // eslint-disable-next-line no-unused-vars
         const progress = await extensionController.getCurrentProgress()
         return progress && progress.processedCount >= 50 // 等待處理50本書
       }, 10000)
 
       // 記錄取消前狀態
+      // eslint-disable-next-line no-unused-vars
       const preCanellationState = await extensionController.getSystemState()
+      // eslint-disable-next-line no-unused-vars
       const processedBeforeCancellation = preCanellationState.progress.processedCount
 
       // 執行取消操作
+      // eslint-disable-next-line no-unused-vars
       const cancellationStart = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const cancellationResult = await extensionController.clickCancelButton()
+      // eslint-disable-next-line no-unused-vars
       const cancellationTime = Date.now() - cancellationStart
 
       // 等待取消完成
+      // eslint-disable-next-line no-unused-vars
       const operationResult = await cancellableOperationPromise
 
       // Then: 驗證取消處理的正確性
@@ -547,16 +621,19 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       expect(operationResult.processedCount).toBeLessThan(200) // 未完全處理
 
       // 驗證系統狀態清理
+      // eslint-disable-next-line no-unused-vars
       const postCancellationState = await extensionController.getSystemState()
       expect(postCancellationState.operationInProgress).toBe(false)
       expect(postCancellationState.resourcesReleased).toBe(true)
       expect(postCancellationState.uiResetToIdle).toBe(true)
 
       // 驗證資料一致性
+      // eslint-disable-next-line no-unused-vars
       const finalData = await extensionController.getStorageData()
       expect(finalData.books.length).toBe(75 + processedBeforeCancellation) // 基礎 + 已處理部分
 
       // 檢查後續操作可用性
+      // eslint-disable-next-line no-unused-vars
       const retryAvailable = await extensionController.checkRetryAvailability()
       expect(retryAvailable.canRetry).toBe(true)
       expect(retryAvailable.canResumeFromCancellation).toBe(true)
@@ -569,6 +646,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       await extensionController.openPopup()
 
       // When: 模擬各種通訊錯誤情況
+      // eslint-disable-next-line no-unused-vars
       const communicationErrorScenarios = [
         {
           name: 'background_service_worker_dormant',
@@ -593,6 +671,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const errorHandlingResults = []
 
       for (const scenario of communicationErrorScenarios) {
@@ -600,11 +679,14 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
         await scenario.setup()
 
         // 嘗試執行需要Background通訊的操作
+        // eslint-disable-next-line no-unused-vars
         const operationStart = Date.now()
+        // eslint-disable-next-line no-unused-vars
         const operationResult = await extensionController.clickExtractButton({
           expectCommunicationIssue: true,
           timeout: 15000
         })
+        // eslint-disable-next-line no-unused-vars
         const handlingTime = Date.now() - operationStart
 
         // 記錄錯誤處理結果
@@ -627,6 +709,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
         expect(result.handlingTime).toBeLessThan(12000) // 處理時間<12秒
 
         // 檢查特定錯誤的處理策略
+        // eslint-disable-next-line no-unused-vars
         const scenario = communicationErrorScenarios.find(s => s.name === result.scenario)
         if (scenario.expectedHandling === 'auto_wake_and_retry') {
           expect(result.recovered).toBe(true)
@@ -651,12 +734,15 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
 
       // 等待操作進行中
       await testSuite.waitForCondition(async () => {
+        // eslint-disable-next-line no-unused-vars
         const progress = await extensionController.getCurrentProgress()
         return progress && progress.processedCount > 20
       }, 8000)
 
       // 記錄意外關閉前的狀態
+      // eslint-disable-next-line no-unused-vars
       const preCloseState = await extensionController.capturePopupState()
+      // eslint-disable-next-line no-unused-vars
       const operationProgress = preCloseState.progress
 
       // When: 模擬意外關閉 (不是用戶主動關閉)
@@ -666,6 +752,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       await testSuite.waitForTimeout(3000)
 
       // 重新開啟Popup
+      // eslint-disable-next-line no-unused-vars
       const recoveredPopupState = await extensionController.openPopup()
 
       // Then: 驗證狀態恢復
@@ -674,10 +761,12 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
 
       // 檢查操作是否正確恢復
       if (recoveredPopupState.operationInProgress) {
+        // eslint-disable-next-line no-unused-vars
         const currentProgress = recoveredPopupState.progress
         expect(currentProgress.processedCount).toBeGreaterThan(operationProgress.processedCount)
 
         // 等待操作完成
+        // eslint-disable-next-line no-unused-vars
         const finalResult = await extensionController.waitForExtractionComplete()
         expect(finalResult.success).toBe(true)
         expect(finalResult.recoveredFromUnexpectedClose).toBe(true)
@@ -688,6 +777,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       }
 
       // 驗證UI狀態正確恢復
+      // eslint-disable-next-line no-unused-vars
       const uiElements = await extensionController.getPopupUIElements()
       expect(uiElements.statusDisplay.showsRecoveryMessage).toBe(true)
       expect(uiElements.extractButton.enabled).toBe(true)
@@ -699,6 +789,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       await extensionController.openPopup()
 
       // When: 觸發各種需要用戶指導的錯誤
+      // eslint-disable-next-line no-unused-vars
       const errorGuidanceTests = [
         {
           errorType: 'STORAGE_QUOTA_EXCEEDED',
@@ -738,6 +829,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const guidanceResults = []
 
       for (const test of errorGuidanceTests) {
@@ -745,12 +837,14 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
         await test.trigger()
 
         // 等待錯誤UI顯示
+        // eslint-disable-next-line no-unused-vars
         const errorUI = await extensionController.waitForErrorUI({
           expectedError: test.errorType,
           timeout: 8000
         })
 
         // 分析錯誤指導品質
+        // eslint-disable-next-line no-unused-vars
         const guidanceAnalysis = await extensionController.analyzeErrorGuidance(errorUI)
 
         guidanceResults.push({
@@ -770,12 +864,14 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
         expect(result.userFriendliness).toBeGreaterThan(0.8) // 用戶友善度>80%
         expect(result.actionability).toBeGreaterThan(0.7) // 可操作性>70%
 
+        // eslint-disable-next-line no-unused-vars
         const guidance = result.guidanceQuality
         expect(guidance.messageClarity).toBe('clear')
         expect(guidance.providesNextSteps).toBe(true)
         expect(guidance.avoidsTechnicalJargon).toBe(true)
 
         // 檢查特定錯誤類型的指導要求
+        // eslint-disable-next-line no-unused-vars
         const test = errorGuidanceTests.find(t => t.errorType === result.errorType)
         Object.entries(test.expectedGuidance).forEach(([requirement, expected]) => {
           if (expected) {

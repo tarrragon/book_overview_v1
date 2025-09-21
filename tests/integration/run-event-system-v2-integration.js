@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+/* eslint-disable no-console */
+
 /**
  * 事件系統 v2.0 整合測試執行器
  *

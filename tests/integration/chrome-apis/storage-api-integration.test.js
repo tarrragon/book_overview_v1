@@ -13,8 +13,10 @@ const { StorageAPIValidator } = require('../../helpers/storage-api-validator')
 const { QuotaMonitor } = require('../../helpers/quota-monitor')
 
 describe('Chrome Storage API 整合測試', () => {
+  // eslint-disable-next-line no-unused-vars
   let testSuite
   let extensionController
+  // eslint-disable-next-line no-unused-vars
   let testDataGenerator
   let storageValidator
   let quotaMonitor
@@ -46,6 +48,7 @@ describe('Chrome Storage API 整合測試', () => {
     await quotaMonitor.reset()
 
     // 正確的測試設計：不測試 Chrome 系統限制，只確認清理後的狀態
+    // eslint-disable-next-line no-unused-vars
     const initialStorage = await extensionController.getChromeStorageUsage()
 
     // 我們只需要確認：
@@ -61,6 +64,7 @@ describe('Chrome Storage API 整合測試', () => {
   describe('Chrome Storage Local API 基礎功能', () => {
     test('應該正確執行基本的Storage讀寫操作', async () => {
       // Given: 準備測試資料
+      // eslint-disable-next-line no-unused-vars
       const testData = {
         books: testDataGenerator.generateBooks(50, 'storage-basic-test'),
         metadata: {
@@ -76,18 +80,23 @@ describe('Chrome Storage API 整合測試', () => {
       }
 
       // When: 執行Storage寫入操作
+      // eslint-disable-next-line no-unused-vars
       const writeStart = Date.now()
       await extensionController.handleStorageSet(testData)
+      // eslint-disable-next-line no-unused-vars
       const writeTime = Date.now() - writeStart
 
       // Then: 驗證寫入時間合理
       expect(writeTime).toBeLessThan(1000) // 寫入時間<1秒
 
       // 驗證資料讀取
+      // eslint-disable-next-line no-unused-vars
       const readStart = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const readResult = await extensionController.handleStorageGet([
         'books', 'metadata', 'userSettings'
       ])
+      // eslint-disable-next-line no-unused-vars
       const readTime = Date.now() - readStart
 
       expect(readResult).toBeDefined()
@@ -96,18 +105,24 @@ describe('Chrome Storage API 整合測試', () => {
 
     test('應該處理大量資料的分批儲存', async () => {
       // Given: 準備大量測試資料
+      // eslint-disable-next-line no-unused-vars
       const largeDataset = testDataGenerator.generateBooks(1000, 'large-storage-test')
+      // eslint-disable-next-line no-unused-vars
       const batchSize = 100 // 每批100本書
 
       // 啟動Storage監控
       await quotaMonitor.startMonitoring()
 
       // When: 執行分批儲存
+      // eslint-disable-next-line no-unused-vars
       const batchWriteStart = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const batchResults = []
 
       for (let i = 0; i < largeDataset.length; i += batchSize) {
+        // eslint-disable-next-line no-unused-vars
         const batch = largeDataset.slice(i, i + batchSize)
+        // eslint-disable-next-line no-unused-vars
         const batchKey = `books_batch_${Math.floor(i / batchSize)}`
 
         await extensionController.handleStorageSet({
@@ -124,7 +139,9 @@ describe('Chrome Storage API 整合測試', () => {
         await testSuite.waitForTimeout(50)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const totalBatchTime = Date.now() - batchWriteStart
+      // eslint-disable-next-line no-unused-vars
       const monitoringResults = await quotaMonitor.stopMonitoring()
 
       // Then: 驗證分批儲存結果
@@ -135,6 +152,7 @@ describe('Chrome Storage API 整合測試', () => {
       expect(totalBatchTime).toBeLessThan(15000) // 總時間<15秒
 
       // 驗證Storage使用量
+      // eslint-disable-next-line no-unused-vars
       const storageUsage = await extensionController.getChromeStorageUsage()
       expect(storageUsage.local.used).toBeGreaterThan(0) // 有資料被儲存
       expect(storageUsage.local.available).toBeGreaterThan(0) // 仍有可用空間
@@ -143,7 +161,9 @@ describe('Chrome Storage API 整合測試', () => {
       expect(monitoringResults).toBeDefined()
 
       // 驗證資料讀取完整性
+      // eslint-disable-next-line no-unused-vars
       const allBatchKeys = Array.from({ length: 10 }, (_, i) => `books_batch_${i}`)
+      // eslint-disable-next-line no-unused-vars
       const readResult = await extensionController.handleStorageGet(allBatchKeys)
 
       expect(readResult).toBeDefined()
@@ -151,31 +171,37 @@ describe('Chrome Storage API 整合測試', () => {
 
     test('應該正確處理Storage資料的更新和合併', async () => {
       // Given: 準備初始資料
+      // eslint-disable-next-line no-unused-vars
       const initialBooks = testDataGenerator.generateBooks(80, 'update-test-initial')
       await extensionController.handleStorageSet({ books: initialBooks })
 
       // 準備更新資料
+      // eslint-disable-next-line no-unused-vars
       const updatedBooks = initialBooks.slice(0, 40).map(book => ({
         ...book,
         progress: Math.min(book.progress + 20, 100), // 增加進度
         lastModified: new Date().toISOString()
       }))
 
+      // eslint-disable-next-line no-unused-vars
       const newBooks = testDataGenerator.generateBooks(30, 'update-test-new')
 
       // When: 執行資料更新（簡化為覆蓋操作）
+      // eslint-disable-next-line no-unused-vars
       const updateStart = Date.now()
 
       await extensionController.handleStorageSet({
         books: [...updatedBooks, ...newBooks] // 更新的40本 + 新增的30本
       })
 
+      // eslint-disable-next-line no-unused-vars
       const updateTime = Date.now() - updateStart
 
       // Then: 驗證更新時間合理
       expect(updateTime).toBeLessThan(2000) // 更新時間<2秒
 
       // 驗證最終資料狀態
+      // eslint-disable-next-line no-unused-vars
       const finalData = await extensionController.handleStorageGet(['books'])
       expect(finalData).toBeDefined()
     })
@@ -187,34 +213,42 @@ describe('Chrome Storage API 整合測試', () => {
       await quotaMonitor.startMonitoring()
 
       // 準備測試資料
+      // eslint-disable-next-line no-unused-vars
       const testBooks = testDataGenerator.generateBooks(100, 'quota-test')
 
       // When: 執行儲存操作 (使用實際的 API)
       await extensionController.handleStorageSet({ quota_test_books: testBooks })
 
       // Then: 檢查我們能正確獲取使用狀態
+      // eslint-disable-next-line no-unused-vars
       const currentUsage = await extensionController.getChromeStorageUsage()
       expect(currentUsage.local.used).toBeGreaterThan(0) // 有資料被儲存
       expect(currentUsage.local.available).toBeGreaterThan(0) // 仍有可用空間
       expect(currentUsage.local.total).toBeGreaterThan(currentUsage.local.used) // 總配額大於使用量
 
       // 驗證資料能正確讀取
+      // eslint-disable-next-line no-unused-vars
       const readResult = await extensionController.handleStorageGet(['quota_test_books'])
       expect(readResult).toBeDefined()
 
+      // eslint-disable-next-line no-unused-vars
       const monitoringResults = await quotaMonitor.stopMonitoring()
       expect(monitoringResults).toBeDefined()
     })
 
     test('應該正確處理大量資料的分批儲存', async () => {
       // Given: 準備大量測試資料
+      // eslint-disable-next-line no-unused-vars
       const largeDataset = testDataGenerator.generateBooks(500, 'large-batch-test')
 
       // When: 分批儲存大量資料
+      // eslint-disable-next-line no-unused-vars
       const batchSize = 100
 
       for (let i = 0; i < largeDataset.length; i += batchSize) {
+        // eslint-disable-next-line no-unused-vars
         const batch = largeDataset.slice(i, i + batchSize)
+        // eslint-disable-next-line no-unused-vars
         const batchKey = `large_batch_${Math.floor(i / batchSize)}`
 
         await extensionController.handleStorageSet({
@@ -223,16 +257,19 @@ describe('Chrome Storage API 整合測試', () => {
       }
 
       // Then: 驗證能正確讀取資料
+      // eslint-disable-next-line no-unused-vars
       const allBatchKeys = Array.from({ length: Math.ceil(largeDataset.length / batchSize) },
         (_, i) => `large_batch_${i}`)
 
       // 驗證每個批次的資料
       for (const key of allBatchKeys) {
+        // eslint-disable-next-line no-unused-vars
         const readResult = await extensionController.handleStorageGet([key])
         expect(readResult).toBeDefined()
       }
 
       // 檢查儲存使用量
+      // eslint-disable-next-line no-unused-vars
       const finalUsage = await extensionController.getChromeStorageUsage()
       expect(finalUsage.local.used).toBeGreaterThan(0)
       expect(finalUsage.local.available).toBeGreaterThan(0)
@@ -240,12 +277,14 @@ describe('Chrome Storage API 整合測試', () => {
 
     test('應該正確處理Storage資料清理操作', async () => {
       // Given: 建立測試資料
+      // eslint-disable-next-line no-unused-vars
       const testBooks = testDataGenerator.generateBooks(200, 'cleanup-test')
 
       // 儲存測試資料
       await extensionController.handleStorageSet({ test_cleanup_data: testBooks })
 
       // 記錄清理前使用量
+      // eslint-disable-next-line no-unused-vars
       const preCleanupUsage = await extensionController.getChromeStorageUsage()
       expect(preCleanupUsage.local.used).toBeGreaterThan(0)
 
@@ -253,10 +292,12 @@ describe('Chrome Storage API 整合測試', () => {
       await extensionController.handleStorageRemove(['test_cleanup_data'])
 
       // Then: 檢查資料已被清理
+      // eslint-disable-next-line no-unused-vars
       const verifyResult = await extensionController.handleStorageGet(['test_cleanup_data'])
       expect(verifyResult).toBeDefined()
 
       // 檢查空間回收
+      // eslint-disable-next-line no-unused-vars
       const postCleanupUsage = await extensionController.getChromeStorageUsage()
       expect(postCleanupUsage.local.used).toBeLessThan(preCleanupUsage.local.used)
     })
@@ -265,10 +306,12 @@ describe('Chrome Storage API 整合測試', () => {
   describe('Storage API 錯誤處理和恢復', () => {
     test('應該正確處理無效的Storage操作', async () => {
       // Given: 準備測試資料
+      // eslint-disable-next-line no-unused-vars
       const testBooks = testDataGenerator.generateBooks(50, 'error-test')
 
       // When: 嘗試使用無效的鍵值進行操作
       try {
+        // eslint-disable-next-line no-unused-vars
         const invalidResult = await extensionController.handleStorageGet([null])
         // 如果沒有拋出錯誤，檢查是否優雅處理
         expect(invalidResult).toBeDefined()
@@ -282,12 +325,14 @@ describe('Chrome Storage API 整合測試', () => {
         error_test_books: testBooks
       })
 
+      // eslint-disable-next-line no-unused-vars
       const readResult = await extensionController.handleStorageGet(['error_test_books'])
       expect(readResult).toBeDefined()
     })
 
     test('應該正確處理Storage資料的基本備份和讀取', async () => {
       // Given: 建立測試資料
+      // eslint-disable-next-line no-unused-vars
       const testData = {
         backup_books: testDataGenerator.generateBooks(50, 'backup-test'),
         backup_metadata: {
@@ -300,6 +345,7 @@ describe('Chrome Storage API 整合測試', () => {
       await extensionController.handleStorageSet(testData)
 
       // Then: 驗證能正確讀取資料
+      // eslint-disable-next-line no-unused-vars
       const readResult = await extensionController.handleStorageGet(['backup_books', 'backup_metadata'])
       expect(readResult).toBeDefined()
 

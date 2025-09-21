@@ -9,12 +9,16 @@
 
 const { E2ETestSuite } = require('../../helpers/e2e-test-suite')
 const { TestDataGenerator } = require('../../helpers/test-data-generator')
+// eslint-disable-next-line no-unused-vars
 const MessageFlowTracker = require('../../helpers/message-flow-tracker')
+// eslint-disable-next-line no-unused-vars
 const LifecycleValidator = require('../../helpers/lifecycle-validator')
 
 describe('Background ↔ Content Script 跨模組整合測試', () => {
+  // eslint-disable-next-line no-unused-vars
   let testSuite
   let extensionController
+  // eslint-disable-next-line no-unused-vars
   let testDataGenerator
   let messageTracker
   let lifecycleValidator
@@ -44,6 +48,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
     await messageTracker.reset()
 
     // 預載入基礎資料
+    // eslint-disable-next-line no-unused-vars
     const baseBooks = testDataGenerator.generateBooks(50, 'integration-test-base')
     await testSuite.loadInitialData({ books: baseBooks })
   })
@@ -51,6 +56,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
   describe('Background Service Worker 生命周期管理', () => {
     test('應該正確管理Service Worker的啟動和休眠', async () => {
       // Given: 檢查Service Worker初始狀態
+      // eslint-disable-next-line no-unused-vars
       const initialState = await extensionController.getBackgroundServiceWorkerState()
       expect(initialState.isActive).toBe(true)
       expect(initialState.uptime).toBeGreaterThan(0)
@@ -59,6 +65,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       await extensionController.triggerServiceWorkerIdle()
 
       // 等待Service Worker進入休眠狀態 (約5分鐘的空閒時間)
+      // eslint-disable-next-line no-unused-vars
       const dormantState = await extensionController.waitForServiceWorkerState('dormant', {
         timeout: 10000, // 在測試環境中加速
         forceTimeout: true
@@ -73,6 +80,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       await extensionController.clickExtractButton()
 
       // Then: 驗證Service Worker正確喚醒
+      // eslint-disable-next-line no-unused-vars
       const awakenState = await extensionController.waitForServiceWorkerState('active', {
         timeout: 5000
       })
@@ -82,6 +90,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       expect(awakenState.stateTransitionTime).toBeLessThan(3000) // 喚醒時間<3秒
 
       // 驗證喚醒後功能正常
+      // eslint-disable-next-line no-unused-vars
       const extractionResult = await extensionController.waitForExtractionComplete()
       expect(extractionResult.success).toBe(true)
     })
@@ -94,18 +103,21 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       await extensionController.openPopup()
 
       // 開始長時間操作
+      // eslint-disable-next-line no-unused-vars
       const longOperationPromise = extensionController.clickExtractButton()
 
       // 等待操作進行到一半
       await testSuite.waitForTimeout(3000)
 
       // 記錄重啟前的狀態
+      // eslint-disable-next-line no-unused-vars
       const preRestartState = await extensionController.captureFullSystemState()
 
       // When: 強制重啟Service Worker
       await extensionController.forceServiceWorkerRestart()
 
       // Then: 驗證狀態恢復
+      // eslint-disable-next-line no-unused-vars
       const postRestartState = await extensionController.waitForSystemStateRecovery({
         timeout: 10000,
         expectedState: preRestartState
@@ -116,6 +128,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       expect(postRestartState.operationContinuity).toBe('resumed')
 
       // 驗證操作能夠繼續完成
+      // eslint-disable-next-line no-unused-vars
       const finalResult = await longOperationPromise
       expect(finalResult.success).toBe(true)
       expect(finalResult.wasResumedAfterRestart).toBe(true)
@@ -125,6 +138,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
   describe('Content Script 注入和初始化', () => {
     test('應該正確檢測頁面類型並注入適當的Content Script', async () => {
       // Given: 不同類型的頁面測試
+      // eslint-disable-next-line no-unused-vars
       const pageTypes = [
         {
           url: 'https://readmoo.com/library',
@@ -153,6 +167,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
         await testSuite.navigateToPage(pageType.url)
 
         // 觸發Content Script檢測和注入
+        // eslint-disable-next-line no-unused-vars
         const injectionResult = await extensionController.triggerContentScriptInjection()
 
         // Then: 驗證注入結果
@@ -162,6 +177,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
           expect(injectionResult.injectionTime).toBeLessThan(2000) // 注入時間<2秒
 
           // 驗證Content Script功能性
+          // eslint-disable-next-line no-unused-vars
           const scriptFunctionality = await extensionController.testContentScriptFunctionality()
           expect(scriptFunctionality.canExtractData).toBe(true)
           expect(scriptFunctionality.canCommunicateWithBackground).toBe(true)
@@ -170,12 +186,14 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
           expect(injectionResult.reason).toContain('不支援的頁面類型')
         }
 
+        // eslint-disable-next-line no-console
         console.log(`✓ Page type: ${pageType.url} - ${pageType.shouldInject ? 'Injected' : 'Skipped'}`)
       }
     })
 
     test('應該處理Content Script注入失敗的情況', async () => {
       // Given: 模擬各種注入失敗情況
+      // eslint-disable-next-line no-unused-vars
       const failureScenarios = [
         {
           name: 'CSP_VIOLATION',
@@ -209,6 +227,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
         // When: 設置失敗情境並嘗試注入
         await scenario.setup()
 
+        // eslint-disable-next-line no-unused-vars
         const injectionResult = await extensionController.triggerContentScriptInjection()
 
         // Then: 驗證失敗處理
@@ -219,12 +238,14 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
         if (scenario.recoverable) {
           // 測試錯誤恢復
           await testSuite.restoreNormalConditions()
+          // eslint-disable-next-line no-unused-vars
           const retryResult = await extensionController.retryContentScriptInjection()
 
           expect(retryResult.injected).toBe(true)
           expect(retryResult.recoveredFromError).toBe(scenario.name)
         }
 
+        // eslint-disable-next-line no-console
         console.log(`✓ ${scenario.name}: ${scenario.recoverable ? 'Recovered' : 'Handled'}`)
       }
     })
@@ -241,9 +262,11 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       // When: 執行需要大量訊息交換的操作
       await extensionController.openPopup()
 
+      // eslint-disable-next-line no-unused-vars
       const messageExchangePromise = extensionController.clickExtractButton()
 
       // 監控訊息流
+      // eslint-disable-next-line no-unused-vars
       const messageFlow = await messageTracker.captureMessageFlow({
         duration: 10000, // 監控10秒
         expectedMessageTypes: [
@@ -254,6 +277,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
         ]
       })
 
+      // eslint-disable-next-line no-unused-vars
       const extractionResult = await messageExchangePromise
       await messageTracker.stopTracking()
 
@@ -266,11 +290,13 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       expect(messageFlow.contentToBackground).toBeGreaterThan(0)
 
       // 驗證訊息順序正確性
+      // eslint-disable-next-line no-unused-vars
       const messageSequence = messageFlow.chronologicalSequence
       expect(messageSequence[0].type).toBe('EXTRACT_BOOKS_REQUEST') // 第一條應該是請求
       expect(messageSequence[messageSequence.length - 1].type).toBe('EXTRACTION_COMPLETE') // 最後是完成
 
       // 檢查進度訊息的連續性
+      // eslint-disable-next-line no-unused-vars
       const progressMessages = messageSequence.filter(msg => msg.type === 'EXTRACTION_PROGRESS')
       expect(progressMessages.length).toBeGreaterThan(3)
 
@@ -291,6 +317,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       // When: 在操作過程中模擬訊息傳遞失敗
       await extensionController.openPopup()
 
+      // eslint-disable-next-line no-unused-vars
       const operationPromise = extensionController.clickExtractButton()
 
       // 等待操作開始後模擬通訊中斷
@@ -301,10 +328,12 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       })
 
       // 監控重試機制
+      // eslint-disable-next-line no-unused-vars
       const retryAnalysis = await messageTracker.captureRetryBehavior({
         duration: 15000
       })
 
+      // eslint-disable-next-line no-unused-vars
       const operationResult = await operationPromise
 
       // Then: 驗證重試機制有效性
@@ -321,12 +350,14 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       expect(retryAnalysis.averageRetryDelay).toBeLessThan(5000) // 平均重試延遲<5秒
 
       // 驗證資料完整性未受影響
+      // eslint-disable-next-line no-unused-vars
       const finalData = await extensionController.getStorageData()
       expect(finalData.books.length).toBe(110) // 50基礎 + 60新增
     })
 
     test('應該支援大量資料的分批傳輸', async () => {
       // Given: 準備大量書籍資料測試分批傳輸
+      // eslint-disable-next-line no-unused-vars
       const largeDataset = testDataGenerator.generateBooks(500, 'batch-transfer-test')
       await testSuite.setupMockReadmooPage()
       await testSuite.injectMockBooks(largeDataset)
@@ -343,14 +374,17 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       // When: 執行大量資料提取
       await extensionController.openPopup()
 
+      // eslint-disable-next-line no-unused-vars
       const batchTransferPromise = extensionController.clickExtractButton()
 
       // 監控批次傳輸行為
+      // eslint-disable-next-line no-unused-vars
       const batchAnalysis = await messageTracker.analyzeBatchTransfer({
         expectedBatches: 10, // 500/50 = 10批
         monitorDuration: 30000
       })
 
+      // eslint-disable-next-line no-unused-vars
       const transferResult = await batchTransferPromise
 
       // Then: 驗證分批傳輸效果
@@ -363,7 +397,9 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       expect(batchAnalysis.totalTransferTime).toBeLessThan(25000) // 總時間<25秒
 
       // 檢查批次間隔
+      // eslint-disable-next-line no-unused-vars
       const batchIntervals = batchAnalysis.batchIntervals
+      // eslint-disable-next-line no-unused-vars
       const avgInterval = batchIntervals.reduce((sum, interval) => sum + interval, 0) / batchIntervals.length
       expect(avgInterval).toBeCloseTo(100, 50) // 接近設定的100ms
 
@@ -374,10 +410,12 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       }
 
       // 驗證最終資料完整性
+      // eslint-disable-next-line no-unused-vars
       const finalData = await extensionController.getStorageData()
       expect(finalData.books.length).toBe(550) // 50基礎 + 500新增
 
       // 檢查批次邊界無資料遺失
+      // eslint-disable-next-line no-unused-vars
       const extractedBooks = finalData.books.filter(book => book.id.includes('batch-transfer-test'))
       expect(extractedBooks.length).toBe(500)
     })
@@ -392,6 +430,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       await extensionController.openPopup()
 
       // When: 開始操作並模擬Content Script崩潰
+      // eslint-disable-next-line no-unused-vars
       const crashRecoveryPromise = extensionController.clickExtractButton()
 
       await testSuite.waitForTimeout(2000)
@@ -400,6 +439,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       await testSuite.simulateContentScriptCrash()
 
       // Then: 驗證崩潰檢測和恢復
+      // eslint-disable-next-line no-unused-vars
       const crashDetectionResult = await extensionController.waitForCrashDetection({
         timeout: 8000
       })
@@ -409,6 +449,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       expect(crashDetectionResult.detectionTime).toBeLessThan(5000) // 5秒內檢測到
 
       // 檢查自動恢復機制
+      // eslint-disable-next-line no-unused-vars
       const recoveryResult = await extensionController.waitForAutoRecovery({
         timeout: 10000
       })
@@ -418,6 +459,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       expect(recoveryResult.recoveryActions).toContain('resume_operation')
 
       // 驗證操作恢復成功
+      // eslint-disable-next-line no-unused-vars
       const finalResult = await crashRecoveryPromise
       expect(finalResult.success).toBe(true)
       expect(finalResult.recoveredFromCrash).toBe(true)
@@ -441,15 +483,18 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       // When: 執行需要精確時序的操作
       await extensionController.openPopup()
 
+      // eslint-disable-next-line no-unused-vars
       const timingTestPromise = extensionController.clickExtractButton()
 
       // 監控時序問題
+      // eslint-disable-next-line no-unused-vars
       const timingAnalysis = await messageTracker.analyzeMessageTiming({
         detectOutOfOrder: true,
         detectTimeouts: true,
         detectRaceConditions: true
       })
 
+      // eslint-disable-next-line no-unused-vars
       const operationResult = await timingTestPromise
 
       // Then: 驗證時序問題的處理
@@ -469,6 +514,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       }
 
       // 檢查最終資料一致性
+      // eslint-disable-next-line no-unused-vars
       const consistencyCheck = await extensionController.validateDataConsistency()
       expect(consistencyCheck.isConsistent).toBe(true)
       expect(consistencyCheck.sequenceIntegrity).toBe(true)
@@ -477,6 +523,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
 
     test('應該實現優雅的連接中斷恢復', async () => {
       // Given: 準備長時間操作以測試連接穩定性
+      // eslint-disable-next-line no-unused-vars
       const sustainedOperationData = testDataGenerator.generateBooks(200, 'sustained-test')
       await testSuite.setupMockReadmooPage()
       await testSuite.injectMockBooks(sustainedOperationData)
@@ -484,15 +531,18 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       await extensionController.openPopup()
 
       // When: 開始操作並模擬間歇性連接問題
+      // eslint-disable-next-line no-unused-vars
       const sustainedOperationPromise = extensionController.clickExtractButton()
 
       // 模擬連接問題序列
+      // eslint-disable-next-line no-unused-vars
       const connectionIssues = [
         { delay: 2000, duration: 1000, type: 'disconnect' },
         { delay: 6000, duration: 2000, type: 'slow_response' },
         { delay: 10000, duration: 500, type: 'packet_loss' }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const connectionRecoveryPromises = connectionIssues.map(async (issue) => {
         await testSuite.waitForTimeout(issue.delay)
         await testSuite.simulateConnectionIssue(issue.type, issue.duration)
@@ -502,6 +552,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       await Promise.all(connectionRecoveryPromises)
 
       // Then: 驗證優雅恢復
+      // eslint-disable-next-line no-unused-vars
       const operationResult = await sustainedOperationPromise
 
       expect(operationResult.success).toBe(true)
@@ -515,9 +566,11 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       expect(operationResult.operationContinuity).toBe('maintained')
 
       // 驗證最終狀態
+      // eslint-disable-next-line no-unused-vars
       const finalData = await extensionController.getStorageData()
       expect(finalData.books.length).toBe(250) // 50基礎 + 200新增
 
+      // eslint-disable-next-line no-unused-vars
       const integrityValidation = await lifecycleValidator.validateOperationIntegrity(
         operationResult.operationLog
       )
@@ -529,25 +582,31 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
   describe('效能和資源管理', () => {
     test('應該有效管理記憶體使用和資源釋放', async () => {
       // Given: 準備記憶體使用測試
+      // eslint-disable-next-line no-unused-vars
       const memoryTestData = testDataGenerator.generateBooks(300, 'memory-test')
       await testSuite.setupMockReadmooPage()
       await testSuite.injectMockBooks(memoryTestData)
 
       // 記錄初始記憶體狀態
+      // eslint-disable-next-line no-unused-vars
       const initialMemory = await extensionController.getMemoryUsage()
 
       // When: 執行需要大量記憶體的操作
       await extensionController.openPopup()
 
+      // eslint-disable-next-line no-unused-vars
       const memoryIntensivePromise = extensionController.clickExtractButton()
 
       // 監控記憶體使用
+      // eslint-disable-next-line no-unused-vars
       const memoryMonitoring = extensionController.monitorMemoryUsage({
         interval: 1000, // 每秒檢查
         alertThreshold: 150 * 1024 * 1024 // 150MB閾值
       })
 
+      // eslint-disable-next-line no-unused-vars
       const operationResult = await memoryIntensivePromise
+      // eslint-disable-next-line no-unused-vars
       const memoryStats = await memoryMonitoring.stop()
 
       // Then: 驗證記憶體管理效果
@@ -560,11 +619,14 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       expect(memoryStats.memoryHealthScore).toBeGreaterThan(0.5) // 記憶體健康分數 > 0.5
 
       // 驗證記憶體清理效果
+      // eslint-disable-next-line no-unused-vars
       const finalMemory = await extensionController.getMemoryUsage()
+      // eslint-disable-next-line no-unused-vars
       const memoryGrowth = finalMemory.used - initialMemory.used
       expect(memoryGrowth).toBeLessThan(50 * 1024 * 1024) // 記憶體增長<50MB
 
       // 檢查資源釋放
+      // eslint-disable-next-line no-unused-vars
       const resourceCleanup = await extensionController.validateResourceCleanup()
       expect(resourceCleanup.unreleased.eventListeners).toBe(0)
       expect(resourceCleanup.unreleased.timers).toBe(0)
@@ -573,6 +635,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
 
     test('應該優化大量並發訊息的處理效能', async () => {
       // Given: 準備並發訊息測試環境
+      // eslint-disable-next-line no-unused-vars
       const concurrentTestData = testDataGenerator.generateBooks(400, 'concurrent-test')
       await testSuite.setupMockReadmooPage()
       await testSuite.injectMockBooks(concurrentTestData)
@@ -589,9 +652,11 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
       // When: 執行高並發操作
       await extensionController.openPopup()
 
+      // eslint-disable-next-line no-unused-vars
       const concurrentProcessingPromise = extensionController.clickExtractButton()
 
       // 監控並發處理效能
+      // eslint-disable-next-line no-unused-vars
       const performanceAnalysis = await messageTracker.analyzeConcurrentPerformance({
         monitorDuration: 20000,
         measureThroughput: true,
@@ -599,6 +664,7 @@ describe('Background ↔ Content Script 跨模組整合測試', () => {
         measureResourceUsage: true
       })
 
+      // eslint-disable-next-line no-unused-vars
       const processingResult = await concurrentProcessingPromise
 
       // Then: 驗證並發處理效能

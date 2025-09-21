@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * 測試完整性檢查工具
  *

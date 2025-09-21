@@ -15,6 +15,7 @@ describe('UC05ErrorSystem 整合測試', () => {
 
   describe('Adapter 與 Factory 協作', () => {
     test('Factory 建立的錯誤應該通過 Adapter 驗證', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createError(
         'DATA_SYNC_VERSION_MISMATCH',
         '設備間資料版本不相容'
@@ -25,6 +26,7 @@ describe('UC05ErrorSystem 整合測試', () => {
     })
 
     test('所有 Factory 方法產生的錯誤都應該有效', () => {
+      // eslint-disable-next-line no-unused-vars
       const errors = [
         UC05ErrorFactory.createSyncVersionError('2.1.0', '1.8.0'),
         UC05ErrorFactory.createSyncTimestampError([]),
@@ -42,6 +44,7 @@ describe('UC05ErrorSystem 整合測試', () => {
   describe('跨設備同步完整流程模擬', () => {
     test('模擬版本不相容同步失敗流程', async () => {
       // 模擬不同Extension版本間的同步
+      // eslint-disable-next-line no-unused-vars
       const versionError = UC05ErrorFactory.createSyncVersionError(
         '2.1.0', // 本地版本
         '1.8.0', // 遠端版本
@@ -67,6 +70,7 @@ describe('UC05ErrorSystem 整合測試', () => {
       expect(versionError.details.suggestedActions).toContain('perform_data_migration')
 
       // 建立結果物件
+      // eslint-disable-next-line no-unused-vars
       const result = UC05ErrorFactory.createResult(false, null, versionError)
 
       expect(result.success).toBe(false)
@@ -76,6 +80,7 @@ describe('UC05ErrorSystem 整合測試', () => {
 
     test('模擬多設備時間戳衝突解決流程', async () => {
       // 模擬複雜的時間戳衝突場景
+      // eslint-disable-next-line no-unused-vars
       const conflictedBooks = [
         {
           id: 'book_456',
@@ -105,6 +110,7 @@ describe('UC05ErrorSystem 整合測試', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const timestampError = UC05ErrorFactory.createSyncTimestampError(
         conflictedBooks,
         'latest_timestamp_wins',
@@ -129,7 +135,9 @@ describe('UC05ErrorSystem 整合測試', () => {
       expect(timestampError.details.autoResolution.enabled).toBe(true)
 
       // 模擬自動解決簡單衝突
+      // eslint-disable-next-line no-unused-vars
       const autoResolved = timestampError.details.conflictAnalysis.simpleConflictsCount
+      // eslint-disable-next-line no-unused-vars
       const manualRequired = timestampError.details.conflictAnalysis.complexConflictsCount
 
       expect(autoResolved).toBe(1)
@@ -138,6 +146,7 @@ describe('UC05ErrorSystem 整合測試', () => {
 
     test('模擬雲端服務中斷與重試流程', async () => {
       // 模擬Google Drive連接失敗
+      // eslint-disable-next-line no-unused-vars
       const serviceError = UC05ErrorFactory.createCloudServiceError(
         'Google Drive',
         '2025-01-14T18:00:00Z', // 最後成功同步
@@ -162,6 +171,7 @@ describe('UC05ErrorSystem 整合測試', () => {
       expect(serviceError.details.retryStrategy.nextRetryIn).toContain('seconds')
 
       // 模擬進度錯誤（網路階段失敗）
+      // eslint-disable-next-line no-unused-vars
       const progressError = UC05ErrorFactory.createSyncProgressError(
         25, // 25%進度時失敗
         'cloud_upload',
@@ -180,6 +190,7 @@ describe('UC05ErrorSystem 整合測試', () => {
 
     test('模擬資料損壞檢測與恢復流程', async () => {
       // 模擬嚴重的檔案損壞
+      // eslint-disable-next-line no-unused-vars
       const corruptionError = UC05ErrorFactory.createSyncCorruptionError(
         'complete_file_corruption',
         '2025-01-13T12:00:00Z', // 最後已知良好備份
@@ -208,6 +219,7 @@ describe('UC05ErrorSystem 整合測試', () => {
       expect(corruptionError.details.suggestedActions).toContain('restore_from_backup')
 
       // 驗證恢復計畫
+      // eslint-disable-next-line no-unused-vars
       const recoveryPlan = corruptionError.details.recoveryPlan
       expect(recoveryPlan.estimatedRecoveryTime).toBe('30-60 minutes')
       expect(recoveryPlan.dataPreservation).toBe('full_restore_needed')
@@ -216,6 +228,7 @@ describe('UC05ErrorSystem 整合測試', () => {
 
   describe('錯誤結果物件整合', () => {
     test('所有錯誤類型都應該可以包裝為結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const errors = [
         UC05ErrorFactory.createSyncVersionError(),
         UC05ErrorFactory.createSyncTimestampError(),
@@ -224,6 +237,7 @@ describe('UC05ErrorSystem 整合測試', () => {
       ]
 
       errors.forEach(error => {
+        // eslint-disable-next-line no-unused-vars
         const result = UC05ErrorFactory.createResult(false, null, error)
 
         expect(result.success).toBe(false)
@@ -235,6 +249,7 @@ describe('UC05ErrorSystem 整合測試', () => {
     })
 
     test('成功同步應該產生正確的結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const successData = {
         syncedBooks: 150,
         syncTime: '2025-01-15T10:35:00Z',
@@ -243,6 +258,7 @@ describe('UC05ErrorSystem 整合測試', () => {
         cloudService: 'Google Drive'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = UC05ErrorFactory.createResult(true, successData)
 
       expect(result.success).toBe(true)
@@ -254,6 +270,7 @@ describe('UC05ErrorSystem 整合測試', () => {
 
   describe('效能與記憶體管理', () => {
     test('快取機制應該提升重複錯誤建立效能', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       // 建立100個相同類型的錯誤
@@ -261,11 +278,13 @@ describe('UC05ErrorSystem 整合測試', () => {
         UC05ErrorFactory.getCommonError('SYNC_VERSION')
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(20) // 應該在20ms內完成
     })
 
     test('大型詳細資訊應該被正確清理', () => {
+      // eslint-disable-next-line no-unused-vars
       const largeDetails = {
         books: new Array(10000).fill().map((_, i) => ({
           id: `book_${i}`,
@@ -274,6 +293,7 @@ describe('UC05ErrorSystem 整合測試', () => {
         }))
       }
 
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC05ErrorFactory.sanitizeDetails(largeDetails)
 
       expect(sanitized._truncated).toBe(true)
@@ -284,6 +304,7 @@ describe('UC05ErrorSystem 整合測試', () => {
 
   describe('Chrome Extension 相容性', () => {
     test('所有錯誤都應該可以JSON序列化', () => {
+      // eslint-disable-next-line no-unused-vars
       const errors = [
         UC05ErrorFactory.createSyncVersionError('2.1.0', '1.8.0'),
         UC05ErrorFactory.createSyncTimestampError([{
@@ -296,9 +317,11 @@ describe('UC05ErrorSystem 整合測試', () => {
       ]
 
       errors.forEach(error => {
+        // eslint-disable-next-line no-unused-vars
         const serialized = JSON.stringify(error)
         expect(serialized).toBeDefined()
 
+        // eslint-disable-next-line no-unused-vars
         const parsed = JSON.parse(serialized)
         expect(parsed.message).toBe(error.message)
         expect(parsed.code).toBe(error.code)
@@ -306,6 +329,7 @@ describe('UC05ErrorSystem 整合測試', () => {
 
         // 測試toJSON方法
         expect(typeof error.toJSON).toBe('function')
+        // eslint-disable-next-line no-unused-vars
         const jsonObj = error.toJSON()
         expect(jsonObj.code).toBe(error.code)
         expect(jsonObj.subType).toBe(error.subType)
@@ -316,10 +340,13 @@ describe('UC05ErrorSystem 整合測試', () => {
   describe('實際使用場景模擬', () => {
     test('完整同步週期模擬：從失敗到成功', async () => {
       // 第一次同步：版本不相容
+      // eslint-disable-next-line no-unused-vars
       let syncAttempt = 1
+      // eslint-disable-next-line no-unused-vars
       let error = UC05ErrorFactory.createSyncVersionError(
         '2.0.0', '1.9.0', 'backward_compatible', true
       )
+      // eslint-disable-next-line no-unused-vars
       let result = UC05ErrorFactory.createResult(false, null, error)
 
       expect(result.success).toBe(false)

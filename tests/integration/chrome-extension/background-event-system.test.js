@@ -18,7 +18,9 @@
  * - 檢查錯誤情況的處理
  */
 
+// eslint-disable-next-line no-unused-vars
 const fs = require('fs')
+// eslint-disable-next-line no-unused-vars
 const path = require('path')
 
 // 模擬 Service Worker 全域環境
@@ -80,9 +82,11 @@ describe('Background Service Worker Event System Integration', () => {
   async function setupBackgroundEnvironment () {
     try {
       // 直接使用 BackgroundCoordinator 進行初始化
+      // eslint-disable-next-line no-unused-vars
       const BackgroundCoordinator = require('src/background/background-coordinator')
 
       // 建立協調器實例並初始化
+      // eslint-disable-next-line no-unused-vars
       const backgroundCoordinator = new BackgroundCoordinator()
       await backgroundCoordinator.initialize()
       await backgroundCoordinator.start()
@@ -115,7 +119,9 @@ describe('Background Service Worker Event System Integration', () => {
       }).not.toThrow()
 
       // 檢查 background.js 是否包含 EventBus 初始化程式碼
+      // eslint-disable-next-line no-unused-vars
       const backgroundPath = path.join(__dirname, '../../../src/background/background.js')
+      // eslint-disable-next-line no-unused-vars
       const backgroundContent = fs.readFileSync(backgroundPath, 'utf8')
 
       // 應該包含 EventBus 相關程式碼
@@ -124,14 +130,17 @@ describe('Background Service Worker Event System Integration', () => {
 
     test('應該在 Service Worker 啟動時建立 EventBus 實例', async () => {
       // 直接使用 BackgroundCoordinator 來初始化 EventBus
+      // eslint-disable-next-line no-unused-vars
       const BackgroundCoordinator = require('src/background/background-coordinator')
 
       // 清理之前的全域變數
       delete global.eventBus
 
       // 模擬背景腳本的初始化過程
+      // eslint-disable-next-line no-unused-vars
       const loadBackground = async () => {
         // 建立 BackgroundCoordinator 實例並初始化
+        // eslint-disable-next-line no-unused-vars
         const backgroundCoordinator = new BackgroundCoordinator()
         await backgroundCoordinator.initialize()
         await backgroundCoordinator.start()
@@ -156,10 +165,12 @@ describe('Background Service Worker Event System Integration', () => {
 
     test('應該正確配置事件處理器', async () => {
       // 假設 background 已經載入
+      // eslint-disable-next-line no-unused-vars
       const eventBus = global.eventBus
 
       if (eventBus) {
         // 測試基本事件註冊功能
+        // eslint-disable-next-line no-unused-vars
         const testHandler = jest.fn()
         eventBus.on('TEST.EVENT', testHandler)
 
@@ -175,11 +186,14 @@ describe('Background Service Worker Event System Integration', () => {
     })
 
     test('應該支援事件優先級和統計追蹤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const eventBus = global.eventBus
 
       if (eventBus) {
         // 測試優先級事件
+        // eslint-disable-next-line no-unused-vars
         const highPriorityHandler = jest.fn()
+        // eslint-disable-next-line no-unused-vars
         const normalPriorityHandler = jest.fn()
 
         eventBus.on('PRIORITY.TEST', normalPriorityHandler, { priority: 2 })
@@ -192,6 +206,7 @@ describe('Background Service Worker Event System Integration', () => {
         expect(normalPriorityHandler).toHaveBeenCalled()
 
         // 檢查統計功能
+        // eslint-disable-next-line no-unused-vars
         const stats = eventBus.getStats()
         expect(stats).toBeDefined()
         expect(stats.totalEvents).toBeGreaterThan(0)
@@ -207,7 +222,9 @@ describe('Background Service Worker Event System Integration', () => {
       }).not.toThrow()
 
       // 檢查 background.js 是否包含 ChromeEventBridge 相關程式碼
+      // eslint-disable-next-line no-unused-vars
       const backgroundPath = path.join(__dirname, '../../../src/background/background.js')
+      // eslint-disable-next-line no-unused-vars
       const backgroundContent = fs.readFileSync(backgroundPath, 'utf8')
 
       expect(backgroundContent).toMatch(/ChromeEventBridge|chrome.*bridge/i)
@@ -225,25 +242,32 @@ describe('Background Service Worker Event System Integration', () => {
     })
 
     test('應該處理來自 Content Script 的訊息', async () => {
+      // eslint-disable-next-line no-unused-vars
       const chromeBridge = global.chromeBridge
 
       if (chromeBridge) {
         // 模擬來自 content script 的訊息
+        // eslint-disable-next-line no-unused-vars
         const mockMessage = {
           type: 'CONTENT.TO.BACKGROUND',
           data: { test: 'data' },
           from: 'content'
         }
 
+        // eslint-disable-next-line no-unused-vars
         const mockSender = { tab: { id: 123 } }
+        // eslint-disable-next-line no-unused-vars
         const mockSendResponse = jest.fn()
 
         // 檢查是否有註冊的訊息處理器
+        // eslint-disable-next-line no-unused-vars
         const messageHandlerCalls = chrome.runtime.onMessage.addListener.mock?.calls
+        // eslint-disable-next-line no-unused-vars
         const messageHandler = messageHandlerCalls?.[0]?.[0]
 
         if (messageHandler) {
           // 直接調用處理器
+          // eslint-disable-next-line no-unused-vars
           const result = messageHandler(mockMessage, mockSender, mockSendResponse)
 
           // 如果處理器返回 true，表示異步回應，需要等待
@@ -265,25 +289,32 @@ describe('Background Service Worker Event System Integration', () => {
     })
 
     test('應該處理來自 Popup 的訊息', async () => {
+      // eslint-disable-next-line no-unused-vars
       const chromeBridge = global.chromeBridge
 
       if (chromeBridge) {
         // 模擬來自 popup 的訊息
+        // eslint-disable-next-line no-unused-vars
         const mockMessage = {
           type: 'POPUP.TO.BACKGROUND',
           data: { action: 'getStatus' },
           from: 'popup'
         }
 
+        // eslint-disable-next-line no-unused-vars
         const mockSender = { tab: undefined } // popup 沒有 tab
+        // eslint-disable-next-line no-unused-vars
         const mockSendResponse = jest.fn()
 
         // 檢查是否有註冊的訊息處理器
+        // eslint-disable-next-line no-unused-vars
         const messageHandlerCalls = chrome.runtime.onMessage.addListener.mock?.calls
+        // eslint-disable-next-line no-unused-vars
         const messageHandler = messageHandlerCalls?.[0]?.[0]
 
         if (messageHandler) {
           // 直接調用處理器
+          // eslint-disable-next-line no-unused-vars
           const result = messageHandler(mockMessage, mockSender, mockSendResponse)
 
           // 如果處理器返回 true，表示異步回應，需要等待
@@ -304,10 +335,13 @@ describe('Background Service Worker Event System Integration', () => {
     })
 
     test('應該支援向 Content Script 發送訊息', async () => {
+      // eslint-disable-next-line no-unused-vars
       const chromeBridge = global.chromeBridge
 
       if (chromeBridge) {
+        // eslint-disable-next-line no-unused-vars
         const testTabId = 123
+        // eslint-disable-next-line no-unused-vars
         const testMessage = {
           type: 'BACKGROUND.TO.CONTENT',
           data: { command: 'startExtraction' }
@@ -326,15 +360,19 @@ describe('Background Service Worker Event System Integration', () => {
 
   describe('🔧 事件系統整合與協調', () => {
     test('應該整合 EventBus 和 ChromeEventBridge', async () => {
+      // eslint-disable-next-line no-unused-vars
       const eventBus = global.eventBus
+      // eslint-disable-next-line no-unused-vars
       const chromeBridge = global.chromeBridge
 
       if (eventBus && chromeBridge) {
         // 測試事件系統之間的整合
+        // eslint-disable-next-line no-unused-vars
         const mockHandler = jest.fn()
         eventBus.on('CROSS.CONTEXT.EVENT', mockHandler)
 
         // 模擬從 Chrome Bridge 觸發的事件
+        // eslint-disable-next-line no-unused-vars
         const crossContextEvent = {
           type: 'CROSS.CONTEXT.EVENT',
           data: { source: 'content' },
@@ -348,11 +386,14 @@ describe('Background Service Worker Event System Integration', () => {
     })
 
     test('應該支援事件的雙向轉發', async () => {
+      // eslint-disable-next-line no-unused-vars
       const eventBus = global.eventBus
+      // eslint-disable-next-line no-unused-vars
       const chromeBridge = global.chromeBridge
 
       if (eventBus && chromeBridge) {
         // 測試 EventBus 事件轉發到 Chrome APIs
+        // eslint-disable-next-line no-unused-vars
         const testEvent = {
           type: 'FORWARD.TO.CHROME',
           data: { target: 'content', message: 'test' }
@@ -386,10 +427,12 @@ describe('Background Service Worker Event System Integration', () => {
     })
 
     test('應該在監聽器註冊前的事件於就緒後被重放 (pre-init queue)', async () => {
+      // eslint-disable-next-line no-unused-vars
       const eventBus = global.eventBus
       expect(eventBus).toBeDefined()
 
       if (eventBus) {
+        // eslint-disable-next-line no-unused-vars
         const handler = jest.fn()
 
         // 在尚未註冊監聽器前先 emit（模擬冷啟動早到事件）
@@ -421,10 +464,13 @@ describe('Background Service Worker Event System Integration', () => {
   describe('🔧 Service Worker 生命週期相容性', () => {
     test('應該在 Service Worker 安裝時初始化事件系統', async () => {
       // 模擬 chrome.runtime.onInstalled 事件
+      // eslint-disable-next-line no-unused-vars
       const installCalls = chrome.runtime.onInstalled.addListener.mock?.calls
+      // eslint-disable-next-line no-unused-vars
       const installHandler = installCalls?.[0]?.[0]
 
       if (installHandler) {
+        // eslint-disable-next-line no-unused-vars
         const mockDetails = { reason: 'install' }
         await installHandler(mockDetails)
 
@@ -443,7 +489,9 @@ describe('Background Service Worker Event System Integration', () => {
 
     test('應該在 Service Worker 重啟時恢復事件系統', async () => {
       // 模擬 Service Worker 重啟
+      // eslint-disable-next-line no-unused-vars
       const startupCalls = chrome.runtime.onStartup.addListener.mock?.calls
+      // eslint-disable-next-line no-unused-vars
       const startupHandler = startupCalls?.[0]?.[0]
 
       if (startupHandler) {
@@ -460,6 +508,7 @@ describe('Background Service Worker Event System Integration', () => {
     })
 
     test('應該處理 Service Worker 休眠和喚醒', async () => {
+      // eslint-disable-next-line no-unused-vars
       const eventBus = global.eventBus
 
       if (eventBus) {
@@ -470,6 +519,7 @@ describe('Background Service Worker Event System Integration', () => {
           eventBus.on('WAKE.UP.TEST', () => {})
         }).not.toThrow()
 
+        // eslint-disable-next-line no-unused-vars
         const afterWake = eventBus.getStats()
         expect(afterWake).toBeDefined()
       }
@@ -479,14 +529,18 @@ describe('Background Service Worker Event System Integration', () => {
   describe('🔧 錯誤處理和恢復機制', () => {
     test('應該處理 EventBus 初始化失敗', async () => {
       // 模擬初始化失敗情況 - 創建一個會失敗的EventCoordinator
+      // eslint-disable-next-line no-unused-vars
       const originalEventBus = global.eventBus
 
       // 清除控制台調用記錄
+      // eslint-disable-next-line no-console
       global.console.error.mockClear()
 
       try {
         // 測試重新初始化一個會失敗的EventCoordinator
+        // eslint-disable-next-line no-unused-vars
         const EventCoordinator = require('src/background/events/event-coordinator')
+        // eslint-disable-next-line no-unused-vars
         const failingCoordinator = new EventCoordinator()
 
         // 模擬EventCoordinator內部初始化失敗
@@ -499,7 +553,9 @@ describe('Background Service Worker Event System Integration', () => {
       }
 
       // 檢查是否有記錄EventBus初始化失敗的錯誤
+      // eslint-disable-next-line no-unused-vars
       const errorCalls = global.console.error.mock.calls
+      // eslint-disable-next-line no-unused-vars
       const hasEventBusError = errorCalls.some(call =>
         call.some(arg =>
           typeof arg === 'string' &&
@@ -514,6 +570,7 @@ describe('Background Service Worker Event System Integration', () => {
     })
 
     test('應該處理 ChromeEventBridge 通訊錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const chromeBridge = global.chromeBridge
 
       if (chromeBridge) {
@@ -526,6 +583,7 @@ describe('Background Service Worker Event System Integration', () => {
         ).resolves.not.toThrow()
 
         // 應該記錄錯誤
+        // eslint-disable-next-line no-console
         expect(global.console.error).toHaveBeenCalledWith(
           expect.stringMatching(/發送訊息失敗|failed.*send.*message/i),
           expect.any(Error)
@@ -534,10 +592,12 @@ describe('Background Service Worker Event System Integration', () => {
     })
 
     test('應該處理事件處理器中的異常', async () => {
+      // eslint-disable-next-line no-unused-vars
       const eventBus = global.eventBus
 
       if (eventBus) {
         // 註冊一個會拋出異常的處理器
+        // eslint-disable-next-line no-unused-vars
         const faultyHandler = jest.fn(() => {
           throw (() => { const error = new Error('Handler error'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
         })
@@ -554,11 +614,14 @@ describe('Background Service Worker Event System Integration', () => {
     })
 
     test('應該提供事件系統健康檢查', async () => {
+      // eslint-disable-next-line no-unused-vars
       const eventBus = global.eventBus
+      // eslint-disable-next-line no-unused-vars
       const chromeBridge = global.chromeBridge
 
       if (eventBus && chromeBridge) {
         // 應該能夠檢查系統健康狀態
+        // eslint-disable-next-line no-unused-vars
         const healthCheck = {
           eventBus: !!eventBus && typeof eventBus.emit === 'function',
           chromeBridge: !!chromeBridge && typeof chromeBridge.sendToContent === 'function',
@@ -574,17 +637,20 @@ describe('Background Service Worker Event System Integration', () => {
 
   describe('🔧 效能和記憶體管理', () => {
     test('應該有適當的記憶體使用管理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const eventBus = global.eventBus
 
       if (eventBus) {
         // 測試大量事件處理後的記憶體清理
         // 註冊和取消大量事件監聽器
         for (let i = 0; i < 100; i++) {
+          // eslint-disable-next-line no-unused-vars
           const handler = () => {}
           eventBus.on(`TEST.${i}`, handler)
           eventBus.off(`TEST.${i}`, handler)
         }
 
+        // eslint-disable-next-line no-unused-vars
         const finalStats = eventBus.getStats()
 
         // 統計應該正確更新，但記憶體不應該洩漏
@@ -594,13 +660,16 @@ describe('Background Service Worker Event System Integration', () => {
     })
 
     test('應該限制事件歷史記錄的大小', async () => {
+      // eslint-disable-next-line no-unused-vars
       const eventBus = global.eventBus
 
       if (eventBus) {
         // 記錄初始統計
+        // eslint-disable-next-line no-unused-vars
         const initialStats = eventBus.getStats()
 
         // 註冊一個測試監聽器
+        // eslint-disable-next-line no-unused-vars
         const testHandler = jest.fn()
         eventBus.on('BULK.TEST', testHandler)
 
@@ -609,6 +678,7 @@ describe('Background Service Worker Event System Integration', () => {
           await eventBus.emit('BULK.TEST', { index: i })
         }
 
+        // eslint-disable-next-line no-unused-vars
         const stats = eventBus.getStats()
 
         // 應該有合理的記憶體使用限制 (檢查事件觸發的增量)

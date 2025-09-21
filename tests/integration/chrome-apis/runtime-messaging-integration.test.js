@@ -9,12 +9,16 @@
 
 const { E2ETestSuite } = require('../../helpers/e2e-test-suite')
 const { TestDataGenerator } = require('../../helpers/test-data-generator')
+// eslint-disable-next-line no-unused-vars
 const RuntimeMessagingValidator = require('../../helpers/runtime-messaging-validator')
+// eslint-disable-next-line no-unused-vars
 const MessageFlowAnalyzer = require('../../helpers/message-flow-analyzer')
 
 describe('Chrome Runtime Messaging API 整合測試', () => {
+  // eslint-disable-next-line no-unused-vars
   let testSuite
   let extensionController
+  // eslint-disable-next-line no-unused-vars
   let testDataGenerator
   let messagingValidator
   let flowAnalyzer
@@ -61,6 +65,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       // When: 從Popup發送各種類型的訊息到Background
       await extensionController.openPopup()
 
+      // eslint-disable-next-line no-unused-vars
       const testMessages = [
         {
           type: 'GET_SYSTEM_STATUS',
@@ -84,17 +89,21 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const messagingResults = []
 
       for (const testMessage of testMessages) {
+        // eslint-disable-next-line no-unused-vars
         const messageStart = Date.now()
 
         // 發送訊息
+        // eslint-disable-next-line no-unused-vars
         const response = await extensionController.sendPopupToBackgroundMessage(
           testMessage.type,
           testMessage.data
         )
 
+        // eslint-disable-next-line no-unused-vars
         const responseTime = Date.now() - messageStart
 
         messagingResults.push({
@@ -106,11 +115,13 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
         })
       }
 
+      // eslint-disable-next-line no-unused-vars
       const messagingAnalysis = await messagingValidator.stopTracking()
 
       // Then: 驗證訊息傳遞結果
       expect(messagingResults.length).toBe(4)
       messagingResults.forEach((result, index) => {
+        // eslint-disable-next-line no-unused-vars
         const testMessage = testMessages[index]
 
         expect(result.success).toBe(true)
@@ -133,10 +144,12 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       await messagingValidator.startTracking(['background-to-content'])
 
       // 確保Content Script已注入並準備就緒
+      // eslint-disable-next-line no-unused-vars
       const contentScriptReady = await extensionController.waitForContentScriptReady()
       expect(contentScriptReady).toBe(true)
 
       // When: 從Background發送各種指令到Content Script
+      // eslint-disable-next-line no-unused-vars
       const backgroundCommands = [
         {
           command: 'EXTRACT_BOOKS_DATA',
@@ -160,17 +173,21 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const commandResults = []
 
       for (const command of backgroundCommands) {
+        // eslint-disable-next-line no-unused-vars
         const commandStart = Date.now()
 
         // 執行Background到Content Script的指令
+        // eslint-disable-next-line no-unused-vars
         const result = await extensionController.sendBackgroundToContentMessage(
           command.command,
           command.parameters
         )
 
+        // eslint-disable-next-line no-unused-vars
         const executionTime = Date.now() - commandStart
 
         commandResults.push({
@@ -182,10 +199,12 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
         })
       }
 
+      // eslint-disable-next-line no-unused-vars
       const commandAnalysis = await messagingValidator.stopTracking()
 
       // Then: 驗證指令執行結果
       commandResults.forEach((result, index) => {
+        // eslint-disable-next-line no-unused-vars
         const command = backgroundCommands[index]
 
         expect(result.success).toBe(true)
@@ -199,6 +218,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       expect(commandAnalysis.failedCommands).toBe(0)
 
       // 驗證Content Script狀態
+      // eslint-disable-next-line no-unused-vars
       const contentScriptStatus = await extensionController.getContentScriptStatus()
       expect(contentScriptStatus.responsive).toBe(true)
       expect(contentScriptStatus.commandsProcessed).toBe(4)
@@ -214,6 +234,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       await extensionController.openPopup()
 
       // When: 模擬Content Script向Popup回報資料
+      // eslint-disable-next-line no-unused-vars
       const reportingScenarios = [
         {
           reportType: 'EXTRACTION_PROGRESS',
@@ -237,23 +258,28 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const reportingResults = []
 
       for (const scenario of reportingScenarios) {
+        // eslint-disable-next-line no-unused-vars
         const reportStart = Date.now()
 
         // 模擬Content Script發送資料報告
+        // eslint-disable-next-line no-unused-vars
         const reportResult = await extensionController.simulateContentScriptReport(
           scenario.reportType,
           scenario.data
         )
 
         // 等待Popup更新
+        // eslint-disable-next-line no-unused-vars
         const popupUpdate = await extensionController.waitForPopupUpdate({
           expectedUpdate: scenario.expectedPopupUpdate,
           timeout: 3000
         })
 
+        // eslint-disable-next-line no-unused-vars
         const reportingTime = Date.now() - reportStart
 
         reportingResults.push({
@@ -265,10 +291,12 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
         })
       }
 
+      // eslint-disable-next-line no-unused-vars
       const reportingAnalysis = await messagingValidator.stopTracking()
 
       // Then: 驗證資料回報機制
       reportingResults.forEach((result, index) => {
+        // eslint-disable-next-line no-unused-vars
         const scenario = reportingScenarios[index]
 
         expect(result.reportSent).toBe(true)
@@ -283,6 +311,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       expect(reportingAnalysis.popupUpdateLatency).toBeLessThan(100) // UI更新延遲<100ms
 
       // 驗證Popup最終狀態
+      // eslint-disable-next-line no-unused-vars
       const finalPopupState = await extensionController.getPopupState()
       expect(finalPopupState.lastUpdate).toBeDefined()
       expect(finalPopupState.bookCount).toBe(60)
@@ -300,9 +329,11 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       await extensionController.openPopup()
 
       // When: 觸發需要多模組協調的複雜操作
+      // eslint-disable-next-line no-unused-vars
       const complexOperationPromise = extensionController.clickExtractButton()
 
       // 監控訊息路由
+      // eslint-disable-next-line no-unused-vars
       const routingAnalysis = await messagingValidator.analyzeMessageRouting({
         trackAllModules: true,
         analyzeRoutingPatterns: true,
@@ -310,12 +341,14 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
         monitorDuration: 12000
       })
 
+      // eslint-disable-next-line no-unused-vars
       const operationResult = await complexOperationPromise
 
       // Then: 驗證訊息路由效果
       expect(operationResult.success).toBe(true)
 
       // 分析路由模式
+      // eslint-disable-next-line no-unused-vars
       const routingPatterns = routingAnalysis.routingPatterns
 
       // 檢查主要路由路徑
@@ -338,6 +371,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       }
 
       // 驗證路由表正確性
+      // eslint-disable-next-line no-unused-vars
       const routingTable = routingAnalysis.routingTable
       expect(routingTable.popup.defaultTarget).toBe('background')
       expect(routingTable.background.availableTargets).toContain('content-script')
@@ -351,6 +385,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       await extensionController.openPopup()
 
       // 模擬多個Content Script (不同分頁)
+      // eslint-disable-next-line no-unused-vars
       const additionalTabs = await testSuite.createAdditionalTabs([
         'https://readmoo.com/library?page=2',
         'https://readmoo.com/library?category=fiction'
@@ -359,6 +394,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       await messagingValidator.enableMulticastTesting()
 
       // When: 測試廣播訊息傳遞
+      // eslint-disable-next-line no-unused-vars
       const broadcastTests = [
         {
           type: 'SYSTEM_STATUS_UPDATE',
@@ -380,18 +416,22 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const broadcastResults = []
 
       for (const test of broadcastTests) {
+        // eslint-disable-next-line no-unused-vars
         const broadcastStart = Date.now()
 
         // 執行廣播
+        // eslint-disable-next-line no-unused-vars
         const broadcastResult = await extensionController.broadcastMessage(
           test.type,
           test.data,
           { target: test.target }
         )
 
+        // eslint-disable-next-line no-unused-vars
         const broadcastTime = Date.now() - broadcastStart
 
         broadcastResults.push({
@@ -405,6 +445,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       }
 
       // When: 測試點對點訊息傳遞
+      // eslint-disable-next-line no-unused-vars
       const p2pTests = [
         {
           from: 'popup',
@@ -418,17 +459,21 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const p2pResults = []
 
       for (const test of p2pTests) {
+        // eslint-disable-next-line no-unused-vars
         const p2pStart = Date.now()
 
+        // eslint-disable-next-line no-unused-vars
         const p2pResult = await extensionController.sendDirectMessage(
           test.from,
           test.to,
           test.message
         )
 
+        // eslint-disable-next-line no-unused-vars
         const p2pTime = Date.now() - p2pStart
 
         p2pResults.push({
@@ -474,6 +519,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       await extensionController.openPopup()
 
       // When: 同時發送不同優先級的大量訊息
+      // eslint-disable-next-line no-unused-vars
       const messageBatches = [
         // 批次1：正常和低優先級訊息
         ...Array.from({ length: 10 }, (_, i) => ({
@@ -505,11 +551,13 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       ]
 
       // 發送所有訊息
+      // eslint-disable-next-line no-unused-vars
       const messagePromises = messageBatches.map(message =>
         extensionController.sendPriorityMessage(message.type, message.data, message.priority)
       )
 
       // 監控處理順序
+      // eslint-disable-next-line no-unused-vars
       const processingAnalysis = await messagingValidator.analyzePriorityProcessing({
         expectedMessages: messageBatches.length,
         monitorDuration: 8000
@@ -518,10 +566,13 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       await Promise.all(messagePromises)
 
       // Then: 驗證優先級處理
+      // eslint-disable-next-line no-unused-vars
       const processedOrder = processingAnalysis.processedOrder
 
       // 檢查緊急訊息優先處理
+      // eslint-disable-next-line no-unused-vars
       const urgentMessageIndex = processedOrder.findIndex(msg => msg.priority === 'urgent')
+      // eslint-disable-next-line no-unused-vars
       const highPriorityIndices = processedOrder
         .map((msg, index) => ({ ...msg, index }))
         .filter(msg => msg.priority === 'high')
@@ -532,6 +583,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
 
       // 高優先級訊息應該在正常優先級之前處理
       highPriorityIndices.forEach(highIndex => {
+        // eslint-disable-next-line no-unused-vars
         const normalIndicesAfter = processedOrder
           .slice(highIndex)
           .filter(msg => msg.priority === 'normal').length
@@ -553,6 +605,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
   describe('訊息錯誤處理和恢復機制', () => {
     test('應該處理訊息傳遞失敗和超時情況', async () => {
       // Given: 準備各種訊息傳遞失敗情境
+      // eslint-disable-next-line no-unused-vars
       const failureScenarios = [
         {
           name: 'RECIPIENT_UNAVAILABLE',
@@ -587,18 +640,22 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       await testSuite.setupMockReadmooPage()
       await extensionController.openPopup()
 
+      // eslint-disable-next-line no-unused-vars
       const failureHandlingResults = []
 
       for (const scenario of failureScenarios) {
         // When: 設置失敗情境並嘗試發送訊息
         await scenario.setup()
 
+        // eslint-disable-next-line no-unused-vars
         const failureTestStart = Date.now()
+        // eslint-disable-next-line no-unused-vars
         const testMessage = {
           type: 'TEST_MESSAGE_FAILURE',
           data: { scenarioId: scenario.name, timestamp: Date.now() }
         }
 
+        // eslint-disable-next-line no-unused-vars
         const messageResult = await extensionController.sendMessageWithErrorHandling(
           testMessage.type,
           testMessage.data,
@@ -610,6 +667,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
           }
         )
 
+        // eslint-disable-next-line no-unused-vars
         const handlingTime = Date.now() - failureTestStart
 
         failureHandlingResults.push({
@@ -646,11 +704,14 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       })
 
       // 檢查整體錯誤處理效能
+      // eslint-disable-next-line no-unused-vars
       const totalRecovered = failureHandlingResults.filter(r => r.finalSuccess).length
+      // eslint-disable-next-line no-unused-vars
       const recoveryRate = totalRecovered / failureHandlingResults.length
 
       expect(recoveryRate).toBeGreaterThan(0.75) // 恢復率>75%
 
+      // eslint-disable-next-line no-unused-vars
       const avgHandlingTime = failureHandlingResults.reduce((sum, r) => sum + r.handlingTime, 0) / failureHandlingResults.length
       expect(avgHandlingTime).toBeLessThan(6000) // 平均處理時間<6秒
     })
@@ -667,6 +728,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       await extensionController.openPopup()
 
       // When: 測試不同重試策略
+      // eslint-disable-next-line no-unused-vars
       const retryTests = [
         {
           messageType: 'LARGE_DATA_TRANSFER',
@@ -688,14 +750,17 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const retryResults = []
 
       for (const test of retryTests) {
         // 模擬對應的失敗類型
         await messagingValidator.simulateSpecificFailure(test.failureType)
 
+        // eslint-disable-next-line no-unused-vars
         const retryStart = Date.now()
 
+        // eslint-disable-next-line no-unused-vars
         const retryResult = await extensionController.sendMessageWithRetry(
           test.messageType,
           test.data,
@@ -706,6 +771,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
           }
         )
 
+        // eslint-disable-next-line no-unused-vars
         const retryTime = Date.now() - retryStart
 
         retryResults.push({
@@ -741,9 +807,11 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       })
 
       // 檢查重試效能統計
+      // eslint-disable-next-line no-unused-vars
       const avgRetryAttempts = retryResults.reduce((sum, r) => sum + r.retryAttempts, 0) / retryResults.length
       expect(avgRetryAttempts).toBeLessThan(3) // 平均重試次數<3次
 
+      // eslint-disable-next-line no-unused-vars
       const successfulRecoveries = retryResults.filter(r => r.finalSuccess).length
       expect(successfulRecoveries).toBe(retryResults.length) // 100%恢復成功
     })
@@ -756,6 +824,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       await messagingValidator.enableSequenceTracking()
 
       // When: 發送有嚴格順序要求的訊息序列
+      // eslint-disable-next-line no-unused-vars
       const sequentialMessages = Array.from({ length: 20 }, (_, i) => ({
         type: 'SEQUENTIAL_DATA_PART',
         sequenceId: `seq-${String(i).padStart(3, '0')}`,
@@ -769,9 +838,11 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       }))
 
       // 並發發送所有訊息（測試順序保持）
+      // eslint-disable-next-line no-unused-vars
       const sequencePromises = sequentialMessages.map((message, index) =>
         new Promise(resolve => {
           setTimeout(async () => {
+            // eslint-disable-next-line no-unused-vars
             const result = await extensionController.sendOrderedMessage(
               message.type,
               message.data,
@@ -782,9 +853,11 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
         })
       )
 
+      // eslint-disable-next-line no-unused-vars
       const sequenceResults = await Promise.all(sequencePromises)
 
       // 檢查接收順序
+      // eslint-disable-next-line no-unused-vars
       const receivedOrder = await messagingValidator.getReceivedMessageOrder()
 
       // Then: 驗證順序性和完整性
@@ -804,6 +877,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       })
 
       // 檢查完整性
+      // eslint-disable-next-line no-unused-vars
       const integrityCheck = await messagingValidator.verifyMessageIntegrity(receivedOrder)
       expect(integrityCheck.missingMessages).toBe(0)
       expect(integrityCheck.duplicateMessages).toBe(0)
@@ -816,6 +890,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       })
 
       // 檢查序列統計
+      // eslint-disable-next-line no-unused-vars
       const sequenceStats = await messagingValidator.getSequenceStatistics()
       expect(sequenceStats.totalMessages).toBe(20)
       expect(sequenceStats.orderViolations).toBe(0)

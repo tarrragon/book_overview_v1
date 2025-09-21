@@ -28,6 +28,7 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
   let dom, document, window
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
   let errorPropagationLogger
   let moduleRegistry
@@ -114,6 +115,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
   describe('📊 資料層錯誤傳播測試', () => {
     test('應該正確傳播DOM解析錯誤從ReadmooAdapter到DataDomainCoordinator', async () => {
       // Given: ReadmooAdapter發生DOM解析錯誤
+      // eslint-disable-next-line no-unused-vars
       const domError = new Error('Cannot find book elements on page')
       domError.selector = '.book-item'
       domError.module = 'ReadmooAdapter'
@@ -121,6 +123,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       ReadmooAdapter.extractBooks.mockRejectedValue(domError)
 
       // When: DataDomainCoordinator嘗試處理資料
+      // eslint-disable-next-line no-unused-vars
       let propagatedError = null
       try {
         await DataDomainCoordinator.processExtractionData()
@@ -142,6 +145,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
 
     test('應該在資料驗證錯誤時觸發UI層錯誤處理', async () => {
       // Given: 資料驗證失敗
+      // eslint-disable-next-line no-unused-vars
       const validationError = new Error('Invalid book data structure')
       validationError.invalidBooks = [
         { id: null, title: 'Book 1' },
@@ -152,6 +156,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       DataDomainCoordinator.validateData.mockRejectedValue(validationError)
 
       // When: UI層嘗試更新顯示
+      // eslint-disable-next-line no-unused-vars
       let uiError = null
       try {
         await OverviewPageController.updateBooksDisplay()
@@ -172,6 +177,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
 
     test('應該處理資料處理中的記憶體不足錯誤', async () => {
       // Given: 處理大資料集時記憶體不足
+      // eslint-disable-next-line no-unused-vars
       const memoryError = new Error('Cannot allocate memory for dataset')
       memoryError.dataSize = 50000
       memoryError.availableMemory = '100MB'
@@ -180,6 +186,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       DataDomainCoordinator.processBatch.mockRejectedValue(memoryError)
 
       // When: 嘗試處理大批資料
+      // eslint-disable-next-line no-unused-vars
       const result = await testHelpers.handleLargeDataProcessing(50000)
 
       // Then: 應該自動切換到分批處理模式
@@ -188,6 +195,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       expect(result.totalBatches).toBeGreaterThan(5)
 
       // 驗證錯誤不會影響其他功能
+      // eslint-disable-next-line no-unused-vars
       const systemHealth = await testHelpers.checkSystemHealth()
       expect(systemHealth.coreModulesOperational).toBe(true)
     })
@@ -196,6 +204,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
   describe('🌐 網路層錯誤傳播測試', () => {
     test('應該處理Chrome Storage連接失敗的級聯影響', async () => {
       // Given: Chrome Storage不可用
+      // eslint-disable-next-line no-unused-vars
       const storageError = new Error('Extension context invalidated')
       storageError.code = 'CONTEXT_INVALIDATED'
 
@@ -207,6 +216,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       ChromeStorageService.isAvailable.mockReturnValue(false)
 
       // When: 多個模組嘗試存取儲存
+      // eslint-disable-next-line no-unused-vars
       const storageResults = await Promise.allSettled([
         OverviewPageController.loadBooksFromStorage(),
         DataDomainCoordinator.saveProcessedData({ books: [] }),
@@ -227,10 +237,12 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       // Given: 網路完全斷線
       global.fetch = jest.fn().mockRejectedValue(new Error('Network error'))
 
+      // eslint-disable-next-line no-unused-vars
       const networkError = new Error('No internet connection')
       networkError.offline = true
 
       // When: 嘗試在線和離線操作
+      // eslint-disable-next-line no-unused-vars
       const results = {
         onlineOperation: await testHelpers.attemptOnlineDataSync(),
         offlineOperations: await Promise.all([
@@ -254,10 +266,12 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
 
     test('應該在API請求失敗時啟動重試與降級鏈', async () => {
       // Given: API請求連續失敗
+      // eslint-disable-next-line no-unused-vars
       let attemptCount = 0
       ReadmooAdapter.fetchBookData.mockImplementation(() => {
         attemptCount++
         if (attemptCount < 4) {
+          // eslint-disable-next-line no-unused-vars
           const error = new Error(`API request failed (attempt ${attemptCount})`)
           error.status = attemptCount === 1 ? 503 : attemptCount === 2 ? 429 : 500
           throw error
@@ -266,6 +280,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       })
 
       // When: 執行資料獲取
+      // eslint-disable-next-line no-unused-vars
       const result = await testHelpers.executeDataFetchWithFallback()
 
       // Then: 應該經過完整的重試和降級流程
@@ -275,6 +290,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       expect(result.fallbackUsed).toBe(true)
 
       // 驗證錯誤傳播記錄
+      // eslint-disable-next-line no-unused-vars
       const errorChain = errorPropagationLogger.getErrorChain()
       expect(errorChain).toHaveLength(3) // 3個失敗嘗試
     })
@@ -286,6 +302,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       mockEventBus.emit.mockRejectedValue(new Error('EventBus communication failed'))
 
       // When: 多個模組嘗試通訊
+      // eslint-disable-next-line no-unused-vars
       const communicationResults = await Promise.allSettled([
         OverviewPageController.notifyDataUpdate(),
         DataDomainCoordinator.broadcastProcessingComplete(),
@@ -305,7 +322,9 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
 
     test('應該正確處理事件監聽器錯誤', async () => {
       // Given: 事件處理器中發生錯誤
+      // eslint-disable-next-line no-unused-vars
       const handlerError = new Error('Event handler crashed')
+      // eslint-disable-next-line no-unused-vars
       const faultyHandler = jest.fn().mockImplementation(() => {
         throw handlerError
       })
@@ -335,12 +354,14 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       expect(OverviewPageController.isOperational()).toBe(true)
 
       // 其他事件處理器仍然正常
+      // eslint-disable-next-line no-unused-vars
       const testEvent = { type: 'TEST.EVENT' }
       expect(() => mockEventBus.emit('OTHER.EVENT', testEvent)).not.toThrow()
     })
 
     test('應該實現事件重試機制', async () => {
       // Given: 事件發送間歇性失敗
+      // eslint-disable-next-line no-unused-vars
       let eventAttempts = 0
       mockEventBus.emit.mockImplementation((eventType, data) => {
         eventAttempts++
@@ -351,6 +372,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       })
 
       // When: 發送重要事件
+      // eslint-disable-next-line no-unused-vars
       const result = await testHelpers.sendEventWithRetry('CRITICAL.DATA.UPDATE', { books: [] })
 
       // Then: 事件最終應該成功發送
@@ -368,6 +390,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       })
 
       // When: 系統嘗試運作
+      // eslint-disable-next-line no-unused-vars
       const systemStatus = await testHelpers.executeSystemHealthCheck()
 
       // Then: 其他模組應該繼續正常運作
@@ -381,10 +404,12 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
 
     test('應該實現模組級別的電路斷路器', async () => {
       // Given: 模組連續失敗觸發斷路器
+      // eslint-disable-next-line no-unused-vars
       const failures = Array.from({ length: 5 }, (_, i) =>
         new Error(`Consecutive failure ${i + 1}`)
       )
 
+      // eslint-disable-next-line no-unused-vars
       let failureCount = 0
       ReadmooAdapter.extractBooks.mockImplementation(() => {
         if (failureCount < 5) {
@@ -394,15 +419,18 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       })
 
       // When: 連續嘗試操作
+      // eslint-disable-next-line no-unused-vars
       const attempts = []
       for (let i = 0; i < 7; i++) {
         attempts.push(await testHelpers.attemptDataExtraction().catch(e => ({ error: e })))
       }
 
       // Then: 斷路器應該在第5次失敗後啟動
+      // eslint-disable-next-line no-unused-vars
       const errorAttempts = attempts.filter(a => a.error).length
       expect(errorAttempts).toBe(5) // 前5次失敗
 
+      // eslint-disable-next-line no-unused-vars
       const successAttempts = attempts.filter(a => !a.error).length
       expect(successAttempts).toBe(2) // 後2次被斷路器阻止或成功
 
@@ -412,6 +440,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
 
     test('應該支援模組故障的自動恢復檢測', async () => {
       // Given: 模組從故障中恢復
+      // eslint-disable-next-line no-unused-vars
       let isModuleHealthy = false
       ReadmooAdapter.isHealthy.mockImplementation(() => isModuleHealthy)
 
@@ -434,6 +463,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
   describe('📈 級聯錯誤控制測試', () => {
     test('應該限制錯誤級聯的深度', async () => {
       // Given: 設計會產生級聯錯誤的情境
+      // eslint-disable-next-line no-unused-vars
       const primaryError = new Error('Primary system failure')
 
       ReadmooAdapter.extractBooks.mockRejectedValue(primaryError)
@@ -445,6 +475,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       })
 
       // When: 觸發級聯錯誤
+      // eslint-disable-next-line no-unused-vars
       let finalError = null
       try {
         await testHelpers.executeFullDataPipeline()
@@ -453,6 +484,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       }
 
       // Then: 級聯深度應該被限制
+      // eslint-disable-next-line no-unused-vars
       const errorChain = testHelpers.getErrorChainDepth(finalError)
       expect(errorChain.depth).toBeLessThanOrEqual(3) // 最大深度限制
       expect(errorChain.stopped).toBe(true) // 級聯被阻止
@@ -463,6 +495,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
 
     test('應該識別和打破錯誤循環', async () => {
       // Given: 模組間形成錯誤循環
+      // eslint-disable-next-line no-unused-vars
       let callCount = 0
       DataDomainCoordinator.processData.mockImplementation(() => {
         callCount++
@@ -478,6 +511,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       })
 
       // When: 觸發可能的循環錯誤
+      // eslint-disable-next-line no-unused-vars
       let circularError = null
       try {
         await DataDomainCoordinator.processData()
@@ -494,22 +528,27 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
 
     test('應該實現錯誤傳播的限流機制', async () => {
       // Given: 短時間內大量錯誤
+      // eslint-disable-next-line no-unused-vars
       const errors = Array.from({ length: 100 }, (_, i) =>
         new Error(`Burst error ${i}`)
       )
 
       // When: 在短時間內觸發大量錯誤
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
       await Promise.allSettled(
         errors.map(error => testHelpers.simulateErrorPropagation(error))
       )
+      // eslint-disable-next-line no-unused-vars
       const endTime = Date.now()
 
       // Then: 錯誤傳播應該被限流
+      // eslint-disable-next-line no-unused-vars
       const processingTime = endTime - startTime
       expect(processingTime).toBeGreaterThan(10) // 至少10ms，表示有處理時間
 
       // 驗證限流效果
+      // eslint-disable-next-line no-unused-vars
       const rateLimitStats = ErrorIsolationManager.getRateLimitStats()
       expect(rateLimitStats.droppedErrors).toBeGreaterThan(0)
       expect(rateLimitStats.processedErrors).toBeLessThan(100)
@@ -519,6 +558,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
   describe('🔧 系統恢復協調測試', () => {
     test('應該協調多模組的恢復順序', async () => {
       // Given: 多個模組需要恢復
+      // eslint-disable-next-line no-unused-vars
       const failedModules = [
         { name: 'EventBus', priority: 1, dependencies: [] },
         { name: 'ChromeStorageService', priority: 2, dependencies: ['EventBus'] },
@@ -532,6 +572,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
       })
 
       // When: 執行系統恢復
+      // eslint-disable-next-line no-unused-vars
       const recoveryResult = await testHelpers.executeSystemRecovery()
 
       // Then: 恢復順序應該正確
@@ -550,6 +591,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
   // 輔助方法實作
   // ===================
 
+  // eslint-disable-next-line no-unused-vars
   const testHelpers = {
     setupMockModules () {
     // Mock ReadmooAdapter
@@ -577,6 +619,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
           try {
             await ReadmooAdapter.extractBooks()
           } catch (error) {
+            // eslint-disable-next-line no-unused-vars
             const wrappedError = new Error('資料處理失敗')
             wrappedError.cause = error
             wrappedError.module = 'DataDomainCoordinator'
@@ -607,6 +650,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
           try {
             await DataDomainCoordinator.validateData()
           } catch (error) {
+            // eslint-disable-next-line no-unused-vars
             const uiError = new Error('UI顯示更新失敗')
             uiError.cause = error
             uiError.module = 'OverviewPageController'
@@ -702,7 +746,9 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
     },
 
     async executeDataFetchWithFallback () {
+      // eslint-disable-next-line no-unused-vars
       let retryAttempts = 0
+      // eslint-disable-next-line no-unused-vars
       let fallbackUsed = false
 
       try {
@@ -715,6 +761,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
     },
 
     async sendEventWithRetry (eventType, data, maxRetries = 3) {
+      // eslint-disable-next-line no-unused-vars
       let attempts = 0
 
       while (attempts < maxRetries) {
@@ -733,8 +780,10 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
 
     async executeSystemHealthCheck () {
     // 模擬系統健康檢查
+      // eslint-disable-next-line no-unused-vars
       const moduleStatuses = Array.from(moduleRegistry.entries()).map(([name, module]) => {
         try {
+          // eslint-disable-next-line no-unused-vars
           const isHealthy = module.isHealthy ? module.isHealthy() : true
           return { name, healthy: isHealthy }
         } catch (error) {
@@ -742,7 +791,9 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
         }
       })
 
+      // eslint-disable-next-line no-unused-vars
       const failedModules = moduleStatuses.filter(m => !m.healthy).map(m => m.name)
+      // eslint-disable-next-line no-unused-vars
       const operationalModules = moduleStatuses.filter(m => m.healthy).map(m => m.name)
 
       return {
@@ -767,11 +818,14 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
 
     async executeFullDataPipeline () {
       try {
+        // eslint-disable-next-line no-unused-vars
         const extractionData = await ReadmooAdapter.extractBooks()
+        // eslint-disable-next-line no-unused-vars
         const processedData = await DataDomainCoordinator.processExtractionData(extractionData)
         return await OverviewPageController.updateBooksDisplay(processedData)
       } catch (error) {
         // 構建錯誤鏈，包含 cause 屬性
+        // eslint-disable-next-line no-unused-vars
         const pipelineError = new Error('Pipeline execution failed')
         pipelineError.cause = error
         pipelineError.module = 'DataPipeline'
@@ -780,7 +834,9 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
     },
 
     getErrorChainDepth (error) {
+      // eslint-disable-next-line no-unused-vars
       let depth = 0
+      // eslint-disable-next-line no-unused-vars
       let currentError = error
 
       while (currentError && depth < 10) { // 最大深度限制
@@ -803,6 +859,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
 
     async executeSystemRecovery () {
     // 模擬系統恢復流程
+      // eslint-disable-next-line no-unused-vars
       const recoveryOrder = [
         'EventBus',
         'ChromeStorageService',

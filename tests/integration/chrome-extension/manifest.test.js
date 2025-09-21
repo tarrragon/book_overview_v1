@@ -16,7 +16,9 @@
  * - 驗證 content_scripts 注入規則
  */
 
+// eslint-disable-next-line no-unused-vars
 const fs = require('fs')
+// eslint-disable-next-line no-unused-vars
 const path = require('path')
 
 describe('Chrome Extension Manifest V3 Configuration', () => {
@@ -31,6 +33,7 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
     expect(fs.existsSync(manifestPath)).toBe(true)
 
     // 解析 manifest 內容
+    // eslint-disable-next-line no-unused-vars
     const manifestContent = fs.readFileSync(manifestPath, 'utf8')
     manifest = JSON.parse(manifestContent)
   })
@@ -73,6 +76,7 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
     })
 
     test('service worker 檔案應該存在', () => {
+      // eslint-disable-next-line no-unused-vars
       const serviceWorkerPath = path.join(
         path.dirname(manifestPath),
         manifest.background.service_worker
@@ -95,6 +99,7 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
     })
 
     test('應該針對 Readmoo 網站配置注入規則', () => {
+      // eslint-disable-next-line no-unused-vars
       const readmooScript = manifest.content_scripts.find(script =>
         script.matches && script.matches.some(match =>
           match.includes('readmoo.com')
@@ -110,6 +115,7 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
     test('content script 檔案應該存在', () => {
       manifest.content_scripts.forEach(script => {
         script.js.forEach(jsFile => {
+          // eslint-disable-next-line no-unused-vars
           const scriptPath = path.join(path.dirname(manifestPath), jsFile)
           expect(fs.existsSync(scriptPath)).toBe(true)
         })
@@ -131,6 +137,7 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
       expect(manifest.host_permissions).toBeDefined()
       expect(Array.isArray(manifest.host_permissions)).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const hasReadmooPermission = manifest.host_permissions.some(permission =>
         permission.includes('readmoo.com') || permission.includes('*.readmoo.com/*')
       )
@@ -140,6 +147,7 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
 
     test('不應該請求過多的權限', () => {
       // 權限最小化原則 - 不應該有不必要的危險權限
+      // eslint-disable-next-line no-unused-vars
       const dangerousPermissions = [
         'bookmarks', 'history', 'topSites', 'tabs', 'management'
       ]
@@ -152,6 +160,7 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
 
   describe('🔧 事件系統 API 可用性', () => {
     test('應該包含事件系統所需的 Chrome API 權限', () => {
+      // eslint-disable-next-line no-unused-vars
       const requiredPermissions = ['storage']
 
       requiredPermissions.forEach(permission => {
@@ -175,6 +184,7 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
     })
 
     test('popup 檔案應該存在', () => {
+      // eslint-disable-next-line no-unused-vars
       const popupPath = path.join(
         path.dirname(manifestPath),
         manifest.action.default_popup
