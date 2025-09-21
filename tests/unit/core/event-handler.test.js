@@ -67,6 +67,7 @@ describe('🎭 事件處理器基底類別測試', () => {
   describe('📝 基本構造和屬性管理', () => {
     test('應該能夠創建處理器實例', () => {
       // Arrange & Act
+      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler('MyHandler', 1)
 
       // Assert
@@ -80,6 +81,7 @@ describe('🎭 事件處理器基底類別測試', () => {
 
     test('應該使用預設參數創建處理器', () => {
       // Arrange & Act
+      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler()
 
       // Assert
@@ -90,6 +92,7 @@ describe('🎭 事件處理器基底類別測試', () => {
 
     test('應該能夠啟用和停用處理器', () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler()
 
       // Act & Assert
@@ -106,8 +109,11 @@ describe('🎭 事件處理器基底類別測試', () => {
   describe('🔄 事件處理生命週期', () => {
     test('應該按照正確順序執行生命週期方法', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler()
+      // eslint-disable-next-line no-unused-vars
       const executionOrder = []
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.event.started', data: { test: true } }
 
       // 模擬生命週期方法
@@ -129,6 +135,7 @@ describe('🎭 事件處理器基底類別測試', () => {
       })
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(mockEvent)
 
       // Assert
@@ -139,13 +146,16 @@ describe('🎭 事件處理器基底類別測試', () => {
 
     test('應該在停用時不執行處理邏輯', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler()
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.event.started', data: {} }
 
       handler.setEnabled(false)
       handler.process = jest.fn()
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(mockEvent)
 
       // Assert
@@ -156,7 +166,9 @@ describe('🎭 事件處理器基底類別測試', () => {
 
     test('應該在錯誤時調用錯誤處理方法', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler()
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.event.started', data: {} }
 
       handler.shouldThrowError = true
@@ -172,7 +184,9 @@ describe('🎭 事件處理器基底類別測試', () => {
   describe('📊 統計追蹤功能', () => {
     test('應該正確追蹤執行統計', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler()
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.event.started', data: {} }
 
       // Act
@@ -187,12 +201,14 @@ describe('🎭 事件處理器基底類別測試', () => {
 
     test('應該提供統計資訊摘要', () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler('StatsHandler', 1)
       handler.executionCount = 5
       handler.lastExecutionTime = 100
       handler.averageExecutionTime = 75
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const stats = handler.getStats()
 
       // Assert
@@ -207,14 +223,19 @@ describe('🎭 事件處理器基底類別測試', () => {
 
     test('應該正確計算平均執行時間', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler()
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.event.started', data: {} }
 
       // 模擬不同的執行時間
+      // eslint-disable-next-line no-unused-vars
       let callCount = 0
+      // eslint-disable-next-line no-unused-vars
       const originalUpdateStats = handler.updateStats.bind(handler)
       handler.updateStats = jest.fn((executionTime) => {
         // 模擬第一次50ms，第二次100ms
+        // eslint-disable-next-line no-unused-vars
         const simulatedTime = callCount === 0 ? 50 : 100
         callCount++
         originalUpdateStats(simulatedTime)
@@ -234,6 +255,7 @@ describe('🎭 事件處理器基底類別測試', () => {
   describe('🎯 事件類型支援檢查', () => {
     test('應該正確識別支援的事件類型', () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler()
 
       // Act & Assert
@@ -244,9 +266,11 @@ describe('🎭 事件處理器基底類別測試', () => {
 
     test('應該返回支援的事件類型列表', () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler()
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const supportedEvents = handler.getSupportedEvents()
 
       // Assert
@@ -258,13 +282,16 @@ describe('🎭 事件處理器基底類別測試', () => {
     test('EventHandler不應該被直接實例化', () => {
       // Arrange & Act & Assert
       expect(() => {
+        // eslint-disable-next-line no-new
         new EventHandler('DirectHandler')
       }).not.toThrow() // EventHandler可以被實例化，但抽象方法會拋出錯誤
     })
 
     test('直接調用抽象方法應該拋出錯誤', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const handler = new EventHandler('AbstractHandler')
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.event', data: {} }
 
       // Act & Assert
@@ -281,7 +308,9 @@ describe('🎭 事件處理器基底類別測試', () => {
         // 故意不實現 process 和 getSupportedEvents
       }
 
+      // eslint-disable-next-line no-unused-vars
       const handler = new IncompleteHandler()
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.event', data: {} }
 
       // Act & Assert
@@ -293,8 +322,11 @@ describe('🎭 事件處理器基底類別測試', () => {
   describe('🛡 錯誤處理和隔離', () => {
     test('應該在beforeHandle錯誤時停止執行', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler()
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.event.started', data: {} }
+      // eslint-disable-next-line no-unused-vars
       const beforeError = new Error('Before handle error')
 
       handler.beforeHandle = jest.fn().mockRejectedValue(beforeError)
@@ -311,7 +343,9 @@ describe('🎭 事件處理器基底類別測試', () => {
 
     test('應該在process錯誤時跳過afterHandle', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler()
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.event.started', data: {} }
 
       handler.shouldThrowError = true
@@ -328,8 +362,11 @@ describe('🎭 事件處理器基底類別測試', () => {
 
     test('應該在afterHandle錯誤時仍然調用錯誤處理', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler()
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.event.started', data: {} }
+      // eslint-disable-next-line no-unused-vars
       const afterError = new Error('After handle error')
 
       handler.afterHandle = jest.fn().mockRejectedValue(afterError)
@@ -345,8 +382,11 @@ describe('🎭 事件處理器基底類別測試', () => {
   describe('🔧 預設方法實現', () => {
     test('預設的beforeHandle應該記錄日誌', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler()
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.event.started', data: {} }
+      // eslint-disable-next-line no-unused-vars
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
       // Act
@@ -361,9 +401,13 @@ describe('🎭 事件處理器基底類別測試', () => {
 
     test('預設的afterHandle應該記錄完成日誌', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler()
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.event.completed', data: {} }
+      // eslint-disable-next-line no-unused-vars
       const result = 'test-result'
+      // eslint-disable-next-line no-unused-vars
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
       // Act
@@ -378,9 +422,13 @@ describe('🎭 事件處理器基底類別測試', () => {
 
     test('預設的onError應該記錄錯誤日誌', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler()
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.event.error', data: {} }
+      // eslint-disable-next-line no-unused-vars
       const error = new Error('Test error')
+      // eslint-disable-next-line no-unused-vars
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
 
       // Act

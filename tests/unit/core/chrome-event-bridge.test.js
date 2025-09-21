@@ -33,6 +33,7 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 describe('🌐 Chrome Extension 事件橋接器測試', () => {
   let createChromeEventBridge
   let bridge
+  // eslint-disable-next-line no-unused-vars
   let mockChrome
 
   beforeEach(() => {
@@ -96,6 +97,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
   describe('🔄 跨上下文事件處理', () => {
     test('應該能夠處理跨上下文事件消息', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const mockMessage = {
         type: 'CROSS_CONTEXT_EVENT',
         data: {
@@ -103,15 +105,19 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
           targetContext: 'background'
         }
       }
+      // eslint-disable-next-line no-unused-vars
       const mockSender = { tab: { id: 123 } }
+      // eslint-disable-next-line no-unused-vars
       const mockSendResponse = jest.fn()
 
       bridge.dispatchToContext = jest.fn().mockResolvedValue('success-result')
 
       // 取得實際的消息監聽器
+      // eslint-disable-next-line no-unused-vars
       const messageListener = mockChrome.runtime.onMessage.addListener.mock.calls[0][0]
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const result = await messageListener(mockMessage, mockSender, mockSendResponse)
 
       // Assert
@@ -128,14 +134,19 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
 
     test('應該處理非跨上下文事件消息', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const mockMessage = { type: 'OTHER_MESSAGE' }
+      // eslint-disable-next-line no-unused-vars
       const mockSender = {}
+      // eslint-disable-next-line no-unused-vars
       const mockSendResponse = jest.fn()
 
       // 取得實際的消息監聽器
+      // eslint-disable-next-line no-unused-vars
       const messageListener = mockChrome.runtime.onMessage.addListener.mock.calls[0][0]
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const result = await messageListener(mockMessage, mockSender, mockSendResponse)
 
       // Assert
@@ -145,6 +156,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
 
     test('應該處理跨上下文事件的錯誤', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const mockMessage = {
         type: 'CROSS_CONTEXT_EVENT',
         data: {
@@ -152,12 +164,15 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
           targetContext: 'invalid'
         }
       }
+      // eslint-disable-next-line no-unused-vars
       const mockSender = {}
+      // eslint-disable-next-line no-unused-vars
       const mockSendResponse = jest.fn()
 
       bridge.dispatchToContext = jest.fn().mockRejectedValue(new Error('Unknown context'))
 
       // 取得實際的消息監聽器
+      // eslint-disable-next-line no-unused-vars
       const messageListener = mockChrome.runtime.onMessage.addListener.mock.calls[0][0]
 
       // Act
@@ -174,10 +189,12 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
   describe('🎯 上下文分發機制', () => {
     test('應該能夠分發到 background 上下文', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.background.event', data: { test: true } }
       bridge.dispatchToBackground = jest.fn().mockResolvedValue('background-result')
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const result = await bridge.dispatchToContext(mockEvent, 'background')
 
       // Assert
@@ -187,10 +204,12 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
 
     test('應該能夠分發到 content 上下文', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.content.event', data: { test: true } }
       bridge.dispatchToContent = jest.fn().mockResolvedValue(['content-result'])
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const result = await bridge.dispatchToContext(mockEvent, 'content')
 
       // Assert
@@ -200,10 +219,12 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
 
     test('應該能夠分發到 popup 上下文', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.popup.event', data: { test: true } }
       bridge.dispatchToPopup = jest.fn().mockResolvedValue('popup-result')
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const result = await bridge.dispatchToContext(mockEvent, 'popup')
 
       // Assert
@@ -213,6 +234,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
 
     test('應該拋出未知上下文錯誤', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.event' }
 
       // Act & Assert
@@ -227,7 +249,9 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
   describe('📤 Background 通訊機制', () => {
     test('應該能夠發送事件到 background', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'background.test', data: { value: 123 } }
+      // eslint-disable-next-line no-unused-vars
       const mockResponse = { success: true, data: 'response' }
 
       mockChrome.runtime.sendMessage.mockImplementation((message, callback) => {
@@ -235,6 +259,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
       })
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const result = await bridge.dispatchToBackground(mockEvent)
 
       // Assert
@@ -247,6 +272,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
 
     test('應該處理 background 通訊錯誤', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'background.test' }
 
       mockChrome.runtime.sendMessage.mockImplementation((message, callback) => {
@@ -269,11 +295,14 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
   describe('📥 Content Script 通訊機制', () => {
     test('應該能夠發送事件到 content scripts', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'content.test', data: { value: 456 } }
+      // eslint-disable-next-line no-unused-vars
       const mockTabs = [
         { id: 1, url: 'https://readmoo.com/book/123' },
         { id: 2, url: 'https://members.readmoo.com/profile' }
       ]
+      // eslint-disable-next-line no-unused-vars
       const mockResponses = ['response1', 'response2']
 
       bridge.getReadmooTabs = jest.fn().mockResolvedValue(mockTabs)
@@ -282,6 +311,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
         .mockResolvedValueOnce(mockResponses[1])
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const results = await bridge.dispatchToContent(mockEvent)
 
       // Assert
@@ -300,7 +330,9 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
 
     test('應該處理部分分頁發送失敗', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'content.test' }
+      // eslint-disable-next-line no-unused-vars
       const mockTabs = [{ id: 1 }, { id: 2 }, { id: 3 }]
 
       bridge.getReadmooTabs = jest.fn().mockResolvedValue(mockTabs)
@@ -309,9 +341,11 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
         .mockRejectedValueOnce(new Error('Tab closed'))
         .mockResolvedValueOnce('success3')
 
+      // eslint-disable-next-line no-unused-vars
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const results = await bridge.dispatchToContent(mockEvent)
 
       // Assert
@@ -329,6 +363,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
   describe('🔍 Readmoo 分頁查詢', () => {
     test('應該能夠查詢 Readmoo 相關分頁', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const mockTabs = [
         { id: 1, url: 'https://readmoo.com/book/123' },
         { id: 2, url: 'https://members.readmoo.com/profile' }
@@ -342,6 +377,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
       })
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const tabs = await bridge.getReadmooTabs()
 
       // Assert
@@ -356,6 +392,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
       })
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const tabs = await bridge.getReadmooTabs()
 
       // Assert
@@ -366,8 +403,11 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
   describe('📨 分頁消息發送', () => {
     test('應該能夠發送消息到指定分頁', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const tabId = 123
+      // eslint-disable-next-line no-unused-vars
       const message = { type: 'TEST_MESSAGE', data: { test: true } }
+      // eslint-disable-next-line no-unused-vars
       const mockResponse = { success: true }
 
       mockChrome.tabs.sendMessage.mockImplementation((id, msg, callback) => {
@@ -377,6 +417,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
       })
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const response = await bridge.sendToTab(tabId, message)
 
       // Assert
@@ -388,7 +429,9 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
 
     test('應該處理分頁消息發送錯誤', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const tabId = 456
+      // eslint-disable-next-line no-unused-vars
       const message = { type: 'TEST_MESSAGE' }
 
       mockChrome.tabs.sendMessage.mockImplementation((id, msg, callback) => {
@@ -411,12 +454,14 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
   describe('🎨 Popup 通訊機制', () => {
     test('應該能夠處理 popup 通訊', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'popup.test', data: { ui: 'update' } }
 
       // 假設 popup 通訊與 background 通訊類似
       bridge.dispatchToBackground = jest.fn().mockResolvedValue('popup-handled')
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const result = await bridge.dispatchToPopup(mockEvent)
 
       // Assert
@@ -428,6 +473,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
     test('應該能夠處理消息監聽器註冊失敗', () => {
       // Arrange
       mockChrome.runtime.onMessage.addListener.mockImplementation(() => {
+        // eslint-disable-next-line no-unused-vars
         const error = new Error('Listener registration failed')
         error.code = ErrorCodes.SYSTEM_ERROR
         error.details = { category: 'testing', component: 'ChromeEventBridge' }
@@ -453,6 +499,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
     test('應該能夠清理資源', () => {
       // Arrange
       bridge.messageHandlers.set('test', 'handler')
+      // eslint-disable-next-line no-unused-vars
       const mockListener = jest.fn()
       bridge.messageListener = mockListener
 
@@ -468,11 +515,13 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
   describe('⚡ 整合測試', () => {
     test('應該能夠完成完整的跨上下文事件流程', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const originalEvent = {
         type: 'extractor.data.extracted',
         data: { books: [{ id: '123', title: 'Test Book' }] }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const crossContextMessage = {
         type: 'CROSS_CONTEXT_EVENT',
         data: {
@@ -481,7 +530,9 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const mockSender = { tab: { id: 100 } }
+      // eslint-disable-next-line no-unused-vars
       const mockSendResponse = jest.fn()
 
       // 模擬完整的content發送流程
@@ -489,6 +540,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
       bridge.sendToTab = jest.fn().mockResolvedValue({ processed: true })
 
       // 取得消息監聽器
+      // eslint-disable-next-line no-unused-vars
       const messageListener = mockChrome.runtime.onMessage.addListener.mock.calls[0][0]
 
       // Act

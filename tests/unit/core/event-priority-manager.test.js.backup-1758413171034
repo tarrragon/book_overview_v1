@@ -9,13 +9,10 @@
  * - 效能和執行順序
  */
 
-// eslint-disable-next-line no-unused-vars
 const EventBus = require('src/core/event-bus')
-// eslint-disable-next-line no-unused-vars
 const EventPriorityManager = require('src/core/events/event-priority-manager')
 
 describe('EventPriorityManager', () => {
-  // eslint-disable-next-line no-unused-vars
   let eventBus
   let priorityManager
 
@@ -39,7 +36,6 @@ describe('EventPriorityManager', () => {
     })
 
     test('應該初始化優先級統計', () => {
-      // eslint-disable-next-line no-unused-vars
       const stats = priorityManager.getPriorityStats()
       expect(stats.totalAssignments).toBe(0)
       expect(stats.priorityDistribution).toEqual({})
@@ -49,7 +45,6 @@ describe('EventPriorityManager', () => {
 
   describe('事件優先級分配', () => {
     test('應該為系統關鍵事件分配 SYSTEM_CRITICAL 優先級', () => {
-      // eslint-disable-next-line no-unused-vars
       const testEvents = [
         'SYSTEM.GENERIC.ERROR.CRITICAL',
         'SECURITY.GENERIC.VIOLATION.DETECTED',
@@ -57,7 +52,6 @@ describe('EventPriorityManager', () => {
       ]
 
       testEvents.forEach(eventName => {
-        // eslint-disable-next-line no-unused-vars
         const priority = priorityManager.assignEventPriority(eventName)
         expect(priority).toBeGreaterThanOrEqual(0)
         expect(priority).toBeLessThanOrEqual(99)
@@ -65,7 +59,6 @@ describe('EventPriorityManager', () => {
     })
 
     test('應該為平台管理事件分配 PLATFORM_MANAGEMENT 優先級', () => {
-      // eslint-disable-next-line no-unused-vars
       const testEvents = [
         'PLATFORM.READMOO.SWITCH.STARTED',
         'PLATFORM.KINDLE.DETECT.COMPLETED',
@@ -73,7 +66,6 @@ describe('EventPriorityManager', () => {
       ]
 
       testEvents.forEach(eventName => {
-        // eslint-disable-next-line no-unused-vars
         const priority = priorityManager.assignEventPriority(eventName)
         expect(priority).toBeGreaterThanOrEqual(100)
         expect(priority).toBeLessThanOrEqual(199)
@@ -81,7 +73,6 @@ describe('EventPriorityManager', () => {
     })
 
     test('應該為使用者互動事件分配 USER_INTERACTION 優先級', () => {
-      // eslint-disable-next-line no-unused-vars
       const testEvents = [
         'UX.GENERIC.OPEN.STARTED',
         'EXTRACTION.READMOO.EXTRACT.REQUESTED',
@@ -89,7 +80,6 @@ describe('EventPriorityManager', () => {
       ]
 
       testEvents.forEach(eventName => {
-        // eslint-disable-next-line no-unused-vars
         const priority = priorityManager.assignEventPriority(eventName)
         expect(priority).toBeGreaterThanOrEqual(200)
         expect(priority).toBeLessThanOrEqual(299)
@@ -97,7 +87,6 @@ describe('EventPriorityManager', () => {
     })
 
     test('應該為一般業務處理事件分配 BUSINESS_PROCESSING 優先級', () => {
-      // eslint-disable-next-line no-unused-vars
       const testEvents = [
         'EXTRACTION.READMOO.EXTRACT.PROGRESS',
         'DATA.READMOO.VALIDATE.COMPLETED',
@@ -105,7 +94,6 @@ describe('EventPriorityManager', () => {
       ]
 
       testEvents.forEach(eventName => {
-        // eslint-disable-next-line no-unused-vars
         const priority = priorityManager.assignEventPriority(eventName)
         expect(priority).toBeGreaterThanOrEqual(300)
         expect(priority).toBeLessThanOrEqual(399)
@@ -113,7 +101,6 @@ describe('EventPriorityManager', () => {
     })
 
     test('應該為背景處理事件分配 BACKGROUND_PROCESSING 優先級', () => {
-      // eslint-disable-next-line no-unused-vars
       const testEvents = [
         'ANALYTICS.GENERIC.UPDATE.COMPLETED',
         'SYSTEM.GENERIC.CLEANUP.STARTED',
@@ -121,7 +108,6 @@ describe('EventPriorityManager', () => {
       ]
 
       testEvents.forEach(eventName => {
-        // eslint-disable-next-line no-unused-vars
         const priority = priorityManager.assignEventPriority(eventName)
         expect(priority).toBeGreaterThanOrEqual(400)
         expect(priority).toBeLessThanOrEqual(499)
@@ -131,7 +117,6 @@ describe('EventPriorityManager', () => {
 
   describe('智能優先級推斷', () => {
     test('應該根據事件名稱智能推斷優先級類別', () => {
-      // eslint-disable-next-line no-unused-vars
       const testCases = [
         ['SYSTEM.GENERIC.ERROR.CRITICAL', 'SYSTEM_CRITICAL'],
         ['PLATFORM.READMOO.DETECT.COMPLETED', 'PLATFORM_MANAGEMENT'],
@@ -141,28 +126,22 @@ describe('EventPriorityManager', () => {
       ]
 
       testCases.forEach(([eventName, expectedCategory]) => {
-        // eslint-disable-next-line no-unused-vars
         const category = priorityManager.inferPriorityCategory(eventName)
         expect(category).toBe(expectedCategory)
       })
     })
 
     test('應該處理不明確的事件名稱', () => {
-      // eslint-disable-next-line no-unused-vars
       const ambiguousEvent = 'CUSTOM.MODULE.ACTION.STATE'
-      // eslint-disable-next-line no-unused-vars
       const category = priorityManager.inferPriorityCategory(ambiguousEvent)
       expect(category).toBe('BUSINESS_PROCESSING') // 預設類別
     })
 
     test('應該根據關鍵字判斷優先級', () => {
-      // eslint-disable-next-line no-unused-vars
       const criticalKeywords = ['ERROR', 'CRITICAL', 'URGENT', 'SECURITY']
 
       criticalKeywords.forEach(keyword => {
-        // eslint-disable-next-line no-unused-vars
         const eventName = `SYSTEM.GENERIC.${keyword}.DETECTED`
-        // eslint-disable-next-line no-unused-vars
         const category = priorityManager.inferPriorityCategory(eventName)
         expect(category).toBe('SYSTEM_CRITICAL')
       })
@@ -189,7 +168,6 @@ describe('EventPriorityManager', () => {
       priorityManager.recordEventPriority('TEST.EVENT', 50)
       priorityManager.recordEventPriority('TEST.EVENT', 150)
 
-      // eslint-disable-next-line no-unused-vars
       const conflicts = priorityManager.detectPriorityConflicts()
       expect(conflicts).toHaveLength(1)
       expect(conflicts[0].eventName).toBe('TEST.EVENT')
@@ -199,22 +177,17 @@ describe('EventPriorityManager', () => {
 
   describe('優先級調整和最佳化', () => {
     test('應該能夠調整事件優先級', () => {
-      // eslint-disable-next-line no-unused-vars
       const eventName = 'TEST.READMOO.ACTION.COMPLETED'
-      // eslint-disable-next-line no-unused-vars
       const originalPriority = priorityManager.assignEventPriority(eventName)
 
-      // eslint-disable-next-line no-unused-vars
       const newPriority = 150
       priorityManager.adjustEventPriority(eventName, newPriority)
 
-      // eslint-disable-next-line no-unused-vars
       const adjustedPriority = priorityManager.getEventPriority(eventName)
       expect(adjustedPriority).toBe(newPriority)
     })
 
     test('應該最佳化重複事件的優先級分配', () => {
-      // eslint-disable-next-line no-unused-vars
       const eventName = 'EXTRACTION.READMOO.EXTRACT.PROGRESS'
 
       // 分配多次相同事件
@@ -225,17 +198,13 @@ describe('EventPriorityManager', () => {
       priorityManager.optimizeEventPriorities()
 
       // 應該只有一個優先級分配
-      // eslint-disable-next-line no-unused-vars
       const priorities = priorityManager.getEventPriorities(eventName)
-      // eslint-disable-next-line no-unused-vars
       const uniquePriorities = new Set(priorities)
       expect(uniquePriorities.size).toBe(1)
     })
 
     test('應該根據效能統計調整優先級', () => {
-      // eslint-disable-next-line no-unused-vars
       const slowEvent = 'SLOW.READMOO.PROCESS.COMPLETED'
-      // eslint-disable-next-line no-unused-vars
       const fastEvent = 'FAST.READMOO.PROCESS.COMPLETED'
 
       // 記錄效能統計
@@ -244,9 +213,7 @@ describe('EventPriorityManager', () => {
 
       priorityManager.optimizeBasedOnPerformance()
 
-      // eslint-disable-next-line no-unused-vars
       const slowPriority = priorityManager.getEventPriority(slowEvent)
-      // eslint-disable-next-line no-unused-vars
       const fastPriority = priorityManager.getEventPriority(fastEvent)
 
       // 慢的事件應該有較低的優先級（較大的數字）
@@ -259,7 +226,6 @@ describe('EventPriorityManager', () => {
       priorityManager.assignEventPriority('TEST.READMOO.ACTION.COMPLETED')
       priorityManager.assignEventPriority('SYSTEM.GENERIC.ERROR.CRITICAL')
 
-      // eslint-disable-next-line no-unused-vars
       const stats = priorityManager.getPriorityStats()
       expect(stats.totalAssignments).toBe(2)
       expect(stats.priorityDistribution).toBeDefined()
@@ -271,7 +237,6 @@ describe('EventPriorityManager', () => {
       priorityManager.assignEventPriority('UX.GENERIC.CLICK.STARTED')
       priorityManager.assignEventPriority('ANALYTICS.GENERIC.LOG.COMPLETED')
 
-      // eslint-disable-next-line no-unused-vars
       const distribution = priorityManager.getPriorityDistribution()
       expect(distribution.SYSTEM_CRITICAL).toBeGreaterThan(0)
       expect(distribution.USER_INTERACTION).toBeGreaterThan(0)
@@ -279,15 +244,12 @@ describe('EventPriorityManager', () => {
     })
 
     test('應該監控優先級調整歷史', () => {
-      // eslint-disable-next-line no-unused-vars
       const eventName = 'TEST.READMOO.ACTION.COMPLETED'
-      // eslint-disable-next-line no-unused-vars
       const originalPriority = priorityManager.assignEventPriority(eventName)
 
       priorityManager.adjustEventPriority(eventName, 150)
       priorityManager.adjustEventPriority(eventName, 200)
 
-      // eslint-disable-next-line no-unused-vars
       const history = priorityManager.getPriorityHistory(eventName)
       expect(history).toHaveLength(3) // 原始 + 2次調整
       expect(history[0].priority).toBe(originalPriority)
@@ -298,41 +260,30 @@ describe('EventPriorityManager', () => {
 
   describe('與 EventBus 整合', () => {
     test('應該整合優先級到 EventBus 註冊', () => {
-      // eslint-disable-next-line no-unused-vars
       const eventName = 'EXTRACTION.READMOO.EXTRACT.COMPLETED'
-      // eslint-disable-next-line no-unused-vars
       const handler = jest.fn()
 
       priorityManager.registerWithPriority(eventBus, eventName, handler)
 
       expect(eventBus.hasListener(eventName)).toBe(true)
 
-      // eslint-disable-next-line no-unused-vars
       const expectedPriority = priorityManager.getEventPriority(eventName)
       expect(expectedPriority).toBeGreaterThanOrEqual(300) // BUSINESS_PROCESSING
     })
 
     test('應該按優先級順序執行事件處理器', async () => {
-      // eslint-disable-next-line no-unused-vars
       const executionOrder = []
 
       // 為同一事件註冊三個不同優先級的處理器
-      // eslint-disable-next-line no-unused-vars
       const testEventName = 'TEST.PRIORITY.VERIFICATION'
 
-      // eslint-disable-next-line no-unused-vars
       const urgentHandler = () => executionOrder.push('urgent')
-      // eslint-disable-next-line no-unused-vars
       const normalHandler = () => executionOrder.push('normal')
-      // eslint-disable-next-line no-unused-vars
       const lowHandler = () => executionOrder.push('low')
 
       // 獲取不同優先級數值
-      // eslint-disable-next-line no-unused-vars
       const urgentPriority = priorityManager.assignEventPriority('SYSTEM.GENERIC.ERROR.CRITICAL')
-      // eslint-disable-next-line no-unused-vars
       const normalPriority = priorityManager.assignEventPriority('EXTRACTION.READMOO.EXTRACT.COMPLETED')
-      // eslint-disable-next-line no-unused-vars
       const lowPriority = priorityManager.assignEventPriority('ANALYTICS.GENERIC.LOG.COMPLETED')
 
       // 註冊同一事件的多個處理器，但按相反順序註冊來測試排序
@@ -352,27 +303,22 @@ describe('EventPriorityManager', () => {
     test('應該處理無效的事件名稱', () => {
       // 實際實作採用優雅錯誤處理，返回預設優先級而非拋出異常
       // 根據實作，預設優先級是 BUSINESS_PROCESSING 範圍的最大值 (399)
-      // eslint-disable-next-line no-unused-vars
       const defaultPriority = 399
 
       // 空字串應該返回預設優先級
-      // eslint-disable-next-line no-unused-vars
       const emptyPriority = priorityManager.assignEventPriority('')
       expect(emptyPriority).toBe(defaultPriority)
 
       // null 應該返回預設優先級
-      // eslint-disable-next-line no-unused-vars
       const nullPriority = priorityManager.assignEventPriority(null)
       expect(nullPriority).toBe(defaultPriority)
 
       // 檢查錯誤統計有增加
-      // eslint-disable-next-line no-unused-vars
       const stats = priorityManager.getPriorityStats()
       expect(stats.errors).toBeGreaterThanOrEqual(2)
     })
 
     test('應該處理無效的優先級調整', () => {
-      // eslint-disable-next-line no-unused-vars
       const eventName = 'TEST.READMOO.ACTION.COMPLETED'
 
       expect(() => {
@@ -399,7 +345,6 @@ describe('EventPriorityManager', () => {
         // 預期錯誤
       }
 
-      // eslint-disable-next-line no-unused-vars
       const stats = priorityManager.getPriorityStats()
       expect(stats.errors).toBeGreaterThan(0)
     })
@@ -407,16 +352,13 @@ describe('EventPriorityManager', () => {
 
   describe('效能測試', () => {
     test('應該在合理時間內完成大量優先級分配', () => {
-      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
       for (let i = 0; i < 1000; i++) {
         priorityManager.assignEventPriority(`TEST.READMOO.ACTION.COMPLETED_${i}`)
       }
 
-      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
-      // eslint-disable-next-line no-unused-vars
       const duration = endTime - startTime
 
       expect(duration).toBeLessThan(100) // 應該在 100ms 內完成
@@ -428,11 +370,8 @@ describe('EventPriorityManager', () => {
         priorityManager.recordEventPriority('CONFLICT_EVENT', i)
       }
 
-      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
-      // eslint-disable-next-line no-unused-vars
       const conflicts = priorityManager.detectPriorityConflicts()
-      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
 
       expect(endTime - startTime).toBeLessThan(50) // 應該在 50ms 內完成

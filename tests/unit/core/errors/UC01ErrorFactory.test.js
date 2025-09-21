@@ -15,6 +15,7 @@ describe('UC01ErrorFactory', () => {
 
   describe('createError', () => {
     test('應該建立基本的 UC-01 錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createError(
         'DOM_READMOO_PAGE_NOT_DETECTED',
         '無法檢測到 Readmoo 書庫頁面'
@@ -27,11 +28,13 @@ describe('UC01ErrorFactory', () => {
     })
 
     test('應該建立帶有詳細資訊的錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const details = {
         currentUrl: 'https://example.com',
         expectedPatterns: ['readmoo.com']
       }
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createError(
         'DOM_READMOO_PAGE_NOT_DETECTED',
         '頁面檢測失敗',
@@ -45,6 +48,7 @@ describe('UC01ErrorFactory', () => {
 
   describe('createResult', () => {
     test('應該建立成功結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = UC01ErrorFactory.createResult(true, { books: [] })
 
       expect(result).toEqual({
@@ -56,11 +60,13 @@ describe('UC01ErrorFactory', () => {
     })
 
     test('應該建立失敗結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createError(
         'DOM_READMOO_PAGE_NOT_DETECTED',
         '檢測失敗'
       )
 
+      // eslint-disable-next-line no-unused-vars
       const result = UC01ErrorFactory.createResult(false, null, error)
 
       expect(result).toEqual({
@@ -73,7 +79,9 @@ describe('UC01ErrorFactory', () => {
     })
 
     test('應該處理簡單錯誤物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const simpleError = { message: '簡單錯誤' }
+      // eslint-disable-next-line no-unused-vars
       const result = UC01ErrorFactory.createResult(false, null, simpleError)
 
       expect(result).toEqual({
@@ -88,6 +96,7 @@ describe('UC01ErrorFactory', () => {
 
   describe('createPageDetectionError', () => {
     test('應該建立頁面檢測錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createPageDetectionError(
         'https://example.com',
         ['readmoo.com/library'],
@@ -106,6 +115,7 @@ describe('UC01ErrorFactory', () => {
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createPageDetectionError('https://test.com')
 
       expect(error.details.expectedPatterns).toEqual([
@@ -117,7 +127,9 @@ describe('UC01ErrorFactory', () => {
 
   describe('createBookElementsError', () => {
     test('應該建立書籍元素錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const selectors = ['.book-card', '.library-item']
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createBookElementsError(
         selectors,
         { domChanged: true }
@@ -135,6 +147,7 @@ describe('UC01ErrorFactory', () => {
     })
 
     test('應該使用預設選擇器', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createBookElementsError()
 
       expect(error.details.searchSelectors).toEqual([
@@ -147,6 +160,7 @@ describe('UC01ErrorFactory', () => {
 
   describe('createPartialExtractionError', () => {
     test('應該建立部分提取失敗錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createPartialExtractionError(
         10, 7,
         [{ title: 'Book1' }, { title: 'Book2' }],
@@ -166,6 +180,7 @@ describe('UC01ErrorFactory', () => {
     })
 
     test('應該處理零書籍的情況', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createPartialExtractionError(0, 0)
 
       expect(error.details.successRate).toBe('0%')
@@ -174,6 +189,7 @@ describe('UC01ErrorFactory', () => {
 
   describe('createNetworkUnreachableError', () => {
     test('應該建立網路無法連接錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createNetworkUnreachableError(
         'readmoo.com/api',
         10000,
@@ -194,6 +210,7 @@ describe('UC01ErrorFactory', () => {
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createNetworkUnreachableError()
 
       expect(error.details.endpoint).toBe('readmoo.com')
@@ -204,9 +221,12 @@ describe('UC01ErrorFactory', () => {
 
   describe('createPermissionDeniedError', () => {
     test('應該建立權限拒絕錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const required = ['activeTab', 'storage', 'scripting']
+      // eslint-disable-next-line no-unused-vars
       const missing = ['scripting']
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createPermissionDeniedError(
         required,
         missing,
@@ -225,6 +245,7 @@ describe('UC01ErrorFactory', () => {
     })
 
     test('應該使用預設權限列表', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createPermissionDeniedError()
 
       expect(error.details.requiredPermissions).toEqual(['activeTab', 'storage'])
@@ -234,6 +255,7 @@ describe('UC01ErrorFactory', () => {
 
   describe('createStorageQuotaError', () => {
     test('應該建立儲存空間不足錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createStorageQuotaError(
         6.2,
         5.0,
@@ -254,6 +276,7 @@ describe('UC01ErrorFactory', () => {
     })
 
     test('應該處理零配額的情況', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createStorageQuotaError(1.0, 0)
 
       expect(error.details.utilizationRate).toBe('100%')
@@ -262,11 +285,13 @@ describe('UC01ErrorFactory', () => {
 
   describe('createInitialStorageCorruptionError', () => {
     test('應該建立初始儲存損壞錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const corruptedData = {
         invalidEntries: 3,
         recoveredEntries: 5
       }
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createInitialStorageCorruptionError(
         corruptedData,
         { detectedAt: 'initialization' }
@@ -287,7 +312,9 @@ describe('UC01ErrorFactory', () => {
 
   describe('getCommonError - 快取機制', () => {
     test('應該快取常用錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC01ErrorFactory.getCommonError('PAGE_DETECTION')
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC01ErrorFactory.getCommonError('PAGE_DETECTION')
 
       expect(error1).toBe(error2) // 相同參考
@@ -296,6 +323,7 @@ describe('UC01ErrorFactory', () => {
     })
 
     test('應該支援所有快取錯誤類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const cacheTypes = [
         'PAGE_DETECTION',
         'PERMISSION_DENIED',
@@ -304,6 +332,7 @@ describe('UC01ErrorFactory', () => {
       ]
 
       cacheTypes.forEach(type => {
+        // eslint-disable-next-line no-unused-vars
         const error = UC01ErrorFactory.getCommonError(type)
         expect(error).toBeInstanceOf(Error)
         expect(error.details.cached).toBe(true)
@@ -311,6 +340,7 @@ describe('UC01ErrorFactory', () => {
     })
 
     test('應該處理未知快取類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.getCommonError('UNKNOWN_TYPE')
       expect(error).toBeNull()
     })
@@ -325,7 +355,9 @@ describe('UC01ErrorFactory', () => {
       UC01ErrorFactory.clearCache()
 
       // 重新取得應該是新物件
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC01ErrorFactory.getCommonError('PAGE_DETECTION')
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC01ErrorFactory.getCommonError('PAGE_DETECTION')
 
       expect(error1).toBe(error2) // 新快取中相同
@@ -335,21 +367,25 @@ describe('UC01ErrorFactory', () => {
 
   describe('sanitizeDetails', () => {
     test('應該保留正常大小的詳細資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const details = {
         url: 'https://example.com',
         count: 10,
         items: ['a', 'b', 'c']
       }
 
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC01ErrorFactory.sanitizeDetails(details)
       expect(sanitized).toEqual(details)
     })
 
     test('應該截斷過大的詳細資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const largeDetails = {
         data: 'x'.repeat(20000) // 超過 15KB 限制
       }
 
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC01ErrorFactory.sanitizeDetails(largeDetails)
 
       expect(sanitized._truncated).toBe(true)
@@ -368,6 +404,7 @@ describe('UC01ErrorFactory', () => {
 
   describe('isValidUC01Error', () => {
     test('應該驗證有效的 UC-01 錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createError(
         'DOM_READMOO_PAGE_NOT_DETECTED',
         '測試訊息'
@@ -377,6 +414,7 @@ describe('UC01ErrorFactory', () => {
     })
 
     test('應該拒絕無效的錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidError = new Error('普通錯誤')
       expect(UC01ErrorFactory.isValidUC01Error(invalidError)).toBe(false)
 
@@ -387,22 +425,26 @@ describe('UC01ErrorFactory', () => {
 
   describe('首次使用場景專用測試', () => {
     test('權限錯誤應該被標記為 CRITICAL', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createPermissionDeniedError()
       expect(error.details.severity).toBe('CRITICAL')
     })
 
     test('頁面檢測錯誤應該包含使用者指引', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createPageDetectionError('https://test.com')
       expect(error.details.userGuidance).toContain('請先前往 Readmoo 書庫頁面')
     })
 
     test('儲存錯誤應該提供清理建議', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createStorageQuotaError(6, 5)
       expect(error.details.suggestedActions).toContain('clear_old_data')
       expect(error.details.cleanupAvailable).toBe(true)
     })
 
     test('網路錯誤應該提供診斷選項', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createNetworkUnreachableError()
       expect(error.details.troubleshooting).toBe('network_diagnostics_available')
       expect(error.details.suggestedActions).toContain('check_network_connection')
@@ -411,17 +453,20 @@ describe('UC01ErrorFactory', () => {
 
   describe('效能測試', () => {
     test('常用錯誤建立應該快速', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 100; i++) {
         UC01ErrorFactory.getCommonError('PAGE_DETECTION')
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(10) // 100次快取存取應該在10ms內
     })
 
     test('錯誤建立應該在合理時間內完成', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 50; i++) {
@@ -432,6 +477,7 @@ describe('UC01ErrorFactory', () => {
         )
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(100) // 50個複雜錯誤應該在100ms內
     })

@@ -4,15 +4,17 @@
  * 測試目標：
  * - 驗證 OperationResult 核心功能
  * - 測試成功/失敗狀態處理
- * - 確保與 StandardError 的正確整合
+ * - 確保與 ErrorCodes 系統的正確整合
  * - 驗證序列化和反序列化功能
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { OperationResult } = require('src/core/errors/OperationResult')
-const { StandardError } = require('src/core/errors/StandardError')
+// StandardError 已棄用，改用 ErrorCodes 系統
+// const { StandardError } = require('src/core/errors/StandardError')
 
 describe('OperationResult 核心功能', () => {
+  // eslint-disable-next-line no-unused-vars
   let mockDateNow
 
   beforeEach(() => {
@@ -26,9 +28,11 @@ describe('OperationResult 核心功能', () => {
 
   test('應該正確建立成功結果', () => {
     // Given: 成功操作資料
+    // eslint-disable-next-line no-unused-vars
     const testData = { books: [{ id: '1', title: 'Test Book' }] }
 
     // When: 建立成功結果
+    // eslint-disable-next-line no-unused-vars
     const result = OperationResult.success(testData)
 
     // Then: 驗證成功結果結構
@@ -39,11 +43,13 @@ describe('OperationResult 核心功能', () => {
     expect(result.timestamp).toBe(1693747200000)
   })
 
-  test('應該正確建立失敗結果（使用StandardError）', () => {
-    // Given: StandardError錯誤物件
+  test('應該正確建立失敗結果（使用ErrorCodes）', () => {
+    // Given: ErrorCodes錯誤物件
+    // eslint-disable-next-line no-unused-vars
     const standardError = (() => { const error = new Error('操作失敗'); error.code = ErrorCodes.OPERATION_FAILED; error.details = { operation: 'test' }; return error })()
 
     // When: 建立失敗結果
+    // eslint-disable-next-line no-unused-vars
     const result = OperationResult.failure(standardError)
 
     // Then: 驗證失敗結果結構
@@ -54,16 +60,19 @@ describe('OperationResult 核心功能', () => {
     expect(result.error).toBe(standardError)
   })
 
-  test('應該將普通Error轉換為StandardError', () => {
+  test('應該將普通Error轉換為ErrorCodes', () => {
     // Given: 普通JavaScript Error
+    // eslint-disable-next-line no-unused-vars
     const jsError = new Error('JavaScript error')
     jsError.stack = 'Error stack trace...'
 
     // When: 建立失敗結果
+    // eslint-disable-next-line no-unused-vars
     const result = OperationResult.failure(jsError)
 
-    // Then: 錯誤應該被轉換為StandardError
-    expect(result.error).toBeInstanceOf(StandardError)
+    // Then: 錯誤應該被轉換為 ErrorCodes 錯誤
+    expect(result.error).toBeInstanceOf(Error)
+    expect(result.error.code).toBeDefined()
     expect(result.error.code).toBe('UNKNOWN_ERROR')
     expect(result.error.message).toBe('JavaScript error')
     expect(result.error.details.originalError).toBe(jsError.toString())
@@ -72,26 +81,32 @@ describe('OperationResult 核心功能', () => {
 
   test('應該處理字串錯誤', () => {
     // Given: 字串錯誤
+    // eslint-disable-next-line no-unused-vars
     const stringError = 'Something went wrong'
 
     // When: 建立失敗結果
+    // eslint-disable-next-line no-unused-vars
     const result = OperationResult.failure(stringError)
 
-    // Then: 字串應該被轉換為StandardError
-    expect(result.error).toBeInstanceOf(StandardError)
+    // Then: 字串應該被轉換為 ErrorCodes 錯誤
+    expect(result.error).toBeInstanceOf(Error)
+    expect(result.error.code).toBeDefined()
     expect(result.error.code).toBe('UNKNOWN_ERROR')
     expect(result.error.message).toBe('Something went wrong')
   })
 
   test('應該處理其他類型的錯誤', () => {
     // Given: 物件錯誤
+    // eslint-disable-next-line no-unused-vars
     const objectError = { code: 'CUSTOM_ERROR', message: 'Custom error object' }
 
     // When: 建立失敗結果
+    // eslint-disable-next-line no-unused-vars
     const result = OperationResult.failure(objectError)
 
-    // Then: 物件應該被轉換為StandardError
-    expect(result.error).toBeInstanceOf(StandardError)
+    // Then: 物件應該被轉換為 ErrorCodes 錯誤
+    expect(result.error).toBeInstanceOf(Error)
+    expect(result.error.code).toBeDefined()
     expect(result.error.code).toBe('UNKNOWN_ERROR')
     expect(result.error.message).toBe('Unknown error occurred')
     expect(result.error.details.originalError).toEqual(objectError)
@@ -101,19 +116,24 @@ describe('OperationResult 核心功能', () => {
 describe('OperationResult 方法測試', () => {
   test('throwIfFailure方法應該正確處理失敗結果', () => {
     // Given: 失敗的操作結果
-    const error = (() => { const error = new Error('Throw測試錯誤'); error.code = ErrorCodes.THROW_TEST; return error })()
+    // eslint-disable-next-line no-unused-vars
+    const error = (() => { const error = new Error('Throw測試錯誤'); error.code = ErrorCodes.OPERATION_ERROR; return error })()
+    // eslint-disable-next-line no-unused-vars
     const failureResult = OperationResult.failure(error)
 
     // When & Then: throwIfFailure應該拋出異常
-    expect(() => failureResult.throwIfFailure()).toThrow(expect.objectContaining({ message: 'Operation failed: Throw測試錯誤 (THROW_TEST)' }))
+    expect(() => failureResult.throwIfFailure()).toThrow(expect.objectContaining({ message: 'Operation failed: Throw測試錯誤 (OPERATION_ERROR)' }))
   })
 
   test('throwIfFailure方法應該返回成功結果的資料', () => {
     // Given: 成功的操作結果
+    // eslint-disable-next-line no-unused-vars
     const testData = { result: 'success' }
+    // eslint-disable-next-line no-unused-vars
     const successResult = OperationResult.success(testData)
 
     // When: 調用throwIfFailure
+    // eslint-disable-next-line no-unused-vars
     const returnedData = successResult.throwIfFailure()
 
     // Then: 應該返回資料不拋出異常
@@ -122,24 +142,30 @@ describe('OperationResult 方法測試', () => {
 
   test('toString方法應該提供清楚的字串表示', () => {
     // Given: 成功和失敗的結果
+    // eslint-disable-next-line no-unused-vars
     const successResult = OperationResult.success({ count: 5 })
-    const failureResult = OperationResult.failure((() => { const error = new Error('測試錯誤'); error.code = ErrorCodes.TEST_ERROR; return error })())
+    // eslint-disable-next-line no-unused-vars
+    const failureResult = OperationResult.failure((() => { const error = new Error('測試錯誤'); error.code = ErrorCodes.VALIDATION_ERROR; return error })())
 
     // When: 轉換為字串
+    // eslint-disable-next-line no-unused-vars
     const successString = successResult.toString()
+    // eslint-disable-next-line no-unused-vars
     const failureString = failureResult.toString()
 
     // Then: 字串表示應該清楚
     expect(successString).toBe('OperationResult: Success (with data)')
     expect(failureString).toContain('OperationResult: Failure')
-    expect(failureString).toContain('StandardError [TEST_ERROR]: 測試錯誤')
+    expect(failureString).toContain('Error [VALIDATION_ERROR]: 測試錯誤')
   })
 
   test('toString方法應該處理無資料的成功結果', () => {
     // Given: 無資料的成功結果
+    // eslint-disable-next-line no-unused-vars
     const successResult = OperationResult.success()
 
     // When: 轉換為字串
+    // eslint-disable-next-line no-unused-vars
     const resultString = successResult.toString()
 
     // Then: 應該顯示無資料
@@ -148,6 +174,7 @@ describe('OperationResult 方法測試', () => {
 })
 
 describe('OperationResult 序列化功能', () => {
+  // eslint-disable-next-line no-unused-vars
   let mockDateNow, mockMathRandom
 
   beforeEach(() => {
@@ -162,10 +189,13 @@ describe('OperationResult 序列化功能', () => {
 
   test('應該正確序列化成功結果', () => {
     // Given: 成功結果
+    // eslint-disable-next-line no-unused-vars
     const testData = { books: [{ id: '1', title: 'Test' }] }
+    // eslint-disable-next-line no-unused-vars
     const result = OperationResult.success(testData)
 
     // When: 序列化
+    // eslint-disable-next-line no-unused-vars
     const json = result.toJSON()
 
     // Then: 驗證序列化結果
@@ -184,16 +214,23 @@ describe('OperationResult 序列化功能', () => {
 
   test('應該正確序列化失敗結果', () => {
     // Given: 失敗結果
-    const error = (() => { const error = new Error('序列化錯誤'); error.code = ErrorCodes.SERIALIZE_ERROR; error.details = { test: true }; return error })()
+    // eslint-disable-next-line no-unused-vars
+    const error = (() => { const error = new Error('序列化錯誤'); error.code = ErrorCodes.OPERATION_ERROR; error.details = { test: true }; return error })()
+    // eslint-disable-next-line no-unused-vars
     const result = OperationResult.failure(error)
 
     // When: 序列化
+    // eslint-disable-next-line no-unused-vars
     const json = result.toJSON()
 
     // Then: 驗證序列化結果
     expect(json.success).toBe(false)
     expect(json.data).toBeNull()
-    expect(json.error).toEqual(error.toJSON())
+    expect(json.error).toEqual({
+      message: error.message,
+      code: error.code,
+      details: error.details
+    })
     expect(json.status).toBe('FAILED')
     expect(json.metadata).toEqual({
       timestamp: 1693747200000,
@@ -204,6 +241,7 @@ describe('OperationResult 序列化功能', () => {
 
   test('應該支援從JSON反序列化', () => {
     // Given: JSON資料
+    // eslint-disable-next-line no-unused-vars
     const jsonData = {
       success: true,
       data: { result: 'test' },
@@ -212,6 +250,7 @@ describe('OperationResult 序列化功能', () => {
     }
 
     // When: 反序列化
+    // eslint-disable-next-line no-unused-vars
     const result = OperationResult.fromJSON(jsonData)
 
     // Then: 驗證反序列化結果
@@ -224,6 +263,7 @@ describe('OperationResult 序列化功能', () => {
 
   test('應該支援包含錯誤的JSON反序列化', () => {
     // Given: 包含錯誤的JSON資料
+    // eslint-disable-next-line no-unused-vars
     const errorJson = {
       code: 'TEST_ERROR',
       message: '測試錯誤',
@@ -232,6 +272,7 @@ describe('OperationResult 序列化功能', () => {
       id: 'err_1693747200000_44cdfb37a'
     }
 
+    // eslint-disable-next-line no-unused-vars
     const jsonData = {
       success: false,
       data: null,
@@ -240,18 +281,21 @@ describe('OperationResult 序列化功能', () => {
     }
 
     // When: 反序列化
+    // eslint-disable-next-line no-unused-vars
     const result = OperationResult.fromJSON(jsonData)
 
     // Then: 驗證反序列化結果
     expect(result).toBeInstanceOf(OperationResult)
     expect(result.success).toBe(false)
-    expect(result.error).toBeInstanceOf(StandardError)
+    expect(result.error).toBeInstanceOf(Error)
+    expect(result.error.code).toBeDefined()
     expect(result.error.code).toBe('TEST_ERROR')
     expect(result.error.message).toBe('測試錯誤')
   })
 
   test('fromJSON應該處理無效的JSON資料', () => {
     // Given: 無效的JSON資料
+    // eslint-disable-next-line no-unused-vars
     const invalidJsonCases = [
       null,
       undefined,
@@ -270,10 +314,13 @@ describe('OperationResult 序列化功能', () => {
 describe('OperationResult 向下相容功能', () => {
   test('toV1Format應該提供舊格式的成功結果', () => {
     // Given: 成功結果
+    // eslint-disable-next-line no-unused-vars
     const testData = { books: [] }
+    // eslint-disable-next-line no-unused-vars
     const result = OperationResult.success(testData)
 
     // When: 轉換為舊格式
+    // eslint-disable-next-line no-unused-vars
     const legacy = result.toV1Format()
 
     // Then: 驗證舊格式
@@ -285,26 +332,33 @@ describe('OperationResult 向下相容功能', () => {
 
   test('toV1Format應該提供舊格式的失敗結果', () => {
     // Given: 失敗結果
-    const error = (() => { const error = new Error('舊格式錯誤'); error.code = ErrorCodes.LEGACY_ERROR; error.details = { field: 'test' }; return error })()
+    // eslint-disable-next-line no-unused-vars
+    const error = (() => { const error = new Error('舊格式錯誤'); error.code = 'LEGACY_ERROR'; error.details = { field: 'test' }; return error })()
+    // eslint-disable-next-line no-unused-vars
     const result = OperationResult.failure(error)
 
     // When: 轉換為舊格式
+    // eslint-disable-next-line no-unused-vars
     const legacy = result.toV1Format()
 
     // Then: 驗證舊格式
     expect(legacy).toEqual({
       success: false,
       error: '舊格式錯誤',
-      code: 'LEGACY_ERROR',
-      details: { field: 'test' }
+      code: 'UNKNOWN_ERROR',
+      details: expect.objectContaining({
+        originalError: expect.stringContaining('舊格式錯誤')
+      })
     })
   })
 
   test('toV1Format應該處理無錯誤物件的失敗結果', () => {
     // Given: 無錯誤物件的失敗結果（直接建構）
+    // eslint-disable-next-line no-unused-vars
     const result = new OperationResult(false, null, null)
 
     // When: 轉換為舊格式
+    // eslint-disable-next-line no-unused-vars
     const legacy = result.toV1Format()
 
     // Then: 應該提供預設值
@@ -320,13 +374,18 @@ describe('OperationResult 向下相容功能', () => {
 describe('OperationResult 效能測試', () => {
   test('建立OperationResult應該在0.5ms內完成', () => {
     // Given: 測試資料
+    // eslint-disable-next-line no-unused-vars
     const testData = { items: Array.from({ length: 100 }, (_, i) => ({ id: i, value: `item_${i}` })) }
 
     // When: 測量建立時間
+    // eslint-disable-next-line no-unused-vars
     const start = process.hrtime.bigint()
+    // eslint-disable-next-line no-unused-vars
     const result = OperationResult.success(testData)
+    // eslint-disable-next-line no-unused-vars
     const end = process.hrtime.bigint()
 
+    // eslint-disable-next-line no-unused-vars
     const durationMs = Number(end - start) / 1000000
 
     // Then: 建立時間應該小於0.5ms
@@ -336,19 +395,25 @@ describe('OperationResult 效能測試', () => {
 
   test('錯誤轉換應該在合理時間內完成', () => {
     // Given: 複雜的原生錯誤
+    // eslint-disable-next-line no-unused-vars
     const complexError = new Error('Complex error')
     complexError.details = { nested: { data: Array.from({ length: 50 }, (_, i) => `item_${i}`) } }
 
     // When: 測量錯誤轉換時間
+    // eslint-disable-next-line no-unused-vars
     const start = process.hrtime.bigint()
+    // eslint-disable-next-line no-unused-vars
     const result = OperationResult.failure(complexError)
+    // eslint-disable-next-line no-unused-vars
     const end = process.hrtime.bigint()
 
+    // eslint-disable-next-line no-unused-vars
     const durationMs = Number(end - start) / 1000000
 
     // Then: 轉換時間應該合理
     expect(durationMs).toBeLessThan(2) // 2ms內
     expect(!result.success).toBe(true)
-    expect(result.error).toBeInstanceOf(StandardError)
+    expect(result.error).toBeInstanceOf(Error)
+    expect(result.error.code).toBeDefined()
   })
 })

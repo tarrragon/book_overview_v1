@@ -30,6 +30,7 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
  */
 
 describe('🎭 事件總線核心測試', () => {
+  // eslint-disable-next-line no-unused-vars
   let eventBus
 
   beforeEach(() => {
@@ -50,10 +51,13 @@ describe('🎭 事件總線核心測試', () => {
   describe('📝 事件註冊機制', () => {
     test('應該能夠註冊事件監聽器', () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus') // 這會失敗，因為檔案不存在
       eventBus = new EventBus()
 
+      // eslint-disable-next-line no-unused-vars
       const eventType = 'data.extract.started'
+      // eslint-disable-next-line no-unused-vars
       const handler = jest.fn()
 
       // Act
@@ -66,12 +70,17 @@ describe('🎭 事件總線核心測試', () => {
 
     test('應該能夠註冊多個監聽器到同一事件', () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
+      // eslint-disable-next-line no-unused-vars
       const eventType = 'storage.save.completed'
+      // eslint-disable-next-line no-unused-vars
       const handler1 = jest.fn()
+      // eslint-disable-next-line no-unused-vars
       const handler2 = jest.fn()
+      // eslint-disable-next-line no-unused-vars
       const handler3 = jest.fn()
 
       // Act
@@ -85,11 +94,15 @@ describe('🎭 事件總線核心測試', () => {
 
     test('應該能夠移除特定的事件監聽器', () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
+      // eslint-disable-next-line no-unused-vars
       const eventType = 'ui.popup.opened'
+      // eslint-disable-next-line no-unused-vars
       const handler1 = jest.fn()
+      // eslint-disable-next-line no-unused-vars
       const handler2 = jest.fn()
 
       eventBus.on(eventType, handler1)
@@ -104,11 +117,15 @@ describe('🎭 事件總線核心測試', () => {
 
     test('應該能夠移除事件類型的所有監聽器', () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
+      // eslint-disable-next-line no-unused-vars
       const eventType = 'data.extract.failed'
+      // eslint-disable-next-line no-unused-vars
       const handler1 = jest.fn()
+      // eslint-disable-next-line no-unused-vars
       const handler2 = jest.fn()
 
       eventBus.on(eventType, handler1)
@@ -124,10 +141,13 @@ describe('🎭 事件總線核心測試', () => {
 
     test('應該支援一次性事件監聽器', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
+      // eslint-disable-next-line no-unused-vars
       const eventType = 'system.startup.completed'
+      // eslint-disable-next-line no-unused-vars
       const handler = jest.fn()
 
       // Act
@@ -148,11 +168,15 @@ describe('🎭 事件總線核心測試', () => {
   describe('🚀 事件觸發機制', () => {
     test('應該能夠觸發事件並執行監聽器', () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
+      // eslint-disable-next-line no-unused-vars
       const eventType = 'data.extract.progress'
+      // eslint-disable-next-line no-unused-vars
       const eventData = { progress: 50, total: 100 }
+      // eslint-disable-next-line no-unused-vars
       const handler = jest.fn()
 
       eventBus.on(eventType, handler)
@@ -167,14 +191,20 @@ describe('🎭 事件總線核心測試', () => {
 
     test('應該按照註冊順序執行多個監聽器', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
+      // eslint-disable-next-line no-unused-vars
       const eventType = 'storage.load.completed'
+      // eslint-disable-next-line no-unused-vars
       const executionOrder = []
 
+      // eslint-disable-next-line no-unused-vars
       const handler1 = jest.fn(() => executionOrder.push('handler1'))
+      // eslint-disable-next-line no-unused-vars
       const handler2 = jest.fn(() => executionOrder.push('handler2'))
+      // eslint-disable-next-line no-unused-vars
       const handler3 = jest.fn(() => executionOrder.push('handler3'))
 
       eventBus.on(eventType, handler1)
@@ -190,10 +220,13 @@ describe('🎭 事件總線核心測試', () => {
 
     test('應該支援非同步事件處理', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
+      // eslint-disable-next-line no-unused-vars
       const eventType = 'ui.export.requested'
+      // eslint-disable-next-line no-unused-vars
       const asyncHandler = jest.fn(async (data) => {
         // 模擬非同步操作
         await new Promise(resolve => setTimeout(resolve, 10))
@@ -203,6 +236,7 @@ describe('🎭 事件總線核心測試', () => {
       eventBus.on(eventType, asyncHandler)
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const results = await eventBus.emit(eventType, { format: 'csv' })
 
       // Assert
@@ -215,14 +249,20 @@ describe('🎭 事件總線核心測試', () => {
   describe('⚡ 事件優先級處理', () => {
     test('應該支援事件優先級', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
+      // eslint-disable-next-line no-unused-vars
       const eventType = 'system.error.critical'
+      // eslint-disable-next-line no-unused-vars
       const executionOrder = []
 
+      // eslint-disable-next-line no-unused-vars
       const lowPriorityHandler = jest.fn(() => executionOrder.push('low'))
+      // eslint-disable-next-line no-unused-vars
       const highPriorityHandler = jest.fn(() => executionOrder.push('high'))
+      // eslint-disable-next-line no-unused-vars
       const criticalPriorityHandler = jest.fn(() => executionOrder.push('critical'))
 
       // Act - 故意以非優先級順序註冊
@@ -240,14 +280,19 @@ describe('🎭 事件總線核心測試', () => {
   describe('🛡 錯誤處理機制', () => {
     test('應該隔離錯誤，不影響其他監聽器', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
+      // eslint-disable-next-line no-unused-vars
       const eventType = 'data.validation.failed'
+      // eslint-disable-next-line no-unused-vars
       const workingHandler = jest.fn()
+      // eslint-disable-next-line no-unused-vars
       const errorHandler = jest.fn(() => {
         throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.CORE_EVENTBUS_HANDLER_ERROR; error.details = { category: 'testing' }; return error })()
       })
+      // eslint-disable-next-line no-unused-vars
       const anotherWorkingHandler = jest.fn()
 
       eventBus.on(eventType, workingHandler)
@@ -265,11 +310,15 @@ describe('🎭 事件總線核心測試', () => {
 
     test('應該收集和報告處理器錯誤', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
+      // eslint-disable-next-line no-unused-vars
       const eventType = 'storage.corruption.detected'
+      // eslint-disable-next-line no-unused-vars
       const errorMessage = 'Storage corruption error'
+      // eslint-disable-next-line no-unused-vars
       const errorHandler = jest.fn(() => {
         throw new Error(errorMessage)
       })
@@ -277,6 +326,7 @@ describe('🎭 事件總線核心測試', () => {
       eventBus.on(eventType, errorHandler)
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const results = await eventBus.emit(eventType, { data: 'test' })
 
       // Assert
@@ -289,10 +339,13 @@ describe('🎭 事件總線核心測試', () => {
   describe('📊 統計和監控功能', () => {
     test('應該提供完整的事件系統統計資訊（無觸發時）', () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
+      // eslint-disable-next-line no-unused-vars
       const handler1 = jest.fn()
+      // eslint-disable-next-line no-unused-vars
       const handler2 = jest.fn()
 
       eventBus.on('event1', handler1)
@@ -300,6 +353,7 @@ describe('🎭 事件總線核心測試', () => {
       eventBus.on('event2', handler1)
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const stats = eventBus.getStats()
 
       // Assert
@@ -322,15 +376,19 @@ describe('🎭 事件總線核心測試', () => {
 
     test('應該正確更新事件觸發統計', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
+      // eslint-disable-next-line no-unused-vars
       const handler1 = jest.fn()
+      // eslint-disable-next-line no-unused-vars
       const handler2 = jest.fn()
 
       eventBus.on('test.event', handler1)
       eventBus.on('another.event', handler2)
 
+      // eslint-disable-next-line no-unused-vars
       const initialStats = eventBus.getStats()
       expect(initialStats.totalEvents).toBe(0)
       expect(initialStats.lastActivity).toBeNull()
@@ -339,6 +397,7 @@ describe('🎭 事件總線核心測試', () => {
       await eventBus.emit('test.event', { data: 'first' })
 
       // Assert - 檢查第一次觸發後統計
+      // eslint-disable-next-line no-unused-vars
       const firstStats = eventBus.getStats()
       expect(firstStats.totalEvents).toBe(1)
       expect(firstStats.totalEmissions).toBe(1)
@@ -346,6 +405,7 @@ describe('🎭 事件總線核心測試', () => {
       expect(firstStats.lastActivity).toBeTruthy()
       expect(typeof firstStats.lastActivity).toBe('string')
 
+      // eslint-disable-next-line no-unused-vars
       const firstActivityTime = new Date(firstStats.lastActivity)
       expect(firstActivityTime).toBeInstanceOf(Date)
       expect(firstActivityTime.getTime()).not.toBeNaN()
@@ -355,10 +415,12 @@ describe('🎭 事件總線核心測試', () => {
       await eventBus.emit('another.event', { data: 'second' })
 
       // Assert - 檢查第二次觸發後統計
+      // eslint-disable-next-line no-unused-vars
       const secondStats = eventBus.getStats()
       expect(secondStats.totalEvents).toBe(2)
       expect(secondStats.totalEmissions).toBe(2)
       expect(secondStats.totalExecutionTime).toBeGreaterThan(firstStats.totalExecutionTime)
+      // eslint-disable-next-line no-unused-vars
       const secondActivityTime = new Date(secondStats.lastActivity)
       expect(secondActivityTime.getTime()).toBeGreaterThan(firstActivityTime.getTime())
 
@@ -369,10 +431,12 @@ describe('🎭 事件總線核心測試', () => {
 
     test('應該在空事件系統時提供正確統計', () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const stats = eventBus.getStats()
 
       // Assert
@@ -390,17 +454,22 @@ describe('🎭 事件總線核心測試', () => {
 
     test('應該在移除監聽器後正確更新統計', () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
+      // eslint-disable-next-line no-unused-vars
       const handler1 = jest.fn()
+      // eslint-disable-next-line no-unused-vars
       const handler2 = jest.fn()
+      // eslint-disable-next-line no-unused-vars
       const handler3 = jest.fn()
 
       eventBus.on('event1', handler1)
       eventBus.on('event1', handler2)
       eventBus.on('event2', handler3)
 
+      // eslint-disable-next-line no-unused-vars
       const beforeStats = eventBus.getStats()
       expect(beforeStats.totalEventTypes).toBe(2)
       expect(beforeStats.totalListeners).toBe(3)
@@ -409,6 +478,7 @@ describe('🎭 事件總線核心測試', () => {
       eventBus.off('event1', handler1)
 
       // Assert - 檢查部分移除後統計
+      // eslint-disable-next-line no-unused-vars
       const afterRemoveStats = eventBus.getStats()
       expect(afterRemoveStats.totalEventTypes).toBe(2)
       expect(afterRemoveStats.totalListeners).toBe(2)
@@ -419,6 +489,7 @@ describe('🎭 事件總線核心測試', () => {
       eventBus.off('event1', handler2)
 
       // Assert - 檢查完全移除一個事件類型後統計
+      // eslint-disable-next-line no-unused-vars
       const afterCompleteRemoveStats = eventBus.getStats()
       expect(afterCompleteRemoveStats.totalEventTypes).toBe(1)
       expect(afterCompleteRemoveStats.totalListeners).toBe(1)
@@ -428,15 +499,18 @@ describe('🎭 事件總線核心測試', () => {
 
     test('應該在destroy後重置所有統計', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
+      // eslint-disable-next-line no-unused-vars
       const handler = jest.fn()
       eventBus.on('test.event', handler)
 
       // 觸發一些事件以建立統計資料
       await eventBus.emit('test.event', { data: 'test' })
 
+      // eslint-disable-next-line no-unused-vars
       const beforeDestroyStats = eventBus.getStats()
       expect(beforeDestroyStats.totalEvents).toBe(1)
       expect(beforeDestroyStats.totalListeners).toBe(1)
@@ -446,6 +520,7 @@ describe('🎭 事件總線核心測試', () => {
       eventBus.destroy()
 
       // Assert
+      // eslint-disable-next-line no-unused-vars
       const afterDestroyStats = eventBus.getStats()
       expect(afterDestroyStats).toEqual({
         totalEventTypes: 0,
@@ -461,19 +536,23 @@ describe('🎭 事件總線核心測試', () => {
 
     test('應該在emit不存在事件時仍更新部分統計', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
+      // eslint-disable-next-line no-unused-vars
       const initialStats = eventBus.getStats()
       expect(initialStats.totalEvents).toBe(0)
       expect(initialStats.lastActivity).toBeNull()
 
       // Act - emit 不存在監聽器的事件
+      // eslint-disable-next-line no-unused-vars
       const results = await eventBus.emit('nonexistent.event', { data: 'test' })
 
       // Assert
       expect(results).toEqual([]) // 無監聽器時返回空陣列
 
+      // eslint-disable-next-line no-unused-vars
       const afterStats = eventBus.getStats()
       expect(afterStats.totalEvents).toBe(1) // 仍應計算emit次數
       expect(afterStats.totalEmissions).toBe(1)
@@ -483,10 +562,13 @@ describe('🎭 事件總線核心測試', () => {
 
     test('應該追蹤事件觸發統計', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
+      // eslint-disable-next-line no-unused-vars
       const eventType = 'performance.test.event'
+      // eslint-disable-next-line no-unused-vars
       const handler = jest.fn()
 
       eventBus.on(eventType, handler)
@@ -496,6 +578,7 @@ describe('🎭 事件總線核心測試', () => {
       await eventBus.emit(eventType, { data: '2' })
 
       // Assert
+      // eslint-disable-next-line no-unused-vars
       const eventStats = eventBus.getEventStats(eventType)
       expect(eventStats.emitCount).toBe(2)
       expect(eventStats.totalExecutionTime).toBeGreaterThan(0)
@@ -506,6 +589,7 @@ describe('🎭 事件總線核心測試', () => {
   describe('🔧 記憶體和效能管理', () => {
     test('應該能夠完全清理所有監聽器', () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus()
 
@@ -517,6 +601,7 @@ describe('🎭 事件總線核心測試', () => {
       eventBus.removeAllListeners()
 
       // Assert
+      // eslint-disable-next-line no-unused-vars
       const stats = eventBus.getStats()
       expect(stats.totalEventTypes).toBe(0)
       expect(stats.totalListeners).toBe(0)
@@ -524,9 +609,11 @@ describe('🎭 事件總線核心測試', () => {
 
     test('應該支援最大監聽器數量限制', () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const EventBus = require('@/core/event-bus')
       eventBus = new EventBus({ maxListeners: 2 })
 
+      // eslint-disable-next-line no-unused-vars
       const eventType = 'limited.event'
 
       // Act & Assert

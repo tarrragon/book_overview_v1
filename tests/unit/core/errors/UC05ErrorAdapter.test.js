@@ -10,6 +10,7 @@ import { ErrorCodes } from '../../../../src/core/errors/ErrorCodes.js'
 describe('UC05ErrorAdapter', () => {
   describe('getErrorMapping', () => {
     test('應該回傳4個StandardError的映射', () => {
+      // eslint-disable-next-line no-unused-vars
       const mapping = UC05ErrorAdapter.getErrorMapping()
 
       expect(Object.keys(mapping)).toHaveLength(4)
@@ -22,7 +23,9 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('應該快取映射表', () => {
+      // eslint-disable-next-line no-unused-vars
       const mapping1 = UC05ErrorAdapter.getErrorMapping()
+      // eslint-disable-next-line no-unused-vars
       const mapping2 = UC05ErrorAdapter.getErrorMapping()
 
       expect(mapping1).toBe(mapping2) // 相同參考
@@ -52,6 +55,7 @@ describe('UC05ErrorAdapter', () => {
 
   describe('convertError', () => {
     test('應該轉換DATA_SYNC_VERSION_MISMATCH為VALIDATION_ERROR', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError(
         'DATA_SYNC_VERSION_MISMATCH',
         '設備間資料版本不相容',
@@ -72,6 +76,7 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('應該轉換DATA_SYNC_TIMESTAMP_CONFLICT為VALIDATION_ERROR', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError(
         'DATA_SYNC_TIMESTAMP_CONFLICT',
         '時間戳衝突'
@@ -83,6 +88,7 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('應該轉換NETWORK_CLOUD_SERVICE_UNAVAILABLE為NETWORK_ERROR', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError(
         'NETWORK_CLOUD_SERVICE_UNAVAILABLE',
         '雲端服務無法連接'
@@ -94,6 +100,7 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('應該轉換DATA_SYNC_CORRUPTION_DETECTED為FILE_ERROR', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError(
         'DATA_SYNC_CORRUPTION_DETECTED',
         '同步檔案損壞'
@@ -105,17 +112,20 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('應該使用預設訊息', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError('DATA_SYNC_VERSION_MISMATCH')
 
       expect(error.message).toBe('UC-05 sync operation failed')
     })
 
     test('應該合併額外的詳細資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const details = {
         customField: 'value',
         syncProgress: 75
       }
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError(
         'DATA_SYNC_VERSION_MISMATCH',
         '測試訊息',
@@ -130,8 +140,11 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('應該包含時間戳', () => {
+      // eslint-disable-next-line no-unused-vars
       const before = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError('DATA_SYNC_VERSION_MISMATCH', '測試')
+      // eslint-disable-next-line no-unused-vars
       const after = Date.now()
 
       expect(error.details.timestamp).toBeGreaterThanOrEqual(before)
@@ -141,6 +154,7 @@ describe('UC05ErrorAdapter', () => {
 
   describe('convertError - 錯誤處理', () => {
     test('應該處理無效的錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError(null, '測試訊息')
 
       expect(error.name).toBe('UC05ConversionError')
@@ -151,6 +165,7 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('應該處理未知的錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError('UNKNOWN_UC05_CODE', '測試訊息')
 
       expect(error.name).toBe('UC05ConversionError')
@@ -166,6 +181,7 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('應該處理空字串錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError('', '測試訊息')
 
       expect(error.name).toBe('UC05ConversionError')
@@ -173,6 +189,7 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('應該處理非字串錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError(123, '測試訊息')
 
       expect(error.name).toBe('UC05ConversionError')
@@ -200,6 +217,7 @@ describe('UC05ErrorAdapter', () => {
 
   describe('isValidErrorCodesError', () => {
     test('應該驗證有效的ErrorCodes錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError(
         'DATA_SYNC_VERSION_MISMATCH',
         '測試訊息'
@@ -209,6 +227,7 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('應該拒絕無效的錯誤物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidError = new Error('普通錯誤')
       expect(UC05ErrorAdapter.isValidErrorCodesError(invalidError)).toBe(false)
 
@@ -218,6 +237,7 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('應該檢查code屬性', () => {
+      // eslint-disable-next-line no-unused-vars
       const errorWithoutCode = new Error('測試')
       errorWithoutCode.details = {}
 
@@ -225,11 +245,13 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('應該檢查details屬性', () => {
+      // eslint-disable-next-line no-unused-vars
       const errorWithoutDetails = new Error('測試')
       errorWithoutDetails.code = ErrorCodes.VALIDATION_ERROR
 
       expect(UC05ErrorAdapter.isValidErrorCodesError(errorWithoutDetails)).toBe(false)
 
+      // eslint-disable-next-line no-unused-vars
       const errorWithNullDetails = new Error('測試')
       errorWithNullDetails.code = ErrorCodes.VALIDATION_ERROR
       errorWithNullDetails.details = null
@@ -240,15 +262,18 @@ describe('UC05ErrorAdapter', () => {
 
   describe('Chrome Extension 相容性', () => {
     test('錯誤物件應該可以JSON序列化', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError(
         'DATA_SYNC_VERSION_MISMATCH',
         '測試訊息',
         { localVersion: '2.0.0' }
       )
 
+      // eslint-disable-next-line no-unused-vars
       const serialized = JSON.stringify(error)
       expect(serialized).toBeDefined()
 
+      // eslint-disable-next-line no-unused-vars
       const parsed = JSON.parse(serialized)
       expect(parsed.message).toBe('測試訊息')
       expect(parsed.code).toBe(ErrorCodes.VALIDATION_ERROR)
@@ -256,9 +281,12 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('轉換錯誤應該可以JSON序列化', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError('INVALID_CODE', '測試')
 
+      // eslint-disable-next-line no-unused-vars
       const serialized = JSON.stringify(error)
+      // eslint-disable-next-line no-unused-vars
       const parsed = JSON.parse(serialized)
 
       expect(parsed.code).toBe(ErrorCodes.UNKNOWN_ERROR)
@@ -266,6 +294,7 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('應該支援toJSON方法', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError(
         'DATA_SYNC_VERSION_MISMATCH',
         '測試訊息'
@@ -273,6 +302,7 @@ describe('UC05ErrorAdapter', () => {
 
       expect(typeof error.toJSON).toBe('function')
 
+      // eslint-disable-next-line no-unused-vars
       const jsonObj = error.toJSON()
       expect(jsonObj.message).toBe('測試訊息')
       expect(jsonObj.code).toBe(ErrorCodes.VALIDATION_ERROR)
@@ -282,6 +312,7 @@ describe('UC05ErrorAdapter', () => {
 
   describe('同步場景特定測試', () => {
     test('版本錯誤應該包含版本資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError(
         'DATA_SYNC_VERSION_MISMATCH',
         '版本不相容',
@@ -300,6 +331,7 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('時間戳錯誤應該包含衝突資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError(
         'DATA_SYNC_TIMESTAMP_CONFLICT',
         '時間戳衝突',
@@ -320,6 +352,7 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('網路錯誤應該包含雲端服務資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError(
         'NETWORK_CLOUD_SERVICE_UNAVAILABLE',
         '雲端服務無法連接',
@@ -336,6 +369,7 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('檔案損壞錯誤應該包含恢復資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorAdapter.convertError(
         'DATA_SYNC_CORRUPTION_DETECTED',
         '檔案損壞',
@@ -354,6 +388,7 @@ describe('UC05ErrorAdapter', () => {
 
   describe('效能測試', () => {
     test('大量錯誤轉換應該保持效能', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 100; i++) {
@@ -364,17 +399,20 @@ describe('UC05ErrorAdapter', () => {
         )
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(50) // 100次轉換應該在50ms內
     })
 
     test('映射表快取應該減少重複計算', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 1000; i++) {
         UC05ErrorAdapter.getErrorMapping()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(10) // 1000次存取應該在10ms內
     })
@@ -382,7 +420,9 @@ describe('UC05ErrorAdapter', () => {
 
   describe('錯誤分類驗證', () => {
     test('VALIDATION_ERROR 類型應該正確映射', () => {
+      // eslint-disable-next-line no-unused-vars
       const versionError = UC05ErrorAdapter.convertError('DATA_SYNC_VERSION_MISMATCH', '版本錯誤')
+      // eslint-disable-next-line no-unused-vars
       const timestampError = UC05ErrorAdapter.convertError('DATA_SYNC_TIMESTAMP_CONFLICT', '時間戳錯誤')
 
       expect(versionError.code).toBe(ErrorCodes.VALIDATION_ERROR)
@@ -390,12 +430,14 @@ describe('UC05ErrorAdapter', () => {
     })
 
     test('NETWORK_ERROR 類型應該正確映射', () => {
+      // eslint-disable-next-line no-unused-vars
       const networkError = UC05ErrorAdapter.convertError('NETWORK_CLOUD_SERVICE_UNAVAILABLE', '網路錯誤')
 
       expect(networkError.code).toBe(ErrorCodes.NETWORK_ERROR)
     })
 
     test('FILE_ERROR 類型應該正確映射', () => {
+      // eslint-disable-next-line no-unused-vars
       const fileError = UC05ErrorAdapter.convertError('DATA_SYNC_CORRUPTION_DETECTED', '檔案錯誤')
 
       expect(fileError.code).toBe(ErrorCodes.FILE_ERROR)

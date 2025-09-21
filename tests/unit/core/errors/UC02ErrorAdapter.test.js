@@ -20,11 +20,15 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
   describe('基本錯誤映射測試', () => {
     test('應該正確映射 DATA_DUPLICATE_DETECTION_FAILED 到 VALIDATION_ERROR', () => {
       // Given: 重複檢測失敗的條件
+      // eslint-disable-next-line no-unused-vars
       const originalCode = 'DATA_DUPLICATE_DETECTION_FAILED'
+      // eslint-disable-next-line no-unused-vars
       const message = '重複書籍檢測機制失敗'
+      // eslint-disable-next-line no-unused-vars
       const details = { affectedBooks: ['book_123', 'book_456'] }
 
       // When: 執行錯誤轉換
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorAdapter.convertError(originalCode, message, details)
 
       // Then: 驗證轉換結果
@@ -39,11 +43,15 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
 
     test('應該正確映射 DATA_PROGRESS_VALIDATION_ERROR 到 VALIDATION_ERROR', () => {
       // Given: 進度驗證錯誤的條件
+      // eslint-disable-next-line no-unused-vars
       const originalCode = 'DATA_PROGRESS_VALIDATION_ERROR'
+      // eslint-disable-next-line no-unused-vars
       const message = '閱讀進度格式驗證失敗'
+      // eslint-disable-next-line no-unused-vars
       const details = { invalidProgressData: { progress: '150%' } }
 
       // When: 執行錯誤轉換
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorAdapter.convertError(originalCode, message, details)
 
       // Then: 驗證轉換結果
@@ -54,11 +62,15 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
 
     test('應該正確映射 DATA_INCREMENTAL_UPDATE_CONFLICT 到 BOOK_ERROR', () => {
       // Given: 增量更新衝突
+      // eslint-disable-next-line no-unused-vars
       const originalCode = 'DATA_INCREMENTAL_UPDATE_CONFLICT'
+      // eslint-disable-next-line no-unused-vars
       const message = '增量更新時發生資料衝突'
+      // eslint-disable-next-line no-unused-vars
       const details = { conflictedBooks: [{ id: 'book_789', conflict: 'progress_regression' }] }
 
       // When: 執行錯誤轉換
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorAdapter.convertError(originalCode, message, details)
 
       // Then: 驗證轉換結果
@@ -69,11 +81,15 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
 
     test('應該正確映射 DOM_PAGE_STRUCTURE_CHANGED 到 DOM_ERROR', () => {
       // Given: 頁面結構變化
+      // eslint-disable-next-line no-unused-vars
       const originalCode = 'DOM_PAGE_STRUCTURE_CHANGED'
+      // eslint-disable-next-line no-unused-vars
       const message = 'Readmoo 頁面結構已更新'
+      // eslint-disable-next-line no-unused-vars
       const details = { detectedChanges: ['.book-item', '.progress-bar'] }
 
       // When: 執行錯誤轉換
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorAdapter.convertError(originalCode, message, details)
 
       // Then: 驗證轉換結果
@@ -84,11 +100,15 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
 
     test('應該正確映射 NETWORK_RATE_LIMITING_DETECTED 到 NETWORK_ERROR', () => {
       // Given: 網路頻率限制
+      // eslint-disable-next-line no-unused-vars
       const originalCode = 'NETWORK_RATE_LIMITING_DETECTED'
+      // eslint-disable-next-line no-unused-vars
       const message = '檢測到 Readmoo 頻率限制'
+      // eslint-disable-next-line no-unused-vars
       const details = { requestsInWindow: 50, rateLimit: 30 }
 
       // When: 執行錯誤轉換
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorAdapter.convertError(originalCode, message, details)
 
       // Then: 驗證轉換結果
@@ -99,11 +119,15 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
 
     test('應該正確映射 PLATFORM_CHROME_EXTENSION_CONFLICT 到 CHROME_ERROR', () => {
       // Given: Chrome擴充功能衝突
+      // eslint-disable-next-line no-unused-vars
       const originalCode = 'PLATFORM_CHROME_EXTENSION_CONFLICT'
+      // eslint-disable-next-line no-unused-vars
       const message = 'Chrome 擴充功能衝突影響書籍提取'
+      // eslint-disable-next-line no-unused-vars
       const details = { conflictingExtensions: ['extension_1', 'extension_2'] }
 
       // When: 執行錯誤轉換
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorAdapter.convertError(originalCode, message, details)
 
       // Then: 驗證轉換結果
@@ -116,6 +140,7 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
   describe('完整映射覆蓋測試', () => {
     test('應該覆蓋所有15個UC-02 StandardError代碼', () => {
       // Given: UC-02的所有15個錯誤代碼
+      // eslint-disable-next-line no-unused-vars
       const allUC02Errors = [
         'DATA_DUPLICATE_DETECTION_FAILED',
         'DATA_INCREMENTAL_UPDATE_CONFLICT',
@@ -132,6 +157,7 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
       ]
 
       // When: 獲取映射表
+      // eslint-disable-next-line no-unused-vars
       const mapping = UC02ErrorAdapter.getErrorMapping()
 
       // Then: 驗證所有錯誤都有對應的映射
@@ -146,6 +172,7 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
 
     test('應該正確分類錯誤到對應的ErrorCodes類別', () => {
       // Given: 預期的錯誤分類
+      // eslint-disable-next-line no-unused-vars
       const expectedCategorization = {
         [ErrorCodes.VALIDATION_ERROR]: [
           'DATA_DUPLICATE_DETECTION_FAILED',
@@ -178,6 +205,7 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
       }
 
       // When: 獲取映射表
+      // eslint-disable-next-line no-unused-vars
       const mapping = UC02ErrorAdapter.getErrorMapping()
 
       // Then: 驗證分類正確性
@@ -192,10 +220,12 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
   describe('邊界條件和異常處理測試', () => {
     test('應該處理無效的錯誤代碼輸入', () => {
       // Given: 無效輸入條件
+      // eslint-disable-next-line no-unused-vars
       const invalidInputs = [null, undefined, '', 123, {}, []]
 
       invalidInputs.forEach(invalidInput => {
         // When: 轉換無效輸入
+        // eslint-disable-next-line no-unused-vars
         const error = UC02ErrorAdapter.convertError(invalidInput, 'test message')
 
         // Then: 應該回傳UNKNOWN_ERROR
@@ -207,10 +237,13 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
 
     test('應該處理未知的StandardError代碼', () => {
       // Given: 未知的錯誤代碼
+      // eslint-disable-next-line no-unused-vars
       const unknownCode = 'UNKNOWN_UC02_ERROR_CODE'
+      // eslint-disable-next-line no-unused-vars
       const message = 'Unknown error occurred'
 
       // When: 轉換未知錯誤代碼
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorAdapter.convertError(unknownCode, message)
 
       // Then: 應該回傳UNKNOWN_ERROR並包含診斷資訊
@@ -225,10 +258,13 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
 
     test('應該正確處理空的details物件', () => {
       // Given: 沒有額外詳細資訊
+      // eslint-disable-next-line no-unused-vars
       const originalCode = 'DATA_PROGRESS_VALIDATION_ERROR'
+      // eslint-disable-next-line no-unused-vars
       const message = 'Simple validation error'
 
       // When: 轉換錯誤（沒有details）
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorAdapter.convertError(originalCode, message)
 
       // Then: 應該包含預設的details結構
@@ -241,14 +277,18 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
 
     test('應該保留並合併額外的details資訊', () => {
       // Given: 包含額外詳細資訊
+      // eslint-disable-next-line no-unused-vars
       const originalCode = 'DATA_DUPLICATE_DETECTION_FAILED'
+      // eslint-disable-next-line no-unused-vars
       const message = 'Duplicate detection failed'
+      // eslint-disable-next-line no-unused-vars
       const customDetails = {
         customField: 'custom value',
         additionalInfo: { nested: 'data' }
       }
 
       // When: 轉換錯誤
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorAdapter.convertError(originalCode, message, customDetails)
 
       // Then: 應該保留自定義詳細資訊
@@ -264,9 +304,11 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
   describe('效能和記憶體使用測試', () => {
     test('錯誤映射表應該使用快取機制', () => {
       // Given: 第一次獲取映射表
+      // eslint-disable-next-line no-unused-vars
       const mapping1 = UC02ErrorAdapter.getErrorMapping()
 
       // When: 第二次獲取映射表
+      // eslint-disable-next-line no-unused-vars
       const mapping2 = UC02ErrorAdapter.getErrorMapping()
 
       // Then: 應該回傳相同的物件參照（快取效果）
@@ -276,13 +318,19 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
 
     test('錯誤轉換應該在合理時間內完成', () => {
       // Given: 標準錯誤轉換條件
+      // eslint-disable-next-line no-unused-vars
       const originalCode = 'DATA_DUPLICATE_DETECTION_FAILED'
+      // eslint-disable-next-line no-unused-vars
       const message = 'Performance test error'
+      // eslint-disable-next-line no-unused-vars
       const details = { performanceTest: true }
 
       // When: 測量轉換執行時間
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorAdapter.convertError(originalCode, message, details)
+      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
 
       // Then: 執行時間應該小於1毫秒（效能要求）
@@ -292,14 +340,18 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
 
     test('錯誤物件記憶體使用應該在合理範圍內', () => {
       // Given: 建立錯誤物件
+      // eslint-disable-next-line no-unused-vars
       const originalCode = 'DATA_INCREMENTAL_UPDATE_CONFLICT'
+      // eslint-disable-next-line no-unused-vars
       const message = 'Memory usage test error'
+      // eslint-disable-next-line no-unused-vars
       const details = {
         largeDataSet: new Array(100).fill('test data'),
         metadata: { info: 'memory test' }
       }
 
       // When: 轉換錯誤
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorAdapter.convertError(originalCode, message, details)
 
       // Then: 驗證錯誤物件結構合理
@@ -311,6 +363,7 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
       }))
 
       // 驗證序列化大小不會過大
+      // eslint-disable-next-line no-unused-vars
       const serialized = JSON.stringify(error.details)
       expect(serialized.length).toBeLessThan(15 * 1024) // 15KB限制
     })
@@ -319,6 +372,7 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
   describe('驗證功能測試', () => {
     test('isValidErrorCodesError 應該正確驗證ErrorCodes錯誤', () => {
       // Given: 有效的ErrorCodes錯誤
+      // eslint-disable-next-line no-unused-vars
       const validError = UC02ErrorAdapter.convertError(
         'DATA_PROGRESS_VALIDATION_ERROR',
         'Valid error',
@@ -326,6 +380,7 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
       )
 
       // When: 驗證錯誤物件
+      // eslint-disable-next-line no-unused-vars
       const isValid = UC02ErrorAdapter.isValidErrorCodesError(validError)
 
       // Then: 應該回傳true
@@ -334,6 +389,7 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
 
     test('isValidErrorCodesError 應該拒絕無效的錯誤物件', () => {
       // Given: 無效的錯誤物件
+      // eslint-disable-next-line no-unused-vars
       const invalidErrors = [
         new Error('Regular error'),
         { code: 'INVALID_CODE', message: 'Not an Error instance' },
@@ -343,6 +399,7 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
 
       invalidErrors.forEach(invalidError => {
         // When: 驗證無效錯誤
+        // eslint-disable-next-line no-unused-vars
         const isValid = UC02ErrorAdapter.isValidErrorCodesError(invalidError)
 
         // Then: 應該回傳false
@@ -352,6 +409,7 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
 
     test('getSeverityFromCode 應該正確分類錯誤嚴重程度', () => {
       // Given: 不同嚴重程度的錯誤代碼
+      // eslint-disable-next-line no-unused-vars
       const severityTests = [
         { code: 'DATA_PROGRESS_VALIDATION_ERROR', expected: 'MINOR' },
         { code: 'DATA_DUPLICATE_DETECTION_FAILED', expected: 'MODERATE' },
@@ -360,6 +418,7 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
 
       severityTests.forEach(({ code, expected }) => {
         // When: 獲取嚴重程度
+        // eslint-disable-next-line no-unused-vars
         const severity = UC02ErrorAdapter.getSeverityFromCode(code)
 
         // Then: 應該匹配預期值
@@ -369,6 +428,7 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
 
     test('extractSubType 應該正確提取子類型', () => {
       // Given: 測試子類型提取
+      // eslint-disable-next-line no-unused-vars
       const subTypeTests = [
         { code: 'DATA_DUPLICATE_DETECTION_FAILED', expected: 'DUPLICATE_DETECTION_FAILED' },
         { code: 'DOM_PAGE_STRUCTURE_CHANGED', expected: 'PAGE_STRUCTURE_CHANGED' },
@@ -377,6 +437,7 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
 
       subTypeTests.forEach(({ code, expected }) => {
         // When: 提取子類型
+        // eslint-disable-next-line no-unused-vars
         const subType = UC02ErrorAdapter.extractSubType(code)
 
         // Then: 應該匹配預期值

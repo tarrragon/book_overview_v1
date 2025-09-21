@@ -14,6 +14,7 @@ describe('UC07ErrorFactory', () => {
 
   describe('createError', () => {
     test('應該建立基本的 UC-07 錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createError(
         'SYSTEM_ERROR_HANDLER_RECURSION',
         '遞迴錯誤'
@@ -27,7 +28,9 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('應該建立帶有詳細資訊的錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const details = { recursionDepth: 5, emergencyMode: true }
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createError(
         'SYSTEM_ERROR_HANDLER_RECURSION',
         '測試錯誤',
@@ -41,7 +44,9 @@ describe('UC07ErrorFactory', () => {
 
   describe('createResult', () => {
     test('應該建立成功結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const data = { handledErrors: 10, systemStable: true }
+      // eslint-disable-next-line no-unused-vars
       const result = UC07ErrorFactory.createResult(true, data)
 
       expect(result.success).toBe(true)
@@ -51,7 +56,9 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('應該建立失敗結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createHandlerRecursionError()
+      // eslint-disable-next-line no-unused-vars
       const result = UC07ErrorFactory.createResult(false, null, error)
 
       expect(result.success).toBe(false)
@@ -61,7 +68,9 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('應該處理簡單錯誤物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const simpleError = new Error('簡單錯誤')
+      // eslint-disable-next-line no-unused-vars
       const result = UC07ErrorFactory.createResult(false, null, simpleError)
 
       expect(result.success).toBe(false)
@@ -72,6 +81,7 @@ describe('UC07ErrorFactory', () => {
 
   describe('createHandlerRecursionError', () => {
     test('應該建立錯誤處理器遞迴錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createHandlerRecursionError(
         8, 'DATA_VALIDATION_FAILED', ['handleDataError', 'logError'], true
       )
@@ -87,6 +97,7 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('應該包含錯誤處理分析', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createHandlerRecursionError(6)
 
       expect(error.details.errorHandling).toBeDefined()
@@ -97,6 +108,7 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createHandlerRecursionError()
 
       expect(error.details.recursionDepth).toBe(5)
@@ -108,6 +120,7 @@ describe('UC07ErrorFactory', () => {
 
   describe('createLoggingFailureError', () => {
     test('應該建立日誌記錄失敗錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createLoggingFailureError(
         'chrome.storage.local', 25, true, 'memory_buffer'
       )
@@ -123,6 +136,7 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('應該包含日誌和儲存分析', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createLoggingFailureError(
         'chrome.storage.local', 15, true
       )
@@ -135,6 +149,7 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createLoggingFailureError()
 
       expect(error.details.logDestination).toBe('chrome.storage.local')
@@ -146,11 +161,13 @@ describe('UC07ErrorFactory', () => {
 
   describe('createRecoveryExhaustedError', () => {
     test('應該建立恢復機制失效錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const attempts = [
         { strategy: 'restart_service', result: 'failed', timestamp: Date.now() - 30000 },
         { strategy: 'clear_cache', result: 'failed', timestamp: Date.now() - 20000 }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createRecoveryExhaustedError(
         attempts, true, 'severely_damaged'
       )
@@ -165,6 +182,7 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('應該包含恢復和系統分析', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createRecoveryExhaustedError()
 
       expect(error.details.recovery).toBeDefined()
@@ -175,17 +193,20 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('應該計算時間跨度', () => {
+      // eslint-disable-next-line no-unused-vars
       const attempts = [
         { strategy: 'restart', result: 'failed', timestamp: 1000000 },
         { strategy: 'reset', result: 'failed', timestamp: 1030000 }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createRecoveryExhaustedError(attempts)
 
       expect(error.details.recovery.timespan).toContain('30s')
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createRecoveryExhaustedError()
 
       expect(error.details.failedRecoveryAttempts).toHaveLength(3)
@@ -196,6 +217,7 @@ describe('UC07ErrorFactory', () => {
 
   describe('createPatternLearningError', () => {
     test('應該建立模式學習過載錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createPatternLearningError(
         1500, 1000, '2024-12-01', true, 'keep_recent_and_frequent'
       )
@@ -212,6 +234,7 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('應該包含學習和儲存分析', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createPatternLearningError(1200, 1000)
 
       expect(error.details.learning).toBeDefined()
@@ -223,12 +246,14 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('應該生成最舊模式日期', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createPatternLearningError()
 
       expect(error.details.oldestPattern).toMatch(/^\d{4}-\d{2}-\d{2}$/)
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createPatternLearningError()
 
       expect(error.details.learnedPatterns).toBe(1000)
@@ -240,6 +265,7 @@ describe('UC07ErrorFactory', () => {
 
   describe('createSystemStageError', () => {
     test('應該為錯誤處理相關階段建立遞迴錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createSystemStageError(
         'error_handling', 'validateInput', { recursionDepth: 4 }
       )
@@ -249,6 +275,7 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('應該為日誌相關階段建立日誌錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createSystemStageError(
         'logging', 'writeLog', { failedEvents: 10 }
       )
@@ -258,6 +285,7 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('應該為恢復相關階段建立恢復錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createSystemStageError(
         'recovery', 'restartService'
       )
@@ -267,6 +295,7 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('應該為學習相關階段建立學習錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createSystemStageError(
         'pattern_learning', 'analyzePatterns'
       )
@@ -276,6 +305,7 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('應該為其他階段建立預設錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createSystemStageError(
         'unknown_stage', 'unknownOperation'
       )
@@ -287,7 +317,9 @@ describe('UC07ErrorFactory', () => {
 
   describe('getCommonError - 快取機制', () => {
     test('應該快取常用錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC07ErrorFactory.getCommonError('RECURSION')
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC07ErrorFactory.getCommonError('RECURSION')
 
       expect(error1).toBe(error2) // 相同參考
@@ -295,9 +327,13 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('應該支援所有快取錯誤類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const recursionError = UC07ErrorFactory.getCommonError('RECURSION')
+      // eslint-disable-next-line no-unused-vars
       const loggingError = UC07ErrorFactory.getCommonError('LOGGING')
+      // eslint-disable-next-line no-unused-vars
       const recoveryError = UC07ErrorFactory.getCommonError('RECOVERY')
+      // eslint-disable-next-line no-unused-vars
       const learningError = UC07ErrorFactory.getCommonError('LEARNING')
 
       expect(recursionError.subType).toBe('ERROR_HANDLER_RECURSION')
@@ -307,6 +343,7 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('應該處理未知快取類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.getCommonError('UNKNOWN_TYPE')
 
       expect(error.code).toBe(ErrorCodes.OPERATION_ERROR)
@@ -326,17 +363,21 @@ describe('UC07ErrorFactory', () => {
 
   describe('sanitizeDetails', () => {
     test('應該保留正常大小的詳細資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const details = { field1: 'value1', field2: 'value2' }
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC07ErrorFactory.sanitizeDetails(details)
 
       expect(sanitized).toEqual(details)
     })
 
     test('應該截斷過大的詳細資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const largeDetails = {
         largeField: 'x'.repeat(20000)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC07ErrorFactory.sanitizeDetails(largeDetails)
 
       expect(sanitized._truncated).toBe(true)
@@ -353,21 +394,25 @@ describe('UC07ErrorFactory', () => {
 
   describe('isValidUC07Error', () => {
     test('應該驗證有效的 UC-07 錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createHandlerRecursionError()
 
       expect(UC07ErrorFactory.isValidUC07Error(error)).toBe(true)
     })
 
     test('應該拒絕無效的錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidError = new Error('普通錯誤')
       expect(UC07ErrorFactory.isValidUC07Error(invalidError)).toBe(false)
 
+      // eslint-disable-next-line no-unused-vars
       const errorWithWrongSubType = UC07ErrorFactory.createHandlerRecursionError()
       errorWithWrongSubType.subType = 'WRONG_SUBTYPE'
       expect(UC07ErrorFactory.isValidUC07Error(errorWithWrongSubType)).toBe(false)
     })
 
     test('應該檢查UC-07相關的subType', () => {
+      // eslint-disable-next-line no-unused-vars
       const validSubTypes = [
         'ERROR_HANDLER_RECURSION',
         'ERROR_LOGGING_FAILURE',
@@ -376,6 +421,7 @@ describe('UC07ErrorFactory', () => {
       ]
 
       validSubTypes.forEach(subType => {
+        // eslint-disable-next-line no-unused-vars
         const error = UC07ErrorFactory.createHandlerRecursionError()
         error.subType = subType
         expect(UC07ErrorFactory.isValidUC07Error(error)).toBe(true)
@@ -385,6 +431,7 @@ describe('UC07ErrorFactory', () => {
 
   describe('錯誤處理系統專用測試', () => {
     test('遞迴錯誤應該包含緊急模式指引', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createHandlerRecursionError(10)
 
       expect(error.details.errorHandling.maxDepthExceeded).toBe(true)
@@ -393,6 +440,7 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('日誌錯誤應該提供回退策略', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createLoggingFailureError(
         'chrome.storage.local', 60, true
       )
@@ -403,6 +451,7 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('恢復錯誤應該提供介入建議', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createRecoveryExhaustedError()
 
       expect(error.details.intervention.required).toBe(true)
@@ -411,6 +460,7 @@ describe('UC07ErrorFactory', () => {
     })
 
     test('學習錯誤應該提供修剪策略', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createPatternLearningError(1200, 1000)
 
       expect(error.details.pruning.required).toBe(true)
@@ -421,17 +471,20 @@ describe('UC07ErrorFactory', () => {
 
   describe('效能測試', () => {
     test('常用錯誤建立應該快速', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 50; i++) {
         UC07ErrorFactory.getCommonError('RECURSION')
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(10) // 50次建立應該在10ms內
     })
 
     test('錯誤建立應該在合理時間內完成', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 20; i++) {
@@ -441,6 +494,7 @@ describe('UC07ErrorFactory', () => {
         UC07ErrorFactory.createPatternLearningError(1000 + i, 1000)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(100) // 80次錯誤建立應該在100ms內
     })
@@ -448,21 +502,25 @@ describe('UC07ErrorFactory', () => {
 
   describe('私有輔助方法測試', () => {
     test('_calculateTimespan 應該正確計算時間', () => {
+      // eslint-disable-next-line no-unused-vars
       const attempts = [
         { timestamp: 1000000 },
         { timestamp: 1030000 }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const timespan = UC07ErrorFactory._calculateTimespan(attempts)
       expect(timespan).toBe('30s')
     })
 
     test('_assessFunctionality 應該正確評估功能性', () => {
+      // eslint-disable-next-line no-unused-vars
       const criticalAttempts = [
         { strategy: 'restart_service' },
         { strategy: 'restart_system' }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const functionality = UC07ErrorFactory._assessFunctionality(criticalAttempts)
       expect(functionality).toBe('severely_degraded')
     })

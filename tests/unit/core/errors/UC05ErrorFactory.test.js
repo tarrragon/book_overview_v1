@@ -15,6 +15,7 @@ describe('UC05ErrorFactory', () => {
 
   describe('createError', () => {
     test('應該建立基本的 UC-05 錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createError(
         'DATA_SYNC_VERSION_MISMATCH',
         '設備間資料版本不相容'
@@ -27,11 +28,13 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該建立帶有詳細資訊的錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const details = {
         localVersion: '2.1.0',
         remoteVersion: '1.8.0'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createError(
         'DATA_SYNC_VERSION_MISMATCH',
         '版本不相容',
@@ -45,6 +48,7 @@ describe('UC05ErrorFactory', () => {
 
   describe('createResult', () => {
     test('應該建立成功結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = UC05ErrorFactory.createResult(true, {
         syncedBooks: 150,
         syncTime: '2025-01-15T10:30:00Z'
@@ -62,11 +66,13 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該建立失敗結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createError(
         'DATA_SYNC_VERSION_MISMATCH',
         '版本不相容'
       )
 
+      // eslint-disable-next-line no-unused-vars
       const result = UC05ErrorFactory.createResult(false, null, error)
 
       expect(result).toEqual({
@@ -79,7 +85,9 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該處理簡單錯誤物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const simpleError = { message: '簡單錯誤' }
+      // eslint-disable-next-line no-unused-vars
       const result = UC05ErrorFactory.createResult(false, null, simpleError)
 
       expect(result).toEqual({
@@ -94,6 +102,7 @@ describe('UC05ErrorFactory', () => {
 
   describe('createSyncVersionError', () => {
     test('應該建立版本不相容錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncVersionError(
         '2.1.0',
         '1.8.0',
@@ -116,6 +125,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該包含版本分析資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncVersionError('2.1.0', '1.8.0')
 
       expect(error.details.versionDifference).toBeDefined()
@@ -125,6 +135,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncVersionError()
 
       expect(error.details.localVersion).toBe('unknown')
@@ -135,6 +146,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該正確計算版本差異', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncVersionError('2.1.3', '1.8.5')
 
       expect(error.details.versionDifference.major).toBe(1) // 2 - 1
@@ -146,6 +158,7 @@ describe('UC05ErrorFactory', () => {
 
   describe('createSyncTimestampError', () => {
     test('應該建立時間戳衝突錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const conflictedBooks = [
         {
           id: 'book_456',
@@ -154,6 +167,7 @@ describe('UC05ErrorFactory', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncTimestampError(
         conflictedBooks,
         'latest_timestamp_wins',
@@ -173,6 +187,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該包含衝突分析', () => {
+      // eslint-disable-next-line no-unused-vars
       const conflictedBooks = [
         {
           id: 'book_1',
@@ -186,6 +201,7 @@ describe('UC05ErrorFactory', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncTimestampError(conflictedBooks)
 
       expect(error.details.conflictAnalysis.simpleConflictsCount).toBe(1)
@@ -195,8 +211,10 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該限制顯示的衝突書籍數量', () => {
+      // eslint-disable-next-line no-unused-vars
       const manyBooks = Array.from({ length: 15 }, (_, i) => ({ id: `book_${i}` }))
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncTimestampError(manyBooks)
 
       expect(error.details.conflictedBooks).toHaveLength(10) // 限制為10個
@@ -204,6 +222,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncTimestampError()
 
       expect(error.details.conflictedBooks).toEqual([])
@@ -214,6 +233,7 @@ describe('UC05ErrorFactory', () => {
 
   describe('createCloudServiceError', () => {
     test('應該建立雲端服務無法連接錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createCloudServiceError(
         'Google Drive',
         '2025-01-14T18:00:00Z',
@@ -235,6 +255,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該包含服務狀態分析', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createCloudServiceError('Dropbox', null, 5)
 
       expect(error.details.serviceStatus.serviceName).toBe('Dropbox')
@@ -243,6 +264,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該計算重試延遲', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createCloudServiceError('Test Service', null, 2)
 
       expect(error.details.retryStrategy.exponentialBackoff).toBe(true)
@@ -251,6 +273,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該包含故障排除建議', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createCloudServiceError('Test Service', null, 4)
 
       expect(error.details.troubleshooting.checkNetworkConnection).toBe(true)
@@ -258,6 +281,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createCloudServiceError()
 
       expect(error.details.cloudService).toBe('Unknown Cloud Service')
@@ -268,6 +292,7 @@ describe('UC05ErrorFactory', () => {
 
   describe('createSyncCorruptionError', () => {
     test('應該建立同步檔案損壞錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncCorruptionError(
         'partial_json_truncation',
         '2025-01-13T12:00:00Z',
@@ -289,6 +314,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該包含風險評估', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncCorruptionError(
         'complete_file_corruption',
         null,
@@ -301,6 +327,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該包含恢復計畫', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncCorruptionError(
         'metadata_corruption',
         null,
@@ -314,6 +341,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該包含預防措施建議', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncCorruptionError()
 
       expect(error.details.preventiveMeasures.enableAutoBackup).toBe(true)
@@ -321,6 +349,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncCorruptionError()
 
       expect(error.details.corruptionType).toBe('unknown_corruption')
@@ -331,6 +360,7 @@ describe('UC05ErrorFactory', () => {
 
   describe('createSyncProgressError', () => {
     test('應該為版本相關階段建立版本錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncProgressError(
         30,
         'version_compatibility_check',
@@ -343,6 +373,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該為時間戳相關階段建立時間戳錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncProgressError(
         60,
         'timestamp_conflict_resolution',
@@ -354,6 +385,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該為網路相關階段建立網路錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncProgressError(
         80,
         'cloud_service_upload',
@@ -365,6 +397,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該為其他階段建立檔案錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncProgressError(
         90,
         'data_validation',
@@ -378,7 +411,9 @@ describe('UC05ErrorFactory', () => {
 
   describe('getCommonError - 快取機制', () => {
     test('應該快取常用錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC05ErrorFactory.getCommonError('SYNC_VERSION')
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC05ErrorFactory.getCommonError('SYNC_VERSION')
 
       expect(error1).toBe(error2) // 相同參考
@@ -387,6 +422,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該支援所有快取錯誤類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const cacheTypes = [
         'SYNC_VERSION',
         'SYNC_TIMESTAMP',
@@ -395,6 +431,7 @@ describe('UC05ErrorFactory', () => {
       ]
 
       cacheTypes.forEach(type => {
+        // eslint-disable-next-line no-unused-vars
         const error = UC05ErrorFactory.getCommonError(type)
         expect(error).toBeInstanceOf(Error)
         expect(error.details.cached).toBe(true)
@@ -402,6 +439,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該處理未知快取類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.getCommonError('UNKNOWN_TYPE')
       expect(error).toBeNull()
     })
@@ -416,7 +454,9 @@ describe('UC05ErrorFactory', () => {
       UC05ErrorFactory.clearCache()
 
       // 重新取得應該是新物件
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC05ErrorFactory.getCommonError('SYNC_VERSION')
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC05ErrorFactory.getCommonError('SYNC_VERSION')
 
       expect(error1).toBe(error2) // 新快取中相同
@@ -426,17 +466,20 @@ describe('UC05ErrorFactory', () => {
 
   describe('sanitizeDetails', () => {
     test('應該保留正常大小的詳細資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const details = {
         syncId: 'sync_123',
         deviceList: ['device1', 'device2'],
         timestamp: '2025-01-15T10:30:00Z'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC05ErrorFactory.sanitizeDetails(details)
       expect(sanitized).toEqual(details)
     })
 
     test('應該截斷過大的詳細資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const largeDetails = {
         largeDeviceList: new Array(10000).fill().map((_, i) => ({
           id: `device_${i}`,
@@ -444,6 +487,7 @@ describe('UC05ErrorFactory', () => {
         }))
       }
 
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC05ErrorFactory.sanitizeDetails(largeDetails)
 
       expect(sanitized._truncated).toBe(true)
@@ -462,6 +506,7 @@ describe('UC05ErrorFactory', () => {
 
   describe('isValidUC05Error', () => {
     test('應該驗證有效的 UC-05 錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createError(
         'DATA_SYNC_VERSION_MISMATCH',
         '測試訊息'
@@ -471,6 +516,7 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該拒絕無效的錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidError = new Error('普通錯誤')
       expect(UC05ErrorFactory.isValidUC05Error(invalidError)).toBe(false)
 
@@ -479,10 +525,12 @@ describe('UC05ErrorFactory', () => {
     })
 
     test('應該檢查UC-05相關的subType', () => {
+      // eslint-disable-next-line no-unused-vars
       const validError = UC05ErrorFactory.createSyncVersionError()
       expect(UC05ErrorFactory.isValidUC05Error(validError)).toBe(true)
 
       // 建立一個不相關的錯誤
+      // eslint-disable-next-line no-unused-vars
       const otherError = new Error('其他錯誤')
       otherError.code = ErrorCodes.VALIDATION_ERROR
       otherError.subType = 'OTHER_ERROR'
@@ -494,24 +542,28 @@ describe('UC05ErrorFactory', () => {
 
   describe('跨設備同步場景專用測試', () => {
     test('版本錯誤應該包含同步指引', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncVersionError()
       expect(error.details.userGuidance).toContain('版本差異可以自動處理')
       expect(error.details.suggestedActions).toContain('check_extension_versions')
     })
 
     test('時間戳錯誤應該提供衝突解決選項', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncTimestampError()
       expect(error.details.userGuidance).toContain('選擇合併策略')
       expect(error.details.resolutionOptions.latestTimestampWins).toBe('採用最新時間戳的資料')
     })
 
     test('雲端服務錯誤應該提供重試策略', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createCloudServiceError()
       expect(error.details.userGuidance).toContain('備用方案')
       expect(error.details.retryStrategy.exponentialBackoff).toBe(true)
     })
 
     test('檔案損壞錯誤應該提供恢復計畫', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC05ErrorFactory.createSyncCorruptionError()
       expect(error.details.userGuidance).toContain('恢復策略')
       expect(error.details.recoveryPlan.primaryOption).toBeDefined()
@@ -520,17 +572,20 @@ describe('UC05ErrorFactory', () => {
 
   describe('效能測試', () => {
     test('常用錯誤建立應該快速', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 100; i++) {
         UC05ErrorFactory.getCommonError('SYNC_VERSION')
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(10) // 100次快取存取應該在10ms內
     })
 
     test('錯誤建立應該在合理時間內完成', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 50; i++) {
@@ -544,6 +599,7 @@ describe('UC05ErrorFactory', () => {
         )
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(100) // 50個複雜錯誤應該在100ms內
     })
@@ -551,6 +607,7 @@ describe('UC05ErrorFactory', () => {
 
   describe('私有輔助方法測試', () => {
     test('_calculateVersionDifference 應該正確計算版本差異', () => {
+      // eslint-disable-next-line no-unused-vars
       const difference = UC05ErrorFactory._calculateVersionDifference('2.1.3', '1.8.5')
 
       expect(difference.major).toBe(1)

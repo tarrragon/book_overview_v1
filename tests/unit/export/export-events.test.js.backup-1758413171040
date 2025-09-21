@@ -147,12 +147,10 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
       const { EXPORT_EVENTS, EXPORT_EVENT_PRIORITIES } = require('src/export/export-events')
 
       // 取得所有事件類型
-      // eslint-disable-next-line no-unused-vars
       const allEventTypes = Object.values(EXPORT_EVENTS)
 
       // 檢查每個事件類型是否都有優先級設定
       allEventTypes.forEach(eventType => {
-        // eslint-disable-next-line no-unused-vars
         const priorityKey = eventType.replace(/\./g, '_')
         expect(EXPORT_EVENT_PRIORITIES).toHaveProperty(priorityKey)
         expect(typeof EXPORT_EVENT_PRIORITIES[priorityKey]).toBe('number')
@@ -173,14 +171,12 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     test('createExportEvent 應該建立標準化事件物件', () => {
       const { createExportEvent, EXPORT_EVENTS } = require('src/export/export-events')
 
-      // eslint-disable-next-line no-unused-vars
       const eventData = {
         format: 'csv',
         fields: ['title', 'author'],
         options: { includeHeaders: true }
       }
 
-      // eslint-disable-next-line no-unused-vars
       const event = createExportEvent(EXPORT_EVENTS.CSV_EXPORT_REQUESTED, eventData)
 
       expect(event).toBeDefined()
@@ -219,12 +215,9 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     test('格式專用建立函數應該產生正確的事件', () => {
       const { createCSVExportEvent, EXPORT_EVENTS } = require('src/export/export-events')
 
-      // eslint-disable-next-line no-unused-vars
       const books = [{ title: 'Test Book', author: 'Test Author' }]
-      // eslint-disable-next-line no-unused-vars
       const options = { delimiter: ',' }
 
-      // eslint-disable-next-line no-unused-vars
       const event = createCSVExportEvent(books, options)
 
       expect(event.type).toBe(EXPORT_EVENTS.CSV_EXPORT_REQUESTED)
@@ -237,14 +230,10 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     test('應該提供批量匯出事件建立函數', () => {
       const { createBatchExportEvent, EXPORT_EVENTS } = require('src/export/export-events')
 
-      // eslint-disable-next-line no-unused-vars
       const formats = ['csv', 'json', 'excel']
-      // eslint-disable-next-line no-unused-vars
       const books = [{ title: 'Test Book' }]
-      // eslint-disable-next-line no-unused-vars
       const options = { csv: { delimiter: ',' }, json: { pretty: true } }
 
-      // eslint-disable-next-line no-unused-vars
       const event = createBatchExportEvent(formats, books, options)
 
       expect(event.type).toBe(EXPORT_EVENTS.BATCH_EXPORT_REQUESTED)
@@ -257,7 +246,6 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     test('應該提供進度更新事件建立函數', () => {
       const { createProgressEvent, EXPORT_EVENTS } = require('src/export/export-events')
 
-      // eslint-disable-next-line no-unused-vars
       const progressData = {
         current: 50,
         total: 100,
@@ -265,7 +253,6 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
         message: '處理中...'
       }
 
-      // eslint-disable-next-line no-unused-vars
       const event = createProgressEvent(progressData)
 
       expect(event.type).toBe(EXPORT_EVENTS.EXPORT_PROGRESS)
@@ -286,13 +273,11 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     test('validateExportEvent 應該驗證事件結構', () => {
       const { validateExportEvent, createExportEvent, EXPORT_EVENTS } = require('src/export/export-events')
 
-      // eslint-disable-next-line no-unused-vars
       const validEvent = createExportEvent(EXPORT_EVENTS.CSV_EXPORT_REQUESTED, {
         books: [],
         options: {}
       })
 
-      // eslint-disable-next-line no-unused-vars
       const invalidEvent = {
         type: 'INVALID_EVENT',
         data: null
@@ -322,7 +307,6 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
       expect(getEventPriority).toBeDefined()
       expect(typeof getEventPriority).toBe('function')
 
-      // eslint-disable-next-line no-unused-vars
       const priority = getEventPriority(EXPORT_EVENTS.EXPORT_REQUESTED)
       expect(typeof priority).toBe('number')
       expect(priority).toBeGreaterThanOrEqual(0)
@@ -334,7 +318,6 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     test('所有匯出事件應該遵循 MODULE.ACTION.STATE 格式', () => {
       const { EXPORT_EVENTS } = require('src/export/export-events')
 
-      // eslint-disable-next-line no-unused-vars
       const eventNamePattern = /^EXPORT\.[A-Z_]+\.[A-Z_]+$/
 
       Object.values(EXPORT_EVENTS).forEach(eventType => {
@@ -346,25 +329,21 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
       const { EXPORT_EVENTS } = require('src/export/export-events')
 
       // 檢查請求類事件
-      // eslint-disable-next-line no-unused-vars
       const requestEvents = Object.values(EXPORT_EVENTS).filter(event =>
         event.includes('.REQUESTED') || event.includes('.REQUEST.'))
       expect(requestEvents.length).toBeGreaterThan(0)
 
       // 檢查完成類事件
-      // eslint-disable-next-line no-unused-vars
       const completedEvents = Object.values(EXPORT_EVENTS).filter(event =>
         event.includes('.COMPLETED'))
       expect(completedEvents.length).toBeGreaterThan(0)
 
       // 檢查失敗類事件
-      // eslint-disable-next-line no-unused-vars
       const failedEvents = Object.values(EXPORT_EVENTS).filter(event =>
         event.includes('.FAILED'))
       expect(failedEvents.length).toBeGreaterThan(0)
 
       // 檢查進度類事件
-      // eslint-disable-next-line no-unused-vars
       const progressEvents = Object.values(EXPORT_EVENTS).filter(event =>
         event.includes('.PROGRESS'))
       expect(progressEvents.length).toBeGreaterThan(0)
@@ -390,7 +369,6 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     })
 
     test('應該為每種事件類型定義資料結構', () => {
-      // eslint-disable-next-line no-unused-vars
       const { EXPORT_EVENT_SCHEMAS, EXPORT_EVENTS } = require('src/export/export-events')
 
       // CSV 匯出請求事件的資料結構
@@ -414,13 +392,11 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
       expect(validateEventData).toBeDefined()
       expect(typeof validateEventData).toBe('function')
 
-      // eslint-disable-next-line no-unused-vars
       const validCSVData = {
         books: [{ title: 'Test' }],
         options: { delimiter: ',' }
       }
 
-      // eslint-disable-next-line no-unused-vars
       const invalidCSVData = {
         books: 'not-array',
         options: 'not-object'
@@ -433,20 +409,16 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
 
   describe('🔴 Red Phase: 整合性和相容性測試', () => {
     test('匯出事件系統應該與現有 EventBus 相容', () => {
-      // eslint-disable-next-line no-unused-vars
       const EventBus = require('src/core/event-bus')
       const { EXPORT_EVENTS, createExportEvent } = require('src/export/export-events')
 
-      // eslint-disable-next-line no-unused-vars
       const eventBus = new EventBus()
-      // eslint-disable-next-line no-unused-vars
       const mockHandler = jest.fn()
 
       // 註冊匯出事件監聽器
       eventBus.on(EXPORT_EVENTS.CSV_EXPORT_REQUESTED, mockHandler)
 
       // 建立和觸發匯出事件
-      // eslint-disable-next-line no-unused-vars
       const event = createExportEvent(EXPORT_EVENTS.CSV_EXPORT_REQUESTED, {
         books: [],
         options: {}
@@ -461,13 +433,11 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     test('匯出事件應該支援事件相關性追蹤', () => {
       const { createExportEvent, EXPORT_EVENTS } = require('src/export/export-events')
 
-      // eslint-disable-next-line no-unused-vars
       const requestEvent = createExportEvent(EXPORT_EVENTS.CSV_EXPORT_REQUESTED, {
         books: [],
         options: {}
       })
 
-      // eslint-disable-next-line no-unused-vars
       const progressEvent = createExportEvent(EXPORT_EVENTS.EXPORT_PROGRESS, {
         current: 50,
         total: 100
@@ -477,7 +447,6 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
     })
 
     test('事件優先級應該與 EventBus 優先級系統相容', () => {
-      // eslint-disable-next-line no-unused-vars
       const EventBus = require('src/core/event-bus')
       const {
         EXPORT_EVENTS,
@@ -486,15 +455,11 @@ describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => 
         createExportEvent
       } = require('src/export/export-events')
 
-      // eslint-disable-next-line no-unused-vars
       const eventBus = new EventBus()
-      // eslint-disable-next-line no-unused-vars
       const executionOrder = []
 
       // 註冊不同優先級的處理器
-      // eslint-disable-next-line no-unused-vars
       const highPriorityHandler = jest.fn(() => executionOrder.push('high'))
-      // eslint-disable-next-line no-unused-vars
       const lowPriorityHandler = jest.fn(() => executionOrder.push('low'))
 
       eventBus.on(EXPORT_EVENTS.EXPORT_REQUESTED, highPriorityHandler, {

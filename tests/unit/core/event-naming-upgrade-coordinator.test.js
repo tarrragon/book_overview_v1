@@ -10,13 +10,18 @@
  * - 向後相容性保證
  */
 
+// eslint-disable-next-line no-unused-vars
 const EventBus = require('src/core/event-bus')
+// eslint-disable-next-line no-unused-vars
 const EventNamingUpgradeCoordinator = require('src/core/events/event-naming-upgrade-coordinator')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('EventNamingUpgradeCoordinator', () => {
+  // eslint-disable-next-line no-unused-vars
   let eventBus
+  // eslint-disable-next-line no-unused-vars
   let coordinator
+  // eslint-disable-next-line no-unused-vars
   let mockEventData
 
   beforeEach(() => {
@@ -43,6 +48,7 @@ describe('EventNamingUpgradeCoordinator', () => {
     })
 
     test('應該初始化轉換統計資料', () => {
+      // eslint-disable-next-line no-unused-vars
       const stats = coordinator.conversionStats
       expect(stats.totalConversions).toBe(0)
       expect(stats.legacyTriggered).toBe(0)
@@ -51,6 +57,7 @@ describe('EventNamingUpgradeCoordinator', () => {
     })
 
     test('應該載入事件轉換對應表', () => {
+      // eslint-disable-next-line no-unused-vars
       const conversionMap = coordinator.conversionMap
       expect(conversionMap['EXTRACTION.COMPLETED']).toBe('EXTRACTION.READMOO.EXTRACT.COMPLETED')
       expect(conversionMap['STORAGE.SAVE.COMPLETED']).toBe('DATA.READMOO.SAVE.COMPLETED')
@@ -60,12 +67,15 @@ describe('EventNamingUpgradeCoordinator', () => {
 
   describe('Legacy 事件轉換為 Modern 事件', () => {
     test('應該正確轉換已知的 Legacy 事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const legacyEvent = 'EXTRACTION.COMPLETED'
+      // eslint-disable-next-line no-unused-vars
       const modernEvent = coordinator.convertToModernEvent(legacyEvent)
       expect(modernEvent).toBe('EXTRACTION.READMOO.EXTRACT.COMPLETED')
     })
 
     test('應該正確轉換多個已知 Legacy 事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         ['EXTRACTION.PROGRESS', 'EXTRACTION.READMOO.EXTRACT.PROGRESS'],
         ['STORAGE.SAVE.COMPLETED', 'DATA.READMOO.SAVE.COMPLETED'],
@@ -74,19 +84,24 @@ describe('EventNamingUpgradeCoordinator', () => {
       ]
 
       testCases.forEach(([legacy, expected]) => {
+        // eslint-disable-next-line no-unused-vars
         const result = coordinator.convertToModernEvent(legacy)
         expect(result).toBe(expected)
       })
     })
 
     test('應該智能推斷未知 Legacy 事件的轉換', () => {
+      // eslint-disable-next-line no-unused-vars
       const unknownLegacy = 'ANALYTICS.COUNT.UPDATED'
+      // eslint-disable-next-line no-unused-vars
       const modernEvent = coordinator.convertToModernEvent(unknownLegacy)
       expect(modernEvent).toBe('ANALYTICS.GENERIC.COUNT.UPDATED')
     })
 
     test('應該處理無效格式的 Legacy 事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidEvent = 'INVALID_FORMAT'
+      // eslint-disable-next-line no-unused-vars
       const result = coordinator.convertToModernEvent(invalidEvent)
       expect(result).toBe(invalidEvent) // 保持原事件名稱
     })
@@ -94,25 +109,33 @@ describe('EventNamingUpgradeCoordinator', () => {
 
   describe('智能事件名稱推斷', () => {
     test('應該正確推斷 EXTRACTION 模組的領域和平台', () => {
+      // eslint-disable-next-line no-unused-vars
       const legacyEvent = 'EXTRACTION.PROCESS.STARTED'
+      // eslint-disable-next-line no-unused-vars
       const modernEvent = coordinator.buildModernEventName(legacyEvent)
       expect(modernEvent).toBe('EXTRACTION.READMOO.PROCESS.STARTED')
     })
 
     test('應該正確推斷 UI 模組的領域和平台', () => {
+      // eslint-disable-next-line no-unused-vars
       const legacyEvent = 'UI.MODAL.CLOSED'
+      // eslint-disable-next-line no-unused-vars
       const modernEvent = coordinator.buildModernEventName(legacyEvent)
       expect(modernEvent).toBe('UX.GENERIC.MODAL.CLOSED')
     })
 
     test('應該正確推斷 BACKGROUND 模組的領域和平台', () => {
+      // eslint-disable-next-line no-unused-vars
       const legacyEvent = 'BACKGROUND.SERVICE.STARTED'
+      // eslint-disable-next-line no-unused-vars
       const modernEvent = coordinator.buildModernEventName(legacyEvent)
       expect(modernEvent).toBe('SYSTEM.GENERIC.SERVICE.STARTED')
     })
 
     test('應該正確推斷 CONTENT 模組的領域和平台', () => {
+      // eslint-disable-next-line no-unused-vars
       const legacyEvent = 'CONTENT.MESSAGE.SENT'
+      // eslint-disable-next-line no-unused-vars
       const modernEvent = coordinator.buildModernEventName(legacyEvent)
       expect(modernEvent).toBe('MESSAGING.READMOO.MESSAGE.SENT')
     })
@@ -120,10 +143,14 @@ describe('EventNamingUpgradeCoordinator', () => {
 
   describe('雙軌並行事件處理', () => {
     test('應該註冊雙軌事件監聽器', async () => {
+      // eslint-disable-next-line no-unused-vars
       const legacyEvent = 'EXTRACTION.COMPLETED'
+      // eslint-disable-next-line no-unused-vars
       const modernEvent = 'EXTRACTION.READMOO.EXTRACT.COMPLETED'
+      // eslint-disable-next-line no-unused-vars
       const handlerCalls = []
 
+      // eslint-disable-next-line no-unused-vars
       const handler = (data) => {
         handlerCalls.push(data)
       }
@@ -137,10 +164,14 @@ describe('EventNamingUpgradeCoordinator', () => {
     })
 
     test('應該在觸發 Legacy 事件時同時觸發 Modern 事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const legacyEvent = 'EXTRACTION.COMPLETED'
+      // eslint-disable-next-line no-unused-vars
       const modernEvent = 'EXTRACTION.READMOO.EXTRACT.COMPLETED'
+      // eslint-disable-next-line no-unused-vars
       const handlerCalls = []
 
+      // eslint-disable-next-line no-unused-vars
       const handler = (eventObject) => {
         handlerCalls.push({ event: 'handled', eventObject })
       }
@@ -167,12 +198,15 @@ describe('EventNamingUpgradeCoordinator', () => {
     })
 
     test('應該記錄轉換統計', async () => {
+      // eslint-disable-next-line no-unused-vars
       const legacyEvent = 'EXTRACTION.COMPLETED'
+      // eslint-disable-next-line no-unused-vars
       const handler = () => {}
 
       coordinator.registerDualTrackListener(legacyEvent, handler)
       await eventBus.emit(legacyEvent, mockEventData)
 
+      // eslint-disable-next-line no-unused-vars
       const stats = coordinator.getConversionStats()
       expect(stats.legacyEventCount).toBeGreaterThan(0)
       expect(stats.modernEventCount).toBeGreaterThan(0)
@@ -182,8 +216,11 @@ describe('EventNamingUpgradeCoordinator', () => {
 
   describe('智能事件發射', () => {
     test('在 DUAL_TRACK 模式下應該同時發射 Legacy 和 Modern 事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const legacyEvent = 'EXTRACTION.COMPLETED'
+      // eslint-disable-next-line no-unused-vars
       const modernEvent = 'EXTRACTION.READMOO.EXTRACT.COMPLETED'
+      // eslint-disable-next-line no-unused-vars
       const emittedEvents = []
 
       eventBus.on(legacyEvent, () => emittedEvents.push('legacy'))
@@ -198,8 +235,11 @@ describe('EventNamingUpgradeCoordinator', () => {
     test('在 MODERN_ONLY 模式下應該只發射 Modern 事件', async () => {
       coordinator.setConversionMode('MODERN_ONLY')
 
+      // eslint-disable-next-line no-unused-vars
       const legacyEvent = 'EXTRACTION.COMPLETED'
+      // eslint-disable-next-line no-unused-vars
       const modernEvent = 'EXTRACTION.READMOO.EXTRACT.COMPLETED'
+      // eslint-disable-next-line no-unused-vars
       const emittedEvents = []
 
       eventBus.on(legacyEvent, () => emittedEvents.push('legacy'))
@@ -215,8 +255,11 @@ describe('EventNamingUpgradeCoordinator', () => {
       // 確保處於雙軌模式
       coordinator.setConversionMode('DUAL_TRACK')
 
+      // eslint-disable-next-line no-unused-vars
       const modernEvent = 'EXTRACTION.READMOO.EXTRACT.COMPLETED'
+      // eslint-disable-next-line no-unused-vars
       const legacyEvent = 'EXTRACTION.COMPLETED'
+      // eslint-disable-next-line no-unused-vars
       const emittedEvents = []
 
       eventBus.on(legacyEvent, () => emittedEvents.push('legacy'))
@@ -237,13 +280,17 @@ describe('EventNamingUpgradeCoordinator', () => {
     })
 
     test('應該正確轉換 Modern 事件為 Legacy 事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const modernEvent = 'EXTRACTION.READMOO.EXTRACT.COMPLETED'
+      // eslint-disable-next-line no-unused-vars
       const legacyEvent = coordinator.convertToLegacyEvent(modernEvent)
       expect(legacyEvent).toBe('EXTRACTION.COMPLETED')
     })
 
     test('應該處理無對應 Legacy 事件的 Modern 事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const modernEvent = 'NEW_FEATURE.READMOO.ACTION.COMPLETED'
+      // eslint-disable-next-line no-unused-vars
       const legacyEvent = coordinator.convertToLegacyEvent(modernEvent)
       expect(legacyEvent).toBeNull()
     })
@@ -251,6 +298,7 @@ describe('EventNamingUpgradeCoordinator', () => {
 
   describe('轉換統計與監控', () => {
     test('應該提供完整的轉換統計', () => {
+      // eslint-disable-next-line no-unused-vars
       const stats = coordinator.getConversionStats()
 
       expect(stats).toHaveProperty('totalConversions')
@@ -262,11 +310,13 @@ describe('EventNamingUpgradeCoordinator', () => {
     })
 
     test('應該計算正確的轉換成功率', async () => {
+      // eslint-disable-next-line no-unused-vars
       const handler = () => {}
       coordinator.registerDualTrackListener('EXTRACTION.COMPLETED', handler)
 
       await eventBus.emit('EXTRACTION.COMPLETED', mockEventData)
 
+      // eslint-disable-next-line no-unused-vars
       const stats = coordinator.getConversionStats()
       expect(stats.conversionSuccessRate).toBeGreaterThan(0)
       expect(stats.conversionSuccessRate).toBeLessThanOrEqual(1)
@@ -276,6 +326,7 @@ describe('EventNamingUpgradeCoordinator', () => {
       coordinator.registerDualTrackListener('EXTRACTION.COMPLETED', () => {})
       coordinator.registerDualTrackListener('STORAGE.SAVE.COMPLETED', () => {})
 
+      // eslint-disable-next-line no-unused-vars
       const stats = coordinator.getConversionStats()
       expect(stats.modernEventsRegistered).toBe(2)
     })
@@ -310,6 +361,7 @@ describe('EventNamingUpgradeCoordinator', () => {
 
   describe('錯誤處理', () => {
     test('應該處理事件處理器中的錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const errorHandler = () => {
         throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.CORE_HANDLER_ERROR; error.details = { category: 'testing' }; return error })()
       }
@@ -319,17 +371,21 @@ describe('EventNamingUpgradeCoordinator', () => {
       // 不應該拋出錯誤
       await expect(eventBus.emit('EXTRACTION.COMPLETED', mockEventData)).resolves.not.toThrow()
 
+      // eslint-disable-next-line no-unused-vars
       const stats = coordinator.getConversionStats()
       expect(stats.conversionErrors).toBeGreaterThan(0)
     })
 
     test('應該記錄轉換錯誤統計', async () => {
+      // eslint-disable-next-line no-unused-vars
       const initialStats = coordinator.getConversionStats()
+      // eslint-disable-next-line no-unused-vars
       const initialErrors = initialStats.conversionErrors
 
       // 觸發轉換錯誤
       coordinator.recordConversionError('CORE_CONVERSION_ERROR', 'Test error message')
 
+      // eslint-disable-next-line no-unused-vars
       const updatedStats = coordinator.getConversionStats()
       expect(updatedStats.conversionErrors).toBe(initialErrors + 1)
     })
@@ -337,6 +393,7 @@ describe('EventNamingUpgradeCoordinator', () => {
 
   describe('向後相容性', () => {
     test('應該保持所有現有 Legacy 事件的功能', async () => {
+      // eslint-disable-next-line no-unused-vars
       const legacyEvents = [
         'EXTRACTION.COMPLETED',
         'EXTRACTION.PROGRESS',
@@ -345,7 +402,9 @@ describe('EventNamingUpgradeCoordinator', () => {
         'BACKGROUND.INIT.COMPLETED'
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const handlerCalls = []
+      // eslint-disable-next-line no-unused-vars
       const handler = (data) => handlerCalls.push(data)
 
       // 註冊所有 Legacy 事件
@@ -363,6 +422,7 @@ describe('EventNamingUpgradeCoordinator', () => {
     })
 
     test('應該不改變原有的事件處理器介面', () => {
+      // eslint-disable-next-line no-unused-vars
       const originalHandler = jest.fn()
 
       // 使用原有的 EventBus API
