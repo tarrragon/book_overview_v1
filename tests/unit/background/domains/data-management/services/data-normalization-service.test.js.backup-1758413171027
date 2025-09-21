@@ -6,16 +6,12 @@
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
-// eslint-disable-next-line no-unused-vars
 const DataNormalizationService = require('src/background/domains/data-management/services/data-normalization-service.js')
-// eslint-disable-next-line no-unused-vars
 const { StandardError } = require('src/core/errors/StandardError')
 
 describe('DataNormalizationService - 資料正規化服務', () => {
   let normalizer
-  // eslint-disable-next-line no-unused-vars
   let mockEventBus
-  // eslint-disable-next-line no-unused-vars
   let mockLogger
 
   beforeEach(() => {
@@ -68,7 +64,6 @@ describe('DataNormalizationService - 資料正規化服務', () => {
 
   describe('📖 書籍資料正規化', () => {
     test('normalizeBook() 應該正規化 READMOO 書籍資料', async () => {
-      // eslint-disable-next-line no-unused-vars
       const book = {
         id: 'readmoo123',
         title: '測試書籍',
@@ -78,7 +73,6 @@ describe('DataNormalizationService - 資料正規化服務', () => {
         cover: 'https://example.com/cover.jpg'
       }
 
-      // eslint-disable-next-line no-unused-vars
       const result = await normalizer.normalizeBook(book, 'READMOO')
 
       expect(result.id).toBe('readmoo123')
@@ -92,7 +86,6 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
 
     test('normalizeBook() 應該正規化 KINDLE 書籍資料', async () => {
-      // eslint-disable-next-line no-unused-vars
       const book = {
         ASIN: 'B001ABCDEF',
         title: 'Kindle Test Book',
@@ -101,7 +94,6 @@ describe('DataNormalizationService - 資料正規化服務', () => {
         cover: 'https://m.media-amazon.com/cover.jpg'
       }
 
-      // eslint-disable-next-line no-unused-vars
       const result = await normalizer.normalizeBook(book, 'KINDLE')
 
       expect(result.id).toBe('B001ABCDEF')
@@ -112,14 +104,12 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
 
     test('normalizeBook() 應該處理缺少欄位的書籍', async () => {
-      // eslint-disable-next-line no-unused-vars
       const book = {
         id: 'minimal',
         title: 'Minimal Book'
         // 缺少其他欄位
       }
 
-      // eslint-disable-next-line no-unused-vars
       const result = await normalizer.normalizeBook(book, 'READMOO')
 
       expect(result.id).toBe('minimal')
@@ -131,7 +121,6 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
 
     test('normalizeBook() 應該生成跨平台統一ID', async () => {
-      // eslint-disable-next-line no-unused-vars
       const book1 = {
         id: 'readmoo123',
         title: '相同書籍',
@@ -139,7 +128,6 @@ describe('DataNormalizationService - 資料正規化服務', () => {
         isbn: '9781234567890'
       }
 
-      // eslint-disable-next-line no-unused-vars
       const book2 = {
         ASIN: 'B001ABCDEF',
         title: '相同書籍',
@@ -147,9 +135,7 @@ describe('DataNormalizationService - 資料正規化服務', () => {
         isbn: '978-1-234-56789-0'
       }
 
-      // eslint-disable-next-line no-unused-vars
       const result1 = await normalizer.normalizeBook(book1, 'READMOO')
-      // eslint-disable-next-line no-unused-vars
       const result2 = await normalizer.normalizeBook(book2, 'KINDLE')
 
       expect(result1.crossPlatformId).toBe(result2.crossPlatformId)
@@ -172,28 +158,22 @@ describe('DataNormalizationService - 資料正規化服務', () => {
 
   describe('👥 作者正規化', () => {
     test('normalizeAuthors() 應該處理字串陣列', () => {
-      // eslint-disable-next-line no-unused-vars
       const authors = ['作者1', '作者2', '作者3']
-      // eslint-disable-next-line no-unused-vars
       const result = normalizer.normalizeAuthors(authors)
       expect(result).toEqual(['作者1', '作者2', '作者3'])
     })
 
     test('normalizeAuthors() 應該處理單一字串', () => {
-      // eslint-disable-next-line no-unused-vars
       const authors = '作者1, 作者2'
-      // eslint-disable-next-line no-unused-vars
       const result = normalizer.normalizeAuthors(authors)
       expect(result).toEqual(['作者1', '作者2'])
     })
 
     test('normalizeAuthors() 應該處理 Kindle 物件格式', () => {
-      // eslint-disable-next-line no-unused-vars
       const authors = [
         { name: 'Author 1' },
         { name: 'Author 2' }
       ]
-      // eslint-disable-next-line no-unused-vars
       const result = normalizer.normalizeAuthors(authors)
       expect(result).toEqual(['Author 1', 'Author 2'])
     })
@@ -206,9 +186,7 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
 
     test('normalizeAuthors() 應該清理作者名稱', () => {
-      // eslint-disable-next-line no-unused-vars
       const authors = ['  作者1  ', '作者2\n', '\t作者3']
-      // eslint-disable-next-line no-unused-vars
       const result = normalizer.normalizeAuthors(authors)
       expect(result).toEqual(['作者1', '作者2', '作者3'])
     })
@@ -231,9 +209,7 @@ describe('DataNormalizationService - 資料正規化服務', () => {
 
   describe('🖼️ 封面正規化', () => {
     test('normalizeCover() 應該處理完整封面資訊', () => {
-      // eslint-disable-next-line no-unused-vars
       const cover = 'https://example.com/cover.jpg'
-      // eslint-disable-next-line no-unused-vars
       const result = normalizer.normalizeCover(cover)
 
       expect(result.thumbnail).toBe(cover)
@@ -244,7 +220,6 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
 
     test('normalizeCover() 應該處理空封面', () => {
-      // eslint-disable-next-line no-unused-vars
       const result = normalizer.normalizeCover(null)
 
       expect(result.thumbnail).toBe('')
@@ -255,12 +230,10 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
 
     test('normalizeCover() 應該處理物件格式封面', () => {
-      // eslint-disable-next-line no-unused-vars
       const cover = {
         thumbnail: 'https://example.com/thumb.jpg',
         large: 'https://example.com/large.jpg'
       }
-      // eslint-disable-next-line no-unused-vars
       const result = normalizer.normalizeCover(cover)
 
       expect(result.thumbnail).toBe('https://example.com/thumb.jpg')
@@ -270,7 +243,6 @@ describe('DataNormalizationService - 資料正規化服務', () => {
 
   describe('📊 進度正規化', () => {
     test('normalizeProgress() 應該處理數字進度', () => {
-      // eslint-disable-next-line no-unused-vars
       const result = normalizer.normalizeProgress(75)
 
       expect(result.percentage).toBe(75)
@@ -279,13 +251,11 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
 
     test('normalizeProgress() 應該處理 Kindle 進度格式', () => {
-      // eslint-disable-next-line no-unused-vars
       const progress = {
         percentage: 60,
         location: 1250,
         totalLocations: 2000
       }
-      // eslint-disable-next-line no-unused-vars
       const result = normalizer.normalizeProgress(progress)
 
       expect(result.percentage).toBe(60)
@@ -294,13 +264,11 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
 
     test('normalizeProgress() 應該處理 Kobo 進度格式', () => {
-      // eslint-disable-next-line no-unused-vars
       const progress = {
         reading_percentage: 45,
         current_page: 120,
         total_pages: 300
       }
-      // eslint-disable-next-line no-unused-vars
       const result = normalizer.normalizeProgress(progress)
 
       expect(result.percentage).toBe(45)
@@ -337,23 +305,19 @@ describe('DataNormalizationService - 資料正規化服務', () => {
 
   describe('🔑 資料指紋與跨平台ID', () => {
     test('generateDataFingerprint() 應該生成一致的指紋', async () => {
-      // eslint-disable-next-line no-unused-vars
       const book1 = {
         title: '測試書籍',
         authors: ['作者1'],
         isbn: '9781234567890'
       }
 
-      // eslint-disable-next-line no-unused-vars
       const book2 = {
         title: '測試書籍',
         authors: ['作者1'],
         isbn: '978-1-234-56789-0' // 不同格式但相同 ISBN
       }
 
-      // eslint-disable-next-line no-unused-vars
       const fingerprint1 = await normalizer.generateDataFingerprint(book1)
-      // eslint-disable-next-line no-unused-vars
       const fingerprint2 = await normalizer.generateDataFingerprint(book2)
 
       expect(fingerprint1).toBe(fingerprint2)
@@ -362,14 +326,12 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
 
     test('generateCrossPlatformId() 應該生成唯一ID', async () => {
-      // eslint-disable-next-line no-unused-vars
       const book = {
         title: '測試書籍',
         authors: ['作者1'],
         isbn: '9781234567890'
       }
 
-      // eslint-disable-next-line no-unused-vars
       const id = await normalizer.generateCrossPlatformId(book)
 
       expect(typeof id).toBe('string')
@@ -380,14 +342,12 @@ describe('DataNormalizationService - 資料正規化服務', () => {
 
   describe('📊 批次正規化', () => {
     test('normalizeBookBatch() 應該處理多本書籍', async () => {
-      // eslint-disable-next-line no-unused-vars
       const books = [
         { id: 'book1', title: '書籍1', authors: ['作者1'] },
         { id: 'book2', title: '書籍2', authors: ['作者2'] },
         { id: 'book3', title: '書籍3', authors: ['作者3'] }
       ]
 
-      // eslint-disable-next-line no-unused-vars
       const result = await normalizer.normalizeBookBatch(books, 'READMOO')
 
       expect(result.normalizedBooks).toHaveLength(3)
@@ -398,14 +358,12 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
 
     test('normalizeBookBatch() 應該處理錯誤書籍', async () => {
-      // eslint-disable-next-line no-unused-vars
       const books = [
         { id: 'book1', title: '正常書籍' },
         null, // 錯誤書籍
         { id: 'book3', title: '另一本正常書籍' }
       ]
 
-      // eslint-disable-next-line no-unused-vars
       const result = await normalizer.normalizeBookBatch(books, 'READMOO')
 
       expect(result.normalizedBooks).toHaveLength(2)
@@ -415,7 +373,6 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
 
     test('normalizeBookBatch() 應該處理空陣列', async () => {
-      // eslint-disable-next-line no-unused-vars
       const result = await normalizer.normalizeBookBatch([], 'READMOO')
 
       expect(result.normalizedBooks).toHaveLength(0)
@@ -425,14 +382,12 @@ describe('DataNormalizationService - 資料正規化服務', () => {
 
   describe('📊 統計與監控', () => {
     test('getNormalizationStatistics() 應該提供正規化統計', async () => {
-      // eslint-disable-next-line no-unused-vars
       const books = [
         { id: 'book1', title: '書籍1' },
         { id: 'book2', title: '書籍2' }
       ]
 
       await normalizer.normalizeBookBatch(books, 'READMOO')
-      // eslint-disable-next-line no-unused-vars
       const stats = normalizer.getNormalizationStatistics()
 
       expect(stats.totalNormalized).toBe(2)
@@ -449,7 +404,6 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
 
     test('isNormalizationServiceHealthy() 應該檢查服務健康狀態', () => {
-      // eslint-disable-next-line no-unused-vars
       const health = normalizer.isNormalizationServiceHealthy()
 
       expect(health.isHealthy).toBeDefined()
@@ -470,10 +424,8 @@ describe('DataNormalizationService - 資料正規化服務', () => {
 
     test('應該處理正規化過程中的錯誤', async () => {
       // 模擬錯誤情況
-      // eslint-disable-next-line no-unused-vars
       const invalidBook = { toString: () => { throw (() => { const error = new Error('轉換錯誤'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })() } }
 
-      // eslint-disable-next-line no-unused-vars
       const result = await normalizer.normalizeBook(invalidBook, 'READMOO')
 
       expect(result).toBeDefined()
@@ -481,9 +433,7 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
 
     test('應該處理不支援的平台', async () => {
-      // eslint-disable-next-line no-unused-vars
       const book = { id: 'test', title: '測試書籍' }
-      // eslint-disable-next-line no-unused-vars
       const result = await normalizer.normalizeBook(book, 'UNSUPPORTED_PLATFORM')
 
       expect(result.platform).toBe('UNSUPPORTED_PLATFORM')

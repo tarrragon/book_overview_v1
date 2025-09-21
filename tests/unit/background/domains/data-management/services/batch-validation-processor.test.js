@@ -5,12 +5,16 @@
  * 目標：將批次驗證處理邏輯從 DataValidationService 中提取
  */
 
+// eslint-disable-next-line no-unused-vars
 const BatchValidationProcessor = require('src/background/domains/data-management/services/batch-validation-processor.js')
 
 describe('BatchValidationProcessor - 批次驗證處理服務', () => {
   let processor
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockLogger
+  // eslint-disable-next-line no-unused-vars
   let mockValidationRuleManager
 
   beforeEach(() => {
@@ -71,7 +75,9 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
 
   describe('📦 批次分割功能', () => {
     test('splitIntoBatches() 應該正確分割小數量資料', () => {
+      // eslint-disable-next-line no-unused-vars
       const books = [1, 2, 3, 4, 5]
+      // eslint-disable-next-line no-unused-vars
       const batches = processor.splitIntoBatches(books)
 
       expect(batches).toHaveLength(1)
@@ -79,7 +85,9 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
 
     test('splitIntoBatches() 應該正確分割大數量資料', () => {
+      // eslint-disable-next-line no-unused-vars
       const books = new Array(25).fill(0).map((_, i) => ({ id: i }))
+      // eslint-disable-next-line no-unused-vars
       const batches = processor.splitIntoBatches(books)
 
       expect(batches).toHaveLength(3)
@@ -89,6 +97,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
 
     test('splitIntoBatches() 應該處理空陣列', () => {
+      // eslint-disable-next-line no-unused-vars
       const batches = processor.splitIntoBatches([])
       expect(batches).toHaveLength(0)
     })
@@ -97,7 +106,9 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
       processor.config.batchSize = 200
       processor.config.maxBatchSize = 50
 
+      // eslint-disable-next-line no-unused-vars
       const books = new Array(100).fill(0).map((_, i) => ({ id: i }))
+      // eslint-disable-next-line no-unused-vars
       const batches = processor.splitIntoBatches(books)
 
       expect(batches).toHaveLength(2)
@@ -123,6 +134,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
 
     test('validateSingleBook() 應該驗證有效的書籍資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const book = {
         id: 'book1',
         title: '測試書籍',
@@ -130,6 +142,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
         progress: 50
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await processor.validateSingleBook(book, 'READMOO')
 
       expect(result.isValid).toBe(true)
@@ -138,11 +151,13 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
 
     test('validateSingleBook() 應該檢測缺少必填欄位', async () => {
+      // eslint-disable-next-line no-unused-vars
       const book = {
         id: 'book1'
         // 缺少 title
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await processor.validateSingleBook(book, 'READMOO')
 
       expect(result.isValid).toBe(false)
@@ -152,12 +167,14 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
 
     test('validateSingleBook() 應該檢測資料類型錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const book = {
         id: 'book1',
         title: '測試書籍',
         progress: '50%' // 應該是數字
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await processor.validateSingleBook(book, 'READMOO')
 
       expect(result.isValid).toBe(false)
@@ -165,12 +182,14 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
 
     test('validateSingleBook() 應該檢測商業規則違反', async () => {
+      // eslint-disable-next-line no-unused-vars
       const book = {
         id: 'book1',
         title: '測試書籍',
         progress: 150 // 超過最大值 100
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await processor.validateSingleBook(book, 'READMOO')
 
       expect(result.isValid).toBe(false)
@@ -178,7 +197,9 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
 
     test('validateSingleBook() 應該處理 null 或 undefined 書籍', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result1 = await processor.validateSingleBook(null, 'READMOO')
+      // eslint-disable-next-line no-unused-vars
       const result2 = await processor.validateSingleBook(undefined, 'READMOO')
 
       expect(result1.isValid).toBe(false)
@@ -202,12 +223,14 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
 
     test('processBatch() 應該處理有效的批次資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const batch = [
         { id: 'book1', title: '書籍1' },
         { id: 'book2', title: '書籍2' },
         { id: 'book3', title: '書籍3' }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const result = await processor.processBatch(batch, 'READMOO', 'test', 0, 1)
 
       expect(result.validBooks).toHaveLength(3)
@@ -216,12 +239,14 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
 
     test('processBatch() 應該分離有效和無效書籍', async () => {
+      // eslint-disable-next-line no-unused-vars
       const batch = [
         { id: 'book1', title: '書籍1' },
         { id: 'book2' }, // 缺少 title
         { id: 'book3', title: '書籍3' }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const result = await processor.processBatch(batch, 'READMOO', 'test', 0, 1)
 
       expect(result.validBooks).toHaveLength(2)
@@ -230,7 +255,9 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
 
     test('processBatch() 應該處理記憶體管理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const batch = [{ id: 'book1', title: '書籍1' }]
+      // eslint-disable-next-line no-unused-vars
       const result = await processor.processBatch(batch, 'READMOO', 'test', 9, 10)
 
       // 記憶體管理資訊應該被記錄
@@ -238,6 +265,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
 
     test('processBatch() 應該處理空批次', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await processor.processBatch([], 'READMOO', 'test', 0, 1)
 
       expect(result.validBooks).toHaveLength(0)
@@ -247,6 +275,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
 
   describe('🚀 完整批次驗證流程', () => {
     test('processBatches() 應該處理多個批次', async () => {
+      // eslint-disable-next-line no-unused-vars
       const books = new Array(25).fill(0).map((_, i) => ({
         id: `book${i}`,
         title: `書籍${i}`
@@ -258,6 +287,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
         businessRules: {}
       })
 
+      // eslint-disable-next-line no-unused-vars
       const result = await processor.processBatches(books, 'READMOO', 'test', 'validation123')
 
       expect(result.validBooks).toHaveLength(25)
@@ -272,6 +302,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
 
     test('processBatches() 應該處理空資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await processor.processBatches([], 'READMOO', 'test', 'validation123')
 
       expect(result.validBooks).toHaveLength(0)
@@ -280,6 +311,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
 
     test('processBatches() 應該更新統計數據', async () => {
+      // eslint-disable-next-line no-unused-vars
       const books = [
         { id: 'book1', title: '書籍1' },
         { id: 'book2', title: '書籍2' }
@@ -304,6 +336,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
       processor.batchStatistics.batchCount = 5
       processor.batchStatistics.averageBatchSize = 20
 
+      // eslint-disable-next-line no-unused-vars
       const stats = processor.getBatchStatistics()
 
       expect(stats.totalProcessed).toBe(100)
@@ -320,6 +353,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
 
     test('isBatchProcessorHealthy() 應該檢查服務健康狀態', () => {
+      // eslint-disable-next-line no-unused-vars
       const health = processor.isBatchProcessorHealthy()
 
       expect(health.isHealthy).toBeDefined()
@@ -341,7 +375,9 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
 
     test('generateBatchId() 應該生成唯一的批次ID', () => {
+      // eslint-disable-next-line no-unused-vars
       const id1 = processor.generateBatchId()
+      // eslint-disable-next-line no-unused-vars
       const id2 = processor.generateBatchId()
 
       expect(typeof id1).toBe('string')
@@ -353,6 +389,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
   describe('⚠️ 錯誤處理', () => {
     test('constructor 應該要求 eventBus 參數', () => {
       expect(() => {
+        // eslint-disable-next-line no-new
         new BatchValidationProcessor()
       }).toMatchObject({
         message: expect.stringContaining('EventBus is required')
@@ -361,6 +398,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
 
     test('constructor 應該要求 validationRuleManager', () => {
       expect(() => {
+        // eslint-disable-next-line no-new
         new BatchValidationProcessor(mockEventBus, { logger: mockLogger })
       }).toMatchObject({
         message: expect.stringContaining('ValidationRuleManager is required')
@@ -370,7 +408,9 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     test('應該處理驗證規則載入失敗', async () => {
       mockValidationRuleManager.getValidationRules.mockReturnValue(null)
 
+      // eslint-disable-next-line no-unused-vars
       const book = { id: 'book1', title: '書籍1' }
+      // eslint-disable-next-line no-unused-vars
       const result = await processor.validateSingleBook(book, 'INVALID_PLATFORM')
 
       expect(result.isValid).toBe(false)
@@ -381,7 +421,9 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
       // 模擬驗證過程中發生錯誤
       jest.spyOn(processor, 'validateSingleBook').mockRejectedValue(new Error('驗證失敗'))
 
+      // eslint-disable-next-line no-unused-vars
       const batch = [{ id: 'book1', title: '書籍1' }]
+      // eslint-disable-next-line no-unused-vars
       const result = await processor.processBatch(batch, 'READMOO', 'test', 0, 1)
 
       expect(result.invalidBooks).toHaveLength(1)

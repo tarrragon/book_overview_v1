@@ -75,6 +75,7 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該能識別支援的 Readmoo URL', () => {
+      // eslint-disable-next-line no-unused-vars
       const supportedUrls = adapter.getSupportedUrls()
 
       expect(supportedUrls).toContain('readmoo.com')
@@ -83,20 +84,25 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該能驗證 Readmoo 書庫頁面', () => {
+      // eslint-disable-next-line no-unused-vars
       const libraryUrl = 'https://member.readmoo.com/library'
+      // eslint-disable-next-line no-unused-vars
       const isValid = adapter.validatePage(libraryUrl)
 
       expect(isValid).toBe(true)
     })
 
     test('應該能驗證 Readmoo 書架頁面', () => {
+      // eslint-disable-next-line no-unused-vars
       const shelfUrl = 'https://member.readmoo.com/shelf'
+      // eslint-disable-next-line no-unused-vars
       const isValid = adapter.validatePage(shelfUrl)
 
       expect(isValid).toBe(true)
     })
 
     test('應該拒絕非 Readmoo 頁面', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidUrls = [
         'https://example.com',
         'https://google.com',
@@ -104,6 +110,7 @@ describe('ReadmooAdapter', () => {
       ]
 
       invalidUrls.forEach(url => {
+        // eslint-disable-next-line no-unused-vars
         const isValid = adapter.validatePage(url)
         expect(isValid).toBe(false)
       })
@@ -148,6 +155,7 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該能解析 DOM 文檔', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = adapter.parseDocument(document)
 
       expect(result).toBeDefined()
@@ -156,6 +164,7 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該能找到書籍元素', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = adapter.parseDocument(document)
 
       expect(result.bookElements.length).toBeGreaterThan(0)
@@ -163,6 +172,7 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該能識別書籍容器', () => {
+      // eslint-disable-next-line no-unused-vars
       const containers = adapter.findBookContainers(document)
 
       expect(Array.isArray(containers)).toBe(true)
@@ -173,6 +183,7 @@ describe('ReadmooAdapter', () => {
     test('應該能處理空的 DOM', () => {
       document.body.innerHTML = ''
 
+      // eslint-disable-next-line no-unused-vars
       const result = adapter.parseDocument(document)
 
       expect(result.isValid).toBe(true)
@@ -214,11 +225,13 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該能提取完整的書籍資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
 
       expect(Array.isArray(books)).toBe(true)
       expect(books.length).toBeGreaterThan(0)
 
+      // eslint-disable-next-line no-unused-vars
       const book = books[0]
       expect(book).toHaveProperty('id')
       expect(book).toHaveProperty('title')
@@ -228,7 +241,9 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該能正確提取書籍 ID（使用封面URL系統）', async () => {
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
+      // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
       // 新系統使用封面URL作為主要識別
@@ -242,14 +257,18 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該能正確提取書籍標題', async () => {
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
+      // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
       expect(book.title).toBe('大腦不滿足')
     })
 
     test('應該能正確提取書籍封面和細節資訊', async () => {
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
+      // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
       expect(book.cover).toContain('cdn.readmoo.com')
@@ -263,7 +282,9 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該能正確解析閱讀進度', async () => {
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
+      // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
       expect(book.progress).toBe(60)
@@ -271,7 +292,9 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該能正確識別書籍類型', async () => {
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
+      // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
       expect(book.type).toBe('流式')
@@ -305,7 +328,9 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
+      // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
       expect(book.type).toBe('版式')
@@ -329,7 +354,9 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
+      // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
       expect(book.progress).toBe(0)
@@ -351,7 +378,9 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
+      // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
       // 新系統中會嘗試從封面URL提取ID
@@ -383,6 +412,7 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
 
       expect(books).toHaveLength(2)
@@ -409,11 +439,13 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
+      // eslint-disable-next-line no-unused-vars
       const initialStats = adapter.getStats()
       expect(initialStats.totalExtractions).toBe(0)
 
       await adapter.extractBooks()
 
+      // eslint-disable-next-line no-unused-vars
       const updatedStats = adapter.getStats()
       expect(updatedStats.totalExtractions).toBe(1)
       expect(updatedStats.successfulExtractions).toBe(1)
@@ -423,11 +455,13 @@ describe('ReadmooAdapter', () => {
       adapter.stats.totalExtractions = 5
       adapter.reset()
 
+      // eslint-disable-next-line no-unused-vars
       const stats = adapter.getStats()
       expect(stats.totalExtractions).toBe(0)
     })
 
     test('應該提供適配器資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const info = adapter.getAdapterInfo()
 
       expect(info).toHaveProperty('name')
@@ -458,7 +492,9 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
+      // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
       // 主要ID應該來自封面URL
@@ -484,7 +520,9 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
+      // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
       // 由於封面URL無法識別，應該使用標題生成ID
@@ -509,7 +547,9 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
+      // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
       // 最後備用方案：使用reader-link但標記為不穩定
@@ -534,7 +574,9 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
+      // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
       // 檢查完整的識別資訊結構
@@ -553,6 +595,7 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該正確處理不同的封面URL格式', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         {
           url: 'https://cdn.readmoo.com/cover/ab/bookid123_210x315.jpg?v=123',
@@ -580,7 +623,9 @@ describe('ReadmooAdapter', () => {
           </div>
         `
 
+        // eslint-disable-next-line no-unused-vars
         const books = await adapter.extractBooks()
+        // eslint-disable-next-line no-unused-vars
         const book = books[0]
 
         expect(book.id).toBe(testCase.expectedId)
@@ -596,6 +641,7 @@ describe('ReadmooAdapter', () => {
     })
 
     test('應該能處理 null 文檔', async () => {
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
       expect(books).toEqual([])
     })
@@ -603,6 +649,7 @@ describe('ReadmooAdapter', () => {
     test('應該能處理無效的 DOM 結構', async () => {
       document.body.innerHTML = '<div>無效結構</div>'
 
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
       expect(Array.isArray(books)).toBe(true)
       expect(books).toHaveLength(0)
@@ -626,6 +673,7 @@ describe('ReadmooAdapter', () => {
 
       await adapter.extractBooks()
 
+      // eslint-disable-next-line no-unused-vars
       const stats = adapter.getStats()
       expect(stats.failedExtractions).toBeGreaterThan(0)
     })
@@ -645,6 +693,7 @@ describe('ReadmooAdapter', () => {
         </div>
       `
 
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
 
       // 應該能提取有效的書籍，忽略無效項目

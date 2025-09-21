@@ -10,26 +10,17 @@
  * @jest-environment jsdom
  */
 
-// eslint-disable-next-line no-unused-vars
 const SynchronizationOrchestrator = require('src/background/domains/data-management/services/SynchronizationOrchestrator.js')
-// eslint-disable-next-line no-unused-vars
 const ISynchronizationCoordinator = require('src/background/domains/data-management/interfaces/ISynchronizationCoordinator.js')
-// eslint-disable-next-line no-unused-vars
 const DataComparisonEngine = require('src/background/domains/data-management/services/DataComparisonEngine.js')
-// eslint-disable-next-line no-unused-vars
 const ConflictDetectionService = require('src/background/domains/data-management/services/ConflictDetectionService.js')
-// eslint-disable-next-line no-unused-vars
 const RetryCoordinator = require('src/background/domains/data-management/services/RetryCoordinator.js')
 
 describe('SynchronizationOrchestrator TDD 測試', () => {
   let orchestrator
-  // eslint-disable-next-line no-unused-vars
   let mockSyncCoordinator
-  // eslint-disable-next-line no-unused-vars
   let mockComparisonEngine
-  // eslint-disable-next-line no-unused-vars
   let mockConflictService
-  // eslint-disable-next-line no-unused-vars
   let mockRetryCoordinator
 
   beforeEach(() => {
@@ -72,7 +63,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
   describe('🔴 Red 階段：基礎功能驗證', () => {
     test('應該正確初始化同步協調器', () => {
       // Given: 預設配置
-      // eslint-disable-next-line no-unused-vars
       const defaultOrchestrator = new SynchronizationOrchestrator()
 
       // Then: 應該正確設置預設值
@@ -84,7 +74,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
 
     test('應該支援自訂依賴注入', () => {
       // Given: 自訂依賴的協調器
-      // eslint-disable-next-line no-unused-vars
       const customOrchestrator = new SynchronizationOrchestrator({
         syncCoordinator: mockSyncCoordinator,
         comparisonEngine: mockComparisonEngine,
@@ -105,16 +94,13 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
 
     test('orchestrateSync() 應該執行完整的同步流程', async () => {
       // Given: 基本同步資料和配置
-      // eslint-disable-next-line no-unused-vars
       const sourceData = [
         { id: '1', title: 'Book A', progress: 50 },
         { id: '2', title: 'Book B', progress: 75 }
       ]
-      // eslint-disable-next-line no-unused-vars
       const targetData = [
         { id: '1', title: 'Book A', progress: 45 }
       ]
-      // eslint-disable-next-line no-unused-vars
       const options = { source: 'readmoo', target: 'local' }
 
       // Mock 預期行為
@@ -141,7 +127,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
       })
 
       // When: 執行協調同步
-      // eslint-disable-next-line no-unused-vars
       const result = await orchestrator.orchestrateSync(sourceData, targetData, options)
 
       // Then: 應該執行完整流程
@@ -155,11 +140,8 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
 
     test('orchestrateSync() 應該處理有衝突的同步', async () => {
       // Given: 有衝突的資料
-      // eslint-disable-next-line no-unused-vars
       const sourceData = [{ id: '1', title: 'Book A', progress: 80 }]
-      // eslint-disable-next-line no-unused-vars
       const targetData = [{ id: '1', title: 'Book A', progress: 20 }]
-      // eslint-disable-next-line no-unused-vars
       const options = { source: 'readmoo', target: 'local' }
 
       // Mock 衝突檢測
@@ -194,7 +176,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
       })
 
       // When: 執行協調同步
-      // eslint-disable-next-line no-unused-vars
       const result = await orchestrator.orchestrateSync(sourceData, targetData, options)
 
       // Then: 應該處理衝突
@@ -206,12 +187,10 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
 
     test('executeIntelligentSync() 應該選擇適當的同步策略', async () => {
       // Given: 不同複雜度的同步場景
-      // eslint-disable-next-line no-unused-vars
       const simpleChanges = {
         changes: { modified: [{ id: '1' }] },
         summary: { total: 1 }
       }
-      // eslint-disable-next-line no-unused-vars
       const complexChanges = {
         changes: {
           modified: Array.from({ length: 50 }, (_, i) => ({ id: `${i}` }))
@@ -220,9 +199,7 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
       }
 
       // When: 執行智能同步
-      // eslint-disable-next-line no-unused-vars
       const simpleStrategy = orchestrator.executeIntelligentSync(simpleChanges, { hasConflicts: false })
-      // eslint-disable-next-line no-unused-vars
       const complexStrategy = orchestrator.executeIntelligentSync(complexChanges, { hasConflicts: true })
 
       // Then: 應該選擇不同策略
@@ -232,7 +209,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
 
     test('handleSyncWithRetry() 應該在失敗時執行重試', async () => {
       // Given: 會失敗的同步作業
-      // eslint-disable-next-line no-unused-vars
       const syncJob = {
         id: 'sync_retry_test',
         sourceData: [{ id: '1' }],
@@ -253,7 +229,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
       })
 
       // When: 執行帶重試的同步
-      // eslint-disable-next-line no-unused-vars
       const result = await orchestrator.handleSyncWithRetry(syncJob)
 
       // Then: 應該執行重試並成功
@@ -265,13 +240,11 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
 
     test('optimizeSyncPerformance() 應該動態調整配置', () => {
       // Given: 不同的同步統計
-      // eslint-disable-next-line no-unused-vars
       const lightStats = {
         totalSync: 10,
         averageProcessingTime: 500,
         conflictRate: 0.1
       }
-      // eslint-disable-next-line no-unused-vars
       const heavyStats = {
         totalSync: 100,
         averageProcessingTime: 2000,
@@ -279,9 +252,7 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
       }
 
       // When: 執行效能優化
-      // eslint-disable-next-line no-unused-vars
       const lightOptimization = orchestrator.optimizeSyncPerformance(lightStats)
-      // eslint-disable-next-line no-unused-vars
       const heavyOptimization = orchestrator.optimizeSyncPerformance(heavyStats)
 
       // Then: 應該給出不同的優化建議
@@ -292,13 +263,11 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
 
     test('validateSyncPrerequisites() 應該檢查同步前置條件', () => {
       // Given: 不同的輸入條件
-      // eslint-disable-next-line no-unused-vars
       const validData = {
         sourceData: [{ id: '1' }],
         targetData: [{ id: '2' }],
         options: { source: 'readmoo' }
       }
-      // eslint-disable-next-line no-unused-vars
       const invalidData = {
         sourceData: 'invalid',
         targetData: [],
@@ -306,9 +275,7 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
       }
 
       // When: 檢查前置條件
-      // eslint-disable-next-line no-unused-vars
       const validResult = orchestrator.validateSyncPrerequisites(validData)
-      // eslint-disable-next-line no-unused-vars
       const invalidResult = orchestrator.validateSyncPrerequisites(invalidData)
 
       // Then: 應該正確驗證
@@ -320,7 +287,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
 
     test('generateSyncReport() 應該生成詳細的同步報告', () => {
       // Given: 完整的同步結果
-      // eslint-disable-next-line no-unused-vars
       const syncResults = {
         success: true,
         synchronized: 15,
@@ -330,7 +296,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
         strategy: 'BATCH_SYNC',
         retryCount: 1
       }
-      // eslint-disable-next-line no-unused-vars
       const syncStats = {
         comparisonStats: { totalComparisons: 15 },
         conflictStats: { totalConflictsDetected: 2 },
@@ -338,7 +303,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
       }
 
       // When: 生成同步報告
-      // eslint-disable-next-line no-unused-vars
       const report = orchestrator.generateSyncReport(syncResults, syncStats)
 
       // Then: 應該包含完整資訊
@@ -354,7 +318,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
   describe('⚙️ 服務管理和配置測試', () => {
     test('initializeServices() 應該正確初始化所有服務', () => {
       // Given: 未初始化的協調器
-      // eslint-disable-next-line no-unused-vars
       const uninitializedOrchestrator = new SynchronizationOrchestrator()
 
       // When: 初始化服務
@@ -372,7 +335,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
 
     test('updateServiceConfigs() 應該同步更新所有服務配置', () => {
       // Given: 新的配置設定
-      // eslint-disable-next-line no-unused-vars
       const newConfig = {
         batchSize: 150,
         conflictDetectionThreshold: 0.7,
@@ -415,7 +377,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
       })
 
       // When: 獲取彙總統計
-      // eslint-disable-next-line no-unused-vars
       const stats = orchestrator.getAggregatedStatistics()
 
       // Then: 應該包含所有服務的統計
@@ -444,9 +405,7 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
   describe('🔍 錯誤處理和邊界條件測試', () => {
     test('orchestrateSync() 應該優雅處理服務失敗', async () => {
       // Given: 比較引擎失敗
-      // eslint-disable-next-line no-unused-vars
       const sourceData = [{ id: '1' }]
-      // eslint-disable-next-line no-unused-vars
       const targetData = [{ id: '1' }]
 
       mockComparisonEngine.calculateDataDifferences.mockRejectedValue(
@@ -454,7 +413,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
       )
 
       // When: 執行同步
-      // eslint-disable-next-line no-unused-vars
       const result = await orchestrator.orchestrateSync(sourceData, targetData, {})
 
       // Then: 應該優雅處理錯誤
@@ -465,7 +423,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
 
     test('應該處理無效的依賴注入', () => {
       // Given: 無效的依賴
-      // eslint-disable-next-line no-unused-vars
       const invalidDependencies = {
         syncCoordinator: null,
         comparisonEngine: 'invalid',
@@ -473,7 +430,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
       }
 
       // When: 建立協調器
-      // eslint-disable-next-line no-unused-vars
       const invalidOrchestrator = new SynchronizationOrchestrator(invalidDependencies)
 
       // Then: 應該使用預設服務
@@ -484,7 +440,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
 
     test('handleSyncWithRetry() 應該處理重試失敗', async () => {
       // Given: 重試也失敗的作業
-      // eslint-disable-next-line no-unused-vars
       const syncJob = {
         id: 'failing_job',
         retryCount: 3,
@@ -494,7 +449,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
       mockRetryCoordinator.canRetry.mockReturnValue(false)
 
       // When: 嘗試重試
-      // eslint-disable-next-line no-unused-vars
       const result = await orchestrator.handleSyncWithRetry(syncJob)
 
       // Then: 應該回傳失敗結果
@@ -505,13 +459,11 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
 
     test('validateSyncPrerequisites() 應該處理邊界條件', () => {
       // Given: 邊界條件測試案例
-      // eslint-disable-next-line no-unused-vars
       const emptyData = {
         sourceData: [],
         targetData: [],
         options: { source: 'readmoo' }
       }
-      // eslint-disable-next-line no-unused-vars
       const missingOptions = {
         sourceData: [{ id: '1' }],
         targetData: [{ id: '1' }],
@@ -519,9 +471,7 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
       }
 
       // When: 驗證邊界條件
-      // eslint-disable-next-line no-unused-vars
       const emptyResult = orchestrator.validateSyncPrerequisites(emptyData)
-      // eslint-disable-next-line no-unused-vars
       const missingResult = orchestrator.validateSyncPrerequisites(missingOptions)
 
       // Then: 應該正確處理
@@ -533,12 +483,10 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
 
     test('應該處理大量資料的同步', async () => {
       // Given: 大量資料
-      // eslint-disable-next-line no-unused-vars
       const largeSourceData = Array.from({ length: 1000 }, (_, i) => ({
         id: `${i}`,
         title: `Book ${i}`
       }))
-      // eslint-disable-next-line no-unused-vars
       const largeTargetData = Array.from({ length: 800 }, (_, i) => ({
         id: `${i}`,
         title: `Book ${i}`
@@ -562,7 +510,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
       })
 
       // When: 處理大量資料
-      // eslint-disable-next-line no-unused-vars
       const result = await orchestrator.orchestrateSync(largeSourceData, largeTargetData, {
         enableBatchProcessing: true
       })
@@ -576,15 +523,11 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
   describe('🚀 效能最佳化測試', () => {
     test('應該根據負載動態調整批次大小', () => {
       // Given: 不同的負載統計
-      // eslint-disable-next-line no-unused-vars
       const lightLoad = { averageProcessingTime: 200, conflictRate: 0.1 }
-      // eslint-disable-next-line no-unused-vars
       const heavyLoad = { averageProcessingTime: 2000, conflictRate: 0.8 }
 
       // When: 優化效能
-      // eslint-disable-next-line no-unused-vars
       const lightConfig = orchestrator.optimizeSyncPerformance(lightLoad)
-      // eslint-disable-next-line no-unused-vars
       const heavyConfig = orchestrator.optimizeSyncPerformance(heavyLoad)
 
       // Then: 應該動態調整
@@ -595,7 +538,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
 
     test('應該提供智能的效能建議', () => {
       // Given: 效能統計資料
-      // eslint-disable-next-line no-unused-vars
       const stats = {
         totalSync: 1000,
         averageProcessingTime: 1500,
@@ -604,7 +546,6 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
       }
 
       // When: 生成效能建議
-      // eslint-disable-next-line no-unused-vars
       const recommendations = orchestrator.generatePerformanceRecommendations(stats)
 
       // Then: 應該提供具體建議

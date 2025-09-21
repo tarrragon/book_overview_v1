@@ -12,7 +12,9 @@
 
 describe('IValidationCacheManager TDD 介面契約測試', () => {
   let validationCacheManager
+  // eslint-disable-next-line no-unused-vars
   let mockStorage
+  // eslint-disable-next-line no-unused-vars
   let mockEvictionCallback
 
   beforeEach(() => {
@@ -29,6 +31,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
     mockEvictionCallback = jest.fn()
 
     // 實例化 ValidationCacheManager
+    // eslint-disable-next-line no-unused-vars
     const ValidationCacheManager = require('src/background/domains/data-management/services/ValidationCacheManager.js')
     validationCacheManager = new ValidationCacheManager({
       storage: mockStorage,
@@ -60,7 +63,9 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
 
     test('cacheValidationResult() 應該快取驗證結果', async () => {
       // Given: 驗證結果和快取選項
+      // eslint-disable-next-line no-unused-vars
       const cacheKey = 'book_123_READMOO_validation'
+      // eslint-disable-next-line no-unused-vars
       const validationResult = {
         isValid: true,
         errors: [],
@@ -70,6 +75,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
         bookId: 'book_123',
         platform: 'READMOO'
       }
+      // eslint-disable-next-line no-unused-vars
       const cacheOptions = {
         ttl: 600000, // 10分鐘
         priority: 'high',
@@ -77,6 +83,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
       }
 
       // When: 快取驗證結果
+      // eslint-disable-next-line no-unused-vars
       const cacheResult = await validationCacheManager.cacheValidationResult(
         cacheKey,
         validationResult,
@@ -94,7 +101,9 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
 
     test('getCachedValidation() 應該檢索快取的驗證結果', async () => {
       // Given: 已快取的驗證結果
+      // eslint-disable-next-line no-unused-vars
       const cacheKey = 'book_456_KINDLE_validation'
+      // eslint-disable-next-line no-unused-vars
       const originalResult = {
         isValid: false,
         errors: ['missing required field'],
@@ -108,6 +117,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
       await validationCacheManager.cacheValidationResult(cacheKey, originalResult)
 
       // When: 檢索快取的驗證結果
+      // eslint-disable-next-line no-unused-vars
       const cachedResult = await validationCacheManager.getCachedValidation(cacheKey)
 
       // Then: 應該返回快取的結果
@@ -123,7 +133,9 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
 
     test('cacheQualityAnalysis() 應該快取品質分析結果', async () => {
       // Given: 品質分析結果
+      // eslint-disable-next-line no-unused-vars
       const cacheKey = 'book_789_READMOO_quality'
+      // eslint-disable-next-line no-unused-vars
       const qualityResult = {
         bookId: 'book_789',
         platform: 'READMOO',
@@ -147,6 +159,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
       }
 
       // When: 快取品質分析結果
+      // eslint-disable-next-line no-unused-vars
       const cacheResult = await validationCacheManager.cacheQualityAnalysis(
         cacheKey,
         qualityResult,
@@ -161,7 +174,9 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
 
     test('getCachedQuality() 應該檢索快取的品質分析', async () => {
       // Given: 已快取的品質分析
+      // eslint-disable-next-line no-unused-vars
       const cacheKey = 'book_101_KOBO_quality'
+      // eslint-disable-next-line no-unused-vars
       const qualityData = {
         bookId: 'book_101',
         overallScore: 92,
@@ -171,6 +186,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
       await validationCacheManager.cacheQualityAnalysis(cacheKey, qualityData)
 
       // When: 檢索快取的品質分析
+      // eslint-disable-next-line no-unused-vars
       const cachedQuality = await validationCacheManager.getCachedQuality(cacheKey)
 
       // Then: 應該返回快取的品質資料
@@ -181,7 +197,9 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
 
     test('cachePlatformRules() 應該快取平台規則', async () => {
       // Given: 平台規則資料
+      // eslint-disable-next-line no-unused-vars
       const platform = 'READMOO'
+      // eslint-disable-next-line no-unused-vars
       const rules = {
         requiredFields: ['id', 'title', 'authors'],
         dataTypes: {
@@ -199,6 +217,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
       }
 
       // When: 快取平台規則
+      // eslint-disable-next-line no-unused-vars
       const cacheResult = await validationCacheManager.cachePlatformRules(platform, rules)
 
       // Then: 應該成功快取規則
@@ -209,7 +228,9 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
 
     test('getCachedRules() 應該檢索快取的平台規則', async () => {
       // Given: 已快取的平台規則
+      // eslint-disable-next-line no-unused-vars
       const platform = 'KINDLE'
+      // eslint-disable-next-line no-unused-vars
       const rules = {
         requiredFields: ['id', 'title', 'asin'],
         businessRules: { kindleSpecificValidation: true }
@@ -218,6 +239,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
       await validationCacheManager.cachePlatformRules(platform, rules)
 
       // When: 檢索快取的規則
+      // eslint-disable-next-line no-unused-vars
       const cachedRules = await validationCacheManager.getCachedRules(platform)
 
       // Then: 應該返回快取的規則
@@ -228,6 +250,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
 
     test('invalidateCache() 應該支援選擇性快取失效', async () => {
       // Given: 多個快取項目
+      // eslint-disable-next-line no-unused-vars
       const items = [
         { key: 'book_1_validation', type: 'validation' },
         { key: 'book_1_quality', type: 'quality' },
@@ -247,6 +270,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
       }
 
       // When: 選擇性失效驗證相關快取
+      // eslint-disable-next-line no-unused-vars
       const invalidationResult = await validationCacheManager.invalidateCache({
         pattern: '*validation*',
         type: 'validation',
@@ -268,6 +292,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
       await validationCacheManager.cachePlatformRules('TEST_PLATFORM', { requiredFields: ['id'] })
 
       // When: 清除所有快取
+      // eslint-disable-next-line no-unused-vars
       const clearResult = await validationCacheManager.clearCache({
         level: 'all', // memory, persistent, all
         preserveRules: false
@@ -281,6 +306,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
       expect(typeof clearResult.itemsCleared).toBe('number')
 
       // 驗證快取已清空
+      // eslint-disable-next-line no-unused-vars
       const testValidation = await validationCacheManager.getCachedValidation('test_validation')
       expect(testValidation.found).toBe(false)
     })
@@ -293,6 +319,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
       await validationCacheManager.getCachedValidation('nonexistent') // cache miss
 
       // When: 獲取統計資訊
+      // eslint-disable-next-line no-unused-vars
       const stats = validationCacheManager.getStatistics()
 
       // Then: 應該包含完整統計
@@ -315,6 +342,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
 
     test('optimizeCache() 應該執行快取優化', async () => {
       // Given: 包含過期和低優先級項目的快取
+      // eslint-disable-next-line no-unused-vars
       const items = [
         { key: 'old_item', ttl: 1 }, // 很快過期
         { key: 'new_item', ttl: 600000 },
@@ -334,6 +362,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
       await new Promise(resolve => setTimeout(resolve, 10))
 
       // When: 執行快取優化
+      // eslint-disable-next-line no-unused-vars
       const optimizationResult = await validationCacheManager.optimizeCache({
         cleanupExpired: true,
         compactMemory: true,
@@ -351,7 +380,9 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
 
     test('應該處理並行存取和競爭條件', async () => {
       // Given: 並行快取操作
+      // eslint-disable-next-line no-unused-vars
       const cacheKey = 'concurrent_test'
+      // eslint-disable-next-line no-unused-vars
       const operations = []
 
       // When: 同時執行多個快取操作
@@ -364,6 +395,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
         )
       }
 
+      // eslint-disable-next-line no-unused-vars
       const results = await Promise.all(operations)
 
       // Then: 所有操作都應該成功
@@ -375,6 +407,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
 
       // 驗證資料完整性
       for (let i = 0; i < 10; i++) {
+        // eslint-disable-next-line no-unused-vars
         const cached = await validationCacheManager.getCachedValidation(`${cacheKey}_${i}`)
         expect(cached.found).toBe(true)
         expect(cached.data.index).toBe(i)
@@ -383,6 +416,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
 
     test('應該支援快取層級策略', async () => {
       // Given: 不同層級的快取配置
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { key: 'memory_only', level: 'memory', persistToDisk: false },
         { key: 'persistent_only', level: 'persistent', persistToDisk: true },
@@ -399,11 +433,13 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
       }
 
       // Then: 應該根據策略正確快取
+      // eslint-disable-next-line no-unused-vars
       const stats = validationCacheManager.getStatistics()
       expect(stats.memoryCache.size).toBeGreaterThan(0)
 
       // 檢查各層級的快取
       for (const testCase of testCases) {
+        // eslint-disable-next-line no-unused-vars
         const cached = await validationCacheManager.getCachedValidation(testCase.key)
         expect(cached.found).toBe(true)
         expect(cached.data.level).toBe(testCase.level)
@@ -412,12 +448,14 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
 
     test('應該處理記憶體限制和驅逐策略', async () => {
       // Given: 接近記憶體限制的快取管理器
+      // eslint-disable-next-line no-unused-vars
       const smallCacheManager = new (require('src/background/domains/data-management/services/ValidationCacheManager.js'))({
         maxMemoryCache: 3, // 很小的限制
         evictionStrategy: 'lru'
       })
 
       // When: 添加超過限制的項目
+      // eslint-disable-next-line no-unused-vars
       const items = ['item1', 'item2', 'item3', 'item4', 'item5']
       for (const item of items) {
         await smallCacheManager.cacheValidationResult(
@@ -428,17 +466,20 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
       }
 
       // Then: 應該觸發驅逐機制
+      // eslint-disable-next-line no-unused-vars
       const stats = smallCacheManager.getStatistics()
       expect(stats.memoryCache.size).toBeLessThanOrEqual(3)
       expect(stats.evictionCount).toBeGreaterThan(0)
 
       // 最新的項目應該仍在快取中
+      // eslint-disable-next-line no-unused-vars
       const latestItem = await smallCacheManager.getCachedValidation('item5')
       expect(latestItem.found).toBe(true)
     })
 
     test('應該支援批次操作', async () => {
       // Given: 批次快取操作
+      // eslint-disable-next-line no-unused-vars
       const batchItems = [
         { key: 'batch_1', data: { isValid: true, batch: 1 } },
         { key: 'batch_2', data: { isValid: false, batch: 2 } },
@@ -446,6 +487,7 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
       ]
 
       // When: 執行批次快取
+      // eslint-disable-next-line no-unused-vars
       const batchCacheResult = await validationCacheManager.cacheValidationBatch(
         batchItems,
         { ttl: 300000, atomic: true }
@@ -458,7 +500,9 @@ describe('IValidationCacheManager TDD 介面契約測試', () => {
       expect(batchCacheResult).toHaveProperty('failedItems', 0)
 
       // When: 執行批次檢索
+      // eslint-disable-next-line no-unused-vars
       const batchKeys = batchItems.map(item => item.key)
+      // eslint-disable-next-line no-unused-vars
       const batchGetResult = await validationCacheManager.getCachedValidationBatch(batchKeys)
 
       // Then: 應該檢索所有項目

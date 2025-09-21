@@ -5,9 +5,7 @@
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
-// eslint-disable-next-line no-unused-vars
 const DataDomainCoordinator = require('src/background/domains/data-management/data-domain-coordinator.js')
-// eslint-disable-next-line no-unused-vars
 const { StandardError } = require('src/core/errors/StandardError')
 
 // Mock EventBus
@@ -34,7 +32,6 @@ class MockEventBus {
           try {
             await handler({ data, type: eventType })
           } catch (error) {
-            // eslint-disable-next-line no-console
             console.error(`Event handler error for ${eventType}:`, error)
           }
         }
@@ -50,9 +47,7 @@ class MockEventBus {
 
     // 萬用字元匹配（支援 * 萬用字元）
     if (pattern.includes('*')) {
-      // eslint-disable-next-line no-unused-vars
       const regexPattern = pattern.replace(/\*/g, '[^.]*')
-      // eslint-disable-next-line no-unused-vars
       const regex = new RegExp(`^${regexPattern}$`)
       return regex.test(eventType)
     }
@@ -85,25 +80,21 @@ class MockLogger {
 
   info (messageKey, data) {
     // 支援新的 Logger 系統格式：info(messageKey, data)
-    // eslint-disable-next-line no-unused-vars
     const message = data && data.message ? data.message : messageKey
     this.logs.push({ level: 'info', message, messageKey, data, timestamp: Date.now() })
   }
 
   warn (messageKey, data) {
-    // eslint-disable-next-line no-unused-vars
     const message = data && data.message ? data.message : messageKey
     this.logs.push({ level: 'warn', message, messageKey, data, timestamp: Date.now() })
   }
 
   error (messageKey, data) {
-    // eslint-disable-next-line no-unused-vars
     const message = data && data.message ? data.message : messageKey
     this.logs.push({ level: 'error', message, messageKey, data, timestamp: Date.now() })
   }
 
   debug (messageKey, data) {
-    // eslint-disable-next-line no-unused-vars
     const message = data && data.message ? data.message : messageKey
     this.logs.push({ level: 'debug', message, messageKey, data, timestamp: Date.now() })
   }
@@ -149,13 +140,9 @@ class MockDataValidationService {
 }
 
 describe('DataDomainCoordinator', () => {
-  // eslint-disable-next-line no-unused-vars
   let coordinator
-  // eslint-disable-next-line no-unused-vars
   let mockEventBus
-  // eslint-disable-next-line no-unused-vars
   let mockLogger
-  // eslint-disable-next-line no-unused-vars
   let testConfig
 
   beforeEach(() => {
@@ -210,7 +197,6 @@ describe('DataDomainCoordinator', () => {
       expect(coordinator.isCoordinating).toBe(true)
 
       // 檢查是否發送了初始化完成事件
-      // eslint-disable-next-line no-unused-vars
       const initEvents = mockEventBus.getEmittedEventsByType('DATA.DOMAIN.INITIALIZED')
       expect(initEvents).toHaveLength(1)
       expect(initEvents[0].data.services).toEqual(expect.arrayContaining(['validation']))
@@ -242,9 +228,7 @@ describe('DataDomainCoordinator', () => {
 
     test('should handle initialization failure', async () => {
       // 模擬服務初始化失敗
-      // eslint-disable-next-line no-unused-vars
       const badConfig = { ...testConfig }
-      // eslint-disable-next-line no-unused-vars
       const badCoordinator = new DataDomainCoordinator(null, { // null eventBus 會造成錯誤
         logger: mockLogger,
         config: badConfig
@@ -264,7 +248,6 @@ describe('DataDomainCoordinator', () => {
 
     describe('Platform Detection Events', () => {
       test('should handle platform detected event', async () => {
-        // eslint-disable-next-line no-unused-vars
         const platformData = {
           platform: 'READMOO',
           adapter: { type: 'readmoo-adapter', version: '1.0.0' }
@@ -273,7 +256,6 @@ describe('DataDomainCoordinator', () => {
         await mockEventBus.emit('PLATFORM.READMOO.DETECTED', platformData)
 
         // 檢查是否發送了 DATA.PLATFORM.READY 事件
-        // eslint-disable-next-line no-unused-vars
         const readyEvents = mockEventBus.getEmittedEventsByType('DATA.PLATFORM.READY')
         expect(readyEvents).toHaveLength(1)
         expect(readyEvents[0].data.platform).toBe('READMOO')
@@ -283,7 +265,6 @@ describe('DataDomainCoordinator', () => {
       })
 
       test('should handle platform adapter loaded event', async () => {
-        // eslint-disable-next-line no-unused-vars
         const adapterData = {
           platform: 'KINDLE',
           adapter: { type: 'kindle-adapter', version: '1.0.0' }
@@ -292,9 +273,7 @@ describe('DataDomainCoordinator', () => {
         await mockEventBus.emit('PLATFORM.KINDLE.ADAPTER.LOADED', adapterData)
 
         // 驗證日誌中記錄了適配器載入
-        // eslint-disable-next-line no-unused-vars
         const logs = mockLogger.getLogs()
-        // eslint-disable-next-line no-unused-vars
         const adapterLogs = logs.filter(log => log.message.includes('平台適配器載入'))
         expect(adapterLogs.length).toBeGreaterThan(0)
       })
@@ -302,7 +281,6 @@ describe('DataDomainCoordinator', () => {
 
     describe('Extraction Events', () => {
       test('should handle extraction completed event', async () => {
-        // eslint-disable-next-line no-unused-vars
         const extractionData = {
           platform: 'READMOO',
           books: [
@@ -315,7 +293,6 @@ describe('DataDomainCoordinator', () => {
         await mockEventBus.emit('EXTRACTION.READMOO.COMPLETED', extractionData)
 
         // 檢查是否發送了資料驗證請求
-        // eslint-disable-next-line no-unused-vars
         const validationEvents = mockEventBus.getEmittedEventsByType('DATA.VALIDATION.REQUESTED')
         expect(validationEvents).toHaveLength(1)
         expect(validationEvents[0].data.platform).toBe('READMOO')
@@ -324,14 +301,12 @@ describe('DataDomainCoordinator', () => {
       })
 
       test('should track extraction processing operation', async () => {
-        // eslint-disable-next-line no-unused-vars
         const extractionData = {
           platform: 'KOBO',
           books: [{ id: 'book1', title: 'Test Book' }],
           extractionId: 'extract_456'
         }
 
-        // eslint-disable-next-line no-unused-vars
         const initialOperationCount = coordinator.activeOperations.size
 
         await mockEventBus.emit('EXTRACTION.KOBO.COMPLETED', extractionData)
@@ -340,9 +315,7 @@ describe('DataDomainCoordinator', () => {
         expect(coordinator.activeOperations.size).toBe(initialOperationCount + 1)
 
         // 檢查操作詳情
-        // eslint-disable-next-line no-unused-vars
         const operations = Array.from(coordinator.activeOperations.values())
-        // eslint-disable-next-line no-unused-vars
         const extractionOp = operations.find(op => op.type === 'DATA_PROCESSING')
         expect(extractionOp).toBeDefined()
         expect(extractionOp.platform).toBe('KOBO')
@@ -353,7 +326,6 @@ describe('DataDomainCoordinator', () => {
 
     describe('Validation Events', () => {
       test('should handle validation completed event', async () => {
-        // eslint-disable-next-line no-unused-vars
         const validationData = {
           validationId: 'val_123',
           platform: 'READMOO',
@@ -366,7 +338,6 @@ describe('DataDomainCoordinator', () => {
         await mockEventBus.emit('DATA.READMOO.VALIDATION.COMPLETED', validationData)
 
         // 檢查是否觸發了儲存請求（品質分數 >= 70）
-        // eslint-disable-next-line no-unused-vars
         const storageEvents = mockEventBus.getEmittedEventsByType('DATA.STORAGE.REQUESTED')
         expect(storageEvents).toHaveLength(1)
         expect(storageEvents[0].data.platform).toBe('READMOO')
@@ -374,7 +345,6 @@ describe('DataDomainCoordinator', () => {
       })
 
       test('should request quality review for low quality score', async () => {
-        // eslint-disable-next-line no-unused-vars
         const validationData = {
           validationId: 'val_456',
           platform: 'KINDLE',
@@ -387,19 +357,16 @@ describe('DataDomainCoordinator', () => {
         await mockEventBus.emit('DATA.KINDLE.VALIDATION.COMPLETED', validationData)
 
         // 檢查是否要求品質檢查
-        // eslint-disable-next-line no-unused-vars
         const reviewEvents = mockEventBus.getEmittedEventsByType('DATA.QUALITY.REVIEW.REQUIRED')
         expect(reviewEvents).toHaveLength(1)
         expect(reviewEvents[0].data.qualityScore).toBe(45)
 
         // 不應該觸發儲存請求
-        // eslint-disable-next-line no-unused-vars
         const storageEvents = mockEventBus.getEmittedEventsByType('DATA.STORAGE.REQUESTED')
         expect(storageEvents).toHaveLength(0)
       })
 
       test('should handle validation failed event', async () => {
-        // eslint-disable-next-line no-unused-vars
         const validationData = {
           validationId: 'val_789',
           platform: 'KOBO',
@@ -410,7 +377,6 @@ describe('DataDomainCoordinator', () => {
         await mockEventBus.emit('DATA.KOBO.VALIDATION.FAILED', validationData)
 
         // 檢查是否發送了錯誤通知
-        // eslint-disable-next-line no-unused-vars
         const errorEvents = mockEventBus.getEmittedEventsByType('DATA.ERROR.NOTIFICATION')
         expect(errorEvents).toHaveLength(1)
         expect(errorEvents[0].data.type).toBe('VALIDATION_FAILURE')
@@ -420,7 +386,6 @@ describe('DataDomainCoordinator', () => {
 
     describe('Cross-Platform Sync Events', () => {
       test('should handle cross-platform sync request', async () => {
-        // eslint-disable-next-line no-unused-vars
         const syncData = {
           sourcePlatforms: ['READMOO'],
           targetPlatforms: ['KINDLE', 'KOBO'],
@@ -430,7 +395,6 @@ describe('DataDomainCoordinator', () => {
         await mockEventBus.emit('DATA.CROSS_PLATFORM.SYNC.REQUESTED', syncData)
 
         // 檢查是否發送了同步擱置事件（v1.0 不支援跨平台同步）
-        // eslint-disable-next-line no-unused-vars
         const syncEvents = mockEventBus.getEmittedEventsByType('DATA.SYNC.SHELVED')
         expect(syncEvents).toHaveLength(1)
         expect(syncEvents[0].data.sourcePlatforms).toEqual(['READMOO'])
@@ -442,7 +406,6 @@ describe('DataDomainCoordinator', () => {
 
     describe('Conflict and Recovery Events', () => {
       test('should handle data conflict event', async () => {
-        // eslint-disable-next-line no-unused-vars
         const conflictData = {
           conflictId: 'conflict_123',
           platform: 'READMOO',
@@ -452,9 +415,7 @@ describe('DataDomainCoordinator', () => {
         await mockEventBus.emit('DATA.READMOO.CONFLICT.DETECTED', conflictData)
 
         // 由於衝突解決服務尚未實作，應該記錄警告日誌
-        // eslint-disable-next-line no-unused-vars
         const warnings = mockLogger.getLogsByLevel('warn')
-        // eslint-disable-next-line no-unused-vars
         const conflictWarnings = warnings.filter(log =>
           log.message.includes('資料衝突處理暫時擁置') ||
           log.message.includes('conflict_123')
@@ -463,7 +424,6 @@ describe('DataDomainCoordinator', () => {
       })
 
       test('should handle backup recovery request', async () => {
-        // eslint-disable-next-line no-unused-vars
         const recoveryData = {
           backupId: 'backup_123',
           platforms: ['READMOO'],
@@ -473,9 +433,7 @@ describe('DataDomainCoordinator', () => {
         await mockEventBus.emit('DATA.BACKUP.RECOVERY.REQUESTED', recoveryData)
 
         // 由於備份恢復服務尚未實作，應該記錄警告日誌
-        // eslint-disable-next-line no-unused-vars
         const warnings = mockLogger.getLogsByLevel('warn')
-        // eslint-disable-next-line no-unused-vars
         const recoveryWarnings = warnings.filter(log =>
           log.message.includes('備份恢復服務尚未實作')
         )
@@ -490,9 +448,7 @@ describe('DataDomainCoordinator', () => {
     })
 
     test('should generate unique operation IDs', () => {
-      // eslint-disable-next-line no-unused-vars
       const id1 = coordinator.generateOperationId('TEST')
-      // eslint-disable-next-line no-unused-vars
       const id2 = coordinator.generateOperationId('TEST')
 
       expect(id1).toBeDefined()
@@ -502,9 +458,7 @@ describe('DataDomainCoordinator', () => {
     })
 
     test('should generate unique sync IDs', () => {
-      // eslint-disable-next-line no-unused-vars
       const syncId1 = coordinator.generateSyncId()
-      // eslint-disable-next-line no-unused-vars
       const syncId2 = coordinator.generateSyncId()
 
       expect(syncId1).toBeDefined()
@@ -514,7 +468,6 @@ describe('DataDomainCoordinator', () => {
     })
 
     test('should complete operations correctly', () => {
-      // eslint-disable-next-line no-unused-vars
       const operationId = coordinator.generateOperationId('TEST')
 
       // 新增操作
@@ -527,7 +480,6 @@ describe('DataDomainCoordinator', () => {
       // 完成操作
       coordinator.completeOperation(operationId, 'SUCCESS')
 
-      // eslint-disable-next-line no-unused-vars
       const operation = coordinator.activeOperations.get(operationId)
       expect(operation.status).toBe('SUCCESS')
       expect(operation.endTime).toBeDefined()
@@ -535,7 +487,6 @@ describe('DataDomainCoordinator', () => {
     })
 
     test('should complete operations with error', () => {
-      // eslint-disable-next-line no-unused-vars
       const operationId = coordinator.generateOperationId('TEST')
 
       coordinator.activeOperations.set(operationId, {
@@ -546,7 +497,6 @@ describe('DataDomainCoordinator', () => {
 
       coordinator.completeOperation(operationId, 'FAILED', 'Test error message')
 
-      // eslint-disable-next-line no-unused-vars
       const operation = coordinator.activeOperations.get(operationId)
       expect(operation.status).toBe('FAILED')
       expect(operation.error).toBe('Test error message')
@@ -561,7 +511,6 @@ describe('DataDomainCoordinator', () => {
     test('should update validation metrics', () => {
       coordinator.updatePerformanceMetrics('validation', 'completed', 5, 85)
 
-      // eslint-disable-next-line no-unused-vars
       const metrics = coordinator.performanceMetrics.validationMetrics
       expect(metrics.processed).toBe(5)
       expect(metrics.avgTime).toBe(85) // 第一次設定應該是直接的值
@@ -570,7 +519,6 @@ describe('DataDomainCoordinator', () => {
     test('should update failure metrics', () => {
       coordinator.updatePerformanceMetrics('validation', 'failed', 2)
 
-      // eslint-disable-next-line no-unused-vars
       const metrics = coordinator.performanceMetrics.validationMetrics
       expect(metrics.failed).toBe(2)
     })
@@ -580,7 +528,6 @@ describe('DataDomainCoordinator', () => {
       coordinator.updatePerformanceMetrics('validation', 'completed', 2)
       coordinator.updatePerformanceMetrics('validation', 'failed', 1)
 
-      // eslint-disable-next-line no-unused-vars
       const metrics = coordinator.performanceMetrics.validationMetrics
       expect(metrics.processed).toBe(5)
       expect(metrics.failed).toBe(1)
@@ -593,7 +540,6 @@ describe('DataDomainCoordinator', () => {
     })
 
     test('should perform health check', async () => {
-      // eslint-disable-next-line no-unused-vars
       const health = await coordinator.healthCheck()
 
       expect(health.isInitialized).toBe(true)
@@ -604,7 +550,6 @@ describe('DataDomainCoordinator', () => {
     })
 
     test('should check service health status', async () => {
-      // eslint-disable-next-line no-unused-vars
       const health = await coordinator.healthCheck()
 
       // 檢查服務健康狀態
@@ -623,9 +568,7 @@ describe('DataDomainCoordinator', () => {
     })
 
     test('should cleanup completed operations', () => {
-      // eslint-disable-next-line no-unused-vars
       const oldOperationId = coordinator.generateOperationId('OLD')
-      // eslint-disable-next-line no-unused-vars
       const recentOperationId = coordinator.generateOperationId('RECENT')
 
       // 新增舊的已完成操作
@@ -643,7 +586,6 @@ describe('DataDomainCoordinator', () => {
         startTime: Date.now()
       })
 
-      // eslint-disable-next-line no-unused-vars
       const initialCount = coordinator.activeOperations.size
 
       // 執行清理（模擬清理 1小時前的操作）
@@ -668,9 +610,7 @@ describe('DataDomainCoordinator', () => {
       expect(coordinator.operationQueue.length).toBe(0)
 
       // 檢查日誌記錄了停止訊息
-      // eslint-disable-next-line no-unused-vars
       const logs = mockLogger.getLogs()
-      // eslint-disable-next-line no-unused-vars
       const stopLogs = logs.filter(log => log.message.includes('已停止'))
       expect(stopLogs.length).toBeGreaterThan(0)
     })
@@ -689,14 +629,12 @@ describe('DataDomainCoordinator', () => {
       await coordinator.initialize()
 
       // 創建一個會導致錯誤的模擬方法
-      // eslint-disable-next-line no-unused-vars
       const originalHandleExtraction = coordinator.handleExtractionCompleted
       coordinator.handleExtractionCompleted = async function (event) {
         throw (() => { const error = new Error('Simulated processing error'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       }
 
       // 模擬事件數據
-      // eslint-disable-next-line no-unused-vars
       const eventData = {
         platform: 'TEST',
         books: [],
@@ -709,7 +647,6 @@ describe('DataDomainCoordinator', () => {
       // 恢復原方法
       coordinator.handleExtractionCompleted = originalHandleExtraction
 
-      // eslint-disable-next-line no-console
       // 檢查MockEventBus是否記錄了錯誤（在console.error中）
       // 由於我們模擬了錯誤，應該有錯誤輸出
       expect(true).toBe(true) // 這個測試主要驗證不會拋出未捕獲的錯誤
@@ -728,7 +665,6 @@ describe('DataDomainCoordinator', () => {
     })
 
     test('should call validation service methods', async () => {
-      // eslint-disable-next-line no-unused-vars
       const platform = 'READMOO'
 
       // 模擬平台檢測事件，這應該調用驗證服務的方法
@@ -738,9 +674,7 @@ describe('DataDomainCoordinator', () => {
       })
 
       // 驗證服務的方法應該被調用（這裡用日誌驗證）
-      // eslint-disable-next-line no-unused-vars
       const logs = mockLogger.getLogs()
-      // eslint-disable-next-line no-unused-vars
       const platformLogs = logs.filter(log => log.message.includes('處理平台檢測事件'))
       expect(platformLogs.length).toBeGreaterThan(0)
     })
@@ -749,11 +683,8 @@ describe('DataDomainCoordinator', () => {
 
 // 效能測試
 describe('DataDomainCoordinator Performance', () => {
-  // eslint-disable-next-line no-unused-vars
   let coordinator
-  // eslint-disable-next-line no-unused-vars
   let mockEventBus
-  // eslint-disable-next-line no-unused-vars
   let mockLogger
 
   beforeEach(() => {
@@ -775,14 +706,11 @@ describe('DataDomainCoordinator Performance', () => {
   test('should handle multiple concurrent events efficiently', async () => {
     await coordinator.initialize()
 
-    // eslint-disable-next-line no-unused-vars
     const startTime = Date.now()
-    // eslint-disable-next-line no-unused-vars
     const eventPromises = []
 
     // 發送 50 個並發事件
     for (let i = 0; i < 50; i++) {
-      // eslint-disable-next-line no-unused-vars
       const promise = mockEventBus.emit('EXTRACTION.TEST.COMPLETED', {
         platform: `PLATFORM_${i}`,
         books: [{ id: `book_${i}`, title: `Test Book ${i}` }],
@@ -793,9 +721,7 @@ describe('DataDomainCoordinator Performance', () => {
 
     await Promise.all(eventPromises)
 
-    // eslint-disable-next-line no-unused-vars
     const duration = Date.now() - startTime
-    // eslint-disable-next-line no-unused-vars
     const validationEvents = mockEventBus.getEmittedEventsByType('DATA.VALIDATION.REQUESTED')
 
     // 驗證處理效率
@@ -808,12 +734,9 @@ describe('DataDomainCoordinator Performance', () => {
     await coordinator.initialize()
 
     // 建立大量操作，一半是舊的已完成操作
-    // eslint-disable-next-line no-unused-vars
     const oldTime = Date.now() - 7200000 // 2小時前
     for (let i = 0; i < 1000; i++) {
-      // eslint-disable-next-line no-unused-vars
       const operationId = coordinator.generateOperationId('PERFORMANCE_TEST')
-      // eslint-disable-next-line no-unused-vars
       const isOldCompleted = i % 2 === 0
       coordinator.activeOperations.set(operationId, {
         type: 'PERFORMANCE_TEST',

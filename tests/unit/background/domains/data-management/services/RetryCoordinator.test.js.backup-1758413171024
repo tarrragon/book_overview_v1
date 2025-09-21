@@ -11,13 +11,10 @@
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
-// eslint-disable-next-line no-unused-vars
 const { StandardError } = require('src/core/errors/StandardError')
-// eslint-disable-next-line no-unused-vars
 const RetryCoordinator = require('src/background/domains/data-management/services/RetryCoordinator.js')
 
 describe('RetryCoordinator TDD 測試', () => {
-  // eslint-disable-next-line no-unused-vars
   let coordinator
 
   beforeEach(() => {
@@ -32,7 +29,6 @@ describe('RetryCoordinator TDD 測試', () => {
   describe('🔴 Red 階段：基礎功能驗證', () => {
     test('應該正確初始化重試協調器', () => {
       // Given: 預設配置
-      // eslint-disable-next-line no-unused-vars
       const defaultCoordinator = new RetryCoordinator()
 
       // Then: 應該正確設置預設值
@@ -44,7 +40,6 @@ describe('RetryCoordinator TDD 測試', () => {
 
     test('應該支援自訂配置', () => {
       // Given: 自訂配置
-      // eslint-disable-next-line no-unused-vars
       const customCoordinator = new RetryCoordinator({
         maxRetryAttempts: 5,
         baseDelay: 2000,
@@ -61,13 +56,9 @@ describe('RetryCoordinator TDD 測試', () => {
 
     test('canRetry() 應該正確判斷是否可重試', () => {
       // Given: 不同重試次數的作業
-      // eslint-disable-next-line no-unused-vars
       const job1 = { retryCount: 0, error: 'network timeout' }
-      // eslint-disable-next-line no-unused-vars
       const job2 = { retryCount: 2, error: 'connection failed' }
-      // eslint-disable-next-line no-unused-vars
       const job3 = { retryCount: 3, error: 'server error' }
-      // eslint-disable-next-line no-unused-vars
       const job4 = { retryCount: 1, error: 'permission denied' }
 
       // When & Then: 檢查重試可行性
@@ -79,23 +70,15 @@ describe('RetryCoordinator TDD 測試', () => {
 
     test('analyzeFailureReason() 應該正確分析失敗原因', () => {
       // Given: 不同類型的失敗作業
-      // eslint-disable-next-line no-unused-vars
       const networkError = { error: 'network timeout occurred' }
-      // eslint-disable-next-line no-unused-vars
       const conflictError = { error: 'data conflict detected' }
-      // eslint-disable-next-line no-unused-vars
       const authError = { error: 'permission denied' }
-      // eslint-disable-next-line no-unused-vars
       const unknownError = { error: 'something went wrong' }
 
       // When: 分析失敗原因
-      // eslint-disable-next-line no-unused-vars
       const networkAnalysis = coordinator.analyzeFailureReason(networkError)
-      // eslint-disable-next-line no-unused-vars
       const conflictAnalysis = coordinator.analyzeFailureReason(conflictError)
-      // eslint-disable-next-line no-unused-vars
       const authAnalysis = coordinator.analyzeFailureReason(authError)
-      // eslint-disable-next-line no-unused-vars
       const unknownAnalysis = coordinator.analyzeFailureReason(unknownError)
 
       // Then: 應該正確分類錯誤
@@ -111,13 +94,9 @@ describe('RetryCoordinator TDD 測試', () => {
 
     test('selectRetryStrategy() 應該根據錯誤分析選擇策略', () => {
       // Given: 不同類型的錯誤分析結果
-      // eslint-disable-next-line no-unused-vars
       const networkAnalysis = { category: 'NETWORK', retryable: true }
-      // eslint-disable-next-line no-unused-vars
       const conflictAnalysis = { category: 'DATA_CONFLICT', retryable: true }
-      // eslint-disable-next-line no-unused-vars
       const unknownAnalysis = { category: 'UNKNOWN', retryable: true }
-      // eslint-disable-next-line no-unused-vars
       const nonRetryableAnalysis = { category: 'AUTHORIZATION', retryable: false }
 
       // When & Then: 選擇重試策略
@@ -136,13 +115,9 @@ describe('RetryCoordinator TDD 測試', () => {
 
     test('calculateBackoffDelay() 應該正確計算退避延遲', () => {
       // Given & When: 不同重試次數的延遲計算
-      // eslint-disable-next-line no-unused-vars
       const delay0 = coordinator.calculateBackoffDelay(0)
-      // eslint-disable-next-line no-unused-vars
       const delay1 = coordinator.calculateBackoffDelay(1)
-      // eslint-disable-next-line no-unused-vars
       const delay2 = coordinator.calculateBackoffDelay(2)
-      // eslint-disable-next-line no-unused-vars
       const delay10 = coordinator.calculateBackoffDelay(10) // 超過最大值
 
       // Then: 應該符合指數退避規則
@@ -157,7 +132,6 @@ describe('RetryCoordinator TDD 測試', () => {
 
     test('executeRetry() 應該執行成功的重試', async () => {
       // Given: 可重試的失敗作業和成功的執行函數
-      // eslint-disable-next-line no-unused-vars
       const failedJob = {
         id: 'sync_123',
         retryCount: 1,
@@ -165,14 +139,12 @@ describe('RetryCoordinator TDD 測試', () => {
         originalParams: { source: 'readmoo', target: 'local' }
       }
 
-      // eslint-disable-next-line no-unused-vars
       const mockExecutor = jest.fn().mockResolvedValue({
         success: true,
         data: { synced: 10 }
       })
 
       // When: 執行重試
-      // eslint-disable-next-line no-unused-vars
       const result = await coordinator.executeRetry(failedJob, mockExecutor)
 
       // Then: 應該返回成功結果
@@ -190,7 +162,6 @@ describe('RetryCoordinator TDD 測試', () => {
 
     test('executeRetry() 應該處理重試失敗', async () => {
       // Given: 重試仍然失敗的情況
-      // eslint-disable-next-line no-unused-vars
       const failedJob = {
         id: 'sync_456',
         retryCount: 0,
@@ -198,11 +169,9 @@ describe('RetryCoordinator TDD 測試', () => {
         originalParams: { source: 'readmoo' }
       }
 
-      // eslint-disable-next-line no-unused-vars
       const mockExecutor = jest.fn().mockRejectedValue((() => { const error = new Error('still failing'); error.code = ErrorCodes.STILL_FAILING; error.details = { category: 'testing' }; return error })())
 
       // When: 執行重試
-      // eslint-disable-next-line no-unused-vars
       const result = await coordinator.executeRetry(failedJob, mockExecutor)
 
       // Then: 應該返回失敗結果
@@ -215,11 +184,8 @@ describe('RetryCoordinator TDD 測試', () => {
   describe('⚙️ 進階策略和配置測試', () => {
     test('shouldApplyJitter() 應該根據策略決定是否使用抖動', () => {
       // Given & When: 不同策略的抖動判斷
-      // eslint-disable-next-line no-unused-vars
       const exponentialJitter = coordinator.shouldApplyJitter('EXPONENTIAL_BACKOFF')
-      // eslint-disable-next-line no-unused-vars
       const linearJitter = coordinator.shouldApplyJitter('LINEAR_BACKOFF')
-      // eslint-disable-next-line no-unused-vars
       const conflictJitter = coordinator.shouldApplyJitter('CONFLICT_RESOLUTION_FIRST')
 
       // Then: 應該正確判斷是否使用抖動
@@ -235,7 +201,6 @@ describe('RetryCoordinator TDD 測試', () => {
       coordinator.stats.failedRetries = 2
 
       // When: 獲取統計
-      // eslint-disable-next-line no-unused-vars
       const stats = coordinator.getRetryStatistics()
 
       // Then: 應該包含統計資訊
@@ -262,7 +227,6 @@ describe('RetryCoordinator TDD 測試', () => {
 
     test('updateConfig() 應該正確更新配置', () => {
       // Given: 初始配置
-      // eslint-disable-next-line no-unused-vars
       const _originalDelay = coordinator.config.baseDelay
 
       // When: 更新配置
@@ -281,11 +245,8 @@ describe('RetryCoordinator TDD 測試', () => {
   describe('🔍 邊界條件和錯誤處理測試', () => {
     test('canRetry() 應該處理無效輸入', () => {
       // Given: 無效的作業物件
-      // eslint-disable-next-line no-unused-vars
       const nullJob = null
-      // eslint-disable-next-line no-unused-vars
       const undefinedJob = undefined
-      // eslint-disable-next-line no-unused-vars
       const emptyJob = {}
 
       // When & Then: 應該安全處理無效輸入
@@ -296,7 +257,6 @@ describe('RetryCoordinator TDD 測試', () => {
 
     test('calculateBackoffDelay() 應該處理負數重試次數', () => {
       // Given & When: 負數重試次數
-      // eslint-disable-next-line no-unused-vars
       const negativeDelay = coordinator.calculateBackoffDelay(-1)
 
       // Then: 應該返回基礎延遲
@@ -306,7 +266,6 @@ describe('RetryCoordinator TDD 測試', () => {
 
     test('executeRetry() 應該處理超過最大重試次數的作業', async () => {
       // Given: 已超過最大重試次數的作業
-      // eslint-disable-next-line no-unused-vars
       const exhaustedJob = {
         id: 'sync_789',
         retryCount: 5, // 超過預設最大值 3
@@ -314,11 +273,9 @@ describe('RetryCoordinator TDD 測試', () => {
         originalParams: {}
       }
 
-      // eslint-disable-next-line no-unused-vars
       const mockExecutor = jest.fn()
 
       // When: 嘗試執行重試
-      // eslint-disable-next-line no-unused-vars
       const result = await coordinator.executeRetry(exhaustedJob, mockExecutor)
 
       // Then: 應該拒絕重試
@@ -329,19 +286,13 @@ describe('RetryCoordinator TDD 測試', () => {
 
     test('analyzeFailureReason() 應該處理空錯誤訊息', () => {
       // Given: 空錯誤訊息的作業
-      // eslint-disable-next-line no-unused-vars
       const emptyErrorJob = { error: '' }
-      // eslint-disable-next-line no-unused-vars
       const nullErrorJob = { error: null }
-      // eslint-disable-next-line no-unused-vars
       const missingErrorJob = {}
 
       // When: 分析失敗原因
-      // eslint-disable-next-line no-unused-vars
       const emptyAnalysis = coordinator.analyzeFailureReason(emptyErrorJob)
-      // eslint-disable-next-line no-unused-vars
       const nullAnalysis = coordinator.analyzeFailureReason(nullErrorJob)
-      // eslint-disable-next-line no-unused-vars
       const missingAnalysis = coordinator.analyzeFailureReason(missingErrorJob)
 
       // Then: 應該回傳預設分析結果
@@ -352,7 +303,6 @@ describe('RetryCoordinator TDD 測試', () => {
 
     test('應該處理執行器拋出非 Error 物件', async () => {
       // Given: 執行器拋出字串而非 Error 物件
-      // eslint-disable-next-line no-unused-vars
       const failedJob = {
         id: 'sync_string_error',
         retryCount: 0,
@@ -360,11 +310,9 @@ describe('RetryCoordinator TDD 測試', () => {
         originalParams: {}
       }
 
-      // eslint-disable-next-line no-unused-vars
       const mockExecutor = jest.fn().mockRejectedValue('string error')
 
       // When: 執行重試
-      // eslint-disable-next-line no-unused-vars
       const result = await coordinator.executeRetry(failedJob, mockExecutor)
 
       // Then: 應該正確處理字串錯誤
@@ -378,7 +326,6 @@ describe('RetryCoordinator TDD 測試', () => {
       // Given: 指數退避策略的延遲計算
 
       // When: 計算不同重試次數的延遲
-      // eslint-disable-next-line no-unused-vars
       const delays = [0, 1, 2, 3].map(count =>
         coordinator.calculateBackoffDelay(count)
       )
@@ -391,15 +338,12 @@ describe('RetryCoordinator TDD 測試', () => {
 
     test('LINEAR_BACKOFF 策略應該使用線性退避', () => {
       // Given: 線性退避策略的協調器
-      // eslint-disable-next-line no-unused-vars
       const linearCoordinator = new RetryCoordinator({
         defaultStrategy: 'LINEAR_BACKOFF'
       })
 
       // When: 模擬線性退避行為（在實際實作中會有不同的計算）
-      // eslint-disable-next-line no-unused-vars
       const analysis = { category: 'UNKNOWN', retryable: true }
-      // eslint-disable-next-line no-unused-vars
       const strategy = linearCoordinator.selectRetryStrategy(analysis)
 
       // Then: 應該選擇線性退避策略
@@ -408,7 +352,6 @@ describe('RetryCoordinator TDD 測試', () => {
 
     test('CONFLICT_RESOLUTION_FIRST 策略應該優先解決衝突', async () => {
       // Given: 資料衝突的作業
-      // eslint-disable-next-line no-unused-vars
       const conflictJob = {
         id: 'sync_conflict',
         retryCount: 0,
@@ -416,14 +359,12 @@ describe('RetryCoordinator TDD 測試', () => {
         originalParams: { conflictData: [] }
       }
 
-      // eslint-disable-next-line no-unused-vars
       const mockExecutor = jest.fn().mockResolvedValue({
         success: true,
         conflictsResolved: true
       })
 
       // When: 執行衝突解決重試
-      // eslint-disable-next-line no-unused-vars
       const result = await coordinator.executeRetry(conflictJob, mockExecutor)
 
       // Then: 應該使用衝突解決策略
