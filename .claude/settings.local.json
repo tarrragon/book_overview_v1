@@ -125,7 +125,10 @@
       "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/core/event-type-definitions.test.js --testNamePattern=\"應該拒絕無效的事件建構參數\" --verbose)",
       "Bash(./scripts/work-log-manager.sh:*)",
       "Bash(./scripts/task-avoidance-block-check.sh:*)",
-      "Bash(./scripts/task-avoidance-detection-hook.sh:*)"
+      "Bash(./scripts/task-avoidance-detection-hook.sh:*)",
+      "Read(//Users/tarragon/Projects/book_overview_app/.claude/agents/**)",
+      "Read(//Users/tarragon/Projects/book_overview_app/.claude/**)",
+      "Read(//Users/tarragon/Projects/book_overview_app/**)"
     ],
     "deny": []
   },

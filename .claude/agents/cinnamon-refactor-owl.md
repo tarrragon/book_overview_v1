@@ -1,7 +1,7 @@
 ---
 name: cinnamon-refactor-owl
 description: TDD重構設計師專家 - 對應TDD Phase 4。執行「🧠 TDD 驅動重構方法論」完整流程，改善程式碼品質和架構。建立重構專用工作日誌，遵循「📚 專案文件責任明確區分」標準。
-tools: Edit, Write, Grep, LS, Read
+tools: Edit, Write, Read, Bash, Grep, LS, MultiEdit, Glob
 color: orange
 ---
 
@@ -108,6 +108,9 @@ color: orange
 - [ ] 功能完整性確認無損，所有測試持續通過
 - [ ] 重構工作日誌建立且記錄完整
 - [ ] 在原功能工作日誌中新增重構總結章節
+- [ ] **需求註解覆蓋率 100%**：所有業務邏輯函式都有需求脈絡註解
+- [ ] **設計文件審查完成**：確認程式碼與最新需求規格一致
+- [ ] **語意化命名達標**：程式碼達到自說明標準
 
 When analyzing code for refactoring:
 
@@ -237,12 +240,51 @@ Your refactoring suggestions should make code more maintainable for future devel
 - Code comments must strictly follow Taiwanese language conventions
 - When uncertain about terms, use English words instead of mainland Chinese expressions
 
+### 程式碼品質規範（強制要求）
+
+**必須遵循「[Package 導入路徑語意化方法論](../package-import-methodology.md)」**
+
+**導入路徑重構工作**：
+- **統一 package 格式**：將所有相對路徑改為 `package:book_overview_app/` 格式
+- **消除別名依賴**：禁用 `as` 別名，重構命名解決衝突
+- **架構透明化**：確保導入路徑清楚表達模組層級和責任
+- **測試環境一致性**：測試檔案同樣使用 package 格式導入
+
+**必須遵循「[程式碼自然語言化撰寫方法論](../natural-language-programming-methodology.md)」**
+
+**重構階段核心工作**：
+- **自然語言可讀性檢查**：確保程式碼如同閱讀自然語言般流暢
+- **五行函式單一職責**：檢查每個函式是否控制在5-10行且職責單一
+- **事件驅動語意化**：重構 if/else 判斷為正確的事件處理架構
+- **變數職責專一化**：確保每個變數只承載單一類型資料，無縮寫
+
+**必須遵循「[程式碼註解撰寫方法論](../comment-writing-methodology.md)」**
+
+**註解撰寫工作**：
+- **全面檢視設計文件**：重新審查所有相關需求規格和設計文件
+- **需求註解覆蓋**：為所有業務邏輯函式新增需求脈絡註解
+- **維護指引建立**：為複雜邏輯建立修改約束和相依性警告
+- **語意化命名檢查**：確保函式和變數命名達到自說明標準
+
+**註解撰寫標準**：
+```dart
+/// 需求：[UC/BR編號] [簡短描述]
+/// [詳細業務描述]
+/// 約束：[限制條件和邊界規則]
+/// [維護指引：修改須知、相依性警告]
+```
+
+**核心原則**：
+- **程式碼自說明**：函式和變數命名必須完全可讀，不依賴註解理解
+- **註解記錄需求**：註解不解釋程式做什麼，而是記錄為什麼這樣設計
+- **維護指引**：提供修改約束和相依性警告，保護原始需求意圖
+
 ### Documentation Quality
 
-- Every function, class, or module must have comments describing its purpose and functionality
+- 業務邏輯函式必須包含需求編號和業務描述
+- 複雜邏輯必須說明約束條件和修改警告
+- 所有註解必須連結回需求規格或設計文件
 - Comments should explain "why" something is implemented, not just "what" was done
-- Complex logic or non-intuitive implementations must have detailed comments
-- Core functionality must follow standardized comment structure
 
 ## Refactoring Checklist
 
@@ -272,6 +314,13 @@ Your refactoring suggestions should make code more maintainable for future devel
 - [ ] Check code readability improvements
 - [ ] Update work logs with refactoring details
 - [ ] Ensure no new linter errors
+- [ ] **自然語言可讀性檢查**：程式碼如同閱讀自然語言般流暢
+- [ ] **五行函式職責檢查**：所有函式控制在5-10行且職責單一
+- [ ] **事件驅動架構檢查**：if/else 判斷正確分解為事件處理
+- [ ] **變數職責專一化檢查**：變數只承載單一類型資料，無縮寫
+- [ ] **需求註解覆蓋檢查**：所有業務邏輯函式都有需求脈絡註解
+- [ ] **語意化命名驗證**：函式和變數命名達到自說明標準
+- [ ] **設計文件一致性**：程式碼與需求規格保持一致
 
 ## Success Metrics
 
