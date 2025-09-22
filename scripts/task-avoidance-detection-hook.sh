@@ -240,15 +240,19 @@ fi
 # 3. 檢查未完成的測試或錯誤
 log "🧪 檢查是否有未解決的問題被標記為'暫時跳過'"
 
-# 檢查測試檔案中的 skip 或 pending (快速檢查)
-SKIPPED_TESTS=$(find tests/ -name "*.test.js" -type f -exec grep -l "skip\|pending\|xdescribe\|xit" {} + 2>/dev/null)
+# 檢查測試檔案中的真正跳過測試 (精確檢查)
+SKIPPED_TESTS=$(find tests/ -name "*.test.js" -type f -exec grep -l -E "^\s*(describe|it|test)\.skip\s*\(|^\s*x(describe|it|test)\s*\(" {} + 2>/dev/null)
 if [ -n "$SKIPPED_TESTS" ]; then
     AVOIDANCE_DETECTED=true
-    AVOIDANCE_SOURCES+=("測試檔案中發現跳過的測試")
+    AVOIDANCE_SOURCES+=("測試檔案中發現真正跳過的測試")
     log "⚠️  發現被跳過的測試:"
     echo "$SKIPPED_TESTS" | while read test_file; do
-        SKIP_COUNT=$(grep -c "skip\|pending\|xdescribe\|xit" "$test_file" 2>/dev/null || echo "0")
+        SKIP_COUNT=$(grep -c -E "^\s*(describe|it|test)\.skip\s*\(|^\s*x(describe|it|test)\s*\(" "$test_file" 2>/dev/null || echo "0")
         log "  - $test_file: $SKIP_COUNT 個跳過的測試"
+        # 顯示具體跳過的測試行
+        grep -n -E "^\s*(describe|it|test)\.skip\s*\(|^\s*x(describe|it|test)\s*\(" "$test_file" 2>/dev/null | while read skip_line; do
+            log "    → $skip_line"
+        done
     done
 fi
 
