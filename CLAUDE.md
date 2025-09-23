@@ -300,16 +300,24 @@ npm run clean
    ```javascript
    // ❌ 違規 - ESLint 報錯
    throw 'error message'
-   throw new Error('message')
 
-   // ✅ 正確 - 符合規範
-   throw new StandardError('ERROR_CODE', 'message', details)
+   // ✅ 正確 - 符合規範（基本使用）
+   throw new Error('User-friendly error message')
+
+   // ✅ 最佳實踐 - 帶錯誤代碼
+   import { ErrorCodes } from 'src/core/errors/ErrorCodes'
+   throw new Error(`${ErrorCodes.VALIDATION_ERROR}: Email is required`)
+
+   // ✅ 結構化錯誤（需要程式化處理時）
+   const error = new Error('Email is required')
+   error.code = ErrorCodes.VALIDATION_ERROR
+   throw error
    ```
 
-2. **強制使用 StandardError 體系**
-   - `StandardError` - 基礎錯誤類別
-   - `BookValidationError` - 書籍驗證專用錯誤
-   - `OperationResult` - 統一回應格式
+2. **強制使用 ErrorCodes 常數**
+   - 避免魔法字串，使用 `ErrorCodes` 常數
+   - 支援 17 個核心錯誤代碼
+   - 零運行時開銷，編譯時常數
 
 **檢查指令**: `npm run lint | grep "🚨"` 顯示所有違規
 

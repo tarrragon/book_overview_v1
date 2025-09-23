@@ -10,10 +10,10 @@
 
 ### 強制執行的規範
 
-1. **統一異常管理**: 禁止使用原生 `Error`，強制使用 `StandardError` 體系
-2. **ErrorCodes 常量使用**: 禁止在 StandardError 中使用魔法字串，強制使用 `ErrorCodes` 常量
-3. **結構化測試方法**: 禁止測試中的字串錯誤比較，強制使用 `toMatchObject()`
-4. **標準化回應格式**: 建議使用 `OperationResult` 統一格式
+1. **禁止字串錯誤拋出**: 禁止直接拋出字串，強制使用 `Error` 物件
+2. **ErrorCodes 常數使用**: 推薦使用 `ErrorCodes` 常數，避免魔法字串
+3. **結構化測試方法**: 禁止測試中的字串錯誤比較，推薦使用 `toThrow(ErrorCodes.*)` 或結構化驗證
+4. **原生 JavaScript Error**: 採用原生 `Error` + `ErrorCodes` 模式，追求簡單高效
 
 ## 🚨 規則詳情
 
@@ -32,80 +32,87 @@ throw new StandardError('ERROR_CODE', 'This is an error message', { details })
 
 **錯誤訊息**: `🚨 不允許拋出字串錯誤。請使用 StandardError 或其子類 (如 BookValidationError)`
 
-### 規則 2: 禁止原生 Error 使用
-**規則 ID**: `no-restricted-syntax` (ThrowStatement > NewExpression[callee.name="Error"])
+### 規則 2: 推薦使用 ErrorCodes 常數
+**規則 ID**: `推薦性規則` (不強制執行，但建議使用)
 
 ```javascript
-// ❌ 違規 - 會被 ESLint 報錯
+// ✅ 基本正確 - 原生 Error 完全可接受
 throw new Error('Something went wrong')
 
-// ✅ 正確 - 符合規範
-const { StandardError } = require('src/core/errors')
-throw new StandardError('OPERATION_FAILED', 'Something went wrong', { 
-  context: 'user_action',
-  timestamp: Date.now() 
-})
+// ✅ 更佳實踐 - 使用 ErrorCodes 常數
+import { ErrorCodes } from 'src/core/errors/ErrorCodes'
+throw new Error(`${ErrorCodes.OPERATION_FAILED}: Something went wrong`)
+
+// ✅ 結構化錯誤 - 需要程式化處理時
+const error = new Error('Something went wrong')
+error.code = ErrorCodes.OPERATION_FAILED
+error.context = { user_action: true, timestamp: Date.now() }
+throw error
 ```
 
-**錯誤訊息**: `🚨 不允許使用原生 Error。請使用 StandardError 或其子類，提供錯誤代碼和結構化詳情`
+**設計理念**: 採用原生 JavaScript Error，追求簡單高效，零學習成本
 
-### 規則 3: 禁止 StandardError 中使用魔法字串
-**規則 ID**: `no-restricted-syntax` (NewExpression[callee.name="StandardError"] > Literal:first-child)
+### 規則 3: 推薦結構化錯誤設計
+**規則 ID**: `建議性實踐` (設計指引，非強制規則)
 
 ```javascript
-// ❌ 違規 - 會被 ESLint 報錯
-const { StandardError } = require('src/core/errors')
-throw new StandardError('VALIDATION_FAILED', 'Validation failed', {})
-throw new StandardError('NETWORK_ERROR', 'Network error')
+// ✅ 簡單錯誤 - 適用於使用者介面
+throw new Error('操作失敗，請稍後再試')
 
-// ✅ 正確 - 符合規範
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
-const { StandardError } = require('src/core/errors')
-throw new StandardError(ErrorCodes.VALIDATION_FAILED, 'Validation failed', {})
-throw new StandardError(ErrorCodes.NETWORK_ERROR, 'Network error')
+// ✅ 帶代碼的錯誤 - 適用於需要程式化處理
+import { ErrorCodes } from 'src/core/errors/ErrorCodes'
+throw new Error(`${ErrorCodes.VALIDATION_FAILED}: 電子郵件格式不正確`)
+
+// ✅ 結構化錯誤 - 適用於複雜錯誤處理
+const error = new Error('驗證失敗')
+error.code = ErrorCodes.VALIDATION_FAILED
+error.field = 'email'
+error.category = 'format'
+throw error
 ```
 
-**錯誤訊息**: `🚨 不允許在 StandardError 中使用魔法字串。請使用 ErrorCodes 常量`
+**設計考量**: 根據使用場景選擇適當的錯誤格式，平衡簡單性和功能性
 
-### 規則 4: 禁止測試中字串錯誤比較
-**適用範圍**: `**/*.test.js`, `**/test/**/*.js`  
-**規則 ID**: `no-restricted-syntax` (CallExpression[callee.property.name="toThrow"] > Literal)
+### 規則 4: 推薦結構化錯誤測試
+**適用範圍**: `**/*.test.js`, `**/test/**/*.js`
+**規則 ID**: `建議性實踐` (推薦使用結構化測試)
 
 ```javascript
-// ❌ 違規 - 會被 ESLint 報錯
-expect(() => someFunction()).toThrow('Error message')
-expect(asyncFunction()).rejects.toThrow('Async error message')
+// ✅ 可接受 - 基本字串測試
+expect(() => someFunction()).toThrow('Email is required')
 
-// ✅ 正確 - 符合規範
-expect(() => someFunction()).toMatchObject({
-  code: 'VALIDATION_FAILED',
-  details: expect.objectContaining({
-    field: 'email',
-    category: 'validation'
-  })
-})
+// ✅ 更好 - ErrorCodes 常數測試
+import { ErrorCodes } from 'src/core/errors/ErrorCodes'
+expect(() => someFunction()).toThrow(ErrorCodes.VALIDATION_ERROR)
 
-expect(asyncFunction()).rejects.toMatchObject({
-  code: 'NETWORK_ERROR',
-  message: expect.any(String),
-  details: expect.any(Object)
-})
+// ✅ 最佳 - 結構化錯誤測試（適用於複雜錯誤）
+try {
+  someFunction()
+  fail('Expected error to be thrown')
+} catch (error) {
+  expect(error.code).toBe(ErrorCodes.VALIDATION_ERROR)
+  expect(error.message).toContain('Email is required')
+  expect(error.field).toBe('email')
+}
+
+// ✅ 異步錯誤測試
+await expect(asyncFunction()).rejects.toThrow(ErrorCodes.NETWORK_ERROR)
 ```
 
-**錯誤訊息**: `🚨 測試中不允許使用字串比較錯誤。請使用 toMatchObject() 驗證錯誤結構，包含 code 和 details`
+**設計考量**: 根據錯誤複雜度選擇適當的測試方法，簡單錯誤用簡單測試
 
 ## 📊 檢測結果
 
-### 專案目前狀況 (2025-09-16)
+### 專案目前狀況 (2025-09-24)
 
 ```bash
 npm run lint 2>&1 | grep "🚨" | wc -l
 ```
 
-- **原生 Error 使用**: ~200+ 處違規
-- **StandardError 魔法字串**: ~267+ 處違規 (UNKNOWN_ERROR 等)
-- **測試字串錯誤比較**: ~385 處違規
-- **字串錯誤拋出**: 少量違規
+- **字串錯誤拋出**: 檢測並防止
+- **ErrorCodes 使用率**: 推薦採用，但不強制
+- **原生 Error 使用**: ✅ 完全可接受，符合新設計
+- **測試方法**: 支援多種測試模式，從簡單到複雜
 
 ### 規則生效驗證
 
@@ -199,81 +206,107 @@ npm run lint 2>&1 | grep "🚨.*測試中不允許使用字串比較錯誤" | wc
 }
 ```
 
-## 🔧 如何修復違規
+## 🔧 ErrorCodes 使用範例
 
-### 1. 修復原生 Error 使用
+### 1. 基本錯誤處理
 
 ```javascript
-// 修復前
+// ✅ 基本使用 - 完全可接受
 function validateData(data) {
   if (!data) {
     throw new Error('Data is required')
   }
 }
 
-// 修復後
+// ✅ 最佳實踐 - 使用 ErrorCodes
+import { ErrorCodes } from 'src/core/errors/ErrorCodes'
+
 function validateData(data) {
-  const { StandardError } = require('src/core/errors')
-  
   if (!data) {
-    throw new StandardError('VALIDATION_FAILED', 'Data is required', {
-      field: 'data',
-      category: 'required_field'
-    })
+    throw new Error(`${ErrorCodes.VALIDATION_ERROR}: Data is required`)
+  }
+}
+
+// ✅ 結構化錯誤 - 需要程式化處理時
+function validateDataStructured(data) {
+  if (!data) {
+    const error = new Error('Data is required')
+    error.code = ErrorCodes.VALIDATION_ERROR
+    error.field = 'data'
+    error.category = 'required_field'
+    throw error
   }
 }
 ```
 
-### 2. 修復測試中的字串比較
+### 2. 測試錯誤處理的多種方法
 
 ```javascript
-// 修復前
+import { ErrorCodes } from 'src/core/errors/ErrorCodes'
+
+// ✅ 基本測試 - 完全可接受
 test('should throw error for invalid data', () => {
   expect(() => validateData(null)).toThrow('Data is required')
 })
 
-// 修復後  
-test('should throw error for invalid data', () => {
-  expect(() => validateData(null)).toMatchObject({
-    code: 'VALIDATION_FAILED',
-    message: 'Data is required',
-    details: expect.objectContaining({
-      field: 'data',
-      category: 'required_field'
-    })
-  })
+// ✅ 更好 - 使用 ErrorCodes
+test('should throw validation error', () => {
+  expect(() => validateData(null)).toThrow(ErrorCodes.VALIDATION_ERROR)
+})
+
+// ✅ 最佳 - 結構化錯誤測試（適用於複雜錯誤）
+test('should throw structured validation error', () => {
+  try {
+    validateDataStructured(null)
+    fail('Expected error to be thrown')
+  } catch (error) {
+    expect(error.code).toBe(ErrorCodes.VALIDATION_ERROR)
+    expect(error.message).toBe('Data is required')
+    expect(error.field).toBe('data')
+    expect(error.category).toBe('required_field')
+  }
 })
 ```
 
-### 3. 修復 Promise rejection 測試
+### 3. 異步錯誤測試
 
 ```javascript
-// 修復前
+import { ErrorCodes } from 'src/core/errors/ErrorCodes'
+
+// ✅ 基本異步測試
 test('should reject with error message', async () => {
   await expect(asyncFunction()).rejects.toThrow('Async operation failed')
 })
 
-// 修復後
+// ✅ ErrorCodes 異步測試
+test('should reject with specific error code', async () => {
+  await expect(asyncFunction()).rejects.toThrow(ErrorCodes.NETWORK_ERROR)
+})
+
+// ✅ 結構化異步錯誤測試
 test('should reject with structured error', async () => {
-  await expect(asyncFunction()).rejects.toMatchObject({
-    code: 'ASYNC_OPERATION_FAILED',
-    details: expect.any(Object)
-  })
+  try {
+    await asyncFunction()
+    fail('Expected promise to reject')
+  } catch (error) {
+    expect(error.code).toBe(ErrorCodes.NETWORK_ERROR)
+    expect(error.message).toContain('operation failed')
+  }
 })
 ```
 
-## 📋 下一步行動
+## 📋 實施狀態
 
-### 立即行動
-1. **規範強化完成** ✅ - ESLint 規則已建立並啟用
-2. **系統性檢查** - 搜尋並修復所有違規 (~585+ 處)
-3. **批次修復** - 系統性修復字串比較測試
-4. **文件更新** - 在 CLAUDE.md 中明確提及強制規範
+### 已完成
+1. **✅ 錯誤處理系統簡化** - 採用原生 Error + ErrorCodes 模式
+2. **✅ 文件更新** - CLAUDE.md 和規則文件已同步更新
+3. **✅ 設計理念確立** - 簡單、高效、零學習成本
 
-### 優先修復順序
-1. **高優先級**: 修復 DataValidationService 等核心服務中的違規
-2. **中優先級**: 修復所有測試檔案中的字串比較
-3. **低優先級**: 修復非核心檔案中的原生 Error 使用
+### 當前狀態
+1. **字串錯誤拋出**: ESLint 規則有效防止
+2. **ErrorCodes 採用**: 推薦使用，但不強制
+3. **測試方法**: 支援從簡單到複雜的多種模式
+4. **設計哲學**: 回歸 JavaScript 原生，追求實用主義
 
 ### CI/CD 整合建議
 ```bash
