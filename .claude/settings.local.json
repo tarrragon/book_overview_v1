@@ -128,7 +128,8 @@
       "Bash(./scripts/task-avoidance-detection-hook.sh:*)",
       "Read(//Users/tarragon/Projects/book_overview_app/.claude/agents/**)",
       "Read(//Users/tarragon/Projects/book_overview_app/.claude/**)",
-      "Read(//Users/tarragon/Projects/book_overview_app/**)"
+      "Read(//Users/tarragon/Projects/book_overview_app/**)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest --listTests)"
     ],
     "deny": []
   },
