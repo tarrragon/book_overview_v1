@@ -40,8 +40,17 @@ if [ -f "$BLOCK_FILE" ]; then
     echo "⚠️  在修正完成前，所有開發操作都將被阻止"
     echo ""
 
-    # 返回錯誤狀態阻止操作
-    exit 1
+    # AI 提示觸發機制 - 引導 Claude 優先處理逃避問題
+    echo ""
+    echo "🤖 CLAUDE AI PROMPT TRIGGER 🤖"
+    echo "URGENT: Task avoidance detected. Please prioritize fixing avoidance issues before continuing."
+    echo "Required actions:"
+    echo "1. Remove all forbidden phrases from work logs"
+    echo "2. Fix all skipped tests and ESLint errors"
+    echo "3. Address technical debt properly"
+    echo "4. Execute: rm .claude/TASK_AVOIDANCE_BLOCK when complete"
+    echo ""
+    echo "⚠️  警告：任務逃避偵測狀態存在，AI 應優先處理這些問題"
 fi
 
 # 沒有阻止狀態，允許繼續

@@ -49,6 +49,15 @@ FORBIDDEN_PHRASES=(
     "回避"
     "不想處理"
     "懶得改"
+    "更簡單的方法"
+    "採用更簡單的方法"
+    "用更簡單的方法"
+    "選擇更簡單的方法"
+    "找更簡單的方法"
+    "改用更簡單的方法"
+    "用簡單的方式"
+    "簡單的處理方式"
+    "簡化處理"
 
     # 發現問題但不解決的逃避模式
     "發現問題但不處理"
@@ -85,6 +94,11 @@ FORBIDDEN_PHRASES=(
     "will fix later"
     "skip for now"
     "avoid dealing with"
+    "simpler approach"
+    "simpler way"
+    "easier approach"
+    "take the simpler approach"
+    "use a simpler method"
 
     # 模糊不精確詞彙
     "智能"

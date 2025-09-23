@@ -1,0 +1,8 @@
+TASK_AVOIDANCE_DETECTED=true
+DETECTION_TIME="Mon Sep 22 00:32:02 CST 2025"
+REPORT_FILE="/Users/mac-eric/project/book_overview_v1/.claude/hook-logs/avoidance-reports/avoidance-detected-20250922_003202.md"
+DETECTED_ISSUES_COUNT=1
+BLOCK_REASON="永不放棄鐵律違反 - 發現任務逃避行為"
+
+# 此檔案的存在表示偵測到任務逃避行為
+# 必須修正所有問題並移除此檔案才能繼續開發
