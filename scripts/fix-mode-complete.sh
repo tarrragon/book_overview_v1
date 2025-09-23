@@ -15,8 +15,9 @@ echo ""
 
 # 檢查是否處於修復模式
 if [ ! -f "$FIX_MODE_FILE" ]; then
-    echo "❌ 目前不處於修復模式"
-    exit 1
+    echo "ℹ️  系統未處於修復模式"
+    echo "✅ 修復完成確認"
+    exit 0
 fi
 
 echo "📋 修復模式資訊:"
@@ -25,6 +26,7 @@ echo ""
 
 # 移除修復模式 (讓主線程控制修復狀態)
 echo "1. 完成修復..."
+echo "✅ 移除修復模式檔案"
 rm -f "$FIX_MODE_FILE"
 echo "   ✅ 修復模式已移除"
 

@@ -15,6 +15,7 @@ describe('UC06ErrorSystem 整合測試', () => {
 
   describe('Adapter 與 Factory 協作', () => {
     test('Factory 建立的錯誤應該通過 Adapter 驗證', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createError(
         'SYSTEM_OVERVIEW_RENDERING_FAILURE',
         'Overview頁面渲染失敗'
@@ -25,6 +26,7 @@ describe('UC06ErrorSystem 整合測試', () => {
     })
 
     test('所有 Factory 方法產生的錯誤都應該有效', () => {
+      // eslint-disable-next-line no-unused-vars
       const errors = [
         UC06ErrorFactory.createRenderingError(500),
         UC06ErrorFactory.createSearchIndexError(['title_index']),
@@ -42,6 +44,7 @@ describe('UC06ErrorSystem 整合測試', () => {
   describe('資料管理UI完整流程模擬', () => {
     test('模擬Overview頁面載入失敗流程', async () => {
       // 模擬大量書籍載入導致渲染失敗
+      // eslint-disable-next-line no-unused-vars
       const renderingError = UC06ErrorFactory.createRenderingError(
         1500, // 大量書籍
         'initial_load',
@@ -66,6 +69,7 @@ describe('UC06ErrorSystem 整合測試', () => {
       expect(renderingError.details.fallbackOptions.usePagination).toBe(true)
 
       // 建立結果物件
+      // eslint-disable-next-line no-unused-vars
       const result = UC06ErrorFactory.createResult(false, null, renderingError)
 
       expect(result.success).toBe(false)
@@ -75,6 +79,7 @@ describe('UC06ErrorSystem 整合測試', () => {
 
     test('模擬搜尋功能索引損壞修復流程', async () => {
       // 模擬搜尋索引部分損壞
+      // eslint-disable-next-line no-unused-vars
       const indexError = UC06ErrorFactory.createSearchIndexError(
         ['title_index', 'author_index', 'content_index'],
         'degraded',
@@ -98,7 +103,9 @@ describe('UC06ErrorSystem 整合測試', () => {
       expect(indexError.details.suggestedActions).toContain('full_index_reset')
 
       // 模擬重建過程
+      // eslint-disable-next-line no-unused-vars
       const rebuildStarted = indexError.details.rebuildStrategy.autoRebuild
+      // eslint-disable-next-line no-unused-vars
       const backgroundProcess = indexError.details.rebuildStrategy.backgroundProcess
 
       expect(rebuildStarted).toBe(true)
@@ -107,6 +114,7 @@ describe('UC06ErrorSystem 整合測試', () => {
 
     test('模擬分頁載入效能問題處理', async () => {
       // 模擬分頁載入超時
+      // eslint-disable-next-line no-unused-vars
       const paginationError = UC06ErrorFactory.createPaginationError(
         25, // 第25頁
         100, // 每頁100本書
@@ -130,6 +138,7 @@ describe('UC06ErrorSystem 整合測試', () => {
       expect(paginationError.details.optimizationOptions.useIncrementalRendering).toBe(true)
 
       // 模擬優化後重試
+      // eslint-disable-next-line no-unused-vars
       const optimizedError = UC06ErrorFactory.createPaginationError(
         25,
         paginationError.details.optimizedPageSize, // 使用優化的頁面大小
@@ -143,6 +152,7 @@ describe('UC06ErrorSystem 整合測試', () => {
 
     test('模擬使用者編輯驗證與修正流程', async () => {
       // 模擬使用者輸入無效進度值
+      // eslint-disable-next-line no-unused-vars
       const validationError = UC06ErrorFactory.createEditValidationError(
         'progress_update',
         'book_789',
@@ -166,10 +176,12 @@ describe('UC06ErrorSystem 整合測試', () => {
       expect(validationError.details.suggestedActions).toContain('suggest_correction')
 
       // 模擬自動修正
+      // eslint-disable-next-line no-unused-vars
       const autoCorrectValue = validationError.details.validationSuggestion
       expect(autoCorrectValue).toBe('100%')
 
       // 驗證修正後的值
+      // eslint-disable-next-line no-unused-vars
       const correctedValidation = UC06ErrorFactory.createEditValidationError(
         'progress_update',
         'book_789',
@@ -184,6 +196,7 @@ describe('UC06ErrorSystem 整合測試', () => {
 
   describe('錯誤結果物件整合', () => {
     test('所有錯誤類型都應該可以包裝為結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const errors = [
         UC06ErrorFactory.createRenderingError(),
         UC06ErrorFactory.createSearchIndexError(),
@@ -192,6 +205,7 @@ describe('UC06ErrorSystem 整合測試', () => {
       ]
 
       errors.forEach(error => {
+        // eslint-disable-next-line no-unused-vars
         const result = UC06ErrorFactory.createResult(false, null, error)
 
         expect(result.success).toBe(false)
@@ -203,6 +217,7 @@ describe('UC06ErrorSystem 整合測試', () => {
     })
 
     test('成功UI操作應該產生正確的結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const successData = {
         displayedBooks: 100,
         renderTime: '1.5s',
@@ -211,6 +226,7 @@ describe('UC06ErrorSystem 整合測試', () => {
         cacheHits: 45
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = UC06ErrorFactory.createResult(true, successData)
 
       expect(result.success).toBe(true)
@@ -222,6 +238,7 @@ describe('UC06ErrorSystem 整合測試', () => {
 
   describe('效能與記憶體管理', () => {
     test('快取機制應該提升重複錯誤建立效能', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       // 建立100個相同類型的錯誤
@@ -229,11 +246,13 @@ describe('UC06ErrorSystem 整合測試', () => {
         UC06ErrorFactory.getCommonError('RENDERING')
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(20) // 應該在20ms內完成
     })
 
     test('大型詳細資訊應該被正確清理', () => {
+      // eslint-disable-next-line no-unused-vars
       const largeDetails = {
         books: new Array(10000).fill().map((_, i) => ({
           id: `book_${i}`,
@@ -243,6 +262,7 @@ describe('UC06ErrorSystem 整合測試', () => {
         }))
       }
 
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC06ErrorFactory.sanitizeDetails(largeDetails)
 
       expect(sanitized._truncated).toBe(true)
@@ -253,6 +273,7 @@ describe('UC06ErrorSystem 整合測試', () => {
 
   describe('Chrome Extension 相容性', () => {
     test('所有錯誤都應該可以JSON序列化', () => {
+      // eslint-disable-next-line no-unused-vars
       const errors = [
         UC06ErrorFactory.createRenderingError(500, 'initial_load', '85%'),
         UC06ErrorFactory.createSearchIndexError(['title_index'], 'degraded'),
@@ -261,9 +282,11 @@ describe('UC06ErrorSystem 整合測試', () => {
       ]
 
       errors.forEach(error => {
+        // eslint-disable-next-line no-unused-vars
         const serialized = JSON.stringify(error)
         expect(serialized).toBeDefined()
 
+        // eslint-disable-next-line no-unused-vars
         const parsed = JSON.parse(serialized)
         expect(parsed.message).toBe(error.message)
         expect(parsed.code).toBe(error.code)
@@ -271,6 +294,7 @@ describe('UC06ErrorSystem 整合測試', () => {
 
         // 測試toJSON方法
         expect(typeof error.toJSON).toBe('function')
+        // eslint-disable-next-line no-unused-vars
         const jsonObj = error.toJSON()
         expect(jsonObj.code).toBe(error.code)
         expect(jsonObj.subType).toBe(error.subType)
@@ -281,10 +305,13 @@ describe('UC06ErrorSystem 整合測試', () => {
   describe('實際使用場景模擬', () => {
     test('完整UI操作流程：從載入失敗到成功顯示', async () => {
       // 第一次嘗試：記憶體不足導致渲染失敗
+      // eslint-disable-next-line no-unused-vars
       let attempt = 1
+      // eslint-disable-next-line no-unused-vars
       let error = UC06ErrorFactory.createRenderingError(
         2000, 'initial_load', '98%', 'memory_allocation_failed', true
       )
+      // eslint-disable-next-line no-unused-vars
       let result = UC06ErrorFactory.createResult(false, null, error)
 
       expect(result.success).toBe(false)
@@ -316,6 +343,7 @@ describe('UC06ErrorSystem 整合測試', () => {
 
     test('搜尋與編輯綜合場景', async () => {
       // 步驟1：搜尋索引損壞
+      // eslint-disable-next-line no-unused-vars
       const searchError = UC06ErrorFactory.createSearchIndexError(
         ['author_index'], 'degraded', true, '20s'
       )
@@ -325,6 +353,7 @@ describe('UC06ErrorSystem 整合測試', () => {
       expect(searchError.details.searchCapabilities.authorSearch).toBe(false)
 
       // 步驟2：嘗試編輯但驗證失敗
+      // eslint-disable-next-line no-unused-vars
       const editError = UC06ErrorFactory.createEditValidationError(
         'author_edit',
         'book_456',
@@ -337,6 +366,7 @@ describe('UC06ErrorSystem 整合測試', () => {
       expect(editError.details.fieldConstraints.required).toBe(true)
 
       // 步驟3：修正後成功
+      // eslint-disable-next-line no-unused-vars
       const successResult = UC06ErrorFactory.createResult(true, {
         searchIndexRebuilt: true,
         editsSaved: 1,

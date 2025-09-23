@@ -10,6 +10,7 @@ import { ErrorCodes } from '../../../../src/core/errors/ErrorCodes.js'
 describe('UC07ErrorAdapter', () => {
   describe('getErrorMapping', () => {
     test('應該回傳4個StandardError的映射', () => {
+      // eslint-disable-next-line no-unused-vars
       const mapping = UC07ErrorAdapter.getErrorMapping()
 
       expect(Object.keys(mapping)).toHaveLength(4)
@@ -22,7 +23,9 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('應該快取映射表', () => {
+      // eslint-disable-next-line no-unused-vars
       const mapping1 = UC07ErrorAdapter.getErrorMapping()
+      // eslint-disable-next-line no-unused-vars
       const mapping2 = UC07ErrorAdapter.getErrorMapping()
 
       expect(mapping1).toBe(mapping2) // 相同參考
@@ -52,6 +55,7 @@ describe('UC07ErrorAdapter', () => {
 
   describe('convertError', () => {
     test('應該轉換SYSTEM_ERROR_HANDLER_RECURSION為OPERATION_ERROR', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError(
         'SYSTEM_ERROR_HANDLER_RECURSION',
         '錯誤處理器遞迴錯誤',
@@ -72,6 +76,7 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('應該轉換SYSTEM_ERROR_LOGGING_FAILURE為STORAGE_ERROR', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError(
         'SYSTEM_ERROR_LOGGING_FAILURE',
         '日誌記錄系統失敗'
@@ -83,6 +88,7 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('應該轉換SYSTEM_RECOVERY_MECHANISM_EXHAUSTED為OPERATION_ERROR', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError(
         'SYSTEM_RECOVERY_MECHANISM_EXHAUSTED',
         '恢復機制失效'
@@ -94,6 +100,7 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('應該轉換DATA_ERROR_PATTERN_LEARNING_OVERFLOW為STORAGE_ERROR', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError(
         'DATA_ERROR_PATTERN_LEARNING_OVERFLOW',
         '模式學習過載'
@@ -105,17 +112,20 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('應該使用預設訊息', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError('SYSTEM_ERROR_HANDLER_RECURSION')
 
       expect(error.message).toBe('UC-07 error handling operation failed')
     })
 
     test('應該合併額外的詳細資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const details = {
         customField: 'value',
         handlerStack: ['handleError', 'logError']
       }
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError(
         'SYSTEM_ERROR_HANDLER_RECURSION',
         '測試訊息',
@@ -130,8 +140,11 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('應該包含時間戳', () => {
+      // eslint-disable-next-line no-unused-vars
       const before = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError('SYSTEM_ERROR_HANDLER_RECURSION', '測試')
+      // eslint-disable-next-line no-unused-vars
       const after = Date.now()
 
       expect(error.details.timestamp).toBeGreaterThanOrEqual(before)
@@ -141,6 +154,7 @@ describe('UC07ErrorAdapter', () => {
 
   describe('convertError - 錯誤處理', () => {
     test('應該處理無效的錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError(null, '測試訊息')
 
       expect(error.name).toBe('UC07ConversionError')
@@ -151,6 +165,7 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('應該處理未知的錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError('UNKNOWN_UC07_CODE', '測試訊息')
 
       expect(error.name).toBe('UC07ConversionError')
@@ -166,6 +181,7 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('應該處理空字串錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError('', '測試訊息')
 
       expect(error.name).toBe('UC07ConversionError')
@@ -173,6 +189,7 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('應該處理非字串錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError(123, '測試訊息')
 
       expect(error.name).toBe('UC07ConversionError')
@@ -200,6 +217,7 @@ describe('UC07ErrorAdapter', () => {
 
   describe('isValidErrorCodesError', () => {
     test('應該驗證有效的ErrorCodes錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError(
         'SYSTEM_ERROR_HANDLER_RECURSION',
         '測試訊息'
@@ -209,6 +227,7 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('應該拒絕無效的錯誤物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidError = new Error('普通錯誤')
       expect(UC07ErrorAdapter.isValidErrorCodesError(invalidError)).toBe(false)
 
@@ -218,6 +237,7 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('應該檢查code屬性', () => {
+      // eslint-disable-next-line no-unused-vars
       const errorWithoutCode = new Error('測試')
       errorWithoutCode.details = {}
 
@@ -225,11 +245,13 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('應該檢查details屬性', () => {
+      // eslint-disable-next-line no-unused-vars
       const errorWithoutDetails = new Error('測試')
       errorWithoutDetails.code = ErrorCodes.OPERATION_ERROR
 
       expect(UC07ErrorAdapter.isValidErrorCodesError(errorWithoutDetails)).toBe(false)
 
+      // eslint-disable-next-line no-unused-vars
       const errorWithNullDetails = new Error('測試')
       errorWithNullDetails.code = ErrorCodes.OPERATION_ERROR
       errorWithNullDetails.details = null
@@ -240,15 +262,18 @@ describe('UC07ErrorAdapter', () => {
 
   describe('Chrome Extension 相容性', () => {
     test('錯誤物件應該可以JSON序列化', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError(
         'SYSTEM_ERROR_HANDLER_RECURSION',
         '測試訊息',
         { recursionDepth: 3 }
       )
 
+      // eslint-disable-next-line no-unused-vars
       const serialized = JSON.stringify(error)
       expect(serialized).toBeDefined()
 
+      // eslint-disable-next-line no-unused-vars
       const parsed = JSON.parse(serialized)
       expect(parsed.message).toBe('測試訊息')
       expect(parsed.code).toBe(ErrorCodes.OPERATION_ERROR)
@@ -256,9 +281,12 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('轉換錯誤應該可以JSON序列化', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError('INVALID_CODE', '測試')
 
+      // eslint-disable-next-line no-unused-vars
       const serialized = JSON.stringify(error)
+      // eslint-disable-next-line no-unused-vars
       const parsed = JSON.parse(serialized)
 
       expect(parsed.code).toBe(ErrorCodes.UNKNOWN_ERROR)
@@ -266,6 +294,7 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('應該支援toJSON方法', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError(
         'SYSTEM_ERROR_HANDLER_RECURSION',
         '測試訊息'
@@ -273,6 +302,7 @@ describe('UC07ErrorAdapter', () => {
 
       expect(typeof error.toJSON).toBe('function')
 
+      // eslint-disable-next-line no-unused-vars
       const jsonObj = error.toJSON()
       expect(jsonObj.message).toBe('測試訊息')
       expect(jsonObj.code).toBe(ErrorCodes.OPERATION_ERROR)
@@ -282,6 +312,7 @@ describe('UC07ErrorAdapter', () => {
 
   describe('錯誤處理系統特定測試', () => {
     test('遞迴錯誤應該包含處理器資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError(
         'SYSTEM_ERROR_HANDLER_RECURSION',
         '遞迴錯誤',
@@ -300,6 +331,7 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('日誌錯誤應該包含儲存資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError(
         'SYSTEM_ERROR_LOGGING_FAILURE',
         '日誌失敗',
@@ -318,6 +350,7 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('恢復錯誤應該包含嘗試資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError(
         'SYSTEM_RECOVERY_MECHANISM_EXHAUSTED',
         '恢復失敗',
@@ -335,6 +368,7 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('學習錯誤應該包含模式資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorAdapter.convertError(
         'DATA_ERROR_PATTERN_LEARNING_OVERFLOW',
         '學習過載',
@@ -357,6 +391,7 @@ describe('UC07ErrorAdapter', () => {
 
   describe('效能測試', () => {
     test('大量錯誤轉換應該保持效能', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 100; i++) {
@@ -367,17 +402,20 @@ describe('UC07ErrorAdapter', () => {
         )
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(50) // 100次轉換應該在50ms內
     })
 
     test('映射表快取應該減少重複計算', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 1000; i++) {
         UC07ErrorAdapter.getErrorMapping()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(10) // 1000次存取應該在10ms內
     })
@@ -385,7 +423,9 @@ describe('UC07ErrorAdapter', () => {
 
   describe('錯誤分類驗證', () => {
     test('OPERATION_ERROR 類型應該正確映射', () => {
+      // eslint-disable-next-line no-unused-vars
       const recursionError = UC07ErrorAdapter.convertError('SYSTEM_ERROR_HANDLER_RECURSION', '遞迴錯誤')
+      // eslint-disable-next-line no-unused-vars
       const recoveryError = UC07ErrorAdapter.convertError('SYSTEM_RECOVERY_MECHANISM_EXHAUSTED', '恢復錯誤')
 
       expect(recursionError.code).toBe(ErrorCodes.OPERATION_ERROR)
@@ -393,7 +433,9 @@ describe('UC07ErrorAdapter', () => {
     })
 
     test('STORAGE_ERROR 類型應該正確映射', () => {
+      // eslint-disable-next-line no-unused-vars
       const loggingError = UC07ErrorAdapter.convertError('SYSTEM_ERROR_LOGGING_FAILURE', '日誌錯誤')
+      // eslint-disable-next-line no-unused-vars
       const learningError = UC07ErrorAdapter.convertError('DATA_ERROR_PATTERN_LEARNING_OVERFLOW', '學習錯誤')
 
       expect(loggingError.code).toBe(ErrorCodes.STORAGE_ERROR)

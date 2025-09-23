@@ -15,6 +15,7 @@ describe('UC03ErrorSystem 整合測試', () => {
 
   describe('Adapter 與 Factory 協作', () => {
     test('Factory 建立的錯誤應該通過 Adapter 驗證', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createError(
         'DATA_EXPORT_GENERATION_FAILED',
         '匯出檔案生成失敗'
@@ -25,6 +26,7 @@ describe('UC03ErrorSystem 整合測試', () => {
     })
 
     test('所有 Factory 方法產生的錯誤都應該有效', () => {
+      // eslint-disable-next-line no-unused-vars
       const errors = [
         UC03ErrorFactory.createExportGenerationError('JSON'),
         UC03ErrorFactory.createExportMemoryError(1000),
@@ -42,6 +44,7 @@ describe('UC03ErrorSystem 整合測試', () => {
   describe('資料匯出完整流程模擬', () => {
     test('模擬JSON匯出生成失敗流程', async () => {
       // 模擬JSON序列化失敗
+      // eslint-disable-next-line no-unused-vars
       const generationError = UC03ErrorFactory.createExportGenerationError(
         'JSON',
         '2.5MB',
@@ -60,6 +63,7 @@ describe('UC03ErrorSystem 整合測試', () => {
       expect(generationError.details.suggestedActions).toContain('check_data_integrity')
 
       // 建立結果物件
+      // eslint-disable-next-line no-unused-vars
       const result = UC03ErrorFactory.createResult(false, null, generationError)
 
       expect(result.success).toBe(false)
@@ -69,6 +73,7 @@ describe('UC03ErrorSystem 整合測試', () => {
 
     test('模擬大量資料匯出記憶體不足流程', async () => {
       // 模擬處理1000本書的大型匯出
+      // eslint-disable-next-line no-unused-vars
       const memoryError = UC03ErrorFactory.createExportMemoryError(
         1000,
         '15MB',
@@ -85,8 +90,11 @@ describe('UC03ErrorSystem 整合測試', () => {
       expect(memoryError.details.batchSizeRecommendation).toBe(100)
 
       // 模擬自動分批重試成功
+      // eslint-disable-next-line no-unused-vars
       const batchResults = []
+      // eslint-disable-next-line no-unused-vars
       const batchSize = memoryError.details.batchSizeRecommendation
+      // eslint-disable-next-line no-unused-vars
       const totalBatches = Math.ceil(memoryError.details.booksToExport / batchSize)
 
       for (let i = 0; i < totalBatches; i++) {
@@ -106,6 +114,7 @@ describe('UC03ErrorSystem 整合測試', () => {
 
     test('模擬瀏覽器下載被阻止流程', async () => {
       // 模擬彈出視窗攔截器阻止下載
+      // eslint-disable-next-line no-unused-vars
       const downloadError = UC03ErrorFactory.createDownloadBlockedError(
         'readmoo-books-2025-01-15.json',
         '2.5MB',
@@ -123,6 +132,7 @@ describe('UC03ErrorSystem 整合測試', () => {
       expect(downloadError.details.suggestedActions).toContain('disable_popup_blocker')
 
       // 模擬使用者手動觸發下載成功
+      // eslint-disable-next-line no-unused-vars
       const manualDownloadResult = UC03ErrorFactory.createResult(
         true,
         {
@@ -139,6 +149,7 @@ describe('UC03ErrorSystem 整合測試', () => {
 
     test('模擬資料完整性檢查失敗流程', async () => {
       // 模擬匯出過程中資料遺失
+      // eslint-disable-next-line no-unused-vars
       const integrityError = UC03ErrorFactory.createIntegrityViolationError(
         150,
         147,
@@ -156,6 +167,7 @@ describe('UC03ErrorSystem 整合測試', () => {
       expect(integrityError.details.suggestedActions).toContain('retry_full_export')
 
       // 模擬重新匯出成功
+      // eslint-disable-next-line no-unused-vars
       const retryResult = UC03ErrorFactory.createResult(
         true,
         {
@@ -174,6 +186,7 @@ describe('UC03ErrorSystem 整合測試', () => {
 
   describe('匯出格式特定測試', () => {
     test('應該支援CSV匯出錯誤處理', () => {
+      // eslint-disable-next-line no-unused-vars
       const csvError = UC03ErrorFactory.createExportGenerationError(
         'CSV',
         '1.8MB',
@@ -193,6 +206,7 @@ describe('UC03ErrorSystem 整合測試', () => {
     })
 
     test('應該支援批次匯出進度追蹤', () => {
+      // eslint-disable-next-line no-unused-vars
       const progressErrors = [
         UC03ErrorFactory.createExportProgressError(25, 'data_validation'),
         UC03ErrorFactory.createExportProgressError(60, 'file_generation'),
@@ -213,10 +227,13 @@ describe('UC03ErrorSystem 整合測試', () => {
   describe('錯誤恢復策略測試', () => {
     test('應該支援自動重試機制', () => {
       // 模擬記憶體錯誤自動重試
+      // eslint-disable-next-line no-unused-vars
       const memoryError = UC03ErrorFactory.createExportMemoryError(500, '10MB', '6MB')
 
       // 基於錯誤建議的自動調整
+      // eslint-disable-next-line no-unused-vars
       const adjustedBatchSize = memoryError.details.batchSizeRecommendation
+      // eslint-disable-next-line no-unused-vars
       const retryAttempt = UC03ErrorFactory.createExportMemoryError(
         adjustedBatchSize,
         '2MB',
@@ -234,6 +251,7 @@ describe('UC03ErrorSystem 整合測試', () => {
 
     test('應該支援降級匯出策略', () => {
       // 模擬完整匯出失敗，降級為基本匯出
+      // eslint-disable-next-line no-unused-vars
       const fullExportError = UC03ErrorFactory.createExportGenerationError(
         'JSON',
         '5MB',
@@ -244,6 +262,7 @@ describe('UC03ErrorSystem 整合測試', () => {
       )
 
       // 降級為僅包含基本資訊的匯出
+      // eslint-disable-next-line no-unused-vars
       const fallbackResult = UC03ErrorFactory.createResult(
         true,
         {
@@ -262,12 +281,15 @@ describe('UC03ErrorSystem 整合測試', () => {
 
   describe('Chrome Extension 環境相容性', () => {
     test('錯誤物件應該可以序列化', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createExportGenerationError('JSON')
 
       // 測試 JSON 序列化
+      // eslint-disable-next-line no-unused-vars
       const serialized = JSON.stringify(error)
       expect(serialized).toBeDefined()
 
+      // eslint-disable-next-line no-unused-vars
       const parsed = JSON.parse(serialized)
       expect(parsed.message).toBe(error.message)
       expect(parsed.code).toBe(error.code)
@@ -275,9 +297,11 @@ describe('UC03ErrorSystem 整合測試', () => {
     })
 
     test('錯誤物件應該支援 Service Worker 環境', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createDownloadBlockedError('export.json')
 
       // 模擬 Service Worker 中的訊息傳遞
+      // eslint-disable-next-line no-unused-vars
       const messageData = {
         type: 'export_error_occurred',
         error: {
@@ -295,7 +319,9 @@ describe('UC03ErrorSystem 整合測試', () => {
 
   describe('效能與記憶體測試', () => {
     test('大量錯誤建立應該保持效能', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const errors = []
 
       // 建立 100 個不同的匯出錯誤
@@ -311,6 +337,7 @@ describe('UC03ErrorSystem 整合測試', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(200) // 100個錯誤建立應該在200ms內
       expect(errors).toHaveLength(100)
@@ -323,12 +350,14 @@ describe('UC03ErrorSystem 整合測試', () => {
 
     test('快取機制應該減少記憶體使用', () => {
       // 建立大量相同類型的錯誤
+      // eslint-disable-next-line no-unused-vars
       const exportErrors = []
       for (let i = 0; i < 50; i++) {
         exportErrors.push(UC03ErrorFactory.getCommonError('EXPORT_GENERATION'))
       }
 
       // 驗證都是相同引用 (快取有效)
+      // eslint-disable-next-line no-unused-vars
       const firstError = exportErrors[0]
       exportErrors.forEach(error => {
         expect(error).toBe(firstError)
@@ -340,6 +369,7 @@ describe('UC03ErrorSystem 整合測試', () => {
 
   describe('安全性測試', () => {
     test('sanitizeDetails 應該防止記憶體洩漏', () => {
+      // eslint-disable-next-line no-unused-vars
       const hugeDetails = {
         largeBookList: new Array(10000).fill().map((_, i) => ({
           id: `book_${i}`,
@@ -348,6 +378,7 @@ describe('UC03ErrorSystem 整合測試', () => {
         }))
       }
 
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC03ErrorFactory.sanitizeDetails(hugeDetails)
 
       expect(sanitized._truncated).toBe(true)
@@ -356,6 +387,7 @@ describe('UC03ErrorSystem 整合測試', () => {
     })
 
     test('錯誤物件應該不包含敏感資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createExportGenerationError(
         'JSON',
         '2.5MB',
@@ -380,9 +412,11 @@ describe('UC03ErrorSystem 整合測試', () => {
   describe('跨UC整合測試', () => {
     test('應該與其他UC錯誤系統相容', () => {
       // UC-03 錯誤
+      // eslint-disable-next-line no-unused-vars
       const uc03Error = UC03ErrorFactory.createExportGenerationError()
 
       // 模擬與其他UC系統的錯誤格式比較
+      // eslint-disable-next-line no-unused-vars
       const errorStructure = {
         hasCode: typeof uc03Error.code === 'string',
         hasSubType: typeof uc03Error.subType === 'string',

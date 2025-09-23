@@ -13,12 +13,15 @@
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+// eslint-disable-next-line no-unused-vars
 const PopupController = require('src/popup/popup-controller.js')
 
 // Mock DOM 環境
 const { JSDOM } = require('jsdom')
+// eslint-disable-next-line no-unused-vars
 const { StandardError } = require('src/core/errors/StandardError')
-const dom = new JSDOM(`
+// eslint-disable-next-line no-unused-vars
+const _dom = new JSDOM(`
   <!DOCTYPE html>
   <html>
   <body>
@@ -85,11 +88,14 @@ jest.mock('../../../src/popup/services/popup-extraction-service.js', () => {
 })
 
 describe('PopupController 事件系統重構', () => {
+  // eslint-disable-next-line no-unused-vars
   let controller
+  // eslint-disable-next-line no-unused-vars
   let mockDocument
 
   beforeEach(() => {
     // 重設 DOM - 重新創建完整的 DOM 結構
+    // eslint-disable-next-line no-unused-vars
     const newDom = new JSDOM(`
       <!DOCTYPE html>
       <html>
@@ -144,6 +150,7 @@ describe('PopupController 事件系統重構', () => {
     test('應該支援事件分類管理', async () => {
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const eventCategories = controller.eventManager.getEventCategories()
 
       // 驗證事件分類
@@ -156,6 +163,7 @@ describe('PopupController 事件系統重構', () => {
     test('應該載入預設事件配置', async () => {
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const eventConfigs = controller.eventManager.getEventConfigs()
 
       // 驗證基本事件配置
@@ -176,6 +184,7 @@ describe('PopupController 事件系統重構', () => {
       await controller.initialize()
 
       // 驗證事件監聽器註冊
+      // eslint-disable-next-line no-unused-vars
       const registeredEvents = controller.eventManager.getRegisteredEvents()
 
       expect(registeredEvents.length).toBeGreaterThan(0)
@@ -194,6 +203,7 @@ describe('PopupController 事件系統重構', () => {
       await controller.initialize()
 
       // 模擬點擊提取按鈕
+      // eslint-disable-next-line no-unused-vars
       const extractButton = mockDocument.getElementById('extract-button')
       extractButton.click()
 
@@ -205,6 +215,7 @@ describe('PopupController 事件系統重構', () => {
       await controller.initialize()
 
       // 模擬點擊設定按鈕
+      // eslint-disable-next-line no-unused-vars
       const settingsButton = mockDocument.getElementById('settings-button')
       settingsButton.click()
 
@@ -217,6 +228,7 @@ describe('PopupController 事件系統重構', () => {
       await controller.initialize()
 
       // 模擬點擊重試按鈕
+      // eslint-disable-next-line no-unused-vars
       const retryButton = mockDocument.getElementById('retry-button')
       retryButton.click()
 
@@ -228,6 +240,7 @@ describe('PopupController 事件系統重構', () => {
       await controller.initialize()
 
       // 模擬點擊取消按鈕
+      // eslint-disable-next-line no-unused-vars
       const cancelButton = mockDocument.getElementById('cancel-button')
       cancelButton.click()
 
@@ -239,12 +252,14 @@ describe('PopupController 事件系統重構', () => {
   describe('🛡️ 錯誤處理和恢復', () => {
     test('應該處理事件綁定失敗', async () => {
       // 移除部分 DOM 元素模擬綁定失敗
+      // eslint-disable-next-line no-unused-vars
       const extractButton = mockDocument.getElementById('extract-button')
       extractButton.remove()
 
       await controller.initialize()
 
       // 驗證事件管理器記錄失敗
+      // eslint-disable-next-line no-unused-vars
       const failedBindings = controller.eventManager.getFailedBindings()
       expect(failedBindings).toEqual(
         expect.arrayContaining([
@@ -267,11 +282,14 @@ describe('PopupController 事件系統重構', () => {
       controller.eventManager.bindEvents()
 
       // 檢查提取按鈕是否存在並已綁定
+      // eslint-disable-next-line no-unused-vars
       const extractButton = mockDocument.getElementById('extract-button')
       expect(extractButton).not.toBeNull() // 確保按鈕存在
 
       // 檢查是否有綁定失敗
+      // eslint-disable-next-line no-unused-vars
       const failedBindings = controller.eventManager.getFailedBindings()
+      // eslint-disable-next-line no-unused-vars
       const extractButtonFailed = failedBindings.find(f => f.elementId === 'extract-button')
 
       if (extractButtonFailed) {
@@ -285,11 +303,13 @@ describe('PopupController 事件系統重構', () => {
       expect(() => extractButton.click()).not.toThrow()
 
       // 驗證錯誤被記錄
+      // eslint-disable-next-line no-unused-vars
       const eventErrors = controller.eventManager.getEventErrors()
       expect(eventErrors.length).toBeGreaterThan(0)
     })
 
     test('應該支援事件處理器重試機制', async () => {
+      // eslint-disable-next-line no-unused-vars
       let callCount = 0
 
       await controller.initialize()
@@ -316,11 +336,14 @@ describe('PopupController 事件系統重構', () => {
       controller.eventManager.bindEvents()
 
       // 檢查提取按鈕是否存在並手動綁定（如果需要）
+      // eslint-disable-next-line no-unused-vars
       const extractButton = mockDocument.getElementById('extract-button')
       expect(extractButton).not.toBeNull() // 確保按鈕存在
 
       // 檢查是否有綁定失敗
+      // eslint-disable-next-line no-unused-vars
       const failedBindings = controller.eventManager.getFailedBindings()
+      // eslint-disable-next-line no-unused-vars
       const extractButtonFailed = failedBindings.find(f => f.elementId === 'extract-button')
 
       if (extractButtonFailed) {
@@ -338,6 +361,7 @@ describe('PopupController 事件系統重構', () => {
 
       // 驗證重試成功（實際可能會有時序問題，調整期望值）
       expect(controller.components.extraction.startExtraction).toHaveBeenCalledTimes(3)
+      // eslint-disable-next-line no-unused-vars
       const retryStats = controller.eventManager.getRetryStats('extract-button')
 
       // 允許重試次數的合理範圍（時序和異步問題）
@@ -352,6 +376,7 @@ describe('PopupController 事件系統重構', () => {
       await controller.initialize()
 
       // 驗證事件監聽器被追蹤
+      // eslint-disable-next-line no-unused-vars
       const trackedListeners = controller.eventManager.getTrackedListeners()
 
       expect(trackedListeners.length).toBeGreaterThan(0)
@@ -370,15 +395,18 @@ describe('PopupController 事件系統重構', () => {
     test('應該支援選擇性事件清理', async () => {
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const initialListenerCount = controller.eventManager.getTrackedListeners().length
 
       // 清理特定分類的事件
       controller.eventManager.cleanupByCategory('UI_ACTIONS')
 
+      // eslint-disable-next-line no-unused-vars
       const remainingListeners = controller.eventManager.getTrackedListeners()
       expect(remainingListeners.length).toBeLessThan(initialListenerCount)
 
       // 驗證只有 UI_ACTIONS 分類被清理
+      // eslint-disable-next-line no-unused-vars
       const uiActionListeners = remainingListeners.filter(l => l.category === 'UI_ACTIONS')
       expect(uiActionListeners.length).toBe(0)
     })
@@ -402,18 +430,22 @@ describe('PopupController 事件系統重構', () => {
       await controller.initialize()
 
       // 確保有事件綁定
+      // eslint-disable-next-line no-unused-vars
       const trackedListeners = controller.eventManager.getTrackedListeners()
       expect(trackedListeners.length).toBeGreaterThan(0)
 
       // 模擬一些事件觸發（只觸發存在的按鈕）
+      // eslint-disable-next-line no-unused-vars
       const settingsButton = mockDocument.getElementById('settings-button')
       settingsButton.click()
       settingsButton.click()
 
+      // eslint-disable-next-line no-unused-vars
       const helpButton = mockDocument.getElementById('help-button')
       helpButton.click()
 
       // 獲取統計資訊
+      // eslint-disable-next-line no-unused-vars
       const stats = controller.eventManager.getStats()
 
       expect(stats).toEqual(expect.objectContaining({
@@ -435,6 +467,7 @@ describe('PopupController 事件系統重構', () => {
       await controller.initialize()
 
       // 新增自訂事件配置
+      // eslint-disable-next-line no-unused-vars
       const customConfig = {
         elementId: 'custom-button',
         eventType: 'click',
@@ -446,6 +479,7 @@ describe('PopupController 事件系統重構', () => {
       controller.eventManager.addEventConfig('custom-button', customConfig)
 
       // 驗證配置被新增
+      // eslint-disable-next-line no-unused-vars
       const configs = controller.eventManager.getEventConfigs()
       expect(configs['custom-button']).toEqual(expect.objectContaining(customConfig))
     })
@@ -457,11 +491,14 @@ describe('PopupController 事件系統重構', () => {
       controller.eventManager.removeEventConfig('help-button')
 
       // 驗證配置被移除
+      // eslint-disable-next-line no-unused-vars
       const configs = controller.eventManager.getEventConfigs()
       expect(configs['help-button']).toBeUndefined()
 
       // 驗證事件監聽器也被移除
+      // eslint-disable-next-line no-unused-vars
       const registeredEvents = controller.eventManager.getRegisteredEvents()
+      // eslint-disable-next-line no-unused-vars
       const helpButtonEvents = registeredEvents.filter(e => e.elementId === 'help-button')
       expect(helpButtonEvents.length).toBe(0)
     })
@@ -470,6 +507,7 @@ describe('PopupController 事件系統重構', () => {
       await controller.initialize()
 
       // 嘗試新增無效配置
+      // eslint-disable-next-line no-unused-vars
       const invalidConfig = {
         elementId: '', // 空的元素 ID
         eventType: 'invalid-event',

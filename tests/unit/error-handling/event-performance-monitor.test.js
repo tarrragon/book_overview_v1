@@ -10,9 +10,11 @@
  * - 記憶體管理
  */
 
+// eslint-disable-next-line no-unused-vars
 const EventPerformanceMonitor = require('src/error-handling/event-performance-monitor')
 
 describe('EventPerformanceMonitor', () => {
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
   let performanceMonitor
 
@@ -60,6 +62,7 @@ describe('EventPerformanceMonitor', () => {
     })
 
     test('應該支援自訂配置選項', () => {
+      // eslint-disable-next-line no-unused-vars
       const customConfig = {
         warningThresholds: {
           eventProcessingTime: 100,
@@ -69,6 +72,7 @@ describe('EventPerformanceMonitor', () => {
         maxRecords: 500
       }
 
+      // eslint-disable-next-line no-unused-vars
       const customMonitor = new EventPerformanceMonitor(
         mockEventBus,
         customConfig
@@ -81,6 +85,7 @@ describe('EventPerformanceMonitor', () => {
     })
 
     test('應該正確註冊支援的事件類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const expectedEvents = [
         'EVENT.PROCESSING.STARTED',
         'EVENT.PROCESSING.COMPLETED',
@@ -102,6 +107,7 @@ describe('EventPerformanceMonitor', () => {
   // ==================== 效能指標收集 ====================
   describe('效能指標收集', () => {
     test('應該記錄事件處理開始時間', () => {
+      // eslint-disable-next-line no-unused-vars
       const eventData = {
         eventType: 'TEST.EVENT',
         eventId: 'test-123',
@@ -120,8 +126,11 @@ describe('EventPerformanceMonitor', () => {
     })
 
     test('應該計算事件處理完成時間', () => {
+      // eslint-disable-next-line no-unused-vars
       const eventId = 'test-456'
+      // eslint-disable-next-line no-unused-vars
       const startTime = 1000
+      // eslint-disable-next-line no-unused-vars
       const endTime = 1050
 
       // 模擬開始事件
@@ -146,7 +155,9 @@ describe('EventPerformanceMonitor', () => {
     })
 
     test('應該記錄事件處理失敗', () => {
+      // eslint-disable-next-line no-unused-vars
       const eventId = 'test-failed'
+      // eslint-disable-next-line no-unused-vars
       const error = new Error('處理失敗')
 
       // 先開始事件
@@ -166,11 +177,13 @@ describe('EventPerformanceMonitor', () => {
     })
 
     test('應該支援效能採樣', () => {
+      // eslint-disable-next-line no-unused-vars
       const lowSampleMonitor = new EventPerformanceMonitor(mockEventBus, {
         sampleRate: 0.1 // 10% 採樣率
       })
 
       // 模擬隨機數生成
+      // eslint-disable-next-line no-unused-vars
       const originalRandom = Math.random
       Math.random = jest.fn()
 
@@ -192,6 +205,7 @@ describe('EventPerformanceMonitor', () => {
         jsHeapSizeLimit: 100 * 1024 * 1024 // 100MB
       }
 
+      // eslint-disable-next-line no-unused-vars
       const memoryStats = performanceMonitor._collectMemoryStats()
       expect(memoryStats.usedMemory).toBe(10 * 1024 * 1024)
       expect(memoryStats.totalMemory).toBe(20 * 1024 * 1024)
@@ -203,7 +217,9 @@ describe('EventPerformanceMonitor', () => {
   // ==================== 效能警告機制 ====================
   describe('效能警告機制', () => {
     test('應該在處理時間超過閾值時發出警告', () => {
+      // eslint-disable-next-line no-unused-vars
       const eventId = 'slow-event'
+      // eslint-disable-next-line no-unused-vars
       const warningThreshold = 50 // 50ms 閾值
 
       performanceMonitor.config.warningThresholds.eventProcessingTime =
@@ -293,6 +309,7 @@ describe('EventPerformanceMonitor', () => {
         lastWarningTime: Date.now()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const report = performanceMonitor.generatePerformanceReport()
 
       expect(report.summary.totalEvents).toBe(100)
@@ -321,6 +338,7 @@ describe('EventPerformanceMonitor', () => {
     })
 
     test('應該提供效能統計查詢方法', () => {
+      // eslint-disable-next-line no-unused-vars
       const stats = performanceMonitor.getPerformanceStats()
 
       expect(stats).toHaveProperty('totalEvents')
@@ -367,6 +385,7 @@ describe('EventPerformanceMonitor', () => {
     })
 
     test('應該清理過期的活躍事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const oldTimestamp = Date.now() - 60000 // 1 分鐘前
 
       // 添加過期事件
@@ -392,6 +411,7 @@ describe('EventPerformanceMonitor', () => {
     test('應該定期執行清理任務', () => {
       jest.useFakeTimers()
 
+      // eslint-disable-next-line no-unused-vars
       const cleanupSpy = jest.spyOn(performanceMonitor, '_performCleanup')
 
       // 啟動定期清理

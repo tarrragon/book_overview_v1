@@ -5,11 +5,14 @@
  * 目標：將驗證規則管理邏輯從 DataValidationService 中提取
  */
 
+// eslint-disable-next-line no-unused-vars
 const ValidationRuleManager = require('src/background/domains/data-management/services/validation-rule-manager.js')
 
 describe('ValidationRuleManager - 驗證規則管理服務', () => {
   let ruleManager
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockLogger
 
   beforeEach(() => {
@@ -57,12 +60,14 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
 
   describe('📋 平台規則載入', () => {
     test('loadPlatformValidationRules() 應該載入 READMOO 平台規則', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await ruleManager.loadPlatformValidationRules('READMOO')
 
       expect(result.success).toBe(true)
       expect(result.platform).toBe('READMOO')
       expect(ruleManager.validationRules.has('READMOO')).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const rules = ruleManager.validationRules.get('READMOO')
       expect(rules.requiredFields).toBeDefined()
       expect(rules.dataTypes).toBeDefined()
@@ -70,9 +75,11 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
     })
 
     test('loadPlatformValidationRules() 應該載入所有支援平台規則', async () => {
+      // eslint-disable-next-line no-unused-vars
       const platforms = ['READMOO', 'KINDLE', 'KOBO', 'BOOKWALKER', 'BOOKS_COM']
 
       for (const platform of platforms) {
+        // eslint-disable-next-line no-unused-vars
         const result = await ruleManager.loadPlatformValidationRules(platform)
         expect(result.success).toBe(true)
         expect(ruleManager.validationRules.has(platform)).toBe(true)
@@ -99,6 +106,7 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
 
       // 第二次載入應該使用快取
       mockLogger.info.mockClear()
+      // eslint-disable-next-line no-unused-vars
       const result = await ruleManager.loadPlatformValidationRules('READMOO')
 
       expect(result.cached).toBe(true)
@@ -112,6 +120,7 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
     })
 
     test('getValidationRules() 應該返回平台的驗證規則', () => {
+      // eslint-disable-next-line no-unused-vars
       const rules = ruleManager.getValidationRules('READMOO')
 
       expect(rules).toBeDefined()
@@ -122,27 +131,32 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
     })
 
     test('getValidationRules() 應該處理未載入的平台', () => {
+      // eslint-disable-next-line no-unused-vars
       const rules = ruleManager.getValidationRules('UNLOADED')
       expect(rules).toBeNull()
     })
 
     test('validateRuleStructure() 應該驗證規則結構完整性', () => {
+      // eslint-disable-next-line no-unused-vars
       const validRules = {
         requiredFields: ['id', 'title'],
         dataTypes: { id: 'string', title: 'string' },
         businessRules: { progressRange: { min: 0, max: 100 } }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const isValid = ruleManager.validateRuleStructure(validRules)
       expect(isValid).toBe(true)
     })
 
     test('validateRuleStructure() 應該檢測無效的規則結構', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidRules = {
         requiredFields: ['id']
         // 缺少 dataTypes 和 businessRules
       }
 
+      // eslint-disable-next-line no-unused-vars
       const isValid = ruleManager.validateRuleStructure(invalidRules)
       expect(isValid).toBe(false)
     })
@@ -152,15 +166,18 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
     test('updatePlatformRules() 應該支援動態更新平台規則', async () => {
       await ruleManager.loadPlatformValidationRules('READMOO')
 
+      // eslint-disable-next-line no-unused-vars
       const newRules = {
         requiredFields: ['id', 'title', 'authors'],
         dataTypes: { id: 'string', title: 'string', authors: 'array' },
         businessRules: { progressRange: { min: 0, max: 100 } }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await ruleManager.updatePlatformRules('READMOO', newRules)
 
       expect(result.success).toBe(true)
+      // eslint-disable-next-line no-unused-vars
       const updatedRules = ruleManager.getValidationRules('READMOO')
       expect(updatedRules.requiredFields).toContain('authors')
     })
@@ -168,6 +185,7 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
     test('clearPlatformRules() 應該清除平台規則', () => {
       ruleManager.validationRules.set('TEST', { requiredFields: [] })
 
+      // eslint-disable-next-line no-unused-vars
       const result = ruleManager.clearPlatformRules('TEST')
 
       expect(result.success).toBe(true)
@@ -189,6 +207,7 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
       await ruleManager.loadPlatformValidationRules('READMOO')
       await ruleManager.loadPlatformValidationRules('KINDLE')
 
+      // eslint-disable-next-line no-unused-vars
       const stats = ruleManager.getRuleStatistics()
 
       expect(stats.loadedPlatforms).toBe(2)
@@ -198,6 +217,7 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
     })
 
     test('isRuleManagerHealthy() 應該檢查服務健康狀態', () => {
+      // eslint-disable-next-line no-unused-vars
       const health = ruleManager.isRuleManagerHealthy()
 
       expect(health.isHealthy).toBeDefined()
@@ -230,6 +250,7 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
   describe('⚠️ 錯誤處理', () => {
     test('constructor 應該要求 eventBus 參數', () => {
       expect(() => {
+        // eslint-disable-next-line no-new
         new ValidationRuleManager()
       }).toMatchObject({
         message: expect.stringContaining('EventBus is required')

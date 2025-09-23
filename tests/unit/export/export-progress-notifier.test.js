@@ -25,6 +25,7 @@
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+// eslint-disable-next-line no-unused-vars
 const EventBus = require('src/core/event-bus')
 const { EXPORT_EVENTS } = require('src/export/export-events')
 const { StandardError } = require('src/core/errors/StandardError')
@@ -142,6 +143,7 @@ class ExportProgressNotifier {
 }
 
 describe('ExportProgressNotifier', () => {
+  // eslint-disable-next-line no-unused-vars
   let eventBus
   let progressNotifier
 
@@ -185,7 +187,9 @@ describe('ExportProgressNotifier', () => {
 
   describe('進度回調管理', () => {
     test('應該正確註冊進度回調', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'test-export-001'
+      // eslint-disable-next-line no-unused-vars
       const callback = jest.fn()
 
       expect(() => {
@@ -199,9 +203,13 @@ describe('ExportProgressNotifier', () => {
     })
 
     test('應該支援多個匯出的並行回調', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId1 = 'csv-export-001'
+      // eslint-disable-next-line no-unused-vars
       const exportId2 = 'json-export-002'
+      // eslint-disable-next-line no-unused-vars
       const callback1 = jest.fn()
+      // eslint-disable-next-line no-unused-vars
       const callback2 = jest.fn()
 
       // Red 階段：測試將驗證並行回調管理
@@ -212,6 +220,7 @@ describe('ExportProgressNotifier', () => {
     })
 
     test('應該正確移除已完成匯出的回調', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'completed-export-001'
 
       expect(() => {
@@ -227,7 +236,9 @@ describe('ExportProgressNotifier', () => {
 
   describe('進度更新機制', () => {
     test('應該正確處理進度事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'progress-test-001'
+      // eslint-disable-next-line no-unused-vars
       const progressData = {
         exportId,
         current: 50,
@@ -249,9 +260,11 @@ describe('ExportProgressNotifier', () => {
     })
 
     test('應該支援階段性進度通知', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'phase-test-001'
 
       // 階段 1: 初始化
+      // eslint-disable-next-line no-unused-vars
       const initProgressData = {
         exportId,
         current: 0,
@@ -262,6 +275,7 @@ describe('ExportProgressNotifier', () => {
       }
 
       // 階段 2: 處理中
+      // eslint-disable-next-line no-unused-vars
       const processingProgressData = {
         exportId,
         current: 75,
@@ -272,6 +286,7 @@ describe('ExportProgressNotifier', () => {
       }
 
       // 階段 3: 完成
+      // eslint-disable-next-line no-unused-vars
       const completedProgressData = {
         exportId,
         current: 100,
@@ -290,6 +305,7 @@ describe('ExportProgressNotifier', () => {
     })
 
     test('應該正確處理進度倒退情況', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'regression-test-001'
 
       // Red 階段：測試將驗證進度倒退保護
@@ -305,7 +321,9 @@ describe('ExportProgressNotifier', () => {
 
   describe('多格式並行匯出進度', () => {
     test('應該正確追蹤多個並行匯出', () => {
+      // eslint-disable-next-line no-unused-vars
       const csvExportId = 'csv-parallel-001'
+      // eslint-disable-next-line no-unused-vars
       const jsonExportId = 'json-parallel-001'
 
       expect(() => {
@@ -320,8 +338,10 @@ describe('ExportProgressNotifier', () => {
     })
 
     test('應該支援批量匯出的統合進度', () => {
+      // eslint-disable-next-line no-unused-vars
       const batchExportId = 'batch-export-001'
-      const formats = ['csv', 'json', 'excel']
+      // eslint-disable-next-line no-unused-vars
+      const _formats = ['csv', 'json', 'excel']
 
       expect(() => {
         progressNotifier.startTracking(batchExportId, 'batch')
@@ -334,7 +354,9 @@ describe('ExportProgressNotifier', () => {
     })
 
     test('應該處理並行匯出的完成順序', () => {
+      // eslint-disable-next-line no-unused-vars
       const fastExportId = 'fast-export-001'
+      // eslint-disable-next-line no-unused-vars
       const slowExportId = 'slow-export-001'
 
       // Red 階段：測試將驗證完成順序處理
@@ -350,7 +372,9 @@ describe('ExportProgressNotifier', () => {
 
   describe('錯誤處理', () => {
     test('應該處理匯出失敗時的進度清理', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'failed-export-001'
+      // eslint-disable-next-line no-unused-vars
       const error = (() => { const error = new Error('Export failed'); error.code = ErrorCodes.EXPORT_FAILED; return error })()
 
       // Red 階段：測試將驗證失敗處理
@@ -365,6 +389,7 @@ describe('ExportProgressNotifier', () => {
     })
 
     test('應該處理無效進度資料', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'invalid-data-001'
 
       // Red 階段：測試將驗證資料驗證
@@ -379,6 +404,7 @@ describe('ExportProgressNotifier', () => {
     })
 
     test('應該處理網路中斷情況', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'network-test-001'
 
       // Red 階段：測試將驗證網路中斷處理
@@ -396,6 +422,7 @@ describe('ExportProgressNotifier', () => {
 
   describe('取消匯出', () => {
     test('應該正確處理匯出取消', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'cancel-test-001'
 
       expect(() => {
@@ -409,6 +436,7 @@ describe('ExportProgressNotifier', () => {
     })
 
     test('應該支援批量取消', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportIds = ['cancel-batch-001', 'cancel-batch-002']
 
       // Red 階段：測試將驗證批量取消
@@ -424,7 +452,8 @@ describe('ExportProgressNotifier', () => {
   describe('進度查詢和統計', () => {
     test('應該提供當前進度查詢', () => {
       expect(() => {
-        const allProgress = progressNotifier.getAllProgress()
+        // eslint-disable-next-line no-unused-vars
+        const _allProgress = progressNotifier.getAllProgress()
       }).toThrow(StandardError)
 
       // Red 階段：測試將驗證進度查詢
@@ -439,11 +468,13 @@ describe('ExportProgressNotifier', () => {
       // - 平均處理時間
       // - 格式分布統計
       expect(() => {
-        const stats = progressNotifier.getExportStats()
+        // eslint-disable-next-line no-unused-vars
+        const _stats = progressNotifier.getExportStats()
       }).toThrow()
     })
 
     test('應該支援歷史進度查詢', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'history-test-001'
 
       // Red 階段：測試將驗證歷史查詢
@@ -451,7 +482,8 @@ describe('ExportProgressNotifier', () => {
       // - 時間範圍篩選
       // - 效能基準比較
       expect(() => {
-        const history = progressNotifier.getExportHistory(exportId)
+        // eslint-disable-next-line no-unused-vars
+        const _history = progressNotifier.getExportHistory(exportId)
       }).toThrow()
     })
   })
@@ -484,6 +516,7 @@ describe('ExportProgressNotifier', () => {
 
   describe('事件系統整合', () => {
     test('應該正確整合 EventBus 進度事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const progressEventData = {
         exportId: 'event-integration-001',
         current: 25,
@@ -505,6 +538,7 @@ describe('ExportProgressNotifier', () => {
       // - 高優先級進度事件
       // - 低優先級統計事件
       // - 處理順序保證
+      // eslint-disable-next-line no-unused-vars
       const highPriorityEvent = {
         exportId: 'priority-high-001',
         priority: 'urgent',
@@ -517,12 +551,14 @@ describe('ExportProgressNotifier', () => {
 
   describe('UI 響應性', () => {
     test('應該確保進度更新不阻塞 UI', async () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'ui-responsive-001'
 
       // Red 階段：測試將驗證 UI 響應性
       // - 非阻塞進度更新
       // - 批量更新處理
       // - 更新頻率限制
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       try {
@@ -534,12 +570,14 @@ describe('ExportProgressNotifier', () => {
         expect(error.message).toContain('not implemented - Red phase')
       }
 
+      // eslint-disable-next-line no-unused-vars
       const endTime = Date.now()
       // 進度更新應該很快完成，不阻塞 UI
       expect(endTime - startTime).toBeLessThan(100)
     })
 
     test('應該支援進度更新節流', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'throttle-test-001'
 
       // Red 階段：測試將驗證節流機制

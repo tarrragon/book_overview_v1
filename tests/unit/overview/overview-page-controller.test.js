@@ -23,7 +23,9 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
   let dom
   let document
   let window
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let OverviewPageController
 
   beforeEach(() => {
@@ -133,6 +135,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     }
 
     // 載入 EventHandler 並設置到 window
+    // eslint-disable-next-line no-unused-vars
     const EventHandler = require('src/core/event-handler')
     window.EventHandler = EventHandler
 
@@ -174,6 +177,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       // 這個測試應該失敗，因為 OverviewPageController 類別還不存在
       expect(() => {
         const { OverviewPageController } = require('src/overview/overview-page-controller')
+        // eslint-disable-next-line no-unused-vars
         const controller = new OverviewPageController(mockEventBus, document)
         expect(controller).toBeInstanceOf(OverviewPageController)
       }).not.toThrow()
@@ -181,6 +185,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
     test('應該能正確初始化 DOM 元素引用', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
       // 檢查關鍵 DOM 元素是否正確引用
@@ -193,7 +198,8 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
     test('應該能與事件系統正確整合', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
-      const controller = new OverviewPageController(mockEventBus, document)
+      // eslint-disable-next-line no-unused-vars
+      const _controller = new OverviewPageController(mockEventBus, document)
 
       // 檢查是否正確設置事件監聽器
       expect(mockEventBus.on).toHaveBeenCalledWith('STORAGE.LOAD.COMPLETED', expect.any(Function))
@@ -203,6 +209,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
     test('應該能正確設置初始狀態', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
       // 檢查初始狀態設置
@@ -216,10 +223,12 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
   describe('🔴 Red Phase: 資料載入和顯示功能', () => {
     test('應該能處理 STORAGE.LOAD.COMPLETED 事件', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.handleStorageLoadCompleted).toBe('function')
 
+      // eslint-disable-next-line no-unused-vars
       const mockBooksData = [
         { id: '1', title: '測試書籍1', cover: 'cover1.jpg', tags: ['readmoo'], progress: 50, status: '閱讀中' },
         { id: '2', title: '測試書籍2', cover: 'cover2.jpg', tags: ['kobo'], progress: 100, status: '已完成' }
@@ -234,8 +243,10 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
     test('應該能更新統計資訊顯示', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
+      // eslint-disable-next-line no-unused-vars
       const mockBooks = [
         { id: '1', title: '書籍1', tags: ['readmoo'], progress: 25, status: '閱讀中' },
         { id: '2', title: '書籍2', tags: ['kobo'], progress: 75, status: '閱讀中' },
@@ -246,7 +257,9 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       controller.currentBooks = mockBooks
       controller.updateStatistics(mockBooks)
 
+      // eslint-disable-next-line no-unused-vars
       const totalBooks = document.getElementById('totalBooks')
+      // eslint-disable-next-line no-unused-vars
       const displayedBooks = document.getElementById('displayedBooks')
 
       expect(totalBooks.textContent).toBe('3')
@@ -255,8 +268,10 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
     test('應該能渲染書籍表格', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
+      // eslint-disable-next-line no-unused-vars
       const mockBooks = [
         {
           id: '210327003000101',
@@ -278,7 +293,9 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
       controller.renderBooksTable(mockBooks)
 
+      // eslint-disable-next-line no-unused-vars
       const tableBody = document.getElementById('tableBody')
+      // eslint-disable-next-line no-unused-vars
       const rows = tableBody.querySelectorAll('tr')
 
       expect(rows.length).toBe(2)
@@ -288,10 +305,12 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
     test('應該能處理空資料狀態', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
       controller.renderBooksTable([])
 
+      // eslint-disable-next-line no-unused-vars
       const tableBody = document.getElementById('tableBody')
       expect(tableBody.children.length).toBe(1) // 應該有一個 "無資料" 的行
       expect(tableBody.textContent).toContain('目前沒有書籍資料')
@@ -301,10 +320,12 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
   describe('🔴 Red Phase: 搜尋和篩選功能', () => {
     test('應該能處理搜尋輸入', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.handleSearchInput).toBe('function')
 
+      // eslint-disable-next-line no-unused-vars
       const mockBooks = [
         { id: '1', title: '大腦不滿足', tags: ['readmoo'], progress: 50, status: '閱讀中' },
         { id: '2', title: '我們為何吃太多？', tags: ['kobo'], progress: 75, status: '閱讀中' },
@@ -320,8 +341,10 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
     test('應該能處理搜尋結果為空的情況', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
+      // eslint-disable-next-line no-unused-vars
       const mockBooks = [
         { id: '1', title: '大腦不滿足', tags: ['readmoo'], progress: 50, status: '閱讀中' },
         { id: '2', title: '我們為何吃太多？', tags: ['kobo'], progress: 75, status: '閱讀中' }
@@ -335,8 +358,10 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
     test('應該能清除搜尋條件', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
+      // eslint-disable-next-line no-unused-vars
       const mockBooks = [
         { id: '1', title: '大腦不滿足', tags: ['readmoo'], progress: 50, status: '閱讀中' },
         { id: '2', title: '我們為何吃太多？', tags: ['kobo'], progress: 75, status: '閱讀中' }
@@ -352,6 +377,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
   describe('🔴 Red Phase: 載入狀態和錯誤處理', () => {
     test('應該能顯示載入狀態', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.showLoading).toBe('function')
@@ -359,7 +385,9 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
       controller.showLoading('載入書籍資料中...')
 
+      // eslint-disable-next-line no-unused-vars
       const loadingIndicator = document.getElementById('loadingIndicator')
+      // eslint-disable-next-line no-unused-vars
       const loadingText = document.querySelector('.loading-text')
 
       expect(loadingIndicator.style.display).not.toBe('none')
@@ -368,24 +396,30 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
     test('應該能隱藏載入狀態', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
       controller.hideLoading()
 
+      // eslint-disable-next-line no-unused-vars
       const loadingIndicator = document.getElementById('loadingIndicator')
       expect(loadingIndicator.style.display).toBe('none')
     })
 
     test('應該能顯示錯誤訊息', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.showError).toBe('function')
 
+      // eslint-disable-next-line no-unused-vars
       const errorMessage = '載入書籍資料失敗，請檢查網路連線'
       controller.showError(errorMessage)
 
+      // eslint-disable-next-line no-unused-vars
       const errorContainer = document.getElementById('errorContainer')
+      // eslint-disable-next-line no-unused-vars
       const errorMessageElement = document.getElementById('errorMessage')
 
       expect(errorContainer.style.display).not.toBe('none')
@@ -394,12 +428,14 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
     test('應該能隱藏錯誤訊息', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.hideError).toBe('function')
 
       controller.hideError()
 
+      // eslint-disable-next-line no-unused-vars
       const errorContainer = document.getElementById('errorContainer')
       expect(errorContainer.style.display).toBe('none')
     })
@@ -408,10 +444,12 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
   describe('🔴 Red Phase: 使用者操作處理', () => {
     test('應該能處理匯出 CSV 操作', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.handleExportCSV).toBe('function')
 
+      // eslint-disable-next-line no-unused-vars
       const mockBooks = [
         { id: '1', title: '書籍1', tags: ['readmoo'], progress: 50, status: '閱讀中' },
         { id: '2', title: '書籍2', tags: ['kobo'], progress: 100, status: '已完成' }
@@ -432,6 +470,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
     test('應該能處理重新載入操作', async () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.handleReload).toBe('function')
@@ -444,11 +483,13 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
     test('應該能處理檔案載入操作', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.handleFileLoad).toBe('function')
 
       // Mock File 和 FileReader
+      // eslint-disable-next-line no-unused-vars
       const mockFile = new Blob(['{"books": []}'], { type: 'application/json' })
       mockFile.name = 'test.json'
 
@@ -467,8 +508,10 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
   describe('🔴 Red Phase: EventHandler 基底類別整合', () => {
     test('應該正確繼承 EventHandler', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const EventHandler = require('src/core/event-handler')
 
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
       // 檢查是否具有 EventHandler 的關鍵方法和屬性
@@ -480,6 +523,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
     test('應該正確實現 EventHandler 抽象方法', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
       expect(typeof controller.getSupportedEvents).toBe('function')
@@ -489,14 +533,17 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
     test('應該能追蹤執行統計', async () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
+      // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
 
+      // eslint-disable-next-line no-unused-vars
       const initialStats = controller.getStats()
       expect(initialStats.executionCount).toBe(0)
 
       // 模擬處理事件 - 使用繼承的 handle 方法來觸發統計
       await controller.handle({ type: 'STORAGE.LOAD.COMPLETED', data: { books: [] } })
 
+      // eslint-disable-next-line no-unused-vars
       const updatedStats = controller.getStats()
       expect(updatedStats.executionCount).toBe(1)
     })

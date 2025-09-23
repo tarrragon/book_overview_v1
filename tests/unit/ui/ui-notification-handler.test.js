@@ -15,15 +15,23 @@
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+// eslint-disable-next-line no-unused-vars
 const UINotificationHandler = require('src/ui/handlers/ui-notification-handler')
+// eslint-disable-next-line no-unused-vars
 const EventBus = require('src/core/event-bus')
+// eslint-disable-next-line no-unused-vars
 const { StandardError } = require('src/core/errors/StandardError')
 
 describe('UINotificationHandler', () => {
+  // eslint-disable-next-line no-unused-vars
   let handler
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockDocument
+  // eslint-disable-next-line no-unused-vars
   let mockNotificationContainer
+  // eslint-disable-next-line no-unused-vars
   let mockNotificationElement
 
   beforeEach(() => {
@@ -59,6 +67,7 @@ describe('UINotificationHandler', () => {
     }
 
     // 為按鈕添加 addEventListener 方法
+    // eslint-disable-next-line no-unused-vars
     const createMockButton = () => ({
       textContent: '',
       innerHTML: '',
@@ -108,6 +117,7 @@ describe('UINotificationHandler', () => {
     })
 
     test('應該支援 UI.NOTIFICATION.SHOW 事件類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const supportedEvents = handler.getSupportedEvents()
       expect(supportedEvents).toContain('UI.NOTIFICATION.SHOW')
       expect(handler.canHandle('UI.NOTIFICATION.SHOW')).toBe(true)
@@ -123,6 +133,7 @@ describe('UINotificationHandler', () => {
 
   describe('UI.NOTIFICATION.SHOW 事件處理 (TDD循環 #23)', () => {
     test('應該能處理基本的通知顯示事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.NOTIFICATION.SHOW',
         data: {
@@ -134,6 +145,7 @@ describe('UINotificationHandler', () => {
         timestamp: Date.now()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(event)
 
       expect(result).toBeDefined()
@@ -144,6 +156,7 @@ describe('UINotificationHandler', () => {
     })
 
     test('應該能處理不同類型的通知', async () => {
+      // eslint-disable-next-line no-unused-vars
       const notificationTypes = [
         { type: 'success', expectedClass: 'notification-success' },
         { type: 'error', expectedClass: 'notification-error' },
@@ -152,6 +165,7 @@ describe('UINotificationHandler', () => {
       ]
 
       for (const testCase of notificationTypes) {
+        // eslint-disable-next-line no-unused-vars
         const event = {
           type: 'UI.NOTIFICATION.SHOW',
           data: {
@@ -169,6 +183,7 @@ describe('UINotificationHandler', () => {
     })
 
     test('應該能處理帶有標題的通知', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.NOTIFICATION.SHOW',
         data: {
@@ -181,6 +196,7 @@ describe('UINotificationHandler', () => {
         timestamp: Date.now()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(event)
 
       expect(result.success).toBe(true)
@@ -190,6 +206,7 @@ describe('UINotificationHandler', () => {
     })
 
     test('應該驗證通知事件資料的有效性', async () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidEvents = [
         {
           type: 'UI.NOTIFICATION.SHOW',
@@ -215,16 +232,19 @@ describe('UINotificationHandler', () => {
       ]
 
       // 測試第一種情況：null data
+      // eslint-disable-next-line no-unused-vars
       const result1 = await handler.handle(invalidEvents[0])
       expect(result1.success).toBe(false)
       expect(result1.error).toContain('Notification data must be a valid object')
 
       // 測試第二種情況：空訊息
+      // eslint-disable-next-line no-unused-vars
       const result2 = await handler.handle(invalidEvents[1])
       expect(result2.success).toBe(false)
       expect(result2.error).toContain('Message must be a non-empty string')
 
       // 測試第三種情況：無效類型
+      // eslint-disable-next-line no-unused-vars
       const result3 = await handler.handle(invalidEvents[2])
       expect(result3.success).toBe(false)
       expect(result3.error).toContain('notification type')
@@ -233,12 +253,14 @@ describe('UINotificationHandler', () => {
 
   describe('通知顯示和管理 (TDD循環 #23)', () => {
     test('應該能創建和顯示通知元素', async () => {
+      // eslint-disable-next-line no-unused-vars
       const notificationData = {
         message: '測試通知',
         type: 'info',
         duration: 3000
       }
 
+      // eslint-disable-next-line no-unused-vars
       const notification = await handler.createNotification(notificationData, 'test-id')
 
       expect(notification).toBeDefined()
@@ -250,6 +272,7 @@ describe('UINotificationHandler', () => {
     test('應該能自動隱藏通知', async () => {
       jest.useFakeTimers()
 
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.NOTIFICATION.SHOW',
         data: {
@@ -279,6 +302,7 @@ describe('UINotificationHandler', () => {
     })
 
     test('應該能處理永久通知', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.NOTIFICATION.SHOW',
         data: {
@@ -290,18 +314,21 @@ describe('UINotificationHandler', () => {
         timestamp: Date.now()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(event)
 
       expect(result.success).toBe(true)
       expect(result.persistent).toBe(true)
 
       // 永久通知不應該設定自動隱藏
+      // eslint-disable-next-line no-unused-vars
       const activeNotifications = handler.getActiveNotifications()
       expect(activeNotifications['test-persistent']).toBeDefined()
       expect(activeNotifications['test-persistent'].persistent).toBe(true)
     })
 
     test('應該能手動關閉通知', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.NOTIFICATION.SHOW',
         data: {
@@ -318,6 +345,7 @@ describe('UINotificationHandler', () => {
       // 測試手動關閉
       await handler.hideNotification('test-closable')
 
+      // eslint-disable-next-line no-unused-vars
       const activeNotifications = handler.getActiveNotifications()
       expect(activeNotifications['test-closable']).toBeUndefined()
     })
@@ -325,6 +353,7 @@ describe('UINotificationHandler', () => {
 
   describe('通知佇列管理 (TDD循環 #23)', () => {
     test('應該能管理多個並行通知', async () => {
+      // eslint-disable-next-line no-unused-vars
       const notifications = [
         { message: '通知 1', type: 'info', flowId: 'flow-1' },
         { message: '通知 2', type: 'success', flowId: 'flow-2' },
@@ -332,6 +361,7 @@ describe('UINotificationHandler', () => {
       ]
 
       for (const notif of notifications) {
+        // eslint-disable-next-line no-unused-vars
         const event = {
           type: 'UI.NOTIFICATION.SHOW',
           data: notif,
@@ -342,6 +372,7 @@ describe('UINotificationHandler', () => {
         await handler.handle(event)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const activeNotifications = handler.getActiveNotifications()
       expect(Object.keys(activeNotifications)).toHaveLength(3)
       expect(activeNotifications['flow-1']).toBeDefined()
@@ -353,6 +384,7 @@ describe('UINotificationHandler', () => {
       // 設定最大通知數量
       handler.config.maxNotifications = 2
 
+      // eslint-disable-next-line no-unused-vars
       const notifications = [
         { message: '通知 1', type: 'info', flowId: 'flow-1' },
         { message: '通知 2', type: 'info', flowId: 'flow-2' },
@@ -360,6 +392,7 @@ describe('UINotificationHandler', () => {
       ]
 
       for (const notif of notifications) {
+        // eslint-disable-next-line no-unused-vars
         const event = {
           type: 'UI.NOTIFICATION.SHOW',
           data: notif,
@@ -370,6 +403,7 @@ describe('UINotificationHandler', () => {
         await handler.handle(event)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const activeNotifications = handler.getActiveNotifications()
       expect(Object.keys(activeNotifications)).toHaveLength(2)
       expect(activeNotifications['flow-1']).toBeUndefined() // 最舊的應該被移除
@@ -378,6 +412,7 @@ describe('UINotificationHandler', () => {
     })
 
     test('應該提供通知統計資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const stats = handler.getStats()
       expect(stats).toHaveProperty('totalNotifications')
       expect(stats).toHaveProperty('activeNotifications')
@@ -393,6 +428,7 @@ describe('UINotificationHandler', () => {
         throw (() => { const error = new Error('DOM creation failed'); error.code = ErrorCodes.UI_NOTIFICATION_DOM_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.NOTIFICATION.SHOW',
         data: {
@@ -404,25 +440,30 @@ describe('UINotificationHandler', () => {
       }
 
       // 應該優雅處理錯誤
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(event)
 
       expect(result.success).toBe(false)
       expect(result.error).toContain('Failed to create notification element')
       expect(result.errorType).toBe('NOTIFICATION_DISPLAY')
 
+      // eslint-disable-next-line no-unused-vars
       const stats = handler.getStats()
       expect(stats.errorStats.errorCount).toBeGreaterThan(0)
     })
 
     test('應該處理缺少通知容器的情況', async () => {
       // 創建沒有通知容器的文檔
+      // eslint-disable-next-line no-unused-vars
       const emptyDocument = {
         querySelector: jest.fn().mockReturnValue(null),
         createElement: jest.fn().mockReturnValue(mockNotificationElement)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const handlerWithoutContainer = new UINotificationHandler(mockEventBus, emptyDocument)
 
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.NOTIFICATION.SHOW',
         data: {
@@ -434,13 +475,16 @@ describe('UINotificationHandler', () => {
       }
 
       // 應該能處理但會創建默認容器
+      // eslint-disable-next-line no-unused-vars
       const result = await handlerWithoutContainer.handle(event)
       expect(result.success).toBe(true)
     })
 
     test('應該處理 EventBus 未設置的情況', async () => {
+      // eslint-disable-next-line no-unused-vars
       const handlerWithoutEventBus = new UINotificationHandler(null, mockDocument)
 
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.NOTIFICATION.SHOW',
         data: {
@@ -452,6 +496,7 @@ describe('UINotificationHandler', () => {
       }
 
       // 應該能處理但不會發送事件
+      // eslint-disable-next-line no-unused-vars
       const result = await handlerWithoutEventBus.handle(event)
       expect(result.success).toBe(true)
     })
@@ -465,6 +510,7 @@ describe('UINotificationHandler', () => {
     })
 
     test('應該追蹤執行統計', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.NOTIFICATION.SHOW',
         data: {
@@ -475,11 +521,14 @@ describe('UINotificationHandler', () => {
         timestamp: Date.now()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const initialStats = handler.getStats()
+      // eslint-disable-next-line no-unused-vars
       const initialCount = initialStats.executionCount
 
       await handler.handle(event)
 
+      // eslint-disable-next-line no-unused-vars
       const updatedStats = handler.getStats()
       expect(updatedStats.executionCount).toBe(initialCount + 1)
       expect(updatedStats.totalNotifications).toBe(initialStats.totalNotifications + 1)
@@ -488,6 +537,7 @@ describe('UINotificationHandler', () => {
     test('應該支援啟用/停用功能', async () => {
       handler.setEnabled(false)
 
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.NOTIFICATION.SHOW',
         data: {
@@ -498,6 +548,7 @@ describe('UINotificationHandler', () => {
         timestamp: Date.now()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(event)
       expect(result).toBeNull() // 停用時應該返回 null
     })

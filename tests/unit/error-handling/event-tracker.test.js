@@ -10,10 +10,12 @@
  * - 記憶體管理和清理
  */
 
+// eslint-disable-next-line no-unused-vars
 const EventTracker = require('src/error-handling/event-tracker')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('EventTracker', () => {
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
   let eventTracker
 
@@ -59,6 +61,7 @@ describe('EventTracker', () => {
     })
 
     test('應該支援自訂配置選項', () => {
+      // eslint-disable-next-line no-unused-vars
       const customConfig = {
         maxRecords: 10000,
         persistToDisk: false,
@@ -66,6 +69,7 @@ describe('EventTracker', () => {
         retentionDays: 30
       }
 
+      // eslint-disable-next-line no-unused-vars
       const customTracker = new EventTracker(mockEventBus, customConfig)
       expect(customTracker.config.maxRecords).toBe(10000)
       expect(customTracker.config.persistToDisk).toBe(false)
@@ -74,6 +78,7 @@ describe('EventTracker', () => {
     })
 
     test('應該正確註冊支援的事件類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const expectedEvents = [
         'EVENT.TRACKING.START',
         'EVENT.TRACKING.STOP',
@@ -94,6 +99,7 @@ describe('EventTracker', () => {
     })
 
     test('應該從持久化儲存載入現有記錄', () => {
+      // eslint-disable-next-line no-unused-vars
       const existingRecords = [
         { id: '1', type: 'TEST.EVENT', timestamp: Date.now() },
         { id: '2', type: 'ANOTHER.EVENT', timestamp: Date.now() }
@@ -103,6 +109,7 @@ describe('EventTracker', () => {
         JSON.stringify(existingRecords)
       )
 
+      // eslint-disable-next-line no-unused-vars
       const tracker = new EventTracker(mockEventBus)
       expect(tracker.eventRecords).toHaveLength(2)
       expect(tracker.trackingStats.totalEvents).toBe(2)
@@ -112,6 +119,7 @@ describe('EventTracker', () => {
   // ==================== 事件記錄和持久化 ====================
   describe('事件記錄和持久化', () => {
     test('應該記錄所有類型的事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const eventData = {
         type: 'TEST.EVENT',
         data: { message: 'test message', userId: '123' },
@@ -132,7 +140,9 @@ describe('EventTracker', () => {
     })
 
     test('應該為每個事件生成唯一 ID', () => {
+      // eslint-disable-next-line no-unused-vars
       const event1 = { type: 'EVENT.ONE', data: {} }
+      // eslint-disable-next-line no-unused-vars
       const event2 = { type: 'EVENT.TWO', data: {} }
 
       eventTracker._recordEvent(event1)
@@ -146,6 +156,7 @@ describe('EventTracker', () => {
     })
 
     test('應該記錄事件的詳細上下文資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const eventData = {
         type: 'USER.ACTION',
         data: { action: 'click', target: 'button' },
@@ -159,6 +170,7 @@ describe('EventTracker', () => {
 
       eventTracker._recordEvent(eventData)
 
+      // eslint-disable-next-line no-unused-vars
       const record = eventTracker.eventRecords[0]
       expect(record.context).toEqual(eventData.context)
       expect(record.metadata).toBeDefined()
@@ -166,13 +178,16 @@ describe('EventTracker', () => {
     })
 
     test('應該支援不同的追蹤級別', () => {
+      // eslint-disable-next-line no-unused-vars
       const basicTracker = new EventTracker(mockEventBus, {
         trackingLevel: 'basic'
       })
+      // eslint-disable-next-line no-unused-vars
       const detailedTracker = new EventTracker(mockEventBus, {
         trackingLevel: 'detailed'
       })
 
+      // eslint-disable-next-line no-unused-vars
       const eventData = {
         type: 'TEST.EVENT',
         data: { largeData: 'x'.repeat(1000) },
@@ -192,6 +207,7 @@ describe('EventTracker', () => {
     test('應該將事件記錄持久化到儲存', () => {
       eventTracker.config.persistToDisk = true
 
+      // eslint-disable-next-line no-unused-vars
       const eventData = { type: 'PERSIST.TEST', data: {} }
       eventTracker._recordEvent(eventData)
 
@@ -206,6 +222,7 @@ describe('EventTracker', () => {
         throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
+      // eslint-disable-next-line no-unused-vars
       const eventData = { type: 'STORAGE.ERROR.TEST', data: {} }
 
       expect(() => {
@@ -221,6 +238,7 @@ describe('EventTracker', () => {
   describe('事件查詢和過濾', () => {
     beforeEach(() => {
       // 準備測試資料
+      // eslint-disable-next-line no-unused-vars
       const testEvents = [
         {
           type: 'USER.LOGIN',
@@ -253,6 +271,7 @@ describe('EventTracker', () => {
     })
 
     test('應該支援按事件類型查詢', () => {
+      // eslint-disable-next-line no-unused-vars
       const loginEvents = eventTracker.queryEvents({ type: 'USER.LOGIN' })
 
       expect(loginEvents).toHaveLength(2)
@@ -262,9 +281,12 @@ describe('EventTracker', () => {
     })
 
     test('應該支援按時間範圍查詢', () => {
-      const oneHourAgo = Date.now() - 3600000
+      // eslint-disable-next-line no-unused-vars
+      const _oneHourAgo = Date.now() - 3600000
+      // eslint-disable-next-line no-unused-vars
       const thirtyMinutesAgo = Date.now() - 1800000
 
+      // eslint-disable-next-line no-unused-vars
       const recentEvents = eventTracker.queryEvents({
         timeRange: {
           start: thirtyMinutesAgo,
@@ -279,6 +301,7 @@ describe('EventTracker', () => {
     })
 
     test('應該支援按資料內容查詢', () => {
+      // eslint-disable-next-line no-unused-vars
       const userEvents = eventTracker.queryEvents({
         dataFilter: { userId: '123' }
       })
@@ -290,6 +313,7 @@ describe('EventTracker', () => {
     })
 
     test('應該支援複合查詢條件', () => {
+      // eslint-disable-next-line no-unused-vars
       const complexQuery = eventTracker.queryEvents({
         type: 'USER.LOGIN',
         timeRange: {
@@ -305,7 +329,9 @@ describe('EventTracker', () => {
     })
 
     test('應該支援分頁查詢', () => {
+      // eslint-disable-next-line no-unused-vars
       const page1 = eventTracker.queryEvents({}, { page: 1, pageSize: 2 })
+      // eslint-disable-next-line no-unused-vars
       const page2 = eventTracker.queryEvents({}, { page: 2, pageSize: 2 })
 
       expect(page1.results).toHaveLength(2)
@@ -315,6 +341,7 @@ describe('EventTracker', () => {
     })
 
     test('應該支援排序查詢結果', () => {
+      // eslint-disable-next-line no-unused-vars
       const ascendingResults = eventTracker.queryEvents(
         {},
         {
@@ -323,6 +350,7 @@ describe('EventTracker', () => {
         }
       )
 
+      // eslint-disable-next-line no-unused-vars
       const descendingResults = eventTracker.queryEvents(
         {},
         {
@@ -344,6 +372,7 @@ describe('EventTracker', () => {
   describe('診斷資料匯出', () => {
     beforeEach(() => {
       // 準備測試資料
+      // eslint-disable-next-line no-unused-vars
       const testEvents = [
         { type: 'ERROR.NETWORK', data: { url: '/api/data', status: 500 } },
         {
@@ -360,6 +389,7 @@ describe('EventTracker', () => {
     })
 
     test('應該匯出 JSON 格式的事件資料', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportData = eventTracker.exportEvents('json')
 
       expect(exportData.format).toBe('json')
@@ -369,6 +399,7 @@ describe('EventTracker', () => {
     })
 
     test('應該匯出 CSV 格式的事件資料', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportData = eventTracker.exportEvents('csv')
 
       expect(exportData.format).toBe('csv')
@@ -378,16 +409,19 @@ describe('EventTracker', () => {
     })
 
     test('應該支援匯出過濾後的事件資料', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportData = eventTracker.exportEvents('json', {
         type: 'ERROR.NETWORK'
       })
 
+      // eslint-disable-next-line no-unused-vars
       const parsedData = JSON.parse(exportData.data)
       expect(parsedData).toHaveLength(1)
       expect(parsedData[0].type).toBe('ERROR.NETWORK')
     })
 
     test('應該包含匯出元資料', () => {
+      // eslint-disable-next-line no-unused-vars
       const exportData = eventTracker.exportEvents('json')
 
       expect(exportData.metadata).toBeDefined()
@@ -425,6 +459,7 @@ describe('EventTracker', () => {
         })
       }
 
+      // eslint-disable-next-line no-unused-vars
       const exportData = eventTracker.exportEvents(
         'json',
         {},
@@ -459,7 +494,9 @@ describe('EventTracker', () => {
     test('應該清理過期的事件記錄', () => {
       eventTracker.config.retentionDays = 7
 
+      // eslint-disable-next-line no-unused-vars
       const oldTimestamp = Date.now() - 8 * 24 * 60 * 60 * 1000 // 8 天前
+      // eslint-disable-next-line no-unused-vars
       const recentTimestamp = Date.now() - 3 * 24 * 60 * 60 * 1000 // 3 天前
 
       eventTracker._recordEvent({
@@ -483,6 +520,7 @@ describe('EventTracker', () => {
     test('應該定期執行清理任務', () => {
       jest.useFakeTimers()
 
+      // eslint-disable-next-line no-unused-vars
       const cleanupSpy = jest.spyOn(eventTracker, '_performMaintenance')
 
       // 啟動定期清理
@@ -534,6 +572,7 @@ describe('EventTracker', () => {
     })
 
     test('應該監控記憶體使用情況', () => {
+      // eslint-disable-next-line no-unused-vars
       const memoryStats = eventTracker.getMemoryStats()
 
       expect(memoryStats).toBeDefined()
@@ -564,6 +603,7 @@ describe('EventTracker', () => {
     test('應該在停止追蹤時不記錄新事件', () => {
       eventTracker.isEnabled = false
 
+      // eslint-disable-next-line no-unused-vars
       const initialCount = eventTracker.eventRecords.length
       eventTracker._recordEvent({ type: 'DISABLED.TEST', data: {} })
 

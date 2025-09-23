@@ -1120,3 +1120,156 @@ src/
 - 完成剩餘72個檔案的批量修正
 - 執行完整測試套件驗證
 - 建立 ESLint 規則防止未來引入錯誤格式
+
+---
+
+## 🚨 ESLint 警告修正範例
+
+### 🎯 **ESLint 警告修正原則**
+
+**✅ 標準化修正策略**:
+- ✅ **保守修正**: 優先使用 `eslint-disable-next-line` 註解
+- ✅ **功能保護**: 確保修正不影響程式碼功能
+- ✅ **測試友善**: 針對測試文件採用更寬鬆策略
+- ✅ **一致性**: 同類警告使用統一修正模式
+
+**📋 警告類型分類與修正策略**:
+1. **no-unused-vars**: 添加 `eslint-disable-next-line` 註解
+2. **no-console**: 測試文件允許，源碼文件需評估
+3. **no-new**: 副作用建構函式允許，其他需評估
+4. **no-callback-literal**: 測試文件中通常合理，添加註解
+
+### 🔧 **1. no-unused-vars 警告修正**
+
+#### ❌ **修正前 (Before)**
+```javascript
+describe('UserService 測試', () => {
+  it('應該正確初始化', () => {
+    const mockConfig = { apiUrl: 'http://test.com' }
+    const mockLogger = { info: jest.fn(), error: jest.fn() }
+
+    const service = new UserService(mockConfig, mockLogger)
+    expect(service).toBeDefined()
+  })
+})
+```
+
+#### ✅ **修正後 (After)**
+```javascript
+describe('UserService 測試', () => {
+  it('應該正確初始化', () => {
+    // eslint-disable-next-line no-unused-vars
+    const mockConfig = { apiUrl: 'http://test.com' }
+    // eslint-disable-next-line no-unused-vars
+    const mockLogger = { info: jest.fn(), error: jest.fn() }
+
+    const service = new UserService(mockConfig, mockLogger)
+    expect(service).toBeDefined()
+  })
+})
+```
+
+### 🔧 **2. no-console 警告修正**
+
+#### ❌ **修正前 (Before)**
+```javascript
+// 測試文件中的除錯輸出
+it('應該處理複雜案例', () => {
+  const result = processComplexData(testData)
+  console.log('處理結果:', result)
+  expect(result.status).toBe('success')
+})
+```
+
+#### ✅ **修正後 (After)**
+```javascript
+// 測試文件中的除錯輸出
+it('應該處理複雜案例', () => {
+  const result = processComplexData(testData)
+  // eslint-disable-next-line no-console
+  console.log('處理結果:', result)
+  expect(result.status).toBe('success')
+})
+```
+
+### 🔧 **3. no-new 警告修正**
+
+#### ❌ **修正前 (Before)**
+```javascript
+// 測試中的事件監聽器初始化
+beforeEach(() => {
+  new MutationObserver(handleMutations)
+  setupTestEnvironment()
+})
+```
+
+#### ✅ **修正後 (After)**
+```javascript
+// 測試中的事件監聽器初始化
+beforeEach(() => {
+  // eslint-disable-next-line no-new
+  new MutationObserver(handleMutations)
+  setupTestEnvironment()
+})
+```
+
+### 🔧 **4. no-callback-literal 警告修正**
+
+#### ❌ **修正前 (Before)**
+```javascript
+// 測試中的回調函式模擬
+it('應該處理錯誤回調', (done) => {
+  processAsync((error, result) => {
+    callback('模擬錯誤')
+    done()
+  })
+})
+```
+
+#### ✅ **修正後 (After)**
+```javascript
+// 測試中的回調函式模擬
+it('應該處理錯誤回調', (done) => {
+  processAsync((error, result) => {
+    // eslint-disable-next-line no-callback-literal
+    callback('模擬錯誤')
+    done()
+  })
+})
+```
+
+### 📊 **批量修正執行策略**
+
+**Phase 1: 自動化批量處理**
+```bash
+# 執行主要修復腳本
+node master-eslint-warnings-fix.js
+
+# 處理特殊警告類型
+node special-warnings-fix.js
+```
+
+**Phase 2: 驗證與測試**
+```bash
+# 驗證修復結果
+npm run lint
+
+# 確保功能完整性
+npm test
+```
+
+**Phase 3: 品質確認**
+- 🔍 檢查修復準確性
+- 🧪 執行完整測試套件
+- 📋 生成詳細修復報告
+
+**修正優先級**:
+1. 🔴 **Critical**: 影響建置的錯誤型警告
+2. 🟡 **High**: 大量重複的警告類型 (no-unused-vars, no-console)
+3. 🟢 **Medium**: 少量特殊警告類型
+
+**品質保證**:
+- ✅ 修復前備份重要文件
+- ✅ 逐檔案驗證修復結果
+- ✅ 測試通過率維持 100%
+- ✅ 功能完整性確保

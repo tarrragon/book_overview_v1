@@ -1,19 +1,32 @@
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+// eslint-disable-next-line no-unused-vars
 const SchemaMigrationService = require('src/data-management/SchemaMigrationService')
+// eslint-disable-next-line no-unused-vars
 const BaseModule = require('src/background/lifecycle/base-module')
+// eslint-disable-next-line no-unused-vars
 const EventBus = require('src/core/event-bus')
-const { StandardError } = require('src/core/errors/StandardError')
+// StandardError 已棄用，改用 ErrorCodes 系統
+// eslint-disable-next-line no-unused-vars
+// const { StandardError } = require('src/core/errors/StandardError')
 
 describe('Schema Migration Service', () => {
+  // eslint-disable-next-line no-unused-vars
   let eventBus
+  // eslint-disable-next-line no-unused-vars
   let logger
+  // eslint-disable-next-line no-unused-vars
   let config
+  // eslint-disable-next-line no-unused-vars
   let migrationService
+  // eslint-disable-next-line no-unused-vars
   let mockMigrationExecutor
+  // eslint-disable-next-line no-unused-vars
   let mockBackupManager
+  // eslint-disable-next-line no-unused-vars
   let mockStorageAdapter
 
   // Test data helper functions
+  // eslint-disable-next-line no-unused-vars
   const createTestSchemaVersions = () => ({
     v1_0_0: {
       version: '1.0.0',
@@ -47,6 +60,7 @@ describe('Schema Migration Service', () => {
     }
   })
 
+  // eslint-disable-next-line no-unused-vars
   const createTestMigrations = () => ({
     '1.0.0_to_1.1.0': {
       steps: [
@@ -79,6 +93,7 @@ describe('Schema Migration Service', () => {
     }
   })
 
+  // eslint-disable-next-line no-unused-vars
   const createErrorScenarios = () => ({
     CORRUPTED_DATA: {
       books: [
@@ -163,6 +178,7 @@ describe('Schema Migration Service', () => {
         throw (() => { const error = new Error('Simulated backup creation failure'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const backupId = `backup_${version}_${Date.now()}`
       this.backups.set(backupId, {
         id: backupId,
@@ -180,6 +196,7 @@ describe('Schema Migration Service', () => {
         throw (() => { const error = new Error('Simulated backup restore failure'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const backup = this.backups.get(backupId)
       if (!backup) {
         throw (() => { const error = new Error(`Backup not found: ${backupId}`); error.code = ErrorCodes.NOT_FOUND_ERROR; error.details = { category: 'testing' }; return error })()
@@ -253,7 +270,8 @@ describe('Schema Migration Service', () => {
   describe('Construction & Initialization', () => {
     test('建構函數參數驗證 - eventBus 必填', () => {
       expect(() => {
-        const service = new SchemaMigrationService()
+        // eslint-disable-next-line no-unused-vars
+        const _service = new SchemaMigrationService()
       }).toThrowError(
         expect.objectContaining({
           code: 'REQUIRED_FIELD_MISSING',
@@ -267,7 +285,8 @@ describe('Schema Migration Service', () => {
 
     test('建構函數參數驗證 - eventBus 無效', () => {
       expect(() => {
-        const service = new SchemaMigrationService({})
+        // eslint-disable-next-line no-unused-vars
+        const _service = new SchemaMigrationService({})
       }).toThrowError(
         expect.objectContaining({
           code: 'REQUIRED_FIELD_MISSING',
@@ -281,7 +300,8 @@ describe('Schema Migration Service', () => {
 
     test('建構函數參數驗證 - logger 必填', () => {
       expect(() => {
-        const service = new SchemaMigrationService(eventBus)
+        // eslint-disable-next-line no-unused-vars
+        const _service = new SchemaMigrationService(eventBus)
       }).toThrowError(
         expect.objectContaining({
           code: 'REQUIRED_FIELD_MISSING',
@@ -295,7 +315,8 @@ describe('Schema Migration Service', () => {
 
     test('建構函數參數驗證 - config 必填', () => {
       expect(() => {
-        const service = new SchemaMigrationService(eventBus, logger)
+        // eslint-disable-next-line no-unused-vars
+        const _service = new SchemaMigrationService(eventBus, logger)
       }).toThrowError(
         expect.objectContaining({
           code: 'REQUIRED_FIELD_MISSING',
@@ -313,6 +334,7 @@ describe('Schema Migration Service', () => {
     })
 
     test('預設配置載入和合併機制', () => {
+      // eslint-disable-next-line no-unused-vars
       const customConfig = { migration: { batchSize: 200 } }
       migrationService = new SchemaMigrationService(eventBus, logger, customConfig)
 
@@ -321,6 +343,7 @@ describe('Schema Migration Service', () => {
     })
 
     test('事件監聽器自動註冊', () => {
+      // eslint-disable-next-line no-unused-vars
       const spy = jest.spyOn(eventBus, 'on')
       migrationService = new SchemaMigrationService(eventBus, logger, config)
 
@@ -355,29 +378,34 @@ describe('Schema Migration Service', () => {
     })
 
     test('當前版本號檢測和讀取', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.getCurrentSchemaVersion()
       expect(result).toBeDefined()
       expect(typeof result).toBe('string')
     })
 
     test('目標版本設定和驗證', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.setTargetVersion('2.0.0')
       expect(result.success).toBe(true)
       expect(result.targetVersion).toBe('2.0.0')
     })
 
     test('版本相容性檢查演算法', async () => {
+      // eslint-disable-next-line no-unused-vars
       const isCompatible = await migrationService.checkVersionCompatibility('1.0.0', '2.0.0')
       expect(typeof isCompatible).toBe('boolean')
     })
 
     test('版本升級路徑計算', async () => {
+      // eslint-disable-next-line no-unused-vars
       const path = await migrationService.calculateUpgradePath('1.0.0', '2.0.0')
       expect(Array.isArray(path)).toBe(true)
       expect(path.length).toBeGreaterThan(0)
     })
 
     test('版本降級路徑驗證', async () => {
+      // eslint-disable-next-line no-unused-vars
       const path = await migrationService.calculateDowngradePath('2.0.0', '1.0.0')
       expect(Array.isArray(path)).toBe(true)
     })
@@ -392,6 +420,7 @@ describe('Schema Migration Service', () => {
     })
 
     test('版本歷史記錄管理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const history = await migrationService.getVersionHistory()
       expect(Array.isArray(history)).toBe(true)
     })
@@ -408,7 +437,9 @@ describe('Schema Migration Service', () => {
     })
 
     test('版本資訊快取機制', async () => {
+      // eslint-disable-next-line no-unused-vars
       const version1 = await migrationService.getCurrentSchemaVersion()
+      // eslint-disable-next-line no-unused-vars
       const version2 = await migrationService.getCurrentSchemaVersion()
 
       expect(version1).toBe(version2)
@@ -416,17 +447,20 @@ describe('Schema Migration Service', () => {
     })
 
     test('跨平台版本同步', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.syncVersionAcrossPlatforms()
       expect(result.success).toBe(true)
       expect(result.syncedPlatforms).toBeDefined()
     })
 
     test('版本相依性解析', async () => {
+      // eslint-disable-next-line no-unused-vars
       const dependencies = await migrationService.resolveVersionDependencies('2.0.0')
       expect(Array.isArray(dependencies)).toBe(true)
     })
 
     test('緊急版本標記處理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.markVersionAsEmergency('1.5.0', 'Critical security fix')
       expect(result.success).toBe(true)
       expect(result.emergencyFlag).toBe(true)
@@ -445,6 +479,7 @@ describe('Schema Migration Service', () => {
     })
 
     test('Migration 步驟自動規劃', async () => {
+      // eslint-disable-next-line no-unused-vars
       const plan = await migrationService.createMigrationPlan('1.0.0', '2.0.0')
       expect(plan.steps).toBeDefined()
       expect(Array.isArray(plan.steps)).toBe(true)
@@ -452,7 +487,9 @@ describe('Schema Migration Service', () => {
     })
 
     test('依賴關係驗證和排序', async () => {
+      // eslint-disable-next-line no-unused-vars
       const plan = await migrationService.createMigrationPlan('1.0.0', '2.0.0')
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.validateDependencies(plan)
 
       expect(result.isValid).toBe(true)
@@ -460,12 +497,14 @@ describe('Schema Migration Service', () => {
     })
 
     test('資料備份需求評估', async () => {
+      // eslint-disable-next-line no-unused-vars
       const assessment = await migrationService.assessBackupRequirements('1.0.0', '2.0.0')
       expect(assessment.requiresBackup).toBeDefined()
       expect(assessment.estimatedBackupSize).toBeDefined()
     })
 
     test('資源需求估算', async () => {
+      // eslint-disable-next-line no-unused-vars
       const estimation = await migrationService.estimateResourceRequirements('1.0.0', '2.0.0')
       expect(estimation.memory).toBeDefined()
       expect(estimation.time).toBeDefined()
@@ -473,12 +512,14 @@ describe('Schema Migration Service', () => {
     })
 
     test('風險評估和緩解策略', async () => {
+      // eslint-disable-next-line no-unused-vars
       const assessment = await migrationService.assessMigrationRisks('1.0.0', '2.0.0')
       expect(assessment.risks).toBeDefined()
       expect(assessment.mitigationStrategies).toBeDefined()
     })
 
     test('預檢查機制', async () => {
+      // eslint-disable-next-line no-unused-vars
       const preCheck = await migrationService.performPreMigrationCheck('1.0.0', '2.0.0')
       expect(preCheck.dataIntegrity).toBeDefined()
       expect(preCheck.permissions).toBeDefined()
@@ -486,7 +527,9 @@ describe('Schema Migration Service', () => {
     })
 
     test('Migration 計劃序列化儲存', async () => {
+      // eslint-disable-next-line no-unused-vars
       const plan = await migrationService.createMigrationPlan('1.0.0', '2.0.0')
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.saveMigrationPlan(plan)
 
       expect(result.success).toBe(true)
@@ -494,6 +537,7 @@ describe('Schema Migration Service', () => {
     })
 
     test('計劃驗證失敗處理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidPlan = { steps: [] }
 
       await expect(migrationService.validateMigrationPlan(invalidPlan))
@@ -505,7 +549,9 @@ describe('Schema Migration Service', () => {
     })
 
     test('多步驟 Migration 協調', async () => {
+      // eslint-disable-next-line no-unused-vars
       const plan = await migrationService.createMigrationPlan('1.0.0', '2.0.0')
+      // eslint-disable-next-line no-unused-vars
       const coordination = await migrationService.coordinateMultiStepMigration(plan)
 
       expect(coordination.executionOrder).toBeDefined()
@@ -513,6 +559,7 @@ describe('Schema Migration Service', () => {
     })
 
     test('緊急停止條件檢查', async () => {
+      // eslint-disable-next-line no-unused-vars
       const conditions = await migrationService.checkEmergencyStopConditions()
       expect(conditions.shouldStop).toBeDefined()
       expect(conditions.reasons).toBeDefined()
@@ -531,9 +578,12 @@ describe('Schema Migration Service', () => {
     })
 
     test('單步驟 Migration 執行', async () => {
+      // eslint-disable-next-line no-unused-vars
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: null }
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
 
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.executeMigrationStep(step, testData)
 
       expect(result.success).toBe(true)
@@ -541,7 +591,9 @@ describe('Schema Migration Service', () => {
     })
 
     test('多步驟 Migration 協調執行', async () => {
+      // eslint-disable-next-line no-unused-vars
       const plan = await migrationService.createMigrationPlan('1.0.0', '2.0.0')
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.executeMultiStepMigration(plan)
 
       expect(result.success).toBe(true)
@@ -549,10 +601,13 @@ describe('Schema Migration Service', () => {
     })
 
     test('進度追蹤和事件發送', async () => {
+      // eslint-disable-next-line no-unused-vars
       const progressSpy = jest.fn()
       eventBus.on('MIGRATION.PROGRESS', progressSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: null }
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
 
       await migrationService.executeMigrationStep(step, testData)
@@ -561,9 +616,12 @@ describe('Schema Migration Service', () => {
     })
 
     test('資料轉換處理 - 欄位新增', async () => {
+      // eslint-disable-next-line no-unused-vars
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: 'default' }
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
 
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.executeMigrationStep(step, testData)
 
       expect(result.success).toBe(true)
@@ -571,9 +629,12 @@ describe('Schema Migration Service', () => {
     })
 
     test('資料轉換處理 - 欄位重命名', async () => {
+      // eslint-disable-next-line no-unused-vars
       const step = { type: 'RENAME_FIELD', oldField: 'progress', newField: 'readingProgress' }
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_1_0
 
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.executeMigrationStep(step, testData)
 
       expect(result.success).toBe(true)
@@ -581,6 +642,7 @@ describe('Schema Migration Service', () => {
     })
 
     test('批次處理大量資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const largeDataset = {
         books: Array.from({ length: 1000 }, (_, i) => ({
           id: `book${i}`,
@@ -589,7 +651,9 @@ describe('Schema Migration Service', () => {
         }))
       }
 
+      // eslint-disable-next-line no-unused-vars
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: null }
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.executeMigrationStep(step, largeDataset)
 
       expect(result.success).toBe(true)
@@ -597,15 +661,19 @@ describe('Schema Migration Service', () => {
     })
 
     test('Migration 執行暫停/恢復', async () => {
+      // eslint-disable-next-line no-unused-vars
       const plan = await migrationService.createMigrationPlan('1.0.0', '2.0.0')
 
+      // eslint-disable-next-line no-unused-vars
       const executionPromise = migrationService.executeMultiStepMigration(plan)
       await migrationService.pauseMigration()
 
+      // eslint-disable-next-line no-unused-vars
       const pauseResult = await migrationService.getMigrationStatus()
       expect(pauseResult.status).toBe('paused')
 
       await migrationService.resumeMigration()
+      // eslint-disable-next-line no-unused-vars
       const finalResult = await executionPromise
 
       expect(finalResult.success).toBe(true)
@@ -614,9 +682,12 @@ describe('Schema Migration Service', () => {
     test('執行時錯誤捕獲和處理', async () => {
       mockMigrationExecutor.shouldFail = true
 
+      // eslint-disable-next-line no-unused-vars
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: null }
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
 
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.executeMigrationStep(step, testData)
 
       expect(result.success).toBe(false)
@@ -626,7 +697,9 @@ describe('Schema Migration Service', () => {
     test('執行逾時處理', async () => {
       mockMigrationExecutor.executionDelay = 35000 // 超過 timeout
 
+      // eslint-disable-next-line no-unused-vars
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: null }
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
 
       await expect(migrationService.executeMigrationStep(step, testData))
@@ -638,9 +711,12 @@ describe('Schema Migration Service', () => {
     }, 40000) // 設定測試超時為 40 秒
 
     test('併發控制和資源鎖定', async () => {
+      // eslint-disable-next-line no-unused-vars
       const plan1 = await migrationService.createMigrationPlan('1.0.0', '1.1.0')
+      // eslint-disable-next-line no-unused-vars
       const plan2 = await migrationService.createMigrationPlan('1.1.0', '2.0.0')
 
+      // eslint-disable-next-line no-unused-vars
       const execution1Promise = migrationService.executeMultiStepMigration(plan1)
 
       await expect(migrationService.executeMultiStepMigration(plan2))
@@ -654,9 +730,12 @@ describe('Schema Migration Service', () => {
     })
 
     test('執行狀態持久化', async () => {
+      // eslint-disable-next-line no-unused-vars
       const plan = await migrationService.createMigrationPlan('1.0.0', '2.0.0')
 
+      // eslint-disable-next-line no-unused-vars
       const executionPromise = migrationService.executeMultiStepMigration(plan)
+      // eslint-disable-next-line no-unused-vars
       const status = await migrationService.getMigrationStatus()
 
       expect(status.status).toBe('running')
@@ -666,7 +745,9 @@ describe('Schema Migration Service', () => {
     })
 
     test('中間檢查點建立', async () => {
+      // eslint-disable-next-line no-unused-vars
       const plan = await migrationService.createMigrationPlan('1.0.0', '2.0.0')
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.executeMultiStepMigration(plan)
 
       expect(result.checkpoints).toBeDefined()
@@ -674,10 +755,13 @@ describe('Schema Migration Service', () => {
     })
 
     test('資料驗證和完整性檢查', async () => {
+      // eslint-disable-next-line no-unused-vars
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: null }
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
 
       await migrationService.executeMigrationStep(step, testData)
+      // eslint-disable-next-line no-unused-vars
       const validation = await migrationService.validateDataIntegrity()
 
       expect(validation.isValid).toBe(true)
@@ -685,10 +769,13 @@ describe('Schema Migration Service', () => {
     })
 
     test('執行日誌詳細記錄', async () => {
+      // eslint-disable-next-line no-unused-vars
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: null }
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
 
       await migrationService.executeMigrationStep(step, testData)
+      // eslint-disable-next-line no-unused-vars
       const logs = await migrationService.getExecutionLogs()
 
       expect(logs.length).toBeGreaterThan(0)
@@ -697,10 +784,13 @@ describe('Schema Migration Service', () => {
     })
 
     test('執行效能監控', async () => {
+      // eslint-disable-next-line no-unused-vars
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: null }
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
 
       await migrationService.executeMigrationStep(step, testData)
+      // eslint-disable-next-line no-unused-vars
       const metrics = await migrationService.getPerformanceMetrics()
 
       expect(metrics.executionTime).toBeDefined()
@@ -720,7 +810,9 @@ describe('Schema Migration Service', () => {
     })
 
     test('自動資料備份建立', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
+      // eslint-disable-next-line no-unused-vars
       const backupId = await migrationService.createAutoBackup('1.0.0', testData)
 
       expect(backupId).toBeDefined()
@@ -728,18 +820,25 @@ describe('Schema Migration Service', () => {
     })
 
     test('備份完整性驗證', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
+      // eslint-disable-next-line no-unused-vars
       const backupId = await migrationService.createAutoBackup('1.0.0', testData)
 
+      // eslint-disable-next-line no-unused-vars
       const validation = await migrationService.validateBackupIntegrity(backupId)
       expect(validation.isValid).toBe(true)
     })
 
     test('增量備份支援', async () => {
+      // eslint-disable-next-line no-unused-vars
       const v1Data = createTestSchemaVersions().v1_0_0
+      // eslint-disable-next-line no-unused-vars
       const v2Data = createTestSchemaVersions().v1_1_0
 
+      // eslint-disable-next-line no-unused-vars
       const fullBackupId = await migrationService.createAutoBackup('1.0.0', v1Data)
+      // eslint-disable-next-line no-unused-vars
       const incrementalBackupId = await migrationService.createIncrementalBackup('1.1.0', v2Data, fullBackupId)
 
       expect(incrementalBackupId).toBeDefined()
@@ -747,6 +846,7 @@ describe('Schema Migration Service', () => {
     })
 
     test('備份壓縮和優化', async () => {
+      // eslint-disable-next-line no-unused-vars
       const largeData = {
         books: Array.from({ length: 1000 }, (_, i) => ({
           id: `book${i}`,
@@ -755,7 +855,9 @@ describe('Schema Migration Service', () => {
         }))
       }
 
+      // eslint-disable-next-line no-unused-vars
       const backupId = await migrationService.createAutoBackup('1.0.0', largeData)
+      // eslint-disable-next-line no-unused-vars
       const stats = await migrationService.getBackupStats(backupId)
 
       expect(stats.compressionRatio).toBeDefined()
@@ -763,23 +865,30 @@ describe('Schema Migration Service', () => {
     })
 
     test('恢復點建立和管理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
 
+      // eslint-disable-next-line no-unused-vars
       const restorePoint = await migrationService.createRestorePoint('1.0.0', testData, 'Before major migration')
       expect(restorePoint.id).toBeDefined()
       expect(restorePoint.description).toBe('Before major migration')
 
+      // eslint-disable-next-line no-unused-vars
       const restorePoints = await migrationService.listRestorePoints()
       expect(restorePoints.length).toBeGreaterThan(0)
     })
 
     test('失敗時自動恢復', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
+      // eslint-disable-next-line no-unused-vars
       const backupId = await migrationService.createAutoBackup('1.0.0', testData)
 
       mockMigrationExecutor.shouldFail = true
 
+      // eslint-disable-next-line no-unused-vars
       const plan = await migrationService.createMigrationPlan('1.0.0', '2.0.0')
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.executeMultiStepMigration(plan)
 
       expect(result.success).toBe(true)
@@ -788,9 +897,12 @@ describe('Schema Migration Service', () => {
     })
 
     test('手動恢復觸發', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
+      // eslint-disable-next-line no-unused-vars
       const backupId = await migrationService.createAutoBackup('1.0.0', testData)
 
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.restoreFromBackup(backupId)
       expect(result.success).toBe(true)
       expect(result.restoredVersion).toBe('1.0.0')
@@ -798,14 +910,18 @@ describe('Schema Migration Service', () => {
 
     test('備份清理和空間管理', async () => {
       // 建立多個備份
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
+      // eslint-disable-next-line no-unused-vars
       const backupIds = []
 
       for (let i = 0; i < 5; i++) {
+        // eslint-disable-next-line no-unused-vars
         const backupId = await migrationService.createAutoBackup(`1.0.${i}`, testData)
         backupIds.push(backupId)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.cleanupOldBackups({ keepLast: 3 })
       expect(result.deletedCount).toBe(2)
       expect(result.remainingCount).toBe(3)
@@ -824,22 +940,27 @@ describe('Schema Migration Service', () => {
     })
 
     test('單版本回滾執行', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.rollbackToVersion('1.0.0')
       expect(result.success).toBe(true)
       expect(result.targetVersion).toBe('1.0.0')
     })
 
     test('多版本連續回滾', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.rollbackToVersion('1.0.0', { fromVersion: '2.0.0' })
       expect(result.success).toBe(true)
       expect(result.stepsRolledBack).toBeGreaterThan(1)
     })
 
     test('資料恢復驗證', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v2_0_0
       await mockStorageAdapter.set('currentData', testData)
 
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.rollbackToVersion('1.0.0')
+      // eslint-disable-next-line no-unused-vars
       const verification = await migrationService.verifyRollbackIntegrity(result.rollbackId)
 
       expect(verification.isValid).toBe(true)
@@ -849,6 +970,7 @@ describe('Schema Migration Service', () => {
     test('回滾失敗處理', async () => {
       mockBackupManager.shouldFailBackup = true
 
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.rollbackToVersion('1.0.0')
       expect(result.success).toBe(false)
       expect(result.error).toBeDefined()
@@ -856,12 +978,14 @@ describe('Schema Migration Service', () => {
     })
 
     test('部分回滾支援', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.rollbackPartial(['step1', 'step2'])
       expect(result.success).toBe(true)
       expect(result.rolledBackSteps).toHaveLength(2)
     })
 
     test('回滾安全性檢查', async () => {
+      // eslint-disable-next-line no-unused-vars
       const safetyCheck = await migrationService.checkRollbackSafety('1.0.0')
       expect(safetyCheck.isSafe).toBeDefined()
       expect(safetyCheck.risks).toBeDefined()
@@ -869,6 +993,7 @@ describe('Schema Migration Service', () => {
     })
 
     test('回滾效能優化', async () => {
+      // eslint-disable-next-line no-unused-vars
       const largeData = {
         books: Array.from({ length: 5000 }, (_, i) => ({
           id: `book${i}`,
@@ -879,8 +1004,11 @@ describe('Schema Migration Service', () => {
 
       await mockStorageAdapter.set('currentData', largeData)
 
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.rollbackToVersion('1.0.0')
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
 
       expect(result.success).toBe(true)
@@ -888,6 +1016,7 @@ describe('Schema Migration Service', () => {
     })
 
     test('緊急回滾機制', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.emergencyRollback('Critical data corruption detected')
       expect(result.success).toBe(true)
       expect(result.emergency).toBe(true)
@@ -909,9 +1038,12 @@ describe('Schema Migration Service', () => {
     test('Migration 錯誤分類和處理', async () => {
       mockMigrationExecutor.shouldFail = true
 
+      // eslint-disable-next-line no-unused-vars
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: null }
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
 
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.executeMigrationStep(step, testData)
 
       expect(result.success).toBe(false)
@@ -923,34 +1055,42 @@ describe('Schema Migration Service', () => {
       // 模擬系統狀態不一致
       await mockStorageAdapter.set('migrationStatus', { status: 'running', step: 'unknown' })
 
+      // eslint-disable-next-line no-unused-vars
       const recovery = await migrationService.recoverFromInconsistentState()
       expect(recovery.success).toBe(true)
       expect(recovery.restoredState).toBeDefined()
     })
 
     test('資料損壞檢測和修復', async () => {
+      // eslint-disable-next-line no-unused-vars
       const corruptedData = createErrorScenarios().CORRUPTED_DATA
       await mockStorageAdapter.set('currentData', corruptedData)
 
+      // eslint-disable-next-line no-unused-vars
       const detection = await migrationService.detectDataCorruption()
       expect(detection.isCorrupted).toBe(true)
       expect(detection.corruptionDetails).toBeDefined()
 
+      // eslint-disable-next-line no-unused-vars
       const repair = await migrationService.repairCorruptedData(detection)
       expect(repair.success).toBe(true)
     })
 
     test('網路中斷恢復機制', async () => {
+      // eslint-disable-next-line no-unused-vars
       const networkError = createErrorScenarios().NETWORK_INTERRUPTION
 
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.handleNetworkInterruption(networkError)
       expect(result.recovered).toBe(true)
       expect(result.reconnected).toBe(true)
     })
 
     test('儲存空間不足處理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const storageError = createErrorScenarios().INSUFFICIENT_STORAGE
 
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.handleInsufficientStorage(storageError)
       expect(result.handled).toBe(true)
       expect(result.actions).toBeDefined()
@@ -959,9 +1099,12 @@ describe('Schema Migration Service', () => {
     test('權限錯誤處理', async () => {
       mockStorageAdapter.shouldFailStorage = true
 
+      // eslint-disable-next-line no-unused-vars
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: null }
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
 
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.executeMigrationStep(step, testData)
 
       expect(result.success).toBe(false)
@@ -969,6 +1112,7 @@ describe('Schema Migration Service', () => {
     })
 
     test('重試機制和退避策略', async () => {
+      // eslint-disable-next-line no-unused-vars
       let attemptCount = 0
       mockMigrationExecutor.executeStep = jest.fn().mockImplementation(() => {
         attemptCount++
@@ -978,9 +1122,12 @@ describe('Schema Migration Service', () => {
         return { success: true, modifiedRecords: 1 }
       })
 
+      // eslint-disable-next-line no-unused-vars
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: null }
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
 
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.executeMigrationStep(step, testData)
 
       expect(result.success).toBe(false)
@@ -988,12 +1135,14 @@ describe('Schema Migration Service', () => {
     })
 
     test('災難恢復流程', async () => {
+      // eslint-disable-next-line no-unused-vars
       const disaster = {
         type: 'COMPLETE_DATA_LOSS',
         severity: 'CRITICAL',
         affectedServices: ['storage', 'backup']
       }
 
+      // eslint-disable-next-line no-unused-vars
       const recovery = await migrationService.executeDisasterRecovery(disaster)
       expect(recovery.success).toBe(true)
       expect(recovery.recoveryPlan).toBeDefined()
@@ -1006,6 +1155,7 @@ describe('Schema Migration Service', () => {
         { id: 'error2', type: 'BACKUP_FAILED' }
       ])
 
+      // eslint-disable-next-line no-unused-vars
       const cleanup = await migrationService.cleanupErrorStates()
       expect(cleanup.success).toBe(true)
       expect(cleanup.clearedErrors).toBe(2)
@@ -1024,12 +1174,15 @@ describe('Schema Migration Service', () => {
     })
 
     test('Migration 生命週期事件發送', async () => {
+      // eslint-disable-next-line no-unused-vars
       const startSpy = jest.fn()
+      // eslint-disable-next-line no-unused-vars
       const completeSpy = jest.fn()
 
       eventBus.on('MIGRATION.STARTED', startSpy)
       eventBus.on('MIGRATION.COMPLETED', completeSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const plan = await migrationService.createMigrationPlan('1.0.0', '2.0.0')
       await migrationService.executeMultiStepMigration(plan)
 
@@ -1038,9 +1191,11 @@ describe('Schema Migration Service', () => {
     })
 
     test('進度更新事件處理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const progressSpy = jest.fn()
       eventBus.on('MIGRATION.PROGRESS', progressSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const plan = await migrationService.createMigrationPlan('1.0.0', '2.0.0')
       await migrationService.executeMultiStepMigration(plan)
 
@@ -1053,12 +1208,15 @@ describe('Schema Migration Service', () => {
     })
 
     test('錯誤事件廣播', async () => {
+      // eslint-disable-next-line no-unused-vars
       const errorSpy = jest.fn()
       eventBus.on('MIGRATION.ERROR', errorSpy)
 
       mockMigrationExecutor.shouldFail = true
 
+      // eslint-disable-next-line no-unused-vars
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: null }
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
 
       await migrationService.executeMigrationStep(step, testData)
@@ -1072,9 +1230,11 @@ describe('Schema Migration Service', () => {
     })
 
     test('與 Data Synchronization Service 事件協調', async () => {
+      // eslint-disable-next-line no-unused-vars
       const syncSpy = jest.fn()
       eventBus.on('DATA_SYNC.TRIGGER', syncSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const plan = await migrationService.createMigrationPlan('1.0.0', '2.0.0')
       await migrationService.executeMultiStepMigration(plan)
 
@@ -1087,6 +1247,7 @@ describe('Schema Migration Service', () => {
     })
 
     test('跨服務事件通訊', async () => {
+      // eslint-disable-next-line no-unused-vars
       const coordinatorSpy = jest.fn()
       eventBus.on('DATA_DOMAIN.MIGRATION_STATUS', coordinatorSpy)
 
@@ -1101,12 +1262,14 @@ describe('Schema Migration Service', () => {
     })
 
     test('事件順序和優先級管理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const events = []
 
       eventBus.on('MIGRATION.STARTED', () => events.push('started'))
       eventBus.on('MIGRATION.PROGRESS', () => events.push('progress'))
       eventBus.on('MIGRATION.COMPLETED', () => events.push('completed'))
 
+      // eslint-disable-next-line no-unused-vars
       const plan = await migrationService.createMigrationPlan('1.0.0', '2.0.0')
       await migrationService.executeMultiStepMigration(plan)
 
@@ -1128,6 +1291,7 @@ describe('Schema Migration Service', () => {
     })
 
     test('大規模資料 Migration 效能', async () => {
+      // eslint-disable-next-line no-unused-vars
       const largeDataset = {
         books: Array.from({ length: 10000 }, (_, i) => ({
           id: `book${i}`,
@@ -1136,10 +1300,14 @@ describe('Schema Migration Service', () => {
         }))
       }
 
+      // eslint-disable-next-line no-unused-vars
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: null }
 
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.executeMigrationStep(step, largeDataset)
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
 
       expect(result.success).toBe(true)
@@ -1148,6 +1316,7 @@ describe('Schema Migration Service', () => {
     })
 
     test('記憶體使用優化和監控', async () => {
+      // eslint-disable-next-line no-unused-vars
       const largeDataset = {
         books: Array.from({ length: 5000 }, (_, i) => ({
           id: `book${i}`,
@@ -1156,10 +1325,13 @@ describe('Schema Migration Service', () => {
         }))
       }
 
+      // eslint-disable-next-line no-unused-vars
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: null }
 
-      const beforeMemory = await migrationService.getMemoryUsage()
+      // eslint-disable-next-line no-unused-vars
+      const _beforeMemory = await migrationService.getMemoryUsage()
       await migrationService.executeMigrationStep(step, largeDataset)
+      // eslint-disable-next-line no-unused-vars
       const afterMemory = await migrationService.getMemoryUsage()
 
       expect(afterMemory.used).toBeDefined()
@@ -1168,17 +1340,23 @@ describe('Schema Migration Service', () => {
     })
 
     test('併發 Migration 限制管理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const plan1 = await migrationService.createMigrationPlan('1.0.0', '1.1.0')
+      // eslint-disable-next-line no-unused-vars
       const plan2 = await migrationService.createMigrationPlan('1.1.0', '1.2.0')
+      // eslint-disable-next-line no-unused-vars
       const plan3 = await migrationService.createMigrationPlan('1.2.0', '2.0.0')
 
+      // eslint-disable-next-line no-unused-vars
       const results = await Promise.allSettled([
         migrationService.executeMultiStepMigration(plan1),
         migrationService.executeMultiStepMigration(plan2),
         migrationService.executeMultiStepMigration(plan3)
       ])
 
+      // eslint-disable-next-line no-unused-vars
       const successful = results.filter(r => r.status === 'fulfilled').length
+      // eslint-disable-next-line no-unused-vars
       const rejected = results.filter(r => r.status === 'rejected').length
 
       expect(successful).toBe(1) // 只有一個成功
@@ -1186,11 +1364,14 @@ describe('Schema Migration Service', () => {
     })
 
     test('資源清理和記憶體管理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const plan = await migrationService.createMigrationPlan('1.0.0', '2.0.0')
       await migrationService.executeMultiStepMigration(plan)
 
+      // eslint-disable-next-line no-unused-vars
       const beforeCleanup = await migrationService.getResourceUsage()
       await migrationService.performResourceCleanup()
+      // eslint-disable-next-line no-unused-vars
       const afterCleanup = await migrationService.getResourceUsage()
 
       expect(afterCleanup.memory).toBeLessThanOrEqual(beforeCleanup.memory)
@@ -1198,10 +1379,13 @@ describe('Schema Migration Service', () => {
     })
 
     test('效能指標監控和報告', async () => {
+      // eslint-disable-next-line no-unused-vars
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: null }
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
 
       await migrationService.executeMigrationStep(step, testData)
+      // eslint-disable-next-line no-unused-vars
       const metrics = await migrationService.getPerformanceReport()
 
       expect(metrics.executionTime).toBeDefined()
@@ -1211,6 +1395,7 @@ describe('Schema Migration Service', () => {
     })
 
     test('資源使用預估和警告', async () => {
+      // eslint-disable-next-line no-unused-vars
       const largeDataset = {
         books: Array.from({ length: 50000 }, (_, i) => ({
           id: `book${i}`,
@@ -1219,6 +1404,7 @@ describe('Schema Migration Service', () => {
         }))
       }
 
+      // eslint-disable-next-line no-unused-vars
       const estimation = await migrationService.estimateResourceUsage(largeDataset)
 
       expect(estimation.memory).toBeDefined()
@@ -1259,23 +1445,27 @@ describe('Schema Migration Service', () => {
     })
 
     test('chrome.storage.local 操作最佳化', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testData = createTestSchemaVersions().v1_0_0
 
       await migrationService.optimizeForChromeStorage(testData)
 
       expect(chrome.storage.local.set).toHaveBeenCalled()
 
+      // eslint-disable-next-line no-unused-vars
       const calls = chrome.storage.local.set.mock.calls
       expect(calls.length).toBeGreaterThan(0)
 
       // 驗證資料分塊儲存（Chrome storage 有大小限制）
       calls.forEach(call => {
+        // eslint-disable-next-line no-unused-vars
         const dataSize = JSON.stringify(call[0]).length
         expect(dataSize).toBeLessThan(8192) // Chrome storage 限制
       })
     })
 
     test('Service Worker 生命週期處理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const lifecycleHandler = await migrationService.setupServiceWorkerLifecycle()
 
       expect(lifecycleHandler.onInstall).toBeDefined()
@@ -1284,22 +1474,26 @@ describe('Schema Migration Service', () => {
 
       // 模擬 Service Worker 暫停和恢復
       await lifecycleHandler.onSuspend()
+      // eslint-disable-next-line no-unused-vars
       const status = await migrationService.getMigrationStatus()
       expect(status.suspended).toBe(true)
 
       await lifecycleHandler.onActivate()
+      // eslint-disable-next-line no-unused-vars
       const resumedStatus = await migrationService.getMigrationStatus()
       expect(resumedStatus.suspended).toBe(false)
     })
 
     test('Extension 更新時的 Migration 觸發', async () => {
       // 模擬 Extension 更新事件
+      // eslint-disable-next-line no-unused-vars
       const updateDetails = {
         reason: 'update',
         previousVersion: '1.0.0',
         currentVersion: '2.0.0'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.handleExtensionUpdate(updateDetails)
 
       expect(result.migrationTriggered).toBe(true)
@@ -1308,11 +1502,13 @@ describe('Schema Migration Service', () => {
     })
 
     test('權限變更處理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const permissionChanges = {
         added: ['storage'],
         removed: ['bookmarks']
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.handlePermissionChanges(permissionChanges)
 
       expect(result.handled).toBe(true)

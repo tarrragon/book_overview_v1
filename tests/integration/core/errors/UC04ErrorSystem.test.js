@@ -15,6 +15,7 @@ describe('UC04ErrorSystem 整合測試', () => {
 
   describe('Adapter 與 Factory 協作', () => {
     test('Factory 建立的錯誤應該通過 Adapter 驗證', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createError(
         'DATA_IMPORT_FILE_INVALID',
         '匯入檔案格式無效'
@@ -25,6 +26,7 @@ describe('UC04ErrorSystem 整合測試', () => {
     })
 
     test('所有 Factory 方法產生的錯誤都應該有效', () => {
+      // eslint-disable-next-line no-unused-vars
       const errors = [
         UC04ErrorFactory.createImportFileError('test.json'),
         UC04ErrorFactory.createImportParsingError('Parse error'),
@@ -42,6 +44,7 @@ describe('UC04ErrorSystem 整合測試', () => {
   describe('資料匯入完整流程模擬', () => {
     test('模擬檔案格式驗證失敗流程', async () => {
       // 模擬上傳無效檔案
+      // eslint-disable-next-line no-unused-vars
       const fileError = UC04ErrorFactory.createImportFileError(
         'corrupted-backup.json',
         '500KB',
@@ -66,6 +69,7 @@ describe('UC04ErrorSystem 整合測試', () => {
       expect(fileError.details.validationErrors).toHaveLength(3)
 
       // 建立結果物件
+      // eslint-disable-next-line no-unused-vars
       const result = UC04ErrorFactory.createResult(false, null, fileError)
 
       expect(result.success).toBe(false)
@@ -75,6 +79,7 @@ describe('UC04ErrorSystem 整合測試', () => {
 
     test('模擬大型JSON檔案解析失敗流程', async () => {
       // 模擬處理2MB JSON檔案解析錯誤
+      // eslint-disable-next-line no-unused-vars
       const parseError = UC04ErrorFactory.createImportParsingError(
         'SyntaxError: Unexpected token } in JSON at position 1,234,567',
         { line: 4567, column: 23 },
@@ -93,6 +98,7 @@ describe('UC04ErrorSystem 整合測試', () => {
       expect(parseError.details.suggestedActions).toContain('check_file_integrity')
 
       // 模擬重新下載並解析成功
+      // eslint-disable-next-line no-unused-vars
       const retryResult = UC04ErrorFactory.createResult(
         true,
         {
@@ -110,6 +116,7 @@ describe('UC04ErrorSystem 整合測試', () => {
 
     test('模擬資料合併衝突處理流程', async () => {
       // 模擬匯入與現有資料的複雜衝突
+      // eslint-disable-next-line no-unused-vars
       const conflictedBooks = [
         {
           id: 'book_12345',
@@ -139,6 +146,7 @@ describe('UC04ErrorSystem 整合測試', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const mergeError = UC04ErrorFactory.createImportMergeError(
         'complex_data_conflicts',
         conflictedBooks,
@@ -158,6 +166,7 @@ describe('UC04ErrorSystem 整合測試', () => {
       expect(mergeError.details.conflictAnalysis.hasTimestampConflicts).toBe(true)
 
       // 模擬用戶選擇合併策略後成功
+      // eslint-disable-next-line no-unused-vars
       const mergeResult = UC04ErrorFactory.createResult(
         true,
         {
@@ -179,6 +188,7 @@ describe('UC04ErrorSystem 整合測試', () => {
 
     test('模擬儲存空間管理流程', async () => {
       // 模擬Chrome Extension 5MB限制下的儲存溢出
+      // eslint-disable-next-line no-unused-vars
       const storageError = UC04ErrorFactory.createImportStorageError(
         '3.8MB',
         '2.5MB',
@@ -203,6 +213,7 @@ describe('UC04ErrorSystem 整合測試', () => {
       expect(storageError.details.storageUsageRate).toBe('126.0%')
 
       // 模擬執行清理策略
+      // eslint-disable-next-line no-unused-vars
       const cleanupSteps = [
         // 步驟1: 清理6個月前的快取
         UC04ErrorFactory.createResult(true, {
@@ -234,6 +245,7 @@ describe('UC04ErrorSystem 整合測試', () => {
 
   describe('匯入格式特定測試', () => {
     test('應該支援Readmoo備份格式錯誤處理', () => {
+      // eslint-disable-next-line no-unused-vars
       const readmooError = UC04ErrorFactory.createImportFileError(
         'readmoo-backup-2025.json',
         '1.8MB',
@@ -255,6 +267,7 @@ describe('UC04ErrorSystem 整合測試', () => {
     })
 
     test('應該支援批次匯入進度追蹤', () => {
+      // eslint-disable-next-line no-unused-vars
       const progressErrors = [
         UC04ErrorFactory.createImportProgressError(15, 'file_validation'),
         UC04ErrorFactory.createImportProgressError(65, 'json_parsing'),
@@ -275,10 +288,13 @@ describe('UC04ErrorSystem 整合測試', () => {
   describe('錯誤恢復策略測試', () => {
     test('應該支援自動重試機制', () => {
       // 模擬儲存錯誤自動重試
+      // eslint-disable-next-line no-unused-vars
       const storageError = UC04ErrorFactory.createImportStorageError('4MB', '2MB', '5MB')
 
       // 基於錯誤建議的自動調整
+      // eslint-disable-next-line no-unused-vars
       const suggestedCleanup = storageError.details.storageAnalysis.recommendedCleanup
+      // eslint-disable-next-line no-unused-vars
       const retryAttempt = UC04ErrorFactory.createImportStorageError(
         '3.5MB', // 清理後的大小
         '1.5MB', // 減少匯入量
@@ -299,6 +315,7 @@ describe('UC04ErrorSystem 整合測試', () => {
 
     test('應該支援降級匯入策略', () => {
       // 模擬完整匯入失敗，降級為核心資料匯入
+      // eslint-disable-next-line no-unused-vars
       const fullImportError = UC04ErrorFactory.createImportParsingError(
         'Memory exhausted during full metadata parsing',
         { line: 2500, column: 0 },
@@ -313,6 +330,7 @@ describe('UC04ErrorSystem 整合測試', () => {
       )
 
       // 降級為僅包含核心閱讀進度的匯入
+      // eslint-disable-next-line no-unused-vars
       const fallbackResult = UC04ErrorFactory.createResult(
         true,
         {
@@ -333,12 +351,15 @@ describe('UC04ErrorSystem 整合測試', () => {
 
   describe('Chrome Extension 環境相容性', () => {
     test('錯誤物件應該可以序列化', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportFileError('backup.json')
 
       // 測試 JSON 序列化
+      // eslint-disable-next-line no-unused-vars
       const serialized = JSON.stringify(error)
       expect(serialized).toBeDefined()
 
+      // eslint-disable-next-line no-unused-vars
       const parsed = JSON.parse(serialized)
       expect(parsed.message).toBe(error.message)
       expect(parsed.code).toBe(error.code)
@@ -346,9 +367,11 @@ describe('UC04ErrorSystem 整合測試', () => {
     })
 
     test('錯誤物件應該支援 Service Worker 環境', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportMergeError('conflicts', [])
 
       // 模擬 Service Worker 中的訊息傳遞
+      // eslint-disable-next-line no-unused-vars
       const messageData = {
         type: 'import_conflict_detected',
         error: {
@@ -366,7 +389,9 @@ describe('UC04ErrorSystem 整合測試', () => {
 
   describe('效能與記憶體測試', () => {
     test('大量錯誤建立應該保持效能', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const errors = []
 
       // 建立 100 個不同的匯入錯誤
@@ -382,6 +407,7 @@ describe('UC04ErrorSystem 整合測試', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(200) // 100個錯誤建立應該在200ms內
       expect(errors).toHaveLength(100)
@@ -394,12 +420,14 @@ describe('UC04ErrorSystem 整合測試', () => {
 
     test('快取機制應該減少記憶體使用', () => {
       // 建立大量相同類型的錯誤
+      // eslint-disable-next-line no-unused-vars
       const importErrors = []
       for (let i = 0; i < 50; i++) {
         importErrors.push(UC04ErrorFactory.getCommonError('IMPORT_FILE'))
       }
 
       // 驗證都是相同引用 (快取有效)
+      // eslint-disable-next-line no-unused-vars
       const firstError = importErrors[0]
       importErrors.forEach(error => {
         expect(error).toBe(firstError)
@@ -411,6 +439,7 @@ describe('UC04ErrorSystem 整合測試', () => {
 
   describe('安全性測試', () => {
     test('sanitizeDetails 應該防止記憶體洩漏', () => {
+      // eslint-disable-next-line no-unused-vars
       const hugeDetails = {
         largeBookList: new Array(10000).fill().map((_, i) => ({
           id: `book_${i}`,
@@ -419,6 +448,7 @@ describe('UC04ErrorSystem 整合測試', () => {
         }))
       }
 
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC04ErrorFactory.sanitizeDetails(hugeDetails)
 
       expect(sanitized._truncated).toBe(true)
@@ -427,6 +457,7 @@ describe('UC04ErrorSystem 整合測試', () => {
     })
 
     test('錯誤物件應該不包含敏感資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportFileError(
         'secret-backup.json',
         '2.5MB',
@@ -452,9 +483,11 @@ describe('UC04ErrorSystem 整合測試', () => {
   describe('跨UC整合測試', () => {
     test('應該與其他UC錯誤系統相容', () => {
       // UC-04 錯誤
+      // eslint-disable-next-line no-unused-vars
       const uc04Error = UC04ErrorFactory.createImportFileError()
 
       // 模擬與其他UC系統的錯誤格式比較
+      // eslint-disable-next-line no-unused-vars
       const errorStructure = {
         hasCode: typeof uc04Error.code === 'string',
         hasSubType: typeof uc04Error.subType === 'string',
@@ -474,6 +507,7 @@ describe('UC04ErrorSystem 整合測試', () => {
   describe('實際使用場景模擬', () => {
     test('完整的匯入工作流程', async () => {
       // 1. 檔案上傳階段
+      // eslint-disable-next-line no-unused-vars
       const uploadResult = UC04ErrorFactory.createResult(true, {
         fileName: 'readmoo-backup-2025.json',
         fileSize: '2.1MB',
@@ -482,6 +516,7 @@ describe('UC04ErrorSystem 整合測試', () => {
       expect(uploadResult.success).toBe(true)
 
       // 2. 檔案驗證階段
+      // eslint-disable-next-line no-unused-vars
       const validationResult = UC04ErrorFactory.createResult(true, {
         validationPassed: true,
         detectedBooks: 450,
@@ -490,6 +525,7 @@ describe('UC04ErrorSystem 整合測試', () => {
       expect(validationResult.success).toBe(true)
 
       // 3. 解析階段
+      // eslint-disable-next-line no-unused-vars
       const parseResult = UC04ErrorFactory.createResult(true, {
         parseTime: '2.1s',
         booksFound: 450,
@@ -498,12 +534,14 @@ describe('UC04ErrorSystem 整合測試', () => {
       expect(parseResult.success).toBe(true)
 
       // 4. 合併階段 (發現衝突)
+      // eslint-disable-next-line no-unused-vars
       const mergeError = UC04ErrorFactory.createImportMergeError(
         'progress_conflicts',
         [{ id: 'book_1', existing: {}, importing: {} }]
       )
 
       // 5. 用戶解決衝突後重試
+      // eslint-disable-next-line no-unused-vars
       const resolvedResult = UC04ErrorFactory.createResult(true, {
         mergeStrategy: 'keep_latest',
         conflictsResolved: 1,

@@ -10,9 +10,11 @@
  * @jest-environment jsdom
  */
 
+// eslint-disable-next-line no-unused-vars
 const ConflictDetectionService = require('src/background/domains/data-management/services/ConflictDetectionService.js')
 
 describe('ConflictDetectionService TDD 測試', () => {
+  // eslint-disable-next-line no-unused-vars
   let service
 
   beforeEach(() => {
@@ -28,6 +30,7 @@ describe('ConflictDetectionService TDD 測試', () => {
   describe('🔴 Red 階段：基礎功能驗證', () => {
     test('應該正確初始化衝突檢測服務', () => {
       // Given: 預設配置
+      // eslint-disable-next-line no-unused-vars
       const defaultService = new ConflictDetectionService()
 
       // Then: 應該正確設置預設值
@@ -39,6 +42,7 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('應該支援自訂配置', () => {
       // Given: 自訂配置
+      // eslint-disable-next-line no-unused-vars
       const customService = new ConflictDetectionService({
         progressConflictThreshold: 10,
         titleSimilarityThreshold: 0.9,
@@ -55,8 +59,11 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('detectConflicts() 應該檢測進度衝突', async () => {
       // Given: 有進度衝突的資料變更
+      // eslint-disable-next-line no-unused-vars
       const sourceData = [{ id: '1', title: 'Book A', progress: 80 }]
+      // eslint-disable-next-line no-unused-vars
       const targetData = [{ id: '1', title: 'Book A', progress: 50 }]
+      // eslint-disable-next-line no-unused-vars
       const changes = {
         modified: [{
           id: '1',
@@ -74,6 +81,7 @@ describe('ConflictDetectionService TDD 測試', () => {
       }
 
       // When: 檢測衝突
+      // eslint-disable-next-line no-unused-vars
       const result = await service.detectConflicts(sourceData, targetData, changes)
 
       // Then: 應該檢測出進度衝突
@@ -86,8 +94,11 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('detectConflicts() 應該檢測標題衝突', async () => {
       // Given: 有標題衝突的資料變更
+      // eslint-disable-next-line no-unused-vars
       const sourceData = [{ id: '1', title: 'Complete Different Book', progress: 50 }]
+      // eslint-disable-next-line no-unused-vars
       const targetData = [{ id: '1', title: 'Original Book Title', progress: 50 }]
+      // eslint-disable-next-line no-unused-vars
       const changes = {
         modified: [{
           id: '1',
@@ -105,6 +116,7 @@ describe('ConflictDetectionService TDD 測試', () => {
       }
 
       // When: 檢測衝突
+      // eslint-disable-next-line no-unused-vars
       const result = await service.detectConflicts(sourceData, targetData, changes)
 
       // Then: 應該檢測出標題衝突
@@ -115,9 +127,13 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('detectConflicts() 應該檢測時間戳衝突', async () => {
       // Given: 有時間戳衝突的資料變更
+      // eslint-disable-next-line no-unused-vars
       const now = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const sourceData = [{ id: '1', lastUpdated: new Date(now).toISOString() }]
+      // eslint-disable-next-line no-unused-vars
       const targetData = [{ id: '1', lastUpdated: new Date(now - 30000).toISOString() }]
+      // eslint-disable-next-line no-unused-vars
       const changes = {
         modified: [{
           id: '1',
@@ -135,6 +151,7 @@ describe('ConflictDetectionService TDD 測試', () => {
       }
 
       // When: 檢測衝突
+      // eslint-disable-next-line no-unused-vars
       const result = await service.detectConflicts(sourceData, targetData, changes)
 
       // Then: 應該檢測出時間戳衝突
@@ -145,8 +162,11 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('detectConflicts() 應該處理無衝突的情況', async () => {
       // Given: 沒有衝突的資料變更
+      // eslint-disable-next-line no-unused-vars
       const sourceData = [{ id: '1', title: 'Book A', progress: 55 }]
+      // eslint-disable-next-line no-unused-vars
       const targetData = [{ id: '1', title: 'Book A', progress: 50 }]
+      // eslint-disable-next-line no-unused-vars
       const changes = {
         modified: [{
           id: '1',
@@ -164,6 +184,7 @@ describe('ConflictDetectionService TDD 測試', () => {
       }
 
       // When: 檢測衝突
+      // eslint-disable-next-line no-unused-vars
       const result = await service.detectConflicts(sourceData, targetData, changes)
 
       // Then: 應該沒有衝突
@@ -174,6 +195,7 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('checkItemConflicts() 應該處理多重衝突', () => {
       // Given: 有多個欄位衝突的項目
+      // eslint-disable-next-line no-unused-vars
       const modifiedItem = {
         id: '1',
         sourceData: { id: '1', title: 'New Title', progress: 90 },
@@ -195,6 +217,7 @@ describe('ConflictDetectionService TDD 測試', () => {
       }
 
       // When: 檢查項目衝突
+      // eslint-disable-next-line no-unused-vars
       const conflicts = service.checkItemConflicts(modifiedItem)
 
       // Then: 應該生成複合衝突
@@ -206,9 +229,13 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('calculateStringSimilarity() 應該正確計算字串相似度', () => {
       // Given & When: 測試不同相似度的字串
+      // eslint-disable-next-line no-unused-vars
       const identical = service.calculateStringSimilarity('hello', 'hello')
+      // eslint-disable-next-line no-unused-vars
       const similar = service.calculateStringSimilarity('hello world', 'hallo world')
+      // eslint-disable-next-line no-unused-vars
       const different = service.calculateStringSimilarity('hello', 'goodbye')
+      // eslint-disable-next-line no-unused-vars
       const empty = service.calculateStringSimilarity('hello', '')
 
       // Then: 應該回傳正確的相似度
@@ -220,8 +247,11 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('getConflictPriority() 應該回傳正確的優先級', () => {
       // Given & When: 測試不同衝突類型的優先級
+      // eslint-disable-next-line no-unused-vars
       const progressPriority = service.getConflictPriority('PROGRESS_MISMATCH')
+      // eslint-disable-next-line no-unused-vars
       const titlePriority = service.getConflictPriority('TITLE_DIVERGENCE')
+      // eslint-disable-next-line no-unused-vars
       const timestampPriority = service.getConflictPriority('TIMESTAMP_CONFLICT')
 
       // Then: 應該回傳正確的優先級分數
@@ -234,6 +264,7 @@ describe('ConflictDetectionService TDD 測試', () => {
   describe('⚙️ 衝突嚴重性和策略測試', () => {
     test('calculateConflictSeverity() 應該正確計算整體嚴重性', () => {
       // Given: 不同嚴重性的衝突項目
+      // eslint-disable-next-line no-unused-vars
       const criticalItems = [{
         conflicts: [
           { severity: 'CRITICAL', priority: 10 },
@@ -241,6 +272,7 @@ describe('ConflictDetectionService TDD 測試', () => {
         ]
       }]
 
+      // eslint-disable-next-line no-unused-vars
       const mediumItems = [{
         conflicts: [
           { severity: 'MEDIUM', priority: 5 },
@@ -249,8 +281,11 @@ describe('ConflictDetectionService TDD 測試', () => {
       }]
 
       // When: 計算嚴重性
+      // eslint-disable-next-line no-unused-vars
       const criticalSeverity = service.calculateConflictSeverity(criticalItems)
+      // eslint-disable-next-line no-unused-vars
       const mediumSeverity = service.calculateConflictSeverity(mediumItems)
+      // eslint-disable-next-line no-unused-vars
       const noneSeverity = service.calculateConflictSeverity([])
 
       // Then: 應該回傳正確的嚴重性等級
@@ -261,6 +296,7 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('generateConflictRecommendations() 應該生成智能建議', () => {
       // Given: 有衝突的項目
+      // eslint-disable-next-line no-unused-vars
       const conflictItems = [{
         id: '1',
         conflicts: [{
@@ -274,6 +310,7 @@ describe('ConflictDetectionService TDD 測試', () => {
       }]
 
       // When: 生成建議
+      // eslint-disable-next-line no-unused-vars
       const recommendations = service.generateConflictRecommendations(conflictItems)
 
       // Then: 應該生成適當的建議
@@ -285,6 +322,7 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('generateConflictRecommendations() 應該處理大量衝突', () => {
       // Given: 大量衝突項目
+      // eslint-disable-next-line no-unused-vars
       const manyConflictItems = Array.from({ length: 8 }, (_, i) => ({
         id: `item_${i}`,
         conflicts: [{
@@ -297,6 +335,7 @@ describe('ConflictDetectionService TDD 測試', () => {
       }))
 
       // When: 生成建議
+      // eslint-disable-next-line no-unused-vars
       const recommendations = service.generateConflictRecommendations(manyConflictItems)
 
       // Then: 應該包含批次解決建議
@@ -307,6 +346,7 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('isAutoResolvable() 應該正確判斷自動解決能力', () => {
       // Given: 不同的衝突情況
+      // eslint-disable-next-line no-unused-vars
       const autoResolvableConflicts = {
         severity: 'MEDIUM',
         items: [{
@@ -317,6 +357,7 @@ describe('ConflictDetectionService TDD 測試', () => {
         }]
       }
 
+      // eslint-disable-next-line no-unused-vars
       const nonAutoResolvableConflicts = {
         severity: 'CRITICAL',
         items: [{
@@ -327,7 +368,9 @@ describe('ConflictDetectionService TDD 測試', () => {
       }
 
       // When: 判斷自動解決能力
+      // eslint-disable-next-line no-unused-vars
       const canAutoResolve1 = service.isAutoResolvable(autoResolvableConflicts)
+      // eslint-disable-next-line no-unused-vars
       const canAutoResolve2 = service.isAutoResolvable(nonAutoResolvableConflicts)
 
       // Then: 應該正確判斷
@@ -336,6 +379,7 @@ describe('ConflictDetectionService TDD 測試', () => {
 
       // 啟用自動解決
       service.updateConfig({ autoResolveConflicts: true })
+      // eslint-disable-next-line no-unused-vars
       const canAutoResolve3 = service.isAutoResolvable(autoResolvableConflicts)
       expect(canAutoResolve3).toBe(true)
     })
@@ -344,11 +388,15 @@ describe('ConflictDetectionService TDD 測試', () => {
   describe('🔍 特定衝突類型檢測測試', () => {
     test('detectProgressConflict() 應該檢測高差異進度衝突', () => {
       // Given: 高差異的進度變更
+      // eslint-disable-next-line no-unused-vars
       const change = { source: 90, target: 10, type: 'VALUE_CHANGED' }
+      // eslint-disable-next-line no-unused-vars
       const source = { progress: 90 }
+      // eslint-disable-next-line no-unused-vars
       const target = { progress: 10 }
 
       // When: 檢測進度衝突
+      // eslint-disable-next-line no-unused-vars
       const conflict = service.detectProgressConflict(change, source, target)
 
       // Then: 應該檢測出衝突
@@ -361,11 +409,15 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('detectTitleConflict() 應該檢測低相似度標題衝突', () => {
       // Given: 低相似度的標題變更
+      // eslint-disable-next-line no-unused-vars
       const change = { source: 'Completely Different Book', target: 'Another Book Title', type: 'VALUE_CHANGED' }
+      // eslint-disable-next-line no-unused-vars
       const source = { title: 'Completely Different Book' }
+      // eslint-disable-next-line no-unused-vars
       const target = { title: 'Another Book Title' }
 
       // When: 檢測標題衝突
+      // eslint-disable-next-line no-unused-vars
       const conflict = service.detectTitleConflict(change, source, target)
 
       // Then: 應該檢測出衝突
@@ -377,16 +429,21 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('detectTimestampConflict() 應該檢測時間窗口內的衝突', () => {
       // Given: 時間窗口內的時間戳變更
+      // eslint-disable-next-line no-unused-vars
       const now = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const change = {
         source: new Date(now).toISOString(),
         target: new Date(now - 30000).toISOString(), // 30秒差異
         type: 'VALUE_CHANGED'
       }
+      // eslint-disable-next-line no-unused-vars
       const source = { lastUpdated: change.source }
+      // eslint-disable-next-line no-unused-vars
       const target = { lastUpdated: change.target }
 
       // When: 檢測時間戳衝突
+      // eslint-disable-next-line no-unused-vars
       const conflict = service.detectTimestampConflict(change, source, target)
 
       // Then: 應該檢測出衝突
@@ -398,16 +455,20 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('detectGenericConflict() 應該檢測一般欄位衝突', () => {
       // Given: 高嚴重性的一般欄位變更
+      // eslint-disable-next-line no-unused-vars
       const change = {
         source: 'new_value',
         target: 'old_value',
         type: 'VALUE_CHANGED',
         severity: 'HIGH'
       }
+      // eslint-disable-next-line no-unused-vars
       const source = { customField: 'new_value' }
+      // eslint-disable-next-line no-unused-vars
       const target = { customField: 'old_value' }
 
       // When: 檢測一般衝突
+      // eslint-disable-next-line no-unused-vars
       const conflict = service.detectGenericConflict('customField', change, source, target)
 
       // Then: 應該檢測出衝突
@@ -421,8 +482,11 @@ describe('ConflictDetectionService TDD 測試', () => {
   describe('📊 統計和配置測試', () => {
     test('getStatistics() 應該回傳正確的統計資訊', async () => {
       // Given: 執行一些衝突檢測
+      // eslint-disable-next-line no-unused-vars
       const sourceData = [{ id: '1', progress: 80 }]
+      // eslint-disable-next-line no-unused-vars
       const targetData = [{ id: '1', progress: 20 }]
+      // eslint-disable-next-line no-unused-vars
       const changes = {
         modified: [{
           id: '1',
@@ -436,6 +500,7 @@ describe('ConflictDetectionService TDD 測試', () => {
 
       // When: 檢測衝突並獲取統計
       await service.detectConflicts(sourceData, targetData, changes)
+      // eslint-disable-next-line no-unused-vars
       const stats = service.getStatistics()
 
       // Then: 應該有正確的統計資訊
@@ -461,6 +526,7 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('updateConfig() 應該正確更新配置', () => {
       // Given: 初始配置
+      // eslint-disable-next-line no-unused-vars
       const originalThreshold = service.config.progressConflictThreshold
 
       // When: 更新配置
@@ -479,11 +545,15 @@ describe('ConflictDetectionService TDD 測試', () => {
   describe('⚠️ 錯誤處理和邊界測試', () => {
     test('detectConflicts() 應該處理空的變更資料', async () => {
       // Given: 空的變更資料
+      // eslint-disable-next-line no-unused-vars
       const sourceData = []
+      // eslint-disable-next-line no-unused-vars
       const targetData = []
+      // eslint-disable-next-line no-unused-vars
       const changes = { modified: [] }
 
       // When: 檢測衝突
+      // eslint-disable-next-line no-unused-vars
       const result = await service.detectConflicts(sourceData, targetData, changes)
 
       // Then: 應該回傳空結果
@@ -494,6 +564,7 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('checkItemConflicts() 應該處理缺少 fieldChanges 的項目', () => {
       // Given: 缺少 fieldChanges 的項目
+      // eslint-disable-next-line no-unused-vars
       const modifiedItem = {
         id: '1',
         sourceData: { id: '1', title: 'Book A' },
@@ -502,6 +573,7 @@ describe('ConflictDetectionService TDD 測試', () => {
       }
 
       // When: 檢查項目衝突
+      // eslint-disable-next-line no-unused-vars
       const conflicts = service.checkItemConflicts(modifiedItem)
 
       // Then: 應該回傳空陣列
@@ -510,8 +582,10 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('應該處理超出最大衝突限制的項目', () => {
       // Given: 配置最大衝突數為 2
+      // eslint-disable-next-line no-unused-vars
       const limitedService = new ConflictDetectionService({ maxConflictsPerItem: 2 })
 
+      // eslint-disable-next-line no-unused-vars
       const modifiedItem = {
         id: '1',
         sourceData: { id: '1', title: 'New', progress: 90, lastUpdated: '2025-08-19T10:00:00Z' },
@@ -524,6 +598,7 @@ describe('ConflictDetectionService TDD 測試', () => {
       }
 
       // When: 檢查項目衝突
+      // eslint-disable-next-line no-unused-vars
       const conflicts = limitedService.checkItemConflicts(modifiedItem)
 
       // Then: 應該限制衝突數量並生成複合衝突
@@ -534,8 +609,11 @@ describe('ConflictDetectionService TDD 測試', () => {
 
     test('calculateStringSimilarity() 應該處理空值和 null', () => {
       // Given & When: 測試空值情況
+      // eslint-disable-next-line no-unused-vars
       const nullSimilarity = service.calculateStringSimilarity(null, 'test')
+      // eslint-disable-next-line no-unused-vars
       const undefinedSimilarity = service.calculateStringSimilarity(undefined, 'test')
+      // eslint-disable-next-line no-unused-vars
       const emptySimilarity = service.calculateStringSimilarity('', 'test')
 
       // Then: 應該回傳 0

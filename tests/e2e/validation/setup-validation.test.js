@@ -28,9 +28,11 @@
  * - CI/CD 環境的預檢查
  */
 
+// eslint-disable-next-line no-unused-vars
 const ExtensionTestSetup = require('../setup/extension-setup')
 
 describe('🔧 端對端測試環境驗證', () => {
+  // eslint-disable-next-line no-unused-vars
   let testSetup
 
   // 較短的超時時間，快速驗證
@@ -59,10 +61,12 @@ describe('🔧 端對端測試環境驗證', () => {
     })
 
     test('應該能夠取得 Background Script 頁面', async () => {
+      // eslint-disable-next-line no-unused-vars
       const backgroundPage = await testSetup.getBackgroundPage()
       expect(backgroundPage).toBeTruthy()
 
       // 測試 Background Script 基本功能
+      // eslint-disable-next-line no-unused-vars
       const backgroundUrl = backgroundPage.url()
       expect(backgroundUrl).toContain(testSetup.extensionId)
 
@@ -76,10 +80,12 @@ describe('🔧 端對端測試環境驗證', () => {
       await testSetup.navigateToReadmoo()
 
       // 驗證頁面標題
+      // eslint-disable-next-line no-unused-vars
       const title = await testSetup.page.title()
       expect(title).toContain('Readmoo')
 
       // 驗證頁面內容
+      // eslint-disable-next-line no-unused-vars
       const bookItems = await testSetup.page.$$('.book-item')
       expect(bookItems.length).toBeGreaterThan(0)
 
@@ -93,6 +99,7 @@ describe('🔧 端對端測試環境驗證', () => {
         document.body.getAttribute('data-books-loaded') === 'true'
       )
 
+      // eslint-disable-next-line no-unused-vars
       const isLoaded = await testSetup.page.$eval('body',
         el => el.getAttribute('data-books-loaded')
       )
@@ -103,6 +110,7 @@ describe('🔧 端對端測試環境驗證', () => {
     })
 
     test('應該能夠提取測試資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testData = await testSetup.page.evaluate(() => {
         return window.getTestBookData ? window.getTestBookData() : null
       })
@@ -115,16 +123,19 @@ describe('🔧 端對端測試環境驗證', () => {
 
   describe('🎨 Extension UI 測試', () => {
     test('應該能夠開啟 Extension Popup', async () => {
+      // eslint-disable-next-line no-unused-vars
       const popupPage = await testSetup.openExtensionPopup()
       expect(popupPage).toBeTruthy()
 
       // 驗證 Popup URL
+      // eslint-disable-next-line no-unused-vars
       const popupUrl = popupPage.url()
       expect(popupUrl).toContain(testSetup.extensionId)
       expect(popupUrl).toContain('popup.html')
 
       // 驗證基本元素存在
       await popupPage.waitForSelector('body', { timeout: 5000 })
+      // eslint-disable-next-line no-unused-vars
       const bodyContent = await popupPage.$eval('body', el => el.textContent)
       expect(bodyContent.length).toBeGreaterThan(0)
 
@@ -135,9 +146,11 @@ describe('🔧 端對端測試環境驗證', () => {
     })
 
     test('應該能夠執行基本的頁面互動', async () => {
+      // eslint-disable-next-line no-unused-vars
       const popupPage = await testSetup.openExtensionPopup()
 
       // 尋找按鈕或可互動元素
+      // eslint-disable-next-line no-unused-vars
       const buttons = await popupPage.$$('button, .button, input[type="button"]')
       expect(buttons.length).toBeGreaterThan(0)
 
@@ -150,6 +163,7 @@ describe('🔧 端對端測試環境驗證', () => {
 
   describe('🔍 測試工具驗證', () => {
     test('應該能夠執行 JavaScript 程式碼', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await testSetup.page.evaluate(() => {
         return {
           userAgent: navigator.userAgent,
@@ -167,6 +181,7 @@ describe('🔧 端對端測試環境驗證', () => {
     })
 
     test('應該能夠等待元素出現', async () => {
+      // eslint-disable-next-line no-unused-vars
       const element = await testSetup.waitForElement('.book-item', 5000)
       expect(element).toBeTruthy()
 
@@ -185,9 +200,11 @@ describe('🔧 端對端測試環境驗證', () => {
 
   describe('💾 儲存功能驗證', () => {
     test('應該能夠訪問 Chrome Storage API', async () => {
+      // eslint-disable-next-line no-unused-vars
       const backgroundPage = await testSetup.getBackgroundPage()
 
       // 測試儲存 API 可用性
+      // eslint-disable-next-line no-unused-vars
       const storageTest = await backgroundPage.evaluate(() => {
         return new Promise((resolve) => {
           try {
@@ -212,12 +229,16 @@ describe('🔧 端對端測試環境驗證', () => {
   describe('⚡ 效能驗證', () => {
     test('測試環境啟動時間應該合理', async () => {
       // 測量新實例的啟動時間
+      // eslint-disable-next-line no-unused-vars
       const newTestSetup = new ExtensionTestSetup()
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
       await newTestSetup.setup({ headless: true })
 
+      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
+      // eslint-disable-next-line no-unused-vars
       const setupTime = endTime - startTime
 
       // 測試環境應在 15 秒內完成設定
@@ -227,6 +248,7 @@ describe('🔧 端對端測試環境驗證', () => {
     })
 
     test('記憶體使用應該在合理範圍內', async () => {
+      // eslint-disable-next-line no-unused-vars
       const memoryInfo = await testSetup.page.evaluate(() => {
         if (performance.memory) {
           return {

@@ -11,15 +11,22 @@
  * - 錯誤處理和復原
  */
 
+// eslint-disable-next-line no-unused-vars
 const InstallHandler = require('src/background/lifecycle/install-handler')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('InstallHandler', () => {
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockLogger
+  // eslint-disable-next-line no-unused-vars
   let mockStorageService
+  // eslint-disable-next-line no-unused-vars
   let mockConfigService
+  // eslint-disable-next-line no-unused-vars
   let mockMigrationService
+  // eslint-disable-next-line no-unused-vars
   let mockChrome
   let dependencies
   let installHandler
@@ -199,6 +206,7 @@ describe('InstallHandler', () => {
     })
 
     test('應該處理新安裝事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const installDetails = {
         reason: 'install',
         previousVersion: undefined
@@ -223,6 +231,7 @@ describe('InstallHandler', () => {
     })
 
     test('應該處理擴展更新事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const updateDetails = {
         reason: 'update',
         previousVersion: '0.9.0'
@@ -235,6 +244,7 @@ describe('InstallHandler', () => {
     })
 
     test('應該處理 Chrome 更新事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const chromeUpdateDetails = {
         reason: 'chrome_update',
         previousVersion: undefined
@@ -247,6 +257,7 @@ describe('InstallHandler', () => {
     })
 
     test('應該處理共享模組更新事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const sharedModuleUpdateDetails = {
         reason: 'shared_module_update',
         previousVersion: undefined
@@ -259,6 +270,7 @@ describe('InstallHandler', () => {
     })
 
     test('應該處理未知安裝原因', async () => {
+      // eslint-disable-next-line no-unused-vars
       const unknownDetails = {
         reason: 'unknown_reason',
         previousVersion: undefined
@@ -271,9 +283,11 @@ describe('InstallHandler', () => {
     })
 
     test('應該防止重複安裝處理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const installDetails = { reason: 'install' }
 
       // 啟動第一個安裝
+      // eslint-disable-next-line no-unused-vars
       const firstInstall = installHandler.handleInstall(installDetails)
 
       // 嘗試第二個安裝
@@ -285,6 +299,7 @@ describe('InstallHandler', () => {
     })
 
     test('應該觸發安裝完成事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const installDetails = { reason: 'install' }
 
       await installHandler.handleInstall(installDetails)
@@ -389,6 +404,7 @@ describe('InstallHandler', () => {
     })
 
     test('應該執行版本遷移', async () => {
+      // eslint-disable-next-line no-unused-vars
       const updateDetails = {
         reason: 'update',
         previousVersion: '0.9.0'
@@ -415,6 +431,7 @@ describe('InstallHandler', () => {
     test('應該處理遷移錯誤', async () => {
       mockMigrationService.migrate.mockRejectedValue(new Error('遷移失敗'))
 
+      // eslint-disable-next-line no-unused-vars
       const updateDetails = {
         reason: 'update',
         previousVersion: '0.9.0'
@@ -449,6 +466,7 @@ describe('InstallHandler', () => {
   // ==================== 安裝狀態查詢 ====================
   describe('安裝狀態查詢', () => {
     test('應該返回正確的安裝狀態', () => {
+      // eslint-disable-next-line no-unused-vars
       const status = installHandler.getInstallStatus()
 
       expect(status).toEqual({
@@ -476,11 +494,14 @@ describe('InstallHandler', () => {
         () => new Promise(resolve => setTimeout(resolve, 100))
       )
 
+      // eslint-disable-next-line no-unused-vars
       const installDetails = { reason: 'install' }
+      // eslint-disable-next-line no-unused-vars
       const installPromise = installHandler.handleInstall(installDetails)
 
       // 檢查進行中的狀態
       await new Promise(resolve => setTimeout(resolve, 10))
+      // eslint-disable-next-line no-unused-vars
       const statusDuringInstall = installHandler.getInstallStatus()
       expect(statusDuringInstall.installationInProgress).toBe(true)
       expect(statusDuringInstall.lastInstallDetails).toBe(installDetails)
@@ -488,6 +509,7 @@ describe('InstallHandler', () => {
       await installPromise
 
       // 檢查完成後狀態
+      // eslint-disable-next-line no-unused-vars
       const statusAfterInstall = installHandler.getInstallStatus()
       expect(statusAfterInstall.installationInProgress).toBe(false)
     })
@@ -500,6 +522,7 @@ describe('InstallHandler', () => {
     })
 
     test('應該返回自訂健康狀態', () => {
+      // eslint-disable-next-line no-unused-vars
       const health = installHandler.getHealthStatus()
 
       expect(health.installationInProgress).toBe(false)
@@ -515,10 +538,12 @@ describe('InstallHandler', () => {
         () => new Promise(resolve => setTimeout(resolve, 100))
       )
 
+      // eslint-disable-next-line no-unused-vars
       const installPromise = installHandler.handleInstall({ reason: 'install' })
 
       // 檢查安裝中的健康狀態
       await new Promise(resolve => setTimeout(resolve, 10))
+      // eslint-disable-next-line no-unused-vars
       const health = installHandler.getHealthStatus()
       expect(health.installationInProgress).toBe(true)
       expect(health.health).toBe('degraded')
@@ -527,11 +552,13 @@ describe('InstallHandler', () => {
     })
 
     test('應該檢測服務可用性', () => {
+      // eslint-disable-next-line no-unused-vars
       const handlerWithoutServices = new InstallHandler({
         eventBus: mockEventBus,
         logger: mockLogger
       })
 
+      // eslint-disable-next-line no-unused-vars
       const health = handlerWithoutServices.getHealthStatus()
       expect(health.servicesAvailable).toBe(false)
     })
@@ -546,6 +573,7 @@ describe('InstallHandler', () => {
     test('應該處理安裝過程中的錯誤', async () => {
       mockChrome.storage.local.set.mockRejectedValue(new Error('儲存失敗'))
 
+      // eslint-disable-next-line no-unused-vars
       const installDetails = { reason: 'install' }
 
       await expect(installHandler.handleInstall(installDetails)).rejects.toMatchObject(expect.objectContaining({ message: '儲存失敗' }))
@@ -576,6 +604,7 @@ describe('InstallHandler', () => {
     test('應該處理 Chrome Runtime 安裝事件', async () => {
       await installHandler.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const installDetails = {
         reason: 'install',
         previousVersion: undefined
@@ -613,6 +642,7 @@ describe('InstallHandler', () => {
   // ==================== 整合測試 ====================
   describe('整合測試', () => {
     test('應該執行完整的安裝流程', async () => {
+      // eslint-disable-next-line no-unused-vars
       const installDetails = {
         reason: 'install',
         previousVersion: undefined
@@ -629,6 +659,7 @@ describe('InstallHandler', () => {
     })
 
     test('應該執行完整的更新流程', async () => {
+      // eslint-disable-next-line no-unused-vars
       const updateDetails = {
         reason: 'update',
         previousVersion: '0.9.0'

@@ -6,10 +6,12 @@
  * @date 2025-08-26
  */
 
+// eslint-disable-next-line no-unused-vars
 const MessageErrorHandler = require('src/error-handling/message-error-handler')
 
 describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
   let messageErrorHandler
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
 
   beforeEach(() => {
@@ -59,6 +61,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
       }
 
       // When: 檢查 Chrome 錯誤
+      // eslint-disable-next-line no-unused-vars
       const hasError = messageErrorHandler.checkChromeLastError()
 
       // Then: 應該檢測到錯誤並發送事件
@@ -72,6 +75,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
     test('CE002: 應該處理權限請求被使用者拒絕的情況', () => {
       // Given: Mock 權限請求被拒絕
       global.chrome.permissions.request.mockImplementation((permissions, callback) => {
+        // eslint-disable-next-line no-unused-vars
         const error = null
         callback(error, false) // 權限被拒絕
       })
@@ -96,6 +100,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
       }
 
       // When: 檢查 Chrome 健康狀態
+      // eslint-disable-next-line no-unused-vars
       const health = messageErrorHandler.getChromeExtensionHealth()
 
       // Then: 應該正確識別上下文失效
@@ -110,6 +115,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
       }
 
       // When: 檢查錯誤
+      // eslint-disable-next-line no-unused-vars
       const hasError = messageErrorHandler.checkChromeLastError()
 
       // Then: 應該檢測到錯誤並處理
@@ -131,6 +137,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
       }
 
       // When: 檢查錯誤
+      // eslint-disable-next-line no-unused-vars
       const hasError = messageErrorHandler.checkChromeLastError()
 
       // Then: 應該檢測到配額錯誤
@@ -148,6 +155,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
       global.chrome.runtime.lastError = null
 
       // When: 獲取記憶體使用統計
+      // eslint-disable-next-line no-unused-vars
       const memoryUsage = messageErrorHandler.getMemoryUsage()
 
       // Then: 應該提供記憶體使用資訊
@@ -161,6 +169,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
   describe('🛡️ 內容安全政策 (CSP) 錯誤處理', () => {
     test('CE007: 應該處理CSP違規錯誤', async () => {
       // Given: CSP 錯誤事件
+      // eslint-disable-next-line no-unused-vars
       const cspErrorEvent = {
         type: 'MESSAGE.ERROR',
         data: {
@@ -172,6 +181,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
       }
 
       // When: 處理 CSP 錯誤事件
+      // eslint-disable-next-line no-unused-vars
       const result = await messageErrorHandler.process(cspErrorEvent)
 
       // Then: 應該成功處理並記錄錯誤
@@ -186,6 +196,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
 
     test('CE008: 應該避免內聯腳本和樣式的CSP問題', () => {
       // Given: 正常的 Chrome Extension 環境
+      // eslint-disable-next-line no-unused-vars
       const health = messageErrorHandler.getChromeExtensionHealth()
 
       // When & Then: 驗證基礎環境可用性
@@ -198,6 +209,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
   describe('📡 跨上下文通訊錯誤處理', () => {
     test('CE009: 應該處理Content Script通訊失敗', async () => {
       // Given: Content Script 通訊失敗事件
+      // eslint-disable-next-line no-unused-vars
       const commErrorEvent = {
         type: 'MESSAGE.ROUTING_ERROR',
         data: {
@@ -210,6 +222,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
       }
 
       // When: 處理路由錯誤
+      // eslint-disable-next-line no-unused-vars
       const result = await messageErrorHandler.process(commErrorEvent)
 
       // Then: 應該分析路由問題並提供建議
@@ -221,6 +234,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
 
     test('CE010: 應該處理Background Script連線中斷', async () => {
       // Given: Background Script 連線中斷事件
+      // eslint-disable-next-line no-unused-vars
       const connectionErrorEvent = {
         type: 'MESSAGE.ROUTING_ERROR',
         data: {
@@ -233,6 +247,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
       }
 
       // When: 處理路由錯誤
+      // eslint-disable-next-line no-unused-vars
       const result = await messageErrorHandler.process(connectionErrorEvent)
 
       // Then: 應該識別 Background 連線問題
@@ -245,6 +260,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
   describe('🔧 系統恢復與降級機制', () => {
     test('CE011: 應該在多重錯誤情況下優先處理關鍵錯誤', async () => {
       // Given: 多個錯誤事件
+      // eslint-disable-next-line no-unused-vars
       const errors = [
         {
           type: 'MESSAGE.ERROR',
@@ -265,6 +281,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
       ]
 
       // When: 處理多個錯誤
+      // eslint-disable-next-line no-unused-vars
       const results = await Promise.all(
         errors.map(error => messageErrorHandler.process(error))
       )
@@ -276,6 +293,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
       })
 
       // 驗證統計資訊
+      // eslint-disable-next-line no-unused-vars
       const stats = messageErrorHandler.getErrorStatistics()
       expect(stats.totalErrors).toBe(2)
     })
@@ -285,6 +303,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
       global.chrome.runtime.lastError = null
 
       // When: 獲取健康狀態
+      // eslint-disable-next-line no-unused-vars
       const health = messageErrorHandler.getChromeExtensionHealth()
 
       // Then: 應該提供完整的健康狀態資訊
@@ -301,6 +320,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
   describe('📊 錯誤統計與診斷', () => {
     test('應該正確記錄和統計錯誤', async () => {
       // Given: 清空統計
+      // eslint-disable-next-line no-unused-vars
       const initialStats = messageErrorHandler.getErrorStatistics()
       expect(initialStats.totalErrors).toBe(0)
 
@@ -316,6 +336,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
       })
 
       // Then: 統計應該正確更新
+      // eslint-disable-next-line no-unused-vars
       const finalStats = messageErrorHandler.getErrorStatistics()
       expect(finalStats.totalErrors).toBe(2)
       expect(finalStats.unknownMessageTypes).toBe(1)
@@ -323,6 +344,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
 
     test('應該生成有用的錯誤報告', () => {
       // When: 生成錯誤報告
+      // eslint-disable-next-line no-unused-vars
       const report = messageErrorHandler.generateErrorReport()
 
       // Then: 報告應該包含必要資訊

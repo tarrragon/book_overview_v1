@@ -24,15 +24,20 @@
 
 // 測試環境設定
 require('../../../../test-setup')
+// eslint-disable-next-line no-unused-vars
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('SearchEngine - TDD 循環 2/8', () => {
   let searchEngine
+  // eslint-disable-next-line no-unused-vars
   let mockIndexManager
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockLogger
 
   // 測試用書籍資料
+  // eslint-disable-next-line no-unused-vars
   const mockBooks = [
     {
       id: 'book-001',
@@ -141,6 +146,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
   describe('1. Construction & Initialization', () => {
     test('應該正確建構 SearchEngine 實例', () => {
+      // eslint-disable-next-line no-unused-vars
       const SearchEngine = require('src/ui/search/core/search-engine')
 
       searchEngine = new SearchEngine({
@@ -156,24 +162,28 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('建構時若缺少必要參數應該拋出錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const SearchEngine = require('src/ui/search/core/search-engine')
 
       expect(() => {
-        const engine = new SearchEngine()
+        // eslint-disable-next-line no-unused-vars
+        const _engine = new SearchEngine()
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('IndexManager、EventBus 和 Logger 是必需的')
       })
 
       expect(() => {
-        const engine = new SearchEngine({ indexManager: mockIndexManager })
+        // eslint-disable-next-line no-unused-vars
+        const _engine = new SearchEngine({ indexManager: mockIndexManager })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('IndexManager、EventBus 和 Logger 是必需的')
       })
 
       expect(() => {
-        const engine = new SearchEngine({
+        // eslint-disable-next-line no-unused-vars
+        const _engine = new SearchEngine({
           indexManager: mockIndexManager,
           eventBus: mockEventBus
         })
@@ -184,6 +194,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該正確初始化搜尋配置', () => {
+      // eslint-disable-next-line no-unused-vars
       const SearchEngine = require('src/ui/search/core/search-engine')
 
       searchEngine = new SearchEngine({
@@ -204,6 +215,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該正確初始化效能統計', () => {
+      // eslint-disable-next-line no-unused-vars
       const SearchEngine = require('src/ui/search/core/search-engine')
 
       searchEngine = new SearchEngine({
@@ -212,6 +224,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
         logger: mockLogger
       })
 
+      // eslint-disable-next-line no-unused-vars
       const stats = searchEngine.getPerformanceStats()
       expect(stats).toEqual({
         totalSearches: 0,
@@ -225,8 +238,10 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該支援自定義配置', () => {
+      // eslint-disable-next-line no-unused-vars
       const SearchEngine = require('src/ui/search/core/search-engine')
 
+      // eslint-disable-next-line no-unused-vars
       const customConfig = {
         maxQueryLength: 200,
         enableFuzzySearch: false,
@@ -250,6 +265,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
   describe('2. Query Validation & Normalization', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchEngine = require('src/ui/search/core/search-engine')
       searchEngine = new SearchEngine({
         indexManager: mockIndexManager,
@@ -259,6 +275,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該正確驗證有效查詢', () => {
+      // eslint-disable-next-line no-unused-vars
       const validQueries = [
         'JavaScript',
         'js',
@@ -268,6 +285,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
       ]
 
       validQueries.forEach(query => {
+        // eslint-disable-next-line no-unused-vars
         const result = searchEngine.validateQuery(query)
         expect(result.isValid).toBe(true)
         expect(result.error).toBeUndefined()
@@ -275,6 +293,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該正確識別無效查詢', () => {
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { query: null, expectedError: '查詢必須是字串' },
         { query: undefined, expectedError: '查詢必須是字串' },
@@ -283,6 +302,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
       ]
 
       testCases.forEach(({ query, expectedError }) => {
+        // eslint-disable-next-line no-unused-vars
         const result = searchEngine.validateQuery(query)
         expect(result.isValid).toBe(false)
         expect(result.error).toBe(expectedError)
@@ -290,6 +310,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該正確正規化查詢字串', () => {
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { input: '  JavaScript  ', expected: 'javascript' },
         { input: 'PYTHON', expected: 'python' },
@@ -299,12 +320,14 @@ describe('SearchEngine - TDD 循環 2/8', () => {
       ]
 
       testCases.forEach(({ input, expected }) => {
+        // eslint-disable-next-line no-unused-vars
         const result = searchEngine.normalizeQuery(input)
         expect(result).toBe(expected)
       })
     })
 
     test('應該處理特殊字元和標點符號', () => {
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { input: 'JavaScript!', expected: 'javascript!' },
         { input: 'Python (3.9)', expected: 'python (3.9)' },
@@ -313,6 +336,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
       ]
 
       testCases.forEach(({ input, expected }) => {
+        // eslint-disable-next-line no-unused-vars
         const result = searchEngine.normalizeQuery(input)
         expect(result).toBe(expected)
       })
@@ -321,6 +345,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
   describe('3. Basic Search Functionality', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchEngine = require('src/ui/search/core/search-engine')
       searchEngine = new SearchEngine({
         indexManager: mockIndexManager,
@@ -330,6 +355,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該支援空查詢返回所有結果', async () => {
+      // eslint-disable-next-line no-unused-vars
       const results = await searchEngine.search('', mockBooks)
 
       expect(results).toHaveLength(4)
@@ -337,6 +363,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該根據書名進行基本搜尋', async () => {
+      // eslint-disable-next-line no-unused-vars
       const results = await searchEngine.search('JavaScript', mockBooks)
 
       expect(results).toHaveLength(1)
@@ -344,6 +371,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該根據作者進行搜尋', async () => {
+      // eslint-disable-next-line no-unused-vars
       const results = await searchEngine.search('David', mockBooks)
 
       expect(results).toHaveLength(1)
@@ -351,6 +379,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該根據標籤進行搜尋', async () => {
+      // eslint-disable-next-line no-unused-vars
       const results = await searchEngine.search('機器學習', mockBooks)
 
       expect(results).toHaveLength(1)
@@ -358,6 +387,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該支援部分匹配搜尋', async () => {
+      // eslint-disable-next-line no-unused-vars
       const results = await searchEngine.search('學習', mockBooks)
 
       expect(results).toHaveLength(2)
@@ -366,6 +396,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該支援多個關鍵字搜尋', async () => {
+      // eslint-disable-next-line no-unused-vars
       const results = await searchEngine.search('Python 機器', mockBooks)
 
       expect(results).toHaveLength(1)
@@ -373,9 +404,11 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('搜尋應該不區分大小寫', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testCases = ['javascript', 'JAVASCRIPT', 'JavaScript', 'jAvAsCrIpT']
 
       for (const query of testCases) {
+        // eslint-disable-next-line no-unused-vars
         const results = await searchEngine.search(query, mockBooks)
         expect(results).toHaveLength(1)
         expect(results[0].title).toBe('JavaScript 權威指南')
@@ -385,6 +418,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
   describe('4. Advanced Search Features', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchEngine = require('src/ui/search/core/search-engine')
       searchEngine = new SearchEngine({
         indexManager: mockIndexManager,
@@ -395,6 +429,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
     test('應該支援模糊搜尋', async () => {
       // 啟用模糊搜尋
+      // eslint-disable-next-line no-unused-vars
       const results = await searchEngine.search('Javascrpt', mockBooks) // 拼寫錯誤
 
       expect(results).toHaveLength(1)
@@ -402,6 +437,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該支援權重評分搜尋', async () => {
+      // eslint-disable-next-line no-unused-vars
       const results = await searchEngine.searchWithScoring('機器學習', mockBooks)
 
       expect(results).toBeInstanceOf(Array)
@@ -423,12 +459,14 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該支援欄位權重設定', async () => {
+      // eslint-disable-next-line no-unused-vars
       const fieldWeights = {
         title: 1.0,
         author: 0.8,
         tags: 0.6
       }
 
+      // eslint-disable-next-line no-unused-vars
       const results = await searchEngine.searchWithScoring('JavaScript', mockBooks, fieldWeights)
 
       expect(results).toHaveLength(1)
@@ -437,6 +475,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該支援搜尋結果限制', async () => {
+      // eslint-disable-next-line no-unused-vars
       const customEngine = new (require('src/ui/search/core/search-engine'))({
         indexManager: mockIndexManager,
         eventBus: mockEventBus,
@@ -444,17 +483,20 @@ describe('SearchEngine - TDD 循環 2/8', () => {
         config: { maxResults: 2 }
       })
 
+      // eslint-disable-next-line no-unused-vars
       const results = await customEngine.search('學習', mockBooks)
 
       expect(results.length).toBeLessThanOrEqual(2)
     })
 
     test('應該支援自定義匹配函數', async () => {
+      // eslint-disable-next-line no-unused-vars
       const customMatcher = (book, query) => {
         // 只匹配進度大於 50% 的書籍
         return book.progress > 50 && book.title.toLowerCase().includes(query)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const results = await searchEngine.searchWithMatcher(customMatcher, 'python', mockBooks)
 
       expect(results).toHaveLength(1)
@@ -465,6 +507,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
   describe('5. Index-Based Search Optimization', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchEngine = require('src/ui/search/core/search-engine')
       searchEngine = new SearchEngine({
         indexManager: mockIndexManager,
@@ -474,28 +517,33 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該優先使用索引進行搜尋', async () => {
+      // eslint-disable-next-line no-unused-vars
       const results = await searchEngine.search('JavaScript', mockBooks)
 
       expect(results).toHaveLength(1)
       expect(results[0].title).toBe('JavaScript 權威指南')
 
       // 驗證使用了索引搜尋
+      // eslint-disable-next-line no-unused-vars
       const stats = searchEngine.getPerformanceStats()
       expect(stats.indexBasedSearches).toBe(1)
       expect(stats.linearSearches).toBe(0)
     })
 
     test('不在索引中的查詢應該回退到線性搜尋', async () => {
+      // eslint-disable-next-line no-unused-vars
       const results = await searchEngine.search('不存在的關鍵字xyz', mockBooks)
 
       expect(results).toHaveLength(0)
 
       // 驗證使用了線性搜尋
+      // eslint-disable-next-line no-unused-vars
       const stats = searchEngine.getPerformanceStats()
       expect(stats.linearSearches).toBe(1)
     })
 
     test('應該正確合併多個索引的結果', async () => {
+      // eslint-disable-next-line no-unused-vars
       const results = await searchEngine.search('ai', mockBooks)
 
       // 'ai' 在標籤索引中
@@ -505,9 +553,11 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
     test('應該去除重複結果', async () => {
       // 搜尋可能在多個索引中都匹配的詞
+      // eslint-disable-next-line no-unused-vars
       const results = await searchEngine.search('JavaScript', mockBooks)
 
       // 確保沒有重複結果
+      // eslint-disable-next-line no-unused-vars
       const uniqueIds = new Set(results.map(book => book.id))
       expect(uniqueIds.size).toBe(results.length)
     })
@@ -515,6 +565,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
   describe('6. Performance Monitoring', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchEngine = require('src/ui/search/core/search-engine')
       searchEngine = new SearchEngine({
         indexManager: mockIndexManager,
@@ -527,6 +578,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
       await searchEngine.search('JavaScript', mockBooks)
       await searchEngine.search('Python', mockBooks)
 
+      // eslint-disable-next-line no-unused-vars
       const stats = searchEngine.getPerformanceStats()
       expect(stats.totalSearches).toBe(2)
       expect(stats.totalSearchTime).toBeGreaterThan(0)
@@ -548,7 +600,9 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
     test('慢速搜尋應該發送警告事件', async () => {
       // 使用依賴注入的時間函數來模擬慢速搜尋
+      // eslint-disable-next-line no-unused-vars
       let callCount = 0
+      // eslint-disable-next-line no-unused-vars
       const mockTimeFunction = jest.fn(() => {
         if (callCount === 0) {
           callCount++
@@ -559,7 +613,9 @@ describe('SearchEngine - TDD 循環 2/8', () => {
       })
 
       // 創建使用注入時間函數的 SearchEngine 實例
+      // eslint-disable-next-line no-unused-vars
       const SearchEngine = require('src/ui/search/core/search-engine')
+      // eslint-disable-next-line no-unused-vars
       const testSearchEngine = new SearchEngine({
         indexManager: mockIndexManager,
         eventBus: mockEventBus,
@@ -581,6 +637,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
       return searchEngine.search('JavaScript', mockBooks).then(() => {
         searchEngine.resetPerformanceStats()
 
+        // eslint-disable-next-line no-unused-vars
         const stats = searchEngine.getPerformanceStats()
         expect(stats.totalSearches).toBe(0)
         expect(stats.totalSearchTime).toBe(0)
@@ -593,6 +650,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
   describe('7. Error Handling & Edge Cases', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchEngine = require('src/ui/search/core/search-engine')
       searchEngine = new SearchEngine({
         indexManager: mockIndexManager,
@@ -602,7 +660,9 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該正確處理 null 或 undefined 書籍陣列', async () => {
+      // eslint-disable-next-line no-unused-vars
       const results1 = await searchEngine.search('JavaScript', null)
+      // eslint-disable-next-line no-unused-vars
       const results2 = await searchEngine.search('JavaScript', undefined)
 
       expect(results1).toEqual([])
@@ -610,12 +670,14 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該正確處理空書籍陣列', async () => {
+      // eslint-disable-next-line no-unused-vars
       const results = await searchEngine.search('JavaScript', [])
 
       expect(results).toEqual([])
     })
 
     test('應該正確處理包含無效書籍的陣列', async () => {
+      // eslint-disable-next-line no-unused-vars
       const booksWithInvalid = [
         mockBooks[0],
         null,
@@ -625,6 +687,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
       ]
 
       // 搜尋一個不在索引中的詞，強制線性搜尋
+      // eslint-disable-next-line no-unused-vars
       const results = await searchEngine.search('不存在的詞xyz', booksWithInvalid)
 
       expect(results).toHaveLength(0)
@@ -635,10 +698,12 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
     test('應該正確處理搜尋過程中的錯誤', async () => {
       // Mock 索引管理器拋出錯誤
+      // eslint-disable-next-line no-unused-vars
       const brokenIndexManager = {
         ...mockIndexManager,
         titleIndex: {
           get: jest.fn(() => {
+            // eslint-disable-next-line no-unused-vars
             const error = new Error('索引讀取失敗')
             error.code = 'SEARCH_RESULT_EVENT_ERROR'
             error.details = { category: 'testing' }
@@ -648,12 +713,14 @@ describe('SearchEngine - TDD 循環 2/8', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const brokenEngine = new (require('src/ui/search/core/search-engine'))({
         indexManager: brokenIndexManager,
         eventBus: mockEventBus,
         logger: mockLogger
       })
 
+      // eslint-disable-next-line no-unused-vars
       const results = await brokenEngine.search('JavaScript', mockBooks)
 
       // 應該回退到線性搜尋
@@ -665,17 +732,21 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該處理極長的查詢字串', async () => {
+      // eslint-disable-next-line no-unused-vars
       const longQuery = 'a'.repeat(1000)
 
+      // eslint-disable-next-line no-unused-vars
       const result = searchEngine.validateQuery(longQuery)
       expect(result.isValid).toBe(false)
       expect(result.error).toBe('查詢長度必須在 1 到 100 個字元之間')
     })
 
     test('應該處理特殊字元查詢', async () => {
+      // eslint-disable-next-line no-unused-vars
       const specialQueries = ['@#$%', '!!', '???', '...', '---']
 
       for (const query of specialQueries) {
+        // eslint-disable-next-line no-unused-vars
         const results = await searchEngine.search(query, mockBooks)
         expect(Array.isArray(results)).toBe(true)
         // 特殊字元搜尋通常不會有結果，但不應該拋出錯誤
@@ -683,6 +754,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該處理非 ASCII 字元', async () => {
+      // eslint-disable-next-line no-unused-vars
       const unicodeQueries = ['機器學習', '🚀', '中文測試', 'émoji']
 
       for (const query of unicodeQueries) {
@@ -695,6 +767,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
   describe('8. Integration & Event Handling', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchEngine = require('src/ui/search/core/search-engine')
       searchEngine = new SearchEngine({
         indexManager: mockIndexManager,
@@ -704,6 +777,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('搜尋完成時應該發送事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const results = await searchEngine.search('JavaScript', mockBooks)
 
       expect(mockEventBus.emit).toHaveBeenCalledWith('SEARCH.COMPLETED', expect.objectContaining({
@@ -715,6 +789,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
     })
 
     test('應該支援事件驅動的搜尋請求', () => {
+      // eslint-disable-next-line no-unused-vars
       const searchRequest = {
         query: 'JavaScript',
         books: mockBooks,
@@ -734,11 +809,13 @@ describe('SearchEngine - TDD 循環 2/8', () => {
       await searchEngine.search('JavaScript', mockBooks)
 
       // 驗證統計資料更新
+      // eslint-disable-next-line no-unused-vars
       const stats = searchEngine.getPerformanceStats()
       expect(stats.indexBasedSearches).toBe(1)
     })
 
     test('應該處理索引管理器狀態變更', () => {
+      // eslint-disable-next-line no-unused-vars
       const newIndexStats = {
         titleIndexSize: 10,
         authorIndexSize: 10,

@@ -21,11 +21,15 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
   describe('基本API功能測試', () => {
     test('createError 應該正確建立ErrorCodes錯誤', () => {
       // Given: 標準錯誤建立參數
+      // eslint-disable-next-line no-unused-vars
       const originalCode = 'DATA_DUPLICATE_DETECTION_FAILED'
+      // eslint-disable-next-line no-unused-vars
       const message = '重複書籍檢測機制失敗'
+      // eslint-disable-next-line no-unused-vars
       const details = { affectedBooks: ['book_123'] }
 
       // When: 使用工廠建立錯誤
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorFactory.createError(originalCode, message, details)
 
       // Then: 驗證錯誤物件結構
@@ -42,9 +46,11 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
     test('createResult 應該正確建立成功結果', () => {
       // Given: 成功操作條件
+      // eslint-disable-next-line no-unused-vars
       const successData = { extractedBooks: 25, totalTime: 1200 }
 
       // When: 建立成功結果
+      // eslint-disable-next-line no-unused-vars
       const result = UC02ErrorFactory.createResult(true, successData)
 
       // Then: 驗證成功結果結構
@@ -58,6 +64,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
     test('createResult 應該正確建立失敗結果', () => {
       // Given: 失敗操作條件
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorFactory.createError(
         'DATA_PROGRESS_VALIDATION_ERROR',
         '進度驗證失敗',
@@ -65,6 +72,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
       )
 
       // When: 建立失敗結果
+      // eslint-disable-next-line no-unused-vars
       const result = UC02ErrorFactory.createResult(false, null, error)
 
       // Then: 驗證失敗結果結構
@@ -81,13 +89,16 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
   describe('專用錯誤建立方法測試', () => {
     test('createDuplicateDetectionError 應該建立正確的重複檢測錯誤', () => {
       // Given: 重複檢測失敗條件
+      // eslint-disable-next-line no-unused-vars
       const affectedBooks = [
         { id: 'book_123', title: '重複書籍 1' },
         { id: 'book_456', title: '重複書籍 2' }
       ]
+      // eslint-disable-next-line no-unused-vars
       const additionalDetails = { detectionMethod: 'isbn_comparison' }
 
       // When: 建立重複檢測錯誤
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorFactory.createDuplicateDetectionError(affectedBooks, additionalDetails)
 
       // Then: 驗證錯誤結構
@@ -105,10 +116,13 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
     test('createProgressValidationError 應該建立正確的進度驗證錯誤', () => {
       // Given: 無效進度資料
+      // eslint-disable-next-line no-unused-vars
       const invalidProgressData = { progress: '150%', bookId: 'book_789' }
+      // eslint-disable-next-line no-unused-vars
       const additionalDetails = { validationRule: 'range_0_to_100' }
 
       // When: 建立進度驗證錯誤
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorFactory.createProgressValidationError(invalidProgressData, additionalDetails)
 
       // Then: 驗證錯誤結構
@@ -126,6 +140,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
     test('createIncrementalUpdateError 應該建立正確的更新衝突錯誤', () => {
       // Given: 衝突的書籍資料
+      // eslint-disable-next-line no-unused-vars
       const conflictedBooks = [
         {
           id: 'book_321',
@@ -136,6 +151,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
       ]
 
       // When: 建立增量更新錯誤
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorFactory.createIncrementalUpdateError(conflictedBooks)
 
       // Then: 驗證錯誤結構
@@ -152,12 +168,14 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
     test('createPageStructureError 應該建立正確的頁面結構錯誤', () => {
       // Given: 頁面結構變化資訊
+      // eslint-disable-next-line no-unused-vars
       const detectedChanges = [
         { selector: '.book-item', status: 'not_found' },
         { selector: '.progress-bar', status: 'modified' }
       ]
 
       // When: 建立頁面結構錯誤
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorFactory.createPageStructureError(detectedChanges)
 
       // Then: 驗證錯誤結構
@@ -174,6 +192,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
     test('createRateLimitError 應該建立正確的頻率限制錯誤並處理退避延遲', () => {
       // Given: 頻率限制資訊
+      // eslint-disable-next-line no-unused-vars
       const rateLimitInfo = {
         requestsInWindow: 50,
         rateLimit: 30,
@@ -182,6 +201,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
       }
 
       // When: 建立頻率限制錯誤
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorFactory.createRateLimitError(rateLimitInfo)
 
       // Then: 驗證錯誤結構和退避延遲處理
@@ -195,11 +215,13 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
     test('createRateLimitError 應該限制過大的退避延遲', () => {
       // Given: 過大的退避延遲
+      // eslint-disable-next-line no-unused-vars
       const rateLimitInfo = {
         backoffDelay: 600000 // 10分鐘，超過5分鐘限制
       }
 
       // When: 建立頻率限制錯誤
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorFactory.createRateLimitError(rateLimitInfo)
 
       // Then: 退避延遲應該被限制在5分鐘內
@@ -209,12 +231,14 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
     test('createExtensionConflictError 應該建立正確的擴充功能衝突錯誤', () => {
       // Given: 衝突的擴充功能資訊
+      // eslint-disable-next-line no-unused-vars
       const conflictingExtensions = [
         { id: 'extension_1', name: 'AdBlocker' },
         { id: 'extension_2', name: 'PageModifier' }
       ]
 
       // When: 建立擴充功能衝突錯誤
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorFactory.createExtensionConflictError(conflictingExtensions)
 
       // Then: 驗證錯誤結構
@@ -233,6 +257,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
   describe('快取和效能優化測試', () => {
     test('getCommonError 應該提供預建立的常用錯誤', () => {
       // Given: 常用錯誤類型
+      // eslint-disable-next-line no-unused-vars
       const commonErrorTypes = [
         'DUPLICATE_DETECTION',
         'PROGRESS_VALIDATION',
@@ -241,6 +266,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
       commonErrorTypes.forEach(errorType => {
         // When: 獲取常用錯誤
+        // eslint-disable-next-line no-unused-vars
         const error = UC02ErrorFactory.getCommonError(errorType)
 
         // Then: 應該回傳凍結的錯誤物件
@@ -252,9 +278,11 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
     test('getCommonError 應該使用快取機制', () => {
       // Given: 第一次獲取常用錯誤
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC02ErrorFactory.getCommonError('DUPLICATE_DETECTION')
 
       // When: 第二次獲取相同錯誤
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC02ErrorFactory.getCommonError('DUPLICATE_DETECTION')
 
       // Then: 應該回傳相同的物件參照（快取效果）
@@ -263,11 +291,13 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
     test('clearCache 應該清除錯誤快取', () => {
       // Given: 快取中有錯誤物件
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC02ErrorFactory.getCommonError('PROGRESS_VALIDATION')
       expect(error1).not.toBeNull()
 
       // When: 清除快取
       UC02ErrorFactory.clearCache()
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC02ErrorFactory.getCommonError('PROGRESS_VALIDATION')
 
       // Then: 應該建立新的錯誤物件
@@ -277,6 +307,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
     test('專用錯誤建立方法應該在合理時間內完成', () => {
       // Given: 測量各個專用方法的執行時間
+      // eslint-disable-next-line no-unused-vars
       const performanceTests = [
         () => UC02ErrorFactory.createDuplicateDetectionError(['book_1']),
         () => UC02ErrorFactory.createProgressValidationError({ progress: '50%' }),
@@ -287,8 +318,11 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
       performanceTests.forEach((testFunction, index) => {
         // When: 測量執行時間
+        // eslint-disable-next-line no-unused-vars
         const startTime = performance.now()
+        // eslint-disable-next-line no-unused-vars
         const error = testFunction()
+        // eslint-disable-next-line no-unused-vars
         const endTime = performance.now()
 
         // Then: 執行時間應該小於1毫秒
@@ -301,6 +335,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
   describe('資料安全和驗證測試', () => {
     test('sanitizeDetails 應該限制過大的詳細資訊', () => {
       // Given: 過大的詳細資訊
+      // eslint-disable-next-line no-unused-vars
       const largeDetails = {
         normalField: 'normal data',
         largeArray: new Array(10000).fill('large data item'),
@@ -308,6 +343,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
       }
 
       // When: 安全化詳細資訊
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC02ErrorFactory.sanitizeDetails(largeDetails)
 
       // Then: 應該標記為被截斷
@@ -318,6 +354,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
     test('sanitizeDetails 應該保留正常大小的詳細資訊', () => {
       // Given: 正常大小的詳細資訊
+      // eslint-disable-next-line no-unused-vars
       const normalDetails = {
         bookId: 'book_123',
         progress: '50%',
@@ -325,6 +362,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
       }
 
       // When: 安全化詳細資訊
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC02ErrorFactory.sanitizeDetails(normalDetails)
 
       // Then: 應該保持原樣
@@ -334,9 +372,11 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
     test('isValidUC02Error 應該正確驗證UC-02錯誤', () => {
       // Given: 有效的UC-02錯誤
+      // eslint-disable-next-line no-unused-vars
       const validError = UC02ErrorFactory.createDuplicateDetectionError(['book_1'])
 
       // When: 驗證錯誤
+      // eslint-disable-next-line no-unused-vars
       const isValid = UC02ErrorFactory.isValidUC02Error(validError)
 
       // Then: 應該通過驗證
@@ -345,6 +385,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
     test('isValidUC02Error 應該拒絕非UC-02錯誤', () => {
       // Given: 非UC-02錯誤
+      // eslint-disable-next-line no-unused-vars
       const invalidErrors = [
         new Error('Regular error'),
         { code: ErrorCodes.VALIDATION_ERROR, message: 'Not UC-02' },
@@ -353,6 +394,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
       invalidErrors.forEach(invalidError => {
         // When: 驗證無效錯誤
+        // eslint-disable-next-line no-unused-vars
         const isValid = UC02ErrorFactory.isValidUC02Error(invalidError)
 
         // Then: 應該被拒絕
@@ -364,6 +406,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
   describe('邊界條件處理測試', () => {
     test('專用錯誤建立方法應該處理空參數', () => {
       // Given: 空參數條件
+      // eslint-disable-next-line no-unused-vars
       const emptyArrayTests = [
         () => UC02ErrorFactory.createDuplicateDetectionError([]),
         () => UC02ErrorFactory.createIncrementalUpdateError([]),
@@ -373,6 +416,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
       emptyArrayTests.forEach(testFunction => {
         // When: 使用空參數建立錯誤
+        // eslint-disable-next-line no-unused-vars
         const error = testFunction()
 
         // Then: 應該成功建立錯誤物件
@@ -384,6 +428,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
     test('createResult 應該處理null和undefined參數', () => {
       // Given: null/undefined參數條件
+      // eslint-disable-next-line no-unused-vars
       const nullTests = [
         () => UC02ErrorFactory.createResult(true, null),
         () => UC02ErrorFactory.createResult(false, null, null)
@@ -391,6 +436,7 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
       nullTests.forEach(testFunction => {
         // When: 使用null參數建立結果
+        // eslint-disable-next-line no-unused-vars
         const result = testFunction()
 
         // Then: 應該有有效的結果結構
@@ -401,9 +447,11 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
 
     test('getCommonError 應該處理未知的錯誤類型', () => {
       // Given: 未知的錯誤類型
+      // eslint-disable-next-line no-unused-vars
       const unknownErrorType = 'UNKNOWN_ERROR_TYPE'
 
       // When: 嘗試獲取未知錯誤類型
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorFactory.getCommonError(unknownErrorType)
 
       // Then: 應該回傳null

@@ -307,7 +307,8 @@ function createMockDOM (platformId, options = {}) {
     : 'Generic Page Content'
 
   // 模擬 meta 標籤查詢
-  const getMetaTags = jest.fn(() => {
+  // eslint-disable-next-line no-unused-vars
+  const _getMetaTags = jest.fn(() => {
     return features.metaTags || []
   })
 

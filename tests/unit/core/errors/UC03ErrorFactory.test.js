@@ -15,6 +15,7 @@ describe('UC03ErrorFactory', () => {
 
   describe('createError', () => {
     test('應該建立基本的 UC-03 錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createError(
         'DATA_EXPORT_GENERATION_FAILED',
         '匯出檔案生成失敗'
@@ -27,11 +28,13 @@ describe('UC03ErrorFactory', () => {
     })
 
     test('應該建立帶有詳細資訊的錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const details = {
         exportFormat: 'JSON',
         dataSize: '2.5MB'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createError(
         'DATA_EXPORT_GENERATION_FAILED',
         '匯出失敗',
@@ -45,6 +48,7 @@ describe('UC03ErrorFactory', () => {
 
   describe('createResult', () => {
     test('應該建立成功結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = UC03ErrorFactory.createResult(true, {
         fileName: 'export.json',
         fileSize: '2.5MB'
@@ -62,11 +66,13 @@ describe('UC03ErrorFactory', () => {
     })
 
     test('應該建立失敗結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createError(
         'DATA_EXPORT_GENERATION_FAILED',
         '生成失敗'
       )
 
+      // eslint-disable-next-line no-unused-vars
       const result = UC03ErrorFactory.createResult(false, null, error)
 
       expect(result).toEqual({
@@ -79,7 +85,9 @@ describe('UC03ErrorFactory', () => {
     })
 
     test('應該處理簡單錯誤物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const simpleError = { message: '簡單錯誤' }
+      // eslint-disable-next-line no-unused-vars
       const result = UC03ErrorFactory.createResult(false, null, simpleError)
 
       expect(result).toEqual({
@@ -94,6 +102,7 @@ describe('UC03ErrorFactory', () => {
 
   describe('createExportGenerationError', () => {
     test('應該建立匯出生成錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createExportGenerationError(
         'JSON',
         '2.5MB',
@@ -118,6 +127,7 @@ describe('UC03ErrorFactory', () => {
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createExportGenerationError()
 
       expect(error.details.exportFormat).toBe('JSON')
@@ -130,6 +140,7 @@ describe('UC03ErrorFactory', () => {
 
   describe('createExportMemoryError', () => {
     test('應該建立記憶體不足錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createExportMemoryError(
         1000,
         '15MB',
@@ -152,9 +163,11 @@ describe('UC03ErrorFactory', () => {
     })
 
     test('應該正確計算批次大小建議', () => {
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC03ErrorFactory.createExportMemoryError(50)
       expect(error1.details.batchSizeRecommendation).toBe(50)
 
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC03ErrorFactory.createExportMemoryError(500)
       expect(error2.details.batchSizeRecommendation).toBe(100)
     })
@@ -162,6 +175,7 @@ describe('UC03ErrorFactory', () => {
 
   describe('createDownloadBlockedError', () => {
     test('應該建立下載被阻止錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createDownloadBlockedError(
         'export.json',
         '2.5MB',
@@ -185,6 +199,7 @@ describe('UC03ErrorFactory', () => {
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createDownloadBlockedError()
 
       expect(error.details.fileName).toBe('export-file')
@@ -196,6 +211,7 @@ describe('UC03ErrorFactory', () => {
 
   describe('createIntegrityViolationError', () => {
     test('應該建立完整性違規錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createIntegrityViolationError(
         150,
         147,
@@ -218,12 +234,15 @@ describe('UC03ErrorFactory', () => {
     })
 
     test('應該正確計算資料遺失率', () => {
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC03ErrorFactory.createIntegrityViolationError(100, 90)
       expect(error1.details.dataLossRate).toBe('10.0%')
 
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC03ErrorFactory.createIntegrityViolationError(100, 100)
       expect(error2.details.dataLossRate).toBe('0.0%')
 
+      // eslint-disable-next-line no-unused-vars
       const error3 = UC03ErrorFactory.createIntegrityViolationError(0, 0)
       expect(error3.details.dataLossRate).toBe('0%')
     })
@@ -231,6 +250,7 @@ describe('UC03ErrorFactory', () => {
 
   describe('createExportProgressError', () => {
     test('應該為早期失敗建立生成錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createExportProgressError(
         30,
         'data_preparation',
@@ -244,6 +264,7 @@ describe('UC03ErrorFactory', () => {
     })
 
     test('應該為後期失敗建立記憶體錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createExportProgressError(
         80,
         'file_generation',
@@ -259,7 +280,9 @@ describe('UC03ErrorFactory', () => {
 
   describe('getCommonError - 快取機制', () => {
     test('應該快取常用錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC03ErrorFactory.getCommonError('EXPORT_GENERATION')
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC03ErrorFactory.getCommonError('EXPORT_GENERATION')
 
       expect(error1).toBe(error2) // 相同參考
@@ -268,6 +291,7 @@ describe('UC03ErrorFactory', () => {
     })
 
     test('應該支援所有快取錯誤類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const cacheTypes = [
         'EXPORT_GENERATION',
         'EXPORT_MEMORY',
@@ -276,6 +300,7 @@ describe('UC03ErrorFactory', () => {
       ]
 
       cacheTypes.forEach(type => {
+        // eslint-disable-next-line no-unused-vars
         const error = UC03ErrorFactory.getCommonError(type)
         expect(error).toBeInstanceOf(Error)
         expect(error.details.cached).toBe(true)
@@ -283,6 +308,7 @@ describe('UC03ErrorFactory', () => {
     })
 
     test('應該處理未知快取類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.getCommonError('UNKNOWN_TYPE')
       expect(error).toBeNull()
     })
@@ -297,7 +323,9 @@ describe('UC03ErrorFactory', () => {
       UC03ErrorFactory.clearCache()
 
       // 重新取得應該是新物件
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC03ErrorFactory.getCommonError('EXPORT_GENERATION')
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC03ErrorFactory.getCommonError('EXPORT_GENERATION')
 
       expect(error1).toBe(error2) // 新快取中相同
@@ -307,21 +335,25 @@ describe('UC03ErrorFactory', () => {
 
   describe('sanitizeDetails', () => {
     test('應該保留正常大小的詳細資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const details = {
         fileName: 'export.json',
         fileSize: '2.5MB',
         books: ['book1', 'book2']
       }
 
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC03ErrorFactory.sanitizeDetails(details)
       expect(sanitized).toEqual(details)
     })
 
     test('應該截斷過大的詳細資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const largeDetails = {
         largeData: 'x'.repeat(20000) // 超過 15KB 限制
       }
 
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC03ErrorFactory.sanitizeDetails(largeDetails)
 
       expect(sanitized._truncated).toBe(true)
@@ -340,6 +372,7 @@ describe('UC03ErrorFactory', () => {
 
   describe('isValidUC03Error', () => {
     test('應該驗證有效的 UC-03 錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createError(
         'DATA_EXPORT_GENERATION_FAILED',
         '測試訊息'
@@ -349,6 +382,7 @@ describe('UC03ErrorFactory', () => {
     })
 
     test('應該拒絕無效的錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidError = new Error('普通錯誤')
       expect(UC03ErrorFactory.isValidUC03Error(invalidError)).toBe(false)
 
@@ -359,12 +393,14 @@ describe('UC03ErrorFactory', () => {
 
   describe('資料匯出場景專用測試', () => {
     test('生成錯誤應該包含匯出指引', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createExportGenerationError()
       expect(error.details.userGuidance).toContain('檢查資料完整性')
       expect(error.details.suggestedActions).toContain('retry_export')
     })
 
     test('記憶體錯誤應該提供分批建議', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createExportMemoryError(1000)
       expect(error.details.suggestedSolution).toBe('batch_export')
       expect(error.details.userGuidance).toContain('分批匯出')
@@ -372,12 +408,14 @@ describe('UC03ErrorFactory', () => {
     })
 
     test('下載錯誤應該提供權限指引', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createDownloadBlockedError()
       expect(error.details.userGuidance).toContain('允許下載權限')
       expect(error.details.suggestedActions).toContain('enable_downloads')
     })
 
     test('完整性錯誤應該提供重新匯出建議', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC03ErrorFactory.createIntegrityViolationError(100, 95)
       expect(error.details.userGuidance).toContain('重新進行完整匯出')
       expect(error.details.suggestedActions).toContain('retry_full_export')
@@ -386,17 +424,20 @@ describe('UC03ErrorFactory', () => {
 
   describe('效能測試', () => {
     test('常用錯誤建立應該快速', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 100; i++) {
         UC03ErrorFactory.getCommonError('EXPORT_GENERATION')
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(10) // 100次快取存取應該在10ms內
     })
 
     test('錯誤建立應該在合理時間內完成', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 50; i++) {
@@ -409,6 +450,7 @@ describe('UC03ErrorFactory', () => {
         )
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(100) // 50個複雜錯誤應該在100ms內
     })

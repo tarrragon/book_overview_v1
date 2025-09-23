@@ -1121,6 +1121,7 @@ class RuntimeMessagingValidator {
 
     const messageIds = new Set()
     const duplicateIds = new Set()
+    // eslint-disable-next-line no-unused-vars
     const expectedSequences = new Set()
 
     // 分析訊息集合
@@ -1338,7 +1339,9 @@ class RuntimeMessagingValidator {
 
     // 分析處理時間
     const processingTimes = []
+    // eslint-disable-next-line no-unused-vars
     const sequenceIds = new Set()
+    // eslint-disable-next-line no-unused-vars
     const messageIds = new Set()
 
     messageHistory.forEach((message, index) => {

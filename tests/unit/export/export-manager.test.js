@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * ExportManager 事件驅動測試 - TDD循環 #29 Red階段
  *
@@ -27,11 +29,15 @@
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+// eslint-disable-next-line no-unused-vars
 const EventBus = require('src/core/event-bus')
+// eslint-disable-next-line no-unused-vars
 const { StandardError } = require('src/core/errors/StandardError')
+// eslint-disable-next-line no-unused-vars
 const MemoryLeakDetector = require('../../helpers/memory-leak-detector')
 
 // Mock BookDataExporter
+// eslint-disable-next-line no-unused-vars
 let mockExporterInstance
 jest.mock('../../../src/export/book-data-exporter', () => {
   return jest.fn().mockImplementation(() => {
@@ -111,7 +117,9 @@ jest.mock('../../../src/export/export-events', () => ({
 
 describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)', () => {
   let exportManager
+  // eslint-disable-next-line no-unused-vars
   let eventBus
+  // eslint-disable-next-line no-unused-vars
   let mockBooks
   let memoryDetector
 
@@ -158,6 +166,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
   describe('🔴 Red Phase: ExportManager 基本結構', () => {
     test('應該能建立 ExportManager 實例', () => {
       expect(() => {
+        // eslint-disable-next-line no-unused-vars
         const ExportManager = require('src/export/export-manager')
         exportManager = new ExportManager(eventBus)
       }).not.toThrow()
@@ -166,6 +175,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('ExportManager 應該接受事件總線作為依賴注入', () => {
+      // eslint-disable-next-line no-unused-vars
       const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
 
@@ -173,6 +183,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('ExportManager 應該正確初始化狀態', () => {
+      // eslint-disable-next-line no-unused-vars
       const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
 
@@ -184,7 +195,9 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('ExportManager 應該註冊所有必要的事件監聽器', () => {
+      // eslint-disable-next-line no-unused-vars
       const ExportManager = require('src/export/export-manager')
+      // eslint-disable-next-line no-unused-vars
       const eventBusSpy = jest.spyOn(eventBus, 'on')
 
       exportManager = new ExportManager(eventBus)
@@ -218,17 +231,20 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
   describe('🔴 Red Phase: CSV 匯出事件處理', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
     })
 
     test('應該處理 CSV 匯出請求事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const csvExportData = {
         books: mockBooks,
         options: { fields: ['title', 'author'], delimiter: ',' }
       }
 
       // 觸發 CSV 匯出請求事件
+      // eslint-disable-next-line no-unused-vars
       const results = await eventBus.emit('EXPORT.CSV.REQUESTED', csvExportData)
 
       expect(results).toBeDefined()
@@ -236,9 +252,11 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('CSV 匯出成功時應該觸發完成事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const completedEventSpy = jest.fn()
       eventBus.on('EXPORT.CSV.COMPLETED', completedEventSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const csvExportData = {
         books: mockBooks,
         options: { fields: ['title', 'author'] }
@@ -253,6 +271,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('CSV 匯出失敗時應該觸發失敗事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookDataExporter = require('src/export/book-data-exporter')
 
       // 模擬匯出失敗 - 使用 mockImplementationOnce 避免影響其他測試
@@ -263,9 +282,11 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
         setProgressCallback: jest.fn()
       }))
 
+      // eslint-disable-next-line no-unused-vars
       const failedEventSpy = jest.fn()
       eventBus.on('EXPORT.CSV.FAILED', failedEventSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const csvExportData = {
         books: mockBooks,
         options: {}
@@ -280,9 +301,11 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('應該在 CSV 匯出過程中更新進度', async () => {
+      // eslint-disable-next-line no-unused-vars
       const progressEventSpy = jest.fn()
       eventBus.on('EXPORT.PROCESS.PROGRESS', progressEventSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const csvExportData = {
         books: mockBooks,
         options: {}
@@ -299,6 +322,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
   describe('🔴 Red Phase: JSON 匯出事件處理', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
 
@@ -313,6 +337,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('應該處理 JSON 匯出請求事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const jsonExportData = {
         books: mockBooks,
         options: {
@@ -322,6 +347,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const results = await eventBus.emit('EXPORT.JSON.REQUESTED', jsonExportData)
 
       expect(results).toBeDefined()
@@ -329,9 +355,11 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('JSON 匯出成功時應該觸發完成事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const completedEventSpy = jest.fn()
       eventBus.on('EXPORT.JSON.COMPLETED', completedEventSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const jsonExportData = {
         books: mockBooks,
         options: { pretty: true }
@@ -343,6 +371,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('JSON 匯出應該正確傳遞選項給 BookDataExporter', async () => {
+      // eslint-disable-next-line no-unused-vars
       const jsonExportData = {
         books: mockBooks,
         options: {
@@ -360,6 +389,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
   describe('🔴 Red Phase: 批量匯出事件處理', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
 
@@ -374,6 +404,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('應該處理批量匯出請求事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const batchExportData = {
         formats: ['csv', 'json'],
         books: mockBooks,
@@ -383,6 +414,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const results = await eventBus.emit('EXPORT.BATCH.REQUESTED', batchExportData)
 
       expect(results).toBeDefined()
@@ -390,9 +422,11 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('批量匯出成功時應該觸發完成事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const completedEventSpy = jest.fn()
       eventBus.on('EXPORT.BATCH.COMPLETED', completedEventSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const batchExportData = {
         formats: ['csv', 'json'],
         books: mockBooks,
@@ -405,9 +439,11 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('批量匯出應該為每種格式觸發個別進度事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const progressEventSpy = jest.fn()
       eventBus.on('EXPORT.PROCESS.PROGRESS', progressEventSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const batchExportData = {
         formats: ['csv', 'json', 'excel'],
         books: mockBooks,
@@ -425,6 +461,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('批量匯出中部分失敗應該正確處理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookDataExporter = require('src/export/book-data-exporter')
 
       // 模擬部分格式匯出失敗 - 使用 mockImplementationOnce
@@ -435,9 +472,11 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
         setProgressCallback: jest.fn()
       }))
 
+      // eslint-disable-next-line no-unused-vars
       const failedEventSpy = jest.fn()
       eventBus.on('EXPORT.BATCH.FAILED', failedEventSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const batchExportData = {
         formats: ['csv', 'json', 'invalid-format'],
         books: mockBooks,
@@ -452,6 +491,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
   describe('🔴 Red Phase: 檔案下載事件處理', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
 
@@ -466,12 +506,14 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('應該處理檔案下載請求事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const downloadData = {
         data: 'mock-csv-data',
         filename: 'books.csv',
         mimeType: 'text/csv'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const results = await eventBus.emit('EXPORT.DOWNLOAD.REQUESTED', downloadData)
 
       expect(results).toBeDefined()
@@ -479,9 +521,11 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('檔案下載成功時應該觸發完成事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const completedEventSpy = jest.fn()
       eventBus.on('EXPORT.DOWNLOAD.COMPLETED', completedEventSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const downloadData = {
         data: 'mock-data',
         filename: 'test.csv',
@@ -494,6 +538,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('檔案下載失敗時應該觸發失敗事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookDataExporter = require('src/export/book-data-exporter')
 
       // 模擬下載失敗 - 使用 mockImplementationOnce
@@ -503,9 +548,11 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
         })
       }))
 
+      // eslint-disable-next-line no-unused-vars
       const failedEventSpy = jest.fn()
       eventBus.on('EXPORT.DOWNLOAD.FAILED', failedEventSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const downloadData = {
         data: 'mock-data',
         filename: 'test.csv',
@@ -520,11 +567,13 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
   describe('🔴 Red Phase: 進度追蹤和狀態管理', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
     })
 
     test('應該追蹤當前進行中的匯出操作', async () => {
+      // eslint-disable-next-line no-unused-vars
       const csvExportData = {
         books: mockBooks,
         options: {}
@@ -541,15 +590,19 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('應該支援並發匯出操作', async () => {
+      // eslint-disable-next-line no-unused-vars
       const csvExportData = { books: mockBooks, options: {} }
+      // eslint-disable-next-line no-unused-vars
       const jsonExportData = { books: mockBooks, options: {} }
 
       // 同時觸發兩個匯出請求
+      // eslint-disable-next-line no-unused-vars
       const promises = [
         eventBus.emit('EXPORT.CSV.REQUESTED', csvExportData),
         eventBus.emit('EXPORT.JSON.REQUESTED', jsonExportData)
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const results = await Promise.all(promises)
 
       expect(results).toHaveLength(2)
@@ -560,9 +613,11 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('應該提供匯出操作取消功能', async () => {
+      // eslint-disable-next-line no-unused-vars
       const cancelledEventSpy = jest.fn()
       eventBus.on('EXPORT.PROCESS.CANCELLED', cancelledEventSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const exportId = 'test-export-123'
 
       // 觸發取消事件
@@ -572,11 +627,13 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('應該記錄匯出歷史', async () => {
+      // eslint-disable-next-line no-unused-vars
       const csvExportData = {
         books: mockBooks,
         options: {}
       }
 
+      // eslint-disable-next-line no-unused-vars
       const initialHistoryLength = exportManager.exportHistory.length
 
       await eventBus.emit('EXPORT.CSV.REQUESTED', csvExportData)
@@ -587,11 +644,13 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
   describe('🔴 Red Phase: 錯誤處理和恢復', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
     })
 
     test('應該處理 BookDataExporter 實例化失敗', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookDataExporter = require('src/export/book-data-exporter')
 
       // 模擬建構函數失敗 - 使用 mockImplementationOnce
@@ -599,9 +658,11 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
         throw (() => { const error = new Error('Exporter initialization failed'); error.code = ErrorCodes.EXPORT_MANAGER_INIT_FAILED; error.details = { category: 'testing' }; return error })()
       })
 
+      // eslint-disable-next-line no-unused-vars
       const failedEventSpy = jest.fn()
       eventBus.on('EXPORT.CSV.FAILED', failedEventSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const csvExportData = {
         books: mockBooks,
         options: {}
@@ -613,9 +674,11 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('應該處理無效的匯出資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const failedEventSpy = jest.fn()
       eventBus.on('EXPORT.CSV.FAILED', failedEventSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const invalidExportData = {
         books: null, // 無效資料
         options: undefined
@@ -627,11 +690,13 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('應該處理記憶體不足的情況', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookDataExporter = require('src/export/book-data-exporter')
 
       // 模擬記憶體不足錯誤 - 使用 mockImplementationOnce
       BookDataExporter.mockImplementationOnce(() => ({
         exportToCSV: jest.fn().mockImplementation(() => {
+          // eslint-disable-next-line no-unused-vars
           const error = (() => { const error = new Error('Out of memory'); error.code = ErrorCodes.OUT_OF_MEMORY; return error })()
           error.name = 'RangeError'
           throw error
@@ -639,9 +704,11 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
         setProgressCallback: jest.fn()
       }))
 
+      // eslint-disable-next-line no-unused-vars
       const failedEventSpy = jest.fn()
       eventBus.on('EXPORT.CSV.FAILED', failedEventSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const largeExportData = {
         books: Array.from({ length: 100000 }, (_, i) => ({ id: i, title: `Book ${i}` })),
         options: {}
@@ -653,7 +720,9 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('應該提供錯誤恢復機制', async () => {
+      // eslint-disable-next-line no-unused-vars
       let attemptCount = 0
+      // eslint-disable-next-line no-unused-vars
       const BookDataExporter = require('src/export/book-data-exporter')
 
       // 模擬第一次失敗，第二次成功 - 使用 mockImplementationOnce
@@ -668,9 +737,11 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
         setProgressCallback: jest.fn()
       }))
 
+      // eslint-disable-next-line no-unused-vars
       const completedEventSpy = jest.fn()
       eventBus.on('EXPORT.CSV.COMPLETED', completedEventSpy)
 
+      // eslint-disable-next-line no-unused-vars
       const csvExportData = {
         books: mockBooks,
         options: { retryOnFailure: true }
@@ -688,6 +759,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
   describe('🔴 Red Phase: 整合性測試', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
 
@@ -702,6 +774,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('應該與現有 BookDataExporter API 完全相容', async () => {
+      // eslint-disable-next-line no-unused-vars
       const csvExportData = {
         books: mockBooks,
         options: { fields: ['title', 'author'] }
@@ -715,6 +788,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('應該支援事件鏈式處理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const eventChain = []
 
       // 註冊事件鏈監聽器
@@ -723,6 +797,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
       eventBus.on('EXPORT.PROCESS.PROGRESS', () => eventChain.push('progress'))
       eventBus.on('EXPORT.CSV.COMPLETED', () => eventChain.push('completed'))
 
+      // eslint-disable-next-line no-unused-vars
       const csvExportData = {
         books: mockBooks,
         options: {}
@@ -736,13 +811,16 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('應該支援匯出事件的相關性追蹤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const correlationId = 'export-session-123'
+      // eslint-disable-next-line no-unused-vars
       let capturedCorrelationId = null
 
       eventBus.on('EXPORT.CSV.COMPLETED', (data) => {
         capturedCorrelationId = data.correlationId
       })
 
+      // eslint-disable-next-line no-unused-vars
       const csvExportData = {
         books: mockBooks,
         options: {},
@@ -757,14 +835,17 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
 
   describe('🔴 Red Phase: 性能和資源管理', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const ExportManager = require('src/export/export-manager')
       exportManager = new ExportManager(eventBus)
     })
 
     test('應該限制並發匯出操作數量', async () => {
+      // eslint-disable-next-line no-unused-vars
       const maxConcurrentExports = 3
       exportManager.maxConcurrentExports = maxConcurrentExports
 
+      // eslint-disable-next-line no-unused-vars
       const exportPromises = []
 
       // 嘗試啟動更多匯出操作
@@ -784,6 +865,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
     })
 
     test('應該自動清理已完成的匯出操作', async () => {
+      // eslint-disable-next-line no-unused-vars
       const csvExportData = {
         books: mockBooks,
         options: {}
@@ -800,13 +882,16 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
       expect(exportManager.getMemoryUsage).toBeDefined()
       expect(typeof exportManager.getMemoryUsage).toBe('function')
 
+      // eslint-disable-next-line no-unused-vars
       const memoryUsage = exportManager.getMemoryUsage()
       expect(memoryUsage).toBeDefined()
       expect(typeof memoryUsage).toBe('object')
 
       // 使用 MemoryLeakDetector 進行更深入的記憶體分析
+      // eslint-disable-next-line no-unused-vars
       const analysis = await memoryDetector.detectMemoryLeak(async (iteration) => {
         // 模擬多次匯出操作來測試記憶體使用
+        // eslint-disable-next-line no-unused-vars
         const csvExportData = {
           books: mockBooks,
           options: {}
@@ -814,13 +899,18 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
         await eventBus.emit('EXPORT.CSV.REQUESTED', csvExportData)
 
         // 獲取當前記憶體使用情況
+        // eslint-disable-next-line no-unused-vars
         const currentUsage = exportManager.getMemoryUsage()
         expect(currentUsage).toBeDefined()
       }, 10, { testName: 'export-manager-memory-monitoring' })
 
+      // eslint-disable-next-line no-console
       console.log('📊 ExportManager 記憶體監控分析:')
+      // eslint-disable-next-line no-console
       console.log(`  平均每操作記憶體增長: ${analysis.leakDetection.formattedAverageGrowth}`)
+      // eslint-disable-next-line no-console
       console.log(`  記憶體效率: ${(analysis.efficiency.overallEfficiency * 100).toFixed(1)}%`)
+      // eslint-disable-next-line no-console
       console.log(`  洩漏嚴重程度: ${analysis.leakDetection.leakSeverity}`)
 
       // 驗證記憶體健康度

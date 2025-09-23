@@ -15,6 +15,7 @@ describe('UC06ErrorFactory', () => {
 
   describe('createError', () => {
     test('應該建立基本的 UC-06 錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createError(
         'SYSTEM_OVERVIEW_RENDERING_FAILURE',
         'Overview頁面渲染失敗'
@@ -27,11 +28,13 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('應該建立帶有詳細資訊的錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const details = {
         totalBooks: 500,
         memoryUsage: '90%'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createError(
         'SYSTEM_OVERVIEW_RENDERING_FAILURE',
         '渲染失敗',
@@ -45,6 +48,7 @@ describe('UC06ErrorFactory', () => {
 
   describe('createResult', () => {
     test('應該建立成功結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = UC06ErrorFactory.createResult(true, {
         displayedBooks: 100,
         renderTime: '1.5s'
@@ -57,10 +61,12 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('應該建立失敗結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createError(
         'SYSTEM_OVERVIEW_RENDERING_FAILURE',
         '渲染失敗'
       )
+      // eslint-disable-next-line no-unused-vars
       const result = UC06ErrorFactory.createResult(false, null, error)
 
       expect(result.success).toBe(false)
@@ -70,7 +76,9 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('應該處理簡單錯誤物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const simpleError = new Error('簡單錯誤')
+      // eslint-disable-next-line no-unused-vars
       const result = UC06ErrorFactory.createResult(false, null, simpleError)
 
       expect(result.success).toBe(false)
@@ -81,6 +89,7 @@ describe('UC06ErrorFactory', () => {
 
   describe('createRenderingError', () => {
     test('應該建立Overview頁面渲染失敗錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createRenderingError(
         500, // totalBooks
         'initial_load', // renderAttempt
@@ -97,14 +106,17 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('應該包含渲染策略資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC06ErrorFactory.createRenderingError(50) // 少量書籍
       expect(error1.details.renderingStrategy).toBe('direct_render')
 
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC06ErrorFactory.createRenderingError(1500) // 大量書籍
       expect(error2.details.renderingStrategy).toBe('pagination_only')
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createRenderingError()
 
       expect(error.details.totalBooks).toBe(0)
@@ -115,6 +127,7 @@ describe('UC06ErrorFactory', () => {
 
   describe('createSearchIndexError', () => {
     test('應該建立搜尋索引損壞錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createSearchIndexError(
         ['title_index', 'author_index'], // corruptedFields
         'degraded', // searchAccuracy
@@ -131,9 +144,11 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('應該計算索引健康分數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC06ErrorFactory.createSearchIndexError([], 'normal')
       expect(error1.details.indexHealthScore).toBe(100)
 
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC06ErrorFactory.createSearchIndexError(
         ['field1', 'field2'], 'degraded'
       )
@@ -141,6 +156,7 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createSearchIndexError()
 
       expect(error.details.corruptedFields).toEqual([])
@@ -151,6 +167,7 @@ describe('UC06ErrorFactory', () => {
 
   describe('createPaginationError', () => {
     test('應該建立分頁載入溢出錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createPaginationError(
         15, // requestedPage
         50, // booksPerPage
@@ -167,14 +184,17 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('應該計算最佳頁面大小', () => {
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC06ErrorFactory.createPaginationError(1, 50, 50, false)
       expect(error1.details.optimizedPageSize).toBe(50)
 
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC06ErrorFactory.createPaginationError(1, 50, 600, false)
       expect(error2.details.optimizedPageSize).toBe(20)
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createPaginationError()
 
       expect(error.details.requestedPage).toBe(1)
@@ -185,6 +205,7 @@ describe('UC06ErrorFactory', () => {
 
   describe('createEditValidationError', () => {
     test('應該建立編輯驗證衝突錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createEditValidationError(
         'progress_update', // editType
         'book_789', // bookId
@@ -202,11 +223,13 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('應該提供驗證建議', () => {
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC06ErrorFactory.createEditValidationError(
         'progress_update', 'book_123', '150%'
       )
       expect(error1.details.validationSuggestion).toBe('100%')
 
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC06ErrorFactory.createEditValidationError(
         'progress_update', 'book_123', '-50%'
       )
@@ -214,6 +237,7 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createEditValidationError()
 
       expect(error.details.editType).toBe('unknown_edit')
@@ -224,6 +248,7 @@ describe('UC06ErrorFactory', () => {
 
   describe('createUIProgressError', () => {
     test('應該為渲染相關階段建立渲染錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createUIProgressError(
         50, // progress
         'render_initial', // stage
@@ -235,6 +260,7 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('應該為索引相關階段建立索引錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createUIProgressError(
         75,
         'search_index_rebuild',
@@ -246,6 +272,7 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('應該為分頁相關階段建立分頁錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createUIProgressError(
         25,
         'pagination_load',
@@ -256,6 +283,7 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('應該為其他階段建立驗證錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createUIProgressError(
         90,
         'data_update',
@@ -268,7 +296,9 @@ describe('UC06ErrorFactory', () => {
 
   describe('getCommonError - 快取機制', () => {
     test('應該快取常用錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC06ErrorFactory.getCommonError('RENDERING')
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC06ErrorFactory.getCommonError('RENDERING')
 
       expect(error1).toBe(error2)
@@ -277,9 +307,11 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('應該支援所有快取錯誤類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const types = ['RENDERING', 'SEARCH_INDEX', 'PAGINATION', 'EDIT_VALIDATION']
 
       types.forEach(type => {
+        // eslint-disable-next-line no-unused-vars
         const error = UC06ErrorFactory.getCommonError(type)
         expect(error).toBeInstanceOf(Error)
         expect(error.details.cached).toBe(true)
@@ -287,6 +319,7 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('應該處理未知快取類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.getCommonError('UNKNOWN_TYPE')
       expect(error).toBeNull()
     })
@@ -294,11 +327,13 @@ describe('UC06ErrorFactory', () => {
 
   describe('clearCache', () => {
     test('應該清除錯誤快取', () => {
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC06ErrorFactory.getCommonError('RENDERING')
       expect(error1.details.cached).toBe(true)
 
       UC06ErrorFactory.clearCache()
 
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC06ErrorFactory.getCommonError('RENDERING')
       expect(error2).not.toBe(error1)
     })
@@ -306,17 +341,21 @@ describe('UC06ErrorFactory', () => {
 
   describe('sanitizeDetails', () => {
     test('應該保留正常大小的詳細資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const details = { field1: 'value1', field2: 'value2' }
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC06ErrorFactory.sanitizeDetails(details)
 
       expect(sanitized).toEqual(details)
     })
 
     test('應該截斷過大的詳細資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const largeDetails = {
         books: new Array(1000).fill('x'.repeat(100))
       }
 
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC06ErrorFactory.sanitizeDetails(largeDetails)
 
       expect(sanitized._truncated).toBe(true)
@@ -332,12 +371,14 @@ describe('UC06ErrorFactory', () => {
 
   describe('isValidUC06Error', () => {
     test('應該驗證有效的 UC-06 錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createRenderingError(500)
 
       expect(UC06ErrorFactory.isValidUC06Error(error)).toBe(true)
     })
 
     test('應該拒絕無效的錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidError = new Error('普通錯誤')
       expect(UC06ErrorFactory.isValidUC06Error(invalidError)).toBe(false)
 
@@ -346,6 +387,7 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('應該檢查UC-06相關的subType', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createError(
         'SYSTEM_OVERVIEW_RENDERING_FAILURE',
         '測試'
@@ -358,6 +400,7 @@ describe('UC06ErrorFactory', () => {
 
   describe('UI操作場景專用測試', () => {
     test('渲染錯誤應該包含UI指引', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createRenderingError(1000)
 
       expect(error.details.userGuidance).toContain('降級模式')
@@ -366,6 +409,7 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('索引錯誤應該提供搜尋能力狀態', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createSearchIndexError(
         ['title_index']
       )
@@ -376,6 +420,7 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('分頁錯誤應該提供優化建議', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createPaginationError(
         10, 100, 2000, true
       )
@@ -386,6 +431,7 @@ describe('UC06ErrorFactory', () => {
     })
 
     test('驗證錯誤應該提供修正幫助', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorFactory.createEditValidationError(
         'progress_update',
         'book_123',
@@ -399,23 +445,27 @@ describe('UC06ErrorFactory', () => {
 
   describe('效能測試', () => {
     test('常用錯誤建立應該快速', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 100; i++) {
         UC06ErrorFactory.getCommonError('RENDERING')
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(10)
     })
 
     test('錯誤建立應該在合理時間內完成', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 100; i++) {
         UC06ErrorFactory.createRenderingError(500)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(50)
     })
@@ -423,23 +473,29 @@ describe('UC06ErrorFactory', () => {
 
   describe('私有輔助方法測試', () => {
     test('_determineRenderingStrategy 應該正確決定策略', () => {
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC06ErrorFactory.createRenderingError(50)
       expect(error1.details.renderingStrategy).toBe('direct_render')
 
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC06ErrorFactory.createRenderingError(300)
       expect(error2.details.renderingStrategy).toBe('batch_render')
 
+      // eslint-disable-next-line no-unused-vars
       const error3 = UC06ErrorFactory.createRenderingError(700)
       expect(error3.details.renderingStrategy).toBe('virtual_scrolling')
 
+      // eslint-disable-next-line no-unused-vars
       const error4 = UC06ErrorFactory.createRenderingError(1500)
       expect(error4.details.renderingStrategy).toBe('pagination_only')
     })
 
     test('_estimateRenderTime 應該正確估算時間', () => {
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC06ErrorFactory.createRenderingError(50)
       expect(error1.details.performanceMetrics.estimatedRenderTime).toBe('< 1s')
 
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC06ErrorFactory.createRenderingError(300)
       expect(error2.details.performanceMetrics.estimatedRenderTime).toBe('1-3s')
     })

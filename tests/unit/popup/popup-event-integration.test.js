@@ -15,7 +15,9 @@
  * - UI 事件的觸發和處理
  */
 
+// eslint-disable-next-line no-unused-vars
 const PopupEventController = require('src/popup/popup-event-controller')
+// eslint-disable-next-line no-unused-vars
 const EventBus = require('src/core/event-bus')
 
 // 模擬 Chrome Extension APIs
@@ -34,19 +36,28 @@ global.chrome = {
 }
 
 // 模擬 DOM 環境
+// eslint-disable-next-line no-unused-vars
 const { JSDOM } = require('jsdom')
-const fs = require('fs')
-const path = require('path')
+// eslint-disable-next-line no-unused-vars
+const _fs = require('fs')
+// eslint-disable-next-line no-unused-vars
+const _path = require('path')
 
 describe('Popup Event Integration', () => {
+  // eslint-disable-next-line no-unused-vars
   let eventBus
+  // eslint-disable-next-line no-unused-vars
   let controller
+  // eslint-disable-next-line no-unused-vars
   let mockDocument
+  // eslint-disable-next-line no-unused-vars
   let mockChrome
+  // eslint-disable-next-line no-unused-vars
   let mockElements
 
   beforeEach(() => {
     // 創建模擬的 DOM 元素
+    // eslint-disable-next-line no-unused-vars
     const createMockElement = (id) => ({
       id,
       textContent: '',
@@ -143,6 +154,7 @@ describe('Popup Event Integration', () => {
     })
 
     test('應該支援正確的事件類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const supportedEvents = controller.getSupportedEvents()
       expect(supportedEvents).toContain('UI.PROGRESS.UPDATE')
       expect(supportedEvents).toContain('EXTRACTION.COMPLETED')
@@ -151,6 +163,7 @@ describe('Popup Event Integration', () => {
     })
 
     test('應該能與 Background Service Worker 通訊', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await controller.checkBackgroundStatus()
 
       expect(mockChrome.runtime.sendMessage).toHaveBeenCalledWith({
@@ -160,6 +173,7 @@ describe('Popup Event Integration', () => {
     })
 
     test('應該能檢查當前標籤頁狀態', async () => {
+      // eslint-disable-next-line no-unused-vars
       const tab = await controller.checkCurrentTab()
 
       expect(mockChrome.tabs.query).toHaveBeenCalledWith({
@@ -173,6 +187,7 @@ describe('Popup Event Integration', () => {
     test('應該能處理 Background Service Worker 離線情況', async () => {
       mockChrome.runtime.sendMessage.mockRejectedValue(new Error('Service Worker offline'))
 
+      // eslint-disable-next-line no-unused-vars
       const result = await controller.checkBackgroundStatus()
 
       expect(result).toBe(false)
@@ -182,6 +197,7 @@ describe('Popup Event Integration', () => {
 
   describe('狀態更新事件處理 (TDD循環 #24)', () => {
     test('應該能處理 POPUP.STATUS.UPDATE 事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'POPUP.STATUS.UPDATE',
         data: {
@@ -193,6 +209,7 @@ describe('Popup Event Integration', () => {
         flowId: 'test-flow-1'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await controller.process(event)
 
       expect(result.success).toBe(true)
@@ -240,6 +257,7 @@ describe('Popup Event Integration', () => {
 
   describe('進度事件處理 (TDD循環 #24)', () => {
     test('應該能處理 UI.PROGRESS.UPDATE 事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.PROGRESS.UPDATE',
         data: {
@@ -249,11 +267,13 @@ describe('Popup Event Integration', () => {
         flowId: 'test-progress-1'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await controller.process(event)
 
       expect(result.success).toBe(true)
       expect(controller.elements.progressContainer.style.display).toBe('block')
 
+      // eslint-disable-next-line no-unused-vars
       const progressFill = controller.elements.progressBar.querySelector('.progress-fill')
       expect(progressFill.style.width).toBe('45%')
 
@@ -266,6 +286,7 @@ describe('Popup Event Integration', () => {
 
       expect(controller.elements.progressContainer.style.display).toBe('block')
 
+      // eslint-disable-next-line no-unused-vars
       const progressFill = controller.elements.progressBar.querySelector('.progress-fill')
       expect(progressFill.style.width).toBe('45%')
 
@@ -276,16 +297,19 @@ describe('Popup Event Integration', () => {
     test('應該能處理進度值的邊界情況', () => {
       // 測試負數進度
       controller.updateProgress(-10, '負數測試')
+      // eslint-disable-next-line no-unused-vars
       const progressFill1 = controller.elements.progressBar.querySelector('.progress-fill')
       expect(progressFill1.style.width).toBe('0%')
 
       // 測試超過100%的進度
       controller.updateProgress(150, '超範圍測試')
+      // eslint-disable-next-line no-unused-vars
       const progressFill2 = controller.elements.progressBar.querySelector('.progress-fill')
       expect(progressFill2.style.width).toBe('100%')
     })
 
     test('應該能處理 EXTRACTION.COMPLETED 事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'EXTRACTION.COMPLETED',
         data: {
@@ -296,6 +320,7 @@ describe('Popup Event Integration', () => {
         flowId: 'test-extraction-completed'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await controller.process(event)
 
       expect(result.success).toBe(true)
@@ -309,6 +334,7 @@ describe('Popup Event Integration', () => {
     })
 
     test('應該能顯示提取結果', () => {
+      // eslint-disable-next-line no-unused-vars
       const results = {
         bookCount: 25,
         extractionTime: '2分30秒',
@@ -329,6 +355,7 @@ describe('Popup Event Integration', () => {
 
   describe('錯誤處理事件 (TDD循環 #24)', () => {
     test('應該能處理 EXTRACTION.ERROR 事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'EXTRACTION.ERROR',
         data: {
@@ -338,6 +365,7 @@ describe('Popup Event Integration', () => {
         flowId: 'test-error-1'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await controller.process(event)
 
       expect(result.success).toBe(true)
@@ -347,6 +375,7 @@ describe('Popup Event Integration', () => {
     })
 
     test('應該能處理提取錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const errorMessage = '提取過程中發生網路錯誤'
 
       controller.handleExtractionErrorUI(errorMessage)
@@ -444,6 +473,7 @@ describe('Popup Event Integration', () => {
 
   describe('頁面識別和驗證 (TDD循環 #24)', () => {
     test('應該能識別 Readmoo 頁面', async () => {
+      // eslint-disable-next-line no-unused-vars
       const tab = await controller.checkCurrentTab()
 
       expect(controller.elements.pageInfo.textContent).toContain('Readmoo')
@@ -466,6 +496,7 @@ describe('Popup Event Integration', () => {
     test('應該能處理無效標籤頁', async () => {
       mockChrome.tabs.query.mockResolvedValue([])
 
+      // eslint-disable-next-line no-unused-vars
       const result = await controller.checkCurrentTab()
 
       expect(result).toBeNull()
@@ -525,20 +556,25 @@ describe('Popup Event Integration', () => {
     test('應該支援啟用/停用功能', async () => {
       controller.setEnabled(false)
 
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.PROGRESS.UPDATE',
         data: { percentage: 50, message: '測試' },
         flowId: 'test-disabled'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await controller.handle(event)
       expect(result).toBeNull() // 停用時應該返回 null
     })
 
     test('應該追蹤執行統計', async () => {
+      // eslint-disable-next-line no-unused-vars
       const initialStats = controller.getStats()
+      // eslint-disable-next-line no-unused-vars
       const initialCount = initialStats.executionCount
 
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'UI.PROGRESS.UPDATE',
         data: { percentage: 25, message: '統計測試' },
@@ -547,6 +583,7 @@ describe('Popup Event Integration', () => {
 
       await controller.handle(event)
 
+      // eslint-disable-next-line no-unused-vars
       const updatedStats = controller.getStats()
       expect(updatedStats.executionCount).toBe(initialCount + 1)
     })

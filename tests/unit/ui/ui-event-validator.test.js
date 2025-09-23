@@ -3,11 +3,13 @@
  * 測試 UI 事件驗證工具類的功能
  */
 
+// eslint-disable-next-line no-unused-vars
 const UIEventValidator = require('src/ui/handlers/ui-event-validator')
 
 describe('UIEventValidator', () => {
   describe('事件結構驗證', () => {
     test('應該接受有效的事件物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const validEvent = {
         type: 'TEST.EVENT',
         flowId: 'test-flow-123',
@@ -20,6 +22,7 @@ describe('UIEventValidator', () => {
     })
 
     test('應該拒絕無效的事件物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidEvents = [
         null,
         undefined,
@@ -39,6 +42,7 @@ describe('UIEventValidator', () => {
 
   describe('資料結構驗證', () => {
     test('應該接受有效的資料物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const validData = { message: 'test', type: 'info' }
 
       expect(() => {
@@ -47,6 +51,7 @@ describe('UIEventValidator', () => {
     })
 
     test('應該拒絕無效的資料物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidData = [null, undefined, 'string', 123]
 
       invalidData.forEach(data => {
@@ -65,6 +70,7 @@ describe('UIEventValidator', () => {
     })
 
     test('應該拒絕空字串（當必填時）', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidValues = [null, undefined, '', '   ', 123, {}]
 
       invalidValues.forEach(value => {
@@ -99,6 +105,7 @@ describe('UIEventValidator', () => {
     })
 
     test('應該拒絕非數值', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidValues = [null, undefined, 'string', {}, [], NaN]
 
       invalidValues.forEach(value => {
@@ -135,6 +142,7 @@ describe('UIEventValidator', () => {
 
   describe('枚舉欄位驗證', () => {
     test('應該接受有效的枚舉值', () => {
+      // eslint-disable-next-line no-unused-vars
       const validValues = ['success', 'error', 'warning']
 
       expect(() => {
@@ -143,6 +151,7 @@ describe('UIEventValidator', () => {
     })
 
     test('應該拒絕無效的枚舉值', () => {
+      // eslint-disable-next-line no-unused-vars
       const validValues = ['success', 'error', 'warning']
 
       expect(() => {
@@ -151,6 +160,7 @@ describe('UIEventValidator', () => {
     })
 
     test('應該支援可選欄位', () => {
+      // eslint-disable-next-line no-unused-vars
       const validValues = ['success', 'error', 'warning']
 
       expect(() => {

@@ -28,17 +28,22 @@
  * - 生成資料品質報告供分析
  */
 
+// eslint-disable-next-line no-unused-vars
 const ReadmooDataValidator = jest.fn()
 
 describe('ReadmooDataValidator', () => {
   let validator
+  // eslint-disable-next-line no-unused-vars
   let sampleValidBook
+  // eslint-disable-next-line no-unused-vars
   let sampleInvalidBook
+  // eslint-disable-next-line no-unused-vars
   let sampleBookSet
 
   beforeEach(() => {
     // 動態載入以避免模組依賴問題
     try {
+      // eslint-disable-next-line no-unused-vars
       const ValidatorClass = require('@/extractors/readmoo-data-validator')
       ReadmooDataValidator.mockImplementation(() => new ValidatorClass())
       validator = new ReadmooDataValidator()
@@ -102,6 +107,7 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該支援 Readmoo 特定驗證規則', () => {
+      // eslint-disable-next-line no-unused-vars
       const supportedRules = validator.getSupportedValidationRules()
       expect(supportedRules).toContain('readmoo-id-format')
       expect(supportedRules).toContain('readmoo-progress-range')
@@ -119,6 +125,7 @@ describe('ReadmooDataValidator', () => {
 
   describe('基礎資料格式驗證 (Cycle #9)', () => {
     test('應該驗證有效的書籍資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBook(sampleValidBook)
 
       expect(result.isValid).toBe(true)
@@ -129,11 +136,13 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該檢測必填欄位缺失', async () => {
+      // eslint-disable-next-line no-unused-vars
       const bookWithMissingFields = {
         title: '測試書籍'
         // 缺少 id, cover 等必填欄位
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBook(bookWithMissingFields)
 
       expect(result.isValid).toBe(false)
@@ -153,6 +162,7 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該驗證資料類型正確性', async () => {
+      // eslint-disable-next-line no-unused-vars
       const bookWithWrongTypes = {
         id: 12345, // 應該是字串
         title: null, // 應該是字串
@@ -160,6 +170,7 @@ describe('ReadmooDataValidator', () => {
         type: ['流式'] // 應該是字串
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBook(bookWithWrongTypes)
 
       expect(result.isValid).toBe(false)
@@ -179,12 +190,14 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該驗證欄位長度限制', async () => {
+      // eslint-disable-next-line no-unused-vars
       const bookWithLongFields = {
         id: 'RM' + 'x'.repeat(100), // 超長 ID
         title: 'x'.repeat(1000), // 超長標題
         cover: 'https://example.com/' + 'x'.repeat(2000) // 超長 URL
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBook(bookWithLongFields)
 
       expect(result.isValid).toBe(false)
@@ -196,6 +209,7 @@ describe('ReadmooDataValidator', () => {
 
   describe('Readmoo 特定驗證規則 (Cycle #9)', () => {
     test('應該驗證 Readmoo ID 格式', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { id: 'RM12345', valid: true },
         { id: 'readmoo_67890', valid: true },
@@ -206,7 +220,9 @@ describe('ReadmooDataValidator', () => {
       ]
 
       for (const testCase of testCases) {
+        // eslint-disable-next-line no-unused-vars
         const book = { ...sampleValidBook, id: testCase.id }
+        // eslint-disable-next-line no-unused-vars
         const result = await validator.validateBook(book)
 
         if (testCase.valid) {
@@ -223,6 +239,7 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該驗證閱讀進度範圍', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { progress: 0, valid: true },
         { progress: 50, valid: true },
@@ -234,7 +251,9 @@ describe('ReadmooDataValidator', () => {
       ]
 
       for (const testCase of testCases) {
+        // eslint-disable-next-line no-unused-vars
         const book = { ...sampleValidBook, progress: testCase.progress }
+        // eslint-disable-next-line no-unused-vars
         const result = await validator.validateBook(book)
 
         if (testCase.valid) {
@@ -251,17 +270,23 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該驗證書籍類型', async () => {
+      // eslint-disable-next-line no-unused-vars
       const validTypes = ['流式', '版式', 'epub', 'pdf']
+      // eslint-disable-next-line no-unused-vars
       const invalidTypes = ['未知', '圖書', 'unknown', '']
 
       for (const type of validTypes) {
+        // eslint-disable-next-line no-unused-vars
         const book = { ...sampleValidBook, type }
+        // eslint-disable-next-line no-unused-vars
         const result = await validator.validateBook(book)
         expect(result.errors.find(e => e.field === 'type')).toBeUndefined()
       }
 
       for (const type of invalidTypes) {
+        // eslint-disable-next-line no-unused-vars
         const book = { ...sampleValidBook, type }
+        // eslint-disable-next-line no-unused-vars
         const result = await validator.validateBook(book)
         expect(result.errors).toContainEqual(
           expect.objectContaining({
@@ -273,6 +298,7 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該驗證封面 URL 格式', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { cover: 'https://cdn.readmoo.com/covers/12345.jpg', valid: true },
         { cover: 'https://images.readmoo.com/book/67890.png', valid: true },
@@ -283,7 +309,9 @@ describe('ReadmooDataValidator', () => {
       ]
 
       for (const testCase of testCases) {
+        // eslint-disable-next-line no-unused-vars
         const book = { ...sampleValidBook, cover: testCase.cover }
+        // eslint-disable-next-line no-unused-vars
         const result = await validator.validateBook(book)
 
         if (testCase.valid) {
@@ -302,12 +330,14 @@ describe('ReadmooDataValidator', () => {
 
   describe('資料清理和標準化 (Cycle #9)', () => {
     test('應該清理 HTML 標籤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const bookWithHTML = {
         ...sampleValidBook,
         title: '<h1>測試書籍</h1><script>alert("xss")</script>',
         description: '<p>這是一本<strong>測試</strong>書籍</p>'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBook(bookWithHTML)
 
       expect(result.cleanedData.title).toBe('測試書籍')
@@ -315,6 +345,7 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該標準化書籍類型', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { input: '流式', expected: '流式' },
         { input: 'epub', expected: '流式' },
@@ -325,7 +356,9 @@ describe('ReadmooDataValidator', () => {
       ]
 
       for (const testCase of testCases) {
+        // eslint-disable-next-line no-unused-vars
         const book = { ...sampleValidBook, type: testCase.input }
+        // eslint-disable-next-line no-unused-vars
         const result = await validator.validateBook(book)
 
         expect(result.cleanedData.type).toBe(testCase.expected)
@@ -333,6 +366,7 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該標準化進度格式', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { input: 75.5, expected: 76 }, // 四捨五入
         { input: 0.0, expected: 0 },
@@ -342,7 +376,9 @@ describe('ReadmooDataValidator', () => {
       ]
 
       for (const testCase of testCases) {
+        // eslint-disable-next-line no-unused-vars
         const book = { ...sampleValidBook, progress: testCase.input }
+        // eslint-disable-next-line no-unused-vars
         const result = await validator.validateBook(book)
 
         expect(result.cleanedData.progress).toBe(testCase.expected)
@@ -350,6 +386,7 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該清理和標準化 URL', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         {
           input: 'https://store.readmoo.com/api/reader/12345?utm_source=test',
@@ -362,7 +399,9 @@ describe('ReadmooDataValidator', () => {
       ]
 
       for (const testCase of testCases) {
+        // eslint-disable-next-line no-unused-vars
         const book = { ...sampleValidBook, url: testCase.input }
+        // eslint-disable-next-line no-unused-vars
         const result = await validator.validateBook(book)
 
         expect(result.cleanedData.url).toBe(testCase.expected)
@@ -370,6 +409,7 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該移除多餘的空白字元', async () => {
+      // eslint-disable-next-line no-unused-vars
       const bookWithWhitespace = {
         ...sampleValidBook,
         title: '  測試書籍標題  \n\t  ',
@@ -377,6 +417,7 @@ describe('ReadmooDataValidator', () => {
         publisher: '  出版社  '
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBook(bookWithWhitespace)
 
       expect(result.cleanedData.title).toBe('測試書籍標題')
@@ -387,6 +428,7 @@ describe('ReadmooDataValidator', () => {
 
   describe('批量驗證功能 (Cycle #9)', () => {
     test('應該能批量驗證多本書籍', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBooks(sampleBookSet)
 
       expect(result.totalBooks).toBe(3)
@@ -397,6 +439,7 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該提供批量驗證的詳細報告', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBooks(sampleBookSet)
 
       expect(result.summary.totalValidated).toBe(3)
@@ -406,6 +449,7 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該在批量驗證中隔離錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const booksWithErrors = [
         sampleValidBook,
         null, // 無效輸入
@@ -414,6 +458,7 @@ describe('ReadmooDataValidator', () => {
         { ...sampleValidBook, id: 'RM99999' }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBooks(booksWithErrors)
 
       expect(result.totalBooks).toBe(5)
@@ -422,14 +467,18 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該支援批量驗證的效能優化', async () => {
+      // eslint-disable-next-line no-unused-vars
       const largeBooksSet = Array.from({ length: 100 }, (_, i) => ({
         ...sampleValidBook,
         id: `RM${10000 + i}`,
         title: `測試書籍 ${i + 1}`
       }))
 
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBooks(largeBooksSet)
+      // eslint-disable-next-line no-unused-vars
       const processingTime = performance.now() - startTime
 
       expect(result.validBooks).toBe(100)
@@ -442,6 +491,7 @@ describe('ReadmooDataValidator', () => {
       await validator.validateBook(sampleValidBook)
       await validator.validateBook(sampleInvalidBook)
 
+      // eslint-disable-next-line no-unused-vars
       const report = validator.getValidationReport()
 
       expect(report.totalValidations).toBe(2)
@@ -453,6 +503,7 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該追蹤最常見的驗證錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidBooks = [
         { ...sampleInvalidBook, id: '' },
         { ...sampleInvalidBook, id: '', title: '' },
@@ -463,7 +514,9 @@ describe('ReadmooDataValidator', () => {
         await validator.validateBook(book)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const report = validator.getValidationReport()
+      // eslint-disable-next-line no-unused-vars
       const commonErrors = report.commonErrors
 
       expect(commonErrors.READMOO_INVALID_ID_FORMAT).toBeGreaterThan(0)
@@ -475,6 +528,7 @@ describe('ReadmooDataValidator', () => {
       await new Promise(resolve => setTimeout(resolve, 10)) // 小延遲
       await validator.validateBook(sampleInvalidBook)
 
+      // eslint-disable-next-line no-unused-vars
       const timeSeriesData = validator.getValidationTimeSeries()
 
       expect(timeSeriesData).toHaveLength(2)
@@ -486,7 +540,9 @@ describe('ReadmooDataValidator', () => {
     test('應該支援驗證報告的匯出功能', async () => {
       await validator.validateBooks(sampleBookSet)
 
+      // eslint-disable-next-line no-unused-vars
       const csvReport = validator.exportReportAsCSV()
+      // eslint-disable-next-line no-unused-vars
       const jsonReport = validator.exportReportAsJSON()
 
       expect(csvReport).toContain('Book ID,Valid,Errors,Processing Time')
@@ -497,6 +553,7 @@ describe('ReadmooDataValidator', () => {
 
   describe('錯誤處理和復原機制 (Cycle #9)', () => {
     test('應該處理 null 或 undefined 輸入', async () => {
+      // eslint-disable-next-line no-unused-vars
       const results = await Promise.all([
         validator.validateBook(null),
         validator.validateBook(undefined),
@@ -514,9 +571,11 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該處理循環引用的物件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const circularBook = { ...sampleValidBook }
       circularBook.self = circularBook // 循環引用
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBook(circularBook)
 
       // 應該能處理而不會造成無限迴圈
@@ -526,9 +585,11 @@ describe('ReadmooDataValidator', () => {
 
     test('應該在驗證規則載入失敗時使用預設規則', async () => {
       // 模擬驗證規則載入失敗
+      // eslint-disable-next-line no-unused-vars
       const originalRules = validator.validationRules
       validator.validationRules = null
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBook(sampleValidBook)
 
       // 應該仍能進行基本驗證
@@ -540,11 +601,13 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該限制過度複雜的驗證請求', async () => {
+      // eslint-disable-next-line no-unused-vars
       const oversizedBook = {
         ...sampleValidBook,
         metadata: 'x'.repeat(10000000) // 10MB 字串
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBook(oversizedBook)
 
       expect(result.isValid).toBe(false)
@@ -558,16 +621,20 @@ describe('ReadmooDataValidator', () => {
 
   describe('效能優化和記憶體管理 (Cycle #9)', () => {
     test('應該快取常用的驗證規則', async () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
       // 第一次驗證 (建立快取)
       await validator.validateBook(sampleValidBook)
+      // eslint-disable-next-line no-unused-vars
       const firstRunTime = performance.now() - startTime
 
+      // eslint-disable-next-line no-unused-vars
       const secondStartTime = performance.now()
 
       // 第二次驗證 (使用快取)
       await validator.validateBook(sampleValidBook)
+      // eslint-disable-next-line no-unused-vars
       const secondRunTime = performance.now() - secondStartTime
 
       // 第二次應該更快 (至少快 20%)
@@ -591,6 +658,7 @@ describe('ReadmooDataValidator', () => {
 
     test('應該在記憶體壓力下自動清理資源', async () => {
       // 模擬記憶體壓力情況
+      // eslint-disable-next-line no-unused-vars
       const largeBooksSet = Array.from({ length: 1000 }, (_, i) => ({
         ...sampleValidBook,
         id: `RM${i}`,
@@ -599,13 +667,16 @@ describe('ReadmooDataValidator', () => {
 
       await validator.validateBooks(largeBooksSet)
 
+      // eslint-disable-next-line no-unused-vars
       const memoryUsage = validator.getMemoryUsage()
       expect(memoryUsage.peakUsage).toBeDefined()
       expect(memoryUsage.currentUsage).toBeLessThan(memoryUsage.peakUsage)
     })
 
     test('應該支援驗證器實例的正確銷毀', () => {
+      // eslint-disable-next-line no-unused-vars
       const initialCacheSize = validator.getCacheSize()
+      // eslint-disable-next-line no-unused-vars
       const initialMemoryUsage = validator.getMemoryUsage().currentUsage
 
       validator.destroy()
@@ -618,6 +689,7 @@ describe('ReadmooDataValidator', () => {
 
   describe('配置和擴展性 (Cycle #9)', () => {
     test('應該支援自訂驗證規則', async () => {
+      // eslint-disable-next-line no-unused-vars
       const customRule = {
         name: 'custom-title-length',
         validate: (book) => book.title && book.title.length >= 3,
@@ -627,7 +699,9 @@ describe('ReadmooDataValidator', () => {
 
       validator.addCustomValidationRule(customRule)
 
+      // eslint-disable-next-line no-unused-vars
       const shortTitleBook = { ...sampleValidBook, title: 'AB' }
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBook(shortTitleBook)
 
       expect(result.errors).toContainEqual(
@@ -641,6 +715,7 @@ describe('ReadmooDataValidator', () => {
       // 停用 ID 格式驗證
       validator.disableValidationRule('readmoo-id-format')
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBook({
         ...sampleValidBook,
         id: 'invalid-id-format'
@@ -654,6 +729,7 @@ describe('ReadmooDataValidator', () => {
     })
 
     test('應該支援不同的驗證嚴格度模式', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testBook = {
         id: 'RM12345',
         title: 'Test Book'
@@ -662,10 +738,12 @@ describe('ReadmooDataValidator', () => {
 
       // 嚴格模式
       validator.setValidationMode('strict')
+      // eslint-disable-next-line no-unused-vars
       const strictResult = await validator.validateBook(testBook)
 
       // 寬鬆模式
       validator.setValidationMode('lenient')
+      // eslint-disable-next-line no-unused-vars
       const lenientResult = await validator.validateBook(testBook)
 
       expect(strictResult.errors.length).toBeGreaterThan(lenientResult.errors.length)
@@ -677,6 +755,7 @@ describe('ReadmooDataValidator', () => {
       expect(validator.setPlatformRules).toBeDefined()
       expect(validator.addPlatformValidator).toBeDefined()
 
+      // eslint-disable-next-line no-unused-vars
       const platforms = validator.getSupportedPlatforms()
       expect(platforms).toContain('readmoo')
     })

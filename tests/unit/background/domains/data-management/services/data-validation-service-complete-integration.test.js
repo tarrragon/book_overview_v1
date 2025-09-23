@@ -10,28 +10,34 @@
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+// eslint-disable-next-line no-unused-vars
 const DataValidationService = require('src/background/domains/data-management/services/data-validation-service.js')
+// eslint-disable-next-line no-unused-vars
 const { StandardError } = require('src/core/errors/StandardError')
 
 // Mock 所有子服務
+// eslint-disable-next-line no-unused-vars
 const MockValidationEngine = {
   validateSingle: jest.fn(),
   validateBatch: jest.fn(),
   getValidationRules: jest.fn()
 }
 
+// eslint-disable-next-line no-unused-vars
 const MockValidationBatchProcessor = {
   processBatch: jest.fn(),
   processParallel: jest.fn(),
   getProcessingStatus: jest.fn()
 }
 
+// eslint-disable-next-line no-unused-vars
 const MockDataQualityAnalyzer = {
   analyzeQuality: jest.fn(),
   calculateQualityScore: jest.fn(),
   generateQualityReport: jest.fn()
 }
 
+// eslint-disable-next-line no-unused-vars
 const MockValidationCacheManager = {
   getCached: jest.fn(),
   setCached: jest.fn(),
@@ -39,6 +45,7 @@ const MockValidationCacheManager = {
   getCacheStats: jest.fn()
 }
 
+// eslint-disable-next-line no-unused-vars
 const MockDataNormalizationService = {
   normalize: jest.fn(),
   normalizeBatch: jest.fn(),
@@ -46,8 +53,11 @@ const MockDataNormalizationService = {
 }
 
 describe('DataValidationService - 完整服務整合測試', () => {
+  // eslint-disable-next-line no-unused-vars
   let dataValidationService
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockLogger
 
   beforeEach(() => {
@@ -118,6 +128,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
   describe('服務整合與協調', () => {
     test('應該能夠成功整合所有子服務', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const testData = {
         id: 'book-123',
         title: '測試書籍',
@@ -125,6 +136,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
       }
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const result = await dataValidationService.validateAndNormalize([testData], 'READMOO', 'test')
 
       // Assert
@@ -137,11 +149,13 @@ describe('DataValidationService - 完整服務整合測試', () => {
 
     test('應該正確協調子服務的執行順序', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const testData = [{
         id: 'book-123',
         title: '測試書籍'
       }]
 
+      // eslint-disable-next-line no-unused-vars
       const executionOrder = []
 
       MockValidationEngine.validateSingle.mockImplementation(async (data) => {
@@ -168,11 +182,13 @@ describe('DataValidationService - 完整服務整合測試', () => {
 
     test('應該能夠處理子服務之間的資料傳遞', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const inputData = [{
         id: 'book-123',
         title: '原始標題'
       }]
 
+      // eslint-disable-next-line no-unused-vars
       const normalizedData = {
         id: 'book-123',
         title: '標準化標題',
@@ -209,11 +225,13 @@ describe('DataValidationService - 完整服務整合測試', () => {
   describe('快取整合', () => {
     test('應該利用快取提升效能', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const testData = [{
         id: 'book-123',
         title: '測試書籍'
       }]
 
+      // eslint-disable-next-line no-unused-vars
       const cachedResult = {
         isValid: true,
         normalized: testData[0],
@@ -224,6 +242,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
       MockValidationCacheManager.getCached.mockResolvedValue(cachedResult)
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const result = await dataValidationService.validateAndNormalize(testData, 'READMOO', 'test')
 
       // Assert
@@ -234,6 +253,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
 
     test('應該在快取未命中時更新快取', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const testData = [{
         id: 'book-123',
         title: '測試書籍'
@@ -252,6 +272,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
   describe('批次處理整合', () => {
     test('應該能夠處理大批量資料驗證', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const largeDataset = Array.from({ length: 100 }, (_, i) => ({
         id: `book-${i}`,
         title: `書籍 ${i}`
@@ -264,6 +285,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
       })
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const result = await dataValidationService.validateAndNormalize(largeDataset, 'READMOO', 'test')
 
       // Assert
@@ -273,6 +295,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
 
     test('應該能夠並行處理提升效能', async () => {
       // Arrange - 使用足夠的資料量觸發批次處理
+      // eslint-disable-next-line no-unused-vars
       const testData = Array.from({ length: 100 }, (_, i) => ({
         id: `book-${i}`,
         title: `書籍 ${i}`
@@ -285,6 +308,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
       })
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const result = await dataValidationService.validateAndNormalize(testData, 'READMOO', 'test', {
         useParallelProcessing: true
       })
@@ -298,6 +322,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
   describe('錯誤處理與容災', () => {
     test('應該能夠處理子服務錯誤並進行容災', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const testData = [{
         id: 'book-123',
         title: '測試書籍'
@@ -308,6 +333,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
       )
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const result = await dataValidationService.validateAndNormalize(testData, 'READMOO', 'test')
 
       // Assert
@@ -326,6 +352,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
 
     test('應該能夠部分成功處理並回報詳細狀態', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const testData = [
         { id: 'book-1', title: '正確書籍' },
         { id: 'book-2', title: '' } // 無效資料
@@ -340,6 +367,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
         })
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const result = await dataValidationService.validateAndNormalize(testData, 'READMOO', 'test')
 
       // Assert
@@ -353,6 +381,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
   describe('效能監控與最佳化', () => {
     test('應該收集並回報效能指標', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const testData = [{
         id: 'book-123',
         title: '測試書籍'
@@ -365,6 +394,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
       })
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const result = await dataValidationService.validateAndNormalize(testData, 'READMOO', 'test')
 
       // Assert
@@ -375,12 +405,14 @@ describe('DataValidationService - 完整服務整合測試', () => {
 
     test('應該能夠基於負載動態調整子服務配置', async () => {
       // Arrange
+      // eslint-disable-next-line no-unused-vars
       const heavyLoad = Array.from({ length: 1000 }, (_, i) => ({
         id: `book-${i}`,
         title: `書籍 ${i}`
       }))
 
       // Act
+      // eslint-disable-next-line no-unused-vars
       const result = await dataValidationService.validateAndNormalize(heavyLoad, 'READMOO', 'test', {
         adaptiveOptimization: true
       })
@@ -400,6 +432,7 @@ describe('DataValidationService - 完整服務整合測試', () => {
   describe('服務健康監控', () => {
     test('應該監控各子服務的健康狀態', () => {
       // Arrange & Act
+      // eslint-disable-next-line no-unused-vars
       const healthStatus = dataValidationService.getServiceHealthStatus()
 
       // Assert

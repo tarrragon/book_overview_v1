@@ -50,8 +50,10 @@ describe('PageDetectionUtils', () => {
   })
 
   // 簡化的 mock 更新函數
+  // eslint-disable-next-line no-unused-vars
   const updateMockLocation = (href) => {
     try {
+      // eslint-disable-next-line no-unused-vars
       const url = new URL(href)
       global.window.location = {
         href,
@@ -187,6 +189,7 @@ describe('PageDetectionUtils', () => {
       global.document.readyState = 'complete'
       global.document.querySelector.mockReturnValue({ id: 'book-container' })
 
+      // eslint-disable-next-line no-unused-vars
       const isReady = await PageDetectionUtils.waitForPageReady()
       expect(isReady).toBe(true)
     })
@@ -195,6 +198,7 @@ describe('PageDetectionUtils', () => {
       global.document.readyState = 'loading'
       global.document.querySelector.mockReturnValue(null)
 
+      // eslint-disable-next-line no-unused-vars
       const isReady = await PageDetectionUtils.waitForPageReady(100) // 100ms timeout
       expect(isReady).toBe(false)
     }, 200)
@@ -202,6 +206,7 @@ describe('PageDetectionUtils', () => {
 
   describe('🔍 URL 路徑分析', () => {
     test('應該正確解析 URL 路徑', () => {
+      // eslint-disable-next-line no-unused-vars
       const urlInfo = PageDetectionUtils.parseUrl('https://readmoo.com/library/bought?page=2')
 
       expect(urlInfo).toEqual({
@@ -215,6 +220,7 @@ describe('PageDetectionUtils', () => {
     })
 
     test('應該處理沒有查詢參數的 URL', () => {
+      // eslint-disable-next-line no-unused-vars
       const urlInfo = PageDetectionUtils.parseUrl('https://readmoo.com/shelf')
 
       expect(urlInfo).toEqual({
@@ -228,6 +234,7 @@ describe('PageDetectionUtils', () => {
     })
 
     test('應該處理非 Readmoo URL', () => {
+      // eslint-disable-next-line no-unused-vars
       const urlInfo = PageDetectionUtils.parseUrl('https://amazon.com/books')
 
       expect(urlInfo).toEqual({
@@ -246,6 +253,7 @@ describe('PageDetectionUtils', () => {
       updateMockLocation('https://readmoo.com/library')
       global.document.readyState = 'complete'
 
+      // eslint-disable-next-line no-unused-vars
       const pageInfo = PageDetectionUtils.getCurrentPageInfo()
 
       expect(pageInfo).toEqual({
@@ -284,9 +292,11 @@ describe('PageDetectionUtils', () => {
       PageDetectionUtils.clearCache()
 
       // 第一次檢測
+      // eslint-disable-next-line no-unused-vars
       const result1 = PageDetectionUtils.getPageType('https://readmoo.com/library')
 
       // 第二次檢測應該使用快取
+      // eslint-disable-next-line no-unused-vars
       const result2 = PageDetectionUtils.getPageType('https://readmoo.com/library')
 
       expect(result1).toBe(result2)
@@ -298,6 +308,7 @@ describe('PageDetectionUtils', () => {
       PageDetectionUtils.clearCache()
 
       // 清空後應該重新檢測
+      // eslint-disable-next-line no-unused-vars
       const result = PageDetectionUtils.getPageType('https://readmoo.com/shelf')
       expect(result).toBe('shelf')
     })
@@ -305,6 +316,7 @@ describe('PageDetectionUtils', () => {
 
   describe('⚠️ 錯誤處理', () => {
     test('應該安全處理 window 物件不存在的情況', () => {
+      // eslint-disable-next-line no-unused-vars
       const originalWindow = global.window
       delete global.window
 
@@ -314,6 +326,7 @@ describe('PageDetectionUtils', () => {
     })
 
     test('應該安全處理 document 物件不存在的情況', () => {
+      // eslint-disable-next-line no-unused-vars
       const originalDocument = global.document
       delete global.document
 

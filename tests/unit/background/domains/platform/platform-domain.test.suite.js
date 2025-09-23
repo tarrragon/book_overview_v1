@@ -34,11 +34,14 @@ describe('Platform Domain Test Suite', () => {
     // 設定自訂匹配器
     setupCustomMatchers()
 
+    // eslint-disable-next-line no-console
     console.log('🌐 Platform Domain v2.0 Test Suite Starting...')
+    // eslint-disable-next-line no-console
     console.log('📋 Test Coverage Target: 100% for all testable code paths')
   })
 
   afterAll(() => {
+    // eslint-disable-next-line no-console
     console.log('✅ Platform Domain Test Suite Completed')
   })
 

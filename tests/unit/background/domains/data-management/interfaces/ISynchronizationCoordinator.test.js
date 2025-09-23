@@ -10,6 +10,7 @@
  * @jest-environment jsdom
  */
 
+// eslint-disable-next-line no-unused-vars
 const ISynchronizationCoordinator = require('src/background/domains/data-management/interfaces/ISynchronizationCoordinator.js')
 
 describe('ISynchronizationCoordinator 抽象介面測試', () => {
@@ -18,7 +19,8 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       // Given: 嘗試直接實例化抽象類別
       // When & Then: 應該拋出錯誤
       expect(() => {
-        const coordinator = new ISynchronizationCoordinator()
+        // eslint-disable-next-line no-unused-vars
+        const _coordinator = new ISynchronizationCoordinator()
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toThrow(expect.objectContaining({
         code: 'ABSTRACT_CLASS_INSTANTIATION',
@@ -31,12 +33,17 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
       }
 
+      // eslint-disable-next-line no-unused-vars
       const mockLogger = { info: jest.fn(), error: jest.fn() }
+      // eslint-disable-next-line no-unused-vars
       const mockStorage = { save: jest.fn(), load: jest.fn() }
+      // eslint-disable-next-line no-unused-vars
       const mockValidator = { validate: jest.fn() }
+      // eslint-disable-next-line no-unused-vars
       const mockEventBus = { emit: jest.fn(), on: jest.fn() }
 
       // When: 使用依賴注入創建實例
+      // eslint-disable-next-line no-unused-vars
       const coordinator = new TestSynchronizationCoordinator({
         logger: mockLogger,
         storage: mockStorage,
@@ -57,6 +64,7 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       }
 
       // When: 不提供 logger 依賴
+      // eslint-disable-next-line no-unused-vars
       const coordinator = new TestSynchronizationCoordinator({})
 
       // Then: 應該使用預設的 console
@@ -68,6 +76,7 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
       }
 
+      // eslint-disable-next-line no-unused-vars
       const coordinator = new TestSynchronizationCoordinator()
 
       // When & Then: 調用未實作的抽象方法應該拋出錯誤
@@ -83,6 +92,7 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
       }
 
+      // eslint-disable-next-line no-unused-vars
       const coordinator = new TestSynchronizationCoordinator()
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
@@ -98,6 +108,7 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
       }
 
+      // eslint-disable-next-line no-unused-vars
       const coordinator = new TestSynchronizationCoordinator()
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
@@ -113,6 +124,7 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
       }
 
+      // eslint-disable-next-line no-unused-vars
       const coordinator = new TestSynchronizationCoordinator()
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
@@ -128,6 +140,7 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
       }
 
+      // eslint-disable-next-line no-unused-vars
       const coordinator = new TestSynchronizationCoordinator()
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
@@ -143,6 +156,7 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
       }
 
+      // eslint-disable-next-line no-unused-vars
       const coordinator = new TestSynchronizationCoordinator()
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
@@ -158,6 +172,7 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
       }
 
+      // eslint-disable-next-line no-unused-vars
       const coordinator = new TestSynchronizationCoordinator()
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
@@ -173,6 +188,7 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
       }
 
+      // eslint-disable-next-line no-unused-vars
       const coordinator = new TestSynchronizationCoordinator()
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
@@ -188,6 +204,7 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
       }
 
+      // eslint-disable-next-line no-unused-vars
       const coordinator = new TestSynchronizationCoordinator()
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
@@ -203,6 +220,7 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
       }
 
+      // eslint-disable-next-line no-unused-vars
       const coordinator = new TestSynchronizationCoordinator()
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
@@ -218,6 +236,7 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
       }
 
+      // eslint-disable-next-line no-unused-vars
       const coordinator = new TestSynchronizationCoordinator()
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
@@ -233,6 +252,7 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
       }
 
+      // eslint-disable-next-line no-unused-vars
       const coordinator = new TestSynchronizationCoordinator()
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
@@ -248,6 +268,7 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       class TestSynchronizationCoordinator extends ISynchronizationCoordinator {
       }
 
+      // eslint-disable-next-line no-unused-vars
       const coordinator = new TestSynchronizationCoordinator()
 
       // When & Then: 未實作的抽象方法應該拋出錯誤
@@ -277,7 +298,9 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
       }
 
       // When: 創建實例
+      // eslint-disable-next-line no-unused-vars
       const readmooCoordinator = new ReadmooSyncCoordinator()
+      // eslint-disable-next-line no-unused-vars
       const kindleCoordinator = new KindleSyncCoordinator()
 
       // Then: 應該都是 ISynchronizationCoordinator 的實例
@@ -305,6 +328,7 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
         async getSyncStatistics () { return { totalSyncs: 0 } }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const coordinator = new CompleteSyncCoordinator()
 
       // When & Then: 所有方法都應該正常執行

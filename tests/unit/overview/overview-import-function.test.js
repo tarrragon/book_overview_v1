@@ -13,11 +13,14 @@ describe('📄 Overview 資料匯入功能測試', () => {
   let dom
   let document
   let window
+  // eslint-disable-next-line no-unused-vars
   let controller
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
   let OverviewPageController
 
   // 測試資料
+  // eslint-disable-next-line no-unused-vars
   const testBook = {
     id: 'test-book-1',
     title: '測試書籍',
@@ -30,7 +33,8 @@ describe('📄 Overview 資料匯入功能測試', () => {
     type: '電子書'
   }
 
-  const edgeCaseBooks = {
+  // eslint-disable-next-line no-unused-vars
+  const _edgeCaseBooks = {
     minimalValid: { id: 'min-1', title: 'Minimal', cover: 'http://example.com/min.jpg' },
     maximalValid: {
       id: 'max-1',
@@ -83,6 +87,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
       result = ''
     } = options
 
+    // eslint-disable-next-line no-unused-vars
     const mockInstance = {
       readyState: 0,
       result: null,
@@ -107,6 +112,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
             this.error = new DOMException(`Mock ${errorType} error`, errorType)
 
             if (this.onerror) {
+              // eslint-disable-next-line no-unused-vars
               const errorEvent = {
                 target: this,
                 type: 'error',
@@ -121,6 +127,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
             this.result = file.content || result
 
             if (this.onload) {
+              // eslint-disable-next-line no-unused-vars
               const loadEvent = {
                 target: this,
                 type: 'load',
@@ -146,6 +153,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
     return mockInstance
   }
 
+  // eslint-disable-next-line no-unused-vars
   const mockFileReader = {
     result: null,
     error: null,
@@ -272,6 +280,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
       global.window = window
       global.document = document
 
+      // eslint-disable-next-line no-unused-vars
       const module = require('src/overview/overview-page-controller.js')
       OverviewPageController = module.OverviewPageController
 
@@ -291,6 +300,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
           return
         }
 
+        // eslint-disable-next-line no-unused-vars
         const maxSize = 10 * 1024 * 1024 // 10MB
         if (file.size > maxSize) {
           this.showError('檔案過大，請選擇小於 10MB 的檔案！')
@@ -308,6 +318,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
         }
       })
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to load OverviewPageController:', error)
       // 跳過這些測試，因為模組無法載入
     }
@@ -337,10 +348,12 @@ describe('📄 Overview 資料匯入功能測試', () => {
   describe('📄 檔案載入基本功能', () => {
     test('應該能夠載入有效的JSON檔案', async () => {
       // Given: 準備有效的JSON檔案內容
+      // eslint-disable-next-line no-unused-vars
       const validBooks = [
         { id: 'book-1', title: '測試書籍1', cover: 'http://example.com/cover1.jpg' },
         { id: 'book-2', title: '測試書籍2', cover: 'http://example.com/cover2.jpg' }
       ]
+      // eslint-disable-next-line no-unused-vars
       const fileContent = JSON.stringify(validBooks)
 
       // When: 執行檔案載入
@@ -354,6 +367,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
     test('應該能夠載入包含books屬性的JSON檔案', async () => {
       // Given: 準備包裝格式的JSON檔案
+      // eslint-disable-next-line no-unused-vars
       const fileContent = JSON.stringify({
         books: [
           { id: 'book-1', title: '測試書籍', cover: 'http://example.com/cover.jpg' }
@@ -373,11 +387,13 @@ describe('📄 Overview 資料匯入功能測試', () => {
   describe('📋 資料格式驗證', () => {
     test('應該驗證必要欄位的存在', async () => {
       // Given: 包含無效記錄的JSON檔案
+      // eslint-disable-next-line no-unused-vars
       const invalidBooks = [
         { id: 'book-1', title: '完整書籍', cover: 'http://example.com/cover.jpg' },
         { id: 'book-2', title: '缺少封面' }, // 缺少cover欄位
         { title: '缺少ID', cover: 'http://example.com/cover.jpg' } // 缺少id欄位
       ]
+      // eslint-disable-next-line no-unused-vars
       const fileContent = JSON.stringify(invalidBooks)
 
       // When: 執行檔案載入
@@ -390,6 +406,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
     test('應該處理不同的資料類型', async () => {
       // Given: 包含不同資料類型的JSON檔案
+      // eslint-disable-next-line no-unused-vars
       const mixedData = [
         {
           id: 'book-1',
@@ -400,6 +417,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
           extractedAt: '2025-08-22T10:00:00.000Z'
         }
       ]
+      // eslint-disable-next-line no-unused-vars
       const fileContent = JSON.stringify(mixedData)
 
       // When: 執行檔案載入
@@ -415,6 +433,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
   describe('📏 檔案大小和格式邊界測試', () => {
     test('應該處理空JSON陣列', async () => {
       // Given: 空陣列的JSON檔案
+      // eslint-disable-next-line no-unused-vars
       const fileContent = JSON.stringify([])
 
       // When: 執行檔案載入
@@ -427,16 +446,20 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
     test('應該處理大型資料集', async () => {
       // Given: 包含大量書籍的JSON檔案
+      // eslint-disable-next-line no-unused-vars
       const largeDataset = Array.from({ length: 1000 }, (_, i) => ({
         id: `book-${i}`,
         title: `測試書籍 ${i}`,
         cover: `http://example.com/cover${i}.jpg`
       }))
+      // eslint-disable-next-line no-unused-vars
       const fileContent = JSON.stringify(largeDataset)
 
       // When: 執行檔案載入
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
       await controller.handleFileLoad(createMockFile(fileContent))
+      // eslint-disable-next-line no-unused-vars
       const endTime = Date.now()
 
       // Then: 驗證效能要求
@@ -446,11 +469,13 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
     test('應該處理包含特殊字符的書名', async () => {
       // Given: 包含特殊字符的JSON檔案
+      // eslint-disable-next-line no-unused-vars
       const specialCharBooks = [
         { id: 'book-1', title: '📚 測試書籍 🔥', cover: 'http://example.com/cover.jpg' },
         { id: 'book-2', title: 'English & 中文 & 日本語', cover: 'http://example.com/cover.jpg' },
         { id: 'book-3', title: 'Special: "\'<>&', cover: 'http://example.com/cover.jpg' }
       ]
+      // eslint-disable-next-line no-unused-vars
       const fileContent = JSON.stringify(specialCharBooks)
 
       // When: 執行檔案載入
@@ -466,6 +491,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
   describe('❌ 檔案格式錯誤處理', () => {
     test('應該處理無效的JSON格式', async () => {
       // Given: 無效的JSON檔案內容
+      // eslint-disable-next-line no-unused-vars
       const invalidJSON = '{ invalid json content'
 
       // When: 執行檔案載入
@@ -476,6 +502,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
       }
 
       // Then: 驗證錯誤處理
+      // eslint-disable-next-line no-unused-vars
       const errorMessage = document.getElementById('errorMessage').textContent
       expect(errorMessage).toContain('JSON 檔案格式不正確')
       expect(controller.currentBooks).toHaveLength(0)
@@ -483,6 +510,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
     test('應該處理非陣列格式的JSON', async () => {
       // Given: 非陣列格式的JSON
+      // eslint-disable-next-line no-unused-vars
       const nonArrayJSON = JSON.stringify({ title: '單一書籍物件' })
 
       // When: 執行檔案載入
@@ -493,6 +521,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
       }
 
       // Then: 驗證錯誤處理
+      // eslint-disable-next-line no-unused-vars
       const errorMessage = document.getElementById('errorMessage').textContent
       expect(errorMessage).toContain('應該包含一個陣列')
     })
@@ -502,10 +531,12 @@ describe('📄 Overview 資料匯入功能測試', () => {
       controller.handleFileLoad.mockRestore()
 
       // Given: 在設置 mock 前保存原始 FileReader
+      // eslint-disable-next-line no-unused-vars
       const originalFileReader = global.FileReader || window.FileReader
 
       // Given: 創建會觸發錯誤的 mock FileReader
       global.FileReader = jest.fn().mockImplementation(() => {
+        // eslint-disable-next-line no-unused-vars
         const mockInstance = createMockFileReader({
           shouldError: true,
           delay: 10
@@ -517,16 +548,22 @@ describe('📄 Overview 資料匯入功能測試', () => {
       window.FileReader = global.FileReader
 
       // Given: 創建真實的 File 對象
+      // eslint-disable-next-line no-unused-vars
       const fileContent = 'test content'
+      // eslint-disable-next-line no-unused-vars
       const blob = new Blob([fileContent], { type: 'application/json' })
+      // eslint-disable-next-line no-unused-vars
       const realFile = new File([blob], 'test.json', { type: 'application/json' })
 
       // Given: 檢查初始UI狀態
+      // eslint-disable-next-line no-unused-vars
       const errorContainer = document.getElementById('errorContainer')
+      // eslint-disable-next-line no-unused-vars
       const errorMessage = document.getElementById('errorMessage')
       expect(errorContainer.style.display).toBe('none')
 
       // When: 執行檔案載入
+      // eslint-disable-next-line no-unused-vars
       let caughtError = null
       try {
         await controller.handleFileLoad(realFile)
@@ -552,8 +589,11 @@ describe('📄 Overview 資料匯入功能測試', () => {
   describe('🖥️ UI互動和狀態管理', () => {
     test('應該正確處理載入按鈕點擊', async () => {
       // Given: 設置檔案輸入和按鈕
+      // eslint-disable-next-line no-unused-vars
       const fileInput = document.getElementById('jsonFileInput')
+      // eslint-disable-next-line no-unused-vars
       const loadButton = document.getElementById('loadFileBtn')
+      // eslint-disable-next-line no-unused-vars
       const testFile = createMockFile(JSON.stringify([testBook]))
       Object.defineProperty(fileInput, 'files', { value: [testFile] })
 
@@ -568,6 +608,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
     test('應該顯示載入進度指示', async () => {
       // Given: 準備檔案並重新Mock handleFileLoad來測試載入狀態
+      // eslint-disable-next-line no-unused-vars
       const largeFile = createMockFile(JSON.stringify(Array(100).fill(testBook)))
 
       // 重新Mock handleFileLoad 來確保 isLoading 狀態正確設定
@@ -585,6 +626,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
       })
 
       // When: 開始載入檔案
+      // eslint-disable-next-line no-unused-vars
       const loadPromise = controller.handleFileLoad(largeFile)
 
       // Then: 驗證載入指示器顯示（需要等待非同步設定）
@@ -601,6 +643,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
     test('應該在錯誤時顯示適當的錯誤訊息', async () => {
       // Given: 無效檔案
+      // eslint-disable-next-line no-unused-vars
       const invalidFile = createMockFile('invalid json')
 
       // When: 載入無效檔案
@@ -621,6 +664,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
     describe('📝 檔案處理邊界情況', () => {
       test('應該處理 BOM (Byte Order Mark) 標記', async () => {
         // Given: 包含BOM標記的JSON檔案
+        // eslint-disable-next-line no-unused-vars
         const bomContent = '\uFEFF' + JSON.stringify([testBook])
 
         // When: 執行檔案載入
@@ -633,10 +677,12 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
       test('應該處理 Unicode 字符', async () => {
         // Given: 包含複雜 Unicode 字符的JSON檔案
+        // eslint-disable-next-line no-unused-vars
         const unicodeBooks = [
           { id: 'unicode-1', title: '🌟✨📚 Unicode測試 🇹🇼', cover: 'http://example.com/cover.jpg' },
           { id: 'unicode-2', title: 'العربية 中文 한국어', cover: 'http://example.com/cover.jpg' }
         ]
+        // eslint-disable-next-line no-unused-vars
         const fileContent = JSON.stringify(unicodeBooks)
 
         // When: 執行檔案載入
@@ -650,12 +696,14 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
       test('應該處理metadata包裝格式', async () => {
         // Given: 包含metadata包裝格式的JSON檔案（data.data包含陣列）
+        // eslint-disable-next-line no-unused-vars
         const metadataWrappedData = {
           metadata: { version: '2.0', timestamp: '2025-08-23' },
           data: [
             { id: 'metadata-1', title: 'Metadata包裝測試書籍', cover: 'http://example.com/cover.jpg' }
           ]
         }
+        // eslint-disable-next-line no-unused-vars
         const fileContent = JSON.stringify(metadataWrappedData)
 
         // When: 執行檔案載入
@@ -670,9 +718,11 @@ describe('📄 Overview 資料匯入功能測試', () => {
     describe('❌ 錯誤處理分支測試', () => {
       test('應該處理JSON語法錯誤', async () => {
         // Given: 包含語法錯誤的JSON檔案
+        // eslint-disable-next-line no-unused-vars
         const malformedJSON = '{"books": [{"id": "test", "title": "Test"}'
 
         // When: 執行檔案載入
+        // eslint-disable-next-line no-unused-vars
         let errorCaught = false
         try {
           await controller.handleFileLoad(createMockFile(malformedJSON))
@@ -682,6 +732,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
         // Then: 驗證錯誤處理
         expect(errorCaught).toBe(true)
+        // eslint-disable-next-line no-unused-vars
         const errorMessage = document.getElementById('errorMessage').textContent
         expect(errorMessage).toContain('JSON 檔案格式不正確')
       })
@@ -691,8 +742,10 @@ describe('📄 Overview 資料匯入功能測試', () => {
         controller.handleFileLoad.mockRestore()
 
         // Given: Mock FileReader 觸發錯誤
+        // eslint-disable-next-line no-unused-vars
         const originalFileReader = global.FileReader || window.FileReader
         global.FileReader = jest.fn().mockImplementation(() => {
+          // eslint-disable-next-line no-unused-vars
           const mockInstance = createMockFileReader({
             shouldError: true,
             errorType: 'NotReadableError',
@@ -703,10 +756,13 @@ describe('📄 Overview 資料匯入功能測試', () => {
         window.FileReader = global.FileReader
 
         // Given: 創建真實的 File 對象
+        // eslint-disable-next-line no-unused-vars
         const blob = new Blob(['test'], { type: 'application/json' })
+        // eslint-disable-next-line no-unused-vars
         const realFile = new File([blob], 'test.json', { type: 'application/json' })
 
         // When: 執行檔案載入
+        // eslint-disable-next-line no-unused-vars
         let errorCaught = false
         try {
           await controller.handleFileLoad(realFile)
@@ -719,6 +775,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
         // Then: 驗證錯誤處理
         expect(errorCaught).toBe(true)
+        // eslint-disable-next-line no-unused-vars
         const errorMessage = document.getElementById('errorMessage').textContent
         expect(errorMessage).toContain('讀取檔案時發生錯誤')
 
@@ -732,7 +789,9 @@ describe('📄 Overview 資料匯入功能測試', () => {
         controller.handleFileLoad.mockRestore()
 
         // Given: 創建超過限制大小的檔案（11MB > 10MB限制）
+        // eslint-disable-next-line no-unused-vars
         const oversizedContent = 'x'.repeat(100) // 小內容，但設定大size
+        // eslint-disable-next-line no-unused-vars
         const oversizedFile = createMockFile(oversizedContent, 'oversized.json')
         // 模擬超大檔案大小
         Object.defineProperty(oversizedFile, 'size', {
@@ -741,6 +800,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
         })
 
         // When: 執行檔案載入
+        // eslint-disable-next-line no-unused-vars
         let errorCaught = false
         try {
           await controller.handleFileLoad(oversizedFile)
@@ -750,6 +810,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
         // Then: 驗證檔案大小限制
         expect(errorCaught).toBe(true)
+        // eslint-disable-next-line no-unused-vars
         const errorMessage = document.getElementById('errorMessage').textContent
         expect(errorMessage).toContain('檔案過大')
       })
@@ -758,6 +819,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
     describe('📄 資料格式支援測試', () => {
       test('應該處理books包裝格式的資料', async () => {
         // Given: 包裝books格式的JSON檔案（直接包含books屬性）
+        // eslint-disable-next-line no-unused-vars
         const booksWrappedData = {
           timestamp: '2025-08-23T10:00:00Z',
           version: '1.0',
@@ -765,6 +827,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
             { id: 'books-wrapped-1', title: 'Books包裝測試書籍', cover: 'http://example.com/cover.jpg' }
           ]
         }
+        // eslint-disable-next-line no-unused-vars
         const fileContent = JSON.stringify(booksWrappedData)
 
         // When: 執行檔案載入
@@ -777,6 +840,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
       test('應該處理大型資料集的效能', async () => {
         // Given: 包含5000本書的大型資料集
+        // eslint-disable-next-line no-unused-vars
         const largeDataset = Array.from({ length: 5000 }, (_, i) => ({
           id: `book-${i}`,
           title: `大型資料測試書籍 ${i}`,
@@ -785,11 +849,14 @@ describe('📄 Overview 資料匯入功能測試', () => {
           tags: [`tag-${i % 10}`, 'performance-test'],
           extractedAt: new Date().toISOString()
         }))
+        // eslint-disable-next-line no-unused-vars
         const fileContent = JSON.stringify(largeDataset)
 
         // When: 執行檔案載入並測量時間
+        // eslint-disable-next-line no-unused-vars
         const startTime = Date.now()
         await controller.handleFileLoad(createMockFile(fileContent))
+        // eslint-disable-next-line no-unused-vars
         const endTime = Date.now()
 
         // Then: 驗證效能要求
@@ -806,6 +873,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
     describe('⚡ 非同步處理測試', () => {
       test('應該處理檔案讀取延遲', async () => {
         // Given: 設定較長的讀取延遲
+        // eslint-disable-next-line no-unused-vars
         const delayedContent = JSON.stringify([testBook])
 
         // Mock FileReader with longer delay
@@ -821,6 +889,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
         })
 
         // When: 執行檔案載入
+        // eslint-disable-next-line no-unused-vars
         const loadPromise = controller.handleFileLoad(createMockFile(delayedContent))
 
         // Then: 驗證載入狀態管理
@@ -837,18 +906,23 @@ describe('📄 Overview 資料匯入功能測試', () => {
         controller.handleFileLoad.mockRestore()
 
         // Given: Mock FileReader 支援中止操作
+        // eslint-disable-next-line no-unused-vars
         const originalFileReader = global.FileReader || window.FileReader
         global.FileReader = jest.fn().mockImplementation(() => {
+          // eslint-disable-next-line no-unused-vars
           const mockInstance = createMockFileReader({ delay: 200 })
           return mockInstance
         })
         window.FileReader = global.FileReader
 
         // Given: 創建檔案
+        // eslint-disable-next-line no-unused-vars
         const blob = new Blob([JSON.stringify([testBook])], { type: 'application/json' })
+        // eslint-disable-next-line no-unused-vars
         const realFile = new File([blob], 'test.json', { type: 'application/json' })
 
         // When: 開始載入然後嘗試中止
+        // eslint-disable-next-line no-unused-vars
         const loadPromise = controller.handleFileLoad(realFile)
 
         // 等待載入開始
@@ -875,11 +949,13 @@ describe('📄 Overview 資料匯入功能測試', () => {
     describe('🔄 狀態管理和UI更新測試', () => {
       test('應該正確更新統計資訊', async () => {
         // Given: 準備多本書籍的資料
+        // eslint-disable-next-line no-unused-vars
         const multipleBooks = Array.from({ length: 25 }, (_, i) => ({
           id: `stat-book-${i}`,
           title: `統計測試書籍 ${i}`,
           cover: `http://example.com/cover${i}.jpg`
         }))
+        // eslint-disable-next-line no-unused-vars
         const fileContent = JSON.stringify(multipleBooks)
 
         // When: 執行檔案載入
@@ -893,13 +969,16 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
       test('應該處理連續多次載入操作', async () => {
         // Given: 準備三次不同的載入資料
+        // eslint-disable-next-line no-unused-vars
         const firstBatch = [
           { id: 'batch1-1', title: '第一批書籍1', cover: 'http://example.com/cover1.jpg' }
         ]
+        // eslint-disable-next-line no-unused-vars
         const secondBatch = [
           { id: 'batch2-1', title: '第二批書籍1', cover: 'http://example.com/cover2.jpg' },
           { id: 'batch2-2', title: '第二批書籍2', cover: 'http://example.com/cover3.jpg' }
         ]
+        // eslint-disable-next-line no-unused-vars
         const thirdBatch = [
           { id: 'batch3-1', title: '第三批書籍1', cover: 'http://example.com/cover4.jpg' }
         ]
@@ -921,6 +1000,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
       test('應該正確處理表格顯示更新', async () => {
         // Given: 準備包含完整資訊的書籍資料
+        // eslint-disable-next-line no-unused-vars
         const completeBooks = [
           {
             id: 'complete-1',
@@ -932,15 +1012,18 @@ describe('📄 Overview 資料匯入功能測試', () => {
             type: '電子書'
           }
         ]
+        // eslint-disable-next-line no-unused-vars
         const fileContent = JSON.stringify(completeBooks)
 
         // When: 執行檔案載入
         await controller.handleFileLoad(createMockFile(fileContent))
 
         // Then: 驗證表格內容更新
+        // eslint-disable-next-line no-unused-vars
         const tableBody = document.getElementById('tableBody')
         expect(tableBody.children.length).toBe(1)
 
+        // eslint-disable-next-line no-unused-vars
         const row = tableBody.children[0]
         expect(row.querySelector('td:nth-child(2)').textContent).toContain('完整資訊書籍')
         expect(row.querySelector('td:nth-child(3)').textContent).toContain('readmoo')

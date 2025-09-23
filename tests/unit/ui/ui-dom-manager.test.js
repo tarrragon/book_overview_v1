@@ -3,11 +3,14 @@
  * 測試 UI DOM 管理工具類的功能
  */
 
+// eslint-disable-next-line no-unused-vars
 const UIDOMManager = require('src/ui/handlers/ui-dom-manager')
 
 describe('UIDOMManager', () => {
   let domManager
+  // eslint-disable-next-line no-unused-vars
   let mockDocument
+  // eslint-disable-next-line no-unused-vars
   let mockElement
 
   beforeEach(() => {
@@ -48,7 +51,9 @@ describe('UIDOMManager', () => {
 
   describe('元素查找', () => {
     test('應該能夠查找單個元素', () => {
+      // eslint-disable-next-line no-unused-vars
       const selectors = ['.test-class', '#test-id']
+      // eslint-disable-next-line no-unused-vars
       const element = domManager.findElement(selectors)
 
       expect(element).toBe(mockElement)
@@ -60,7 +65,9 @@ describe('UIDOMManager', () => {
         .mockReturnValueOnce(null)
         .mockReturnValueOnce(mockElement)
 
+      // eslint-disable-next-line no-unused-vars
       const selectors = ['.not-found', '.found']
+      // eslint-disable-next-line no-unused-vars
       const element = domManager.findElement(selectors)
 
       expect(element).toBe(mockElement)
@@ -69,11 +76,13 @@ describe('UIDOMManager', () => {
     })
 
     test('應該支援快取機制', () => {
+      // eslint-disable-next-line no-unused-vars
       const selectors = ['.test']
 
       // 第一次查找
       domManager.findElement(selectors, 'testCache')
       // 第二次查找應該使用快取
+      // eslint-disable-next-line no-unused-vars
       const element = domManager.findElement(selectors, 'testCache')
 
       expect(element).toBe(mockElement)
@@ -83,6 +92,7 @@ describe('UIDOMManager', () => {
 
   describe('元素創建', () => {
     test('應該能夠創建基本元素', () => {
+      // eslint-disable-next-line no-unused-vars
       const element = domManager.createElement('div')
 
       expect(mockDocument.createElement).toHaveBeenCalledWith('div')
@@ -90,6 +100,7 @@ describe('UIDOMManager', () => {
     })
 
     test('應該能夠設定元素屬性', () => {
+      // eslint-disable-next-line no-unused-vars
       const options = {
         classes: ['test-class', 'another-class'],
         attributes: { id: 'test-id', 'data-test': 'value' },
@@ -106,6 +117,7 @@ describe('UIDOMManager', () => {
     })
 
     test('應該處理 innerHTML（經過轉義）', () => {
+      // eslint-disable-next-line no-unused-vars
       const options = {
         innerHTML: '<script>alert("xss")</script>Hello'
       }
@@ -119,7 +131,9 @@ describe('UIDOMManager', () => {
 
   describe('事件監聽', () => {
     test('應該能夠添加事件監聽器', () => {
+      // eslint-disable-next-line no-unused-vars
       const handler = jest.fn()
+      // eslint-disable-next-line no-unused-vars
       const result = domManager.addEventListener(mockElement, 'click', handler)
 
       expect(result).toBe(true)
@@ -127,7 +141,9 @@ describe('UIDOMManager', () => {
     })
 
     test('應該處理無效元素', () => {
+      // eslint-disable-next-line no-unused-vars
       const handler = jest.fn()
+      // eslint-disable-next-line no-unused-vars
       const result = domManager.addEventListener(null, 'click', handler)
 
       expect(result).toBe(false)
@@ -140,6 +156,7 @@ describe('UIDOMManager', () => {
         removeChild: jest.fn()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await domManager.removeElement(mockElement, 0)
 
       expect(result).toBe(true)
@@ -149,6 +166,7 @@ describe('UIDOMManager', () => {
     test('應該能夠延遲移除元素', async () => {
       mockElement.remove = jest.fn()
 
+      // eslint-disable-next-line no-unused-vars
       const promise = domManager.removeElement(mockElement, 50)
 
       // 等待延遲完成
@@ -158,6 +176,7 @@ describe('UIDOMManager', () => {
     })
 
     test('應該處理無效元素', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await domManager.removeElement(null)
       expect(result).toBe(false)
     })
@@ -165,12 +184,14 @@ describe('UIDOMManager', () => {
 
   describe('樣式更新', () => {
     test('應該能夠更新元素樣式', () => {
+      // eslint-disable-next-line no-unused-vars
       const styles = {
         display: 'block',
         color: 'red',
         fontSize: '16px'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = domManager.updateStyles(mockElement, styles)
 
       expect(result).toBe(true)
@@ -180,6 +201,7 @@ describe('UIDOMManager', () => {
     })
 
     test('應該處理無效元素', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = domManager.updateStyles(null, { color: 'red' })
       expect(result).toBe(false)
     })
@@ -187,7 +209,9 @@ describe('UIDOMManager', () => {
 
   describe('HTML 轉義', () => {
     test('應該轉義危險字符', () => {
+      // eslint-disable-next-line no-unused-vars
       const dangerousHtml = '<script>alert("xss")</script>&"\''
+      // eslint-disable-next-line no-unused-vars
       const safeHtml = domManager.escapeHtml(dangerousHtml)
 
       expect(safeHtml).toBe('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;&amp;&quot;&#39;')
@@ -221,6 +245,7 @@ describe('UIDOMManager', () => {
 
   describe('DOM 檢查', () => {
     test('應該檢查元素是否在 DOM 中', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = domManager.isElementInDOM(mockElement)
 
       expect(result).toBe(true)
@@ -228,6 +253,7 @@ describe('UIDOMManager', () => {
     })
 
     test('應該處理無效元素', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = domManager.isElementInDOM(null)
       expect(result).toBe(false)
     })

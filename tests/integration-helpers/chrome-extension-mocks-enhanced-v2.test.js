@@ -7,9 +7,11 @@
  * @version v0.9.45
  */
 
+// eslint-disable-next-line no-unused-vars
 const ChromeExtensionMocksEnhancedV2 = require('../utils/chrome-extension-mocks-enhanced-v2')
 
 describe('ChromeExtensionMocksEnhancedV2', () => {
+  // eslint-disable-next-line no-unused-vars
   let mockSystem
 
   beforeEach(() => {
@@ -29,6 +31,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
     })
 
     test('應該創建完整的Chrome API Mock', () => {
+      // eslint-disable-next-line no-unused-vars
       const chromeAPI = mockSystem.createCompleteChromeAPI()
 
       expect(chromeAPI).toHaveProperty('storage')
@@ -38,6 +41,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
     })
 
     test('應該正確初始化V2新功能', () => {
+      // eslint-disable-next-line no-unused-vars
       const stateSnapshot = mockSystem.getStateSnapshot()
 
       expect(stateSnapshot).toHaveProperty('storage')
@@ -55,27 +59,32 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
     })
 
     test('應該支援chrome.storage.local操作', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testData = { key1: 'value1', key2: 'value2' }
 
       // 設定資料
       await chromeAPI.storage.local.set(testData)
 
       // 獲取資料
+      // eslint-disable-next-line no-unused-vars
       const result = await chromeAPI.storage.local.get(['key1', 'key2'])
 
       expect(result).toEqual(testData)
     })
 
     test('應該支援chrome.storage.sync操作', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testData = { syncKey: 'syncValue' }
 
       await chromeAPI.storage.sync.set(testData)
+      // eslint-disable-next-line no-unused-vars
       const result = await chromeAPI.storage.sync.get('syncKey')
 
       expect(result).toEqual(testData)
     })
 
     test('應該正確觸發storage.onChanged事件', (done) => {
+      // eslint-disable-next-line no-unused-vars
       const testData = { changeKey: 'changeValue' }
 
       // 註冊變更監聽器
@@ -98,6 +107,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
       await chromeAPI.storage.local.clear()
 
       // 驗證已清空
+      // eslint-disable-next-line no-unused-vars
       const result = await chromeAPI.storage.local.get(['key1', 'key2'])
       expect(result).toEqual({})
     })
@@ -110,6 +120,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
       await chromeAPI.storage.local.remove('key1')
 
       // 驗證結果
+      // eslint-disable-next-line no-unused-vars
       const result = await chromeAPI.storage.local.get(['key1', 'key2'])
       expect(result).toEqual({ key2: 'value2' })
     })
@@ -130,6 +141,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
       })
 
       // 查詢標籤頁
+      // eslint-disable-next-line no-unused-vars
       const results = await chromeAPI.tabs.query({ active: true })
 
       expect(results).toHaveLength(1)
@@ -139,6 +151,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
 
     test('應該支援tabs.sendMessage操作', async () => {
       // 創建標籤頁
+      // eslint-disable-next-line no-unused-vars
       const tab = await chromeAPI.tabs.create({ url: 'https://test.com' })
 
       // 設定消息處理器
@@ -147,14 +160,17 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
       })
 
       // 發送消息
+      // eslint-disable-next-line no-unused-vars
       const response = await chromeAPI.tabs.sendMessage(tab.id, { data: 'test message' })
 
       expect(response).toEqual({ received: 'test message' })
     })
 
     test('應該支援tabs.executeScript操作', async () => {
+      // eslint-disable-next-line no-unused-vars
       const tab = await chromeAPI.tabs.create({ url: 'https://test.com' })
 
+      // eslint-disable-next-line no-unused-vars
       const result = await chromeAPI.tabs.executeScript(tab.id, {
         code: 'document.title'
       })
@@ -171,6 +187,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
     })
 
     test('應該支援runtime.sendMessage操作', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testMessage = { type: 'TEST', data: 'message data' }
 
       // 註冊消息監聽器
@@ -179,12 +196,14 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
       })
 
       // 發送消息
+      // eslint-disable-next-line no-unused-vars
       const response = await chromeAPI.runtime.sendMessage(testMessage)
 
       expect(response).toEqual({ echo: 'message data' })
     })
 
     test('應該提供正確的manifest資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const manifest = chromeAPI.runtime.getManifest()
 
       expect(manifest).toHaveProperty('name')
@@ -200,17 +219,20 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
 
   describe('🔄 Service Worker生命週期測試', () => {
     test('應該支援Service Worker安裝模擬', async () => {
+      // eslint-disable-next-line no-unused-vars
       const initialState = mockSystem.getStateSnapshot()
       expect(initialState.serviceWorker.isActive).toBe(true)
 
       // 模擬安裝過程
       await mockSystem.simulateServiceWorkerInstall()
 
+      // eslint-disable-next-line no-unused-vars
       const finalState = mockSystem.getStateSnapshot()
       expect(finalState.serviceWorker.isActive).toBe(true)
     })
 
     test('應該支援Service Worker重啟模擬', async () => {
+      // eslint-disable-next-line no-unused-vars
       const chromeAPI = mockSystem.createCompleteChromeAPI()
 
       // 設定一些狀態
@@ -220,6 +242,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
       await mockSystem.simulateServiceWorkerRestart()
 
       // 驗證狀態已重置
+      // eslint-disable-next-line no-unused-vars
       const result = await chromeAPI.storage.local.get('testKey')
       expect(result).toEqual({})
     })
@@ -227,6 +250,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
 
   describe('✅ 狀態管理和一致性驗證', () => {
     test('應該正確重置所有狀態', async () => {
+      // eslint-disable-next-line no-unused-vars
       const chromeAPI = mockSystem.createCompleteChromeAPI()
 
       // 設定各種狀態
@@ -238,6 +262,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
       mockSystem.resetAllStates()
 
       // 驗證狀態已重置
+      // eslint-disable-next-line no-unused-vars
       const snapshot = mockSystem.getStateSnapshot()
       expect(Object.keys(snapshot.storage.local)).toHaveLength(0)
       expect(Object.keys(snapshot.tabs.tabs)).toHaveLength(0)
@@ -245,6 +270,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
     })
 
     test('應該驗證Mock狀態一致性', () => {
+      // eslint-disable-next-line no-unused-vars
       const validation = mockSystem.validateMockConsistency()
 
       expect(validation.isValid).toBe(true)
@@ -252,6 +278,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
     })
 
     test('應該檢測狀態不一致問題', async () => {
+      // eslint-disable-next-line no-unused-vars
       const chromeAPI = mockSystem.createCompleteChromeAPI()
 
       // 創建多個標籤頁來測試ID一致性
@@ -259,10 +286,12 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
       await chromeAPI.tabs.create({ url: 'https://test2.com' })
       await chromeAPI.tabs.create({ url: 'https://test3.com' })
 
+      // eslint-disable-next-line no-unused-vars
       const validation = mockSystem.validateMockConsistency()
       expect(validation.isValid).toBe(true)
 
       // 獲取狀態快照驗證
+      // eslint-disable-next-line no-unused-vars
       const snapshot = mockSystem.getStateSnapshot()
       expect(snapshot.tabs.nextTabId).toBeGreaterThan(Object.keys(snapshot.tabs.tabs).length)
     })
@@ -270,9 +299,11 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
 
   describe('🎯 整合場景測試', () => {
     test('應該支援完整的Chrome Extension通訊流程', async () => {
+      // eslint-disable-next-line no-unused-vars
       const chromeAPI = mockSystem.createCompleteChromeAPI()
 
       // 1. 創建標籤頁
+      // eslint-disable-next-line no-unused-vars
       const tab = await chromeAPI.tabs.create({
         url: 'https://readmoo.com/library',
         active: true
@@ -292,9 +323,11 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
       })
 
       // 4. 模擬提取流程
+      // eslint-disable-next-line no-unused-vars
       const settings = await chromeAPI.storage.local.get('extractionSettings')
       expect(settings.extractionSettings.autoExtract).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const extractionResult = await chromeAPI.tabs.sendMessage(tab.id, {
         action: 'EXTRACT_DATA'
       })
@@ -312,6 +345,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
       })
 
       // 6. 驗證完整流程
+      // eslint-disable-next-line no-unused-vars
       const finalState = await chromeAPI.storage.local.get(['extractionSettings', 'lastExtraction'])
       expect(finalState.extractionSettings).toBeDefined()
       expect(finalState.lastExtraction).toBeDefined()
@@ -321,10 +355,13 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
 
   describe('📊 效能和記憶體測試', () => {
     test('應該處理大量Storage操作', async () => {
+      // eslint-disable-next-line no-unused-vars
       const chromeAPI = mockSystem.createCompleteChromeAPI()
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
       // 執行100個storage操作
+      // eslint-disable-next-line no-unused-vars
       const promises = []
       for (let i = 0; i < 100; i++) {
         promises.push(chromeAPI.storage.local.set({ [`key${i}`]: `value${i}` }))
@@ -332,21 +369,26 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
 
       await Promise.all(promises)
 
+      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
+      // eslint-disable-next-line no-unused-vars
       const duration = endTime - startTime
 
       // 應該在合理時間內完成 (< 1000ms)
       expect(duration).toBeLessThan(1000)
 
       // 驗證所有資料都正確保存
+      // eslint-disable-next-line no-unused-vars
       const result = await chromeAPI.storage.local.get()
       expect(Object.keys(result)).toHaveLength(100)
     })
 
     test('應該處理大量標籤頁操作', async () => {
+      // eslint-disable-next-line no-unused-vars
       const chromeAPI = mockSystem.createCompleteChromeAPI()
 
       // 創建多個標籤頁
+      // eslint-disable-next-line no-unused-vars
       const tabs = []
       for (let i = 0; i < 50; i++) {
         tabs.push(await chromeAPI.tabs.create({
@@ -356,10 +398,12 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
       }
 
       // 查詢所有標籤頁
+      // eslint-disable-next-line no-unused-vars
       const allTabs = await chromeAPI.tabs.query({})
       expect(allTabs).toHaveLength(50)
 
       // 查詢活動標籤頁
+      // eslint-disable-next-line no-unused-vars
       const activeTabs = await chromeAPI.tabs.query({ active: true })
       expect(activeTabs).toHaveLength(1)
       expect(activeTabs[0].url).toBe('https://test0.com')

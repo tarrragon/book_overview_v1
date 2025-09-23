@@ -28,6 +28,7 @@ if (typeof window !== 'undefined' && window.ErrorCodes) {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 /* global EventBus, ChromeEventBridge, OverviewPageController, ErrorCodes */
 
 (function () {

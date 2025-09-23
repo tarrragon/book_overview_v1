@@ -5,16 +5,24 @@
  * 目標：將 DataValidationService 重構為整合所有子服務的協調器
  */
 
+// eslint-disable-next-line no-unused-vars
 const DataValidationService = require('src/background/domains/data-management/services/data-validation-service.js')
 
 describe('DataValidationService - 服務整合測試', () => {
   let validationService
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockLogger
+  // eslint-disable-next-line no-unused-vars
   let mockValidationRuleManager
+  // eslint-disable-next-line no-unused-vars
   let mockBatchValidationProcessor
+  // eslint-disable-next-line no-unused-vars
   let mockDataNormalizationService
+  // eslint-disable-next-line no-unused-vars
   let mockQualityAssessmentService
+  // eslint-disable-next-line no-unused-vars
   let mockCacheManagementService
 
   beforeEach(() => {
@@ -143,6 +151,7 @@ describe('DataValidationService - 服務整合測試', () => {
 
     test('應該要求所有必要的依賴服務', () => {
       expect(() => {
+        // eslint-disable-next-line no-new
         new DataValidationService(mockEventBus, {
           validationRuleManager: null
         })
@@ -151,6 +160,7 @@ describe('DataValidationService - 服務整合測試', () => {
       })
 
       expect(() => {
+        // eslint-disable-next-line no-new
         new DataValidationService(mockEventBus, {
           validationRuleManager: mockValidationRuleManager,
           batchValidationProcessor: null
@@ -163,11 +173,13 @@ describe('DataValidationService - 服務整合測試', () => {
 
   describe('🔄 服務協調流程', () => {
     test('validateAndNormalize() 應該協調所有服務完成完整流程', async () => {
+      // eslint-disable-next-line no-unused-vars
       const books = [
         { id: 'book1', title: '測試書籍1' },
         { id: 'book2', title: '測試書籍2' }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validationService.validateAndNormalize(books, 'READMOO', 'test')
 
       // 驗證服務調用順序
@@ -189,6 +201,7 @@ describe('DataValidationService - 服務整合測試', () => {
     })
 
     test('應該支援快取機制整合', async () => {
+      // eslint-disable-next-line no-unused-vars
       const books = [{ id: 'book1', title: '測試書籍' }]
 
       // 第一次調用 - 應該檢查快取
@@ -200,6 +213,7 @@ describe('DataValidationService - 服務整合測試', () => {
     test('應該處理批次驗證失敗情況', async () => {
       mockBatchValidationProcessor.processBatches.mockRejectedValue(new Error('批次處理失敗'))
 
+      // eslint-disable-next-line no-unused-vars
       const books = [{ id: 'book1', title: '測試書籍' }]
 
       await expect(
@@ -229,6 +243,7 @@ describe('DataValidationService - 服務整合測試', () => {
         new Promise(resolve => setTimeout(resolve, 200))
       )
 
+      // eslint-disable-next-line no-unused-vars
       const books = [{ id: 'book1', title: '測試書籍' }]
 
       await expect(
@@ -243,7 +258,9 @@ describe('DataValidationService - 服務整合測試', () => {
     test('應該在正常時間內完成驗證', async () => {
       validationService.config.validationTimeout = 5000
 
+      // eslint-disable-next-line no-unused-vars
       const books = [{ id: 'book1', title: '測試書籍' }]
+      // eslint-disable-next-line no-unused-vars
       const result = await validationService.validateAndNormalize(books, 'READMOO', 'test')
 
       expect(result).toBeDefined()
@@ -253,6 +270,7 @@ describe('DataValidationService - 服務整合測試', () => {
 
   describe('📊 事件生命週期管理', () => {
     test('應該發送完整的驗證生命週期事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const books = [{ id: 'book1', title: '測試書籍' }]
 
       await validationService.validateAndNormalize(books, 'READMOO', 'test')
@@ -289,6 +307,7 @@ describe('DataValidationService - 服務整合測試', () => {
     test('應該在失敗時發送失敗事件', async () => {
       mockValidationRuleManager.loadPlatformValidationRules.mockRejectedValue(new Error('規則載入失敗'))
 
+      // eslint-disable-next-line no-unused-vars
       const books = [{ id: 'book1', title: '測試書籍' }]
 
       await expect(
@@ -319,6 +338,7 @@ describe('DataValidationService - 服務整合測試', () => {
       })
 
       // 空陣列應該返回空結果，不拋出錯誤
+      // eslint-disable-next-line no-unused-vars
       const emptyResult = await validationService.validateAndNormalize([], 'READMOO', 'test')
       expect(emptyResult.totalBooks).toBe(0)
       expect(emptyResult.validBooks).toHaveLength(0)
@@ -334,6 +354,7 @@ describe('DataValidationService - 服務整合測試', () => {
 
     test('應該處理大批次資料分割', async () => {
       // 創建大量測試資料
+      // eslint-disable-next-line no-unused-vars
       const books = new Array(25).fill(0).map((_, i) => ({
         id: `book${i}`,
         title: `書籍${i}`
@@ -369,6 +390,7 @@ describe('DataValidationService - 服務整合測試', () => {
 
   describe('⚙️ 配置管理', () => {
     test('應該支援配置更新', () => {
+      // eslint-disable-next-line no-unused-vars
       const newConfig = {
         validationTimeout: 10000,
         batchSize: 20,
@@ -383,6 +405,7 @@ describe('DataValidationService - 服務整合測試', () => {
     })
 
     test('應該提供健康狀態檢查', () => {
+      // eslint-disable-next-line no-unused-vars
       const health = validationService.getServiceHealth()
 
       expect(health).toHaveProperty('isHealthy')

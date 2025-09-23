@@ -24,6 +24,7 @@ global.window = {}
 global.navigator = {}
 
 // 創建 mock DOM 元素
+// eslint-disable-next-line no-unused-vars
 const createMockElement = () => ({
   click: jest.fn(),
   setAttribute: jest.fn(),
@@ -48,11 +49,13 @@ global.URL = {
   revokeObjectURL: jest.fn()
 }
 
+// eslint-disable-next-line no-unused-vars
 const BookDataExporter = require('src/export/book-data-exporter')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', () => {
   let exporter
+  // eslint-disable-next-line no-unused-vars
   let mockBooks
 
   beforeEach(() => {
@@ -123,6 +126,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能正確初始化匯出配置', () => {
+      // eslint-disable-next-line no-unused-vars
       const options = {
         defaultFormat: 'json',
         includeHeaders: true,
@@ -163,6 +167,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能匯出為 CSV 格式', () => {
+      // eslint-disable-next-line no-unused-vars
       const csvData = exporter.exportToCSV()
 
       expect(csvData).toBeDefined()
@@ -171,7 +176,9 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('CSV 匯出應該包含標題行', () => {
+      // eslint-disable-next-line no-unused-vars
       const csvData = exporter.exportToCSV()
+      // eslint-disable-next-line no-unused-vars
       const lines = csvData.split('\n')
 
       expect(lines.length).toBeGreaterThan(1)
@@ -180,10 +187,13 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('CSV 匯出應該包含所有書籍資料', () => {
+      // eslint-disable-next-line no-unused-vars
       const csvData = exporter.exportToCSV()
+      // eslint-disable-next-line no-unused-vars
       const lines = csvData.split('\n')
 
       // 標題行 + 資料行（過濾掉空行）
+      // eslint-disable-next-line no-unused-vars
       const nonEmptyLines = lines.filter(line => line.trim().length > 0)
       expect(nonEmptyLines.length).toBe(mockBooks.length + 1)
 
@@ -194,11 +204,15 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能自訂 CSV 匯出欄位', () => {
+      // eslint-disable-next-line no-unused-vars
       const fields = ['title', 'author', 'progress']
+      // eslint-disable-next-line no-unused-vars
       const csvData = exporter.exportToCSV({ fields })
+      // eslint-disable-next-line no-unused-vars
       const lines = csvData.split('\n')
 
       // 檢查標題行只包含指定欄位
+      // eslint-disable-next-line no-unused-vars
       const headers = lines[0].split(',')
       expect(headers.length).toBe(3)
       expect(headers).toContain('title')
@@ -207,6 +221,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能處理 CSV 中的特殊字符', () => {
+      // eslint-disable-next-line no-unused-vars
       const booksWithSpecialChars = [{
         id: '1',
         title: 'Book with "quotes" and, commas',
@@ -214,7 +229,9 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
         notes: 'Notes with special chars: àáâãäå'
       }]
 
+      // eslint-disable-next-line no-unused-vars
       const specialExporter = new BookDataExporter(booksWithSpecialChars)
+      // eslint-disable-next-line no-unused-vars
       const csvData = specialExporter.exportToCSV()
 
       expect(csvData).toBeDefined()
@@ -224,6 +241,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能設定 CSV 分隔符號', () => {
+      // eslint-disable-next-line no-unused-vars
       const csvData = exporter.exportToCSV({ delimiter: ';' })
 
       expect(csvData).toContain(';')
@@ -237,6 +255,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能匯出為 JSON 格式', () => {
+      // eslint-disable-next-line no-unused-vars
       const jsonData = exporter.exportToJSON()
 
       expect(jsonData).toBeDefined()
@@ -247,7 +266,9 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('JSON 匯出應該包含所有書籍資料', () => {
+      // eslint-disable-next-line no-unused-vars
       const jsonData = exporter.exportToJSON()
+      // eslint-disable-next-line no-unused-vars
       const parsedData = JSON.parse(jsonData)
 
       expect(Array.isArray(parsedData)).toBe(true)
@@ -257,7 +278,9 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能設定 JSON 格式化選項', () => {
+      // eslint-disable-next-line no-unused-vars
       const prettyJsonData = exporter.exportToJSON({ pretty: true })
+      // eslint-disable-next-line no-unused-vars
       const compactJsonData = exporter.exportToJSON({ pretty: false })
 
       // 格式化的 JSON 應該包含換行符和縮排
@@ -269,8 +292,11 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能自訂 JSON 匯出欄位', () => {
+      // eslint-disable-next-line no-unused-vars
       const fields = ['title', 'author', 'rating']
+      // eslint-disable-next-line no-unused-vars
       const jsonData = exporter.exportToJSON({ fields })
+      // eslint-disable-next-line no-unused-vars
       const parsedData = JSON.parse(jsonData)
 
       expect(parsedData[0]).toHaveProperty('title')
@@ -280,6 +306,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能加入 JSON 匯出的元資料', () => {
+      // eslint-disable-next-line no-unused-vars
       const jsonData = exporter.exportToJSON({
         includeMetadata: true,
         metadata: {
@@ -289,6 +316,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
         }
       })
 
+      // eslint-disable-next-line no-unused-vars
       const parsedData = JSON.parse(jsonData)
       expect(parsedData).toHaveProperty('metadata')
       expect(parsedData).toHaveProperty('books')
@@ -302,6 +330,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能匯出為 Excel 格式', () => {
+      // eslint-disable-next-line no-unused-vars
       const excelData = exporter.exportToExcel()
 
       expect(excelData).toBeDefined()
@@ -309,7 +338,9 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能設定 Excel 工作表名稱', () => {
+      // eslint-disable-next-line no-unused-vars
       const sheetName = '我的書籍清單'
+      // eslint-disable-next-line no-unused-vars
       const excelData = exporter.exportToExcel({ sheetName })
 
       expect(excelData).toBeDefined()
@@ -317,6 +348,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能加入 Excel 格式設定', () => {
+      // eslint-disable-next-line no-unused-vars
       const options = {
         headerStyle: {
           font: { bold: true },
@@ -325,16 +357,19 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
         columnWidths: [20, 15, 30, 12]
       }
 
+      // eslint-disable-next-line no-unused-vars
       const excelData = exporter.exportToExcel(options)
       expect(excelData).toBeDefined()
     })
 
     test('應該能創建多個 Excel 工作表', () => {
+      // eslint-disable-next-line no-unused-vars
       const sheets = [
         { name: '程式設計書籍', data: mockBooks.filter(book => book.category === '程式設計') },
         { name: '機器學習書籍', data: mockBooks.filter(book => book.category === '機器學習') }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const excelData = exporter.exportToExcel({ multiSheet: true, sheets })
       expect(excelData).toBeDefined()
     })
@@ -346,6 +381,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能匯出為 PDF 報告', () => {
+      // eslint-disable-next-line no-unused-vars
       const pdfData = exporter.exportToPDF()
 
       expect(pdfData).toBeDefined()
@@ -353,24 +389,29 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能設定 PDF 報告範本', () => {
+      // eslint-disable-next-line no-unused-vars
       const template = 'summary' // 或 'detailed', 'custom'
+      // eslint-disable-next-line no-unused-vars
       const pdfData = exporter.exportToPDF({ template })
 
       expect(pdfData).toBeDefined()
     })
 
     test('應該能加入 PDF 報告統計資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const options = {
         includeStats: true,
         includeCharts: true,
         title: '我的書籍閱讀報告'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const pdfData = exporter.exportToPDF(options)
       expect(pdfData).toBeDefined()
     })
 
     test('應該能自訂 PDF 報告樣式', () => {
+      // eslint-disable-next-line no-unused-vars
       const style = {
         fontFamily: 'Arial',
         fontSize: 12,
@@ -378,6 +419,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
         accentColor: '#007bff'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const pdfData = exporter.exportToPDF({ style })
       expect(pdfData).toBeDefined()
     })
@@ -389,7 +431,9 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能批量匯出多種格式', () => {
+      // eslint-disable-next-line no-unused-vars
       const formats = ['csv', 'json', 'excel']
+      // eslint-disable-next-line no-unused-vars
       const batchExport = exporter.batchExport(formats)
 
       expect(batchExport).toBeDefined()
@@ -400,6 +444,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能創建壓縮檔案', () => {
+      // eslint-disable-next-line no-unused-vars
       const zipData = exporter.exportToZip(['csv', 'json'])
 
       expect(zipData).toBeDefined()
@@ -407,17 +452,20 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能設定壓縮檔案名稱和結構', () => {
+      // eslint-disable-next-line no-unused-vars
       const options = {
         zipName: 'my-books-export.zip',
         folder: 'book-data',
         includeReadme: true
       }
 
+      // eslint-disable-next-line no-unused-vars
       const zipData = exporter.exportToZip(['csv', 'json'], options)
       expect(zipData).toBeDefined()
     })
 
     test('應該能按分類分組匯出', () => {
+      // eslint-disable-next-line no-unused-vars
       const groupedExport = exporter.exportByCategory()
 
       expect(groupedExport).toBeDefined()
@@ -433,6 +481,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能追蹤匯出進度', () => {
+      // eslint-disable-next-line no-unused-vars
       const progressCallback = jest.fn()
 
       exporter.setProgressCallback(progressCallback)
@@ -447,6 +496,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
       exporter.exportToCSV()
       exporter.exportToJSON()
 
+      // eslint-disable-next-line no-unused-vars
       const stats = exporter.getExportStats()
 
       expect(stats).toBeDefined()
@@ -460,6 +510,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
       exporter.exportToCSV()
       exporter.exportToJSON()
 
+      // eslint-disable-next-line no-unused-vars
       const history = exporter.getExportHistory()
 
       expect(history).toBeDefined()
@@ -471,7 +522,9 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能估算匯出檔案大小', () => {
+      // eslint-disable-next-line no-unused-vars
       const csvSize = exporter.estimateFileSize('csv')
+      // eslint-disable-next-line no-unused-vars
       const jsonSize = exporter.estimateFileSize('json')
 
       expect(typeof csvSize).toBe('number')
@@ -495,6 +548,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能觸發檔案下載', () => {
+      // eslint-disable-next-line no-unused-vars
       const downloadSpy = jest.spyOn(exporter, 'downloadFile').mockImplementation(() => {})
 
       exporter.downloadCSV()
@@ -508,7 +562,9 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能設定下載檔案名稱', () => {
+      // eslint-disable-next-line no-unused-vars
       const downloadSpy = jest.spyOn(exporter, 'downloadFile').mockImplementation(() => {})
+      // eslint-disable-next-line no-unused-vars
       const filename = 'my-books-2025.csv'
 
       exporter.downloadCSV({ filename })
@@ -549,6 +605,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能使用預設範本', () => {
+      // eslint-disable-next-line no-unused-vars
       const templates = exporter.getAvailableTemplates()
 
       expect(templates).toBeDefined()
@@ -558,6 +615,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能建立自訂範本', () => {
+      // eslint-disable-next-line no-unused-vars
       const customTemplate = {
         name: 'reading-progress',
         fields: ['title', 'author', 'progress', 'status'],
@@ -566,13 +624,16 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
       }
 
       exporter.addTemplate(customTemplate)
+      // eslint-disable-next-line no-unused-vars
       const templates = exporter.getAvailableTemplates()
 
       expect(templates).toContain('reading-progress')
     })
 
     test('應該能套用範本匯出', () => {
+      // eslint-disable-next-line no-unused-vars
       const templateName = 'default'
+      // eslint-disable-next-line no-unused-vars
       const data = exporter.exportWithTemplate(templateName)
 
       expect(data).toBeDefined()
@@ -580,12 +641,14 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該能驗證範本格式', () => {
+      // eslint-disable-next-line no-unused-vars
       const validTemplate = {
         name: 'valid-template',
         fields: ['title', 'author'],
         format: 'csv'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const invalidTemplate = {
         name: '', // 空名稱
         fields: [], // 空欄位
@@ -603,6 +666,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
         exporter = new BookDataExporter([])
       }).not.toThrow()
 
+      // eslint-disable-next-line no-unused-vars
       const csvData = exporter.exportToCSV()
       expect(csvData).toBeDefined()
       expect(typeof csvData).toBe('string')
@@ -617,6 +681,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該處理書籍資料缺失的情況', () => {
+      // eslint-disable-next-line no-unused-vars
       const incompleteBooks = [
         { id: '1', title: 'Incomplete Book' },
         { id: '2' }, // 缺少 title
@@ -636,6 +701,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
     })
 
     test('應該處理大量資料的匯出', () => {
+      // eslint-disable-next-line no-unused-vars
       const largeDataset = Array.from({ length: 10000 }, (_, i) => ({
         id: `book_${i}`,
         title: `Test Book ${i}`,
@@ -645,6 +711,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
         status: ['未開始', '閱讀中', '已完成'][i % 3]
       }))
 
+      // eslint-disable-next-line no-unused-vars
       const largeExporter = new BookDataExporter(largeDataset)
 
       expect(() => {
@@ -660,6 +727,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
       exporter = new BookDataExporter(mockBooks)
 
       // 模擬 URL.createObjectURL 失敗
+      // eslint-disable-next-line no-unused-vars
       const originalCreateObjectURL = global.URL.createObjectURL
       global.URL.createObjectURL = jest.fn(() => {
         throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.EXPORT_URL_CREATION_FAILED; error.details = { category: 'testing' }; return error })()
@@ -672,6 +740,7 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
         }).toThrow(Error)
 
         // 應該記錄錯誤
+        // eslint-disable-next-line no-unused-vars
         const errorLog = exporter.getErrorLog()
         expect(errorLog.length).toBeGreaterThan(0)
       } finally {

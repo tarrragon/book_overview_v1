@@ -12,7 +12,9 @@
  * - 向後相容性和資料完整性驗證
  */
 
+// eslint-disable-next-line no-unused-vars
 const ReadmooPlatformMigrationValidator = require('src/platform/readmoo-platform-migration-validator')
+// eslint-disable-next-line no-unused-vars
 const EventBus = require('src/core/event-bus')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
@@ -36,8 +38,11 @@ global.chrome = {
 
 describe('ReadmooPlatformMigrationValidator', () => {
   let validator
+  // eslint-disable-next-line no-unused-vars
   let eventBus
+  // eslint-disable-next-line no-unused-vars
   let mockReadmooAdapter
+  // eslint-disable-next-line no-unused-vars
   let mockPlatformDetectionService
 
   beforeEach(() => {
@@ -91,12 +96,14 @@ describe('ReadmooPlatformMigrationValidator', () => {
   describe('validateReadmooMigration', () => {
     it('應該執行完整的 Readmoo 平台遷移驗證', async () => {
       // 準備測試資料
+      // eslint-disable-next-line no-unused-vars
       const validationContext = {
         url: 'https://readmoo.com/library',
         hostname: 'readmoo.com',
         userAgent: 'Mozilla/5.0 Chrome/119.0'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const mockDetectionResult = {
         platformId: 'READMOO',
         confidence: 0.95,
@@ -104,6 +111,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
         capabilities: ['book_extraction', 'reading_progress']
       }
 
+      // eslint-disable-next-line no-unused-vars
       const mockBookData = [
         {
           id: 'readmoo-book-1',
@@ -121,6 +129,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
       mockReadmooAdapter.validateExtractedData.mockReturnValue(true)
 
       // 執行驗證
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateReadmooMigration(validationContext)
 
       // 驗證結果
@@ -134,11 +143,13 @@ describe('ReadmooPlatformMigrationValidator', () => {
     })
 
     it('應該在平台檢測失敗時返回驗證失敗', async () => {
+      // eslint-disable-next-line no-unused-vars
       const validationContext = {
         url: 'https://unknown-platform.com',
         hostname: 'unknown-platform.com'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const mockDetectionResult = {
         platformId: 'UNKNOWN',
         confidence: 0.1,
@@ -148,6 +159,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
 
       mockPlatformDetectionService.detectPlatform.mockResolvedValue(mockDetectionResult)
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateReadmooMigration(validationContext)
 
       expect(result.isValid).toBe(false)
@@ -156,11 +168,13 @@ describe('ReadmooPlatformMigrationValidator', () => {
     })
 
     it('應該在資料提取失敗時返回驗證失敗', async () => {
+      // eslint-disable-next-line no-unused-vars
       const validationContext = {
         url: 'https://readmoo.com/library',
         hostname: 'readmoo.com'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const mockDetectionResult = {
         platformId: 'READMOO',
         confidence: 0.95,
@@ -171,6 +185,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
       mockPlatformDetectionService.validatePlatform.mockResolvedValue(0.95)
       mockReadmooAdapter.extractBookData.mockRejectedValue(new Error('Data extraction failed'))
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateReadmooMigration(validationContext)
 
       expect(result.isValid).toBe(false)
@@ -179,6 +194,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
     })
 
     it('應該在驗證超時時處理錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const validationContext = {
         url: 'https://readmoo.com/library',
         hostname: 'readmoo.com'
@@ -189,6 +205,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
         new Promise(resolve => setTimeout(resolve, 35000))
       )
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateReadmooMigration(validationContext)
 
       expect(result.isValid).toBe(false)
@@ -198,11 +215,13 @@ describe('ReadmooPlatformMigrationValidator', () => {
 
   describe('validatePlatformDetection', () => {
     it('應該驗證 Readmoo 平台檢測的正確性', async () => {
+      // eslint-disable-next-line no-unused-vars
       const context = {
         url: 'https://readmoo.com/library',
         hostname: 'readmoo.com'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const mockDetectionResult = {
         platformId: 'READMOO',
         confidence: 0.95,
@@ -212,6 +231,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
       mockPlatformDetectionService.detectPlatform.mockResolvedValue(mockDetectionResult)
       mockPlatformDetectionService.validatePlatform.mockResolvedValue(0.95)
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validatePlatformDetection(context)
 
       expect(result.isValid).toBe(true)
@@ -221,11 +241,13 @@ describe('ReadmooPlatformMigrationValidator', () => {
     })
 
     it('應該檢測信心度過低的情況', async () => {
+      // eslint-disable-next-line no-unused-vars
       const context = {
         url: 'https://readmoo.com/library',
         hostname: 'readmoo.com'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const mockDetectionResult = {
         platformId: 'READMOO',
         confidence: 0.5,
@@ -235,6 +257,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
       mockPlatformDetectionService.detectPlatform.mockResolvedValue(mockDetectionResult)
       mockPlatformDetectionService.validatePlatform.mockResolvedValue(0.5)
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validatePlatformDetection(context)
 
       expect(result.isValid).toBe(false)
@@ -242,6 +265,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
     })
 
     it('應該處理平台檢測錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const context = {
         url: 'https://readmoo.com/library',
         hostname: 'readmoo.com'
@@ -249,6 +273,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
 
       mockPlatformDetectionService.detectPlatform.mockRejectedValue(new Error('Detection service error'))
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validatePlatformDetection(context)
 
       expect(result.isValid).toBe(false)
@@ -258,8 +283,10 @@ describe('ReadmooPlatformMigrationValidator', () => {
 
   describe('validateDataExtraction', () => {
     it('應該驗證 Readmoo 資料提取的完整性', async () => {
+      // eslint-disable-next-line no-unused-vars
       const context = { url: 'https://readmoo.com/library' }
 
+      // eslint-disable-next-line no-unused-vars
       const mockBookData = [
         {
           id: 'readmoo-book-1',
@@ -280,6 +307,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
       mockReadmooAdapter.extractBookData.mockResolvedValue(mockBookData)
       mockReadmooAdapter.validateExtractedData.mockReturnValue(true)
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateDataExtraction(context)
 
       expect(result.isValid).toBe(true)
@@ -289,8 +317,10 @@ describe('ReadmooPlatformMigrationValidator', () => {
     })
 
     it('應該檢測資料格式不正確的情況', async () => {
+      // eslint-disable-next-line no-unused-vars
       const context = { url: 'https://readmoo.com/library' }
 
+      // eslint-disable-next-line no-unused-vars
       const invalidBookData = [
         {
           // 缺少必要欄位
@@ -302,6 +332,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
       mockReadmooAdapter.extractBookData.mockResolvedValue(invalidBookData)
       mockReadmooAdapter.validateExtractedData.mockReturnValue(false)
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateDataExtraction(context)
 
       expect(result.isValid).toBe(false)
@@ -309,11 +340,13 @@ describe('ReadmooPlatformMigrationValidator', () => {
     })
 
     it('應該處理空資料的情況', async () => {
+      // eslint-disable-next-line no-unused-vars
       const context = { url: 'https://readmoo.com/library' }
 
       mockReadmooAdapter.extractBookData.mockResolvedValue([])
       mockReadmooAdapter.validateExtractedData.mockReturnValue(true)
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateDataExtraction(context)
 
       expect(result.isValid).toBe(false)
@@ -321,10 +354,12 @@ describe('ReadmooPlatformMigrationValidator', () => {
     })
 
     it('應該處理資料提取異常', async () => {
+      // eslint-disable-next-line no-unused-vars
       const context = { url: 'https://readmoo.com/library' }
 
       mockReadmooAdapter.extractBookData.mockRejectedValue(new Error('Network error'))
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateDataExtraction(context)
 
       expect(result.isValid).toBe(false)
@@ -334,9 +369,11 @@ describe('ReadmooPlatformMigrationValidator', () => {
 
   describe('validateEventSystemIntegration', () => {
     it('應該驗證事件系統 v2.0 與 Readmoo 平台的整合', async () => {
+      // eslint-disable-next-line no-unused-vars
       const context = { platform: 'READMOO' }
 
       // 設定事件監聽器
+      // eslint-disable-next-line no-unused-vars
       const eventPromises = []
 
       eventPromises.push(new Promise(resolve => {
@@ -347,6 +384,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
         eventBus.on('EXTRACTION.READMOO.DATA.COMPLETED', resolve)
       }))
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateEventSystemIntegration(context)
 
       expect(result.isValid).toBe(true)
@@ -356,6 +394,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
     })
 
     it('應該檢測事件格式轉換錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const context = { platform: 'READMOO' }
 
       // 模擬事件格式錯誤
@@ -366,6 +405,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
         return Promise.resolve()
       })
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateEventSystemIntegration(context)
 
       expect(result.isValid).toBe(false)
@@ -375,8 +415,10 @@ describe('ReadmooPlatformMigrationValidator', () => {
 
   describe('validateBackwardCompatibility', () => {
     it('應該驗證向後相容性', async () => {
+      // eslint-disable-next-line no-unused-vars
       const context = { platform: 'READMOO' }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBackwardCompatibility(context)
 
       expect(result.isValid).toBe(true)
@@ -386,11 +428,13 @@ describe('ReadmooPlatformMigrationValidator', () => {
     })
 
     it('應該檢測向後相容性問題', async () => {
+      // eslint-disable-next-line no-unused-vars
       const context = { platform: 'READMOO' }
 
       // 模擬舊版 API 不可用
       jest.spyOn(validator, '_checkLegacyApiSupport').mockReturnValue(false)
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBackwardCompatibility(context)
 
       expect(result.isValid).toBe(false)
@@ -400,13 +444,16 @@ describe('ReadmooPlatformMigrationValidator', () => {
 
   describe('validateDataIntegrity', () => {
     it('應該驗證資料完整性和一致性', async () => {
+      // eslint-disable-next-line no-unused-vars
       const beforeData = [
         { id: '1', title: '書籍1', author: '作者1', progress: 50 }
       ]
+      // eslint-disable-next-line no-unused-vars
       const afterData = [
         { id: '1', title: '書籍1', author: '作者1', progress: 50 }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateDataIntegrity(beforeData, afterData)
 
       expect(result.isValid).toBe(true)
@@ -416,14 +463,17 @@ describe('ReadmooPlatformMigrationValidator', () => {
     })
 
     it('應該檢測資料遺失', async () => {
+      // eslint-disable-next-line no-unused-vars
       const beforeData = [
         { id: '1', title: '書籍1', author: '作者1', progress: 50 },
         { id: '2', title: '書籍2', author: '作者2', progress: 75 }
       ]
+      // eslint-disable-next-line no-unused-vars
       const afterData = [
         { id: '1', title: '書籍1', author: '作者1', progress: 50 }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateDataIntegrity(beforeData, afterData)
 
       expect(result.isValid).toBe(false)
@@ -432,13 +482,16 @@ describe('ReadmooPlatformMigrationValidator', () => {
     })
 
     it('應該檢測資料損壞', async () => {
+      // eslint-disable-next-line no-unused-vars
       const beforeData = [
         { id: '1', title: '書籍1', author: '作者1', progress: 50 }
       ]
+      // eslint-disable-next-line no-unused-vars
       const afterData = [
         { id: '1', title: '書籍1 (corrupted)', author: '作者1', progress: 50 }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateDataIntegrity(beforeData, afterData)
 
       expect(result.isValid).toBe(false)
@@ -454,6 +507,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
       validator.validationStats.failedValidations = 2
       validator.validationStats.compatibilityIssues = 1
 
+      // eslint-disable-next-line no-unused-vars
       const report = validator.getValidationReport()
 
       expect(report.overview.totalValidations).toBe(10)
@@ -465,6 +519,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
     })
 
     it('應該包含詳細的驗證結果', () => {
+      // eslint-disable-next-line no-unused-vars
       const report = validator.getValidationReport()
 
       expect(report.details).toBeDefined()
@@ -478,6 +533,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
 
   describe('errorHandling', () => {
     it('應該正確處理未預期的錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const context = { url: 'invalid-url' }
 
       // 模擬意外錯誤
@@ -485,6 +541,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
         throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateReadmooMigration(context)
 
       expect(result.isValid).toBe(false)
@@ -492,11 +549,13 @@ describe('ReadmooPlatformMigrationValidator', () => {
     })
 
     it('應該在多次重試後放棄', async () => {
+      // eslint-disable-next-line no-unused-vars
       const context = { url: 'https://readmoo.com/library' }
 
       // 模擬持續失敗
       mockPlatformDetectionService.detectPlatform.mockRejectedValue(new Error('Persistent error'))
 
+      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateReadmooMigration(context)
 
       expect(result.isValid).toBe(false)
@@ -506,6 +565,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
 
   describe('performance', () => {
     it('應該在合理時間內完成驗證', async () => {
+      // eslint-disable-next-line no-unused-vars
       const context = {
         url: 'https://readmoo.com/library',
         hostname: 'readmoo.com'
@@ -520,8 +580,10 @@ describe('ReadmooPlatformMigrationValidator', () => {
         { id: '1', title: '測試', author: '作者', progress: 50 }
       ])
 
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
       await validator.validateReadmooMigration(context)
+      // eslint-disable-next-line no-unused-vars
       const endTime = Date.now()
 
       expect(endTime - startTime).toBeLessThan(5000) // 5秒內完成

@@ -8,11 +8,14 @@
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+// eslint-disable-next-line no-unused-vars
 const AdapterFactoryService = require('src/background/domains/platform/services/adapter-factory-service.js')
+// eslint-disable-next-line no-unused-vars
 const EventBus = require('src/core/event-bus.js')
 const { StandardError } = require('src/core/errors/StandardError')
 
 // 測試專用模擬資料
+// eslint-disable-next-line no-unused-vars
 const MockFactoryData = {
   // 支援的平台測試資料
   SUPPORTED_PLATFORMS: [
@@ -105,9 +108,13 @@ class MockPerformanceMonitor {
 
 describe('AdapterFactoryService', () => {
   let adapterFactory
+  // eslint-disable-next-line no-unused-vars
   let eventBus
+  // eslint-disable-next-line no-unused-vars
   let mockLogger
+  // eslint-disable-next-line no-unused-vars
   let mockPlatformRegistry
+  // eslint-disable-next-line no-unused-vars
   let mockPerformanceMonitor
   let dependencies
 
@@ -191,6 +198,7 @@ describe('AdapterFactoryService', () => {
 
   describe('🏗 服務初始化測試', () => {
     test('應該成功完成完整初始化流程', async () => {
+      // eslint-disable-next-line no-unused-vars
       const initSpy = jest.spyOn(eventBus, 'emit')
 
       await adapterFactory.initialize()
@@ -214,6 +222,7 @@ describe('AdapterFactoryService', () => {
       await adapterFactory.initialize()
 
       // 檢查 READMOO 適配器類型
+      // eslint-disable-next-line no-unused-vars
       const readmooType = adapterFactory.adapterTypes.get('READMOO')
       expect(readmooType).toEqual(
         expect.objectContaining({
@@ -229,6 +238,7 @@ describe('AdapterFactoryService', () => {
       )
 
       // 檢查 KINDLE 適配器類型
+      // eslint-disable-next-line no-unused-vars
       const kindleType = adapterFactory.adapterTypes.get('KINDLE')
       expect(kindleType).toEqual(
         expect.objectContaining({
@@ -249,6 +259,7 @@ describe('AdapterFactoryService', () => {
 
       // 檢查所有平台都有構造函數
       for (const platformId of MockFactoryData.SUPPORTED_PLATFORMS) {
+        // eslint-disable-next-line no-unused-vars
         const constructor = adapterFactory.adapterConstructors.get(platformId)
         expect(constructor).toBeDefined()
         expect(typeof constructor).toBe('function')
@@ -260,6 +271,7 @@ describe('AdapterFactoryService', () => {
 
       // 檢查每個平台的池結構
       for (const platformId of MockFactoryData.SUPPORTED_PLATFORMS) {
+        // eslint-disable-next-line no-unused-vars
         const pool = adapterFactory.adapterPool.get(platformId)
         expect(pool).toEqual(
           expect.objectContaining({
@@ -272,6 +284,7 @@ describe('AdapterFactoryService', () => {
           })
         )
 
+        // eslint-disable-next-line no-unused-vars
         const state = adapterFactory.adapterStates.get(platformId)
         expect(state).toEqual(
           expect.objectContaining({
@@ -293,6 +306,7 @@ describe('AdapterFactoryService', () => {
 
     test('初始化失敗時應該拋出錯誤', async () => {
       // 模擬初始化失敗
+      // eslint-disable-next-line no-unused-vars
       const originalMethod = adapterFactory.initializeAdapterTypes
       adapterFactory.initializeAdapterTypes = jest.fn().mockRejectedValue(
         new Error('初始化失敗')
@@ -312,8 +326,10 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該成功創建新的適配器實例', async () => {
+      // eslint-disable-next-line no-unused-vars
       const createSpy = jest.spyOn(eventBus, 'emit')
 
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO')
 
       expect(adapter).toBeDefined()
@@ -328,6 +344,7 @@ describe('AdapterFactoryService', () => {
       expect(adapterFactory.statistics.activeInstances).toBe(1)
 
       // 檢查平台狀態更新
+      // eslint-disable-next-line no-unused-vars
       const state = adapterFactory.adapterStates.get('READMOO')
       expect(state.totalInstances).toBe(1)
       expect(state.activeInstances).toBe(1)
@@ -344,7 +361,9 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該為不同平台創建不同的適配器', async () => {
+      // eslint-disable-next-line no-unused-vars
       const readmooAdapter = await adapterFactory.createAdapter('READMOO')
+      // eslint-disable-next-line no-unused-vars
       const kindleAdapter = await adapterFactory.createAdapter('KINDLE')
 
       expect(readmooAdapter.platformId).toBe('READMOO')
@@ -357,6 +376,7 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該正確配置適配器實例', async () => {
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO', {
         config: { customOption: 'test' }
       })
@@ -388,6 +408,7 @@ describe('AdapterFactoryService', () => {
 
     test('創建過程中出錯應該正確處理', async () => {
       // 模擬構造函數錯誤
+      // eslint-disable-next-line no-unused-vars
       const originalConstructor = adapterFactory.adapterConstructors.get('READMOO')
       adapterFactory.adapterConstructors.set('READMOO', function () {
         throw (() => { const error = new Error('構造失敗'); error.code = ErrorCodes.ADAPTER_CONSTRUCTION_ERROR; error.details = { category: 'testing' }; return error })()
@@ -411,14 +432,17 @@ describe('AdapterFactoryService', () => {
 
     test('應該能夠從池中重用適配器', async () => {
       // 創建適配器並停用以加入池
+      // eslint-disable-next-line no-unused-vars
       const adapter1 = await adapterFactory.createAdapter('READMOO')
       await adapter1.initialize()
       await adapter1.activate()
       await adapter1.deactivate() // 這會將適配器加入可用池
 
+      // eslint-disable-next-line no-unused-vars
       const poolHitsBefore = adapterFactory.statistics.poolHits
 
       // 請求新適配器應該重用現有的
+      // eslint-disable-next-line no-unused-vars
       const adapter2 = await adapterFactory.createAdapter('READMOO')
 
       expect(adapter2.id).toBe(adapter1.id) // 應該是同一個實例
@@ -426,11 +450,14 @@ describe('AdapterFactoryService', () => {
     })
 
     test('池滿時應該清理最舊的適配器', async () => {
+      // eslint-disable-next-line no-unused-vars
       const maxPoolSize = adapterFactory.factoryConfig.maxPoolSize
+      // eslint-disable-next-line no-unused-vars
       const adapters = []
 
       // 創建超過池大小限制的適配器
       for (let i = 0; i < maxPoolSize + 2; i++) {
+        // eslint-disable-next-line no-unused-vars
         const adapter = await adapterFactory.createAdapter('READMOO')
         await adapter.initialize()
         await adapter.activate()
@@ -438,12 +465,14 @@ describe('AdapterFactoryService', () => {
         adapters.push(adapter)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const pool = adapterFactory.adapterPool.get('READMOO')
       expect(pool.available.length).toBeLessThanOrEqual(maxPoolSize)
     })
 
     test('不健康的適配器不應該被重用', async () => {
       // 創建適配器並模擬不健康狀態
+      // eslint-disable-next-line no-unused-vars
       const adapter1 = await adapterFactory.createAdapter('READMOO')
       await adapter1.initialize()
       await adapter1.activate()
@@ -457,6 +486,7 @@ describe('AdapterFactoryService', () => {
       await adapter1.deactivate()
 
       // 請求新適配器應該創建新實例而非重用
+      // eslint-disable-next-line no-unused-vars
       const adapter2 = await adapterFactory.createAdapter('READMOO')
 
       expect(adapter2.id).not.toBe(adapter1.id)
@@ -465,16 +495,19 @@ describe('AdapterFactoryService', () => {
 
     test('超過最大閒置時間的適配器不應該被重用', async () => {
       // 創建適配器
+      // eslint-disable-next-line no-unused-vars
       const adapter1 = await adapterFactory.createAdapter('READMOO')
       await adapter1.initialize()
       await adapter1.activate()
       await adapter1.deactivate()
 
       // 模擬超過最大閒置時間 - 在 deactivate 之後設定，避免被覆蓋
+      // eslint-disable-next-line no-unused-vars
       const pastTime = Date.now() - adapterFactory.factoryConfig.maxIdleTime - 1000
       adapter1.lastActivity = pastTime
 
       // 請求新適配器應該創建新實例
+      // eslint-disable-next-line no-unused-vars
       const adapter2 = await adapterFactory.createAdapter('READMOO')
 
       expect(adapter2.id).not.toBe(adapter1.id)
@@ -482,12 +515,14 @@ describe('AdapterFactoryService', () => {
 
     test('forceNew 選項應該略過池重用', async () => {
       // 創建適配器並加入池
+      // eslint-disable-next-line no-unused-vars
       const adapter1 = await adapterFactory.createAdapter('READMOO')
       await adapter1.initialize()
       await adapter1.activate()
       await adapter1.deactivate()
 
       // 使用 forceNew 選項創建適配器
+      // eslint-disable-next-line no-unused-vars
       const adapter2 = await adapterFactory.createAdapter('READMOO', {
         forceNew: true
       })
@@ -503,8 +538,10 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該正確管理適配器初始化生命週期', async () => {
+      // eslint-disable-next-line no-unused-vars
       const initSpy = jest.spyOn(eventBus, 'emit')
 
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
 
@@ -530,8 +567,10 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該正確管理適配器啟動生命週期', async () => {
+      // eslint-disable-next-line no-unused-vars
       const activateSpy = jest.spyOn(eventBus, 'emit')
 
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
@@ -540,6 +579,7 @@ describe('AdapterFactoryService', () => {
       expect(adapter.state).toBe('active')
 
       // 檢查適配器是否在活躍池中
+      // eslint-disable-next-line no-unused-vars
       const pool = adapterFactory.adapterPool.get('READMOO')
       expect(pool.active.has(adapter.id)).toBe(true)
 
@@ -554,8 +594,10 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該正確管理適配器停用生命週期', async () => {
+      // eslint-disable-next-line no-unused-vars
       const deactivateSpy = jest.spyOn(eventBus, 'emit')
 
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
@@ -565,6 +607,7 @@ describe('AdapterFactoryService', () => {
       expect(adapter.state).toBe('inactive')
 
       // 檢查適配器是否從活躍池移除且加入可用池
+      // eslint-disable-next-line no-unused-vars
       const pool = adapterFactory.adapterPool.get('READMOO')
       expect(pool.active.has(adapter.id)).toBe(false)
       expect(pool.available).toContain(adapter)
@@ -580,8 +623,10 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該正確管理適配器清理生命週期', async () => {
+      // eslint-disable-next-line no-unused-vars
       const cleanupSpy = jest.spyOn(eventBus, 'emit')
 
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
@@ -590,6 +635,7 @@ describe('AdapterFactoryService', () => {
       expect(adapter.state).toBe('cleaned')
 
       // 檢查適配器是否完全移除
+      // eslint-disable-next-line no-unused-vars
       const pool = adapterFactory.adapterPool.get('READMOO')
       expect(pool.active.has(adapter.id)).toBe(false)
       expect(pool.available).not.toContain(adapter)
@@ -609,11 +655,14 @@ describe('AdapterFactoryService', () => {
     })
 
     test('生命週期操作失敗應該發送錯誤事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const errorSpy = jest.spyOn(eventBus, 'emit')
 
       // 模擬 createNewAdapter 失敗來測試錯誤處理
+      // eslint-disable-next-line no-unused-vars
       const originalCreateNewAdapter = adapterFactory.createNewAdapter
       adapterFactory.createNewAdapter = jest.fn().mockImplementation(async (platformId) => {
+        // eslint-disable-next-line no-unused-vars
         const adapter = await originalCreateNewAdapter.call(adapterFactory, platformId)
         // Mock adapter的initialize方法使其失敗
         adapter.initialize = jest.fn().mockImplementation(async () => {
@@ -622,6 +671,7 @@ describe('AdapterFactoryService', () => {
         return adapter
       })
 
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO')
 
       // 測試adapter初始化失敗
@@ -642,19 +692,24 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該能夠根據ID查詢適配器', async () => {
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
 
+      // eslint-disable-next-line no-unused-vars
       const foundAdapter = adapterFactory.getAdapter('READMOO', adapter.id)
       expect(foundAdapter).toBe(adapter)
 
+      // eslint-disable-next-line no-unused-vars
       const notFound = adapterFactory.getAdapter('READMOO', 'non-existent-id')
       expect(notFound).toBeNull()
     })
 
     test('應該能夠查詢平台的所有活躍適配器', async () => {
+      // eslint-disable-next-line no-unused-vars
       const adapter1 = await adapterFactory.createAdapter('READMOO')
+      // eslint-disable-next-line no-unused-vars
       const adapter2 = await adapterFactory.createAdapter('READMOO')
 
       await adapter1.initialize()
@@ -662,6 +717,7 @@ describe('AdapterFactoryService', () => {
       await adapter2.initialize()
       await adapter2.activate()
 
+      // eslint-disable-next-line no-unused-vars
       const activeAdapters = adapterFactory.getActiveAdapters('READMOO')
       expect(activeAdapters).toHaveLength(2)
       expect(activeAdapters).toContain(adapter1)
@@ -669,7 +725,9 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該能夠查詢所有平台的活躍適配器', async () => {
+      // eslint-disable-next-line no-unused-vars
       const readmooAdapter = await adapterFactory.createAdapter('READMOO')
+      // eslint-disable-next-line no-unused-vars
       const kindleAdapter = await adapterFactory.createAdapter('KINDLE')
 
       await readmooAdapter.initialize()
@@ -677,6 +735,7 @@ describe('AdapterFactoryService', () => {
       await kindleAdapter.initialize()
       await kindleAdapter.activate()
 
+      // eslint-disable-next-line no-unused-vars
       const allActiveAdapters = adapterFactory.getActiveAdapters()
       expect(allActiveAdapters).toHaveLength(2)
       expect(allActiveAdapters).toContain(readmooAdapter)
@@ -684,10 +743,12 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該能夠停用指定的適配器', async () => {
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
 
+      // eslint-disable-next-line no-unused-vars
       const result = await adapterFactory.deactivateAdapter('READMOO', adapter.id)
 
       expect(result).toBe(true)
@@ -695,25 +756,30 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該能夠清理指定的適配器', async () => {
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
 
+      // eslint-disable-next-line no-unused-vars
       const result = await adapterFactory.cleanupAdapterById('READMOO', adapter.id)
 
       expect(result).toBe(true)
       expect(adapter.state).toBe('cleaned')
 
+      // eslint-disable-next-line no-unused-vars
       const foundAdapter = adapterFactory.getAdapter('READMOO', adapter.id)
       expect(foundAdapter).toBeNull()
     })
 
     test('不存在的適配器操作應該回傳 false', async () => {
+      // eslint-disable-next-line no-unused-vars
       const deactivateResult = await adapterFactory.deactivateAdapter(
         'READMOO', 'non-existent-id'
       )
       expect(deactivateResult).toBe(false)
 
+      // eslint-disable-next-line no-unused-vars
       const cleanupResult = await adapterFactory.cleanupAdapterById(
         'READMOO', 'non-existent-id'
       )
@@ -728,7 +794,9 @@ describe('AdapterFactoryService', () => {
 
     test('應該能夠清理平台的所有適配器', async () => {
       // 創建多個適配器
+      // eslint-disable-next-line no-unused-vars
       const adapter1 = await adapterFactory.createAdapter('READMOO')
+      // eslint-disable-next-line no-unused-vars
       const adapter2 = await adapterFactory.createAdapter('READMOO')
 
       await adapter1.initialize()
@@ -737,12 +805,14 @@ describe('AdapterFactoryService', () => {
       await adapter2.activate()
       await adapter2.deactivate() // 加入可用池
 
+      // eslint-disable-next-line no-unused-vars
       const cleanedCount = await adapterFactory.cleanupPlatformAdapters('READMOO')
 
       expect(cleanedCount).toBe(2)
       expect(adapter1.state).toBe('cleaned')
       expect(adapter2.state).toBe('cleaned')
 
+      // eslint-disable-next-line no-unused-vars
       const pool = adapterFactory.adapterPool.get('READMOO')
       expect(pool.active.size).toBe(0)
       expect(pool.available.length).toBe(0)
@@ -750,7 +820,9 @@ describe('AdapterFactoryService', () => {
 
     test('應該能夠清理所有平台的適配器', async () => {
       // 創建不同平台的適配器
+      // eslint-disable-next-line no-unused-vars
       const readmooAdapter = await adapterFactory.createAdapter('READMOO')
+      // eslint-disable-next-line no-unused-vars
       const kindleAdapter = await adapterFactory.createAdapter('KINDLE')
 
       await readmooAdapter.initialize()
@@ -758,6 +830,7 @@ describe('AdapterFactoryService', () => {
       await kindleAdapter.initialize()
       await kindleAdapter.activate()
 
+      // eslint-disable-next-line no-unused-vars
       const totalCleaned = await adapterFactory.cleanupAllAdapters()
 
       expect(totalCleaned).toBe(2)
@@ -766,6 +839,7 @@ describe('AdapterFactoryService', () => {
 
     test('應該能夠執行定期資源清理', async () => {
       // 創建適配器並模擬超時
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
@@ -776,11 +850,13 @@ describe('AdapterFactoryService', () => {
 
       await adapterFactory.performResourceCleanup()
 
+      // eslint-disable-next-line no-unused-vars
       const pool = adapterFactory.adapterPool.get('READMOO')
       expect(pool.available).not.toContain(adapter)
     })
 
     test('清理過程中的錯誤應該被正確處理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
@@ -788,6 +864,7 @@ describe('AdapterFactoryService', () => {
       // 模擬清理失敗
       adapter.cleanup = jest.fn().mockRejectedValue(new Error('清理失敗'))
 
+      // eslint-disable-next-line no-unused-vars
       const result = await adapterFactory.cleanupAdapterById('READMOO', adapter.id)
 
       expect(result).toBe(false)
@@ -801,10 +878,13 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該正確執行健康檢查', async () => {
+      // eslint-disable-next-line no-unused-vars
       const healthSpy = jest.spyOn(eventBus, 'emit')
 
       // 創建健康和不健康的適配器
+      // eslint-disable-next-line no-unused-vars
       const healthyAdapter = await adapterFactory.createAdapter('READMOO')
+      // eslint-disable-next-line no-unused-vars
       const unhealthyAdapter = await adapterFactory.createAdapter('KINDLE')
 
       await healthyAdapter.initialize()
@@ -844,8 +924,10 @@ describe('AdapterFactoryService', () => {
     })
 
     test('所有適配器健康時不應該發送警告', async () => {
+      // eslint-disable-next-line no-unused-vars
       const healthSpy = jest.spyOn(eventBus, 'emit')
 
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
@@ -864,6 +946,7 @@ describe('AdapterFactoryService', () => {
 
     test('健康檢查失敗應該更新錯誤計數', async () => {
       // 模擬健康檢查拋出錯誤
+      // eslint-disable-next-line no-unused-vars
       const originalMethod = adapterFactory.adapterPool
       Object.defineProperty(adapterFactory, 'adapterPool', {
         get: () => {
@@ -891,11 +974,13 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該正確更新創建統計', async () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       await adapterFactory.createAdapter('READMOO')
       await adapterFactory.createAdapter('KINDLE')
 
+      // eslint-disable-next-line no-unused-vars
       const stats = adapterFactory.getStatistics()
       expect(stats.totalCreated).toBe(2)
       expect(stats.activeInstances).toBe(2)
@@ -906,10 +991,12 @@ describe('AdapterFactoryService', () => {
     test('應該正確計算平均創建時間', async () => {
       // 第一個適配器
       await adapterFactory.createAdapter('READMOO')
+      // eslint-disable-next-line no-unused-vars
       const firstAvg = adapterFactory.statistics.avgCreationTime
 
       // 第二個適配器
       await adapterFactory.createAdapter('KINDLE')
+      // eslint-disable-next-line no-unused-vars
       const secondAvg = adapterFactory.statistics.avgCreationTime
 
       expect(firstAvg).toBeGreaterThan(0)
@@ -918,29 +1005,35 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該正確追蹤池統計', async () => {
+      // eslint-disable-next-line no-unused-vars
       const adapter1 = await adapterFactory.createAdapter('READMOO')
       await adapter1.initialize()
       await adapter1.activate()
 
+      // eslint-disable-next-line no-unused-vars
       const adapter2 = await adapterFactory.createAdapter('READMOO')
       await adapter2.initialize()
       await adapter2.activate()
       await adapter2.deactivate() // 重用
 
-      const adapter3 = await adapterFactory.createAdapter('READMOO') // 應該重用 adapter2
+      // eslint-disable-next-line no-unused-vars
+      const _adapter3 = await adapterFactory.createAdapter('READMOO') // 應該重用 adapter2
 
+      // eslint-disable-next-line no-unused-vars
       const stats = adapterFactory.getStatistics()
       expect(stats.poolHits).toBeGreaterThan(0)
       expect(stats.poolStatistics.READMOO.totalReused).toBeGreaterThan(0)
     })
 
     test('應該正確回報健康狀態', async () => {
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
 
       await adapterFactory.performHealthCheck()
 
+      // eslint-disable-next-line no-unused-vars
       const healthStatus = adapterFactory.getHealthStatus()
       expect(healthStatus).toEqual(
         expect.objectContaining({
@@ -961,6 +1054,7 @@ describe('AdapterFactoryService', () => {
 
       // 重新初始化所有平台狀態
       for (const platformId of adapterFactory.supportedPlatforms) {
+        // eslint-disable-next-line no-unused-vars
         const existingState = adapterFactory.adapterStates.get(platformId)
         if (existingState) {
           existingState.totalInstances = 0
@@ -970,11 +1064,14 @@ describe('AdapterFactoryService', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
 
+      // eslint-disable-next-line no-unused-vars
       const stats = adapterFactory.getStatistics()
+      // eslint-disable-next-line no-unused-vars
       const readmooState = stats.adapterStates.READMOO
 
       expect(readmooState).toEqual(
@@ -996,6 +1093,7 @@ describe('AdapterFactoryService', () => {
 
     test('應該正確處理平台切換事件', async () => {
       // 創建 READMOO 適配器
+      // eslint-disable-next-line no-unused-vars
       const readmooAdapter = await adapterFactory.createAdapter('READMOO')
       await readmooAdapter.initialize()
       await readmooAdapter.activate()
@@ -1014,12 +1112,14 @@ describe('AdapterFactoryService', () => {
       expect(readmooAdapter.isActive).toBe(false)
 
       // 檢查是否為 KINDLE 創建了新適配器 (應該存在於池中)
+      // eslint-disable-next-line no-unused-vars
       const kindlePool = adapterFactory.adapterPool.get('KINDLE')
       expect(kindlePool).toBeDefined()
       expect(kindlePool.available.length + kindlePool.active.size).toBeGreaterThan(0)
     })
 
     test('應該正確處理適配器錯誤事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
@@ -1040,10 +1140,12 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該正確處理工廠查詢事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
 
+      // eslint-disable-next-line no-unused-vars
       const responseSpy = jest.spyOn(eventBus, 'emit')
 
       // 模擬查詢事件
@@ -1071,10 +1173,12 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該正確處理清理請求事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const adapter = await adapterFactory.createAdapter('READMOO')
       await adapter.initialize()
       await adapter.activate()
 
+      // eslint-disable-next-line no-unused-vars
       const cleanupSpy = jest.spyOn(eventBus, 'emit')
 
       // 模擬清理請求事件
@@ -1108,7 +1212,9 @@ describe('AdapterFactoryService', () => {
 
     test('應該正確停止服務', async () => {
       // 創建一些適配器
+      // eslint-disable-next-line no-unused-vars
       const adapter1 = await adapterFactory.createAdapter('READMOO')
+      // eslint-disable-next-line no-unused-vars
       const adapter2 = await adapterFactory.createAdapter('KINDLE')
 
       await adapter1.initialize()
@@ -1147,6 +1253,7 @@ describe('AdapterFactoryService', () => {
     })
 
     test('未初始化的服務操作應該正確處理', async () => {
+      // eslint-disable-next-line no-unused-vars
       const uninitializedFactory = new AdapterFactoryService(eventBus, dependencies)
 
       // 嘗試創建適配器應該失敗
@@ -1158,7 +1265,9 @@ describe('AdapterFactoryService', () => {
 
   describe('🔄 ID 生成測試', () => {
     test('應該生成唯一的適配器ID', () => {
+      // eslint-disable-next-line no-unused-vars
       const id1 = adapterFactory.generateAdapterId('READMOO')
+      // eslint-disable-next-line no-unused-vars
       const id2 = adapterFactory.generateAdapterId('READMOO')
 
       expect(id1).toMatch(/READMOO_adapter_\d+_[a-z0-9]+/)
@@ -1167,7 +1276,9 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該生成唯一的工廠ID', () => {
+      // eslint-disable-next-line no-unused-vars
       const id1 = adapterFactory.generateFactoryId()
+      // eslint-disable-next-line no-unused-vars
       const id2 = adapterFactory.generateFactoryId()
 
       expect(id1).toMatch(/factory_\d+_[a-z0-9]+/)
@@ -1186,6 +1297,7 @@ describe('AdapterFactoryService', () => {
     })
 
     test('應該正確記錄錯誤日誌', async () => {
+      // eslint-disable-next-line no-unused-vars
       const error = new Error('測試錯誤')
       await adapterFactory.logError('錯誤訊息', error)
 
@@ -1196,9 +1308,12 @@ describe('AdapterFactoryService', () => {
     })
 
     test('無 logger 時應該使用 console', async () => {
+      // eslint-disable-next-line no-unused-vars
       const factoryWithoutLogger = new AdapterFactoryService(eventBus, { logger: null })
 
+      // eslint-disable-next-line no-unused-vars
       const consoleSpy = jest.spyOn(console, 'info').mockImplementation()
+      // eslint-disable-next-line no-unused-vars
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation()
 
       await factoryWithoutLogger.log('測試訊息')

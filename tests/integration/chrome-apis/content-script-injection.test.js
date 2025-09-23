@@ -13,8 +13,10 @@ const { ContentScriptValidator } = require('../../helpers/content-script-validat
 const { InjectionAnalyzer } = require('../../helpers/injection-analyzer')
 
 describe('Content Script 注入整合測試', () => {
+  // eslint-disable-next-line no-unused-vars
   let testSuite
   let extensionController
+  // eslint-disable-next-line no-unused-vars
   let testDataGenerator
   let scriptValidator
   let injectionAnalyzer
@@ -49,6 +51,7 @@ describe('Content Script 注入整合測試', () => {
   describe('基礎Content Script注入機制', () => {
     test('應該在支援的Readmoo頁面正確注入Content Script', async () => {
       // Given: 準備不同類型的Readmoo頁面
+      // eslint-disable-next-line no-unused-vars
       const readmooPageTypes = [
         {
           url: 'https://readmoo.com/library',
@@ -80,17 +83,22 @@ describe('Content Script 注入整合測試', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const injectionResults = []
 
       for (const pageType of readmooPageTypes) {
         // When: 導航到特定頁面並觸發注入
         await testSuite.navigateToPage(pageType.url)
 
+        // eslint-disable-next-line no-unused-vars
         const injectionStart = Date.now()
+        // eslint-disable-next-line no-unused-vars
         const injectionResult = await extensionController.injectContentScript()
+        // eslint-disable-next-line no-unused-vars
         const injectionTime = Date.now() - injectionStart
 
         // 驗證注入結果
+        // eslint-disable-next-line no-unused-vars
         const scriptValidation = await scriptValidator.validateInjection({
           expectedScript: pageType.expectedScript,
           expectedFeatures: pageType.expectedFeatures
@@ -112,6 +120,7 @@ describe('Content Script 注入整合測試', () => {
 
       // Then: 驗證所有注入結果
       injectionResults.forEach((result, index) => {
+        // eslint-disable-next-line no-unused-vars
         const pageType = readmooPageTypes[index]
 
         if (pageType.shouldInject) {
@@ -128,12 +137,14 @@ describe('Content Script 注入整合測試', () => {
       })
 
       // 檢查注入效能統計
+      // eslint-disable-next-line no-unused-vars
       const avgInjectionTime = injectionResults.reduce((sum, r) => sum + r.injectionTime, 0) / injectionResults.length
       expect(avgInjectionTime).toBeLessThan(1000) // 平均注入時間<1秒
     })
 
     test('應該正確檢測並跳過不支援的頁面', async () => {
       // Given: 準備不支援的頁面類型
+      // eslint-disable-next-line no-unused-vars
       const unsupportedPages = [
         {
           url: 'https://google.com',
@@ -157,14 +168,18 @@ describe('Content Script 注入整合測試', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const skipResults = []
 
       for (const page of unsupportedPages) {
         // When: 導航到不支援的頁面
         await testSuite.navigateToPage(page.url)
 
+        // eslint-disable-next-line no-unused-vars
         const detectionStart = Date.now()
+        // eslint-disable-next-line no-unused-vars
         const injectionResult = await extensionController.attemptContentScriptInjection()
+        // eslint-disable-next-line no-unused-vars
         const detectionTime = Date.now() - detectionStart
 
         skipResults.push({
@@ -179,6 +194,7 @@ describe('Content Script 注入整合測試', () => {
 
       // Then: 驗證正確跳過不支援頁面
       skipResults.forEach((result, index) => {
+        // eslint-disable-next-line no-unused-vars
         const page = unsupportedPages[index]
 
         expect(result.injectionSkipped).toBe(true)
@@ -194,6 +210,7 @@ describe('Content Script 注入整合測試', () => {
 
     test('應該處理Content Script注入失敗的各種情況', async () => {
       // Given: 準備各種注入失敗情境
+      // eslint-disable-next-line no-unused-vars
       const injectionFailureScenarios = [
         {
           name: 'CSP_VIOLATION',
@@ -232,13 +249,16 @@ describe('Content Script 注入整合測試', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const failureHandlingResults = []
 
       for (const scenario of injectionFailureScenarios) {
         // When: 設置失敗情境並嘗試注入
         await scenario.setup()
 
+        // eslint-disable-next-line no-unused-vars
         const failureTestStart = Date.now()
+        // eslint-disable-next-line no-unused-vars
         const injectionResult = await extensionController.attemptContentScriptInjection({
           enableErrorHandling: true,
           retryOnFailure: scenario.recoverable,
@@ -247,6 +267,7 @@ describe('Content Script 注入整合測試', () => {
           enableCSPDetection: scenario.name === 'CSP_VIOLATION',
           detectCSPViolations: scenario.name === 'CSP_VIOLATION'
         })
+        // eslint-disable-next-line no-unused-vars
         const handlingTime = Date.now() - failureTestStart
 
         failureHandlingResults.push({
@@ -270,6 +291,7 @@ describe('Content Script 注入整合測試', () => {
 
       // Then: 驗證失敗處理機制
       failureHandlingResults.forEach((result, index) => {
+        // eslint-disable-next-line no-unused-vars
         const scenario = injectionFailureScenarios[index]
 
         expect(result.errorHandled).toBe(true)
@@ -298,35 +320,43 @@ describe('Content Script 注入整合測試', () => {
       await testSuite.injectMockBooks(testDataGenerator.generateBooks(100, 'lifecycle-test'))
 
       // When: 執行完整的Content Script生命周期
+      // eslint-disable-next-line no-unused-vars
       const lifecycleStart = Date.now()
 
       // 階段1: 注入和初始化
+      // eslint-disable-next-line no-unused-vars
       const injectionResult = await extensionController.injectContentScript()
       expect(injectionResult.success).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const initializationResult = await extensionController.waitForContentScriptInitialization({
         timeout: 5000
       })
       expect(initializationResult.initialized).toBe(true)
 
       // 階段2: 執行主要功能
+      // eslint-disable-next-line no-unused-vars
       const extractionResult = await extensionController.executeContentScriptExtraction()
       expect(extractionResult.success).toBe(true)
       expect(extractionResult.extractedCount).toBe(100)
 
       // 階段3: 清理和卸載
+      // eslint-disable-next-line no-unused-vars
       const cleanupResult = await extensionController.cleanupContentScript()
       expect(cleanupResult.cleaned).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const lifecycleTime = Date.now() - lifecycleStart
 
       // 獲取生命周期分析結果
+      // eslint-disable-next-line no-unused-vars
       const lifecycleAnalysis = await injectionAnalyzer.getLifecycleAnalysis()
 
       // Then: 驗證生命周期管理
       expect(lifecycleTime).toBeLessThan(15000) // 完整週期<15秒
 
       // 檢查各階段時間分配
+      // eslint-disable-next-line no-unused-vars
       const phases = lifecycleAnalysis.phases
       expect(phases.injection.duration).toBeLessThan(2000) // 注入<2秒
       expect(phases.initialization.duration).toBeLessThan(1000) // 初始化<1秒
@@ -346,6 +376,7 @@ describe('Content Script 注入整合測試', () => {
 
     test('應該支援多個分頁的Content Script並發管理', async () => {
       // Given: 建立多個分頁環境
+      // eslint-disable-next-line no-unused-vars
       const tabConfigs = [
         {
           url: 'https://readmoo.com/library',
@@ -365,23 +396,30 @@ describe('Content Script 注入整合測試', () => {
       ]
 
       // 建立多個分頁
+      // eslint-disable-next-line no-unused-vars
       const tabs = []
       for (let i = 0; i < tabConfigs.length; i++) {
+        // eslint-disable-next-line no-unused-vars
         const tab = await testSuite.createNewTab(tabConfigs[i].url)
         await testSuite.injectMockBooks(tabConfigs[i].books, tab.id)
         tabs.push({ ...tab, config: tabConfigs[i] })
       }
 
       // When: 在所有分頁同時注入和執行Content Scripts
+      // eslint-disable-next-line no-unused-vars
       const concurrentPromises = tabs.map(async (tab, index) => {
+        // eslint-disable-next-line no-unused-vars
         const tabStart = Date.now()
 
         // 注入Content Script
+        // eslint-disable-next-line no-unused-vars
         const injectionResult = await extensionController.injectContentScriptInTab(tab.id)
 
         // 執行提取
+        // eslint-disable-next-line no-unused-vars
         const extractionResult = await extensionController.executeExtractionInTab(tab.id)
 
+        // eslint-disable-next-line no-unused-vars
         const tabTime = Date.now() - tabStart
 
         return {
@@ -395,6 +433,7 @@ describe('Content Script 注入整合測試', () => {
         }
       })
 
+      // eslint-disable-next-line no-unused-vars
       const concurrentResults = await Promise.all(concurrentPromises)
 
       // Then: 驗證並發執行結果
@@ -406,13 +445,16 @@ describe('Content Script 注入整合測試', () => {
       })
 
       // 檢查並發執行效能
+      // eslint-disable-next-line no-unused-vars
       const maxExecutionTime = Math.max(...concurrentResults.map(r => r.executionTime))
+      // eslint-disable-next-line no-unused-vars
       const avgExecutionTime = concurrentResults.reduce((sum, r) => sum + r.executionTime, 0) / concurrentResults.length
 
       expect(maxExecutionTime).toBeLessThan(15000) // 最慢的<15秒
       expect(avgExecutionTime).toBeLessThan(10000) // 平均<10秒
 
       // 驗證資源隔離
+      // eslint-disable-next-line no-unused-vars
       const resourceIsolationCheck = await scriptValidator.validateResourceIsolation(tabs.map(t => t.id))
       expect(resourceIsolationCheck.isolated).toBe(true)
       expect(resourceIsolationCheck.crossTabInterference).toBe(false)
@@ -429,30 +471,36 @@ describe('Content Script 注入整合測試', () => {
       await testSuite.injectMockBooks(testDataGenerator.generateBooks(70, 'reload-test'))
 
       // 初始注入和執行
+      // eslint-disable-next-line no-unused-vars
       const initialInjection = await extensionController.injectContentScript()
       expect(initialInjection.success).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const initialState = await extensionController.getContentScriptState()
       expect(initialState.active).toBe(true)
       expect(initialState.initialized).toBe(true)
 
       // When: 模擬頁面重新載入
+      // eslint-disable-next-line no-unused-vars
       const reloadStart = Date.now()
 
       // 重新載入頁面
       await testSuite.reloadCurrentPage()
 
       // 檢測Content Script狀態
+      // eslint-disable-next-line no-unused-vars
       const postReloadState = await extensionController.getContentScriptState()
       expect(postReloadState.active).toBe(false) // 重載後應該不活躍
 
       // 重新注入Content Script
+      // eslint-disable-next-line no-unused-vars
       const reinjectionResult = await extensionController.reinjectContentScript({
         detectPreviousScript: true,
         cleanupBefore: true,
         validateAfter: true
       })
 
+      // eslint-disable-next-line no-unused-vars
       const reloadTime = Date.now() - reloadStart
 
       // Then: 驗證重新注入結果
@@ -462,17 +510,20 @@ describe('Content Script 注入整合測試', () => {
       expect(reloadTime).toBeLessThan(8000) // 重載和重注入<8秒
 
       // 驗證重新注入後的功能性
+      // eslint-disable-next-line no-unused-vars
       const postReinjectionTest = await extensionController.testContentScriptFunctionality()
       expect(postReinjectionTest.functional).toBe(true)
       expect(postReinjectionTest.canExtract).toBe(true)
       expect(postReinjectionTest.canCommunicate).toBe(true)
 
       // 測試實際提取功能
+      // eslint-disable-next-line no-unused-vars
       const extractionAfterReload = await extensionController.executeContentScriptExtraction()
       expect(extractionAfterReload.success).toBe(true)
       expect(extractionAfterReload.extractedCount).toBe(70)
 
       // 檢查狀態一致性
+      // eslint-disable-next-line no-unused-vars
       const finalState = await extensionController.getContentScriptState()
       expect(finalState.active).toBe(true)
       expect(finalState.initialized).toBe(true)
@@ -494,12 +545,15 @@ describe('Content Script 注入整合測試', () => {
       await testSuite.injectMockBooks(testDataGenerator.generateBooks(50, 'isolation-test'))
 
       // When: 注入Content Script並執行功能
+      // eslint-disable-next-line no-unused-vars
       const isolationStart = Date.now()
 
+      // eslint-disable-next-line no-unused-vars
       const injectionResult = await extensionController.injectContentScript()
       expect(injectionResult.success).toBe(true)
 
       // 執行可能與頁面環境衝突的操作
+      // eslint-disable-next-line no-unused-vars
       const isolationTests = [
         {
           test: 'variable_namespace_isolation',
@@ -533,11 +587,15 @@ describe('Content Script 注入整合測試', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const isolationResults = []
 
       for (const isolationTest of isolationTests) {
+        // eslint-disable-next-line no-unused-vars
         const testStart = Date.now()
+        // eslint-disable-next-line no-unused-vars
         const testResult = await isolationTest.action()
+        // eslint-disable-next-line no-unused-vars
         const testTime = Date.now() - testStart
 
         isolationResults.push({
@@ -549,6 +607,7 @@ describe('Content Script 注入整合測試', () => {
         })
       }
 
+      // eslint-disable-next-line no-unused-vars
       const isolationTime = Date.now() - isolationStart
 
       // Then: 驗證隔離性結果
@@ -562,17 +621,20 @@ describe('Content Script 注入整合測試', () => {
       })
 
       // 檢查全域污染
+      // eslint-disable-next-line no-unused-vars
       const globalPollutionCheck = await extensionController.checkGlobalPollution()
       expect(globalPollutionCheck.polluted).toBe(false)
       expect(globalPollutionCheck.addedGlobals).toEqual([])
       expect(globalPollutionCheck.modifiedGlobals).toEqual([])
 
       // 驗證頁面功能未受影響
+      // eslint-disable-next-line no-unused-vars
       const pageFunctionalityCheck = await scriptValidator.validatePageFunctionality()
       expect(pageFunctionalityCheck.functional).toBe(true)
       expect(pageFunctionalityCheck.originalBehaviorMaintained).toBe(true)
 
       // 最終功能性驗證
+      // eslint-disable-next-line no-unused-vars
       const extractionResult = await extensionController.executeContentScriptExtraction()
       expect(extractionResult.success).toBe(true)
       expect(extractionResult.extractedCount).toBe(50)
@@ -580,6 +642,7 @@ describe('Content Script 注入整合測試', () => {
 
     test('應該正確處理Content Security Policy限制', async () => {
       // Given: 準備具有不同CSP等級的頁面
+      // eslint-disable-next-line no-unused-vars
       const cspTestScenarios = [
         {
           name: 'strict_csp',
@@ -607,6 +670,7 @@ describe('Content Script 注入整合測試', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const cspHandlingResults = []
 
       for (const scenario of cspTestScenarios) {
@@ -616,14 +680,17 @@ describe('Content Script 注入整合測試', () => {
           pageContent: testDataGenerator.generateBooks(30, `csp-${scenario.name}-test`)
         })
 
+        // eslint-disable-next-line no-unused-vars
         const cspTestStart = Date.now()
 
+        // eslint-disable-next-line no-unused-vars
         const injectionResult = await extensionController.attemptContentScriptInjection({
           enableCSPDetection: true,
           enableFallbackMethods: scenario.fallbackAvailable,
           detectCSPViolations: true
         })
 
+        // eslint-disable-next-line no-unused-vars
         const cspTestTime = Date.now() - cspTestStart
 
         cspHandlingResults.push({
@@ -662,7 +729,9 @@ describe('Content Script 注入整合測試', () => {
       })
 
       // 檢查CSP處理策略效果
+      // eslint-disable-next-line no-unused-vars
       const blockedScenarios = cspHandlingResults.filter(r => r.expectedBehavior === 'injection_blocked')
+      // eslint-disable-next-line no-unused-vars
       const fallbackScenarios = cspHandlingResults.filter(r => r.fallbackUsed)
 
       if (blockedScenarios.length > 0) {
@@ -682,6 +751,7 @@ describe('Content Script 注入整合測試', () => {
 
     test('應該防護惡意頁面對Content Script的干擾', async () => {
       // Given: 設置包含潛在惡意行為的測試頁面
+      // eslint-disable-next-line no-unused-vars
       const maliciousInterferenceTypes = [
         {
           type: 'dom_manipulation',
@@ -725,6 +795,7 @@ describe('Content Script 注入整合測試', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const securityResults = []
 
       for (const interferenceType of maliciousInterferenceTypes) {
@@ -732,8 +803,10 @@ describe('Content Script 注入整合測試', () => {
         await interferenceType.setup()
         await testSuite.injectMockBooks(testDataGenerator.generateBooks(40, `security-${interferenceType.type}-test`))
 
+        // eslint-disable-next-line no-unused-vars
         const securityTestStart = Date.now()
 
+        // eslint-disable-next-line no-unused-vars
         const injectionResult = await extensionController.injectContentScript({
           enableSecurityMode: true,
           detectMaliciousBehavior: true,
@@ -741,6 +814,7 @@ describe('Content Script 注入整合測試', () => {
         })
 
         // 嘗試執行提取功能
+        // eslint-disable-next-line no-unused-vars
         let extractionResult = { success: false, protected: false }
         if (injectionResult.success) {
           extractionResult = await extensionController.executeContentScriptExtraction({
@@ -750,6 +824,7 @@ describe('Content Script 注入整合測試', () => {
           })
         }
 
+        // eslint-disable-next-line no-unused-vars
         const securityTestTime = Date.now() - securityTestStart
 
         securityResults.push({
@@ -797,11 +872,14 @@ describe('Content Script 注入整合測試', () => {
       })
 
       // 檢查整體安全性表現
+      // eslint-disable-next-line no-unused-vars
       const protectedCount = securityResults.filter(r => r.extractionProtected).length
+      // eslint-disable-next-line no-unused-vars
       const protectionRate = protectedCount / securityResults.length
 
       expect(protectionRate).toBeGreaterThan(0.8) // 防護成功率>80%
 
+      // eslint-disable-next-line no-unused-vars
       const avgSecurityResponseTime = securityResults.reduce((sum, r) => sum + r.securityTestTime, 0) / securityResults.length
       expect(avgSecurityResponseTime).toBeLessThan(6000) // 平均安全響應<6秒
     })

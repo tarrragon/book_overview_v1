@@ -123,6 +123,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
 
   describe('🔍 URL 路徑分析', () => {
     test('應該正確解析完整的 Readmoo URL', () => {
+      // eslint-disable-next-line no-unused-vars
       const urlInfo = PageDetectionUtils.parseUrl('https://readmoo.com/library/bought?page=2&sort=date')
 
       expect(urlInfo).toEqual({
@@ -136,6 +137,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     })
 
     test('應該正確解析沒有查詢參數的 URL', () => {
+      // eslint-disable-next-line no-unused-vars
       const urlInfo = PageDetectionUtils.parseUrl('https://readmoo.com/shelf')
 
       expect(urlInfo).toEqual({
@@ -149,6 +151,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     })
 
     test('應該正確處理閱讀器頁面 URL', () => {
+      // eslint-disable-next-line no-unused-vars
       const urlInfo = PageDetectionUtils.parseUrl('https://readmoo.com/read/book-123')
 
       expect(urlInfo).toEqual({
@@ -162,6 +165,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     })
 
     test('應該正確處理非 Readmoo URL', () => {
+      // eslint-disable-next-line no-unused-vars
       const urlInfo = PageDetectionUtils.parseUrl('https://amazon.com/books')
 
       expect(urlInfo).toEqual({
@@ -175,6 +179,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     })
 
     test('應該處理無效的 URL', () => {
+      // eslint-disable-next-line no-unused-vars
       const urlInfo = PageDetectionUtils.parseUrl('invalid-url')
 
       expect(urlInfo).toEqual({
@@ -188,9 +193,12 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     })
 
     test('應該處理 null 和 undefined URL', () => {
+      // eslint-disable-next-line no-unused-vars
       const nullUrlInfo = PageDetectionUtils.parseUrl(null)
+      // eslint-disable-next-line no-unused-vars
       const undefinedUrlInfo = PageDetectionUtils.parseUrl(undefined)
 
+      // eslint-disable-next-line no-unused-vars
       const expectedResult = {
         hostname: '',
         pathname: '',
@@ -211,13 +219,16 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
       PageDetectionUtils.clearCache()
 
       // 第一次檢測
+      // eslint-disable-next-line no-unused-vars
       const result1 = PageDetectionUtils.getPageType('https://readmoo.com/library')
 
       // 檢查快取是否生效
+      // eslint-disable-next-line no-unused-vars
       const stats = PageDetectionUtils.getCacheStats()
       expect(stats.size).toBeGreaterThan(0)
 
       // 第二次檢測應該使用快取
+      // eslint-disable-next-line no-unused-vars
       const result2 = PageDetectionUtils.getPageType('https://readmoo.com/library')
 
       expect(result1).toBe('library')
@@ -231,6 +242,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
       PageDetectionUtils.getPageType('https://readmoo.com/shelf')
 
       // 確認快取有內容
+      // eslint-disable-next-line no-unused-vars
       let stats = PageDetectionUtils.getCacheStats()
       expect(stats.size).toBeGreaterThan(0)
 
@@ -249,6 +261,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
       PageDetectionUtils.getPageType('https://readmoo.com/library')
       PageDetectionUtils.getPageType('https://readmoo.com/shelf')
 
+      // eslint-disable-next-line no-unused-vars
       const stats = PageDetectionUtils.getCacheStats()
       expect(typeof stats).toBe('object')
       expect(typeof stats.size).toBe('number')
@@ -261,7 +274,9 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
       PageDetectionUtils.clearCache()
       PageDetectionUtils.getPageType('https://readmoo.com/library')
 
+      // eslint-disable-next-line no-unused-vars
       const stats = PageDetectionUtils.getCacheStats()
+      // eslint-disable-next-line no-unused-vars
       const hasPageTypeKey = stats.keys.some(key => key.includes('pageType:'))
       expect(hasPageTypeKey).toBe(true)
     })
@@ -269,6 +284,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
 
   describe('⚠️ 錯誤處理和邊界情況', () => {
     test('應該安全處理各種錯誤輸入', () => {
+      // eslint-disable-next-line no-unused-vars
       const errorInputs = [
         '', null, undefined, 123, {}, [], NaN, Infinity, -Infinity
       ]
@@ -281,6 +297,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     })
 
     test('應該正確處理特殊字符 URL', () => {
+      // eslint-disable-next-line no-unused-vars
       const specialUrls = [
         'https://readmoo.com/library?title=書名%20特殊',
         'https://readmoo.com/shelf/書架',
@@ -294,7 +311,9 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     })
 
     test('應該處理非常長的 URL', () => {
+      // eslint-disable-next-line no-unused-vars
       const longPath = '/library/' + 'a'.repeat(1000)
+      // eslint-disable-next-line no-unused-vars
       const longUrl = `https://readmoo.com${longPath}`
 
       expect(() => PageDetectionUtils.getPageType(longUrl)).not.toThrow()
@@ -302,12 +321,14 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     })
 
     test('應該處理 URL 中的查詢參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const url = 'https://readmoo.com/library?filter=all&page=1&sort=desc'
 
       // 先檢查基本功能
       expect(PageDetectionUtils.isReadmooDomain(url)).toBe(true)
       expect(PageDetectionUtils.getPageType(url)).toBe('library')
 
+      // eslint-disable-next-line no-unused-vars
       const result = PageDetectionUtils.parseUrl(url)
       expect(result.pageType).toBe('library')
       expect(result.search).toContain('filter=all')
@@ -316,6 +337,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
 
   describe('🧪 模組介面測試', () => {
     test('應該匯出所有必要的方法', () => {
+      // eslint-disable-next-line no-unused-vars
       const requiredMethods = [
         'isReadmooDomain',
         'getPageType',
@@ -347,12 +369,14 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
 
   describe('🔄 整合測試場景', () => {
     test('完整 Readmoo 書庫檢測流程', () => {
+      // eslint-disable-next-line no-unused-vars
       const libraryUrl = 'https://readmoo.com/library/bought?page=1'
 
       // 檢測網域
       expect(PageDetectionUtils.isReadmooDomain(libraryUrl)).toBe(true)
 
       // 檢測頁面類型
+      // eslint-disable-next-line no-unused-vars
       const pageType = PageDetectionUtils.getPageType(libraryUrl)
       expect(pageType).toBe('library')
 
@@ -360,6 +384,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
       expect(PageDetectionUtils.isExtractablePage(pageType)).toBe(true)
 
       // 解析 URL
+      // eslint-disable-next-line no-unused-vars
       const urlInfo = PageDetectionUtils.parseUrl(libraryUrl)
       expect(urlInfo.isReadmoo).toBe(true)
       expect(urlInfo.isExtractable).toBe(true)
@@ -367,45 +392,54 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     })
 
     test('完整 Readmoo 書架檢測流程', () => {
+      // eslint-disable-next-line no-unused-vars
       const shelfUrl = 'https://readmoo.com/shelf/favorites'
 
       expect(PageDetectionUtils.isReadmooDomain(shelfUrl)).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const pageType = PageDetectionUtils.getPageType(shelfUrl)
       expect(pageType).toBe('shelf')
 
       expect(PageDetectionUtils.isExtractablePage(pageType)).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const urlInfo = PageDetectionUtils.parseUrl(shelfUrl)
       expect(urlInfo.isReadmoo).toBe(true)
       expect(urlInfo.isExtractable).toBe(true)
     })
 
     test('閱讀器頁面應該被拒絕', () => {
+      // eslint-disable-next-line no-unused-vars
       const readerUrl = 'https://readmoo.com/read/book-123'
 
       expect(PageDetectionUtils.isReadmooDomain(readerUrl)).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const pageType = PageDetectionUtils.getPageType(readerUrl)
       expect(pageType).toBe('reader')
 
       expect(PageDetectionUtils.isExtractablePage(pageType)).toBe(false)
 
+      // eslint-disable-next-line no-unused-vars
       const urlInfo = PageDetectionUtils.parseUrl(readerUrl)
       expect(urlInfo.isReadmoo).toBe(true)
       expect(urlInfo.isExtractable).toBe(false)
     })
 
     test('非 Readmoo 頁面應該被完全拒絕', () => {
+      // eslint-disable-next-line no-unused-vars
       const externalUrl = 'https://amazon.com/kindle-books'
 
       expect(PageDetectionUtils.isReadmooDomain(externalUrl)).toBe(false)
 
+      // eslint-disable-next-line no-unused-vars
       const pageType = PageDetectionUtils.getPageType(externalUrl)
       expect(pageType).toBe('unknown')
 
       expect(PageDetectionUtils.isExtractablePage(pageType)).toBe(false)
 
+      // eslint-disable-next-line no-unused-vars
       const urlInfo = PageDetectionUtils.parseUrl(externalUrl)
       expect(urlInfo.isReadmoo).toBe(false)
       expect(urlInfo.isExtractable).toBe(false)

@@ -77,6 +77,7 @@ describe('PopupController 基礎架構測試', () => {
       // Given: PopupController 類別已定義
 
       // When: 建立 PopupController 實例
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController()
 
       // Then: 實例應該正確建立
@@ -87,6 +88,7 @@ describe('PopupController 基礎架構測試', () => {
 
     test('應該支援依賴注入容器', () => {
       // Given: PopupController 實例
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController()
 
       // When: 檢查組件容器
@@ -97,6 +99,7 @@ describe('PopupController 基礎架構測試', () => {
 
     test('應該提供初始化方法', async () => {
       // Given: PopupController 實例
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController()
       expect(controller.isInitialized).toBe(false)
 
@@ -111,10 +114,12 @@ describe('PopupController 基礎架構測試', () => {
   describe('🔧 組件初始化', () => {
     test('應該按順序初始化所有組件', async () => {
       // Given: PopupController 實例
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       expect(controller.isInitialized).toBe(false)
 
       // When: 初始化
+      // eslint-disable-next-line no-unused-vars
       const initResult = await controller.initialize()
 
       // Then: 初始化完成
@@ -122,6 +127,7 @@ describe('PopupController 基礎架構測試', () => {
       expect(controller.isInitialized).toBe(true)
 
       // 驗證所有組件都已初始化
+      // eslint-disable-next-line no-unused-vars
       const requiredComponents = ['ui', 'status', 'progress', 'communication', 'extraction']
       requiredComponents.forEach(componentName => {
         expect(controller.isComponentAvailable(componentName)).toBe(true)
@@ -131,6 +137,7 @@ describe('PopupController 基礎架構測試', () => {
 
     test('應該建立組件間依賴關係', async () => {
       // Given: PopupController 實例
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
 
       // When: 初始化
@@ -147,6 +154,7 @@ describe('PopupController 基礎架構測試', () => {
       expect(controller.getComponent('extraction')).toBeTruthy()
 
       // 驗證初始化狀態
+      // eslint-disable-next-line no-unused-vars
       const status = controller.getInitializationStatus()
       expect(status.isInitialized).toBe(true)
       expect(status.availableComponents.length).toBe(5)
@@ -155,6 +163,7 @@ describe('PopupController 基礎架構測試', () => {
 
     test('應該正確注入 DOM 文件依賴', () => {
       // Given: PopupController 實例與文件注入
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
 
       // When: 檢查文件引用
@@ -166,6 +175,7 @@ describe('PopupController 基礎架構測試', () => {
   describe('📡 事件協調 (未來實作)', () => {
     test('應該支援事件監聽器設置', async () => {
       // Given: PopupController 實例和初始化完成
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController()
       await controller.initialize()
 
@@ -181,6 +191,7 @@ describe('PopupController 基礎架構測試', () => {
 
     test('應該協調組件間通訊', async () => {
       // Given: PopupController 實例
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController()
       await controller.initialize()
 
@@ -198,6 +209,7 @@ describe('PopupController 基礎架構測試', () => {
   describe('🧹 資源清理', () => {
     test('應該正確清理所有資源', async () => {
       // Given: 已初始化的 PopupController
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
@@ -218,9 +230,11 @@ describe('PopupController 基礎架構測試', () => {
   describe('⚠️ 錯誤處理', () => {
     test('初始化成功時應該返回正確狀態', async () => {
       // Given: PopupController 實例
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
 
       // When: 執行初始化
+      // eslint-disable-next-line no-unused-vars
       const initResult = await controller.initialize()
 
       // Then: 應該成功處理
@@ -229,6 +243,7 @@ describe('PopupController 基礎架構測試', () => {
       expect(controller.initializationError).toBeNull()
 
       // 驗證初始化狀態
+      // eslint-disable-next-line no-unused-vars
       const status = controller.getInitializationStatus()
       expect(status.isInitialized).toBe(true)
       expect(status.initializationError).toBeNull()
@@ -237,6 +252,7 @@ describe('PopupController 基礎架構測試', () => {
 
     test('應該提供組件可用性檢查', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 

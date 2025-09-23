@@ -10,14 +10,18 @@
  */
 
 // 設置 Node.js 環境，避免 window 相關錯誤
+// eslint-disable-next-line no-unused-vars
 const mockWindow = {}
 global.window = mockWindow
 
+// eslint-disable-next-line no-unused-vars
 const EventHandler = require('src/core/event-handler')
 
 describe('StorageSaveHandler 單元測試', () => {
   let storageSaveHandler
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockStorageAdapter
 
   beforeEach(() => {
@@ -48,6 +52,7 @@ describe('StorageSaveHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 基本結構測試 ====================
   describe('🟢 綠燈階段 - 基本結構', () => {
     test('應該能創建 StorageSaveHandler 實例', () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
@@ -56,6 +61,7 @@ describe('StorageSaveHandler 單元測試', () => {
     })
 
     test('應該繼承自 EventHandler', () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
@@ -63,6 +69,7 @@ describe('StorageSaveHandler 單元測試', () => {
     })
 
     test('應該有正確的處理器名稱和優先級', () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
@@ -74,14 +81,17 @@ describe('StorageSaveHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 事件支援測試 ====================
   describe('🟢 綠燈階段 - 事件支援', () => {
     test('應該支援 STORAGE.SAVE.REQUESTED 事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
+      // eslint-disable-next-line no-unused-vars
       const supportedEvents = storageSaveHandler.getSupportedEvents()
       expect(supportedEvents).toContain('STORAGE.SAVE.REQUESTED')
     })
 
     test('應該能處理 STORAGE.SAVE.REQUESTED 事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
@@ -92,6 +102,7 @@ describe('StorageSaveHandler 單元測試', () => {
         size: 1024
       })
 
+      // eslint-disable-next-line no-unused-vars
       const saveEvent = {
         type: 'STORAGE.SAVE.REQUESTED',
         data: {
@@ -105,6 +116,7 @@ describe('StorageSaveHandler 單元測試', () => {
         timestamp: Date.now()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await storageSaveHandler.handle(saveEvent)
       expect(result).toBeDefined()
       expect(result.success).toBe(true)
@@ -114,6 +126,7 @@ describe('StorageSaveHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 儲存處理邏輯測試 ====================
   describe('🟢 綠燈階段 - 儲存處理邏輯', () => {
     test('應該能調用儲存適配器保存資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
@@ -124,6 +137,7 @@ describe('StorageSaveHandler 單元測試', () => {
         size: 1024
       })
 
+      // eslint-disable-next-line no-unused-vars
       const saveEvent = {
         type: 'STORAGE.SAVE.REQUESTED',
         data: {
@@ -144,6 +158,7 @@ describe('StorageSaveHandler 單元測試', () => {
     })
 
     test('應該在儲存成功後觸發 STORAGE.SAVE.COMPLETED 事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
@@ -153,6 +168,7 @@ describe('StorageSaveHandler 單元測試', () => {
         size: 1024
       })
 
+      // eslint-disable-next-line no-unused-vars
       const saveEvent = {
         type: 'STORAGE.SAVE.REQUESTED',
         data: { books: [{ id: '1', title: 'Test Book' }] },
@@ -172,13 +188,16 @@ describe('StorageSaveHandler 單元測試', () => {
     })
 
     test('應該能處理儲存失敗情況', async () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
       // 模擬儲存失敗
+      // eslint-disable-next-line no-unused-vars
       const saveError = new Error('Storage quota exceeded')
       mockStorageAdapter.save.mockRejectedValue(saveError)
 
+      // eslint-disable-next-line no-unused-vars
       const saveEvent = {
         type: 'STORAGE.SAVE.REQUESTED',
         data: { books: [{ id: '1', title: 'Test Book' }] },
@@ -200,9 +219,11 @@ describe('StorageSaveHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 資料驗證測試 ====================
   describe('🟢 綠燈階段 - 資料驗證', () => {
     test('應該驗證儲存資料的必要欄位', async () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
+      // eslint-disable-next-line no-unused-vars
       const invalidEvent = {
         type: 'STORAGE.SAVE.REQUESTED',
         data: {}, // 缺少必要的 books 資料
@@ -225,12 +246,14 @@ describe('StorageSaveHandler 單元測試', () => {
     })
 
     test('應該檢查儲存適配器的可用性', async () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
 
       // 模擬不可用的儲存適配器
       mockStorageAdapter.isAvailable.mockReturnValue(false)
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
+      // eslint-disable-next-line no-unused-vars
       const saveEvent = {
         type: 'STORAGE.SAVE.REQUESTED',
         data: { books: [{ id: '1', title: 'Test Book' }] },
@@ -252,11 +275,13 @@ describe('StorageSaveHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 效能和統計測試 ====================
   describe('🟢 綠燈階段 - 效能和統計', () => {
     test('應該記錄儲存操作的執行時間', async () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
       mockStorageAdapter.save.mockResolvedValue({ success: true })
 
+      // eslint-disable-next-line no-unused-vars
       const saveEvent = {
         type: 'STORAGE.SAVE.REQUESTED',
         data: { books: [{ id: '1', title: 'Test Book' }] },
@@ -270,9 +295,11 @@ describe('StorageSaveHandler 單元測試', () => {
     })
 
     test('應該提供儲存操作的統計資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageSaveHandler = require('src/storage/handlers/storage-save-handler')
       storageSaveHandler = new StorageSaveHandler(mockEventBus, mockStorageAdapter)
 
+      // eslint-disable-next-line no-unused-vars
       const stats = storageSaveHandler.getStats()
       expect(stats).toHaveProperty('executionCount')
       expect(stats).toHaveProperty('averageExecutionTime')

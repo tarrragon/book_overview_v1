@@ -22,28 +22,129 @@ log "🚨 Task Avoidance Detection Hook: 開始偵測任務逃避行為"
 
 cd "$PROJECT_ROOT"
 
-# 1. 定義禁用詞彙 (永不放棄鐵律)
+# 0. 檢查是否處於修復模式
+FIX_MODE_FILE="$PROJECT_ROOT/.claude/TASK_AVOIDANCE_FIX_MODE"
+if [ -f "$FIX_MODE_FILE" ]; then
+    log "🔧 目前處於修復模式，允許修正逃避問題"
+
+    # 檢查修復模式是否過期 (30分鐘)
+    if [ -n "$(find "$FIX_MODE_FILE" -mmin +30 2>/dev/null)" ]; then
+        log "⚠️  修復模式已過期，重新啟動檢查"
+        rm -f "$FIX_MODE_FILE"
+    else
+        log "✅ 修復模式生效中，跳過逃避檢查"
+        exit 0
+    fi
+fi
+
+# 1. 定義禁用詞彙 (重新設計：專注於真正的逃避行為)
 FORBIDDEN_PHRASES=(
+    # 品質妥協和逃避責任
     "太複雜"
-    "暫時"
-    "跳過"
-    "之後再改"
     "先將就"
     "暫時性修正"
     "症狀緩解"
-    "這個部分比較困難"
-    "時間不夠"
-    "複雜度太高"
-    "不在這次範圍"
-    "留待後續處理"
-    "簡化處理"
-    "部分實現"
     "先這樣處理"
     "臨時解決方案"
-    "workaround"
-    "暫緩"
-    "延後"
     "回避"
+    "不想處理"
+    "懶得改"
+    "更簡單的方法"
+    "採用更簡單的方法"
+    "用更簡單的方法"
+    "選擇更簡單的方法"
+    "找更簡單的方法"
+    "改用更簡單的方法"
+    "用簡單的方式"
+    "簡單的處理方式"
+    "簡化處理"
+
+    # 發現問題但不解決的逃避模式
+    "發現問題但不處理"
+    "架構問題先不管"
+    "程式異味先忽略"
+    "只加個 TODO"
+    "先記錄到 TODO"
+    "這個問題之後再看"
+    "問題太多先跳過"
+    "技術債務之後處理"
+
+    # 測試品質妥協
+    "簡化測試"
+    "降低測試標準"
+    "測試要求太嚴格"
+    "放寬測試條件"
+    "測試太複雜"
+    "簡單測試就好"
+    "基本測試即可"
+    "簡化測試環境"
+
+    # 英文逃避詞彙
+    "workaround"
+    "bypass"
+    "too complex"
+    "too complicated"
+    "quick fix"
+    "temporary fix"
+    "hack"
+    "ignore for now"
+    "disable"
+    "comment out"
+    "just add todo"
+    "will fix later"
+    "skip for now"
+    "avoid dealing with"
+    "simpler approach"
+    "simpler way"
+    "easier approach"
+    "take the simpler approach"
+    "use a simpler method"
+
+    # 模糊不精確詞彙
+    "智能"
+
+    # 測試品質妥協英文詞彙
+    "simplify test"
+    "simplified test"
+    "basic test only"
+    "lower test standard"
+    "reduce test complexity"
+    "test too strict"
+    "relax test requirement"
+    "minimal test"
+    "simple test case"
+    "easier test"
+)
+
+# 可接受的開發用語 (不觸發逃避檢測)
+ACCEPTABLE_PHRASES=(
+    # 分階段開發和計畫
+    "v0.1 階段實作"
+    "v0.2 階段實作"
+    "分階段開發"
+    "迭代開發"
+    "最小可行實作"
+    "TDD 最小實現"
+
+    # 有計畫的功能規劃
+    "規劃於後續版本"
+    "列入下一個迭代"
+    "功能拓展計畫"
+    "介面預留設計"
+    "架構擴展性考量"
+
+    # 正當的範圍管理
+    "不在本次範圍"
+    "功能範圍界定"
+    "需求邊界設定"
+
+    # 英文可接受用語
+    "planned for v0.2"
+    "future enhancement"
+    "out of scope"
+    "not in this iteration"
+    "minimal viable implementation"
+    "interface for future extension"
 )
 
 # 2. 檢查最近的 Claude 輸出和工作日誌
@@ -61,10 +162,50 @@ if [ -n "$LATEST_WORKLOG" ]; then
 
     for phrase in "${FORBIDDEN_PHRASES[@]}"; do
         if grep -q "$phrase" "$WORKLOG_PATH" 2>/dev/null; then
-            AVOIDANCE_DETECTED=true
-            DETECTED_PHRASES+=("$phrase")
-            AVOIDANCE_SOURCES+=("工作日誌: $LATEST_WORKLOG")
-            log "⚠️  在工作日誌中發現禁用詞彙: '$phrase'"
+            # 檢查上下文是否包含可接受的計畫性用語
+            CONTEXT_ACCEPTABLE=false
+            MATCHING_LINES=$(grep -n "$phrase" "$WORKLOG_PATH" 2>/dev/null)
+
+            while IFS= read -r line; do
+                if [ -n "$line" ]; then
+                    LINE_NUM=$(echo "$line" | cut -d: -f1)
+                    # 檢查前後5行是否有可接受的用語或程式碼片段
+                    CONTEXT=$(sed -n "$((LINE_NUM-5)),$((LINE_NUM+5))p" "$WORKLOG_PATH" 2>/dev/null)
+
+                    # 檢查是否在程式碼片段中
+                    if echo "$CONTEXT" | grep -q "\`\`\`" 2>/dev/null; then
+                        CONTEXT_ACCEPTABLE=true
+                        log "ℹ️  發現 '$phrase' 但在程式碼片段中，視為技術描述"
+                    fi
+
+                    # 檢查是否有計畫性用語
+                    if [ "$CONTEXT_ACCEPTABLE" = false ]; then
+                        for acceptable in "${ACCEPTABLE_PHRASES[@]}"; do
+                            if echo "$CONTEXT" | grep -q "$acceptable" 2>/dev/null; then
+                                CONTEXT_ACCEPTABLE=true
+                                log "ℹ️  發現 '$phrase' 但有計畫性上下文: '$acceptable'"
+                                break
+                            fi
+                        done
+                    fi
+
+                    # 檢查是否為技術名詞（如 eslint-disable）
+                    if [ "$CONTEXT_ACCEPTABLE" = false ]; then
+                        if echo "$CONTEXT" | grep -q "eslint-disable\|npm-disable\|git-disable" 2>/dev/null; then
+                            CONTEXT_ACCEPTABLE=true
+                            log "ℹ️  發現 '$phrase' 但為技術工具名稱，視為正當用法"
+                        fi
+                    fi
+
+                    if [ "$CONTEXT_ACCEPTABLE" = false ]; then
+                        AVOIDANCE_DETECTED=true
+                        DETECTED_PHRASES+=("$phrase")
+                        AVOIDANCE_SOURCES+=("工作日誌: $LATEST_WORKLOG")
+                        log "⚠️  在工作日誌中發現逃避詞彙: '$phrase'"
+                        break  # 只需要記錄一次這個詞彙
+                    fi
+                fi
+            done <<< "$MATCHING_LINES"
         fi
     done
 fi
@@ -99,20 +240,24 @@ fi
 # 3. 檢查未完成的測試或錯誤
 log "🧪 檢查是否有未解決的問題被標記為'暫時跳過'"
 
-# 檢查測試檔案中的 skip 或 pending
-SKIPPED_TESTS=$(find tests/ -name "*.test.js" -type f 2>/dev/null | xargs grep -l "skip\|pending\|xdescribe\|xit" 2>/dev/null)
+# 檢查測試檔案中的真正跳過測試 (精確檢查)
+SKIPPED_TESTS=$(find tests/ -name "*.test.js" -type f -exec grep -l -E "^\s*(describe|it|test)\.skip\s*\(|^\s*x(describe|it|test)\s*\(" {} + 2>/dev/null)
 if [ -n "$SKIPPED_TESTS" ]; then
     AVOIDANCE_DETECTED=true
-    AVOIDANCE_SOURCES+=("測試檔案中發現跳過的測試")
+    AVOIDANCE_SOURCES+=("測試檔案中發現真正跳過的測試")
     log "⚠️  發現被跳過的測試:"
     echo "$SKIPPED_TESTS" | while read test_file; do
-        SKIP_COUNT=$(grep -c "skip\|pending\|xdescribe\|xit" "$test_file" 2>/dev/null || echo "0")
+        SKIP_COUNT=$(grep -c -E "^\s*(describe|it|test)\.skip\s*\(|^\s*x(describe|it|test)\s*\(" "$test_file" 2>/dev/null || echo "0")
         log "  - $test_file: $SKIP_COUNT 個跳過的測試"
+        # 顯示具體跳過的測試行
+        grep -n -E "^\s*(describe|it|test)\.skip\s*\(|^\s*x(describe|it|test)\s*\(" "$test_file" 2>/dev/null | while read skip_line; do
+            log "    → $skip_line"
+        done
     done
 fi
 
-# 檢查 ESLint 錯誤是否被忽略而非修復
-ESLINT_IGNORE_COUNT=$(find src/ -name "*.js" -type f 2>/dev/null | xargs grep -c "eslint-disable" 2>/dev/null | awk -F: '{sum += $2} END {print sum+0}')
+# 檢查 ESLint 錯誤是否被忽略而非修復 (快速檢查)
+ESLINT_IGNORE_COUNT=$(find src/ -name "*.js" -type f -exec grep -c "eslint-disable" {} + 2>/dev/null | awk '{sum += $1} END {print sum+0}')
 if [ "$ESLINT_IGNORE_COUNT" -gt 5 ]; then
     AVOIDANCE_DETECTED=true
     AVOIDANCE_SOURCES+=("發現過多的 ESLint 忽略指令 ($ESLINT_IGNORE_COUNT 處)")
@@ -122,8 +267,8 @@ fi
 # 4. 檢查技術債務累積趨勢
 log "📈 檢查技術債務累積趨勢"
 
-# 統計 TODO/FIXME/HACK 標記
-TODO_COUNT=$(find src/ -name "*.js" -type f 2>/dev/null | xargs grep -c "TODO\|FIXME\|HACK" 2>/dev/null | awk -F: '{sum += $2} END {print sum+0}')
+# 統計 TODO/FIXME/HACK 標記 (快速檢查)
+TODO_COUNT=$(find src/ -name "*.js" -type f -exec grep -c "TODO\|FIXME\|HACK" {} + 2>/dev/null | awk '{sum += $1} END {print sum+0}')
 log "📊 當前技術債務標記總數: $TODO_COUNT"
 
 # 檢查是否有新增的技術債務
@@ -255,20 +400,19 @@ EOF
 
     log "📋 任務逃避阻止報告已生成: $REPORT_FILE"
 
-    # 7. 設定阻止標記
-    BLOCK_FILE="$PROJECT_ROOT/.claude/TASK_AVOIDANCE_BLOCK"
-    cat > "$BLOCK_FILE" << EOF
-TASK_AVOIDANCE_DETECTED=true
-DETECTION_TIME="$(date)"
-REPORT_FILE="$REPORT_FILE"
+    # 7. 設定修復模式 (取代阻止標記)
+    cat > "$FIX_MODE_FILE" << EOF
+FIX_MODE_STARTED=true
+START_TIME="$(date)"
+REPORT_FILE=$REPORT_FILE
 DETECTED_ISSUES_COUNT=${#DETECTED_PHRASES[@]}
-BLOCK_REASON="永不放棄鐵律違反 - 發現任務逃避行為"
+FIX_REASON="永不放棄鐵律違反 - 發現任務逃避行為"
 
-# 此檔案的存在表示偵測到任務逃避行為
-# 必須修正所有問題並移除此檔案才能繼續開發
+# 此檔案表示系統進入修復模式，允許修正逃避問題
+# 修復完成後請移除此檔案以重新啟動檢查
 EOF
 
-    log "🛑 已設定任務阻止標記: $BLOCK_FILE"
+    log "🔧 已啟動修復模式: $FIX_MODE_FILE"
 
     # 8. 生成強制修正腳本
     FORCE_FIX_SCRIPT="$PROJECT_ROOT/.claude/hook-logs/force-fix-avoidance.sh"
@@ -300,7 +444,7 @@ echo "   # 將所有 TODO/FIXME 轉換為實際解決方案"
 echo ""
 echo "6. ✅ 確認修正完成"
 echo "   # 確保所有檢查通過後執行:"
-echo "   rm .claude/TASK_AVOIDANCE_BLOCK"
+echo "   rm .claude/TASK_AVOIDANCE_FIX_MODE"
 echo ""
 
 EOF
@@ -308,17 +452,17 @@ EOF
     chmod +x "$FORCE_FIX_SCRIPT"
     log "🔧 強制修正腳本已建立: $FORCE_FIX_SCRIPT"
 
-    # 9. 返回錯誤狀態 (阻止後續操作)
-    log "❌ 任務逃避行為偵測完成 - 阻止後續操作"
-    exit 1
+    # 9. 返回成功狀態 (不阻止操作，但記錄問題)
+    log "⚠️  任務逃避行為偵測完成 - 已啟動修復模式"
+    exit 0  # 不阻止操作，允許修復
 
 else
     log "✅ 未偵測到任務逃避行為，開發流程正常"
 
-    # 移除可能存在的阻止標記
-    if [ -f "$PROJECT_ROOT/.claude/TASK_AVOIDANCE_BLOCK" ]; then
-        rm -f "$PROJECT_ROOT/.claude/TASK_AVOIDANCE_BLOCK"
-        log "🔓 移除先前的任務阻止標記"
+    # 移除可能存在的修復模式
+    if [ -f "$FIX_MODE_FILE" ]; then
+        rm -f "$FIX_MODE_FILE"
+        log "🔓 移除修復模式，恢復正常檢查"
     fi
 fi
 

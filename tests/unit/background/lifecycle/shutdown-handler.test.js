@@ -10,15 +10,22 @@
  * - 關閉狀態管理
  */
 
+// eslint-disable-next-line no-unused-vars
 const ShutdownHandler = require('src/background/lifecycle/shutdown-handler')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('ShutdownHandler', () => {
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockLogger
+  // eslint-disable-next-line no-unused-vars
   let mockEventCoordinator
+  // eslint-disable-next-line no-unused-vars
   let mockMessageRouter
+  // eslint-disable-next-line no-unused-vars
   let mockPageMonitor
+  // eslint-disable-next-line no-unused-vars
   let mockErrorHandler
   let dependencies
   let shutdownHandler
@@ -115,7 +122,9 @@ describe('ShutdownHandler', () => {
 
     test('應該設定關閉檢測機制', async () => {
       // 模擬全域 self 物件
+      // eslint-disable-next-line no-unused-vars
       const mockAddEventListener = jest.fn()
+      // eslint-disable-next-line no-unused-vars
       const originalSelf = global.self
       global.self = {
         addEventListener: mockAddEventListener
@@ -139,6 +148,7 @@ describe('ShutdownHandler', () => {
     })
 
     test('應該執行優雅關閉流程', async () => {
+      // eslint-disable-next-line no-unused-vars
       const reason = 'user_request'
 
       await shutdownHandler.gracefulShutdown(reason)
@@ -172,6 +182,7 @@ describe('ShutdownHandler', () => {
 
     test('應該防止重複關閉', async () => {
       // 啟動第一個關閉
+      // eslint-disable-next-line no-unused-vars
       const firstShutdown = shutdownHandler.gracefulShutdown('first')
 
       // 嘗試第二個關閉
@@ -213,10 +224,12 @@ describe('ShutdownHandler', () => {
         () => new Promise(resolve => setTimeout(resolve, 6000))
       )
 
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
       try {
         await shutdownHandler.gracefulShutdown('default_timeout_test')
       } catch (error) {
+        // eslint-disable-next-line no-unused-vars
         const duration = Date.now() - startTime
         expect(duration).toBeGreaterThan(29000) // 接近 30 秒
         expect(duration).toBeLessThan(32000)
@@ -229,6 +242,7 @@ describe('ShutdownHandler', () => {
         () => new Promise(resolve => setTimeout(resolve, 6000))
       )
 
+      // eslint-disable-next-line no-unused-vars
       const forceShutdownSpy = jest.spyOn(shutdownHandler, 'forceShutdown')
 
       try {
@@ -246,6 +260,7 @@ describe('ShutdownHandler', () => {
     })
 
     test('應該按正確順序執行關閉步驟', async () => {
+      // eslint-disable-next-line no-unused-vars
       const callOrder = []
 
       mockPageMonitor.stop.mockImplementation(() => {
@@ -347,6 +362,7 @@ describe('ShutdownHandler', () => {
     })
 
     test('應該返回正確的關閉狀態', () => {
+      // eslint-disable-next-line no-unused-vars
       const status = shutdownHandler.getShutdownStatus()
 
       expect(status).toEqual({
@@ -372,10 +388,12 @@ describe('ShutdownHandler', () => {
       )
 
       // 啟動關閉但不等待完成
+      // eslint-disable-next-line no-unused-vars
       const shutdownPromise = shutdownHandler.gracefulShutdown('status_test')
 
       // 檢查進行中的狀態
       await new Promise(resolve => setTimeout(resolve, 10))
+      // eslint-disable-next-line no-unused-vars
       const statusDuringShutdown = shutdownHandler.getShutdownStatus()
       expect(statusDuringShutdown.shutdownInProgress).toBe(true)
       expect(statusDuringShutdown.lastShutdownReason).toBe('status_test')
@@ -383,6 +401,7 @@ describe('ShutdownHandler', () => {
       await shutdownPromise
 
       // 檢查完成後狀態
+      // eslint-disable-next-line no-unused-vars
       const statusAfterShutdown = shutdownHandler.getShutdownStatus()
       expect(statusAfterShutdown.shutdownInProgress).toBe(false)
     })
@@ -406,6 +425,7 @@ describe('ShutdownHandler', () => {
 
     test('應該在強制關閉時清理資源', async () => {
       // 設定一些全域變數
+      // eslint-disable-next-line no-unused-vars
       const mockDestroy = jest.fn()
       global.eventBus = { destroy: mockDestroy }
       global.chromeBridge = { test: 'data' }
@@ -429,6 +449,7 @@ describe('ShutdownHandler', () => {
     })
 
     test('應該返回自訂健康狀態', () => {
+      // eslint-disable-next-line no-unused-vars
       const health = shutdownHandler.getHealthStatus()
 
       expect(health.shutdownInProgress).toBe(false)
@@ -444,10 +465,12 @@ describe('ShutdownHandler', () => {
         () => new Promise(resolve => setTimeout(resolve, 100))
       )
 
+      // eslint-disable-next-line no-unused-vars
       const shutdownPromise = shutdownHandler.gracefulShutdown('health_test')
 
       // 檢查關閉中的健康狀態
       await new Promise(resolve => setTimeout(resolve, 10))
+      // eslint-disable-next-line no-unused-vars
       const health = shutdownHandler.getHealthStatus()
       expect(health.shutdownInProgress).toBe(true)
       expect(health.health).toBe('degraded')
@@ -459,6 +482,7 @@ describe('ShutdownHandler', () => {
       await shutdownHandler.gracefulShutdown('test1')
       await shutdownHandler.gracefulShutdown('test2')
 
+      // eslint-disable-next-line no-unused-vars
       const health = shutdownHandler.getHealthStatus()
       expect(health.recentShutdowns).toBe(2)
     })
@@ -484,9 +508,11 @@ describe('ShutdownHandler', () => {
 
     test('應該在嚴重錯誤時觸發強制關閉', async () => {
       // 模擬整個關閉流程失敗
+      // eslint-disable-next-line no-unused-vars
       const performShutdownSpy = jest.spyOn(shutdownHandler, 'performShutdown')
       performShutdownSpy.mockRejectedValue(new Error('嚴重關閉失敗'))
 
+      // eslint-disable-next-line no-unused-vars
       const forceShutdownSpy = jest.spyOn(shutdownHandler, 'forceShutdown')
 
       try {

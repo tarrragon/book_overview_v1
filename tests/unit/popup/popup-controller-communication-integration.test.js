@@ -13,6 +13,7 @@
 const { JSDOM } = require('jsdom')
 
 // Mock Chrome Extension APIs
+// eslint-disable-next-line no-unused-vars
 const mockChromeAPI = {
   runtime: {
     getManifest: jest.fn(() => ({ version: '0.9.8' })),
@@ -84,12 +85,14 @@ describe('PopupController 通訊服務整合測試', () => {
   describe('🔴 Red 階段：通訊服務整合測試設計', () => {
     test('應該能夠整合真實的 PopupCommunicationService', async () => {
       // Given: PopupController 實例
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
 
       // When: 初始化控制器
       await controller.initialize()
 
       // Then: 通訊服務應該是真實的 PopupCommunicationService 實例
+      // eslint-disable-next-line no-unused-vars
       const communicationService = controller.getComponent('communication')
       expect(communicationService).toBeInstanceOf(PopupCommunicationService)
 
@@ -102,14 +105,18 @@ describe('PopupController 通訊服務整合測試', () => {
 
     test('應該正確注入依賴到 CommunicationService', async () => {
       // Given: PopupController 實例
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
 
       // When: 初始化
       await controller.initialize()
 
       // Then: CommunicationService 應該有正確的依賴注入
+      // eslint-disable-next-line no-unused-vars
       const communicationService = controller.getComponent('communication')
+      // eslint-disable-next-line no-unused-vars
       const statusManager = controller.getComponent('status')
+      // eslint-disable-next-line no-unused-vars
       const progressManager = controller.getComponent('progress')
 
       expect(communicationService).toBeDefined()
@@ -123,12 +130,15 @@ describe('PopupController 通訊服務整合測試', () => {
 
     test('應該能夠檢查 Background Service Worker 狀態', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const communicationService = controller.getComponent('communication')
 
       // 在測試環境中，應該跳過實際的背景檢查
+      // eslint-disable-next-line no-unused-vars
       const originalEnv = process.env.NODE_ENV
       process.env.NODE_ENV = 'production' // 臨時設為非測試環境以測試實際通訊
 
@@ -147,6 +157,7 @@ describe('PopupController 通訊服務整合測試', () => {
       })
 
       // When: 檢查背景狀態
+      // eslint-disable-next-line no-unused-vars
       const statusResult = await communicationService.checkBackgroundStatus()
 
       // Then: 應該正確取得狀態並更新 UI
@@ -163,12 +174,15 @@ describe('PopupController 通訊服務整合測試', () => {
 
     test('應該處理 Background 通訊超時', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const communicationService = controller.getComponent('communication')
 
       // 在測試環境中，應該跳過實際的背景檢查
+      // eslint-disable-next-line no-unused-vars
       const originalEnv = process.env.NODE_ENV
       process.env.NODE_ENV = 'production' // 臨時設為非測試環境以測試實際通訊
 
@@ -191,12 +205,15 @@ describe('PopupController 通訊服務整合測試', () => {
 
     test('應該處理 Chrome API 錯誤', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const communicationService = controller.getComponent('communication')
 
       // 在測試環境中，應該跳過實際的背景檢查
+      // eslint-disable-next-line no-unused-vars
       const originalEnv = process.env.NODE_ENV
       process.env.NODE_ENV = 'production' // 臨時設為非測試環境以測試實際通訊
 
@@ -220,9 +237,11 @@ describe('PopupController 通訊服務整合測試', () => {
 
     test('應該能夠檢查 Readmoo 頁面', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const communicationService = controller.getComponent('communication')
 
       // When: 檢查不同的 URL
@@ -238,9 +257,11 @@ describe('PopupController 通訊服務整合測試', () => {
 
     test('應該能夠開始提取流程', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const communicationService = controller.getComponent('communication')
 
       // Mock tabs.query 回應
@@ -258,6 +279,7 @@ describe('PopupController 通訊服務整合測試', () => {
       })
 
       // When: 開始提取
+      // eslint-disable-next-line no-unused-vars
       const extractionResult = await communicationService.startExtraction()
 
       // Then: 應該正確開始提取
@@ -276,9 +298,11 @@ describe('PopupController 通訊服務整合測試', () => {
 
     test('應該處理非 Readmoo 頁面的提取請求', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const communicationService = controller.getComponent('communication')
 
       // Mock tabs.query 回應非 Readmoo 頁面
@@ -301,9 +325,11 @@ describe('PopupController 通訊服務整合測試', () => {
 
     test('應該處理沒有活躍標籤頁的情況', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const communicationService = controller.getComponent('communication')
 
       // Mock tabs.query 回應空陣列
@@ -322,9 +348,11 @@ describe('PopupController 通訊服務整合測試', () => {
 
     test('應該能夠處理訊息監聽', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const communicationService = controller.getComponent('communication')
 
       // When: 檢查訊息監聽器是否已註冊
@@ -335,12 +363,15 @@ describe('PopupController 通訊服務整合測試', () => {
 
     test('應該正確處理進度更新訊息', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const communicationService = controller.getComponent('communication')
 
       // When: 模擬接收進度更新訊息
+      // eslint-disable-next-line no-unused-vars
       const progressMessage = {
         type: 'EXTRACTION_PROGRESS',
         data: {
@@ -360,12 +391,15 @@ describe('PopupController 通訊服務整合測試', () => {
 
     test('應該正確處理提取完成訊息', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const communicationService = controller.getComponent('communication')
 
       // When: 模擬接收提取完成訊息
+      // eslint-disable-next-line no-unused-vars
       const completionMessage = {
         type: 'EXTRACTION_COMPLETED',
         data: {
@@ -385,12 +419,15 @@ describe('PopupController 通訊服務整合測試', () => {
 
     test('應該正確處理提取錯誤訊息', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const communicationService = controller.getComponent('communication')
 
       // When: 模擬接收錯誤訊息
+      // eslint-disable-next-line no-unused-vars
       const errorMessage = {
         type: 'EXTRACTION_ERROR',
         data: {
@@ -410,10 +447,13 @@ describe('PopupController 通訊服務整合測試', () => {
   describe('⚠️ 錯誤處理測試', () => {
     test('應該能夠清理訊息監聽器', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const communicationService = controller.getComponent('communication')
+      // eslint-disable-next-line no-unused-vars
       const originalListener = communicationService.messageListener
 
       // When: 清理資源

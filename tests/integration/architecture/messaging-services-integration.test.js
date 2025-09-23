@@ -8,10 +8,13 @@
  * - 基本功能運作
  */
 
+// eslint-disable-next-line no-unused-vars
 const MessagingDomainCoordinator = require('src/background/domains/messaging/messaging-domain-coordinator')
 
 describe('訊息服務架構整合驗證', () => {
+  // eslint-disable-next-line no-unused-vars
   let coordinator
+  // eslint-disable-next-line no-unused-vars
   let mockDependencies
 
   beforeEach(() => {
@@ -36,6 +39,7 @@ describe('訊息服務架構整合驗證', () => {
 
   describe('服務註冊與初始化', () => {
     test('應該成功註冊所有5個訊息服務', () => {
+      // eslint-disable-next-line no-unused-vars
       const expectedServices = [
         'validation',
         'queue',
@@ -53,9 +57,11 @@ describe('訊息服務架構整合驗證', () => {
     })
 
     test('應該為每個服務設置正確的初始狀態', () => {
+      // eslint-disable-next-line no-unused-vars
       const expectedServices = ['validation', 'queue', 'connection', 'session', 'routing']
 
       expectedServices.forEach(serviceName => {
+        // eslint-disable-next-line no-unused-vars
         const serviceState = coordinator.serviceStates.get(serviceName)
         expect(serviceState).toEqual({
           initialized: false,
@@ -70,6 +76,7 @@ describe('訊息服務架構整合驗證', () => {
 
   describe('新建服務功能驗證', () => {
     test('ConnectionMonitoringService 應該具備基本監控功能', () => {
+      // eslint-disable-next-line no-unused-vars
       const connectionService = coordinator.services.get('connection')
 
       // 驗證服務實例存在
@@ -83,6 +90,7 @@ describe('訊息服務架構整合驗證', () => {
     })
 
     test('MessageValidationService 應該具備驗證功能', () => {
+      // eslint-disable-next-line no-unused-vars
       const validationService = coordinator.services.get('validation')
 
       expect(validationService).toBeDefined()
@@ -94,6 +102,7 @@ describe('訊息服務架構整合驗證', () => {
     })
 
     test('QueueManagementService 應該具備佇列管理功能', () => {
+      // eslint-disable-next-line no-unused-vars
       const queueService = coordinator.services.get('queue')
 
       expect(queueService).toBeDefined()
@@ -125,9 +134,11 @@ describe('訊息服務架構整合驗證', () => {
 
   describe('服務協作驗證', () => {
     test('所有服務應該接收相同的依賴注入', () => {
+      // eslint-disable-next-line no-unused-vars
       const services = ['validation', 'queue', 'connection', 'session', 'routing']
 
       services.forEach(serviceName => {
+        // eslint-disable-next-line no-unused-vars
         const service = coordinator.services.get(serviceName)
 
         // 驗證依賴注入
@@ -146,7 +157,9 @@ describe('訊息服務架構整合驗證', () => {
 
   describe('架構完整性驗證', () => {
     test('v0.11.1 新增服務應該與既有服務並存', () => {
+      // eslint-disable-next-line no-unused-vars
       const existingServices = ['session', 'routing']
+      // eslint-disable-next-line no-unused-vars
       const newServices = ['validation', 'queue', 'connection']
 
       // 驗證既有服務仍然存在

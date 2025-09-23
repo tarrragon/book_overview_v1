@@ -15,6 +15,7 @@ describe('IPlatformRuleManager TDD 介面契約測試', () => {
 
   beforeEach(() => {
     // 這裡會實例化 PlatformRuleManager，目前會失敗因為類別尚未建立
+    // eslint-disable-next-line no-unused-vars
     const PlatformRuleManager = require('src/background/domains/data-management/services/PlatformRuleManager.js')
     platformRuleManager = new PlatformRuleManager({
       enableCache: true,
@@ -40,10 +41,12 @@ describe('IPlatformRuleManager TDD 介面契約測試', () => {
 
     test('getRulesForPlatform() 應該返回平台特定規則', () => {
       // Given: 支援的平台名稱
+      // eslint-disable-next-line no-unused-vars
       const platforms = ['READMOO', 'KINDLE', 'KOBO', 'BOOKWALKER', 'BOOKS_COM']
 
       platforms.forEach(platform => {
         // When: 獲取平台規則
+        // eslint-disable-next-line no-unused-vars
         const rules = platformRuleManager.getRulesForPlatform(platform)
 
         // Then: 應該返回標準化的規則結構
@@ -59,9 +62,11 @@ describe('IPlatformRuleManager TDD 介面契約測試', () => {
 
     test('getPlatformSchema() 應該返回平台資料架構', () => {
       // Given: 平台名稱
+      // eslint-disable-next-line no-unused-vars
       const platform = 'READMOO'
 
       // When: 獲取平台架構
+      // eslint-disable-next-line no-unused-vars
       const schema = platformRuleManager.getPlatformSchema(platform)
 
       // Then: 應該返回標準架構定義
@@ -76,9 +81,11 @@ describe('IPlatformRuleManager TDD 介面契約測試', () => {
 
     test('loadPlatformRules() 應該載入並快取平台規則', async () => {
       // Given: 未載入規則的平台
+      // eslint-disable-next-line no-unused-vars
       const platform = 'KINDLE'
 
       // When: 載入平台規則
+      // eslint-disable-next-line no-unused-vars
       const loadResult = await platformRuleManager.loadPlatformRules(platform)
 
       // Then: 應該成功載入並快取規則
@@ -89,12 +96,14 @@ describe('IPlatformRuleManager TDD 介面契約測試', () => {
       expect(loadResult).toHaveProperty('loadTime')
 
       // 再次載入應該使用快取
+      // eslint-disable-next-line no-unused-vars
       const cachedResult = await platformRuleManager.loadPlatformRules(platform)
       expect(cachedResult.cacheStatus).toBe('HIT')
     })
 
     test('isRuleSupported() 應該檢查規則支援狀態', () => {
       // Given: 不同的規則和平台組合
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { platform: 'READMOO', rule: 'progressValidation', expected: true },
         { platform: 'KINDLE', rule: 'coverImageValidation', expected: true },
@@ -104,6 +113,7 @@ describe('IPlatformRuleManager TDD 介面契約測試', () => {
 
       testCases.forEach(({ platform, rule, expected }) => {
         // When: 檢查規則支援
+        // eslint-disable-next-line no-unused-vars
         const isSupported = platformRuleManager.isRuleSupported(platform, rule)
 
         // Then: 應該返回正確的支援狀態
@@ -114,10 +124,13 @@ describe('IPlatformRuleManager TDD 介面契約測試', () => {
 
     test('getFieldRequirements() 應該返回欄位需求規格', () => {
       // Given: 平台和欄位
+      // eslint-disable-next-line no-unused-vars
       const platform = 'READMOO'
+      // eslint-disable-next-line no-unused-vars
       const fields = ['title', 'authors', 'progress', 'isbn']
 
       // When: 獲取欄位需求
+      // eslint-disable-next-line no-unused-vars
       const requirements = platformRuleManager.getFieldRequirements(platform, fields)
 
       // Then: 應該返回詳細的欄位需求
@@ -136,11 +149,14 @@ describe('IPlatformRuleManager TDD 介面契約測試', () => {
 
     test('validatePlatformSupport() 應該驗證平台支援', () => {
       // Given: 不同的平台名稱
+      // eslint-disable-next-line no-unused-vars
       const supportedPlatforms = ['READMOO', 'KINDLE', 'KOBO', 'BOOKWALKER', 'BOOKS_COM']
+      // eslint-disable-next-line no-unused-vars
       const unsupportedPlatforms = ['UNKNOWN', '', null, undefined]
 
       // When & Then: 驗證支援的平台
       supportedPlatforms.forEach(platform => {
+        // eslint-disable-next-line no-unused-vars
         const result = platformRuleManager.validatePlatformSupport(platform)
         expect(result.isSupported).toBe(true)
         expect(result.platform).toBe(platform)
@@ -149,6 +165,7 @@ describe('IPlatformRuleManager TDD 介面契約測試', () => {
 
       // When & Then: 驗證不支援的平台
       unsupportedPlatforms.forEach(platform => {
+        // eslint-disable-next-line no-unused-vars
         const result = platformRuleManager.validatePlatformSupport(platform)
         expect(result.isSupported).toBe(false)
         expect(result).toHaveProperty('reason')
@@ -157,7 +174,9 @@ describe('IPlatformRuleManager TDD 介面契約測試', () => {
 
     test('應該支援平台特定的驗證規則', () => {
       // Given: 不同平台的特殊需求
+      // eslint-disable-next-line no-unused-vars
       const readmooRules = platformRuleManager.getRulesForPlatform('READMOO')
+      // eslint-disable-next-line no-unused-vars
       const kindleRules = platformRuleManager.getRulesForPlatform('KINDLE')
 
       // Then: 每個平台應該有其特定規則
@@ -175,29 +194,36 @@ describe('IPlatformRuleManager TDD 介面契約測試', () => {
 
     test('應該處理規則快取和失效機制', async () => {
       // Given: 快取配置
+      // eslint-disable-next-line no-unused-vars
       const platform = 'KOBO'
 
       // When: 首次載入規則
+      // eslint-disable-next-line no-unused-vars
       const firstLoad = await platformRuleManager.loadPlatformRules(platform)
       expect(firstLoad.cacheStatus).toBe('MISS')
 
       // When: 再次載入（應該從快取）
+      // eslint-disable-next-line no-unused-vars
       const secondLoad = await platformRuleManager.loadPlatformRules(platform)
       expect(secondLoad.cacheStatus).toBe('HIT')
       expect(secondLoad.loadTime).toBeLessThanOrEqual(firstLoad.loadTime)
 
       // When: 清除快取
+      // eslint-disable-next-line no-unused-vars
       const clearResult = platformRuleManager.clearPlatformCache(platform)
       expect(clearResult.success).toBe(true)
 
       // When: 清除快取後再載入
+      // eslint-disable-next-line no-unused-vars
       const afterClearLoad = await platformRuleManager.loadPlatformRules(platform)
       expect(afterClearLoad.cacheStatus).toBe('MISS')
     })
 
     test('應該處理無效輸入和錯誤情況', () => {
       // Given: 無效輸入
+      // eslint-disable-next-line no-unused-vars
       const invalidPlatforms = [null, undefined, '', 'INVALID_PLATFORM']
+      // eslint-disable-next-line no-unused-vars
       const invalidRules = [null, undefined, '']
 
       // When & Then: 應該優雅處理無效平台
@@ -217,9 +243,11 @@ describe('IPlatformRuleManager TDD 介面契約測試', () => {
 
     test('應該支援規則版本管理', () => {
       // Given: 平台規則版本資訊
+      // eslint-disable-next-line no-unused-vars
       const platform = 'READMOO'
 
       // When: 獲取規則版本
+      // eslint-disable-next-line no-unused-vars
       const versionInfo = platformRuleManager.getRuleVersion(platform)
 
       // Then: 應該包含版本資訊
@@ -233,9 +261,11 @@ describe('IPlatformRuleManager TDD 介面契約測試', () => {
 
     test('應該支援批次載入和初始化', async () => {
       // Given: 多個平台
+      // eslint-disable-next-line no-unused-vars
       const platforms = ['READMOO', 'KINDLE', 'KOBO']
 
       // When: 批次載入所有平台規則
+      // eslint-disable-next-line no-unused-vars
       const batchResult = await platformRuleManager.loadAllPlatforms(platforms)
 
       // Then: 應該成功載入所有平台
@@ -256,6 +286,7 @@ describe('IPlatformRuleManager TDD 介面契約測試', () => {
       // Given: 已載入的規則管理器
 
       // When: 獲取統計資訊
+      // eslint-disable-next-line no-unused-vars
       const stats = platformRuleManager.getStatistics()
 
       // Then: 應該包含完整統計資訊

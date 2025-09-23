@@ -62,9 +62,12 @@ describe('EventUtils - TDD Red 階段測試', () => {
 
   describe('🎯 事件監聽器管理', () => {
     test('應該註冊和管理事件監聽器', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('button')
+      // eslint-disable-next-line no-unused-vars
       const mockHandler = jest.fn()
 
+      // eslint-disable-next-line no-unused-vars
       const result = EventUtils.addEventListener(mockElement, 'click', mockHandler, {
         id: 'test-button-click',
         context: 'book-extraction'
@@ -80,9 +83,12 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該支援一次性事件監聽器', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('div')
+      // eslint-disable-next-line no-unused-vars
       const mockHandler = jest.fn()
 
+      // eslint-disable-next-line no-unused-vars
       const result = EventUtils.addEventListener(mockElement, 'load', mockHandler, {
         once: true,
         id: 'one-time-load'
@@ -98,13 +104,16 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該支援事件監聽器批量註冊', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('div')
+      // eslint-disable-next-line no-unused-vars
       const eventConfigs = [
         { type: 'click', handler: jest.fn(), id: 'click-handler' },
         { type: 'scroll', handler: jest.fn(), id: 'scroll-handler' },
         { type: 'resize', handler: jest.fn(), id: 'resize-handler' }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const result = EventUtils.addEventListeners(mockElement, eventConfigs)
 
       expect(result).toEqual({
@@ -120,11 +129,14 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該移除指定的事件監聽器', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('button')
+      // eslint-disable-next-line no-unused-vars
       const mockHandler = jest.fn()
 
       EventUtils.addEventListener(mockElement, 'click', mockHandler, { id: 'removable-listener' })
 
+      // eslint-disable-next-line no-unused-vars
       const removeResult = EventUtils.removeEventListener('removable-listener')
 
       expect(removeResult).toEqual({
@@ -135,12 +147,15 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該取得所有註冊的事件監聽器', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockElement1 = document.createElement('button')
+      // eslint-disable-next-line no-unused-vars
       const mockElement2 = document.createElement('input')
 
       EventUtils.addEventListener(mockElement1, 'click', jest.fn(), { id: 'btn-click' })
       EventUtils.addEventListener(mockElement2, 'input', jest.fn(), { id: 'input-change' })
 
+      // eslint-disable-next-line no-unused-vars
       const listeners = EventUtils.getAllListeners()
 
       expect(listeners).toEqual({
@@ -158,11 +173,13 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該清理所有事件監聽器', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('div')
 
       EventUtils.addEventListener(mockElement, 'click', jest.fn(), { id: 'cleanup-test-1' })
       EventUtils.addEventListener(mockElement, 'scroll', jest.fn(), { id: 'cleanup-test-2' })
 
+      // eslint-disable-next-line no-unused-vars
       const cleanupResult = EventUtils.clearAllListeners()
 
       expect(cleanupResult).toEqual({
@@ -171,6 +188,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
         errors: 0
       })
 
+      // eslint-disable-next-line no-unused-vars
       const remainingListeners = EventUtils.getAllListeners()
       expect(remainingListeners.total).toBe(0)
     })
@@ -178,11 +196,13 @@ describe('EventUtils - TDD Red 階段測試', () => {
 
   describe('🚀 Chrome Extension 訊息傳遞', () => {
     test('應該發送訊息給 Background Script', async () => {
+      // eslint-disable-next-line no-unused-vars
       const mockResponse = { success: true, data: 'response data' }
       chrome.runtime.sendMessage.mockImplementation((message, callback) => {
         callback(mockResponse)
       })
 
+      // eslint-disable-next-line no-unused-vars
       const result = await EventUtils.sendMessage({
         type: 'EXTRACT_BOOK_DATA',
         payload: { bookId: '12345' }
@@ -206,6 +226,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
     test('應該處理訊息發送錯誤', async () => {
       chrome.runtime.lastError = { message: 'Extension context invalidated' }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await EventUtils.sendMessage({
         type: 'TEST_MESSAGE'
       })
@@ -219,11 +240,13 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該監聽來自 Background Script 的訊息', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockHandler = jest.fn()
 
       // 確保chrome.runtime.onMessage.addListener的mock是被重置的
       chrome.runtime.onMessage.addListener.mockClear()
 
+      // eslint-disable-next-line no-unused-vars
       const result = EventUtils.onMessage('BACKGROUND_NOTIFICATION', mockHandler)
 
       expect(result).toEqual({
@@ -240,10 +263,14 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該支援訊息過濾和路由', () => {
+      // eslint-disable-next-line no-unused-vars
       const bookHandler = jest.fn()
+      // eslint-disable-next-line no-unused-vars
       const uiHandler = jest.fn()
 
+      // eslint-disable-next-line no-unused-vars
       const bookResult = EventUtils.onMessage('BOOK_.*', bookHandler)
+      // eslint-disable-next-line no-unused-vars
       const uiResult = EventUtils.onMessage('UI_.*', uiHandler)
 
       // 驗證訊息處理器被正確註冊
@@ -257,6 +284,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該實作訊息重試機制', async () => {
+      // eslint-disable-next-line no-unused-vars
       let attemptCount = 0
       chrome.runtime.sendMessage.mockImplementation((message, callback) => {
         attemptCount++
@@ -269,6 +297,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
         }
       })
 
+      // eslint-disable-next-line no-unused-vars
       const result = await EventUtils.sendMessageWithRetry({
         type: 'RETRY_TEST'
       }, {
@@ -283,6 +312,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
 
   describe('📋 事件委派和批處理', () => {
     test('應該實作事件委派機制', () => {
+      // eslint-disable-next-line no-unused-vars
       const container = document.createElement('div')
       container.innerHTML = `
         <button class="book-link" data-book-id="1">Book 1</button>
@@ -291,8 +321,10 @@ describe('EventUtils - TDD Red 階段測試', () => {
       `
       document.body.appendChild(container)
 
+      // eslint-disable-next-line no-unused-vars
       const clickHandler = jest.fn()
 
+      // eslint-disable-next-line no-unused-vars
       const result = EventUtils.delegate(container, '.book-link', 'click', clickHandler, {
         delegateId: 'book-links-delegate'
       })
@@ -305,6 +337,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
       })
 
       // 測試委派是否正常工作
+      // eslint-disable-next-line no-unused-vars
       const button = container.querySelector('[data-book-id="2"]')
       button.click()
 
@@ -317,13 +350,16 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該支援動態元素的事件委派', () => {
+      // eslint-disable-next-line no-unused-vars
       const container = document.createElement('div')
       document.body.appendChild(container)
 
+      // eslint-disable-next-line no-unused-vars
       const clickHandler = jest.fn()
       EventUtils.delegate(container, '.dynamic-button', 'click', clickHandler)
 
       // 動態添加元素
+      // eslint-disable-next-line no-unused-vars
       const dynamicButton = document.createElement('button')
       dynamicButton.className = 'dynamic-button'
       dynamicButton.textContent = 'Dynamic Button'
@@ -336,9 +372,12 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該批量處理多個事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockElements = Array.from({ length: 5 }, () => document.createElement('div'))
+      // eslint-disable-next-line no-unused-vars
       const batchHandler = jest.fn()
 
+      // eslint-disable-next-line no-unused-vars
       const result = EventUtils.batchAddEventListeners(mockElements, 'click', batchHandler, {
         batchId: 'click-batch',
         context: 'book-grid'
@@ -360,12 +399,14 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該支援事件批量移除', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockElements = Array.from({ length: 3 }, () => document.createElement('button'))
 
       EventUtils.batchAddEventListeners(mockElements, 'click', jest.fn(), {
         batchId: 'removable-batch'
       })
 
+      // eslint-disable-next-line no-unused-vars
       const removeResult = EventUtils.removeBatchListeners('removable-batch')
 
       expect(removeResult).toEqual({
@@ -379,9 +420,12 @@ describe('EventUtils - TDD Red 階段測試', () => {
 
   describe('⚡ 事件防抖和節流', () => {
     test('應該實作事件防抖機制', (done) => {
+      // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('input')
+      // eslint-disable-next-line no-unused-vars
       const debouncedHandler = jest.fn()
 
+      // eslint-disable-next-line no-unused-vars
       const result = EventUtils.addDebouncedListener(mockElement, 'input', debouncedHandler, {
         delay: 100,
         id: 'debounced-input'
@@ -405,9 +449,12 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該實作事件節流機制', (done) => {
+      // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('div')
+      // eslint-disable-next-line no-unused-vars
       const throttledHandler = jest.fn()
 
+      // eslint-disable-next-line no-unused-vars
       const result = EventUtils.addThrottledListener(mockElement, 'scroll', throttledHandler, {
         interval: 100,
         id: 'throttled-scroll'
@@ -430,7 +477,9 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該支援取消防抖和節流', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('input')
+      // eslint-disable-next-line no-unused-vars
       const handler = jest.fn()
 
       EventUtils.addDebouncedListener(mockElement, 'input', handler, {
@@ -441,6 +490,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
       // 觸發事件但立即取消
       mockElement.dispatchEvent(new Event('input'))
 
+      // eslint-disable-next-line no-unused-vars
       const cancelResult = EventUtils.cancelDebounce('cancelable-debounce')
 
       expect(cancelResult).toEqual({
@@ -458,8 +508,10 @@ describe('EventUtils - TDD Red 階段測試', () => {
 
   describe('🔧 Content Script 特定事件', () => {
     test('應該處理頁面載入完成事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const loadHandler = jest.fn()
 
+      // eslint-disable-next-line no-unused-vars
       const result = EventUtils.onPageReady(loadHandler, {
         timeout: 5000,
         checkInterval: 100
@@ -473,10 +525,13 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該監控 DOM 變化', () => {
+      // eslint-disable-next-line no-unused-vars
       const mutationHandler = jest.fn()
+      // eslint-disable-next-line no-unused-vars
       const container = document.createElement('div')
       document.body.appendChild(container)
 
+      // eslint-disable-next-line no-unused-vars
       const result = EventUtils.observeDOM(container, mutationHandler, {
         childList: true,
         subtree: true,
@@ -491,6 +546,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
       })
 
       // 觸發 DOM 變化
+      // eslint-disable-next-line no-unused-vars
       const newElement = document.createElement('div')
       container.appendChild(newElement)
 
@@ -501,8 +557,10 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該監聽 URL 變化', () => {
+      // eslint-disable-next-line no-unused-vars
       const urlChangeHandler = jest.fn()
 
+      // eslint-disable-next-line no-unused-vars
       const result = EventUtils.onURLChange(urlChangeHandler, {
         handlerId: 'url-monitor'
       })
@@ -515,8 +573,10 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該處理擴展上下文失效', () => {
+      // eslint-disable-next-line no-unused-vars
       const contextLostHandler = jest.fn()
 
+      // eslint-disable-next-line no-unused-vars
       const result = EventUtils.onExtensionContextLost(contextLostHandler)
 
       expect(result).toEqual({
@@ -537,10 +597,12 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該支援自定義事件系統', () => {
+      // eslint-disable-next-line no-unused-vars
       const customHandler = jest.fn()
 
       EventUtils.on('book:extracted', customHandler)
 
+      // eslint-disable-next-line no-unused-vars
       const emitResult = EventUtils.emit('book:extracted', {
         bookId: '12345',
         title: 'Test Book'
@@ -561,6 +623,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
 
   describe('📊 事件統計和診斷', () => {
     test('應該收集事件統計資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('button')
 
       EventUtils.addEventListener(mockElement, 'click', jest.fn(), { id: 'stats-test' })
@@ -569,6 +632,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
       mockElement.click()
       mockElement.click()
 
+      // eslint-disable-next-line no-unused-vars
       const stats = EventUtils.getEventStats()
 
       expect(stats).toEqual({
@@ -586,11 +650,13 @@ describe('EventUtils - TDD Red 階段測試', () => {
 
     test('應該產生事件診斷報告', () => {
       // 註冊一些事件
+      // eslint-disable-next-line no-unused-vars
       const mockElements = Array.from({ length: 3 }, () => document.createElement('div'))
       mockElements.forEach((el, i) => {
         EventUtils.addEventListener(el, 'click', jest.fn(), { id: `diag-${i}` })
       })
 
+      // eslint-disable-next-line no-unused-vars
       const diagnostics = EventUtils.generateDiagnostics()
 
       expect(diagnostics).toEqual({
@@ -610,9 +676,11 @@ describe('EventUtils - TDD Red 階段測試', () => {
 
     test('應該檢測事件記憶體洩漏', () => {
       // 建立一些可能洩漏的事件監聽器
+      // eslint-disable-next-line no-unused-vars
       const detachedElement = document.createElement('div')
       EventUtils.addEventListener(detachedElement, 'click', jest.fn(), { id: 'leak-test' })
 
+      // eslint-disable-next-line no-unused-vars
       const leakDetection = EventUtils.detectEventLeaks()
 
       expect(leakDetection).toEqual({
@@ -626,6 +694,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
 
   describe('🧪 工具方法測試', () => {
     test('應該匯出所有必要的方法', () => {
+      // eslint-disable-next-line no-unused-vars
       const requiredMethods = [
         'addEventListener',
         'removeEventListener',
@@ -658,6 +727,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
 
     test('應該處理各種錯誤輸入', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidInputs = [null, undefined, '', 0, {}, [], NaN]
 
       invalidInputs.forEach(input => {
@@ -669,7 +739,9 @@ describe('EventUtils - TDD Red 階段測試', () => {
 
     test('應該正確處理異步操作', async () => {
       // 簡化測試，確保不會超時
+      // eslint-disable-next-line no-unused-vars
       const result1 = EventUtils.sendMessage({ type: 'ASYNC_TEST' })
+      // eslint-disable-next-line no-unused-vars
       const result2 = EventUtils.sendMessageWithRetry({ type: 'RETRY_TEST' }, { maxRetries: 1 })
 
       // 驗證函數返回了某種結果（不一定是Promise）

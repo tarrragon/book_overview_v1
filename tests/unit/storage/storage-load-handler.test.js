@@ -11,14 +11,18 @@
  */
 
 // 設置 Node.js 環境，避免 window 相關錯誤
+// eslint-disable-next-line no-unused-vars
 const mockWindow = {}
 global.window = mockWindow
 
+// eslint-disable-next-line no-unused-vars
 const EventHandler = require('src/core/event-handler')
 
 describe('StorageLoadHandler 單元測試', () => {
   let storageLoadHandler
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockStorageAdapter
 
   beforeEach(() => {
@@ -49,6 +53,7 @@ describe('StorageLoadHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 基本結構測試 ====================
   describe('🟢 綠燈階段 - 基本結構', () => {
     test('應該能創建 StorageLoadHandler 實例', () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
@@ -57,6 +62,7 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該繼承自 EventHandler', () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
@@ -64,6 +70,7 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該有正確的處理器名稱和優先級', () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
@@ -75,18 +82,22 @@ describe('StorageLoadHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 事件支援測試 ====================
   describe('🟢 綠燈階段 - 事件支援', () => {
     test('應該支援 STORAGE.LOAD.REQUESTED 事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
+      // eslint-disable-next-line no-unused-vars
       const supportedEvents = storageLoadHandler.getSupportedEvents()
       expect(supportedEvents).toContain('STORAGE.LOAD.REQUESTED')
     })
 
     test('應該能處理 STORAGE.LOAD.REQUESTED 事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       // 模擬成功載入
+      // eslint-disable-next-line no-unused-vars
       const mockLoadedData = {
         books: [{ id: '1', title: 'Test Book' }],
         metadata: { source: 'readmoo', totalCount: 1 }
@@ -99,6 +110,7 @@ describe('StorageLoadHandler 單元測試', () => {
         size: 1024
       })
 
+      // eslint-disable-next-line no-unused-vars
       const loadEvent = {
         type: 'STORAGE.LOAD.REQUESTED',
         data: {
@@ -109,6 +121,7 @@ describe('StorageLoadHandler 單元測試', () => {
         timestamp: Date.now()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await storageLoadHandler.handle(loadEvent)
       expect(result).toBeDefined()
       expect(result.success).toBe(true)
@@ -118,10 +131,12 @@ describe('StorageLoadHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 載入處理邏輯測試 ====================
   describe('🟢 綠燈階段 - 載入處理邏輯', () => {
     test('應該能調用儲存適配器載入資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       // 模擬成功載入
+      // eslint-disable-next-line no-unused-vars
       const mockLoadedData = {
         books: [
           { id: '1', title: 'Test Book 1' },
@@ -141,6 +156,7 @@ describe('StorageLoadHandler 單元測試', () => {
         size: 2048
       })
 
+      // eslint-disable-next-line no-unused-vars
       const loadEvent = {
         type: 'STORAGE.LOAD.REQUESTED',
         data: {
@@ -161,9 +177,11 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該在載入成功後觸發 STORAGE.LOAD.COMPLETED 事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
+      // eslint-disable-next-line no-unused-vars
       const mockLoadedData = {
         books: [{ id: '1', title: 'Test Book' }],
         metadata: { source: 'readmoo', totalCount: 1 }
@@ -176,6 +194,7 @@ describe('StorageLoadHandler 單元測試', () => {
         size: 1024
       })
 
+      // eslint-disable-next-line no-unused-vars
       const loadEvent = {
         type: 'STORAGE.LOAD.REQUESTED',
         data: { source: 'readmoo', loadType: 'all' },
@@ -195,13 +214,16 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該能處理載入失敗情況', async () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
       // 模擬載入失敗
+      // eslint-disable-next-line no-unused-vars
       const loadError = new Error('Data not found')
       mockStorageAdapter.load.mockRejectedValue(loadError)
 
+      // eslint-disable-next-line no-unused-vars
       const loadEvent = {
         type: 'STORAGE.LOAD.REQUESTED',
         data: { source: 'readmoo', loadType: 'all' },
@@ -227,9 +249,11 @@ describe('StorageLoadHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 載入請求驗證測試 ====================
   describe('🟢 綠燈階段 - 載入請求驗證', () => {
     test('應該驗證載入請求的必要欄位', async () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
+      // eslint-disable-next-line no-unused-vars
       const invalidEvent = {
         type: 'STORAGE.LOAD.REQUESTED',
         data: {}, // 缺少必要的 source 和 loadType
@@ -252,9 +276,11 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該驗證載入類型的有效性', async () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
+      // eslint-disable-next-line no-unused-vars
       const invalidEvent = {
         type: 'STORAGE.LOAD.REQUESTED',
         data: {
@@ -280,12 +306,14 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該檢查儲存適配器的可用性', async () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
 
       // 模擬不可用的儲存適配器
       mockStorageAdapter.isAvailable.mockReturnValue(false)
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
+      // eslint-disable-next-line no-unused-vars
       const loadEvent = {
         type: 'STORAGE.LOAD.REQUESTED',
         data: { source: 'readmoo', loadType: 'all' },
@@ -307,6 +335,7 @@ describe('StorageLoadHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 載入結果處理測試 ====================
   describe('🟢 綠燈階段 - 載入結果處理', () => {
     test('應該驗證載入結果的完整性', async () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
@@ -317,6 +346,7 @@ describe('StorageLoadHandler 單元測試', () => {
         error: 'No data found'
       })
 
+      // eslint-disable-next-line no-unused-vars
       const loadEvent = {
         type: 'STORAGE.LOAD.REQUESTED',
         data: { source: 'readmoo', loadType: 'all' },
@@ -335,6 +365,7 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該處理空的載入結果', async () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
@@ -349,12 +380,14 @@ describe('StorageLoadHandler 單元測試', () => {
         size: 0
       })
 
+      // eslint-disable-next-line no-unused-vars
       const loadEvent = {
         type: 'STORAGE.LOAD.REQUESTED',
         data: { source: 'readmoo', loadType: 'all' },
         flowId: 'test-load-flow-123'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await storageLoadHandler.handle(loadEvent)
 
       expect(result.success).toBe(true)
@@ -372,6 +405,7 @@ describe('StorageLoadHandler 單元測試', () => {
   // ==================== 🟢 綠燈階段 - 效能和統計測試 ====================
   describe('🟢 綠燈階段 - 效能和統計', () => {
     test('應該記錄載入操作的執行時間', async () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
@@ -380,6 +414,7 @@ describe('StorageLoadHandler 單元測試', () => {
         data: { books: [], metadata: {} }
       })
 
+      // eslint-disable-next-line no-unused-vars
       const loadEvent = {
         type: 'STORAGE.LOAD.REQUESTED',
         data: { source: 'readmoo', loadType: 'all' },
@@ -393,9 +428,11 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該提供載入操作的統計資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
+      // eslint-disable-next-line no-unused-vars
       const stats = storageLoadHandler.getStats()
       expect(stats).toHaveProperty('executionCount')
       expect(stats).toHaveProperty('averageExecutionTime')
@@ -405,9 +442,11 @@ describe('StorageLoadHandler 單元測試', () => {
     })
 
     test('應該支援不同的載入類型統計', () => {
+      // eslint-disable-next-line no-unused-vars
       const StorageLoadHandler = require('src/storage/handlers/storage-load-handler')
       storageLoadHandler = new StorageLoadHandler(mockEventBus, mockStorageAdapter)
 
+      // eslint-disable-next-line no-unused-vars
       const stats = storageLoadHandler.getStats()
       expect(stats).toHaveProperty('loadTypeStats')
       expect(stats.loadTypeStats).toHaveProperty('all')

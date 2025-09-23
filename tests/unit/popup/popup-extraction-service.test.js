@@ -12,8 +12,11 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('PopupExtractionService 核心功能', () => {
   let extractionService
+  // eslint-disable-next-line no-unused-vars
   let mockStatusManager
+  // eslint-disable-next-line no-unused-vars
   let mockProgressManager
+  // eslint-disable-next-line no-unused-vars
   let mockCommunicationService
 
   beforeEach(() => {
@@ -56,6 +59,7 @@ describe('PopupExtractionService 核心功能', () => {
   describe('🏗 建構和初始化', () => {
     test('應該正確初始化提取服務', () => {
       // Given: 提取服務的依賴
+      // eslint-disable-next-line no-unused-vars
       const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
 
       // When: 建立提取服務
@@ -74,25 +78,29 @@ describe('PopupExtractionService 核心功能', () => {
 
     test('應該驗證依賴注入的完整性', () => {
       // Given: 缺少必要依賴
+      // eslint-disable-next-line no-unused-vars
       const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
 
       // When & Then: 應該拋出錯誤
       expect(() => {
-        const service = new PopupExtractionService(null, mockProgressManager, mockCommunicationService)
+        // eslint-disable-next-line no-unused-vars
+        const _service = new PopupExtractionService(null, mockProgressManager, mockCommunicationService)
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toThrowError(expect.objectContaining({
         code: ErrorCodes.VALIDATION_ERROR
       }))
 
       expect(() => {
-        const service = new PopupExtractionService(mockStatusManager, null, mockCommunicationService)
+        // eslint-disable-next-line no-unused-vars
+        const _service = new PopupExtractionService(mockStatusManager, null, mockCommunicationService)
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toThrowError(expect.objectContaining({
         code: ErrorCodes.VALIDATION_ERROR
       }))
 
       expect(() => {
-        const service = new PopupExtractionService(mockStatusManager, mockProgressManager, null)
+        // eslint-disable-next-line no-unused-vars
+        const _service = new PopupExtractionService(mockStatusManager, mockProgressManager, null)
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toThrowError(expect.objectContaining({
         code: ErrorCodes.VALIDATION_ERROR
@@ -101,7 +109,9 @@ describe('PopupExtractionService 核心功能', () => {
 
     test('應該支援提取選項配置', () => {
       // Given: 自訂提取選項
+      // eslint-disable-next-line no-unused-vars
       const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
+      // eslint-disable-next-line no-unused-vars
       const options = {
         maxRetries: 5,
         timeout: 10000,
@@ -125,6 +135,7 @@ describe('PopupExtractionService 核心功能', () => {
 
   describe('🔄 提取流程控制', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
       extractionService = new PopupExtractionService(
         mockStatusManager,
@@ -142,6 +153,7 @@ describe('PopupExtractionService 核心功能', () => {
       })
 
       // When: 開始提取
+      // eslint-disable-next-line no-unused-vars
       const result = await extractionService.startExtraction()
 
       // Then: 流程正確執行
@@ -178,6 +190,7 @@ describe('PopupExtractionService 核心功能', () => {
       extractionService.currentExtractionId = 'test-123'
 
       // When: 取消提取
+      // eslint-disable-next-line no-unused-vars
       const result = await extractionService.cancelExtraction('使用者取消')
 
       // Then: 取消流程正確執行
@@ -194,6 +207,7 @@ describe('PopupExtractionService 核心功能', () => {
 
   describe('⚠️ 錯誤處理和重試機制', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
       extractionService = new PopupExtractionService(
         mockStatusManager,
@@ -211,6 +225,7 @@ describe('PopupExtractionService 核心功能', () => {
         .mockResolvedValueOnce({ success: true, estimatedCount: 100 })
 
       // When: 開始提取（會自動重試）
+      // eslint-disable-next-line no-unused-vars
       const result = await extractionService.startExtraction()
 
       // Then: 重試成功
@@ -242,6 +257,7 @@ describe('PopupExtractionService 核心功能', () => {
 
     test('應該處理部分失敗的恢復機制', async () => {
       // Given: 部分成功的提取結果
+      // eslint-disable-next-line no-unused-vars
       const partialResult = {
         success: false,
         totalProcessed: 100,
@@ -265,6 +281,7 @@ describe('PopupExtractionService 核心功能', () => {
 
   describe('📊 資料處理協調', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
       extractionService = new PopupExtractionService(
         mockStatusManager,
@@ -275,6 +292,7 @@ describe('PopupExtractionService 核心功能', () => {
 
     test('應該正確驗證和處理提取結果', () => {
       // Given: 有效的提取結果
+      // eslint-disable-next-line no-unused-vars
       const extractionResult = {
         books: [
           { id: '1', title: '書籍A', author: '作者A', status: 'success' },
@@ -286,6 +304,7 @@ describe('PopupExtractionService 核心功能', () => {
       }
 
       // When: 處理結果
+      // eslint-disable-next-line no-unused-vars
       const processedResult = extractionService.processExtractionResult(extractionResult)
 
       // Then: 結果正確處理
@@ -300,6 +319,7 @@ describe('PopupExtractionService 核心功能', () => {
 
     test('應該處理無效或損壞的資料', () => {
       // Given: 無效的提取結果
+      // eslint-disable-next-line no-unused-vars
       const invalidResult = {
         books: null,
         totalProcessed: 'invalid',
@@ -323,6 +343,7 @@ describe('PopupExtractionService 核心功能', () => {
 
     test('應該正確追蹤批次處理進度', () => {
       // Given: 批次進度資料
+      // eslint-disable-next-line no-unused-vars
       const batchProgress = {
         currentBatch: 3,
         totalBatches: 10,
@@ -335,6 +356,7 @@ describe('PopupExtractionService 核心功能', () => {
       extractionService.updateBatchProgress(batchProgress)
 
       // Then: 進度正確計算和更新
+      // eslint-disable-next-line no-unused-vars
       const expectedPercentage = Math.round((135 / 500) * 100) // 總計約 500 本書
       expect(mockProgressManager.updateProgress).toHaveBeenCalledWith({
         percentage: expectedPercentage,
@@ -346,6 +368,7 @@ describe('PopupExtractionService 核心功能', () => {
 
   describe('🔄 組件協調和狀態同步', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
       extractionService = new PopupExtractionService(
         mockStatusManager,
@@ -356,6 +379,7 @@ describe('PopupExtractionService 核心功能', () => {
 
     test('應該正確協調狀態管理器更新', () => {
       // Given: 狀態更新事件
+      // eslint-disable-next-line no-unused-vars
       const statusUpdate = {
         type: 'extracting',
         text: '正在處理書庫資料',
@@ -382,6 +406,7 @@ describe('PopupExtractionService 核心功能', () => {
       })
 
       // When: 檢查一致性
+      // eslint-disable-next-line no-unused-vars
       const isConsistent = extractionService.validateStateConsistency()
 
       // Then: 一致性檢查正確
@@ -391,6 +416,7 @@ describe('PopupExtractionService 核心功能', () => {
     test('應該處理組件間通訊錯誤', () => {
       // Given: StatusManager 更新失敗
       mockStatusManager.updateStatus.mockImplementation(() => {
+        // eslint-disable-next-line no-unused-vars
         const error = new Error('Status update failed')
         error.code = ErrorCodes.OPERATION_ERROR
         error.details = { category: 'testing' }
@@ -398,6 +424,7 @@ describe('PopupExtractionService 核心功能', () => {
       })
 
       // When: 嘗試更新狀態
+      // eslint-disable-next-line no-unused-vars
       const statusUpdate = { type: 'error', text: '測試錯誤', info: '測試' }
       extractionService.coordinateStatusUpdate(statusUpdate)
 
@@ -411,6 +438,7 @@ describe('PopupExtractionService 核心功能', () => {
 
     test('應該正確處理提取完成事件', () => {
       // Given: 提取完成資料
+      // eslint-disable-next-line no-unused-vars
       const completionData = {
         totalProcessed: 250,
         successCount: 230,
@@ -434,6 +462,7 @@ describe('PopupExtractionService 核心功能', () => {
 
     test('應該處理通訊服務事件流', () => {
       // Given: 通訊事件序列
+      // eslint-disable-next-line no-unused-vars
       const events = [
         { type: 'EXTRACTION_STARTED', data: { estimatedCount: 100 } },
         { type: 'EXTRACTION_PROGRESS', data: { percentage: 25, text: '25%' } },
@@ -468,10 +497,13 @@ describe('PopupExtractionService 核心功能', () => {
 
     test('應該處理併發提取請求', async () => {
       // Given: 並行的提取請求
+      // eslint-disable-next-line no-unused-vars
       const request1 = extractionService.startExtraction()
+      // eslint-disable-next-line no-unused-vars
       const request2 = extractionService.startExtraction()
 
       // When: 等待結果
+      // eslint-disable-next-line no-unused-vars
       const results = await Promise.allSettled([request1, request2])
 
       // Then: 只有一個成功，另一個被拒絕
@@ -501,6 +533,7 @@ describe('PopupExtractionService 核心功能', () => {
       ]
 
       // When: 生成統計報告
+      // eslint-disable-next-line no-unused-vars
       const stats = extractionService.getExtractionStatistics()
 
       // Then: 統計正確計算

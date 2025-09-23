@@ -11,14 +11,18 @@
  * @jest-environment jsdom
  */
 
+// eslint-disable-next-line no-unused-vars
 const fs = require('fs')
+// eslint-disable-next-line no-unused-vars
 const path = require('path')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('Popup 版本號顯示', () => {
   let popupScript
 
+  // eslint-disable-next-line no-unused-vars
   const loadPopupScript = () => {
+    // eslint-disable-next-line no-unused-vars
     const popupJsPath = path.join(__dirname, '../../../src/popup/popup.js')
     popupScript = fs.readFileSync(popupJsPath, 'utf8')
     // 評估腳本到當前 jsdom 的 window 環境
@@ -45,6 +49,7 @@ describe('Popup 版本號顯示', () => {
 
   test('應該顯示一般版本字串 v{version}', () => {
     // 模擬正式版本號（非 0.x，且不含 dev）
+    // eslint-disable-next-line no-unused-vars
     const version = '1.2.3'
     global.chrome.runtime.getManifest = jest.fn(() => ({ version }))
 
@@ -53,30 +58,35 @@ describe('Popup 版本號顯示', () => {
     expect(typeof window.updateVersionDisplay).toBe('function')
     window.updateVersionDisplay()
 
+    // eslint-disable-next-line no-unused-vars
     const versionEl = document.getElementById('versionDisplay')
     expect(versionEl.textContent).toBe(`v${version}`)
   })
 
   test('應該在開發版本時加註「開發版本」字樣 (0.x)', () => {
     // 模擬 0.x 版本號
+    // eslint-disable-next-line no-unused-vars
     const version = '0.5.33'
     global.chrome.runtime.getManifest = jest.fn(() => ({ version }))
 
     loadPopupScript()
 
     window.updateVersionDisplay()
+    // eslint-disable-next-line no-unused-vars
     const versionEl = document.getElementById('versionDisplay')
     expect(versionEl.textContent).toBe(`v${version} 開發版本`)
   })
 
   test('應該在開發版本時加註「開發版本」字樣 (含 dev)', () => {
     // 模擬帶有 dev 字串的版本號
+    // eslint-disable-next-line no-unused-vars
     const version = '1.0.0-dev.2'
     global.chrome.runtime.getManifest = jest.fn(() => ({ version }))
 
     loadPopupScript()
 
     window.updateVersionDisplay()
+    // eslint-disable-next-line no-unused-vars
     const versionEl = document.getElementById('versionDisplay')
     expect(versionEl.textContent).toBe(`v${version} 開發版本`)
   })
@@ -88,6 +98,7 @@ describe('Popup 版本號顯示', () => {
     loadPopupScript()
 
     window.updateVersionDisplay()
+    // eslint-disable-next-line no-unused-vars
     const versionEl = document.getElementById('versionDisplay')
     expect(versionEl.textContent).toBe('v?.?.? 未知版本')
   })

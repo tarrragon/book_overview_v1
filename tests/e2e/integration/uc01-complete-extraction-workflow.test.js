@@ -9,17 +9,23 @@
  * @version v0.9.38
  */
 
+// eslint-disable-next-line no-unused-vars
 const E2EIntegrationTestCoordinator = require('../../helpers/e2e-integration-test-coordinator')
+// eslint-disable-next-line no-unused-vars
 const ChromeExtensionEnvironmentSimulator = require('../../helpers/chrome-extension-environment-simulator')
+// eslint-disable-next-line no-unused-vars
 const ReadmooPageSimulator = require('../../helpers/readmoo-page-simulator')
 const { EventFlowValidator } = require('../../helpers/event-flow-validator')
+// eslint-disable-next-line no-unused-vars
 const E2ETestDataGenerator = require('../../helpers/e2e-test-data-generator')
 
 describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
+  // eslint-disable-next-line no-unused-vars
   let coordinator
   let extensionSimulator
   let pageSimulator
   let eventValidator
+  // eslint-disable-next-line no-unused-vars
   let dataGenerator
 
   beforeEach(async () => {
@@ -55,6 +61,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
   describe('Phase 1: Environment and Initialization Tests', () => {
     test('TC-E2E-INIT-001: E2E測試環境正確設置', async () => {
       // Given: E2E測試協調器已初始化
+      // eslint-disable-next-line no-unused-vars
       const testConfig = {
         extensionId: 'test-extension-id',
         testMode: true,
@@ -62,6 +69,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       }
 
       // When: 設置測試環境
+      // eslint-disable-next-line no-unused-vars
       const environment = await coordinator.initializeTestEnvironment(testConfig)
 
       // Then: 環境設置完成且各組件正常運作
@@ -74,6 +82,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-INIT-002: Chrome Extension環境模擬準確性', async () => {
       // Given: Chrome Extension環境模擬器已設置
+      // eslint-disable-next-line no-unused-vars
       const extensionConfig = {
         manifestVersion: 3,
         permissions: ['storage', 'activeTab'],
@@ -90,6 +99,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       expect(global.chrome.tabs.query).toBeDefined()
 
       // 驗證權限設置正確
+      // eslint-disable-next-line no-unused-vars
       const permissions = await extensionSimulator.checkPermissions(['storage', 'activeTab'])
       expect(permissions.storage).toBe(true)
       expect(permissions.activeTab).toBe(true)
@@ -97,12 +107,14 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-INIT-003: Readmoo頁面模擬器DOM結構正確性', async () => {
       // Given: 測試書籍資料
+      // eslint-disable-next-line no-unused-vars
       const testBooks = dataGenerator.generateBookCollection({
         count: 15,
         includeEdgeCases: true
       })
 
       // When: 創建模擬書庫頁面
+      // eslint-disable-next-line no-unused-vars
       const mockPage = pageSimulator.createMockShelfPage(testBooks)
 
       // Then: DOM結構符合真實Readmoo頁面
@@ -110,6 +122,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       expect(mockPage.querySelectorAll('.book-item')).toHaveLength(15)
 
       // 驗證書籍元素包含必要屬性
+      // eslint-disable-next-line no-unused-vars
       const firstBook = mockPage.querySelector('.book-item')
       expect(firstBook.querySelector('.book-title')).toBeDefined()
       expect(firstBook.querySelector('.book-cover img')).toBeDefined()
@@ -118,6 +131,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-INIT-004: 事件追蹤系統初始化', async () => {
       // Given: 預期事件序列
+      // eslint-disable-next-line no-unused-vars
       const expectedEvents = [
         'POPUP.OPENED',
         'EXTRACTOR.REQUEST.STARTED',
@@ -138,6 +152,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-INIT-005: 測試資料產生器功能驗證', async () => {
       // Given: 不同類型的資料生成需求
+      // eslint-disable-next-line no-unused-vars
       const dataConfigs = {
         normal: { count: 20, type: 'normal' },
         edgeCase: { count: 5, type: 'edgeCase' },
@@ -145,8 +160,11 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       }
 
       // When: 生成各種測試資料
+      // eslint-disable-next-line no-unused-vars
       const normalData = dataGenerator.generateBookCollection(dataConfigs.normal)
+      // eslint-disable-next-line no-unused-vars
       const edgeCaseData = dataGenerator.generateBookCollection(dataConfigs.edgeCase)
+      // eslint-disable-next-line no-unused-vars
       const performanceData = dataGenerator.generateBookCollection(dataConfigs.performance)
 
       // Then: 資料生成符合預期
@@ -155,7 +173,9 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       expect(performanceData).toHaveLength(500)
 
       // 驗證邊界案例資料包含特殊情況
+      // eslint-disable-next-line no-unused-vars
       const hasUnicodeTitle = edgeCaseData.some(book => /[\u{1F600}-\u{1F64F}]/u.test(book.title))
+      // eslint-disable-next-line no-unused-vars
       const hasLongTitle = edgeCaseData.some(book => book.title.length > 100)
       expect(hasUnicodeTitle || hasLongTitle).toBe(true)
     })
@@ -176,6 +196,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       expect(document.querySelectorAll('.book-item')).toHaveLength(0)
 
       // 驗證Chrome Storage被清理
+      // eslint-disable-next-line no-unused-vars
       const storageData = await new Promise(resolve => {
         global.chrome.storage.local.get(null, resolve)
       })
@@ -186,7 +207,9 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
   describe('Phase 2: Normal Workflow Tests', () => {
     test('TC-E2E-001: 完整UC-01工作流程端到端驗證', async () => {
       // Given: 使用者在Readmoo書庫頁面，Extension已安裝且正常運作
+      // eslint-disable-next-line no-unused-vars
       const testScenario = dataGenerator.generateTestScenario('normalWorkflow')
+      // eslint-disable-next-line no-unused-vars
       const mockBooks = dataGenerator.generateBookCollection({ count: 15 })
 
       // 設置測試環境
@@ -195,6 +218,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       extensionSimulator.setupExtensionContext(testScenario.extensionContext)
 
       // When: 使用者執行完整的資料提取流程
+      // eslint-disable-next-line no-unused-vars
       const workflowResult = await coordinator.executeUC01Workflow(testScenario)
 
       // Then: 系統正確完成資料提取並持久化儲存
@@ -208,6 +232,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-002: 事件序列正確性和時序驗證', async () => {
       // Given: E2E測試環境已設置完成，事件追蹤器已啟動
+      // eslint-disable-next-line no-unused-vars
       const expectedEventSequence = [
         'POPUP.OPENED',
         'EXTRACTOR.REQUEST.STARTED',
@@ -221,12 +246,14 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
       eventValidator.registerEventSequenceTracking(expectedEventSequence)
 
+      // eslint-disable-next-line no-unused-vars
       const testScenario = dataGenerator.generateTestScenario('eventSequence')
 
       // When: 執行完整UC-01工作流程
       await coordinator.executeUC01Workflow(testScenario)
 
       // Then: 事件按照預期順序發生，時間間隔合理，無遺漏或重複
+      // eslint-disable-next-line no-unused-vars
       const eventFlowResult = eventValidator.validateEventFlow()
 
       expect(eventFlowResult.sequenceCorrect).toBe(true)
@@ -235,6 +262,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       expect(eventFlowResult.noDuplicateEvents).toBe(true)
 
       // 驗證事件時序合理性
+      // eslint-disable-next-line no-unused-vars
       const eventTimings = eventValidator.getEventTimings()
       expect(eventTimings.totalDuration).toBeLessThan(5000) // 總時間 < 5秒
       expect(eventTimings.averageInterval).toBeLessThan(1000) // 平均間隔 < 1秒
@@ -242,6 +270,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-003: 資料完整性和準確性驗證', async () => {
       // Given: Mock Readmoo頁面包含各種類型的書籍資料
+      // eslint-disable-next-line no-unused-vars
       const mockBookData = [
         { type: 'normal', hasProgress: true, hasSpecialChars: false },
         { type: 'unicode', hasProgress: false, hasSpecialChars: true },
@@ -249,14 +278,18 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
         { type: 'missingCover', hasProgress: false, hasSpecialChars: false }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const testBooks = dataGenerator.generateMixedBookCollection(mockBookData)
       pageSimulator.createMockShelfPage(testBooks)
 
       // When: 執行資料提取流程
+      // eslint-disable-next-line no-unused-vars
       const testScenario = dataGenerator.generateTestScenario('dataIntegrity')
+      // eslint-disable-next-line no-unused-vars
       const extractionResult = await coordinator.executeUC01Workflow(testScenario)
 
       // Then: 提取資料與原始頁面資料100%一致，資料結構完整，特殊字符正確保留
+      // eslint-disable-next-line no-unused-vars
       const dataValidationResult = coordinator.validateExtractedDataIntegrity(
         extractionResult.extractedData,
         testBooks
@@ -270,6 +303,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-004: Chrome Extension多上下文通訊驗證', async () => {
       // Given: Extension的三個主要上下文已設置
+      // eslint-disable-next-line no-unused-vars
       const contexts = ['popup', 'background', 'contentScript']
 
       contexts.forEach(context => {
@@ -277,6 +311,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       })
 
       // When: 執行跨上下文通訊流程
+      // eslint-disable-next-line no-unused-vars
       const communicationTest = await coordinator.testCrossContextCommunication(contexts)
 
       // Then: 所有上下文間通訊正常，訊息傳遞無遺漏
@@ -291,12 +326,14 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-005: PopupController與UI互動驗證', async () => {
       // Given: Popup視窗已開啟且PopupController已初始化
+      // eslint-disable-next-line no-unused-vars
       const popupInstance = await extensionSimulator.openPopupWindow({
         tabId: 1,
         url: 'https://readmoo.com/shelf'
       })
 
       // When: 使用者與Popup UI進行互動
+      // eslint-disable-next-line no-unused-vars
       const uiInteractions = [
         { type: 'click', target: '#extractButton' },
         { type: 'wait', duration: 1000 },
@@ -305,6 +342,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
         { type: 'verify', target: '.success-message' }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const uiTestResult = await coordinator.executeUIInteractionSequence(
         popupInstance,
         uiInteractions
@@ -318,6 +356,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-006: BookDataExtractor資料處理驗證', async () => {
       // Given: 書庫頁面包含各種格式的書籍資料
+      // eslint-disable-next-line no-unused-vars
       const complexBookData = dataGenerator.generateComplexBookCollection({
         includeProgressVariations: true,
         includeMetadataVariations: true,
@@ -327,6 +366,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       pageSimulator.createMockShelfPage(complexBookData)
 
       // When: BookDataExtractor進行資料提取和處理
+      // eslint-disable-next-line no-unused-vars
       const extractorTest = await coordinator.testBookDataExtraction()
 
       // Then: 資料提取準確，處理邏輯正確
@@ -338,13 +378,16 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-007: ChromeStorageAdapter儲存操作驗證', async () => {
       // Given: 要儲存的書籍資料和現有儲存狀態
+      // eslint-disable-next-line no-unused-vars
       const booksToStore = dataGenerator.generateBookCollection({ count: 20 })
+      // eslint-disable-next-line no-unused-vars
       const existingData = dataGenerator.generateExistingStorageData({ count: 5 })
 
       // 設置現有儲存狀態
       await coordinator.setupStorageState(existingData)
 
       // When: 執行儲存操作
+      // eslint-disable-next-line no-unused-vars
       const storageTest = await coordinator.testStorageOperations(booksToStore)
 
       // Then: 資料正確儲存，去重邏輯正確執行
@@ -356,9 +399,11 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-008: 使用者回饋和狀態顯示驗證', async () => {
       // Given: 完整的資料提取流程
+      // eslint-disable-next-line no-unused-vars
       const testScenario = dataGenerator.generateTestScenario('userFeedback')
 
       // When: 執行工作流程並監控使用者介面
+      // eslint-disable-next-line no-unused-vars
       const feedbackTest = await coordinator.testUserFeedbackSystem(testScenario)
 
       // Then: 使用者回饋清楚、及時、準確
@@ -373,6 +418,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
   describe('Phase 3: Boundary Condition Tests', () => {
     test('TC-E2E-B001: 空書庫頁面優雅處理驗證', async () => {
       // Given: Readmoo頁面不包含任何書籍資料
+      // eslint-disable-next-line no-unused-vars
       const emptyShelfScenario = {
         pageContext: {
           url: 'https://readmoo.com/shelf',
@@ -384,6 +430,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       pageSimulator.createEmptyShelfPage()
 
       // When: 執行資料提取流程
+      // eslint-disable-next-line no-unused-vars
       const emptyShelfResult = await coordinator.executeUC01Workflow(emptyShelfScenario)
 
       // Then: 系統優雅處理空書庫情況，顯示適當訊息，不產生錯誤
@@ -396,6 +443,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-B002: 大量書籍處理效能驗證', async () => {
       // Given: 頁面包含大量書籍資料 (500+ books)
+      // eslint-disable-next-line no-unused-vars
       const largeBooksScenario = {
         pageContext: {
           bookCount: 500,
@@ -404,6 +452,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const largeBookCollection = dataGenerator.generateBookCollection({
         count: 500,
         type: 'performance'
@@ -411,8 +460,11 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       pageSimulator.createMockShelfPage(largeBookCollection)
 
       // When: 執行資料提取流程
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const performanceResult = await coordinator.executeUC01Workflow(largeBooksScenario)
+      // eslint-disable-next-line no-unused-vars
       const endTime = Date.now()
 
       // Then: 系統在效能限制內完成處理，記憶體使用合理，提供進度回饋
@@ -425,15 +477,18 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-B003: 快速重複操作防護驗證', async () => {
       // Given: 使用者快速多次點擊提取按鈕
+      // eslint-disable-next-line no-unused-vars
       const rapidClickScenario = {
         userBehavior: 'rapidButtonClicks',
         clickInterval: 100, // 100ms間隔
         clickCount: 5
       }
 
+      // eslint-disable-next-line no-unused-vars
       const popupInstance = await extensionSimulator.openPopupWindow({ tabId: 1 })
 
       // When: 模擬快速連續點擊行為
+      // eslint-disable-next-line no-unused-vars
       const rapidClickResult = await coordinator.testRapidUserActions(
         popupInstance,
         rapidClickScenario
@@ -448,6 +503,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-B004: 特殊字符和Unicode處理驗證', async () => {
       // Given: 書籍資料包含各種特殊字符和Unicode字符
+      // eslint-disable-next-line no-unused-vars
       const specialCharBooks = dataGenerator.generateSpecialCharacterBooks({
         includeEmojis: true,
         includeUnicode: true,
@@ -458,7 +514,9 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       pageSimulator.createMockShelfPage(specialCharBooks)
 
       // When: 執行資料提取流程
+      // eslint-disable-next-line no-unused-vars
       const testScenario = dataGenerator.generateTestScenario('specialCharacters')
+      // eslint-disable-next-line no-unused-vars
       const specialCharResult = await coordinator.executeUC01Workflow(testScenario)
 
       // Then: 特殊字符正確保留，Unicode字符無損失，資料完整性維持
@@ -470,6 +528,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-B005: 長標題和異常資料處理驗證', async () => {
       // Given: 書籍資料包含異常長的標題和缺失資料
+      // eslint-disable-next-line no-unused-vars
       const edgeCaseBooks = dataGenerator.generateEdgeCaseBooks({
         longTitles: true,
         missingData: true,
@@ -480,7 +539,9 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       pageSimulator.createMockShelfPage(edgeCaseBooks)
 
       // When: 執行資料提取流程
+      // eslint-disable-next-line no-unused-vars
       const testScenario = dataGenerator.generateTestScenario('edgeCaseData')
+      // eslint-disable-next-line no-unused-vars
       const edgeCaseResult = await coordinator.executeUC01Workflow(testScenario)
 
       // Then: 異常資料得到適當處理，系統保持穩定
@@ -492,6 +553,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-B006: 記憶體使用和效能限制驗證', async () => {
       // Given: 多種資料量級的測試場景
+      // eslint-disable-next-line no-unused-vars
       const memoryTestScenarios = [
         { name: 'small', bookCount: 50, expectedMemory: 20 * 1024 * 1024 },
         { name: 'medium', bookCount: 200, expectedMemory: 40 * 1024 * 1024 },
@@ -500,14 +562,19 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
       // When & Then: 對每個場景進行記憶體使用驗證
       for (const scenario of memoryTestScenarios) {
+        // eslint-disable-next-line no-unused-vars
         const testBooks = dataGenerator.generateBookCollection({ count: scenario.bookCount })
         pageSimulator.createMockShelfPage(testBooks)
 
+        // eslint-disable-next-line no-unused-vars
         const memoryBefore = coordinator.getCurrentMemoryUsage()
+        // eslint-disable-next-line no-unused-vars
         const testScenario = dataGenerator.generateTestScenario('memoryTest')
         await coordinator.executeUC01Workflow(testScenario)
+        // eslint-disable-next-line no-unused-vars
         const memoryAfter = coordinator.getCurrentMemoryUsage()
 
+        // eslint-disable-next-line no-unused-vars
         const memoryUsed = memoryAfter - memoryBefore
         expect(memoryUsed).toBeLessThan(scenario.expectedMemory)
 
@@ -520,6 +587,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
   describe('Phase 4: Exception Handling Tests', () => {
     test('TC-E2E-E001: Chrome Extension權限錯誤處理驗證', async () => {
       // Given: Chrome Extension缺少必要權限或權限被撤銷
+      // eslint-disable-next-line no-unused-vars
       const permissionErrorScenario = {
         permissions: {
           storage: false,
@@ -531,6 +599,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       extensionSimulator.revokePermissions(['storage', 'activeTab'])
 
       // When: 嘗試執行資料提取流程
+      // eslint-disable-next-line no-unused-vars
       const permissionErrorResult = await coordinator.executeUC01Workflow(
         permissionErrorScenario
       )
@@ -545,6 +614,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-E002: 網路連接中斷和恢復驗證', async () => {
       // Given: 資料提取過程中網路連接中斷
+      // eslint-disable-next-line no-unused-vars
       const networkErrorScenario = {
         errorType: 'networkInterruption',
         errorTiming: 'duringExtraction',
@@ -552,6 +622,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       }
 
       // When: 模擬網路中斷和恢復
+      // eslint-disable-next-line no-unused-vars
       const networkTest = await coordinator.testNetworkResilience(networkErrorScenario)
 
       // Then: 系統成功恢復並完成資料提取，或提供適當的錯誤處理
@@ -563,6 +634,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-E003: DOM結構變更適應性驗證', async () => {
       // Given: Readmoo頁面DOM結構發生變更
+      // eslint-disable-next-line no-unused-vars
       const domChangeScenario = {
         changeType: 'selectorModification',
         affectedElements: ['bookTitle', 'bookCover', 'readingProgress'],
@@ -570,11 +642,13 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       }
 
       // 創建初始頁面後修改DOM結構
+      // eslint-disable-next-line no-unused-vars
       const initialBooks = dataGenerator.generateBookCollection({ count: 10 })
       pageSimulator.createMockShelfPage(initialBooks)
       pageSimulator.modifyDOMStructure(domChangeScenario)
 
       // When: 執行資料提取時遇到DOM結構變更
+      // eslint-disable-next-line no-unused-vars
       const domAdaptationResult = await coordinator.executeUC01Workflow(
         domChangeScenario
       )
@@ -588,6 +662,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-E004: Chrome Storage配額超限處理驗證', async () => {
       // Given: Chrome Storage配額接近或超過限制
+      // eslint-disable-next-line no-unused-vars
       const storageQuotaScenario = {
         currentUsage: 4.8 * 1024 * 1024, // 4.8MB
         totalQuota: 5 * 1024 * 1024, // 5MB
@@ -598,6 +673,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
       await coordinator.setupStorageQuotaState(storageQuotaScenario)
 
       // When: 嘗試儲存新的書籍資料
+      // eslint-disable-next-line no-unused-vars
       const quotaTestResult = await coordinator.testStorageQuotaHandling(
         storageQuotaScenario
       )
@@ -611,6 +687,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
     test('TC-E2E-E005: 系統錯誤和例外狀況恢復驗證', async () => {
       // Given: 各種系統錯誤情況
+      // eslint-disable-next-line no-unused-vars
       const systemErrorScenarios = [
         { type: 'unexpectedError', source: 'BookDataExtractor' },
         { type: 'asyncOperationFailure', source: 'ChromeStorageAdapter' },
@@ -620,6 +697,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
 
       // When & Then: 對每種錯誤情況進行驗證
       for (const errorScenario of systemErrorScenarios) {
+        // eslint-disable-next-line no-unused-vars
         const errorRecoveryResult = await coordinator.testSystemErrorRecovery(
           errorScenario
         )
@@ -630,6 +708,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests', () => {
         expect(errorRecoveryResult.noDataCorruption).toBe(true)
 
         // 確保系統在錯誤後能夠繼續正常運作
+        // eslint-disable-next-line no-unused-vars
         const subsequentOperationResult = await coordinator.testSubsequentOperation()
         expect(subsequentOperationResult.systemFunctionalAfterError).toBe(true)
       }

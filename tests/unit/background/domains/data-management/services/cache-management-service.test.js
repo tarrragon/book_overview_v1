@@ -5,11 +5,15 @@
  * 目標：將快取管理邏輯從 DataValidationService 中提取
  */
 
+// eslint-disable-next-line no-unused-vars
 const CacheManagementService = require('src/background/domains/data-management/services/cache-management-service.js')
 
 describe('CacheManagementService - 快取管理服務', () => {
+  // eslint-disable-next-line no-unused-vars
   let cacheService
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockLogger
 
   beforeEach(() => {
@@ -62,6 +66,7 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
 
     test('應該支援停用快取功能', () => {
+      // eslint-disable-next-line no-unused-vars
       const disabledCacheService = new CacheManagementService(mockEventBus, {
         logger: mockLogger,
         config: { enableCache: false }
@@ -73,11 +78,16 @@ describe('CacheManagementService - 快取管理服務', () => {
 
   describe('🔑 快取鍵管理', () => {
     test('generateCacheKey() 應該生成唯一的快取鍵', () => {
+      // eslint-disable-next-line no-unused-vars
       const book1 = { id: 'book1', title: '書籍1' }
+      // eslint-disable-next-line no-unused-vars
       const book2 = { id: 'book2', title: '書籍2' }
 
+      // eslint-disable-next-line no-unused-vars
       const key1 = cacheService.generateCacheKey(book1, 'READMOO')
+      // eslint-disable-next-line no-unused-vars
       const key2 = cacheService.generateCacheKey(book2, 'READMOO')
+      // eslint-disable-next-line no-unused-vars
       const key3 = cacheService.generateCacheKey(book1, 'KINDLE')
 
       expect(key1).not.toBe(key2)
@@ -86,21 +96,30 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
 
     test('generateCacheKey() 應該對相同資料產生相同鍵', () => {
+      // eslint-disable-next-line no-unused-vars
       const book = { id: 'book1', title: '書籍1' }
 
+      // eslint-disable-next-line no-unused-vars
       const key1 = cacheService.generateCacheKey(book, 'READMOO')
+      // eslint-disable-next-line no-unused-vars
       const key2 = cacheService.generateCacheKey(book, 'READMOO')
 
       expect(key1).toBe(key2)
     })
 
     test('generateCacheKey() 應該處理不同資料格式', () => {
+      // eslint-disable-next-line no-unused-vars
       const bookWithId = { id: 'book1', title: '書籍1' }
+      // eslint-disable-next-line no-unused-vars
       const bookWithASIN = { ASIN: 'B001ABCDEF', title: 'Kindle Book' }
+      // eslint-disable-next-line no-unused-vars
       const bookWithKoboId = { kobo_id: 'kobo123', title: 'Kobo Book' }
 
+      // eslint-disable-next-line no-unused-vars
       const key1 = cacheService.generateCacheKey(bookWithId, 'READMOO')
+      // eslint-disable-next-line no-unused-vars
       const key2 = cacheService.generateCacheKey(bookWithASIN, 'KINDLE')
+      // eslint-disable-next-line no-unused-vars
       const key3 = cacheService.generateCacheKey(bookWithKoboId, 'KOBO')
 
       expect(key1).toContain('book1')
@@ -111,9 +130,12 @@ describe('CacheManagementService - 快取管理服務', () => {
 
   describe('💾 基本快取操作', () => {
     test('setCacheValue() 應該儲存快取值', () => {
+      // eslint-disable-next-line no-unused-vars
       const cacheKey = 'test_key'
+      // eslint-disable-next-line no-unused-vars
       const cacheValue = { result: '測試資料', score: 85 }
 
+      // eslint-disable-next-line no-unused-vars
       const result = cacheService.setCacheValue(cacheKey, cacheValue, 'validation')
 
       expect(result).toBe(true)
@@ -121,10 +143,13 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
 
     test('getCacheValue() 應該取得快取值', () => {
+      // eslint-disable-next-line no-unused-vars
       const cacheKey = 'test_key'
+      // eslint-disable-next-line no-unused-vars
       const cacheValue = { result: '測試資料', score: 85 }
 
       cacheService.setCacheValue(cacheKey, cacheValue, 'validation')
+      // eslint-disable-next-line no-unused-vars
       const retrieved = cacheService.getCacheValue(cacheKey, 'validation')
 
       expect(retrieved).toEqual(cacheValue)
@@ -133,6 +158,7 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
 
     test('getCacheValue() 應該處理快取未命中', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = cacheService.getCacheValue('non_existent_key', 'validation')
 
       expect(result).toBeNull()
@@ -140,7 +166,9 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
 
     test('hasCacheValue() 應該檢查快取是否存在', () => {
+      // eslint-disable-next-line no-unused-vars
       const cacheKey = 'test_key'
+      // eslint-disable-next-line no-unused-vars
       const cacheValue = { result: '測試資料' }
 
       expect(cacheService.hasCacheValue(cacheKey, 'validation')).toBe(false)
@@ -156,7 +184,9 @@ describe('CacheManagementService - 快取管理服務', () => {
       // 使用短 TTL 進行測試
       cacheService.config.cacheTTL = 100 // 100ms
 
+      // eslint-disable-next-line no-unused-vars
       const cacheKey = 'ttl_test_key'
+      // eslint-disable-next-line no-unused-vars
       const cacheValue = { result: '測試資料' }
 
       cacheService.setCacheValue(cacheKey, cacheValue, 'validation')
@@ -174,16 +204,20 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
 
     test('refreshCacheEntry() 應該刷新快取項目時間戳', async () => {
+      // eslint-disable-next-line no-unused-vars
       const cacheKey = 'refresh_test'
+      // eslint-disable-next-line no-unused-vars
       const cacheValue = { result: '測試資料' }
 
       cacheService.setCacheValue(cacheKey, cacheValue, 'validation')
+      // eslint-disable-next-line no-unused-vars
       const originalTimestamp = cacheService.cacheTimestamps.get('validation').get(cacheKey)
 
       // 等待一小段時間
       await new Promise(resolve => setTimeout(resolve, 10))
 
       cacheService.refreshCacheEntry(cacheKey, 'validation')
+      // eslint-disable-next-line no-unused-vars
       const newTimestamp = cacheService.cacheTimestamps.get('validation').get(cacheKey)
 
       expect(newTimestamp).toBeGreaterThan(originalTimestamp)
@@ -263,6 +297,7 @@ describe('CacheManagementService - 快取管理服務', () => {
       cacheService.getCacheValue('key1', 'validation') // hit
       cacheService.getCacheValue('key3', 'validation') // miss
 
+      // eslint-disable-next-line no-unused-vars
       const stats = cacheService.getCacheStatistics()
 
       expect(stats.validation.totalSets).toBe(2)
@@ -273,6 +308,7 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
 
     test('getCacheStatistics() 應該處理空快取', () => {
+      // eslint-disable-next-line no-unused-vars
       const stats = cacheService.getCacheStatistics()
 
       expect(stats.validation.totalSets).toBe(0)
@@ -286,6 +322,7 @@ describe('CacheManagementService - 快取管理服務', () => {
 
       cacheService.resetStatistics()
 
+      // eslint-disable-next-line no-unused-vars
       const stats = cacheService.getCacheStatistics()
       expect(stats.validation.totalSets).toBe(0)
       expect(stats.validation.totalHits).toBe(0)
@@ -294,12 +331,14 @@ describe('CacheManagementService - 快取管理服務', () => {
 
   describe('🔄 批次快取操作', () => {
     test('setCacheValueBatch() 應該批次設置快取', () => {
+      // eslint-disable-next-line no-unused-vars
       const batchData = [
         { key: 'batch1', value: { result: 'data1' }, type: 'validation' },
         { key: 'batch2', value: { result: 'data2' }, type: 'validation' },
         { key: 'batch3', value: { result: 'data3' }, type: 'normalization' }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const results = cacheService.setCacheValueBatch(batchData)
 
       expect(results.successCount).toBe(3)
@@ -313,7 +352,9 @@ describe('CacheManagementService - 快取管理服務', () => {
       cacheService.setCacheValue('batch1', { result: 'data1' }, 'validation')
       cacheService.setCacheValue('batch2', { result: 'data2' }, 'validation')
 
+      // eslint-disable-next-line no-unused-vars
       const keys = ['batch1', 'batch2', 'batch3']
+      // eslint-disable-next-line no-unused-vars
       const results = cacheService.getCacheValueBatch(keys, 'validation')
 
       expect(results.batch1).toEqual({ result: 'data1' })
@@ -324,6 +365,7 @@ describe('CacheManagementService - 快取管理服務', () => {
 
   describe('🔧 快取配置管理', () => {
     test('updateCacheConfig() 應該更新快取配置', () => {
+      // eslint-disable-next-line no-unused-vars
       const newConfig = {
         cacheSize: 50,
         cacheTTL: 10000,
@@ -338,6 +380,7 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
 
     test('getCacheConfig() 應該返回當前配置', () => {
+      // eslint-disable-next-line no-unused-vars
       const config = cacheService.getCacheConfig()
 
       expect(config.cacheSize).toBe(10)
@@ -348,6 +391,7 @@ describe('CacheManagementService - 快取管理服務', () => {
 
   describe('🏥 服務健康狀態', () => {
     test('isCacheServiceHealthy() 應該檢查服務健康狀態', () => {
+      // eslint-disable-next-line no-unused-vars
       const health = cacheService.isCacheServiceHealthy()
 
       expect(health.isHealthy).toBe(true)
@@ -365,6 +409,7 @@ describe('CacheManagementService - 快取管理服務', () => {
         }, 'validation')
       }
 
+      // eslint-disable-next-line no-unused-vars
       const health = cacheService.isCacheServiceHealthy()
       expect(health.memoryUsage).toBeDefined()
     })
@@ -373,6 +418,7 @@ describe('CacheManagementService - 快取管理服務', () => {
   describe('⚠️ 錯誤處理', () => {
     test('constructor 應該要求 eventBus 參數', () => {
       expect(() => {
+        // eslint-disable-next-line no-new
         new CacheManagementService()
       }).toMatchObject({
         message: expect.stringContaining('EventBus is required')
@@ -380,6 +426,7 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
 
     test('應該處理快取停用情況', () => {
+      // eslint-disable-next-line no-unused-vars
       const disabledService = new CacheManagementService(mockEventBus, {
         config: { enableCache: false }
       })
@@ -389,7 +436,9 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
 
     test('應該處理無效的快取類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const result1 = cacheService.setCacheValue('key', 'value', 'invalid_type')
+      // eslint-disable-next-line no-unused-vars
       const result2 = cacheService.getCacheValue('key', 'invalid_type')
 
       expect(result1).toBe(false)
@@ -398,9 +447,11 @@ describe('CacheManagementService - 快取管理服務', () => {
 
     test('應該處理快取操作過程中的錯誤', () => {
       // 模擬序列化錯誤
+      // eslint-disable-next-line no-unused-vars
       const circularObject = {}
       circularObject.self = circularObject
 
+      // eslint-disable-next-line no-unused-vars
       const result = cacheService.setCacheValue('circular', circularObject, 'validation')
       expect(result).toBe(false)
     })

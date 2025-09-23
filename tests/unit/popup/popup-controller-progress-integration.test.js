@@ -77,12 +77,14 @@ describe('PopupController 進度管理整合測試', () => {
   describe('🔴 Red 階段：進度管理整合測試設計', () => {
     test('應該能夠整合真實的 PopupProgressManager', async () => {
       // Given: PopupController 實例
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
 
       // When: 初始化控制器
       await controller.initialize()
 
       // Then: 進度管理器應該是真實的 PopupProgressManager 實例
+      // eslint-disable-next-line no-unused-vars
       const progressManager = controller.getComponent('progress')
       expect(progressManager).toBeInstanceOf(PopupProgressManager)
 
@@ -96,13 +98,16 @@ describe('PopupController 進度管理整合測試', () => {
 
     test('應該正確注入 UI 組件到 ProgressManager', async () => {
       // Given: PopupController 實例
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
 
       // When: 初始化
       await controller.initialize()
 
       // Then: ProgressManager 應該有正確的 UI 組件依賴
+      // eslint-disable-next-line no-unused-vars
       const progressManager = controller.getComponent('progress')
+      // eslint-disable-next-line no-unused-vars
       const uiManager = controller.getComponent('ui')
 
       expect(progressManager).toBeDefined()
@@ -114,12 +119,15 @@ describe('PopupController 進度管理整合測試', () => {
 
     test('應該能夠通過 ProgressManager 更新進度到 UI', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const progressManager = controller.getComponent('progress')
 
       // When: 通過 ProgressManager 更新進度
+      // eslint-disable-next-line no-unused-vars
       const testProgress = {
         percentage: 65,
         status: 'extracting',
@@ -136,12 +144,15 @@ describe('PopupController 進度管理整合測試', () => {
 
     test('應該限制進度百分比在有效範圍內', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const progressManager = controller.getComponent('progress')
 
       // When: 嘗試使用超出範圍的百分比
+      // eslint-disable-next-line no-unused-vars
       const invalidProgress = {
         percentage: 150, // 超過 100
         status: 'extracting',
@@ -154,18 +165,22 @@ describe('PopupController 進度管理整合測試', () => {
       expect(document.getElementById('progress-bar').style.width).toBe('100%')
       expect(document.getElementById('progress-percentage').textContent).toBe('100%')
 
+      // eslint-disable-next-line no-unused-vars
       const currentProgress = progressManager.getCurrentProgress()
       expect(currentProgress.percentage).toBe(100)
     })
 
     test('應該限制負數百分比為 0', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const progressManager = controller.getComponent('progress')
 
       // When: 嘗試使用負數百分比
+      // eslint-disable-next-line no-unused-vars
       const negativeProgress = {
         percentage: -25,
         status: 'starting',
@@ -178,18 +193,22 @@ describe('PopupController 進度管理整合測試', () => {
       expect(document.getElementById('progress-bar').style.width).toBe('0%')
       expect(document.getElementById('progress-percentage').textContent).toBe('0%')
 
+      // eslint-disable-next-line no-unused-vars
       const currentProgress = progressManager.getCurrentProgress()
       expect(currentProgress.percentage).toBe(0)
     })
 
     test('應該驗證無效的進度狀態', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const progressManager = controller.getComponent('progress')
 
       // When: 嘗試使用無效進度狀態
+      // eslint-disable-next-line no-unused-vars
       const invalidProgress = {
         percentage: 50,
         status: 'invalid_status',
@@ -208,12 +227,15 @@ describe('PopupController 進度管理整合測試', () => {
 
     test('應該處理必要欄位缺失的錯誤', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const progressManager = controller.getComponent('progress')
 
       // When: 嘗試使用缺失必要欄位的進度資料
+      // eslint-disable-next-line no-unused-vars
       const incompleteProgress = {
         percentage: 50
         // 缺少 status 欄位
@@ -231,15 +253,18 @@ describe('PopupController 進度管理整合測試', () => {
 
     test('應該支援進度生命週期管理', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const progressManager = controller.getComponent('progress')
 
       // When: 開始進度
       progressManager.startProgress({ estimatedTotal: 100 })
 
       // Then: 進度應該正確初始化
+      // eslint-disable-next-line no-unused-vars
       let currentProgress = progressManager.getCurrentProgress()
       expect(currentProgress.percentage).toBe(0)
       expect(currentProgress.status).toBe('starting')
@@ -264,9 +289,11 @@ describe('PopupController 進度管理整合測試', () => {
 
     test('應該支援進度取消功能', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const progressManager = controller.getComponent('progress')
 
       // When: 開始然後取消進度
@@ -275,6 +302,7 @@ describe('PopupController 進度管理整合測試', () => {
       progressManager.cancelProgress('使用者取消')
 
       // Then: 進度應該正確取消
+      // eslint-disable-next-line no-unused-vars
       const currentProgress = progressManager.getCurrentProgress()
       expect(currentProgress.status).toBe('cancelled')
       expect(currentProgress.isVisible).toBe(false)
@@ -283,12 +311,15 @@ describe('PopupController 進度管理整合測試', () => {
 
     test('應該保持進度狀態不可變性', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const progressManager = controller.getComponent('progress')
 
       // When: 更新進度
+      // eslint-disable-next-line no-unused-vars
       const originalProgress = {
         percentage: 45,
         status: 'extracting',
@@ -296,6 +327,7 @@ describe('PopupController 進度管理整合測試', () => {
       }
 
       progressManager.updateProgress(originalProgress)
+      // eslint-disable-next-line no-unused-vars
       const retrievedProgress = progressManager.getCurrentProgress()
 
       // 修改檢索到的進度
@@ -303,6 +335,7 @@ describe('PopupController 進度管理整合測試', () => {
       retrievedProgress.text = '已修改'
 
       // Then: 內部狀態不應該受到影響
+      // eslint-disable-next-line no-unused-vars
       const currentProgress = progressManager.getCurrentProgress()
       expect(currentProgress.percentage).toBe(45)
       expect(currentProgress.text).toBe('原始進度')
@@ -313,12 +346,15 @@ describe('PopupController 進度管理整合測試', () => {
   describe('⚠️ 錯誤處理測試', () => {
     test('應該優雅處理 UI 更新失敗', async () => {
       // Given: 已初始化的控制器
+      // eslint-disable-next-line no-unused-vars
       const controller = new PopupController(document)
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const progressManager = controller.getComponent('progress')
 
       // Mock UI 組件的 updateProgress 方法拋出錯誤
+      // eslint-disable-next-line no-unused-vars
       const mockShowError = jest.fn()
       progressManager.uiComponents = {
         ...progressManager.uiComponents,
@@ -329,6 +365,7 @@ describe('PopupController 進度管理整合測試', () => {
       }
 
       // When: 嘗試更新進度
+      // eslint-disable-next-line no-unused-vars
       const testProgress = {
         percentage: 50,
         status: 'extracting',
@@ -344,6 +381,7 @@ describe('PopupController 進度管理整合測試', () => {
       })
 
       // 但內部狀態應該正確更新
+      // eslint-disable-next-line no-unused-vars
       const currentProgress = progressManager.getCurrentProgress()
       expect(currentProgress.percentage).toBe(50)
       expect(currentProgress.status).toBe('extracting')

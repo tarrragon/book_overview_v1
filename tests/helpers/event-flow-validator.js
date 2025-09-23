@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * Event Flow Validator
  * 驗證端到端流程中的事件傳遞和處理順序、時序和完整性

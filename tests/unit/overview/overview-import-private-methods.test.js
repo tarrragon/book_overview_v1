@@ -13,10 +13,12 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
   let dom
   let document
   let window
+  // eslint-disable-next-line no-unused-vars
   let controller
   let OverviewPageController
 
   // 測試資料集
+  // eslint-disable-next-line no-unused-vars
   const testDataSets = {
     validBook: {
       id: 'test-book-1',
@@ -74,6 +76,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
     let onload, onerror, onloadstart, onprogress
 
+    // eslint-disable-next-line no-unused-vars
     const mockReader = {
       readAsText: jest.fn((file) => {
         setTimeout(() => {
@@ -81,14 +84,17 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
           if (onprogress) onprogress({ loaded: 50, total: 100 })
 
           if (shouldError) {
+            // eslint-disable-next-line no-unused-vars
             const errorTypes = {
               generic: new Error('FileReader 讀取失敗'),
               abort: new Error('讀取被中止'),
               security: new Error('安全性錯誤')
             }
+            // eslint-disable-next-line no-unused-vars
             const error = errorTypes[errorType] || errorTypes.generic
             if (onerror) onerror({ type: 'error', error })
           } else {
+            // eslint-disable-next-line no-unused-vars
             const content = result !== null ? result : (typeof file === 'string' ? file : '[]')
             if (onload) {
               onload({
@@ -106,7 +112,9 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
       set onprogress (callback) { onprogress = callback },
 
       get onload () { return onload },
-      get onerror () { return onerror }
+      get onerror () { return onerror },
+      get onloadstart () { return onloadstart },
+      get onprogress () { return onprogress }
     }
 
     return mockReader
@@ -209,6 +217,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
     global.mockEventBus = {
       listeners: new Map(),
       emit: jest.fn().mockImplementation((eventName, data) => {
+        // eslint-disable-next-line no-unused-vars
         const handlers = global.mockEventBus.listeners.get(eventName) || []
         handlers.forEach(handler => handler(data))
         return Promise.resolve()
@@ -274,6 +283,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
     describe('_validateFileBasics() 檔案基礎驗證', () => {
       test('應該通過有效JSON檔案驗證', async () => {
         // Given: 有效的 JSON 檔案
+        // eslint-disable-next-line no-unused-vars
         const validFile = createMockFile('[]', 'valid.json', 'application/json')
 
         // When & Then: 透過 handleFileLoad 間接測試，不應拋出異常
@@ -286,6 +296,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
       test('應該拒絕非JSON檔案', async () => {
         // Given: 非 JSON 檔案
+        // eslint-disable-next-line no-unused-vars
         const invalidFile = createMockFile('content', 'invalid.txt', 'text/plain')
 
         // When & Then: 應該拋出格式錯誤
@@ -298,6 +309,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
       test('應該拒絕空檔案名稱', async () => {
         // Given: 空檔案名稱的檔案
+        // eslint-disable-next-line no-unused-vars
         const noNameFile = createMockFile('[]', '', 'application/json')
 
         // When & Then: 應該拋出驗證錯誤
@@ -307,6 +319,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
       test('應該拒絕null檔案', async () => {
         // Given: null 檔案
+        // eslint-disable-next-line no-unused-vars
         const nullFile = null
 
         // When & Then: 應該拋出檔案驗證錯誤
@@ -321,7 +334,9 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
     describe('_validateFileSize() 檔案大小驗證', () => {
       test('應該通過正常大小檔案', async () => {
         // Given: 正常大小的檔案 (約1MB)
+        // eslint-disable-next-line no-unused-vars
         const normalContent = JSON.stringify(Array(1000).fill(testDataSets.validBook))
+        // eslint-disable-next-line no-unused-vars
         const normalFile = createMockFile(normalContent, 'normal.json')
 
         global.FileReader = jest.fn().mockImplementation(() =>
@@ -334,7 +349,9 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
       test('應該拒絕過大檔案', async () => {
         // Given: 過大的檔案 (超過限制)
+        // eslint-disable-next-line no-unused-vars
         const hugeContent = 'x'.repeat(50 * 1024 * 1024) // 50MB
+        // eslint-disable-next-line no-unused-vars
         const hugeFile = createMockFile(hugeContent, 'huge.json')
 
         // When & Then: 應該拋出檔案大小錯誤
@@ -347,6 +364,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
       test('應該通過空檔案（0大小）', async () => {
         // Given: 空檔案和 FileReader mock
+        // eslint-disable-next-line no-unused-vars
         const emptyFile = createMockFile('', 'empty.json')
 
         // Mock FileReader 回傳空內容
@@ -366,6 +384,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
     describe('_isJSONFile() 檔案格式檢查', () => {
       test('應該識別.json副檔名', async () => {
         // Given: .json 檔案
+        // eslint-disable-next-line no-unused-vars
         const jsonFile = createMockFile('{}', 'test.json', 'application/json')
 
         global.FileReader = jest.fn().mockImplementation(() =>
@@ -378,6 +397,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
       test('應該識別application/json MIME類型', async () => {
         // Given: 正確 MIME 類型但無副檔名的檔案
+        // eslint-disable-next-line no-unused-vars
         const mimeFile = createMockFile('{}', 'noextension', 'application/json')
 
         global.FileReader = jest.fn().mockImplementation(() =>
@@ -390,6 +410,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
       test('應該拒絕錯誤的副檔名和MIME類型', async () => {
         // Given: 完全不符合的檔案格式
+        // eslint-disable-next-line no-unused-vars
         const wrongFile = createMockFile('content', 'test.txt', 'text/plain')
 
         // When & Then: 應該拋出格式錯誤
@@ -407,9 +428,11 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
     describe('_createFileReader() FileReader 建立', () => {
       test('應該建立新的 FileReader 實例', async () => {
         // Given: 有效檔案
+        // eslint-disable-next-line no-unused-vars
         const validFile = createMockFile('[]', 'test.json')
 
         // Given: Mock FileReader 建構函式
+        // eslint-disable-next-line no-unused-vars
         const mockFileReader = createAdvancedMockFileReader({ result: '[]' })
         global.FileReader = jest.fn().mockImplementation(() => mockFileReader)
 
@@ -422,11 +445,13 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
       test('應該處理 FileReader 不存在的情況', async () => {
         // Given: 移除 FileReader 支援
+        // eslint-disable-next-line no-unused-vars
         const originalFileReader = global.FileReader
         global.FileReader = undefined
 
         try {
           // Given: 有效檔案
+          // eslint-disable-next-line no-unused-vars
           const validFile = createMockFile('[]', 'test.json')
 
           // When & Then: 應該拋出不支援錯誤
@@ -442,7 +467,9 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
     describe('_setupReaderHandlers() 事件處理器設定', () => {
       test('應該正確設定 onload 事件處理器', async () => {
         // Given: 有效檔案和 mock FileReader
+        // eslint-disable-next-line no-unused-vars
         const validFile = createMockFile('[]', 'test.json')
+        // eslint-disable-next-line no-unused-vars
         const mockFileReader = createAdvancedMockFileReader({ result: '[]' })
         global.FileReader = jest.fn().mockImplementation(() => mockFileReader)
 
@@ -456,7 +483,9 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
       test('應該正確處理讀取成功事件', async () => {
         // Given: 包含書籍資料的檔案
+        // eslint-disable-next-line no-unused-vars
         const bookData = JSON.stringify([testDataSets.validBook])
+        // eslint-disable-next-line no-unused-vars
         const validFile = createMockFile(bookData, 'books.json')
 
         global.FileReader = jest.fn().mockImplementation(() =>
@@ -473,6 +502,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
       test('應該正確處理讀取錯誤事件', async () => {
         // Given: 會產生錯誤的檔案
+        // eslint-disable-next-line no-unused-vars
         const validFile = createMockFile('[]', 'test.json')
 
         global.FileReader = jest.fn().mockImplementation(() =>
@@ -491,7 +521,9 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
     describe('_readFileWithReader() 檔案讀取協調', () => {
       test('應該協調完整的檔案讀取流程', async () => {
         // Given: 有效檔案
+        // eslint-disable-next-line no-unused-vars
         const validContent = JSON.stringify([testDataSets.validBook])
+        // eslint-disable-next-line no-unused-vars
         const validFile = createMockFile(validContent, 'test.json')
 
         global.FileReader = jest.fn().mockImplementation(() =>
@@ -503,11 +535,13 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
         // Then: 應該完成完整流程
         expect(controller.books).toHaveLength(1)
+        // eslint-disable-next-line no-console
         expect(console.log).toHaveBeenCalledWith('✅ 成功載入 1 本書籍')
       })
 
       test('應該處理非同步讀取錯誤', async () => {
         // Given: 會在非同步過程中失敗的檔案
+        // eslint-disable-next-line no-unused-vars
         const validFile = createMockFile('[]', 'test.json')
 
         global.FileReader = jest.fn().mockImplementation(() =>
@@ -533,7 +567,9 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
     describe('_validateAndCleanContent() 內容驗證與清理', () => {
       test('應該通過有效內容驗證', async () => {
         // Given: 有效 JSON 內容
+        // eslint-disable-next-line no-unused-vars
         const validContent = JSON.stringify([testDataSets.validBook])
+        // eslint-disable-next-line no-unused-vars
         const validFile = createMockFile(validContent, 'test.json')
 
         global.FileReader = jest.fn().mockImplementation(() =>
@@ -546,6 +582,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
       test('應該拒絕空內容', async () => {
         // Given: 空內容
+        // eslint-disable-next-line no-unused-vars
         const emptyFile = createMockFile('', 'empty.json')
 
         global.FileReader = jest.fn().mockImplementation(() =>
@@ -562,6 +599,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
       test('應該拒絕純空白內容', async () => {
         // Given: 純空白內容
+        // eslint-disable-next-line no-unused-vars
         const whitespaceFile = createMockFile('   \n\t  ', 'whitespace.json')
 
         global.FileReader = jest.fn().mockImplementation(() =>
@@ -578,7 +616,9 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
       test('應該清理內容前後的空白', async () => {
         // Given: 前後有空白的有效 JSON
+        // eslint-disable-next-line no-unused-vars
         const paddedContent = `  \n${JSON.stringify([testDataSets.validBook])}  \n`
+        // eslint-disable-next-line no-unused-vars
         const paddedFile = createMockFile(paddedContent, 'padded.json')
 
         global.FileReader = jest.fn().mockImplementation(() =>
@@ -597,7 +637,9 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
     describe('_removeBOM() BOM 移除', () => {
       test('應該移除 UTF-8 BOM 標記', async () => {
         // Given: 包含 BOM 的 JSON 內容
+        // eslint-disable-next-line no-unused-vars
         const bomContent = '\uFEFF' + JSON.stringify([testDataSets.validBook])
+        // eslint-disable-next-line no-unused-vars
         const bomFile = createMockFile(bomContent, 'bom.json')
 
         global.FileReader = jest.fn().mockImplementation(() =>
@@ -614,7 +656,9 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
       test('應該保持無 BOM 內容不變', async () => {
         // Given: 不包含 BOM 的正常內容
+        // eslint-disable-next-line no-unused-vars
         const normalContent = JSON.stringify([testDataSets.validBook])
+        // eslint-disable-next-line no-unused-vars
         const normalFile = createMockFile(normalContent, 'normal.json')
 
         global.FileReader = jest.fn().mockImplementation(() =>
@@ -633,7 +677,9 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
     describe('_parseJSONContent() JSON 解析', () => {
       test('應該成功解析有效 JSON', async () => {
         // Given: 有效 JSON 字串
+        // eslint-disable-next-line no-unused-vars
         const validJSON = JSON.stringify({ books: [testDataSets.validBook] })
+        // eslint-disable-next-line no-unused-vars
         const validFile = createMockFile(validJSON, 'valid.json')
 
         global.FileReader = jest.fn().mockImplementation(() =>
@@ -649,7 +695,9 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
       test('應該拋出 JSON 語法錯誤', async () => {
         // Given: 無效 JSON 語法
+        // eslint-disable-next-line no-unused-vars
         const invalidJSON = '{ "books": [invalid json} '
+        // eslint-disable-next-line no-unused-vars
         const invalidFile = createMockFile(invalidJSON, 'invalid.json')
 
         global.FileReader = jest.fn().mockImplementation(() =>
@@ -666,7 +714,9 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
       test('應該處理空 JSON 對象', async () => {
         // Given: 空 JSON 對象
+        // eslint-disable-next-line no-unused-vars
         const emptyJSON = '{}'
+        // eslint-disable-next-line no-unused-vars
         const emptyFile = createMockFile(emptyJSON, 'empty.json')
 
         global.FileReader = jest.fn().mockImplementation(() =>
@@ -678,17 +728,21 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
         // Then: 應該成功處理（但沒有書籍資料）
         expect(controller.books).toHaveLength(0)
+        // eslint-disable-next-line no-console
         expect(console.log).toHaveBeenCalledWith('✅ 成功載入 0 本書籍')
       })
 
       test('應該處理包含特殊字符的 JSON', async () => {
         // Given: 包含特殊字符的書籍資料
+        // eslint-disable-next-line no-unused-vars
         const specialBook = {
           ...testDataSets.validBook,
           title: '特殊字符📚測試\n"引號"\'單引號\'',
           description: '包含\t製表符\r\n換行符的描述'
         }
+        // eslint-disable-next-line no-unused-vars
         const specialJSON = JSON.stringify([specialBook])
+        // eslint-disable-next-line no-unused-vars
         const specialFile = createMockFile(specialJSON, 'special.json')
 
         global.FileReader = jest.fn().mockImplementation(() =>

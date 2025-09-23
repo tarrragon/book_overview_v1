@@ -15,6 +15,7 @@ describe('UC04ErrorFactory', () => {
 
   describe('createError', () => {
     test('應該建立基本的 UC-04 錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createError(
         'DATA_IMPORT_FILE_INVALID',
         '匯入檔案格式無效'
@@ -27,11 +28,13 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該建立帶有詳細資訊的錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const details = {
         fileName: 'backup.json',
         fileSize: '2.5MB'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createError(
         'DATA_IMPORT_FILE_INVALID',
         '匯入失敗',
@@ -45,6 +48,7 @@ describe('UC04ErrorFactory', () => {
 
   describe('createResult', () => {
     test('應該建立成功結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = UC04ErrorFactory.createResult(true, {
         importedBooks: 150,
         fileName: 'backup.json'
@@ -62,11 +66,13 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該建立失敗結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createError(
         'DATA_IMPORT_FILE_INVALID',
         '檔案無效'
       )
 
+      // eslint-disable-next-line no-unused-vars
       const result = UC04ErrorFactory.createResult(false, null, error)
 
       expect(result).toEqual({
@@ -79,7 +85,9 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該處理簡單錯誤物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const simpleError = { message: '簡單錯誤' }
+      // eslint-disable-next-line no-unused-vars
       const result = UC04ErrorFactory.createResult(false, null, simpleError)
 
       expect(result).toEqual({
@@ -94,6 +102,7 @@ describe('UC04ErrorFactory', () => {
 
   describe('createImportFileError', () => {
     test('應該建立檔案格式錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportFileError(
         'invalid.json',
         '500KB',
@@ -122,6 +131,7 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該包含檔案驗證資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportFileError('test.json')
 
       expect(error.details.fileValidation).toMatchObject({
@@ -132,6 +142,7 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportFileError()
 
       expect(error.details.fileName).toBe('unknown-file.json')
@@ -143,6 +154,7 @@ describe('UC04ErrorFactory', () => {
 
   describe('createImportParsingError', () => {
     test('應該建立JSON解析錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportParsingError(
         'SyntaxError: Unexpected token } in JSON at position 1234',
         { line: 45, column: 12 },
@@ -165,6 +177,7 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該包含除錯資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportParsingError(
         'SyntaxError: Unexpected end of JSON input'
       )
@@ -178,6 +191,7 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportParsingError()
 
       expect(error.details.parseError).toBe('Unknown JSON syntax error')
@@ -188,6 +202,7 @@ describe('UC04ErrorFactory', () => {
 
   describe('createImportMergeError', () => {
     test('應該建立資料合併衝突錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const conflictedBooks = [
         {
           id: 'book_123',
@@ -201,6 +216,7 @@ describe('UC04ErrorFactory', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportMergeError(
         'duplicate_books_with_different_progress',
         conflictedBooks,
@@ -223,6 +239,7 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該包含衝突分析', () => {
+      // eslint-disable-next-line no-unused-vars
       const conflictedBooks = [
         {
           id: 'book_1',
@@ -231,6 +248,7 @@ describe('UC04ErrorFactory', () => {
         }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportMergeError(
         'multiple_conflicts',
         conflictedBooks
@@ -244,8 +262,10 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該限制顯示的衝突書籍數量', () => {
+      // eslint-disable-next-line no-unused-vars
       const manyBooks = Array.from({ length: 15 }, (_, i) => ({ id: `book_${i}` }))
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportMergeError(
         'many_conflicts',
         manyBooks
@@ -256,6 +276,7 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該使用預設參數', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportMergeError()
 
       expect(error.details.conflictType).toBe('duplicate_books_with_different_data')
@@ -267,6 +288,7 @@ describe('UC04ErrorFactory', () => {
 
   describe('createImportStorageError', () => {
     test('應該建立儲存空間溢出錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportStorageError(
         '3.2MB',
         '2.8MB',
@@ -291,6 +313,7 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該包含儲存分析', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportStorageError(
         '2.0MB',
         '4.0MB',
@@ -306,6 +329,7 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該包含清理選項', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportStorageError()
 
       expect(error.details.cleanupOptions).toMatchObject({
@@ -318,6 +342,7 @@ describe('UC04ErrorFactory', () => {
 
     test('應該正確計算儲存溢出', () => {
       // 測試無溢出情況
+      // eslint-disable-next-line no-unused-vars
       const noOverflowError = UC04ErrorFactory.createImportStorageError(
         '2.0MB',
         '2.0MB',
@@ -327,6 +352,7 @@ describe('UC04ErrorFactory', () => {
       expect(noOverflowError.details.storageUsageRate).toBe('80.0%')
 
       // 測試大量溢出情況
+      // eslint-disable-next-line no-unused-vars
       const largeOverflowError = UC04ErrorFactory.createImportStorageError(
         '3.0MB',
         '5.0MB',
@@ -339,6 +365,7 @@ describe('UC04ErrorFactory', () => {
 
   describe('createImportProgressError', () => {
     test('應該為早期失敗建立檔案錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportProgressError(
         30,
         'file_validation',
@@ -353,6 +380,7 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該為後期解析失敗建立解析錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportProgressError(
         75,
         'json_parsing',
@@ -367,6 +395,7 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該為後期儲存失敗建立儲存錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportProgressError(
         90,
         'data_storage',
@@ -387,7 +416,9 @@ describe('UC04ErrorFactory', () => {
 
   describe('getCommonError - 快取機制', () => {
     test('應該快取常用錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC04ErrorFactory.getCommonError('IMPORT_FILE')
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC04ErrorFactory.getCommonError('IMPORT_FILE')
 
       expect(error1).toBe(error2) // 相同參考
@@ -396,6 +427,7 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該支援所有快取錯誤類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const cacheTypes = [
         'IMPORT_FILE',
         'IMPORT_PARSING',
@@ -404,6 +436,7 @@ describe('UC04ErrorFactory', () => {
       ]
 
       cacheTypes.forEach(type => {
+        // eslint-disable-next-line no-unused-vars
         const error = UC04ErrorFactory.getCommonError(type)
         expect(error).toBeInstanceOf(Error)
         expect(error.details.cached).toBe(true)
@@ -411,6 +444,7 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該處理未知快取類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.getCommonError('UNKNOWN_TYPE')
       expect(error).toBeNull()
     })
@@ -425,7 +459,9 @@ describe('UC04ErrorFactory', () => {
       UC04ErrorFactory.clearCache()
 
       // 重新取得應該是新物件
+      // eslint-disable-next-line no-unused-vars
       const error1 = UC04ErrorFactory.getCommonError('IMPORT_FILE')
+      // eslint-disable-next-line no-unused-vars
       const error2 = UC04ErrorFactory.getCommonError('IMPORT_FILE')
 
       expect(error1).toBe(error2) // 新快取中相同
@@ -435,21 +471,25 @@ describe('UC04ErrorFactory', () => {
 
   describe('sanitizeDetails', () => {
     test('應該保留正常大小的詳細資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const details = {
         fileName: 'backup.json',
         fileSize: '2.5MB',
         books: ['book1', 'book2']
       }
 
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC04ErrorFactory.sanitizeDetails(details)
       expect(sanitized).toEqual(details)
     })
 
     test('應該截斷過大的詳細資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const largeDetails = {
         largeData: 'x'.repeat(20000) // 超過 15KB 限制
       }
 
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC04ErrorFactory.sanitizeDetails(largeDetails)
 
       expect(sanitized._truncated).toBe(true)
@@ -468,6 +508,7 @@ describe('UC04ErrorFactory', () => {
 
   describe('isValidUC04Error', () => {
     test('應該驗證有效的 UC-04 錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createError(
         'DATA_IMPORT_FILE_INVALID',
         '測試訊息'
@@ -477,6 +518,7 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該拒絕無效的錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidError = new Error('普通錯誤')
       expect(UC04ErrorFactory.isValidUC04Error(invalidError)).toBe(false)
 
@@ -485,10 +527,12 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('應該檢查UC-04相關的subType', () => {
+      // eslint-disable-next-line no-unused-vars
       const validError = UC04ErrorFactory.createImportFileError()
       expect(UC04ErrorFactory.isValidUC04Error(validError)).toBe(true)
 
       // 建立一個不相關的錯誤
+      // eslint-disable-next-line no-unused-vars
       const otherError = new Error('其他錯誤')
       otherError.code = ErrorCodes.FILE_ERROR
       otherError.subType = 'OTHER_ERROR'
@@ -500,6 +544,7 @@ describe('UC04ErrorFactory', () => {
 
   describe('資料匯入場景專用測試', () => {
     test('檔案錯誤應該包含匯入指引', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportFileError()
       expect(error.details.userGuidance).toContain('選擇有效的 JSON 備份檔案')
       expect(error.details.suggestedActions).toContain('select_valid_file')
@@ -507,6 +552,7 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('解析錯誤應該提供修復建議', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportParsingError()
       expect(error.details.userGuidance).toContain('檔案完整性')
       expect(error.details.suggestedActions).toContain('check_file_integrity')
@@ -514,6 +560,7 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('合併錯誤應該提供決策選項', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportMergeError()
       expect(error.details.userGuidance).toContain('選擇合併策略')
       expect(error.details.resolutionOptions.keepExisting).toBe('保留現有資料')
@@ -521,6 +568,7 @@ describe('UC04ErrorFactory', () => {
     })
 
     test('儲存錯誤應該提供空間管理建議', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorFactory.createImportStorageError()
       expect(error.details.userGuidance).toContain('清理舊資料')
       expect(error.details.cleanupOptions.removeOldData).toContain('6個月前')
@@ -530,17 +578,20 @@ describe('UC04ErrorFactory', () => {
 
   describe('效能測試', () => {
     test('常用錯誤建立應該快速', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 100; i++) {
         UC04ErrorFactory.getCommonError('IMPORT_FILE')
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(10) // 100次快取存取應該在10ms內
     })
 
     test('錯誤建立應該在合理時間內完成', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 50; i++) {
@@ -553,6 +604,7 @@ describe('UC04ErrorFactory', () => {
         )
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(100) // 50個複雜錯誤應該在100ms內
     })

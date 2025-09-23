@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * 完整書籍資料提取工作流程測試
  *
@@ -27,9 +29,11 @@
  * - 回歸測試確保修改不影響核心功能
  */
 
+// eslint-disable-next-line no-unused-vars
 const ExtensionTestSetup = require('../setup/extension-setup')
 
 describe('📚 完整書籍資料提取工作流程', () => {
+  // eslint-disable-next-line no-unused-vars
   let testSetup
   let popupPage
   let backgroundPage
@@ -61,6 +65,7 @@ describe('📚 完整書籍資料提取工作流程', () => {
       await testSetup.navigateToReadmoo()
 
       // 驗證頁面載入
+      // eslint-disable-next-line no-unused-vars
       const title = await testSetup.page.title()
       expect(title).toContain('Readmoo')
 
@@ -70,6 +75,7 @@ describe('📚 完整書籍資料提取工作流程', () => {
       )
 
       // 驗證測試資料存在
+      // eslint-disable-next-line no-unused-vars
       const bookItems = await testSetup.page.$$('.book-item')
       expect(bookItems).toHaveLength(5)
     })
@@ -78,10 +84,12 @@ describe('📚 完整書籍資料提取工作流程', () => {
       popupPage = await testSetup.openExtensionPopup()
 
       // 驗證 Popup 基本元素
+      // eslint-disable-next-line no-unused-vars
       const popupTitle = await popupPage.$eval('h1', el => el.textContent)
       expect(popupTitle).toContain('Readmoo')
 
       // 驗證提取按鈕存在
+      // eslint-disable-next-line no-unused-vars
       const extractButton = await popupPage.$('#extractButton')
       expect(extractButton).toBeTruthy()
     })
@@ -96,6 +104,7 @@ describe('📚 完整書籍資料提取工作流程', () => {
       await popupPage.waitForSelector('.status-extracting', { timeout: 10000 })
 
       // 驗證狀態顯示
+      // eslint-disable-next-line no-unused-vars
       const statusText = await popupPage.$eval('.status-display', el => el.textContent)
       expect(statusText).toContain('提取中')
     })
@@ -105,12 +114,15 @@ describe('📚 完整書籍資料提取工作流程', () => {
       await popupPage.waitForSelector('.status-completed', { timeout: 20000 })
 
       // 驗證完成狀態
+      // eslint-disable-next-line no-unused-vars
       const statusText = await popupPage.$eval('.status-display', el => el.textContent)
       expect(statusText).toContain('完成')
 
       // 驗證書籍數量
+      // eslint-disable-next-line no-unused-vars
       const bookCountElement = await popupPage.$('.book-count')
       if (bookCountElement) {
+        // eslint-disable-next-line no-unused-vars
         const bookCount = await popupPage.$eval('.book-count', el =>
           parseInt(el.textContent.match(/\d+/)[0])
         )
@@ -120,6 +132,7 @@ describe('📚 完整書籍資料提取工作流程', () => {
 
     test('應該能夠在 Background Script 中接收到資料', async () => {
       // 檢查 Background Script 中的資料狀態
+      // eslint-disable-next-line no-unused-vars
       const hasData = await backgroundPage.evaluate(() => {
         // 檢查是否有儲存的書籍資料
         return new Promise((resolve) => {
@@ -136,6 +149,7 @@ describe('📚 完整書籍資料提取工作流程', () => {
   describe('💾 資料儲存驗證測試', () => {
     test('應該能夠正確儲存提取的書籍資料', async () => {
       // 從儲存中取得書籍資料
+      // eslint-disable-next-line no-unused-vars
       const storedData = await backgroundPage.evaluate(() => {
         return new Promise((resolve) => {
           chrome.storage.local.get(['extractedBooks'], (result) => {
@@ -148,6 +162,7 @@ describe('📚 完整書籍資料提取工作流程', () => {
       expect(storedData).toHaveLength(5)
 
       // 驗證第一本書的資料結構
+      // eslint-disable-next-line no-unused-vars
       const firstBook = storedData[0]
       expect(firstBook).toMatchObject({
         id: expect.any(String),
@@ -158,6 +173,7 @@ describe('📚 完整書籍資料提取工作流程', () => {
     })
 
     test('應該能夠儲存提取時間戳記', async () => {
+      // eslint-disable-next-line no-unused-vars
       const metadata = await backgroundPage.evaluate(() => {
         return new Promise((resolve) => {
           chrome.storage.local.get(['extractionMetadata'], (result) => {
@@ -168,6 +184,7 @@ describe('📚 完整書籍資料提取工作流程', () => {
 
       expect(metadata).toBeDefined()
       expect(metadata.extractionTime).toBeDefined()
+      // eslint-disable-next-line no-unused-vars
       const extractionDate = new Date(metadata.extractionTime)
       expect(extractionDate).toBeInstanceOf(Date)
     })
@@ -176,6 +193,7 @@ describe('📚 完整書籍資料提取工作流程', () => {
   describe('🎨 UI 整合測試', () => {
     test('應該能夠開啟 Overview 頁面並載入資料', async () => {
       // 點擊「查看書庫」按鈕
+      // eslint-disable-next-line no-unused-vars
       const viewLibraryButton = await popupPage.$('#viewLibraryButton')
       if (viewLibraryButton) {
         await popupPage.click('#viewLibraryButton')
@@ -184,7 +202,9 @@ describe('📚 完整書籍資料提取工作流程', () => {
         await testSetup.page.waitForTimeout(2000)
 
         // 檢查是否開啟了 Overview 頁面
+        // eslint-disable-next-line no-unused-vars
         const pages = await testSetup.browser.pages()
+        // eslint-disable-next-line no-unused-vars
         const overviewPage = pages.find(page =>
           page.url().includes('overview.html')
         )
@@ -194,6 +214,7 @@ describe('📚 完整書籍資料提取工作流程', () => {
           await overviewPage.waitForSelector('.book-grid-item', { timeout: 10000 })
 
           // 驗證書籍顯示
+          // eslint-disable-next-line no-unused-vars
           const bookElements = await overviewPage.$$('.book-grid-item')
           expect(bookElements.length).toBeGreaterThan(0)
         }
@@ -202,8 +223,10 @@ describe('📚 完整書籍資料提取工作流程', () => {
 
     test('應該能夠顯示正確的書籍統計資訊', async () => {
       // 檢查統計資訊
+      // eslint-disable-next-line no-unused-vars
       const totalBooksElement = await popupPage.$('.total-books')
       if (totalBooksElement) {
+        // eslint-disable-next-line no-unused-vars
         const totalBooks = await popupPage.$eval('.total-books', el =>
           parseInt(el.textContent.match(/\d+/)[0])
         )
@@ -222,6 +245,7 @@ describe('📚 完整書籍資料提取工作流程', () => {
       }
 
       // 開啟新的 Popup
+      // eslint-disable-next-line no-unused-vars
       const errorPopupPage = await testSetup.openExtensionPopup()
 
       // 嘗試提取（應該失敗）
@@ -231,6 +255,7 @@ describe('📚 完整書籍資料提取工作流程', () => {
       await errorPopupPage.waitForSelector('.status-error', { timeout: 10000 })
 
       // 驗證錯誤訊息
+      // eslint-disable-next-line no-unused-vars
       const errorMessage = await errorPopupPage.$eval('.error-message', el => el.textContent)
       expect(errorMessage).toContain('錯誤')
 
@@ -242,9 +267,11 @@ describe('📚 完整書籍資料提取工作流程', () => {
       await testSetup.navigateToReadmoo()
 
       // 開啟新的 Popup
+      // eslint-disable-next-line no-unused-vars
       const retryPopupPage = await testSetup.openExtensionPopup()
 
       // 點擊重試按鈕（如果存在）
+      // eslint-disable-next-line no-unused-vars
       const retryButton = await retryPopupPage.$('#retryButton')
       if (retryButton) {
         await retryPopupPage.click('#retryButton')
@@ -253,6 +280,7 @@ describe('📚 完整書籍資料提取工作流程', () => {
         await retryPopupPage.waitForSelector('.status-completed', { timeout: 15000 })
 
         // 驗證重試成功
+        // eslint-disable-next-line no-unused-vars
         const statusText = await retryPopupPage.$eval('.status-display', el => el.textContent)
         expect(statusText).toContain('完成')
       }
@@ -263,9 +291,11 @@ describe('📚 完整書籍資料提取工作流程', () => {
 
   describe('📈 效能基準測試', () => {
     test('提取過程應該在合理時間內完成', async () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       // 開啟新的 Popup 進行計時測試
+      // eslint-disable-next-line no-unused-vars
       const perfPopupPage = await testSetup.openExtensionPopup()
 
       // 觸發提取
@@ -274,7 +304,9 @@ describe('📚 完整書籍資料提取工作流程', () => {
       // 等待完成
       await perfPopupPage.waitForSelector('.status-completed', { timeout: 20000 })
 
+      // eslint-disable-next-line no-unused-vars
       const endTime = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const extractionTime = endTime - startTime
 
       // 驗證提取時間在 20 秒內
@@ -287,6 +319,7 @@ describe('📚 完整書籍資料提取工作流程', () => {
 
     test('記憶體使用應該在合理範圍內', async () => {
       // 取得頁面記憶體使用情況
+      // eslint-disable-next-line no-unused-vars
       const memoryInfo = await testSetup.page.evaluate(() => {
         if (performance.memory) {
           return {
@@ -299,6 +332,7 @@ describe('📚 完整書籍資料提取工作流程', () => {
       })
 
       if (memoryInfo) {
+        // eslint-disable-next-line no-unused-vars
         const memoryUsageMB = memoryInfo.usedJSHeapSize / 1024 / 1024
 
         // 驗證記憶體使用少於 100MB

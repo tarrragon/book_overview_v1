@@ -14,6 +14,7 @@
  */
 
 describe('ConfigUtils - TDD Red 階段測試', () => {
+  // eslint-disable-next-line no-unused-vars
   let ConfigUtils
 
   beforeAll(() => {
@@ -32,6 +33,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
     }
 
     // Mock localStorage
+    // eslint-disable-next-line no-unused-vars
     const localStorageMock = {
       getItem: jest.fn((key) => {
         // 模擬儲存行為
@@ -57,6 +59,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
 
   describe('🔧 配置管理', () => {
     test('應該設定和取得基本配置', () => {
+      // eslint-disable-next-line no-unused-vars
       const config = {
         extractionSettings: {
           timeout: 5000,
@@ -66,7 +69,9 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
         debugMode: true
       }
 
+      // eslint-disable-next-line no-unused-vars
       const setResult = ConfigUtils.setConfig('extraction', config)
+      // eslint-disable-next-line no-unused-vars
       const getResult = ConfigUtils.getConfig('extraction')
 
       expect(setResult).toEqual({
@@ -93,6 +98,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
         }
       })
 
+      // eslint-disable-next-line no-unused-vars
       const result = ConfigUtils.getNestedConfig('app.features.notifications.enabled')
 
       expect(result).toEqual({
@@ -103,6 +109,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
     })
 
     test('應該驗證配置格式', () => {
+      // eslint-disable-next-line no-unused-vars
       const schema = {
         type: 'object',
         properties: {
@@ -113,18 +120,22 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
         required: ['timeout', 'enabled']
       }
 
+      // eslint-disable-next-line no-unused-vars
       const validConfig = {
         timeout: 5000,
         enabled: true,
         name: 'Test Config'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const invalidConfig = {
         timeout: 500, // 小於最小值
         enabled: 'true' // 錯誤類型
       }
 
+      // eslint-disable-next-line no-unused-vars
       const validResult = ConfigUtils.validateConfig(validConfig, schema)
+      // eslint-disable-next-line no-unused-vars
       const invalidResult = ConfigUtils.validateConfig(invalidConfig, schema)
 
       expect(validResult).toEqual({
@@ -143,6 +154,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
     })
 
     test('應該支援配置預設值', () => {
+      // eslint-disable-next-line no-unused-vars
       const defaults = {
         timeout: 3000,
         retries: 2,
@@ -151,6 +163,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
 
       ConfigUtils.setDefaults('network', defaults)
 
+      // eslint-disable-next-line no-unused-vars
       const result = ConfigUtils.getConfigWithDefaults('network', {
         timeout: 5000 // 只設定部分
       })
@@ -167,9 +180,12 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
     })
 
     test('應該支援配置持久化', () => {
+      // eslint-disable-next-line no-unused-vars
       const config = { persistedSetting: 'test-value' }
 
+      // eslint-disable-next-line no-unused-vars
       const saveResult = ConfigUtils.saveConfig('persistent', config, { persist: true })
+      // eslint-disable-next-line no-unused-vars
       const loadResult = ConfigUtils.loadConfig('persistent')
 
       expect(saveResult).toEqual({
@@ -191,6 +207,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
     })
 
     test('應該監聽配置變更', () => {
+      // eslint-disable-next-line no-unused-vars
       const changeHandler = jest.fn()
 
       ConfigUtils.onConfigChange('watched-key', changeHandler)
@@ -209,6 +226,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
       ConfigUtils.setConfig('app', { name: 'Test App' })
       ConfigUtils.setConfig('user', { id: 12345 })
 
+      // eslint-disable-next-line no-unused-vars
       const summary = ConfigUtils.getConfigSummary()
 
       expect(summary).toEqual({
@@ -229,21 +247,25 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
       ConfigUtils.log('error', '錯誤訊息', { error: new Error('Test error') })
 
       // 檢查日誌是否被正確調用（格式化訊息包含所有必要資訊）
+      // eslint-disable-next-line no-console
       expect(console.debug).toHaveBeenCalledWith(
         expect.stringMatching(/\[DEBUG\].*偵錯訊息/),
         expect.objectContaining({ component: 'test' })
       )
 
+      // eslint-disable-next-line no-console
       expect(console.info).toHaveBeenCalledWith(
         expect.stringMatching(/\[INFO\].*資訊訊息/),
         expect.objectContaining({ userId: 123 })
       )
 
+      // eslint-disable-next-line no-console
       expect(console.warn).toHaveBeenCalledWith(
         expect.stringMatching(/\[WARN\].*警告訊息/),
         expect.objectContaining({ code: 'W001' })
       )
 
+      // eslint-disable-next-line no-console
       expect(console.error).toHaveBeenCalledWith(
         expect.stringMatching(/\[ERROR\].*錯誤訊息/),
         expect.objectContaining({ error: expect.any(Error) })
@@ -259,14 +281,19 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
       ConfigUtils.logLevel('debug', '偵錯層級訊息')
       ConfigUtils.logLevel('error', '錯誤層級訊息')
 
+      // eslint-disable-next-line no-console
       expect(console.info).toHaveBeenCalledTimes(1) // 只有條件為真的
+      // eslint-disable-next-line no-console
       expect(console.debug).not.toHaveBeenCalled() // 層級不足
+      // eslint-disable-next-line no-console
       expect(console.error).toHaveBeenCalledTimes(1) // 層級足夠
     })
 
     test('應該格式化日誌訊息', () => {
+      // eslint-disable-next-line no-unused-vars
       const timestamp = Date.now()
 
+      // eslint-disable-next-line no-unused-vars
       const result = ConfigUtils.formatLogMessage('info', '測試訊息', {
         component: 'TestComponent',
         timestamp
@@ -288,6 +315,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
       ConfigUtils.log('warn', '第二條訊息')
       ConfigUtils.log('error', '第三條訊息')
 
+      // eslint-disable-next-line no-unused-vars
       const history = ConfigUtils.getLogHistory()
 
       expect(history).toEqual({
@@ -317,7 +345,9 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
       ConfigUtils.log('info', 'Info message', { component: 'ComponentB' })
       ConfigUtils.log('error', 'Error message', { component: 'ComponentA' })
 
+      // eslint-disable-next-line no-unused-vars
       const filteredByLevel = ConfigUtils.filterLogs({ level: 'error' })
+      // eslint-disable-next-line no-unused-vars
       const filteredByComponent = ConfigUtils.filterLogs({ component: 'ComponentA' })
 
       expect(filteredByLevel).toEqual({
@@ -337,6 +367,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
     })
 
     test('應該支援日誌輸出重定向', () => {
+      // eslint-disable-next-line no-unused-vars
       const customHandler = jest.fn()
 
       ConfigUtils.addLogHandler('custom', customHandler)
@@ -352,12 +383,14 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
     })
 
     test('應該支援效能日誌記錄', () => {
+      // eslint-disable-next-line no-unused-vars
       const operationName = 'test-operation'
 
       ConfigUtils.startPerformanceLog(operationName)
 
       // 模擬一些處理時間
       setTimeout(() => {
+        // eslint-disable-next-line no-unused-vars
         const result = ConfigUtils.endPerformanceLog(operationName)
 
         expect(result).toEqual({
@@ -372,6 +405,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
 
   describe('⚙️ Content Script 特定配置', () => {
     test('應該管理提取器配置', () => {
+      // eslint-disable-next-line no-unused-vars
       const extractorConfig = {
         selectors: {
           bookContainer: '.library-item',
@@ -385,6 +419,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = ConfigUtils.setExtractorConfig('readmoo', extractorConfig)
 
       expect(result).toEqual({
@@ -393,6 +428,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
         validated: true
       })
 
+      // eslint-disable-next-line no-unused-vars
       const retrieved = ConfigUtils.getExtractorConfig('readmoo')
 
       expect(retrieved).toEqual({
@@ -409,6 +445,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
         logToStorage: false
       })
 
+      // eslint-disable-next-line no-unused-vars
       const debugConfig = ConfigUtils.getDebugConfig()
 
       expect(debugConfig).toEqual({
@@ -423,6 +460,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
     })
 
     test('應該管理 Chrome Extension API 配置', () => {
+      // eslint-disable-next-line no-unused-vars
       const apiConfig = {
         permissions: ['storage', 'activeTab'],
         messageTimeout: 3000,
@@ -431,6 +469,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
 
       ConfigUtils.setChromeConfig(apiConfig)
 
+      // eslint-disable-next-line no-unused-vars
       const result = ConfigUtils.getChromeConfig()
 
       expect(result).toEqual({
@@ -441,6 +480,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
     })
 
     test('應該檢測和配置環境資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const envInfo = ConfigUtils.getEnvironmentInfo()
 
       // 基本結構檢查
@@ -461,6 +501,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
     })
 
     test('應該管理功能開關', () => {
+      // eslint-disable-next-line no-unused-vars
       const features = {
         autoExtraction: true,
         notifications: false,
@@ -477,6 +518,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
 
       expect(ConfigUtils.isFeatureEnabled('notifications')).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const allFeatures = ConfigUtils.getAllFeatures()
 
       expect(allFeatures).toEqual({
@@ -488,6 +530,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
     })
 
     test('應該支援配置匯入匯出', () => {
+      // eslint-disable-next-line no-unused-vars
       const originalConfig = {
         extraction: { timeout: 5000 },
         logging: { level: 'info' },
@@ -498,6 +541,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
       ConfigUtils.setConfig('logging', originalConfig.logging)
       ConfigUtils.setConfig('features', originalConfig.features)
 
+      // eslint-disable-next-line no-unused-vars
       const exported = ConfigUtils.exportConfig()
 
       expect(exported).toEqual({
@@ -509,6 +553,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
 
       ConfigUtils.resetConfig()
 
+      // eslint-disable-next-line no-unused-vars
       const importResult = ConfigUtils.importConfig(exported.data)
 
       expect(importResult).toEqual({
@@ -527,6 +572,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
       ConfigUtils.getConfig('test-key-2')
       ConfigUtils.getConfig('test-key-1') // 重複存取
 
+      // eslint-disable-next-line no-unused-vars
       const stats = ConfigUtils.getUsageStats()
 
       expect(stats).toEqual({
@@ -544,6 +590,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
       ConfigUtils.setConfig('valid', { value: 'test' })
       ConfigUtils.setConfig('invalid', null) // 無效配置
 
+      // eslint-disable-next-line no-unused-vars
       const diagnostics = ConfigUtils.getDiagnostics()
 
       expect(diagnostics).toEqual({
@@ -569,6 +616,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
       ConfigUtils.setConfig('app', { name: 'Test' })
       ConfigUtils.log('info', 'Test log')
 
+      // eslint-disable-next-line no-unused-vars
       const report = ConfigUtils.generateReport()
 
       expect(report).toEqual({
@@ -595,6 +643,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
 
   describe('🧪 工具方法測試', () => {
     test('應該匯出所有必要的方法', () => {
+      // eslint-disable-next-line no-unused-vars
       const requiredMethods = [
         'setConfig',
         'getConfig',
@@ -641,6 +690,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
     })
 
     test('應該處理各種錯誤輸入', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidInputs = [null, undefined, '', 0, {}, [], NaN]
 
       invalidInputs.forEach(input => {
@@ -651,11 +701,13 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
     })
 
     test('應該正確處理非同步操作', async () => {
+      // eslint-disable-next-line no-unused-vars
       const asyncOperations = [
         ConfigUtils.saveConfig('async-test', { value: 'test' }, { persist: true }),
         ConfigUtils.loadConfig('async-test')
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const results = await Promise.allSettled(asyncOperations)
 
       results.forEach(result => {

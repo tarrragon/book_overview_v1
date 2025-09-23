@@ -26,10 +26,13 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('SearchIndexManager - TDD 循環 1/8', () => {
   let indexManager
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockLogger
 
   // 測試用書籍資料
+  // eslint-disable-next-line no-unused-vars
   const mockBooks = [
     {
       id: 'book-001',
@@ -86,6 +89,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
   describe('1. Construction & Initialization', () => {
     test('應該正確建構 SearchIndexManager 實例', () => {
+      // eslint-disable-next-line no-unused-vars
       const SearchIndexManager = require('src/ui/search/core/search-index-manager')
 
       indexManager = new SearchIndexManager({
@@ -99,6 +103,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
     })
 
     test('應該初始化空的索引 Maps', () => {
+      // eslint-disable-next-line no-unused-vars
       const SearchIndexManager = require('src/ui/search/core/search-index-manager')
 
       indexManager = new SearchIndexManager({
@@ -115,17 +120,20 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
     })
 
     test('建構時若缺少必要參數應該拋出錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const SearchIndexManager = require('src/ui/search/core/search-index-manager')
 
       expect(() => {
-        const manager = new SearchIndexManager()
+        // eslint-disable-next-line no-unused-vars
+        const _manager = new SearchIndexManager()
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('EventBus 和 Logger 是必需的')
       })
 
       expect(() => {
-        const manager = new SearchIndexManager({ eventBus: mockEventBus })
+        // eslint-disable-next-line no-unused-vars
+        const _manager = new SearchIndexManager({ eventBus: mockEventBus })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toMatchObject({
         message: expect.stringContaining('EventBus 和 Logger 是必需的')
@@ -133,6 +141,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
     })
 
     test('應該正確初始化統計資料', () => {
+      // eslint-disable-next-line no-unused-vars
       const SearchIndexManager = require('src/ui/search/core/search-index-manager')
 
       indexManager = new SearchIndexManager({
@@ -140,6 +149,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
         logger: mockLogger
       })
 
+      // eslint-disable-next-line no-unused-vars
       const stats = indexManager.getIndexStats()
       expect(stats).toEqual({
         titleIndexSize: 0,
@@ -154,6 +164,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
   describe('2. Index Building & Management', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchIndexManager = require('src/ui/search/core/search-index-manager')
       indexManager = new SearchIndexManager({
         eventBus: mockEventBus,
@@ -176,6 +187,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
       expect(indexManager.titleIndex.has('machine')).toBe(false) // 確認中文標題不會被錯誤分詞
 
       // 檢查索引內容正確性
+      // eslint-disable-next-line no-unused-vars
       const jsBooks = indexManager.titleIndex.get('javascript')
       expect(jsBooks).toHaveLength(1)
       expect(jsBooks[0].id).toBe('book-001')
@@ -196,6 +208,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
       expect(indexManager.authorIndex.has('goodfellow')).toBe(true)
 
       // 檢查索引內容正確性
+      // eslint-disable-next-line no-unused-vars
       const davidBooks = indexManager.authorIndex.get('david')
       expect(davidBooks).toHaveLength(1)
       expect(davidBooks[0].author).toBe('David Flanagan')
@@ -213,20 +226,25 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
       expect(indexManager.tagIndex.has('ai')).toBe(true)
 
       // 檢查標籤索引內容正確性
+      // eslint-disable-next-line no-unused-vars
       const jsTagBooks = indexManager.tagIndex.get('javascript')
       expect(jsTagBooks).toHaveLength(1)
       expect(jsTagBooks[0].id).toBe('book-001')
 
+      // eslint-disable-next-line no-unused-vars
       const pythonTagBooks = indexManager.tagIndex.get('python')
       expect(pythonTagBooks).toHaveLength(1)
       expect(pythonTagBooks[0].id).toBe('book-002')
     })
 
     test('建構索引後應該更新統計資料', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
       indexManager.buildIndex(mockBooks)
+      // eslint-disable-next-line no-unused-vars
       const endTime = Date.now()
 
+      // eslint-disable-next-line no-unused-vars
       const stats = indexManager.getIndexStats()
       expect(stats.totalBooks).toBe(3)
       expect(stats.titleIndexSize).toBeGreaterThan(0)
@@ -244,11 +262,13 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
       expect(indexManager.authorIndex.size).toBe(0)
       expect(indexManager.tagIndex.size).toBe(0)
 
+      // eslint-disable-next-line no-unused-vars
       const stats = indexManager.getIndexStats()
       expect(stats.totalBooks).toBe(0)
     })
 
     test('應該正確處理缺少資料欄位的書籍', () => {
+      // eslint-disable-next-line no-unused-vars
       const incompleteBooks = [
         { id: 'book-incomplete-1', title: 'Only Title' },
         { id: 'book-incomplete-2', author: 'Only Author' },
@@ -270,6 +290,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
   describe('3. Index Updates & Rebuilding', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchIndexManager = require('src/ui/search/core/search-index-manager')
       indexManager = new SearchIndexManager({
         eventBus: mockEventBus,
@@ -279,6 +300,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
     })
 
     test('應該支援新增單一書籍到索引', () => {
+      // eslint-disable-next-line no-unused-vars
       const newBook = {
         id: 'book-new',
         title: 'React 開發實戰',
@@ -296,30 +318,37 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
       expect(indexManager.tagIndex.has('react')).toBe(true)
       expect(indexManager.tagIndex.has('frontend')).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const stats = indexManager.getIndexStats()
       expect(stats.totalBooks).toBe(4) // 原本3本 + 新增1本
     })
 
     test('應該支援從索引中移除書籍', () => {
+      // eslint-disable-next-line no-unused-vars
       const bookToRemove = mockBooks[0] // JavaScript 權威指南
 
       indexManager.removeBookFromIndex(bookToRemove)
 
       // 檢查書籍是否從索引中移除
+      // eslint-disable-next-line no-unused-vars
       const jsBooks = indexManager.titleIndex.get('javascript')
       expect(jsBooks || []).toHaveLength(0)
 
+      // eslint-disable-next-line no-unused-vars
       const davidBooks = indexManager.authorIndex.get('david')
       expect(davidBooks || []).toHaveLength(0)
 
+      // eslint-disable-next-line no-unused-vars
       const jsTagBooks = indexManager.tagIndex.get('javascript')
       expect(jsTagBooks || []).toHaveLength(0)
 
+      // eslint-disable-next-line no-unused-vars
       const stats = indexManager.getIndexStats()
       expect(stats.totalBooks).toBe(2) // 原本3本 - 移除1本
     })
 
     test('應該支援更新現有書籍索引', () => {
+      // eslint-disable-next-line no-unused-vars
       const updatedBook = {
         ...mockBooks[0],
         title: 'JavaScript ES2024 權威指南 (第七版)',
@@ -337,6 +366,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
       expect(indexManager.tagIndex.has('es2024')).toBe(true)
       expect(indexManager.tagIndex.has('前端開發')).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const stats = indexManager.getIndexStats()
       expect(stats.totalBooks).toBe(3) // 總數不變，只是更新
     })
@@ -348,6 +378,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
       expect(indexManager.authorIndex.size).toBe(0)
       expect(indexManager.tagIndex.size).toBe(0)
 
+      // eslint-disable-next-line no-unused-vars
       const stats = indexManager.getIndexStats()
       expect(stats.totalBooks).toBe(0)
       expect(stats.titleIndexSize).toBe(0)
@@ -359,6 +390,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
       // 先修改一些資料讓索引不一致
       indexManager.titleIndex.set('fake-entry', [])
 
+      // eslint-disable-next-line no-unused-vars
       const newBooks = [
         {
           id: 'new-book-1',
@@ -379,6 +411,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
       expect(indexManager.authorIndex.has('evan you')).toBe(true)
       expect(indexManager.tagIndex.has('vue')).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const stats = indexManager.getIndexStats()
       expect(stats.totalBooks).toBe(1)
     })
@@ -386,6 +419,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
   describe('4. Performance & Memory Management', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchIndexManager = require('src/ui/search/core/search-index-manager')
       indexManager = new SearchIndexManager({
         eventBus: mockEventBus,
@@ -395,6 +429,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
     test('應該在記憶體不足時拋出錯誤', () => {
       // 建立超過記憶體限制的大量資料 (模擬50000+書籍)
+      // eslint-disable-next-line no-unused-vars
       const largeBookArray = new Array(50001).fill(null).map((_, index) => ({
         id: `book-${index}`,
         title: `Book ${index}`,
@@ -418,6 +453,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
     test('應該提供記憶體使用估算', () => {
       indexManager.buildIndex(mockBooks)
 
+      // eslint-disable-next-line no-unused-vars
       const memoryUsage = indexManager.getMemoryUsage()
       expect(memoryUsage).toEqual({
         titleIndexEntries: expect.any(Number),
@@ -433,15 +469,18 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
     test('應該支援索引壓縮優化', () => {
       // 建立一些重複的索引項目
+      // eslint-disable-next-line no-unused-vars
       const duplicateBooks = [
         ...mockBooks,
         ...mockBooks.map(book => ({ ...book, id: book.id + '-duplicate' }))
       ]
 
       indexManager.buildIndex(duplicateBooks)
+      // eslint-disable-next-line no-unused-vars
       const beforeStats = indexManager.getIndexStats()
 
       indexManager.optimizeIndex()
+      // eslint-disable-next-line no-unused-vars
       const afterStats = indexManager.getIndexStats()
 
       // 驗證優化後索引仍然正確
@@ -452,6 +491,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
     })
 
     test('建構大量資料索引時應該記錄效能指標', () => {
+      // eslint-disable-next-line no-unused-vars
       const mediumBookArray = new Array(1000).fill(null).map((_, index) => ({
         id: `book-${index}`,
         title: `測試書籍 ${index}`,
@@ -459,10 +499,13 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
         tags: [`標籤${index}`]
       }))
 
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
       indexManager.buildIndex(mediumBookArray)
+      // eslint-disable-next-line no-unused-vars
       const endTime = Date.now()
 
+      // eslint-disable-next-line no-unused-vars
       const stats = indexManager.getIndexStats()
       expect(stats.buildDuration).toBeGreaterThan(0)
       expect(stats.buildDuration).toBeLessThan(endTime - startTime + 50) // 允許50ms誤差
@@ -472,6 +515,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
   describe('5. Error Handling & Edge Cases', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchIndexManager = require('src/ui/search/core/search-index-manager')
       indexManager = new SearchIndexManager({
         eventBus: mockEventBus,
@@ -488,11 +532,13 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
         indexManager.buildIndex(undefined)
       }).not.toThrow()
 
+      // eslint-disable-next-line no-unused-vars
       const stats = indexManager.getIndexStats()
       expect(stats.totalBooks).toBe(0)
     })
 
     test('應該正確處理包含 null 書籍的陣列', () => {
+      // eslint-disable-next-line no-unused-vars
       const booksWithNull = [
         mockBooks[0],
         null,
@@ -505,11 +551,13 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
         indexManager.buildIndex(booksWithNull)
       }).not.toThrow()
 
+      // eslint-disable-next-line no-unused-vars
       const stats = indexManager.getIndexStats()
       expect(stats.totalBooks).toBe(2) // 只有兩本有效書籍
     })
 
     test('應該正確處理特殊字元和空字串', () => {
+      // eslint-disable-next-line no-unused-vars
       const specialBooks = [
         {
           id: 'special-1',
@@ -541,6 +589,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
     })
 
     test('應該正確處理非字串類型的資料', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidBooks = [
         {
           id: 'invalid-1',
@@ -566,7 +615,9 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
     test('索引操作過程中發生錯誤時應該正確處理', () => {
       // 使用 spy 來模擬 Map 操作錯誤，而不是修改 prototype
+      // eslint-disable-next-line no-unused-vars
       const mapSetSpy = jest.spyOn(Map.prototype, 'set').mockImplementation(() => {
+        // eslint-disable-next-line no-unused-vars
         const error = new Error('索引操作失敗')
         error.code = ErrorCodes.SYSTEM_ERROR
         error.details = { category: 'testing' }
@@ -589,6 +640,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
   describe('6. Integration & Event Handling', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchIndexManager = require('src/ui/search/core/search-index-manager')
       indexManager = new SearchIndexManager({
         eventBus: mockEventBus,
@@ -609,6 +661,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
     })
 
     test('索引更新時應該發送對應事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const newBook = { id: 'new', title: 'New Book', author: 'New Author', tags: ['new'] }
 
       indexManager.addBookToIndex(newBook)
@@ -621,6 +674,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
     })
 
     test('記憶體警告時應該發送警告事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const largeBookArray = new Array(50001).fill(null).map((_, index) => ({
         id: `book-${index}`,
         title: `Book ${index}`
@@ -638,6 +692,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
     test('應該支援事件驅動的索引重建', () => {
       // 模擬接收到重建索引的事件
+      // eslint-disable-next-line no-unused-vars
       const rebuildEventData = {
         books: [mockBooks[0]], // 只重建一本書
         force: true

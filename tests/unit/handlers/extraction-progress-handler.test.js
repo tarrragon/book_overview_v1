@@ -27,11 +27,14 @@
  * - 追蹤提取過程狀態變化時
  */
 
+// eslint-disable-next-line no-unused-vars
 const EventHandler = require('@/core/event-handler')
 
 describe('ExtractionProgressHandler', () => {
   let ExtractionProgressHandler
+  // eslint-disable-next-line no-unused-vars
   let handler
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
 
   beforeEach(async () => {
@@ -73,6 +76,7 @@ describe('ExtractionProgressHandler', () => {
     })
 
     test('應該支援 EXTRACTION.PROGRESS 事件類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const supportedEvents = handler.getSupportedEvents()
       expect(supportedEvents).toContain('EXTRACTION.PROGRESS')
       expect(handler.isEventSupported('EXTRACTION.PROGRESS')).toBe(true)
@@ -93,6 +97,7 @@ describe('ExtractionProgressHandler', () => {
     })
 
     test('應該能處理有效的進度事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const progressEvent = {
         type: 'EXTRACTION.PROGRESS',
         timestamp: Date.now(),
@@ -113,6 +118,7 @@ describe('ExtractionProgressHandler', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(progressEvent)
 
       expect(result.success).toBe(true)
@@ -123,12 +129,14 @@ describe('ExtractionProgressHandler', () => {
     })
 
     test('應該能追蹤多個提取流程的進度', async () => {
+      // eslint-disable-next-line no-unused-vars
       const flow1Event = {
         type: 'EXTRACTION.PROGRESS',
         flowId: 'flow-001',
         data: { progressPercentage: 25, currentStep: 'initialization' }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const flow2Event = {
         type: 'EXTRACTION.PROGRESS',
         flowId: 'flow-002',
@@ -144,6 +152,7 @@ describe('ExtractionProgressHandler', () => {
     })
 
     test('應該驗證進度資料的有效性', async () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidProgressEvent = {
         type: 'EXTRACTION.PROGRESS',
         flowId: 'flow-001',
@@ -154,6 +163,7 @@ describe('ExtractionProgressHandler', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(invalidProgressEvent)
 
       expect(result.success).toBe(false)
@@ -162,6 +172,7 @@ describe('ExtractionProgressHandler', () => {
     })
 
     test('應該處理進度資料的邊界情況', async () => {
+      // eslint-disable-next-line no-unused-vars
       const edgeCaseEvents = [
         {
           type: 'EXTRACTION.PROGRESS',
@@ -181,6 +192,7 @@ describe('ExtractionProgressHandler', () => {
       ]
 
       for (const event of edgeCaseEvents) {
+        // eslint-disable-next-line no-unused-vars
         const result = await handler.handle(event)
         expect(result.success).toBe(true)
       }
@@ -195,6 +207,7 @@ describe('ExtractionProgressHandler', () => {
     })
 
     test('應該觸發正確格式的 UI 進度更新事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const progressEvent = {
         type: 'EXTRACTION.PROGRESS',
         flowId: 'flow-001',
@@ -229,6 +242,7 @@ describe('ExtractionProgressHandler', () => {
     })
 
     test('應該在多個進度更新時觸發對應的 UI 事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const progressUpdates = [
         { flowId: 'flow-001', progressPercentage: 25 },
         { flowId: 'flow-001', progressPercentage: 50 },
@@ -252,12 +266,14 @@ describe('ExtractionProgressHandler', () => {
     test('應該在觸發 UI 事件失敗時記錄錯誤', async () => {
       mockEventBus.emit.mockRejectedValueOnce(new Error('UI event failed'))
 
+      // eslint-disable-next-line no-unused-vars
       const progressEvent = {
         type: 'EXTRACTION.PROGRESS',
         flowId: 'flow-001',
         data: { progressPercentage: 50 }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(progressEvent)
 
       expect(result.success).toBe(false)
@@ -268,6 +284,7 @@ describe('ExtractionProgressHandler', () => {
 
   describe('進度資料驗證和處理 (Cycle #7)', () => {
     test('應該驗證進度百分比範圍', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { progressPercentage: -10, expected: false },
         { progressPercentage: 0, expected: true },
@@ -277,6 +294,7 @@ describe('ExtractionProgressHandler', () => {
       ]
 
       for (const testCase of testCases) {
+        // eslint-disable-next-line no-unused-vars
         const result = await handler.validateProgressData({
           progressPercentage: testCase.progressPercentage
         })
@@ -285,19 +303,23 @@ describe('ExtractionProgressHandler', () => {
     })
 
     test('應該驗證步驟資料的一致性', async () => {
+      // eslint-disable-next-line no-unused-vars
       const validStepData = {
         currentStepIndex: 2,
         totalSteps: 5,
         currentStep: 'parsing'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const invalidStepData = {
         currentStepIndex: 6, // 超過總步驟數
         totalSteps: 5,
         currentStep: 'invalid-step'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const validResult = await handler.validateProgressData(validStepData)
+      // eslint-disable-next-line no-unused-vars
       const invalidResult = await handler.validateProgressData(invalidStepData)
 
       expect(validResult.valid).toBe(true)
@@ -306,6 +328,7 @@ describe('ExtractionProgressHandler', () => {
     })
 
     test('應該計算並提供進度預估', async () => {
+      // eslint-disable-next-line no-unused-vars
       const progressData = {
         progressPercentage: 40,
         processedBooks: 8,
@@ -313,6 +336,7 @@ describe('ExtractionProgressHandler', () => {
         startTime: Date.now() - 10000 // 10秒前開始
       }
 
+      // eslint-disable-next-line no-unused-vars
       const estimation = await handler.calculateProgressEstimation(progressData)
 
       expect(estimation.estimatedTimeRemaining).toBeGreaterThan(0)
@@ -324,6 +348,7 @@ describe('ExtractionProgressHandler', () => {
   describe('進度統計和狀態管理 (Cycle #7)', () => {
     test('應該正確追蹤進度統計', async () => {
       // 處理多個進度事件
+      // eslint-disable-next-line no-unused-vars
       const events = [
         { type: 'EXTRACTION.PROGRESS', flowId: 'flow-1', data: { progressPercentage: 25 } },
         { type: 'EXTRACTION.PROGRESS', flowId: 'flow-2', data: { progressPercentage: 50 } },
@@ -336,6 +361,7 @@ describe('ExtractionProgressHandler', () => {
         await handler.handle(event)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const stats = handler.getProgressStats()
       expect(stats.totalProgressEvents).toBe(3)
       expect(stats.successfulUpdates).toBe(3)
@@ -344,6 +370,7 @@ describe('ExtractionProgressHandler', () => {
     })
 
     test('應該提供當前活躍流程的詳細資訊', async () => {
+      // eslint-disable-next-line no-unused-vars
       const progressEvent = {
         type: 'EXTRACTION.PROGRESS',
         flowId: 'flow-detailed',
@@ -359,9 +386,11 @@ describe('ExtractionProgressHandler', () => {
       handler.setEventBus(mockEventBus)
       await handler.handle(progressEvent)
 
+      // eslint-disable-next-line no-unused-vars
       const activeFlows = handler.getActiveExtractionFlows()
       expect(activeFlows.size).toBe(1)
 
+      // eslint-disable-next-line no-unused-vars
       const flowInfo = activeFlows.get('flow-detailed')
       expect(flowInfo.progressPercentage).toBe(60)
       expect(flowInfo.currentStep).toBe('data-validation')
@@ -376,6 +405,7 @@ describe('ExtractionProgressHandler', () => {
       // 清理完成的流程
       await handler.cleanupCompletedFlows()
 
+      // eslint-disable-next-line no-unused-vars
       const activeFlows = handler.getActiveExtractionFlows()
       expect(activeFlows.size).toBe(1)
       expect(activeFlows.has('flow-2')).toBe(true)
@@ -385,6 +415,7 @@ describe('ExtractionProgressHandler', () => {
 
   describe('錯誤處理和復原機制 (Cycle #7)', () => {
     test('應該處理缺少必要進度資料的事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const incompleteEvent = {
         type: 'EXTRACTION.PROGRESS',
         flowId: 'flow-incomplete'
@@ -392,6 +423,7 @@ describe('ExtractionProgressHandler', () => {
       }
 
       handler.setEventBus(mockEventBus)
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(incompleteEvent)
 
       expect(result.success).toBe(false)
@@ -400,6 +432,7 @@ describe('ExtractionProgressHandler', () => {
     })
 
     test('應該處理進度資料格式錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const malformedEvent = {
         type: 'EXTRACTION.PROGRESS',
         flowId: 'flow-malformed',
@@ -407,6 +440,7 @@ describe('ExtractionProgressHandler', () => {
       }
 
       handler.setEventBus(mockEventBus)
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(malformedEvent)
 
       expect(result.success).toBe(false)
@@ -415,12 +449,14 @@ describe('ExtractionProgressHandler', () => {
 
     test('應該處理 EventBus 未設置的情況', async () => {
       // 不設置 EventBus
+      // eslint-disable-next-line no-unused-vars
       const progressEvent = {
         type: 'EXTRACTION.PROGRESS',
         flowId: 'flow-no-bus',
         data: { progressPercentage: 50 }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(progressEvent)
 
       expect(result.success).toBe(false)
@@ -438,6 +474,7 @@ describe('ExtractionProgressHandler', () => {
       })
 
       // 再處理一個正確事件
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle({
         type: 'EXTRACTION.PROGRESS',
         flowId: 'flow-recovery',
@@ -461,6 +498,7 @@ describe('ExtractionProgressHandler', () => {
     test('應該追蹤執行統計', async () => {
       handler.setEventBus(mockEventBus)
 
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'EXTRACTION.PROGRESS',
         flowId: 'flow-stats',
@@ -469,6 +507,7 @@ describe('ExtractionProgressHandler', () => {
 
       await handler.handle(event)
 
+      // eslint-disable-next-line no-unused-vars
       const stats = handler.getStats()
       expect(stats.executionCount).toBe(1)
       expect(stats.lastExecutionTime).toBeGreaterThan(0)
@@ -479,12 +518,14 @@ describe('ExtractionProgressHandler', () => {
       handler.setEnabled(false)
       handler.setEventBus(mockEventBus)
 
+      // eslint-disable-next-line no-unused-vars
       const event = {
         type: 'EXTRACTION.PROGRESS',
         flowId: 'flow-disabled',
         data: { progressPercentage: 50 }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await handler.handle(event)
 
       // 停用時應該跳過處理

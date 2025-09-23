@@ -16,13 +16,18 @@
  * 11. Memory Management - 記憶體管理
  */
 
+// eslint-disable-next-line no-unused-vars
 const FilterEngine = require('src/ui/search/filter/filter-engine')
+// eslint-disable-next-line no-unused-vars
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 describe('FilterEngine', () => {
   let filterEngine
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockLogger
+  // eslint-disable-next-line no-unused-vars
   let testBooks
 
   beforeEach(() => {
@@ -104,14 +109,16 @@ describe('FilterEngine', () => {
 
     it('should throw error when EventBus is missing', () => {
       expect(() => {
-        const engine = new FilterEngine({ logger: mockLogger })
+        // eslint-disable-next-line no-unused-vars
+        const _engine = new FilterEngine({ logger: mockLogger })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toThrow(expect.objectContaining({ code: expect.any(String) }))
     })
 
     it('should throw error when Logger is missing', () => {
       expect(() => {
-        const engine = new FilterEngine({ eventBus: mockEventBus })
+        // eslint-disable-next-line no-unused-vars
+        const _engine = new FilterEngine({ eventBus: mockEventBus })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toThrow(expect.objectContaining({ code: expect.any(String) }))
     })
@@ -128,6 +135,7 @@ describe('FilterEngine', () => {
     })
 
     it('should accept custom configuration', () => {
+      // eslint-disable-next-line no-unused-vars
       const customConfig = {
         enableEvents: false,
         enableStatistics: false,
@@ -156,6 +164,7 @@ describe('FilterEngine', () => {
     })
 
     it('should return all books when no filters applied', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, {})
 
       expect(result.filteredBooks).toEqual(testBooks)
@@ -164,6 +173,7 @@ describe('FilterEngine', () => {
     })
 
     it('should handle empty books array', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters([], { status: 'reading' })
 
       expect(result.filteredBooks).toEqual([])
@@ -178,6 +188,7 @@ describe('FilterEngine', () => {
     })
 
     it('should emit filter application events when enabled', async () => {
+      // eslint-disable-next-line no-unused-vars
       const filters = { status: 'reading' }
       await filterEngine.applyFilters(testBooks, filters)
 
@@ -199,6 +210,7 @@ describe('FilterEngine', () => {
     })
 
     it('should filter books by reading status', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, { status: 'reading' })
 
       expect(result.filteredBooks).toHaveLength(2)
@@ -207,6 +219,7 @@ describe('FilterEngine', () => {
     })
 
     it('should filter books by completed status', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, { status: 'completed' })
 
       expect(result.filteredBooks).toHaveLength(1)
@@ -214,6 +227,7 @@ describe('FilterEngine', () => {
     })
 
     it('should filter books by unread status', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, { status: 'unread' })
 
       expect(result.filteredBooks).toHaveLength(1)
@@ -221,6 +235,7 @@ describe('FilterEngine', () => {
     })
 
     it('should return empty results for non-existing status', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, { status: 'archived' })
 
       expect(result.filteredBooks).toHaveLength(0)
@@ -237,6 +252,7 @@ describe('FilterEngine', () => {
     })
 
     it('should filter books by programming category', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, { category: 'programming' })
 
       expect(result.filteredBooks).toHaveLength(3)
@@ -244,6 +260,7 @@ describe('FilterEngine', () => {
     })
 
     it('should filter books by history category', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, { category: 'history' })
 
       expect(result.filteredBooks).toHaveLength(1)
@@ -251,6 +268,7 @@ describe('FilterEngine', () => {
     })
 
     it('should return empty results for non-existing category', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, { category: 'fiction' })
 
       expect(result.filteredBooks).toHaveLength(0)
@@ -267,6 +285,7 @@ describe('FilterEngine', () => {
     })
 
     it('should filter books by progress range', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, {
         progressRange: { min: 0.2, max: 0.8 }
       })
@@ -277,6 +296,7 @@ describe('FilterEngine', () => {
     })
 
     it('should filter books for completed reading (progress = 1.0)', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, {
         progressRange: { min: 1.0, max: 1.0 }
       })
@@ -286,6 +306,7 @@ describe('FilterEngine', () => {
     })
 
     it('should filter books for unstarted reading (progress = 0.0)', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, {
         progressRange: { min: 0.0, max: 0.0 }
       })
@@ -295,6 +316,7 @@ describe('FilterEngine', () => {
     })
 
     it('should handle invalid progress range gracefully', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, {
         progressRange: { min: 0.8, max: 0.2 } // min > max
       })
@@ -313,6 +335,7 @@ describe('FilterEngine', () => {
     })
 
     it('should filter books by lastReadAfter date', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, {
         lastReadAfter: '2025-08-12T00:00:00Z'
       })
@@ -323,6 +346,7 @@ describe('FilterEngine', () => {
     })
 
     it('should filter books by lastReadBefore date', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, {
         lastReadBefore: '2025-08-12T00:00:00Z'
       })
@@ -332,6 +356,7 @@ describe('FilterEngine', () => {
     })
 
     it('should exclude books with null lastRead when filtering by date', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, {
         lastReadAfter: '2025-08-01T00:00:00Z'
       })
@@ -356,6 +381,7 @@ describe('FilterEngine', () => {
     })
 
     it('should apply multiple filters simultaneously', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, {
         status: 'reading',
         category: 'programming',
@@ -372,6 +398,7 @@ describe('FilterEngine', () => {
     })
 
     it('should return empty when no books match all conditions', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, {
         status: 'reading',
         category: 'history' // 沒有 reading 狀態的 history 書籍
@@ -381,6 +408,7 @@ describe('FilterEngine', () => {
     })
 
     it('should handle complex date and progress combinations', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, {
         progressRange: { min: 0.1, max: 0.9 },
         lastReadAfter: '2025-08-12T00:00:00Z'
@@ -451,6 +479,7 @@ describe('FilterEngine', () => {
       await filterEngine.applyFilters(testBooks, { status: 'reading' })
       await filterEngine.applyFilters(testBooks, { category: 'programming' })
 
+      // eslint-disable-next-line no-unused-vars
       const stats = filterEngine.getStatistics()
 
       expect(stats.totalFilterOperations).toBe(2)
@@ -463,6 +492,7 @@ describe('FilterEngine', () => {
       await filterEngine.applyFilters(testBooks, { status: 'completed' })
       await filterEngine.applyFilters(testBooks, { category: 'programming' })
 
+      // eslint-disable-next-line no-unused-vars
       const stats = filterEngine.getStatistics()
 
       expect(stats.criteriaUsage.status).toBe(2)
@@ -474,6 +504,7 @@ describe('FilterEngine', () => {
       await filterEngine.applyFilters(testBooks, { status: 'reading' })
 
       filterEngine.resetStatistics()
+      // eslint-disable-next-line no-unused-vars
       const stats = filterEngine.getStatistics()
 
       expect(stats.totalFilterOperations).toBe(0)
@@ -489,6 +520,7 @@ describe('FilterEngine', () => {
       })
 
       await filterEngine.applyFilters(testBooks, { status: 'reading' })
+      // eslint-disable-next-line no-unused-vars
       const stats = filterEngine.getStatistics()
 
       expect(stats.totalFilterOperations).toBe(0)
@@ -505,6 +537,7 @@ describe('FilterEngine', () => {
     })
 
     it('should handle books with missing properties gracefully', async () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidBooks = [
         { id: '1', title: 'Book 1' }, // missing other properties
         { id: '2' }, // missing title
@@ -512,6 +545,7 @@ describe('FilterEngine', () => {
         undefined // undefined book
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(invalidBooks, { status: 'reading' })
 
       expect(result.filteredBooks).toHaveLength(0)
@@ -520,6 +554,7 @@ describe('FilterEngine', () => {
 
     it('should log error and throw when filter operation fails', async () => {
       // 模擬內部錯誤
+      // eslint-disable-next-line no-unused-vars
       const mockError = new Error('Internal filter error')
       jest.spyOn(filterEngine, '_applyStatusFilter').mockImplementation(() => {
         throw mockError
@@ -539,6 +574,7 @@ describe('FilterEngine', () => {
     })
 
     it('should handle invalid filter criteria gracefully', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await filterEngine.applyFilters(testBooks, {
         unknownFilter: 'value',
         invalidProgressRange: 'not-an-object'
@@ -563,6 +599,7 @@ describe('FilterEngine', () => {
     it('should cleanup internal state', () => {
       filterEngine.cleanup()
 
+      // eslint-disable-next-line no-unused-vars
       const stats = filterEngine.getStatistics()
       expect(stats.totalFilterOperations).toBe(0)
     })
@@ -588,6 +625,7 @@ describe('FilterEngine', () => {
       await filterEngine.applyFilters(testBooks, { category: 'programming' })
       await filterEngine.applyFilters(testBooks, { status: 'completed' }) // 應觸發快取清理
 
+      // eslint-disable-next-line no-unused-vars
       const cacheSize = filterEngine._getCacheSize()
       expect(cacheSize).toBeLessThanOrEqual(2)
     })

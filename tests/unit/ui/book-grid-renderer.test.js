@@ -26,11 +26,15 @@ require('../../test-setup')
 
 describe('BookGridRenderer - TDD 循環 #27', () => {
   let renderer
+  // eslint-disable-next-line no-unused-vars
   let mockDocument
+  // eslint-disable-next-line no-unused-vars
   let mockContainer
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
 
   // 測試輔助函數
+  // eslint-disable-next-line no-unused-vars
   const setupRequestAnimationFrame = () => {
     global.requestAnimationFrame = jest.fn((callback) => {
       setTimeout(callback, 0)
@@ -38,6 +42,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
   }
 
+  // eslint-disable-next-line no-unused-vars
   const waitForAsyncRender = (callback, timeout = 10) => {
     setTimeout(callback, timeout)
   }
@@ -72,6 +77,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
     mockDocument = {
       createElement: jest.fn((tag) => {
+        // eslint-disable-next-line no-unused-vars
         const element = {
           tagName: tag.toUpperCase(),
           style: {},
@@ -125,12 +131,14 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
   describe('🏗 基本結構和初始化', () => {
     test('應該能夠創建 BookGridRenderer 實例', () => {
       expect(() => {
+        // eslint-disable-next-line no-unused-vars
         const BookGridRenderer = require('src/ui/book-grid-renderer')
         renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
       }).not.toThrow()
     })
 
     test('應該支援 document 依賴注入', () => {
+      // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
 
@@ -139,7 +147,9 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該在沒有注入 document 時使用全域 document', () => {
+      // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
+      // eslint-disable-next-line no-unused-vars
       const originalDocument = global.document
 
       // 模擬瀏覽器環境
@@ -158,6 +168,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該正確初始化基本屬性', () => {
+      // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
 
@@ -168,6 +179,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該初始化預設配置', () => {
+      // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
 
@@ -179,6 +191,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該註冊事件監聽器', () => {
+      // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
 
@@ -187,6 +200,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該初始化統計追蹤', () => {
+      // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
 
@@ -199,11 +213,13 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
   describe('📐 網格計算和佈局', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
     })
 
     test('應該正確計算網格欄位數量', () => {
+      // eslint-disable-next-line no-unused-vars
       const columns = renderer.calculateColumns(800) // 容器寬度
 
       expect(columns).toBeGreaterThan(0)
@@ -211,8 +227,11 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該根據螢幕寺寸調整欄位數量', () => {
+      // eslint-disable-next-line no-unused-vars
       const mobileColumns = renderer.calculateColumns(320) // 手機
+      // eslint-disable-next-line no-unused-vars
       const tabletColumns = renderer.calculateColumns(768) // 平板
+      // eslint-disable-next-line no-unused-vars
       const desktopColumns = renderer.calculateColumns(1200) // 桌面
 
       expect(mobileColumns).toBeLessThan(tabletColumns)
@@ -220,11 +239,13 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該計算每個書籍卡片的位置', () => {
+      // eslint-disable-next-line no-unused-vars
       const books = Array.from({ length: 10 }, (_, i) => ({
         id: `book-${i}`,
         title: `Book ${i}`
       }))
 
+      // eslint-disable-next-line no-unused-vars
       const positions = renderer.calculatePositions(books, 3) // 3 欄位
 
       expect(positions).toHaveLength(10)
@@ -233,7 +254,9 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該計算容器總高度', () => {
+      // eslint-disable-next-line no-unused-vars
       const books = Array.from({ length: 10 }, (_, i) => ({ id: `book-${i}` }))
+      // eslint-disable-next-line no-unused-vars
       const height = renderer.calculateTotalHeight(books, 3)
 
       expect(height).toBeGreaterThan(0)
@@ -243,12 +266,14 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
   describe('🖼 書籍卡片渲染', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
       // 使用依賴注入來支援測試
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
     })
 
     test('應該創建書籍卡片元素', () => {
+      // eslint-disable-next-line no-unused-vars
       const book = {
         id: 'test-book',
         title: '測試書籍',
@@ -256,6 +281,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
         progress: 50
       }
 
+      // eslint-disable-next-line no-unused-vars
       const card = renderer.createBookCard(book)
 
       // 驗證 document.createElement 被調用
@@ -270,6 +296,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該正確設定書籍卡片內容', () => {
+      // eslint-disable-next-line no-unused-vars
       const book = {
         id: 'test-book',
         title: '測試書籍',
@@ -279,6 +306,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
         status: 'reading'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const card = renderer.createBookCard(book)
 
       // 驗證 DOM 操作被正確調用
@@ -289,11 +317,13 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該處理缺少封面圖片的情況', () => {
+      // eslint-disable-next-line no-unused-vars
       const book = {
         id: 'test-book',
         title: '無封面書籍'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const card = renderer.createBookCard(book)
 
       expect(card).toBeDefined()
@@ -301,18 +331,21 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該添加書籍狀態樣式類別', () => {
+      // eslint-disable-next-line no-unused-vars
       const book = {
         id: 'test-book',
         title: '測試書籍',
         status: 'completed'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const card = renderer.createBookCard(book)
 
       expect(card.classList.add).toHaveBeenCalledWith('status-completed')
     })
 
     test('應該添加進度指示器', () => {
+      // eslint-disable-next-line no-unused-vars
       const book = {
         id: 'test-book',
         title: '測試書籍',
@@ -328,15 +361,19 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
   describe('📱 響應式設計', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
     })
 
     test('應該響應容器尺寸變化', (done) => {
+      // eslint-disable-next-line no-unused-vars
       const originalWidth = 800
+      // eslint-disable-next-line no-unused-vars
       const newWidth = 400
 
       // 記錄原始欄位數
+      // eslint-disable-next-line no-unused-vars
       const originalColumns = renderer.calculateColumns(originalWidth)
 
       // 模擬尺寸變化
@@ -349,6 +386,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
       // handleResize 是異步的，需要等待
       setTimeout(() => {
+        // eslint-disable-next-line no-unused-vars
         const newColumns = renderer.currentColumns
         expect(newColumns).toBeLessThan(originalColumns)
         done()
@@ -361,6 +399,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
         height: 400
       })
 
+      // eslint-disable-next-line no-unused-vars
       const columns = renderer.calculateColumns(320)
       expect(columns).toBe(1)
     })
@@ -371,12 +410,15 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
         height: 800
       })
 
+      // eslint-disable-next-line no-unused-vars
       const columns = renderer.calculateColumns(1200)
       expect(columns).toBeGreaterThan(3)
     })
 
     test('應該調整卡片間距適應不同螢幕', () => {
+      // eslint-disable-next-line no-unused-vars
       const mobileGap = renderer.calculateGap(320)
+      // eslint-disable-next-line no-unused-vars
       const desktopGap = renderer.calculateGap(1200)
 
       expect(mobileGap).toBeLessThan(desktopGap)
@@ -385,14 +427,17 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
   describe('🔄 虛擬滾動功能', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
     })
 
     test('應該計算可見區域範圍', () => {
+      // eslint-disable-next-line no-unused-vars
       const books = Array.from({ length: 100 }, (_, i) => ({ id: `book-${i}` }))
       renderer.updateBooks(books)
 
+      // eslint-disable-next-line no-unused-vars
       const visibleRange = renderer.calculateVisibleRange()
 
       expect(visibleRange.start).toBeGreaterThanOrEqual(0)
@@ -401,6 +446,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該只渲染可見的書籍', (done) => {
+      // eslint-disable-next-line no-unused-vars
       const books = Array.from({ length: 100 }, (_, i) => ({ id: `book-${i}`, title: `Book ${i}` }))
 
       setupRequestAnimationFrame()
@@ -417,6 +463,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該在滾動時更新可見範圍', () => {
+      // eslint-disable-next-line no-unused-vars
       const books = Array.from({ length: 100 }, (_, i) => ({ id: `book-${i}` }))
       renderer.updateBooks(books)
 
@@ -428,10 +475,12 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該重用 DOM 元素以提高效能', () => {
+      // eslint-disable-next-line no-unused-vars
       const books = Array.from({ length: 50 }, (_, i) => ({ id: `book-${i}` }))
       renderer.updateBooks(books)
 
       renderer.renderVisibleBooks()
+      // eslint-disable-next-line no-unused-vars
       const initialCallCount = mockDocument.createElement.mock.calls.length
 
       // 模擬滾動，應該重用現有元素
@@ -445,11 +494,13 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
   describe('📊 資料更新和重新渲染', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
     })
 
     test('應該更新書籍資料並重新渲染', (done) => {
+      // eslint-disable-next-line no-unused-vars
       const books = [
         { id: 'book-1', title: 'Book 1' },
         { id: 'book-2', title: 'Book 2' }
@@ -475,6 +526,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該處理重複的書籍 ID', () => {
+      // eslint-disable-next-line no-unused-vars
       const books = [
         { id: 'book-1', title: 'Book 1' },
         { id: 'book-1', title: 'Book 1 Duplicate' } // 重複 ID
@@ -484,10 +536,12 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該在資料變更時觸發重新渲染', () => {
+      // eslint-disable-next-line no-unused-vars
       const books = [{ id: 'book-1', title: 'Book 1' }]
       renderer.updateBooks(books)
 
       // 更新書籍資料
+      // eslint-disable-next-line no-unused-vars
       const updatedBooks = [{ id: 'book-1', title: 'Updated Book 1' }]
       renderer.updateBooks(updatedBooks)
 
@@ -495,6 +549,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該保持滾動位置', () => {
+      // eslint-disable-next-line no-unused-vars
       const books = Array.from({ length: 50 }, (_, i) => ({ id: `book-${i}` }))
       mockContainer.scrollTop = 300
 
@@ -506,6 +561,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
   describe('⚡ 效能優化', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
     })
@@ -513,6 +569,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     test('應該使用 requestAnimationFrame 優化渲染', () => {
       global.requestAnimationFrame = jest.fn()
 
+      // eslint-disable-next-line no-unused-vars
       const books = [{ id: 'book-1', title: 'Book 1' }]
       renderer.updateBooks(books)
 
@@ -522,6 +579,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     test('應該防抖滾動事件', () => {
       jest.useFakeTimers()
 
+      // eslint-disable-next-line no-unused-vars
       const books = Array.from({ length: 100 }, (_, i) => ({ id: `book-${i}` }))
       renderer.updateBooks(books)
 
@@ -537,6 +595,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該追蹤渲染效能指標', (done) => {
+      // eslint-disable-next-line no-unused-vars
       const books = Array.from({ length: 20 }, (_, i) => ({ id: `book-${i}`, title: `Book ${i}` }))
 
       setupRequestAnimationFrame()
@@ -551,6 +610,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該清理未使用的 DOM 元素', (done) => {
+      // eslint-disable-next-line no-unused-vars
       const books = Array.from({ length: 10 }, (_, i) => ({ id: `book-${i}`, title: `Book ${i}` }))
 
       setupRequestAnimationFrame()
@@ -562,6 +622,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
         mockContainer.removeChild.mockClear()
 
         // 減少書籍數量，觸發清理
+        // eslint-disable-next-line no-unused-vars
         const fewerBooks = books.slice(0, 5)
         renderer.updateBooks(fewerBooks)
 
@@ -575,11 +636,13 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
   describe('🔧 錯誤處理', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
     })
 
     test('應該處理無效的書籍資料', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidBooks = [
         null,
         undefined,
@@ -593,8 +656,10 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
     test('應該處理容器不存在的情況', () => {
       expect(() => {
+        // eslint-disable-next-line no-unused-vars
         const BookGridRenderer = require('src/ui/book-grid-renderer')
-        const renderer = new BookGridRenderer(null, mockEventBus)
+        // eslint-disable-next-line no-unused-vars
+        const _renderer = new BookGridRenderer(null, mockEventBus)
         // 變數賦值確保 new 的結果被正確處理，測試建構子錯誤
       }).toThrow()
     })
@@ -614,6 +679,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
         throw new Error('DOM error')
       })
 
+      // eslint-disable-next-line no-unused-vars
       const books = [{ id: 'book-1', title: 'Book 1' }]
 
       expect(() => renderer.updateBooks(books)).not.toThrow()
@@ -622,11 +688,13 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
 
   describe('🎯 邊界條件測試', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
       renderer = new BookGridRenderer(mockContainer, mockEventBus, {}, mockDocument)
     })
 
     test('應該處理極大量書籍資料', () => {
+      // eslint-disable-next-line no-unused-vars
       const manyBooks = Array.from({ length: 10000 }, (_, i) => ({
         id: `book-${i}`,
         title: `Book ${i}`
@@ -648,6 +716,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該處理負數進度值', () => {
+      // eslint-disable-next-line no-unused-vars
       const book = {
         id: 'test-book',
         title: 'Test Book',
@@ -658,6 +727,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
 
     test('應該處理超過100%的進度值', () => {
+      // eslint-disable-next-line no-unused-vars
       const book = {
         id: 'test-book',
         title: 'Test Book',

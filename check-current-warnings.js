@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * 檢查當前的 no-unused-vars 警告
+ * 檢查當前的所有 ESLint 警告
  */
 
 const { execSync } = require('child_process')
 
-console.log('🔍 檢查當前 no-unused-vars 警告...\n')
+console.log('🔍 檢查當前所有 ESLint 警告...\n')
 
 try {
   let output = ''
@@ -28,25 +28,49 @@ try {
 
   const lines = output.split('\n')
 
-  // 過濾 no-unused-vars 警告
-  const unusedVarsLines = lines.filter(line =>
-    line.includes('no-unused-vars') && !line.includes('eslint-disable')
-  )
-
-  console.log(`📊 找到 ${unusedVarsLines.length} 個 no-unused-vars 警告\n`)
-
-  if (unusedVarsLines.length > 0) {
-    console.log('📋 前 15 個警告:')
-    unusedVarsLines.slice(0, 15).forEach((line, i) => {
-      console.log(`${(i + 1).toString().padStart(2)}: ${line.trim()}`)
-    })
-
-    if (unusedVarsLines.length > 15) {
-      console.log(`\n... 以及其他 ${unusedVarsLines.length - 15} 個警告`)
-    }
-  } else {
-    console.log('✅ 沒有發現 no-unused-vars 警告！')
+  // 統計所有警告類型
+  const warnings = {
+    'no-unused-vars': [],
+    'no-console': [],
+    'no-new': [],
+    'no-callback-literal': [],
+    'other': []
   }
+
+  let totalWarnings = 0
+  let totalErrors = 0
+
+  for (const line of lines) {
+    if (line.includes('warning')) {
+      totalWarnings++
+      if (line.includes('no-unused-vars')) warnings['no-unused-vars'].push(line.trim())
+      else if (line.includes('no-console')) warnings['no-console'].push(line.trim())
+      else if (line.includes('no-new')) warnings['no-new'].push(line.trim())
+      else if (line.includes('no-callback-literal')) warnings['no-callback-literal'].push(line.trim())
+      else warnings['other'].push(line.trim())
+    }
+    if (line.includes('error')) {
+      totalErrors++
+    }
+  }
+
+  console.log('📈 ESLint 狀況統計：')
+  console.log(`總計 Errors: ${totalErrors}`)
+  console.log(`總計 Warnings: ${totalWarnings}\n`)
+
+  console.log('警告類型分布：')
+  Object.entries(warnings).forEach(([type, warningList]) => {
+    if (warningList.length > 0) {
+      console.log(`\n🔸 ${type}: ${warningList.length} 個`)
+      // 顯示前 5 個警告
+      warningList.slice(0, 5).forEach((warning, i) => {
+        console.log(`   ${i + 1}. ${warning}`)
+      })
+      if (warningList.length > 5) {
+        console.log(`   ... 以及其他 ${warningList.length - 5} 個`)
+      }
+    }
+  })
 
   // 統計檔案數量
   const fileSet = new Set()
@@ -56,7 +80,7 @@ try {
     if (line.trim().startsWith('/') && line.includes('.js')) {
       currentFile = line.trim()
     }
-    if (line.includes('no-unused-vars') && currentFile) {
+    if (line.includes('warning') && currentFile) {
       fileSet.add(currentFile)
     }
   }

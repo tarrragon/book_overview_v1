@@ -27,11 +27,15 @@
 require('../../../../test-setup')
 
 describe('SearchCacheManager - TDD 循環 3/8', () => {
+  // eslint-disable-next-line no-unused-vars
   let cacheManager
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockLogger
 
   // 測試用搜尋結果資料
+  // eslint-disable-next-line no-unused-vars
   const mockSearchResults = {
     javascript: [
       { id: 'book-001', title: 'JavaScript 權威指南', author: 'David Flanagan' },
@@ -75,6 +79,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
   describe('1. Construction & Initialization', () => {
     test('應該正確建構 SearchCacheManager 實例', () => {
+      // eslint-disable-next-line no-unused-vars
       const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
 
       cacheManager = new SearchCacheManager({
@@ -88,10 +93,12 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('建構時若缺少必要參數應該拋出錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
 
       expect(() => {
-        const invalidManager = new SearchCacheManager()
+        // eslint-disable-next-line no-unused-vars
+        const _invalidManager = new SearchCacheManager()
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toThrow(expect.objectContaining({
         code: 'VALIDATION_ERROR',
@@ -99,7 +106,8 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
       }))
 
       expect(() => {
-        const invalidManager = new SearchCacheManager({ eventBus: mockEventBus })
+        // eslint-disable-next-line no-unused-vars
+        const _invalidManager = new SearchCacheManager({ eventBus: mockEventBus })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toThrow(expect.objectContaining({
         code: 'VALIDATION_ERROR',
@@ -107,7 +115,8 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
       }))
 
       expect(() => {
-        const invalidManager = new SearchCacheManager({ logger: mockLogger })
+        // eslint-disable-next-line no-unused-vars
+        const _invalidManager = new SearchCacheManager({ logger: mockLogger })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toThrow(expect.objectContaining({
         code: 'VALIDATION_ERROR',
@@ -116,6 +125,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該正確初始化快取配置', () => {
+      // eslint-disable-next-line no-unused-vars
       const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
 
       cacheManager = new SearchCacheManager({
@@ -133,6 +143,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該正確初始化快取統計', () => {
+      // eslint-disable-next-line no-unused-vars
       const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
 
       cacheManager = new SearchCacheManager({
@@ -140,6 +151,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
         logger: mockLogger
       })
 
+      // eslint-disable-next-line no-unused-vars
       const stats = cacheManager.getStatistics()
       expect(stats).toEqual({
         totalHits: 0,
@@ -153,8 +165,10 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該支援自定義配置', () => {
+      // eslint-disable-next-line no-unused-vars
       const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
 
+      // eslint-disable-next-line no-unused-vars
       const customConfig = {
         maxCacheSize: 50,
         cleanupThreshold: 0.8,
@@ -177,6 +191,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
   describe('2. Basic Cache Operations', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
       cacheManager = new SearchCacheManager({
         eventBus: mockEventBus,
@@ -185,7 +200,9 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該能夠快取搜尋結果', () => {
+      // eslint-disable-next-line no-unused-vars
       const query = 'javascript'
+      // eslint-disable-next-line no-unused-vars
       const results = mockSearchResults.javascript
 
       cacheManager.set(query, results)
@@ -195,17 +212,21 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該正確處理快取命中', () => {
+      // eslint-disable-next-line no-unused-vars
       const query = 'python'
+      // eslint-disable-next-line no-unused-vars
       const results = mockSearchResults.python
 
       // 設定快取
       cacheManager.set(query, results)
 
       // 測試快取命中
+      // eslint-disable-next-line no-unused-vars
       const cachedResults = cacheManager.get(query)
       expect(cachedResults).toEqual(results)
 
       // 檢查統計
+      // eslint-disable-next-line no-unused-vars
       const stats = cacheManager.getStatistics()
       expect(stats.totalHits).toBe(1)
       expect(stats.totalMisses).toBe(0)
@@ -213,12 +234,15 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該正確處理快取未命中', () => {
+      // eslint-disable-next-line no-unused-vars
       const query = 'nonexistent'
 
+      // eslint-disable-next-line no-unused-vars
       const result = cacheManager.get(query)
       expect(result).toBeNull()
 
       // 檢查統計
+      // eslint-disable-next-line no-unused-vars
       const stats = cacheManager.getStatistics()
       expect(stats.totalHits).toBe(0)
       expect(stats.totalMisses).toBe(1)
@@ -226,7 +250,9 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該正確檢查快取是否存在', () => {
+      // eslint-disable-next-line no-unused-vars
       const query = 'learning'
+      // eslint-disable-next-line no-unused-vars
       const results = mockSearchResults.learning
 
       expect(cacheManager.has(query)).toBe(false)
@@ -236,18 +262,22 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該能夠刪除特定快取項目', () => {
+      // eslint-disable-next-line no-unused-vars
       const query = 'javascript'
+      // eslint-disable-next-line no-unused-vars
       const results = mockSearchResults.javascript
 
       cacheManager.set(query, results)
       expect(cacheManager.has(query)).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const deleted = cacheManager.delete(query)
       expect(deleted).toBe(true)
       expect(cacheManager.has(query)).toBe(false)
     })
 
     test('刪除不存在的快取項目應該返回 false', () => {
+      // eslint-disable-next-line no-unused-vars
       const deleted = cacheManager.delete('nonexistent')
       expect(deleted).toBe(false)
     })
@@ -255,6 +285,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
   describe('3. LRU Cache Strategy', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
       cacheManager = new SearchCacheManager({
         eventBus: mockEventBus,
@@ -323,6 +354,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
   describe('4. Cache Size Management', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
       cacheManager = new SearchCacheManager({
         eventBus: mockEventBus,
@@ -395,6 +427,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
   describe('5. Statistics & Performance Monitoring', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
       cacheManager = new SearchCacheManager({
         eventBus: mockEventBus,
@@ -410,6 +443,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
       cacheManager.get('query3') // 未命中
       cacheManager.clear()
 
+      // eslint-disable-next-line no-unused-vars
       const stats = cacheManager.getStatistics()
       expect(stats.totalHits).toBe(1)
       expect(stats.totalMisses).toBe(1)
@@ -427,11 +461,13 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
       cacheManager.get('query1')
       cacheManager.get('query2')
 
+      // eslint-disable-next-line no-unused-vars
       const stats = cacheManager.getStatistics()
       expect(stats.hitRate).toBeCloseTo(2 / 3, 2) // 約 0.67
     })
 
     test('沒有存取時命中率應該為 0', () => {
+      // eslint-disable-next-line no-unused-vars
       const stats = cacheManager.getStatistics()
       expect(stats.hitRate).toBe(0)
     })
@@ -442,6 +478,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
       cacheManager.get('query1')
       cacheManager.get('query2')
 
+      // eslint-disable-next-line no-unused-vars
       let stats = cacheManager.getStatistics()
       expect(stats.totalHits).toBe(1)
       expect(stats.totalMisses).toBe(1)
@@ -459,6 +496,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
   describe('6. Key Normalization', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
       cacheManager = new SearchCacheManager({
         eventBus: mockEventBus,
@@ -467,6 +505,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該正確正規化快取鍵', () => {
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         { input: '  JavaScript  ', normalized: 'javascript' },
         { input: 'PYTHON', normalized: 'python' },
@@ -475,12 +514,14 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
       ]
 
       testCases.forEach(({ input, normalized }) => {
+        // eslint-disable-next-line no-unused-vars
         const result = cacheManager.normalizeKey(input)
         expect(result).toBe(normalized)
       })
     })
 
     test('正規化的鍵應該能夠找到快取項目', () => {
+      // eslint-disable-next-line no-unused-vars
       const results = ['result1']
 
       // 使用原始鍵設定
@@ -494,12 +535,14 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該能夠禁用鍵正規化', () => {
+      // eslint-disable-next-line no-unused-vars
       const cacheManagerNoNorm = new (require('src/ui/search/cache/search-cache-manager'))({
         eventBus: mockEventBus,
         logger: mockLogger,
         config: { keyNormalization: false }
       })
 
+      // eslint-disable-next-line no-unused-vars
       const results = ['result1']
       cacheManagerNoNorm.set('JavaScript', results)
 
@@ -513,6 +556,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
   describe('7. Error Handling & Edge Cases', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
       cacheManager = new SearchCacheManager({
         eventBus: mockEventBus,
@@ -567,6 +611,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該正確處理空字串鍵', () => {
+      // eslint-disable-next-line no-unused-vars
       const results = ['empty_result']
 
       expect(() => {
@@ -588,7 +633,9 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該正確處理極長的鍵', () => {
+      // eslint-disable-next-line no-unused-vars
       const longKey = 'a'.repeat(1000)
+      // eslint-disable-next-line no-unused-vars
       const results = ['long_key_result']
 
       expect(() => {
@@ -599,9 +646,11 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該正確處理特殊字元鍵', () => {
+      // eslint-disable-next-line no-unused-vars
       const specialKeys = ['@#$%', '!!', '???', '...', '---', '🚀', 'émoji']
 
       specialKeys.forEach((key, index) => {
+        // eslint-disable-next-line no-unused-vars
         const results = [`result_${index}`]
         expect(() => {
           cacheManager.set(key, results)
@@ -621,6 +670,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
       expect(cacheManager.size()).toBeLessThanOrEqual(cacheManager.config.maxCacheSize)
 
       // 統計應該正確
+      // eslint-disable-next-line no-unused-vars
       const stats = cacheManager.getStatistics()
       expect(stats.totalSets).toBe(1000)
       expect(stats.currentSize).toBe(cacheManager.size())
@@ -629,6 +679,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
   describe('8. Event System Integration', () => {
     beforeEach(() => {
+      // eslint-disable-next-line no-unused-vars
       const SearchCacheManager = require('src/ui/search/cache/search-cache-manager')
       cacheManager = new SearchCacheManager({
         eventBus: mockEventBus,
@@ -637,7 +688,9 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('快取命中時應該發送事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const query = 'javascript'
+      // eslint-disable-next-line no-unused-vars
       const results = mockSearchResults.javascript
 
       cacheManager.set(query, results)
@@ -651,6 +704,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('快取未命中時應該發送事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const query = 'nonexistent'
 
       cacheManager.get(query)
@@ -662,7 +716,9 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('快取設定時應該發送事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const query = 'python'
+      // eslint-disable-next-line no-unused-vars
       const results = mockSearchResults.python
 
       cacheManager.set(query, results)
@@ -677,7 +733,9 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
     test('快取清理時應該發送事件', () => {
       // 填充快取到觸發清理
+      // eslint-disable-next-line no-unused-vars
       const config = { maxCacheSize: 2, cleanupThreshold: 0.5 }
+      // eslint-disable-next-line no-unused-vars
       const customCacheManager = new (require('src/ui/search/cache/search-cache-manager'))({
         eventBus: mockEventBus,
         logger: mockLogger,
@@ -717,6 +775,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
     })
 
     test('應該能夠禁用事件發送', () => {
+      // eslint-disable-next-line no-unused-vars
       const cacheManagerNoEvents = new (require('src/ui/search/cache/search-cache-manager'))({
         eventBus: mockEventBus,
         logger: mockLogger,

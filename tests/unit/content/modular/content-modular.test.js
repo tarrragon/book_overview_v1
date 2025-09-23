@@ -25,6 +25,7 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 // 強化chrome.runtime.sendMessage的模擬行為
 global.chrome.runtime.sendMessage.mockImplementation((message, callback) => {
   // 模擬成功的訊息發送，包含正確的metadata格式
+  // eslint-disable-next-line no-unused-vars
   const response = { success: true }
   if (callback) {
     setTimeout(() => callback(response), 0)
@@ -101,6 +102,7 @@ describe('Modular Content Script', () => {
     }
 
     // 正確設定 location 物件 - 使用 Object.defineProperty 避免 JSDOM 限制
+    // eslint-disable-next-line no-unused-vars
     const locationObj = {
       href: 'https://readmoo.com/library',
       hostname: 'readmoo.com',
@@ -171,17 +173,22 @@ describe('Modular Content Script', () => {
       }
 
       // 在環境設定完成後載入模組
+      // eslint-disable-next-line no-unused-vars
       const createPageDetector = require('src/content/detectors/page-detector')
 
+      // eslint-disable-next-line no-unused-vars
       const pageDetector = createPageDetector()
 
+      // eslint-disable-next-line no-unused-vars
       const result = pageDetector.detectReadmooPage()
       expect(result.isReadmooPage).toBe(true)
       expect(result.pageType).toBe('library')
     })
 
     test('應該能夠檢測不同的頁面類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const createPageDetector = require('src/content/detectors/page-detector')
+      // eslint-disable-next-line no-unused-vars
       const pageDetector = createPageDetector()
 
       // 測試 library 頁面
@@ -211,9 +218,12 @@ describe('Modular Content Script', () => {
         toString: () => 'https://readmoo.com/library'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const createPageDetector = require('src/content/detectors/page-detector')
+      // eslint-disable-next-line no-unused-vars
       const pageDetector = createPageDetector()
 
+      // eslint-disable-next-line no-unused-vars
       const status = pageDetector.getPageStatus()
       expect(status).toEqual({
         isReadmooPage: true,
@@ -228,7 +238,9 @@ describe('Modular Content Script', () => {
     test('應該能夠監聽 URL 變更', (done) => {
       // 在 JSDOM 環境中，MutationObserver 對 Node 類型檢查較嚴格
       // 我們測試 URL 變更檢測邏輯，但跳過實際的 MutationObserver 設置
+      // eslint-disable-next-line no-unused-vars
       const createPageDetector = require('src/content/detectors/page-detector')
+      // eslint-disable-next-line no-unused-vars
       const pageDetector = createPageDetector()
 
       // 由於 JSDOM 環境限制，我們測試 URL 變更檢測能力而不是觀察機制
@@ -246,10 +258,12 @@ describe('Modular Content Script', () => {
       }
 
       // 測試是否能檢測到 URL 變更
+      // eslint-disable-next-line no-unused-vars
       const newPageType = pageDetector.detectPageType()
       expect(newPageType).toBe('shelf')
 
       // 模擬變更回調（在實際環境中會由 MutationObserver 觸發）
+      // eslint-disable-next-line no-unused-vars
       const changeInfo = {
         newUrl: global.location.href,
         changed: true,
@@ -263,12 +277,16 @@ describe('Modular Content Script', () => {
 
   describe('ContentEventBus 模組', () => {
     test('應該能夠註冊和觸發事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const createContentEventBus = require('src/content/core/content-event-bus')
+      // eslint-disable-next-line no-unused-vars
       const eventBus = createContentEventBus()
+      // eslint-disable-next-line no-unused-vars
       const handler = jest.fn()
 
       eventBus.on('TEST.EVENT', handler)
 
+      // eslint-disable-next-line no-unused-vars
       const result = await eventBus.emit('TEST.EVENT', { message: 'test' })
 
       expect(result.success).toBe(true)
@@ -281,8 +299,11 @@ describe('Modular Content Script', () => {
     })
 
     test('應該支援事件優先級', async () => {
+      // eslint-disable-next-line no-unused-vars
       const createContentEventBus = require('src/content/core/content-event-bus')
+      // eslint-disable-next-line no-unused-vars
       const eventBus = createContentEventBus()
+      // eslint-disable-next-line no-unused-vars
       const callOrder = []
 
       eventBus.on('PRIORITY.TEST', () => callOrder.push('low'), { priority: 3 })
@@ -295,8 +316,11 @@ describe('Modular Content Script', () => {
     })
 
     test('應該支援一次性監聽器', async () => {
+      // eslint-disable-next-line no-unused-vars
       const createContentEventBus = require('src/content/core/content-event-bus')
+      // eslint-disable-next-line no-unused-vars
       const eventBus = createContentEventBus()
+      // eslint-disable-next-line no-unused-vars
       const handler = jest.fn()
 
       eventBus.on('ONCE.TEST', handler, { once: true })
@@ -308,14 +332,19 @@ describe('Modular Content Script', () => {
     })
 
     test('應該隔離監聽器錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const createContentEventBus = require('src/content/core/content-event-bus')
+      // eslint-disable-next-line no-unused-vars
       const eventBus = createContentEventBus()
+      // eslint-disable-next-line no-unused-vars
       const errorHandler = jest.fn(() => { throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.CONTENT_HANDLER_ERROR; error.details = { category: 'testing' }; return error })() })
+      // eslint-disable-next-line no-unused-vars
       const goodHandler = jest.fn()
 
       eventBus.on('ERROR.TEST', errorHandler)
       eventBus.on('ERROR.TEST', goodHandler)
 
+      // eslint-disable-next-line no-unused-vars
       const result = await eventBus.emit('ERROR.TEST')
 
       expect(result.success).toBe(true)
@@ -343,16 +372,20 @@ describe('Modular Content Script', () => {
         toString: () => 'https://readmoo.com/library'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const createChromeEventBridge = require('src/content/bridge/chrome-event-bridge')
+      // eslint-disable-next-line no-unused-vars
       const bridge = createChromeEventBridge()
 
       chrome.runtime.sendMessage.mockResolvedValue({ success: true })
 
+      // eslint-disable-next-line no-unused-vars
       const message = {
         type: 'TEST.MESSAGE',
         data: { test: 'data' }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await bridge.sendToBackground(message)
 
       expect(result.success).toBe(true)
@@ -369,16 +402,20 @@ describe('Modular Content Script', () => {
     })
 
     test('應該處理發送錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const createChromeEventBridge = require('src/content/bridge/chrome-event-bridge')
+      // eslint-disable-next-line no-unused-vars
       const bridge = createChromeEventBridge()
 
       chrome.runtime.sendMessage.mockRejectedValue(new Error('Connection failed'))
 
+      // eslint-disable-next-line no-unused-vars
       const message = {
         type: 'TEST.MESSAGE',
         data: {}
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await bridge.sendToBackground(message)
 
       expect(result.success).toBe(false)
@@ -386,7 +423,9 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠轉發事件到 Background', async () => {
+      // eslint-disable-next-line no-unused-vars
       const createChromeEventBridge = require('src/content/bridge/chrome-event-bridge')
+      // eslint-disable-next-line no-unused-vars
       const bridge = createChromeEventBridge()
 
       chrome.runtime.sendMessage.mockResolvedValue({ success: true })
@@ -407,9 +446,12 @@ describe('Modular Content Script', () => {
 
   describe('ReadmooAdapter 模組', () => {
     test('應該能夠找到書籍元素', () => {
+      // eslint-disable-next-line no-unused-vars
       const createReadmooAdapter = require('src/content/adapters/readmoo-adapter')
+      // eslint-disable-next-line no-unused-vars
       const adapter = createReadmooAdapter({ document })
 
+      // eslint-disable-next-line no-unused-vars
       const bookElements = adapter.getBookElements()
 
       expect(bookElements).toHaveLength(2)
@@ -418,10 +460,14 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠解析書籍資料', () => {
+      // eslint-disable-next-line no-unused-vars
       const createReadmooAdapter = require('src/content/adapters/readmoo-adapter')
+      // eslint-disable-next-line no-unused-vars
       const adapter = createReadmooAdapter({ document })
+      // eslint-disable-next-line no-unused-vars
       const bookElements = adapter.getBookElements()
 
+      // eslint-disable-next-line no-unused-vars
       const bookData = adapter.parseBookElement(bookElements[0])
 
       expect(bookData).toEqual({
@@ -452,9 +498,12 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠提取所有書籍', async () => {
+      // eslint-disable-next-line no-unused-vars
       const createReadmooAdapter = require('src/content/adapters/readmoo-adapter')
+      // eslint-disable-next-line no-unused-vars
       const adapter = createReadmooAdapter({ document })
 
+      // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractAllBooks()
 
       expect(books).toHaveLength(2)
@@ -463,7 +512,9 @@ describe('Modular Content Script', () => {
     })
 
     test('應該過濾不安全的 URL', () => {
+      // eslint-disable-next-line no-unused-vars
       const createReadmooAdapter = require('src/content/adapters/readmoo-adapter')
+      // eslint-disable-next-line no-unused-vars
       const adapter = createReadmooAdapter()
 
       expect(adapter.isUnsafeUrl('javascript:alert(1)')).toBe(true)
@@ -474,18 +525,23 @@ describe('Modular Content Script', () => {
 
   describe('BookDataExtractor 模組', () => {
     test('應該能夠檢測頁面類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const createBookDataExtractor = require('src/content/extractors/book-data-extractor')
+      // eslint-disable-next-line no-unused-vars
       const extractor = createBookDataExtractor()
 
+      // eslint-disable-next-line no-unused-vars
       const pageType = extractor.getReadmooPageType()
       expect(pageType).toBe('library')
 
+      // eslint-disable-next-line no-unused-vars
       const isExtractable = extractor.isExtractableReadmooPage()
       expect(isExtractable).toBe(true)
     })
 
     test('應該能夠檢查頁面準備狀態', async () => {
       // 確保 location 正確設置
+      // eslint-disable-next-line no-unused-vars
       const originalGlobalLocation = globalThis.location
 
       globalThis.location = {
@@ -501,13 +557,18 @@ describe('Modular Content Script', () => {
         toString: () => 'https://readmoo.com/library'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const createBookDataExtractor = require('src/content/extractors/book-data-extractor')
+      // eslint-disable-next-line no-unused-vars
       const createReadmooAdapter = require('src/content/adapters/readmoo-adapter')
+      // eslint-disable-next-line no-unused-vars
       const extractor = createBookDataExtractor()
+      // eslint-disable-next-line no-unused-vars
       const adapter = createReadmooAdapter({ document })
 
       extractor.setReadmooAdapter(adapter)
 
+      // eslint-disable-next-line no-unused-vars
       const status = await extractor.checkPageReady()
 
       expect(status).toEqual({
@@ -528,20 +589,28 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠啟動提取流程', async () => {
+      // eslint-disable-next-line no-unused-vars
       const createContentEventBus = require('src/content/core/content-event-bus')
+      // eslint-disable-next-line no-unused-vars
       const createBookDataExtractor = require('src/content/extractors/book-data-extractor')
+      // eslint-disable-next-line no-unused-vars
       const createReadmooAdapter = require('src/content/adapters/readmoo-adapter')
+      // eslint-disable-next-line no-unused-vars
       const eventBus = createContentEventBus()
+      // eslint-disable-next-line no-unused-vars
       const extractor = createBookDataExtractor()
+      // eslint-disable-next-line no-unused-vars
       const adapter = createReadmooAdapter()
 
       extractor.setEventBus(eventBus)
       extractor.setReadmooAdapter(adapter)
 
+      // eslint-disable-next-line no-unused-vars
       const events = []
       eventBus.on('EXTRACTION.STARTED', (event) => events.push(event))
       eventBus.on('EXTRACTION.COMPLETED', (event) => events.push(event))
 
+      // eslint-disable-next-line no-unused-vars
       const flowId = await extractor.startExtractionFlow()
 
       expect(flowId).toMatch(/^flow_/)
@@ -551,18 +620,24 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠取消提取流程', async () => {
+      // eslint-disable-next-line no-unused-vars
       const createContentEventBus = require('src/content/core/content-event-bus')
+      // eslint-disable-next-line no-unused-vars
       const createBookDataExtractor = require('src/content/extractors/book-data-extractor')
+      // eslint-disable-next-line no-unused-vars
       const eventBus = createContentEventBus()
+      // eslint-disable-next-line no-unused-vars
       const extractor = createBookDataExtractor()
 
       extractor.setEventBus(eventBus)
 
       // 手動添加活動流程 (直接操作內部狀態進行測試)
+      // eslint-disable-next-line no-unused-vars
       const mockFlowId = 'test-flow-123'
       // 通過反射或直接訪問私有屬性
       if (!extractor.activeExtractionFlows) {
         // 如果模組沒有公開這個屬性，我們測試不存在的流程
+        // eslint-disable-next-line no-unused-vars
         const result = await extractor.cancelExtraction(mockFlowId)
         expect(result.success).toBe(false)
         expect(result.error).toBe('流程不存在')
@@ -572,6 +647,7 @@ describe('Modular Content Script', () => {
           status: 'running'
         })
 
+        // eslint-disable-next-line no-unused-vars
         const result = await extractor.cancelExtraction(mockFlowId)
         expect(result.success).toBe(true)
         expect(result.flowId).toBe(mockFlowId)
@@ -581,15 +657,25 @@ describe('Modular Content Script', () => {
 
   describe('模組整合測試', () => {
     test('應該能夠完整整合所有模組', () => {
+      // eslint-disable-next-line no-unused-vars
       const createPageDetector = require('src/content/detectors/page-detector')
+      // eslint-disable-next-line no-unused-vars
       const createContentEventBus = require('src/content/core/content-event-bus')
+      // eslint-disable-next-line no-unused-vars
       const createChromeEventBridge = require('src/content/bridge/chrome-event-bridge')
+      // eslint-disable-next-line no-unused-vars
       const createReadmooAdapter = require('src/content/adapters/readmoo-adapter')
+      // eslint-disable-next-line no-unused-vars
       const createBookDataExtractor = require('src/content/extractors/book-data-extractor')
+      // eslint-disable-next-line no-unused-vars
       const pageDetector = createPageDetector()
+      // eslint-disable-next-line no-unused-vars
       const eventBus = createContentEventBus()
+      // eslint-disable-next-line no-unused-vars
       const chromeBridge = createChromeEventBridge()
+      // eslint-disable-next-line no-unused-vars
       const adapter = createReadmooAdapter()
+      // eslint-disable-next-line no-unused-vars
       const extractor = createBookDataExtractor()
 
       // 設定模組整合
@@ -610,9 +696,13 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠處理事件轉發', async () => {
+      // eslint-disable-next-line no-unused-vars
       const createContentEventBus = require('src/content/core/content-event-bus')
+      // eslint-disable-next-line no-unused-vars
       const createChromeEventBridge = require('src/content/bridge/chrome-event-bridge')
+      // eslint-disable-next-line no-unused-vars
       const eventBus = createContentEventBus()
+      // eslint-disable-next-line no-unused-vars
       const chromeBridge = createChromeEventBridge()
 
       chromeBridge.eventBus = eventBus
@@ -637,9 +727,13 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠處理模組錯誤隔離', async () => {
+      // eslint-disable-next-line no-unused-vars
       const createContentEventBus = require('src/content/core/content-event-bus')
+      // eslint-disable-next-line no-unused-vars
       const createBookDataExtractor = require('src/content/extractors/book-data-extractor')
+      // eslint-disable-next-line no-unused-vars
       const eventBus = createContentEventBus()
+      // eslint-disable-next-line no-unused-vars
       const extractor = createBookDataExtractor()
 
       extractor.setEventBus(eventBus)
@@ -653,6 +747,7 @@ describe('Modular Content Script', () => {
       }
 
       // 事件系統應該仍然正常運作
+      // eslint-disable-next-line no-unused-vars
       const handler = jest.fn()
       eventBus.on('TEST.EVENT', handler)
       await eventBus.emit('TEST.EVENT')
@@ -662,7 +757,9 @@ describe('Modular Content Script', () => {
 
   describe('記憶體管理和清理', () => {
     test('PageDetector 應該能夠清理資源', () => {
+      // eslint-disable-next-line no-unused-vars
       const createPageDetector = require('src/content/detectors/page-detector')
+      // eslint-disable-next-line no-unused-vars
       const pageDetector = createPageDetector()
 
       // 由於 JSDOM 環境限制，我們測試清理函數的存在和調用而不是實際觀察設置
@@ -675,13 +772,16 @@ describe('Modular Content Script', () => {
       expect(() => pageDetector.destroy()).not.toThrow()
 
       // 測試模組狀態重置
+      // eslint-disable-next-line no-unused-vars
       const result = pageDetector.detectReadmooPage()
       expect(typeof result).toBe('object')
       expect('isReadmooPage' in result).toBe(true)
     })
 
     test('EventBus 應該能夠清理事件監聽器', async () => {
+      // eslint-disable-next-line no-unused-vars
       const createContentEventBus = require('src/content/core/content-event-bus')
+      // eslint-disable-next-line no-unused-vars
       const eventBus = createContentEventBus()
 
       eventBus.on('TEST.EVENT', () => {})
@@ -692,10 +792,13 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠清理活動提取流程', () => {
+      // eslint-disable-next-line no-unused-vars
       const createBookDataExtractor = require('src/content/extractors/book-data-extractor')
+      // eslint-disable-next-line no-unused-vars
       const extractor = createBookDataExtractor()
 
       // 測試取得活動流程列表 (應該是空的)
+      // eslint-disable-next-line no-unused-vars
       const activeFlows = extractor.getActiveExtractionFlows()
       expect(Array.isArray(activeFlows)).toBe(true)
       expect(activeFlows).toHaveLength(0)

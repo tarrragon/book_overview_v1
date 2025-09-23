@@ -3,6 +3,7 @@
  */
 
 const { expect } = require('@jest/globals')
+// eslint-disable-next-line no-unused-vars
 const ErrorCodes = require('src/core/errors/ErrorCodes')
 const { createErrorRecovery, retryOperation } = require('src/core/error-handling/error-recovery-coordinator')
 
@@ -27,9 +28,11 @@ describe('ErrorRecoveryCoordinator ErrorCodes Migration', () => {
     })
 
     it('should maintain error recovery functionality after migration', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockError = new Error('test error')
       mockError.code = ErrorCodes.NETWORK_ERROR
 
+      // eslint-disable-next-line no-unused-vars
       const result = createErrorRecovery(mockError, 'NETWORK_ERROR')
       expect(result).toBeDefined()
       expect(typeof result).toBe('object')
@@ -39,6 +42,7 @@ describe('ErrorRecoveryCoordinator ErrorCodes Migration', () => {
 
   describe('Retry Operation with ErrorCodes', () => {
     it('should handle operation failure after max retries using ErrorCodes', async () => {
+      // eslint-disable-next-line no-unused-vars
       const failingOperation = () => {
         throw new Error('Always fails')
       }

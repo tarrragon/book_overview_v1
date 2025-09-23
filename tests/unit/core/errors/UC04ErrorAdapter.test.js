@@ -10,6 +10,7 @@ import { ErrorCodes } from '../../../../src/core/errors/ErrorCodes.js'
 describe('UC04ErrorAdapter', () => {
   describe('getErrorMapping', () => {
     test('應該回傳4個StandardError的映射', () => {
+      // eslint-disable-next-line no-unused-vars
       const mapping = UC04ErrorAdapter.getErrorMapping()
 
       expect(Object.keys(mapping)).toHaveLength(4)
@@ -22,7 +23,9 @@ describe('UC04ErrorAdapter', () => {
     })
 
     test('應該快取映射表', () => {
+      // eslint-disable-next-line no-unused-vars
       const mapping1 = UC04ErrorAdapter.getErrorMapping()
+      // eslint-disable-next-line no-unused-vars
       const mapping2 = UC04ErrorAdapter.getErrorMapping()
 
       expect(mapping1).toBe(mapping2) // 相同參考
@@ -52,6 +55,7 @@ describe('UC04ErrorAdapter', () => {
 
   describe('convertError', () => {
     test('應該轉換DATA_IMPORT_FILE_INVALID為FILE_ERROR', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError(
         'DATA_IMPORT_FILE_INVALID',
         '檔案格式無效',
@@ -71,6 +75,7 @@ describe('UC04ErrorAdapter', () => {
     })
 
     test('應該轉換DATA_IMPORT_PARSING_ERROR為PARSE_ERROR', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError(
         'DATA_IMPORT_PARSING_ERROR',
         'JSON解析失敗'
@@ -82,6 +87,7 @@ describe('UC04ErrorAdapter', () => {
     })
 
     test('應該轉換DATA_IMPORT_MERGE_CONFLICT為VALIDATION_ERROR', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError(
         'DATA_IMPORT_MERGE_CONFLICT',
         '資料衝突'
@@ -93,6 +99,7 @@ describe('UC04ErrorAdapter', () => {
     })
 
     test('應該轉換SYSTEM_IMPORT_STORAGE_OVERFLOW為STORAGE_ERROR', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError(
         'SYSTEM_IMPORT_STORAGE_OVERFLOW',
         '儲存空間不足'
@@ -104,17 +111,20 @@ describe('UC04ErrorAdapter', () => {
     })
 
     test('應該使用預設訊息', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError('DATA_IMPORT_FILE_INVALID')
 
       expect(error.message).toBe('UC-04 import operation failed')
     })
 
     test('應該合併額外的詳細資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const details = {
         customField: 'value',
         importProgress: 75
       }
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError(
         'DATA_IMPORT_FILE_INVALID',
         '測試訊息',
@@ -129,8 +139,11 @@ describe('UC04ErrorAdapter', () => {
     })
 
     test('應該包含時間戳', () => {
+      // eslint-disable-next-line no-unused-vars
       const before = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError('DATA_IMPORT_FILE_INVALID', '測試')
+      // eslint-disable-next-line no-unused-vars
       const after = Date.now()
 
       expect(error.details.timestamp).toBeGreaterThanOrEqual(before)
@@ -140,6 +153,7 @@ describe('UC04ErrorAdapter', () => {
 
   describe('convertError - 錯誤處理', () => {
     test('應該處理無效的錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError(null, '測試訊息')
 
       expect(error.name).toBe('UC04ConversionError')
@@ -150,6 +164,7 @@ describe('UC04ErrorAdapter', () => {
     })
 
     test('應該處理未知的錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError('UNKNOWN_UC04_CODE', '測試訊息')
 
       expect(error.name).toBe('UC04ConversionError')
@@ -165,6 +180,7 @@ describe('UC04ErrorAdapter', () => {
     })
 
     test('應該處理空字串錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError('', '測試訊息')
 
       expect(error.name).toBe('UC04ConversionError')
@@ -172,6 +188,7 @@ describe('UC04ErrorAdapter', () => {
     })
 
     test('應該處理非字串錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError(123, '測試訊息')
 
       expect(error.name).toBe('UC04ConversionError')
@@ -199,6 +216,7 @@ describe('UC04ErrorAdapter', () => {
 
   describe('isValidErrorCodesError', () => {
     test('應該驗證有效的ErrorCodes錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError(
         'DATA_IMPORT_FILE_INVALID',
         '測試訊息'
@@ -208,6 +226,7 @@ describe('UC04ErrorAdapter', () => {
     })
 
     test('應該拒絕無效的錯誤物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidError = new Error('普通錯誤')
       expect(UC04ErrorAdapter.isValidErrorCodesError(invalidError)).toBe(false)
 
@@ -217,6 +236,7 @@ describe('UC04ErrorAdapter', () => {
     })
 
     test('應該檢查code屬性', () => {
+      // eslint-disable-next-line no-unused-vars
       const errorWithoutCode = new Error('測試')
       errorWithoutCode.details = {}
 
@@ -224,11 +244,13 @@ describe('UC04ErrorAdapter', () => {
     })
 
     test('應該檢查details屬性', () => {
+      // eslint-disable-next-line no-unused-vars
       const errorWithoutDetails = new Error('測試')
       errorWithoutDetails.code = ErrorCodes.FILE_ERROR
 
       expect(UC04ErrorAdapter.isValidErrorCodesError(errorWithoutDetails)).toBe(false)
 
+      // eslint-disable-next-line no-unused-vars
       const errorWithNullDetails = new Error('測試')
       errorWithNullDetails.code = ErrorCodes.FILE_ERROR
       errorWithNullDetails.details = null
@@ -239,15 +261,18 @@ describe('UC04ErrorAdapter', () => {
 
   describe('Chrome Extension 相容性', () => {
     test('錯誤物件應該可以JSON序列化', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError(
         'DATA_IMPORT_FILE_INVALID',
         '測試訊息',
         { fileName: 'test.json' }
       )
 
+      // eslint-disable-next-line no-unused-vars
       const serialized = JSON.stringify(error)
       expect(serialized).toBeDefined()
 
+      // eslint-disable-next-line no-unused-vars
       const parsed = JSON.parse(serialized)
       expect(parsed.message).toBe('測試訊息')
       expect(parsed.code).toBe(ErrorCodes.FILE_ERROR)
@@ -255,9 +280,12 @@ describe('UC04ErrorAdapter', () => {
     })
 
     test('轉換錯誤應該可以JSON序列化', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError('INVALID_CODE', '測試')
 
+      // eslint-disable-next-line no-unused-vars
       const serialized = JSON.stringify(error)
+      // eslint-disable-next-line no-unused-vars
       const parsed = JSON.parse(serialized)
 
       expect(parsed.code).toBe(ErrorCodes.UNKNOWN_ERROR)
@@ -265,6 +293,7 @@ describe('UC04ErrorAdapter', () => {
     })
 
     test('應該支援toJSON方法', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError(
         'DATA_IMPORT_FILE_INVALID',
         '測試訊息'
@@ -272,6 +301,7 @@ describe('UC04ErrorAdapter', () => {
 
       expect(typeof error.toJSON).toBe('function')
 
+      // eslint-disable-next-line no-unused-vars
       const jsonObj = error.toJSON()
       expect(jsonObj.message).toBe('測試訊息')
       expect(jsonObj.code).toBe(ErrorCodes.FILE_ERROR)
@@ -281,6 +311,7 @@ describe('UC04ErrorAdapter', () => {
 
   describe('匯入場景特定測試', () => {
     test('檔案錯誤應該包含檔案資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError(
         'DATA_IMPORT_FILE_INVALID',
         '無效檔案',
@@ -299,6 +330,7 @@ describe('UC04ErrorAdapter', () => {
     })
 
     test('解析錯誤應該包含位置資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError(
         'DATA_IMPORT_PARSING_ERROR',
         'JSON語法錯誤',
@@ -313,6 +345,7 @@ describe('UC04ErrorAdapter', () => {
     })
 
     test('合併衝突應該包含衝突資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError(
         'DATA_IMPORT_MERGE_CONFLICT',
         '資料衝突',
@@ -329,6 +362,7 @@ describe('UC04ErrorAdapter', () => {
     })
 
     test('儲存錯誤應該包含容量資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC04ErrorAdapter.convertError(
         'SYSTEM_IMPORT_STORAGE_OVERFLOW',
         '儲存不足',
@@ -347,6 +381,7 @@ describe('UC04ErrorAdapter', () => {
 
   describe('效能測試', () => {
     test('大量錯誤轉換應該保持效能', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 100; i++) {
@@ -357,17 +392,20 @@ describe('UC04ErrorAdapter', () => {
         )
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(50) // 100次轉換應該在50ms內
     })
 
     test('映射表快取應該減少重複計算', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 1000; i++) {
         UC04ErrorAdapter.getErrorMapping()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(10) // 1000次存取應該在10ms內
     })

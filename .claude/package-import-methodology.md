@@ -220,7 +220,7 @@ import com.bookoverview.core.errors.StandardError;
 import 'package:book_overview_app/domains/library/entities/book.dart' as LibBook;
 import 'package:book_overview_app/domains/search/entities/book.dart' as SearchBook;
 
-// 使用時：別名掩蓋了真正的職責
+// 使用時仍然模糊且掩蓋了真正的職責
 LibBook.Book libraryBook = LibBook.Book();
 SearchBook.Book searchData = SearchBook.Book();
 ```
@@ -250,8 +250,19 @@ SearchResult searchData = SearchResult();
 // domains/search/entities/book.dart           -> SearchResult (重構為更精確的名稱)
 ```
 
-**2. 重新設計模組結構**：
+**2. 領域邊界清晰化和模組結構重設計**：
+```typescript
+// 問題：不同模組使用相同名稱
+import { User } from './auth/user';      // 認證用戶
+import { User } from './profile/user';   // 用戶資料
+
+// 解決方案A：依據職責重新命名
+import { AuthenticatedUser } from './auth/authenticated-user';
+import { UserProfile } from './profile/user-profile';
+```
+
 ```dart
+// 解決方案B：重新設計模組結構
 // 問題：模組職責重疊
 // domains/user/authentication/
 // domains/user/profile/
@@ -261,9 +272,9 @@ SearchResult searchData = SearchResult();
 // domains/user-profile/
 ```
 
-**3. 優化架構層級**：
+**3. 架構重構優於別名妥協**：
 ```go
-// 問題：Package 層級不當導致衝突
+// 問題：Package 內部衝突
 import (
     authUser "project/auth/user"
     profileUser "project/profile/user"
@@ -332,38 +343,6 @@ import (
 )
 ```
 
-**Node.js/CommonJS 範例 (V1 專案適用)**：
-```javascript
-// ❌ 避免：使用變數別名掩蓋問題
-const LibBook = require('src/domains/library/entities/book')
-const SearchBook = require('src/domains/search/entities/book')
-
-// ✅ 正確：重構消除命名衝突
-const Book = require('src/domains/library/entities/book')
-const SearchResult = require('src/domains/search/entities/search-result')
-```
-
-**Python 範例**：
-```python
-# ❌ 避免：別名掩蓋架構問題
-from app.domains.user import User as UserEntity
-from app.services import User as UserService
-
-# ✅ 正確：重構為明確命名
-from app.domains.user import User
-from app.services import UserManagementService
-```
-
-**Java 範例**：
-```java
-// ❌ 避免：Import 別名 (Java 不支援，但可能通過其他方式實現)
-// import com.project.auth.User as AuthUser;  // 不支援
-
-// ✅ 正確：使用完整類別名稱或重構
-import com.project.auth.AuthenticatedUser;
-import com.project.profile.UserProfile;
-```
-
 #### 完整路徑的價值
 
 ```dart
@@ -387,7 +366,6 @@ import 'package:book_overview_app/core/errors/standard_error.dart';
 3. **設計重構方案**: 重新命名或重組架構來消除衝突
 4. **執行重構**: 系統性地消除別名並改善設計
 5. **建立防範機制**: 在 Code Review 和 Linter 中檢查別名使用
-
 ## 第五原則：架構透明性
 
 ### 導入聲明作為架構文件

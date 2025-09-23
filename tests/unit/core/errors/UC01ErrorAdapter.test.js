@@ -10,6 +10,7 @@ import { ErrorCodes } from '../../../../src/core/errors/ErrorCodes.js'
 describe('UC01ErrorAdapter', () => {
   describe('getErrorMapping', () => {
     test('應該返回完整的錯誤映射表', () => {
+      // eslint-disable-next-line no-unused-vars
       const mapping = UC01ErrorAdapter.getErrorMapping()
 
       expect(mapping).toBeDefined()
@@ -32,7 +33,9 @@ describe('UC01ErrorAdapter', () => {
     })
 
     test('應該返回不可變的映射表', () => {
+      // eslint-disable-next-line no-unused-vars
       const mapping1 = UC01ErrorAdapter.getErrorMapping()
+      // eslint-disable-next-line no-unused-vars
       const mapping2 = UC01ErrorAdapter.getErrorMapping()
 
       expect(mapping1).toBe(mapping2) // 相同引用
@@ -63,6 +66,7 @@ describe('UC01ErrorAdapter', () => {
 
   describe('convertError', () => {
     test('應該成功轉換 DOM 錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = UC01ErrorAdapter.convertError(
         'DOM_READMOO_PAGE_NOT_DETECTED',
         'Unable to detect Readmoo library page',
@@ -83,6 +87,7 @@ describe('UC01ErrorAdapter', () => {
     })
 
     test('應該成功轉換權限錯誤並標記為 CRITICAL', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = UC01ErrorAdapter.convertError(
         'PLATFORM_EXTENSION_PERMISSIONS_DENIED',
         'Extension permissions denied',
@@ -96,6 +101,7 @@ describe('UC01ErrorAdapter', () => {
     })
 
     test('應該成功轉換儲存錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = UC01ErrorAdapter.convertError(
         'SYSTEM_STORAGE_QUOTA_EXCEEDED',
         'Storage quota exceeded',
@@ -109,6 +115,7 @@ describe('UC01ErrorAdapter', () => {
     })
 
     test('應該處理無效的錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = UC01ErrorAdapter.convertError(null, 'Some message')
 
       expect(result.code).toBe(ErrorCodes.UNKNOWN_ERROR)
@@ -118,6 +125,7 @@ describe('UC01ErrorAdapter', () => {
     })
 
     test('應該處理未知的錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = UC01ErrorAdapter.convertError(
         'UNKNOWN_UC01_ERROR',
         'Unknown error occurred'
@@ -132,6 +140,7 @@ describe('UC01ErrorAdapter', () => {
     })
 
     test('應該處理預設訊息', () => {
+      // eslint-disable-next-line no-unused-vars
       const result = UC01ErrorAdapter.convertError(
         'DOM_READMOO_PAGE_NOT_DETECTED'
       )
@@ -147,6 +156,7 @@ describe('UC01ErrorAdapter', () => {
     })
 
     test('應該正確識別 SEVERE 等級錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const severeErrors = [
         'DOM_READMOO_PAGE_NOT_DETECTED',
         'NETWORK_READMOO_UNREACHABLE',
@@ -160,6 +170,7 @@ describe('UC01ErrorAdapter', () => {
     })
 
     test('應該正確識別 MODERATE 等級錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const moderateErrors = [
         'DOM_BOOK_ELEMENTS_NOT_FOUND',
         'SYSTEM_MEMORY_PRESSURE',
@@ -172,6 +183,7 @@ describe('UC01ErrorAdapter', () => {
     })
 
     test('應該正確識別 MINOR 等級錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const minorErrors = [
         'DOM_EXTRACTION_PARTIAL_FAILURE',
         'NETWORK_SLOW_CONNECTION'
@@ -189,6 +201,7 @@ describe('UC01ErrorAdapter', () => {
 
   describe('isValidErrorCodesError', () => {
     test('應該驗證有效的 ErrorCodes 錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const validError = UC01ErrorAdapter.convertError(
         'DOM_READMOO_PAGE_NOT_DETECTED',
         'Test message',
@@ -203,9 +216,11 @@ describe('UC01ErrorAdapter', () => {
       expect(UC01ErrorAdapter.isValidErrorCodesError({})).toBe(false)
       expect(UC01ErrorAdapter.isValidErrorCodesError('string')).toBe(false)
 
+      // eslint-disable-next-line no-unused-vars
       const invalidError = new Error('test')
       expect(UC01ErrorAdapter.isValidErrorCodesError(invalidError)).toBe(false)
 
+      // eslint-disable-next-line no-unused-vars
       const errorWithoutDetails = new Error('test')
       errorWithoutDetails.code = ErrorCodes.DOM_ERROR
       // 這個錯誤物件沒有 details 屬性，應該返回 false
@@ -215,6 +230,7 @@ describe('UC01ErrorAdapter', () => {
 
   describe('錯誤分類測試', () => {
     test('DOM 錯誤類型應該正確映射', () => {
+      // eslint-disable-next-line no-unused-vars
       const domErrors = [
         'DOM_READMOO_PAGE_NOT_DETECTED',
         'DOM_BOOK_ELEMENTS_NOT_FOUND',
@@ -222,42 +238,49 @@ describe('UC01ErrorAdapter', () => {
       ]
 
       domErrors.forEach(errorCode => {
+        // eslint-disable-next-line no-unused-vars
         const result = UC01ErrorAdapter.convertError(errorCode, 'Test message')
         expect(result.code).toBe(ErrorCodes.DOM_ERROR)
       })
     })
 
     test('網路錯誤類型應該正確映射', () => {
+      // eslint-disable-next-line no-unused-vars
       const networkErrors = [
         'NETWORK_READMOO_UNREACHABLE',
         'NETWORK_SLOW_CONNECTION'
       ]
 
       networkErrors.forEach(errorCode => {
+        // eslint-disable-next-line no-unused-vars
         const result = UC01ErrorAdapter.convertError(errorCode, 'Test message')
         expect(result.code).toBe(ErrorCodes.NETWORK_ERROR)
       })
     })
 
     test('Chrome Extension 錯誤類型應該正確映射', () => {
+      // eslint-disable-next-line no-unused-vars
       const chromeErrors = [
         'PLATFORM_EXTENSION_PERMISSIONS_DENIED',
         'PLATFORM_MANIFEST_V3_COMPATIBILITY'
       ]
 
       chromeErrors.forEach(errorCode => {
+        // eslint-disable-next-line no-unused-vars
         const result = UC01ErrorAdapter.convertError(errorCode, 'Test message')
         expect(result.code).toBe(ErrorCodes.CHROME_ERROR)
       })
     })
 
     test('儲存錯誤類型應該正確映射', () => {
+      // eslint-disable-next-line no-unused-vars
       const storageErrors = [
         'SYSTEM_STORAGE_QUOTA_EXCEEDED',
         'DATA_INITIAL_STORAGE_CORRUPTION'
       ]
 
       storageErrors.forEach(errorCode => {
+        // eslint-disable-next-line no-unused-vars
         const result = UC01ErrorAdapter.convertError(errorCode, 'Test message')
         expect(result.code).toBe(ErrorCodes.STORAGE_ERROR)
       })
@@ -266,6 +289,7 @@ describe('UC01ErrorAdapter', () => {
 
   describe('效能和記憶體測試', () => {
     test('映射表應該被快取', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       // 多次呼叫應該使用快取
@@ -273,11 +297,13 @@ describe('UC01ErrorAdapter', () => {
         UC01ErrorAdapter.getErrorMapping()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(10) // 應該在 10ms 內完成
     })
 
     test('錯誤轉換應該在合理時間內完成', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       // 批量轉換測試
@@ -289,6 +315,7 @@ describe('UC01ErrorAdapter', () => {
         )
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(50) // 100次轉換應該在 50ms 內完成
     })

@@ -1,0 +1,31 @@
+{
+  "summary": {
+    "timestamp": "2025-09-21T00:06:16.138Z",
+    "duration": "10.15s",
+    "originalWarnings": 174,
+    "fixedWarnings": 173,
+    "skippedWarnings": 0,
+    "processedFiles": 77,
+    "errors": 1,
+    "successRate": "99.43%"
+  },
+  "details": {
+    "warningsByCategory": {
+      "error": 33,
+      "simple": 92,
+      "test": 13,
+      "other": 29,
+      "system": 1,
+      "constant": 3,
+      "event": 3
+    },
+    "errorDetails": [
+      "變數不在指定行: /Users/tarragon/Projects/book_overview_v1/tests/integration/platform/platform-detection-integration.test.js:30 (performanceHelpers)"
+    ]
+  },
+  "recommendations": [
+    "⚠️  部分警告需要手動處理",
+    "🔍 請檢查錯誤日誌了解失敗原因",
+    "📝 請查看錯誤詳情並手動修復"
+  ]
+}

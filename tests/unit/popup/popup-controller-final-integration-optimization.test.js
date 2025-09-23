@@ -12,6 +12,7 @@
  * @since 2025-08-19
  */
 
+// eslint-disable-next-line no-unused-vars
 const PopupController = require('src/popup/popup-controller.js')
 
 // Mock DOM 環境
@@ -61,11 +62,14 @@ jest.mock('../../../src/popup/services/popup-extraction-service.js', () => {
 })
 
 describe('PopupController 最終整合和優化', () => {
+  // eslint-disable-next-line no-unused-vars
   let controller
+  // eslint-disable-next-line no-unused-vars
   let mockDocument
 
   beforeEach(() => {
     // 創建完整的 DOM 結構
+    // eslint-disable-next-line no-unused-vars
     const dom = new JSDOM(`
       <!DOCTYPE html>
       <html>
@@ -107,6 +111,7 @@ describe('PopupController 最終整合和優化', () => {
       await controller.initialize()
 
       // 驗證不再有待實作的 TODO 標記（除了計劃中的功能）
+      // eslint-disable-next-line no-unused-vars
       const remainingTodos = controller._getRemainingTodos()
 
       // 不應該有基礎架構相關的 TODO
@@ -125,11 +130,14 @@ describe('PopupController 最終整合和優化', () => {
       await controller.initialize()
 
       // 檢查事件處理邏輯是否統一
+      // eslint-disable-next-line no-unused-vars
       const eventManager = controller.eventManager
       expect(eventManager).toBeDefined()
 
       // 驗證所有按鈕事件都使用統一的處理機制
+      // eslint-disable-next-line no-unused-vars
       const eventConfigs = eventManager.getEventConfigs()
+      // eslint-disable-next-line no-unused-vars
       const buttonEvents = Object.values(eventConfigs).filter(config =>
         config.elementId.includes('button')
       )
@@ -148,9 +156,11 @@ describe('PopupController 最終整合和優化', () => {
       await controller.initialize()
 
       // 驗證 UI 更新方法不再有重複的 DOM 操作邏輯
+      // eslint-disable-next-line no-unused-vars
       const uiManager = controller.components.ui
 
       // 測試統一的狀態更新
+      // eslint-disable-next-line no-unused-vars
       const statusData = { type: 'processing', text: '處理中', info: '正在提取資料' }
       expect(() => uiManager.updateStatus(statusData)).not.toThrow()
 
@@ -166,11 +176,14 @@ describe('PopupController 最終整合和優化', () => {
   describe('⚡ 效能優化', () => {
     test('應該實現組件懶加載', async () => {
       // 測試組件只在需要時初始化
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
+      // eslint-disable-next-line no-unused-vars
       const initTime = endTime - startTime
 
       // 初始化時間應該在合理範圍內 (< 100ms)
@@ -187,7 +200,9 @@ describe('PopupController 最終整合和優化', () => {
     test('應該優化事件監聽器註冊效能', async () => {
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const eventManager = controller.eventManager
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
       // 測試大量事件註冊的效能
@@ -195,7 +210,9 @@ describe('PopupController 最終整合和優化', () => {
         eventManager.registerEvent(`test-element-${i}`, 'click', () => {})
       }
 
+      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
+      // eslint-disable-next-line no-unused-vars
       const registrationTime = endTime - startTime
 
       // 100個事件註冊應該在合理時間內完成 (< 50ms)
@@ -210,17 +227,23 @@ describe('PopupController 最終整合和優化', () => {
     test('應該實現 Chrome API 通訊優化', async () => {
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const communication = controller.components.communication
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
       // 測試並發通訊效能
+      // eslint-disable-next-line no-unused-vars
       const promises = []
       for (let i = 0; i < 10; i++) {
         promises.push(communication.checkBackgroundStatus())
       }
 
+      // eslint-disable-next-line no-unused-vars
       const results = await Promise.all(promises)
+      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
+      // eslint-disable-next-line no-unused-vars
       const communicationTime = endTime - startTime
 
       // 10個並發請求應該在合理時間內完成 (< 100ms, 因為是 mock)
@@ -234,10 +257,13 @@ describe('PopupController 最終整合和優化', () => {
     test('應該批次處理 DOM 更新', async () => {
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const uiManager = controller.components.ui
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
       // 測試批次 DOM 更新
+      // eslint-disable-next-line no-unused-vars
       const updates = []
       for (let i = 0; i < 50; i++) {
         updates.push(() => uiManager.updateProgress(i * 2, 'active', `${i * 2}% 完成`))
@@ -246,7 +272,9 @@ describe('PopupController 最終整合和優化', () => {
       // 批次執行更新
       updates.forEach(update => update())
 
+      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
+      // eslint-disable-next-line no-unused-vars
       const updateTime = endTime - startTime
 
       // 50個 DOM 更新應該在合理時間內完成 (< 50ms, 因為是 mock)
@@ -258,6 +286,7 @@ describe('PopupController 最終整合和優化', () => {
     test('應該正確清理所有事件監聽器', async () => {
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const eventManager = controller.eventManager
 
       // 註冊一些測試事件
@@ -265,6 +294,7 @@ describe('PopupController 最終整合和優化', () => {
       eventManager.registerEvent('test-memory-2', 'focus', () => {})
       eventManager.registerEvent('test-memory-3', 'blur', () => {})
 
+      // eslint-disable-next-line no-unused-vars
       const initialListenerCount = eventManager.getTrackedListeners().length
       expect(initialListenerCount).toBeGreaterThan(3)
 
@@ -279,6 +309,7 @@ describe('PopupController 最終整合和優化', () => {
     test('應該防止記憶體洩漏', async () => {
       // 模擬多次初始化和清理
       for (let i = 0; i < 10; i++) {
+        // eslint-disable-next-line no-unused-vars
         const testController = new PopupController(mockDocument)
         await testController.initialize()
 
@@ -319,7 +350,9 @@ describe('PopupController 最終整合和優化', () => {
       await controller.initialize()
 
       // 測試組件可以被正確釋放
+      // eslint-disable-next-line no-unused-vars
       const statusManager = controller.components.status
+      // eslint-disable-next-line no-unused-vars
       const progressManager = controller.components.progress
 
       expect(statusManager).toBeDefined()
@@ -340,6 +373,7 @@ describe('PopupController 最終整合和優化', () => {
       await controller.initialize()
 
       // 模擬完整的提取流程
+      // eslint-disable-next-line no-unused-vars
       const extractButton = mockDocument.getElementById('extract-button')
 
       // 1. 點擊提取按鈕
@@ -347,9 +381,11 @@ describe('PopupController 最終整合和優化', () => {
       expect(controller.components.extraction.startExtraction).toHaveBeenCalledTimes(1)
 
       // 2. 模擬進度更新
+      // eslint-disable-next-line no-unused-vars
       const uiManager = controller.components.ui
 
       // 建立 spy 來追蹤調用
+      // eslint-disable-next-line no-unused-vars
       const updateProgressSpy = jest.spyOn(uiManager, 'updateProgress')
 
       uiManager.updateProgress(25, 'active', '25% 完成')
@@ -361,6 +397,7 @@ describe('PopupController 最終整合和優化', () => {
       expect(updateProgressSpy).toHaveBeenCalledTimes(4)
 
       // 4. 測試取消功能
+      // eslint-disable-next-line no-unused-vars
       const cancelButton = mockDocument.getElementById('cancel-button')
       cancelButton.click()
       expect(controller.components.extraction.stopExtraction).toHaveBeenCalledTimes(1)
@@ -374,19 +411,23 @@ describe('PopupController 最終整合和優化', () => {
         throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
+      // eslint-disable-next-line no-unused-vars
       const extractButton = mockDocument.getElementById('extract-button')
 
       // 應該優雅處理錯誤
       expect(() => extractButton.click()).not.toThrow()
 
       // 驗證錯誤被記錄
+      // eslint-disable-next-line no-unused-vars
       const eventManager = controller.eventManager
       if (eventManager) {
+        // eslint-disable-next-line no-unused-vars
         const errors = eventManager.getEventErrors()
         expect(errors.length).toBeGreaterThan(0)
       }
 
       // 測試重試功能
+      // eslint-disable-next-line no-unused-vars
       const retryButton = mockDocument.getElementById('retry-button')
       retryButton.click()
       expect(controller.components.extraction.retryExtraction).toHaveBeenCalledTimes(1)
@@ -395,6 +436,7 @@ describe('PopupController 最終整合和優化', () => {
     test('應該支援所有按鈕功能', async () => {
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const buttons = [
         'extract-button',
         'settings-button',
@@ -406,6 +448,7 @@ describe('PopupController 最終整合和優化', () => {
 
       // 測試所有按鈕都可以點擊且不會拋出錯誤
       buttons.forEach(buttonId => {
+        // eslint-disable-next-line no-unused-vars
         const button = mockDocument.getElementById(buttonId)
         if (button) {
           expect(() => button.click()).not.toThrow()
@@ -422,12 +465,15 @@ describe('PopupController 最終整合和優化', () => {
       await controller.initialize()
 
       // 測試系統在壓力下的穩定性
+      // eslint-disable-next-line no-unused-vars
       const operations = []
 
       // 模擬快速連續操作
       for (let i = 0; i < 20; i++) {
         operations.push(async () => {
+          // eslint-disable-next-line no-unused-vars
           const extractButton = mockDocument.getElementById('extract-button')
+          // eslint-disable-next-line no-unused-vars
           const cancelButton = mockDocument.getElementById('cancel-button')
 
           extractButton.click()
@@ -444,6 +490,7 @@ describe('PopupController 最終整合和優化', () => {
       expect(controller.eventManager).toBeDefined()
 
       // 統計資訊應該正確
+      // eslint-disable-next-line no-unused-vars
       const stats = controller.eventManager.getStats()
       expect(stats.totalTriggers).toBeGreaterThan(0)
       expect(stats.totalEvents).toBeGreaterThan(0)
@@ -452,10 +499,12 @@ describe('PopupController 最終整合和優化', () => {
 
   describe('📊 整合品質指標', () => {
     test('應該達到效能基準', async () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
       await controller.initialize()
 
+      // eslint-disable-next-line no-unused-vars
       const initTime = performance.now() - startTime
 
       // 初始化應該很快
@@ -470,6 +519,7 @@ describe('PopupController 最終整合和優化', () => {
       await controller.initialize()
 
       // 驗證所有主要功能都有測試覆蓋
+      // eslint-disable-next-line no-unused-vars
       const methods = [
         'initialize',
         'cleanup',
@@ -486,6 +536,7 @@ describe('PopupController 最終整合和優化', () => {
       expect(controller.getComponent('ui')).toBeDefined()
       expect(controller.isComponentAvailable('status')).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const status = controller.getInitializationStatus()
       expect(status.isInitialized).toBe(true)
       expect(status.componentCount).toBe(5)

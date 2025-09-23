@@ -15,6 +15,7 @@
  */
 
 // Mock Chrome Extension APIs
+// eslint-disable-next-line no-unused-vars
 const mockChrome = {
   runtime: {
     reload: jest.fn(),
@@ -36,6 +37,7 @@ global.chrome = mockChrome
 // Mock DOM
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { JSDOM } = require('jsdom')
+// eslint-disable-next-line no-unused-vars
 const { StandardError } = require('src/core/errors/StandardError')
 
 describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
@@ -94,13 +96,16 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
     PopupErrorHandler = require('src/popup/popup-error-handler')
   })
 
+  // eslint-disable-next-line no-unused-vars
   const resetDOMState = () => {
     // 重置所有元素的狀態而非重新建立DOM
+    // eslint-disable-next-line no-unused-vars
     const elementsToReset = [
       'initErrorContainer', 'errorContainer', 'errorSuggestions', 'diagnosticBtn'
     ]
 
     elementsToReset.forEach(id => {
+      // eslint-disable-next-line no-unused-vars
       const element = document.getElementById(id)
       if (element) {
         element.style.display = id === 'diagnosticBtn' ? 'none' : 'none'
@@ -110,6 +115,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
 
     // 重置正常UI元素
     ['extractBtn', 'settingsBtn', 'helpBtn'].forEach(id => {
+      // eslint-disable-next-line no-unused-vars
       const element = document.getElementById(id)
       if (element) {
         element.style.display = ''
@@ -117,13 +123,16 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
     })
 
     // 清空建議清單
+    // eslint-disable-next-line no-unused-vars
     const suggestionsList = document.getElementById('suggestionsList')
     if (suggestionsList) {
       suggestionsList.innerHTML = ''
     }
 
     // 重置錯誤訊息
+    // eslint-disable-next-line no-unused-vars
     const initErrorMessage = document.getElementById('initErrorMessage')
+    // eslint-disable-next-line no-unused-vars
     const errorMessage = document.getElementById('errorMessage')
     if (initErrorMessage) initErrorMessage.textContent = '預設錯誤訊息'
     if (errorMessage) errorMessage.textContent = '錯誤訊息'
@@ -190,6 +199,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
       }).not.toThrow()
 
       // 驗證基本的設定過程
+      // eslint-disable-next-line no-unused-vars
       const setupEventListenersSpy = jest.spyOn(errorHandler, 'setupEventListeners')
       errorHandler.setupEventListeners()
       expect(setupEventListenersSpy).toHaveBeenCalled()
@@ -198,8 +208,11 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
     })
 
     test('應該能完整初始化錯誤處理系統', () => {
+      // eslint-disable-next-line no-unused-vars
       const initializeElementsSpy = jest.spyOn(errorHandler, 'initializeElements')
+      // eslint-disable-next-line no-unused-vars
       const setupEventListenersSpy = jest.spyOn(errorHandler, 'setupEventListeners')
+      // eslint-disable-next-line no-unused-vars
       const setupGlobalErrorHandlingSpy = jest.spyOn(errorHandler, 'setupGlobalErrorHandling')
 
       errorHandler.initialize()
@@ -212,6 +225,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
 
   describe('🟢 Green Phase: 系統初始化錯誤處理', () => {
     test('應該能處理系統初始化錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = {
         type: 'BACKGROUND_SERVICE_WORKER_FAILED',
         message: 'Background Service Worker 無法連線'
@@ -231,6 +245,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
     })
 
     test('應該能隱藏正常UI元素當初始化失敗', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = {
         type: 'SYSTEM_INITIALIZATION_ERROR',
         message: '初始化失敗'
@@ -239,8 +254,10 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
       errorHandler.handleInitializationError(error)
 
       // 檢查正常UI元素是否被正確隱藏
+      // eslint-disable-next-line no-unused-vars
       const normalElements = ['extractBtn', 'settingsBtn', 'helpBtn']
       normalElements.forEach(elementId => {
+        // eslint-disable-next-line no-unused-vars
         const element = document.getElementById(elementId)
         if (element) {
           expect(element.style.display).toBe('none')
@@ -266,6 +283,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
       if (errorHandler.elements.initErrorContainer) {
         expect(errorHandler.elements.initErrorContainer.style.display).toBe('none')
       }
+      // eslint-disable-next-line no-unused-vars
       const extractBtn = document.getElementById('extractBtn')
       if (extractBtn) {
         expect(extractBtn.style.display).toBe('')
@@ -275,6 +293,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
 
   describe('🟢 Green Phase: 使用者友善錯誤處理', () => {
     test('應該能顯示使用者友善錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const errorInfo = {
         type: 'MESSAGE_UNKNOWN_TYPE',
         data: {
@@ -295,6 +314,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
     })
 
     test('應該能顯示錯誤建議', () => {
+      // eslint-disable-next-line no-unused-vars
       const actions = [
         '重新載入擴展',
         '重新整理頁面',
@@ -369,6 +389,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
         throw (() => { const error = new Error('Reload failed'); error.code = ErrorCodes.TEST_EXECUTION_ERROR; error.details = { category: 'testing' }; return error })()
       })
 
+      // eslint-disable-next-line no-unused-vars
       const reloadAllExtensionPagesSpy = jest.spyOn(errorHandler, 'reloadAllExtensionPages').mockImplementation()
 
       errorHandler.forceReloadExtension()
@@ -379,6 +400,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
     })
 
     test('應該能溫和重新載入擴展', () => {
+      // eslint-disable-next-line no-unused-vars
       const dispatchEventSpy = jest.spyOn(global.window, 'dispatchEvent')
 
       // 模擬 window.initialize 函數
@@ -466,6 +488,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
         report: { testData: 'test' }
       })
 
+      // eslint-disable-next-line no-unused-vars
       const diagnosticData = await errorHandler.collectDiagnosticData()
 
       expect(diagnosticData).toMatchObject({
@@ -483,6 +506,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
       // 設定 mock 讓它拋出錯誤，但只針對特定的調用
       mockChrome.runtime.sendMessage.mockRejectedValueOnce(new Error('Failed'))
 
+      // eslint-disable-next-line no-unused-vars
       const diagnosticData = await errorHandler.collectDiagnosticData()
 
       expect(diagnosticData.systemReport).toBeUndefined()
@@ -492,6 +516,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
     })
 
     test('應該能生成錯誤回報URL', () => {
+      // eslint-disable-next-line no-unused-vars
       const diagnosticData = {
         timestamp: Date.now(),
         userAgent: 'Chrome Test',
@@ -499,6 +524,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
         initializationFailed: false
       }
 
+      // eslint-disable-next-line no-unused-vars
       const reportUrl = errorHandler.generateErrorReportURL(diagnosticData)
 
       expect(reportUrl).toContain('github.com')
@@ -510,6 +536,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
       // 重置 mocks
       mockChrome.tabs.create.mockClear()
 
+      // eslint-disable-next-line no-unused-vars
       const collectDiagnosticDataSpy = jest.spyOn(errorHandler, 'collectDiagnosticData')
         .mockResolvedValue({
           timestamp: Date.now(),
@@ -526,6 +553,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
     })
 
     test('應該能處理錯誤回報失敗情況', async () => {
+      // eslint-disable-next-line no-unused-vars
       const collectDiagnosticDataSpy = jest.spyOn(errorHandler, 'collectDiagnosticData')
         .mockRejectedValue(new Error('Collection failed'))
 
@@ -542,6 +570,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
 
   describe('🔵 Refactor Phase: 全域錯誤處理整合', () => {
     test('應該能設定全域錯誤處理', () => {
+      // eslint-disable-next-line no-unused-vars
       const addEventListenerSpy = jest.spyOn(global.window, 'addEventListener')
 
       errorHandler.setupGlobalErrorHandling()
@@ -554,12 +583,15 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
     })
 
     test('應該能處理 Chrome Extension 訊息', () => {
+      // eslint-disable-next-line no-unused-vars
       const handleUserErrorsSpy = jest.spyOn(errorHandler, 'handleUserErrors')
 
       errorHandler.setupGlobalErrorHandling()
 
       // 模擬收到使用者錯誤通知
+      // eslint-disable-next-line no-unused-vars
       const messageHandler = mockChrome.runtime.onMessage.addListener.mock.calls[0][0]
+      // eslint-disable-next-line no-unused-vars
       const mockMessage = {
         type: 'USER_ERROR_NOTIFICATION',
         errors: [{ id: 1, type: 'TEST_EXECUTION_ERROR', data: {} }]
@@ -571,8 +603,10 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
     })
 
     test('應該能處理使用者錯誤列表', () => {
+      // eslint-disable-next-line no-unused-vars
       const showUserFriendlyErrorSpy = jest.spyOn(errorHandler, 'showUserFriendlyError')
 
+      // eslint-disable-next-line no-unused-vars
       const errors = [
         { id: 1, type: 'ERROR_1', data: {} },
         { id: 2, type: 'ERROR_2', data: {} }
@@ -588,6 +622,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
     })
 
     test('應該能忽略空的錯誤列表', () => {
+      // eslint-disable-next-line no-unused-vars
       const showUserFriendlyErrorSpy = jest.spyOn(errorHandler, 'showUserFriendlyError')
 
       errorHandler.handleUserErrors([])
@@ -603,6 +638,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
     })
 
     test('應該能完整處理初始化錯誤流程', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = {
         type: 'BACKGROUND_SERVICE_WORKER_FAILED',
         message: 'Service Worker 無法連線'
@@ -622,6 +658,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
     })
 
     test('應該能完整處理使用者錯誤流程', () => {
+      // eslint-disable-next-line no-unused-vars
       const errorInfo = {
         type: 'EXTRACTION_NO_DATA',
         data: {

@@ -10,6 +10,7 @@ import { ErrorCodes } from '../../../../src/core/errors/ErrorCodes.js'
 describe('UC06ErrorAdapter', () => {
   describe('getErrorMapping', () => {
     test('應該回傳4個StandardError的映射', () => {
+      // eslint-disable-next-line no-unused-vars
       const mapping = UC06ErrorAdapter.getErrorMapping()
 
       expect(Object.keys(mapping)).toHaveLength(4)
@@ -22,7 +23,9 @@ describe('UC06ErrorAdapter', () => {
     })
 
     test('應該快取映射表', () => {
+      // eslint-disable-next-line no-unused-vars
       const mapping1 = UC06ErrorAdapter.getErrorMapping()
+      // eslint-disable-next-line no-unused-vars
       const mapping2 = UC06ErrorAdapter.getErrorMapping()
 
       expect(mapping1).toBe(mapping2) // 相同參考
@@ -52,6 +55,7 @@ describe('UC06ErrorAdapter', () => {
 
   describe('convertError', () => {
     test('應該轉換SYSTEM_OVERVIEW_RENDERING_FAILURE為RENDER_ERROR', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError(
         'SYSTEM_OVERVIEW_RENDERING_FAILURE',
         'Overview 頁面渲染失敗',
@@ -72,6 +76,7 @@ describe('UC06ErrorAdapter', () => {
     })
 
     test('應該轉換DATA_SEARCH_INDEX_CORRUPTION為STORAGE_ERROR', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError(
         'DATA_SEARCH_INDEX_CORRUPTION',
         '搜尋索引損壞'
@@ -83,6 +88,7 @@ describe('UC06ErrorAdapter', () => {
     })
 
     test('應該轉換SYSTEM_PAGINATION_OVERFLOW為PERFORMANCE_ERROR', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError(
         'SYSTEM_PAGINATION_OVERFLOW',
         '分頁載入溢出'
@@ -94,6 +100,7 @@ describe('UC06ErrorAdapter', () => {
     })
 
     test('應該轉換DATA_EDIT_VALIDATION_CONFLICT為VALIDATION_ERROR', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError(
         'DATA_EDIT_VALIDATION_CONFLICT',
         '編輯驗證失敗'
@@ -105,17 +112,20 @@ describe('UC06ErrorAdapter', () => {
     })
 
     test('應該使用預設訊息', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError('SYSTEM_OVERVIEW_RENDERING_FAILURE')
 
       expect(error.message).toBe('UC-06 data management operation failed')
     })
 
     test('應該合併額外的詳細資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const details = {
         customField: 'value',
         renderAttempt: 'retry'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError(
         'SYSTEM_OVERVIEW_RENDERING_FAILURE',
         '測試訊息',
@@ -130,8 +140,11 @@ describe('UC06ErrorAdapter', () => {
     })
 
     test('應該包含時間戳', () => {
+      // eslint-disable-next-line no-unused-vars
       const before = Date.now()
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError('SYSTEM_OVERVIEW_RENDERING_FAILURE', '測試')
+      // eslint-disable-next-line no-unused-vars
       const after = Date.now()
 
       expect(error.details.timestamp).toBeGreaterThanOrEqual(before)
@@ -141,6 +154,7 @@ describe('UC06ErrorAdapter', () => {
 
   describe('convertError - 錯誤處理', () => {
     test('應該處理無效的錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError(null, '測試訊息')
 
       expect(error.name).toBe('UC06ConversionError')
@@ -151,6 +165,7 @@ describe('UC06ErrorAdapter', () => {
     })
 
     test('應該處理未知的錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError('UNKNOWN_UC06_CODE', '測試訊息')
 
       expect(error.name).toBe('UC06ConversionError')
@@ -166,6 +181,7 @@ describe('UC06ErrorAdapter', () => {
     })
 
     test('應該處理空字串錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError('', '測試訊息')
 
       expect(error.name).toBe('UC06ConversionError')
@@ -173,6 +189,7 @@ describe('UC06ErrorAdapter', () => {
     })
 
     test('應該處理非字串錯誤代碼', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError(123, '測試訊息')
 
       expect(error.name).toBe('UC06ConversionError')
@@ -200,6 +217,7 @@ describe('UC06ErrorAdapter', () => {
 
   describe('isValidErrorCodesError', () => {
     test('應該驗證有效的ErrorCodes錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError(
         'SYSTEM_OVERVIEW_RENDERING_FAILURE',
         '測試訊息'
@@ -209,6 +227,7 @@ describe('UC06ErrorAdapter', () => {
     })
 
     test('應該拒絕無效的錯誤物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidError = new Error('普通錯誤')
       expect(UC06ErrorAdapter.isValidErrorCodesError(invalidError)).toBe(false)
 
@@ -218,6 +237,7 @@ describe('UC06ErrorAdapter', () => {
     })
 
     test('應該檢查code屬性', () => {
+      // eslint-disable-next-line no-unused-vars
       const errorWithoutCode = new Error('測試')
       errorWithoutCode.details = {}
 
@@ -225,11 +245,13 @@ describe('UC06ErrorAdapter', () => {
     })
 
     test('應該檢查details屬性', () => {
+      // eslint-disable-next-line no-unused-vars
       const errorWithoutDetails = new Error('測試')
       errorWithoutDetails.code = ErrorCodes.RENDER_ERROR
 
       expect(UC06ErrorAdapter.isValidErrorCodesError(errorWithoutDetails)).toBe(false)
 
+      // eslint-disable-next-line no-unused-vars
       const errorWithNullDetails = new Error('測試')
       errorWithNullDetails.code = ErrorCodes.RENDER_ERROR
       errorWithNullDetails.details = null
@@ -240,15 +262,18 @@ describe('UC06ErrorAdapter', () => {
 
   describe('Chrome Extension 相容性', () => {
     test('錯誤物件應該可以JSON序列化', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError(
         'SYSTEM_OVERVIEW_RENDERING_FAILURE',
         '測試訊息',
         { totalBooks: 1000 }
       )
 
+      // eslint-disable-next-line no-unused-vars
       const serialized = JSON.stringify(error)
       expect(serialized).toBeDefined()
 
+      // eslint-disable-next-line no-unused-vars
       const parsed = JSON.parse(serialized)
       expect(parsed.message).toBe('測試訊息')
       expect(parsed.code).toBe(ErrorCodes.RENDER_ERROR)
@@ -256,9 +281,12 @@ describe('UC06ErrorAdapter', () => {
     })
 
     test('轉換錯誤應該可以JSON序列化', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError('INVALID_CODE', '測試')
 
+      // eslint-disable-next-line no-unused-vars
       const serialized = JSON.stringify(error)
+      // eslint-disable-next-line no-unused-vars
       const parsed = JSON.parse(serialized)
 
       expect(parsed.code).toBe(ErrorCodes.UNKNOWN_ERROR)
@@ -266,6 +294,7 @@ describe('UC06ErrorAdapter', () => {
     })
 
     test('應該支援toJSON方法', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError(
         'SYSTEM_OVERVIEW_RENDERING_FAILURE',
         '測試訊息'
@@ -273,6 +302,7 @@ describe('UC06ErrorAdapter', () => {
 
       expect(typeof error.toJSON).toBe('function')
 
+      // eslint-disable-next-line no-unused-vars
       const jsonObj = error.toJSON()
       expect(jsonObj.message).toBe('測試訊息')
       expect(jsonObj.code).toBe(ErrorCodes.RENDER_ERROR)
@@ -282,6 +312,7 @@ describe('UC06ErrorAdapter', () => {
 
   describe('UI操作場景特定測試', () => {
     test('渲染錯誤應該包含效能資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError(
         'SYSTEM_OVERVIEW_RENDERING_FAILURE',
         '渲染失敗',
@@ -302,6 +333,7 @@ describe('UC06ErrorAdapter', () => {
     })
 
     test('索引錯誤應該包含損壞欄位', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError(
         'DATA_SEARCH_INDEX_CORRUPTION',
         '索引損壞',
@@ -320,6 +352,7 @@ describe('UC06ErrorAdapter', () => {
     })
 
     test('分頁錯誤應該包含載入資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError(
         'SYSTEM_PAGINATION_OVERFLOW',
         '分頁溢出',
@@ -340,6 +373,7 @@ describe('UC06ErrorAdapter', () => {
     })
 
     test('驗證錯誤應該包含編輯資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC06ErrorAdapter.convertError(
         'DATA_EDIT_VALIDATION_CONFLICT',
         '驗證失敗',
@@ -362,6 +396,7 @@ describe('UC06ErrorAdapter', () => {
 
   describe('效能測試', () => {
     test('大量錯誤轉換應該保持效能', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 100; i++) {
@@ -372,17 +407,20 @@ describe('UC06ErrorAdapter', () => {
         )
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(50) // 100次轉換應該在50ms內
     })
 
     test('映射表快取應該減少重複計算', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       for (let i = 0; i < 1000; i++) {
         UC06ErrorAdapter.getErrorMapping()
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(10) // 1000次存取應該在10ms內
     })
@@ -390,24 +428,28 @@ describe('UC06ErrorAdapter', () => {
 
   describe('錯誤分類驗證', () => {
     test('RENDER_ERROR 類型應該正確映射', () => {
+      // eslint-disable-next-line no-unused-vars
       const renderError = UC06ErrorAdapter.convertError('SYSTEM_OVERVIEW_RENDERING_FAILURE', '渲染錯誤')
 
       expect(renderError.code).toBe(ErrorCodes.RENDER_ERROR)
     })
 
     test('STORAGE_ERROR 類型應該正確映射', () => {
+      // eslint-disable-next-line no-unused-vars
       const storageError = UC06ErrorAdapter.convertError('DATA_SEARCH_INDEX_CORRUPTION', '儲存錯誤')
 
       expect(storageError.code).toBe(ErrorCodes.STORAGE_ERROR)
     })
 
     test('PERFORMANCE_ERROR 類型應該正確映射', () => {
+      // eslint-disable-next-line no-unused-vars
       const perfError = UC06ErrorAdapter.convertError('SYSTEM_PAGINATION_OVERFLOW', '效能錯誤')
 
       expect(perfError.code).toBe(ErrorCodes.PERFORMANCE_ERROR)
     })
 
     test('VALIDATION_ERROR 類型應該正確映射', () => {
+      // eslint-disable-next-line no-unused-vars
       const validationError = UC06ErrorAdapter.convertError('DATA_EDIT_VALIDATION_CONFLICT', '驗證錯誤')
 
       expect(validationError.code).toBe(ErrorCodes.VALIDATION_ERROR)

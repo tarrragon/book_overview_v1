@@ -9,13 +9,16 @@
 
 const { PerformanceMonitor, ChromeExtensionPerformanceMonitor } = require('../helpers/performance-monitor')
 const { PerformanceTestDataGenerator } = require('../helpers/performance-test-data-generator')
+// eslint-disable-next-line no-unused-vars
 const MemoryLeakDetector = require('../helpers/memory-leak-detector')
 
 describe('📊 基礎效能測試套件 v0.9.35', () => {
   let performanceMonitor
   let chromePerformanceMonitor
+  // eslint-disable-next-line no-unused-vars
   let dataGenerator
   let memoryDetector
+  // eslint-disable-next-line no-unused-vars
   let testCleanup
 
   beforeAll(async () => {
@@ -38,6 +41,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       try {
         await cleanup()
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn('清理任務失敗:', error.message)
       }
     }
@@ -60,7 +64,9 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
   describe('🎯 A1. UI回應時間基準測試', () => {
     test('A1-1: Popup開啟效能測試 - 應在200ms內完成', async () => {
       // Given: Chrome Extension已安裝且處於空閒狀態
+      // eslint-disable-next-line no-unused-vars
       const mockPopup = await setupMockPopupEnvironment()
+      // eslint-disable-next-line no-unused-vars
       const expectedMaxTime = 200 // ms
 
       // When: 使用者點擊Extension圖示開啟Popup
@@ -77,6 +83,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       expect(result.contentVisible).toBe(true)
 
       // And: 記憶體增長應小於50MB (考慮測試環境的模擬數據變化)
+      // eslint-disable-next-line no-unused-vars
       const memoryGrowthMB = Math.abs(timing.memoryDelta || 0) / (1024 * 1024)
       expect(memoryGrowthMB).toBeLessThan(50)
 
@@ -84,17 +91,22 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       expect(result.uiElements.length).toBeGreaterThan(0)
       expect(result.uiElements.every(el => el.rendered)).toBe(true)
 
+      // eslint-disable-next-line no-console
       console.log(`✅ Popup開啟時間: ${timing.duration.toFixed(2)}ms (目標: <${expectedMaxTime}ms)`)
     })
 
     test('A1-2: 按鈕點擊回應測試 - 應在100ms內回應', async () => {
       // Given: Popup已開啟且顯示正常
+      // eslint-disable-next-line no-unused-vars
       const mockPopup = await setupMockPopupEnvironment()
       await simulatePopupOpen(mockPopup)
+      // eslint-disable-next-line no-unused-vars
       const expectedMaxTime = 100 // ms
 
       // When: 使用者點擊任意功能按鈕
+      // eslint-disable-next-line no-unused-vars
       const buttons = ['extract', 'import', 'export', 'settings']
+      // eslint-disable-next-line no-unused-vars
       const results = []
 
       for (const buttonType of buttons) {
@@ -114,24 +126,31 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       }
 
       // 驗證所有按鈕平均回應時間
+      // eslint-disable-next-line no-unused-vars
       const averageTime = results.reduce((sum, r) => sum + r.timing.duration, 0) / results.length
       expect(averageTime).toBeLessThan(expectedMaxTime)
 
+      // eslint-disable-next-line no-console
       console.log(`✅ 按鈕平均回應時間: ${averageTime.toFixed(2)}ms (目標: <${expectedMaxTime}ms)`)
     })
 
     test('A1-3: 搜尋即時回應測試 - 應在300ms內顯示結果', async () => {
       // Given: Overview頁面已載入100本書籍資料
+      // eslint-disable-next-line no-unused-vars
       const testBooks = dataGenerator.generateRealisticBooks(100, {
         complexityDistribution: { simple: 20, normal: 60, complex: 20 },
         includeVariations: true,
         cacheKey: 'baseline-search-test'
       })
+      // eslint-disable-next-line no-unused-vars
       const mockOverview = await setupMockOverviewPage(testBooks)
+      // eslint-disable-next-line no-unused-vars
       const expectedMaxTime = 300 // ms
 
       // When: 使用者在搜尋框輸入關鍵字
+      // eslint-disable-next-line no-unused-vars
       const searchQueries = ['小說', '科幻', '李明', '2023', '熱門']
+      // eslint-disable-next-line no-unused-vars
       const results = []
 
       for (const query of searchQueries) {
@@ -151,11 +170,14 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       }
 
       // 驗證搜尋效能統計
+      // eslint-disable-next-line no-unused-vars
       const averageTime = results.reduce((sum, r) => sum + r.timing.duration, 0) / results.length
+      // eslint-disable-next-line no-unused-vars
       const maxTime = Math.max(...results.map(r => r.timing.duration))
       expect(averageTime).toBeLessThan(expectedMaxTime)
       expect(maxTime).toBeLessThan(expectedMaxTime * 1.5) // 最大不超過期望值的150%
 
+      // eslint-disable-next-line no-console
       console.log(`✅ 搜尋平均回應時間: ${averageTime.toFixed(2)}ms, 最大: ${maxTime.toFixed(2)}ms`)
     })
   })
@@ -163,12 +185,15 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
   describe('📊 A2. 資料處理效能基準測試', () => {
     test('A2-1: 小量書籍提取效能測試 - 10本書籍應在1秒內完成', async () => {
       // Given: 目標網頁包含10本書籍資料
+      // eslint-disable-next-line no-unused-vars
       const testBooks = dataGenerator.generateRealisticBooks(10, {
         complexityDistribution: { simple: 80, normal: 20, complex: 0 },
         includeVariations: false,
         cacheKey: 'small-extraction-test'
       })
+      // eslint-disable-next-line no-unused-vars
       const mockWebPage = await setupMockWebPage(testBooks)
+      // eslint-disable-next-line no-unused-vars
       const expectedMaxTime = 1000 // ms
 
       // When: 執行書籍資料提取操作
@@ -185,21 +210,26 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       expect(result.successRate).toBeGreaterThan(0.85) // 調整為符合真實資料的成功率
 
       // And: 記憶體使用應小於20MB
+      // eslint-disable-next-line no-unused-vars
       const memoryGrowthMB = Math.abs(timing.memoryDelta || 0) / (1024 * 1024)
       expect(memoryGrowthMB).toBeLessThan(20)
 
+      // eslint-disable-next-line no-console
       console.log(`✅ 10本書籍提取時間: ${timing.duration.toFixed(2)}ms, 成功率: ${(result.successRate * 100).toFixed(1)}%`)
     })
 
     test('A2-2: 中量書籍提取效能測試 - 100本書籍應在8秒內完成', async () => {
       // Given: 目標網頁包含100本書籍資料
+      // eslint-disable-next-line no-unused-vars
       const testBooks = dataGenerator.generateRealisticBooks(100, {
         complexityDistribution: { simple: 30, normal: 50, complex: 20 },
         includeVariations: true,
         simulateRealWorldErrors: true,
         cacheKey: 'medium-extraction-test'
       })
+      // eslint-disable-next-line no-unused-vars
       const mockWebPage = await setupMockWebPage(testBooks)
+      // eslint-disable-next-line no-unused-vars
       const expectedMaxTime = 8000 // ms
 
       // When: 執行書籍資料提取操作
@@ -216,9 +246,11 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       expect(result.successRate).toBeGreaterThan(0.90)
 
       // And: 記憶體使用應合理增長
+      // eslint-disable-next-line no-unused-vars
       const memoryGrowthMB = Math.abs(timing.memoryDelta || 0) / (1024 * 1024)
       expect(memoryGrowthMB).toBeLessThan(50)
 
+      // eslint-disable-next-line no-console
       console.log(`✅ 100本書籍提取時間: ${timing.duration.toFixed(2)}ms, 成功率: ${(result.successRate * 100).toFixed(1)}%`)
     })
 
@@ -228,7 +260,9 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
         complexity: 'normal',
         format: 'standard'
       })
+      // eslint-disable-next-line no-unused-vars
       const expectedMaxTime = 4000 // ms
+      // eslint-disable-next-line no-unused-vars
       const expectedMinSpeed = 0.5 // MB/s
 
       // When: 執行檔案匯入操作
@@ -242,6 +276,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       // Then: 檔案解析應在4秒內完成(0.5MB/秒)
       expect(timing.duration).toBeLessThan(expectedMaxTime)
 
+      // eslint-disable-next-line no-unused-vars
       const processingSpeedMBs = (actualSize / (1024 * 1024)) / (timing.duration / 1000)
       expect(processingSpeedMBs).toBeGreaterThanOrEqual(expectedMinSpeed)
 
@@ -250,9 +285,11 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       expect(result.parseErrors).toBe(0)
 
       // And: 記憶體使用應合理增長
+      // eslint-disable-next-line no-unused-vars
       const memoryGrowthMB = Math.abs(timing.memoryDelta || 0) / (1024 * 1024)
       expect(memoryGrowthMB).toBeLessThan(actualSize / (1024 * 1024) * 2) // 不超過檔案大小的2倍
 
+      // eslint-disable-next-line no-console
       console.log(`✅ JSON解析速度: ${processingSpeedMBs.toFixed(2)}MB/s, 記憶體增長: ${memoryGrowthMB.toFixed(2)}MB`)
     })
   })
@@ -260,13 +297,16 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
   describe('🧠 A3. 記憶體使用監控測試', () => {
     test('A3-1: 記憶體洩漏檢測 - 長時間運行不應超過基準20MB', async () => {
       // 使用 MemoryLeakDetector 進行專業記憶體洩漏檢測
+      // eslint-disable-next-line no-unused-vars
       const analysis = await memoryDetector.detectMemoryLeak(async (iteration) => {
         // Given: 模擬長時間運行的操作
+        // eslint-disable-next-line no-unused-vars
         const books = dataGenerator.generateRealisticBooks(10, {
           complexityDistribution: { simple: 90, normal: 10, complex: 0 }
         })
 
         // When: 執行書籍提取操作
+        // eslint-disable-next-line no-unused-vars
         const mockWebPage = await setupMockWebPage(books)
         await simulateBookExtraction(mockWebPage, 10)
 
@@ -279,12 +319,19 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
         }
       }, 50, { testName: 'long-running-performance-test' })
 
+      // eslint-disable-next-line no-console
       console.log('🧠 記憶體洩漏檢測結果:')
+      // eslint-disable-next-line no-console
       console.log(`  基準記憶體: ${analysis.summary.formattedGrowth}`)
+      // eslint-disable-next-line no-console
       console.log(`  平均每操作記憶體增長: ${analysis.leakDetection.formattedAverageGrowth}`)
+      // eslint-disable-next-line no-console
       console.log(`  洩漏嚴重程度: ${analysis.leakDetection.leakSeverity}`)
+      // eslint-disable-next-line no-console
       console.log(`  記憶體增長趨勢: ${analysis.leakDetection.memoryGrowthTrend}`)
+      // eslint-disable-next-line no-console
       console.log(`  記憶體回收率: ${(analysis.efficiency.memoryRecoveryRate * 100).toFixed(1)}%`)
+      // eslint-disable-next-line no-console
       console.log(`  信心度: ${(analysis.passesThresholds.overallOk ? '通過' : '未通過')}`)
 
       // Then: 驗證記憶體健康度
@@ -304,14 +351,17 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
     test('A3-2: Chrome Extension API 效能測試', async () => {
       // Given: Chrome Extension API Mock環境
       setupChromeExtensionMocks()
+      // eslint-disable-next-line no-unused-vars
       const expectedMaxLatency = 50 // ms
 
       // When: 測試各種Chrome API操作
+      // eslint-disable-next-line no-unused-vars
       const storageResult = await chromePerformanceMonitor.measureStorageOperation(
         'storage-get',
         async () => chrome.storage.local.get(['books'])
       )
 
+      // eslint-disable-next-line no-unused-vars
       const messagingResult = await chromePerformanceMonitor.measureChromeAPI(
         'runtime-sendMessage',
         async () => chrome.runtime.sendMessage({ type: 'test' })
@@ -325,7 +375,9 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       expect(storageResult.result).toBeDefined()
       expect(messagingResult.result).toBeDefined()
 
+      // eslint-disable-next-line no-console
       console.log(`✅ Storage API: ${storageResult.duration.toFixed(2)}ms`)
+      // eslint-disable-next-line no-console
       console.log(`✅ Messaging API: ${messagingResult.duration.toFixed(2)}ms`)
     })
   })
@@ -339,6 +391,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
     // 設置DOM環境
     if (typeof document === 'undefined') {
       const { JSDOM } = require('jsdom')
+      // eslint-disable-next-line no-unused-vars
       const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>')
       global.document = dom.window.document
       global.window = dom.window
@@ -386,6 +439,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
   }
 
   async function setupMockPopupEnvironment () {
+    // eslint-disable-next-line no-unused-vars
     const mockPopup = {
       isOpen: false,
       contentLoaded: false,
@@ -395,6 +449,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
   }
 
   async function simulatePopupOpen (mockPopup) {
+    // eslint-disable-next-line no-unused-vars
     const startTime = performance.now()
 
     // 模擬Popup載入過程
@@ -412,6 +467,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       { type: 'panel', id: 'main', rendered: true }
     ]
 
+    // eslint-disable-next-line no-unused-vars
     const endTime = performance.now()
     mockPopup.loadTime = endTime - startTime
 
@@ -424,11 +480,13 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
   }
 
   async function simulateButtonClick (mockPopup, buttonType) {
+    // eslint-disable-next-line no-unused-vars
     const startTime = performance.now()
 
     // 模擬按鈕點擊處理
     await simulateAsyncOperation(10) // 事件處理時間
 
+    // eslint-disable-next-line no-unused-vars
     const result = {
       visualFeedback: true,
       functionTriggered: true,
@@ -450,11 +508,13 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
   }
 
   async function simulateSearch (mockOverview, query) {
+    // eslint-disable-next-line no-unused-vars
     const startTime = performance.now()
 
     // 模擬搜尋邏輯
     await simulateAsyncOperation(20) // 搜尋處理時間
 
+    // eslint-disable-next-line no-unused-vars
     const results = mockOverview.books.filter(book =>
       (book.title && book.title.includes(query)) ||
       (book.author && book.author.includes(query)) ||
@@ -478,12 +538,16 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
   }
 
   async function simulateBookExtraction (mockWebPage, expectedCount) {
+    // eslint-disable-next-line no-unused-vars
     const startTime = performance.now()
+    // eslint-disable-next-line no-unused-vars
     let extractedCount = 0
+    // eslint-disable-next-line no-unused-vars
     let successCount = 0
 
     // 模擬逐本書籍提取
-    for (const bookElement of mockWebPage.domElements) {
+    // eslint-disable-next-line no-unused-vars
+    for (const _bookElement of mockWebPage.domElements) {
       await simulateAsyncOperation(5, 15) // 模擬DOM查詢和資料提取
       extractedCount++
 
@@ -502,9 +566,11 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
   }
 
   async function simulateJSONImport (jsonData, fileSize) {
+    // eslint-disable-next-line no-unused-vars
     const startTime = performance.now()
 
     // 模擬JSON解析處理
+    // eslint-disable-next-line no-unused-vars
     const processingTime = Math.max(100, (fileSize / (1024 * 1024)) * 1000) // 基於檔案大小的處理時間
     await simulateAsyncOperation(processingTime)
 
@@ -518,6 +584,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
 
   // 工具函數：模擬異步操作
   function simulateAsyncOperation (minTime, maxTime = null) {
+    // eslint-disable-next-line no-unused-vars
     const delay = maxTime ? minTime + Math.random() * (maxTime - minTime) : minTime
     return new Promise(resolve => setTimeout(resolve, delay))
   }

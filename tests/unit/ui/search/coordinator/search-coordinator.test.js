@@ -15,10 +15,12 @@
  * 10. Lifecycle Management - 生命週期管理
  */
 
+// eslint-disable-next-line no-unused-vars
 const SearchCoordinator = require('src/ui/search/coordinator/search-coordinator')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 // 測試輔助函數：驗證異步錯誤
+// eslint-disable-next-line no-unused-vars
 const expectAsyncError = async (promise, expectedCode = 'VALIDATION_ERROR') => {
   try {
     await promise
@@ -33,13 +35,21 @@ const expectAsyncError = async (promise, expectedCode = 'VALIDATION_ERROR') => {
 }
 
 describe('SearchCoordinator', () => {
+  // eslint-disable-next-line no-unused-vars
   let searchCoordinator
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockLogger
+  // eslint-disable-next-line no-unused-vars
   let mockSearchEngine
+  // eslint-disable-next-line no-unused-vars
   let mockFilterEngine
+  // eslint-disable-next-line no-unused-vars
   let mockSearchResultFormatter
+  // eslint-disable-next-line no-unused-vars
   let mockSearchCacheManager
+  // eslint-disable-next-line no-unused-vars
   let testBooks
 
   beforeEach(() => {
@@ -128,6 +138,7 @@ describe('SearchCoordinator', () => {
   })
 
   // Helper function to setup standard mocks
+  // eslint-disable-next-line no-unused-vars
   const setupStandardMocks = () => {
     mockSearchCacheManager.get.mockResolvedValue(null)
     mockSearchEngine.search.mockResolvedValue([testBooks[0]])
@@ -162,7 +173,8 @@ describe('SearchCoordinator', () => {
 
     it('should throw error when EventBus is missing', () => {
       expect(() => {
-        const coordinator = new SearchCoordinator({
+        // eslint-disable-next-line no-unused-vars
+        const _coordinator = new SearchCoordinator({
           logger: mockLogger,
           searchEngine: mockSearchEngine,
           filterEngine: mockFilterEngine,
@@ -172,7 +184,8 @@ describe('SearchCoordinator', () => {
       }).toThrow(expect.objectContaining({ code: ErrorCodes.VALIDATION_ERROR }))
 
       expect(() => {
-        const coordinator = new SearchCoordinator({
+        // eslint-disable-next-line no-unused-vars
+        const _coordinator = new SearchCoordinator({
           logger: mockLogger,
           searchEngine: mockSearchEngine,
           filterEngine: mockFilterEngine,
@@ -184,7 +197,8 @@ describe('SearchCoordinator', () => {
 
     it('should throw error when Logger is missing', () => {
       expect(() => {
-        const coordinator = new SearchCoordinator({
+        // eslint-disable-next-line no-unused-vars
+        const _coordinator = new SearchCoordinator({
           eventBus: mockEventBus,
           searchEngine: mockSearchEngine,
           filterEngine: mockFilterEngine,
@@ -194,7 +208,8 @@ describe('SearchCoordinator', () => {
       }).toThrow(expect.objectContaining({ code: ErrorCodes.VALIDATION_ERROR }))
 
       expect(() => {
-        const coordinator = new SearchCoordinator({
+        // eslint-disable-next-line no-unused-vars
+        const _coordinator = new SearchCoordinator({
           eventBus: mockEventBus,
           searchEngine: mockSearchEngine,
           filterEngine: mockFilterEngine,
@@ -206,7 +221,8 @@ describe('SearchCoordinator', () => {
 
     it('should throw error when SearchEngine is missing', () => {
       expect(() => {
-        const coordinator = new SearchCoordinator({
+        // eslint-disable-next-line no-unused-vars
+        const _coordinator = new SearchCoordinator({
           eventBus: mockEventBus,
           logger: mockLogger,
           filterEngine: mockFilterEngine,
@@ -216,7 +232,8 @@ describe('SearchCoordinator', () => {
       }).toThrow(expect.objectContaining({ code: ErrorCodes.VALIDATION_ERROR }))
 
       expect(() => {
-        const coordinator = new SearchCoordinator({
+        // eslint-disable-next-line no-unused-vars
+        const _coordinator = new SearchCoordinator({
           eventBus: mockEventBus,
           logger: mockLogger,
           filterEngine: mockFilterEngine,
@@ -287,9 +304,12 @@ describe('SearchCoordinator', () => {
     })
 
     it('should execute complete search orchestration flow', async () => {
+      // eslint-disable-next-line no-unused-vars
       const query = 'JavaScript'
+      // eslint-disable-next-line no-unused-vars
       const filters = { status: 'reading' }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await searchCoordinator.executeSearch(query, filters)
 
       expect(mockSearchCacheManager.get).toHaveBeenCalledWith(expect.stringMatching(/javascript.*reading/))
@@ -302,9 +322,11 @@ describe('SearchCoordinator', () => {
     })
 
     it('should use cached results when available', async () => {
+      // eslint-disable-next-line no-unused-vars
       const cachedResult = { results: [testBooks[0]], metadata: { cached: true } }
       mockSearchCacheManager.get.mockResolvedValue(cachedResult)
 
+      // eslint-disable-next-line no-unused-vars
       const result = await searchCoordinator.executeSearch('JavaScript', {})
 
       expect(mockSearchEngine.search).not.toHaveBeenCalled()
@@ -322,7 +344,8 @@ describe('SearchCoordinator', () => {
         metadata: { totalCount: 3 }
       })
 
-      const result = await searchCoordinator.executeSearch('', {})
+      // eslint-disable-next-line no-unused-vars
+      const _result = await searchCoordinator.executeSearch('', {})
 
       expect(mockSearchEngine.search).not.toHaveBeenCalled()
       expect(mockFilterEngine.applyFilters).toHaveBeenCalledWith(testBooks, {})
@@ -363,6 +386,7 @@ describe('SearchCoordinator', () => {
       jest.useFakeTimers()
 
       searchCoordinator.debouncedSearch('test', {})
+      // eslint-disable-next-line no-unused-vars
       const promise2 = searchCoordinator.debouncedSearch('testing', {})
 
       // Fast-forward time
@@ -394,12 +418,16 @@ describe('SearchCoordinator', () => {
     })
 
     it('should coordinate filter application with search results', async () => {
+      // eslint-disable-next-line no-unused-vars
       const filters = { status: 'reading', category: 'programming' }
+      // eslint-disable-next-line no-unused-vars
       const searchResults = [testBooks[0], testBooks[1]]
+      // eslint-disable-next-line no-unused-vars
       const filteredResult = { filteredBooks: [testBooks[0]], totalCount: 1 }
 
       mockFilterEngine.applyFilters.mockResolvedValue(filteredResult)
 
+      // eslint-disable-next-line no-unused-vars
       const result = await searchCoordinator.applyFiltersToResults(searchResults, filters)
 
       expect(mockFilterEngine.applyFilters).toHaveBeenCalledWith(searchResults, filters)
@@ -449,6 +477,7 @@ describe('SearchCoordinator', () => {
     })
 
     it('should coordinate data updates across all modules', async () => {
+      // eslint-disable-next-line no-unused-vars
       const newBooks = [{ id: '4', title: 'New Book', author: 'Author' }]
 
       await searchCoordinator.updateBooksData(newBooks)
@@ -467,6 +496,7 @@ describe('SearchCoordinator', () => {
       setupStandardMocks()
       await searchCoordinator.executeSearch('test', {})
 
+      // eslint-disable-next-line no-unused-vars
       const stats = await searchCoordinator.getCoordinatedStatistics()
 
       expect(stats.searchEngine).toEqual({ totalSearches: 10, averageTime: 50 })
@@ -512,6 +542,7 @@ describe('SearchCoordinator', () => {
     })
 
     it('should coordinate event handling for search execution', async () => {
+      // eslint-disable-next-line no-unused-vars
       const searchEventHandler = mockEventBus.on.mock.calls
         .find(call => call[0] === 'SEARCH.EXECUTE')[1]
 
@@ -532,6 +563,7 @@ describe('SearchCoordinator', () => {
     })
 
     it('should coordinate event handling for filter application', async () => {
+      // eslint-disable-next-line no-unused-vars
       const filterEventHandler = mockEventBus.on.mock.calls
         .find(call => call[0] === 'FILTER.APPLY')[1]
 
@@ -593,6 +625,7 @@ describe('SearchCoordinator', () => {
     })
 
     it('should coordinate error handling across modules', async () => {
+      // eslint-disable-next-line no-unused-vars
       const searchError = new Error('Search failed')
       mockSearchEngine.search.mockRejectedValue(searchError)
 
@@ -663,10 +696,12 @@ describe('SearchCoordinator', () => {
     })
 
     it('should coordinate cache operations across search flow', async () => {
+      // eslint-disable-next-line no-unused-vars
       const cachedResult = { results: [testBooks[0]], cached: true }
 
       mockSearchCacheManager.get.mockResolvedValue(cachedResult)
 
+      // eslint-disable-next-line no-unused-vars
       const result = await searchCoordinator.executeSearch('test', { status: 'reading' })
 
       expect(mockSearchCacheManager.get).toHaveBeenCalledWith(expect.stringMatching(/test.*reading/))
@@ -694,8 +729,11 @@ describe('SearchCoordinator', () => {
     })
 
     it('should generate consistent cache keys', () => {
+      // eslint-disable-next-line no-unused-vars
       const key1 = searchCoordinator._generateCacheKey('test', { status: 'reading' })
+      // eslint-disable-next-line no-unused-vars
       const key2 = searchCoordinator._generateCacheKey('test', { status: 'reading' })
+      // eslint-disable-next-line no-unused-vars
       const key3 = searchCoordinator._generateCacheKey('test', { status: 'completed' })
 
       expect(key1).toBe(key2)
@@ -748,6 +786,7 @@ describe('SearchCoordinator', () => {
       await searchCoordinator.executeSearch('test', {})
       await searchCoordinator.executeSearch('another', {})
 
+      // eslint-disable-next-line no-unused-vars
       const stats = await searchCoordinator.getCoordinatedStatistics()
 
       expect(stats.coordinator.totalCoordinatedOperations).toBe(2)
@@ -789,6 +828,7 @@ describe('SearchCoordinator', () => {
     it('should reset performance statistics when requested', () => {
       searchCoordinator.resetStatistics()
 
+      // eslint-disable-next-line no-unused-vars
       const stats = searchCoordinator._getInternalStatistics()
 
       expect(stats.totalCoordinatedOperations).toBe(0)
@@ -824,6 +864,7 @@ describe('SearchCoordinator', () => {
     })
 
     it('should track searching state during operations', async () => {
+      // eslint-disable-next-line no-unused-vars
       let isSearchingDuringOperation = false
 
       mockSearchCacheManager.get.mockResolvedValue(null)
@@ -860,6 +901,7 @@ describe('SearchCoordinator', () => {
       await searchCoordinator.executeSearch('first', {})
       await searchCoordinator.executeSearch('second', { status: 'reading' })
 
+      // eslint-disable-next-line no-unused-vars
       const state = searchCoordinator.getCurrentSearchState()
       expect(state.lastQuery).toBe('second')
       expect(state.lastFilters).toEqual({ status: 'reading' })
@@ -919,9 +961,11 @@ describe('SearchCoordinator', () => {
       setupStandardMocks()
 
       // Start some operations
+      // eslint-disable-next-line no-unused-vars
       const searchPromise = searchCoordinator.executeSearch('test', {})
 
       // Initiate graceful shutdown
+      // eslint-disable-next-line no-unused-vars
       const shutdownPromise = searchCoordinator.gracefulShutdown()
 
       // Wait for both to complete

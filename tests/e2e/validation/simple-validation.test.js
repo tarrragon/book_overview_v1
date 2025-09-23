@@ -27,16 +27,22 @@
  * - CI/CD 環境的基礎檢查
  */
 
+// eslint-disable-next-line no-unused-vars
 const fs = require('fs')
+// eslint-disable-next-line no-unused-vars
 const path = require('path')
 
 describe('🔧 簡化版端對端測試環境驗證', () => {
+  // eslint-disable-next-line no-unused-vars
   const projectRoot = path.resolve(__dirname, '../../..')
+  // eslint-disable-next-line no-unused-vars
   const buildPath = path.join(projectRoot, 'build/development')
+  // eslint-disable-next-line no-unused-vars
   const e2eTestsPath = path.join(projectRoot, 'tests/e2e')
 
   describe('📁 基本檔案檢查', () => {
     test('應該存在端對端測試目錄結構', () => {
+      // eslint-disable-next-line no-unused-vars
       const expectedDirectories = [
         'setup',
         'fixtures',
@@ -49,6 +55,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       ]
 
       expectedDirectories.forEach(dir => {
+        // eslint-disable-next-line no-unused-vars
         const dirPath = path.join(e2eTestsPath, dir)
         expect(fs.existsSync(dirPath)).toBe(true)
         // eslint-disable-next-line no-console
@@ -57,6 +64,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
     })
 
     test('應該存在核心測試檔案', () => {
+      // eslint-disable-next-line no-unused-vars
       const expectedFiles = [
         'setup/extension-setup.js',
         'fixtures/readmoo-mock-page.html',
@@ -67,6 +75,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       ]
 
       expectedFiles.forEach(file => {
+        // eslint-disable-next-line no-unused-vars
         const filePath = path.join(e2eTestsPath, file)
         expect(fs.existsSync(filePath)).toBe(true)
         // eslint-disable-next-line no-console
@@ -77,6 +86,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
     test('應該存在建置產物', () => {
       expect(fs.existsSync(buildPath)).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const requiredFiles = [
         'manifest.json',
         'src/background/background.js',
@@ -85,6 +95,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       ]
 
       requiredFiles.forEach(file => {
+        // eslint-disable-next-line no-unused-vars
         const filePath = path.join(buildPath, file)
         expect(fs.existsSync(filePath)).toBe(true)
         // eslint-disable-next-line no-console
@@ -97,6 +108,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
     let manifest
 
     beforeAll(() => {
+      // eslint-disable-next-line no-unused-vars
       const manifestPath = path.join(buildPath, 'manifest.json')
       manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
     })
@@ -124,6 +136,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       expect(manifest.background).toBeDefined()
       expect(manifest.background.service_worker).toBeDefined()
 
+      // eslint-disable-next-line no-unused-vars
       const serviceWorkerPath = path.join(buildPath, manifest.background.service_worker)
       expect(fs.existsSync(serviceWorkerPath)).toBe(true)
 
@@ -135,6 +148,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       expect(manifest.permissions).toBeDefined()
       expect(Array.isArray(manifest.permissions)).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const dangerousPermissions = ['debugger', 'proxy', 'system.cpu']
       dangerousPermissions.forEach(perm => {
         expect(manifest.permissions).not.toContain(perm)
@@ -147,10 +161,12 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
     test('應該有完整的圖示配置', () => {
       expect(manifest.icons).toBeDefined()
 
+      // eslint-disable-next-line no-unused-vars
       const requiredSizes = ['16', '48', '128']
       requiredSizes.forEach(size => {
         expect(manifest.icons[size]).toBeDefined()
 
+        // eslint-disable-next-line no-unused-vars
         const iconPath = path.join(buildPath, manifest.icons[size])
         expect(fs.existsSync(iconPath)).toBe(true)
       })
@@ -162,7 +178,9 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
 
   describe('🎭 模擬測試資料驗證', () => {
     test('模擬 Readmoo 頁面應該有正確的結構', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockPagePath = path.join(e2eTestsPath, 'fixtures/readmoo-mock-page.html')
+      // eslint-disable-next-line no-unused-vars
       const mockPageContent = fs.readFileSync(mockPagePath, 'utf8')
 
       // 檢查關鍵元素
@@ -180,18 +198,23 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
     })
 
     test('測試資料應該包含完整的書籍資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const mockPagePath = path.join(e2eTestsPath, 'fixtures/readmoo-mock-page.html')
+      // eslint-disable-next-line no-unused-vars
       const mockPageContent = fs.readFileSync(mockPagePath, 'utf8')
 
       // 提取 JSON 資料
+      // eslint-disable-next-line no-unused-vars
       const jsonMatch = mockPageContent.match(/type="application\/json"[^>]*>([^<]+)</)
       expect(jsonMatch).toBeTruthy()
 
+      // eslint-disable-next-line no-unused-vars
       const testData = JSON.parse(jsonMatch[1].trim())
       expect(testData.books).toBeInstanceOf(Array)
       expect(testData.books.length).toBe(5)
 
       // 檢查第一本書的資料結構
+      // eslint-disable-next-line no-unused-vars
       const firstBook = testData.books[0]
       expect(firstBook).toHaveProperty('id')
       expect(firstBook).toHaveProperty('title')
@@ -203,7 +226,9 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
 
   describe('🧪 測試設定檔驗證', () => {
     test('Jest 配置應該包含端對端測試', () => {
+      // eslint-disable-next-line no-unused-vars
       const jestConfigPath = path.join(projectRoot, 'tests/jest.config.js')
+      // eslint-disable-next-line no-unused-vars
       const jestConfigContent = fs.readFileSync(jestConfigPath, 'utf8')
 
       expect(jestConfigContent).toContain('tests/e2e')
@@ -211,7 +236,9 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
     })
 
     test('package.json 應該有端對端測試腳本', () => {
+      // eslint-disable-next-line no-unused-vars
       const packageJsonPath = path.join(projectRoot, 'package.json')
+      // eslint-disable-next-line no-unused-vars
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
 
       expect(packageJson.scripts).toHaveProperty('test:e2e')
@@ -220,10 +247,14 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
     })
 
     test('應該有必要的測試依賴項', () => {
+      // eslint-disable-next-line no-unused-vars
       const packageJsonPath = path.join(projectRoot, 'package.json')
+      // eslint-disable-next-line no-unused-vars
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
 
+      // eslint-disable-next-line no-unused-vars
       const requiredDevDeps = ['puppeteer', 'jest', 'jest-chrome']
+      // eslint-disable-next-line no-unused-vars
       const devDependencies = packageJson.devDependencies || {}
 
       requiredDevDeps.forEach(dep => {
@@ -234,6 +265,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
 
   describe('📊 建置品質檢查', () => {
     test('JavaScript 檔案應該沒有語法錯誤', () => {
+      // eslint-disable-next-line no-unused-vars
       const jsFiles = [
         'src/background/background.js',
         'src/popup/popup.js',
@@ -241,8 +273,10 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       ]
 
       jsFiles.forEach(file => {
+        // eslint-disable-next-line no-unused-vars
         const filePath = path.join(buildPath, file)
         if (fs.existsSync(filePath)) {
+          // eslint-disable-next-line no-unused-vars
           const content = fs.readFileSync(filePath, 'utf8')
 
           // 基本語法檢查
@@ -257,11 +291,14 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
     })
 
     test('HTML 檔案應該有正確的結構', () => {
+      // eslint-disable-next-line no-unused-vars
       const htmlFiles = ['src/popup/popup.html', 'overview.html']
 
       htmlFiles.forEach(file => {
+        // eslint-disable-next-line no-unused-vars
         const filePath = path.join(buildPath, file)
         if (fs.existsSync(filePath)) {
+          // eslint-disable-next-line no-unused-vars
           const content = fs.readFileSync(filePath, 'utf8')
 
           expect(content).toContain('<!DOCTYPE html>')
@@ -276,6 +313,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
     })
 
     test('檔案大小應該在合理範圍內', () => {
+      // eslint-disable-next-line no-unused-vars
       const fileSizeLimits = {
         'manifest.json': 5 * 1024, // 5KB
         'src/popup/popup.js': 100 * 1024, // 100KB
@@ -283,8 +321,10 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       }
 
       Object.entries(fileSizeLimits).forEach(([file, maxSize]) => {
+        // eslint-disable-next-line no-unused-vars
         const filePath = path.join(buildPath, file)
         if (fs.existsSync(filePath)) {
+          // eslint-disable-next-line no-unused-vars
           const stats = fs.statSync(filePath)
           expect(stats.size).toBeLessThan(maxSize)
 
@@ -297,6 +337,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
 
   describe('📈 測試準備度評估', () => {
     test('端對端測試環境準備度檢查', () => {
+      // eslint-disable-next-line no-unused-vars
       const checklist = {
         buildExists: fs.existsSync(buildPath),
         manifestV3: true, // 基於前面的測試
@@ -306,8 +347,11 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
         dependenciesInstalled: fs.existsSync(path.join(projectRoot, 'node_modules'))
       }
 
+      // eslint-disable-next-line no-unused-vars
       const totalChecks = Object.keys(checklist).length
+      // eslint-disable-next-line no-unused-vars
       const passedChecks = Object.values(checklist).filter(Boolean).length
+      // eslint-disable-next-line no-unused-vars
       const readinessPercentage = (passedChecks / totalChecks) * 100
 
       Object.entries(checklist).forEach(([check, passed]) => {

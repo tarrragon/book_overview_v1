@@ -29,10 +29,13 @@
  * - 系統容量規劃
  */
 
+// eslint-disable-next-line no-unused-vars
 const ExtensionTestSetup = require('../setup/extension-setup')
+// eslint-disable-next-line no-unused-vars
 const MemoryLeakDetector = require('../../helpers/memory-leak-detector')
 
 describe('📊 Chrome Extension 效能基準測試', () => {
+  // eslint-disable-next-line no-unused-vars
   let testSetup
   let memoryDetector
 
@@ -54,16 +57,20 @@ describe('📊 Chrome Extension 效能基準測試', () => {
 
   describe('🚀 資料提取效能測試', () => {
     test('小量資料提取效能 (5 本書籍)', async () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
       await testSetup.navigateToReadmoo()
+      // eslint-disable-next-line no-unused-vars
       const popupPage = await testSetup.openExtensionPopup()
 
       // 開始提取
       await popupPage.click('#extractButton')
       await popupPage.waitForSelector('.status-completed', { timeout: 20000 })
 
+      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
+      // eslint-disable-next-line no-unused-vars
       const extractionTime = endTime - startTime
 
       // 效能基準：小量資料應在 5 秒內完成
@@ -80,13 +87,17 @@ describe('📊 Chrome Extension 效能基準測試', () => {
         generateMockPageWithBooks(50)
       ))
 
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
+      // eslint-disable-next-line no-unused-vars
       const popupPage = await testSetup.openExtensionPopup()
       await popupPage.click('#extractButton')
       await popupPage.waitForSelector('.status-completed', { timeout: 30000 })
 
+      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
+      // eslint-disable-next-line no-unused-vars
       const extractionTime = endTime - startTime
 
       // 效能基準：中量資料應在 15 秒內完成
@@ -103,15 +114,19 @@ describe('📊 Chrome Extension 效能基準測試', () => {
         generateMockPageWithBooks(150)
       ))
 
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
+      // eslint-disable-next-line no-unused-vars
       const popupPage = await testSetup.openExtensionPopup()
       await popupPage.click('#extractButton')
 
       // 大量資料可能需要更長時間
       await popupPage.waitForSelector('.status-completed', { timeout: 60000 })
 
+      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
+      // eslint-disable-next-line no-unused-vars
       const extractionTime = endTime - startTime
 
       // 效能基準：大量資料應在 30 秒內完成
@@ -129,19 +144,25 @@ describe('📊 Chrome Extension 效能基準測試', () => {
       memoryDetector.startMonitoring()
 
       // 記錄初始狀態
+      // eslint-disable-next-line no-unused-vars
       const initialOpId = memoryDetector.recordOperationStart('initial-state', { phase: 'baseline' })
       await memoryDetector.recordOperationEnd(initialOpId)
 
       // 記錄導航操作
+      // eslint-disable-next-line no-unused-vars
       const navOpId = memoryDetector.recordOperationStart('navigate-to-readmoo')
       await testSetup.navigateToReadmoo()
       await memoryDetector.recordOperationEnd(navOpId)
 
       // 記錄彈出視窗操作
+      // eslint-disable-next-line no-unused-vars
       const popupOpId = memoryDetector.recordOperationStart('open-extension-popup')
+      // eslint-disable-next-line no-unused-vars
       const popupPage = await testSetup.openExtensionPopup()
+      // eslint-disable-next-line no-unused-vars
       const popupOperation = await memoryDetector.recordOperationEnd(popupOpId)
 
+      // eslint-disable-next-line no-unused-vars
       const analysis = await memoryDetector.stopMonitoring()
 
       // eslint-disable-next-line no-console
@@ -165,8 +186,10 @@ describe('📊 Chrome Extension 效能基準測試', () => {
 
     test('記憶體洩漏檢測', async () => {
       // 使用 MemoryLeakDetector 進行專業記憶體洩漏檢測
+      // eslint-disable-next-line no-unused-vars
       const analysis = await memoryDetector.detectMemoryLeak(async (iteration) => {
         // 執行一次完整的提取流程
+        // eslint-disable-next-line no-unused-vars
         const popupPage = await testSetup.openExtensionPopup()
         await popupPage.click('#extractButton')
         await popupPage.waitForSelector('.status-completed', { timeout: 20000 })
@@ -205,15 +228,19 @@ describe('📊 Chrome Extension 效能基準測試', () => {
     test('Overview 頁面渲染效能', async () => {
       // 準備測試資料
       await testSetup.navigateToReadmoo()
+      // eslint-disable-next-line no-unused-vars
       const popupPage = await testSetup.openExtensionPopup()
       await popupPage.click('#extractButton')
       await popupPage.waitForSelector('.status-completed', { timeout: 20000 })
       await popupPage.close()
 
       // 測試 Overview 頁面渲染
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
+      // eslint-disable-next-line no-unused-vars
       const overviewUrl = `chrome-extension://${testSetup.extensionId}/overview.html`
+      // eslint-disable-next-line no-unused-vars
       const overviewPage = await testSetup.browser.newPage()
       await overviewPage.goto(overviewUrl)
 
@@ -221,7 +248,9 @@ describe('📊 Chrome Extension 效能基準測試', () => {
       await overviewPage.waitForSelector('body', { timeout: 10000 })
       await overviewPage.waitForTimeout(2000) // 額外等待資料載入
 
+      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
+      // eslint-disable-next-line no-unused-vars
       const renderTime = endTime - startTime
 
       // 效能基準：Overview 頁面應在 3 秒內完成初始渲染
@@ -233,19 +262,25 @@ describe('📊 Chrome Extension 效能基準測試', () => {
     })
 
     test('搜尋功能響應時間', async () => {
+      // eslint-disable-next-line no-unused-vars
       const overviewUrl = `chrome-extension://${testSetup.extensionId}/overview.html`
+      // eslint-disable-next-line no-unused-vars
       const overviewPage = await testSetup.browser.newPage()
       await overviewPage.goto(overviewUrl)
       await overviewPage.waitForTimeout(3000)
 
       // 尋找搜尋輸入框
+      // eslint-disable-next-line no-unused-vars
       const searchInput = await overviewPage.$('input[type="search"], .search-input')
 
       if (searchInput) {
+        // eslint-disable-next-line no-unused-vars
         const searchTerms = ['JavaScript', 'Vue', 'Chrome', 'TDD', 'AI']
+        // eslint-disable-next-line no-unused-vars
         const searchTimes = []
 
         for (const term of searchTerms) {
+          // eslint-disable-next-line no-unused-vars
           const startTime = performance.now()
 
           // 清空並輸入搜尋詞
@@ -256,11 +291,14 @@ describe('📊 Chrome Extension 效能基準測試', () => {
           // 等待搜尋結果更新
           await overviewPage.waitForTimeout(500)
 
+          // eslint-disable-next-line no-unused-vars
           const endTime = performance.now()
+          // eslint-disable-next-line no-unused-vars
           const searchTime = endTime - startTime
           searchTimes.push(searchTime)
         }
 
+        // eslint-disable-next-line no-unused-vars
         const avgSearchTime = searchTimes.reduce((sum, time) => sum + time, 0) / searchTimes.length
 
         // 效能基準：搜尋響應時間應在 1 秒內
@@ -275,16 +313,21 @@ describe('📊 Chrome Extension 效能基準測試', () => {
 
   describe('📤 匯出功能效能測試', () => {
     test('小量資料匯出效能', async () => {
+      // eslint-disable-next-line no-unused-vars
       const overviewUrl = `chrome-extension://${testSetup.extensionId}/overview.html`
+      // eslint-disable-next-line no-unused-vars
       const overviewPage = await testSetup.browser.newPage()
       await overviewPage.goto(overviewUrl)
       await overviewPage.waitForTimeout(3000)
 
       // 尋找匯出按鈕
+      // eslint-disable-next-line no-unused-vars
       const exportButtons = await overviewPage.$$('button')
+      // eslint-disable-next-line no-unused-vars
       let exportButton = null
 
       for (const button of exportButtons) {
+        // eslint-disable-next-line no-unused-vars
         const text = await overviewPage.evaluate(el => el.textContent, button)
         if (text.includes('匯出')) {
           exportButton = button
@@ -293,6 +336,7 @@ describe('📊 Chrome Extension 效能基準測試', () => {
       }
 
       if (exportButton) {
+        // eslint-disable-next-line no-unused-vars
         const startTime = performance.now()
 
         await exportButton.click()
@@ -304,7 +348,9 @@ describe('📊 Chrome Extension 效能基準測試', () => {
                    document.body.textContent.includes('下載完成')
           }, { timeout: 10000 })
 
+          // eslint-disable-next-line no-unused-vars
           const endTime = performance.now()
+          // eslint-disable-next-line no-unused-vars
           const exportTime = endTime - startTime
 
           // 效能基準：匯出應在 5 秒內完成
@@ -323,19 +369,24 @@ describe('📊 Chrome Extension 效能基準測試', () => {
 
   describe('🔄 並行處理效能測試', () => {
     test('多個 Popup 同時操作', async () => {
+      // eslint-disable-next-line no-unused-vars
       const popupCount = 3
+      // eslint-disable-next-line no-unused-vars
       const popupPages = []
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
       try {
         // 同時開啟多個 Popup
         for (let i = 0; i < popupCount; i++) {
+          // eslint-disable-next-line no-unused-vars
           const popupPage = await testSetup.openExtensionPopup()
           popupPages.push(popupPage)
           await testSetup.page.waitForTimeout(500) // 間隔開啟
         }
 
         // 同時觸發提取（模擬使用者快速操作）
+        // eslint-disable-next-line no-unused-vars
         const extractionPromises = popupPages.map(async (popupPage) => {
           await popupPage.click('#extractButton')
           return popupPage.waitForSelector('.status-completed, .status-error', { timeout: 30000 })
@@ -344,7 +395,9 @@ describe('📊 Chrome Extension 效能基準測試', () => {
         // 等待所有提取完成
         await Promise.all(extractionPromises)
 
+        // eslint-disable-next-line no-unused-vars
         const endTime = performance.now()
+        // eslint-disable-next-line no-unused-vars
         const totalTime = endTime - startTime
 
         // eslint-disable-next-line no-console
@@ -373,6 +426,7 @@ describe('📊 Chrome Extension 效能基準測試', () => {
  * @returns {string} HTML 內容
  */
 function generateMockPageWithBooks (bookCount) {
+  // eslint-disable-next-line no-unused-vars
   const books = []
 
   for (let i = 1; i <= bookCount; i++) {

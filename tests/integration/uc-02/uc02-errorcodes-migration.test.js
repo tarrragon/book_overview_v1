@@ -22,6 +22,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
   describe('日常書籍提取工作流程', () => {
     test('完整的書籍提取流程 - 包含錯誤恢復', async () => {
       // Given: 模擬UC-02日常提取流程
+      // eslint-disable-next-line no-unused-vars
       const mockBookExtractionWorkflow = {
         // 階段1: 書籍重複檢測
         async detectDuplicates (books) {
@@ -107,6 +108,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
 
     test('網路相關錯誤處理流程', async () => {
       // Given: 模擬網路錯誤情境
+      // eslint-disable-next-line no-unused-vars
       const networkErrorScenarios = [
         {
           name: '頻率限制檢測',
@@ -130,6 +132,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
 
       // When & Then: 測試各種網路錯誤情境
       for (const scenario of networkErrorScenarios) {
+        // eslint-disable-next-line no-unused-vars
         const error = scenario.errorFactory()
 
         expect(error.code).toBe(scenario.expectedCode)
@@ -143,6 +146,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
   describe('錯誤恢復策略驗證', () => {
     test('錯誤結果物件應該包含恢復資訊', () => {
       // Given: 各種錯誤情境
+      // eslint-disable-next-line no-unused-vars
       const errorScenarios = [
         {
           error: UC02ErrorFactory.createDuplicateDetectionError(['book_1']),
@@ -160,6 +164,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
 
       errorScenarios.forEach(scenario => {
         // When: 建立錯誤結果
+        // eslint-disable-next-line no-unused-vars
         const result = UC02ErrorFactory.createResult(false, null, scenario.error)
 
         // Then: 結果應包含恢復資訊
@@ -181,6 +186,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
 
     test('錯誤嚴重程度應該影響處理策略', () => {
       // Given: 不同嚴重程度的錯誤
+      // eslint-disable-next-line no-unused-vars
       const severityTests = [
         {
           errorType: 'DATA_PROGRESS_VALIDATION_ERROR',
@@ -201,6 +207,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
 
       severityTests.forEach(test => {
         // When: 轉換錯誤
+        // eslint-disable-next-line no-unused-vars
         const error = UC02ErrorAdapter.convertError(
           test.errorType,
           'Test error message'
@@ -210,6 +217,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
         expect(error.details.severity).toBe(test.expectedSeverity)
 
         // 根據嚴重程度判斷是否應該繼續
+        // eslint-disable-next-line no-unused-vars
         const shouldContinue = error.details.severity !== 'SEVERE'
         expect(shouldContinue).toBe(test.shouldAllowContinue)
       })
@@ -219,6 +227,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
   describe('Chrome Extension 環境相容性', () => {
     test('錯誤物件應該可序列化於Chrome Extension環境', () => {
       // Given: 各種錯誤類型
+      // eslint-disable-next-line no-unused-vars
       const errors = [
         UC02ErrorFactory.createDuplicateDetectionError(['book_1']),
         UC02ErrorFactory.createProgressValidationError({ progress: '150%' }),
@@ -228,7 +237,9 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
 
       errors.forEach(error => {
         // When: 序列化錯誤物件
+        // eslint-disable-next-line no-unused-vars
         const serialized = JSON.stringify(error)
+        // eslint-disable-next-line no-unused-vars
         const deserialized = JSON.parse(serialized)
 
         // Then: 序列化應該成功且保持完整性
@@ -242,6 +253,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
 
     test('錯誤詳細資訊應該符合Chrome Extension記憶體限制', () => {
       // Given: 大量資料的錯誤
+      // eslint-disable-next-line no-unused-vars
       const largeBookList = new Array(1000).fill().map((_, i) => ({
         id: `book_${i}`,
         title: `Test Book ${i}`,
@@ -249,9 +261,11 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
       }))
 
       // When: 建立包含大量資料的錯誤
+      // eslint-disable-next-line no-unused-vars
       const error = UC02ErrorFactory.createDuplicateDetectionError(largeBookList)
 
       // Then: 錯誤詳細資訊應該在合理範圍內或被截斷
+      // eslint-disable-next-line no-unused-vars
       const serializedSize = JSON.stringify(error.details).length
 
       // 由於原始資料超過15KB，應該有截斷標記
@@ -268,9 +282,11 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
 
     test('跨Context錯誤傳遞模擬', () => {
       // Given: 模擬Chrome Extension跨Context錯誤傳遞
+      // eslint-disable-next-line no-unused-vars
       const originalError = UC02ErrorFactory.createPageStructureError(['.book-item'])
 
       // When: 模擬從Content Script傳遞到Background Script
+      // eslint-disable-next-line no-unused-vars
       const messagePayload = {
         type: 'ERROR_OCCURRED',
         error: {
@@ -281,7 +297,9 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
         }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const serializedMessage = JSON.stringify(messagePayload)
+      // eslint-disable-next-line no-unused-vars
       const receivedMessage = JSON.parse(serializedMessage)
 
       // Then: 錯誤資訊應該完整保持
@@ -291,6 +309,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
       expect(receivedMessage.error.details.originalCode).toBe('DOM_PAGE_STRUCTURE_CHANGED')
 
       // 在接收端重新建立錯誤物件
+      // eslint-disable-next-line no-unused-vars
       const reconstructedError = new Error(receivedMessage.error.message)
       reconstructedError.code = receivedMessage.error.code
       reconstructedError.subType = receivedMessage.error.subType
@@ -303,17 +322,22 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
   describe('效能和記憶體測試', () => {
     test('大量錯誤處理不應造成記憶體洩漏', () => {
       // Given: 大量錯誤建立和處理
+      // eslint-disable-next-line no-unused-vars
       const errorCount = 1000
+      // eslint-disable-next-line no-unused-vars
       const errors = []
 
       // When: 建立大量錯誤物件
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
       for (let i = 0; i < errorCount; i++) {
+        // eslint-disable-next-line no-unused-vars
         const error = UC02ErrorFactory.createDuplicateDetectionError([`book_${i}`])
         errors.push(error)
       }
 
+      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
 
       // Then: 性能應該在合理範圍內
@@ -328,9 +352,11 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
 
     test('錯誤快取機制應該有效工作', () => {
       // Given: 重複獲取常用錯誤
+      // eslint-disable-next-line no-unused-vars
       const cacheTestCount = 100
 
       // When: 重複獲取預建立的錯誤
+      // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
       for (let i = 0; i < cacheTestCount; i++) {
@@ -339,6 +365,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
         UC02ErrorFactory.getCommonError('PAGE_STRUCTURE')
       }
 
+      // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
 
       // Then: 快取機制應該顯著提升性能
@@ -349,6 +376,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
   describe('向後相容性保證', () => {
     test('所有StandardError資訊都應該保留', () => {
       // Given: 完整的StandardError資訊
+      // eslint-disable-next-line no-unused-vars
       const originalStandardErrorInfo = {
         code: 'DATA_DUPLICATE_DETECTION_FAILED',
         message: '重複書籍檢測機制失敗',
@@ -360,6 +388,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
       }
 
       // When: 轉換為ErrorCodes格式
+      // eslint-disable-next-line no-unused-vars
       const convertedError = UC02ErrorAdapter.convertError(
         originalStandardErrorInfo.code,
         originalStandardErrorInfo.message,
@@ -380,6 +409,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
 
     test('錯誤處理API介面保持一致', () => {
       // Given: 使用新ErrorFactory的程式碼
+      // eslint-disable-next-line no-unused-vars
       const newAPIUsage = {
         // 使用專用方法
         createSpecificError: () => UC02ErrorFactory.createDuplicateDetectionError(['book_1']),
@@ -396,15 +426,19 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
       }
 
       // When & Then: 所有API都應該正常工作
+      // eslint-disable-next-line no-unused-vars
       const specificError = newAPIUsage.createSpecificError()
       expect(specificError.code).toBe(ErrorCodes.VALIDATION_ERROR)
 
+      // eslint-disable-next-line no-unused-vars
       const genericError = newAPIUsage.createGenericError()
       expect(genericError.code).toBe(ErrorCodes.VALIDATION_ERROR)
 
+      // eslint-disable-next-line no-unused-vars
       const successResult = newAPIUsage.createSuccessResult({ books: 10 })
       expect(successResult.success).toBe(true)
 
+      // eslint-disable-next-line no-unused-vars
       const failureResult = newAPIUsage.createFailureResult(specificError)
       expect(failureResult.success).toBe(false)
       expect(failureResult.code).toBe(ErrorCodes.VALIDATION_ERROR)

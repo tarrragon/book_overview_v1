@@ -2869,12 +2869,14 @@ class EventSystemAnalyzer {
         performanceDistribution,
 
         // 瓶頸分析
-        bottleneckAnalysis: identifyPerformanceBottlenecks ? {
-          detected: bottlenecks,
-          resolved: [], // 這需要更複雜的追蹤機制
-          monitoring: true,
-          analysisTimestamp: Date.now()
-        } : null,
+        bottleneckAnalysis: identifyPerformanceBottlenecks
+          ? {
+              detected: bottlenecks,
+              resolved: [], // 這需要更複雜的追蹤機制
+              monitoring: true,
+              analysisTimestamp: Date.now()
+            }
+          : null,
 
         // 詳細指標（基於實際測量）
         detailedMetrics: collectDetailedMetrics

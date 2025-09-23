@@ -16,6 +16,7 @@ const { UC02ErrorAdapter } = require('src/core/errors/UC02ErrorAdapter')
 describe('ErrorCodes 效能監控系統整合測試', () => {
   let performanceMonitor
   let anomalyDetector
+  // eslint-disable-next-line no-unused-vars
   let testErrors
 
   beforeEach(() => {
@@ -54,6 +55,7 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
 
   describe('即時效能監控整合', () => {
     test('應該能夠監控單個錯誤建立的效能指標', async () => {
+      // eslint-disable-next-line no-unused-vars
       const errorCreationFn = () => {
         return UC02ErrorAdapter.convertError(
           'DATA_DUPLICATE_DETECTION_FAILED',
@@ -63,6 +65,7 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
       }
 
       // 執行監控
+      // eslint-disable-next-line no-unused-vars
       const result = performanceMonitor.monitorErrorCreation(errorCreationFn, {
         testCase: 'single_error_creation'
       })
@@ -73,6 +76,7 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
       expect(result.subType).toBe('DUPLICATE_DETECTION_FAILED')
 
       // 獲取即時狀態
+      // eslint-disable-next-line no-unused-vars
       const status = performanceMonitor.getRealtimeStatus()
       expect(status.isMonitoring).toBe(true)
       expect(status.realtimeStats.totalErrorsCreated).toBe(1)
@@ -81,11 +85,15 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
     })
 
     test('應該能夠監控批次錯誤建立並檢測效能異常', async () => {
+      // eslint-disable-next-line no-unused-vars
       const batchSize = 150 // 超過警告閾值
 
+      // eslint-disable-next-line no-unused-vars
       const batchCreationFn = () => {
+        // eslint-disable-next-line no-unused-vars
         const errors = []
         for (let i = 0; i < batchSize; i++) {
+          // eslint-disable-next-line no-unused-vars
           const errorType = testErrors[i % testErrors.length]
           errors.push(UC02ErrorAdapter.convertError(
             errorType,
@@ -97,6 +105,7 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
       }
 
       // 監控批次建立
+      // eslint-disable-next-line no-unused-vars
       const results = performanceMonitor.monitorBatchErrorCreation(batchCreationFn, batchSize)
 
       // 驗證批次結果
@@ -104,9 +113,11 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
       expect(results.every(error => error.code)).toBe(true)
 
       // 檢查是否觸發批次大小警告
+      // eslint-disable-next-line no-unused-vars
       const status = performanceMonitor.getRealtimeStatus()
       expect(status.recentWarnings.length).toBeGreaterThan(0)
 
+      // eslint-disable-next-line no-unused-vars
       const batchWarning = status.recentWarnings.find(w =>
         w.type === 'ERRORCODES_FREQUENT_ERRORS'
       )
@@ -115,10 +126,12 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
     })
 
     test('應該能夠檢測記憶體使用異常', async () => {
+      // eslint-disable-next-line no-unused-vars
       const performanceData = []
 
       // 模擬記憶體使用逐漸增加的情況
       for (let i = 0; i < 30; i++) {
+        // eslint-disable-next-line no-unused-vars
         const dataPoint = {
           memoryUsage: 1000 + i * 200, // 記憶體逐漸增加
           creationTime: 0.3 + Math.random() * 0.1,
@@ -134,12 +147,14 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
       await new Promise(resolve => setTimeout(resolve, 100))
 
       // 獲取異常報告
+      // eslint-disable-next-line no-unused-vars
       const report = anomalyDetector.generateAnomalyReport()
 
       expect(report.detectionStatus.isDetecting).toBe(true)
       expect(report.statistics.totalAnomalies).toBeGreaterThan(0)
 
       // 檢查是否檢測到記憶體相關異常
+      // eslint-disable-next-line no-unused-vars
       const memoryAnomalies = report.recentAnomalies.filter(a =>
         a.type === 'MEMORY_SPIKE' || a.type === 'MEMORY_LEAK'
       )
@@ -149,6 +164,7 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
 
   describe('異常檢測算法驗證', () => {
     test('統計學檢測算法應該識別顯著偏差', async () => {
+      // eslint-disable-next-line no-unused-vars
       const normalData = Array.from({ length: 50 }, () => ({
         memoryUsage: 1000 + Math.random() * 100,
         creationTime: 0.5 + Math.random() * 0.1,
@@ -165,6 +181,7 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
       await new Promise(resolve => setTimeout(resolve, 200))
 
       // 添加異常數據點
+      // eslint-disable-next-line no-unused-vars
       const anomalousData = {
         memoryUsage: 5000, // 明顯高於正常值
         creationTime: 5.0, // 明顯慢於正常值
@@ -177,13 +194,17 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
       // 觸發完整檢測
       await new Promise(resolve => setTimeout(resolve, 100))
 
+      // eslint-disable-next-line no-unused-vars
       const report = anomalyDetector.generateAnomalyReport()
 
       // 應該檢測到記憶體和時間異常
+      // eslint-disable-next-line no-unused-vars
       const recentAnomalies = report.recentAnomalies
       expect(recentAnomalies.length).toBeGreaterThan(0)
 
+      // eslint-disable-next-line no-unused-vars
       const memoryAnomaly = recentAnomalies.find(a => a.type === 'MEMORY_SPIKE')
+      // eslint-disable-next-line no-unused-vars
       const timeAnomaly = recentAnomalies.find(a => a.type === 'SLOW_CREATION')
 
       expect(memoryAnomaly || timeAnomaly).toBeDefined()
@@ -192,6 +213,7 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
     test('趨勢檢測算法應該識別效能下降趨勢', async () => {
       // 模擬效能逐漸下降的趨勢
       for (let i = 0; i < 25; i++) {
+        // eslint-disable-next-line no-unused-vars
         const dataPoint = {
           memoryUsage: 1000 + i * 50, // 線性增加
           creationTime: 0.5 + i * 0.05, // 線性增加
@@ -205,15 +227,19 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
       // 手動觸發異常檢測
       await new Promise(resolve => setTimeout(resolve, 100))
 
+      // eslint-disable-next-line no-unused-vars
       const report = anomalyDetector.generateAnomalyReport()
 
       // 應該檢測到趨勢異常
+      // eslint-disable-next-line no-unused-vars
       const trendAnomalies = report.recentAnomalies.filter(a =>
         a.algorithm === 'trend'
       )
       expect(trendAnomalies.length).toBeGreaterThan(0)
 
+      // eslint-disable-next-line no-unused-vars
       const memoryTrend = trendAnomalies.find(a => a.type === 'MEMORY_LEAK')
+      // eslint-disable-next-line no-unused-vars
       const timeTrend = trendAnomalies.find(a => a.type === 'BATCH_DEGRADATION')
 
       expect(memoryTrend || timeTrend).toBeDefined()
@@ -223,6 +249,7 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
   describe('自動回應機制驗證', () => {
     test('檢測到記憶體洩漏時應該觸發自動回應', async () => {
       // 模擬記憶體洩漏情況
+      // eslint-disable-next-line no-unused-vars
       const memoryLeakData = {
         memoryUsage: 15 * 1024 * 1024, // 15MB，超過預設閾值
         creationTime: 0.3,
@@ -231,6 +258,7 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
       }
 
       // 監聽控制台輸出以驗證自動回應
+      // eslint-disable-next-line no-unused-vars
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation()
 
       anomalyDetector.addDataPoint(memoryLeakData)
@@ -238,14 +266,17 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
       // 等待處理
       await new Promise(resolve => setTimeout(resolve, 100))
 
+      // eslint-disable-next-line no-unused-vars
       const report = anomalyDetector.generateAnomalyReport()
 
       // 檢查是否有自動回應記錄
+      // eslint-disable-next-line no-unused-vars
       const memoryAnomalies = report.recentAnomalies.filter(a =>
         a.type === 'MEMORY_SPIKE' && a.autoResponse
       )
 
       if (memoryAnomalies.length > 0) {
+        // eslint-disable-next-line no-unused-vars
         const anomaly = memoryAnomalies[0]
         expect(anomaly.autoResponse.actions).toContain('reduce_window_size')
         expect(anomaly.autoResponse.timestamp).toBeDefined()
@@ -256,6 +287,7 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
     })
 
     test('檢測到緩慢建立時應該提供優化建議', async () => {
+      // eslint-disable-next-line no-unused-vars
       const slowCreationData = {
         memoryUsage: 800,
         creationTime: 15.0, // 遠超過閾值
@@ -267,13 +299,16 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
 
       await new Promise(resolve => setTimeout(resolve, 100))
 
+      // eslint-disable-next-line no-unused-vars
       const report = anomalyDetector.generateAnomalyReport()
 
+      // eslint-disable-next-line no-unused-vars
       const slowCreationAnomalies = report.recentAnomalies.filter(a =>
         a.type === 'SLOW_CREATION' && a.autoResponse
       )
 
       if (slowCreationAnomalies.length > 0) {
+        // eslint-disable-next-line no-unused-vars
         const anomaly = slowCreationAnomalies[0]
         expect(anomaly.autoResponse.actions).toContain('suggest_common_errors')
         expect(anomaly.autoResponse.suggestions).toContain('使用 CommonErrors 預編譯錯誤以提高效能')
@@ -283,9 +318,11 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
 
   describe('監控系統整合工作流程', () => {
     test('完整的效能監控到異常檢測工作流程', async () => {
+      // eslint-disable-next-line no-unused-vars
       const workflowSteps = []
 
       // 步驟 1: 正常錯誤建立監控
+      // eslint-disable-next-line no-unused-vars
       const normalError = performanceMonitor.monitorErrorCreation(() => {
         return UC02ErrorAdapter.convertError(
           'DATA_PROGRESS_VALIDATION_ERROR',
@@ -298,8 +335,10 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
       expect(normalError.code).toBe(ErrorCodes.VALIDATION_ERROR)
 
       // 步驟 2: 模擬效能數據並添加到異常檢測器
+      // eslint-disable-next-line no-unused-vars
       const performanceStatus = performanceMonitor.getRealtimeStatus()
 
+      // eslint-disable-next-line no-unused-vars
       const dataPoint = {
         memoryUsage: performanceStatus.currentMemory || 1000,
         creationTime: performanceStatus.realtimeStats.averageCreationTime || 0.3,
@@ -311,6 +350,7 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
       workflowSteps.push('data_point_added')
 
       // 步驟 3: 批次建立觸發警告
+      // eslint-disable-next-line no-unused-vars
       const batchErrors = performanceMonitor.monitorBatchErrorCreation(() => {
         return testErrors.map((errorType, index) =>
           UC02ErrorAdapter.convertError(errorType, `批次錯誤 ${index}`, { workflow: 'step3' })
@@ -321,7 +361,9 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
       expect(batchErrors).toHaveLength(testErrors.length)
 
       // 步驟 4: 檢查整合結果
+      // eslint-disable-next-line no-unused-vars
       const finalStatus = performanceMonitor.getRealtimeStatus()
+      // eslint-disable-next-line no-unused-vars
       const anomalyReport = anomalyDetector.generateAnomalyReport()
 
       workflowSteps.push('integration_complete')
@@ -341,11 +383,13 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
 
     test('跨UC錯誤傳播的效能監控', async () => {
       // 模擬來自 UC-01 的錯誤
+      // eslint-disable-next-line no-unused-vars
       const uc01Error = new Error('UC-01 錯誤')
       uc01Error.code = ErrorCodes.DOM_ERROR
       uc01Error.subType = 'PAGE_DETECTION_FAILED'
 
       // 使用 UC02ErrorAdapter 適配錯誤並監控效能
+      // eslint-disable-next-line no-unused-vars
       const adaptedError = performanceMonitor.monitorErrorCreation(() => {
         return UC02ErrorAdapter.adaptFromUC01Error(uc01Error, {
           context: 'cross_uc_propagation',
@@ -360,9 +404,11 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
       expect(adaptedError.details.adaptationStrategy).toBe('enhanced_page_detection')
 
       // 檢查效能監控記錄
+      // eslint-disable-next-line no-unused-vars
       const status = performanceMonitor.getRealtimeStatus()
       expect(status.realtimeStats.totalErrorsCreated).toBe(1)
 
+      // eslint-disable-next-line no-unused-vars
       const errorTypeCount = status.realtimeStats.errorTypeCounts.get('DOM_ERROR')
       expect(errorTypeCount).toBe(1)
     })
@@ -370,23 +416,31 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
 
   describe('效能基準驗證', () => {
     test('單一錯誤建立應該符合效能基準', async () => {
+      // eslint-disable-next-line no-unused-vars
       const performanceResults = []
 
       // 測試多次錯誤建立以獲得統計數據
       for (let i = 0; i < 10; i++) {
+        // eslint-disable-next-line no-unused-vars
         const startTime = process.hrtime.bigint()
+        // eslint-disable-next-line no-unused-vars
         const memoryBefore = process.memoryUsage()
 
+        // eslint-disable-next-line no-unused-vars
         const error = UC02ErrorAdapter.convertError(
           'NETWORK_RATE_LIMITING_DETECTED',
           `測試錯誤 ${i}`,
           { testIndex: i }
         )
 
+        // eslint-disable-next-line no-unused-vars
         const endTime = process.hrtime.bigint()
+        // eslint-disable-next-line no-unused-vars
         const memoryAfter = process.memoryUsage()
 
+        // eslint-disable-next-line no-unused-vars
         const creationTime = Number(endTime - startTime) / 1000000 // 轉換為毫秒
+        // eslint-disable-next-line no-unused-vars
         const memoryUsed = memoryAfter.heapUsed - memoryBefore.heapUsed
 
         performanceResults.push({ creationTime, memoryUsed })
@@ -396,29 +450,39 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
       }
 
       // 驗證效能基準
+      // eslint-disable-next-line no-unused-vars
       const avgCreationTime = performanceResults.reduce((sum, r) => sum + r.creationTime, 0) / performanceResults.length
+      // eslint-disable-next-line no-unused-vars
       const avgMemoryUsed = performanceResults.reduce((sum, r) => sum + r.memoryUsed, 0) / performanceResults.length
 
       // Phase 2 效能目標
       expect(avgCreationTime).toBeLessThan(0.5) // 平均建立時間 < 0.5ms
       expect(avgMemoryUsed).toBeLessThan(1000) // 平均記憶體使用 < 1000 bytes
 
+      // eslint-disable-next-line no-console
       console.log(`平均建立時間: ${avgCreationTime.toFixed(3)}ms`)
+      // eslint-disable-next-line no-console
       console.log(`平均記憶體使用: ${avgMemoryUsed} bytes`)
     })
 
     test('批次錯誤建立效能應該滿足擴展性要求', async () => {
+      // eslint-disable-next-line no-unused-vars
       const batchSizes = [10, 50, 100, 500]
+      // eslint-disable-next-line no-unused-vars
       const batchResults = []
 
       for (const batchSize of batchSizes) {
+        // eslint-disable-next-line no-unused-vars
         const startTime = process.hrtime.bigint()
+        // eslint-disable-next-line no-unused-vars
         const memoryBefore = process.memoryUsage()
 
         if (global.gc) global.gc() // 強制垃圾回收
 
+        // eslint-disable-next-line no-unused-vars
         const errors = []
         for (let i = 0; i < batchSize; i++) {
+          // eslint-disable-next-line no-unused-vars
           const errorType = testErrors[i % testErrors.length]
           errors.push(UC02ErrorAdapter.convertError(
             errorType,
@@ -427,12 +491,18 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
           ))
         }
 
+        // eslint-disable-next-line no-unused-vars
         const endTime = process.hrtime.bigint()
+        // eslint-disable-next-line no-unused-vars
         const memoryAfter = process.memoryUsage()
 
+        // eslint-disable-next-line no-unused-vars
         const totalTime = Number(endTime - startTime) / 1000000
+        // eslint-disable-next-line no-unused-vars
         const totalMemory = memoryAfter.heapUsed - memoryBefore.heapUsed
+        // eslint-disable-next-line no-unused-vars
         const avgTimePerError = totalTime / batchSize
+        // eslint-disable-next-line no-unused-vars
         const avgMemoryPerError = totalMemory / batchSize
 
         batchResults.push({
@@ -446,10 +516,12 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
         expect(errors).toHaveLength(batchSize)
         expect(avgTimePerError).toBeLessThan(0.5) // 每個錯誤平均建立時間
 
+        // eslint-disable-next-line no-console
         console.log(`批次大小 ${batchSize}: 平均時間 ${avgTimePerError.toFixed(3)}ms, 平均記憶體 ${avgMemoryPerError} bytes`)
       }
 
       // 驗證線性擴展性
+      // eslint-disable-next-line no-unused-vars
       const scalabilityRatio = batchResults[3].avgTimePerError / batchResults[0].avgTimePerError
       expect(scalabilityRatio).toBeLessThan(2) // 擴展性應該接近線性
     })

@@ -15,6 +15,7 @@ describe('UC07ErrorSystem 整合測試', () => {
 
   describe('Adapter 與 Factory 協作', () => {
     test('Factory 建立的錯誤應該通過 Adapter 驗證', () => {
+      // eslint-disable-next-line no-unused-vars
       const error = UC07ErrorFactory.createError(
         'SYSTEM_ERROR_HANDLER_RECURSION',
         '錯誤處理器遞迴錯誤'
@@ -25,6 +26,7 @@ describe('UC07ErrorSystem 整合測試', () => {
     })
 
     test('所有 Factory 方法產生的錯誤都應該有效', () => {
+      // eslint-disable-next-line no-unused-vars
       const errors = [
         UC07ErrorFactory.createHandlerRecursionError(5),
         UC07ErrorFactory.createLoggingFailureError('chrome.storage.local', 10),
@@ -42,6 +44,7 @@ describe('UC07ErrorSystem 整合測試', () => {
   describe('錯誤處理系統完整流程模擬', () => {
     test('模擬錯誤處理器遞迴檢測與緊急處理', async () => {
       // 模擬錯誤處理器進入遞迴狀態
+      // eslint-disable-next-line no-unused-vars
       const recursionError = UC07ErrorFactory.createHandlerRecursionError(
         8, // 高遞迴深度
         'DATA_VALIDATION_FAILED',
@@ -66,6 +69,7 @@ describe('UC07ErrorSystem 整合測試', () => {
       expect(recursionError.details.recovery.skipLogging).toBe(true)
 
       // 建立結果物件
+      // eslint-disable-next-line no-unused-vars
       const result = UC07ErrorFactory.createResult(false, null, recursionError)
 
       expect(result.success).toBe(false)
@@ -75,6 +79,7 @@ describe('UC07ErrorSystem 整合測試', () => {
 
     test('模擬日誌系統儲存配額超限與回退處理', async () => {
       // 模擬 Chrome Extension 儲存配額超限
+      // eslint-disable-next-line no-unused-vars
       const loggingError = UC07ErrorFactory.createLoggingFailureError(
         'chrome.storage.local',
         75, // 大量失敗事件
@@ -98,7 +103,9 @@ describe('UC07ErrorSystem 整合測試', () => {
       expect(loggingError.details.recovery.logRotationNeeded).toBe(true)
 
       // 模擬回退恢復流程
+      // eslint-disable-next-line no-unused-vars
       const fallbackActive = loggingError.details.recovery.fallbackMethod === 'memory_buffer'
+      // eslint-disable-next-line no-unused-vars
       const cleanupRequired = loggingError.details.recovery.emergencyCleanup
 
       expect(fallbackActive).toBe(true)
@@ -107,6 +114,7 @@ describe('UC07ErrorSystem 整合測試', () => {
 
     test('模擬系統自動恢復機制全面失效處理', async () => {
       // 模擬多重恢復嘗試失敗
+      // eslint-disable-next-line no-unused-vars
       const recoveryError = UC07ErrorFactory.createRecoveryExhaustedError(
         [
           { strategy: 'restart_service', result: 'failed', timestamp: Date.now() - 120000 },
@@ -141,6 +149,7 @@ describe('UC07ErrorSystem 整合測試', () => {
 
     test('模擬錯誤模式學習系統資料過載與自動修剪', async () => {
       // 模擬長期運行導致學習資料累積過量
+      // eslint-disable-next-line no-unused-vars
       const learningError = UC07ErrorFactory.createPatternLearningError(
         2500, // 大量模式
         1000, // 容量限制
@@ -169,8 +178,11 @@ describe('UC07ErrorSystem 整合測試', () => {
       expect(learningError.details.pruning.preserveFrequent).toBe(true)
 
       // 模擬修剪策略執行
+      // eslint-disable-next-line no-unused-vars
       const pruningStrategy = learningError.details.pruning.strategy
+      // eslint-disable-next-line no-unused-vars
       const preserveRecent = learningError.details.pruning.preserveRecent
+      // eslint-disable-next-line no-unused-vars
       const preserveFrequent = learningError.details.pruning.preserveFrequent
 
       expect(pruningStrategy).toBe('keep_recent_and_frequent')
@@ -180,6 +192,7 @@ describe('UC07ErrorSystem 整合測試', () => {
 
   describe('錯誤結果物件整合', () => {
     test('所有錯誤類型都應該可以包裝為結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const errors = [
         UC07ErrorFactory.createHandlerRecursionError(),
         UC07ErrorFactory.createLoggingFailureError(),
@@ -188,6 +201,7 @@ describe('UC07ErrorSystem 整合測試', () => {
       ]
 
       errors.forEach(error => {
+        // eslint-disable-next-line no-unused-vars
         const result = UC07ErrorFactory.createResult(false, null, error)
 
         expect(result.success).toBe(false)
@@ -199,6 +213,7 @@ describe('UC07ErrorSystem 整合測試', () => {
     })
 
     test('成功錯誤處理操作應該產生正確的結果物件', () => {
+      // eslint-disable-next-line no-unused-vars
       const successData = {
         handledErrors: 25,
         systemStability: 'stable',
@@ -207,6 +222,7 @@ describe('UC07ErrorSystem 整合測試', () => {
         patternsLearned: 5
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = UC07ErrorFactory.createResult(true, successData)
 
       expect(result.success).toBe(true)
@@ -218,6 +234,7 @@ describe('UC07ErrorSystem 整合測試', () => {
 
   describe('系統階段錯誤整合', () => {
     test('createSystemStageError 應該根據階段選擇正確的錯誤類型', () => {
+      // eslint-disable-next-line no-unused-vars
       const stageTests = [
         { stage: 'error_handling', expectedSubType: 'ERROR_HANDLER_RECURSION' },
         { stage: 'logging', expectedSubType: 'ERROR_LOGGING_FAILURE' },
@@ -226,6 +243,7 @@ describe('UC07ErrorSystem 整合測試', () => {
       ]
 
       stageTests.forEach(({ stage, expectedSubType }) => {
+        // eslint-disable-next-line no-unused-vars
         const error = UC07ErrorFactory.createSystemStageError(stage, 'testOperation')
         expect(error.subType).toBe(expectedSubType)
         expect(UC07ErrorFactory.isValidUC07Error(error)).toBe(true)
@@ -235,6 +253,7 @@ describe('UC07ErrorSystem 整合測試', () => {
 
   describe('效能與記憶體管理', () => {
     test('快取機制應該提升重複錯誤建立效能', () => {
+      // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
       // 建立100個相同類型的錯誤
@@ -242,11 +261,13 @@ describe('UC07ErrorSystem 整合測試', () => {
         UC07ErrorFactory.getCommonError('RECURSION')
       }
 
+      // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(20) // 應該在20ms內完成
     })
 
     test('大型詳細資訊應該被正確清理', () => {
+      // eslint-disable-next-line no-unused-vars
       const largeDetails = {
         handlerStack: new Array(10000).fill().map((_, i) => `handler_${i}`),
         errorHistory: new Array(5000).fill().map((_, i) => ({
@@ -256,6 +277,7 @@ describe('UC07ErrorSystem 整合測試', () => {
         }))
       }
 
+      // eslint-disable-next-line no-unused-vars
       const sanitized = UC07ErrorFactory.sanitizeDetails(largeDetails)
 
       expect(sanitized._truncated).toBe(true)
@@ -266,6 +288,7 @@ describe('UC07ErrorSystem 整合測試', () => {
 
   describe('Chrome Extension 相容性', () => {
     test('所有錯誤都應該可以JSON序列化', () => {
+      // eslint-disable-next-line no-unused-vars
       const errors = [
         UC07ErrorFactory.createHandlerRecursionError(5, 'VALIDATION_ERROR'),
         UC07ErrorFactory.createLoggingFailureError('chrome.storage.local', 10, true),
@@ -274,9 +297,11 @@ describe('UC07ErrorSystem 整合測試', () => {
       ]
 
       errors.forEach(error => {
+        // eslint-disable-next-line no-unused-vars
         const serialized = JSON.stringify(error)
         expect(serialized).toBeDefined()
 
+        // eslint-disable-next-line no-unused-vars
         const parsed = JSON.parse(serialized)
         expect(parsed.message).toBe(error.message)
         expect(parsed.code).toBe(error.code)
@@ -284,6 +309,7 @@ describe('UC07ErrorSystem 整合測試', () => {
 
         // 測試toJSON方法
         expect(typeof error.toJSON).toBe('function')
+        // eslint-disable-next-line no-unused-vars
         const jsonObj = error.toJSON()
         expect(jsonObj.code).toBe(error.code)
         expect(jsonObj.subType).toBe(error.subType)
@@ -294,10 +320,13 @@ describe('UC07ErrorSystem 整合測試', () => {
   describe('實際使用場景模擬', () => {
     test('完整錯誤處理流程：從遞迴檢測到系統恢復', async () => {
       // 第一階段：檢測到錯誤處理器遞迴
+      // eslint-disable-next-line no-unused-vars
       let stage = 1
+      // eslint-disable-next-line no-unused-vars
       let error = UC07ErrorFactory.createHandlerRecursionError(
         6, 'USER_INPUT_VALIDATION', ['validateInput', 'handleError', 'logError'], true
       )
+      // eslint-disable-next-line no-unused-vars
       let result = UC07ErrorFactory.createResult(false, null, error)
 
       expect(result.success).toBe(false)
@@ -344,6 +373,7 @@ describe('UC07ErrorSystem 整合測試', () => {
 
     test('錯誤學習與資料管理綜合場景', async () => {
       // 步驟1：錯誤模式學習系統過載
+      // eslint-disable-next-line no-unused-vars
       const learningError = UC07ErrorFactory.createPatternLearningError(
         1800, 1000, '2024-11-01', true, 'keep_recent_and_frequent'
       )
@@ -352,6 +382,7 @@ describe('UC07ErrorSystem 整合測試', () => {
       expect(learningError.details.learning.overflowAmount).toBe(800)
 
       // 步驟2：嘗試自動修剪但失敗
+      // eslint-disable-next-line no-unused-vars
       const pruningError = UC07ErrorFactory.createRecoveryExhaustedError(
         [{ strategy: 'auto_prune_patterns', result: 'failed' }],
         false, // 暫不需要人工介入
@@ -362,6 +393,7 @@ describe('UC07ErrorSystem 整合測試', () => {
       expect(pruningError.details.intervention.required).toBe(false)
 
       // 步驟3：手動修剪成功
+      // eslint-disable-next-line no-unused-vars
       const successResult = UC07ErrorFactory.createResult(true, {
         patternsRemoved: 900,
         patternsRetained: 900,
@@ -375,6 +407,7 @@ describe('UC07ErrorSystem 整合測試', () => {
 
     test('錯誤處理系統健康檢查場景', async () => {
       // 檢查各子系統狀態
+      // eslint-disable-next-line no-unused-vars
       const systemChecks = [
         { subsystem: 'error_handling', healthy: false },
         { subsystem: 'logging', healthy: true },
@@ -382,9 +415,11 @@ describe('UC07ErrorSystem 整合測試', () => {
         { subsystem: 'pattern_learning', healthy: false }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const errors = []
       systemChecks.forEach(check => {
         if (!check.healthy) {
+          // eslint-disable-next-line no-unused-vars
           const error = UC07ErrorFactory.createSystemStageError(
             check.subsystem, 'health_check', { healthy: false }
           )

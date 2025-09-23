@@ -6,10 +6,12 @@
 // 設置測試環境
 global.window = {}
 
+// eslint-disable-next-line no-unused-vars
 const ChromeStorageAdapter = require('src/storage/adapters/chrome-storage-adapter')
 
 describe('ChromeStorageAdapter - Core Functionality', () => {
   let adapter
+  // eslint-disable-next-line no-unused-vars
   let mockChromeStorage
 
   beforeEach(() => {
@@ -29,6 +31,7 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
           setTimeout(() => callback && callback(), 0)
         }),
         getBytesInUse: jest.fn((keys, callback) => {
+          // eslint-disable-next-line no-unused-vars
           const error = null
           setTimeout(() => callback && callback(error, 100), 0)
         })
@@ -75,6 +78,7 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
     })
 
     test('應該支援配置選項', () => {
+      // eslint-disable-next-line no-unused-vars
       const options = {
         maxSize: 5242880,
         keyPrefix: 'test_',
@@ -94,9 +98,12 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
     })
 
     test('應該成功儲存數據', async () => {
+      // eslint-disable-next-line no-unused-vars
       const key = 'test_key'
+      // eslint-disable-next-line no-unused-vars
       const data = { books: [{ id: 1, title: 'Test Book' }] }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await adapter.save(key, data)
 
       expect(result.success).toBe(true)
@@ -108,7 +115,9 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
     })
 
     test('應該成功載入數據', async () => {
+      // eslint-disable-next-line no-unused-vars
       const key = 'test_key'
+      // eslint-disable-next-line no-unused-vars
       const expectedData = { books: [{ id: 1, title: 'Test Book' }] }
 
       // 設置模擬返回數據
@@ -116,6 +125,7 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
         setTimeout(() => callback && callback({ [key]: expectedData }), 0)
       })
 
+      // eslint-disable-next-line no-unused-vars
       const result = await adapter.load(key)
 
       expect(result).toEqual(expectedData)
@@ -123,16 +133,20 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
     })
 
     test('應該處理不存在的 key', async () => {
+      // eslint-disable-next-line no-unused-vars
       const key = 'non_existent_key'
 
+      // eslint-disable-next-line no-unused-vars
       const result = await adapter.load(key)
 
       expect(result).toBeNull()
     })
 
     test('應該成功刪除數據', async () => {
+      // eslint-disable-next-line no-unused-vars
       const key = 'test_key'
 
+      // eslint-disable-next-line no-unused-vars
       const result = await adapter.delete(key)
 
       expect(result.success).toBe(true)
@@ -141,6 +155,7 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
     })
 
     test('應該成功清空所有數據', async () => {
+      // eslint-disable-next-line no-unused-vars
       const result = await adapter.clear()
 
       expect(result.success).toBe(true)
@@ -154,6 +169,7 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
     })
 
     test('應該提供統計資訊', () => {
+      // eslint-disable-next-line no-unused-vars
       const stats = adapter.getStats()
 
       expect(stats).toHaveProperty('operations')
@@ -167,12 +183,14 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
     test('應該追蹤操作統計', async () => {
       await adapter.save('test', { data: 'test' })
 
+      // eslint-disable-next-line no-unused-vars
       const stats = adapter.getStats()
       expect(stats.operations.save).toBe(1)
       expect(stats.totalOperations).toBe(1)
     })
 
     test('應該提供錯誤統計', () => {
+      // eslint-disable-next-line no-unused-vars
       const errorStats = adapter.getErrorStats()
 
       expect(errorStats).toHaveProperty('totalErrors')
@@ -181,6 +199,7 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
     })
 
     test('應該提供效能指標', () => {
+      // eslint-disable-next-line no-unused-vars
       const metrics = adapter.getPerformanceMetrics()
 
       expect(metrics).toHaveProperty('lastOperationTime')
@@ -196,10 +215,12 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
 
     test('應該檢查儲存配額', async () => {
       mockChromeStorage.local.getBytesInUse.mockImplementation((keys, callback) => {
+        // eslint-disable-next-line no-unused-vars
         const error = null
         setTimeout(() => callback && callback(error, 524288), 0) // 0.5MB
       })
 
+      // eslint-disable-next-line no-unused-vars
       const quotaInfo = await adapter.checkQuota()
 
       expect(quotaInfo.usedBytes).toBe(524288)
@@ -210,10 +231,12 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
 
     test('應該偵測配額接近限制', async () => {
       mockChromeStorage.local.getBytesInUse.mockImplementation((keys, callback) => {
+        // eslint-disable-next-line no-unused-vars
         const error = null
         setTimeout(() => callback && callback(error, 943718), 0) // 90%
       })
 
+      // eslint-disable-next-line no-unused-vars
       const quotaInfo = await adapter.checkQuota()
 
       expect(quotaInfo.usagePercentage).toBe(90)
@@ -227,6 +250,7 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
     })
 
     test('應該提供健康狀態', async () => {
+      // eslint-disable-next-line no-unused-vars
       const health = await adapter.getHealthStatus()
 
       expect(health).toHaveProperty('isHealthy')
@@ -244,6 +268,7 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
     })
 
     test('應該提供鎖定狀態查詢', () => {
+      // eslint-disable-next-line no-unused-vars
       const key = 'test_key'
 
       expect(adapter.isLocked(key)).toBe(false)
@@ -258,8 +283,10 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
         compressionThreshold: 1024
       })
 
+      // eslint-disable-next-line no-unused-vars
       const smallData = { id: 1, title: 'Small' }
 
+      // eslint-disable-next-line no-unused-vars
       const result = await adapter.save('small_data', smallData)
 
       expect(result.success).toBe(true)

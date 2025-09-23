@@ -7,6 +7,7 @@
  */
 
 const { expect } = require('@jest/globals')
+// eslint-disable-next-line no-unused-vars
 const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 // 測試輔助函數
@@ -45,7 +46,9 @@ describe('SystemErrorHandler ErrorCodes Migration', () => {
 
     it('should maintain error propagation functionality after migration', () => {
       // 驗證 API 向後相容性
+      // eslint-disable-next-line no-unused-vars
       const mockError = { message: 'test error', code: 'TEST_ERROR' }
+      // eslint-disable-next-line no-unused-vars
       const result = systemErrorHandler.propagateError(mockError, 'testSource', 'testDestination')
 
       expect(result).toBeDefined()
@@ -67,11 +70,13 @@ describe('SystemErrorHandler ErrorCodes Migration', () => {
 
     it('should maintain cascading error handling functionality after migration', () => {
       // 驗證級聯錯誤處理功能
+      // eslint-disable-next-line no-unused-vars
       const mockErrors = [
         { message: 'error1', code: 'TEST_ERROR_1' },
         { message: 'error2', code: 'TEST_ERROR_2' }
       ]
 
+      // eslint-disable-next-line no-unused-vars
       const result = systemErrorHandler.handleCascadingErrors(mockErrors)
       expect(result).toBeDefined()
     })
@@ -91,12 +96,14 @@ describe('SystemErrorHandler ErrorCodes Migration', () => {
 
     it('should maintain error UI creation functionality after migration', () => {
       // 驗證錯誤UI建立功能
+      // eslint-disable-next-line no-unused-vars
       const mockError = {
         message: 'test error',
         code: 'TEST_ERROR',
         severity: 'error'
       }
 
+      // eslint-disable-next-line no-unused-vars
       const result = systemErrorHandler.createErrorUI(mockError)
       expect(result).toBeDefined()
       expect(typeof result).toBe('object')
@@ -106,6 +113,7 @@ describe('SystemErrorHandler ErrorCodes Migration', () => {
   describe('ErrorCodes Migration Validation', () => {
     it('should use ErrorCodes pattern for all error throwing', () => {
       // 驗證所有拋出的錯誤都使用 ErrorCodes 模式
+      // eslint-disable-next-line no-unused-vars
       const testCases = [
         () => systemErrorHandler.propagateError(null, 'test', 'dest'),
         () => systemErrorHandler.handleCascadingErrors(null),
@@ -126,10 +134,13 @@ describe('SystemErrorHandler ErrorCodes Migration', () => {
 
     it('should maintain standalone utility functions', () => {
       // 驗證獨立工具函數功能
+      // eslint-disable-next-line no-unused-vars
       const bookData = { id: '1', title: 'test book', cover: 'test.jpg' }
+      // eslint-disable-next-line no-unused-vars
       const validation = systemErrorHandler.validateBookData(bookData)
       expect(validation).toHaveProperty('isValid')
 
+      // eslint-disable-next-line no-unused-vars
       const platform = systemErrorHandler.checkPlatformSupport()
       expect(platform).toHaveProperty('chromeApiAvailable')
     })

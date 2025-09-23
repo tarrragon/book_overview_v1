@@ -25,14 +25,21 @@
 require('../../test-setup')
 
 describe('BookSearchFilter - TDD 循環 #28', () => {
+  // eslint-disable-next-line no-unused-vars
   let searchFilter
+  // eslint-disable-next-line no-unused-vars
   let mockEventBus
+  // eslint-disable-next-line no-unused-vars
   let mockDocument
+  // eslint-disable-next-line no-unused-vars
   let mockSearchInput
+  // eslint-disable-next-line no-unused-vars
   let mockFilterContainer
+  // eslint-disable-next-line no-unused-vars
   let mockResultContainer
 
   // 測試用書籍資料
+  // eslint-disable-next-line no-unused-vars
   const mockBooks = [
     {
       id: 'book-001',
@@ -169,6 +176,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     // 初始化 BookSearchFilter
     // 注意：這裡會失敗因為類別還不存在（TDD 紅燈狀態）
     try {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
       searchFilter = new BookSearchFilter(mockEventBus, mockDocument)
     } catch (error) {
@@ -189,7 +197,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
   describe('基本結構和初始化', () => {
     test('應該能夠創建 BookSearchFilter 實例', () => {
       expect(() => {
+        // eslint-disable-next-line no-unused-vars
         const BookSearchFilter = require('src/ui/book-search-filter')
+        // eslint-disable-next-line no-unused-vars
         const instance = new BookSearchFilter(mockEventBus, mockDocument)
         expect(instance).toBeDefined()
         expect(instance.constructor.name).toBe('BookSearchFilter')
@@ -197,7 +207,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該繼承 BaseUIHandler 並具備基本功能', () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       // 檢查是否具備 BaseUIHandler 的方法
@@ -208,7 +220,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該正確初始化 DOM 元素引用', () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-new
       new BookSearchFilter(mockEventBus, mockDocument)
 
       expect(mockDocument.getElementById).toHaveBeenCalledWith('search-input')
@@ -217,7 +231,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該初始化搜尋狀態和配置', () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       expect(instance.searchHistory).toEqual([])
@@ -227,7 +243,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該註冊必要的事件監聽器', () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-new
       new BookSearchFilter(mockEventBus, mockDocument)
 
       // 檢查是否註冊了搜尋相關事件
@@ -250,10 +268,13 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援依書名搜尋', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
+      // eslint-disable-next-line no-unused-vars
       const results = await instance.searchBooks('JavaScript')
 
       expect(results).toHaveLength(1)
@@ -266,10 +287,13 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援依作者搜尋', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
+      // eslint-disable-next-line no-unused-vars
       const results = await instance.searchBooks('David')
 
       expect(results).toHaveLength(1)
@@ -277,10 +301,13 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援依標籤搜尋', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
+      // eslint-disable-next-line no-unused-vars
       const results = await instance.searchBooks('程式設計')
 
       expect(results).toHaveLength(3)
@@ -290,12 +317,17 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援模糊搜尋和忽略大小寫', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
+      // eslint-disable-next-line no-unused-vars
       const results1 = await instance.searchBooks('javascript')
+      // eslint-disable-next-line no-unused-vars
       const results2 = await instance.searchBooks('JAVASCRIPT')
+      // eslint-disable-next-line no-unused-vars
       const results3 = await instance.searchBooks('Java')
 
       expect(results1).toHaveLength(1)
@@ -305,11 +337,15 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該正確處理空搜尋查詢', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
+      // eslint-disable-next-line no-unused-vars
       const results1 = await instance.searchBooks('')
+      // eslint-disable-next-line no-unused-vars
       const results2 = await instance.searchBooks('   ')
 
       expect(results1).toHaveLength(4) // 回傳所有書籍
@@ -317,10 +353,13 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該正確處理無結果的搜尋', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
+      // eslint-disable-next-line no-unused-vars
       const results = await instance.searchBooks('不存在的書籍')
 
       expect(results).toHaveLength(0)
@@ -330,7 +369,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該實現搜尋防抖功能', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -361,12 +402,17 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援依閱讀狀態篩選', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
+      // eslint-disable-next-line no-unused-vars
       const readingBooks = await instance.applyFilters(mockBooks, { status: 'reading' })
+      // eslint-disable-next-line no-unused-vars
       const completedBooks = await instance.applyFilters(mockBooks, { status: 'completed' })
+      // eslint-disable-next-line no-unused-vars
       const unreadBooks = await instance.applyFilters(mockBooks, { status: 'unread' })
 
       expect(readingBooks).toHaveLength(1)
@@ -378,13 +424,17 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援依閱讀進度範圍篩選', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
+      // eslint-disable-next-line no-unused-vars
       const lowProgressBooks = await instance.applyFilters(mockBooks, {
         progressRange: { min: 0, max: 50 }
       })
+      // eslint-disable-next-line no-unused-vars
       const highProgressBooks = await instance.applyFilters(mockBooks, {
         progressRange: { min: 60, max: 100 }
       })
@@ -399,11 +449,15 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援依書籍分類篩選', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
+      // eslint-disable-next-line no-unused-vars
       const techBooks = await instance.applyFilters(mockBooks, { category: 'technology' })
+      // eslint-disable-next-line no-unused-vars
       const businessBooks = await instance.applyFilters(mockBooks, { category: 'business' })
 
       expect(techBooks).toHaveLength(3)
@@ -415,32 +469,40 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援依最近閱讀時間篩選', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
+      // eslint-disable-next-line no-unused-vars
       const recentBooks = await instance.applyFilters(mockBooks, {
         lastReadAfter: '2024-07-01'
       })
 
       expect(recentBooks).toHaveLength(2) // 2024-08-07, 2024-07-15
       recentBooks.forEach(book => {
+        // eslint-disable-next-line no-unused-vars
         const lastReadDate = new Date(book.lastRead)
         expect(lastReadDate).toBeInstanceOf(Date)
       })
     })
 
     test('應該支援多重篩選條件組合', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
+      // eslint-disable-next-line no-unused-vars
       const complexFilter = {
         category: 'technology',
         status: 'reading',
         progressRange: { min: 40, max: 70 }
       }
 
+      // eslint-disable-next-line no-unused-vars
       const results = await instance.applyFilters(mockBooks, complexFilter)
 
       expect(results).toHaveLength(1)
@@ -451,7 +513,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該支援篩選器重置功能', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -466,9 +530,12 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該正確更新篩選器 UI 狀態', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
+      // eslint-disable-next-line no-unused-vars
       const filterOptions = {
         status: 'reading',
         category: 'technology'
@@ -486,14 +553,18 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
 
   describe('搜尋效能和快取機制', () => {
     test('應該實現搜尋結果快取機制', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
       // 第一次搜尋
+      // eslint-disable-next-line no-unused-vars
       const results1 = await instance.searchBooks('JavaScript')
 
       // 第二次相同搜尋（應該使用快取）
+      // eslint-disable-next-line no-unused-vars
       const results2 = await instance.searchBooks('JavaScript')
 
       expect(results1).toEqual(results2)
@@ -505,7 +576,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該實現搜尋快取大小限制', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
       instance.maxCacheSize = 3 // 設定較小的快取大小用於測試
@@ -520,7 +593,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該實現索引建構提升搜尋效能', () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       instance.buildSearchIndex(mockBooks)
@@ -536,7 +611,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該監控搜尋效能並發出警告', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = new Array(10000).fill(mockBooks[0]) // 大量資料
       instance.performanceWarningThreshold = 50 // 50ms 警告閾值
@@ -549,7 +626,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該實現記憶體清理機制', () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       // 填充快取
@@ -570,7 +649,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
 
   describe('搜尋歷史和建議系統', () => {
     test('應該記錄搜尋歷史', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -583,7 +664,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該限制搜尋歷史大小', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
       instance.maxHistorySize = 3 // 設定較小的歷史大小
@@ -598,10 +681,13 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該提供搜尋建議功能', () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
+      // eslint-disable-next-line no-unused-vars
       const suggestions = instance.getSearchSuggestions('Ja')
 
       expect(suggestions).toContain('JavaScript')
@@ -609,7 +695,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該基於搜尋歷史提供建議', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -617,13 +705,16 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
       await instance.searchBooks('JavaScript 權威指南')
       await instance.searchBooks('Python 機器學習')
 
+      // eslint-disable-next-line no-unused-vars
       const suggestions = instance.getSearchSuggestions('J')
 
       expect(suggestions).toContain('JavaScript 權威指南')
     })
 
     test('應該支援清除搜尋歷史', () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       instance.searchHistory = ['Query1', 'Query2', 'Query3']
@@ -640,7 +731,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
 
   describe('事件整合和通知機制', () => {
     test('應該監聽書籍資料更新事件', () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-new
       new BookSearchFilter(mockEventBus, mockDocument)
 
       expect(mockEventBus.on).toHaveBeenCalledWith(
@@ -650,12 +743,16 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該處理書籍資料更新事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
+      // eslint-disable-next-line no-unused-vars
       const eventHandler = mockEventBus.on.mock.calls
         .find(call => call[0] === 'BOOKS.DATA.UPDATED')[1]
 
+      // eslint-disable-next-line no-unused-vars
       const newBooksData = [...mockBooks, {
         id: 'book-005',
         title: 'React 開發指南',
@@ -673,7 +770,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該發出搜尋狀態更新事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
@@ -687,9 +786,12 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該發出篩選器變更事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
+      // eslint-disable-next-line no-unused-vars
       const newFilters = { status: 'reading', category: 'technology' }
       await instance.updateFilters(newFilters)
 
@@ -702,7 +804,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     // 已移至 docs/testing/red-phase/ 以避免假計時器等待造成逾時
 
     test('應該發出搜尋進度事件', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = new Array(1000).fill(mockBooks[0]) // 大量資料
 
@@ -721,9 +825,12 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
 
   describe('錯誤處理和邊界條件', () => {
     test('應該處理無效的書籍資料', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
+      // eslint-disable-next-line no-unused-vars
       const invalidData = [
         null,
         undefined,
@@ -733,6 +840,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
 
       instance.booksData = invalidData
 
+      // eslint-disable-next-line no-unused-vars
       const results = await instance.searchBooks('Test')
 
       expect(results).toEqual([])
@@ -743,12 +851,16 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該處理極長的搜尋查詢', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
+      // eslint-disable-next-line no-unused-vars
       const longQuery = 'a'.repeat(1000)
 
+      // eslint-disable-next-line no-unused-vars
       const results = await instance.searchBooks(longQuery)
 
       expect(results).toEqual([])
@@ -759,10 +871,13 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該處理特殊字符搜尋查詢', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
       instance.booksData = mockBooks
 
+      // eslint-disable-next-line no-unused-vars
       const specialQueries = [
         '/*',
         '<script>',
@@ -773,6 +888,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
       ]
 
       for (const query of specialQueries) {
+        // eslint-disable-next-line no-unused-vars
         const results = await instance.searchBooks(query)
         expect(results).toBeDefined()
         expect(Array.isArray(results)).toBe(true)
@@ -780,13 +896,16 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該處理搜尋過程中的錯誤', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       // 模擬搜尋過程中發生錯誤
       instance.booksData = mockBooks
       jest.spyOn(instance, 'applyFilters').mockRejectedValue(new Error('搜尋錯誤'))
 
+      // eslint-disable-next-line no-unused-vars
       const results = await instance.searchBooks('JavaScript')
 
       expect(results).toEqual([])
@@ -800,23 +919,30 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
       mockDocument.getElementById = jest.fn().mockReturnValue(null)
 
       expect(() => {
+        // eslint-disable-next-line no-unused-vars
         const BookSearchFilter = require('src/ui/book-search-filter')
+        // eslint-disable-next-line no-new
         new BookSearchFilter(mockEventBus, mockDocument)
       }).not.toThrow()
     })
 
     test('應該處理事件總線無法使用的情況', () => {
+      // eslint-disable-next-line no-unused-vars
       const invalidEventBus = null
 
       expect(() => {
+        // eslint-disable-next-line no-unused-vars
         const BookSearchFilter = require('src/ui/book-search-filter')
-        const filter = new BookSearchFilter(invalidEventBus, mockDocument)
+        // eslint-disable-next-line no-unused-vars
+        const _filter = new BookSearchFilter(invalidEventBus, mockDocument)
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
       }).toThrow(Error)
 
       // 如果需要檢查特定錯誤屬性，使用 try-catch 模式
       try {
+        // eslint-disable-next-line no-unused-vars
         const BookSearchFilter = require('src/ui/book-search-filter')
+        // eslint-disable-next-line no-new
         new BookSearchFilter(invalidEventBus, mockDocument)
       } catch (error) {
         expect(error).toBeInstanceOf(Error)
@@ -827,7 +953,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該正確清理資源', () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       // 設置一些資源
@@ -841,7 +969,9 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
     })
 
     test('應該處理記憶體不足情況', async () => {
+      // eslint-disable-next-line no-unused-vars
       const BookSearchFilter = require('src/ui/book-search-filter')
+      // eslint-disable-next-line no-unused-vars
       const instance = new BookSearchFilter(mockEventBus, mockDocument)
 
       // 模擬記憶體不足錯誤
@@ -849,6 +979,7 @@ describe('BookSearchFilter - TDD 循環 #28', () => {
         throw new Error('記憶體不足')
       })
 
+      // eslint-disable-next-line no-unused-vars
       const hugeData = new Array(100000).fill(mockBooks[0])
 
       expect(() => {

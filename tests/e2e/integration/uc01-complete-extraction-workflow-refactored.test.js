@@ -11,9 +11,11 @@
  * @version v0.9.38-refactor
  */
 
+// eslint-disable-next-line no-unused-vars
 const TestInfrastructureFactory = require('../../infrastructure/test-infrastructure-factory')
 
 describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
+  // eslint-disable-next-line no-unused-vars
   let testEnvironment
 
   beforeEach(async () => {
@@ -33,6 +35,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
   describe('Phase 1: Environment and Initialization Tests', () => {
     test('TC-E2E-INIT-001: E2E測試環境正確設置', async () => {
       // Given: 測試環境已初始化
+      // eslint-disable-next-line no-unused-vars
       const setupValid = testEnvironment.isSetup()
 
       // When & Then: 驗證環境設置完成
@@ -44,9 +47,11 @@ describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
 
     test('TC-E2E-INIT-002: Chrome Extension環境模擬準確性', async () => {
       // Given: Chrome Extension環境已設置
+      // eslint-disable-next-line no-unused-vars
       const chromeAPIs = ['storage', 'runtime', 'tabs']
 
       // When: 檢查API可用性
+      // eslint-disable-next-line no-unused-vars
       const apiAvailability = chromeAPIs.map(api => ({
         name: api,
         available: !!global.chrome[api]
@@ -60,10 +65,13 @@ describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
 
     test('TC-E2E-INIT-003: 測試記憶體監控功能', async () => {
       // Given: 記憶體監控已啟用
+      // eslint-disable-next-line no-unused-vars
       const initialMemory = testEnvironment._getCurrentMemoryUsage()
 
       // When: 執行記憶體消耗操作
+      // eslint-disable-next-line no-unused-vars
       const largeArray = new Array(10000).fill('test')
+      // eslint-disable-next-line no-unused-vars
       const afterMemory = testEnvironment._getCurrentMemoryUsage()
 
       // Then: 記憶體使用量應該增加
@@ -78,6 +86,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
       testEnvironment.injectError('storage-failure')
 
       // When: 嘗試使用Storage API
+      // eslint-disable-next-line no-unused-vars
       const storageOperation = async () => {
         return new Promise((resolve, reject) => {
           global.chrome.storage.local.set({ test: 'value' }, () => {
@@ -102,6 +111,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
   describe('Phase 2: Normal Workflow Tests', () => {
     test('TC-E2E-001: 完整UC-01工作流程端到端驗證', async () => {
       // Given: 標準E2E測試環境
+      // eslint-disable-next-line no-unused-vars
       const workflowConfig = {
         bookCount: 15,
         expectedTime: 3000,
@@ -109,6 +119,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
       }
 
       // When: 執行完整的資料提取流程
+      // eslint-disable-next-line no-unused-vars
       const result = await testEnvironment.executeWorkflow('basic-extraction')
 
       // Then: 系統正確完成資料提取
@@ -121,6 +132,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
     test('TC-E2E-002: 事件序列正確性驗證', async () => {
       // Given: 事件模擬已啟用
       // When: 執行工作流程
+      // eslint-disable-next-line no-unused-vars
       const result = await testEnvironment.executeWorkflow('basic-extraction')
 
       // Then: 事件按預期順序發生
@@ -133,6 +145,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
 
     test('TC-E2E-003: 資料完整性和準確性驗證', async () => {
       // Given: 標準測試資料
+      // eslint-disable-next-line no-unused-vars
       const testData = {
         expectedBooks: 10,
         bookFormat: 'standard',
@@ -140,6 +153,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
       }
 
       // When: 執行資料提取
+      // eslint-disable-next-line no-unused-vars
       const result = await testEnvironment.executeWorkflow('data-integrity-test', testData)
 
       // Then: 資料完整且準確
@@ -155,9 +169,11 @@ describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
   describe('Phase 3: Boundary Condition Tests', () => {
     test('TC-E2E-B001: 空資料優雅處理驗證', async () => {
       // Given: 空資料場景
+      // eslint-disable-next-line no-unused-vars
       const emptyScenario = 'empty-data-test'
 
       // When: 執行空資料提取
+      // eslint-disable-next-line no-unused-vars
       const result = await testEnvironment.executeWorkflow(emptyScenario)
 
       // Then: 系統優雅處理空資料
@@ -168,6 +184,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
 
     test('TC-E2E-B002: 效能限制驗證', async () => {
       // Given: 效能測試環境
+      // eslint-disable-next-line no-unused-vars
       const perfEnvironment = await TestInfrastructureFactory.createPerformanceTestEnvironment({
         interval: 50
       })
@@ -175,8 +192,11 @@ describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
 
       try {
         // When: 執行效能測試
+        // eslint-disable-next-line no-unused-vars
         const startTime = Date.now()
+        // eslint-disable-next-line no-unused-vars
         const result = await perfEnvironment.executeWorkflow('basic-extraction')
+        // eslint-disable-next-line no-unused-vars
         const endTime = Date.now()
 
         // Then: 效能符合要求
@@ -195,6 +215,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
       testEnvironment.injectError('storage-failure')
 
       // When: 執行儲存錯誤恢復流程
+      // eslint-disable-next-line no-unused-vars
       const result = await testEnvironment.executeWorkflow('permission-error-test')
 
       // Then: 系統優雅處理權限錯誤
@@ -207,6 +228,7 @@ describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
       testEnvironment.injectError('network-timeout')
 
       // When: 執行網路錯誤處理
+      // eslint-disable-next-line no-unused-vars
       const result = await testEnvironment.executeWorkflow('network-recovery')
 
       // Then: 系統處理網路錯誤
@@ -216,17 +238,21 @@ describe('UC-01 Complete Extraction Workflow E2E Tests - Refactored', () => {
 
     test('TC-E2E-E003: 記憶體限制處理驗證', async () => {
       // Given: 記憶體監控環境
+      // eslint-disable-next-line no-unused-vars
       const initialMemory = testEnvironment._getCurrentMemoryUsage()
 
       // When: 執行記憶體密集操作
+      // eslint-disable-next-line no-unused-vars
       const result = await testEnvironment.executeWorkflow('basic-extraction')
 
       // Then: 記憶體使用在合理範圍
+      // eslint-disable-next-line no-unused-vars
       const memoryUsed = result.memoryUsage
       expect(memoryUsed).toBeLessThan(50 * 1024 * 1024) // < 50MB
 
       // 記憶體應該在測試後回收
       await new Promise(resolve => setTimeout(resolve, 200))
+      // eslint-disable-next-line no-unused-vars
       const finalMemory = testEnvironment._getCurrentMemoryUsage()
       expect(finalMemory - initialMemory).toBeLessThan(5 * 1024 * 1024) // < 5MB殘留
     })

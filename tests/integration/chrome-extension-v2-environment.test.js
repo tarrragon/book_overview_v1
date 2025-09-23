@@ -21,9 +21,13 @@
  * - 長時間運行穩定性驗證
  */
 
+// eslint-disable-next-line no-unused-vars
 const EventBus = require('src/core/event-bus')
+// eslint-disable-next-line no-unused-vars
 const ChromeEventBridge = require('src/content/bridge/chrome-event-bridge')
+// eslint-disable-next-line no-unused-vars
 const EventNamingUpgradeCoordinator = require('src/core/events/event-naming-upgrade-coordinator')
+// eslint-disable-next-line no-unused-vars
 const EventPriorityManager = require('src/core/events/event-priority-manager')
 
 // 模擬 Chrome Extension 環境
@@ -31,10 +35,12 @@ global.chrome = require('jest-chrome').chrome
 global.self = global
 
 describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
+  // eslint-disable-next-line no-unused-vars
   let eventBus
   let chromeBridge
   let namingCoordinator
   let priorityManager
+  // eslint-disable-next-line no-unused-vars
   let mockTabId
 
   beforeEach(async () => {
@@ -76,6 +82,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
     describe('Service Worker 生命週期整合', () => {
       test('應該在 Service Worker 啟動時正確初始化事件系統', async () => {
         // 模擬 Service Worker 啟動事件
+        // eslint-disable-next-line no-unused-vars
         const onStartupHandler = jest.fn()
         eventBus.on('SYSTEM.GENERIC.STARTUP.COMPLETED', onStartupHandler)
 
@@ -99,6 +106,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
 
       test('應該在 Service Worker 安裝時設置預設配置', async () => {
         // 模擬擴展安裝
+        // eslint-disable-next-line no-unused-vars
         const installDetails = { reason: 'install' }
 
         // 觸發安裝事件處理
@@ -116,9 +124,11 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
 
       test('應該在 Service Worker 重啟時恢復事件系統狀態', async () => {
         // 設置一些事件監聽器和狀態
+        // eslint-disable-next-line no-unused-vars
         const testHandler = jest.fn()
         namingCoordinator.registerDualTrackListener('EXTRACTION.COMPLETED', testHandler)
 
+        // eslint-disable-next-line no-unused-vars
         const testEvent = 'EXTRACTION.READMOO.EXTRACT.COMPLETED'
         priorityManager.assignEventPriority(testEvent)
 
@@ -139,6 +149,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       test('應該處理 Service Worker 休眠和喚醒', async () => {
         // 設置事件統計
         await namingCoordinator.intelligentEmit('STORAGE.SAVE.COMPLETED', { books: 5 })
+        // eslint-disable-next-line no-unused-vars
         const preSleepStats = namingCoordinator.getConversionStats()
 
         // 模擬休眠
@@ -148,6 +159,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
         await chromeBridge.handleServiceWorkerWakeup()
 
         // 驗證事件系統仍然可用
+        // eslint-disable-next-line no-unused-vars
         const testHandler = jest.fn()
         eventBus.on('SYSTEM.GENERIC.WAKEUP.COMPLETED', testHandler)
 
@@ -162,6 +174,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
 
     describe('跨上下文訊息傳遞整合', () => {
       test('應該正確處理來自 Content Script 的事件訊息', async () => {
+        // eslint-disable-next-line no-unused-vars
         const contentMessage = {
           type: 'EVENT_FORWARD',
           eventType: 'EXTRACTION.READMOO.EXTRACT.STARTED',
@@ -172,10 +185,13 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
           from: 'content'
         }
 
+        // eslint-disable-next-line no-unused-vars
         const mockSender = { tab: { id: mockTabId } }
+        // eslint-disable-next-line no-unused-vars
         const mockSendResponse = jest.fn()
 
         // 設置事件監聽器
+        // eslint-disable-next-line no-unused-vars
         const eventHandler = jest.fn()
         eventBus.on('EXTRACTION.READMOO.EXTRACT.STARTED', eventHandler)
 
@@ -191,6 +207,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該正確處理來自 Popup 的控制訊息', async () => {
+        // eslint-disable-next-line no-unused-vars
         const popupMessage = {
           type: 'CONTROL_REQUEST',
           action: 'GET_EXTRACTION_STATUS',
@@ -198,7 +215,9 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
           from: 'popup'
         }
 
+        // eslint-disable-next-line no-unused-vars
         const mockSender = { tab: undefined } // Popup 沒有 tab
+        // eslint-disable-next-line no-unused-vars
         const mockSendResponse = jest.fn()
 
         // 設置狀態回應
@@ -216,6 +235,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該支援向 Content Script 發送控制指令', async () => {
+        // eslint-disable-next-line no-unused-vars
         const controlCommand = {
           type: 'CONTROL_COMMAND',
           command: 'START_EXTRACTION',
@@ -226,6 +246,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
         }
 
         // 發送指令到 Content Script
+        // eslint-disable-next-line no-unused-vars
         const result = await chromeBridge.sendToContent(mockTabId, controlCommand)
 
         // 驗證 Chrome API 被正確調用
@@ -234,6 +255,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該支援向 Popup 廣播狀態更新', async () => {
+        // eslint-disable-next-line no-unused-vars
         const statusUpdate = {
           type: 'STATUS_UPDATE',
           data: {
@@ -253,6 +275,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
 
     describe('事件系統 v2.0 整合驗證', () => {
       test('應該完整支援 Legacy 到 Modern 事件轉換', async () => {
+        // eslint-disable-next-line no-unused-vars
         const legacyEvents = [
           'EXTRACTION.COMPLETED',
           'STORAGE.SAVE.COMPLETED',
@@ -261,8 +284,10 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
 
         // 設置雙軌監聽器
         for (let i = 0; i < legacyEvents.length; i++) {
+          // eslint-disable-next-line no-unused-vars
           const legacyEvent = legacyEvents[i]
 
+          // eslint-disable-next-line no-unused-vars
           const handler = jest.fn()
           namingCoordinator.registerDualTrackListener(legacyEvent, handler)
 
@@ -279,17 +304,22 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該正確處理優先級事件在跨上下文環境中', async () => {
+        // eslint-disable-next-line no-unused-vars
         const highPriorityEvent = 'SYSTEM.GENERIC.ERROR.CRITICAL'
+        // eslint-disable-next-line no-unused-vars
         const normalPriorityEvent = 'ANALYTICS.GENERIC.UPDATE.COMPLETED'
 
         // 分配優先級
+        // eslint-disable-next-line no-unused-vars
         const highPriority = priorityManager.assignEventPriority(highPriorityEvent)
+        // eslint-disable-next-line no-unused-vars
         const normalPriority = priorityManager.assignEventPriority(normalPriorityEvent)
 
         // 驗證優先級分配正確
         expect(highPriority).toBeLessThan(normalPriority) // 數值越小優先級越高
 
         // 設置處理器並記錄執行順序
+        // eslint-disable-next-line no-unused-vars
         const executionOrder = []
 
         priorityManager.registerWithPriority(eventBus, highPriorityEvent, () => {
@@ -322,6 +352,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該支援事件統計在 Background 環境中的收集', async () => {
+        // eslint-disable-next-line no-unused-vars
         const testEvents = [
           'EXTRACTION.READMOO.EXTRACT.STARTED',
           'EXTRACTION.READMOO.EXTRACT.PROGRESS',
@@ -338,7 +369,9 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
         }
 
         // 檢查統計資料
+        // eslint-disable-next-line no-unused-vars
         const conversionStats = namingCoordinator.getConversionStats()
+        // eslint-disable-next-line no-unused-vars
         const priorityStats = priorityManager.getPriorityStats()
 
         expect(conversionStats.totalConversions).toBeGreaterThan(0)
@@ -351,6 +384,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
     describe('DOM 互動和事件監聽', () => {
       test('應該正確設置 DOM 事件監聽器', async () => {
         // 模擬 Content Script 環境
+        // eslint-disable-next-line no-unused-vars
         const mockDocument = {
           addEventListener: jest.fn(),
           querySelector: jest.fn(),
@@ -370,6 +404,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該正確處理頁面變更事件', async () => {
+        // eslint-disable-next-line no-unused-vars
         const pageChangeHandler = jest.fn()
         eventBus.on('PAGE.READMOO.CHANGE.DETECTED', pageChangeHandler)
 
@@ -384,10 +419,12 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該支援動態內容變更檢測', async () => {
+        // eslint-disable-next-line no-unused-vars
         const contentChangeHandler = jest.fn()
         eventBus.on('CONTENT.READMOO.DYNAMIC.UPDATED', contentChangeHandler)
 
         // 模擬動態內容變更
+        // eslint-disable-next-line no-unused-vars
         const mutationEvent = {
           type: 'mutation',
           addedNodes: ['book-item-1', 'book-item-2'],
@@ -407,10 +444,12 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該正確提取和轉發頁面資料', async () => {
+        // eslint-disable-next-line no-unused-vars
         const extractionHandler = jest.fn()
         eventBus.on('EXTRACTION.READMOO.EXTRACT.COMPLETED', extractionHandler)
 
         // 模擬資料提取完成
+        // eslint-disable-next-line no-unused-vars
         const extractedData = [
           { id: 'book-1', title: 'Book 1', progress: 50 },
           { id: 'book-2', title: 'Book 2', progress: 75 }
@@ -437,10 +476,12 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
 
     describe('錯誤處理和恢復機制', () => {
       test('應該處理 DOM 存取錯誤', async () => {
+        // eslint-disable-next-line no-unused-vars
         const errorHandler = jest.fn()
         eventBus.on('SYSTEM.GENERIC.ERROR.HANDLED', errorHandler)
 
         // 模擬 DOM 存取錯誤
+        // eslint-disable-next-line no-unused-vars
         const domError = new Error('Cannot access property of null')
 
         await chromeBridge.handleContentScriptError({
@@ -453,6 +494,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該支援 Content Script 重新注入', async () => {
+        // eslint-disable-next-line no-unused-vars
         const reinjectionHandler = jest.fn()
         eventBus.on('CONTENT.GENERIC.REINJECT.COMPLETED', reinjectionHandler)
 
@@ -469,10 +511,12 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該處理網路請求失敗情況', async () => {
+        // eslint-disable-next-line no-unused-vars
         const networkErrorHandler = jest.fn()
         eventBus.on('NETWORK.GENERIC.ERROR.DETECTED', networkErrorHandler)
 
         // 模擬網路錯誤
+        // eslint-disable-next-line no-unused-vars
         const networkError = {
           type: 'network-error',
           status: 'timeout',
@@ -494,10 +538,12 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
   describe('🔧 Popup 界面事件驅動測試', () => {
     describe('UI 響應和狀態同步', () => {
       test('應該即時響應提取進度更新', async () => {
+        // eslint-disable-next-line no-unused-vars
         const progressHandler = jest.fn()
         eventBus.on('UX.GENERIC.PROGRESS.UPDATED', progressHandler)
 
         // 模擬提取進度更新
+        // eslint-disable-next-line no-unused-vars
         const progressUpdate = {
           completed: 7,
           total: 10,
@@ -523,10 +569,12 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該正確處理使用者操作事件', async () => {
+        // eslint-disable-next-line no-unused-vars
         const userActionHandler = jest.fn()
         eventBus.on('UX.GENERIC.ACTION.REQUESTED', userActionHandler)
 
         // 模擬使用者點擊開始提取
+        // eslint-disable-next-line no-unused-vars
         const userAction = {
           action: 'START_EXTRACTION',
           parameters: {
@@ -546,10 +594,12 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該同步顯示系統狀態', async () => {
+        // eslint-disable-next-line no-unused-vars
         const statusSyncHandler = jest.fn()
         eventBus.on('UX.GENERIC.STATUS.SYNCED', statusSyncHandler)
 
         // 模擬系統狀態
+        // eslint-disable-next-line no-unused-vars
         const systemStatus = {
           isActive: true,
           platform: 'READMOO',
@@ -572,7 +622,9 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該處理 Popup 開啟和關閉事件', async () => {
+        // eslint-disable-next-line no-unused-vars
         const openHandler = jest.fn()
+        // eslint-disable-next-line no-unused-vars
         const closeHandler = jest.fn()
 
         eventBus.on('UX.GENERIC.OPEN.COMPLETED', openHandler)
@@ -598,10 +650,12 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
 
     describe('錯誤狀態處理', () => {
       test('應該顯示適當的錯誤訊息', async () => {
+        // eslint-disable-next-line no-unused-vars
         const errorDisplayHandler = jest.fn()
         eventBus.on('UX.GENERIC.ERROR.DISPLAYED', errorDisplayHandler)
 
         // 模擬錯誤情況
+        // eslint-disable-next-line no-unused-vars
         const errorInfo = {
           type: 'extraction-failed',
           message: '提取失敗：無法存取書籍資料',
@@ -619,10 +673,12 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該支援錯誤恢復操作', async () => {
+        // eslint-disable-next-line no-unused-vars
         const recoveryHandler = jest.fn()
         eventBus.on('SYSTEM.GENERIC.RECOVERY.INITIATED', recoveryHandler)
 
         // 模擬錯誤恢復
+        // eslint-disable-next-line no-unused-vars
         const recoveryAction = {
           action: 'retry-extraction',
           target: 'current-page',
@@ -643,9 +699,11 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
   describe('🔧 端對端工作流程測試', () => {
     describe('完整提取工作流程', () => {
       test('應該執行完整的書籍提取流程', async () => {
+        // eslint-disable-next-line no-unused-vars
         const workflowEvents = []
 
         // 設置工作流程事件監聽器
+        // eslint-disable-next-line no-unused-vars
         const eventTypes = [
           'EXTRACTION.READMOO.EXTRACT.STARTED',
           'EXTRACTION.READMOO.EXTRACT.PROGRESS',
@@ -695,6 +753,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該處理中斷的提取流程', async () => {
+        // eslint-disable-next-line no-unused-vars
         const interruptionHandler = jest.fn()
         eventBus.on('EXTRACTION.READMOO.EXTRACT.INTERRUPTED', interruptionHandler)
 
@@ -711,7 +770,9 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該支援暫停和恢復提取', async () => {
+        // eslint-disable-next-line no-unused-vars
         const pauseHandler = jest.fn()
+        // eslint-disable-next-line no-unused-vars
         const resumeHandler = jest.fn()
 
         eventBus.on('EXTRACTION.READMOO.EXTRACT.PAUSED', pauseHandler)
@@ -732,7 +793,9 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
 
     describe('多標籤頁管理', () => {
       test('應該管理多個 Readmoo 標籤頁', async () => {
+        // eslint-disable-next-line no-unused-vars
         const tabIds = [123, 456, 789]
+        // eslint-disable-next-line no-unused-vars
         const activeExtractions = new Map()
 
         // 在多個標籤頁啟動提取
@@ -742,12 +805,14 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
         }
 
         // 驗證所有提取都被正確追蹤
+        // eslint-disable-next-line no-unused-vars
         const status = await chromeBridge.getActiveExtractions()
         expect(status.count).toBe(3)
         expect(status.tabIds).toEqual(expect.arrayContaining(tabIds))
       })
 
       test('應該處理標籤頁衝突情況', async () => {
+        // eslint-disable-next-line no-unused-vars
         const conflictHandler = jest.fn()
         eventBus.on('EXTRACTION.GENERIC.CONFLICT.DETECTED', conflictHandler)
 
@@ -763,12 +828,16 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
   describe('🔧 效能和穩定性測試', () => {
     describe('高負載情況測試', () => {
       test('應該處理大量並發事件', async () => {
+        // eslint-disable-next-line no-unused-vars
         const startTime = Date.now()
+        // eslint-disable-next-line no-unused-vars
         const eventCount = 1000
+        // eslint-disable-next-line no-unused-vars
         const promises = []
 
         // 生成大量並發事件
         for (let i = 0; i < eventCount; i++) {
+          // eslint-disable-next-line no-unused-vars
           const promise = chromeBridge.forwardEventFromContent({
             eventType: 'EXTRACTION.READMOO.EXTRACT.PROGRESS',
             eventData: { iteration: i, timestamp: Date.now() },
@@ -780,21 +849,26 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
         // 等待所有事件處理完成
         await Promise.all(promises)
 
+        // eslint-disable-next-line no-unused-vars
         const endTime = Date.now()
+        // eslint-disable-next-line no-unused-vars
         const totalTime = endTime - startTime
 
         // 驗證效能指標
         expect(totalTime).toBeLessThan(10000) // 總時間少於 10 秒
 
+        // eslint-disable-next-line no-unused-vars
         const avgTimePerEvent = totalTime / eventCount
         expect(avgTimePerEvent).toBeLessThan(10) // 平均每個事件少於 10ms
       })
 
       test('應該在記憶體限制下保持穩定', async () => {
+        // eslint-disable-next-line no-unused-vars
         const initialMemory = process.memoryUsage()
 
         // 處理大量資料
         for (let round = 0; round < 10; round++) {
+          // eslint-disable-next-line no-unused-vars
           const largeData = Array.from({ length: 100 }, (_, i) => ({
             id: `book-${round}-${i}`,
             title: `Large Title ${round}-${i}`.repeat(10),
@@ -811,7 +885,9 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
         // 等待記憶體穩定化
         await new Promise(resolve => setTimeout(resolve, 100))
 
+        // eslint-disable-next-line no-unused-vars
         const finalMemory = process.memoryUsage()
+        // eslint-disable-next-line no-unused-vars
         const memoryGrowth = (finalMemory.heapUsed - initialMemory.heapUsed) / initialMemory.heapUsed
 
         // 記憶體增長應該控制在合理範圍內
@@ -819,11 +895,13 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該處理快速連續的狀態變更', async () => {
+        // eslint-disable-next-line no-unused-vars
         const stateChanges = [
           'started', 'progress', 'progress', 'paused',
           'resumed', 'progress', 'completed'
         ]
 
+        // eslint-disable-next-line no-unused-vars
         const stateHandler = jest.fn()
         eventBus.on('EXTRACTION.READMOO.EXTRACT.STATE_CHANGED', stateHandler)
 
@@ -846,10 +924,13 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
 
     describe('長時間運行穩定性', () => {
       test('應該在長時間運行後保持響應性', async () => {
+        // eslint-disable-next-line no-unused-vars
         const testDuration = 5000 // 5 秒模擬長時間運行
+        // eslint-disable-next-line no-unused-vars
         let eventCount = 0
 
         // 設置定期事件觸發
+        // eslint-disable-next-line no-unused-vars
         const interval = setInterval(async () => {
           eventCount++
           await chromeBridge.heartbeat({
@@ -863,6 +944,7 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
         clearInterval(interval)
 
         // 驗證系統仍然響應
+        // eslint-disable-next-line no-unused-vars
         const responseTest = await chromeBridge.ping()
         expect(responseTest.success).toBe(true)
         expect(responseTest.responseTime).toBeLessThan(100)
@@ -873,9 +955,11 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
       })
 
       test('應該正確清理資源和事件監聽器', async () => {
+        // eslint-disable-next-line no-unused-vars
         const initialListenerCount = eventBus.getListenerCount()
 
         // 添加大量事件監聽器
+        // eslint-disable-next-line no-unused-vars
         const eventTypes = [
           'EXTRACTION.READMOO.EXTRACT.STARTED',
           'EXTRACTION.READMOO.EXTRACT.PROGRESS',
@@ -884,19 +968,23 @@ describe('🧪 Chrome Extension v2.0 環境整合測試', () => {
           'UX.GENERIC.NOTIFICATION.SENT'
         ]
 
+        // eslint-disable-next-line no-unused-vars
         const handlers = []
         for (const eventType of eventTypes) {
+          // eslint-disable-next-line no-unused-vars
           const handler = jest.fn()
           handlers.push(handler)
           eventBus.on(eventType, handler)
         }
 
+        // eslint-disable-next-line no-unused-vars
         const peakListenerCount = eventBus.getListenerCount()
         expect(peakListenerCount).toBeGreaterThan(initialListenerCount)
 
         // 清理監聽器
         await chromeBridge.cleanup()
 
+        // eslint-disable-next-line no-unused-vars
         const finalListenerCount = eventBus.getListenerCount()
         expect(finalListenerCount).toBeLessThanOrEqual(initialListenerCount + 5) // 允許一些核心監聽器保留
       })

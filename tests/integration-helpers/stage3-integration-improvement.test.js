@@ -7,10 +7,13 @@
  * @version v0.9.45
  */
 
+// eslint-disable-next-line no-unused-vars
 const IntegrationTestHelper = require('../utils/integration-test-helper')
+// eslint-disable-next-line no-unused-vars
 const ChromeExtensionMocksEnhancedV2 = require('../utils/chrome-extension-mocks-enhanced-v2')
 
 describe('Stage 3 整合改善驗證測試', () => {
+  // eslint-disable-next-line no-unused-vars
   let testHelper
   let chromeMocks
 
@@ -35,6 +38,7 @@ describe('Stage 3 整合改善驗證測試', () => {
 
   describe('🚀 Chrome Extension Background系統改善', () => {
     test('應該改善Background Event System初始化問題', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest({
         modules: ['background'],
         chromeAPI: ['storage', 'runtime']
@@ -50,25 +54,30 @@ describe('Stage 3 整合改善驗證測試', () => {
 
       // 驗證Chrome API可以正常運作
       await testContext.chrome.storage.local.set({ testInit: true })
+      // eslint-disable-next-line no-unused-vars
       const result = await testContext.chrome.storage.local.get('testInit')
       expect(result.testInit).toBe(true)
     })
 
     test('應該支援Chrome Event Bridge跨上下文通訊', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest({
         modules: ['background', 'content']
       })
 
       // 模擬跨上下文消息
+      // eslint-disable-next-line no-unused-vars
       const message = { type: 'CROSS_CONTEXT', data: 'test data' }
 
       // 使用改善的runtime.sendMessage
+      // eslint-disable-next-line no-unused-vars
       const response = await testContext.chrome.runtime.sendMessage(message)
 
       expect(response.success).toBe(true)
       expect(response.mockResponse).toBe(true)
 
       // 驗證消息被正確記錄
+      // eslint-disable-next-line no-unused-vars
       const backgroundEvents = testContext.modules.background.getEventHistory()
       expect(backgroundEvents.some(event =>
         event.type === 'inter-module-message' &&
@@ -79,13 +88,16 @@ describe('Stage 3 整合改善驗證測試', () => {
 
   describe('⚡ 效能和穩定性改善', () => {
     test('應該處理大量並發Chrome API操作', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
 
       // 生成大量測試資料
+      // eslint-disable-next-line no-unused-vars
       const largeDataSet = testContext.data.createPerformanceTestData('large')
       expect(largeDataSet.books).toHaveLength(1000)
 
       // 模擬大量並發操作
+      // eslint-disable-next-line no-unused-vars
       const promises = []
       for (let i = 0; i < 100; i++) {
         promises.push(
@@ -96,19 +108,23 @@ describe('Stage 3 整合改善驗證測試', () => {
       await Promise.all(promises)
 
       // 驗證所有操作都成功
+      // eslint-disable-next-line no-unused-vars
       const allData = await testContext.chrome.storage.local.get()
       expect(Object.keys(allData)).toHaveLength(100)
 
       // 驗證效能指標
+      // eslint-disable-next-line no-unused-vars
       const performanceReport = testContext.getPerformanceReport()
       expect(performanceReport.enabled).toBe(true)
       expect(performanceReport.totalDuration).toBeLessThan(5000) // 5秒內完成
     })
 
     test('應該提供穩定的錯誤處理環境', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
 
       // 生成各種錯誤場景
+      // eslint-disable-next-line no-unused-vars
       const errorScenarios = testContext.data.createErrorScenarios(10)
 
       errorScenarios.forEach(scenario => {
@@ -117,10 +133,12 @@ describe('Stage 3 整合改善驗證測試', () => {
       })
 
       // 驗證錯誤被正確記錄和處理
+      // eslint-disable-next-line no-unused-vars
       const backgroundState = testContext.modules.background.getState()
       expect(backgroundState.errors).toHaveLength(10)
 
       // 檢查可恢復錯誤的比例
+      // eslint-disable-next-line no-unused-vars
       const recoverableErrors = errorScenarios.filter(s => s.recoverable)
       expect(recoverableErrors.length).toBeGreaterThan(5) // 大多數錯誤應該可恢復
     })
@@ -128,12 +146,14 @@ describe('Stage 3 整合改善驗證測試', () => {
 
   describe('🔄 跨模組整合改善', () => {
     test('應該支援完整的資料流整合', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest({
         modules: ['background', 'content', 'popup'],
         chromeAPI: ['storage', 'runtime', 'tabs']
       })
 
       // 1. Content script模擬資料提取
+      // eslint-disable-next-line no-unused-vars
       const extractedBooks = testContext.data.createBookDataSet(20, 'mixed')
       testContext.modules.content.recordEvent({
         type: 'data-extraction',
@@ -153,12 +173,15 @@ describe('Stage 3 整合改善驗證測試', () => {
       })
 
       // 4. 驗證完整資料流
+      // eslint-disable-next-line no-unused-vars
       const storedData = await testContext.chrome.storage.local.get(['extractedBooks', 'extractionTime'])
       expect(storedData.extractedBooks).toHaveLength(20)
       expect(storedData.extractionTime).toBeGreaterThan(0)
 
       // 5. 驗證事件流
+      // eslint-disable-next-line no-unused-vars
       const contentEvents = testContext.modules.content.getEventHistory()
+      // eslint-disable-next-line no-unused-vars
       const popupEvents = testContext.modules.popup.getEventHistory()
 
       expect(contentEvents.some(e => e.type === 'data-extraction')).toBe(true)
@@ -166,6 +189,7 @@ describe('Stage 3 整合改善驗證測試', () => {
     })
 
     test('應該支援模組通訊驗證', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest({
         modules: ['background', 'content', 'popup']
       })
@@ -184,6 +208,7 @@ describe('Stage 3 整合改善驗證測試', () => {
       })
 
       // 驗證通訊記錄
+      // eslint-disable-next-line no-unused-vars
       const verification = testContext.verifyModuleCommunication(
         'background',
         'popup',
@@ -197,10 +222,12 @@ describe('Stage 3 整合改善驗證測試', () => {
 
   describe('📊 測試品質改善驗證', () => {
     test('應該提供一致的測試環境', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
 
       // 第一次操作
       await testContext.chrome.storage.local.set({ test: 'first' })
+      // eslint-disable-next-line no-unused-vars
       let result = await testContext.chrome.storage.local.get('test')
       expect(result.test).toBe('first')
 
@@ -208,6 +235,7 @@ describe('Stage 3 整合改善驗證測試', () => {
       await testHelper.cleanup()
 
       // 重新初始化
+      // eslint-disable-next-line no-unused-vars
       const newContext = await testHelper.setupIntegrationTest()
 
       // 驗證環境已完全重置
@@ -228,6 +256,7 @@ describe('Stage 3 整合改善驗證測試', () => {
       })
 
       // 驗證問題檢測
+      // eslint-disable-next-line no-unused-vars
       const validation = testHelper.validateTestEnvironment()
       expect(validation.isValid).toBe(false)
       expect(validation.issues.some(issue =>
@@ -238,9 +267,11 @@ describe('Stage 3 整合改善驗證測試', () => {
 
   describe('🎯 實際整合場景改善', () => {
     test('應該改善Readmoo資料提取場景', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
 
       // 生成Readmoo頁面資料
+      // eslint-disable-next-line no-unused-vars
       const pageData = testContext.data.createReadmooPageData('bookshelf')
       expect(pageData.books).toHaveLength(20)
 
@@ -251,6 +282,7 @@ describe('Stage 3 整合改善驗證測試', () => {
       })
 
       // 設定消息處理器模擬content script
+      // eslint-disable-next-line no-unused-vars
       const mockResponse = {
         success: true,
         books: pageData.books.slice(0, 10), // 模擬部分提取
@@ -258,6 +290,7 @@ describe('Stage 3 整合改善驗證測試', () => {
       }
 
       // 直接模擬執行結果
+      // eslint-disable-next-line no-unused-vars
       const extractionResult = mockResponse
 
       expect(extractionResult.success).toBe(true)
@@ -266,6 +299,7 @@ describe('Stage 3 整合改善驗證測試', () => {
     })
 
     test('應該模擬完整的使用者工作流程', async () => {
+      // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
 
       // 1. 使用者開啟popup
@@ -291,9 +325,11 @@ describe('Stage 3 整合改善驗證測試', () => {
       })
 
       // 5. 驗證完整流程
+      // eslint-disable-next-line no-unused-vars
       const popupEvents = testContext.modules.popup.getEventHistory()
       expect(popupEvents.filter(e => e.type === 'user-click')).toHaveLength(3)
 
+      // eslint-disable-next-line no-unused-vars
       const performanceReport = testContext.getPerformanceReport()
       expect(performanceReport.operations.length).toBeGreaterThan(0)
     })
