@@ -5,7 +5,8 @@
 
 # 設定路徑和日誌
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+CLAUDE_DIR="$PROJECT_ROOT/.claude"
 LOG_FILE="$PROJECT_ROOT/.claude/hook-logs/prompt-submit-$(date +%Y%m%d_%H%M%S).log"
 
 # 確保日誌目錄存在

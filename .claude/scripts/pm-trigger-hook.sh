@@ -5,7 +5,9 @@
 set -e
 
 # === 配置參數 ===
-CLAUDE_DIR=".claude"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+CLAUDE_DIR="$PROJECT_ROOT/.claude"
 HOOK_LOGS_DIR="$CLAUDE_DIR/hook-logs"
 PM_TRIGGER_LOG="$HOOK_LOGS_DIR/pm-trigger-$(date +%Y%m%d_%H%M%S).log"
 PM_STATUS_FILE="$CLAUDE_DIR/pm-status.json"

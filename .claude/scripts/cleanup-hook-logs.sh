@@ -5,7 +5,8 @@
 # 設計原則：保留近期必要日誌，清理過期檔案
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+CLAUDE_DIR="$PROJECT_ROOT/.claude"
 HOOK_LOGS_DIR="$PROJECT_ROOT/.claude/hook-logs"
 
 # 確保日誌目錄存在

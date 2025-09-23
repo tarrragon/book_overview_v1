@@ -5,7 +5,8 @@
 
 # 設定路徑
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+CLAUDE_DIR="$PROJECT_ROOT/.claude"
 BLOCK_FILE="$PROJECT_ROOT/.claude/TASK_AVOIDANCE_BLOCK"
 FIX_MODE_FILE="$PROJECT_ROOT/.claude/TASK_AVOIDANCE_FIX_MODE"
 
