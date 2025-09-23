@@ -19,7 +19,7 @@ const PopupController = require('src/popup/popup-controller.js')
 // Mock DOM 環境
 const { JSDOM } = require('jsdom')
 // eslint-disable-next-line no-unused-vars
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 // eslint-disable-next-line no-unused-vars
 const _dom = new JSDOM(`
   <!DOCTYPE html>

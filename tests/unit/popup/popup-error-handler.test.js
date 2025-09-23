@@ -35,10 +35,9 @@ const mockChrome = {
 global.chrome = mockChrome
 
 // Mock DOM
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { JSDOM } = require('jsdom')
 // eslint-disable-next-line no-unused-vars
-const { StandardError } = require('src/core/errors/StandardError')
+const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
   let PopupErrorHandler
