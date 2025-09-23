@@ -327,8 +327,16 @@ class EventManager {
       eventType: 'click',
       category: 'UI_ACTIONS',
       handler: () => {
-        // TODO: 實作設定功能
-        Logger.info('設定功能')
+        // 實作設定功能 - 委派給 PopupEventController
+        if (window.popupEventController) {
+          window.popupEventController.handleSettingsClick()
+        } else {
+          // 備用方案：開啟擴展程式設定頁面
+          if (chrome && chrome.tabs) {
+            chrome.tabs.create({ url: 'chrome://extensions/?id=' + chrome.runtime.id })
+          }
+        }
+        Logger.info('設定功能已觸發')
       }
     }
 
@@ -340,8 +348,24 @@ class EventManager {
       eventType: 'click',
       category: 'UI_ACTIONS',
       handler: () => {
-        // TODO: 實作說明功能
-        Logger.info('說明功能')
+        // 實作說明功能 - 委派給 PopupEventController
+        if (window.popupEventController) {
+          window.popupEventController.handleHelpClick()
+        } else {
+          // 備用方案：顯示使用說明
+          const helpText = [
+            '📚 Readmoo 書庫提取器使用說明',
+            '',
+            '1. 前往 Readmoo 書庫頁面',
+            '2. 點擊「開始提取書庫資料」按鈕',
+            '3. 等待資料提取完成',
+            '4. 選擇匯出格式並下載',
+            '',
+            '💡 提示：確保已登入 Readmoo 帳號'
+          ].join('\n')
+          alert(helpText)
+        }
+        Logger.info('說明功能已觸發')
       }
     }
 
@@ -381,8 +405,17 @@ class EventManager {
       eventType: 'click',
       category: 'UI_ACTIONS',
       handler: () => {
-        // TODO: 實作匯出功能
-        Logger.info('匯出功能')
+        // 實作匯出功能 - 委派給 PopupEventController
+        if (window.popupEventController) {
+          window.popupEventController.handleExportClick()
+        } else if (window.exportResults) {
+          // 備用方案：使用全域函式
+          window.exportResults()
+        } else {
+          Logger.warn('匯出功能不可用：未找到處理器')
+          alert('匯出功能目前不可用，請重新整理頁面後重試')
+        }
+        Logger.info('匯出功能已觸發')
       }
     }
 
@@ -514,28 +547,27 @@ class EventManager {
     const retryConfig = this.retryConfigs[elementId]
     const retryStats = this.retryStats[elementId]
 
-    if (retryStats.totalRetries < retryConfig.maxRetries) {
-      retryStats.totalRetries++
-      retryStats.lastError = error.message
-      this.stats.retryCount++
-
-      // 延遲後重試
-      setTimeout(async () => {
-        try {
-          if (typeof config.handler === 'function') {
-            await config.handler()
-          }
-          retryStats.lastSuccess = true
-          retryStats.lastError = null
-        } catch (retryError) {
-          retryStats.lastSuccess = false
-          retryStats.lastError = retryError.message
-
-          // 遞歸重試
-          await this._handleRetry(elementId, config, retryError)
-        }
-      }, retryConfig.delay)
+    if (retryStats.totalRetries >= retryConfig.maxRetries) {
+      return
     }
+
+    retryStats.totalRetries++
+    retryStats.lastError = error.message
+    this.stats.retryCount++
+
+    setTimeout(async () => {
+      try {
+        if (typeof config.handler === 'function') {
+          await config.handler()
+        }
+        retryStats.lastSuccess = true
+        retryStats.lastError = null
+      } catch (retryError) {
+        retryStats.lastSuccess = false
+        retryStats.lastError = retryError.message
+        await this._handleRetry(elementId, config, retryError)
+      }
+    }, retryConfig.delay)
   }
 
   /**
@@ -545,23 +577,32 @@ class EventManager {
    */
   _validateEventConfig (config) {
     if (!config.elementId || typeof config.elementId !== 'string' || config.elementId.trim() === '') {
-      const error = new Error('無效的事件配置: elementId 必須是非空字符串')
-      error.code = ErrorCodes.VALIDATION_ERROR
-      error.details = { category: 'general', elementId: config.elementId }
+      const error = (() => {
+        const err = new Error('無效的事件配置: elementId 必須是非空字符串')
+        err.code = ErrorCodes.VALIDATION_ERROR
+        err.details = { category: 'general', elementId: config.elementId }
+        return err
+      })()
       throw error
     }
 
     if (!config.eventType || typeof config.eventType !== 'string') {
-      const error = new Error('無效的事件配置: eventType 必須是字符串')
-      error.code = ErrorCodes.VALIDATION_ERROR
-      error.details = { category: 'general', eventType: config.eventType }
+      const error = (() => {
+        const err = new Error('無效的事件配置: eventType 必須是字符串')
+        err.code = ErrorCodes.VALIDATION_ERROR
+        err.details = { category: 'general', eventType: config.eventType }
+        return err
+      })()
       throw error
     }
 
     if (config.handler && typeof config.handler !== 'function') {
-      const error = new Error('無效的事件配置: handler 必須是函數')
-      error.code = ErrorCodes.VALIDATION_ERROR
-      error.details = { category: 'general', handler: typeof config.handler }
+      const error = (() => {
+        const err = new Error('無效的事件配置: handler 必須是函數')
+        err.code = ErrorCodes.VALIDATION_ERROR
+        err.details = { category: 'general', handler: typeof config.handler }
+        return err
+      })()
       throw error
     }
   }

@@ -10,8 +10,9 @@
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 // eslint-disable-next-line no-unused-vars
 const PlatformDetectionService = require('src/background/domains/platform/services/platform-detection-service.js')
+// StandardError 已完全遷移至 ErrorCodes v5.0.0
 // eslint-disable-next-line no-unused-vars
-const { StandardError } = require('src/core/errors/StandardError')
+// const { StandardError } = require('src/core/errors/StandardError')
 
 // 測試專用模擬資料
 // eslint-disable-next-line no-unused-vars

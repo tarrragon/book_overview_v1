@@ -846,7 +846,7 @@ class PlatformRegistryService {
    * 取得健康狀態
    * @returns {Object} 健康狀態
    */
-  getHealthStatus () {
+  async getHealthStatus () {
     const totalPlatforms = this.platformRegistry.size
     const activePlatforms = this.getActivePlatforms().length
     const loadedAdapters = Array.from(this.platformStatus.values())
@@ -858,6 +858,16 @@ class PlatformRegistryService {
                    (loadedAdapters / totalPlatforms) * 0.4
     }
 
+    // 實作實時完整性檢查
+    let hasIntegrityIssues = false
+    try {
+      const integrityValid = await this.validateRegistryIntegrity()
+      hasIntegrityIssues = !integrityValid
+    } catch (error) {
+      hasIntegrityIssues = true
+      await this.logError('健康狀態檢查時完整性驗證失敗', error)
+    }
+
     return {
       status: this.isInitialized ? 'operational' : 'initializing',
       healthScore: Math.round(healthScore * 100),
@@ -865,7 +875,7 @@ class PlatformRegistryService {
       activePlatforms,
       loadedAdapters,
       lastUpdateTime: this.lastUpdateTime,
-      hasIntegrityIssues: false // TODO: 實作實時完整性檢查
+      hasIntegrityIssues
     }
   }
 

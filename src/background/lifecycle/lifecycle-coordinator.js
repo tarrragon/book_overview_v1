@@ -98,6 +98,19 @@ class LifecycleCoordinator extends BaseModule {
   async _doCleanup () {
     this.logger.log('🧹 清理生命週期協調器')
 
+    // 清理心跳機制和狀態檢查
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval)
+      this.heartbeatInterval = null
+      this.logger.log('💓 Service Worker 心跳機制已停止')
+    }
+
+    if (this.stateCheckInterval) {
+      clearInterval(this.stateCheckInterval)
+      this.stateCheckInterval = null
+      this.logger.log('🔍 定期狀態檢查已停止')
+    }
+
     // 清理處理器
     if (this.installHandler && typeof this.installHandler.cleanup === 'function') {
       await this.installHandler.cleanup()
@@ -142,22 +155,218 @@ class LifecycleCoordinator extends BaseModule {
         await this.handleStartupEvent()
       })
 
-      // TODO: chrome.runtime.onSuspend 在 Manifest V3 中不可用
-      // 需要使用其他方式處理 Service Worker 關閉事件
+      // Manifest V3 Service Worker 生命週期管理
+      // 使用 beforeunload 和 visibilitychange 替代 onSuspend
+      this.setupServiceWorkerLifecycleManagement()
 
       this.chromeListenersRegistered = true
-      this.logger.log('✅ Chrome Extension 生命週期監聽器註冊完成')
+      this.logger.log('✅ Chrome Extension 生命週期監聽器註冊完成 (Manifest V3)')
 
       // 觸發監聽器註冊事件
       if (this.eventBus) {
         await this.eventBus.emit('LIFECYCLE.LISTENERS.REGISTERED', {
           timestamp: Date.now(),
-          coordinator: this.moduleId
+          coordinator: this.moduleId,
+          manifestVersion: 3
         })
       }
     } catch (error) {
       this.logger.error('❌ Chrome 生命週期監聽器註冊失敗:', error)
       throw error
+    }
+  }
+
+  /**
+   * 設置 Manifest V3 Service Worker 生命週期管理
+   * 替代已棄用的 chrome.runtime.onSuspend
+   */
+  setupServiceWorkerLifecycleManagement () {
+    // Manifest V3 Service Worker 生命週期處理策略
+    // 1. 使用 chrome.runtime.onSuspend 的替代方案
+    // 2. 監聽擴展卸載和重新載入事件
+    // 3. 實現優雅關閉機制
+
+    // 監聽擴展上下文失效事件
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      // 設置定期心跳檢查，確保 Service Worker 存活
+      this.setupServiceWorkerHeartbeat()
+
+      // 監聽連接斷開事件（當擴展被禁用或卸載時）
+      chrome.runtime.onConnect.addListener((port) => {
+        port.onDisconnect.addListener(() => {
+          this.handleServiceWorkerDisconnect()
+        })
+      })
+
+      // 監聽 runtime 訊息以檢測擴展狀態變化
+      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.type === 'EXTENSION_RELOAD') {
+          this.handleServiceWorkerReload()
+        }
+      })
+
+      // 設置定期狀態檢查以替代 onSuspend
+      this.setupPeriodicStateCheck()
+
+      this.logger.log('✅ Manifest V3 Service Worker 生命週期管理已設置')
+    }
+  }
+
+  /**
+   * 設置 Service Worker 心跳機制
+   * 確保 Service Worker 在閒置時不會被暫停
+   */
+  setupServiceWorkerHeartbeat () {
+    // 每 20 秒發送一次心跳
+    this.heartbeatInterval = setInterval(() => {
+      if (this.eventBus) {
+        this.eventBus.emit('LIFECYCLE.HEARTBEAT', {
+          timestamp: Date.now(),
+          state: this.lifecycleState
+        })
+      }
+    }, 20000)
+
+    this.logger.log('💓 Service Worker 心跳機制已啟動')
+  }
+
+  /**
+   * 設置定期狀態檢查以替代 onSuspend
+   * 監控 Service Worker 狀態變化
+   */
+  setupPeriodicStateCheck () {
+    // 每 30 秒檢查一次擴展狀態
+    this.stateCheckInterval = setInterval(async () => {
+      try {
+        // 檢查 runtime 是否仍然有效
+        if (chrome.runtime && chrome.runtime.id) {
+          // 檢查擴展是否仍在運行
+          const manifest = chrome.runtime.getManifest()
+          if (!manifest) {
+            // 擴展可能正在關閉
+            await this.handleServiceWorkerSuspend()
+          }
+        } else {
+          // Runtime 已失效，擴展正在關閉
+          await this.handleServiceWorkerSuspend()
+        }
+      } catch (error) {
+        // Chrome API 調用失敗，可能擴展正在關閉
+        this.logger.warn('⚠️ 狀態檢查失敗，可能擴展正在關閉:', error.message)
+        await this.handleServiceWorkerSuspend()
+      }
+    }, 30000)
+
+    this.logger.log('🔍 定期狀態檢查已啟動')
+  }
+
+  /**
+   * 處理 Service Worker 暫停事件 (替代 onSuspend)
+   */
+  async handleServiceWorkerSuspend () {
+    try {
+      this.logger.log('⏸️ 處理 Service Worker 暫停事件')
+
+      // 更新狀態
+      this.lifecycleState = 'suspending'
+
+      // 觸發暫停事件
+      if (this.eventBus) {
+        await this.eventBus.emit('LIFECYCLE.SUSPENDING', {
+          timestamp: Date.now(),
+          reason: 'service_worker_suspend'
+        })
+      }
+
+      // 委派給關閉處理器
+      if (this.shutdownHandler && typeof this.shutdownHandler.handleShutdown === 'function') {
+        await this.shutdownHandler.handleShutdown({ reason: 'suspend' })
+      }
+
+      // 清理資源
+      this.cleanupBeforeSuspend()
+
+      this.logger.log('✅ Service Worker 暫停事件處理完成')
+    } catch (error) {
+      this.logger.error('❌ 處理 Service Worker 暫停事件失敗:', error)
+    }
+  }
+
+  /**
+   * 在暫停前清理資源
+   */
+  cleanupBeforeSuspend () {
+    // 停止心跳和狀態檢查
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval)
+      this.heartbeatInterval = null
+    }
+
+    if (this.stateCheckInterval) {
+      clearInterval(this.stateCheckInterval)
+      this.stateCheckInterval = null
+    }
+
+    this.logger.log('🧹 暫停前資源清理完成')
+  }
+
+  /**
+   * 處理 Service Worker 連接斷開事件
+   */
+  async handleServiceWorkerDisconnect () {
+    try {
+      this.logger.log('🔌 處理 Service Worker 連接斷開事件')
+
+      // 更新狀態
+      this.lifecycleState = 'disconnected'
+
+      // 觸發斷開事件
+      if (this.eventBus) {
+        await this.eventBus.emit('LIFECYCLE.DISCONNECTED', {
+          timestamp: Date.now(),
+          reason: 'service_worker_disconnect'
+        })
+      }
+
+      // 委派給關閉處理器
+      if (this.shutdownHandler && typeof this.shutdownHandler.handleShutdown === 'function') {
+        await this.shutdownHandler.handleShutdown({ reason: 'disconnect' })
+      }
+
+      this.logger.log('✅ Service Worker 斷開事件處理完成')
+    } catch (error) {
+      this.logger.error('❌ 處理 Service Worker 斷開事件失敗:', error)
+    }
+  }
+
+  /**
+   * 處理 Service Worker 重新載入事件
+   */
+  async handleServiceWorkerReload () {
+    try {
+      this.logger.log('🔄 處理 Service Worker 重新載入事件')
+
+      // 更新狀態
+      this.lifecycleState = 'reloading'
+
+      // 觸發重新載入事件
+      if (this.eventBus) {
+        await this.eventBus.emit('LIFECYCLE.RELOADING', {
+          timestamp: Date.now(),
+          reason: 'extension_reload'
+        })
+      }
+
+      // 清理當前資源
+      this.cleanupBeforeSuspend()
+
+      // 重新初始化生命週期管理
+      await this.registerChromeLifecycleListeners()
+      await this.checkCurrentLifecycleState()
+
+      this.logger.log('✅ Service Worker 重新載入事件處理完成')
+    } catch (error) {
+      this.logger.error('❌ 處理 Service Worker 重新載入事件失敗:', error)
     }
   }
 

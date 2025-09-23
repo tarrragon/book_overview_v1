@@ -87,14 +87,17 @@ const log = {
   },
 
   debug: (key, params = {}) => {
-    // TODO: 實作 debug 訊息處理
     const message = formatMessage(key, params)
     // Logger 後備方案: Core Messages 統一輸出系統
     // 設計理念: 專門的 console 封裝模組，提供標準化的除錯輸出
     // 後備機制: 直接使用 console，這是設計意圖而非備用選擇
     // 使用場景: 開發階段除錯訊息的統一管理和輸出
-    // eslint-disable-next-line no-console
-    console.debug(`[DEBUG] ${message}`)
+
+    // 只在開發環境或 debug 模式下輸出
+    if (process.env.NODE_ENV === 'development' || globalThis.debugMode) {
+      // eslint-disable-next-line no-console
+      console.debug(`[DEBUG] ${message}`)
+    }
   }
 }
 

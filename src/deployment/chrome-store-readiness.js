@@ -820,8 +820,8 @@ class ChromeStoreReadiness {
    * @private
    */
   calculateOverallScore () {
-    // let totalPassed = 0
-    // let totalChecks = 0
+    let totalPassed = 0
+    let totalChecks = 0
     let weightedScore = 0
 
     const categoryWeights = {
@@ -839,9 +839,31 @@ class ChromeStoreReadiness {
       const weight = categoryWeights[category] || 10
 
       weightedScore += (categoryScore * weight) / 100
-      // TODO: 使用 totalPassed 和 totalChecks 計算統計
-      // totalPassed += results.passed
-      // totalChecks += categoryTotal
+
+      // 計算統計資料
+      totalPassed += results.passed
+      totalChecks += categoryTotal
+    }
+
+    // 儲存統計資料供後續使用
+    this.statistics = {
+      totalPassed,
+      totalChecks,
+      overallPassRate: totalChecks > 0 ? (totalPassed / totalChecks) * 100 : 0,
+      categoryBreakdown: Object.fromEntries(
+        Object.entries(this.checkResults).map(([category, results]) => [
+          category,
+          {
+            total: results.passed + results.failed,
+            passed: results.passed,
+            failed: results.failed,
+            warnings: results.warnings,
+            passRate: (results.passed + results.failed) > 0
+              ? (results.passed / (results.passed + results.failed)) * 100
+              : 0
+          }
+        ])
+      )
     }
 
     // 關鍵問題會大幅降低分數

@@ -359,8 +359,29 @@ function displayExtractionResults (results) {
  * - 使用者點擊匯出按鈕時呼叫
  */
 function exportResults () {
-  // TODO: 實現結果匯出功能
-  window.alert('匯出功能將在後續版本實現')
+  // 實現結果匯出功能 - 委派給 PopupEventController
+  if (window.popupEventController) {
+    window.popupEventController.handleExportClick()
+  } else {
+    // 備用方案：直接處理匯出
+    const data = window.extractedBooks || []
+    if (data.length === 0) {
+      window.alert('尚無資料可匯出，請先執行書庫提取')
+      return
+    }
+
+    // 簡單 JSON 匯出
+    const content = JSON.stringify(data, null, 2)
+    const blob = new Blob([content], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `readmoo-books-${new Date().toISOString().split('T')[0]}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+
+    window.alert('書庫資料已匯出為 JSON 格式')
+  }
 }
 
 // ==================== 錯誤處理功能 ====================
@@ -420,6 +441,69 @@ function retryExtraction () {
 }
 
 /**
+ * 向 Background Script 發送取消請求
+ */
+function sendCancelToBackground () {
+  if (chrome && chrome.runtime) {
+    chrome.runtime.sendMessage({
+      type: 'CANCEL_EXTRACTION',
+      timestamp: Date.now()
+    }, (response) => {
+      if (chrome.runtime.lastError) {
+        Logger.warn('Cancel message failed:', chrome.runtime.lastError)
+      }
+    })
+  }
+}
+
+/**
+ * 向 Content Script 發送取消請求
+ */
+function sendCancelToContentScript () {
+  if (chrome && chrome.tabs) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          type: 'CANCEL_EXTRACTION',
+          timestamp: Date.now()
+        }, (response) => {
+          if (chrome.runtime.lastError) {
+            Logger.warn('Cancel content script message failed:', chrome.runtime.lastError)
+          }
+        })
+      }
+    })
+  }
+}
+
+/**
+ * 重置提取相關的 UI 狀態
+ */
+function resetExtractionUI () {
+  hideProgress()
+  updateButtonState(false, '🚀 開始提取書庫資料')
+  updateStatus('提取已取消', '使用者手動中止', '您可以重新開始提取', STATUS_TYPES.WARNING)
+}
+
+/**
+ * 清理提取相關的全域狀態
+ */
+function cleanupExtractionState () {
+  if (window.extractionInProgress) {
+    window.extractionInProgress = false
+  }
+}
+
+/**
+ * 顯示取消後的狀態恢復通知
+ */
+function showCancellationRecovery () {
+  setTimeout(() => {
+    updateStatus('擴展就緒', '準備開始提取', '請前往 Readmoo 書庫頁面', STATUS_TYPES.READY)
+  }, 3000)
+}
+
+/**
  * 處理取消提取操作
  *
  * 負責功能：
@@ -430,13 +514,92 @@ function retryExtraction () {
  * - 使用者需要中止提取時呼叫
  */
 function cancelExtraction () {
-  // TODO: 實現取消提取功能
-  hideProgress()
-  updateButtonState(false, '🚀 開始提取書庫資料')
-  updateStatus('擴展就緒', '準備開始提取', '請前往 Readmoo 書庫頁面', STATUS_TYPES.READY)
+  try {
+    sendCancelToBackground()
+    sendCancelToContentScript()
+    resetExtractionUI()
+    cleanupExtractionState()
+    showCancellationRecovery()
+  } catch (error) {
+    Logger.error('Cancel extraction failed:', error)
+    updateStatus('取消失敗', '發生錯誤', '請重新整理頁面後重試', STATUS_TYPES.ERROR)
+  }
 }
 
 // ==================== 通訊管理 ====================
+
+/**
+ * 建立 Background Service Worker 連線超時 Promise
+ * @returns {Promise} 超時 Promise
+ */
+function createBackgroundTimeoutPromise () {
+  return new Promise((_resolve, reject) => {
+    setTimeout(() => {
+      const error = (() => {
+        const err = new Error('Background Service Worker 連線超時 (2秒)')
+        err.code = ErrorCodes.CHROME_ERROR
+        err.details = { values: ['2'], category: 'general' }
+        return err
+      })()
+      reject(error)
+    }, 2000)
+  })
+}
+
+/**
+ * 處理測試環境的回應
+ * @param {Object} response - 回應物件
+ * @returns {boolean} 是否成功
+ */
+function handleTestEnvironmentResponse (response) {
+  Logger.info('📝 Test environment - processing mock response')
+  updateStatus('測試模式', '測試環境', '背景服務模擬檢查完成', STATUS_TYPES.READY)
+  return response && response.success !== false
+}
+
+/**
+ * 處理成功的 Background Service Worker 回應
+ * @param {Object} response - 成功回應物件
+ */
+function handleSuccessfulBackgroundResponse (response) {
+  if (response.eventSystem) {
+    Logger.info('📊 事件系統狀態:', response.eventSystem)
+  }
+  updateStatus('線上', 'Background Service Worker 連線正常', '系統就緒', STATUS_TYPES.READY)
+}
+
+/**
+ * 生成錯誤診斷資訊
+ * @param {Error} error - 錯誤物件
+ * @returns {Object} 包含 userMessage 和 diagnosticInfo 的物件
+ */
+function generateErrorDiagnostic (error) {
+  let userMessage = '背景服務無法連線'
+  let diagnosticInfo = '詳細診斷:\n'
+
+  if (error.message.includes('超時')) {
+    userMessage = '背景服務未回應'
+    diagnosticInfo += '• Background Service Worker 可能已停止運行\n'
+    diagnosticInfo += '• 建議重新載入擴展以重新啟動 Service Worker\n'
+  } else if (error.message.includes('Extension context invalidated')) {
+    userMessage = '擴展上下文已失效'
+    diagnosticInfo += '• 擴展上下文已失效\n'
+    diagnosticInfo += '• 請重新載入擴展頁面\n'
+  } else if (error.message.includes('receiving end does not exist')) {
+    userMessage = '背景服務未啟動'
+    diagnosticInfo += '• Background Script 未載入或已停止\n'
+    diagnosticInfo += '• 檢查擴展是否正確安裝和啟用\n'
+  } else {
+    userMessage = '通訊發生錯誤'
+    diagnosticInfo += '• 未知的通訊錯誤\n'
+    diagnosticInfo += '• 請嘗試重新載入擴展\n'
+  }
+
+  diagnosticInfo += '\n操作建議: 點擊瀏覽器右上角擴展圖示，選擇「重新載入」'
+  diagnosticInfo += '\n錯誤詳情: ' + error.message
+
+  return { userMessage, diagnosticInfo }
+}
 
 /**
  * 檢查 Background Service Worker 狀態
@@ -446,83 +609,32 @@ function cancelExtraction () {
  * 負責功能：
  * - 驗證 Background Service Worker 的連線狀態
  * - 處理通訊錯誤和異常情況
- *
- * 設計考量：
- * - 使用標準化的訊息格式
- * - 提供清楚的錯誤訊息和狀態回饋
- *
- * 處理流程：
- * 1. 發送狀態檢查訊息到 Background
- * 2. 等待回應並驗證結果
- * 3. 根據結果更新 UI 狀態
- * 4. 處理錯誤並提供使用者回饋
  */
 async function checkBackgroundStatus () {
   try {
-    // 縮短超時時間到 2 秒，提供快速反饋
-    const timeoutPromise = new Promise((_resolve, reject) => {
-      setTimeout(() => {
-        const error = new Error('Background Service Worker 連線超時 (2秒)')
-        error.code = ErrorCodes.CHROME_ERROR
-        error.details = { values: ['2'], category: 'general' }
-        reject(error)
-      }, 2000)
-    })
-
+    const timeoutPromise = createBackgroundTimeoutPromise()
     const messagePromise = chrome.runtime.sendMessage({ type: MESSAGE_TYPES.GET_STATUS })
-
     const response = await Promise.race([messagePromise, timeoutPromise])
 
-    // 測試環境中提供模擬回應處理
     if (process.env.NODE_ENV === 'test') {
-      Logger.info('📝 Test environment - processing mock response')
-      updateStatus('測試模式', '測試環境', '背景服務模擬檢查完成', STATUS_TYPES.READY)
-      return response && response.success !== false
+      return handleTestEnvironmentResponse(response)
     }
 
     if (response && response.success) {
-      // 記錄詳細狀態供診斷使用
-      if (response.eventSystem) {
-        Logger.info('📊 事件系統狀態:', response.eventSystem)
-      }
-
-      updateStatus('線上', 'Background Service Worker 連線正常', '系統就緒', STATUS_TYPES.READY)
+      handleSuccessfulBackgroundResponse(response)
       return true
     } else {
-      const error = new Error('Background Service Worker 回應異常: ' + JSON.stringify(response))
-      error.code = ErrorCodes.CHROME_ERROR
-      error.details = { category: 'general', response }
+      const error = (() => {
+        const err = new Error('Background Service Worker 回應異常: ' + JSON.stringify(response))
+        err.code = ErrorCodes.CHROME_ERROR
+        err.details = { category: 'general', response }
+        return err
+      })()
       throw error
     }
   } catch (error) {
-    // eslint-disable-next-line no-console
     Logger.error('❌ Background Service Worker 連線失敗:', error)
-
-    // 提供使用者友好的錯誤訊息和操作指引
-    let userMessage = '背景服務無法連線'
-    let diagnosticInfo = '詳細診斷:\n'
-
-    if (error.message.includes('超時')) {
-      userMessage = '背景服務未回應'
-      diagnosticInfo += '• Background Service Worker 可能已停止運行\n'
-      diagnosticInfo += '• 建議重新載入擴展以重新啟動 Service Worker\n'
-    } else if (error.message.includes('Extension context invalidated')) {
-      userMessage = '擴展上下文已失效'
-      diagnosticInfo += '• 擴展上下文已失效\n'
-      diagnosticInfo += '• 請重新載入擴展頁面\n'
-    } else if (error.message.includes('receiving end does not exist')) {
-      userMessage = '背景服務未啟動'
-      diagnosticInfo += '• Background Script 未載入或已停止\n'
-      diagnosticInfo += '• 檢查擴展是否正確安裝和啟用\n'
-    } else {
-      userMessage = '通訊發生錯誤'
-      diagnosticInfo += '• 未知的通訊錯誤\n'
-      diagnosticInfo += '• 請嘗試重新載入擴展\n'
-    }
-
-    diagnosticInfo += '\n操作建議: 點擊瀏覽器右上角擴展圖示，選擇「重新載入」'
-    diagnosticInfo += '\n錯誤詳情: ' + error.message
-
+    const { userMessage, diagnosticInfo } = generateErrorDiagnostic(error)
     updateStatus('離線', userMessage, diagnosticInfo, STATUS_TYPES.ERROR)
     return false
   }
@@ -587,7 +699,6 @@ async function checkCurrentTab () {
 
     return tab
   } catch (error) {
-    // eslint-disable-next-line no-console
     Logger.error('檢查標籤頁時發生錯誤:', error)
     updateStatus('錯誤', '無法檢查頁面狀態', error.message, STATUS_TYPES.ERROR)
     return null
@@ -635,13 +746,15 @@ async function startExtraction () {
         elements.bookCount.textContent = response.booksDetected
       }
     } else {
-      const error = new Error(response?.error || '未知錯誤')
-      error.code = ErrorCodes.OPERATION_ERROR
-      error.details = { category: 'general', response }
+      const error = (() => {
+        const err = new Error(response?.error || '未知錯誤')
+        err.code = ErrorCodes.OPERATION_ERROR
+        err.details = { category: 'general', response }
+        return err
+      })()
       throw error
     }
   } catch (error) {
-    // eslint-disable-next-line no-console
     Logger.error('提取過程發生錯誤:', error)
     updateStatus('失敗', '提取失敗', error.message, STATUS_TYPES.ERROR)
   } finally {
@@ -701,7 +814,6 @@ function openLibraryOverview () {
     Logger.info('📖 開啟書庫總覽頁面...')
     chrome.runtime.openOptionsPage()
   } catch (error) {
-    // eslint-disable-next-line no-console
     Logger.error('❌ 無法開啟書庫頁面:', error)
     window.alert('無法開啟書庫頁面，請稍後再試')
   }
@@ -954,7 +1066,6 @@ async function initializeDiagnosticEnhancer () {
     const result = await diagnosticEnhancer.initialize()
 
     if (!result.success) {
-      // eslint-disable-next-line no-console
       Logger.warn('⚠️ 診斷增強器初始化失敗:', result.error)
     } else {
       // 設置系統健康檢查按鈕事件監聽器
@@ -968,7 +1079,6 @@ async function initializeDiagnosticEnhancer () {
             const healthReport = await diagnosticEnhancer.performSystemHealthCheck()
             displayHealthCheckResults(healthReport)
           } catch (error) {
-            // eslint-disable-next-line no-console
             Logger.error('健康檢查錯誤:', error)
             alert('健康檢查失敗: ' + error.message)
           } finally {
@@ -1098,7 +1208,6 @@ function showInitializationReport () {
 }
 
 function handleGlobalError (event) {
-  // eslint-disable-next-line no-console
   Logger.error('❌ Popup Interface 錯誤:', event.error)
 
   // 如果錯誤處理器可用，使用增強的錯誤處理
@@ -1138,6 +1247,17 @@ if (typeof window !== 'undefined') {
   window.handleExtractionError = handleExtractionError
   window.retryExtraction = retryExtraction
   window.cancelExtraction = cancelExtraction
+
+  // 重構後的拆分函式
+  window.sendCancelToBackground = sendCancelToBackground
+  window.sendCancelToContentScript = sendCancelToContentScript
+  window.resetExtractionUI = resetExtractionUI
+  window.cleanupExtractionState = cleanupExtractionState
+  window.showCancellationRecovery = showCancellationRecovery
+  window.createBackgroundTimeoutPromise = createBackgroundTimeoutPromise
+  window.handleTestEnvironmentResponse = handleTestEnvironmentResponse
+  window.handleSuccessfulBackgroundResponse = handleSuccessfulBackgroundResponse
+  window.generateErrorDiagnostic = generateErrorDiagnostic
 
   // 暴露常數供測試驗證
   window.STATUS_TYPES = STATUS_TYPES

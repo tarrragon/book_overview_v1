@@ -12,7 +12,8 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const AdapterFactoryService = require('src/background/domains/platform/services/adapter-factory-service.js')
 // eslint-disable-next-line no-unused-vars
 const EventBus = require('src/core/event-bus.js')
-const { StandardError } = require('src/core/errors/StandardError')
+// StandardError 已完全遷移至 ErrorCodes v5.0.0
+// const { StandardError } = require('src/core/errors/StandardError')
 
 // 測試專用模擬資料
 // eslint-disable-next-line no-unused-vars
@@ -416,7 +417,7 @@ describe('AdapterFactoryService', () => {
 
       await expect(
         adapterFactory.createAdapter('READMOO')
-      ).rejects.toThrow(StandardError)
+      ).rejects.toThrow(Error)
 
       expect(adapterFactory.statistics.creationErrors).toBe(1)
 
@@ -675,7 +676,7 @@ describe('AdapterFactoryService', () => {
       const adapter = await adapterFactory.createAdapter('READMOO')
 
       // 測試adapter初始化失敗
-      await expect(adapter.initialize()).rejects.toThrow(StandardError)
+      await expect(adapter.initialize()).rejects.toThrow(Error)
 
       // 由於錯誤發生在adapter.initialize()中，我們需要測試另一種方式
       // 這裡主要測試統計數據更新

@@ -144,9 +144,12 @@ class PopupEventController extends EventHandler {
           result = await this.handleStatusUpdate(data, flowId)
           break
         default: {
-          const error = new Error(`Unsupported event type: ${type}`)
-          error.code = ErrorCodes.UNKNOWN_ERROR
-          error.details = { category: 'general', type }
+          const error = (() => {
+            const err = new Error(`Unsupported event type: ${type}`)
+            err.code = ErrorCodes.OPERATION_ERROR
+            err.details = { category: 'general', type }
+            return err
+          })()
           throw error
         }
       }
@@ -179,7 +182,6 @@ class PopupEventController extends EventHandler {
       // 檢查初始狀態
       await this.checkInitialStatus()
     } catch (error) {
-      // eslint-disable-next-line no-console
       Logger.error('[PopupEventController] Initialization failed:', error)
       this.handleInitializationError(error)
     }
@@ -194,9 +196,12 @@ class PopupEventController extends EventHandler {
    */
   initializeElements () {
     if (!this.document) {
-      const error = new Error('Document not available')
-      error.code = ErrorCodes.DOM_ERROR
-      error.details = { category: 'general' }
+      const error = (() => {
+        const err = new Error('Document not available')
+        err.code = ErrorCodes.DOM_ERROR
+        err.details = { category: 'general' }
+        return err
+      })()
       throw error
     }
 
@@ -241,9 +246,12 @@ class PopupEventController extends EventHandler {
     const requiredElements = ['statusDot', 'statusText', 'extractBtn']
     for (const elementName of requiredElements) {
       if (!this.elements[elementName]) {
-        const error = new Error(`Required element not found: ${elementName}`)
-        error.code = ErrorCodes.DOM_ERROR
-        error.details = { category: 'ui', elementName }
+        const error = (() => {
+          const err = new Error(`Required element not found: ${elementName}`)
+          err.code = ErrorCodes.DOM_ERROR
+          err.details = { category: 'ui', elementName }
+          return err
+        })()
         throw error
       }
     }
@@ -308,9 +316,12 @@ class PopupEventController extends EventHandler {
   async checkBackgroundStatus () {
     try {
       if (!this.chrome || !this.chrome.runtime) {
-        const error = new Error('Chrome runtime not available')
-        error.code = ErrorCodes.CHROME_ERROR
-        error.details = { category: 'general' }
+        const error = (() => {
+          const err = new Error('Chrome runtime not available')
+          err.code = ErrorCodes.CHROME_ERROR
+          err.details = { category: 'general' }
+          return err
+        })()
         throw error
       }
 
@@ -322,9 +333,12 @@ class PopupEventController extends EventHandler {
         this.updateStatus('線上', 'Background Service Worker 連線正常', '系統就緒', this.STATUS_TYPES.READY)
         return true
       } else {
-        const error = new Error('Background Service Worker 回應異常')
-        error.code = ErrorCodes.CHROME_ERROR
-        error.details = { category: 'general' }
+        const error = (() => {
+          const err = new Error('Background Service Worker 回應異常')
+          err.code = ErrorCodes.CHROME_ERROR
+          err.details = { category: 'general' }
+          return err
+        })()
         throw error
       }
     } catch (error) {
@@ -346,9 +360,12 @@ class PopupEventController extends EventHandler {
   async checkCurrentTab () {
     try {
       if (!this.chrome || !this.chrome.tabs) {
-        const error = new Error('Chrome tabs API not available')
-        error.code = ErrorCodes.CHROME_ERROR
-        error.details = { category: 'general' }
+        const error = (() => {
+          const err = new Error('Chrome tabs API not available')
+          err.code = ErrorCodes.CHROME_ERROR
+          err.details = { category: 'general' }
+          return err
+        })()
         throw error
       }
 
@@ -419,8 +436,21 @@ class PopupEventController extends EventHandler {
    * @returns {Promise<Object>} 處理結果
    */
   async handleNotificationShow (data, flowId) {
-    // TODO: 實現通知顯示邏輯
     Logger.info(`[PopupEventController] Notification: ${data.message}`)
+
+    // 實現通知顯示邏輯
+    const notificationElement = document.getElementById('notification')
+    if (notificationElement) {
+      notificationElement.textContent = data.message
+      notificationElement.className = `notification ${data.type || 'info'}`
+      notificationElement.style.display = 'block'
+
+      // 3秒後自動隱藏通知
+      setTimeout(() => {
+        notificationElement.style.display = 'none'
+      }, 3000)
+    }
+
     return { success: true, flowId }
   }
 
@@ -503,19 +533,42 @@ class PopupEventController extends EventHandler {
    * 處理設定按鈕點擊
    */
   handleSettingsClick () {
-    // TODO: 實現設定功能
+    // 實現設定功能 - 開啟擴展程式設定頁面
     if (this.chrome && this.chrome.tabs) {
       this.chrome.tabs.create({ url: 'chrome://extensions/?id=' + this.chrome.runtime.id })
+    } else {
+      // 備用方案：顯示設定面板
+      const settingsPanel = document.getElementById('settings-panel')
+      if (settingsPanel) {
+        settingsPanel.style.display = settingsPanel.style.display === 'none' ? 'block' : 'none'
+      }
     }
+    Logger.info('[PopupEventController] Settings clicked')
   }
 
   /**
    * 處理說明按鈕點擊
    */
   handleHelpClick () {
-    // TODO: 實現說明功能
-    const helpText = '使用說明：\n\n1. 前往 Readmoo 書庫頁面\n2. 點擊「開始提取書庫資料」\n3. 等待提取完成'
-    alert(helpText)
+    // 實現說明功能 - 顯示使用說明面板
+    const helpPanel = document.getElementById('help-panel')
+    if (helpPanel) {
+      helpPanel.style.display = helpPanel.style.display === 'none' ? 'block' : 'none'
+    } else {
+      // 備用方案：使用 alert 顯示說明
+      const helpText = [
+        '📚 Readmoo 書庫提取器使用說明',
+        '',
+        '1. 前往 Readmoo 書庫頁面',
+        '2. 點擊「開始提取書庫資料」按鈕',
+        '3. 等待資料提取完成',
+        '4. 選擇匯出格式並下載',
+        '',
+        '💡 提示：確保已登入 Readmoo 帳號'
+      ].join('\n')
+      alert(helpText)
+    }
+    Logger.info('[PopupEventController] Help clicked')
   }
 
   /**
@@ -530,8 +583,106 @@ class PopupEventController extends EventHandler {
    * 處理匯出按鈕點擊
    */
   handleExportClick () {
-    // TODO: 實現匯出功能
-    Logger.info('[PopupEventController] Export functionality not implemented yet')
+    // 實現匯出功能 - 觸發匯出流程
+    Logger.info('[PopupEventController] Export clicked')
+
+    // 檢查是否有可匯出的資料
+    if (!this.extractedData || this.extractedData.length === 0) {
+      this.handleNotificationShow({
+        message: '尚無資料可匯出，請先執行書庫提取',
+        type: 'warning'
+      }, 'export-warning')
+      return
+    }
+
+    // 顯示匯出選項面板
+    const exportPanel = document.getElementById('export-panel')
+    if (exportPanel) {
+      exportPanel.style.display = exportPanel.style.display === 'none' ? 'block' : 'none'
+    } else {
+      // 備用方案：直接觸發預設格式匯出
+      this.handleExportData('json')
+    }
+  }
+
+  /**
+   * 處理資料匯出
+   * @param {string} format - 匯出格式 (json, csv, xlsx)
+   */
+  handleExportData (format = 'json') {
+    if (!this.extractedData || this.extractedData.length === 0) {
+      return
+    }
+
+    try {
+      let content, filename, mimeType
+
+      switch (format.toLowerCase()) {
+        case 'csv':
+          content = this.convertToCSV(this.extractedData)
+          filename = `readmoo-books-${new Date().toISOString().split('T')[0]}.csv`
+          mimeType = 'text/csv'
+          break
+        case 'xlsx':
+          // 此處需要額外的 XLSX 處理庫
+          this.handleNotificationShow({
+            message: 'XLSX 格式匯出功能開發中',
+            type: 'info'
+          }, 'xlsx-info')
+          return
+        case 'json':
+        default:
+          content = JSON.stringify(this.extractedData, null, 2)
+          filename = `readmoo-books-${new Date().toISOString().split('T')[0]}.json`
+          mimeType = 'application/json'
+      }
+
+      // 創建下載連結
+      const blob = new Blob([content], { type: mimeType })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      a.click()
+      URL.revokeObjectURL(url)
+
+      this.handleNotificationShow({
+        message: `書庫資料已匯出為 ${format.toUpperCase()} 格式`,
+        type: 'success'
+      }, 'export-success')
+    } catch (error) {
+      Logger.error('[PopupEventController] Export failed:', error)
+      this.handleNotificationShow({
+        message: '匯出失敗，請稍後重試',
+        type: 'error'
+      }, 'export-error')
+    }
+  }
+
+  /**
+   * 轉換資料為 CSV 格式
+   * @param {Array} data - 書庫資料
+   * @returns {string} CSV 內容
+   */
+  convertToCSV (data) {
+    if (!data || data.length === 0) return ''
+
+    const headers = ['書名', '作者', '進度', '標籤', '評分', '購買日期']
+    const csvRows = [headers.join(',')]
+
+    data.forEach(book => {
+      const row = [
+        `"${(book.title || '').replace(/"/g, '""')}"`,
+        `"${(book.author || '').replace(/"/g, '""')}"`,
+        `"${book.progress || '0%'}"`,
+        `"${(book.tags || []).join(';')}"`,
+        `"${book.rating || ''}"`,
+        `"${book.purchaseDate || ''}"`
+      ]
+      csvRows.push(row.join(','))
+    })
+
+    return csvRows.join('\n')
   }
 
   /**
@@ -540,9 +691,12 @@ class PopupEventController extends EventHandler {
   async startExtraction () {
     const tab = await this.checkCurrentTab()
     if (!tab || !this.contentScriptReady) {
-      const error = new Error('頁面或 Content Script 未就緒')
-      error.code = ErrorCodes.CHROME_ERROR
-      error.details = { category: 'general' }
+      const error = (() => {
+        const err = new Error('頁面或 Content Script 未就緒')
+        err.code = ErrorCodes.CHROME_ERROR
+        err.details = { category: 'general' }
+        return err
+      })()
       throw error
     }
 
@@ -559,9 +713,12 @@ class PopupEventController extends EventHandler {
         // 提取成功，等待後續事件
         Logger.info('[PopupEventController] Extraction started successfully')
       } else {
-        const error = new Error(response?.error || '未知錯誤')
-        error.code = ErrorCodes.OPERATION_ERROR
-        error.details = { category: 'general', response }
+        const error = (() => {
+          const err = new Error(response?.error || '未知錯誤')
+          err.code = ErrorCodes.OPERATION_ERROR
+          err.details = { category: 'general', response }
+          return err
+        })()
         throw error
       }
     } catch (error) {
@@ -701,7 +858,6 @@ class PopupEventController extends EventHandler {
     this.updateStatus('失敗', '提取失敗', message, this.STATUS_TYPES.ERROR)
 
     if (error) {
-      // eslint-disable-next-line no-console
       Logger.error('[PopupEventController] Extraction error:', error)
     }
   }

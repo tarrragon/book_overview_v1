@@ -66,6 +66,7 @@ jest.mock('../../../src/core/event-handler', () => {
     }
 
     async process (event) {
+      const { ErrorCodes } = require('src/core/errors/ErrorCodes')
       throw (() => { const error = new Error('Process method must be implemented by subclass'); error.code = ErrorCodes.METHOD_NOT_IMPLEMENTED; return error })()
     }
 
