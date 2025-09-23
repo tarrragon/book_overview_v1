@@ -323,3 +323,13 @@
 - 影響評估: Critical
 - 發現時間: Tue Sep 23 13:30:16 CST 2025
 
+## 🚨 需要追蹤的問題 - Tue Sep 23 13:41:56 CST 2025
+- ESLint 錯誤需要立即修復
+- 影響評估: Critical
+- 發現時間: Tue Sep 23 13:41:56 CST 2025
+
+## 🚨 需要追蹤的問題 - Tue Sep 23 13:49:57 CST 2025
+- ESLint 錯誤需要立即修復
+- 影響評估: Critical
+- 發現時間: Tue Sep 23 13:49:57 CST 2025
+

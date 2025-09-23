@@ -8,7 +8,7 @@
       "Bash(node:*)",
       "Bash(git:*)",
       "Bash(tmux:*)",
-      "Bash(./scripts/:*)",
+      "Bash(./.claude/scripts/:*)",
       "Bash(timeout:*)",
       "Bash(echo:*)",
       "Bash(grep:*)",
@@ -124,14 +124,20 @@
       "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/core/ --passWithNoTests --silent --coverage=false)",
       "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/core/event-type-definitions.test.js --testNamePattern=\"應該拒絕無效的事件建構參數\" --verbose)",
       "Bash(./scripts/work-log-manager.sh:*)",
-      "Bash(./scripts/task-avoidance-block-check.sh:*)",
-      "Bash(./scripts/task-avoidance-detection-hook.sh:*)",
+      "Bash(./.claude/scripts/task-avoidance-block-check.sh:*)",
+      "Bash(./.claude/scripts/task-avoidance-detection-hook.sh:*)",
       "Read(//Users/tarragon/Projects/book_overview_app/.claude/agents/**)",
       "Read(//Users/tarragon/Projects/book_overview_app/.claude/**)",
       "Read(//Users/tarragon/Projects/book_overview_app/**)",
       "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest --listTests)",
       "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/core/ --passWithNoTests --silent --coverage=false --maxWorkers=1)",
-      "Read(//Users/mac-eric/project/**)"
+      "Read(//Users/mac-eric/project/**)",
+      "Bash(./.claude/scripts/check-version-sync.sh:*)",
+      "Bash(./.claude/scripts/check-work-log.sh:*)",
+      "Bash(./.claude/scripts/check-next-objectives.sh:*)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/core/performance/PerformanceAssessment.test.simplified.js --verbose)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/core/performance/PerformanceAssessment.test.basic.js --verbose)",
+      "Bash(./.claude/scripts/version-progression-check.sh:*)"
     ],
     "deny": []
   },
@@ -141,7 +147,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./scripts/startup-check-hook.sh"
+            "command": "./.claude/scripts/startup-check-hook.sh"
           }
         ]
       }
@@ -151,11 +157,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./scripts/prompt-submit-hook.sh"
+            "command": "./.claude/scripts/prompt-submit-hook.sh"
           },
           {
             "type": "command",
-            "command": "./scripts/task-avoidance-detection-hook.sh"
+            "command": "./.claude/scripts/task-avoidance-detection-hook.sh"
           }
         ]
       }
@@ -166,7 +172,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./scripts/task-avoidance-block-check.sh"
+            "command": "./.claude/scripts/task-avoidance-block-check.sh"
           }
         ]
       },
@@ -175,7 +181,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./scripts/pre-commit-hook.sh"
+            "command": "./.claude/scripts/pre-commit-hook.sh"
           }
         ]
       },
@@ -184,7 +190,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./scripts/pre-test-hook.sh"
+            "command": "./.claude/scripts/pre-test-hook.sh"
           }
         ]
       }
@@ -195,23 +201,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./scripts/performance-monitor-hook.sh post-edit start"
+            "command": "./.claude/scripts/performance-monitor-hook.sh post-edit start"
           },
           {
             "type": "command",
-            "command": "./scripts/post-edit-hook.sh"
+            "command": "./.claude/scripts/post-edit-hook.sh"
           },
           {
             "type": "command",
-            "command": "./scripts/code-smell-detection-hook.sh"
+            "command": "./.claude/scripts/code-smell-detection-hook.sh"
           },
           {
             "type": "command",
-            "command": "./scripts/auto-documentation-update-hook.sh"
+            "command": "./.claude/scripts/auto-documentation-update-hook.sh"
           },
           {
             "type": "command",
-            "command": "./scripts/performance-monitor-hook.sh post-edit end"
+            "command": "./.claude/scripts/performance-monitor-hook.sh post-edit end"
           }
         ]
       },
@@ -220,15 +226,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./scripts/performance-monitor-hook.sh test start"
+            "command": "./.claude/scripts/performance-monitor-hook.sh test start"
           },
           {
             "type": "command",
-            "command": "./scripts/post-test-hook.sh"
+            "command": "./.claude/scripts/post-test-hook.sh"
           },
           {
             "type": "command",
-            "command": "./scripts/performance-monitor-hook.sh test end"
+            "command": "./.claude/scripts/performance-monitor-hook.sh test end"
           }
         ]
       }
@@ -238,11 +244,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./scripts/stop-hook.sh"
+            "command": "./.claude/scripts/stop-hook.sh"
           },
           {
             "type": "command",
-            "command": "./scripts/pm-trigger-hook.sh"
+            "command": "./.claude/scripts/pm-trigger-hook.sh"
           }
         ]
       }
