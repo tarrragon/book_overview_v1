@@ -129,7 +129,8 @@
       "Read(//Users/tarragon/Projects/book_overview_app/.claude/agents/**)",
       "Read(//Users/tarragon/Projects/book_overview_app/.claude/**)",
       "Read(//Users/tarragon/Projects/book_overview_app/**)",
-      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest --listTests)"
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest --listTests)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/core/ --passWithNoTests --silent --coverage=false --maxWorkers=1)"
     ],
     "deny": []
   },
