@@ -280,6 +280,11 @@ describe('📄 Overview 資料匯入功能測試', () => {
       global.window = window
       global.document = document
 
+      // 設定 ErrorCodes 全域變數
+      const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+      window.ErrorCodes = ErrorCodes
+      global.ErrorCodes = ErrorCodes
+
       // eslint-disable-next-line no-unused-vars
       const module = require('src/overview/overview-page-controller.js')
       OverviewPageController = module.OverviewPageController
