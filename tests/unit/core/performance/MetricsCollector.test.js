@@ -254,8 +254,6 @@ describe('MetricsCollector 效能指標收集', () => {
 
     test('應該測量 JavaScript 執行時間和阻塞時間', async () => {
       // Given: 模擬 CPU 密集任務
-      const startTime = performance.now()
-
       // 模擬 CPU 密集計算
       const heavyTask = () => {
         let sum = 0

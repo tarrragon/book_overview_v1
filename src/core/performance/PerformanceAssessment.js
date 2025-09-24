@@ -594,7 +594,7 @@ class PerformanceAssessment {
    * @param {Error} error - 錯誤物件
    */
   handleMonitoringError (error) {
-    console.error('監控過程發生錯誤:', error)
+    // 透過回調函式處理監控錯誤，避免直接輸出到控制台
 
     if (this.monitoringCallbacks.onSystemAlert) {
       this.monitoringCallbacks.onSystemAlert({
@@ -778,7 +778,6 @@ class PerformanceAssessment {
    * @returns {Promise<Object>} 系統資訊物件
    */
   async getSystemInfo () {
-    const systemInfoCollector = this.initializeSystemInfoCollector()
     const browserInfo = await this.collectBrowserInfo()
     const extensionInfo = await this.collectExtensionInfo()
     const hardwareInfo = await this.collectHardwareInfo()

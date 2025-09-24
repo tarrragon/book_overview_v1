@@ -13,7 +13,7 @@
  * @date 2025-09-23
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+// const { ErrorCodes } = require('src/core/errors/ErrorCodes') // 未使用的import
 const PerformanceAssessment = require('src/core/performance/PerformanceAssessment')
 
 // Mock Chrome Extension APIs
@@ -192,11 +192,13 @@ describe('PerformanceAssessment 系統效能評估', () => {
 
     test('應該拒絕無效的配置參數', () => {
       expect(() => {
-        new PerformanceAssessment(null)
+        const invalidAssessment = new PerformanceAssessment(null)
+        return invalidAssessment
       }).toThrow()
 
       expect(() => {
-        new PerformanceAssessment('invalid')
+        const invalidAssessment = new PerformanceAssessment('invalid')
+        return invalidAssessment
       }).toThrow()
     })
 
@@ -311,7 +313,7 @@ describe('PerformanceAssessment 系統效能評估', () => {
     })
 
     test('應該正確停止即時監控', () => {
-      const session = assessment.startRealTimeMonitoring({})
+      assessment.startRealTimeMonitoring({})
 
       expect(assessment.isMonitoring).toBe(true)
 
@@ -548,7 +550,7 @@ describe('PerformanceAssessment 系統效能評估', () => {
 
       // 模擬監控過程中的錯誤
       // 通過覆蓋 collectAllMetrics 方法來觸發錯誤
-      const originalCollectAllMetrics = assessment.collectAllMetrics
+      // const originalCollectAllMetrics = assessment.collectAllMetrics // 未使用
       assessment.collectAllMetrics = jest.fn().mockRejectedValue(new Error('Test error'))
 
       // 等待監控循環執行並觸發錯誤
@@ -577,7 +579,8 @@ describe('PerformanceAssessment 系統效能評估', () => {
 
     test('應該正確使用 ErrorCodes 體系', () => {
       expect(() => {
-        new PerformanceAssessment(null)
+        const invalidAssessment = new PerformanceAssessment(null)
+        return invalidAssessment
       }).toThrow(expect.stringMatching(/VALIDATION_FAILED/))
     })
 

@@ -7,7 +7,7 @@
  * @date 2025-09-23
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+// const { ErrorCodes } = require('src/core/errors/ErrorCodes') // 未使用的import
 const PerformanceAssessment = require('src/core/performance/PerformanceAssessment')
 
 // Mock Chrome Extension APIs
@@ -98,7 +98,8 @@ describe('PerformanceAssessment 基礎功能測試', () => {
 
   test('應該拒絕無效的配置參數', () => {
     expect(() => {
-      new PerformanceAssessment(null)
+      const invalidAssessment = new PerformanceAssessment(null)
+      return invalidAssessment
     }).toThrow(/VALIDATION_FAILED/)
   })
 
