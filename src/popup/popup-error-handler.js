@@ -1,4 +1,5 @@
-const Logger = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 /**
  * PopupErrorHandler - 重構版錯誤處理器 (TDD 循環 #42)
  *
@@ -72,6 +73,9 @@ class PopupErrorHandler {
     // 支援依賴注入的 UIManager
     this.uiManager = dependencies.uiManager || null
 
+    // 建立組件專用Logger實例
+    this.logger = new Logger('PopupErrorHandler')
+
     // 向後相容性：保留原有屬性
     this.elements = {}
     this.diagnosticMode = false
@@ -118,7 +122,10 @@ class PopupErrorHandler {
   initialize () {
     if (this.uiManager) {
       // 使用 UIManager 的情況，不需要直接 DOM 操作
-      Logger.info('[PopupErrorHandler] Initializing with UIManager integration')
+      this.logger.info('INITIALIZATION_START', {
+        mode: 'uiManager',
+        errorCode: ErrorCodes.INITIALIZATION_ERROR
+      })
     } else {
       // 向後相容：原有的初始化流程
       this.initializeElements()
@@ -126,7 +133,10 @@ class PopupErrorHandler {
     }
 
     this.setupGlobalErrorHandling()
-    Logger.info('[PopupErrorHandler] Error handler initialized')
+    this.logger.info('INITIALIZATION_COMPLETE', {
+      errorCode: ErrorCodes.INITIALIZATION_ERROR,
+      component: 'popup-error-handler'
+    })
   }
 
   /**
@@ -243,14 +253,19 @@ class PopupErrorHandler {
       this._legacyShowInitError(errorData)
     }
 
-    // 記錄錯誤
+    // 記錄錯誤 - 使用ErrorCodes + Logger整合
     this.logError('SYSTEM_INITIALIZATION_ERROR', {
       originalError: error,
       timestamp: Date.now()
     })
 
-    // eslint-disable-next-line no-console
-    Logger.error('[PopupErrorHandler] Initialization failed:', error)
+    // 使用Logger實例和ErrorCodes整合記錄
+    this.logger.error('INITIALIZATION_FAILED', {
+      errorCode: ErrorCodes.INITIALIZATION_ERROR,
+      originalError: error.message,
+      component: 'popup-error-handler',
+      action: 'initialize'
+    })
   }
 
   /**
@@ -423,8 +438,12 @@ class PopupErrorHandler {
         // 嘗試使用 chrome.runtime.reload()
         chrome.runtime.reload()
       } catch (error) {
-        // eslint-disable-next-line no-console
-        Logger.warn('[PopupErrorHandler] chrome.runtime.reload() failed, trying alternative methods')
+        // 使用Logger實例記錄警告
+        this.logger.warn('CHROME_API_RELOAD_FAILED', {
+          errorCode: ErrorCodes.CHROME_ERROR,
+          originalError: error.message,
+          action: 'forceReload'
+        })
 
         // 備用方法：重新載入所有相關分頁
         this.reloadAllExtensionPages()
@@ -451,8 +470,12 @@ class PopupErrorHandler {
         }
       }, 500)
     } catch (error) {
-      // eslint-disable-next-line no-console
-      Logger.warn('[PopupErrorHandler] Soft reload failed, trying force reload')
+      // 使用Logger實例記錄軟重載失敗
+      this.logger.warn('SOFT_RELOAD_FAILED', {
+        errorCode: ErrorCodes.SYSTEM_ERROR,
+        originalError: error.message,
+        action: 'softReload'
+      })
       this.forceReloadExtension()
     }
   }
@@ -512,8 +535,12 @@ class PopupErrorHandler {
         })
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
-      Logger.error('[PopupErrorHandler] Failed to generate error report:', error)
+      // 使用Logger實例記錄錯誤回報失敗
+      this.logger.error('ERROR_REPORT_FAILED', {
+        errorCode: ErrorCodes.SYSTEM_ERROR,
+        originalError: error.message,
+        action: 'handleErrorReport'
+      })
 
       // 備用方案：顯示手動回報指引
       alert(`請手動前往 GitHub Issues 回報問題：
@@ -552,8 +579,12 @@ https://github.com/your-repo/readmoo-extractor/issues
         }
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
-      Logger.warn('[PopupErrorHandler] Failed to collect system diagnostic report:', error)
+      // 使用Logger實例記錄診斷資料收集失敗
+      this.logger.warn('DIAGNOSTIC_COLLECTION_FAILED', {
+        errorCode: ErrorCodes.SYSTEM_ERROR,
+        originalError: error.message,
+        action: 'collectDiagnostic'
+      })
     }
 
     return diagnosticData
@@ -616,7 +647,12 @@ ${JSON.stringify(diagnosticData, null, 2)}
       })
     }
 
-    Logger.info(`[PopupErrorHandler] Diagnostic mode ${this.diagnosticMode ? 'enabled' : 'disabled'}`)
+    // 使用Logger實例記錄診斷模式變更
+    this.logger.info('DIAGNOSTIC_MODE_TOGGLED', {
+      errorCode: ErrorCodes.SYSTEM_ERROR,
+      diagnosticMode: this.diagnosticMode,
+      action: 'toggleDiagnostic'
+    })
   }
 
   /**
@@ -635,7 +671,11 @@ ${JSON.stringify(diagnosticData, null, 2)}
 
     this.diagnosticMode = true
 
-    Logger.info('[PopupErrorHandler] Diagnostic mode enabled with module integration')
+    // 使用Logger實例記錄診斷模式啟用
+    this.logger.info('DIAGNOSTIC_MODE_ENABLED', {
+      errorCode: ErrorCodes.SYSTEM_ERROR,
+      moduleIntegration: !!this.diagnosticModule
+    })
   }
 
   // ===== 新增重構功能 =====
@@ -647,7 +687,10 @@ ${JSON.stringify(diagnosticData, null, 2)}
    */
   setEventBus (eventBus) {
     this.eventBus = eventBus
-    Logger.info('[PopupErrorHandler] Event bus integrated')
+    this.logger.info('EVENT_BUS_INTEGRATED', {
+      errorCode: ErrorCodes.EVENTBUS_ERROR,
+      hasEventBus: !!eventBus
+    })
   }
 
   /**
@@ -907,7 +950,11 @@ ${JSON.stringify(diagnosticData, null, 2)}
       this.uiManager.cleanup()
     }
 
-    Logger.info('[PopupErrorHandler] Cleanup completed')
+    // 使用Logger實例記錄清理完成
+    this.logger.info('CLEANUP_COMPLETED', {
+      errorCode: ErrorCodes.SYSTEM_ERROR,
+      component: 'popup-error-handler'
+    })
   }
 }
 

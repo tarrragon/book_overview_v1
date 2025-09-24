@@ -36,6 +36,8 @@ global.chrome = mockChrome
 
 // Mock DOM
 const { JSDOM } = require('jsdom')
+
+// PopupErrorHandler現在使用正確的Logger實例模式，不需要全域Logger設定
 // eslint-disable-next-line no-unused-vars
 const ErrorCodes = require('src/core/errors/ErrorCodes')
 
@@ -213,6 +215,8 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
       const setupEventListenersSpy = jest.spyOn(errorHandler, 'setupEventListeners')
       // eslint-disable-next-line no-unused-vars
       const setupGlobalErrorHandlingSpy = jest.spyOn(errorHandler, 'setupGlobalErrorHandling')
+
+      // Logger現在使用實例模式，不需要全域檢查
 
       errorHandler.initialize()
 

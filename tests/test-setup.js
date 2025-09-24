@@ -149,6 +149,85 @@ global.localStorage = localStorageMock
 // 確保 chrome 物件存在於全域範圍
 global.chrome = require('jest-chrome').chrome
 
+// 設定 ErrorCodes 全域變數供所有測試使用
+// 解決 186 個測試檔案的 ErrorCodes 未定義問題
+try {
+  const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+  // 設定在瀏覽器環境和 Node.js 環境
+  global.ErrorCodes = ErrorCodes
+  if (typeof window !== 'undefined') {
+    window.ErrorCodes = ErrorCodes
+  }
+  // 為了相容性，也設定在 global 物件上
+  global.window = global.window || {}
+  global.window.ErrorCodes = ErrorCodes
+} catch (error) {
+  // eslint-disable-next-line no-console
+  console.warn('Warning: ErrorCodes 無法載入，某些測試可能會失敗:', error.message)
+}
+
+// 設定 Logger 全域變數供所有測試使用
+// 解決 Logger 導入方式不一致問題
+try {
+  const LoggerModule = require('src/core/logging/Logger')
+  const LoggerClass = LoggerModule.Logger || LoggerModule
+
+  // 創建全域 Logger 實例，支援靜態方法呼叫
+  const globalLoggerInstance = new LoggerClass('GLOBAL_TEST')
+
+  // 創建模擬的靜態 Logger 物件，支援直接字串輸入
+  const Logger = {
+    info: (...args) => {
+      // 支援直接字串和message key兩種模式
+      if (args.length === 1 && typeof args[0] === 'string') {
+        globalLoggerInstance.direct('INFO', args[0])
+      } else {
+        globalLoggerInstance.info(...args)
+      }
+    },
+    warn: (...args) => {
+      if (args.length === 1 && typeof args[0] === 'string') {
+        globalLoggerInstance.direct('WARN', args[0])
+      } else {
+        globalLoggerInstance.warn(...args)
+      }
+    },
+    error: (...args) => {
+      if (args.length === 1 && typeof args[0] === 'string') {
+        globalLoggerInstance.direct('ERROR', args[0])
+      } else {
+        globalLoggerInstance.error(...args)
+      }
+    },
+    debug: (...args) => {
+      if (args.length === 1 && typeof args[0] === 'string') {
+        globalLoggerInstance.direct('DEBUG', args[0])
+      } else {
+        globalLoggerInstance.debug(...args)
+      }
+    },
+    // 也提供原始類別的存取
+    Logger: LoggerClass,
+    createInstance: (name) => new LoggerClass(name)
+  }
+
+  // 設定在瀏覽器環境和 Node.js 環境
+  global.Logger = Logger
+  if (typeof window !== 'undefined') {
+    window.Logger = Logger
+  }
+  // 為了相容性，也設定在 global 物件上
+  global.window = global.window || {}
+  global.window.Logger = Logger
+
+  // 也設定 LOG_LEVELS
+  global.LOG_LEVELS = LoggerModule.LOG_LEVELS
+  global.window.LOG_LEVELS = LoggerModule.LOG_LEVELS
+} catch (error) {
+  // eslint-disable-next-line no-console
+  console.warn('Warning: Logger 無法載入，某些測試可能會失敗:', error.message)
+}
+
 chrome.runtime.id = 'test-extension-id'
 
 // 將 onMessage.addListener 模擬為 jest.fn()
