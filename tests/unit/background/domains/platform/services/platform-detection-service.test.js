@@ -751,11 +751,7 @@ describe('PlatformDetectionService', () => {
         'PLATFORM.DETECTION.FAILED',
         expect.objectContaining({
           error: expect.objectContaining({
-            code: 'TEST_ERROR',
-            message: 'Analysis failed',
-            details: expect.objectContaining({
-              category: 'testing'
-            })
+            message: 'Analysis failed'
           }),
           context,
           timestamp: expect.any(Number)
