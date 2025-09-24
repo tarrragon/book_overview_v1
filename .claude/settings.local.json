@@ -137,7 +137,28 @@
       "Bash(./.claude/scripts/check-next-objectives.sh:*)",
       "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/core/performance/PerformanceAssessment.test.simplified.js --verbose)",
       "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/core/performance/PerformanceAssessment.test.basic.js --verbose)",
-      "Bash(./.claude/scripts/version-progression-check.sh:*)"
+      "Bash(./.claude/scripts/version-progression-check.sh:*)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/background/domains/platform/services/platform-detection-service.test.js --testNamePattern=\"should emit detection failed event on error\" --verbose)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/content/utils/error-handling-utils.test.js --testNamePattern=\"應該在超過重試次數後失敗\" --verbose)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest --passWithNoTests --silent --maxWorkers=1)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest --passWithNoTests --silent --maxWorkers=1 --testPathIgnorePatterns=\"error-recovery-strategies.test.js\")",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/overview/overview-import-function.test.js --testNamePattern=\"應該處理無效的JSON格式\" --verbose)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/overview/overview-import-function.test.js --testNamePattern=\"應該處理無效的JSON格式|應該處理非陣列格式的JSON|應該在錯誤時顯示適當的錯誤訊息|應該處理JSON語法錯誤\" --verbose)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest --passWithNoTests --silent --maxWorkers=1 --testPathIgnorePatterns=\"error-recovery-strategies.test.js|overview-import-function.test.js\" --testTimeout=30000)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/overview/overview-import-private-methods.test.js --testNamePattern=\"應該拒絕非JSON檔案\" --verbose)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/data-management/SchemaMigrationService.test.js --testNamePattern=\"初始化失敗處理\" --verbose)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/data-management/SchemaMigrationService.test.js --testNamePattern=\"建立失敗處理\" --verbose)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/core/errors/UC01ErrorAdapter.test.js --verbose --maxWorkers=1)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/popup/popup-error-handler.test.js --verbose --maxWorkers=1)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/data-management/SchemaMigrationService.test.js --testNamePattern=\"版本鎖定機制\" --verbose)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" node -e \"\ntry {\n  const { Logger } = require(''/Users/mac-eric/project/book_overview_v1/src/core/logging/Logger.js'');\n  console.log(''Logger loaded successfully:'', typeof Logger);\n  const logger = new Logger(''TEST'');\n  console.log(''Logger instance created:'', typeof logger.info);\n} catch (error) {\n  console.error(''Logger loading error:'', error.message);\n}\n\")",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/popup/popup-error-handler.test.js --testNamePattern=\"應該能創建 PopupErrorHandler 實例\" --verbose)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" node -e \"\nconst LoggerModule = require(''/Users/mac-eric/project/book_overview_v1/src/core/logging/Logger.js'');\nconsole.log(''Logger module structure:'', Object.keys(LoggerModule));\nconsole.log(''Logger class:'', typeof LoggerModule.Logger);\nconsole.log(''Direct Logger:'', typeof LoggerModule);\nif (LoggerModule.Logger) {\n  const logger = new LoggerModule.Logger(''TEST'');\n  console.log(''Logger instance methods:'', Object.getOwnPropertyNames(Object.getPrototypeOf(logger)));\n}\n\")",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/popup/popup-error-handler.test.js --testNamePattern=\"應該能完整初始化錯誤處理系統\" --verbose)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" node -e \"\n// 模擬測試環境\nglobal.chrome = { runtime: {} };\nrequire(''/Users/mac-eric/project/book_overview_v1/tests/test-setup.js'');\nconsole.log(''Global Logger type:'', typeof global.Logger);\nconsole.log(''Global Logger.info type:'', typeof global.Logger?.info);\nconsole.log(''Global Logger keys:'', Object.keys(global.Logger || {}));\n\")",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" npx jest tests/unit/popup/popup-error-handler.test.js --verbose)",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" node -e \"\n// 測試ErrorCodes在popup-error-handler中的載入狀態\ntry {\n  const { ErrorCodes } = require(''./src/core/errors/ErrorCodes'');\n  console.log(''ErrorCodes loaded successfully'');\n  console.log(''SYSTEM_INFO:'', ErrorCodes.SYSTEM_INFO);\n  console.log(''POPUP_INITIALIZATION_ERROR:'', ErrorCodes.POPUP_INITIALIZATION_ERROR);\n  console.log(''SYSTEM_ERROR:'', ErrorCodes.SYSTEM_ERROR);\n} catch (error) {\n  console.error(''ErrorCodes loading error:'', error.message);\n}\n\")",
+      "Bash(NODE_OPTIONS=\"--experimental-vm-modules\" node -e \"\n// 測試錯誤報告系統完整性\nconst { ErrorCodes } = require(''./src/core/errors/ErrorCodes'');\nconst { Logger } = require(''./src/core/logging/Logger'');\n\nconsole.log(''=== 錯誤報告系統測試 ==='');\nconsole.log(''✅ ErrorCodes載入:'', typeof ErrorCodes);\nconsole.log(''✅ Logger類別載入:'', typeof Logger);\n\n// 測試PopupErrorHandler錯誤報告\nconsole.log(''\\n=== 關鍵ErrorCodes驗證 ==='');\nconsole.log(''INITIALIZATION_ERROR:'', ErrorCodes.INITIALIZATION_ERROR);\nconsole.log(''CHROME_ERROR:'', ErrorCodes.CHROME_ERROR); \nconsole.log(''SYSTEM_ERROR:'', ErrorCodes.SYSTEM_ERROR);\nconsole.log(''EVENTBUS_ERROR:'', ErrorCodes.EVENTBUS_ERROR);\n\n// 測試Logger實例錯誤記錄\nconsole.log(''\\n=== Logger實例測試 ==='');\nconst testLogger = new Logger(''TEST_COMPONENT'');\ntestLogger.error(''TEST_ERROR'', {\n  errorCode: ErrorCodes.SYSTEM_ERROR,\n  component: ''error-reporting-test''\n});\n\")"
     ],
     "deny": []
   },
@@ -242,6 +263,11 @@
     "Stop": [
       {
         "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/check-todos.py",
+            "timeout": 5
+          },
           {
             "type": "command",
             "command": "./.claude/scripts/stop-hook.sh"
