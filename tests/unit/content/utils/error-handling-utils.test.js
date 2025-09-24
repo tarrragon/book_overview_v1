@@ -285,13 +285,16 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     test('應該在超過重試次數後失敗', async () => {
       // eslint-disable-next-line no-unused-vars
       const alwaysFailingFunction = jest.fn(() => {
-        throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
+        const error = new Error('Always fails')
+        error.code = ErrorCodes.TEST_ERROR
+        error.details = { category: 'testing' }
+        throw error
       })
 
       await expect(
         ErrorHandlingUtils.retryWithBackoff(alwaysFailingFunction, { maxRetries: 2 })
       ).rejects.toMatchObject({
-        code: expect.any(String),
+        code: ErrorCodes.TEST_ERROR,
         message: expect.stringContaining('Always fails')
       })
 
