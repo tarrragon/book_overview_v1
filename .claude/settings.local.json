@@ -189,6 +189,15 @@
     ],
     "PreToolUse": [
       {
+        "matcher": "TodoWrite",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/scripts/check-5w1h-compliance.py"
+          }
+        ]
+      },
+      {
         "matcher": ".*",
         "hooks": [
           {

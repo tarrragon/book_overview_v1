@@ -811,4 +811,4 @@ void handleUserLogout(LogoutData logoutData) {
 - 預測故事的發展
 - 在需要時修改情節
 
-這不是程式設計技巧，而是溝通藝術。
+這是溝通原則，確保程式碼能被任何維護者理解和擴展。
