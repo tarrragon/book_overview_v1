@@ -353,7 +353,7 @@ cinnamon-refactor-owl必須按照「🧠 TDD 驅動重構方法論」執行：
 ## 技術判斷評級
 
 **Taste Score**: Good taste / Acceptable / Garbage
-**實用性評估**: Pragmatic / Acceptable / Over-engineered
+**實用性評估**: Pragmatic / Acceptable / Over-engineered  
 **複雜度評估**: Simple / Reasonable / Too Complex
 
 ## 核心分析 (Linus三層思考)

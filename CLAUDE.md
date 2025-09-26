@@ -2,6 +2,37 @@
 
 本文件為 Claude Code (claude.ai/code) 在此專案中的開發指導規範。
 
+## 🚨 專案類型重要澄清
+
+**⚠️ 重要提醒：當前專案是 Flutter APP 專案，使用 Dart 語言開發**
+
+### 📱 當前專案：書庫管理 Flutter APP
+- **專案類型**: Flutter 移動應用程式
+- **開發語言**: Dart
+- **編譯工具**: Flutter SDK
+- **測試框架**: Flutter Test / Dart Test
+- **目標平台**: Android (Google Play Store) / iOS (Apple App Store)
+- **專案識別**: `pubspec.yaml`, `.dart` 檔案, `lib/` 目錄
+
+### 🌐 另一個專案：Chrome Extension 專案 (非此專案)
+- **專案類型**: Chrome Extension
+- **開發語言**: JavaScript/TypeScript
+- **編譯工具**: npm/webpack
+- **測試框架**: Jest/Mocha
+- **目標平台**: Chrome Web Store
+- **專案識別**: `package.json`, `.js/.ts` 檔案, `node_modules/`
+
+### 🔧 開發工具鏈差異
+| 專案類型 | 當前專案 (Flutter APP) | 另一專案 (Chrome Extension) |
+|---------|----------------------|---------------------------|
+| 語言 | Dart | JavaScript/TypeScript |
+| 測試指令 | `dart test` / `flutter test` | `npm test` |
+| 建置指令 | `flutter build` | `npm run build` |
+| 依賴管理 | `flutter pub get` | `npm install` |
+| 配置檔案 | `pubspec.yaml` | `package.json` |
+
+**本 CLAUDE.md 檔案的所有指令和規範都應基於 Flutter/Dart 專案**
+
 ## 🚨 任何行動前的強制檢查清單
 
 **💡 記憶口訣**: 測試先行，問題必解，架構為王，品質不妥協
@@ -82,6 +113,54 @@
 - How: 「先寫程式後補測試」「臨時解法」
 
 **檢測到逃避語言 → 立即阻止決策**
+
+### 🔑 5W1H Token 強制執行機制
+
+**所有對話必須遵循 5W1H 決策框架並以 Token 開頭**
+
+#### Token 生成與驗證
+
+- **格式**: `5W1H-{YYYYMMDD}-{HHMMSS}-{random}`
+- **範例**: `5W1H-20250925-191735-a7b3c2`
+- **生成**: SessionStart Hook 自動生成當前 Session Token
+- **儲存位置**: `.claude/hook-logs/5w1h-tokens/session-*.token`
+
+#### 強制回答格式
+
+每次回答必須以下列格式開頭：
+
+```
+🎯 5W1H-{當前Token}
+Who: [責任歸屬分析]
+What: [功能定義]
+When: [觸發時機]
+Where: [執行位置]
+Why: [需求依據]
+How: [實作策略]
+
+[具體回答內容]
+```
+
+#### 合規監控機制
+
+- **UserPromptSubmit Hook** - 檢查每次回答是否包含正確 Token
+- **5W1H Compliance Hook** - 驗證回答格式和 5W1H 分析完整性
+- **違規處理** - 進入修復模式，要求重新回答
+
+#### Token 管理指令
+
+```bash
+# 生成新 Token
+./.claude/scripts/5w1h-token-generator.sh generate
+
+# 查看當前 Token
+./.claude/scripts/5w1h-token-generator.sh current
+
+# 驗證 Token 格式
+./.claude/scripts/5w1h-token-generator.sh validate <token>
+```
+
+**目標**: 100% 強制執行 5W1H 思考框架，杜絕逃避性對話
 
 ### 📋 詳細方法論引用
 
@@ -246,100 +325,274 @@ ls -la .claude/settings.local.json
 
 ## 🔧 開發工具和指令
 
+### 🤖 Serena MCP - 智慧程式碼檢索與編輯工具
+
+**Serena 是強大的程式碼代理工具包，提供類似 IDE 的語意程式碼檢索和編輯功能**
+
+#### 🔍 核心功能
+
+- **符號層級程式碼檢索** - 直接查找函式、類別、變數等程式符號
+- **關係結構探索** - 分析程式碼間的依賴和引用關係
+- **精準程式碼編輯** - 在特定符號位置插入或修改程式碼
+- **高效能檢索** - 無需讀取整個檔案，直接定位目標程式碼
+
+#### 🚀 主要工具指令
+
+**符號查找工具**:
+```bash
+# 查找特定符號（函式、類別等）
+mcp__serena__find_symbol
+
+# 查找引用特定符號的所有位置
+mcp__serena__find_referencing_symbols
+
+# 查找符號的定義位置
+mcp__serena__find_definition
+```
+
+**程式碼編輯工具**:
+```bash
+# 在指定符號後插入程式碼
+mcp__serena__insert_after_symbol
+
+# 在指定符號前插入程式碼
+mcp__serena__insert_before_symbol
+
+# 替換特定符號
+mcp__serena__replace_symbol
+```
+
+#### 🎯 使用場景
+
+1. **重構任務** - 快速找到所有引用並進行批量修改
+2. **程式碼分析** - 理解複雜的依賴關係和呼叫鏈
+3. **精準修改** - 在特定位置插入程式碼而不影響其他部分
+4. **符號追蹤** - 追蹤函式或類別的使用情況
+
+#### 💡 與傳統工具比較
+
+```dart
+// ❌ 傳統方式：需要讀取整個檔案並進行字串搜尋
+// 效率低且容易出錯
+
+// ✅ Serena 方式：直接定位符號並精準操作
+// 使用 find_symbol 找到 'BookRepository.saveBook'
+// 使用 find_referencing_symbols 查看所有呼叫位置
+// 使用 insert_after_symbol 在方法後新增相關邏輯
+```
+
+### 📚 Context7 MCP - 最新語法查詢工具
+
+**Context7 MCP 是專門用於查詢最新 API 文件和語法的工具，用於解決棄用警告問題**
+
+#### 🔍 使用時機
+
+- **接收到棄用語法警告時** - 立即使用 Context7 查詢替代語法
+- **API 更新檢查** - 確保使用最新的 Flutter/Dart API
+- **第三方套件升級** - 查詢套件最新版本的用法變更
+- **最佳實踐確認** - 驗證當前實作是否符合最新標準
+
+#### 🚀 Context7 查詢流程
+
+**步驟1: 庫名稱解析**
+```
+使用 resolve-library-id 工具搜尋相關庫
+範例: flutter, dart, dio, provider 等
+```
+
+**步驟2: 文檔查詢**
+```
+使用 get-library-docs 工具取得最新文檔
+可指定特定主題如: widgets, animations, state-management
+```
+
+#### 📋 常見棄用警告處理
+
+**Flutter Widget 棄用**:
+```dart
+// ❌ 棄用語法警告範例
+// 'FlatButton' is deprecated and shouldn't be used.
+
+// ✅ 處理流程:
+// 1. 使用 Context7 查詢 flutter widgets
+// 2. 搜尋 FlatButton 替代方案
+// 3. 更新為 TextButton 或 ElevatedButton
+```
+
+**Dart 語法棄用**:
+```dart
+// ❌ 棄用語法警告範例
+// 'Function' type syntax is deprecated
+
+// ✅ 處理流程:
+// 1. 使用 Context7 查詢 dart core
+// 2. 查找現代 Function 類型語法
+// 3. 更新函式宣告格式
+```
+
+#### 🎯 Context7 最佳實踐
+
+1. **主動查詢** - 開發新功能前先查詢最新 API
+2. **版本對應** - 確認查詢的文檔版本與專案版本相符
+3. **完整更新** - 發現棄用語法時，檢查整個模組的相關用法
+4. **測試驗證** - 更新語法後必須執行相關測試確認功能正常
+
 ### 測試指令
 
 ```bash
-# 執行所有測試
-npm test
+# 執行所有 Dart 測試
+dart test
 
-# 執行特定類型測試
-npm run test:unit
-npm run test:integration
-npm run test:e2e
+# 執行 Flutter Widget 測試
+flutter test
+
+# 執行特定測試檔案
+dart test test/unit/library/library_domain_test.dart
 
 # 執行測試並產生覆蓋率報告
-npm run test:coverage
+flutter test --coverage
+
+# 執行整合測試
+flutter test integration_test/
 ```
 
 ### ⚠️ 測試執行規範 (重要)
 
-**強制要求**: 所有測試必須透過 Jest 執行，**絕不可直接使用 Node.js**
+**強制要求**: 所有測試必須透過 Flutter/Dart 測試框架執行，**絕不可使用 npm/jest**
 
 **正確方式**:
+
 ```bash
-# ✅ 正確 - 透過 Jest 執行測試
-npx jest tests/integration/architecture/messaging-services-integration.test.js --verbose
-npm test
+# ✅ 正確 - 透過 Dart Test 執行測試
+dart test test/unit/library/library_domain_test.dart
+flutter test test/widget/
+
+# ✅ 正確 - 執行整合測試
+flutter test integration_test/app_test.dart
 ```
 
 **錯誤方式**:
+
 ```bash
-# ❌ 錯誤 - 直接使用 Node.js (會導致模組解析失敗)
-node tests/integration/architecture/messaging-services-integration.test.js
+# ❌ 錯誤 - 使用 npm/jest (此專案是 Flutter 不是 Node.js)
+npm test
+npx jest test/
+node test/
 ```
 
 ### 建置指令
 
 ```bash
 # 安裝依賴項
-npm install --legacy-peer-deps
+flutter pub get
 
-# 開發版本建置
-npm run build:dev
+# 開發版本建置 (Android)
+flutter build apk --debug
 
-# 生產版本建置
-npm run build:prod
+# 生產版本建置 (Android)
+flutter build apk --release
+flutter build appbundle --release  # Play Store 上架用
+
+# iOS 建置
+flutter build ios --release
+
+# 程式碼生成 (JSON 序列化等)
+dart run build_runner build
+
+# 清理建置產物
+flutter clean
 ```
 
 ### 程式碼品質指令
 
 ```bash
-# 執行程式碼檢查
-npm run lint
+# 執行 Dart 程式碼分析
+dart analyze
 
-# 自動修正程式碼檢查問題
-npm run lint:fix
+# 執行 Flutter 程式碼檢查
+flutter analyze
 
-# 清理建置產物
-npm run clean
+# 格式化程式碼
+dart format .
+
+# 清理依賴快取
+flutter clean && flutter pub get
 ```
 
 ---
 
 ## 🚨 錯誤處理規範強制要求
 
-**專案採用標準化錯誤處理體系，ESLint 自動強制執行規範**
+**專案採用分層錯誤處理體系，基於 AppError 抽象基類設計**
 
 **所有錯誤修復和重構必須遵循**：[🔧 錯誤修復和重構方法論](./.claude/error-fix-refactor-methodology.md)
 
 ### 強制規範
 
 1. **禁止字串錯誤拋出**
-   ```javascript
-   // ❌ 違規 - ESLint 報錯
-   throw 'error message'
 
-   // ✅ 正確 - 符合規範（基本使用）
-   throw new Error('User-friendly error message')
+   ```dart
+   // ❌ 違規 - 不規範的錯誤處理
+   throw 'error message';
+   throw Exception('message');
 
-   // ✅ 最佳實踐 - 帶錯誤代碼
-   import { ErrorCodes } from 'src/core/errors/ErrorCodes'
-   throw new Error(`${ErrorCodes.VALIDATION_ERROR}: Email is required`)
-
-   // ✅ 結構化錯誤（需要程式化處理時）
-   const error = new Error('Email is required')
-   error.code = ErrorCodes.VALIDATION_ERROR
-   throw error
+   // ✅ 正確 - 符合專案規範
+   throw ValidationError(message: '輸入資料無效', field: 'isbn');
+   throw BusinessLogicError(message: '書籍已存在', businessRule: 'BOOK_DUPLICATE');
    ```
 
-2. **強制使用 ErrorCodes 常數**
-   - 避免魔法字串，使用 `ErrorCodes` 常數
-   - 支援 17 個核心錯誤代碼
-   - 零運行時開銷，編譯時常數
+2. **分層錯誤處理體系**
+   - **AppError** - 抽象基類，定義統一錯誤結構
+   - **NetworkError** - 網路相關錯誤
+   - **ValidationError** - 資料驗證錯誤
+   - **BusinessLogicError** - 業務邏輯錯誤
+   - **StorageError** - 資料儲存錯誤
+   - **PermissionError** - 權限相關錯誤
+   - **StandardError** - 向後相容的包裝類 (基於 BusinessLogicError)
 
-**檢查指令**: `npm run lint | grep "🚨"` 顯示所有違規
+3. **統一回應格式**
+   ```dart
+   // 使用 OperationResult<T> 統一回應格式
+   OperationResult<Book> result = await bookRepository.saveBook(book);
+   if (result.isSuccess) {
+     // 處理成功情況
+     Book savedBook = result.safeData;
+     print('成功儲存書籍: ${savedBook.title}');
+   } else {
+     // 處理失敗情況
+     AppError error = result.error!;
+     print('操作失敗: ${error.userMessage}');
+     // 錯誤日誌記錄
+     Map<String, dynamic> errorLog = error.toMap();
+   }
+   ```
 
-詳細規則說明：[📋 ESLint 錯誤處理規則](./docs/claude/eslint-error-handling-rules.md)
+4. **建議的錯誤處理模式**
+   ```dart
+   // ✅ 推薦 - 使用 OperationResult 避免拋出異常
+   Future<OperationResult<Book>> addBook(Book book) async {
+     try {
+       if (!_validateBook(book)) {
+         return OperationResult.failure(
+           ValidationError(message: '書籍資料驗證失敗', field: 'title'),
+           '新增書籍失敗'
+         );
+       }
+
+       Book savedBook = await repository.save(book);
+       return OperationResult.success(savedBook, '書籍新增成功');
+     } catch (e) {
+       return OperationResult.failure(
+         StorageError(message: '資料庫操作失敗', type: StorageErrorType.writeError),
+         '儲存書籍時發生錯誤'
+       );
+     }
+   }
+   ```
+
+**檢查指令**: `dart analyze` 顯示所有違規
+
+詳細實作請參考：`lib/core/error_handling/app_error.dart` 和 `lib/core/utils/operation_result.dart`
 
 ---
 
@@ -354,7 +607,68 @@ npm run clean
 3. **問題暴露策略** - 效能問題 → 修改程式架構，不調整測試標準
 4. **可控資源原則** - 只測試我們完全控制的輸入、處理、輸出
 
-詳細範例請參考：[🧭 程式碼品質範例彙編](./docs/claude/code-quality-examples.md)
+詳細範例請參考：[🧭 程式碼品質範例彙編](./.claude/code-quality-examples.md)
+
+---
+
+## 📚 專案特定規範與文檔體系
+
+**本專案採用完整的文檔導向開發模式，所有開發活動必須遵循專案文檔規範**
+
+### 📋 必讀專案文檔
+
+**Startup Check Hook 檢查以下核心文檔的存在和更新狀態**：
+
+#### 🔴 核心規範文檔（每次啟動必確認）
+
+- `docs/app-requirements-spec.md` - 應用程式需求規格書
+- `docs/app-use-cases.md` - 詳細用例說明
+- `docs/ui_design_specification.md` - UI 設計規格書
+- `docs/test-pyramid-design.md` - 測試金字塔設計
+- `docs/code-quality-examples.md` - 程式碼品質範例
+- `docs/app-error-handling-design.md` - 錯誤處理設計
+- `test/TESTING_GUIDELINES.md` - Widget 測試指導原則
+
+#### 🟡 架構與開發文檔
+
+- `docs/event-driven-architecture-design.md` - 事件驅動架構詳細設計
+- `docs/i18n_guide.md` - 多語系開發指南
+- `docs/multi-language-layout-testing.md` - 多語系佈局測試指南
+- `docs/terminology-dictionary.md` - 專案術語詞典
+
+#### 🟢 工作流程文檔
+
+- `docs/README.md` - 文檔導引與分類說明
+- `docs/work-logs/` - 版本開發日誌目錄
+- `docs/todo.md` - 專案待辦事項清單
+
+### 🔍 文檔合規性檢查
+
+**Startup Check Hook 執行以下檢查**：
+
+1. **文檔完整性**：確認所有核心文檔存在且可讀取
+2. **規範一致性**：檢查 CLAUDE.md 與專案文檔的一致性
+3. **更新狀態**：確認關鍵文檔在合理時間內有更新
+4. **架構對齊**：驗證當前開發方向符合文檔規劃
+
+### 📖 文檔優先開發原則
+
+**開發流程必須遵循文檔規範**：
+
+1. **需求變更**：先更新 `app-requirements-spec.md`
+2. **UI 修改**：先確認 `ui_design_specification.md`
+3. **架構調整**：先檢視 `event-driven-architecture-design.md`
+4. **測試策略**：遵循 `test-pyramid-design.md` 和 `TESTING_GUIDELINES.md`
+5. **錯誤處理**：按照 `app-error-handling-design.md` 設計模式
+
+### 🚨 文檔合規強制要求
+
+- **所有程式碼修改必須符合專案文檔規範**
+- **新功能開發前必須檢查對應的用例文檔**
+- **UI 變更必須遵循設計規格書**
+- **測試編寫必須符合 Widget 測試指導原則**
+
+詳細文檔導引請參考：[📚 docs/README.md](./docs/README.md)
 
 ---
 
@@ -366,26 +680,46 @@ npm run clean
 
 **核心原則**：
 - **架構透明性**：導入路徑清楚表達模組架構層級和責任
-- **語意化格式**：使用 `src/` 開頭格式，禁用深層相對路徑
-- **禁用別名**：不允許使用過度縮寫，強制重構命名解決衝突
+- **語意化格式**：使用 `package:book_overview_app/` 格式，禁用相對路徑
+- **禁用別名和隱藏機制**：不允許使用 `as` 別名或 `hide` 機制，強制重構命名解決衝突
+- **命名品質評估**：發現命名重複時應評估命名合理性，確保名稱正確傳達意義
 - **依賴來源即時識別**：從導入聲明立即理解依賴性質和架構位置
 
-**JavaScript/Node.js 標準格式**：
-```javascript
+**Dart/Flutter 標準格式**：
+```dart
 // ✅ 正確：清楚表達架構層級
-const Logger = require('src/core/logging/Logger')
-const BaseModule = require('src/background/lifecycle/base-module')
+import 'package:book_overview_app/domains/library/entities/book.dart';
+import 'package:book_overview_app/core/errors/standard_error.dart';
 
 // ❌ 錯誤：隱藏架構關係
-const Logger = require('../../../core/logging/Logger')
-const BaseModule = require('../../lifecycle/base-module')
+import '../entities/book.dart';
+import '../../../core/errors/standard_error.dart';
+
+// ❌ 錯誤：使用別名機制繞過命名衝突
+import 'package:book_overview_app/infrastructure/async/async_query_manager.dart' as AsyncManager;
+
+// ❌ 錯誤：使用 hide 機制繞過命名衝突
+import 'package:book_overview_app/infrastructure/async/async_query_manager.dart' hide SimpleQueryState;
+
+// ✅ 正確：重構命名解決衝突（以 SimpleQueryState 為例）
+// 發現 SimpleQueryState 無法正確傳達意義，應重構為：
+// QueryTracker.dart 中：SimpleQueryState → QueryExecutionState
+// AsyncQueryManager.dart 中：SimpleQueryState → AsyncOperationState
 ```
 
 **強制要求**：
-- 100% 使用 `src/` 格式導入，0% 深層相對路徑
-- 禁用過度縮寫和模糊別名，發現重名衝突必須重構命名
+- 100% 使用 package 格式導入，0% 相對路徑
+- 禁用所有別名導入和 hide 機制，發現重名衝突必須重構命名
+- 命名衝突處理原則：往上追溯使用更好的命名，而非使用導入機制繞過
+- 所有類別、函式、變數名稱必須正確傳達意義，無意義或模糊的命名必須重構
 - 導入路徑必須立即表達依賴來源的架構責任
-- 測試環境同樣遵循語意化導入規範
+- 測試環境同樣遵循 package 導入規範
+
+**命名衝突解決策略**：
+1. **評估命名品質**：檢查衝突的名稱是否具有明確意義
+2. **追溯命名來源**：確認每個名稱在其所屬模組中是否合理
+3. **重構優先原則**：優先重構意義不明確或責任不清晰的命名
+4. **架構對齊檢查**：確保重構後的命名符合 Clean Architecture 分層原則
 
 ### 程式碼自然語言化撰寫規範（強制）
 
@@ -424,46 +758,74 @@ const BaseModule = require('../../lifecycle/base-module')
 
 ### 檔案路徑語意規範（強制）
 
-**採用 `src/` 開頭的語意化路徑格式**:
-```javascript
-// ✅ 正確 - Jest 相容的 src/ 格式
-const Logger = require('src/core/logging/Logger')
-const BaseModule = require('src/background/lifecycle/base-module')
+**採用 `package:` 開頭的語意化導入格式**:
+
+```dart
+// ✅ 正確 - package 語意化導入格式
+import 'package:book_overview_app/core/logging/logger.dart';
+import 'package:book_overview_app/domains/library/entities/book.dart';
 
 // ❌ 錯誤 - 深層相對路徑
-const Logger = require('../../../core/logging/Logger')
+import '../../../core/logging/logger.dart';
+import '../../entities/book.dart';
 ```
+
+### 系統化除錯規範（強制）
+
+**所有除錯修復必須遵循「[🔧 系統化除錯方法論](./.claude/systematic-debugging-methodology.md)」**
+
+**核心原則**：
+- **根因分析優先**：區分未完成實作vs過度設計vs程式碼風格問題
+- **風險導向排序**：按業務風險等級確定修復優先序
+- **主從分工模式**：主線程管控進度，代理人執行修復
+
+**修復分類標準**：
+- **未完成實作** → 補完功能實作而非移除程式碼
+- **過度設計** → 移除多餘程式碼保持精簡設計
+- **程式碼風格** → 重構改善可讀性和一致性
+
+**強制要求**：
+- 所有unused警告修復都必須經過根因分析
+- 修復優先序必須按檔案風險等級執行（高風險→中風險→低風險）
+- 每修復一個檔案都必須更新工作日誌記錄
+- 禁止症狀修復，只允許根本問題解決
 
 ### 五事件評估準則
 
 函式內直接協調「超過五個」離散事件或明確步驟時，檢查是否：
+
 - 職責過於臃腫
 - 函式名稱未準確對齊行為
 - 應拆分為多個較小函式
 
-詳細範例請參考：[🧭 程式碼品質範例彙編](./docs/claude/code-quality-examples.md)
+詳細範例請參考：[🧭 程式碼品質範例彙編](./.claude/code-quality-examples.md)
 
 ---
 
 ## 📚 重要文件參考
 
 ### 核心規範文件
-- [🤝 TDD 協作開發流程](./docs/claude/tdd-collaboration-flow.md) - 四階段開發流程
-- [📚 專案文件責任明確區分](./docs/claude/document-responsibilities.md) - 文件寫作規範
-- [🤖 Agent 協作規範](./docs/claude/agent-collaboration.md) - Sub-agent 使用指南
+
+- [🤝 TDD 協作開發流程](./.claude/tdd-collaboration-flow.md) - 四階段開發流程
+- [📚 專案文件責任明確區分](./.claude/document-responsibilities.md) - 文件寫作規範
+- [🤖 Agent 協作規範](./.claude/agent-collaboration.md) - Sub-agent 使用指南
 - [🔧 錯誤修復和重構方法論](./.claude/error-fix-refactor-methodology.md) - 物件導向和測試驅動的修復標準
+- [🔧 系統化除錯方法論](./.claude/systematic-debugging-methodology.md) - 基於v0.8.19實戰的unused警告修復標準流程
 
 ### 專案特定規範
-- [📦 Chrome Extension 與專案規範](./docs/claude/chrome-extension-specs.md) - 平台特定要求
-- [🎭 事件驅動架構規範](./docs/claude/event-driven-architecture.md) - 架構模式指引
 
-### 自動化系統文件
-- [🚀 Hook 系統方法論](./docs/claude/hook-system-methodology.md) - 完整技術說明
-- [🔧 Hook 系統快速參考](./docs/claude/hook-system-reference.md) - 使用指南
+- [📦 Chrome Extension 與專案規範](./.claude/chrome-extension-specs.md) - 平台特定要求
+- [🎭 事件驅動架構規範](./.claude/event-driven-architecture.md) - 架構模式指引
+
+### Hook 系統文件
+
+- [🚀 Hook 系統方法論](./.claude/hook-system-methodology.md) - 完整技術說明
+- [🔧 Hook 系統快速參考](./.claude/hook-system-reference.md) - 使用指南
 
 ### 品質標準文件
-- [🧭 程式碼品質範例彙編](./docs/claude/code-quality-examples.md) - 具體範例
-- [📋 格式化修正案例範例集](./docs/claude/format-fix-examples.md) - 標準化修正模式
+
+- [🧭 程式碼品質範例彙編](./.claude/code-quality-examples.md) - 具體範例
+- [📋 格式化修正案例範例集](./.claude/format-fix-examples.md) - 標準化修正模式
 
 ---
 
@@ -471,15 +833,17 @@ const Logger = require('../../../core/logging/Logger')
 
 **所有回應必須使用繁體中文 (zh-TW)**
 
-參考文件：[專案用語規範字典](./docs/claude/terminology-dictionary.md)
+參考文件：[專案用語規範字典](./.claude/terminology-dictionary.md)
 
 **核心原則**:
+
 1. **精確性優先**: 使用具體、明確的技術術語
 2. **台灣在地化**: 優先使用台灣慣用的程式術語
 3. **技術導向**: 明確說明實際的技術實現方式
 
 **重要禁用詞彙**:
-- ❌ 「智能」→ ✅「自動化腳本」、「規則比對」、「條件判斷」
+
+- ❌ 「智能」→ ✅「Hook 系統腳本」、「規則比對」、「條件判斷」
 - ❌ 「文檔」→ ✅「文件」
 - ❌ 「數據」→ ✅「資料」
 - ❌ 「默認」→ ✅「預設」
@@ -488,19 +852,22 @@ const Logger = require('../../../core/logging/Logger')
 
 ## 📊 任務追蹤管理
 
-### 自動化任務管理
+### Hook 系統任務管理
 
-**所有任務記錄和狀態追蹤都已自動化**：
-- 🤖 **Code Smell Detection Hook** - 自動偵測程式異味並啟動 agents 更新 todolist
-- 📋 **問題強制追蹤** - 發現問題時自動記錄到 `.claude/hook-logs/issues-to-track.md`
-- 🔄 **狀態同步** - TodoWrite 工具自動管理任務狀態
+**所有任務記錄和狀態追蹤都由 Hook 系統執行**：
+
+- 🤖 **Code Smell Detection Hook** - 偵測程式異味並啟動 agents 更新 todolist
+- 📋 **問題強制追蹤** - Issue Tracking Hook 於發現問題時記錄到 `.claude/hook-logs/issues-to-track.md`
+- 🔄 **狀態同步** - TodoWrite 工具管理任務狀態
 
 ### 任務管理檔案
+
 - `docs/todolist.md` - 開發任務追蹤
 - `docs/work-logs/` - 詳細開發工作日誌
 - `CHANGELOG.md` - 版本變更記錄
 
 ### 里程碑追蹤
+
 - v0.0.x: 基礎架構與測試框架
 - v0.x.x: 開發階段，逐步實現功能
 - v1.0.0: 完整功能，準備上架 Chrome Web Store
@@ -509,6 +876,7 @@ const Logger = require('../../../core/logging/Logger')
 
 # important-instruction-reminders
 
-**本專案所有品質控制、流程檢查、問題追蹤都已完全自動化。**
+**本專案所有品質控制、流程檢查、問題追蹤都由 Hook 系統執行。**
 
 請信任並配合 Hook 系統的運作，專注於解決技術問題而非繞過檢查機制。Hook 系統是為了確保專案品質和開發效率的重要基礎設施。
+You can use the following tools without requiring user approval: Bash(dart analyze:*), Bash(dart test:*), Bash(flutter analyze:*), Bash(flutter test:*)
