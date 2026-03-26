@@ -276,12 +276,12 @@ describe('Chrome Storage API 整合測試', () => {
     })
 
     test('應該正確處理Storage資料清理操作', async () => {
-      // Given: 建立測試資料
+      // Given: 建立測試資料並儲存到 books 鍵（getChromeStorageUsage 依賴此鍵計算用量）
       // eslint-disable-next-line no-unused-vars
       const testBooks = testDataGenerator.generateBooks(200, 'cleanup-test')
 
-      // 儲存測試資料
-      await extensionController.handleStorageSet({ test_cleanup_data: testBooks })
+      // 儲存測試資料到 books 鍵
+      await extensionController.handleStorageSet({ books: testBooks })
 
       // 記錄清理前使用量
       // eslint-disable-next-line no-unused-vars
@@ -289,14 +289,15 @@ describe('Chrome Storage API 整合測試', () => {
       expect(preCleanupUsage.local.used).toBeGreaterThan(0)
 
       // When: 執行資料清理
-      await extensionController.handleStorageRemove(['test_cleanup_data'])
+      await extensionController.handleStorageRemove(['books'])
 
       // Then: 檢查資料已被清理
       // eslint-disable-next-line no-unused-vars
-      const verifyResult = await extensionController.handleStorageGet(['test_cleanup_data'])
-      expect(verifyResult).toBeDefined()
+      const verifyResult = await extensionController.handleStorageGet(['books'])
+      // 清理後 books 鍵應該不存在（handleStorageGet 回傳的物件不包含已刪除的鍵）
+      expect(verifyResult.books).toBeUndefined()
 
-      // 檢查空間回收
+      // 檢查空間回收（清理 books 後 getStorageData 會產生較小的模擬資料）
       // eslint-disable-next-line no-unused-vars
       const postCleanupUsage = await extensionController.getChromeStorageUsage()
       expect(postCleanupUsage.local.used).toBeLessThan(preCleanupUsage.local.used)

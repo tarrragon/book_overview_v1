@@ -382,43 +382,37 @@ describe('🎭 事件處理器基底類別測試', () => {
   describe('🔧 預設方法實現', () => {
     test('預設的beforeHandle應該記錄日誌', async () => {
       // Arrange
-      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler()
-      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.event.started', data: {} }
-      // eslint-disable-next-line no-unused-vars
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
+      const loggerSpy = jest.spyOn(handler.logger, 'info').mockImplementation(() => {})
 
       // Act
       await handler.beforeHandle(mockEvent)
 
       // Assert
-      // Logger 結構化輸出，不再直接呼叫 console.log
-      expect(consoleSpy).toHaveBeenCalled()
+      // Logger 結構化輸出，透過 logger.info 記錄而非 console.log
+      expect(loggerSpy).toHaveBeenCalledWith('EVENT_PROCESSING_START', { eventType: 'test.event.started' })
 
       // Cleanup
-      consoleSpy.mockRestore()
+      loggerSpy.mockRestore()
     })
 
     test('預設的afterHandle應該記錄完成日誌', async () => {
       // Arrange
-      // eslint-disable-next-line no-unused-vars
       const handler = new ConcreteHandler()
-      // eslint-disable-next-line no-unused-vars
       const mockEvent = { type: 'test.event.completed', data: {} }
-      // eslint-disable-next-line no-unused-vars
       const result = 'test-result'
-      // eslint-disable-next-line no-unused-vars
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
+      const loggerSpy = jest.spyOn(handler.logger, 'info').mockImplementation(() => {})
 
       // Act
       await handler.afterHandle(mockEvent, result)
 
       // Assert
-      expect(consoleSpy).toHaveBeenCalled()
+      // Logger 結構化輸出，透過 logger.info 記錄而非 console.log
+      expect(loggerSpy).toHaveBeenCalledWith('EVENT_PROCESSING_COMPLETE', { eventType: 'test.event.completed' })
 
       // Cleanup
-      consoleSpy.mockRestore()
+      loggerSpy.mockRestore()
     })
 
     test('預設的onError應該記錄錯誤日誌', async () => {

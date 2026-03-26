@@ -169,17 +169,13 @@ describe('SearchEngine - TDD 循環 2/8', () => {
         // eslint-disable-next-line no-unused-vars
         const _engine = new SearchEngine()
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toMatchObject({
-        message: expect.stringContaining('IndexManager、EventBus 和 Logger 是必需的')
-      })
+      }).toThrow('IndexManager、EventBus 和 Logger 是必需的')
 
       expect(() => {
         // eslint-disable-next-line no-unused-vars
         const _engine = new SearchEngine({ indexManager: mockIndexManager })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toMatchObject({
-        message: expect.stringContaining('IndexManager、EventBus 和 Logger 是必需的')
-      })
+      }).toThrow('IndexManager、EventBus 和 Logger 是必需的')
 
       expect(() => {
         // eslint-disable-next-line no-unused-vars
@@ -188,9 +184,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
           eventBus: mockEventBus
         })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toMatchObject({
-        message: expect.stringContaining('IndexManager、EventBus 和 Logger 是必需的')
-      })
+      }).toThrow('IndexManager、EventBus 和 Logger 是必需的')
     })
 
     test('應該正確初始化搜尋配置', () => {

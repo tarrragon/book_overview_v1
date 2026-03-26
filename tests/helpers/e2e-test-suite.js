@@ -1367,7 +1367,9 @@ class E2ETestSuite {
   async createNewTab (url = 'about:blank') {
     this.log(`創建新標籤頁: ${url}`)
 
-    const tabId = (Date.now() % 10000) + 1000 // 確定性TabID生成
+    if (!this._tabIdCounter) { this._tabIdCounter = 0 }
+    this._tabIdCounter++
+    const tabId = (Date.now() % 10000) + 1000 + this._tabIdCounter // 確定性TabID生成，使用計數器避免重複
     const tab = {
       id: tabId,
       url,
@@ -1568,6 +1570,32 @@ class E2ETestSuite {
     } catch (error) {
       this.logError(error, 'searchOverviewBooks')
       throw (() => { const err = new Error(`書籍搜尋失敗: ${error.message}`); err.code = ErrorCodes.TEST_EXECUTION_ERROR; err.details = { category: 'testing' }; return err })()
+    }
+  }
+
+  /**
+   * 篩選 Overview 頁面書籍
+   * @param {Object} filterOptions - 篩選選項
+   * @returns {Object} 篩選結果
+   */
+  async filterOverviewBooks (filterOptions = {}) {
+    const { progressRange } = filterOptions
+    const allBooks = this.testData.books || []
+
+    let filteredBooks = allBooks
+    if (progressRange) {
+      filteredBooks = allBooks.filter(book =>
+        book.progress >= (progressRange.min || 0) &&
+        book.progress <= (progressRange.max || 100)
+      )
+    }
+
+    return {
+      success: true,
+      filteredCount: filteredBooks.length,
+      displayedBooks: filteredBooks,
+      filterOptions,
+      timestamp: Date.now()
     }
   }
 

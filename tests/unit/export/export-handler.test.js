@@ -86,7 +86,8 @@ jest.mock('../../../src/core/event-handler', () => {
     }
 
     getSupportedEvents () {
-      throw (() => { const error = new Error('getSupportedEvents method must be implemented by subclass'); error.code = ErrorCodes.METHOD_NOT_IMPLEMENTED; return error })()
+      const { ErrorCodes: EC } = require('src/core/errors/ErrorCodes')
+      throw (() => { const error = new Error('getSupportedEvents method must be implemented by subclass'); error.code = EC.METHOD_NOT_IMPLEMENTED; return error })()
     }
 
     setEnabled (enabled) {

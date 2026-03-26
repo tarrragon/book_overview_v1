@@ -29,40 +29,123 @@ class ValidationEngine {
     return { valid: true, errors: [] }
   }
 
-  validateSingleBook (book) {
+  async validateSingleBook (book, platform, source) {
+    if (book === null || book === undefined) {
+      const error = new Error('Invalid input: book is null or undefined')
+      error.code = 'INVALID_INPUT_ERROR'
+      error.details = { input: book, platform, source }
+      throw error
+    }
+    if (!platform) {
+      const error = new Error('Invalid input: platform is empty')
+      error.code = 'TEST_ERROR'
+      error.details = { input: book, platform, source }
+      throw error
+    }
+    if (source === undefined) {
+      const error = new Error('Invalid input: source is undefined')
+      error.code = 'TEST_ERROR'
+      error.details = { input: book, platform, source }
+      throw error
+    }
+
+    const startTime = Date.now()
+    const rules = this.platformRuleManager
+      ? this.platformRuleManager.getRulesForPlatform(platform)
+      : {}
+
+    const validation = {
+      book,
+      results: {
+        requiredFields: { passed: true, errors: [] },
+        dataTypes: { passed: true, errors: [] },
+        businessRules: { passed: true, errors: [] }
+      }
+    }
+
+    if (rules) {
+      this.validateRequiredFields(validation, rules)
+      this.validateDataTypes(validation, rules)
+      this.validateBusinessRules(validation, rules)
+    }
+
+    const allErrors = [
+      ...validation.results.requiredFields.errors,
+      ...validation.results.dataTypes.errors,
+      ...validation.results.businessRules.errors
+    ]
+
+    const isValid = allErrors.length === 0
+
     return {
-      valid: true,
-      errors: [],
+      isValid,
+      bookId: book.id,
+      platform,
+      validationResults: validation.results,
       warnings: [],
-      validatedFields: ['id', 'title', 'author']
+      errors: allErrors,
+      processingTime: Date.now() - startTime
     }
   }
 
-  validateRequiredFields (book) {
-    // eslint-disable-next-line no-unused-vars
-    const requiredFields = ['id', 'title', 'author']
-    // eslint-disable-next-line no-unused-vars
-    const missing = requiredFields.filter(field => !book[field])
-    return {
-      valid: missing.length === 0,
-      missingFields: missing,
-      presentFields: requiredFields.filter(field => book[field])
+  validateRequiredFields (validation, rules) {
+    if (!rules.requiredFields) return
+    for (const field of rules.requiredFields) {
+      if (!validation.book[field]) {
+        validation.results.requiredFields.passed = false
+        validation.results.requiredFields.errors.push({
+          type: 'MISSING_REQUIRED_FIELD',
+          field
+        })
+      }
     }
   }
 
-  validateDataTypes (book) {
-    return {
-      valid: true,
-      typeErrors: [],
-      validatedFields: Object.keys(book)
+  validateDataTypes (validation, rules) {
+    if (!rules.dataTypes) return
+    for (const [field, expectedType] of Object.entries(rules.dataTypes)) {
+      if (validation.book[field] === undefined) continue
+      const actualValue = validation.book[field]
+      let actualType = typeof actualValue
+      if (Array.isArray(actualValue)) actualType = 'array'
+
+      if (actualType !== expectedType) {
+        validation.results.dataTypes.passed = false
+        validation.results.dataTypes.errors.push({
+          type: 'TYPE_MISMATCH',
+          field,
+          expected: expectedType,
+          actual: actualType
+        })
+      }
     }
   }
 
-  validateBusinessRules (book) {
-    return {
-      valid: true,
-      ruleViolations: [],
-      appliedRules: ['title_length', 'author_format']
+  validateBusinessRules (validation, rules) {
+    if (!rules.businessRules) return
+    const book = validation.book
+
+    if (rules.businessRules.titleMinLength !== undefined) {
+      if (book.title !== undefined && book.title.length < rules.businessRules.titleMinLength) {
+        validation.results.businessRules.passed = false
+        validation.results.businessRules.errors.push({
+          type: 'BUSINESS_RULE_VIOLATION',
+          rule: 'titleMinLength',
+          field: 'title'
+        })
+      }
+    }
+
+    if (rules.businessRules.progressRange) {
+      const [min, max] = rules.businessRules.progressRange
+      if (book.progress !== undefined && (book.progress < min || book.progress > max)) {
+        validation.results.businessRules.passed = false
+        validation.results.businessRules.errors.push({
+          type: 'BUSINESS_RULE_VIOLATION',
+          rule: 'progressRange',
+          field: 'progress'
+        })
+      }
     }
   }
 

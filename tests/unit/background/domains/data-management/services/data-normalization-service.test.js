@@ -463,9 +463,9 @@ describe('DataNormalizationService - 資料正規化服務', () => {
       expect(() => {
         // eslint-disable-next-line no-new
         new DataNormalizationService()
-      }).toMatchObject({
+      }).toThrow(expect.objectContaining({
         message: expect.stringContaining('EventBus is required')
-      })
+      }))
     })
 
     test('應該處理正規化過程中的錯誤', async () => {

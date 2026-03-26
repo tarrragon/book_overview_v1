@@ -127,17 +127,13 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
         // eslint-disable-next-line no-unused-vars
         const _manager = new SearchIndexManager()
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toMatchObject({
-        message: expect.stringContaining('EventBus 和 Logger 是必需的')
-      })
+      }).toThrow('EventBus 和 Logger 是必需的')
 
       expect(() => {
         // eslint-disable-next-line no-unused-vars
         const _manager = new SearchIndexManager({ eventBus: mockEventBus })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toMatchObject({
-        message: expect.stringContaining('EventBus 和 Logger 是必需的')
-      })
+      }).toThrow('EventBus 和 Logger 是必需的')
     })
 
     test('應該正確初始化統計資料', () => {
@@ -439,9 +435,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
       expect(() => {
         indexManager.buildIndex(largeBookArray)
-      }).toMatchObject({
-        message: expect.stringContaining('記憶體不足')
-      })
+      }).toThrow('記憶體不足')
 
       // 檢查錯誤事件是否被發送
       expect(mockEventBus.emit).toHaveBeenCalledWith('SEARCH.WARNING', expect.objectContaining({
@@ -614,10 +608,9 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
     })
 
     test('索引操作過程中發生錯誤時應該正確處理', () => {
-      // 使用 spy 來模擬 Map 操作錯誤，而不是修改 prototype
-      // eslint-disable-next-line no-unused-vars
-      const mapSetSpy = jest.spyOn(Map.prototype, 'set').mockImplementation(() => {
-        // eslint-disable-next-line no-unused-vars
+      // 模擬索引內部 Map 的 set 方法拋出錯誤，避免影響全域 Map.prototype
+      const originalSet = indexManager.titleIndex.set.bind(indexManager.titleIndex)
+      indexManager.titleIndex.set = jest.fn().mockImplementation(() => {
         const error = new Error('索引操作失敗')
         error.code = ErrorCodes.SYSTEM_ERROR
         error.details = { category: 'testing' }
@@ -626,15 +619,13 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
       expect(() => {
         indexManager.buildIndex(mockBooks)
-      }).toMatchObject({
-        message: expect.stringContaining('索引操作失敗')
-      })
+      }).toThrow('索引操作失敗')
 
       // 檢查錯誤是否被記錄
       expect(mockLogger.error).toHaveBeenCalled()
 
-      // 復原 spy
-      mapSetSpy.mockRestore()
+      // 復原
+      indexManager.titleIndex.set = originalSet
     })
   })
 

@@ -899,7 +899,7 @@ describe('SearchUIController', () => {
         // eslint-disable-next-line no-unused-vars
         const mockEvent = { target: { value: 'test' } }
         searchUIController.handleSearchInput(mockEvent)
-      }).toMatchObject(expect.objectContaining({ message: 'SearchUIController 已被清理' }))
+      }).toThrow('SearchUIController 已被清理')
     })
   })
 

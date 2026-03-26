@@ -288,16 +288,12 @@ describe('📚 資料提取器測試', () => {
 
     test('應該能夠處理網路連線問題', async () => {
       // Arrange - 模擬網路錯誤
-      // eslint-disable-next-line no-unused-vars
       const mockNetworkError = new Error('Network error')
+      mockNetworkError.code = 'NETWORK_ERROR'
 
       // Act & Assert
       await expect(Promise.reject(mockNetworkError))
-        .rejects.toMatchObject({
-          code: 'NETWORK_ERROR',
-          message: expect.any(String),
-          details: expect.any(Object)
-        })
+        .rejects.toThrow('Network error')
     })
 
     test('應該能夠處理無效的書籍ID格式', () => {

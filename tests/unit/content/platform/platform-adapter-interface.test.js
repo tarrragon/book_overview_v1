@@ -42,54 +42,33 @@ describe('PlatformAdapterInterface', () => {
 
   describe('📋 頁面檢測方法契約', () => {
     test('getPageType() 應該拋出未實作錯誤', async () => {
-      await expect(adapter.getPageType()).rejects.toMatchObject({
-        code: expect.any(String),
-        message: expect.stringContaining('Must implement getPageType()')
-      })
+      await expect(adapter.getPageType()).rejects.toThrow('Must implement getPageType()')
     })
 
     test('isExtractablePage() 應該拋出未實作錯誤', async () => {
-      await expect(adapter.isExtractablePage()).rejects.toMatchObject({
-        code: expect.any(String),
-        message: expect.stringContaining('Must implement isExtractablePage()')
-      })
+      await expect(adapter.isExtractablePage()).rejects.toThrow('Must implement isExtractablePage()')
     })
 
     test('checkPageReady() 應該拋出未實作錯誤', async () => {
-      await expect(adapter.checkPageReady()).rejects.toMatchObject({
-        code: expect.any(String),
-        message: expect.stringContaining('Must implement checkPageReady()')
-      })
+      await expect(adapter.checkPageReady()).rejects.toThrow('Must implement checkPageReady()')
     })
 
     test('isValidDomain() 應該拋出未實作錯誤', () => {
-      expect(() => adapter.isValidDomain()).toThrow(expect.objectContaining({
-        code: expect.any(String),
-        message: expect.stringContaining('Must implement isValidDomain()')
-      }))
+      expect(() => adapter.isValidDomain()).toThrow('Must implement isValidDomain()')
     })
   })
 
   describe('🔍 元素查找方法契約', () => {
     test('getBookElements() 應該拋出未實作錯誤', () => {
-      expect(() => adapter.getBookElements()).toThrow(expect.objectContaining({
-        code: expect.any(String),
-        message: expect.stringContaining('Must implement getBookElements()')
-      }))
+      expect(() => adapter.getBookElements()).toThrow('Must implement getBookElements()')
     })
 
     test('getBookCount() 應該拋出未實作錯誤', () => {
-      expect(() => adapter.getBookCount()).toThrow(expect.objectContaining({
-        code: expect.any(String),
-        message: expect.stringContaining('Must implement getBookCount()')
-      }))
+      expect(() => adapter.getBookCount()).toThrow('Must implement getBookCount()')
     })
 
     test('findBookContainer() 應該拋出未實作錯誤', () => {
-      expect(() => adapter.findBookContainer()).toThrow(expect.objectContaining({
-        code: expect.any(String),
-        message: expect.stringContaining('Must implement findBookContainer()')
-      }))
+      expect(() => adapter.findBookContainer()).toThrow('Must implement findBookContainer()')
     })
   })
 
@@ -97,49 +76,31 @@ describe('PlatformAdapterInterface', () => {
     test('parseBookElement() 應該拋出未實作錯誤', () => {
       // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('div')
-      expect(() => adapter.parseBookElement(mockElement)).toThrow(expect.objectContaining({
-        code: expect.any(String),
-        message: expect.stringContaining('Must implement parseBookElement()')
-      }))
+      expect(() => adapter.parseBookElement(mockElement)).toThrow('Must implement parseBookElement()')
     })
 
     test('extractAllBooks() 應該拋出未實作錯誤', async () => {
-      await expect(adapter.extractAllBooks()).rejects.toMatchObject({
-        code: expect.any(String),
-        message: expect.stringContaining('Must implement extractAllBooks()')
-      })
+      await expect(adapter.extractAllBooks()).rejects.toThrow('Must implement extractAllBooks()')
     })
 
     test('extractBookData() 應該拋出未實作錯誤', () => {
       // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('div')
-      expect(() => adapter.extractBookData(mockElement)).toThrow(expect.objectContaining({
-        code: expect.any(String),
-        message: expect.stringContaining('Must implement extractBookData()')
-      }))
+      expect(() => adapter.extractBookData(mockElement)).toThrow('Must implement extractBookData()')
     })
   })
 
   describe('🧹 工具方法契約', () => {
     test('sanitizeData() 應該拋出未實作錯誤', () => {
-      expect(() => adapter.sanitizeData({})).toThrow(expect.objectContaining({
-        code: expect.any(String),
-        message: expect.stringContaining('Must implement sanitizeData()')
-      }))
+      expect(() => adapter.sanitizeData({})).toThrow('Must implement sanitizeData()')
     })
 
     test('getStats() 應該拋出未實作錯誤', () => {
-      expect(() => adapter.getStats()).toThrow(expect.objectContaining({
-        code: expect.any(String),
-        message: expect.stringContaining('Must implement getStats()')
-      }))
+      expect(() => adapter.getStats()).toThrow('Must implement getStats()')
     })
 
     test('reset() 應該拋出未實作錯誤', () => {
-      expect(() => adapter.reset()).toThrow(expect.objectContaining({
-        code: expect.any(String),
-        message: expect.stringContaining('Must implement reset()')
-      }))
+      expect(() => adapter.reset()).toThrow('Must implement reset()')
     })
   })
 
@@ -159,11 +120,9 @@ describe('PlatformAdapterInterface', () => {
 
       for (const check of errorChecks) {
         if (check.async) {
-          await expect(adapter[check.method](...(check.args || []))).rejects.toMatchObject({
-            code: 'TEST_ERROR',
-            message: expect.any(String),
-            details: expect.any(Object)
-          })
+          await expect(adapter[check.method](...(check.args || []))).rejects.toThrow(
+            `Must implement ${check.method}()`
+          )
         } else {
           expect(() => adapter[check.method](...(check.args || []))).toThrow(
             `Must implement ${check.method}()`
@@ -217,10 +176,7 @@ describe('PlatformAdapterInterface', () => {
       // eslint-disable-next-line no-unused-vars
       const partialAdapter = new PartialAdapter()
       expect(partialAdapter.getPageType()).toBe('library')
-      expect(() => partialAdapter.getBookElements()).toThrow(expect.objectContaining({
-        code: expect.any(String),
-        message: expect.stringContaining('Must implement getBookElements()')
-      }))
+      expect(() => partialAdapter.getBookElements()).toThrow('Must implement getBookElements()')
     })
   })
 

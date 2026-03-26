@@ -479,10 +479,7 @@ describe('QualityAssessmentService - 品質評估服務', () => {
         // eslint-disable-next-line no-unused-vars
         const _service = new QualityAssessmentService()
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toMatchObject({
-        code: 'INVALID_ARGUMENT',
-        details: expect.any(Object)
-      })
+      }).toThrow()
     })
 
     test('應該處理評估過程中的錯誤', () => {

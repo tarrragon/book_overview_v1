@@ -215,9 +215,7 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
 
     test('應該檢查儲存配額', async () => {
       mockChromeStorage.local.getBytesInUse.mockImplementation((keys, callback) => {
-        // eslint-disable-next-line no-unused-vars
-        const error = null
-        setTimeout(() => callback && callback(error, 524288), 0) // 0.5MB
+        setTimeout(() => callback && callback(524288), 0) // 0.5MB
       })
 
       // eslint-disable-next-line no-unused-vars
@@ -231,9 +229,7 @@ describe('ChromeStorageAdapter - Core Functionality', () => {
 
     test('應該偵測配額接近限制', async () => {
       mockChromeStorage.local.getBytesInUse.mockImplementation((keys, callback) => {
-        // eslint-disable-next-line no-unused-vars
-        const error = null
-        setTimeout(() => callback && callback(error, 943718), 0) // 90%
+        setTimeout(() => callback && callback(943718), 0) // 90%
       })
 
       // eslint-disable-next-line no-unused-vars

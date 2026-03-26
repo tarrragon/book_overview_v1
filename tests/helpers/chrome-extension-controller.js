@@ -4165,21 +4165,25 @@ class ChromeExtensionController {
         // 模擬訊息發送
         await this.simulateDelay(100)
 
-        // 模擬成功/失敗 - 根據重試策略調整成功率
-        let successRate
+        // 模擬成功/失敗 - 根據重試策略決定何時成功（確定性行為）
+        let success
         switch (retryStrategy) {
           case 'exponential_backoff':
-            // 指數退避需要更多重試來達到 >2000ms
-            successRate = attempt <= 2 ? 0 : 0.8 // 前2次必定失敗，第3次後有80%成功率
+            // 指數退避：前2次失敗，第3次成功
+            success = attempt >= 3
             break
           case 'immediate_retry':
-            successRate = attempt <= 1 ? 0 : 0.9 // 第1次失敗，第2次後高成功率
+            // 立即重試：第1次失敗，第2次成功
+            success = attempt >= 2
+            break
+          case 'linear_backoff':
+            // 線性退避：前2次失敗，第3次成功
+            success = attempt >= 3
             break
           default:
-            successRate = 0.3 // 預設30%成功率
+            // 預設：第2次後成功
+            success = attempt >= 2
         }
-
-        const success = Math.random() < successRate
 
         if (success) {
           return {

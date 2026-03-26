@@ -344,11 +344,7 @@ describe('EventNamingUpgradeCoordinator', () => {
     test('應該拒絕無效的轉換模式', () => {
       expect(() => {
         coordinator.setConversionMode('INVALID_MODE')
-      }).toMatchObject({
-        code: expect.any(String),
-        message: expect.stringContaining('Invalid conversion mode'),
-        details: expect.any(Object)
-      })
+      }).toThrow('Invalid conversion mode')
     })
 
     test('應該提供轉換模式驗證', () => {
