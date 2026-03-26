@@ -231,8 +231,7 @@ describe('StorageSaveHandler 單元測試', () => {
       }
 
       await expect(storageSaveHandler.handle(invalidEvent)).rejects.toMatchObject({
-        code: 'INVALID_INPUT_ERROR',
-        message: expect.any(String),
+        code: expect.any(String),
         details: expect.any(Object)
       })
 

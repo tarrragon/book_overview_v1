@@ -356,7 +356,58 @@ class Logger {
 
     this._consoleOutput(level, logEntry)
   }
+
+  /**
+   * 靜態方法 - 使用預設全域實例記錄除錯訊息
+   * @param {string} messageKey - 訊息鍵值或直接訊息
+   * @param {Object} data - 額外資料
+   */
+  static debug (messageKey, data = {}) {
+    Logger._getDefaultInstance().direct('DEBUG', messageKey, typeof data === 'object' ? data : {})
+  }
+
+  /**
+   * 靜態方法 - 使用預設全域實例記錄資訊訊息
+   * @param {string} messageKey - 訊息鍵值或直接訊息
+   * @param {Object} data - 額外資料
+   */
+  static info (messageKey, data = {}) {
+    Logger._getDefaultInstance().direct('INFO', messageKey, typeof data === 'object' ? data : {})
+  }
+
+  /**
+   * 靜態方法 - 使用預設全域實例記錄警告訊息
+   * @param {string} messageKey - 訊息鍵值或直接訊息
+   * @param {Object} data - 額外資料
+   */
+  static warn (messageKey, data = {}) {
+    Logger._getDefaultInstance().direct('WARN', messageKey, typeof data === 'object' ? data : {})
+  }
+
+  /**
+   * 靜態方法 - 使用預設全域實例記錄錯誤訊息
+   * @param {string} messageKey - 訊息鍵值或直接訊息
+   * @param {Object} data - 額外資料
+   */
+  static error (messageKey, data = {}) {
+    Logger._getDefaultInstance().direct('ERROR', messageKey, typeof data === 'object' ? data : {})
+  }
+
+  /**
+   * 取得預設全域 Logger 實例（懶載入）
+   * @returns {Logger} 預設 Logger 實例
+   * @private
+   */
+  static _getDefaultInstance () {
+    if (!Logger._defaultInstance) {
+      Logger._defaultInstance = new Logger('App', 'DEBUG')
+    }
+    return Logger._defaultInstance
+  }
 }
+
+// 預設實例快取
+Logger._defaultInstance = null
 
 // 匯出類別
 if (typeof module !== 'undefined' && module.exports) {

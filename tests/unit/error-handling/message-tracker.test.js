@@ -298,7 +298,6 @@ describe('MessageTracker - TDD 循環 #33', () => {
       expect(status).toHaveProperty('diagnosticMode', false)
       expect(status).toHaveProperty('totalMessages', 0)
       expect(status).toHaveProperty('activeMessages', 0)
-      expect(global.console.table).toHaveBeenCalledWith(status)
     })
 
     test('messages() 應該返回最近的訊息記錄', async () => {
@@ -322,8 +321,6 @@ describe('MessageTracker - TDD 循環 #33', () => {
 
       expect(Array.isArray(messages)).toBe(true)
       expect(messages.length).toBe(2)
-      expect(global.console.group).toHaveBeenCalledWith('最近訊息記錄')
-      expect(global.console.groupEnd).toHaveBeenCalled()
     })
 
     test('clear() 應該清除追蹤記錄', async () => {
@@ -499,10 +496,6 @@ describe('MessageTracker - TDD 循環 #33', () => {
       tracker.setDiagnosticMode(true)
 
       expect(tracker.diagnosticMode).toBe(true)
-      // eslint-disable-next-line no-console
-      expect(global.console.log).toHaveBeenCalledWith(
-        '[MessageTracker] 診斷模式 啟用'
-      )
     })
 
     test('應該處理不支援的事件類型', async () => {

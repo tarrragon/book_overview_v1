@@ -938,6 +938,16 @@ class PerformanceAssessment {
       }
     }
   }
+  /**
+   * 靜態工廠方法 - 初始化 PerformanceAssessment 實例
+   *
+   * @param {Object} config - 效能評估配置選項
+   * @returns {Promise<PerformanceAssessment>} PerformanceAssessment 實例
+   */
+  static async initialize (config = {}) {
+    const instance = new PerformanceAssessment(config)
+    return instance
+  }
 }
 
 module.exports = PerformanceAssessment

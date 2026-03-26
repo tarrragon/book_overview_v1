@@ -1538,6 +1538,16 @@ class MetricsCollector {
       this.cache.lastUpdated.extension = Date.now()
     }
   }
+  /**
+   * 靜態工廠方法 - 初始化 MetricsCollector 實例
+   *
+   * @param {Object} config - 收集器配置選項
+   * @returns {Promise<MetricsCollector>} MetricsCollector 實例
+   */
+  static async initialize (config = {}) {
+    const instance = new MetricsCollector(config)
+    return instance
+  }
 }
 
 module.exports = MetricsCollector

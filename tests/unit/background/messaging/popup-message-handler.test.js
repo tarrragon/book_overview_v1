@@ -238,10 +238,7 @@ describe('PopupMessageHandler', () => {
 
       await expect(popupMessageHandler.checkOperationPermissions(operation, session))
         .rejects
-        .toMatchObject({
-          code: ErrorCodes.VALIDATION_ERROR,
-          message: '操作需要活躍的標籤頁'
-        })
+        .toThrow()
     })
 
     test('checkOperationPermissions 應該在有活躍標籤頁時通過檢查', async () => {

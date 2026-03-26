@@ -1,4 +1,4 @@
-const Logger = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 /**
  * 事件系統統一化管理器 (Enterprise Event Unification Platform)
  * 負責統一整個系統的事件驅動模式，確保一致性、效能和可維護性

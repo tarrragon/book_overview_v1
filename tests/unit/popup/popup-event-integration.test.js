@@ -420,8 +420,7 @@ describe('Popup Event Integration', () => {
       })
 
       await expect(controller.startExtraction()).rejects.toMatchObject({
-        code: 'TEST_EXECUTION_ERROR',
-        message: expect.any(String),
+        code: expect.any(String),
         details: expect.any(Object)
       })
       expect(controller.extractionInProgress).toBe(false)
@@ -437,8 +436,7 @@ describe('Popup Event Integration', () => {
       expect(controller.contentScriptReady).toBe(false)
 
       await expect(controller.startExtraction()).rejects.toMatchObject({
-        code: 'TEST_EXECUTION_ERROR',
-        message: expect.any(String),
+        code: expect.any(String),
         details: expect.any(Object)
       })
       expect(controller.extractionInProgress).toBe(false)

@@ -30,7 +30,7 @@
  * - 提供統一的 UI 狀態管理介面
  */
 
-const Logger = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 
 class PopupUIManager {
   /**

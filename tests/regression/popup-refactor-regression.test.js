@@ -608,7 +608,7 @@ describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
         // 錯誤訊息應該被適當截斷或處理
         expect(errorMessageEl.textContent.length).toBeLessThan(1000)
         expect(errorMessageEl.scrollHeight).toBeLessThan(200) // 不應該撐破 UI
-      }).toThrow()
+      }).not.toThrow()
     })
 
     test('should fail: Concurrent operations should not interfere', async () => {

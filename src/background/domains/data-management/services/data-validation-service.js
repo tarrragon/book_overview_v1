@@ -28,7 +28,7 @@
  * - 系統定期的資料品質檢查
  */
 
-const Logger = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 const crypto = require('crypto')
 
 // 引入新的錯誤類別系統

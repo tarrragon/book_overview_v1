@@ -1,4 +1,4 @@
-const Logger = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 /**
  * EventErrorHandler - 核心錯誤處理系統
  * TDD 循環 #32: EventErrorHandler 核心錯誤系統

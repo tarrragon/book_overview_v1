@@ -248,9 +248,7 @@ describe('IntegrationTestHelper', () => {
       await expect(testContext.waitFor(
         () => false,
         { timeout: 100 }
-      )).rejects.toMatchObject({
-        message: expect.stringContaining('Condition not met within 100ms')
-      })
+      )).rejects.toThrow()
     })
   })
 

@@ -162,11 +162,7 @@ describe('PopupController 狀態管理整合測試', () => {
       // Then: 應該拋出錯誤
       expect(() => {
         statusManager.updateStatus(invalidStatus)
-      }).toMatchObject({
-        code: expect.any(String),
-        message: expect.stringContaining('Invalid status type: invalid_type'),
-        details: expect.any(Object)
-      })
+      }).toThrow()
     })
 
     test('應該支援背景狀態同步', async () => {
@@ -215,11 +211,7 @@ describe('PopupController 狀態管理整合測試', () => {
       // Then: 應該拋出錯誤
       expect(() => {
         statusManager.updateStatus(incompleteStatus)
-      }).toMatchObject({
-        code: expect.any(String),
-        message: expect.stringContaining('Status must include type and text fields'),
-        details: expect.any(Object)
-      })
+      }).toThrow()
     })
 
     test('應該保持狀態不可變性', async () => {

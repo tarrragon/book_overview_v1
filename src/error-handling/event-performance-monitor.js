@@ -1287,5 +1287,3 @@ class ErrorCodesPerformanceMonitor {
 }
 
 module.exports = { EventPerformanceMonitor, ErrorCodesPerformanceMonitor }
-
-module.exports = EventPerformanceMonitor

@@ -60,13 +60,13 @@ class SchemaMigrationService extends BaseModule {
 
     // 預設配置
     this.config = {
+      ...config,
       migration: {
         batchSize: 100,
         timeoutMs: 30000,
         retryAttempts: 3,
         ...config.migration
-      },
-      ...config
+      }
     }
 
     // 狀態管理

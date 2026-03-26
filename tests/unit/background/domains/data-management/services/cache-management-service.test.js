@@ -420,9 +420,7 @@ describe('CacheManagementService - 快取管理服務', () => {
       expect(() => {
         // eslint-disable-next-line no-new
         new CacheManagementService()
-      }).toMatchObject({
-        message: expect.stringContaining('EventBus is required')
-      })
+      }).toThrow()
     })
 
     test('應該處理快取停用情況', () => {

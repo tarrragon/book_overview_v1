@@ -57,9 +57,7 @@ describe('ChromeStorageAdapter', () => {
           setTimeout(() => callback && callback(), 0)
         }),
         getBytesInUse: jest.fn().mockImplementation((keys, callback) => {
-          // eslint-disable-next-line no-unused-vars
-          const error = null
-          setTimeout(() => callback && callback(error, 0), 0)
+          setTimeout(() => callback && callback(0), 0)
         })
       }
     }
@@ -180,9 +178,7 @@ describe('ChromeStorageAdapter', () => {
 
     test('應該檢查儲存空間使用情況', async () => {
       mockChromeStorage.local.getBytesInUse.mockImplementation((keys, callback) => {
-        // eslint-disable-next-line no-unused-vars
-        const error = null
-        setTimeout(() => callback && callback(error, 1048576), 0) // 1MB
+        setTimeout(() => callback && callback(1048576), 0) // 1MB
       })
 
       // eslint-disable-next-line no-unused-vars
@@ -300,9 +296,9 @@ describe('ChromeStorageAdapter', () => {
     })
 
     test('應該檢查儲存配額', async () => {
-      // 修復：Chrome Storage API getBytesInUse 正確的回調格式
+      // Chrome Storage API getBytesInUse 回調只有一個參數 (bytes)
       mockChromeStorage.local.getBytesInUse.mockImplementation((keys, callback) => {
-        setTimeout(() => callback && callback(null, 524288), 0) // 0.5MB
+        setTimeout(() => callback && callback(524288), 0) // 0.5MB
       })
 
       // eslint-disable-next-line no-unused-vars
@@ -316,9 +312,9 @@ describe('ChromeStorageAdapter', () => {
     })
 
     test('應該偵測配額接近限制', async () => {
-      // 修復：Chrome Storage API getBytesInUse 正確的回調格式
+      // Chrome Storage API getBytesInUse 回調只有一個參數 (bytes)
       mockChromeStorage.local.getBytesInUse.mockImplementation((keys, callback) => {
-        setTimeout(() => callback && callback(null, 943718), 0) // 90% 使用率
+        setTimeout(() => callback && callback(943718), 0) // 90% 使用率
       })
 
       // eslint-disable-next-line no-unused-vars
@@ -331,9 +327,7 @@ describe('ChromeStorageAdapter', () => {
     test('應該拒絕超出配額的儲存', async () => {
       // 修復：使用正確的回調函數模擬
       mockChromeStorage.local.getBytesInUse.mockImplementation((keys, callback) => {
-        // eslint-disable-next-line no-unused-vars
-        const error = null
-        setTimeout(() => callback && callback(error, 1000000), 0) // 接近滿
+        setTimeout(() => callback && callback(1000000), 0) // 接近滿
       })
 
       // eslint-disable-next-line no-unused-vars

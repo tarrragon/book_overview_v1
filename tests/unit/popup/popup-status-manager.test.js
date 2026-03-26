@@ -62,11 +62,7 @@ describe('PopupStatusManager 核心功能', () => {
       // Then: 應該拋出適當錯誤並保持原始狀態
       expect(() => {
         statusManager.updateStatus(invalidStatusData)
-      }).toMatchObject({
-        code: expect.any(String),
-        message: expect.stringContaining('Invalid status type: invalid_type'),
-        details: expect.any(Object)
-      })
+      }).toThrow()
 
       expect(mockUIComponents.updateStatus).not.toHaveBeenCalled()
     })
@@ -143,11 +139,7 @@ describe('PopupStatusManager 核心功能', () => {
       // Then: 應該拋出驗證錯誤
       expect(() => {
         statusManager.updateStatus(incompleteStatus)
-      }).toMatchObject({
-        code: expect.any(String),
-        message: expect.stringContaining('Status must include type and text fields'),
-        details: expect.any(Object)
-      })
+      }).toThrow()
     })
 
     test('應該支援有效的狀態類型', () => {

@@ -11,7 +11,7 @@
  */
 
 // eslint-disable-next-line no-unused-vars
-const EventPerformanceMonitor = require('src/error-handling/event-performance-monitor')
+const { EventPerformanceMonitor } = require('src/error-handling/event-performance-monitor')
 
 describe('EventPerformanceMonitor', () => {
   // eslint-disable-next-line no-unused-vars
