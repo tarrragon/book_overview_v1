@@ -55,5 +55,8 @@ temp/
 .cache/
 .serena/
 
+# Python bytecode cache
+__pycache__/
+
 # Claude Hook System logs (auto-generated)
 .claude/hook-logs/
