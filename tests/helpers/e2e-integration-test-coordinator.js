@@ -13,7 +13,7 @@
  * @version v0.9.38
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 const ChromeExtensionMocksEnhanced = require('../utils/chrome-extension-mocks-enhanced')
 const ErrorInjector = require('../utils/error-injector')
 

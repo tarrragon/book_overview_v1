@@ -5,7 +5,7 @@
  * 目標：將資料正規化邏輯從 DataValidationService 中提取
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 // eslint-disable-next-line no-unused-vars
 const DataNormalizationService = require('src/background/domains/data-management/services/data-normalization-service.js')
 // eslint-disable-next-line no-unused-vars

@@ -1,4 +1,4 @@
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 /**
  * E2E Test Data Generator
  * 產生端到端測試所需的各種測試資料和測試場景配置

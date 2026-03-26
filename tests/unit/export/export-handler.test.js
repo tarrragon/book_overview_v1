@@ -26,7 +26,7 @@
  * @since 2025-08-08
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 // eslint-disable-next-line no-unused-vars
 const EventBus = require('src/core/event-bus')
 // eslint-disable-next-line no-unused-vars
@@ -66,7 +66,7 @@ jest.mock('../../../src/core/event-handler', () => {
     }
 
     async process (event) {
-      const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+      const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
       throw (() => { const error = new Error('Process method must be implemented by subclass'); error.code = ErrorCodes.METHOD_NOT_IMPLEMENTED; return error })()
     }
 
@@ -86,7 +86,7 @@ jest.mock('../../../src/core/event-handler', () => {
     }
 
     getSupportedEvents () {
-      const { ErrorCodes: EC } = require('src/core/errors/ErrorCodes')
+      const { ErrorCodesWithTest: EC } = require('@tests/helpers/test-error-codes')
       throw (() => { const error = new Error('getSupportedEvents method must be implemented by subclass'); error.code = EC.METHOD_NOT_IMPLEMENTED; return error })()
     }
 

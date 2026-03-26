@@ -12,7 +12,7 @@
 
 // eslint-disable-next-line no-unused-vars
 const EventTracker = require('src/error-handling/event-tracker')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 
 describe('EventTracker', () => {
   // eslint-disable-next-line no-unused-vars

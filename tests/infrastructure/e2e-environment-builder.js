@@ -9,7 +9,7 @@
  */
 
 const E2ETestEnvironment = require('./e2e-test-environment')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 
 /**
  * E2E測試環境建構器

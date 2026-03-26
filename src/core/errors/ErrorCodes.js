@@ -115,18 +115,6 @@ const ErrorCodes = {
   // 品質評估錯誤
   FUNCTIONALITY_SCORE_TOO_LOW: 'FUNCTIONALITY_SCORE_TOO_LOW',
 
-  // 測試相關錯誤
-  TEST_ERROR: 'TEST_ERROR',
-  TEST_MOCK_ERROR: 'TEST_MOCK_ERROR',
-  TEST_EXECUTION_ERROR: 'TEST_EXECUTION_ERROR',
-  TEST_SIMULATOR_ERROR: 'TEST_SIMULATOR_ERROR',
-  TEST_GENERATION_ERROR: 'TEST_GENERATION_ERROR',
-  TEST_VALIDATION_ERROR: 'TEST_VALIDATION_ERROR',
-  TEST_ENVIRONMENT_ERROR: 'TEST_ENVIRONMENT_ERROR',
-  TEST_WORKFLOW_ERROR: 'TEST_WORKFLOW_ERROR',
-  TEST_STORAGE_ERROR: 'TEST_STORAGE_ERROR',
-  TEST_INITIALIZATION_ERROR: 'TEST_INITIALIZATION_ERROR',
-  TESTING_INTEGRITY_ERROR: 'TESTING_INTEGRITY_ERROR',
   // 匯出相關錯誤
   EXPORT_FAILED: 'EXPORT_FAILED',
   EXPORT_CSV_FAILED: 'EXPORT_CSV_FAILED',
@@ -293,13 +281,6 @@ const ErrorCodes = {
   EXTENSION_RUNTIME_ERROR: 'EXTENSION_RUNTIME_ERROR',
   UNKNOWN_BUTTON: 'UNKNOWN_BUTTON',
 
-  // E2E 測試錯誤
-  E2E_STORAGE_QUOTA_EXCEEDED: 'E2E_STORAGE_QUOTA_EXCEEDED',
-  E2E_PERSISTENT_ERROR: 'E2E_PERSISTENT_ERROR',
-  E2E_CONTEXT_DISCONNECTED: 'E2E_CONTEXT_DISCONNECTED',
-  E2E_CONTENT_SCRIPT_ERROR: 'E2E_CONTENT_SCRIPT_ERROR',
-  E2E_CONFLICT_RESOLUTION_UI_TIMEOUT: 'E2E_CONFLICT_RESOLUTION_UI_TIMEOUT',
-
   // 未知錯誤
   UNKNOWN_ERROR: 'UNKNOWN_ERROR'
 }
@@ -307,33 +288,7 @@ const ErrorCodes = {
 // 凍結物件以防止意外修改
 Object.freeze(ErrorCodes)
 
-/**
- * 預編譯常用錯誤模式（John Carmack 效能優化建議）
- * 避免熱路徑中的字串拼接成本
- */
-const CommonErrors = {
-  EMAIL_REQUIRED: Object.freeze(createError(ErrorCodes.VALIDATION_ERROR, 'Email is required')),
-  TITLE_REQUIRED: Object.freeze(createError(ErrorCodes.VALIDATION_ERROR, 'Title is required')),
-  NETWORK_TIMEOUT: Object.freeze(createError(ErrorCodes.TIMEOUT_ERROR, 'Network request timeout')),
-  READMOO_LOGIN_FAILED: Object.freeze(createError(ErrorCodes.READMOO_ERROR, 'Login to Readmoo failed')),
-  BOOK_EXTRACTION_FAILED: Object.freeze(createError(ErrorCodes.BOOK_ERROR, 'Book data extraction failed'))
-}
-
-/**
- * 效能優化的錯誤建立函數
- * @param {string} code - 錯誤代碼
- * @param {string} message - 錯誤訊息
- * @returns {Error} 帶有 code 屬性的 Error 物件
- */
-function createError (code, message) {
-  const error = new Error(message)
-  error.code = code
-  return error
-}
-
 // CommonJS 支援
 module.exports = {
-  ErrorCodes,
-  CommonErrors,
-  createError
+  ErrorCodes
 }

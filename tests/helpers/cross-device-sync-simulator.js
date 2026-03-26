@@ -1,4 +1,4 @@
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 /**
  * Cross Device Sync Simulator - 跨裝置同步模擬器
  * 模擬跨裝置同步的各種情境

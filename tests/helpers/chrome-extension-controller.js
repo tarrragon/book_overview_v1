@@ -7,7 +7,7 @@
  * 提供跨Context通訊、API模擬、狀態管理等功能
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 
 class ChromeExtensionController {
   constructor (options = {}) {

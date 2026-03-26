@@ -10,7 +10,7 @@
  * - 支援效能和錯誤場景測試
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 
 /**
  * - 確保測試的可重現性和隔離性

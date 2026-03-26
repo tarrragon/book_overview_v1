@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 /**
  * Readmoo Page Simulator
  * 模擬真實的Readmoo書庫頁面環境，支援動態內容和使用者互動

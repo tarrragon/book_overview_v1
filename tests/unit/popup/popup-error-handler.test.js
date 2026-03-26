@@ -39,7 +39,7 @@ const { JSDOM } = require('jsdom')
 
 // PopupErrorHandler現在使用正確的Logger實例模式，不需要全域Logger設定
 // eslint-disable-next-line no-unused-vars
-const ErrorCodes = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('@tests/helpers/test-error-codes')
 
 describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
   let PopupErrorHandler

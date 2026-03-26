@@ -310,8 +310,8 @@ describe('ErrorCodes 效能監控系統整合測試', () => {
       if (slowCreationAnomalies.length > 0) {
         // eslint-disable-next-line no-unused-vars
         const anomaly = slowCreationAnomalies[0]
-        expect(anomaly.autoResponse.actions).toContain('suggest_common_errors')
-        expect(anomaly.autoResponse.suggestions).toContain('使用 CommonErrors 預編譯錯誤以提高效能')
+        expect(anomaly.autoResponse.actions).toContain('suggest_precompiled_errors')
+        expect(anomaly.autoResponse.suggestions).toContain('考慮預編譯常用錯誤物件以提高效能')
       }
     })
   })

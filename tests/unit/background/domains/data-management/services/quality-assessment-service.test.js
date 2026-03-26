@@ -5,7 +5,7 @@
  * 目標：將品質評估邏輯從 DataValidationService 中提取
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 // eslint-disable-next-line no-unused-vars
 const QualityAssessmentService = require('src/background/domains/data-management/services/quality-assessment-service.js')
 // eslint-disable-next-line no-unused-vars

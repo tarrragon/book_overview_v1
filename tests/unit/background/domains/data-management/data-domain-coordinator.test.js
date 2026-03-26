@@ -4,7 +4,7 @@
  * @since 2025-08-15
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 // eslint-disable-next-line no-unused-vars
 const DataDomainCoordinator = require('src/background/domains/data-management/data-domain-coordinator.js')
 // eslint-disable-next-line no-unused-vars

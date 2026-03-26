@@ -9,7 +9,7 @@
  * 4. 效能和資源管理最佳化
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 // eslint-disable-next-line no-unused-vars
 const DataValidationService = require('src/background/domains/data-management/services/data-validation-service.js')
 // eslint-disable-next-line no-unused-vars

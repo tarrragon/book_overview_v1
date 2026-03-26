@@ -7,7 +7,7 @@
  * 設計完整測試案例，確保 100% 程式碼覆蓋率
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 // eslint-disable-next-line no-unused-vars
 const PlatformDetectionService = require('src/background/domains/platform/services/platform-detection-service.js')
 // StandardError 已完全遷移至 ErrorCodes v5.0.0

@@ -6,7 +6,7 @@
  * 提供完整的Chrome Extension整合測試基礎設施
  * 負責測試環境設置、Chrome Extension模擬、測試資料管理
  */
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 
 class E2ETestSuite {
   constructor (config = {}) {

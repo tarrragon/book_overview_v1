@@ -14,7 +14,7 @@
  * 等待 TDD Phase 3 實作對應的同步功能
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 
 // Mock 類別定義（TDD Phase 1 - 測試先行）
 class SyncStateTracker {

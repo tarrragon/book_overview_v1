@@ -1,4 +1,4 @@
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 /**
  * 錯誤恢復策略測試
  * v0.9.32 - TDD Phase 2 錯誤恢復機制測試實作

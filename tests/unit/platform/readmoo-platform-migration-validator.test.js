@@ -16,7 +16,7 @@
 const ReadmooPlatformMigrationValidator = require('src/platform/readmoo-platform-migration-validator')
 // eslint-disable-next-line no-unused-vars
 const EventBus = require('src/core/event-bus')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 
 // Mock Chrome APIs
 global.chrome = {

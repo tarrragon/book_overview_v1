@@ -1,4 +1,4 @@
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 // eslint-disable-next-line no-unused-vars
 const SchemaMigrationService = require('src/data-management/SchemaMigrationService')
 // eslint-disable-next-line no-unused-vars

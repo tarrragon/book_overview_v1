@@ -11,7 +11,7 @@
 
 // Mock DOM 環境
 const { JSDOM } = require('jsdom')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 
 // Mock Chrome Extension APIs
 global.chrome = {

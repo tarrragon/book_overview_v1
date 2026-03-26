@@ -23,7 +23,21 @@
  * @jest-environment node
  */
 
-const { ErrorCodes, CommonErrors } = require('src/core/errors/ErrorCodes')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+
+// 基準測試用：本地定義預編譯錯誤物件（CommonErrors 已從生產碼移除）
+function _createError (code, message) {
+  const error = new Error(message)
+  error.code = code
+  return error
+}
+const CommonErrors = {
+  EMAIL_REQUIRED: Object.freeze(_createError(ErrorCodes.VALIDATION_ERROR, 'Email is required')),
+  TITLE_REQUIRED: Object.freeze(_createError(ErrorCodes.VALIDATION_ERROR, 'Title is required')),
+  NETWORK_TIMEOUT: Object.freeze(_createError(ErrorCodes.TIMEOUT_ERROR, 'Network request timeout')),
+  READMOO_LOGIN_FAILED: Object.freeze(_createError(ErrorCodes.READMOO_ERROR, 'Login to Readmoo failed')),
+  BOOK_EXTRACTION_FAILED: Object.freeze(_createError(ErrorCodes.BOOK_ERROR, 'Book data extraction failed'))
+}
 const { UC01ErrorFactory } = require('src/core/errors/UC01ErrorFactory')
 const { UC02ErrorFactory } = require('src/core/errors/UC02ErrorFactory')
 // eslint-disable-next-line no-unused-vars

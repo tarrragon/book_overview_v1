@@ -5,10 +5,10 @@
  * 回歸原生 JavaScript Error + ErrorCodes 模式
  */
 
-const { ErrorCodes, CommonErrors } = require('./ErrorCodes')
+const { ErrorCodes } = require('./ErrorCodes')
 
 // Chrome Extension CommonJS 專用匯出
-module.exports = { ErrorCodes, CommonErrors, createError, createResult }
+module.exports = { ErrorCodes, createError, createResult }
 
 /**
  * 效能優化的錯誤建立函數

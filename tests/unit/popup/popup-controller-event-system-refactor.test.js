@@ -12,7 +12,7 @@
  * @since 2025-08-19
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 // eslint-disable-next-line no-unused-vars
 const PopupController = require('src/popup/popup-controller.js')
 

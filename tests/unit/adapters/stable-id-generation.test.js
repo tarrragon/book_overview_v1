@@ -1,4 +1,4 @@
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 /**
  * stable-id-generation.test.js
  *

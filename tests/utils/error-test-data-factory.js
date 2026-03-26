@@ -6,7 +6,7 @@
  * @date 2025-08-25
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 
 class ErrorTestDataFactory {
   constructor () {

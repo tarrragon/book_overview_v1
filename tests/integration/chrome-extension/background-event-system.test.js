@@ -26,7 +26,7 @@ const path = require('path')
 // 模擬 Service Worker 全域環境
 global.self = global
 global.chrome = require('jest-chrome').chrome
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 
 // 模擬 DOM 環境變數（PageDetector 需要）
 global.globalThis = global

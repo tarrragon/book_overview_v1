@@ -1,4 +1,4 @@
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 /**
  * UI State Tracker - UI狀態追蹤工具
  * 用於測試中追蹤和驗證UI元素的狀態變化
