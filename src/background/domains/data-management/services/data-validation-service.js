@@ -911,7 +911,7 @@ class DataValidationService {
 
   async _handleBatchProcessingError (error, books, platform, source, validationId, startTime) {
     // eslint-disable-next-line no-console
-    Logger.warn('❌ 批次處理錯誤:', error)
+    Logger.warn('批次處理錯誤', { error })
     await this.eventBus.emit('VALIDATION.BATCH.ERROR', {
       error: error.message,
       fallbackAction: 'integrated_validation'

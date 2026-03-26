@@ -72,7 +72,7 @@ class ErrorSystemManager {
       })
     } catch (error) {
       // eslint-disable-next-line no-console
-      Logger.error('[ErrorSystemManager] Failed to initialize error handling system:', error)
+      Logger.error('[ErrorSystemManager] Failed to initialize error handling system', { error })
       throw error
     }
   }
@@ -233,7 +233,7 @@ class ErrorSystemManager {
     }
 
     // eslint-disable-next-line no-console
-    Logger.error(`[ErrorSystemManager] Global ${type}:`, error)
+    Logger.error(`[ErrorSystemManager] Global ${type}`, { error })
   }
 
   /**
@@ -349,7 +349,7 @@ class ErrorSystemManager {
           handler.cleanup()
         } catch (error) {
           // eslint-disable-next-line no-console
-          Logger.warn('[ErrorSystemManager] Cleanup failed for handler:', error)
+          Logger.warn('[ErrorSystemManager] Cleanup failed for handler', { error })
         }
       }
     })
@@ -454,7 +454,7 @@ class ErrorSystemManager {
           await handler.destroy()
         } catch (error) {
           // eslint-disable-next-line no-console
-          Logger.warn('[ErrorSystemManager] Handler cleanup failed:', error)
+          Logger.warn('[ErrorSystemManager] Handler cleanup failed', { error })
         }
       }
     }

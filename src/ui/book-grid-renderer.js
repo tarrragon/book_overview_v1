@@ -409,7 +409,7 @@ class BookGridRenderer {
   handleCardCreationError (book, error) {
     if (this.config.enableErrorLogging) {
       // eslint-disable-next-line no-console
-      Logger.error(`[BookGridRenderer] Failed to create card for book ${book.id}:`, error)
+      Logger.error(`[BookGridRenderer] Failed to create card for book ${book.id}`, { error })
     }
 
     // 更新錯誤統計
@@ -459,7 +459,7 @@ class BookGridRenderer {
       }
     } catch (error) {
       // eslint-disable-next-line no-console
-      Logger.warn(`[BookGridRenderer] Failed to populate card for book ${book.id}:`, error)
+      Logger.warn(`[BookGridRenderer] Failed to populate card for book ${book.id}`, { error })
     }
   }
 
@@ -745,7 +745,7 @@ class BookGridRenderer {
           this.renderedBooks.push(card)
         } catch (error) {
           // eslint-disable-next-line no-console
-          Logger.warn('Failed to append book card:', error)
+          Logger.warn('Failed to append book card', { error })
         }
       }
     })
@@ -765,7 +765,7 @@ class BookGridRenderer {
         }
       } catch (error) {
         // eslint-disable-next-line no-console
-        Logger.warn('Failed to remove book card:', error)
+        Logger.warn('Failed to remove book card', { error })
       }
     })
     this.renderedBooks = []
@@ -859,7 +859,7 @@ class BookGridRenderer {
       }
     } catch (error) {
       // eslint-disable-next-line no-console
-      Logger.warn('Failed to notify render complete:', error)
+      Logger.warn('Failed to notify render complete', { error })
     }
   }
 

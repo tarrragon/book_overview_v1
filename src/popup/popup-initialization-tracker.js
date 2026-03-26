@@ -193,7 +193,7 @@ class PopupInitializationTracker {
     }
 
     // eslint-disable-next-line no-console
-    Logger.error(`❌ [初始化追蹤] 步驟失敗: ${step.name}`, error)
+    Logger.error(`[初始化追蹤] 步驟失敗: ${step.name}`, { error })
 
     this.isFailed = true
     this.updateProgressDisplay()

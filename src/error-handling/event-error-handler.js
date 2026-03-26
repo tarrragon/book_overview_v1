@@ -200,7 +200,7 @@ class EventErrorHandler extends EventHandler {
       }
     } catch (error) {
       // eslint-disable-next-line no-console
-      Logger.error('[EventErrorHandler] 處理錯誤事件失敗:', error)
+      Logger.error('[EventErrorHandler] 處理錯誤事件失敗', { error })
       return this.createErrorResponse(error.message)
     }
   }

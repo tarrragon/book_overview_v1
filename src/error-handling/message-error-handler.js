@@ -458,7 +458,7 @@ class MessageErrorHandler extends EventHandler {
     // 監聽 Chrome Runtime 訊息
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (this.diagnosticMode) {
-        Logger.info('[MessageErrorHandler] 診斷模式 - 收到訊息:', message)
+        Logger.info('[MessageErrorHandler] 診斷模式 - 收到訊息', { message })
       }
     })
   }

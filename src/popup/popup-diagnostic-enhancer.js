@@ -34,7 +34,7 @@ class PopupDiagnosticEnhancer {
       return { success: true }
     } catch (error) {
       // eslint-disable-next-line no-console
-      Logger.error('❌ [診斷系統] 初始化失敗:', error)
+      Logger.error('[診斷系統] 初始化失敗', { error })
       return { success: false, error: error.message }
     }
   }
@@ -85,7 +85,7 @@ class PopupDiagnosticEnhancer {
       return healthCheckResults
     } catch (error) {
       // eslint-disable-next-line no-console
-      Logger.error('❌ [診斷系統] 健康檢查失敗:', error)
+      Logger.error('[診斷系統] 健康檢查失敗', { error })
       return {
         ...healthCheckResults,
         error: error.message,

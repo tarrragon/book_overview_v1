@@ -251,7 +251,7 @@ class PerformanceIntegration {
       return result
     } catch (error) {
       // eslint-disable-next-line no-console
-      Logger.error('❌ 效能系統啟動失敗:', error)
+      Logger.error('效能系統啟動失敗', { error })
 
       this.emitPerformanceEvent('PERFORMANCE.SYSTEM.FAILED', {
         error: error.message,
@@ -269,7 +269,7 @@ class PerformanceIntegration {
    * @returns {Object} 優化策略
    */
   registerModule (moduleId, moduleConfig = {}) {
-    Logger.info(`📋 註冊模組效能優化: ${moduleId}`)
+    Logger.info(`註冊模組效能優化: ${moduleId}`)
 
     // 建立模組特定的效能配置
     const performanceConfig = {
@@ -478,7 +478,7 @@ class PerformanceIntegration {
    * @private
    */
   optimizeModuleInitialization (moduleId) {
-    Logger.info(`🔧 優化模組初始化: ${moduleId}`)
+    Logger.info(`優化模組初始化: ${moduleId}`)
 
     const modulePerf = this.modulePerformance.get(moduleId)
     if (!modulePerf) return
@@ -624,7 +624,7 @@ class PerformanceIntegration {
    * @returns {Promise<Object>} 健康檢查結果
    */
   async performHealthCheck () {
-    Logger.info('🏥 執行效能健康檢查...')
+    Logger.info('執行效能健康檢查')
 
     const healthReport = {
       timestamp: Date.now(),
@@ -718,7 +718,7 @@ class PerformanceIntegration {
       return result
     } catch (error) {
       // eslint-disable-next-line no-console
-      Logger.error('❌ 即時優化失敗:', error)
+      Logger.error('即時優化失敗', { error })
 
       return {
         success: false,
@@ -834,7 +834,7 @@ class PerformanceIntegration {
       this.loadingOptimizer.config.mode = loadingMode
     }
 
-    Logger.info('⚙️ 效能系統配置已更新')
+    Logger.info('效能系統配置已更新')
 
     this.emitPerformanceEvent('PERFORMANCE.CONFIG_UPDATED', this.config)
   }
@@ -892,7 +892,7 @@ class PerformanceIntegration {
         listener(eventType, eventData)
       } catch (error) {
         // eslint-disable-next-line no-console
-        Logger.warn('效能事件監聽器錯誤:', error)
+        Logger.warn('效能事件監聽器錯誤', { error })
       }
     }
   }
@@ -912,7 +912,7 @@ class PerformanceIntegration {
 
     if (this.config.enablePerformanceWarnings) {
       // eslint-disable-next-line no-console
-      Logger.warn('⚠️ 效能警告:', warning)
+      Logger.warn('效能警告', { warning })
     }
 
     this.emitPerformanceEvent('PERFORMANCE.WARNING', warning)
@@ -965,7 +965,7 @@ class PerformanceIntegration {
    * 停止效能系統
    */
   stop () {
-    Logger.info('⏹️ 停止效能系統...')
+    Logger.info('停止效能系統')
 
     // 停止優化器
     if (this.performanceOptimizer) {

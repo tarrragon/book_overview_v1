@@ -1,0 +1,10 @@
+{
+  "ticket_id": "0.15.0-W3-005.1",
+  "direction": "to-sibling:0.15.0-W3-003.2",
+  "timestamp": "2026-03-27T04:38:02.931484",
+  "from_status": "completed",
+  "title": "清理 ErrorCodes 未使用常數和 TEST_* 污染常數",
+  "what": "清理 ErrorCodes 未使用常數和 TEST_* 污染常數",
+  "chain": {},
+  "resumed_at": "2026-03-27T04:40:25.809938"
+}

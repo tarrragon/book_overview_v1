@@ -69,11 +69,11 @@ async function initializeContentScript () {
     const pageStatus = pageDetector.getPageStatus()
 
     if (!pageStatus.isReadmooPage) {
-      Logger.info('⚠️ 非 Readmoo 頁面，跳過初始化')
+      Logger.info('非 Readmoo 頁面，跳過初始化')
       return
     }
 
-    Logger.info(`📍 Readmoo 頁面檢測成功: ${pageStatus.pageType}`)
+    Logger.info(`Readmoo 頁面檢測成功: ${pageStatus.pageType}`)
 
     // 第二步：建立事件系統
     contentEventBus = createContentEventBus()
@@ -110,7 +110,7 @@ async function initializeContentScript () {
     performanceStats.initializationTime = performance.now() - initStart
     contentScriptReady = true
 
-    Logger.info('📊 初始化狀態:', {
+    Logger.info('初始化狀態', {
       pageType: pageStatus.pageType,
       initTime: performanceStats.initializationTime.toFixed(2) + 'ms',
       modules: {
@@ -126,7 +126,7 @@ async function initializeContentScript () {
     await reportReadyStatus()
   } catch (error) {
     // eslint-disable-next-line no-console
-    Logger.error('❌ Content Script 初始化失敗:', error)
+    Logger.error('Content Script 初始化失敗', { error })
 
     // 清理已建立的組件
     cleanup()
@@ -155,12 +155,12 @@ function setupModuleIntegration () {
         await contentChromeBridge.forwardEventToBackground(eventType, event.data)
       } catch (error) {
         // eslint-disable-next-line no-console
-        Logger.error(`❌ 轉發事件失敗 (${eventType}):`, error)
+        Logger.error(`轉發事件失敗 (${eventType})`, { error })
       }
     })
   })
 
-  Logger.info('🔗 模組間整合設定完成')
+  Logger.info('模組間整合設定完成')
 }
 
 /**
@@ -220,10 +220,10 @@ async function reportReadyStatus () {
     }
 
     await contentChromeBridge.sendToBackground(status)
-    Logger.info('📡 就緒狀態已報告', status.data)
+    Logger.info('就緒狀態已報告', { data: status.data })
   } catch (error) {
     // eslint-disable-next-line no-console
-    Logger.error('❌ 報告就緒狀態失敗:', error)
+    Logger.error('報告就緒狀態失敗', { error })
   }
 }
 
@@ -261,7 +261,7 @@ function cleanup () {
     contentScriptReady = false
   } catch (error) {
     // eslint-disable-next-line no-console
-    Logger.error('❌ 清理資源時發生錯誤:', error)
+    Logger.error('清理資源時發生錯誤', { error })
   }
 }
 
@@ -273,7 +273,7 @@ function cleanup () {
  * 來自 Background 的訊息處理
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  Logger.info('📨 Content Script 收到訊息:', message)
+  Logger.info('Content Script 收到訊息', { message })
 
   handleBackgroundMessage(message, sender, sendResponse)
 
@@ -323,12 +323,12 @@ async function handleBackgroundMessage (message, sender, sendResponse) {
 
       default:
         // eslint-disable-next-line no-console
-        Logger.warn('⚠️ Content Script 收到未知訊息類型:', message.type)
+        Logger.warn('Content Script 收到未知訊息類型', { messageType: message.type })
         sendResponse({ success: false, error: '未知的訊息類型' })
     }
   } catch (error) {
     // eslint-disable-next-line no-console
-    Logger.error('❌ 處理 Background 訊息失敗:', error)
+    Logger.error('處理 Background 訊息失敗', { error })
     sendResponse({ success: false, error: error.message })
   }
 }
@@ -391,7 +391,7 @@ function getHealthStatus () {
  */
 window.addEventListener('error', async (event) => {
   // eslint-disable-next-line no-console
-  Logger.error('❌ Content Script 全域錯誤:', event.error)
+  Logger.error('Content Script 全域錯誤', { error: event.error })
 
   if (contentChromeBridge) {
     try {
@@ -406,7 +406,7 @@ window.addEventListener('error', async (event) => {
       })
     } catch (bridgeError) {
       // eslint-disable-next-line no-console
-      Logger.error('❌ 發送錯誤報告失敗:', bridgeError)
+      Logger.error('發送錯誤報告失敗', { error: bridgeError })
     }
   }
 })
@@ -416,7 +416,7 @@ window.addEventListener('error', async (event) => {
  */
 window.addEventListener('unhandledrejection', async (event) => {
   // eslint-disable-next-line no-console
-  Logger.error('❌ Content Script 未處理的 Promise 拒絕:', event.reason)
+  Logger.error('Content Script 未處理的 Promise 拒絕', { reason: event.reason })
 
   if (contentChromeBridge) {
     try {
@@ -430,7 +430,7 @@ window.addEventListener('unhandledrejection', async (event) => {
       })
     } catch (bridgeError) {
       // eslint-disable-next-line no-console
-      Logger.error('❌ 發送 Promise 拒絕報告失敗:', bridgeError)
+      Logger.error('發送 Promise 拒絕報告失敗', { error: bridgeError })
     }
   }
 })

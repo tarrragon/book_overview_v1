@@ -182,7 +182,7 @@ class PopupEventController extends EventHandler {
       // 檢查初始狀態
       await this.checkInitialStatus()
     } catch (error) {
-      Logger.error('[PopupEventController] Initialization failed:', error)
+      Logger.error('[PopupEventController] Initialization failed', { error })
       this.handleInitializationError(error)
     }
   }
@@ -651,7 +651,7 @@ class PopupEventController extends EventHandler {
         type: 'success'
       }, 'export-success')
     } catch (error) {
-      Logger.error('[PopupEventController] Export failed:', error)
+      Logger.error('[PopupEventController] Export failed', { error })
       this.handleNotificationShow({
         message: '匯出失敗，請稍後重試',
         type: 'error'
@@ -858,7 +858,7 @@ class PopupEventController extends EventHandler {
     this.updateStatus('失敗', '提取失敗', message, this.STATUS_TYPES.ERROR)
 
     if (error) {
-      Logger.error('[PopupEventController] Extraction error:', error)
+      Logger.error('[PopupEventController] Extraction error', { error })
     }
   }
 

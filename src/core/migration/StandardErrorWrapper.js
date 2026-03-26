@@ -391,7 +391,7 @@ export class StandardError extends Error {
     if (StandardError.migrationConfig.enableLogging) {
       // 在生產環境中記錄到 Logger 而非 console
       if (Logger && Logger.info) {
-        Logger.info('[StandardError 遷移進度]', report)
+        Logger.info('[StandardError 遷移進度]', { report })
       } else if (typeof console !== 'undefined') {
         // eslint-disable-next-line no-console
         console.info('[StandardError 遷移進度]', report)
