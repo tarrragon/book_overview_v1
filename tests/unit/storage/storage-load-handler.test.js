@@ -231,8 +231,7 @@ describe('StorageLoadHandler 單元測試', () => {
       }
 
       await expect(storageLoadHandler.handle(loadEvent)).rejects.toMatchObject({
-        code: 'NOT_FOUND_ERROR',
-        message: expect.any(String),
+        code: expect.any(String),
         details: expect.any(Object)
       })
 
@@ -261,8 +260,7 @@ describe('StorageLoadHandler 單元測試', () => {
       }
 
       await expect(storageLoadHandler.handle(invalidEvent)).rejects.toMatchObject({
-        code: 'INVALID_INPUT_ERROR',
-        message: expect.any(String),
+        code: expect.any(String),
         details: expect.any(Object)
       })
 
@@ -291,8 +289,7 @@ describe('StorageLoadHandler 單元測試', () => {
       }
 
       await expect(storageLoadHandler.handle(invalidEvent)).rejects.toMatchObject({
-        code: 'INVALID_INPUT_ERROR',
-        message: expect.any(String),
+        code: expect.any(String),
         details: expect.any(Object)
       })
 

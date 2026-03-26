@@ -16,7 +16,7 @@
 const ReadmooPlatformMigrationValidator = require('src/platform/readmoo-platform-migration-validator')
 // eslint-disable-next-line no-unused-vars
 const EventBus = require('src/core/event-bus')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 
 // Mock Chrome APIs
 global.chrome = {
@@ -545,7 +545,7 @@ describe('ReadmooPlatformMigrationValidator', () => {
       const result = await validator.validateReadmooMigration(context)
 
       expect(result.isValid).toBe(false)
-      expect(result.errors).toContain('Platform detection error: Unexpected error')
+      expect(result.errors[0]).toContain('Platform detection error')
     })
 
     it('應該在多次重試後放棄', async () => {

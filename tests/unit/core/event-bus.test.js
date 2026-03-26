@@ -625,10 +625,7 @@ describe('🎭 事件總線核心測試', () => {
       }).toThrow()
       expect(() => {
         eventBus.on(eventType, jest.fn())
-      }).toMatchObject({
-        code: expect.any(String),
-        details: expect.any(Object)
-      })
+      }).toThrow()
     })
   })
 })

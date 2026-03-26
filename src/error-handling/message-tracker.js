@@ -1,4 +1,4 @@
-const Logger = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 /**
  * MessageTracker - 即時訊息追蹤診斷系統
  * TDD 循環 #33: 即時診斷系統
@@ -613,7 +613,7 @@ class MessageTracker extends EventHandler {
       ...this.trackingStats
     }
 
-    Logger.info('[TABLE]', status)
+    Logger.info('[TABLE]', { status })
     return status
   }
 
@@ -628,7 +628,7 @@ class MessageTracker extends EventHandler {
 
     Logger.info('[GROUP]', '最近訊息記錄')
     messages.forEach((msg, index) => {
-      Logger.info(`${index + 1}.`, msg)
+      Logger.info(`${index + 1}.`, { msg })
     })
     Logger.info('[GROUP END]')
 
@@ -641,7 +641,7 @@ class MessageTracker extends EventHandler {
    */
   getUnknownMessages () {
     // eslint-disable-next-line no-console
-    Logger.warn('未知訊息類型:', this.unknownMessages)
+    Logger.warn('未知訊息類型', { unknownMessages: this.unknownMessages })
     return this.unknownMessages
   }
 
@@ -651,7 +651,7 @@ class MessageTracker extends EventHandler {
    */
   getActiveMessages () {
     const active = Array.from(this.activeMessages.values())
-    Logger.info('當前活躍訊息:', active)
+    Logger.info('當前活躍訊息', { active })
     return active
   }
 

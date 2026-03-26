@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 /**
  * Message Flow Tracker - 訊息流追蹤工具
  * 用於追蹤和分析Chrome Extension中的訊息傳遞流程

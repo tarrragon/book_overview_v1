@@ -383,7 +383,7 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
         // eslint-disable-next-line no-unused-vars
         const modernEvents = [
           'PLATFORM.READMOO.DETECT.COMPLETED',
-          'EXTRACTION.READMOO.EXTRACT.COMPLETED',
+          'EXTRACTION.READMOO.DATA.COMPLETED',
           'DATA.READMOO.SAVE.COMPLETED'
         ]
 
@@ -646,7 +646,7 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
         mockPlatformDetectionService.detectPlatform.mockImplementation(() => {
           attemptCount++
           if (attemptCount < 3) {
-            throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.NETWORK_ERROR; error.details = { category: 'testing' }; return error })()
+            throw (() => { const error = new Error('temporary network error occurred'); error.code = ErrorCodes.NETWORK_ERROR; error.details = { category: 'testing' }; return error })()
           }
           return Promise.resolve({
             platformId: 'READMOO',

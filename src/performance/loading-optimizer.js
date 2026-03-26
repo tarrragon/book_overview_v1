@@ -242,7 +242,7 @@ class LoadingOptimizer {
       }
     } catch (error) {
       // eslint-disable-next-line no-console
-      Logger.error('❌ 載入優化失敗:', error)
+      Logger.error('載入優化失敗', { error })
       this.loadingMetrics.loadingErrors.push({
         error: error.message,
         timestamp: Date.now(),
@@ -282,11 +282,11 @@ class LoadingOptimizer {
         // 檢查是否超過目標時間
         if (loadTime > LOADING_TARGETS.CRITICAL_RESOURCE) {
           // eslint-disable-next-line no-console
-          Logger.warn(`⚠️ 關鍵資源 ${resourceName} 載入時間超過目標: ${loadTime.toFixed(2)}ms`)
+          Logger.warn(`關鍵資源 ${resourceName} 載入時間超過目標: ${loadTime.toFixed(2)}ms`)
         }
       } catch (error) {
         // eslint-disable-next-line no-console
-        Logger.error(`❌ 關鍵資源 ${resourceName} 載入失敗:`, error)
+        Logger.error(`關鍵資源 ${resourceName} 載入失敗`, { error })
         this.loadingMetrics.loadingErrors.push({
           resource: resourceName,
           error: error.message,
@@ -314,7 +314,7 @@ class LoadingOptimizer {
       this.schedulePreload(resourceName)
     })
 
-    Logger.info(`📦 已排程預載入 ${highPriorityResources.length} 個高優先級資源`)
+    Logger.info(`已排程預載入 ${highPriorityResources.length} 個高優先級資源`)
   }
 
   /**
@@ -329,11 +329,11 @@ class LoadingOptimizer {
         this.loadResource(resourceName)
           .then(() => {
             this.preloadedResources.add(resourceName)
-            Logger.info(`📦 已預載入: ${resourceName}`)
+            Logger.info(`已預載入: ${resourceName}`)
           })
           .catch((error) => {
             // eslint-disable-next-line no-console
-            Logger.warn(`⚠️ 預載入失敗 ${resourceName}:`, error)
+            Logger.warn(`預載入失敗 ${resourceName}`, { error })
           })
       }
     }
@@ -458,7 +458,7 @@ class LoadingOptimizer {
       return resource
     } catch (error) {
       // eslint-disable-next-line no-console
-      Logger.error(`❌ 載入資源失敗 ${resourceName}:`, error)
+      Logger.error(`載入資源失敗 ${resourceName}`, { error })
       throw error
     }
   }
@@ -618,7 +618,7 @@ class LoadingOptimizer {
    * @returns {Promise<any>} 載入的資源
    */
   async loadOnDemand (resourceName) {
-    Logger.info(`📦 按需載入資源: ${resourceName}`)
+    Logger.info(`按需載入資源: ${resourceName}`)
 
     const resource = await this.loadResource(resourceName)
 
@@ -631,12 +631,12 @@ class LoadingOptimizer {
    * @returns {Promise<void>}
    */
   async warmupCache (resourceNames) {
-    Logger.info(`🔥 開始快取預熱: ${resourceNames.length} 個資源`)
+    Logger.info(`開始快取預熱: ${resourceNames.length} 個資源`)
 
     const warmupPromises = resourceNames.map(resourceName =>
       this.loadResource(resourceName).catch(error => {
         // eslint-disable-next-line no-console
-        Logger.warn(`⚠️ 快取預熱失敗 ${resourceName}:`, error)
+        Logger.warn(`快取預熱失敗 ${resourceName}`, { error })
       })
     )
 
@@ -695,7 +695,7 @@ class LoadingOptimizer {
     // 重置狀態
     this.loadingState.initialized = false
 
-    Logger.info('🗑️ LoadingOptimizer 已銷毀')
+    Logger.info('LoadingOptimizer 已銷毀')
   }
 }
 

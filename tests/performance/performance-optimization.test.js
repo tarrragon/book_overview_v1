@@ -36,12 +36,17 @@ const mockMemory = {
   jsHeapSizeLimit: 100 * 1024 * 1024 // 100MB
 }
 
-global.performance = {
-  now: () => Date.now(),
-  memory: mockMemory,
-  mark: jest.fn(),
-  measure: jest.fn()
-}
+// 使用 Object.defineProperty 覆蓋 jsdom 的 performance 物件
+Object.defineProperty(global, 'performance', {
+  writable: true,
+  configurable: true,
+  value: {
+    now: () => Date.now(),
+    memory: mockMemory,
+    mark: jest.fn(),
+    measure: jest.fn()
+  }
+})
 
 const { PerformanceOptimizer } = require('src/performance/performance-optimizer')
 const { LoadingOptimizer } = require('src/performance/loading-optimizer')
@@ -97,11 +102,16 @@ describe('🚀 效能優化整合測試', () => {
     })
 
     test('應該能夠監控記憶體使用趨勢', async () => {
+      // 停止自動監控以避免干擾，手動控制指標收集
+      clearInterval(performanceOptimizer.monitoringInterval)
+
+      // 收集初始基準指標
+      performanceOptimizer.collectPerformanceMetrics()
+
       // 模擬記憶體使用增長
       for (let i = 0; i < 10; i++) {
         mockMemory.usedJSHeapSize += 2 * 1024 * 1024 // 增加 2MB
         performanceOptimizer.collectPerformanceMetrics()
-        await new Promise(resolve => setTimeout(resolve, 50))
       }
 
       // eslint-disable-next-line no-unused-vars
@@ -110,19 +120,16 @@ describe('🚀 效能優化整合測試', () => {
       expect(report.trends.memoryTrend.isIncreasing).toBe(true)
     })
 
-    test('應該能夠檢測效能警告並觸發優化', async () => {
-      // 模擬高記憶體使用
-      mockMemory.usedJSHeapSize = 45 * 1024 * 1024 // 45MB
+    test('應該能夠檢測效能警告並觸發自動清理', async () => {
+      // 模擬高記憶體使用（超過 CLEANUP_THRESHOLD 45MB）
+      mockMemory.usedJSHeapSize = 46 * 1024 * 1024 // 46MB
 
-      // eslint-disable-next-line no-unused-vars
-      const optimizationSpy = jest.spyOn(performanceOptimizer, 'optimizeMemoryUsage')
+      // collectPerformanceMetrics -> checkPerformanceWarnings -> triggerAutomaticCleanup
+      const cleanupSpy = jest.spyOn(performanceOptimizer, 'triggerAutomaticCleanup')
 
       performanceOptimizer.collectPerformanceMetrics()
 
-      // 等待警告處理
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      expect(optimizationSpy).toHaveBeenCalled()
+      expect(cleanupSpy).toHaveBeenCalled()
     })
   })
 
@@ -332,9 +339,8 @@ describe('🚀 效能優化整合測試', () => {
 
   describe('🔧 資源管理和清理', () => {
     test('應該能夠正確清理資源防止記憶體洩漏', async () => {
-      // 建立多個資源
-      // eslint-disable-next-line no-unused-vars
-      const resources = ['resource-1', 'resource-2', 'resource-3', 'resource-4', 'resource-5']
+      // 使用 resourceMap 中已註冊的資源名稱，確保載入後會被快取
+      const resources = ['popup-ui-manager', 'popup-event-controller', 'book-data-extractor', 'overview-page-controller', 'book-search-filter']
 
       for (const resource of resources) {
         await loadingOptimizer.loadOnDemand(resource)

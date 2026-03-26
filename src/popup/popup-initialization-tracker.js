@@ -1,4 +1,4 @@
-const Logger = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 /**
  * Popup 初始化進度追蹤器
  *
@@ -193,7 +193,7 @@ class PopupInitializationTracker {
     }
 
     // eslint-disable-next-line no-console
-    Logger.error(`❌ [初始化追蹤] 步驟失敗: ${step.name}`, error)
+    Logger.error(`[初始化追蹤] 步驟失敗: ${step.name}`, { error })
 
     this.isFailed = true
     this.updateProgressDisplay()

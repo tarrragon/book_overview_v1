@@ -1,4 +1,4 @@
-const Logger = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 /**
  * 事件系統統一化管理器 (Enterprise Event Unification Platform)
  * 負責統一整個系統的事件驅動模式，確保一致性、效能和可維護性
@@ -530,7 +530,7 @@ class EventPriorityValidator {
       return true
     } catch (error) {
       // eslint-disable-next-line no-console
-      Logger.error('優先級標準化失敗:', error)
+      Logger.error('優先級標準化失敗', { error })
       return false
     }
   }
@@ -840,7 +840,7 @@ class EventSystemUnifier {
       return true
     } catch (error) {
       // eslint-disable-next-line no-console
-      Logger.error('統一化初始化失敗:', error)
+      Logger.error('統一化初始化失敗', { error })
       return false
     }
   }
@@ -870,7 +870,7 @@ class EventSystemUnifier {
       return true
     } catch (error) {
       // eslint-disable-next-line no-console
-      Logger.error('統一化規則應用失敗:', error)
+      Logger.error('統一化規則應用失敗', { error })
       return false
     }
   }
@@ -900,7 +900,7 @@ class EventSystemUnifier {
       return namingValid && priorityValid && collaborationValid && compatibilityValid
     } catch (error) {
       // eslint-disable-next-line no-console
-      Logger.error('統一化驗證失敗:', error)
+      Logger.error('統一化驗證失敗', { error })
       return false
     }
   }

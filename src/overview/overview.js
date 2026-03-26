@@ -66,7 +66,7 @@ if (typeof window !== 'undefined' && window.ErrorCodes) {
       } else {
         // eslint-disable-next-line no-console
         // eslint-disable-next-line no-console
-        Logger.warn('⚠️ EventBus 不可用，使用簡化實現')
+        Logger.warn('EventBus 不可用，使用簡化實現')
         eventBus = createFallbackEventBus()
       }
 
@@ -79,7 +79,7 @@ if (typeof window !== 'undefined' && window.ErrorCodes) {
     } catch (error) {
       // eslint-disable-next-line no-console
       // eslint-disable-next-line no-console
-      Logger.error('❌ 事件系統初始化失敗:', error)
+      Logger.error('事件系統初始化失敗', { error })
       throw error
     }
   }
@@ -109,7 +109,7 @@ if (typeof window !== 'undefined' && window.ErrorCodes) {
               } catch (error) {
                 // eslint-disable-next-line no-console
                 // eslint-disable-next-line no-console
-                Logger.error(`事件處理錯誤 (${eventType}):`, error)
+                Logger.error(`事件處理錯誤 (${eventType})`, { error })
                 return null
               }
             })).then(() => resolve())
@@ -176,7 +176,7 @@ if (typeof window !== 'undefined' && window.ErrorCodes) {
     } catch (error) {
       // eslint-disable-next-line no-console
       // eslint-disable-next-line no-console
-      Logger.error('❌ Overview 控制器初始化失敗:', error)
+      Logger.error('Overview 控制器初始化失敗', { error })
       showInitializationError(error)
       throw error
     }
@@ -247,7 +247,7 @@ if (typeof window !== 'undefined' && window.ErrorCodes) {
     } catch (error) {
       // eslint-disable-next-line no-console
       // eslint-disable-next-line no-console
-      Logger.error('❌ Overview 頁面初始化失敗:', error)
+      Logger.error('Overview 頁面初始化失敗', { error })
 
       // 隱藏載入狀態
       const loadingIndicator = document.getElementById('loadingIndicator')

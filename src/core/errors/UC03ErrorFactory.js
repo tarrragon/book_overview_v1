@@ -1,4 +1,6 @@
 /**
+ * @deprecated v1.0.0 移除 - 請直接使用 ErrorCodes + 原生 Error
+ *
  * UC-03 ErrorCodes 錯誤工廠
  *
  * 功能：為UC-03資料匯出與備份流程提供專用錯誤建立方法

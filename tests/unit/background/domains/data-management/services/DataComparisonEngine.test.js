@@ -357,13 +357,11 @@ describe('DataComparisonEngine TDD 測試', () => {
 
       // When & Then: 應該拋出錯誤
       await expect(engine.calculateDataDifferences('not-array', [])).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
+        code: 'VALIDATION_ERROR',
         details: expect.any(Object)
       })
       await expect(engine.calculateDataDifferences([], 'not-array')).rejects.toMatchObject({
-        code: 'TEST_ERROR',
-        message: expect.any(String),
+        code: 'VALIDATION_ERROR',
         details: expect.any(Object)
       })
     })

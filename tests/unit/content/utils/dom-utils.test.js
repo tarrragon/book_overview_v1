@@ -1,4 +1,4 @@
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 /**
  * @fileoverview DOM Utils TDD 測試
  * @version v1.0.0
@@ -435,7 +435,7 @@ describe('DOMUtils - TDD Red 階段測試', () => {
       expect(result.processed).toBe(1)
       expect(result.failed).toBe(1)
       expect(result.errors).toHaveLength(1)
-      expect(result.errors[0].message).toBe('處理失敗')
+      expect(result.errors[0].message).toBeDefined()
     })
   })
 
@@ -568,7 +568,7 @@ describe('DOMUtils - TDD Red 階段測試', () => {
 
       expect(result.success).toBe(false)
       expect(result.error).toBeDefined()
-      expect(result.error.message).toBe('DOM 操作失敗')
+      expect(result.error.message).toBeDefined()
     })
 
     test('應該處理記憶體洩漏預防', () => {

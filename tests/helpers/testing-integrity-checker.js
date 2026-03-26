@@ -18,7 +18,7 @@
 
 const fs = require('fs')
 const path = require('path')
-const { ErrorCodes } = require('../../src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('./test-error-codes')
 
 class TestingIntegrityChecker {
   constructor (options = {}) {

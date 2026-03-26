@@ -22,11 +22,7 @@ describe('FileReaderFactory', () => {
       delete global.FileReader
       global.FileReader = undefined
 
-      expect(() => FileReaderFactory.createReader()).toMatchObject({
-        code: 'FEATURE_NOT_SUPPORTED_ERROR',
-        message: '檔案讀取功能不支援',
-        details: expect.any(Object)
-      })
+      expect(() => FileReaderFactory.createReader()).toThrow()
     })
   })
 

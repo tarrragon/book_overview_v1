@@ -17,7 +17,7 @@ const PopupController = require('src/popup/popup-controller.js')
 
 // Mock DOM 環境
 const { JSDOM } = require('jsdom')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 
 // Mock 組件依賴
 jest.mock('../../../src/popup/components/popup-status-manager.js', () => {

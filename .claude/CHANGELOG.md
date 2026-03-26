@@ -1,3 +1,35 @@
+## [1.2.1] - 2026-03-27
+
+### Summary
+fix: sync-push commit 訊息改用實際變更描述取代純計數統計
+
+Changes: 1 fix
+
+- fix: sync-push commit 訊息改用實際變更描述取代純計數統計
+
+---
+
+## [1.2.0] - 2026-03-27
+
+### Summary
+1 feat [minor bump suggested]
+
+---
+
+## [1.1.53] - 2026-03-27
+
+### Summary
+fix: 排除 handoff 暫時性交接資料夾
+
+---
+
+## [1.1.52] - 2026-03-27
+
+### Summary
+feat: Wave 5 重構完成 — Hook 配置更新、Ticket 文件同步
+
+---
+
 ## [1.1.51] - 2026-03-26
 
 ### Summary

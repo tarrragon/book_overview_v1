@@ -12,7 +12,7 @@
 
 // eslint-disable-next-line no-unused-vars
 const EventTracker = require('src/error-handling/event-tracker')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 
 describe('EventTracker', () => {
   // eslint-disable-next-line no-unused-vars
@@ -236,38 +236,49 @@ describe('EventTracker', () => {
 
   // ==================== 事件查詢和過濾 ====================
   describe('事件查詢和過濾', () => {
+    // 固定時間基準，避免 Date.now() 浮動導致邊界測試不穩定
+    // Ticket: 0.15.0-W3-001
+    const BASE_TIME = 1700000000000
+
     beforeEach(() => {
+      jest.useFakeTimers()
+      jest.setSystemTime(BASE_TIME)
+
       // 準備測試資料
       // eslint-disable-next-line no-unused-vars
       const testEvents = [
         {
           type: 'USER.LOGIN',
           data: { userId: '123' },
-          timestamp: Date.now() - 3600000
+          timestamp: BASE_TIME - 3600000
         },
         {
           type: 'USER.LOGOUT',
           data: { userId: '123' },
-          timestamp: Date.now() - 1800000
+          timestamp: BASE_TIME - 1800000
         },
         {
           type: 'ERROR.OCCURRED',
           data: { error: 'Network timeout' },
-          timestamp: Date.now() - 900000
+          timestamp: BASE_TIME - 900000
         },
         {
           type: 'USER.LOGIN',
           data: { userId: '456' },
-          timestamp: Date.now() - 300000
+          timestamp: BASE_TIME - 300000
         },
         {
           type: 'DATA.PROCESSED',
           data: { count: 100 },
-          timestamp: Date.now() - 60000
+          timestamp: BASE_TIME - 60000
         }
       ]
 
       testEvents.forEach((event) => eventTracker._recordEvent(event))
+    })
+
+    afterEach(() => {
+      jest.useRealTimers()
     })
 
     test('應該支援按事件類型查詢', () => {

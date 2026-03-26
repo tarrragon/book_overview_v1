@@ -30,7 +30,7 @@
  * - 提供統一的 UI 狀態管理介面
  */
 
-const Logger = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 
 class PopupUIManager {
   /**
@@ -525,10 +525,10 @@ class PopupUIManager {
   showError (errorData) {
     if (!errorData) return
     const doc = this._getDoc()
-    try { Logger.debug('[PopupUIManager] showError docEqual', doc === document, 'winDocEqual', (typeof window !== 'undefined' && doc === window.document)) } catch (_) {}
+    try { Logger.debug('[PopupUIManager] showError', { docEqual: doc === document, winDocEqual: (typeof window !== 'undefined' && doc === window.document) }) } catch (_) {}
     // 直接從 document 取用以確保同步可見
     const container = doc && doc.getElementById('error-container')
-    try { Logger.debug('[PopupUIManager] showError before class', container && container.className) } catch (_) {}
+    try { Logger.debug('[PopupUIManager] showError before class', { className: container && container.className }) } catch (_) {}
     const titleEl = doc && doc.getElementById('error-title')
     const msgEl = doc && doc.getElementById('error-message')
     const actionsEl = doc && doc.getElementById('error-actions')
@@ -552,7 +552,7 @@ class PopupUIManager {
     if (loadingOverlay) this._hideElement(loadingOverlay)
     // 最終保證
     this._ensureVisible(container)
-    try { Logger.debug('[PopupUIManager] showError after class', container && container.className) } catch (_) {}
+    try { Logger.debug('[PopupUIManager] showError after class', { className: container && container.className }) } catch (_) {}
 
     // 更新錯誤標題
     if (this.elements.errorTitle && errorData.title) {
@@ -652,7 +652,7 @@ class PopupUIManager {
     const errorContainer = doc && doc.getElementById('error-container')
     if (errorContainer) this._hideElement(errorContainer)
     // 最終保證
-    if (container) { this._ensureVisible(container); try { Logger.debug('[PopupUIManager] showSuccess after class', container.className) } catch (_) {} }
+    if (container) { this._ensureVisible(container); try { Logger.debug('[PopupUIManager] showSuccess after class', { className: container.className }) } catch (_) {} }
   }
 
   /**
@@ -689,7 +689,7 @@ class PopupUIManager {
 
     // 最終保證
     this._ensureVisible(this.elements.loadingOverlay)
-    try { Logger.debug('[PopupUIManager] showLoading after class', this.elements.loadingOverlay && this.elements.loadingOverlay.className) } catch (_) {}
+    try { Logger.debug('[PopupUIManager] showLoading after class', { className: this.elements.loadingOverlay && this.elements.loadingOverlay.className }) } catch (_) {}
   }
 
   /**
@@ -734,7 +734,7 @@ class PopupUIManager {
     if (bar) {
       this.elements.progressBar = bar
       bar.style.width = `${clampedPercentage}%`
-      try { Logger.debug('[PopupUIManager] updateProgress width', bar.style.width) } catch (_) {}
+      try { Logger.debug('[PopupUIManager] updateProgress width', { width: bar.style.width }) } catch (_) {}
       const statusContainer = (doc && doc.getElementById('status-container')) || this.elements.statusContainer || this._getElementByKey('statusContainer')
       if (statusContainer) {
         statusContainer.classList.remove('hidden')
@@ -889,7 +889,7 @@ class PopupUIManager {
         updateFn()
       } catch (error) {
         // eslint-disable-next-line no-console
-        Logger.error('[PopupUIManager] Update failed:', error)
+        Logger.error('[PopupUIManager] Update failed', { error })
       }
     })
   }

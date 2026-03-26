@@ -15,7 +15,7 @@
 const fs = require('fs')
 // eslint-disable-next-line no-unused-vars
 const path = require('path')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 
 describe('Popup 版本號顯示', () => {
   let popupScript

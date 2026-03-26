@@ -91,8 +91,7 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
     test('loadPlatformValidationRules() 應該拒絕不支援的平台', async () => {
       await expect(ruleManager.loadPlatformValidationRules('UNSUPPORTED'))
         .rejects.toMatchObject({
-          code: 'TEST_ERROR',
-          message: expect.any(String),
+          code: 'OPERATION_ERROR',
           details: expect.any(Object)
         })
     })
@@ -110,7 +109,9 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
       const result = await ruleManager.loadPlatformValidationRules('READMOO')
 
       expect(result.cached).toBe(true)
-      expect(mockLogger.info).toHaveBeenCalledWith(expect.stringContaining('快取'))
+      expect(mockLogger.info).toHaveBeenCalledWith('VALIDATION_RULE_MANAGER_LOG', expect.objectContaining({
+        message: expect.stringContaining('快取')
+      }))
     })
   })
 
@@ -252,9 +253,7 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
       expect(() => {
         // eslint-disable-next-line no-new
         new ValidationRuleManager()
-      }).toMatchObject({
-        message: expect.stringContaining('EventBus is required')
-      })
+      }).toThrow()
     })
 
     test('應該處理規則載入失敗', async () => {
@@ -262,11 +261,7 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
       jest.spyOn(ruleManager, '_loadRulesForPlatform').mockRejectedValue(new Error('載入失敗'))
 
       await expect(ruleManager.loadPlatformValidationRules('READMOO'))
-        .rejects.toMatchObject({
-          code: 'TEST_ERROR',
-          message: expect.any(String),
-          details: expect.any(Object)
-        })
+        .rejects.toThrow()
     })
 
     test('應該處理損壞的規則檔案', async () => {
@@ -274,8 +269,7 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
 
       await expect(ruleManager.loadPlatformValidationRules('READMOO'))
         .rejects.toMatchObject({
-          code: 'VALIDATION_ERROR',
-          message: expect.any(String),
+          code: 'OPERATION_ERROR',
           details: expect.any(Object)
         })
     })

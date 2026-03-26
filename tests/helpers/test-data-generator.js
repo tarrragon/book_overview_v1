@@ -32,7 +32,7 @@ class TestDataGenerator {
     return array[Math.floor(this.random() * array.length)]
   }
 
-  generateBooks (count = 10) {
+  generateBooks (count = 10, prefix = '') {
     const books = []
     const categories = [
       '技術類', '程式設計', '人工智慧', '雲端技術', '專案管理',
@@ -46,15 +46,18 @@ class TestDataGenerator {
 
     const types = ['流式', '版式']
 
+    // 支援可選的前綴參數，用於區分不同批次的書籍 ID
+    const idPrefix = prefix ? `${prefix}-` : 'test-book-'
+
     for (let i = 1; i <= count; i++) {
-      const id = `test-book-${String(i).padStart(6, '0')}`
+      const id = `${idPrefix}${String(i).padStart(6, '0')}`
       const progress = this.randomInt(0, 100)
       const isFinished = progress === 100 || this.random() < 0.1
 
       books.push({
         id,
         title: this.generateBookTitle(i),
-        cover: `https://example.com/covers/test-book-${i}.jpg`,
+        cover: `https://example.com/covers/${idPrefix}${i}.jpg`,
         progress: isFinished ? 100 : progress,
         type: this.randomChoice(types),
         isNew: this.random() < 0.3,

@@ -28,7 +28,7 @@
  * - 系統定期的資料品質檢查
  */
 
-const Logger = require('src/core/logging/Logger')
+const { Logger } = require('src/core/logging/Logger')
 const crypto = require('crypto')
 
 // 引入新的錯誤類別系統
@@ -911,7 +911,7 @@ class DataValidationService {
 
   async _handleBatchProcessingError (error, books, platform, source, validationId, startTime) {
     // eslint-disable-next-line no-console
-    Logger.warn('❌ 批次處理錯誤:', error)
+    Logger.warn('批次處理錯誤', { error })
     await this.eventBus.emit('VALIDATION.BATCH.ERROR', {
       error: error.message,
       fallbackAction: 'integrated_validation'

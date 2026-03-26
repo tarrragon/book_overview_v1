@@ -160,7 +160,7 @@ describe('ExportProgressNotifier', () => {
     test('應該正確初始化進度通知器', () => {
       expect(() => {
         progressNotifier.initialize()
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證初始化邏輯
       // - 事件監聽器註冊
@@ -194,7 +194,7 @@ describe('ExportProgressNotifier', () => {
 
       expect(() => {
         progressNotifier.registerProgressCallback(exportId, callback)
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證回調註冊
       // - 回調函數保存
@@ -225,7 +225,7 @@ describe('ExportProgressNotifier', () => {
 
       expect(() => {
         progressNotifier.completeTracking(exportId)
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證回調清理
       // - 已完成匯出的回調移除
@@ -250,7 +250,7 @@ describe('ExportProgressNotifier', () => {
 
       expect(() => {
         progressNotifier.updateProgress(exportId, progressData)
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證進度更新邏輯
       // - 進度資料驗證
@@ -329,7 +329,7 @@ describe('ExportProgressNotifier', () => {
       expect(() => {
         progressNotifier.startTracking(csvExportId, 'csv')
         progressNotifier.startTracking(jsonExportId, 'json')
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證並行追蹤
       // - 獨立進度維護
@@ -427,7 +427,7 @@ describe('ExportProgressNotifier', () => {
 
       expect(() => {
         progressNotifier.cancelTracking(exportId)
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證取消機制
       // - 進度追蹤停止
@@ -454,7 +454,7 @@ describe('ExportProgressNotifier', () => {
       expect(() => {
         // eslint-disable-next-line no-unused-vars
         const _allProgress = progressNotifier.getAllProgress()
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證進度查詢
       // - 即時進度資料
@@ -492,7 +492,7 @@ describe('ExportProgressNotifier', () => {
     test('應該自動清理過期的進度記錄', () => {
       expect(() => {
         progressNotifier.cleanup()
-      }).toThrow(StandardError)
+      }).toThrow(Error)
 
       // Red 階段：測試將驗證自動清理
       // - 定時清理機制

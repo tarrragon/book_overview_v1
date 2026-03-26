@@ -1,4 +1,6 @@
 /**
+ * @deprecated v1.0.0 移除 - 請直接使用 ErrorCodes + 原生 Error
+ *
  * UC07ErrorAdapter - UC-07 錯誤處理與恢復 ErrorCodes 轉換適配器
  *
  * 處理系統錯誤處理、日誌記錄、恢復機制和學習系統的錯誤轉換

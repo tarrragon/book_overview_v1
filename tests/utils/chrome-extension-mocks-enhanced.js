@@ -9,7 +9,7 @@
  * @version v0.9.38-refactor
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 const ChromeAPIMockRegistry = require('../infrastructure/chrome-api-mock-registry')
 
 class ChromeExtensionMocksEnhanced {

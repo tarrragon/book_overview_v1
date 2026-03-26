@@ -3,7 +3,7 @@
  * TDD 循環 1: 抽象介面與基礎功能測試
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 // eslint-disable-next-line no-unused-vars
 const ReadmooDataConsistencyService = require('src/background/domains/data-management/services/readmoo-data-consistency-service')
 // eslint-disable-next-line no-unused-vars

@@ -255,6 +255,10 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
 
     test('processBatch() 應該處理記憶體管理', async () => {
+      // 模擬 global.gc 存在的環境
+      const originalGc = global.gc
+      global.gc = jest.fn()
+
       // eslint-disable-next-line no-unused-vars
       const batch = [{ id: 'book1', title: '書籍1' }]
       // eslint-disable-next-line no-unused-vars
@@ -262,6 +266,13 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
 
       // 記憶體管理資訊應該被記錄
       expect(result.warnings.some(w => w.type === 'MEMORY_MANAGEMENT_INFO')).toBe(true)
+
+      // 還原 global.gc
+      if (originalGc) {
+        global.gc = originalGc
+      } else {
+        delete global.gc
+      }
     })
 
     test('processBatch() 應該處理空批次', async () => {
@@ -391,18 +402,18 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
       expect(() => {
         // eslint-disable-next-line no-new
         new BatchValidationProcessor()
-      }).toMatchObject({
+      }).toThrow(expect.objectContaining({
         message: expect.stringContaining('EventBus is required')
-      })
+      }))
     })
 
     test('constructor 應該要求 validationRuleManager', () => {
       expect(() => {
         // eslint-disable-next-line no-new
         new BatchValidationProcessor(mockEventBus, { logger: mockLogger })
-      }).toMatchObject({
+      }).toThrow(expect.objectContaining({
         message: expect.stringContaining('ValidationRuleManager is required')
-      })
+      }))
     })
 
     test('應該處理驗證規則載入失敗', async () => {

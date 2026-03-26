@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 /**
  * EventBus getStats 整合測試
  * 驗證getStats在實際場景中的行為

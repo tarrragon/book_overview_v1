@@ -448,10 +448,10 @@ export class PerformanceAnomalyDetector {
     // eslint-disable-next-line no-console
     console.warn('檢測到錯誤建立緩慢，觸發自動回應:', anomaly)
 
-    // 建議使用 CommonErrors
+    // 建議預編譯常用錯誤
     anomaly.autoResponse = {
-      actions: ['suggest_common_errors'],
-      suggestions: ['使用 CommonErrors 預編譯錯誤以提高效能'],
+      actions: ['suggest_precompiled_errors'],
+      suggestions: ['考慮預編譯常用錯誤物件以提高效能'],
       timestamp: Date.now()
     }
   }

@@ -1217,7 +1217,7 @@ class ErrorCodesPerformanceMonitor {
     const recommendations = []
 
     if (stats.creationTime.p95 > this.config.creationTimeThreshold) {
-      recommendations.push('考慮使用 CommonErrors 預編譯錯誤以改善建立效能')
+      recommendations.push('考慮預編譯常用錯誤物件以改善建立效能')
     }
 
     if (stats.memoryUsage.mean > this.config.memoryThreshold * 0.8) {
@@ -1287,5 +1287,3 @@ class ErrorCodesPerformanceMonitor {
 }
 
 module.exports = { EventPerformanceMonitor, ErrorCodesPerformanceMonitor }
-
-module.exports = EventPerformanceMonitor

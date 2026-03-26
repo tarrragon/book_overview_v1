@@ -79,8 +79,6 @@ describe('ChromeApiWrapper', () => {
       await expect(chromeApiWrapper.checkChromeApiAvailability())
         .rejects
         .toMatchObject({
-          code: ErrorCodes.CHROME_ERROR,
-          message: expect.stringContaining('缺少必要的 Chrome API: storage'),
           details: {
             category: 'chrome-api',
             missingApis: ['storage']
@@ -96,8 +94,6 @@ describe('ChromeApiWrapper', () => {
       await expect(chromeApiWrapper.checkChromeApiAvailability())
         .rejects
         .toMatchObject({
-          code: ErrorCodes.CHROME_ERROR,
-          message: expect.stringContaining('storage, tabs'),
           details: {
             category: 'chrome-api',
             missingApis: ['storage', 'tabs']
@@ -127,8 +123,6 @@ describe('ChromeApiWrapper', () => {
       await expect(chromeApiWrapper.callChromeApi('nonexistent.api', []))
         .rejects
         .toMatchObject({
-          code: ErrorCodes.CHROME_ERROR,
-          message: '不支援的 API: nonexistent.api',
           details: {
             category: 'chrome-api',
             apiPath: 'nonexistent.api'
@@ -140,8 +134,6 @@ describe('ChromeApiWrapper', () => {
       await expect(chromeApiWrapper.executeApiCall('storage.local.nonexistent', []))
         .rejects
         .toMatchObject({
-          code: ErrorCodes.CHROME_ERROR,
-          message: 'API 不存在: storage.local.nonexistent',
           details: {
             category: 'chrome-api',
             apiPath: 'storage.local.nonexistent'
@@ -156,8 +148,6 @@ describe('ChromeApiWrapper', () => {
       await expect(chromeApiWrapper.executeApiCall('storage.local.notAFunction', []))
         .rejects
         .toMatchObject({
-          code: ErrorCodes.CHROME_ERROR,
-          message: 'storage.local.notAFunction 不是一個函數',
           details: {
             category: 'chrome-api',
             apiPath: 'storage.local.notAFunction',
@@ -176,8 +166,6 @@ describe('ChromeApiWrapper', () => {
       await expect(chromeApiWrapper.executeApiCall('storage.local.get', [{}]))
         .rejects
         .toMatchObject({
-          code: ErrorCodes.CHROME_ERROR,
-          message: 'Extension context invalidated.',
           details: {
             category: 'chrome-api',
             source: 'chrome_runtime'

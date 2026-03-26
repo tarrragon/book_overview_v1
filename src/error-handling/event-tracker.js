@@ -206,7 +206,7 @@ class EventTracker extends EventHandler {
     } catch (error) {
       // 載入失敗時繼續運行，不影響功能
       // eslint-disable-next-line no-console
-      Logger.warn('Failed to load persisted event tracking data:', error)
+      Logger.warn('Failed to load persisted event tracking data', { error })
     }
   }
 
@@ -785,7 +785,7 @@ class EventTracker extends EventHandler {
     } catch (error) {
       // 持久化失敗不影響功能運行
       // eslint-disable-next-line no-console
-      Logger.warn('Failed to persist event tracking data:', error)
+      Logger.warn('Failed to persist event tracking data', { error })
     }
   }
 

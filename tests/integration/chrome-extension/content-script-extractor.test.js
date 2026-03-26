@@ -49,20 +49,24 @@ describe('Content Script Extractor Integration', () => {
         <body>
           <div class="library-container">
             <div class="book-shelf">
-              <a href="/api/reader/12345" class="book-item">
-                <img src="https://cover.url/test.jpg" alt="測試書籍標題" />
-                <div class="book-info">
-                  <h3>測試書籍標題</h3>
-                  <div class="progress">進度: 45%</div>
-                </div>
-              </a>
-              <a href="/api/reader/67890" class="book-item">
-                <img src="https://cover.url/test2.jpg" alt="另一本測試書" />
-                <div class="book-info">
-                  <h3>另一本測試書</h3>
-                  <div class="progress">進度: 80%</div>
-                </div>
-              </a>
+              <div class="library-item">
+                <a href="https://readmoo.com/api/reader/12345" class="book-item">
+                  <img class="cover-img" src="https://cover.url/test.jpg" alt="測試書籍標題" />
+                  <div class="book-info">
+                    <span class="title">測試書籍標題</span>
+                    <div class="progress">進度: 45%</div>
+                  </div>
+                </a>
+              </div>
+              <div class="library-item">
+                <a href="/api/reader/67890" class="book-item">
+                  <img class="cover-img" src="https://cover.url/test2.jpg" alt="另一本測試書" />
+                  <div class="book-info">
+                    <span class="title">另一本測試書</span>
+                    <div class="progress">進度: 80%</div>
+                  </div>
+                </a>
+              </div>
             </div>
           </div>
         </body>
@@ -108,7 +112,7 @@ describe('Content Script Extractor Integration', () => {
       // 檢查內容包含必要的功能
       // eslint-disable-next-line no-unused-vars
       const contentContent = fs.readFileSync(contentPath, 'utf8')
-      expect(contentContent).toMatch(/readmoo.*com/i)
+      expect(contentContent).toMatch(/readmoo/i)
       expect(contentContent).toMatch(/extraction|extract/i)
     })
 
@@ -116,9 +120,11 @@ describe('Content Script Extractor Integration', () => {
       // 載入 content script 並執行
       await loadContentScript()
 
-      // 應該正確識別當前頁面為 Readmoo 頁面
-      expect(global.isReadmooPage).toBe(true)
-      expect(global.pageType).toBeDefined()
+      // 應該正確識別當前頁面為 Readmoo 頁面（透過 pageDetector 全域變數）
+      expect(global.pageDetector).toBeDefined()
+      const pageStatus = global.pageDetector.getPageStatus()
+      expect(pageStatus.isReadmooPage).toBe(true)
+      expect(pageStatus.pageType).toBeDefined()
     })
 
     test('應該初始化事件系統', async () => {
@@ -141,14 +147,11 @@ describe('Content Script Extractor Integration', () => {
     test('應該註冊必要的訊息監聽器', async () => {
       await loadContentScript()
 
-      // 應該監聽來自 Background 的訊息
-      expect(chrome.runtime.onMessage.addListener).toHaveBeenCalled()
-
-      // 檢查監聽器功能
-      // eslint-disable-next-line no-unused-vars
-      const messageHandler = chrome.runtime.onMessage.addListener.mock.calls[0]?.[0]
-      expect(messageHandler).toBeDefined()
-      expect(typeof messageHandler).toBe('function')
+      // 驗證 ChromeEventBridge 已註冊消息監聽器
+      // bridge.messageListener 在成功註冊後會被設定
+      expect(global.contentChromeBridge).toBeDefined()
+      expect(global.contentChromeBridge.messageListener).toBeDefined()
+      expect(typeof global.contentChromeBridge.messageListener).toBe('function')
     })
   })
 
@@ -310,7 +313,7 @@ describe('Content Script Extractor Integration', () => {
         // 檢查提取的元素
         bookElements.forEach(element => {
           expect(element).toBeInstanceOf(window.HTMLElement)
-          expect(element.tagName.toLowerCase()).toBe('a')
+          expect(element.tagName.toLowerCase()).toBe('div') // .library-item 容器是 div
         })
       }
     })
@@ -763,22 +766,21 @@ describe('Content Script Extractor Integration', () => {
     test('應該處理動態內容載入', async () => {
       await loadContentScript()
 
-      // 添加新的書籍元素到頁面
+      // 添加新的書籍元素到頁面（使用 .library-item 容器匹配 ReadmooAdapter 的主要選擇器）
       // eslint-disable-next-line no-unused-vars
-      const newBookElement = document.createElement('a')
-      newBookElement.href = '/api/reader/99999'
-      newBookElement.className = 'book-item'
-      newBookElement.innerHTML = `
-        <img src="https://cover.url/new.jpg" alt="新增書籍" />
-        <div class="book-info">
-          <h3>新增書籍</h3>
+      const newBookWrapper = document.createElement('div')
+      newBookWrapper.className = 'library-item'
+      newBookWrapper.innerHTML = `
+        <a href="https://readmoo.com/api/reader/99999" class="book-item">
+          <img class="cover-img" src="https://cover.url/new.jpg" alt="新增書籍" />
+          <span class="title">新增書籍</span>
           <div class="progress">進度: 25%</div>
-        </div>
+        </a>
       `
 
       // eslint-disable-next-line no-unused-vars
       const bookShelf = document.querySelector('.book-shelf')
-      bookShelf.appendChild(newBookElement)
+      bookShelf.appendChild(newBookWrapper)
 
       // 等待 MutationObserver 處理
       await new Promise(resolve => setTimeout(resolve, 100))
@@ -857,7 +859,7 @@ describe('Content Script Extractor Integration', () => {
         bookDataExtractor: !!global.bookDataExtractor,
         readmooAdapter: !!global.readmooAdapter,
         domReady: document.readyState === 'complete',
-        pageDetected: !!global.isReadmooPage
+        pageDetected: !!(global.pageDetector && global.pageDetector.getPageStatus().isReadmooPage)
       }
 
       Object.values(healthCheck).forEach(status => {
@@ -875,26 +877,46 @@ describe('Content Script Extractor Integration', () => {
    * 載入並執行 content script
    */
   async function loadContentScript () {
-    // eslint-disable-next-line no-unused-vars
-    const fs = require('fs')
-    // eslint-disable-next-line no-unused-vars
-    const path = require('path')
-
     try {
-      // 讀取 content-modular.js 內容 (用於整合測試)
-      // eslint-disable-next-line no-unused-vars
-      const contentPath = path.join(__dirname, '../../../src/content/content-modular.js')
-      // eslint-disable-next-line no-unused-vars
-      const contentContent = fs.readFileSync(contentPath, 'utf8')
+      // 覆寫全域環境變數，確保 content-modular.js 的模組在正確的環境中初始化
+      // jsdom 的 location/document 是特殊屬性，需要用 delete + 重新賦值覆寫
+      delete globalThis.location
+      globalThis.location = {
+        hostname: 'readmoo.com',
+        href: 'https://readmoo.com/library',
+        pathname: '/library',
+        origin: 'https://readmoo.com',
+        protocol: 'https:',
+        host: 'readmoo.com'
+      }
 
-      // 在當前上下文中執行 content script
-      // eslint-disable-next-line no-eval
-      eval(contentContent)
+      // 確保 document 和 MutationObserver 來自同一個 JSDOM 實例，避免跨 realm 錯誤
+      const savedDocument = globalThis.document
+      Object.defineProperty(globalThis, 'document', {
+        value: document,
+        writable: true,
+        configurable: true
+      })
+      globalThis.MutationObserver = window.MutationObserver
 
-      // 等待初始化完成
-      await new Promise(resolve => setTimeout(resolve, 200))
+      // 使用 require 載入 content script，利用 Jest 的模組解析（支援 src/ 路徑）
+      // 每次呼叫前清除快取，確保重新執行初始化邏輯
+      const contentModulePath = require.resolve('src/content/content-modular')
+      delete require.cache[contentModulePath]
 
-      // 觸發 DOMContentLoaded 事件
+      // 同時清除子模組快取，確保重新初始化
+      Object.keys(require.cache).forEach(key => {
+        if (key.includes('src/content/')) {
+          delete require.cache[key]
+        }
+      })
+
+      require('src/content/content-modular')
+
+      // 等待非同步初始化完成
+      await new Promise(resolve => setTimeout(resolve, 300))
+
+      // 觸發 DOMContentLoaded 事件（若初始化依賴此事件）
       // eslint-disable-next-line no-unused-vars
       const domLoadedEvent = new window.Event('DOMContentLoaded')
       document.dispatchEvent(domLoadedEvent)

@@ -10,8 +10,10 @@
  * - 提供通用測試工具函數供所有測試檔案使用
  */
 
-// 引入 jest-chrome 模擬 Chrome Extension APIs
+// 引入 jest-chrome 模擬 Chrome Extension APIs（提供基礎的 chrome 物件）
 require('jest-chrome')
+// 引入集中的 Chrome Mock 工廠，補充 jest-chrome 未覆蓋的 API
+const { createCompleteChromeAPIMock } = require('./mocks/chrome-mock-factory')
 // 提供額外的 DOM 斷言（toHaveClass 等）
 try {
   require('@testing-library/jest-dom')
@@ -166,63 +168,17 @@ try {
   console.warn('Warning: ErrorCodes 無法載入，某些測試可能會失敗:', error.message)
 }
 
-// 設定 Logger 全域變數供所有測試使用
-// 解決 Logger 導入方式不一致問題
+// Logger 靜態方法已完整實作（第 365-410 行），直接使用類別本身
+// Ticket: 0.15.0-W3-003.1
 try {
-  const LoggerModule = require('src/core/logging/Logger')
-  const LoggerClass = LoggerModule.Logger || LoggerModule
+  const { Logger: LoggerClass, LOG_LEVELS } = require('../src/core/logging/Logger')
+  global.Logger = LoggerClass
+  global.LOG_LEVELS = LOG_LEVELS
 
-  // 創建全域 Logger 實例，支援靜態方法呼叫
-  const globalLoggerInstance = new LoggerClass('GLOBAL_TEST')
-
-  // 創建模擬的靜態 Logger 物件，支援直接字串輸入
-  const Logger = {
-    info: (...args) => {
-      // 支援直接字串和message key兩種模式
-      if (args.length === 1 && typeof args[0] === 'string') {
-        globalLoggerInstance.direct('INFO', args[0])
-      } else {
-        globalLoggerInstance.info(...args)
-      }
-    },
-    warn: (...args) => {
-      if (args.length === 1 && typeof args[0] === 'string') {
-        globalLoggerInstance.direct('WARN', args[0])
-      } else {
-        globalLoggerInstance.warn(...args)
-      }
-    },
-    error: (...args) => {
-      if (args.length === 1 && typeof args[0] === 'string') {
-        globalLoggerInstance.direct('ERROR', args[0])
-      } else {
-        globalLoggerInstance.error(...args)
-      }
-    },
-    debug: (...args) => {
-      if (args.length === 1 && typeof args[0] === 'string') {
-        globalLoggerInstance.direct('DEBUG', args[0])
-      } else {
-        globalLoggerInstance.debug(...args)
-      }
-    },
-    // 也提供原始類別的存取
-    Logger: LoggerClass,
-    createInstance: (name) => new LoggerClass(name)
-  }
-
-  // 設定在瀏覽器環境和 Node.js 環境
-  global.Logger = Logger
-  if (typeof window !== 'undefined') {
-    window.Logger = Logger
-  }
-  // 為了相容性，也設定在 global 物件上
+  // 為了相容性，也設定在 window 物件上
   global.window = global.window || {}
-  global.window.Logger = Logger
-
-  // 也設定 LOG_LEVELS
-  global.LOG_LEVELS = LoggerModule.LOG_LEVELS
-  global.window.LOG_LEVELS = LoggerModule.LOG_LEVELS
+  global.window.Logger = LoggerClass
+  global.window.LOG_LEVELS = LOG_LEVELS
 } catch (error) {
   // eslint-disable-next-line no-console
   console.warn('Warning: Logger 無法載入，某些測試可能會失敗:', error.message)
@@ -257,6 +213,44 @@ chrome.tabs.query.mockImplementation((queryInfo, callback) => {
     active: true
   }])
 })
+
+// 使用 Chrome Mock 工廠補充 jest-chrome 未提供完整 mock 的 API
+// 僅補充缺失的命名空間，不覆蓋 jest-chrome 已設定的 mock
+const factoryMock = createCompleteChromeAPIMock()
+
+// 補充 permissions API（jest-chrome 提供骨架但可能缺少事件介面）
+if (!global.chrome.permissions || !global.chrome.permissions.request) {
+  global.chrome.permissions = factoryMock.permissions
+} else {
+  if (!global.chrome.permissions.onAdded) {
+    global.chrome.permissions.onAdded = factoryMock.permissions.onAdded
+  }
+  if (!global.chrome.permissions.onRemoved) {
+    global.chrome.permissions.onRemoved = factoryMock.permissions.onRemoved
+  }
+}
+
+// 補充 scripting API（Manifest V3 專用，jest-chrome 可能未提供）
+if (!global.chrome.scripting) {
+  global.chrome.scripting = factoryMock.scripting
+}
+
+// 補充 webNavigation API 事件介面
+if (!global.chrome.webNavigation) {
+  global.chrome.webNavigation = factoryMock.webNavigation
+} else {
+  const navEvents = ['onBeforeNavigate', 'onCommitted', 'onCompleted', 'onErrorOccurred', 'onHistoryStateUpdated']
+  navEvents.forEach(event => {
+    if (!global.chrome.webNavigation[event]) {
+      global.chrome.webNavigation[event] = factoryMock.webNavigation[event]
+    }
+  })
+}
+
+// 補充 storage.onChanged 事件介面
+if (!global.chrome.storage.onChanged || !global.chrome.storage.onChanged.addListener) {
+  global.chrome.storage.onChanged = factoryMock.storage.onChanged
+}
 
 // 設定 console 方法的模擬（可選）
 // eslint-disable-next-line no-unused-vars

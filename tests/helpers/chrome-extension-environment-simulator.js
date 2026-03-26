@@ -16,7 +16,7 @@
  */
 
 const ChromeExtensionMocksEnhanced = require('../utils/chrome-extension-mocks-enhanced')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 
 class ChromeExtensionEnvironmentSimulator {
   constructor () {

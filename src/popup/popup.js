@@ -450,7 +450,7 @@ function sendCancelToBackground () {
       timestamp: Date.now()
     }, (response) => {
       if (chrome.runtime.lastError) {
-        Logger.warn('Cancel message failed:', chrome.runtime.lastError)
+        Logger.warn('Cancel message failed', { error: chrome.runtime.lastError })
       }
     })
   }
@@ -468,7 +468,7 @@ function sendCancelToContentScript () {
           timestamp: Date.now()
         }, (response) => {
           if (chrome.runtime.lastError) {
-            Logger.warn('Cancel content script message failed:', chrome.runtime.lastError)
+            Logger.warn('Cancel content script message failed', { error: chrome.runtime.lastError })
           }
         })
       }
@@ -521,7 +521,7 @@ function cancelExtraction () {
     cleanupExtractionState()
     showCancellationRecovery()
   } catch (error) {
-    Logger.error('Cancel extraction failed:', error)
+    Logger.error('Cancel extraction failed', { error })
     updateStatus('取消失敗', '發生錯誤', '請重新整理頁面後重試', STATUS_TYPES.ERROR)
   }
 }
@@ -563,7 +563,7 @@ function handleTestEnvironmentResponse (response) {
  */
 function handleSuccessfulBackgroundResponse (response) {
   if (response.eventSystem) {
-    Logger.info('📊 事件系統狀態:', response.eventSystem)
+    Logger.info('事件系統狀態', { eventSystem: response.eventSystem })
   }
   updateStatus('線上', 'Background Service Worker 連線正常', '系統就緒', STATUS_TYPES.READY)
 }
@@ -633,7 +633,7 @@ async function checkBackgroundStatus () {
       throw error
     }
   } catch (error) {
-    Logger.error('❌ Background Service Worker 連線失敗:', error)
+    Logger.error('Background Service Worker 連線失敗', { error })
     const { userMessage, diagnosticInfo } = generateErrorDiagnostic(error)
     updateStatus('離線', userMessage, diagnosticInfo, STATUS_TYPES.ERROR)
     return false
@@ -689,7 +689,7 @@ async function checkCurrentTab () {
           return tab
         }
       } catch (error) {
-        Logger.info('Content Script 尚未就緒:', error)
+        Logger.info('Content Script 尚未就緒', { error })
         updateStatus('載入中', MESSAGES.CONTENT_SCRIPT_LOADING, MESSAGES.CONTENT_SCRIPT_RELOAD_HINT, STATUS_TYPES.LOADING)
       }
     } else {
@@ -699,7 +699,7 @@ async function checkCurrentTab () {
 
     return tab
   } catch (error) {
-    Logger.error('檢查標籤頁時發生錯誤:', error)
+    Logger.error('檢查標籤頁時發生錯誤', { error })
     updateStatus('錯誤', '無法檢查頁面狀態', error.message, STATUS_TYPES.ERROR)
     return null
   }
@@ -755,7 +755,7 @@ async function startExtraction () {
       throw error
     }
   } catch (error) {
-    Logger.error('提取過程發生錯誤:', error)
+    Logger.error('提取過程發生錯誤', { error })
     updateStatus('失敗', '提取失敗', error.message, STATUS_TYPES.ERROR)
   } finally {
     updateButtonState(false)
@@ -814,7 +814,7 @@ function openLibraryOverview () {
     Logger.info('📖 開啟書庫總覽頁面...')
     chrome.runtime.openOptionsPage()
   } catch (error) {
-    Logger.error('❌ 無法開啟書庫頁面:', error)
+    Logger.error('無法開啟書庫頁面', { error })
     window.alert('無法開啟書庫頁面，請稍後再試')
   }
 }
@@ -1066,7 +1066,7 @@ async function initializeDiagnosticEnhancer () {
     const result = await diagnosticEnhancer.initialize()
 
     if (!result.success) {
-      Logger.warn('⚠️ 診斷增強器初始化失敗:', result.error)
+      Logger.warn('診斷增強器初始化失敗', { error: result.error })
     } else {
       // 設置系統健康檢查按鈕事件監聽器
       const healthCheckBtn = document.getElementById('systemHealthCheckBtn')
@@ -1079,7 +1079,7 @@ async function initializeDiagnosticEnhancer () {
             const healthReport = await diagnosticEnhancer.performSystemHealthCheck()
             displayHealthCheckResults(healthReport)
           } catch (error) {
-            Logger.error('健康檢查錯誤:', error)
+            Logger.error('健康檢查錯誤', { error })
             alert('健康檢查失敗: ' + error.message)
           } finally {
             healthCheckBtn.disabled = false
@@ -1208,7 +1208,7 @@ function showInitializationReport () {
 }
 
 function handleGlobalError (event) {
-  Logger.error('❌ Popup Interface 錯誤:', event.error)
+  Logger.error('Popup Interface 錯誤', { error: event.error })
 
   // 如果錯誤處理器可用，使用增強的錯誤處理
   if (errorHandler) {

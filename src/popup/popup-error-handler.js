@@ -499,7 +499,7 @@ class PopupErrorHandler {
       window.location.reload()
     } catch (error) {
       // eslint-disable-next-line no-console
-      Logger.warn('[PopupErrorHandler] Unable to reload popup window:', error)
+      Logger.warn('[PopupErrorHandler] Unable to reload popup window', { error })
       // 在測試環境或某些情況下，reload 可能不可用
     }
   }

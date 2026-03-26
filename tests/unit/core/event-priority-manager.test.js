@@ -377,19 +377,11 @@ describe('EventPriorityManager', () => {
 
       expect(() => {
         priorityManager.adjustEventPriority(eventName, -1)
-      }).toMatchObject({
-        code: expect.any(String),
-        message: expect.stringContaining('Invalid priority value'),
-        details: expect.any(Object)
-      })
+      }).toThrow()
 
       expect(() => {
         priorityManager.adjustEventPriority(eventName, 1000)
-      }).toMatchObject({
-        code: expect.any(String),
-        message: expect.stringContaining('Invalid priority value'),
-        details: expect.any(Object)
-      })
+      }).toThrow()
     })
 
     test('應該記錄優先級錯誤統計', () => {

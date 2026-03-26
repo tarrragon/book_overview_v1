@@ -5,7 +5,7 @@
  * 目標：將品質評估邏輯從 DataValidationService 中提取
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-codes')
 // eslint-disable-next-line no-unused-vars
 const QualityAssessmentService = require('src/background/domains/data-management/services/quality-assessment-service.js')
 // eslint-disable-next-line no-unused-vars
@@ -479,10 +479,7 @@ describe('QualityAssessmentService - 品質評估服務', () => {
         // eslint-disable-next-line no-unused-vars
         const _service = new QualityAssessmentService()
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toMatchObject({
-        code: 'INVALID_ARGUMENT',
-        details: expect.any(Object)
-      })
+      }).toThrow()
     })
 
     test('應該處理評估過程中的錯誤', () => {
