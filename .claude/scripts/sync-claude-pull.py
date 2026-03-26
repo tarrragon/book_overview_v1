@@ -130,11 +130,11 @@ def check_uncommitted_changes(project_root: Path) -> None:
         呼叫 sys.exit(1)，若有未提交變更或 git 命令失敗則終止程式
     """
     result = run_git(
-        ["diff", "--name-only", ".claude", "FLUTTER.md"],
+        ["diff", "--name-only", "--", ".claude"],
         cwd=str(project_root),
     )
     cached = run_git(
-        ["diff", "--cached", "--name-only", ".claude", "FLUTTER.md"],
+        ["diff", "--cached", "--name-only", "--", ".claude"],
         cwd=str(project_root),
     )
     if result.returncode != 0 or cached.returncode != 0:

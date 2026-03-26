@@ -1,7 +1,8 @@
 version: "0.15.0"
 last_updated: "2026-03-26"
-status: "重新啟動開發 - 修復優先"
+status: "W1 完成 - 進入 W2 系統設計分析"
 
+# Wave 1: 專案重啟與測試修復 (completed)
 tickets:
   - id: "0.15.0-W1-001"
     title: "ErrorCodes 系統設計分析"
@@ -12,11 +13,23 @@ tickets:
   - id: "0.15.0-W1-002"
     title: "全面修復測試錯誤 - 恢復編譯與測試通過"
     priority: P1
-    status: open
+    status: completed
     type: fix
 
   - id: "0.15.0-W1-003"
     title: "版本推進至 v0.15.0"
     priority: P1
-    status: open
+    status: completed
     type: chore
+
+# Wave 2: 測試失敗模式分析與系統設計檢討
+  - id: "0.15.0-W2-001"
+    title: "多視角分析測試失敗模式與系統設計檢討"
+    priority: P1
+    status: open
+    type: analysis
+    subtasks:
+      - "Sub-1: 多視角錯誤模式分類與統整"
+      - "Sub-2: 根因追溯與影響範圍評估"
+      - "Sub-3: 系統設計檢討建議"
+      - "Sub-4: 執行計畫制定"
