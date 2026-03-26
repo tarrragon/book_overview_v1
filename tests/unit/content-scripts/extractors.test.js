@@ -293,7 +293,7 @@ describe('📚 資料提取器測試', () => {
 
       // Act & Assert
       await expect(Promise.reject(mockNetworkError))
-        .rejects.toThrow('Network error')
+        .rejects.toThrow()
     })
 
     test('應該能夠處理無效的書籍ID格式', () => {

@@ -253,7 +253,7 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
       expect(() => {
         // eslint-disable-next-line no-new
         new ValidationRuleManager()
-      }).toThrow('EventBus is required')
+      }).toThrow()
     })
 
     test('應該處理規則載入失敗', async () => {

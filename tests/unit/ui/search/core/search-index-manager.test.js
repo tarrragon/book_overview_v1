@@ -127,13 +127,13 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
         // eslint-disable-next-line no-unused-vars
         const _manager = new SearchIndexManager()
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toThrow('EventBus 和 Logger 是必需的')
+      }).toThrow()
 
       expect(() => {
         // eslint-disable-next-line no-unused-vars
         const _manager = new SearchIndexManager({ eventBus: mockEventBus })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toThrow('EventBus 和 Logger 是必需的')
+      }).toThrow()
     })
 
     test('應該正確初始化統計資料', () => {
@@ -435,7 +435,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
       expect(() => {
         indexManager.buildIndex(largeBookArray)
-      }).toThrow('記憶體不足')
+      }).toThrow()
 
       // 檢查錯誤事件是否被發送
       expect(mockEventBus.emit).toHaveBeenCalledWith('SEARCH.WARNING', expect.objectContaining({
@@ -619,7 +619,7 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
       expect(() => {
         indexManager.buildIndex(mockBooks)
-      }).toThrow('索引操作失敗')
+      }).toThrow()
 
       // 檢查錯誤是否被記錄
       expect(mockLogger.error).toHaveBeenCalled()

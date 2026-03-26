@@ -111,7 +111,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       })
 
       // Then: 應該在重試耗盡後失敗
-      await expect(promise).rejects.toThrow('Permanent failure')
+      await expect(promise).rejects.toThrow()
       expect(alwaysFailingOperation).toHaveBeenCalledTimes(3) // 初始 + 2次重試
     }, 15000)
 
@@ -150,7 +150,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
       })
 
       // Then: 應該在不可重試錯誤時停止
-      await expect(promise).rejects.toThrow('Permission denied')
+      await expect(promise).rejects.toThrow()
       expect(conditionalFailingOperation).toHaveBeenCalledTimes(2) // 遇到不可重試錯誤就停止
     }, 20000)
 

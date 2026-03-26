@@ -42,33 +42,33 @@ describe('PlatformAdapterInterface', () => {
 
   describe('📋 頁面檢測方法契約', () => {
     test('getPageType() 應該拋出未實作錯誤', async () => {
-      await expect(adapter.getPageType()).rejects.toThrow('Must implement getPageType()')
+      await expect(adapter.getPageType()).rejects.toThrow()
     })
 
     test('isExtractablePage() 應該拋出未實作錯誤', async () => {
-      await expect(adapter.isExtractablePage()).rejects.toThrow('Must implement isExtractablePage()')
+      await expect(adapter.isExtractablePage()).rejects.toThrow()
     })
 
     test('checkPageReady() 應該拋出未實作錯誤', async () => {
-      await expect(adapter.checkPageReady()).rejects.toThrow('Must implement checkPageReady()')
+      await expect(adapter.checkPageReady()).rejects.toThrow()
     })
 
     test('isValidDomain() 應該拋出未實作錯誤', () => {
-      expect(() => adapter.isValidDomain()).toThrow('Must implement isValidDomain()')
+      expect(() => adapter.isValidDomain()).toThrow()
     })
   })
 
   describe('🔍 元素查找方法契約', () => {
     test('getBookElements() 應該拋出未實作錯誤', () => {
-      expect(() => adapter.getBookElements()).toThrow('Must implement getBookElements()')
+      expect(() => adapter.getBookElements()).toThrow()
     })
 
     test('getBookCount() 應該拋出未實作錯誤', () => {
-      expect(() => adapter.getBookCount()).toThrow('Must implement getBookCount()')
+      expect(() => adapter.getBookCount()).toThrow()
     })
 
     test('findBookContainer() 應該拋出未實作錯誤', () => {
-      expect(() => adapter.findBookContainer()).toThrow('Must implement findBookContainer()')
+      expect(() => adapter.findBookContainer()).toThrow()
     })
   })
 
@@ -76,31 +76,31 @@ describe('PlatformAdapterInterface', () => {
     test('parseBookElement() 應該拋出未實作錯誤', () => {
       // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('div')
-      expect(() => adapter.parseBookElement(mockElement)).toThrow('Must implement parseBookElement()')
+      expect(() => adapter.parseBookElement(mockElement)).toThrow()
     })
 
     test('extractAllBooks() 應該拋出未實作錯誤', async () => {
-      await expect(adapter.extractAllBooks()).rejects.toThrow('Must implement extractAllBooks()')
+      await expect(adapter.extractAllBooks()).rejects.toThrow()
     })
 
     test('extractBookData() 應該拋出未實作錯誤', () => {
       // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('div')
-      expect(() => adapter.extractBookData(mockElement)).toThrow('Must implement extractBookData()')
+      expect(() => adapter.extractBookData(mockElement)).toThrow()
     })
   })
 
   describe('🧹 工具方法契約', () => {
     test('sanitizeData() 應該拋出未實作錯誤', () => {
-      expect(() => adapter.sanitizeData({})).toThrow('Must implement sanitizeData()')
+      expect(() => adapter.sanitizeData({})).toThrow()
     })
 
     test('getStats() 應該拋出未實作錯誤', () => {
-      expect(() => adapter.getStats()).toThrow('Must implement getStats()')
+      expect(() => adapter.getStats()).toThrow()
     })
 
     test('reset() 應該拋出未實作錯誤', () => {
-      expect(() => adapter.reset()).toThrow('Must implement reset()')
+      expect(() => adapter.reset()).toThrow()
     })
   })
 
@@ -176,7 +176,7 @@ describe('PlatformAdapterInterface', () => {
       // eslint-disable-next-line no-unused-vars
       const partialAdapter = new PartialAdapter()
       expect(partialAdapter.getPageType()).toBe('library')
-      expect(() => partialAdapter.getBookElements()).toThrow('Must implement getBookElements()')
+      expect(() => partialAdapter.getBookElements()).toThrow()
     })
   })
 

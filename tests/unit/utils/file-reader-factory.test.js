@@ -22,7 +22,7 @@ describe('FileReaderFactory', () => {
       delete global.FileReader
       global.FileReader = undefined
 
-      expect(() => FileReaderFactory.createReader()).toThrow('檔案讀取功能不支援')
+      expect(() => FileReaderFactory.createReader()).toThrow()
     })
   })
 

@@ -83,17 +83,24 @@ function build() {
       }
     });
 
-    // 讀取並處理 manifest.json
+    // 讀取並處理 manifest.json（注入 package.json 版本號）
     const manifestPath = path.join(BUILD_DIR, 'manifest.json');
     if (fs.existsSync(manifestPath)) {
       const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      
+      const packageJson = JSON.parse(
+        fs.readFileSync(path.join(SOURCE_DIR, 'package.json'), 'utf8')
+      );
+
+      // 從 package.json 注入版本號，確保版本一致
+      manifest.version = packageJson.version;
+      console.log(`📌 版本注入: ${packageJson.version} (來源: package.json)`);
+
       // 生產模式的特殊處理
       if (MODE === 'production') {
         // 移除開發專用的權限和配置
         console.log('🚀 套用生產模式配置...');
       }
-      
+
       fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
     }
 

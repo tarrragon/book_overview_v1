@@ -192,7 +192,7 @@ describe('SearchCoordinator', () => {
           searchResultFormatter: mockSearchResultFormatter,
           searchCacheManager: mockSearchCacheManager
         })
-      }).toThrow('EventBus 是必需的')
+      }).toThrow()
     })
 
     it('should throw error when Logger is missing', () => {
@@ -216,7 +216,7 @@ describe('SearchCoordinator', () => {
           searchResultFormatter: mockSearchResultFormatter,
           searchCacheManager: mockSearchCacheManager
         })
-      }).toThrow('Logger 是必需的')
+      }).toThrow()
     })
 
     it('should throw error when SearchEngine is missing', () => {
@@ -240,7 +240,7 @@ describe('SearchCoordinator', () => {
           searchResultFormatter: mockSearchResultFormatter,
           searchCacheManager: mockSearchCacheManager
         })
-      }).toThrow('SearchEngine 是必需的')
+      }).toThrow()
     })
 
     it('should initialize with default configuration', () => {

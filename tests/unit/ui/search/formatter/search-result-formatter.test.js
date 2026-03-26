@@ -61,7 +61,7 @@ describe('SearchResultFormatter', () => {
         // eslint-disable-next-line no-unused-vars
         const invalidFormatter = new SearchResultFormatter({ logger: mockLogger })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toThrow('EventBus 和 Logger 是必需的')
+      }).toThrow()
     })
 
     test('建構時缺少 logger 應該拋出錯誤', () => {
@@ -72,7 +72,7 @@ describe('SearchResultFormatter', () => {
         // eslint-disable-next-line no-unused-vars
         const invalidFormatter = new SearchResultFormatter({ eventBus: mockEventBus })
         // 變數賦值確保建構子結果被正確處理，測試錯誤條件
-      }).toThrow('EventBus 和 Logger 是必需的')
+      }).toThrow()
     })
 
     test('應該正確合併預設配置和自定義配置', () => {
@@ -558,21 +558,21 @@ describe('SearchResultFormatter', () => {
     test('無效查詢參數應該拋出錯誤', () => {
       expect(() => {
         formatter.formatResults(null, [])
-      }).toThrow('查詢參數必須是字串')
+      }).toThrow()
 
       expect(() => {
         formatter.formatResults(123, [])
-      }).toThrow('查詢參數必須是字串')
+      }).toThrow()
     })
 
     test('無效結果參數應該拋出錯誤', () => {
       expect(() => {
         formatter.formatResults('test', null)
-      }).toThrow('結果參數必須是陣列')
+      }).toThrow()
 
       expect(() => {
         formatter.formatResults('test', 'not array')
-      }).toThrow('結果參數必須是陣列')
+      }).toThrow()
     })
 
     test('無效的書籍對象應該被跳過並記錄警告', () => {

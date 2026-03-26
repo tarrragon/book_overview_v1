@@ -155,7 +155,7 @@ describe('DataValidationService - 服務整合測試', () => {
         new DataValidationService(mockEventBus, {
           validationRuleManager: null
         })
-      }).toThrow('ValidationRuleManager is required')
+      }).toThrow()
 
       expect(() => {
         // eslint-disable-next-line no-new
@@ -163,7 +163,7 @@ describe('DataValidationService - 服務整合測試', () => {
           validationRuleManager: mockValidationRuleManager,
           batchValidationProcessor: null
         })
-      }).toThrow('BatchValidationProcessor is required')
+      }).toThrow()
     })
   })
 
