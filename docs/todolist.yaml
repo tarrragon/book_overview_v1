@@ -1,0 +1,22 @@
+version: "0.15.0"
+last_updated: "2026-03-26"
+status: "重新啟動開發 - 修復優先"
+
+tickets:
+  - id: "0.15.0-W1-001"
+    title: "ErrorCodes 系統設計分析"
+    priority: P2
+    status: open
+    type: analysis
+
+  - id: "0.15.0-W1-002"
+    title: "全面修復測試錯誤 - 恢復編譯與測試通過"
+    priority: P1
+    status: open
+    type: fix
+
+  - id: "0.15.0-W1-003"
+    title: "版本推進至 v0.15.0"
+    priority: P1
+    status: open
+    type: chore
