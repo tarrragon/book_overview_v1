@@ -1,4 +1,6 @@
 /**
+ * @deprecated v1.0.0 移除 - 請直接使用 ErrorCodes + 原生 Error
+ *
  * UC04ErrorFactory
  * UC-04 資料匯入專用錯誤建立工廠
  *

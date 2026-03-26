@@ -1,4 +1,6 @@
 /**
+ * @deprecated v1.0.0 移除 - 請直接使用 ErrorCodes + 原生 Error
+ *
  * UC-02 ErrorCodes 工廠類別
  *
  * 功能：提供UC-02專用的錯誤建立和結果處理API

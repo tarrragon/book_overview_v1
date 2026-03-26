@@ -1,4 +1,6 @@
 /**
+ * @deprecated v1.0.0 移除 - 請直接使用 ErrorCodes + 原生 Error
+ *
  * UC-06 ErrorFactory 錯誤工廠
  *
  * 功能：為UC-06資料管理UI場景提供專用錯誤建立方法

@@ -1,9 +1,18 @@
 /**
+ * @deprecated v1.0.0 移除 - 請使用 ErrorCodes + 原生 Error 替代
+ *
  * StandardError 向後相容模組
  *
  * 原始 StandardError 已遷移至 ErrorCodes 系統，
  * 此檔案提供向後相容的 StandardError 類別，
  * 確保現有程式碼和測試能正常運作。
+ *
+ * 遷移指引：
+ *   const error = new Error(message)
+ *   error.code = ErrorCodes.VALIDATION_ERROR
+ *   throw error
+ *
+ * @see src/core/errors/ErrorCodes.js
  */
 
 class StandardError extends Error {

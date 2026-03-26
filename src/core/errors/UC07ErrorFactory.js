@@ -1,4 +1,6 @@
 /**
+ * @deprecated v1.0.0 移除 - 請直接使用 ErrorCodes + 原生 Error
+ *
  * UC07ErrorFactory - UC-07 錯誤處理與恢復專用錯誤工廠
  *
  * 提供系統錯誤處理、日誌記錄、恢復機制和學習系統的專業化錯誤建立方法

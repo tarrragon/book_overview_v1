@@ -1,4 +1,6 @@
 /**
+ * @deprecated v1.0.0 移除 - 請直接使用 ErrorCodes + 原生 Error
+ *
  * UC-05 ErrorCodes 轉換適配器
  *
  * 功能：將UC-05的4個StandardError轉換為新的ErrorCodes v5.0.0系統

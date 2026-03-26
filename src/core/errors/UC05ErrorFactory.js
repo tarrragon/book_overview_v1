@@ -1,4 +1,6 @@
 /**
+ * @deprecated v1.0.0 移除 - 請直接使用 ErrorCodes + 原生 Error
+ *
  * UC05ErrorFactory
  * UC-05 跨設備同步專用錯誤建立工廠
  *
