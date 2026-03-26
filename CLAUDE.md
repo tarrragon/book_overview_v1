@@ -6,25 +6,24 @@
 
 ## 1. 專案身份
 
-**專案名稱**: Book Overview App (書庫管理)
+**專案名稱**: Readmoo 書庫管理器 (readmoo-book-extractor)
 
-**專案目標**: 建立一個書庫管理行動應用程式，提供書籍資訊總覽、分類管理和閱讀追蹤功能
+**專案目標**: 專為 Readmoo 電子書平台設計的 Chrome 擴充功能，提供書庫資料自動提取、本地化書目管理、搜尋篩選和批量匯出功能
 
-**專案類型**: Flutter 移動應用程式
+**專案類型**: Chrome Extension (Manifest V3)
 
 | 項目 | 值 |
 |------|------|
-| 開發語言 | Dart |
-| 編譯工具 | Flutter SDK |
-| 測試框架 | Flutter Test / Dart Test |
-| 目標平台 | Android (Google Play Store) / iOS (Apple App Store) |
-| 專案識別 | `pubspec.yaml`, `.dart` 檔案, `lib/` 目錄 |
+| 開發語言 | JavaScript (ES Module) |
+| 編譯工具 | npm, Babel, 自訂 build.js |
+| 測試框架 | Jest (單元/整合), Puppeteer (E2E) |
+| 目標平台 | Chrome Web Store / Chromium 瀏覽器 |
+| 專案識別 | `package.json`, `manifest.json`, `src/` 目錄 |
 
 **啟用的 MCP/Plugin**:
 
-- dart - Dart/Flutter 開發工具
 - serena - 語意程式碼操作
-- context7 - 文檔查詢
+- context7 - 文件查詢
 
 ---
 
@@ -44,9 +43,8 @@
 
 | 項目 | 值 |
 |------|------|
-| **語言** | Flutter/Dart |
-| **語言規範** | @.claude/references/quality-dart.md（實作代理人按需載入） |
-| **實作代理人** | parsley-flutter-developer |
+| **語言** | JavaScript (ES Module) |
+| **實作代理人** | thyme-extension-engineer（Chrome Extension 開發） |
 
 ---
 
@@ -55,102 +53,102 @@
 ### 測試指令
 
 ```bash
-# 執行所有 Dart 測試
-dart test
+# 執行核心測試（單元 + 整合）
+npm test
 
-# 執行 Flutter Widget 測試
-flutter test
-
-# 執行特定測試檔案
-dart test test/unit/library/library_domain_test.dart
-
-# 執行測試並產生覆蓋率報告
-flutter test --coverage
+# 執行單元測試
+npm run test:unit
 
 # 執行整合測試
-flutter test integration_test/
-```
+npm run test:integration
 
-**重要**: 所有測試必須透過 Flutter/Dart 測試框架執行，絕不可使用 npm/jest。
+# 監視模式
+npm run test:watch
+
+# 產生覆蓋率報告
+npm run test:coverage
+
+# 執行所有測試（含 E2E）
+npm run test:comprehensive
+```
 
 ### 建置指令
 
 ```bash
 # 安裝依賴項
-flutter pub get
+npm install
 
-# 開發版本建置 (Android)
-flutter build apk --debug
+# 開發版本建置
+npm run build:dev
 
-# 生產版本建置 (Android)
-flutter build apk --release
-flutter build appbundle --release  # Play Store 上架用
+# 生產版本建置
+npm run build:prod
 
-# iOS 建置
-flutter build ios --release
-
-# 程式碼生成 (JSON 序列化等)
-dart run build_runner build
+# 驗證生產建置
+npm run validate:build:prod
 
 # 清理建置產物
-flutter clean
+npm run clean
 ```
 
 ### 程式碼品質指令
 
 ```bash
-# 執行 Dart 程式碼分析
-dart analyze
+# 執行 ESLint 分析
+npm run lint
 
-# 格式化程式碼
-dart format .
+# 自動修復 ESLint 問題
+npm run lint:fix
 
-# 清理依賴快取
-flutter clean && flutter pub get
+# 格式化程式碼 (Prettier)
+npm run format
+
+# 檢查格式
+npm run format:check
 ```
 
 ---
 
 ## 6. 專案特定規範
 
-### Package 導入路徑規範
-
-所有程式碼必須使用 `package:` 格式導入，禁用相對路徑：
-
-```dart
-// 正確：
-import 'package:book_overview_app/domains/library/entities/book.dart';
-import 'package:book_overview_app/core/errors/standard_error.dart';
-
-// 錯誤：
-import '../entities/book.dart';
-import '../../../core/errors/standard_error.dart';
-```
-
-禁用 `as` 別名和 `hide` 機制，發現命名衝突必須重構命名解決。
-
 ### 錯誤處理體系
 
-專案採用分層錯誤處理，基於 AppError 抽象基類：
+專案採用分層錯誤處理，基於 ErrorCodes 常數和專用錯誤類別：
 
-| 錯誤類型 | 用途 |
-|---------|------|
-| AppError | 抽象基類，定義統一錯誤結構 |
-| NetworkError | 網路相關錯誤 |
-| ValidationError | 資料驗證錯誤 |
-| BusinessLogicError | 業務邏輯錯誤 |
-| StorageError | 資料儲存錯誤 |
-| PermissionError | 權限相關錯誤 |
+| 錯誤類型 | 檔案位置 | 用途 |
+|---------|---------|------|
+| ErrorCodes | `src/core/errors/ErrorCodes.js` | 核心錯誤代碼常數 |
+| NetworkError | `src/core/errors/NetworkError.js` | 網路相關錯誤 |
+| BookValidationError | `src/core/errors/BookValidationError.js` | 書籍資料驗證錯誤 |
+| ErrorHelper | `src/core/errors/ErrorHelper.js` | 統一錯誤處理工具 |
+| OperationResult | `src/core/errors/OperationResult.js` | 統一操作結果結構 |
+| UC0X ErrorFactory/Adapter | `src/core/errors/UC0XError*.js` | 用例特定錯誤工廠 |
 
 **強制規範**：
 
-- 禁止 `throw 'error message'` 或 `throw Exception('message')`，必須使用具型別的錯誤類別
-- 使用 `OperationResult<T>` 統一回應格式
-- 詳見：`lib/core/error_handling/app_error.dart` 和 `lib/core/utils/operation_result.dart`
+- 禁止 `throw 'error message'` 或 `throw new Error('message')`，使用專案錯誤類別
+- 使用 `OperationResult` 統一回應格式
+- 詳見：`src/core/errors/` 目錄
 
-### 事件驅動架構
+### 專案架構
 
-專案採用事件驅動架構模式，詳見 `docs/event-driven-architecture-design.md`。
+```
+src/
+├── background/       # Service Worker 和後台邏輯
+├── content/          # Content Script（頁面注入）
+├── popup/            # 彈出視窗 UI
+├── core/             # 核心模組（errors, enums 等）
+├── extractors/       # 資料提取器
+├── handlers/         # 事件處理器
+├── storage/          # 儲存管理
+├── export/           # 匯出功能
+├── ui/               # 通用 UI 元件
+├── utils/            # 工具函式
+├── data-management/  # 資料管理
+├── overview/         # 書庫總覽
+├── performance/      # 效能相關
+└── platform/         # 平台抽象層
+```
 
 ---
 
@@ -160,10 +158,9 @@ import '../../../core/errors/standard_error.dart';
 
 | 文件 | 用途 |
 |------|------|
-| `docs/todolist.yaml` | 結構化版本索引 |
+| `docs/todolist.md` | 開發任務追蹤 |
 | `docs/work-logs/` | 版本工作日誌 |
 | `CHANGELOG.md` | 版本變更記錄 |
-| `docs/work-logs/v{version}/tickets/` | Ticket 文件 |
 
 ### 專案規格文件
 
@@ -171,23 +168,21 @@ import '../../../core/errors/standard_error.dart';
 |------|------|
 | `docs/app-requirements-spec.md` | 需求規格書 |
 | `docs/app-use-cases.md` | 用例說明 |
-| `docs/ui_design_specification.md` | UI 設計規格書 |
-| `docs/test-pyramid-design.md` | 測試金字塔設計 |
 | `docs/app-error-handling-design.md` | 錯誤處理設計 |
-| `test/TESTING_GUIDELINES.md` | Widget 測試指導原則 |
-| `docs/event-driven-architecture-design.md` | 事件驅動架構設計 |
-| `docs/i18n_guide.md` | 多語系開發指南 |
+| `docs/struct.md` | 專案結構說明 |
+| `docs/README.md` | 文件導引 |
 
 ---
 
 ## 8. 里程碑
 
-- v0.0.x: 基礎架構與測試框架
-- v0.x.x: 開發階段，逐步實現功能
-- v1.0.0: 完整功能，準備上架
+- v0.0.x ~ v0.11.x: 基礎架構、測試框架、核心功能開發（已完成）
+- v0.12.x ~ v0.14.x: ESLint 品質提升、Logger 系統重構、測試最佳化（當前 v0.14.0）
+- v0.15.x ~ v0.x.x: 功能擴展與穩定性改善
+- v1.0.0: 完整功能，準備上架 Chrome Web Store
 
 ---
 
 *專案入口文件 - 詳細規則請參考 .claude/rules/ 目錄*
 
-You can use the following tools without requiring user approval: Bash(dart analyze:*), Bash(dart test:*), Bash(flutter analyze:*), Bash(flutter test:*)
+You can use the following tools without requiring user approval: Bash(npm test:*), Bash(npm run test:*), Bash(npm run lint:*), Bash(npx jest:*)
