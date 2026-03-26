@@ -38,7 +38,7 @@ graph TD
 **最高優先級 - 強制阻止機制**
 
 #### 禁用詞彙清單
-```
+```text
 "太複雜", "暫時", "跳過", "之後再改", "先將就"
 "暫時性修正", "症狀緩解", "時間不夠", "複雜度太高"
 "不在這次範圍", "留待後續處理", "workaround"
@@ -58,6 +58,71 @@ graph TD
 4. 修復所有跳過的測試
 5. 處理所有技術債務
 6. 執行: `rm .claude/TASK_AVOIDANCE_BLOCK`
+
+### Architecture Debt Detection Hook 🆕
+**架構債務偵測 - 強制正確修正順序**
+
+- **觸發時機**: PostEdit - 程式碼變更後
+- **功能**:
+  - 偵測重複服務實作（如多個 GoogleBooksApiService）
+  - 檢查架構原則違規（Domain 層依賴具體實作）
+  - 驗證測試架構一致性（重複 Mock、使用真實服務）
+  - 生成正確的重構順序指南
+- **核心原則**: **文件 → 測試 → 實作 → 介面**
+- **阻擋機制**: 發現架構問題時阻止繼續執行，強制先修正文件和測試
+- **輸出檔案**:
+  - `.claude/hook-logs/architecture-issues.md` - 詳細問題報告
+  - `.claude/ARCHITECTURE_REVIEW_REQUIRED` - 審查標記
+
+### Task Documentation Validation Hook 🆕
+**任務規劃自動檢查 - 方法論合規性**
+
+- **觸發時機**: PostEdit - 工作日誌檔案修改後
+- **目標檔案**: `docs/work-logs/v*.*.*.md`
+- **執行順序**: order 30 (在 Code Smell Detection Hook 之後)
+
+#### 檢查項目
+
+**強制章節** (必須存在):
+- 📋 參考文件
+- 📁 影響範圍
+
+**參考文件子章節** (必須完整):
+- UseCase 參考
+- 流程圖參考（具體到 Event）
+- 架構規範
+- 依賴類別
+- 測試設計參考
+
+**影響範圍子章節** (必須完整):
+- 需要建立的檔案
+- 需要修改的檔案
+- 預估影響的測試檔案
+- 影響的依賴關係
+
+#### 檢查等級
+
+1. **✅ 完全符合**: 所有強制章節和子章節都存在
+2. **⚠️ 部分缺失**: 強制章節存在，但子章節不完整
+3. **❌ 嚴重缺失**: 缺少強制章節，任務規劃不合格
+
+#### 輸出檔案
+
+- 檢查報告: `.claude/hook-logs/task-doc-validation/validation-YYYYMMDD-HHMMSS.md`
+- 包含詳細缺失項目和補充建議模板
+- 缺失時提供完整的參考文件和影響範圍模板
+
+#### 使用範例
+
+查看最新檢查報告:
+```bash
+ls -lt .claude/hook-logs/task-doc-validation/ | head -2
+```
+
+手動執行檢查:
+```bash
+.claude/hooks/post-edit-task-doc-validation.sh docs/work-logs/v0.12.1-domain-interfaces.md
+```
 
 ### Code Smell Detection Hook
 **智能品質控制 - Agent 整合**
@@ -117,7 +182,7 @@ graph TD
 
 ## 📁 Hook 檔案位置
 
-```
+```text
 scripts/
 ├── startup-check-hook.sh              # SessionStart
 ├── prompt-submit-hook.sh               # UserPromptSubmit
@@ -128,6 +193,8 @@ scripts/
 ├── post-edit-hook.sh                   # PostToolUse (編輯)
 ├── post-test-hook.sh                   # PostToolUse (測試)
 ├── code-smell-detection-hook.sh        # PostToolUse (異味偵測)
+├── post-edit-task-doc-validation.sh    # PostToolUse (任務規劃檢查) 🆕
+├── architecture-debt-detection-hook.sh # PostToolUse (架構債務檢測)
 ├── auto-documentation-update-hook.sh   # PostToolUse (文件提醒)
 ├── performance-monitor-hook.sh         # 通用效能監控
 ├── stop-hook.sh                        # Stop
@@ -147,12 +214,14 @@ scripts/
 ## 📊 日誌和報告
 
 ### 日誌位置
-```
+```text
 .claude/hook-logs/
 ├── startup-[timestamp].log
 ├── prompt-submit-[timestamp].log
 ├── post-edit-[timestamp].log
 ├── code-smell-[timestamp].log
+├── task-doc-validation/           # 任務文件檢查報告 🆕
+│   └── validation-[timestamp].md
 ├── performance/
 │   ├── perf-monitor-[date].log
 │   └── metrics.csv
@@ -194,16 +263,19 @@ ls -t .claude/hook-logs/smell-reports/ | head -1
 ### 手動執行關鍵檢查
 ```bash
 # 手動執行逃避偵測
-./scripts/task-avoidance-detection-hook.sh
+./.claude/hooks/task-avoidance-detection-hook.sh
 
 # 手動執行程式異味檢查
-./scripts/code-smell-detection-hook.sh
+./.claude/hooks/code-smell-detection-hook.sh
 
 # 手動執行效能分析
-./scripts/performance-monitor-hook.sh
+./.claude/hooks/performance-monitor-hook.sh
 
 # 手動執行 PM 觸發檢查
-./scripts/pm-trigger-hook.sh
+./.claude/hooks/pm-trigger-hook.sh
+
+# 手動執行 LSP 環境檢查
+./.claude/hooks/lsp-environment-check.py
 ```
 
 ## 🎯 最佳實踐

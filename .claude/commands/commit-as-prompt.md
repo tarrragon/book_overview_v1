@@ -24,7 +24,7 @@ git commit -m "$(cat <<'EOF'       # 3. 提交 (WHAT/WHY/HOW格式)
 ## WHAT
 具體動作與對象
 
-## WHY  
+## WHY
 業務需求、技術債務背景、問題根因
 
 ## HOW
@@ -77,7 +77,7 @@ EOF
 # 2. 執行工作日誌檢查 (小版本層級)
 ./scripts/check-work-log.sh
 
-# 3. 執行下一步目標檢查 (中版本層級)  
+# 3. 執行下一步目標檢查 (中版本層級)
 ./scripts/check-next-objectives.sh
 
 # 4. 執行版本推進檢查 (整合決策)
@@ -85,21 +85,24 @@ EOF
 ```
 
 **四階段三層文件管理檢查**：
+
 1. **版號同步檢查**: 確保 package.json 與實際開發進度同步
 2. **工作日誌檢查**: 小版本層級的工作完成度檢查
-3. **目標狀態檢查**: 中版本層級的 todolist.md 任務進度分析
+3. **目標狀態檢查**: 中版本層級的 todolist.yaml 任務進度分析
 4. **版本推進決策**: 整合分析，提供智能版本推進建議
 
 **🤖 根據版本推進檢查結果，系統將提供對應的操作建議**：
 
 ### 狀況A: 繼續當前版本開發 (decision_code = 0)
+
 ```bash
 # 當前工作尚未完成，繼續開發
 ./scripts/work-log-manager.sh
 # 選擇選項 1: 📝 更新進行中的工作
 ```
 
-### 狀況B: 小版本推進 (decision_code = 1)  
+### 狀況B: 小版本推進 (decision_code = 1)
+
 ```bash
 # 當前工作完成，推進到下一個小版本 (patch)
 ./scripts/work-log-manager.sh
@@ -108,27 +111,30 @@ EOF
 ```
 
 ### 狀況C: 中版本推進 (decision_code = 2)
+
 ```bash
 # 版本系列完成，推進到下一個中版本 (minor)
 ./scripts/work-log-manager.sh
-# 選擇選項 2: 🆕 開始新的工作項目  
+# 選擇選項 2: 🆕 開始新的工作項目
 # 需要手動更新 package.json 到中版本 (如 0.10.12 → 0.11.0)
-# 並更新 todolist.md 規劃新版本系列目標
+# 並更新 todolist.yaml 規劃新版本系列目標
 ```
 
 ### 狀況D: 完成當前工作並總結
+
 ```bash
 # 當前工作項目需要完成總結
-./scripts/work-log-manager.sh  
+./scripts/work-log-manager.sh
 # 選擇選項 3: ✅ 完成當前工作
 ```
 
 **📋 三層文件管理版本推進提醒**：
+
 - 🎯 **版本推進智能決策**: 系統會根據工作日誌和 todolist 狀態自動建議版本推進策略
 - 🔄 **三層架構同步**: 小版本工作日誌 → 中版本 todolist → 大版本用戶指令
 - ⚠️ **版本號一致性**: package.json 必須與實際開發進度保持同步
 - 📝 **完成狀態標記**: 工作完成必須有明確的總結和狀態標記
-- 🚀 **版本推進條件**: 
+- 🚀 **版本推進條件**:
   - 小版本推進 (patch): 工作完成但系列未完成
   - 中版本推進 (minor): 工作完成且系列完成
   - 大版本推進 (major): 需要用戶明確指令
@@ -194,11 +200,13 @@ HOW: ...
 **🖥️ TMux面板分工設計**：根據開發環境配置，所有Git相關操作應在面板3執行，確保版本控制操作的集中管理和監控。
 
 **操作方式**：
+
 - 🔄 **自動切換模式**: 在TMux環境中，系統會自動在面板3執行Git指令
 - 🖱️ **手動切換**: 若需要互動式操作 (如 `git add -p`)，系統會自動切換到面板3
 - 💡 **提示導航**: 系統會顯示明確的面板切換提示和指令建議
 
 **面板3的職責範圍**：
+
 - Git狀態檢查 (`git status`, `git diff`)
 - 檔案暫存操作 (`git add`)
 - 提交執行 (`git commit`)
@@ -234,11 +242,75 @@ HOW: ..."
 fi
 ```
 
-之後：
+7. **檢查剩餘變更並詢問用戶**
+
+**⭐ 完整提交流程的關鍵步驟**：每次提交完成後，必須檢查工作區是否還有未提交的變更。
+
+```bash
+# 提交完成後立即檢查剩餘變更
+REMAINING_CHANGES=$(git status --porcelain | wc -l)
+if [ "$REMAINING_CHANGES" -gt 0 ]; then
+    echo "📋 發現工作區還有 $REMAINING_CHANGES 個檔案的變更未提交："
+
+    # 顯示剩餘變更摘要
+    git status --short
+
+    # 分類變更類型
+    echo ""
+    echo "📊 變更分類分析："
+
+    # 檢查刪除的檔案
+    DELETED_FILES=$(git status --porcelain | grep "^.D\|^D." | wc -l)
+    if [ "$DELETED_FILES" -gt 0 ]; then
+        echo "🗑️  刪除檔案: $DELETED_FILES 個"
+        git status --porcelain | grep "^.D\|^D." | sed 's/^.../   - /'
+    fi
+
+    # 檢查修改的檔案
+    MODIFIED_FILES=$(git status --porcelain | grep "^.M\|^M." | wc -l)
+    if [ "$MODIFIED_FILES" -gt 0 ]; then
+        echo "🔧 修改檔案: $MODIFIED_FILES 個"
+        git status --porcelain | grep "^.M\|^M." | sed 's/^.../   - /'
+    fi
+
+    # 檢查新增的檔案
+    UNTRACKED_FILES=$(git status --porcelain | grep "^??" | wc -l)
+    if [ "$UNTRACKED_FILES" -gt 0 ]; then
+        echo "📄 未追蹤檔案: $UNTRACKED_FILES 個"
+        git status --porcelain | grep "^??" | sed 's/^.../   - /'
+    fi
+
+    echo ""
+    echo "🤔 是否繼續處理剩餘變更？"
+    echo "1️⃣  繼續提交所有變更 - 將所有變更打包為下一個提交"
+    echo "2️⃣  分批提交 - 選擇性提交相關變更"
+    echo "3️⃣  暫停檢查 - 讓用戶檢視變更內容後再決定"
+    echo "4️⃣  結束 - 保留變更在工作區，完成當前提交流程"
+    echo ""
+    echo "💡 建議的處理方式："
+
+    # 根據變更類型提供建議
+    if [ "$DELETED_FILES" -gt 0 ] && [ "$MODIFIED_FILES" -gt 0 ]; then
+        echo "   - 發現檔案刪除和程式碼修改，建議選擇 2️⃣ 分批提交"
+    elif [ "$DELETED_FILES" -gt 0 ]; then
+        echo "   - 發現檔案刪除，建議選擇 1️⃣ 繼續提交作為清理提交"
+    elif [ "$MODIFIED_FILES" -gt 5 ]; then
+        echo "   - 修改檔案較多，建議選擇 2️⃣ 分批提交避免混合主題"
+    else
+        echo "   - 變更數量適中，建議選擇 1️⃣ 繼續提交"
+    fi
+
+else
+    echo "✅ 工作區乾淨，所有變更已提交完成"
+    echo "📋 commit-as-prompt 流程執行完畢"
+fi
+```
+
+**後續文件同步檢查**：
 
 ```bash
 # 檢查是否需要更新其他文件記錄
-if [[ -f "docs/todolist.md" ]]; then
+if [[ -f "docs/todolist.yaml" ]]; then
     echo "📋 檢查 TODO 清單是否需要更新"
 fi
 

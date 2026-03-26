@@ -1,0 +1,10 @@
+{
+  "ticket_id": "0.1.1-W5-001",
+  "direction": "to-sibling:0.1.1-W6-001",
+  "timestamp": "2026-03-13T15:40:48.926524",
+  "from_status": "completed",
+  "title": "設計 Monorepo 版本管理策略",
+  "what": "分析 monorepo 版本管理需求，設計版本策略：(1) monorepo 版本 vs 子專案版本的關係定義，(2) version-release check 如何正確處理多版本，(3) 是否需要 .version-release.yaml 配置檔",
+  "chain": {},
+  "resumed_at": "2026-03-13T15:45:16.580607"
+}

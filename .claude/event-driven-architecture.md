@@ -28,6 +28,7 @@
 ---
 
 **🔗 相關文件連結**:
+
 - [返回主指導文件](./../../CLAUDE.md)
 - [Agent 協作規範](./agent-collaboration.md)
 - [Chrome Extension 與專案規範](./chrome-extension-specs.md)

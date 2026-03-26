@@ -1,8 +1,8 @@
 # 📋 文件格式化與修正案例範例集
 
-**文件版本**: v1.0
-**建立日期**: 2025-09-06
-**適用範圍**: 主線程、sub-agent (mint-format-specialist)
+**文件版本**: v1.0  
+**建立日期**: 2025-09-06  
+**適用範圍**: 主線程、sub-agent (mint-format-specialist)  
 **用途**: 標準化修正模式，確保一致性和品質
 
 ---
@@ -94,39 +94,39 @@ function shouldFixPath(requirePath) {
   if (!requirePath.includes('/') && !requirePath.includes('\\')) {
     return false // 如: require('lodash')
   }
-
+  
   // 保留 Node.js 內建模組
   const builtinModules = ['fs', 'path', 'crypto', 'util', 'events', 'os'];
   if (builtinModules.includes(requirePath)) {
     return false
   }
-
+  
   // 需要修正的格式
   if (requirePath.startsWith('../') || requirePath.startsWith('./src/')) {
     return true
   }
-
+  
   return false
 }
 
-// 路徑轉換邏輯
+// 路徑轉換邏輯  
 function convertToStandardPath(requirePath, currentFilePath) {
   // 案例 1: 深層相對路徑
   if (requirePath.match(/^(\.\.\/){2,}/)) {
     // 分析目標模組的實際位置，轉換為 src/ 路徑
     return convertRelativeToSrc(requirePath, currentFilePath)
   }
-
-  // 案例 2: 錯誤的 ./src/ 格式
+  
+  // 案例 2: 錯誤的 ./src/ 格式  
   if (requirePath.startsWith('./src/')) {
     return requirePath.substring(2) // 移除 './'
   }
-
+  
   // 案例 3: 已經是正確格式
   if (requirePath.startsWith('src/')) {
     return requirePath // 保持不變
   }
-
+  
   return requirePath
 }
 ```
@@ -215,13 +215,13 @@ const { OperationStatus } = require('../../../core/enums/OperationStatus')
 ```markdown
 ### 快速導覽
 1. [核心架構總覽](./core-architecture.md) - 當前檔案同層引用
-2. [開發問題診斷](../03-reference/troubleshooting/) - 跨域引用
+2. [開發問題診斷](../03-reference/troubleshooting/) - 跨域引用  
 3. [專案規範](../../claude/chrome-extension-specs.md) - Claude文檔引用
 ```
 
 #### ✅ **修正後 (After)**
 ```markdown
-### 快速導覽
+### 快速導覽  
 1. [核心架構總覽](./docs/domains/01-getting-started/core-architecture.md) - 完整語意路徑
 2. [開發問題診斷](./docs/domains/03-reference/troubleshooting/) - 完整語意路徑
 3. [專案規範](./docs/claude/chrome-extension-specs.md) - 完整語意路徑
@@ -267,7 +267,7 @@ Phase 1: 文檔類路徑修正 (372個單層 + 部分雙層)
 - 預估批次: 8批次
 
 Phase 2: Claude文檔路徑修正 (112個雙層引用)
-- 批次大小: 25個文件/批
+- 批次大小: 25個文件/批  
 - 驗證重點: 規範文檔可訪問性
 - 預估批次: 5批次
 
@@ -324,7 +324,7 @@ this.services.set('session', new SessionManagementService(dependencies))
 module.exports = ServiceClass
 // 對應匯入: const ServiceClass = require('path/to/service')
 
-// 案例 2: 物件匯出 → 使用解構匯入
+// 案例 2: 物件匯出 → 使用解構匯入  
 module.exports = { ServiceClass, OTHER_EXPORTS }
 // 對應匯入: const { ServiceClass } = require('path/to/service')
 ```
@@ -353,7 +353,7 @@ initializeServices(dependencies) {
 }
 ```
 
-#### ✅ **修正後 (After)**
+#### ✅ **修正後 (After)**  
 ```javascript
 // 檔案頂部統一匯入
 const MessageRoutingService = require('./services/message-routing-service')
@@ -365,7 +365,7 @@ const { QueueManagementService } = require('./services/queue-management-service'
 // 方法內直接使用已匯入的服務
 initializeServices(dependencies) {
   // 使用頂部已匯入的服務類別，無需重新載入
-
+  
   // 創建微服務實例
   this.services.set('validation', new MessageValidationService(dependencies))
   this.services.set('queue', new QueueManagementService(dependencies))
@@ -385,7 +385,7 @@ initializeServices(dependencies) {
 module.exports = SessionManagementService
 module.exports = MessageRoutingService
 
-// 方式 2: 物件匯出 (3個服務)
+// 方式 2: 物件匯出 (3個服務) 
 module.exports = { ConnectionMonitoringService, LIMITS, TIMEOUTS }
 module.exports = { MessageValidationService, VALIDATION_RULES, SECURITY_RULES }
 module.exports = { QueueManagementService, QUEUE_CONFIG, PROCESSING_CONFIG }
@@ -397,12 +397,12 @@ module.exports = { QueueManagementService, QUEUE_CONFIG, PROCESSING_CONFIG }
 // 優點：可以匯出多個相關的類別、常數、工具函數
 
 // 統一格式：
-module.exports = {
+module.exports = { 
   SessionManagementService,
   // 未來可以添加相關常數或工具函數
 }
 
-module.exports = {
+module.exports = { 
   MessageRoutingService,
   // 未來可以添加路由相關常數
 }
@@ -634,8 +634,8 @@ it('should validate search query before execution', async () => {
 // trailing spaces, 不正確的縮排和分號
 function validateBookData( bookData ){
 if(bookData.title&&bookData.author)  {
-console.log( "Validating book data..." )
-return true
+console.log( "Validating book data..." )  
+return true    
 }
 return false
 }
@@ -671,7 +671,7 @@ function extractBookData(url) {
     const extractor = new BookDataExtractor();
     const unusedHelper = new ValidationHelper(); // 未使用
     const unusedService = new NetworkService(); // 未使用
-
+    
     return extractor.extract(url);
 }
 ```
@@ -791,7 +791,7 @@ function test() {
 #### ❌ **修正前 (Before)**
 ```markdown
 * 項目一
-- 項目二
+- 項目二  
 + 項目三
     * 子項目a
     - 子項目b
@@ -961,7 +961,7 @@ error-handler.util.js         # 功能責任清晰
 
 **修正原則**:
 - ✅ 使用 kebab-case 命名格式
-- ✅ 採用 `feature.type.js` 結構
+- ✅ 採用 `feature.type.js` 結構  
 - ✅ 檔名反映功能責任
 - ✅ 避免縮寫和模糊名稱
 
@@ -981,7 +981,7 @@ src/
 src/
 ├── core/
 │   ├── errors/
-│   ├── validators/
+│   ├── validators/  
 │   └── coordinators/
 ├── domains/
 │   ├── data-management/
@@ -1012,7 +1012,7 @@ src/
 - 驗證重點: 連結完整性
 - 預估時間: 6批次
 
-**Phase 2**: 程式碼類路徑修正 (89個文件)
+**Phase 2**: 程式碼類路徑修正 (89個文件)  
 - 批次大小: 15個文件/批
 - 驗證重點: 模組引用正確性
 - 預估時間: 6批次
@@ -1052,7 +1052,7 @@ src/
 
 **文件路徑語意化**:
 - ✅ 轉換準確率: 100%
-- ✅ 連結有效率: 100%
+- ✅ 連結有效率: 100%  
 - ✅ 語意清晰度: 95% 以上
 
 **Lint 問題修復**:
@@ -1086,7 +1086,7 @@ src/
 
 **📚 Reference Index**:
 - [Mint Format Specialist](./mint-format-specialist.md) - 專業格式化 sub-agent
-- [程式碼品質範例](./code-quality-examples.md) - 程式碼品質標準
+- [程式碼品質範例](./code-quality-examples.md) - 程式碼品質標準  
 - [檔案路徑語意規範](./../../CLAUDE.md#檔案路徑語意規範) - 路徑規範詳細說明
 
 **🔧 Tool Integration**: 此範例集與 `mint-format-specialist` sub-agent 完全整合，確保修正的一致性和標準化。
@@ -1096,7 +1096,7 @@ src/
 ## 📊 實施狀態更新
 
 ### ✅ **路徑語意化修正技術驗證完成**
-**更新日期**: 2025-09-07
+**更新日期**: 2025-09-07  
 **狀態**: ✅ 技術可行，正式實施中
 
 **技術驗證結果**:
@@ -1112,7 +1112,7 @@ src/
 
 **修正統計 (截至當前)**:
 - **總需修正**：118個 require 語句，80個檔案
-- **已完成修正**：12個語句，8個檔案
+- **已完成修正**：12個語句，8個檔案  
 - **剩餘待修正**：106個語句，72個檔案
 - **修正準確率**：100% (無回滾案例)
 

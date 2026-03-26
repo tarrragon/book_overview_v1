@@ -9,6 +9,7 @@
 ### 1. **錯誤的測試哲學觀念**
 
 #### ❌ 混淆了「驗證」與「監控」
+
 ```javascript
 // 錯誤思維：把測試當作監控工具
 expect(executionTime).toBeLessThan(1000) // "確保效能不退化"
@@ -20,6 +21,7 @@ expect(memoryUsage).toBeLessThan(50MB)   // "確保記憶體不超標"
 ### 2. **對外部系統的錯誤理解**
 
 #### ❌ 試圖測試不可控的外部限制
+
 ```javascript
 // 錯誤思維：測試 Chrome 系統特性
 expect(chromeStorage.quota).toBe(5 * 1024 * 1024)
@@ -27,6 +29,7 @@ expect(chromeStorage.available).toBeGreaterThan(4.9 * 1024 * 1024)
 ```
 
 **問題根源**:
+
 - 對 Chrome Extension 環境的誤解
 - 認為測試應該驗證平台特性
 - 混淆了「我們的程式行為」與「系統環境特性」
@@ -34,6 +37,7 @@ expect(chromeStorage.available).toBeGreaterThan(4.9 * 1024 * 1024)
 ### 3. **對測試穩定性的錯誤解決方案**
 
 #### ❌ 用容差掩蓋不確定性
+
 ```javascript
 // 錯誤思維：為了讓測試通過而設計容差
 expect(actualValue).toBeCloseTo(expectedValue, 1)
@@ -41,6 +45,7 @@ expect(actualValue).toBeGreaterThan(expectedValue - 100)
 ```
 
 **問題根源**:
+
 - 測試在不同環境中結果不一致
 - 用「容差」來解決問題，而非找出根本原因
 - 沒有區分「測試環境差異」與「程式邏輯問題」
@@ -48,6 +53,7 @@ expect(actualValue).toBeGreaterThan(expectedValue - 100)
 ### 4. **經驗不足的防禦性程式設計**
 
 #### ❌ 過度防禦導致測試變質
+
 ```javascript
 // 錯誤思維：「以防萬一」的測試設計
 if (process.env.NODE_ENV === 'test') {
@@ -58,6 +64,7 @@ if (process.env.NODE_ENV === 'test') {
 ```
 
 **問題根源**:
+
 - 對測試可靠性缺乏信心
 - 認為「寬鬆的測試」比「嚴格的測試」更安全
 - 不了解測試應該驗證確定性而非機率性
@@ -65,6 +72,7 @@ if (process.env.NODE_ENV === 'test') {
 ### 5. **複製既有錯誤模式**
 
 #### ❌ 延續了不良的測試範例
+
 ```javascript
 // 錯誤思維：照抄其他專案的測試模式
 // 許多開源專案都有類似的容差測試
@@ -72,6 +80,7 @@ expect(performance.now() - startTime).toBeLessThan(100)
 ```
 
 **問題根源**:
+
 - 沒有深入思考測試的真正目的
 - 盲目複製看似「實用」的測試模式
 - 缺乏測試設計的理論基礎
@@ -81,6 +90,7 @@ expect(performance.now() - startTime).toBeLessThan(100)
 ### ✅ 應該測試什麼
 
 #### 1. **我們程式的邏輯正確性**
+
 ```javascript
 // ✅ 正確：測試確定的輸入輸出關係
 expect(validator.validate(validData)).toBe(true)
@@ -89,6 +99,7 @@ expect(processor.process(inputData)).toEqual(expectedOutput)
 ```
 
 #### 2. **我們的錯誤處理**
+
 ```javascript
 // ✅ 正確：測試錯誤處理邏輯
 expect(() => parser.parse(malformedData))
@@ -96,6 +107,7 @@ expect(() => parser.parse(malformedData))
 ```
 
 #### 3. **我們的狀態管理**
+
 ```javascript
 // ✅ 正確：測試狀態轉換
 expect(stateMachine.currentState).toBe('IDLE')
@@ -104,6 +116,7 @@ expect(stateMachine.currentState).toBe('PROCESSING')
 ```
 
 #### 4. **我們的 API 契約**
+
 ```javascript
 // ✅ 正確：測試介面行為一致性
 expect(api.getData()).resolves.toMatchObject({
@@ -115,6 +128,7 @@ expect(api.getData()).resolves.toMatchObject({
 ### ❌ 不應該測試什麼
 
 #### 1. **外部系統的特性**
+
 ```javascript
 // ❌ 錯誤：測試 Chrome 系統限制
 expect(chrome.storage.local.QUOTA_BYTES).toBe(5242880)
@@ -126,6 +140,7 @@ expect(storageService.handleQuotaExceeded()).toMatchObject({
 ```
 
 #### 2. **環境變異性**
+
 ```javascript
 // ❌ 錯誤：測試執行時間
 expect(Date.now() - startTime).toBeLessThan(1000)
@@ -136,6 +151,7 @@ expect(operation.getResult()).toBeDefined()
 ```
 
 #### 3. **統計性結果**
+
 ```javascript
 // ❌ 錯誤：測試機率性結果
 expect(successRate).toBeGreaterThan(0.8) // 80%
@@ -147,6 +163,7 @@ mockData.forEach(item => {
 ```
 
 #### 4. **硬體資源限制**
+
 ```javascript
 // ❌ 錯誤：測試記憶體使用量
 expect(process.memoryUsage().heapUsed).toBeLessThan(50 * 1024 * 1024)

@@ -1,0 +1,54 @@
+---
+description: 推送 .claude 配置到獨立 repo (https://github.com/tarrragon/claude.git)
+---
+
+# 同步推送 .claude 配置到獨立 Repo
+
+請執行以下流程，將本地 .claude 配置推送到獨立 repo 供其他專案使用。
+
+## 推送內容
+
+- `.claude/` 目錄所有檔案（Hook、Agent、方法論、規則、project-templates）
+
+## 不推送內容
+
+- 根目錄 `CLAUDE.md`（專案特定，不同步）
+
+## 檢查清單
+
+1. **確認變更已提交到主專案**
+   - 檢查 `.claude` 是否已提交
+   - 確保提交訊息清楚描述變更內容
+
+2. **詢問用戶提交訊息**
+   - 如果尚未提交，先詢問用戶提交訊息
+   - 使用 `git add .claude` 和 `git commit -m "訊息"` 提交
+
+3. **執行推送腳本**
+   - 使用用戶提供的提交訊息執行：
+     ```bash
+     python3 ./.claude/scripts/sync-claude-push.py "提交訊息"
+     ```
+
+4. **驗證推送結果**
+   - 確認腳本輸出最後出現「成功推送 .claude 到獨立 repo！」訊息
+   - 確認腳本輸出包含 `To https://github.com/tarrragon/claude.git` 推送記錄
+   - 注意：腳本使用臨時目錄操作，主專案沒有 `claude-shared` remote，**禁止**執行 `git fetch claude-shared`
+
+## 提交訊息範例
+
+建議用戶使用清楚的提交訊息格式：
+
+```text
+feat: 新增 XXX Hook 腳本
+docs: 更新 YYY 方法論
+refactor: 優化 ZZZ 檢查邏輯
+fix: 修正 AAA 問題
+```
+
+## 注意事項
+
+- 推送會使用 force push 覆蓋遠端歷史
+- 確保變更已在本專案充分測試
+- 提交訊息要清楚說明變更內容
+- 根目錄 CLAUDE.md 不會被推送（專案特定配置）
