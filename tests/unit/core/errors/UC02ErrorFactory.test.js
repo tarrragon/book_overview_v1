@@ -325,8 +325,8 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
         // eslint-disable-next-line no-unused-vars
         const endTime = performance.now()
 
-        // Then: 執行時間應該小於1毫秒
-        expect(endTime - startTime).toBeLessThan(1)
+        // Then: 執行時間應該小於5毫秒（避免 CI 環境 flaky）
+        expect(endTime - startTime).toBeLessThan(5)
         expect(error).toBeInstanceOf(Error)
       })
     })

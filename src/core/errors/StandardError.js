@@ -137,6 +137,7 @@ class StandardError extends Error {
       throw error
     }
 
+    // eslint-disable-next-line no-restricted-syntax -- fromJSON 是棄用類別自身的靜態方法，必須使用自己的建構式
     const error = new StandardError(json.code, json.message, json.details)
     if (json.timestamp) error.timestamp = json.timestamp
     if (json.id) error.id = json.id
