@@ -1,3 +1,97 @@
+## [1.4.5] - 2026-03-27
+
+### Summary
+docs: 記錄 PC-032 跳過版本發布流程 + PC-033 工作日誌過時阻塞發布
+
+Changes: 1 docs
+
+- docs: 記錄 PC-032 跳過版本發布流程 + PC-033 工作日誌過時阻塞發布
+
+---
+
+## [1.4.4] - 2026-03-27
+
+### Summary
+fix: 遷移 Manager Skill 到 rules/core/pm-role.md（自動載入）
+
+Changes: 1 fix
+
+- fix: 遷移 Manager Skill 到 rules/core/pm-role.md（自動載入）
+
+---
+
+## [1.4.3] - 2026-03-27
+
+### Summary
+fix: 遷移 CQ-001~006 到 .claude/error-patterns/ 並刪除 docs/error-patterns/ 舊目錄; fix: 代理人定義 slash command 引用改為 Read SKILL.md; fix: Manager Skill 精簡為角色行為準則 + PM 規則路由表 (+3 more)
+
+Changes: 4 fix, 2 docs
+
+- fix: 遷移 CQ-001~006 到 .claude/error-patterns/ 並刪除 docs/error-patterns/ 舊目錄
+- fix: 代理人定義 slash command 引用改為 Read SKILL.md
+- fix: Manager Skill 精簡為角色行為準則 + PM 規則路由表
+- fix: worktree merge 子命令 — behind>0 時阻擋合併並列出 main 新 commit，通過時自動執行 git merge
+- docs: 新增 PC-030/PC-031 錯誤模式 + 修正 Ticket
+- docs: W7 tickets、IMP-045 錯誤學習、FileWatcher 技術選型、CLAUDE.md 重啟觀測流程
+
+---
+
+## [1.4.2] - 2026-03-27
+
+### Summary
+fix: pyproject_scanner 排除無 CLI entrypoint 的套件
+
+Changes: 1 fix
+
+- fix: pyproject_scanner 排除無 CLI entrypoint 的套件
+
+---
+
+## [1.4.1] - 2026-03-27
+
+### Summary
+新增 IMP-043/044 錯誤模式和 zellij skill
+
+---
+
+## [1.4.0] - 2026-03-27
+
+### Summary
+refactor: 統一 Logger 靜態呼叫第二參數為物件格式; fix: 時間敏感測試、 ESLint toThrow 修復、 版本同步; docs: 新增 PC-029 並行代理人共用檔案衝突
+
+Changes: 1 refactor, 1 fix, 1 docs
+
+- refactor: 統一 Logger 靜態呼叫第二參數為物件格式
+- fix: 時間敏感測試、 ESLint toThrow 修復、 版本同步
+- docs: 新增 PC-029 並行代理人共用檔案衝突
+
+---
+
+## [1.3.0] - 2026-03-27
+
+### Summary
+feat: 新增 __pycache__ 到 .gitignore 必須規則檢查
+
+Changes: 1 feat
+
+- feat: 新增 __pycache__ 到 .gitignore 必須規則檢查
+
+---
+
+## [1.2.2] - 2026-03-27
+
+### Summary
+fix: 將 __pycache__ 加入 .gitignore 並從 git 追蹤移除; fix: 移除 FLUTTER.md pathspec 避免非 Flutter 專案執行失敗; chore: 同步遠端更新 — sync-push 增強與版本遞增至 1.2.1 (+1 more)
+
+Changes: 2 fix, 2 chore
+
+- fix: 將 __pycache__ 加入 .gitignore 並從 git 追蹤移除
+- fix: 移除 FLUTTER.md pathspec 避免非 Flutter 專案執行失敗
+- chore: 同步遠端更新 — sync-push 增強與版本遞增至 1.2.1
+- chore: 同步更新 .claude 配置至 並更新專案文件
+
+---
+
 ## [1.2.1] - 2026-03-27
 
 ### Summary
