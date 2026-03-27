@@ -209,9 +209,9 @@ def _extract_who_name(who_field: Union[str, Dict[str, Any], None]) -> str:
 
     # 根據型態提取名稱
     if isinstance(who_field, dict):
-        name = who_field.get("current") or DEFAULT_UNKNOWN_VALUE
+        name = who_field.get("current", DEFAULT_UNKNOWN_VALUE)
     else:
-        name = str(who_field) if who_field is not None else DEFAULT_UNKNOWN_VALUE
+        name = str(who_field)
 
     # 若包含 "-"，取第一部分作為簡稱
     if "-" in name:
