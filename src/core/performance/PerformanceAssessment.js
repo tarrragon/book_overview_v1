@@ -938,6 +938,7 @@ class PerformanceAssessment {
       }
     }
   }
+
   /**
    * 靜態工廠方法 - 初始化 PerformanceAssessment 實例
    *

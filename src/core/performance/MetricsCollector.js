@@ -1538,6 +1538,7 @@ class MetricsCollector {
       this.cache.lastUpdated.extension = Date.now()
     }
   }
+
   /**
    * 靜態工廠方法 - 初始化 MetricsCollector 實例
    *
