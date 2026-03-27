@@ -7,6 +7,7 @@
  * 測試標準：符合Chrome Extension環境的效能基準
  */
 
+const { PERFORMANCE_CONFIG } = require('./performance-config')
 const { PerformanceMonitor, ChromeExtensionPerformanceMonitor } = require('../helpers/performance-monitor')
 const { PerformanceTestDataGenerator } = require('../helpers/performance-test-data-generator')
 // eslint-disable-next-line no-unused-vars
@@ -67,7 +68,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       // eslint-disable-next-line no-unused-vars
       const mockPopup = await setupMockPopupEnvironment()
       // eslint-disable-next-line no-unused-vars
-      const expectedMaxTime = 200 // ms
+      const expectedMaxTime = PERFORMANCE_CONFIG.time.popupLoad // ms
 
       // When: 使用者點擊Extension圖示開啟Popup
       const { result, timing } = await performanceMonitor.measureAsync(
@@ -82,10 +83,10 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       expect(result.isLoaded).toBe(true)
       expect(result.contentVisible).toBe(true)
 
-      // And: 記憶體增長應小於50MB (考慮測試環境的模擬數據變化)
+      // And: 記憶體增長應小於閾值 (考慮測試環境的模擬資料變化)
       // eslint-disable-next-line no-unused-vars
       const memoryGrowthMB = Math.abs(timing.memoryDelta || 0) / (1024 * 1024)
-      expect(memoryGrowthMB).toBeLessThan(50)
+      expect(memoryGrowthMB).toBeLessThan(PERFORMANCE_CONFIG.memory.popupOpen / (1024 * 1024))
 
       // And: 所有UI元素應正確渲染
       expect(result.uiElements.length).toBeGreaterThan(0)
@@ -101,7 +102,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       const mockPopup = await setupMockPopupEnvironment()
       await simulatePopupOpen(mockPopup)
       // eslint-disable-next-line no-unused-vars
-      const expectedMaxTime = 100 // ms
+      const expectedMaxTime = PERFORMANCE_CONFIG.time.buttonResponse // ms
 
       // When: 使用者點擊任意功能按鈕
       // eslint-disable-next-line no-unused-vars
@@ -145,7 +146,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       // eslint-disable-next-line no-unused-vars
       const mockOverview = await setupMockOverviewPage(testBooks)
       // eslint-disable-next-line no-unused-vars
-      const expectedMaxTime = 300 // ms
+      const expectedMaxTime = PERFORMANCE_CONFIG.time.searchResponse // ms
 
       // When: 使用者在搜尋框輸入關鍵字
       // eslint-disable-next-line no-unused-vars
@@ -194,7 +195,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       // eslint-disable-next-line no-unused-vars
       const mockWebPage = await setupMockWebPage(testBooks)
       // eslint-disable-next-line no-unused-vars
-      const expectedMaxTime = 1000 // ms
+      const expectedMaxTime = PERFORMANCE_CONFIG.time.smallBookExtract // ms
 
       // When: 執行書籍資料提取操作
       const { result, timing } = await performanceMonitor.measureAsync(
@@ -209,10 +210,10 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       expect(result.extractedCount).toBe(testBooks.length)
       expect(result.successRate).toBeGreaterThan(0.85) // 調整為符合真實資料的成功率
 
-      // And: 記憶體使用應小於20MB
+      // And: 記憶體使用應小於閾值
       // eslint-disable-next-line no-unused-vars
       const memoryGrowthMB = Math.abs(timing.memoryDelta || 0) / (1024 * 1024)
-      expect(memoryGrowthMB).toBeLessThan(20)
+      expect(memoryGrowthMB).toBeLessThan(PERFORMANCE_CONFIG.memory.smallBookExtract / (1024 * 1024))
 
       // eslint-disable-next-line no-console
       console.log(`✅ 10本書籍提取時間: ${timing.duration.toFixed(2)}ms, 成功率: ${(result.successRate * 100).toFixed(1)}%`)
@@ -230,7 +231,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       // eslint-disable-next-line no-unused-vars
       const mockWebPage = await setupMockWebPage(testBooks)
       // eslint-disable-next-line no-unused-vars
-      const expectedMaxTime = 8000 // ms
+      const expectedMaxTime = PERFORMANCE_CONFIG.time.mediumBookExtract // ms
 
       // When: 執行書籍資料提取操作
       const { result, timing } = await performanceMonitor.measureAsync(
@@ -248,7 +249,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       // And: 記憶體使用應合理增長
       // eslint-disable-next-line no-unused-vars
       const memoryGrowthMB = Math.abs(timing.memoryDelta || 0) / (1024 * 1024)
-      expect(memoryGrowthMB).toBeLessThan(50)
+      expect(memoryGrowthMB).toBeLessThan(PERFORMANCE_CONFIG.memory.mediumBookExtract / (1024 * 1024))
 
       // eslint-disable-next-line no-console
       console.log(`✅ 100本書籍提取時間: ${timing.duration.toFixed(2)}ms, 成功率: ${(result.successRate * 100).toFixed(1)}%`)
@@ -261,9 +262,9 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
         format: 'standard'
       })
       // eslint-disable-next-line no-unused-vars
-      const expectedMaxTime = 4000 // ms
+      const expectedMaxTime = PERFORMANCE_CONFIG.time.jsonParse // ms
       // eslint-disable-next-line no-unused-vars
-      const expectedMinSpeed = 0.5 // MB/s
+      const expectedMinSpeed = PERFORMANCE_CONFIG.ratio.jsonParseMinSpeed // MB/s
 
       // When: 執行檔案匯入操作
       const { result, timing } = await performanceMonitor.measureAsync(
@@ -351,7 +352,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       // Given: Chrome Extension API Mock環境
       setupChromeExtensionMocks()
       // eslint-disable-next-line no-unused-vars
-      const expectedMaxLatency = 50 // ms
+      const expectedMaxLatency = PERFORMANCE_CONFIG.time.chromeApiMaxDelay // ms
 
       // When: 測試各種Chrome API操作
       // eslint-disable-next-line no-unused-vars

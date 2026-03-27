@@ -48,6 +48,7 @@ Object.defineProperty(global, 'performance', {
   }
 })
 
+const { PERFORMANCE_CONFIG } = require('./performance-config')
 const { PerformanceOptimizer } = require('src/performance/performance-optimizer')
 const { LoadingOptimizer } = require('src/performance/loading-optimizer')
 
@@ -205,7 +206,7 @@ describe('🚀 效能優化整合測試', () => {
 
       expect(result.success).toBe(true)
       expect(result.criticalResourcesLoaded).toBe(true)
-      expect(loadTime).toBeLessThan(5000) // 載入應在 5 秒內完成
+      expect(loadTime).toBeLessThan(PERFORMANCE_CONFIG.time.optimizedLoadTotal) // 載入時間上限
 
       // eslint-disable-next-line no-console
       console.log(`📊 優化載入完成時間: ${loadTime.toFixed(2)}ms`)
@@ -224,7 +225,7 @@ describe('🚀 效能優化整合測試', () => {
 
       expect(resource).toBeTruthy()
       expect(resource.name).toBe(resourceName)
-      expect(endTime - startTime).toBeLessThan(1000) // 按需載入應快速
+      expect(endTime - startTime).toBeLessThan(PERFORMANCE_CONFIG.time.lazyLoadResource) // 按需載入時間上限
 
       // eslint-disable-next-line no-console
       console.log(`📦 按需載入時間: ${(endTime - startTime).toFixed(2)}ms`)
@@ -265,7 +266,7 @@ describe('🚀 效能優化整合測試', () => {
         loadingOptimizer.warmupCache(criticalResources)
       )
 
-      expect(warmupTime).toBeLessThan(2000) // 預熱應在 2 秒內完成
+      expect(warmupTime).toBeLessThan(PERFORMANCE_CONFIG.time.cacheWarmup) // 快取預熱時間上限
 
       // eslint-disable-next-line no-unused-vars
       const metrics = loadingOptimizer.getLoadingMetrics()
@@ -303,7 +304,7 @@ describe('🚀 效能優化整合測試', () => {
       })
 
       // eslint-disable-next-line no-unused-vars
-      const target = 500 // 500ms 搜尋響應目標
+      const target = PERFORMANCE_CONFIG.time.searchResponseTarget // 搜尋回應時間目標
       expect(responseTime).toBeLessThan(target)
 
       // eslint-disable-next-line no-console
@@ -330,7 +331,7 @@ describe('🚀 效能優化整合測試', () => {
       const currentMemory = performanceOptimizer.getMemoryInfo().usedJSHeapSize
 
       expect(currentMemory).toBeLessThan(memoryTarget)
-      expect(measurement.measurement.memoryDelta).toBeLessThan(10 * 1024 * 1024) // 記憶體增加不超過 10MB
+      expect(measurement.measurement.memoryDelta).toBeLessThan(PERFORMANCE_CONFIG.memory.performanceDelta) // 效能測量記憶體增量上限
 
       // eslint-disable-next-line no-console
       console.log(`💾 記憶體使用: ${formatBytes(currentMemory)} (目標: <${formatBytes(memoryTarget)})`)
@@ -449,12 +450,12 @@ describe('🚀 效能優化整合測試', () => {
       })
 
       // Chrome Web Store 效能要求驗證
-      expect(startupTime).toBeLessThan(3000) // 啟動時間 < 3s
-      expect(interactionTime).toBeLessThan(1000) // 互動回應 < 1s
+      expect(startupTime).toBeLessThan(PERFORMANCE_CONFIG.time.chromeStoreStartup) // Chrome Web Store 啟動時間上限
+      expect(interactionTime).toBeLessThan(PERFORMANCE_CONFIG.time.chromeStoreInteraction) // Chrome Web Store 互動回應上限
 
       // eslint-disable-next-line no-unused-vars
       const currentMemory = performanceOptimizer.getMemoryInfo().usedJSHeapSize
-      expect(currentMemory).toBeLessThan(50 * 1024 * 1024) // 記憶體 < 50MB
+      expect(currentMemory).toBeLessThan(PERFORMANCE_CONFIG.memory.chromeStoreLimit) // Chrome Web Store 記憶體上限
 
       // eslint-disable-next-line no-console
       console.log('✅ Chrome Web Store 效能標準驗證通過')

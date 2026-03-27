@@ -14,6 +14,8 @@
  * - UI 更新頻率 > 30fps
  */
 
+const { PERFORMANCE_CONFIG } = require('./performance-config')
+
 // Mock Chrome Extension APIs
 // eslint-disable-next-line no-unused-vars
 const mockChrome = {
@@ -103,7 +105,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
 
       const initializationTime = Date.now() - startTime
 
-      expect(initializationTime).toBeLessThan(200) // 小於 200ms
+      expect(initializationTime).toBeLessThan(PERFORMANCE_CONFIG.time.uiManagerInit) // UI Manager 初始化時間上限
       expect(uiManager.elements).toBeDefined()
     })
 
@@ -120,8 +122,8 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
       const endMemory = process.memoryUsage().heapUsed
       const memoryIncrease = endMemory - startMemory
 
-      expect(initTime).toBeLessThan(100) // 小於 100ms
-      expect(memoryIncrease).toBeLessThan(5 * 1024 * 1024) // 小於 5MB（放寬，測試環境波動大）
+      expect(initTime).toBeLessThan(PERFORMANCE_CONFIG.time.errorHandlerInit) // ErrorHandler 初始化時間上限
+      expect(memoryIncrease).toBeLessThan(PERFORMANCE_CONFIG.memory.errorHandlerInit) // ErrorHandler 初始化記憶體上限
     })
 
     test('Integrated system initialization performance', async () => {
@@ -138,7 +140,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
 
       const totalInitTime = Date.now() - startTime
 
-      expect(totalInitTime).toBeLessThan(200) // 小於 200ms
+      expect(totalInitTime).toBeLessThan(PERFORMANCE_CONFIG.time.systemInit) // 系統初始化時間上限
     })
   })
 
@@ -159,7 +161,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
       await uiManager.showError(errorData)
       const renderTime = Date.now() - startTime
 
-      expect(renderTime).toBeLessThan(50) // 小於 50ms
+      expect(renderTime).toBeLessThan(PERFORMANCE_CONFIG.time.errorRenderTime) // 錯誤渲染時間上限
     })
 
     test('Progress updates should be fast', async () => {
@@ -178,7 +180,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
       const totalTime = Date.now() - startTime
       const fps = (updates / totalTime) * 1000
 
-      expect(fps).toBeGreaterThan(30) // 大於 30fps
+      expect(fps).toBeGreaterThan(PERFORMANCE_CONFIG.ratio.minFps) // 最低幀率要求
     })
 
     test('UI state transitions should be smooth', async () => {
@@ -207,8 +209,8 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
       const maxTransitionTime = Math.max(...transitionTimes)
       const avgTransitionTime = transitionTimes.reduce((a, b) => a + b) / transitionTimes.length
 
-      expect(maxTransitionTime).toBeLessThan(50) // 最長轉換小於 50ms
-      expect(avgTransitionTime).toBeLessThan(30) // 平均轉換小於 30ms
+      expect(maxTransitionTime).toBeLessThan(PERFORMANCE_CONFIG.time.uiStateTransitionMax) // 最長轉換時間上限
+      expect(avgTransitionTime).toBeLessThan(PERFORMANCE_CONFIG.time.uiStateTransitionAvg) // 平均轉換時間上限
     })
   })
 
@@ -229,7 +231,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
       }
 
       // 歷史記錄有上限（原始碼限制 100 條）
-      expect(errorHandler.errorHistory.length).toBeLessThanOrEqual(100)
+      expect(errorHandler.errorHistory.length).toBeLessThanOrEqual(PERFORMANCE_CONFIG.ratio.maxErrorHistory)
     })
 
     test('UI manager should optimize DOM operations via element caching', async () => {
@@ -259,7 +261,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
       }
 
       // DOM 查詢次數應該被優化（元素快取）- 放寬閾值
-      expect(queryCount).toBeLessThan(250) // 有快取機制，不應每次操作都查詢
+      expect(queryCount).toBeLessThan(PERFORMANCE_CONFIG.ratio.maxDomQueries) // DOM 查詢次數上限（有快取機制）
 
       // 還原原始函數
       document.querySelector = originalQuerySelector
@@ -277,7 +279,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
       const memoryAfterLoad = process.memoryUsage().heapUsed
       const totalMemoryIncrease = memoryAfterLoad - initialMemory
 
-      expect(totalMemoryIncrease).toBeLessThan(5 * 1024 * 1024) // 小於 5MB（放寬，測試環境波動大）
+      expect(totalMemoryIncrease).toBeLessThan(PERFORMANCE_CONFIG.memory.diagnosticInit) // Diagnostic 初始化記憶體上限
     })
   })
 
@@ -307,8 +309,8 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
       const processingTime = Date.now() - startTime
       const eventsPerSecond = (eventCount / processingTime) * 1000
 
-      expect(eventsPerSecond).toBeGreaterThan(1000) // 每秒處理 1000+ 事件
-      expect(processingTime).toBeLessThan(1000) // 總處理時間小於 1 秒
+      expect(eventsPerSecond).toBeGreaterThan(PERFORMANCE_CONFIG.ratio.minEventsPerSecond) // 最低事件處理速率
+      expect(processingTime).toBeLessThan(PERFORMANCE_CONFIG.time.eventProcessTotal) // 事件處理總時間上限
     })
 
     test('Error throttling should deduplicate repeated errors', () => {
@@ -334,7 +336,7 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
 
       const processingTime = Date.now() - startTime
 
-      expect(processingTime).toBeLessThan(100) // 節流機制讓處理更快
+      expect(processingTime).toBeLessThan(PERFORMANCE_CONFIG.time.errorThrottleTime) // 節流機制時間上限
       // 錯誤佇列應該合併重複錯誤
       expect(errorHandler.errorQueue.length).toBe(1)
       expect(errorHandler.errorQueue[0].count).toBe(100)
@@ -376,8 +378,8 @@ describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
       const totalTime = Date.now() - startTime
       const avgTimePerMessage = totalTime / messageCount
 
-      expect(avgTimePerMessage).toBeLessThan(5) // 每個錯誤處理平均小於 5ms
-      expect(totalTime).toBeLessThan(500) // 總時間小於 500ms
+      expect(avgTimePerMessage).toBeLessThan(PERFORMANCE_CONFIG.time.errorProcessAvg) // 每個錯誤處理平均時間上限
+      expect(totalTime).toBeLessThan(PERFORMANCE_CONFIG.time.errorProcess100Total) // 錯誤處理總時間上限
     })
   })
 })

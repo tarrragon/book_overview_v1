@@ -23,6 +23,7 @@
  * @jest-environment node
  */
 
+const { PERFORMANCE_CONFIG } = require('./performance-config')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 // 基準測試用：本地定義預編譯錯誤物件（CommonErrors 已從生產碼移除）
@@ -267,9 +268,9 @@ describe('⚡ ErrorCodes 錯誤建立效能基準測試', () => {
       console.log(`  99%: ${batchResult.statistics.p99.toFixed(3)} ms`)
 
       // 效能斷言 (使用寬鬆的限制以適應不同環境)
-      expect(batchResult.statistics.mean).toBeLessThanOrEqual(2.0) // 平均不超過 2ms
-      expect(batchResult.statistics.p95).toBeLessThanOrEqual(5.0) // 95% 不超過 5ms
-      expect(batchResult.totalDuration).toBeLessThanOrEqual(500) // 總時間不超過 500ms
+      expect(batchResult.statistics.mean).toBeLessThanOrEqual(PERFORMANCE_CONFIG.time.basicErrorCreateAvg) // 平均時間上限
+      expect(batchResult.statistics.p95).toBeLessThanOrEqual(PERFORMANCE_CONFIG.time.basicErrorCreateP95) // P95 時間上限
+      expect(batchResult.totalDuration).toBeLessThanOrEqual(PERFORMANCE_CONFIG.time.basicErrorCreate1000Total) // 總時間上限
     })
 
     test('應該測量複雜錯誤物件建立效能', () => {
@@ -309,8 +310,8 @@ describe('⚡ ErrorCodes 錯誤建立效能基準測試', () => {
       console.log(`  標準差: ${complexResult.statistics.standardDeviation.toFixed(3)} ms`)
 
       // 複雜錯誤的效能應該仍在合理範圍內
-      expect(complexResult.statistics.mean).toBeLessThanOrEqual(5.0) // 平均不超過 5ms
-      expect(complexResult.statistics.p95).toBeLessThanOrEqual(10.0) // 95% 不超過 10ms
+      expect(complexResult.statistics.mean).toBeLessThanOrEqual(PERFORMANCE_CONFIG.time.complexErrorCreateAvg) // 平均時間上限
+      expect(complexResult.statistics.p95).toBeLessThanOrEqual(PERFORMANCE_CONFIG.time.complexErrorCreateP95) // P95 時間上限
 
       // 驗證錯誤物件的正確性
       // eslint-disable-next-line no-unused-vars
@@ -378,8 +379,8 @@ describe('⚡ ErrorCodes 錯誤建立效能基準測試', () => {
       console.log(`加速倍數: ${comparison.speedup.toFixed(1)}x`)
 
       // CommonErrors 應該明顯更快
-      expect(comparison.speedup).toBeGreaterThanOrEqual(2.0) // 至少快 2 倍
-      expect(commonErrorsResult.statistics.mean).toBeLessThanOrEqual(0.1) // 平均不超過 0.1ms
+      expect(comparison.speedup).toBeGreaterThanOrEqual(PERFORMANCE_CONFIG.ratio.commonErrorsSpeedup) // 最低加速倍數
+      expect(commonErrorsResult.statistics.mean).toBeLessThanOrEqual(PERFORMANCE_CONFIG.time.commonErrorsAvgAccess) // 平均存取時間上限
 
       // 驗證功能等效性
       // eslint-disable-next-line no-unused-vars
@@ -437,8 +438,8 @@ describe('⚡ ErrorCodes 錯誤建立效能基準測試', () => {
       console.log(`CommonErrors 效能變異: ${(variation * 100).toFixed(1)}%`)
 
       // 效能變異應該在合理範圍（跨套件執行時 GC 干擾導致波動較大）
-      expect(variation).toBeLessThanOrEqual(50) // 放寬變異閾值（GC 和系統排程造成大幅波動）
-      expect(maxDuration).toBeLessThanOrEqual(5.0) // 放寬至 5ms（CI 環境負載波動）
+      expect(variation).toBeLessThanOrEqual(PERFORMANCE_CONFIG.ratio.commonErrorsPerformanceVariance) // 效能變異閾值
+      expect(maxDuration).toBeLessThanOrEqual(PERFORMANCE_CONFIG.time.commonErrorsMaxAccess) // 最大存取時間上限
 
       // 驗證所有錯誤都可用
       commonErrorTypes.forEach(errorType => {
@@ -545,7 +546,7 @@ describe('⚡ ErrorCodes 錯誤建立效能基準測試', () => {
       // 錯誤處理的效能影響應該很小
       // 閾值放寬至 200%：微基準測試在 CI/本地環境中受 GC、排程等干擾，
       // 原 50% 閾值導致 flaky test（0.15.0-W3-011）
-      expect(performanceImpact).toBeLessThanOrEqual(2.0)
+      expect(performanceImpact).toBeLessThanOrEqual(PERFORMANCE_CONFIG.ratio.errorHandlingImpact)
 
       // 驗證業務邏輯正確性
       // eslint-disable-next-line no-unused-vars
@@ -625,8 +626,8 @@ describe('⚡ ErrorCodes 錯誤建立效能基準測試', () => {
       console.log(`效能比較: ${comparison.description}`)
 
       // 轉換效能應該與直接建立相近
-      expect(comparison.speedup).toBeLessThanOrEqual(3.0) // 轉換不應該超過直接建立的 3 倍時間
-      expect(adapterResult.statistics.mean).toBeLessThanOrEqual(2.0) // 平均轉換時間不超過 2ms
+      expect(comparison.speedup).toBeLessThanOrEqual(PERFORMANCE_CONFIG.ratio.errorAdapterOverhead) // 轉換開銷上限
+      expect(adapterResult.statistics.mean).toBeLessThanOrEqual(PERFORMANCE_CONFIG.time.errorAdapterAvgTime) // 平均轉換時間上限
 
       // 驗證轉換結果正確性
       // eslint-disable-next-line no-unused-vars
@@ -717,7 +718,7 @@ describe('⚡ ErrorCodes 錯誤建立效能基準測試', () => {
       }
 
       // 驗證效能沒有嚴重回歸
-      expect(Math.abs(regression.improvement)).toBeLessThanOrEqual(2.0) // 變化不超過 200% (測試環境允許更大波動)
+      expect(Math.abs(regression.improvement)).toBeLessThanOrEqual(PERFORMANCE_CONFIG.ratio.performanceRegressionTolerance) // 效能回歸容忍度
 
       // 功能正確性驗證
       expect(baselineResult.measurements.every(m => m.result.code === ErrorCodes.DOM_ERROR)).toBe(true)

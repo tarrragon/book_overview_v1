@@ -23,6 +23,7 @@
  * @jest-environment node
  */
 
+const { PERFORMANCE_CONFIG } = require('./performance-config')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { UC01ErrorFactory } = require('src/core/errors/UC01ErrorFactory')
 const { UC02ErrorFactory } = require('src/core/errors/UC02ErrorFactory')
@@ -175,7 +176,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       // eslint-disable-next-line no-console
       console.log(`單一錯誤物件記憶體使用: ${delta.heapUsedDelta} bytes`)
       // 記憶體差異可能為負值（跨套件執行時 GC 干擾），僅驗證絕對值在合理範圍
-      expect(Math.abs(delta.heapUsedDelta)).toBeLessThanOrEqual(5000000) // 合理範圍 5MB
+      expect(Math.abs(delta.heapUsedDelta)).toBeLessThanOrEqual(PERFORMANCE_CONFIG.memory.singleErrorObject) // 合理範圍
 
       // 記錄實際使用量以供分析
       // eslint-disable-next-line no-unused-vars
@@ -239,12 +240,12 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       // eslint-disable-next-line no-console
       console.log(`大型錯誤物件記憶體使用: ${delta.heapUsedDelta} bytes`)
       // 記憶體差異可能為負值（GC 干擾），僅驗證不會有極端增長
-      expect(Math.abs(delta.heapUsedDelta)).toBeLessThanOrEqual(5000000) // 合理範圍 5MB
+      expect(Math.abs(delta.heapUsedDelta)).toBeLessThanOrEqual(PERFORMANCE_CONFIG.memory.singleErrorObject) // 合理範圍
 
       // 驗證記憶體效率（大量資料不應導致過度記憶體使用）
       // eslint-disable-next-line no-unused-vars
       const bytesPerBook = Math.abs(delta.heapUsedDelta) / largeDetails.books.length
-      expect(bytesPerBook).toBeLessThanOrEqual(50000) // 放寬至 50KB/book，GC 干擾導致波動大
+      expect(bytesPerBook).toBeLessThanOrEqual(PERFORMANCE_CONFIG.memory.perBookEfficiency) // 每本書記憶體效率閾值
     })
   })
 
@@ -316,15 +317,15 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       // eslint-disable-next-line no-console
       console.log(`建立時間: ${timing.duration.toFixed(2)} ms`)
 
-      expect(totalMemoryMB).toBeLessThanOrEqual(10.0) // 放寬至 10MB，跨套件 GC 干擾導致波動
-      expect(timing.duration).toBeLessThanOrEqual(100) // 建立時間不超過 100ms
+      expect(totalMemoryMB).toBeLessThanOrEqual(PERFORMANCE_CONFIG.memory.error1000Total / (1024 * 1024)) // 1000 個錯誤記憶體上限
+      expect(timing.duration).toBeLessThanOrEqual(PERFORMANCE_CONFIG.time.errorCreate1000Time) // 建立時間上限
 
       // 平均每個錯誤物件的記憶體使用
       // eslint-disable-next-line no-unused-vars
       const avgMemoryPerError = finalDelta.heapUsedDelta / 1000
       // eslint-disable-next-line no-console
       console.log(`平均每個錯誤物件記憶體: ${avgMemoryPerError.toFixed(0)} bytes`)
-      expect(avgMemoryPerError).toBeLessThanOrEqual(5000) // 平均不超過 5KB (測試環境允許更大波動)
+      expect(avgMemoryPerError).toBeLessThanOrEqual(PERFORMANCE_CONFIG.memory.avgPerError) // 平均每個錯誤記憶體上限
 
       // 檢查記憶體增長模式（應該是線性的，不是指數的）
       // eslint-disable-next-line no-unused-vars
@@ -354,7 +355,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
 
         // eslint-disable-next-line no-console
         console.log('記憶體增長模式:', memoryGrowthPattern)
-        expect(variation).toBeLessThanOrEqual(20) // 放寬變異閾值，GC 行為不可預測
+        expect(variation).toBeLessThanOrEqual(PERFORMANCE_CONFIG.ratio.memoryGrowthVariance) // 記憶體增長變異閾值
       }
     })
 
@@ -413,11 +414,11 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
         const recoveryRate = (creationDelta.heapUsedDelta - finalDelta.heapUsedDelta) / creationDelta.heapUsedDelta
         // eslint-disable-next-line no-console
         console.log(`記憶體回收率: ${(recoveryRate * 100).toFixed(1)}%`)
-        expect(recoveryRate).toBeGreaterThanOrEqual(0.1) // 至少回收 10%
+        expect(recoveryRate).toBeGreaterThanOrEqual(PERFORMANCE_CONFIG.ratio.minGCRecoveryRate) // 最低 GC 回收率
       }
 
       // 最終記憶體增長應該在合理範圍內
-      expect(finalDelta.heapUsedDelta).toBeLessThanOrEqual(5000000) // 放寬至 5MB，GC 時機不可控
+      expect(finalDelta.heapUsedDelta).toBeLessThanOrEqual(PERFORMANCE_CONFIG.memory.gcFinalIncrease) // GC 後記憶體增長上限
     })
   })
 
@@ -672,9 +673,9 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
 
       // 記憶體洩漏閾值檢查
       // eslint-disable-next-line no-unused-vars
-      const maxAcceptableGrowth = 100000000 // 100MB - 放寬閾值，測試環境 GC 行為不可預測
+      const maxAcceptableGrowth = PERFORMANCE_CONFIG.memory.leakDetectMax // 記憶體洩漏偵測上限
       // eslint-disable-next-line no-unused-vars
-      const maxAcceptableRate = 500000 // 500000 bytes/ms - 放寬閾值，僅驗證無極端洩漏
+      const maxAcceptableRate = PERFORMANCE_CONFIG.memory.leakRateMax // 洩漏速率上限 (bytes/ms)
 
       expect(trend.totalGrowth).toBeLessThanOrEqual(maxAcceptableGrowth)
       expect(trend.growthRate).toBeLessThanOrEqual(maxAcceptableRate)

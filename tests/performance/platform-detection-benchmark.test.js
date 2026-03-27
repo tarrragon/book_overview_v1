@@ -26,6 +26,7 @@
  * @since 2025-08-13
  */
 
+const { PERFORMANCE_CONFIG } = require('./performance-config')
 // eslint-disable-next-line no-unused-vars
 const PlatformDetectionService = require('src/background/domains/platform/services/platform-detection-service')
 // eslint-disable-next-line no-unused-vars
@@ -38,23 +39,23 @@ describe('Platform Detection Performance Benchmarks', () => {
   // eslint-disable-next-line no-unused-vars
   let mockEventBus
 
-  // 效能基準定義
+  // 效能基準定義（從統一配置初始化）
   // eslint-disable-next-line no-unused-vars
   const PERFORMANCE_BENCHMARKS = {
     platformDetection: {
-      averageTime: 500, // ms - 平均檢測時間
-      maxTime: 1000, // ms - 最大檢測時間
-      cacheHitRate: 0.8 // 快取命中率
+      averageTime: PERFORMANCE_CONFIG.time.platformDetectAvg, // ms - 平均檢測時間
+      maxTime: PERFORMANCE_CONFIG.time.platformDetectMax, // ms - 最大檢測時間
+      cacheHitRate: PERFORMANCE_CONFIG.ratio.cacheHitRate // 快取命中率
     },
 
     memoryUsage: {
-      maxIncrease: 2.0, // 最大記憶體使用增長 200% (測試環境允許更大波動)
+      maxIncrease: PERFORMANCE_CONFIG.ratio.memoryMaxIncrease, // 最大記憶體使用增長
       leakTolerance: 0 // 記憶體洩漏容忍度 0%
     },
 
     concurrentDetection: {
-      successRate: 0.95, // 並發檢測成功率
-      maxResponseTime: 2000 // 並發檢測最大回應時間
+      successRate: PERFORMANCE_CONFIG.ratio.concurrentSuccessRate, // 並發檢測成功率
+      maxResponseTime: PERFORMANCE_CONFIG.time.concurrentDetectMax // 並發檢測最大回應時間
     }
   }
 
@@ -169,7 +170,7 @@ describe('Platform Detection Performance Benchmarks', () => {
       // 驗證基準
       expect(avgTime).toBeLessThan(PERFORMANCE_BENCHMARKS.platformDetection.averageTime)
       expect(maxTime).toBeLessThan(PERFORMANCE_BENCHMARKS.platformDetection.maxTime)
-      expect(successRate).toBeGreaterThanOrEqual(0.95)
+      expect(successRate).toBeGreaterThanOrEqual(PERFORMANCE_CONFIG.ratio.batchSuccessRate)
     })
   })
 
@@ -197,7 +198,7 @@ describe('Platform Detection Performance Benchmarks', () => {
         const duration = Number(endTime - startTime) / 1000000 // ms
 
         // 快取命中應該非常快速 (< 10ms)
-        if (duration < 10) {
+        if (duration < PERFORMANCE_CONFIG.time.cacheHitFast) {
           cacheHits++
         }
       }
@@ -259,7 +260,7 @@ describe('Platform Detection Performance Benchmarks', () => {
 
       // 快取命中應該比未命中快至少2倍（CI 環境和 GC 波動影響差距）
       expect(avgHitTime * 2).toBeLessThan(avgMissTime)
-      expect(avgHitTime).toBeLessThan(200) // 放寬快取命中閾值（系統負載波動）
+      expect(avgHitTime).toBeLessThan(PERFORMANCE_CONFIG.time.cacheHitTime) // 快取命中時間閾值
     })
   })
 
@@ -281,7 +282,7 @@ describe('Platform Detection Performance Benchmarks', () => {
       console.log(`Memory usage increase: ${memoryIncrease.toFixed(2)}MB`)
 
       // 單次檢測記憶體增長應該很小
-      expect(memoryIncrease).toBeLessThan(5) // < 5MB
+      expect(memoryIncrease).toBeLessThan(PERFORMANCE_CONFIG.memory.platformDetectSingle / (1024 * 1024)) // 單次檢測記憶體上限
     })
 
     test('大量檢測記憶體增長控制', async () => {
@@ -456,9 +457,9 @@ describe('Platform Detection Performance Benchmarks', () => {
         Cache size: ${service.detectionCache.size}`)
 
       // 高負載下的效能要求
-      expect(successful / results.length).toBeGreaterThanOrEqual(0.90) // 90% 成功率
-      expect(avgTime).toBeLessThan(800) // 平均時間可以放寬一些
-      expect(maxTime).toBeLessThan(2000) // 最大時間限制
+      expect(successful / results.length).toBeGreaterThanOrEqual(PERFORMANCE_CONFIG.ratio.highLoadSuccessRate) // 高負載成功率
+      expect(avgTime).toBeLessThan(PERFORMANCE_CONFIG.time.highLoadAvgTime) // 高負載平均時間上限
+      expect(maxTime).toBeLessThan(PERFORMANCE_CONFIG.time.highLoadMaxTime) // 高負載最大時間上限
     })
   })
 
