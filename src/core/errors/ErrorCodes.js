@@ -15,6 +15,7 @@
  * - data-processing.js   資料處理
  * - messaging.js     訊息傳遞與事件總線
  * - system.js        系統與操作
+ * - testing.js       測試與模擬基礎設施
  */
 const { ValidationCodes } = require('./codes/validation')
 const { NetworkCodes } = require('./codes/network')
@@ -26,6 +27,7 @@ const { UiCodes } = require('./codes/ui')
 const { DataProcessingCodes } = require('./codes/data-processing')
 const { MessagingCodes } = require('./codes/messaging')
 const { SystemCodes } = require('./codes/system')
+const { TestingCodes } = require('./codes/testing')
 
 /**
  * 系統錯誤代碼常數 - 核心代碼與擴展代碼
@@ -42,7 +44,8 @@ const ErrorCodes = {
   ...UiCodes,
   ...DataProcessingCodes,
   ...MessagingCodes,
-  ...SystemCodes
+  ...SystemCodes,
+  ...TestingCodes
 }
 
 // 凍結物件以防止意外修改
