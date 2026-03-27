@@ -4,6 +4,8 @@
  * 涵蓋 EventBus、跨組件訊息傳遞、Multicast、路由分析等場景。
  */
 const MessagingCodes = {
+  // 命名風格不一致：EVENTBUS（無底線）為歷史遺留
+  // 值不可更改以維持向後相容，未來新增統一使用 EVENT_BUS 風格
   EVENTBUS_ERROR: 'EVENTBUS_ERROR',
   EVENTBUS_REQUIRED: 'EVENTBUS_REQUIRED',
   CORE_EVENTBUS_HANDLER_ERROR: 'CORE_EVENTBUS_HANDLER_ERROR',
