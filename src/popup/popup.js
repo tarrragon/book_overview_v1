@@ -26,32 +26,41 @@
  */
 
 // 統一日誌管理系統 - 支援多環境載入
-let Logger, MessageDictionary, ErrorCodes
-if (typeof require !== 'undefined') {
-  // Node.js/測試環境
-  try {
-    ({ Logger } = require('src/core/logging/Logger'));
-    ({ MessageDictionary } = require('src/core/messages/MessageDictionary'));
-    ({ ErrorCodes } = require('src/core/errors/ErrorCodes'))
-  } catch (e) {
-    // 測試環境fallback
-    Logger = window.Logger || class { info () {} warn () {} error () {} debug () {} }
-    MessageDictionary = window.MessageDictionary || class {}
-    ErrorCodes = window.ErrorCodes || {
+// 瀏覽器環境：Logger 和 ErrorCodes 由 popup-error-handler.js 先行宣告，此處不重複宣告以避免 SyntaxError
+// Node.js 測試環境：每個檔案獨立載入，需透過 require 取得
+// MessageDictionary 僅此檔案使用，可安全用 let 宣告
+if (typeof Logger === 'undefined') {
+  if (typeof require !== 'undefined') {
+    try {
+      var Logger = require('src/core/logging/Logger').Logger
+      var ErrorCodes = require('src/core/errors/ErrorCodes').ErrorCodes
+    } catch (e) {
+      var Logger = (typeof window !== 'undefined' && window.Logger) || class { info () {} warn () {} error () {} debug () {} }
+      var ErrorCodes = (typeof window !== 'undefined' && window.ErrorCodes) || {
+        UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+        CHROME_ERROR: 'CHROME_ERROR',
+        OPERATION_ERROR: 'OPERATION_ERROR'
+      }
+    }
+  } else {
+    var Logger = (typeof window !== 'undefined' && window.Logger) || class { info () {} warn () {} error () {} debug () {} }
+    var ErrorCodes = (typeof window !== 'undefined' && window.ErrorCodes) || {
       UNKNOWN_ERROR: 'UNKNOWN_ERROR',
       CHROME_ERROR: 'CHROME_ERROR',
       OPERATION_ERROR: 'OPERATION_ERROR'
     }
   }
-} else {
-  // 瀏覽器環境 - 使用全域變數（含 fallback 防止未載入時崩潰）
-  Logger = window.Logger || class { info () {} warn () {} error () {} debug () {} }
-  MessageDictionary = window.MessageDictionary || class {}
-  ErrorCodes = window.ErrorCodes || {
-    UNKNOWN_ERROR: 'UNKNOWN_ERROR',
-    CHROME_ERROR: 'CHROME_ERROR',
-    OPERATION_ERROR: 'OPERATION_ERROR'
+}
+
+let MessageDictionary
+if (typeof require !== 'undefined') {
+  try {
+    ({ MessageDictionary } = require('src/core/messages/MessageDictionary'))
+  } catch (e) {
+    MessageDictionary = (typeof window !== 'undefined' && window.MessageDictionary) || class {}
   }
+} else {
+  MessageDictionary = (typeof window !== 'undefined' && window.MessageDictionary) || class {}
 }
 
 // 初始化 Popup Logger
@@ -734,7 +743,6 @@ async function checkCurrentTab () {
  * 5. 恢復按鈕狀態
  */
 async function startExtraction () {
-  console.log('[POPUP DEBUG] 按鈕 extractBtn (開始提取) 被點擊')
   const tab = await checkCurrentTab()
   if (!tab) return
 
@@ -779,7 +787,6 @@ async function startExtraction () {
  * - 提供使用者適當的功能說明
  */
 function showSettings () {
-  console.log('[POPUP DEBUG] 按鈕 settingsBtn (擴展設定) 被點擊')
   window.alert(MESSAGES.SETTINGS_PLACEHOLDER)
 }
 
@@ -795,7 +802,6 @@ function showSettings () {
  * - 預留未來詳細說明頁面的擴展空間
  */
 function showHelp () {
-  console.log('[POPUP DEBUG] 按鈕 helpBtn (使用說明) 被點擊')
   window.alert(MESSAGES.HELP_TEXT)
 }
 
@@ -817,7 +823,6 @@ function showHelp () {
  * - 提取完成後點擊「查看結果」時
  */
 function openLibraryOverview () {
-  console.log('[POPUP DEBUG] 按鈕 viewLibraryBtn (檢視書庫) 被點擊')
   try {
     Logger.info('📖 開啟書庫總覽頁面...')
     chrome.runtime.openOptionsPage()
@@ -841,7 +846,6 @@ function openLibraryOverview () {
  * - 清晰的職責分離
  */
 function setupEventListeners () {
-  console.log('[POPUP DEBUG] setupEventListeners() 開始綁定事件')
   // 主要操作按鈕
   elements.extractBtn.addEventListener('click', startExtraction)
   elements.settingsBtn.addEventListener('click', showSettings)
@@ -897,7 +901,6 @@ function setupEventListeners () {
  * 4. 完成初始化
  */
 async function initialize () {
-  console.log('[POPUP DEBUG] DOMContentLoaded 觸發，initialize() 開始執行')
   popupLogger.info('POPUP_INIT_START')
 
   // 初始化進度追蹤器
@@ -1287,5 +1290,4 @@ setInterval(periodicStatusUpdate, CONFIG.STATUS_UPDATE_INTERVAL)
 // 全域錯誤處理
 window.addEventListener('error', handleGlobalError)
 
-console.log('[POPUP DEBUG] popup.js 已載入')
 popupLogger.info('POPUP_SCRIPT_LOADED')

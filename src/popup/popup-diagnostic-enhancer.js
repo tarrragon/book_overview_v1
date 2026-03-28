@@ -1,17 +1,19 @@
-console.log('[POPUP DEBUG] popup-diagnostic-enhancer.js 已載入')
 // 支援多環境載入（瀏覽器 / Node.js 測試環境）
-let Logger, ErrorCodes
-if (typeof require !== 'undefined') {
-  try {
-    ({ Logger } = require('src/core/logging/Logger'));
-    ({ ErrorCodes } = require('src/core/errors/ErrorCodes'))
-  } catch (e) {
-    Logger = window.Logger || { warn () {}, error () {}, info () {}, debug () {} }
-    ErrorCodes = window.ErrorCodes || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
+// 瀏覽器環境：Logger 和 ErrorCodes 由 popup-error-handler.js 先行宣告，此處不重複宣告以避免 SyntaxError
+// Node.js 測試環境：每個檔案獨立載入，需透過 require 取得
+if (typeof Logger === 'undefined') {
+  if (typeof require !== 'undefined') {
+    try {
+      var Logger = require('src/core/logging/Logger').Logger
+      var ErrorCodes = require('src/core/errors/ErrorCodes').ErrorCodes
+    } catch (e) {
+      var Logger = (typeof window !== 'undefined' && window.Logger) || { warn () {}, error () {}, info () {}, debug () {} }
+      var ErrorCodes = (typeof window !== 'undefined' && window.ErrorCodes) || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
+    }
+  } else {
+    var Logger = (typeof window !== 'undefined' && window.Logger) || { warn () {}, error () {}, info () {}, debug () {} }
+    var ErrorCodes = (typeof window !== 'undefined' && window.ErrorCodes) || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
   }
-} else {
-  Logger = window.Logger || { warn () {}, error () {}, info () {}, debug () {} }
-  ErrorCodes = window.ErrorCodes || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
 }
 /**
  * Popup 診斷增強模組
