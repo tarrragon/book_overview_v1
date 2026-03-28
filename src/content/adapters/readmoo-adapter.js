@@ -222,8 +222,10 @@ function createReadmooAdapter (options = {}) {
         }
 
         // 安全檢查 - 過濾惡意圖片URL
+        // 收集不安全 URL，在 extractAllBooks() 完成後批量彙整輸出
         if (cover && this.isUnsafeUrl(cover)) {
-          logger.warn('UNSAFE_COVER_URL_FILTERED', { coverUrl: cover })
+          if (!this._unsafeUrlCount) this._unsafeUrlCount = 0
+          this._unsafeUrlCount++
           cover = ''
         }
 
@@ -313,6 +315,15 @@ function createReadmooAdapter (options = {}) {
         if (i + batchSize < bookElements.length) {
           await new Promise(resolve => setTimeout(resolve, 0))
         }
+      }
+
+      // 批量彙整不安全封面 URL 警告（避免逐筆輸出洗版 console）
+      if (this._unsafeUrlCount > 0) {
+        logger.warn('UNSAFE_COVER_URL_FILTERED', {
+          totalFiltered: this._unsafeUrlCount,
+          message: `${this._unsafeUrlCount} 個不安全的封面網址已過濾`
+        })
+        this._unsafeUrlCount = 0
       }
 
       stats.lastExtraction = Date.now()
