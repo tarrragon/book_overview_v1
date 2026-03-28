@@ -342,6 +342,20 @@ function createReadmooAdapter (options = {}) {
         failed: stats.failedExtractions
       })
 
+      // 診斷日誌：印出前 3 本書的資料摘要
+      if (books.length > 0) {
+        const sample = books.slice(0, 3).map(b => ({
+          id: b.id,
+          title: b.title,
+          href: b.href ? '有' : '無',
+          cover: b.cover ? '有' : '無'
+        }))
+        logger.info('EXTRACTION_SAMPLE_DATA', {
+          totalBooks: books.length,
+          sampleBooks: sample
+        })
+      }
+
       if (bookElements.length === 0) {
         logger.warn('NO_BOOK_ELEMENTS_FOUND', {
           possibleReasons: [
