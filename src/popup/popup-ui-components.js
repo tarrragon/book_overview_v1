@@ -1,3 +1,4 @@
+console.log('[POPUP DEBUG] popup-ui-components.js 已載入')
 /**
  * Popup UI 組件管理器 - TDD 循環 #25
  *

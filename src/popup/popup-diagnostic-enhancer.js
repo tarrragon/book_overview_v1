@@ -1,3 +1,4 @@
+console.log('[POPUP DEBUG] popup-diagnostic-enhancer.js 已載入')
 // 支援多環境載入（瀏覽器 / Node.js 測試環境）
 let Logger, ErrorCodes
 if (typeof require !== 'undefined') {

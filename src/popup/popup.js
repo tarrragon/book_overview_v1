@@ -734,6 +734,7 @@ async function checkCurrentTab () {
  * 5. 恢復按鈕狀態
  */
 async function startExtraction () {
+  console.log('[POPUP DEBUG] 按鈕 extractBtn (開始提取) 被點擊')
   const tab = await checkCurrentTab()
   if (!tab) return
 
@@ -778,6 +779,7 @@ async function startExtraction () {
  * - 提供使用者適當的功能說明
  */
 function showSettings () {
+  console.log('[POPUP DEBUG] 按鈕 settingsBtn (擴展設定) 被點擊')
   window.alert(MESSAGES.SETTINGS_PLACEHOLDER)
 }
 
@@ -793,6 +795,7 @@ function showSettings () {
  * - 預留未來詳細說明頁面的擴展空間
  */
 function showHelp () {
+  console.log('[POPUP DEBUG] 按鈕 helpBtn (使用說明) 被點擊')
   window.alert(MESSAGES.HELP_TEXT)
 }
 
@@ -814,6 +817,7 @@ function showHelp () {
  * - 提取完成後點擊「查看結果」時
  */
 function openLibraryOverview () {
+  console.log('[POPUP DEBUG] 按鈕 viewLibraryBtn (檢視書庫) 被點擊')
   try {
     Logger.info('📖 開啟書庫總覽頁面...')
     chrome.runtime.openOptionsPage()
@@ -837,6 +841,7 @@ function openLibraryOverview () {
  * - 清晰的職責分離
  */
 function setupEventListeners () {
+  console.log('[POPUP DEBUG] setupEventListeners() 開始綁定事件')
   // 主要操作按鈕
   elements.extractBtn.addEventListener('click', startExtraction)
   elements.settingsBtn.addEventListener('click', showSettings)
@@ -892,6 +897,7 @@ function setupEventListeners () {
  * 4. 完成初始化
  */
 async function initialize () {
+  console.log('[POPUP DEBUG] DOMContentLoaded 觸發，initialize() 開始執行')
   popupLogger.info('POPUP_INIT_START')
 
   // 初始化進度追蹤器
@@ -1281,4 +1287,5 @@ setInterval(periodicStatusUpdate, CONFIG.STATUS_UPDATE_INTERVAL)
 // 全域錯誤處理
 window.addEventListener('error', handleGlobalError)
 
+console.log('[POPUP DEBUG] popup.js 已載入')
 popupLogger.info('POPUP_SCRIPT_LOADED')
