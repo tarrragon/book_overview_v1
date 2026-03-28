@@ -52,7 +52,7 @@ if (typeof Logger === 'undefined') {
   }
 }
 
-let MessageDictionary
+var MessageDictionary
 if (typeof require !== 'undefined') {
   try {
     ({ MessageDictionary } = require('src/core/messages/MessageDictionary'))
@@ -190,9 +190,9 @@ const elements = {
 /**
  * 全域變數宣告
  */
-let errorHandler = null
-let diagnosticEnhancer = null
-let initializationTracker = null
+var errorHandler = null
+var diagnosticEnhancer = null
+var initializationTracker = null
 
 // ==================== 狀態管理 ====================
 

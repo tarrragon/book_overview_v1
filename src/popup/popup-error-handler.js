@@ -1,6 +1,6 @@
 console.log('[POPUP DEBUG] popup-error-handler.js 已載入')
 // 支援多環境載入（瀏覽器 / Node.js 測試環境）
-let Logger, ErrorCodes
+var Logger, ErrorCodes
 if (typeof require !== 'undefined') {
   try {
     ({ Logger } = require('src/core/logging/Logger'));
@@ -43,7 +43,7 @@ if (typeof require !== 'undefined') {
  */
 
 // 錯誤配置函數（需要支援瀏覽器環境）
-let getUserErrorMessage
+var getUserErrorMessage
 
 // 嘗試載入錯誤配置
 try {
@@ -65,7 +65,7 @@ try {
 }
 
 // 嘗試載入診斷模組
-let DiagnosticModule
+var DiagnosticModule
 try {
   if (typeof require !== 'undefined') {
     DiagnosticModule = require('./diagnostic-module')

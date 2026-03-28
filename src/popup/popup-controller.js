@@ -31,7 +31,7 @@
  */
 
 // 動態 ErrorCodes 匯入 (支援瀏覽器和 Node.js)
-let ErrorCodes
+var ErrorCodes
 if (typeof window !== 'undefined' && window.ErrorCodes) {
   ErrorCodes = window.ErrorCodes
 } else {
