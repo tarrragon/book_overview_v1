@@ -272,7 +272,11 @@ function createReadmooAdapter (options = {}) {
         stats.parseTime += performance.now() - startTime
         return bookData
       } catch (error) {
-        logger.error('BOOK_ELEMENT_PARSE_FAILED', { error: error.message, stack: error.stack })
+        logger.warn('BOOK_PARSE_ELEMENT_FAILED', {
+          error: error.message,
+          elementTag: element?.tagName || 'unknown',
+          elementClass: element?.className || 'unknown'
+        })
         stats.failedExtractions++
         stats.parseTime += performance.now() - startTime
         return null
@@ -348,7 +352,7 @@ function createReadmooAdapter (options = {}) {
           ]
         })
       } else if (books.length === 0) {
-        logger.warn('BOOK_CONTAINERS_PARSE_FAILED', {
+        logger.error('BOOK_CONTAINERS_PARSE_FAILED', {
           possibleReasons: [
             '容器結構不符合預期',
             '缺少必要的子元素',

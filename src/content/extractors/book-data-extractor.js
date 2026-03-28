@@ -246,6 +246,16 @@ function createBookDataExtractor () {
         // 提取所有書籍
         const booksData = await readmooAdapter.extractAllBooks()
 
+        // 提取結果為空時輸出 error 日誌
+        if (booksData.length === 0) {
+          // Logger 後備方案: Content Script 環境適應（同 startExtractionFlow）
+          // eslint-disable-next-line no-console
+          console.error('提取完成但結果為空，可能所有書籍解析失敗', {
+            flowId,
+            extractedCount: 0
+          })
+        }
+
         // 更新流程狀態
         flowState.extractedBooks = booksData
         flowState.progress = 1.0
