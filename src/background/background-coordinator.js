@@ -461,19 +461,26 @@ class BackgroundCoordinator extends BaseModule {
     try {
       this.logger.log('🔍 驗證模組健康狀態')
 
-      // 設計意圖：直接檢查 modules Map 中各模組的 BaseModule 狀態，
+      // 設計意圖：直接檢查 modules Map 中各模組的狀態，
       // 不依賴 SystemMonitor 的報告。原因有二：
       // 1. SystemMonitor 的 getSystemStatusReport 原本缺少 overallHealth 欄位
       // 2. SystemMonitor 會監控 backgroundCoordinator 自身，但此時協調器
       //    尚未完成 _doStart（isRunning 還是 false），會被誤判為 degraded
+      //
+      // 狀態介面適配：
+      // - BaseModule 子類別使用 isInitialized / isRunning 屬性
+      // - DomainCoordinator（非 BaseModule）使用 state.initialized / state.active
       const unhealthyModules = []
 
       for (const [moduleName, module] of this.modules) {
-        if (!module.isInitialized || !module.isRunning) {
+        const isInitialized = this._getModuleInitialized(module)
+        const isRunning = this._getModuleRunning(module)
+
+        if (!isInitialized || !isRunning) {
           unhealthyModules.push({
             name: moduleName,
-            isInitialized: module.isInitialized || false,
-            isRunning: module.isRunning || false
+            isInitialized,
+            isRunning
           })
         }
       }
@@ -486,6 +493,50 @@ class BackgroundCoordinator extends BaseModule {
     } catch (error) {
       this.logger.error('❌ 健康狀態驗證失敗:', error)
     }
+  }
+
+  /**
+   * 取得模組的初始化狀態（適配 BaseModule 與 DomainCoordinator 兩種介面）
+   *
+   * BaseModule 子類別：isInitialized 屬性（由 initialize() 設定）
+   * DomainCoordinator：state.initialized 屬性（自行管理）
+   *
+   * @param {Object} module - 模組實例
+   * @returns {boolean} 是否已初始化
+   * @private
+   */
+  _getModuleInitialized (module) {
+    // BaseModule 子類別直接有 isInitialized 屬性
+    if (typeof module.isInitialized === 'boolean') {
+      return module.isInitialized
+    }
+    // DomainCoordinator 使用 state.initialized
+    if (module.state && typeof module.state.initialized === 'boolean') {
+      return module.state.initialized
+    }
+    return false
+  }
+
+  /**
+   * 取得模組的運行狀態（適配 BaseModule 與 DomainCoordinator 兩種介面）
+   *
+   * BaseModule 子類別：isRunning 屬性（由 start() 設定）
+   * DomainCoordinator：state.active 屬性（自行管理）
+   *
+   * @param {Object} module - 模組實例
+   * @returns {boolean} 是否正在運行
+   * @private
+   */
+  _getModuleRunning (module) {
+    // BaseModule 子類別直接有 isRunning 屬性
+    if (typeof module.isRunning === 'boolean') {
+      return module.isRunning
+    }
+    // DomainCoordinator 使用 state.active
+    if (module.state && typeof module.state.active === 'boolean') {
+      return module.state.active
+    }
+    return false
   }
 
   /**

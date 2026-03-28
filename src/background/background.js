@@ -16,10 +16,12 @@
 
 // 統一日誌管理系統
 import { Logger } from '../core/logging/Logger.js'
-import { MessageDictionary } from '../core/messages/MessageDictionary.js'
+import { GlobalMessages } from '../core/messages/MessageDictionary.js'
 
-// 初始化 Logger 實例
-const messages = new MessageDictionary({
+// 將 Background Service 訊息註冊到全域訊息字典
+// 設計意圖：Logger 內部使用 GlobalMessages 來解析 messageKey，
+// 因此模組訊息必須註冊到 GlobalMessages 而非建立獨立的 MessageDictionary 實例
+GlobalMessages.addMessages({
   BACKGROUND_STARTUP: '🚀 Readmoo 書庫提取器 Background Service Worker 啟動',
   SKIP_DUPLICATE_INIT: '⏭️ 系統已初始化，跳過重複初始化',
   INIT_ATTEMPT: '🔧 開始初始化 Background 系統 (嘗試 {attempt}/{max})',
@@ -49,7 +51,7 @@ const messages = new MessageDictionary({
   INIT_FLOW_FAILED: '💥 Background Service Worker 初始化最終失敗'
 })
 
-const logger = new Logger('BackgroundService', 'INFO', messages)
+const logger = new Logger('BackgroundService')
 
 // 維持向下相容的 log 物件
 const log = {
