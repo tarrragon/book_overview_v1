@@ -686,7 +686,7 @@ class ErrorCollector extends BaseModule {
    */
   async loadPersistedErrors () {
     try {
-      const data = await chrome.storage.local.get('error_history')
+      const data = await chrome.storage.local.get(['error_history'])
       if (data.error_history && Array.isArray(data.error_history)) {
         this.errorHistory = data.error_history.slice(0, this.config.maxHistorySize)
 

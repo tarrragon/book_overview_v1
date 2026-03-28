@@ -9,28 +9,99 @@
  *
  * 設計考量：
  * - 基於 BaseModule 實現標準生命週期管理
- * - 整合 PageDetector 和 ContentCoordinator 模組
+ * - 整合 Background 層頁面偵測 stub 和 ContentCoordinator 模組
  * - 實現頁面狀態的統一監控和事件處理
  * - 提供頁面監控的高層抽象介面
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
-const PageDetector = require('src/content/detectors/page-detector')
 const ContentCoordinator = require('src/background/monitoring/content-coordinator')
 const {
   PAGE_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
 
+/**
+ * Background 層頁面偵測 stub
+ *
+ * 設計理念: PageMonitor (Background 層) 不應跨層引用 Content Script 的
+ * PageDetector。此 stub 提供安全的降級行為，透過 Chrome Tabs API
+ * 進行基本的 Readmoo 頁面偵測。
+ *
+ * Ticket: 0.15.2-W2-003
+ */
+function createBackgroundPageDetectorStub (dependencies = {}) {
+  const logger = dependencies.logger || console
+  const READMOO_DOMAIN = 'readmoo.com'
+
+  return {
+    async initialize () {
+      logger.log('[PageDetectorStub] 初始化完成（Background 層 stub）')
+    },
+
+    async start () {
+      logger.log('[PageDetectorStub] 啟動完成（Background 層 stub）')
+    },
+
+    async stop () {
+      logger.log('[PageDetectorStub] 停止完成（Background 層 stub）')
+    },
+
+    async detectCurrentPage () {
+      try {
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+        const tab = tabs && tabs[0]
+        if (tab && tab.url && tab.url.includes(READMOO_DOMAIN)) {
+          return {
+            isReadmoo: true,
+            tabId: tab.id,
+            pageType: 'unknown',
+            features: []
+          }
+        }
+      } catch (error) {
+        logger.warn('[PageDetectorStub] 頁面偵測失敗:', error)
+      }
+      return { isReadmoo: false, tabId: null, pageType: null, features: [] }
+    },
+
+    async detectPage (tabId) {
+      try {
+        const tab = await chrome.tabs.get(tabId)
+        if (tab && tab.url && tab.url.includes(READMOO_DOMAIN)) {
+          return {
+            isReadmoo: true,
+            tabId: tab.id,
+            pageType: 'unknown',
+            features: []
+          }
+        }
+      } catch (error) {
+        logger.warn(`[PageDetectorStub] 偵測 Tab ${tabId} 失敗:`, error)
+      }
+      return { isReadmoo: false, tabId, pageType: null, features: [] }
+    },
+
+    getDetectionStats () {
+      return { stub: true, detectionsPerformed: 0 }
+    },
+
+    _getCustomHealthStatus () {
+      return { health: 'healthy', stub: true }
+    },
+
+    eventBus: null
+  }
+}
+
 class PageMonitor extends BaseModule {
   constructor (dependencies = {}) {
     super(dependencies)
 
-    // 子模組
-    this.pageDetector = PageDetector({
-      eventBus: this.eventBus,
-      logger: this.logger,
-      i18nManager: dependencies.i18nManager
+    // 子模組 - 使用 Background 層 stub 替代 Content Script 的 PageDetector
+    // Ticket: 0.15.2-W2-003 - 修復跨層引用問題
+    this.pageDetector = createBackgroundPageDetectorStub({
+      logger: this.logger
     })
 
     this.contentCoordinator = new ContentCoordinator({

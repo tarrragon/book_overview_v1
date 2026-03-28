@@ -382,7 +382,7 @@ class PopupMessageHandler extends BaseModule {
 
       switch (dataType) {
         case 'books': {
-          const booksData = await chrome.storage.local.get('readmoo_books')
+          const booksData = await chrome.storage.local.get(['readmoo_books'])
           responseData = {
             books: booksData.readmoo_books?.books || [],
             count: booksData.readmoo_books?.extractionCount || 0,
@@ -392,7 +392,7 @@ class PopupMessageHandler extends BaseModule {
         }
 
         case 'extraction_history': {
-          const historyData = await chrome.storage.local.get('extraction_history')
+          const historyData = await chrome.storage.local.get(['extraction_history'])
           responseData = {
             history: historyData.extraction_history || []
           }
@@ -747,7 +747,7 @@ class PopupMessageHandler extends BaseModule {
     }
 
     if (permissions.requiresData) {
-      const data = await chrome.storage.local.get('readmoo_books')
+      const data = await chrome.storage.local.get(['readmoo_books'])
       if (!data.readmoo_books || !data.readmoo_books.books || data.readmoo_books.books.length === 0) {
         const error = new Error('操作需要已提取的資料')
         error.code = ErrorCodes.MISSING_REQUIRED_DATA
@@ -809,12 +809,12 @@ class PopupMessageHandler extends BaseModule {
 
     switch (clearType) {
       case 'books':
-        await chrome.storage.local.remove('readmoo_books')
+        await chrome.storage.local.remove(['readmoo_books'])
         clearedItems.push('readmoo_books')
         break
 
       case 'history':
-        await chrome.storage.local.remove('extraction_history')
+        await chrome.storage.local.remove(['extraction_history'])
         clearedItems.push('extraction_history')
         break
 

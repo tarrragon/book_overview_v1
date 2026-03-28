@@ -1,6 +1,6 @@
 const ErrorCodes = require('src/core/errors/ErrorCodes')
 
-const { EVENT_PRIORITIES, MESSAGE_EVENTS } = require('src/core/event-bus')
+const { EVENT_PRIORITIES, MESSAGE_EVENTS } = require('src/background/constants/module-constants')
 
 /**
  * 佇列管理服務配置常量

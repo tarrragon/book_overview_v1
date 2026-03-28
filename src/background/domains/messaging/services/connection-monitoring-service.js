@@ -1,6 +1,6 @@
 const ErrorCodes = require('src/core/errors/ErrorCodes')
 
-const { EVENT_PRIORITIES, CONNECTION_EVENTS } = require('src/core/event-bus')
+const { EVENT_PRIORITIES, CONNECTION_EVENTS } = require('src/background/constants/module-constants')
 
 /**
  * 連接監控服務配置常量

@@ -568,7 +568,7 @@ class EventCoordinator extends BaseModule {
           this.logger.log(`💾 準備儲存 ${books.length} 本書籍到 Chrome Storage`)
           await chrome.storage.local.set({ readmoo_books: storageData })
 
-          const verifyData = await chrome.storage.local.get('readmoo_books')
+          const verifyData = await chrome.storage.local.get(['readmoo_books'])
           this.logger.log('✅ 驗證儲存結果:', verifyData.readmoo_books ? `${verifyData.readmoo_books.books?.length || 0} 本書籍` : '無資料')
         } else {
           this.logger.warn('⚠️ 提取完成事件中沒有有效的書籍資料')

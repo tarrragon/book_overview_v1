@@ -64,7 +64,7 @@ class I18nManager extends BaseModule {
   async detectSystemLanguage () {
     try {
       // 嘗試從 Chrome Storage 讀取使用者偏好
-      const stored = await chrome.storage.local.get('preferredLanguage')
+      const stored = await chrome.storage.local.get(['preferredLanguage'])
       if (stored.preferredLanguage && this.supportedLanguages.has(stored.preferredLanguage)) {
         this.currentLanguage = stored.preferredLanguage
         return

@@ -235,7 +235,7 @@ class PopupDiagnosticEnhancer {
 
       // 讀取測試
       const result = await new Promise((resolve, reject) => {
-        chrome.storage.local.get(testKey, (result) => {
+        chrome.storage.local.get([testKey], (result) => {
           if (chrome.runtime.lastError) {
             const error = new Error(chrome.runtime.lastError.message)
             error.code = ErrorCodes.CHROME_ERROR
@@ -248,7 +248,7 @@ class PopupDiagnosticEnhancer {
       })
 
       // 清理測試資料
-      chrome.storage.local.remove(testKey)
+      chrome.storage.local.remove([testKey])
 
       if (result[testKey] && result[testKey].timestamp === testValue.timestamp) {
         check.status = 'passed'
