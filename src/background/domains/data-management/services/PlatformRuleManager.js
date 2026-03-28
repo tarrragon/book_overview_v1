@@ -68,7 +68,7 @@ class PlatformRuleManager {
     this.isInitialized = true
 
     // 自動載入支援的平台規則（但不影響測試的快取狀態檢查）
-    if (this.config.autoLoadOnInit && !global.jest) {
+    if (this.config.autoLoadOnInit && !globalThis.jest) {
       this._initializeDefaultRules()
     }
   }

@@ -1304,8 +1304,8 @@ class DataValidationService {
 
     // 記憶體管理
     if (this.config.gcAfterBatch && batchIndex % 10 === 9) {
-      if (global.gc) {
-        global.gc()
+      if (globalThis.gc) {
+        globalThis.gc()
         warnings.push({
           type: 'MEMORY_MANAGEMENT_INFO',
           message: '已執行垃圾回收',

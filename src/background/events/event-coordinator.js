@@ -174,11 +174,8 @@ class EventCoordinator extends BaseModule {
       globalThis.eventBus = this.eventBusInstance
       globalThis.chromeBridge = this.chromeBridgeInstance
 
-      // 在Node.js測試環境中，也要設定global.chromeBridge
-      if (typeof global !== 'undefined') {
-        global.eventBus = this.eventBusInstance
-        global.chromeBridge = this.chromeBridgeInstance
-      }
+      // globalThis 在所有環境（Node.js/Browser/Service Worker）通用
+      // 上方已透過 globalThis 設定，無需重複設定
 
       // 設定事件總線引用（用於基底模組）
       this.eventBus = this.eventBusInstance
@@ -198,11 +195,7 @@ class EventCoordinator extends BaseModule {
       globalThis.eventBus = null
       globalThis.chromeBridge = null
 
-      // 在Node.js測試環境中，也要清理global變數
-      if (typeof global !== 'undefined') {
-        global.eventBus = null
-        global.chromeBridge = null
-      }
+      // globalThis 在所有環境通用，上方已透過 globalThis 清理
 
       throw error
     }

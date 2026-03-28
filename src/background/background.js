@@ -126,12 +126,12 @@ async function initializeBackgroundSystem () {
 
     // 設定全域實例供測試和外部模組使用
     if (backgroundCoordinator && backgroundCoordinator.eventBus) {
-      global.eventBus = backgroundCoordinator.eventBus
+      globalThis.eventBus = backgroundCoordinator.eventBus
       log.info('EVENTBUS_READY')
     }
 
     if (backgroundCoordinator && backgroundCoordinator.chromeBridge) {
-      global.chromeBridge = backgroundCoordinator.chromeBridge
+      globalThis.chromeBridge = backgroundCoordinator.chromeBridge
       log.info('CHROMEBRIDGE_READY')
     }
 
