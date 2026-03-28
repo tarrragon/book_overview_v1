@@ -164,37 +164,9 @@ class ErrorCollector extends BaseModule {
    * @private
    */
   async setupGlobalErrorHandlers () {
-    try {
-      // Service Worker 全域錯誤處理
-      if (typeof self !== 'undefined') {
-        self.addEventListener('error', (event) => {
-          this.collectError({
-            category: this.errorCategories.SYSTEM,
-            severity: this.errorSeverity.HIGH,
-            message: event.message || '全域錯誤',
-            error: event.error,
-            filename: event.filename,
-            lineno: event.lineno,
-            colno: event.colno,
-            source: 'global_error_handler'
-          })
-        })
-
-        self.addEventListener('unhandledrejection', (event) => {
-          this.collectError({
-            category: this.errorCategories.SYSTEM,
-            severity: this.errorSeverity.HIGH,
-            message: '未處理的 Promise 拒絕',
-            error: event.reason,
-            source: 'unhandled_rejection'
-          })
-        })
-      }
-
-      this.logger.log('🔧 全域錯誤處理器設定完成')
-    } catch (error) {
-      this.logger.error('❌ 設定全域錯誤處理器失敗:', error)
-    }
+    // error 和 unhandledrejection handler 已在 background.js 頂層同步註冊，
+    // 避免 Chrome 警告 "Event handler must be added on initial evaluation"
+    this.logger.log('🔧 全域錯誤處理器已在頂層註冊')
   }
 
   /**

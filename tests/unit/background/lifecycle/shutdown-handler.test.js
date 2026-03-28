@@ -134,7 +134,7 @@ describe('ShutdownHandler', () => {
 
       // 檢查初始化完成，不強制要求監聽器註冊（因為在測試環境中可能不會實際註冊）
       expect(shutdownHandler.isInitialized).toBe(true)
-      expect(mockLogger.log).toHaveBeenCalledWith('🔍 關閉檢測機制設定完成')
+      expect(mockLogger.log).toHaveBeenCalledWith('🔍 關閉檢測機制設定完成（全域錯誤處理器已在頂層註冊）')
 
       // 清理
       global.self = originalSelf
