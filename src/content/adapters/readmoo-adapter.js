@@ -145,20 +145,34 @@ function createReadmooAdapter (options = {}) {
           logger.warn('LAST_RESORT_STRATEGY', { reason: '查找閱讀器連結的父容器' })
           const readerLinks = document.querySelectorAll(SELECTORS.readerLink)
           const containers = new Set()
+          const MAX_ANCESTOR_DEPTH = 10
 
           readerLinks.forEach(link => {
-            // 向上查找可能的書籍容器
+            // 向上查找 .library-item 容器，最多走 MAX_ANCESTOR_DEPTH 層
             let parent = link.parentElement
-            while (parent && parent !== document.body) {
-              if (parent.classList.length > 0) {
+            let depth = 0
+            while (parent && parent !== document.body && depth < MAX_ANCESTOR_DEPTH) {
+              if (parent.classList.contains('library-item')) {
                 containers.add(parent)
                 break
               }
+              depth++
               parent = parent.parentElement
             }
           })
 
           elements = Array.from(containers)
+        }
+
+        // 診斷日誌：確認容器類型
+        if (elements.length > 0) {
+          const sample = elements.slice(0, 3).map(el => ({
+            tag: el.tagName,
+            classes: el.className.split(' ').slice(0, 3).join(' '),
+            hasReaderLink: !!el.querySelector(SELECTORS.readerLink),
+            hasTitle: !!el.querySelector(SELECTORS.bookTitle)
+          }))
+          logger.info('CONTAINER_SAMPLE', { sample })
         }
 
         logger.info('BOOK_CONTAINERS_FOUND', { count: elements.length })
