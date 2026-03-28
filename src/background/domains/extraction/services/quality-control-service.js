@@ -707,10 +707,16 @@ class QualityControlService {
     const averageQuality = this.stats.averageQualityScore
     const activeAlertsCount = Array.from(this.qualityAlerts.values()).filter(alert => !alert.resolved).length
 
+    // 啟動後尚未執行分析時，品質分數為初始值 0，不應視為不健康
+    // 僅在有分析記錄後才檢查品質閾值和警報率
+    const hasAnalysisHistory = this.stats.totalAnalyses > 0
+    const meetsQualityThreshold = !hasAnalysisHistory || averageQuality >= 0.8
+    const meetsAlertRate = !hasAnalysisHistory || alertRate < 0.1
+
     const isHealthy = this.state.initialized &&
-                     averageQuality >= 0.8 && // 平均品質分數 >= 80%
-                     alertRate < 0.1 && // 警報率 < 10%
-                     activeAlertsCount < 5 // 活動警報數 < 5
+                     meetsQualityThreshold &&
+                     meetsAlertRate &&
+                     activeAlertsCount < 5
 
     return {
       service: 'QualityControlService',

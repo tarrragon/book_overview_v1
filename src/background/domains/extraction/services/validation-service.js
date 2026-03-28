@@ -777,9 +777,14 @@ class ValidationService {
       ? (this.stats.validationTime / this.stats.validationsPerformed)
       : 0
 
-    const isHealthy = this.state.initialized &&
-                     this.stats.averageQualityScore >= this.config.qualityThreshold &&
-                     avgValidationTime < 1000 // 平均驗證時間低於1秒
+    // 啟動後尚未執行驗證時，品質分數為初始值 0，不應視為不健康
+    // 僅在有驗證記錄後才檢查品質閾值和回應時間
+    const hasValidationHistory = this.stats.validationsPerformed > 0
+    const meetsQualityThreshold = !hasValidationHistory ||
+                                  this.stats.averageQualityScore >= this.config.qualityThreshold
+    const meetsResponseTime = !hasValidationHistory || avgValidationTime < 1000
+
+    const isHealthy = this.state.initialized && meetsQualityThreshold && meetsResponseTime
 
     return {
       service: 'ValidationService',

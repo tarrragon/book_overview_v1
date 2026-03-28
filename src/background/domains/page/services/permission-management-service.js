@@ -54,7 +54,9 @@ class PermissionManagementService {
 
     // 權限監控
     this.permissionWatcher = null
-    this.checkInterval = 5000 // 5秒檢查一次
+    this.checkInterval = 300000 // 300秒（5分鐘）檢查一次，避免 console 洗版
+    // 快取上次權限狀態，用於比對變更（只在狀態變更時輸出日誌）
+    this.previousPermissionSnapshot = null
 
     // 配置
     this.config = {
@@ -82,12 +84,12 @@ class PermissionManagementService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 權限管理服務已初始化')
+      this.logger.warn('[WARNING] 權限管理服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🔐 初始化權限管理服務')
+      this.logger.log('[INFO] 初始化權限管理服務')
 
       // 檢查當前權限狀態
       await this.checkCurrentPermissions()
@@ -247,25 +249,29 @@ class PermissionManagementService {
 
   /**
    * 檢查當前權限狀態
+   *
+   * 設計考量：為避免定時監控造成 console 洗版，
+   * 採用快取比對機制，只在權限狀態實際變更時輸出日誌。
+   * 首次檢查時一定會輸出完整狀態（作為基線）。
    */
   async checkCurrentPermissions () {
     if (typeof chrome === 'undefined' || !chrome.permissions) {
-      this.logger.warn('⚠️ Chrome Permissions API 不可用')
+      this.logger.warn('[WARNING] Chrome Permissions API 不可用')
       return
     }
 
     try {
       this.grantedPermissions.clear()
+      const currentSnapshot = {}
 
       for (const [key, config] of this.requiredPermissions) {
         const hasPermission = await this.checkPermission(config)
 
         if (hasPermission) {
           this.grantedPermissions.add(key)
-          this.logger.log(`✅ 權限已授予: ${config.name}`)
-        } else {
-          this.logger.log(`❌ 權限未授予: ${config.name}`)
         }
+
+        currentSnapshot[key] = hasPermission
 
         this.permissionChecks.set(key, {
           granted: hasPermission,
@@ -274,10 +280,50 @@ class PermissionManagementService {
       }
 
       this.stats.permissionChecks++
-      this.logger.log(`🔍 權限檢查完成，已授予 ${this.grantedPermissions.size}/${this.requiredPermissions.size} 個權限`)
+
+      // 只在權限狀態變更時輸出日誌（首次檢查視為變更，輸出完整基線）
+      const isFirstCheck = this.previousPermissionSnapshot === null
+      const changes = this.detectPermissionChanges(currentSnapshot)
+
+      if (isFirstCheck) {
+        for (const [key, config] of this.requiredPermissions) {
+          const granted = currentSnapshot[key]
+          this.logger.log(`${granted ? '[GRANTED]' : '[DENIED]'} 權限: ${config.name}`)
+        }
+        this.logger.log(`[INFO] 權限初始檢查完成，已授予 ${this.grantedPermissions.size}/${this.requiredPermissions.size} 個權限`)
+      } else if (changes.length > 0) {
+        for (const change of changes) {
+          const config = this.requiredPermissions.get(change.key)
+          const statusLabel = change.granted ? '[GRANTED]' : '[REVOKED]'
+          this.logger.log(`${statusLabel} 權限變更: ${config.name}`)
+        }
+        this.logger.log(`[INFO] 權限狀態變更，已授予 ${this.grantedPermissions.size}/${this.requiredPermissions.size} 個權限`)
+      }
+      // 狀態未變更時不輸出任何日誌
+
+      this.previousPermissionSnapshot = currentSnapshot
     } catch (error) {
-      this.logger.error('❌ 檢查當前權限失敗:', error)
+      this.logger.error('[ERROR] 檢查當前權限失敗:', error)
     }
+  }
+
+  /**
+   * 比對權限快照，偵測狀態變更
+   *
+   * 設計考量：將變更偵測邏輯獨立為方法，
+   * 便於測試和維護。回傳變更清單而非布林值，
+   * 讓呼叫端可以精確輸出哪些權限發生了變更。
+   */
+  detectPermissionChanges (currentSnapshot) {
+    if (!this.previousPermissionSnapshot) return []
+
+    const changes = []
+    for (const [key, granted] of Object.entries(currentSnapshot)) {
+      if (this.previousPermissionSnapshot[key] !== granted) {
+        changes.push({ key, granted })
+      }
+    }
+    return changes
   }
 
   /**
