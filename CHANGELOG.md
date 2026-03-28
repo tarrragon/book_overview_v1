@@ -2,6 +2,34 @@
 
 本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.15.0] - 2026-03-28
+
+### 專案重啟與品質整理
+
+**版本推進說明**：
+- 專案自 2025-09 暫停約半年後重啟
+- 完成專案現況評估和品質整理
+- 修復多個 flaky test，提升測試穩定性
+- 建立 API 風格指南規範文件
+
+**主要變更**：
+- [修復] 修復 3+1 個 flaky test（timestamp 競態、記憶體污染、時間邊界）
+- [重構] Logger 統一為實例模式，移除 test-setup.js 代理物件
+- [重構] ErrorCodes 分層重構（316 個常數精簡為核心層+域層，按域分檔）
+- [重構] 清理 StandardError 遺留體系和 14 個 UC 適配器
+- [重構] 效能測試閾值配置化，支援 CI/local 環境分級
+- [修復] 46 個 toThrow ESLint 違規批量轉換為 toMatchObject
+- [修復] manifest.json 與 package.json 版本同步機制
+- [新增] 集中 Chrome Mock 工廠
+- [新增] ErrorCodes key 衝突檢測測試
+- [文件] 建立 API 風格指南（class vs factory、錯誤處理、Logger、命名規範）
+- [整理] Ticket 系統遷移和專案重新評估
+- [遷移] 191 個 skip 測試重啟任務遷移至 v0.16.0
+
+**版本同步**：CHANGELOG.md v0.15.0 <-> package.json 0.15.0
+
+---
+
 ## [v0.14.0] - 2025-09-23
 
 ### 🚀 Background Service Worker 模組化重構與 Hook 系統優化

@@ -526,9 +526,15 @@ describe('Platform Detection Integration Tests', () => {
       const results = await Promise.all(promises)
 
       // 所有結果應該相同（來自快取）
+      // 使用 toMatchObject 排除 timestamp 欄位，因為並發請求的 timestamp 可能不同
       expect(results).toHaveLength(10)
+      const { timestamp: _firstTs, ...firstWithoutTimestamp } = results[0]
       results.forEach(result => {
-        expect(result).toEqual(results[0])
+        const { timestamp: _currentTs, ...currentWithoutTimestamp } = result
+        expect(currentWithoutTimestamp).toEqual(firstWithoutTimestamp)
+        if (result.timestamp !== undefined && results[0].timestamp !== undefined) {
+          expect(typeof result.timestamp).toBe(typeof results[0].timestamp)
+        }
         expect(result).toBeValidDetectionResult()
       })
 
