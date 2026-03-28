@@ -21,7 +21,7 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const EventBus = require('src/core/event-bus')
 const { OverviewPageController } = require('src/overview/overview-page-controller')
 
-(function () {
+;(function () {
   'use strict'
 
   /**
