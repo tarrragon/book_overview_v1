@@ -176,7 +176,7 @@ function validateCoreFiles() {
   
   const requiredFiles = [
     'src/background/background.js',
-    'src/content/content.js', 
+    'src/content/content-modular.js',
     'src/popup/popup.html',
     'src/popup/popup.js'
   ];
