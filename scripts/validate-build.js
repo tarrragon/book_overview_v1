@@ -297,8 +297,8 @@ function validateFileSize() {
         const sizeKB = Math.round(stats.size / 1024 * 100) / 100;
         totalSizeKB += sizeKB;
         
-        // 檢查單一檔案大小
-        if (sizeKB > 100) {
+        // 檢查單一檔案大小（bundled 入口點通常 100KB+，閾值設為 1MB）
+        if (sizeKB > 1024) {
           const relativePath = path.relative(BUILD_DIR, itemPath);
           oversizedFiles.push({path: relativePath, size: sizeKB});
         }
