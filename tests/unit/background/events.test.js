@@ -259,7 +259,9 @@ describe('🎭 背景服務事件系統測試', () => {
 
       // Assert
       expect(result).toBe('processed: test-123')
-      expect(endTime - startTime).toBeGreaterThanOrEqual(100)
+      // Date.now() 精度為 1ms，系統排程和 timer 解析度可能導致 100ms 的等待
+      // 回報為 99ms，因此允許 2ms 容差
+      expect(endTime - startTime).toBeGreaterThanOrEqual(98)
     })
 
     test('應該能夠阻止事件的進一步傳播', () => {
