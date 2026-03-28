@@ -81,6 +81,11 @@ const BUNDLE_ENTRY_POINTS = [
     name: 'popup.js (Popup Script)',
     input: 'src/popup/popup.js',
     format: 'iife'
+  },
+  {
+    name: 'overview.js (Overview Page)',
+    input: 'src/overview/overview.js',
+    format: 'iife'
   }
 ];
 

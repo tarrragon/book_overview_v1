@@ -15,21 +15,11 @@
  * - 整合現有的事件處理器架構
  */
 
-// 引入核心模組 - Logger 在此模組中用於錯誤記錄和除錯
+// 引入核心模組（由 esbuild 在建置時打包解析）
 const { Logger } = require('src/core/logging/Logger')
-
-// 引入標準化錯誤處理 (瀏覽器環境)
-if (typeof window !== 'undefined' && window.ErrorCodes) {
-  // ErrorCodes 已在全域可用
-} else if (typeof require !== 'undefined') {
-  const { ErrorCodes } = require('src/core/errors/ErrorCodes')
-  if (typeof window !== 'undefined') {
-    window.ErrorCodes = ErrorCodes
-  }
-}
-
-// eslint-disable-next-line no-unused-vars
-/* global EventBus, ChromeEventBridge, OverviewPageController, ErrorCodes */
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const EventBus = require('src/core/event-bus')
+const { OverviewPageController } = require('src/overview/overview-page-controller')
 
 (function () {
   'use strict'
