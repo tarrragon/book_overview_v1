@@ -363,3 +363,6 @@ if (typeof module !== 'undefined' && module.exports) {
   window.MessageDictionary = MessageDictionary
   window.GlobalMessages = GlobalMessages
 }
+
+// ES module export（Chrome Extension Service Worker 需要）
+export { MessageDictionary, GlobalMessages }

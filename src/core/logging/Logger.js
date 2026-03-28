@@ -419,3 +419,6 @@ if (typeof module !== 'undefined' && module.exports) {
   window.Logger = Logger
   window.LOG_LEVELS = LOG_LEVELS
 }
+
+// ES module export（Chrome Extension Service Worker 需要）
+export { Logger, LOG_LEVELS }
