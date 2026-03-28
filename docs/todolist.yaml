@@ -1,6 +1,6 @@
-version: "0.15.0"
-last_updated: "2026-03-26"
-status: "W1 完成 - 進入 W2 系統設計分析"
+version: "0.15.1"
+last_updated: "2026-03-28"
+status: active
 
 # Wave 1: 專案重啟與測試修復 (completed)
 tickets:
