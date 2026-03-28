@@ -461,10 +461,25 @@ class BackgroundCoordinator extends BaseModule {
     try {
       this.logger.log('🔍 驗證模組健康狀態')
 
-      const healthReport = this.errorHandler.getSystemStatusReport()
+      // 設計意圖：直接檢查 modules Map 中各模組的 BaseModule 狀態，
+      // 不依賴 SystemMonitor 的報告。原因有二：
+      // 1. SystemMonitor 的 getSystemStatusReport 原本缺少 overallHealth 欄位
+      // 2. SystemMonitor 會監控 backgroundCoordinator 自身，但此時協調器
+      //    尚未完成 _doStart（isRunning 還是 false），會被誤判為 degraded
+      const unhealthyModules = []
 
-      if (healthReport.overallHealth !== 'healthy') {
-        this.logger.warn('⚠️ 檢測到不健康的模組:', healthReport)
+      for (const [moduleName, module] of this.modules) {
+        if (!module.isInitialized || !module.isRunning) {
+          unhealthyModules.push({
+            name: moduleName,
+            isInitialized: module.isInitialized || false,
+            isRunning: module.isRunning || false
+          })
+        }
+      }
+
+      if (unhealthyModules.length > 0) {
+        this.logger.warn('⚠️ 檢測到不健康的模組:', unhealthyModules)
       } else {
         this.logger.log('✅ 所有模組狀態健康')
       }

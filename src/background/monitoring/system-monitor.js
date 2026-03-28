@@ -795,7 +795,13 @@ class SystemMonitor extends BaseModule {
       registeredAt: info.registeredAt
     }))
 
+    // 計算整體健康狀態
+    // 設計意圖：overallHealth 是 verifyAllModulesHealthy 判斷系統是否健康的依據
+    // 必須在報告中提供，否則消費端讀取到 undefined
+    const overallHealth = this.calculateOverallHealthFromModules()
+
     return {
+      overallHealth,
       system: {
         startTime: this.systemMetrics.startTime,
         uptime: Date.now() - this.systemMetrics.startTime,
@@ -816,6 +822,52 @@ class SystemMonitor extends BaseModule {
       },
       stats: this.stats,
       timestamp: Date.now()
+    }
+  }
+
+  /**
+   * 從已註冊模組的即時狀態計算整體健康
+   *
+   * 設計意圖：直接查詢各模組的 BaseModule 屬性（isInitialized, isRunning），
+   * 不依賴 performHealthCheck 的快取結果，因為在啟動階段快取可能尚未更新。
+   *
+   * @returns {string} 整體健康狀態（healthy/degraded/unhealthy/unknown）
+   * @private
+   */
+  calculateOverallHealthFromModules () {
+    if (this.monitoredModules.size === 0) {
+      return HEALTH_STATES.UNKNOWN
+    }
+
+    let healthyCount = 0
+    let degradedCount = 0
+    let unhealthyCount = 0
+
+    for (const [, moduleInfo] of this.monitoredModules) {
+      const module = moduleInfo.instance
+
+      // 直接查詢 BaseModule 的即時狀態，而非依賴快取的 currentHealth
+      const isInitialized = module.isInitialized || false
+      const isRunning = module.isRunning || false
+
+      if (isInitialized && isRunning) {
+        healthyCount++
+      } else if (isInitialized) {
+        degradedCount++
+      } else {
+        unhealthyCount++
+      }
+    }
+
+    const totalModules = this.monitoredModules.size
+    const unhealthyRatio = unhealthyCount / totalModules
+
+    if (unhealthyRatio > this.config.alertThresholds.unhealthyModuleRatio) {
+      return HEALTH_STATES.UNHEALTHY
+    } else if (degradedCount > 0 || (healthyCount / totalModules) < 0.8) {
+      return HEALTH_STATES.DEGRADED
+    } else {
+      return HEALTH_STATES.HEALTHY
     }
   }
 
