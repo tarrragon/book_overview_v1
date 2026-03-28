@@ -522,7 +522,14 @@ const STORAGE_KEYS = {
   EXTRACTION_HISTORY: 'extraction_history',
   LAST_EXTRACTION: 'last_extraction',
 
+  // 版本管理
+  VERSION_INFO: 'version_info',
+  VERSION_HISTORY: 'version_history',
+
   // 系統狀態
+  SYSTEM_STATE: 'system_state',
+  INSTALLATION_INFO: 'installation_info',
+  SYSTEM_CONFIG: 'system_config',
   SYSTEM_SHUTDOWN_STATE: 'system_shutdown_state',
   LAST_SHUTDOWN_TIME: 'last_shutdown_time',
   STARTUP_FAILURE_REPORT: 'startup_failure_report'
