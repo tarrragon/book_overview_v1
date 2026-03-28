@@ -361,7 +361,7 @@ function createReadmooAdapter (options = {}) {
         const sample = books.slice(0, 3).map(b => ({
           id: b.id,
           title: b.title,
-          href: b.href ? '有' : '無',
+          url: b.url ? b.url.substring(0, 50) : '無',
           cover: b.cover ? '有' : '無'
         }))
         logger.info('EXTRACTION_SAMPLE_DATA', {
