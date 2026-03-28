@@ -182,6 +182,7 @@ src/
 | `docs/app-error-handling-design.md` | 錯誤處理設計 |
 | `docs/struct.md` | 專案結構說明 |
 | `docs/README.md` | 文件導引 |
+| `docs/chrome-extension-dev-guide.md` | Chrome Extension 開發注意事項 |
 
 ---
 

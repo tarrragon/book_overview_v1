@@ -44,10 +44,14 @@ if (typeof require !== 'undefined') {
     }
   }
 } else {
-  // 瀏覽器環境 - 使用全域變數
-  Logger = window.Logger
-  MessageDictionary = window.MessageDictionary
-  ErrorCodes = window.ErrorCodes
+  // 瀏覽器環境 - 使用全域變數（含 fallback 防止未載入時崩潰）
+  Logger = window.Logger || class { info () {} warn () {} error () {} debug () {} }
+  MessageDictionary = window.MessageDictionary || class {}
+  ErrorCodes = window.ErrorCodes || {
+    UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+    CHROME_ERROR: 'CHROME_ERROR',
+    OPERATION_ERROR: 'OPERATION_ERROR'
+  }
 }
 
 // 初始化 Popup Logger

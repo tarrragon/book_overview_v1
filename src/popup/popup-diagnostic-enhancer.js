@@ -1,20 +1,31 @@
-const { Logger } = require('src/core/logging/Logger')
+// 支援多環境載入（瀏覽器 / Node.js 測試環境）
+let Logger, ErrorCodes
+if (typeof require !== 'undefined') {
+  try {
+    ({ Logger } = require('src/core/logging/Logger'));
+    ({ ErrorCodes } = require('src/core/errors/ErrorCodes'))
+  } catch (e) {
+    Logger = window.Logger || { warn () {}, error () {}, info () {}, debug () {} }
+    ErrorCodes = window.ErrorCodes || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
+  }
+} else {
+  Logger = window.Logger || { warn () {}, error () {}, info () {}, debug () {} }
+  ErrorCodes = window.ErrorCodes || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
+}
 /**
  * Popup 診斷增強模組
  *
  * 負責功能：
- * - 增強錯誤診斷信息收集
+ * - 增強錯誤診斷資訊收集
  * - 系統健康狀態檢查
  * - 詳細的故障排除指引
- * - 診斷數據匯出功能
+ * - 診斷資料匯出功能
  *
  * 設計考量：
- * - 提供更詳細的診斷信息幫助排除問題
- * - 智能分析系統狀態和建議解決方案
+ * - 提供更詳細的診斷資訊幫助排除問題
+ * - 分析系統狀態和建議解決方案
  * - 支援開發者調試和使用者自助診斷
  */
-
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class PopupDiagnosticEnhancer {
   constructor () {

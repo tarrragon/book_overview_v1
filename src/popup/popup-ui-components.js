@@ -486,5 +486,7 @@ class PopupUIComponents {
   }
 }
 
-// CommonJS 匯出
-module.exports = { PopupUIComponents }
+// CommonJS 匯出（Node.js 測試環境使用）
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { PopupUIComponents }
+}

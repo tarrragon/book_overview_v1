@@ -1,5 +1,17 @@
-const { Logger } = require('src/core/logging/Logger')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+// 支援多環境載入（瀏覽器 / Node.js 測試環境）
+let Logger, ErrorCodes
+if (typeof require !== 'undefined') {
+  try {
+    ({ Logger } = require('src/core/logging/Logger'));
+    ({ ErrorCodes } = require('src/core/errors/ErrorCodes'))
+  } catch (e) {
+    Logger = window.Logger || { warn () {}, error () {}, info () {}, debug () {} }
+    ErrorCodes = window.ErrorCodes || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
+  }
+} else {
+  Logger = window.Logger || { warn () {}, error () {}, info () {}, debug () {} }
+  ErrorCodes = window.ErrorCodes || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
+}
 /**
  * PopupErrorHandler - 重構版錯誤處理器 (TDD 循環 #42)
  *

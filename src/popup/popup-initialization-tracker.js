@@ -1,4 +1,17 @@
-const { Logger } = require('src/core/logging/Logger')
+// 支援多環境載入（瀏覽器 / Node.js 測試環境）
+let Logger, ErrorCodes
+if (typeof require !== 'undefined') {
+  try {
+    ({ Logger } = require('src/core/logging/Logger'));
+    ({ ErrorCodes } = require('src/core/errors/ErrorCodes'))
+  } catch (e) {
+    Logger = window.Logger || { warn () {}, error () {}, info () {}, debug () {} }
+    ErrorCodes = window.ErrorCodes || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
+  }
+} else {
+  Logger = window.Logger || { warn () {}, error () {}, info () {}, debug () {} }
+  ErrorCodes = window.ErrorCodes || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
+}
 /**
  * Popup 初始化進度追蹤器
  *
@@ -13,8 +26,6 @@ const { Logger } = require('src/core/logging/Logger')
  * - 提供詳細的初始化進度回饋
  * - 超時處理和錯誤恢復
  */
-
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class PopupInitializationTracker {
   constructor () {
