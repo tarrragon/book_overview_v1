@@ -1,0 +1,10 @@
+{
+  "ticket_id": "0.15.4-W3-003",
+  "direction": "to-sibling:0.15.4-W3-002",
+  "timestamp": "2026-03-29T04:20:48.774909",
+  "from_status": "completed",
+  "title": "修復 Service Worker error/unhandledrejection handler 延遲註冊警告",
+  "what": "修復 Service Worker error/unhandledrejection handler 延遲註冊警告",
+  "chain": {},
+  "resumed_at": "2026-03-29T04:21:20.006888"
+}
