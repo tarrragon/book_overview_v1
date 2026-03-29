@@ -54,6 +54,7 @@ LOCAL_ONLY = frozenset({
     "__pycache__",
     ".pytest_cache",
     ".venv",
+    "sync-preserve.yaml",  # 各專案的 preserve 清單不同，不可被遠端覆蓋
 })
 
 # 同步時跳過的所有路徑（合併使用）
@@ -99,8 +100,10 @@ def load_preserve_list(claude_dir: Path) -> set[str]:
             continue
         if in_preserve and stripped.startswith("- "):
             paths.add(stripped[2:].strip())
-        elif not stripped.startswith("- "):
+        elif stripped and not stripped.startswith("#"):
+            # 只有非空、非註解的行才關閉 preserve 區塊
             in_preserve = False
+        # 空行和註解行不影響 in_preserve 狀態
     return paths
 
 
@@ -271,7 +274,7 @@ def sync_directory(
                                 ignore=shutil.ignore_patterns(*SKIP_DURING_SYNC))
                 count += sum(1 for f in dest_item.rglob("*") if f.is_file())
         else:
-            rel_str = str(rel)
+            rel_str = str(rel).replace("\\", "/")
             if rel_str in preserve:
                 print_color(f"   保留本地特化檔案: {rel_str}", "green")
                 continue
@@ -349,7 +352,7 @@ def cleanup_stale_files(
                     item.rmdir()
                     removed.append(f"{rel}/ (empty dir)")
             elif rel not in remote_files:
-                rel_str = str(rel)
+                rel_str = str(rel).replace("\\", "/")
                 if rel_str in preserve:
                     print_color(f"   保留本地特化檔案: {rel_str}", "green")
                     continue
