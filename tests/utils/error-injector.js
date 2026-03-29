@@ -25,13 +25,14 @@ class ErrorInjector {
    */
   injectChromeApiError (api, method, error) {
     const fullPath = `${api}.${method}`
+    const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof window !== 'undefined' ? window : global)
 
     // 保存原始方法
-    const originalMethod = this._getNestedProperty(window, fullPath)
+    const originalMethod = this._getNestedProperty(globalObj, fullPath)
     this.originalMethods.set(fullPath, originalMethod)
 
     // 注入錯誤
-    this._setNestedProperty(window, fullPath, () => {
+    this._setNestedProperty(globalObj, fullPath, () => {
       throw error
     })
   }
@@ -42,10 +43,11 @@ class ErrorInjector {
    * @param {number} delay - 延遲時間(ms)
    */
   injectNetworkError (type, delay = 0) {
-    const originalFetch = window.fetch
-    this.originalMethods.set('window.fetch', originalFetch)
+    const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof window !== 'undefined' ? window : global)
+    const originalFetch = globalObj.fetch
+    this.originalMethods.set('fetch', originalFetch)
 
-    window.fetch = async (...args) => {
+    globalObj.fetch = async (...args) => {
       if (delay > 0) {
         await new Promise(resolve => setTimeout(resolve, delay))
       }
@@ -118,10 +120,11 @@ class ErrorInjector {
    */
   injectMemoryError () {
     // 模擬記憶體不足情況
+    const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof window !== 'undefined' ? window : global)
     const OriginalArrayConstructor = Array
     this.originalMethods.set('Array', OriginalArrayConstructor)
 
-    window.Array = function (...args) {
+    globalObj.Array = function (...args) {
       if (args.length === 1 && args[0] > 1000000) {
         throw (() => { const error = new Error('Out of memory'); error.code = ErrorCodes.OUT_OF_MEMORY; error.details = { category: 'testing' }; return error })()
       }
@@ -156,7 +159,8 @@ class ErrorInjector {
    * @private
    */
   _restoreNestedProperty (path, originalMethod) {
-    this._setNestedProperty(window, path, originalMethod)
+    const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof window !== 'undefined' ? window : global)
+    this._setNestedProperty(globalObj, path, originalMethod)
   }
 
   /**
@@ -166,8 +170,9 @@ class ErrorInjector {
   _restoreGlobalMethod (path, originalMethod) {
     if (this._isJsonMethod(path)) {
       this._restoreJsonMethod(path, originalMethod)
-    } else if (path === 'Array') {
-      window.Array = originalMethod
+    } else if (path === 'Array' || path === 'fetch') {
+      const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof window !== 'undefined' ? window : global)
+      globalObj[path] = originalMethod
     } else if (path.startsWith('document.')) {
       this._restoreDocumentMethod(path, originalMethod)
     }
