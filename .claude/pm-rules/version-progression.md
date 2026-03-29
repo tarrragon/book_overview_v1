@@ -55,7 +55,7 @@
 
 | 規則 | 說明 |
 |------|------|
-| 新 Ticket 默認歸活躍版本 | 建立 Ticket 時，版本號默認跟隨當前 active 版本，除非有明確跨版本要求 |
+| 新 Ticket 預設歸活躍版本 | 建立 Ticket 時，版本號預設跟隨當前 active 版本，除非有明確跨版本要求 |
 | 版本號不主動調整 | Ticket 版本號建立後不主動變更；只有 wave 可根據任務鏈位置調整 |
 | 版本目標改變時同步處理 | 版本開發目標改變時，必須同步執行：(1) 更新版本目標設定，(2) 遷移受影響 Ticket，(3) 重新規劃 wave |
 
@@ -127,5 +127,59 @@ Wave 是相互隔離的執行單位。禁止跨 Wave 依賴和並行派發。
 
 ---
 
-**Last Updated**: 2026-03-13
-**Version**: 3.2.0 - 新增版本收尾技術債整理流程（todolist → batch ticket create），標準化 W49 收尾模式（0.1.0-W50-008）
+## 跨版本 Ticket 遷移決策
+
+當 Ticket 需要從一個版本遷移到另一個版本時：
+
+| 情境 | 決策 |
+|------|------|
+| 當前版本未完成但新版本已開始 | 評估 Ticket 是否仍相關，相關則遷移 |
+| Ticket 依賴已在新版本實作的功能 | 遷移到新版本 |
+| Ticket 描述的問題已被新版本解決 | 關閉並記錄原因 |
+
+使用 `/ticket migrate` 執行遷移。
+
+---
+
+## 版本遷移觸發條件與判斷流程
+
+### 觸發條件
+
+| 觸發時機 | 說明 | 判斷入口 |
+|---------|------|---------|
+| 版本內所有 Ticket 完成 | 決策樹情境 C2 觸發 | 版本收尾技術債整理 → /version-release check |
+| 新功能需求超出當前版本範圍 | Q1 回答「否」時 | Q2-Q4 判斷決定新版本層級 |
+| todolist.yaml current_version 不一致 | Version Consistency Guard Hook 偵測 | 修正 todolist.yaml 或完成舊版本任務 |
+| 舊版本有遺留未完成 Ticket | Version Consistency Guard Hook 偵測 | 評估遷移、關閉或完成 |
+
+### 判斷流程
+
+```
+觸發遷移評估
+    |
+    v
+[Step 1] 確認當前版本所有 Ticket 已完成
+    → ticket track list --version {current} --status pending in_progress
+    → 有未完成? → 先處理完成或遷移
+    |
+    v
+[Step 2] 執行 /version-release check
+    → CHANGELOG 更新? Smoke test 通過?
+    |
+    v
+[Step 3] 更新 todolist.yaml
+    → current_version: {new}
+    → previous_version: {old current}
+    → next_version: {new + 1}
+    |
+    v
+[Step 4] 確認舊版本遺留 Ticket 處理方式
+    → 仍相關 → /ticket migrate
+    → 已解決 → 關閉並記錄原因
+    → 不再相關 → 關閉並記錄原因
+```
+
+---
+
+**Last Updated**: 2026-03-28
+**Version**: 3.4.0 - 補充版本遷移觸發條件和判斷流程（0.2.1-W3-002）

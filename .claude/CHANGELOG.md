@@ -1,3 +1,27 @@
+## [1.4.8] - 2026-03-28
+
+### Summary
+docs: 規則系統架構優化 — observability 歸類 + hook-governance 合併
+
+Changes: 1 docs
+
+- docs: 規則系統架構優化 — observability 歸類 + hook-governance 合併
+
+---
+
+## [1.4.7] - 2026-03-28
+
+### Summary
+fix: 多視角審查 P1/P2 修復 7 項; docs: 新增可觀測性設計規則和品質基線要求; docs: 補充 PM 規則 7 個決策空白覆蓋方案
+
+Changes: 1 fix, 2 docs
+
+- fix: 多視角審查 P1/P2 修復 7 項
+- docs: 新增可觀測性設計規則和品質基線要求
+- docs: 補充 PM 規則 7 個決策空白覆蓋方案
+
+---
+
 ## [1.4.6] - 2026-03-28
 
 ### Summary
