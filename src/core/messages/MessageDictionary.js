@@ -129,6 +129,7 @@ class MessageDictionary {
       SEARCH_EXECUTION_ERROR: '搜尋執行錯誤',
       FILTER_APPLICATION_ERROR: '篩選應用錯誤',
       UNSAFE_COVER_URL_FILTERED: '不安全的封面網址已過濾',
+      PLACEHOLDER_URL_REPLACED: '佔位 URL 已替換為 privacy ID',
 
       // 回退策略相關訊息模板
       FALLBACK_SELECTOR_ATTEMPT: '嘗試回退選擇器',

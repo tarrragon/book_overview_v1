@@ -486,12 +486,9 @@ function createReadmooAdapter (options = {}) {
             // href 是佔位值或為空 — 用 privacy ID 構建真實 reader URL
             effectiveUrl = `https://readmoo.com/api/reader/${privacyBookId}`
             if (isPlaceholder) {
-              logger.info('PLACEHOLDER_URL_REPLACED', {
-                originalHref: href,
-                hrefReaderId: readerId,
-                privacyBookId,
-                constructedUrl: effectiveUrl
-              })
+              // 收集佔位 URL 替換計數，在 extractAllBooks() 完成後批量彙整輸出
+              if (!this._placeholderUrlCount) this._placeholderUrlCount = 0
+              this._placeholderUrlCount++
             }
           }
         }
@@ -609,6 +606,15 @@ function createReadmooAdapter (options = {}) {
           message: `${this._unsafeUrlCount} 個不安全的封面網址已過濾`
         })
         this._unsafeUrlCount = 0
+      }
+
+      // 批量彙整佔位 URL 替換日誌（避免逐筆輸出洗版 console）
+      if (this._placeholderUrlCount > 0) {
+        logger.info('PLACEHOLDER_URL_REPLACED', {
+          totalReplaced: this._placeholderUrlCount,
+          message: `${this._placeholderUrlCount} 個佔位 URL 已替換為 privacy ID`
+        })
+        this._placeholderUrlCount = 0
       }
 
       stats.lastExtraction = Date.now()
