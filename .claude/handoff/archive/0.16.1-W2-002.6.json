@@ -1,0 +1,10 @@
+{
+  "ticket_id": "0.16.1-W2-002.6",
+  "direction": "to-sibling:0.16.1-W2-002.7",
+  "timestamp": "2026-03-29T23:01:20.849491",
+  "from_status": "completed",
+  "title": "啟用 UI 互動流程測試（ui-interaction-flow）",
+  "what": "啟用 UI 互動流程測試（ui-interaction-flow）",
+  "chain": {},
+  "resumed_at": "2026-03-29T23:05:49.501191"
+}
