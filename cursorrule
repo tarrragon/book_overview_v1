@@ -192,6 +192,7 @@ src/
 | `docs/struct.md` | 專案結構說明 |
 | `docs/README.md` | 文件導引 |
 | `docs/chrome-extension-dev-guide.md` | Chrome Extension 開發注意事項 |
+| `docs/data-flow-architecture.md` | 資料流架構與已知陷阱（必讀） |
 
 ---
 
