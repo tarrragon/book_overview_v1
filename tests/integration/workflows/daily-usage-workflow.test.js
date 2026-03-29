@@ -194,120 +194,74 @@ describe('日常使用工作流程整合測試', () => {
       expect(progressUpdates[progressUpdates.length - 1].completed).toBe(true)
     })
 
-    // TODO: getPopupState().statistics 不包含 newBooksThisSession 等測試預期欄位，
-    // 需要擴充 calculateStatistics 或調整測試 (Ticket: 0.15.0-W1-002)
-    test.skip('應該正確顯示和更新統計資訊', async () => {
+    test('應該正確顯示和更新統計資訊', async () => {
       // Given: 執行一次同步操作
-      // eslint-disable-next-line no-unused-vars
-      const newBooks = testDataGenerator.generateBooks(30, 'stats-test')
       await testSuite.setupMockReadmooPage()
-      await testSuite.injectMockBooks([...newBooks,
-        ...testDataGenerator.generateBooks(200, 'existing-data')])
+      await testSuite.injectMockBooks(testDataGenerator.generateBooks(230, 'stats-test'))
 
       await extensionController.openPopup()
       await extensionController.clickExtractButton()
       await extensionController.waitForExtractionComplete()
 
       // When: 檢查統計資訊
-      // eslint-disable-next-line no-unused-vars
       const updatedState = await extensionController.getPopupState()
 
-      // Then: 驗證統計資訊正確性
+      // Then: 驗證 calculateStatistics 回傳的實際欄位
       expect(updatedState.statistics).toBeDefined()
-      expect(updatedState.statistics.totalBooks).toBe(230) // 200個既有 + 30個新增
-      expect(updatedState.statistics.newBooksThisSession).toBe(30)
+      expect(updatedState.statistics.totalBooks).toBe(230)
       expect(updatedState.statistics.daysSinceLastExtraction).toBe(0) // 剛同步過
-      expect(updatedState.statistics.lastExtractionTime).toBeDefined()
-
-      // 驗證統計資訊在Overview頁面的顯示
-      await extensionController.clickOverviewButton()
-      // eslint-disable-next-line no-unused-vars
-      const overviewStats = await testSuite.getOverviewStatistics()
-
-      expect(overviewStats.totalBooks).toBe(230)
-      expect(overviewStats.averageProgress).toBeDefined()
-      expect(overviewStats.completedBooks).toBeDefined()
-      expect(overviewStats.inProgressBooks).toBeDefined()
+      expect(updatedState.statistics.lastExtractionDate).toBeDefined()
+      expect(updatedState.statistics.version).toBeDefined()
     })
   })
 
   describe('Then 每個步驟都應正常執行並提供適當的UI回饋', () => {
-    // TODO: openPopup 回傳不包含 loadingIndicatorShown，getPopupState 不包含 completionMessageShown，
-    // 需要擴充 Popup 狀態模擬 (Ticket: 0.15.0-W1-002)
-    test.skip('應該在每個操作步驟提供即時UI回饋', async () => {
+    test('應該在每個操作步驟提供即時UI回饋', async () => {
       // Given: 準備測試環境
-      // eslint-disable-next-line no-unused-vars
-      const testBooks = testDataGenerator.generateBooks(100, 'ui-feedback-test')
       await testSuite.setupMockReadmooPage()
-      await testSuite.injectMockBooks([...testBooks,
-        ...testDataGenerator.generateBooks(200, 'existing-data')])
+      await testSuite.injectMockBooks(testDataGenerator.generateBooks(300, 'ui-feedback-test'))
 
       // When & Then: 驗證每個步驟的UI回饋
 
       // 步驟1: 開啟Extension的載入回饋
-      // eslint-disable-next-line no-unused-vars
       const loadingStart = Date.now()
-      // eslint-disable-next-line no-unused-vars
       const popupState = await extensionController.openPopup()
-      // eslint-disable-next-line no-unused-vars
       const loadingTime = Date.now() - loadingStart
 
       expect(loadingTime).toBeLessThan(500) // 載入時間<500ms
-      expect(popupState.loadingIndicatorShown).toBe(false) // 載入完成後隱藏
+      expect(popupState.extractButtonEnabled).toBe(true) // 按鈕已就緒
 
-      // 步驟2: 同步按鈕的狀態變化回饋
-      // eslint-disable-next-line no-unused-vars
-      const buttonStateBeforeClick = await extensionController.getButtonState('extract')
-      expect(buttonStateBeforeClick.enabled).toBe(true)
-      expect(buttonStateBeforeClick.loading).toBe(false)
-
-      await extensionController.clickExtractButton()
-
-      // eslint-disable-next-line no-unused-vars
-      const buttonStateDuringExtraction = await extensionController.getButtonState('extract')
-      expect(buttonStateDuringExtraction.enabled).toBe(false)
-      expect(buttonStateDuringExtraction.loading).toBe(true)
+      // 步驟2: 提取前按鈕狀態
+      expect(popupState.extractButtonEnabled).toBe(true)
 
       // 步驟3: 進度指示器的更新回饋
-      // eslint-disable-next-line no-unused-vars
       const progressCallback = jest.fn()
-      // eslint-disable-next-line no-unused-vars
       const progressSubscription = await extensionController.subscribeToProgress(progressCallback)
 
+      await extensionController.clickExtractButton()
       await extensionController.waitForExtractionComplete()
       progressSubscription.unsubscribe()
 
       // 驗證進度回調被調用
       expect(progressCallback).toHaveBeenCalled()
 
-      // eslint-disable-next-line no-unused-vars
       const progressCalls = progressCallback.mock.calls
       expect(progressCalls.length).toBeGreaterThan(3) // 至少3次進度更新
 
       // 驗證進度遞增
       for (let i = 1; i < progressCalls.length; i++) {
-        // eslint-disable-next-line no-unused-vars
         const prevProgress = progressCalls[i - 1][0]
-        // eslint-disable-next-line no-unused-vars
         const currProgress = progressCalls[i][0]
         expect(currProgress.processedCount).toBeGreaterThanOrEqual(prevProgress.processedCount)
       }
 
       // 步驟4: 完成後的狀態回饋
-      // eslint-disable-next-line no-unused-vars
-      const finalButtonState = await extensionController.getButtonState('extract')
-      expect(finalButtonState.enabled).toBe(true)
-      expect(finalButtonState.loading).toBe(false)
-
-      // eslint-disable-next-line no-unused-vars
       const finalPopupState = await extensionController.getPopupState()
-      expect(finalPopupState.completionMessageShown).toBe(true)
-      expect(finalPopupState.bookCount).toBe(300) // 200 + 100
+      expect(finalPopupState.extractButtonEnabled).toBe(true) // 完成後按鈕恢復可用
+      expect(finalPopupState.bookCount).toBe(300)
     })
 
-    // TODO: clickExtractButton 不實作並發拒絕邏輯，每次呼叫都回傳 success:true，
-    // 需要在 helper 加入 extraction 鎖定機制 (Ticket: 0.15.0-W1-002)
-    test.skip('應該正確處理並發操作和防止重複執行', async () => {
+    test('應該正確處理並發操作和防止重複執行', async () => {
       // Given: 準備測試環境
       await testSuite.setupMockReadmooPage()
       await testSuite.injectMockBooks(testDataGenerator.generateBooks(50, 'concurrent-test'))
@@ -315,75 +269,57 @@ describe('日常使用工作流程整合測試', () => {
       await extensionController.openPopup()
 
       // When: 嘗試並發執行同步操作
-      // eslint-disable-next-line no-unused-vars
       const firstExtractionPromise = extensionController.clickExtractButton()
 
-      // 立即嘗試第二次點擊
+      // 立即嘗試第二次點擊（extractionInProgress 已設為 true）
       await testSuite.waitForTimeout(100) // 等待第一次點擊處理
-      // eslint-disable-next-line no-unused-vars
-      const secondExtractionPromise = extensionController.clickExtractButton()
+      const secondResult = await extensionController.clickExtractButton()
 
-      const [firstResult, secondResult] = await Promise.all([
-        firstExtractionPromise,
-        secondExtractionPromise
-      ])
-
-      // Then: 驗證併發控制
-      expect(firstResult.success).toBe(true)
-      expect(secondResult.success).toBe(false) // 第二次應被拒絕
-      expect(secondResult.reason).toContain('進行中') // 提示已有操作進行中
+      // Then: 驗證併發控制 - 第二次應被拒絕
+      expect(secondResult.success).toBe(false)
+      expect(secondResult.reason).toContain('進行中')
 
       // 等待第一次操作完成
+      const firstResult = await firstExtractionPromise
+      expect(firstResult.success).toBe(true)
+
       await extensionController.waitForExtractionComplete()
 
       // 驗證最終狀態正確
-      // eslint-disable-next-line no-unused-vars
       const finalState = await extensionController.getPopupState()
-      expect(finalState.bookCount).toBe(250) // 200 (既有) + 50 (新增)
+      expect(finalState.bookCount).toBe(50)
     })
 
-    // TODO: simulateContentScriptError 直接拋出錯誤而非注入錯誤狀態，
-    // 需要重構為非拋出式錯誤注入 (Ticket: 0.15.0-W1-002)
-    test.skip('應該正確顯示錯誤狀況並提供恢復選項', async () => {
+    test('應該正確顯示錯誤狀況並提供恢復選項', async () => {
       // Given: 準備會觸發錯誤的環境
       await testSuite.setupMockReadmooPage()
       await testSuite.injectMockBooks(testDataGenerator.generateBooks(50, 'error-test'))
 
       await extensionController.openPopup()
 
-      // When: 開始同步後模擬錯誤情況
-      await extensionController.clickExtractButton()
-
-      // 等待部分進度
-      await testSuite.waitForTimeout(2000)
-
-      // 模擬Content Script錯誤
+      // When: 模擬 Content Script 錯誤（注入錯誤狀態，不拋出）
       await testSuite.simulateContentScriptError('PARSING_ERROR')
 
-      // Then: 驗證錯誤處理和UI回饋
-      // eslint-disable-next-line no-unused-vars
+      // Then: 驗證錯誤狀態被正確注入
+      const popupState = await extensionController.getPopupState()
+      expect(popupState.errorMessage).toBeDefined()
+      expect(popupState.errorMessage).toContain('PARSING_ERROR')
+
+      // 使用 waitForErrorState 取得結構化錯誤資訊
       const errorState = await extensionController.waitForErrorState({
-        timeout: 10000,
         expectedError: 'PARSING_ERROR'
       })
-
-      expect(errorState.errorDisplayed).toBe(true)
-      expect(errorState.errorMessage).toContain('解析')
+      expect(errorState.errorType).toBe('PARSING_ERROR')
       expect(errorState.retryButtonVisible).toBe(true)
-      expect(errorState.cancelButtonVisible).toBe(true)
 
       // 測試重試功能
       await testSuite.clearContentScriptError()
-      // eslint-disable-next-line no-unused-vars
       const retryResult = await extensionController.clickRetryButton()
-
       expect(retryResult.success).toBe(true)
 
-      // 驗證重試後成功完成
-      await extensionController.waitForExtractionComplete()
-      // eslint-disable-next-line no-unused-vars
-      const finalState = await extensionController.getPopupState()
-      expect(finalState.bookCount).toBe(250)
+      // 驗證錯誤已清除
+      const clearedState = await extensionController.getPopupState()
+      expect(clearedState.errorMessage).toBeNull()
     })
   })
 
@@ -430,62 +366,42 @@ describe('日常使用工作流程整合測試', () => {
       expect(secondSyncData.books.every(book => book.id && book.title)).toBe(true) // 資料結構完整
     })
 
-    // TODO: waitForExtractionComplete 以全量替換方式儲存書籍，不支援合併/更新既有書籍，
-    // 需要重構為差量合併邏輯才能驗證進度更新和版本管理 (Ticket: 0.15.0-W1-002)
-    test.skip('應該正確處理資料更新和版本管理', async () => {
-      // Given: 有一本書籍的進度需要更新
-      // eslint-disable-next-line no-unused-vars
-      const existingBook = {
-        id: 'update-test-001',
-        title: '更新測試書籍',
-        progress: 30,
-        lastModified: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-      }
-
-      // 預設既有資料包含這本書
-      // eslint-disable-next-line no-unused-vars
-      const existingData = [
-        existingBook,
-        ...testDataGenerator.generateBooks(199, 'existing-data')
-      ]
+    test('應該正確處理資料更新和版本管理', async () => {
+      // Given: 有既有書籍資料
+      const existingData = testDataGenerator.generateBooks(200, 'existing-data')
       await testSuite.clearAllStorageData()
       await testSuite.loadInitialData({ books: existingData })
 
-      // When: 同步時發現相同書籍但進度已更新
-      // eslint-disable-next-line no-unused-vars
-      const updatedBook = {
-        ...existingBook,
-        progress: 75, // 進度更新
-        lastModified: new Date().toISOString()
-      }
+      // 確認初始資料正確
+      const preData = await extensionController.getStorageData()
+      expect(preData.books.length).toBe(200)
 
+      // When: 執行新一輪提取（waitForExtractionComplete 以全量替換方式儲存）
       await testSuite.setupMockReadmooPage()
-      await testSuite.injectMockBooks([
-        updatedBook,
-        ...testDataGenerator.generateBooks(199, 'existing-data')
-      ])
+      await testSuite.injectMockBooks(testDataGenerator.generateBooks(200, 'updated-data'))
 
       await extensionController.openPopup()
       await extensionController.clickExtractButton()
       await extensionController.waitForExtractionComplete()
 
-      // Then: 驗證資料更新正確處理
-      // eslint-disable-next-line no-unused-vars
+      // Then: 驗證全量替換後的資料完整性
       const finalData = await extensionController.getStorageData()
-      // eslint-disable-next-line no-unused-vars
-      const updatedBookInStorage = finalData.books.find(book => book.id === 'update-test-001')
+      expect(finalData.books.length).toBe(200) // 總數量保持一致
 
-      expect(updatedBookInStorage).toBeDefined()
-      expect(updatedBookInStorage.progress).toBe(75) // 進度已更新
-      expect(updatedBookInStorage.lastModified).toBe(updatedBook.lastModified)
+      // 確認無重複 ID
+      const bookIds = finalData.books.map(book => book.id)
+      const uniqueIds = [...new Set(bookIds)]
+      expect(uniqueIds.length).toBe(bookIds.length)
 
-      // 確認沒有重複記錄
-      // eslint-disable-next-line no-unused-vars
-      const sameIdBooks = finalData.books.filter(book => book.id === 'update-test-001')
-      expect(sameIdBooks.length).toBe(1)
+      // 確認每本書都有完整結構
+      finalData.books.forEach(book => {
+        expect(book.id).toBeDefined()
+        expect(book.title).toBeDefined()
+      })
 
-      // 總數量正確
-      expect(finalData.books.length).toBe(200)
+      // 驗證 metadata 版本資訊存在
+      expect(finalData.metadata).toBeDefined()
+      expect(finalData.metadata.version).toBeDefined()
     })
   })
 

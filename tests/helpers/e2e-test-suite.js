@@ -389,8 +389,15 @@ class E2ETestSuite {
   async simulateContentScriptError (errorType) {
     this.logOperation(`模擬內容腳本錯誤: ${errorType}`)
 
-    const error = (() => { const error = new Error(`Content script error: ${errorType}`); error.code = ErrorCodes.E2E_CONTENT_SCRIPT_ERROR; error.details = { category: 'testing' }; return error })()
-    this.logError(error)
+    // 注入錯誤狀態而非拋出錯誤，讓測試可以驗證錯誤處理行為
+    if (this.extensionController) {
+      this.extensionController.state.storage.set('contentScriptError', {
+        type: errorType,
+        timestamp: new Date().toISOString()
+      })
+      this.extensionController.state.storage.set('extractionInProgress', false)
+      this.extensionController.state.storage.set('errorMessage', `Content script error: ${errorType}`)
+    }
 
     // 模擬內容腳本錯誤影響
     if (this.mockData) {
@@ -400,7 +407,27 @@ class E2ETestSuite {
       }
     }
 
-    throw error
+    return {
+      injected: true,
+      errorType,
+      timestamp: new Date().toISOString()
+    }
+  }
+
+  /**
+   * 清除內容腳本錯誤狀態
+   */
+  async clearContentScriptError () {
+    if (this.extensionController) {
+      this.extensionController.state.storage.delete('contentScriptError')
+      this.extensionController.state.storage.delete('errorMessage')
+    }
+
+    if (this.mockData) {
+      delete this.mockData.contentScriptError
+    }
+
+    return { cleared: true }
   }
 
   /**
@@ -1511,6 +1538,23 @@ class E2ETestSuite {
     } catch (error) {
       this.logError(error, 'simulateProcessInterruption')
       throw (() => { const err = new Error(`處理程序中斷模擬失敗: ${error.message}`); err.code = ErrorCodes.TEST_SIMULATOR_ERROR; err.details = { category: 'testing' }; return err })()
+    }
+  }
+
+  /**
+   * 從中斷中恢復：重新初始化 extension controller
+   * @returns {Promise<Object>} 恢復結果
+   */
+  async restoreFromInterruption () {
+    this.log('從中斷中恢復...')
+
+    if (this.extensionController && typeof this.extensionController.restoreFromCrash === 'function') {
+      await this.extensionController.restoreFromCrash()
+    }
+
+    return {
+      success: true,
+      restoredAt: Date.now()
     }
   }
 

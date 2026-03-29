@@ -1716,6 +1716,15 @@ class ChromeExtensionController {
   async clickExtractButton () {
     this.recordAPICall('popup.click.extractButton', {})
 
+    // 並發鎖定：如果已有提取操作進行中，拒絕第二次呼叫
+    if (this.state.storage.get('extractionInProgress')) {
+      return {
+        success: false,
+        reason: '已有提取操作進行中，請等待完成後再試',
+        timestamp: Date.now()
+      }
+    }
+
     // 檢查是否操作已被取消
     if (this.state.storage.get('operationCancelled')) {
       const processedAtCancellation = this.state.storage.get('processedBooksAtCancellation') || 0
@@ -2286,6 +2295,22 @@ class ChromeExtensionController {
     await this.simulateDelay(800)
 
     try {
+      // 檢查檔案是否損壞
+      if (exportedFile && exportedFile.corrupted) {
+        const errorMessages = {
+          'invalid-json': 'JSON 格式錯誤',
+          truncate: '檔案不完整',
+          'remove-metadata': '檔案格式不正確'
+        }
+        const errorMsg = errorMessages[exportedFile.corruptionType] || '檔案損壞'
+        return {
+          success: false,
+          errorMessage: errorMsg,
+          importedCount: 0,
+          timestamp: new Date().toISOString()
+        }
+      }
+
       // 解析匯入檔案
       let importData
       if (exportedFile && exportedFile.data) {
@@ -2299,6 +2324,39 @@ class ChromeExtensionController {
         }
       } else {
         throw (() => { const error = new Error('Invalid import file format'); error.code = ErrorCodes.INVALID_IMPORT_FORMAT; error.details = { category: 'testing' }; return error })()
+      }
+
+      // 版本相容性檢查
+      const fileVersion = importData.version || exportedFile.version
+      if (fileVersion) {
+        const currentMajor = 0 // 目前版本 0.x
+        const fileMajorStr = String(fileVersion).split('.')[0]
+        const fileMajor = parseInt(fileMajorStr, 10)
+
+        if (isNaN(fileMajor)) {
+          return {
+            success: false,
+            errorMessage: '版本格式不支援',
+            importedCount: 0,
+            timestamp: new Date().toISOString()
+          }
+        }
+
+        if (fileMajor > currentMajor) {
+          return {
+            success: false,
+            errorMessage: '版本過新，無法匯入此檔案',
+            importedCount: 0,
+            timestamp: new Date().toISOString()
+          }
+        }
+      }
+
+      // 檢查是否需要版本遷移（舊版本格式）
+      const needsMigration = fileVersion && fileVersion !== '0.9.34' && fileVersion < '0.9.34'
+      const warnings = []
+      if (needsMigration) {
+        warnings.push('版本升級')
       }
 
       const currentStorageData = await this.getStorageData()
@@ -2418,6 +2476,8 @@ class ChromeExtensionController {
         conflicts,
         conflictCount: conflicts.length,
         mode: options.mode || 'add',
+        migrationPerformed: needsMigration,
+        warnings,
         timestamp: new Date().toISOString()
       }
 
@@ -2464,6 +2524,54 @@ class ChromeExtensionController {
       },
       isActive: true,
       totalEvents: progressEvents.length
+    }
+  }
+
+  /**
+   * 模擬瀏覽器崩潰：重置所有進行中的操作狀態
+   * @returns {Promise<Object>} 崩潰模擬結果
+   */
+  async simulateCrash () {
+    this.log('模擬瀏覽器崩潰...')
+
+    // 中斷所有進行中的操作
+    this.state.storage.set('extractionInProgress', false)
+    this.state.storage.set('operationCancelled', true)
+    this.state.storage.set('currentOperation', 'crashed')
+
+    // 關閉所有 context
+    for (const [key, context] of this.state.contexts) {
+      context.state = 'crashed'
+      this.state.contexts.set(key, context)
+    }
+
+    return {
+      success: true,
+      crashedAt: Date.now(),
+      contextsAffected: this.state.contexts.size
+    }
+  }
+
+  /**
+   * 從崩潰中恢復：重新初始化 context 狀態
+   * @returns {Promise<Object>} 恢復結果
+   */
+  async restoreFromCrash () {
+    this.log('從崩潰中恢復...')
+
+    // 重新初始化 context 狀態
+    for (const [key, context] of this.state.contexts) {
+      context.state = key === 'background' ? 'active' : 'closed'
+      this.state.contexts.set(key, context)
+    }
+
+    // 清理操作狀態
+    this.state.storage.set('operationCancelled', false)
+    this.state.storage.set('currentOperation', null)
+
+    return {
+      success: true,
+      restoredAt: Date.now()
     }
   }
 
