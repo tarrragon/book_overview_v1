@@ -47,9 +47,10 @@ class ExtensionTestSetup {
       // 建立 Extension 建置路徑
       const extensionPath = path.resolve(__dirname, '../../../build/development')
 
-      // 啟動 Chromium with Extension
+      // Chrome 不支援在 headless 模式下載入 Extension（Manifest V3 限制）
+      // 因此 E2E Extension 測試必須以 headed 模式執行
       this.browser = await puppeteer.launch({
-        headless: options.headless !== false ? 'new' : false, // 使用新的 headless 模式
+        headless: false,
         devtools: false,
         protocolTimeout: 120000, // 增加協定超時時間
         args: [
@@ -91,20 +92,13 @@ class ExtensionTestSetup {
    */
   async getExtensionId () {
     try {
-      const targets = await this.browser.targets()
-      const extensionTarget = targets.find(
-        target => target.type() === 'background_page' ||
-                 target.type() === 'service_worker'
+      // Service Worker 可能需要數秒才完成註冊，使用 waitForTarget 等待
+      const SW_WAIT_TIMEOUT = 10000
+      const extensionTarget = await this.browser.waitForTarget(
+        target => target.type() === 'service_worker' &&
+                  target.url().startsWith('chrome-extension://'),
+        { timeout: SW_WAIT_TIMEOUT }
       )
-
-      if (!extensionTarget) {
-        throw (() => {
-          const error = new Error('找不到 Extension Service Worker')
-          error.code = ErrorCodes.RESOURCE_NOT_FOUND
-          error.details = { category: 'testing', originalCode: 'E2E_EXTENSION_SERVICE_WORKER_NOT_FOUND' }
-          return error
-        })()
-      }
 
       const extensionUrl = extensionTarget.url()
       const extensionId = extensionUrl.split('/')[2]
@@ -158,7 +152,7 @@ class ExtensionTestSetup {
       })
 
       // 等待頁面完全載入
-      await this.page.waitForTimeout(2000)
+      await new Promise(resolve => setTimeout(resolve, 2000))
     } catch (error) {
       throw (() => {
         const navError = new Error(`導航到 Readmoo 頁面失敗: ${error.message}`)
@@ -185,7 +179,7 @@ class ExtensionTestSetup {
    */
   async openExtensionPopup () {
     try {
-      const popupUrl = `chrome-extension://${this.extensionId}/popup.html`
+      const popupUrl = `chrome-extension://${this.extensionId}/src/popup/popup.html`
       const popupPage = await this.browser.newPage()
       await popupPage.goto(popupUrl)
 
@@ -208,22 +202,16 @@ class ExtensionTestSetup {
    */
   async getBackgroundPage () {
     try {
-      const targets = await this.browser.targets()
-      const backgroundTarget = targets.find(
-        target => target.type() === 'background_page' ||
-                 target.type() === 'service_worker'
+      // Manifest V3 使用 Service Worker，需要用 waitForTarget 確保已啟動
+      const SW_WAIT_TIMEOUT = 10000
+      const backgroundTarget = await this.browser.waitForTarget(
+        target => target.type() === 'service_worker' &&
+                  target.url().startsWith('chrome-extension://'),
+        { timeout: SW_WAIT_TIMEOUT }
       )
 
-      if (!backgroundTarget) {
-        throw (() => {
-          const error = new Error('找不到 Background Script')
-          error.code = ErrorCodes.RESOURCE_NOT_FOUND
-          error.details = { category: 'testing', originalCode: 'E2E_BACKGROUND_SCRIPT_NOT_FOUND' }
-          return error
-        })()
-      }
-
-      this.backgroundPage = await backgroundTarget.page()
+      // Service Worker 使用 worker() 而非 page() 取得執行上下文
+      this.backgroundPage = await backgroundTarget.worker()
       return this.backgroundPage
     } catch (error) {
       throw (() => {
@@ -304,10 +292,8 @@ class ExtensionTestSetup {
         this.page = null
       }
 
-      if (this.backgroundPage) {
-        await this.backgroundPage.close()
-        this.backgroundPage = null
-      }
+      // Service Worker 由瀏覽器管理，無需手動關閉
+      this.backgroundPage = null
 
       if (this.browser) {
         await this.browser.close()

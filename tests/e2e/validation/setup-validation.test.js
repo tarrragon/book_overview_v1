@@ -31,8 +31,7 @@
 // eslint-disable-next-line no-unused-vars
 const ExtensionTestSetup = require('../setup/extension-setup')
 
-// TODO: [0.15.0-W1-002] 整個套件依賴 Puppeteer + Chrome 實體環境，目前 CI 環境未安裝 Chrome，待 E2E 基礎設施就緒後移除 skip
-describe.skip('🔧 端對端測試環境驗證', () => {
+describe('端對端測試環境驗證', () => {
   // eslint-disable-next-line no-unused-vars
   let testSetup
 
@@ -49,7 +48,7 @@ describe.skip('🔧 端對端測試環境驗證', () => {
     })
 
     test('應該能夠初始化測試環境', async () => {
-      await testSetup.setup({ headless: true })
+      await testSetup.setup()
 
       // 驗證基本屬性已設定
       expect(testSetup.browser).toBeTruthy()
@@ -235,7 +234,7 @@ describe.skip('🔧 端對端測試環境驗證', () => {
       // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
 
-      await newTestSetup.setup({ headless: true })
+      await newTestSetup.setup()
 
       // eslint-disable-next-line no-unused-vars
       const endTime = performance.now()
