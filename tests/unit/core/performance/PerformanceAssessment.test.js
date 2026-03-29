@@ -193,11 +193,9 @@ describe('PerformanceAssessment 系統效能評估', () => {
       expect(report.duration).toBeGreaterThan(0)
       expect(report.metrics).toBeDefined()
       expect(report.analysis).toBeDefined()
-      // overallScore 可能為 NaN，因為 MetricsCollector 回傳巢狀結構
-      // 而 analyzeMemoryMetrics 預期扁平結構（heapUsed 直接在頂層）。
-      // 此處驗證 overallScore 存在且為數值型別。
-      expect(report.overallScore).toBeDefined()
-      expect(typeof report.overallScore).toBe('number')
+      expect(report.overallScore).toBeGreaterThanOrEqual(0)
+      expect(report.overallScore).toBeLessThanOrEqual(100)
+      expect(Number.isNaN(report.overallScore)).toBe(false)
     })
 
     test('應該支援選擇性指標收集', async () => {
@@ -235,10 +233,9 @@ describe('PerformanceAssessment 系統效能評估', () => {
 
       expect(report.analysis).toBeDefined()
       expect(report.analysis.memory).toBeDefined()
-      // MetricsCollector 回傳巢狀結構 { heap: { heapUsed, ... }, system: ... }，
-      // analyzeMemoryMetrics 讀取 metrics.heapUsed 為 undefined 導致 NaN score。
-      // 此處僅驗證分析結構存在，score 的正確性由直接呼叫 analyzeMemoryMetrics 的測試驗證。
-      expect(report.analysis.memory.score).toBeDefined()
+      expect(report.analysis.memory.score).toBeGreaterThanOrEqual(0)
+      expect(report.analysis.memory.score).toBeLessThanOrEqual(100)
+      expect(Number.isNaN(report.analysis.memory.score)).toBe(false)
       expect(report.analysis.memory.issues).toBeInstanceOf(Array)
       expect(report.analysis.memory.recommendations).toBeInstanceOf(Array)
     })

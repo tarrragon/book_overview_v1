@@ -50,7 +50,7 @@ class MetricsCollector {
     if (typeof config !== 'object' || config === null) {
       throw (() => {
         const code = ErrorCodes.VALIDATION_FAILED
-        return new Error(`${code.code}: 收集器配置必須是有效的物件`)
+        return new Error(`${code}: 收集器配置必須是有效的物件`)
       })()
     }
   }
@@ -142,7 +142,7 @@ class MetricsCollector {
     if (typeof options !== 'object' || options === null) {
       throw (() => {
         const code = ErrorCodes.VALIDATION_FAILED
-        return new Error(`${code.code}: 記憶體指標收集選項必須是有效的物件`)
+        return new Error(`${code}: 記憶體指標收集選項必須是有效的物件`)
       })()
     }
   }
@@ -478,7 +478,7 @@ class MetricsCollector {
     if (typeof options !== 'object' || options === null) {
       throw (() => {
         const code = ErrorCodes.VALIDATION_FAILED
-        return new Error(`${code.code}: CPU 指標收集選項必須是有效的物件`)
+        return new Error(`${code}: CPU 指標收集選項必須是有效的物件`)
       })()
     }
   }
@@ -757,7 +757,7 @@ class MetricsCollector {
     if (typeof options !== 'object' || options === null) {
       throw (() => {
         const code = ErrorCodes.VALIDATION_FAILED
-        return new Error(`${code.code}: IO 指標收集選項必須是有效的物件`)
+        return new Error(`${code}: IO 指標收集選項必須是有效的物件`)
       })()
     }
   }
@@ -1128,7 +1128,7 @@ class MetricsCollector {
     if (typeof options !== 'object' || options === null) {
       throw (() => {
         const code = ErrorCodes.VALIDATION_FAILED
-        return new Error(`${code.code}: Extension 指標收集選項必須是有效的物件`)
+        return new Error(`${code}: Extension 指標收集選項必須是有效的物件`)
       })()
     }
   }

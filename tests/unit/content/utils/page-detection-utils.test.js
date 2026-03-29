@@ -12,10 +12,11 @@
  * @jest-environment jsdom
  */
 
-// TODO: [0.15.0-W1-002] 此測試套件在 Node.js v24 + jsdom 環境下會觸發
-// jsdom EventTarget-impl.js 的 TypeError 導致整個 worker 崩潰。
-// 功能測試已由 page-detection-utils-simple.test.js 完整覆蓋。
-// 待 jsdom 更新相容 Node.js v24 後移除 skip。
+// [0.16.1-W2-003] jsdom 相容性問題 — 保持 skip 決策記錄
+// 問題：Node.js v24 + jsdom 環境下觸發 EventTarget-impl.js TypeError，導致 worker 崩潰
+// 替代覆蓋：page-detection-utils-simple.test.js（29 個測試，100% 等效覆蓋）
+// 追蹤：待 jsdom 發布 Node.js v24 相容版本後移除 skip（關注 jsdom changelog）
+// 決策理由：已有完整替代測試，強制啟用只會造成 CI 不穩定，無實質覆蓋收益
 describe.skip('PageDetectionUtils (legacy - replaced by simple test)', () => {
   let PageDetectionUtils
   let originalWindow
