@@ -60,3 +60,6 @@ __pycache__/
 
 # Claude Hook System logs (auto-generated)
 .claude/hook-logs/
+
+# Claude sync state (local only)
+.claude/.sync-state.json
