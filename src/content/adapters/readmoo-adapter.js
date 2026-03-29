@@ -63,6 +63,8 @@ function createReadmooAdapter (options = {}) {
     bookTitle: '.title',
     progressBar: '.progress-bar',
     renditionType: '.label.rendition',
+    // privacy 元素選擇器 — id 格式為 "privacy-{bookId}"
+    privacyElement: '[id^="privacy-"]',
 
     // 額外的備用選擇器
     alternativeContainers: [
@@ -77,6 +79,9 @@ function createReadmooAdapter (options = {}) {
       '.reading-progress'
     ]
   }
+
+  // Readmoo SPA 佔位 URL 偵測用正則
+  const PLACEHOLDER_URL_PATTERN = /\/api\/reader\/\d+$/
 
   const adapter = {
     // 適配器標準屬性
@@ -351,6 +356,50 @@ function createReadmooAdapter (options = {}) {
     },
 
     /**
+     * 從容器元素的 privacy 子元素提取書籍 ID
+     *
+     * Readmoo DOM 結構中，每本書包含 <div class="privacy" id="privacy-{bookId}">，
+     * 其中 {bookId} 是該書的唯一數字 ID。此方法作為 reader link href 的替代 ID 來源，
+     * 解決 SPA 佔位 URL 導致所有書籍共用同一 href 的問題。
+     *
+     * @param {HTMLElement} element - 書籍容器元素
+     * @returns {string} 書籍 ID（純數字字串），找不到時回傳空字串
+     */
+    extractBookIdFromPrivacy (element) {
+      try {
+        const privacyEl = element.querySelector(SELECTORS.privacyElement)
+        if (!privacyEl) return ''
+
+        const idAttr = privacyEl.getAttribute('id') || ''
+        // 格式：privacy-{數字ID}
+        const match = idAttr.match(/^privacy-(\d+)$/)
+        return match ? match[1] : ''
+      } catch (error) {
+        logger.warn('PRIVACY_ID_EXTRACTION_FAILED', { error: error.message })
+        return ''
+      }
+    },
+
+    /**
+     * 判斷 href 是否為 SPA 佔位 URL（所有書籍共用的假連結）
+     *
+     * Readmoo SPA 初始載入時，所有 reader-link 的 href 可能共用同一個
+     * 佔位 URL（如 /api/reader/210017268000101）。此方法用於偵測這種情況，
+     * 觸發 privacy ID 等替代策略取得真實書籍 ID。
+     *
+     * 設計考量：只有在同一批次中所有 href 都相同時才認為是佔位 URL。
+     * 單一元素層級無法判斷，因此此方法僅檢查格式特徵。
+     * 實際的佔位偵測由 parseBookElement 中配合 privacy ID 進行。
+     *
+     * @param {string} href - reader link 的 href 值
+     * @returns {boolean} 是否符合佔位 URL 格式
+     */
+    isPlaceholderUrl (href) {
+      if (!href) return false
+      return PLACEHOLDER_URL_PATTERN.test(href)
+    },
+
+    /**
      * 從容器元素提取封面和標題（容錯：各欄位獨立 fallback）
      *
      * @param {HTMLElement} element - 書籍容器元素
@@ -416,15 +465,46 @@ function createReadmooAdapter (options = {}) {
         // 步驟 1：提取 href 和 readerId（容錯：失敗時回傳空字串）
         const { href, readerId } = this.extractHrefFromElement(element)
 
+        // 步驟 1.5：從 privacy 元素提取真實書籍 ID
+        // 解決 SPA 佔位 URL 問題 — 所有書籍共用同一 href
+        const privacyBookId = this.extractBookIdFromPrivacy(element)
+
+        // 決定有效的書籍 ID 和 URL：
+        // 佔位 URL 偵測策略：當 privacy ID 存在且與 href 中的 ID 不同時，
+        // 表示 href 是 SPA 佔位值（所有書共用同一 href，但每本書有獨立的 privacy ID）。
+        // 此時用 privacy ID 取代 href 的 ID 並構建正確的 URL。
+        let effectiveReaderId = readerId
+        let effectiveUrl = href
+
+        if (privacyBookId) {
+          // privacy ID 存在 — 始終優先作為書籍識別碼
+          effectiveReaderId = privacyBookId
+
+          // 偵測佔位 URL：privacy ID 與 href 中的 reader ID 不同
+          const isPlaceholder = readerId && readerId !== privacyBookId
+          if (isPlaceholder || !href) {
+            // href 是佔位值或為空 — 用 privacy ID 構建真實 reader URL
+            effectiveUrl = `https://readmoo.com/api/reader/${privacyBookId}`
+            if (isPlaceholder) {
+              logger.info('PLACEHOLDER_URL_REPLACED', {
+                originalHref: href,
+                hrefReaderId: readerId,
+                privacyBookId,
+                constructedUrl: effectiveUrl
+              })
+            }
+          }
+        }
+
         // 步驟 2：提取封面和標題（容錯：各欄位獨立 fallback）
         const { cover, title } = this.extractCoverAndTitle(element)
 
         // 步驟 3：最終必要欄位檢查 — 至少有 title 或任何 ID 來源
-        if (!this.hasRequiredFields(title, readerId, cover)) {
+        if (!this.hasRequiredFields(title, effectiveReaderId, cover)) {
           logger.warn('BOOK_INSUFFICIENT_DATA', {
             elementClass: element.className,
             hasTitle: Boolean(title),
-            hasReaderId: Boolean(readerId),
+            hasReaderId: Boolean(effectiveReaderId),
             hasCover: Boolean(cover)
           })
           return null
@@ -435,7 +515,7 @@ function createReadmooAdapter (options = {}) {
         const bookType = this.extractBookTypeFromContainer(element)
 
         // 步驟 5：生成穩定的書籍 ID（使用所有可用來源）
-        const idInfo = this.generateStableBookIdWithInfo(readerId, title, cover)
+        const idInfo = this.generateStableBookIdWithInfo(effectiveReaderId, title, cover)
 
         // 建立完整的書籍資料物件
         const bookData = {
@@ -445,12 +525,13 @@ function createReadmooAdapter (options = {}) {
           progress: progressData.progress,
           type: bookType || '未知',
           extractedAt: new Date().toISOString(),
-          url: href,
+          url: effectiveUrl,
           source: 'readmoo',
 
           // 提取的完整識別資訊
           identifiers: {
-            readerLinkId: readerId,
+            readerLinkId: effectiveReaderId,
+            privacyBookId: privacyBookId || '',
             coverId: this.extractCoverIdFromUrl(cover),
             titleBased: this.generateTitleBasedId(title),
             primarySource: idInfo.strategy

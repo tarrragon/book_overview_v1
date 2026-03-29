@@ -584,6 +584,7 @@ describe('ReadmooAdapter', () => {
         coverId: 'unique456',
         titleBased: '完整測試書籍',
         readerLinkId: '555555555',
+        privacyBookId: '',
         primarySource: 'cover'
       })
 
@@ -918,6 +919,177 @@ describe('ReadmooAdapter', () => {
 
         expect(result.href).toBe('https://readmoo.com/api/reader/abc123')
         expect(result.readerId).toBe('abc123')
+      })
+    })
+
+    describe('extractBookIdFromPrivacy 單元測試', () => {
+      test('privacy 元素存在時回傳書籍 ID', () => {
+        document.body.innerHTML = `
+          <div class="library-item">
+            <div class="privacy" id="privacy-8606906"></div>
+          </div>
+        `
+        const element = document.querySelector('.library-item')
+
+        const result = adapter.extractBookIdFromPrivacy(element)
+
+        expect(result).toBe('8606906')
+      })
+
+      test('privacy 元素不存在時回傳空字串', () => {
+        document.body.innerHTML = `
+          <div class="library-item">
+            <div class="info"></div>
+          </div>
+        `
+        const element = document.querySelector('.library-item')
+
+        const result = adapter.extractBookIdFromPrivacy(element)
+
+        expect(result).toBe('')
+      })
+
+      test('privacy id 格式不正確時回傳空字串', () => {
+        document.body.innerHTML = `
+          <div class="library-item">
+            <div class="privacy" id="privacy-abc"></div>
+          </div>
+        `
+        const element = document.querySelector('.library-item')
+
+        const result = adapter.extractBookIdFromPrivacy(element)
+
+        expect(result).toBe('')
+      })
+    })
+
+    describe('佔位 URL 偵測與 privacy ID 替換', () => {
+      test('href 為佔位值且 privacy ID 存在時，使用 privacy ID 構建 URL', async () => {
+        // 模擬實機 DOM：所有書共用同一 href，但每本有獨立 privacy ID
+        document.body.innerHTML = `
+          <div class="library-item">
+            <div class="cover-outer">
+              <div class="cover">
+                <a href="https://readmoo.com/api/reader/210017268000101" class="reader-link"
+                   data-open-in-browser="true" target="_blank" rel="noopener noreferrer">
+                  <img class="cover-img" alt="哲學與宗教全史"
+                       src="https://cdn.readmoo.com/cover/po/jfkfuvv_210x315.jpg?v=1744015069">
+                </a>
+              </div>
+            </div>
+            <div class="privacy" id="privacy-8606906"></div>
+            <div class="info">
+              <div class="progress progress-simple">
+                <div class="progress-bar" style="width: 56%;"></div>
+              </div>
+              <div class="title" title="哲學與宗教全史">哲學與宗教全史</div>
+            </div>
+          </div>
+        `
+
+        const books = await adapter.extractBooks()
+
+        expect(books).toHaveLength(1)
+        const book = books[0]
+        // URL 應使用 privacy ID 構建，不是佔位值
+        expect(book.url).toBe('https://readmoo.com/api/reader/8606906')
+        // identifiers 應記錄 privacy ID
+        expect(book.identifiers.privacyBookId).toBe('8606906')
+        // readerLinkId 應為 privacy ID（取代佔位 ID）
+        expect(book.identifiers.readerLinkId).toBe('8606906')
+      })
+
+      test('href 與 privacy ID 相同時，保留原始 URL', async () => {
+        // 正常情況：href 中的 ID 與 privacy ID 一致
+        document.body.innerHTML = `
+          <div class="library-item">
+            <div class="cover">
+              <a href="https://readmoo.com/api/reader/8606906" class="reader-link">
+                <img class="cover-img" alt="正常書籍"
+                     src="https://cdn.readmoo.com/cover/ab/test123_210x315.jpg">
+              </a>
+            </div>
+            <div class="privacy" id="privacy-8606906"></div>
+            <div class="info">
+              <div class="title">正常書籍</div>
+            </div>
+          </div>
+        `
+
+        const books = await adapter.extractBooks()
+
+        expect(books).toHaveLength(1)
+        const book = books[0]
+        // URL 不需要替換
+        expect(book.url).toBe('https://readmoo.com/api/reader/8606906')
+        expect(book.identifiers.privacyBookId).toBe('8606906')
+        expect(book.identifiers.readerLinkId).toBe('8606906')
+      })
+
+      test('多本書都使用佔位 URL 時，各自使用 privacy ID', async () => {
+        document.body.innerHTML = `
+          <div class="library-item">
+            <div class="cover">
+              <a href="https://readmoo.com/api/reader/210017268000101" class="reader-link">
+                <img class="cover-img" alt="書籍A"
+                     src="https://cdn.readmoo.com/cover/ab/aaa111_210x315.jpg">
+              </a>
+            </div>
+            <div class="privacy" id="privacy-1001"></div>
+            <div class="info">
+              <div class="title">書籍A</div>
+            </div>
+          </div>
+          <div class="library-item">
+            <div class="cover">
+              <a href="https://readmoo.com/api/reader/210017268000101" class="reader-link">
+                <img class="cover-img" alt="書籍B"
+                     src="https://cdn.readmoo.com/cover/cd/bbb222_210x315.jpg">
+              </a>
+            </div>
+            <div class="privacy" id="privacy-2002"></div>
+            <div class="info">
+              <div class="title">書籍B</div>
+            </div>
+          </div>
+        `
+
+        const books = await adapter.extractBooks()
+
+        expect(books).toHaveLength(2)
+        // 每本書應有獨立的 URL
+        expect(books[0].url).toBe('https://readmoo.com/api/reader/1001')
+        expect(books[1].url).toBe('https://readmoo.com/api/reader/2002')
+        // URL 不應相同
+        expect(books[0].url).not.toBe(books[1].url)
+        // privacy ID 正確記錄
+        expect(books[0].identifiers.privacyBookId).toBe('1001')
+        expect(books[1].identifiers.privacyBookId).toBe('2002')
+      })
+
+      test('無 privacy 元素且有合法 href 時，保留原始行為', async () => {
+        document.body.innerHTML = `
+          <div class="library-item">
+            <div class="cover">
+              <a href="https://readmoo.com/api/reader/12345" class="reader-link">
+                <img class="cover-img" alt="無privacy書籍"
+                     src="https://cdn.readmoo.com/cover/ab/xyz789_210x315.jpg">
+              </a>
+            </div>
+            <div class="info">
+              <div class="title">無privacy書籍</div>
+            </div>
+          </div>
+        `
+
+        const books = await adapter.extractBooks()
+
+        expect(books).toHaveLength(1)
+        const book = books[0]
+        // 保留原始 URL
+        expect(book.url).toBe('https://readmoo.com/api/reader/12345')
+        expect(book.identifiers.privacyBookId).toBe('')
+        expect(book.identifiers.readerLinkId).toBe('12345')
       })
     })
 
