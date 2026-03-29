@@ -1,3 +1,35 @@
+## [1.4.10] - 2026-03-29
+
+### Summary
+docs: 決策樹新增效能問題發現後代理人更新規則; docs: 代理人新增效能與資源管理章節 (parsley + fennel); docs: parsley agent 新增 Widget 重建效能意識章節 (+2 more)
+
+Changes: 4 docs, 1 chore
+
+- docs: 決策樹新增效能問題發現後代理人更新規則
+- docs: 代理人新增效能與資源管理章節 (parsley + fennel)
+- docs: parsley agent 新增 Widget 重建效能意識章節
+- docs: Phase 1 加入 ARCH-010 框架內建機制驗證步驟
+- chore: sync-pull .claude 框架 1.4.0 → 1.4.9 + 還原本地新增檔案
+
+---
+
+## [1.4.9] - 2026-03-29
+
+### Summary
+fix: 重新啟用 44 個 skip 測試（191→147）; fix: 重構 parseBookElement 採用容錯策略（必要/可選欄位分離）; fix: 移除 overview-page-controller 雙環境偵測，統一使用 CJS require (+4 more)
+
+Changes: 3 fix, 2 docs, 2 chore
+
+- fix: 重新啟用 44 個 skip 測試（191→147）
+- fix: 重構 parseBookElement 採用容錯策略（必要/可選欄位分離）
+- fix: 移除 overview-page-controller 雙環境偵測，統一使用 CJS require
+- docs: 建立資料流架構與已知陷阱參考文件，擴展 docs/ 白名單
+- docs: 記錄 ARCH-010 模組組裝遺漏模式，建立 W4 文件和整合測試 Ticket
+- chore: sync-pull + 還原本地特化（hooks 白名單/block 行為、ARCH-010）
+- chore: 遷移 skip 測試任務到
+
+---
+
 ## [1.4.8] - 2026-03-28
 
 ### Summary
