@@ -129,10 +129,21 @@ class MessageDictionary {
       SEARCH_EXECUTION_ERROR: '搜尋執行錯誤',
       FILTER_APPLICATION_ERROR: '篩選應用錯誤',
       UNSAFE_COVER_URL_FILTERED: '不安全的封面網址已過濾',
+      PLACEHOLDER_URL_REPLACED: '佔位 URL 已替換為 privacy ID',
 
       // 回退策略相關訊息模板
       FALLBACK_SELECTOR_ATTEMPT: '嘗試回退選擇器',
       LAST_RESORT_STRATEGY: '最後手段策略',
+
+      // 診斷相關訊息模板
+      GET_BOOK_ELEMENTS_CALLED: '呼叫 getBookElements（呼叫者: {caller}）',
+      WAIT_FOR_BOOK_ELEMENTS_START: '開始等待書籍元素出現（逾時: {timeoutMs}ms）',
+      WAIT_FOR_BOOK_ELEMENTS_FOUND: '書籍元素已找到（來源: {source}，數量: {count}）',
+      WAIT_FOR_BOOK_ELEMENTS_SKIP: '跳過等待書籍元素',
+      SELECTOR_PARADOX: '選擇器矛盾：主選擇器未找到但備用策略成功',
+      CONTAINER_SAMPLE: '容器取樣資料',
+      EXTRACTION_SAMPLE_DATA: '提取樣本資料（共 {totalBooks} 本）',
+      FALLBACK_SELECTOR_SUCCESS: '備用選擇器成功（選擇器: {selector}，數量: {count}）',
 
       // 配置相關訊息模板
       CONFIG_VALIDATION_FAILED: '配置驗證失敗',

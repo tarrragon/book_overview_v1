@@ -195,9 +195,9 @@ async function reportReadyStatus () {
     const pageStatus = pageDetector.getPageStatus()
     let bookCount = 0
 
-    // 檢查書籍數量
+    // 檢查書籍數量（使用 waitForBookElements 等待 SPA 動態渲染完成）
     if (readmooAdapter && pageStatus.isReadmooPage) {
-      const bookElements = readmooAdapter.getBookElements()
+      const bookElements = await readmooAdapter.waitForBookElements({ timeoutMs: 3000 })
       bookCount = bookElements.length
     }
 
@@ -351,6 +351,7 @@ async function getPageStatus () {
   let bookCount = 0
 
   if (readmooAdapter && pageStatus.isReadmooPage) {
+    // getPageStatus 是同步回應場景，使用即時查詢不等待
     const bookElements = readmooAdapter.getBookElements()
     bookCount = bookElements.length
   }

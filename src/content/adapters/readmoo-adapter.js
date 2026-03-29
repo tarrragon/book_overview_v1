@@ -63,6 +63,8 @@ function createReadmooAdapter (options = {}) {
     bookTitle: '.title',
     progressBar: '.progress-bar',
     renditionType: '.label.rendition',
+    // privacy 元素選擇器 — id 格式為 "privacy-{bookId}"
+    privacyElement: '[id^="privacy-"]',
 
     // 額外的備用選擇器
     alternativeContainers: [
@@ -77,6 +79,9 @@ function createReadmooAdapter (options = {}) {
       '.reading-progress'
     ]
   }
+
+  // Readmoo SPA 佔位 URL 偵測用正則
+  const PLACEHOLDER_URL_PATTERN = /\/api\/reader\/\d+$/
 
   const adapter = {
     // 適配器標準屬性
@@ -115,6 +120,8 @@ function createReadmooAdapter (options = {}) {
     getBookElements () {
       const startTime = performance.now()
       let elements = []
+      // 診斷：記錄呼叫來源，用於分析時序問題
+      const caller = new Error().stack?.split('\n')[2]?.trim() || 'unknown'
 
       try {
         const document = getDocument()
@@ -122,6 +129,20 @@ function createReadmooAdapter (options = {}) {
           logger.warn('DOCUMENT_UNAVAILABLE')
           return []
         }
+
+        // 診斷日誌：記錄呼叫時的 DOM 狀態
+        const readerLinkCount = document.querySelectorAll(SELECTORS.readerLink).length
+        const directLibraryItemCount = document.querySelectorAll(SELECTORS.bookContainer).length
+        // 額外診斷：測試屬性選擇器是否能匹配
+        const attrSelectorCount = document.querySelectorAll('[class*="library-item"]').length
+
+        logger.info('GET_BOOK_ELEMENTS_CALLED', {
+          caller,
+          readyState: document.readyState,
+          directLibraryItemCount,
+          attrSelectorCount,
+          readerLinkCount
+        })
 
         // 主要策略：查找 .library-item 容器
         elements = Array.from(document.querySelectorAll(SELECTORS.bookContainer))
@@ -162,6 +183,19 @@ function createReadmooAdapter (options = {}) {
           })
 
           elements = Array.from(containers)
+
+          // 診斷：如果 LAST_RESORT 找到但主選擇器沒找到，記錄詳細資訊
+          if (elements.length > 0 && directLibraryItemCount === 0) {
+            const sampleParent = elements[0]
+            logger.warn('SELECTOR_PARADOX', {
+              directQueryFound: directLibraryItemCount,
+              attrQueryFound: attrSelectorCount,
+              lastResortFound: elements.length,
+              readerLinksFound: readerLinkCount,
+              sampleClassName: sampleParent.className,
+              sampleOuterHtmlPrefix: sampleParent.outerHTML.substring(0, 200)
+            })
+          }
         }
 
         // 診斷日誌：確認容器類型
@@ -184,6 +218,111 @@ function createReadmooAdapter (options = {}) {
         stats.domQueryTime += performance.now() - startTime
         return []
       }
+    },
+
+    /**
+     * 等待書籍元素出現在 DOM 中
+     *
+     * 解決 SPA 動態渲染問題：Readmoo 頁面載入後，
+     * 書籍元素可能需要額外時間才會渲染到 DOM。
+     * 此方法使用 MutationObserver 監聽 DOM 變化，
+     * 在元素出現後立即回傳結果。
+     *
+     * @param {Object} [waitOptions={}] - 等待選項
+     * @param {number} [waitOptions.timeoutMs=3000] - 最大等待毫秒數
+     * @param {number} [waitOptions.checkIntervalMs=200] - 輪詢間隔毫秒數
+     * @returns {Promise<HTMLElement[]>} 書籍容器元素陣列
+     */
+    async waitForBookElements (waitOptions = {}) {
+      const WAIT_TIMEOUT_MS = waitOptions.timeoutMs || 3000
+      const CHECK_INTERVAL_MS = waitOptions.checkIntervalMs || 200
+
+      // 先嘗試立即取得
+      const immediate = this.getBookElements()
+      if (immediate.length > 0) {
+        return immediate
+      }
+
+      // [0.16.0-W1-003] 移除「無 reader links 就 skip」的邏輯
+      // 在 SPA 架構中，readyState === "interactive" 時框架 JS 還在執行，
+      // 書籍列表尚未渲染，readerLinkCount 為 0 不代表「不是書庫頁面」，
+      // 而是「SPA 還沒渲染完」。必須啟動 MutationObserver 等待。
+
+      logger.info('WAIT_FOR_BOOK_ELEMENTS_START', { timeoutMs: WAIT_TIMEOUT_MS })
+
+      return new Promise((resolve) => {
+        const document = getDocument()
+        if (!document) {
+          resolve([])
+          return
+        }
+
+        let resolved = false
+        let observer = null
+        let intervalId = null
+
+        const cleanup = () => {
+          if (observer) {
+            observer.disconnect()
+            observer = null
+          }
+          if (intervalId) {
+            clearInterval(intervalId)
+            intervalId = null
+          }
+        }
+
+        const tryResolve = (source) => {
+          if (resolved) return
+          const elements = this.getBookElements()
+          if (elements.length > 0) {
+            resolved = true
+            cleanup()
+            logger.info('WAIT_FOR_BOOK_ELEMENTS_FOUND', {
+              source,
+              count: elements.length
+            })
+            resolve(elements)
+          }
+        }
+
+        // 策略 1：MutationObserver 監聽 DOM 新增節點
+        const observeTarget = document.body || document.documentElement
+        if (typeof MutationObserver !== 'undefined' && observeTarget && observeTarget.nodeType === 1) {
+          try {
+            observer = new MutationObserver(() => {
+              tryResolve('mutation')
+            })
+            observer.observe(observeTarget, {
+              childList: true,
+              subtree: true
+            })
+          } catch (observeError) {
+            // MutationObserver 在某些環境（如 JSDOM）可能無法正常運作
+            logger.warn('MUTATION_OBSERVER_FAILED', { error: observeError.message })
+            observer = null
+          }
+        }
+
+        // 策略 2：定時輪詢作為備援
+        intervalId = setInterval(() => {
+          tryResolve('interval')
+        }, CHECK_INTERVAL_MS)
+
+        // 超時保護：到期後回傳當前結果（可能為空陣列）
+        setTimeout(() => {
+          if (!resolved) {
+            resolved = true
+            cleanup()
+            const finalElements = this.getBookElements()
+            logger.warn('WAIT_FOR_BOOK_ELEMENTS_TIMEOUT', {
+              timeoutMs: WAIT_TIMEOUT_MS,
+              finalCount: finalElements.length
+            })
+            resolve(finalElements)
+          }
+        }, WAIT_TIMEOUT_MS)
+      })
     },
 
     /**
@@ -214,6 +353,50 @@ function createReadmooAdapter (options = {}) {
 
       const readerId = this.extractBookId(rawHref)
       return { href: rawHref, readerId }
+    },
+
+    /**
+     * 從容器元素的 privacy 子元素提取書籍 ID
+     *
+     * Readmoo DOM 結構中，每本書包含 <div class="privacy" id="privacy-{bookId}">，
+     * 其中 {bookId} 是該書的唯一數字 ID。此方法作為 reader link href 的替代 ID 來源，
+     * 解決 SPA 佔位 URL 導致所有書籍共用同一 href 的問題。
+     *
+     * @param {HTMLElement} element - 書籍容器元素
+     * @returns {string} 書籍 ID（純數字字串），找不到時回傳空字串
+     */
+    extractBookIdFromPrivacy (element) {
+      try {
+        const privacyEl = element.querySelector(SELECTORS.privacyElement)
+        if (!privacyEl) return ''
+
+        const idAttr = privacyEl.getAttribute('id') || ''
+        // 格式：privacy-{數字ID}
+        const match = idAttr.match(/^privacy-(\d+)$/)
+        return match ? match[1] : ''
+      } catch (error) {
+        logger.warn('PRIVACY_ID_EXTRACTION_FAILED', { error: error.message })
+        return ''
+      }
+    },
+
+    /**
+     * 判斷 href 是否為 SPA 佔位 URL（所有書籍共用的假連結）
+     *
+     * Readmoo SPA 初始載入時，所有 reader-link 的 href 可能共用同一個
+     * 佔位 URL（如 /api/reader/210017268000101）。此方法用於偵測這種情況，
+     * 觸發 privacy ID 等替代策略取得真實書籍 ID。
+     *
+     * 設計考量：只有在同一批次中所有 href 都相同時才認為是佔位 URL。
+     * 單一元素層級無法判斷，因此此方法僅檢查格式特徵。
+     * 實際的佔位偵測由 parseBookElement 中配合 privacy ID 進行。
+     *
+     * @param {string} href - reader link 的 href 值
+     * @returns {boolean} 是否符合佔位 URL 格式
+     */
+    isPlaceholderUrl (href) {
+      if (!href) return false
+      return PLACEHOLDER_URL_PATTERN.test(href)
     },
 
     /**
@@ -282,15 +465,43 @@ function createReadmooAdapter (options = {}) {
         // 步驟 1：提取 href 和 readerId（容錯：失敗時回傳空字串）
         const { href, readerId } = this.extractHrefFromElement(element)
 
+        // 步驟 1.5：從 privacy 元素提取真實書籍 ID
+        // 解決 SPA 佔位 URL 問題 — 所有書籍共用同一 href
+        const privacyBookId = this.extractBookIdFromPrivacy(element)
+
+        // 決定有效的書籍 ID 和 URL：
+        // 佔位 URL 偵測策略：當 privacy ID 存在且與 href 中的 ID 不同時，
+        // 表示 href 是 SPA 佔位值（所有書共用同一 href，但每本書有獨立的 privacy ID）。
+        // 此時用 privacy ID 取代 href 的 ID 並構建正確的 URL。
+        let effectiveReaderId = readerId
+        let effectiveUrl = href
+
+        if (privacyBookId) {
+          // privacy ID 存在 — 始終優先作為書籍識別碼
+          effectiveReaderId = privacyBookId
+
+          // 偵測佔位 URL：privacy ID 與 href 中的 reader ID 不同
+          const isPlaceholder = readerId && readerId !== privacyBookId
+          if (isPlaceholder || !href) {
+            // href 是佔位值或為空 — 用 privacy ID 構建真實 reader URL
+            effectiveUrl = `https://readmoo.com/api/reader/${privacyBookId}`
+            if (isPlaceholder) {
+              // 收集佔位 URL 替換計數，在 extractAllBooks() 完成後批量彙整輸出
+              if (!this._placeholderUrlCount) this._placeholderUrlCount = 0
+              this._placeholderUrlCount++
+            }
+          }
+        }
+
         // 步驟 2：提取封面和標題（容錯：各欄位獨立 fallback）
         const { cover, title } = this.extractCoverAndTitle(element)
 
         // 步驟 3：最終必要欄位檢查 — 至少有 title 或任何 ID 來源
-        if (!this.hasRequiredFields(title, readerId, cover)) {
+        if (!this.hasRequiredFields(title, effectiveReaderId, cover)) {
           logger.warn('BOOK_INSUFFICIENT_DATA', {
             elementClass: element.className,
             hasTitle: Boolean(title),
-            hasReaderId: Boolean(readerId),
+            hasReaderId: Boolean(effectiveReaderId),
             hasCover: Boolean(cover)
           })
           return null
@@ -301,7 +512,7 @@ function createReadmooAdapter (options = {}) {
         const bookType = this.extractBookTypeFromContainer(element)
 
         // 步驟 5：生成穩定的書籍 ID（使用所有可用來源）
-        const idInfo = this.generateStableBookIdWithInfo(readerId, title, cover)
+        const idInfo = this.generateStableBookIdWithInfo(effectiveReaderId, title, cover)
 
         // 建立完整的書籍資料物件
         const bookData = {
@@ -311,12 +522,13 @@ function createReadmooAdapter (options = {}) {
           progress: progressData.progress,
           type: bookType || '未知',
           extractedAt: new Date().toISOString(),
-          url: href,
+          url: effectiveUrl,
           source: 'readmoo',
 
           // 提取的完整識別資訊
           identifiers: {
-            readerLinkId: readerId,
+            readerLinkId: effectiveReaderId,
+            privacyBookId: privacyBookId || '',
             coverId: this.extractCoverIdFromUrl(cover),
             titleBased: this.generateTitleBasedId(title),
             primarySource: idInfo.strategy
@@ -355,7 +567,8 @@ function createReadmooAdapter (options = {}) {
      */
     async extractAllBooks () {
       const extractionStart = performance.now()
-      const bookElements = this.getBookElements()
+      // 使用 waitForBookElements 等待 SPA 動態渲染完成，避免空結果
+      const bookElements = await this.waitForBookElements({ timeoutMs: 5000 })
       const books = []
 
       stats.totalExtracted = bookElements.length
@@ -393,6 +606,15 @@ function createReadmooAdapter (options = {}) {
           message: `${this._unsafeUrlCount} 個不安全的封面網址已過濾`
         })
         this._unsafeUrlCount = 0
+      }
+
+      // 批量彙整佔位 URL 替換日誌（避免逐筆輸出洗版 console）
+      if (this._placeholderUrlCount > 0) {
+        logger.info('PLACEHOLDER_URL_REPLACED', {
+          totalReplaced: this._placeholderUrlCount,
+          message: `${this._placeholderUrlCount} 個佔位 URL 已替換為 privacy ID`
+        })
+        this._placeholderUrlCount = 0
       }
 
       stats.lastExtraction = Date.now()
