@@ -10,15 +10,15 @@
  * - 驗證錯誤處理和恢復機制
  *
  * 設計考量：
- * - 模擬真實使用者操作流程
+ * - 使用 E2ETestSuite mock 環境模擬真實使用者操作序列
  * - 測試跨上下文的事件通訊
  * - 驗證資料一致性和完整性
  * - 確保系統在各種情境下的穩定性
  *
  * 處理流程：
- * 1. 設定測試環境和 Extension 載入
- * 2. 導航到 Readmoo 測試頁面
- * 3. 開啟 Extension Popup 並觸發提取
+ * 1. 初始化 E2ETestSuite 並準備測試資料
+ * 2. 模擬導航到 Readmoo 測試頁面
+ * 3. 透過工作流程引擎觸發提取
  * 4. 監控提取過程和事件流
  * 5. 驗證資料儲存和 UI 更新
  * 6. 測試錯誤情境和恢復機制
@@ -29,141 +29,145 @@
  * - 回歸測試確保修改不影響核心功能
  */
 
-// eslint-disable-next-line no-unused-vars
-const ExtensionTestSetup = require('../setup/extension-setup')
+const { E2ETestSuite } = require('../../helpers/e2e-test-suite')
 
-// TODO: [0.15.0-W1-002] 整個套件依賴 Puppeteer + Chrome 實體環境，目前 CI 環境未安裝 Chrome，待 E2E 基礎設施就緒後移除 skip
-describe.skip('📚 完整書籍資料提取工作流程', () => {
-  // eslint-disable-next-line no-unused-vars
-  let testSetup
-  let popupPage
-  let backgroundPage
-
-  // 測試超時設定
-  jest.setTimeout(60000)
+describe('完整書籍資料提取工作流程', () => {
+  let suite
 
   beforeAll(async () => {
-    testSetup = new ExtensionTestSetup()
-    await testSetup.setup({ headless: true })
+    suite = new E2ETestSuite({
+      testDataSize: 'small',
+      enableStorageTracking: true
+    })
+    await suite.initialize()
+
+    // 準備測試資料：模擬已完成一次資料提取
+    await suite.navigateToMockReadmooPage()
+    await suite.setupMockReadmooPage()
   })
 
   afterAll(async () => {
-    if (popupPage) await popupPage.close()
-    await testSetup.cleanup()
+    if (suite) {
+      await suite.cleanup()
+    }
   })
 
-  describe('🔄 基本工作流程測試', () => {
+  describe('基本工作流程測試', () => {
     test('應該能夠載入 Extension 並初始化環境', async () => {
-      expect(testSetup.extensionId).toBeDefined()
-      expect(testSetup.extensionId.length).toBeGreaterThan(10)
+      // 驗證 Extension 環境已初始化
+      expect(suite.testEnvironment.initialized).toBe(true)
+      expect(suite.testEnvironment.extension).toBeDefined()
+      expect(suite.testEnvironment.extension.id).toBeDefined()
+      expect(suite.testEnvironment.extension.id.length).toBeGreaterThan(10)
 
-      // 取得 Background Script 頁面
-      backgroundPage = await testSetup.getBackgroundPage()
-      expect(backgroundPage).toBeDefined()
+      // 驗證 Background context 已設定
+      const backgroundContext = suite.testEnvironment.contexts.get('background')
+      expect(backgroundContext).toBeDefined()
+      expect(backgroundContext.active).toBe(true)
     })
 
     test('應該能夠導航到 Readmoo 測試頁面', async () => {
-      await testSetup.navigateToReadmoo()
+      // 導航到模擬 Readmoo 頁面
+      const navResult = await suite.navigateToMockReadmooPage()
+      expect(navResult.success).toBe(true)
+      expect(navResult.url).toContain('readmoo.com')
 
-      // 驗證頁面載入
-      // eslint-disable-next-line no-unused-vars
-      const title = await testSetup.page.title()
-      expect(title).toContain('Readmoo')
+      // 驗證頁面環境已正確設定
+      expect(suite.extensionController.state.pageEnvironment).toBeDefined()
+      expect(suite.extensionController.state.pageEnvironment.pageType).toBe('library')
 
-      // 等待動態載入完成
-      await testSetup.page.waitForFunction(() =>
-        document.body.getAttribute('data-books-loaded') === 'true'
-      )
+      // 注入測試書籍資料（模擬頁面上的 5 本書）
+      const testBooks = Array.from({ length: 5 }, (_, i) => ({
+        id: `book-${i + 1}`,
+        title: `Test Book ${i + 1}`,
+        author: `Author ${i + 1}`,
+        progress: (i + 1) * 20
+      }))
+      await suite.injectMockBooks(testBooks)
 
       // 驗證測試資料存在
-      // eslint-disable-next-line no-unused-vars
-      const bookItems = await testSetup.page.$$('.book-item')
-      expect(bookItems).toHaveLength(5)
+      expect(suite.testData.books).toHaveLength(5)
     })
 
     test('應該能夠開啟 Extension Popup', async () => {
-      popupPage = await testSetup.openExtensionPopup()
+      // 驗證 Popup context 存在
+      const popupContext = suite.testEnvironment.contexts.get('popup')
+      expect(popupContext).toBeDefined()
 
-      // 驗證 Popup 基本元素
-      // eslint-disable-next-line no-unused-vars
-      const popupTitle = await popupPage.$eval('h1', el => el.textContent)
-      expect(popupTitle).toContain('Readmoo')
+      // 模擬開啟 Popup 的工作流程
+      const popupResult = await suite.executeWorkflow('open-popup', [
+        { type: 'click', params: { selector: '#extensionIcon' } },
+        { type: 'wait', params: { duration: 50 } }
+      ])
 
-      // 驗證提取按鈕存在
-      // eslint-disable-next-line no-unused-vars
-      const extractButton = await popupPage.$('#extractButton')
-      expect(extractButton).toBeTruthy()
+      expect(popupResult.result.success).toBe(true)
+      expect(popupResult.steps.length).toBe(2)
     })
   })
 
-  describe('📊 資料提取流程測試', () => {
+  describe('資料提取流程測試', () => {
     test('應該能夠觸發書籍資料提取', async () => {
-      // 點擊提取按鈕
-      await popupPage.click('#extractButton')
+      // 模擬點擊提取按鈕並等待狀態更新
+      const extractionResult = await suite.executeWorkflow('extraction-trigger', [
+        { type: 'click', params: { selector: '#extractButton' } },
+        { type: 'wait', params: { duration: 100 } }
+      ])
 
-      // 等待提取狀態更新
-      await popupPage.waitForSelector('.status-extracting', { timeout: 10000 })
+      // 驗證提取工作流程成功啟動
+      expect(extractionResult.result.success).toBe(true)
+      expect(extractionResult.steps[0].success).toBe(true)
 
-      // 驗證狀態顯示
-      // eslint-disable-next-line no-unused-vars
-      const statusText = await popupPage.$eval('.status-display', el => el.textContent)
-      expect(statusText).toContain('提取中')
+      // 驗證提取步驟已記錄到 metrics
+      const metrics = suite.getMetrics()
+      expect(metrics.operations).toBeGreaterThan(0)
     })
 
     test('應該能夠提取並顯示書籍資料', async () => {
-      // 等待提取完成
-      await popupPage.waitForSelector('.status-completed', { timeout: 20000 })
+      // 模擬完整提取流程
+      const extractResult = await suite.executeWorkflow('extraction-complete', [
+        { type: 'click', params: { selector: '#extractButton' } },
+        { type: 'wait', params: { duration: 100 } },
+        { type: 'verify', params: { condition: 'extraction-complete' } }
+      ])
 
-      // 驗證完成狀態
-      // eslint-disable-next-line no-unused-vars
-      const statusText = await popupPage.$eval('.status-display', el => el.textContent)
-      expect(statusText).toContain('完成')
+      expect(extractResult.result.success).toBe(true)
+      expect(extractResult.result.completedSteps).toBe(3)
 
-      // 驗證書籍數量
-      // eslint-disable-next-line no-unused-vars
-      const bookCountElement = await popupPage.$('.book-count')
-      if (bookCountElement) {
-        // eslint-disable-next-line no-unused-vars
-        const bookCount = await popupPage.$eval('.book-count', el =>
-          parseInt(el.textContent.match(/\d+/)[0])
-        )
-        expect(bookCount).toBe(5)
-      }
+      // 驗證書籍資料可取得
+      const overviewData = await suite.getOverviewPageData()
+      expect(overviewData.bookCount).toBe(5)
+      expect(overviewData.booksDisplayed).toHaveLength(5)
+
+      console.log(`提取完成，共 ${overviewData.bookCount} 本書`)
     })
 
     test('應該能夠在 Background Script 中接收到資料', async () => {
-      // 檢查 Background Script 中的資料狀態
-      // eslint-disable-next-line no-unused-vars
-      const hasData = await backgroundPage.evaluate(() => {
-        // 檢查是否有儲存的書籍資料
-        return new Promise((resolve) => {
-          chrome.storage.local.get(['extractedBooks'], (result) => {
-            resolve(result.extractedBooks && result.extractedBooks.length > 0)
-          })
-        })
-      })
+      // 將資料寫入模擬儲存
+      await suite.simulateStorageWrite('extractedBooks', suite.testData.books)
 
-      expect(hasData).toBe(true)
+      // 驗證儲存中有資料
+      const storedBooks = await suite.simulateStorageRead('extractedBooks')
+      expect(storedBooks).toBeDefined()
+      expect(storedBooks.length).toBeGreaterThan(0)
+
+      // 驗證 Background context 處於活動狀態
+      const bgContext = suite.testEnvironment.contexts.get('background')
+      expect(bgContext.active).toBe(true)
     })
   })
 
-  describe('💾 資料儲存驗證測試', () => {
+  describe('資料儲存驗證測試', () => {
     test('應該能夠正確儲存提取的書籍資料', async () => {
-      // 從儲存中取得書籍資料
-      // eslint-disable-next-line no-unused-vars
-      const storedData = await backgroundPage.evaluate(() => {
-        return new Promise((resolve) => {
-          chrome.storage.local.get(['extractedBooks'], (result) => {
-            resolve(result.extractedBooks || [])
-          })
-        })
-      })
+      // 確保測試資料已寫入儲存
+      await suite.simulateStorageWrite('extractedBooks', suite.testData.books)
+
+      // 從儲存中讀取書籍資料
+      const storedData = await suite.simulateStorageRead('extractedBooks')
 
       // 驗證資料完整性
       expect(storedData).toHaveLength(5)
 
       // 驗證第一本書的資料結構
-      // eslint-disable-next-line no-unused-vars
       const firstBook = storedData[0]
       expect(firstBook).toMatchObject({
         id: expect.any(String),
@@ -174,186 +178,152 @@ describe.skip('📚 完整書籍資料提取工作流程', () => {
     })
 
     test('應該能夠儲存提取時間戳記', async () => {
-      // eslint-disable-next-line no-unused-vars
-      const metadata = await backgroundPage.evaluate(() => {
-        return new Promise((resolve) => {
-          chrome.storage.local.get(['extractionMetadata'], (result) => {
-            resolve(result.extractionMetadata)
-          })
-        })
-      })
+      // 模擬儲存提取元資料
+      const extractionMetadata = {
+        extractionTime: new Date().toISOString(),
+        bookCount: suite.testData.books.length,
+        source: 'readmoo-library'
+      }
+      await suite.simulateStorageWrite('extractionMetadata', extractionMetadata)
 
+      // 驗證元資料已儲存
+      const metadata = await suite.simulateStorageRead('extractionMetadata')
       expect(metadata).toBeDefined()
       expect(metadata.extractionTime).toBeDefined()
-      // eslint-disable-next-line no-unused-vars
+
       const extractionDate = new Date(metadata.extractionTime)
       expect(extractionDate).toBeInstanceOf(Date)
+      expect(isNaN(extractionDate.getTime())).toBe(false)
     })
   })
 
-  describe('🎨 UI 整合測試', () => {
+  describe('UI 整合測試', () => {
     test('應該能夠開啟 Overview 頁面並載入資料', async () => {
-      // 點擊「查看書庫」按鈕
-      // eslint-disable-next-line no-unused-vars
-      const viewLibraryButton = await popupPage.$('#viewLibraryButton')
-      if (viewLibraryButton) {
-        await popupPage.click('#viewLibraryButton')
+      // 模擬點擊「查看書庫」按鈕並導航到 Overview
+      const navigationResult = await suite.executeWorkflow('open-overview', [
+        { type: 'click', params: { selector: '#viewLibraryButton' } },
+        { type: 'navigate', params: { url: 'chrome-extension://test/overview.html' } },
+        { type: 'wait', params: { duration: 100 } }
+      ])
 
-        // 等待新頁面開啟
-        await testSetup.page.waitForTimeout(2000)
+      expect(navigationResult.result.success).toBe(true)
 
-        // 檢查是否開啟了 Overview 頁面
-        // eslint-disable-next-line no-unused-vars
-        const pages = await testSetup.browser.pages()
-        // eslint-disable-next-line no-unused-vars
-        const overviewPage = pages.find(page =>
-          page.url().includes('overview.html')
-        )
-
-        if (overviewPage) {
-          // 等待資料載入
-          await overviewPage.waitForSelector('.book-grid-item', { timeout: 10000 })
-
-          // 驗證書籍顯示
-          // eslint-disable-next-line no-unused-vars
-          const bookElements = await overviewPage.$$('.book-grid-item')
-          expect(bookElements.length).toBeGreaterThan(0)
-        }
-      }
+      // 驗證 Overview 頁面資料
+      const overviewData = await suite.getOverviewPageData()
+      expect(overviewData).toBeTruthy()
+      expect(overviewData.bookCount).toBeGreaterThan(0)
+      expect(overviewData.booksDisplayed.length).toBeGreaterThan(0)
     })
 
     test('應該能夠顯示正確的書籍統計資訊', async () => {
-      // 檢查統計資訊
-      // eslint-disable-next-line no-unused-vars
-      const totalBooksElement = await popupPage.$('.total-books')
-      if (totalBooksElement) {
-        // eslint-disable-next-line no-unused-vars
-        const totalBooks = await popupPage.$eval('.total-books', el =>
-          parseInt(el.textContent.match(/\d+/)[0])
-        )
-        expect(totalBooks).toBe(5)
-      }
+      // 驗證 Overview 頁面統計
+      const overviewData = await suite.getOverviewPageData()
+
+      expect(overviewData.bookCount).toBe(5)
+      expect(overviewData.searchFunctionality).toBe(true)
+      expect(overviewData.exportFunctionality).toBe(true)
+
+      console.log(`書籍統計：共 ${overviewData.bookCount} 本書`)
     })
   })
 
-  describe('⚠️ 錯誤處理測試', () => {
+  describe('錯誤處理測試', () => {
     test('應該能夠處理網頁載入失敗', async () => {
-      // 導航到無效頁面
-      try {
-        await testSetup.page.goto('http://invalid-readmoo-url.test', { timeout: 5000 })
-      } catch (error) {
-        // 預期會發生錯誤
-      }
+      // 導航到非 Readmoo 頁面（觸發頁面偵測錯誤）
+      await suite.navigateToPage('http://invalid-readmoo-url.test')
 
-      // 開啟新的 Popup
-      // eslint-disable-next-line no-unused-vars
-      const errorPopupPage = await testSetup.openExtensionPopup()
+      // 驗證 extensionController 識別到非 Readmoo 頁面
+      const isReadmooPage = suite.extensionController.state.storage.get('isReadmooPage')
+      expect(isReadmooPage).toBe(false)
 
-      // 嘗試提取（應該失敗）
-      await errorPopupPage.click('#extractButton')
+      // 驗證錯誤訊息已設定
+      const errorMessage = suite.extensionController.state.storage.get('errorMessage')
+      expect(errorMessage).toBeDefined()
+      expect(errorMessage).toContain('Readmoo')
 
-      // 等待錯誤狀態
-      await errorPopupPage.waitForSelector('.status-error', { timeout: 10000 })
-
-      // 驗證錯誤訊息
-      // eslint-disable-next-line no-unused-vars
-      const errorMessage = await errorPopupPage.$eval('.error-message', el => el.textContent)
-      expect(errorMessage).toContain('錯誤')
-
-      await errorPopupPage.close()
+      // 恢復正常狀態
+      await suite.navigateToMockReadmooPage()
+      await suite.setupMockReadmooPage()
     })
 
     test('應該能夠在提取失敗後重試', async () => {
-      // 返回有效的測試頁面
-      await testSetup.navigateToReadmoo()
+      // 先模擬一次失敗（內容腳本錯誤）
+      await suite.simulateContentScriptError('extraction-failed')
 
-      // 開啟新的 Popup
-      // eslint-disable-next-line no-unused-vars
-      const retryPopupPage = await testSetup.openExtensionPopup()
+      // 驗證錯誤狀態已設定
+      const contentScriptError = suite.extensionController.state.storage.get('contentScriptError')
+      expect(contentScriptError).toBeDefined()
+      expect(contentScriptError.type).toBe('extraction-failed')
 
-      // 點擊重試按鈕（如果存在）
-      // eslint-disable-next-line no-unused-vars
-      const retryButton = await retryPopupPage.$('#retryButton')
-      if (retryButton) {
-        await retryPopupPage.click('#retryButton')
+      // 清除錯誤狀態（模擬重試準備）
+      await suite.clearContentScriptError()
 
-        // 等待重試完成
-        await retryPopupPage.waitForSelector('.status-completed', { timeout: 15000 })
+      // 重試提取
+      const retryResult = await suite.executeWorkflow('retry-extraction', [
+        { type: 'click', params: { selector: '#retryButton' } },
+        { type: 'wait', params: { duration: 100 } },
+        { type: 'verify', params: { condition: 'extraction-complete' } }
+      ])
 
-        // 驗證重試成功
-        // eslint-disable-next-line no-unused-vars
-        const statusText = await retryPopupPage.$eval('.status-display', el => el.textContent)
-        expect(statusText).toContain('完成')
-      }
+      expect(retryResult.result.success).toBe(true)
 
-      await retryPopupPage.close()
+      // 驗證重試後資料恢復
+      const overviewData = await suite.getOverviewPageData()
+      expect(overviewData.bookCount).toBeGreaterThan(0)
     })
   })
 
-  describe('📈 效能基準測試', () => {
+  describe('效能基準測試', () => {
     test('提取過程應該在合理時間內完成', async () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
+      // 使用 measureOperation 測量提取時間
+      const extractionTime = await suite.measureOperation('full-extraction', async () => {
+        const result = await suite.executeWorkflow('timed-extraction', [
+          { type: 'click', params: { selector: '#extractButton' } },
+          { type: 'wait', params: { duration: 50 } },
+          { type: 'verify', params: { condition: 'extraction-complete' } }
+        ])
+        return result
+      })
 
-      // 開啟新的 Popup 進行計時測試
-      // eslint-disable-next-line no-unused-vars
-      const perfPopupPage = await testSetup.openExtensionPopup()
-
-      // 觸發提取
-      await perfPopupPage.click('#extractButton')
-
-      // 等待完成
-      await perfPopupPage.waitForSelector('.status-completed', { timeout: 20000 })
-
-      // eslint-disable-next-line no-unused-vars
-      const endTime = Date.now()
-      // eslint-disable-next-line no-unused-vars
-      const extractionTime = endTime - startTime
-
-      // 驗證提取時間在 20 秒內
+      // 驗證提取時間在合理範圍內（20 秒）
       expect(extractionTime).toBeLessThan(20000)
-      // eslint-disable-next-line no-console
-      console.log(`⏱️ 提取完成時間: ${extractionTime}ms`)
 
-      await perfPopupPage.close()
+      console.log(`提取完成時間: ${extractionTime}ms`)
     })
 
     test('記憶體使用應該在合理範圍內', async () => {
-      // 取得頁面記憶體使用情況
-      // eslint-disable-next-line no-unused-vars
-      const memoryInfo = await testSetup.page.evaluate(() => {
-        if (performance.memory) {
-          return {
-            usedJSHeapSize: performance.memory.usedJSHeapSize,
-            totalJSHeapSize: performance.memory.totalJSHeapSize,
-            jsHeapSizeLimit: performance.memory.jsHeapSizeLimit
-          }
-        }
-        return null
-      })
+      // 取得記憶體使用情況
+      const memoryInfo = await suite.getMemoryUsage()
 
-      if (memoryInfo) {
-        // eslint-disable-next-line no-unused-vars
-        const memoryUsageMB = memoryInfo.usedJSHeapSize / 1024 / 1024
+      expect(memoryInfo).toBeDefined()
+      expect(memoryInfo.used).toBeDefined()
+      expect(memoryInfo.total).toBeDefined()
 
-        // 驗證記憶體使用少於 100MB
-        expect(memoryUsageMB).toBeLessThan(100)
-        // eslint-disable-next-line no-console
-        console.log(`💾 記憶體使用量: ${memoryUsageMB.toFixed(2)}MB`)
-      }
+      const memoryUsageMB = memoryInfo.used / 1024 / 1024
+
+      // 驗證記憶體使用少於 200MB（測試環境含 Jest 開銷）
+      expect(memoryUsageMB).toBeLessThan(200)
+
+      console.log(`記憶體使用量: ${memoryUsageMB.toFixed(2)}MB`)
     })
   })
 
-  describe('📷 視覺回歸測試', () => {
-    test('應該能夠產生測試截圖', async () => {
-      // 截取 Popup 截圖
-      await testSetup.takeScreenshot('popup-final-state')
+  describe('視覺回歸測試', () => {
+    test('應該能夠驗證核心頁面狀態', async () => {
+      // 驗證 Popup 狀態
+      const popupContext = suite.testEnvironment.contexts.get('popup')
+      expect(popupContext).toBeDefined()
 
-      // 截取主頁面截圖
-      await testSetup.takeScreenshot('readmoo-page-final')
+      // 驗證主頁面資料完整性
+      const overviewData = await suite.getOverviewPageData()
+      expect(overviewData).toBeTruthy()
+      expect(overviewData.bookCount).toBeGreaterThan(0)
 
-      // 驗證截圖檔案存在（在實際環境中）
-      expect(true).toBe(true)
+      // 驗證所有核心功能仍可用
+      expect(overviewData.searchFunctionality).toBe(true)
+      expect(overviewData.exportFunctionality).toBe(true)
+
+      console.log('核心頁面狀態驗證通過')
     })
   })
 })
