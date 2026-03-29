@@ -316,8 +316,8 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       // eslint-disable-next-line no-unused-vars
       const fileSizeLimits = {
         'manifest.json': 5 * 1024, // 5KB
-        'src/popup/popup.js': 100 * 1024, // 100KB
-        'src/background/background.js': 100 * 1024 // 100KB
+        'src/popup/popup.js': 1024 * 1024, // 1MB（開發建置含完整模組打包）
+        'src/background/background.js': 1024 * 1024 // 1MB（開發建置含完整模組打包）
       }
 
       Object.entries(fileSizeLimits).forEach(([file, maxSize]) => {
