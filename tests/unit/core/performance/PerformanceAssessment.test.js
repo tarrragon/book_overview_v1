@@ -13,14 +13,8 @@
  * @date 2025-09-23
  */
 
-// TODO: [0.15.0-W1-002] 此測試套件導致 OOM 崩潰。
-// 根本原因：beforeEach 中 performance.now.mockReturnValue(Date.now()) 使
-// performance.now() 永遠返回相同的固定值，導致 MetricsCollector.estimateCPUUsage()
-// 中的 while(this.performanceAPI.now() < endTime) 變成無窮迴圈。
-// 修復方案：需要讓 performance.now mock 回傳遞增值（如使用 mockImplementation 配合計數器），
-// 以正確模擬時間流逝。
-
-// const { ErrorCodes } = require('src/core/errors/ErrorCodes') // 未使用的import
+// [0.16.1-W1-002] OOM 修復：performance.now mock 改為遞增計數器，
+// 避免 MetricsCollector.estimateCPUUsage() 的 while 迴圈變成無窮迴圈。
 const PerformanceAssessment = require('src/core/performance/PerformanceAssessment')
 
 // Mock Chrome Extension APIs
@@ -58,10 +52,16 @@ const mockChromeAPI = {
 
 global.chrome = mockChromeAPI
 
-// Mock Performance API
+// Mock Performance API - 使用遞增計數器避免 estimateCPUUsage() 的 while 迴圈變成無窮迴圈
+let performanceNowCounter = 0
+const PERFORMANCE_NOW_INCREMENT = 5 // 每次呼叫遞增 5ms
+
 Object.defineProperty(global, 'performance', {
   value: {
-    now: jest.fn(() => Date.now()),
+    now: jest.fn(() => {
+      performanceNowCounter += PERFORMANCE_NOW_INCREMENT
+      return performanceNowCounter
+    }),
     mark: jest.fn(),
     measure: jest.fn(),
     getEntriesByType: jest.fn(() => []),
@@ -84,10 +84,6 @@ Object.defineProperty(global, 'performance', {
   }
 })
 
-// NOTE: [0.15.0-W1-002] 以下全域 mock 已停用，因為 Object.defineProperty
-// 覆蓋 jsdom 的 document/screen/navigator 會觸發 jsdom EventTarget 崩潰。
-// 測試套件已 skip，待重寫時一併修復。
-
 // Mock localStorage - 使用安全的賦值方式
 global.localStorage = global.localStorage || {
   getItem: jest.fn(),
@@ -96,7 +92,7 @@ global.localStorage = global.localStorage || {
   clear: jest.fn()
 }
 
-describe.skip('PerformanceAssessment 系統效能評估', () => {
+describe('PerformanceAssessment 系統效能評估', () => {
   let assessment
 
   beforeEach(() => {
@@ -105,7 +101,7 @@ describe.skip('PerformanceAssessment 系統效能評估', () => {
 
     // Reset performance values
     global.performance.memory.usedJSHeapSize = 50 * 1024 * 1024
-    global.performance.now.mockReturnValue(Date.now())
+    performanceNowCounter = 0 // 重設遞增計數器，確保每個測試從 0 開始
 
     // Reset Chrome API responses
     mockChromeAPI.storage.local.get.mockResolvedValue({})
@@ -199,6 +195,7 @@ describe.skip('PerformanceAssessment 系統效能評估', () => {
       expect(report.analysis).toBeDefined()
       expect(report.overallScore).toBeGreaterThanOrEqual(0)
       expect(report.overallScore).toBeLessThanOrEqual(100)
+      expect(Number.isNaN(report.overallScore)).toBe(false)
     })
 
     test('應該支援選擇性指標收集', async () => {
@@ -238,6 +235,7 @@ describe.skip('PerformanceAssessment 系統效能評估', () => {
       expect(report.analysis.memory).toBeDefined()
       expect(report.analysis.memory.score).toBeGreaterThanOrEqual(0)
       expect(report.analysis.memory.score).toBeLessThanOrEqual(100)
+      expect(Number.isNaN(report.analysis.memory.score)).toBe(false)
       expect(report.analysis.memory.issues).toBeInstanceOf(Array)
       expect(report.analysis.memory.recommendations).toBeInstanceOf(Array)
     })
@@ -423,7 +421,7 @@ describe.skip('PerformanceAssessment 系統效能評估', () => {
 
       const analysis = assessment.analyzeMemoryMetrics(mockMetrics)
 
-      expect(analysis.score).toBeGreaterThan(50) // 應該有不錯的分數
+      expect(analysis.score).toBeGreaterThanOrEqual(50) // 40MB / 80MB = 50% 使用率 → 分數 50
       expect(analysis.issues).toBeInstanceOf(Array)
       expect(analysis.recommendations).toBeInstanceOf(Array)
     })
@@ -548,7 +546,7 @@ describe.skip('PerformanceAssessment 系統效能評估', () => {
       expect(() => {
         const invalidAssessment = new PerformanceAssessment(null)
         return invalidAssessment
-      }).toThrow(expect.stringMatching(/VALIDATION_FAILED/))
+      }).toThrow(/配置參數必須是有效的物件/)
     })
 
     test('應該支援快取系統', async () => {

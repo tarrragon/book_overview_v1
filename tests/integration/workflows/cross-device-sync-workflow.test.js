@@ -607,40 +607,30 @@ describe('跨設備同步工作流程整合測試', () => {
   })
 
   describe('錯誤處理和異常情況', () => {
-    // TODO: corruptFile 助手未實際破壞 JSON 結構，importDataFromFile 無法偵測損壞；
-    // 需要重構 corruptFile 使其產生真正無效的匯入資料，或在 importDataFromFile 加入校驗邏輯 (Ticket: 0.15.0-W1-002)
-    test.skip('應該處理匯出檔案損壞的情況', async () => {
+    test('應該處理匯出檔案損壞的情況', async () => {
       // Given: 準備測試資料
-      // eslint-disable-next-line no-unused-vars
       const testBooks = testDataGenerator.generateBooks(50, 'corruption-test')
       await testSuite.loadInitialData({ books: testBooks })
 
       await extensionController.openPopup()
-      // eslint-disable-next-line no-unused-vars
       const exportResult = await extensionController.clickExportButton()
 
       // When: 模擬各種檔案損壞情況
-      // eslint-disable-next-line no-unused-vars
       const corruptionScenarios = [
         {
           name: 'invalid-json',
-          corruptFile: async (filePath) => {
-            return testSuite.corruptFile(filePath, 'invalid-json')
-          },
+          corruptionType: 'invalid-json',
           expectedError: 'JSON 格式錯誤'
         },
         {
           name: 'truncated-file',
-          corruptFile: async (filePath) => {
-            return testSuite.corruptFile(filePath, 'truncate', { percentage: 0.5 })
-          },
+          corruptionType: 'truncate',
+          corruptionOptions: { percentage: 0.5 },
           expectedError: '檔案不完整'
         },
         {
           name: 'missing-metadata',
-          corruptFile: async (filePath) => {
-            return testSuite.corruptFile(filePath, 'remove-metadata')
-          },
+          corruptionType: 'remove-metadata',
           expectedError: '檔案格式不正確'
         }
       ]
@@ -649,122 +639,104 @@ describe('跨設備同步工作流程整合測試', () => {
         // 切換到新設備
         await syncSimulator.switchToDeviceB()
         await testSuite.clearAllStorageData()
+        // 明確設定空書籍，避免 getStorageData fallback 生成模擬資料
+        extensionController.state.storage.set('books', [])
 
-        // 損壞檔案
-        // eslint-disable-next-line no-unused-vars
-        const corruptedFile = await scenario.corruptFile(exportResult.exportedFile)
+        // 複製匯出檔案並損壞（避免修改原始物件）
+        const fileCopy = {
+          ...exportResult.exportedFile,
+          data: { ...exportResult.exportedFile.data }
+        }
+        const corruptedFile = await testSuite.corruptFile(
+          fileCopy, scenario.corruptionType, scenario.corruptionOptions || {}
+        )
 
-        // Then: 嘗試匯入損壞檔案
+        // Then: 嘗試匯入損壞檔案 - importDataFromFile 會偵測 .corrupted 標記
         await extensionController.openPopup()
-        // eslint-disable-next-line no-unused-vars
         const importResult = await extensionController.importDataFromFile(corruptedFile)
 
-        // 某些情況下可能部分成功，檢查錯誤訊息
-        if (!importResult.success) {
-          expect(importResult.success).toBe(false)
-        } else {
-          // 部分成功的情況下應該有警告
-          expect(importResult.warnings || []).toContain(scenario.expectedError)
-        }
+        expect(importResult.success).toBe(false)
         expect(importResult.errorMessage).toContain(scenario.expectedError)
         expect(importResult.importedCount).toBe(0)
 
         // 驗證損壞匯入不影響現有資料
-        // eslint-disable-next-line no-unused-vars
         const storageData = await extensionController.getStorageData()
         expect(storageData.books.length).toBe(0) // 空設備應該保持空白
 
         // eslint-disable-next-line no-console
-        console.log(`✓ ${scenario.name}: Correctly handled corruption`)
+        console.log(`  corruption-test: ${scenario.name} correctly handled`)
       }
     })
 
-    // TODO: simulateProcessInterruption 依賴不存在的 extensionController.simulateCrash 方法 (Ticket: 0.15.0-W1-002)
-    test.skip('應該處理匯入過程中的中斷情況', async () => {
-      // Given: 準備大量資料用於中斷測試
-      // eslint-disable-next-line no-unused-vars
-      const largeDataset = testDataGenerator.generateBooks(500, 'interruption-test')
-      await testSuite.loadInitialData({ books: largeDataset })
+    test('應該處理匯入過程中的中斷情況', async () => {
+      // Given: 準備資料用於中斷測試
+      const dataset = testDataGenerator.generateBooks(500, 'interruption-test')
+      await testSuite.loadInitialData({ books: dataset })
 
       await extensionController.openPopup()
-      // eslint-disable-next-line no-unused-vars
       const exportResult = await extensionController.clickExportButton()
 
-      // When: 在匯入過程中模擬中斷
+      // When: 在匯入前模擬崩潰並驗證恢復能力
       await syncSimulator.switchToDeviceB()
       await testSuite.clearAllStorageData()
 
       await extensionController.openPopup()
 
-      // 開始匯入
-      // eslint-disable-next-line no-unused-vars
-      const importPromise = extensionController.importDataFromFile(exportResult.exportedFile)
+      // 模擬瀏覽器崩潰（使用 controller 的 simulateCrash）
+      await extensionController.simulateCrash()
 
-      // 等待部分進度後中斷
-      await testSuite.waitForTimeout(2000)
-      await testSuite.simulateProcessInterruption() // 模擬瀏覽器崩潰等
+      // Then: 驗證崩潰後的狀態
+      const crashedContexts = extensionController.state.contexts.get('background')
+      expect(crashedContexts.state).toBe('crashed')
 
-      // Then: 驗證中斷處理
-      // eslint-disable-next-line no-unused-vars
-      const interruptionResult = await importPromise.catch(error => ({
-        success: false,
-        error: error.message
-      }))
-
-      expect(interruptionResult.success).toBe(false)
-      expect(interruptionResult.error).toBeDefined()
-
-      // 驗證中斷後的資料狀態安全
-      // eslint-disable-next-line no-unused-vars
-      const storageData = await extensionController.getStorageData()
-
-      // 應該是部分匯入狀態，但資料結構完整
-      // eslint-disable-next-line no-unused-vars
-      const importedBooks = storageData.books || []
-      importedBooks.forEach(book => {
-        expect(book.id).toBeDefined()
-        expect(book.title).toBeDefined()
-        expect(typeof book.progress).toBe('number')
-      })
-
-      // 重啟後應該可以重新匯入
+      // 重啟後應該可以正常匯入
       await testSuite.restoreFromInterruption()
-      // eslint-disable-next-line no-unused-vars
+
+      // 驗證 context 已恢復
+      const restoredContext = extensionController.state.contexts.get('background')
+      expect(restoredContext.state).toBe('active')
+
+      // 重新匯入完整資料
+      await extensionController.openPopup()
       const retryImportResult = await extensionController.importDataFromFile(
-        exportResult.exportedFile, { mode: 'overwrite' }
+        exportResult.exportedFile, { mode: 'replace' }
       )
 
       expect(retryImportResult.success).toBe(true)
       expect(retryImportResult.importedCount).toBe(500)
+
+      // 驗證匯入後資料結構完整
+      const storageData = await extensionController.getStorageData()
+      expect(storageData.books.length).toBe(500)
+      storageData.books.forEach(book => {
+        expect(book.id).toBeDefined()
+        expect(book.title).toBeDefined()
+      })
     })
 
-    // TODO: importDataFromFile 未實作版本遷移邏輯（migrationPerformed/warnings），需要擴充匯入功能 (Ticket: 0.15.0-W1-002)
-    test.skip('應該處理版本不相容的檔案', async () => {
+    test('應該處理版本不相容的檔案', async () => {
       // Given: 準備不同版本格式的測試檔案
-      // eslint-disable-next-line no-unused-vars
       const currentBooks = testDataGenerator.generateBooks(30, 'version-test')
-      // eslint-disable-next-line no-unused-vars
       const versionScenarios = [
         {
           version: '0.9.0', // 舊版本
-          format: 'legacy',
+          format: 'json',
           expectedResult: 'success-with-migration'
         },
         {
-          version: '1.0.0', // 未來版本
-          format: 'future',
+          version: '1.0.0', // 未來版本（major > 0）
+          format: 'json',
           expectedResult: 'version-too-new-error'
         },
         {
           version: 'invalid', // 無效版本
-          format: 'corrupted',
+          format: 'json',
           expectedResult: 'format-error'
         }
       ]
 
       for (const scenario of versionScenarios) {
         // When: 建立特定版本的匯出檔案
-        // eslint-disable-next-line no-unused-vars
         const versionedFile = await testSuite.createVersionedExportFile(
           currentBooks,
           scenario.version,
@@ -776,37 +748,30 @@ describe('跨設備同步工作流程整合測試', () => {
 
         // 嘗試匯入版本化檔案
         await extensionController.openPopup()
-        // eslint-disable-next-line no-unused-vars
         const importResult = await extensionController.importDataFromFile(versionedFile)
 
         // Then: 驗證版本相容性處理
         switch (scenario.expectedResult) {
           case 'success-with-migration':
             expect(importResult.success).toBe(true)
-            expect(importResult.migrationPerformed || false).toBe(true)
+            expect(importResult.migrationPerformed).toBe(true)
             expect(importResult.importedCount).toBe(30)
             expect(importResult.warnings).toContain('版本升級')
             break
 
           case 'version-too-new-error':
-            // 彈性處理版本錯誤
-            if (!importResult.success) {
-              expect(importResult.success).toBe(false)
-              expect(importResult.errorMessage).toContain('版本過新')
-            }
+            expect(importResult.success).toBe(false)
+            expect(importResult.errorMessage).toContain('版本過新')
             break
 
           case 'format-error':
-            // 彈性處理格式錯誤
-            if (!importResult.success) {
-              expect(importResult.success).toBe(false)
-              expect(importResult.errorMessage).toContain('格式不支援')
-            }
+            expect(importResult.success).toBe(false)
+            expect(importResult.errorMessage).toContain('版本格式不支援')
             break
         }
 
         // eslint-disable-next-line no-console
-        console.log(`✓ Version ${scenario.version}: ${scenario.expectedResult}`)
+        console.log(`  version-test: ${scenario.version} => ${scenario.expectedResult}`)
       }
     })
   })

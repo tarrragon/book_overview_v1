@@ -1,0 +1,8 @@
+# 本地特化檔案 — sync-pull 時不會被遠端覆蓋或刪除
+# 路徑相對於 .claude/ 目錄
+preserve:
+  - hooks/main-thread-edit-restriction-hook.py
+  - hooks/pre-fix-evaluation-hook.py
+  - hooks/handoff-prompt-reminder-hook.py
+  - hooks/lib/hook_messages.py
+  - error-patterns/architecture/ARCH-010-module-assembly-omission.md

@@ -51,7 +51,7 @@ class PerformanceAssessment {
     if (typeof config !== 'object' || config === null) {
       throw (() => {
         const code = ErrorCodes.VALIDATION_FAILED
-        return new Error(`${code.code}: 配置參數必須是有效的物件`)
+        return new Error(`${code}: 配置參數必須是有效的物件`)
       })()
     }
   }
@@ -143,7 +143,7 @@ class PerformanceAssessment {
     if (typeof options !== 'object' || options === null) {
       throw (() => {
         const code = ErrorCodes.VALIDATION_FAILED
-        return new Error(`${code.code}: 評估選項必須是有效的物件`)
+        return new Error(`${code}: 評估選項必須是有效的物件`)
       })()
     }
   }
@@ -266,17 +266,35 @@ class PerformanceAssessment {
   }
 
   /**
+   * 從記憶體指標中提取堆記憶體資料
+   *
+   * 需求：MetricsCollector.collectMemoryMetrics() 回傳巢狀結構
+   * { heap: { heapUsed, ... }, system, gc, overall }，
+   * 本方法統一提取 heap 層級資料，使分析方法不需關心原始結構。
+   *
+   * @param {Object} memoryMetrics - MetricsCollector 回傳的記憶體指標（巢狀或扁平結構）
+   * @returns {Object} 扁平的堆記憶體資料 { heapUsed, heapTotal, heapLimit, heapUsageRatio }
+   */
+  extractHeapMetrics (memoryMetrics) {
+    if (memoryMetrics && memoryMetrics.heap) {
+      return memoryMetrics.heap
+    }
+    return memoryMetrics
+  }
+
+  /**
    * 分析記憶體指標
    *
-   * @param {Object} memoryMetrics - 記憶體指標
+   * @param {Object} memoryMetrics - 記憶體指標（巢狀或扁平結構皆可）
    * @returns {Object} 記憶體分析結果
    */
   analyzeMemoryMetrics (memoryMetrics) {
+    const heapMetrics = this.extractHeapMetrics(memoryMetrics)
     const threshold = this.config.thresholds.memory
     return {
-      score: this.calculateMemoryScore(memoryMetrics, threshold),
-      issues: this.detectMemoryIssues(memoryMetrics, threshold),
-      recommendations: this.generateMemoryRecommendations(memoryMetrics)
+      score: this.calculateMemoryScore(heapMetrics, threshold),
+      issues: this.detectMemoryIssues(heapMetrics, threshold),
+      recommendations: this.generateMemoryRecommendations(heapMetrics)
     }
   }
 
@@ -451,7 +469,7 @@ class PerformanceAssessment {
     if (typeof callbacks !== 'object' || callbacks === null) {
       throw (() => {
         const code = ErrorCodes.VALIDATION_FAILED
-        return new Error(`${code.code}: 監控回調必須是有效的物件`)
+        return new Error(`${code}: 監控回調必須是有效的物件`)
       })()
     }
   }
@@ -559,8 +577,11 @@ class PerformanceAssessment {
   detectPerformanceIssues (metrics) {
     const detectedIssues = []
 
-    if (metrics.memory && metrics.memory.heapUsed > this.config.thresholds.memory.maxHeapUsage) {
-      detectedIssues.push({ type: 'memory', severity: 'high', message: '記憶體使用過高' })
+    if (metrics.memory) {
+      const heapMetrics = this.extractHeapMetrics(metrics.memory)
+      if (heapMetrics.heapUsed > this.config.thresholds.memory.maxHeapUsage) {
+        detectedIssues.push({ type: 'memory', severity: 'high', message: '記憶體使用過高' })
+      }
     }
 
     return detectedIssues
@@ -670,14 +691,14 @@ class PerformanceAssessment {
     if (typeof metrics !== 'object' || metrics === null) {
       throw (() => {
         const code = ErrorCodes.VALIDATION_FAILED
-        return new Error(`${code.code}: 效能指標必須是有效的物件`)
+        return new Error(`${code}: 效能指標必須是有效的物件`)
       })()
     }
 
     if (typeof options !== 'object' || options === null) {
       throw (() => {
         const code = ErrorCodes.VALIDATION_FAILED
-        return new Error(`${code.code}: 報告選項必須是有效的物件`)
+        return new Error(`${code}: 報告選項必須是有效的物件`)
       })()
     }
   }

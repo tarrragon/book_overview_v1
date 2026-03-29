@@ -38,9 +38,24 @@ EXCLUDE_PATTERNS = {
     "pm-status.json",
     "__pycache__",
     ".pytest_cache",
+    "sync-preserve.yaml",
+    # 敏感檔案：避免意外推送憑證和環境變數
+    ".env",
+    ".env.local",
+    ".env.production",
+    "credentials.json",
+    "secrets.yaml",
+    "secrets.json",
+    ".secrets",
 }
 
-EXCLUDE_SUFFIXES = {".pyc"}
+EXCLUDE_SUFFIXES = {".pyc", ".pem", ".key", ".p12", ".pfx", ".jks"}
+
+# 檔案名稱前綴匹配（涵蓋 .env.staging, secrets_prod.json 等變體）
+EXCLUDE_NAME_PREFIXES = {
+    ".env.",    # .env.staging, .env.test, .env.development 等
+    "secret",   # secrets.json, secret_key.txt 等
+}
 
 # commit 訊息中需要過濾的專案特定模式
 # 獨立 repo 是跨專案通用框架，commit 訊息禁止包含專案版本號/Wave/Ticket 編號
@@ -105,6 +120,8 @@ def should_exclude(path: Path) -> bool:
     if path.name in EXCLUDE_PATTERNS:
         return True
     if path.suffix in EXCLUDE_SUFFIXES:
+        return True
+    if any(path.name.startswith(prefix) for prefix in EXCLUDE_NAME_PREFIXES):
         return True
     return any(part in EXCLUDE_PATTERNS for part in path.parts)
 
@@ -269,6 +286,18 @@ def generate_commit_summary(categories: dict[str, list[str]], bump_suggestion: s
     return f"{summary_line}\n\n" + "\n".join(body_parts)
 
 
+def extract_version_string(content: str) -> str:
+    """從可能包含多行或註解的 VERSION 檔案內容中提取版本號。
+
+    跳過空行和 # 開頭的註解行，取第一行有效內容並移除 v 前綴。
+    """
+    for line in content.split("\n"):
+        line = line.strip()
+        if line and not line.startswith("#"):
+            return line.lstrip("v")
+    return ""
+
+
 def bump_version(version: str, bump_level: str) -> str:
     """Increment version based on bump level (major/minor/patch)."""
     match = re.match(r"(\d+)\.(\d+)\.(\d+)", version)
@@ -334,7 +363,7 @@ def main() -> None:
         print_color("讀取遠端版本號...")
         version_file = temp_dir / "VERSION"
         if version_file.exists():
-            remote_version = version_file.read_text(encoding="utf-8").strip()
+            remote_version = extract_version_string(version_file.read_text(encoding="utf-8"))
             print_color(f"   遠端版本: v{remote_version}", "green")
         else:
             remote_version = "1.0.0"
@@ -368,17 +397,10 @@ def main() -> None:
         changelog_path = temp_dir / "CHANGELOG.md"
         saved_changelog = changelog_path.read_text(encoding="utf-8") if changelog_path.exists() else ""
 
-        # 6. Clean existing content (preserve .git)
-        print_color("清空舊內容...")
-        for item in temp_dir.iterdir():
-            if item.name == ".git":
-                continue
-            if item.is_dir():
-                shutil.rmtree(item)
-            else:
-                item.unlink()
+        # 6. Merge 模式：不清空遠端內容，直接增量覆蓋
+        # 保留遠端獨有的檔案（其他專案推送的內容）
 
-        # 7. Copy .claude/ content with exclusions
+        # 7. Copy .claude/ content with exclusions（覆蓋本地有修改的檔案）
         print_color("複製 .claude 配置檔案...")
         file_count = copy_filtered(claude_dir, temp_dir)
         print_color(f"   已複製 {file_count} 個檔案", "green")
@@ -406,6 +428,24 @@ def main() -> None:
             return
 
         run_git(["commit", "-m", commit_msg], cwd=str(temp_dir))
+
+        # 推送前版本衝突檢測：確認遠端版本未被其他人變更
+        print_color("檢查遠端版本是否變更...")
+        fetch_result = run_git(["fetch", "origin"], cwd=str(temp_dir), check=False)
+        if fetch_result.returncode != 0:
+            print_color("警告: fetch 失敗，跳過版本衝突檢測（網路問題？）", "yellow")
+        else:
+            current_remote_result = run_git(
+                ["show", "origin/main:VERSION"], cwd=str(temp_dir), check=False
+            )
+            if current_remote_result.returncode == 0:
+                current_remote = extract_version_string(current_remote_result.stdout)
+                if current_remote != remote_version:
+                    print_color(
+                        f"遠端版本已變更（{remote_version} → {current_remote}），請先 pull 再 push",
+                        "red",
+                    )
+                    sys.exit(1)
 
         print_color("推送到獨立 repo...")
         run_git(["push", "origin", "main"], cwd=str(temp_dir))
