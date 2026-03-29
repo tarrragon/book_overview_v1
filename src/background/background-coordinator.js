@@ -27,6 +27,7 @@ const BaseModule = require('./lifecycle/base-module')
 // 導入核心系統模組
 const LifecycleCoordinator = require('./lifecycle/lifecycle-coordinator')
 const MessageRouter = require('./messaging/message-router')
+const ContentMessageHandler = require('./messaging/content-message-handler')
 const EventCoordinator = require('./events/event-coordinator')
 const PageMonitor = require('./monitoring/page-monitor')
 const ErrorHandler = require('./monitoring/error-handler')
@@ -210,6 +211,7 @@ class BackgroundCoordinator extends BaseModule {
         i18nManager: this.i18nManager
       })
       await this.eventCoordinator.initialize()
+      await this.eventCoordinator.start()
 
       // 3. 設定全域事件總線引用
       this.eventBus = this.eventCoordinator.eventBusInstance
@@ -241,8 +243,14 @@ class BackgroundCoordinator extends BaseModule {
       this.lifecycleCoordinator = new LifecycleCoordinator(commonDependencies)
       this.modules.set('lifecycleCoordinator', this.lifecycleCoordinator)
 
-      // 建立訊息路由器
-      this.messageRouter = new MessageRouter(commonDependencies)
+      // 建立 Content Script 訊息處理器
+      const contentMessageHandler = new ContentMessageHandler(commonDependencies)
+
+      // 建立訊息路由器（注入 contentMessageHandler）
+      this.messageRouter = new MessageRouter({
+        ...commonDependencies,
+        contentMessageHandler
+      })
       this.modules.set('messageRouter', this.messageRouter)
 
       // 建立頁面監控器

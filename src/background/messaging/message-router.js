@@ -152,59 +152,14 @@ class MessageRouter extends BaseModule {
     try {
       this.logger.log('🎧 設定 Chrome Extension 訊息監聽器')
 
-      // 定義訊息監聽器函數
-      this.chromeMessageListener = async (message, sender, sendResponse) => {
-        try {
-          // 檢查是否接受訊息
-          if (!this.isAcceptingMessages) {
-            sendResponse({
-              success: false,
-              error: '系統正在關閉，不接受新訊息'
-            })
-            return false
-          }
-
-          // 記錄訊息統計
-          this.updateMessageStats(message, sender)
-
-          this.logger.log('📨 收到訊息:', {
-            type: message.type,
-            from: this.getMessageSource(sender),
-            tabId: sender.tab?.id
-          })
-
-          // 路由訊息到適當的處理器
-          const result = await this.routeMessage(message, sender, sendResponse)
-
-          // 更新成功統計
-          this.messageStats.success++
-
-          return result
-        } catch (error) {
-          this.logger.error('❌ 訊息處理錯誤:', error)
-
-          // 更新失敗統計
-          this.messageStats.failed++
-
-          // 發送錯誤回應
-          sendResponse({
-            success: false,
-            error: error.message,
-            timestamp: Date.now()
-          })
-
-          // 觸發訊息錯誤事件
-          if (this.eventBus) {
-            await this.eventBus.emit('MESSAGE.ERROR', {
-              error: error.message,
-              messageType: message?.type,
-              source: this.getMessageSource(sender),
-              timestamp: Date.now()
-            })
-          }
-
-          return false
-        }
+      // Manifest V3 關鍵修正：chrome.runtime.onMessage listener 必須同步回傳 true
+      // 以保持訊息通道開啟，讓 async handler 可以稍後呼叫 sendResponse。
+      // async function 回傳 Promise（非 true），Chrome API 不會將 Promise 視為 true，
+      // 導致訊息通道在 async 處理完成前就被關閉，sendResponse 失效。
+      this.chromeMessageListener = (message, sender, sendResponse) => {
+        this._handleMessageAsync(message, sender, sendResponse)
+        // 同步回傳 true，告知 Chrome 保持訊息通道開啟等待非同步回應
+        return true
       }
 
       // 註冊監聽器
@@ -214,6 +169,68 @@ class MessageRouter extends BaseModule {
     } catch (error) {
       this.logger.error('❌ 設定訊息監聽器失敗:', error)
       throw error
+    }
+  }
+
+  /**
+   * 非同步訊息處理器（由同步 listener 呼叫）
+   *
+   * 設計意圖：chrome.runtime.onMessage 的 listener 必須同步回傳 true
+   * 才能保持訊息通道開啟。此方法封裝原本的 async 處理邏輯，
+   * 由同步的 chromeMessageListener 呼叫後，獨立完成非同步處理和回應。
+   *
+   * @param {Object} message - 訊息物件
+   * @param {Object} sender - 發送者資訊
+   * @param {Function} sendResponse - 回應函數
+   * @private
+   */
+  async _handleMessageAsync (message, sender, sendResponse) {
+    try {
+      // 檢查是否接受訊息
+      if (!this.isAcceptingMessages) {
+        sendResponse({
+          success: false,
+          error: '系統正在關閉，不接受新訊息'
+        })
+        return
+      }
+
+      // 記錄訊息統計
+      this.updateMessageStats(message, sender)
+
+      this.logger.log('📨 收到訊息:', {
+        type: message.type,
+        from: this.getMessageSource(sender),
+        tabId: sender.tab?.id
+      })
+
+      // 路由訊息到適當的處理器
+      await this.routeMessage(message, sender, sendResponse)
+
+      // 更新成功統計
+      this.messageStats.success++
+    } catch (error) {
+      this.logger.error('❌ 訊息處理錯誤:', error)
+
+      // 更新失敗統計
+      this.messageStats.failed++
+
+      // 發送錯誤回應
+      sendResponse({
+        success: false,
+        error: error.message,
+        timestamp: Date.now()
+      })
+
+      // 觸發訊息錯誤事件
+      if (this.eventBus) {
+        await this.eventBus.emit('MESSAGE.ERROR', {
+          error: error.message,
+          messageType: message?.type,
+          source: this.getMessageSource(sender),
+          timestamp: Date.now()
+        })
+      }
     }
   }
 
