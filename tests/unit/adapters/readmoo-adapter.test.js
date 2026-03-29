@@ -702,4 +702,245 @@ describe('ReadmooAdapter', () => {
       expect(books[0].id).toBe('title-有效書籍')
     })
   })
+
+  describe('容錯策略 - 必要/可選欄位分離 (W3-004)', () => {
+    beforeEach(() => {
+      adapter = createReadmooAdapter()
+    })
+
+    test('readerLink 找不到時，應從其他元素提取 title 並保留記錄', async () => {
+      // 沒有 a[href*="/api/reader/"] 連結，但有 title 和 cover
+      document.body.innerHTML = `
+        <div class="library-item">
+          <div class="cover">
+            <img class="cover-img"
+                 src="https://cdn.readmoo.com/cover/ab/nolink123_210x315.jpg"
+                 alt="無連結書籍">
+          </div>
+          <div class="info">
+            <div class="title">無連結書籍</div>
+          </div>
+        </div>
+      `
+
+      const books = await adapter.extractBooks()
+
+      expect(books).toHaveLength(1)
+      expect(books[0].title).toBe('無連結書籍')
+      expect(books[0].url).toBe('')
+      expect(books[0].id).toBe('cover-nolink123')
+      expect(books[0].identifiers.readerLinkId).toBe('')
+    })
+
+    test('href 不安全時，應清空 href 但不丟棄整筆記錄', async () => {
+      document.body.innerHTML = `
+        <div class="library-item">
+          <div class="cover">
+            <a href="javascript:alert('xss')" class="reader-link">
+              <img class="cover-img"
+                   src="https://cdn.readmoo.com/cover/cd/unsafe456_210x315.jpg"
+                   alt="不安全連結書籍">
+            </a>
+          </div>
+          <div class="info">
+            <div class="title">不安全連結書籍</div>
+          </div>
+        </div>
+      `
+
+      const books = await adapter.extractBooks()
+
+      // readerLink 選擇器 a[href*="/api/reader/"] 不會匹配 javascript: href
+      // 因此行為等同於 readerLink 找不到，但仍有 title 和 cover
+      expect(books).toHaveLength(1)
+      expect(books[0].title).toBe('不安全連結書籍')
+      expect(books[0].url).toBe('')
+      expect(books[0].id).toBe('cover-unsafe456')
+    })
+
+    test('extractBookId 失敗時，應使用 title-based ID 作為 fallback', async () => {
+      // href 格式不含 /api/reader/ 也不含 /book/，extractBookId 回傳空字串
+      document.body.innerHTML = `
+        <div class="library-item">
+          <div class="cover">
+            <a href="https://readmoo.com/api/reader/" class="reader-link">
+              <img class="cover-img"
+                   src="https://invalid-domain.com/no-pattern.jpg"
+                   alt="ID提取失敗">
+            </a>
+          </div>
+          <div class="info">
+            <div class="title">ID提取失敗的書籍</div>
+          </div>
+        </div>
+      `
+
+      const books = await adapter.extractBooks()
+
+      expect(books).toHaveLength(1)
+      expect(books[0].title).toBe('ID提取失敗的書籍')
+      // readerId 為空字串，封面 URL 非 readmoo 域名，應使用 title-based ID
+      expect(books[0].identifiers.primarySource).toBe('title')
+    })
+
+    test('title 和所有 ID 來源都為空時，才 return null', async () => {
+      document.body.innerHTML = `
+        <div class="library-item">
+          <div class="cover">
+          </div>
+          <div class="info">
+            <div class="title"></div>
+          </div>
+        </div>
+      `
+
+      const books = await adapter.extractBooks()
+
+      expect(books).toHaveLength(0)
+    })
+
+    test('只有 title 可用時，應保留記錄並使用 title-based ID', async () => {
+      document.body.innerHTML = `
+        <div class="library-item">
+          <div class="info">
+            <div class="title">只有標題的書籍</div>
+          </div>
+        </div>
+      `
+
+      const books = await adapter.extractBooks()
+
+      expect(books).toHaveLength(1)
+      expect(books[0].title).toBe('只有標題的書籍')
+      expect(books[0].cover).toBe('')
+      expect(books[0].url).toBe('')
+      expect(books[0].identifiers.primarySource).toBe('title')
+    })
+
+    test('只有 cover 可用時（含有效 coverId），應保留記錄', async () => {
+      document.body.innerHTML = `
+        <div class="library-item">
+          <div class="cover">
+            <img class="cover-img"
+                 src="https://cdn.readmoo.com/cover/ef/onlycover789_210x315.jpg"
+                 alt="">
+          </div>
+          <div class="info">
+            <div class="title"></div>
+          </div>
+        </div>
+      `
+
+      const books = await adapter.extractBooks()
+
+      expect(books).toHaveLength(1)
+      expect(books[0].id).toBe('cover-onlycover789')
+      expect(books[0].title).toBe('未知標題')
+      expect(books[0].identifiers.coverId).toBe('onlycover789')
+    })
+
+    test('可選欄位（progress、bookType）失敗時應留預設值', async () => {
+      document.body.innerHTML = `
+        <div class="library-item">
+          <div class="cover">
+            <img class="cover-img"
+                 src="https://cdn.readmoo.com/cover/gh/optfield_210x315.jpg"
+                 alt="可選欄位測試">
+          </div>
+          <div class="info">
+            <div class="title">可選欄位測試</div>
+          </div>
+        </div>
+      `
+
+      const books = await adapter.extractBooks()
+
+      expect(books).toHaveLength(1)
+      expect(books[0].progress).toBe(0)
+      expect(books[0].type).toBe('未知')
+    })
+
+    test('混合場景：部分書籍缺 readerLink，應保留可提取的記錄', async () => {
+      document.body.innerHTML = `
+        <div class="row">
+          <div class="library-item">
+            <div class="cover">
+              <a href="https://readmoo.com/api/reader/111222333" class="reader-link">
+                <img class="cover-img"
+                     src="https://cdn.readmoo.com/cover/aa/normal_210x315.jpg"
+                     alt="正常書籍">
+              </a>
+            </div>
+            <div class="info"><div class="title">正常書籍</div></div>
+          </div>
+          <div class="library-item">
+            <div class="cover">
+              <img class="cover-img"
+                   src="https://cdn.readmoo.com/cover/bb/nolink_210x315.jpg"
+                   alt="無連結書籍">
+            </div>
+            <div class="info"><div class="title">無連結書籍</div></div>
+          </div>
+          <div class="library-item">
+            <div class="info"><div class="title"></div></div>
+          </div>
+        </div>
+      `
+
+      const books = await adapter.extractBooks()
+
+      // 前兩本應該保留，第三本（無 title 無 ID 來源）應被丟棄
+      expect(books).toHaveLength(2)
+      expect(books[0].title).toBe('正常書籍')
+      expect(books[1].title).toBe('無連結書籍')
+    })
+
+    describe('extractHrefFromElement 單元測試', () => {
+      test('readerLink 不存在時回傳空字串', () => {
+        document.body.innerHTML = '<div class="library-item"><div class="info"></div></div>'
+        const element = document.querySelector('.library-item')
+
+        const result = adapter.extractHrefFromElement(element)
+
+        expect(result.href).toBe('')
+        expect(result.readerId).toBe('')
+      })
+
+      test('readerLink 存在且合法時回傳 href 和 readerId', () => {
+        document.body.innerHTML = `
+          <div class="library-item">
+            <a href="https://readmoo.com/api/reader/abc123" class="reader-link"></a>
+          </div>
+        `
+        const element = document.querySelector('.library-item')
+
+        const result = adapter.extractHrefFromElement(element)
+
+        expect(result.href).toBe('https://readmoo.com/api/reader/abc123')
+        expect(result.readerId).toBe('abc123')
+      })
+    })
+
+    describe('hasRequiredFields 單元測試', () => {
+      test('有 title 時回傳 true', () => {
+        expect(adapter.hasRequiredFields('書名', '', '')).toBe(true)
+      })
+
+      test('有 readerId 時回傳 true', () => {
+        expect(adapter.hasRequiredFields('', '123', '')).toBe(true)
+      })
+
+      test('有有效 cover（含 coverId）時回傳 true', () => {
+        expect(adapter.hasRequiredFields('', '', 'https://cdn.readmoo.com/cover/ab/test_210x315.jpg')).toBe(true)
+      })
+
+      test('全部為空時回傳 false', () => {
+        expect(adapter.hasRequiredFields('', '', '')).toBe(false)
+      })
+
+      test('空白字串視為空', () => {
+        expect(adapter.hasRequiredFields('  ', '  ', '')).toBe(false)
+      })
+    })
+  })
 })

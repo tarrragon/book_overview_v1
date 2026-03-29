@@ -145,20 +145,34 @@ function createReadmooAdapter (options = {}) {
           logger.warn('LAST_RESORT_STRATEGY', { reason: '查找閱讀器連結的父容器' })
           const readerLinks = document.querySelectorAll(SELECTORS.readerLink)
           const containers = new Set()
+          const MAX_ANCESTOR_DEPTH = 10
 
           readerLinks.forEach(link => {
-            // 向上查找可能的書籍容器
+            // 向上查找 .library-item 容器，最多走 MAX_ANCESTOR_DEPTH 層
             let parent = link.parentElement
-            while (parent && parent !== document.body) {
-              if (parent.classList.length > 0) {
+            let depth = 0
+            while (parent && parent !== document.body && depth < MAX_ANCESTOR_DEPTH) {
+              if (parent.classList.contains('library-item')) {
                 containers.add(parent)
                 break
               }
+              depth++
               parent = parent.parentElement
             }
           })
 
           elements = Array.from(containers)
+        }
+
+        // 診斷日誌：確認容器類型
+        if (elements.length > 0) {
+          const sample = elements.slice(0, 3).map(el => ({
+            tag: el.tagName,
+            classes: el.className.split(' ').slice(0, 3).join(' '),
+            hasReaderLink: !!el.querySelector(SELECTORS.readerLink),
+            hasTitle: !!el.querySelector(SELECTORS.bookTitle)
+          }))
+          logger.info('CONTAINER_SAMPLE', { sample })
         }
 
         logger.info('BOOK_CONTAINERS_FOUND', { count: elements.length })
@@ -173,7 +187,90 @@ function createReadmooAdapter (options = {}) {
     },
 
     /**
-     * 解析書籍容器元素 (修正：使用 ReadmooAdapter 相同邏輯)
+     * 從容器元素提取 href（容錯：找不到 readerLink 時回傳空字串）
+     *
+     * @param {HTMLElement} element - 書籍容器元素
+     * @returns {Object} { href: string, readerId: string }
+     */
+    extractHrefFromElement (element) {
+      // 從容器中查找閱讀器連結（容器可能本身就是連結）
+      let readerLink = element.querySelector(SELECTORS.readerLink)
+      if (!readerLink && element.matches && element.matches(SELECTORS.readerLink)) {
+        readerLink = element
+      }
+
+      if (!readerLink) {
+        logger.warn('READER_LINK_NOT_FOUND', { elementClass: element.className })
+        return { href: '', readerId: '' }
+      }
+
+      const rawHref = readerLink.getAttribute('href') || ''
+
+      // 安全檢查 - 不安全的 URL 清空但不丟棄整筆
+      if (rawHref && this.isUnsafeUrl(rawHref)) {
+        logger.warn('UNSAFE_URL_FILTERED', { url: rawHref })
+        return { href: '', readerId: '' }
+      }
+
+      const readerId = this.extractBookId(rawHref)
+      return { href: rawHref, readerId }
+    },
+
+    /**
+     * 從容器元素提取封面和標題（容錯：各欄位獨立 fallback）
+     *
+     * @param {HTMLElement} element - 書籍容器元素
+     * @returns {Object} { cover: string, title: string }
+     */
+    extractCoverAndTitle (element) {
+      // 從容器中查找封面圖片
+      const img = element.querySelector(SELECTORS.bookImage) || element.querySelector('img')
+      let cover = img ? img.getAttribute('src') || '' : ''
+      let title = ''
+
+      // 提取標題 - 優先從標題元素，備用從圖片 alt
+      const titleElement = element.querySelector(SELECTORS.bookTitle)
+      if (titleElement) {
+        title = titleElement.textContent?.trim() || titleElement.getAttribute('title')?.trim() || ''
+      } else if (img) {
+        title = img.getAttribute('alt')?.trim() || img.getAttribute('title')?.trim() || ''
+      }
+
+      // 安全檢查 - 過濾惡意圖片URL
+      // 收集不安全 URL，在 extractAllBooks() 完成後批量彙整輸出
+      if (cover && this.isUnsafeUrl(cover)) {
+        if (!this._unsafeUrlCount) this._unsafeUrlCount = 0
+        this._unsafeUrlCount++
+        cover = ''
+      }
+
+      return { cover, title }
+    },
+
+    /**
+     * 檢查是否有足夠的必要欄位保留此書籍記錄
+     * 需求：至少有 title 或任何來源的 ID
+     *
+     * @param {string} title - 書籍標題
+     * @param {string} readerId - 閱讀器連結 ID
+     * @param {string} cover - 封面 URL
+     * @returns {boolean} 是否應保留
+     */
+    hasRequiredFields (title, readerId, cover) {
+      const hasTitle = Boolean(title && title.trim())
+      const hasReaderId = Boolean(readerId && readerId.trim())
+      const hasCoverId = Boolean(this.extractCoverIdFromUrl(cover))
+      return hasTitle || hasReaderId || hasCoverId
+    },
+
+    /**
+     * 解析書籍容器元素（容錯策略：必要/可選欄位分離）
+     *
+     * 容錯規則：
+     * - readerLink 找不到：繼續從其他元素提取 title/cover
+     * - href 不安全：清空 href 但不丟棄整筆
+     * - extractBookId 失敗：使用 title-based 或 cover-based ID 作為 fallback
+     * - 最終檢查：title 和所有 ID 來源都為空才 return null
      *
      * @param {HTMLElement} element - 書籍容器元素
      * @returns {Object|null} 書籍資料物件
@@ -182,59 +279,29 @@ function createReadmooAdapter (options = {}) {
       const startTime = performance.now()
 
       try {
-        // 從容器中查找閱讀器連結（容器可能本身就是連結）
-        let readerLink = element.querySelector(SELECTORS.readerLink)
-        if (!readerLink && element.matches && element.matches(SELECTORS.readerLink)) {
-          readerLink = element
-        }
-        if (!readerLink) {
-          logger.warn('READER_LINK_NOT_FOUND', { elementClass: element.className })
+        // 步驟 1：提取 href 和 readerId（容錯：失敗時回傳空字串）
+        const { href, readerId } = this.extractHrefFromElement(element)
+
+        // 步驟 2：提取封面和標題（容錯：各欄位獨立 fallback）
+        const { cover, title } = this.extractCoverAndTitle(element)
+
+        // 步驟 3：最終必要欄位檢查 — 至少有 title 或任何 ID 來源
+        if (!this.hasRequiredFields(title, readerId, cover)) {
+          logger.warn('BOOK_INSUFFICIENT_DATA', {
+            elementClass: element.className,
+            hasTitle: Boolean(title),
+            hasReaderId: Boolean(readerId),
+            hasCover: Boolean(cover)
+          })
           return null
         }
 
-        const href = readerLink.getAttribute('href') || ''
-
-        // 安全檢查 - 過濾惡意URL
-        if (this.isUnsafeUrl(href)) {
-          logger.warn('UNSAFE_URL_FILTERED', { url: href })
-          stats.failedExtractions++
-          return null
-        }
-
-        // 提取書籍 ID
-        const id = this.extractBookId(href)
-        if (!id) {
-          logger.warn('BOOK_ID_EXTRACTION_FAILED', { href })
-          return null
-        }
-
-        // 從容器中查找封面圖片
-        const img = element.querySelector(SELECTORS.bookImage) || element.querySelector('img')
-        let cover = img ? img.getAttribute('src') || '' : ''
-        let title = ''
-
-        // 提取標題 - 優先從標題元素，備用從圖片 alt
-        const titleElement = element.querySelector(SELECTORS.bookTitle)
-        if (titleElement) {
-          title = titleElement.textContent?.trim() || titleElement.getAttribute('title')?.trim() || ''
-        } else if (img) {
-          title = img.getAttribute('alt')?.trim() || img.getAttribute('title')?.trim() || ''
-        }
-
-        // 安全檢查 - 過濾惡意圖片URL
-        if (cover && this.isUnsafeUrl(cover)) {
-          logger.warn('UNSAFE_COVER_URL_FILTERED', { coverUrl: cover })
-          cover = ''
-        }
-
-        // 提取閱讀進度
+        // 步驟 4：提取可選欄位（失敗留預設值）
         const progressData = this.extractProgressFromContainer(element)
-
-        // 提取書籍類型
         const bookType = this.extractBookTypeFromContainer(element)
 
-        // 生成穩定的書籍ID並取得策略資訊
-        const idInfo = this.generateStableBookIdWithInfo(id, title, cover)
+        // 步驟 5：生成穩定的書籍 ID（使用所有可用來源）
+        const idInfo = this.generateStableBookIdWithInfo(readerId, title, cover)
 
         // 建立完整的書籍資料物件
         const bookData = {
@@ -249,7 +316,7 @@ function createReadmooAdapter (options = {}) {
 
           // 提取的完整識別資訊
           identifiers: {
-            readerLinkId: id,
+            readerLinkId: readerId,
             coverId: this.extractCoverIdFromUrl(cover),
             titleBased: this.generateTitleBasedId(title),
             primarySource: idInfo.strategy
@@ -270,7 +337,11 @@ function createReadmooAdapter (options = {}) {
         stats.parseTime += performance.now() - startTime
         return bookData
       } catch (error) {
-        logger.error('BOOK_ELEMENT_PARSE_FAILED', { error: error.message, stack: error.stack })
+        logger.warn('BOOK_PARSE_ELEMENT_FAILED', {
+          error: error.message,
+          elementTag: element?.tagName || 'unknown',
+          elementClass: element?.className || 'unknown'
+        })
         stats.failedExtractions++
         stats.parseTime += performance.now() - startTime
         return null
@@ -315,6 +386,15 @@ function createReadmooAdapter (options = {}) {
         }
       }
 
+      // 批量彙整不安全封面 URL 警告（避免逐筆輸出洗版 console）
+      if (this._unsafeUrlCount > 0) {
+        logger.warn('UNSAFE_COVER_URL_FILTERED', {
+          totalFiltered: this._unsafeUrlCount,
+          message: `${this._unsafeUrlCount} 個不安全的封面網址已過濾`
+        })
+        this._unsafeUrlCount = 0
+      }
+
       stats.lastExtraction = Date.now()
       const totalTime = performance.now() - extractionStart
 
@@ -327,6 +407,20 @@ function createReadmooAdapter (options = {}) {
         failed: stats.failedExtractions
       })
 
+      // 診斷日誌：印出前 3 本書的資料摘要
+      if (books.length > 0) {
+        const sample = books.slice(0, 3).map(b => ({
+          id: b.id,
+          title: b.title,
+          url: b.url ? b.url.substring(0, 50) : '無',
+          cover: b.cover ? '有' : '無'
+        }))
+        logger.info('EXTRACTION_SAMPLE_DATA', {
+          totalBooks: books.length,
+          sampleBooks: sample
+        })
+      }
+
       if (bookElements.length === 0) {
         logger.warn('NO_BOOK_ELEMENTS_FOUND', {
           possibleReasons: [
@@ -337,7 +431,7 @@ function createReadmooAdapter (options = {}) {
           ]
         })
       } else if (books.length === 0) {
-        logger.warn('BOOK_CONTAINERS_PARSE_FAILED', {
+        logger.error('BOOK_CONTAINERS_PARSE_FAILED', {
           possibleReasons: [
             '容器結構不符合預期',
             '缺少必要的子元素',

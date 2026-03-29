@@ -27,25 +27,9 @@
  * - 使用者互動功能的協調中心
  */
 
-// 動態取得 EventHandler（支援瀏覽器和 Node.js）
-let EventHandlerClass
-let ErrorCodes
-if (typeof window !== 'undefined') {
-  // 瀏覽器環境：從全域變數取得（應該已由 event-handler.js 載入）
-  EventHandlerClass = window.EventHandler
-  ErrorCodes = window.ErrorCodes
-  if (!EventHandlerClass) {
-    const error = new Error('EventHandler 未在全域變數中找到，請確認 event-handler.js 已正確載入')
-    error.code = ErrorCodes?.DEPENDENCY_ERROR || 'DEPENDENCY_ERROR'
-    error.details = { category: 'dependency' }
-    throw error
-  }
-} else {
-  // Node.js 環境：使用 require
-  EventHandlerClass = require('src/core/event-handler')
-  const { ErrorCodes: ImportedErrorCodes } = require('src/core/errors/ErrorCodes')
-  ErrorCodes = ImportedErrorCodes
-}
+// 引入核心模組（由 esbuild 在建置時打包解析）
+const EventHandlerClass = require('src/core/event-handler')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 // 常數定義
 const CONSTANTS = {

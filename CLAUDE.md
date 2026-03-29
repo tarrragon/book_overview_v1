@@ -89,10 +89,10 @@ npm run test:comprehensive
 # 安裝依賴項
 npm install
 
-# 開發版本建置
+# 開發版本建置（預設，保留所有 log 輸出）
 npm run build:dev
 
-# 生產版本建置
+# 生產版本建置（正式發布用，移除 log 輸出）
 npm run build:prod
 
 # 驗證生產建置
@@ -101,6 +101,15 @@ npm run validate:build:prod
 # 清理建置產物
 npm run clean
 ```
+
+**建置模式說明**：
+
+| 模式 | 指令 | Log 輸出 | 用途 |
+|------|------|---------|------|
+| development | `npm run build:dev` | 保留 | 日常開發、測試、除錯 |
+| production | `npm run build:prod` | 移除 | 正式發布至 Chrome Web Store |
+
+**預設行為**：除非明確要做正式發布版，所有「編譯」「建置」「build」指令一律使用 `npm run build:dev`。
 
 ### 程式碼品質指令
 
@@ -183,6 +192,7 @@ src/
 | `docs/struct.md` | 專案結構說明 |
 | `docs/README.md` | 文件導引 |
 | `docs/chrome-extension-dev-guide.md` | Chrome Extension 開發注意事項 |
+| `docs/data-flow-architecture.md` | 資料流架構與已知陷阱（必讀） |
 
 ---
 

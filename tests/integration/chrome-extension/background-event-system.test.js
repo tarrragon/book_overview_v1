@@ -426,35 +426,23 @@ describe('Background Service Worker Event System Integration', () => {
       }
     })
 
-    test('應該在監聽器註冊前的事件於就緒後被重放 (pre-init queue)', async () => {
-      // eslint-disable-next-line no-unused-vars
+    test('應該在事件系統就緒後正確派發事件給已註冊監聽器', async () => {
+      // 修復 0.15.4-W3-002 後，EventCoordinator.start() 在初始化階段即被呼叫，
+      // 事件系統在 setup 完成時已處於 ready 狀態。
+      // 驗證：已 ready 的事件系統中，先註冊監聽器再 emit，handler 應被正確呼叫。
       const eventBus = global.eventBus
       expect(eventBus).toBeDefined()
 
       if (eventBus) {
-        // eslint-disable-next-line no-unused-vars
         const handler = jest.fn()
 
-        // 在尚未註冊監聽器前先 emit（模擬冷啟動早到事件）
-        await eventBus.emit('EARLY.EVENT', { foo: 'bar' })
-
-        // 此時尚未有監聽器，不應觸發 handler
-        expect(handler).not.toHaveBeenCalled()
-
         // 註冊監聽器
-        eventBus.on('EARLY.EVENT', (event) => handler(event.data))
+        eventBus.on('READY.EVENT', (event) => handler(event.data))
 
-        // 透過 markReady 觸發 pre-init 佇列重放
-        if (typeof eventBus.markReady === 'function') {
-          eventBus.markReady()
-          // 等待重放
-          await new Promise(resolve => setTimeout(resolve, 20))
-        } else {
-          // 若無 markReady，至少確認 on 之後 emit 一次也可
-          await eventBus.emit('EARLY.EVENT', { foo: 'bar' })
-        }
+        // emit 事件（事件系統已 ready，應立即派發）
+        await eventBus.emit('READY.EVENT', { foo: 'bar' })
 
-        // 斷言：handler 應該已在重放後被呼叫一次，且資料一致
+        // 斷言：handler 應該已被呼叫，且資料一致
         expect(handler).toHaveBeenCalled()
         expect(handler).toHaveBeenCalledWith({ foo: 'bar' })
       }

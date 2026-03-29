@@ -71,6 +71,21 @@ const MAX_INITIALIZATION_ATTEMPTS = 3
 // 緊急模式標記
 let emergencyMode = false
 
+// Service Worker 全域錯誤處理（必須在頂層同步註冊，避免 Chrome 警告）
+// 設計意圖：Chrome 要求 error/unhandledrejection handler 在 SW 腳本初始評估階段註冊，
+// 不可在 async 函式中延遲註冊。此處用 console.error 因為 Logger 可能尚未完成初始化。
+// eslint-disable-next-line no-console
+addEventListener('error', (event) => {
+  // eslint-disable-next-line no-console
+  console.error('[SW] 未捕獲錯誤:', event.error || event.message)
+})
+
+// eslint-disable-next-line no-console
+addEventListener('unhandledrejection', (event) => {
+  // eslint-disable-next-line no-console
+  console.error('[SW] 未處理的 Promise 拒絕:', event.reason)
+})
+
 /**
  * 主要初始化函數
  *
@@ -197,48 +212,8 @@ async function registerServiceWorkerEvents () {
       })
     }
 
-    // Service Worker 異常中斷處理
-    addEventListener('error', (event) => {
-      log.error('🚨 Service Worker 異常錯誤:', event.error)
-
-      // 嘗試收集錯誤到錯誤處理器
-      if (backgroundCoordinator && backgroundCoordinator.errorHandler) {
-        backgroundCoordinator.errorHandler.collectError({
-          message: event.error?.message || 'Service Worker異常錯誤',
-          error: event.error,
-          category: 'system',
-          severity: 'critical',
-          context: {
-            source: 'serviceWorker',
-            filename: event.filename,
-            lineno: event.lineno,
-            colno: event.colno
-          }
-        })
-      }
-    })
-
-    // Service Worker 未處理的 Promise 拒絕
-    addEventListener('unhandledrejection', (event) => {
-      log.error('🚨 未處理的 Promise 拒絕:', event.reason)
-
-      // 嘗試收集錯誤到錯誤處理器
-      if (backgroundCoordinator && backgroundCoordinator.errorHandler) {
-        backgroundCoordinator.errorHandler.collectError({
-          message: `未處理的Promise拒絕: ${event.reason}`,
-          error: event.reason,
-          category: 'system',
-          severity: 'high',
-          context: {
-            source: 'serviceWorker',
-            type: 'unhandledRejection'
-          }
-        })
-      }
-
-      // 防止錯誤傳播到控制台（已記錄）
-      event.preventDefault()
-    })
+    // error 和 unhandledrejection handler 已在檔案頂層同步註冊，
+    // 避免 Chrome 警告 "Event handler must be added on initial evaluation"
 
     log.info('✅ Service Worker 生命週期事件註冊完成')
   } catch (error) {

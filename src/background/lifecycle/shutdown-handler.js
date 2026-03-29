@@ -68,24 +68,10 @@ class ShutdownHandler extends BaseModule {
    * @private
    */
   setupShutdownDetection () {
-    try {
-      // 在 Manifest V3 中，我們無法直接監聽 Service Worker 的關閉
-      // 但可以設定一些檢測機制
-
-      // 監聽全域錯誤，可能表示即將關閉
-      self.addEventListener('error', (event) => {
-        this.logger.warn('🚨 全域錯誤可能表示系統即將關閉:', event.error)
-      })
-
-      // 監聽未處理的 Promise 拒絕
-      self.addEventListener('unhandledrejection', (event) => {
-        this.logger.warn('🚨 未處理 Promise 拒絕，系統可能不穩定:', event.reason)
-      })
-
-      this.logger.log('🔍 關閉檢測機制設定完成')
-    } catch (error) {
-      this.logger.error('❌ 設定關閉檢測失敗:', error)
-    }
+    // error 和 unhandledrejection handler 已在 background.js 頂層同步註冊，
+    // 避免 Chrome 警告 "Event handler must be added on initial evaluation"
+    // 在 Manifest V3 中，我們無法直接監聽 Service Worker 的關閉
+    this.logger.log('🔍 關閉檢測機制設定完成（全域錯誤處理器已在頂層註冊）')
   }
 
   /**
