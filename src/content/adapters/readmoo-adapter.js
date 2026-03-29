@@ -115,6 +115,8 @@ function createReadmooAdapter (options = {}) {
     getBookElements () {
       const startTime = performance.now()
       let elements = []
+      // 診斷：記錄呼叫來源，用於分析時序問題
+      const caller = new Error().stack?.split('\n')[2]?.trim() || 'unknown'
 
       try {
         const document = getDocument()
@@ -122,6 +124,20 @@ function createReadmooAdapter (options = {}) {
           logger.warn('DOCUMENT_UNAVAILABLE')
           return []
         }
+
+        // 診斷日誌：記錄呼叫時的 DOM 狀態
+        const readerLinkCount = document.querySelectorAll(SELECTORS.readerLink).length
+        const directLibraryItemCount = document.querySelectorAll(SELECTORS.bookContainer).length
+        // 額外診斷：測試屬性選擇器是否能匹配
+        const attrSelectorCount = document.querySelectorAll('[class*="library-item"]').length
+
+        logger.info('GET_BOOK_ELEMENTS_CALLED', {
+          caller,
+          readyState: document.readyState,
+          directLibraryItemCount,
+          attrSelectorCount,
+          readerLinkCount
+        })
 
         // 主要策略：查找 .library-item 容器
         elements = Array.from(document.querySelectorAll(SELECTORS.bookContainer))
@@ -162,6 +178,19 @@ function createReadmooAdapter (options = {}) {
           })
 
           elements = Array.from(containers)
+
+          // 診斷：如果 LAST_RESORT 找到但主選擇器沒找到，記錄詳細資訊
+          if (elements.length > 0 && directLibraryItemCount === 0) {
+            const sampleParent = elements[0]
+            logger.warn('SELECTOR_PARADOX', {
+              directQueryFound: directLibraryItemCount,
+              attrQueryFound: attrSelectorCount,
+              lastResortFound: elements.length,
+              readerLinksFound: readerLinkCount,
+              sampleClassName: sampleParent.className,
+              sampleOuterHtmlPrefix: sampleParent.outerHTML.substring(0, 200)
+            })
+          }
         }
 
         // 診斷日誌：確認容器類型
@@ -184,6 +213,111 @@ function createReadmooAdapter (options = {}) {
         stats.domQueryTime += performance.now() - startTime
         return []
       }
+    },
+
+    /**
+     * 等待書籍元素出現在 DOM 中
+     *
+     * 解決 SPA 動態渲染問題：Readmoo 頁面載入後，
+     * 書籍元素可能需要額外時間才會渲染到 DOM。
+     * 此方法使用 MutationObserver 監聽 DOM 變化，
+     * 在元素出現後立即回傳結果。
+     *
+     * @param {Object} [waitOptions={}] - 等待選項
+     * @param {number} [waitOptions.timeoutMs=3000] - 最大等待毫秒數
+     * @param {number} [waitOptions.checkIntervalMs=200] - 輪詢間隔毫秒數
+     * @returns {Promise<HTMLElement[]>} 書籍容器元素陣列
+     */
+    async waitForBookElements (waitOptions = {}) {
+      const WAIT_TIMEOUT_MS = waitOptions.timeoutMs || 3000
+      const CHECK_INTERVAL_MS = waitOptions.checkIntervalMs || 200
+
+      // 先嘗試立即取得
+      const immediate = this.getBookElements()
+      if (immediate.length > 0) {
+        return immediate
+      }
+
+      // [0.16.0-W1-003] 移除「無 reader links 就 skip」的邏輯
+      // 在 SPA 架構中，readyState === "interactive" 時框架 JS 還在執行，
+      // 書籍列表尚未渲染，readerLinkCount 為 0 不代表「不是書庫頁面」，
+      // 而是「SPA 還沒渲染完」。必須啟動 MutationObserver 等待。
+
+      logger.info('WAIT_FOR_BOOK_ELEMENTS_START', { timeoutMs: WAIT_TIMEOUT_MS })
+
+      return new Promise((resolve) => {
+        const document = getDocument()
+        if (!document) {
+          resolve([])
+          return
+        }
+
+        let resolved = false
+        let observer = null
+        let intervalId = null
+
+        const cleanup = () => {
+          if (observer) {
+            observer.disconnect()
+            observer = null
+          }
+          if (intervalId) {
+            clearInterval(intervalId)
+            intervalId = null
+          }
+        }
+
+        const tryResolve = (source) => {
+          if (resolved) return
+          const elements = this.getBookElements()
+          if (elements.length > 0) {
+            resolved = true
+            cleanup()
+            logger.info('WAIT_FOR_BOOK_ELEMENTS_FOUND', {
+              source,
+              count: elements.length
+            })
+            resolve(elements)
+          }
+        }
+
+        // 策略 1：MutationObserver 監聽 DOM 新增節點
+        const observeTarget = document.body || document.documentElement
+        if (typeof MutationObserver !== 'undefined' && observeTarget && observeTarget.nodeType === 1) {
+          try {
+            observer = new MutationObserver(() => {
+              tryResolve('mutation')
+            })
+            observer.observe(observeTarget, {
+              childList: true,
+              subtree: true
+            })
+          } catch (observeError) {
+            // MutationObserver 在某些環境（如 JSDOM）可能無法正常運作
+            logger.warn('MUTATION_OBSERVER_FAILED', { error: observeError.message })
+            observer = null
+          }
+        }
+
+        // 策略 2：定時輪詢作為備援
+        intervalId = setInterval(() => {
+          tryResolve('interval')
+        }, CHECK_INTERVAL_MS)
+
+        // 超時保護：到期後回傳當前結果（可能為空陣列）
+        setTimeout(() => {
+          if (!resolved) {
+            resolved = true
+            cleanup()
+            const finalElements = this.getBookElements()
+            logger.warn('WAIT_FOR_BOOK_ELEMENTS_TIMEOUT', {
+              timeoutMs: WAIT_TIMEOUT_MS,
+              finalCount: finalElements.length
+            })
+            resolve(finalElements)
+          }
+        }, WAIT_TIMEOUT_MS)
+      })
     },
 
     /**
@@ -355,7 +489,8 @@ function createReadmooAdapter (options = {}) {
      */
     async extractAllBooks () {
       const extractionStart = performance.now()
-      const bookElements = this.getBookElements()
+      // 使用 waitForBookElements 等待 SPA 動態渲染完成，避免空結果
+      const bookElements = await this.waitForBookElements({ timeoutMs: 5000 })
       const books = []
 
       stats.totalExtracted = bookElements.length
