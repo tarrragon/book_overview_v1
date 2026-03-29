@@ -27,6 +27,7 @@
 
 const puppeteer = require('puppeteer')
 const path = require('path')
+const fs = require('fs')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class ExtensionTestSetup {
@@ -42,33 +43,72 @@ class ExtensionTestSetup {
    * @param {Object} options - 測試配置選項
    * @returns {Promise<void>}
    */
+  /**
+   * 偵測可用的 Chrome 執行檔路徑
+   * 優先使用 Puppeteer 管理的 Chrome，若不存在則 fallback 到系統 Chrome
+   * @returns {string|undefined} Chrome 執行檔路徑，undefined 表示使用 Puppeteer 預設
+   */
+  resolveChromePath () {
+    // macOS 系統 Chrome 路徑
+    const SYSTEM_CHROME_PATHS = [
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
+      '/Applications/Chromium.app/Contents/MacOS/Chromium'
+    ]
+
+    // 先嘗試 Puppeteer 管理的 Chrome（讓 puppeteer.launch 自行解析）
+    try {
+      puppeteer.executablePath()
+      return undefined // Puppeteer 的 Chrome 可用，不需要指定路徑
+    } catch {
+      // Puppeteer 管理的 Chrome 不存在，嘗試系統 Chrome
+    }
+
+    for (const chromePath of SYSTEM_CHROME_PATHS) {
+      if (fs.existsSync(chromePath)) {
+        return chromePath
+      }
+    }
+
+    return undefined
+  }
+
   async setup (options = {}) {
     try {
       // 建立 Extension 建置路徑
       const extensionPath = path.resolve(__dirname, '../../../build/development')
 
-      // Chrome 不支援在 headless 模式下載入 Extension（Manifest V3 限制）
-      // 因此 E2E Extension 測試必須以 headed 模式執行
-      this.browser = await puppeteer.launch({
+      // 偵測 Chrome 執行檔路徑
+      const chromePath = this.resolveChromePath()
+      const launchOptions = {
         headless: false,
         devtools: false,
         protocolTimeout: 120000, // 增加協定超時時間
-        args: [
-          `--disable-extensions-except=${extensionPath}`,
-          `--load-extension=${extensionPath}`,
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-background-timer-throttling',
-          '--disable-web-security',
-          '--disable-features=VizDisplayCompositor',
-          '--remote-debugging-port=0', // 動態分配調試端口
-          '--disable-backgrounding-occluded-windows',
-          '--disable-renderer-backgrounding',
-          '--disable-features=TranslateUI',
-          '--disable-default-apps'
-        ]
-      })
+      }
+
+      if (chromePath) {
+        launchOptions.executablePath = chromePath
+      }
+
+      // Chrome 不支援在 headless 模式下載入 Extension（Manifest V3 限制）
+      // 因此 E2E Extension 測試必須以 headed 模式執行
+      launchOptions.args = [
+        `--disable-extensions-except=${extensionPath}`,
+        `--load-extension=${extensionPath}`,
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-background-timer-throttling',
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor',
+        '--remote-debugging-port=0', // 動態分配調試端口
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+        '--disable-features=TranslateUI',
+        '--disable-default-apps'
+      ]
+
+      this.browser = await puppeteer.launch(launchOptions)
 
       // 取得 Extension ID
       this.extensionId = await this.getExtensionId()

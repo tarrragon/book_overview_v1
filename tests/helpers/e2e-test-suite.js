@@ -626,6 +626,16 @@ class E2ETestSuite {
         this.extensionController.state.storage.set('mockBooksCount', this.testData.books.length)
         this.extensionController.state.storage.set('isReadmooPage', true)
         this.extensionController.state.storage.set('expectedBookCount', this.testData.books.length)
+
+        // 保存書籍前綴（從第一本書的 ID 推斷）
+        if (books && books.length > 0 && books[0].id) {
+          const firstId = books[0].id
+          // 提取前綴：去掉最後的數字部分
+          const prefixMatch = firstId.match(/^(.+?)-\d+$/)
+          if (prefixMatch) {
+            this.extensionController.state.storage.set('currentBookPrefix', prefixMatch[1])
+          }
+        }
       }
     }
 
@@ -1711,6 +1721,8 @@ class E2ETestSuite {
           contentContext.error = crash
           contentContext.crashTime = Date.now()
         }
+        // 設置全域崩潰標記，供 clickExtractButton 結果使用
+        this.extensionController.state.contentScriptCrashed = true
       }
 
       // 模擬崩潰恢復過程
@@ -1843,7 +1855,11 @@ class E2ETestSuite {
    * 模擬連接問題
    * 測試系統對連接中斷和恢復的處理
    */
-  async simulateConnectionIssue (options = {}) {
+  async simulateConnectionIssue (issueTypeOrOptions = {}, durationArg) {
+    // 支援位置參數呼叫：simulateConnectionIssue('disconnect', 1000)
+    const options = typeof issueTypeOrOptions === 'string'
+      ? { issueType: issueTypeOrOptions, duration: durationArg }
+      : issueTypeOrOptions
     const {
       issueType = 'intermittent_disconnection',
       duration = 5000,
@@ -1883,6 +1899,12 @@ class E2ETestSuite {
         issue,
         startTime: Date.now(),
         events: []
+      }
+
+      // 追蹤連線問題次數，供 clickExtractButton 結果使用
+      if (this.extensionController) {
+        const current = this.extensionController.state.connectionIssuesCount || 0
+        this.extensionController.state.connectionIssuesCount = current + 1
       }
 
       return new Promise((resolve) => {
@@ -1930,7 +1952,11 @@ class E2ETestSuite {
    * 模擬訊息延遲
    * 在testSuite層級模擬訊息傳遞的延遲
    */
-  async simulateMessageDelay (options = {}) {
+  async simulateMessageDelay (delayMsOrOptions = {}) {
+    // 支援位置參數呼叫：simulateMessageDelay(10000)
+    const options = typeof delayMsOrOptions === 'number'
+      ? { delayMs: delayMsOrOptions }
+      : delayMsOrOptions
     const {
       delayMs = 1000,
       variance = 200,
@@ -1952,6 +1978,11 @@ class E2ETestSuite {
 
       // 設定訊息延遲狀態
       this.state.messageDelaySimulation = messageDelayState
+
+      // 同步到 extensionController 供 clickExtractButton 判斷
+      if (this.extensionController) {
+        this.extensionController.state.messageDelayMs = delayMs
+      }
 
       // 模擬延遲期間的訊息處理
       return new Promise((resolve) => {
