@@ -78,7 +78,7 @@
     "jsdoc": "^4.0.2",
     "jsdom": "^26.1.0",
     "prettier": "^3.6.2",
-    "puppeteer": "^21.3.6",
+    "puppeteer": "^22.15.0",
     "rimraf": "^5.0.5"
   },
   "jest": {
