@@ -679,6 +679,20 @@ class E2ETestSuite {
     return { success: true, permissionsRevoked: true }
   }
 
+  /**
+   * 模擬 Script 載入失敗
+   * 設定 extensionController 狀態以觸發腳本載入錯誤
+   */
+  async simulateScriptLoadFailure () {
+    this.log('模擬 Script 載入失敗')
+
+    if (this.extensionController) {
+      this.extensionController.state.scriptLoadingError = true
+    }
+
+    return { success: true, scriptLoadingFailed: true }
+  }
+
   async navigateToIncompleteReadmooPage () {
     this.log('導航到不完整的Readmoo頁面')
 
