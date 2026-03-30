@@ -1,0 +1,43 @@
+# Proposals Tracking Index
+# 提案追蹤索引 — 單一檔案掌握所有提案狀態
+#
+# 狀態值: draft / discussing / confirmed / implemented / withdrawn
+# checklist.status: done / pending / in_progress
+
+version: "1.0"
+last_updated: "2026-03-30"
+
+proposals:
+  PROP-000:
+    title: "提案驅動需求追蹤機制設計"
+    status: draft
+    proposed: "2026-03-30"
+    confirmed: null
+    target_version: "v0.16.2"
+    source: "development"
+    spec_refs: []
+    usecase_refs: []
+    ticket_refs:
+      - "0.16.2-W1-002"
+    checklist:
+      - item: "完成現有文件架構問題分析報告"
+        status: done
+        verified_by: "0.16.2-W1-002"
+      - item: "設計提案文件格式與流程"
+        status: done
+        verified_by: "0.16.2-W1-002"
+      - item: "設計 proposals-tracking.yaml 格式"
+        status: done
+        verified_by: "0.16.2-W1-002"
+      - item: "設計四資料夾架構"
+        status: done
+        verified_by: "0.16.2-W1-002"
+      - item: "建立目錄結構"
+        status: done
+        verified_by: "0.16.2-W1-002"
+      - item: "現有文件遷移方案規劃"
+        status: pending
+        verified_by: null
+      - item: "工具整合方案規劃"
+        status: pending
+        verified_by: null
