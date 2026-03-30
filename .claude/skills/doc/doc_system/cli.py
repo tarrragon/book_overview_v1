@@ -34,13 +34,24 @@ def build_parser() -> argparse.ArgumentParser:
 
     # domain
     domain_parser = subparsers.add_parser("domain", help="依 domain 篩選文件")
-    domain_parser.add_argument("domain_name", help="Domain 名稱")
+    domain_parser.add_argument(
+        "domain_name",
+        nargs="?",
+        default=None,
+        help="Domain 名稱（省略則列出全部）",
+    )
 
     # status
     subparsers.add_parser("status", help="顯示文件系統總覽狀態")
 
     # test-map
-    subparsers.add_parser("test-map", help="顯示需求-測試對應表")
+    test_map_parser = subparsers.add_parser("test-map", help="顯示需求-測試對應表")
+    test_map_parser.add_argument(
+        "uc_id",
+        nargs="?",
+        default=None,
+        help="UC ID（省略則顯示全部）",
+    )
 
     return parser
 
