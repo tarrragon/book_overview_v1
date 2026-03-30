@@ -22,10 +22,24 @@
 // } = require('src/background/constants/module-constants')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
+/**
+ * 同步優先級定義
+ * 書籍為核心資料最優先，標註次之，設定最後
+ */
+const SYNC_PRIORITY = {
+  books: 1,
+  annotations: 2,
+  settings: 3
+}
+
+/** 未知資料類型的預設優先級（排在已知類型之後） */
+const DEFAULT_PRIORITY = 99
+
 class SyncStrategyProcessor {
   constructor (eventBus, options = {}) {
     this.eventBus = eventBus
     this.logger = options.logger || console
+    this.conflictResolver = options.conflictResolver || null
 
     this.state = {
       initialized: false,
@@ -121,15 +135,25 @@ class SyncStrategyProcessor {
 
   /**
    * 處理優先級導向策略
+   *
+   * 按資料類型排序同步順序：書籍 > 標註 > 設定
+   * 接收 data.items 陣列（每個 item 有 type 欄位），回傳按優先級排序的結果
    */
   async processPriorityBasedStrategy (data) {
-    this.logger.log('🔄 執行優先級導向同步策略')
+    this.logger.log('執行優先級導向同步策略')
 
-    // 模擬策略處理
+    const items = data.items || []
+
+    const sortedItems = [...items].sort((a, b) => {
+      const priorityA = SYNC_PRIORITY[a.type] || DEFAULT_PRIORITY
+      const priorityB = SYNC_PRIORITY[b.type] || DEFAULT_PRIORITY
+      return priorityA - priorityB
+    })
+
     const result = {
       strategy: 'priority-based',
       decision: 'sync',
-      priority: data.priority || 'normal',
+      sortedItems,
       processed: true
     }
 
@@ -139,15 +163,42 @@ class SyncStrategyProcessor {
 
   /**
    * 處理時間戳導向策略
+   *
+   * 比對 local 和 remote 的 updatedAt 時間戳，決定同步方向：
+   * - remote 較新 -> 'pull'
+   * - local 較新 -> 'push'
+   * - 相同 -> 'skip'
+   * - 缺少時間戳 -> 'pull'（保守策略，以遠端為準）
    */
   async processTimestampBasedStrategy (data) {
-    this.logger.log('🔄 執行時間戳導向同步策略')
+    this.logger.log('執行時間戳導向同步策略')
 
-    // 模擬策略處理
+    const localTimestamp = data.localTimestamp
+    const remoteTimestamp = data.remoteTimestamp
+
+    let decision
+
+    if (!localTimestamp || !remoteTimestamp) {
+      // 缺少時間戳，保守策略以遠端為準
+      decision = 'pull'
+    } else {
+      const localTime = new Date(localTimestamp).getTime()
+      const remoteTime = new Date(remoteTimestamp).getTime()
+
+      if (remoteTime > localTime) {
+        decision = 'pull'
+      } else if (localTime > remoteTime) {
+        decision = 'push'
+      } else {
+        decision = 'skip'
+      }
+    }
+
     const result = {
       strategy: 'timestamp-based',
-      decision: 'sync',
-      timestamp: Date.now(),
+      decision,
+      localTimestamp: localTimestamp || null,
+      remoteTimestamp: remoteTimestamp || null,
       processed: true
     }
 
@@ -157,15 +208,46 @@ class SyncStrategyProcessor {
 
   /**
    * 處理衝突解決策略
+   *
+   * 整合 SyncConflictResolver（如果有注入）進行衝突處理：
+   * - 有 conflictResolver -> 委託處理
+   * - 無 conflictResolver -> Last-Write-Wins 預設策略（比較 updatedAt）
    */
   async processConflictResolutionStrategy (data) {
-    this.logger.log('🔄 執行衝突解決同步策略')
+    this.logger.log('執行衝突解決同步策略')
 
-    // 模擬策略處理
+    const localVersion = data.localVersion || {}
+    const remoteVersion = data.remoteVersion || {}
+
+    let resolution
+
+    if (this.conflictResolver) {
+      // 委託給注入的衝突解決器
+      resolution = await this.conflictResolver.resolveConflict({
+        localVersion,
+        remoteVersion
+      })
+    } else {
+      // Last-Write-Wins 預設策略
+      const localTime = localVersion.updatedAt
+        ? new Date(localVersion.updatedAt).getTime()
+        : 0
+      const remoteTime = remoteVersion.updatedAt
+        ? new Date(remoteVersion.updatedAt).getTime()
+        : 0
+
+      const winner = remoteTime >= localTime ? 'remote' : 'local'
+
+      resolution = {
+        strategy: 'last-write-wins',
+        winner
+      }
+    }
+
     const result = {
       strategy: 'conflict-resolution',
       decision: 'resolve',
-      resolution: 'merge',
+      resolution,
       processed: true
     }
 
