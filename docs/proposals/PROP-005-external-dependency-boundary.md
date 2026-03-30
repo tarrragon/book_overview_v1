@@ -1,7 +1,7 @@
 ---
 id: PROP-005
 title: "外部依賴邊界防護驗證"
-status: discussing
+status: confirmed
 source: "development"
 proposed_by: "UC 測試驗證延伸"
 proposed_date: "2026-03-30"

@@ -1,7 +1,7 @@
 ---
 id: PROP-004
 title: "UseCase 與測試覆蓋率差距分析"
-status: discussing
+status: implemented
 source: "development"
 proposed_by: "spec 盤點後驗證"
 proposed_date: "2026-03-30"

@@ -1,7 +1,7 @@
 ---
 id: PROP-000
 title: "提案驅動的需求追蹤機制"
-status: discussing
+status: implemented
 source: "development"
 proposed_by: "架構設計"
 proposed_date: "2026-03-30"

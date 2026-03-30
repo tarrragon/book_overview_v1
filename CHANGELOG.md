@@ -2,6 +2,29 @@
 
 本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.16.2] - 2026-03-30
+
+### 跨設備同步機制 + /doc CLI + 測試補強
+
+**同步機制實作**：
+- [新增] SyncStrategyProcessor 三策略真實邏輯（priority/timestamp/conflict-resolution）
+- [新增] RetryCoordinator 斷路器模式 + chrome.storage.local 持久化
+- [新增] SyncMetadataManager chrome.storage.sync 元資料同步
+- [新增] SynchronizationOrchestrator 端到端同步流程整合
+
+**測試補強**：
+- [新增] UC-01/02/04/07 整合測試（79 個新測試）
+
+**/doc CLI**：
+- [新增] doc_system Python 套件 8 個子命令
+- [新增] frontmatter 解析器 + 檔案定位器
+
+**品質改善**：
+- [修復] 文件引用不一致、Hook 路徑限制、CLI 品質問題
+- [新增] worktree 自動合併依賴、Bash 規則三（index.lock 防護）
+
+統計：27 個 Ticket、~250 個新測試、~6000 行新程式碼
+
 ## [v0.15.0] - 2026-03-28
 
 ### 專案重啟與品質整理

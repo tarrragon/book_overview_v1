@@ -1,7 +1,7 @@
 ---
 id: PROP-002
 title: "跨設備同步機制完善"
-status: discussing
+status: confirmed
 source: "spec"
 proposed_by: "spec 盤點"
 proposed_date: "2026-03-30"

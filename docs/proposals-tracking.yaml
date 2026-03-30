@@ -10,7 +10,7 @@ last_updated: "2026-03-30"
 proposals:
   PROP-000:
     title: "提案驅動需求追蹤機制設計"
-    status: discussing
+    status: implemented
     proposed: "2026-03-30"
     confirmed: null
     target_version: "v0.16.2"
@@ -72,7 +72,7 @@ proposals:
 
   PROP-002:
     title: "跨設備同步機制完善"
-    status: discussing
+    status: confirmed
     proposed: "2026-03-30"
     confirmed: null
     target_version: "v0.16.2"
@@ -126,7 +126,7 @@ proposals:
 
   PROP-004:
     title: "UseCase 與測試覆蓋率差距分析"
-    status: discussing
+    status: implemented
     proposed: "2026-03-30"
     confirmed: null
     target_version: "v0.16.2"
@@ -161,7 +161,7 @@ proposals:
 
   PROP-005:
     title: "外部依賴邊界防護驗證"
-    status: discussing
+    status: confirmed
     proposed: "2026-03-30"
     confirmed: null
     target_version: "v0.16.2"
