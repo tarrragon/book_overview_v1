@@ -10,7 +10,7 @@ last_updated: "2026-03-30"
 proposals:
   PROP-000:
     title: "提案驅動需求追蹤機制設計"
-    status: draft
+    status: discussing
     proposed: "2026-03-30"
     confirmed: null
     target_version: "v0.16.2"
@@ -32,12 +32,94 @@ proposals:
       - item: "設計四資料夾架構"
         status: done
         verified_by: "0.16.2-W1-002"
-      - item: "建立目錄結構"
+      - item: "建立目錄結構和模板"
         status: done
         verified_by: "0.16.2-W1-002"
-      - item: "現有文件遷移方案規劃"
+      - item: "Spec Domain 目錄遷移"
+        status: done
+        verified_by: null
+      - item: "文件系統 Skill 實作"
         status: pending
         verified_by: null
-      - item: "工具整合方案規劃"
+      - item: "UseCase 遷移"
+        status: pending
+        verified_by: null
+
+  PROP-001:
+    title: "多平台隔離與跨平台路由"
+    status: draft
+    proposed: "2026-03-30"
+    confirmed: null
+    target_version: "v2.0+"
+    source: "spec"
+    spec_refs:
+      - "spec/platform/platform-management.md"
+    usecase_refs: []
+    ticket_refs: []
+    checklist:
+      - item: "啟用 PlatformIsolationService"
+        status: pending
+        verified_by: null
+      - item: "實作 CrossPlatformRouter"
+        status: pending
+        verified_by: null
+      - item: "新增至少一個非 Readmoo 適配器"
+        status: pending
+        verified_by: null
+      - item: "多平台資料隔離驗證"
+        status: pending
+        verified_by: null
+
+  PROP-002:
+    title: "跨設備同步機制完善"
+    status: discussing
+    proposed: "2026-03-30"
+    confirmed: null
+    target_version: "v0.16.2"
+    source: "spec"
+    spec_refs:
+      - "spec/data-management/data-management.md"
+    usecase_refs: []
+    ticket_refs:
+      - "0.16.2-W1-001"
+    checklist:
+      - item: "完成同步機制需求分析報告"
+        status: pending
+        verified_by: null
+      - item: "確定 SyncStrategyProcessor 增強方案"
+        status: pending
+        verified_by: null
+      - item: "確定 RetryCoordinator 重試策略"
+        status: pending
+        verified_by: null
+      - item: "同步流程設計文件完成"
+        status: pending
+        verified_by: null
+
+  PROP-003:
+    title: "資料備份與恢復機制"
+    status: draft
+    proposed: "2026-03-30"
+    confirmed: null
+    target_version: "v0.16.3"
+    source: "spec"
+    spec_refs:
+      - "spec/data-management/data-management.md"
+    usecase_refs: []
+    ticket_refs: []
+    checklist:
+      - item: "BackupRecoveryService 實作"
+        status: pending
+        verified_by: null
+      - item: "手動備份功能"
+        status: pending
+        verified_by: null
+      - item: "備份恢復功能"
+        status: pending
+        verified_by: null
+      - item: "備份檔案格式文件"
+        status: pending
+        verified_by: null
+      - item: "測試通過"
         status: pending
         verified_by: null

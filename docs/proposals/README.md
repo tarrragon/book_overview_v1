@@ -65,7 +65,10 @@ draft → discussing → confirmed → implemented
 
 | 提案 ID | 標題 | 狀態 | 目標版本 |
 |---------|------|------|---------|
-| PROP-000 | 提案驅動需求追蹤機制設計 | draft | v0.16.2 |
+| PROP-000 | 提案驅動需求追蹤機制設計 | discussing | v0.16.2 |
+| PROP-001 | 多平台隔離與跨平台路由 | draft | v2.0+ |
+| PROP-002 | 跨設備同步機制完善 | discussing | v0.16.2 |
+| PROP-003 | 資料備份與恢復機制 | draft | v0.16.3 |
 
 ## 追蹤
 

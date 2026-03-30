@@ -70,9 +70,33 @@ UseCase 是跨 domain 的使用場景，一個 UC 可能涉及多個 domain：
 | UC-07 跨平台同步 | data-management, platform | data-management |
 | UC-08 錯誤處理 | system, core | system |
 
-## 待遷移項目
+## 規格索引
 
-- `../app-requirements-spec.md` → 依 domain 拆分到各子目錄
-- `../app-error-handling-design.md` → `core/error-handling.md`
+| ID | Domain | 規格名稱 | 狀態 | 完成度 |
+|----|--------|---------|------|--------|
+| SPEC-001 | core | [核心系統](core/core-systems.md) | approved | 7/7 (100%) |
+| SPEC-002 | extraction | [資料提取流程](extraction/extraction-pipeline.md) | approved | 3/3 (100%) |
+| SPEC-003 | platform | [平台管理](platform/platform-management.md) | approved | 2/3 (FR-03 暫置) |
+| SPEC-004 | data-management | [資料管理](data-management/data-management.md) | approved | 5/7 (FR-06 部分, FR-07 未實作) |
+| SPEC-005 | messaging | [通訊管理](messaging/message-routing.md) | approved | 1/1 (100%) |
+| SPEC-006 | page | [頁面管理](page/page-management.md) | approved | 1/1 (100%) |
+| SPEC-007 | system | [系統管理](system/system-management.md) | approved | 2/2 (100%) |
+| SPEC-008 | user-experience | [用戶體驗](user-experience/user-experience.md) | approved | 5/5 (100%) |
 
-> 遷移計畫見 PROP-000 Phase 2
+**整體完成度**：26/29 功能需求已實作（~90%）
+
+### 未完成項目摘要
+
+| 項目 | Domain | 狀態 | 說明 |
+|------|--------|------|------|
+| FR-03 多平台隔離 | platform | 刻意暫置 | 程式碼已寫但 v1.0 不啟用 |
+| FR-06 跨設備同步 | data-management | 部分實作 | 策略處理和重試機制簡化 |
+| FR-07 備份恢復 | data-management | 未實作 | 協調器中標記但未實作 |
+
+## 保留項目
+
+以下檔案為 Flutter APP 規格，暫不遷移，待獨立專案處理：
+
+- `../app-requirements-spec.md` — Flutter APP 需求規格（含 Extension 共用部分）
+- `../app-error-handling-design.md` — Flutter APP 錯誤處理設計
+- `../app-use-cases.md` — Flutter APP 用例（UC-01 ~ UC-08）
