@@ -1,3 +1,24 @@
+---
+id: PROP-000
+title: "提案驅動的需求追蹤機制"
+status: discussing
+source: "development"
+proposed_by: "架構設計"
+proposed_date: "2026-03-30"
+confirmed_date: null
+target_version: "v0.16.2"
+priority: P0
+
+outputs:
+  spec_refs: []
+  usecase_refs: []
+  ticket_refs:
+    - "0.16.2-W1-002"
+
+related_proposals: []
+supersedes: null
+---
+
 # PROP-000: 提案驅動需求追蹤機制設計
 
 ---
@@ -537,4 +558,3 @@ Proposal ──source_proposal──→ Spec
 
 **Last Updated**: 2026-03-30
 **Version**: 1.0.0
-**Status**: draft
