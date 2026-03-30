@@ -2,14 +2,26 @@
  * RetryCoordinator - 重試協調器
  *
  * 職責：
- * - 智能重試機制和策略選擇
+ * - 重試機制和策略選擇
  * - 退避演算法和時間計算
  * - 錯誤分析和可重試性判斷
  * - 重試限制和失敗處理
+ * - 斷路器模式：連續失敗超過閾值時暫停重試，防止無效請求
+ * - 狀態持久化：透過 chrome.storage.local 在 Service Worker 重啟後恢復狀態
  *
  * TDD實作：根據測試驅動的最小可行實作
  */
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+
+// 斷路器狀態常數
+const CircuitState = {
+  CLOSED: 'CLOSED',
+  OPEN: 'OPEN',
+  HALF_OPEN: 'HALF_OPEN'
+}
+
+// 持久化存儲 key
+const STORAGE_KEY = 'retryCoordinator_state'
 
 class RetryCoordinator {
   constructor (config = {}) {
@@ -20,6 +32,8 @@ class RetryCoordinator {
       maxDelay: 30000,
       jitterFactor: 0.1,
       defaultStrategy: 'EXPONENTIAL_BACKOFF',
+      circuitBreakerCooldown: 60000,
+      circuitBreakerThreshold: 5,
       ...config
     }
 
@@ -29,6 +43,18 @@ class RetryCoordinator {
       successfulRetries: 0,
       failedRetries: 0
     }
+
+    // 斷路器狀態：連續失敗超過 threshold 後進入 OPEN，拒絕所有重試
+    this.circuitBreaker = {
+      state: CircuitState.CLOSED,
+      failureCount: 0,
+      lastFailureTime: null,
+      cooldownPeriod: this.config.circuitBreakerCooldown,
+      failureThreshold: this.config.circuitBreakerThreshold
+    }
+
+    // 待處理的重試任務（用於持久化恢復）
+    this.pendingRetries = []
 
     this.isInitialized = true
 
@@ -175,6 +201,16 @@ class RetryCoordinator {
    * @returns {Object} 執行結果
    */
   async executeRetry (failedJob, executor) {
+    // 斷路器檢查：OPEN 狀態拒絕所有重試
+    if (this.isCircuitOpen()) {
+      return {
+        success: false,
+        error: '斷路器已開啟，暫停重試等待冷卻',
+        retryCount: failedJob.retryCount || 0,
+        circuitState: this.circuitBreaker.state
+      }
+    }
+
     // 檢查是否可重試
     if (!this.canRetry(failedJob)) {
       return {
@@ -211,6 +247,9 @@ class RetryCoordinator {
       this.stats.totalRetries++
       this.stats.successfulRetries++
 
+      // 斷路器記錄成功
+      this.recordSuccess()
+
       return {
         success: true,
         result,
@@ -222,6 +261,9 @@ class RetryCoordinator {
       // 失敗統計
       this.stats.totalRetries++
       this.stats.failedRetries++
+
+      // 斷路器記錄失敗
+      this.recordFailure()
 
       return {
         success: false,
@@ -285,6 +327,150 @@ class RetryCoordinator {
   updateConfig (newConfig) {
     this.config = { ...this.config, ...newConfig }
   }
+
+  // --- 斷路器（Circuit Breaker）方法 ---
+
+  /**
+   * 檢查斷路器是否開啟（應拒絕請求）
+   *
+   * 業務規則：
+   * - CLOSED：正常，允許重試
+   * - OPEN：超過冷卻期後轉為 HALF_OPEN 允許一次試探；否則拒絕
+   * - HALF_OPEN：允許一次試探性重試
+   *
+   * @returns {boolean} true 表示斷路器開啟，應拒絕重試
+   */
+  isCircuitOpen () {
+    if (this.circuitBreaker.state === CircuitState.CLOSED) {
+      return false
+    }
+
+    if (this.circuitBreaker.state === CircuitState.OPEN) {
+      const elapsed = Date.now() - this.circuitBreaker.lastFailureTime
+      if (elapsed >= this.circuitBreaker.cooldownPeriod) {
+        // 冷卻期已過，轉為 HALF_OPEN 允許試探
+        this.circuitBreaker.state = CircuitState.HALF_OPEN
+        return false
+      }
+      return true
+    }
+
+    // HALF_OPEN：允許一次試探性重試
+    return false
+  }
+
+  /**
+   * 記錄重試成功，重置斷路器
+   *
+   * 業務規則：成功時將斷路器恢復為 CLOSED，清零失敗計數
+   */
+  recordSuccess () {
+    this.circuitBreaker.failureCount = 0
+    this.circuitBreaker.state = CircuitState.CLOSED
+  }
+
+  /**
+   * 記錄重試失敗，可能觸發斷路器開啟
+   *
+   * 業務規則：連續失敗次數達到 failureThreshold 時進入 OPEN 狀態
+   */
+  recordFailure () {
+    this.circuitBreaker.failureCount++
+    this.circuitBreaker.lastFailureTime = Date.now()
+
+    if (this.circuitBreaker.failureCount >= this.circuitBreaker.failureThreshold) {
+      this.circuitBreaker.state = CircuitState.OPEN
+    }
+  }
+
+  /**
+   * 取得斷路器當前狀態
+   * @returns {Object} 斷路器狀態快照
+   */
+  getCircuitState () {
+    return {
+      state: this.circuitBreaker.state,
+      failureCount: this.circuitBreaker.failureCount,
+      lastFailureTime: this.circuitBreaker.lastFailureTime,
+      cooldownPeriod: this.circuitBreaker.cooldownPeriod,
+      failureThreshold: this.circuitBreaker.failureThreshold
+    }
+  }
+
+  // --- 持久化（chrome.storage.local）方法 ---
+
+  /**
+   * 將重試佇列和斷路器狀態存到 chrome.storage.local
+   *
+   * 業務規則：Service Worker 可能隨時被終止，
+   * 持久化確保重啟後能恢復未完成的重試和斷路器狀態
+   */
+  async saveState () {
+    const stateData = {
+      circuitBreaker: {
+        state: this.circuitBreaker.state,
+        failureCount: this.circuitBreaker.failureCount,
+        lastFailureTime: this.circuitBreaker.lastFailureTime
+      },
+      pendingRetries: this.pendingRetries,
+      stats: { ...this.stats },
+      savedAt: Date.now()
+    }
+
+    try {
+      await chrome.storage.local.set({ [STORAGE_KEY]: stateData })
+    } catch (error) {
+      // 持久化失敗不應阻塞重試流程，記錄錯誤供除錯
+      console.error('RetryCoordinator saveState 失敗:', error.message || error)
+    }
+  }
+
+  /**
+   * 從 chrome.storage.local 恢復狀態
+   *
+   * 業務規則：Service Worker 重啟時呼叫，恢復未完成的重試和斷路器狀態
+   *
+   * @returns {Object|null} 恢復的狀態，若無存儲資料則回傳 null
+   */
+  async loadState () {
+    try {
+      const result = await chrome.storage.local.get(STORAGE_KEY)
+      const stateData = result[STORAGE_KEY]
+
+      if (!stateData) {
+        return null
+      }
+
+      // 恢復斷路器狀態
+      if (stateData.circuitBreaker) {
+        this.circuitBreaker.state = stateData.circuitBreaker.state || CircuitState.CLOSED
+        this.circuitBreaker.failureCount = stateData.circuitBreaker.failureCount || 0
+        this.circuitBreaker.lastFailureTime = stateData.circuitBreaker.lastFailureTime || null
+      }
+
+      // 恢復待處理的重試任務
+      if (Array.isArray(stateData.pendingRetries)) {
+        this.pendingRetries = stateData.pendingRetries
+      }
+
+      // 恢復統計資料
+      if (stateData.stats) {
+        this.stats = {
+          totalRetries: stateData.stats.totalRetries || 0,
+          successfulRetries: stateData.stats.successfulRetries || 0,
+          failedRetries: stateData.stats.failedRetries || 0
+        }
+      }
+
+      return stateData
+    } catch (error) {
+      // 載入失敗不應阻塞初始化，記錄錯誤供除錯
+      console.error('RetryCoordinator loadState 失敗:', error.message || error)
+      return null
+    }
+  }
 }
 
 module.exports = RetryCoordinator
+module.exports.CircuitState = CircuitState
+module.exports.STORAGE_KEY = STORAGE_KEY
