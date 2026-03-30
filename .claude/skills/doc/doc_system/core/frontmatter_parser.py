@@ -22,7 +22,7 @@ def parse_frontmatter(file_path: str) -> dict | None:
         return None
 
     try:
-        lines = path.read_text(encoding="utf-8").splitlines()
+        lines = path.read_text(encoding="utf-8-sig").splitlines()
     except OSError:
         return None
 

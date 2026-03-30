@@ -3,6 +3,7 @@
 import argparse
 import os
 
+from doc_system.core.constants import TITLE_MAX_DISPLAY_LEN
 from doc_system.core.file_locator import FileLocator
 from doc_system.core.frontmatter_parser import parse_frontmatter
 
@@ -38,8 +39,8 @@ def _print_domain_specs(locator: FileLocator, domain_name: str) -> None:
 
         fm_id = str(frontmatter.get("id", os.path.basename(file_path)))
         title = str(frontmatter.get("title", "(無標題)"))
-        if len(title) > 27:
-            title = title[:24] + "..."
+        if len(title) > TITLE_MAX_DISPLAY_LEN:
+            title = title[: TITLE_MAX_DISPLAY_LEN - 3] + "..."
         related_ucs = frontmatter.get("related_usecases", [])
         uc_str = ", ".join(str(uc) for uc in related_ucs) if related_ucs else "-"
         print(f"{fm_id:<15} {title:<30} {uc_str}")
