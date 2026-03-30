@@ -141,21 +141,11 @@ cp .claude/skills/doc/templates/usecase-template.md docs/usecases/UC-{XX}-{desc}
 | 用途 | 擴充/重構時審視 domain 設計 | TDD Phase 1 功能設計 |
 | 轉化時機 | Ticket 完成後，設計成果沉澱為 domain spec | - |
 
-### 審查延後項目備註
+### 審查記錄
 
-以下為多視角審查（2026-03-30）發現但延後處理的中嚴重程度項目：
-
-| # | 項目 | 處理方式 | 來源 |
-|---|------|---------|------|
-| 1 | analytics/security domain 在模板有但列表沒有 | 已修復（第二輪移除模板中的無效值） | 第一輪 |
-| 2 | references 必填欄位表與模板欄位脫鉤（proposals.md 缺 priority/related_proposals） | 認領相關 Ticket 時補齊 | 第一輪 |
-| 3 | W2 Ticket 驗收條件可量化性不足 | 認領時細化 | 第一輪 |
-| 4 | P0 標記（W2-002）需補充理由 | 認領時確認 | 第一輪 |
-| 5 | 提案狀態 `withdrawn` 是否涵蓋「被否決」語義 | 確認或新增 `rejected` 狀態 | 第二輪 |
-| 6 | 審查備註長期應移至 `references/review-notes.md` | SKILL.md 只保留操作指引 | 第二輪 |
-| 7 | usecases.md UC 測試對應表硬編碼路徑 | 標註為快照或改用測試名稱 pattern | 第二輪 |
+審查歷史和修復記錄見 `references/review-notes.md`。
 
 ---
 
-**Version**: 1.2.0
+**Version**: 1.3.0
 **Last Updated**: 2026-03-30

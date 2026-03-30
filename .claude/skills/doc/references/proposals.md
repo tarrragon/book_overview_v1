@@ -24,7 +24,7 @@ draft → discussing → confirmed → implemented
 | discussing | 開始評估可行性 |
 | confirmed | 轉化為 spec/usecase，開 ticket |
 | implemented | 所有相關 ticket 完成 |
-| withdrawn | 決定不做，記錄理由 |
+| withdrawn | 主動撤回或審查後否決，記錄理由 |
 
 ## 與 Ticket 的關係
 
@@ -38,14 +38,17 @@ draft → discussing → confirmed → implemented
 
 模板位置：`.claude/skills/doc/templates/proposal-template.md`
 
-### 必填欄位
+### 欄位說明
 
-| frontmatter | 正文章節 |
-|-------------|---------|
-| id, title, status | 需求來源 |
-| source, target_version | 問題描述 |
-| outputs.spec_refs/usecase_refs/ticket_refs | 範圍界定（In Scope / Out of Scope） |
-| | 驗收條件 |
+| frontmatter | 必填 | 正文章節 |
+|-------------|------|---------|
+| id, title, status | 是 | 需求來源 |
+| source, target_version | 是 | 問題描述 |
+| priority | 是 | 範圍界定（In Scope / Out of Scope） |
+| outputs.spec_refs/usecase_refs/ticket_refs | 是 | 驗收條件 |
+| proposed_by, proposed_date | 是 | 提案方案 |
+| confirmed_date | 否 | 風險與權衡 |
+| related_proposals, supersedes | 否 | 討論記錄、轉化記錄 |
 
 ## 命名規範
 

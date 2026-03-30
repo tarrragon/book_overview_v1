@@ -5,7 +5,7 @@
 id: PROP-NNN
 title: "{提案標題}"
 status: draft                    # draft / discussing / confirmed / implemented / withdrawn
-source: ""                       # development / bug-fix / user-feedback / tech-debt / spec
+source: ""                       # 允許值: development / bug-fix / user-feedback / tech-debt / spec
 proposed_by: ""                  # 提案人角色或來源
 proposed_date: "YYYY-MM-DD"
 confirmed_date: null             # 確認日期，confirmed 後填寫
