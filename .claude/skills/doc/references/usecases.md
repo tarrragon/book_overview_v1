@@ -61,7 +61,7 @@
 
 ## 模板
 
-模板位置：`docs/usecases/TEMPLATE.md`
+模板位置：`.claude/skills/doc/templates/usecase-template.md`
 
 ### 必填 frontmatter
 

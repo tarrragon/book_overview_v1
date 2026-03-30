@@ -36,7 +36,7 @@ draft → discussing → confirmed → implemented
 
 ## 模板
 
-模板位置：`docs/proposals/TEMPLATE.md`
+模板位置：`.claude/skills/doc/templates/proposal-template.md`
 
 ### 必填欄位
 

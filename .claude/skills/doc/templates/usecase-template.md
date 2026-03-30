@@ -14,6 +14,10 @@ version: "1.0"                   # 用例版本
 primary_actor: ""                # 主要行為者，如「使用者」
 secondary_actors: []             # 次要行為者
 
+# 平台歸屬
+platform: ""                     # both / app / extension
+extension_status: ""             # implemented / partial / not-applicable
+
 # 關聯
 related_specs: []                # 對應的規格，如 [SPEC-001]
 related_usecases: []             # 相關的其他用例

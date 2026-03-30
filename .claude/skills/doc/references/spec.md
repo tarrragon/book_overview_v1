@@ -27,7 +27,7 @@ docs/spec/{domain}/{feature}.md
 
 ## 模板
 
-模板位置：`docs/spec/TEMPLATE.md`
+模板位置：`.claude/skills/doc/templates/spec-template.md`
 
 ### 必填 frontmatter
 

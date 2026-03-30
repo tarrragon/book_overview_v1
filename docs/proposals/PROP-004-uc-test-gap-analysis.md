@@ -12,7 +12,12 @@ priority: P1
 outputs:
   spec_refs: []
   usecase_refs: [UC-01, UC-02, UC-04, UC-05, UC-07, UC-08]
-  ticket_refs: []
+  ticket_refs:
+    - "0.16.2-W2-001"
+    - "0.16.2-W2-002"
+    - "0.16.2-W2-003"
+    - "0.16.2-W2-004"
+    - "0.16.2-W2-005"
 
 related_proposals: [PROP-000]
 supersedes: null
