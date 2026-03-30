@@ -15,7 +15,7 @@ owner: ""                        # 負責維護此規格的角色
 # Domain 歸屬
 domain: ""                       # 所屬 domain：core / extraction / platform /
                                  #   data-management / messaging / page / system /
-                                 #   user-experience / analytics / security
+                                 #   user-experience
 subdomain: null                  # 子領域（如有），如 "storage", "import-export"
 
 # 關聯

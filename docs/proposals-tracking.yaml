@@ -37,7 +37,7 @@ proposals:
         verified_by: "0.16.2-W1-002"
       - item: "Spec Domain 目錄遷移"
         status: done
-        verified_by: null
+        verified_by: "0.16.2-W1-002"
       - item: "文件系統 Skill 實作"
         status: pending
         verified_by: null
@@ -172,14 +172,15 @@ proposals:
       - "UC-02"
       - "UC-05"
       - "UC-08"
-    ticket_refs: []
+    ticket_refs:
+      - "0.16.2-W2-002"
     checklist:
       - item: "外部依賴邊界點盤點"
         status: done
-        verified_by: null
+        verified_by: "0.16.2-W1-002"
       - item: "各邊界點 exception 處理確認"
         status: done
-        verified_by: null
+        verified_by: "0.16.2-W1-002"
       - item: "整合測試覆蓋評估"
         status: done
         verified_by: null
