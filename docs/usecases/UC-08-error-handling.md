@@ -2,7 +2,7 @@
 id: UC-08
 title: "系統錯誤處理與恢復"
 status: approved
-source_proposal: null
+source_proposal: PROP-004
 created: "2026-03-30"
 updated: "2026-03-30"
 version: "1.0"

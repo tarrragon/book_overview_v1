@@ -13,7 +13,7 @@ secondary_actors: []
 platform: app
 extension_status: not-applicable
 
-related_specs: []
+related_specs: [SPEC-001, SPEC-002]
 related_usecases: [UC-04]
 ticket_refs: []
 ---

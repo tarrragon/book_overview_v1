@@ -2,7 +2,7 @@
 id: SPEC-003
 title: "平台管理規格"
 status: approved
-source_proposal: null
+source_proposal: PROP-001
 created: "2026-03-30"
 updated: "2026-03-30"
 version: "1.0"

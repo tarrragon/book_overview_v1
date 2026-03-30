@@ -2,7 +2,7 @@
 id: UC-04
 title: "關鍵字搜尋補充書籍資訊"
 status: approved
-source_proposal: null
+source_proposal: PROP-004
 created: "2026-03-30"
 updated: "2026-03-30"
 version: "1.0"

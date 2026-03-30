@@ -2,7 +2,7 @@
 id: UC-01
 title: "匯入 Chrome Extension 書庫資料"
 status: approved
-source_proposal: null
+source_proposal: PROP-004
 created: "2026-03-30"
 updated: "2026-03-30"
 version: "1.0"

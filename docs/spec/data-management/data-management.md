@@ -2,7 +2,7 @@
 id: SPEC-004
 title: "資料管理規格"
 status: approved
-source_proposal: null
+source_proposal: PROP-002
 created: "2026-03-30"
 updated: "2026-03-30"
 version: "1.0"
