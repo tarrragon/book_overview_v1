@@ -431,4 +431,350 @@ describe('RetryCoordinator TDD 測試', () => {
       expect(result.success).toBe(true)
     })
   })
+
+  describe('UC-07 網路不穩定同步策略補強測試', () => {
+    describe('指數退避延遲遞增驗證', () => {
+      test('retryCount=0/1/2/3 時延遲應依 baseDelay * 2^retryCount 遞增', () => {
+        // Given: jitterFactor=0 的協調器，排除隨機抖動干擾
+        const noJitterCoordinator = new RetryCoordinator({
+          baseDelay: 1000,
+          maxDelay: 30000,
+          jitterFactor: 0
+        })
+
+        // When: 計算不同 retryCount 的延遲
+        const delay0 = noJitterCoordinator.calculateBackoffDelay(0) // 1000 * 2^0 = 1000
+        const delay1 = noJitterCoordinator.calculateBackoffDelay(1) // 1000 * 2^1 = 2000
+        const delay2 = noJitterCoordinator.calculateBackoffDelay(2) // 1000 * 2^2 = 4000
+        const delay3 = noJitterCoordinator.calculateBackoffDelay(3) // 1000 * 2^3 = 8000
+
+        // Then: 精確驗證指數遞增（無 jitter 時應完全等於理論值）
+        expect(delay0).toBe(1000)
+        expect(delay1).toBe(2000)
+        expect(delay2).toBe(4000)
+        expect(delay3).toBe(8000)
+      })
+
+      test('延遲不應超過 maxDelay 上限', () => {
+        // Given: maxDelay=10000 且 jitterFactor=0 的協調器
+        const cappedCoordinator = new RetryCoordinator({
+          baseDelay: 1000,
+          maxDelay: 10000,
+          jitterFactor: 0
+        })
+
+        // When: retryCount 足夠大使理論延遲超過 maxDelay
+        const delay5 = cappedCoordinator.calculateBackoffDelay(5) // 1000 * 2^5 = 32000 → capped to 10000
+        const delay10 = cappedCoordinator.calculateBackoffDelay(10) // 1000 * 2^10 = 1024000 → capped to 10000
+
+        // Then: 延遲應被限制在 maxDelay
+        expect(delay5).toBe(10000)
+        expect(delay10).toBe(10000)
+      })
+
+      test('maxDelay 剛好等於理論延遲時不應被截斷', () => {
+        // Given: maxDelay=4000，retryCount=2 的理論值剛好為 4000
+        const exactCoordinator = new RetryCoordinator({
+          baseDelay: 1000,
+          maxDelay: 4000,
+          jitterFactor: 0
+        })
+
+        // When & Then
+        expect(exactCoordinator.calculateBackoffDelay(2)).toBe(4000)
+        // retryCount=3 理論值 8000 → capped to 4000
+        expect(exactCoordinator.calculateBackoffDelay(3)).toBe(4000)
+      })
+    })
+
+    describe('jitter 隨機抖動驗證', () => {
+      test('有 jitter 時延遲不應完全等於理論值', () => {
+        // Given: jitterFactor=0.1 的協調器
+        const jitterCoordinator = new RetryCoordinator({
+          baseDelay: 1000,
+          maxDelay: 30000,
+          jitterFactor: 0.1
+        })
+
+        // When: 多次計算同一 retryCount 的延遲
+        const delays = []
+        for (let i = 0; i < 20; i++) {
+          delays.push(jitterCoordinator.calculateBackoffDelay(2))
+        }
+
+        // Then: 所有延遲應在 jitter 範圍內（4000 +/- 10%）
+        const theoreticalDelay = 4000
+        const tolerance = theoreticalDelay * 0.1
+        for (const delay of delays) {
+          expect(delay).toBeGreaterThanOrEqual(theoreticalDelay - tolerance)
+          expect(delay).toBeLessThanOrEqual(theoreticalDelay + tolerance)
+        }
+
+        // 至少應有一些不同的值（統計上 20 次幾乎不可能全部相同）
+        const uniqueDelays = new Set(delays)
+        expect(uniqueDelays.size).toBeGreaterThan(1)
+      })
+    })
+
+    describe('網路中斷恢復後自動重試', () => {
+      test('前 2 次 NETWORK 錯誤後第 3 次成功應最終回傳成功', async () => {
+        // Given: 快速退避的協調器（避免測試等待）
+        const fastCoordinator = new RetryCoordinator({
+          baseDelay: 10,
+          maxDelay: 100,
+          jitterFactor: 0,
+          maxRetryAttempts: 5
+        })
+
+        // 模擬前 2 次失敗、第 3 次成功的執行器
+        let callCount = 0
+        const mockExecutor = jest.fn().mockImplementation(() => {
+          callCount++
+          if (callCount <= 2) {
+            return Promise.reject(new Error('network timeout'))
+          }
+          return Promise.resolve({ success: true, synced: 10 })
+        })
+
+        // When: 模擬多輪重試（手動驅動重試迴圈）
+        let currentJob = {
+          id: 'sync_recovery',
+          retryCount: 0,
+          error: 'network timeout',
+          originalParams: { source: 'readmoo' }
+        }
+
+        let result
+        // 第一次重試：仍然失敗
+        result = await fastCoordinator.executeRetry(currentJob, mockExecutor)
+        expect(result.success).toBe(false)
+        expect(result.retryCount).toBe(1)
+
+        // 更新 job 狀態，準備第二次重試
+        currentJob = {
+          ...currentJob,
+          retryCount: result.retryCount,
+          error: result.error
+        }
+
+        // 第二次重試：仍然失敗
+        result = await fastCoordinator.executeRetry(currentJob, mockExecutor)
+        expect(result.success).toBe(false)
+        expect(result.retryCount).toBe(2)
+
+        // 更新 job 狀態，準備第三次重試
+        currentJob = {
+          ...currentJob,
+          retryCount: result.retryCount,
+          error: result.error
+        }
+
+        // 第三次重試：成功
+        result = await fastCoordinator.executeRetry(currentJob, mockExecutor)
+        expect(result.success).toBe(true)
+        expect(result.retryCount).toBe(3)
+        expect(result.retryStrategy).toBe('EXPONENTIAL_BACKOFF')
+
+        // Then: 執行器共被呼叫 3 次
+        expect(mockExecutor).toHaveBeenCalledTimes(3)
+        // 成功重試應更新統計
+        expect(fastCoordinator.stats.successfulRetries).toBe(1)
+        expect(fastCoordinator.stats.failedRetries).toBe(2)
+      })
+
+      test('每次重試的延遲應遞增（驗證退避機制在重試流程中生效）', async () => {
+        // Given: 記錄延遲的協調器
+        const fastCoordinator = new RetryCoordinator({
+          baseDelay: 10,
+          maxDelay: 1000,
+          jitterFactor: 0,
+          maxRetryAttempts: 5
+        })
+
+        const appliedDelays = []
+        const mockExecutor = jest.fn().mockRejectedValue(new Error('network error'))
+
+        // When: 連續 3 次重試
+        let currentJob = {
+          id: 'sync_delays',
+          retryCount: 0,
+          error: 'network error',
+          originalParams: {}
+        }
+
+        for (let i = 0; i < 3; i++) {
+          const result = await fastCoordinator.executeRetry(currentJob, mockExecutor)
+          appliedDelays.push(result.delayApplied)
+          currentJob = {
+            ...currentJob,
+            retryCount: result.retryCount,
+            error: result.error
+          }
+        }
+
+        // Then: 延遲應遞增（10, 20, 40）
+        expect(appliedDelays[0]).toBe(10)
+        expect(appliedDelays[1]).toBe(20)
+        expect(appliedDelays[2]).toBe(40)
+      })
+    })
+
+    describe('連續失敗超過 maxRetryAttempts', () => {
+      test('超過最大重試次數後 canRetry 回傳 false', () => {
+        // Given: maxRetryAttempts=3 的協調器
+        const limitedCoordinator = new RetryCoordinator({
+          maxRetryAttempts: 3
+        })
+
+        // When & Then: retryCount 從 0 到 3
+        expect(limitedCoordinator.canRetry({ retryCount: 0, error: 'network error' })).toBe(true)
+        expect(limitedCoordinator.canRetry({ retryCount: 1, error: 'network error' })).toBe(true)
+        expect(limitedCoordinator.canRetry({ retryCount: 2, error: 'network error' })).toBe(true)
+        // retryCount=3 等於 maxRetryAttempts，不可重試
+        expect(limitedCoordinator.canRetry({ retryCount: 3, error: 'network error' })).toBe(false)
+        expect(limitedCoordinator.canRetry({ retryCount: 4, error: 'network error' })).toBe(false)
+      })
+
+      test('連續失敗耗盡重試次數後 executeRetry 拒絕執行', async () => {
+        // Given: 快速協調器，maxRetryAttempts=2
+        const fastCoordinator = new RetryCoordinator({
+          baseDelay: 1,
+          maxDelay: 10,
+          jitterFactor: 0,
+          maxRetryAttempts: 2
+        })
+
+        const mockExecutor = jest.fn().mockRejectedValue(new Error('persistent failure'))
+
+        // When: 連續重試直到耗盡
+        let currentJob = {
+          id: 'sync_exhaust',
+          retryCount: 0,
+          error: 'persistent failure',
+          originalParams: {}
+        }
+
+        // 第一次重試
+        let result = await fastCoordinator.executeRetry(currentJob, mockExecutor)
+        expect(result.success).toBe(false)
+        expect(result.retryCount).toBe(1)
+        expect(mockExecutor).toHaveBeenCalledTimes(1)
+
+        // 更新 job
+        currentJob = { ...currentJob, retryCount: result.retryCount, error: result.error }
+
+        // 第二次重試
+        result = await fastCoordinator.executeRetry(currentJob, mockExecutor)
+        expect(result.success).toBe(false)
+        expect(result.retryCount).toBe(2)
+        expect(mockExecutor).toHaveBeenCalledTimes(2)
+
+        // 更新 job（retryCount=2 == maxRetryAttempts）
+        currentJob = { ...currentJob, retryCount: result.retryCount, error: result.error }
+
+        // 第三次嘗試：應直接拒絕，不呼叫 executor
+        result = await fastCoordinator.executeRetry(currentJob, mockExecutor)
+        expect(result.success).toBe(false)
+        expect(result.error).toContain('超過最大重試次數')
+        // executor 不應被第三次呼叫
+        expect(mockExecutor).toHaveBeenCalledTimes(2)
+      })
+    })
+
+    describe('不可重試錯誤處理', () => {
+      test.each([
+        ['permission denied', 'AUTHORIZATION'],
+        ['unauthorized', 'AUTHORIZATION'],
+        ['forbidden', 'AUTHORIZATION'],
+        ['access denied', 'AUTHORIZATION'],
+        ['invalid credentials', 'AUTHORIZATION']
+      ])('錯誤訊息 "%s" 應分類為 %s 且不可重試', (errorMessage, expectedCategory) => {
+        // Given: 包含不可重試錯誤的作業
+        const job = { error: errorMessage }
+
+        // When: 分析失敗原因
+        const analysis = coordinator.analyzeFailureReason(job)
+
+        // Then: 應為不可重試的 AUTHORIZATION 類別
+        expect(analysis.category).toBe(expectedCategory)
+        expect(analysis.retryable).toBe(false)
+        expect(analysis.recommendedDelay).toBe(0)
+      })
+
+      test('不可重試錯誤的作業 canRetry 應回傳 false', () => {
+        // Given: 各種不可重試的作業（retryCount=0，理論上應可重試但錯誤類型不允許）
+        const authJobs = [
+          { retryCount: 0, error: 'permission denied' },
+          { retryCount: 0, error: 'unauthorized access' },
+          { retryCount: 0, error: 'request forbidden' },
+          { retryCount: 0, error: 'access denied by server' },
+          { retryCount: 0, error: 'invalid credentials provided' }
+        ]
+
+        // When & Then: 全部不可重試
+        for (const job of authJobs) {
+          expect(coordinator.canRetry(job)).toBe(false)
+        }
+      })
+
+      test('不可重試錯誤的 executeRetry 應直接拒絕而不呼叫 executor', async () => {
+        // Given: 權限錯誤的作業
+        const authJob = {
+          id: 'sync_auth_fail',
+          retryCount: 0,
+          error: 'permission denied',
+          originalParams: {}
+        }
+        const mockExecutor = jest.fn()
+
+        // When: 嘗試重試
+        const result = await coordinator.executeRetry(authJob, mockExecutor)
+
+        // Then: 應拒絕且不浪費 executor 呼叫
+        expect(result.success).toBe(false)
+        expect(result.error).toContain('超過最大重試次數')
+        expect(mockExecutor).not.toHaveBeenCalled()
+      })
+
+      test('selectRetryStrategy 對不可重試分析結果應拋出錯誤', () => {
+        // Given: 不可重試的分析結果
+        const nonRetryableAnalysis = {
+          category: 'AUTHORIZATION',
+          retryable: false
+        }
+
+        // When & Then: 應拋出含錯誤碼的例外
+        expect(() => coordinator.selectRetryStrategy(nonRetryableAnalysis)).toThrow()
+        try {
+          coordinator.selectRetryStrategy(nonRetryableAnalysis)
+        } catch (error) {
+          expect(error.code).toBe(ErrorCodes.OPERATION_ERROR)
+          expect(error.details.category).toBe('general')
+          expect(error.details.analysis).toBeDefined()
+        }
+      })
+    })
+
+    describe('SERVER_ERROR 錯誤分類', () => {
+      test('server 和 500 錯誤應分類為 SERVER_ERROR 並選擇 LINEAR_BACKOFF', () => {
+        // Given: 伺服器錯誤
+        const serverJobs = [
+          { error: 'internal server error' },
+          { error: '500 internal error' }
+        ]
+
+        for (const job of serverJobs) {
+          // When: 分析並選擇策略
+          const analysis = coordinator.analyzeFailureReason(job)
+          const strategy = coordinator.selectRetryStrategy(analysis)
+
+          // Then
+          expect(analysis.category).toBe('SERVER_ERROR')
+          expect(analysis.retryable).toBe(true)
+          expect(analysis.recommendedDelay).toBe(coordinator.config.baseDelay * 3)
+          expect(strategy).toBe('LINEAR_BACKOFF')
+        }
+      })
+    })
+  })
 })
