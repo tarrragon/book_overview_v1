@@ -15,6 +15,7 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { StandardError } = require('src/core/errors/StandardError')
 // eslint-disable-next-line no-unused-vars
 const RetryCoordinator = require('src/background/domains/data-management/services/RetryCoordinator.js')
+const { CircuitState, STORAGE_KEY } = require('src/background/domains/data-management/services/RetryCoordinator.js')
 
 describe('RetryCoordinator TDD 測試', () => {
   // eslint-disable-next-line no-unused-vars
@@ -429,6 +430,221 @@ describe('RetryCoordinator TDD 測試', () => {
       // Then: 應該使用衝突解決策略
       expect(result.retryStrategy).toBe('CONFLICT_RESOLUTION_FIRST')
       expect(result.success).toBe(true)
+    })
+  })
+
+  describe('斷路器（Circuit Breaker）測試', () => {
+    test('初始狀態應為 CLOSED', () => {
+      // Given: 預設建立的 coordinator
+      // Then: 斷路器應為 CLOSED
+      const state = coordinator.getCircuitState()
+      expect(state.state).toBe(CircuitState.CLOSED)
+      expect(state.failureCount).toBe(0)
+      expect(state.lastFailureTime).toBeNull()
+    })
+
+    test('連續失敗超過閾值應觸發 OPEN 狀態', () => {
+      // Given: 設定閾值為 3 的 coordinator
+      const cbCoordinator = new RetryCoordinator({
+        circuitBreakerThreshold: 3
+      })
+
+      // When: 連續記錄 3 次失敗
+      cbCoordinator.recordFailure()
+      cbCoordinator.recordFailure()
+      expect(cbCoordinator.getCircuitState().state).toBe(CircuitState.CLOSED)
+
+      cbCoordinator.recordFailure()
+
+      // Then: 應進入 OPEN 狀態
+      expect(cbCoordinator.getCircuitState().state).toBe(CircuitState.OPEN)
+      expect(cbCoordinator.getCircuitState().failureCount).toBe(3)
+    })
+
+    test('OPEN 狀態下 executeRetry 應直接拒絕', async () => {
+      // Given: 斷路器已 OPEN
+      coordinator.circuitBreaker.state = CircuitState.OPEN
+      coordinator.circuitBreaker.lastFailureTime = Date.now()
+
+      const failedJob = {
+        id: 'sync_cb_1',
+        retryCount: 0,
+        error: 'network timeout',
+        originalParams: {}
+      }
+      const mockExecutor = jest.fn()
+
+      // When: 嘗試執行重試
+      const result = await coordinator.executeRetry(failedJob, mockExecutor)
+
+      // Then: 應被拒絕，executor 不被呼叫
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('斷路器已開啟')
+      expect(result.circuitState).toBe(CircuitState.OPEN)
+      expect(mockExecutor).not.toHaveBeenCalled()
+    })
+
+    test('recordSuccess 應重置斷路器為 CLOSED', () => {
+      // Given: 斷路器處於 HALF_OPEN 且有失敗記錄
+      coordinator.circuitBreaker.state = CircuitState.HALF_OPEN
+      coordinator.circuitBreaker.failureCount = 5
+
+      // When: 記錄成功
+      coordinator.recordSuccess()
+
+      // Then: 應恢復 CLOSED 且計數歸零
+      expect(coordinator.getCircuitState().state).toBe(CircuitState.CLOSED)
+      expect(coordinator.getCircuitState().failureCount).toBe(0)
+    })
+
+    test('OPEN 狀態冷卻期過後應轉為 HALF_OPEN', () => {
+      // Given: 斷路器 OPEN，lastFailureTime 為很久以前
+      coordinator.circuitBreaker.state = CircuitState.OPEN
+      coordinator.circuitBreaker.lastFailureTime = Date.now() - 120000
+      coordinator.circuitBreaker.cooldownPeriod = 60000
+
+      // When: 檢查是否開啟
+      const isOpen = coordinator.isCircuitOpen()
+
+      // Then: 冷卻期已過，應允許試探（回傳 false）且狀態轉為 HALF_OPEN
+      expect(isOpen).toBe(false)
+      expect(coordinator.getCircuitState().state).toBe(CircuitState.HALF_OPEN)
+    })
+
+    test('HALF_OPEN 狀態下失敗應重新觸發 OPEN', () => {
+      // Given: HALF_OPEN 且閾值為 1（已有 failureCount 接近閾值）
+      const cbCoordinator = new RetryCoordinator({
+        circuitBreakerThreshold: 1
+      })
+      cbCoordinator.circuitBreaker.state = CircuitState.HALF_OPEN
+
+      // When: 記錄失敗
+      cbCoordinator.recordFailure()
+
+      // Then: 應回到 OPEN
+      expect(cbCoordinator.getCircuitState().state).toBe(CircuitState.OPEN)
+    })
+
+    test('支援自訂斷路器配置', () => {
+      // Given: 自訂 cooldown 和 threshold
+      const customCoordinator = new RetryCoordinator({
+        circuitBreakerCooldown: 120000,
+        circuitBreakerThreshold: 10
+      })
+
+      // Then: 應使用自訂值
+      const state = customCoordinator.getCircuitState()
+      expect(state.cooldownPeriod).toBe(120000)
+      expect(state.failureThreshold).toBe(10)
+    })
+  })
+
+  describe('持久化（chrome.storage.local）測試', () => {
+    let storageData
+
+    beforeEach(() => {
+      storageData = {}
+      // Mock chrome.storage.local
+      global.chrome = {
+        storage: {
+          local: {
+            get: jest.fn((key) => {
+              return Promise.resolve({ [key]: storageData[key] || undefined })
+            }),
+            set: jest.fn((data) => {
+              Object.assign(storageData, data)
+              return Promise.resolve()
+            })
+          }
+        }
+      }
+    })
+
+    afterEach(() => {
+      delete global.chrome
+    })
+
+    test('saveState 應將狀態存到 chrome.storage.local', async () => {
+      // Given: coordinator 有一些狀態
+      coordinator.stats.totalRetries = 10
+      coordinator.stats.successfulRetries = 7
+      coordinator.stats.failedRetries = 3
+      coordinator.circuitBreaker.state = CircuitState.OPEN
+      coordinator.circuitBreaker.failureCount = 5
+      coordinator.pendingRetries = [{ id: 'job1' }]
+
+      // When: 儲存狀態
+      await coordinator.saveState()
+
+      // Then: chrome.storage.local.set 被呼叫且包含正確結構
+      expect(global.chrome.storage.local.set).toHaveBeenCalledTimes(1)
+      const savedData = storageData[STORAGE_KEY]
+      expect(savedData).toBeDefined()
+      expect(savedData.circuitBreaker.state).toBe(CircuitState.OPEN)
+      expect(savedData.circuitBreaker.failureCount).toBe(5)
+      expect(savedData.stats.totalRetries).toBe(10)
+      expect(savedData.pendingRetries).toHaveLength(1)
+      expect(savedData.savedAt).toBeGreaterThan(0)
+    })
+
+    test('loadState 應從 chrome.storage.local 恢復狀態', async () => {
+      // Given: storage 中有存儲的狀態
+      storageData[STORAGE_KEY] = {
+        circuitBreaker: {
+          state: CircuitState.OPEN,
+          failureCount: 4,
+          lastFailureTime: 1700000000000
+        },
+        pendingRetries: [{ id: 'job_restore' }],
+        stats: {
+          totalRetries: 20,
+          successfulRetries: 15,
+          failedRetries: 5
+        },
+        savedAt: 1700000000000
+      }
+
+      // When: 載入狀態
+      const result = await coordinator.loadState()
+
+      // Then: coordinator 的狀態應被恢復
+      expect(result).not.toBeNull()
+      expect(coordinator.circuitBreaker.state).toBe(CircuitState.OPEN)
+      expect(coordinator.circuitBreaker.failureCount).toBe(4)
+      expect(coordinator.pendingRetries).toHaveLength(1)
+      expect(coordinator.pendingRetries[0].id).toBe('job_restore')
+      expect(coordinator.stats.totalRetries).toBe(20)
+      expect(coordinator.stats.successfulRetries).toBe(15)
+    })
+
+    test('loadState 在無存儲資料時應回傳 null', async () => {
+      // Given: storage 中無資料（storageData 為空）
+
+      // When: 載入狀態
+      const result = await coordinator.loadState()
+
+      // Then: 應回傳 null 且不影響現有狀態
+      expect(result).toBeNull()
+      expect(coordinator.circuitBreaker.state).toBe(CircuitState.CLOSED)
+    })
+
+    test('saveState 在 chrome.storage 不可用時不應拋出', async () => {
+      // Given: chrome.storage.local.set 拋出錯誤
+      global.chrome.storage.local.set = jest.fn().mockRejectedValue(new Error('storage error'))
+
+      // When & Then: saveState 不應拋出
+      await expect(coordinator.saveState()).resolves.not.toThrow()
+    })
+
+    test('loadState 在 chrome.storage 不可用時應回傳 null', async () => {
+      // Given: chrome.storage.local.get 拋出錯誤
+      global.chrome.storage.local.get = jest.fn().mockRejectedValue(new Error('storage error'))
+
+      // When: 載入狀態
+      const result = await coordinator.loadState()
+
+      // Then: 應回傳 null
+      expect(result).toBeNull()
     })
   })
 })
