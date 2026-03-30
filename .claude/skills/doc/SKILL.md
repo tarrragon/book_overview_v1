@@ -115,5 +115,44 @@ cp .claude/skills/doc/templates/usecase-template.md docs/usecases/UC-{XX}-{desc}
 
 ---
 
-**Version**: 1.0.0
+## 與現有系統的整合
+
+### 與 doc-flow 的分工
+
+| 系統 | 管理範圍 | 追蹤層級 |
+|------|---------|---------|
+| /doc | proposals, spec, usecases | 需求生命週期（提案 → 確認 → 實作） |
+| doc-flow | CHANGELOG, worklog, ticket, todolist | 任務生命週期（建立 → 執行 → 完成） |
+
+**協作觸發點**：
+
+| 場景 | /doc 動作 | doc-flow 動作 |
+|------|----------|--------------|
+| 提案確認 | status → confirmed | 開立 ticket（/ticket create） |
+| Ticket 完成 | 更新 tracking.yaml checklist | ticket 標記 complete |
+| 所有 checklist 完成 | 提案 status → implemented | 版本 worklog 記錄 |
+
+### 與 /spec Skill 的關係
+
+| 項目 | /doc 管理的 spec | /spec Skill 產物 |
+|------|-----------------|-----------------|
+| 性質 | Domain 知識資產（持久） | Ticket 執行工件（臨時） |
+| 位置 | `docs/spec/{domain}/` | Ticket 目錄下的 feature-spec |
+| 用途 | 擴充/重構時審視 domain 設計 | TDD Phase 1 功能設計 |
+| 轉化時機 | Ticket 完成後，設計成果沉澱為 domain spec | - |
+
+### 審查延後項目備註
+
+以下為多視角審查（2026-03-30）發現但延後處理的中嚴重程度項目：
+
+| # | 項目 | 處理方式 |
+|---|------|---------|
+| 1 | analytics/security domain 在模板有但列表沒有 | 確認時統一（v2.0+ 才需要） |
+| 2 | references 必填欄位表與模板欄位脫鉤 | 認領相關 Ticket 時補齊 |
+| 3 | W2 Ticket 驗收條件可量化性不足 | 認領時細化 |
+| 4 | P0 標記（W2-002）需補充理由 | 認領時確認 |
+
+---
+
+**Version**: 1.1.0
 **Last Updated**: 2026-03-30
