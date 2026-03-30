@@ -6,6 +6,7 @@
 import argparse
 import os
 
+from doc_system.core.constants import TITLE_MAX_DISPLAY_LEN
 from doc_system.core.file_locator import FileLocator
 from doc_system.core.frontmatter_parser import parse_frontmatter
 
@@ -34,9 +35,9 @@ def _print_table(doc_type: str, files: list[str]) -> None:
         fm_id = str(frontmatter.get("id", os.path.basename(file_path)))
         title = str(frontmatter.get("title", "(無標題)"))
         fm_status = str(frontmatter.get("status", "-"))
-        # 截斷過長標題
-        if len(title) > 32:
-            title = title[:29] + "..."
+        # 截斷過長標題（使用共用常數）
+        if len(title) > TITLE_MAX_DISPLAY_LEN + 5:
+            title = title[: TITLE_MAX_DISPLAY_LEN + 2] + "..."
         print(f"{fm_id:<15} {title:<35} {fm_status:<10}")
 
 

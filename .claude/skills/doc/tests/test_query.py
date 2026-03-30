@@ -3,7 +3,7 @@
 import argparse
 from unittest.mock import patch
 
-from doc_system.commands.query import execute, _resolve_file
+from doc_system.commands.query import execute
 from doc_system.core.file_locator import FileLocator
 
 
@@ -50,14 +50,14 @@ class TestQueryExecute:
         assert "找不到文件" in output
 
     def test_resolve_file_usecase(self, tmp_path):
-        """_resolve_file 應能找到 UC 類型文件。"""
+        """resolve_file 應能找到 UC 類型文件。"""
         usecases_dir = tmp_path / "docs" / "usecases"
         usecases_dir.mkdir(parents=True)
         md = usecases_dir / "UC-01-import.md"
         md.write_text("---\nid: UC-01\n---\n")
 
         locator = FileLocator(str(tmp_path))
-        result = _resolve_file(locator, "UC-01")
+        result = locator.resolve_file("UC-01")
 
         assert result is not None
         assert "UC-01" in result
@@ -65,6 +65,6 @@ class TestQueryExecute:
     def test_resolve_file_unknown_prefix(self, tmp_path):
         """未知前綴的 ID 應回傳 None。"""
         locator = FileLocator(str(tmp_path))
-        result = _resolve_file(locator, "UNKNOWN-001")
+        result = locator.resolve_file("UNKNOWN-001")
 
         assert result is None

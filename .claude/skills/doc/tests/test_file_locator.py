@@ -70,6 +70,68 @@ class TestFindSpec:
         assert "SPEC-auth-flow.md" in result
 
 
+class TestPrecisePrefixMatch:
+    """精確前綴匹配測試（修復 #1）。"""
+
+    def test_uc01_does_not_match_uc010(self, tmp_path):
+        """UC-01 搜尋不應匹配 UC-010。"""
+        usecases = tmp_path / "docs" / "usecases"
+        usecases.mkdir(parents=True)
+        (usecases / "UC-01-import.md").write_text("---\ntitle: Import\n---\n")
+        (usecases / "UC-010-bulk.md").write_text("---\ntitle: Bulk\n---\n")
+
+        locator = FileLocator(str(tmp_path))
+
+        result = locator.find_usecase("UC-01")
+
+        assert result is not None
+        assert "UC-01-import.md" in result
+        assert "UC-010" not in result
+
+    def test_exact_stem_match(self, tmp_path):
+        """stem 完全等於 file_id 時應匹配。"""
+        usecases = tmp_path / "docs" / "usecases"
+        usecases.mkdir(parents=True)
+        (usecases / "UC-01.md").write_text("---\ntitle: Exact\n---\n")
+
+        locator = FileLocator(str(tmp_path))
+
+        result = locator.find_usecase("UC-01")
+
+        assert result is not None
+        assert "UC-01.md" in result
+
+
+class TestResolveFile:
+    """resolve_file 公開方法測試（修復 #3：從 query.py 移至 file_locator.py）。"""
+
+    def test_resolve_proposal(self, tmp_path):
+        root = _create_doc_tree(tmp_path)
+        locator = FileLocator(str(root))
+
+        result = locator.resolve_file("PROP-001")
+
+        assert result is not None
+        assert "PROP-001" in result
+
+    def test_resolve_usecase(self, tmp_path):
+        root = _create_doc_tree(tmp_path)
+        locator = FileLocator(str(root))
+
+        result = locator.resolve_file("UC01")
+
+        assert result is not None
+        assert "UC01" in result
+
+    def test_resolve_unknown_prefix(self, tmp_path):
+        root = _create_doc_tree(tmp_path)
+        locator = FileLocator(str(root))
+
+        result = locator.resolve_file("UNKNOWN-001")
+
+        assert result is None
+
+
 class TestListMethods:
     """list_proposals / list_usecases / list_specs 測試。"""
 
@@ -121,3 +183,15 @@ class TestGetProjectRoot:
             assert result == str(tmp_path)
         finally:
             os.chdir(original_cwd)
+
+    def test_env_var_takes_priority(self, tmp_path, monkeypatch):
+        """CLAUDE_PROJECT_DIR 環境變數應優先於其他方式（修復 #2）。"""
+        _create_doc_tree(tmp_path)
+        env_dir = tmp_path / "env_root"
+        env_dir.mkdir()
+
+        monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(env_dir))
+
+        result = FileLocator.get_project_root()
+
+        assert result == str(env_dir)

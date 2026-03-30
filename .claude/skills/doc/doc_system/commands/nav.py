@@ -2,29 +2,16 @@
 
 import argparse
 
+from doc_system.core.constants import REF_FIELDS
 from doc_system.core.file_locator import FileLocator
 from doc_system.core.frontmatter_parser import parse_frontmatter
-from doc_system.commands.query import _resolve_file
-
-
-# frontmatter 中可能包含引用的欄位
-_REF_FIELDS = [
-    "spec_refs",
-    "usecase_refs",
-    "ticket_refs",
-    "source_proposal",
-    "related_specs",
-    "related_usecases",
-    "related_proposals",
-    "outputs",
-]
 
 
 def _extract_refs(frontmatter: dict) -> dict[str, list[str]]:
     """從 frontmatter 提取所有引用欄位，回傳 {欄位名: [引用值]}。"""
     refs: dict[str, list[str]] = {}
 
-    for field in _REF_FIELDS:
+    for field in REF_FIELDS:
         value = frontmatter.get(field)
         if value is None:
             continue
@@ -51,7 +38,7 @@ def execute(args: argparse.Namespace) -> None:
     doc_id = args.doc_id
     locator = FileLocator(FileLocator.get_project_root())
 
-    file_path = _resolve_file(locator, doc_id)
+    file_path = locator.resolve_file(doc_id)
     if file_path is None:
         print(f"找不到文件: {doc_id}")
         return

@@ -33,6 +33,8 @@ def execute(args: argparse.Namespace) -> None:
     # 統計各狀態數量
     status_counts: dict[str, int] = {}
     for prop_data in proposals.values():
+        if not isinstance(prop_data, dict):
+            continue
         prop_status = prop_data.get("status", "unknown")
         status_counts[prop_status] = status_counts.get(prop_status, 0) + 1
 
