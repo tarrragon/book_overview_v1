@@ -112,6 +112,14 @@ docs/
 
 {描述要解決的問題}
 
+## 範圍界定（核心欄位）
+
+### 本提案要做的（In Scope）
+- {本版本要實作的功能}
+
+### 本提案不做的（Out of Scope）
+- {不在本版本範圍內的功能} → {理由}
+
 ## 提案方案
 
 {描述解決方案，可包含多個方案的比較}
@@ -122,8 +130,8 @@ docs/
 
 ## 驗收條件
 
-- [ ] {具體、可驗證的條件}
-- [ ] {具體、可驗證的條件}
+- [ ] {具體、可驗證的條件 — 對應「要做」項目}
+- [ ] {具體、可驗證的條件 — 對應「要做」項目}
 
 ## 轉化產出
 
@@ -134,7 +142,24 @@ docs/
 | Ticket | {ticket-id} | pending / created |
 ```
 
-### 4.3 提案狀態流轉
+### 4.3 範圍界定原則（核心設計約束）
+
+> **一個提案 = 一個版本的明確功能範圍**
+
+| 原則 | 說明 |
+|------|------|
+| 單版本綁定 | 提案必須綁定到具體版本（target_version），禁止跨大版本設計 |
+| 明確做與不做 | 必須列出 In Scope 和 Out of Scope，讓邊界一目了然 |
+| 不做 → 新提案 | Out of Scope 的項目如果未來需要，建立獨立提案綁定到未來版本 |
+| 驗收對應做 | 驗收條件必須與 In Scope 項目一一對應 |
+
+**理由**：
+- 避免過度設計 — 不為未來版本做預先設計
+- 避免過早最佳化 — 等到真正需要時再設計
+- 明確邊界 — 開發者和 PM 對「做到哪裡」有共識
+- 可追蹤 — 每個功能都有明確的提案和版本歸屬
+
+### 4.4 提案狀態流轉
 
 ```
 draft → discussing → confirmed → implemented
@@ -290,9 +315,13 @@ ticket_refs:
 - [x] 設計 proposals-tracking.yaml 格式
 - [x] 設計四資料夾架構
 - [x] 設計完整流程
-- [ ] 建立目錄結構（proposals/, spec/, usecases/）
-- [ ] 建立 proposals-tracking.yaml 初始檔案
-- [ ] 將本設計文件作為 PROP-000 存入 proposals/
+- [x] 建立目錄結構（proposals/, spec/, usecases/）
+- [x] 建立 proposals-tracking.yaml 初始檔案
+- [x] 將本設計文件作為 PROP-000 存入 proposals/
+- [x] 建立三種文件類型的標準模板（TEMPLATE.md）
+  - proposals/TEMPLATE.md — 提案模板（YAML frontmatter + 完整討論/轉化記錄結構）
+  - spec/TEMPLATE.md — 規格模板（FR/NFR 需求項、資料模型、介面規格）
+  - usecases/TEMPLATE.md — 用例模板（場景/例外/驗收條件、UC 標準格式）
 
 ### Phase 2：現有文件遷移（後續 Ticket）
 
@@ -309,7 +338,184 @@ ticket_refs:
 
 ---
 
-## 9. 設計約束與權衡
+## 9. Spec Domain 組織架構
+
+### 9.1 設計原則
+
+> **Spec 是 domain knowledge 的載體**，usecase/ticket 是跨 domain 的實作細節。
+> Spec 依 domain 組織，降低理解業務知識的心智負擔。
+
+### 9.2 Domain 目錄結構
+
+```
+docs/spec/
+├── README.md                          # 規格總覽（含 domain 地圖）
+├── TEMPLATE.md                        # 規格模板
+│
+├── core/                              # 核心領域（跨 domain 共用）
+│   ├── book-model.md                  # Book 資料模型、BookSource、Platform
+│   ├── error-handling.md              # 錯誤處理系統設計
+│   └── event-system.md                # 事件系統架構
+│
+├── extraction/                        # 資料提取領域
+│   ├── extraction-pipeline.md         # 提取流程管線
+│   └── data-processing.md            # 資料處理與驗證
+│
+├── platform/                          # 平台管理領域
+│   ├── platform-registry.md           # 平台註冊與切換
+│   └── adapter-system.md             # 平台適配器架構
+│
+├── data-management/                   # 資料管理領域
+│   ├── storage.md                     # 儲存策略（Chrome Storage / IndexedDB）
+│   ├── import-export.md              # 匯入匯出格式與流程
+│   └── sync.md                        # 同步機制（跨設備）
+│
+├── messaging/                         # 通訊管理領域
+│   └── message-routing.md            # 訊息路由與跨 context 通訊
+│
+├── page/                              # 頁面管理領域
+│   ├── page-detection.md             # 頁面偵測與導航
+│   └── content-script.md             # Content Script 協調
+│
+├── system/                            # 系統管理領域
+│   ├── lifecycle.md                   # Extension 生命週期
+│   └── health-monitoring.md          # 健康監控與診斷
+│
+├── user-experience/                   # 用戶體驗領域
+│   ├── popup-ui.md                    # Popup 介面設計
+│   ├── overview-ui.md                 # 書庫總覽介面
+│   └── search-filter.md             # 搜尋與篩選
+│
+├── analytics/                         # 分析統計領域（v2.0+）
+│   └── reading-analytics.md          # 閱讀分析
+│
+└── security/                          # 安全隱私領域（v2.0+）
+    └── data-privacy.md               # 資料隱私保護
+```
+
+### 9.3 Domain 地圖
+
+| Domain | 核心責任 | 依賴的 Domain | 關鍵 UC |
+|--------|---------|--------------|---------|
+| core | 資料模型、錯誤處理、事件系統 | 無（被所有 domain 依賴） | 全部 |
+| extraction | 從網頁提取書籍資料 | core, platform, messaging | UC-01 |
+| platform | 平台偵測、適配器管理 | core | UC-01, UC-07 |
+| data-management | 儲存、匯入匯出、同步 | core | UC-01, UC-02, UC-07 |
+| messaging | 跨 context 通訊 | core | 全部（基礎設施） |
+| page | 頁面偵測、Content Script | core, messaging | UC-05 |
+| system | 生命週期、健康監控 | core | UC-08 |
+| user-experience | UI、搜尋、篩選 | core, data-management | UC-05, UC-06 |
+| analytics | 閱讀統計分析 | core, data-management | 未定 |
+| security | 資料隱私保護 | core | 未定 |
+
+### 9.4 Domain 與 UseCase 的交叉引用
+
+UseCase 是**跨 domain** 的使用場景。一個 UC 可能涉及多個 domain：
+
+| UC | 涉及 Domain | 主要 Domain |
+|----|------------|------------|
+| UC-01 匯入 | extraction, data-management, platform | data-management |
+| UC-02 匯出 | data-management, user-experience | data-management |
+| UC-03 ISBN 掃描 | extraction, data-management | extraction |
+| UC-04 搜尋補充 | extraction, data-management | extraction |
+| UC-05 書庫展示 | user-experience, data-management, page | user-experience |
+| UC-06 借閱管理 | data-management, user-experience | data-management |
+| UC-07 跨平台同步 | data-management, platform | data-management |
+| UC-08 錯誤處理 | system, core | system |
+
+---
+
+## 10. 文件系統 Skill 設計
+
+### 10.1 Skill 定位
+
+統一文件查詢與導航的入口，類似 ticket 系統的 `/ticket` 指令。
+
+```bash
+/doc <subcommand> [options]
+```
+
+### 10.2 子命令設計
+
+| 子命令 | 用途 | 範例 |
+|--------|------|------|
+| `query` | 查詢單一文件 | `/doc query PROP-001` |
+| `list` | 列出文件清單 | `/doc list spec --domain extraction` |
+| `nav` | 跨文件導航 | `/doc nav UC-01` → 顯示相關 spec/proposal/ticket |
+| `status` | 追蹤狀態總覽 | `/doc status` → proposals-tracking.yaml 摘要 |
+| `search` | 全文搜尋 | `/doc search "ISBN 掃描"` |
+| `domain` | Domain 地圖 | `/doc domain extraction` → 顯示 domain 規格和關聯 |
+
+### 10.3 查詢範例
+
+```bash
+# 查詢提案
+/doc query PROP-001
+# → 顯示提案內容摘要 + 狀態 + 相關 spec/usecase/ticket
+
+# 列出某 domain 的所有規格
+/doc list spec --domain data-management
+# → data-management/storage.md
+#    data-management/import-export.md
+#    data-management/sync.md
+
+# 跨文件導航：從 UC 出發
+/doc nav UC-01
+# → 相關 Spec: spec/data-management/import-export.md, spec/extraction/...
+#    相關 Proposal: PROP-XXX
+#    相關 Ticket: 0.17.0-W1-001, 0.17.0-W1-002
+
+# 從 domain 出發
+/doc domain extraction
+# → Domain: extraction（資料提取）
+#    Spec: extraction-pipeline.md, data-processing.md
+#    UC: UC-01, UC-03, UC-04
+#    Tickets: ...
+
+# 全域追蹤狀態
+/doc status
+# → Proposals: 3 draft, 2 confirmed, 1 implemented
+#    Spec: 12 files across 8 domains
+#    UseCases: 8 files (UC-01 ~ UC-08)
+```
+
+### 10.4 跨文件導航機制
+
+導航基於 YAML frontmatter 中的引用欄位：
+
+```
+Proposal ──source_proposal──→ Spec
+    │                          │
+    │                     related_usecases
+    │                          │
+    └──outputs.usecase_refs──→ UseCase
+    │                          │
+    └──outputs.ticket_refs──→ Ticket
+```
+
+| 起點文件 | 可導航到 | 透過欄位 |
+|---------|---------|---------|
+| Proposal | Spec | outputs.spec_refs |
+| Proposal | UseCase | outputs.usecase_refs |
+| Proposal | Ticket | outputs.ticket_refs |
+| Spec | Proposal | source_proposal |
+| Spec | UseCase | related_usecases |
+| UseCase | Proposal | source_proposal |
+| UseCase | Spec | related_specs |
+| UseCase | Ticket | ticket_refs |
+
+### 10.5 實作策略
+
+| 階段 | 內容 | 工具 |
+|------|------|------|
+| Phase 1 | YAML frontmatter 解析 + 基本 query/list | Python CLI（類似 ticket） |
+| Phase 2 | 跨文件導航（nav）+ domain 查詢 | 擴展 CLI |
+| Phase 3 | 全文搜尋（整合 ripgrep） | CLI + rg |
+| Future | RAG 向量查詢 | 待評估 |
+
+---
+
+## 11. 設計約束與權衡
 
 ### 採用的約束
 

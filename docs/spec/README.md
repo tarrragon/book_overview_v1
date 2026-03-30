@@ -1,16 +1,78 @@
 # 功能規格（Spec）
 
-正式功能規格文件目錄。提案確認後轉化為此處的規格文件，供長期維護參考。
+正式功能規格文件目錄。依 **Domain** 組織，每個 domain 子目錄包含該領域的所有規格。
 
-## 規格索引
+> **設計原則**：Spec 是 domain knowledge 的載體。依 domain 組織可降低理解業務知識的心智負擔，在功能擴充或大型重構時，快速定位到正確的 domain 規格。
 
-| 規格 | 來源提案 | 狀態 |
-|------|---------|------|
-| _(待遷移)_ | - | - |
+## Domain 地圖
+
+| Domain | 子目錄 | 核心責任 | 依賴 |
+|--------|--------|---------|------|
+| core | `core/` | 資料模型、錯誤處理、事件系統 | 無（被所有 domain 依賴） |
+| extraction | `extraction/` | 從網頁提取書籍資料 | core, platform, messaging |
+| platform | `platform/` | 平台偵測、適配器管理 | core |
+| data-management | `data-management/` | 儲存、匯入匯出、同步 | core |
+| messaging | `messaging/` | 跨 context 通訊 | core |
+| page | `page/` | 頁面偵測、Content Script | core, messaging |
+| system | `system/` | 生命週期、健康監控 | core |
+| user-experience | `user-experience/` | UI、搜尋、篩選 | core, data-management |
+| analytics | `analytics/` | 閱讀統計分析（v2.0+） | core, data-management |
+| security | `security/` | 資料隱私保護（v2.0+） | core |
+
+## 使用方式
+
+建立新規格時：
+
+1. 確定所屬 domain
+2. 複製 `TEMPLATE.md` 到對應的 domain 子目錄
+3. 填寫 frontmatter（特別是 `domain` 和 `subdomain` 欄位）
+
+```bash
+# 範例：建立 extraction 領域的提取流程規格
+cp docs/spec/TEMPLATE.md docs/spec/extraction/extraction-pipeline.md
+```
+
+### 模板核心欄位
+
+| frontmatter 欄位 | 用途 |
+|-----------------|------|
+| `id` | 規格 ID（SPEC-NNN） |
+| `domain` | 所屬 domain（必填） |
+| `subdomain` | 子領域（如有） |
+| `source_proposal` | 來源提案 ID |
+| `related_usecases` | 對應的用例清單 |
+| `depends_on_domains` | 依賴的其他 domain |
+
+### 正文結構
+
+| 章節 | 必填 | 說明 |
+|------|------|------|
+| 概述 | 是 | 一段話描述範圍和目的 |
+| 功能需求（FR） | 是 | 各需求項，含優先級、來源、驗收標準 |
+| 非功能需求（NFR） | 否 | 效能、安全性等非功能要求 |
+| 資料模型 | 否 | 資料結構和欄位定義 |
+| 介面規格 | 否 | API、事件等介面定義 |
+| 錯誤處理 | 否 | 錯誤場景和處理方式 |
+| 變更歷史 | 是 | 規格版本變更記錄 |
+
+## Domain 與 UseCase 交叉引用
+
+UseCase 是跨 domain 的使用場景，一個 UC 可能涉及多個 domain：
+
+| UC | 涉及 Domain | 主要 Domain |
+|----|------------|------------|
+| UC-01 匯入 | extraction, data-management, platform | data-management |
+| UC-02 匯出 | data-management, user-experience | data-management |
+| UC-03 ISBN 掃描 | extraction, data-management | extraction |
+| UC-04 搜尋補充 | extraction, data-management | extraction |
+| UC-05 書庫展示 | user-experience, data-management, page | user-experience |
+| UC-06 借閱管理 | data-management, user-experience | data-management |
+| UC-07 跨平台同步 | data-management, platform | data-management |
+| UC-08 錯誤處理 | system, core | system |
 
 ## 待遷移項目
 
-- `../app-requirements-spec.md` → 本目錄 `requirements.md`
-- `../app-error-handling-design.md` → 本目錄 `error-handling.md`
+- `../app-requirements-spec.md` → 依 domain 拆分到各子目錄
+- `../app-error-handling-design.md` → `core/error-handling.md`
 
 > 遷移計畫見 PROP-000 Phase 2
