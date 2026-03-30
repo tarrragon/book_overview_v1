@@ -4,11 +4,13 @@
 
 ## 使用方式
 
-建立新提案時，複製 `TEMPLATE.md` 並重新命名：
+建立新提案時，從 Skill 模板複製：
 
 ```bash
-cp docs/proposals/TEMPLATE.md docs/proposals/PROP-{NNN}-{簡短描述}.md
+cp .claude/skills/doc/templates/proposal-template.md docs/proposals/PROP-{NNN}-{簡短描述}.md
 ```
+
+> 模板規範和欄位說明見 `.claude/skills/doc/references/proposals.md`
 
 ### 模板欄位說明
 

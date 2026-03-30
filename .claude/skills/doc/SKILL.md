@@ -77,6 +77,31 @@ Proposal ──outputs.spec_refs──→ Spec
 
 ---
 
+## 模板
+
+模板是框架資產，放在 Skill 內。`docs/` 只放產物，不放模板。
+
+| 模板 | 位置 | 用途 |
+|------|------|------|
+| 提案模板 | `templates/proposal-template.md` | 建立新提案 |
+| 規格模板 | `templates/spec-template.md` | 建立新規格 |
+| 用例模板 | `templates/usecase-template.md` | 建立新用例 |
+
+### 使用方式
+
+```bash
+# 建立提案
+cp .claude/skills/doc/templates/proposal-template.md docs/proposals/PROP-{NNN}-{desc}.md
+
+# 建立規格
+cp .claude/skills/doc/templates/spec-template.md docs/spec/{domain}/{name}.md
+
+# 建立用例
+cp .claude/skills/doc/templates/usecase-template.md docs/usecases/UC-{XX}-{desc}.md
+```
+
+---
+
 ## 參考資料
 
 | 資料 | 說明 |

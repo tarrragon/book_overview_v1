@@ -24,13 +24,14 @@
 建立新規格時：
 
 1. 確定所屬 domain
-2. 複製 `TEMPLATE.md` 到對應的 domain 子目錄
+2. 從 Skill 模板複製到對應的 domain 子目錄
 3. 填寫 frontmatter（特別是 `domain` 和 `subdomain` 欄位）
 
 ```bash
-# 範例：建立 extraction 領域的提取流程規格
-cp docs/spec/TEMPLATE.md docs/spec/extraction/extraction-pipeline.md
+cp .claude/skills/doc/templates/spec-template.md docs/spec/extraction/extraction-pipeline.md
 ```
+
+> 模板規範和欄位說明見 `.claude/skills/doc/references/spec.md`
 
 ### 模板核心欄位
 

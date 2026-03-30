@@ -6,11 +6,13 @@
 
 ## 使用方式
 
-建立新用例時，複製 `TEMPLATE.md` 並重新命名：
+建立新用例時，從 Skill 模板複製：
 
 ```bash
-cp docs/usecases/TEMPLATE.md docs/usecases/UC-{XX}-{簡短描述}.md
+cp .claude/skills/doc/templates/usecase-template.md docs/usecases/UC-{XX}-{簡短描述}.md
 ```
+
+> 模板規範和欄位說明見 `.claude/skills/doc/references/usecases.md`
 
 ## 用例索引
 
