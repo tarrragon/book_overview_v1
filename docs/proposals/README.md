@@ -70,6 +70,7 @@ draft → discussing → confirmed → implemented
 | PROP-002 | 跨設備同步機制完善 | discussing | v0.16.2 |
 | PROP-003 | 資料備份與恢復機制 | draft | v0.16.3 |
 | PROP-004 | UseCase 與測試覆蓋率差距分析 | discussing | v0.16.2 |
+| PROP-005 | 外部依賴邊界防護驗證 | discussing | v0.16.2 |
 
 ## 追蹤
 
