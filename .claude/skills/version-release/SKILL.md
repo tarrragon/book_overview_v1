@@ -28,7 +28,7 @@ def preflight_check(version: str):
     """
     1.1 確認 worklog 目標達成
         - 掃描 docs/work-logs/v{VERSION}*.md
-        - 檢查主工作日誌中的 Phase 是否都標記完成 (✅)
+        - 檢查主工作日誌中的 Phase 是否都標記完成
         - 驗證 Phase 0-4 都已執行並記錄
 
     1.2 檢查技術債務狀態
@@ -37,7 +37,7 @@ def preflight_check(version: str):
         - 驗證沒有未分類的 TD
 
     1.3 版本同步檢查
-        - pubspec.yaml 版本 vs worklog 版本一致
+        - package.json / manifest.json 版本 vs worklog 版本一致
         - 當前分支是否為 feature/v{VERSION}
         - 工作目錄是否乾淨（沒有未提交的修改）
 
@@ -50,11 +50,11 @@ def preflight_check(version: str):
 
 **檢查項目**:
 
-- ✅ 所有 Phase 工作日誌已完成
-- ✅ 技術債務已分類和處理
-- ✅ 版本號在所有地方一致
-- ✅ 當前分支正確
-- ✅ 工作目錄乾淨
+- [x] 所有 Phase 工作日誌已完成
+- [x] 技術債務已分類和處理
+- [x] 版本號在所有地方一致
+- [x] 當前分支正確
+- [x] 工作目錄乾淨
 
 ### Step 2: 文件更新
 
@@ -67,7 +67,7 @@ def update_documents(version: str):
         - 找出當前版本系列在任務表格中的行
         - 標記該版本為已完成
         - 更新版本狀態表格的 「開發狀態」 列
-        - 格式: ✅ Phase 3b 完成 → ✅ 已完成
+        - 格式: [完成] Phase 3b 完成 → [完成] 已完成
 
     2.2 更新 CHANGELOG.md（Keep a Changelog 格式）
         - 讀取工作日誌提取功能變動
@@ -75,8 +75,8 @@ def update_documents(version: str):
         - 分類: Added, Changed, Fixed, Removed
         - 複製到 CHANGELOG.md 頂部（在其他版本之前）
 
-    2.3 確認 pubspec.yaml 版本號正確
-        - 驗證 version: X.Y.Z 行存在
+    2.3 確認 package.json 和 manifest.json 版本號正確
+        - 驗證 "version" 欄位存在且一致
         - 與 worklog 版本號一致
     """
 ```
@@ -85,7 +85,7 @@ def update_documents(version: str):
 
 - `docs/todolist.yaml` - 標記版本為已完成
 - `CHANGELOG.md` - 新增版本變動記錄
-- `pubspec.yaml` - 驗證版本號
+- `package.json` / `manifest.json` - 驗證版本號
 
 ### Step 3: Git 操作
 
@@ -164,35 +164,32 @@ uv run .claude/skills/version-release/scripts/version_release.py update-docs
 
 ## 版本偵測
 
-偵測優先順序：`--version 參數` -> `git branch (feature/vX.Y)` -> `pubspec.yaml` -> `git tag`
+偵測優先順序：`--version 參數` -> `git branch (feature/vX.Y)` -> `package.json` -> `git tag`
 
 支援格式：完整版本（`0.19.8`）、中版本（`0.19`，自動加 .0）、自動偵測（不指定）。
 
 詳細說明和輸出範例：`references/cli-output-examples.md`
 
-## 版本策略（Monorepo 三層架構）
+## 版本策略（Chrome Extension 雙版本來源）
 
-本工具支援 monorepo 三層版本架構，透過 `.version-release.yaml` 配置檔定義版本策略。
+本專案為 Chrome Extension，版本定義在兩個檔案中，必須保持同步。
 
-### 三層版本定義
+### 雙版本來源
 
-| 層級 | 來源 | 獨立性 | 說明 |
-|------|------|--------|------|
-| L1 Monorepo | docs/todolist.yaml | 權威來源 | 整體專案版本，Ticket/Wave 以此為準 |
-| L2 UI | ui/pubspec.yaml | 獨立 | Flutter 應用版本，可獨立升級 |
-| L3 Server | server/go.mod | 隱含同步 | Go module 無自身版本欄位 |
+| 來源 | 檔案 | 欄位 | 說明 |
+|------|------|------|------|
+| NPM 版本 | `package.json` | `version` | 專案主版本，Ticket/Wave 以此為準 |
+| Chrome 版本 | `manifest.json` | `version` | Chrome Web Store 發布版本 |
 
-### 版本不匹配判斷
+### 版本同步規則
 
-`check` 子命令會輸出三層版本對比。L2 UI 版本與 L1 不同是**預期行為**，
-不視為錯誤。只有 L1 monorepo 版本與 git tag 不一致才是需要修正的情況。
+`check` 子命令會驗證 `package.json` 和 `manifest.json` 的版本號是否一致。
+兩者不一致視為錯誤，必須修正後才能發布。
 
 ### .version-release.yaml 配置檔
 
-若需調整版本策略，可在專案根目錄建立或編輯 `.version-release.yaml`。
-配置檔不存在時，工具使用內建預設值（三層架構策略）。
-
-詳細配置結構：`.claude/pm-rules/monorepo-version-strategy.md`
+若需調整版本策略，可編輯 `.claude/skills/version-release/.version-release.yaml`。
+配置檔不存在時，工具使用內建預設值。
 
 ## 前置條件
 
@@ -200,7 +197,7 @@ uv run .claude/skills/version-release/scripts/version_release.py update-docs
 - **Python 依賴**: `pyyaml`（YAML 解析）、`click`（CLI 框架，可選）
 - 完成 Phase 4 重構評估，所有工作日誌已記錄
 - 技術債務已分類，在 `feature/v{VERSION}` 分支上
-- `pubspec.yaml` 版本號已更新
+- `package.json` 和 `manifest.json` 版本號已更新
 
 ## 錯誤排除
 
@@ -210,14 +207,14 @@ uv run .claude/skills/version-release/scripts/version_release.py update-docs
 
 - **前置 Skill**: `tech-debt-capture`（Phase 4 技術債務提取）
 - **後置操作**: GitHub Release 建立（手動）、版本公告發佈（手動）
-- **相關文件**: `docs/todolist.yaml`、`CHANGELOG.md`、`pubspec.yaml`、`docs/work-logs/`
+- **相關文件**: `docs/todolist.yaml`、`CHANGELOG.md`、`package.json`、`manifest.json`、`docs/work-logs/`
 - **錯誤排除**: `references/troubleshooting.md`
 - **輸出範例**: `references/cli-output-examples.md`
 
 ## 使用流程檢查清單
 
 - [ ] 所有 Phase 工作日誌已完成
-- [ ] Phase 0-4 都標記為 ✅
+- [ ] Phase 0-4 都標記為 [完成]
 - [ ] 技術債務已分類到 todolist.yaml
 - [ ] 運行 `check` 確認所有檢查通過
 - [ ] 運行 `release --dry-run` 預覽

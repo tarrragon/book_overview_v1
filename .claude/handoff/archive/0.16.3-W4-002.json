@@ -1,0 +1,8 @@
+{
+  "ticket_id": "0.16.3-W4-002",
+  "title": "修正 version-release Skill 路徑/專案類型/CLI 執行方式不一致（審查 H1+H2+H3）",
+  "direction": "to-sibling:0.16.3-W4-002",
+  "context": "本 session 完成 6 個 Ticket：(1) W4-001 session 經驗持久化 Stop hook (2) W5-004 ticket CLI 版本解析修復 (3) W5-005 Wave 收尾流程改善 (4) W5-006 index.lock 殘留修復（Popen→subprocess.run） (5) W5-007 Hook 權限修正（7 個 chmod +x） (6) W5-008 代理人日誌填寫流程分析。v0.16.3 目前 11/30 完成，剩 15 個 pending（W4: 14 個 + W5: 1 個）。",
+  "created_at": "2026-04-01T14:30:00",
+  "resumed_at": "2026-04-01T15:16:41.671455"
+}
