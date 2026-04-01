@@ -26,53 +26,17 @@ cp .claude/skills/doc/templates/legacy-assessment-report-template.md \
 
 ## 追蹤整合（必要）
 
-Legacy Code 流程的進度必須同時記錄在**三個系統**中，確保從任何入口都能了解全貌：
+Legacy Code 流程的進度必須同時記錄在三個系統中。
 
-### 1. 評估報告（核心文件）
+> 通用同步原則：`.claude/references/multi-system-tracking-sync.md`
 
-即上方的 `docs/legacy-assessment-{date}.md`。記錄每步驟的狀態、產出物、commit hash。
+### Legacy 專屬要求
 
-### 2. Worklog 背景區段
-
-在版本 worklog 中新增「Legacy Code 流程」背景區段，說明：
-- 流程啟動原因和日期
-- 評估報告路徑（指向核心文件）
-- 當前進度（步驟 N/5 完成）
-
-```markdown
-## Legacy Code 流程
-
-| 項目 | 值 |
-|------|-----|
-| 啟動日期 | YYYY-MM-DD |
-| 評估報告 | docs/legacy-assessment-{date}.md |
-| 當前進度 | 步驟 N/5 完成 |
-
-步驟完成記錄在「進度追蹤」區段，格式：
-- YYYY-MM-DD: Legacy 步驟 N 完成 -- [摘要]
-```
-
-### 3. 頂層 Ticket
-
-每個步驟（或多個步驟合併）必須有對應的 Ticket，確保從 ticket 系統能看到 Legacy 流程全貌：
-
-| 策略 | 適用場景 | 說明 |
-|------|---------|------|
-| 每步驟一個 Ticket | 步驟工作量大（如步驟 4） | 標題：「Legacy 步驟 N：{步驟名稱}」 |
-| 合併小步驟 | 步驟 0-1 通常可合併 | 標題明確包含所有步驟編號 |
-| 子 Ticket | 步驟內需拆分 | 如步驟 4 逐 UC 修復各建子 Ticket |
-
-**Ticket 建立時機**：每個步驟**開始前**建立，不是完成後補建。
-
-**Ticket 必填欄位**：
-- `what`：包含「Legacy 步驟 N」關鍵詞
-- `why`：指向評估報告路徑
-- `where`：涉及的檔案/目錄
-
-**禁止行為**：
-- 步驟的工作只記錄在評估報告，不建立 Ticket
-- Ticket 標題不包含 Legacy 步驟編號，導致無法從 ticket 系統辨識
-- 步驟完成但未在 worklog 進度追蹤中記錄
+| 系統 | Legacy 場景 |
+|------|------------|
+| 核心文件 | `docs/legacy-assessment-{date}.md` — 評估報告 |
+| Worklog | 新增「Legacy Code 流程」背景區段（啟動日期、報告路徑、步驟進度） |
+| Ticket | 標題含「Legacy 步驟 N」，`why` 指向評估報告路徑 |
 
 ---
 
