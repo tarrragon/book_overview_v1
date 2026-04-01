@@ -43,7 +43,7 @@ def preflight_check(version: str):
 
     1.4 檔案存在檢查
         - CHANGELOG.md 存在
-        - 主工作日誌存在 (v{VERSION}.0-main.md)
+        - 主工作日誌存在 (v{VERSION}-main.md)
         - todolist.yaml 存在
     """
 ```
