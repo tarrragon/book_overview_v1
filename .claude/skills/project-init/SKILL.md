@@ -284,33 +284,17 @@ uv tool install .
 
 ---
 
-## 相關技巧
+## 後續流程銜接
 
-### 整合到開發流程
+環境初始化完成後，依專案狀態選擇下一步：
 
-在 Hook 或自動化指令中使用 project-init 驗證環境：
-
-```bash
-# 檢查環境是否就緒
-project-init check || (project-init setup && echo "環境已就緒")
-```
-
-### 搭配其他工具
-
-結合 UV 和 project-init 進行完整設定：
-
-```bash
-# 檢查環境
-project-init check
-
-# 更新所有工具
-uv tool upgrade --all
-
-# 重新檢查
-project-init check
-```
+| 場景 | 下一步 | 說明 |
+|------|--------|------|
+| 全新專案 | `/doc-flow init` | 初始化文件系統（worklog、todolist、CHANGELOG） |
+| 既有專案重啟 | `.claude/skills/doc/references/legacy-code-workflow.md` | 六步驟既有專案評估流程（健康檢查 → Ticket 建立） |
+| 已有文件系統 | `/ticket` | 直接查看待辦任務或建立新 Ticket |
 
 ---
 
-**Last Updated**: 2026-03-03
-**Version**: 1.0.0
+**Last Updated**: 2026-04-01
+**Version**: 1.1.0 - 新增後續流程銜接說明（W4-013）
