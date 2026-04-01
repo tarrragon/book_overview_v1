@@ -2,6 +2,32 @@
 
 本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.16.3] - 2026-04-01
+
+### Legacy Code 接手流程 + 文件系統整理 + Ticket 系統修復
+
+**文件系統整理**：
+- [新增] Legacy Code 接手處理七步驟工作流程
+- [新增] legacy-code-workflow 步驟 3/6 加入明確的 /ticket create 和 /doc-flow 引用
+- [新增] 跨 Skill 引用格式規範（內部相對路徑、跨 Skill 完整路徑）
+- [新增] 所有 37 個 SKILL.md 統一 Version + Last Updated 尾部標記
+- [修正] 主工作日誌命名統一為 v{VERSION}-main.md
+- [重構] version-release SKILL.md 偽程式碼移至 references/
+- [合併] project-init 和 ticket SKILL.md 重複的執行方式章節
+
+**Ticket 系統修復**：
+- [修復] ticket resume 已完成 Ticket 時自動導向 handoff 目標
+- [重構] _execute_resume routing 邏輯抽離為 _handle_completed_ticket_redirect()
+- [修復] resume.py INVALID_OPERATION 語義錯誤改用 HANDOFF_UPDATE_FAILED
+- [修復] ticket complete 流程加入 proposals-tracking.yaml 同步提示
+- [新增] project-init SKILL.md 後續流程銜接說明
+
+**代理人知識庫**：
+- [整合] Chrome Extension 實戰知識庫到 thyme-extension-engineer
+- [修正] thyme-extension-engineer 移除錯誤的 Flutter 專案限制說明
+
+統計：35 個 Ticket（W1~W5）、多視角審查修復 3 項
+
 ## [v0.16.2] - 2026-03-30
 
 ### 跨設備同步機制 + /doc CLI + 測試補強
