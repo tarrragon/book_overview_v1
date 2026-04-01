@@ -24,7 +24,7 @@ versions:
     description: "內測 Bug 修復 + 安裝指南建立"
 
   - version: "0.16.3"
-    status: completed
+    status: active
     description: "Legacy Code 接手流程 + 文件系統整理"
 
   - version: "0.16.2"
