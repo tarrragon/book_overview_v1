@@ -1,3 +1,132 @@
+## [1.17.0] - 2026-04-01
+
+### Summary
+feat: ticket complete 自動追加 worklog 進度行（）; feat: 整合 Legacy Code 評估到 TDD 流程和決策樹（）; feat: 修復 UC-01 整合測試 Mock 配置，確認核心功能正常 (+23 more)
+
+Changes: 3 feat, 3 refactor, 6 fix, 14 docs
+
+- feat: ticket complete 自動追加 worklog 進度行（）
+- feat: 整合 Legacy Code 評估到 TDD 流程和決策樹（）
+- feat: 修復 UC-01 整合測試 Mock 配置，確認核心功能正常
+- refactor: 更新 ticket 系統和文件支援階層式 work-logs 結構
+- refactor: 移除 project-init FLUTTER.md 引用改用 CLAUDE.md 技術選型
+- refactor: 消除 FLUTTER.md，統一專案設定與代理人知識分離
+- fix: 移除 sage-test-architect 中 parsley 硬編碼引用（/ARCH-012）
+- fix: 撤回 sage 硬編碼 parsley 引用，改為通用 CLAUDE.md 引導
+- fix: 修復 ticket-id-validator 版本誤報 + parallel-eval 加入語言代理人（, , ）
+- fix: 修復 hook_ticket.py 不支援三層 work-logs 目錄結構
+- fix: 遷移 22 個 Hook + 2 個 Skill + 3 個同步腳本的 Python shebang 至 uv script 模式
+- fix: 修復 UC-04 Widget 層前 3 個測試檔案 (data_diff_preview, search_candidate_list, search_dialog)
+- docs: 擴充 legacy-code-workflow 步驟 5 可觀測性設計指引（）
+- docs: 新增 rules/core/observability-rules.md 可觀測性通用規則（）
+- docs: 新增 Legacy Code 測試重建方法論（）
+- docs: 新增 ARCH-012 錯誤模式 - 通用代理人禁止專案特定引用
+- docs: sage 代理人新增引用 parsley Widget 測試知識的規則（）
+- docs: 更新 CLAUDE.md 和 parsley 知識庫反映四視角審查結論（）
+- docs: 從 教訓新增 Widget 測試常見陷阱指引
+- docs: 修正 legacy-code-workflow 步驟 4 策略 — UC 整合測試優先於全量測試
+- docs: 補強 legacy-code-workflow 流程記錄機制 — 新增回溯盤點和逐 UC 即時記錄要求
+- docs: 重寫 worklog 為敘事性事件日誌風格
+- docs: 修正 worklog/ticket 追蹤機制缺失
+- docs: 更新 rules/README/agent-collaboration 反映專案設定與代理人知識分離
+- docs: 建立版本發布前標準化檢討流程
+- docs: 實作 Worklog 即時進度同步規範 (.1)
+
+---
+
+## [1.16.0] - 2026-03-31
+
+### Summary
+feat: 新增 Legacy Code 評估報告機制 — 解決跨 session 進度遺失問題; docs: 修正評估報告模板和實際報告的審查發現; docs: 記錄 PC-034 錯誤模式 — 流程產出物無持久化導致跨 session 進度遺失 (+3 more)
+
+Changes: 1 feat, 4 docs, 1 chore
+
+- feat: 新增 Legacy Code 評估報告機制 — 解決跨 session 進度遺失問題
+- docs: 修正評估報告模板和實際報告的審查發現
+- docs: 記錄 PC-034 錯誤模式 — 流程產出物無持久化導致跨 session 進度遺失
+- docs: 完成 workflow 平台遷移 — 步驟 0/4/5 改為語言無關
+- docs: 重寫 legacy-code-workflow 步驟 2 並完成三視角審查修正
+- chore: sync-pull 從 tarrragon/claude.git 拉取最新 .claude 配置
+
+---
+
+## [1.15.0] - 2026-03-30
+
+### Summary
+refactor: 精簡 legacy code 接手流程（多視角審查修復 4 項）; docs: 新增 Legacy Code 接手處理標準化七步驟流程（）
+
+Changes: 1 refactor, 1 docs
+
+- refactor: 精簡 legacy code 接手流程（多視角審查修復 4 項）
+- docs: 新增 Legacy Code 接手處理標準化七步驟流程（）
+
+---
+
+## [1.14.0] - 2026-03-30
+
+### Summary
+feat: doc CLI 新增 create/update 子命令（建立文件+狀態更新+tracking 同步）; fix: 新增 Bash 規則三 — 禁止串接多個 git 寫入操作（index.lock 競爭防護）; docs: 更新 /doc SKILL.md — 觸發詞+CLI 狀態+關係圖+評估路徑
+
+Changes: 1 feat, 1 fix, 1 docs
+
+- feat: doc CLI 新增 create/update 子命令（建立文件+狀態更新+tracking 同步）
+- fix: 新增 Bash 規則三 — 禁止串接多個 git 寫入操作（index.lock 競爭防護）
+- docs: 更新 /doc SKILL.md — 觸發詞+CLI 狀態+關係圖+評估路徑
+
+---
+
+## [1.13.0] - 2026-03-30
+
+### Summary
+feat: worktree create 自動合併 blockedBy 依賴分支; feat: 實作 doc CLI 全部 6 個子命令（query/list/status/nav/domain/test-map）; feat: 建立 doc_system Python 套件骨架（CLI 入口 + frontmatter 解析 + 檔案定位） (+5 more)
+
+Changes: 3 feat, 2 fix, 3 docs
+
+- feat: worktree create 自動合併 blockedBy 依賴分支
+- feat: 實作 doc CLI 全部 6 個子命令（query/list/status/nav/domain/test-map）
+- feat: 建立 doc_system Python 套件骨架（CLI 入口 + frontmatter 解析 + 檔案定位）
+- fix: /doc CLI 10 項品質修復（精確匹配+project_root+模組解耦+BOM+常數）
+- fix: Hook 允許 .claude/skills/ 在 feat 分支上編輯（解決代理人 4 次被攔截問題）
+- docs: 補充 SKILL.md/references 設計決策理由（防審查重複覆議）
+- docs: 修正 PROP-000 frontmatter + tracking.md 欄位名稱 + 引用格式慣例
+- docs: 記錄 三視角審查結果 — 4 個簡化建議均被否決（含歷史理由）
+
+---
+
+## [1.12.0] - 2026-03-30
+
+### Summary
+feat: 建立 /doc Skill — 需求追蹤文件系統管理; refactor: 模板移至 Skill，docs/ 只放產物; fix: 記錄 PC-010 錯誤模式 + 更新 UC 完整性探問需求 (+7 more)
+
+Changes: 1 feat, 1 refactor, 4 fix, 4 docs
+
+- feat: 建立 /doc Skill — 需求追蹤文件系統管理
+- refactor: 模板移至 Skill，docs/ 只放產物
+- fix: 記錄 PC-010 錯誤模式 + 更新 UC 完整性探問需求
+- fix: 修復全部 7 個延後項目 — 無延後項目殘留
+- fix: 第二輪審查修復 — PROP-000 命名、PROP-005 引用鏈、tracking verified_by
+- fix: 修復多視角審查發現的 4 個高嚴重程度問題
+- docs: 提案評估指南新增資安維度探問（認證/加密/稽核/機密管理）
+- docs: 建立提案評估指南 — 三關式審查架構（必要性/完整性/流程）
+- docs: 補充審查延後項目到文件，避免交接資訊遺失
+- docs: 記錄 ARCH-011 框架資產與專案產物混放錯誤模式
+
+---
+
+## [1.11.0] - 2026-03-30
+
+### Summary
+feat: 新增 git index.lock 自動清理 PreToolUse hook（）; feat: 啟用跨設備同步 45/45 + 效能基準 9/9 測試通過（.7, .8）; fix: Hook git 呼叫加上 --no-optional-locks 消除 index.lock 競爭根因（） (+1 more)
+
+Changes: 2 feat, 1 fix, 1 chore
+
+- feat: 新增 git index.lock 自動清理 PreToolUse hook（）
+- feat: 啟用跨設備同步 45/45 + 效能基準 9/9 測試通過（.7, .8）
+- fix: Hook git 呼叫加上 --no-optional-locks 消除 index.lock 競爭根因（）
+- chore: 同步 .claude 配置變更
+
+---
+
 ## [1.10.0] - 2026-03-29
 
 ### Summary
