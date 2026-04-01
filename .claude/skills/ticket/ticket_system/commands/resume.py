@@ -530,6 +530,28 @@ def _execute_resume(ticket_id: str, version: Optional[str]) -> int:
         if resolved_version:
             ticket = load_ticket(resolved_version, ticket_id)
 
+    # 檢查 Ticket 是否已完成且有 handoff 方向 → 自動導向目標
+    if is_ticket_completed(ticket_id):
+        direction = handoff.get("direction", "")
+        target_id = extract_direction_target_id(direction) if direction else None
+        if target_id:
+            print(SEPARATOR_PRIMARY)
+            print(format_warning(WarningMessages.TICKET_ALREADY_COMPLETED, ticket_id=ticket_id))
+            print(f"  交接方向: {direction}")
+            print(f"  目標 Ticket: {target_id}")
+            print()
+            print(ResumeMessages.REDIRECT_TO_TARGET)
+            print(f"  ticket resume {target_id}")
+            print(SEPARATOR_PRIMARY)
+
+            # 歸檔原始 handoff 檔案
+            archive_handoff_file(ticket_id)
+            return 0
+        else:
+            # 已完成但無 direction（異常情況），顯示警告
+            print(format_warning(WarningMessages.COMPLETED_NO_DIRECTION, ticket_id=ticket_id))
+            print()
+
     # 列印 handoff 資訊
     _print_handoff_info(handoff, ticket)
 

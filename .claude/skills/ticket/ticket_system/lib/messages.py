@@ -97,6 +97,7 @@ class WarningMessages:
     SEQ_IGNORED_WITH_PARENT = "[提示] --seq {seq} 在子任務模式下被忽略，自動使用序號 {child_seq}"
     EXECUTION_LOG_NOT_FILLED = "[WARNING] 以下執行日誌區段尚未填寫:"
     EXECUTION_LOG_SUGGESTION = "建議使用以下命令填寫:"
+    COMPLETED_NO_DIRECTION = "[Warning] {ticket_id} 已完成但無交接方向，請確認 handoff 設定"
 
 
 class InfoMessages:
