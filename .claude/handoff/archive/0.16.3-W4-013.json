@@ -1,0 +1,10 @@
+{
+  "ticket_id": "0.16.3-W4-013",
+  "direction": "to-sibling:0.16.3-W4-014",
+  "timestamp": "2026-04-01T16:45:43.265588",
+  "from_status": "completed",
+  "title": "補充 project-init SKILL.md 加入後續流程銜接說明（doc-flow/legacy-workflow）",
+  "what": "補充 project-init SKILL.md 加入後續流程銜接說明（doc-flow/legacy-workflow）",
+  "chain": {},
+  "resumed_at": "2026-04-01T16:46:56.620277"
+}
