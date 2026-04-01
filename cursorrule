@@ -186,22 +186,54 @@ src/
 
 | 文件 | 用途 |
 |------|------|
-| `docs/app-requirements-spec.md` | 需求規格書 |
-| `docs/app-use-cases.md` | 用例說明 |
+| `docs/app-requirements-spec.md` | APP 版需求規格書（Flutter，v2.0+ 規劃） |
+| `docs/use-cases.md` | Chrome Extension 用例規格（v1.0 基線，7 個 UC） |
+| `docs/app-use-cases.md` | APP 版用例說明（Flutter，v2.0+ 規劃） |
 | `docs/app-error-handling-design.md` | 錯誤處理設計 |
 | `docs/struct.md` | 專案結構說明 |
 | `docs/README.md` | 文件導引 |
-| `docs/chrome-extension-dev-guide.md` | Chrome Extension 開發注意事項 |
 | `docs/data-flow-architecture.md` | 資料流架構與已知陷阱（必讀） |
+| `docs/proposals-tracking.yaml` | 提案追蹤索引 |
+
+### Chrome Extension 開發規範（必讀）
+
+Chrome Extension 環境有多項與 Node.js 不同的限制，開發和修改程式碼前**必須閱讀**：
+
+**完整規範**：`docs/chrome-extension-dev-guide.md`
+
+**關鍵限制速查**：
+
+| 限制 | 說明 | 解法 |
+|------|------|------|
+| 禁用 `require()` | Content Script 不支援 CJS | esbuild IIFE bundle |
+| 禁用 bare specifier | `import x from 'src/...'` 無效 | 相對路徑或 esbuild alias |
+| 禁用 `global` | 非 Node.js 環境 | 使用 `globalThis` |
+| `window` 限制 | Service Worker 無 `window` | 使用 `self` 或 `globalThis` |
+| Storage API | keys 必須是陣列 `['key']` | 非 `'key'` 字串 |
+| 事件監聽器 | 必須在 SW 頂層註冊 | 禁止 async 延遲註冊 |
+| Build 必須 bundle | 不能只複製檔案 | esbuild 三入口點 bundle |
+
+**測試環境差異**（常見測試失敗根因）：
+
+| 問題 | 說明 |
+|------|------|
+| Jest 用 jsdom，非真實 Chrome 環境 | Chrome API（storage/runtime/tabs）需 mock |
+| CJS/ESM 雙模式 | 模組需同時支援 `module.exports` 和 `export` |
+| `performance.now` mock | 遞增值需手動管理，否則 OOM |
+| DOM 選擇器 | Readmoo 頁面結構會變更，選擇器需多層 fallback |
 
 ---
 
 ## 8. 里程碑
 
 - v0.0.x ~ v0.11.x: 基礎架構、測試框架、核心功能開發（已完成）
-- v0.12.x ~ v0.14.x: ESLint 品質提升、Logger 系統重構、測試最佳化（當前 v0.14.0）
-- v0.15.x ~ v0.x.x: 功能擴展與穩定性改善
-- v1.0.0: 完整功能，準備上架 Chrome Web Store
+- v0.12.x ~ v0.14.x: ESLint 品質提升、Logger 系統重構、測試最佳化（已完成）
+- v0.15.x ~ v0.16.x: 專案重啟、測試修復、同步機制、文件系統（已完成 v0.16.3）
+- v0.17.x: 測試修復與品質恢復（失敗測試歸零）
+- v0.18.x: 端到端驗證與打包（實機測試 + 可分發打包）
+- v0.19.x: 內測準備（Bug 修復 + 安裝指南）
+- v1.0.0: 內測版本（可打包分發，Readmoo 提取 + 匯出入 + 跨裝置同步正常）
+- v2.0.0: 多書城支援（博客來/Kindle/Kobo）+ Chrome Web Store 上架
 
 ---
 
