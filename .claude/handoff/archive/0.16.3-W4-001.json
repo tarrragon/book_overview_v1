@@ -1,0 +1,10 @@
+{
+  "ticket_id": "0.16.3-W4-001",
+  "direction": "context-refresh",
+  "timestamp": "2026-04-01T12:43:20.841658",
+  "from_status": "in_progress",
+  "title": "新增 stop hook 加入 session 經驗持久化提醒（清除前確認重要發現已記錄）",
+  "what": "新增 stop hook 加入 session 經驗持久化提醒（清除前確認重要發現已記錄）",
+  "chain": {},
+  "resumed_at": "2026-04-01T12:46:25.667025"
+}
