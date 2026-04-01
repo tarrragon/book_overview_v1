@@ -11,57 +11,25 @@ allowed-tools: Bash(project-init *), Read, Write, Edit
 
 ---
 
-## 重要：執行方式（必讀）
-
-### 正確方式
-
-```bash
-# 使用已安裝的 project-init CLI（推薦）
-project-init --version
-project-init check
-project-init setup
-
-# 或在 project-init 目錄下使用 uv run
-cd .claude/skills/project-init && uv run project-init check
-```
-
-### 錯誤方式（禁止）
-
-```bash
-# 以下方式會失敗，請勿使用
-python3 .claude/skills/project-init/project_init/scripts/main.py
-uv run python .claude/skills/project-init/project_init/scripts/main.py
-```
-
-**原因**：`project_init` 是 Python 套件，必須透過 `pyproject.toml` 定義的入口點執行。
-
----
-
 ## 執行方式
+
+> **禁止直接執行 Python 檔案！** `project_init` 是 Python 套件，必須透過 `pyproject.toml` 定義的入口點執行。
 
 ### 全局安裝（推薦）
 
-全局安裝後可在任何目錄執行 `project-init` 指令。
-
 ```bash
-# 首次安裝（只需執行一次）
-cd .claude/skills/project-init
-uv tool install .
+# 首次安裝
+(cd .claude/skills/project-init && uv tool install .)
 
 # 之後在任何目錄執行
-project-init --version
 project-init check
 project-init setup
 ```
 
-### 本地執行（開發用）
-
-在 project-init 目錄下使用 `uv run`：
+### 本地執行
 
 ```bash
-cd .claude/skills/project-init
-uv run project-init check
-uv run project-init setup
+(cd .claude/skills/project-init && uv run project-init check)
 ```
 
 ---
