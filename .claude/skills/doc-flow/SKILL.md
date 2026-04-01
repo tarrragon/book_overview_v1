@@ -85,15 +85,20 @@ description: "Manages project documentation system including CHANGELOG, worklog,
 每個版本**必須**有 `v{VERSION}-main.md` 主 worklog。init 指令執行以下步驟：
 
 1. 建立階層目錄 `docs/work-logs/v{MAJOR}/v{MAJOR}.{MINOR}/v{VERSION}/tickets/`（如不存在）
-2. 從模板建立主 worklog：
+2. 建立中版本主 worklog `v{MAJOR}.{MINOR}-main.md`（如不存在）
+3. 從模板建立小版本主 worklog：
    ```bash
    cp .claude/skills/doc-flow/templates/worklog.md.template \
       docs/work-logs/v{MAJOR}/v{MAJOR}.{MINOR}/v{VERSION}/v{VERSION}-main.md
    ```
-3. 填入版本資訊（版本號、日期、目標）
-4. 在 `docs/todolist.yaml` 新增版本條目
+4. 填入版本資訊（版本號、日期、目標）
+5. 在 `docs/todolist.yaml` 新增版本條目
+
+**前提條件**：worklog 三層目錄結構是 ticket 系統正常運作的前提。目錄不存在時 ticket 無法建立。
 
 **觸發時機**：版本開始時，在建立第一個 Ticket 之前。
+
+**新專案/Legacy Code 接手時**：若 `docs/work-logs/` 為空或使用舊版扁平結構，需先執行結構初始化（建立 `v{MAJOR}/` 頂層目錄）後再 init 版本。`project-init onboard` 會自動處理此步驟。
 
 **主 worklog 職責**：版本的**敘事性事件日誌**。記錄「發生了什麼」和「為什麼」，不是 ticket 狀態表的重複。
 
