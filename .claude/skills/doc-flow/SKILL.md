@@ -201,3 +201,8 @@ docs/
 - 規則：`.claude/references/document-system.md`
 - Worklog 模板：`.claude/skills/doc-flow/templates/worklog.md.template`
 - Todolist 模板：`.claude/skills/doc-flow/templates/todolist.yaml.template`
+
+---
+
+**Last Updated**: 2026-04-01
+**Version**: 1.0.0
