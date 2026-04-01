@@ -155,52 +155,22 @@ thyme-extension-engineer 在以下情況下應該被觸發：
 
 ---
 
-## 實戰知識庫（必讀）
+## 實戰知識庫
 
-本專案（Readmoo 書庫管理器）是 Chrome Extension (Manifest V3) 專案，以下為開發過程中累積的實戰經驗。
+本專案（Readmoo 書庫管理器）是 Chrome Extension (Manifest V3) 專案。
 
-### 專案實戰經驗文件
+### 必讀文件
 
-> **完整內容**：`docs/chrome-extension-dev-guide.md`（v0.15.0~v0.15.2 修復過程彙整，411 行）
+開發前必須閱讀以下文件，包含本專案實戰中驗證的限制和解法：
 
-#### 關鍵限制速查（從實戰中驗證）
-
-| 限制 | 說明 | 解法 |
-|------|------|------|
-| 禁用 `require()` | Content Script 不支援 CJS | esbuild IIFE bundle |
-| 禁用 bare specifier | `import x from 'src/...'` 無效 | 相對路徑或 esbuild alias |
-| 禁用 `global` | 非 Node.js 環境 | 使用 `globalThis` |
-| `window` 限制 | Service Worker 無 `window` | 使用 `self` 或 `globalThis` |
-| Storage API | keys 必須是陣列 `['key']` | 非 `'key'` 字串 |
-| 事件監聽器 | 必須在 SW 頂層註冊 | 禁止 async 延遲註冊 |
-| Build 必須 bundle | 不能只複製檔案 | esbuild 三入口點 bundle |
-
-#### 測試環境差異（常見測試失敗根因）
-
-| 問題 | 說明 |
+| 文件 | 內容 |
 |------|------|
-| Jest 用 jsdom，非真實 Chrome 環境 | Chrome API（storage/runtime/tabs）需 mock |
-| CJS/ESM 雙模式 | 模組需同時支援 `module.exports` 和 `export` |
-| `performance.now` mock | 遞增值需手動管理，否則 OOM |
-| DOM 選擇器 | Readmoo 頁面結構會變更，選擇器需多層 fallback |
+| `docs/chrome-extension-dev-guide.md` | CE 環境限制和最佳實踐（411 行，v0.15.0~v0.15.2 彙整） |
+| CLAUDE.md 第 7 節「Chrome Extension 開發規範」 | 關鍵限制速查表、測試環境差異 |
 
-### 專案架構（本專案特定）
+### 建置入口點（本代理人規劃專用）
 
-```
-src/
-├── background/       # Service Worker（SW 頂層事件註冊）
-├── content/          # Content Script（esbuild IIFE bundle）
-├── popup/            # 彈出視窗 UI
-├── core/             # 核心模組（errors, enums）
-├── extractors/       # Readmoo 頁面資料提取器
-├── storage/          # Chrome Storage API 封裝
-├── export/           # 匯出功能（CSV/JSON）
-└── utils/            # 工具函式
-```
-
-### 建置入口點
-
-本專案使用 esbuild 三入口點 bundle 策略：
+本專案使用 esbuild 三入口點 bundle 策略，規劃新元件時需決定歸屬：
 
 | 入口點 | 輸出格式 | 用途 |
 |--------|---------|------|

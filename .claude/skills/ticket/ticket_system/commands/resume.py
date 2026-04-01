@@ -544,11 +544,16 @@ def _execute_resume(ticket_id: str, version: Optional[str]) -> int:
             print(f"  ticket resume {target_id}")
             print(SEPARATOR_PRIMARY)
 
-            # 歸檔原始 handoff 檔案
+            # 標記為已接手再歸檔（保留 resumed_at 審計記錄）
+            mark_handoff_as_resumed(ticket_id)
             archive_handoff_file(ticket_id)
             return 0
+        elif direction:
+            # 有 direction 但無 embedded target_id（如 to-parent, to-child, context-refresh）
+            # 這是正常情況，fall through 到一般 resume 流程
+            pass
         else:
-            # 已完成但無 direction（異常情況），顯示警告
+            # 真正無 direction（異常情況），顯示警告
             print(format_warning(WarningMessages.COMPLETED_NO_DIRECTION, ticket_id=ticket_id))
             print()
 
