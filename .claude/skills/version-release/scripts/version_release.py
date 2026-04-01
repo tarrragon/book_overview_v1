@@ -370,22 +370,23 @@ def check_worklog_completed(version: str) -> Tuple[bool, List[str]]:
             with open(main_worklog, encoding="utf-8") as f:
                 content = f.read()
 
-            # 檢查 Phase 完成情況（多 Wave 版本可跳過）
-            # 若工作日誌含 "status" 欄位標記為 completed，視為非 TDD 版本，跳過 Phase 檢查
-            if re.search(r"^status:\s*completed|^completed$", content, re.MULTILINE):
-                pass  # 非 TDD 版本，Phase 檢查跳過
-            else:
-                phases = {
-                    "Phase 0": r"## Phase 0:.*?✅",
-                    "Phase 1": r"## Phase 1:.*?✅",
-                    "Phase 2": r"## Phase 2:.*?✅",
-                    "Phase 3": r"## Phase 3.*?✅",
-                    "Phase 4": r"## Phase 4.*?✅",
-                }
-
-                for phase_name, pattern in phases.items():
-                    if not re.search(pattern, content, re.DOTALL):
-                        errors.append(f"{main_worklog.name}: {phase_name} 未標記為完成")
+            # 檢查 Ticket 完成情況（透過掃描 tickets 目錄的 YAML frontmatter）
+            tickets_dir = version_subdir / "tickets" if version_subdir.exists() else None
+            if tickets_dir and tickets_dir.exists():
+                total, pending = 0, 0
+                for ticket_file in tickets_dir.glob("*.md"):
+                    try:
+                        with open(ticket_file, encoding="utf-8") as tf:
+                            ticket_content = tf.read()
+                        status_match = re.search(r"^status:\s*(\S+)", ticket_content, re.MULTILINE)
+                        if status_match:
+                            total += 1
+                            if status_match.group(1) in ("pending", "in_progress"):
+                                pending += 1
+                    except Exception:
+                        pass
+                if pending > 0:
+                    errors.append(f"版本 v{version} 有 {pending}/{total} 個未完成的 Ticket")
         except Exception as e:
             errors.append(f"讀取 {main_worklog} 失敗: {e}")
     else:

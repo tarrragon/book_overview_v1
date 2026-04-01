@@ -28,8 +28,8 @@ def preflight_check(version: str):
     """
     1.1 確認 worklog 目標達成
         - 掃描 docs/work-logs/v{VERSION}*.md
-        - 檢查主工作日誌中的 Phase 是否都標記完成
-        - 驗證 Phase 0-4 都已執行並記錄
+        - 掃描 tickets/ 目錄，檢查所有 Ticket 是否都已完成
+        - 若有 pending/in_progress 的 Ticket，回報數量
 
     1.2 檢查技術債務狀態
         - 讀取 todolist.yaml 的「技術債務追蹤」區塊
@@ -50,7 +50,7 @@ def preflight_check(version: str):
 
 **檢查項目**:
 
-- [x] 所有 Phase 工作日誌已完成
+- [x] 所有 Ticket 已完成（無 pending/in_progress）
 - [x] 技術債務已分類和處理
 - [x] 版本號在所有地方一致
 - [x] 當前分支正確
@@ -213,8 +213,7 @@ uv run .claude/skills/version-release/scripts/version_release.py update-docs
 
 ## 使用流程檢查清單
 
-- [ ] 所有 Phase 工作日誌已完成
-- [ ] Phase 0-4 都標記為 [完成]
+- [ ] 所有 Ticket 已完成（無 pending/in_progress）
 - [ ] 技術債務已分類到 todolist.yaml
 - [ ] 運行 `check` 確認所有檢查通過
 - [ ] 運行 `release --dry-run` 預覽
