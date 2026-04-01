@@ -1,0 +1,10 @@
+{
+  "ticket_id": "0.16.3-W4-010",
+  "direction": "to-sibling:0.16.3-W4-011",
+  "timestamp": "2026-04-01T16:11:32.417993",
+  "from_status": "completed",
+  "title": "統一 跨 Skill 引用格式（內部用相對路徑，跨 Skill 用完整路徑）",
+  "what": "統一 跨 Skill 引用格式（內部用相對路徑，跨 Skill 用完整路徑）",
+  "chain": {},
+  "resumed_at": "2026-04-01T16:14:01.067144"
+}
