@@ -9,6 +9,18 @@ description: "Manages project documentation system including CHANGELOG, worklog,
 
 ---
 
+## 三方分工速查（doc / doc-flow / ticket）
+
+| Skill | 管理範圍 | 核心問題 | 使用時機 |
+|-------|---------|---------|---------|
+| `/doc` | proposals, spec, usecases | 需求是什麼？為什麼要做？ | 建立/查詢需求文件、提案評估 |
+| `/doc-flow` | CHANGELOG, worklog, todolist, error-patterns | 版本文件怎麼管？ | 初始化 worklog、更新版本文件 |
+| `/ticket` | Ticket CRUD, 追蹤, 交接, 恢復 | 任務怎麼執行和追蹤？ | 建立/認領/完成任務、交接 context |
+
+**簡記**：doc 管需求（上游）、doc-flow 管版本文件（中台）、ticket 管任務執行（下游）。
+
+---
+
 ## 核心理念
 
 每個文件有單一職責，工程師只需讀對應文件就能理解全部。
