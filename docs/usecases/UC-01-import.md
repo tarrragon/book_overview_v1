@@ -30,6 +30,26 @@ ticket_refs: []
   - 使用者擁有Chrome Extension匯出的JSON檔案
 - **成功保證**: 所有書籍立即可在簡潔模式書庫中瀏覽，詳細資訊背景補充
 
+### 匯入格式支援 (PROP-007 更新)
+
+系統支援兩種匯入格式，透過自動格式偵測判斷：
+
+| 格式 | 偵測方式 | 說明 |
+|------|---------|------|
+| Interchange Format v2（tag-based） | 頂層為 Object（含 `version`、`books`、`tag_tree` 等欄位） | PROP-007 新格式，包含 tags 按類別分組和 tag_tree |
+| 舊格式（v0.16.x 相容） | 頂層為 Array | Chrome Extension 原始匯出格式，向下相容 |
+
+**格式偵測邏輯**：解析 JSON 後檢查頂層結構——如果是 Object 則視為 v2 格式；如果是 Array 則視為舊格式。
+
+**v2 匯入處理**：
+- 讀取 `books` 陣列中的書籍資料
+- 依據 `tags` 物件建立 tag 關聯（寫入 `book_tags` 資料表）
+- 匯入 `tag_tree` 結構（custom 類別的階層關係）
+
+**舊格式匯入處理**：
+- 維持原有匯入邏輯
+- 將固定欄位（author, publisher 等）自動轉換為對應的系統 Tag
+
 ### 主要成功場景
 
 1. **選擇檔案**
@@ -39,8 +59,10 @@ ticket_refs: []
 
 2. **檔案驗證與立即匯入**
    - 系統讀取並驗證JSON檔案格式
-   - 檢查必要欄位：id, title, cover
+   - 自動偵測格式版本（v2 Object 或舊版 Array）(PROP-007 更新)
+   - 檢查必要欄位：id, title, cover（v2 額外檢查 version 欄位）
    - **立即批量插入資料庫**：設定source_type為`digital`，platform_id為Readmoo
+   - v2 格式：同步建立 tag 關聯（book_tags）(PROP-007 更新)
    - 顯示匯入成功訊息：「成功匯入 X 本書籍」
 
 3. **背景資料補充**

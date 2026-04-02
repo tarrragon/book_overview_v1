@@ -1,3 +1,10 @@
+> **[SUPERSEDED]** 本文件已由 **PROP-007 Tag-based Book Model** 取代（2026-04-02）。
+> 原有的固定欄位分類設計已整合至 Tag-based Book Model 的 12 個系統 Tag 類別。
+> 新的 Book Model 定義請參考 `docs/app-requirements-spec.md`（Book Model v1.0+ 段落）。
+> 本文件保留供歷史參考，不應作為新開發的依據。
+
+---
+
 # 書庫擴充分類系統用例文件
 
 ## 概述

@@ -67,14 +67,24 @@ ticket_refs: ["0.16.2-W1-001"]
 - 為未來端到端加密預留架構
 - 使用者可控制同步範圍和頻率
 
-### 未來擴展準備
+### 同步策略路線圖 (PROP-007 更新)
 
-**雲端同步API介面設計**
-```
-POST /api/sync/books
-GET /api/sync/books?since={timestamp}
-PUT /api/sync/books/{id}
-```
+**不架伺服器**——同步完全依靠檔案交換和雲端儲存。
+
+| 版本 | 同步方式 | 說明 |
+|------|---------|------|
+| v1.0 | JSON 匯出/匯入（離線備援） | 使用 Interchange Format v2（tag-based），透過 UC-01/UC-02 手動搬移檔案 |
+| v2.0 | Google Drive API 線上同步 | `drive.file` scope，每平台 OAuth 授權一次，之後全自動同步 |
+
+**v2.0 Google Drive 同步細節**：
+- 使用 `drive.file` scope（最小權限，僅存取 App 建立的檔案）
+- 自動建立 `BookOverviewSync` 資料夾存放同步檔案
+- 每平台首次使用需 OAuth 授權，之後自動執行
+- 離線優先設計：本地變更立即生效，待網路恢復時自動同步
+
+### 未來擴展準備（已由 PROP-007 更新）
+
+> 注意：原先的 RESTful API 設計已廢棄，改用 Google Drive 無伺服器方案。
 
 **衝突解決策略**
 - Last-Write-Wins（簡單場景）

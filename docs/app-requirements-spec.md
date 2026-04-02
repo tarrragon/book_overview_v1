@@ -117,7 +117,11 @@ pubspec.yaml
 
 ## 定義
 
-* **Book（書籍）**：`{ id, title, cover, isbn?, author?, publisher?, publishDate?, description?, source_type, platform_id?, borrower_name?, notes?, created_at, updated_at }`
+### Book Model v0.16.x 以前（已廢棄）
+
+> 以下為舊版固定欄位 Book model，已由 PROP-007 Tag-based Book Model 取代。保留供歷史參考。
+
+* **Book（書籍）[已廢棄]**：`{ id, title, cover, isbn?, author?, publisher?, publishDate?, description?, source_type, platform_id?, borrower_name?, notes?, created_at, updated_at }`
 
   * `id`: 唯一識別碼（Extension版相容性考量）
   * `title`: 書名（必填）
@@ -127,6 +131,53 @@ pubspec.yaml
   * `platform_id`: 電子書平台ID（當source_type為digital時）
   * `borrower_name`: 借閱者姓名（當source_type為borrowed時）
   * `notes`: 使用者筆記（可選，進階功能）
+
+### Book Model v1.0+（PROP-007 Tag-based Book Model）(PROP-007 更新)
+
+新版 Book Model 將大部分書籍屬性從固定欄位改為 Tag 系統管理，提供更高的擴展性和靈活性。
+
+**固定欄位（books 資料表）**：
+
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| `id` | TEXT PK | 唯一識別碼（與 Extension 相容） |
+| `title` | TEXT NOT NULL | 書名（必填） |
+| `cover` | JSON | 封面圖片（多尺寸：thumbnail, small, medium, large） |
+| `cross_platform_id` | TEXT | 跨平台識別碼（用於同步比對） |
+| `data_fingerprint` | TEXT | 資料指紋（用於變更偵測） |
+| `progress` | REAL | 閱讀進度（0.0 ~ 1.0） |
+| `created_at` | DATETIME | 建立時間 |
+| `updated_at` | DATETIME | 更新時間 |
+
+**系統 Tag 分類（12 個類別）**：
+
+| 類別 slug | 說明 | 範例 |
+|-----------|------|------|
+| `author` | 作者 | 村上春樹 |
+| `publisher` | 出版社 | 時報出版 |
+| `platform` | 電子書平台 | Readmoo, Kindle |
+| `language` | 語言 | 繁體中文, English |
+| `isbn` | ISBN | 9789571234567 |
+| `alias` | 別名 | 原文書名 |
+| `reading_status` | 閱讀狀態 | reading, finished, queued |
+| `importance` | 重要程度 | 1-7 級 |
+| `series` | 系列 | 哈利波特系列 |
+| `description` | 描述 | 書籍簡介 |
+| `ccl` | 中文圖書分類法 | 標準分類碼（is_locked，系統維護） |
+| `custom` | 使用者自訂 | 自由 tag tree |
+
+**三個資料表**：
+
+| 資料表 | 說明 |
+|--------|------|
+| `tag_categories` | Tag 類別定義（12 個系統類別 + 使用者擴充） |
+| `tags` | 個別 Tag 值（歸屬某個 category） |
+| `book_tags` | 書籍與 Tag 的多對多關聯 |
+
+**重要變更**：
+- `genre` 欄位廢除，由 tag 系統取代
+- 中文圖書分類法（CCL）作為獨立標準分類，以 `ccl` 類別儲存，標記 `is_locked` 防止使用者誤改
+- 使用者可透過 `custom` 類別建立自訂 tag tree，實現個人化分類
 
 * **BookSource（書籍來源）**：
   * **主分類**: `DIGITAL`, `PHYSICAL`, `BORROWED`
@@ -684,12 +735,21 @@ test('should handle memory pressure gracefully', () {
 
 # 未來擴展性
 
-## 線上同步架構
+## 線上同步架構 (PROP-007 更新)
 
-* **RESTful API**：為未來後端服務預留接口
-* **同步狀態管理**：離線優先，上線時同步
-* **衝突解決**：Last-write-wins或使用者選擇策略
-* **資料加密**：敏感資料端到端加密
+**不架伺服器**——同步完全依靠檔案交換和雲端儲存。
+
+| 版本 | 同步方式 | 說明 |
+|------|---------|------|
+| v1.0 | JSON 離線同步（Interchange Format v2） | 匯出/匯入 tag-based JSON 檔案，手動搬移 |
+| v2.0 | Google Drive 線上同步 | 使用 `drive.file` scope，自動建立 `BookOverviewSync` 資料夾 |
+
+**Google Drive 同步設計**：
+- 使用 `drive.file` scope（最小權限，只能存取 App 建立的檔案）
+- 每平台 OAuth 授權一次，之後全自動
+- 同步檔案存放於 `BookOverviewSync` 資料夾
+- 離線優先，上線時自動同步
+- 衝突解決：Last-write-wins（簡單場景）或使用者選擇（複雜場景）
 
 ## 進階功能
 
@@ -742,3 +802,7 @@ test('should handle memory pressure gracefully', () {
 # 結語
 
 沿著以上TDD待辦清單，小步遞進完成 Core Models → Services → UI Components → Integration。優先實現與Chrome Extension的相容性，再逐步擴展ISBN掃描和Google Books API功能。所有功能變更均以測試保護，結構調整與行為改動分開提交，確保高品質的跨平台APP開發。
+
+---
+
+*最後更新: 2026-04-02 -- PROP-007 Tag-based Book Model 重構*

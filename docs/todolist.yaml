@@ -1,6 +1,6 @@
 # Todolist - 專案版本與任務追蹤
 # 格式規範：使用 versions 列表，ticket CLI 自動偵測 status=active 的版本
-last_updated: "2026-04-01"
+last_updated: "2026-04-02"
 
 versions:
   - version: "0.17.0"
@@ -22,6 +22,26 @@ versions:
   - version: "0.19.0"
     status: active
     description: "內測 Bug 修復 + 安裝指南建立"
+
+  - version: "0.20.0"
+    codename: "Tag-Model"
+    description: "Tag-based Book Model 重構 + 跨專案 Spec 對齊"
+    status: "planned"
+    worklog: "docs/work-logs/v0/v0.20/v0.20.0/"
+    notes: |
+      PROP-007 跨專案 Spec 對齊（與 Flutter App v0.32.0 對應）。
+      Book Model 從固定欄位改為 tag-based metadata。
+      重寫匯出為 Interchange Format v2。
+      閱讀狀態擴充為 6 種。內建中文圖書分類法。
+
+  - version: "0.21.0"
+    codename: "UI-Adapt"
+    description: "Overview Page 適配 tag-based model"
+    status: "planned"
+    worklog: "docs/work-logs/v0/v0.21/v0.21.0/"
+    notes: |
+      Overview Page 顯示 tag-based 書籍資訊。
+      Tag 管理介面。搜尋適配。
 
   - version: "0.16.3"
     status: completed

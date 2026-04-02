@@ -39,9 +39,12 @@ ticket_refs: []
    - 設定檔案名稱：「我的書庫_YYYYMMDD.json」
    - 選擇儲存位置
 
-3. **資料處理**
+3. **資料處理** (PROP-007 更新)
    - 系統查詢符合條件的書籍
-   - 轉換為Chrome Extension相容格式
+   - 匯出為 **Interchange Format v2**（tag-based 格式）
+   - 頂層為 Object，包含 `version`、`exported_at`、`books` 陣列
+   - 每本書籍的 `tags` 按類別分組（author、publisher、platform 等 12 類）
+   - 包含 `tag_tree`（custom 類別的階層結構）
    - 產生JSON檔案
 
 4. **完成匯出**

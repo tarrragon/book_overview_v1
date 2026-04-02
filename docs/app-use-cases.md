@@ -4,6 +4,12 @@
 
 本文件詳細描述APP版書庫管理系統的各項功能用例，採用**簡潔優先、功能可選**的設計理念。系統提供簡潔模式和管理模式雙介面，讓一般使用者能輕鬆瀏覽書庫，進階使用者可使用完整分類功能。
 
+### PROP-007 架構變更說明 (PROP-007 更新)
+
+本系統的 Book Model 已由 PROP-007 重構為 Tag-based 架構。書籍屬性（作者、出版社、ISBN 等）不再使用固定欄位，改以 12 個系統 Tag 類別管理。詳見 `docs/app-requirements-spec.md` 的「Book Model v1.0+」段落。
+
+> 注意：`docs/enhanced-classification-use-cases.md` 已由 PROP-007 取代（SUPERSEDED），其中的分類設計已整合至 Tag-based Book Model。
+
 ### 核心設計原則
 
 - **異步優先**：資料立即呈現，詳細資訊背景補充
