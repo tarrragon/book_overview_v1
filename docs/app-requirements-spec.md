@@ -313,7 +313,7 @@ CREATE TABLE books (
   platform_id INTEGER,
   borrower_name TEXT,
   importance_level INTEGER CHECK(importance_level BETWEEN 1 AND 7),
-  reading_status TEXT CHECK(reading_status IN ('reading', 'finished', 'queued')),
+  reading_status TEXT CHECK(reading_status IN ('not_started', 'queued', 'reading', 'finished', 'abandoned', 'reference')),
   reading_progress REAL DEFAULT 0.0 CHECK(reading_progress >= 0.0 AND reading_progress <= 1.0),
   notes TEXT,
   sync_status TEXT DEFAULT 'local' CHECK(sync_status IN ('local', 'synced', 'conflict')),

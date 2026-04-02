@@ -4,7 +4,7 @@ title: "資料管理規格"
 status: approved
 source_proposal: PROP-002
 created: "2026-03-30"
-updated: "2026-03-30"
+updated: "2026-04-02"
 version: "1.0"
 owner: ""
 

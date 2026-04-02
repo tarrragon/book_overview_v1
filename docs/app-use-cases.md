@@ -41,7 +41,7 @@
 - **前置條件**: 
   - 使用者已安裝APP版書庫管理系統
   - 使用者擁有Chrome Extension匯出的JSON檔案
-- **成功保證**: 所有書籍立即可在簡潔模式書庫中瀏覽，詳細資訊背景補充
+- **成功保證**: 所有書籍立即可在簡潔模式書庫中瀏覽，詳細資訊背景補充。匯入支援 Interchange Format v2（tag-based）和舊格式向下相容（PROP-007 更新）
 
 ### 主要成功場景
 
@@ -52,7 +52,8 @@
 
 2. **檔案驗證與立即匯入**
    - 系統讀取並驗證JSON檔案格式
-   - 檢查必要欄位：id, title, cover
+   - **(PROP-007 更新) 格式偵測**：頂層是 Object（含 format_version） -> Interchange Format v2；頂層是 Array -> 舊格式
+   - **(PROP-007 更新) Tag 關聯建立**：v2 格式匯入時同步 tag_tree 到 tags 表，建立 book_tags 關聯   - 檢查必要欄位：id, title, cover
    - **立即批量插入資料庫**：設定source_type為`digital`，platform_id為Readmoo
    - 顯示匯入成功訊息：「成功匯入 X 本書籍」
 
@@ -106,7 +107,7 @@
 - **用例名稱**: 匯出書庫資料為JSON格式
 - **主要行為者**: 使用者
 - **前置條件**: 書庫中存在至少一本書籍
-- **成功保證**: 產生與Chrome Extension相容的JSON檔案
+- **成功保證**: 產生與Chrome Extension相容的JSON檔案。JSON 匯出預設為 Interchange Format v2，包含 tags 和 tag_tree（PROP-007 更新）
 
 ### 主要成功場景
 
