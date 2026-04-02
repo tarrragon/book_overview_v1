@@ -159,7 +159,7 @@ pubspec.yaml
 | `language` | 語言 | 繁體中文, English |
 | `isbn` | ISBN | 9789571234567 |
 | `alias` | 別名 | 原文書名 |
-| `reading_status` | 閱讀狀態 | reading, finished, queued |
+| `reading_status` | 閱讀狀態 | not_started（未開始）、queued（排隊等待）、reading（閱讀中）、finished（已完成）、abandoned（已放棄）、reference（參考書） |
 | `importance` | 重要程度 | 1-7 級 |
 | `series` | 系列 | 哈利波特系列 |
 | `description` | 描述 | 書籍簡介 |
@@ -283,6 +283,20 @@ GET https://www.googleapis.com/books/v1/volumes?q={title}&maxResults=10
 ---
 
 # SQLite 資料庫設計
+
+> (PROP-007 更新) 以下舊 schema 將在 v0.20.0 替換為 tag-based 三表結構。保留供歷史參考。
+
+**Tag-based schema（v0.20.0+）**：
+
+books 表（固定欄位）：id, title, cover_thumbnail, cover_medium, cover_original, cross_platform_id, data_fingerprint, progress_percentage, progress_current, progress_total, progress_last_read, created_at, updated_at
+
+tag_categories 表：id, name, is_system, allow_tree, created_at
+
+tags 表：id, category_id, name, parent_id, is_locked, created_at, updated_at
+
+book_tags 表：book_id, tag_id, is_primary, created_at
+
+---
 
 ```sql
 -- 主要書籍表格

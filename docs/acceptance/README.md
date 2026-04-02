@@ -159,3 +159,13 @@ grep -A 5 "🔴 無現有測試" docs/acceptance/uc-01/test-coverage.md
 ---
 
 **📝 使用說明**: 本資料夾為專案驗收和錯誤處理修復的核心資源。所有錯誤修復工作都應參考這裡的定義，確保修復的完整性和一致性。
+
+## 需求變更通知（2026-04-02）
+
+PROP-007 確認 Book Model 改為 tag-based metadata 架構（v0.20.0）。
+以下 UC 的驗收條件在 v0.20.0 後需要重新審查：
+- UC-01: 匯入格式變更為 Interchange Format v2
+- UC-02: 匯出格式變更為 Interchange Format v2
+- UC-04: 搜尋邏輯適配 tag-based 查詢
+- UC-05: 書庫展示適配 tag-based model
+- UC-07: 同步策略變更（JSON 離線 + Google Drive 線上）

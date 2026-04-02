@@ -72,6 +72,7 @@ proposals:
 
   PROP-002:
     title: "跨設備同步機制完善"
+    note: "部分被 PROP-007 更新：同步方案變更為 Google Drive，進階功能延後至 v2.0"
     status: confirmed
     proposed: "2026-03-30"
     confirmed: null
@@ -185,5 +186,32 @@ proposals:
         status: done
         verified_by: null
       - item: "DOM 結構變更偵測測試"
+        status: pending
+        verified_by: null
+
+  PROP-007:
+    title: "跨專案規格對齊（Tag-based Model / Interchange Format v2 / Google Drive 同步）"
+    status: confirmed
+    proposed: "2026-04-02"
+    confirmed: "2026-04-02"
+    target_version: "v0.20.0"
+    source: "cross-project"
+    reference: "Flutter App 專案 docs/proposals/PROP-007-cross-project-spec-alignment.md"
+    spec_refs:
+      - "spec/data-management/data-management.md"
+    usecase_refs:
+      - "UC-07"
+    ticket_refs: []
+    checklist:
+      - item: "Chrome Storage 資料結構改為 tag-based model"
+        status: pending
+        verified_by: null
+      - item: "匯出格式升級為 Interchange Format v2"
+        status: pending
+        verified_by: null
+      - item: "同步方案變更為 Google Drive（v2.0 階段）"
+        status: pending
+        verified_by: null
+      - item: "UC-07 替代流程進階功能延後至 v2.0"
         status: pending
         verified_by: null

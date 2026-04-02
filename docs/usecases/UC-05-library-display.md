@@ -18,6 +18,8 @@ related_usecases: [UC-01, UC-04]
 ticket_refs: []
 ---
 
+> (PROP-007 影響) v0.20.0 起 Book Model 改為 tag-based metadata 架構。本 UC 的資料存取和顯示邏輯將在 v0.20.0 適配新 model。
+
 ## UC-05: 雙模式書庫展示系統
 
 ### 基本資訊
