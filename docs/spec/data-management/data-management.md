@@ -175,6 +175,7 @@ Book Schema v2 是 PROP-007 tag-based model 對齊的核心變更。主要改動
 | `isFinished` | boolean, optional | **移除** | 刪除 |
 | `readingStatus` | string（4 種，僅 normalized） | string（6 種，必填） | 升級 |
 | `tagIds` | 不存在 | array of string, optional | 新增 |
+| `isManualStatus` | 不存在 | boolean, optional, default false | 新增 |
 | `updatedAt` | 不存在 | ISO string, auto | 新增 |
 | 其他欄位 | 不變 | 不變 | — |
 
@@ -199,6 +200,7 @@ READMOO: {
     type:          { type: 'string',  required: false, default: '' },
     cover:         { type: 'string',  required: false, default: '' },
     tagIds:        { type: 'array',   required: false, default: [], items: 'string' },
+    isManualStatus:{ type: 'boolean', required: false, default: false },
 
     // === 自動欄位 ===
     extractedAt:   { type: 'string',  required: false, auto: true },
@@ -234,16 +236,22 @@ const READING_STATUS_VALUES = Object.values(READING_STATUS);
 
 #### 狀態轉換規則
 
-| 轉換類型 | 規則 | 優先級 |
-|---------|------|--------|
-| 自動：unread → reading | progress 從 0 變為 > 0 | 低 |
-| 自動：reading → finished | progress 達到 100 | 低 |
-| 手動：任何 → queued | 使用者手動設定 | 高 |
-| 手動：任何 → abandoned | 使用者手動設定 | 高 |
-| 手動：任何 → reference | 使用者手動設定 | 高 |
-| 手動覆蓋後的自動 | **不觸發** | — |
+**追蹤機制**：`isManualStatus` 布林欄位（預設 false）用於區分手動和自動設定的狀態。
 
-**關鍵規則**：手動設定的狀態（queued/abandoned/reference）**不會被自動轉換覆蓋**。一旦使用者手動設定，系統不再自動變更，直到使用者再次手動修改。
+| 轉換類型 | 規則 | isManualStatus 變化 |
+|---------|------|-------------------|
+| 自動：unread → reading | progress 從 0 變為 > 0，且 `isManualStatus === false` | 不變（保持 false） |
+| 自動：reading → finished | progress 達到 100，且 `isManualStatus === false` | 不變（保持 false） |
+| 手動：任何 → queued | 使用者手動設定 | 設為 **true** |
+| 手動：任何 → abandoned | 使用者手動設定 | 設為 **true** |
+| 手動：任何 → reference | 使用者手動設定 | 設為 **true** |
+| 手動：任何 → unread/reading/finished | 使用者手動重設為自動狀態 | 設為 **false**（恢復自動追蹤） |
+
+**關鍵規則**：
+- 當 `isManualStatus === true` 時，自動轉換**不觸發**，即使 progress 改變
+- 使用者手動設定 queued/abandoned/reference → `isManualStatus` 設為 true
+- 使用者手動重設為 unread/reading/finished → `isManualStatus` 設為 false（恢復自動追蹤）
+- progress 欄位在任何狀態下都可更新（abandoned 的書仍可記錄 progress 變化）
 
 #### v1 → v2 狀態對映
 
@@ -265,7 +273,7 @@ const READING_STATUS_VALUES = Object.values(READING_STATUS);
 {
   "tag_categories": [
     {
-      "id": "cat_001",                    // 唯一 ID，格式: cat_{timestamp}（系統預設用語義名稱如 cat_system_status）
+      "id": "cat_001",                    // 唯一 ID，格式: cat_{timestamp}（系統預設用語義名稱如 cat_system_type）
       "name": "類別",                      // 顯示名稱
       "description": "書籍主題分類",        // 選填說明
       "color": "#4A90D9",                  // 顯示顏色（hex）
@@ -299,7 +307,6 @@ const READING_STATUS_VALUES = Object.values(READING_STATUS);
       "id": "tag_001",                     // 唯一 ID，格式: tag_{timestamp}（系統預設用語義名稱如 tag_novel）
       "name": "小說",                       // 顯示名稱
       "categoryId": "cat_001",             // 所屬類別 ID
-      "parentId": null,                    // 父標籤 ID（支援樹狀結構）
       "isSystem": true,                    // 系統預設 vs 使用者自訂
       "sortOrder": 0,
       "createdAt": "2026-04-03T00:00:00Z",
@@ -312,13 +319,14 @@ const READING_STATUS_VALUES = Object.values(READING_STATUS);
 | 欄位 | 型別 | 必填 | 預設值 | 說明 |
 |------|------|------|--------|------|
 | id | string | 是 | auto | 格式: `tag_{timestamp}` |
-| name | string | 是 | — | 同一 category 內唯一，最大 50 字元 |
+| name | string | 是 | — | 同一 category 內唯一（大小寫不敏感），最大 50 字元 |
 | categoryId | string | 是 | — | 引用 tag_categories.id |
-| parentId | string/null | 否 | null | 引用 tags.id，支援樹狀結構（最大深度 3 層，禁止循環引用） |
 | isSystem | boolean | 否 | false | 系統預設不可刪除 |
-| sortOrder | number | 否 | 0 | 同層排序 |
+| sortOrder | number | 否 | 0 | 顯示排序 |
 | createdAt | string | 是 | auto | ISO 8601 |
 | updatedAt | string | 是 | auto | ISO 8601 |
+
+> **設計決策**：v1.0 採用扁平 tag 結構（無 parentId）。樹狀 tag 需求（如中文圖書分類法的層級結構）延至 v0.20.0 再評估。加一個欄位永遠比移除容易。
 
 #### Book ↔ Tag 關聯
 
@@ -358,6 +366,7 @@ FIELDS: {
 | `readingStatus` (string enum) | `readingStatus` (ReadingStatus enum) | 值相同，型別不同 |
 | `progress` (number 0-100) | `readingProgress` (double 0.0-1.0) | 需轉換：Extension / 100 = App |
 | `tagIds` (array of string) | `tagIds` (List&lt;String&gt;) | 相同 |
+| `isManualStatus` (boolean) | `isManualStatus` (bool) | 相同 |
 | `cover` (string URL) | `coverUrl` (String) | 欄位名不同 |
 | `publisher` (string) | `publisher` (String) | 相同 |
 | `extractedAt` (ISO string) | `createdAt` (DateTime) | 欄位名不同 |
@@ -391,7 +400,7 @@ Chrome Storage v2 將現有的單一 key 架構擴展為多 key 架構，新增 
 |-----|------|---------|---------|
 | `readmoo_books` | `{books: [...], ...}`（書籍欄位已更新為 Schema v2） | 依書籍數量 | **修改** |
 | `tag_categories` | `[{id, name, description, color, isSystem, sortOrder, ...}]` | ~1KB（預估 20 個類別） | **新增** |
-| `tags` | `[{id, name, categoryId, parentId, isSystem, sortOrder, ...}]` | ~5KB（預估 200 個標籤） | **新增** |
+| `tags` | `[{id, name, categoryId, isSystem, sortOrder, ...}]` | ~5KB（預估 200 個標籤） | **新增** |
 | `schema_version` | `"3.0.0"` | 極小 | **新增** |
 | 其他既有 key | 不變 | — | 不變 |
 
@@ -462,7 +471,7 @@ const STORAGE_KEYS = {
 
 | 操作 | 方法 | 說明 |
 |------|------|------|
-| 建立 | `createTag({name, categoryId, parentId?})` | 自動生成 id（`tag_{timestamp}`），同 category 內 name 唯一 |
+| 建立 | `createTag({name, categoryId})` | 自動生成 id（`tag_{timestamp}`），同 category 內 name 唯一 |
 | 讀取全部 | `getAllTags()` | 回傳完整陣列 |
 | 依類別讀取 | `getTagsByCategory(categoryId)` | 篩選特定類別的 tags |
 | 依書籍讀取 | `getTagsForBook(bookId)` | 依書籍的 tagIds 解析完整 tag 物件 |
@@ -570,10 +579,10 @@ Extension 啟動
 
 ```javascript
 const DEFAULT_TAG_CATEGORIES = [
-  { id: 'cat_system_status', name: '閱讀狀態', isSystem: true, sortOrder: 0, color: '#4A90D9' },
-  { id: 'cat_system_type',   name: '書籍類型', isSystem: true, sortOrder: 1, color: '#7B68EE' },
-  { id: 'cat_user_custom',   name: '自訂標籤', isSystem: false, sortOrder: 2, color: '#808080' }
+  { id: 'cat_system_type',   name: '書籍類型', isSystem: true, sortOrder: 0, color: '#7B68EE' },
+  { id: 'cat_user_custom',   name: '自訂標籤', isSystem: false, sortOrder: 1, color: '#808080' }
 ];
+// 設計決策：閱讀狀態由 readingStatus 欄位管理，不納入 tag 系統，避免雙重真相。
 ```
 
 ### 步驟 3：書籍欄位轉換規則
@@ -611,6 +620,7 @@ function migrateReadingStatus(book) {
 | 刪除 | `isFinished` | — |
 | 新增 | `readingStatus` | 由轉換函式決定 |
 | 新增 | `tagIds` | `[]`（空陣列） |
+| 新增 | `isManualStatus` | `false`（v1 資料都是系統自動判定的狀態） |
 | 新增 | `updatedAt` | 遷移執行時間（ISO 8601） |
 
 #### progress 值正規化
@@ -668,14 +678,15 @@ function migrateReadingStatus(book) {
 | 書籍已有 readingStatus | 跳過該書的欄位轉換 |
 | migration_backup 已存在（上次遷移中斷） | 先從 backup 還原再重新遷移 |
 
-### 遷移進度通知
+### 遷移日誌
 
-| 事件 | 通知方式 | 內容 |
-|------|---------|------|
-| 遷移開始 | console.info | 「開始資料遷移 v1 → v2...」 |
-| 每 100 本書完成 | console.info | 「已遷移 {N}/{total} 本書...」 |
-| 遷移完成 | console.info + Badge | 「遷移完成：{success} 成功，{skipped} 跳過」 |
-| 遷移失敗 | console.error + Badge | 「遷移失敗：{reason}，已還原」 |
+Chrome Extension 遷移 1000 本書預估不到 500ms，不需要進度通知。僅記錄起止和錯誤：
+
+| 事件 | 方式 | 內容 |
+|------|------|------|
+| 遷移開始 | console.info | 「資料遷移 v1 → v2 開始（{total} 本書）」 |
+| 遷移完成 | console.info | 「資料遷移完成：{success} 成功，{skipped} 跳過，耗時 {ms}ms」 |
+| 遷移失敗 | console.error | 「資料遷移失敗：{reason}，已還原」 |
 
 ### 遷移後清理
 

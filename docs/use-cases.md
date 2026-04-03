@@ -127,7 +127,8 @@
 
 - 去重邏輯需考慮 tag 資訊：相同書籍合併時 tag 應取聯集
 - 進度更新觸發閱讀狀態自動轉換（如 progress 從 0 變為 10 → unread 轉為 reading）
-- 使用者手動設定的狀態（queued/abandoned/reference）不應被自動進度更新覆蓋
+- 使用者手動設定的狀態（queued/abandoned/reference）不被自動進度更新覆蓋（透過 `isManualStatus` 欄位追蹤）
+- 使用者可手動重設為 unread/reading/finished 以恢復自動追蹤（`isManualStatus` 重設為 false）
 - **新邊界條件**：書籍 ID 相同但 tag 不同時的合併策略（取聯集，不刪除既有 tag）
 
 ---
