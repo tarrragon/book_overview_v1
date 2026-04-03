@@ -174,7 +174,7 @@
 
 **Tag-based Model 影響**（v1.1）:
 
-- JSON 匯出格式升級為 Interchange Format v2（含 tags 按類別、tag_tree 結構）。tag_tree 序列化格式詳見 v0.17.1 W1-001 匯出規格。
+- JSON 匯出格式升級為 Interchange Format v2（含 tags 按類別、tag_tree 結構）。tag_tree 序列化格式待定義於匯出規格文件。
 - 新增匯出選項：v2 格式（預設）和 v1 相容格式
 - CSV 匯出需包含 tag 欄位（以分隔符序列化）和 6 種閱讀狀態
 - 匯出欄位集定義需更新（BASIC/EXTENDED/COMPLETE 等加入 tag 相關欄位）

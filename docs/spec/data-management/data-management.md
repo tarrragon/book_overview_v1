@@ -364,7 +364,7 @@ FIELDS: {
 | `updatedAt` (ISO string) | `updatedAt` (DateTime) | 相同 |
 | `source` (string) | `platform` (Platform enum) | 欄位名不同 |
 
-**Interchange Format v2 轉換**：匯出時統一使用 Flutter App 的欄位名稱，匯入時自動轉換回 Extension 欄位名稱。詳見 v0.17.1 W1-001。
+**Interchange Format v2 轉換**：匯出時統一使用 Flutter App 的欄位名稱，匯入時自動轉換回 Extension 欄位名稱。完整轉換規則待定義於匯出規格章節。
 
 ---
 
