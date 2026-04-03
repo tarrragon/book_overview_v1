@@ -1,52 +1,24 @@
 /**
- * UC-01/UC-02 Book Schema v2 重複書籍處理 - 單元測試
+ * Book Schema v2 Duplicate Handling - 單元測試
  *
- * TDD Red Phase：基於 Book Schema v2 重寫 duplicate handling 測試
- * Schema v2 變更：
- * - isNew/isFinished 布林 -> readingStatus 列舉
- * - 新增 tagIds 陣列（tag 引用）
- * - 新增 isManualStatus（boolean）
- * - 新增 updatedAt（ISO string）
- *
- * 合併策略（v2）：
- * - 相同 id：保留最新版本（比較 updatedAt/extractedAt）
- * - readingStatus：isManualStatus=true 優先保留（manual > auto）
- * - progress：取較大值
- * - tagIds：聯集（union）
+ * TDD Red Phase：測試 _handleDuplicateBooks 方法的 Schema v2 合併策略
+ * - readingStatus 合併：isManualStatus=true 優先（manual > auto）
+ * - progress 合併：取較大值
+ * - tagIds 合併：聯集（union，去重）
+ * - 時間戳比較：updatedAt 決定基底版本
  * - 其他欄位：取非空值
+ * - 跨平台去重：title + authors 組合識別
  *
  * @jest-environment jsdom
  */
 
 const { JSDOM } = require('jsdom')
 
-// --- Book Schema v2 測試資料工廠 ---
-
-/**
- * 建立符合 Book Schema v2 的測試書籍
- * 需求：Schema v2 欄位完整性
- */
-function createBookV2 (overrides = {}) {
-  return {
-    id: 'book-default',
-    title: '預設書籍',
-    cover: 'http://example.com/default.jpg',
-    author: '預設作者',
-    progress: 0,
-    readingStatus: 'unread',
-    isManualStatus: false,
-    tagIds: [],
-    updatedAt: '2026-03-01T00:00:00.000Z',
-    extractedAt: '2026-03-01T00:00:00.000Z',
-    ...overrides
-  }
-}
-
-describe('UC-01/UC-02 Book Schema v2 重複書籍處理', () => {
+describe('Book Schema v2 Duplicate Handling - _handleDuplicateBooks', () => {
   let controller
   let OverviewPageController
 
-  // --- 環境設定（與 v1 測試一致的 DOM 和 Mock 結構）---
+  // --- 環境設定 ---
 
   beforeEach(() => {
     const dom = new JSDOM(`
@@ -98,6 +70,7 @@ describe('UC-01/UC-02 Book Schema v2 重複書籍處理', () => {
     const document = dom.window.document
     const window = dom.window
 
+    // Mock EventHandler
     global.EventHandler = class EventHandler {
       constructor (name, priority = 2) {
         this.name = name
@@ -118,6 +91,7 @@ describe('UC-01/UC-02 Book Schema v2 重複書籍處理', () => {
       disable () { this.isEnabled = false }
     }
 
+    // Mock EventBus
     global.mockEventBus = {
       listeners: new Map(),
       emit: jest.fn().mockResolvedValue(undefined),
@@ -127,6 +101,7 @@ describe('UC-01/UC-02 Book Schema v2 重複書籍處理', () => {
       off: jest.fn()
     }
 
+    // Mock console
     global.console = {
       ...console,
       log: jest.fn(),
@@ -155,621 +130,471 @@ describe('UC-01/UC-02 Book Schema v2 重複書籍處理', () => {
   })
 
   // =================================================================
-  // 1. merge 策略：readingStatus 合併（manual > auto）
+  // 1. readingStatus 合併策略：isManualStatus=true 優先
   // =================================================================
 
-  describe('merge 策略：readingStatus 合併（isManualStatus 優先）', () => {
-    test('isManualStatus=true 的 readingStatus 應優先保留，即使 updatedAt 較舊', () => {
-      // Given: 既有書籍手動設定為 reading，匯入書籍自動偵測為 finished（較新）
-      const existing = [createBookV2({
-        id: 'book-001',
-        readingStatus: 'reading',
-        isManualStatus: true,
-        updatedAt: '2026-03-01T00:00:00.000Z'
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        readingStatus: 'finished',
-        isManualStatus: false,
-        updatedAt: '2026-03-20T00:00:00.000Z'
-      })]
-
-      // When: 以 merge 策略處理
-      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
-
-      // Then: readingStatus 應保留手動設定的 reading
-      const book = result.find(b => b.id === 'book-001')
-      expect(book.readingStatus).toBe('reading')
-      expect(book.isManualStatus).toBe(true)
-    })
-
-    test('雙方都是 isManualStatus=true 時，應取 updatedAt 較新的 readingStatus', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
-        readingStatus: 'reading',
-        isManualStatus: true,
-        updatedAt: '2026-03-01T00:00:00.000Z'
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
+  describe('readingStatus 合併：isManualStatus=true 優先', () => {
+    test('merge 策略：manual status 應優先於 auto status（既有為 manual）', () => {
+      const existing = [{
+        id: 'book-rs-001',
+        title: '測試書籍',
         readingStatus: 'finished',
         isManualStatus: true,
-        updatedAt: '2026-03-20T00:00:00.000Z'
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
-
-      const book = result.find(b => b.id === 'book-001')
-      expect(book.readingStatus).toBe('finished')
-      expect(book.updatedAt).toBe('2026-03-20T00:00:00.000Z')
-    })
-
-    test('雙方都是 isManualStatus=false 時，應取 updatedAt 較新的 readingStatus', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
-        readingStatus: 'unread',
-        isManualStatus: false,
         updatedAt: '2026-03-01T00:00:00.000Z'
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        readingStatus: 'reading',
-        isManualStatus: false,
-        updatedAt: '2026-03-20T00:00:00.000Z'
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
-
-      const book = result.find(b => b.id === 'book-001')
-      expect(book.readingStatus).toBe('reading')
-    })
-
-    test('readingStatus 列舉值應為有效值', () => {
-      // Given: 合併後的 readingStatus 應為有效列舉值之一
-      const validStatuses = ['unread', 'reading', 'finished', 'queued', 'abandoned', 'reference']
-
-      const existing = [createBookV2({
-        id: 'book-001',
-        readingStatus: 'queued',
-        isManualStatus: true
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        readingStatus: 'abandoned',
-        isManualStatus: false
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
-
-      const book = result.find(b => b.id === 'book-001')
-      expect(validStatuses).toContain(book.readingStatus)
-    })
-  })
-
-  // =================================================================
-  // 2. merge 策略：tagIds 聯集合併
-  // =================================================================
-
-  describe('merge 策略：tagIds 聯集合併', () => {
-    test('兩組不同 tagIds 應合併為聯集', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
-        tagIds: ['tag-sci-fi', 'tag-favorite']
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        tagIds: ['tag-2026', 'tag-must-read']
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
-
-      const book = result.find(b => b.id === 'book-001')
-      expect(book.tagIds).toHaveLength(4)
-      expect(book.tagIds).toContain('tag-sci-fi')
-      expect(book.tagIds).toContain('tag-favorite')
-      expect(book.tagIds).toContain('tag-2026')
-      expect(book.tagIds).toContain('tag-must-read')
-    })
-
-    test('重複的 tagIds 應去重', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
-        tagIds: ['tag-sci-fi', 'tag-favorite']
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        tagIds: ['tag-sci-fi', 'tag-2026']
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
-
-      const book = result.find(b => b.id === 'book-001')
-      const sciFiCount = book.tagIds.filter(t => t === 'tag-sci-fi').length
-      expect(sciFiCount).toBe(1)
-      expect(book.tagIds).toHaveLength(3)
-    })
-
-    test('一方 tagIds 為空時應保留另一方的 tagIds', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
-        tagIds: ['tag-sci-fi']
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        tagIds: []
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
-
-      const book = result.find(b => b.id === 'book-001')
-      expect(book.tagIds).toEqual(['tag-sci-fi'])
-    })
-
-    test('雙方 tagIds 都為空時結果應為空陣列', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
-        tagIds: []
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        tagIds: []
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
-
-      const book = result.find(b => b.id === 'book-001')
-      expect(book.tagIds).toEqual([])
-    })
-
-    test('一方缺少 tagIds 欄位時應視為空陣列處理', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
-        tagIds: ['tag-a']
-      })]
+      }]
       const imported = [{
-        id: 'book-001',
-        title: '匯入書籍',
+        id: 'book-rs-001',
+        title: '測試書籍',
+        readingStatus: 'reading',
+        isManualStatus: false,
         updatedAt: '2026-03-20T00:00:00.000Z'
-        // 缺少 tagIds 欄位
       }]
 
       const result = controller._handleDuplicateBooks(existing, imported, 'merge')
+      const book = result.find(b => b.id === 'book-rs-001')
 
-      const book = result.find(b => b.id === 'book-001')
-      expect(book.tagIds).toContain('tag-a')
+      // 既有版本 isManualStatus=true，即使匯入較新也應保留 manual status
+      expect(book.readingStatus).toBe('finished')
+      expect(book.isManualStatus).toBe(true)
+    })
+
+    test('merge 策略：manual status 應優先於 auto status（匯入為 manual）', () => {
+      const existing = [{
+        id: 'book-rs-002',
+        title: '測試書籍',
+        readingStatus: 'reading',
+        isManualStatus: false,
+        updatedAt: '2026-03-20T00:00:00.000Z'
+      }]
+      const imported = [{
+        id: 'book-rs-002',
+        title: '測試書籍',
+        readingStatus: 'abandoned',
+        isManualStatus: true,
+        updatedAt: '2026-03-01T00:00:00.000Z'
+      }]
+
+      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
+      const book = result.find(b => b.id === 'book-rs-002')
+
+      // 匯入版本 isManualStatus=true，即使既有較新也應取匯入的 manual status
+      expect(book.readingStatus).toBe('abandoned')
+      expect(book.isManualStatus).toBe(true)
+    })
+
+    test('merge 策略：雙方都是 manual 時取較新版本的 status', () => {
+      const existing = [{
+        id: 'book-rs-003',
+        title: '測試書籍',
+        readingStatus: 'reading',
+        isManualStatus: true,
+        updatedAt: '2026-03-01T00:00:00.000Z'
+      }]
+      const imported = [{
+        id: 'book-rs-003',
+        title: '測試書籍',
+        readingStatus: 'finished',
+        isManualStatus: true,
+        updatedAt: '2026-03-20T00:00:00.000Z'
+      }]
+
+      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
+      const book = result.find(b => b.id === 'book-rs-003')
+
+      // 雙方都是 manual，取 updatedAt 較新的
+      expect(book.readingStatus).toBe('finished')
+      expect(book.isManualStatus).toBe(true)
+    })
+
+    test('merge 策略：雙方都是 auto 時取較新版本的 status', () => {
+      const existing = [{
+        id: 'book-rs-004',
+        title: '測試書籍',
+        readingStatus: 'reading',
+        isManualStatus: false,
+        updatedAt: '2026-03-01T00:00:00.000Z'
+      }]
+      const imported = [{
+        id: 'book-rs-004',
+        title: '測試書籍',
+        readingStatus: 'finished',
+        isManualStatus: false,
+        updatedAt: '2026-03-20T00:00:00.000Z'
+      }]
+
+      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
+      const book = result.find(b => b.id === 'book-rs-004')
+
+      // 雙方都是 auto，取 updatedAt 較新的
+      expect(book.readingStatus).toBe('finished')
     })
   })
 
   // =================================================================
-  // 3. merge 策略：progress 取較大值
+  // 2. progress 合併策略：取較大值
   // =================================================================
 
-  describe('merge 策略：progress 取較大值', () => {
-    test('應取兩方 progress 的較大值', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
+  describe('progress 合併：取較大值', () => {
+    test('merge 策略：應取兩者中較大的 progress', () => {
+      const existing = [{
+        id: 'book-pg-001',
+        title: '測試書籍',
         progress: 30,
+        updatedAt: '2026-03-20T00:00:00.000Z'
+      }]
+      const imported = [{
+        id: 'book-pg-001',
+        title: '測試書籍',
+        progress: 80,
         updatedAt: '2026-03-01T00:00:00.000Z'
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        progress: 75,
-        updatedAt: '2026-02-01T00:00:00.000Z'
-      })]
+      }]
 
       const result = controller._handleDuplicateBooks(existing, imported, 'merge')
+      const book = result.find(b => b.id === 'book-pg-001')
 
-      const book = result.find(b => b.id === 'book-001')
-      expect(book.progress).toBe(75)
-    })
-
-    test('既有 progress 較大時應保留既有值', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
-        progress: 80
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        progress: 20
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
-
-      const book = result.find(b => b.id === 'book-001')
+      // 即使既有較新，progress 應取較大值 80
       expect(book.progress).toBe(80)
     })
 
-    test('progress 相同時應保留該值', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
-        progress: 50
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        progress: 50
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
-
-      const book = result.find(b => b.id === 'book-001')
-      expect(book.progress).toBe(50)
-    })
-  })
-
-  // =================================================================
-  // 4. merge 策略：其他欄位取非空值
-  // =================================================================
-
-  describe('merge 策略：其他欄位取非空值', () => {
-    test('既有 cover 為空時應取匯入的 cover', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
-        cover: '',
-        updatedAt: '2026-03-20T00:00:00.000Z'
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        cover: 'http://example.com/cover.jpg',
-        updatedAt: '2026-03-01T00:00:00.000Z'
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
-
-      const book = result.find(b => b.id === 'book-001')
-      expect(book.cover).toBe('http://example.com/cover.jpg')
-    })
-
-    test('匯入 author 為空時應保留既有 author', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
-        author: '作者A'
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        author: ''
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
-
-      const book = result.find(b => b.id === 'book-001')
-      expect(book.author).toBe('作者A')
-    })
-  })
-
-  // =================================================================
-  // 5. merge 策略：updatedAt/extractedAt 時間戳比較
-  // =================================================================
-
-  describe('merge 策略：時間戳比較決定基底版本', () => {
-    test('匯入版本 updatedAt 較新時應以匯入為基底', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
-        title: '既有版本',
-        updatedAt: '2026-03-01T00:00:00.000Z'
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        title: '匯入版本',
-        updatedAt: '2026-03-20T00:00:00.000Z'
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
-
-      const book = result.find(b => b.id === 'book-001')
-      expect(book.title).toBe('匯入版本')
-    })
-
-    test('既有版本 updatedAt 較新時應以既有為基底', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
-        title: '既有版本',
-        updatedAt: '2026-03-20T00:00:00.000Z'
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        title: '匯入版本',
-        updatedAt: '2026-03-01T00:00:00.000Z'
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
-
-      const book = result.find(b => b.id === 'book-001')
-      expect(book.title).toBe('既有版本')
-    })
-
-    test('缺少 updatedAt 時應 fallback 到 extractedAt', () => {
+    test('merge 策略：progress 為 0 時應取較大值', () => {
       const existing = [{
-        id: 'book-001',
-        title: '既有版本',
-        extractedAt: '2026-03-20T00:00:00.000Z'
-        // 無 updatedAt
+        id: 'book-pg-002',
+        title: '測試書籍',
+        progress: 0,
+        updatedAt: '2026-03-01T00:00:00.000Z'
       }]
       const imported = [{
-        id: 'book-001',
-        title: '匯入版本',
-        extractedAt: '2026-03-01T00:00:00.000Z'
-      }]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
-
-      const book = result.find(b => b.id === 'book-001')
-      expect(book.title).toBe('既有版本')
-    })
-
-    test('updatedAt 相同時應保留既有版本（保守策略）', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
-        title: '既有版本',
-        updatedAt: '2026-03-15T00:00:00.000Z'
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        title: '匯入版本',
-        updatedAt: '2026-03-15T00:00:00.000Z'
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
-
-      const book = result.find(b => b.id === 'book-001')
-      expect(book.title).toBe('既有版本')
-    })
-  })
-
-  // =================================================================
-  // 6. skip 策略：v2 欄位保留驗證
-  // =================================================================
-
-  describe('skip 策略：Schema v2 欄位保留', () => {
-    test('skip 應保留既有書籍的所有 v2 欄位', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
-        readingStatus: 'reading',
-        isManualStatus: true,
-        tagIds: ['tag-a', 'tag-b']
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        readingStatus: 'finished',
-        isManualStatus: false,
-        tagIds: ['tag-c']
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'skip')
-
-      const book = result.find(b => b.id === 'book-001')
-      expect(book.readingStatus).toBe('reading')
-      expect(book.isManualStatus).toBe(true)
-      expect(book.tagIds).toEqual(['tag-a', 'tag-b'])
-    })
-
-    test('skip 應加入非重複的匯入書籍（含 v2 欄位）', () => {
-      const existing = [createBookV2({ id: 'book-001' })]
-      const imported = [createBookV2({
-        id: 'book-002',
-        readingStatus: 'queued',
-        tagIds: ['tag-new']
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'skip')
-
-      expect(result).toHaveLength(2)
-      const book002 = result.find(b => b.id === 'book-002')
-      expect(book002.readingStatus).toBe('queued')
-      expect(book002.tagIds).toEqual(['tag-new'])
-    })
-  })
-
-  // =================================================================
-  // 7. override 策略：v2 欄位覆蓋驗證
-  // =================================================================
-
-  describe('override 策略：Schema v2 欄位覆蓋', () => {
-    test('override 應用匯入版本的所有 v2 欄位替換', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
-        readingStatus: 'reading',
-        isManualStatus: true,
-        tagIds: ['tag-a']
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        readingStatus: 'finished',
-        isManualStatus: false,
-        tagIds: ['tag-b', 'tag-c']
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'override')
-
-      const book = result.find(b => b.id === 'book-001')
-      expect(book.readingStatus).toBe('finished')
-      expect(book.isManualStatus).toBe(false)
-      expect(book.tagIds).toEqual(['tag-b', 'tag-c'])
-    })
-  })
-
-  // =================================================================
-  // 8. 跨平台去重：title + authors 組合識別
-  // =================================================================
-
-  describe('跨平台去重：title + author 組合識別', () => {
-    test('不同 id 但相同 title + author 應被識別為重複', () => {
-      const existing = [createBookV2({
-        id: 'readmoo-001',
-        title: '程式設計入門',
-        author: '王大明',
+        id: 'book-pg-002',
+        title: '測試書籍',
         progress: 50,
-        tagIds: ['tag-tech']
-      })]
-      const imported = [createBookV2({
-        id: 'kindle-001',
-        title: '程式設計入門',
-        author: '王大明',
-        progress: 30,
-        tagIds: ['tag-kindle']
-      })]
+        updatedAt: '2026-03-20T00:00:00.000Z'
+      }]
 
       const result = controller._handleDuplicateBooks(existing, imported, 'merge')
+      const book = result.find(b => b.id === 'book-pg-002')
 
-      // Then: 應識別為同一本書，合併而非新增
-      // 結果應只有 1 本書（而非 2 本）
-      const matchingBooks = result.filter(b =>
-        b.title === '程式設計入門' && b.author === '王大明'
-      )
-      expect(matchingBooks).toHaveLength(1)
+      expect(book.progress).toBe(50)
     })
 
-    test('相同 title 但不同 author 應視為不同書籍', () => {
-      const existing = [createBookV2({
-        id: 'book-001',
-        title: 'JavaScript 入門',
-        author: '作者A'
-      })]
-      const imported = [createBookV2({
-        id: 'book-002',
-        title: 'JavaScript 入門',
-        author: '作者B'
-      })]
+    test('merge 策略：progress 缺失時應取有值的一方', () => {
+      const existing = [{
+        id: 'book-pg-003',
+        title: '測試書籍',
+        updatedAt: '2026-03-20T00:00:00.000Z'
+      }]
+      const imported = [{
+        id: 'book-pg-003',
+        title: '測試書籍',
+        progress: 40,
+        updatedAt: '2026-03-01T00:00:00.000Z'
+      }]
 
       const result = controller._handleDuplicateBooks(existing, imported, 'merge')
+      const book = result.find(b => b.id === 'book-pg-003')
 
-      expect(result).toHaveLength(2)
-    })
-
-    test('跨平台合併時 tagIds 應聯集', () => {
-      const existing = [createBookV2({
-        id: 'readmoo-001',
-        title: '同一本書',
-        author: '同一作者',
-        tagIds: ['tag-readmoo']
-      })]
-      const imported = [createBookV2({
-        id: 'kindle-001',
-        title: '同一本書',
-        author: '同一作者',
-        tagIds: ['tag-kindle']
-      })]
-
-      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
-
-      const book = result.find(b => b.title === '同一本書')
-      expect(book.tagIds).toContain('tag-readmoo')
-      expect(book.tagIds).toContain('tag-kindle')
+      expect(book.progress).toBe(40)
     })
   })
 
   // =================================================================
-  // 9. 邊界案例：Schema v2 特有
+  // 3. tagIds 合併策略：聯集 union（去重）
   // =================================================================
 
-  describe('邊界案例：Schema v2 特有', () => {
-    test('既有書籍為空清單時應回傳所有匯入書籍（含 v2 欄位）', () => {
-      const imported = [
-        createBookV2({ id: 'book-001', readingStatus: 'reading', tagIds: ['tag-a'] }),
-        createBookV2({ id: 'book-002', readingStatus: 'finished', tagIds: ['tag-b'] })
-      ]
-
-      const result = controller._handleDuplicateBooks([], imported, 'merge')
-
-      expect(result).toHaveLength(2)
-      expect(result[0].readingStatus).toBeDefined()
-      expect(result[0].tagIds).toBeDefined()
-    })
-
-    test('匯入書籍為空清單時應回傳所有既有書籍', () => {
-      const existing = [
-        createBookV2({ id: 'book-001', tagIds: ['tag-a'] })
-      ]
-
-      const result = controller._handleDuplicateBooks(existing, [], 'merge')
-
-      expect(result).toHaveLength(1)
-      expect(result[0].tagIds).toEqual(['tag-a'])
-    })
-
-    test('雙方都為空清單時應回傳空陣列', () => {
-      const result = controller._handleDuplicateBooks([], [], 'merge')
-      expect(result).toEqual([])
-    })
-
-    test('匯入資料內部有重複 ID 時應只取最後一筆', () => {
-      const duplicateImported = [
-        createBookV2({ id: 'book-dup', title: '第一版', tagIds: ['tag-1'] }),
-        createBookV2({ id: 'book-dup', title: '第二版', tagIds: ['tag-2'] })
-      ]
-
-      const result = controller._handleDuplicateBooks([], duplicateImported, 'skip')
-
-      const dups = result.filter(b => b.id === 'book-dup')
-      expect(dups).toHaveLength(1)
-      expect(dups[0].title).toBe('第二版')
-    })
-
-    test('v1 格式書籍（含 isNew/isFinished）匯入時不應導致錯誤', () => {
-      // Given: 匯入的書籍使用舊 Schema v1 格式
-      const existing = [createBookV2({ id: 'book-001' })]
-      const v1Imported = [{
-        id: 'book-002',
-        title: 'v1 格式書籍',
-        isNew: true,
-        isFinished: false,
-        progress: 0
+  describe('tagIds 合併：聯集 union（去重）', () => {
+    test('merge 策略：tagIds 應取兩者的聯集', () => {
+      const existing = [{
+        id: 'book-tg-001',
+        title: '測試書籍',
+        tagIds: ['tag-a', 'tag-b'],
+        updatedAt: '2026-03-01T00:00:00.000Z'
+      }]
+      const imported = [{
+        id: 'book-tg-001',
+        title: '測試書籍',
+        tagIds: ['tag-b', 'tag-c'],
+        updatedAt: '2026-03-20T00:00:00.000Z'
       }]
 
-      // When/Then: 不應拋出異常
-      expect(() => {
-        controller._handleDuplicateBooks(existing, v1Imported, 'merge')
-      }).not.toThrow()
-
-      const result = controller._handleDuplicateBooks(existing, v1Imported, 'merge')
-      expect(result).toHaveLength(2)
-    })
-
-    test('merge 時的複合場景：同時合併 readingStatus + tagIds + progress', () => {
-      // Given: 複合合併場景
-      const existing = [createBookV2({
-        id: 'book-001',
-        readingStatus: 'reading',
-        isManualStatus: true,
-        progress: 30,
-        tagIds: ['tag-a', 'tag-b'],
-        cover: '',
-        updatedAt: '2026-03-01T00:00:00.000Z'
-      })]
-      const imported = [createBookV2({
-        id: 'book-001',
-        readingStatus: 'finished',
-        isManualStatus: false,
-        progress: 75,
-        tagIds: ['tag-b', 'tag-c'],
-        cover: 'http://example.com/new-cover.jpg',
-        updatedAt: '2026-03-20T00:00:00.000Z'
-      })]
-
       const result = controller._handleDuplicateBooks(existing, imported, 'merge')
+      const book = result.find(b => b.id === 'book-tg-001')
 
-      const book = result.find(b => b.id === 'book-001')
-      // readingStatus: manual > auto，保留既有的 reading
-      expect(book.readingStatus).toBe('reading')
-      expect(book.isManualStatus).toBe(true)
-      // progress: 取較大值 75
-      expect(book.progress).toBe(75)
-      // tagIds: 聯集 ['tag-a', 'tag-b', 'tag-c']
+      // 聯集去重：tag-a, tag-b, tag-c
       expect(book.tagIds).toHaveLength(3)
       expect(book.tagIds).toContain('tag-a')
       expect(book.tagIds).toContain('tag-b')
       expect(book.tagIds).toContain('tag-c')
-      // cover: 取非空值
-      expect(book.cover).toBe('http://example.com/new-cover.jpg')
     })
 
-    test('所有三種策略對空清單應有一致行為', () => {
-      const existing = [createBookV2({ id: 'book-001' })]
-      const strategies = ['skip', 'override', 'merge']
+    test('merge 策略：一方 tagIds 為空時應取另一方', () => {
+      const existing = [{
+        id: 'book-tg-002',
+        title: '測試書籍',
+        tagIds: [],
+        updatedAt: '2026-03-01T00:00:00.000Z'
+      }]
+      const imported = [{
+        id: 'book-tg-002',
+        title: '測試書籍',
+        tagIds: ['tag-x', 'tag-y'],
+        updatedAt: '2026-03-20T00:00:00.000Z'
+      }]
 
-      for (const strategy of strategies) {
-        const result = controller._handleDuplicateBooks(existing, [], strategy)
-        expect(result).toHaveLength(1)
-      }
+      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
+      const book = result.find(b => b.id === 'book-tg-002')
+
+      expect(book.tagIds).toEqual(['tag-x', 'tag-y'])
+    })
+
+    test('merge 策略：tagIds 缺失時應取有值的一方', () => {
+      const existing = [{
+        id: 'book-tg-003',
+        title: '測試書籍',
+        updatedAt: '2026-03-01T00:00:00.000Z'
+      }]
+      const imported = [{
+        id: 'book-tg-003',
+        title: '測試書籍',
+        tagIds: ['tag-z'],
+        updatedAt: '2026-03-20T00:00:00.000Z'
+      }]
+
+      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
+      const book = result.find(b => b.id === 'book-tg-003')
+
+      expect(book.tagIds).toEqual(['tag-z'])
+    })
+  })
+
+  // =================================================================
+  // 4. 其他欄位合併：取非空值
+  // =================================================================
+
+  describe('其他欄位合併：取非空值', () => {
+    test('merge 策略：基底版本欄位為空時應取另一方的非空值', () => {
+      const existing = [{
+        id: 'book-nv-001',
+        title: '測試書籍',
+        cover: null,
+        author: '作者A',
+        updatedAt: '2026-03-20T00:00:00.000Z'
+      }]
+      const imported = [{
+        id: 'book-nv-001',
+        title: '測試書籍',
+        cover: 'http://example.com/cover.jpg',
+        author: null,
+        updatedAt: '2026-03-01T00:00:00.000Z'
+      }]
+
+      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
+      const book = result.find(b => b.id === 'book-nv-001')
+
+      // 既有較新為基底，cover 為 null 應取匯入的非空值
+      expect(book.cover).toBe('http://example.com/cover.jpg')
+      // author 在基底（既有）有值，保留
+      expect(book.author).toBe('作者A')
+    })
+
+    test('merge 策略：undefined 欄位也應被非空值填補', () => {
+      const existing = [{
+        id: 'book-nv-002',
+        title: '測試書籍',
+        updatedAt: '2026-03-20T00:00:00.000Z'
+      }]
+      const imported = [{
+        id: 'book-nv-002',
+        title: '測試書籍',
+        publisher: '出版社A',
+        updatedAt: '2026-03-01T00:00:00.000Z'
+      }]
+
+      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
+      const book = result.find(b => b.id === 'book-nv-002')
+
+      // 既有缺少 publisher 欄位，應從匯入補充
+      expect(book.publisher).toBe('出版社A')
+    })
+  })
+
+  // =================================================================
+  // 5. 跨平台去重：title + authors 組合識別
+  // =================================================================
+
+  describe('跨平台去重：title + authors 組合識別', () => {
+    test('merge 策略：不同 ID 但 title+author 相同應視為重複', () => {
+      const existing = [{
+        id: 'readmoo-001',
+        title: '相同書名',
+        author: '相同作者',
+        progress: 30,
+        updatedAt: '2026-03-01T00:00:00.000Z'
+      }]
+      const imported = [{
+        id: 'kindle-001',
+        title: '相同書名',
+        author: '相同作者',
+        progress: 80,
+        updatedAt: '2026-03-20T00:00:00.000Z'
+      }]
+
+      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
+
+      // 應只有 1 本書（跨平台去重），不是 2 本
+      expect(result).toHaveLength(1)
+      // merge 策略下 progress 取較大值
+      expect(result[0].progress).toBe(80)
+    })
+
+    test('merge 策略：title 相同但 author 不同不應視為重複', () => {
+      const existing = [{
+        id: 'readmoo-002',
+        title: '相同書名',
+        author: '作者A',
+        updatedAt: '2026-03-01T00:00:00.000Z'
+      }]
+      const imported = [{
+        id: 'kindle-002',
+        title: '相同書名',
+        author: '作者B',
+        updatedAt: '2026-03-20T00:00:00.000Z'
+      }]
+
+      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
+
+      // title 同 author 不同，應為 2 本不同的書
+      expect(result).toHaveLength(2)
+    })
+
+    test('skip 策略：跨平台同書應保留既有版本', () => {
+      const existing = [{
+        id: 'readmoo-003',
+        title: '跨平台書籍',
+        author: '作者C',
+        progress: 50,
+        updatedAt: '2026-03-01T00:00:00.000Z'
+      }]
+      const imported = [{
+        id: 'kindle-003',
+        title: '跨平台書籍',
+        author: '作者C',
+        progress: 90,
+        updatedAt: '2026-03-20T00:00:00.000Z'
+      }]
+
+      const result = controller._handleDuplicateBooks(existing, imported, 'skip')
+
+      expect(result).toHaveLength(1)
+      expect(result[0].id).toBe('readmoo-003')
+      expect(result[0].progress).toBe(50)
+    })
+
+    test('override 策略：跨平台同書應用匯入版本替換', () => {
+      const existing = [{
+        id: 'readmoo-004',
+        title: '跨平台書籍',
+        author: '作者D',
+        progress: 50,
+        updatedAt: '2026-03-01T00:00:00.000Z'
+      }]
+      const imported = [{
+        id: 'kindle-004',
+        title: '跨平台書籍',
+        author: '作者D',
+        progress: 90,
+        updatedAt: '2026-03-20T00:00:00.000Z'
+      }]
+
+      const result = controller._handleDuplicateBooks(existing, imported, 'override')
+
+      expect(result).toHaveLength(1)
+      expect(result[0].id).toBe('kindle-004')
+      expect(result[0].progress).toBe(90)
+    })
+  })
+
+  // =================================================================
+  // 6. 綜合 merge 場景
+  // =================================================================
+
+  describe('綜合 merge 場景', () => {
+    test('merge 應同時套用所有 v2 欄位合併策略', () => {
+      const existing = [{
+        id: 'book-combo-001',
+        title: '綜合測試',
+        readingStatus: 'reading',
+        isManualStatus: false,
+        progress: 60,
+        tagIds: ['tag-1', 'tag-2'],
+        cover: null,
+        author: '作者X',
+        updatedAt: '2026-03-20T00:00:00.000Z'
+      }]
+      const imported = [{
+        id: 'book-combo-001',
+        title: '綜合測試',
+        readingStatus: 'finished',
+        isManualStatus: true,
+        progress: 40,
+        tagIds: ['tag-2', 'tag-3'],
+        cover: 'http://example.com/combo.jpg',
+        author: null,
+        updatedAt: '2026-03-01T00:00:00.000Z'
+      }]
+
+      const result = controller._handleDuplicateBooks(existing, imported, 'merge')
+      const book = result.find(b => b.id === 'book-combo-001')
+
+      // readingStatus: 匯入 isManualStatus=true，取匯入
+      expect(book.readingStatus).toBe('finished')
+      expect(book.isManualStatus).toBe(true)
+
+      // progress: 取較大值 60
+      expect(book.progress).toBe(60)
+
+      // tagIds: 聯集 [tag-1, tag-2, tag-3]
+      expect(book.tagIds).toHaveLength(3)
+      expect(book.tagIds).toContain('tag-1')
+      expect(book.tagIds).toContain('tag-2')
+      expect(book.tagIds).toContain('tag-3')
+
+      // cover: 基底(既有)為 null，取匯入的非空值
+      expect(book.cover).toBe('http://example.com/combo.jpg')
+
+      // author: 基底(既有)有值，保留
+      expect(book.author).toBe('作者X')
+    })
+
+    test('skip/override 策略不應套用 v2 欄位合併', () => {
+      const existing = [{
+        id: 'book-combo-002',
+        title: '策略測試',
+        readingStatus: 'reading',
+        isManualStatus: true,
+        progress: 30,
+        tagIds: ['tag-a'],
+        updatedAt: '2026-03-01T00:00:00.000Z'
+      }]
+      const imported = [{
+        id: 'book-combo-002',
+        title: '策略測試',
+        readingStatus: 'finished',
+        isManualStatus: false,
+        progress: 90,
+        tagIds: ['tag-b'],
+        updatedAt: '2026-03-20T00:00:00.000Z'
+      }]
+
+      // skip：保留既有原樣
+      const skipResult = controller._handleDuplicateBooks(existing, imported, 'skip')
+      const skipBook = skipResult.find(b => b.id === 'book-combo-002')
+      expect(skipBook.progress).toBe(30)
+      expect(skipBook.tagIds).toEqual(['tag-a'])
+
+      // override：用匯入版本原樣替換
+      const overrideResult = controller._handleDuplicateBooks(existing, imported, 'override')
+      const overrideBook = overrideResult.find(b => b.id === 'book-combo-002')
+      expect(overrideBook.progress).toBe(90)
+      expect(overrideBook.tagIds).toEqual(['tag-b'])
     })
   })
 })

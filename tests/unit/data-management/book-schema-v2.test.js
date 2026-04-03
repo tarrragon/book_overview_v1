@@ -1,631 +1,691 @@
 /**
  * Book Schema v2 驗證測試
  *
- * TDD Phase 2 - Failing tests for PROP-007 Tag-based Book Model 重構
- * 測試對象：Book Schema v2 欄位驗證、閱讀狀態轉換、Tag 結構 CRUD
+ * 涵蓋範圍：
+ * - Book Schema v2 欄位定義（必填/選填/型別/預設值）
+ * - ReadingStatus 列舉（6 種狀態）
+ * - 自動狀態轉換（progress → status）
+ * - 手動狀態設定（isManualStatus 機制）
+ * - v1 → v2 狀態對映
+ * - TagCategory Schema 驗證
+ * - Tag Schema 驗證
+ * - tagIds 驗證
  *
- * 規格來源：docs/spec/data-management/data-management.md
+ * TDD Phase 2（Red）：基於 SPEC-004 Book Schema v2 規格撰寫
+ * 對應 Ticket: 0.17.0-W2-001
  */
 
-// ============================================================
-// 待實作模組（Schema v2 尚未建立，以下 require 預期會失敗）
-// 實作完成後取消註解並移除 placeholder
-// ============================================================
-// const { BookSchemaV2 } = require('src/data-management/BookSchemaV2')
-// const { ReadingStatusTransition } = require('src/data-management/ReadingStatusTransition')
-// const { TagCategorySchema, TagSchema } = require('src/data-management/TagSchema')
+const {
+  READING_STATUS,
+  READING_STATUS_VALUES,
+  SCHEMA_VERSION,
+  BOOK_SCHEMA_V2,
+  isManualOnlyStatus,
+  isAutoTrackableStatus,
+  validateField,
+  validateBook,
+  applyDefaults,
+  computeAutoStatusTransition,
+  computeManualStatusChange,
+  mapV1StatusToV2
+} = require('src/data-management/BookSchemaV2')
 
-// -- Placeholder: 在實作前提供最小 stub 讓測試結構可載入 --
-const VALID_READING_STATUSES = ['unread', 'reading', 'finished', 'queued', 'abandoned', 'reference']
+const {
+  TAG_CATEGORY_SCHEMA,
+  TAG_SCHEMA,
+  TAG_CATEGORY_NAME_MAX_LENGTH,
+  TAG_CATEGORY_DESCRIPTION_MAX_LENGTH,
+  TAG_NAME_MAX_LENGTH,
+  MAX_TAGS_PER_BOOK,
+  DEFAULT_COLOR,
+  validateTagCategory,
+  validateTag,
+  validateTagIds
+} = require('src/data-management/TagSchema')
 
-/**
- * 建立有效的 v2 book 測試資料
- * @param {Object} overrides - 覆蓋欄位
- * @returns {Object} 完整的 v2 book 物件
- */
+// === 測試輔助 ===
+
 function createValidBook (overrides = {}) {
   return {
     id: 'book_001',
-    title: 'Test Book',
+    title: '測試書籍',
     readingStatus: 'unread',
-    authors: [],
-    publisher: '',
+    authors: ['作者A'],
+    publisher: '出版社',
     progress: 0,
-    type: '',
-    cover: '',
+    type: 'epub',
+    cover: 'https://example.com/cover.jpg',
     tagIds: [],
     isManualStatus: false,
-    extractedAt: '2026-04-04T00:00:00Z',
-    updatedAt: '2026-04-04T00:00:00Z',
+    extractedAt: '2026-04-03T00:00:00Z',
+    updatedAt: '2026-04-03T00:00:00Z',
     source: 'readmoo',
     ...overrides
   }
 }
 
-/**
- * 建立有效的 tag category 測試資料
- */
-function createValidTagCategory (overrides = {}) {
+function createValidCategory (overrides = {}) {
   return {
     id: 'cat_001',
     name: '類別',
-    description: '',
-    color: '#808080',
-    isSystem: false,
+    description: '書籍主題分類',
+    color: '#4A90D9',
+    isSystem: true,
     sortOrder: 0,
-    createdAt: '2026-04-04T00:00:00Z',
-    updatedAt: '2026-04-04T00:00:00Z',
+    createdAt: '2026-04-03T00:00:00Z',
+    updatedAt: '2026-04-03T00:00:00Z',
     ...overrides
   }
 }
 
-/**
- * 建立有效的 tag 測試資料
- */
 function createValidTag (overrides = {}) {
   return {
     id: 'tag_001',
     name: '小說',
     categoryId: 'cat_001',
-    isSystem: false,
+    isSystem: true,
     sortOrder: 0,
-    createdAt: '2026-04-04T00:00:00Z',
-    updatedAt: '2026-04-04T00:00:00Z',
+    createdAt: '2026-04-03T00:00:00Z',
+    updatedAt: '2026-04-03T00:00:00Z',
     ...overrides
   }
 }
 
 // ============================================================
-// 1. Book Schema v2 欄位驗證
+// 1. Schema 定義
 // ============================================================
-describe('Book Schema v2 - 欄位驗證', () => {
-  describe('必填欄位', () => {
-    it('應接受包含所有必填欄位的完整書籍', () => {
-      const book = createValidBook()
-      // 待實作：expect(BookSchemaV2.validate(book).isValid).toBe(true)
-      expect(book.id).toBeDefined()
-      expect(book.title).toBeDefined()
-      expect(book.readingStatus).toBeDefined()
-    })
 
-    it('應拒絕缺少 id 的書籍', () => {
+describe('Book Schema v2 定義', () => {
+  test('Schema 版本為 3.0.0', () => {
+    expect(SCHEMA_VERSION).toBe('3.0.0')
+  })
+
+  test('Schema 平台為 READMOO', () => {
+    expect(BOOK_SCHEMA_V2.platform).toBe('READMOO')
+  })
+
+  test('Schema 包含所有必填欄位', () => {
+    const requiredFields = Object.entries(BOOK_SCHEMA_V2.fields)
+      .filter(([, def]) => def.required)
+      .map(([name]) => name)
+    expect(requiredFields).toEqual(['id', 'title', 'readingStatus'])
+  })
+
+  test('Schema 包含所有選填欄位', () => {
+    const optionalFields = Object.entries(BOOK_SCHEMA_V2.fields)
+      .filter(([, def]) => !def.required && !def.auto)
+      .map(([name]) => name)
+    expect(optionalFields).toContain('authors')
+    expect(optionalFields).toContain('publisher')
+    expect(optionalFields).toContain('progress')
+    expect(optionalFields).toContain('tagIds')
+    expect(optionalFields).toContain('isManualStatus')
+  })
+
+  test('Schema 包含自動欄位', () => {
+    const autoFields = Object.entries(BOOK_SCHEMA_V2.fields)
+      .filter(([, def]) => def.auto)
+      .map(([name]) => name)
+    expect(autoFields).toContain('extractedAt')
+    expect(autoFields).toContain('updatedAt')
+    expect(autoFields).toContain('source')
+  })
+
+  test('progress 欄位範圍為 0-100', () => {
+    const progressDef = BOOK_SCHEMA_V2.fields.progress
+    expect(progressDef.min).toBe(0)
+    expect(progressDef.max).toBe(100)
+  })
+
+  test('readingStatus 欄位有 enum 限制', () => {
+    const statusDef = BOOK_SCHEMA_V2.fields.readingStatus
+    expect(statusDef.enum).toEqual(READING_STATUS_VALUES)
+  })
+
+  test('tagIds 欄位定義 items 為 string', () => {
+    expect(BOOK_SCHEMA_V2.fields.tagIds.items).toBe('string')
+  })
+})
+
+// ============================================================
+// 2. ReadingStatus 列舉
+// ============================================================
+
+describe('ReadingStatus 列舉', () => {
+  test('包含 6 種狀態', () => {
+    expect(READING_STATUS_VALUES).toHaveLength(6)
+  })
+
+  test('包含 unread 狀態', () => {
+    expect(READING_STATUS.UNREAD).toBe('unread')
+  })
+
+  test('包含 reading 狀態', () => {
+    expect(READING_STATUS.READING).toBe('reading')
+  })
+
+  test('包含 finished 狀態', () => {
+    expect(READING_STATUS.FINISHED).toBe('finished')
+  })
+
+  test('包含 queued 狀態', () => {
+    expect(READING_STATUS.QUEUED).toBe('queued')
+  })
+
+  test('包含 abandoned 狀態', () => {
+    expect(READING_STATUS.ABANDONED).toBe('abandoned')
+  })
+
+  test('包含 reference 狀態', () => {
+    expect(READING_STATUS.REFERENCE).toBe('reference')
+  })
+
+  test('READING_STATUS 物件已凍結', () => {
+    expect(Object.isFrozen(READING_STATUS)).toBe(true)
+  })
+
+  test('isManualOnlyStatus 辨識手動專用狀態', () => {
+    expect(isManualOnlyStatus('queued')).toBe(true)
+    expect(isManualOnlyStatus('abandoned')).toBe(true)
+    expect(isManualOnlyStatus('reference')).toBe(true)
+    expect(isManualOnlyStatus('unread')).toBe(false)
+    expect(isManualOnlyStatus('reading')).toBe(false)
+    expect(isManualOnlyStatus('finished')).toBe(false)
+  })
+
+  test('isAutoTrackableStatus 辨識自動可追蹤狀態', () => {
+    expect(isAutoTrackableStatus('unread')).toBe(true)
+    expect(isAutoTrackableStatus('reading')).toBe(true)
+    expect(isAutoTrackableStatus('finished')).toBe(true)
+    expect(isAutoTrackableStatus('queued')).toBe(false)
+    expect(isAutoTrackableStatus('abandoned')).toBe(false)
+    expect(isAutoTrackableStatus('reference')).toBe(false)
+  })
+})
+
+// ============================================================
+// 3. Book 欄位驗證
+// ============================================================
+
+describe('Book 欄位驗證', () => {
+  describe('必填欄位', () => {
+    test('缺少 id 時驗證失敗', () => {
       const book = createValidBook({ id: undefined })
-      // 待實作：expect(BookSchemaV2.validate(book).isValid).toBe(false)
-      expect(book.id).toBeUndefined()
+      const result = validateBook(book)
+      expect(result.valid).toBe(false)
+      expect(result.errors.some((e) => e.includes('id'))).toBe(true)
     })
 
-    it('應拒絕缺少 title 的書籍', () => {
+    test('缺少 title 時驗證失敗', () => {
       const book = createValidBook({ title: undefined })
-      expect(book.title).toBeUndefined()
+      const result = validateBook(book)
+      expect(result.valid).toBe(false)
+      expect(result.errors.some((e) => e.includes('title'))).toBe(true)
     })
 
-    it('應拒絕缺少 readingStatus 的書籍', () => {
+    test('缺少 readingStatus 時驗證失敗', () => {
       const book = createValidBook({ readingStatus: undefined })
-      expect(book.readingStatus).toBeUndefined()
+      const result = validateBook(book)
+      expect(result.valid).toBe(false)
+      expect(result.errors.some((e) => e.includes('readingStatus'))).toBe(true)
+    })
+
+    test('空字串 id 視為缺失', () => {
+      const book = createValidBook({ id: '' })
+      const result = validateBook(book)
+      expect(result.valid).toBe(false)
+    })
+
+    test('空字串 title 視為缺失', () => {
+      const book = createValidBook({ title: '' })
+      const result = validateBook(book)
+      expect(result.valid).toBe(false)
     })
   })
 
-  describe('選填欄位預設值', () => {
-    it('authors 預設為空陣列', () => {
-      const book = createValidBook()
-      expect(book.authors).toEqual([])
-    })
-
-    it('publisher 預設為空字串', () => {
-      const book = createValidBook()
-      expect(book.publisher).toBe('')
-    })
-
-    it('progress 預設為 0', () => {
-      const book = createValidBook()
-      expect(book.progress).toBe(0)
-    })
-
-    it('tagIds 預設為空陣列', () => {
-      const book = createValidBook()
-      expect(book.tagIds).toEqual([])
-    })
-
-    it('isManualStatus 預設為 false', () => {
-      const book = createValidBook()
-      expect(book.isManualStatus).toBe(false)
-    })
-
-    it('source 預設為 readmoo', () => {
-      const book = createValidBook()
-      expect(book.source).toBe('readmoo')
-    })
-  })
-
-  describe('型別驗證', () => {
-    it('id 必須是 string', () => {
+  describe('型別檢查', () => {
+    test('id 為數字時驗證失敗', () => {
       const book = createValidBook({ id: 123 })
-      expect(typeof book.id).not.toBe('string')
-      // 待實作：expect(BookSchemaV2.validate(book).isValid).toBe(false)
+      const result = validateBook(book)
+      expect(result.valid).toBe(false)
     })
 
-    it('title 必須是 string', () => {
-      const book = createValidBook({ title: 123 })
-      expect(typeof book.title).not.toBe('string')
+    test('title 為數字時驗證失敗', () => {
+      const book = createValidBook({ title: 456 })
+      const result = validateBook(book)
+      expect(result.valid).toBe(false)
     })
 
-    it('readingStatus 必須是有效的列舉值', () => {
-      const book = createValidBook({ readingStatus: 'invalid_status' })
-      expect(VALID_READING_STATUSES).not.toContain(book.readingStatus)
-    })
-
-    it('authors 必須是 array', () => {
-      const book = createValidBook({ authors: 'single author' })
-      expect(Array.isArray(book.authors)).toBe(false)
-    })
-
-    it('progress 必須是 number', () => {
+    test('progress 為字串時驗證失敗', () => {
       const book = createValidBook({ progress: '50' })
-      expect(typeof book.progress).not.toBe('number')
+      const result = validateBook(book)
+      expect(result.valid).toBe(false)
     })
 
-    it('tagIds 必須是 string 陣列', () => {
-      const book = createValidBook({ tagIds: [1, 2, 3] })
-      expect(book.tagIds.every(id => typeof id === 'string')).toBe(false)
+    test('authors 為字串時驗證失敗', () => {
+      const book = createValidBook({ authors: '作者' })
+      const result = validateBook(book)
+      expect(result.valid).toBe(false)
     })
 
-    it('isManualStatus 必須是 boolean', () => {
+    test('isManualStatus 為字串時驗證失敗', () => {
       const book = createValidBook({ isManualStatus: 'true' })
-      expect(typeof book.isManualStatus).not.toBe('boolean')
+      const result = validateBook(book)
+      expect(result.valid).toBe(false)
+    })
+
+    test('tagIds 包含非 string 元素時驗證失敗', () => {
+      const book = createValidBook({ tagIds: ['tag_001', 123] })
+      const result = validateBook(book)
+      expect(result.valid).toBe(false)
     })
   })
 
-  describe('progress 邊界條件', () => {
-    it('接受 progress = 0（最小值）', () => {
-      const book = createValidBook({ progress: 0 })
-      expect(book.progress).toBe(0)
-      expect(book.progress >= 0).toBe(true)
+  describe('enum 驗證', () => {
+    test('readingStatus 為無效值時驗證失敗', () => {
+      const book = createValidBook({ readingStatus: 'invalid_status' })
+      const result = validateBook(book)
+      expect(result.valid).toBe(false)
     })
 
-    it('接受 progress = 100（最大值）', () => {
-      const book = createValidBook({ progress: 100 })
-      expect(book.progress).toBe(100)
-      expect(book.progress <= 100).toBe(true)
+    test.each(READING_STATUS_VALUES)('readingStatus=%s 時驗證通過', (status) => {
+      const book = createValidBook({ readingStatus: status })
+      const result = validateBook(book)
+      expect(result.valid).toBe(true)
     })
+  })
 
-    it('接受 progress = 50（中間值）', () => {
-      const book = createValidBook({ progress: 50 })
-      expect(book.progress >= 0 && book.progress <= 100).toBe(true)
-    })
-
-    it('應拒絕 progress < 0', () => {
+  describe('數值範圍', () => {
+    test('progress < 0 時驗證失敗', () => {
       const book = createValidBook({ progress: -1 })
-      expect(book.progress < 0).toBe(true)
-      // 待實作：expect(BookSchemaV2.validate(book).isValid).toBe(false)
+      const result = validateBook(book)
+      expect(result.valid).toBe(false)
     })
 
-    it('應拒絕 progress > 100', () => {
+    test('progress > 100 時驗證失敗', () => {
       const book = createValidBook({ progress: 101 })
-      expect(book.progress > 100).toBe(true)
-      // 待實作：expect(BookSchemaV2.validate(book).isValid).toBe(false)
+      const result = validateBook(book)
+      expect(result.valid).toBe(false)
     })
 
-    it('應拒絕 progress 為小數（非整數）', () => {
-      const book = createValidBook({ progress: 50.5 })
-      expect(Number.isInteger(book.progress)).toBe(false)
-    })
-  })
-
-  describe('readingStatus 列舉驗證', () => {
-    VALID_READING_STATUSES.forEach(status => {
-      it(`接受有效狀態: ${status}`, () => {
-        const book = createValidBook({ readingStatus: status })
-        expect(VALID_READING_STATUSES).toContain(book.readingStatus)
-      })
+    test('progress = 0 時驗證通過', () => {
+      const book = createValidBook({ progress: 0 })
+      const result = validateBook(book)
+      expect(result.valid).toBe(true)
     })
 
-    it('應拒絕無效的 readingStatus 值', () => {
-      const invalidStatuses = ['new', 'done', 'paused', 'isNew', 'isFinished', '', null]
-      invalidStatuses.forEach(status => {
-        expect(VALID_READING_STATUSES).not.toContain(status)
-      })
+    test('progress = 100 時驗證通過', () => {
+      const book = createValidBook({ progress: 100 })
+      const result = validateBook(book)
+      expect(result.valid).toBe(true)
     })
   })
 
-  describe('Schema 版本', () => {
-    it('v2 Schema 版本應為 3.0.0', () => {
-      // 待實作：expect(BookSchemaV2.version).toBe('3.0.0')
-      const expectedVersion = '3.0.0'
-      expect(expectedVersion).toBe('3.0.0')
+  describe('完整 Book 驗證', () => {
+    test('有效的完整 Book 通過驗證', () => {
+      const book = createValidBook()
+      const result = validateBook(book)
+      expect(result.valid).toBe(true)
+      expect(result.errors).toHaveLength(0)
     })
 
-    it('v2 Schema 平台應為 READMOO', () => {
-      // 待實作：expect(BookSchemaV2.platform).toBe('READMOO')
-      const expectedPlatform = 'READMOO'
-      expect(expectedPlatform).toBe('READMOO')
-    })
-  })
-})
-
-// ============================================================
-// 2. 閱讀狀態轉換
-// ============================================================
-describe('Book Schema v2 - 閱讀狀態轉換', () => {
-  describe('自動轉換（isManualStatus === false）', () => {
-    it('unread -> reading: progress 從 0 變為 > 0 時自動轉換', () => {
-      const book = createValidBook({
-        readingStatus: 'unread',
-        progress: 0,
-        isManualStatus: false
-      })
-      // 模擬 progress 更新
-      const updatedProgress = 10
-      const shouldTransition = (
-        book.readingStatus === 'unread' &&
-        book.progress === 0 &&
-        updatedProgress > 0 &&
-        book.isManualStatus === false
-      )
-      expect(shouldTransition).toBe(true)
-      // 待實作：
-      // const result = ReadingStatusTransition.apply(book, { progress: 10 })
-      // expect(result.readingStatus).toBe('reading')
+    test('null 輸入驗證失敗', () => {
+      const result = validateBook(null)
+      expect(result.valid).toBe(false)
     })
 
-    it('reading -> finished: progress 達到 100 時自動轉換', () => {
-      const book = createValidBook({
-        readingStatus: 'reading',
-        progress: 95,
-        isManualStatus: false
-      })
-      const updatedProgress = 100
-      const shouldTransition = (
-        book.readingStatus === 'reading' &&
-        updatedProgress === 100 &&
-        book.isManualStatus === false
-      )
-      expect(shouldTransition).toBe(true)
+    test('非物件輸入驗證失敗', () => {
+      const result = validateBook('not an object')
+      expect(result.valid).toBe(false)
     })
 
-    it('不應在 isManualStatus === true 時自動轉換', () => {
-      const book = createValidBook({
-        readingStatus: 'unread',
-        progress: 0,
-        isManualStatus: true
-      })
-      const updatedProgress = 50
-      const shouldTransition = (
-        book.readingStatus === 'unread' &&
-        updatedProgress > 0 &&
-        book.isManualStatus === false
-      )
-      expect(shouldTransition).toBe(false)
-    })
-
-    it('reading 狀態下 progress 變化但未達 100 時不轉換', () => {
-      const book = createValidBook({
-        readingStatus: 'reading',
-        progress: 30,
-        isManualStatus: false
-      })
-      const updatedProgress = 80
-      const shouldTransitionToFinished = (
-        book.readingStatus === 'reading' &&
-        updatedProgress === 100 &&
-        book.isManualStatus === false
-      )
-      expect(shouldTransitionToFinished).toBe(false)
-    })
-
-    it('unread 狀態下 progress 仍為 0 時不轉換', () => {
-      const book = createValidBook({
-        readingStatus: 'unread',
-        progress: 0,
-        isManualStatus: false
-      })
-      const updatedProgress = 0
-      const shouldTransition = (
-        book.readingStatus === 'unread' &&
-        book.progress === 0 &&
-        updatedProgress > 0 &&
-        book.isManualStatus === false
-      )
-      expect(shouldTransition).toBe(false)
-    })
-  })
-
-  describe('手動狀態設定', () => {
-    it('手動設定 queued 時 isManualStatus 應為 true', () => {
-      const manualStatuses = ['queued', 'abandoned', 'reference']
-      manualStatuses.forEach(status => {
-        // 手動設定這三種狀態時，isManualStatus 應自動設為 true
-        const isManualOnlyStatus = ['queued', 'abandoned', 'reference'].includes(status)
-        expect(isManualOnlyStatus).toBe(true)
-      })
-    })
-
-    it('手動設定 unread/reading/finished 時 isManualStatus 應為 false（恢復自動追蹤）', () => {
-      const autoTrackStatuses = ['unread', 'reading', 'finished']
-      autoTrackStatuses.forEach(status => {
-        const isAutoTrackStatus = ['unread', 'reading', 'finished'].includes(status)
-        expect(isAutoTrackStatus).toBe(true)
-        // 待實作：
-        // const result = ReadingStatusTransition.manualSet(book, status)
-        // expect(result.isManualStatus).toBe(false)
-      })
-    })
-
-    it('已設定 abandoned 的書籍不應被自動轉換', () => {
-      const book = createValidBook({
-        readingStatus: 'abandoned',
-        progress: 50,
-        isManualStatus: true
-      })
-      // progress 變化不應觸發自動轉換
-      const shouldAutoTransition = book.isManualStatus === false
-      expect(shouldAutoTransition).toBe(false)
-    })
-
-    it('從 abandoned 手動改回 reading 後恢復自動追蹤', () => {
-      // 手動改回 auto-track 狀態時 isManualStatus 設為 false
-      const newStatus = 'reading'
-      const isAutoTrackStatus = ['unread', 'reading', 'finished'].includes(newStatus)
-      const newIsManualStatus = !isAutoTrackStatus
-      expect(newIsManualStatus).toBe(false)
-    })
-  })
-
-  describe('狀態轉換邊界條件', () => {
-    it('finished 狀態下 progress 回退不應自動變回 reading', () => {
-      const book = createValidBook({
-        readingStatus: 'finished',
-        progress: 100,
-        isManualStatus: false
-      })
-      // 規格未定義 finished -> reading 的自動回退
-      // progress 回退時不應改變已完成的狀態
-      expect(book.readingStatus).toBe('finished')
-    })
-
-    it('reference 狀態下 progress 更新不應觸發任何自動轉換', () => {
-      const book = createValidBook({
-        readingStatus: 'reference',
-        progress: 0,
-        isManualStatus: true
-      })
-      expect(book.isManualStatus).toBe(true)
-      // isManualStatus === true 阻止所有自動轉換
-    })
-
-    it('updatedAt 應在狀態變更時自動更新', () => {
-      const book = createValidBook({
-        updatedAt: '2026-04-01T00:00:00Z'
-      })
-      // 待實作：
-      // const result = ReadingStatusTransition.apply(book, { progress: 50 })
-      // expect(result.updatedAt).not.toBe('2026-04-01T00:00:00Z')
-      expect(book.updatedAt).toBeDefined()
+    test('多個欄位錯誤時回傳所有錯誤', () => {
+      const book = { progress: 'not a number' }
+      const result = validateBook(book)
+      expect(result.valid).toBe(false)
+      expect(result.errors.length).toBeGreaterThan(1)
     })
   })
 })
 
 // ============================================================
-// 3. Tag 結構驗證
+// 4. 預設值
 // ============================================================
-describe('Tag 結構 - tag_categories 驗證', () => {
-  describe('必填欄位', () => {
-    it('應接受包含所有必填欄位的 category', () => {
-      const category = createValidTagCategory()
-      expect(category.id).toBeDefined()
-      expect(category.name).toBeDefined()
-      expect(category.createdAt).toBeDefined()
-      expect(category.updatedAt).toBeDefined()
-    })
 
-    it('應拒絕缺少 id 的 category', () => {
-      const category = createValidTagCategory({ id: undefined })
-      expect(category.id).toBeUndefined()
-    })
-
-    it('應拒絕缺少 name 的 category', () => {
-      const category = createValidTagCategory({ name: undefined })
-      expect(category.name).toBeUndefined()
-    })
+describe('預設值填入', () => {
+  test('僅提供必填欄位時填入所有預設值', () => {
+    const book = { id: 'b1', title: '書', readingStatus: 'unread' }
+    const result = applyDefaults(book)
+    expect(result.authors).toEqual([])
+    expect(result.publisher).toBe('')
+    expect(result.progress).toBe(0)
+    expect(result.tagIds).toEqual([])
+    expect(result.isManualStatus).toBe(false)
+    expect(result.source).toBe('readmoo')
   })
 
-  describe('選填欄位預設值', () => {
-    it('description 預設為空字串', () => {
-      const category = createValidTagCategory()
-      expect(category.description).toBe('')
-    })
-
-    it('color 預設為 #808080', () => {
-      const category = createValidTagCategory()
-      expect(category.color).toBe('#808080')
-    })
-
-    it('isSystem 預設為 false', () => {
-      const category = createValidTagCategory()
-      expect(category.isSystem).toBe(false)
-    })
-
-    it('sortOrder 預設為 0', () => {
-      const category = createValidTagCategory()
-      expect(category.sortOrder).toBe(0)
-    })
+  test('已有值的欄位不被覆蓋', () => {
+    const book = { id: 'b1', title: '書', readingStatus: 'reading', progress: 50, authors: ['作者'] }
+    const result = applyDefaults(book)
+    expect(result.progress).toBe(50)
+    expect(result.authors).toEqual(['作者'])
   })
 
-  describe('欄位約束', () => {
-    it('name 最大 50 字元', () => {
-      const longName = 'a'.repeat(51)
-      expect(longName.length).toBeGreaterThan(50)
-      // 待實作：expect(TagCategorySchema.validate({...cat, name: longName}).isValid).toBe(false)
-    })
-
-    it('description 最大 200 字元', () => {
-      const longDesc = 'a'.repeat(201)
-      expect(longDesc.length).toBeGreaterThan(200)
-    })
-
-    it('color 必須是有效 hex 色碼', () => {
-      const validColors = ['#808080', '#4A90D9', '#FF0000', '#000000', '#FFFFFF']
-      const invalidColors = ['red', '808080', '#GGG', '#12345', '']
-      validColors.forEach(color => {
-        expect(color).toMatch(/^#[0-9A-Fa-f]{6}$/)
-      })
-      invalidColors.forEach(color => {
-        expect(color).not.toMatch(/^#[0-9A-Fa-f]{6}$/)
-      })
-    })
-
-    it('id 格式應為 cat_{timestamp} 或 cat_system_{name}', () => {
-      const validIds = ['cat_1712188800000', 'cat_system_type']
-      validIds.forEach(id => {
-        expect(id.startsWith('cat_')).toBe(true)
-      })
-    })
-  })
-})
-
-describe('Tag 結構 - tags 驗證', () => {
-  describe('必填欄位', () => {
-    it('應接受包含所有必填欄位的 tag', () => {
-      const tag = createValidTag()
-      expect(tag.id).toBeDefined()
-      expect(tag.name).toBeDefined()
-      expect(tag.categoryId).toBeDefined()
-      expect(tag.createdAt).toBeDefined()
-      expect(tag.updatedAt).toBeDefined()
-    })
-
-    it('應拒絕缺少 categoryId 的 tag', () => {
-      const tag = createValidTag({ categoryId: undefined })
-      expect(tag.categoryId).toBeUndefined()
-    })
-
-    it('應拒絕缺少 name 的 tag', () => {
-      const tag = createValidTag({ name: undefined })
-      expect(tag.name).toBeUndefined()
-    })
+  test('陣列預設值為獨立副本（不共享引用）', () => {
+    const book1 = applyDefaults({ id: 'b1', title: '書1', readingStatus: 'unread' })
+    const book2 = applyDefaults({ id: 'b2', title: '書2', readingStatus: 'unread' })
+    book1.authors.push('作者')
+    expect(book2.authors).toHaveLength(0)
   })
 
-  describe('欄位約束', () => {
-    it('name 最大 50 字元', () => {
-      const longName = 'a'.repeat(51)
-      expect(longName.length).toBeGreaterThan(50)
-    })
-
-    it('id 格式應為 tag_{timestamp} 或 tag_{name}', () => {
-      const validIds = ['tag_1712188800000', 'tag_novel']
-      validIds.forEach(id => {
-        expect(id.startsWith('tag_')).toBe(true)
-      })
-    })
-
-    it('categoryId 必須引用存在的 tag_categories.id', () => {
-      const tag = createValidTag({ categoryId: 'cat_nonexistent' })
-      // 這是參照完整性檢查，待實作
-      expect(tag.categoryId).toBe('cat_nonexistent')
-    })
-  })
-
-  describe('name 唯一性（同一 category 內，大小寫不敏感）', () => {
-    it('同一 category 下不可有同名 tag', () => {
-      const tag1 = createValidTag({ name: '小說', categoryId: 'cat_001' })
-      const tag2 = createValidTag({ id: 'tag_002', name: '小說', categoryId: 'cat_001' })
-      expect(tag1.name).toBe(tag2.name)
-      expect(tag1.categoryId).toBe(tag2.categoryId)
-      // 待實作：驗證應拒絕此狀況
-    })
-
-    it('不同 category 下可有同名 tag', () => {
-      const tag1 = createValidTag({ name: '小說', categoryId: 'cat_001' })
-      const tag2 = createValidTag({ id: 'tag_002', name: '小說', categoryId: 'cat_002' })
-      expect(tag1.categoryId).not.toBe(tag2.categoryId)
-      // 這是合法的
-    })
-
-    it('大小寫不敏感比較：Novel 和 novel 視為同名', () => {
-      const name1 = 'Novel'
-      const name2 = 'novel'
-      expect(name1.toLowerCase()).toBe(name2.toLowerCase())
-    })
+  test('null 輸入回傳 null', () => {
+    expect(applyDefaults(null)).toBeNull()
   })
 })
 
 // ============================================================
-// 4. Book ↔ Tag 關聯驗證
+// 5. 自動狀態轉換
 // ============================================================
-describe('Book Schema v2 - tagIds 關聯', () => {
-  it('一本書可有 0 個 tag', () => {
-    const book = createValidBook({ tagIds: [] })
-    expect(book.tagIds).toHaveLength(0)
+
+describe('自動狀態轉換', () => {
+  test('unread + progress > 0 → reading', () => {
+    const book = { readingStatus: 'unread', progress: 0, isManualStatus: false }
+    const result = computeAutoStatusTransition(book, 10)
+    expect(result).toEqual({ readingStatus: 'reading', isManualStatus: false })
   })
 
-  it('一本書可有多個 tag', () => {
-    const book = createValidBook({ tagIds: ['tag_001', 'tag_005', 'tag_012'] })
-    expect(book.tagIds).toHaveLength(3)
+  test('reading + progress = 100 → finished', () => {
+    const book = { readingStatus: 'reading', progress: 50, isManualStatus: false }
+    const result = computeAutoStatusTransition(book, 100)
+    expect(result).toEqual({ readingStatus: 'finished', isManualStatus: false })
   })
 
-  it('tagIds 上限為 100 個', () => {
-    const manyTagIds = Array.from({ length: 101 }, (_, i) => `tag_${i}`)
-    expect(manyTagIds.length).toBeGreaterThan(100)
-    // 待實作：驗證應拒絕超過 100 個 tagIds
+  test('isManualStatus=true 時不觸發自動轉換', () => {
+    const book = { readingStatus: 'queued', progress: 0, isManualStatus: true }
+    const result = computeAutoStatusTransition(book, 50)
+    expect(result).toBeNull()
   })
 
-  it('tagIds 中不應有重複值', () => {
-    const tagIds = ['tag_001', 'tag_001', 'tag_002']
-    const uniqueTagIds = [...new Set(tagIds)]
-    expect(uniqueTagIds.length).toBeLessThan(tagIds.length)
-    // 待實作：驗證應拒絕重複的 tagIds
+  test('unread + progress 仍為 0 → 不轉換', () => {
+    const book = { readingStatus: 'unread', progress: 0, isManualStatus: false }
+    const result = computeAutoStatusTransition(book, 0)
+    expect(result).toBeNull()
   })
 
-  it('tagIds 中每個值必須是 string', () => {
-    const invalidTagIds = [1, null, undefined, true]
-    invalidTagIds.forEach(id => {
-      expect(typeof id === 'string').toBe(false)
-    })
+  test('reading + progress < 100 → 不轉換', () => {
+    const book = { readingStatus: 'reading', progress: 30, isManualStatus: false }
+    const result = computeAutoStatusTransition(book, 60)
+    expect(result).toBeNull()
+  })
+
+  test('finished 狀態不再自動轉換', () => {
+    const book = { readingStatus: 'finished', progress: 100, isManualStatus: false }
+    const result = computeAutoStatusTransition(book, 50)
+    expect(result).toBeNull()
+  })
+
+  test('abandoned + isManualStatus=true 不觸發自動轉換', () => {
+    const book = { readingStatus: 'abandoned', progress: 30, isManualStatus: true }
+    const result = computeAutoStatusTransition(book, 100)
+    expect(result).toBeNull()
   })
 })
 
 // ============================================================
-// 5. 無效資料拒絕（邊界條件）
+// 6. 手動狀態設定
 // ============================================================
-describe('Book Schema v2 - 無效資料拒絕', () => {
-  it('應拒絕 null 輸入', () => {
-    expect(null).toBeNull()
-    // 待實作：expect(BookSchemaV2.validate(null).isValid).toBe(false)
+
+describe('手動狀態設定', () => {
+  test('設定 queued → isManualStatus=true', () => {
+    const result = computeManualStatusChange('queued')
+    expect(result).toEqual({ readingStatus: 'queued', isManualStatus: true })
   })
 
-  it('應拒絕 undefined 輸入', () => {
-    expect(undefined).toBeUndefined()
-    // 待實作：expect(BookSchemaV2.validate(undefined).isValid).toBe(false)
+  test('設定 abandoned → isManualStatus=true', () => {
+    const result = computeManualStatusChange('abandoned')
+    expect(result).toEqual({ readingStatus: 'abandoned', isManualStatus: true })
   })
 
-  it('應拒絕空物件', () => {
-    const book = {}
-    expect(Object.keys(book)).toHaveLength(0)
-    // 待實作：expect(BookSchemaV2.validate({}).isValid).toBe(false)
+  test('設定 reference → isManualStatus=true', () => {
+    const result = computeManualStatusChange('reference')
+    expect(result).toEqual({ readingStatus: 'reference', isManualStatus: true })
   })
 
-  it('應拒絕 v1 格式的書籍（含 isNew/isFinished 而非 readingStatus）', () => {
-    const v1Book = {
-      id: 'book_001',
-      title: 'Old Book',
-      isNew: true,
-      isFinished: false,
-      progress: 0
-    }
-    expect(v1Book.readingStatus).toBeUndefined()
-    expect(v1Book.isNew).toBeDefined()
-    // 待實作：v2 驗證器應拒絕 v1 格式
+  test('手動設定 unread → isManualStatus=false（恢復自動追蹤）', () => {
+    const result = computeManualStatusChange('unread')
+    expect(result).toEqual({ readingStatus: 'unread', isManualStatus: false })
   })
 
-  it('應拒絕非物件型別（string, number, array）', () => {
-    const invalidInputs = ['string', 123, [], true]
-    invalidInputs.forEach(input => {
-      expect(typeof input === 'object' && input !== null && !Array.isArray(input)).toBe(false)
-    })
+  test('手動設定 reading → isManualStatus=false', () => {
+    const result = computeManualStatusChange('reading')
+    expect(result).toEqual({ readingStatus: 'reading', isManualStatus: false })
   })
 
-  it('應拒絕包含未知欄位的書籍（strict mode）', () => {
-    const bookWithUnknownField = createValidBook({ unknownField: 'value' })
-    expect(bookWithUnknownField.unknownField).toBeDefined()
-    // 待實作：strict mode 驗證應拒絕未知欄位
+  test('手動設定 finished → isManualStatus=false', () => {
+    const result = computeManualStatusChange('finished')
+    expect(result).toEqual({ readingStatus: 'finished', isManualStatus: false })
+  })
+
+  test('無效狀態回傳 null', () => {
+    const result = computeManualStatusChange('invalid')
+    expect(result).toBeNull()
+  })
+})
+
+// ============================================================
+// 7. v1 → v2 狀態對映
+// ============================================================
+
+describe('v1 → v2 狀態對映', () => {
+  test('isNew=true, isFinished=false → unread', () => {
+    expect(mapV1StatusToV2({ isNew: true, isFinished: false })).toBe('unread')
+  })
+
+  test('isNew=false, isFinished=false, progress=0 → unread', () => {
+    expect(mapV1StatusToV2({ isNew: false, isFinished: false, progress: 0 })).toBe('unread')
+  })
+
+  test('isNew=false, isFinished=false, progress>0 → reading', () => {
+    expect(mapV1StatusToV2({ isNew: false, isFinished: false, progress: 50 })).toBe('reading')
+  })
+
+  test('isFinished=true → finished', () => {
+    expect(mapV1StatusToV2({ isFinished: true })).toBe('finished')
+  })
+
+  test('isNew=true, isFinished=true（異常組合）→ finished', () => {
+    expect(mapV1StatusToV2({ isNew: true, isFinished: true })).toBe('finished')
+  })
+
+  test('兩者皆 undefined → unread', () => {
+    expect(mapV1StatusToV2({})).toBe('unread')
+  })
+
+  test('兩者皆 null → unread', () => {
+    expect(mapV1StatusToV2({ isNew: null, isFinished: null })).toBe('unread')
+  })
+})
+
+// ============================================================
+// 8. TagCategory 驗證
+// ============================================================
+
+describe('TagCategory Schema 驗證', () => {
+  test('有效的 TagCategory 通過驗證', () => {
+    const cat = createValidCategory()
+    const result = validateTagCategory(cat)
+    expect(result.valid).toBe(true)
+  })
+
+  test('缺少 id 時驗證失敗', () => {
+    const cat = createValidCategory({ id: undefined })
+    const result = validateTagCategory(cat)
+    expect(result.valid).toBe(false)
+  })
+
+  test('缺少 name 時驗證失敗', () => {
+    const cat = createValidCategory({ name: undefined })
+    const result = validateTagCategory(cat)
+    expect(result.valid).toBe(false)
+  })
+
+  test('name 超過 50 字元時驗證失敗', () => {
+    const cat = createValidCategory({ name: 'a'.repeat(51) })
+    const result = validateTagCategory(cat)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some((e) => e.includes('最大長度'))).toBe(true)
+  })
+
+  test('description 超過 200 字元時驗證失敗', () => {
+    const cat = createValidCategory({ description: 'a'.repeat(201) })
+    const result = validateTagCategory(cat)
+    expect(result.valid).toBe(false)
+  })
+
+  test('color 格式不符時驗證失敗', () => {
+    const cat = createValidCategory({ color: 'red' })
+    const result = validateTagCategory(cat)
+    expect(result.valid).toBe(false)
+  })
+
+  test('有效的 hex 色碼通過驗證', () => {
+    const cat = createValidCategory({ color: '#FF00AA' })
+    const result = validateTagCategory(cat)
+    expect(result.valid).toBe(true)
+  })
+
+  test('name 重複時驗證失敗', () => {
+    const existing = [createValidCategory({ id: 'cat_002', name: '類別' })]
+    const cat = createValidCategory({ id: 'cat_003', name: '類別' })
+    const result = validateTagCategory(cat, existing)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some((e) => e.includes('已存在'))).toBe(true)
+  })
+
+  test('同 id 的 name 不算重複（自身更新）', () => {
+    const existing = [createValidCategory({ id: 'cat_001', name: '類別' })]
+    const cat = createValidCategory({ id: 'cat_001', name: '類別' })
+    const result = validateTagCategory(cat, existing)
+    expect(result.valid).toBe(true)
+  })
+
+  test('null 輸入驗證失敗', () => {
+    const result = validateTagCategory(null)
+    expect(result.valid).toBe(false)
+  })
+
+  test('常數 TAG_CATEGORY_NAME_MAX_LENGTH 為 50', () => {
+    expect(TAG_CATEGORY_NAME_MAX_LENGTH).toBe(50)
+  })
+
+  test('常數 TAG_CATEGORY_DESCRIPTION_MAX_LENGTH 為 200', () => {
+    expect(TAG_CATEGORY_DESCRIPTION_MAX_LENGTH).toBe(200)
+  })
+
+  test('常數 DEFAULT_COLOR 為 #808080', () => {
+    expect(DEFAULT_COLOR).toBe('#808080')
+  })
+})
+
+// ============================================================
+// 9. Tag 驗證
+// ============================================================
+
+describe('Tag Schema 驗證', () => {
+  test('有效的 Tag 通過驗證', () => {
+    const tag = createValidTag()
+    const result = validateTag(tag)
+    expect(result.valid).toBe(true)
+  })
+
+  test('缺少 id 時驗證失敗', () => {
+    const tag = createValidTag({ id: undefined })
+    const result = validateTag(tag)
+    expect(result.valid).toBe(false)
+  })
+
+  test('缺少 name 時驗證失敗', () => {
+    const tag = createValidTag({ name: undefined })
+    const result = validateTag(tag)
+    expect(result.valid).toBe(false)
+  })
+
+  test('缺少 categoryId 時驗證失敗', () => {
+    const tag = createValidTag({ categoryId: undefined })
+    const result = validateTag(tag)
+    expect(result.valid).toBe(false)
+  })
+
+  test('name 超過 50 字元時驗證失敗', () => {
+    const tag = createValidTag({ name: 'a'.repeat(51) })
+    const result = validateTag(tag)
+    expect(result.valid).toBe(false)
+  })
+
+  test('同 category 內 name 重複（大小寫不敏感）時驗證失敗', () => {
+    const existing = [createValidTag({ id: 'tag_002', name: 'Novel', categoryId: 'cat_001' })]
+    const tag = createValidTag({ id: 'tag_003', name: 'novel', categoryId: 'cat_001' })
+    const result = validateTag(tag, existing)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some((e) => e.includes('大小寫不敏感'))).toBe(true)
+  })
+
+  test('不同 category 的相同 name 不算重複', () => {
+    const existing = [createValidTag({ id: 'tag_002', name: '小說', categoryId: 'cat_002' })]
+    const tag = createValidTag({ id: 'tag_003', name: '小說', categoryId: 'cat_001' })
+    const result = validateTag(tag, existing)
+    expect(result.valid).toBe(true)
+  })
+
+  test('同 id 的 name 不算重複（自身更新）', () => {
+    const existing = [createValidTag({ id: 'tag_001', name: '小說', categoryId: 'cat_001' })]
+    const tag = createValidTag({ id: 'tag_001', name: '小說', categoryId: 'cat_001' })
+    const result = validateTag(tag, existing)
+    expect(result.valid).toBe(true)
+  })
+
+  test('null 輸入驗證失敗', () => {
+    const result = validateTag(null)
+    expect(result.valid).toBe(false)
+  })
+
+  test('常數 TAG_NAME_MAX_LENGTH 為 50', () => {
+    expect(TAG_NAME_MAX_LENGTH).toBe(50)
+  })
+})
+
+// ============================================================
+// 10. tagIds 驗證
+// ============================================================
+
+describe('tagIds 驗證', () => {
+  test('空陣列通過驗證', () => {
+    const result = validateTagIds([])
+    expect(result.valid).toBe(true)
+  })
+
+  test('有效的 string 陣列通過驗證', () => {
+    const result = validateTagIds(['tag_001', 'tag_002'])
+    expect(result.valid).toBe(true)
+  })
+
+  test('非陣列輸入驗證失敗', () => {
+    const result = validateTagIds('not_array')
+    expect(result.valid).toBe(false)
+  })
+
+  test('包含非 string 元素時驗證失敗', () => {
+    const result = validateTagIds(['tag_001', 123])
+    expect(result.valid).toBe(false)
+  })
+
+  test('超過 MAX_TAGS_PER_BOOK 上限時驗證失敗', () => {
+    const tagIds = Array.from({ length: 101 }, (_, i) => `tag_${i}`)
+    const result = validateTagIds(tagIds)
+    expect(result.valid).toBe(false)
+  })
+
+  test('常數 MAX_TAGS_PER_BOOK 為 100', () => {
+    expect(MAX_TAGS_PER_BOOK).toBe(100)
   })
 })
