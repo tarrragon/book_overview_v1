@@ -140,6 +140,12 @@ Layer 2 內容以 blockquote 標記，提供本框架的具體實現方式：
 | [印表機測試覆蓋深度不足](references/cases/printer-test-coverage-depth-failure.md) | Phase 2 | 28 個測試全過但 4 個 Bug 上線，路徑深度不足、try-catch 吞錯誤 |
 | [並行實作重複與 Lint](references/cases/parallel-impl-duplication-and-lint.md) | Phase 3 | 並行 worktree 各自實作驗證框架、dead import、版本號硬編碼 |
 | [多視角審查發現總結](references/cases/multi-perspective-review-findings-v0170.md) | Phase 4 | 完整審查報告：規格盲點 36%、測試盲點 27%、實作品質 36% |
+| [Chrome Storage API 效能延遲](references/cases/storage-api-performance-latency.md) | Phase 1 | 規格應定義效能目標數值，批次參數屬規格範疇 |
+| [批次寫入失敗處理策略](references/cases/storage-write-failure-handling.md) | Phase 1 | 回滾/孤立/預防中止三策略選擇，規格須定義失敗策略 |
+| [私有方法測試覆蓋缺口](references/cases/private-method-test-coverage-gap.md) | Phase 2 | 合併邏輯和快取鍵的私有方法無獨立斷言，邊界條件未覆蓋 |
+| [異常路徑測試覆蓋缺口](references/cases/error-path-test-coverage-gap.md) | Phase 2 | 180 錯誤碼中 49% 生產路徑未測，引用 != 測試 |
+| [Phase 4 豁免判斷邊界](references/cases/phase4-exemption-doc-task.md) | Phase 4 | DOC 標籤不等於低風險，豁免條件應改為 AND 邏輯 |
+| [SA 審查 Tag-based Book Model](references/cases/sa-review-tag-based-book-model.md) | Phase 0 | 跨 3 子域變更必須 Phase 0，重複實作只能在系統層級識別 |
 
 ---
 

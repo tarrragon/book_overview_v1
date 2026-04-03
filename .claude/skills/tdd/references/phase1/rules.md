@@ -414,6 +414,8 @@ Then: {預期結果}
 | 案例 | 主要教訓 |
 |------|---------|
 | [跨模組共用策略缺失](../cases/cross-module-shared-strategy-gaps.md) | 跨模組共用未標注、ID 碰撞、欄位映射缺失、零日誌可觀測性 |
+| [Chrome Storage API 效能延遲](../cases/storage-api-performance-latency.md) | 規格應定義效能目標數值，批次參數屬規格範疇 |
+| [批次寫入失敗處理策略](../cases/storage-write-failure-handling.md) | 回滾/孤立/預防中止三策略選擇，規格須定義失敗策略 |
 
 > 新案例追加方式：Phase 4 審查完成後，依流程改善回饋環（見 `../phase4/rules.md`）追加。
 
