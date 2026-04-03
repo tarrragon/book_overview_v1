@@ -248,8 +248,8 @@ Phase 4 審查發現（4a/4b/4c 的 P0/P1/P2 清單）
 
 | 根因分類 | 說明 | 改善目標 |
 |---------|------|---------|
-| 規格盲點 | Phase 1 規格未涵蓋的面向 | 修改 `references/phase1-design.md` 或對應規格 reference |
-| 測試盲點 | Phase 2 測試設計未覆蓋的情境 | 修改 `references/phase2-test-design.md` |
+| 規格盲點 | Phase 1 規格未涵蓋的面向 | 修改 `references/phase1/rules.md` 或對應規格 reference |
+| 測試盲點 | Phase 2 測試設計未覆蓋的情境 | 修改 `references/phase2/rules.md` |
 | 實作品質 | Phase 3 實作中的技術問題 | 修改 `references/phase3/rules.md` |
 | 流程缺失 | 流程本身缺少的檢查點或決策問題 | 修改對應 Phase 的 rules.md |
 

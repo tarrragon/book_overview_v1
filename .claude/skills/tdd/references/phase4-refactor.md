@@ -1,5 +1,8 @@
 # Phase 4：重構評估指引（4a 分析 + 4b 執行 + 4c 再審核）
 
+> **[DEPRECATED]** 本檔案已遷移至 `phase4/rules.md`（含 Phase 4d 流程改善回饋環、案例索引）。
+> 保留本檔案避免斷裂引用。新內容請編輯 `phase4/rules.md`。
+
 ## Phase 目標
 
 Phase 4 是 TDD 流程的最後一關，確保實作後的程式碼品質達到長期可維護的標準。

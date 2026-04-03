@@ -1,5 +1,8 @@
 # Phase 3：實作指引（3a 策略規劃 + 3b 執行）
 
+> **[DEPRECATED]** 本檔案已遷移至 `phase3/rules.md`（含 Decision Questions、完成前執行清單、案例索引）。
+> 保留本檔案避免斷裂引用。新內容請編輯 `phase3/rules.md`。
+
 ## Phase 目標
 
 Phase 3 分為兩個子階段：
