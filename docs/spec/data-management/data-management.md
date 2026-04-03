@@ -265,7 +265,7 @@ const READING_STATUS_VALUES = Object.values(READING_STATUS);
 {
   "tag_categories": [
     {
-      "id": "cat_001",                    // 唯一 ID，格式: cat_{auto_increment}
+      "id": "cat_001",                    // 唯一 ID，格式: cat_{timestamp}（系統預設用語義名稱如 cat_system_status）
       "name": "類別",                      // 顯示名稱
       "description": "書籍主題分類",        // 選填說明
       "color": "#4A90D9",                  // 顯示顏色（hex）
@@ -280,7 +280,7 @@ const READING_STATUS_VALUES = Object.values(READING_STATUS);
 
 | 欄位 | 型別 | 必填 | 預設值 | 說明 |
 |------|------|------|--------|------|
-| id | string | 是 | auto | 格式: `cat_{auto_increment}` |
+| id | string | 是 | auto | 格式: `cat_{timestamp}` |
 | name | string | 是 | — | 唯一，最大 50 字元 |
 | description | string | 否 | '' | 最大 200 字元 |
 | color | string | 否 | '#808080' | hex 色碼 |
@@ -296,7 +296,7 @@ const READING_STATUS_VALUES = Object.values(READING_STATUS);
 {
   "tags": [
     {
-      "id": "tag_001",                     // 唯一 ID，格式: tag_{auto_increment}
+      "id": "tag_001",                     // 唯一 ID，格式: tag_{timestamp}（系統預設用語義名稱如 tag_novel）
       "name": "小說",                       // 顯示名稱
       "categoryId": "cat_001",             // 所屬類別 ID
       "parentId": null,                    // 父標籤 ID（支援樹狀結構）
@@ -311,10 +311,10 @@ const READING_STATUS_VALUES = Object.values(READING_STATUS);
 
 | 欄位 | 型別 | 必填 | 預設值 | 說明 |
 |------|------|------|--------|------|
-| id | string | 是 | auto | 格式: `tag_{auto_increment}` |
+| id | string | 是 | auto | 格式: `tag_{timestamp}` |
 | name | string | 是 | — | 同一 category 內唯一，最大 50 字元 |
 | categoryId | string | 是 | — | 引用 tag_categories.id |
-| parentId | string/null | 否 | null | 引用 tags.id，支援樹狀結構 |
+| parentId | string/null | 否 | null | 引用 tags.id，支援樹狀結構（最大深度 3 層，禁止循環引用） |
 | isSystem | boolean | 否 | false | 系統預設不可刪除 |
 | sortOrder | number | 否 | 0 | 同層排序 |
 | createdAt | string | 是 | auto | ISO 8601 |
@@ -549,6 +549,8 @@ Extension 啟動
   → 讀取 chrome.storage.local['schema_version']
   → 值為 null 或 '2.0.0' → 觸發遷移
   → 值為 '3.0.0' → 跳過
+  → 值為其他（未知版本） → 記錄 warning，嘗試遷移（視為 v1 處理）
+  → 值格式無效（非 semver） → 記錄 error，重置為 null 後觸發遷移
 ```
 
 ### 遷移步驟（依序執行）
