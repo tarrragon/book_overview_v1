@@ -194,7 +194,8 @@ proposals:
     status: confirmed
     proposed: "2026-04-02"
     confirmed: "2026-04-02"
-    target_version: "v0.20.0"
+    target_version: "v0.17.0"
+    note: "2026-04-03 roadmap 重整：核心 model 重構從 v0.20.0 提前至 v0.17.0，Tag 管理 UI 保留在 v0.20.0"
     source: "cross-project"
     reference: "Flutter App 專案 docs/proposals/PROP-007-cross-project-spec-alignment.md"
     spec_refs:
