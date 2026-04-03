@@ -1,0 +1,10 @@
+{
+  "ticket_id": "0.17.0-W4-016",
+  "direction": "context-refresh",
+  "timestamp": "2026-04-04T05:19:59.235522",
+  "from_status": "in_progress",
+  "title": "審查 v0.17-v0.20 規格文件與已完成程式碼的遺漏問題掃描",
+  "what": "審查 v0.17-v0.20 規格文件與已完成程式碼的遺漏問題掃描",
+  "chain": {},
+  "resumed_at": "2026-04-04T05:22:06.968226"
+}
