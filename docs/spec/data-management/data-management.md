@@ -536,6 +536,151 @@ Tag 相關操作涉及多個 key，需確保一致性：
 
 ---
 
+## 資料遷移規格 v1→v2（v0.17.0 — PROP-007）
+
+### 概述
+
+當使用者從 Schema 2.0.0（v1）升級至 Schema 3.0.0（v2）時，需自動執行資料遷移。遷移在 Extension 啟動時偵測並執行，對使用者透明。
+
+### 遷移觸發條件
+
+```
+Extension 啟動
+  → 讀取 chrome.storage.local['schema_version']
+  → 值為 null 或 '2.0.0' → 觸發遷移
+  → 值為 '3.0.0' → 跳過
+```
+
+### 遷移步驟（依序執行）
+
+| 步驟 | 動作 | 涉及 key | 可回滾 |
+|------|------|---------|--------|
+| 0 | 備份原始資料至 `migration_backup` key | `readmoo_books` → `migration_backup` | — |
+| 1 | 建立 `tag_categories` 預設資料 | `tag_categories`（新建） | 刪除 key |
+| 2 | 建立 `tags` 空陣列 | `tags`（新建） | 刪除 key |
+| 3 | 轉換 books 陣列中每本書的欄位 | `readmoo_books`（修改） | 從 backup 還原 |
+| 4 | 寫入 `schema_version: '3.0.0'` | `schema_version`（新建） | 刪除 key |
+| 5 | 刪除 `migration_backup`（遷移成功後） | `migration_backup`（刪除） | — |
+
+### 步驟 1：預設 tag_categories
+
+遷移時自動建立的預設類別：
+
+```javascript
+const DEFAULT_TAG_CATEGORIES = [
+  { id: 'cat_system_status', name: '閱讀狀態', isSystem: true, sortOrder: 0, color: '#4A90D9' },
+  { id: 'cat_system_type',   name: '書籍類型', isSystem: true, sortOrder: 1, color: '#7B68EE' },
+  { id: 'cat_user_custom',   name: '自訂標籤', isSystem: false, sortOrder: 2, color: '#808080' }
+];
+```
+
+### 步驟 3：書籍欄位轉換規則
+
+#### 閱讀狀態轉換（isNew/isFinished → readingStatus）
+
+| isNew | isFinished | progress | 結果 readingStatus | 說明 |
+|-------|-----------|----------|-------------------|------|
+| true | false | 0 | `unread` | 新書未讀 |
+| true | false | > 0 | `reading` | 新書已開始（罕見但可能） |
+| false | false | 0 | `unread` | 非新但未開始 |
+| false | false | > 0 | `reading` | 閱讀中 |
+| false | true | 任何 | `finished` | 已完成 |
+| true | true | 任何 | `finished` | 異常組合，以 finished 為準 |
+| undefined | undefined | 0 | `unread` | 缺失值預設 |
+| undefined | undefined | > 0 | `reading` | 缺失值依 progress 判斷 |
+| undefined | undefined | 100 | `finished` | 缺失值依 progress 判斷 |
+
+**轉換函式虛擬碼**：
+
+```javascript
+function migrateReadingStatus(book) {
+  if (book.isFinished === true) return 'finished';
+  if (book.progress >= 100) return 'finished';
+  if (book.progress > 0) return 'reading';
+  return 'unread';
+}
+```
+
+#### 欄位增刪
+
+| 操作 | 欄位 | 值 |
+|------|------|-----|
+| 刪除 | `isNew` | — |
+| 刪除 | `isFinished` | — |
+| 新增 | `readingStatus` | 由轉換函式決定 |
+| 新增 | `tagIds` | `[]`（空陣列） |
+| 新增 | `updatedAt` | 遷移執行時間（ISO 8601） |
+
+#### progress 值正規化
+
+| 現有值 | 處理 |
+|--------|------|
+| number 0~100 | 保留 |
+| object `{progress: N}` | 提取 N |
+| string "50" | parseInt |
+| null / undefined | 設為 0 |
+| < 0 | 設為 0 |
+| > 100 | 設為 100 |
+
+### 邊界條件
+
+| 條件 | 處理 | 說明 |
+|------|------|------|
+| books 陣列為空 | 正常遷移（只建立 categories/tags/version） | 新安裝或已清空 |
+| books 陣列含 null 元素 | 跳過 null，記錄 warning | 資料損壞 |
+| 書籍缺少 id 欄位 | 跳過該書，記錄 error | 無法識別的書籍 |
+| 書籍欄位已是 v2 格式（有 readingStatus） | 跳過轉換，保留原值 | 部分遷移重入 |
+| readmoo_books key 不存在 | 建立空結構並標記 v2 | 全新安裝 |
+| readmoo_books 為壓縮格式 | 先解壓縮再遷移，完成後重新壓縮 | 壓縮相容 |
+| 遷移過程中 Extension 被關閉 | 下次啟動時重新偵測並遷移 | 冪等設計 |
+
+### 失敗處理策略
+
+#### 失敗分類
+
+| 失敗類型 | 處理 | 使用者訊息 |
+|---------|------|-----------|
+| 備份失敗（步驟 0） | 中止遷移，保持 v1 | 「資料遷移準備失敗，將以相容模式運行」 |
+| 單本書轉換失敗（步驟 3） | 跳過該書（保留原始欄位），繼續其他書 | 記錄失敗數量 |
+| 寫入失敗（步驟 3/4） | 從 backup 還原 readmoo_books，刪除 categories/tags/version | 「資料遷移失敗，已還原至原始狀態」 |
+| 配額不足 | 中止遷移，保持 v1 | 「儲存空間不足，無法完成遷移」 |
+
+#### 回滾流程
+
+```
+遷移失敗
+  → 檢查 migration_backup 是否存在
+    → 存在：還原 readmoo_books，刪除 tag_categories/tags/schema_version
+    → 不存在：保持現狀，標記遷移失敗狀態
+  → 設定 migration_failed: true（下次啟動時重試或提示使用者）
+```
+
+#### 冪等性保證
+
+遷移設計為冪等操作——重複執行不會產生副作用：
+
+| 重入場景 | 行為 |
+|---------|------|
+| schema_version 已是 3.0.0 | 跳過全部遷移 |
+| tag_categories 已存在 | 跳過步驟 1 |
+| 書籍已有 readingStatus | 跳過該書的欄位轉換 |
+| migration_backup 已存在（上次遷移中斷） | 先從 backup 還原再重新遷移 |
+
+### 遷移進度通知
+
+| 事件 | 通知方式 | 內容 |
+|------|---------|------|
+| 遷移開始 | console.info | 「開始資料遷移 v1 → v2...」 |
+| 每 100 本書完成 | console.info | 「已遷移 {N}/{total} 本書...」 |
+| 遷移完成 | console.info + Badge | 「遷移完成：{success} 成功，{skipped} 跳過」 |
+| 遷移失敗 | console.error + Badge | 「遷移失敗：{reason}，已還原」 |
+
+### 遷移後清理
+
+遷移成功 30 天後（或使用者手動觸發），刪除 `migration_backup` 釋放空間。
+
+---
+
 ## 需求變更通知
 
 > **PROP-007 確認（2026-04-02）**：跨專案規格對齊提案已確認。
@@ -569,3 +714,4 @@ Chrome Storage 資料結構將在 v0.20.0 改為 **tag-based model**，與 Flutt
 | 1.1 | 2026-04-02 | 新增需求變更通知：PROP-007 確認，v0.20.0 資料結構改為 tag-based |
 | 1.2 | 2026-04-03 | 新增 Book Schema v2 完整規格（0.17.0-W1-002）：閱讀狀態 6 種、tag 結構、欄位定義、Flutter App 對應表 |
 | 1.3 | 2026-04-03 | 新增 Chrome Storage v2 規格（0.17.0-W1-003）：多 key 架構、CRUD 介面、配額管理、一致性保證 |
+| 1.4 | 2026-04-03 | 新增資料遷移 v1→v2 規格（0.17.0-W1-004）：轉換規則、邊界條件、失敗處理、冪等性 |
