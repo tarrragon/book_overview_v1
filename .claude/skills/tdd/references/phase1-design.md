@@ -1,5 +1,8 @@
 # Phase 1：功能設計指引
 
+> **[DEPRECATED]** 本檔案已遷移至 `phase1/rules.md`（含 Decision Questions 擴充）。
+> 保留本檔案避免斷裂引用。新內容請編輯 `phase1/rules.md`。
+
 ## Phase 目標
 
 在寫任何程式碼之前，定義功能的完整規格、API 介面、驗收標準，並使用 SOLID 原則評估是否需要拆分。
