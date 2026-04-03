@@ -368,6 +368,174 @@ FIELDS: {
 
 ---
 
+## Chrome Storage 資料結構 v2 規格（v0.17.0 — PROP-007）
+
+### 概述
+
+Chrome Storage v2 將現有的單一 key 架構擴展為多 key 架構，新增 tag_categories 和 tags 獨立儲存，並修正配額設定。
+
+### Storage Key 結構
+
+#### v1（現有）
+
+| Key | 內容 | 估計大小 |
+|-----|------|---------|
+| `readmoo_books` | `{books: [...], extractionTimestamp, extractionCount, extractionDuration, source}` | 依書籍數量 |
+| `extraction_history` | 提取歷史 | 小 |
+| `last_extraction` | 最後提取時間 | 極小 |
+| `version_info` / `system_state` / ... | 系統狀態 | 極小 |
+
+#### v2（新增）
+
+| Key | 內容 | 估計大小 | 變更類型 |
+|-----|------|---------|---------|
+| `readmoo_books` | `{books: [...], ...}`（書籍欄位已更新為 Schema v2） | 依書籍數量 | **修改** |
+| `tag_categories` | `[{id, name, description, color, isSystem, sortOrder, ...}]` | ~1KB（預估 20 個類別） | **新增** |
+| `tags` | `[{id, name, categoryId, parentId, isSystem, sortOrder, ...}]` | ~5KB（預估 200 個標籤） | **新增** |
+| `schema_version` | `"3.0.0"` | 極小 | **新增** |
+| 其他既有 key | 不變 | — | 不變 |
+
+### STORAGE_KEYS 常數更新
+
+```javascript
+const STORAGE_KEYS = {
+  // === 資料儲存 ===
+  READMOO_BOOKS: 'readmoo_books',
+  TAG_CATEGORIES: 'tag_categories',       // v2 新增
+  TAGS: 'tags',                           // v2 新增
+  EXTRACTION_HISTORY: 'extraction_history',
+  LAST_EXTRACTION: 'last_extraction',
+
+  // === 版本管理 ===
+  SCHEMA_VERSION: 'schema_version',       // v2 新增
+  VERSION_INFO: 'version_info',
+  VERSION_HISTORY: 'version_history',
+
+  // === 系統狀態（不變）===
+  SYSTEM_STATE: 'system_state',
+  INSTALLATION_INFO: 'installation_info',
+  SYSTEM_CONFIG: 'system_config',
+  SYSTEM_SHUTDOWN_STATE: 'system_shutdown_state',
+  LAST_SHUTDOWN_TIME: 'last_shutdown_time',
+  STARTUP_FAILURE_REPORT: 'startup_failure_report'
+};
+```
+
+### books 陣列內書籍物件變更
+
+```javascript
+// v1 書籍物件
+{
+  id: "...",
+  title: "...",
+  isNew: true,          // v2 移除
+  isFinished: false,    // v2 移除
+  progress: 50,
+  ...
+}
+
+// v2 書籍物件
+{
+  id: "...",
+  title: "...",
+  readingStatus: "reading",   // v2 新增（取代 isNew/isFinished）
+  progress: 50,
+  tagIds: ["tag_001"],        // v2 新增
+  updatedAt: "2026-04-03T00:00:00Z",  // v2 新增
+  ...
+}
+```
+
+### CRUD 操作介面
+
+#### Tag Categories CRUD
+
+| 操作 | 方法 | 說明 |
+|------|------|------|
+| 建立 | `createTagCategory({name, description?, color?})` | 自動生成 id（`cat_{timestamp}`），name 唯一性檢查 |
+| 讀取全部 | `getAllTagCategories()` | 回傳完整陣列 |
+| 讀取單一 | `getTagCategory(categoryId)` | 依 id 查詢 |
+| 更新 | `updateTagCategory(categoryId, updates)` | 不可修改 id 和 isSystem |
+| 刪除 | `deleteTagCategory(categoryId)` | isSystem=true 不可刪除，cascade 刪除所屬 tags |
+
+#### Tags CRUD
+
+| 操作 | 方法 | 說明 |
+|------|------|------|
+| 建立 | `createTag({name, categoryId, parentId?})` | 自動生成 id（`tag_{timestamp}`），同 category 內 name 唯一 |
+| 讀取全部 | `getAllTags()` | 回傳完整陣列 |
+| 依類別讀取 | `getTagsByCategory(categoryId)` | 篩選特定類別的 tags |
+| 依書籍讀取 | `getTagsForBook(bookId)` | 依書籍的 tagIds 解析完整 tag 物件 |
+| 更新 | `updateTag(tagId, updates)` | 不可修改 id 和 isSystem |
+| 刪除 | `deleteTag(tagId)` | isSystem=true 不可刪除，自動從所有書籍 tagIds 移除 |
+
+#### Book-Tag 關聯操作
+
+| 操作 | 方法 | 說明 |
+|------|------|------|
+| 新增 tag | `addTagToBook(bookId, tagId)` | tagId 加入書籍 tagIds（去重） |
+| 移除 tag | `removeTagFromBook(bookId, tagId)` | 從書籍 tagIds 移除 |
+| 批量設定 | `setBookTags(bookId, tagIds)` | 替換書籍所有 tagIds |
+| 查詢書籍 | `getBooksByTag(tagId)` | 查詢含特定 tag 的所有書籍 |
+
+### 配額管理更新
+
+#### 配額設定修正
+
+| 項目 | v1 | v2 | 說明 |
+|------|----|----|------|
+| maxSize | 10MB | **5MB**（5,242,880 bytes） | 修正為 Chrome Manifest V3 實際限制 |
+| quotaWarningThreshold | 90% | **80%**（4MB） | tag 資料增加後提前預警 |
+| compressionThreshold | 1KB | 1KB | 不變 |
+
+#### 配額預估
+
+| 資料類型 | 每筆大小 | 預估數量 | 預估總大小 |
+|---------|---------|---------|-----------|
+| 書籍（含 tagIds） | ~500 bytes | 1000 本 | ~500KB |
+| 書籍（壓縮後） | ~250 bytes | 1000 本 | ~250KB |
+| tag_categories | ~200 bytes | 20 個 | ~4KB |
+| tags | ~150 bytes | 200 個 | ~30KB |
+| 系統狀態等 | — | — | ~50KB |
+| **總計（壓縮後）** | | | **~334KB** |
+
+**結論**：5MB 限制下，即使 2000 本書 + 500 個 tag，壓縮後仍在 1MB 以內。配額風險低。
+
+#### 配額超限處理策略
+
+| 使用率 | 動作 |
+|--------|------|
+| < 80% | 正常運作 |
+| 80% ~ 90% | 顯示配額警告，建議匯出備份 |
+| 90% ~ 95% | 觸發自動清理（清理 extraction_history 等非核心資料） |
+| > 95% | 阻止新增操作，強制要求清理或匯出 |
+
+### 資料一致性保證
+
+#### 原子操作
+
+Tag 相關操作涉及多個 key，需確保一致性：
+
+| 操作 | 涉及 key | 一致性要求 |
+|------|---------|-----------|
+| 刪除 tag | `tags` + `readmoo_books` | 先從所有書籍 tagIds 移除，再刪除 tag |
+| 刪除 category | `tag_categories` + `tags` + `readmoo_books` | 先移除書籍引用，再刪除 tags，最後刪除 category |
+| 匯入資料 | `readmoo_books` + `tag_categories` + `tags` | 先寫入 categories/tags，再寫入書籍 |
+
+**失敗處理**：任一步驟失敗時，回滾已完成的步驟。使用事務日誌（暫存在 memory）記錄操作步驟，失敗時反向執行。
+
+#### 引用完整性檢查
+
+啟動時和匯入後執行引用完整性檢查：
+
+| 檢查項 | 修復動作 |
+|--------|---------|
+| 書籍 tagIds 引用不存在的 tag | 移除無效 tagId |
+| tag categoryId 引用不存在的 category | 移至預設 category 或刪除 tag |
+| 孤立 tag（無任何書籍引用） | 保留（不自動刪除，使用者可能稍後使用） |
+
+---
+
 ## 需求變更通知
 
 > **PROP-007 確認（2026-04-02）**：跨專案規格對齊提案已確認。
@@ -400,3 +568,4 @@ Chrome Storage 資料結構將在 v0.20.0 改為 **tag-based model**，與 Flutt
 | 1.0 | 2026-03-30 | 從 app-requirements-spec.md 遷移，盤點實作狀態 |
 | 1.1 | 2026-04-02 | 新增需求變更通知：PROP-007 確認，v0.20.0 資料結構改為 tag-based |
 | 1.2 | 2026-04-03 | 新增 Book Schema v2 完整規格（0.17.0-W1-002）：閱讀狀態 6 種、tag 結構、欄位定義、Flutter App 對應表 |
+| 1.3 | 2026-04-03 | 新增 Chrome Storage v2 規格（0.17.0-W1-003）：多 key 架構、CRUD 介面、配額管理、一致性保證 |
