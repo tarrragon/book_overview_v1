@@ -288,9 +288,9 @@ BookSchemaV2.js 第 12 行 `require('src/core/errors/ErrorCodes')` — 未使用
 
 ## 案例索引
 
-| 案例 | 來源版本 | 主要教訓 |
-|------|---------|---------|
-| [v0.17.0 實作品質審查](cases/v0.17.0-impl-quality.md) | v0.17.0 | lint 未執行、並行未識別共用元件 |
+| 案例 | 主要教訓 |
+|------|---------|
+| [並行實作重複與 Lint](../cases/parallel-impl-duplication-and-lint.md) | lint 未執行、並行未識別共用元件 |
 
 > 新案例追加方式：Phase 4 審查完成後，依流程改善回饋環（見 `references/phase4/rules.md`）追加。
 

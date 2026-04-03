@@ -1,7 +1,6 @@
 # Phase 1：功能設計規則與決策指引
 
-> **[MIGRATED]** 本檔案從 `phase1-design.md` 拆出規則與指引部分，並新增 Decision Questions。
-> 原始檔案保留為歷史參考：`../phase1-design.md`
+> 本檔案整合 Phase 1 所有規則與指引，包含功能規格設計、SOLID 拆分分析、Decision Questions、拆分工具和範本。
 
 ## Phase 目標
 
@@ -131,6 +130,90 @@ SOLID 分析結果
     |
     v
 產出拆分清單（見 SKILL.md `/tdd split` 格式）
+```
+
+---
+
+## SOLID 拆分進階工具與範本
+
+> 整合自 phase1-split-methodology.md。核心 SOLID 檢查清單和拆分流程見上方章節。
+
+> ### CLI 工具（框架特定）
+>
+> `/tdd` 提供 Python CLI 腳本輔助 SOLID 分析，位於 `.claude/skills/tdd/scripts/tdd-phase1-split.py`。
+>
+> | 命令 | 用途 | 範例 |
+> |------|------|------|
+> | `analyze` | 互動式 SOLID 分析 | `uv run scripts/tdd-phase1-split.py analyze -d "實作書籍搜尋功能"` |
+> | `suggest` | 產出拆分建議 | `uv run scripts/tdd-phase1-split.py suggest -d "實作書籍搜尋功能" -v 0.29.0` |
+> | `create-tickets` | 建立拆分 Tickets | `uv run scripts/tdd-phase1-split.py create-tickets -d "實作書籍搜尋功能" -v 0.29.0 -w 3` |
+> | `validate` | 驗證拆分合規性 | `uv run scripts/tdd-phase1-split.py validate -t 0.29.0-W3-001` |
+> | `report` | 產出拆分報告 | `uv run scripts/tdd-phase1-split.py report -d "實作書籍搜尋功能" -v 0.29.0` |
+>
+> **執行方式**：在 `.claude/skills/tdd/` 目錄下執行 `uv run scripts/tdd-phase1-split.py <command>`。
+
+### 版本號分配規則
+
+拆分後的子任務需要合理的版本/批次分配，確保依賴關係正確。
+
+| 情況 | 版本/批次分配 | 範例 |
+|------|-------------|------|
+| 無依賴任務 | 同一批次（可並行） | Domain Entities -> 第一批 |
+| 依賴前一批 | 下一個批次 | UseCases -> 第二批 |
+| 依賴多批次 | 最後依賴的下一批 | Widget -> 第三批 |
+
+**並行判斷**：
+
+| 條件 | 可並行 |
+|------|--------|
+| 同一批次 | 是 |
+| 無 blockedBy | 是 |
+| 不同架構層但無依賴 | 是 |
+| 有 blockedBy | 否 |
+
+**架構層級執行順序**：
+
+| 架構層 | 執行順序 | 說明 |
+|--------|---------|------|
+| Domain | 第一批 | Entity、Value Object、介面定義（無依賴） |
+| Application | 第二批 | UseCase（依賴 Domain） |
+| Infrastructure | 第二批 | Repository 實作（依賴 Domain 介面） |
+| Presentation | 第三批 | Widget、Controller（依賴 Application） |
+
+> **框架整合**：本專案使用 Patch 版本號（如 v0.29.1 -> v0.29.2）對應批次，由 `/ticket create` 管理。
+
+### 拆分報告範本
+
+Phase 1 拆分分析完成後，使用以下範本產出報告：
+
+```markdown
+## Phase 1 拆分報告
+
+### 原始需求
+- **描述**: {需求描述}
+- **預估複雜度**: 高 / 中 / 低
+
+### SOLID 分析
+
+| 原則 | 分析結果 | 拆分建議 |
+|------|---------|---------|
+| SRP | {結果} | {建議} |
+| OCP | {結果} | {建議} |
+| LSP | {結果} | {建議} |
+| ISP | {結果} | {建議} |
+| DIP | {結果} | {建議} |
+
+### 拆分清單
+
+| 編號 | 描述 | 架構層 | 執行批次 | 依賴 |
+|------|------|--------|---------|------|
+| A | {描述} | Domain | 第一批 | 無 |
+| B | {描述} | Application | 第二批 | A |
+
+### 執行計畫
+1. 第一批（可並行）：A、B、C
+2. 第二批（序列）：D（依賴 A、B）
+3. 第三批（序列）：E（依賴 D）
 ```
 
 ---
@@ -328,22 +411,21 @@ Then: {預期結果}
 
 ## 案例索引
 
-| 案例 | 來源版本 | 主要教訓 |
-|------|---------|---------|
-| [v0.17.0 規格盲點](cases/v0.17.0-spec-gaps.md) | v0.17.0 | 跨模組共用未標注、ID 碰撞、欄位映射缺失、零日誌可觀測性 |
+| 案例 | 主要教訓 |
+|------|---------|
+| [跨模組共用策略缺失](../cases/cross-module-shared-strategy-gaps.md) | 跨模組共用未標注、ID 碰撞、欄位映射缺失、零日誌可觀測性 |
 
-> 新案例追加方式：Phase 4 審查完成後，依流程改善回饋環（見 `references/phase4/rules.md`）追加。
+> 新案例追加方式：Phase 4 審查完成後，依流程改善回饋環（見 `../phase4/rules.md`）追加。
 
 ---
 
 ## 相關文件
 
-- `cases/` - 真實案例集（按版本組織）
-- `../phase1-design.md` - 原始檔案（已 deprecated）
-- `../phase1-split-methodology.md` - SOLID 拆分方法論
-- `../phase2-test-design.md` - Phase 2 測試設計指引
+- `../cases/` - 真實案例集（按內容命名）
+- `../phase0/rules.md` - Phase 0 SA 前置審查
+- `../phase2/rules.md` - Phase 2 測試設計指引
 
 ---
 
 **Last Updated**: 2026-04-04
-**Version**: 2.1.0 - 新增案例索引表格，與 phase3/phase4 格式對齊（0.17.0-W4-005.1）
+**Version**: 4.0.0 - 更新案例引用路徑、移除 portable-design-boundary 引用
