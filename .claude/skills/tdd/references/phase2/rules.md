@@ -737,13 +737,22 @@ try {
 
 ---
 
+## 案例索引
+
+| 案例 | 來源版本 | 主要教訓 |
+|------|---------|---------|
+| [v0.17.0 測試盲點](cases/v0.17.0-test-blind-spots.md) | v0.17.0 | 碰巧通過（Q9）、中間步驟未測（Q7）、零日誌可觀測性（Q10） |
+
+> 新案例追加方式：Phase 4 審查完成後，依流程改善回饋環（見 `references/phase4/rules.md`）追加。
+
+---
+
 ## 相關文件
 
-- cases/ — 真實案例集（按版本組織）
 - .claude/rules/core/observability-rules.md — 可觀測性規則（Q10/Q_new4 的規格來源）
 - .claude/rules/core/quality-common.md — 通用品質基線
 
 ---
 
 **Last Updated**: 2026-04-04
-**Version**: 2.0.0 - 從 phase2-test-design.md 拆分重組，新增 Decision Questions（Q7-Q11）、非功能性需求測試推導表、測試資料純淨性確認（0.17.0-W4-005.2）
+**Version**: 2.1.0 - 新增案例索引章節（格式對齊 phase3/rules.md），完善相關文件引用（0.17.0-W4-005.2）
