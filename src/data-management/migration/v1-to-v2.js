@@ -280,7 +280,7 @@ async function migrateV1ToV2 (storage, logger) {
     await storage.set({ schema_version: TARGET_SCHEMA_VERSION })
 
     // 步驟 6: 刪除備份
-    await storage.remove('migration_backup')
+    await storage.remove(['migration_backup'])
 
     logger.info(`遷移完成：${migratedBooks.length} 本書已轉換`)
     return { migrated: true }

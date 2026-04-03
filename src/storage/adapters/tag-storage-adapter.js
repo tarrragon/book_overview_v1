@@ -149,7 +149,11 @@ const operationLock = {
    */
   run (fn) {
     const next = this._queue.then(fn, fn)
-    this._queue = next.catch(() => {})
+    this._queue = next.catch((err) => {
+      if (typeof console !== 'undefined') {
+        console.error('[tag-storage-adapter] Lock operation failed:', err)
+      }
+    })
     return next
   }
 }

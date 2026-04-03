@@ -124,7 +124,13 @@ class SchemaMigrationService extends BaseModule {
     }
 
     this.cacheStats.misses++
-    const version = '1.0.0' // //todo: 實作真實版本檢測
+    let version = '1.0.0'
+    if (this.storageAdapter) {
+      const stored = await this.storageAdapter.get('schema_version')
+      if (stored) {
+        version = stored
+      }
+    }
     this.versionCache.set('current', version)
     return version
   }
@@ -146,18 +152,51 @@ class SchemaMigrationService extends BaseModule {
   }
 
   async checkVersionCompatibility (fromVersion, toVersion) {
-    // //todo: 實作真實相容性檢查邏輯
-    return true
+    if (!fromVersion || !toVersion) {
+      return false
+    }
+    const parseVersion = (v) => v.split('.').map(Number)
+    const [fromMajor] = parseVersion(fromVersion)
+    const [toMajor] = parseVersion(toVersion)
+    // 跨主版本差距超過 1 視為不相容
+    return Math.abs(toMajor - fromMajor) <= 1
   }
 
   async calculateUpgradePath (fromVersion, toVersion) {
-    // //todo: 實作真實升級路徑計算
-    return ['1.0.0', '1.1.0', '2.0.0']
+    if (fromVersion === toVersion) {
+      return [fromVersion]
+    }
+    const registeredVersions = this.config.migration?.registeredVersions || ['1.0.0', '1.1.0', '2.0.0']
+    const sorted = registeredVersions.slice().sort(this._compareVersions)
+    const fromIdx = sorted.indexOf(fromVersion)
+    const toIdx = sorted.indexOf(toVersion)
+    if (fromIdx === -1 || toIdx === -1 || fromIdx >= toIdx) {
+      return [fromVersion, toVersion]
+    }
+    return sorted.slice(fromIdx, toIdx + 1)
   }
 
   async calculateDowngradePath (fromVersion, toVersion) {
-    // //todo: 實作真實降級路徑計算
-    return ['2.0.0', '1.1.0', '1.0.0']
+    if (fromVersion === toVersion) {
+      return [fromVersion]
+    }
+    const registeredVersions = this.config.migration?.registeredVersions || ['1.0.0', '1.1.0', '2.0.0']
+    const sorted = registeredVersions.slice().sort(this._compareVersions)
+    const fromIdx = sorted.indexOf(fromVersion)
+    const toIdx = sorted.indexOf(toVersion)
+    if (fromIdx === -1 || toIdx === -1 || fromIdx <= toIdx) {
+      return [fromVersion, toVersion]
+    }
+    return sorted.slice(toIdx, fromIdx + 1).reverse()
+  }
+
+  _compareVersions (a, b) {
+    const pa = a.split('.').map(Number)
+    const pb = b.split('.').map(Number)
+    for (let i = 0; i < 3; i++) {
+      if (pa[i] !== pb[i]) return pa[i] - pb[i]
+    }
+    return 0
   }
 
   async getVersionHistory () {
