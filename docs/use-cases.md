@@ -1,14 +1,36 @@
-# 📋 Readmoo 書庫提取器 - Use Cases 規格
+# Readmoo 書庫提取器 - Use Cases 規格
 
-**版本**: v1.0  
-**文件版本**: 2025-08-22  
+**版本**: v1.1
+**文件版本**: 2026-04-03
 **基於**: [技術文件導覽中心](./domains/README.md)
 
-## 🎯 Use Case 概述
+> **v1.1 變更說明**（PROP-007 tag-based model 對齊）：
+> - 閱讀狀態從 3 種（未開始/進行中/已完成）擴充為 6 種（新增 queued/abandoned/reference）
+> - 書籍分類從階層式改為 tag-based（tag_categories + tags）
+> - 匯出格式升級為 Interchange Format v2
+> - 各 UC 新增 tag-based model 影響分析和邊界條件
+
+## Use Case 概述
 
 本文件描述 Readmoo 書庫提取器的核心使用場景，每個 Use Case 都對應到具體的使用者需求和系統功能。這些 Use Case 將作為測試設計和功能驗證的基礎。
 
-## 👤 角色定義
+## 閱讀狀態定義（v1.1 新增）
+
+| 狀態 | 英文 | 說明 | 舊版對映 |
+|------|------|------|---------|
+| 未開始 | unread | 書籍已購買但未開始閱讀 | isNew=true, isFinished=false |
+| 閱讀中 | reading | 正在閱讀（progress > 0 且未完成） | isNew=false, isFinished=false |
+| 已完成 | finished | 閱讀完畢 | isFinished=true |
+| 待讀 | queued | 使用者標記為待讀清單 | 無（v1.1 新增） |
+| 已放棄 | abandoned | 使用者決定不再閱讀 | 無（v1.1 新增） |
+| 參考用 | reference | 作為參考資料保留，非通讀型 | 無（v1.1 新增） |
+
+**狀態轉換規則**：
+- 系統自動判斷：unread → reading（progress > 0 時）、reading → finished（progress = 100 時）
+- 使用者手動設定：任何狀態 → queued / abandoned / reference
+- 手動設定覆蓋自動判斷：使用者標記 abandoned 後，即使 progress 變化也不自動改回 reading
+
+## 角色定義
 
 ### Primary Actor: 書籍收集者 (Book Collector)
 
@@ -17,7 +39,7 @@
 - **技能水平**: 一般電腦使用者，熟悉瀏覽器操作
 - **使用頻率**: 每週1-3次提取新書籍，每月1-2次備份資料
 
-## 📚 核心 Use Cases
+## 核心 Use Cases
 
 ### UC-01: 首次安裝與設定
 
@@ -52,6 +74,12 @@
 - 每本書籍都包含必要欄位（id, title, cover等）
 - Overview頁面載入時間 < 3秒
 - 無JavaScript錯誤
+
+**Tag-based Model 影響**（v1.1）:
+
+- 首次提取的書籍閱讀狀態需對映為 6 種之一（依 progress 自動判斷：0→unread, 0<p<100→reading, 100→finished）
+- 首次安裝時書籍無 tag 資訊，需初始化為空 tag 集合
+- **升級場景（新增邊界條件）**：舊版使用者升級時觸發資料遷移（isNew/isFinished → 6 種狀態），需顯示遷移進度和結果
 
 ---
 
@@ -95,6 +123,13 @@
 - 進度更新準確率 100%
 - 整個流程時間 < 10秒
 
+**Tag-based Model 影響**（v1.1）:
+
+- 去重邏輯需考慮 tag 資訊：相同書籍合併時 tag 應取聯集
+- 進度更新觸發閱讀狀態自動轉換（如 progress 從 0 變為 10 → unread 轉為 reading）
+- 使用者手動設定的狀態（queued/abandoned/reference）不應被自動進度更新覆蓋
+- **新邊界條件**：書籍 ID 相同但 tag 不同時的合併策略（取聯集，不刪除既有 tag）
+
 ---
 
 ### UC-03: 資料匯出與備份
@@ -133,9 +168,17 @@
 **成功標準**:
 
 - 匯出的資料完整性 100%
-- JSON檔案符合系統匯入格式
+- JSON檔案符合 Interchange Format v2 規格
 - CSV檔案可在Excel中正常開啟
 - 檔案下載成功率 100%
+
+**Tag-based Model 影響**（v1.1）:
+
+- JSON 匯出格式升級為 Interchange Format v2（含 tags 按類別、tag_tree 結構）
+- 新增匯出選項：v2 格式（預設）和 v1 相容格式
+- CSV 匯出需包含 tag 欄位（以分隔符序列化）和 6 種閱讀狀態
+- 匯出欄位集定義需更新（BASIC/EXTENDED/COMPLETE 等加入 tag 相關欄位）
+- **新邊界條件**：書籍無 tag 時匯出為空陣列而非省略欄位
 
 ---
 
@@ -178,10 +221,21 @@
 
 **成功標準**:
 
-- 檔案格式驗證準確率 100%
+- 檔案格式驗證準確率 100%（v1 和 v2 格式皆可）
 - 資料載入完整性 100%
 - 去重邏輯準確率 > 99%
 - 載入1000筆資料時間 < 5秒
+
+**Tag-based Model 影響**（v1.1）:
+
+- 匯入需支援 v1 和 v2 兩種格式（自動偵測版本）
+- v1 格式匯入時自動轉換：isNew/isFinished → 6 種閱讀狀態、無 tag → 空 tag 集合
+- 合併模式下 tag 採聯集策略（匯入 tag 加入既有 tag，不刪除）
+- 覆蓋模式下 tag 完全替換
+- **新邊界條件**：
+  - v1 檔案含不合法的 isNew/isFinished 組合（如兩者皆 true）時的降級處理
+  - 匯入的 tag_category 在本地不存在時自動建立
+  - 匯入超大 tag 數量（單本書 > 50 個 tag）時的處理
 
 ---
 
@@ -222,9 +276,18 @@
 
 **成功標準**:
 
-- 資料同步一致性 100%
+- 資料同步一致性 100%（含 tag 資料）
 - 跨設備操作流程時間 < 5分鐘
 - 無資料遺失或損壞
+
+**Tag-based Model 影響**（v1.1）:
+
+- 同步資料包含 tag_categories 和 tags（資料量增加）
+- 設備間格式版本不一致時需處理（A 裝置 v2、B 裝置 v1）
+- tag 衝突解決：同一書籍在不同裝置有不同 tag 時取聯集
+- **新邊界條件**：
+  - A 裝置刪除了某個 tag_category，B 裝置的書籍仍引用該 category → 匯入時自動重建 category
+  - v2.0 階段 Google Drive 自動同步需處理 tag 合併衝突
 
 ---
 
@@ -250,7 +313,9 @@
    - 支援模糊匹配（如 "javascrpt" 匹配 "javascript"）
 
 3. **篩選功能**：
-   - 按閱讀進度篩選（未開始、進行中、已完成）
+   - 按閱讀狀態篩選（6 種：未開始、閱讀中、已完成、待讀、已放棄、參考用）
+   - 按 tag 篩選（選擇一個或多個 tag，支援 AND/OR 邏輯）
+   - 按 tag_category 篩選（如：類別、主題、自訂標籤）
    - 按提取時間篩選（本週、本月、全部）
    - 按書籍類型篩選（電子書、有聲書等）
 
@@ -273,10 +338,22 @@
 
 **成功標準**:
 
-- 頁面載入時間 < 3秒（1000本書籍）
-- 搜尋響應時間 < 1秒
+- 頁面載入時間 < 3秒（1000本書籍，含 tag 資料）
+- 搜尋響應時間 < 1秒（含 tag 篩選）
 - 篩選準確率 100%
 - 編輯操作成功率 100%
+
+**Tag-based Model 影響**（v1.1）:
+
+- 篩選條件從 3 種閱讀狀態擴充為 6 種
+- 新增 tag 和 tag_category 篩選功能
+- 書籍清單需顯示 tag 標籤（UI 元件）
+- 詳細資訊檢視需顯示完整 tag 列表
+- 進階管理新增：tag 編輯（為書籍新增/移除 tag）
+- **新邊界條件**：
+  - 書籍無任何 tag 時的顯示（顯示「未分類」或空白）
+  - tag 篩選結果為空時的提示
+  - 多條件篩選（tag + 閱讀狀態 + 關鍵字）的組合邏輯
 
 ---
 
@@ -321,27 +398,54 @@
 - 系統在錯誤後能夠恢復正常運作
 - 不會有資料遺失或損壞
 
+**Tag-based Model 影響**（v1.1）:
+
+新增錯誤場景：
+
+**場景E - 資料遷移失敗**（v1.1 新增）:
+
+- **觸發**: 從舊版升級時，isNew/isFinished → 6 種閱讀狀態的轉換失敗
+- **系統行為**: 保留原始資料不修改，顯示「部分書籍資料遷移失敗，已保留原始格式」
+- **使用者操作**: 點擊「重試遷移」或「手動修正」
+- **預期結果**: 遷移失敗的書籍仍可存取，不影響已成功遷移的資料
+
+**場景F - Tag 資料不一致**（v1.1 新增）:
+
+- **觸發**: tag 引用了不存在的 tag_category，或 tag 資料損壞
+- **系統行為**: 自動修復（重建缺失的 category，移除無效引用），顯示修復報告
+- **使用者操作**: 查看修復報告，確認修復結果
+- **預期結果**: tag 資料恢復一致性，不遺失有效 tag
+
+**場景G - Chrome Storage 配額不足（tag 資料膨脹）**（v1.1 新增）:
+
+- **觸發**: tag 資料導致 Chrome Storage 接近 5MB 限制
+- **系統行為**: 顯示配額警告和 tag 清理建議
+- **使用者操作**: 清理未使用的 tag 或匯出資料後清空
+- **預期結果**: 釋放儲存空間，系統繼續正常運作
+
 **成功標準**:
 
 - 錯誤訊息清楚易懂 100%
 - 系統恢復成功率 > 95%
 - 無因錯誤處理導致的資料遺失
+- 資料遷移成功率 > 99%（v1.1 新增）
+- tag 自動修復成功率 > 95%（v1.1 新增）
 
 ---
 
-## 🔍 Use Case 對映表
+## Use Case 對映表
 
-| Use Case | 核心功能模組   | 主要組件                                | 測試優先級 |
-| -------- | -------------- | --------------------------------------- | ---------- |
-| UC-01    | 資料提取、UI   | BookDataExtractor, ReadmooAdapter       | 高         |
-| UC-02    | 資料提取、去重 | BookDataExtractor, generateStableBookId | 高         |
-| UC-03    | 資料匯出       | JSONExportHandler, exportToCSV          | 高         |
-| UC-04    | 資料匯入、去重 | loadFromFile, 格式驗證                  | 高         |
-| UC-05    | 匯出、匯入     | 完整匯出入流程                          | 中         |
-| UC-06    | UI、資料存儲   | Overview頁面, 搜尋篩選                  | 中         |
-| UC-07    | 錯誤處理       | 全系統錯誤處理機制                      | 中         |
+| Use Case | 核心功能模組   | 主要組件                                | Tag-based 影響度 | 測試優先級 |
+| -------- | -------------- | --------------------------------------- | --------------- | ---------- |
+| UC-01    | 資料提取、UI   | BookDataExtractor, ReadmooAdapter       | 中（狀態對映 + 遷移） | 高 |
+| UC-02    | 資料提取、去重 | BookDataExtractor, generateStableBookId | 高（tag 合併 + 狀態轉換） | 高 |
+| UC-03    | 資料匯出       | JSONExportHandler, exportToCSV          | 高（Format v2） | 高 |
+| UC-04    | 資料匯入、去重 | loadFromFile, 格式驗證                  | 高（v1/v2 相容 + tag 合併） | 高 |
+| UC-05    | 匯出、匯入     | 完整匯出入流程                          | 中（tag 衝突） | 中 |
+| UC-06    | UI、資料存儲   | Overview頁面, 搜尋篩選                  | 高（tag 篩選 + 6 狀態） | 高（升級） |
+| UC-07    | 錯誤處理       | 全系統錯誤處理機制                      | 高（遷移 + tag 修復） | 高（升級） |
 
-## 📋 Use Case 驗證檢查清單
+## Use Case 驗證檢查清單
 
 ### 功能完整性檢查
 
@@ -349,6 +453,15 @@
 - [ ] 所有主要流程都有測試覆蓋
 - [ ] 替代流程和錯誤處理都有驗證
 - [ ] 成功標準都可量化測試
+
+### Tag-based Model 檢查（v1.1 新增）
+
+- [ ] 6 種閱讀狀態皆有測試覆蓋
+- [ ] 自動狀態轉換和手動設定的交互已驗證
+- [ ] tag CRUD 操作測試完整
+- [ ] v1 → v2 資料遷移邊界條件已覆蓋
+- [ ] tag 合併策略（聯集）測試完整
+- [ ] Interchange Format v2 round-trip 測試通過
 
 ### 使用者體驗檢查
 
@@ -359,10 +472,10 @@
 
 ### 系統穩定性檢查
 
-- [ ] 邊界條件處理正確
-- [ ] 大量資料處理穩定
-- [ ] 錯誤恢復機制有效
-- [ ] 資料完整性保證
+- [ ] 邊界條件處理正確（含 tag-based 新增邊界）
+- [ ] 大量資料處理穩定（含 tag 資料膨脹場景）
+- [ ] 錯誤恢復機制有效（含遷移失敗和 tag 修復）
+- [ ] 資料完整性保證（含 tag 引用一致性）
 
 ---
 
@@ -370,8 +483,17 @@
 
 ---
 
+## 變更歷史
+
+| 版本 | 日期 | 變更內容 |
+|------|------|---------|
+| v1.0 | 2025-08-22 | 初始版本，7 個核心 UC |
+| v1.1 | 2026-04-03 | PROP-007 tag-based model 對齊：閱讀狀態 3→6、tag-based 影響分析、新增邊界條件、新增錯誤場景 E/F/G |
+
 ## 相關規範與連結
 
+- 主規格（資料管理）：`docs/spec/data-management/data-management.md`
+- PROP-007 提案：`docs/proposals/PROP-007-cross-project-spec-alignment.md`
 - 主規格（錯誤處理）：`./domains/architecture/error-handling-standardization-plan.md`
 - 事件驅動架構：`./claude/event-driven-architecture.md`
 - 術語字典：`./claude/terminology-dictionary.md`
