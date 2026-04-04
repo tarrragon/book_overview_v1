@@ -1,6 +1,6 @@
 # v0.17.0 任務粒度案例：Use Case 驅動拆分 vs 全範圍重寫
 
-> 來源：0.17.0-W3-002（Chrome Storage adapter 重寫）、0.17.0-W2-001~004（測試撰寫）
+> **背景**：一個「重寫 Chrome Storage adapter」的 Ticket 花了 15 分鐘、一個「撰寫 Schema v2 所有測試」的 Ticket 花了 29 分鐘。追溯根因發現 Phase 1 只產出一個大 Use Case，沒有分解為獨立的行為單元。
 > 教訓：問題的根因不是「Ticket 太大需要切割」，而是「Phase 1 沒有把 Use Case 拆解為行為單元」。
 
 ---
