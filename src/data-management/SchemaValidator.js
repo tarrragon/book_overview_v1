@@ -6,27 +6,36 @@
  *
  * 支援的驗證規則：
  * - 必填檢查（含 auto 欄位跳過選項）
- * - 型別檢查（string, number, boolean, array）
+ * - 型別檢查（string, number, boolean, array, object）
  * - 列舉值檢查
  * - 數值範圍檢查（min, max）
  * - 字串長度檢查（maxLength）
  * - 正則格式檢查（pattern）
  * - 陣列元素型別檢查（items）
  *
- * @version 1.0.0
+ * @version 1.1.0
  */
+
+const ValidationUtils = require('../content/utils/validation-utils')
 
 /**
  * 檢查值的型別是否符合預期
+ *
+ * 委派至 ValidationUtils 的對應方法，消除型別檢查重複邏輯（DRY）。
+ *
  * @param {*} value - 要檢查的值
- * @param {string} expectedType - 預期型別（'string', 'number', 'boolean', 'array'）
+ * @param {string} expectedType - 預期型別（'string', 'number', 'boolean', 'array', 'object'）
  * @returns {boolean}
  */
 function checkType (value, expectedType) {
-  if (expectedType === 'array') {
-    return Array.isArray(value)
+  switch (expectedType) {
+    case 'string': return ValidationUtils.isString(value)
+    case 'number': return ValidationUtils.isNumber(value)
+    case 'boolean': return ValidationUtils.isBoolean(value)
+    case 'array': return ValidationUtils.isArray(value)
+    case 'object': return ValidationUtils.isObject(value)
+    default: return false
   }
-  return typeof value === expectedType
 }
 
 /**
