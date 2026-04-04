@@ -118,12 +118,12 @@ describe('Tag Categories CRUD 操作', () => {
   })
 
   describe('createTagCategory', () => {
-    test('應以指定名稱建立 category 並自動生成 cat_{timestamp} 格式的 id', async () => {
+    test('應以指定名稱建立 category 並自動生成 cat_{timestamp}-{random} 格式的 id', async () => {
       const input = { name: '文學', description: '文學類書籍', color: '#FF0000' }
 
       const result = await TagStorageAdapter.createTagCategory(input)
 
-      expect(result.id).toMatch(/^cat_\d+$/)
+      expect(result.id).toMatch(/^cat_\d+-[a-z0-9]+$/)
       expect(result.name).toBe('文學')
       expect(result.description).toBe('文學類書籍')
       expect(result.color).toBe('#FF0000')
@@ -300,10 +300,10 @@ describe('Tags CRUD 操作', () => {
   })
 
   describe('createTag', () => {
-    test('應建立 tag 並自動生成 tag_{timestamp} 格式的 id', async () => {
+    test('應建立 tag 並自動生成 tag_{timestamp}-{random} 格式的 id', async () => {
       const result = await TagStorageAdapter.createTag({ name: '奇幻', categoryId: 'cat_001' })
 
-      expect(result.id).toMatch(/^tag_\d+$/)
+      expect(result.id).toMatch(/^tag_\d+-[a-z0-9]+$/)
       expect(result.name).toBe('奇幻')
       expect(result.categoryId).toBe('cat_001')
     })
@@ -325,7 +325,7 @@ describe('Tags CRUD 操作', () => {
 
       const result = await TagStorageAdapter.createTag({ name: '推薦', categoryId: 'cat_002' })
 
-      expect(result.id).toMatch(/^tag_\d+$/)
+      expect(result.id).toMatch(/^tag_\d+-[a-z0-9]+$/)
       expect(result.name).toBe('推薦')
     })
 

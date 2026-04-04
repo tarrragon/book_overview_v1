@@ -190,7 +190,7 @@ async function createTagCategory (input) {
 
     const now = new Date().toISOString()
     const category = {
-      id: `cat_${Date.now()}`,
+      id: `cat_${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       name: input.name.trim(),
       description: input.description || '',
       color: input.color || DEFAULT_CATEGORY_COLOR,
@@ -308,6 +308,7 @@ async function deleteTagCategory (categoryId) {
       return { success: true }
     } catch (err) {
       // 回滾
+      console.error('[tag-storage-adapter] deleteTagCategory failed, rolling back:', err.message)
       await saveToStorage({
         [STORAGE_KEYS.TAG_CATEGORIES]: originalCategories,
         [STORAGE_KEYS.TAGS]: originalTags
@@ -359,7 +360,7 @@ async function createTag (input) {
 
     const now = new Date().toISOString()
     const tag = {
-      id: `tag_${Date.now()}`,
+      id: `tag_${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       name: input.name.trim(),
       categoryId: input.categoryId,
       isSystem: false,
@@ -482,6 +483,7 @@ async function deleteTag (tagId) {
       return { success: true }
     } catch (err) {
       // 回滾
+      console.error('[tag-storage-adapter] deleteTag failed, rolling back:', err.message)
       await saveToStorage({ [STORAGE_KEYS.TAGS]: originalTags })
       await saveBooksWrapper(originalBooks)
       return { success: false, error: 'rollback', cause: err.message }

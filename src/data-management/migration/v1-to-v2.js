@@ -18,6 +18,8 @@
  * - 配額不足 → 中止遷移
  */
 
+const { mapV1StatusToV2 } = require('../BookSchemaV2')
+
 const TARGET_SCHEMA_VERSION = '3.0.0'
 const SEMVER_PATTERN = /^\d+\.\d+\.\d+$/
 
@@ -79,31 +81,14 @@ function clampProgress (value) {
 /**
  * 依 v1 書籍欄位推斷閱讀狀態
  *
- * 需求：轉換規則（優先順序由高到低）
- * 1. isFinished === true → 'finished'
- * 2. progress >= 100 → 'finished'
- * 3. progress > 0 → 'reading'
- * 4. 其餘 → 'unread'
+ * 委派至 BookSchemaV2.mapV1StatusToV2，消除 DRY 違反。
+ * 保留此函式作為向後相容的包裝器。
  *
  * @param {object} book - v1 格式書籍
  * @returns {'finished'|'reading'|'unread'} 閱讀狀態
  */
 function migrateReadingStatus (book) {
-  if (book.isFinished === true) {
-    return 'finished'
-  }
-
-  const progress = normalizeProgress(book.progress)
-
-  if (progress >= 100) {
-    return 'finished'
-  }
-
-  if (progress > 0) {
-    return 'reading'
-  }
-
-  return 'unread'
+  return mapV1StatusToV2(book)
 }
 
 /**

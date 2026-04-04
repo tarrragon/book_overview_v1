@@ -46,54 +46,31 @@ const TAG_SCHEMA = Object.freeze({
   }
 })
 
-// === 驗證函式 ===
+// === 驗證函式（委派至共用驗證引擎） ===
+
+const SchemaValidator = require('./SchemaValidator')
 
 /**
  * 驗證 TagCategory 物件
+ * 使用共用驗證引擎處理欄位驗證，額外處理 TagCategory 特有的名稱唯一性檢查
+ *
  * @param {Object} category - TagCategory 物件
  * @param {Array} existingCategories - 現有的 categories（用於名稱唯一性檢查）
  * @returns {{ valid: boolean, errors: string[] }}
  */
 function validateTagCategory (category, existingCategories = []) {
+  // 共用欄位驗證（auto 欄位跳過必填檢查，由系統自動填入）
+  const result = SchemaValidator.validateObject(
+    category, TAG_CATEGORY_SCHEMA, 'category', { skipAutoRequired: true }
+  )
+
   if (!category || typeof category !== 'object') {
-    return { valid: false, errors: ['category 必須是非 null 的物件'] }
+    return result
   }
 
-  const errors = []
-  const fields = TAG_CATEGORY_SCHEMA.fields
+  const errors = [...result.errors]
 
-  // 逐欄位驗證
-  for (const [fieldName, fieldDef] of Object.entries(fields)) {
-    const value = category[fieldName]
-
-    // 必填檢查（auto 欄位跳過必填檢查，由系統自動填入）
-    if (fieldDef.required && !fieldDef.auto && (value === undefined || value === null || value === '')) {
-      errors.push(`必填欄位 '${fieldName}' 缺失`)
-      continue
-    }
-
-    if (value === undefined || value === null) {
-      continue
-    }
-
-    // 型別檢查
-    if (typeof value !== fieldDef.type) {
-      errors.push(`欄位 '${fieldName}' 型別錯誤：期望 ${fieldDef.type}，實際 ${typeof value}`)
-      continue
-    }
-
-    // 字串長度檢查
-    if (fieldDef.maxLength && typeof value === 'string' && value.length > fieldDef.maxLength) {
-      errors.push(`欄位 '${fieldName}' 超過最大長度 ${fieldDef.maxLength}`)
-    }
-
-    // hex 色碼格式檢查
-    if (fieldDef.pattern && typeof value === 'string' && !fieldDef.pattern.test(value)) {
-      errors.push(`欄位 '${fieldName}' 格式不符：期望 hex 色碼格式`)
-    }
-  }
-
-  // 名稱唯一性檢查（排除自身）
+  // TagCategory 特有：名稱唯一性檢查（排除自身）
   if (category.name && existingCategories.length > 0) {
     const isDuplicate = existingCategories.some(
       (existing) => existing.id !== category.id && existing.name === category.name
@@ -108,45 +85,25 @@ function validateTagCategory (category, existingCategories = []) {
 
 /**
  * 驗證 Tag 物件
+ * 使用共用驗證引擎處理欄位驗證，額外處理 Tag 特有的同 category 名稱唯一性檢查
+ *
  * @param {Object} tag - Tag 物件
  * @param {Array} existingTags - 同一 category 內的現有 tags（用於名稱唯一性檢查）
  * @returns {{ valid: boolean, errors: string[] }}
  */
 function validateTag (tag, existingTags = []) {
+  // 共用欄位驗證（auto 欄位跳過必填檢查）
+  const result = SchemaValidator.validateObject(
+    tag, TAG_SCHEMA, 'tag', { skipAutoRequired: true }
+  )
+
   if (!tag || typeof tag !== 'object') {
-    return { valid: false, errors: ['tag 必須是非 null 的物件'] }
+    return result
   }
 
-  const errors = []
-  const fields = TAG_SCHEMA.fields
+  const errors = [...result.errors]
 
-  // 逐欄位驗證
-  for (const [fieldName, fieldDef] of Object.entries(fields)) {
-    const value = tag[fieldName]
-
-    // 必填檢查（auto 欄位跳過必填檢查）
-    if (fieldDef.required && !fieldDef.auto && (value === undefined || value === null || value === '')) {
-      errors.push(`必填欄位 '${fieldName}' 缺失`)
-      continue
-    }
-
-    if (value === undefined || value === null) {
-      continue
-    }
-
-    // 型別檢查
-    if (typeof value !== fieldDef.type) {
-      errors.push(`欄位 '${fieldName}' 型別錯誤：期望 ${fieldDef.type}，實際 ${typeof value}`)
-      continue
-    }
-
-    // 字串長度檢查
-    if (fieldDef.maxLength && typeof value === 'string' && value.length > fieldDef.maxLength) {
-      errors.push(`欄位 '${fieldName}' 超過最大長度 ${fieldDef.maxLength}`)
-    }
-  }
-
-  // 同一 category 內名稱唯一性檢查（大小寫不敏感，排除自身）
+  // Tag 特有：同一 category 內名稱唯一性檢查（大小寫不敏感，排除自身）
   if (tag.name && existingTags.length > 0) {
     const isDuplicate = existingTags.some(
       (existing) => existing.id !== tag.id &&

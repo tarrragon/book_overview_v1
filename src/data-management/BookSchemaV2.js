@@ -67,90 +67,32 @@ const BOOK_SCHEMA_V2 = Object.freeze({
   }
 })
 
-// === 欄位驗證 ===
+// === 欄位驗證（委派至共用驗證引擎） ===
+
+const SchemaValidator = require('./SchemaValidator')
 
 /**
  * 驗證單一欄位值是否符合 schema 定義
+ * 委派至 SchemaValidator.validateField，維持原有 API 介面
+ *
  * @param {string} fieldName - 欄位名稱
  * @param {*} value - 欄位值
  * @param {Object} fieldDef - 欄位定義
  * @returns {{ valid: boolean, error: string|null }}
  */
 function validateField (fieldName, value, fieldDef) {
-  // 必填檢查
-  if (fieldDef.required && (value === undefined || value === null || value === '')) {
-    return { valid: false, error: `必填欄位 '${fieldName}' 缺失` }
-  }
-
-  // 值為 undefined/null 且非必填，允許通過
-  if (value === undefined || value === null) {
-    return { valid: true, error: null }
-  }
-
-  // 型別檢查
-  const typeValid = checkType(value, fieldDef.type)
-  if (!typeValid) {
-    return { valid: false, error: `欄位 '${fieldName}' 型別錯誤：期望 ${fieldDef.type}，實際 ${typeof value}` }
-  }
-
-  // enum 檢查
-  if (fieldDef.enum && !fieldDef.enum.includes(value)) {
-    return { valid: false, error: `欄位 '${fieldName}' 值 '${value}' 不在允許列舉中` }
-  }
-
-  // 數值範圍檢查
-  if (fieldDef.type === 'number') {
-    if (fieldDef.min !== undefined && value < fieldDef.min) {
-      return { valid: false, error: `欄位 '${fieldName}' 值 ${value} 小於最小值 ${fieldDef.min}` }
-    }
-    if (fieldDef.max !== undefined && value > fieldDef.max) {
-      return { valid: false, error: `欄位 '${fieldName}' 值 ${value} 大於最大值 ${fieldDef.max}` }
-    }
-  }
-
-  // 陣列元素型別檢查
-  if (fieldDef.type === 'array' && fieldDef.items && Array.isArray(value)) {
-    for (let i = 0; i < value.length; i++) {
-      if (!checkType(value[i], fieldDef.items)) {
-        return { valid: false, error: `欄位 '${fieldName}[${i}]' 元素型別錯誤：期望 ${fieldDef.items}` }
-      }
-    }
-  }
-
-  return { valid: true, error: null }
-}
-
-/**
- * 檢查值的型別
- */
-function checkType (value, expectedType) {
-  if (expectedType === 'array') {
-    return Array.isArray(value)
-  }
-  return typeof value === expectedType
+  return SchemaValidator.validateField(fieldName, value, fieldDef)
 }
 
 /**
  * 驗證完整的 Book 物件
+ * 委派至 SchemaValidator.validateObject，維持原有 API 介面
+ *
  * @param {Object} book - 書籍物件
  * @returns {{ valid: boolean, errors: string[] }}
  */
 function validateBook (book) {
-  if (!book || typeof book !== 'object') {
-    return { valid: false, errors: ['book 必須是非 null 的物件'] }
-  }
-
-  const errors = []
-  const fields = BOOK_SCHEMA_V2.fields
-
-  for (const [fieldName, fieldDef] of Object.entries(fields)) {
-    const result = validateField(fieldName, book[fieldName], fieldDef)
-    if (!result.valid) {
-      errors.push(result.error)
-    }
-  }
-
-  return { valid: errors.length === 0, errors }
+  return SchemaValidator.validateObject(book, BOOK_SCHEMA_V2, 'book')
 }
 
 /**
@@ -237,26 +179,62 @@ function computeManualStatusChange (newStatus) {
 /**
  * 將 v1 的 isNew/isFinished 布林轉換為 v2 的 readingStatus
  *
+ * 轉換規則（優先順序由高到低）：
+ * 1. isFinished === true -> 'finished'
+ * 2. progress >= 100 -> 'finished'
+ * 3. progress > 0 -> 'reading'
+ * 4. 其餘 -> 'unread'
+ *
+ * 注意：此函式同時被 BookSchemaV2 和 v1-to-v2 migration 使用，
+ * 修改時須確認兩邊的測試都通過。
+ *
  * @param {Object} v1Book - v1 格式書籍（含 isNew、isFinished、progress）
  * @returns {string} v2 readingStatus 值
  */
 function mapV1StatusToV2 (v1Book) {
-  const isFinished = v1Book.isFinished
-  const isNew = v1Book.isNew
-  const progress = v1Book.progress || 0
-
   // isFinished 優先（含異常組合 isNew=true + isFinished=true）
-  if (isFinished === true) {
+  if (v1Book.isFinished === true) {
     return READING_STATUS.FINISHED
   }
 
-  // 有 progress 且非完成
-  if (isNew === false && isFinished === false && progress > 0) {
+  const progress = normalizeV1Progress(v1Book.progress)
+
+  // progress 達 100 視為完成
+  if (progress >= 100) {
+    return READING_STATUS.FINISHED
+  }
+
+  // 有 progress 代表閱讀中
+  if (progress > 0) {
     return READING_STATUS.READING
   }
 
   // 預設為 unread（含 isNew=true、兩者 undefined/null 等情況）
   return READING_STATUS.UNREAD
+}
+
+/**
+ * 正規化 v1 progress 值為數字
+ * 處理 null/undefined/NaN 等邊界情況
+ *
+ * @param {*} value - v1 格式的 progress 值
+ * @returns {number} 正規化後的 progress
+ */
+function normalizeV1Progress (value) {
+  if (value === null || value === undefined) {
+    return 0
+  }
+  if (typeof value === 'number') {
+    return isNaN(value) ? 0 : value
+  }
+  if (typeof value === 'string') {
+    const parsed = parseInt(value, 10)
+    return isNaN(parsed) ? 0 : parsed
+  }
+  if (typeof value === 'object' && value !== null && 'progress' in value) {
+    return normalizeV1Progress(value.progress)
+  }
+  return 0
 }
 
 // === 匯出 ===
