@@ -340,6 +340,7 @@ Phase 4 必須記錄所有發現的技術債務，無論優先級高低。
 |------|---------|
 | [多視角審查發現總結](../cases/multi-perspective-review-findings-v0170.md) | 根因分析方法、規格/測試/實作三面向歸因 |
 | [Phase 4 豁免判斷邊界](../cases/phase4-exemption-doc-task.md) | DOC 標籤不等於低風險，豁免條件應改為 AND 邏輯 |
+| [按優先級打包反模式](../cases/task-over-bundling-anti-pattern.md) | Phase 4 發現應一個問題一個 Ticket，不按 P0/P1/P2 合併 |
 
 > 新案例追加方式：每次 Phase 4 審查完成後，依流程改善回饋環追加。
 
