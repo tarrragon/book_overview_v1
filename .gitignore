@@ -63,3 +63,12 @@ __pycache__/
 
 # Claude sync state (local only)
 .claude/.sync-state.json
+
+# Claude handoff archives (session-local)
+.claude/handoff/archive/
+
+# Claude worktrees (agent-generated, session-local)
+.claude/worktrees/
+
+# E2E test screenshots (generated artifacts)
+tests/e2e/screenshots/
