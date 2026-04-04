@@ -18,9 +18,9 @@
  * - 配額不足 → 中止遷移
  */
 
-const { mapV1StatusToV2 } = require('../BookSchemaV2')
+const { mapV1StatusToV2, SCHEMA_VERSION } = require('../BookSchemaV2')
 
-const TARGET_SCHEMA_VERSION = '3.0.0'
+const TARGET_SCHEMA_VERSION = SCHEMA_VERSION
 const SEMVER_PATTERN = /^\d+\.\d+\.\d+$/
 
 /**
@@ -182,6 +182,81 @@ async function rollbackMigration (storage, logger) {
 }
 
 /**
+ * 備份原始書籍資料至 migration_backup
+ *
+ * @param {object} storage - Chrome Storage API
+ * @param {Array} books - 原始書籍陣列
+ * @param {object} logger
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+async function createBackup (storage, books, logger) {
+  try {
+    await storage.set({ migration_backup: { readmoo_books: books } })
+    return { success: true }
+  } catch (backupError) {
+    const isQuotaError = backupError.message &&
+      backupError.message.includes('QUOTA_BYTES')
+    logger.error(isQuotaError
+      ? `配額不足: ${backupError.message}`
+      : `備份失敗: ${backupError.message}`)
+    return { success: false, error: backupError.message }
+  }
+}
+
+/**
+ * 批量轉換書籍從 v1 → v2 格式
+ * 需求：單本書失敗不影響其他書籍，null/無 id 書籍跳過
+ *
+ * @param {Array} books - v1 格式書籍陣列
+ * @param {object} logger
+ * @returns {Array} 轉換後的 v2 書籍陣列
+ */
+function convertBooks (books, logger) {
+  const migratedBooks = []
+  for (const book of books) {
+    if (book === null || book === undefined) {
+      logger.warn('跳過 null/undefined 書籍')
+      continue
+    }
+    if (!book.id) {
+      logger.error(`書籍缺少 id，跳過: ${JSON.stringify(book)}`)
+      continue
+    }
+    if (isV2Book(book)) {
+      migratedBooks.push(book)
+      continue
+    }
+    try {
+      migratedBooks.push(migrateBook(book))
+    } catch (bookError) {
+      logger.error(`書籍 ${book.id} 遷移失敗: ${bookError.message}`)
+    }
+  }
+  return migratedBooks
+}
+
+/**
+ * 記錄遷移錯誤並嘗試回滾
+ *
+ * @param {Error} migrationError - 遷移過程中的錯誤
+ * @param {object} storage
+ * @param {object} logger
+ */
+async function handleMigrationError (migrationError, storage, logger) {
+  const isQuotaError = migrationError.message &&
+    migrationError.message.includes('QUOTA_BYTES')
+  logger.error(isQuotaError
+    ? `配額不足: ${migrationError.message}`
+    : `遷移失敗: ${migrationError.message}`)
+
+  try {
+    await rollbackMigration(storage, logger)
+  } catch (rollbackError) {
+    logger.error(`回滾失敗: ${rollbackError.message}`)
+  }
+}
+
+/**
  * 主遷移函式：v1 → v2
  *
  * 需求：完整遷移流程（備份 → 建立預設資料 → 轉換書籍 → 更新版本 → 清除備份）
@@ -193,14 +268,12 @@ async function rollbackMigration (storage, logger) {
 async function migrateV1ToV2 (storage, logger) {
   logger.info('開始 Schema Migration v1 → v2')
 
-  // 步驟 0: 檢查是否需要遷移
   const storageData = await storage.get(['schema_version', 'readmoo_books'])
   const schemaVersion = storageData.schema_version !== undefined
     ? storageData.schema_version
     : null
 
   const { shouldMigrate, reason } = checkMigrationNeeded(schemaVersion, logger)
-
   if (!shouldMigrate) {
     logger.info('遷移已完成，跳過')
     return { migrated: false, reason }
@@ -208,83 +281,24 @@ async function migrateV1ToV2 (storage, logger) {
 
   const books = storageData.readmoo_books || []
 
-  // 步驟 1: 備份原始資料
-  try {
-    await storage.set({
-      migration_backup: { readmoo_books: books }
-    })
-  } catch (backupError) {
-    const isQuotaError = backupError.message &&
-      backupError.message.includes('QUOTA_BYTES')
-    if (isQuotaError) {
-      logger.error(`配額不足: ${backupError.message}`)
-    } else {
-      logger.error(`備份失敗: ${backupError.message}`)
-    }
-    return { migrated: false, error: backupError.message }
+  const backupResult = await createBackup(storage, books, logger)
+  if (!backupResult.success) {
+    return { migrated: false, error: backupResult.error }
   }
 
-  // 步驟 2-4: 執行遷移（在 try-catch 中，失敗時從 backup 還原）
   try {
-    // 步驟 2: 建立 tag_categories 預設資料
     await storage.set({ tag_categories: DEFAULT_TAG_CATEGORIES })
-
-    // 步驟 3: 建立 tags 空陣列
     await storage.set({ tags: [] })
 
-    // 步驟 4: 轉換書籍
-    const migratedBooks = []
-    for (const book of books) {
-      if (book === null || book === undefined) {
-        logger.warn('跳過 null/undefined 書籍')
-        continue
-      }
-
-      if (!book.id) {
-        logger.error(`書籍缺少 id，跳過: ${JSON.stringify(book)}`)
-        continue
-      }
-
-      // 已是 v2 格式的書籍保持不變
-      if (isV2Book(book)) {
-        migratedBooks.push(book)
-        continue
-      }
-
-      try {
-        migratedBooks.push(migrateBook(book))
-      } catch (bookError) {
-        logger.error(`書籍 ${book.id} 遷移失敗: ${bookError.message}`)
-        // 單本書失敗不影響其他
-      }
-    }
-
+    const migratedBooks = convertBooks(books, logger)
     await storage.set({ readmoo_books: migratedBooks })
-
-    // 步驟 5: 寫入 schema_version
     await storage.set({ schema_version: TARGET_SCHEMA_VERSION })
-
-    // 步驟 6: 刪除備份
     await storage.remove(['migration_backup'])
 
     logger.info(`遷移完成：${migratedBooks.length} 本書已轉換`)
     return { migrated: true }
   } catch (migrationError) {
-    // 遷移失敗 — 嘗試從 backup 還原
-    const isQuotaError = migrationError.message &&
-      migrationError.message.includes('QUOTA_BYTES')
-    if (isQuotaError) {
-      logger.error(`配額不足: ${migrationError.message}`)
-    } else {
-      logger.error(`遷移失敗: ${migrationError.message}`)
-    }
-
-    try {
-      await rollbackMigration(storage, logger)
-    } catch (rollbackError) {
-      logger.error(`回滾失敗: ${rollbackError.message}`)
-    }
-
+    await handleMigrationError(migrationError, storage, logger)
     return { migrated: false, error: migrationError.message }
   }
 }

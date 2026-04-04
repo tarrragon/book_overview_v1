@@ -8,12 +8,14 @@
  * - readmoo_books: 書籍陣列（v2 欄位含 tagIds）
  * - tag_categories: 類別陣列
  * - tags: 標籤陣列
- * - schema_version: "3.0.0"
+ * - schema_version: BookSchemaV2.SCHEMA_VERSION
  *
  * 規格來源：docs/spec/data-management/data-management.md
  *
  * @version 1.0.0
  */
+
+const { SCHEMA_VERSION: BOOK_SCHEMA_VERSION } = require('../../data-management/BookSchemaV2')
 
 const STORAGE_KEYS = {
   READMOO_BOOKS: 'readmoo_books',
@@ -158,6 +160,41 @@ const operationLock = {
   }
 }
 
+// --- 原子回滾輔助 ---
+
+/**
+ * 以原子回滾模式執行操作：先建立快照，失敗時自動還原
+ * 需求：deleteTagCategory 和 deleteTag 的 cascade 刪除需要一致性保證
+ *
+ * @param {Object} snapshotKeys - 需要快照的 storage key 及其當前值
+ *   格式: { tags: [...], books: [...], categories?: [...] }
+ * @param {Function} operation - async 操作函式
+ * @param {string} operationName - 操作名稱（用於錯誤日誌）
+ * @returns {Promise<Object>} operation 的回傳值，或回滾結果
+ */
+async function withAtomicRollback (snapshotKeys, operation, operationName) {
+  const snapshot = {}
+  for (const [key, value] of Object.entries(snapshotKeys)) {
+    snapshot[key] = JSON.parse(JSON.stringify(value))
+  }
+
+  try {
+    return await operation()
+  } catch (err) {
+    console.error(`[tag-storage-adapter] ${operationName} failed, rolling back:`, err.message)
+    if (snapshot.categories) {
+      await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: snapshot.categories })
+    }
+    if (snapshot.tags) {
+      await saveToStorage({ [STORAGE_KEYS.TAGS]: snapshot.tags })
+    }
+    if (snapshot.books) {
+      await saveBooksWrapper(snapshot.books)
+    }
+    return { success: false, error: 'rollback', cause: err.message }
+  }
+}
+
 // ==========================================
 // Tag Categories CRUD
 // ==========================================
@@ -273,49 +310,40 @@ async function deleteTagCategory (categoryId) {
       return { success: false, error: 'cannot_delete_system' }
     }
 
-    // 記錄回滾快照
-    const originalCategories = JSON.parse(JSON.stringify(categories))
-    const originalTags = JSON.parse(JSON.stringify(await loadTags()))
-    const originalBooks = JSON.parse(JSON.stringify(await loadBooks()))
+    const currentTags = await loadTags()
+    const currentBooks = await loadBooks()
 
-    try {
-      // Step 1: 找出 category 下所有 tags
-      const tags = await loadTags()
-      const tagIdsToRemove = tags
-        .filter(t => t.categoryId === categoryId)
-        .map(t => t.id)
+    return withAtomicRollback(
+      { categories, tags: currentTags, books: currentBooks },
+      async () => {
+        // Step 1: 找出 category 下所有 tags
+        const tagIdsToRemove = currentTags
+          .filter(t => t.categoryId === categoryId)
+          .map(t => t.id)
 
-      // Step 2: 從書籍移除被刪 tag 引用
-      const books = await loadBooks()
-      if (tagIdsToRemove.length > 0) {
-        const removeSet = new Set(tagIdsToRemove)
-        for (const book of books) {
-          if (book.tagIds && book.tagIds.length > 0) {
-            book.tagIds = book.tagIds.filter(tid => !removeSet.has(tid))
+        // Step 2: 從書籍移除被刪 tag 引用
+        if (tagIdsToRemove.length > 0) {
+          const removeSet = new Set(tagIdsToRemove)
+          for (const book of currentBooks) {
+            if (book.tagIds && book.tagIds.length > 0) {
+              book.tagIds = book.tagIds.filter(tid => !removeSet.has(tid))
+            }
           }
+          await saveBooksWrapper(currentBooks)
         }
-        await saveBooksWrapper(books)
-      }
 
-      // Step 3: 刪除 tags
-      const remainingTags = tags.filter(t => t.categoryId !== categoryId)
-      await saveToStorage({ [STORAGE_KEYS.TAGS]: remainingTags })
+        // Step 3: 刪除 tags
+        const remainingTags = currentTags.filter(t => t.categoryId !== categoryId)
+        await saveToStorage({ [STORAGE_KEYS.TAGS]: remainingTags })
 
-      // Step 4: 刪除 category
-      categories.splice(catIndex, 1)
-      await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: categories })
+        // Step 4: 刪除 category
+        categories.splice(catIndex, 1)
+        await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: categories })
 
-      return { success: true }
-    } catch (err) {
-      // 回滾
-      console.error('[tag-storage-adapter] deleteTagCategory failed, rolling back:', err.message)
-      await saveToStorage({
-        [STORAGE_KEYS.TAG_CATEGORIES]: originalCategories,
-        [STORAGE_KEYS.TAGS]: originalTags
-      })
-      await saveBooksWrapper(originalBooks)
-      return { success: false, error: 'rollback', cause: err.message }
-    }
+        return { success: true }
+      },
+      'deleteTagCategory'
+    )
   })
 }
 
@@ -462,32 +490,27 @@ async function deleteTag (tagId) {
       return { success: false, error: 'cannot_delete_system' }
     }
 
-    // 回滾快照
-    const originalTags = JSON.parse(JSON.stringify(tags))
-    const originalBooks = JSON.parse(JSON.stringify(await loadBooks()))
+    const currentBooks = await loadBooks()
 
-    try {
-      // Step 1: 從所有書籍移除引用
-      const books = await loadBooks()
-      for (const book of books) {
-        if (book.tagIds && book.tagIds.includes(tagId)) {
-          book.tagIds = book.tagIds.filter(tid => tid !== tagId)
+    return withAtomicRollback(
+      { tags, books: currentBooks },
+      async () => {
+        // Step 1: 從所有書籍移除引用
+        for (const book of currentBooks) {
+          if (book.tagIds && book.tagIds.includes(tagId)) {
+            book.tagIds = book.tagIds.filter(tid => tid !== tagId)
+          }
         }
-      }
-      await saveBooksWrapper(books)
+        await saveBooksWrapper(currentBooks)
 
-      // Step 2: 刪除 tag
-      tags.splice(tagIndex, 1)
-      await saveToStorage({ [STORAGE_KEYS.TAGS]: tags })
+        // Step 2: 刪除 tag
+        tags.splice(tagIndex, 1)
+        await saveToStorage({ [STORAGE_KEYS.TAGS]: tags })
 
-      return { success: true }
-    } catch (err) {
-      // 回滾
-      console.error('[tag-storage-adapter] deleteTag failed, rolling back:', err.message)
-      await saveToStorage({ [STORAGE_KEYS.TAGS]: originalTags })
-      await saveBooksWrapper(originalBooks)
-      return { success: false, error: 'rollback', cause: err.message }
-    }
+        return { success: true }
+      },
+      'deleteTag'
+    )
   })
 }
 
@@ -680,7 +703,7 @@ async function checkReferentialIntegrity () {
  * @returns {Promise<void>}
  */
 async function initializeSchema () {
-  await saveToStorage({ [STORAGE_KEYS.SCHEMA_VERSION]: '3.0.0' })
+  await saveToStorage({ [STORAGE_KEYS.SCHEMA_VERSION]: BOOK_SCHEMA_VERSION })
 }
 
 // ==========================================
