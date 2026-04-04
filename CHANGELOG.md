@@ -2,6 +2,33 @@
 
 本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.17.0] - 2026-04-04
+
+### Tag-based Book Model 重構 + Phase 4 品質修復
+
+**核心功能（PROP-007 Tag-based Book Model）**：
+- [重構] Book Schema v2 — readingStatus 列舉（6 種）、tagIds、isManualStatus、updatedAt
+- [重寫] Chrome Storage adapter — tag-based 結構（category/tag CRUD + 批量操作）
+- [實作] 資料遷移 v1→v2（SchemaMigrationService 擴充 + 回滾機制）
+- [更新] Duplicate handling 邏輯對齊 Schema v2
+
+**Phase 4 品質修復（多視角審查 Acceptable/A）**：
+- [修復] P0: book.author→book.authors 欄位不一致 + BookSchemaV2 dead import 移除
+- [修復] P1: 提取 SchemaValidator 共用驗證引擎、統一狀態轉換函式、tag-storage-adapter 可觀測性、ID 碰撞防護
+- [重構] P2: migrateV1ToV2 拆分至 30 行以下、withAtomicRollback 泛用迴圈、版本號 single source of truth
+- [修復] normalizeProgress DRY 統一 + SchemaValidator checkType 委派 validation-utils
+
+**規格與測試**：
+- [新增] UC-07 錯誤場景 E/F/G + tag-based model 邊界條件測試
+- [補充] TDD Phase 1/2/3/4 規範（跨模組策略、中間步驟測試、共用元件先行、流程改善回饋環）
+
+**工具鏈改善**：
+- [新增] worktree auto-commit hook（代理人完成前自動 commit）
+- [新增] worktree 基底距離驗證 hook
+- [修復] Agent worktree Shell 目錄污染緩解
+
+統計：47 個 Ticket（W1~W5）、多視角審查 1 次、4575 tests passed
+
 ## [v0.16.3] - 2026-04-01
 
 ### Legacy Code 接手流程 + 文件系統整理 + Ticket 系統修復
