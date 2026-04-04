@@ -160,6 +160,16 @@ const operationLock = {
   }
 }
 
+/**
+ * snapshot key 名稱到 STORAGE_KEYS 的對映
+ * 用於 withAtomicRollback 泛用回滾迴圈
+ * 注意：'books' 使用 saveBooksWrapper 特殊處理（需保持原始結構格式）
+ */
+const SNAPSHOT_KEY_TO_STORAGE_KEY = {
+  categories: STORAGE_KEYS.TAG_CATEGORIES,
+  tags: STORAGE_KEYS.TAGS
+}
+
 // --- 原子回滾輔助 ---
 
 /**
@@ -182,14 +192,15 @@ async function withAtomicRollback (snapshotKeys, operation, operationName) {
     return await operation()
   } catch (err) {
     console.error(`[tag-storage-adapter] ${operationName} failed, rolling back:`, err.message)
-    if (snapshot.categories) {
-      await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: snapshot.categories })
-    }
-    if (snapshot.tags) {
-      await saveToStorage({ [STORAGE_KEYS.TAGS]: snapshot.tags })
-    }
-    if (snapshot.books) {
-      await saveBooksWrapper(snapshot.books)
+    for (const [key, value] of Object.entries(snapshot)) {
+      if (key === 'books') {
+        await saveBooksWrapper(value)
+      } else {
+        const storageKey = SNAPSHOT_KEY_TO_STORAGE_KEY[key]
+        if (storageKey) {
+          await saveToStorage({ [storageKey]: value })
+        }
+      }
     }
     return { success: false, error: 'rollback', cause: err.message }
   }

@@ -18,7 +18,7 @@
  * - 配額不足 → 中止遷移
  */
 
-const { mapV1StatusToV2, SCHEMA_VERSION } = require('../BookSchemaV2')
+const { mapV1StatusToV2, normalizeV1Progress, SCHEMA_VERSION } = require('../BookSchemaV2')
 
 const TARGET_SCHEMA_VERSION = SCHEMA_VERSION
 const SEMVER_PATTERN = /^\d+\.\d+\.\d+$/
@@ -35,36 +35,16 @@ const DEFAULT_TAG_CATEGORIES = [
 /**
  * 正規化 progress 值為 0~100 的數字
  *
+ * 委派至 BookSchemaV2.normalizeV1Progress 進行核心正規化（拆包、NaN 處理），
+ * 再以 clampProgress 限制在 0~100 範圍內。
+ *
  * 需求：支援多種輸入格式，統一為 number 0~100
- * - number 0~100 → 保留
- * - object {progress: N} → 提取 N
- * - string → parseInt
- * - null/undefined → 0
- * - 負數 → 0
- * - 超過 100 → 100
  *
  * @param {*} value - 任意格式的 progress 值
  * @returns {number} 正規化後的 progress（0~100）
  */
 function normalizeProgress (value) {
-  if (value === null || value === undefined) {
-    return 0
-  }
-
-  if (typeof value === 'object' && value !== null && 'progress' in value) {
-    return normalizeProgress(value.progress)
-  }
-
-  if (typeof value === 'string') {
-    const parsed = parseInt(value, 10)
-    return isNaN(parsed) ? 0 : clampProgress(parsed)
-  }
-
-  if (typeof value === 'number') {
-    return isNaN(value) ? 0 : clampProgress(value)
-  }
-
-  return 0
+  return clampProgress(normalizeV1Progress(value))
 }
 
 /**

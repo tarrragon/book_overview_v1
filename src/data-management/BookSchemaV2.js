@@ -251,7 +251,8 @@ const BookSchemaV2 = {
   applyDefaults,
   computeAutoStatusTransition,
   computeManualStatusChange,
-  mapV1StatusToV2
+  mapV1StatusToV2,
+  normalizeV1Progress
 }
 
 module.exports = BookSchemaV2
