@@ -7,7 +7,11 @@
 
 ## 案例：W4-002 — 4 個 P1 問題合成 1 個 Ticket
 
-**問題編號**：任務粒度反模式 - Priority Bundling
+**問題編號**：GRAN-001（任務粒度反模式 - Priority Bundling）
+
+**根因分類**：流程缺失（Phase 4 建立修復 Ticket 時無粒度檢查）
+
+**發現位置**：0.17.0-W4-002 Ticket frontmatter（acceptance 4 項、where.files 4 個）
 
 **原始 Ticket**：
 

@@ -270,6 +270,14 @@ Phase 4 檢討完成後的標準動作：
 - 禁止修改 SKILL.md（SKILL.md 只做路由，不放規則內容）
 - 改善內容必須包含：新增的 decision question 或執行清單項 + 至少一個正面/反面範例
 
+### 修復 Ticket 粒度規則
+
+Phase 4 產出的修復 Ticket 必須遵循粒度規則（[task-granularity-rules.md](../task-granularity-rules.md)）：
+
+- **一個發現 = 一個 Ticket**，不按 P0/P1/P2 合併多個不相關問題
+- 每個修復 Ticket 的驗收關注點 <= 2 個
+- 範例：[按優先級打包反模式](../cases/task-over-bundling-anti-pattern.md)（GRAN-001）
+
 ### 回測驗證方法
 
 改善完成後，用以下方式驗證：
