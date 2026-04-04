@@ -9,7 +9,7 @@
 
 **根因分類**：規格盲點（Phase 1 未將 Use Case 分解為行為單元）
 
-**發現位置**：0.17.0-W3-002 / 0.17.0-W2-001 Ticket frontmatter
+**問題場景**：Chrome Storage adapter 需從舊格式重寫為 tag-based 結構。Phase 1 只產出一個大 Use Case「tag-based 儲存」，未分解為行為單元。導致 Phase 2 測試（29 min、4 項驗收混合欄位/狀態/CRUD/邊界）和 Phase 3 實作（15 min、3 個檔案含結構定義/CRUD/配額）都過大。
 
 ---
 
