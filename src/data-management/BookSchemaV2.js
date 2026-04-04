@@ -9,8 +9,6 @@
  *       新增 tagIds、isManualStatus、updatedAt 欄位。
  */
 
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
-
 // === ReadingStatus 列舉 ===
 
 const READING_STATUS = Object.freeze({

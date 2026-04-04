@@ -1403,11 +1403,11 @@ class OverviewPageController extends EventHandlerClass {
    * 建立 title+author 組合鍵，用於跨平台去重
    *
    * @param {Object} book - 書籍物件
-   * @returns {string|null} 組合鍵，缺少 title 或 author 時回傳 null
+   * @returns {string|null} 組合鍵，缺少 title 或 authors 時回傳 null
    */
   _buildTitleAuthorKey (book) {
-    if (!book.title || !book.author) return null
-    return `${book.title}::${book.author}`
+    if (!book.title || !book.authors || !book.authors.length) return null
+    return `${book.title}::${book.authors.join('|')}`
   }
 
   /**
