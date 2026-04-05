@@ -392,7 +392,16 @@ describe('PopupExtractionService 核心功能', () => {
 
       // Then: 狀態管理器正確更新
       expect(mockStatusManager.updateStatus).toHaveBeenCalledWith(statusUpdate)
-      expect(extractionService.lastStatusUpdate).toEqual(statusUpdate)
+      // coordinateStatusUpdate 內部用 { ...statusUpdate, timestamp: Date.now() } 重建物件，
+      // timestamp 會與測試建立時有微小差異（1-2ms），因此分開驗證穩定欄位和 timestamp 型別
+      expect(extractionService.lastStatusUpdate).toEqual(
+        expect.objectContaining({
+          type: statusUpdate.type,
+          text: statusUpdate.text,
+          info: statusUpdate.info
+        })
+      )
+      expect(extractionService.lastStatusUpdate.timestamp).toEqual(expect.any(Number))
     })
 
     test('應該同步處理進度和狀態的一致性', () => {
