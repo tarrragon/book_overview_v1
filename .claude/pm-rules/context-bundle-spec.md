@@ -169,6 +169,24 @@ Context Bundle 已在 Ticket 中準備好。
 
 ---
 
+## 產出契約（補充 contracts.yaml）
+
+> contracts.yaml 位於 `.claude/tdd/` 無法由主線程直接修改。Context Bundle 的契約定義放在此處。
+
+每個 Phase output 除了原有的 artifact（feature-spec、test-design 等）外，額外要求：
+
+| Phase | Context Bundle artifact | 必填 | 填寫者 |
+|-------|------------------------|------|--------|
+| Phase 1 → 2 | Context Bundle (→ Phase 2) | 是 | PM |
+| Phase 2 → 3a | Context Bundle (→ Phase 3a) | 是 | PM |
+| Phase 3a → 3b | Context Bundle (→ Phase 3b) | 是 | PM |
+| Phase 3b → 4a | Context Bundle (→ Phase 4a) | 是 | PM |
+| 任何 → 多視角審查 | Context Bundle (→ 多視角審查) | 是 | PM |
+
+**驗證規則**：Phase 轉換時，若 Ticket 無 Context Bundle 區段，decision-tree 的「派發前 Context Bundle 檢查」會阻塞派發。
+
+---
+
 ## 與現有規則的關係
 
 | 規則 | 關係 |
