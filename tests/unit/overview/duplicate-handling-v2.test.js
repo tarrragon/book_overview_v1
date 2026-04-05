@@ -421,18 +421,18 @@ describe('Book Schema v2 Duplicate Handling - _handleDuplicateBooks', () => {
   // =================================================================
 
   describe('跨平台去重：title + authors 組合識別', () => {
-    test('merge 策略：不同 ID 但 title+author 相同應視為重複', () => {
+    test('merge 策略：不同 ID 但 title+authors 相同應視為重複', () => {
       const existing = [{
         id: 'readmoo-001',
         title: '相同書名',
-        author: '相同作者',
+        authors: ['相同作者'],
         progress: 30,
         updatedAt: '2026-03-01T00:00:00.000Z'
       }]
       const imported = [{
         id: 'kindle-001',
         title: '相同書名',
-        author: '相同作者',
+        authors: ['相同作者'],
         progress: 80,
         updatedAt: '2026-03-20T00:00:00.000Z'
       }]
@@ -445,17 +445,17 @@ describe('Book Schema v2 Duplicate Handling - _handleDuplicateBooks', () => {
       expect(result[0].progress).toBe(80)
     })
 
-    test('merge 策略：title 相同但 author 不同不應視為重複', () => {
+    test('merge 策略：title 相同但 authors 不同不應視為重複', () => {
       const existing = [{
         id: 'readmoo-002',
         title: '相同書名',
-        author: '作者A',
+        authors: ['作者A'],
         updatedAt: '2026-03-01T00:00:00.000Z'
       }]
       const imported = [{
         id: 'kindle-002',
         title: '相同書名',
-        author: '作者B',
+        authors: ['作者B'],
         updatedAt: '2026-03-20T00:00:00.000Z'
       }]
 
@@ -469,14 +469,14 @@ describe('Book Schema v2 Duplicate Handling - _handleDuplicateBooks', () => {
       const existing = [{
         id: 'readmoo-003',
         title: '跨平台書籍',
-        author: '作者C',
+        authors: ['作者C'],
         progress: 50,
         updatedAt: '2026-03-01T00:00:00.000Z'
       }]
       const imported = [{
         id: 'kindle-003',
         title: '跨平台書籍',
-        author: '作者C',
+        authors: ['作者C'],
         progress: 90,
         updatedAt: '2026-03-20T00:00:00.000Z'
       }]
@@ -492,14 +492,14 @@ describe('Book Schema v2 Duplicate Handling - _handleDuplicateBooks', () => {
       const existing = [{
         id: 'readmoo-004',
         title: '跨平台書籍',
-        author: '作者D',
+        authors: ['作者D'],
         progress: 50,
         updatedAt: '2026-03-01T00:00:00.000Z'
       }]
       const imported = [{
         id: 'kindle-004',
         title: '跨平台書籍',
-        author: '作者D',
+        authors: ['作者D'],
         progress: 90,
         updatedAt: '2026-03-20T00:00:00.000Z'
       }]
