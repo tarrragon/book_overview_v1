@@ -39,7 +39,7 @@ class FilterEngine {
    * @param {Object} options.config - 自定義配置
    */
   constructor (options = {}) {
-    const { eventBus, logger, config = {} } = options
+    const { eventBus, logger, config = {}, tagResolver, categoryResolver } = options
 
     if (!eventBus || !logger) {
       const error = new Error('EventBus 和 Logger 是必需的')
@@ -66,6 +66,9 @@ class FilterEngine {
       ...config
     }
 
+    this._tagResolver = tagResolver || null
+    this._categoryResolver = categoryResolver || null
+
     // 初始化內部狀態
     this._initializeStatistics()
     this._initializeCache()
@@ -86,7 +89,9 @@ class FilterEngine {
         category: 0,
         progressRange: 0,
         lastReadAfter: 0,
-        lastReadBefore: 0
+        lastReadBefore: 0,
+        tagIds: 0,
+        tagCategoryIds: 0
       }
     }
   }
@@ -217,7 +222,10 @@ class FilterEngine {
       { condition: filters.category, method: this._applyCategoryFilter.bind(this), args: [filters.category] },
       { condition: filters.progressRange, method: this._applyProgressRangeFilter.bind(this), args: [filters.progressRange] },
       { condition: filters.lastReadAfter, method: this._applyDateFilter.bind(this), args: [filters.lastReadAfter, 'after'] },
-      { condition: filters.lastReadBefore, method: this._applyDateFilter.bind(this), args: [filters.lastReadBefore, 'before'] }
+      { condition: filters.lastReadBefore, method: this._applyDateFilter.bind(this), args: [filters.lastReadBefore, 'before'] },
+      // tag 篩選
+      { condition: filters.tagIds && filters.tagIds.length > 0, method: this._applyTagFilter.bind(this), args: [filters.tagIds, filters.tagOperator || 'OR'] },
+      { condition: filters.tagCategoryIds && filters.tagCategoryIds.length > 0 && this._categoryResolver, method: this._applyTagCategoryFilter.bind(this), args: [filters.tagCategoryIds, this._categoryResolver] }
     ]
 
     // 應用篩選步驟
@@ -338,11 +346,75 @@ class FilterEngine {
   }
 
   /**
+   * 依 tagIds 篩選書籍
+   * @param {Array} books - 書籍陣列
+   * @param {string[]} tagIds - 要篩選的 tag ID 陣列
+   * @param {string} operator - 'AND' | 'OR'（預設 'OR'）
+   * @returns {Array} 篩選後的書籍
+   * @private
+   */
+  _applyTagFilter (books, tagIds, operator = 'OR') {
+    if (!Array.isArray(tagIds) || tagIds.length === 0) {
+      return books
+    }
+
+    return books.filter(book => {
+      if (!book.tagIds || !Array.isArray(book.tagIds)) {
+        return false
+      }
+
+      if (operator === 'AND') {
+        return tagIds.every(tagId => book.tagIds.includes(tagId))
+      }
+      // OR（預設）
+      return tagIds.some(tagId => book.tagIds.includes(tagId))
+    })
+  }
+
+  /**
+   * 依 tagCategoryId 篩選書籍
+   * 將 categoryId 展開為該分類下所有 tagIds，再套用 OR 邏輯
+   * @param {Array} books - 書籍陣列
+   * @param {string[]} tagCategoryIds - TagCategory ID 陣列
+   * @param {Function} categoryResolver - categoryId => tagId[] 解析函式
+   * @returns {Array} 篩選後的書籍
+   * @private
+   */
+  _applyTagCategoryFilter (books, tagCategoryIds, categoryResolver) {
+    if (!Array.isArray(tagCategoryIds) || tagCategoryIds.length === 0 || typeof categoryResolver !== 'function') {
+      return books
+    }
+
+    // 將所有 categoryIds 展開為 tagIds 聯集
+    const expandedTagIds = new Set()
+    for (const catId of tagCategoryIds) {
+      const tagIds = categoryResolver(catId)
+      if (Array.isArray(tagIds)) {
+        for (const tagId of tagIds) {
+          expandedTagIds.add(tagId)
+        }
+      }
+    }
+
+    if (expandedTagIds.size === 0) {
+      return books
+    }
+
+    // 用展開的 tagIds 做 OR 篩選
+    return books.filter(book => {
+      if (!book.tagIds || !Array.isArray(book.tagIds)) {
+        return false
+      }
+      return book.tagIds.some(tagId => expandedTagIds.has(tagId))
+    })
+  }
+
+  /**
    * 處理未知的篩選條件
    * @private
    */
   _handleUnknownFilters (filters) {
-    const knownFilters = ['status', 'category', 'progressRange', 'lastReadAfter', 'lastReadBefore']
+    const knownFilters = ['status', 'category', 'progressRange', 'lastReadAfter', 'lastReadBefore', 'tagIds', 'tagOperator', 'tagCategoryIds']
 
     for (const key in filters) {
       if (!knownFilters.includes(key)) {
