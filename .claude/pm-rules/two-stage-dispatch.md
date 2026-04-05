@@ -6,15 +6,10 @@
 
 ## 平台限制背景
 
-Subagent（透過 Agent 工具派發的代理人）受以下平台限制：
+> 完整的限制數據和來源：`.claude/references/claude-code-platform-limits.md`
+> 平台限制可能隨 Claude Code 版本更新而變化，數據以參考文件為準。
 
-| 限制 | 數值 | 來源 |
-|------|------|------|
-| Per-turn tool calls | ~20 次 | GitHub #33969（2026-03 起從 60-80+ 降至 ~20） |
-| Output token 上限 | 32K | GitHub #25569（硬編碼，CLAUDE_CODE_MAX_OUTPUT_TOKENS 不套用） |
-| Context overhead | ~20K tokens | 系統 prompt + 規則載入 |
-
-**核心約束**：subagent 約有 **20 次工具呼叫** 完成任務。每次 Read、Edit、Bash、Grep 各算一次。
+**核心約束**：subagent 約有 **~20 次工具呼叫/turn**、**32K output token**。每次 Read、Edit、Bash、Grep 各算一次。
 
 ---
 
