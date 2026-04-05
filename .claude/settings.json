@@ -160,6 +160,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/worktree-commit-before-dispatch-hook.py"
+          },
+          {
+            "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/worktree-base-distance-check-hook.py",
             "timeout": 15000
           }
