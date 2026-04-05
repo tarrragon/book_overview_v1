@@ -526,14 +526,24 @@ describe('Platform Detection Integration Tests', () => {
       const results = await Promise.all(promises)
 
       // 所有結果應該相同（來自快取）
-      // 使用 toMatchObject 排除 timestamp 欄位，因為並發請求的 timestamp 可能不同
+      // 遞迴剔除所有層級的 timestamp 欄位，因為並發請求的 timestamp 可能有毫秒級差異
+      const stripTimestamps = (obj) => {
+        if (obj === null || typeof obj !== 'object') return obj
+        if (Array.isArray(obj)) return obj.map(stripTimestamps)
+        const result = {}
+        for (const [key, value] of Object.entries(obj)) {
+          if (key === 'timestamp') continue
+          result[key] = stripTimestamps(value)
+        }
+        return result
+      }
+
       expect(results).toHaveLength(10)
-      const { timestamp: _firstTs, ...firstWithoutTimestamp } = results[0]
+      const firstStripped = stripTimestamps(results[0])
       results.forEach(result => {
-        const { timestamp: _currentTs, ...currentWithoutTimestamp } = result
-        expect(currentWithoutTimestamp).toEqual(firstWithoutTimestamp)
-        if (result.timestamp !== undefined && results[0].timestamp !== undefined) {
-          expect(typeof result.timestamp).toBe(typeof results[0].timestamp)
+        expect(stripTimestamps(result)).toEqual(firstStripped)
+        if (result.timestamp !== undefined) {
+          expect(typeof result.timestamp).toBe('number')
         }
         expect(result).toBeValidDetectionResult()
       })
