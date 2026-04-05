@@ -43,6 +43,9 @@ describe('事件系統跨模組整合測試', () => {
   })
 
   beforeEach(async () => {
+    // 重新同步 extensionController 參考，因為 simulateSystemRestart()
+    // 會建立新的 controller 實例，導致本地變數指向舊實例
+    extensionController = testSuite.extensionController
     await testSuite.clearAllStorageData()
     await eventAnalyzer.reset()
 
