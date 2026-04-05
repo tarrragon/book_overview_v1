@@ -33,7 +33,7 @@
 **測試指令**: {如適用}
 ```
 
-PM 知道代理人需要什麼 — 不需要每個 Phase 一個模板。欄位按需填寫，不強制全填。
+欄位按需填寫，不強制全填。各 Phase 有特定的額外欄位建議，詳見 `.claude/references/context-bundle-phase-guide.md`。
 
 ---
 
