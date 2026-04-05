@@ -2,6 +2,18 @@
 
 本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.17.1] - 2026-04-05
+
+### 測試修復與品質回穩
+
+- [修復] duplicate-handling-v2 測試資料 author→authors 對齊 v2 Schema（3 tests）
+- [實作] UC-07 data-integrity-recovery 8 個方法（Red Phase→Green Phase，22 tests）
+- [修復] popup-extraction-service timestamp 精度比對改用 objectContaining（1 test）
+- [修復] platform-detection-integration 並發 timestamp 遞迴剔除（1 test）
+- [修復] event-system-integration controller 參考同步（simulateSystemRestart 後舊參考問題，2 tests）
+
+統計：5 個 Ticket（W1-004~008）、測試 26 failed → 0 failed、4601 tests passed
+
 ## [v0.17.0] - 2026-04-04
 
 ### Tag-based Book Model 重構 + Phase 4 品質修復
