@@ -654,8 +654,10 @@ def generate_hook_output(logger) -> Dict[str, Any]:
                     "decision": "block",
                     "reason": (
                         f"[Handoff] 偵測到未完成的 handoff 任務：{ticket_id}\n"
-                        f"請告知用戶：先執行 /clear 清空 context，"
-                        f"然後再執行 /ticket resume {ticket_id} 恢復任務。\n"
+                        f"請執行以下步驟：\n"
+                        f"1. 檢查本 session 中是否有待辦工作尚未建立對應 Ticket（若有，先建立）\n"
+                        f"2. 確認所有變更已 commit\n"
+                        f"3. 通知用戶可以執行 /clear，然後 /ticket resume {ticket_id}\n"
                         f"請勿自動執行 resume，必須等待用戶手動操作。"
                     )
                 }
