@@ -15,21 +15,10 @@
 | 認知負擔指數 | > 10 |
 | Subagent tool call 預算 | > 15 次 |
 
-### Subagent Tool Call 預算評估（W2-019/W2-020 新增）
+### Subagent Tool Call 預算（W2-019/W2-020 新增）
 
-> **來源**：W2-005 四次 subagent 派發失敗。Web Search 確認根因為 Claude Code 平台限制：per-turn ~20 tool calls（GitHub #33969）、32K output token（GitHub #25569）。
-
-派發 subagent 前，估算任務的 tool call 消耗：
-
-| 估算 tool calls | 策略 |
-|----------------|------|
-| <= 15 | 單一 subagent 可完成 — 直接派發 |
-| 16-25 | 風險區 — 精簡 prompt 或考慮拆分 |
-| > 25 | **必須拆分** — 使用分工模式（見 two-stage-dispatch.md） |
-
-**關鍵指標**：如果任務需要「探索 5+ 檔案 + 寫入 + 測試 + commit」，幾乎肯定超出 20 次預算。
-
-**判斷方式**：PM 在派發前估算 Read/Grep/Edit/Bash 各需幾次。詳見 `.claude/pm-rules/two-stage-dispatch.md`。
+> Subagent 每 turn 約 ~20 tool calls。超過 15 次的任務必須拆分。
+> 預算評估方法和分工流程：`.claude/pm-rules/two-stage-dispatch.md`
 
 ---
 

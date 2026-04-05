@@ -24,36 +24,19 @@
 
 ## 解決方案
 
-### 方案 A（v1.0.0 原始方案，已修正）
+派發前評估 subagent 的 tool call 預算（~20 次/turn）。複雜任務使用分工模式。
 
-~~在 prompt 中直接提供完整程式碼~~ — 此方案在 W2-005 驗證中失敗：200+ 行程式碼佔用 prompt context，代理人仍在探索階段耗盡。
+詳見 `.claude/pm-rules/two-stage-dispatch.md`（平台限制數據、預算評估、分工流程）。
 
-### 方案 B（v2.0.0 推薦，Ticket 中心化）
+### 已棄用的方案
 
-**將完整程式碼寫入 Ticket 或設計文件**，而非 prompt。代理人從 Ticket 讀取程式碼後注入目標檔案。
-
-流程：
-1. 設計代理人（sage）產出設計文件 + 完整程式碼片段，寫入 Ticket Solution 區段或獨立設計文件
-2. 實作代理人收到精簡 prompt：「讀取 Ticket {path}，將 Solution 中的程式碼注入 {target_file} 的 {位置}」
-3. 實作代理人操作：Read Ticket → Read 目標檔案尾部 → Edit 注入 → 執行測試 → commit
-
-**好處**：
-- 程式碼持久化在 Ticket 中，代理人失敗不遺失
-- prompt 極短，代理人 context 充裕
-- 探索量極小（只需確認注入位置）
+~~v1.0.0「prompt 含完整程式碼」~~ — W2-005 驗證失敗：200+ 行程式碼佔用 prompt context，代理人仍耗盡。
 
 ## 防護措施
 
-1. **Tool call 預算評估**：派發前估算 subagent 需要的 tool calls（Read/Grep/Edit/Bash），超過 15 次必須拆分（詳見 task-splitting.md）
-
-2. **分工模式**：
-   - 任務 A：探索與設計 — 產出程式碼到 Ticket（不寫 src/tests）
-   - 任務 B：注入與驗證 — 從 Ticket 讀取程式碼並寫入（~5-6 tool calls）
-   - 詳見 two-stage-dispatch.md
-
-3. **代理人進度檢查點**：代理人完成每個步驟後，將中間結果寫入 Ticket（`ticket track append-log`），確保 context 耗盡時已完成的工作不遺失
-
-4. **prompt 精簡原則**：prompt 只包含任務指令和 Ticket 路徑，不包含完整程式碼。程式碼放在 Ticket/設計文件中供代理人 Read
+1. **派發前評估 tool call 預算**（詳見 `two-stage-dispatch.md`）
+2. **程式碼放 Ticket 而非 prompt**（減少 output token 佔用）
+3. **反覆失敗時改用主線程在 feature 分支直接操作**
 
 ## 相關 Ticket
 
