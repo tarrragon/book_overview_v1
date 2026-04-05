@@ -24,31 +24,42 @@
 
 ## 解決方案
 
-**在 prompt 中直接提供完整程式碼**（基於已有的功能規格），讓 agent 只需執行：
-1. Write（寫入檔案）
-2. Bash（跑測試）
-3. Edit（修復失敗）
+### 方案 A（v1.0.0 原始方案，已修正）
 
-避免讓 agent 自行設計和研究程式碼結構。
+~~在 prompt 中直接提供完整程式碼~~ — 此方案在 W2-005 驗證中失敗：200+ 行程式碼佔用 prompt context，代理人仍在探索階段耗盡。
+
+### 方案 B（v2.0.0 推薦，Ticket 中心化）
+
+**將完整程式碼寫入 Ticket 或設計文件**，而非 prompt。代理人從 Ticket 讀取程式碼後注入目標檔案。
+
+流程：
+1. 設計代理人（sage）產出設計文件 + 完整程式碼片段，寫入 Ticket Solution 區段或獨立設計文件
+2. 實作代理人收到精簡 prompt：「讀取 Ticket {path}，將 Solution 中的程式碼注入 {target_file} 的 {位置}」
+3. 實作代理人操作：Read Ticket → Read 目標檔案尾部 → Edit 注入 → 執行測試 → commit
+
+**好處**：
+- 程式碼持久化在 Ticket 中，代理人失敗不遺失
+- prompt 極短，代理人 context 充裕
+- 探索量極小（只需確認注入位置）
 
 ## 防護措施
 
-1. **Phase 3b prompt 必須包含完整程式碼或至少 80% 的骨架**
-   - PM 在派發前根據 Phase 1 規格撰寫程式碼
-   - 或使用前一階段（Phase 3a）的策略文件轉換為具體程式碼
+1. **寫入量閾值**：代理人單次任務寫入量超過 150 行時，必須拆分為「設計」和「注入」兩個子任務（詳見 task-splitting.md）
 
-2. **使用 general-purpose agent 而非 specialized agent**
-   - General-purpose agent 更直接執行指令，不會過度研究
-   - Specialized agent（如 thyme-extension-engineer）可能有額外的研究步驟
+2. **二階段派發**：
+   - Stage 1：設計代理人產出程式碼到 Ticket（不寫 src/tests）
+   - Stage 2：注入代理人從 Ticket 讀取程式碼並寫入目標檔案（詳見 two-stage-dispatch.md）
 
-3. **明確指令「不要研究，直接寫」**
-   - Prompt 開頭加入：「Do NOT read any other files first — just write these files and test」
-   - 列出明確的檔案清單和完整內容
+3. **代理人進度檢查點**：代理人完成每個步驟後，將中間結果寫入 Ticket（`ticket track append-log`），確保 context 耗盡時已完成的工作不遺失
+
+4. **prompt 精簡原則**：prompt 只包含任務指令和 Ticket 路徑，不包含完整程式碼。程式碼放在 Ticket/設計文件中供代理人 Read
 
 ## 相關 Ticket
 
 - 0.17.2-W2-002（首次發現，Phase 3b 派發 thyme-extension-engineer 3 次失敗）
 - 0.17.2-W2-003（同上）
+- 0.17.2-W2-005（二次驗證，4 次派發失敗，prompt 含完整程式碼方案失效）
+- 0.17.2-W2-019（系統性分析，提出 Ticket 中心化方案）
 
 ## 發現日期
 
@@ -56,5 +67,5 @@
 
 ---
 
-**Last Updated**: 2026-04-05
-**Version**: 1.0.0
+**Last Updated**: 2026-04-06
+**Version**: 2.0.0 - 從「prompt 含完整程式碼」修正為「Ticket 含完整程式碼」（0.17.2-W2-020）
