@@ -1,6 +1,6 @@
 # Todolist - 專案版本與任務追蹤
 # 格式規範：使用 versions 列表，ticket CLI 自動偵測 status=active 的版本
-last_updated: "2026-04-02"
+last_updated: "2026-04-05"
 
 versions:
   - version: "0.17.0"
@@ -11,37 +11,21 @@ versions:
     status: completed
     description: "修復 v0.17.0 遺留 26 個失敗測試（5 Ticket，0 failed / 4601 passed）"
 
-  - version: "0.18.0"
+  - version: "0.17.2"
     status: active
-    description: "Readmoo 實機提取驗證 + 匯出入端到端驗證"
+    description: "匯出/搜尋/Overview 適配 Tag-based Model（W1 規格完成，待 W2 實作）"
 
-  - version: "0.18.1"
-    status: active
-    description: "Extension 打包（ZIP）與安裝測試 + 跨裝置同步驗證"
+  - version: "0.18.0"
+    status: planned
+    description: "測試重寫與品質恢復（對齊新 model，失敗測試歸零）"
 
   - version: "0.19.0"
-    status: active
-    description: "內測 Bug 修復 + 安裝指南建立"
+    status: planned
+    description: "端到端驗證、打包與內測準備（實機測試 + 可分發打包 + 安裝指南）"
 
   - version: "0.20.0"
-    codename: "Tag-Model"
-    description: "Tag-based Book Model 重構 + 跨專案 Spec 對齊"
-    status: "planned"
-    worklog: "docs/work-logs/v0/v0.20/v0.20.0/"
-    notes: |
-      PROP-007 跨專案 Spec 對齊（與 Flutter App v0.32.0 對應）。
-      Book Model 從固定欄位改為 tag-based metadata。
-      重寫匯出為 Interchange Format v2。
-      閱讀狀態擴充為 6 種。內建中文圖書分類法。
-
-  - version: "0.21.0"
-    codename: "UI-Adapt"
-    description: "Overview Page 適配 tag-based model"
-    status: "planned"
-    worklog: "docs/work-logs/v0/v0.21/v0.21.0/"
-    notes: |
-      Overview Page 顯示 tag-based 書籍資訊。
-      Tag 管理介面。搜尋適配。
+    status: planned
+    description: "中文圖書分類法 + Tag 管理功能"
 
   - version: "0.16.3"
     status: completed
