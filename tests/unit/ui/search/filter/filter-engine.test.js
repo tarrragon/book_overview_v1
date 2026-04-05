@@ -14,6 +14,9 @@
  * 9. Statistics Monitoring - 統計監控
  * 10. Error Handling - 錯誤處理
  * 11. Memory Management - 記憶體管理
+ * 12. Tag Filtering - Tag 篩選（v0.17.2 PROP-007）
+ * 13. TagCategory Filtering - TagCategory 分類篩選（v0.17.2 PROP-007）
+ * 14. Tag + Existing Filter Combination - Tag 與現有篩選組合（v0.17.2 PROP-007）
  */
 
 // eslint-disable-next-line no-unused-vars
@@ -642,6 +645,377 @@ describe('FilterEngine', () => {
 
       filterEngine.clearCache()
       expect(filterEngine._getCacheSize()).toBe(0)
+    })
+  })
+
+  // ========== 12. Tag Filtering Tag 篩選 ==========
+  describe('Tag Filtering', () => {
+    // eslint-disable-next-line no-unused-vars
+    let tagBooks
+    // eslint-disable-next-line no-unused-vars
+    let mockTagResolver
+    // eslint-disable-next-line no-unused-vars
+    let mockCategoryResolver
+
+    beforeEach(() => {
+      tagBooks = [
+        { id: '1', title: 'JS Guide', status: 'reading', category: 'programming', tagIds: ['tag-js', 'tag-web'] },
+        { id: '2', title: 'Vue Design', status: 'completed', category: 'programming', tagIds: ['tag-js', 'tag-vue'] },
+        { id: '3', title: 'Sapiens', status: 'unread', category: 'history', tagIds: ['tag-history'] },
+        { id: '4', title: 'Clean Code', status: 'reading', category: 'programming', tagIds: [] },
+        { id: '5', title: 'Old Book', status: 'reading', category: 'misc' } // 無 tagIds 欄位
+      ]
+
+      mockTagResolver = jest.fn((tagId) => ({
+        'tag-js': { id: 'tag-js', name: 'JavaScript', categoryId: 'cat-prog' },
+        'tag-web': { id: 'tag-web', name: 'Web Development', categoryId: 'cat-prog' },
+        'tag-vue': { id: 'tag-vue', name: 'Vue.js', categoryId: 'cat-prog' },
+        'tag-history': { id: 'tag-history', name: 'History', categoryId: 'cat-humanities' }
+      }[tagId] || null))
+
+      mockCategoryResolver = jest.fn((catId) => ({
+        'cat-prog': ['tag-js', 'tag-vue', 'tag-web'],
+        'cat-humanities': ['tag-history']
+      }[catId] || []))
+    })
+
+    it('should create FilterEngine with optional tagResolver without error', () => {
+      filterEngine = new FilterEngine({
+        eventBus: mockEventBus,
+        logger: mockLogger,
+        tagResolver: mockTagResolver
+      })
+
+      expect(filterEngine).toBeInstanceOf(FilterEngine)
+    })
+
+    it('should create FilterEngine with optional categoryResolver without error', () => {
+      filterEngine = new FilterEngine({
+        eventBus: mockEventBus,
+        logger: mockLogger,
+        categoryResolver: mockCategoryResolver
+      })
+
+      expect(filterEngine).toBeInstanceOf(FilterEngine)
+    })
+
+    it('should filter books by tagIds with OR operator (default)', async () => {
+      filterEngine = new FilterEngine({
+        eventBus: mockEventBus,
+        logger: mockLogger,
+        tagResolver: mockTagResolver
+      })
+
+      // eslint-disable-next-line no-unused-vars
+      const result = await filterEngine.applyFilters(tagBooks, {
+        tagIds: ['tag-js']
+      })
+
+      // 書籍 1 和 2 含 tag-js
+      expect(result.filteredBooks).toHaveLength(2)
+      expect(result.filteredBooks.some(b => b.title === 'JS Guide')).toBe(true)
+      expect(result.filteredBooks.some(b => b.title === 'Vue Design')).toBe(true)
+    })
+
+    it('should filter books by tagIds with OR operator matching any tag', async () => {
+      filterEngine = new FilterEngine({
+        eventBus: mockEventBus,
+        logger: mockLogger,
+        tagResolver: mockTagResolver
+      })
+
+      // eslint-disable-next-line no-unused-vars
+      const result = await filterEngine.applyFilters(tagBooks, {
+        tagIds: ['tag-vue', 'tag-history'],
+        tagOperator: 'OR'
+      })
+
+      // 書籍 2 含 tag-vue，書籍 3 含 tag-history
+      expect(result.filteredBooks).toHaveLength(2)
+      expect(result.filteredBooks.some(b => b.title === 'Vue Design')).toBe(true)
+      expect(result.filteredBooks.some(b => b.title === 'Sapiens')).toBe(true)
+    })
+
+    it('should filter books by tagIds with AND operator requiring all tags', async () => {
+      filterEngine = new FilterEngine({
+        eventBus: mockEventBus,
+        logger: mockLogger,
+        tagResolver: mockTagResolver
+      })
+
+      // eslint-disable-next-line no-unused-vars
+      const result = await filterEngine.applyFilters(tagBooks, {
+        tagIds: ['tag-js', 'tag-web'],
+        tagOperator: 'AND'
+      })
+
+      // 只有書籍 1 同時含 tag-js 和 tag-web
+      expect(result.filteredBooks).toHaveLength(1)
+      expect(result.filteredBooks[0].title).toBe('JS Guide')
+    })
+
+    it('should return all books when tagIds is empty array', async () => {
+      filterEngine = new FilterEngine({
+        eventBus: mockEventBus,
+        logger: mockLogger,
+        tagResolver: mockTagResolver
+      })
+
+      // eslint-disable-next-line no-unused-vars
+      const result = await filterEngine.applyFilters(tagBooks, {
+        tagIds: []
+      })
+
+      // 空 tagIds 不篩選，回傳全部有效書籍
+      expect(result.filteredBooks.length).toBeGreaterThanOrEqual(4)
+    })
+
+    it('should filter out books without tagIds field when tag filter is active', async () => {
+      filterEngine = new FilterEngine({
+        eventBus: mockEventBus,
+        logger: mockLogger,
+        tagResolver: mockTagResolver
+      })
+
+      // eslint-disable-next-line no-unused-vars
+      const result = await filterEngine.applyFilters(tagBooks, {
+        tagIds: ['tag-js']
+      })
+
+      // 書籍 5 無 tagIds 欄位，應被過濾；書籍 4 有空 tagIds，也不匹配
+      expect(result.filteredBooks.every(b => Array.isArray(b.tagIds) && b.tagIds.length > 0)).toBe(true)
+    })
+
+    it('should ignore invalid tagIds without throwing error', async () => {
+      filterEngine = new FilterEngine({
+        eventBus: mockEventBus,
+        logger: mockLogger,
+        tagResolver: mockTagResolver
+      })
+
+      // eslint-disable-next-line no-unused-vars
+      const result = await filterEngine.applyFilters(tagBooks, {
+        tagIds: ['tag-nonexistent', 'tag-js']
+      })
+
+      // tag-nonexistent 被忽略，只有 tag-js 匹配書籍 1 和 2
+      expect(result.filteredBooks).toHaveLength(2)
+    })
+  })
+
+  // ========== 13. TagCategory Filtering Tag 分類篩選 ==========
+  describe('TagCategory Filtering', () => {
+    // eslint-disable-next-line no-unused-vars
+    let tagBooks
+    // eslint-disable-next-line no-unused-vars
+    let mockTagResolver
+    // eslint-disable-next-line no-unused-vars
+    let mockCategoryResolver
+
+    beforeEach(() => {
+      tagBooks = [
+        { id: '1', title: 'JS Guide', status: 'reading', category: 'programming', tagIds: ['tag-js', 'tag-web'] },
+        { id: '2', title: 'Vue Design', status: 'completed', category: 'programming', tagIds: ['tag-js', 'tag-vue'] },
+        { id: '3', title: 'Sapiens', status: 'unread', category: 'history', tagIds: ['tag-history'] },
+        { id: '4', title: 'Clean Code', status: 'reading', category: 'programming', tagIds: [] },
+        { id: '5', title: 'Old Book', status: 'reading', category: 'misc' }
+      ]
+
+      mockTagResolver = jest.fn((tagId) => ({
+        'tag-js': { id: 'tag-js', name: 'JavaScript', categoryId: 'cat-prog' },
+        'tag-web': { id: 'tag-web', name: 'Web Development', categoryId: 'cat-prog' },
+        'tag-vue': { id: 'tag-vue', name: 'Vue.js', categoryId: 'cat-prog' },
+        'tag-history': { id: 'tag-history', name: 'History', categoryId: 'cat-humanities' }
+      }[tagId] || null))
+
+      mockCategoryResolver = jest.fn((catId) => ({
+        'cat-prog': ['tag-js', 'tag-vue', 'tag-web'],
+        'cat-humanities': ['tag-history']
+      }[catId] || []))
+    })
+
+    it('should filter books by tagCategoryIds using categoryResolver', async () => {
+      filterEngine = new FilterEngine({
+        eventBus: mockEventBus,
+        logger: mockLogger,
+        tagResolver: mockTagResolver,
+        categoryResolver: mockCategoryResolver
+      })
+
+      // eslint-disable-next-line no-unused-vars
+      const result = await filterEngine.applyFilters(tagBooks, {
+        tagCategoryIds: ['cat-humanities']
+      })
+
+      // cat-humanities 展開為 [tag-history]，只有書籍 3 匹配
+      expect(result.filteredBooks).toHaveLength(1)
+      expect(result.filteredBooks[0].title).toBe('Sapiens')
+    })
+
+    it('should match books with any tag under the category', async () => {
+      filterEngine = new FilterEngine({
+        eventBus: mockEventBus,
+        logger: mockLogger,
+        tagResolver: mockTagResolver,
+        categoryResolver: mockCategoryResolver
+      })
+
+      // eslint-disable-next-line no-unused-vars
+      const result = await filterEngine.applyFilters(tagBooks, {
+        tagCategoryIds: ['cat-prog']
+      })
+
+      // cat-prog 展開為 [tag-js, tag-vue, tag-web]，書籍 1, 2 匹配
+      expect(result.filteredBooks).toHaveLength(2)
+      expect(result.filteredBooks.some(b => b.title === 'JS Guide')).toBe(true)
+      expect(result.filteredBooks.some(b => b.title === 'Vue Design')).toBe(true)
+    })
+
+    it('should silently skip tagCategoryIds filter when no categoryResolver provided', async () => {
+      filterEngine = new FilterEngine({
+        eventBus: mockEventBus,
+        logger: mockLogger
+        // 不提供 categoryResolver
+      })
+
+      // eslint-disable-next-line no-unused-vars
+      const result = await filterEngine.applyFilters(tagBooks, {
+        tagCategoryIds: ['cat-prog']
+      })
+
+      // 無 categoryResolver，tagCategoryIds 篩選靜默跳過，回傳全部有效書籍
+      expect(result.filteredBooks.length).toBeGreaterThanOrEqual(4)
+    })
+
+    it('should return all books when tagCategoryIds is empty array', async () => {
+      filterEngine = new FilterEngine({
+        eventBus: mockEventBus,
+        logger: mockLogger,
+        tagResolver: mockTagResolver,
+        categoryResolver: mockCategoryResolver
+      })
+
+      // eslint-disable-next-line no-unused-vars
+      const result = await filterEngine.applyFilters(tagBooks, {
+        tagCategoryIds: []
+      })
+
+      // 空 tagCategoryIds 不篩選
+      expect(result.filteredBooks.length).toBeGreaterThanOrEqual(4)
+    })
+  })
+
+  // ========== 14. Tag + Existing Filter Combination Tag 與現有篩選組合 ==========
+  describe('Tag + Existing Filter Combination', () => {
+    // eslint-disable-next-line no-unused-vars
+    let tagBooks
+    // eslint-disable-next-line no-unused-vars
+    let mockTagResolver
+    // eslint-disable-next-line no-unused-vars
+    let mockCategoryResolver
+
+    beforeEach(() => {
+      tagBooks = [
+        { id: '1', title: 'JS Guide', status: 'reading', category: 'programming', tagIds: ['tag-js', 'tag-web'] },
+        { id: '2', title: 'Vue Design', status: 'completed', category: 'programming', tagIds: ['tag-js', 'tag-vue'] },
+        { id: '3', title: 'Sapiens', status: 'unread', category: 'history', tagIds: ['tag-history'] },
+        { id: '4', title: 'Clean Code', status: 'reading', category: 'programming', tagIds: [] },
+        { id: '5', title: 'Old Book', status: 'reading', category: 'misc' }
+      ]
+
+      mockTagResolver = jest.fn((tagId) => ({
+        'tag-js': { id: 'tag-js', name: 'JavaScript', categoryId: 'cat-prog' },
+        'tag-web': { id: 'tag-web', name: 'Web Development', categoryId: 'cat-prog' },
+        'tag-vue': { id: 'tag-vue', name: 'Vue.js', categoryId: 'cat-prog' },
+        'tag-history': { id: 'tag-history', name: 'History', categoryId: 'cat-humanities' }
+      }[tagId] || null))
+
+      mockCategoryResolver = jest.fn((catId) => ({
+        'cat-prog': ['tag-js', 'tag-vue', 'tag-web'],
+        'cat-humanities': ['tag-history']
+      }[catId] || []))
+    })
+
+    it('should combine tagIds filter with status filter', async () => {
+      filterEngine = new FilterEngine({
+        eventBus: mockEventBus,
+        logger: mockLogger,
+        tagResolver: mockTagResolver,
+        categoryResolver: mockCategoryResolver
+      })
+
+      // eslint-disable-next-line no-unused-vars
+      const result = await filterEngine.applyFilters(tagBooks, {
+        tagIds: ['tag-js'],
+        status: 'reading'
+      })
+
+      // tag-js 匹配書籍 1, 2；status reading 匹配書籍 1, 4, 5
+      // 交集：只有書籍 1
+      expect(result.filteredBooks).toHaveLength(1)
+      expect(result.filteredBooks[0].title).toBe('JS Guide')
+    })
+
+    it('should combine tagIds filter with category filter', async () => {
+      filterEngine = new FilterEngine({
+        eventBus: mockEventBus,
+        logger: mockLogger,
+        tagResolver: mockTagResolver,
+        categoryResolver: mockCategoryResolver
+      })
+
+      // eslint-disable-next-line no-unused-vars
+      const result = await filterEngine.applyFilters(tagBooks, {
+        tagIds: ['tag-js'],
+        category: 'programming'
+      })
+
+      // tag-js 匹配書籍 1, 2；category programming 匹配書籍 1, 2, 4
+      // 交集：書籍 1, 2
+      expect(result.filteredBooks).toHaveLength(2)
+      expect(result.filteredBooks.some(b => b.title === 'JS Guide')).toBe(true)
+      expect(result.filteredBooks.some(b => b.title === 'Vue Design')).toBe(true)
+    })
+
+    it('should combine tagCategoryIds filter with status filter', async () => {
+      filterEngine = new FilterEngine({
+        eventBus: mockEventBus,
+        logger: mockLogger,
+        tagResolver: mockTagResolver,
+        categoryResolver: mockCategoryResolver
+      })
+
+      // eslint-disable-next-line no-unused-vars
+      const result = await filterEngine.applyFilters(tagBooks, {
+        tagCategoryIds: ['cat-prog'],
+        status: 'completed'
+      })
+
+      // cat-prog 展開為 [tag-js, tag-vue, tag-web]，匹配書籍 1, 2
+      // status completed 匹配書籍 2
+      // 交集：書籍 2
+      expect(result.filteredBooks).toHaveLength(1)
+      expect(result.filteredBooks[0].title).toBe('Vue Design')
+    })
+
+    it('should combine tagIds and tagCategoryIds simultaneously', async () => {
+      filterEngine = new FilterEngine({
+        eventBus: mockEventBus,
+        logger: mockLogger,
+        tagResolver: mockTagResolver,
+        categoryResolver: mockCategoryResolver
+      })
+
+      // eslint-disable-next-line no-unused-vars
+      const result = await filterEngine.applyFilters(tagBooks, {
+        tagIds: ['tag-js'],
+        tagCategoryIds: ['cat-humanities']
+      })
+
+      // tagIds tag-js 匹配書籍 1, 2
+      // tagCategoryIds cat-humanities 展開為 [tag-history]，匹配書籍 3
+      // 兩個篩選依序應用（AND 邏輯）：先 tagIds 篩出 1,2，再 tagCategoryIds 篩出含 tag-history 的 → 空
+      expect(result.filteredBooks).toHaveLength(0)
     })
   })
 })
