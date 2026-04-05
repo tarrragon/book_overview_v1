@@ -8,8 +8,8 @@ versions:
     description: "Tag-based Book Model 重構（PROP-007）— 47 Ticket 完成"
 
   - version: "0.17.1"
-    status: active
-    description: "修復 v0.17.0 遺留 26 個失敗測試 + 技術債清理"
+    status: completed
+    description: "修復 v0.17.0 遺留 26 個失敗測試（5 Ticket，0 failed / 4601 passed）"
 
   - version: "0.18.0"
     status: active
