@@ -24,8 +24,8 @@ PM 從 handoff 恢復任務後，直接進入派發流程，未檢查 Ticket 的
 
 ## 防護措施
 
-1. **Resume 後強制 5W1H 檢查**：PM resume 後、claim 前，必須 `ticket track 5W1H <id>` 確認所有欄位非「待定義」
-2. **Ticket 建立時最小填寫要求**：why 欄位為必填，建立時不可為「待定義」
+1. **Ticket 建立時強制 why 必填**（根源修復）：`ticket create` 流程必須要求 why 欄位非「待定義」，建立時即填寫完整而非留到 resume 時補救
+2. **批量建立時同樣強制**：批量建立 Ticket 的場景（如 Wave 規劃）不可省略 why
 3. **Agent 派發 prompt 必須包含 Ticket ID**：格式 `Ticket: {id}`，由 agent-ticket-validation-hook 強制
 
 ## 相關 Ticket

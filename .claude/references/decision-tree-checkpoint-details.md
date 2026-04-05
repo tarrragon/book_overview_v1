@@ -254,25 +254,20 @@ ticket resume <id>
     v
 [CLI 輸出 Checkpoint R]
   1. [ ] 獨立驗證 Ticket 描述數量/範圍（PC-007）
-  2. [ ] 檢查 5W1H 完整性（PC-018）
-       → ticket track 5W1H <id>（或 ticket track query <id>）
-       → 若有「待定義」欄位 → 補填（why 為必填）
-       → 若 creation_accepted: false → 補填後 accept-creation
-  3. ticket track claim <id>
-  4. ticket track chain <id>（可選）
+  2. ticket track claim <id>
+  3. ticket track chain <id>（可選）
     |
     v
 [PM] AskUserQuestion 確認接手方式（若有疑義）
     |
-    +-- 已驗證 + 5W1H 完整，直接 claim → ticket track claim <id>
+    +-- 已驗證，直接 claim → ticket track claim <id>
     +-- 需查看任務鏈 → ticket track chain <id>
     +-- 範圍有疑義 → 先更新 Ticket 再 claim
-    +-- 5W1H 不完整 → 先補填再 claim（PC-018）
 ```
 
-**核心原則**：resume 後不直接開始實作，先走 Checkpoint R 確認範圍和 5W1H 完整性再 claim。
+**核心原則**：resume 後不直接開始實作，先走 Checkpoint R 確認範圍再 claim。
 
-> **PC-018 防護**：5W1H 的 `why` 欄位為必填。若為「待定義」，PM 必須在 claim 前補填，否則 acceptance-auditor 會 REJECT。
+> **PC-018 防護**：5W1H 完整性應在 **ticket create 時** 強制填寫（why 為必填），而非 resume 時補救。詳見 ticket create 流程。
 
 ---
 
