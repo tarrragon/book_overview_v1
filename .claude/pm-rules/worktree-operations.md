@@ -12,6 +12,37 @@
 
 ---
 
+## Worktree 狀態檢查觸發點（強制，來源 PC-039）
+
+> **原則**：任何決策點之前，先確認 worktree 是否乾淨。代理人產出在 worktree 分支上，不合併就不可見。
+
+| 觸發時機 | 檢查內容 | 防護機制 |
+|---------|---------|---------|
+| **Agent 完成後**（最重要） | worktree 未合併 commit | agent-commit-verification-hook（自動提醒）+ PM 主動合併 |
+| **ticket complete 前** | 所有 worktree 合併狀態 | worktree-merge-reminder-hook（自動提醒）+ Checkpoint 1.9 |
+| **切換 Ticket 前** | 殘留 worktree | PM 主動執行 `git worktree list` |
+| **handoff/session 結束前** | 所有 worktree + 未提交 | PM 主動檢查 |
+| **push 前** | 確認所有 worktree 已合併 | worktree-branch-check-hook（自動提醒） |
+
+**PM 強制動作**（每個觸發點都必須執行）：
+
+```bash
+# 1. 列出 worktree
+git worktree list
+
+# 2. 檢查未合併 commit
+git log main..{branch} --oneline
+
+# 3. 合併（如有）
+git merge {branch} --no-edit
+
+# 4. 清理
+git worktree remove {path}
+git branch -d {branch}
+```
+
+---
+
 ## 三階段標準流程
 
 ### 階段 1：派發前（Pre-dispatch）
@@ -108,10 +139,12 @@ git branch | grep "worktree-agent-" | xargs git branch -D 2>/dev/null
 ## 相關文件
 
 - .claude/error-patterns/process-compliance/PC-019-worktree-merge-state-loss.md
+- .claude/error-patterns/process-compliance/PC-039-worktree-unmerged-invisible-output.md
 - .claude/pm-rules/parallel-dispatch.md - 並行派發規則
+- .claude/pm-rules/decision-tree.md - Checkpoint 1.9 Worktree 合併
 - .claude/rules/core/bash-tool-usage-rules.md - 禁止 cd 污染
 
 ---
 
 **Last Updated**: 2026-04-05
-**Version**: 1.0.0 - 初始建立（0.17.2-W2-009）
+**Version**: 2.0.0 - 新增 Worktree 狀態檢查觸發點（PC-039, 0.17.2-W2-018）
