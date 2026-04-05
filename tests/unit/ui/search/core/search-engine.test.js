@@ -1101,4 +1101,295 @@ describe('SearchEngine - TDD 循環 2/8', () => {
       })
     })
   })
+
+  // ============================================================
+  // 9. Tag 文字搜尋適配 (0.17.2-W2-005)
+  // ============================================================
+  // 依據 Phase 2 測試設計文件，涵蓋 13 個 GWT 測試案例（A-1~D-3）
+  // SearchEngine _matchesSearchCriteria 方法的 tag 文字搜尋
+  // 從 book.tags 遷移至 book.tagIds + tagResolver
+  // 所有新增測試預期 RED（實作尚未遷移）
+  // ============================================================
+  describe('9. Tag 文字搜尋適配 (0.17.2-W2-005)', () => {
+    // --- 共用測試資料（依據設計文件第 2 節） ---
+
+    // mockTagResolver: 模擬 tag 儲存層的解析函式
+    const mockTagResolverForTag = (tagId) => {
+      const tags = {
+        'tag-sf': { id: 'tag-sf', name: '科幻小說' },
+        'tag-prog': { id: 'tag-prog', name: '程式設計' },
+        'tag-novel': { id: 'tag-novel', name: '小說' }
+      }
+      return tags[tagId] || null
+    }
+
+    // 書籍測試資料
+    const bookWithTagIds = {
+      id: 'b1', title: 'Dune', author: 'Herbert',
+      tagIds: ['tag-sf', 'tag-novel']
+    }
+    const bookWithOldTags = {
+      id: 'b2', title: 'Old Book', author: 'Author',
+      tags: ['科幻小說', '冒險']
+    }
+    const bookMixed = {
+      id: 'b3', title: 'Mixed', author: 'Mix',
+      tagIds: ['tag-sf'], tags: ['舊標籤']
+    }
+    const bookNoTags = {
+      id: 'b4', title: 'No Tags', author: 'None'
+    }
+    const bookEmptyTagIds = {
+      id: 'b5', title: 'Empty', author: 'Empty',
+      tagIds: []
+    }
+    const bookDeletedTag = {
+      id: 'b6', title: 'Has Deleted', author: 'Del',
+      tagIds: ['tag-deleted', 'tag-sf']
+    }
+    const bookInvalidTagIds = {
+      id: 'b7', title: 'Invalid', author: 'Inv',
+      tagIds: ['tag-sf', 123, null, 'tag-prog']
+    }
+    const bookOnlyOldTagsForD3 = {
+      id: 'b8', title: 'Legacy', author: 'Old',
+      tags: ['科幻小說']
+    }
+
+    // --- 9.1 建構函式 tagResolver 接受 ---
+    describe('9.1 建構函式 tagResolver 接受', () => {
+      test('A-1: 建構時接受 tagResolver 選項', () => {
+        const SearchEngine = require('src/ui/search/core/search-engine')
+
+        searchEngine = new SearchEngine({
+          indexManager: mockIndexManager,
+          eventBus: mockEventBus,
+          logger: mockLogger,
+          tagResolver: mockTagResolverForTag
+        })
+
+        expect(searchEngine._tagResolver).toBe(mockTagResolverForTag)
+      })
+
+      test('A-2: 建構時未提供 tagResolver 不報錯', () => {
+        const SearchEngine = require('src/ui/search/core/search-engine')
+
+        searchEngine = new SearchEngine({
+          indexManager: mockIndexManager,
+          eventBus: mockEventBus,
+          logger: mockLogger
+        })
+
+        // tagResolver 為選填，未提供時應為 undefined 或 null
+        expect(
+          searchEngine._tagResolver === undefined ||
+          searchEngine._tagResolver === null
+        ).toBe(true)
+      })
+    })
+
+    // --- 9.2 新邏輯 - tagIds + tagResolver 文字匹配 ---
+    describe('9.2 新邏輯 - tagIds + tagResolver 文字匹配', () => {
+      let tagSearchEngine
+
+      beforeEach(() => {
+        const SearchEngine = require('src/ui/search/core/search-engine')
+        tagSearchEngine = new SearchEngine({
+          indexManager: mockIndexManager,
+          eventBus: mockEventBus,
+          logger: mockLogger,
+          tagResolver: mockTagResolverForTag
+        })
+      })
+
+      afterEach(() => {
+        if (tagSearchEngine) {
+          tagSearchEngine.destroy?.()
+          tagSearchEngine = null
+        }
+      })
+
+      test('B-1: tagIds + tagResolver 精確包含匹配', async () => {
+        // 前置驗證
+        expect(bookWithTagIds.tagIds).toBeDefined()
+        expect(Array.isArray(bookWithTagIds.tagIds)).toBe(true)
+        expect(mockTagResolverForTag('tag-sf')).toEqual(
+          expect.objectContaining({ name: '科幻小說' })
+        )
+
+        const results = await tagSearchEngine.search('科幻', [bookWithTagIds])
+
+        // tag 名稱 '科幻小說' 包含 '科幻'，應匹配
+        expect(results).toContainEqual(
+          expect.objectContaining({ id: 'b1' })
+        )
+      })
+
+      test('B-2: tagIds + tagResolver 查詢不匹配', async () => {
+        const results = await tagSearchEngine.search('歷史', [bookWithTagIds])
+
+        // 無 tag 名稱包含 '歷史'，書名和作者也不含
+        expect(results.find(b => b.id === 'b1')).toBeUndefined()
+      })
+
+      test('B-3: tagIds + tagResolver 大小寫不敏感', async () => {
+        // 前置驗證
+        expect(mockTagResolverForTag('tag-prog')).toEqual(
+          expect.objectContaining({ name: '程式設計' })
+        )
+
+        const bookWithProg = {
+          id: 'b-prog', title: 'Code', author: 'Coder',
+          tagIds: ['tag-prog']
+        }
+
+        // 搜尋 '程式設計' 應匹配（不區分大小寫）
+        const results = await tagSearchEngine.search('程式設計', [bookWithProg])
+
+        expect(results).toContainEqual(
+          expect.objectContaining({ id: 'b-prog' })
+        )
+      })
+
+      test('B-4: tagIds + tagResolver 模糊匹配', async () => {
+        // 前置驗證
+        expect(mockTagResolverForTag('tag-sf')).toEqual(
+          expect.objectContaining({ name: '科幻小說' })
+        )
+
+        // 「說」寫成「説」，模糊拼寫
+        const results = await tagSearchEngine.search('科幻小説', [bookWithTagIds])
+
+        // 模糊匹配應命中
+        expect(results).toContainEqual(
+          expect.objectContaining({ id: 'b1' })
+        )
+      })
+    })
+
+    // --- 9.3 容錯處理 ---
+    describe('9.3 容錯處理', () => {
+      let tagSearchEngine
+
+      beforeEach(() => {
+        const SearchEngine = require('src/ui/search/core/search-engine')
+        tagSearchEngine = new SearchEngine({
+          indexManager: mockIndexManager,
+          eventBus: mockEventBus,
+          logger: mockLogger,
+          tagResolver: mockTagResolverForTag
+        })
+      })
+
+      afterEach(() => {
+        if (tagSearchEngine) {
+          tagSearchEngine.destroy?.()
+          tagSearchEngine = null
+        }
+      })
+
+      test('C-1: tagResolver 回傳 null（已刪除 tag）- 跳過並繼續匹配', async () => {
+        // 前置驗證
+        expect(mockTagResolverForTag('tag-deleted')).toBeNull()
+        expect(mockTagResolverForTag('tag-sf')).toEqual(
+          expect.objectContaining({ name: '科幻小說' })
+        )
+
+        const results = await tagSearchEngine.search('科幻', [bookDeletedTag])
+
+        // tag-deleted 被跳過，tag-sf 匹配成功
+        expect(results).toContainEqual(
+          expect.objectContaining({ id: 'b6' })
+        )
+      })
+
+      test('C-2: book.tagIds 為 undefined - 不匹配', async () => {
+        // bookNoTags 無 tagIds 屬性，書名和作者也不含 '科幻'
+        const results = await tagSearchEngine.search('科幻', [bookNoTags])
+
+        expect(results.find(b => b.id === 'b4')).toBeUndefined()
+      })
+
+      test('C-3: book.tagIds 為空陣列 - 不匹配', async () => {
+        const results = await tagSearchEngine.search('科幻', [bookEmptyTagIds])
+
+        // 無 tag 可匹配
+        expect(results.find(b => b.id === 'b5')).toBeUndefined()
+      })
+
+      test('C-4: tagIds 含非字串元素 - 忽略非字串並繼續', async () => {
+        const results = await tagSearchEngine.search('科幻', [bookInvalidTagIds])
+
+        // 'tag-sf' 解析為 '科幻小說'，非字串元素 (123, null) 被忽略
+        expect(results).toContainEqual(
+          expect.objectContaining({ id: 'b7' })
+        )
+      })
+    })
+
+    // --- 9.4 向下相容 ---
+    describe('9.4 向下相容', () => {
+      test('D-1: 無 tagResolver + 有 book.tags — 沿用舊邏輯', async () => {
+        const SearchEngine = require('src/ui/search/core/search-engine')
+        const legacyEngine = new SearchEngine({
+          indexManager: mockIndexManager,
+          eventBus: mockEventBus,
+          logger: mockLogger
+          // 不注入 tagResolver
+        })
+
+        // 前置驗證：tagResolver 未設定
+        expect(
+          legacyEngine._tagResolver === undefined ||
+          legacyEngine._tagResolver === null
+        ).toBe(true)
+
+        const results = await legacyEngine.search('科幻', [bookWithOldTags])
+
+        // 沿用舊 book.tags 字串匹配，'科幻小說' 包含 '科幻'
+        expect(results).toContainEqual(
+          expect.objectContaining({ id: 'b2' })
+        )
+
+        legacyEngine.destroy?.()
+      })
+
+      test('D-2: 有 tagResolver + 有 tagIds + 有 tags — 優先使用 tagIds', async () => {
+        const SearchEngine = require('src/ui/search/core/search-engine')
+        const tagEngine = new SearchEngine({
+          indexManager: mockIndexManager,
+          eventBus: mockEventBus,
+          logger: mockLogger,
+          tagResolver: mockTagResolverForTag
+        })
+
+        const results = await tagEngine.search('舊標籤', [bookMixed])
+
+        // 有 tagResolver 時不走 book.tags 舊邏輯
+        // '舊標籤' 不在 tagIds 解析結果中，書名和作者也不含
+        expect(results.find(b => b.id === 'b3')).toBeUndefined()
+
+        tagEngine.destroy?.()
+      })
+
+      test('D-3: 有 tagResolver + 無 tagIds + 有 tags — tag 搜尋不匹配', async () => {
+        const SearchEngine = require('src/ui/search/core/search-engine')
+        const tagEngine = new SearchEngine({
+          indexManager: mockIndexManager,
+          eventBus: mockEventBus,
+          logger: mockLogger,
+          tagResolver: mockTagResolverForTag
+        })
+
+        // bookOnlyOldTagsForD3 只有 tags ['科幻小說']，無 tagIds
+        const results = await tagEngine.search('科幻', [bookOnlyOldTagsForD3])
+
+        // 有 tagResolver 時跳過舊 tags，新 tagIds 不存在，不匹配
+        // 書名 'Legacy' 和作者 'Old' 也不含 '科幻'
+        expect(results.find(b => b.id === 'b8')).toBeUndefined()
+
+        tagEngine.destroy?.()
+      })
+    })
+  })
 })
