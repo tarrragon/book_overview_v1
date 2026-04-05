@@ -44,11 +44,12 @@
 
 ## 防護措施
 
-1. **寫入量閾值**：代理人單次任務寫入量超過 150 行時，必須拆分為「設計」和「注入」兩個子任務（詳見 task-splitting.md）
+1. **Tool call 預算評估**：派發前估算 subagent 需要的 tool calls（Read/Grep/Edit/Bash），超過 15 次必須拆分（詳見 task-splitting.md）
 
-2. **二階段派發**：
-   - Stage 1：設計代理人產出程式碼到 Ticket（不寫 src/tests）
-   - Stage 2：注入代理人從 Ticket 讀取程式碼並寫入目標檔案（詳見 two-stage-dispatch.md）
+2. **分工模式**：
+   - 任務 A：探索與設計 — 產出程式碼到 Ticket（不寫 src/tests）
+   - 任務 B：注入與驗證 — 從 Ticket 讀取程式碼並寫入（~5-6 tool calls）
+   - 詳見 two-stage-dispatch.md
 
 3. **代理人進度檢查點**：代理人完成每個步驟後，將中間結果寫入 Ticket（`ticket track append-log`），確保 context 耗盡時已完成的工作不遺失
 
