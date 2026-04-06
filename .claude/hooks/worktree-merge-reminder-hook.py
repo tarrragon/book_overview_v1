@@ -106,6 +106,9 @@ def main() -> int:
         logger.warning("無法解析 stdin JSON")
         return 0
 
+    if not input_data:
+        return 0
+
     # 只在 ticket complete 命令時觸發
     if not is_ticket_complete_command(input_data):
         return 0

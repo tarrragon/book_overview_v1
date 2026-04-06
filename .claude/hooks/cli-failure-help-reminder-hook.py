@@ -139,6 +139,10 @@ def main() -> int:
         print(json.dumps(DEFAULT_OUTPUT, ensure_ascii=False))
         return EXIT_SUCCESS
 
+    if not input_data:
+        print(json.dumps(DEFAULT_OUTPUT, ensure_ascii=False))
+        return EXIT_SUCCESS
+
     # 驗證工具類型
     tool_name = input_data.get("tool_name", "")
     if tool_name != "Bash":
