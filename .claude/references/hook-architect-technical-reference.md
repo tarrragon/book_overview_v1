@@ -78,7 +78,7 @@ def main():
     logger = setup_hook_logging("hook-name")
     input_data = read_json_from_stdin(logger)
     if input_data is None:
-        return 0  # 空輸入或解析失敗，靜默退出
+        return 0  # 空輸入或解析失敗，正常退出（已記錄到日誌）
     # ... 處理邏輯 ...
 ```
 

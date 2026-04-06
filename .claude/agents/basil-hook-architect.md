@@ -94,7 +94,7 @@ def main() -> int:
     # stdin 解析：必須使用統一入口
     input_data = read_json_from_stdin(logger)
     if input_data is None:
-        return 0  # 空輸入或解析失敗，靜默退出
+        return 0  # 空輸入或解析失敗，正常退出（已記錄到日誌）
 
     # ... 業務邏輯 ...
     helper_function(logger)
@@ -122,7 +122,7 @@ if __name__ == "__main__":
 | 規範 | 說明 |
 |------|------|
 | 統一入口 | `read_json_from_stdin(logger)` — 處理空輸入、JSON 解析失敗、異常 |
-| None 檢查 | 返回 None 時必須 `return 0`（靜默退出） |
+| None 檢查 | 返回 None 時必須 `return 0`（正常退出（已記錄到日誌）） |
 | 禁止直接解析 | 禁止 `json.load(sys.stdin)`、`json.loads(sys.stdin.read())` |
 
 **Hook 錯誤處理決策樹**：
