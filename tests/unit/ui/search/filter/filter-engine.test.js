@@ -648,6 +648,39 @@ describe('FilterEngine', () => {
     })
   })
 
+  // ========== Tag 測試共享 fixture factory ==========
+  // 供 12/13/14 三個 tag describe block 共用
+  // jest.fn() 在 factory 內建立，確保每次 beforeEach 取得乾淨的 mock
+  function createTagTestFixtures () {
+    const tagBooks = [
+      { id: '1', title: 'JS Guide', status: 'reading', category: 'programming', progress: 0.5, lastRead: '2025-08-15T10:00:00Z', tagIds: ['tag-js', 'tag-web'] },
+      { id: '2', title: 'Vue Design', status: 'completed', category: 'programming', progress: 1.0, lastRead: '2025-08-10T15:30:00Z', tagIds: ['tag-js', 'tag-vue'] },
+      { id: '3', title: 'Sapiens', status: 'unread', category: 'history', progress: 0.0, lastRead: null, tagIds: ['tag-history'] },
+      { id: '4', title: 'Clean Code', status: 'reading', category: 'programming', progress: 0.3, lastRead: '2025-08-18T09:15:00Z', tagIds: [] },
+      { id: '5', title: 'Old Book', status: 'reading', category: 'misc', progress: 0.1, lastRead: '2025-07-01T00:00:00Z' } // 無 tagIds 欄位
+    ]
+
+    const mockTagResolver = jest.fn((tagId) => {
+      const tags = {
+        'tag-js': { id: 'tag-js', name: 'JavaScript', categoryId: 'cat-prog' },
+        'tag-web': { id: 'tag-web', name: 'Web Development', categoryId: 'cat-prog' },
+        'tag-vue': { id: 'tag-vue', name: 'Vue.js', categoryId: 'cat-prog' },
+        'tag-history': { id: 'tag-history', name: 'History', categoryId: 'cat-humanities' }
+      }
+      return tags[tagId] || null
+    })
+
+    const mockCategoryResolver = jest.fn((catId) => {
+      const categories = {
+        'cat-prog': ['tag-js', 'tag-vue', 'tag-web'],
+        'cat-humanities': ['tag-history']
+      }
+      return categories[catId] || []
+    })
+
+    return { tagBooks, mockTagResolver, mockCategoryResolver }
+  }
+
   // ========== 12. Tag Filtering Tag 篩選 ==========
   describe('Tag Filtering', () => {
     // eslint-disable-next-line no-unused-vars
@@ -658,34 +691,10 @@ describe('FilterEngine', () => {
     let mockCategoryResolver
 
     beforeEach(() => {
-      // 含 tagIds 的測試書籍
-      tagBooks = [
-        { id: '1', title: 'JS Guide', status: 'reading', category: 'programming', progress: 0.5, lastRead: '2025-08-15T10:00:00Z', tagIds: ['tag-js', 'tag-web'] },
-        { id: '2', title: 'Vue Design', status: 'completed', category: 'programming', progress: 1.0, lastRead: '2025-08-10T15:30:00Z', tagIds: ['tag-js', 'tag-vue'] },
-        { id: '3', title: 'Sapiens', status: 'unread', category: 'history', progress: 0.0, lastRead: null, tagIds: ['tag-history'] },
-        { id: '4', title: 'Clean Code', status: 'reading', category: 'programming', progress: 0.3, lastRead: '2025-08-18T09:15:00Z', tagIds: [] },
-        { id: '5', title: 'Old Book', status: 'reading', category: 'misc', progress: 0.1, lastRead: '2025-07-01T00:00:00Z' } // 無 tagIds 欄位
-      ]
-
-      // Mock tagResolver: tagId => Tag | null
-      mockTagResolver = jest.fn((tagId) => {
-        const tags = {
-          'tag-js': { id: 'tag-js', name: 'JavaScript', categoryId: 'cat-prog' },
-          'tag-web': { id: 'tag-web', name: 'Web Development', categoryId: 'cat-prog' },
-          'tag-vue': { id: 'tag-vue', name: 'Vue.js', categoryId: 'cat-prog' },
-          'tag-history': { id: 'tag-history', name: 'History', categoryId: 'cat-humanities' }
-        }
-        return tags[tagId] || null
-      })
-
-      // Mock categoryResolver: categoryId => tagId[]
-      mockCategoryResolver = jest.fn((catId) => {
-        const categories = {
-          'cat-prog': ['tag-js', 'tag-vue', 'tag-web'],
-          'cat-humanities': ['tag-history']
-        }
-        return categories[catId] || []
-      })
+      const fixtures = createTagTestFixtures()
+      tagBooks = fixtures.tagBooks
+      mockTagResolver = fixtures.mockTagResolver
+      mockCategoryResolver = fixtures.mockCategoryResolver
     })
 
     it('should create FilterEngine with optional tagResolver without error', () => {
@@ -810,31 +819,10 @@ describe('FilterEngine', () => {
     let mockCategoryResolver
 
     beforeEach(() => {
-      tagBooks = [
-        { id: '1', title: 'JS Guide', status: 'reading', category: 'programming', progress: 0.5, lastRead: '2025-08-15T10:00:00Z', tagIds: ['tag-js', 'tag-web'] },
-        { id: '2', title: 'Vue Design', status: 'completed', category: 'programming', progress: 1.0, lastRead: '2025-08-10T15:30:00Z', tagIds: ['tag-js', 'tag-vue'] },
-        { id: '3', title: 'Sapiens', status: 'unread', category: 'history', progress: 0.0, lastRead: null, tagIds: ['tag-history'] },
-        { id: '4', title: 'Clean Code', status: 'reading', category: 'programming', progress: 0.3, lastRead: '2025-08-18T09:15:00Z', tagIds: [] },
-        { id: '5', title: 'Old Book', status: 'reading', category: 'misc', progress: 0.1, lastRead: '2025-07-01T00:00:00Z' }
-      ]
-
-      mockTagResolver = jest.fn((tagId) => {
-        const tags = {
-          'tag-js': { id: 'tag-js', name: 'JavaScript', categoryId: 'cat-prog' },
-          'tag-web': { id: 'tag-web', name: 'Web Development', categoryId: 'cat-prog' },
-          'tag-vue': { id: 'tag-vue', name: 'Vue.js', categoryId: 'cat-prog' },
-          'tag-history': { id: 'tag-history', name: 'History', categoryId: 'cat-humanities' }
-        }
-        return tags[tagId] || null
-      })
-
-      mockCategoryResolver = jest.fn((catId) => {
-        const categories = {
-          'cat-prog': ['tag-js', 'tag-vue', 'tag-web'],
-          'cat-humanities': ['tag-history']
-        }
-        return categories[catId] || []
-      })
+      const fixtures = createTagTestFixtures()
+      tagBooks = fixtures.tagBooks
+      mockTagResolver = fixtures.mockTagResolver
+      mockCategoryResolver = fixtures.mockCategoryResolver
     })
 
     it('should filter books by tagCategoryIds (expand category to tags)', async () => {
@@ -916,31 +904,10 @@ describe('FilterEngine', () => {
     let mockCategoryResolver
 
     beforeEach(() => {
-      tagBooks = [
-        { id: '1', title: 'JS Guide', status: 'reading', category: 'programming', progress: 0.5, lastRead: '2025-08-15T10:00:00Z', tagIds: ['tag-js', 'tag-web'] },
-        { id: '2', title: 'Vue Design', status: 'completed', category: 'programming', progress: 1.0, lastRead: '2025-08-10T15:30:00Z', tagIds: ['tag-js', 'tag-vue'] },
-        { id: '3', title: 'Sapiens', status: 'unread', category: 'history', progress: 0.0, lastRead: null, tagIds: ['tag-history'] },
-        { id: '4', title: 'Clean Code', status: 'reading', category: 'programming', progress: 0.3, lastRead: '2025-08-18T09:15:00Z', tagIds: [] },
-        { id: '5', title: 'Old Book', status: 'reading', category: 'misc', progress: 0.1, lastRead: '2025-07-01T00:00:00Z' }
-      ]
-
-      mockTagResolver = jest.fn((tagId) => {
-        const tags = {
-          'tag-js': { id: 'tag-js', name: 'JavaScript', categoryId: 'cat-prog' },
-          'tag-web': { id: 'tag-web', name: 'Web Development', categoryId: 'cat-prog' },
-          'tag-vue': { id: 'tag-vue', name: 'Vue.js', categoryId: 'cat-prog' },
-          'tag-history': { id: 'tag-history', name: 'History', categoryId: 'cat-humanities' }
-        }
-        return tags[tagId] || null
-      })
-
-      mockCategoryResolver = jest.fn((catId) => {
-        const categories = {
-          'cat-prog': ['tag-js', 'tag-vue', 'tag-web'],
-          'cat-humanities': ['tag-history']
-        }
-        return categories[catId] || []
-      })
+      const fixtures = createTagTestFixtures()
+      tagBooks = fixtures.tagBooks
+      mockTagResolver = fixtures.mockTagResolver
+      mockCategoryResolver = fixtures.mockCategoryResolver
     })
 
     it('should combine tagIds filter with status filter', async () => {
