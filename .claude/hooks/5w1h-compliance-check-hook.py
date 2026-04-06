@@ -571,6 +571,8 @@ def main() -> int:
     try:
         # 讀取 stdin 輸入
         input_data = read_json_from_stdin(logger)
+        if not input_data:
+            return 0
         logger.debug(f"接收到 Hook 輸入: {json.dumps(input_data, ensure_ascii=False, indent=2)}")
 
         # 提取工具資訊

@@ -204,6 +204,8 @@ def main() -> int:
     try:
         # 讀取 stdin JSON (Hook 輸入)
         input_data = read_json_from_stdin(logger)
+        if not input_data:
+            return 0
 
         # 檢查編輯的檔案是否為 ARB 檔案
         tool_input = input_data.get("tool_input") or {}

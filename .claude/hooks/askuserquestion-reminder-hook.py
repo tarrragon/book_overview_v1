@@ -44,6 +44,8 @@ def main() -> int:
 
         # 讀取輸入
         input_data = read_json_from_stdin(logger)
+        if not input_data:
+            return 0
 
         # 偵測 subagent 環境：agent_id 僅在 subagent 中出現
         if is_subagent_environment(input_data):

@@ -52,6 +52,9 @@ def main() -> int:
         logger.warning("無法解析 stdin JSON，放行")
         return 0
 
+    if not input_data:
+        return 0
+
     tool_name = input_data.get("tool_name", "")
     if tool_name != "Agent":
         return 0

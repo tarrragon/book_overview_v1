@@ -46,6 +46,9 @@ def main() -> int:
         logger.warning("無法解析 stdin JSON")
         return 0  # 解析失敗不阻擋
 
+    if not input_data:
+        return 0
+
     tool_input = input_data.get("tool_input", {})
     isolation = tool_input.get("isolation", "")
 

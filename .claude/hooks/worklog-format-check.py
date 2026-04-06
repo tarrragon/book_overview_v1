@@ -119,6 +119,9 @@ def main():
         # 無法解析輸入，靜默退出
         return 0
 
+    if not hook_input:
+        return 0
+
     # 獲取工具輸入
     tool_input = hook_input.get('tool_input') or {}
 

@@ -665,6 +665,8 @@ def main():
 
         # 2. 讀取 JSON 輸入
         input_data = read_json_from_stdin(logger)
+        if not input_data:
+            return 0
 
         # 3. 提取工具資訊
         tool_name = input_data.get("tool_name", "")
