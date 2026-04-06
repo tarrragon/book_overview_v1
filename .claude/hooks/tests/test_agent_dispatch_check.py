@@ -37,11 +37,9 @@ spec = importlib.util.spec_from_file_location("task_dispatch_check",
 hook_module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(hook_module)
 
-# 獲取檢查函式
+# 獲取檢查函式（注意：get_correct_agent 和 detect_project_type 已移除）
 detect_task_type = hook_module.detect_task_type
-get_correct_agent = hook_module.get_correct_agent
 check_agent_dispatch = hook_module.check_agent_dispatch
-detect_project_type = hook_module.detect_project_type
 
 
 # ===== [1] 正確分派測試 (9 個) =====
