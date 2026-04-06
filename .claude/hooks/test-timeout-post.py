@@ -33,7 +33,11 @@ AUTO_KILL_THRESHOLD = 1800  # 30 分鐘
 
 def main():
     logger = setup_hook_logging("test-timeout-post")
-    input_data = json.load(sys.stdin)
+    try:
+        input_data = json.load(sys.stdin)
+    except (json.JSONDecodeError, ValueError):
+        return 0
+
     tool_name = input_data.get("tool_name", "")
 
     # 檢查是否為測試命令

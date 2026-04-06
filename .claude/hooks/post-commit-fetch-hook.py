@@ -13,7 +13,11 @@ import sys
 
 
 def main() -> None:
-    data = json.load(sys.stdin)
+    try:
+        data = json.load(sys.stdin)
+    except (json.JSONDecodeError, ValueError):
+        return
+
 
     tool_name = data.get("tool_name", "")
     if tool_name != "Bash":

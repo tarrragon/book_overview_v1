@@ -93,7 +93,11 @@ def check_dependencies(project_dir: Path) -> list[str]:
 
 def main():
     logger = setup_hook_logging("pre-test-hook")
-    input_data = json.load(sys.stdin)
+    try:
+        input_data = json.load(sys.stdin)
+    except (json.JSONDecodeError, ValueError):
+        return 0
+
     tool_name = input_data.get("tool_name", "")
     tool_input = input_data.get("tool_input") or {}
 

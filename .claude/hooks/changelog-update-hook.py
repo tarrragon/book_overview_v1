@@ -116,7 +116,11 @@ def get_commit_subject(project_dir: Path, logger) -> str:
 
 def main():
     logger = setup_hook_logging("changelog-update-hook")
-    input_data = json.load(sys.stdin)
+    try:
+        input_data = json.load(sys.stdin)
+    except (json.JSONDecodeError, ValueError):
+        return 0
+
     tool_name = input_data.get("tool_name", "")
     tool_input = input_data.get("tool_input") or {}
     tool_result = input_data.get("tool_result", {})
