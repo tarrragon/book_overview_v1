@@ -79,7 +79,7 @@ from pathlib import Path
 # 加入 hook_utils 路徑（相同目錄）
 sys.path.insert(0, str(Path(__file__).parent))
 
-from hook_utils import setup_hook_logging, run_hook_safely
+from hook_utils import setup_hook_logging, run_hook_safely, read_json_from_stdin
 
 
 def helper_function(logger):
@@ -90,7 +90,12 @@ def helper_function(logger):
 def main() -> int:
     """Hook 主邏輯。"""
     logger = setup_hook_logging("my-hook-name")
-    logger.info("Hook 開始執行")
+
+    # stdin 解析：必須使用統一入口
+    input_data = read_json_from_stdin(logger)
+    if input_data is None:
+        return 0  # 空輸入或解析失敗，靜默退出
+
     # ... 業務邏輯 ...
     helper_function(logger)
     return 0  # 成功
@@ -108,6 +113,27 @@ if __name__ == "__main__":
 |-----|------|
 | `setup_hook_logging(hook_name)` | 建立 named logger，自動寫入 `.claude/hook-logs/{hook_name}/` |
 | `run_hook_safely(main_func, hook_name)` | 頂層例外處理，crash 時自動記錄 traceback 並回傳非零退出碼 |
+| `read_json_from_stdin(logger)` | 統一 stdin JSON 解析，返回 dict 或 None（空輸入/解析失敗） |
+
+### stdin 解析規範（強制，W5-001）
+
+**所有 Hook 必須使用 `read_json_from_stdin(logger)` 讀取 stdin**。禁止直接 `json.load(sys.stdin)`。
+
+| 規範 | 說明 |
+|------|------|
+| 統一入口 | `read_json_from_stdin(logger)` — 處理空輸入、JSON 解析失敗、異常 |
+| None 檢查 | 返回 None 時必須 `return 0`（靜默退出） |
+| 禁止直接解析 | 禁止 `json.load(sys.stdin)`、`json.loads(sys.stdin.read())` |
+
+**Hook 錯誤處理決策樹**：
+
+| 錯誤類型 | 日誌級別 | stderr 輸出 | 說明 |
+|---------|---------|------------|------|
+| 未預期異常（crash） | `logger.critical()` | 是（觸發 hook error） | 真正的 bug，需要用戶注意 |
+| 已預期但不正常（如 JSON 格式錯誤） | `logger.info()` | 否 | 正常情況的一種，靜默處理 |
+| 正常跳過（如 tool_name 不匹配） | `logger.debug()` | 否 | 最常見情況 |
+
+> **背景**（IMP-048）：Claude Code 將任何 stderr 輸出顯示為 "hook error"。因此 `logger.error()` / `logger.warning()` 不可用於已處理的錯誤路徑，否則會誤觸 hook error 顯示。
 
 ### 禁止的日誌模式
 
