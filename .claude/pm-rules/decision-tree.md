@@ -212,7 +212,7 @@ Skill 是預建的專用工具，優先於代理人派發。
 
 ## 第三層半 + 第四層：執行 Domain
 
-> 詳見：.claude/pm-rules/decision-tree-execution.md
+> 詳見：.claude/pm-rules/execution-discovery-rules.md
 >
 > 包含：執行中額外發現規則、子任務 vs 獨立 Ticket 判斷、效能問題代理人更新、Ticket 執行流程
 
@@ -263,7 +263,7 @@ Skill 是預建的專用工具，優先於代理人派發。
 
 ## 第七層 + 第八層：完成 Domain
 
-> 詳見：.claude/pm-rules/decision-tree-completion.md
+> 詳見：.claude/pm-rules/completion-checkpoint-rules.md
 >
 > 包含：ANA 結論轉化檢查（PC-017 + PC-041）、驗收方式確認、Checkpoint 循環（0-4）、Worktree 合併、背景代理人結果合併
 
@@ -271,7 +271,7 @@ Skill 是預建的專用工具，優先於代理人派發。
 
 ## 代理人管理 + 強制命令 + 違規處理
 
-> 詳見：.claude/pm-rules/decision-tree-agents.md
+> 詳見：.claude/pm-rules/agent-dispatch-enforcement.md
 >
 > 包含：代理人觸發優先級、派發記錄要求、強制執行命令表、違規處理
 
@@ -281,9 +281,9 @@ Skill 是預建的專用工具，優先於代理人派發。
 
 ### Domain 拆分檔案（DDD 邊界，W3-007.1）
 
-- .claude/pm-rules/decision-tree-execution.md - 執行 Domain（第三層半 + 第四層）
-- .claude/pm-rules/decision-tree-completion.md - 完成 Domain（第七層 + 第八層）
-- .claude/pm-rules/decision-tree-agents.md - 代理人管理 Domain（觸發優先級 + 強制命令 + 違規）
+- .claude/pm-rules/execution-discovery-rules.md - 執行 Domain（第三層半 + 第四層）
+- .claude/pm-rules/completion-checkpoint-rules.md - 完成 Domain（第七層 + 第八層）
+- .claude/pm-rules/agent-dispatch-enforcement.md - 代理人管理 Domain（觸發優先級 + 強制命令 + 違規）
 
 ### 支撐規則
 
