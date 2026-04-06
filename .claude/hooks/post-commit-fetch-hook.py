@@ -10,12 +10,16 @@
 import json
 import subprocess
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+from hook_utils import setup_hook_logging, read_json_from_stdin
 
 
 def main() -> None:
-    try:
-        data = json.load(sys.stdin)
-    except (json.JSONDecodeError, ValueError):
+    logger = setup_hook_logging("post-commit-fetch")
+    data = read_json_from_stdin(logger)
+    if data is None:
         return
 
 

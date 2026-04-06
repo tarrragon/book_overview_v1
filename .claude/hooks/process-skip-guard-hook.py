@@ -35,6 +35,7 @@ from hook_utils import (
     run_hook_safely,
     is_subagent_environment,
     generate_hook_output,
+    read_json_from_stdin,
 )
 from lib.hook_messages import (
     AskUserQuestionMessages,
@@ -184,7 +185,7 @@ def main() -> int:
     logger = setup_hook_logging("process-skip-guard")
 
     try:
-        input_data = json.load(sys.stdin)
+        input_data = read_json_from_stdin(logger)
     except json.JSONDecodeError:
         # 輸入解析失敗，輸出基本 JSON
         print(json.dumps(generate_hook_output("UserPromptSubmit"), ensure_ascii=False, indent=2))
