@@ -130,8 +130,14 @@ if __name__ == "__main__":
 | 錯誤類型 | 日誌級別 | stderr 輸出 | 說明 |
 |---------|---------|------------|------|
 | 未預期異常（crash） | `logger.critical()` | 是（觸發 hook error） | 真正的 bug，需要用戶注意 |
-| 已預期但不正常（如 JSON 格式錯誤） | `logger.info()` | 否 | 正常情況的一種，靜默處理 |
+| 已預期的非標準輸入（如空 stdin、非 JSON） | `logger.info()` | 否 | 記錄到日誌檔，不干擾用戶（見下方說明） |
 | 正常跳過（如 tool_name 不匹配） | `logger.debug()` | 否 | 最常見情況 |
+
+**為什麼「已預期的非標準輸入」不顯示 hook error？**
+
+Claude Code 的某些 Hook 事件（如 `SessionStart`）不提供 JSON stdin。同一個 Hook 腳本可能被多種事件觸發，因此收到空 stdin 或非 JSON 內容是**架構設計上的正常情境**，不代表有問題。這類情況：
+- 寫入日誌檔（`logger.info`）— 可追蹤、可除錯
+- 不寫入 stderr — 避免用戶看到無意義的 "hook error" 提示
 
 > **背景**（IMP-048）：Claude Code 將任何 stderr 輸出顯示為 "hook error"。因此 `logger.error()` / `logger.warning()` 不可用於已處理的錯誤路徑，否則會誤觸 hook error 顯示。
 
