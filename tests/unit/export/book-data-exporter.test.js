@@ -749,4 +749,210 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
       }
     })
   })
+
+  describe('v2 JSON Export', () => {
+    // v2 data model 的 mock 資料
+    const mockBooksV2 = [
+      {
+        id: 'book-001',
+        title: '三體',
+        readingStatus: 'finished',
+        authors: ['劉慈欣'],
+        publisher: '貓頭鷹出版社',
+        progress: 100,
+        type: 'epub',
+        cover: 'https://readmoo.com/cover/book-001.jpg',
+        tagIds: ['tag_001', 'tag_002'],
+        isManualStatus: false,
+        extractedAt: '2026-01-15T10:30:00.000Z',
+        updatedAt: '2026-04-01T08:00:00.000Z',
+        source: 'readmoo'
+      },
+      {
+        id: 'book-002',
+        title: '原子習慣',
+        readingStatus: 'reading',
+        authors: ['James Clear'],
+        publisher: '方智出版社',
+        progress: 45,
+        type: 'epub',
+        cover: '',
+        tagIds: [],
+        isManualStatus: false,
+        extractedAt: '2026-03-15T09:00:00.000Z',
+        updatedAt: '2026-04-02T11:00:00.000Z',
+        source: 'readmoo'
+      },
+      {
+        id: 'book-003',
+        title: '未開始的書',
+        readingStatus: 'unread',
+        authors: ['測試作者'],
+        publisher: '測試出版社',
+        progress: 0,
+        type: 'pdf',
+        cover: '',
+        isManualStatus: false,
+        extractedAt: '2026-04-01T00:00:00.000Z',
+        updatedAt: '2026-04-01T00:00:00.000Z',
+        source: 'readmoo'
+      }
+    ]
+
+    const mockTagCategories = [
+      {
+        id: 'cat_system_type',
+        name: '書籍類型',
+        description: '',
+        color: '#808080',
+        isSystem: true,
+        sortOrder: 0,
+        createdAt: '2026-04-01T00:00:00.000Z',
+        updatedAt: '2026-04-01T00:00:00.000Z'
+      }
+    ]
+
+    const mockTags = [
+      {
+        id: 'tag_001',
+        name: '科幻',
+        categoryId: 'cat_system_type',
+        isSystem: false,
+        sortOrder: 0,
+        createdAt: '2026-04-02T00:00:00.000Z',
+        updatedAt: '2026-04-02T00:00:00.000Z'
+      },
+      {
+        id: 'tag_002',
+        name: '中國文學',
+        categoryId: 'cat_system_type',
+        isSystem: false,
+        sortOrder: 1,
+        createdAt: '2026-04-02T00:00:00.000Z',
+        updatedAt: '2026-04-02T00:00:00.000Z'
+      }
+    ]
+
+    let v2Exporter
+
+    beforeEach(() => {
+      v2Exporter = new BookDataExporter(mockBooksV2)
+    })
+
+    test('v2 根結構應包含 metadata/tagCategories/tags/books 四區段', () => {
+      const jsonString = v2Exporter.exportToJSON({
+        formatVersion: '2.0.0',
+        tagCategories: mockTagCategories,
+        tags: mockTags
+      })
+      const result = JSON.parse(jsonString)
+
+      expect(result).toHaveProperty('metadata')
+      expect(result).toHaveProperty('tagCategories')
+      expect(result).toHaveProperty('tags')
+      expect(result).toHaveProperty('books')
+      // 確認只有 4 個頂層 key
+      expect(Object.keys(result)).toEqual(['metadata', 'tagCategories', 'tags', 'books'])
+    })
+
+    test('metadata 應包含所有必填欄位且值正確', () => {
+      const jsonString = v2Exporter.exportToJSON({
+        formatVersion: '2.0.0',
+        tagCategories: mockTagCategories,
+        tags: mockTags
+      })
+      const { metadata } = JSON.parse(jsonString)
+
+      expect(metadata.formatVersion).toBe('2.0.0')
+      expect(metadata.source).toBe('readmoo-book-extractor')
+      expect(metadata.schemaVersion).toBe('3.0.0')
+      expect(metadata.totalBooks).toBe(3)
+      expect(metadata.totalTags).toBe(2)
+      expect(metadata.totalTagCategories).toBe(1)
+      // exportDate 應為有效的 ISO 8601
+      expect(() => new Date(metadata.exportDate)).not.toThrow()
+      expect(new Date(metadata.exportDate).toISOString()).toBe(metadata.exportDate)
+    })
+
+    test('tagCategories 和 tags 應原樣序列化', () => {
+      const jsonString = v2Exporter.exportToJSON({
+        formatVersion: '2.0.0',
+        tagCategories: mockTagCategories,
+        tags: mockTags
+      })
+      const result = JSON.parse(jsonString)
+
+      expect(result.tagCategories).toEqual(mockTagCategories)
+      expect(result.tags).toEqual(mockTags)
+    })
+
+    test('預設 EXTENDED_V2 preset 應篩選正確的 books 欄位', () => {
+      const jsonString = v2Exporter.exportToJSON({
+        formatVersion: '2.0.0',
+        tagCategories: mockTagCategories,
+        tags: mockTags
+      })
+      const { books } = JSON.parse(jsonString)
+      const expectedFields = ['id', 'title', 'authors', 'publisher', 'progress', 'readingStatus', 'type', 'tagIds']
+
+      books.forEach(book => {
+        expect(Object.keys(book).sort()).toEqual(expectedFields.sort())
+      })
+      // 第一本書的 tagIds 保留
+      expect(books[0].tagIds).toEqual(['tag_001', 'tag_002'])
+      expect(books[0].readingStatus).toBe('finished')
+    })
+
+    test('BASIC_V2 preset 應只包含基本欄位', () => {
+      const jsonString = v2Exporter.exportToJSON({
+        formatVersion: '2.0.0',
+        fieldPreset: 'BASIC_V2',
+        tagCategories: mockTagCategories,
+        tags: mockTags
+      })
+      const { books } = JSON.parse(jsonString)
+      const expectedFields = ['id', 'title', 'authors', 'publisher']
+
+      books.forEach(book => {
+        expect(Object.keys(book).sort()).toEqual(expectedFields.sort())
+      })
+    })
+
+    test('COMPLETE_V2 preset 應包含所有 v2 欄位', () => {
+      const jsonString = v2Exporter.exportToJSON({
+        formatVersion: '2.0.0',
+        fieldPreset: 'COMPLETE_V2',
+        tagCategories: mockTagCategories,
+        tags: mockTags
+      })
+      const { books } = JSON.parse(jsonString)
+      const expectedFields = [
+        'id', 'title', 'authors', 'publisher',
+        'progress', 'readingStatus', 'type', 'cover',
+        'tagIds', 'isManualStatus',
+        'extractedAt', 'updatedAt', 'source'
+      ]
+
+      // 第一本書（所有欄位都有值）
+      expect(Object.keys(books[0]).sort()).toEqual(expectedFields.sort())
+      expect(books[0].isManualStatus).toBe(false)
+      expect(books[0].source).toBe('readmoo')
+    })
+
+    test('書籍無 tagIds 屬性時應輸出空陣列 []', () => {
+      // book-003 沒有 tagIds 屬性
+      const jsonString = v2Exporter.exportToJSON({
+        formatVersion: '2.0.0',
+        tagCategories: [],
+        tags: []
+      })
+      const { books } = JSON.parse(jsonString)
+      const bookWithoutTags = books.find(b => b.id === 'book-003')
+
+      expect(bookWithoutTags.tagIds).toEqual([])
+      // book-002 有空 tagIds
+      const bookWithEmptyTags = books.find(b => b.id === 'book-002')
+      expect(bookWithEmptyTags.tagIds).toEqual([])
+    })
+  })
 })

@@ -50,11 +50,21 @@ const CONSTANTS = {
 
   // 匯出欄位
   FIELDS: {
+    // v1 欄位集（保留供 v1 相容匯出）
     BASIC: ['id', 'title', 'author', 'publisher'],
     EXTENDED: ['id', 'title', 'author', 'publisher', 'publishDate', 'category', 'progress', 'status'],
     COMPLETE: ['id', 'title', 'author', 'publisher', 'publishDate', 'category', 'progress', 'status', 'isbn', 'rating', 'tags', 'notes', 'readingTime', 'price'],
     READING: ['title', 'author', 'progress', 'status', 'rating', 'notes'],
-    STATISTICS: ['category', 'status', 'progress', 'rating', 'readingTime']
+    STATISTICS: ['category', 'status', 'progress', 'rating', 'readingTime'],
+    // v2 欄位集（PROP-007 tag-based model）
+    BASIC_V2: ['id', 'title', 'authors', 'publisher'],
+    EXTENDED_V2: ['id', 'title', 'authors', 'publisher', 'progress', 'readingStatus', 'type', 'tagIds'],
+    COMPLETE_V2: [
+      'id', 'title', 'authors', 'publisher',
+      'progress', 'readingStatus', 'type', 'cover',
+      'tagIds', 'isManualStatus',
+      'extractedAt', 'updatedAt', 'source'
+    ]
   },
 
   // 範本系統
@@ -271,6 +281,11 @@ class BookDataExporter {
     this.updateProgress(0)
 
     try {
+      // v2 匯出路徑：formatVersion === '2.0.0'
+      if (options.formatVersion === '2.0.0') {
+        return this._exportToJSONv2(options, startTime)
+      }
+
       const fields = options.fields
       const pretty = options.pretty !== false
       const includeMetadata = options.includeMetadata || false
@@ -321,6 +336,74 @@ class BookDataExporter {
       this.logError('JSON export failed', error)
       throw error
     }
+  }
+
+  /**
+   * v2 JSON 匯出內部實作
+   *
+   * 產出 Interchange Format v2 結構：metadata / tagCategories / tags / books 四區段。
+   * field preset 僅控制 books 陣列中每本書的欄位；metadata、tagCategories、tags 始終包含。
+   *
+   * @param {Object} options - 匯出選項
+   * @param {string} options.formatVersion - 固定 '2.0.0'
+   * @param {string} [options.fieldPreset='EXTENDED_V2'] - 欄位集名稱
+   * @param {Array} [options.tagCategories=[]] - tag category 陣列
+   * @param {Array} [options.tags=[]] - tag 陣列
+   * @param {boolean} [options.pretty=true] - 是否美化輸出
+   * @param {number} startTime - 效能計時起點
+   * @returns {string} v2 JSON 字串
+   */
+  _exportToJSONv2 (options, startTime) {
+    const pretty = options.pretty !== false
+    const tagCategories = options.tagCategories || []
+    const tags = options.tags || []
+
+    // 決定 field preset
+    const presetName = options.fieldPreset || 'EXTENDED_V2'
+    const fields = CONSTANTS.FIELDS[presetName] || CONSTANTS.FIELDS.EXTENDED_V2
+
+    // 篩選 books 欄位，確保 tagIds 為陣列（無 tag 時輸出 []）
+    const filteredBooks = this.books
+      .filter(book => book && typeof book === 'object')
+      .map(book => {
+        const filtered = {}
+        fields.forEach(field => {
+          if (field === 'tagIds') {
+            // 強制規範：tagIds 必須為陣列，不可省略
+            filtered.tagIds = Array.isArray(book.tagIds) ? book.tagIds : []
+          } else if (Object.prototype.hasOwnProperty.call(book, field)) {
+            filtered[field] = book[field]
+          }
+        })
+        return filtered
+      })
+
+    this.updateProgress(50)
+
+    // 組裝 v2 根結構
+    const v2Data = {
+      metadata: {
+        formatVersion: '2.0.0',
+        exportDate: new Date().toISOString(),
+        source: 'readmoo-book-extractor',
+        schemaVersion: '3.0.0',
+        totalBooks: filteredBooks.length,
+        totalTags: tags.length,
+        totalTagCategories: tagCategories.length
+      },
+      tagCategories,
+      tags,
+      books: filteredBooks
+    }
+
+    const jsonString = pretty
+      ? JSON.stringify(v2Data, null, 2)
+      : JSON.stringify(v2Data)
+
+    this.updateProgress(100)
+    this.recordExport('json', this.books.length, performance.now() - startTime)
+
+    return jsonString
   }
 
   /**
