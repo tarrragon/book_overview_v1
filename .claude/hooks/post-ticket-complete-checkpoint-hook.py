@@ -100,8 +100,13 @@ def main() -> int:
 
     try:
         input_data = read_json_from_stdin(logger)
-    except json.JSONDecodeError as e:
+    except (json.JSONDecodeError, Exception) as e:
         logger.error("JSON 解析錯誤: %s", e)
+        print(json.dumps(DEFAULT_OUTPUT, ensure_ascii=False))
+        return EXIT_SUCCESS
+
+    if input_data is None:
+        logger.info("無法解析輸入，安全降級")
         print(json.dumps(DEFAULT_OUTPUT, ensure_ascii=False))
         return EXIT_SUCCESS
 

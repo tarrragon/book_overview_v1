@@ -186,8 +186,12 @@ def main() -> int:
 
     try:
         input_data = read_json_from_stdin(logger)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, Exception):
         # 輸入解析失敗，輸出基本 JSON
+        print(json.dumps(generate_hook_output("UserPromptSubmit"), ensure_ascii=False, indent=2))
+        return EXIT_SUCCESS
+
+    if input_data is None:
         print(json.dumps(generate_hook_output("UserPromptSubmit"), ensure_ascii=False, indent=2))
         return EXIT_SUCCESS
 
