@@ -45,13 +45,21 @@ class TestRecordDispatch:
             agent_description="Fix dart_parser",
             ticket_id="W7-001",
             files=["lib/parsers/dart_parser.py"],
+            branch_name="agent-abc12345",
         )
         dispatches = get_active_dispatches(project_root)
         assert len(dispatches) == 1
         assert dispatches[0]["agent_description"] == "Fix dart_parser"
         assert dispatches[0]["ticket_id"] == "W7-001"
         assert dispatches[0]["files"] == ["lib/parsers/dart_parser.py"]
+        assert dispatches[0]["branch_name"] == "agent-abc12345"
         assert "dispatched_at" in dispatches[0]
+
+    def test_record_dispatch_default_branch_name(self, project_root: Path):
+        """未提供 branch_name 時預設為空字串"""
+        record_dispatch(project_root, "Task without branch")
+        dispatches = get_active_dispatches(project_root)
+        assert dispatches[0]["branch_name"] == ""
 
     def test_record_multiple_dispatches(self, project_root: Path):
         """多次記錄累加"""
@@ -161,8 +169,10 @@ class TestDetectOrphanBranches:
         assert "agent-fix-parser" in orphans
 
     def test_no_orphan_when_dispatch_exists(self, project_root: Path):
-        """有對應 dispatch 記錄時不算 orphan"""
-        record_dispatch(project_root, "fix-parser")
+        """有對應 dispatch 記錄（含 branch_name）時不算 orphan"""
+        record_dispatch(
+            project_root, "fix-parser", branch_name="agent-fix-parser"
+        )
 
         porcelain_output = (
             "worktree /tmp/agent-fix-parser\n"
@@ -178,6 +188,48 @@ class TestDetectOrphanBranches:
             orphans = detect_orphan_branches(project_root)
 
         assert len(orphans) == 0
+
+    def test_orphan_when_dispatch_has_no_branch_name(self, project_root: Path):
+        """dispatch 記錄無 branch_name 時，worktree 分支視為 orphan"""
+        record_dispatch(project_root, "fix-parser")
+
+        porcelain_output = (
+            "worktree /tmp/agent-fix-parser\n"
+            "HEAD def456\n"
+            "branch refs/heads/agent-fix-parser\n"
+            "\n"
+        )
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = porcelain_output
+
+        with patch("dispatch_tracker.subprocess.run", return_value=mock_result):
+            orphans = detect_orphan_branches(project_root)
+
+        # 無 branch_name 的 dispatch 不會匹配任何 worktree
+        assert "agent-fix-parser" in orphans
+
+    def test_exact_match_prevents_substring_false_negative(self, project_root: Path):
+        """精確比對防止子字串誤判（如 agent-fix 不匹配 agent-fix-parser）"""
+        record_dispatch(
+            project_root, "fix", branch_name="agent-fix"
+        )
+
+        porcelain_output = (
+            "worktree /tmp/agent-fix-parser\n"
+            "HEAD def456\n"
+            "branch refs/heads/agent-fix-parser\n"
+            "\n"
+        )
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = porcelain_output
+
+        with patch("dispatch_tracker.subprocess.run", return_value=mock_result):
+            orphans = detect_orphan_branches(project_root)
+
+        # agent-fix != agent-fix-parser，精確比對不會誤判
+        assert "agent-fix-parser" in orphans
 
 
 class TestEdgeCases:

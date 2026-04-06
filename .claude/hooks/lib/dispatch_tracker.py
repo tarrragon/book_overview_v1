@@ -60,6 +60,7 @@ def record_dispatch(
     agent_description: str,
     ticket_id: str = "",
     files: Optional[List[str]] = None,
+    branch_name: str = "",
 ) -> None:
     """記錄一個新的派發。寫入 dispatch-active.json。
 
@@ -68,12 +69,14 @@ def record_dispatch(
         agent_description: 代理人描述（用於比對清理）
         ticket_id: 關聯的 Ticket ID
         files: 代理人處理的檔案清單
+        branch_name: worktree 分支名稱（用於 orphan 偵測精確比對）
     """
     state = _read_state(project_root)
     entry = {
         "agent_description": agent_description,
         "ticket_id": ticket_id,
         "files": files or [],
+        "branch_name": branch_name,
         "dispatched_at": datetime.now(timezone.utc).isoformat(),
     }
     state["dispatches"].append(entry)
@@ -205,17 +208,15 @@ def detect_orphan_branches(project_root: Path) -> List[str]:
 
     # 比對 dispatch 記錄：有 worktree 分支但無對應 dispatch 的即為 orphan
     dispatches = get_active_dispatches(project_root)
-    dispatch_descriptions = {d.get("agent_description", "") for d in dispatches}
+    dispatch_branch_names = {
+        d.get("branch_name", "") for d in dispatches if d.get("branch_name")
+    }
 
     orphans = []
     for branch in worktree_branches:
-        # 檢查是否有任何 dispatch 記錄的 description 包含在分支名中
-        # （分支名通常由 description 衍生）
-        has_match = any(
-            desc and desc.lower().replace(" ", "-") in branch.lower()
-            for desc in dispatch_descriptions
-        )
-        if not has_match:
+        # 精確比對 dispatch 記錄中的 branch_name 欄位
+        # （需求：linux 審查 — 子字串比對不可靠，Ticket 0.17.2-W8-001）
+        if branch not in dispatch_branch_names:
             orphans.append(branch)
 
     return orphans
