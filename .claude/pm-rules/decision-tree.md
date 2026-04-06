@@ -392,8 +392,11 @@ Ticket type == ANA?
     |
     +-- 是 → [強制] 確認分析結論已轉化為 Ticket
     |         → children 或 spawned_tickets 非空?
-    |           +-- 是 → 繼續標準完成流程
     |           +-- 否 → 建立修復+防護 Ticket 後再繼續
+    |           +-- 是 → [強制] AC 完整性驗證（PC-041）
+    |                     → 後續 Ticket AC 合集是否覆蓋 ANA Solution 所有修改項?
+    |                       +-- 是 → 繼續標準完成流程
+    |                       +-- 否 → 補充缺失的 AC 或建立額外 Ticket
     |
     +-- 否 → 繼續標準完成流程
     |
@@ -416,8 +419,16 @@ Step 4: ticket track complete <id>
 |--------|------|
 | children 非空 | ANA Ticket 已建立子任務（修復/防護等） |
 | spawned_tickets 非空 | ANA Ticket 已衍生獨立 Ticket |
-| 任一滿足即通過 | 至少有一個後續 Ticket 追蹤分析結論 |
+| 任一滿足即通過存在性 | 至少有一個後續 Ticket 追蹤分析結論 |
 | 均為空 | **阻塞完成**：必須先建立後續 Ticket（修復+防護）再繼續 |
+| **AC 覆蓋率 100%** | **後續 Ticket AC 合集必須 1:1 覆蓋 ANA Solution 所有修改項（PC-041）** |
+
+**AC 完整性驗證步驟**（存在性通過後強制執行）：
+
+1. 列出 ANA Ticket Solution 中的所有修改項目
+2. 逐項對照後續 Ticket（children + spawned_tickets）的 AC
+3. 每個修改項必須在至少一個後續 Ticket 的 AC 中被覆蓋
+4. 若有背景代理人的延遲分析結果，合併後再執行此驗證
 
 **下一步選擇（AskUserQuestion）**：有多個後續 Ticket 可選時，必須讓使用者選擇。
 
@@ -474,6 +485,16 @@ git worktree list → 有非 main worktree?
 - Session 結束前（handoff/clear 前）
 - 切換到其他 Ticket 前
 
+**背景代理人結果合併（ANA → 執行 Ticket 建立前，強制，PC-041）**：
+
+ANA Ticket 完成後、建立執行 Ticket 前，PM 必須：
+
+1. 確認所有背景代理人已完成（檢查 task notification）
+2. 合併背景代理人的分析結果到 ANA Ticket 的 Solution
+3. 合併後再建立執行 Ticket，確保 AC 覆蓋所有來源的修改項
+
+> 禁止行為：背景代理人未完成就建立執行 Ticket（結論不完整導致 AC 遺漏）
+
 **與現有層級的銜接**：第四層（建立完成）→ Checkpoint 0；第五層（Phase 完成）→ Checkpoint 1；第六層（incident 完成）→ Checkpoint 3；第七層（complete）→ Checkpoint 1
 
 **Handoff 強制動作**：PM **必須**執行 `/ticket handoff`，**禁止**手動建立交接文件。前須 `ticket handoff --status` 確認無殘留。
@@ -522,7 +543,7 @@ Level 5: TDD 階段代理人 + thyme-python-developer
 | Commit 後 | AskUserQuestion #16（錯誤學習）→ #11（Handoff 確認） |
 | 流程省略偵測 | AskUserQuestion #12（省略確認） |
 | **執行中發現技術債/問題/回歸/超範圍需求** | **`/ticket create` 建立 pending Ticket（立即，不詢問，不延後）** |
-| **ANA Ticket 完成前** | **確認 children 或 spawned_tickets 非空（PC-017）** |
+| **ANA Ticket 完成前** | **確認 children 或 spawned_tickets 非空（PC-017）+ AC 覆蓋率 100%（PC-041）** |
 | **派發代理人前** | **派發前複雜度關卡：認知負擔指數 > 10 必須先拆分（W15-004）** |
 
 ---
