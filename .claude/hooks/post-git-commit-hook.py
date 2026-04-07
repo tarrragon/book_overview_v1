@@ -120,10 +120,9 @@ def _get_commit_subject(project_dir: Path, logger) -> str:
 
 def check_changelog_update(input_data: dict, tool_input: dict, logger) -> None:
     """子邏輯 1: 檢查 CHANGELOG 是否更新。"""
-    tool_result = input_data.get("tool_result", {})
     tool_response = input_data.get("tool_response") or {}
-    stdout = tool_result.get("stdout", "") or tool_response.get("stdout", "")
-    stderr = tool_result.get("stderr", "") or tool_response.get("stderr", "")
+    stdout = tool_response.get("stdout", "")
+    stderr = tool_response.get("stderr", "")
 
     if not is_commit_successful(stdout, stderr):
         logger.debug("changelog: commit 失敗，跳過")
