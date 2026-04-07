@@ -90,8 +90,13 @@ STATUS_MAP = {
     "blocked": STATUS_BLOCKED,
 }
 
-# FLAG_TO_STATUS 與 STATUS_MAP 相同（保留別名供 flag 解析使用）
-FLAG_TO_STATUS = STATUS_MAP
+# argparser flag（--pending/--in-progress/--completed/--blocked）對應的狀態值
+FLAG_TO_STATUS = {
+    "pending": STATUS_PENDING,
+    "in_progress": STATUS_IN_PROGRESS,
+    "completed": STATUS_COMPLETED,
+    "blocked": STATUS_BLOCKED,
+}
 
 
 # ============================================================================
@@ -429,7 +434,7 @@ def _execute_list_cross_version(
 
     # 聚合所有版本的結果（不止第一個匹配版本）
     all_filtered = []
-    matched_version = None
+    matched_versions = []
     for ver in candidates:
         all_tickets = list_tickets(ver)
         if not all_tickets:
@@ -442,11 +447,12 @@ def _execute_list_cross_version(
 
         if filtered:
             all_filtered.extend(filtered)
-            matched_version = ver
+            matched_versions.append(ver)
 
     if all_filtered:
         output_format = getattr(args, "format", "table")
-        return _output_tickets(all_filtered, matched_version or default_version, output_format)
+        display_version = ", ".join(matched_versions) if matched_versions else default_version
+        return _output_tickets(all_filtered, display_version, output_format)
 
     print(format_warning(WarningMessages.NO_TICKETS))
     return 0
@@ -502,7 +508,7 @@ def _build_status_filters(args: argparse.Namespace) -> set:
     # 其次檢查舊 flag（向後相容）
     status_filters = set()
     for flag_name, status in FLAG_TO_STATUS.items():
-        if getattr(args, flag_name.replace("_", "_"), False):
+        if getattr(args, flag_name, False):
             status_filters.add(status)
 
     return status_filters
