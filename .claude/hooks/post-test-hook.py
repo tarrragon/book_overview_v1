@@ -36,9 +36,10 @@ from hook_utils import (
 try:
     from lib.common_functions import hook_output, read_hook_input
     from lib.hook_messages import WorkflowMessages, format_message
-except ImportError:
+except ImportError as _import_err:
     # lib 函式僅 pre-fix-evaluation 子邏輯使用，缺失時該子邏輯會被 try-except 捕獲
-    pass
+    import logging as _fallback_logging
+    _fallback_logging.getLogger("post-test-hook").warning("lib import 失敗: %s", _import_err)
 
 # ============================================================================
 # 常數定義

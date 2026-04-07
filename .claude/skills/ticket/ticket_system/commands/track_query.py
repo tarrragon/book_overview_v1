@@ -90,13 +90,8 @@ STATUS_MAP = {
     "blocked": STATUS_BLOCKED,
 }
 
-# 舊 flag 到狀態值映射
-FLAG_TO_STATUS = {
-    "pending": STATUS_PENDING,
-    "in_progress": STATUS_IN_PROGRESS,
-    "completed": STATUS_COMPLETED,
-    "blocked": STATUS_BLOCKED,
-}
+# FLAG_TO_STATUS 與 STATUS_MAP 相同（保留別名供 flag 解析使用）
+FLAG_TO_STATUS = STATUS_MAP
 
 
 # ============================================================================
@@ -284,13 +279,13 @@ def execute_full(args: argparse.Namespace, version: str) -> int:
     # 重建檔案內容（YAML frontmatter + body）
     import yaml
 
-    # 分離特殊欄位
-    body = ticket.pop("_body", "")
-    ticket.pop("_path", None)
+    # 複製 dict 以避免修改原始資料
+    frontmatter = {k: v for k, v in ticket.items() if not k.startswith("_")}
+    body = ticket.get("_body", "")
 
     # 產出 frontmatter
     frontmatter_yaml = yaml.dump(
-        ticket,
+        frontmatter,
         allow_unicode=True,
         default_flow_style=False,
         sort_keys=False,
@@ -300,11 +295,6 @@ def execute_full(args: argparse.Namespace, version: str) -> int:
     full_content = f"---\n{frontmatter_yaml}---\n\n{body}"
 
     print(full_content)
-
-    # 恢復特殊欄位
-    if body:
-        ticket["_body"] = body
-
     return 0
 
 

@@ -76,15 +76,15 @@ DEFAULT_OUTPUT = {
 # 子邏輯 1: CHANGELOG 更新檢查（來自 changelog-update-hook.py）
 # ============================================================================
 
-def _changelog_is_commit_successful(tool_result: dict) -> bool:
-    """判斷 commit 是否成功（changelog 用）。"""
-    stdout = tool_result.get("stdout", "")
-    stderr = tool_result.get("stderr", "")
-    if "nothing to commit" in stdout or "Aborting" in stdout:
+def is_commit_successful(stdout: str, stderr: str = "") -> bool:
+    """判斷 commit 是否成功（統一判斷：排除失敗標記 + 確認成功標記）。"""
+    combined = stdout + stderr
+    if "nothing to commit" in combined or "Aborting" in combined:
         return False
-    if "nothing to commit" in stderr or "Aborting" in stderr:
-        return False
-    return True
+    for marker in COMMIT_SUCCESS_MARKERS:
+        if marker in stdout:
+            return True
+    return False
 
 
 def _changelog_should_skip(tool_input: dict) -> bool:
@@ -121,8 +121,11 @@ def _get_commit_subject(project_dir: Path, logger) -> str:
 def check_changelog_update(input_data: dict, tool_input: dict, logger) -> None:
     """子邏輯 1: 檢查 CHANGELOG 是否更新。"""
     tool_result = input_data.get("tool_result", {})
+    tool_response = input_data.get("tool_response") or {}
+    stdout = tool_result.get("stdout", "") or tool_response.get("stdout", "")
+    stderr = tool_result.get("stderr", "") or tool_response.get("stderr", "")
 
-    if not _changelog_is_commit_successful(tool_result):
+    if not is_commit_successful(stdout, stderr):
         logger.debug("changelog: commit 失敗，跳過")
         return
 
@@ -161,12 +164,6 @@ def _is_git_commit_command(command: str) -> bool:
     return True
 
 
-def _is_commit_successful(stdout: str) -> bool:
-    """判斷 commit 是否成功（handoff 用）。"""
-    for marker in COMMIT_SUCCESS_MARKERS:
-        if marker in stdout:
-            return True
-    return False
 
 
 def _extract_commit_type(command: str) -> str:
@@ -260,7 +257,7 @@ def check_commit_handoff(input_data: dict, tool_input: dict, logger) -> None:
     tool_response = input_data.get("tool_response") or {}
     stdout = tool_response.get("stdout", "")
 
-    if not (_is_git_commit_command(command) and _is_commit_successful(stdout)):
+    if not (_is_git_commit_command(command) and is_commit_successful(stdout)):
         logger.debug("handoff: 非 commit 成功，跳過")
         return
 

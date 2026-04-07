@@ -56,8 +56,6 @@ from .track_query import (
 )
 # 導入欄位操作模組
 from .fields import (
-    execute_get_field,
-    execute_set_field,
     execute_get_who,
     execute_set_who,
     execute_get_what,
