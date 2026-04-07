@@ -585,6 +585,122 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
   })
 
+  describe('Red Phase: Tag 顯示元件', () => {
+    // 測試用 tag 和 category 資料
+    const mockCategories = new Map([
+      ['cat-1', { id: 'cat-1', name: '文學', color: '#e91e63' }],
+      ['cat-2', { id: 'cat-2', name: '科技', color: '#2196f3' }]
+    ])
+
+    const mockTags = new Map([
+      ['tag-1', { id: 'tag-1', name: '小說', categoryId: 'cat-1' }],
+      ['tag-2', { id: 'tag-2', name: '推理', categoryId: 'cat-1' }],
+      ['tag-3', { id: 'tag-3', name: 'AI', categoryId: 'cat-2' }],
+      ['tag-4', { id: 'tag-4', name: '機器學習', categoryId: 'cat-2' }],
+      ['tag-5', { id: 'tag-5', name: '深度學習', categoryId: 'cat-2' }]
+    ])
+
+    test('resolveTagsForDisplay 應正確解析 tagIds 為顯示資料', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      const result = controller.resolveTagsForDisplay(
+        ['tag-1', 'tag-3'],
+        mockTags,
+        mockCategories
+      )
+
+      expect(result).toHaveLength(2)
+      expect(result[0]).toEqual({
+        tagId: 'tag-1',
+        tagName: '小說',
+        categoryName: '文學',
+        categoryColor: '#e91e63'
+      })
+      expect(result[1]).toEqual({
+        tagId: 'tag-3',
+        tagName: 'AI',
+        categoryName: '科技',
+        categoryColor: '#2196f3'
+      })
+    })
+
+    test('renderBooksTable 應為每本書渲染 tag chips（含 category 色彩）', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+      controller.tagMap = mockTags
+      controller.categoryMap = mockCategories
+
+      const books = [
+        { id: '1', title: '測試書', tags: ['readmoo'], progress: 50, readingStatus: 'reading', tagIds: ['tag-1', 'tag-3'] }
+      ]
+
+      controller.renderBooksTable(books)
+
+      const tableBody = document.getElementById('tableBody')
+      const tagChips = tableBody.querySelectorAll('.tag-chip')
+      expect(tagChips.length).toBe(2)
+      expect(tagChips[0].textContent).toContain('小說')
+      expect(tagChips[0].style.color).toBe('rgb(233, 30, 99)')
+      expect(tagChips[1].textContent).toContain('AI')
+    })
+
+    test('tag 超過 3 個時應顯示前 3 個 + +N 摺疊指示器', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+      controller.tagMap = mockTags
+      controller.categoryMap = mockCategories
+
+      const books = [
+        { id: '1', title: '多標籤書', tags: ['readmoo'], progress: 50, readingStatus: 'reading', tagIds: ['tag-1', 'tag-2', 'tag-3', 'tag-4', 'tag-5'] }
+      ]
+
+      controller.renderBooksTable(books)
+
+      const tableBody = document.getElementById('tableBody')
+      const tagChips = tableBody.querySelectorAll('.tag-chip:not(.tag-chip--more)')
+      const moreChip = tableBody.querySelector('.tag-chip--more')
+
+      expect(tagChips.length).toBe(3)
+      expect(moreChip).not.toBeNull()
+      expect(moreChip.textContent).toContain('+2')
+    })
+
+    test('無 tag 書籍應顯示灰色「未分類」', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+      controller.tagMap = mockTags
+      controller.categoryMap = mockCategories
+
+      const books = [
+        { id: '1', title: '無標籤書', tags: ['readmoo'], progress: 50, readingStatus: 'reading', tagIds: [] }
+      ]
+
+      controller.renderBooksTable(books)
+
+      const tableBody = document.getElementById('tableBody')
+      const bookTags = tableBody.querySelector('.book-tags')
+      expect(bookTags).not.toBeNull()
+      expect(bookTags.textContent).toContain('未分類')
+    })
+
+    test('resolveTagsForDisplay 應跳過無效的 tagIds', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      const result = controller.resolveTagsForDisplay(
+        ['tag-1', 'invalid-id', 'tag-3'],
+        mockTags,
+        mockCategories
+      )
+
+      // 無效 ID 被跳過，只回傳有效的 2 個
+      expect(result).toHaveLength(2)
+      expect(result[0].tagName).toBe('小說')
+      expect(result[1].tagName).toBe('AI')
+    })
+  })
+
   describe('🔴 Red Phase: EventHandler 基底類別整合', () => {
     test('應該正確繼承 EventHandler', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')

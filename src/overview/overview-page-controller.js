@@ -49,9 +49,15 @@ const CONSTANTS = {
 
   // 表格配置
   TABLE: {
-    COLUMNS: 5,
+    COLUMNS: 6,
     COVER_SIZE: { WIDTH: 50, HEIGHT: 75 },
     DEFAULT_COVER: '📚'
+  },
+
+  // Tag 顯示配置
+  TAG_DISPLAY: {
+    MAX_VISIBLE: 3,
+    EMPTY_LABEL: '未分類'
   },
 
   // 事件配置
@@ -104,6 +110,8 @@ class OverviewPageController extends EventHandlerClass {
     this.isLoading = false
     this.searchTerm = ''
     this.statusFilter = null
+    this.tagMap = new Map()
+    this.categoryMap = new Map()
 
     // 初始化 DOM 元素引用
     this.initializeElements()
@@ -430,6 +438,97 @@ class OverviewPageController extends EventHandlerClass {
     this.updateDisplay()
   }
 
+  // ========== Tag 顯示方法 ==========
+
+  /**
+   * 批量解析 tagIds 為顯示用資料
+   * @param {string[]} tagIds - 書籍的 tagIds
+   * @param {Map<string, Object>} tagMap - tag ID -> tag 物件的查找表
+   * @param {Map<string, Object>} categoryMap - category ID -> category 物件的查找表
+   * @returns {Array<{ tagId: string, tagName: string, categoryName: string, categoryColor: string }>}
+   */
+  resolveTagsForDisplay (tagIds, tagMap, categoryMap) {
+    if (!Array.isArray(tagIds)) return []
+
+    return tagIds.reduce((result, tagId) => {
+      const tag = tagMap.get(tagId)
+      if (!tag) return result
+
+      const category = categoryMap.get(tag.categoryId) || {}
+      result.push({
+        tagId,
+        tagName: tag.name,
+        categoryName: category.name || '',
+        categoryColor: category.color || ''
+      })
+      return result
+    }, [])
+  }
+
+  /**
+   * 建立書籍 tag 欄位 DOM 元素
+   * @private
+   * @param {string[]} tagIds - 書籍的 tagIds
+   * @returns {HTMLElement} td 元素
+   */
+  _createTagCell (tagIds) {
+    const td = this.document.createElement('td')
+    td.className = 'book-tags'
+    const resolved = this.resolveTagsForDisplay(
+      tagIds, this.tagMap || new Map(), this.categoryMap || new Map()
+    )
+
+    if (resolved.length === 0) {
+      td.innerHTML = `<span class="book-tags-empty">${CONSTANTS.TAG_DISPLAY.EMPTY_LABEL}</span>`
+      return td
+    }
+
+    this._appendTagChips(td, resolved)
+    return td
+  }
+
+  /**
+   * 將 tag chips 加入容器元素（含 +N 摺疊邏輯）
+   * @private
+   * @param {HTMLElement} container - 容器元素
+   * @param {Array<Object>} resolvedTags - resolveTagsForDisplay 回傳值
+   */
+  _appendTagChips (container, resolvedTags) {
+    const { MAX_VISIBLE } = CONSTANTS.TAG_DISPLAY
+    const visible = resolvedTags.slice(0, MAX_VISIBLE)
+    const remaining = resolvedTags.length - MAX_VISIBLE
+
+    visible.forEach(tag => {
+      const chip = this._createTagChipElement(tag)
+      container.appendChild(chip)
+    })
+
+    if (remaining > 0) {
+      const more = this.document.createElement('span')
+      more.className = 'tag-chip tag-chip--more'
+      more.title = `還有 ${remaining} 個標籤`
+      more.textContent = `+${remaining}`
+      container.appendChild(more)
+    }
+  }
+
+  /**
+   * 建立單一 tag chip DOM 元素
+   * @private
+   * @param {Object} tag - 解析後的 tag 資料
+   * @returns {HTMLElement} span 元素
+   */
+  _createTagChipElement (tag) {
+    const chip = this.document.createElement('span')
+    chip.className = 'tag-chip'
+    chip.style.backgroundColor = `${tag.categoryColor}20`
+    chip.style.color = tag.categoryColor
+    chip.style.border = `1px solid ${tag.categoryColor}40`
+    chip.title = `${tag.categoryName}: ${tag.tagName}`
+    chip.textContent = tag.tagName
+    return chip
+  }
+
   /**
    * 更新頁面顯示
    *
@@ -534,6 +633,9 @@ class OverviewPageController extends EventHandlerClass {
       <td>${rowData.progress}</td>
       <td>${rowData.status}</td>
     `
+
+    const tagCell = this._createTagCell(book.tagIds || [])
+    row.appendChild(tagCell)
 
     return row
   }
