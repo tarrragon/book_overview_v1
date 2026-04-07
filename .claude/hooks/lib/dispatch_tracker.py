@@ -28,6 +28,10 @@ from typing import Dict, List, Optional
 STATE_FILE_RELATIVE = ".claude/dispatch-active.json"
 LOCK_FILE_RELATIVE = ".claude/dispatch-active.lock"
 
+# 記憶體快取：避免同一 Hook 執行中重複讀取 JSON 檔案
+# 使用檔案 mtime 判斷是否需要重新讀取（W8-007）
+_state_cache: Dict = {"data": None, "mtime": 0.0}
+
 
 def get_state_file_path(project_root: Path) -> Path:
     """取得狀態檔路徑"""
@@ -49,15 +53,26 @@ def _state_lock(project_root: Path):
 
 
 def _read_state(project_root: Path) -> Dict:
-    """讀取狀態檔。檔案不存在或格式錯誤時回傳空結構。"""
+    """讀取狀態檔。檔案不存在或格式錯誤時回傳空結構。
+
+    使用檔案 mtime 驅動的記憶體快取：檔案未變更時直接回傳快取，
+    避免同一 session 中多次 Edit/Write 觸發重複 JSON 解析（W8-007）。
+    """
     state_file = get_state_file_path(project_root)
     if not state_file.exists():
         return {"dispatches": []}
     try:
+        current_mtime = state_file.stat().st_mtime
+        if _state_cache["data"] is not None and _state_cache["mtime"] == current_mtime:
+            return _state_cache["data"]
+
         content = state_file.read_text(encoding="utf-8")
         data = json.loads(content)
         if not isinstance(data, dict) or "dispatches" not in data:
             return {"dispatches": []}
+
+        _state_cache["data"] = data
+        _state_cache["mtime"] = current_mtime
         return data
     except (json.JSONDecodeError, OSError) as e:
         print(f"[dispatch_tracker] _read_state: 狀態檔讀取失敗 ({state_file}): {e}", file=sys.stderr)
@@ -65,13 +80,16 @@ def _read_state(project_root: Path) -> Dict:
 
 
 def _write_state(project_root: Path, state: Dict) -> None:
-    """寫入狀態檔。自動建立父目錄。"""
+    """寫入狀態檔。自動建立父目錄。寫入後使快取失效。"""
     state_file = get_state_file_path(project_root)
     state_file.parent.mkdir(parents=True, exist_ok=True)
     state_file.write_text(
         json.dumps(state, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
+    # 寫入後使快取失效，下次 _read_state 會重新讀取（W8-007）
+    _state_cache["data"] = None
+    _state_cache["mtime"] = 0.0
 
 
 def record_dispatch(
