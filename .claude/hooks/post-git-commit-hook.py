@@ -1,0 +1,368 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.11"
+# dependencies = []
+# ///
+
+"""
+Git Commit 後置 Hook (PostToolUse) - 合併版
+
+合併以下 3 個 Hook：
+1. changelog-update-hook.py — git commit 後檢查 CHANGELOG 是否更新
+2. commit-handoff-hook.py — git commit 後輸出 handoff 提醒
+3. post-commit-fetch-hook.py — git commit 後背景 fetch
+
+觸發時機: PostToolUse (Bash: git commit)
+"""
+
+import json
+import os
+import re
+import subprocess
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Optional, Dict, List
+
+sys.path.insert(0, str(Path(__file__).parent))
+
+from hook_utils import (
+    setup_hook_logging,
+    run_hook_safely,
+    read_json_from_stdin,
+    run_git,
+    get_project_root,
+    get_current_version_from_todolist,
+    is_subagent_environment,
+)
+from lib.hook_messages import AskUserQuestionMessages
+from lib.ask_user_question_reminders import AskUserQuestionReminders
+
+# ============================================================================
+# 常數定義
+# ============================================================================
+
+EXIT_SUCCESS = 0
+
+# --- changelog 子邏輯常數 ---
+CHANGELOG_SKIP_PREFIXES = (
+    "chore", "docs", "style", "ci", "test",
+    "refactor(hooks)", "refactor(rules)", "refactor(skills)",
+)
+
+# --- handoff 子邏輯常數 ---
+EXCLUDED_COMMAND_PATTERNS = [
+    "git log", "git show", "git diff", "git status",
+    "git commit --amend",
+]
+
+SKIP_SCENE16_COMMIT_PREFIXES = frozenset({
+    "docs", "chore", "style", "revert", "test", "ci", "build",
+})
+
+COMMIT_SUCCESS_MARKERS = [
+    "files changed", "file changed",
+    "insertions(+)", "deletions(-)", "create mode",
+]
+
+DEFAULT_OUTPUT = {
+    "hookSpecificOutput": {
+        "hookEventName": "PostToolUse"
+    }
+}
+
+
+# ============================================================================
+# 子邏輯 1: CHANGELOG 更新檢查（來自 changelog-update-hook.py）
+# ============================================================================
+
+def _changelog_is_commit_successful(tool_result: dict) -> bool:
+    """判斷 commit 是否成功（changelog 用）。"""
+    stdout = tool_result.get("stdout", "")
+    stderr = tool_result.get("stderr", "")
+    if "nothing to commit" in stdout or "Aborting" in stdout:
+        return False
+    if "nothing to commit" in stderr or "Aborting" in stderr:
+        return False
+    return True
+
+
+def _changelog_should_skip(tool_input: dict) -> bool:
+    """判斷是否應跳過 CHANGELOG 提醒。"""
+    command = tool_input.get("command", "")
+    if os.environ.get("VERSION_RELEASE_SCRIPT") == "1":
+        return True
+    for prefix in CHANGELOG_SKIP_PREFIXES:
+        if prefix in command.lower():
+            return True
+    return False
+
+
+def _changelog_in_commit(project_dir: Path, logger) -> bool:
+    """檢查最近一次 commit 是否包含 CHANGELOG.md 變更。"""
+    output = run_git(
+        ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"],
+        cwd=project_dir, timeout=5, logger=logger,
+    )
+    if output:
+        return "CHANGELOG.md" in output.split("\n")
+    return False
+
+
+def _get_commit_subject(project_dir: Path, logger) -> str:
+    """取得最近一次 commit 的 subject。"""
+    output = run_git(
+        ["git", "--no-optional-locks", "log", "-1", "--format=%s"],
+        cwd=project_dir, timeout=5, logger=logger,
+    )
+    return output if output else ""
+
+
+def check_changelog_update(input_data: dict, tool_input: dict, logger) -> None:
+    """子邏輯 1: 檢查 CHANGELOG 是否更新。"""
+    tool_result = input_data.get("tool_result", {})
+
+    if not _changelog_is_commit_successful(tool_result):
+        logger.debug("changelog: commit 失敗，跳過")
+        return
+
+    if _changelog_should_skip(tool_input):
+        logger.debug("changelog: 維護性質 commit，跳過")
+        return
+
+    project_dir = get_project_root()
+
+    if _changelog_in_commit(project_dir, logger):
+        logger.debug("changelog: CHANGELOG.md 已在 commit 中更新")
+        return
+
+    subject = _get_commit_subject(project_dir, logger)
+    message = (
+        f"[CHANGELOG Reminder] commit \"{subject}\" 未包含 CHANGELOG.md 更新。\n"
+        f"  如果此 commit 包含使用者可感知的變更（feat/fix），"
+        f"建議在版本發布前更新 CHANGELOG.md。\n"
+        f"  使用 /version-release 流程可自動處理。"
+    )
+    print(message)
+    logger.info(message)
+
+
+# ============================================================================
+# 子邏輯 2: Commit Handoff 提醒（來自 commit-handoff-hook.py）
+# ============================================================================
+
+def _is_git_commit_command(command: str) -> bool:
+    """判斷是否為 git commit 命令（排除 --amend 等）。"""
+    if "git commit" not in command:
+        return False
+    for excluded in EXCLUDED_COMMAND_PATTERNS:
+        if excluded in command:
+            return False
+    return True
+
+
+def _is_commit_successful(stdout: str) -> bool:
+    """判斷 commit 是否成功（handoff 用）。"""
+    for marker in COMMIT_SUCCESS_MARKERS:
+        if marker in stdout:
+            return True
+    return False
+
+
+def _extract_commit_type(command: str) -> str:
+    """從 git commit 命令中提取 conventional commit 類型。"""
+    match = re.search(r'-m\s+["\']([a-z]+)(?:\([^)]*\))?:', command)
+    if match:
+        return match.group(1).lower()
+    match = re.search(r'\n\s*([a-z]+)(?:\([^)]*\))?:', command)
+    if match:
+        return match.group(1).lower()
+    return ""
+
+
+def _scan_wave_tickets(
+    project_dir: Path, version: str, logger
+) -> List[Dict[str, Optional[str]]]:
+    """掃描版本目錄中的 Ticket 檔案。"""
+    tickets_dir = project_dir / "docs" / "work-logs" / f"v{version}" / "tickets"
+    if not tickets_dir.exists():
+        return []
+
+    tickets = []
+    try:
+        for ticket_file in tickets_dir.glob("*.md"):
+            try:
+                content = ticket_file.read_text(encoding="utf-8")
+                wave = None
+                status = None
+                if content.startswith("---"):
+                    frontmatter_end = content.find("---", 3)
+                    if frontmatter_end > 0:
+                        frontmatter = content[:frontmatter_end]
+                        wave_match = re.search(r"wave:\s*(\d+)", frontmatter)
+                        if wave_match:
+                            wave = wave_match.group(1)
+                        status_match = re.search(r"status:\s*(\S+)", frontmatter)
+                        if status_match:
+                            status = status_match.group(1)
+                tickets.append({"wave": wave, "status": status, "file": ticket_file.name})
+            except Exception as e:
+                logger.debug(f"無法解析 Ticket 檔案 {ticket_file.name}: {e}")
+                tickets.append({"wave": None, "status": None, "file": ticket_file.name})
+    except Exception as e:
+        logger.warning(f"掃描 Ticket 目錄失敗: {e}")
+    return tickets
+
+
+def _detect_wave_completion(logger) -> bool:
+    """偵測是否為情境 C（當前 Wave 完成）。"""
+    try:
+        project_dir = get_project_root()
+        current_version = get_current_version_from_todolist(project_dir, logger)
+        if not current_version:
+            return False
+
+        tickets = _scan_wave_tickets(project_dir, current_version, logger)
+        if not tickets:
+            return False
+
+        current_wave = None
+        for ticket in tickets:
+            if ticket.get("status") == "in_progress":
+                current_wave = ticket.get("wave")
+                break
+
+        if current_wave is None:
+            return False
+
+        pending_count = sum(
+            1 for t in tickets
+            if t.get("wave") == current_wave and t.get("status") == "pending"
+        )
+
+        if pending_count == 0:
+            logger.info(f"偵測到情境 C：Wave {current_wave} 完成")
+            return True
+        return False
+    except Exception as e:
+        logger.warning(f"偵測 Wave 完成狀態時發生錯誤: {e}")
+        return False
+
+
+def check_commit_handoff(input_data: dict, tool_input: dict, logger) -> None:
+    """子邏輯 2: Commit 後輸出 handoff 提醒。"""
+    # subagent 環境跳過
+    if is_subagent_environment(input_data):
+        logger.info("偵測到 subagent 環境，跳過 handoff 提醒")
+        return
+
+    command = tool_input.get("command", "")
+    tool_response = input_data.get("tool_response") or {}
+    stdout = tool_response.get("stdout", "")
+
+    if not (_is_git_commit_command(command) and _is_commit_successful(stdout)):
+        logger.debug("handoff: 非 commit 成功，跳過")
+        return
+
+    commit_type = _extract_commit_type(command)
+    should_skip_scene16 = commit_type in SKIP_SCENE16_COMMIT_PREFIXES
+
+    if should_skip_scene16:
+        reminder = AskUserQuestionMessages.COMMIT_HANDOFF_SKIP16_REMINDER
+    else:
+        reminder = AskUserQuestionMessages.COMMIT_HANDOFF_REMINDER
+
+    is_wave_completion = _detect_wave_completion(logger)
+    if is_wave_completion:
+        reminder += "\n" + AskUserQuestionReminders.WAVE_COMPLETION_REMINDER
+
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PostToolUse",
+            "additionalContext": reminder
+        }
+    }
+    print(json.dumps(output, ensure_ascii=False, indent=2))
+    logger.info(f"handoff: 輸出提醒（type={commit_type}, wave_complete={is_wave_completion}）")
+
+
+# ============================================================================
+# 子邏輯 3: 背景 Fetch（來自 post-commit-fetch-hook.py）
+# ============================================================================
+
+def run_background_fetch(input_data: dict, tool_input: dict, logger) -> None:
+    """子邏輯 3: git commit 後同步 fetch。"""
+    stdout = input_data.get("stdout", "")
+    tool_response = input_data.get("tool_response") or {}
+    response_stdout = tool_response.get("stdout", "")
+
+    # 合併兩個可能的 stdout 來源
+    combined = stdout + response_stdout
+
+    if "create mode" not in combined and "] " not in combined:
+        logger.debug("fetch: 未偵測到 commit 成功標記，跳過")
+        return
+
+    try:
+        subprocess.run(
+            ["git", "fetch", "--quiet", "--all"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=4,
+        )
+        logger.debug("fetch: git fetch 完成")
+    except subprocess.TimeoutExpired:
+        print(
+            "[WARNING] git fetch timeout after 4s, process killed",
+            file=sys.stderr,
+        )
+        logger.warning("fetch: git fetch 超時（4s）")
+
+
+# ============================================================================
+# 主程式
+# ============================================================================
+
+def main() -> int:
+    """主入口點：git commit 後依序執行 3 個子邏輯。"""
+    logger = setup_hook_logging("post-git-commit-hook")
+
+    input_data = read_json_from_stdin(logger)
+    if input_data is None:
+        return EXIT_SUCCESS
+
+    tool_name = input_data.get("tool_name", "")
+    if tool_name != "Bash":
+        return EXIT_SUCCESS
+
+    tool_input = input_data.get("tool_input") or {}
+    command = tool_input.get("command", "")
+
+    if "git commit" not in command:
+        return EXIT_SUCCESS
+
+    logger.info(f"偵測到 git commit 命令，開始執行子邏輯")
+
+    # 子邏輯 1: CHANGELOG 檢查
+    try:
+        check_changelog_update(input_data, tool_input, logger)
+    except Exception as e:
+        logger.warning(f"changelog 子邏輯失敗: {e}")
+
+    # 子邏輯 2: Handoff 提醒
+    try:
+        check_commit_handoff(input_data, tool_input, logger)
+    except Exception as e:
+        logger.warning(f"handoff 子邏輯失敗: {e}")
+
+    # 子邏輯 3: 背景 Fetch
+    try:
+        run_background_fetch(input_data, tool_input, logger)
+    except Exception as e:
+        logger.warning(f"fetch 子邏輯失敗: {e}")
+
+    return EXIT_SUCCESS
+
+
+if __name__ == "__main__":
+    sys.exit(run_hook_safely(main, "post-git-commit-hook"))
