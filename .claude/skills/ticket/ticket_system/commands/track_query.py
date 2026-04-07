@@ -376,6 +376,10 @@ def execute_version(args: argparse.Namespace, current_version: str) -> int:
 
 def execute_list(args: argparse.Namespace, version: str) -> int:
     """列出 Tickets，支援狀態篩選、Wave 篩選和多種輸出格式"""
+    # --version all: 跨版本查詢所有 Tickets（W9-002）
+    if version == "all":
+        return _execute_list_all_versions(args)
+
     # 當 --wave 指定但未明確指定 --version 時，搜尋所有 active 版本
     wave_value = getattr(args, "wave", None)
     explicit_version = getattr(args, "version", None)
@@ -384,6 +388,41 @@ def execute_list(args: argparse.Namespace, version: str) -> int:
         return _execute_list_cross_version(args, version, wave_value)
 
     return _execute_list_single_version(args, version, wave_value)
+
+
+def _execute_list_all_versions(args: argparse.Namespace) -> int:
+    """跨所有版本列出 Tickets（--version all，W9-002）"""
+    from ticket_system.lib.version import get_active_versions
+
+    active_versions = get_active_versions()
+    if not active_versions:
+        print(format_warning(WarningMessages.NO_TICKETS))
+        return 0
+
+    status_filters = _build_status_filters(args)
+    wave_value = getattr(args, "wave", None)
+    output_format = getattr(args, "format", "table")
+    found_any = False
+
+    for ver in sorted(active_versions):
+        ver_clean = ver.lstrip("v")
+        all_tickets = list_tickets(ver_clean)
+        if not all_tickets:
+            continue
+
+        filtered = all_tickets
+        if status_filters:
+            filtered = [t for t in filtered if t.get("status") in status_filters]
+        if wave_value is not None:
+            filtered = [t for t in filtered if t.get("wave") == wave_value]
+
+        if filtered:
+            found_any = True
+            _output_tickets(filtered, ver_clean, output_format)
+
+    if not found_any:
+        print(format_warning(WarningMessages.NO_TICKETS))
+    return 0
 
 
 def _execute_list_cross_version(
@@ -542,3 +581,73 @@ def _output_table(tickets: list, version: str) -> int:
         print(formatted)
 
     return 0
+
+
+def execute_search(args: argparse.Namespace, version: str) -> int:
+    """搜尋 Tickets — 依 UC/Spec/Prop 引用或檔案路徑（W9-002）"""
+    ref_query = getattr(args, "ref", None)
+    file_query = getattr(args, "file_path", None)
+
+    if not ref_query and not file_query:
+        print(format_error("必須指定 --ref 或 --file 搜尋條件"))
+        return 1
+
+    from ticket_system.lib.version import get_active_versions
+
+    # 決定搜尋範圍
+    if version == "all":
+        versions = [v.lstrip("v") for v in get_active_versions()]
+    else:
+        versions = [version]
+
+    output_format = getattr(args, "format", "table")
+    matched_tickets = []
+
+    for ver in sorted(versions):
+        all_tickets = list_tickets(ver)
+        if not all_tickets:
+            continue
+
+        for ticket in all_tickets:
+            if _ticket_matches_search(ticket, ref_query, file_query):
+                matched_tickets.append(ticket)
+
+    if not matched_tickets:
+        search_term = ref_query or file_query
+        print(format_warning(f"未找到匹配 '{search_term}' 的 Tickets"))
+        return 0
+
+    # 輸出結果
+    print(f"[Search] 找到 {len(matched_tickets)} 個匹配的 Tickets")
+    print(SEPARATOR_CHAR * SEPARATOR_WIDTH)
+    formatted = format_ticket_list(matched_tickets, include_who=True)
+    if formatted:
+        print(formatted)
+
+    return 0
+
+
+def _ticket_matches_search(
+    ticket: dict, ref_query: Optional[str], file_query: Optional[str]
+) -> bool:
+    """檢查 Ticket 是否匹配搜尋條件"""
+    if ref_query:
+        ref_upper = ref_query.upper()
+        # 搜尋 where.files、why、what、title 中的引用
+        where = ticket.get("where", {})
+        files = where.get("files", []) if isinstance(where, dict) else []
+        searchable_text = " ".join([
+            ticket.get("title", ""),
+            ticket.get("what", ""),
+            ticket.get("why", ""),
+            " ".join(str(f) for f in files),
+        ]).upper()
+        return ref_upper in searchable_text
+
+    if file_query:
+        where = ticket.get("where", {})
+        files = where.get("files", []) if isinstance(where, dict) else []
+        file_lower = file_query.lower()
+        return any(file_lower in str(f).lower() for f in files)
+
+    return False
