@@ -1,3 +1,18 @@
+---
+id: SPEC-SEARCH-TAG
+title: "SearchEngine Tag-based 查詢適配規格"
+status: approved
+source_proposal: PROP-007
+created: "2026-04-05"
+updated: "2026-04-05"
+version: "1.0.0"
+owner: ""
+domain: extraction
+subdomain: search
+related_usecases: [UC-04]
+related_specs: []
+---
+
 # SearchEngine Tag-based 查詢適配規格
 
 **Ticket**: 0.17.2-W1-002

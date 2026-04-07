@@ -1,3 +1,18 @@
+---
+id: SPEC-EXPORT-V2
+title: "Interchange Format v2 匯出規格"
+status: approved
+source_proposal: PROP-007
+created: "2026-04-05"
+updated: "2026-04-05"
+version: "2.0.0"
+owner: ""
+domain: data-management
+subdomain: export
+related_usecases: [UC-02]
+related_specs: []
+---
+
 # Interchange Format v2 匯出規格
 
 **版本**: 2.0.0

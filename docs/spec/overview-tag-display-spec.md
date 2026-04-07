@@ -1,3 +1,18 @@
+---
+id: SPEC-OVERVIEW-TAG
+title: "Overview Page Tag-based 顯示適配規格"
+status: approved
+source_proposal: PROP-007
+created: "2026-04-05"
+updated: "2026-04-05"
+version: "1.0.0"
+owner: ""
+domain: page
+subdomain: overview
+related_usecases: [UC-05]
+related_specs: []
+---
+
 # Overview Page Tag-based 顯示適配規格
 
 > **Ticket**: 0.17.2-W1-003
