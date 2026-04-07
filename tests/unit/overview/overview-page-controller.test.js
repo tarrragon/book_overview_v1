@@ -505,6 +505,86 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
   })
 
+  describe('Red Phase: readingStatus 篩選 bar 和 badge', () => {
+    // 測試用書籍資料，涵蓋全部 6 種 readingStatus
+    const mockBooksWithStatus = [
+      { id: '1', title: '未讀書籍', tags: ['readmoo'], progress: 0, readingStatus: 'unread' },
+      { id: '2', title: '閱讀中書籍', tags: ['readmoo'], progress: 50, readingStatus: 'reading' },
+      { id: '3', title: '已完成書籍', tags: ['readmoo'], progress: 100, readingStatus: 'finished' },
+      { id: '4', title: '待讀書籍', tags: ['readmoo'], progress: 0, readingStatus: 'queued' },
+      { id: '5', title: '已放棄書籍', tags: ['readmoo'], progress: 30, readingStatus: 'abandoned' },
+      { id: '6', title: '參考書籍', tags: ['readmoo'], progress: 10, readingStatus: 'reference' }
+    ]
+
+    test('應該在初始化時設定 statusFilter 為 null（全部）', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      expect(controller.statusFilter).toBeNull()
+    })
+
+    test('應該能按 readingStatus 篩選書籍（單一狀態）', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+      controller.currentBooks = mockBooksWithStatus
+
+      // 篩選 reading 狀態
+      controller.setStatusFilter('reading')
+
+      expect(controller.filteredBooks.length).toBe(1)
+      expect(controller.filteredBooks[0].readingStatus).toBe('reading')
+    })
+
+    test('應該能清除狀態篩選回到全部', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+      controller.currentBooks = mockBooksWithStatus
+
+      // 先篩選
+      controller.setStatusFilter('finished')
+      expect(controller.filteredBooks.length).toBe(1)
+
+      // 清除篩選回到全部
+      controller.setStatusFilter(null)
+      expect(controller.filteredBooks.length).toBe(6)
+    })
+
+    test('應該能同時套用文字搜尋和狀態篩選', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+      controller.currentBooks = [
+        ...mockBooksWithStatus,
+        { id: '7', title: '另一本閱讀中', tags: ['readmoo'], progress: 20, readingStatus: 'reading' }
+      ]
+
+      // 先設定狀態篩選為 reading
+      controller.setStatusFilter('reading')
+      expect(controller.filteredBooks.length).toBe(2)
+
+      // 再加上文字搜尋
+      controller.handleSearchInput('另一本')
+      expect(controller.filteredBooks.length).toBe(1)
+      expect(controller.filteredBooks[0].title).toBe('另一本閱讀中')
+    })
+
+    test('renderBooksTable 應該為每本書顯示 readingStatus badge', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      const books = [
+        { id: '1', title: '測試書', tags: ['readmoo'], progress: 50, readingStatus: 'reading' }
+      ]
+
+      controller.renderBooksTable(books)
+
+      const tableBody = document.getElementById('tableBody')
+      const statusCell = tableBody.querySelector('.reading-status-badge')
+      expect(statusCell).not.toBeNull()
+      expect(statusCell.textContent).toContain('reading')
+      expect(statusCell.dataset.status).toBe('reading')
+    })
+  })
+
   describe('🔴 Red Phase: EventHandler 基底類別整合', () => {
     test('應該正確繼承 EventHandler', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')

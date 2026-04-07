@@ -103,6 +103,7 @@ class OverviewPageController extends EventHandlerClass {
     this.filteredBooks = []
     this.isLoading = false
     this.searchTerm = ''
+    this.statusFilter = null
 
     // 初始化 DOM 元素引用
     this.initializeElements()
@@ -369,6 +370,21 @@ class OverviewPageController extends EventHandlerClass {
   }
 
   /**
+   * 設定 readingStatus 篩選條件
+   *
+   * @param {string|null} status - readingStatus 值，null 表示顯示全部
+   *
+   * 業務規則：
+   * - 設定特定狀態時只顯示該狀態的書籍
+   * - 設定 null 時清除篩選顯示全部
+   * - 與文字搜尋條件同時套用
+   */
+  setStatusFilter (status) {
+    this.statusFilter = status
+    this.applyCurrentFilter()
+  }
+
+  /**
    * 應用當前篩選條件
    *
    * 負責功能：
@@ -377,10 +393,15 @@ class OverviewPageController extends EventHandlerClass {
    * - 觸發顯示更新
    */
   applyCurrentFilter () {
-    // 搜尋
+    // 狀態篩選
+    const statusFiltered = this.statusFilter
+      ? this.currentBooks.filter(book => book.readingStatus === this.statusFilter)
+      : [...this.currentBooks]
+
+    // 文字搜尋
     const base = !this.searchTerm
-      ? [...this.currentBooks]
-      : this.currentBooks.filter(book => book.title && book.title.toLowerCase().includes(this.searchTerm))
+      ? statusFiltered
+      : statusFiltered.filter(book => book.title && book.title.toLowerCase().includes(this.searchTerm))
 
     // 排序
     const sortKey = this.elements.sortSelect ? this.elements.sortSelect.value : 'title'
@@ -911,6 +932,7 @@ class OverviewPageController extends EventHandlerClass {
    */
   _formatBookRowData (book) {
     const { WIDTH, HEIGHT } = CONSTANTS.TABLE.COVER_SIZE
+    const readingStatus = book.readingStatus || ''
 
     return {
       cover: book.cover
@@ -919,7 +941,9 @@ class OverviewPageController extends EventHandlerClass {
       title: book.title || '未知書名',
       source: this._formatBookSource(book),
       progress: book.progress ? `${book.progress}%` : '-',
-      status: book.status || '未知'
+      status: readingStatus
+        ? `<span class="reading-status-badge" data-status="${readingStatus}">${readingStatus}</span>`
+        : (book.status || '未知')
     }
   }
 
