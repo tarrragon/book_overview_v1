@@ -18,6 +18,7 @@ Ticket: 0.17.2-W7-004
 
 import json
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -41,7 +42,8 @@ def _read_state(project_root: Path) -> Dict:
         if not isinstance(data, dict) or "dispatches" not in data:
             return {"dispatches": []}
         return data
-    except (json.JSONDecodeError, OSError):
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"[dispatch_tracker] _read_state: 狀態檔讀取失敗 ({state_file}): {e}", file=sys.stderr)
         return {"dispatches": []}
 
 
@@ -158,8 +160,8 @@ def cleanup_expired(project_root: Path, max_age_hours: int = 4) -> int:
             if age_hours > max_age_hours:
                 removed_count += 1
                 continue
-        except (ValueError, TypeError):
-            # 無法解析時間，視為過期清理
+        except (ValueError, TypeError) as e:
+            print(f"[dispatch_tracker] cleanup_expired: 時間解析失敗 (dispatched_at='{dispatched_at_str}'): {e}", file=sys.stderr)
             removed_count += 1
             continue
         kept.append(dispatch)
@@ -190,7 +192,8 @@ def detect_orphan_branches(project_root: Path) -> List[str]:
         )
         if result.returncode != 0:
             return []
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+        print(f"[dispatch_tracker] detect_orphan_branches: git worktree list 失敗: {e}", file=sys.stderr)
         return []
 
     # 解析 worktree list --porcelain 輸出
