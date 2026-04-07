@@ -16,19 +16,36 @@ Active Dispatch Tracker 共用模組
 Ticket: 0.17.2-W7-004
 """
 
+import fcntl
 import json
 import subprocess
 import sys
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
 STATE_FILE_RELATIVE = ".claude/dispatch-active.json"
+LOCK_FILE_RELATIVE = ".claude/dispatch-active.lock"
 
 
 def get_state_file_path(project_root: Path) -> Path:
     """取得狀態檔路徑"""
     return project_root / STATE_FILE_RELATIVE
+
+
+@contextmanager
+def _state_lock(project_root: Path):
+    """排他鎖保護 read-modify-write 週期，防止並行寫入資料遺失。"""
+    lock_file = project_root / LOCK_FILE_RELATIVE
+    lock_file.parent.mkdir(parents=True, exist_ok=True)
+    fd = lock_file.open("w")
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        yield
+    finally:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        fd.close()
 
 
 def _read_state(project_root: Path) -> Dict:
@@ -73,16 +90,17 @@ def record_dispatch(
         files: 代理人處理的檔案清單
         branch_name: worktree 分支名稱（用於 orphan 偵測精確比對）
     """
-    state = _read_state(project_root)
-    entry = {
-        "agent_description": agent_description,
-        "ticket_id": ticket_id,
-        "files": files or [],
-        "branch_name": branch_name,
-        "dispatched_at": datetime.now(timezone.utc).isoformat(),
-    }
-    state["dispatches"].append(entry)
-    _write_state(project_root, state)
+    with _state_lock(project_root):
+        state = _read_state(project_root)
+        entry = {
+            "agent_description": agent_description,
+            "ticket_id": ticket_id,
+            "files": files or [],
+            "branch_name": branch_name,
+            "dispatched_at": datetime.now(timezone.utc).isoformat(),
+        }
+        state["dispatches"].append(entry)
+        _write_state(project_root, state)
 
 
 def clear_dispatch(project_root: Path, agent_description: str) -> bool:
@@ -95,16 +113,17 @@ def clear_dispatch(project_root: Path, agent_description: str) -> bool:
     Returns:
         是否成功找到並清理記錄
     """
-    state = _read_state(project_root)
-    original_count = len(state["dispatches"])
-    state["dispatches"] = [
-        d for d in state["dispatches"]
-        if d.get("agent_description") != agent_description
-    ]
-    if len(state["dispatches"]) < original_count:
-        _write_state(project_root, state)
-        return True
-    return False
+    with _state_lock(project_root):
+        state = _read_state(project_root)
+        original_count = len(state["dispatches"])
+        state["dispatches"] = [
+            d for d in state["dispatches"]
+            if d.get("agent_description") != agent_description
+        ]
+        if len(state["dispatches"]) < original_count:
+            _write_state(project_root, state)
+            return True
+        return False
 
 
 def get_active_dispatches(project_root: Path) -> List[Dict]:
@@ -144,33 +163,34 @@ def cleanup_expired(project_root: Path, max_age_hours: int = 4) -> int:
     Returns:
         清理的記錄數量
     """
-    state = _read_state(project_root)
-    now = datetime.now(timezone.utc)
-    kept = []
-    removed_count = 0
+    with _state_lock(project_root):
+        state = _read_state(project_root)
+        now = datetime.now(timezone.utc)
+        kept = []
+        removed_count = 0
 
-    for dispatch in state["dispatches"]:
-        dispatched_at_str = dispatch.get("dispatched_at", "")
-        try:
-            dispatched_at = datetime.fromisoformat(dispatched_at_str)
-            # 確保有 timezone 資訊以便比較
-            if dispatched_at.tzinfo is None:
-                dispatched_at = dispatched_at.replace(tzinfo=timezone.utc)
-            age_hours = (now - dispatched_at).total_seconds() / 3600
-            if age_hours > max_age_hours:
+        for dispatch in state["dispatches"]:
+            dispatched_at_str = dispatch.get("dispatched_at", "")
+            try:
+                dispatched_at = datetime.fromisoformat(dispatched_at_str)
+                # 確保有 timezone 資訊以便比較
+                if dispatched_at.tzinfo is None:
+                    dispatched_at = dispatched_at.replace(tzinfo=timezone.utc)
+                age_hours = (now - dispatched_at).total_seconds() / 3600
+                if age_hours > max_age_hours:
+                    removed_count += 1
+                    continue
+            except (ValueError, TypeError) as e:
+                print(f"[dispatch_tracker] cleanup_expired: 時間解析失敗 (dispatched_at='{dispatched_at_str}'): {e}", file=sys.stderr)
                 removed_count += 1
                 continue
-        except (ValueError, TypeError) as e:
-            print(f"[dispatch_tracker] cleanup_expired: 時間解析失敗 (dispatched_at='{dispatched_at_str}'): {e}", file=sys.stderr)
-            removed_count += 1
-            continue
-        kept.append(dispatch)
+            kept.append(dispatch)
 
-    if removed_count > 0:
-        state["dispatches"] = kept
-        _write_state(project_root, state)
+        if removed_count > 0:
+            state["dispatches"] = kept
+            _write_state(project_root, state)
 
-    return removed_count
+        return removed_count
 
 
 def detect_orphan_branches(project_root: Path) -> List[str]:
