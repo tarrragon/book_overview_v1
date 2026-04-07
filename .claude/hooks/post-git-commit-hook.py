@@ -66,12 +66,6 @@ COMMIT_SUCCESS_MARKERS = [
     "insertions(+)", "deletions(-)", "create mode",
 ]
 
-DEFAULT_OUTPUT = {
-    "hookSpecificOutput": {
-        "hookEventName": "PostToolUse"
-    }
-}
-
 
 # ============================================================================
 # 子邏輯 1: CHANGELOG 更新檢查（來自 changelog-update-hook.py）

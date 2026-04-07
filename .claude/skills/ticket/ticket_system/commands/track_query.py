@@ -171,6 +171,13 @@ def _print_cross_version_warning(current_version: str) -> None:
         print(TrackQueryMessages.CROSS_VERSION_WARNING_HINT)
 
 
+def _format_where_field(where_value) -> str:
+    """格式化 where 欄位顯示值（支援 dict 和 str 兩種格式）。"""
+    if isinstance(where_value, dict):
+        return where_value.get("layer", DEFAULT_UNKNOWN_VALUE)
+    return where_value if where_value else DEFAULT_UNKNOWN_VALUE
+
+
 def execute_query(args: argparse.Namespace, version: str) -> int:
     """查詢單一 Ticket"""
     ticket, error = load_and_validate_ticket(version, args.ticket_id)
@@ -193,7 +200,7 @@ def execute_query(args: argparse.Namespace, version: str) -> int:
 
     print(f"{SECTION_5W1H_INDENT}What: {ticket.get('what', DEFAULT_UNKNOWN_VALUE)}")
     print(f"{SECTION_5W1H_INDENT}When: {ticket.get('when', DEFAULT_UNKNOWN_VALUE)}")
-    print(f"{SECTION_5W1H_INDENT}Where: {ticket.get('where', {}).get('layer', DEFAULT_UNKNOWN_VALUE) if isinstance(ticket.get('where'), dict) else ticket.get('where', DEFAULT_UNKNOWN_VALUE)}")
+    print(f"{SECTION_5W1H_INDENT}Where: {_format_where_field(ticket.get('where'))}")
     print(f"{SECTION_5W1H_INDENT}Why: {ticket.get('why', DEFAULT_UNKNOWN_VALUE)}")
 
     return 0

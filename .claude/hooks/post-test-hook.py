@@ -244,9 +244,14 @@ def _log_evaluation(error_type: ErrorType, errors: List[Dict[str, str]], logger)
         "requires_ticket": "pm_decision",
     }
 
-    with open(report_file, "w", encoding="utf-8") as f:
-        json.dump(report, f, ensure_ascii=False, indent=2)
-    logger.info(f"評估結果已記錄到 {report_file}")
+    try:
+        with open(report_file, "w", encoding="utf-8") as f:
+            json.dump(report, f, ensure_ascii=False, indent=2)
+        logger.info(f"評估結果已記錄到 {report_file}")
+    except OSError as e:
+        # 寫入失敗不應阻塞提醒輸出（quality-baseline 規則 4）
+        logger.warning(f"_log_evaluation 寫入失敗: {e}")
+        sys.stderr.write(f"[post-test-hook] _log_evaluation 寫入失敗: {e}\n")
 
 
 def evaluate_test_failure(input_data: dict, tool_input: dict, logger):
