@@ -1126,4 +1126,152 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
       expect(headers).toEqual(expectedHeaders)
     })
   })
+
+  describe('v1 相容匯出 + 邊界條件', () => {
+    test('v1 JSON 匯出不應包含 tagCategories/tags 區塊', () => {
+      // 不帶 formatVersion 的 JSON 匯出
+      const exporter = new BookDataExporter(mockBooks)
+
+      // pure array 模式
+      const jsonString = exporter.exportToJSON({})
+      const result = JSON.parse(jsonString)
+      expect(Array.isArray(result)).toBe(true)
+
+      // includeMetadata 模式
+      const jsonString2 = exporter.exportToJSON({ includeMetadata: true })
+      const result2 = JSON.parse(jsonString2)
+      expect(result2).toHaveProperty('metadata')
+      expect(result2).toHaveProperty('books')
+      expect(result2).not.toHaveProperty('tagCategories')
+      expect(result2).not.toHaveProperty('tags')
+    })
+
+    test('v1 CSV 匯出標題行不應包含 v2 欄位', () => {
+      const exporter = new BookDataExporter(mockBooks)
+      const csvData = exporter.exportToCSV({})
+      const headerLine = csvData.split('\n')[0]
+
+      // v1 欄位應存在
+      expect(headerLine).toContain('status')
+      expect(headerLine).toContain('category')
+      // v2 欄位不應存在
+      expect(headerLine).not.toContain('readingStatus')
+      expect(headerLine).not.toContain('tagIds')
+      expect(headerLine).not.toContain('tagNames')
+      expect(headerLine).not.toContain('tagCategories')
+    })
+
+    test('v2 CSV 匯出：書籍無 tagIds 屬性時不報錯，衍生欄位為空', () => {
+      const bookWithoutTagIds = {
+        id: 'no-tags-book',
+        title: '沒有 tagIds 的書',
+        authors: ['作者A'],
+        publisher: '出版社',
+        progress: 50,
+        readingStatus: 'reading',
+        type: 'epub'
+        // 注意：完全沒有 tagIds 屬性
+      }
+      const exporter = new BookDataExporter([bookWithoutTagIds])
+      const csvData = exporter.exportToCSV({
+        formatVersion: '2.0.0',
+        tags: [],
+        tagCategories: []
+      })
+
+      const lines = csvData.split('\n')
+      const headers = lines[0].split(',')
+      const dataValues = lines[1].split(',')
+
+      // tagIds, tagNames, tagCategories 的 index
+      const tagIdsIdx = headers.indexOf('tagIds')
+      const tagNamesIdx = headers.indexOf('tagNames')
+      const tagCategoriesIdx = headers.indexOf('tagCategories')
+
+      expect(tagIdsIdx).toBeGreaterThan(-1)
+      expect(dataValues[tagIdsIdx]).toBe('')
+      expect(dataValues[tagNamesIdx]).toBe('')
+      expect(dataValues[tagCategoriesIdx]).toBe('')
+    })
+
+    test('v2 CSV 匯出：tag 的 categoryId 無效時 tagCategories 為空', () => {
+      const orphanTag = {
+        id: 'tag_orphan',
+        name: '孤兒標籤',
+        categoryId: 'nonexistent_cat',
+        isSystem: false,
+        sortOrder: 0,
+        createdAt: '2026-04-01T00:00:00.000Z',
+        updatedAt: '2026-04-01T00:00:00.000Z'
+      }
+      const bookWithOrphanTag = {
+        id: 'orphan-book',
+        title: '有孤兒標籤的書',
+        authors: ['測試'],
+        publisher: '',
+        progress: 0,
+        readingStatus: 'unread',
+        type: 'epub',
+        tagIds: ['tag_orphan']
+      }
+
+      const exporter = new BookDataExporter([bookWithOrphanTag])
+      const csvData = exporter.exportToCSV({
+        formatVersion: '2.0.0',
+        tags: [orphanTag],
+        tagCategories: [] // 空的，找不到 category
+      })
+
+      const lines = csvData.split('\n')
+      const headers = lines[0].split(',')
+      const dataValues = lines[1].split(',')
+
+      const tagNamesIdx = headers.indexOf('tagNames')
+      const tagCategoriesIdx = headers.indexOf('tagCategories')
+
+      expect(dataValues[tagNamesIdx]).toBe('孤兒標籤')
+      expect(dataValues[tagCategoriesIdx]).toBe('')
+    })
+
+    test('v2 CSV 匯出：tagIds 含不存在的 tag id 時 tagNames 只顯示有效的', () => {
+      const existingTag = {
+        id: 'tag_exists',
+        name: '存在的標籤',
+        categoryId: 'cat_test',
+        isSystem: false,
+        sortOrder: 0,
+        createdAt: '2026-04-01T00:00:00.000Z',
+        updatedAt: '2026-04-01T00:00:00.000Z'
+      }
+      const bookWithMixedTags = {
+        id: 'mixed-book',
+        title: '混合標籤的書',
+        authors: ['測試'],
+        publisher: '',
+        progress: 0,
+        readingStatus: 'unread',
+        type: 'epub',
+        tagIds: ['tag_exists', 'tag_nonexistent']
+      }
+
+      const exporter = new BookDataExporter([bookWithMixedTags])
+      const csvData = exporter.exportToCSV({
+        formatVersion: '2.0.0',
+        tags: [existingTag],
+        tagCategories: []
+      })
+
+      const lines = csvData.split('\n')
+      const headers = lines[0].split(',')
+      const dataValues = lines[1].split(',')
+
+      const tagIdsIdx = headers.indexOf('tagIds')
+      const tagNamesIdx = headers.indexOf('tagNames')
+
+      // tagIds 序列化原始值（不做有效性 filter）
+      expect(dataValues[tagIdsIdx]).toBe('tag_exists; tag_nonexistent')
+      // tagNames 只 resolve 存在的 tag
+      expect(dataValues[tagNamesIdx]).toBe('存在的標籤')
+    })
+  })
 })
