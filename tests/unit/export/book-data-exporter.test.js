@@ -955,4 +955,175 @@ describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', ()
       expect(bookWithEmptyTags.tagIds).toEqual([])
     })
   })
+
+  describe('v2 CSV Export', () => {
+    // 與 v2 JSON Export 共用相同的 mock 資料結構
+    const mockBooksV2 = [
+      {
+        id: 'book-001',
+        title: '三體',
+        readingStatus: 'finished',
+        authors: ['劉慈欣'],
+        publisher: '貓頭鷹出版社',
+        progress: 100,
+        type: 'epub',
+        cover: 'https://readmoo.com/cover/book-001.jpg',
+        tagIds: ['tag_001', 'tag_002'],
+        isManualStatus: false,
+        extractedAt: '2026-01-15T10:30:00.000Z',
+        updatedAt: '2026-04-01T08:00:00.000Z',
+        source: 'readmoo'
+      },
+      {
+        id: 'book-002',
+        title: '原子習慣',
+        readingStatus: 'reading',
+        authors: ['James Clear'],
+        publisher: '方智出版社',
+        progress: 45,
+        type: 'epub',
+        cover: '',
+        tagIds: [],
+        isManualStatus: false,
+        extractedAt: '2026-03-15T09:00:00.000Z',
+        updatedAt: '2026-04-02T11:00:00.000Z',
+        source: 'readmoo'
+      }
+    ]
+
+    const mockTagCategories = [
+      {
+        id: 'cat_system_type',
+        name: '書籍類型',
+        description: '',
+        color: '#808080',
+        isSystem: true,
+        sortOrder: 0,
+        createdAt: '2026-04-01T00:00:00.000Z',
+        updatedAt: '2026-04-01T00:00:00.000Z'
+      }
+    ]
+
+    const mockTags = [
+      {
+        id: 'tag_001',
+        name: '科幻',
+        categoryId: 'cat_system_type',
+        isSystem: false,
+        sortOrder: 0,
+        createdAt: '2026-04-02T00:00:00.000Z',
+        updatedAt: '2026-04-02T00:00:00.000Z'
+      },
+      {
+        id: 'tag_002',
+        name: '中國文學',
+        categoryId: 'cat_system_type',
+        isSystem: false,
+        sortOrder: 1,
+        createdAt: '2026-04-02T00:00:00.000Z',
+        updatedAt: '2026-04-02T00:00:00.000Z'
+      }
+    ]
+
+    let v2Exporter
+
+    beforeEach(() => {
+      v2Exporter = new BookDataExporter(mockBooksV2)
+    })
+
+    test('CSV v2 標題行應包含 EXTENDED_V2 欄位 + 衍生欄位', () => {
+      const csv = v2Exporter.exportToCSV({
+        formatVersion: '2.0.0',
+        tags: mockTags,
+        tagCategories: mockTagCategories
+      })
+      const headerLine = csv.split('\n')[0]
+      const headers = headerLine.split(',')
+
+      // EXTENDED_V2 欄位 + tagNames + tagCategories 衍生欄位
+      const expectedHeaders = [
+        'id', 'title', 'authors', 'publisher', 'progress',
+        'readingStatus', 'type', 'tagIds', 'tagNames', 'tagCategories'
+      ]
+      expect(headers).toEqual(expectedHeaders)
+    })
+
+    test('tagIds 應以分號分隔序列化', () => {
+      const csv = v2Exporter.exportToCSV({
+        formatVersion: '2.0.0',
+        tags: mockTags,
+        tagCategories: mockTagCategories
+      })
+      const lines = csv.split('\n')
+      // 第二行是 book-001 的資料
+      const book001Row = lines[1]
+
+      // tagIds 欄位（第 8 欄，index 7）應為 "tag_001; tag_002"
+      expect(book001Row).toContain('tag_001; tag_002')
+    })
+
+    test('tagNames 應正確從 tagIds resolve', () => {
+      const csv = v2Exporter.exportToCSV({
+        formatVersion: '2.0.0',
+        tags: mockTags,
+        tagCategories: mockTagCategories
+      })
+      const lines = csv.split('\n')
+      const book001Row = lines[1]
+
+      // tagNames 衍生欄位應從 tag_001 → '科幻', tag_002 → '中國文學'
+      expect(book001Row).toContain('科幻; 中國文學')
+    })
+
+    test('tagCategories 應正確從 tagIds resolve', () => {
+      const csv = v2Exporter.exportToCSV({
+        formatVersion: '2.0.0',
+        tags: mockTags,
+        tagCategories: mockTagCategories
+      })
+      const lines = csv.split('\n')
+      const book001Row = lines[1]
+
+      // 兩個 tag 都屬於 cat_system_type（書籍類型）
+      expect(book001Row).toContain('書籍類型; 書籍類型')
+    })
+
+    test('無 tag 的書籍衍生欄位應為空字串', () => {
+      const csv = v2Exporter.exportToCSV({
+        formatVersion: '2.0.0',
+        tags: mockTags,
+        tagCategories: mockTagCategories
+      })
+      const lines = csv.split('\n')
+      // 第三行是 book-002（tagIds: []）
+      const book002Row = lines[2]
+      const fields = book002Row.split(',')
+
+      // tagIds（index 7）、tagNames（index 8）、tagCategories（index 9）應為空字串
+      expect(fields[7]).toBe('')
+      expect(fields[8]).toBe('')
+      expect(fields[9]).toBe('')
+    })
+
+    test('COMPLETE_V2 preset 應包含所有欄位 + 衍生欄位', () => {
+      const csv = v2Exporter.exportToCSV({
+        formatVersion: '2.0.0',
+        fieldPreset: 'COMPLETE_V2',
+        tags: mockTags,
+        tagCategories: mockTagCategories
+      })
+      const headerLine = csv.split('\n')[0]
+      const headers = headerLine.split(',')
+
+      // COMPLETE_V2 所有欄位 + tagNames + tagCategories
+      const expectedHeaders = [
+        'id', 'title', 'authors', 'publisher',
+        'progress', 'readingStatus', 'type', 'cover',
+        'tagIds', 'isManualStatus',
+        'extractedAt', 'updatedAt', 'source',
+        'tagNames', 'tagCategories'
+      ]
+      expect(headers).toEqual(expectedHeaders)
+    })
+  })
 })

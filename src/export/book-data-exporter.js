@@ -240,6 +240,11 @@ class BookDataExporter {
    * @returns {string} CSV 字串
    */
   exportToCSV (options = {}) {
+    // v2 匯出路徑：formatVersion === '2.0.0'
+    if (options.formatVersion === '2.0.0') {
+      return this._exportToCSVv2(options)
+    }
+
     return this._executeExport('csv', (opts) => {
       const fields = opts.fields || CONSTANTS.FIELDS.EXTENDED
       const delimiter = opts.delimiter || this.config.delimiter
@@ -268,6 +273,115 @@ class BookDataExporter {
 
       return csv
     }, options)
+  }
+
+  /**
+   * v2 CSV 匯出內部實作
+   *
+   * 產出扁平化 CSV：field preset 欄位 + 衍生欄位（tagNames, tagCategories）。
+   * 陣列欄位以 '; ' 分隔序列化；衍生欄位從 tagIds resolve tag name 和 category name。
+   *
+   * @param {Object} options - 匯出選項
+   * @param {string} options.formatVersion - 固定 '2.0.0'
+   * @param {string} [options.fieldPreset='EXTENDED_V2'] - 欄位集名稱
+   * @param {Array} [options.tags=[]] - tag 陣列，用於 resolve tagNames
+   * @param {Array} [options.tagCategories=[]] - tag category 陣列，用於 resolve tagCategories
+   * @returns {string} v2 CSV 字串
+   */
+  _exportToCSVv2 (options) {
+    return this._executeExport('csv', () => {
+      const tags = options.tags || []
+      const tagCategories = options.tagCategories || []
+      const delimiter = options.delimiter || this.config.delimiter
+      const includeHeaders = options.includeHeaders !== false
+
+      // 決定 field preset
+      const presetName = options.fieldPreset || 'EXTENDED_V2'
+      const baseFields = CONSTANTS.FIELDS[presetName] || CONSTANTS.FIELDS.EXTENDED_V2
+
+      // 若 preset 包含 tagIds，自動附加衍生欄位
+      const hasTagIds = baseFields.includes('tagIds')
+      const derivedFields = hasTagIds ? ['tagNames', 'tagCategories'] : []
+      const allFields = [...baseFields, ...derivedFields]
+
+      // 建立 tag lookup maps
+      const tagMap = new Map(tags.map(t => [t.id, t]))
+      const categoryMap = new Map(tagCategories.map(c => [c.id, c]))
+
+      let csv = ''
+
+      // 標題行
+      if (includeHeaders) {
+        csv += allFields.join(delimiter) + this.config.lineEnding
+      }
+
+      // 資料行
+      const validBooks = this.books.filter(book => book && typeof book === 'object')
+
+      validBooks.forEach((book, index) => {
+        const row = allFields.map(field => {
+          if (field === 'tagNames') {
+            return this._resolveTagNames(book.tagIds, tagMap)
+          }
+          if (field === 'tagCategories') {
+            return this._resolveTagCategoryNames(book.tagIds, tagMap, categoryMap)
+          }
+          if (field === 'tagIds') {
+            const ids = Array.isArray(book.tagIds) ? book.tagIds : []
+            return this._processFieldValue(ids, 'csv')
+          }
+          return this._processFieldValue(book[field], 'csv')
+        })
+
+        csv += row.join(delimiter) + this.config.lineEnding
+        this.updateProgress((index + 1) / validBooks.length * 100)
+      })
+
+      return csv
+    }, options)
+  }
+
+  /**
+   * 從 tagIds 解析 tag 名稱，以 '; ' 分隔
+   *
+   * 不存在的 tagId 會被過濾掉（規格 9.1）。
+   *
+   * @param {Array} tagIds - tag ID 陣列
+   * @param {Map} tagMap - tag ID → tag 物件的 lookup map
+   * @returns {string} 分號分隔的 tag 名稱字串
+   */
+  _resolveTagNames (tagIds, tagMap) {
+    if (!Array.isArray(tagIds) || tagIds.length === 0) {
+      return ''
+    }
+    const names = tagIds
+      .map(id => tagMap.get(id))
+      .filter(tag => tag != null)
+      .map(tag => tag.name)
+    return names.join('; ')
+  }
+
+  /**
+   * 從 tagIds 解析 tag category 名稱，以 '; ' 分隔
+   *
+   * 與 tagNames 順序一致。不存在的 tagId 或 categoryId 會被過濾掉。
+   *
+   * @param {Array} tagIds - tag ID 陣列
+   * @param {Map} tagMap - tag ID → tag 物件的 lookup map
+   * @param {Map} categoryMap - category ID → category 物件的 lookup map
+   * @returns {string} 分號分隔的 category 名稱字串
+   */
+  _resolveTagCategoryNames (tagIds, tagMap, categoryMap) {
+    if (!Array.isArray(tagIds) || tagIds.length === 0) {
+      return ''
+    }
+    const categoryNames = tagIds
+      .map(id => tagMap.get(id))
+      .filter(tag => tag != null)
+      .map(tag => categoryMap.get(tag.categoryId))
+      .filter(cat => cat != null)
+      .map(cat => cat.name)
+    return categoryNames.join('; ')
   }
 
   /**
