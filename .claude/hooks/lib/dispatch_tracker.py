@@ -177,6 +177,19 @@ def is_file_under_dispatch(project_root: Path, filepath: str) -> Optional[Dict]:
     return None
 
 
+def _is_dispatch_expired(dispatch: Dict, now: datetime, max_age_hours: int) -> bool:
+    """判斷單一派發記錄是否已超時。解析失敗視為超時。"""
+    dispatched_at_str = dispatch.get("dispatched_at", "")
+    try:
+        dispatched_at = datetime.fromisoformat(dispatched_at_str)
+        if dispatched_at.tzinfo is None:
+            dispatched_at = dispatched_at.replace(tzinfo=timezone.utc)
+        return (now - dispatched_at).total_seconds() / 3600 > max_age_hours
+    except (ValueError, TypeError) as e:
+        print(f"[dispatch_tracker] cleanup_expired: 時間解析失敗 (dispatched_at='{dispatched_at_str}'): {e}", file=sys.stderr)
+        return True
+
+
 def cleanup_expired(project_root: Path, max_age_hours: int = 4) -> int:
     """清理超時的派發記錄（防止遺留）。
 
@@ -190,25 +203,9 @@ def cleanup_expired(project_root: Path, max_age_hours: int = 4) -> int:
     with _state_lock(project_root):
         state = _read_state(project_root)
         now = datetime.now(timezone.utc)
-        kept = []
-        removed_count = 0
 
-        for dispatch in state["dispatches"]:
-            dispatched_at_str = dispatch.get("dispatched_at", "")
-            try:
-                dispatched_at = datetime.fromisoformat(dispatched_at_str)
-                # 確保有 timezone 資訊以便比較
-                if dispatched_at.tzinfo is None:
-                    dispatched_at = dispatched_at.replace(tzinfo=timezone.utc)
-                age_hours = (now - dispatched_at).total_seconds() / 3600
-                if age_hours > max_age_hours:
-                    removed_count += 1
-                    continue
-            except (ValueError, TypeError) as e:
-                print(f"[dispatch_tracker] cleanup_expired: 時間解析失敗 (dispatched_at='{dispatched_at_str}'): {e}", file=sys.stderr)
-                removed_count += 1
-                continue
-            kept.append(dispatch)
+        kept = [d for d in state["dispatches"] if not _is_dispatch_expired(d, now, max_age_hours)]
+        removed_count = len(state["dispatches"]) - len(kept)
 
         if removed_count > 0:
             state["dispatches"] = kept

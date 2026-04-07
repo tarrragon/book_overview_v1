@@ -119,35 +119,34 @@ def _get_commit_subject(project_dir: Path, logger) -> str:
     return output if output else ""
 
 
-def check_changelog_update(input_data: dict, tool_input: dict, logger) -> None:
-    """子邏輯 1: 檢查 CHANGELOG 是否更新。"""
+def check_changelog_update(input_data: dict, tool_input: dict, logger):
+    """子邏輯 1: 檢查 CHANGELOG 是否更新。回傳提醒訊息或 None。"""
     tool_response = input_data.get("tool_response") or {}
     stdout = tool_response.get("stdout", "")
     stderr = tool_response.get("stderr", "")
 
     if not is_commit_successful(stdout, stderr):
         logger.debug("changelog: commit 失敗，跳過")
-        return
+        return None
 
     if _changelog_should_skip(tool_input):
         logger.debug("changelog: 維護性質 commit，跳過")
-        return
+        return None
 
     project_dir = get_project_root()
 
     if _changelog_in_commit(project_dir, logger):
         logger.debug("changelog: CHANGELOG.md 已在 commit 中更新")
-        return
+        return None
 
     subject = _get_commit_subject(project_dir, logger)
-    message = (
+    logger.info("changelog: commit '%s' 未包含 CHANGELOG.md 更新", subject)
+    return (
         f"[CHANGELOG Reminder] commit \"{subject}\" 未包含 CHANGELOG.md 更新。\n"
         f"  如果此 commit 包含使用者可感知的變更（feat/fix），"
         f"建議在版本發布前更新 CHANGELOG.md。\n"
         f"  使用 /version-release 流程可自動處理。"
     )
-    print(message)
-    logger.info(message)
 
 
 # ============================================================================
@@ -199,8 +198,16 @@ def _scan_wave_tickets(
     return tickets
 
 
+def _find_current_wave(tickets: List[Dict]) -> Optional[str]:
+    """從 ticket 列表找出 in_progress ticket 的 wave。"""
+    for ticket in tickets:
+        if ticket.get("status") == "in_progress":
+            return ticket.get("wave")
+    return None
+
+
 def _detect_wave_completion(logger) -> bool:
-    """偵測是否為情境 C（當前 Wave 完成）。"""
+    """偵測是否為情境 C（當前 Wave 完成，無 pending ticket）。"""
     try:
         project_dir = get_project_root()
         current_version = get_current_version_from_todolist(project_dir, logger)
@@ -208,24 +215,12 @@ def _detect_wave_completion(logger) -> bool:
             return False
 
         tickets = _scan_wave_tickets(project_dir, current_version, logger)
-        if not tickets:
-            return False
-
-        current_wave = None
-        for ticket in tickets:
-            if ticket.get("status") == "in_progress":
-                current_wave = ticket.get("wave")
-                break
-
+        current_wave = _find_current_wave(tickets)
         if current_wave is None:
             return False
 
-        pending_count = sum(
-            1 for t in tickets
-            if t.get("wave") == current_wave and t.get("status") == "pending"
-        )
-
-        if pending_count == 0:
+        pending = sum(1 for t in tickets if t.get("wave") == current_wave and t.get("status") == "pending")
+        if pending == 0:
             logger.info(f"偵測到情境 C：Wave {current_wave} 完成")
             return True
         return False
@@ -234,12 +229,11 @@ def _detect_wave_completion(logger) -> bool:
         return False
 
 
-def check_commit_handoff(input_data: dict, tool_input: dict, logger) -> None:
-    """子邏輯 2: Commit 後輸出 handoff 提醒。"""
-    # subagent 環境跳過
+def check_commit_handoff(input_data: dict, tool_input: dict, logger):
+    """子邏輯 2: Commit 後產生 handoff 提醒。回傳提醒訊息或 None。"""
     if is_subagent_environment(input_data):
         logger.info("偵測到 subagent 環境，跳過 handoff 提醒")
-        return
+        return None
 
     command = tool_input.get("command", "")
     tool_response = input_data.get("tool_response") or {}
@@ -247,36 +241,27 @@ def check_commit_handoff(input_data: dict, tool_input: dict, logger) -> None:
 
     if not (_is_git_commit_command(command) and is_commit_successful(stdout)):
         logger.debug("handoff: 非 commit 成功，跳過")
-        return
+        return None
 
     commit_type = _extract_commit_type(command)
-    should_skip_scene16 = commit_type in SKIP_SCENE16_COMMIT_PREFIXES
-
-    if should_skip_scene16:
+    if commit_type in SKIP_SCENE16_COMMIT_PREFIXES:
         reminder = AskUserQuestionMessages.COMMIT_HANDOFF_SKIP16_REMINDER
     else:
         reminder = AskUserQuestionMessages.COMMIT_HANDOFF_REMINDER
 
-    is_wave_completion = _detect_wave_completion(logger)
-    if is_wave_completion:
+    if _detect_wave_completion(logger):
         reminder += "\n" + AskUserQuestionReminders.WAVE_COMPLETION_REMINDER
 
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "PostToolUse",
-            "additionalContext": reminder
-        }
-    }
-    print(json.dumps(output, ensure_ascii=False, indent=2))
-    logger.info(f"handoff: 輸出提醒（type={commit_type}, wave_complete={is_wave_completion}）")
+    logger.info(f"handoff: 輸出提醒（type={commit_type}）")
+    return reminder
 
 
 # ============================================================================
 # 子邏輯 3: 背景 Fetch（來自 post-commit-fetch-hook.py）
 # ============================================================================
 
-def run_background_fetch(input_data: dict, tool_input: dict, logger) -> None:
-    """子邏輯 3: git commit 後同步 fetch。"""
+def run_background_fetch(input_data: dict, tool_input: dict, logger):
+    """子邏輯 3: git commit 後同步 fetch。無 additionalContext 回傳。"""
     tool_response = input_data.get("tool_response") or {}
     stdout = tool_response.get("stdout", "")
 
@@ -322,25 +307,41 @@ def main() -> int:
     if "git commit" not in command:
         return EXIT_SUCCESS
 
-    logger.info(f"偵測到 git commit 命令，開始執行子邏輯")
+    logger.info("偵測到 git commit 命令，開始執行子邏輯")
+
+    messages = []
 
     # 子邏輯 1: CHANGELOG 檢查
     try:
-        check_changelog_update(input_data, tool_input, logger)
+        msg = check_changelog_update(input_data, tool_input, logger)
+        if msg:
+            messages.append(msg)
     except Exception as e:
-        logger.warning(f"changelog 子邏輯失敗: {e}")
+        logger.error("changelog 子邏輯失敗: %s", e, exc_info=True)
 
     # 子邏輯 2: Handoff 提醒
     try:
-        check_commit_handoff(input_data, tool_input, logger)
+        msg = check_commit_handoff(input_data, tool_input, logger)
+        if msg:
+            messages.append(msg)
     except Exception as e:
-        logger.warning(f"handoff 子邏輯失敗: {e}")
+        logger.error("handoff 子邏輯失敗: %s", e, exc_info=True)
 
-    # 子邏輯 3: 背景 Fetch
+    # 子邏輯 3: 背景 Fetch（無 additionalContext 回傳）
     try:
         run_background_fetch(input_data, tool_input, logger)
     except Exception as e:
-        logger.warning(f"fetch 子邏輯失敗: {e}")
+        logger.error("fetch 子邏輯失敗: %s", e, exc_info=True)
+
+    # 統一輸出
+    if messages:
+        output = {
+            "hookSpecificOutput": {
+                "hookEventName": "PostToolUse",
+                "additionalContext": "\n\n".join(messages)
+            }
+        }
+        print(json.dumps(output, ensure_ascii=False, indent=2))
 
     return EXIT_SUCCESS
 

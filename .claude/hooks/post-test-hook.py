@@ -125,25 +125,25 @@ def _is_test_command(input_data: dict) -> bool:
 # 子邏輯 1: 測試超時監控（來自 test-timeout-post.py）
 # ============================================================================
 
-def check_test_timeout(input_data: dict, tool_input: dict, logger) -> None:
-    """子邏輯 1: 測試超時監控。"""
+def check_test_timeout(input_data: dict, tool_input: dict, logger):
+    """子邏輯 1: 測試超時監控。回傳訊息或 None。"""
     project_dir = get_project_root()
     monitor_file = project_dir / ".claude" / "hook-logs" / "test-monitor.json"
 
     if not monitor_file.exists():
         logger.debug("timeout: 監控檔案不存在，跳過")
-        return
+        return None
 
     try:
         with open(monitor_file) as f:
             monitor_data = json.load(f)
     except (json.JSONDecodeError, OSError):
         logger.debug("timeout: 監控檔案無法讀取，跳過")
-        return
+        return None
 
     start_timestamp = monitor_data.get("start_timestamp", 0)
     if start_timestamp == 0:
-        return
+        return None
 
     duration = datetime.now().timestamp() - start_timestamp
     duration_minutes = duration / 60
@@ -177,8 +177,8 @@ def check_test_timeout(input_data: dict, tool_input: dict, logger) -> None:
         print(f"[WARNING] 無法寫入測試監控記錄: {e}", file=sys.stderr)
         logger.warning(f"timeout: 寫入監控檔案失敗: {e}")
 
-    print(message)
     logger.info(f"timeout: {message}")
+    return message
 
 
 # ============================================================================
@@ -249,25 +249,25 @@ def _log_evaluation(error_type: ErrorType, errors: List[Dict[str, str]], logger)
     logger.info(f"評估結果已記錄到 {report_file}")
 
 
-def evaluate_test_failure(input_data: dict, tool_input: dict, logger) -> None:
-    """子邏輯 2: 測試失敗評估。"""
+def evaluate_test_failure(input_data: dict, tool_input: dict, logger):
+    """子邏輯 2: 測試失敗評估。回傳評估訊息或 None。"""
     tool_response = input_data.get("tool_response", "")
     if not tool_response:
         logger.debug("evaluation: 無 tool_response，跳過")
-        return
+        return None
 
     output_str = str(tool_response) if not isinstance(tool_response, str) else tool_response
     output_str = _resolve_truncated_output(output_str, logger)
 
     if "all tests passed" in output_str.lower() or "no issues found" in output_str.lower():
         logger.debug("evaluation: 測試全部通過，跳過")
-        return
+        return None
 
     error_type, errors = _classify_errors(output_str, logger)
 
     if not errors:
         logger.debug("evaluation: 未偵測到錯誤")
-        return
+        return None
 
     logger.info(f"evaluation: 偵測到 {len(errors)} 個 {error_type.value} 錯誤")
     _log_evaluation(error_type, errors, logger)
@@ -284,15 +284,7 @@ def evaluate_test_failure(input_data: dict, tool_input: dict, logger) -> None:
             message += f"{i}. {error['description']}\n"
         message += "\n[WARN] 建議流程：\n1. 使用 /pre-fix-eval Skill 進行六階段評估\n2. 使用 /ticket create 建立修復 Ticket\n3. 分派給專業代理人執行\n"
 
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "PostToolUse",
-            "decision": "allow",
-        },
-        "systemMessage": message,
-        "suppressOutput": False,
-    }
-    print(json.dumps(output, ensure_ascii=False, indent=2))
+    return message
 
 
 # ============================================================================
@@ -313,18 +305,33 @@ def main() -> int:
     logger.info("偵測到測試命令，開始執行子邏輯")
 
     tool_input = (input_data.get("tool_input") or {})
+    messages = []
 
     # 子邏輯 1: 超時監控（優先執行）
     try:
-        check_test_timeout(input_data, tool_input, logger)
+        msg = check_test_timeout(input_data, tool_input, logger)
+        if msg:
+            messages.append(msg)
     except Exception as e:
-        logger.warning(f"timeout 子邏輯失敗: {e}")
+        logger.error("timeout 子邏輯失敗: %s", e, exc_info=True)
 
     # 子邏輯 2: 失敗評估
     try:
-        evaluate_test_failure(input_data, tool_input, logger)
+        msg = evaluate_test_failure(input_data, tool_input, logger)
+        if msg:
+            messages.append(msg)
     except Exception as e:
-        logger.warning(f"evaluation 子邏輯失敗: {e}")
+        logger.error("evaluation 子邏輯失敗: %s", e, exc_info=True)
+
+    # 統一輸出
+    if messages:
+        output = {
+            "hookSpecificOutput": {
+                "hookEventName": "PostToolUse",
+                "additionalContext": "\n\n".join(messages)
+            }
+        }
+        print(json.dumps(output, ensure_ascii=False, indent=2))
 
     return EXIT_SUCCESS
 
