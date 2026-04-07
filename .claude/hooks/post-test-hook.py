@@ -167,12 +167,15 @@ def check_test_timeout(input_data: dict, tool_input: dict, logger) -> None:
         message = f"測試完成：{duration_minutes:.1f} 分鐘"
         monitor_data["action"] = "normal"
 
-    with open(monitor_file, "w") as f:
-        json.dump(monitor_data, f, indent=2, ensure_ascii=False)
-
-    history_file = project_dir / ".claude" / "hook-logs" / "test-duration-history.jsonl"
-    with open(history_file, "a") as f:
-        f.write(json.dumps(monitor_data, ensure_ascii=False) + "\n")
+    try:
+        with open(monitor_file, "w") as f:
+            json.dump(monitor_data, f, indent=2, ensure_ascii=False)
+        history_file = project_dir / ".claude" / "hook-logs" / "test-duration-history.jsonl"
+        with open(history_file, "a") as f:
+            f.write(json.dumps(monitor_data, ensure_ascii=False) + "\n")
+    except OSError as e:
+        print(f"[WARNING] 無法寫入測試監控記錄: {e}", file=sys.stderr)
+        logger.warning(f"timeout: 寫入監控檔案失敗: {e}")
 
     print(message)
     logger.info(f"timeout: {message}")

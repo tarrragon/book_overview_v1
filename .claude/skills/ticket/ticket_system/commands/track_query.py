@@ -427,6 +427,9 @@ def _execute_list_cross_version(
 
     status_filters = _build_status_filters(args)
 
+    # 聚合所有版本的結果（不止第一個匹配版本）
+    all_filtered = []
+    matched_version = None
     for ver in candidates:
         all_tickets = list_tickets(ver)
         if not all_tickets:
@@ -438,8 +441,12 @@ def _execute_list_cross_version(
         filtered = [t for t in filtered if t.get("wave") == wave_value]
 
         if filtered:
-            output_format = getattr(args, "format", "table")
-            return _output_tickets(filtered, ver, output_format)
+            all_filtered.extend(filtered)
+            matched_version = ver
+
+    if all_filtered:
+        output_format = getattr(args, "format", "table")
+        return _output_tickets(all_filtered, matched_version or default_version, output_format)
 
     print(format_warning(WarningMessages.NO_TICKETS))
     return 0

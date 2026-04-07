@@ -33,6 +33,12 @@ LOCK_FILE_RELATIVE = ".claude/dispatch-active.lock"
 _state_cache: Dict = {"data": None, "mtime": 0.0}
 
 
+def reset_cache() -> None:
+    """重設記憶體快取（供測試使用）。"""
+    _state_cache["data"] = None
+    _state_cache["mtime"] = 0.0
+
+
 def get_state_file_path(project_root: Path) -> Path:
     """取得狀態檔路徑"""
     return project_root / STATE_FILE_RELATIVE
@@ -211,14 +217,11 @@ def cleanup_expired(project_root: Path, max_age_hours: int = 4) -> int:
         return removed_count
 
 
-def detect_orphan_branches(project_root: Path) -> List[str]:
-    """偵測 orphan worktree 分支（有 worktree 但無對應 dispatch 記錄）。
-
-    執行 git worktree list，比對 dispatch-active.json 中的記錄。
-    只檢查 agent- 前綴的 worktree 分支。
+def _parse_agent_worktree_branches(project_root: Path) -> List[str]:
+    """從 git worktree list 解析 agent- 前綴的分支名稱。
 
     Returns:
-        orphan 分支名稱清單
+        agent- 前綴的 worktree 分支名稱清單，失敗時回傳空清單
     """
     try:
         result = subprocess.run(
@@ -231,33 +234,30 @@ def detect_orphan_branches(project_root: Path) -> List[str]:
         if result.returncode != 0:
             return []
     except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
-        print(f"[dispatch_tracker] detect_orphan_branches: git worktree list 失敗: {e}", file=sys.stderr)
+        print(f"[dispatch_tracker] _parse_agent_worktree_branches: git worktree list 失敗: {e}", file=sys.stderr)
         return []
 
-    # 解析 worktree list --porcelain 輸出
-    # 格式：每個 worktree 以 "worktree <path>" 開頭，"branch refs/heads/<name>" 標示分支
-    worktree_branches = []
+    branches = []
     for line in result.stdout.splitlines():
-        if line.startswith("branch refs/heads/"):
-            branch_name = line[len("branch refs/heads/"):]
-            # 只關注 agent- 前綴的分支（代理人 worktree 慣例）
-            if branch_name.startswith("agent-"):
-                worktree_branches.append(branch_name)
+        if line.startswith("branch refs/heads/agent-"):
+            branches.append(line[len("branch refs/heads/"):])
+    return branches
 
+
+def detect_orphan_branches(project_root: Path) -> List[str]:
+    """偵測 orphan worktree 分支（有 worktree 但無對應 dispatch 記錄）。
+
+    Returns:
+        orphan 分支名稱清單
+    """
+    worktree_branches = _parse_agent_worktree_branches(project_root)
     if not worktree_branches:
         return []
 
-    # 比對 dispatch 記錄：有 worktree 分支但無對應 dispatch 的即為 orphan
-    dispatches = get_active_dispatches(project_root)
     dispatch_branch_names = {
-        d.get("branch_name", "") for d in dispatches if d.get("branch_name")
+        d.get("branch_name", "") for d in get_active_dispatches(project_root)
+        if d.get("branch_name")
     }
 
-    orphans = []
-    for branch in worktree_branches:
-        # 精確比對 dispatch 記錄中的 branch_name 欄位
-        # （需求：linux 審查 — 子字串比對不可靠，Ticket 0.17.2-W8-001）
-        if branch not in dispatch_branch_names:
-            orphans.append(branch)
-
-    return orphans
+    # 精確比對（W8-001：子字串比對不可靠）
+    return [b for b in worktree_branches if b not in dispatch_branch_names]

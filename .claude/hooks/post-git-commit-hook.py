@@ -34,6 +34,7 @@ from hook_utils import (
     get_project_root,
     get_current_version_from_todolist,
     is_subagent_environment,
+    parse_ticket_frontmatter,
 )
 from lib.hook_messages import AskUserQuestionMessages
 from lib.ask_user_question_reminders import AskUserQuestionReminders
@@ -186,25 +187,13 @@ def _scan_wave_tickets(
 
     tickets = []
     try:
-        for ticket_file in tickets_dir.glob("*.md"):
-            try:
-                content = ticket_file.read_text(encoding="utf-8")
-                wave = None
-                status = None
-                if content.startswith("---"):
-                    frontmatter_end = content.find("---", 3)
-                    if frontmatter_end > 0:
-                        frontmatter = content[:frontmatter_end]
-                        wave_match = re.search(r"wave:\s*(\d+)", frontmatter)
-                        if wave_match:
-                            wave = wave_match.group(1)
-                        status_match = re.search(r"status:\s*(\S+)", frontmatter)
-                        if status_match:
-                            status = status_match.group(1)
-                tickets.append({"wave": wave, "status": status, "file": ticket_file.name})
-            except Exception as e:
-                logger.debug(f"無法解析 Ticket 檔案 {ticket_file.name}: {e}")
-                tickets.append({"wave": None, "status": None, "file": ticket_file.name})
+        for ticket_file in sorted(tickets_dir.glob("*.md")):
+            fm = parse_ticket_frontmatter(ticket_file, logger)
+            tickets.append({
+                "wave": str(fm.get("wave", "")) or None,
+                "status": fm.get("status"),
+                "file": ticket_file.name,
+            })
     except Exception as e:
         logger.warning(f"掃描 Ticket 目錄失敗: {e}")
     return tickets
@@ -288,15 +277,11 @@ def check_commit_handoff(input_data: dict, tool_input: dict, logger) -> None:
 
 def run_background_fetch(input_data: dict, tool_input: dict, logger) -> None:
     """子邏輯 3: git commit 後同步 fetch。"""
-    stdout = input_data.get("stdout", "")
     tool_response = input_data.get("tool_response") or {}
-    response_stdout = tool_response.get("stdout", "")
+    stdout = tool_response.get("stdout", "")
 
-    # 合併兩個可能的 stdout 來源
-    combined = stdout + response_stdout
-
-    if "create mode" not in combined and "] " not in combined:
-        logger.debug("fetch: 未偵測到 commit 成功標記，跳過")
+    if not is_commit_successful(stdout):
+        logger.debug("fetch: commit 未成功，跳過")
         return
 
     try:
