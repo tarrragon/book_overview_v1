@@ -192,22 +192,40 @@ const COLORS = {
 | 響應式 | ScreenUtil + LayoutType | CSS media queries | Chrome Extension 不需要（固定尺寸） |
 | 石碑刻痕效果 | Flutter widget | CSS box-shadow | 轉換為 CSS |
 
-### 3.4 ReadingStatus 色彩對齊
+### 3.4 ReadingStatus 配色方案（已確認）
 
-現有 spec 定義的 6 狀態色彩需要審視是否與 APP 設計系統一致：
+以 APP 的 `ReadingStatusBadge` 三色系統為基準，全部 6 狀態映射到藍/綠/橘色系。
 
-| 狀態 | 現有 spec 色值 | APP 設計語意 | 建議 |
-|------|--------------|------------|------|
-| unread | `#1976D2` | primaryDark | 保持（藍色系語意正確） |
-| reading | `#F57C00` | negativeDark | 需討論（閱讀中是否應該用負面色？） |
-| finished | `#388E3C` | positiveDark | 保持（完成是正向色語意正確） |
-| queued | `#7B1FA2`（紫） | 無對應 | 需討論（超出三色系統） |
-| abandoned | `#757575`（灰） | onSurfaceMuted | 保持（灰色表示非活躍） |
-| reference | `#00838F`（青） | 無對應 | 需討論（超出三色系統） |
+**Badge 樣式**：淡色底（主色 15% alpha）+ 深色字（主色原色），對齊 APP 的 `backgroundColor.withAlpha(0.15)` 邏輯。
 
-**衝突點**：APP 的三色系統（藍/綠/橘）無法涵蓋 queued（紫）和 reference（青）。需要討論：
-1. 是否沿用三色系統，將 queued/reference 映射到現有色系？
-2. 或者 Status 色彩作為獨立的功能色，允許超出三色系統？
+| 狀態 | 主色（fg） | UIColors 常數 | 背景色（bg = 主色 15% alpha） | 語意 |
+|------|----------|--------------|------|------|
+| notStarted/unread | `#E3F2FD` | primaryLightest | `rgba(227,242,253,0.15)` | 中性/尚未開始 |
+| queued | `#64B5F6` | primaryMedium | `rgba(100,181,246,0.15)` | 排隊等待 |
+| reading | `#2196F3` | primary | `rgba(33,150,243,0.15)` | 進行中 |
+| finished | `#4CAF50` | positive | `rgba(76,175,80,0.15)` | 正向完成 |
+| abandoned | `#FF9800` | negative | `rgba(255,152,0,0.15)` | 負面放棄 |
+| reference | `#1976D2` | primaryDark | `rgba(25,118,210,0.15)` | 參考用（深藍區分 reading） |
+
+**與 Extension 現有 spec 的差異**：
+
+| 狀態 | Extension spec 舊色 | 新色（對齊 APP） | 變更原因 |
+|------|-------------------|----------------|---------|
+| reading | `#F57C00`（橘） | `#2196F3`（藍） | 閱讀中非負面語意，改用主色調 |
+| queued | `#7B1FA2`（紫） | `#64B5F6`（中藍） | 紫色超出三色系統 |
+| reference | `#00838F`（青） | `#1976D2`（深藍） | 青色超出三色系統，用深藍區分 reading |
+| abandoned | `#757575`（灰） | `#FF9800`（橘） | 放棄是負面語意，應用負面色 |
+
+**APP 端同步修改**：`reading_status_badge.dart` 的 reference 從 `UIColors.primary` 改為 `UIColors.primaryDark`（解決 reading/reference 撞色問題）。
+
+### 3.5 品牌梯度換色（已確認）
+
+Extension 現有紫色梯度（`#667eea` → `#764ba2`）將替換為藍色系梯度，對齊 APP 設計系統：
+
+| 項目 | 舊值 | 新值 |
+|------|------|------|
+| 梯度起始色 | `#667eea`（紫） | `#2196F3`（primary） |
+| 梯度結束色 | `#764ba2`（深紫） | `#1976D2`（primaryDark） |
 
 ---
 
@@ -260,15 +278,24 @@ const COLORS = {
 
 ---
 
-## 6. 討論要點
+## 6. 討論結果
 
-1. **Status 色彩衝突**：queued（紫）和 reference（青）超出 APP 的三色系統，如何處理？
-   - 選項 A：沿用三色系統，重新映射這兩個狀態到藍/綠/橘
-   - 選項 B：Status 色彩作為功能色例外，允許超出三色系統
-2. **reading 狀態色**：APP 的 `#F57C00` 是 negativeDark，但「閱讀中」不是負面語意。是否需要重新選色？
-3. **現有品牌梯度**：Extension 使用的紫色梯度（`#667eea` → `#764ba2`）不在 APP 色系中，是否要替換為藍色系？
-4. **Phase 1 版本歸屬**：歸入 v0.17.x 當前版本，還是 v0.18.x？
-5. **CSS Variables 注入方式**：頁面載入時 JS 注入，還是建置時生成 CSS 檔案？
+### 已確認（2026-04-08）
+
+| # | 問題 | 決策 |
+|---|------|------|
+| 1 | Status 色彩衝突（queued 紫 / reference 青超出三色系統） | 沿用三色系統，全部映射到藍/綠/橘。見 3.4 節配色表 |
+| 2 | reading 狀態色（Extension spec 用橘色） | 對齊 APP，改用藍色 `#2196F3`。Extension spec 的橘色是當初隨機選的 |
+| 3 | 品牌梯度（Extension 用紫色 #667eea） | 替換為藍色系 `#2196F3` → `#1976D2`。見 3.5 節 |
+| 4 | APP reference 撞色 reading | reference 改用 primaryDark `#1976D2`，APP 端需同步修改 |
+| 5 | Badge 樣式 | 淡色底 + 深色字（對齊 APP 的 15% alpha 邏輯） |
+
+### 待確認
+
+| # | 問題 | 備註 |
+|---|------|------|
+| 6 | Phase 1 版本歸屬 | v0.17.x 或 v0.18.x？ |
+| 7 | CSS Variables 注入方式 | JS 注入 或 建置時生成？ |
 
 ---
 
@@ -291,3 +318,4 @@ const COLORS = {
 |------|------|---------|
 | 1.0 | 2026-04-08 | 初始建立（僅配色系統） |
 | 2.0 | 2026-04-08 | 升級為完整 UI Design System，納入 APP 專案設計規格作為基準 |
+| 2.1 | 2026-04-08 | 記錄討論結果：6 狀態配色確認、品牌梯度換色、Badge 樣式、APP reference 撞色修復 |
