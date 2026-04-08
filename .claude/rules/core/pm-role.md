@@ -56,6 +56,54 @@
 
 **代理人完成通知到達後**：回來驗收結果。失敗則重新派發，成功則 commit + 繼續下一個 Ticket。
 
+---
+
+## 工作階段切換 SOP
+
+> **核心理念**：PM 管理的是整個專案的流動，不是單一 Ticket 的完成。切換工作階段時必須重新掌握全局進度。
+
+### 切換前：確認背景任務狀態
+
+每次切換工作焦點（包括 `/clear` 清除 session）前，執行進度快照：
+
+```bash
+# 1. 查看背景代理人狀態
+ticket track list --status in_progress
+
+# 2. 查看待處理任務全貌
+ticket track list --status pending,in_progress
+
+# 3. 確認 git 未提交狀態
+git status --short
+```
+
+### 切換時：記錄當前進度到 worklog
+
+在 worklog 記錄：
+- 目前正在進行的 Ticket 和進度
+- 背景代理人各自在處理哪個 Ticket
+- 下一步預期動作（等代理人回來做什麼）
+
+### /clear 前的強制確認
+
+`/clear` 會清除 session context。執行前必須確認：
+
+| 確認項 | 原因 |
+|-------|------|
+| 背景代理人是否還在運行 | 完成通知會到新 session，但 context 已丟失 |
+| 未提交的變更是否已 commit | /clear 不影響檔案，但記憶會丟失 |
+| 當前 Ticket 進度是否已寫入 worklog | 新 session 靠 worklog 恢復 context |
+| 待驗收的代理人結果是否已處理 | 避免結果被遺忘 |
+
+### 新 session 開始時：重建全局視野
+
+```bash
+# 快速掌握所有任務線的進度
+ticket track list --status in_progress,pending --version all
+```
+
+然後根據 worklog 記錄決定從哪個 Ticket 繼續。
+
 **Context 隔離**：一個 session 只做一件事，做完 commit → handoff。
 
 ---
@@ -156,5 +204,5 @@
 ---
 
 **Last Updated**: 2026-04-08
-**Version**: 3.1.0 - 修正派發後行為：背景派發後立刻切換其他 Ticket，禁止空等（PC-045 追加）
+**Version**: 3.2.0 - 新增工作階段切換 SOP + /clear 前確認清單（PC-045 追加）
 **Source**: 從 .claude/skills/manager/SKILL.md v2.0.0 遷移 + PC-045 教訓
