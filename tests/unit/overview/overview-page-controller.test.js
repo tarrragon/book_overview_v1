@@ -19,6 +19,25 @@
 
 const { JSDOM } = require('jsdom')
 
+/**
+ * 建立測試用書籍物件
+ * @param {Object} overrides - 覆寫欄位
+ * @returns {Object} 完整的 Book 測試物件
+ */
+function makeBook (overrides = {}) {
+  return {
+    id: overrides.id || '1',
+    title: overrides.title || '測試書籍',
+    cover: overrides.cover || 'https://example.com/cover.jpg',
+    tags: overrides.tags || ['readmoo'],
+    progress: overrides.progress ?? 0,
+    status: overrides.status || '閱讀中',
+    readingStatus: overrides.readingStatus || 'reading',
+    tagIds: overrides.tagIds || [],
+    ...overrides
+  }
+}
+
 describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
   let dom
   let document
@@ -508,12 +527,12 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
   describe('Red Phase: readingStatus 篩選 bar 和 badge', () => {
     // 測試用書籍資料，涵蓋全部 6 種 readingStatus
     const mockBooksWithStatus = [
-      { id: '1', title: '未讀書籍', tags: ['readmoo'], progress: 0, readingStatus: 'unread' },
-      { id: '2', title: '閱讀中書籍', tags: ['readmoo'], progress: 50, readingStatus: 'reading' },
-      { id: '3', title: '已完成書籍', tags: ['readmoo'], progress: 100, readingStatus: 'finished' },
-      { id: '4', title: '待讀書籍', tags: ['readmoo'], progress: 0, readingStatus: 'queued' },
-      { id: '5', title: '已放棄書籍', tags: ['readmoo'], progress: 30, readingStatus: 'abandoned' },
-      { id: '6', title: '參考書籍', tags: ['readmoo'], progress: 10, readingStatus: 'reference' }
+      makeBook({ id: '1', title: '未讀書籍', progress: 0, readingStatus: 'unread' }),
+      makeBook({ id: '2', title: '閱讀中書籍', progress: 50, readingStatus: 'reading' }),
+      makeBook({ id: '3', title: '已完成書籍', progress: 100, readingStatus: 'finished' }),
+      makeBook({ id: '4', title: '待讀書籍', progress: 0, readingStatus: 'queued' }),
+      makeBook({ id: '5', title: '已放棄書籍', progress: 30, readingStatus: 'abandoned' }),
+      makeBook({ id: '6', title: '參考書籍', progress: 10, readingStatus: 'reference' })
     ]
 
     test('應該在初始化時設定 statusFilter 為 null（全部）', () => {
@@ -554,7 +573,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       const controller = new OverviewPageController(mockEventBus, document)
       controller.currentBooks = [
         ...mockBooksWithStatus,
-        { id: '7', title: '另一本閱讀中', tags: ['readmoo'], progress: 20, readingStatus: 'reading' }
+        makeBook({ id: '7', title: '另一本閱讀中', progress: 20, readingStatus: 'reading' })
       ]
 
       // 先設定狀態篩選為 reading
@@ -704,11 +723,11 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
   describe('Red Phase: Tag 篩選 widget 邏輯', () => {
     // 測試用書籍資料，含 tagIds
     const mockBooksWithTags = [
-      { id: '1', title: '推理小說A', tags: ['readmoo'], progress: 50, readingStatus: 'reading', tagIds: ['tag-novel', 'tag-mystery'] },
-      { id: '2', title: '科幻小說B', tags: ['readmoo'], progress: 30, readingStatus: 'reading', tagIds: ['tag-novel', 'tag-scifi'] },
-      { id: '3', title: 'AI教科書C', tags: ['readmoo'], progress: 100, readingStatus: 'finished', tagIds: ['tag-tech', 'tag-ai'] },
-      { id: '4', title: '歷史書D', tags: ['readmoo'], progress: 0, readingStatus: 'unread', tagIds: ['tag-history'] },
-      { id: '5', title: '無標籤書E', tags: ['readmoo'], progress: 10, readingStatus: 'reading', tagIds: [] }
+      makeBook({ id: '1', title: '推理小說A', progress: 50, readingStatus: 'reading', tagIds: ['tag-novel', 'tag-mystery'] }),
+      makeBook({ id: '2', title: '科幻小說B', progress: 30, readingStatus: 'reading', tagIds: ['tag-novel', 'tag-scifi'] }),
+      makeBook({ id: '3', title: 'AI教科書C', progress: 100, readingStatus: 'finished', tagIds: ['tag-tech', 'tag-ai'] }),
+      makeBook({ id: '4', title: '歷史書D', progress: 0, readingStatus: 'unread', tagIds: ['tag-history'] }),
+      makeBook({ id: '5', title: '無標籤書E', progress: 10, readingStatus: 'reading', tagIds: [] })
     ]
 
     test('應該在初始化時設定 tagFilterState 為空 Set + OR 模式', () => {
@@ -773,16 +792,31 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
       expect(controller.filteredBooks.length).toBe(5)
     })
+
+    test('AND 模式應排除空 tagIds 的書籍', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+      controller.currentBooks = mockBooksWithTags // 已有 id:'5' 的 tagIds: []
+
+      // AND 模式選中 tag-novel
+      controller.setTagFilter(new Set(['tag-novel']), 'and')
+
+      // id:5 無標籤書E（tagIds: []）不應出現在結果中
+      const ids = controller.filteredBooks.map(b => b.id)
+      expect(ids).not.toContain('5')
+      // 有 tag-novel 的是 id:1 和 id:2
+      expect(controller.filteredBooks.length).toBe(2)
+    })
   })
 
   describe('Red Phase: 三重組合篩選管線（狀態 -> tag -> 文字搜尋）', () => {
     // 測試用書籍資料：涵蓋不同狀態、tag、書名
     const mockBooksForPipeline = [
-      { id: '1', title: '推理小說三體', tags: ['readmoo'], progress: 50, readingStatus: 'reading', tagIds: ['tag-novel', 'tag-scifi'] },
-      { id: '2', title: '科幻小說基地', tags: ['readmoo'], progress: 30, readingStatus: 'reading', tagIds: ['tag-novel', 'tag-scifi'] },
-      { id: '3', title: 'AI 入門教材', tags: ['readmoo'], progress: 100, readingStatus: 'finished', tagIds: ['tag-tech'] },
-      { id: '4', title: '歷史三國志', tags: ['readmoo'], progress: 0, readingStatus: 'unread', tagIds: ['tag-history'] },
-      { id: '5', title: '推理偵探小說', tags: ['readmoo'], progress: 10, readingStatus: 'reading', tagIds: ['tag-novel', 'tag-mystery'] }
+      makeBook({ id: '1', title: '推理小說三體', progress: 50, readingStatus: 'reading', tagIds: ['tag-novel', 'tag-scifi'] }),
+      makeBook({ id: '2', title: '科幻小說基地', progress: 30, readingStatus: 'reading', tagIds: ['tag-novel', 'tag-scifi'] }),
+      makeBook({ id: '3', title: 'AI 入門教材', progress: 100, readingStatus: 'finished', tagIds: ['tag-tech'] }),
+      makeBook({ id: '4', title: '歷史三國志', progress: 0, readingStatus: 'unread', tagIds: ['tag-history'] }),
+      makeBook({ id: '5', title: '推理偵探小說', progress: 10, readingStatus: 'reading', tagIds: ['tag-novel', 'tag-mystery'] })
     ]
 
     test('狀態+tag 二重篩選：只顯示閱讀中且有 tag-scifi 的書', () => {
