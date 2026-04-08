@@ -46,14 +46,16 @@ ticket track summary                  # 摘要
 
 ```bash
 # 更新 Problem Analysis（分析完成時）
-(cd .claude/skills/ticket && uv run ticket track append-log <id> --section "Problem Analysis" "分析內容")
+ticket track append-log <id> --section "Problem Analysis" "分析內容"
 
 # 更新 Solution（實作完成時）
-(cd .claude/skills/ticket && uv run ticket track append-log <id> --section "Solution" "實作內容")
+ticket track append-log <id> --section "Solution" "實作內容"
 
 # 更新 Test Results（測試完成時）
-(cd .claude/skills/ticket && uv run ticket track append-log <id> --section "Test Results" "測試結果")
+ticket track append-log <id> --section "Test Results" "測試結果"
 ```
+
+> **注意**：`ticket` 是全域安裝的 CLI 工具，直接呼叫即可。**禁止** `(cd .claude/skills/ticket && uv run ...)`。
 
 #### 2.3 更新時機
 
@@ -143,5 +145,5 @@ PM 和代理人透過 **Ticket** 溝通，不直接溝通。PM 查 Ticket 進度
 ---
 
 **Last Updated**: 2026-04-08
-**Version**: 1.3.0 - 新增 Ticket 進度更新規範（代理人→Ticket 雙向溝通，PC-045）
+**Version**: 1.4.0 - 修正 ticket CLI 呼叫方式為全域直接呼叫（PC-046）+ Ticket 進度更新規範
 **Purpose**: 確保所有代理人遵守核心規則
