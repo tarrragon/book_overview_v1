@@ -2,6 +2,36 @@
 
 本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.17.2] - 2026-04-08
+
+### Tag-based Model 適配（匯出/搜尋/Overview）+ 工具鏈大幅強化
+
+**核心功能（PROP-007 適配層）**：
+- [規格] Interchange Format v2 匯出規格、SearchEngine tag 查詢規格、Overview tag 顯示規格
+- [測試] FilterEngine tag/tagCategory 篩選（25 新測試）、SearchEngine tag 文字搜尋
+- [測試] BookDataExporter v2 JSON/CSV 匯出（版本偵測 + v1 轉換 + 邊界條件）
+- [測試] Overview Page tag 顯示與篩選（6 狀態 badge + tag chip + dropdown 多選 + 三重組合管線）
+- [實作] FilterEngine tag 篩選邏輯（Phase 3b）
+- [重構] overview-page-controller 拆分（1680 行 -> BookExporter + BookFileImporter + DuplicateBookMerger + TagCellRenderer）
+
+**Hook 系統品質修復（W4~W11，大規模整治）**：
+- [修復] 27 個 Hook stdin JSON 解析統一遷移到 read_json_from_stdin（IMP-048 根治）
+- [修復] Hook 測試 120+ FAILED 歸零（agent_dispatch_check、5w1h_compliance、ticket_id_validator 等）
+- [修復] dart_parser multiline signature、javascript_parser arrow function 解析
+- [修復] dispatch_tracker 並行寫入 JSON 加入檔案鎖 + orphan branch 精確比對 + 模組快取 reset
+- [重構] PostToolUse:Bash hooks 從 12 個合併為 7 個 + 子邏輯輸出統一為 variant B
+- [修復] post-git-commit-hook YAML 解析改用 ticket_loader + run_background_fetch 成功判斷
+
+**PM 工作流改善（W2~W3, W9, W15）**：
+- [新增] Context Bundle 規範（PM 派發前將 context 寫入 Ticket，1 Read 原則）
+- [新增] ticket track snapshot 全局進度快照命令
+- [新增] ticket track search --ref 跨維度查詢 + list --version all 跨版本待辦
+- [新增] 代理人中間進度更新規範 + 實作代理人查詢範圍限制（PC-047）
+- [重構] decision-tree.md 按 DDD domain 邊界拆分為 4 個檔案
+- [重構] PM 角色規則：分析前台執行、實作背景派發、代理人失敗 SOP
+
+統計：96 個 Ticket（W1~W15）、測試 4601+ passed
+
 ## [v0.17.1] - 2026-04-05
 
 ### 測試修復與品質回穩
