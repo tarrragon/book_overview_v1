@@ -701,6 +701,80 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
   })
 
+  describe('Red Phase: Tag 篩選 widget 邏輯', () => {
+    // 測試用書籍資料，含 tagIds
+    const mockBooksWithTags = [
+      { id: '1', title: '推理小說A', tags: ['readmoo'], progress: 50, readingStatus: 'reading', tagIds: ['tag-novel', 'tag-mystery'] },
+      { id: '2', title: '科幻小說B', tags: ['readmoo'], progress: 30, readingStatus: 'reading', tagIds: ['tag-novel', 'tag-scifi'] },
+      { id: '3', title: 'AI教科書C', tags: ['readmoo'], progress: 100, readingStatus: 'finished', tagIds: ['tag-tech', 'tag-ai'] },
+      { id: '4', title: '歷史書D', tags: ['readmoo'], progress: 0, readingStatus: 'unread', tagIds: ['tag-history'] },
+      { id: '5', title: '無標籤書E', tags: ['readmoo'], progress: 10, readingStatus: 'reading', tagIds: [] }
+    ]
+
+    test('應該在初始化時設定 tagFilterState 為空 Set + OR 模式', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      expect(controller.tagFilterState).toBeDefined()
+      expect(controller.tagFilterState.selectedTagIds).toBeInstanceOf(Set)
+      expect(controller.tagFilterState.selectedTagIds.size).toBe(0)
+      expect(controller.tagFilterState.mode).toBe('or')
+    })
+
+    test('setTagFilter OR 模式：書籍有任一選中 tag 即顯示', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+      controller.currentBooks = mockBooksWithTags
+
+      // 選中 tag-mystery 和 tag-ai（OR 模式）
+      controller.setTagFilter(new Set(['tag-mystery', 'tag-ai']), 'or')
+
+      // 推理小說A（有 tag-mystery）和 AI教科書C（有 tag-ai）應顯示
+      expect(controller.filteredBooks.length).toBe(2)
+      expect(controller.filteredBooks.map(b => b.id)).toEqual(expect.arrayContaining(['1', '3']))
+    })
+
+    test('setTagFilter AND 模式：書籍必須包含所有選中 tag', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+      controller.currentBooks = mockBooksWithTags
+
+      // 選中 tag-novel 和 tag-mystery（AND 模式）
+      controller.setTagFilter(new Set(['tag-novel', 'tag-mystery']), 'and')
+
+      // 只有推理小說A 同時有 tag-novel 和 tag-mystery
+      expect(controller.filteredBooks.length).toBe(1)
+      expect(controller.filteredBooks[0].id).toBe('1')
+    })
+
+    test('clearTagFilter 應清除篩選回到全部書籍', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+      controller.currentBooks = mockBooksWithTags
+
+      // 先篩選
+      controller.setTagFilter(new Set(['tag-mystery']), 'or')
+      expect(controller.filteredBooks.length).toBe(1)
+
+      // 清除篩選
+      controller.clearTagFilter()
+
+      expect(controller.tagFilterState.selectedTagIds.size).toBe(0)
+      expect(controller.filteredBooks.length).toBe(5)
+    })
+
+    test('空 selectedTagIds 時不篩選（顯示全部）', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+      controller.currentBooks = mockBooksWithTags
+
+      // 設定空 Set
+      controller.setTagFilter(new Set(), 'or')
+
+      expect(controller.filteredBooks.length).toBe(5)
+    })
+  })
+
   describe('🔴 Red Phase: EventHandler 基底類別整合', () => {
     test('應該正確繼承 EventHandler', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')

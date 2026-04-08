@@ -110,6 +110,7 @@ class OverviewPageController extends EventHandlerClass {
     this.isLoading = false
     this.searchTerm = ''
     this.statusFilter = null
+    this.tagFilterState = { selectedTagIds: new Set(), mode: 'or' }
     this.tagMap = new Map()
     this.categoryMap = new Map()
 
@@ -393,12 +394,27 @@ class OverviewPageController extends EventHandlerClass {
   }
 
   /**
+   * 設定 Tag 篩選條件
+   * @param {Set<string>} selectedTagIds - 已選 tag ID 集合
+   * @param {'and'|'or'} mode - 篩選模式
+   */
+  setTagFilter (selectedTagIds, mode) {
+    this.tagFilterState = { selectedTagIds, mode }
+    this.applyCurrentFilter()
+  }
+
+  /**
+   * 清除 Tag 篩選，恢復顯示全部
+   */
+  clearTagFilter () {
+    this.tagFilterState = { selectedTagIds: new Set(), mode: 'or' }
+    this.applyCurrentFilter()
+  }
+
+  /**
    * 應用當前篩選條件
    *
-   * 負責功能：
-   * - 根據搜尋詞篩選書籍
-   * - 更新篩選結果
-   * - 觸發顯示更新
+   * 篩選管線：狀態篩選 → Tag 篩選 → 文字搜尋 → 排序
    */
   applyCurrentFilter () {
     // 狀態篩選
@@ -406,10 +422,22 @@ class OverviewPageController extends EventHandlerClass {
       ? this.currentBooks.filter(book => book.readingStatus === this.statusFilter)
       : [...this.currentBooks]
 
+    // Tag 篩選
+    const tagFiltered = this.tagFilterState.selectedTagIds.size === 0
+      ? statusFiltered
+      : statusFiltered.filter(book => {
+        const bookTagIds = book.tagIds || []
+        if (bookTagIds.length === 0) return false
+        if (this.tagFilterState.mode === 'and') {
+          return [...this.tagFilterState.selectedTagIds].every(id => bookTagIds.includes(id))
+        }
+        return bookTagIds.some(id => this.tagFilterState.selectedTagIds.has(id))
+      })
+
     // 文字搜尋
     const base = !this.searchTerm
-      ? statusFiltered
-      : statusFiltered.filter(book => book.title && book.title.toLowerCase().includes(this.searchTerm))
+      ? tagFiltered
+      : tagFiltered.filter(book => book.title && book.title.toLowerCase().includes(this.searchTerm))
 
     // 排序
     const sortKey = this.elements.sortSelect ? this.elements.sortSelect.value : 'title'
