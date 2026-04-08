@@ -5,7 +5,7 @@
 # checklist.status: done / pending / in_progress
 
 version: "1.0"
-last_updated: "2026-03-30"
+last_updated: "2026-04-08"
 
 proposals:
   PROP-000:
@@ -214,5 +214,33 @@ proposals:
         status: pending
         verified_by: null
       - item: "UC-07 替代流程進階功能延後至 v2.0"
+        status: pending
+        verified_by: null
+
+  PROP-008:
+    title: "統一配色系統（Design Tokens）"
+    status: draft
+    proposed: "2026-04-08"
+    confirmed: null
+    target_version: "v0.17.x ~ v0.20.x"
+    source: "development"
+    note: "W2-007.2 實作中發現：89+ 硬編碼色值散落 10+ 檔案，缺乏 Single Source of Truth"
+    spec_refs: []
+    usecase_refs: []
+    ticket_refs: []
+    checklist:
+      - item: "建立 src/core/design-tokens/colors.js 統一色彩常數"
+        status: pending
+        verified_by: null
+      - item: "合併 3 個重複的 DEFAULT_COLOR 定義"
+        status: pending
+        verified_by: null
+      - item: "補齊 Status 色彩 CSS（queued/abandoned/reference）"
+        status: pending
+        verified_by: null
+      - item: "導入 CSS Variables 取代硬編碼色值"
+        status: pending
+        verified_by: null
+      - item: "Spec 文件色彩引用統一指向 design tokens"
         status: pending
         verified_by: null
