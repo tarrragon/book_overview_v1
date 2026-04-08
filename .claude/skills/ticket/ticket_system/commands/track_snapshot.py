@@ -13,6 +13,7 @@ from ticket_system.lib.constants import (
     STATUS_IN_PROGRESS,
     STATUS_COMPLETED,
     STATUS_BLOCKED,
+    STATUS_CLOSED,
     WORK_LOGS_DIR,
 )
 from ticket_system.lib.paths import get_project_root
@@ -78,7 +79,8 @@ def _print_version_progress(versions: List[str]) -> None:
         if not tickets:
             continue
         counts = _count_by_status(tickets)
-        total = len(tickets)
+        closed = counts[STATUS_CLOSED]
+        active_total = len(tickets) - closed
         parts = []
         if counts[STATUS_PENDING]:
             parts.append(f"{counts[STATUS_PENDING]} pending")
@@ -86,8 +88,10 @@ def _print_version_progress(versions: List[str]) -> None:
             parts.append(f"{counts[STATUS_IN_PROGRESS]} in_progress")
         if counts[STATUS_BLOCKED]:
             parts.append(f"{counts[STATUS_BLOCKED]} blocked")
+        if closed:
+            parts.append(f"{closed} closed")
         suffix = f" ({', '.join(parts)})" if parts else ""
-        print(f"  v{version}: {counts[STATUS_COMPLETED]}/{total} 完成{suffix}")
+        print(f"  v{version}: {counts[STATUS_COMPLETED]}/{active_total} 完成{suffix}")
     print()
 
 
@@ -137,7 +141,10 @@ def _print_git_status(branch: str, uncommitted: int) -> None:
 
 def _count_by_status(tickets: List[Dict[str, Any]]) -> Dict[str, int]:
     """按狀態計數"""
-    counts = {STATUS_PENDING: 0, STATUS_IN_PROGRESS: 0, STATUS_COMPLETED: 0, STATUS_BLOCKED: 0}
+    counts = {
+        STATUS_PENDING: 0, STATUS_IN_PROGRESS: 0,
+        STATUS_COMPLETED: 0, STATUS_BLOCKED: 0, STATUS_CLOSED: 0,
+    }
     for t in tickets:
         s = t.get("status", STATUS_PENDING)
         if s in counts:
