@@ -31,6 +31,8 @@
 const EventHandlerClass = require('src/core/event-handler')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { BookExporter } = require('src/overview/book-exporter')
+const { BookFileImporter } = require('src/overview/book-file-importer')
+const { DuplicateBookMerger } = require('src/overview/duplicate-book-merger')
 
 // 常數定義
 const CONSTANTS = {
@@ -111,6 +113,15 @@ class OverviewPageController extends EventHandlerClass {
       getFilteredBooks: () => this.filteredBooks,
       document: this.document
     })
+
+    // 初始化檔案載入模組
+    this.bookFileImporter = new BookFileImporter({
+      document: this.document,
+      showError: (msg) => this.showError(msg)
+    })
+
+    // 初始化重複書籍合併模組
+    this.duplicateBookMerger = new DuplicateBookMerger()
 
     // 初始化 DOM 元素引用
     this.initializeElements()
@@ -804,166 +815,25 @@ class OverviewPageController extends EventHandlerClass {
   }
 
   /**
-   * 處理檔案載入操作 - 重構版本
+   * 處理檔案載入操作（委派至 BookFileImporter）
    *
    * @param {File} file - 要載入的檔案
    * @returns {Promise<void>} 載入完成Promise
    *
    * 負責功能：
-   * - 協調檔案載入流程
-   * - 整合驗證和讀取步驟
+   * - 委派檔案驗證和讀取至 BookFileImporter
    * - 管理載入狀態
+   * - 接收解析後的書籍資料更新 UI
    */
   async handleFileLoad (file) {
-    this._validateFileBasics(file)
-    this._validateFileSize(file)
+    // 驗證階段由 importer 處理（會呼叫 showError 並 throw）
+    this.bookFileImporter._validateFileBasics(file)
+    this.bookFileImporter._validateFileSize(file)
     this.showLoading('正在讀取檔案...')
-    return this._readFileWithReader(file)
-  }
 
-  /**
-   * 驗證檔案基本要求
-   * @private
-   * @param {File} file - 要驗證的檔案
-   * @throws {Error} 檔案不符合基本要求時拋出錯誤
-   */
-  _validateFileBasics (file) {
-    if (!file) {
-      this.showError('請先選擇一個 JSON 檔案！')
-      const error = new Error('檔案不存在')
-      error.code = ErrorCodes.VALIDATION_ERROR
-      error.details = { category: 'validation' }
-      throw error
-    }
-    if (!this._isJSONFile(file)) {
-      this.showError('請選擇 JSON 格式的檔案！')
-      const error = new Error('檔案格式不正確')
-      error.code = ErrorCodes.VALIDATION_ERROR
-      error.details = { category: 'validation' }
-      throw error
-    }
-  }
-
-  /**
-   * 檢查是否為JSON檔案
-   * @private
-   * @param {File} file - 要檢查的檔案
-   * @returns {boolean} 是否為JSON檔案
-   */
-  _isJSONFile (file) {
-    // 檢查副檔名
-    const hasJsonExtension = file.name.toLowerCase().endsWith('.json')
-
-    // 檢查 MIME 類型
-    const hasJsonMimeType = file.type === 'application/json'
-
-    return hasJsonExtension || hasJsonMimeType
-  }
-
-  /**
-   * 驗證檔案大小
-   * @private
-   * @param {File} file - 要驗證的檔案
-   * @throws {Error} 檔案過大時拋出錯誤
-   */
-  _validateFileSize (file) {
-    const maxSize = 10 * 1024 * 1024 // 10MB
-    if (file.size > maxSize) {
-      this.showError('檔案過大，請選擇小於 10MB 的檔案！')
-      const error = new Error('檔案大小超出限制')
-      error.code = ErrorCodes.VALIDATION_ERROR
-      error.details = { category: 'validation' }
-      throw error
-    }
-  }
-
-  /**
-   * 使用FileReader讀取檔案
-   * @private
-   * @param {File} file - 要讀取的檔案
-   * @returns {Promise<void>} 讀取完成Promise
-   */
-  _readFileWithReader (file) {
-    return new Promise((resolve, reject) => {
-      const reader = this._createFileReader()
-      this._setupReaderHandlers(reader, resolve, reject)
-      reader.readAsText(file, 'utf-8')
-    })
-  }
-
-  /**
-   * 建立FileReader實例
-   * @private
-   * @returns {FileReader} FileReader實例
-   */
-  _createFileReader () {
-    const FileReaderFactory = this._loadFileReaderFactory()
-    return FileReaderFactory.createReader()
-  }
-
-  /**
-   * 載入FileReaderFactory
-   * @private
-   * @returns {Object} FileReaderFactory類
-   */
-  _loadFileReaderFactory () {
-    if (typeof require !== 'undefined') {
-      return require('src/utils/file-reader-factory')
-    }
-    return window.FileReaderFactory
-  }
-
-  /**
-   * 設定FileReader事件處理器
-   * @private
-   * @param {FileReader} reader - FileReader實例
-   * @param {Function} resolve - Promise resolve函數
-   * @param {Function} reject - Promise reject函數
-   */
-  _setupReaderHandlers (reader, resolve, reject) {
-    reader.onload = (e) => this._handleReaderSuccess(e, resolve, reject)
-    reader.onerror = () => this._handleReaderError(reject)
-  }
-
-  /**
-   * 處理FileReader成功事件
-   * @private
-   * @param {Event} e - 載入事件
-   * @param {Function} resolve - Promise resolve函數
-   * @param {Function} reject - Promise reject函數
-   */
-  _handleReaderSuccess (e, resolve, reject) {
-    try {
-      this._handleFileContent(e.target.result)
-      resolve()
-    } catch (error) {
-      this._handleFileProcessError(error, reject)
-    }
-  }
-
-  /**
-   * 處理FileReader錯誤事件
-   * @private
-   * @param {Function} reject - Promise reject函數
-   */
-  _handleReaderError (reject) {
-    const errorMsg = '讀取檔案時發生錯誤'
-    this.showError(errorMsg)
-    const error = new Error(errorMsg)
-    error.code = ErrorCodes.UNKNOWN_ERROR
-    error.details = { category: 'general' }
-    reject(error)
-  }
-
-  /**
-   * 處理檔案處理錯誤
-   * @private
-   * @param {Error} error - 錯誤對象
-   * @param {Function} reject - Promise reject函數
-   */
-  _handleFileProcessError (error, reject) {
-    this.showError(`載入檔案失敗：${error.message}`)
-    reject(error)
+    // 讀取和解析由 importer 處理，回傳書籍陣列
+    const books = await this.bookFileImporter._readFileWithReader(file)
+    this._updateUIWithBooks(books)
   }
 
   // EventHandler 抽象方法實現
@@ -1108,103 +978,6 @@ class OverviewPageController extends EventHandlerClass {
     }
   }
 
-  /**
-   * 處理檔案內容 - 重構版本
-   * @private
-   *
-   * @param {string} content - 檔案內容
-   */
-  _handleFileContent (content) {
-    const cleanContent = this._validateAndCleanContent(content)
-    const data = this._parseJSONContent(cleanContent)
-    const books = this._processBookData(data)
-    this._updateUIWithBooks(books)
-  }
-
-  /**
-   * 驗證並清理檔案內容
-   * @private
-   * @param {string} content - 原始檔案內容
-   * @returns {string} 清理後的內容
-   */
-  _validateAndCleanContent (content) {
-    if (!content || content.trim() === '') {
-      const error = new Error('檔案內容為空')
-      error.code = ErrorCodes.VALIDATION_ERROR
-      error.details = { category: 'validation' }
-      throw error
-    }
-    return this._removeBOM(content)
-  }
-
-  /**
-   * 移除UTF-8 BOM標記
-   * @private
-   * @param {string} content - 檔案內容
-   * @returns {string} 移除BOM後的內容
-   */
-  _removeBOM (content) {
-    return content.replace(/^\uFEFF/, '')
-  }
-
-  /**
-   * 解析JSON內容
-   * @private
-   * @param {string} content - 要解析的JSON內容
-   * @returns {any} 解析後的資料
-   */
-  _parseJSONContent (content) {
-    try {
-      return JSON.parse(content)
-    } catch (error) {
-      if (error instanceof SyntaxError) {
-        const error = new Error('JSON 檔案格式不正確')
-        error.code = ErrorCodes.PARSE_ERROR
-        error.details = { category: 'parsing' }
-        throw error
-      }
-      throw error
-    }
-  }
-
-  /**
-   * 處理書籍資料
-   * @private
-   * @param {any} data - 解析後的JSON資料
-   * @returns {Array} 驗證後的書籍陣列
-   */
-  _processBookData (data) {
-    const books = this._extractBooksFromData(data)
-    const validBooks = this._filterValidBooks(books)
-    this._checkLargeDataset(validBooks)
-    return validBooks
-  }
-
-  /**
-   * 過濾有效書籍
-   * @private
-   * @param {Array} books - 書籍陣列
-   * @returns {Array} 有效書籍陣列
-   */
-  _filterValidBooks (books) {
-    return books.filter(book => this._isValidBook(book))
-  }
-
-  /**
-   * 檢查大型資料集
-   * @private
-   * @param {Array} books - 書籍陣列
-   */
-  _checkLargeDataset (books) {
-    if (books.length > 1000) {
-      // Logger 後備方案: UI Component 效能警告
-      // 設計理念: 大資料集處理警告需要開發者和用戶立即可見
-      // 後備機制: console.warn 提供效能問題的即時提醒
-      // 使用場景: 超過 1000 本書籍時的效能警告，提示未來優化需求
-      // eslint-disable-next-line no-console
-      console.warn('⚠️ 大型資料集，建議分批處理（未來改善）')
-    }
-  }
 
   /**
    * 更新UI與書籍資料
@@ -1225,109 +998,6 @@ class OverviewPageController extends EventHandlerClass {
   _logLoadSuccess (books) {
   }
 
-  /**
-   * 從資料中提取書籍陣列 - 重構版本
-   * @private
-   *
-   * @param {any} data - 解析後的JSON資料
-   * @returns {Array} 書籍陣列
-   */
-  _extractBooksFromData (data) {
-    if (this._isDirectArrayFormat(data)) return data
-    if (this._isWrappedBooksFormat(data)) return data.books
-    if (this._isMetadataWrapFormat(data)) return data.data
-
-    // 處理空 JSON 對象的情況
-    if (data && typeof data === 'object' && Object.keys(data).length === 0) {
-      return [] // 空對象回傳空陣列
-    }
-
-    const error = new Error('JSON 檔案應該包含一個陣列或包含books屬性的物件')
-    error.code = ErrorCodes.VALIDATION_ERROR
-    error.details = { category: 'validation' }
-    throw error
-  }
-
-  /**
-   * 檢查是否為直接陣列格式
-   * @private
-   * @param {any} data - 要檢查的資料
-   * @returns {boolean} 是否為直接陣列格式
-   */
-  _isDirectArrayFormat (data) {
-    return Array.isArray(data)
-  }
-
-  /**
-   * 檢查是否為包裝books格式
-   * @private
-   * @param {any} data - 要檢查的資料
-   * @returns {boolean} 是否為包裝books格式
-   */
-  _isWrappedBooksFormat (data) {
-    return data &&
-           typeof data === 'object' &&
-           Array.isArray(data.books)
-  }
-
-  /**
-   * 檢查是否為metadata包裝格式
-   * @private
-   * @param {any} data - 要檢查的資料
-   * @returns {boolean} 是否為metadata包裝格式
-   */
-  _isMetadataWrapFormat (data) {
-    return data &&
-           data.data &&
-           Array.isArray(data.data)
-  }
-
-  /**
-   * 驗證書籍資料是否有效 - 重構版本
-   * @private
-   *
-   * @param {Object} book - 書籍物件
-   * @returns {boolean} 是否有效
-   */
-  _isValidBook (book) {
-    return this._validateBookStructure(book) &&
-           this._validateRequiredFields(book) &&
-           this._validateFieldTypes(book)
-  }
-
-  /**
-   * 驗證書籍基本結構
-   * @private
-   * @param {any} book - 要驗證的書籍對象
-   * @returns {boolean} 結構是否有效
-   */
-  _validateBookStructure (book) {
-    return book && typeof book === 'object'
-  }
-
-  /**
-   * 驗證必要欄位存在
-   * @private
-   * @param {Object} book - 書籍物件
-   * @returns {boolean} 必要欄位是否都存在
-   */
-  _validateRequiredFields (book) {
-    return Boolean(book.id) &&
-           Boolean(book.title) &&
-           Boolean(book.cover)
-  }
-
-  /**
-   * 驗證欄位類型
-   * @private
-   * @param {Object} book - 書籍物件
-   * @returns {boolean} 欄位類型是否正確
-   */
-  _validateFieldTypes (book) {
-    return typeof book.id === 'string' &&
-           typeof book.title === 'string' &&
-           typeof book.cover === 'string'
-  }
 
   // ========== EventHandler 抽象方法實現 ==========
 
@@ -1392,15 +1062,216 @@ class OverviewPageController extends EventHandlerClass {
     }
   }
 
-  // ========== 重複書籍處理（Schema v1 + v2 合併策略） ==========
+  // ========== 檔案載入代理方法（向後相容） ==========
 
   /**
-   * 處理重複書籍的合併策略
+   * 處理檔案內容（委派至 BookFileImporter）
+   * @private
+   * @param {string} content - 檔案內容
    *
-   * 業務規則：匯入書籍時，需依策略處理 ID 重複和跨平台重複（title+author）的書籍。
-   * - skip：重複書籍保留既有版本
-   * - override：重複書籍用匯入版本替換
-   * - merge：依欄位級合併策略合併（Schema v2 欄位特殊處理）
+   * 保留此代理方法以維持向後相容性（測試和外部呼叫者可能直接使用）
+   */
+  _handleFileContent (content) {
+    const books = this.bookFileImporter._handleFileContent(content)
+    this._updateUIWithBooks(books)
+  }
+
+  /**
+   * 驗證檔案基本要求（委派至 BookFileImporter）
+   * @private
+   */
+  _validateFileBasics (file) {
+    return this.bookFileImporter._validateFileBasics(file)
+  }
+
+  /**
+   * 驗證檔案大小（委派至 BookFileImporter）
+   * @private
+   */
+  _validateFileSize (file) {
+    return this.bookFileImporter._validateFileSize(file)
+  }
+
+  /**
+   * 檢查是否為JSON檔案（委派至 BookFileImporter）
+   * @private
+   */
+  _isJSONFile (file) {
+    return this.bookFileImporter._isJSONFile(file)
+  }
+
+  /**
+   * 使用FileReader讀取檔案（委派至 BookFileImporter）
+   * @private
+   */
+  _readFileWithReader (file) {
+    return this.bookFileImporter._readFileWithReader(file)
+  }
+
+  /**
+   * 建立FileReader實例（委派至 BookFileImporter）
+   * @private
+   */
+  _createFileReader () {
+    return this.bookFileImporter._createFileReader()
+  }
+
+  /**
+   * 載入FileReaderFactory（委派至 BookFileImporter）
+   * @private
+   */
+  _loadFileReaderFactory () {
+    return this.bookFileImporter._loadFileReaderFactory()
+  }
+
+  /**
+   * 設定FileReader事件處理器（委派至 BookFileImporter）
+   * @private
+   */
+  _setupReaderHandlers (reader, resolve, reject) {
+    return this.bookFileImporter._setupReaderHandlers(reader, resolve, reject)
+  }
+
+  /**
+   * 處理FileReader成功事件（委派至 BookFileImporter）
+   * @private
+   */
+  _handleReaderSuccess (e, resolve, reject) {
+    return this.bookFileImporter._handleReaderSuccess(e, resolve, reject)
+  }
+
+  /**
+   * 處理FileReader錯誤事件（委派至 BookFileImporter）
+   * @private
+   */
+  _handleReaderError (reject) {
+    return this.bookFileImporter._handleReaderError(reject)
+  }
+
+  /**
+   * 處理檔案處理錯誤（委派至 BookFileImporter）
+   * @private
+   */
+  _handleFileProcessError (error, reject) {
+    return this.bookFileImporter._handleFileProcessError(error, reject)
+  }
+
+  /**
+   * 驗證並清理檔案內容（委派至 BookFileImporter）
+   * @private
+   */
+  _validateAndCleanContent (content) {
+    return this.bookFileImporter._validateAndCleanContent(content)
+  }
+
+  /**
+   * 移除UTF-8 BOM標記（委派至 BookFileImporter）
+   * @private
+   */
+  _removeBOM (content) {
+    return this.bookFileImporter._removeBOM(content)
+  }
+
+  /**
+   * 解析JSON內容（委派至 BookFileImporter）
+   * @private
+   */
+  _parseJSONContent (content) {
+    return this.bookFileImporter._parseJSONContent(content)
+  }
+
+  /**
+   * 處理書籍資料（委派至 BookFileImporter）
+   * @private
+   */
+  _processBookData (data) {
+    return this.bookFileImporter._processBookData(data)
+  }
+
+  /**
+   * 過濾有效書籍（委派至 BookFileImporter）
+   * @private
+   */
+  _filterValidBooks (books) {
+    return this.bookFileImporter._filterValidBooks(books)
+  }
+
+  /**
+   * 檢查大型資料集（委派至 BookFileImporter）
+   * @private
+   */
+  _checkLargeDataset (books) {
+    return this.bookFileImporter._checkLargeDataset(books)
+  }
+
+  /**
+   * 從資料中提取書籍陣列（委派至 BookFileImporter）
+   * @private
+   */
+  _extractBooksFromData (data) {
+    return this.bookFileImporter._extractBooksFromData(data)
+  }
+
+  /**
+   * 檢查是否為直接陣列格式（委派至 BookFileImporter）
+   * @private
+   */
+  _isDirectArrayFormat (data) {
+    return this.bookFileImporter._isDirectArrayFormat(data)
+  }
+
+  /**
+   * 檢查是否為包裝books格式（委派至 BookFileImporter）
+   * @private
+   */
+  _isWrappedBooksFormat (data) {
+    return this.bookFileImporter._isWrappedBooksFormat(data)
+  }
+
+  /**
+   * 檢查是否為metadata包裝格式（委派至 BookFileImporter）
+   * @private
+   */
+  _isMetadataWrapFormat (data) {
+    return this.bookFileImporter._isMetadataWrapFormat(data)
+  }
+
+  /**
+   * 驗證書籍資料是否有效（委派至 BookFileImporter）
+   * @private
+   */
+  _isValidBook (book) {
+    return this.bookFileImporter._isValidBook(book)
+  }
+
+  /**
+   * 驗證書籍基本結構（委派至 BookFileImporter）
+   * @private
+   */
+  _validateBookStructure (book) {
+    return this.bookFileImporter._validateBookStructure(book)
+  }
+
+  /**
+   * 驗證必要欄位存在（委派至 BookFileImporter）
+   * @private
+   */
+  _validateRequiredFields (book) {
+    return this.bookFileImporter._validateRequiredFields(book)
+  }
+
+  /**
+   * 驗證欄位類型（委派至 BookFileImporter）
+   * @private
+   */
+  _validateFieldTypes (book) {
+    return this.bookFileImporter._validateFieldTypes(book)
+  }
+
+  // ========== 重複書籍處理（委派至 DuplicateBookMerger） ==========
+
+  /**
+   * 處理重複書籍的合併策略（委派至 DuplicateBookMerger）
    *
    * @param {Array} existingBooks - 既有書籍陣列
    * @param {Array} importedBooks - 匯入書籍陣列
@@ -1408,198 +1279,7 @@ class OverviewPageController extends EventHandlerClass {
    * @returns {Array} 合併後的書籍陣列
    */
   _handleDuplicateBooks (existingBooks, importedBooks, strategy) {
-    // 先對匯入清單去重（同 ID 取最後出現的）
-    const deduplicatedImported = this._deduplicateByLastOccurrence(importedBooks)
-
-    // 建立既有書籍的查找索引（ID 和 title+author 雙索引）
-    const existingById = new Map()
-    const existingByTitleAuthor = new Map()
-    for (const book of existingBooks) {
-      existingById.set(book.id, book)
-      const compositeKey = this._buildTitleAuthorKey(book)
-      if (compositeKey) {
-        existingByTitleAuthor.set(compositeKey, book)
-      }
-    }
-
-    // 結果集合：以 Map 避免重複
-    const resultMap = new Map()
-
-    // 先放入所有既有書籍
-    for (const book of existingBooks) {
-      resultMap.set(book.id, { ...book })
-    }
-
-    // 處理每本匯入書籍
-    for (const imported of deduplicatedImported) {
-      // 查找重複：優先 ID 匹配，其次 title+author 匹配
-      const existingById_ = existingById.get(imported.id)
-      const compositeKey = this._buildTitleAuthorKey(imported)
-      const existingByTA = compositeKey ? existingByTitleAuthor.get(compositeKey) : null
-      const matchedExisting = existingById_ || existingByTA
-
-      if (!matchedExisting) {
-        // 無重複，直接加入
-        resultMap.set(imported.id, { ...imported })
-        continue
-      }
-
-      const existingId = matchedExisting.id
-
-      switch (strategy) {
-        case 'skip':
-          // 保留既有版本，不做任何處理
-          break
-
-        case 'override':
-          // 移除既有版本，加入匯入版本
-          resultMap.delete(existingId)
-          resultMap.set(imported.id, { ...imported })
-          break
-
-        case 'merge':
-          // 欄位級合併
-          resultMap.delete(existingId)
-          const merged = this._mergeBooks(matchedExisting, imported)
-          resultMap.set(merged.id, merged)
-          break
-
-        default:
-          // 未知策略視同 skip
-          break
-      }
-    }
-
-    return Array.from(resultMap.values())
-  }
-
-  /**
-   * 匯入清單內部去重，同 ID 取最後出現的
-   *
-   * @param {Array} books - 書籍陣列
-   * @returns {Array} 去重後的書籍陣列
-   */
-  _deduplicateByLastOccurrence (books) {
-    const seen = new Map()
-    for (const book of books) {
-      seen.set(book.id, book)
-    }
-    return Array.from(seen.values())
-  }
-
-  /**
-   * 建立 title+author 組合鍵，用於跨平台去重
-   *
-   * @param {Object} book - 書籍物件
-   * @returns {string|null} 組合鍵，缺少 title 或 authors 時回傳 null
-   */
-  _buildTitleAuthorKey (book) {
-    if (!book.title || !book.authors || !book.authors.length) return null
-    return `${book.title}::${book.authors.join('|')}`
-  }
-
-  /**
-   * 欄位級合併兩本書（Schema v2 合併策略）
-   *
-   * 合併規則：
-   * - 基底版本：updatedAt 較新的為基底（相同或都缺失時取既有）
-   * - readingStatus：isManualStatus=true 優先；同為 manual 或同為 auto 時取較新
-   * - progress：取較大值
-   * - tagIds：聯集 union（去重）
-   * - 其他欄位：基底為 null/undefined 時取另一方的非空值
-   *
-   * @param {Object} existing - 既有書籍
-   * @param {Object} imported - 匯入書籍
-   * @returns {Object} 合併後的書籍
-   */
-  _mergeBooks (existing, imported) {
-    // 決定基底版本：updatedAt 較新者為基底
-    const existingTime = existing.updatedAt ? new Date(existing.updatedAt).getTime() : 0
-    const importedTime = imported.updatedAt ? new Date(imported.updatedAt).getTime() : 0
-    const isImportedNewer = importedTime > existingTime
-
-    const base = isImportedNewer ? { ...imported } : { ...existing }
-    const other = isImportedNewer ? existing : imported
-
-    // 合併 readingStatus（isManualStatus=true 優先）
-    this._mergeReadingStatus(base, existing, imported, isImportedNewer)
-
-    // 合併 progress（取較大值）
-    this._mergeProgress(base, existing, imported)
-
-    // 合併 tagIds（聯集去重）
-    this._mergeTagIds(base, existing, imported)
-
-    // 補充基底欄位的空值
-    this._fillNullFields(base, other)
-
-    return base
-  }
-
-  /**
-   * 合併 readingStatus：isManualStatus=true 的一方優先
-   *
-   * 業務規則：使用者手動設定的閱讀狀態優先於系統自動偵測的狀態
-   */
-  _mergeReadingStatus (base, existing, imported, isImportedNewer) {
-    const existingIsManual = existing.isManualStatus === true
-    const importedIsManual = imported.isManualStatus === true
-
-    if (existingIsManual && !importedIsManual) {
-      base.readingStatus = existing.readingStatus
-      base.isManualStatus = true
-    } else if (!existingIsManual && importedIsManual) {
-      base.readingStatus = imported.readingStatus
-      base.isManualStatus = true
-    } else if (existingIsManual && importedIsManual) {
-      // 雙方都是 manual，取較新的
-      const source = isImportedNewer ? imported : existing
-      base.readingStatus = source.readingStatus
-      base.isManualStatus = true
-    }
-    // 雙方都是 auto：base 已經是較新版本，不需額外處理
-  }
-
-  /**
-   * 合併 progress：取較大值
-   *
-   * 業務規則：閱讀進度只會前進不會倒退
-   */
-  _mergeProgress (base, existing, imported) {
-    const existingProgress = typeof existing.progress === 'number' ? existing.progress : -1
-    const importedProgress = typeof imported.progress === 'number' ? imported.progress : -1
-    const maxProgress = Math.max(existingProgress, importedProgress)
-
-    if (maxProgress >= 0) {
-      base.progress = maxProgress
-    }
-  }
-
-  /**
-   * 合併 tagIds：聯集去重
-   *
-   * 業務規則：標籤只會增加不會減少，合併時取兩方的聯集
-   */
-  _mergeTagIds (base, existing, imported) {
-    const existingTags = Array.isArray(existing.tagIds) ? existing.tagIds : []
-    const importedTags = Array.isArray(imported.tagIds) ? imported.tagIds : []
-
-    if (existingTags.length > 0 || importedTags.length > 0) {
-      base.tagIds = [...new Set([...existingTags, ...importedTags])]
-    }
-  }
-
-  /**
-   * 補充基底版本的 null/undefined 欄位
-   *
-   * 業務規則：有值優於無值，任何一方有資訊就應保留
-   */
-  _fillNullFields (base, other) {
-    for (const key of Object.keys(other)) {
-      if ((base[key] === null || base[key] === undefined) && other[key] != null) {
-        base[key] = other[key]
-      }
-    }
+    return this.duplicateBookMerger.handleDuplicateBooks(existingBooks, importedBooks, strategy)
   }
 }
 
