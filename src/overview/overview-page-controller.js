@@ -605,14 +605,46 @@ class OverviewPageController extends EventHandlerClass {
     const row = this.document.createElement('tr')
     const rowData = this._formatBookRowData(book)
 
-    row.innerHTML = `
-      <td>${rowData.cover}</td>
-      <td>${rowData.title}</td>
-      <td>${rowData.source}</td>
-      <td>${rowData.progress}</td>
-      <td>${rowData.status}</td>
-    `
+    // XSS 防護：使用 DOM API 建立各欄位，避免 innerHTML 注入
+    // cover 欄位：驗證 URL 協議後建立 img 元素
+    const coverCell = this.document.createElement('td')
+    if (book.cover) {
+      const isSafeUrl = /^https?:\/\//i.test(book.cover)
+      if (isSafeUrl) {
+        const img = this.document.createElement('img')
+        img.src = book.cover
+        img.alt = '封面'
+        img.style.width = `${CONSTANTS.TABLE.COVER_SIZE.WIDTH}px`
+        img.style.height = `${CONSTANTS.TABLE.COVER_SIZE.HEIGHT}px`
+        img.style.objectFit = 'cover'
+        coverCell.appendChild(img)
+      } else {
+        coverCell.textContent = CONSTANTS.TABLE.DEFAULT_COVER
+      }
+    } else {
+      coverCell.textContent = CONSTANTS.TABLE.DEFAULT_COVER
+    }
+    row.appendChild(coverCell)
 
+    // title, source, progress 欄位：使用 textContent 自動逸出
+    const titleCell = this.document.createElement('td')
+    titleCell.textContent = rowData.title
+    row.appendChild(titleCell)
+
+    const sourceCell = this.document.createElement('td')
+    sourceCell.textContent = rowData.source
+    row.appendChild(sourceCell)
+
+    const progressCell = this.document.createElement('td')
+    progressCell.textContent = rowData.progress
+    row.appendChild(progressCell)
+
+    // status 欄位：badge HTML 由內部生成（_formatBookRowData），非使用者輸入
+    const statusCell = this.document.createElement('td')
+    statusCell.innerHTML = rowData.status
+    row.appendChild(statusCell)
+
+    // tag 欄位：由 tagCellRenderer 以 DOM API 建立，安全
     const tagCell = this.tagCellRenderer.createTagCell(book.tagIds || [])
     row.appendChild(tagCell)
 
@@ -1004,14 +1036,14 @@ class OverviewPageController extends EventHandlerClass {
     }
   }
 
-  // ========== 檔案載入代理方法（向後相容） ==========
+  // ========== 檔案載入代理方法（向後相容，測試直接呼叫） ==========
 
   /**
    * 處理檔案內容（委派至 BookFileImporter）
    * @private
    * @param {string} content - 檔案內容
    *
-   * 保留此代理方法以維持向後相容性（測試和外部呼叫者可能直接使用）
+   * 保留原因：測試環境中 handleFileLoad 的替代實作直接呼叫此方法
    */
   _handleFileContent (content) {
     const books = this.bookFileImporter._handleFileContent(content)
@@ -1021,6 +1053,8 @@ class OverviewPageController extends EventHandlerClass {
   /**
    * 驗證檔案基本要求（委派至 BookFileImporter）
    * @private
+   *
+   * 保留原因：overview-page.test.js 透過 jest.spyOn 攔截此方法
    */
   _validateFileBasics (file) {
     return this.bookFileImporter._validateFileBasics(file)
@@ -1029,185 +1063,11 @@ class OverviewPageController extends EventHandlerClass {
   /**
    * 驗證檔案大小（委派至 BookFileImporter）
    * @private
+   *
+   * 保留原因：overview-page.test.js 透過 jest.spyOn 攔截此方法
    */
   _validateFileSize (file) {
     return this.bookFileImporter._validateFileSize(file)
-  }
-
-  /**
-   * 檢查是否為JSON檔案（委派至 BookFileImporter）
-   * @private
-   */
-  _isJSONFile (file) {
-    return this.bookFileImporter._isJSONFile(file)
-  }
-
-  /**
-   * 使用FileReader讀取檔案（委派至 BookFileImporter）
-   * @private
-   */
-  _readFileWithReader (file) {
-    return this.bookFileImporter._readFileWithReader(file)
-  }
-
-  /**
-   * 建立FileReader實例（委派至 BookFileImporter）
-   * @private
-   */
-  _createFileReader () {
-    return this.bookFileImporter._createFileReader()
-  }
-
-  /**
-   * 載入FileReaderFactory（委派至 BookFileImporter）
-   * @private
-   */
-  _loadFileReaderFactory () {
-    return this.bookFileImporter._loadFileReaderFactory()
-  }
-
-  /**
-   * 設定FileReader事件處理器（委派至 BookFileImporter）
-   * @private
-   */
-  _setupReaderHandlers (reader, resolve, reject) {
-    return this.bookFileImporter._setupReaderHandlers(reader, resolve, reject)
-  }
-
-  /**
-   * 處理FileReader成功事件（委派至 BookFileImporter）
-   * @private
-   */
-  _handleReaderSuccess (e, resolve, reject) {
-    return this.bookFileImporter._handleReaderSuccess(e, resolve, reject)
-  }
-
-  /**
-   * 處理FileReader錯誤事件（委派至 BookFileImporter）
-   * @private
-   */
-  _handleReaderError (reject) {
-    return this.bookFileImporter._handleReaderError(reject)
-  }
-
-  /**
-   * 處理檔案處理錯誤（委派至 BookFileImporter）
-   * @private
-   */
-  _handleFileProcessError (error, reject) {
-    return this.bookFileImporter._handleFileProcessError(error, reject)
-  }
-
-  /**
-   * 驗證並清理檔案內容（委派至 BookFileImporter）
-   * @private
-   */
-  _validateAndCleanContent (content) {
-    return this.bookFileImporter._validateAndCleanContent(content)
-  }
-
-  /**
-   * 移除UTF-8 BOM標記（委派至 BookFileImporter）
-   * @private
-   */
-  _removeBOM (content) {
-    return this.bookFileImporter._removeBOM(content)
-  }
-
-  /**
-   * 解析JSON內容（委派至 BookFileImporter）
-   * @private
-   */
-  _parseJSONContent (content) {
-    return this.bookFileImporter._parseJSONContent(content)
-  }
-
-  /**
-   * 處理書籍資料（委派至 BookFileImporter）
-   * @private
-   */
-  _processBookData (data) {
-    return this.bookFileImporter._processBookData(data)
-  }
-
-  /**
-   * 過濾有效書籍（委派至 BookFileImporter）
-   * @private
-   */
-  _filterValidBooks (books) {
-    return this.bookFileImporter._filterValidBooks(books)
-  }
-
-  /**
-   * 檢查大型資料集（委派至 BookFileImporter）
-   * @private
-   */
-  _checkLargeDataset (books) {
-    return this.bookFileImporter._checkLargeDataset(books)
-  }
-
-  /**
-   * 從資料中提取書籍陣列（委派至 BookFileImporter）
-   * @private
-   */
-  _extractBooksFromData (data) {
-    return this.bookFileImporter._extractBooksFromData(data)
-  }
-
-  /**
-   * 檢查是否為直接陣列格式（委派至 BookFileImporter）
-   * @private
-   */
-  _isDirectArrayFormat (data) {
-    return this.bookFileImporter._isDirectArrayFormat(data)
-  }
-
-  /**
-   * 檢查是否為包裝books格式（委派至 BookFileImporter）
-   * @private
-   */
-  _isWrappedBooksFormat (data) {
-    return this.bookFileImporter._isWrappedBooksFormat(data)
-  }
-
-  /**
-   * 檢查是否為metadata包裝格式（委派至 BookFileImporter）
-   * @private
-   */
-  _isMetadataWrapFormat (data) {
-    return this.bookFileImporter._isMetadataWrapFormat(data)
-  }
-
-  /**
-   * 驗證書籍資料是否有效（委派至 BookFileImporter）
-   * @private
-   */
-  _isValidBook (book) {
-    return this.bookFileImporter._isValidBook(book)
-  }
-
-  /**
-   * 驗證書籍基本結構（委派至 BookFileImporter）
-   * @private
-   */
-  _validateBookStructure (book) {
-    return this.bookFileImporter._validateBookStructure(book)
-  }
-
-  /**
-   * 驗證必要欄位存在（委派至 BookFileImporter）
-   * @private
-   */
-  _validateRequiredFields (book) {
-    return this.bookFileImporter._validateRequiredFields(book)
-  }
-
-  /**
-   * 驗證欄位類型（委派至 BookFileImporter）
-   * @private
-   */
-  _validateFieldTypes (book) {
-    return this.bookFileImporter._validateFieldTypes(book)
   }
 
   // ========== 重複書籍處理（委派至 DuplicateBookMerger） ==========
