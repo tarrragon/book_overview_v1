@@ -33,6 +33,7 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { BookExporter } = require('src/overview/book-exporter')
 const { BookFileImporter } = require('src/overview/book-file-importer')
 const { DuplicateBookMerger } = require('src/overview/duplicate-book-merger')
+const { createTagCellRenderer } = require('src/overview/tag-cell-renderer')
 
 // 常數定義
 const CONSTANTS = {
@@ -55,12 +56,6 @@ const CONSTANTS = {
     COLUMNS: 6,
     COVER_SIZE: { WIDTH: 50, HEIGHT: 75 },
     DEFAULT_COVER: '📚'
-  },
-
-  // Tag 顯示配置
-  TAG_DISPLAY: {
-    MAX_VISIBLE: 3,
-    EMPTY_LABEL: '未分類'
   },
 
   // 事件配置
@@ -107,6 +102,13 @@ class OverviewPageController extends EventHandlerClass {
     this.tagFilterState = { selectedTagIds: new Set(), mode: 'or' }
     this.tagMap = new Map()
     this.categoryMap = new Map()
+
+    // 初始化 Tag Cell Renderer
+    this.tagCellRenderer = createTagCellRenderer({
+      getTagById: id => this.tagMap.get(id),
+      getCategoryById: id => this.categoryMap.get(id),
+      document: this.document
+    })
 
     // 初始化匯出模組
     this.bookExporter = new BookExporter({
@@ -485,85 +487,25 @@ class OverviewPageController extends EventHandlerClass {
    * @returns {Array<{ tagId: string, tagName: string, categoryName: string, categoryColor: string }>}
    */
   resolveTagsForDisplay (tagIds, tagMap, categoryMap) {
-    if (!Array.isArray(tagIds)) return []
-
-    return tagIds.reduce((result, tagId) => {
-      const tag = tagMap.get(tagId)
-      if (!tag) return result
-
-      const category = categoryMap.get(tag.categoryId) || {}
-      result.push({
-        tagId,
-        tagName: tag.name,
-        categoryName: category.name || '',
-        categoryColor: category.color || ''
-      })
-      return result
-    }, [])
-  }
-
-  /**
-   * 建立書籍 tag 欄位 DOM 元素
-   * @private
-   * @param {string[]} tagIds - 書籍的 tagIds
-   * @returns {HTMLElement} td 元素
-   */
-  _createTagCell (tagIds) {
-    const td = this.document.createElement('td')
-    td.className = 'book-tags'
-    const resolved = this.resolveTagsForDisplay(
-      tagIds, this.tagMap || new Map(), this.categoryMap || new Map()
-    )
-
-    if (resolved.length === 0) {
-      td.innerHTML = `<span class="book-tags-empty">${CONSTANTS.TAG_DISPLAY.EMPTY_LABEL}</span>`
-      return td
+    // 向後相容 proxy：支援 3 參數直接呼叫（測試使用）和無參數委派
+    // 當明確傳入 tagMap/categoryMap 時，使用傳入的 Map 進行解析
+    // 否則委派給 tagCellRenderer（使用 constructor 綁定的 getter）
+    if (tagMap && categoryMap) {
+      if (!Array.isArray(tagIds)) return []
+      return tagIds.reduce((result, tagId) => {
+        const tag = tagMap.get(tagId)
+        if (!tag) return result
+        const category = categoryMap.get(tag.categoryId) || {}
+        result.push({
+          tagId,
+          tagName: tag.name,
+          categoryName: category.name || '',
+          categoryColor: category.color || ''
+        })
+        return result
+      }, [])
     }
-
-    this._appendTagChips(td, resolved)
-    return td
-  }
-
-  /**
-   * 將 tag chips 加入容器元素（含 +N 摺疊邏輯）
-   * @private
-   * @param {HTMLElement} container - 容器元素
-   * @param {Array<Object>} resolvedTags - resolveTagsForDisplay 回傳值
-   */
-  _appendTagChips (container, resolvedTags) {
-    const { MAX_VISIBLE } = CONSTANTS.TAG_DISPLAY
-    const visible = resolvedTags.slice(0, MAX_VISIBLE)
-    const remaining = resolvedTags.length - MAX_VISIBLE
-
-    visible.forEach(tag => {
-      const chip = this._createTagChipElement(tag)
-      container.appendChild(chip)
-    })
-
-    if (remaining > 0) {
-      const more = this.document.createElement('span')
-      more.className = 'tag-chip tag-chip--more'
-      more.title = `還有 ${remaining} 個標籤`
-      more.textContent = `+${remaining}`
-      container.appendChild(more)
-    }
-  }
-
-  /**
-   * 建立單一 tag chip DOM 元素
-   * @private
-   * @param {Object} tag - 解析後的 tag 資料
-   * @returns {HTMLElement} span 元素
-   */
-  _createTagChipElement (tag) {
-    const chip = this.document.createElement('span')
-    chip.className = 'tag-chip'
-    chip.style.backgroundColor = `${tag.categoryColor}20`
-    chip.style.color = tag.categoryColor
-    chip.style.border = `1px solid ${tag.categoryColor}40`
-    chip.title = `${tag.categoryName}: ${tag.tagName}`
-    chip.textContent = tag.tagName
-    return chip
+    return this.tagCellRenderer.resolveTagsForDisplay(tagIds)
   }
 
   /**
@@ -671,7 +613,7 @@ class OverviewPageController extends EventHandlerClass {
       <td>${rowData.status}</td>
     `
 
-    const tagCell = this._createTagCell(book.tagIds || [])
+    const tagCell = this.tagCellRenderer.createTagCell(book.tagIds || [])
     row.appendChild(tagCell)
 
     return row
