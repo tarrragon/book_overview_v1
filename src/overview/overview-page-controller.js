@@ -30,6 +30,7 @@
 // 引入核心模組（由 esbuild 在建置時打包解析）
 const EventHandlerClass = require('src/core/event-handler')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { BookExporter } = require('src/overview/book-exporter')
 
 // 常數定義
 const CONSTANTS = {
@@ -70,15 +71,6 @@ const CONSTANTS = {
     STORAGE_LOAD_REQUEST: 'STORAGE.LOAD.REQUESTED'
   },
 
-  // 匯出配置
-  EXPORT: {
-    CSV_HEADERS: ['書名', '書城來源', '進度', '狀態', '封面URL'],
-    FILE_TYPE: 'text/csv;charset=utf-8;',
-    FILENAME_PREFIX: '書籍資料_',
-    JSON_MIME: 'application/json;charset=utf-8;',
-    JSON_FILENAME_PREFIX: '書籍資料_'
-  },
-
   // 元素選取器
   SELECTORS: {
     LOADING_TEXT: '.loading-text'
@@ -113,6 +105,12 @@ class OverviewPageController extends EventHandlerClass {
     this.tagFilterState = { selectedTagIds: new Set(), mode: 'or' }
     this.tagMap = new Map()
     this.categoryMap = new Map()
+
+    // 初始化匯出模組
+    this.bookExporter = new BookExporter({
+      getFilteredBooks: () => this.filteredBooks,
+      document: this.document
+    })
 
     // 初始化 DOM 元素引用
     this.initializeElements()
@@ -220,13 +218,13 @@ class OverviewPageController extends EventHandlerClass {
 
     if (this.elements.exportCSVBtn) {
       this.elements.exportCSVBtn.addEventListener('click', () => {
-        this.handleExportCSV()
+        this.bookExporter.handleExportCSV()
       })
     }
 
     if (this.elements.exportJSONBtn) {
       this.elements.exportJSONBtn.addEventListener('click', () => {
-        this.handleExportJSON()
+        this.bookExporter.handleExportJSON()
       })
     }
 
@@ -724,13 +722,14 @@ class OverviewPageController extends EventHandlerClass {
     this._toggleElement('errorContainer', false)
   }
 
+  // ========== 匯出方法（委派至 BookExporter） ==========
+
   /**
-   * 處理匯出 CSV 操作
+   * 處理匯出 CSV 操作（委派至 BookExporter）
    *
-   * 負責功能：
-   * - 將當前篩選的書籍資料匯出為 CSV
-   * - 創建下載連結
-   * - 觸發下載
+   * 保留 Controller 層級的方法簽名，以維持向後相容性。
+   * 內部透過自身的 generateCSVContent / downloadCSVFile 方法執行，
+   * 確保外部 spy 可以正確攔截子方法呼叫。
    */
   handleExportCSV () {
     if (!this.filteredBooks || this.filteredBooks.length === 0) {
@@ -742,23 +741,8 @@ class OverviewPageController extends EventHandlerClass {
     this.downloadCSVFile(csvContent)
   }
 
-  // ========== CSV 匯出相關方法 ==========
-
   /**
-   * 生成 CSV 內容
-   */
-  generateCSVContent () {
-    const csvRows = [
-      CONSTANTS.EXPORT.CSV_HEADERS.join(','),
-      ...this.filteredBooks.map(book => this._bookToCSVRow(book))
-    ]
-    return csvRows.join('\n')
-  }
-
-  // ========== JSON 匯出相關方法 ==========
-
-  /**
-   * 處理匯出 JSON 操作
+   * 處理匯出 JSON 操作（委派至 BookExporter）
    */
   handleExportJSON () {
     if (!this.filteredBooks || this.filteredBooks.length === 0) {
@@ -771,39 +755,31 @@ class OverviewPageController extends EventHandlerClass {
   }
 
   /**
-   * 生成 JSON 內容（表格欄位對應）
+   * 生成 CSV 內容（委派至 BookExporter）
+   */
+  generateCSVContent () {
+    return this.bookExporter.generateCSVContent()
+  }
+
+  /**
+   * 生成 JSON 內容（委派至 BookExporter）
    */
   generateJSONContent () {
-    const rows = this.filteredBooks.map(book => ({
-      id: book.id || '',
-      title: book.title || '',
-      progress: Number(book.progress || 0),
-      status: book.status || '',
-      cover: book.cover || '',
-      tags: Array.isArray(book.tags)
-        ? book.tags
-        : (book.tag ? [book.tag] : ['readmoo'])
-    }))
-    return JSON.stringify({ books: rows }, null, 2)
+    return this.bookExporter.generateJSONContent()
   }
 
   /**
-   * 下載 JSON 檔案
-   */
-  downloadJSONFile (jsonContent) {
-    const blob = new Blob([jsonContent], { type: CONSTANTS.EXPORT.JSON_MIME })
-    const date = new Date().toISOString().slice(0, 10)
-    const filename = `${CONSTANTS.EXPORT.JSON_FILENAME_PREFIX}${date}.json`
-    this._triggerFileDownload(blob, filename)
-  }
-
-  /**
-   * 下載 CSV 檔案
+   * 下載 CSV 檔案（委派至 BookExporter）
    */
   downloadCSVFile (csvContent) {
-    const blob = new Blob([csvContent], { type: CONSTANTS.EXPORT.FILE_TYPE })
-    const filename = this._generateCSVFilename()
-    this._triggerFileDownload(blob, filename)
+    this.bookExporter.downloadCSVFile(csvContent)
+  }
+
+  /**
+   * 下載 JSON 檔案（委派至 BookExporter）
+   */
+  downloadJSONFile (jsonContent) {
+    this.bookExporter.downloadJSONFile(jsonContent)
   }
 
   /**
@@ -1106,48 +1082,6 @@ class OverviewPageController extends EventHandlerClass {
 
     // 默認值
     return 'readmoo'
-  }
-
-  /**
-   * 將書籍資料轉換為 CSV 行
-   * @private
-   */
-  _bookToCSVRow (book) {
-    return [
-      `"${book.title || ''}"`,
-      `"${this._formatBookSource(book)}"`,
-      `"${book.progress || 0}"`,
-      `"${book.status || ''}"`,
-      `"${book.cover || ''}"`
-    ].join(',')
-  }
-
-  /**
-   * 生成 CSV 檔案名
-   * @private
-   */
-  _generateCSVFilename () {
-    const date = new Date().toISOString().slice(0, 10)
-    return `${CONSTANTS.EXPORT.FILENAME_PREFIX}${date}.csv`
-  }
-
-  /**
-   * 觸發檔案下載
-   * @private
-   */
-  _triggerFileDownload (blob, filename) {
-    const link = this.document.createElement('a')
-    const url = URL.createObjectURL(blob)
-
-    link.setAttribute('href', url)
-    link.setAttribute('download', filename)
-    link.style.visibility = 'hidden'
-
-    this.document.body.appendChild(link)
-    link.click()
-    this.document.body.removeChild(link)
-
-    URL.revokeObjectURL(url)
   }
 
   /**
