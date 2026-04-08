@@ -218,29 +218,30 @@ proposals:
         verified_by: null
 
   PROP-008:
-    title: "統一配色系統（Design Tokens）"
+    title: "統一 UI Design System（從 APP 專案移植）"
     status: draft
     proposed: "2026-04-08"
     confirmed: null
     target_version: "v0.17.x ~ v0.20.x"
-    source: "development"
-    note: "W2-007.2 實作中發現：89+ 硬編碼色值散落 10+ 檔案，缺乏 Single Source of Truth"
+    source: "cross-project"
+    reference: "Flutter App 專案 lib/core/ui/ui_config.dart + flat_design_config.dart"
+    note: "W2-007.2 發現配色硬編碼問題，升級為完整 Design System 移植（配色+按鈕+間距+圓角+陰影）"
     spec_refs: []
     usecase_refs: []
     ticket_refs: []
     checklist:
-      - item: "建立 src/core/design-tokens/colors.js 統一色彩常數"
+      - item: "Phase 1: 建立 design-system/colors.js 對齊 APP UIColors"
         status: pending
         verified_by: null
-      - item: "合併 3 個重複的 DEFAULT_COLOR 定義"
+      - item: "Phase 1: 建立 design-system/spacing.js 對齊 APP UISpacing"
         status: pending
         verified_by: null
-      - item: "補齊 Status 色彩 CSS（queued/abandoned/reference）"
+      - item: "Phase 1: 合併 3 個重複 DEFAULT_COLOR + 補齊 Status CSS"
         status: pending
         verified_by: null
-      - item: "導入 CSS Variables 取代硬編碼色值"
+      - item: "Phase 2: 導入 CSS Variables + 語意化按鈕 CSS class"
         status: pending
         verified_by: null
-      - item: "Spec 文件色彩引用統一指向 design tokens"
+      - item: "Phase 3: Dark Mode + 陰影系統 + Spec 文件全面對齊"
         status: pending
         verified_by: null
