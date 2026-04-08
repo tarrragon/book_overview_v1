@@ -219,14 +219,15 @@ proposals:
 
   PROP-008:
     title: "統一 UI Design System（從 APP 專案移植）"
-    status: draft
+    status: confirmed
     proposed: "2026-04-08"
-    confirmed: null
+    confirmed: "2026-04-08"
     target_version: "v0.17.x ~ v0.20.x"
     source: "cross-project"
     reference: "Flutter App 專案 lib/core/ui/ui_config.dart + flat_design_config.dart"
     note: "W2-007.2 發現配色硬編碼問題，升級為完整 Design System 移植（配色+按鈕+間距+圓角+陰影）"
-    spec_refs: []
+    spec_refs:
+      - "spec/design-system-spec.md"
     usecase_refs: []
     ticket_refs: []
     checklist:

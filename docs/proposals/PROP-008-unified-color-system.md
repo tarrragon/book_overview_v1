@@ -1,9 +1,9 @@
 ---
 id: PROP-008
 title: "統一 UI Design System（從 APP 專案移植）"
-status: draft
+status: confirmed
 proposed: "2026-04-08"
-confirmed: null
+confirmed: "2026-04-08"
 source: cross-project
 target_version: "v0.17.x ~ v0.20.x（分階段）"
 reference: "Flutter App 專案 lib/core/ui/ui_config.dart + flat_design_config.dart"
