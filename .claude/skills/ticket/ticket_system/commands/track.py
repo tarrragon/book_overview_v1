@@ -96,6 +96,10 @@ from .track_audit import (
 from .track_board import (
     execute_board,
 )
+# 導入快照命令模組
+from .track_snapshot import (
+    execute_snapshot,
+)
 # 導入版本審計命令模組
 from .audit_version import (
     execute_audit_version,
@@ -170,9 +174,11 @@ def execute(args: argparse.Namespace) -> int:
     """執行 track 命令"""
     operation = args.operation
 
-    # version 命令特殊處理（不需要版本資訊）
+    # version / snapshot 命令特殊處理（不需要版本資訊）
     if operation == "version":
         return execute_version(args, None)
+    if operation == "snapshot":
+        return execute_snapshot(args)
 
     # 其他命令需要版本資訊
     # 優先級：
@@ -555,6 +561,14 @@ def _register_all_subcommands(
     _register_acceptance_commands(track_subparsers)
     _register_version_audit_commands(track_subparsers)
     _register_board_commands(track_subparsers)
+    _register_snapshot_commands(track_subparsers)
+
+
+def _register_snapshot_commands(
+    subparsers: argparse._SubParsersAction,
+) -> None:
+    """註冊快照命令：snapshot"""
+    subparsers.add_parser("snapshot", help="產出專案全局狀態快照")
 
 
 def register(subparsers: argparse._SubParsersAction) -> None:
