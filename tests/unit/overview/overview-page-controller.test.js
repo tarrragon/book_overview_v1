@@ -775,6 +775,77 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
   })
 
+  describe('Red Phase: 三重組合篩選管線（狀態 -> tag -> 文字搜尋）', () => {
+    // 測試用書籍資料：涵蓋不同狀態、tag、書名
+    const mockBooksForPipeline = [
+      { id: '1', title: '推理小說三體', tags: ['readmoo'], progress: 50, readingStatus: 'reading', tagIds: ['tag-novel', 'tag-scifi'] },
+      { id: '2', title: '科幻小說基地', tags: ['readmoo'], progress: 30, readingStatus: 'reading', tagIds: ['tag-novel', 'tag-scifi'] },
+      { id: '3', title: 'AI 入門教材', tags: ['readmoo'], progress: 100, readingStatus: 'finished', tagIds: ['tag-tech'] },
+      { id: '4', title: '歷史三國志', tags: ['readmoo'], progress: 0, readingStatus: 'unread', tagIds: ['tag-history'] },
+      { id: '5', title: '推理偵探小說', tags: ['readmoo'], progress: 10, readingStatus: 'reading', tagIds: ['tag-novel', 'tag-mystery'] }
+    ]
+
+    test('狀態+tag 二重篩選：只顯示閱讀中且有 tag-scifi 的書', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+      controller.currentBooks = mockBooksForPipeline
+
+      // 先設狀態篩選為 reading
+      controller.setStatusFilter('reading')
+      // 再設 tag 篩選為 tag-scifi
+      controller.setTagFilter(new Set(['tag-scifi']), 'or')
+
+      // reading 有 id 1,2,5；tag-scifi 有 id 1,2；交集 = id 1,2
+      expect(controller.filteredBooks.length).toBe(2)
+      expect(controller.filteredBooks.map(b => b.id)).toEqual(expect.arrayContaining(['1', '2']))
+    })
+
+    test('狀態+tag+文字 三重篩選：只顯示閱讀中+tag-scifi+書名含「三體」', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+      controller.currentBooks = mockBooksForPipeline
+
+      controller.setStatusFilter('reading')
+      controller.setTagFilter(new Set(['tag-scifi']), 'or')
+      controller.handleSearchInput('三體')
+
+      // reading + tag-scifi = id 1,2；書名含「三體」= id 1
+      expect(controller.filteredBooks.length).toBe(1)
+      expect(controller.filteredBooks[0].title).toBe('推理小說三體')
+    })
+
+    test('三重篩選結果為空時 filteredBooks 為空陣列', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+      controller.currentBooks = mockBooksForPipeline
+
+      controller.setStatusFilter('finished')
+      controller.setTagFilter(new Set(['tag-novel']), 'or')
+
+      // finished 有 id 3；tag-novel 有 id 1,2,5；交集 = 空
+      expect(controller.filteredBooks.length).toBe(0)
+    })
+
+    test('清除單一篩選條件後其他條件仍生效', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+      controller.currentBooks = mockBooksForPipeline
+
+      // 三重篩選
+      controller.setStatusFilter('reading')
+      controller.setTagFilter(new Set(['tag-scifi']), 'or')
+      controller.handleSearchInput('三體')
+      expect(controller.filteredBooks.length).toBe(1)
+
+      // 清除 tag 篩選，狀態+文字仍生效
+      controller.clearTagFilter()
+
+      // reading = id 1,2,5；書名含「三體」= id 1
+      expect(controller.filteredBooks.length).toBe(1)
+      expect(controller.filteredBooks[0].id).toBe('1')
+    })
+  })
+
   describe('🔴 Red Phase: EventHandler 基底類別整合', () => {
     test('應該正確繼承 EventHandler', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
