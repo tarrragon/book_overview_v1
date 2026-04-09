@@ -70,7 +70,8 @@ Skill 是預建的專用工具，優先於代理人派發。
 | 命令類型訊息 | command-routing.md | 開發、修改、TDD 階段 |
 | 錯誤/失敗 | incident-routing.md | 事件回應 |
 | 執行中發現 | execution-discovery-rules.md | 技術債、超範圍需求 |
-| 任務完成 | completion-checkpoint-rules.md | Checkpoint 循環（0-4） |
+| 任務完成 | completion-checkpoint-rules.md | Checkpoint 循環（0/0.5/1/1.5/1.8/1.9/2/3/4/R） |
+| TDD 完成路由 | tdd-completion-routing.md | Checkpoint 2 情境 D（TDD Phase 完成） |
 | 代理人管理 | agent-dispatch-enforcement.md | 觸發優先級、強制命令、違規 |
 | Ticket 進度更新（強制） | completion-checkpoint-rules.md | Checkpoint 轉換時更新 Ticket |
 | 代理人權限查詢 | agent-path-registry.md | 路徑表 Source of Truth |
