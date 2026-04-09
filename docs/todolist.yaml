@@ -1,6 +1,6 @@
 # Todolist - 專案版本與任務追蹤
 # 格式規範：使用 versions 列表，ticket CLI 自動偵測 status=active 的版本
-last_updated: "2026-04-05"
+last_updated: "2026-04-08"
 
 versions:
   - version: "0.17.0"
@@ -12,8 +12,12 @@ versions:
     description: "修復 v0.17.0 遺留 26 個失敗測試（5 Ticket，0 failed / 4601 passed）"
 
   - version: "0.17.2"
+    status: completed
+    description: "Tag-based Model 適配（匯出/搜尋/Overview）+ 工具鏈強化 + PM 工作流改善 — 96 Ticket"
+
+  - version: "0.17.3"
     status: active
-    description: "匯出/搜尋/Overview 適配 Tag-based Model（W1 規格完成，待 W2 實作）"
+    description: "中文圖書分類法 + Tag 管理功能 + UI Design System Phase 1"
 
   - version: "0.18.0"
     status: planned
