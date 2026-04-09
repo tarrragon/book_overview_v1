@@ -83,7 +83,7 @@ Ticket type == ANA?
 
 **Checkpoint 0.5 PM 進度更新（強制，對稱代理人 W15-001）**：
 
-PM 在 4 個時機必須 `ticket track append-log`：認領後（確認範圍）→ 分析完成（決策+下一步）→ 修正完成（摘要）→ 完成前（Solution 記錄）。禁止 complete 時才一次性補寫。
+PM 在 4 個時機必須 `ticket track append-log`：認領後（確認範圍）→ 分析完成（決策+下一步）→ 修正完成（摘要）→ 完成前（Solution 記錄）。禁止 complete 時才一次性補寫。若跳過中間時機，complete 前必須補寫遺漏的進度記錄。
 
 **與現有層級的銜接**：第四層（建立完成）→ Checkpoint 0；第五層（Phase 完成）→ Checkpoint 1；第六層（incident 完成）→ Checkpoint 3；第七層（complete）→ Checkpoint 1
 

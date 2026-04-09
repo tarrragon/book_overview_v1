@@ -54,5 +54,5 @@
 
 ---
 
-**Last Updated**: 2026-04-06
-**Version**: 1.0.0 - 從 decision-tree.md 拆分（DDD domain 邊界，0.17.2-W3-007.1）
+**Last Updated**: 2026-04-09
+**Version**: 1.1.0 - 觸發優先級合併至 dispatch-gate.md + 優先級表分離（W9-003/W8-001.4）
