@@ -40,6 +40,7 @@ from ticket_system.lib.command_tracking_messages import (
 from .lifecycle import (
     execute_claim,
     execute_complete,
+    execute_close,
     execute_release,
 )
 # 導入查詢操作模組
@@ -116,6 +117,11 @@ def _execute_complete(args: argparse.Namespace, version: str) -> int:
     return execute_complete(args, version)
 
 
+def _execute_close(args: argparse.Namespace, version: str) -> int:
+    """關閉 Ticket（包裝生命週期模組）"""
+    return execute_close(args, version)
+
+
 def _execute_release(args: argparse.Namespace, version: str) -> int:
     """釋放 Ticket（包裝生命週期模組）"""
     return execute_release(args, version)
@@ -135,6 +141,7 @@ def _create_command_handlers() -> dict:
         "query": execute_query,
         "claim": _execute_claim,
         "complete": _execute_complete,
+        "close": _execute_close,
         "tree": execute_tree,
         "list": execute_list,
         "search": execute_search,
@@ -235,6 +242,14 @@ def _register_lifecycle_commands(
     p_complete = subparsers.add_parser("complete", help=TrackMessages.HELP_COMPLETE)
     p_complete.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
     p_complete.add_argument("--version", help=TrackMessages.ARG_VERSION)
+
+    # close 操作
+    p_close = subparsers.add_parser("close", help="關閉 Ticket（已在其他 Ticket 一併解決）")
+    p_close.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
+    p_close.add_argument("--resolved-by", required=True, dest="resolved_by",
+                         help="解決此問題的 Ticket ID")
+    p_close.add_argument("--reason", default="", help="關閉原因（選填）")
+    p_close.add_argument("--version", help=TrackMessages.ARG_VERSION)
 
     # release 操作
     p_release = subparsers.add_parser("release", help=TrackMessages.HELP_RELEASE)
