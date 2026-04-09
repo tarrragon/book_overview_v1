@@ -13,7 +13,7 @@
 | 結果 | 行動 |
 |------|------|
 | 指數 <= 10 | 通過，進入並行化判斷 |
-| 指數 > 10 | [強制] 先拆分子任務再派發（AskUserQuestion #6）。禁止整包派發給單一代理人。拆分後每個子任務重新通過本關卡 |
+| 指數 > 10 | [強制] 先拆分子任務再派發（AskUserQuestion #6，W15-004）。禁止整包派發給單一代理人。拆分後每個子任務重新通過本關卡 |
 
 > 公式詳見：.claude/rules/core/cognitive-load.md
 
@@ -66,6 +66,22 @@
 | 純狀態查詢 | PM 直接用 `ticket track` CLI，無需通過複雜度關卡 |
 
 > PM 前台 vs 代理人背景的分工定義：command-routing.md（分工路由表）
+
+---
+
+## 代理人觸發優先級（派發時參考）
+
+> 從 agent-dispatch-enforcement.md 合併，統一派發前參考。
+
+| 優先級 | 代理人 | 觸發條件 |
+|--------|-------|---------|
+| 1（最高） | incident-responder | 錯誤/失敗發生 |
+| 2 | saffron-system-analyst | 架構審查 |
+| 3 | security-reviewer | 安全相關 |
+| 4 | 其他專業代理人 | 專業領域 |
+| 5 | TDD 階段代理人 + thyme-extension-engineer | 標準開發 |
+
+> Hook 自動觸發（命令入口驗證等）不在此優先級表中，由 Hook 系統獨立處理。
 
 ---
 

@@ -1,6 +1,8 @@
-# 代理人路徑權限表（Source of Truth）
+# 技術實作代理人路徑權限表
 
-> 本文件是代理人路徑權限的**唯一定義**。其他檔案（skip-gate.md、parallel-dispatch.md、agent 定義等）引用本表，不自行維護路徑清單。
+> 本文件定義**有檔案路徑限制的技術實作代理人**的可編輯範圍。分析型代理人（system-analyst、incident-responder、oregano-data-miner 等）無路徑限制，其能力定義見 `.claude/agents/` 目錄。
+>
+> 其他檔案（skip-gate.md、parallel-dispatch.md 等）引用本表，不自行維護路徑清單。
 >
 > 路由入口：.claude/pm-rules/decision-tree.md
 
