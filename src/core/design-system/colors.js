@@ -3,7 +3,7 @@
  * @see docs/spec/design-system-spec.md Section 2-3
  */
 
-const COLORS = {
+const COLORS = Object.freeze({
   // 藍色主色調（Section 2.1）
   primary: '#2196F3',
   primaryLightest: '#E3F2FD',
@@ -27,26 +27,22 @@ const COLORS = {
   onSurfaceMuted: '#757575',
   // 功能色（Section 2.5）
   tagDefault: '#808080',
-};
+});
 
-const GRADIENT = {
-  start: '#2196F3',
-  end: '#1976D2',
-  css: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)',
-};
+const GRADIENT = Object.freeze({
+  start: COLORS.primary,
+  end: COLORS.primaryDark,
+  css: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryDark} 100%)`,
+});
 
 // ReadingStatus 配色映射（Section 3）
-const STATUS_COLORS = {
-  unread: { fg: '#E3F2FD', bg: 'rgba(227,242,253,0.15)' },
-  queued: { fg: '#64B5F6', bg: 'rgba(100,181,246,0.15)' },
-  reading: { fg: '#2196F3', bg: 'rgba(33,150,243,0.15)' },
-  finished: { fg: '#4CAF50', bg: 'rgba(76,175,80,0.15)' },
-  abandoned: { fg: '#FF9800', bg: 'rgba(255,152,0,0.15)' },
-  reference: { fg: '#1976D2', bg: 'rgba(25,118,210,0.15)' },
-};
+const STATUS_COLORS = Object.freeze({
+  unread: Object.freeze({ fg: '#E3F2FD', bg: 'rgba(227,242,253,0.15)' }),
+  queued: Object.freeze({ fg: '#64B5F6', bg: 'rgba(100,181,246,0.15)' }),
+  reading: Object.freeze({ fg: '#2196F3', bg: 'rgba(33,150,243,0.15)' }),
+  finished: Object.freeze({ fg: '#4CAF50', bg: 'rgba(76,175,80,0.15)' }),
+  abandoned: Object.freeze({ fg: '#FF9800', bg: 'rgba(255,152,0,0.15)' }),
+  reference: Object.freeze({ fg: '#1976D2', bg: 'rgba(25,118,210,0.15)' }),
+});
 
-export { COLORS, GRADIENT, STATUS_COLORS };
-
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { COLORS, GRADIENT, STATUS_COLORS };
-}
+module.exports = { COLORS, GRADIENT, STATUS_COLORS };

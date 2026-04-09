@@ -5,7 +5,7 @@
 
 const FONT_FAMILY = "'PingFang SC', 'Microsoft YaHei', sans-serif";
 
-const FONT_SIZES = {
+const FONT_SIZES = Object.freeze({
   headline3: 24,
   titleLarge: 20,
   titleMedium: 18,
@@ -15,18 +15,14 @@ const FONT_SIZES = {
   bodySmall: 12,
   caption: 12,
   overline: 10,
-};
+});
 
-const FONT_WEIGHTS = {
+const FONT_WEIGHTS = Object.freeze({
   light: 300,
   regular: 400,
   medium: 500,
   semiBold: 600,
   bold: 700,
-};
+});
 
-export { FONT_FAMILY, FONT_SIZES, FONT_WEIGHTS };
-
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { FONT_FAMILY, FONT_SIZES, FONT_WEIGHTS };
-}
+module.exports = { FONT_FAMILY, FONT_SIZES, FONT_WEIGHTS };
