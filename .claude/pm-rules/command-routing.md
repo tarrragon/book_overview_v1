@@ -37,7 +37,7 @@
                |
                └─否→ 是除錯命令? ─是→ [強制] 派發 incident-responder
                                 |       （詳見 incident-routing.md）
-                                └─否→ 其他命令類型 (ignore)
+                                └─否→ PM 向用戶確認意圖（AskUserQuestion）
 ```
 
 | 判斷條件 | 路由 |
@@ -69,7 +69,7 @@
 | 階段 | 代理人 | 進入條件 |
 |------|-------|---------|
 | 文件準備 | PM | PROP 核准 |
-| SA 前置審查 | system-analyst | 文件準備完成，新功能/架構變更 |
+| SA 前置審查 | saffron-system-analyst | 文件準備完成，新功能/架構變更 |
 | Legacy Code 評估 | PM + 多視角審查（含語言代理人） | 接手舊專案/測試大量失敗/無測試 |
 | Phase 1 | lavender-interface-designer | SA 通過 |
 | Phase 2 | sage-test-architect | Phase 1 完成 |

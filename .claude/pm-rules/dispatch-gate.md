@@ -1,9 +1,8 @@
-# 決策樹 — 派發閘門
+# 決策路由 — 派發閘門（第負一層）
 
 > 所有派發前必須通過的兩道關卡。
 >
 > 路由入口：.claude/pm-rules/decision-tree.md
-> 來源：決策樹二元化拆分
 
 ---
 
@@ -51,8 +50,8 @@
     |                                        +─ 是 → [Agent Teams 派發]（/agent-team）
     |                                        +─ 否 → [Task subagent + PM 中轉]
     |
-    +─── 否 → 回到 decision-tree.md 類型判斷
-              （分工路由在 command-routing.md 的 Ticket 類型表決定）
+    +─── 否 → 進入第零層明確性檢查 → 第一層類型判斷（序列模式）
+              分工路由在 command-routing.md 的 Ticket 類型表決定
 ```
 
 **派發模式**：預設背景模式（`run_in_background: true`）。
