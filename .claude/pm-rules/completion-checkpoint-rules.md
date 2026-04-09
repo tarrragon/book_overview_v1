@@ -77,6 +77,7 @@ Step 4: ticket track complete <id>
 | Checkpoint | 判斷條件 | 路由 |
 |------------|---------|------|
 | 0 建立後 Handoff | 可並行派發? | 是 → 留在 session 並行派發；否 → commit + handoff |
+| 0.5 Ticket 進度更新 | **[強制]** 任何階段轉換時 | `ticket track append-log` 更新 Solution/Test Results |
 | 1 變更狀態 | 有未提交變更? | 是 → commit；無 → 跳至 Checkpoint 1.5 |
 | 1.5 錯誤學習 | commit 成功後 | AskUserQuestion #16 |
 | 1.8 合併回 main | 在開發分支上? | 是 → merge --no-ff → main → 刪除開發分支；否 → 跳過 |
@@ -127,6 +128,19 @@ ANA Ticket 完成後、建立執行 Ticket 前，PM 必須：
 
 > 禁止行為：背景代理人未完成就建立執行 Ticket（結論不完整導致 AC 遺漏）
 
+**Checkpoint 0.5 PM 進度更新時機（強制，對稱代理人 W15-001 規範）**：
+
+PM 在以下時機必須執行 `ticket track append-log` 更新 Ticket：
+
+| 時機 | 更新內容 | 範例 |
+|------|---------|------|
+| 認領後開始工作 | 確認理解任務範圍 | `開始執行，已理解 AC` |
+| 分析/設計完成 | 關鍵決策 + 下一步 | `分析完成，發現 13 項問題，建議拆 4 個子 Ticket` |
+| 修正/實作完成 | 修正摘要 | `修正 2 個檔案，F-06/F-09/F-10 已解決` |
+| 任務完成前 | Solution 完整記錄 | 完整的修正內容和驗證結果 |
+
+> **禁止**：complete 時才一次性補寫所有日誌。進度應即時記錄。
+
 **與現有層級的銜接**：第四層（建立完成）→ Checkpoint 0；第五層（Phase 完成）→ Checkpoint 1；第六層（incident 完成）→ Checkpoint 3；第七層（complete）→ Checkpoint 1
 
 **Handoff 強制動作**：PM **必須**執行 `/ticket handoff`，**禁止**手動建立交接文件。前須 `ticket handoff --status` 確認無殘留。
@@ -139,5 +153,5 @@ ANA Ticket 完成後、建立執行 Ticket 前，PM 必須：
 
 ---
 
-**Last Updated**: 2026-04-06
-**Version**: 1.0.0 - 從 decision-tree.md 拆分（DDD domain 邊界，0.17.2-W3-007.1）
+**Last Updated**: 2026-04-09
+**Version**: 1.1.0 - 新增 Checkpoint 0.5 PM 進度更新時機（W8-001.2，對稱代理人 W15-001）

@@ -73,6 +73,7 @@ Skill 是預建的專用工具，優先於代理人派發。
 | 執行中發現 | execution-discovery-rules.md | 技術債、超範圍需求 |
 | 任務完成 | completion-checkpoint-rules.md | Checkpoint 循環（0-4） |
 | 代理人管理 | agent-dispatch-enforcement.md | 觸發優先級、強制命令、違規 |
+| Ticket 進度更新（強制） | completion-checkpoint-rules.md | Checkpoint 轉換時更新 Ticket |
 | 代理人權限查詢 | agent-path-registry.md | 路徑表 Source of Truth |
 
 ---
