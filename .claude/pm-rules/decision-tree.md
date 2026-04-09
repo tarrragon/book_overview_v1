@@ -27,21 +27,20 @@
     並行化判斷
     |
     v（通過閘門）
-[明確性 + 類型判斷]
-    |
-    +── 包含明確錯誤關鍵字 → incident-routing.md
-    |
-    +── 問題類型 → question-routing.md
+[明確性檢查] 包含明確錯誤關鍵字?
+    +── 是 → incident-routing.md
+    +── 否 ↓
+    v
+[類型判斷] 問題 or 命令?
+    +── 問題 → question-routing.md
     |   （"怎麼樣"、"進度"、"為什麼"、"如何"、"是什麼"、"?"）
-    |
-    +── 命令類型 → command-routing.md
-    |   （"實作"、"建立"、"修復"、"處理"、"執行"、"開始"、"測試"）
-    |
-    v（執行中）
-[執行 Domain] → execution-discovery-rules.md
-    |
-    v（任務完成）
-[完成 Domain] → completion-checkpoint-rules.md
+    +── 命令 → command-routing.md
+        （"實作"、"建立"、"修復"、"處理"、"執行"、"開始"、"測試"）
+
+--- 以下按條件觸發，非線性序列 ---
+
+[執行中發現] → execution-discovery-rules.md（觸發：發現技術債/問題）
+[任務完成]   → completion-checkpoint-rules.md（觸發：Ticket complete 後）
 ```
 
 > 視覺化 Mermaid 圖表：.claude/references/decision-tree-diagrams.md

@@ -51,12 +51,22 @@
     |                                        +─ 是 → [Agent Teams 派發]（/agent-team）
     |                                        +─ 否 → [Task subagent + PM 中轉]
     |
-    +─── 否 → 主線程必須親自處理? ─是→ [僅限：用戶溝通、最終決策]
-    |                             |       [強制] 用戶決策使用 AskUserQuestion
-    |                             └─否→ [必須派發給代理人]
+    +─── 否 → 回到 decision-tree.md 類型判斷
+              （分工路由在 command-routing.md 的 Ticket 類型表決定）
 ```
 
 **派發模式**：預設背景模式（`run_in_background: true`）。
+
+---
+
+## 豁免條件
+
+| 豁免情境 | 說明 |
+|---------|------|
+| PM 前台任務（ANA/DOC） | PM 自己執行，無需 Context Bundle（無代理人接收） |
+| 純狀態查詢 | PM 直接用 `ticket track` CLI，無需通過複雜度關卡 |
+
+> PM 前台 vs 代理人背景的分工定義：command-routing.md（分工路由表）
 
 ---
 
