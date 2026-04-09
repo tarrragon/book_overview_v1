@@ -80,7 +80,6 @@
 | Phase 4c | /parallel-evaluation A（多視角再審核） | Phase 4b 完成（標準流程） |
 
 > TDD 完整流程：.claude/pm-rules/tdd-flow.md
-> Agent Registry 規劃（v0.1.2）：decision-tree（判斷需要什麼能力）→ registry（查詢誰有）→ Hook（驗證符合）
 
 ---
 

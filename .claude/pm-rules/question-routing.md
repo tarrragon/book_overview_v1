@@ -45,14 +45,6 @@
 
 ---
 
-## 問題中涉及的檔案類型派發
-
-若問題涉及特定檔案的查詢，按代理人路徑對應派發：
-
-> 代理人路徑表（Source of Truth）：.claude/pm-rules/agent-path-registry.md
-
----
-
 ## 相關文件
 
 - .claude/pm-rules/decision-tree.md - 路由索引

@@ -8,14 +8,21 @@
 
 ## 代理人觸發優先級
 
-```
-Level 2: Hook 系統驗證（命令入口，最早觸發）
-Level 1: incident-responder（錯誤/失敗最高優先）
-Level 2: system-analyst（架構審查）
-Level 3: security-reviewer（安全審查）
-Level 4: 其他專業代理人（DBA, SE, SD, ginger 等）
-Level 5: TDD 階段代理人 + thyme-python-developer
-```
+**自動觸發（Hook 系統，PM 不介入）**：
+
+| 觸發 | 說明 |
+|------|------|
+| Hook 命令入口驗證 | 最早觸發，檢查 Ticket 存在性等 |
+
+**PM 手動決策（依優先級排序）**：
+
+| 優先級 | 代理人 | 觸發條件 |
+|--------|-------|---------|
+| 1（最高） | incident-responder | 錯誤/失敗發生 |
+| 2 | system-analyst | 架構審查 |
+| 3 | security-reviewer | 安全相關 |
+| 4 | 其他專業代理人（DBA, SE, SD, ginger 等） | 專業領域 |
+| 5 | TDD 階段代理人 + thyme-extension-engineer | 標準開發流程 |
 
 | 觸發組合 | 處理方式 |
 |---------|---------|
