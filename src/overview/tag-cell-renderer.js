@@ -1,6 +1,7 @@
 'use strict'
 
 const { createTagResolver } = require('src/ui/search/tag-resolver')
+const { COLORS } = require('../core/design-system/colors.js')
 
 /**
  * Tag 顯示配置常數
@@ -16,7 +17,7 @@ const TAG_DISPLAY = Object.freeze({
  * 僅允許 #RRGGBB 格式，防止惡意 CSS 注入
  */
 const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/
-const SAFE_FALLBACK_COLOR = '#808080'
+const SAFE_FALLBACK_COLOR = COLORS.tagDefault
 
 /**
  * 驗證並回傳安全的 hex 色碼

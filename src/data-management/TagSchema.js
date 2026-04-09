@@ -10,12 +10,14 @@
 
 // === 常數 ===
 
+const { COLORS } = require('../core/design-system/colors.js')
+
 const TAG_CATEGORY_NAME_MAX_LENGTH = 50
 const TAG_CATEGORY_DESCRIPTION_MAX_LENGTH = 200
 const TAG_NAME_MAX_LENGTH = 50
 const MAX_TAGS_PER_BOOK = 100
 const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/
-const DEFAULT_COLOR = '#808080'
+const DEFAULT_COLOR = COLORS.tagDefault
 
 // === TagCategory Schema ===
 

@@ -1,8 +1,10 @@
 'use strict'
 
+const { COLORS } = require('../../core/design-system/colors.js')
+
 const TAG_RESOLVER_DEFAULTS = Object.freeze({
   FALLBACK_CATEGORY_NAME: '未分類',
-  FALLBACK_CATEGORY_COLOR: '#808080'
+  FALLBACK_CATEGORY_COLOR: COLORS.tagDefault
 })
 
 /**

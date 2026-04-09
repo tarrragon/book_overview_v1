@@ -2,6 +2,7 @@
 
 const BookSchemaV2 = require('../data-management/BookSchemaV2')
 const { BookValidationError } = require('../core/errors/BookValidationError')
+const { COLORS } = require('../core/design-system/colors.js')
 
 const IMPORT_CATEGORY_ID = 'cat_imported'
 const IMPORT_CATEGORY_NAME = '匯入分類'
@@ -76,7 +77,7 @@ function convertV1CategoryToTag (categories, timestamp) {
   const tagCategory = {
     id: IMPORT_CATEGORY_ID,
     name: IMPORT_CATEGORY_NAME,
-    color: '#808080',
+    color: COLORS.tagDefault,
     isSystem: false,
     sortOrder: 0,
     createdAt: ts,

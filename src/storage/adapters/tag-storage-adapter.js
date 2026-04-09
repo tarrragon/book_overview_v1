@@ -17,6 +17,8 @@
 
 const { SCHEMA_VERSION: BOOK_SCHEMA_VERSION } = require('../../data-management/BookSchemaV2')
 
+const { COLORS } = require('../../core/design-system/colors.js')
+
 const STORAGE_KEYS = {
   READMOO_BOOKS: 'readmoo_books',
   TAG_CATEGORIES: 'tag_categories',
@@ -34,8 +36,8 @@ const QUOTA_THRESHOLDS = {
   BLOCK: 0.95
 }
 
-/** 預設類別顏色 */
-const DEFAULT_CATEGORY_COLOR = '#808080'
+/** 預設類別顏色（引用 design-system 統一定義） */
+const DEFAULT_CATEGORY_COLOR = COLORS.tagDefault
 
 // --- 內部 Storage 存取輔助 ---
 
