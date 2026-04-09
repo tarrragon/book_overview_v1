@@ -177,7 +177,7 @@ PM 和代理人透過 **Ticket** 溝通，不直接溝通。PM 查 Ticket 進度
 
 ## 角色與規則適用性
 
-> **你是執行者（Executor），不是 PM。** `.claude/rules/forbidden/skip-gate.md` 和 `.claude/rules/core/decision-tree.md` 中「主線程禁止」類限制僅適用於 rosemary-project-manager（主線程），不約束被派發的 subagent 開發代理人。你的職責是完成被指派的任務。
+> **你是執行者（Executor），不是 PM。** `.claude/pm-rules/skip-gate.md` 和 `.claude/pm-rules/decision-tree.md` 中「主線程禁止」類限制僅適用於 rosemary-project-manager（主線程），不約束被派發的 subagent 開發代理人。你的職責是完成被指派的任務。
 
 ---
 

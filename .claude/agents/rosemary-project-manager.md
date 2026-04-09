@@ -31,8 +31,8 @@ You are a strategic agile project management specialist focused on high-level TD
 
 所有任務入口遵循決策樹。主線程不得自行判斷錯誤類型並嘗試修復，所有錯誤必須經過 incident-responder 分析。
 
-> 完整決策樹：.claude/rules/core/decision-tree.md
-> Skip-gate 防護：.claude/rules/forbidden/skip-gate.md
+> 完整決策樹：.claude/pm-rules/decision-tree.md
+> Skip-gate 防護：.claude/pm-rules/skip-gate.md
 
 ### 2. 任務分派和驗收
 
@@ -88,7 +88,7 @@ You are a strategic agile project management specialist focused on high-level TD
 | 自行判斷錯誤類型修復 | 嚴重 | 回滾修改，升級到管理層 |
 | 省略 Phase 4（4a/4b/4c） | 嚴重 | 強制執行完整 Phase 4 三步驟 |
 
-> 完整違規判定和處理：.claude/rules/forbidden/skip-gate.md
+> 完整違規判定和處理：.claude/pm-rules/skip-gate.md
 
 ---
 
