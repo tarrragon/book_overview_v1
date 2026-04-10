@@ -198,27 +198,43 @@ body {
   margin-top: 4px;
 }
 
-/* 狀態標籤 */
-.status-badge {
+/* 閱讀狀態標籤（6 狀態，對齊 SPEC-DESIGN-SYSTEM Section 3） */
+.reading-status-badge {
   padding: 4px 8px;
   border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
+  display: inline-block;
 }
 
-.status-new {
-  background-color: #e3f2fd;
-  color: #1976d2;
+.reading-status-badge[data-status="unread"] {
+  background-color: rgba(227, 242, 253, 0.15);
+  color: #E3F2FD;
 }
 
-.status-reading {
-  background-color: #fff3e0;
-  color: #f57c00;
+.reading-status-badge[data-status="queued"] {
+  background-color: rgba(100, 181, 246, 0.15);
+  color: #64B5F6;
 }
 
-.status-finished {
-  background-color: #e8f5e8;
-  color: #388e3c;
+.reading-status-badge[data-status="reading"] {
+  background-color: rgba(33, 150, 243, 0.15);
+  color: #2196F3;
+}
+
+.reading-status-badge[data-status="finished"] {
+  background-color: rgba(76, 175, 80, 0.15);
+  color: #4CAF50;
+}
+
+.reading-status-badge[data-status="abandoned"] {
+  background-color: rgba(255, 152, 0, 0.15);
+  color: #FF9800;
+}
+
+.reading-status-badge[data-status="reference"] {
+  background-color: rgba(25, 118, 210, 0.15);
+  color: #1976D2;
 }
 
 /* 載入狀態 */
