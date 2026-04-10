@@ -92,22 +92,39 @@
 | 3 | commit 引用原始 Ticket | commit message 含原始 Ticket ID |
 | 4 | 不重新開啟 Ticket | completed 狀態不變（歷史完整性） |
 
-### 驗收條件標記規範
+### 驗收條件處理：凍結 + 補充
 
-修正後，原始 Ticket 的驗收條件應反映**實際最終狀態**：
+修正後，原始 AC **凍結不動**（保留歷史），新增 `amendment_acceptance` 和 `amendment_reason` 欄位：
 
-| 標記 | 含義 |
-|------|------|
-| `[x]` | 已完成且保留 |
-| `[ ]` | 已知不做（需在 Ticket 中說明原因） |
+```yaml
+# 原始 AC（凍結，反映 complete 時的驗收狀態）
+acceptance:
+- '[x] 原始條件 A'
+- '[x] 原始條件 B'
+
+# 修正後 AC（反映實際最終狀態）
+amendment_acceptance:
+- '[x] 保留的改善項'
+- '[ ] 已知不做項（附原因）'
+amendment_reason: '修正原因簡述'
+```
+
+| 欄位 | 用途 | 可修改 |
+|------|------|--------|
+| `acceptance` | 原始驗收記錄（complete 時的狀態） | 凍結，不修改 |
+| `amendment_acceptance` | 修正後的實際狀態 | 修正時填寫 |
+| `amendment_reason` | 修正原因（引用 WRAP/error-pattern） | 修正時填寫 |
+
+**為什麼凍結而非覆蓋**：原始 AC 記錄了「complete 時認為已完成的事項」。覆蓋後無法追溯「為什麼當時認為通過驗收」，失去審計價值。
 
 **禁止行為**：
 
 | 禁止 | 原因 |
 |------|------|
-| 修正後不更新原始 Ticket 的驗收條件 | 驗收條件與交付物不一致 |
-| 重新開啟已完成的 Ticket | 破壞完成歷史，且 CLI 不支援 completed → in_progress |
+| 修改原始 acceptance 欄位 | 破壞驗收歷史，無法審計 |
+| 重新開啟已完成的 Ticket | 破壞完成歷史，狀態機不可逆 |
 | 修正了交付物但只 commit 不記錄 | 原始 Ticket 失去追溯性 |
+| 修正後不填 amendment_reason | 修正原因不可追溯 |
 
 ---
 
