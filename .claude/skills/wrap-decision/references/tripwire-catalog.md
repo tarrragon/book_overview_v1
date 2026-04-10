@@ -89,12 +89,67 @@ Skill 不需要每次都跑完整 WRAP 流程。
 | 絆腳索概念 | 本專案既有機制 |
 |-----------|-------------|
 | 期限型 | 尚無（建議未來 Hook） |
-| 失敗型 | `/pre-fix-eval`（部分覆蓋） |
+| 失敗型 | `/pre-fix-eval`（部分覆蓋）+ WRAP 自動觸發 Hook（見下方設計） |
 | 偏離型 | `ticket track snapshot`（手動檢查） |
 | 切割 | Atomic Ticket + TDD Phase 1-4 |
 | 正面捕捉 | `/continuous-learning` Skill |
 
 ---
 
+## WRAP 自動觸發 Hook 設計
+
+> 來源：W12-004 發現 2+5 — PM 從不主動觸發是最可能的失敗原因（60%）。
+> Hook 自動觸發是決定 WRAP 是否有效的關鍵因素。
+
+### 觸發條件
+
+| 條件 | 偵測方式 | 觸發動作 |
+|------|---------|---------|
+| 連續 2 次代理人派發失敗 | PostToolUse(Agent) — 追蹤同一 Ticket 的連續失敗次數 | stderr 輸出提醒：「連續失敗 2 次。建議執行 /wrap-decision（快速模式）擴增選項。」 |
+| PM 表達「做不到」類語句 | UserPromptSubmit — 關鍵字比對：做不到、沒辦法、不支援、impossible | stderr 輸出提醒：「偵測到限制性結論。建議先執行 /wrap-decision 搜尋間接方案。」 |
+
+### Hook 類型
+
+- **Hook 名稱**: `wrap-decision-tripwire-hook.py`
+- **觸發事件**: `PostToolUse`（Agent 工具）+ `UserPromptSubmit`
+- **實作方式**: Python PEP 723 單檔腳本
+
+### 狀態追蹤
+
+Hook 需要跨工具呼叫追蹤狀態（連續失敗次數）：
+
+```
+狀態檔案: .claude/hook-state/wrap-tripwire-state.json
+格式:
+{
+  "current_ticket": "0.17.3-W12-005",
+  "consecutive_failures": 2,
+  "last_failure_time": "2026-04-10T16:30:00"
+}
+```
+
+**重置條件**：
+- 代理人成功完成 → 歸零
+- 切換到不同 Ticket → 歸零
+- 手動執行 `/wrap-decision` → 歸零（已回應提醒）
+
+### 提醒內容設計
+
+提醒遵循絆腳索哲學 — 不告訴 PM 該怎麼做，只提醒「你是有選擇的」：
+
+```
+[WRAP 絆腳索] 連續 {N} 次失敗（Ticket: {id}）。
+你是有選擇的：
+  /wrap-decision        — 系統性擴增選項
+  搜尋社群             — 看看有沒有人解決過
+  建 Ticket 延後       — 回到核心任務
+```
+
+### 實作優先級
+
+此設計文件為 Hook 實作提供規格。實際 Hook 程式碼實作為獨立 Ticket（待建立）。
+
+---
+
 **Last Updated**: 2026-04-10
-**Version**: 1.0.0
+**Version**: 1.1.0 — 新增 WRAP 自動觸發 Hook 設計（W12-007）
