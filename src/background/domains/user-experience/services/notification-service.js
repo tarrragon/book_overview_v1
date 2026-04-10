@@ -27,6 +27,7 @@
  */
 
 const ErrorCodes = require('src/core/errors/ErrorCodes')
+const { COLORS } = require('../../../../core/design-system/colors.js')
 
 class NotificationService {
   constructor (dependencies = {}) {
@@ -57,25 +58,25 @@ class NotificationService {
     this.notificationTypes = {
       info: {
         icon: 'ℹ️',
-        color: '#007AFF',
+        color: COLORS.primary,
         priority: 1,
         defaultDuration: 5000
       },
       success: {
         icon: '✅',
-        color: '#34C759',
+        color: COLORS.positive,
         priority: 2,
         defaultDuration: 3000
       },
       warning: {
         icon: '⚠️',
-        color: '#FF9500',
+        color: COLORS.negative,
         priority: 3,
         defaultDuration: 7000
       },
       error: {
         icon: '❌',
-        color: '#FF3B30',
+        color: COLORS.error,
         priority: 4,
         defaultDuration: 10000
       }

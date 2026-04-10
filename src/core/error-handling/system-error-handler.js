@@ -8,6 +8,7 @@ import { createErrorRecovery as createErrorRecoveryInternal, retryOperation as r
 import { getUserFriendlyMessage as getUserFriendlyMessageInternal } from './user-message-generator.js'
 
 const ErrorCodes = require('src/core/errors/ErrorCodes')
+const { COLORS } = require('../design-system/colors.js')
 
 /**
  * 錯誤分類函數 - 測試接口
@@ -400,11 +401,11 @@ function getErrorIcon (category) {
 
 function getErrorColor (severity) {
   const colors = {
-    HIGH: '#ff4757',
-    MEDIUM: '#ffa502',
-    LOW: '#2ed573'
+    HIGH: COLORS.error,
+    MEDIUM: COLORS.negative,
+    LOW: COLORS.positive
   }
-  return colors[severity] || '#747d8c'
+  return colors[severity] || COLORS.onSurfaceMuted
 }
 
 export {

@@ -27,6 +27,7 @@
  */
 
 const ErrorCodes = require('src/core/errors/ErrorCodes')
+const { COLORS } = require('../../../../core/design-system/colors.js')
 
 class ThemeManagementService {
   constructor (dependencies = {}) {
@@ -62,15 +63,15 @@ class ThemeManagementService {
         name: '淺色主題',
         mode: 'light',
         colors: {
-          primary: '#007AFF',
-          background: '#FFFFFF',
-          surface: '#F2F2F7',
-          text: '#000000',
-          textSecondary: '#8E8E93',
-          border: '#C6C6C8',
-          success: '#34C759',
-          warning: '#FF9500',
-          error: '#FF3B30'
+          primary: COLORS.primary,
+          background: COLORS.surface,
+          surface: COLORS.background,
+          text: COLORS.onBackground,
+          textSecondary: COLORS.onSurfaceMuted,
+          border: COLORS.border,
+          success: COLORS.positive,
+          warning: COLORS.negative,
+          error: COLORS.error
         },
         typography: {
           fontSize: '14px',
@@ -82,15 +83,15 @@ class ThemeManagementService {
         name: '深色主題',
         mode: 'dark',
         colors: {
-          primary: '#007AFF',
-          background: '#000000',
-          surface: '#1C1C1E',
-          text: '#FFFFFF',
-          textSecondary: '#8E8E93',
-          border: '#38383A',
-          success: '#30D158',
-          warning: '#FF9F0A',
-          error: '#FF453A'
+          primary: COLORS.primaryMedium,
+          background: '#121212',
+          surface: COLORS.onBackground,
+          text: COLORS.surface,
+          textSecondary: COLORS.onSurfaceMuted,
+          border: COLORS.borderDark,
+          success: COLORS.positiveDark,
+          warning: COLORS.negativeDark,
+          error: COLORS.error
         },
         typography: {
           fontSize: '14px',
