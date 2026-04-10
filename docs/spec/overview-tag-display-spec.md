@@ -46,14 +46,14 @@ v0.17.0 完成 Tag-based Book Model 重構後，Overview 頁面仍使用舊的 3
 
 使用 `BookSchemaV2.READING_STATUS` 列舉值：
 
-| 值 | 中文標籤 | 色彩 | CSS class |
-|---|---------|------|-----------|
-| `unread` | 未開始 | `#1976d2`（藍） | `status-unread` |
-| `reading` | 閱讀中 | `#f57c00`（橙） | `status-reading` |
-| `finished` | 已完成 | `#388e3c`（綠） | `status-finished` |
-| `queued` | 待讀 | `#7b1fa2`（紫） | `status-queued` |
-| `abandoned` | 已放棄 | `#757575`（灰） | `status-abandoned` |
-| `reference` | 參考用 | `#00838f`（青） | `status-reference` |
+| 值 | 中文標籤 | 色彩（引用 design-system-spec.md） | CSS class |
+|---|---------|----------------------------------|-----------|
+| `unread` | 未開始 | `primaryLightest` `#E3F2FD` | `status-unread` |
+| `reading` | 閱讀中 | `primary` `#2196F3` | `status-reading` |
+| `finished` | 已完成 | `positive` `#4CAF50` | `status-finished` |
+| `queued` | 待讀 | `primaryMedium` `#64B5F6` | `status-queued` |
+| `abandoned` | 已放棄 | `negative` `#FF9800` | `status-abandoned` |
+| `reference` | 參考用 | `primaryDark` `#1976D2` | `status-reference` |
 
 ### 2.2 篩選 Bar DOM 結構
 
@@ -469,13 +469,16 @@ storage.onChanged 監聽需擴充：監聽 `tags` 和 `tag_categories` 的變更
 
 ### 8.4 狀態 Badge 樣式
 
+Badge 樣式遵循 design-system-spec.md 3.1 節定義：淡色底（主色 15% alpha）+ 深色字（主色原色）。
+
 ```css
-.status-unread    { background-color: #e3f2fd; color: #1976d2; }
-.status-reading   { background-color: #fff3e0; color: #f57c00; }
-.status-finished  { background-color: #e8f5e8; color: #388e3c; }
-.status-queued    { background-color: #f3e5f5; color: #7b1fa2; }
-.status-abandoned { background-color: #f5f5f5; color: #757575; }
-.status-reference { background-color: #e0f7fa; color: #00838f; }
+/* 色值引用 design-system-spec.md Token，勿硬編碼修改 */
+.status-unread    { background-color: rgba(227,242,253,0.15); color: #E3F2FD; } /* primaryLightest */
+.status-reading   { background-color: rgba(33,150,243,0.15);  color: #2196F3; } /* primary */
+.status-finished  { background-color: rgba(76,175,80,0.15);   color: #4CAF50; } /* positive */
+.status-queued    { background-color: rgba(100,181,246,0.15);  color: #64B5F6; } /* primaryMedium */
+.status-abandoned { background-color: rgba(255,152,0,0.15);   color: #FF9800; } /* negative */
+.status-reference { background-color: rgba(25,118,210,0.15);  color: #1976D2; } /* primaryDark */
 ```
 
 ---
