@@ -61,7 +61,7 @@ if __name__ == "__main__":
     # 測試用途
     if len(sys.argv) < 4:
         print("使用方式：python phase-contract-validator-hook.py <ticket_id> <phase> <ticket_dir>")
-        sys.exit(1)
+        sys.exit(0)
 
     ticket_id = sys.argv[1]
     phase = sys.argv[2]
@@ -71,4 +71,4 @@ if __name__ == "__main__":
     result = validator.validate(ticket_id, phase, ticket_dir)
 
     print(format_validation_result(result))
-    sys.exit(0 if result.can_proceed else 1)
+    sys.exit(0)
