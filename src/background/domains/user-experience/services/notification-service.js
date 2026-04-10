@@ -26,7 +26,7 @@
  * - 成功操作確認
  */
 
-const ErrorCodes = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('../../../../core/errors/ErrorCodes')
 const { COLORS } = require('../../../../core/design-system/colors.js')
 
 class NotificationService {

@@ -3,11 +3,11 @@
  * 為測試套件提供統一的錯誤處理接口
  */
 
-import { classifyError as classifyErrorInternal } from './error-classifier.js'
-import { createErrorRecovery as createErrorRecoveryInternal, retryOperation as retryOperationInternal } from './error-recovery-coordinator.js'
-import { getUserFriendlyMessage as getUserFriendlyMessageInternal } from './user-message-generator.js'
+const { classifyError: classifyErrorInternal } = require('./error-classifier.js')
+const { createErrorRecovery: createErrorRecoveryInternal, retryOperation: retryOperationInternal } = require('./error-recovery-coordinator.js')
+const { getUserFriendlyMessage: getUserFriendlyMessageInternal } = require('./user-message-generator.js')
 
-const ErrorCodes = require('src/core/errors/ErrorCodes')
+const ErrorCodes = require('../errors/ErrorCodes')
 const { COLORS } = require('../design-system/colors.js')
 
 /**
@@ -408,7 +408,7 @@ function getErrorColor (severity) {
   return colors[severity] || COLORS.onSurfaceMuted
 }
 
-export {
+module.exports = {
   classifyError,
   createErrorRecovery,
   getUserFriendlyMessage,

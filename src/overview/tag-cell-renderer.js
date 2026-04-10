@@ -1,6 +1,6 @@
 'use strict'
 
-const { createTagResolver } = require('src/ui/search/tag-resolver')
+const { createTagResolver } = require('../ui/search/tag-resolver')
 const { COLORS } = require('../core/design-system/colors.js')
 
 /**

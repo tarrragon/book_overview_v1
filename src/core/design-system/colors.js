@@ -25,10 +25,10 @@ const COLORS = Object.freeze({
   onBackground: '#212121',
   onSurface: '#424242',
   onSurfaceMuted: '#757575',
-  // 錯誤色（Section 2.6）
+  // 錯誤色
   error: '#F44336',
   errorLight: '#FFCDD2',
-  // 邊框色（Section 2.7）
+  // 邊框色
   border: '#E0E0E0',
   borderDark: '#424242',
   // 功能色（Section 2.5）

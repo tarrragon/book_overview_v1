@@ -63,6 +63,18 @@ if (typeof require !== 'undefined') {
   MessageDictionary = (typeof window !== 'undefined' && window.MessageDictionary) || class {}
 }
 
+// Design System 配色常數
+var COLORS
+if (typeof require !== 'undefined') {
+  try {
+    ({ COLORS } = require('src/core/design-system/colors.js'))
+  } catch (e) {
+    COLORS = null
+  }
+} else {
+  COLORS = null
+}
+
 // 初始化 Popup Logger
 const popupMessages = new MessageDictionary({
   POPUP_INTERFACE_LOADED: '🎨 Popup Interface 載入完成',
@@ -1139,8 +1151,13 @@ function displayHealthCheckResults (healthReport) {
     errorContainer.style.display = 'block'
 
     // 更改樣式以表示這是診斷資訊，不是錯誤
-    errorContainer.style.backgroundColor = summary.failed === 0 ? '#e8f5e8' : '#fff3cd'
-    errorContainer.style.borderColor = summary.failed === 0 ? '#28a745' : '#ffc107'
+    // Design System 配色：正向=positiveLight/positive，負面=negativeLight/negative
+    errorContainer.style.backgroundColor = summary.failed === 0
+      ? (COLORS ? COLORS.positiveLight : '#C8E6C9')
+      : (COLORS ? COLORS.negativeLight : '#FFE0B2')
+    errorContainer.style.borderColor = summary.failed === 0
+      ? (COLORS ? COLORS.positive : '#4CAF50')
+      : (COLORS ? COLORS.negative : '#FF9800')
   } else {
     alert(statusText)
   }
@@ -1212,9 +1229,9 @@ function showInitializationReport () {
     errorMessage.textContent = reportText
     errorContainer.style.display = 'block'
 
-    // 設置樣式（藍色邊框表示資訊性內容）
-    errorContainer.style.backgroundColor = '#e8f4f8'
-    errorContainer.style.borderColor = '#17a2b8'
+    // Design System 配色：資訊性內容使用 primaryLightest/primary
+    errorContainer.style.backgroundColor = COLORS ? COLORS.primaryLightest : '#E3F2FD'
+    errorContainer.style.borderColor = COLORS ? COLORS.primary : '#2196F3'
   } else {
     alert(reportText)
   }
