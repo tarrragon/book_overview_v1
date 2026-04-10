@@ -12,6 +12,7 @@ Hook 日誌與基礎設施模組
 - run_hook_safely(main_func, hook_name) -> int
 """
 
+import json
 import logging
 import os
 import sys
@@ -48,7 +49,8 @@ LOGGER_LEVEL = logging.DEBUG
 ENV_HOOK_DEBUG = "HOOK_DEBUG"
 
 # Exit code 常數
-EXIT_ERROR = 1
+EXIT_SUCCESS = 0
+EXIT_ERROR = 1  # 保留定義但 run_hook_safely 不再使用（改為 exit 0 + JSON）
 
 # 日誌保留策略（天數）
 LOG_RETENTION_DAYS = 7
@@ -334,15 +336,22 @@ def run_hook_safely(main_func: Callable[[], int], hook_name: str) -> int:
     功能：
     - 呼叫 setup_hook_logging 獲取 logger
     - 執行 main_func，捕獲 Exception（非 SystemExit/KeyboardInterrupt）
-    - 異常時記錄完整 traceback 到日誌，返回 1
+    - 異常時輸出 JSON additionalContext 錯誤訊息（exit 0），讓 CLI 正常顯示
     - 記錄執行時間到日誌
+
+    Claude Code exit code 規則：
+    - exit 0：正常處理 JSON 輸出
+    - exit 2：阻止工具，stderr 送給 Claude
+    - exit 1 或其他：操作繼續但 CLI 顯示 "hook error"（應避免）
 
     Args:
         main_func: Hook 主入口函式，必須返回 int
         hook_name: Hook 識別名稱
 
     Returns:
-        int: main_func 的返回值（正常），或 1（異常）
+        int: main_func 的返回值（正常），或 0（異常時輸出 JSON 後正常退出）
+
+    來源：0.17.3-W10-002 — exit code 1 導致 CLI 顯示 hook error
     """
     logger = setup_hook_logging(hook_name)
     start_time = time.time()
@@ -367,4 +376,21 @@ def run_hook_safely(main_func: Callable[[], int], hook_name: str) -> int:
         tb_str = traceback.format_exc()
         logger.debug("Hook execution time before failure: {:.2f}s".format(elapsed_time))
         _log_exception(logger, hook_name, tb_str)
-        return EXIT_ERROR
+
+        # 輸出 JSON 讓 CLI 正常顯示錯誤訊息，而非模糊的 "hook error"
+        # 取 traceback 最後一行作為簡短錯誤摘要
+        tb_lines = tb_str.strip().splitlines()
+        tb_short = tb_lines[-1] if tb_lines else "Unknown error"
+        error_output = {
+            "hookSpecificOutput": {
+                "hookEventName": "PostToolUse",
+                "additionalContext": "[{hook}] Hook 異常: {err}".format(
+                    hook=hook_name, err=tb_short
+                ),
+            }
+        }
+        try:
+            print(json.dumps(error_output, ensure_ascii=False))
+        except Exception:
+            pass  # 最後防線：JSON 輸出失敗也不能 crash
+        return EXIT_SUCCESS

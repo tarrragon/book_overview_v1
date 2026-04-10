@@ -60,11 +60,16 @@ try:
     )
     from lib.hook_messages import AskUserQuestionMessages
 except ImportError as e:
-    # 輸出合法 JSON 到 stdout（遵守 Hook 協定）
-    print(json.dumps({"result": "continue"}))
+    # 輸出合法 JSON 到 stdout（遵守 Hook 協定，exit 0 避免 "hook error"）
+    print(json.dumps({
+        "hookSpecificOutput": {
+            "hookEventName": "UserPromptSubmit",
+            "additionalContext": "[parallel-suggestion-hook] Import 失敗: {}".format(e),
+        }
+    }))
     # 同時輸出錯誤到 stderr（雙通道要求）
-    print(f"[Hook Import Error] {Path(__file__).name}: {e}", file=sys.stderr)
-    sys.exit(1)
+    print("[Hook Import Error] {}: {}".format(Path(__file__).name, e), file=sys.stderr)
+    sys.exit(0)  # exit 0 讓 CLI 正常顯示 additionalContext（W10-002）
 
 # ============================================================================
 # 常數定義
