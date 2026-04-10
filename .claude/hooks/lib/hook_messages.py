@@ -769,4 +769,4 @@ if __name__ == "__main__":
     print()
     print("詳見各 Hook 檔案的使用範例")
     print("=" * 60)
-    sys.exit(0)
+    sys.exit(1)

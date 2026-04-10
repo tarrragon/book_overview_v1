@@ -370,7 +370,7 @@ def cmd_parse(file_path: str) -> None:
         print(yaml.dump(frontmatter, default_flow_style=False))
     except Exception as e:
         print(f"錯誤: {e}", file=sys.stdout)
-        sys.exit(0)
+        sys.exit(1)
 
 
 def cmd_read(file_path: str) -> None:
@@ -386,7 +386,7 @@ def cmd_read(file_path: str) -> None:
         print(f"狀態: {ticket.status}")
     except Exception as e:
         print(f"錯誤: {e}", file=sys.stdout)
-        sys.exit(0)
+        sys.exit(1)
 
 
 def cmd_list(tickets_dir: str) -> None:
@@ -398,7 +398,7 @@ def cmd_list(tickets_dir: str) -> None:
             print(f"{status_icon} {ticket.ticket_id} [{ticket.agent}] {ticket.action}")
     except Exception as e:
         print(f"錯誤: {e}")
-        sys.exit(0)
+        sys.exit(1)
 
 
 def cmd_detect(version_dir: str) -> None:
@@ -408,7 +408,7 @@ def cmd_detect(version_dir: str) -> None:
         print(f"格式: {fmt}")
     except Exception as e:
         print(f"錯誤: {e}", file=sys.stdout)
-        sys.exit(0)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
@@ -419,7 +419,7 @@ if __name__ == "__main__":
         print("  read <file>         - 讀取 Ticket 檔案")
         print("  list <directory>    - 列出目錄中所有 tickets")
         print("  detect <directory>  - 偵測版本格式")
-        sys.exit(0)
+        sys.exit(1)
 
     cmd = sys.argv[1]
 
@@ -433,4 +433,4 @@ if __name__ == "__main__":
         cmd_detect(sys.argv[2])
     else:
         print(f"未知命令或參數不足: {cmd}", file=sys.stdout)
-        sys.exit(0)
+        sys.exit(1)

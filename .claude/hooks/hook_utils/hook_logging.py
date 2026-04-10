@@ -334,7 +334,7 @@ def run_hook_safely(main_func: Callable[[], int], hook_name: str) -> int:
     功能：
     - 呼叫 setup_hook_logging 獲取 logger
     - 執行 main_func，捕獲 Exception（非 SystemExit/KeyboardInterrupt）
-    - 異常時記錄完整 traceback 到日誌，返回 0 + additionalContext 錯誤訊息
+    - 異常時記錄完整 traceback 到日誌檔，返回 EXIT_ERROR
     - 記錄執行時間到日誌
 
     Args:
@@ -342,7 +342,11 @@ def run_hook_safely(main_func: Callable[[], int], hook_name: str) -> int:
         hook_name: Hook 識別名稱
 
     Returns:
-        int: main_func 的返回值（正常），或 0（異常，錯誤透過 additionalContext 輸出）
+        int: main_func 的返回值（正常），或 EXIT_ERROR（異常）
+
+    Note:
+        exit 1 在 CLI 中可能觸發 "hook error" 顯示（IMP-049 已知 CLI bug），
+        但這是 CLI 層問題，不應在 Hook 層繞過。異常記錄到日誌檔即可。
     """
     logger = setup_hook_logging(hook_name)
     start_time = time.time()
@@ -367,10 +371,4 @@ def run_hook_safely(main_func: Callable[[], int], hook_name: str) -> int:
         tb_str = traceback.format_exc()
         logger.debug("Hook execution time before failure: {:.2f}s".format(elapsed_time))
         _log_exception(logger, hook_name, tb_str)
-        # W10-002: 返回 0 + additionalContext，避免 CLI 顯示 hook error
-        # exit 1 會被 CLI 視為 hook 本身壞掉，吞掉所有 stdout 訊息
-        import json
-        error_msg = "[Hook Exception] {}: {}".format(hook_name, tb_str.strip().split('\n')[-1])
-        print(json.dumps({"additionalContext": error_msg}))
-        print(error_msg, file=sys.stderr)
-        return 0
+        return EXIT_ERROR

@@ -222,9 +222,9 @@ class FlutterTestParser:
         summary = self.generate_summary()
         print(summary)
 
-        # 如果有失敗，返回非零 exit code（僅 __main__ 呼叫時）
+        # 如果有失敗，返回非零 exit code
         if self.failure_count > 0 or self.error_count > 0:
-            sys.exit(0)
+            sys.exit(1)
 
 
 def main():
