@@ -64,13 +64,13 @@ class NotificationService {
       },
       success: {
         icon: '✅',
-        color: COLORS.positive,
+        color: COLORS.success,
         priority: 2,
         defaultDuration: 3000
       },
       warning: {
         icon: '⚠️',
-        color: COLORS.negative,
+        color: COLORS.warning,
         priority: 3,
         defaultDuration: 7000
       },

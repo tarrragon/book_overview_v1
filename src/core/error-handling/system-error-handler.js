@@ -402,8 +402,8 @@ function getErrorIcon (category) {
 function getErrorColor (severity) {
   const colors = {
     HIGH: COLORS.error,
-    MEDIUM: COLORS.negative,
-    LOW: COLORS.positive
+    MEDIUM: COLORS.warning,
+    LOW: COLORS.success
   }
   return colors[severity] || COLORS.onSurfaceMuted
 }

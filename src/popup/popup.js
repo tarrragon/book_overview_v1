@@ -1151,13 +1151,13 @@ function displayHealthCheckResults (healthReport) {
     errorContainer.style.display = 'block'
 
     // 更改樣式以表示這是診斷資訊，不是錯誤
-    // Design System 配色：正向=positiveLight/positive，負面=negativeLight/negative
+    // Design System 配色：成功=successLight/success，警告=warningLight/warning
     errorContainer.style.backgroundColor = summary.failed === 0
-      ? (COLORS ? COLORS.positiveLight : '#C8E6C9')
-      : (COLORS ? COLORS.negativeLight : '#FFE0B2')
+      ? (COLORS ? COLORS.successLight : '#C8E6C9')
+      : (COLORS ? COLORS.warningLight : '#FFE0B2')
     errorContainer.style.borderColor = summary.failed === 0
-      ? (COLORS ? COLORS.positive : '#4CAF50')
-      : (COLORS ? COLORS.negative : '#FF9800')
+      ? (COLORS ? COLORS.success : '#4CAF50')
+      : (COLORS ? COLORS.warning : '#FF9800')
   } else {
     alert(statusText)
   }

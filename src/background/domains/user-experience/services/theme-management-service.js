@@ -57,6 +57,10 @@ class ThemeManagementService {
 
     // 主題配置
     this.availableThemes = ['light', 'dark', 'auto']
+    const THEME_TYPOGRAPHY = Object.freeze({
+      fontSize: '14px',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    })
     this.themeConfig = {
       light: {
         id: 'light',
@@ -69,14 +73,11 @@ class ThemeManagementService {
           text: COLORS.onBackground,
           textSecondary: COLORS.onSurfaceMuted,
           border: COLORS.border,
-          success: COLORS.positive,
-          warning: COLORS.negative,
+          success: COLORS.success,
+          warning: COLORS.warning,
           error: COLORS.error
         },
-        typography: {
-          fontSize: '14px',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-        }
+        typography: THEME_TYPOGRAPHY
       },
       dark: {
         id: 'dark',
@@ -84,19 +85,16 @@ class ThemeManagementService {
         mode: 'dark',
         colors: {
           primary: COLORS.primaryMedium,
-          background: '#121212',
+          background: COLORS.darkBackground,
           surface: COLORS.onBackground,
           text: COLORS.surface,
           textSecondary: COLORS.onSurfaceMuted,
           border: COLORS.borderDark,
-          success: COLORS.positiveDark,
-          warning: COLORS.negativeDark,
+          success: COLORS.successDark,
+          warning: COLORS.warningDark,
           error: COLORS.error
         },
-        typography: {
-          fontSize: '14px',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-        }
+        typography: THEME_TYPOGRAPHY
       }
     }
 
