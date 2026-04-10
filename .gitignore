@@ -67,6 +67,10 @@ __pycache__/
 # Claude handoff archives (session-local)
 .claude/handoff/archive/
 
+# Claude dispatch tracker (runtime state, auto-managed by hooks)
+.claude/dispatch-active.json
+.claude/dispatch-active.lock
+
 # Claude worktrees (agent-generated, session-local)
 .claude/worktrees/
 
