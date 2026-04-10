@@ -32,28 +32,34 @@ PM 缺乏「代理人完成確認」的系統性流程。具體表現：
 
 ## 防護措施
 
-### PM 代理人完成確認 SOP（強制）
+### PM 代理人完成確認 SOP（強制，已整合到決策樹）
 
-**派發時記錄**：每次派發代理人時，PM 必須在心中（或 Ticket log 中）記錄：
-- 派發了幾個代理人
-- 每個代理人的描述和 Ticket
-- 每個代理人是否使用獨立分支
+**派發後**（dispatch-gate.md「派發後清點」）：
+```bash
+cat .claude/dispatch-active.json  # 確認派發數量正確
+```
 
-**收到完成通知時**：
-1. 這是第幾個完成通知？預期共幾個？
-2. 是否還有代理人在背景執行？
-3. 所有代理人都完成了才開始驗收
+**收到完成通知時**（pm-role.md「代理人完成確認 SOP」）：
+```bash
+cat .claude/dispatch-active.json  # 確認剩餘活躍派發
+```
 
-**判斷代理人失敗前**：
-1. 先執行 `git branch | grep feat/` 和 `git worktree list`
-2. 確認所有分支和 worktree 的 commit 狀態
-3. 只有確認無任何分支有代理人 commit 後，才判定失敗
+**只有 dispatch-active.json 為空時，才能開始驗收和 commit。**
 
-### 並行派發分支隔離（強制）
+**完成 Checkpoint 中**（completion-checkpoint-rules.md「Checkpoint 1.85」）：
+- 1.85 代理人清點：dispatch-active.json 非空 → 阻塞，禁止繼續
 
-- 每個代理人使用獨立 feature 分支
+**判斷代理人失敗前**（pm-role.md「失敗判斷前置步驟」）：
+1. `cat .claude/dispatch-active.json` — 代理人可能還在活躍派發中
+2. `git branch | grep feat/` + `git worktree list` — 變更可能在其他分支
+3. 只有 dispatch-active.json 為空且所有分支都無 commit 後，才判定失敗
+
+### 並行派發分支隔離（強制，已整合到 dispatch-gate.md）
+
+- 每個代理人使用獨立 feature 分支（N 個代理人 = N 個分支）
 - 派發前切回 main 建新分支
 - 或使用 `isolation: "worktree"` 自動隔離
+- 禁止共用分支
 
 ## 實際案例
 
