@@ -330,6 +330,32 @@ def save_check_log(
             logger.warning("儲存檢查日誌失敗: {}".format(e))
 
 
+def _ensure_json_output(
+    captured_stdout: str,
+    hook_name: str,
+    real_stdout: "typing.IO[str]",
+) -> None:
+    """確保 Hook 有 JSON 輸出到 stdout（防止空輸出觸發 CLI "hook error"）
+
+    Claude Code 期待 Hook stdout 有有效的 JSON。空輸出會被視為 error。
+    此函式在 main_func 完成後檢查：有輸出就原樣寫入，無輸出就補預設 JSON。
+
+    來源：0.17.3-W10-002 — 空 stdout 導致 CLI 顯示 hook error
+    """
+    if captured_stdout.strip():
+        # 已有輸出，原樣寫入
+        real_stdout.write(captured_stdout)
+    else:
+        # 無輸出，補上預設 JSON
+        default_output = json.dumps({
+            "hookSpecificOutput": {
+                "hookEventName": "PostToolUse",
+            }
+        }, ensure_ascii=False)
+        real_stdout.write(default_output)
+        real_stdout.write("\n")
+
+
 def run_hook_safely(main_func: Callable[[], int], hook_name: str) -> int:
     """安全執行 Hook 函式，頂層例外處理
 
@@ -337,12 +363,14 @@ def run_hook_safely(main_func: Callable[[], int], hook_name: str) -> int:
     - 呼叫 setup_hook_logging 獲取 logger
     - 執行 main_func，捕獲 Exception（非 SystemExit/KeyboardInterrupt）
     - 異常時輸出 JSON additionalContext 錯誤訊息（exit 0），讓 CLI 正常顯示
+    - 確保 stdout 一定有有效的 JSON 輸出（防止空輸出觸發 "hook error"）
     - 記錄執行時間到日誌
 
-    Claude Code exit code 規則：
-    - exit 0：正常處理 JSON 輸出
+    Claude Code Hook 輸出規則：
+    - exit 0 + 有效 JSON stdout：正常處理
     - exit 2：阻止工具，stderr 送給 Claude
     - exit 1 或其他：操作繼續但 CLI 顯示 "hook error"（應避免）
+    - exit 0 + 空 stdout：CLI 也可能顯示 "hook error"（應避免）
 
     Args:
         main_func: Hook 主入口函式，必須返回 int
@@ -351,10 +379,17 @@ def run_hook_safely(main_func: Callable[[], int], hook_name: str) -> int:
     Returns:
         int: main_func 的返回值（正常），或 0（異常時輸出 JSON 後正常退出）
 
-    來源：0.17.3-W10-002 — exit code 1 導致 CLI 顯示 hook error
+    來源：0.17.3-W10-002 — exit code 1 和空 stdout 導致 CLI 顯示 hook error
     """
+    import io as _io
+
     logger = setup_hook_logging(hook_name)
     start_time = time.time()
+
+    # 攔截 stdout：確保 main_func 完成後一定有 JSON 輸出
+    real_stdout = sys.stdout
+    captured = _io.StringIO()
+    sys.stdout = captured
 
     try:
         exit_code = main_func()
@@ -368,17 +403,25 @@ def run_hook_safely(main_func: Callable[[], int], hook_name: str) -> int:
         # 記錄執行時間
         elapsed_time = time.time() - start_time
         logger.debug("Hook execution time: {:.2f}s".format(elapsed_time))
+
+        # 還原 stdout 並確保有 JSON 輸出
+        sys.stdout = real_stdout
+        _ensure_json_output(captured.getvalue(), hook_name, real_stdout)
+
         return exit_code
     except (KeyboardInterrupt, SystemExit):
+        sys.stdout = real_stdout
+        # SystemExit 時也要確保有 JSON 輸出
+        _ensure_json_output(captured.getvalue(), hook_name, real_stdout)
         raise
     except Exception:
+        sys.stdout = real_stdout
         elapsed_time = time.time() - start_time
         tb_str = traceback.format_exc()
         logger.debug("Hook execution time before failure: {:.2f}s".format(elapsed_time))
         _log_exception(logger, hook_name, tb_str)
 
         # 輸出 JSON 讓 CLI 正常顯示錯誤訊息，而非模糊的 "hook error"
-        # 取 traceback 最後一行作為簡短錯誤摘要
         tb_lines = tb_str.strip().splitlines()
         tb_short = tb_lines[-1] if tb_lines else "Unknown error"
         error_output = {
@@ -390,7 +433,8 @@ def run_hook_safely(main_func: Callable[[], int], hook_name: str) -> int:
             }
         }
         try:
-            print(json.dumps(error_output, ensure_ascii=False))
+            real_stdout.write(json.dumps(error_output, ensure_ascii=False))
+            real_stdout.write("\n")
         except Exception:
             pass  # 最後防線：JSON 輸出失敗也不能 crash
         return EXIT_SUCCESS
