@@ -16,8 +16,11 @@ pending → claim → in_progress → complete → completed
 |------|---------|
 | pending | claim |
 | in_progress | complete, release |
-| completed | - |
+| completed | 就地修正（不變更狀態）或建立修正子 Ticket |
 | blocked | claim（重新認領） |
+
+> **completed 修正規則**：completed 狀態不可回退為 in_progress（歷史完整性）。
+> 修正走「完成後發現」流程：`.claude/pm-rules/execution-discovery-rules.md` 3.5-B 層。
 
 ---
 
