@@ -871,6 +871,13 @@ def execute(args: argparse.Namespace) -> int:
         print(format_error(ErrorMessages.VERSION_NOT_DETECTED))
         return 1
 
+    # 驗證版本已在 todolist.yaml 中註冊
+    from ticket_system.lib.version import validate_version_registered
+    is_valid, error_msg = validate_version_registered(version)
+    if not is_valid:
+        print(format_error(error_msg))
+        return 1
+
     # Step 1: 解析版本和 Ticket ID
     resolved = _resolve_ticket_id_and_wave(args, version)
     if resolved is None:
