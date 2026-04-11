@@ -30,7 +30,7 @@ _hooks_dir = Path(__file__).parent
 if _hooks_dir not in [p for p in sys.path if Path(p) == _hooks_dir]:
     sys.path.insert(0, str(_hooks_dir))
 
-from hook_utils import setup_hook_logging, run_hook_safely, read_json_from_stdin
+from hook_utils import setup_hook_logging, run_hook_safely, read_json_from_stdin, emit_hook_output
 from lib.hook_messages import ValidationMessages, format_message
 
 
@@ -131,15 +131,12 @@ def main() -> int:
         warning_msg = _print_warning_message(command)
 
         # 單一 JSON 輸出：合併警告和 permissionDecision
-        result = {
-            "hookSpecificOutput": {
-                "hookEventName": "PreToolUse",
-                "permissionDecision": "allow",
-                "permissionDecisionReason": "Bash 編輯操作警告已發送，允許執行",
-                "additionalContext": warning_msg
-            }
-        }
-        print(json.dumps(result, ensure_ascii=False))
+        emit_hook_output(
+            "PreToolUse",
+            additional_context=warning_msg,
+            permission_decision="allow",
+            permission_decision_reason="Bash 編輯操作警告已發送，允許執行",
+        )
 
         return 0
 
