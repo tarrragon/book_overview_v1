@@ -147,7 +147,13 @@ def main() -> int:
     lines.append("請在 ticket 完成前合併這些 worktree 的變更。")
 
     message = "\n".join(lines)
-    print(message)  # stdout = additional context（警告但不阻擋）
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PostToolUse",
+            "additionalContext": message
+        }
+    }
+    print(json.dumps(output, ensure_ascii=False))
     logger.warning("發現 %d 個 worktree 有未合併 commit", len(unmerged))
 
     # 回傳 0（警告但不阻擋），讓 PM 決定是否處理
