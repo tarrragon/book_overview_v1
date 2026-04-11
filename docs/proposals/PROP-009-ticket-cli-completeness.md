@@ -1,7 +1,8 @@
 ---
 id: PROP-009
 title: Ticket CLI 完整性提升 — 全欄位 CLI 化 + 清單式驗證
-status: proposed
+status: approved
+target_version: v0.17.4
 created: 2026-04-11
 priority: P1
 category: framework
