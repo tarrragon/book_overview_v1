@@ -19,14 +19,8 @@
 
 > Subagent 每 turn 約 ~20 tool calls（軟限制，觸發 `pause_turn`）。
 > **15 次**是安全預算（75% 緩衝），**非硬性斷點**。超過 15 次的任務應評估拆分或精簡 prompt。
-> 預算評估方法和分工流程：`.claude/pm-rules/two-stage-dispatch.md`
+> 三階分級判斷規則和分工流程：`.claude/pm-rules/two-stage-dispatch.md`
 > 平台限制數據來源：`.claude/references/claude-code-platform-limits.md`
-
-| 估算 tool calls | 策略 |
-|----------------|------|
-| <= 15 | 直接派發（安全區） |
-| 16-25 | 風險區 — 精簡 prompt 或考慮拆分 |
-| > 25 | 必須拆分 |
 
 ---
 
