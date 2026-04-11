@@ -103,6 +103,8 @@ class AcceptanceCheckResult(NamedTuple):
     task_type: str = ""
     priority: str = ""
     error_pattern_conflicts: List[str] = []
+    incomplete_5w1h_fields: List[str] = []
+    has_empty_execution_log: bool = False
 
 
 # ============================================================================
@@ -757,6 +759,112 @@ def _check_error_pattern_conflicts(
     return conflicts
 
 
+def check_5w1h_completeness(frontmatter: dict, logger) -> List[str]:
+    """
+    檢查 5W1H 欄位是否仍有「待定義」。
+
+    Args:
+        frontmatter: Ticket frontmatter 結構
+        logger: 日誌物件
+
+    Returns:
+        List[str] - 仍為待定義的欄位名稱列表（空表示全部已填）
+    """
+    incomplete = []
+    fields_to_check = {
+        'who': frontmatter.get('who', {}),
+        'what': frontmatter.get('what', ''),
+        'when': frontmatter.get('when', ''),
+        'where': frontmatter.get('where', {}),
+        'why': frontmatter.get('why', ''),
+        'how': frontmatter.get('how', {}),
+    }
+
+    for field_name, value in fields_to_check.items():
+        if _is_undefined(value):
+            incomplete.append(field_name)
+
+    if incomplete:
+        logger.info(f"5W1H 未完成欄位: {incomplete}")
+    else:
+        logger.info("5W1H 全部已填寫")
+
+    return incomplete
+
+
+def _is_undefined(value) -> bool:
+    """判斷欄位值是否為「待定義」狀態"""
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return value.strip() in ('', '待定義', 'pending')
+    if isinstance(value, dict):
+        # who 欄位是 dict，檢查 current 子欄位
+        if 'current' in value:
+            return _is_undefined(value['current'])
+        # where 欄位是 dict，檢查 files 子欄位
+        if 'files' in value:
+            files = value.get('files', [])
+            return not files or all(_is_undefined(f) for f in files)
+        # how 欄位是 dict，檢查 strategy 子欄位
+        if 'strategy' in value:
+            return _is_undefined(value['strategy'])
+        # 其他 dict 情況：檢查是否所有值都待定義
+        if not value:
+            return True
+        return all(_is_undefined(v) for v in value.values())
+    if isinstance(value, list):
+        return len(value) == 0
+    return False
+
+
+def check_execution_log_filled(content: str, logger) -> bool:
+    """
+    檢查 Ticket 的 execution log（Solution/Test Results）是否有實質內容。
+
+    Args:
+        content: Ticket 檔案完整文字內容
+        logger: 日誌物件
+
+    Returns:
+        bool - True 表示未填寫（空的），False 表示已填寫
+    """
+    # 檢查 Solution 區段
+    solution_empty = _is_section_empty(content, "Solution")
+    # 檢查 Test Results 區段
+    test_results_empty = _is_section_empty(content, "Test Results")
+
+    is_empty = solution_empty and test_results_empty
+
+    if is_empty:
+        logger.info("Execution log 未填寫（Solution 和 Test Results 皆空）")
+    else:
+        logger.info("Execution log 已有內容")
+
+    return is_empty
+
+
+def _is_section_empty(content: str, section_name: str) -> bool:
+    """檢查 Markdown 區段是否為空（只有模板佔位符或 HTML 註解）"""
+    # 匹配 ## Section Name 到下一個 ## 或檔案結尾
+    pattern = rf'^## {re.escape(section_name)}\s*\n(.*?)(?=^## |\Z)'
+    match = re.search(pattern, content, re.MULTILINE | re.DOTALL)
+
+    if not match:
+        return True
+
+    section_content = match.group(1).strip()
+
+    # 移除 HTML 註解
+    section_content = re.sub(r'<!--.*?-->', '', section_content, flags=re.DOTALL).strip()
+    # 移除模板佔位符（如 "（待填寫：...）"）
+    section_content = re.sub(r'（待填寫[^）]*）', '', section_content).strip()
+    # 移除空行
+    section_content = '\n'.join(line for line in section_content.split('\n') if line.strip())
+
+    return len(section_content) == 0
+
+
 def check_acceptance_status(ticket_id: str, project_dir: Path, logger) -> AcceptanceCheckResult:
     """
     檢查 Ticket 的驗收狀態（主協調函式）
@@ -798,7 +906,7 @@ def check_acceptance_status(ticket_id: str, project_dir: Path, logger) -> Accept
         # 步驟 1：檢查子任務完成度
         should_block, error_msg = _check_children_completed(ticket_file, frontmatter, project_dir, ticket_id, logger)
         if should_block:
-            return AcceptanceCheckResult(True, False, error_msg, False, [])
+            return AcceptanceCheckResult(True, False, error_msg, False, [], [], "", "", [], [], False)
 
         # 步驟 2：驗證驗收記錄
         should_block, warning_msg, should_check_acceptance, has_acceptance = _verify_acceptance_record(content, frontmatter, ticket_id, logger)
@@ -843,6 +951,12 @@ def check_acceptance_status(ticket_id: str, project_dir: Path, logger) -> Accept
         pending_siblings = find_pending_sibling_tickets(ticket_id, project_dir, logger)
         logger.info(f"發現 {len(pending_siblings)} 個 pending sibling tickets")
 
+        # 步驟 5：檢查 5W1H 完整性
+        incomplete_5w1h = check_5w1h_completeness(frontmatter, logger)
+
+        # 步驟 6：檢查 execution log 填寫
+        has_empty_log = check_execution_log_filled(content, logger)
+
         task_type = frontmatter.get("type", "")
         priority = frontmatter.get("priority", "")
 
@@ -856,6 +970,8 @@ def check_acceptance_status(ticket_id: str, project_dir: Path, logger) -> Accept
             task_type,
             priority,
             error_pattern_conflicts,
+            incomplete_5w1h,
+            has_empty_log,
         )
 
     except Exception as e:
@@ -901,6 +1017,47 @@ def generate_hook_output(
     }
 
     context_parts = []
+
+    # 統一清單輸出（PROP-009 面向 C）
+    checklist_items = []
+
+    # 項目 1: acceptance
+    if check_result.has_acceptance:
+        checklist_items.append("[x] 1. acceptance 已全勾選")
+    else:
+        checklist_items.append("[WARNING] 1. acceptance 未全勾選")
+
+    # 項目 2: 5W1H
+    if not check_result.incomplete_5w1h_fields:
+        checklist_items.append("[x] 2. 5W1H 已補完")
+    else:
+        fields_str = ", ".join(check_result.incomplete_5w1h_fields)
+        checklist_items.append(f"[WARNING] 2. 5W1H 未補完（{fields_str}）")
+
+    # 項目 3: error-pattern
+    if check_result.error_pattern_conflicts:
+        checklist_items.append("[WARNING] 3. error-pattern 衝突待確認")
+    else:
+        checklist_items.append("[x] 3. error-pattern 無衝突")
+
+    # 項目 4: execution log
+    if not check_result.has_empty_execution_log:
+        checklist_items.append("[x] 4. execution log 已填寫")
+    else:
+        checklist_items.append("[WARNING] 4. execution log 未填寫")
+
+    # 項目 5: spawned_tickets (只對 ANA 類型顯示)
+    ticket_type_upper_for_checklist = (check_result.task_type or "").upper()
+    if ticket_type_upper_for_checklist == "ANA":
+        if check_result.message and "spawned" in check_result.message.lower():
+            checklist_items.append("[WARNING] 5. spawned_tickets 未建立（ANA）")
+        else:
+            checklist_items.append("[x] 5. spawned_tickets 已更新（ANA）")
+    else:
+        checklist_items.append("[--] 5. spawned_tickets（非 ANA，不適用）")
+
+    checklist_text = "[Complete 清單]\n" + "\n".join(checklist_items)
+    context_parts.append(checklist_text)
 
     # 優先級 1：錯誤或警告訊息
     if check_result.message:
