@@ -96,13 +96,7 @@ def _print_warning_message(command: str) -> None:
         ValidationMessages.BASH_EDIT_DETAILED_WARNING,
         command=display_command
     )
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "additionalContext": warning
-        }
-    }
-    print(json.dumps(output, ensure_ascii=False))
+    return warning
 
 
 def main() -> int:
@@ -134,14 +128,15 @@ def main() -> int:
 
         # 偵測到編輯模式：輸出警告並記錄
         logger.info("警告: 偵測到編輯操作 - %s", command[:100])
-        _print_warning_message(command)
+        warning_msg = _print_warning_message(command)
 
-        # 輸出符合官方規範的 JSON 格式（允許繼續執行）
+        # 單一 JSON 輸出：合併警告和 permissionDecision
         result = {
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
                 "permissionDecision": "allow",
-                "permissionDecisionReason": "Bash 編輯操作警告已發送，允許執行"
+                "permissionDecisionReason": "Bash 編輯操作警告已發送，允許執行",
+                "additionalContext": warning_msg
             }
         }
         print(json.dumps(result, ensure_ascii=False))
