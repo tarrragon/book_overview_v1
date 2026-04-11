@@ -2,6 +2,63 @@
 
 本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.17.4] - 2026-04-12
+
+### 框架品質改善 — Hook 拆分/修復、WRAP 強化、task-splitting SRP 重定位
+
+**Hook 系統品質修復（W2~W3）**：
+- [修復] 所有 Pre/PostToolUse Hook stdout 輸出 JSON 合規（IMP-055 根治）
+- [重構] acceptance-gate-hook 拆分為 orchestrator + 獨立 checkers
+- [新增] Hook 統一 output helper `emit_hook_output`（消除協定遵循差異）
+- [新增] UTF-8 完整性檢查 Hook — PostToolUse:Write/Edit 自動偵測 U+FFFD（IMP-059 防護）
+
+**Ticket CLI 完整性（W1~W2, PROP-009）**：
+- [新增] Ticket Create 清單式欄位驗證（acceptance、blockedBy 多值支援）
+- [新增] Ticket CLI 缺失的 6 個 set-* 命令（set-who/what/when/where/why/how）
+- [整合] Complete 清單式驗證統一（acceptance 勾選 + 執行日誌 + spawned tickets）
+
+**PM 工作流改善（W4~W5）**：
+- [新增] task-splitting 策略 8：依賴鏈序列拆分 + 子任務 vs 獨立 Ticket 決策流程
+- [改善] WRAP 確認偏誤對抗機制 — Consider the Opposite + 問題重新定義測試
+- [修復] ticket_parser + ana_spawned_checker YAML list 型別處理（IMP-058）
+- [補充] 框架修改優先於專案進度原則（quality-baseline 規則 6）
+
+**版本流程防護（W6~W7）**：
+- [分析] 版本未經正式發布流程就進入下一版本的流程漏洞
+- [新增] ticket create 版本存在性檢查（CLI 層 + Hook 層雙重防護）
+- [新增] version-consistency-guard-hook 版本註冊狀態檢查
+
+## [v0.17.3] - 2026-04-11
+
+### UI Design System Phase 1 + WRAP 決策框架 + PM 決策樹重構
+
+**Design System Phase 1（W1~W3, PROP-008）**：
+- [新增] `src/core/design-system` 常數模組（colors/spacing/typography）
+- [修正] design-system CJS 相容性 + Object.freeze + GRADIENT DRY 違規
+- [修正] 語意命名統一（positive/negative -> success/warning/error）
+- [遷移] 4 個 DEFAULT_COLOR 引用 + 3 個 Service 硬編碼色彩 -> design-system 統一匯入
+- [對齊] ReadingStatus CSS 配色為 SPEC-DESIGN-SYSTEM 定義（6 狀態）
+- [清理] overview.css 廢棄紫色梯度殘留 7 處 + popup.js 6 個未遷移色值
+
+**WRAP 決策框架（W12）**：
+- [新增] WRAP 決策框架 Skill — 基於《零偏見決斷法》的系統化決策引導工具
+- [改善] WRAP 快速模式重設計 — 覆蓋最高風險偏誤
+- [補充] 錨點確認模組雙錨點 + Hook 自動觸發設計
+- [驗證] WRAP 自我壓力測試 + 實戰壓測（v0.17.3 收尾策略）
+
+**PM 決策樹重構（W7~W9）**：
+- [重構] 決策樹二元化拆分 — 主檔案精簡為路由索引 + 5 個路由子檔案
+- [修正] 70+ 錯誤引用修復 + 術語一致性（二元樹 -> 決策路由）
+- [重構] completion-checkpoint-rules 複雜度拆分
+- [新增] Ticket 進度更新決策節點 + Checkpoint 0.5 補救規則
+
+**Hook/流程修復（W10~W12）**：
+- [修復] Hook exit code 統一為 0（避免 CLI hook error 顯示）
+- [新增] agent-commit-verification-hook Hook error 自動摘要
+- [新增] PM 代理人狀態判斷錯誤防護規則（背景代理人完成確認 SOP）
+- [新增] PreToolUse:Agent hook — dispatch-active.json 派發追蹤
+- [修正] system-error-handler ESM/CJS 混用 + 4 個 bare specifier require 路徑
+
 ## [v0.17.2] - 2026-04-08
 
 ### Tag-based Model 適配（匯出/搜尋/Overview）+ 工具鏈大幅強化
