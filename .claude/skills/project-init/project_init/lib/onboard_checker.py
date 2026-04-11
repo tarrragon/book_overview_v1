@@ -108,10 +108,10 @@ class GitignoreCheckInfo:
     """包含 .claude/handoff/ 規則."""
     has_pycache_rule: bool
     """包含 __pycache__/ 規則."""
-    has_dispatch_active_rule: bool = True
-    """包含 .claude/dispatch-active 規則."""
     all_required_complete: bool
     """所有必須規則都存在."""
+    has_dispatch_active_rule: bool = True
+    """包含 .claude/dispatch-active 規則."""
     missing_rules: list[str] = field(default_factory=list)
     """缺失的規則清單."""
 
