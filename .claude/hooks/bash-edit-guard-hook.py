@@ -96,7 +96,13 @@ def _print_warning_message(command: str) -> None:
         ValidationMessages.BASH_EDIT_DETAILED_WARNING,
         command=display_command
     )
-    print(warning)
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "additionalContext": warning
+        }
+    }
+    print(json.dumps(output, ensure_ascii=False))
 
 
 def main() -> int:

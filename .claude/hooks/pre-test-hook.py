@@ -119,7 +119,13 @@ def main():
     # 輸出結果
     if issues:
         warning_text = "\n".join(issues)
-        print(f"{ValidationMessages.PRE_TEST_CHECK_HEADER}\n{warning_text}")
+        output = {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "additionalContext": f"{ValidationMessages.PRE_TEST_CHECK_HEADER}\n{warning_text}"
+            }
+        }
+        print(json.dumps(output, ensure_ascii=False))
 
     result = {
         "hookSpecificOutput": {
