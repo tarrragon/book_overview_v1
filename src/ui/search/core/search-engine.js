@@ -46,7 +46,7 @@ class SearchEngine {
    * @param {Function} options.getCurrentTime - 時間函數（用於測試注入）
    */
   constructor (options = {}) {
-    const { indexManager, eventBus, logger, config = {}, getCurrentTime } = options
+    const { indexManager, eventBus, logger, config = {}, getCurrentTime, tagResolver } = options
 
     if (!indexManager || !eventBus || !logger) {
       const error = new Error('IndexManager、EventBus 和 Logger 是必需的')
@@ -58,6 +58,9 @@ class SearchEngine {
     this.indexManager = indexManager
     this.eventBus = eventBus
     this.logger = logger
+
+    // 注入的 tag 解析函式（tagIds -> tag 物件）
+    this._tagResolver = tagResolver || null
 
     // 注入的時間函數（用於測試）
     this._timeFunction = getCurrentTime || this._getDefaultTimeFunction()
@@ -356,16 +359,30 @@ class SearchEngine {
       }
     }
 
-    // 檢查標籤
-    if (book.tags && Array.isArray(book.tags)) {
+    // 檢查標籤：tagResolver 存在時使用 tagIds 新邏輯，否則沿用 book.tags 舊邏輯
+    if (this._tagResolver && book.tagIds && Array.isArray(book.tagIds)) {
+      for (const tagId of book.tagIds) {
+        if (typeof tagId !== 'string') continue
+        const tag = this._tagResolver(tagId)
+        if (!tag || !tag.name) continue
+        const tagNameLower = tag.name.toLowerCase()
+        if (tagNameLower.includes(query)) {
+          return true
+        }
+        if (this.config.enableFuzzySearch) {
+          const fuzzyScore = this._calculateFuzzyScore(tagNameLower, query)
+          if (fuzzyScore > 0) {
+            return true
+          }
+        }
+      }
+    } else if (!this._tagResolver && book.tags && Array.isArray(book.tags)) {
       for (const tag of book.tags) {
         if (typeof tag === 'string') {
           const tagLower = tag.toLowerCase()
           if (tagLower.includes(query)) {
             return true
           }
-
-          // 支援模糊匹配
           if (this.config.enableFuzzySearch) {
             const fuzzyScore = this._calculateFuzzyScore(tagLower, query)
             if (fuzzyScore > 0) {
