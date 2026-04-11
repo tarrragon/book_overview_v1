@@ -602,6 +602,91 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       expect(statusCell.textContent).toContain('reading')
       expect(statusCell.dataset.status).toBe('reading')
     })
+
+    test('renderBooksTable 應該為 unread 狀態顯示 readingStatus badge', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      const books = [
+        { id: '1', title: '未讀書', tags: ['readmoo'], progress: 0, readingStatus: 'unread' }
+      ]
+
+      controller.renderBooksTable(books)
+
+      const tableBody = document.getElementById('tableBody')
+      const statusCell = tableBody.querySelector('.reading-status-badge')
+      expect(statusCell).not.toBeNull()
+      expect(statusCell.textContent).toContain('unread')
+      expect(statusCell.dataset.status).toBe('unread')
+    })
+
+    test('renderBooksTable 應該為 queued 狀態顯示 readingStatus badge', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      const books = [
+        { id: '1', title: '排隊書', tags: ['readmoo'], progress: 0, readingStatus: 'queued' }
+      ]
+
+      controller.renderBooksTable(books)
+
+      const tableBody = document.getElementById('tableBody')
+      const statusCell = tableBody.querySelector('.reading-status-badge')
+      expect(statusCell).not.toBeNull()
+      expect(statusCell.textContent).toContain('queued')
+      expect(statusCell.dataset.status).toBe('queued')
+    })
+
+    test('renderBooksTable 應該為 finished 狀態顯示 readingStatus badge', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      const books = [
+        { id: '1', title: '已讀完書', tags: ['readmoo'], progress: 100, readingStatus: 'finished' }
+      ]
+
+      controller.renderBooksTable(books)
+
+      const tableBody = document.getElementById('tableBody')
+      const statusCell = tableBody.querySelector('.reading-status-badge')
+      expect(statusCell).not.toBeNull()
+      expect(statusCell.textContent).toContain('finished')
+      expect(statusCell.dataset.status).toBe('finished')
+    })
+
+    test('renderBooksTable 應該為 abandoned 狀態顯示 readingStatus badge', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      const books = [
+        { id: '1', title: '放棄書', tags: ['readmoo'], progress: 30, readingStatus: 'abandoned' }
+      ]
+
+      controller.renderBooksTable(books)
+
+      const tableBody = document.getElementById('tableBody')
+      const statusCell = tableBody.querySelector('.reading-status-badge')
+      expect(statusCell).not.toBeNull()
+      expect(statusCell.textContent).toContain('abandoned')
+      expect(statusCell.dataset.status).toBe('abandoned')
+    })
+
+    test('renderBooksTable 應該為 reference 狀態顯示 readingStatus badge', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      const books = [
+        { id: '1', title: '參考書', tags: ['readmoo'], progress: 0, readingStatus: 'reference' }
+      ]
+
+      controller.renderBooksTable(books)
+
+      const tableBody = document.getElementById('tableBody')
+      const statusCell = tableBody.querySelector('.reading-status-badge')
+      expect(statusCell).not.toBeNull()
+      expect(statusCell.textContent).toContain('reference')
+      expect(statusCell.dataset.status).toBe('reference')
+    })
   })
 
   describe('Red Phase: Tag 顯示元件', () => {
