@@ -22,7 +22,7 @@ from typing import List, Optional, Tuple
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from hook_utils import setup_hook_logging, run_hook_safely, read_json_from_stdin
+from hook_utils import setup_hook_logging, run_hook_safely, read_json_from_stdin, is_subagent_environment
 
 
 def parse_worktree_list(logger) -> List[Tuple[str, str]]:
@@ -107,6 +107,10 @@ def main() -> int:
         return 0
 
     if not input_data:
+        return 0
+
+    # subagent 環境跳過（代理人不執行 complete）
+    if is_subagent_environment(input_data):
         return 0
 
     # 只在 ticket complete 命令時觸發
