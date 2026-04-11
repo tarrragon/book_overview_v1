@@ -24,7 +24,7 @@ versions:
     description: "框架品質改善 — Hook 拆分/修復、WRAP 強化、task-splitting SRP 重定位"
 
   - version: "0.18.0"
-    status: planned
+    status: active
     description: "測試重寫與品質恢復（對齊新 model，失敗測試歸零）"
 
   - version: "0.19.0"
