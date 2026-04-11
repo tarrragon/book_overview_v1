@@ -20,7 +20,7 @@ versions:
     description: "中文圖書分類法 + Tag 管理功能 + UI Design System Phase 1"
 
   - version: "0.17.4"
-    status: active
+    status: completed
     description: "框架品質改善 — Hook 拆分/修復、WRAP 強化、task-splitting SRP 重定位"
 
   - version: "0.18.0"
