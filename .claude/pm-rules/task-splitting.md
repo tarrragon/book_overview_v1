@@ -13,12 +13,20 @@
 | 依賴關係數 | > 3 個 |
 | 修改檔案數 | > 5 個 |
 | 認知負擔指數 | > 10 |
-| Subagent tool call 預算 | > 15 次 |
+| Subagent tool call 預算 | > 15 次（估算） |
 
-### Subagent Tool Call 預算（W2-019/W2-020 新增）
+### Subagent Tool Call 預算
 
-> Subagent 每 turn 約 ~20 tool calls。超過 15 次的任務必須拆分。
+> Subagent 每 turn 約 ~20 tool calls（軟限制，觸發 `pause_turn`）。
+> **15 次**是安全預算（75% 緩衝），**非硬性斷點**。超過 15 次的任務應評估拆分或精簡 prompt。
 > 預算評估方法和分工流程：`.claude/pm-rules/two-stage-dispatch.md`
+> 平台限制數據來源：`.claude/references/claude-code-platform-limits.md`
+
+| 估算 tool calls | 策略 |
+|----------------|------|
+| <= 15 | 直接派發（安全區） |
+| 16-25 | 風險區 — 精簡 prompt 或考慮拆分 |
+| > 25 | 必須拆分 |
 
 ---
 
@@ -133,4 +141,4 @@
 ---
 
 **Last Updated**: 2026-04-11
-**Version**: 4.6.0 - 補充子任務 vs 獨立 Ticket 決策流程圖和案例（0.17.4-W4-001.2）
+**Version**: 4.7.0 - tool call 預算閾值校準：15 次為安全預算非硬斷、新增三階分級（0.17.4-W4-001.3）
