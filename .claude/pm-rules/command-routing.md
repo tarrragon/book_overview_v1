@@ -56,6 +56,28 @@
 | TST（測試） | **代理人背景派發** | 測試撰寫和執行適合代理人 |
 | **執行中發現技術債/問題/回歸/超範圍需求** | → **[強制] 立即 `/ticket create`，不詢問，不中斷主線** |
 
+### 影響範圍驗證（DOC/ANA/IMP 修改後強制，來源：0.18.0-W4-002）
+
+> **根因**：修改只看「直接目標」，沒有系統性掃描「引用來源」。本專案 55 個 error-pattern 涉及遺漏/未同步，是最常見的錯誤類型。
+
+任何規則/概念/API 修改完成後，**commit 前**必須執行：
+
+| 步驟 | 動作 | 命令 |
+|------|------|------|
+| 1 | 列出本次修改的核心概念/規則名稱 | 人工識別 |
+| 2 | 反向搜尋所有引用該概念的檔案 | `grep -rl "概念名" .claude/` |
+| 3 | 逐一確認是否需要同步更新 | 人工判斷 |
+| 4 | 有遺漏 → 補充修改 → 回到步驟 1 | 迭代 |
+
+**典型遺漏場景**：
+
+| 改了什麼 | 容易漏的位置 |
+|---------|------------|
+| Skill 觸發條件 | 決策樹路由表、PM 規則 |
+| PM 行為規則 | 決策樹流程圖、Checkpoint 規則 |
+| Hook 功能 | settings.json 註冊、error-pattern 記錄 |
+| 常數/API 定義 | 所有消費端的引用 |
+
 > 代理人路徑表（Source of Truth）：.claude/pm-rules/agent-path-registry.md
 > IMP-003 防護：.claude/error-patterns/implementation/IMP-003-refactoring-scope-regression.md
 
