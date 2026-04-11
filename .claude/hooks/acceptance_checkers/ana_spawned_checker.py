@@ -28,20 +28,32 @@ def extract_spawned_tickets_from_frontmatter(frontmatter: dict, logger) -> List[
     Returns:
         list - 後續 Ticket ID 清單
     """
-    spawned_str = frontmatter.get("spawned_tickets", "").strip()
+    spawned_raw = frontmatter.get("spawned_tickets", [])
 
-    if not spawned_str:
+    # YAML 解析後可能是 list 或 string（取決於解析器）
+    if isinstance(spawned_raw, list):
+        # 已解析為 list：過濾空值
+        spawned = [str(s).strip() for s in spawned_raw if s]
+    elif isinstance(spawned_raw, str):
+        spawned_str = spawned_raw.strip()
+        if not spawned_str:
+            logger.debug("Ticket 無 spawned_tickets 欄位")
+            return []
+        # 解析 YAML 清單格式 (e.g., "- 0.31.0-W4-036\n- 0.31.0-W4-037")
+        spawned = []
+        for line in spawned_str.split("\n"):
+            line = line.strip()
+            if line.startswith("-"):
+                ticket_id = line[1:].strip()
+                if ticket_id:
+                    spawned.append(ticket_id)
+    else:
         logger.debug("Ticket 無 spawned_tickets 欄位")
         return []
 
-    # 解析 YAML 清單格式 (e.g., "- 0.31.0-W4-036\n- 0.31.0-W4-037")
-    spawned = []
-    for line in spawned_str.split("\n"):
-        line = line.strip()
-        if line.startswith("-"):
-            ticket_id = line[1:].strip()
-            if ticket_id:
-                spawned.append(ticket_id)
+    if not spawned:
+        logger.debug("Ticket 無 spawned_tickets 欄位")
+        return []
 
     logger.info(f"提取 {len(spawned)} 個後續 Ticket: {spawned}")
     return spawned

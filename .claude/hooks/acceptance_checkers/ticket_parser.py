@@ -29,20 +29,32 @@ def extract_children_from_frontmatter(frontmatter: dict, logger) -> List[str]:
     Returns:
         list - 子任務 ID 清單
     """
-    children_str = frontmatter.get("children", "").strip()
+    children_raw = frontmatter.get("children", [])
 
-    if not children_str:
+    # YAML 解析後可能是 list 或 string（取決於解析器）
+    if isinstance(children_raw, list):
+        # 已解析為 list：過濾空值
+        children = [str(c).strip() for c in children_raw if c]
+    elif isinstance(children_raw, str):
+        children_str = children_raw.strip()
+        if not children_str:
+            logger.debug("Ticket 無 children 欄位")
+            return []
+        # 解析 YAML 清單格式 (e.g., "- 0.31.0-W4-036.1\n- 0.31.0-W4-036.2")
+        children = []
+        for line in children_str.split("\n"):
+            line = line.strip()
+            if line.startswith("-"):
+                child_id = line[1:].strip()
+                if child_id:
+                    children.append(child_id)
+    else:
         logger.debug("Ticket 無 children 欄位")
         return []
 
-    # 解析 YAML 清單格式 (e.g., "- 0.31.0-W4-036.1\n- 0.31.0-W4-036.2")
-    children = []
-    for line in children_str.split("\n"):
-        line = line.strip()
-        if line.startswith("-"):
-            child_id = line[1:].strip()
-            if child_id:
-                children.append(child_id)
+    if not children:
+        logger.debug("Ticket 無 children 欄位")
+        return []
 
     logger.info(f"提取 {len(children)} 個子任務: {children}")
     return children
