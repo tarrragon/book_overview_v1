@@ -55,6 +55,7 @@
 
 - `.claude/references/friction-management-decision-points.md` - 19 個 PM 決策點完整分類表
 - `.claude/pm-rules/decision-tree.md` - 主線程決策路由（含本方法論引用）
+- `.claude/pm-rules/askuserquestion-rules.md` - 18 個 AskUserQuestion 場景（每項標註所屬象限）
 - `.claude/skills/wrap-decision/SKILL.md` - WRAP 決策框架（象限 C 強制步驟）
 - `.claude/error-patterns/process-compliance/PC-056-authority-bias-in-parallel-evaluation-results.md` - 本方法論建立過程產生的錯誤模式
 
