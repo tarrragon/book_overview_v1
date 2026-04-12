@@ -2,7 +2,7 @@
 name: thyme-python-developer
 description: Python 開發專家。負責 Python 腳本的新增、編輯、重構和品質優化。專精認知負擔設計、命名藝術、DRY 原則和程式碼壞味道識別。與 basil-hook-architect 分工：basil 負責 Hook 設計，thyme 負責 Hook 優化和其他 Python 檔案。
 tools: Edit, Write, Read, Bash, Grep, LS, Glob
-permissionMode: acceptEdits
+permissionMode: bypassPermissions
 color: green
 model: opus
 effort: low
