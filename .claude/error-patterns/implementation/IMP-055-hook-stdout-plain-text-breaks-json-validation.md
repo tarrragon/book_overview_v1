@@ -39,6 +39,32 @@ print(json.dumps(output, ensure_ascii=False))
 
 - 2026-04-11 發現時有 3 個 PostToolUse Hook 使用純文字 stdout
 - `worktree-merge-reminder-hook.py`（matcher=Bash）影響最大：每次 Bash 呼叫都觸發
+- 2026-04-12 再發（commit bac38ac4）：matcher=Agent 的 2 個 hook JSON 結構不完整
+  - `active-dispatch-tracker-hook.py`：有 `json.dumps` 但缺 `hookSpecificOutput` 包裹
+  - `agent-dispatch-logger-hook.py`：`DEFAULT_OUTPUT` 缺 `hookEventName` 欄位
+
+## 失敗變體（子模式）
+
+不只「純文字 print」會觸發，以下半結構化 JSON 也會：
+
+| 變體 | 錯誤輸出 | 原因 |
+|------|---------|------|
+| 純文字 | `print("msg")` | 非 JSON |
+| 缺外層包裹 | `{"additionalContext": "msg"}` | 缺 `hookSpecificOutput` 層 |
+| 缺 hookEventName | `{"hookSpecificOutput": {}}` | `hookSpecificOutput` 必須含 `hookEventName` |
+| 缺 hookEventName 但有 context | `{"hookSpecificOutput": {"additionalContext": "msg"}}` | 同上 |
+
+**正確結構（最小合法輸出）**：
+
+```json
+{"hookSpecificOutput": {"hookEventName": "PostToolUse"}}
+```
+
+**加上 additionalContext**：
+
+```json
+{"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": "msg"}}
+```
 
 ## 解決方案
 
