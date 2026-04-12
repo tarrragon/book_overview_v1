@@ -194,6 +194,53 @@ class TestParseAcTicketNotFound:
             parse_ac("0.99.0-W99-999")
 
 
+class TestParseAcNoCheckboxPrefix:
+    """場景 L1/Comp1：無 checkbox 前綴的 AC 視為未勾選，text 保留原文。"""
+
+    def test_no_checkbox_prefix_defaults_to_unchecked(self, project_env):
+        fm = dedent(
+            """
+            id: 0.31.0-W1-008
+            title: 無 checkbox 前綴
+            version: 0.31.0
+            acceptance:
+              - 'AC without checkbox'
+            """
+        )
+        _write_ticket(project_env, "0.31.0", "0.31.0-W1-008", fm)
+
+        result = parse_ac("0.31.0-W1-008")
+
+        assert len(result) == 1
+        assert result[0].checked is False
+        assert result[0].text == "AC without checkbox"
+        assert result[0].raw == "AC without checkbox"
+
+
+class TestParseAcYamlError:
+    """場景 P3：load_ticket 回傳含 _yaml_error 的 dict 時應 raise ValueError。"""
+
+    def test_yaml_error_raises_value_error(self, project_env, monkeypatch):
+        from ticket_system.lib import ac_parser
+
+        def _mock_load_ticket(version, ticket_id):
+            return {
+                "id": ticket_id,
+                "_path": "/fake/path",
+                "_yaml_error": "mock YAML parse error at line 3",
+            }
+
+        monkeypatch.setattr(ac_parser.parser, "load_ticket", _mock_load_ticket)
+
+        with pytest.raises(ValueError) as exc_info:
+            parse_ac("0.31.0-W1-009")
+
+        msg = str(exc_info.value)
+        assert "YAML" in msg or "_yaml_error" in msg, (
+            f"ValueError 訊息應提及 YAML 或 _yaml_error，實際：{msg}"
+        )
+
+
 class TestParseAcRawFidelity:
     """場景 7：raw 欄位保真（未來回寫 frontmatter 的基礎）。"""
 

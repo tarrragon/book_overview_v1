@@ -52,8 +52,14 @@ def parse_ac(ticket_id: str) -> list[AC]:
         若 frontmatter 無 acceptance 欄位或為空清單，回傳 []。
 
     Raises:
-        ValueError: ticket_id 格式無效，或 acceptance 欄位型別非 list。
+        ValueError: ticket_id 格式無效，或 acceptance 欄位型別非 list，
+            或 Ticket YAML 解析失敗。
         FileNotFoundError: 找不到對應的 Ticket 檔案。
+
+    Note:
+        本函式依賴 `parser.load_ticket` 回傳 None 而非 raise 的既有契約。
+        若 `load_ticket` 未來改為 raise FileNotFoundError，本函式的 None 檢查路徑
+        將變為 dead code，需同步調整。
     """
     # 步驟 1：解析版本
     components = id_parser.extract_id_components(ticket_id)
@@ -65,6 +71,10 @@ def parse_ac(ticket_id: str) -> list[AC]:
     ticket = parser.load_ticket(version, ticket_id)
     if ticket is None:
         raise FileNotFoundError(f"找不到 Ticket: {ticket_id}")
+
+    # 步驟 2.5：檢查 YAML 解析錯誤（load_ticket 損毀檔案時回傳含 _yaml_error 的 dict）
+    if "_yaml_error" in ticket:
+        raise ValueError(f"Ticket YAML 解析失敗: {ticket['_yaml_error']}")
 
     # 步驟 3：取出 acceptance 欄位
     acceptance = ticket.get("acceptance")
@@ -94,9 +104,7 @@ def _parse_single_item(index: int, raw_item: object) -> AC:
     raw_str = str(raw_item)
     stripped = raw_str.lstrip()
 
-    if stripped.startswith(_CHECKBOX_CHECKED_LOWER) or stripped.startswith(
-        _CHECKBOX_CHECKED_UPPER
-    ):
+    if stripped.startswith((_CHECKBOX_CHECKED_LOWER, _CHECKBOX_CHECKED_UPPER)):
         checked = True
         text = stripped[_CHECKBOX_LEN:].lstrip()
     elif stripped.startswith(_CHECKBOX_UNCHECKED):
