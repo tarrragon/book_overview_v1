@@ -483,6 +483,16 @@ class TicketLifecycle:
         analysis = _analyze_next_steps(ticket, all_tickets)
         _print_next_steps(analysis)
 
+        # W5-019：父 complete → 子 cascade 解鎖 + 未完成 children 警告
+        # 置於 _auto_handoff_if_needed 之前，讓解鎖後的子狀態可影響 handoff 建議
+        children_ids = ticket.get("children", [])
+        if children_ids:
+            unblocked, pending = _cascade_unblock_children(ticket, self.version)
+            if unblocked:
+                _print_cascade_unblocked(unblocked)
+            if pending:
+                _print_children_warnings(pending)
+
         # 自動 handoff：若有後續任務，自動建立 handoff 檔案
         _auto_handoff_if_needed(ticket, analysis, self.version)
 
@@ -868,6 +878,140 @@ def _print_claim_checklist(ticket: Dict[str, Any]) -> None:
     print(LifecycleMessages.CHECKLIST_SCOPE_VERIFICATION)
     print(LifecycleMessages.CHECKLIST_EXECUTION_LOG)
     print()
+
+
+# ============================================================================
+# W5-019：父子 cascade 解鎖 + children 警告
+# ============================================================================
+
+
+def _can_cascade_unblock(
+    child: Dict[str, Any],
+    ticket_map: Dict[str, Any],
+) -> bool:
+    """
+    判斷 blocked 的 child 是否可被解鎖。
+
+    依 Phase 1 §6.8 AND 語義：child.blockedBy 中所有 ticket 皆 completed/closed
+    才可解鎖。blockedBy 為空時視為可解鎖（異常狀態處理）。找不到 blocker 時保守
+    保留 blocked。
+
+    Args:
+        child: 子 Ticket dict
+        ticket_map: 版本內所有 ticket 的 id → dict 映射
+
+    Returns:
+        True 表示可解鎖（blocked → pending），False 表示保留 blocked
+    """
+    blocked_by = child.get("blockedBy") or []
+    if not blocked_by:
+        return True
+    for blocker_id in blocked_by:
+        blocker = ticket_map.get(blocker_id)
+        if blocker is None:
+            # 資料不一致時保守保留 blocked
+            return False
+        if blocker.get("status") not in (STATUS_COMPLETED, STATUS_CLOSED):
+            return False
+    return True
+
+
+def _cascade_unblock_children(
+    parent_ticket: Dict[str, Any],
+    version: str,
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """
+    對 parent 的 blocked children 執行 cascade 解鎖，並收集未完成 children 清單。
+
+    依 Phase 1 §2.2 規則：
+    - children 中 blocked 且 blockedBy 僅剩 completed/closed → 解鎖為 pending
+    - children 中 blocked 但仍有其他未完成依賴 → 保留 blocked，列入警告
+    - children 中 pending/in_progress → 不改狀態，列入警告
+    - children 中 completed/closed → 忽略
+    - children 中找不到（資料不一致） → 跳過
+    - save 失敗（§6.7） → 記錄 warning，不 fail-fast
+
+    Args:
+        parent_ticket: 已完成的父 Ticket dict
+        version: 版本字串
+
+    Returns:
+        (unblocked_list, pending_list)
+        - unblocked_list: [{id, title}, ...] 已 cascade 解鎖的 children
+        - pending_list:   [{id, title, status}, ...] 未完成但未解鎖的 children
+    """
+    unblocked: List[Dict[str, Any]] = []
+    pending: List[Dict[str, Any]] = []
+
+    children_ids = parent_ticket.get("children") or []
+    if not children_ids:
+        return unblocked, pending
+
+    all_tickets = list_tickets(version)
+    ticket_map: Dict[str, Any] = {t.get("id"): t for t in all_tickets}
+
+    for child_id in children_ids:
+        child = ticket_map.get(child_id)
+        if child is None:
+            # §6.5 找不到 child_id 跳過
+            continue
+
+        child_status = child.get("status", STATUS_PENDING)
+        child_title = child.get("title", "")
+
+        if child_status in (STATUS_COMPLETED, STATUS_CLOSED):
+            continue
+
+        if child_status == STATUS_BLOCKED:
+            if _can_cascade_unblock(child, ticket_map):
+                child["status"] = STATUS_PENDING
+                try:
+                    save_ticket(
+                        child,
+                        resolve_ticket_path(child, version, child_id),
+                    )
+                    unblocked.append({
+                        "id": child_id,
+                        "title": child_title,
+                    })
+                except Exception as err:
+                    print(format_warning(
+                        f"cascade 解鎖 {child_id} 儲存失敗：{err}"
+                    ))
+                    # §6.7 non-fail-fast：不計入 unblocked 也不列入 pending
+                    continue
+            else:
+                pending.append({
+                    "id": child_id,
+                    "title": child_title,
+                    "status": STATUS_BLOCKED,
+                })
+        else:
+            # pending / in_progress → 警告但不改動
+            pending.append({
+                "id": child_id,
+                "title": child_title,
+                "status": child_status,
+            })
+
+    return unblocked, pending
+
+
+def _print_cascade_unblocked(unblocked: List[Dict[str, Any]]) -> None:
+    """印出 cascade 解鎖訊息（Phase 1 §3.3）。"""
+    print()
+    print("[Cascade] 以下子 Ticket 已自動解鎖（blocked → pending）：")
+    for item in unblocked:
+        print(f"   - {item['id']}: {item.get('title', '')}")
+
+
+def _print_children_warnings(pending: List[Dict[str, Any]]) -> None:
+    """印出未完成 children 警告訊息（Phase 1 §3.4）。"""
+    print()
+    print("[Warning] 父 Ticket 完成時尚有未完成的子 Ticket：")
+    for item in pending:
+        print(f"   - {item['id']} [{item['status']}]: {item.get('title', '')}")
+    print("   （提示：父 complete 不阻止，但建議確認子任務是否需要獨立推進或 close）")
 
 
 # ============================================================================
