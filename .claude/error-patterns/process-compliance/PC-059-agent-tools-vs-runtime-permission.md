@@ -71,17 +71,28 @@ Layer 4: 互動式權限提示                    ← 即時批准
 
 ## 防護措施
 
-### 正確修正（已驗證）
+### 正確修正（已驗證 — retry4 確認）
 
-在**代理人 frontmatter** 加入 `permissionMode: acceptEdits`：
+在**代理人 frontmatter** 加入 `permissionMode: bypassPermissions`（若代理人會在 worktree 編輯）：
 
 ```yaml
 ---
 name: thyme-python-developer
 tools: Edit, Write, Read, Bash, Grep, LS, Glob
-permissionMode: acceptEdits
+permissionMode: bypassPermissions
 ---
 ```
+
+**為何不用 acceptEdits**（retry3 失敗教訓）：
+- `acceptEdits` 只自動接受 **working directory 或 additionalDirectories** 內的編輯
+- subagent 繼承主 session 的 cwd = 主倉庫路徑
+- worktree 位於主倉庫 **外部**（`../book_overview_v1-<ticket>`）→ 不在 acceptEdits 範圍
+- 背景 subagent 仍會收到權限提示 → 無人批准 → 自動拒
+
+**bypassPermissions 的安全保證**：
+- 官方文件：`.git` / `.claude` / `.vscode` / `.idea` / `.husky` 仍會提示
+- **例外**：`.claude/commands` / `.claude/agents` / `.claude/skills` 在 bypass 下允許
+- 實作代理人修改 `.claude/skills/` + `docs/` 都在允許範圍內
 
 ### 錯誤嘗試（已驗證無效）
 
