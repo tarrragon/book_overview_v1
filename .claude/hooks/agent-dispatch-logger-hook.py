@@ -64,9 +64,11 @@ FAILURE_KEYWORDS = [
 # Ticket ID 正則
 TICKET_ID_PATTERN = re.compile(r"\d+\.\d+\.\d+-W\d+-\d+(?:\.\d+)?")
 
-# 預設輸出
+# 預設輸出（需含 hookEventName，IMP-055）
 DEFAULT_OUTPUT = {
-    "hookSpecificOutput": {},
+    "hookSpecificOutput": {
+        "hookEventName": "PostToolUse",
+    },
 }
 
 

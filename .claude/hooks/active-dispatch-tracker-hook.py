@@ -94,9 +94,14 @@ def main() -> int:
     else:
         messages.append("[OK] 所有代理人已完成，可開始驗收")
 
-    # 輸出 additionalContext
+    # 輸出 additionalContext（必須包在 hookSpecificOutput 中，否則觸發 JSON validation failed，IMP-055）
     context = " | ".join(messages)
-    print(json.dumps({"additionalContext": context}))
+    print(json.dumps({
+        "hookSpecificOutput": {
+            "hookEventName": "PostToolUse",
+            "additionalContext": context,
+        }
+    }))
 
     return 0
 
