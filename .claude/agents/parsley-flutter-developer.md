@@ -2,6 +2,7 @@
 name: parsley-flutter-developer
 description: Phase 3b Flutter 特定實作代理人 - 從 pepper (Phase 3a) 接收語言無關策略（虛擬碼、流程圖），轉換為符合規範的 Flutter/Dart 程式碼。整合 Dart MCP 和 Serena 工具，執行測試驅動開發，確保 100% 測試通過並遵循專案品質規範。
 tools: Edit, Write, Read, Bash, Grep, LS, Glob, mcp__dart__*, mcp__serena__*
+permissionMode: bypassPermissions
 color: green
 model: opus
 effort: low

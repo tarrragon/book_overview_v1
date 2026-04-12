@@ -2,6 +2,7 @@
 name: lavender-interface-designer
 description: TDD 功能設計專家。負責 TDD Phase 1 功能規格設計、需求分析、API 介面定義、驗收標準設定。建立清晰的功能設計規格為後續測試和實作奠定基礎。禁止系統級審查和測試設計。
 tools: Read, Grep, Glob, Bash, Write, Edit, mcp__serena__*
+permissionMode: bypassPermissions
 color: purple
 model: opus
 effort: low
