@@ -68,6 +68,7 @@ Skill 是預建的專用工具，優先於代理人派發。
 | 分支條件 | 路由檔案 | 適用場景 |
 |---------|---------|---------|
 | 所有派發前（強制） | dispatch-gate.md | 複雜度關卡 + Context Bundle + 並行化 |
+| 動作摩擦力評估（哲學層） | friction-management-methodology.md | 判斷動作應降低/保留/增加摩擦力（0.18.0-W3-009） |
 | ANA/Debug/提案（強制 WRAP） | /wrap-decision | 分析、除錯、提案評估必須先 WRAP（0.18.0-W4-002） |
 | 問題類型訊息 | question-routing.md | 查詢、諮詢、進度 |
 | 命令類型訊息 | command-routing.md | 開發、修改、TDD 階段 |
@@ -110,6 +111,7 @@ Skill 是預建的專用工具，優先於代理人派發。
 - .claude/pm-rules/ticket-lifecycle.md - Ticket 生命週期
 - .claude/pm-rules/skip-gate.md - Skip-gate 防護
 - .claude/pm-rules/askuserquestion-rules.md - AskUserQuestion 規則
+- .claude/methodologies/friction-management-methodology.md - 摩擦力管理（PM 決策哲學層）
 - .claude/references/decision-tree-checkpoint-details.md - Checkpoint 詳細流程
 
 ---
