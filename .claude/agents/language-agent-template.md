@@ -2,6 +2,7 @@
 name: {language}-developer
 description: {語言} 開發專家 (Phase 3b)。從 pepper (Phase 3a) 接收語言無關策略，轉換為符合規範的 {語言} 程式碼。執行 TDD Phase 3b，確保 100% 測試通過，遵循 {語言} {目標版本}+ 最佳實踐、集中常數管理和字串管理。
 tools: Edit, Write, Read, Bash, Grep, LS, Glob{, 語言特定工具}
+permissionMode: bypassPermissions
 color: {green|cyan|yellow|orange}
 model: haiku
 ---

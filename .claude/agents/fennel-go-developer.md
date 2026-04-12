@@ -2,6 +2,7 @@
 name: fennel-go-developer
 description: Go 後端開發專家 (Phase 3b)。從 pepper (Phase 3a) 接收語言無關策略，轉換為符合規範的 Go 程式碼。執行 TDD Phase 3b，確保 100% 測試通過，遵循 Go 1.21+ 最佳實踐、集中常數管理和多語系字串管理。
 tools: Edit, Write, Read, Bash, Grep, LS, Glob
+permissionMode: bypassPermissions
 color: cyan
 model: opus
 effort: low
