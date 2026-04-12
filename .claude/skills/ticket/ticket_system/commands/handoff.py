@@ -171,7 +171,10 @@ def _verify_handoff_dependencies(ticket: Dict[str, Any], ticket_id: str, version
     # 檢查每個依賴 Ticket 的狀態
     incomplete_deps = []
     for dep_id in blocked_by:
-        dep_ticket = load_ticket(version, dep_id)
+        # 從 dep_id 萃取版本以支援跨版本 blockedBy 查找
+        # 萃取失敗（ID 格式異常）時 fallback 到當前 version，保持既有行為
+        dep_version = extract_version_from_ticket_id(dep_id) or version
+        dep_ticket = load_ticket(dep_version, dep_id)
         if not dep_ticket:
             incomplete_deps.append(f"{dep_id} (未找到)")
         elif dep_ticket.get("status") != STATUS_COMPLETED:
