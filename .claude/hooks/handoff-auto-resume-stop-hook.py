@@ -77,6 +77,7 @@ from hook_utils import (
     parse_ticket_frontmatter,
     get_project_root,
     scan_ticket_files_by_version,
+    find_ticket_file,
 )
 
 EXIT_SUCCESS = 0
@@ -89,35 +90,8 @@ PENDING_DIR_NAME = ".claude/handoff/pending"
 LOG_DIR_NAME = ".claude/hook-logs/handoff-auto-resume"
 LOG_FILE_PREFIX = "stop-hook"
 WORK_LOGS_DIR_NAME = "docs/work-logs"
-TICKETS_SUBDIR_NAME = "tickets"
 TODOLIST_FILE_NAME = "docs/todolist.yaml"
 RECENT_TASK_THRESHOLD_MINUTES = 30  # 30 分鐘內視為「最近任務」（可能有代理人正在執行）
-
-
-def _get_ticket_file_path(project_root: Path, ticket_id: str) -> Optional[Path]:
-    """
-    解析 Ticket ID 並構建檔案路徑。
-
-    問題 7 修正：提取重複的版本解析邏輯為共用函式。
-
-    Args:
-        project_root: 專案根目錄
-        ticket_id: Ticket ID（格式：0.31.0-W5-001）
-
-    Returns:
-        Optional[Path]: Ticket 檔案路徑；若解析失敗返回 None
-    """
-    try:
-        # 解析版本號（以 '-' 分割，第一部分是版本號）
-        parts = ticket_id.split('-')
-        if not parts:
-            return None
-
-        version = parts[0]
-        ticket_path = project_root / WORK_LOGS_DIR_NAME / f"v{version}" / TICKETS_SUBDIR_NAME / f"{ticket_id}.md"
-        return ticket_path
-    except Exception:
-        return None
 
 
 def get_session_stop_flag() -> Path:
@@ -316,9 +290,9 @@ def is_ticket_recently_started(project_root: Path, ticket_id: str, logger) -> bo
         bool - 是否在最近 N 分鐘內開始執行
     """
     try:
-        # 問題 7 修正：使用共用函式解析 Ticket 檔案路徑
-        ticket_path = _get_ticket_file_path(project_root, ticket_id)
-        if not ticket_path or not ticket_path.exists():
+        # 使用 find_ticket_file 支援三層階層與舊扁平結構（0.18.0-W3-006）
+        ticket_path = find_ticket_file(ticket_id, project_root, logger)
+        if not ticket_path:
             return False
 
         # 解析 frontmatter
@@ -372,9 +346,9 @@ def is_ticket_completed(project_root: Path, ticket_id: str, logger) -> bool:
         bool - 是否已完成
     """
     try:
-        # 問題 7 修正：使用共用函式解析 Ticket 檔案路徑
-        ticket_path = _get_ticket_file_path(project_root, ticket_id)
-        if not ticket_path or not ticket_path.exists():
+        # 使用 find_ticket_file 支援三層階層與舊扁平結構（0.18.0-W3-006）
+        ticket_path = find_ticket_file(ticket_id, project_root, logger)
+        if not ticket_path:
             return False
 
         # 解析 frontmatter
