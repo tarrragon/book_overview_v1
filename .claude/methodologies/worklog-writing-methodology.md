@@ -37,8 +37,8 @@ byte index 2 is not a char boundary; it is inside '⏳' (bytes 0..3) of `⏳ |`
 ```markdown
 | Ticket ID | 狀態 |
 |-----------|------|
-| W1-001    | ⏳   |  <!-- 禁止：會導致 CLI crash -->
-| W1-002    | 🔄   |  <!-- 禁止 -->
+| Wn-001    | ⏳   |  <!-- 禁止：會導致 CLI crash -->
+| Wn-002    | 🔄   |  <!-- 禁止 -->
 ```
 
 ### 允許項目
@@ -50,10 +50,10 @@ byte index 2 is not a char boundary; it is inside '⏳' (bytes 0..3) of `⏳ |`
 ```markdown
 | Ticket ID | 狀態 |
 |-----------|------|
-| W1-001    | 待處理 |  <!-- 正確：純文字 -->
-| W1-002    | 進行中 |  <!-- 正確 -->
+| Wn-001    | 待處理 |  <!-- 正確：純文字 -->
+| Wn-002    | 進行中 |  <!-- 正確 -->
 
-#### W1-001 分析結果：已完成
+#### Wn-001 分析結果：已完成
 
 上述 Ticket 已於 2026-01-10 完成。  <!-- 表格外可用 emoji -->
 ```
@@ -83,7 +83,7 @@ byte index 2 is not a char boundary; it is inside '⏳' (bytes 0..3) of `⏳ |`
 
 **範例**：
 ```markdown
-#### W2-001 分析結果：已完成
+#### Wn-001 分析結果（下一 Wave）：已完成
 
 **核心發現**：
 - 測試卡住問題不存在，所有 14 個測試 100% 通過
@@ -212,11 +212,11 @@ byte index 2 is not a char boundary; it is inside '⏳' (bytes 0..3) of `⏳ |`
 
 | 欄位 | 說明 | 範例 |
 |------|------|------|
-| Ticket ID | 版本號-階段-序號 | `0.25.0-W1-001` |
+| Ticket ID | 版本號-階段-序號 | `{version}-W1-001` |
 | Action | 動詞（Analyze/Design/Fix/Implement） | `Analyze` |
 | Target | 修改目標 | `Widget 測試基礎設施` |
 | Agent | 執行代理人 | `sage-test-architect` |
-| Dependencies | 依賴的其他 Ticket | `W2-001` |
+| Dependencies | 依賴的其他 Ticket | `Wn-001`（格式說明） |
 | 狀態 | 純文字狀態 | `待處理` |
 
 ---

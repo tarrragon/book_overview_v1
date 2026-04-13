@@ -46,7 +46,7 @@
 **選項 A：在 YAML frontmatter 添加**
 ```yaml
 ---
-id: 0.30.1-W2-001
+id: {ticket-id}
 title: 我的 Ticket
 decision_tree_path: /path/to/decision/tree
 ---
@@ -55,7 +55,7 @@ decision_tree_path: /path/to/decision/tree
 **選項 B：在內容中添加「## 決策樹」區段**
 ```markdown
 ---
-id: 0.30.1-W2-001
+id: {ticket-id}
 ---
 
 ## 決策樹
@@ -128,7 +128,7 @@ Hook 阻止執行的條件（返回 exit code 2）：
 
 ```markdown
 ---
-id: 0.30.1-W2-003
+id: {ticket-id}
 title: 實作搜尋功能
 type: IMP
 status: in_progress
@@ -163,7 +163,7 @@ decision_tree_path: .claude/decisions/search-feature.md
 
 ```markdown
 ---
-id: 0.30.1-W2-004
+id: {ticket-id}
 title: 修復登入頁面崩潰問題
 type: IMP
 status: in_progress

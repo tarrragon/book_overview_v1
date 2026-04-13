@@ -42,7 +42,7 @@
 {
   "tool_name": "Write",
   "tool_input": {
-    "file_path": "docs/work-logs/v0.30.0/0.30.0-W2-003.md",
+    "file_path": "docs/work-logs/v{version}/{ticket-id}.md",
     "content": "# Phase 3b 實作執行完成\n\n## Problem Analysis\n\n...\n\n## Solution\n\n...\n\n## Test Results\n\n..."
   }
 }
@@ -53,7 +53,7 @@
 {
   "tool_name": "Edit",
   "tool_input": {
-    "file_path": "docs/work-logs/v0.30.0/0.30.0-W2-003.md",
+    "file_path": "docs/work-logs/v{version}/{ticket-id}.md",
     "old_string": "<!-- To be filled -->",
     "new_string": "實際內容..."
   }
@@ -203,7 +203,7 @@
 ```json
 {
   "timestamp": "2026-01-23T19:59:38.884588",
-  "file_path": "docs/work-logs/v0.30.0/0.30.0-W2-003.md",
+  "file_path": "docs/work-logs/v{version}/{ticket-id}.md",
   "is_phase_completion": true,
   "phase_type": "Phase 3b",
   "worklog_complete": true,

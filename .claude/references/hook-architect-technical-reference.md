@@ -84,7 +84,7 @@ def main():
 
 **禁止的模式**：
 ```python
-# 錯誤：直接 json.load — 已由 W5-001 全面遷移移除
+# 錯誤：直接 json.load — 已全面遷移移除
 input_data = json.load(sys.stdin)
 ```
 

@@ -322,7 +322,7 @@ handoff-cleanup-hook.py
 4. 測試運作
    ```bash
    # 執行任何 ticket track complete 命令
-   ticket track complete 0.31.0-W7-012
+   ticket track complete {ticket-id}
 
    # 檢查清理日誌
    tail .claude/hook-logs/handoff-cleanup/handoff-cleanup-*.log

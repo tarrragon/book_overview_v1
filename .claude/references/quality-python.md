@@ -128,4 +128,4 @@ Python 特有的處理方式：
 ---
 
 **Last Updated**: 2026-03-26
-**Version**: 1.2.0 - 合併 python-execution.md 內容（0.2.0-W5-012.2 context 瘦身）
+**Version**: 1.2.0 - 合併 python-execution.md 內容（context 瘦身）

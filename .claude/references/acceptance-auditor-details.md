@@ -74,10 +74,10 @@ Ticket 有 children 欄位?
 未完成的子任務：
 | ID | 標題 | 狀態 |
 |----|------|------|
-| 0.31.0-W4-052.2 | 實作 acceptance-gate-hook | pending |
-| 0.31.0-W4-052.3 | 更新 ticket-lifecycle 規則 | pending |
+| {父 ticket-id}.2 | 實作 acceptance-gate-hook | pending |
+| {父 ticket-id}.3 | 更新 ticket-lifecycle 規則 | pending |
 
-結論：父任務 0.31.0-W4-052 有 2 個子任務未完成，不允許通過驗收。
+結論：父任務 {父 ticket-id} 有 2 個子任務未完成，不允許通過驗收。
 ```
 
 ---

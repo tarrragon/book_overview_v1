@@ -112,7 +112,7 @@ def should_preserve(direction: str) -> bool:
 # handoff.py:
 handoff["direction"] = f"to-sibling:{target_id}"
 
-# 結果：should_preserve("to-sibling:W3-002") → False（誤判）
+# 結果：should_preserve("to-sibling:{target_id}") → False（誤判）
 ```
 
 ### 完整檢查清單（寫修復程式碼前必須完成）
@@ -148,7 +148,7 @@ handoff["direction"] = f"to-sibling:{target_id}"
    ```python
    def test_should_preserve():
        assert should_preserve("to-parent")  # 無後綴
-       assert should_preserve("to-sibling:W3-002")  # 有後綴
+       assert should_preserve("to-sibling:target-id")  # 有後綴
        assert should_preserve("context-refresh")  # 特殊格式
        assert not should_preserve("unknown")  # 不符合
    ```
@@ -272,7 +272,7 @@ class SessionManager:
    # 記錄移除理由，安全移除
    # worklog 記錄：
    # - 移除 SessionManager.logger 參數
-   # - 理由：W34-010 重構後 logging 改由 session layer 統一管理
+   # - 理由：重構後 logging 改由 session layer 統一管理
    # - 確認：所有呼叫端都不依賴此參數
    ```
 

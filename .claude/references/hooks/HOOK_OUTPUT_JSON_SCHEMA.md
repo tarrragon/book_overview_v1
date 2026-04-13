@@ -151,4 +151,4 @@ python3 .claude/hooks/lib/hook_output_validator.py --verbose
 ---
 
 **Last Updated**: 2026-04-12
-**Version**: 1.0.0 — IMP-055 再發後建立，整合驗證工具與完整檢查清單（0.18.0-W3-007）
+**Version**: 1.0.0 — IMP-055 再發後建立，整合驗證工具與完整檢查清單
