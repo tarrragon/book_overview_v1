@@ -68,6 +68,42 @@
 
 ---
 
+**對話列選項時：必用 AskUserQuestion（強制）**
+
+> **觸發條件**：PM 在「行為循環」任一階段（聆聽、拆分、分析、派發、收取、驗收）中，只要回覆呈現需要用戶決策、確認或選擇的內容，必須使用 AskUserQuestion 工具。禁止用 Markdown 列表或純文字問句。
+
+| 觸發訊號（任一成立即必用 AUQ） | 來源 |
+|----------------|------|
+| 回覆中列出 2 個以上候選項（A./B./C.、選項 1/2、方案一/方案二） | askuserquestion-rules 規則 1 |
+| 回覆以「要繼續嗎？」「先做 X 還是 Y？」「需要做 Z 嗎？」等問句結尾 | askuserquestion-rules 規則 1（含二元確認） |
+| 回覆等待用戶回應決定方向 | askuserquestion-rules 規則 1 |
+| 純文字問句讓用戶自由輸入答案 | askuserquestion-rules 規則 3 |
+
+**反模式（禁止）**：
+
+| 禁止行為 | 原因 |
+|---------|------|
+| 用 Markdown 列表（A./B./C.）呈現選項讓用戶以自然語言回覆「A」「選 2」 | 用戶自由文字可能被 Hook 誤判為開發命令（規則 3） |
+| 以「要繼續嗎？」「需要先做 X 嗎？」等純文字問句結尾 | 二元確認也屬選擇型決策（規則 1） |
+| **替用戶選擇後再告訴用戶「我幫你選了 A」** | 等同跳過用戶決策權，剝奪選擇機會，PC-064 核心教訓 |
+| 以「快速確認用文字比較方便」「選項太簡單」為由跳過 AUQ | PC-064 已驗證為合理化陷阱（與 PC-014 互為失效模式） |
+
+**SOP**：
+
+1. 準備回覆前自問：「本回覆是否在等用戶做決策？」是 → 進入步驟 2
+2. `ToolSearch("select:AskUserQuestion")` 載入 schema（首次使用）
+3. 用 AUQ 工具呈現選項，等用戶在 picker 中選擇
+4. 收到用戶選擇後再執行對應動作
+
+**適用範圍**：對「無 Ticket 場景」同樣適用（askuserquestion-rules 規則 4）。不存在「非正式任務」「太小」可豁免。
+
+> **來源**：
+> - askuserquestion-rules 規則 1（所有選擇型決策必用 AUQ）：`.claude/pm-rules/askuserquestion-rules.md`
+> - askuserquestion-rules 規則 3（禁止純文字提問讓用戶自由回答）：同上
+> - PC-064（PM 列純文字選項而未用 AUQ，無意識疏失）：`.claude/error-patterns/process-compliance/PC-064-pm-text-options-without-askuserquestion.md`
+
+---
+
 ## 工作階段切換 SOP
 
 > **核心理念**：PM 管理的是整個專案的流動，不是單一 Ticket 的完成。切換工作階段時必須重新掌握全局進度。
@@ -292,5 +328,5 @@ git branch | grep feat/
 ---
 
 **Last Updated**: 2026-04-13
-**Version**: 3.5.0 - 新增派發位置判斷表（ARCH-015：.claude/ 路徑 hardcoded 保護）
-**Source**: 從 .claude/skills/manager/SKILL.md v2.0.0 遷移 + PC-045 教訓
+**Version**: 3.6.0 - 新增「對話列選項時必用 AskUserQuestion」強制條款（PC-064 落地：規則層覆蓋對話中途決策點）
+**Source**: 從 .claude/skills/manager/SKILL.md v2.0.0 遷移 + PC-045 教訓 + PC-064 教訓
