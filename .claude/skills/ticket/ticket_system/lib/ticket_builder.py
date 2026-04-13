@@ -495,12 +495,43 @@ def create_ticket_frontmatter(config: TicketConfig) -> Dict[str, Any]:
     }
 
 
-def create_ticket_body(what: str, who: str) -> str:
+def _ana_reproduction_section(ticket_type: str) -> str:
+    """產生 ANA Ticket 專屬的「重現實驗結果」章節。
+
+    當 ticket_type == 'ANA' 時回傳完整章節（前後含空行），否則回傳空字串。
+    此章節為 PC-063 防護措施 1：強制 ANA Ticket 完成 Reality Test 才允許列方案，
+    防止基於未驗證假設過早收斂方案。
+    """
+    if ticket_type != "ANA":
+        return ""
+    return """
+## 重現實驗結果
+
+### 實驗方法
+
+（必填：如何重現問題？用什麼指令/測試？本章節為 ANA Ticket 強制章節——PC-063 防護措施）
+
+### 實驗執行
+
+（必填：實驗執行過程記錄，包含輸入、步驟、觀察到的實際行為）
+
+### 實驗發現
+
+（必填：實驗結論——已驗證的事實 vs 仍未驗證的假設。僅在完成實驗後才允許列候選方案。）
+
+---
+"""
+
+
+def create_ticket_body(what: str, who: str, ticket_type: str = "") -> str:
     """建立 Ticket body。
 
     Args:
         what: 任務描述（來自 frontmatter["what"]）
         who: 執行代理人（來自 frontmatter["who"]["current"]）
+        ticket_type: Ticket 類型（如 'ANA'、'IMP'、'DOC' 等）。當為 'ANA' 時，
+            body 會在 Problem Analysis 後插入「重現實驗結果」必填章節
+            （PC-063 防護措施 1：強制 ANA Ticket 完成 Reality Test 才列方案）。
 
     Returns:
         Ticket body 字串（Markdown 格式）
@@ -573,7 +604,7 @@ def create_ticket_body(what: str, who: str) -> str:
 -->
 
 ---
-
+{_ana_reproduction_section(ticket_type)}
 ## Solution
 
 <!-- To be filled by executing agent -->

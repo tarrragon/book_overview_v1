@@ -591,6 +591,28 @@ class TestCreateTicketBody:
         assert what in body
         assert "sage-test-architect" in body
 
+    def test_create_ticket_body_ana_includes_reproduction_section(self):
+        """Given: ticket_type = "ANA"
+        When: 呼叫 create_ticket_body(what, who, "ANA")
+        Then: 返回的 body 包含「重現實驗結果」章節及三個子節（PC-063 防護 1）
+        """
+        body = create_ticket_body("分析問題 Y", "sage-test-architect", "ANA")
+
+        assert "## 重現實驗結果" in body
+        assert "### 實驗方法" in body
+        assert "### 實驗執行" in body
+        assert "### 實驗發現" in body
+
+    def test_create_ticket_body_non_ana_excludes_reproduction_section(self):
+        """Given: ticket_type = "IMP"（非 ANA）
+        When: 呼叫 create_ticket_body(what, who, "IMP")
+        Then: 返回的 body 不含「重現實驗結果」章節
+        """
+        body = create_ticket_body("實作功能 Z", "parsley-flutter-developer", "IMP")
+
+        assert "## 重現實驗結果" not in body
+        assert "### 實驗方法" not in body
+
 
 class TestUpdateParentChildren:
     """測試 update_parent_children() 函式"""

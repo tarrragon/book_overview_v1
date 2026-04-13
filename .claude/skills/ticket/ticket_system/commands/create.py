@@ -714,7 +714,11 @@ def _build_and_save_ticket(
         Dict[str, Any]: 建立的 Ticket 物件
     """
     frontmatter = create_ticket_frontmatter(config)
-    body = create_ticket_body(frontmatter["what"], frontmatter["who"]["current"])
+    body = create_ticket_body(
+        frontmatter["what"],
+        frontmatter["who"]["current"],
+        frontmatter.get("type", ""),
+    )
     ticket = frontmatter.copy()
     ticket["_body"] = body
 
