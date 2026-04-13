@@ -478,6 +478,31 @@ ticket track complete 已成功。下一步強制流程：
 
 
 # ============================================================================
+# AUQ Option Pattern Detector Hook 訊息（W5-042 / PC-064）
+# ============================================================================
+
+
+class AUQOptionPatternMessages:
+    """AUQ Option Pattern Detector Hook 使用的提醒訊息（PC-064 防護層 1）。"""
+
+    REMINDER = """[AUQ Option Pattern Reminder]
+
+你上一次回覆疑似包含選項列表（A./B./C. 等）或二元確認問句，等待用戶做決策。
+
+根據 .claude/pm-rules/askuserquestion-rules.md 規則 1/3：
+- 規則 1：所有選擇型決策（多選或二元 yes/no）必須使用 AskUserQuestion 工具，禁止純文字列選項
+- 規則 3：禁止純文字提問讓用戶自由回答（自然語言回覆可能被 Hook 誤判為開發命令）
+
+若此次確為決策點，下一輪請改用：
+  1. ToolSearch("select:AskUserQuestion") 載入 schema
+  2. 以 AskUserQuestion 工具重新呈現選項
+
+若為引用文件 / 歷史回顧 / 規則寫作，忽略此提醒即可。
+
+參考：PC-064 錯誤模式 / askuserquestion-rules 18 個場景"""
+
+
+# ============================================================================
 # Backward-Compatible Alias
 # ============================================================================
 

@@ -17,7 +17,11 @@ Hook 系統訊息常數模組 - 集中管理所有 Hook 的使用者訊息
   backward-compatible alias 仍在此模組可用（見下方）
 """
 
-from lib.ask_user_question_reminders import AskUserQuestionReminders, AskUserQuestionMessages  # noqa: F401
+from lib.ask_user_question_reminders import (  # noqa: F401
+    AskUserQuestionReminders,
+    AskUserQuestionMessages,
+    AUQOptionPatternMessages,
+)
 
 
 class CoreMessages:
