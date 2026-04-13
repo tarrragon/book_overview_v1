@@ -51,7 +51,6 @@
 
 ## 關聯
 
-- **Ticket**: 0.17.3-W10-002（WRAP 修正 commit）
 - **相關模式**: IMP-049（hook error 是 CLI bug）、IMP-048（stderr 觸發 hook error）
 - **觸發條件**: 任何涉及批量搜尋替換的修改
 

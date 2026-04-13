@@ -4,7 +4,6 @@ title: chpwd Shell Hook 大量 ls 輸出淹沒代理人工具結果
 category: implementation
 severity: medium
 first_seen: 2026-04-11
-ticket: 0.17.4-W1-001
 ---
 
 # IMP-056: chpwd Shell Hook 大量 ls 輸出淹沒代理人工具結果

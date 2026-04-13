@@ -11,7 +11,7 @@
 
 ## 根因分析
 
-**直接原因**：PM 在 W3-003 分析後手動建立 W3-004 執行 Ticket，但只根據自己的分析寫了 3 項修改。saffron 代理人的分析（延遲完成）補充了第 4 項（phase3b-dispatch-guide.md L27），但 W3-004 的驗收條件中沒有包含這一項。
+**直接原因**：PM 在 某 Ticket 分析後手動建立某 Ticket 執行 Ticket，但只根據自己的分析寫了 3 項修改。saffron 代理人的分析（延遲完成）補充了第 4 項（phase3b-dispatch-guide.md L27），但 某 Ticket 的驗收條件中沒有包含這一項。
 
 **深層原因**：
 1. 分析 Ticket 和執行 Ticket 之間缺乏「結論完整性交叉驗證」——PM 依記憶建立執行 Ticket，而非逐項對照分析結論
@@ -51,8 +51,7 @@
 
 ## 發現來源
 
-- Ticket: W3-003 (分析) → W3-004 (執行)
-- 場景：PM 手動建立 W3-004 時只含 3 項修改，saffron 延遲通知補充第 4 項（phase3b-dispatch-guide.md L27），幾乎被跳過
+- 場景：PM 手動建立某 Ticket 時只含 3 項修改，saffron 延遲通知補充第 4 項（phase3b-dispatch-guide.md L27），幾乎被跳過
 - 日期：2026-04-06
 
 ## 相關錯誤模式

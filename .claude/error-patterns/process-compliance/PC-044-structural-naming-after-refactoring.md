@@ -40,7 +40,6 @@
 
 ## 發現來源
 
-- Ticket: W3-007.1 decision-tree 拆分
 - 場景：拆分後命名為 decision-tree-{part}.md，用戶質疑檔名不符合內容語義
 - 日期：2026-04-06
 

@@ -35,7 +35,6 @@ Hook 原始碼在重構或初始 sync 時，函式內引用的模組級常數（
 
 ## 關聯 Ticket
 
-- 0.17.2-W6-002: 修復 test_5w1h_compliance_hook 26 個 FAILED
 
 ---
 

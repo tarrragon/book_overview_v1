@@ -4,7 +4,6 @@ title: PM 對「小修改」跳過 Ticket 和 error-pattern 記錄
 category: process-compliance
 severity: medium
 first_seen: 2026-04-11
-ticket: 0.18.0-W4-005
 ---
 
 # PC-053: PM 對「小修改」跳過 Ticket 和 error-pattern 記錄

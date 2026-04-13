@@ -24,12 +24,12 @@
 
 ## 錯誤的修復嘗試（教訓）
 
-### 嘗試 1：修改 run_hook_safely 異常處理（W10-002 第一次 commit）
+### 嘗試 1：修改 run_hook_safely 異常處理（第一次 commit）
 - **假設**：exit code 1 導致 hook error
 - **修改**：異常時改為 exit 0 + JSON additionalContext
 - **結果**：問題未解決（因為 Hook 本來就 exit 0）
 
-### 嘗試 2：stdout 攔截確保 JSON 輸出（W10-002 第二次 commit）
+### 嘗試 2：stdout 攔截確保 JSON 輸出（第二次 commit）
 - **假設**：空 stdout 導致 hook error
 - **修改**：用 io.StringIO 攔截 stdout，無輸出時補預設 JSON
 - **結果**：問題惡化（從 5 個增加到 16 個），破壞了原本正常的 Hook
@@ -72,7 +72,6 @@ echo '<json_input>' | uv run --quiet --script .claude/hooks/<hook>.py 2>&1 1>/de
 
 ## 關聯
 
-- **Ticket**: 0.17.3-W10-002
 - **相關模式**: IMP-048（Hook stderr 觸發 hook error 顯示）
 - **外部 Issues**: anthropics/claude-code#34713, #34859, #10936, #27886
 

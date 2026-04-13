@@ -34,13 +34,12 @@ PM 直接執行 DOC/ANA 類型 Ticket 時，claim 後一口氣做完所有工作
 
 | 措施 | 類型 | 狀態 |
 |------|------|------|
-| ticket-lifecycle 認領階段新增 5W1H 補全（強制） | 規則更新 | 已完成（W3-010.1） |
-| ticket-lifecycle-phases 執行階段新增即時日誌要求 | 規則更新 | 已完成（W3-010.1） |
+| ticket-lifecycle 認領階段新增 5W1H 補全（強制） | 規則更新 | 已完成 |
+| ticket-lifecycle-phases 執行階段新增即時日誌要求 | 規則更新 | 已完成 |
 | claim 後 CLI checklist 新增待定義欄位提醒 | CLI 改善 | 待實施 |
 
 ## 發現來源
 
-- Ticket: W3-006, W3-009 執行過程
 - 場景：PM 直接執行 DOC Ticket，claim → 修改檔案 → complete，中間未更新 5W1H 和執行日誌
 - 日期：2026-04-06
 

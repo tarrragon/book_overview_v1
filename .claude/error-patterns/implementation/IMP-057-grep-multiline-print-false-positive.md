@@ -4,7 +4,6 @@ title: grep 單行比對多行 print() 語句產生誤報
 category: implementation
 severity: medium
 first_seen: 2026-04-11
-ticket: 0.17.4-W2-003
 ---
 
 # IMP-057: grep 單行比對多行 print() 語句產生誤報

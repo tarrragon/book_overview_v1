@@ -20,7 +20,7 @@
 
 ## 解決方案
 
-### 已實施修正（W5-009）
+### 已實施修正
 
 1. **todolist.yaml**：將版本 status 改回 `active`
 2. **track_query.py**：`execute_list` 新增跨版本搜尋 — 當 `--wave` 指定但未指定 `--version` 時，遍歷所有 active 版本搜尋匹配的 Wave
@@ -35,13 +35,12 @@
 
 | 層級 | 措施 | 狀態 |
 |------|------|------|
-| CLI 修復 | 跨版本搜尋邏輯（W5-009） | 已實施 |
+| CLI 修復 | 跨版本搜尋邏輯 | 已實施 |
 | 自動恢復 | ticket create 偵測 completed 版本自動改回 active | 待建 Ticket |
 | 預防檢查 | version-release 標記前驗證 pending tickets | 待建 Ticket |
 
 ## 相關 Ticket
 
-- 0.16.3-W5-009：修復 ticket track list --wave 跨版本搜尋失敗
 
 ## 教訓
 

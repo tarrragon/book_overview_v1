@@ -4,7 +4,6 @@ title: PostToolUse Hook stdout 輸出純文字導致 JSON validation failed
 category: implementation
 severity: high
 first_seen: 2026-04-11
-ticket: 0.18.0-W3-004
 ---
 
 # IMP-055: PostToolUse Hook stdout 輸出純文字導致 JSON validation failed

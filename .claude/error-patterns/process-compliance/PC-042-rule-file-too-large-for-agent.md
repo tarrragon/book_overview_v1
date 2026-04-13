@@ -61,7 +61,6 @@ decision-tree.md 可按「層」拆分：
 
 ## 發現來源
 
-- Ticket: W3-005 執行過程
 - 場景：saffron 被派發分析 decision-tree 規則缺口，4 次 Read 後回合耗盡。本 session 3 次分析型派發均失敗在同一模式。
 - 日期：2026-04-06
 
@@ -73,4 +72,4 @@ decision-tree.md 可按「層」拆分：
 ---
 
 **Created**: 2026-04-06
-**Version**: 1.1.0 - 根因修正：從「檔案數量」改為「單一檔案體量 / domain 邊界違規」（DDD 視角，0.17.2-W3-009）
+**Version**: 1.1.0 - 根因修正：從「檔案數量」改為「單一檔案體量 / domain 邊界違規」

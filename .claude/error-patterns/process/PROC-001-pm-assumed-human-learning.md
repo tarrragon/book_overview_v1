@@ -48,7 +48,6 @@
 
 ## 相關 Ticket
 
-- 0.17.2-W2-021（Context Bundle 規範）
 - 第二輪多視角審查（linux 建議「不需要 references」被用戶否決）
 
 ## 發現日期

@@ -4,7 +4,6 @@ title: YAML frontmatter 欄位型別假設錯誤（list vs string）
 category: implementation
 severity: high
 first_seen: 2026-04-11
-ticket: 0.17.4-W5-002
 ---
 
 # IMP-058: YAML frontmatter 欄位型別假設錯誤（list vs string）
@@ -17,7 +16,7 @@ ticket: 0.17.4-W5-002
 
 ## 根因
 
-YAML 解析後，清單欄位（如 `children`、`spawned_tickets`）回傳 Python `list`，但 parser 函式假設為 `string` 並呼叫 `.strip()`：
+YAML 解析後，清單欄位（如 `children`、`spawned_tickets`）回傳 Python `list`，但 parser 函式假設為 `string` 並呼叫 `.strip`：
 
 ```python
 # 錯誤：假設為 string
@@ -33,7 +32,7 @@ elif isinstance(children_raw, str):
     ...
 ```
 
-**觸發條件**：frontmatter 中的清單欄位有值時。空清單 `[]` 不觸發（`.get("children", "")` 回傳空 list，但空 list 沒有 `.strip()` 也會 crash — 只是空 list 的 falsy 特性讓程式碼在 `if not children_str` 就提前返回了）。
+**觸發條件**：frontmatter 中的清單欄位有值時。空清單 `[]` 不觸發（`.get("children", "")` 回傳空 list，但空 list 沒有 `.strip` 也會 crash — 只是空 list 的 falsy 特性讓程式碼在 `if not children_str` 就提前返回了）。
 
 ## 影響範圍
 
@@ -59,12 +58,12 @@ elif isinstance(children_raw, str):
 ### Code Review 檢查項
 
 - [ ] 從 frontmatter 讀取的欄位是否有型別假設？
-- [ ] `.strip()`、`.split()` 等 string 方法是否在 list 型別上呼叫？
+- [ ] `.strip`、`.split` 等 string 方法是否在 list 型別上呼叫？
 - [ ] 預設值是否與實際型別一致？（`get("children", "")` 應改為 `get("children", [])`）
 
 ### Hook 拆分時的特別注意
 
-此 bug 在 W3-001 拆分 acceptance-gate-hook 為 orchestrator + checkers 時引入。拆分大函式時，原本可能在同一個 context 中處理的型別轉換，拆分後容易在新模組中遺失。
+此 bug 在 某 Ticket 拆分 acceptance-gate-hook 為 orchestrator + checkers 時引入。拆分大函式時，原本可能在同一個 context 中處理的型別轉換，拆分後容易在新模組中遺失。
 
 ## 關聯模式
 

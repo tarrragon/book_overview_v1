@@ -33,7 +33,6 @@ else:
 
 ## 相關 Ticket
 
-- 0.1.1-W15-006 — branch-verify-hook 絕對路徑豁免比對修復
 
 ---
 

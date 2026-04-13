@@ -45,7 +45,6 @@ PM 在 main 分支上直接修改 Ticket 狀態（5W1H、claim、accept-creation
 
 ## 相關 Ticket
 
-- 0.17.2-W2-002, 0.17.2-W2-003（首次發現）
 
 ## 發現日期
 

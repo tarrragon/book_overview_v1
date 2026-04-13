@@ -7,13 +7,12 @@
 - **來源版本**: v0.31.0
 - **發現日期**: 2026-02-26
 - **風險等級**: 中
-- **來源 Ticket**: 0.31.0-W25-007（修復 Hook Import 路徑）
 
 ## 問題描述
 
 ### 症狀
 
-W25-007 派發 thyme-python-developer 修復 Hook import 路徑，但審查時發現 basil-hook-architect 的代理人定義聲稱「Hook 優化改進」和「Hook 問題修復」也是 basil 的**強制**觸發條件。三份文件（決策樹、basil 定義、thyme 定義）對同一職責的歸屬不一致，可能導致未來的派發決策錯誤。
+某歷史 Ticket 派發 thyme-python-developer 修復 Hook import 路徑，但審查時發現 basil-hook-architect 的代理人定義聲稱「Hook 優化改進」和「Hook 問題修復」也是 basil 的**強制**觸發條件。三份文件（決策樹、basil 定義、thyme 定義）對同一職責的歸屬不一致，可能導致未來的派發決策錯誤。
 
 | 任務 | 決策樹 | basil 定義（修正前） | thyme 定義 |
 |------|-------|-------------------|-----------|
@@ -83,7 +82,6 @@ ARCH-005 和 IMP-005 都屬於**同步更新不完整**的模式：
 
 ## 修復紀錄
 
-- **W25-007**: 修正 basil 觸發條件表，移除與 thyme 重疊的「Hook 優化改進」「Hook 問題修復」
 - **修正方式**: basil 新增「不觸發」區段；決策樹新增 Hook 派發判斷原則說明
 - **受影響檔案**: basil-hook-architect.md, decision-tree.md
 

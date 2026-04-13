@@ -4,7 +4,6 @@ title: 新建 Hook 未同步註冊到 settings.json
 category: implementation
 severity: medium
 first_seen: 2026-04-07
-ticket: 0.17.2-W8-009
 ---
 
 # IMP-051: 新建 Hook 未同步註冊到 settings.json

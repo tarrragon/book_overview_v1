@@ -4,7 +4,6 @@ title: 分析視角錨定在防禦性限制而非品質目標
 category: process-compliance
 severity: medium
 first_seen: 2026-04-11
-ticket: 0.17.4-W4-001.3
 ---
 
 # PC-054: 分析視角錨定在防禦性限制而非品質目標

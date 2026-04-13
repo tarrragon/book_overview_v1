@@ -90,6 +90,5 @@ CLI 或內部工具報錯時，禁止假設歸因，必須依序調查：
 
 ## 相關文件
 
-- 0.1.0-W2-004 - PostToolUse Hook 防護（待處理）
 - .claude/pm-rules/incident-response.md - CLI/工具失敗調查步驟
 - .claude/error-patterns/implementation/IMP-019-data-structure-to-cli-projection.md - 具體案例

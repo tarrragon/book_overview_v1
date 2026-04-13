@@ -45,7 +45,7 @@
 
 ## 實際案例
 
-**0.17.3-W12-002**（2026-04-10）：
+**案例（2026-04-10）**：
 - PM 說「無法可靠地查詢背景代理人」
 - 實際上：`dispatch_tracker.py` 已有 `get_active_dispatches()` API
 - 實際上：`active-dispatch-tracker-hook.py` 已在代理人完成時觸發
@@ -54,7 +54,6 @@
 
 ## 關聯
 
-- **Ticket**: 0.17.3-W12-002
 - **相關模式**: PC-050（代理人完成誤判）
 - **相關記憶**: feedback_search_community_before_core_fix.md
 

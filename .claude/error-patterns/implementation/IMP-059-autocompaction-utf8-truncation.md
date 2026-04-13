@@ -4,7 +4,6 @@ title: Auto-compaction UTF-8 截斷導致文件中文字元損壞
 category: implementation
 severity: medium
 first_seen: 2026-04-11
-ticket: 0.17.4-W5-003
 ---
 
 # IMP-059: Auto-compaction UTF-8 截斷導致文件中文字元損壞
@@ -27,8 +26,6 @@ Claude Code 的 auto-compaction 機制在 context 接近上限時自動壓縮先
 
 本案例發現 3 個文件 5 處損壞：
 - `.claude/pm-rules/task-splitting.md` — 2 處（統一、修復）
-- `0.17.4-W4-001.2.md` — 1 處（將）
-- `0.17.4-W6-001.md` — 2 處（分析、觸發版本初始化）
 
 ## 解決方案
 

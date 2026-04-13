@@ -11,13 +11,13 @@
 **直接原因**：領取 Ticket 後未查詢 error-patterns，直接按 Ticket 描述實作。
 
 **行為鏈**：
-1. Ticket 描述了問題和修復方向（W10-002：修改 `run_hook_safely` exit code）
+1. Ticket 描述了問題和修復方向（某 Ticket：修改 `run_hook_safely` exit code）
 2. 認領檢查清單有「已查詢是否有相關的 error-patterns」但未執行
 3. 直接實作 Ticket 描述的修復方案
 4. 實作完成後才發現 IMP-049 已記錄：
-   - 完全相同的修改（`run_hook_safely` 改為 exit 0）
-   - 已失敗 2 次
-   - 明確警告「不要修改 Hook 系統核心來繞過 CLI bug」
+ - 完全相同的修改（`run_hook_safely` 改為 exit 0）
+ - 已失敗 2 次
+ - 明確警告「不要修改 Hook 系統核心來繞過 CLI bug」
 
 **深層原因**：Ticket 的修復方向被視為「已驗證的指令」而非「待驗證的假設」。Ticket 建立時可能不知道 IMP-049 的存在。
 
@@ -55,7 +55,6 @@
 
 ## 關聯
 
-- **Ticket**: 0.17.3-W10-002
 - **被忽略的 error-pattern**: IMP-049（hook error 是 CLI bug，修改 run_hook_safely 已失敗 2 次）
 - **修正方式**: WRAP 決策框架（選擇性回退）
 

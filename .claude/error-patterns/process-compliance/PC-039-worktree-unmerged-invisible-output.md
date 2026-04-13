@@ -18,7 +18,7 @@
 3. PM 在主倉庫檢查 `git status` -> 看不到變更
 4. PM 誤判為「代理人未完成」，重複派發
 
-**場景 B - Feature 分支**（來源：0.17.3-W10-001，W2-001/W2-002 實際案例）：
+**場景 B - Feature 分支**：
 1. PM 或代理人建立了 feature 分支（如 `feat/0.17.3-W2-001-consolidate-808080`）
 2. 代理人在 feature 分支上 commit 了變更
 3. PM 回到 main 分支檢查 `git status` -> 看不到變更（因為在另一個分支）
@@ -50,7 +50,7 @@ git checkout main && git merge {branch} --no-edit
 
 ## 預防措施
 
-1. **agent-commit-verification-hook.py**（PostToolUse:Agent）已增強（0.17.3-W10-001）：
+1. **agent-commit-verification-hook.py**（PostToolUse:Agent）已增強：
    - Agent 完成後同時檢查「未 commit」、「worktree 未合併」和「feature 分支未合併」
    - CWD 還原提醒改為條件化（只在 worktree 代理人時顯示）
    - 新增「PM 立即動作」摘要，整合所有狀態為一個清晰的下一步清單
@@ -75,13 +75,12 @@ git checkout main && git merge {branch} --no-edit
 
 ## 實際案例
 
-**0.17.3-W2-001**（2026-04-09）：代理人在 `feat/0.17.3-W2-001-consolidate-808080` 分支上成功 commit 了 5 個檔案的修改，但 PM 在 main 上執行 `git status` 看不到變更，誤判代理人失敗並重新派發，浪費了一次代理人執行。
+**案例（2026-04-09）**：代理人在 `feat/0.17.3-W2-001-consolidate-808080` 分支上成功 commit 了 5 個檔案的修改，但 PM 在 main 上執行 `git status` 看不到變更，誤判代理人失敗並重新派發，浪費了一次代理人執行。
 
-**0.17.3-W2-002**（2026-04-10）：同樣的錯誤再次發生。代理人在 feature 分支上完成了 CSS 修改，PM 又誤判為失敗。
+**案例（2026-04-10）**：同樣的錯誤再次發生。代理人在 feature 分支上完成了 CSS 修改，PM 又誤判為失敗。
 
 ## 關聯
 
-- **Ticket**: 0.17.2-W2-018, 0.17.3-W10-001
 - **相關模式**: PC-019（worktree merge 狀態遺失）、PC-024（代理人跳過 commit）
 - **防護 Hook**: agent-commit-verification-hook.py, worktree-merge-reminder-hook.py
 - **PM 規則**: .claude/rules/core/pm-role.md（代理人失敗判斷前置步驟）
@@ -89,5 +88,5 @@ git checkout main && git merge {branch} --no-edit
 ---
 
 **發現日期**: 2026-04-05
-**更新日期**: 2026-04-10（擴展覆蓋 feature 分支場景，0.17.3-W10-001）
+**更新日期**: 2026-04-10（擴展覆蓋 feature 分支場景）
 **嚴重程度**: P1（導致重複工作和時間浪費）

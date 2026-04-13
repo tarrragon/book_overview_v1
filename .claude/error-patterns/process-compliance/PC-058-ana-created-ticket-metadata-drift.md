@@ -3,10 +3,9 @@ id: PC-058
 title: ANA 代理人建立 follow-up Ticket 的 metadata 權威性不足
 category: process-compliance
 severity: medium
-detected_in: 0.18.0-W5-019
 related:
-  - PC-055
-  - PC-057
+ - PC-055
+ - PC-057
 ---
 
 # PC-058: ANA 代理人建立 follow-up Ticket 的 metadata 權威性不足
@@ -30,14 +29,14 @@ ANA 代理人（如 saffron-system-analyst）完成分析後建立 follow-up IMP
 
 ## 本案實例
 
-- **W5-015 ANA**（saffron）完成後建立 W5-019 IMP
+- **某 Ticket ANA**（saffron）完成後建立某 Ticket IMP
 - 原始 metadata：
-  - `who: parsley-flutter-developer`（Flutter 代理人）
-  - 專案實況：`.claude/skills/ticket/` 是 Python CLI（uv + Python 3）
-  - `acceptance: [單一 bullet 塞 6 條件]`
+ - `who: parsley-flutter-developer`（Flutter 代理人）
+ - 專案實況：`.claude/skills/ticket/` 是 Python CLI（uv + Python 3）
+ - `acceptance: [單一 bullet 塞 6 條件]`
 - PM 於派發前人工修正：
-  - `who` → `thyme-python-developer`
-  - `acceptance` 拆為 6 項獨立 check item
+ - `who` → `thyme-python-developer`
+ - `acceptance` 拆為 6 項獨立 check item
 
 ## 影響
 

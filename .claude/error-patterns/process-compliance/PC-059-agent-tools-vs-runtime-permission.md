@@ -3,15 +3,13 @@ id: PC-059
 title: 代理人 frontmatter Tools 宣告 ≠ 實際 runtime 權限
 category: process-compliance
 severity: high
-updated_in: 0.18.0-W5-029-retry5
-detected_in: 0.18.0-W5-019
 retries:
-  - retry3 (0.18.0-W5-019): 確認 permissionMode 是 subagent Edit 的控制欄位
-  - retry4 (0.18.0-W5-019): 聲稱 bypassPermissions 為 worktree 場景標準值（後被 retry5 推翻）
-  - retry5 (0.18.0-W5-029): 確認 permissionMode 受 subagent cwd 限制，worktree 絕對路徑不可靠
+ - retry3: 確認 permissionMode 是 subagent Edit 的控制欄位
+ - retry4: 聲稱 bypassPermissions 為 worktree 場景標準值（後被 retry5 推翻）
+ - retry5: 確認 permissionMode 受 subagent cwd 限制，worktree 絕對路徑不可靠
 related:
-  - PC-058
-  - IMP-056
+ - PC-058
+ - IMP-056
 ---
 
 # PC-059: 代理人 frontmatter Tools 宣告 ≠ 實際 runtime 權限
@@ -60,7 +58,6 @@ Layer 4: 互動式權限提示                    ← 即時批准
 
 ## 本案實例
 
-- Ticket 0.18.0-W5-019 Phase 3b 派發 thyme-python-developer
 - thyme frontmatter：`Tools: Edit, Write, Read, Bash, Grep, LS, Glob`
 - settings.local.json permissions.allow：沒有 Edit / Write / Grep
 - 結果：背景代理人無法修改 `lifecycle.py` 或 `test_track_lifecycle.py`
@@ -106,23 +103,23 @@ permissionMode: bypassPermissions
 
 **為何：** 這些設定適用於**主線程**權限。Subagent 的 Edit 權限獨立由 `permissionMode` 控制。
 
-### retry5 新發現（0.18.0-W5-029，2026-04-13）
+### retry5 新發現（2026-04-13）
 
 **retry4 聲稱被推翻**：`bypassPermissions` 不是 worktree 場景的萬能解方。
 
-**事件**：W5-021 派發 thyme-python-developer（frontmatter 已有 `permissionMode: bypassPermissions`）執行 Edit worktree 絕對路徑（`/path/to/worktree-ticket/.claude/agents/*.md`），首次 Edit 操作即被拒。
+**事件**：某 Ticket 派發 thyme-python-developer（frontmatter 已有 `permissionMode: bypassPermissions`）執行 Edit worktree 絕對路徑（`/path/to/worktree-ticket/.claude/agents/*.md`），首次 Edit 操作即被拒。
 
 **真正根因**：`permissionMode` 受 **subagent cwd** 限制。
 
 - subagent 繼承主 session 的 cwd（通常是主 repo）
 - PM 派發時若指定 worktree 的**絕對路徑**（cwd 外部），對 subagent 視角是「cwd 外部路徑」
-- `acceptEdits` 只認 cwd 或 `additionalDirectories`（W5-019 retry3 已知）
-- `bypassPermissions` 的「`.claude/agents` 允許」判斷**也可能基於 cwd 相對路徑識別**（W5-029 新發現）
+- `acceptEdits` 只認 cwd 或 `additionalDirectories`（retry3 已知）
+- `bypassPermissions` 的「`.claude/agents` 允許」判斷**也可能基於 cwd 相對路徑識別**（新發現）
 - 結果：兩種 mode 在「cwd 外的 worktree 絕對路徑」皆不可靠
 
-**關鍵證據**（saffron 調查，W5-029）：
+**關鍵證據**（saffron 調查）：
 
-W5-001 Phase 3b-A/B（2026-04-12 17:28）commit `56521697` / `2632c0c7` 由 thyme 並行執行 Python Edit，當時：
+某 Ticket Phase 3b-A/B（2026-04-12 17:28）commit `56521697` / `2632c0c7` 由 thyme 並行執行 Python Edit，當時：
 - thyme frontmatter **無** `permissionMode`
 - settings.local.json **無** Edit/Write allow（19:34 才加入）
 
@@ -133,16 +130,16 @@ W5-001 Phase 3b-A/B（2026-04-12 17:28）commit `56521697` / `2632c0c7` 由 thym
 優先序：
 
 1. **PM 在主 repo feat 分支直接執行框架配置修改**（推薦）
-   - 適用：`.claude/agents/`、`.claude/rules/`、`.claude/references/` 等框架層檔案
-   - 為何：PM cwd 對齊主 repo，具 acceptEdits 權限；這些屬於框架配置非產品程式碼，pm-role 允許
+ - 適用：`.claude/agents/`、`.claude/rules/`、`.claude/references/` 等框架層檔案
+ - 為何：PM cwd 對齊主 repo，具 acceptEdits 權限；這些屬於框架配置非產品程式碼，pm-role 允許
 
 2. **設定 `additionalDirectories` + `acceptEdits`**
-   - 在 `settings.local.json` 將 worktree 絕對路徑加入 `permissions.additionalDirectories`
-   - 代理人 frontmatter 用 `acceptEdits`
-   - 缺點：每個 worktree 要手動維護
+ - 在 `settings.local.json` 將 worktree 絕對路徑加入 `permissions.additionalDirectories`
+ - 代理人 frontmatter 用 `acceptEdits`
+ - 缺點：每個 worktree 要手動維護
 
 3. **禁止：prompt 要求代理人 `cd` 到 worktree**
-   - 環境的 zsh `chpwd` hook 會觸發 `ls` 淹沒代理人輸出（IMP-056）
+ - 環境的 zsh `chpwd` hook 會觸發 `ls` 淹沒代理人輸出（IMP-056）
 
 **檢測訊號**：代理人具 `permissionMode: bypassPermissions` 但仍回報 `Permission to use Edit has been denied` → 立即懷疑是 worktree cwd 不對齊，切換方案 1。
 

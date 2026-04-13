@@ -74,7 +74,6 @@ for pkg, info in desired.items():
 
 ## 關聯 Ticket
 
-- 0.1.0-W1-017：重新設計套件追蹤機制（installed-packages.json → 自動掃描 + 實際狀態比對）
 - 與 ARCH-006 相關：同為「配置/追蹤放錯作用域」的模式
 
 ---

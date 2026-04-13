@@ -4,7 +4,6 @@ title: 批量遷移後部分 Hook 缺少 None guard
 category: implementation
 severity: high
 first_seen: 2026-04-07
-ticket: 0.17.2-W8-008
 ---
 
 # IMP-052: 批量遷移後部分 Hook 缺少 None guard
@@ -17,7 +16,7 @@ ticket: 0.17.2-W8-008
 
 ## 根因
 
-W5-001 將 27 個 Hook 統一遷移到 `read_json_from_stdin()`，但遷移時未確保所有 Hook 都在呼叫後加入 `if not input_data: return 0` 的 None guard。
+某歷史 Ticket 將 27 個 Hook 統一遷移到 `read_json_from_stdin()`，但遷移時未確保所有 Hook 都在呼叫後加入 `if not input_data: return 0` 的 None guard。
 
 4 個受影響的 Hook：
 - `worktree-merge-reminder-hook.py`
