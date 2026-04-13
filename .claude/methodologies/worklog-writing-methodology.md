@@ -94,7 +94,7 @@ byte index 2 is not a char boundary; it is inside '⏳' (bytes 0..3) of `⏳ |`
 
 ## 第三原則：進度即時記錄
 
-> **來源**：W1-012 — Legacy Code 步驟 4 執行中發現 worklog 完全未更新，PC-033 僅被動防護。
+> **來源**：Legacy Code 步驟 4 執行中發現 worklog 完全未更新的歷史教訓，PC-033 僅被動防護。
 > **審查結論**：這是規範問題，用規範解決。
 
 ### Worklog 雙職責
@@ -130,30 +130,30 @@ byte index 2 is not a char boundary; it is inside '⏳' (bytes 0..3) of `⏳ |`
 ```markdown
 ## 進度追蹤
 
-- 2026-03-30: UC-08 修復完成 -- d18009e9，失敗 259->141
-- 2026-03-31: UC-04 W1-009 完成 -- 3/5 Widget 測試修復（14 個）
-- 2026-03-31: W1-009 拆分 -- W1-010（複雜 Provider）、W1-011（UI 規範）
-- 2026-03-31: W1-012 完成 -- Worklog 進度同步機制分析
+- {日期}: UC-08 修復完成 -- {commit-hash}，失敗 259->141
+- {日期}: UC-04 {ticket-id} 完成 -- 3/5 Widget 測試修復（14 個）
+- {日期}: {ticket-id} 拆分 -- {子 ticket-id}（複雜 Provider）、{子 ticket-id}（UI 規範）
+- {日期}: {ticket-id} 完成 -- Worklog 進度同步機制分析
 ```
 
 > 使用 bullet list 而非 table：更易追加、diff 友好、條目超過 20 行後仍可讀。
 
 ### 密集衝刺後的敘事式摘要（合法替代格式）
 
-> **來源**：W12-002 — v0.31.1 完成 90 個 Ticket 但 worklog 缺少逐筆 bullet list 進度記錄。
+> **來源**：完成大量 Ticket 但 worklog 缺少逐筆 bullet list 進度記錄的歷史教訓。
 
 當 session 中密集完成多個 Ticket（如 Wave 收尾、批量修復），逐筆 bullet list 可能不切實際。此時允許使用**敘事式摘要**替代：
 
 ```markdown
-### 2026-03-31：W7-W12 可觀測性改善衝刺
+### {日期}：{主題}衝刺
 
-- W9-001~003 可觀測性修復：全域錯誤處理、靜默失敗路徑消除、日誌覆蓋
-- W10-001~008 審查結論全部修復：AppLogger 遷移、ErrorHandler 防護
-- W11-001~005 完成：jsonDecode 回退、Timer/Stream 審計、AppLogger 實例化
+- {ticket-range} 可觀測性修復：全域錯誤處理、靜默失敗路徑消除、日誌覆蓋
+- {ticket-range} 審查結論全部修復：AppLogger 遷移、ErrorHandler 防護
+- {ticket-range} 完成：jsonDecode 回退、Timer/Stream 審計、AppLogger 實例化
 ```
 
 **敘事式摘要要求**：
-- 必須涵蓋所有完成的 Ticket ID（可用範圍表示如 W10-001~008）
+- 必須涵蓋所有完成的 Ticket ID（可用範圍表示如 W{n}-{start}~{end}）
 - 必須包含關鍵成果摘要
 - 應在 session 結束前或 handoff 時補寫
 

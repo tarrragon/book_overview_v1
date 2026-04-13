@@ -2,7 +2,6 @@
 
 > 本檔為 `.claude/methodologies/friction-management-methodology.md` 的詳細參考。
 > 方法論主檔只保留判斷準則；具體 PM 決策點分類表在此。
-> 來源 Ticket：0.18.0-W3-009（建立）→ 0.18.0-W5-007（分層拆分修復）
 
 ---
 
@@ -81,4 +80,4 @@
 ---
 
 **Last Updated**: 2026-04-12
-**Version**: 1.0.0 - 從 friction-management-methodology.md v1.0.0 拆分並修復映射錯誤、補齊遺漏（W5-007）
+**Version**: 1.0.0 - 從 friction-management-methodology.md v1.0.0 拆分並修復映射錯誤、補齊遺漏

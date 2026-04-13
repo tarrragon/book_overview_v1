@@ -2,7 +2,7 @@
 
 本文件定義撰寫 Claude Code subagent（`.claude/agents/*.md`）時的規範，特別聚焦 `permissionMode` 的選擇原則。
 
-> **核心教訓來源**：PC-059（retry5）、W5-019、W5-029
+> **核心教訓來源**：PC-059（retry5 模式）與 worktree 絕對路徑權限教訓
 
 ---
 
