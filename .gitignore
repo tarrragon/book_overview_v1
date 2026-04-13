@@ -71,6 +71,9 @@ __pycache__/
 .claude/dispatch-active.json
 .claude/dispatch-active.lock
 
+# Claude scheduled tasks runtime lock (session-local)
+.claude/scheduled_tasks.lock
+
 # Claude worktrees (agent-generated, session-local)
 .claude/worktrees/
 

@@ -37,6 +37,7 @@ ALLOWED_PATTERNS = [
     r"^docs/.*",
     r"^CLAUDE\.md$",
     r"^CHANGELOG\.md$",
+    r"^\.gitignore$",  # repo 層級忽略清單：主線程可直接補 runtime artifact / lock（W10-033）
 ]
 
 # 禁止的檔案路徑模式（正則）
