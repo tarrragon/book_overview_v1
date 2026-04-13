@@ -140,11 +140,11 @@ git branch | grep feat/
 | 仍有活躍派發 | **等待**：不做 commit/merge/complete，切去做其他 Ticket 準備工作 |
 | 無活躍派發 | 開始驗收：檢查變更 → commit → merge |
 
-**補充驗證工具**（來源 W6-006）：對懷疑尚未完成但 dispatch-active.json 已清除的代理人（race 情況），可呼叫 `TaskOutput(task_id=<agentId>, block=false, timeout=3000)` 確認 `<status>` 標籤。此為補充，非取代 dispatch-active.json（後者為計數 Source of Truth）。安全使用規則見 PC-050「TaskOutput 安全使用範本」。
+**補充驗證工具**：對懷疑尚未完成但 dispatch-active.json 已清除的代理人（Hook 延遲清理 / race 情況），可呼叫 `TaskOutput(task_id=<agentId>, block=false, timeout=3000)` 確認 `<status>` 標籤。此為補充，非取代 dispatch-active.json（後者為計數 Source of Truth）。安全使用規則見 PC-050「TaskOutput 安全使用範本」。
 
 > 完整 Checkpoint 流程（含 1.85 代理人清點）：.claude/pm-rules/completion-checkpoint-rules.md
 
-### 失敗判斷前置步驟（強制，來源 0.17.3-W10-001）
+### 失敗判斷前置步驟（強制）
 
 > **禁止**：看到主倉庫 `git status` 沒有變更就直接判定代理人失敗。代理人可能在 worktree 或 feature 分支上完成了工作。
 
@@ -152,17 +152,17 @@ git branch | grep feat/
 
 | 步驟 | 命令 | 目的 |
 |------|------|------|
-| -1 | `find .claude/hook-logs -name "*.log" -mmin -5 -exec grep -l "ERROR\|Exception\|TypeError" {} \;` | 檢查是否有 Hook error 干擾代理人（來源：0.18.0-W4-002） |
+| -1 | `find .claude/hook-logs -name "*.log" -mmin -5 -exec grep -l "ERROR\|Exception\|TypeError" {} \;` | 檢查是否有 Hook error 干擾代理人（防範環境異常誤判） |
 | 0 | `cat .claude/dispatch-active.json` | 確認代理人是否仍在活躍派發中（可能還沒完成） |
-| 0.5 | `TaskOutput(task_id=<agentId>, block=false, timeout=3000)` 讀 `<status>` 標籤 | 對懷疑失敗的代理人確認 runtime 狀態（來源：W6-006，補 PC-050 模式 D 盲點） |
+| 0.5 | `TaskOutput(task_id=<agentId>, block=false, timeout=3000)` 讀 `<status>` 標籤 | 對懷疑失敗的代理人確認 runtime 狀態（補 PC-050 模式 D 盲點） |
 | 1 | `pwd && git branch --show-current` | 確認當前分支（可能被代理人污染到其他分支） |
 | 2 | `git worktree list` | 檢查是否有 worktree 包含代理人的 commit |
 | 3 | `git branch \| grep feat/` | 檢查是否有 feature 分支包含代理人的 commit |
 | 4 | `git log main..{branch} --oneline` | 查看分支上的未合併 commit |
 
-> **Hook error 可見性**（0.18.0-W4-002 教訓）：terminal 上的 Hook error 只有用戶看得到，PM 和代理人都看不到。代理人完成後 `agent-commit-verification-hook` 會自動掃描 hook-logs 並輸出摘要，但 PM 主動判斷時仍需執行 Step -1 確認環境是否正常。
+> **Hook error 可見性**：terminal 上的 Hook error 只有用戶看得到，PM 和代理人都看不到。代理人完成後 `agent-commit-verification-hook` 會自動掃描 hook-logs 並輸出摘要，但 PM 主動判斷時仍需執行 Step -1 確認環境是否正常。
 
-> **Step 0.5 TaskOutput 安全規則**（W6-006）：只讀 `<status>` 標籤（`running`/`completed`/`error`），**禁止讀 `<output>` body**（流式 JSONL transcript，會污染 context 且違反 PC-050 模式 D 防護）。若 `<status>` 為 `running`，不可判失敗。完整安全範本見 .claude/error-patterns/process-compliance/PC-050-premature-agent-completion-judgment.md 「TaskOutput 安全使用範本」章節。
+> **Step 0.5 TaskOutput 安全規則**：只讀 `<status>` 標籤（`running`/`completed`/`error`），**禁止讀 `<output>` body**（流式 JSONL transcript，會污染 context 且違反 PC-050 模式 D 防護）。若 `<status>` 為 `running`，不可判失敗。完整安全範本見 .claude/error-patterns/process-compliance/PC-050-premature-agent-completion-judgment.md 「TaskOutput 安全使用範本」章節。
 
 **只有 hook-logs 無 error 且 dispatch-active.json 為空且 TaskOutput `<status>` 非 running 且所有分支都沒有代理人的 commit 後，才能判定代理人失敗。**
 
@@ -261,5 +261,5 @@ git branch | grep feat/
 ---
 
 **Last Updated**: 2026-04-13
-**Version**: 3.4.0 - 失敗判斷前置步驟新增 Step 0.5（TaskOutput 狀態查詢）+ 完成確認 SOP 補充驗證工具（W6-006 / W7-001）
+**Version**: 3.4.0 - 失敗判斷前置步驟新增 Step 0.5（TaskOutput 狀態查詢）+ 完成確認 SOP 補充驗證工具
 **Source**: 從 .claude/skills/manager/SKILL.md v2.0.0 遷移 + PC-045 教訓
