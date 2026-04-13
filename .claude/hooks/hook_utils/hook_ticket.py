@@ -27,7 +27,7 @@ from typing import Any, List, NamedTuple, Optional, Tuple, Union
 from .hook_base import get_project_root
 
 # ============================================================================
-# 快取變數（模組級，用於 W39-002 效能改善）
+# 快取變數（模組級，用於效能改善）
 # ============================================================================
 
 _error_pattern_mtime_cache: dict[str, float] = {}

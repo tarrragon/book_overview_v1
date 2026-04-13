@@ -87,5 +87,5 @@ try:
     
 except Exception as e:
     print(f"Error formatting markdown: {e}", file=sys.stderr)
-    # W10-002: exit 0 避免 CLI 顯示 hook error
+    # exit 0 避免 CLI 顯示 hook error
     sys.exit(0)

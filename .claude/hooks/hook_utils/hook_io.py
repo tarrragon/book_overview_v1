@@ -25,7 +25,7 @@ from .hook_base import get_project_root
 
 
 # ============================================================================
-# 快取變數（模組級，用於 W39-002 效能改善）
+# 快取變數（模組級，用於效能改善）
 # ============================================================================
 
 _handoff_recovery_cache: Optional[bool] = None
@@ -326,10 +326,10 @@ def validate_hook_input(
         >>> validate_hook_input(input_data, logger)
 
     説明：
-    - 此函式統一處理 W34-002 修復的 None 防護問題
+    - 此函式統一處理 None 防護問題
     - 各 Hook 可根據需要指定檢查的欄位
     """
-    # 第一步：None 防護（W34-002 修復）
+    # 第一步：None 防護
     if input_data is None:
         if logger:
             logger.error("輸入資料為 None")

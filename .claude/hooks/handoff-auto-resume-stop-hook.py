@@ -28,7 +28,7 @@ v2.5.0 變更:
     - stop flag 過期時間從 5 分鐘延長到 2 小時（一個 session 的合理長度）
     - 重構 direction 判斷：從單一 "auto" 判斷改為 non_blocking_directions 集合
 
-v2.4.0 變更 (0.1.2-W2-002):
+v2.4.0 變更:
     - 新增「最近任務」判斷邏輯，區分「遺留任務」和「正在執行任務」
     - 檢查 in_progress Ticket 的 started_at 時間，若在最近 N 分鐘內開始執行
       → 視為「可能有代理人正在執行」，不阻止對話終止
@@ -43,7 +43,7 @@ v2.3.0 變更:
     - 原問題：reason 文字被 Claude 當作斜線命令自動執行，違反 handoff 設計
     - 修正後：reason 明確指示 Claude 告知用戶手動執行，不自動 resume
 
-v2.2.0 變更 (W3-005):
+v2.2.0 變更:
     - 修復 GC bug：to-sibling / to-parent / to-child 類型的 handoff，
       來源 Ticket completed 是預期狀態，不應被 GC 刪除
     - 新增 should_preserve_pending_json() 函式判斷是否保留
@@ -290,7 +290,7 @@ def is_ticket_recently_started(project_root: Path, ticket_id: str, logger) -> bo
         bool - 是否在最近 N 分鐘內開始執行
     """
     try:
-        # 使用 find_ticket_file 支援三層階層與舊扁平結構（0.18.0-W3-006）
+        # 使用 find_ticket_file 支援三層階層與舊扁平結構
         ticket_path = find_ticket_file(ticket_id, project_root, logger)
         if not ticket_path:
             return False
@@ -346,7 +346,7 @@ def is_ticket_completed(project_root: Path, ticket_id: str, logger) -> bool:
         bool - 是否已完成
     """
     try:
-        # 使用 find_ticket_file 支援三層階層與舊扁平結構（0.18.0-W3-006）
+        # 使用 find_ticket_file 支援三層階層與舊扁平結構
         ticket_path = find_ticket_file(ticket_id, project_root, logger)
         if not ticket_path:
             return False

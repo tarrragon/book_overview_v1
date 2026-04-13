@@ -28,7 +28,7 @@ Exit codes:
     0 - Sync successful or no action needed
     1 - Warnings (uv/ticket not found, reinstall warnings)
 
-重構紀錄 (v0.31.0-W22-001.3):
+重構紀錄:
 - 遷移至統一日誌系統 (hook_utils)
 """
 

@@ -180,7 +180,7 @@ def _setup_logger_handlers(logger: logging.Logger, log_base_dir: Path,
     """為 logger 配置 handlers
 
     採用 lazy file creation 策略：只在實際寫入日誌時才建立檔案，
-    避免產生空日誌檔案（W3-004）。使用 FileHandler 的 delay=True 參數。
+    避免產生空日誌檔案。使用 FileHandler 的 delay=True 參數。
     """
     # 觸發日誌清理（基於 mtime 時間間隔）
     cleanup_marker = log_base_dir / ".cleanup_trigger"
@@ -230,10 +230,10 @@ def _log_exception(logger: logging.Logger, hook_name: str, tb_str: str) -> None:
         logger.critical("Unhandled exception in {}".format(hook_name))
         logger.critical(tb_str)
     except Exception as logging_error:
-        # 備援路徑：日誌寫入失敗時輸出到 stderr（W3-004）
+        # 備援路徑：日誌寫入失敗時輸出到 stderr
         sys.stderr.write("Failed to log exception: {}\n".format(logging_error))
         sys.stderr.write(tb_str + "\n")
-    # 輸出到 stderr 確保用戶可見（W25-005）
+    # 輸出到 stderr 確保用戶可見
     sys.stderr.write("[Hook Error] {} failed unexpectedly. Check hook logs for details.\n".format(hook_name))
 
 

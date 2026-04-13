@@ -63,7 +63,7 @@ except ImportError as e:
     print(json.dumps({"result": "continue"}))
     # 同時輸出錯誤到 stderr（雙通道要求）
     print(f"[Hook Import Error] {Path(__file__).name}: {e}", file=sys.stderr)
-    # W10-002: exit 0 避免 CLI 顯示 hook error
+    # exit 0 避免 CLI 顯示 hook error
     sys.exit(0)
 
 # ============================================================================

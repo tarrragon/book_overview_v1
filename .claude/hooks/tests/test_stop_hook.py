@@ -349,7 +349,7 @@ class TestShouldPreservePendingJson:
 
 
 class TestAutoDirectionHandling:
-    """auto direction 分類邏輯測試（0.2.0-W3-008）"""
+    """auto direction 分類邏輯測試"""
 
     def _create_pending_json(self, pending_dir, filename, ticket_id, direction, resumed_at=None):
         """建立 pending JSON 測試檔案的輔助函式"""

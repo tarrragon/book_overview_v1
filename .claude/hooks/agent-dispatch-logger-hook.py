@@ -14,8 +14,7 @@ Agent Dispatch Logger Hook - PostToolUse (Agent)
 行為: 不阻擋（exit 0），僅記錄到 JSONL
 儲存: .claude/logs/agent-dispatch.jsonl
 
-來源: W2-014 分析結論（P1 實作項目）
-Ticket: 0.17.2-W3-002
+來源: 派發可追溯性分析結論（P1 實作項目）
 """
 
 import json

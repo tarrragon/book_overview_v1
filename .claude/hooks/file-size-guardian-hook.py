@@ -15,7 +15,7 @@ File Size Guardian Hook - 過大檔案掃描
 核心理念：行數超標是症狀，domain 混合是病因。
 回合耗盡 = 認知負擔過載的具體訊號。
 
-來源: PC-042, 0.17.2-W3-009
+來源: PC-042
 """
 
 import os

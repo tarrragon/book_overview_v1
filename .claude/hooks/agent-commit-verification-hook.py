@@ -19,9 +19,8 @@ Agent Commit Verification Hook - PostToolUse (Agent)
 
 來源:
   - PC-024 — 代理人完成實作但跳過 git commit，變更未持久化
-  - 0.17.0-W5-005 — Worktree 代理人完成後主線程 Shell cwd 被污染
-  - 0.17.3-W10-001 — feature 分支偵測 + CWD 條件化 + PM 立即動作摘要
-Ticket: 0.2.0-W3-022, 0.17.0-W5-005, 0.17.3-W10-001
+  - Worktree 代理人完成後主線程 Shell cwd 被污染
+  - Feature 分支偵測 + CWD 條件化 + PM 立即動作摘要
 """
 
 import json
@@ -88,7 +87,7 @@ MSG_CWD_RESTORE_BODY = (
     "  cd {project_root} && pwd && git branch --show-current"
 )
 
-# Worktree 合併提醒訊息（來源：0.17.2-W2-018）
+# Worktree 合併提醒訊息
 MSG_WORKTREE_MERGE_TITLE = "[Worktree 合併提醒] 有未合併回 main 的 commit"
 MSG_WORKTREE_MERGE_BODY = (
     "Agent 完成後，以下 worktree 有 commit 尚未合併回 main。\n"
@@ -96,20 +95,20 @@ MSG_WORKTREE_MERGE_BODY = (
 )
 MSG_WORKTREE_MERGE_SUGGESTION = "[強制] 合併後才能進行 ticket complete 或切換任務"
 
-# Feature 分支未合併提醒訊息（來源：0.17.3-W10-001）
+# Feature 分支未合併提醒訊息
 MSG_FEATURE_BRANCH_TITLE = "[Feature 分支提醒] 有未合併回 main 的 commit"
 MSG_FEATURE_BRANCH_BODY = (
     "Agent 完成後，以下 feature 分支有 commit 尚未合併回 main。\n"
     "代理人的變更可能在這些分支上，請先合併再驗收：\n"
 )
 
-# PM 立即動作摘要訊息（來源：0.17.3-W10-001）
+# PM 立即動作摘要訊息
 MSG_PM_ACTION_TITLE = "[PM 立即動作]"
 
 # Feature 分支前綴（用於偵測代理人建立的分支）
 FEATURE_BRANCH_PREFIXES = ("feat/", "feature/", "fix/", "refactor/")
 
-# Hook error 摘要（來源：0.18.0-W4-003）
+# Hook error 摘要
 HOOK_ERROR_SCAN_MINUTES = 5
 HOOK_ERROR_KEYWORDS = ("ERROR", "FAIL", "Exception", "Traceback", "TypeError", "NameError")
 MSG_HOOK_ERROR_TITLE = "[Hook Error 摘要] 代理人執行期間偵測到 Hook 錯誤"
@@ -554,7 +553,7 @@ def main() -> None:
     else:
         logger.debug("no uncommitted files after agent completed")
 
-    # 檢查 worktree 未合併 commit（來源：0.17.2-W2-018）
+    # 檢查 worktree 未合併 commit
     unmerged_worktrees = get_unmerged_worktrees(str(project_root), logger)
     worktree_branch_names = {branch for _, branch, _ in unmerged_worktrees}
     if unmerged_worktrees:
@@ -567,7 +566,7 @@ def main() -> None:
         )
         messages.append(build_worktree_merge_message(unmerged_worktrees))
 
-    # 檢查 feature 分支未合併 commit（來源：0.17.3-W10-001）
+    # 檢查 feature 分支未合併 commit
     unmerged_branches = get_unmerged_feature_branches(
         str(project_root), logger, worktree_branch_names,
     )
@@ -582,19 +581,19 @@ def main() -> None:
         )
         messages.append(build_feature_branch_message(unmerged_branches))
 
-    # CWD 還原提醒：只在 worktree 代理人時顯示（來源：0.17.3-W10-001）
+    # CWD 還原提醒：只在 worktree 代理人時顯示
     if agent_uses_worktree:
         messages.append(build_cwd_restore_message(str(project_root)))
         logger.info("cwd restore reminder appended (worktree agent, project_root=%s)", project_root)
     else:
         logger.debug("cwd restore reminder skipped (non-worktree agent)")
 
-    # Hook error 摘要（來源：0.18.0-W4-003）
+    # Hook error 摘要
     hook_errors = scan_hook_errors(str(project_root), HOOK_ERROR_SCAN_MINUTES, logger)
     if hook_errors:
         messages.append(build_hook_error_message(hook_errors))
 
-    # PM 立即動作摘要（來源：0.17.3-W10-001）
+    # PM 立即動作摘要
     if has_uncommitted or has_unmerged_worktrees or has_unmerged_branches:
         messages.append(build_pm_action_summary(
             str(project_root),

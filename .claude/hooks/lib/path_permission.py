@@ -2,8 +2,8 @@
 路徑權限檢查模組
 
 提供檔案路徑的允許/禁止模式比對和權限判斷。
-從 main-thread-edit-restriction-hook.py 提取（W8-005）。
-W8-006: 消除 EXCEPTION 層，改為 ALLOWED 優先檢查，每條路徑只匹配一層。
+從 main-thread-edit-restriction-hook.py 提取。
+消除 EXCEPTION 層，改為 ALLOWED 優先檢查，每條路徑只匹配一層。
 """
 
 import os
@@ -41,7 +41,7 @@ ALLOWED_PATTERNS = [
 
 # 禁止的檔案路徑模式（正則）
 # 注意：.claude/hooks/ 和 .claude/skills/ 的 .py 檔案由 ALLOWED_PATTERNS 覆蓋，
-# 不在此處列出（W8-006 消除三層 pattern 互相覆蓋）
+# 不在此處列出（消除三層 pattern 互相覆蓋）
 BLOCKED_PATTERNS = [
     r"^lib/.*",
     r"^test/.*",
@@ -119,7 +119,7 @@ def check_file_permission(file_path: str, logger) -> Tuple[bool, str]:
     檢查檔案編輯權限（預設拒絕安全策略）
 
     檢查順序：允許清單 → 禁止清單 → .claude/ 攔截 → 預設拒絕
-    W8-006: 改為 ALLOWED 優先，消除 EXCEPTION 層需求。
+    改為 ALLOWED 優先，消除 EXCEPTION 層需求。
 
     Returns:
         tuple - (is_allowed, reason)

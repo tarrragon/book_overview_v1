@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PyYAML 替代評估腳本 — W39-002 Phase 3b
+PyYAML 替代評估腳本 — Phase 3b
 
 評估步驟：
 1. 功能等價性測試：對比手寫解析器和 PyYAML 的輸出

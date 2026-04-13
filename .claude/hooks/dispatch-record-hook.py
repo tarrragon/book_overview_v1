@@ -19,8 +19,7 @@ Dispatch Record Hook - PreToolUse (Agent)
 
 來源:
   - PC-050 — PM 在代理人仍在工作時誤判完成
-  - W12-002 — dispatch-active.json 從未被寫入（缺少記錄端）
-Ticket: 0.17.3-W12-002
+  - dispatch-active.json 從未被寫入（缺少記錄端）
 """
 
 import json

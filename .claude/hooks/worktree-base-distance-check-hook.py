@@ -14,9 +14,7 @@ Worktree Base Distance Check Hook - PreToolUse (Agent)
 觸發時機: Agent 工具呼叫前 (PreToolUse, matcher: Agent)
 行為: 不阻擋（decision 始終為 "approve"），僅在 additionalContext 輸出警告
 
-來源:
-  - W5-006 — worktree 分支可能基於舊 commit，代理人在過時程式碼上工作
-Ticket: 0.17.0-W5-008
+來源: worktree 分支可能基於舊 commit，代理人在過時程式碼上工作
 """
 
 import json

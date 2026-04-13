@@ -18,20 +18,16 @@ Decision: "allow" (feature 分支) | "deny" (保護分支)
 - 使用 .claude/lib/hook_io 共用模組
 - 消除重複程式碼
 
-重構紀錄 (v0.31.0-W22-001.3):
+重構紀錄:
 - 遷移至統一日誌系統 (hook_utils)
 
-修改紀錄 (0.31.1-W5-001):
+修改紀錄:
 - 將保護分支決策從 "ask" 改為 "deny"（預防 Edit 操作在保護分支上執行）
 - 優化 block 訊息，包含詳細的分支切換指引
 - 移除未使用的 worktree_info 變數
-
-修改紀錄 (0.1.1-W9-002.3):
 - 新增路徑豁免邏輯（.claude/, docs/, CLAUDE.md, README.md 在保護分支上允許編輯）
 - 新增 is_exempt_path_on_protected_branch() 函式
 - 在保護分支上，豁免路徑不阻止編輯
-
-修改紀錄 (0.16.2-W6-001):
 - 強化 worktree 環境支援：當檔案路徑無法推導 cwd 時，嘗試從 CLAUDE_PROJECT_DIR 推導
 - 在 feat/* 分支上，所有路徑檢查均跳過（明確 early return）
 """

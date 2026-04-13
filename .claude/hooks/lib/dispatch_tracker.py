@@ -12,8 +12,6 @@ Active Dispatch Tracker 共用模組
 - is_file_under_dispatch: 檢查檔案是否在派發中
 - cleanup_expired: 清理超時記錄
 - detect_orphan_branches: 偵測 orphan worktree 分支
-
-Ticket: 0.17.2-W7-004
 """
 
 import fcntl
@@ -29,7 +27,7 @@ STATE_FILE_RELATIVE = ".claude/dispatch-active.json"
 LOCK_FILE_RELATIVE = ".claude/dispatch-active.lock"
 
 # 記憶體快取：避免同一 Hook 執行中重複讀取 JSON 檔案
-# 使用檔案 mtime 判斷是否需要重新讀取（W8-007）
+# 使用檔案 mtime 判斷是否需要重新讀取
 _state_cache: Dict = {"data": None, "mtime": 0.0}
 
 
@@ -62,7 +60,7 @@ def _read_state(project_root: Path) -> Dict:
     """讀取狀態檔。檔案不存在或格式錯誤時回傳空結構。
 
     使用檔案 mtime 驅動的記憶體快取：檔案未變更時直接回傳快取，
-    避免同一 session 中多次 Edit/Write 觸發重複 JSON 解析（W8-007）。
+    避免同一 session 中多次 Edit/Write 觸發重複 JSON 解析。
     """
     state_file = get_state_file_path(project_root)
     if not state_file.exists():
@@ -93,7 +91,7 @@ def _write_state(project_root: Path, state: Dict) -> None:
         json.dumps(state, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
-    # 寫入後使快取失效，下次 _read_state 會重新讀取（W8-007）
+    # 寫入後使快取失效，下次 _read_state 會重新讀取
     _state_cache["data"] = None
     _state_cache["mtime"] = 0.0
 
@@ -256,5 +254,5 @@ def detect_orphan_branches(project_root: Path) -> List[str]:
         if d.get("branch_name")
     }
 
-    # 精確比對（W8-001：子字串比對不可靠）
+    # 精確比對（子字串比對不可靠）
     return [b for b in worktree_branches if b not in dispatch_branch_names]

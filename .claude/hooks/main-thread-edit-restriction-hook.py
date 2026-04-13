@@ -14,8 +14,8 @@ Main Thread Edit Restriction Hook - PreToolUse Hook
 行為: 允許 → exit 0, 拒絕 → exit 2
 
 修改紀錄:
-- 0.16.2-W6-001: 新增 feat/* 分支偵測，開發分支跳過限制
-- 0.17.2-W8-005: 路徑權限邏輯提取至 lib/path_permission.py
+- 新增 feat/* 分支偵測，開發分支跳過限制
+- 路徑權限邏輯提取至 lib/path_permission.py
 """
 
 import json

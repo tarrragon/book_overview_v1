@@ -14,7 +14,6 @@ Worktree Auto-Commit Hook - Stop
 行為: 不阻擋（exit 0），僅在 worktree 環境有未提交變更時自動 commit
 
 根因修復: 代理人完成工作後未 git commit → worktree 被清理 → 工作遺失
-Ticket: 0.17.0-W4-006
 """
 
 import subprocess

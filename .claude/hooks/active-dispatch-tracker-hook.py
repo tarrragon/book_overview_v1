@@ -9,8 +9,6 @@ Active Dispatch Tracker Hook - PostToolUse (Agent)
 功能: Agent 完成後清理 dispatch 記錄、清理超時記錄、偵測 orphan branch
 觸發時機: Agent 工具完成後 (PostToolUse, matcher: Agent)
 行為: 不阻擋（exit 0），在 additionalContext 輸出狀態
-
-Ticket: 0.17.2-W7-004
 """
 
 import json
