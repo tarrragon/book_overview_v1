@@ -143,6 +143,68 @@ updated: {更新日期}
 - 過程記錄可能遺失、修改、遷移，規格文件不應依賴不穩定來源
 - 如果規格需要引用的資訊尚未定義，標記為「待定義」而非指向臨時文件
 
+### 規則 8：框架文件禁止引用專案層級識別符
+
+**`.claude/` 框架文件禁止引用專案特定的 ticket ID、commit hash、worklog 路徑等專案層級識別符**
+
+`.claude/` 是**跨專案共用框架**，透過 sync 機制同步到多個專案（如 `.claude/skills/sync-push`、`sync-pull`）。專案層級識別符只存在於當前專案，sync 到其他專案後會變成死連結和誤導性資訊。
+
+| 識別符類型 | 範例 | 可在框架文件引用？ |
+|---------|------|-----------------|
+| 專案 ticket ID | `0.18.0-W5-001`、`W2-007` | **否** |
+| 專案 commit hash | `8f74d08`、`abc1234` | **否** |
+| 專案 worklog 路徑 | `docs/work-logs/v0.17/...` | **否** |
+| 專案 proposals ID | `PROP-007` | **否**（除非已提煉為方法論） |
+| 框架 error-pattern ID | `PC-050`、`IMP-003`、`ARCH-002` | **是**（框架內部分類） |
+| Claude Code 版本號 | `CC 2.1.97` | **是**（外部平台識別） |
+| 框架檔案路徑 | `.claude/rules/core/pm-role.md` | **是**（框架內部結構） |
+
+**適用範圍**：
+
+| 目錄 | 適用規則 8？ |
+|------|-------------|
+| `.claude/rules/` | 是 |
+| `.claude/pm-rules/` | 是 |
+| `.claude/references/` | 是 |
+| `.claude/methodologies/` | 是 |
+| `.claude/error-patterns/` 內容（檔名除外） | 是 |
+| `.claude/agents/` | 是 |
+| `.claude/skills/` | 是 |
+| `.claude/hooks/` Python docstring/comment | 是 |
+| `.claude/best-practices/` | 是 |
+| `.claude/handoff/archive/` | **否**（歷史紀錄，合理保留） |
+| 專案 `docs/` | **否**（專案內部，可引用） |
+| `CLAUDE.md` | **否**（專案入口，可引用） |
+
+**Memory 和 ticket 也是專案層級**：
+
+用戶/專案 auto-memory（`~/.claude/projects/<project>/memory/`）和 ticket（`docs/work-logs/`）**都不會跨專案 sync**，所以「把原則寫到 memory」不能取代框架規則。需要跨專案落實的原則必須寫入：
+- `.claude/rules/`（自動載入規則）
+- `.claude/error-patterns/`（錯誤學習經驗）
+- `.claude/methodologies/`（方法論）
+
+**禁止的模式**：
+
+| 禁止 | 改為 |
+|------|------|
+| `（來源：0.18.0-W4-002）` | `（防範 Hook error 干擾代理人判斷）` |
+| `（W5-021 教訓）` | `（多代理人 permissionMode 批次修復教訓）` |
+| `**Ticket**: 0.17.3-W12-001`（在 error-pattern 內） | 移除整行（檔名 PC-XXX 已是足夠識別） |
+| `來源：PROP-007` | 以提案內容的抽象描述取代 |
+
+**允許的例外**：
+
+| 例外 | 說明 |
+|------|------|
+| error-pattern 檔名本身 | `PC-050-premature-agent-completion-judgment.md` 是框架內部分類 |
+| 觸發日期 | 「2026-04-12 新增」可保留，日期不是專案識別符 |
+| 通用 CC 能力版本號 | 「CC 2.1.97 新增 /agents 分頁」屬外部平台能力 |
+
+**理由**：
+- `.claude/` 經 sync 跨專案共用，專案識別符在其他專案是死連結
+- 框架文件的價值在於**抽象原則**，專案引用是耦合而非依賴
+- Memory/ticket 也是專案內部，不能承擔跨專案原則的傳遞責任
+
 ---
 
 ## 檢查清單
@@ -157,8 +219,9 @@ updated: {更新日期}
 - [ ] 有適當的 frontmatter（如適用）
 - [ ] 跨 Skill 引用使用完整路徑
 - [ ] 規格文件未引用 worklog/ticket/plan 等臨時性文件
+- [ ] 框架文件（`.claude/`）未引用專案 ticket ID / commit hash / worklog 路徑（規則 8）
 
 ---
 
-**Last Updated**: 2026-04-03
-**Version**: 1.3.0 - 新增規則 7：規格文件引用穩定性（規格不可引用 worklog/ticket）
+**Last Updated**: 2026-04-13
+**Version**: 1.4.0 - 新增規則 8：框架文件禁止引用專案層級識別符（確保跨專案 sync 不產生死連結）
