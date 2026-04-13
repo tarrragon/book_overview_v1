@@ -119,6 +119,7 @@ for x in d:
 - .claude/pm-rules/context-bundle-spec.md - Context Bundle 規範
 - .claude/pm-rules/askuserquestion-rules.md - AskUserQuestion 使用限制
 - .claude/pm-rules/task-splitting.md - 任務拆分指南
+- .claude/references/agent-dispatch-decision.md - **代理人派發決策表**（根據目標檔案位置選派發策略，避開 worktree cwd 陷阱）
 
 ---
 

@@ -115,6 +115,7 @@
 - .claude/pm-rules/tdd-flow.md - TDD 完整流程
 - .claude/pm-rules/ticket-lifecycle.md - Ticket 生命週期
 - .claude/pm-rules/incident-routing.md - 事件回應路由
+- .claude/references/agent-dispatch-decision.md - **代理人派發決策表**（IMP/TST 派發前必讀；目標檔案位置 × permissionMode 決策矩陣）
 
 ---
 
