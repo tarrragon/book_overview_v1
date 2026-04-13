@@ -33,14 +33,14 @@ class TestClaim:
         args.ticket_id = "0.31.0-W4-001"
         args.version = "0.31.0"
 
-        with patch('ticket_system.commands.lifecycle.load_ticket') as mock_load:
+        with patch('ticket_system.commands.lifecycle.load_and_validate_ticket') as mock_load:
             mock_ticket = {
                 "id": "0.31.0-W4-001",
                 "status": "pending",
                 "title": "Test Ticket",
                 "_path": "/test/path",
             }
-            mock_load.return_value = mock_ticket
+            mock_load.return_value = (mock_ticket, None)
 
             with patch('ticket_system.commands.lifecycle.save_ticket') as mock_save:
                 with patch('ticket_system.commands.lifecycle.validate_claimable_status') as mock_validate:
@@ -131,7 +131,7 @@ class TestComplete:
         args.ticket_id = "0.31.0-W4-001"
         args.version = "0.31.0"
 
-        with patch('ticket_system.commands.lifecycle.load_ticket') as mock_load:
+        with patch('ticket_system.commands.lifecycle.load_and_validate_ticket') as mock_load:
             mock_ticket = {
                 "id": "0.31.0-W4-001",
                 "status": "in_progress",
@@ -142,7 +142,7 @@ class TestComplete:
                 ],
                 "_path": "/test/path",
             }
-            mock_load.return_value = mock_ticket
+            mock_load.return_value = (mock_ticket, None)
 
             with patch('ticket_system.commands.lifecycle.save_ticket') as mock_save:
                 with patch('ticket_system.commands.lifecycle.validate_completable_status') as mock_validate:
@@ -194,14 +194,14 @@ class TestComplete:
         args.ticket_id = "0.31.0-W4-001"
         args.version = "0.31.0"
 
-        with patch('ticket_system.commands.lifecycle.load_ticket') as mock_load:
+        with patch('ticket_system.commands.lifecycle.load_and_validate_ticket') as mock_load:
             mock_ticket = {
                 "id": "0.31.0-W4-001",
                 "status": "completed",
                 "title": "Already Completed",
                 "completed_at": "2026-01-30T10:50:00",
             }
-            mock_load.return_value = mock_ticket
+            mock_load.return_value = (mock_ticket, None)
 
             with patch('ticket_system.commands.lifecycle.validate_completable_status') as mock_validate:
                 mock_validate.return_value = (False, "Already completed", True)
