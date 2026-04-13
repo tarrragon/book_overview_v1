@@ -67,15 +67,48 @@ cat .claude/dispatch-active.json  # 確認剩餘活躍派發
 
 **只有 dispatch-active.json 為空時，才能開始驗收和 commit。**
 
-**針對模式 D（誤判失敗）的強制規則（2026-04-12 新增）**：
+**針對模式 D（誤判失敗）的強制規則（2026-04-13 修訂）**：
 
 | 禁止行為 | 原因 | 替代做法 |
 |---------|------|---------|
-| 主動讀取 agent transcript output 檔（`/private/tmp/.../tasks/*.output`）推論 agent 是否失敗 | transcript 是流式快照，非最終狀態 | 等 `<task-notification>` tag 到達再判斷 |
+| 主動讀取 agent transcript output 檔的 **`<output>` body** 推論 agent 是否失敗 | output body 是流式 JSONL 快照，非最終狀態 | 呼叫 TaskOutput 只讀 `<status>` 標籤（見下節）；或等 `<task-notification>` 到達 |
 | 看到 agent 在 transcript 中只做了少量 tool call 就判定「過早 stop」 | agent 可能仍在執行，transcript 只是當下狀態 | Hook 顯示「所有代理人已完成」不等於「這個代理人已完成」，必須等 task-notification |
-| 在 task-notification 未到達前寫「失敗分析」到 Ticket | 事實未定，可能誤導 | 有疑慮時使用 SendMessage 確認，或直接等通知 |
+| 在 task-notification 未到達前寫「失敗分析」到 Ticket | 事實未定，可能誤導 | 有疑慮時呼叫 TaskOutput 確認 `<status>`，或用 SendMessage 確認 |
 
-**唯一授權讀取 transcript 的情境**：`<task-notification>` 已到達但 result 摘要不清楚，需深入檢視 agent 實際 tool calls 時。即便如此也禁止從中間狀態推論「仍在執行 vs 失敗」。
+**唯一授權讀取 transcript body 的情境**：`<task-notification>` 已到達但 result 摘要不清楚，需深入檢視 agent 實際 tool calls 時。即便如此也禁止從中間狀態推論「仍在執行 vs 失敗」。
+
+### TaskOutput 安全使用範本（2026-04-13 新增，來源 W6-006）
+
+PM 可用 TaskOutput 工具對 `local_agent` 任務做**非侵入性狀態查詢**，補模式 D 的根因盲點（缺乏主動查詢代理人存活的工具）：
+
+```
+TaskOutput(
+  task_id=<agentId>,      # Agent tool 返回的 agentId 即是 task_id
+  block=false,            # 非阻塞，立即返回
+  timeout=3000            # 3 秒超時
+)
+```
+
+**解讀返回值**：
+
+| 標籤 | 允許讀取 | 用途 |
+|------|---------|------|
+| `<status>` | 允許 | `running` / `completed` / `error` — 唯一可信的狀態來源 |
+| `<task_type>` | 允許 | 確認是 `local_agent`（非 bash/remote） |
+| `<retrieval_status>` | 允許 | `not_ready` / `ready` — 指示 output 是否完整 |
+| **`<output>` body** | **禁止推論** | 流式 JSONL transcript，可能數十 KB 污染 context；禁止從內容推論代理人狀態 |
+
+**Context 污染警告**：TaskOutput 返回值包含截斷的 `<output>` body（JSONL transcript）。PM **必須紀律性只讀狀態標籤，忽略 `<output>` 內容**。若需深入檢視代理人工具呼叫，等 `<task-notification>` 到達後做，而非從中間狀態推論。
+
+**適用場景**：
+- 懷疑某個背景代理人未完成但 task-notification 未到達 → 查 `<status>` 確認
+- 失敗判斷前置步驟 Step 0.5（見 pm-role.md）
+- 派發多個代理人後，確認某個特定代理人仍在執行中（非從 dispatch-active.json 推論）
+
+**不適用場景**：
+- 代理人計數 → 用 dispatch-active.json（Source of Truth）
+- 代理人完成時間 → 等 completion notification（事件驅動）
+- git commit 證據 → 靠 agent-commit-verification-hook
 
 **完成 Checkpoint 中**（completion-checkpoint-rules.md「Checkpoint 1.85」）：
 - 1.85 代理人清點：dispatch-active.json 非空 → 阻塞，禁止繼續
@@ -111,6 +144,7 @@ cat .claude/dispatch-active.json  # 確認剩餘活躍派發
 ---
 
 **Created**: 2026-04-10
+**Last Updated**: 2026-04-13
 **Category**: process-compliance
 **Severity**: P1（導致重複工作、潛在衝突、判斷錯誤）
-**Key Lesson**: 派發時記錄數量，收到通知時比對，全部完成才行動
+**Key Lesson**: 派發時記錄數量，收到通知時比對，全部完成才行動；TaskOutput `<status>` 標籤提供安全的 runtime 狀態查詢（W6-006 / W7-002）
