@@ -74,6 +74,7 @@
 |---------|---------|------|
 | 阻塞依賴檢查 | 警告 | 如有阻塞依賴，顯示警告 |
 | **5W1H 待定義欄位補全** | **強制** | **claim 後立即檢查 when/where/how，「待定義」必須用 set-* 更新** |
+| **簡化 WRAP 三問** | **強制** | **claim 後必須回答 W/A/P 三問作為品質 checkpoint；ANA 類型額外執行完整 /wrap-decision** |
 | 設計文件閱讀 | 建議 | 提醒閱讀相關規格和設計 |
 | 驗收條件理解 | 建議 | 確保理解驗收標準 |
 | error-patterns 查詢 | 建議 | IMP/ADJ 類型時建議查詢 |
@@ -95,6 +96,34 @@ claim 完成
 ```
 
 **禁止行為**：claim 後不更新待定義欄位就開始執行（資訊只留在 session context）。
+
+### 簡化 WRAP 三問（強制）
+
+> **來源**：0.18.0-W10-027 ANA 分析。claim 是品質 checkpoint，但全部強制完整 WRAP 會稀釋價值（小 ticket 3-10 hr 儀式時間 / 版本）。業界基本率（code review gate、aviation checklist）顯示分級為主流。分級原則：所有 ticket 簡化三問強制；ANA 額外完整 WRAP。
+
+claim 完成後（或「5W1H 補全」完成後），PM 或代理人必須回答以下三問，寫入 ticket Problem Analysis 區段或 commit message：
+
+| 問題 | 目的 | 最低回答品質 |
+|------|------|-------------|
+| **W（Widen）—— 有其他做法嗎？** | 確認選擇非默認值 | 至少列 2 個候選方案（含目前方案） |
+| **A（Attain distance）—— 機會成本是什麼？** | 對抗「閒著就焦慮檢查代理人」的傾向 | 明列此投入擠壓的其他優先事項 |
+| **P（Prepare to be wrong）—— 最可能失敗原因是什麼？** | 行前預想 + 防護思考 | 1 條最可能失敗原因 + 對應防護措施 |
+
+**ANA 類型額外要求**：簡化三問不足以保證分析品質，必須額外執行完整 `/wrap-decision` 框架（W/R/A/P 四階段 + 絆腳索）。
+
+**CLI 層自動提示**：`ticket track claim` 命令輸出會自動附加此三問區段，類型為 ANA 時額外輸出完整 WRAP 引導（來源：W10-028 實作）。
+
+**禁止行為**：
+
+| 禁止 | 原因 |
+|------|------|
+| claim 後略過三問直接執行 | 失去 claim 的品質 checkpoint 作用 |
+| 以「ticket 很小」為由略過 | 規則是分級的——簡化三問已經輕量（3-5 min），再省只剩儀式 |
+| ANA 類型只答三問不做完整 WRAP | ANA 的認知偏誤風險高，簡化三問不足以防護 |
+
+**建議紀錄位置**：
+- 簡短答案（ticket 直接可答）：寫在 commit message
+- 需展開的分析（判斷較微妙）：`ticket track append-log <id> --section "Problem Analysis"`
 
 ---
 

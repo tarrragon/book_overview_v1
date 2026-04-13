@@ -30,7 +30,7 @@ pending → claim → in_progress → complete → completed
 |------|---------|----------------|
 | **建立** | 必須用 `/ticket create`，禁止直接寫 .md | 任務拆分確認（認知 > 10） |
 | **建立後** | 強制並行審核：acceptance-auditor（品質）+ system-analyst（設計）→ creation_accepted: true | - |
-| **認領** | 阻塞依賴檢查 + **5W1H 待定義欄位補全（強制）** | - |
+| **認領** | 阻塞依賴檢查 + **5W1H 待定義欄位補全（強制）** + **簡化 WRAP 三問（W/A/P，強制）** | - |
 | **執行** | 錯誤強制派發 incident-responder；日誌必填 | - |
 | **驗收** | **主動勾選驗收條件**（`check-acceptance`）→ acceptance-gate-hook 事後驗證 | **驗收方式確認**（標準/簡化/先完成後補） |
 | **完成** | 所有驗收條件已勾選後執行 `/ticket track complete`；complete 後處理 #17（錯誤學習） | **後續步驟選擇** |
