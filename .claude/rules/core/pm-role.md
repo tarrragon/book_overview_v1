@@ -256,6 +256,7 @@ git branch | grep feat/
 - .claude/pm-rules/anti-patterns.md - 新手主管的錯誤
 - .claude/pm-rules/parallel-first.md - 並行優先策略
 - .claude/pm-rules/async-mindset.md - 非同步心態
+- .claude/references/pm-agent-observability.md - PM 背景代理人觀察指南（四工具分工、TaskOutput 安全範本）
 
 ---
 

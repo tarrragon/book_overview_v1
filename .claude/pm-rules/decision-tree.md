@@ -102,6 +102,7 @@ Skill 是預建的專用工具，優先於代理人派發。
 
 - .claude/pm-rules/agent-path-registry.md - 代理人路徑權限表（Source of Truth）
 - .claude/pm-rules/context-bundle-spec.md - Context Bundle 規範
+- .claude/references/pm-agent-observability.md - 背景代理人觀察指南（dispatch-active.json / TaskOutput / Hook / notification 四工具分工）
 
 ### 支撐規則
 
