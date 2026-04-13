@@ -92,7 +92,7 @@ Skill 是預建的專用工具，優先於代理人派發。
 - .claude/pm-rules/command-routing.md - 命令路由（開發、TDD）
 - .claude/pm-rules/incident-routing.md - 事件回應路由
 
-### Domain 拆分檔案（DDD 邊界，W3-007.1）
+### Domain 拆分檔案（DDD 邊界）
 
 - .claude/pm-rules/execution-discovery-rules.md - 執行 Domain（第三層半 + 第四層）
 - .claude/pm-rules/completion-checkpoint-rules.md - 完成 Domain（第七層 + 第八層）

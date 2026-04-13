@@ -159,7 +159,7 @@ acceptance-gate-hook 事後驗證（最後防線）
 
 ### Complete 前 error-pattern 衝突檢查（IMP/ADJ 強制）
 
-> **來源**：PC-052 — W10-002 修改 `run_hook_safely` 完成後，才發現 IMP-049 已記錄相同修改失敗 2 次。如果 complete 前查詢 error-pattern，問題在驗收階段就能攔截。
+> **來源**：PC-052 — 修改核心函式完成後，才發現 IMP-049 已記錄相同修改失敗 2 次。如果 complete 前查詢 error-pattern，問題在驗收階段就能攔截。
 
 **觸發條件**：IMP 或 ADJ 類型 Ticket 執行 complete 前。
 
@@ -209,7 +209,7 @@ acceptance-gate-hook 事後驗證（最後防線）
 
 ## ANA Ticket 完成階段衍生 Ticket 檢查（強制）
 
-> **來源**：W9-005 — ANA Ticket 完成時未強制確認分析結論是否需要建立衍生 Ticket，導致建議被遺忘需事後人工補建。
+> **來源**：ANA Ticket 完成時未強制確認分析結論是否需要建立衍生 Ticket，導致建議被遺忘需事後人工補建。
 
 `ticket track complete` 對 ANA 類型 Ticket 執行前，acceptance-gate-hook 自動檢查 `spawned_tickets` 和 `children` 欄位。
 
