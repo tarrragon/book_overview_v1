@@ -41,6 +41,9 @@ from ticket_system.lib.command_lifecycle_messages import (
     LifecycleMessages,
     format_msg,
 )
+from ticket_system.lib.command_tracking_messages import (
+    ClaimWrapMessages,
+)
 from ticket_system.lib.tdd_sequence import (
     validate_phase_prerequisite,
     PHASE_LABELS,
@@ -878,6 +881,38 @@ def _print_claim_checklist(ticket: Dict[str, Any]) -> None:
     print(LifecycleMessages.CHECKLIST_SCOPE_VERIFICATION)
     print(LifecycleMessages.CHECKLIST_EXECUTION_LOG)
     print()
+
+    # 附加簡化 WRAP 三問提示（Ticket 0.18.0-W10-028，來源 W10-027）
+    _print_claim_wrap_prompt(ticket_type)
+
+
+def _print_claim_wrap_prompt(ticket_type: str) -> None:
+    """
+    印出認領時的簡化 WRAP 三問提示。
+
+    所有 ticket 類型共用三問區段；ANA 類型額外附加完整 /wrap-decision 提示。
+    來源：Ticket 0.18.0-W10-027（ANA 分析結論）。
+
+    Args:
+        ticket_type: Ticket 類型（IMP/ANA/DOC 等），用於條件式輸出與文案格式化
+    """
+    _print_stage_separator(ClaimWrapMessages.WRAP_SECTION_TITLE)
+    print()
+    print(ClaimWrapMessages.WRAP_INTRO)
+    print()
+    print(ClaimWrapMessages.WRAP_WIDEN)
+    print()
+    print(ClaimWrapMessages.WRAP_ATTAIN_DISTANCE)
+    print()
+    print(ClaimWrapMessages.WRAP_PREPARE_WRONG)
+    print()
+    print(ClaimWrapMessages.WRAP_APPLIES_TO.format(ticket_type=ticket_type))
+    print()
+
+    if ticket_type == "ANA":
+        print(ClaimWrapMessages.ANA_EXTRA_HEADER)
+        print(ClaimWrapMessages.ANA_EXTRA_BODY)
+        print()
 
 
 # ============================================================================
