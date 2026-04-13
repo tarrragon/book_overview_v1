@@ -152,6 +152,14 @@ Claude Code 內建了官方的 memory 系統（`~/.claude/projects/{project}/mem
 | ARCH-006 | 環境配置作用域錯誤 | 中 | v0.31.1 |
 | ARCH-007 | Per-project 追蹤檔追蹤全域資源 | 中 | v0.1.0 |
 | ARCH-008 | 依賴全域狀態推斷而非從本地資料提取 | 中 | v0.1.0 |
+| ARCH-009 | 將決策邏輯集中到單一 skill 造成 context 膨脹 | 中 | v0.1.0 |
+| ARCH-010 | 模組組裝遺漏導致功能鏈路靜默斷裂 | 高 | v0.1.0 |
+| ARCH-010 | 過度設計的狀態管理（編號重複，待整併） | 中 | v0.1.0 |
+| ARCH-011 | 框架資產與專案產物混放 | 中 | v0.1.0 |
+| ARCH-012 | 代理人專案特定硬編碼 | 中 | v0.1.0 |
+| ARCH-013 | ESM/CJS 混合匯出導致 Dead Code | 中 | v0.1.0 |
+| ARCH-014 | 跨執行環境共享可變常數物件 | 中 | v0.17.3 |
+| ARCH-015 | subagent .claude/ 寫入 hardcoded 保護 | 中 | v0.18.0 |
 
 ### 程式碼品質 (CQ)
 
