@@ -52,6 +52,8 @@ else:
 
 ### 2. TaskOutput（即時狀態查詢）
 
+> **注意**：TaskOutput 是 Claude Code **deferred tool**，新 session 首次使用前必須執行 `ToolSearch("select:TaskOutput")` 載入 schema，否則直接呼叫會得到 `InputValidationError`。deferred tools 概念和完整清單見 `.claude/skills/search-tools-guide/SKILL.md` 的「Claude Code Meta-Tools」章節。
+
 **適用場景**：
 - 懷疑某個背景代理人未完成但 task-notification 未到達
 - 失敗判斷前置步驟 Step 0.5（見 pm-role.md）
@@ -60,6 +62,10 @@ else:
 **呼叫範本**：
 
 ```
+# Step 1：首次使用前載入 schema（若本 session 已載入可跳過）
+ToolSearch(query="select:TaskOutput")
+
+# Step 2：呼叫（schema 載入後）
 TaskOutput(
   task_id=<agentId>,      # Agent tool 返回的 agentId 即是 task_id
   block=false,            # 非阻塞，立即返回
