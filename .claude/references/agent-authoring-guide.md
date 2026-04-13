@@ -70,14 +70,14 @@ effort: low
 
 ---
 
-## Worktree 陷阱（W5-029 教訓）
+## Worktree 陷阱（歷史教訓）
 
 `permissionMode` 不是萬靈丹，它受 **subagent cwd** 限制：
 
 ### 根因
 
 - subagent 繼承主 session 的 cwd（通常是主 repo）
-- 若 PM 派發時指定 **worktree 的絕對路徑**（例如 `/Users/xxx/project-W1-021/.claude/agents/`），subagent 視這個路徑為「cwd 外部」
+- 若 PM 派發時指定 **worktree 的絕對路徑**（例如 `/Users/xxx/project-feature-branch/.claude/agents/`），subagent 視這個路徑為「cwd 外部」
 - `acceptEdits` 只認 cwd 或 `additionalDirectories`，worktree 外部編輯被拒
 - `bypassPermissions` 的「`.claude/agents` 允許」判斷也可能基於 cwd 相對路徑識別，worktree 絕對路徑可能無法觸發例外
 
@@ -96,7 +96,7 @@ effort: low
 | 禁止行為 | 原因 |
 |---------|------|
 | prompt 中要求代理人 `cd` 到 worktree | 環境的 `chpwd` shell hook 會觸發 `ls` 淹沒代理人輸出（IMP-056） |
-| 相信「frontmatter 設了 `bypassPermissions` 就沒問題」 | W5-029 確認在 worktree 外部絕對路徑仍可能被拒 |
+| 相信「frontmatter 設了 `bypassPermissions` 就沒問題」 | 經驗證在 worktree 外部絕對路徑仍可能被拒 |
 
 ---
 
@@ -125,10 +125,10 @@ effort: low
 - `.claude/error-patterns/process-compliance/PC-059-agent-tools-vs-runtime-permission.md` — 完整錯誤模式
 - `.claude/agents/AGENT_PRELOAD.md` — 代理人共用前置知識
 - `.claude/rules/core/pm-role.md` — PM 派發角色邊界
-- W5-019 / W5-021 / W5-029 Ticket — 歷史修復與驗證紀錄
+- permissionMode 與 worktree 路徑的歷史修復紀錄（詳見 PC-059）
 
 ---
 
 **Last Updated**: 2026-04-13
 **Version**: 1.0.0
-**Source**: PC-059 retry5、W5-029 調查結論
+**Source**: PC-059 retry5 模式調查結論

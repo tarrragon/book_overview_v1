@@ -3,7 +3,6 @@
 **實作版本**: 1.0.0
 **完成日期**: 2026-02-05
 **實作代理人**: basil-hook-architect
-**Ticket**: 0.31.0-W7-012
 
 ---
 
@@ -92,10 +91,10 @@ def is_complete_command_success(input_data):
 正則表達式: \d+\.\d+\.\d+-W\d+-\d+(?:\.\d+)*
 
 匹配範例:
-- 0.31.0-W7-012         # 根任務
-- 0.31.0-W7-012.1       # 1 層子任務
-- 0.31.0-W7-012.1.2     # 2 層子任務
-- 0.31.0-W7-012.1.2.3   # 3 層子任務（無限支援）
+- {version}-W{n}-{seq}         # 根任務
+- {version}-W{n}-{seq}.1       # 1 層子任務
+- {version}-W{n}-{seq}.1.2     # 2 層子任務
+- {version}-W{n}-{seq}.1.2.3   # 3 層子任務（無限支援）
 ```
 
 #### 3. 檔案清理邏輯
@@ -199,9 +198,9 @@ handoff-cleanup-hook.py
    - 無成功標記 → 靜默返回
 
 4. **ID 格式**: ✓
-   - 根任務: `0.31.0-W7-012` ✓
-   - 子任務: `0.31.0-W7-012.1.2` ✓
-   - 多層子任務: `0.31.0-W7-012.1.2.3` ✓
+   - 根任務: `{version}-W{n}-{seq}` ✓
+   - 子任務: `{version}-W{n}-{seq}.1.2` ✓
+   - 多層子任務: `{version}-W{n}-{seq}.1.2.3` ✓
 
 ### 測試數據
 
@@ -277,7 +276,7 @@ handoff-cleanup-hook.py
   },
   "details": [
     {
-      "ticket_id": "0.31.0-W7-012",
+      "ticket_id": "{version}-W{n}-{seq}",
       "pending_cleaned": true,
       "archive_cleaned": false,
       "pending_path": "...",

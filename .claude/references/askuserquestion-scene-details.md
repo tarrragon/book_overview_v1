@@ -400,4 +400,4 @@ commit-handoff-hook 解析 commit message 前綴，依下表決定是否觸發 #
 ---
 
 **Last Updated**: 2026-03-13
-**Version**: 1.2.0 - 同步 W43-W47 規則：#8 Hook 覆蓋、D2 自動豁免、Phase 1-3 自治 commit 相容性（0.1.0-W48-003）
+**Version**: 1.2.0 - 同步規則：#8 Hook 覆蓋、D2 自動豁免、Phase 1-3 自治 commit 相容性
