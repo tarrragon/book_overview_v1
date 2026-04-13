@@ -118,12 +118,51 @@ git branch | grep "worktree-agent-" | xargs git branch -D 2>/dev/null
 
 ---
 
+## .claude/ 路徑限制（強制，來源 ARCH-015）
+
+> **核心規則**：**`.claude/` 變更不在 worktree 進行**。subagent 對 worktree 內 `.claude/` 路徑的 Edit/Write 會被 CC runtime hardcoded 拒絕，無法繞過。
+
+### 派發位置決策
+
+派發 subagent 前判斷 prompt 是否提及 `.claude/` 路徑修改：
+
+| Prompt 內容 | 派發位置 | 執行者 |
+|------------|---------|-------|
+| 含 `.claude/` 路徑 Edit/Write | **主 repo cwd**（不進 worktree） | PM 前台 或 主 repo subagent |
+| 僅含非 `.claude/` 路徑（src/、tests/、docs/） | worktree 或主 repo 皆可 | worktree subagent |
+| 跨 `.claude/` 與其他路徑 | **拆分為兩次派發** | .claude/ 主 repo + 其他 worktree |
+
+### 為何此限制不可繞過
+
+實證（5 受控實驗）：
+
+| 嘗試的繞過方式 | 結果 |
+|--------------|------|
+| subagent frontmatter `permissionMode: bypassPermissions` | 無效 |
+| settings.json `additionalDirectories` 絕對路徑 | 無效 |
+| settings.json `additionalDirectories` glob pattern | 無效 |
+| Agent 工具 `mode: "acceptEdits"` 參數 | 無效 |
+| `--add-dir` 啟動參數 / `/add-dir` runtime 命令 | PM 無法執行（無對應 deferred tool） |
+
+**不要繼續嘗試上述任何方式。** CC runtime 對 `.claude/` 有 hardcoded 寫入保護，僅允許主 session cwd 內的 `.claude/`。詳見 ARCH-015。
+
+### Read 操作不受限制
+
+subagent 在任何 cwd 都可 Read worktree 內的 `.claude/` 檔案。可用於：
+- subagent 比對 worktree 與主 repo 的 `.claude/` 差異
+- subagent 讀取 worktree 內框架規則作為決策依據
+
+僅 Edit/Write 受限。
+
+---
+
 ## 檢查清單
 
 ### 派發前
 - [ ] main 上 `git status` 為 clean？
 - [ ] Ticket 狀態已更新且 committed？
 - [ ] Agent prompt 包含 `Ticket: {id}`？
+- [ ] 若 prompt 提及 `.claude/` 路徑 Edit/Write，cwd 為**主 repo**（非 worktree）？（ARCH-015）
 
 ### 合併時
 - [ ] `pwd && git branch --show-current` 確認在 main？
@@ -166,11 +205,12 @@ git branch | grep "worktree-agent-" | xargs git branch -D 2>/dev/null
 
 - .claude/error-patterns/process-compliance/PC-019-worktree-merge-state-loss.md
 - .claude/error-patterns/process-compliance/PC-039-worktree-unmerged-invisible-output.md
+- .claude/error-patterns/architecture/ARCH-015-subagent-claude-dir-hardcoded-protection.md
 - .claude/pm-rules/parallel-dispatch.md - 並行派發規則
 - .claude/pm-rules/decision-tree.md - Checkpoint 1.9 Worktree 合併
 - .claude/rules/core/bash-tool-usage-rules.md - 禁止 cd 污染
 
 ---
 
-**Last Updated**: 2026-04-05
-**Version**: 2.0.0 - 新增 Worktree 狀態檢查觸發點（PC-039, 0.17.2-W2-018）
+**Last Updated**: 2026-04-13
+**Version**: 2.1.0 - 新增 .claude/ 路徑限制章節（ARCH-015）

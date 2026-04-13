@@ -42,6 +42,16 @@
 
 **分工判斷**：任務需要大量讀取（> 3 個文件）？→ PM 前台分析。任務是程式碼實作/測試？→ 派發代理人背景。
 
+**派發位置判斷**（ARCH-015）：
+
+| Prompt 內容 | 派發位置 |
+|------------|---------|
+| 含 `.claude/` 路徑 Edit/Write | 主 repo cwd（不進 worktree） |
+| 僅含非 `.claude/` 路徑 | worktree 或主 repo 皆可 |
+| 跨 `.claude/` 與其他路徑 | 拆分為兩次派發 |
+
+> CC runtime 對 `.claude/` 有 hardcoded 寫入保護，subagent 無法 Edit worktree 內 `.claude/`。詳見 .claude/pm-rules/worktree-operations.md `.claude/` 路徑限制章節。
+
 **派發後行為**：
 
 所有實作型任務使用 `run_in_background: true` 派發。PM 派發後**立刻切換**到其他 Ticket 的前置工作（Context Bundle 準備、規格分析、規劃），不等代理人完成。
@@ -261,5 +271,5 @@ git branch | grep feat/
 ---
 
 **Last Updated**: 2026-04-13
-**Version**: 3.4.0 - 失敗判斷前置步驟新增 Step 0.5（TaskOutput 狀態查詢）+ 完成確認 SOP 補充驗證工具
+**Version**: 3.5.0 - 新增派發位置判斷表（ARCH-015：.claude/ 路徑 hardcoded 保護）
 **Source**: 從 .claude/skills/manager/SKILL.md v2.0.0 遷移 + PC-045 教訓

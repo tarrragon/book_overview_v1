@@ -59,7 +59,7 @@
 |------|---------|------|
 | 代理人回報「Permission to use Edit has been denied」 | cwd 不對齊目標路徑 | 切換到方案：PM 前台執行，或改用主 repo feat 分支 |
 | 代理人背景派發無修改但 git 無變更 | permissionMode 為 default，背景無人批准 | frontmatter 加 `permissionMode: acceptEdits` |
-| worktree 中代理人編輯 .claude/ 被 Hook 攔截 | branch-verify-hook / main-thread-edit-restriction-hook 路徑或分支判斷異常 | 暫改用主 repo feat 分支，或派發 general-purpose agent + Bash heredoc |
+| worktree 中代理人編輯 .claude/ 被拒絕 | **CC runtime hardcoded 保護**（非 hook 攔截），additionalDirectories 無法繞過（ARCH-015） | **必須**改用主 repo cwd（PM 前台或主 repo subagent），不要繼續嘗試 additionalDirectories / --add-dir |
 | 代理人修改了 Ticket scope 外的檔案 | 重試 prompt 擴大 scope（PC-050 延伸） | 重試時嚴守原 Ticket 驗收條件 |
 | Worktree 建立後缺依賴 | worktree 不自動合併 blockedBy 分支 | prompt 加 `git merge feat/{dep}` 前置步驟 |
 
