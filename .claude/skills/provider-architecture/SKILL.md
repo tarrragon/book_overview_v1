@@ -335,8 +335,8 @@ void someMethod() {
 
 ### Tickets
 
-- `0.25.1-W2-002`: Provider Override 機制實作
-- `0.25.1-W2-003`: AppButton Flexible Widget 修復
+- Provider Override 機制實作
+- AppButton Flexible Widget 修復
 
 ### 錯誤模式
 

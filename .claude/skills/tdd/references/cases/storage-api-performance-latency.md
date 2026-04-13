@@ -80,4 +80,4 @@ Chrome Storage API 每次讀寫都需要 JSON 序列化/反序列化。批量操
 ---
 
 **Last Updated**: 2026-04-04
-**Version**: 1.0.0 - 初始建立（0.17.0-W4-010）
+**Version**: 1.0.0 - 初始建立

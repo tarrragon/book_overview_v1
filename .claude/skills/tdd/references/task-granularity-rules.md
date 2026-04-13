@@ -44,7 +44,7 @@ Use Case（業務行為）
 - 可以獨立寫一個測試來驗證
 - 失敗時不會影響其他單元的測試結果
 
-**範例 — v0.17.0 Chrome Storage adapter（W3-002）**：
+**範例 — Chrome Storage adapter**：
 
 原始 Use Case：「系統以 tag-based 結構儲存書籍分類資料」
 

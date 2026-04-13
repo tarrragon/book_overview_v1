@@ -162,4 +162,4 @@ test('addTag 失敗時應記錄 warning 日誌', async () => {
 ---
 
 **Last Updated**: 2026-04-04
-**Version**: 1.0.0 - 初始建立（0.17.0-W4-005.2）
+**Version**: 1.0.0 - 初始建立

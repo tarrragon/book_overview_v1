@@ -99,7 +99,7 @@ Phase 3: 任一視角發現問題 → 回到分析階段補充
 
 ### 延後追蹤（建 Ticket，不立即執行）
 
-> **強制**：此表格每一行的 Ticket 欄必須填入實際 Ticket ID（如 `0.17.2-W10-002`）。空白 Ticket 欄 = 未追蹤 = 違反 quality-baseline 規則 5。
+> **強制**：此表格每一行的 Ticket 欄必須填入實際 Ticket ID（格式如 `{version}-W{wave}-{seq}`）。空白 Ticket 欄 = 未追蹤 = 違反 quality-baseline 規則 5。
 
 | # | 視角 | 發現 | 延後原因 | Ticket |
 |---|------|------|---------|--------|

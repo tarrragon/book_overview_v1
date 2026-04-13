@@ -166,7 +166,7 @@ docs/
     │       └── v{VERSION}/          # 小版本目錄
     │           ├── v{VERSION}-main.md    # 小版本工作日誌（敘事性事件日誌）
     │           └── tickets/         # 執行細節
-    │               ├── {version}-W1-001.md
+    │               ├── {version}-W{wave}-{seq}.md
     │               └── ...
     └── legacy/                      # 舊格式散落檔案
 ```

@@ -5,7 +5,7 @@
 
 ---
 
-## 案例：W4-002 — 4 個 P1 問題合成 1 個 Ticket
+## 案例：4 個 P1 問題合成 1 個 Ticket
 
 **問題編號**：GRAN-001（任務粒度反模式 - Priority Bundling）
 
@@ -16,7 +16,7 @@
 **原始 Ticket**：
 
 ```yaml
-id: 0.17.0-W4-002
+id: {version}-W{wave}-{seq}
 title: "修復 P1: 驗證框架重複 + 狀態轉換重複 + 可觀測性 + ID碰撞"
 acceptance:
   - 提取共用驗證引擎

@@ -208,4 +208,4 @@ void processOrder(Order order) {
 ---
 
 **Last Updated**: 2026-04-06
-**Version**: 1.1.0 - 新增檔案體量 + domain 邊界 + event 深度維度（PC-042, 0.17.2-W3-009）
+**Version**: 1.1.0 - 新增檔案體量 + domain 邊界 + event 深度維度（PC-042）

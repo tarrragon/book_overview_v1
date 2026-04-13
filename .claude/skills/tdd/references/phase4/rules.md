@@ -355,4 +355,4 @@ Phase 4 必須記錄所有發現的技術債務，無論優先級高低。
 ---
 
 **Last Updated**: 2026-04-04
-**Version**: 2.0.0 - 從 phase4-refactor.md 拆出，新增 Phase 4d 流程改善回饋環、案例索引（0.17.0-W4-005.3）
+**Version**: 2.0.0 - 從 phase4-refactor.md 拆出，新增 Phase 4d 流程改善回饋環、案例索引

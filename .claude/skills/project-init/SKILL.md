@@ -265,4 +265,4 @@ uv tool install .
 ---
 
 **Last Updated**: 2026-04-01
-**Version**: 1.1.0 - 新增後續流程銜接說明（W4-013）
+**Version**: 1.1.0 - 新增後續流程銜接說明

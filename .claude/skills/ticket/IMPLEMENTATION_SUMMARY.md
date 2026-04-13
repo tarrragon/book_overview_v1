@@ -2,7 +2,7 @@
 
 ## 實現範圍
 
-完成了 Ticket 0.31.0-W5-001.6 的核心需求：
+完成了 Ticket 的核心需求：
 
 ### 1. ticket_generator.py（新建）
 位置：`ticket_system/lib/ticket_generator.py`

@@ -155,4 +155,4 @@ queued (true) → abandoned (true) → reference (true) → unread (false)
 ---
 
 **Last Updated**: 2026-04-04
-**Version**: 1.0.0 - 初始建立（0.17.0-W5-002）
+**Version**: 1.0.0 - 初始建立

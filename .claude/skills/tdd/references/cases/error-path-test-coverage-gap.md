@@ -80,4 +80,4 @@ EVENTBUS_ERROR 和 EVENTBUS_REQUIRED 零覆蓋。EventBus 是事件驅動架構�
 ---
 
 **Last Updated**: 2026-04-04
-**Version**: 1.0.0 - 初始建立（0.17.0-W4-010）
+**Version**: 1.0.0 - 初始建立
