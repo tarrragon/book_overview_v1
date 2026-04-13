@@ -23,7 +23,28 @@
 
 **禁止**：建立獨立的語言設定檔（如 FLUTTER.md、PYTHON.md）。所有專案設定統一在 CLAUDE.md。
 
+## 框架資產與專案產物的職責分離
+
+框架與專案是兩個獨立生命週期，必須在目錄上嚴格分離。
+
+| 類別 | 位置 | 典型內容 | 判斷標準 |
+|------|------|---------|---------|
+| **框架資產** | `.claude/` | 模板、規範、Skill、Hook、CLI、規則、方法論 | 會 sync 到其他專案共用 |
+| **專案產物** | `docs/`、`src/`、`tests/` | 需求文件、設計稿、程式碼、工作日誌 | 僅屬本專案 |
+
+**強制規則**：
+
+| 禁止 | 原因 |
+|------|------|
+| 將模板 / 規範放在 `docs/` 下 | 模板屬於框架資產，應放在 `.claude/skills/` 或 `.claude/methodologies/` |
+| 在 `docs/` 產物中加註解指向 Skill | 以「指向」彌補目錄混放是錯誤的修正；應直接搬遷到正確位置 |
+| 在 `.claude/` 內放專案特定 ticket ID / commit hash / worklog 路徑 | 跨專案 sync 會產生死連結（見 `rules/core/document-format-rules.md` 規則 8） |
+
+**建立新文件系統或 Skill 時**：先問「這是模板/規範還是產物？」
+- 模板 / 規範 → 放 `.claude/skills/` 或 `.claude/methodologies/`
+- 產物 → 放 `docs/` 或專案目錄
+
 ---
 
-**Last Updated**: 2026-03-31
-**Version**: 8.0.0 - 新增專案設定與代理人知識職責分離說明（0.31.1-W1-018）
+**Last Updated**: 2026-04-13
+**Version**: 9.0.0 - 新增框架資產與專案產物職責分離章節（升級自 auto-memory feedback_framework_product_separation）
