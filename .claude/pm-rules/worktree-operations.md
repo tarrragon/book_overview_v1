@@ -128,7 +128,7 @@ git branch | grep "worktree-agent-" | xargs git branch -D 2>/dev/null
 ### 合併時
 - [ ] `pwd && git branch --show-current` 確認在 main？
 - [ ] `git worktree list` 檢查 worktree 產出物？
-- [ ] `git branch | grep feat/` 檢查 feature 分支產出物？（來源：0.17.3-W10-001）
+- [ ] `git branch | grep feat/` 檢查 feature 分支產出物？
 - [ ] 合併到 main 後測試通過？
 
 ### 清理後
@@ -173,4 +173,4 @@ git branch | grep "worktree-agent-" | xargs git branch -D 2>/dev/null
 ---
 
 **Last Updated**: 2026-04-05
-**Version**: 2.0.0 - 新增 Worktree 狀態檢查觸發點（PC-039, 0.17.2-W2-018）
+**Version**: 2.0.0 - 新增 Worktree 狀態檢查觸發點（PC-039）

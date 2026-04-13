@@ -68,8 +68,8 @@ Skill 是預建的專用工具，優先於代理人派發。
 | 分支條件 | 路由檔案 | 適用場景 |
 |---------|---------|---------|
 | 所有派發前（強制） | dispatch-gate.md | 複雜度關卡 + Context Bundle + 並行化 |
-| 動作摩擦力評估（哲學層） | friction-management-methodology.md | 判斷動作應降低/保留/增加摩擦力（0.18.0-W3-009） |
-| ANA/Debug/提案（強制 WRAP） | /wrap-decision | 分析、除錯、提案評估必須先 WRAP（0.18.0-W4-002） |
+| 動作摩擦力評估（哲學層） | friction-management-methodology.md | 判斷動作應降低/保留/增加摩擦力 |
+| ANA/Debug/提案（強制 WRAP） | /wrap-decision | 分析、除錯、提案評估必須先 WRAP |
 | 問題類型訊息 | question-routing.md | 查詢、諮詢、進度 |
 | 命令類型訊息 | command-routing.md | 開發、修改、TDD 階段 |
 | 錯誤/失敗 | incident-routing.md | 事件回應（含 WRAP 強制） |

@@ -375,4 +375,4 @@
 ---
 
 **Last Updated**: 2026-03-26
-**Version**: 1.4.0 - 合併 implementation-quality.md Hub 表格，語言規則移至 references/（0.2.0-W5-012.2）
+**Version**: 1.4.0 - 合併 implementation-quality.md Hub 表格，語言規則移至 references/
