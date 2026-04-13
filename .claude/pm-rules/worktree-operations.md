@@ -167,7 +167,7 @@ subagent 在任何 cwd 都可 Read worktree 內的 `.claude/` 檔案。可用於
 ### 合併時
 - [ ] `pwd && git branch --show-current` 確認在 main？
 - [ ] `git worktree list` 檢查 worktree 產出物？
-- [ ] `git branch | grep feat/` 檢查 feature 分支產出物？（來源：0.17.3-W10-001）
+- [ ] `git branch | grep feat/` 檢查 feature 分支產出物？
 - [ ] 合併到 main 後測試通過？
 
 ### 清理後

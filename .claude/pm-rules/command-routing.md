@@ -60,7 +60,7 @@
 > 驗證類子任務完整規則：.claude/pm-rules/parallel-dispatch.md（驗證類任務自動派發章節）
 > 詳細 SOP：.claude/references/background-dispatch-rules.md（驗證類任務自動派發章節）
 
-### 影響範圍驗證（DOC/ANA/IMP 修改後強制，來源：0.18.0-W4-002）
+### 影響範圍驗證（DOC/ANA/IMP 修改後強制）
 
 > **根因**：修改只看「直接目標」，沒有系統性掃描「引用來源」。本專案 55 個 error-pattern 涉及遺漏/未同步，是最常見的錯誤類型。
 

@@ -2,7 +2,6 @@
 
 > 本文件從 decision-tree.md 按 DDD domain 邊界拆分。
 > 路由入口：.claude/pm-rules/decision-tree.md
-> 來源：0.17.2-W3-007.1
 
 ---
 

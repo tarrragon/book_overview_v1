@@ -203,5 +203,5 @@ Bash: git add file.md && git commit -m "msg" && git merge feat/xxx --no-edit && 
 ---
 
 **Last Updated**: 2026-04-11
-**Version**: 1.4.0 - 新增 chpwd Shell Hook 環境警告（IMP-056，0.17.4-W2-002）
+**Version**: 1.4.0 - 新增 chpwd Shell Hook 環境警告（IMP-056）
 **Source**: IMP-008（cd 污染）、IMP-009（TaskOutput 混淆）、index.lock 競爭（Hook 與 git 寫入操作衝突）
