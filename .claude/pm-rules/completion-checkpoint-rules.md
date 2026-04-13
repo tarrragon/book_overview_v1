@@ -2,7 +2,7 @@
 
 > 本文件從 decision-tree.md 按 DDD domain 邊界拆分。
 > 路由入口：.claude/pm-rules/decision-tree.md
-> 來源：0.17.2-W3-007.1
+> 來源：決策樹按 DDD domain 邊界拆分
 
 ---
 
@@ -107,7 +107,7 @@ else:
 
 **背景代理人結果合併（ANA 完成前，強制，PC-041）**：ANA 完成前必須確認所有背景代理人已完成，合併分析結果到 Solution 後再建立執行 Ticket。禁止背景代理人未完成就建 Ticket。
 
-**Checkpoint 0.5 PM 進度更新（強制，對稱代理人 W15-001）**：
+**Checkpoint 0.5 PM 進度更新（強制，對稱代理人 4 時機更新原則）**：
 
 PM 在 4 個時機必須 `ticket track append-log`：認領後（確認範圍）→ 分析完成（決策+下一步）→ 修正完成（摘要）→ 完成前（Solution 記錄）。禁止 complete 時才一次性補寫。若跳過中間時機，complete 前必須補寫遺漏的進度記錄。
 
@@ -124,4 +124,4 @@ PM 在 4 個時機必須 `ticket track append-log`：認領後（確認範圍）
 ---
 
 **Last Updated**: 2026-04-09
-**Version**: 2.0.0 - 情境 D 拆分至 tdd-completion-routing.md + Worktree/ANA 流程精簡（W9-001）
+**Version**: 2.0.0 - 情境 D 拆分至 tdd-completion-routing.md + Worktree/ANA 流程精簡
