@@ -54,6 +54,13 @@ class TestClaimWrapMessagesConstants:
         assert "ANA" in ClaimWrapMessages.ANA_EXTRA_HEADER
         assert "/wrap-decision" in ClaimWrapMessages.ANA_EXTRA_BODY
 
+    def test_ana_reality_test_constant_exists(self):
+        """PC-063 防護 4/4：ANA 類型專屬第四問 R（Reality Test）"""
+        assert hasattr(ClaimWrapMessages, "ANA_REALITY_TEST")
+        assert "Reality Test" in ClaimWrapMessages.ANA_REALITY_TEST
+        assert "重現實驗" in ClaimWrapMessages.ANA_REALITY_TEST
+        assert "PC-063" in ClaimWrapMessages.ANA_REALITY_TEST
+
 
 class TestPrintClaimChecklistWrapSection:
     """_print_claim_checklist 附加 WRAP 區段的輸出測試"""
@@ -87,6 +94,17 @@ class TestPrintClaimChecklistWrapSection:
     def test_doc_ticket_does_not_include_ana_extra(self):
         out = self._capture_output({"id": "0.18.0-W10-028", "type": "DOC"})
         assert "ANA 類型額外要求" not in out
+
+    def test_ana_ticket_includes_reality_test(self):
+        """PC-063 防護 4/4：ANA claim 時輸出第四問 R（Reality Test）"""
+        out = self._capture_output({"id": "0.18.0-W5-036", "type": "ANA"})
+        assert "R（Reality Test）" in out
+        assert "重現實驗" in out
+
+    def test_imp_ticket_excludes_reality_test(self):
+        """PC-063 防護 4/4：非 ANA 類型不應出現第四問 R"""
+        out = self._capture_output({"id": "0.18.0-W5-036", "type": "IMP"})
+        assert "R（Reality Test）" not in out
 
     def test_wrap_section_after_claim_checklist(self):
         """WRAP 區段必須在「認領檢查清單」之後"""

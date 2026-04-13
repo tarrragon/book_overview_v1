@@ -728,6 +728,17 @@ class ClaimWrapMessages:
     # 適用範圍說明（以 {ticket_type} 格式化）
     WRAP_APPLIES_TO = "適用範圍：所有 ticket 強制；本 ticket 類型為 {ticket_type}。"
 
+    # ANA 類型專屬第四問（PC-063 防護 4/4）
+    ANA_REALITY_TEST = (
+        "  R（Reality Test）—— 真根因驗證了嗎？\n"
+        "    在列任何候選方案前，必須先做重現實驗：\n"
+        "    1. 列出當前接受的根因假設\n"
+        "    2. 用最小指令/測試重現問題\n"
+        "    3. 區分「已驗證的事實」與「仍未驗證的假設」\n"
+        "    4. 將實驗結果寫入 Ticket「重現實驗結果」章節\n"
+        "    禁止：未完成重現實驗即列方案（PC-063 教訓）"
+    )
+
     # ANA 類型額外提示
     ANA_EXTRA_HEADER = "[ANA 類型額外要求]"
     ANA_EXTRA_BODY = (

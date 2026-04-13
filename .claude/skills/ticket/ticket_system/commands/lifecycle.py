@@ -910,6 +910,8 @@ def _print_claim_wrap_prompt(ticket_type: str) -> None:
     print()
 
     if ticket_type == "ANA":
+        print(ClaimWrapMessages.ANA_REALITY_TEST)
+        print()
         print(ClaimWrapMessages.ANA_EXTRA_HEADER)
         print(ClaimWrapMessages.ANA_EXTRA_BODY)
         print()
