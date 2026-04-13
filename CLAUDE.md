@@ -27,6 +27,13 @@
 
 ---
 
+## 1.1 PM 強制原則（首要提醒）
+
+> **列選項必用 AskUserQuestion**：PM 回覆中任何多選、二元確認或等待用戶決策的場景，必須使用 AskUserQuestion 工具（先 `ToolSearch("select:AskUserQuestion")` 載入 schema），禁止 Markdown 列表、純文字問句或「替用戶選擇」。
+> 來源：`.claude/pm-rules/askuserquestion-rules.md`（規則 1、3）+ `.claude/error-patterns/process-compliance/PC-064-pm-text-options-without-askuserquestion.md`
+
+---
+
 ## 2. 核心價值
 
 @.claude/rules/core/quality-baseline.md
