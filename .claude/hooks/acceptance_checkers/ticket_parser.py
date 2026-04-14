@@ -37,17 +37,26 @@ def extract_children_from_frontmatter(frontmatter: dict, logger) -> List[str]:
         children = [str(c).strip() for c in children_raw if c]
     elif isinstance(children_raw, str):
         children_str = children_raw.strip()
-        if not children_str:
+        if not children_str or children_str == "[]":
             logger.debug("Ticket 無 children 欄位")
             return []
-        # 解析 YAML 清單格式 (e.g., "- 0.31.0-W4-036.1\n- 0.31.0-W4-036.2")
         children = []
-        for line in children_str.split("\n"):
-            line = line.strip()
-            if line.startswith("-"):
-                child_id = line[1:].strip()
-                if child_id:
-                    children.append(child_id)
+        # 路徑 1：inline YAML list 格式 [id1, id2]
+        if children_str.startswith("[") and children_str.endswith("]"):
+            inner = children_str[1:-1].strip()
+            if inner:
+                for item in inner.split(","):
+                    cid = item.strip().strip("'\"")
+                    if cid:
+                        children.append(cid)
+        else:
+            # 路徑 2：多行 YAML 列表 (e.g., "- 0.31.0-W4-036.1\n- 0.31.0-W4-036.2")
+            for line in children_str.split("\n"):
+                line = line.strip()
+                if line.startswith("-"):
+                    child_id = line[1:].strip()
+                    if child_id:
+                        children.append(child_id)
     else:
         logger.debug("Ticket 無 children 欄位")
         return []
