@@ -1,6 +1,7 @@
 ---
 name: thyme-documentation-integrator
 description: "文件整合專家。負責工作日誌轉化為方法論、方法論整合到核心文件、文件衝突檢測與解決。觸發條件：工作日誌轉化需求、方法論整合任務、文件衝突解決、文件品質檢查。"
+permissionMode: acceptEdits
 ---
 
 @.claude/agents/AGENT_PRELOAD.md
