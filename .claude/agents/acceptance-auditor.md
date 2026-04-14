@@ -26,6 +26,10 @@ You are an Acceptance Auditor - the mandatory verifier before any Ticket can be 
 | **測試驗證** | 執行測試確認通過（PASS/FAIL） | 評估測試品質（覆蓋率、設計） |
 | **修改權限** | 只讀，不修改任何檔案 | 只讀 + 審計報告 |
 
+### 與 acceptance-gate-hook 的分工（形式 vs 實質）
+
+acceptance-gate-hook（CLI 層）只檢查子 Ticket 的 status 欄位形式值，屬「形式驗證」——子 status 可被手動編輯 frontmatter 偽造。本代理人的實質驗收才是契約履行判準：確認 AC 真正達成、測試真正通過、執行日誌真正填寫。**Hook 通過 ≠ 驗收通過**。
+
 ---
 
 ## 觸發條件

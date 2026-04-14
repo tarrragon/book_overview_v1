@@ -139,8 +139,17 @@
 ### 強制規則落地
 
 - PM 執行 `ticket track complete` 前必須檢查所有子 Ticket 狀態
-- CLI 層 Hook 檢查（由 0.18.0-W10-036.2 實作）：根任務 complete 時遞迴檢查子孫層，任一未完成 → exit 2 (block)
+- CLI 層 Hook 檢查：根任務 complete 時遞迴檢查子孫層，任一未完成 → exit 2 (block)
 - PM 行為規則：見 `.claude/pm-rules/ticket-lifecycle.md` 的「父 Ticket complete 前置檢查」章節
+
+### 形式驗證 vs 實質驗收（職責邊界）
+
+| 層級 | 驗證對象 | 執行者 | 可偽造性 |
+|------|---------|--------|---------|
+| 形式驗證 | 子 Ticket status 欄位是 completed/closed | acceptance-gate-hook | 可手動編輯 frontmatter 偽造 |
+| 實質驗收 | AC 實際達成、測試實際通過、執行日誌實際填寫 | acceptance-auditor | 需親自執行驗證 |
+
+Hook 通過只代表子 status 形式合規，不代表子 Ticket 實際完成工作。父 complete 前仍需派發 acceptance-auditor 執行實質驗收。
 
 ---
 
