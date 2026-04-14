@@ -1,5 +1,22 @@
 # handoff 子命令
 
+## 設計意圖
+
+handoff 是**任務鏈內的 context 移動機制**，不是通用的「下一個任務」路由器。
+
+| 移動方向 | handoff 旗標 | 用途 |
+|---------|------------|------|
+| 子 → 父 | `--to-parent` | 子完成返回父驗收 |
+| 父 → 子 | `--to-child <id>` | 父分派責任給子 |
+| 兄弟 → 兄弟 | `--to-sibling <id>` | 同父下水平協調 |
+| 任務鏈繼續 | 無旗標 | 自動判斷方向 |
+
+設計原理見 `.claude/methodologies/atomic-ticket-methodology.md` 的「任務鏈核心哲學」章節（結構：三種移動方向、Context 保留機制）。
+
+---
+
+## 基本用法
+
 任務鏈管理與 Context 交接。建立標準 `pending/*.json` 檔案，供下一個 session 的 `resume --list` 偵測。
 
 ## 用法

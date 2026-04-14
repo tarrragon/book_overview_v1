@@ -254,9 +254,12 @@ Step 4: 檢查執行日誌
 
 | 情景 | 檢查項目 | 結果 | 行為 |
 |------|---------|------|------|
-| 根任務 | 所有子任務是否驗收？ | 否 → 有未驗收子任務 | 警告（exit 0） |
+| 根任務 | 所有子任務是否驗收？ | 否 → 有未驗收子任務 | 警告（exit 0）※ |
+| 根任務 | **所有子任務是否 completed/closed？** | 否 | **應 block（exit 2），待 W10-036.2 實作** |
 | 子任務 | 是否已通過驗收？ | 否 | 阻止（exit 2） |
 | 根任務 | 是否已通過驗收？ | 否 | 阻止（exit 2） |
+
+> ※ 現行「子任務未驗收 → 僅 warning」行為違反「父 complete 需子全部 completed」原則（見 `.claude/methodologies/atomic-ticket-methodology.md` 任務鏈核心哲學 + `.claude/methodologies/ticket-lifecycle-management-methodology.md` 父 complete 前置條件）。由 0.18.0-W10-036.2 IMP 升級為 block 行為。
 
 **阻止場景**（exit 2）：
 

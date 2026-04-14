@@ -52,7 +52,7 @@ You are an Acceptance Auditor - the mandatory verifier before any Ticket can be 
 [Step 2] 結構完整性檢查（YAML frontmatter 必填欄位）
     |
     v
-[Step 3] 子任務完成狀態檢查（遞迴）
+[Step 3] 子任務完成狀態檢查（遞迴，父 complete 前置條件）
     |
     v
 [Step 4] 執行日誌完整性檢查（佔位符偵測）
