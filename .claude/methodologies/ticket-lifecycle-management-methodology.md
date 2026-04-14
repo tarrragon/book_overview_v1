@@ -98,19 +98,49 @@
 
 ## 關閉條件檢查清單
 
-### 強制條件（5 項，缺一不可）
+### 強制條件（6 項，缺一不可）
 
 - [ ] 所有驗收條件打勾完成
 - [ ] Review 通過
 - [ ] 相關測試 100% 通過
 - [ ] `dart analyze` 0 錯誤
 - [ ] 工作日誌已更新
+- [ ] **所有子 Ticket 已 completed 或 closed**（父責任履行判準）
 
 ### 建議條件（3 項）
 
 - [ ] 程式碼符合專案規範
 - [ ] 無技術債務（TODO/FIXME）
 - [ ] 文檔同步更新
+
+---
+
+## 父 complete 前置條件
+
+> **核心原則**：父 Ticket 的責任由子 Ticket 的完成來履行。「父文件完成」不等於「父責任履行」。
+
+> 理論依據：`.claude/methodologies/atomic-ticket-methodology.md` 的「任務鏈核心哲學 — 父子責任傳遞」章節。
+
+### 兩個概念的區分
+
+| 概念 | 定義 | 驗證方式 |
+|------|------|---------|
+| 父文件完成 | 父 Ticket 的 AC 欄位全部勾選、Problem Analysis / Solution 區段寫完 | 檢查 Ticket 檔案 YAML 與區段 |
+| 父責任履行 | 父的所有衍生子 Ticket（含遞迴孫層）全部 completed 或 closed | 遍歷 chain 檢查所有後代 |
+
+**父 complete 的必要條件 = 父文件完成 AND 父責任履行**。缺一不可。
+
+### 強制行為
+
+1. **禁止越過未完成的子獨立 complete 父**：即使父 AC 全勾、報告寫完，若有任一子 Ticket 仍 pending/in_progress/blocked，父不可 complete
+2. **父任務在等待子完成期間保持 in_progress**：不可回退為 pending，不可跳過為 completed
+3. **若父需在子完成前抽離 context**：使用 handoff 而非 complete
+
+### 強制規則落地
+
+- PM 執行 `ticket track complete` 前必須檢查所有子 Ticket 狀態
+- CLI 層 Hook 檢查（由 0.18.0-W10-036.2 實作）：根任務 complete 時遞迴檢查子孫層，任一未完成 → exit 2 (block)
+- PM 行為規則：見 `.claude/pm-rules/ticket-lifecycle.md` 的「父 Ticket complete 前置檢查」章節
 
 ---
 

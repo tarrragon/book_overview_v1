@@ -207,6 +207,35 @@ acceptance-gate-hook 事後驗證（最後防線）
 
 ---
 
+## 父 Ticket complete 前置檢查（強制）
+
+> **來源**：`.claude/methodologies/atomic-ticket-methodology.md` 「任務鏈核心哲學 — 父子責任傳遞」+ `.claude/methodologies/ticket-lifecycle-management-methodology.md` 「父 complete 前置條件」。
+
+**核心原則**：父文件完成 ≠ 父責任履行。父 complete 需滿足「所有子 Ticket 已 completed 或 closed」。
+
+### 強制規則表
+
+| 場景 | 父 Ticket 狀態 | PM 行為 |
+|------|--------------|--------|
+| 子 Ticket 全 completed/closed | 可 complete | 執行 `ticket track complete <父ID>` |
+| 任一子 Ticket pending/in_progress/blocked | **禁止 complete** | 繼續處理子 Ticket，父保持 in_progress |
+| 父需抽離 context（未準備 complete） | 保持 in_progress | 用 `ticket handoff <父ID>` 而非 `complete` |
+| 父 AC 全勾但有子未完成 | **禁止 complete** | AC 勾選是文件完成，非責任履行 |
+
+### 禁止行為
+
+| 禁止 | 原因 |
+|------|------|
+| 子未完成時強制 complete 父 | 父責任尚未由子履行，違反任務鏈哲學 |
+| 將父回退為 pending 等待子 | completed 不可回退（lifecycle 規則）；但父未 complete 時保持 in_progress 本身就是等待 |
+| 以「只是個 ANA 分析完成了就 complete」為由越過 | ANA 父的責任是「分析結論被解決」，不是「分析報告寫完」 |
+
+### CLI 層強制
+
+acceptance-gate-hook 將於 0.18.0-W10-036.2 實作根任務 complete 前的遞迴子狀態檢查（exit 2 block）。在該 Hook 落地前，本規則由 PM 自律 + 方法論文件約束。
+
+---
+
 ## ANA Ticket 完成階段衍生 Ticket 檢查（強制）
 
 > **來源**：ANA Ticket 完成時未強制確認分析結論是否需要建立衍生 Ticket，導致建議被遺忘需事後人工補建。
