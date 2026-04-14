@@ -34,6 +34,8 @@
 > - **PM 前台**：分析、讀取、規劃、更新 Ticket、撰寫 RED 測試 — PM 有完整 context window
 > - **代理人**：GREEN 實作、git commit — PM 永遠不自己做
 
+> **派發決策時的摩擦力考量**：派發前先判斷任務所屬階段（Proposal/Phase 0/Phase 1/Phase 2/Phase 3a/Phase 3b/Phase 4）。前期階段（Proposal、Phase 0、Phase 1）任務一律需強制多視角或 WRAP 前置；後期階段（Phase 3b 實作）可降低派發前摩擦。詳見 `.claude/methodologies/friction-management-methodology.md`「開發流程階段的摩擦力曲線」章節。
+
 ---
 
 ## 行為循環

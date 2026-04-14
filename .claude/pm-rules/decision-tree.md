@@ -68,7 +68,7 @@ Skill 是預建的專用工具，優先於代理人派發。
 | 分支條件 | 路由檔案 | 適用場景 |
 |---------|---------|---------|
 | 所有派發前（強制） | dispatch-gate.md | 複雜度關卡 + Context Bundle + 並行化 |
-| 動作摩擦力評估（哲學層） | friction-management-methodology.md | 判斷動作應降低/保留/增加摩擦力 |
+| 動作摩擦力評估（哲學層） | friction-management-methodology.md | 判斷動作應降低/保留/增加摩擦力（30 秒準則）。流程階段摩擦力曲線見同文件「開發流程階段的摩擦力曲線」章節 |
 | ANA/Debug/提案（強制 WRAP） | /wrap-decision | 分析、除錯、提案評估必須先 WRAP |
 | 問題類型訊息 | question-routing.md | 查詢、諮詢、進度 |
 | 命令類型訊息 | command-routing.md | 開發、修改、TDD 階段 |

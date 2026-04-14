@@ -65,6 +65,8 @@
 完成 → 提交
 ```
 
+> **各 Phase 的摩擦力配置原則**：前期階段（Phase 0/1/1.5）為決策點，摩擦力應較高（強制審查、多視角）；後期階段（Phase 3b）為執行點，摩擦力應較低（Hook 自動化、快速迭代）。詳見 `.claude/methodologies/friction-management-methodology.md`「開發流程階段的摩擦力曲線」章節。
+
 ---
 
 ## Phase 0：SA 前置審查
