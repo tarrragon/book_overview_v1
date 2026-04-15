@@ -34,6 +34,7 @@ ALLOWED_PATTERNS = [
     r"^\.claude/hook-specs/.*",
     r"^\.claude/scripts/.*",
     r"^\.claude/handoff/.*",
+    r"^\.claude/output-styles/.*",  # output-style 設計檔案：主線程可直接編輯（W10-050，PC-066 ARCH-018 教訓）
     r"^docs/.*",
     r"^CLAUDE\.md$",
     r"^CHANGELOG\.md$",
