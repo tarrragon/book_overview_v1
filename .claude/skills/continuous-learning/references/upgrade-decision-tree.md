@@ -51,8 +51,8 @@ Q1: 此原則對其他專案也適用嗎？
 ### 專案特定的典型範例
 
 - 「本專案的 ESLint 規則設定」
-- 「Readmoo 頁面選擇器多層 fallback 策略」
-- 「Chrome Extension Manifest V3 限制」
+- 「目標站點 DOM 選擇器多層 fallback 策略」
+- 「特定平台 API 限制（例如 Manifest V3、iOS 沙箱）」
 
 ### 跨專案通用的典型範例
 

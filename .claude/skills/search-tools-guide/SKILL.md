@@ -242,22 +242,22 @@ rg --no-ignore "pattern"       # 搜尋 gitignore 忽略的檔案
 rg "oldName" -r "newName"      # 不修改檔案，僅預覽
 ```
 
-### Flutter / Dart 專案範例
+### 語言/框架專案範例（以 Flutter/Dart 為例，其他語言類似）
 
 ```bash
-# Widget 定義
+# Widget 定義（Flutter）
 rg -t dart "class\s+\w+\s+extends\s+(Stateless|Stateful)Widget"
 
-# Provider 使用
+# Provider 使用（Flutter）
 rg -t dart "Provider\.(of|watch|read)" lib/
 
-# 測試案例
+# 測試案例（Dart）
 rg -t dart "test(Widgets)?\(" test/
 
-# TODO 和 FIXME
+# TODO 和 FIXME（Dart，可替換為其他語言的 type filter 如 -t js/py/go）
 rg -t dart "(TODO|FIXME|HACK)" lib/
 
-# Ticket 狀態
+# Ticket 狀態（與語言無關）
 rg "status:\s*(pending|in_progress)" docs/work-logs/
 ```
 

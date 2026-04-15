@@ -178,7 +178,7 @@ Stage 8: 結案報告         [執行者: 認領 Ticket 的開發者]
 
 ### 外部因素退出點
 
-若 Stage 3 確認根因不在本專案（如 Chrome API 行為變更、Readmoo 網站改版）：
+若 Stage 3 確認根因不在本專案（如外部平台 API 行為變更、目標站點改版、上游套件行為變更）：
 
 1. 記錄證據（API 文件、changelog、網站截圖）
 2. 開 workaround Ticket（類型 IMP，標題含「workaround」）

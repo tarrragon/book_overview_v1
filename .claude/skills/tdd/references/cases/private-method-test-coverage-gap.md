@@ -24,7 +24,7 @@
 | `_mergeTagIds` | 合併標籤 ID（去重） | 低 |
 | `_fillNullFields` | 填補 null 欄位 | 低 |
 
-### readmoo-data-validator.js：1 個快取方法
+### data-validator.js：1 個快取方法
 
 | 方法 | 職責 | 覆蓋狀態 |
 |------|------|---------|
