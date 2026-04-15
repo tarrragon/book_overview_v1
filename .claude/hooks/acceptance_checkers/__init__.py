@@ -35,3 +35,6 @@ from acceptance_checkers.ana_spawned_checker import (
 from acceptance_checkers.sibling_checker import (
     find_pending_sibling_tickets,
 )
+from acceptance_checkers.multi_view_checker import (
+    check_multi_view_status,
+)

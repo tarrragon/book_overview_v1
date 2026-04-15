@@ -74,6 +74,7 @@ from acceptance_checkers import (
     check_execution_log_filled,
     check_ana_has_spawned_tickets,
     find_pending_sibling_tickets,
+    check_multi_view_status,
 )
 from acceptance_checkers.ticket_parser import get_ticket_start_time
 
@@ -108,6 +109,7 @@ class AcceptanceCheckResult(NamedTuple):
     error_pattern_conflicts: List[str] = []
     incomplete_5w1h_fields: List[str] = []
     has_empty_execution_log: bool = False
+    multi_view_warning: Optional[str] = None
 
 
 # ============================================================================
@@ -205,6 +207,19 @@ def check_acceptance_status(ticket_id: str, project_dir: Path, logger) -> Accept
                 else:
                     warning_msg = ana_warning_msg
 
+        # 步驟 2.6：ANA Ticket Solution 必須含 multi_view_status 標註（W10-051）
+        multi_view_warning: Optional[str] = None
+        if is_ana_type(frontmatter.get("type")):
+            mv_should_warn, mv_msg = check_multi_view_status(
+                content, frontmatter, project_dir, logger
+            )
+            if mv_should_warn and mv_msg:
+                multi_view_warning = mv_msg
+                if warning_msg:
+                    warning_msg = warning_msg + "\n\n" + mv_msg
+                else:
+                    warning_msg = mv_msg
+
         # 步驟 2.7：檢查修改模組與既有 error-pattern 的衝突
         error_pattern_conflicts = check_error_pattern_conflicts(frontmatter, project_dir, logger)
 
@@ -248,6 +263,7 @@ def check_acceptance_status(ticket_id: str, project_dir: Path, logger) -> Accept
             error_pattern_conflicts,
             incomplete_5w1h,
             has_empty_log,
+            multi_view_warning,
         )
 
     except Exception as e:
@@ -312,7 +328,16 @@ def generate_hook_output(
         else:
             checklist_items.append("[x] 5. spawned_tickets 已更新（ANA）")
     else:
-        checklist_items.append("[--] 5. spawned_tickets（非 ANA，不適用）")
+        checklist_items.append("[--] 5. spawned_tickets(非 ANA，不適用)")
+
+    # 項目 6: multi_view_status（W10-051，只對 ANA 顯示）
+    if ticket_type_upper_for_checklist == "ANA":
+        if check_result.multi_view_warning:
+            checklist_items.append("[WARNING] 6. multi_view_status 未標註或不完整（ANA）")
+        else:
+            checklist_items.append("[x] 6. multi_view_status 已標註（ANA）")
+    else:
+        checklist_items.append("[--] 6. multi_view_status(非 ANA，不適用)")
 
     checklist_text = "[Complete 清單]\n" + "\n".join(checklist_items)
     context_parts.append(checklist_text)
