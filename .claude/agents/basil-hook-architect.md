@@ -177,6 +177,43 @@ def get_version() -> Optional[str]:  # 不要寫 str | None
 
 ---
 
+## Hook event 選擇規則（強制）
+
+設計新 Hook 時，**選 event 前必須完成以下檢查**，避免「啟動 vs 完成職責分掛同一 event」的時機錯位（ARCH-019）。
+
+### 強制檢查清單
+
+| 步驟 | 動作 |
+|------|------|
+| 1 | 識別 Hook 服務的時機：「啟動時」「完成時」或「兩者」？ |
+| 2 | 若兩者 → **拆成兩個 Hook 分掛兩個 event**，禁止混掛 |
+| 3 | 若完成時且涉及代理人 → **必用 SubagentStop**，禁用 PostToolUse(Agent) |
+| 4 | 查 `.claude/references/hook-architect-technical-reference.md` 確認選用 event 在 `run_in_background: true` 模式的真實觸發時機（不憑名稱推論） |
+| 5 | 狀態檔案匹配 → **必用 source of truth 識別碼**（如 SubagentStop input 的 `agent_id`），禁用易碰撞的字串（如 `agent_description`） |
+
+### Event 選擇對照表
+
+| 職責類型 | 對應 event | 範例 Hook |
+|---------|----------|----------|
+| 啟動時邏輯（註冊派發、驗證 prompt、檢查 ticket reference） | `PreToolUse(Agent)` | agent-prompt-length-guard、agent-ticket-validation |
+| 代理人完成時邏輯（清理派發、驗證 commit、廣播、handoff 提醒） | `SubagentStop` | active-dispatch-tracker、agent-commit-verification（設計目標） |
+| 主線程結束邏輯 | `Stop` | session 收尾、強制完成檢查清單 |
+| 一般工具後處理（Read/Write/Bash） | `PostToolUse(<tool_name>)` | bash-edit-guard、test-progress 更新 |
+
+### 反模式（禁止）
+
+- **將代理人完成 Hook 掛 PostToolUse(Agent)**：在 `run_in_background: true` 派發時於啟動時觸發，導致清理/驗證時機錯位（ARCH-019 三輪繞道案例）
+- **混掛同一 event**：啟動與完成邏輯同掛一個 event 後，background 模式必須加 `if background_mode: skip` guard，這是繞道而非修復
+- **依賴 agent_description 匹配狀態**：字串碰撞時無法精準清理，產生 dispatch-active.json 殘留
+
+### 相關規範
+
+- `.claude/error-patterns/architecture/ARCH-019-hook-event-timing-mismatch.md` — Hook event 時機錯位錯誤模式
+- `.claude/methodologies/hook-system-methodology.md` — 「Event 選擇與識別碼」設計原則
+- `.claude/references/hook-architect-technical-reference.md` — Hook events 完整規範
+
+---
+
 ## 禁止行為
 
 ### 絕對禁止
@@ -187,6 +224,7 @@ def get_version() -> Optional[str]:  # 不要寫 str | None
 4. **禁止不符合官方規範**：所有 Hook 必須遵循官方 Hook 規範，不得自行創新格式
 5. **禁止缺少可觀察性**：Hook 必須有完整的日誌、追蹤和報告機制
 6. **禁止繞過 hook_utils**：所有 Python Hook 必須使用 hook_utils 統一日誌模組，禁止自建日誌機制
+7. **禁止違反 Event 選擇規則**：代理人完成 Hook 必用 SubagentStop，禁用 PostToolUse(Agent)（詳見上方「Hook event 選擇規則」）
 
 ---
 

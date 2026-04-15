@@ -33,11 +33,22 @@
 - **輸出**: decision (block), additionalContext
 - **特點**: 工具已執行，只能回饋訊息
 
-### Stop / SubagentStop
-- **用途**: 防止對話過早停止
-- **輸入**: session_id, transcript_path
+### Stop
+- **用途**: 主線程停止時的後處理（檢查未完成工作、強制完成檢查清單等）
+- **輸入**: session_id, transcript_path, stop_hook_active
 - **輸出**: decision (block), reason
-- **特點**: 可延續對話，要求完成特定工作
+- **特點**: 觸發於主線程結束，**非代理人**結束。可阻擋停止以要求完成特定工作。
+
+### SubagentStop
+- **用途**: **代理人（subagent）真正完成時觸發**，提供代理人完成訊號源（清理派發記錄、驗證 commit、廣播完成、handoff 提醒等）
+- **輸入**: session_id, transcript_path, stop_hook_active, **agent_id**, **agent_type**, **agent_transcript_path**, last_assistant_message (optional)
+- **輸出**: decision (block), reason
+- **特點**:
+  - 涵蓋前台與 `run_in_background: true` 派發兩種模式
+  - `agent_id` 為代理人精準識別碼，可用於匹配 `dispatch-active.json` 等狀態檔案
+  - **與 PostToolUse(Agent) 區別**：PostToolUse(Agent) 在 background 派發時於**啟動時**觸發（非完成），SubagentStop 才是真完成訊號
+
+> **重要**：「代理人完成」相關 Hook（清理派發、驗證 commit、廣播狀態、handoff 提醒等）一律使用 SubagentStop，**禁止使用 PostToolUse(Agent)**（時機錯位，詳見 ARCH-019）。
 
 ---
 

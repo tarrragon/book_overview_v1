@@ -157,6 +157,34 @@ if 檔案變更 > 0:
 
 ---
 
+### 🤖 SubagentStop Hook
+
+**觸發時機**: 代理人（subagent）真正完成時，涵蓋前台與 `run_in_background: true` 派發兩種模式
+
+**input 關鍵欄位**:
+
+| 欄位 | 用途 |
+|------|------|
+| `agent_id` | 代理人精準識別碼，**狀態檔案匹配的 source of truth** |
+| `agent_type` | 代理人類型（如 thyme-extension-engineer） |
+| `agent_transcript_path` | 代理人對話記錄路徑 |
+| `last_assistant_message` (optional) | 代理人最後一則訊息 |
+
+**典型責任**:
+- 清理派發追蹤記錄（如 `dispatch-active.json`，依 `agent_id` 精準匹配）
+- 驗證代理人 commit（避開啟動誤觸發）
+- 廣播代理人完成狀態（broadcast）
+- handoff 提醒
+- 累積執行統計（duration、tool_use_count）
+
+**禁止用於**:
+- 啟動時邏輯（註冊派發、驗證 prompt） → 應使用 PreToolUse(Agent)
+- 主線程結束邏輯 → 應使用 Stop
+
+> **Event 選擇強制規則**：「代理人完成」相關 Hook 一律掛 SubagentStop，**禁止掛 PostToolUse(Agent)**（後者在 background 派發時於啟動時觸發，與「完成」語意不符。詳見 ARCH-019）。
+
+---
+
 ### ⚡ Performance Monitor Hook
 
 **檔案**: `.claude/hooks/performance-monitor-hook.sh`
@@ -200,6 +228,50 @@ if 檔案變更 > 0:
 - 測試變更 → `docs/testing/` (Low)
 
 ## 🔧 Hook 系統設計原則
+
+### 0. **Event 選擇與識別碼（強制）**
+
+選擇 Hook event 前必須完成以下檢查，避免時機錯位（ARCH-019）。
+
+#### 0.1 不憑名稱推論觸發時機
+
+`PostToolUse(Agent)` 字面看像「Agent 結束後」，但在 `run_in_background: true` 派發時於**啟動時**就觸發。**必須查 hook-spec 確認真實觸發時機**，不憑名稱推論。
+
+#### 0.2 啟動 vs 完成職責分掛兩個 event
+
+| 職責 | 對應 event |
+|------|----------|
+| 啟動時邏輯（註冊派發、驗證 prompt、檢查 ticket reference） | `PreToolUse(Agent)` |
+| 完成時邏輯（清理記錄、驗證 commit、廣播完成、handoff 提醒） | `SubagentStop` |
+| 主線程結束邏輯 | `Stop` |
+| 工具執行後處理（一般工具 Read/Write/Bash 等） | `PostToolUse(<tool_name>)` |
+
+**反模式**：將啟動與完成邏輯混掛同一 event（如全部掛 `PostToolUse(Agent)`），導致 background 模式時機錯位，必須加 `if background_mode: skip` guard 繞道。
+
+#### 0.3 識別碼選擇：agent_id > agent_description
+
+代理人完成 Hook 匹配狀態檔案（如 `dispatch-active.json`）時：
+
+| 識別碼 | 來源 | 精準度 |
+|-------|------|-------|
+| `agent_id`（SubagentStop input） | runtime 提供，唯一 | **source of truth，建議使用** |
+| `agent_description` | 派發時 PM 自填字串 | 可能重複碰撞，不可靠 |
+
+#### 0.4 選 event 的決策流程
+
+```
+新增 Hook 前：
+1. 此 Hook 服務「啟動時」「完成時」還是「兩者」？
+2. 若兩者 → 拆成兩個 Hook 分掛兩個 event
+3. 若完成時且涉及代理人 → 必用 SubagentStop
+4. 查 hook-spec 確認選用 event 在 background 模式的觸發時機
+5. 確認狀態匹配使用 source of truth 識別碼（agent_id）
+```
+
+> 完整錯誤模式：`.claude/error-patterns/architecture/ARCH-019-hook-event-timing-mismatch.md`
+> Event input/output 規範：`.claude/references/hook-architect-technical-reference.md`
+
+---
 
 ### 1. **分離關注點**
 - 每個 hook 專注於特定的檢查範圍
