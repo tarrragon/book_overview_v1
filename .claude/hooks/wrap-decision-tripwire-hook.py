@@ -41,6 +41,7 @@ from hook_utils import (
     read_json_from_stdin,
     get_project_root,
     parse_ticket_frontmatter,
+    find_ticket_file,
 )
 
 
@@ -347,19 +348,10 @@ def _extract_bash_command(event: Dict[str, Any]) -> str:
 # Ticket frontmatter / Solution 章節讀取（S3）
 # ============================================================================
 
-def _find_ticket_file(ticket_id: str, project_root: Path) -> Optional[Path]:
-    """在 docs/work-logs/**/tickets/ 內搜尋 ticket_id.md。"""
-    work_logs = project_root / "docs" / "work-logs"
-    if not work_logs.exists():
-        return None
-    for p in work_logs.rglob("{}.md".format(ticket_id)):
-        return p
-    return None
-
-
 def read_ticket_type(ticket_id: str, project_root: Path, logger) -> Optional[str]:
     """讀 ticket frontmatter 的 type 欄位。讀不到返回 None。"""
-    path = _find_ticket_file(ticket_id, project_root)
+    # B-2 (W10-056.3): 改用 hook_utils.find_ticket_file，移除本地重複實作（DRY 原則）。
+    path = find_ticket_file(ticket_id, project_root, logger)
     if path is None:
         logger.info("ticket file not found: %s", ticket_id)
         return None
@@ -372,7 +364,8 @@ def read_ticket_type(ticket_id: str, project_root: Path, logger) -> Optional[str
 
 def wrap_section_already_written(ticket_id: str, project_root: Path, logger) -> bool:
     """檢查 ticket 的 Solution 章節是否含 WRAP 三問章節。"""
-    path = _find_ticket_file(ticket_id, project_root)
+    # B-2 (W10-056.3): 改用 hook_utils.find_ticket_file。
+    path = find_ticket_file(ticket_id, project_root, logger)
     if path is None:
         return False
     try:
@@ -413,11 +406,17 @@ class ConsecutiveFailuresStrategy:
     # 此屬性不會實際被使用，避免與 SIGNAL_STRATEGIES key 產生 drift。
     _DEFAULT_SIGNAL_ID = "consecutive_failures"
 
+    # B-1 + C3-1 (W10-056.3): 失敗判定條件改讀 YAML signals[S1].failure_detection（W10-052
+    # source-of-truth 原則）。當 YAML 未提供 failure_detection 時，使用以下 backward-compatible
+    # 預設值（避開破壞既有測試 fixture）。生產 YAML 已明確列出，故實際 source-of-truth 由 YAML 決定。
+    _DEFAULT_FAILURE_KEYWORDS = ("error", "exception", "failed", "timeout")
+    _DEFAULT_FAILURE_STATUSES = ("failed", "error")
+
     def detect(self, event: Dict[str, Any], state: Dict[str, Any],
                sd: SignalDef, current_ticket: Optional[str], logger) -> DetectResult:
         if event.get("tool_name") != (sd.tool_matcher or "Task"):
             return DetectResult(hit=False, signal_id=sd.id)
-        is_failure = self._is_failure(event)
+        is_failure = self._is_failure(event, sd)
         sig_state = state.setdefault("signals", {}).setdefault(sd.id, {})
         if is_failure:
             new_count = int(sig_state.get("count", 0)) + 1
@@ -431,18 +430,23 @@ class ConsecutiveFailuresStrategy:
         else:
             return DetectResult(hit=False, reset=True, signal_id=sd.id)
 
-    def _is_failure(self, event: Dict[str, Any]) -> bool:
+    def _is_failure(self, event: Dict[str, Any], sd: SignalDef) -> bool:
+        # 從 YAML 讀取失敗判定條件（W10-052 source-of-truth）
+        failure_cfg = sd.raw.get("failure_detection") or {}
+        statuses = failure_cfg.get("structured_statuses") or list(self._DEFAULT_FAILURE_STATUSES)
+        keywords = failure_cfg.get("keywords") or list(self._DEFAULT_FAILURE_KEYWORDS)
+
         tr = event.get("tool_response")
-        # primary: 結構化失敗標記
+        # 結構化失敗標記
         if isinstance(tr, dict):
             status = str(tr.get("status", "")).lower()
-            if status in {"failed", "error"}:
+            if status in {str(s).lower() for s in statuses}:
                 return True
-        # fallback: 字串關鍵字
+        # 字串關鍵字（fallback）
         text = json.dumps(tr, ensure_ascii=False) if tr is not None else ""
         low = text.lower()
-        for kw in ("error", "exception", "failed", "timeout"):
-            if kw in low:
+        for kw in keywords:
+            if str(kw).lower() in low:
                 return True
         return False
 

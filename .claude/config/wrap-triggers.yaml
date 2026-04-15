@@ -24,10 +24,11 @@ signals:
     event_sources: ["PostToolUse"]
     tool_matcher: "Task"        # 僅在代理人派發工具觸發
     threshold: 2                # 連續失敗次數門檻
+    # B-1 + C3-1 (W10-056.3): 失敗判定條件 source-of-truth（W10-052）
+    # Hook 讀取 keywords 與 structured_statuses；不再硬編碼於 Python。
     failure_detection:
-      primary: "agent_commit_verification"
-      fallback: "task_output_error_marker"
-    ticket_context_key: "current_ticket"
+      keywords: ["error", "exception", "failed", "timeout"]
+      structured_statuses: ["failed", "error"]
     reset_conditions:
       - agent_success
       - ticket_switch
@@ -82,7 +83,7 @@ signals:
         降級為快速模式         — 錨點 + W + 基本率 + 決定
 
 # 提醒訊息通用前綴
+# C3-3/C3-4 (W10-056.3): 移除 include_signal_id / include_state_snapshot
+# DetectResult.signal_id 為 Python 內部使用（CE-4+R2 解 drift 風險），不需 YAML flag 控制。
 output:
   stderr_prefix: "[WRAP Tripwire]"
-  include_signal_id: true
-  include_state_snapshot: false
