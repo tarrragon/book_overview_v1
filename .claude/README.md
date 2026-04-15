@@ -168,7 +168,6 @@ grep -c '/Users/' .claude/settings.local.json
 ```text
 .claude/
 ├── README.md                          # 本文件
-├── README-subtree-sync.md             # 同步機制詳細說明
 ├── settings.local.json                # Claude Code 權限配置
 ├── installed-packages.json            # 已安裝套件記錄
 │
@@ -264,6 +263,7 @@ grep -c '/Users/' .claude/settings.local.json
 │   └── ...                            # 其他命令
 │
 ├── scripts/                           # 工具腳本（Python）
+│   ├── README-subtree-sync.md         # 同步機制詳細說明
 │   ├── cleanup-hook-logs.py
 │   ├── pm-status-check.py
 │   └── ...                            # 其他腳本
@@ -287,7 +287,7 @@ grep -c '/Users/' .claude/settings.local.json
 
 **獨立 Repo**：https://github.com/tarrragon/claude.git
 
-> 完整的同步機制說明（設計原理、方案比較、衝突處理、最佳實踐）請參考 [README-subtree-sync.md](./README-subtree-sync.md)。
+> 完整的同步機制說明（設計原理、方案比較、衝突處理、最佳實踐）請參考 [scripts/README-subtree-sync.md](./scripts/README-subtree-sync.md)。
 
 ---
 

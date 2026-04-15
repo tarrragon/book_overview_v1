@@ -1838,4 +1838,4 @@ npm run test:coverage   # 測試覆蓋率檢查
 
 - [返回主指導文件](./../../CLAUDE.md)
 - [專案文件責任明確區分](./document-responsibilities.md)
-- [Agent 協作規範](./agent-collaboration.md)
+- [Agent 協作規範](../analyses/archived/agent-collaboration.md)（歷史歸檔）

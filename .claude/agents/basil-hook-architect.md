@@ -309,7 +309,6 @@ rosemary-project-manager (驗收和部署)
 | UV 包管理器 | Context7: `/astral-sh/uv` topic "single file scripts" |
 | 專案 Hook 規範 | `.claude/hook-specs/claude-code-hooks-official-standards.md` |
 | Hook 系統方法論 | `.claude/methodologies/hook-system-methodology.md` |
-| Hook 系統快速參考 | `.claude/hook-system-reference.md` |
 
 > 詳細技術參考（Hook 類型、程式碼範例、模板、最佳實踐、常見陷阱）：
 > `.claude/references/hook-architect-technical-reference.md`

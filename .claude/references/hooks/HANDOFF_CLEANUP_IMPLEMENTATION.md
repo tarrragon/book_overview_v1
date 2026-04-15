@@ -372,7 +372,6 @@ grep "清理完成" .claude/hook-logs/handoff-cleanup/handoff-cleanup-*.log | ta
 ## 參考資源
 
 ### 官方文檔
-- [Hook 系統快速參考]($CLAUDE_PROJECT_DIR/.claude/hook-system-reference.md)
 - [Hook 系統方法論]($CLAUDE_PROJECT_DIR/.claude/methodologies/hook-system-methodology.md)
 
 ### 相關檔案

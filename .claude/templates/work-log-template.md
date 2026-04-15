@@ -154,7 +154,7 @@
 - [ ] cinnamon-refactor-owl 評估完成（評估報告：`...`）
 - [ ] 重構項目已執行（清單見下方「重構記錄」）/ ✅ 確認無需重構
 - [ ] 所有測試仍 100% 通過（X/X 通過）
-- [ ] 程式碼品質達 A 級標準（符合 code-quality-examples.md）
+- [ ] 程式碼品質達 A 級標準（符合 .claude/rules/core/quality-common.md）
 - [ ] 重構 Review 通過（Reviewer: XXX, 日期: YYYY-MM-DD）
 
 ### 提交前驗收

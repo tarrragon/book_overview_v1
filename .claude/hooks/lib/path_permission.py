@@ -22,6 +22,7 @@ from lib.hook_messages import GateMessages
 # 注意：Ticket 檔案由 ticket-file-access-guard-hook.py 專責處理
 ALLOWED_PATTERNS = [
     r"^\.claude/[^/]+\.(json|yaml)$",  # .claude/ 根目錄配置檔
+    r"^\.claude/[^/]+\.md$",  # .claude/ 根目錄 md 檔（README.md, CHANGELOG.md 等；W10-049 清理任務支援）
     r"^\.claude/plans/.*",
     r"^\.claude/rules/.*",
     r"^\.claude/methodologies/.*",
@@ -34,6 +35,9 @@ ALLOWED_PATTERNS = [
     r"^\.claude/hook-specs/.*",
     r"^\.claude/scripts/.*",
     r"^\.claude/handoff/.*",
+    r"^\.claude/analyses/.*",  # 歷史分析報告歸檔（W10-049 清理任務支援）
+    r"^\.claude/templates/.*",  # 通用模板檔案（W10-049.3 引用更新需求）
+    r"^\.claude/lib/.*\.md$",  # lib 目錄的 md 文件（README 等；W10-049.1 引用更新需求；.py 仍由 BLOCKED_PATTERNS 阻擋）
     r"^\.claude/output-styles/.*",  # output-style 設計檔案：主線程可直接編輯（W10-050，PC-066 ARCH-018 教訓）
     r"^docs/.*",
     r"^CLAUDE\.md$",

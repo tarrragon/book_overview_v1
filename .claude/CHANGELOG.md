@@ -928,7 +928,8 @@ fix: 版本號改為遠端自動遞增
 feat(sync): 改進同步機制 - 保留 commit 歷史
 
 ### Added
-CHANGED:- .claude/README-subtree-sync.md
+CHANGED:- .claude/README-subtree-sync.md  <!-- 已於 W10-049.4 (2026-04-15) 遷移至 .claude/scripts/README-subtree-sync.md -->
+
 ---
 
 

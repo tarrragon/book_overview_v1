@@ -109,7 +109,7 @@ def check_key_files(project_root: Path) -> int:
         "CLAUDE.md",
         "pubspec.yaml",
         "docs/todolist.yaml",
-        ".claude/tdd-collaboration-flow.md"
+        ".claude/methodologies/tdd-collaboration-flow.md"
     ]
 
     missing_files = 0

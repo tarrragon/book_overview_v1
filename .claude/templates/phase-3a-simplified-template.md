@@ -121,6 +121,6 @@
 
 ## 🔗 相關參考
 
-- [TDD 協作流程]($CLAUDE_PROJECT_DIR/.claude/tdd-collaboration-flow.md) - Phase 3a 完整說明
+- [TDD 協作流程]($CLAUDE_PROJECT_DIR/.claude/methodologies/tdd-collaboration-flow.md) - Phase 3a 完整說明
 - [pepper 代理人描述]($CLAUDE_PROJECT_DIR/.claude/agents/pepper-test-implementer.md) - pepper 核心職責
 - [完整版模板]($CLAUDE_PROJECT_DIR/.claude/templates/work-log-template.md) - Phase 3a 完整版格式

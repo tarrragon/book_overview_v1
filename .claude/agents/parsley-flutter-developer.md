@@ -1057,7 +1057,7 @@ mcp__serena__replace_symbol_body
 
 ### 專案規範
 - .claude/methodologies/agile-refactor-methodology.md
-- .claude/tdd-collaboration-flow.md
+- .claude/methodologies/tdd-collaboration-flow.md
 - .claude/methodologies/package-import-methodology.md
 - .claude/methodologies/natural-language-programming-methodology.md
 - .claude/methodologies/comment-writing-methodology.md

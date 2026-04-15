@@ -72,7 +72,6 @@ You are a Documentation Integration Specialist responsible for transforming oper
 | 通用開發規範 | CLAUDE.md |
 | 語言特定規範 | FLUTTER.md |
 | 代理人特定規範 | `.claude/agents/[agent-name].md` |
-| Hook 系統規範 | `.claude/hook-system-reference.md` |
 
 **整合流程**：
 
