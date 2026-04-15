@@ -19,6 +19,7 @@ L. Hook 不阻擋 advisory (L1-L3)
 """
 
 import ast
+import copy
 import importlib.util
 import io
 import json
@@ -31,6 +32,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
+import yaml
 
 
 # ============================================================================
@@ -62,54 +64,94 @@ def hook_mod():
 # Fixtures
 # ============================================================================
 
-DEFAULT_YAML = """\
-version: "1.0.0"
-last_updated: "2026-04-15"
-settings:
-  state_file: ".claude/hook-state/wrap-tripwire-state.json"
-  warn_cooldown_seconds: 300
-  hook_mode: "advisory"
-signals:
-  - id: consecutive_failures
-    enabled: true
-    event_sources: ["PostToolUse"]
-    tool_matcher: "Task"
-    threshold: 2
-    reset_conditions: [agent_success, ticket_switch, manual_wrap_invocation]
-    message_template: |
-      [WRAP Tripwire] 連續 {count} 次代理人失敗（Ticket: {ticket_id}）。
-      你是有選擇的：
-        /wrap-decision        — 系統性擴增選項
-        搜尋社群             — 看看有沒有人解決過
-        建 Ticket 延後       — 回到核心任務
-  - id: restrictive_keywords
-    enabled: true
-    event_sources: ["UserPromptSubmit"]
-    keywords: ["做不到", "沒辦法", "無法", "不支援", "不可能", "impossible", "限制性解法"]
-    match_mode: "substring"
-    case_sensitive: false
-    min_prompt_length: 20
-    reset_conditions: [manual_wrap_invocation]
-    message_template: |
-      [WRAP Tripwire] 偵測到限制性結論（關鍵字：{matched_keyword}）。
-      你是有選擇的：
-        /wrap-decision        — 搜尋間接方案
-        窮盡五問檢查         — tool-discovery.md 規則 1
-  - id: ana_claim
-    enabled: true
-    event_sources: ["PostToolUse"]
-    tool_matcher: "Bash"
-    command_pattern: "ticket\\\\s+(track\\\\s+)?claim.*\\\\bANA\\\\b|ana[-_]?claim"
-    ticket_type_filter: "ANA"
-    reset_conditions: [wrap_section_written, manual_wrap_invocation]
-    message_template: |
-      [WRAP Tripwire] 你正在 claim ANA Ticket（{ticket_id}）。
-      你是有選擇的：
-        /wrap-decision        — 執行完整 WRAP 流程
-        在 Solution 寫三問     — W/A/P 三問
-output:
-  stderr_prefix: "[WRAP Tripwire]"
-"""
+# 結構化 fixture 取代字串 + .replace() pattern（W10-063 重構）
+# 以 dict 為 source of truth，透過 yaml_fixture() 產生 YAML 文字。
+# 變體測試使用 signal_overrides / top_overrides，避免脆弱的字串替換。
+DEFAULT_CONFIG = {
+    "version": "1.0.0",
+    "last_updated": "2026-04-15",
+    "settings": {
+        "state_file": ".claude/hook-state/wrap-tripwire-state.json",
+        "warn_cooldown_seconds": 300,
+        "hook_mode": "advisory",
+    },
+    "signals": [
+        {
+            "id": "consecutive_failures",
+            "enabled": True,
+            "event_sources": ["PostToolUse"],
+            "tool_matcher": "Task",
+            "threshold": 2,
+            "reset_conditions": ["agent_success", "ticket_switch", "manual_wrap_invocation"],
+            "message_template": (
+                "[WRAP Tripwire] 連續 {count} 次代理人失敗（Ticket: {ticket_id}）。\n"
+                "你是有選擇的：\n"
+                "  /wrap-decision        — 系統性擴增選項\n"
+                "  搜尋社群             — 看看有沒有人解決過\n"
+                "  建 Ticket 延後       — 回到核心任務\n"
+            ),
+        },
+        {
+            "id": "restrictive_keywords",
+            "enabled": True,
+            "event_sources": ["UserPromptSubmit"],
+            "keywords": ["做不到", "沒辦法", "無法", "不支援", "不可能", "impossible", "限制性解法"],
+            "match_mode": "substring",
+            "case_sensitive": False,
+            "min_prompt_length": 20,
+            "reset_conditions": ["manual_wrap_invocation"],
+            "message_template": (
+                "[WRAP Tripwire] 偵測到限制性結論（關鍵字：{matched_keyword}）。\n"
+                "你是有選擇的：\n"
+                "  /wrap-decision        — 搜尋間接方案\n"
+                "  窮盡五問檢查         — tool-discovery.md 規則 1\n"
+            ),
+        },
+        {
+            "id": "ana_claim",
+            "enabled": True,
+            "event_sources": ["PostToolUse"],
+            "tool_matcher": "Bash",
+            "command_pattern": r"ticket\s+(track\s+)?claim.*\bANA\b|ana[-_]?claim",
+            "ticket_type_filter": "ANA",
+            "reset_conditions": ["wrap_section_written", "manual_wrap_invocation"],
+            "message_template": (
+                "[WRAP Tripwire] 你正在 claim ANA Ticket（{ticket_id}）。\n"
+                "你是有選擇的：\n"
+                "  /wrap-decision        — 執行完整 WRAP 流程\n"
+                "  在 Solution 寫三問     — W/A/P 三問\n"
+            ),
+        },
+    ],
+    "output": {
+        "stderr_prefix": "[WRAP Tripwire]",
+    },
+}
+
+
+def yaml_fixture(top_overrides=None, signal_overrides=None):
+    """Produce a YAML string from DEFAULT_CONFIG with structured overrides.
+
+    Args:
+        top_overrides: dict 覆蓋頂層欄位（如 {"version": "9.9.9"}）。
+        signal_overrides: dict of {signal_id: {field: value}}，覆蓋指定 signal 的欄位。
+
+    Returns:
+        YAML 字串（UTF-8，allow_unicode）。
+    """
+    config = copy.deepcopy(DEFAULT_CONFIG)
+    if top_overrides:
+        config.update(top_overrides)
+    if signal_overrides:
+        for signal in config["signals"]:
+            sid = signal["id"]
+            if sid in signal_overrides:
+                signal.update(signal_overrides[sid])
+    return yaml.safe_dump(config, allow_unicode=True, sort_keys=False)
+
+
+# Backward-compat alias: 預設 YAML 文字（等同 yaml_fixture() 無 overrides）
+DEFAULT_YAML = yaml_fixture()
 
 
 @pytest.fixture
@@ -427,10 +469,10 @@ class TestD_S2:
     def test_d7_keywords_loaded_from_yaml(self, hook_mod, tmp_path):
         """修改 YAML keywords 改變 Hook 行為（反硬編碼證明）。"""
         custom_yaml = tmp_path / "custom.yaml"
-        custom_yaml.write_text(DEFAULT_YAML.replace(
-            '["做不到", "沒辦法", "無法", "不支援", "不可能", "impossible", "限制性解法"]',
-            '["專案特殊詞XYZ"]'
-        ), encoding="utf-8")
+        custom_yaml.write_text(
+            yaml_fixture(signal_overrides={"restrictive_keywords": {"keywords": ["專案特殊詞XYZ"]}}),
+            encoding="utf-8",
+        )
         cfg = _load_config(hook_mod, custom_yaml)
         sd = next(s for s in cfg.signals if s.id == "restrictive_keywords")
         assert sd.keywords == ["專案特殊詞XYZ"]
@@ -724,7 +766,7 @@ class TestI_YamlFallback:
 
     def test_i3_version_mismatch_best_effort(self, hook_mod, tmp_path, capsys):
         p = tmp_path / "v.yaml"
-        p.write_text(DEFAULT_YAML.replace('version: "1.0.0"', 'version: "9.9.9"'), encoding="utf-8")
+        p.write_text(yaml_fixture(top_overrides={"version": "9.9.9"}), encoding="utf-8")
         import logging
         cfg = hook_mod.load_config(p, logging.getLogger("t_i3"))
         assert cfg is not None
@@ -735,10 +777,7 @@ class TestI_YamlFallback:
     def test_i4_disabled_signal_skipped_at_parse(self, hook_mod, tmp_path):
         p = tmp_path / "d.yaml"
         # 把 S1 改成 enabled=false
-        content = DEFAULT_YAML.replace(
-            "- id: consecutive_failures\n    enabled: true",
-            "- id: consecutive_failures\n    enabled: false",
-        )
+        content = yaml_fixture(signal_overrides={"consecutive_failures": {"enabled": False}})
         p.write_text(content, encoding="utf-8")
         import logging
         cfg = hook_mod.load_config(p, logging.getLogger("t_i4"))
@@ -748,10 +787,9 @@ class TestI_YamlFallback:
     def test_i5_unknown_reset_logged_not_fatal(self, hook_mod, tmp_path, caplog):
         import logging
         p = tmp_path / "u.yaml"
-        content = DEFAULT_YAML.replace(
-            "reset_conditions: [agent_success, ticket_switch, manual_wrap_invocation]",
-            "reset_conditions: [agent_success, unknown_reset_xyz]",
-        )
+        content = yaml_fixture(signal_overrides={
+            "consecutive_failures": {"reset_conditions": ["agent_success", "unknown_reset_xyz"]}
+        })
         p.write_text(content, encoding="utf-8")
         cfg = hook_mod.load_config(p, logging.getLogger("t_i5"))
         assert cfg is not None
@@ -774,10 +812,10 @@ class TestJ_SourceOfTruth:
         """修改 YAML keywords 改變 Hook 行為（核心反硬編碼證明）。"""
         import logging
         custom = tmp_path / "custom.yaml"
-        custom.write_text(DEFAULT_YAML.replace(
-            '["做不到", "沒辦法", "無法", "不支援", "不可能", "impossible", "限制性解法"]',
-            '["ZZUNIQUEKEY"]'
-        ), encoding="utf-8")
+        custom.write_text(
+            yaml_fixture(signal_overrides={"restrictive_keywords": {"keywords": ["ZZUNIQUEKEY"]}}),
+            encoding="utf-8",
+        )
         cfg = hook_mod.load_config(custom, logging.getLogger("t"))
         sd = next(s for s in cfg.signals if s.id == "restrictive_keywords")
         strat = hook_mod.RestrictiveKeywordsStrategy()
@@ -794,7 +832,10 @@ class TestJ_SourceOfTruth:
     def test_j2_threshold_change_via_yaml(self, hook_mod, tmp_path):
         import logging
         custom = tmp_path / "t.yaml"
-        custom.write_text(DEFAULT_YAML.replace("threshold: 2", "threshold: 3"), encoding="utf-8")
+        custom.write_text(
+            yaml_fixture(signal_overrides={"consecutive_failures": {"threshold": 3}}),
+            encoding="utf-8",
+        )
         cfg = hook_mod.load_config(custom, logging.getLogger("t"))
         sd = next(s for s in cfg.signals if s.id == "consecutive_failures")
         assert sd.threshold == 3
