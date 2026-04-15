@@ -1,6 +1,6 @@
 ---
 name: wrap-decision
-description: "WRAP 決策框架 — 認知偏誤防護和選項擴增工具。基於《零偏見決斷法》。Use for: (1) PM 被困住或連續失敗時, (2) 偏離核心目標時, (3) 宣稱「做不到」前的間接方案搜尋, (4) 重大非技術決策, (5) ANA Ticket 分析過程, (6) Debug/錯誤根因調查, (7) 提案可行性評估。Use when: stuck, loop, blocked, no progress, 連續失敗, 分析, debug, 根因, 提案評估, 代理人失敗歸因"
+description: "WRAP 決策框架 — 認知偏誤防護和選項擴增工具。基於《零偏見決斷法》。Use for: (1) PM 被困住或連續失敗時, (2) 偏離核心目標時, (3) 宣稱「做不到/無法/禁止」前的間接方案搜尋, (4) 重大非技術決策（升級/重構/改架構/新建規則）, (5) ANA Ticket 分析過程, (6) Debug/錯誤根因調查, (7) 提案可行性評估, (8) Context 沉重時的決策品質防護。Use when: stuck, loop, blocked, no progress, 連續失敗 2+, 分析, debug, 根因, 提案評估, 代理人失敗歸因, 做不到, 無法, 沒辦法, CLI 不支援, 禁止, 不可能, 升級, 重構, 改架構, 新建規則, 高 context, tool call 多, session 長, 限制性解法"
 ---
 
 # WRAP 決策框架 Skill
@@ -284,6 +284,6 @@ WRAP 每階段之間是切割點 — 強迫問「要不要繼續」：
 
 ---
 
-**Last Updated**: 2026-04-13
-**Version**: 1.2.0 — W 階段新增「偽 Widen vs 真 Widen」對照與質疑假設步驟引導（PC-063 防護 3/4，0.18.0-W5-035）
-**Source**: 《零偏見決斷法》(Decisive) + PC-051 教訓 + PC-063 教訓 + 實戰案例
+**Last Updated**: 2026-04-15
+**Version**: 1.3.0 — description 擴充觸發關鍵字（做不到/無法/禁止/升級/重構/改架構/連續失敗 2+/高 context），對應 PC-066 防護措施 2
+**Source**: 《零偏見決斷法》(Decisive) + PC-051 教訓 + PC-063 教訓 + PC-066 教訓 + 實戰案例

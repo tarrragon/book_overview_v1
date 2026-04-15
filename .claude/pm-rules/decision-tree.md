@@ -21,6 +21,13 @@
     +── 是 → 使用 Skill tool 執行（結束）
     +── 否 ↓
     v
+[Context 重度檢查層] 偵測決策品質風險訊號?（PC-066 防護）
+    +── 連續失敗 ≥ 2 次（同 ticket）→ 強制 /wrap-decision 快速模式
+    +── PM 將輸出「做不到/無法/禁止/不可能」→ 強制 /wrap-decision 快速模式
+    +── ANA Ticket claim → 強制 /wrap-decision 快速模式
+    +── 重大決策關鍵字（升級/重構/改架構/新建規則）→ 提示（非強制）
+    +── 否 ↓
+    v
 [派發閘門] → dispatch-gate.md
     複雜度關卡（指數 > 10 必須拆分）
     Context Bundle 關卡（三步驟檢查）
@@ -59,7 +66,24 @@ Skill 是預建的專用工具，優先於代理人派發。
 | 2 | Skill description 中的觸發關鍵字 | 「確認待辦的 ticket」→ ticket Skill |
 | 3 | Hook `[SKILL 提示]` 輸出 | Hook 建議使用某 Skill |
 
-無 Skill 匹配 → 進入派發閘門。
+無 Skill 匹配 → 進入 Context 重度檢查層。
+
+---
+
+## Context 重度檢查層（PC-066 入口，條件權威來源見 SKILL）
+
+> **核心理念**：派發閘門前的決策品質風險入口。PM 在此節點主動檢視當前 session 是否觸發 WRAP 條件；強制觸發路由至 /wrap-decision 快速模式。
+
+**入口判斷**：
+
+進入派發閘門前自問——當前是否符合 wrap-decision SKILL「觸發條件」章節的任一情境？
+
+- 是 → 執行 /wrap-decision 快速模式（5 分鐘）→ 完成後繼續派發閘門
+- 否 → 直接進入派發閘門
+
+> **觸發條件權威來源**：`.claude/skills/wrap-decision/SKILL.md`「觸發條件」表格（連續失敗 / 被困住 / 偏離核心 / 重大決策 / 救火排擠 / ANA / Debug / 提案）。本章節不複述條件以避免清單漂移（DRY 違反 → PC-066 教訓）。
+
+**自動偵測**：`decision-quality-guard-hook.py`（W10-009 追蹤）為唯一強制觸發節點，本章節為人工 fallback。
 
 ---
 
@@ -67,7 +91,7 @@ Skill 是預建的專用工具，優先於代理人派發。
 
 | 分支條件 | 路由檔案 | 適用場景 |
 |---------|---------|---------|
-| 所有派發前（強制） | dispatch-gate.md | 複雜度關卡 + Context Bundle + 並行化 |
+| 所有派發前（強制） | 本檔案「Context 重度檢查層」 + dispatch-gate.md | 決策品質風險偵測 + 複雜度關卡 + Context Bundle + 並行化 |
 | 動作摩擦力評估（哲學層） | friction-management-methodology.md | 判斷動作應降低/保留/增加摩擦力（30 秒準則）。流程階段摩擦力曲線見同文件「開發流程階段的摩擦力曲線」章節 |
 | ANA/Debug/提案（強制 WRAP） | /wrap-decision | 分析、除錯、提案評估必須先 WRAP |
 | Proposal 建立 / 狀態變更 | proposal-evaluation-gate.md | docs/proposals/ 新建或修改 confirmed/approved 狀態時的強制分級與評估 |
@@ -119,5 +143,5 @@ Skill 是預建的專用工具，優先於代理人派發。
 
 ---
 
-**Last Updated**: 2026-04-09
-**Version**: 9.0.0 - 二元化拆分：主檔案精簡為路由索引（從 311 行 → ~90 行）
+**Last Updated**: 2026-04-15
+**Version**: 9.2.0 — 新增 Context 重度檢查層（PC-066 入口）：條件權威來源指向 wrap-decision SKILL（避免 DRY 違反），本層僅為人工 fallback；自動強制由 W10-009 Hook 處理
