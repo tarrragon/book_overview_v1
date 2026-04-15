@@ -408,6 +408,11 @@ class SignalStrategy(Protocol):
 
 
 class ConsecutiveFailuresStrategy:
+    # _DEFAULT_SIGNAL_ID 為 apply() 在 result.signal_id 缺失時的備援 key（例如測試直接構造
+    # DetectResult 不經 detect()）。正式流程中 detect() 會將 sd.id 寫入 result.signal_id，
+    # 此屬性不會實際被使用，避免與 SIGNAL_STRATEGIES key 產生 drift。
+    _DEFAULT_SIGNAL_ID = "consecutive_failures"
+
     def detect(self, event: Dict[str, Any], state: Dict[str, Any],
                sd: SignalDef, current_ticket: Optional[str], logger) -> DetectResult:
         if event.get("tool_name") != (sd.tool_matcher or "Task"):
@@ -443,9 +448,8 @@ class ConsecutiveFailuresStrategy:
 
     def apply(self, state: Dict[str, Any], result: DetectResult,
               current_ticket: Optional[str]) -> Dict[str, Any]:
-        if not result.signal_id:
-            return state
-        sig_state = state.setdefault("signals", {}).setdefault(result.signal_id, {})
+        sid = result.signal_id or self._DEFAULT_SIGNAL_ID
+        sig_state = state.setdefault("signals", {}).setdefault(sid, {})
         if result.reset:
             sig_state["count"] = 0
         elif result.hit and result.count is not None:
@@ -617,36 +621,19 @@ def render_message(sd: SignalDef, result: DetectResult,
 # 主流程
 # ============================================================================
 
-def main() -> int:
-    logger = setup_hook_logging(HOOK_NAME)
-    event = read_json_from_stdin(logger)
-    if event is None:
-        return 0
+def _process_signals(
+    event: Dict[str, Any],
+    event_name: str,
+    state: Dict[str, Any],
+    config: Config,
+    current_ticket: Optional[str],
+    logger,
+) -> List[str]:
+    """逐 signal 執行 detect/apply，回傳應輸出的 warning 字串清單。
 
-    project_root = get_project_root()
-    config_path = project_root / CONFIG_REL_PATH
-
-    config = load_config(config_path, logger)
-    if config is None:
-        return 0
-
-    state_path = project_root / config.state_file
-    state = load_state(state_path, logger)
-    cwd = Path(event.get("cwd") or project_root)
-
-    current_ticket = derive_ticket(event, cwd, logger)
-
-    # 全訊號重置：ticket 切換
-    state = apply_ticket_switch_reset(state, current_ticket)
-
-    # 全訊號重置：手動 /wrap-decision
-    if is_manual_wrap_invocation(event):
-        state = reset_all_signals(state)
-        logger.info("manual /wrap-decision detected; all signals reset")
-
-    event_name = event.get("hook_event_name", "")
+    副作用：會就地修改 state（cooldown / 計數等）。
+    """
     warnings: List[str] = []
-
     for sd in config.signals:
         if not sd.enabled:
             continue
@@ -670,6 +657,35 @@ def main() -> int:
             logger.info("signal %s triggered; warning emitted", sd.id)
         elif result.should_warn:
             logger.info("signal %s in cooldown; warning suppressed", sd.id)
+    return warnings
+
+
+def main() -> int:
+    logger = setup_hook_logging(HOOK_NAME)
+    event = read_json_from_stdin(logger)
+    if event is None:
+        return 0
+
+    project_root = get_project_root()
+    config_path = project_root / CONFIG_REL_PATH
+
+    config = load_config(config_path, logger)
+    if config is None:
+        return 0
+
+    state_path = project_root / config.state_file
+    state = load_state(state_path, logger)
+    cwd = Path(event.get("cwd") or project_root)
+
+    current_ticket = derive_ticket(event, cwd, logger)
+    state = apply_ticket_switch_reset(state, current_ticket)
+
+    if is_manual_wrap_invocation(event):
+        state = reset_all_signals(state)
+        logger.info("manual /wrap-decision detected; all signals reset")
+
+    event_name = event.get("hook_event_name", "")
+    warnings = _process_signals(event, event_name, state, config, current_ticket, logger)
 
     save_state_atomic(state_path, state, logger)
 
