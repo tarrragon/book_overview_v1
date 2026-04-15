@@ -103,6 +103,10 @@ from .track_board import (
     execute_board,
 )
 # 導入快照命令模組
+from .track_agent_status import (
+    execute_agent_status,
+    register_agent_status,
+)
 from .track_snapshot import (
     execute_snapshot,
 )
@@ -196,6 +200,8 @@ def execute(args: argparse.Namespace) -> int:
         return execute_version(args, None)
     if operation == "snapshot":
         return execute_snapshot(args)
+    if operation == "agent-status":
+        return execute_agent_status(args)
 
     # 其他命令需要版本資訊
     # 優先級：
@@ -619,6 +625,7 @@ def _register_all_subcommands(
     _register_version_audit_commands(track_subparsers)
     _register_board_commands(track_subparsers)
     _register_snapshot_commands(track_subparsers)
+    register_agent_status(track_subparsers)
 
 
 def _register_snapshot_commands(

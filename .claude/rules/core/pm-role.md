@@ -212,6 +212,7 @@ git branch | grep feat/
 | -1 | `find .claude/hook-logs -name "*.log" -mmin -5 -exec grep -l "ERROR\|Exception\|TypeError" {} \;` | 檢查是否有 Hook error 干擾代理人（防範環境異常誤判） |
 | 0 | `cat .claude/dispatch-active.json` | 確認代理人是否仍在活躍派發中（可能還沒完成） |
 | 0.5 | `TaskOutput(task_id=<agentId>, block=false, timeout=3000)` 讀 `<status>` 標籤 | 對懷疑失敗的代理人確認 runtime 狀態（補 PC-050 模式 D 盲點） |
+| 0.5-A | **派發時間閾值檢查**：若代理人派發距今 < 2 分鐘且收到 Hook 完成訊號，Step 0.5 **強制執行**（禁用 Hook 訊號作為失敗依據） | 防 PC-050 模式 E / PC-070：Hook 廣播訊號與 runtime 狀態不同步 |
 | 1 | `pwd && git branch --show-current` | 確認當前分支（可能被代理人污染到其他分支） |
 | 2 | `git worktree list` | 檢查是否有 worktree 包含代理人的 commit |
 | 3 | `git branch \| grep feat/` | 檢查是否有 feature 分支包含代理人的 commit |
@@ -220,6 +221,16 @@ git branch | grep feat/
 > **Hook error 可見性**：terminal 上的 Hook error 只有用戶看得到，PM 和代理人都看不到。代理人完成後 `agent-commit-verification-hook` 會自動掃描 hook-logs 並輸出摘要，但 PM 主動判斷時仍需執行 Step -1 確認環境是否正常。
 
 > **Step 0.5 TaskOutput 安全規則**：只讀 `<status>` 標籤（`running`/`completed`/`error`），**禁止讀 `<output>` body**（流式 JSONL transcript，會污染 context 且違反 PC-050 模式 D 防護）。若 `<status>` 為 `running`，不可判失敗。完整安全範本見 .claude/error-patterns/process-compliance/PC-050-premature-agent-completion-judgment.md 「TaskOutput 安全使用範本」章節。
+
+> **Step 0.5-A 派發時間閾值強制條款（PC-050 模式 E / PC-070）**：若以下條件**同時成立**，Step 0.5 TaskOutput 查詢**強制執行**，禁止基於 Hook 訊號推論失敗：
+>
+> 1. 代理人派發距今 **< 2 分鐘**（派發時間戳可從 `dispatch-active.json` 歷史或 agent 派發紀錄取得；無紀錄時採保守預設：假設 < 2 分鐘）
+> 2. 觀察到 Hook 廣播完成訊號（`PostToolUse:Agent hook additional context` 或 `dispatch-active.json` 清空）
+> 3. 目標檔案 `git status` 無變更 / ticket Solution 仍為模板
+>
+> **行動**：執行 `ToolSearch(query="select:TaskOutput")` → `TaskOutput(task_id=<agentId>, block=false, timeout=3000)` → 只讀 `<status>`。若 `running`，**停止推論、等完成通知**。
+>
+> **替代假設檢查**：在 Step 0.5 結果出來前，PM 至少生成 2 個假設（A: 代理人失敗；B: 代理人仍在工作）。單一假設錨定違反 PC-070 根因 4。
 
 **只有 hook-logs 無 error 且 dispatch-active.json 為空且 TaskOutput `<status>` 非 running 且所有分支都沒有代理人的 commit 後，才能判定代理人失敗。**
 
@@ -329,6 +340,7 @@ git branch | grep feat/
 
 ---
 
-**Last Updated**: 2026-04-13
+**Last Updated**: 2026-04-15
+**Version**: 3.7.0 - 失敗判斷前置步驟新增 Step 0.5-A 派發時間閾值強制條款（派發 < 2 分鐘 + Hook 完成訊號 → 強制 TaskOutput 查詢），防護 PC-050 模式 E / PC-070
 **Version**: 3.6.0 - 新增「對話列選項時必用 AskUserQuestion」強制條款（PC-064 落地：規則層覆蓋對話中途決策點）
-**Source**: 從 .claude/skills/manager/SKILL.md v2.0.0 遷移 + PC-045 教訓 + PC-064 教訓
+**Source**: 從 .claude/skills/manager/SKILL.md v2.0.0 遷移 + PC-045 教訓 + PC-064 教訓 + W10-061 PM 代理人狀態查詢防護
