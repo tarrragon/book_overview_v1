@@ -29,6 +29,7 @@ from .hook_io import (
     validate_hook_input,
     validate_tool_input,
     is_subagent_environment,
+    is_background_dispatch,
     generate_hook_output,
     emit_hook_output,
 )
@@ -62,6 +63,7 @@ __all__ = [
     "validate_hook_input",
     "validate_tool_input",
     "is_subagent_environment",
+    "is_background_dispatch",
     "generate_hook_output",
     "emit_hook_output",
     "parse_ticket_frontmatter",

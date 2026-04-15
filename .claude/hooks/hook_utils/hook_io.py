@@ -432,6 +432,35 @@ def is_subagent_environment(input_data: "dict | None") -> bool:
     return bool(input_data.get("agent_id"))
 
 
+def is_background_dispatch(tool_input: "dict | None") -> bool:
+    """檢查是否為背景代理人派發（run_in_background=true）
+
+    背景代理人的 PostToolUse(Agent) 在代理人「啟動完成」（agentId 返回）時觸發，
+    而非「工作完成」時。所有依賴「工作完成」語義的 PostToolUse(Agent) 類 Hook
+    必須使用此 helper 在背景路徑跳過完成判定邏輯，避免誘發 PM 誤判（PC-070 根因）。
+
+    真正的完成訊號應由 task-notification 事件（或對應 Hook event）處理。
+
+    Args:
+        tool_input: PostToolUse 的 tool_input dict（來自 input_data["tool_input"]）
+
+    Returns:
+        bool: 若 tool_input.run_in_background 為 truthy，回傳 True；否則 False。
+
+    Examples:
+        >>> tool_input = extract_tool_input(input_data, logger)
+        >>> if is_background_dispatch(tool_input):
+        ...     logger.info("背景代理人啟動，跳過完成判定邏輯")
+        ...     return EXIT_SUCCESS
+
+    相關 Ticket：0.18.0-W10-024（active-dispatch-tracker-hook 首例）、
+    0.18.0-W10-060（其他 PostToolUse(Agent) Hook 套用）
+    """
+    if not tool_input:
+        return False
+    return bool(tool_input.get("run_in_background", False))
+
+
 # ============================================================================
 # Hook 輸出生成
 # ============================================================================

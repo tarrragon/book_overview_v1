@@ -183,6 +183,12 @@ def detect_dispatch_keywords(text: str, logger) -> Optional[tuple[list[str], int
 def handle_post_tool_use(input_data: Dict[str, Any], logger) -> int:
     """
     PostToolUse Hook：偵測 Agent dispatch 關鍵字，初始化或遞增計數
+
+    [W10-060 Background 模式語意備註]
+    本 Hook 計數的語意是「PM 已派發的 Agent 數」，而非「已完成的 Agent 數」。
+    PostToolUse(Agent) 對 run_in_background=true 在「啟動完成」時觸發，
+    此時 agentId 已返回，等同於「派發完成」，因此計數於此時點正確無誤。
+    不需要套用 is_background_dispatch early-return（與 W10-024 / P-2 / P-3 不同）。
     """
     # 只處理 Agent tool
     tool_name = input_data.get("tool_name", "")

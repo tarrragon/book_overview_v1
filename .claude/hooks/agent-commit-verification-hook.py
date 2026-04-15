@@ -36,6 +36,7 @@ from hook_utils import (
     read_json_from_stdin,
     extract_tool_input,
     is_subagent_environment,
+    is_background_dispatch,
     get_project_root,
 )
 
@@ -521,6 +522,19 @@ def main() -> None:
         sys.exit(EXIT_SUCCESS)
 
     tool_input = extract_tool_input(input_data, logger)
+
+    # 背景代理人：PostToolUse(Agent) 在代理人「啟動完成」時觸發，非「工作完成」。
+    # 此時代理人尚未 commit、未合併、未產生任何持久化變更，執行
+    # uncommitted / unmerged worktree / unmerged feature branch 檢查會產生
+    # 誤報與錯誤「PM 立即動作」摘要（PC-070 誘因，W10-024 首例修復）。
+    # 真正完成訊號應由 task-notification 事件處理，此處安靜跳過。
+    if is_background_dispatch(tool_input):
+        logger.info(
+            "background agent dispatch detected (%s), skip completion-dependent checks",
+            tool_input.get("description", "unknown"),
+        )
+        print(json.dumps(DEFAULT_OUTPUT))
+        sys.exit(EXIT_SUCCESS)
 
     # 取得代理人描述
     agent_description = tool_input.get("description", "unknown")

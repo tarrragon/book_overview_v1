@@ -32,6 +32,7 @@ from hook_utils import (
     extract_tool_input,
     extract_tool_response,
     is_subagent_environment,
+    is_background_dispatch,
     get_project_root,
 )
 
@@ -122,6 +123,19 @@ def main():
         sys.exit(EXIT_SUCCESS)
 
     tool_input = extract_tool_input(input_data, logger)
+
+    # 背景代理人：PostToolUse(Agent) 在啟動完成時觸發，response 尚未產生。
+    # 此時記錄 response_preview 會是空字串，failure/truncation 判斷毫無意義，
+    # 且會污染 agent-dispatch.jsonl 讓事後追溯失真（PC-070 相關）。
+    # 真正完成訊號應由 task-notification 事件處理，此處安靜跳過。
+    if is_background_dispatch(tool_input):
+        logger.info(
+            "background agent dispatch detected (%s), skip dispatch logging until completion",
+            tool_input.get("description", "unknown"),
+        )
+        json.dump(DEFAULT_OUTPUT, sys.stdout)
+        sys.exit(EXIT_SUCCESS)
+
     tool_response = extract_tool_response(input_data, logger)
 
     # 提取欄位
