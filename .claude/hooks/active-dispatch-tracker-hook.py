@@ -42,6 +42,10 @@ def main() -> int:
 
     tool_input = input_data.get("tool_input", {})
     agent_description = tool_input.get("description", "")
+    # Background agents fire PostToolUse at launch time（agentId 返回即觸發），
+    # 此時代理人仍在執行，若清除 dispatch 記錄並廣播「完成」會誘發 PM 誤判（PC-070 根因）。
+    # 真正的完成訊號應由 task-notification event 處理。
+    is_background = bool(tool_input.get("run_in_background", False))
 
     if not agent_description:
         logger.debug("無 agent description，跳過清理")
@@ -56,16 +60,26 @@ def main() -> int:
         return 0
 
     messages = []
+    cleared = False
 
-    # 清理對應的 dispatch 記錄
-    cleared = clear_dispatch(project_root, agent_description)
-    if cleared:
-        messages.append(f"已清理派發記錄: {agent_description}")
-        logger.info("已清理派發記錄: %s", agent_description)
+    if is_background:
+        # 背景代理人：PostToolUse 在啟動時即觸發，代理人仍在執行。
+        # 保留 dispatch 記錄，待真正完成事件處理；不輸出完成/等待訊息，
+        # 但仍進行超時 / orphan housekeeping。
+        logger.info(
+            "背景代理人派發（%s），跳過清理與完成廣播（等待 task-notification）",
+            agent_description,
+        )
     else:
-        logger.debug("未找到匹配的派發記錄: %s", agent_description)
+        # 前景代理人：PostToolUse 代表真正完成，執行清理。
+        cleared = clear_dispatch(project_root, agent_description)
+        if cleared:
+            messages.append(f"已清理派發記錄: {agent_description}")
+            logger.info("已清理派發記錄: %s", agent_description)
+        else:
+            logger.debug("未找到匹配的派發記錄: %s", agent_description)
 
-    # 清理超時記錄
+    # 清理超時記錄（背景與前景共用，housekeeping 不受時機影響）
     expired_count = cleanup_expired(project_root)
     if expired_count > 0:
         messages.append(f"已清理 {expired_count} 筆超時派發記錄")
@@ -80,17 +94,26 @@ def main() -> int:
         )
         logger.info("偵測到 orphan worktree 分支: %s", orphan_list)
 
-    # 查詢剩餘活躍派發（讓 PM 知道還有幾個代理人在執行）
-    remaining = get_active_dispatches(project_root)
-    if remaining:
-        agents_list = ", ".join(
-            d.get("agent_description", "?") for d in remaining
-        )
-        messages.append(
-            "[WAIT] 仍有 {} 個代理人在執行: {}".format(len(remaining), agents_list)
-        )
-    else:
-        messages.append("[OK] 所有代理人已完成，可開始驗收")
+    # 三態訊息（只在前景代理人路徑輸出，避免背景派發時誤導）：
+    # (a) 有活躍派發 -> [WAIT]
+    # (b) 無活躍派發 且 本次 cleared=True（剛完成真實驗收）-> [OK]
+    # (c) 無活躍派發 且 本次 cleared=False（未派發過 / 背景啟動）-> 不輸出 dispatch-state 訊息
+    if not is_background:
+        remaining = get_active_dispatches(project_root)
+        if remaining:
+            agents_list = ", ".join(
+                d.get("agent_description", "?") for d in remaining
+            )
+            messages.append(
+                "[WAIT] 仍有 {} 個代理人在執行: {}".format(len(remaining), agents_list)
+            )
+        elif cleared:
+            messages.append("[OK] 所有代理人已完成，可開始驗收")
+        # else: 未派發過或無對應記錄，保持靜默
+
+    # 無任何訊息時不輸出 additionalContext，避免 PM 持續看到雜訊。
+    if not messages:
+        return 0
 
     # 輸出 additionalContext（必須包在 hookSpecificOutput 中，否則觸發 JSON validation failed，IMP-055）
     context = " | ".join(messages)
