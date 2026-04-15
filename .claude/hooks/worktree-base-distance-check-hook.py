@@ -75,6 +75,8 @@ def get_worktree_list(project_root: str, logger: logging.Logger) -> list[dict]:
             ["git", "worktree", "list", "--porcelain"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=GIT_COMMAND_TIMEOUT,
             cwd=project_root,
         )
@@ -131,6 +133,8 @@ def get_base_distance(
             ["git", "rev-list", "--count", f"main...{worktree_head}"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=GIT_COMMAND_TIMEOUT,
             cwd=project_root,
         )

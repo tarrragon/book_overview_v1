@@ -30,7 +30,7 @@ def parse_worktree_list(logger) -> List[Tuple[str, str]]:
     try:
         result = subprocess.run(
             ["git", "worktree", "list", "--porcelain"],
-            capture_output=True, text=True, timeout=10
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10
         )
     except (subprocess.TimeoutExpired, FileNotFoundError):
         logger.warning("git worktree list 執行失敗")
@@ -70,7 +70,7 @@ def get_unmerged_commits(branch: str, logger) -> List[str]:
     try:
         result = subprocess.run(
             ["git", "log", f"main..{branch}", "--oneline"],
-            capture_output=True, text=True, timeout=10
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10
         )
     except (subprocess.TimeoutExpired, FileNotFoundError):
         logger.warning("git log main..%s 執行失敗", branch)

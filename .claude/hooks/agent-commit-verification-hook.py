@@ -137,6 +137,8 @@ def get_uncommitted_files(project_root: str, logger: logging.Logger) -> list[str
             ["git", "--no-optional-locks", "status", "--porcelain"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=GIT_STATUS_TIMEOUT,
             cwd=project_root,
         )
@@ -222,7 +224,7 @@ def get_unmerged_worktrees(project_root: str, logger: logging.Logger) -> list[tu
     try:
         result = subprocess.run(
             ["git", "worktree", "list", "--porcelain"],
-            capture_output=True, text=True, timeout=GIT_STATUS_TIMEOUT,
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=GIT_STATUS_TIMEOUT,
             cwd=project_root,
         )
         if result.returncode != 0:
@@ -253,7 +255,7 @@ def get_unmerged_worktrees(project_root: str, logger: logging.Logger) -> list[tu
         try:
             log_result = subprocess.run(
                 ["git", "log", f"main..{branch}", "--oneline"],
-                capture_output=True, text=True, timeout=GIT_STATUS_TIMEOUT,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=GIT_STATUS_TIMEOUT,
                 cwd=project_root,
             )
             if log_result.returncode == 0 and log_result.stdout.strip():
@@ -314,7 +316,7 @@ def get_unmerged_feature_branches(
     try:
         result = subprocess.run(
             ["git", "branch", "--format=%(refname:short)"],
-            capture_output=True, text=True, timeout=GIT_STATUS_TIMEOUT,
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=GIT_STATUS_TIMEOUT,
             cwd=project_root,
         )
         if result.returncode != 0:
@@ -337,7 +339,7 @@ def get_unmerged_feature_branches(
         try:
             log_result = subprocess.run(
                 ["git", "log", f"main..{branch}", "--oneline"],
-                capture_output=True, text=True, timeout=GIT_STATUS_TIMEOUT,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=GIT_STATUS_TIMEOUT,
                 cwd=project_root,
             )
             if log_result.returncode == 0 and log_result.stdout.strip():

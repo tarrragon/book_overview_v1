@@ -277,6 +277,8 @@ def get_git_changed_files(project_root: Path, logger: logging.Logger) -> list[st
             cwd=str(project_root),
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=GIT_DIFF_TIMEOUT
         )
 

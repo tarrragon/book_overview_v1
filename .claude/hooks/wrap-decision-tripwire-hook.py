@@ -30,7 +30,7 @@ import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Protocol
 
 import yaml
 
@@ -104,11 +104,72 @@ class DetectResult:
     matched_keyword: Optional[str] = None
     ticket_id: Optional[str] = None
     log_reason: Optional[str] = None
+    # signal_id 由 detect() 於返回前填入（= sd.id）；apply() 讀取以定位 state 子 key。
+    # 取代先前類別層級 signal_id 屬性，消除與 SIGNAL_STRATEGIES key 的 drift 風險（CE-4+R2）。
+    signal_id: Optional[str] = None
 
 
 # ============================================================================
 # Config 載入
 # ============================================================================
+
+_VALID_RESET_CONDITIONS = {
+    "agent_success",
+    "ticket_switch",
+    "manual_wrap_invocation",
+    "wrap_section_written",
+}
+
+
+def _parse_settings(raw: Dict[str, Any], cfg: Config) -> None:
+    """將 settings + output 節填入 cfg。"""
+    settings = raw.get("settings") or {}
+    cfg.state_file = settings.get("state_file", DEFAULT_STATE_REL_PATH)
+    cfg.warn_cooldown_seconds = int(settings.get("warn_cooldown_seconds", 300))
+    cfg.hook_mode = settings.get("hook_mode", "advisory")
+
+    output = raw.get("output") or {}
+    cfg.stderr_prefix = output.get("stderr_prefix", "[WRAP Tripwire]")
+
+
+def _parse_signals(signals_raw: Any, logger) -> List[SignalDef]:
+    """解析 signals list，過濾無效項目。"""
+    if not isinstance(signals_raw, list):
+        logger.info("signals not a list; treating as empty")
+        return []
+
+    signals: List[SignalDef] = []
+    for item in signals_raw:
+        if not isinstance(item, dict):
+            continue
+        sd = SignalDef(id=str(item.get("id", "")))
+        if not sd.id:
+            continue
+        sd.enabled = bool(item.get("enabled", True))
+        sd.event_sources = list(item.get("event_sources", []))
+        sd.tool_matcher = item.get("tool_matcher")
+        sd.threshold = item.get("threshold")
+        sd.keywords = list(item.get("keywords", []))
+        sd.match_mode = item.get("match_mode", "substring")
+        sd.case_sensitive = bool(item.get("case_sensitive", False))
+        sd.min_prompt_length = int(item.get("min_prompt_length", 0))
+        sd.command_pattern = item.get("command_pattern")
+        sd.ticket_type_filter = item.get("ticket_type_filter")
+        sd.reset_conditions = list(item.get("reset_conditions", []))
+        sd.message_template = item.get("message_template", "")
+        sd.raw = item
+
+        if not sd.message_template:
+            logger.info("signal %s missing message_template; skipping", sd.id)
+            continue
+
+        for rc in sd.reset_conditions:
+            if rc not in _VALID_RESET_CONDITIONS:
+                logger.info("signal %s unknown reset_condition: %s", sd.id, rc)
+
+        signals.append(sd)
+    return signals
+
 
 def load_config(config_path: Path, logger) -> Optional[Config]:
     """載入 YAML config。失敗時輸出雙通道並返回 None。"""
@@ -145,54 +206,8 @@ def load_config(config_path: Path, logger) -> Optional[Config]:
         )
         logger.info("version mismatch expected=%s got=%s", EXPECTED_VERSION, cfg.version)
 
-    settings = raw.get("settings") or {}
-    cfg.state_file = settings.get("state_file", DEFAULT_STATE_REL_PATH)
-    cfg.warn_cooldown_seconds = int(settings.get("warn_cooldown_seconds", 300))
-    cfg.hook_mode = settings.get("hook_mode", "advisory")
-
-    output = raw.get("output") or {}
-    cfg.stderr_prefix = output.get("stderr_prefix", "[WRAP Tripwire]")
-
-    signals_raw = raw.get("signals") or []
-    if not isinstance(signals_raw, list):
-        logger.info("signals not a list; treating as empty")
-        signals_raw = []
-
-    for item in signals_raw:
-        if not isinstance(item, dict):
-            continue
-        sd = SignalDef(id=str(item.get("id", "")))
-        if not sd.id:
-            continue
-        sd.enabled = bool(item.get("enabled", True))
-        sd.event_sources = list(item.get("event_sources", []))
-        sd.tool_matcher = item.get("tool_matcher")
-        sd.threshold = item.get("threshold")
-        sd.keywords = list(item.get("keywords", []))
-        sd.match_mode = item.get("match_mode", "substring")
-        sd.case_sensitive = bool(item.get("case_sensitive", False))
-        sd.min_prompt_length = int(item.get("min_prompt_length", 0))
-        sd.command_pattern = item.get("command_pattern")
-        sd.ticket_type_filter = item.get("ticket_type_filter")
-        sd.reset_conditions = list(item.get("reset_conditions", []))
-        sd.message_template = item.get("message_template", "")
-        sd.raw = item
-
-        if not sd.message_template:
-            logger.info("signal %s missing message_template; skipping", sd.id)
-            continue
-
-        for rc in sd.reset_conditions:
-            if rc not in {
-                "agent_success",
-                "ticket_switch",
-                "manual_wrap_invocation",
-                "wrap_section_written",
-            }:
-                logger.info("signal %s unknown reset_condition: %s", sd.id, rc)
-
-        cfg.signals.append(sd)
-
+    _parse_settings(raw, cfg)
+    cfg.signals = _parse_signals(raw.get("signals") or [], logger)
     return cfg
 
 
@@ -288,6 +303,8 @@ def derive_ticket(event: Dict[str, Any], cwd: Path, logger) -> Optional[str]:
             cwd=str(cwd),
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=2,
         )
         if result.returncode == 0:
@@ -378,15 +395,25 @@ def wrap_section_already_written(ticket_id: str, project_root: Path, logger) -> 
 # Signal Strategies
 # ============================================================================
 
-class ConsecutiveFailuresStrategy:
-    signal_id = "consecutive_failures"
+class SignalStrategy(Protocol):
+    """所有 Signal Strategy 需實作此介面。state 子 key 由 sd.id 決定，不由 Strategy 持有。"""
 
     def detect(self, event: Dict[str, Any], state: Dict[str, Any],
                sd: SignalDef, current_ticket: Optional[str], logger) -> DetectResult:
+        ...
+
+    def apply(self, state: Dict[str, Any], result: DetectResult,
+              current_ticket: Optional[str]) -> Dict[str, Any]:
+        ...
+
+
+class ConsecutiveFailuresStrategy:
+    def detect(self, event: Dict[str, Any], state: Dict[str, Any],
+               sd: SignalDef, current_ticket: Optional[str], logger) -> DetectResult:
         if event.get("tool_name") != (sd.tool_matcher or "Task"):
-            return DetectResult(hit=False)
+            return DetectResult(hit=False, signal_id=sd.id)
         is_failure = self._is_failure(event)
-        sig_state = state.setdefault("signals", {}).setdefault(self.signal_id, {})
+        sig_state = state.setdefault("signals", {}).setdefault(sd.id, {})
         if is_failure:
             new_count = int(sig_state.get("count", 0)) + 1
             threshold = sd.threshold if sd.threshold is not None else 2
@@ -394,9 +421,10 @@ class ConsecutiveFailuresStrategy:
                 hit=True,
                 count=new_count,
                 should_warn=(new_count >= threshold),
+                signal_id=sd.id,
             )
         else:
-            return DetectResult(hit=False, reset=True)
+            return DetectResult(hit=False, reset=True, signal_id=sd.id)
 
     def _is_failure(self, event: Dict[str, Any]) -> bool:
         tr = event.get("tool_response")
@@ -415,7 +443,9 @@ class ConsecutiveFailuresStrategy:
 
     def apply(self, state: Dict[str, Any], result: DetectResult,
               current_ticket: Optional[str]) -> Dict[str, Any]:
-        sig_state = state.setdefault("signals", {}).setdefault(self.signal_id, {})
+        if not result.signal_id:
+            return state
+        sig_state = state.setdefault("signals", {}).setdefault(result.signal_id, {})
         if result.reset:
             sig_state["count"] = 0
         elif result.hit and result.count is not None:
@@ -427,13 +457,11 @@ class ConsecutiveFailuresStrategy:
 
 
 class RestrictiveKeywordsStrategy:
-    signal_id = "restrictive_keywords"
-
     def detect(self, event: Dict[str, Any], state: Dict[str, Any],
                sd: SignalDef, current_ticket: Optional[str], logger) -> DetectResult:
         prompt = str(event.get("prompt", "") or "")
         if len(prompt) < sd.min_prompt_length:
-            return DetectResult(hit=False)
+            return DetectResult(hit=False, signal_id=sd.id)
         haystack = prompt if sd.case_sensitive else prompt.lower()
         matched = None
         for kw in sd.keywords:
@@ -442,45 +470,57 @@ class RestrictiveKeywordsStrategy:
                 matched = kw
                 break
         if matched is None:
-            return DetectResult(hit=False)
-        return DetectResult(hit=True, matched_keyword=matched, should_warn=True)
+            return DetectResult(hit=False, signal_id=sd.id)
+        return DetectResult(hit=True, matched_keyword=matched, should_warn=True, signal_id=sd.id)
 
     def apply(self, state: Dict[str, Any], result: DetectResult,
               current_ticket: Optional[str]) -> Dict[str, Any]:
-        if result.hit:
-            sig_state = state.setdefault("signals", {}).setdefault(self.signal_id, {})
+        if result.hit and result.signal_id:
+            sig_state = state.setdefault("signals", {}).setdefault(result.signal_id, {})
             sig_state["last_matched_keyword"] = result.matched_keyword
         return state
 
 
 class AnaClaimStrategy:
-    signal_id = "ana_claim"
+    """S3 ana_claim Strategy。
+
+    project_root_provider: 用於 DI（C1+CE-7）。預設從模組 get_project_root 取用，
+    測試可透過 monkeypatch hook 模組的 get_project_root 覆寫（既有測試相容）。
+    """
+
+    def __init__(self, project_root_provider: Optional[Callable[[], Path]] = None):
+        self._project_root_provider = project_root_provider
 
     def detect(self, event: Dict[str, Any], state: Dict[str, Any],
                sd: SignalDef, current_ticket: Optional[str], logger) -> DetectResult:
         if event.get("tool_name") != (sd.tool_matcher or "Bash"):
-            return DetectResult(hit=False)
+            return DetectResult(hit=False, signal_id=sd.id)
         cmd = _extract_bash_command(event)
         if not cmd or not sd.command_pattern:
-            return DetectResult(hit=False)
+            return DetectResult(hit=False, signal_id=sd.id)
         try:
             m = re.search(sd.command_pattern, cmd)
         except re.error as e:
             logger.info("invalid command_pattern in ana_claim: %s", e)
-            return DetectResult(hit=False)
+            return DetectResult(hit=False, signal_id=sd.id)
         if not m:
-            return DetectResult(hit=False)
+            return DetectResult(hit=False, signal_id=sd.id)
         ticket_id = self._extract_ticket_id(cmd)
         if not ticket_id:
-            return DetectResult(hit=False)
-        project_root = get_project_root()
+            return DetectResult(hit=False, signal_id=sd.id)
+        # DI：優先用注入的 provider；無則從模組級 get_project_root 取（測試可 monkeypatch）
+        project_root = (
+            self._project_root_provider()
+            if self._project_root_provider is not None
+            else get_project_root()
+        )
         t_type = read_ticket_type(ticket_id, project_root, logger)
         if t_type is None or t_type != (sd.ticket_type_filter or "ANA"):
-            return DetectResult(hit=False)
+            return DetectResult(hit=False, signal_id=sd.id)
         if wrap_section_already_written(ticket_id, project_root, logger):
             logger.info("wrap_section_written suppresses S3 for %s", ticket_id)
-            return DetectResult(hit=False, log_reason="wrap_section_written")
-        return DetectResult(hit=True, ticket_id=ticket_id, should_warn=True)
+            return DetectResult(hit=False, log_reason="wrap_section_written", signal_id=sd.id)
+        return DetectResult(hit=True, ticket_id=ticket_id, should_warn=True, signal_id=sd.id)
 
     def _extract_ticket_id(self, cmd: str) -> Optional[str]:
         m = re.search(r"\b([0-9]+\.[0-9]+\.[0-9]+-W\d+-\d+)\b", cmd)
@@ -493,13 +533,15 @@ class AnaClaimStrategy:
 
     def apply(self, state: Dict[str, Any], result: DetectResult,
               current_ticket: Optional[str]) -> Dict[str, Any]:
-        if result.hit and result.ticket_id:
-            sig_state = state.setdefault("signals", {}).setdefault(self.signal_id, {})
+        if result.hit and result.ticket_id and result.signal_id:
+            sig_state = state.setdefault("signals", {}).setdefault(result.signal_id, {})
             sig_state["last_claimed_ticket"] = result.ticket_id
         return state
 
 
-SIGNAL_STRATEGIES = {
+# SIGNAL_STRATEGIES key 即為 signal id（與 SignalDef.id 對應），由 _process_signals
+# 透過 sd.id 取得 Strategy；Strategy 本體不再持有 signal_id（CE-4+R2 去除 drift 風險）。
+SIGNAL_STRATEGIES: Dict[str, SignalStrategy] = {
     "consecutive_failures": ConsecutiveFailuresStrategy(),
     "restrictive_keywords": RestrictiveKeywordsStrategy(),
     "ana_claim": AnaClaimStrategy(),

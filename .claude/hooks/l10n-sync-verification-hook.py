@@ -144,6 +144,8 @@ def run_flutter_gen_l10n(project_root: Path, logger) -> tuple[bool, str]:
             cwd=project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=60
         )
 

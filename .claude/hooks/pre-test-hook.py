@@ -55,6 +55,8 @@ def check_flutter_sdk() -> tuple[bool, str]:
             ["flutter", "--version", "--machine"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=10,
         )
         if result.returncode == 0:

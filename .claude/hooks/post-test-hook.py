@@ -154,7 +154,9 @@ def check_test_timeout(input_data: dict, tool_input: dict, logger):
 
     message = ""
     if duration >= AUTO_KILL_THRESHOLD:
-        subprocess.run(["pkill", "-f", "flutter_tester"], capture_output=True)
+        subprocess.run(["pkill", "-f", "flutter_tester"], capture_output=True,
+        encoding="utf-8",
+        errors="replace")
         message = f"測試執行 {duration_minutes:.1f} 分鐘，已自動終止 flutter_tester"
         monitor_data["action"] = "auto_killed"
     elif duration >= CRITICAL_THRESHOLD:

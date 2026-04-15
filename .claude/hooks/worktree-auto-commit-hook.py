@@ -56,6 +56,8 @@ def is_worktree_environment(logger) -> bool:
             ["git", "rev-parse", "--git-common-dir"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=GIT_TIMEOUT,
         )
         if result.returncode == 0:
@@ -64,6 +66,8 @@ def is_worktree_environment(logger) -> bool:
                 ["git", "rev-parse", "--git-dir"],
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=GIT_TIMEOUT,
             )
             if git_dir_result.returncode == 0:
@@ -85,6 +89,8 @@ def has_uncommitted_changes(logger) -> bool:
             ["git", "--no-optional-locks", "status", "--porcelain"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=GIT_TIMEOUT,
         )
         if result.returncode != 0:
@@ -114,6 +120,8 @@ def auto_commit(logger) -> bool:
             ["git", "add", "-A"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=GIT_TIMEOUT,
         )
         if add_result.returncode != 0:
@@ -128,6 +136,8 @@ def auto_commit(logger) -> bool:
             ["git", "commit", "-m", AUTO_COMMIT_MESSAGE, "--no-verify"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=GIT_TIMEOUT,
         )
         if commit_result.returncode != 0:

@@ -485,6 +485,8 @@ def main():
                 [sys.executable, str(token_script), 'current'],
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=5
             )
             current_token = result.stdout.strip() if result.returncode == 0 else None

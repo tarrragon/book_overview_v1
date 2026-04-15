@@ -269,7 +269,9 @@ def run_background_fetch(input_data: dict, tool_input: dict, logger):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             timeout=4,
-        )
+        
+        encoding="utf-8",
+        errors="replace",)
         logger.debug("fetch: git fetch 完成")
     except subprocess.TimeoutExpired:
         print(

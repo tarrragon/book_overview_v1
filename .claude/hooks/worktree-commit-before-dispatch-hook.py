@@ -63,11 +63,11 @@ def main() -> int:
     try:
         unstaged = subprocess.run(
             ["git", "diff", "--name-only"],
-            capture_output=True, text=True, timeout=10
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10
         )
         staged = subprocess.run(
             ["git", "diff", "--staged", "--name-only"],
-            capture_output=True, text=True, timeout=10
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10
         )
     except (subprocess.TimeoutExpired, FileNotFoundError):
         logger.warning("git 命令執行失敗")
