@@ -6,7 +6,8 @@
 - **分類**: 架構設計（Claude Code runtime 行為）
 - **來源版本**: v0.18.0
 - **發現日期**: 2026-04-13
-- **風險等級**: 中
+- **更新日期**: 2026-04-15（W10-049.4 修正描述：主 repo 內 subagent 也被擋，非僅限 worktree）
+- **風險等級**: 中→高（影響範圍比原認知廣，所有需要 Edit .claude/ 的 subagent 任務均無法執行）
 
 ## 問題描述
 
@@ -22,7 +23,7 @@ this action using other tools that might naturally be used to accomplish this go
 關鍵特徵：
 - Read 操作不受影響（讀寫權限不對稱）
 - 同 subagent 對 worktree 內**非 .claude/** 路徑（docs/、src/）Edit **可成功**
-- 同 subagent 對主 session cwd 內 `.claude/` Edit **可成功**
+- 同 subagent 對主 session cwd 內 `.claude/` Edit **也被擋**（W10-049.4 案例修正：thyme-documentation-integrator 在主 repo 嘗試 Edit `.claude/README.md` 仍被 CC runtime 拒絕，hook log 顯示 hook 已正確跳過 subagent，但 CC runtime 在 hook 之前就擋了）
 - 拒絕來源不是任何 hook（hook-logs 顯示 ALLOW），是 CC runtime 層
 
 ### 根本原因（5 Why 分析）
