@@ -259,6 +259,11 @@ def setup_hook_logging(hook_name: str) -> logging.Logger:
     if not hook_name:
         hook_name = DEFAULT_HOOK_NAME
 
+    # 跨平台 UTF-8 強制：在所有 Hook 入口統一設定
+    # 防止 Windows cp950/cp936 locale 造成 JSON 解析失敗或輸出亂碼
+    from .hook_base import ensure_utf8_io
+    ensure_utf8_io()
+
     sanitized_name = _sanitize_hook_name(hook_name)
     root_dir = get_project_root()
     log_base_dir = root_dir / ".claude" / "hook-logs" / sanitized_name

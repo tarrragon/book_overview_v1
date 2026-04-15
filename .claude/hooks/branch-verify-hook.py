@@ -117,6 +117,7 @@ def is_exempt_path_on_protected_branch(file_path: str, cwd: str | None = None) -
         "README.md",
         "CHANGELOG.md",
         ".gitignore",  # repo 層級忽略清單：保護分支放行主線程直接補 runtime artifact / lock（W10-033）
+        ".gitattributes",  # repo 層級檔案屬性：保護分支放行主線程維護 eol/binary 規範（W10-054.1.1）
     ]
 
     project_root = get_project_root(cwd=cwd)

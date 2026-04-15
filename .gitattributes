@@ -1,0 +1,49 @@
+# 強制 LF 換行
+#
+# 目的：防止 Windows 環境（core.autocrlf=true）將 LF 轉為 CRLF，導致以下問題：
+# 1. Python hook 的 shebang `#!/usr/bin/env -S uv run` 變成 `...uv run\r`，env 解析失敗
+# 2. Shell script 執行時 `\r` 被當成指令一部分，出現 `command not found`
+# 3. 設定檔（YAML/JSON/TOML）在跨平台工具鏈間產生不一致的 diff
+#
+# Windows 使用者額外建議：
+#   git config --global core.autocrlf false
+#   git rm --cached -r . && git reset --hard    # 重新 checkout 所有檔案
+
+# 腳本類（最關鍵，shebang 不可被污染）
+*.py            text eol=lf
+*.sh            text eol=lf
+*.bash          text eol=lf
+
+# 設定檔（跨平台工具鏈需一致解析）
+*.yaml          text eol=lf
+*.yml           text eol=lf
+*.toml          text eol=lf
+*.json          text eol=lf
+*.jsonc         text eol=lf
+
+# 文件類（避免跨平台 diff 雜訊）
+*.md            text eol=lf
+*.txt           text eol=lf
+
+# Git 設定與忽略檔
+.gitattributes  text eol=lf
+.gitignore      text eol=lf
+
+# JavaScript 專案檔案
+*.js            text eol=lf
+*.mjs           text eol=lf
+*.cjs           text eol=lf
+*.ts            text eol=lf
+*.jsx           text eol=lf
+*.tsx           text eol=lf
+
+# 二進位檔案明確標示（避免被誤處理）
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.ico           binary
+*.pdf           binary
+*.zip           binary
+*.tar           binary
+*.gz            binary

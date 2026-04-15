@@ -384,4 +384,125 @@ uv run pytest .claude/lib/tests/ -v
 
 ---
 
+## 跨平台部署規範
+
+> **核心理念**：Hook 系統必須在 macOS、Linux、Windows 三平台行為一致。任何「我的機器可以跑」的假設在跨平台都是陷阱。
+
+Hook 在 macOS/Linux 上行為正常不代表 Windows 上可用。Windows 平台有三個獨立的斷層點會讓 Hook 完全無法啟動或輸出亂碼。本章節列出必做的防護措施。
+
+### 斷層點總覽
+
+| 斷層 | 症狀 | 根因 |
+|------|------|------|
+| Python 環境 | Hook 完全不執行，顯示「Failed with non-blocking status code: No stderr output」 | Windows 11 預裝 Microsoft Store Python Stub（exit 9009，不寫任何輸出） |
+| Shebang 污染 | env 找不到命令，exit 127，無 stderr | `core.autocrlf=true` 把 `#!/usr/bin/env -S uv run` 尾端加上 `\r` |
+| Console 編碼 | 中文輸出亂碼、JSON 解析失敗、異常寫 stderr 二次失敗 | Windows console 預設 cp950（Big5）/cp936（GBK），非 UTF-8 |
+
+### 規範 1：Windows Python 環境要求
+
+Hook 作者必須在使用者文件中明確要求：
+
+| 要求 | 說明 |
+|------|------|
+| 安裝真實 Python 3.12+ | 從 python.org 下載安裝，或使用 uv 管理（`uv python install 3.12`） |
+| 關閉 Microsoft Store 別名 | 設定 → 應用程式 → 進階應用程式設定 → App 執行別名 → 關閉 python.exe 與 python3.exe |
+| 驗證 | `python --version` 必須回傳版本號且 `$LASTEXITCODE=0`（若 exit 9009 表示 stub 仍生效） |
+
+**偵測 stub 的標準命令**（可納入 session-start 檢查）：
+
+```powershell
+$result = & python --version 2>&1
+if ($LASTEXITCODE -eq 9009 -or -not $result) {
+    Write-Warning "Python 是 Microsoft Store stub，請安裝真實 Python 或關閉 App 執行別名"
+}
+```
+
+### 規範 2：Shebang 與換行符防護
+
+所有 Python Hook 的 shebang 為 `#!/usr/bin/env -S uv run --quiet --script`。此 shebang 在 Windows 下**必須**配合以下兩項措施：
+
+| 措施 | 實施位置 |
+|------|---------|
+| 專案根目錄 `.gitattributes` 強制 `*.py text eol=lf` | 防止 `core.autocrlf=true` 污染 shebang |
+| `.claude/.gitattributes` 同步設定 | 隨框架 sync 傳播到其他專案 |
+| Windows 使用者 clone 後執行 `git config core.autocrlf false` | 防止後續 commit 被污染 |
+
+**驗證方式**：
+
+```bash
+git check-attr eol .claude/hooks/<任一>.py
+# 預期輸出：eol: lf（非 unspecified）
+```
+
+### 規範 3：UTF-8 I/O 強制
+
+Hook 執行時不可依賴 locale codepage，必須在入口強制 UTF-8。三種機制擇一（建議三者並用）：
+
+#### 機制 A：Hook 入口呼叫 `ensure_utf8_io()`
+
+```python
+def ensure_utf8_io() -> None:
+    """強制 stdin/stdout/stderr 使用 UTF-8。Python 3.11+ 可用 reconfigure。"""
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
+def main() -> int:
+    ensure_utf8_io()  # 必須在 read_json_from_stdin 之前
+    ...
+```
+
+#### 機制 B：PEP 723 inline metadata 指定環境變數
+
+受限於 PEP 723 無法設定 env，此機制改由 hook launcher（CC runtime）提供 `PYTHONUTF8=1`。使用者環境需確保此變數存在。
+
+#### 機制 C：subprocess 呼叫強制 encoding
+
+```python
+# 錯誤：Windows 會用 cp950 解碼子程序輸出
+subprocess.run(["git", "log"], capture_output=True, text=True)
+
+# 正確：顯式指定 UTF-8 並處理非法字元
+subprocess.run(
+    ["git", "log"],
+    capture_output=True,
+    text=True,
+    encoding="utf-8",
+    errors="replace",
+)
+```
+
+### 規範 4：路徑分隔符
+
+`settings.json` 中的 hook command 路徑必須使用 forward slash（`/`），Windows 可正確解析。禁止使用 Windows 原生 backslash（`\`）或 escape 後 backslash（`\\`），這會在 macOS/Linux 失效。
+
+```json
+{
+  "command": ".claude/hooks/my-hook.py"  // 正確：forward slash 跨平台通用
+}
+```
+
+### 規範 5：Windows 測試要求
+
+每個新建或修改的 Hook 必須通過以下兩項跨平台驗證：
+
+| 驗證項 | 方法 |
+|-------|------|
+| shebang LF | `git check-attr eol <hook.py>` 顯示 `eol: lf` |
+| UTF-8 I/O | 中文字串通過 `ensure_utf8_io()` 後輸出無亂碼 |
+| subprocess encoding | grep `subprocess\.(run|Popen|check_output)` 結果均含 `encoding="utf-8"` |
+
+### Hook 作者檢查清單
+
+開發新 Hook 時，必做以下項目：
+
+- [ ] Hook 入口呼叫 `ensure_utf8_io()`
+- [ ] 所有 `subprocess.run/Popen/check_output` 加 `encoding="utf-8", errors="replace"`
+- [ ] `settings.json` 的 command 路徑使用 forward slash
+- [ ] 測試在 cp950/cp936 locale 下輸出不亂碼（至少理論驗證）
+- [ ] 使用者文件提醒：Windows 需安裝真實 Python 並關閉 Store 別名
+- [ ] Hook 檔案無 CRLF 污染（`git check-attr eol` 驗證）
+
+---
+
 這個 Hook 系統是專案品質保證的核心基礎設施，確保每個開發決策都符合專案的高品質標準。

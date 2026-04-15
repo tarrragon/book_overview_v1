@@ -12,6 +12,7 @@ Hook 統一工具模組（重構後）
 - hook_ticket: Ticket 檔案操作（掃描、解析、驗證）
 """
 
+from .hook_base import ensure_utf8_io
 from .hook_logging import (
     get_project_root,
     setup_hook_logging,
@@ -47,6 +48,7 @@ from .hook_ticket import (
 )
 
 __all__ = [
+    "ensure_utf8_io",
     "get_project_root",
     "setup_hook_logging",
     "save_check_log",
