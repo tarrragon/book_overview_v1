@@ -5,7 +5,7 @@ Active Dispatch Tracker Hook - 三態訊息與背景代理人時機修正測試
 - [WAIT] 訊息只在有活躍派發時輸出
 - [OK] 訊息只在本次 PostToolUse 實際清理了一筆記錄（真實完成）時輸出
 - 未派發過時不輸出 dispatch-state 訊息
-- run_in_background=true 時不清除 dispatch、不廣播完成（PC-070 根因防護）
+- run_in_background=true 時不清除 dispatch、不廣播完成（PC-050 模式 E 根因防護，原 PC-070）
 
 測試以 monkeypatch 替換 hook module 中的 dispatch_tracker 相依，
 直接呼叫 main() 並捕捉 stdout 驗證輸出。
@@ -99,7 +99,7 @@ def test_no_active_and_nothing_cleared_emits_no_dispatch_message(
 ):
     """(a) 未派發過：cleared=False、無活躍 → 不輸出 dispatch-state 訊息。
 
-    這是 PC-070 誘因場景：以前會在每次 Bash 後廣播 [OK]，誘發 PM 焦慮性檢查。
+    這是 PC-050 模式 E（原 PC-070）誘因場景：以前會在每次 Bash 後廣播 [OK]，誘發 PM 焦慮性檢查。
     """
     exit_code, out = _run_hook(
         monkeypatch,
@@ -162,7 +162,7 @@ def test_background_agent_does_not_clear_or_broadcast(monkeypatch, capsys):
     """run_in_background=true 時：不清除 dispatch、不輸出 [OK]/[WAIT]。
 
     PostToolUse 在 background agent 啟動時即觸發（agentId 已返回但代理人仍在執行）。
-    若此時清除 dispatch 並廣播「完成」，會誘發 PM 錯誤驗收（PC-070 直接根因）。
+    若此時清除 dispatch 並廣播「完成」，會誘發 PM 錯誤驗收（PC-050 模式 E 直接根因，原 PC-070）。
     """
     cleared_calls = []
 

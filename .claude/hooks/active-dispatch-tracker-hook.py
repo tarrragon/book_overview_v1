@@ -43,7 +43,7 @@ def main() -> int:
     tool_input = input_data.get("tool_input", {})
     agent_description = tool_input.get("description", "")
     # Background agents fire PostToolUse at launch time（agentId 返回即觸發），
-    # 此時代理人仍在執行，若清除 dispatch 記錄並廣播「完成」會誘發 PM 誤判（PC-070 根因）。
+    # 此時代理人仍在執行，若清除 dispatch 記錄並廣播「完成」會誘發 PM 誤判（PC-050 模式 E，原 PC-070）。
     # 真正的完成訊號應由 task-notification event 處理。
     is_background = bool(tool_input.get("run_in_background", False))
 
