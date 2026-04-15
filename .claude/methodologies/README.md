@@ -516,6 +516,7 @@ Step 3: 查看對應章節
 
 - [認知負擔設計方法論](./cognitive-load-design-methodology.md) - 程式碼設計的核心哲學：所有設計原則的終極目標是降低閱讀者的認知負擔
 - [自然語言程式設計方法論](./natural-language-programming-methodology.md) - 讓程式碼像閱讀文章一樣自然
+- [個人化諮詢方法論](./personalized-consultation-methodology.md) - AI 諮詢的核心哲學：個人化建議的第一步是承認不認識當事人，三層機制（識別/分級/誠實）防止視野狹窄偏誤
 
 ---
 
