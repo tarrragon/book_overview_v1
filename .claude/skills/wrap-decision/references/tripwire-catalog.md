@@ -105,8 +105,9 @@ Skill 不需要每次都跑完整 WRAP 流程。
 
 | 條件 | 偵測方式 | 觸發動作 |
 |------|---------|---------|
-| 連續 2 次代理人派發失敗 | PostToolUse(Agent) — 追蹤同一 Ticket 的連續失敗次數 | stderr 輸出提醒：「連續失敗 2 次。建議執行 /wrap-decision（快速模式）擴增選項。」 |
-| PM 表達「做不到」類語句 | UserPromptSubmit — 關鍵字比對：做不到、沒辦法、不支援、impossible | stderr 輸出提醒：「偵測到限制性結論。建議先執行 /wrap-decision 搜尋間接方案。」 |
+| S1 連續 2 次代理人派發失敗 | PostToolUse(Task) — 追蹤同一 Ticket 的連續失敗次數 | stderr 輸出提醒：「連續失敗 N 次。建議執行 /wrap-decision（快速模式）擴增選項。」 |
+| S2 PM 表達「做不到」類語句 | UserPromptSubmit — 關鍵字比對：做不到、沒辦法、無法、不支援、CLI 不支援、禁止、不可能、impossible、限制性解法 | stderr 輸出提醒：「偵測到限制性結論。建議先執行 /wrap-decision 搜尋間接方案。」 |
+| S3 claim ANA 類型 Ticket | PostToolUse(Bash) — command 匹配 `ticket claim` 且 ticket frontmatter `type: ANA`；若 Solution 已含 WRAP 三問章節則抑制 | stderr 輸出提醒：「你正在 claim ANA Ticket。ANA 分析過程必須執行 WRAP（至少快速模式）。」 |
 
 ### Hook 類型
 
@@ -147,9 +148,11 @@ Hook 需要跨工具呼叫追蹤狀態（連續失敗次數）：
 
 ### 實作優先級
 
-此設計文件為 Hook 實作提供規格。實際 Hook 程式碼實作為獨立 Ticket（待建立）。
+此設計文件為 Hook 實作提供規格。實際 Hook 程式碼實作已由 [0.18.0-W10-009](../../../../docs/work-logs/v0/v0.18/v0.18.0/tickets/0.18.0-W10-009.md) 完成（S1/S2/S3 三訊號；S4-S8 列為未來擴充 follow-up）。
+
+**機器可讀觸發條件來源**：`.claude/config/wrap-triggers.yaml`（禁止在 Hook Python 程式碼中硬編碼 triggers / keywords / thresholds，W10-052 約束）。
 
 ---
 
-**Last Updated**: 2026-04-10
-**Version**: 1.1.0 — 新增 WRAP 自動觸發 Hook 設計
+**Last Updated**: 2026-04-15
+**Version**: 1.2.0 — Hook 實作落地（W10-009）；新增 S3 ANA claim 訊號；關鍵字清單擴充對齊 SKILL description

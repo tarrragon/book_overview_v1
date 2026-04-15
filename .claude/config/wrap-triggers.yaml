@@ -1,0 +1,88 @@
+# .claude/config/wrap-triggers.yaml
+# WRAP 絆腳索 Hook 的觸發條件配置
+# 權威來源：本檔案（機器可讀）
+# 人類可讀對應：.claude/skills/wrap-decision/SKILL.md（description + 觸發條件章節）
+# 同步檢查：doc-sync-check-hook 擴充或 consistency-check-hook（follow-up ticket）
+
+version: "1.0.0"
+last_updated: "2026-04-15"
+source_of_truth_note: |
+  本檔案為 wrap-decision-tripwire-hook.py 的唯一觸發條件來源。
+  禁止在 Hook Python 程式碼中硬編碼 triggers / keywords / thresholds。
+  若新增訊號，必須同步更新 SKILL.md 與 tripwire-catalog.md。
+
+# 全域設定
+settings:
+  state_file: ".claude/hook-state/wrap-tripwire-state.json"
+  warn_cooldown_seconds: 300  # 同一訊號類型 5 分鐘內不重複提醒
+  hook_mode: "advisory"        # advisory: 只提醒不阻擋（exit 0 + stderr）
+
+# 訊號定義
+signals:
+  - id: consecutive_failures
+    enabled: true
+    event_sources: ["PostToolUse"]
+    tool_matcher: "Task"        # 僅在代理人派發工具觸發
+    threshold: 2                # 連續失敗次數門檻
+    failure_detection:
+      primary: "agent_commit_verification"
+      fallback: "task_output_error_marker"
+    ticket_context_key: "current_ticket"
+    reset_conditions:
+      - agent_success
+      - ticket_switch
+      - manual_wrap_invocation
+    message_template: |
+      [WRAP 絆腳索] 連續 {count} 次代理人失敗（Ticket: {ticket_id}）。
+      你是有選擇的：
+        /wrap-decision        — 系統性擴增選項
+        搜尋社群             — 看看有沒有人解決過
+        建 Ticket 延後       — 回到核心任務
+
+  - id: restrictive_keywords
+    enabled: true
+    event_sources: ["UserPromptSubmit"]
+    keywords:
+      - "做不到"
+      - "沒辦法"
+      - "無法"
+      - "不支援"
+      - "CLI 不支援"
+      - "禁止"
+      - "不可能"
+      - "impossible"
+      - "限制性解法"
+    match_mode: "substring"
+    case_sensitive: false
+    min_prompt_length: 20
+    reset_conditions:
+      - manual_wrap_invocation
+    message_template: |
+      [WRAP 絆腳索] 偵測到限制性結論（關鍵字：{matched_keyword}）。
+      你是有選擇的：
+        /wrap-decision        — 搜尋間接方案
+        窮盡五問檢查         — tool-discovery.md 規則 1
+        確認後再下結論       — 至少執行 ToolSearch
+
+  - id: ana_claim
+    enabled: true
+    event_sources: ["PostToolUse"]
+    tool_matcher: "Bash"
+    command_pattern: "ticket\\s+(track\\s+)?claim.*\\bANA\\b|ana[-_]?claim"
+    ticket_type_filter: "ANA"
+    reset_conditions:
+      - wrap_section_written
+      - manual_wrap_invocation
+    message_template: |
+      [WRAP 絆腳索] 你正在 claim ANA Ticket（{ticket_id}）。
+      ANA 分析過程必須執行 WRAP（至少快速模式）。
+      你是有選擇的：
+        /wrap-decision        — 執行完整 WRAP 流程
+        在 Solution 寫三問     — W/A/P 三問作為 claim checkpoint
+        降級為快速模式         — 錨點 + W + 基本率 + 決定
+
+# 提醒訊息通用前綴
+output:
+  stderr_prefix: "[WRAP Tripwire]"
+  include_signal_id: true
+  include_state_snapshot: false

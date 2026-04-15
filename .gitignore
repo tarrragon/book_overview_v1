@@ -71,6 +71,9 @@ __pycache__/
 .claude/dispatch-active.json
 .claude/dispatch-active.lock
 
+# Claude hook state (runtime state, auto-managed by hooks)
+.claude/hook-state/
+
 # Claude scheduled tasks runtime lock (session-local)
 .claude/scheduled_tasks.lock
 

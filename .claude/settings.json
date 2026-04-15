@@ -441,6 +441,15 @@
             "timeout": 5000
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/wrap-decision-tripwire-hook.py",
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -488,6 +497,11 @@
           {
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/auq-option-pattern-detector-hook.py",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/wrap-decision-tripwire-hook.py",
             "timeout": 5000
           }
         ]
