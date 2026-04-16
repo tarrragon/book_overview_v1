@@ -476,3 +476,71 @@ def collect_ac_verifications(
     """
     ac_list = parse_ac(ticket_id)
     return [(ac, match_template(ac.text)) for ac in ac_list]
+
+
+# ----------------------------------------------------------------------
+# Group F：prompt_user_decision（互動層）
+# ----------------------------------------------------------------------
+
+# 互動式 prompt 文字
+_PROMPT_TEXT = "continue claim? [y] continue / [n] cancel (default: y): "
+
+# 非 tty 環境警告訊息
+_NON_TTY_WARNING = (
+    "[AC verification] non-interactive environment, cancelled; "
+    "use --yes or --skip-verify to override"
+)
+
+# 無效輸入最大重試次數
+_MAX_INVALID_ATTEMPTS = 3
+
+# 接受為 y 的輸入（空字串採預設 y）
+_ACCEPT_YES = frozenset({"y", "yes", ""})
+# 接受為 n 的輸入
+_ACCEPT_NO = frozenset({"n", "no"})
+
+
+def prompt_user_decision(
+    summary: VerificationSummary,
+    auto_yes: bool,
+) -> Literal["y", "n"]:
+    """互動式決定 claim 是否繼續。
+
+    決策規則：
+
+    - ``auto_yes=True`` → 直接回 ``'y'``，不讀 stdin。
+    - ``sys.stdin.isatty() is False`` 且 ``auto_yes=False`` → 回 ``'n'``，
+      stderr 提示非互動環境。
+    - 否則讀 stdin 最多 3 次；空字串或 y/yes → ``'y'``；n/no → ``'n'``；
+      3 次無效 → 預設 ``'n'``（fail-closed 安全預設）。
+
+    Args:
+        summary: ``VerificationSummary``（保留參數供未來擴充；目前未用於
+            條件分支，拔 c 後 prompt 僅在 has_failures 場景觸發）。
+        auto_yes: ``--yes`` flag 值。
+
+    Returns:
+        ``'y'`` 或 ``'n'``。
+    """
+    # auto_yes 短路，不受 tty 影響
+    if auto_yes:
+        return "y"
+
+    # 非 tty 環境：fail-closed 預設取消
+    if not sys.stdin.isatty():
+        print(_NON_TTY_WARNING, file=sys.stderr)
+        return "n"
+
+    for _ in range(_MAX_INVALID_ATTEMPTS):
+        try:
+            raw = input(_PROMPT_TEXT)
+        except EOFError:
+            # stdin 已關閉（非互動情境 edge case）
+            return "n"
+        answer = raw.strip().lower()
+        if answer in _ACCEPT_YES:
+            return "y"
+        if answer in _ACCEPT_NO:
+            return "n"
+    # 3 次無效 → 預設 n（取消）
+    return "n"

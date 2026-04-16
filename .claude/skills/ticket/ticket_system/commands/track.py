@@ -253,6 +253,19 @@ def _register_lifecycle_commands(
     p_claim = subparsers.add_parser("claim", help=TrackMessages.HELP_CLAIM)
     p_claim.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
     p_claim.add_argument("--version", help=TrackMessages.ARG_VERSION)
+    p_claim.add_argument(
+        "--skip-verify",
+        dest="skip_verify",
+        action="store_true",
+        help="跳過 AC 自動驗證（逃生閥），直接進入既有 claim 流程",
+    )
+    p_claim.add_argument(
+        "--yes",
+        "-y",
+        dest="yes",
+        action="store_true",
+        help="非互動模式：AC 驗證仍執行，但自動選 y 繼續 claim",
+    )
 
     # complete 操作
     p_complete = subparsers.add_parser("complete", help=TrackMessages.HELP_COMPLETE)

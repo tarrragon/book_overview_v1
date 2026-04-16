@@ -5,6 +5,7 @@ Ticket lifecycle 操作模組
 """
 
 import argparse
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Optional
@@ -54,6 +55,14 @@ from ticket_system.lib.ticket_ops import (
 )
 from ticket_system.lib.worklog_appender import append_worklog_progress
 from ticket_system.lib.ui_constants import SEPARATOR_PRIMARY
+from ticket_system.lib.project_root import resolve_project_cwd
+from ticket_system.commands.claim_verification import (
+    collect_ac_verifications,
+    prompt_user_decision,
+    render_results,
+    run_all_verifications,
+    summarize_results,
+)
 
 
 # ============================================================================
@@ -373,6 +382,113 @@ class TicketLifecycle:
         _print_claim_checklist(ticket)
 
         return 0
+
+    def claim_with_verification(
+        self,
+        ticket_id: str,
+        skip_verify: bool = False,
+        auto_yes: bool = False,
+    ) -> int:
+        """整合 AC 自動驗證的 claim 主流程入口（PROP-010 方案 2）。
+
+        決策樹：
+
+        - ``skip_verify=True`` → 略過驗證、走既有 ``claim``；
+          若 ``auto_yes=True`` 同時為真，額外 stderr 提示 ``--yes`` 被忽略。
+        - ``collect_ac_verifications`` 拋 ``ValueError`` → 降級直接 claim。
+        - Ticket 無 AC（S1） → 直接 claim。
+        - ``run_all_verifications`` 拋 ``KeyboardInterrupt`` → return 130。
+        - ``summary.status == 'none_verifiable'``（S2） → 顯示摘要後 claim。
+        - ``summary.status == 'all_passed'``（S4） → stderr 拒絕訊息 + return 1。
+        - ``summary.status == 'has_failures'``（S3） → render + prompt。
+          y → claim；n → return 1。
+
+        Args:
+            ticket_id: Ticket ID。
+            skip_verify: ``--skip-verify`` flag，完全略過驗證。
+            auto_yes: ``--yes`` flag，非互動模式自動選 y。
+
+        Returns:
+            0 / 1 / 130 exit code。
+        """
+        # --skip-verify + --yes 衝突：提示 --yes 被忽略
+        if skip_verify and auto_yes:
+            print(
+                "[Warning] --yes 已被忽略（同時指定 --skip-verify 時不執行驗證，"
+                "--yes 無作用）",
+                file=sys.stderr,
+            )
+
+        if skip_verify:
+            print("[AC verification] 已跳過（--skip-verify）")
+            return self.claim(ticket_id)
+
+        # 非 tty 且無任何 flag：fail-closed 拒絕 claim（§B.4）
+        if not sys.stdin.isatty() and not auto_yes:
+            print(
+                "[AC verification] 非互動環境且未指定 --yes / --skip-verify，"
+                "已取消；請顯式傳 flag 表明意圖",
+                file=sys.stderr,
+            )
+            return 1
+
+        # 嘗試解析 AC 與模板配對
+        try:
+            pairs = collect_ac_verifications(ticket_id)
+        except ValueError as err:
+            print(
+                f"[Warning] AC 解析失敗：{err}；降級為直接 claim",
+                file=sys.stderr,
+            )
+            return self.claim(ticket_id)
+
+        # S1：無 AC
+        if not pairs:
+            return self.claim(ticket_id)
+
+        # 執行驗證
+        cwd = resolve_project_cwd()
+        try:
+            results = run_all_verifications(pairs, cwd)
+        except KeyboardInterrupt:
+            print(
+                "[AC verification] 中斷：未更新 Ticket 狀態",
+                file=sys.stderr,
+            )
+            return 130
+
+        summary = summarize_results(results)
+
+        # S2：全部不可驗證
+        if summary.status == "none_verifiable":
+            print(
+                f"[AC verification] Ticket {ticket_id}：{summary.total} 項 AC "
+                f"皆無法自動驗證（跳過驗證，直接 claim）"
+            )
+            return self.claim(ticket_id)
+
+        # S4：全部可驗證 AC 已達成 → 拒絕 claim
+        if summary.status == "all_passed":
+            print(
+                f"[AC verification] Ticket {ticket_id}：{summary.passed} 項可驗證 "
+                f"AC 皆已達成",
+                file=sys.stderr,
+            )
+            print(
+                f"建議改用 `ticket track complete {ticket_id}`，"
+                "或檢討 Ticket 是否需拆分",
+                file=sys.stderr,
+            )
+            return 1
+
+        # S3：has_failures → 顯示結果 + prompt
+        rendered = render_results(summary, results, ticket_id)
+        if rendered:
+            print(rendered)
+        decision = prompt_user_decision(summary, auto_yes)
+        if decision == "y":
+            return self.claim(ticket_id)
+        return 1
 
     def complete(self, ticket_id: str) -> int:
         """
@@ -1059,10 +1175,18 @@ def execute_claim(args: argparse.Namespace, version: str) -> int:
     """
     認領 Ticket - 函式包裝層（向後相容）
 
-    使用 TicketLifecycle 物件執行實際操作。
+    使用 TicketLifecycle 物件執行實際操作。若傳入 ``--skip-verify`` 或
+    ``--yes``（或進入 AC 驗證流程的其他情境），委派 ``claim_with_verification``；
+    兩者皆為預設 False 時仍走原 ``claim``（但本版本統一走驗證入口以確保
+    S3/S4 行為一致，未帶 flag 時驗證層會依 tty 狀態決策）。
     """
     lifecycle = TicketLifecycle(version)
-    return lifecycle.claim(args.ticket_id)
+    skip_verify = bool(getattr(args, "skip_verify", False))
+    auto_yes = bool(getattr(args, "yes", False))
+    # 統一走驗證入口（skip_verify=True 時內部會降級走既有 claim）
+    return lifecycle.claim_with_verification(
+        args.ticket_id, skip_verify=skip_verify, auto_yes=auto_yes
+    )
 
 
 def execute_complete(args: argparse.Namespace, version: str) -> int:
