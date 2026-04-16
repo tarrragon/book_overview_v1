@@ -15,6 +15,7 @@ from datetime import datetime
 
 from .ticket_loader import load_ticket, resolve_version, get_project_root, get_tickets_dir
 from .parser import parse_frontmatter
+from .checkbox_utils import strip_checkbox_prefix
 from .constants import STATUS_COMPLETED, VAGUE_ACCEPTANCE_WORDS, SRP_WHAT_CONJUNCTIONS, SRP_ACCEPTANCE_MODULE_THRESHOLD
 
 
@@ -407,11 +408,8 @@ def detect_vague_acceptance(
         if not isinstance(condition, str):
             continue
 
-        # 移除 [ ] 或 [x] 前綴
-        cleaned = condition.strip()
-        if cleaned.startswith("[") and "]" in cleaned:
-            # 移除 [ ] 或 [x] 及其後的空白
-            cleaned = cleaned.split("]", 1)[1].strip()
+        # 移除 [ ] 或 [x] checkbox 前綴（共用 checkbox_utils，0.18.0-W11-001.5）
+        _, cleaned = strip_checkbox_prefix(condition)
 
         # 判斷是否只包含模糊詞
         has_vague_word = False

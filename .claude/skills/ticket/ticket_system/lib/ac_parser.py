@@ -14,14 +14,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ticket_system.lib import id_parser, parser
-
-
-# Checkbox 前綴常數（小寫/大寫 x 變體）
-_CHECKBOX_CHECKED_LOWER = "[x]"
-_CHECKBOX_CHECKED_UPPER = "[X]"
-_CHECKBOX_UNCHECKED = "[ ]"
-_CHECKBOX_LEN = 3  # 三者長度均為 3
+from ticket_system.lib import checkbox_utils, id_parser, parser
 
 
 @dataclass(frozen=True)
@@ -102,16 +95,5 @@ def _parse_single_item(index: int, raw_item: object) -> AC:
     未帶 checkbox 的項目保守視為未勾選，text = 原文（技術債 4.2）。
     """
     raw_str = str(raw_item)
-    stripped = raw_str.lstrip()
-
-    if stripped.startswith((_CHECKBOX_CHECKED_LOWER, _CHECKBOX_CHECKED_UPPER)):
-        checked = True
-        text = stripped[_CHECKBOX_LEN:].lstrip()
-    elif stripped.startswith(_CHECKBOX_UNCHECKED):
-        checked = False
-        text = stripped[_CHECKBOX_LEN:].lstrip()
-    else:
-        checked = False
-        text = stripped
-
+    checked, text = checkbox_utils.strip_checkbox_prefix(raw_str)
     return AC(index=index, text=text, checked=checked, raw=raw_str)
