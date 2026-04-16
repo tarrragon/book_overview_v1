@@ -77,7 +77,7 @@ npm test / npm run lint / 其他 AC 對應指令
 - PROP-009: Ticket CLI 完整性提升（互補，前者處理 create/complete 時點）
 - PROP-010: Ticket AC 與實況漂移偵測機制（本模式的系統性解方）
 - quality-baseline 規則 5: 所有發現必須追蹤 — 本模式驅動建立 W5 Tickets
-- quality-baseline 規則 6: 框架修改優先於專案進度 — PROP-010 立即在 v0.18.0 實作
+- pm-quality-baseline 規則 6: 框架修改優先於專案進度 — PROP-010 立即在 v0.18.0 實作
 
 ## 驗收標準
 

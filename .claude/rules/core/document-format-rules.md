@@ -136,4 +136,4 @@ updated: {更新日期}
 ---
 
 **Last Updated**: 2026-04-16
-**Version**: 1.5.0 - 規則 7-8 移至 `.claude/references/reference-stability-rules.md` 按需讀取（0.18.0-W10-077.3）
+**Version**: 1.5.0 - 規則 7-8 移至 `.claude/references/reference-stability-rules.md` 按需讀取

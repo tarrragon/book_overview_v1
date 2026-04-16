@@ -80,7 +80,8 @@ PM 被迫前台執行實作代理人任務（非 RED 測試規格定義）時，
 
 - `.claude/error-patterns/architecture/ARCH-015-subagent-claude-dir-hardcoded-protection.md` — 衝突的另一方
 - `.claude/pm-rules/worktree-operations.md` — `.claude/` 路徑限制章節
-- `.claude/rules/core/quality-baseline.md` — 規則 5（發現必追蹤）、規則 6（框架優先）
+- `.claude/rules/core/quality-baseline.md` — 規則 5（發現必追蹤）
+- `.claude/pm-rules/pm-quality-baseline.md` — 規則 6（框架優先）
 
 ---
 

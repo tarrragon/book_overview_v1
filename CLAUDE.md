@@ -167,7 +167,7 @@ npm run format:check
 
 ### Chrome Extension 開發規範（必讀）
 
-Chrome Extension 環境有多項與 Node.js 不同的限制（禁用 `require()`/bare specifier/`global`、Storage keys 需陣列、SW 監聽器頂層註冊、build 必須 bundle 等），以及 Jest/jsdom 測試環境差異。開發和修改程式碼前**必須閱讀**速查表；完整規範見 `docs/chrome-extension-dev-guide.md`。
+完整規範：`docs/chrome-extension-dev-guide.md`；速查表見下方。
 
 @.claude/references/chrome-extension-quickref.md
 

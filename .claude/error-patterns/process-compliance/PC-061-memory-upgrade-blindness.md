@@ -124,7 +124,7 @@ Memory 升級案例中，相當比例是「用戶指正後 PM 才升級」。PM 
 
 ## 關聯
 
-- **相關規則**：`.claude/rules/core/quality-baseline.md` 規則 7（Memory 寫入必須評估跨專案升級）
+- **相關規則**：`.claude/pm-rules/pm-quality-baseline.md` 規則 7（Memory 寫入必須評估跨專案升級，原 quality-baseline v1.9.0 規則 7，2026-04-16 外移）
 - **相關模式**：PC-010（待辦應建 Ticket 不寫 memory，聚焦任務追蹤；本模式聚焦原則類 memory）
 - **相關模式**：PC-060（Meta-tool 發現盲點，同類「原則建立當下未擴充檢查清單」結構）
 - **相關 Skill**：`.claude/skills/continuous-learning/`（後續新增升級評估決策樹）

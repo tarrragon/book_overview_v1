@@ -14,7 +14,7 @@ Hook 類型: PostToolUse (matcher: Write|Edit)
 節流: 同檔案 THROTTLE_MINUTES 分鐘內只提示一次
 行為: stderr 提示 + 檔案日誌（雙通道可見性，quality-baseline 規則 4）
 
-參考: quality-baseline 規則 7 + PC-061
+參考: pm-quality-baseline 規則 7 + PC-061
 """
 
 import json
@@ -57,7 +57,7 @@ MESSAGES = {
     "TRIGGERED": "偵測到 memory 寫入：{file_path}",
     "REMINDER_TEMPLATE": (
         "\n[MemoryUpgradeReminder] 偵測到新 feedback memory: {filename}\n"
-        "請評估此原則是否跨專案適用（quality-baseline 規則 7）：\n"
+        "請評估此原則是否跨專案適用（pm-quality-baseline 規則 7）：\n"
         "  (1) 此原則對其他專案也適用嗎？\n"
         "  (2) 若是，升級至以下位置之一：\n"
         "       - .claude/rules/core/        （通用品質/流程）\n"
@@ -67,7 +67,7 @@ MESSAGES = {
         "       - .claude/skills/<skill>/     （Skill 引導）\n"
         "  (3) 升級後在 memory 頂部加註「已升級」標註\n"
         "\n"
-        "參考：.claude/rules/core/quality-baseline.md 規則 7 + PC-061\n"
+        "參考：.claude/pm-rules/pm-quality-baseline.md 規則 7 + PC-061\n"
         "（{throttle_minutes} 分鐘內同檔案只提示一次）\n"
     ),
 }

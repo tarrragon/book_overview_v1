@@ -214,7 +214,7 @@ Step 0：資料充足度檢查
 - `.claude/skills/wrap-decision/SKILL.md` — WRAP 決策框架 Step 0（待擴充）
 - `.claude/methodologies/personalized-consultation-methodology.md` — 個人化諮詢完整方法論（待建立）
 - `.claude/pm-rules/askuserquestion-rules.md` — AUQ 使用規則（本規則中的關鍵變數詢問建議搭配 AUQ 執行）
-- `.claude/rules/core/quality-baseline.md` — 品質基線規則 6（框架修改優先於專案進度）
+- `.claude/pm-rules/pm-quality-baseline.md` — PM 品質基線規則 6（框架修改優先於專案進度）
 
 ---
 

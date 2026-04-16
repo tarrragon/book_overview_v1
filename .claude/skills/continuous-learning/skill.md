@@ -31,7 +31,7 @@ description: "Extracts reusable patterns from Claude Code sessions and captures 
 
 > **重要**：memory 寫入**不是終點**，而是升級評估的起點。寫入 `feedback_*.md` 後必須執行升級評估，否則跨專案通用原則會被困在單一專案的 memory 中（PC-061）。
 >
-> - 升級評估規則：`.claude/rules/core/quality-baseline.md` 規則 7
+> - 升級評估規則：`.claude/pm-rules/pm-quality-baseline.md` 規則 7
 > - 錯誤模式參考：`.claude/error-patterns/process-compliance/PC-061-memory-upgrade-blindness.md`
 > - 完整決策樹：`references/upgrade-decision-tree.md`
 
@@ -118,7 +118,7 @@ Add to `.claude/settings.json`:
 
 | 步驟 | 動作 | 工具/參考 |
 |------|------|----------|
-| 5.1 | 對每個新建的 `feedback_*.md` 檔案執行四問檢查 | `.claude/rules/core/quality-baseline.md` 規則 7 |
+| 5.1 | 對每個新建的 `feedback_*.md` 檔案執行四問檢查 | `.claude/pm-rules/pm-quality-baseline.md` 規則 7 |
 | 5.2 | 判斷升級目的地（六類分支） | `references/upgrade-decision-tree.md` |
 | 5.3 | 執行升級寫入（rules / pm-rules / error-patterns / methodologies / references / skills） | 對應目錄 |
 | 5.4 | 在原 memory 檔案頂部加註「已升級」標註 | 標註格式見決策樹 |
@@ -129,7 +129,7 @@ memory 寫入**不是終點**，而是升級評估的起點。若略過此步驟
 
 **參考資源**：
 
-- 強制規則：`.claude/rules/core/quality-baseline.md` 規則 7「Memory 寫入必須評估跨專案升級」
+- 強制規則：`.claude/pm-rules/pm-quality-baseline.md` 規則 7「Memory 寫入必須評估跨專案升級」
 - 錯誤模式：`.claude/error-patterns/process-compliance/PC-061-memory-upgrade-blindness.md`
 - 完整決策樹：`references/upgrade-decision-tree.md`
 

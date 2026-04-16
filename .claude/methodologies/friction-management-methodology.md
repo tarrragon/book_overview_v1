@@ -123,7 +123,7 @@
 |------|------|
 | 象限 A 的具體規則 | parallel-dispatch.md 規則 5（驗證類派發）、quality-baseline 規則 5（建 Ticket） |
 | 象限 B 的具體規則 | askuserquestion-rules.md 18 個場景 |
-| 象限 C 的具體規則 | skip-gate.md Level 1-3、WRAP Skill、quality-baseline 規則 6 |
+| 象限 C 的具體規則 | skip-gate.md Level 1-3、WRAP Skill、pm-quality-baseline 規則 6 |
 | 升降級訊號的實作 | 由具體規則文件按需修改（觀察累積後）|
 | 階段層摩擦力曲線的落地 | decision-tree.md 路由判斷、tdd-flow.md Phase 轉換、pm-role.md 派發決策 |
 

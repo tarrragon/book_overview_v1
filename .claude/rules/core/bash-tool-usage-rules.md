@@ -31,13 +31,9 @@ Claude Code Bash 工具的使用規範，涵蓋工作目錄、輸出處理、git
 
 | 機制 | 觸發條件 | 識別特徵 | 正確處理工具 |
 |------|---------|---------|------------|
-| 背景任務 | `run_in_background: true` | 訊息含「background task」 | `TaskOutput` |
-| 暫存輸出檔案 | 輸出 > 2KB | `Full output saved to: /path/...txt` | `Read` |
-
-**判斷速查**：
-- 呼叫時設 `run_in_background: true` → `TaskOutput(taskId: "...")`
-- 輸出含 "Full output saved to: /path/xxx.txt" → `Read(file_path: "/path/xxx.txt")`
-- 兩者皆非 → 直接讀取對話中的輸出
+| 背景任務 | `run_in_background: true` | 訊息含「background task」 | `TaskOutput(taskId)` |
+| 暫存輸出檔案 | 輸出 > 2KB | `Full output saved to: /path/...txt` | `Read(file_path)` |
+| 一般同步輸出 | 小於 2KB 同步執行 | 無上述特徵 | 直接讀對話輸出 |
 
 **主動預防大輸出**：
 
@@ -81,12 +77,9 @@ Claude Code Bash 工具的使用規範，涵蓋工作目錄、輸出處理、git
 
 - `.claude/references/bash-tool-usage-details.md` — 詳細案例、根因圖解、chpwd 深度說明
 - `.claude/references/quality-python.md` — Python 執行規則
-- `.claude/error-patterns/implementation/IMP-008-bash-working-directory-pollution.md`
-- `.claude/error-patterns/implementation/IMP-009-taskoutput-confusion.md`
+- `.claude/error-patterns/implementation/IMP-008-bash-working-directory-pollution.md`、`IMP-009-taskoutput-confusion.md`
 - CLAUDE.md — 專案開發規範
 
 ---
 
-**Last Updated**: 2026-04-16
-**Version**: 2.0.0 — 骨架保留 + 詳細案例遷 references（W10-077.4）
-**Source**: IMP-008、IMP-009、index.lock 競爭
+**Last Updated**: 2026-04-16 | **Version**: 2.0.0 — 骨架保留 + 詳細案例遷 references（W10-077.4） | **Source**: IMP-008、IMP-009、index.lock 競爭
