@@ -203,6 +203,25 @@ def execute_query(args: argparse.Namespace, version: str) -> int:
     print(f"{SECTION_5W1H_INDENT}Where: {_format_where_field(ticket.get('where'))}")
     print(f"{SECTION_5W1H_INDENT}Why: {ticket.get('why', DEFAULT_UNKNOWN_VALUE)}")
 
+    # PROP-010 方案 4：query 時輸出 stale 警告（靜默失敗）
+    try:
+        from ticket_system.lib.staleness import (
+            format_stale_warning,
+            calculate_stale_level,
+            LEVEL_WARNING,
+            LEVEL_CRITICAL,
+        )
+        level = calculate_stale_level(ticket.get("created"))
+        # query 只在 WARNING / CRITICAL 時輸出（AC：超過 14 天輸出 WARNING）
+        if level in (LEVEL_WARNING, LEVEL_CRITICAL):
+            msg = format_stale_warning(ticket)
+            if msg:
+                print()
+                print(msg)
+    except Exception as exc:
+        import sys
+        sys.stderr.write(f"[staleness] query stale 檢查異常：{exc}\n")
+
     return 0
 
 
@@ -589,6 +608,17 @@ def _output_table(tickets: list, version: str) -> int:
     formatted = format_ticket_list(tickets, include_who=True)
     if formatted:
         print(formatted)
+
+    # PROP-010 方案 4：list 標示 stale Ticket 數量（靜默失敗）
+    try:
+        from ticket_system.lib.staleness import format_stale_list_summary
+        summary = format_stale_list_summary(tickets)
+        if summary:
+            print()
+            print(summary)
+    except Exception as exc:
+        import sys
+        sys.stderr.write(f"[staleness] list stale 摘要異常：{exc}\n")
 
     return 0
 

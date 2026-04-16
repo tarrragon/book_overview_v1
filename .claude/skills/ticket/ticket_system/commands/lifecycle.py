@@ -1179,7 +1179,24 @@ def execute_claim(args: argparse.Namespace, version: str) -> int:
     ``--yes``（或進入 AC 驗證流程的其他情境），委派 ``claim_with_verification``；
     兩者皆為預設 False 時仍走原 ``claim``（但本版本統一走驗證入口以確保
     S3/S4 行為一致，未帶 flag 時驗證層會依 tty 狀態決策）。
+
+    PROP-010 方案 4：claim 前若 Ticket 建立已超過 INFO 閾值（7 天），
+    輸出 stale 提示供 PM 重新評估。
     """
+    # Stale 提示（pending 超過 7 天；靜默失敗不影響 claim 主流程）
+    try:
+        from ticket_system.lib.ticket_loader import load_ticket
+        from ticket_system.lib.staleness import format_stale_warning
+
+        ticket = load_ticket(version, args.ticket_id)
+        if ticket:
+            warning = format_stale_warning(ticket)
+            if warning:
+                print(warning)
+    except Exception as exc:  # 不可因 stale 檢查失敗阻擋 claim
+        import sys
+        sys.stderr.write(f"[staleness] claim 前檢查異常：{exc}\n")
+
     lifecycle = TicketLifecycle(version)
     skip_verify = bool(getattr(args, "skip_verify", False))
     auto_yes = bool(getattr(args, "yes", False))
