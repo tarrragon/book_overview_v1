@@ -38,7 +38,7 @@
 |------|------|
 | 將模板 / 規範放在 `docs/` 下 | 模板屬於框架資產，應放在 `.claude/skills/` 或 `.claude/methodologies/` |
 | 在 `docs/` 產物中加註解指向 Skill | 以「指向」彌補目錄混放是錯誤的修正；應直接搬遷到正確位置 |
-| 在 `.claude/` 內放專案特定 ticket ID / commit hash / worklog 路徑 | 跨專案 sync 會產生死連結（見 `rules/core/document-format-rules.md` 規則 8） |
+| 在 `.claude/` 內放專案特定 ticket ID / commit hash / worklog 路徑 | 跨專案 sync 會產生死連結（見 `.claude/references/reference-stability-rules.md` 規則 8） |
 
 **建立新文件系統或 Skill 時**：先問「這是模板/規範還是產物？」
 - 模板 / 規範 → 放 `.claude/skills/` 或 `.claude/methodologies/`

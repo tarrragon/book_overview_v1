@@ -199,7 +199,7 @@ Q1: 此原則對其他專案也適用嗎？
 
 - `.claude/rules/core/quality-baseline.md` 規則 7 — Memory 寫入必須評估跨專案升級
 - `.claude/error-patterns/process-compliance/PC-061-memory-upgrade-blindness.md` — Memory upgrade blindness 錯誤模式
-- `.claude/rules/core/document-format-rules.md` 規則 8 — 框架文件禁止引用專案層級識別符
+- `.claude/references/reference-stability-rules.md` 規則 8 — 框架文件禁止引用專案層級識別符
 - `references/memory-capture-guide.md` — Memory Capture 標準結構與品質檢查
 
 ---
