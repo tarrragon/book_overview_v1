@@ -65,7 +65,7 @@ ticket generate <plan_file> --version <ver> --wave <wave> [--dry-run]
 ## 技術特色
 
 ### TDD 階段映射規則
-實作了根據任務類型的智能 TDD 階段選擇：
+實作了根據任務類型的自動化 TDD 階段選擇：
 - **IMP（實作）**：完整 TDD → Phase 1-4（高複雜度加 Phase 0）
 - **ADJ（調整）**：簡化 TDD → Phase 3b-4
 - **DOC（文件）**：無 TDD

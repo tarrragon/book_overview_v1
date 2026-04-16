@@ -164,7 +164,7 @@ def get_worktree_list() -> List[WorktreeInfo]:
         if line.startswith(WORKTREE_PREFIX):
             path = line[len(WORKTREE_PREFIX):]
 
-            # 初始化分支信息
+            # 初始化分支資訊
             branch = "unknown"
             is_main = False
 

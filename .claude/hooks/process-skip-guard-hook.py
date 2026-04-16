@@ -156,7 +156,7 @@ def generate_skip_reminder(skip_type: str, pattern_info: dict) -> str:
 
     Args:
         skip_type: 省略類型
-        pattern_info: 模式信息（包含 description 和 full_process）
+        pattern_info: 模式資訊（包含 description 和 full_process）
 
     Returns:
         格式化的提醒訊息

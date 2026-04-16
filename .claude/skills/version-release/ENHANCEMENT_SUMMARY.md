@@ -62,7 +62,7 @@ Step 1: Pre-flight Check
 ```
 Step 0: Defer Technical Debts    ← 新增步驟（若使用 --defer-td）
   • 掃描待處理 TD
-  • 更新版本和延後信息
+  • 更新版本和延後資訊
   • 輸出延後結果
 
 Step 1: Pre-flight Check

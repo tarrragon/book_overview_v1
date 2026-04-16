@@ -46,7 +46,7 @@ def is_external_query_tool(tool_name: str) -> bool:
 
 def extract_tool_context(tool_input: Dict[str, Any]) -> str:
     """
-    提取工具調用的上下文信息
+    提取工具調用的上下文資訊
 
     Args:
         tool_input: 工具輸入資料

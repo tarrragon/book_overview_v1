@@ -246,7 +246,7 @@ find .claude/hook-logs/parallel-suggestion/ -name "*.log" -mtime +30 -delete
 ### 資料隱私
 - Hook 只讀取 Ticket 檔案，不修改
 - 不訪問用戶代碼或敏感資料
-- 日誌不包含機密信息
+- 日誌不包含機密資訊
 
 ### 執行隔離
 - Hook 在獨立進程中執行
@@ -290,7 +290,7 @@ CONTINUATION_KEYWORDS = [
 ### 改進並行分析
 `find_parallelizable_tickets()` 函數可擴展以支援：
 - 跨層級並行檢查
-- 智能的檔案重疊檢測
+- 自動化檔案重疊檢測
 - 優先級排序
 
 ### 增強報告格式

@@ -1,6 +1,6 @@
 # Version Release Skill - 建置完成摘要
 
-## 建置信息
+## 建置資訊
 
 **建置日期**: 2026-01-06
 **Skill 名稱**: version-release

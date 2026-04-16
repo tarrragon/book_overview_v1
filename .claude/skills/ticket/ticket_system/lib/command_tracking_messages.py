@@ -595,7 +595,7 @@ class GenerateMessages:
 class VersionShiftMessages:
     """version-shift 命令相關訊息常數"""
 
-    # CLI 幫助信息
+    # CLI 幫助資訊
     HELP_VERSION_SHIFT = "將整個版本的 Ticket 遷移至新版本"
     ARG_FROM_VERSION = "來源版本號（無 v 前綴，如 0.1.0）"
     ARG_TO_VERSION = "目標版本號（無 v 前綴，如 0.2.0）"

@@ -34,7 +34,7 @@ class ParsedHandoff:
     """
     解析後的 handoff 記錄
 
-    包含完整的檔案和資料信息，支援呼叫端自訂的error處理。
+    包含完整的檔案和資料資訊，支援呼叫端自訂的error處理。
     """
     file_path: Path
     ticket_id: str
@@ -186,7 +186,7 @@ def scan_pending_handoffs() -> List[ParsedHandoff]:
 
     每個記錄包含：
     - 成功解析的檔案：parse_error=None, schema_error=None
-    - JSON 讀取失敗：parse_error=<錯誤信息>, schema_error=None
+    - JSON 讀取失敗：parse_error=<錯誤資訊>, schema_error=None
     - 必填欄位缺失：schema_error=<缺失欄位清單>
 
     呼叫端可根據 parse_error/schema_error 決定是否統計計數或直接跳過。

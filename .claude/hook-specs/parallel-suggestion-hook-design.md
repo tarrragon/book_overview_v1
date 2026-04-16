@@ -317,7 +317,7 @@ cat .claude/hook-logs/parallel-suggestion/analysis-$(date +%Y%m%d).log
 
 1. **增強並行分析**
    - 支援跨層級的並行檢查
-   - 智能的檔案重疊檢測
+   - 自動化檔案重疊檢測
 
 2. **改進報告格式**
    - 可視化並行分組

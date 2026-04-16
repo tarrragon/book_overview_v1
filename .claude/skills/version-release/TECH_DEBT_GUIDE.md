@@ -154,7 +154,7 @@ uv run .claude/skills/version-release/scripts/version_release.py release \
 ```
 
 此命令會：
-1. ✅ 更新所有待處理 TD 的版本和延後信息
+1. ✅ 更新所有待處理 TD 的版本和延後資訊
 2. ✅ 執行完整的發布流程（文件更新、Git 操作等）
 3. ✅ 完成版本發布
 

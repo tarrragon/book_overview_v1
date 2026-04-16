@@ -25,7 +25,7 @@ Exit Code:
 2. 純機械推導解析各 hook 對應的日誌目錄
 3. 檢查日誌目錄最新修改時間
 4. 輸出覆蓋全部 hooks 的健康報告
-5. 失敗的 hook 信息輸出到 stderr
+5. 失敗的 hook 資訊輸出到 stderr
 
 改進 (v2.0.0):
 - 動態解析 settings.json 取得所有 SessionStart hooks
