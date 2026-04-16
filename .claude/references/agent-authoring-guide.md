@@ -120,15 +120,65 @@ effort: low
 
 ---
 
+## Model 選擇指南
+
+### 歷史教訓（2026-04-16 更新）
+
+早期誤以為代理人失敗主因是「context 不足」，將所有代理人 model 統一升級至 opus 1m。後來確認真正原因是**代理人的回合限制（tool call ~20）**，非 context。統一升級造成簡單任務也用 opus 1m，浪費成本與速度。
+
+**提醒**：model 選擇解決的是「決策品質 / 成本」問題；回合限制問題需另行處理（任務拆分、cognitive load 降低等）。
+
+### 4 維度評分
+
+新增代理人時，先就以下 4 維度評估該代理人的典型任務：
+
+| 維度 | 評估問題 | 等級 |
+|------|---------|------|
+| **閱讀量** | 每次呼叫需讀取的檔案規模 | S(單檔) / M(數檔) / L(整模組) / XL(跨模組或整 codebase) |
+| **決策複雜度** | 任務本質是機械執行還是設計判斷 | 低(機械) / 中(規則推理) / 高(設計判斷) / 極高(架構決策) |
+| **輸出量** | 典型輸出長度 | 短(摘要/清單) / 中(結構化分析) / 長(完整程式碼/規格) |
+| **對話深度** | subagent 內部輪數 | 單輪 / 2-3 輪 / 多輪 |
+
+### Model 分類標準
+
+| 類別 | model 值 | 適用條件 |
+|------|---------|---------|
+| **D - 1M Context** | `claude-opus-4-6[1m]` | 閱讀量 = XL，系統級審查，需跨模組累積上下文 |
+| **C - Opus** | `opus` | 決策複雜度 ≥ 高，或實作代理人（品質關鍵） |
+| **B - Sonnet** | `sonnet` | 決策複雜度 = 中（規則推理），結構化任務 |
+| **A - Haiku** | `haiku` | 決策複雜度 = 低（機械執行），單檔格式修復類 |
+| **Main** | `inherit` | 主線程代理人（如 rosemary-project-manager） |
+
+### Model 選擇 checklist
+
+- [ ] 代理人是否需要讀取 > 200k tokens 的上下文？→ **D (opus 1m)**
+- [ ] 代理人是否做架構/設計判斷或生產程式碼？→ **C (opus)**
+- [ ] 代理人是否基於明確規則做結構化產出？→ **B (sonnet)**
+- [ ] 代理人是否純機械執行（格式、重命名等）？→ **A (haiku)**
+- [ ] 代理人是主線程 PM？→ **inherit**
+
+### 當前代理人分類（2026-04-16 W9-005 執行結果）
+
+| 類別 | 數量 | 代表代理人 |
+|------|------|-----------|
+| D (1m) | 2 | saffron-system-analyst, bay-quality-auditor |
+| C (opus) | 15 | linux, cinnamon, parsley, fennel, thyme-extension 等實作/設計類 |
+| B (sonnet) | 7 | acceptance-auditor, coriander, project-compliance 等規則驗證類 |
+| A (haiku) | 1 | mint-format-specialist |
+| inherit | 1 | rosemary-project-manager |
+
+---
+
 ## 相關文件
 
 - `.claude/error-patterns/process-compliance/PC-059-agent-tools-vs-runtime-permission.md` — 完整錯誤模式
 - `.claude/agents/AGENT_PRELOAD.md` — 代理人共用前置知識
 - `.claude/rules/core/pm-role.md` — PM 派發角色邊界
 - permissionMode 與 worktree 路徑的歷史修復紀錄（詳見 PC-059）
+- 代理人 model 重新評估歷史：W9-005（2026-04-16）
 
 ---
 
-**Last Updated**: 2026-04-13
-**Version**: 1.0.0
-**Source**: PC-059 retry5 模式調查結論
+**Last Updated**: 2026-04-16
+**Version**: 1.1.0 — 新增 Model 選擇指南（W9-005 落地）
+**Source**: PC-059 retry5 模式調查結論 + W9-005 代理人 model 重新評估
