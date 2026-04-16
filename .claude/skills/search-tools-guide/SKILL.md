@@ -155,6 +155,8 @@ Step 3：五問窮盡檢查
 | 框架為「XX 專用前置步驟」 | 把 ToolSearch 當成特定工具的鑰匙，不當成通用發現機制 | 理解為「發現 CC runtime deferred tools 的通用入口」 |
 | 忽略 session system-reminder | 把 deferred tools 清單當背景資訊 | 每 session 首次遇到「找工具」需求時掃一次 |
 | 採限制性解法（禁止 / 防護） | 問題框架為「如何防止 X」 | 改框架為「如何正確做 X」再問五問 |
+| 跳過第五問 | 只檢查 Hook/檔案/流程/既有 API，未問 CC runtime 能力 | 必須執行 ToolSearch 搜尋 deferred tool |
+| 宣告「平台不支援」未窮盡 | 代理人或 PM 直接下結論 | 先完成五問（規則 1），最後才下結論 |
 | 讀 transcript 推論代理人狀態 | 違反 PC-050 模式 D | 用 TaskOutput 讀 `<status>` 標籤 |
 
 ### 相關規則與錯誤模式

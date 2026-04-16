@@ -128,7 +128,8 @@
 ## 相關文件
 
 - `.claude/rules/core/document-format-rules.md` — 文件格式規則主檔（規則 1-6 + YAML frontmatter + 檢查清單骨架）
-- `.claude/rules/README.md` — 規則系統導引（含框架資產與專案產物職責分離章節）
+- `.claude/rules/README.md` — 規則系統導引
+- `.claude/references/framework-asset-separation.md` — 框架資產與專案產物職責分離原則
 - `.claude/error-patterns/documentation/DOC-010-framework-references-project-tickets.md` — 框架誤引用專案 ticket 的錯誤模式
 
 ---
