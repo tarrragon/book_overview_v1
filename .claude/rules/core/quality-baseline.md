@@ -142,6 +142,7 @@
 - [ ] 新功能的可觀測性已確認？（啟動 log、異常 log、狀態 log）
 - [ ] 引用一致性已確認？（`grep -rl "修改的概念" .claude/` 確認所有引用已同步更新）
 - [ ] 修改有對應 Ticket？（rules/pm-rules/skills 修改必須有 Ticket 追蹤，PC-053）
+- [ ] claim 前已處理 AC 漂移偵測輸出？（S3/S4 外溢已決策繼續/取消/轉 complete；CRITICAL stale 已評估；PC-055 / PROP-010）
 
 > PM 角色另需檢查 `.claude/pm-rules/pm-quality-baseline.md` 的 PM 專屬清單（框架優先、memory 升級四問）。
 
@@ -177,4 +178,6 @@
 ---
 
 **Last Updated**: 2026-04-16
+**Version**: 2.1.0 - 品質檢查清單新增 AC 漂移偵測項目（PC-055 / PROP-010 防護落地）
+
 **Version**: 2.0.0 - 規則 6-7 外移至 `.claude/pm-rules/pm-quality-baseline.md`，本檔僅保留通用品質底線規則 1-5（對應 0.18.0-W10-073.4 WRAP 選項 B、0.18.0-W10-077.2 實作）
