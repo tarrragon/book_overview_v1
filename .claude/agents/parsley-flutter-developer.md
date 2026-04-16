@@ -138,7 +138,7 @@ List<ProcessedBook> processBooks(List<Book> books) {
 
 ### 5. 品質規範強制遵循
 
-> **統一品質標準**：所有品質規則定義在 @.claude/rules/core/quality-common.md
+> **統一品質標準**：所有品質規則定義在 @.claude/references/quality-common.md
 >
 > parsley 必須遵循：第 1 節（通用規則）+ 第 2 節（Dart/Flutter 補充）+ 第 6.1 節 + 第 6.2 節
 

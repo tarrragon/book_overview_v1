@@ -346,7 +346,7 @@ grep -c '/Users/' .claude/settings.local.json
 | [pm-rules/command-routing.md](./pm-rules/command-routing.md) | 命令路由（含 TDD） |
 | [pm-rules/agent-path-registry.md](./pm-rules/agent-path-registry.md) | 代理人路徑權限表 |
 | [rules/core/quality-baseline.md](./rules/core/quality-baseline.md) | 品質基線（不可協商） |
-| [rules/core/quality-common.md](./rules/core/quality-common.md) | 實作品質標準 |
+| [rules/core/quality-common.md](./rules/core/quality-common.md) | 實作品質標準（骨架指標，詳見 references/quality-common.md） |
 | [pm-rules/tdd-flow.md](./pm-rules/tdd-flow.md) | TDD 含 SA 前置審查流程 |
 | [pm-rules/ticket-lifecycle.md](./pm-rules/ticket-lifecycle.md) | Ticket 生命週期 |
 | [pm-rules/skip-gate.md](./pm-rules/skip-gate.md) | Skip-gate 防護機制 |

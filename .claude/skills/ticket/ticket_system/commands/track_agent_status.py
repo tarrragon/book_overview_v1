@@ -55,7 +55,7 @@ status 值對應行動：
     B. 代理人仍在工作（Hook 訊號不可靠）
 
 參考：
-  - .claude/rules/core/pm-role.md (失敗判斷前置步驟 Step 0.5 / 0.5-A)
+  - .claude/pm-rules/agent-failure-sop.md (失敗判斷前置步驟 Step 0.5 / 0.5-A)
   - .claude/references/pm-agent-observability.md (Hook 廣播訊號可靠度表)
   - .claude/error-patterns/process-compliance/PC-050-premature-agent-completion-judgment.md (模式 E)
   - .claude/error-patterns/process-compliance/PC-070-pm-hook-signal-agent-failure-inference.md

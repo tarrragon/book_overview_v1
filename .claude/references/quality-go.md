@@ -212,7 +212,7 @@ log.Println(err)
 
 ## 相關文件
 
-- .claude/rules/core/quality-common.md - 通用品質基線
+- .claude/references/quality-common.md - 通用品質基線
 - .claude/rules/core/bash-tool-usage-rules.md - Bash 工具使用規則
 - .claude/references/observability-rules.md - 通用可觀測性規則
 

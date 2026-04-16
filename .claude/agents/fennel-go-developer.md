@@ -483,7 +483,7 @@ grep -rn '"[A-Z]' server/ --include="*.go" | grep -v "_test.go" | grep -v "const
 
 ## 相關文件
 
-- @.claude/rules/core/quality-common.md - 實作品質標準（第 1 節 + 第 4 節 Go）
+- @.claude/references/quality-common.md - 實作品質標準（第 1 節 + 第 4 節 Go）
 - @.claude/rules/core/bash-tool-usage-rules.md - cd 子 shell 規範
 - docs/spec.md - 技術規格（第 3 節 Go Backend + 第 7 節可觀測性）
 - docs/usecase/UC-010-structured-logging.md - 結構化日誌 UC

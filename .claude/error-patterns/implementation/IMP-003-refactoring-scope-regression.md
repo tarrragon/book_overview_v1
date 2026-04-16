@@ -140,7 +140,7 @@ def main():
 
 ## 相關資源
 
-- `.claude/rules/core/quality-common.md` - 實作品質標準
+- `.claude/references/quality-common.md` - 實作品質標準
 - `.claude/hooks/hook_utils.py` - run_hook_safely 實作
 
 ## 標籤

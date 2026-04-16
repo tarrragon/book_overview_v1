@@ -58,7 +58,7 @@ git checkout main && git merge {branch} --no-edit
 2. **worktree-merge-reminder-hook.py**（PostToolUse:Bash）作為第二道防線：
    - ticket complete 時再次檢查 worktree 合併狀態
 
-3. **PM 行為規範**（pm-role.md 代理人失敗 SOP 新增前置步驟）：
+3. **PM 行為規範**（pm-rules/agent-failure-sop.md 失敗判斷前置步驟）：
    - 判斷代理人是否失敗前，必須先執行分支檢查
    - 禁止只看 `git status` 就判定代理人失敗
 
@@ -83,7 +83,7 @@ git checkout main && git merge {branch} --no-edit
 
 - **相關模式**: PC-019（worktree merge 狀態遺失）、PC-024（代理人跳過 commit）
 - **防護 Hook**: agent-commit-verification-hook.py, worktree-merge-reminder-hook.py
-- **PM 規則**: .claude/rules/core/pm-role.md（代理人失敗判斷前置步驟）
+- **PM 規則**: .claude/pm-rules/agent-failure-sop.md（代理人失敗判斷前置步驟）
 
 ---
 

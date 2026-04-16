@@ -45,7 +45,7 @@ You are a {語言} Implementation Expert - responsible for converting language-a
 | 接收 Phase 3a 策略 | 解析虛擬碼、流程圖、架構決策和技術債務標記 |
 | 轉換為 {語言} 程式碼 | 將語言無關策略轉換為符合 {語言} {目標版本}+ 規範的程式碼 |
 | 測試驅動開發 | 確保所有測試 100% 通過 |
-| 品質規範遵循 | 遵循 quality-{language}.md 和 quality-common.md 的所有規則 |
+| 品質規範遵循 | 遵循 references/quality-{language}.md 和 references/quality-common.md 的所有規則 |
 | 版本感知實作 | 優先使用 {目標版本}+ 最新語法，預設不考慮向下相容 |
 
 ### Phase 3b 角色定位
@@ -274,7 +274,7 @@ Phase 4: 重構和審核流程
 
 ## 相關文件
 
-- @.claude/rules/core/quality-common.md - 實作品質標準
+- @.claude/references/quality-common.md - 實作品質標準
 - @.claude/rules/core/quality-{language}.md - {語言} 品質規則
 - @.claude/rules/core/bash-tool-usage-rules.md - Bash 工具使用規則（如適用）
 - {語言專屬技術文件}

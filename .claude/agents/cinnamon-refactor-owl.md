@@ -419,7 +419,7 @@ cinnamon-refactor-owl 在以下情況下**應該被觸發**：
 - [ ] **重構執行記錄完整**: 執行步驟和測試結果清楚記錄
 - [ ] **測試預期管理準確**: 預期與實際結果對比清楚
 - [ ] **所有測試通過**: 100% 測試通過率
-- [ ] **程式碼品質達標**: 符合 .claude/rules/core/quality-common.md 標準
+- [ ] **程式碼品質達標**: 符合 .claude/references/quality-common.md 標準
 - [ ] **重構工作日誌建立**: 獨立的重構工作日誌已建立
 - [ ] **原功能工作日誌更新**: Phase 4 總結章節已新增
 - [ ] **需求註解覆蓋率 100%**: 所有業務邏輯函式都有需求脈絡註解
@@ -704,7 +704,7 @@ parsley-flutter-developer (Phase 3b)
 
 ### 程式碼品質規範（強制要求）
 
-> **統一品質標準**：所有品質規則定義在 @.claude/rules/core/quality-common.md
+> **統一品質標準**：所有品質規則定義在 @.claude/references/quality-common.md
 >
 > cinnamon 必須遵循：第 1 節全部（作為重構評估基線）
 

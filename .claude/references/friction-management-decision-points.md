@@ -25,7 +25,7 @@
 | 驗收方式確認（P0 優先級 complete 前） | AskUserQuestion #1（非 P0 自動決定不觸發） | askuserquestion-rules #1 |
 | Commit 後錯誤學習確認 | AskUserQuestion #16 雙通道記錄（error-pattern + memory） | askuserquestion-rules #16 |
 | Handoff 方向選擇（多兄弟任務可選） | AskUserQuestion #9 確認方向 | askuserquestion-rules #9 |
-| Ticket 認領後範圍確認 | 讀取 5W1H + 驗證 where.files 存在 | pm-role.md 切換 SOP |
+| Ticket 認領後範圍確認 | 讀取 5W1H + 驗證 where.files 存在 | pm-rules/session-switching-sop.md |
 | Error Pattern 記錄（場景 #16 後續追蹤） | ticket complete 時若有新增 error-pattern，AskUserQuestion #17 確認改進追蹤 | askuserquestion-rules #17 |
 
 ## 象限 C：增加摩擦（低頻高風險，強制 WRAP/多視角/阻擋）
@@ -35,7 +35,7 @@
 | ANA/Debug/提案評估 | **強制**套用 WRAP 框架 | feedback_wrap_mandatory_for_analysis / PC-051 |
 | parallel-evaluation 強勢結論處置 | 含 Garbage/Acceptable with fatal smell 評分時，**強制** WRAP 後才能建執行 Ticket | PC-056（本次教訓） |
 | Wave 收尾版本發布 | **強制**先做 `/parallel-evaluation` Wave 審查（含 linux 委員）再進入 #3 | completion-checkpoint Checkpoint 2-C |
-| 破壞性 git 操作（`git reset --hard` / `git push --force` / `git branch -D` / `git worktree remove`） | 必須向用戶確認，無自動化豁免 | pm-role.md 執行操作與謹慎段落 |
+| 破壞性 git 操作（`git reset --hard` / `git push --force` / `git branch -D` / `git worktree remove`） | 必須向用戶確認，無自動化豁免 | pm-role.md 核心原則 + pm-rules/askuserquestion-rules.md |
 | 規則/方法論/代理人/Hook 檔案修改 | **強制**先建 Ticket 追蹤，無「太小」例外 | quality-baseline 規則 5/6 + PC-053 |
 | Hook 失敗 / 測試失敗 / 編譯錯誤 → incident 派發 | **強制**派發 incident-responder 分析，禁止 PM 直接修復 | skip-gate.md Level 1 規則 1-3 |
 

@@ -202,7 +202,7 @@ PM 做最終決策（繼續推進 / 回頭處理）
 
 - .claude/references/quality-auditor-details.md - 詳細審計流程、檢查清單、評分標準、最佳實踐
 - .claude/rules/core/quality-baseline.md - 流程品質基線
-- .claude/rules/core/quality-common.md - 實作品質標準
+- .claude/references/quality-common.md - 實作品質標準
 - .claude/methodologies/cognitive-load-design-methodology.md - 認知負擔方法論
 
 ---

@@ -27,7 +27,7 @@
                                 → 派發 incident-responder
                                 → 建立 Ticket → 對應代理人修復
 
-是代理人失敗? ─是→ [強制] 先執行 pm-role.md Step -1~4 前置步驟
+是代理人失敗? ─是→ [強制] 先執行 agent-failure-sop.md Step -1~4 前置步驟
     |               → hook-logs 檢查（Step -1）
     |               → dispatch-active.json（Step 0）
     |               → 分支/worktree 確認（Step 1-4）

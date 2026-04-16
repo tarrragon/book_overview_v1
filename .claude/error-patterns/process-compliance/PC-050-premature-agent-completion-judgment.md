@@ -88,7 +88,7 @@ PM 缺乏「代理人完成確認」的系統性流程。具體表現：
 cat .claude/dispatch-active.json  # 確認派發數量正確
 ```
 
-**收到完成通知時**（pm-role.md「代理人完成確認 SOP」）：
+**收到完成通知時**（pm-rules/agent-failure-sop.md「代理人完成確認 SOP」）：
 ```bash
 cat .claude/dispatch-active.json  # 確認剩餘活躍派發
 ```
@@ -155,7 +155,7 @@ TaskOutput(
 
 **適用場景**：
 - 懷疑某個背景代理人未完成但 task-notification 未到達 → 查 `<status>` 確認
-- 失敗判斷前置步驟 Step 0.5（見 pm-role.md）
+- 失敗判斷前置步驟 Step 0.5（見 pm-rules/agent-failure-sop.md）
 - 派發多個代理人後，確認某個特定代理人仍在執行中（非從 dispatch-active.json 推論）
 
 **不適用場景**：
@@ -166,7 +166,7 @@ TaskOutput(
 **完成 Checkpoint 中**（completion-checkpoint-rules.md「Checkpoint 1.85」）：
 - 1.85 代理人清點：dispatch-active.json 非空 → 阻塞，禁止繼續
 
-**判斷代理人失敗前**（pm-role.md「失敗判斷前置步驟」）：
+**判斷代理人失敗前**（pm-rules/agent-failure-sop.md「失敗判斷前置步驟」）：
 1. `cat .claude/dispatch-active.json` — 代理人可能還在活躍派發中
 2. `git branch | grep feat/` + `git worktree list` — 變更可能在其他分支
 3. 只有 dispatch-active.json 為空且所有分支都無 commit 後，才判定失敗
@@ -195,7 +195,7 @@ TaskOutput(
 
 - **相關模式**: PC-039（worktree 未合併不可見）
 - **收編的歷史紀錄**: PC-070（模式 E 獨立文件，保留為歷史案例）
-- **PM 規則**: .claude/rules/core/pm-role.md（代理人失敗判斷前置步驟 Step 0.5）
+- **PM 規則**: .claude/pm-rules/agent-failure-sop.md（代理人失敗判斷前置步驟 Step 0.5）
 - **觀察工具**: .claude/references/pm-agent-observability.md（四工具分工：Agent 派發、TaskOutput 狀態、SendMessage 通訊、TaskList 清點）
 
 ---

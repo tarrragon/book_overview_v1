@@ -51,7 +51,7 @@
 
 3. **規則落地深度不足（連帶）**
    - askuserquestion-rules.md 在 pm-rules/ 下，非自動載入
-   - pm-role.md 的「行為循環」章節未將「列選項」明確列為觸發條件
+   - pm-rules/behavior-loop-details.md 的「AUQ 強制觸發」章節（拆分前位於 pm-role.md 行為循環）
    - session 中後期 context 擁擠時，主動 Read 的記憶可能稀釋
 
 ### 常見陷阱模式
@@ -68,7 +68,7 @@
 | 層級 | 措施 | 狀態 |
 |------|------|------|
 | Hook | 新增 Hook 偵測 PM 回覆文字含選項 pattern（A./B.、「要選哪個」等）並輸出提醒 | 建議實施 |
-| 規則 | pm-role.md「行為循環」章節增補「列選項 → 必用 AUQ」明示 | 建議實施 |
+| 規則 | pm-role.md「行為循環（精簡）」AUQ 觸發速查 + pm-rules/behavior-loop-details.md AUQ 強制觸發章節 | 已實施 |
 | CLAUDE.md | 頂部加入 AUQ 強制使用顯眼提醒（自動載入最終防線） | 建議實施 |
 | Memory | 原則保留 memory 作為跨 session 索引 | 已實施 |
 | 自我檢查 | 每次準備列選項時自問：「是否需用戶做決策？」是 → 先 ToolSearch select:AskUserQuestion → 用 AUQ | 行為準則 |
@@ -95,7 +95,7 @@
 ## 相關文件
 
 - `.claude/pm-rules/askuserquestion-rules.md` — 通用觸發原則與 18 個場景
-- `.claude/rules/core/pm-role.md` — 行為循環章節（列選項觸發條件增補目標）
+- `.claude/rules/core/pm-role.md` + `.claude/pm-rules/behavior-loop-details.md` — 行為循環章節（列選項觸發條件）
 - `.claude/rules/core/tool-discovery.md` — ToolSearch 載入 deferred tool 通用機制
 - `.claude/error-patterns/process-compliance/PC-014-askuserquestion-rationalization-skip.md` — 姊妹模式（合理化跳過）
 - `.claude/methodologies/friction-management-methodology.md` — 摩擦力管理方法論（C 象限）

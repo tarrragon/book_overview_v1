@@ -2,7 +2,7 @@
 
 本文件包含 quality-common.md 的操作指引、程式碼範例和詳細檢查清單。
 
-> 核心規則定義：.claude/rules/core/quality-common.md
+> 核心規則定義：.claude/references/quality-common.md
 
 ---
 
@@ -515,7 +515,7 @@ def calculate_discount_price(base_price: float, user_tier: str) -> float:
 
 ## 相關文件
 
-- .claude/rules/core/quality-common.md - 核心規則定義
+- .claude/references/quality-common.md - 核心規則定義
 - .claude/methodologies/comment-writing-methodology.md - 註解方法論
 
 ---

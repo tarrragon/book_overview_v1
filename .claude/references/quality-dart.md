@@ -208,7 +208,7 @@ try {
 
 ## 相關文件
 
-- .claude/rules/core/quality-common.md - 通用品質基線
+- .claude/references/quality-common.md - 通用品質基線
 - .claude/methodologies/package-import-methodology.md - 導入路徑方法論
 - .claude/methodologies/business-layer-i18n-management-methodology.md - i18n 方法論
 - .claude/references/observability-rules.md - 通用可觀測性規則

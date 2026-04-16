@@ -59,10 +59,10 @@ Memory 升級案例中，相當比例是「用戶指正後 PM 才升級」。PM 
 | 主題 | 跨專案性 | 應升級位置（示意） |
 |------|---------|-----------------|
 | 框架/產物分離 | 高 | `rules/README.md` 或新 `rules/core/*.md` |
-| /clear 前必須持久化 | 高 | `rules/core/pm-role.md` 或 `skills/strategic-compact/` |
+| /clear 前必須持久化 | 高 | `pm-rules/session-switching-sop.md` 或 `skills/strategic-compact/` |
 | Ticket 引導優先於 Hook | 高 | `methodologies/ticket-lifecycle-management-methodology.md` |
 | 核心修改前先搜社群 | 高 | `pm-rules/incident-response.md` |
-| worktree 代理人 scope | 高 | `rules/core/pm-role.md` 代理人失敗 SOP |
+| worktree 代理人 scope | 高 | `pm-rules/agent-failure-sop.md` 重試守則 |
 
 這些 memory 的共同特徵：原則識別正確、寫入即時，但**後續升級步驟未發生**。
 

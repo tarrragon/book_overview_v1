@@ -131,7 +131,7 @@ thyme-python-developer 在以下情況下**應該被派發**：
 
 ## 品質標準
 
-> **統一品質標準**：所有品質規則定義在 @.claude/rules/core/quality-common.md
+> **統一品質標準**：所有品質規則定義在 @.claude/references/quality-common.md
 >
 > thyme 必須遵循：第 1 節（通用規則）+ 第 3 節（Python 補充）+ 第 4.1 節 + 第 4.3 節
 

@@ -293,7 +293,7 @@ TabBar 中的 Tab 無最大寬度約束，長專案名稱佔滿 280px sidebar，
 
 - ui/lib/core/constants/session_list_constants.dart - Session List 常數
 - ui/lib/core/constants/app_constants.dart - 全域常數
-- .claude/rules/core/quality-common.md - 通用品質基線（1.3 常數管理）
+- .claude/references/quality-common.md - 通用品質基線（1.3 常數管理）
 
 ---
 

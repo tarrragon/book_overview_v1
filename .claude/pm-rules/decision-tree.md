@@ -99,7 +99,7 @@ Skill 是預建的專用工具，優先於代理人派發。
 | 問題類型訊息 | question-routing.md | 查詢、諮詢、進度 |
 | 命令類型訊息 | command-routing.md | 開發、修改、TDD 階段 |
 | 錯誤/失敗 | incident-routing.md | 事件回應（含 WRAP 強制） |
-| 代理人派發後快速完成通知（< 2 分鐘） | pm-role.md 失敗判斷前置步驟 Step 0.5 / 0.5-A | 強制 TaskOutput status 查詢；禁止用 Hook 訊號推論失敗（PC-050 模式 E / PC-070） |
+| 代理人派發後快速完成通知（< 2 分鐘） | agent-failure-sop.md 失敗判斷前置步驟 Step 0.5 / 0.5-A | 強制 TaskOutput status 查詢；禁止用 Hook 訊號推論失敗（PC-050 模式 E / PC-070） |
 | 執行中發現 | execution-discovery-rules.md | 技術債、超範圍需求 |
 | 完成後發現 | execution-discovery-rules.md 3.5-B | completed Ticket 交付物需修正 |
 | 任務完成 | completion-checkpoint-rules.md | Checkpoint 循環（0/0.5/1/1.5/1.8/1.9/2/3/4/R） |
@@ -145,6 +145,6 @@ Skill 是預建的專用工具，優先於代理人派發。
 ---
 
 **Last Updated**: 2026-04-15
-**Version**: 9.3.0 — 新增路由：代理人派發後快速完成通知 → pm-role.md Step 0.5 / 0.5-A 強制 TaskOutput 查詢（PC-050 模式 E / PC-070 防護）
+**Version**: 9.3.0 — 新增路由：代理人派發後快速完成通知 → agent-failure-sop.md Step 0.5 / 0.5-A 強制 TaskOutput 查詢（PC-050 模式 E / PC-070 防護）
 
 **Version**: 9.2.0 — 新增 Context 重度檢查層（PC-066 入口）：條件權威來源指向 wrap-decision SKILL（避免 DRY 違反），本層僅為人工 fallback；自動強制由 W10-009 Hook 處理
