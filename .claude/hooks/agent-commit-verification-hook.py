@@ -5,22 +5,21 @@
 # ///
 
 """
-Agent Commit Verification Hook - PostToolUse (Agent)
+Agent Commit Verification Hook - SubagentStop
 
 功能:
-  1. Agent 完成工作後，檢查是否有未 commit 的變更。
-     若偵測到未 commit 的修改，輸出警告提醒 PM 確認。
+  1. Agent 真正完成後，檢查是否有未 commit 的變更。
   2. 檢查 worktree 和 feature 分支是否有未合併到 main 的 commit。
   3. 根據代理人是否使用 worktree 隔離，條件性輸出 CWD 還原提醒。
   4. 輸出整合的「PM 立即動作」摘要，指引 PM 下一步操作。
+  5. 掃描 hook-logs 輸出 hook error 摘要。
 
-觸發時機: Agent 工具完成後 (PostToolUse, matcher: Agent)
+觸發時機: SubagentStop（CC runtime 代理人真正停止時觸發，W10-067 遷移自 PostToolUse）
 行為: 不阻擋（exit 0），僅在 additionalContext 輸出警告
 
 來源:
   - PC-024 — 代理人完成實作但跳過 git commit，變更未持久化
-  - Worktree 代理人完成後主線程 Shell cwd 被污染
-  - Feature 分支偵測 + CWD 條件化 + PM 立即動作摘要
+  - W10-067 — 從 PostToolUse 遷移至 SubagentStop，解決 background 啟動誤觸發
 """
 
 import json
@@ -34,11 +33,11 @@ sys.path.insert(0, str(Path(__file__).parent))
 from hook_utils import (
     setup_hook_logging,
     read_json_from_stdin,
-    extract_tool_input,
-    is_subagent_environment,
-    is_background_dispatch,
     get_project_root,
 )
+
+sys.path.insert(0, str(Path(__file__).parent / "lib"))
+from dispatch_tracker import get_active_dispatches
 
 # ============================================================================
 # 常數定義
@@ -50,7 +49,7 @@ EXIT_SUCCESS = 0
 # 預設輸出格式（靜默通過）
 DEFAULT_OUTPUT = {
     "hookSpecificOutput": {
-        "hookEventName": "PostToolUse"
+        "hookEventName": "SubagentStop"
     }
 }
 
@@ -505,45 +504,53 @@ def build_hook_error_message(hook_errors: list[tuple[str, int]]) -> str:
     return "\n".join(lines)
 
 
+def _lookup_agent_info(project_root, agent_id, logger):
+    """從 dispatch-active.json 查詢代理人的 description 和 worktree 資訊。
+
+    SubagentStop input 無 tool_input（缺 description/isolation），
+    需從 dispatch-active.json 交叉查詢。
+
+    Returns:
+        tuple[str, bool]: (agent_description, uses_worktree)
+    """
+    try:
+        dispatches = get_active_dispatches(project_root)
+        for d in dispatches:
+            if d.get("agent_id") == agent_id:
+                desc = d.get("agent_description", "unknown")
+                uses_wt = bool(d.get("branch_name"))
+                return desc, uses_wt
+    except Exception as e:
+        logger.debug("dispatch-active.json lookup failed: %s", e)
+
+    return "unknown", False
+
+
 def main() -> None:
-    """主函式"""
+    """主函式 — SubagentStop 驅動，代理人真正完成時觸發。"""
     logger = setup_hook_logging(HOOK_NAME)
 
     input_data = read_json_from_stdin(logger)
 
-    # 子代理人環境不觸發（避免巢狀警告）
-    if is_subagent_environment(input_data):
-        logger.debug("subagent environment, skip")
-        print(json.dumps(DEFAULT_OUTPUT))
-        sys.exit(EXIT_SUCCESS)
     if not input_data:
         logger.debug("no input data")
         print(json.dumps(DEFAULT_OUTPUT))
         sys.exit(EXIT_SUCCESS)
 
-    tool_input = extract_tool_input(input_data, logger)
-
-    # 背景代理人：PostToolUse(Agent) 在代理人「啟動完成」時觸發，非「工作完成」。
-    # 此時代理人尚未 commit、未合併、未產生任何持久化變更，執行
-    # uncommitted / unmerged worktree / unmerged feature branch 檢查會產生
-    # 誤報與錯誤「PM 立即動作」摘要（PC-070 誘因，W10-024 首例修復）。
-    # 真正完成訊號應由 task-notification 事件處理，此處安靜跳過。
-    if is_background_dispatch(tool_input):
-        logger.info(
-            "background agent dispatch detected (%s), skip completion-dependent checks",
-            tool_input.get("description", "unknown"),
-        )
+    # SubagentStop input 含 agent_id（CC runtime 保證）
+    agent_id = input_data.get("agent_id", "")
+    if not agent_id:
+        logger.debug("no agent_id in SubagentStop input, skip")
         print(json.dumps(DEFAULT_OUTPUT))
         sys.exit(EXIT_SUCCESS)
 
-    # 取得代理人描述
-    agent_description = tool_input.get("description", "unknown")
-
-    # 取得專案根目錄（使用 CLAUDE_PROJECT_DIR 環境變數，確保是主倉庫而非 worktree）
+    # 取得專案根目錄
     project_root = get_project_root()
 
-    # 判斷代理人是否使用 worktree 隔離
-    agent_uses_worktree = tool_input.get("isolation") == "worktree"
+    # 從 dispatch-active.json 查詢 agent 資訊
+    agent_description, agent_uses_worktree = _lookup_agent_info(
+        project_root, agent_id, logger
+    )
 
     # 檢查未 commit 的檔案
     uncommitted_files = get_uncommitted_files(str(project_root), logger)
@@ -563,8 +570,6 @@ def main() -> None:
             len(uncommitted_files),
         )
         messages.append(build_warning_message(agent_description, uncommitted_files))
-
-        # 同時輸出到 stderr（雙通道可觀測性）
         sys.stderr.write(f"[{HOOK_NAME}] {MSG_UNCOMMITTED_DETECTED}\n")
     else:
         logger.debug("no uncommitted files after agent completed")
@@ -600,7 +605,7 @@ def main() -> None:
     # CWD 還原提醒：只在 worktree 代理人時顯示
     if agent_uses_worktree:
         messages.append(build_cwd_restore_message(str(project_root)))
-        logger.info("cwd restore reminder appended (worktree agent, project_root=%s)", project_root)
+        logger.info("cwd restore reminder appended (worktree agent)")
     else:
         logger.debug("cwd restore reminder skipped (non-worktree agent)")
 
@@ -623,7 +628,7 @@ def main() -> None:
 
     output = {
         "hookSpecificOutput": {
-            "hookEventName": "PostToolUse",
+            "hookEventName": "SubagentStop",
             "additionalContext": combined_message,
         }
     }

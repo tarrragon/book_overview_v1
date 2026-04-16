@@ -6,16 +6,19 @@
 
 ---
 
-## 四工具分工總覽
+## 五工具分工總覽
 
 | 工具 | 回答的問題 | 資料類型 | 更新時機 | 誰維護 |
 |------|-----------|---------|---------|-------|
-| `dispatch-active.json` | 我派發了幾個？Hook 認為哪些仍活躍？ | 持久化（JSON 檔案） | 派發時寫入、代理人完成時 Hook 清理 | `active-dispatch-tracker-hook.py` |
+| `dispatch-active.json` | 我派發了幾個？Hook 認為哪些仍活躍？ | 持久化（JSON 檔案） | 派發時寫入、SubagentStop 時精準清理 | `dispatch-record-hook` + `subagent-stop-dispatch-cleanup-hook` |
 | **TaskOutput** | 這個特定代理人現在還在執行嗎？ | 即時查詢（tool call） | 代理人生命週期內任意時刻 | CC runtime |
-| `agent-commit-verification-hook` | 代理人留下了什麼 git 證據？ | 完成時觸發 | PostToolUse（代理人完成後） | Hook 自動 |
+| `agent-commit-verification-hook` | 代理人留下了什麼 git 證據？ | 完成時觸發 | SubagentStop（代理人真正完成後） | Hook 自動 |
+| **SubagentStop event** | 代理人真正停止了嗎？ | 事件驅動（Hook 觸發） | CC runtime 保證代理人停止時 | CC runtime + SubagentStop hooks |
 | completion notification | 代理人何時完成？結果是什麼？ | 事件驅動（system-reminder） | 代理人完成瞬間 | CC runtime |
 
-**設計原則**：四工具**互補非替代**。PM 應在不同場景選擇對應工具，禁止以單一工具推論全部資訊。
+**設計原則**：五工具**互補非替代**。PM 應在不同場景選擇對應工具，禁止以單一工具推論全部資訊。
+
+> **SubagentStop 是可信完成訊號**（CC runtime 保證代理人真正停止才觸發），取代先前 PostToolUse(Agent) 的不可靠完成推論（PC-050 模式 E 根因解法）。dispatch-active.json 的 [OK]/[WAIT] 廣播現由 SubagentStop handler 驅動，延遲 < 1s。
 
 ---
 

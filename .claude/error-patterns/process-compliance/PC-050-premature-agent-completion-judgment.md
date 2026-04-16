@@ -109,8 +109,9 @@ cat .claude/dispatch-active.json  # 確認剩餘活躍派發
 
 | 訊號類型 | 性質 | 可靠度 | PM 處理 |
 |---------|------|--------|--------|
-| `PostToolUse:Agent` 廣播 | Hook 自行維護，邏輯可能誤觸 | 中 | 視為**輔助提示**，不構成最終判定 |
-| `dispatch-active.json` 空 | Hook 清除邏輯可能早於真實完成 | 中 | 計數用，非狀態用 |
+| `SubagentStop` [OK]/[WAIT] 廣播 | CC runtime 保證代理人停止才觸發 | **高** | 可信完成訊號（長期解法，取代 PostToolUse 廣播） |
+| `PostToolUse:Agent` 廣播 | Hook 自行維護，background 啟動時誤觸 | **低** | 已不再廣播 [OK]/[WAIT]（僅 housekeeping） |
+| `dispatch-active.json` 空 | SubagentStop 精準清理 + FIFO fallback | 中-高 | 計數 Source of Truth，清理由 SubagentStop 驅動 |
 | `git status` 無變更 | 代理人工作中段本來就可能無落盤 | **低**（無鑑別力） | 禁止作為失敗判定依據 |
 | `ticket Solution` 空 | 代理人填 Solution 通常在尾段 | **低**（無鑑別力） | 禁止作為失敗判定依據 |
 | **`TaskOutput <status>` 標籤** | CC runtime 直接查詢 | **高**（唯一直接證據） | 必須查，才能定論 |
