@@ -44,8 +44,10 @@ _CLAUDE_PATH_PATTERN = re.compile(r"\.claude/")
 
 # 偵測 prompt 中非 .claude/ 的實作目標路徑（Edit/Write 上下文或檔案列表）
 # 策略：匹配常見專案路徑開頭（避免誤判 `.claude/docs` 這類巢狀路徑為 docs/）
+# 注意：移除 docs/，因為 docs/work-logs/、docs/proposals/ 等是 ticket/worklog 引用
+# （read-only context），不是實作目標。實作目標在 src/tests/lib/app 等。
 _NON_CLAUDE_PATH_PATTERN = re.compile(
-    r"(?<![./\w])(?:src|tests?|lib|docs|app|assets|scripts|public|bin|cmd)/"
+    r"(?<![./\w])(?:src|tests?|lib|app|assets|scripts|public|bin|cmd)/"
 )
 
 
