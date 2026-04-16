@@ -44,7 +44,7 @@ Auto-memory 位於 `~/.claude/projects/<project>/memory/`，**依專案隔離儲
 
 ### 規則（已寫入框架）
 
-- `.claude/rules/core/document-format-rules.md` 規則 8：框架文件禁止引用專案層級識別符
+- `.claude/references/reference-stability-rules.md` 規則 8：框架文件禁止引用專案層級識別符
 
 ### PM / 代理人自檢清單
 
@@ -96,7 +96,7 @@ grep -rnE '(?:^|[^-])W[0-9]+-[0-9]{3}(?:[^0-9]|$)' .claude/ \
 
 ## 關聯
 
-- **相關規則**: `.claude/rules/core/document-format-rules.md` 規則 7（規格文件引用穩定性）、規則 8（框架文件禁引用專案識別符）
+- **相關規則**: `.claude/references/reference-stability-rules.md` 規則 7（規格文件引用穩定性）、規則 8（框架文件禁引用專案識別符）
 - **相關模式**: DOC-005（跨文件原則不同步）
 - **相關 memory**: `feedback_framework_product_separation.md` 延伸
 

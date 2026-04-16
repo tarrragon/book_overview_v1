@@ -1,8 +1,8 @@
 # Bash 工具使用規則
 
-本文件定義 Claude Code Bash 工具的使用規範，涵蓋工作目錄管理、工具輸出處理和 git 操作串接。
+Claude Code Bash 工具的使用規範，涵蓋工作目錄、輸出處理、git 串接三大核心問題。
 
-> **持久狀態意識**：Bash 工具在同一 session 內保持持久 shell 狀態。`cd` 會改變工作目錄並影響後續所有指令；大輸出會存為暫存檔案，不是背景任務。
+> **持久狀態意識**：Bash 在同一 session 內共享 shell。`cd` 會永久改變工作目錄；大輸出會存為暫存檔。
 > **詳細案例、根因圖解、chpwd 深度說明**：`.claude/references/bash-tool-usage-details.md`
 
 ---
@@ -23,7 +23,7 @@
 | uv -d 參數 | `uv -d path run ...` | 僅限 uv 指令 |
 | 絕對路徑還原 | `cd /project/root && ...` | 污染後補救 |
 
-> **chpwd 警告**：本環境 zsh 配置 `chpwd` hook，裸 `cd` 會觸發 `ls` 淹沒工具結果。必須用子 shell `()`。詳見 references。
+> **chpwd 警告**：本環境 zsh 有 `chpwd` hook，裸 `cd` 觸發 `ls` 淹沒工具結果。必須用子 shell `()`。
 
 ---
 
@@ -32,10 +32,9 @@
 | 機制 | 觸發條件 | 識別特徵 | 正確處理工具 |
 |------|---------|---------|------------|
 | 背景任務 | `run_in_background: true` | 訊息含「background task」 | `TaskOutput` |
-| 暫存輸出檔案 | 輸出 > 2KB | `Output too large ... Full output saved to: /path/...txt` | `Read` |
+| 暫存輸出檔案 | 輸出 > 2KB | `Full output saved to: /path/...txt` | `Read` |
 
 **判斷速查**：
-
 - 呼叫時設 `run_in_background: true` → `TaskOutput(taskId: "...")`
 - 輸出含 "Full output saved to: /path/xxx.txt" → `Read(file_path: "/path/xxx.txt")`
 - 兩者皆非 → 直接讀取對話中的輸出
@@ -44,8 +43,8 @@
 
 | 工具 | 大輸出防護 |
 |------|----------|
-| Bash（測試） | `flutter test 2>&1 \| tail -20`（只看最後結果） |
-| Bash（一般） | `命令 \| head -100` 或 `命令 \| wc -l` 確認大小 |
+| Bash（測試） | `flutter test 2>&1 \| tail -20` |
+| Bash（一般） | `命令 \| head -100` 或 `\| wc -l` 確認大小 |
 | Grep | 使用 `head_limit` 限制回傳行數 |
 | Read | 使用 `offset` + `limit` 分頁讀取 |
 
@@ -69,18 +68,18 @@
 執行 Bash 命令前：
 
 - [ ] 命令含 `cd`？→ 改用子 shell `()` 或 `uv -d`
-- [ ] 多步驟序列？→ 第一步加 `cd /project/root &&`（絕對路徑）
+- [ ] 多步驟序列？→ 第一步加絕對路徑 `cd /project/root &&`
 - [ ] 輸出可能很大？→ 提前加 `head` / `tail`
-- [ ] 命令以 `run_in_background: true` 執行？→ 用 `TaskOutput(taskId)`
-- [ ] 輸出顯示「Full output saved to: /path/xxx.txt」？→ 用 `Read(file_path)`
-- [ ] 命令串接多個 git 寫入（commit/merge/rebase/push）？→ 拆成獨立 Bash 呼叫
-- [ ] 看到 `index.lock` 錯誤？→ 確認是否有 git 操作串接
+- [ ] `run_in_background: true`？→ 用 `TaskOutput(taskId)`
+- [ ] 輸出含「Full output saved to」？→ 用 `Read(file_path)`
+- [ ] 串接多個 git 寫入（commit/merge/rebase/push）？→ 拆成獨立呼叫
+- [ ] 看到 `index.lock` 錯誤？→ 確認是否有 git 串接
 
 ---
 
 ## 相關文件
 
-- `.claude/references/bash-tool-usage-details.md` — 詳細案例、根因圖解、chpwd 深度說明（按需讀取）
+- `.claude/references/bash-tool-usage-details.md` — 詳細案例、根因圖解、chpwd 深度說明
 - `.claude/references/quality-python.md` — Python 執行規則
 - `.claude/error-patterns/implementation/IMP-008-bash-working-directory-pollution.md`
 - `.claude/error-patterns/implementation/IMP-009-taskoutput-confusion.md`

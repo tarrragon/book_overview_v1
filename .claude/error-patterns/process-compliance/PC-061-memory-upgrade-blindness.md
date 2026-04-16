@@ -47,7 +47,7 @@ Memory 升級案例中，相當比例是「用戶指正後 PM 才升級」。PM 
 
 **錯誤路徑**：
 1. PM 將此原則寫入 feedback memory
-2. 未即時升級為 `rules/core/document-format-rules.md` 規則
+2. 未即時升級為 `.claude/references/reference-stability-rules.md` 規則
 3. 經用戶指正 memory 不會跨專案 sync，才補上規則 8 與 DOC-010 error-pattern
 
 **代價**：在升級發生前，新專案若 sync `.claude/` 後無法繼承此原則，框架文件內的專案識別符可能繼續被寫入。

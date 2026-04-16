@@ -138,8 +138,6 @@ npm run format:check
 
 ## 6. 專案特定規範
 
-錯誤處理體系（ErrorCodes/OperationResult/禁用 throw 字串）與專案架構骨架：寫產品程式碼前必讀。
-
 @.claude/references/project-specific-conventions.md
 
 ---
@@ -169,30 +167,9 @@ npm run format:check
 
 ### Chrome Extension 開發規範（必讀）
 
-Chrome Extension 環境有多項與 Node.js 不同的限制，開發和修改程式碼前**必須閱讀**：
+Chrome Extension 環境有多項與 Node.js 不同的限制（禁用 `require()`/bare specifier/`global`、Storage keys 需陣列、SW 監聽器頂層註冊、build 必須 bundle 等），以及 Jest/jsdom 測試環境差異。開發和修改程式碼前**必須閱讀**速查表；完整規範見 `docs/chrome-extension-dev-guide.md`。
 
-**完整規範**：`docs/chrome-extension-dev-guide.md`
-
-**關鍵限制速查**：
-
-| 限制 | 說明 | 解法 |
-|------|------|------|
-| 禁用 `require()` | Content Script 不支援 CJS | esbuild IIFE bundle |
-| 禁用 bare specifier | `import x from 'src/...'` 無效 | 相對路徑或 esbuild alias |
-| 禁用 `global` | 非 Node.js 環境 | 使用 `globalThis` |
-| `window` 限制 | Service Worker 無 `window` | 使用 `self` 或 `globalThis` |
-| Storage API | keys 必須是陣列 `['key']` | 非 `'key'` 字串 |
-| 事件監聽器 | 必須在 SW 頂層註冊 | 禁止 async 延遲註冊 |
-| Build 必須 bundle | 不能只複製檔案 | esbuild 三入口點 bundle |
-
-**測試環境差異**（常見測試失敗根因）：
-
-| 問題 | 說明 |
-|------|------|
-| Jest 用 jsdom，非真實 Chrome 環境 | Chrome API（storage/runtime/tabs）需 mock |
-| CJS/ESM 雙模式 | 模組需同時支援 `module.exports` 和 `export` |
-| `performance.now` mock | 遞增值需手動管理，否則 OOM |
-| DOM 選擇器 | Readmoo 頁面結構會變更，選擇器需多層 fallback |
+@.claude/references/chrome-extension-quickref.md
 
 ---
 
