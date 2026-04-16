@@ -6,9 +6,10 @@
 """
 Active Dispatch Tracker Hook - PostToolUse (Agent)
 
-功能: Agent 完成後清理 dispatch 記錄、清理超時記錄、偵測 orphan branch
+功能: PostToolUse(Agent) 觸發時補寫 agent_id + housekeeping（超時清理/orphan 偵測）。
+      dispatch 記錄清理和完成廣播已遷移至 SubagentStop handler（W10-066）。
 觸發時機: Agent 工具完成後 (PostToolUse, matcher: Agent)
-行為: 不阻擋（exit 0），在 additionalContext 輸出狀態
+行為: 不阻擋（exit 0），在 additionalContext 輸出 housekeeping 訊息
 """
 
 import json
@@ -20,14 +21,18 @@ sys.path.insert(0, str(Path(__file__).parent))
 from hook_utils import setup_hook_logging, run_hook_safely, read_json_from_stdin
 
 sys.path.insert(0, str(Path(__file__).parent / "lib"))
-from dispatch_tracker import clear_dispatch, cleanup_expired, detect_orphan_branches
-from dispatch_tracker import get_state_file_path, get_active_dispatches
+from dispatch_tracker import (
+    update_dispatch_agent_id,
+    cleanup_expired,
+    detect_orphan_branches,
+    get_state_file_path,
+)
 
 HOOK_NAME = "active-dispatch-tracker"
 
 
 def main() -> int:
-    """Hook 主邏輯。"""
+    """Hook 主邏輯：補 agent_id + housekeeping。"""
     logger = setup_hook_logging(HOOK_NAME)
 
     try:
@@ -40,16 +45,12 @@ def main() -> int:
         logger.debug("stdin 無資料，跳過")
         return 0
 
-    tool_input = input_data.get("tool_input", {})
-    agent_description = tool_input.get("description", "")
-    # Background agents fire PostToolUse at launch time（agentId 返回即觸發），
-    # 此時代理人仍在執行，若清除 dispatch 記錄並廣播「完成」會誘發 PM 誤判（PC-050 模式 E，原 PC-070）。
-    # 真正的完成訊號應由 task-notification event 處理。
-    is_background = bool(tool_input.get("run_in_background", False))
-
-    if not agent_description:
-        logger.debug("無 agent description，跳過清理")
-        return 0
+    # 從 PostToolUse input 取得 tool_use_id 和 tool_response.agentId
+    tool_use_id = input_data.get("tool_use_id", "")
+    tool_response = input_data.get("tool_response", {})
+    if isinstance(tool_response, str):
+        tool_response = {}
+    agent_id_from_response = tool_response.get("agentId")
 
     # 定位專案根目錄
     project_root = Path(__file__).resolve().parent.parent.parent
@@ -60,32 +61,28 @@ def main() -> int:
         return 0
 
     messages = []
-    cleared = False
 
-    if is_background:
-        # 背景代理人：PostToolUse 在啟動時即觸發，代理人仍在執行。
-        # 保留 dispatch 記錄，待真正完成事件處理；不輸出完成/等待訊息，
-        # 但仍進行超時 / orphan housekeeping。
-        logger.info(
-            "背景代理人派發（%s），跳過清理與完成廣播（等待 task-notification）",
-            agent_description,
+    # 補 agent_id（不區分 background/前台，統一補寫）
+    if agent_id_from_response and tool_use_id:
+        updated = update_dispatch_agent_id(
+            project_root, tool_use_id, agent_id_from_response
         )
-    else:
-        # 前景代理人：PostToolUse 代表真正完成，執行清理。
-        cleared = clear_dispatch(project_root, agent_description)
-        if cleared:
-            messages.append(f"已清理派發記錄: {agent_description}")
-            logger.info("已清理派發記錄: %s", agent_description)
-        else:
-            logger.debug("未找到匹配的派發記錄: %s", agent_description)
+        if not updated:
+            # 前台模式下 SubagentStop 可能先到已清理 entry，這是正常現象
+            logger.debug(
+                "tool_use_id=%s 找不到 entry（可能已被 SubagentStop 先清）",
+                tool_use_id,
+            )
+    elif not agent_id_from_response:
+        logger.warning("tool_response 無 agentId")
 
-    # 清理超時記錄（背景與前景共用，housekeeping 不受時機影響）
+    # Housekeeping: 清理超時記錄
     expired_count = cleanup_expired(project_root)
     if expired_count > 0:
         messages.append(f"已清理 {expired_count} 筆超時派發記錄")
         logger.info("已清理 %d 筆超時派發記錄", expired_count)
 
-    # 偵測 orphan 分支
+    # Housekeeping: 偵測 orphan 分支
     orphans = detect_orphan_branches(project_root)
     if orphans:
         orphan_list = ", ".join(orphans)
@@ -94,28 +91,11 @@ def main() -> int:
         )
         logger.info("偵測到 orphan worktree 分支: %s", orphan_list)
 
-    # 三態訊息（只在前景代理人路徑輸出，避免背景派發時誤導）：
-    # (a) 有活躍派發 -> [WAIT]
-    # (b) 無活躍派發 且 本次 cleared=True（剛完成真實驗收）-> [OK]
-    # (c) 無活躍派發 且 本次 cleared=False（未派發過 / 背景啟動）-> 不輸出 dispatch-state 訊息
-    if not is_background:
-        remaining = get_active_dispatches(project_root)
-        if remaining:
-            agents_list = ", ".join(
-                d.get("agent_description", "?") for d in remaining
-            )
-            messages.append(
-                "[WAIT] 仍有 {} 個代理人在執行: {}".format(len(remaining), agents_list)
-            )
-        elif cleared:
-            messages.append("[OK] 所有代理人已完成，可開始驗收")
-        # else: 未派發過或無對應記錄，保持靜默
+    # 不再做 clear_dispatch、不再做 [OK]/[WAIT] 廣播（由 SubagentStop handler 負責）
 
-    # 無任何訊息時不輸出 additionalContext，避免 PM 持續看到雜訊。
     if not messages:
         return 0
 
-    # 輸出 additionalContext（必須包在 hookSpecificOutput 中，否則觸發 JSON validation failed，IMP-055）
     context = " | ".join(messages)
     print(json.dumps({
         "hookSpecificOutput": {

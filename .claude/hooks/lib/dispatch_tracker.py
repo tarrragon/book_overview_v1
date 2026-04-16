@@ -99,23 +99,29 @@ def _write_state(project_root: Path, state: Dict) -> None:
 def record_dispatch(
     project_root: Path,
     agent_description: str,
+    tool_use_id: str = "",
     ticket_id: str = "",
     files: Optional[List[str]] = None,
     branch_name: str = "",
+    agent_id: Optional[str] = None,
 ) -> None:
     """記錄一個新的派發。寫入 dispatch-active.json。
 
     Args:
         project_root: 專案根目錄
         agent_description: 代理人描述（用於比對清理）
+        tool_use_id: CC runtime tool_use_id（用於 PostToolUse 補 agent_id）
         ticket_id: 關聯的 Ticket ID
         files: 代理人處理的檔案清單
         branch_name: worktree 分支名稱（用於 orphan 偵測精確比對）
+        agent_id: 代理人 ID（可選，通常由 PostToolUse/SubagentStop 補寫）
     """
     with _state_lock(project_root):
         state = _read_state(project_root)
         entry = {
             "agent_description": agent_description,
+            "tool_use_id": tool_use_id,
+            "agent_id": agent_id,
             "ticket_id": ticket_id,
             "files": files or [],
             "branch_name": branch_name,
@@ -146,6 +152,103 @@ def clear_dispatch(project_root: Path, agent_description: str) -> bool:
             _write_state(project_root, state)
             return True
         return False
+
+
+def update_dispatch_agent_id(
+    project_root: Path, tool_use_id: str, agent_id: str
+) -> bool:
+    """依 tool_use_id 補寫 agent_id（PostToolUse 觸發時呼叫）。
+
+    Returns:
+        是否找到並更新記錄
+    """
+    with _state_lock(project_root):
+        state = _read_state(project_root)
+        for entry in state["dispatches"]:
+            if entry.get("tool_use_id") == tool_use_id:
+                old_id = entry.get("agent_id")
+                if old_id is not None and old_id != agent_id:
+                    print(
+                        f"[dispatch_tracker] update_dispatch_agent_id: "
+                        f"覆寫 agent_id (tool_use_id={tool_use_id}, "
+                        f"old={old_id}, new={agent_id})",
+                        file=sys.stderr,
+                    )
+                entry["agent_id"] = agent_id
+                _write_state(project_root, state)
+                return True
+        return False
+
+
+def clear_dispatch_by_id(project_root: Path, agent_id: str) -> bool:
+    """依 agent_id 精準清理 dispatch 記錄（SubagentStop 主路徑）。
+
+    Returns:
+        是否成功找到並清理記錄
+    """
+    with _state_lock(project_root):
+        state = _read_state(project_root)
+        original_count = len(state["dispatches"])
+        state["dispatches"] = [
+            d for d in state["dispatches"]
+            if d.get("agent_id") != agent_id
+        ]
+        removed = original_count - len(state["dispatches"])
+        if removed > 1:
+            print(
+                f"[dispatch_tracker] clear_dispatch_by_id: "
+                f"agent_id={agent_id} 重複匹配 {removed} 筆",
+                file=sys.stderr,
+            )
+        if removed > 0:
+            _write_state(project_root, state)
+            return True
+        return False
+
+
+def clear_dispatch_by_description_fallback(
+    project_root: Path, description: str
+) -> bool:
+    """依 description 清理最早的一筆 dispatch 記錄（fallback 路徑）。
+
+    Returns:
+        是否成功找到並清理記錄
+    """
+    with _state_lock(project_root):
+        state = _read_state(project_root)
+        candidates = [
+            d for d in state["dispatches"]
+            if d.get("agent_description") == description
+        ]
+        if not candidates:
+            return False
+        oldest = min(candidates, key=lambda d: d.get("dispatched_at", ""))
+        state["dispatches"].remove(oldest)
+        _write_state(project_root, state)
+        return True
+
+
+def clear_oldest_null_agent_id_entry(project_root: Path) -> bool:
+    """清理 agent_id 為 null 且 dispatched_at 最早的一筆（FIFO fallback）。
+
+    SubagentStop 觸發時 agent_id 精準匹配失敗後使用。
+    因 SubagentStop input 無 description 欄位，改用 FIFO 語義。
+
+    Returns:
+        是否成功找到並清理記錄
+    """
+    with _state_lock(project_root):
+        state = _read_state(project_root)
+        candidates = [
+            d for d in state["dispatches"]
+            if d.get("agent_id") is None
+        ]
+        if not candidates:
+            return False
+        oldest = min(candidates, key=lambda d: d.get("dispatched_at", ""))
+        state["dispatches"].remove(oldest)
+        _write_state(project_root, state)
+        return True
 
 
 def get_active_dispatches(project_root: Path) -> List[Dict]:

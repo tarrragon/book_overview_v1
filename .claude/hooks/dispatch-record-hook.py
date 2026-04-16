@@ -73,6 +73,13 @@ def main() -> int:
     agent_description = tool_input.get("description", "unknown")
     isolation = tool_input.get("isolation", "")
 
+    # 取得 tool_use_id（PreToolUse 頂層欄位，用於 PostToolUse 補 agent_id）
+    tool_use_id = input_data.get("tool_use_id", "")
+    if not tool_use_id:
+        logger.warning("PreToolUse 無 tool_use_id，使用 fallback 識別符")
+        import time
+        tool_use_id = f"unknown_{int(time.time())}"
+
     # 取得專案根目錄
     project_root = get_project_root()
 
@@ -81,6 +88,7 @@ def main() -> int:
         record_dispatch(
             project_root=project_root,
             agent_description=agent_description,
+            tool_use_id=tool_use_id,
             branch_name="worktree" if isolation == "worktree" else "",
         )
         logger.info(
