@@ -112,6 +112,23 @@ PM 主線程生成 `AskUserQuestion` 工具呼叫的 JSON payload 時，在 `que
 
 ---
 
+## 再現紀錄（W12-002 調查 completed 後仍再現）
+
+| 日期 | Session 情境 | 污染字元 | 備註 |
+|------|-------------|---------|------|
+| 2026-04-17 W12-001.1 | 首發，AUQ label「独立」「⚡扯」 | 独/违/决/⚡ | PC-072 v1.0.0 來源 |
+| 2026-04-17 W12-002 | ANA 調查過程多次復現 | 同上 | W12-002 建立 4 個子 IMP Ticket（Hook + 字串清洗）並 completed |
+| 2026-04-17 W11-005 收尾（本次） | AUQ label `\u8865 spawned_tickets` 用戶收到顯示為「补 spawned_tickets」 | 补 | **W12-002 completed 後仍再現**，防護未落實 |
+
+**訊號強度升級**：從「token 偶發」升級為「系統性污染持續存在」。
+
+**解讀**：
+- W12-002 雖 completed，但 4 個子 IMP Ticket（W12-002.1-.4 PreToolUse Hook / emoji 清洗 / language-constraints 範例修正）**皆為 pending 狀態**，防護層未實作
+- W11-005 收尾屬「W12-002 completed 後」時間線，再現符合「調查完成但修復未落地」的推論
+- 需另起 ANA 追蹤「completed ANA 下游 IMP 未實作也算污染未根除」的落差
+
+---
+
 ## 象限歸類
 
 本模式的防護屬 **摩擦力管理 C 象限（增加摩擦）**：生成 AUQ payload 前多一步自檢增加摩擦，換取下游不需用戶反覆糾正。代價（自檢成本）遠低於收益（避免用戶信任損耗）。
