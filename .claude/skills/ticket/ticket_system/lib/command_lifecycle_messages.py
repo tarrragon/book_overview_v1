@@ -381,6 +381,30 @@ class CreateMessages:
 
     PARENT_UPDATED = "   Parent: {parent_id} (已更新 children)"
 
+    # --source-ticket 相關訊息（PC-073：spawned 關係 CLI 能力缺口修補）
+    SOURCE_TICKET_NOT_FOUND = (
+        "[ERROR] --source-ticket 指定的 {source_id} 不存在，"
+        "請以 ticket track list 確認 ID"
+    )
+    SOURCE_PARENT_MUTUALLY_EXCLUSIVE = (
+        "[ERROR] --source-ticket 與 --parent 互斥：\n"
+        "  --parent        建立父子關係（children），子任務未完成會阻擋父 complete\n"
+        "  --source-ticket 建立衍生關係（spawned_tickets），衍生項獨立排程、"
+        "不阻擋 source complete\n"
+        "  詳見 PC-073"
+    )
+    SOURCE_TICKET_UPDATED = (
+        "[INFO] 已雙向關聯：source={source_id} 新增 spawned={new_id}"
+    )
+    SOURCE_UPDATE_FAILED = (
+        "[WARNING] 新 Ticket 已建立，但更新 source {source_id}.spawned_tickets 失敗，"
+        "請手動檢查"
+    )
+    SOURCE_TICKET_COMPLETED_WARN = (
+        "[WARNING] source {source_id} 狀態為 completed，仍可建立衍生 Ticket；"
+        "如需追加工作請確認是否另開版本追蹤"
+    )
+
 
 class FieldsMessages:
     """fields.py 相關訊息"""
