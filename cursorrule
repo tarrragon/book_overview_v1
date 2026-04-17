@@ -138,44 +138,7 @@ npm run format:check
 
 ## 6. 專案特定規範
 
-### 錯誤處理體系
-
-專案採用分層錯誤處理，基於 ErrorCodes 常數和專用錯誤類別：
-
-| 錯誤類型 | 檔案位置 | 用途 |
-|---------|---------|------|
-| ErrorCodes | `src/core/errors/ErrorCodes.js` | 核心錯誤代碼常數 |
-| NetworkError | `src/core/errors/NetworkError.js` | 網路相關錯誤 |
-| BookValidationError | `src/core/errors/BookValidationError.js` | 書籍資料驗證錯誤 |
-| ErrorHelper | `src/core/errors/ErrorHelper.js` | 統一錯誤處理工具 |
-| OperationResult | `src/core/errors/OperationResult.js` | 統一操作結果結構 |
-| UC0X ErrorFactory/Adapter | `src/core/errors/UC0XError*.js` | 用例特定錯誤工廠 |
-
-**強制規範**：
-
-- 禁止 `throw 'error message'` 或 `throw new Error('message')`，使用專案錯誤類別
-- 使用 `OperationResult` 統一回應格式
-- 詳見：`src/core/errors/` 目錄
-
-### 專案架構
-
-```
-src/
-├── background/       # Service Worker 和後台邏輯
-├── content/          # Content Script（頁面注入）
-├── popup/            # 彈出視窗 UI
-├── core/             # 核心模組（errors, enums 等）
-├── extractors/       # 資料提取器
-├── handlers/         # 事件處理器
-├── storage/          # 儲存管理
-├── export/           # 匯出功能
-├── ui/               # 通用 UI 元件
-├── utils/            # 工具函式
-├── data-management/  # 資料管理
-├── overview/         # 書庫總覽
-├── performance/      # 效能相關
-└── platform/         # 平台抽象層
-```
+@.claude/references/project-specific-conventions.md
 
 ---
 
@@ -204,30 +167,9 @@ src/
 
 ### Chrome Extension 開發規範（必讀）
 
-Chrome Extension 環境有多項與 Node.js 不同的限制，開發和修改程式碼前**必須閱讀**：
+完整規範：`docs/chrome-extension-dev-guide.md`；速查表見下方。
 
-**完整規範**：`docs/chrome-extension-dev-guide.md`
-
-**關鍵限制速查**：
-
-| 限制 | 說明 | 解法 |
-|------|------|------|
-| 禁用 `require()` | Content Script 不支援 CJS | esbuild IIFE bundle |
-| 禁用 bare specifier | `import x from 'src/...'` 無效 | 相對路徑或 esbuild alias |
-| 禁用 `global` | 非 Node.js 環境 | 使用 `globalThis` |
-| `window` 限制 | Service Worker 無 `window` | 使用 `self` 或 `globalThis` |
-| Storage API | keys 必須是陣列 `['key']` | 非 `'key'` 字串 |
-| 事件監聽器 | 必須在 SW 頂層註冊 | 禁止 async 延遲註冊 |
-| Build 必須 bundle | 不能只複製檔案 | esbuild 三入口點 bundle |
-
-**測試環境差異**（常見測試失敗根因）：
-
-| 問題 | 說明 |
-|------|------|
-| Jest 用 jsdom，非真實 Chrome 環境 | Chrome API（storage/runtime/tabs）需 mock |
-| CJS/ESM 雙模式 | 模組需同時支援 `module.exports` 和 `export` |
-| `performance.now` mock | 遞增值需手動管理，否則 OOM |
-| DOM 選擇器 | Readmoo 頁面結構會變更，選擇器需多層 fallback |
+@.claude/references/chrome-extension-quickref.md
 
 ---
 
