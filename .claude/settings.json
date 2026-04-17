@@ -370,6 +370,11 @@
           {
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/memory-upgrade-reminder-hook.py"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ticket-frontmatter-validator-hook.py",
+            "timeout": 5000
           }
         ]
       },
@@ -423,6 +428,11 @@
           {
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/memory-upgrade-reminder-hook.py"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ticket-frontmatter-validator-hook.py",
+            "timeout": 5000
           }
         ]
       },
