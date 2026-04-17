@@ -45,6 +45,18 @@ description: "Extracts reusable patterns from Claude Code sessions and captures 
 | Phase 4 完成 | 重構後進行知識沉澱 |
 | 版本發布前 | 總結主要決策和經驗 |
 
+### 根因型 memory 特殊處理（Two-Phase Reflection）
+
+當記錄的 memory 核心是**根因分析**（error-pattern、代理人失敗歸因、用戶質疑「分析太表層」），必須套用兩階段深度反思：
+
+1. **Phase 1 多假設 Reality Test**：列 5+ 候選動機、逐個自我觀察驗證、至少挖 2 層深因
+2. **Phase 2 WRAP 檢驗**：結論產出後過 WRAP（Widen/Reality/Attain/Premortem）避免第一直覺陷阱
+
+禁止只列 1-2 個假設就下結論，或跳過 Phase 2 直接落地。
+
+> 完整方法論：`.claude/methodologies/two-phase-reflection-methodology.md`
+> 案例：PC-087（表層版）→ PC-088（Phase 1+2 後的抽象層）
+
 ---
 
 ## Pattern Types

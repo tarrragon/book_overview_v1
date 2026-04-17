@@ -96,7 +96,8 @@ W15-006 IMP 將此 4 問整合進 WRAP A 階段前置檢查。WRAP 是 PM 強制
 
 - `.claude/error-patterns/process-compliance/PC-087-pm-tmp-detour-for-ticket-content.md`（具體案例）
 - `.claude/error-patterns/process-compliance/PC-079-bash-backtick-command-substitution-in-cli-args.md`（同源）
-- 0.18.0-W15-005（深度反思 ANA）
+- 0.18.0-W15-005（深度反思 ANA，Two-Phase Reflection 首個 case study）
+- `.claude/methodologies/two-phase-reflection-methodology.md`（本 PC 產生流程的方法論抽象）
 - 0.18.0-W15-006（WRAP skill tool-selection layer 整合）
 - 0.18.0-W15-007（bash 規則五 heredoc 預設）
 - `.claude/rules/core/tool-discovery.md`（工具發現規則）
