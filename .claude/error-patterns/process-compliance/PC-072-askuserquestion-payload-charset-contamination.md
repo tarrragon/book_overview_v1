@@ -89,7 +89,7 @@ PM 主線程生成 `AskUserQuestion` 工具呼叫的 JSON payload 時，在 `que
 ## 檢查清單（PM 生成 AskUserQuestion 前自我檢查）
 
 - [ ] Payload 所有 label 長度 ≤12 字元且無 emoji？
-- [ ] Payload 所有 description 為純繁體，無「独/违/没/务/实/觉/决/个」等常見簡體字？
+- [ ] Payload 所有 description 為純繁體，無「独/违/没/务/实/觉/决/个/隶/遗/设/长」等常見簡體字？
 - [ ] Payload 所有 question 內文無 ⚡⚠️✅❌🔴🟢 等 emoji？
 - [ ] 若 description 含「精簡/精選/精確」類詞彙，已確認不是誤植「⚡」？
 - [ ] JSON payload 的 `\uXXXX` 未落在 emoji unicode 範圍（`\u26xx-\u27xx`、`\uD83C`+）？
@@ -118,7 +118,8 @@ PM 主線程生成 `AskUserQuestion` 工具呼叫的 JSON payload 時，在 `que
 |------|-------------|---------|------|
 | 2026-04-17 W12-001.1 | 首發，AUQ label「独立」「⚡扯」 | 独/违/决/⚡ | PC-072 v1.0.0 來源 |
 | 2026-04-17 W12-002 | ANA 調查過程多次復現 | 同上 | W12-002 建立 4 個子 IMP Ticket（Hook + 字串清洗）並 completed |
-| 2026-04-17 W11-005 收尾（本次） | AUQ label `\u8865 spawned_tickets` 用戶收到顯示為「补 spawned_tickets」 | 补 | **W12-002 completed 後仍再現**，防護未落實 |
+| 2026-04-17 W11-005 收尾 | AUQ label `\u8865 spawned_tickets` 用戶收到顯示為「补 spawned_tickets」 | 补 | **W12-002 completed 後仍再現**，防護未落實 |
+| 2026-04-17 W12-001 完結（本次） | AUQ description `\u96b6\u5c6c`（本應「隸屬」）、`\u9057\u7559`（本應「遺留」） | 隶 (\u96B6)、遗 (\u9057) | **PC-072 發表後仍再現**；新建 W13-003 IMP 補強檢測清單 |
 
 **訊號強度升級**：從「token 偶發」升級為「系統性污染持續存在」。
 
@@ -148,5 +149,5 @@ PM 主線程生成 `AskUserQuestion` 工具呼叫的 JSON payload 時，在 `que
 ---
 
 **Last Updated**: 2026-04-17
-**Version**: 1.0.0 — 首發記錄（W12-001.1 session 事發當場）
+**Version**: 1.1.0 — 新增 W12-001 完結 session 再現紀錄（隶/遗 兩字元），檢查清單補充常見簡體字
 **Source**: 用戶即時指出 session 中 AUQ payload 的簡體字「独立」與 emoji「⚡扯」失誤
