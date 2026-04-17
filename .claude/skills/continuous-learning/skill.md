@@ -54,7 +54,7 @@ description: "Extracts reusable patterns from Claude Code sessions and captures 
 
 禁止只列 1-2 個假設就下結論，或跳過 Phase 2 直接落地。
 
-> 完整方法論：`.claude/methodologies/two-phase-reflection-methodology.md`
+> 完整方法論：`.claude/methodologies/three-phase-reflection-methodology.md`
 > 案例：PC-087（表層版）→ PC-088（Phase 1+2 後的抽象層）
 
 ---
