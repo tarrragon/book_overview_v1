@@ -207,9 +207,9 @@ class TrackAuditMessages:
 
     # _format_audit_report 中的描述文字
     AUDIT_DESCRIPTION_SKIPPED = "跳過（無子任務）"
-    AUDIT_DESCRIPTION_PASSED = "✓ 通過"
-    AUDIT_DESCRIPTION_PASSED_WITH_WARNINGS = "⚠ 通過（有 {count} 項警告）"
-    AUDIT_DESCRIPTION_FAILED = "✗ {issue}"
+    AUDIT_DESCRIPTION_PASSED = "[Y] 通過"
+    AUDIT_DESCRIPTION_PASSED_WITH_WARNINGS = "[WARN] 通過（有 {count} 項警告）"
+    AUDIT_DESCRIPTION_FAILED = "[N] {issue}"
 
     # _format_audit_report 中的結論標籤
     AUDIT_CONCLUSION_TITLE = "結論:"

@@ -148,17 +148,17 @@ def print_section(title: str):
 
 def print_success(message: str):
     """打印成功訊息"""
-    print(f"{Colors.GREEN}✅{Colors.RESET} {message}")
+    print(f"{Colors.GREEN}[OK]{Colors.RESET} {message}")
 
 
 def print_error(message: str):
     """打印錯誤訊息"""
-    print(f"{Colors.RED}❌{Colors.RESET} {message}")
+    print(f"{Colors.RED}[FAIL]{Colors.RESET} {message}")
 
 
 def print_warning(message: str):
     """打印警告訊息"""
-    print(f"{Colors.YELLOW}⚠️{Colors.RESET} {message}")
+    print(f"{Colors.YELLOW}[WARN]️{Colors.RESET} {message}")
 
 
 def print_info(message: str, indent: int = 0):
@@ -1081,7 +1081,7 @@ def preflight_check(version: str) -> Tuple[bool, Dict[str, Tuple[bool, List[str]
     results = {}
 
     # 1.1 檢查工作日誌
-    print_info("✓ 檢查工作日誌完成度...")
+    print_info("[OK] 檢查工作日誌完成度...")
     wl_ok, wl_errors = check_worklog_completed(version)
     results["worklog"] = (wl_ok, wl_errors)
 
@@ -1092,7 +1092,7 @@ def preflight_check(version: str) -> Tuple[bool, Dict[str, Tuple[bool, List[str]
             print_error(error)
 
     # 1.2 檢查技術債務狀態（新增：詳細掃描）
-    print_info("✓ 檢查技術債務處理狀態...")
+    print_info("[OK] 檢查技術債務處理狀態...")
     td_status = check_technical_debt_status(version)
     results["tech_debt_status"] = td_status
 
@@ -1120,7 +1120,7 @@ def preflight_check(version: str) -> Tuple[bool, Dict[str, Tuple[bool, List[str]
             )
 
     # 1.3 檢查舊的技術債務檢查（保留相容性）
-    print_info("✓ 驗證技術債務分類...")
+    print_info("[OK] 驗證技術債務分類...")
     td_ok, td_errors = check_technical_debt(version)
     results["tech_debt"] = (td_ok, td_errors)
 
@@ -1129,7 +1129,7 @@ def preflight_check(version: str) -> Tuple[bool, Dict[str, Tuple[bool, List[str]
             print_error(error)
 
     # 1.4 檢查前版本未完成任務
-    print_info("✓ 檢查前版本未完成任務...")
+    print_info("[OK] 檢查前版本未完成任務...")
     pv_ok, pv_errors = check_previous_versions_completed(version)
     results["previous_versions"] = (pv_ok, pv_errors)
 
@@ -1140,12 +1140,12 @@ def preflight_check(version: str) -> Tuple[bool, Dict[str, Tuple[bool, List[str]
             print_error(error)
 
     # 1.5 檢查版本同步
-    print_info("✓ 檢查版本同步...")
+    print_info("[OK] 檢查版本同步...")
     vs_ok, vs_errors = check_version_sync(version)
     results["version_sync"] = (vs_ok, vs_errors)
 
     if vs_ok:
-        print_success("版本同步 ✅")
+        print_success("版本同步 [OK]")
     else:
         for error in vs_errors:
             print_error(error)
@@ -1205,7 +1205,7 @@ def update_changelog(version: str, dry_run: bool = False) -> bool:
         today = datetime.now().strftime("%Y-%m-%d")
         new_version_block = f"""## [{version}] - {today}
 
-**✅ UC-XX 功能名稱 - TDD 四階段完成**
+**[OK] UC-XX 功能名稱 - TDD 四階段完成**
 
 ### Added
 - 新增功能項目
@@ -1871,17 +1871,17 @@ def update_documents(version: str, dry_run: bool = False) -> bool:
     all_ok = True
 
     # 2.1 清理 todolist
-    print_info("📝 更新 docs/todolist.yaml")
+    print_info("[NOTE] 更新 docs/todolist.yaml")
     if not update_todolist(version, dry_run):
         all_ok = False
 
     # 2.2 更新 CHANGELOG
-    print_info("📝 更新 CHANGELOG.md")
+    print_info("[NOTE] 更新 CHANGELOG.md")
     if not update_changelog(version, dry_run):
         all_ok = False
 
     # 2.3 驗證版本檔
-    print_info("✅ 確認版本號")
+    print_info("[OK] 確認版本號")
     if not verify_version_files(version):
         all_ok = False
 
@@ -1908,7 +1908,7 @@ def commit_changes(version: str, dry_run: bool = False) -> bool:
         if result.returncode == 0 and result.stdout.strip():
             # 有未提交的變更
             if dry_run:
-                print_info("🔄 [預覽] 將提交檔案變更", 2)
+                print_info("[SYNC] [預覽] 將提交檔案變更", 2)
             else:
                 # 加入檔案
                 subprocess.run(
@@ -1954,12 +1954,12 @@ def git_merge_and_push(version: str, dry_run: bool = False) -> bool:
 
     try:
         # 3.1 提交變更
-        print_info("🔄 提交所有變更")
+        print_info("[SYNC] 提交所有變更")
         if not commit_changes(version, dry_run):
             return False
 
         # 3.2 切換到 main 分支
-        print_info("🔀 切換到 main 分支")
+        print_info("[SHUFFLE] 切換到 main 分支")
         if not dry_run:
             subprocess.run(
                 ["git", "checkout", "main"],
@@ -1971,7 +1971,7 @@ def git_merge_and_push(version: str, dry_run: bool = False) -> bool:
             print_info("   [預覽] git checkout main", 2)
 
         # 3.3 拉取最新 main
-        print_info("📥 拉取最新 main")
+        print_info("[IN] 拉取最新 main")
         if not dry_run:
             result = subprocess.run(
                 ["git", "pull", "origin", "main"],
@@ -1988,7 +1988,7 @@ def git_merge_and_push(version: str, dry_run: bool = False) -> bool:
             print_info("   [預覽] git pull origin main", 2)
 
         # 3.4 合併 feature 分支
-        print_info("🔀 合併 feature 分支")
+        print_info("[SHUFFLE] 合併 feature 分支")
         if not dry_run:
             result = subprocess.run(
                 [
@@ -2013,7 +2013,7 @@ def git_merge_and_push(version: str, dry_run: bool = False) -> bool:
             print_info(f"   [預覽] git merge {feature_branch} --no-ff", 2)
 
         # 3.5 建立 Tag
-        print_info(f"🏷️ 建立 Tag: {tag_name}")
+        print_info(f"[TAG]️ 建立 Tag: {tag_name}")
         if not dry_run:
             result = subprocess.run(
                 [
@@ -2037,7 +2037,7 @@ def git_merge_and_push(version: str, dry_run: bool = False) -> bool:
             print_info(f"   [預覽] git tag -a {tag_name}", 2)
 
         # 3.6 推送到遠端
-        print_info("📤 推送到遠端")
+        print_info("[OUT] 推送到遠端")
         if not dry_run:
             # 推送 main
             result = subprocess.run(
@@ -2069,7 +2069,7 @@ def git_merge_and_push(version: str, dry_run: bool = False) -> bool:
             print_info(f"   [預覽] git push origin {tag_name}", 2)
 
         # 3.7 刪除 feature 分支
-        print_info("🗑️ 清理 feature 分支")
+        print_info("[DEL]️ 清理 feature 分支")
         if not dry_run:
             # 本地刪除
             result = subprocess.run(
@@ -2116,12 +2116,12 @@ def print_summary(version: str, all_ok: bool, dry_run: bool = False):
             print_info("  uv run version_release.py release", 1)
         else:
             print_success(f"版本 {version} 發布成功！")
-            print_info("\n📊 發布統計:")
+            print_info("\n[STATS] 發布統計:")
             print_info("- 檔案更新: 2", 1)
             print_info("- 合併提交: 1", 1)
             print_info("- Tag 建立: 1", 1)
             print_info("- 分支清理: 2", 1)
-            print_info("\n🎉 版本已推送到 main 分支", 1)
+            print_info("\n[DONE] 版本已推送到 main 分支", 1)
     else:
         print_error("發布失敗，請修正上述問題後重新執行")
 
@@ -2269,7 +2269,7 @@ def main():
             # 如果指定了 --defer-td，先延後 TD
             if defer_td:
                 print_section("Step 0: Defer Technical Debts")
-                print_info(f"📋 將待處理 TD 延後到版本 {defer_td}...")
+                print_info(f"[INFO] 將待處理 TD 延後到版本 {defer_td}...")
                 defer_result = defer_technical_debts(version, defer_td, dry_run)
 
                 if not defer_result:

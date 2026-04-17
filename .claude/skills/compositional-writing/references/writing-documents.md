@@ -294,7 +294,7 @@ Overlap between `what` and `why` is the most common ticket bug. Keep them at dif
 
 ### Tool compatibility
 
-Markdown table cells in worklogs must not contain multi-byte status emoji (`⏳`, `🔄`, `❌`, etc.). CLI parsers have hit Rust panics on char-boundary issues. Use plain text:
+Markdown table cells in worklogs must not contain multi-byte status emoji (`⏳`, `[SYNC]`, `[FAIL]`, etc.). CLI parsers have hit Rust panics on char-boundary issues. Use plain text:
 
 | Status | Plain text |
 |--------|-----------|

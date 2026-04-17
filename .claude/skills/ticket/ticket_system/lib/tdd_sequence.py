@@ -153,7 +153,7 @@ PHASE_PREREQUISITES: dict[str, List[str]] = {
 
 # Phase 中文名稱對應表（用於訊息輸出）
 #
-# ⚠️ 同步契約：此映射為 constants.py 中 TDD_PHASE_DISPLAY 的子集
+# [WARN]️ 同步契約：此映射為 constants.py 中 TDD_PHASE_DISPLAY 的子集
 #   - 此映射僅包含核心 TDD 流程的 phase1-phase4 標籤
 #   - 用於 TDD 序列建議、Phase 前置條件驗證等內部邏輯
 #   - 當修改此映射時，必須同時檢查並更新 TDD_PHASE_DISPLAY：
