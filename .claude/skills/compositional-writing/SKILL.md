@@ -1,6 +1,6 @@
 ---
 name: compositional-writing
-description: "Composes atomic, intent-revealing, grep-friendly writing (Zettelkasten) for code comments, docs, logs, prompts, schema/ticket fields. Use when cognitive load and token cost matter. Triggers: 寫註解, 寫文件, 寫日誌, 寫 prompt, 欄位設計, atomic, reusable."
+description: "Composes atomic, intent-revealing, grep-friendly writing (Zettelkasten) for code comments, docs, logs, prompts, schema/ticket fields, and long-form technical articles. Use when cognitive load and token cost matter. Triggers: 寫註解, 寫文件, 寫日誌, 寫 prompt, 寫文章, 技術文章, post-mortem, 架構決策, 除錯復盤, 欄位設計, atomic, reusable."
 license: MIT
 metadata:
   version: 0.1.0
@@ -57,6 +57,7 @@ metadata:
 | 要起草 / 改寫一份文件（worklog、spec、README） | `references/writing-documents.md` |
 | 要設計 log / 錯誤訊息 / 結構化輸出 | `references/writing-logs.md` |
 | 要撰寫給 AI 的 prompt / instruction / Agent 派發 / Ticket Context Bundle | `references/writing-prompts.md`（為 `.claude/rules/core/ai-communication-rules.md` 的詳細版庫） |
+| 要撰寫完整長篇技術文章（blog post / post-mortem / 架構決策 / 除錯復盤 / 技術評估） | `references/writing-articles.md` |
 | 要設計 ticket 欄位 / schema frontmatter / 表單欄位 | `references/designing-fields.md` |
 | 想驗證寫作品質（認知負擔、獨立理解率） | `references/meta-metrics.md` |
 
@@ -85,7 +86,8 @@ compositional-writing/
     ├── writing-documents.md           # 情境 2：文件撰寫
     ├── writing-logs.md                # 情境 3：log 輸出
     ├── writing-prompts.md             # 情境 4：prompt 撰寫
-    ├── designing-fields.md            # 情境 5：欄位設計
+    ├── writing-articles.md            # 情境 5：完整長篇技術文章
+    ├── designing-fields.md            # 情境 6：欄位設計
     └── meta-metrics.md                # 品質量化驗收
 ```
 
@@ -99,5 +101,5 @@ compositional-writing/
 
 ---
 
-**Last Updated**: 2026-04-16
-**Version**: 0.1.0 - 初版（情境優先 6-reference 架構）
+**Last Updated**: 2026-04-17
+**Version**: 0.2.0 — 新增 `writing-articles.md`（完整長篇技術文章情境），補齊原子化 vs 完整文章分工；來源：tarrragon/blog · tech_writing_structure.md
