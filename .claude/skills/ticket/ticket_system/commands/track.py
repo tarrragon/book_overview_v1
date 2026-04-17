@@ -86,6 +86,9 @@ from .track_acceptance import (
     execute_append_log,
     execute_accept_creation,
 )
+# 導入 set-acceptance / validate 子命令（W14-030）
+from .track_set_acceptance import execute_set_acceptance
+from .track_validate import execute_validate
 # 導入關係和狀態管理模組
 from .track_relations import (
     execute_add_child,
@@ -175,6 +178,8 @@ def _create_command_handlers() -> dict:
         "agent": execute_agent,
         "phase": execute_phase,
         "check-acceptance": execute_check_acceptance,
+        "set-acceptance": execute_set_acceptance,
+        "validate": execute_validate,
         "append-log": execute_append_log,
         "accept-creation": execute_accept_creation,
         "add-child": execute_add_child,
@@ -557,6 +562,38 @@ def _register_acceptance_commands(
         help=TrackMessages.ARG_CHECK_ACCEPTANCE_ALL
     )
     p_check_acceptance.add_argument("--version", help=TrackMessages.ARG_VERSION)
+
+    # set-acceptance 操作（W14-030）
+    p_set_acceptance = subparsers.add_parser(
+        "set-acceptance",
+        help="勾選/取消勾選驗收條件（--check/--uncheck 支援多 index，--all-check/--all-uncheck 批量）"
+    )
+    p_set_acceptance.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
+    p_set_acceptance.add_argument(
+        "--check", nargs="+", metavar="INDEX",
+        help="勾選指定 1-based index（可多個，空白分隔）"
+    )
+    p_set_acceptance.add_argument(
+        "--uncheck", nargs="+", metavar="INDEX",
+        help="取消勾選指定 1-based index（可多個）"
+    )
+    p_set_acceptance.add_argument(
+        "--all-check", dest="all_check", action="store_true",
+        help="勾選全部驗收條件"
+    )
+    p_set_acceptance.add_argument(
+        "--all-uncheck", dest="all_uncheck", action="store_true",
+        help="取消勾選全部驗收條件"
+    )
+    p_set_acceptance.add_argument("--version", help=TrackMessages.ARG_VERSION)
+
+    # validate 操作（W14-030）
+    p_validate = subparsers.add_parser(
+        "validate",
+        help="驗證 Ticket frontmatter 4 欄位（status/completed_at/acceptance/who）合規性"
+    )
+    p_validate.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
+    p_validate.add_argument("--version", help=TrackMessages.ARG_VERSION)
 
     # append-log 操作
     p_append_log = subparsers.add_parser(

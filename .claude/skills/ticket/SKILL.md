@@ -170,13 +170,17 @@ ticket batch-create --template impl-parsley --targets "a,b" --parent 1.0.0-W28-0
 
 ### track - 追蹤和更新 Ticket 狀態
 
-包含 READ 操作（summary/query/version/tree/chain/full/log/list/board/agent/5W1H）和 UPDATE 操作（claim/complete/release/set-who/set-what/set-when/set-where/set-why/set-how/phase/check-acceptance/append-log/add-child/batch-claim/batch-complete/audit/accept-creation）。`list` 支援 `--wave`、`--status`、`--format` 篩選參數。
+包含 READ 操作（summary/query/version/tree/chain/full/log/list/board/agent/5W1H/validate）和 UPDATE 操作（claim/complete/release/set-who/set-what/set-when/set-where/set-why/set-how/phase/check-acceptance/set-acceptance/append-log/add-child/batch-claim/batch-complete/audit/accept-creation）。`list` 支援 `--wave`、`--status`、`--format` 篩選參數。
 
 > **注意**：僅有 6 個 `set-*` 命令（對應 5W1H 欄位）。`blockedBy`、`relatedTo`、`priority` 等欄位無 CLI 命令，需手動編輯 frontmatter。完整對照表見 `references/track-command.md`。
 >
 > **注意**：`append-log` 必須加上 `--section` 必填參數：`ticket track append-log <id> --section "Problem Analysis" "內容"`。有效區段值：`Problem Analysis`、`Solution`、`Test Results`。
 >
 > **注意**：`check-acceptance` 必須指定 `--all`（勾選全部）或 index（如 `1 2 3`，從 1 開始編號）：`ticket track check-acceptance <id> --all` 或 `ticket track check-acceptance <id> 1 2 3`。先用 `ticket track query <id>` 查看驗收條件清單和編號。
+>
+> **注意**：`set-acceptance` 是 `check-acceptance` 的明確語意版（W14-030）：`--check <index>` / `--uncheck <index>`（可多個）、`--all-check` / `--all-uncheck`。禁止 subagent 直接 Edit frontmatter 的 acceptance 欄位。
+>
+> **注意**：`validate <id>` 驗證 Ticket frontmatter 4 關鍵欄位（status/completed_at/acceptance/who）合規性，違規時給出建議修復命令（W14-030）。
 
 > 決策樹：Read `references/workflow-execute.md` 和 `references/workflow-query.md`
 > 詳細用法：Read `references/track-command.md`
