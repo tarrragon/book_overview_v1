@@ -26,6 +26,7 @@ from ticket_system.lib.ticket_loader import (
 from ticket_system.lib.ticket_validator import (
     validate_ticket_id,
     extract_wave_from_ticket_id,
+    extract_version_from_ticket_id,
     validate_blocked_by,
 )
 from ticket_system.lib.messages import (
@@ -66,6 +67,7 @@ from ticket_system.lib.ticket_builder import (
     create_ticket_frontmatter,
     create_ticket_body,
     update_parent_children,
+    update_source_spawned_tickets,
 )
 from ticket_system.lib.acceptance_auditor import detect_vague_acceptance, detect_srp_violations
 from ticket_system.lib.ui_constants import SEPARATOR_PRIMARY
@@ -603,6 +605,7 @@ def _parse_cli_args_to_config(
         "parent_id": args.parent,
         "blocked_by": blocked_by if blocked_by else None,
         "related_to": related_to if related_to else None,
+        "source_ticket": args.source_ticket,
         "acceptance": acceptance,
         "tdd_phase": tdd_phase,
         "tdd_stage": tdd_result.phases,
@@ -854,6 +857,20 @@ def _persist_and_report(
     # 步驟 3：更新關係
     parent_info = _update_parent_and_get_parent_info(args, version, ticket_id)
 
+    # 步驟 3.5：更新 source 的 spawned_tickets（PC-073；與 --parent 互斥，兩者不會同時觸發）
+    if args.source_ticket:
+        if update_source_spawned_tickets(args.source_ticket, ticket_id):
+            print(format_msg(
+                CreateMessages.SOURCE_TICKET_UPDATED,
+                source_id=args.source_ticket,
+                new_id=ticket_id,
+            ))
+        else:
+            print(format_warning(
+                CreateMessages.SOURCE_UPDATE_FAILED,
+                source_id=args.source_ticket,
+            ))
+
     # 步驟 4：回報結果
     _report_creation_success(
         ticket_id=ticket_id,
@@ -866,6 +883,67 @@ def _persist_and_report(
     )
 
     return 0
+
+
+def _validate_source_ticket_arg(args: argparse.Namespace) -> bool:
+    """Step 1.5：--source-ticket 參數前置驗證（PC-073）。
+
+    檢查順序（fail-fast，三視角共識）：
+    1. 互斥檢查：--source-ticket 與 --parent 不可同用
+    2. ID 格式檢查：沿用 validate_ticket_id
+    3. 存在性檢查：載入 source ticket
+    4. 狀態警告：completed 允許但顯示 WARNING（allow + warning，不阻擋）
+
+    所有錯誤路徑在持久化前結束；fail-fast 順序一致。
+
+    Args:
+        args: 命令行參數（含 source_ticket 和 parent）
+
+    Returns:
+        bool: True 表示驗證通過（或未提供 --source-ticket）；False 表示應 early return 1
+    """
+    # Guard Clause：未提供 --source-ticket 則跳過
+    if not args.source_ticket:
+        return True
+
+    # 子步驟 1：互斥檢查（最先；測試 B4 的 ordering 斷言依此成立）
+    if args.parent:
+        print(format_error(CreateMessages.SOURCE_PARENT_MUTUALLY_EXCLUSIVE))
+        return False
+
+    # 子步驟 2：ID 格式檢查（沿用 validate_ticket_id）
+    if not validate_ticket_id(args.source_ticket):
+        print(format_error(
+            ErrorMessages.INVALID_TICKET_ID_FORMAT,
+            ticket_id=args.source_ticket,
+        ))
+        return False
+
+    # 子步驟 3：存在性檢查
+    source_version = extract_version_from_ticket_id(args.source_ticket)
+    if source_version is None:
+        print(format_error(
+            CreateMessages.SOURCE_TICKET_NOT_FOUND,
+            source_id=args.source_ticket,
+        ))
+        return False
+    source_ticket = load_ticket(source_version, args.source_ticket)
+    if source_ticket is None:
+        print(format_error(
+            CreateMessages.SOURCE_TICKET_NOT_FOUND,
+            source_id=args.source_ticket,
+        ))
+        return False
+
+    # 子步驟 4：狀態警告（allow + warning；不阻擋）
+    if source_ticket.get("status") == STATUS_COMPLETED:
+        print(format_warning(
+            CreateMessages.SOURCE_TICKET_COMPLETED_WARN,
+            source_id=args.source_ticket,
+        ))
+        # 非 ANA type 無額外警告（pepper §8 決策：消除特例）
+
+    return True
 
 
 def execute(args: argparse.Namespace) -> int:
@@ -887,6 +965,11 @@ def execute(args: argparse.Namespace) -> int:
     if resolved is None:
         return 1
     version, ticket_id, wave = resolved
+
+    # Step 1.5: --source-ticket 前置驗證（PC-073）
+    # 順序：互斥 → 格式 → 存在 → 狀態
+    if not _validate_source_ticket_arg(args):
+        return 1
 
     # 識別任務類型並取得 TDD 順序建議（需要在 Step 2 使用）
     ticket_type = args.type or "IMP"
@@ -1184,6 +1267,14 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     parser.add_argument("--how-type", help="Task Type: Implementation, Analysis, etc.")
     parser.add_argument("--how-strategy", help="實作策略")
     parser.add_argument("--parent", help="父 Ticket ID（子任務序號自動產生，勿指定 --seq）")
+    parser.add_argument(
+        "--source-ticket",
+        dest="source_ticket",
+        help=(
+            "衍生來源 Ticket ID（建立 spawned_tickets 衍生關係，與 --parent 互斥）；"
+            "衍生項獨立排程，不阻擋 source complete（PC-073）"
+        ),
+    )
     parser.add_argument("--blocked-by", help="依賴的 Ticket IDs（逗號分隔，如 'ID1,ID2'）")
     parser.add_argument("--related-to", help="相關的 Ticket IDs（逗號分隔，如 'ID1,ID2'）")
     parser.add_argument("--acceptance", action="append", help="驗收條件（多次 --acceptance 或 | 分隔，如 '條件A|條件B'）")
