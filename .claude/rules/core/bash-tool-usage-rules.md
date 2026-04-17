@@ -59,6 +59,28 @@ Claude Code Bash 工具的使用規範，涵蓋工作目錄、輸出處理、git
 
 ---
 
+## 規則四：CLI 參數含 backtick 禁止用雙引號直接傳入
+
+> 來源：PC-079。雙引號字串內的 backtick 被 Bash 解析為 command substitution，字元在傳給 CLI 前已被替換。
+
+| 場景 | 錯誤做法 | 正確做法 |
+|------|---------|---------|
+| Markdown 路徑參考 | `ticket track append-log ID --section "S" "檔案 \`src/x.py\` 說明"` | heredoc 或單引號或 Edit 直接編輯 ticket md |
+| 程式碼片段傳入 | `python3 -c "print(\`cmd\`)"` | 用單引號 `python3 -c 'print(...)'` |
+| Commit 訊息含 backtick | `git commit -m "修改 \`x.py\`"` | `git commit -m "$(cat <<'EOF'\n修改 \`x.py\`\nEOF\n)"` |
+
+**三種安全做法速查**：
+
+| 方法 | 指令形式 | 適用情境 |
+|------|---------|---------|
+| Heredoc with quoted delimiter（推薦） | `cmd "$(cat <<'EOF'\n...\nEOF\n)"` | 長文字、含特殊字元、commit 訊息 |
+| 單引號包整參數 | `cmd '...含 backtick...'` | 參數內無單引號 |
+| 改用 Edit 工具 | 直接 `Edit` ticket md 檔 | 長文字寫入 ticket 內容 |
+
+**識別特徵**：若 Bash 執行後看到 `command not found` / `permission denied` / `ModuleNotFoundError` 等錯誤且來源不明，優先檢查是否 backtick 被 command substitution。
+
+---
+
 ## 統一檢查清單
 
 執行 Bash 命令前：
@@ -70,6 +92,8 @@ Claude Code Bash 工具的使用規範，涵蓋工作目錄、輸出處理、git
 - [ ] 輸出含「Full output saved to」？→ 用 `Read(file_path)`
 - [ ] 串接多個 git 寫入（commit/merge/rebase/push）？→ 拆成獨立呼叫
 - [ ] 看到 `index.lock` 錯誤？→ 確認是否有 git 串接
+- [ ] CLI 參數含 backtick？→ 改用 heredoc / 單引號 / Edit 工具（規則四）
+- [ ] 看到 `command not found` / `ModuleNotFoundError` 來源不明？→ 檢查 backtick command substitution（PC-079）
 
 ---
 
@@ -78,6 +102,7 @@ Claude Code Bash 工具的使用規範，涵蓋工作目錄、輸出處理、git
 - `.claude/references/bash-tool-usage-details.md` — 詳細案例、根因圖解、chpwd 深度說明
 - `.claude/references/quality-python.md` — Python 執行規則
 - `.claude/error-patterns/implementation/IMP-008-bash-working-directory-pollution.md`、`IMP-009-taskoutput-confusion.md`
+- `.claude/error-patterns/process-compliance/PC-079-bash-backtick-command-substitution-in-cli-args.md` — 規則四的完整案例與根因
 - CLAUDE.md — 專案開發規範
 
 ---
