@@ -122,10 +122,11 @@
 
 - `.claude/hooks/askuserquestion-charset-guard-hook.py` — Hook 實作
 - `.claude/error-patterns/process-compliance/PC-072-askuserquestion-payload-charset-contamination.md` — 主要目標（防止污染）
+- `.claude/error-patterns/process-compliance/PC-084-trad-jp-shared-char-false-positive.md` — 姊妹模式：繁日共用字誤判。CJK 字元集清單設計的另一維度，設計日文漢字清單時需同等驗證
 - `.claude/rules/core/language-constraints.md` — 繁體/emoji 規則來源
 
 ---
 
 **Last Updated**: 2026-04-17
-**Version**: 1.0.0 — 首發記錄（W12-002.1 Hook 啟用首次誤判的事發當場）
+**Version**: 1.1.0 — 新增姊妹模式 PC-084 交叉引用（W14-014 落地）
 **Source**: AUQ payload「產出」含「出」被誤判為簡體，Hook 啟用後 2 分鐘內暴露
