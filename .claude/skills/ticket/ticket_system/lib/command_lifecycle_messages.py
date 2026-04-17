@@ -172,6 +172,23 @@ class LifecycleMessages:
     RELEASE_CANCELLED = "已取消釋放"
     RELEASE_INVALID_INPUT = "無效的輸入，請輸入 y 或 n"
 
+    # ANA spawned 非 terminal 檢查訊息（W12-005 / PC-075 Phase 2）
+    SPAWNED_NON_TERMINAL_HEADER = (
+        "[WARNING] ANA Ticket {ticket_id} 有 {count} 個 spawned 非 terminal："
+    )
+    SPAWNED_NON_TERMINAL_ITEM = "  - {spawned_id}: {status}"
+    SPAWNED_INTERACTIVE_PROMPT = "確定 complete？(y/N) "
+    SPAWNED_CANCELLED_INFO = "[INFO] 已取消 complete 操作（spawned 未完成）"
+    SPAWNED_NON_INTERACTIVE_ERROR = (
+        "[ERROR] ANA Ticket {ticket_id} 有 {count} 個 spawned 非 terminal，"
+        "非互動環境需 --yes-spawned flag"
+    )
+    SPAWNED_NON_INTERACTIVE_USAGE = "  用法: ticket track complete {ticket_id} --yes-spawned"
+    SPAWNED_FLAG_BYPASS_HEADER = (
+        "[WARNING] ANA Ticket {ticket_id} 有 {count} 個 spawned 非 terminal"
+        "（--yes-spawned flag 旁路）："
+    )
+
 
 class ResumeMessages:
     """resume.py 相關訊息"""

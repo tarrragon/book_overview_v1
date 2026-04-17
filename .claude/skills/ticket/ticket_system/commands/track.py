@@ -271,6 +271,12 @@ def _register_lifecycle_commands(
     p_complete = subparsers.add_parser("complete", help=TrackMessages.HELP_COMPLETE)
     p_complete.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
     p_complete.add_argument("--version", help=TrackMessages.ARG_VERSION)
+    p_complete.add_argument(
+        "--yes-spawned",
+        dest="yes_spawned",
+        action="store_true",
+        help="ANA 有 spawned 非 terminal 時旁路 blocking confirmation（非互動環境必需）",
+    )
 
     # close 操作
     p_close = subparsers.add_parser("close", help="關閉 Ticket（已在其他 Ticket 一併解決）")

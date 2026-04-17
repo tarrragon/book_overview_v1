@@ -490,7 +490,7 @@ class TicketLifecycle:
             return self.claim(ticket_id)
         return 1
 
-    def complete(self, ticket_id: str) -> int:
+    def complete(self, ticket_id: str, yes_spawned: bool = False) -> int:
         """
         完成 Ticket - 使用「先查後做」驗證流程
 
@@ -498,13 +498,16 @@ class TicketLifecycle:
         1. 載入 Ticket
         2. 檢查狀態（已完成 → 友好訊息；未認領/被阻塞 → 阻止）
         3. 檢查驗收條件（有未完成項 → 列出並阻止）
+        3.5. 執行日誌 soft check
+        3.6. ANA spawned 非 terminal blocking confirmation（W12-005 / PC-075 Phase 2）
         4. 執行完成操作
 
         Args:
             ticket_id: Ticket ID，例如 "0.31.0-W4-001"
+            yes_spawned: 非互動環境下旁路 ANA spawned 非 terminal 的 confirmation
 
         Returns:
-            0 表示成功，非 0 表示失敗
+            0 表示成功，2 表示 spawned 阻擋/取消，其他非 0 表示失敗
         """
         # Step 1：載入 Ticket
         ticket, error = load_and_validate_ticket(self.version, ticket_id)
@@ -565,6 +568,11 @@ class TicketLifecycle:
                 print()
                 print("   繼續完成? (已執行完成操作)")
                 print()
+
+        # Step 3.6：ANA spawned 非 terminal blocking confirmation（W12-005 / PC-075 Phase 2）
+        spawned_exit = _handle_ana_spawned_confirmation(ticket, self.version, yes_spawned)
+        if spawned_exit is not None:
+            return spawned_exit
 
         # Step 4：執行完成操作
         ticket["status"] = STATUS_COMPLETED
@@ -1069,6 +1077,151 @@ def _can_cascade_unblock(
     return True
 
 
+# ============================================================================
+# ANA spawned 非 terminal 檢查（W12-005 / PC-075 Phase 2 — 方案 K）
+# ============================================================================
+
+# Terminal 狀態常數（與 .claude/hooks/acceptance_checkers/children_checker.py 對齊）
+_SPAWNED_TERMINAL_STATUSES = (STATUS_COMPLETED, STATUS_CLOSED)
+
+
+def _collect_non_terminal_spawned(
+    spawned_ids: List[str], version: str
+) -> List[Tuple[str, str]]:
+    """查詢 spawned ticket 清單中非 terminal 的項目。
+
+    透過 list_tickets 一次性查詢版本下全部 tickets（process-scoped 快取），
+    避免 N 次 load_ticket I/O。
+
+    Args:
+        spawned_ids: spawned_tickets 欄位 ID 清單
+        version: 版本字串
+
+    Returns:
+        List[(ticket_id, status)] — 非 terminal 項目。
+        找不到的 ticket 以 status="not_found" 回報。
+    """
+    if not spawned_ids:
+        return []
+
+    all_tickets = list_tickets(version)
+    ticket_map: Dict[str, Any] = {t.get("id"): t for t in all_tickets}
+
+    non_terminal: List[Tuple[str, str]] = []
+    for sid in spawned_ids:
+        t = ticket_map.get(sid)
+        if t is None:
+            non_terminal.append((sid, "not_found"))
+            continue
+        status = t.get("status", "unknown")
+        if status not in _SPAWNED_TERMINAL_STATUSES:
+            non_terminal.append((sid, status))
+    return non_terminal
+
+
+def _print_spawned_list(non_terminal: List[Tuple[str, str]]) -> None:
+    """印出 spawned 非 terminal 項目清單至 stderr（格式：  - {id}: {status}）。"""
+    for sid, status in non_terminal:
+        print(
+            format_msg(
+                LifecycleMessages.SPAWNED_NON_TERMINAL_ITEM,
+                spawned_id=sid,
+                status=status,
+            ),
+            file=sys.stderr,
+        )
+
+
+def _handle_ana_spawned_confirmation(
+    ticket: Dict[str, Any], version: str, yes_spawned: bool
+) -> Optional[int]:
+    """檢查 ANA type Ticket 的 spawned 非 terminal 狀態，必要時阻擋 complete。
+
+    流程（方案 K — blocking confirmation）：
+      1. 非 ANA type → 跳過（返回 None）
+      2. spawned_tickets 空 → 跳過
+      3. 全 terminal → 跳過
+      4. 含非 terminal：
+         - 互動環境（isatty）：顯示清單 + y/N prompt
+           - y → 返回 None（繼續 complete）
+           - 其他 → 返回 2（取消）
+         - 非互動：
+           - yes_spawned=True → 顯示清單（flag 旁路）返回 None
+           - 否則 → 顯示 ERROR + 引導，返回 2
+
+    Args:
+        ticket: 當前 Ticket dict
+        version: 版本字串
+        yes_spawned: CLI --yes-spawned flag
+
+    Returns:
+        None — 通過檢查，繼續 complete
+        int  — exit code（2 表示取消/阻擋）
+    """
+    if ticket.get("type") != "ANA":
+        return None
+
+    spawned_ids = ticket.get("spawned_tickets") or []
+    if not spawned_ids:
+        return None
+
+    non_terminal = _collect_non_terminal_spawned(spawned_ids, version)
+    if not non_terminal:
+        return None
+
+    ticket_id = ticket.get("id", "未知")
+    count = len(non_terminal)
+    is_interactive = sys.stdin.isatty()
+
+    if is_interactive:
+        # 互動環境：顯示清單 + y/N prompt
+        print(
+            format_msg(
+                LifecycleMessages.SPAWNED_NON_TERMINAL_HEADER,
+                ticket_id=ticket_id,
+                count=count,
+            ),
+            file=sys.stderr,
+        )
+        _print_spawned_list(non_terminal)
+        answer = input(LifecycleMessages.SPAWNED_INTERACTIVE_PROMPT)
+        if answer.strip().lower() == "y":
+            return None
+        print(LifecycleMessages.SPAWNED_CANCELLED_INFO, file=sys.stderr)
+        return 2
+
+    # 非互動環境
+    if yes_spawned:
+        print(
+            format_msg(
+                LifecycleMessages.SPAWNED_FLAG_BYPASS_HEADER,
+                ticket_id=ticket_id,
+                count=count,
+            ),
+            file=sys.stderr,
+        )
+        _print_spawned_list(non_terminal)
+        return None
+
+    print(
+        format_msg(
+            LifecycleMessages.SPAWNED_NON_INTERACTIVE_ERROR,
+            ticket_id=ticket_id,
+            count=count,
+        ),
+        file=sys.stderr,
+    )
+    _print_spawned_list(non_terminal)
+    print(
+        format_msg(
+            LifecycleMessages.SPAWNED_NON_INTERACTIVE_USAGE,
+            ticket_id=ticket_id,
+        ),
+        file=sys.stderr,
+    )
+    return 2
+
+
 def _cascade_unblock_children(
     parent_ticket: Dict[str, Any],
     version: str,
@@ -1211,9 +1364,12 @@ def execute_complete(args: argparse.Namespace, version: str) -> int:
     完成 Ticket - 函式包裝層（向後相容）
 
     使用 TicketLifecycle 物件執行實際操作。
+
+    W12-005：新增 --yes-spawned flag 傳遞（ANA spawned 非 terminal 非互動旁路）。
     """
     lifecycle = TicketLifecycle(version)
-    return lifecycle.complete(args.ticket_id)
+    yes_spawned = bool(getattr(args, "yes_spawned", False))
+    return lifecycle.complete(args.ticket_id, yes_spawned=yes_spawned)
 
 
 def execute_close(args: argparse.Namespace, version: str) -> int:

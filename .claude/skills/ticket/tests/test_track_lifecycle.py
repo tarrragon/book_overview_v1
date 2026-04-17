@@ -772,3 +772,342 @@ class TestCompleteCascadeChildren:
         assert "   - C1 [pending]: 子任務 C1" in out
         assert "   - C2 [in_progress]: 子任務 C2" in out
         assert "父 complete 不阻止" in out
+
+
+# ============================================================================
+# TestCompleteSpawnedBlocking：ANA spawned 非 terminal blocking confirmation
+# （W12-005 / PC-075 Phase 2 — 方案 K）
+# ============================================================================
+
+
+def _make_ana_ticket(spawned_ids, ticket_type="ANA", ticket_id="0.18.0-W99-001"):
+    """建立 ANA 測試 Ticket dict（預設 AC 全勾、完整執行日誌）。
+
+    Body 內含「Problem Analysis」和「Solution」章節，以便通過 validate_execution_log。
+    """
+    return {
+        "id": ticket_id,
+        "type": ticket_type,
+        "status": "in_progress",
+        "title": "Test ANA Ticket",
+        "acceptance": ["[x] AC1"],
+        "spawned_tickets": list(spawned_ids),
+        "_path": "/test/path",
+        "_body": "## Problem Analysis\n內容\n## Solution\n內容",
+    }
+
+
+@pytest.fixture
+def spawned_complete_env(monkeypatch):
+    """封裝 ANA spawned 檢查 complete() 執行所需的 mock bundle。
+
+    設計：
+    - 透過 monkeypatch 置換 lifecycle 內所有 I/O 依賴
+    - spawned_status_map: {"A": "pending", "B": "completed", ...}
+      經由 list_tickets mock 餵入，模擬各 spawned ticket 的 status
+    - 不 mock _cascade_unblock_children（無 children 時不觸發）
+    """
+    env = SimpleNamespace()
+
+    env.save_ticket = MagicMock(return_value=None)
+    env.validate_completable_status = MagicMock(return_value=(True, "", False))
+    env.validate_acceptance_criteria = MagicMock(return_value=(True, []))
+    env.append_worklog_progress = MagicMock(return_value=None)
+    env.auto_handoff = MagicMock(return_value=None)
+    env.validate_execution_log = MagicMock(return_value=(True, []))
+    env.list_tickets = MagicMock(return_value=[])
+    env.load_and_validate = MagicMock()
+
+    env._ticket = None
+    env._status_map = {}
+
+    def set_scenario(ticket, spawned_status_map):
+        env._ticket = ticket
+        env._status_map = spawned_status_map
+        env.load_and_validate.return_value = (ticket, None)
+
+        # list_tickets 回傳含 main ticket + spawned tickets 的清單
+        all_tickets = [ticket]
+        for sid, status in spawned_status_map.items():
+            all_tickets.append({
+                "id": sid,
+                "status": status,
+                "title": f"Spawned {sid}",
+            })
+        env.list_tickets.return_value = all_tickets
+
+    env.set_scenario = set_scenario
+
+    monkeypatch.setattr(
+        "ticket_system.commands.lifecycle.load_and_validate_ticket",
+        env.load_and_validate,
+    )
+    monkeypatch.setattr(
+        "ticket_system.commands.lifecycle.save_ticket",
+        env.save_ticket,
+    )
+    monkeypatch.setattr(
+        "ticket_system.commands.lifecycle.validate_completable_status",
+        env.validate_completable_status,
+    )
+    monkeypatch.setattr(
+        "ticket_system.commands.lifecycle.validate_acceptance_criteria",
+        env.validate_acceptance_criteria,
+    )
+    monkeypatch.setattr(
+        "ticket_system.commands.lifecycle.validate_execution_log",
+        env.validate_execution_log,
+    )
+    monkeypatch.setattr(
+        "ticket_system.commands.lifecycle.list_tickets",
+        env.list_tickets,
+    )
+    monkeypatch.setattr(
+        "ticket_system.commands.lifecycle.append_worklog_progress",
+        env.append_worklog_progress,
+    )
+    monkeypatch.setattr(
+        "ticket_system.commands.lifecycle._auto_handoff_if_needed",
+        env.auto_handoff,
+    )
+
+    return env
+
+
+class TestCompleteSpawnedBlocking:
+    """ANA type + spawned 非 terminal blocking confirmation 測試（W12-005）"""
+
+    def test_ana_all_terminal_spawned_completes_normally(
+        self, spawned_complete_env, capsys
+    ):
+        """Test 1: ANA + spawned 全 terminal → 正常 complete（不觸發 prompt）。"""
+        ticket = _make_ana_ticket(["A", "B"])
+        spawned_complete_env.set_scenario(
+            ticket, {"A": "completed", "B": "closed"}
+        )
+
+        args = Mock()
+        args.ticket_id = "0.18.0-W99-001"
+        args.yes_spawned = False
+
+        with patch("ticket_system.commands.lifecycle.sys.stdin") as mock_stdin:
+            mock_stdin.isatty.return_value = True
+            with patch("builtins.input") as mock_input:
+                result = execute_complete(args, "0.18.0")
+
+        assert result == 0
+        mock_input.assert_not_called()
+        # 驗證 main ticket 被 save 為 completed
+        saved_statuses = _saved_statuses_for(
+            spawned_complete_env.save_ticket, "0.18.0-W99-001"
+        )
+        assert "completed" in saved_statuses
+
+        err = capsys.readouterr().err
+        assert "spawned 非 terminal" not in err
+
+    def test_ana_non_terminal_spawned_interactive_yes_completes(
+        self, spawned_complete_env, capsys
+    ):
+        """Test 2: ANA + spawned 含非 terminal + 互動環境 + 用戶輸入 y → complete。"""
+        ticket = _make_ana_ticket(["A", "B", "C"])
+        spawned_complete_env.set_scenario(
+            ticket,
+            {"A": "pending", "B": "in_progress", "C": "completed"},
+        )
+
+        args = Mock()
+        args.ticket_id = "0.18.0-W99-001"
+        args.yes_spawned = False
+
+        with patch("ticket_system.commands.lifecycle.sys.stdin") as mock_stdin:
+            mock_stdin.isatty.return_value = True
+            with patch("builtins.input", return_value="y") as mock_input:
+                result = execute_complete(args, "0.18.0")
+
+        captured = capsys.readouterr()
+        err = captured.err
+
+        assert result == 0
+        # 驗證 stderr 含 WARNING header 和清單
+        assert "ANA Ticket 0.18.0-W99-001 有 2 個 spawned 非 terminal" in err
+        assert "A: pending" in err
+        assert "B: in_progress" in err
+        # C 是 completed 不應出現
+        assert "C: completed" not in err
+        # 驗證 prompt 被呼叫
+        mock_input.assert_called_once()
+        prompt_arg = mock_input.call_args[0][0]
+        assert "確定 complete" in prompt_arg
+        assert "(y/N)" in prompt_arg
+        # 驗證 main ticket 被 save 為 completed
+        saved_statuses = _saved_statuses_for(
+            spawned_complete_env.save_ticket, "0.18.0-W99-001"
+        )
+        assert "completed" in saved_statuses
+
+    def test_ana_non_terminal_spawned_interactive_no_cancels(
+        self, spawned_complete_env, capsys
+    ):
+        """Test 3: ANA + spawned 含非 terminal + 互動環境 + 用戶輸入 N → 取消。"""
+        ticket = _make_ana_ticket(["A", "B"])
+        spawned_complete_env.set_scenario(
+            ticket, {"A": "pending", "B": "in_progress"}
+        )
+
+        args = Mock()
+        args.ticket_id = "0.18.0-W99-001"
+        args.yes_spawned = False
+
+        with patch("ticket_system.commands.lifecycle.sys.stdin") as mock_stdin:
+            mock_stdin.isatty.return_value = True
+            with patch("builtins.input", return_value="N"):
+                result = execute_complete(args, "0.18.0")
+
+        err = capsys.readouterr().err
+
+        assert result == 2
+        assert "已取消 complete 操作" in err
+        # 驗證 main ticket 未被 save 為 completed
+        saved_statuses = _saved_statuses_for(
+            spawned_complete_env.save_ticket, "0.18.0-W99-001"
+        )
+        assert "completed" not in saved_statuses
+
+    def test_ana_non_terminal_spawned_non_interactive_no_flag_exits_2(
+        self, spawned_complete_env, capsys
+    ):
+        """Test 4: ANA + spawned 含非 terminal + 非互動 + 無 flag → exit 2 + 引導。"""
+        ticket = _make_ana_ticket(["A"])
+        spawned_complete_env.set_scenario(ticket, {"A": "pending"})
+
+        args = Mock()
+        args.ticket_id = "0.18.0-W99-001"
+        args.yes_spawned = False
+
+        with patch("ticket_system.commands.lifecycle.sys.stdin") as mock_stdin:
+            mock_stdin.isatty.return_value = False
+            with patch("builtins.input") as mock_input:
+                result = execute_complete(args, "0.18.0")
+
+        err = capsys.readouterr().err
+
+        assert result == 2
+        assert "非互動環境需 --yes-spawned flag" in err
+        assert "用法: ticket track complete 0.18.0-W99-001 --yes-spawned" in err
+        mock_input.assert_not_called()
+        # 驗證 main ticket 未被 save 為 completed
+        saved_statuses = _saved_statuses_for(
+            spawned_complete_env.save_ticket, "0.18.0-W99-001"
+        )
+        assert "completed" not in saved_statuses
+
+    def test_ana_non_terminal_spawned_non_interactive_with_flag_completes(
+        self, spawned_complete_env, capsys
+    ):
+        """Test 5: ANA + spawned 含非 terminal + 非互動 + --yes-spawned → complete。"""
+        ticket = _make_ana_ticket(["A"])
+        spawned_complete_env.set_scenario(ticket, {"A": "pending"})
+
+        args = Mock()
+        args.ticket_id = "0.18.0-W99-001"
+        args.yes_spawned = True
+
+        with patch("ticket_system.commands.lifecycle.sys.stdin") as mock_stdin:
+            mock_stdin.isatty.return_value = False
+            with patch("builtins.input") as mock_input:
+                result = execute_complete(args, "0.18.0")
+
+        err = capsys.readouterr().err
+
+        assert result == 0
+        assert "flag 旁路" in err
+        assert "A: pending" in err
+        mock_input.assert_not_called()
+        # 驗證 main ticket 被 save 為 completed
+        saved_statuses = _saved_statuses_for(
+            spawned_complete_env.save_ticket, "0.18.0-W99-001"
+        )
+        assert "completed" in saved_statuses
+
+    def test_non_ana_type_skips_spawned_check(
+        self, spawned_complete_env, capsys
+    ):
+        """Test 6: 非 ANA（IMP）+ spawned 含非 terminal → 忽略檢查、正常 complete。"""
+        ticket = _make_ana_ticket(["A"], ticket_type="IMP")
+        spawned_complete_env.set_scenario(ticket, {"A": "pending"})
+
+        args = Mock()
+        args.ticket_id = "0.18.0-W99-001"
+        args.yes_spawned = False
+
+        with patch("ticket_system.commands.lifecycle.sys.stdin") as mock_stdin:
+            mock_stdin.isatty.return_value = True
+            with patch("builtins.input") as mock_input:
+                result = execute_complete(args, "0.18.0")
+
+        err = capsys.readouterr().err
+
+        assert result == 0
+        assert "spawned 非 terminal" not in err
+        mock_input.assert_not_called()
+        saved_statuses = _saved_statuses_for(
+            spawned_complete_env.save_ticket, "0.18.0-W99-001"
+        )
+        assert "completed" in saved_statuses
+
+    def test_ana_empty_spawned_completes_normally(
+        self, spawned_complete_env, capsys
+    ):
+        """Test 7（邊界）：ANA + spawned_tickets=[] → 正常 complete（不觸發 prompt）。"""
+        ticket = _make_ana_ticket([])
+        spawned_complete_env.set_scenario(ticket, {})
+
+        args = Mock()
+        args.ticket_id = "0.18.0-W99-001"
+        args.yes_spawned = False
+
+        with patch("ticket_system.commands.lifecycle.sys.stdin") as mock_stdin:
+            mock_stdin.isatty.return_value = True
+            with patch("builtins.input") as mock_input:
+                result = execute_complete(args, "0.18.0")
+
+        err = capsys.readouterr().err
+
+        assert result == 0
+        assert "spawned 非 terminal" not in err
+        mock_input.assert_not_called()
+        saved_statuses = _saved_statuses_for(
+            spawned_complete_env.save_ticket, "0.18.0-W99-001"
+        )
+        assert "completed" in saved_statuses
+
+    def test_ana_spawned_not_found_listed_as_non_terminal(
+        self, spawned_complete_env, capsys
+    ):
+        """Test 8（邊界）：ANA + spawned 查無 ticket → 視為非 terminal（not_found）。"""
+        ticket = _make_ana_ticket(["A", "GHOST"])
+        # 只提供 A 的 status，GHOST 故意不加入 list_tickets
+        spawned_complete_env.set_scenario(ticket, {"A": "completed"})
+        # 手動重設 list_tickets：只含 main ticket + A（不含 GHOST）
+        spawned_complete_env.list_tickets.return_value = [
+            ticket,
+            {"id": "A", "status": "completed", "title": "Spawned A"},
+        ]
+
+        args = Mock()
+        args.ticket_id = "0.18.0-W99-001"
+        args.yes_spawned = False
+
+        with patch("ticket_system.commands.lifecycle.sys.stdin") as mock_stdin:
+            mock_stdin.isatty.return_value = True
+            with patch("builtins.input", return_value="y") as mock_input:
+                result = execute_complete(args, "0.18.0")
+
+        err = capsys.readouterr().err
+
+        assert result == 0
+        # GHOST 應以 not_found 列出
+        assert "GHOST: not_found" in err
+        assert "有 1 個 spawned 非 terminal" in err
+        mock_input.assert_called_once()
