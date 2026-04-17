@@ -1,6 +1,6 @@
 ---
-title: 兩階段深度反思方法論（Two-Phase Reflection Methodology）
-version: 1.0.0
+title: 三階段深度反思方法論（Three-Phase Reflection Methodology）
+version: 2.0.0
 created: 2026-04-18
 source: 0.18.0-W15-005 / 0.18.0-W15-008
 ---
@@ -85,6 +85,42 @@ source: 0.18.0-W15-005 / 0.18.0-W15-008
 | 主動策略（認知優化）| 加 heuristic check 在決策點介入 |
 | 環境限制 | 擴充工具/白名單 |
 | 心智模型錯誤 | 教育 + 重新框架 |
+
+## Phase 3（後續補入）：權威方法論對照檢查
+
+> 本 Phase 位置：Phase 2 WRAP 之後。此處依原文件結構暫置於 Phase 1 後，邏輯順序為 Phase 1 → Phase 2 → Phase 3。
+
+### 定位
+
+> 新增背景：W15-008 產出 PC-088 v1 框架後，用戶指出與 `.claude/methodologies/friction-management-methodology.md` 衝突。Phase 1+2 未捕捉此衝突，顯示 Phase 3 必要性。
+
+### 核心問句
+
+「我的結論用的概念/詞彙/框架，與本專案既有權威方法論是否一致？」
+
+### 對照檢查步驟
+
+1. **識別結論用詞**：列出結論中的關鍵詞（如「bias」「對抗」「架構偏誤」）
+2. **查找權威 source**：搜尋 `.claude/methodologies/` 和 `.claude/rules/` 是否有相關主題
+3. **概念對照**：權威 source 如何定義這些概念？
+4. **衝突偵測**：結論框架是否與權威 source 衝突？
+5. **若有衝突**：回 Phase 1 補假設，用權威 source 詞彙系統重構結論
+
+### 常見衝突類型
+
+| 類型 | 症狀 | 檢查 source |
+|------|-----|-----------|
+| 摩擦力 | 用「bias 要對抗」框架 | friction-management-methodology |
+| 認知負擔 | 用「懶惰/偏好」框架 | cognitive-load-design-methodology |
+| 代理人職責 | 用「能力不足」框架 | agent-authoring-guide / pm-role |
+| 溝通品質 | 用「表達問題」框架 | ai-communication-rules |
+
+### 實證案例
+
+**PC-088 v1 vs v2**：
+- v1 用「LLM bias 要對抗」→ 與 friction-methodology 衝突
+- v2 改用「步驟數估算偏誤 + 決策點摩擦」→ 相容
+- 差別：v2 承認短路徑偏好是對的，問題在估算不準
 
 ## Phase 2：結論後 WRAP 檢驗
 

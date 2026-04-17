@@ -1,103 +1,143 @@
 ---
 id: PC-088
-title: LLM 預設 tool selection 走最低認知負擔路徑（架構層傾向）
+title: LLM 對 tool call 路徑的步驟數估算偏誤（單步敏感、總步驟盲）
 category: process-compliance
 severity: high
 created: 2026-04-18
+updated: 2026-04-18
 ---
 
-# PC-088: LLM 預設 tool selection 走最低認知負擔路徑
+# PC-088: LLM 對 tool call 路徑的步驟數估算偏誤
+
+> **框架重大修訂（2026-04-18）**：原 v1 框架為「LLM 偏好低摩擦路徑是架構層 bias 需對抗」。用戶指出此框架與 `.claude/methodologies/friction-management-methodology.md` 衝突——**摩擦力是中性工具，短路徑偏好本身是正確預設**。真實問題不是「偏好」，而是**路徑步驟數的估算偏誤**：LLM 對單步複雜度敏感但對總步驟數盲。本 v2 版依此重構。
 
 ## 症狀
 
-LLM（包含 Claude）在面對多步驟任務時，傾向選擇**單步複雜度低、總步驟多**的路徑，而非**單步複雜度高、總步驟少**的最優路徑。
+LLM 面對多步驟任務時，會把**實際步驟多但每步簡單**的路徑**誤估為短路徑**，選擇後才發現總成本高於替代方案。
 
-這不是單一 bug，是橫跨多情境的**架構層傾向**：
+### 實證案例對照
 
-| 情境 | 低認知路徑（誤選）| 最優路徑 |
-|------|----------------|---------|
-| 傳遞長文字到 CLI | Write /tmp → cat → pipe（3 步）| heredoc 內嵌（1 步）|
-| 改大檔案 | Read → Write 整檔（2 步但每步長）| Edit 精確替換（1 步）|
-| 查詢程式碼 | 逐檔 Read → 人工比對（N 步）| Grep pattern（1 步）|
-| 多檔案搜尋 | Bash find + grep 組合（2 步）| Grep 或 Glob（1 步）|
-| 執行分析 | 自己逐步推理（10+ 步）| 派發 Agent（1 步）|
+| 情境 | LLM 誤選路徑 | 實際總步驟 | 真正短路徑 | 真正總步驟 |
+|------|-----------|-----------|-----------|-----------|
+| 傳遞長文字到 CLI | Write /tmp → cat → pipe | **3 步** | heredoc 內嵌 | **1 步** |
+| 改大檔案 | Read → Write 整檔 | 2 步但每步重 | Edit 精確替換 | 1 步 |
+| 查詢程式碼 | 逐檔 Read → 人工比對 | N 步 | Grep pattern | 1 步 |
+| 多檔案搜尋 | Bash find + grep 組合 | 2 步 | Grep 或 Glob | 1 步 |
+| 執行分析 | 自己逐步推理 | 10+ 步 | 派發 Agent | 1 步 |
 
-## 根因（架構層）
+**關鍵觀察**：在每個誤選案例中，LLM 以為自己選的是「輕路徑」，但計算下來反而是「長路徑」。問題不在偏好，在**無法準確估算路徑總長度**。
 
-### 為何這是預設演算法而非可根除的習慣
+## 真實根因（架構層，三點）
 
-LLM 是 autoregressive，每步 next-token 選擇本能偏好「下一步 token 容易生成」：
+### 1. 單步敏感、總步驟盲
 
-1. **Next-token predictability 偏誤**：生成「Write(/tmp/x.md)」的每個 token perplexity 低；生成 80 行 heredoc 的 token 不確定度高
-2. **Chain-of-Thought 副作用**：CoT 本質就是把大問題拆小步，訓練強化了「多步驟」偏好
-3. **視覺偏見**：長 heredoc 在 terminal 看起來「髒」，LLM 從訓練資料學到「簡潔每步」的美學
-4. **工具返回可見性**：多步驟每步都有 tool_result 回饋，給 LLM 虛假的「進度感」
+LLM 是 autoregressive，**每個 next-token 的 perplexity 是直接感受**，但「10 個 next-token 組成的序列」只能靠推理總計：
 
-**結論**：這是架構 tendency，**無法根除，只能加 meta-check**。
+- 生成 `Write("/tmp/x.md", content)` 的每個 token 都低 perplexity → **感覺簡單**
+- 需要「預想」後續還要 `cat` + `append-log` → **不會被直覺感受**
+- 真正簡單的 heredoc 每個 token perplexity 較高 → **感覺複雜**
 
-### 與人類 cognitive bias 的差異
+結果：LLM 對「每步感覺」敏感，對「路徑總長度」盲。
 
-| 維度 | 人類 | LLM |
-|------|-----|-----|
-| 來源 | 情緒規避、疲勞 | autoregressive 架構 |
-| 觸發頻率 | 不一致（有好日子）| 幾乎 100%（每次 tool selection）|
-| 介入時機 | 情緒平靜時能自我矯正 | 無自我覺察，需外部 meta-check |
-| 根除可能 | 訓練 + 經驗可降低 | 架構層無法根除 |
+### 2. Tool result 回饋的進度錯覺
 
-## 防護（多層）
+每步 tool call 都有 tool_result 回饋。多步驟路徑每步都「有回饋 = 進度」，給 LLM **虛假的推進感**。單步 heredoc 沒有中途回饋，感覺「風險更高」。
 
-### Layer 1：Tool Selection Meta-Check（PC-087 延伸）
+但實際上：有回饋不等於進度，多步驟反而增加失敗風險面。
 
-選 tool 前強制 4 問：
+### 3. 訓練資料頻率 ≠ 最佳實踐
+
+訓練資料含大量「Write file → process」sysadmin tutorials，這是歷史 shell 限制的產物，不是現代最佳實踐。LLM 把**訓練頻率誤讀為權威性**。
+
+## 框架：與 friction-management 的正確關係
+
+### 短路徑偏好 = 正確預設（象限 A / 執行點）
+
+摩擦力方法論明確指出：
+- 高頻 + 可逆 + 只影響當前任務 → **降低摩擦，直接執行**
+- Phase 3b 實作執行 → 低摩擦
+- LLM 選短路徑本身符合此預設，不該被「對抗」
+
+### 真正的問題在估算偏誤
+
+當 LLM **誤認為**自己選的是短路徑（實際是長路徑），低摩擦預設就失效——此時 PM 在 Phase 3b 類場景選了 3 步路徑做 1 步能完成的事。
+
+**這不是偏好問題，是事實判斷錯誤**。
+
+### 決策點加摩擦仍屬必要（象限 C / 前期階段）
+
+摩擦力方法論也指出：低頻 + 不可逆 + 跨版本影響 → 加摩擦。這與短路徑偏好並不衝突：
+- 執行點保留短路徑預設
+- 決策點強制 WRAP / 多視角 / two-phase reflection
+- 兩者並存，不互斥
+
+## 防護（三層）
+
+### Layer 1：路徑步驟數計算工具（核心防護）
+
+選 tool 前強制估算**總步驟數**（不只單步感覺）：
 
 | 檢查 | 問題 | 觸發重選 |
 |------|------|---------|
-| 物化檢查 | 把字串當檔案了嗎？ | 是 → 考慮直接傳遞 |
-| 步驟數檢查 | 總步驟 > 2？ | 是 → 問「能否合併？」 |
-| 目的地檢查 | 最終目的地是什麼？ | 反推最短路徑 |
-| 工具能力檢查 | 有專用工具嗎？（Edit/Grep/Glob）| 是 → 優先用 |
+| 完整路徑數算 | 從現在到目的地共幾步 tool call？ | > 2 步 → 問「有無 1 步解」 |
+| 訓練偏誤自檢 | 我選這路徑是因為「看過很多這樣寫」還是「實測最短」？ | 前者 → 找替代 |
+| Tool result 進度陷阱 | 多步驟的中途回饋是否讓我覺得「比較穩」？ | 是 → 警覺，單步風險未必高 |
+| 專用工具檢查 | 有 Edit / Grep / Glob / heredoc 等 1 步工具嗎？ | 是 → 優先 |
 
-### Layer 2：WRAP skill 整合
+### Layer 2：情境特定規則（執行點）
 
-W15-006 IMP 將此 4 問整合進 WRAP A 階段前置檢查。WRAP 是 PM 強制入口，此處落地覆蓋率最高。
+高頻執行情境的路徑規則：
 
-### Layer 3：情境特定規則
+| 情境 | 短路徑（預設）| 規則來源 |
+|------|-----------|---------|
+| 長文字傳遞 | heredoc | 規則五（W15-007）|
+| 檔案搜尋 | Glob | tool-discovery |
+| 內容搜尋 | Grep | CLAUDE.md Bash 規範 |
+| 檔案編輯 | Edit/MultiEdit | Edit 工具描述 |
+| 多步推理 | 派發 Agent | agent tool 描述 |
 
-| 情境 | 規則來源 |
-|------|---------|
-| 長文字傳遞 → heredoc 預設 | `.claude/rules/core/bash-tool-usage-rules.md` 規則五（W15-007）|
-| 檔案搜尋 → Glob 優先 | 既有 tool-discovery 規則 |
-| 內容搜尋 → Grep 優先 | CLAUDE.md Bash 工具使用規範 |
-| 檔案編輯 → Edit/MultiEdit 優先 | 既有 Edit 工具描述 |
+### Layer 3：決策點摩擦（與短路徑預設並行）
+
+決策點（象限 C）不因「短路徑是預設」而降摩擦：
+- ANA Ticket claim → Phase 1+2 反思（W15-009 設計）
+- Phase 4 重構評估 → Phase 2 WRAP
+- 規則/規格修改 → parallel-evaluation
 
 ## 識別信號
 
 | 信號 | 含義 |
-|------|------|
-| 準備執行 > 2 步才能達成目的 | 高機率觸發，過 meta-check |
-| 準備 Write 到非最終目的地 | 物化檢查觸發 |
-| 覺得「這樣比較乾淨」 | 視覺偏見觸發，質疑是否真的最優 |
-| 看到長 heredoc / 長 Edit old_string 猶豫 | 心理障礙，不是技術限制 |
+|------|-----|
+| 準備 > 2 步 tool call 達成目的 | 過 Layer 1 總步驟檢查 |
+| 覺得「多步驟每步有回饋比較穩」 | Tool result 進度錯覺觸發 |
+| 「這樣比較乾淨」「訓練資料常見」 | 訓練偏誤信號 |
+| 看到長 heredoc / 長 Edit old_string 猶豫 | 單步感覺 bias，非技術限制 |
 
 ## 案例
 
-- 2026-04-18（W15-001 session）：PM 選 Write /tmp → cat → append-log（3 步）而非 heredoc（1 步）。PC-087 記錄具體案例
-- 2026-04-18（W15-005 session）：用戶質疑 PC-087 根因太淺，PM 深度反思識別出這是 LLM 架構層傾向，提煉為本 PC-088
+- 2026-04-18（W15-001 session）：PM 選 Write /tmp → cat → append-log（**3 步**）而非 heredoc（**1 步**）。PC-087 記錄具體案例
+- 2026-04-18（W15-005 session）：用戶質疑 PC-087 根因太淺，PM 深度反思識別到「檔案感物化 + 認知負擔規避」，但此第二層深因仍未達真根因
+- 2026-04-18（W15-008 後 reframe）：用戶指出此與 friction-methodology 衝突，真根因是**步驟數估算偏誤**而非「短路徑偏好 bias」。PC-088 v2 依此重寫
 
 ## 方法論教訓
 
-**「最佳實踐」的幻覺**：
-- LLM 訓練資料中大量出現「寫檔案 + 處理」模式（sysadmin tutorials、Stack Overflow 回答）
-- 這讓 LLM 誤認為是「最佳實踐」
-- 事實上現代最佳實踐是直接傳遞（heredoc、Edit、Grep）
-- **訓練資料頻率 ≠ 最佳實踐**
+### 「深度反思」本身也有盲點
+
+W15-005 的 two-phase reflection 產出了「認知負擔規避」作為根因。但用戶的摩擦力視角 reframe 揭示：
+- Phase 1 的多假設 Reality Test 深度仍不夠
+- 缺少「與既有方法論對照」檢查
+- 真根因再深一層（估算偏誤）
+
+**啟示**：深度反思 + WRAP + 結論後對照權威方法論（third-phase check）才是完整流程。
+
+### 概念使用需 second-order 檢驗
+
+我在 PC-088 v1 用「bias」「對抗」「架構偏誤」等詞，**與本專案 friction-methodology 詞彙系統不一致**。概念挪用需確認是否與既有權威 source 衝突。
 
 ## 相關
 
 - `.claude/error-patterns/process-compliance/PC-087-pm-tmp-detour-for-ticket-content.md`（具體案例）
-- `.claude/error-patterns/process-compliance/PC-079-bash-backtick-command-substitution-in-cli-args.md`（同源）
-- 0.18.0-W15-005（深度反思 ANA，Two-Phase Reflection 首個 case study）
-- `.claude/methodologies/two-phase-reflection-methodology.md`（本 PC 產生流程的方法論抽象）
-- 0.18.0-W15-006（WRAP skill tool-selection layer 整合）
-- 0.18.0-W15-007（bash 規則五 heredoc 預設）
+- `.claude/methodologies/friction-management-methodology.md`（摩擦力權威 source）
+- `.claude/methodologies/two-phase-reflection-methodology.md`（反思方法論，W15-009 將補 Phase 3 方法論對照檢查）
+- 0.18.0-W15-005（深度反思 ANA）
+- 0.18.0-W15-009（決策樹反思觸發點細化，方向調整為「決策點摩擦 + 執行點短路徑預設」）
 - `.claude/rules/core/tool-discovery.md`（工具發現規則）
