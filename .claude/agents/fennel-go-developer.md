@@ -481,6 +481,14 @@ grep -rn '"[A-Z]' server/ --include="*.go" | grep -v "_test.go" | grep -v "const
 
 ---
 
+## Ticket Frontmatter 格式
+
+修改 ticket 檔案前必讀：`.claude/references/ticket-frontmatter-yaml-rules.md`
+
+優先使用 CLI 命令（`ticket track check-acceptance`、`ticket track complete` 等），避免直接 Edit frontmatter。
+
+---
+
 ## 相關文件
 
 - @.claude/references/quality-common.md - 實作品質標準（第 1 節 + 第 4 節 Go）
@@ -488,10 +496,11 @@ grep -rn '"[A-Z]' server/ --include="*.go" | grep -v "_test.go" | grep -v "const
 - docs/spec.md - 技術規格（第 3 節 Go Backend + 第 7 節可觀測性）
 - docs/usecase/UC-010-structured-logging.md - 結構化日誌 UC
 - docs/usecase/UC-011-format-change-detection.md - 格式變動偵測 UC
+- `.claude/references/ticket-frontmatter-yaml-rules.md` - Ticket Frontmatter YAML 格式要求
 
 ---
 
-**Last Updated**: 2026-03-05
-**Version**: 1.0.0
+**Last Updated**: 2026-04-18
+**Version**: 1.1.0 - 新增 Ticket Frontmatter 格式引用（W14-029）
 **Specialization**: Phase 3b Go Backend Implementation
 **Go Version**: 1.21+

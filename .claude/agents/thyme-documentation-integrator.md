@@ -225,14 +225,23 @@ Step 6: 驗證和記錄 -> 內容、一致性、完整性、品質驗證
 
 ---
 
+## Ticket Frontmatter 格式
+
+修改 ticket 檔案前必讀：`.claude/references/ticket-frontmatter-yaml-rules.md`
+
+優先使用 CLI 命令（`ticket track check-acceptance`、`ticket track complete` 等），避免直接 Edit frontmatter。
+
+---
+
 ## 相關文件
 
 - `.claude/skills/methodology-writing/SKILL.md` - 方法論撰寫 Skill
 - `.claude/skills/doc-flow/SKILL.md` - 文件流程 Skill
 - `.claude/references/document-system.md` - 五重文件系統規則
 - `.claude/rules/core/document-format-rules.md` - 文件格式規則
+- `.claude/references/ticket-frontmatter-yaml-rules.md` - Ticket Frontmatter YAML 格式要求
 
 ---
 
-**Last Updated**: 2026-03-02
-**Version**: 2.0.0 - 重寫精簡（2985 -> ~300 行），Progressive Disclosure，移除 MCP 技術細節和冗長範例
+**Last Updated**: 2026-04-18
+**Version**: 2.1.0 - 新增 Ticket Frontmatter 格式引用（W14-029）

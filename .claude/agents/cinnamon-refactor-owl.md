@@ -828,3 +828,16 @@ parsley-flutter-developer (Phase 3b)
 - macOS: `brew install ripgrep`
 - Linux: `sudo apt-get install ripgrep`
 - Windows: `choco install ripgrep`
+
+---
+
+## Ticket Frontmatter 格式
+
+修改 ticket 檔案前必讀：`.claude/references/ticket-frontmatter-yaml-rules.md`
+
+優先使用 CLI 命令（`ticket track check-acceptance`、`ticket track complete` 等），避免直接 Edit frontmatter。
+
+---
+
+**Last Updated**: 2026-04-18
+**Version**: 新增 Ticket Frontmatter 格式引用（W14-029）
