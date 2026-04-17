@@ -81,7 +81,12 @@ Skill 是預建的專用工具，優先於代理人派發。
 - 是 → 執行 /wrap-decision 快速模式（5 分鐘）→ 完成後繼續派發閘門
 - 否 → 直接進入派發閘門
 
-> **觸發條件權威來源**：`.claude/skills/wrap-decision/SKILL.md`「觸發條件」表格（連續失敗 / 被困住 / 偏離核心 / 重大決策 / 救火排擠 / ANA / Debug / 提案）。本章節不複述條件以避免清單漂移（DRY 違反 → PC-066 教訓）。
+> **觸發條件權威來源**：
+> - 通用原理（抽象類別）：`.claude/skills/wrap-decision/SKILL.md`「觸發條件」表格
+> - 本專案機器可讀條件（Hook/CLI 讀取）：`.claude/config/wrap-triggers.yaml`
+> - 本專案對應表（YAML/Hook/SKILL 三層映射）：`.claude/skills/wrap-decision/references/project-integration/triggers-alignment.md`
+>
+> 本章節不複述條件以避免清單漂移（DRY 違反 → PC-066 教訓）。
 
 **自動偵測**：`decision-quality-guard-hook.py`（W10-009 追蹤）為唯一強制觸發節點，本章節為人工 fallback。
 

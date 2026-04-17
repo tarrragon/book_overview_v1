@@ -206,7 +206,8 @@ PM 建立 PROP 時，使用 AskUserQuestion 引導分級和評估強度：
 | 相關規則 | 關聯 |
 |---------|------|
 | `.claude/methodologies/friction-management-methodology.md` 「開發流程階段的摩擦力曲線」 | 本規則為 Proposal 階段摩擦力配置的具體落地 |
-| `.claude/skills/wrap-decision/SKILL.md` | 評估時執行的 WRAP 框架工具 |
+| `.claude/skills/wrap-decision/SKILL.md` | 評估時執行的 WRAP 框架工具（通用原理） |
+| `.claude/skills/wrap-decision/references/project-integration/` | 本專案 WRAP 整合層（觸發條件、案例、pm-rules 索引） |
 | `.claude/pm-rules/decision-tree.md` | 決策樹路由本規則 |
 | `.claude/rules/core/quality-baseline.md` 規則 5「所有發現必須追蹤」 | Reality Test 發現的問題須建 Ticket 追蹤 |
 

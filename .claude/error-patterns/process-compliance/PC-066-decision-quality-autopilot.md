@@ -89,7 +89,12 @@ PM 接連執行兩個關於「PM 系統性盲點」的 ANA Ticket，第二個 AN
 
 觸發後輸出 stderr 強制提示，節流：同訊號 10 分鐘內不重複。
 
-> **觸發條件權威來源**：`.claude/skills/wrap-decision/SKILL.md`「觸發條件」章節。Hook 實作必須引用 SKILL 為 single source of truth，不複述。
+> **觸發條件權威來源**：
+> - 機器可讀（Hook 動態讀取）：`.claude/config/wrap-triggers.yaml`
+> - 本專案對應表：`.claude/skills/wrap-decision/references/project-integration/triggers-alignment.md`
+> - 通用原理（抽象類別）：`.claude/skills/wrap-decision/SKILL.md`「觸發條件」章節
+>
+> Hook 實作以 YAML 為 single source of truth，不在 Python 硬編碼。
 
 ### 措施 2：wrap-decision SKILL description 擴充（Skill matching 層）
 
@@ -148,7 +153,8 @@ PM 在重大決策節點自問（Hook 強制節點之外的人工 fallback）：
 - **相關模式**：PC-061（Memory 升級未評估，「原則建立後執行斷裂」結構）
 - **相關模式**：PC-014（AskUserQuestion 合理化跳過，本模式「Recommended 不得跳過評估」的成因）
 - **相關模式**：PC-050 模式 D（PM 在代理人仍在工作時誤判完成/失敗，焦慮性檢查的下游症狀）
-- **相關 Skill**：`.claude/skills/wrap-decision/SKILL.md`（WRAP 框架本體）
+- **相關 Skill**：`.claude/skills/wrap-decision/SKILL.md`（WRAP 框架通用原理）
+- **本專案整合**：`.claude/skills/wrap-decision/references/project-integration/`（觸發條件對應、案例、Hook 設計）
 - **相關 Skill**：`.claude/skills/parallel-evaluation/SKILL.md`（多視角審查本體）
 - **相關規則**：`.claude/pm-rules/decision-tree.md`（Context 重度檢查層）
 - **相關規則**：`.claude/pm-rules/askuserquestion-rules.md`（預設選項規則）
