@@ -257,7 +257,7 @@ def main():
     print("\n[Step 2] 執行功能等價性測試...")
     equiv_pass, equiv_diffs = test_functional_equivalence(samples)
     if equiv_pass:
-        print("  結果：全部通過 ✓")
+        print("  結果：全部通過 [OK]")
     else:
         print(f"  結果：{len(equiv_diffs)} 個差異")
 

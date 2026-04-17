@@ -155,16 +155,16 @@ def run_flutter_gen_l10n(project_root: Path, logger) -> tuple[bool, str]:
                     result.stderr[:500] if result.stderr else "")
 
         if result.returncode == 0:
-            return True, "✅ 自動執行 flutter gen-l10n 成功"
+            return True, "[OK] 自動執行 flutter gen-l10n 成功"
         else:
-            return False, f"❌ flutter gen-l10n 執行失敗: {result.stderr}"
+            return False, f"[FAIL] flutter gen-l10n 執行失敗: {result.stderr}"
 
     except subprocess.TimeoutExpired:
-        return False, "❌ flutter gen-l10n 執行超時 (60s)"
+        return False, "[FAIL] flutter gen-l10n 執行超時 (60s)"
     except FileNotFoundError:
-        return False, "❌ 找不到 flutter 命令，請確保 Flutter 已安裝並在 PATH 中"
+        return False, "[FAIL] 找不到 flutter 命令，請確保 Flutter 已安裝並在 PATH 中"
     except Exception as e:
-        return False, f"❌ 執行 flutter gen-l10n 時發生錯誤: {e}"
+        return False, f"[FAIL] 執行 flutter gen-l10n 時發生錯誤: {e}"
 
 
 def generate_error_message(details: dict) -> str:
@@ -172,26 +172,26 @@ def generate_error_message(details: dict) -> str:
     message = ""
 
     if details.get("missing_generated_files"):
-        message += "❌ 錯誤: L10n 生成檔案缺失\n\n"
+        message += "[FAIL] 錯誤: L10n 生成檔案缺失\n\n"
         message += "以下生成檔案不存在:\n"
         for dart_file in details["missing_generated_files"]:
             message += f"  - {dart_file}\n"
         message += "\n"
 
     if details.get("out_of_sync_files"):
-        message += "⚠️  警告: ARB 檔案未同步\n\n"
+        message += "[WARN] 警告: ARB 檔案未同步\n\n"
         message += "以下 ARB 檔案新於其對應的生成檔案:\n"
         for item in details["out_of_sync_files"]:
             message += f"  - {item['arb_file']} (修改: {item['arb_mtime']})\n"
             message += f"    → {item['dart_file']} (生成: {item['dart_mtime']})\n"
         message += "\n"
 
-    message += "📋 修復步驟:\n"
+    message += "[INFO] 修復步驟:\n"
     message += "1. 執行命令: flutter gen-l10n\n"
     message += "2. 驗證生成成功: flutter analyze\n"
     message += "3. 重新執行編輯操作或提交\n\n"
 
-    message += "📖 詳細資訊:\n"
+    message += "[DOC] 詳細資訊:\n"
     message += f"  - 檢查的 ARB 檔案: {', '.join(details.get('arb_files_checked', []))}\n"
     message += f"  - 同步狀態: {json.dumps(details.get('sync_status', {}), ensure_ascii=False, indent=2)}\n"
 

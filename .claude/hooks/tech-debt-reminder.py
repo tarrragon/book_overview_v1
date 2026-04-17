@@ -186,7 +186,7 @@ def generate_warning_message(pending_tickets: List[Dict[str, Any]], version: str
     version_parts = version.split('.')
     version_series = f"{version_parts[0]}.{version_parts[1]}.x" if len(version_parts) >= 2 else version
 
-    message = f"""⚠️ 技術債務提醒
+    message = f"""[WARN] 技術債務提醒
 
 當前版本 v{version_series} 有 {len(pending_tickets)} 個待處理技術債務：
 

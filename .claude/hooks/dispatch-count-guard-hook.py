@@ -250,7 +250,7 @@ def build_count_mismatch_warning(expected: int, actual: int, keywords: list[str]
         f"期望派發數量: {expected}\n"
         f"實際派發數量: {actual}\n"
         f"\n"
-        f"⚠️  派發計數不一致！\n"
+        f"[WARN] 派發計數不一致！\n"
         f"\n"
         f"核心原則（PC-020）：派發敘述與執行必須一致。\n"
         f"- 若計畫派 3 人，務必執行 3 個 Agent dispatch\n"

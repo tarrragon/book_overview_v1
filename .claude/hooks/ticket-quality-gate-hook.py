@@ -401,7 +401,7 @@ def determine_decision(check_results: Dict[str, Any]) -> tuple:
         return "allow", format_message(CoreMessages.HOOK_ERROR, error="檢測系統錯誤，請查看日誌")
 
     if overall_status == "partial":
-        reason = f"⚠️ 部分檢測失敗（{summary['errors']} 個錯誤），允許操作繼續"
+        reason = f"[WARN] 部分檢測失敗（{summary['errors']} 個錯誤），允許操作繼續"
         return "allow", reason
 
     if summary["failed"] > 0:
