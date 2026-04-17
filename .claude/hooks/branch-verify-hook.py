@@ -109,6 +109,7 @@ def is_exempt_path_on_protected_branch(file_path: str, cwd: str | None = None) -
     exempt_prefixes = [
         ".claude/",
         "docs/",
+        "scripts/experiments/",  # 實驗一次性腳本（W15-023，對應 docs/experiments/ 報告）
     ]
 
     # 豁免的精確路徑
