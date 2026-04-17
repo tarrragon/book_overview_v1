@@ -146,6 +146,61 @@ AI 本質上是基本率的巨大資料庫 — 擅長回答「通常怎麼解決
   不選其他的代價：如果是自己的 bug 就需要回來修
 ```
 
+### Tool selection check 詳細技巧（PC-088 防護）
+
+**問題背景**：LLM 在選 tool 時有結構性偏誤（PC-088 v2）——單步決策敏感、總步驟數盲。會把「3 步繞路」誤估為「1 步直達」，因為每個單步看起來都合理。物化 tool 名稱（「用 Write」）會進一步鎖死思考框架。
+
+**觸發條件**：
+- 選 tool 前（選擇具體 tool 呼叫的那個瞬間）
+- 預估步驟數 > 2（有 2 個以上 tool call 才完成目的）
+- 涉及 Write/Bash 組合（尤其 Write 到中介檔再讀回再寫入的模式）
+
+**4 問操作流程**：
+
+| 問題 | 自我質疑 | 回答「是」的行動 |
+|------|---------|--------------|
+| Q1 物化檢查 | 我描述任務時用的是 tool 名稱（「用 Write 建 ctx 檔」），還是目的語言（「把 context 寫進 ticket 的 S2 欄位」）? | 重寫任務描述為目的語言，再重選 tool |
+| Q2 步驟數檢查 | 列出實際 tool call 序列，數一下是幾步? 有無「1 步路徑」（單一 tool call 直接完成）被忽略? | 換成 1 步路徑（heredoc / Edit 直接改 md） |
+| Q3 目的地檢查 | 產出的最終目的地是哪裡?（CLI stdout / 檔案系統 / ticket md / log）工具選擇是否匹配目的地? | 目的地若是 ticket md → 首選 Edit；若是 append-log CLI → 首選 heredoc Bash |
+| Q4 白名單檢查 | 我選的 tool 是否在「低摩擦首選」名單外? 有無不必要引入中介檔? | 換成白名單內工具 |
+
+**「低摩擦首選」白名單**（長文寫入類）：
+
+| 目的地 | 首選 tool | 次選 | 避免 |
+|-------|---------|------|------|
+| 寫入 ticket md 欄位 | Edit（直接編輯 md） | `ticket track append-log` + heredoc | Write 暫存檔 → Read → Bash |
+| 執行 CLI 含長參數 | heredoc `$(cat <<'EOF'...EOF)` | 單引號整段 | Write → Bash 讀入 |
+| 寫 commit message | heredoc | 多行 `-m` | Write 中介檔 |
+
+### PC-087 情境反向驗證
+
+**原場景（繞路）**：PM 要把 1.5KB context 寫入 ticket 的 Solution 欄位，選擇：
+1. `Write /tmp/ctx.md` 建暫存檔
+2. `Read /tmp/ctx.md` 讀回
+3. `Bash: ticket track append-log --file /tmp/ctx.md`
+
+**4 問驗證**：
+
+| 問題 | 原場景答案 | 結論 |
+|------|---------|------|
+| Q1 物化 | 「用 Write 建 ctx 檔」(物化) vs「把 context 寫進 ticket S2」(目的) | 觸發 → 重寫為目的語言 |
+| Q2 步驟數 | 3 步（Write / Read / Bash） vs 1 步（heredoc Bash 或 Edit ticket md） | 觸發 → 有 1 步路徑被忽略 |
+| Q3 目的地 | 目的地是 ticket md 檔的 Solution 欄位；/tmp 中介檔非必要 | 觸發 → 應首選 Edit md |
+| Q4 白名單 | Write 到 /tmp 屬白名單外繞路 | 觸發 → 換 heredoc 或 Edit |
+
+**正確路徑（1 步直達）**：
+
+```bash
+ticket track append-log 0.18.0-W15-006 --section "Solution" "$(cat <<'EOF'
+（content here）
+EOF
+)"
+```
+
+或更直接：`Edit` 工具打開 ticket md 編輯 Solution 欄位（0 步 tool call，整合在 Edit 單次呼叫內）。
+
+**教訓**：4 問任一觸發，都是「繞路訊號」——單步都合理不代表總路徑短。
+
 ### 核心優先事項排序
 
 典型軟體專案的優先事項（由高到低）僅供參考，各專案應建立自己的排序：
@@ -183,5 +238,5 @@ Gary Klein 方法：先假設計畫失敗了，然後問「是什麼殺了它？
 
 ---
 
-**Last Updated**: 2026-04-16
-**Version**: 1.1.0
+**Last Updated**: 2026-04-18
+**Version**: 1.2.0 — A 階段新增 Tool selection check 4 問 + PC-087 情境反向驗證（W15-006 / PC-088 防護落地）
