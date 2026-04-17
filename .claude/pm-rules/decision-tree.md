@@ -150,6 +150,7 @@ Skill 是預建的專用工具，優先於代理人派發。
 | 所有派發前（強制） | 本檔案「Context 重度檢查層」 + dispatch-gate.md | 決策品質風險偵測 + 複雜度關卡 + Context Bundle + 並行化 |
 | 動作摩擦力評估（哲學層） | friction-management-methodology.md | 判斷動作應降低/保留/增加摩擦力（30 秒準則）。流程階段摩擦力曲線見同文件「開發流程階段的摩擦力曲線」章節 |
 | ANA/Debug/提案（強制 WRAP） | /wrap-decision | 分析、除錯、提案評估必須先 WRAP |
+| 反思迴路偵測（session ANA ≥ 3 / 鏈深度 ≥ 3 / 耗時 > 4 hr） | reflection-termination.md | 強制 AUQ 詢問終止，防止反思無限循環（W15-010 Layer 3） |
 | Proposal 建立 / 狀態變更 | proposal-evaluation-gate.md | docs/proposals/ 新建或修改 confirmed/approved 狀態時的強制分級與評估 |
 | Hook 設計 / 盤點 / 降級 | hook-stage-balance-methodology.md | 新增 Hook、既有 Hook 盤點、降級評估時的階段平衡設計原則 |
 | 問題類型訊息 | question-routing.md | 查詢、諮詢、進度 |
@@ -202,7 +203,9 @@ Skill 是預建的專用工具，優先於代理人派發。
 
 ---
 
-**Last Updated**: 2026-04-16
+**Last Updated**: 2026-04-18
+**Version**: 9.5.0 — 新增路由：反思迴路偵測 → reflection-termination.md（W15-010 Layer 3 落地）
+
 **Version**: 9.4.0 — 新增路由：Ticket claim AC 驗證 / stale 警告 → ticket-lifecycle.md「AC 漂移偵測」章節（PC-055 / PROP-010 防護文件化）
 
 **Version**: 9.3.0 — 新增路由：代理人派發後快速完成通知 → agent-failure-sop.md Step 0.5 / 0.5-A 強制 TaskOutput 查詢（PC-050 模式 E / PC-070 防護）
