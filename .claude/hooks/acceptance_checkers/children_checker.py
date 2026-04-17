@@ -21,8 +21,11 @@ if str(_hooks_dir) not in sys.path:
     sys.path.insert(0, str(_hooks_dir))
 
 # 加入 .claude/skills/ticket 目錄以解析 ticket_system package
-# W14-004: TERMINAL_STATUSES 單一來源由 ticket_system/lib/constants 提供，
+# W14-004: TERMINAL_STATUSES 單一來源由 ticket_system.constants 提供，
 # hook 與 skill 雙邊從同處 import，避免雙邊宣告與語意飄移。
+# W14-016: 改用 package 頂層 ticket_system.constants（非 lib/constants），
+# 避免觸發 lib/__init__.py eager-import ticket_loader → parser → yaml 依賴鏈。
+# hook 以系統 Python 啟動（無 yaml），lib 路徑會噴 ModuleNotFoundError（已觀察 97 次）。
 _ticket_skill_dir = _hooks_dir.parent / "skills" / "ticket"
 if str(_ticket_skill_dir) not in sys.path:
     sys.path.insert(0, str(_ticket_skill_dir))
@@ -30,7 +33,7 @@ if str(_ticket_skill_dir) not in sys.path:
 from hook_utils import find_ticket_file, parse_ticket_frontmatter
 from lib.hook_messages import GateMessages, format_message
 from acceptance_checkers.ticket_parser import extract_children_from_frontmatter
-from ticket_system.lib.constants import TERMINAL_STATUSES  # noqa: F401（re-export 供 ana_spawned_checker 向後相容引用）
+from ticket_system.constants import TERMINAL_STATUSES  # noqa: F401（re-export 供 ana_spawned_checker 向後相容引用）
 
 
 def _read_children_from_file(ticket_file: Path, logger) -> List[str]:
