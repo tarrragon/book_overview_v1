@@ -100,20 +100,26 @@ def _find_handoff_file(ticket_id: str, subdir: str = HANDOFF_PENDING_SUBDIR) -> 
     if md_file.exists():
         return (md_file, "markdown")
 
-    # Fallback：僅在 pending 目錄掃描，透過 direction 欄位反向查找
-    # 例：找 0.1.0-W9-001 時，也會找到指向它的 handoff（direction: "to-sibling:0.1.0-W9-001"）
+    # Fallback：僅在 pending 目錄掃描，支援兩種情況：
+    # 1. direction 欄位反向查找目標（例：direction: "to-sibling:0.1.0-W9-001"）
+    # 2. ticket_id 欄位直接比對（兼容 legacy 命名如 v{id}-handoff.json，檔名非 {id}.json）
     if subdir == HANDOFF_PENDING_SUBDIR:
         for json_candidate in sorted(dir_path.glob("*.json")):
             try:
                 with open(json_candidate, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                direction = data.get("direction", "")
-                if direction:
-                    if extract_direction_target_id(direction) == ticket_id:
-                        return (json_candidate, "json")
             except (json.JSONDecodeError, IOError):
                 # 略過無法解析的檔案
                 continue
+
+            # 反向匹配：透過 direction 找目標
+            direction = data.get("direction", "")
+            if direction and extract_direction_target_id(direction) == ticket_id:
+                return (json_candidate, "json")
+
+            # ticket_id 欄位匹配（兼容 legacy 命名格式）
+            if data.get("ticket_id") == ticket_id:
+                return (json_candidate, "json")
 
     return None
 
