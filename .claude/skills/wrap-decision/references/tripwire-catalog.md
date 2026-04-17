@@ -98,4 +98,4 @@ Skill 不需要每次都跑完整 WRAP 流程。
 ---
 
 **Last Updated**: 2026-04-16
-**Version**: 2.0.0 — 抽離本專案 Hook 設計至 `project-integration/triggers-alignment.md`；保留通用絆腳索目錄
+**Version**: 2.0.0

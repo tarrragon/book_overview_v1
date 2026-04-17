@@ -351,5 +351,5 @@ WRAP 每階段之間是切割點 — 強迫問「要不要繼續」：
 ---
 
 **Last Updated**: 2026-04-16
-**Version**: 2.0.0 — 提純為通用 WRAP 規則；本專案耦合內容全部抽離至 `references/project-integration/`；依賴方向反轉（SKILL 不再被 YAML/Hook/CLI 對齊，改由 project-integration/ 承擔）
+**Version**: 2.0.0
 **Source**: 《零偏見決斷法》(Decisive) — Chip Heath & Dan Heath

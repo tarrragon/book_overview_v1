@@ -184,4 +184,4 @@ Gary Klein 方法：先假設計畫失敗了，然後問「是什麼殺了它？
 ---
 
 **Last Updated**: 2026-04-16
-**Version**: 1.1.0 — 去除本專案耦合詞彙（Ticket/Wave/hook error 等）以符合跨專案通用原則；本專案具體案例見 `project-integration/case-studies.md`
+**Version**: 1.1.0
