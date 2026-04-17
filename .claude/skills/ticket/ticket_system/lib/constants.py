@@ -37,6 +37,15 @@ STATUS_LABELS: Dict[str, str] = {
     STATUS_CLOSED: "已關閉",
 }
 
+# Terminal（終止）狀態集合：視為任務已結案的狀態
+#
+# 單一真實來源（W14-004 整併）：
+#   - skill: ticket_system/commands/lifecycle.py 的 spawned 檢查
+#   - hook: .claude/hooks/acceptance_checkers/children_checker.py 的子任務檢查
+#   兩邊都從此處 import，避免雙邊宣告與語意飄移。
+# frozenset 保證不可變、支援 `in` 運算；與先前使用 set/tuple 的呼叫端完全相容。
+TERMINAL_STATUSES: frozenset = frozenset({STATUS_COMPLETED, STATUS_CLOSED})
+
 # ============================================================
 # Ticket ID 正則表達式
 # ============================================================

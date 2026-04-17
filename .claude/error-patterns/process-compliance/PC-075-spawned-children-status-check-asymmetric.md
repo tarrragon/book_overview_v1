@@ -90,7 +90,8 @@
 
 - `.claude/error-patterns/process-compliance/PC-073-ana-spawned-misused-as-children.md` — 姊妹模式（本模式的反向副作用）
 - `.claude/hooks/acceptance_checkers/ana_spawned_checker.py` — 缺口位置
-- `.claude/hooks/acceptance_checkers/children_checker.py` — 狀態檢查權威來源（TERMINAL_STATUSES）
+- `.claude/skills/ticket/ticket_system/lib/constants.py` — `TERMINAL_STATUSES` 單一來源（W14-004 整併；hook 與 skill 共用）
+- `.claude/hooks/acceptance_checkers/children_checker.py` — 子任務狀態檢查實作位置
 - `docs/work-logs/v0/v0.18/v0.18.0/tickets/0.18.0-W12-003.md` — 雙線 ANA 分析
 - `docs/work-logs/v0/v0.18/v0.18.0/tickets/0.18.0-W12-004.md` — Phase 1 警告層 IMP
 - `docs/work-logs/v0/v0.18/v0.18.0/tickets/0.18.0-W13-001.md` — Phase 2 方案 E 評估 ANA

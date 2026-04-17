@@ -16,6 +16,7 @@ from ticket_system.lib.constants import (
     STATUS_COMPLETED,
     STATUS_BLOCKED,
     STATUS_CLOSED,
+    TERMINAL_STATUSES,
 )
 from ticket_system.lib.ticket_loader import (
     get_project_root,
@@ -1082,8 +1083,8 @@ def _can_cascade_unblock(
 # ANA spawned 非 terminal 檢查（W12-005 / PC-075 Phase 2 — 方案 K）
 # ============================================================================
 
-# Terminal 狀態常數（與 .claude/hooks/acceptance_checkers/children_checker.py 對齊）
-_SPAWNED_TERMINAL_STATUSES = (STATUS_COMPLETED, STATUS_CLOSED)
+# Terminal 狀態由 ticket_system/lib/constants.TERMINAL_STATUSES 統一提供，
+# 與 .claude/hooks/acceptance_checkers/children_checker 的檢查同源（W14-004）。
 
 
 def _collect_non_terminal_spawned(
@@ -1115,7 +1116,7 @@ def _collect_non_terminal_spawned(
             non_terminal.append((sid, "not_found"))
             continue
         status = t.get("status", "unknown")
-        if status not in _SPAWNED_TERMINAL_STATUSES:
+        if status not in TERMINAL_STATUSES:
             non_terminal.append((sid, status))
     return non_terminal
 

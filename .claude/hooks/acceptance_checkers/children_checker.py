@@ -20,13 +20,17 @@ _hooks_dir = Path(__file__).parent.parent
 if str(_hooks_dir) not in sys.path:
     sys.path.insert(0, str(_hooks_dir))
 
+# 加入 .claude/skills/ticket 目錄以解析 ticket_system package
+# W14-004: TERMINAL_STATUSES 單一來源由 ticket_system/lib/constants 提供，
+# hook 與 skill 雙邊從同處 import，避免雙邊宣告與語意飄移。
+_ticket_skill_dir = _hooks_dir.parent / "skills" / "ticket"
+if str(_ticket_skill_dir) not in sys.path:
+    sys.path.insert(0, str(_ticket_skill_dir))
+
 from hook_utils import find_ticket_file, parse_ticket_frontmatter
 from lib.hook_messages import GateMessages, format_message
 from acceptance_checkers.ticket_parser import extract_children_from_frontmatter
-
-
-# 視為「終止狀態」的 status 值（對應 AC 2：completed/closed）
-TERMINAL_STATUSES: Set[str] = {"completed", "closed"}
+from ticket_system.lib.constants import TERMINAL_STATUSES  # noqa: F401（re-export 供 ana_spawned_checker 向後相容引用）
 
 
 def _read_children_from_file(ticket_file: Path, logger) -> List[str]:
