@@ -10,7 +10,7 @@
 | 類別 | process-compliance |
 | 風險等級 | 中 |
 | 首發時間 | 2026-04-17（W13-003 commit 後 git status 清點發現 W12-005 遺留） |
-| 姊妹模式 | 無直接姊妹；與 Git index.lock Prevention（memory feedback_git_index_lock_prevention）同屬 git 流程紀律 |
+| 姊妹模式 | **PC-078（並行 session 狀態變化）**——PC-076 處理靜態遺留，PC-078 處理動態並行；與 Git index.lock Prevention（memory feedback_git_index_lock_prevention）同屬 git 流程紀律 |
 
 ---
 
@@ -103,8 +103,15 @@
 
 ---
 
+## 重要區分
+
+本模式僅處理**靜態遺留**（前 session 結束未 commit 的檔案變更）。遇到 Ticket **狀態變化**（status 欄位改變、started_at 填入新時間戳）時**不適用本模式**，需改用 PC-078（並行 session 狀態變化）判斷。詳見 PC-078 的「與 PC-076 的區別」對照表。
+
+---
+
 ## 相關文件
 
+- `.claude/error-patterns/process-compliance/PC-078-parallel-session-ticket-state-misjudgment.md` — 姊妹模式（動態並行 vs 本檔的靜態遺留）
 - `.claude/error-patterns/process-compliance/PC-075-spawned-children-status-check-asymmetric.md` — 本案例遺留檔案對應的 Ticket 主題
 - `.claude/rules/core/bash-tool-usage-rules.md` — git 串接規則
 - `.claude/error-patterns/implementation/IMP-XXX`（若升級） — 若 Hook 輸出改善落地
