@@ -1338,7 +1338,6 @@ def execute_claim(args: argparse.Namespace, version: str) -> int:
     """
     # Stale 提示（pending 超過 7 天；靜默失敗不影響 claim 主流程）
     try:
-        from ticket_system.lib.ticket_loader import load_ticket
         from ticket_system.lib.staleness import format_stale_warning
 
         ticket = load_ticket(version, args.ticket_id)
