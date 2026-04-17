@@ -1,0 +1,116 @@
+# PC-076: Session 間未 commit 變更在後續 session 執行中意外浮現
+
+---
+
+## 分類資訊
+
+| 項目 | 值 |
+|------|------|
+| 編號 | PC-076 |
+| 類別 | process-compliance |
+| 風險等級 | 中 |
+| 首發時間 | 2026-04-17（W13-003 commit 後 git status 清點發現 W12-005 遺留） |
+| 姊妹模式 | 無直接姊妹；與 Git index.lock Prevention（memory feedback_git_index_lock_prevention）同屬 git 流程紀律 |
+
+---
+
+## 症狀
+
+1. Session-start 的 `branch-status-reminder` Hook 顯示 `M test_ana_spawned_checker.py` 一條，給出「主 repo 有未提交變更」警告
+2. PM 依 session 任務（W12-001 完結）推進工作
+3. 工作中某個 `git status` 呼叫（通常是 Checkpoint 1 commit 準備階段）才揭露：除了本 session 成果，還有 4+ 個前 session 未 commit 的實作檔案（例：`.claude/skills/ticket/ticket_system/commands/lifecycle.py`、`test_track_lifecycle.py`、`command_lifecycle_messages.py`、`track.py`、對應 Ticket 的 where.files 與 Problem Analysis）
+4. 這些檔案屬於另一個 Ticket（例 W12-005），非本 session 任務範疇
+5. PM 需臨時決定：合併 commit、拆分 commit、或擱置不 commit
+
+## 實例（2026-04-17 W12-001 完結 session）
+
+- Session-start git status 僅顯示 `M test_ana_spawned_checker.py`
+- W12-001 complete 後 git status 突然出現：
+  - `M .claude/skills/ticket/tests/test_track_lifecycle.py`
+  - `M .claude/skills/ticket/ticket_system/commands/lifecycle.py`（實為新增 145 行）
+  - `M .claude/skills/ticket/ticket_system/commands/track.py`
+  - `M .claude/skills/ticket/ticket_system/lib/command_lifecycle_messages.py`
+  - `M docs/work-logs/v0/v0.18/v0.18.0/tickets/0.18.0-W12-005.md`（+237 行 Problem Analysis）
+- 屬前 session 對 W12-005 / PC-075 Phase 2 的實作遺留，未 commit 即結束 session
+- 本 session 拆出獨立 commit B 處理
+
+---
+
+## 根本原因
+
+### 真根因
+
+1. **Session-start git status 輸出不完整**
+   - branch-status-reminder Hook 的 git status 檢測僅列首行變更（實例中只列 test_ana_spawned_checker.py），未列出全部
+   - 或 Hook 僅偵測 untracked；tracked-modified 部分被壓縮到「未提交變更：N 項」等彙整
+
+2. **前 session 結束流程缺口**
+   - Session 結束時未執行完整 commit cycle（/commit-as-prompt）
+   - 可能因：用戶中斷、/clear 未強制 commit、認為「後續再做」
+
+3. **PM 工作邊界假設**
+   - PM 認領 W12-001 任務時預設「git 工作區處於乾淨或僅含本任務相關變更」狀態
+   - 未在 session 初期執行 `git status --porcelain | wc -l` 全量清點
+
+---
+
+## 常見陷阱模式
+
+| 陷阱表述 | 為何仍構成違規 |
+|---------|--------------|
+| 「session-start Hook 顯示只有 1 個變更，應該沒事」 | Hook 輸出格式限制可能遮蔽其他 tracked-modified |
+| 「前一任務 commit 已完成，現在主題乾淨」 | Ticket complete 不等於 git 工作區乾淨 |
+| 「遺留檔案與我無關，commit 留給下次 session」 | 累積延後會混淆未來 session 的認知邊界 |
+
+---
+
+## 防護措施
+
+| 層級 | 措施 | 狀態 |
+|------|------|------|
+| Hook | branch-status-reminder 改為列出所有 tracked-modified 與 untracked（或給出「共 N 項」後附加詳細清單檔案路徑） | 建議實施 |
+| 流程 | PM session-start 後主動執行 `git status --porcelain \| wc -l` 並與 Hook 訊息對照；若數字不符展開詳列 | 行為準則 |
+| 流程 | Commit 前再次 `git status` 清點，將無關變更拆為獨立 commit 並標明「前 session 遺留」 | 行為準則 |
+| 流程 | Session 結束前強制執行完整 commit cycle；未完成實作留在工作區必須於該 session 內整合處理 | 建議實施（W10-014 相關） |
+
+---
+
+## 檢查清單（PM session-start + commit 前）
+
+### Session-start
+- [ ] 讀完 Hook 的 branch-status-reminder 輸出後，額外執行 `git status` 確認完整變更清單
+- [ ] 若看到非本任務檔案，先判定來源：前 session 遺留 / 其他 session 並行 / 自動化 Hook 產生
+- [ ] 記錄遺留清單到 Ticket Problem Analysis 或工作日誌，明確標示處理計畫
+
+### Commit 前
+- [ ] `git status` 全量清點未提交變更
+- [ ] 將主題不相關的變更拆為獨立 commit
+- [ ] 每個獨立 commit 訊息標明：本 session 成果 vs 前 session 遺留
+- [ ] 遺留檔案 commit 前跑對應測試確認未破壞（本案例跑 test_track_lifecycle.py 35 tests 全綠）
+
+### Session 結束前
+- [ ] 執行 `git status` 確認工作區乾淨（或僅含刻意保留給下 session 的 handoff）
+- [ ] 未 commit 的實作進度寫入 Ticket handoff direction 或 worklog 「下個 Session 接手 Context」
+
+---
+
+## 教訓
+
+1. **Hook 資訊密度有限**：session-start 提醒是摘要，非完整稽核；PM 仍須主動驗證
+2. **Commit 不只是主題動作，也是清點動作**：commit 前全量 `git status` 暴露隱藏負擔
+3. **Session 結束是集中責任的時刻**：不 commit 就是把負擔轉嫁給下一個 session 的人
+4. **遺留檔案先跑測試再 commit**：本案例 test_track_lifecycle.py 35 測試驗證讓 commit B 有信心，若跳過可能把損壞的實作直接推入主線
+
+---
+
+## 相關文件
+
+- `.claude/error-patterns/process-compliance/PC-075-spawned-children-status-check-asymmetric.md` — 本案例遺留檔案對應的 Ticket 主題
+- `.claude/rules/core/bash-tool-usage-rules.md` — git 串接規則
+- `.claude/error-patterns/implementation/IMP-XXX`（若升級） — 若 Hook 輸出改善落地
+
+---
+
+**Last Updated**: 2026-04-17
+**Version**: 1.0.0 — 首發記錄（W13-003 commit 後 W12-005 遺留浮現）
+**Source**: 2026-04-17 W12-001 完結 session 中，W13-003 commit A 後 git status 顯示 5 個前 session 遺留檔案；對應 W12-005 實作未於前 session 結束前 commit
