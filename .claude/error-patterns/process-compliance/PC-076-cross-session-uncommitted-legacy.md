@@ -34,6 +34,24 @@
 - 屬前 session 對 W12-005 / PC-075 Phase 2 的實作遺留，未 commit 即結束 session
 - 本 session 拆出獨立 commit B 處理
 
+## 實例（2026-04-17 W14-013 session）
+
+- Session-start `branch-status-reminder` 僅顯示 1 個變更：`M docs/work-logs/v0/v0.18/v0.18.0/tickets/0.18.0-W14-016.md`
+- PM 認領並執行 W14-013（與 W14-016 主題完全無關）
+- W14-013 修復檔 + check-acceptance 完成、準備 commit 時跑 `git status` 才浮現額外 4 個檔案：
+  - `M .claude/hooks/acceptance_checkers/children_checker.py`（W14-016 H 方案 import 路徑改造）
+  - `M .claude/skills/ticket/ticket_system/lib/constants.py`（改為 shim）
+  - `?? .claude/skills/ticket/ticket_system/constants.py`（W14-016 新建 canonical 常數）
+  - W14-016.md 又被改（前 session 勾了 AC1/AC3 + 補實作摘要）
+- 屬前 session 對 W14-016 H 方案實作遺留，AC1/AC3 已勾但未 commit 即中斷
+- 本 session 隔離 commit：(a) 先單獨 commit W14-016.md status 元資料 (b) 再 commit W14-013 修復；W14-016 程式碼變更暫留待後續處理
+
+### 本案例新觀察
+
+1. **遺留檔案中可能含 untracked 新檔**：W14-016 案例新增了 `constants.py`，需用 `git status` 而非 `git diff` 才看得到
+2. **遺留 ticket md 同時被多 session 修改**：W14-013 session 當下 commit 過 W14-016.md 一次（status: in_progress + 5W1H 細節），但前 session 還做了 AC 勾選與實作摘要追加，必須再分離 commit
+3. **使用者用 /ticket 預設流程選擇新 pending 時，並未提示「另一 in_progress ticket 含未 commit 程式碼變更」**：建議 /ticket 流程在列出 pending 前先做 git status 全量檢查並警告
+
 ---
 
 ## 根本原因
@@ -119,5 +137,5 @@
 ---
 
 **Last Updated**: 2026-04-17
-**Version**: 1.0.0 — 首發記錄（W13-003 commit 後 W12-005 遺留浮現）
-**Source**: 2026-04-17 W12-001 完結 session 中，W13-003 commit A 後 git status 顯示 5 個前 session 遺留檔案；對應 W12-005 實作未於前 session 結束前 commit
+**Version**: 1.1.0 — 追加 W14-013 session 案例（含 untracked 新檔、ticket md 多 session 接力、/ticket 預設流程未檢查 in_progress 程式碼變更觀察）
+**Source**: 2026-04-17 W12-001 完結 session 與 W14-013 session，連續兩次 commit 前 git status 揭露前 session 遺留實作
