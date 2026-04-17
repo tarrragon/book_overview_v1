@@ -211,6 +211,29 @@ def execute_query(args: argparse.Namespace, version: str) -> int:
     print(f"{SECTION_5W1H_INDENT}Where: {_format_where_field(ticket.get('where'))}")
     print(f"{SECTION_5W1H_INDENT}Why: {ticket.get('why', DEFAULT_UNKNOWN_VALUE)}")
 
+    # W15-003: 顯示 spawned_tickets 完成進度（僅對 ANA 類型有意義，但一律顯示）
+    spawned = ticket.get("spawned_tickets") or []
+    if spawned:
+        completed_ids: List[str] = []
+        incomplete_items: List[str] = []
+        for sid in spawned:
+            sub = load_ticket(version, sid)
+            if not sub:
+                incomplete_items.append(f"{sid} (not_found)")
+                continue
+            sub_status = sub.get("status", "unknown")
+            if sub_status == STATUS_COMPLETED:
+                completed_ids.append(sid)
+            else:
+                incomplete_items.append(f"{sid} (status={sub_status})")
+        total = len(spawned)
+        done = len(completed_ids)
+        print(f"\n[Spawned IMPs 進度] {done}/{total} completed")
+        for sid in completed_ids:
+            print(f"  [x] {sid}")
+        for item in incomplete_items:
+            print(f"  [ ] {item}")
+
     # PROP-010 方案 4：query 時輸出 stale 警告（靜默失敗）
     try:
         level = calculate_stale_level(ticket.get("created"))

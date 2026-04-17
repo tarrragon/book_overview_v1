@@ -165,6 +165,19 @@ ANA（分析）Ticket 的核心產出是「後續可追蹤的 Ticket」，用於
 
 註：本警告為 shallow 一層檢查，不 recurse 進 spawned 的子任務。"""
 
+    # W15-003: ANA spawned tickets 未完成錯誤（阻擋 complete）
+    ANA_SPAWNED_INCOMPLETE_ERROR = """[ERROR] Acceptance Gate: ANA 的 spawned_tickets 未全部完成
+
+Ticket: {ticket_id}
+標題: {title}
+進度: {completed_count}/{total_count} completed
+
+未完成的 spawned tickets（{non_terminal_count} 項）：
+{non_terminal_list}
+
+ANA complete 要求所有衍生 IMP/ANA 先完成，以確保分析結論已落實。
+請先推進未完成的 spawned tickets，或若為純研究性 ANA，請移除不相關的 spawned_tickets 欄位。"""
+
     # 建立後品質驗收未通過錯誤訊息（creation-acceptance-gate-hook.py）
     CREATION_NOT_ACCEPTED_ERROR = """錯誤：Ticket {ticket_id} 尚未通過建立後品質驗收
 

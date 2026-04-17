@@ -166,3 +166,85 @@ def check_spawned_tickets_status(
         non_terminal_count=len(non_terminal),
     )
     return warning_msg
+
+
+def check_spawned_tickets_blocking(
+    ticket_id: str,
+    title: str,
+    spawned: List[str],
+    project_dir: Path,
+    logger,
+) -> Tuple[bool, Optional[str]]:
+    """檢查 spawned tickets 是否全完成；未完成時回傳阻擋訊息（W15-003）。
+
+    循環引用防護：
+        使用 visited set 記錄已查詢的 spawned_id，避免 A spawns B / B spawns A 造成無限遞迴。
+        此為 shallow 一層檢查（不 recurse 進 spawned 的 children），
+        但仍檢查 spawned 的 spawned（追蹤衍生鏈）。
+
+    Args:
+        ticket_id: 當前 ANA Ticket ID
+        title: 當前 Ticket 標題
+        spawned: spawned ticket ID 清單
+        project_dir: 專案根目錄
+        logger: 日誌物件
+
+    Returns:
+        (should_block, error_message):
+            - should_block=True + 完整阻擋訊息（未全完成）
+            - should_block=False + None（全完成或 spawned 為空）
+    """
+    if not spawned:
+        return False, None
+
+    # Shallow 一層檢查（對齊 acceptance_auditor.validate_spawned_tickets_completed）：
+    # 只檢查 spawned 自身的 status，不 recurse 進 spawned 的 children/spawned。
+    # visited 集合保留給循環引用防護（本 shallow 版不會觸發，但保護未來升級）。
+    non_terminal: List[Tuple[str, str]] = []
+    visited: set = {ticket_id}
+
+    for sid in spawned:
+        if sid in visited:
+            continue
+        visited.add(sid)
+        sfile = find_ticket_file(sid, project_dir, logger)
+        if not sfile:
+            non_terminal.append((sid, "not_found"))
+            continue
+        try:
+            content = sfile.read_text(encoding="utf-8")
+            fm = parse_ticket_frontmatter(content)
+            status = fm.get("status", "unknown")
+            if status not in TERMINAL_STATUSES:
+                non_terminal.append((sid, status))
+        except Exception as e:
+            logger.warning(f"讀取 spawned ticket 失敗 {sfile}: {e}")
+            non_terminal.append((sid, "read_error"))
+
+    if not non_terminal:
+        logger.info(f"ANA {ticket_id} 所有 spawned tickets 全 terminal")
+        return False, None
+
+    non_terminal_ids = {sid for sid, _ in non_terminal}
+    direct_completed = sum(1 for sid in spawned if sid not in non_terminal_ids)
+    non_terminal_list = "\n".join(
+        f"  - {sid}: status={status}" for sid, status in non_terminal
+    )
+
+    error_msg = format_message(
+        GateMessages.ANA_SPAWNED_INCOMPLETE_ERROR,
+        ticket_id=ticket_id,
+        title=title,
+        completed_count=direct_completed,
+        total_count=len(spawned),
+        non_terminal_count=len(non_terminal),
+        non_terminal_list=non_terminal_list,
+    )
+    logger.error(
+        f"ANA {ticket_id} spawned_tickets 未全完成 "
+        f"（{direct_completed}/{len(spawned)}）- 阻擋 complete"
+    )
+    sys.stderr.write(
+        f"ERROR: ANA {ticket_id} spawned_tickets 未全完成，阻擋 complete\n"
+    )
+    return True, error_msg

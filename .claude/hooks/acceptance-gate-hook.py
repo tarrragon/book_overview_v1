@@ -78,6 +78,7 @@ from acceptance_checkers import (
 )
 from acceptance_checkers.ana_spawned_checker import (
     check_spawned_tickets_status,
+    check_spawned_tickets_blocking,
     extract_spawned_tickets_from_frontmatter,
 )
 from acceptance_checkers.ticket_parser import get_ticket_start_time
@@ -214,15 +215,24 @@ def check_acceptance_status(ticket_id: str, project_dir: Path, logger) -> Accept
                 else:
                     warning_msg = ana_warning_msg
 
-        # 步驟 2.5.1：檢查 ANA spawned tickets 狀態（W12-004 Phase 1 警告層）
-        # 寫入 dedicated field 不污染 message，避免抑制 scene #9/#1 gate
+        # 步驟 2.5.1：檢查 ANA spawned tickets 狀態
+        # W15-003 升級：從警告層升級為阻擋層
+        # - 任一 spawned 非 terminal → block (exit 2)
+        # - 全 terminal → pass
+        # 舊的 spawned_non_terminal_warning 欄位保留（已由 blocking 取代警告角色，
+        # 但 CLI/checklist 仍引用，保持為 None 代表「已通過或非 ANA」）
         spawned_non_terminal_warning: Optional[str] = None
         if is_ana_type(frontmatter.get("type")):
             spawned_ids = extract_spawned_tickets_from_frontmatter(frontmatter, logger)
             if spawned_ids:
-                spawned_non_terminal_warning = check_spawned_tickets_status(
-                    spawned_ids, project_dir, logger
+                title = frontmatter.get("title", "未知")
+                block_needed, block_msg = check_spawned_tickets_blocking(
+                    ticket_id, title, spawned_ids, project_dir, logger
                 )
+                if block_needed and block_msg:
+                    return AcceptanceCheckResult(
+                        True, False, block_msg, False, [], [], "", "", [], [], False
+                    )
 
         # 步驟 2.6：ANA Ticket Solution 必須含 multi_view_status 標註（W10-051）
         multi_view_warning: Optional[str] = None
