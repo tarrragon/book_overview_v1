@@ -360,6 +360,44 @@ def _collect_spawned_tree(
         _collect_spawned_tree(child_id, version, visited, depth + 1, lines)
 
 
+REFLECTION_CHAIN_WARN_THRESHOLD = 3
+
+
+def _compute_reflection_chain_depth(
+    ticket: Dict[str, Any],
+    version: str,
+) -> tuple:
+    """
+    計算 ANA 反思鏈深度（沿 source_ticket 祖鏈回溯，計算連續 ANA type 的長度）。
+
+    反思鏈定義：從當前 Ticket 出發，沿 source_ticket 欄位往上回溯，
+    連續遇到的 ANA type Ticket 數量（包含當前 Ticket，若當前為 ANA）。
+    遇到非 ANA type 或無 source_ticket 即停止。
+
+    Args:
+        ticket: 當前 Ticket 資料
+        version: 版本號（用於載入祖鏈 Ticket）
+
+    Returns:
+        (depth, chain): depth=連續 ANA 層數；chain=[ticket_id, ...] 由遠到近
+    """
+    chain: List[str] = []
+    visited: set = set()
+    current = ticket
+    while current and current.get("type") == "ANA":
+        cid = current.get("id") or current.get("_id") or ""
+        if cid in visited:
+            break
+        visited.add(cid)
+        chain.append(cid)
+        source_id = current.get("source_ticket")
+        if not source_id:
+            break
+        current = load_ticket(version, source_id)
+    chain.reverse()  # 由遠到近
+    return len(chain), chain
+
+
 def execute_deps(args: argparse.Namespace, version: str) -> int:
     """
     顯示 Ticket 衍生關係（spawned_tickets + source_ticket）。
@@ -386,6 +424,21 @@ def execute_deps(args: argparse.Namespace, version: str) -> int:
 
     print(f"{ticket_id} [{status}] ({ttype}) {title}")
     print(SEPARATOR_CHAR * SEPARATOR_WIDTH)
+
+    # 反思鏈深度警示（Layer 2，W15-010/W15-021）：
+    # 僅對 ANA type Ticket 計算沿 source_ticket 連續 ANA 祖鏈長度
+    reflection_depth, reflection_chain = _compute_reflection_chain_depth(ticket, version)
+    print(f"\nReflection Chain Depth: {reflection_depth}")
+    if reflection_depth >= REFLECTION_CHAIN_WARN_THRESHOLD:
+        chain_repr = " -> ".join(reflection_chain)
+        print(
+            f"[WARNING] 反思鏈深度 = {reflection_depth}"
+            f"（ANA spawn ANA 連續 {reflection_depth} 層）"
+        )
+        print(f"          鏈: {chain_repr}")
+        print(
+            "          建議：評估是否繼續反思或終止（參見 W15-010 Layer 2 終止條件）"
+        )
 
     # Spawned tickets（遞迴樹狀）
     spawned = ticket.get("spawned_tickets") or []
