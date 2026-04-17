@@ -76,6 +76,10 @@ from acceptance_checkers import (
     find_pending_sibling_tickets,
     check_multi_view_status,
 )
+from acceptance_checkers.ana_spawned_checker import (
+    check_spawned_tickets_status,
+    extract_spawned_tickets_from_frontmatter,
+)
 from acceptance_checkers.ticket_parser import get_ticket_start_time
 
 
@@ -110,6 +114,9 @@ class AcceptanceCheckResult(NamedTuple):
     incomplete_5w1h_fields: List[str] = []
     has_empty_execution_log: bool = False
     multi_view_warning: Optional[str] = None
+    # W12-004 Phase 1：ANA spawned 非 terminal 警告專用欄位
+    # 獨立於 `message` 避免抑制 scene #9/#1 gate（`not check_result.message`）
+    spawned_non_terminal_warning: Optional[str] = None
 
 
 # ============================================================================
@@ -207,6 +214,16 @@ def check_acceptance_status(ticket_id: str, project_dir: Path, logger) -> Accept
                 else:
                     warning_msg = ana_warning_msg
 
+        # 步驟 2.5.1：檢查 ANA spawned tickets 狀態（W12-004 Phase 1 警告層）
+        # 寫入 dedicated field 不污染 message，避免抑制 scene #9/#1 gate
+        spawned_non_terminal_warning: Optional[str] = None
+        if is_ana_type(frontmatter.get("type")):
+            spawned_ids = extract_spawned_tickets_from_frontmatter(frontmatter, logger)
+            if spawned_ids:
+                spawned_non_terminal_warning = check_spawned_tickets_status(
+                    spawned_ids, project_dir, logger
+                )
+
         # 步驟 2.6：ANA Ticket Solution 必須含 multi_view_status 標註（W10-051）
         multi_view_warning: Optional[str] = None
         if is_ana_type(frontmatter.get("type")):
@@ -252,18 +269,19 @@ def check_acceptance_status(ticket_id: str, project_dir: Path, logger) -> Accept
         priority = frontmatter.get("priority", "")
 
         return AcceptanceCheckResult(
-            False,
-            has_acceptance,
-            warning_msg,
-            has_new_error_patterns,
-            new_error_pattern_files,
-            pending_siblings,
-            task_type,
-            priority,
-            error_pattern_conflicts,
-            incomplete_5w1h,
-            has_empty_log,
-            multi_view_warning,
+            should_block=False,
+            has_acceptance=has_acceptance,
+            message=warning_msg,
+            has_new_error_patterns=has_new_error_patterns,
+            new_error_pattern_files=new_error_pattern_files,
+            pending_sibling_tickets=pending_siblings,
+            task_type=task_type,
+            priority=priority,
+            error_pattern_conflicts=error_pattern_conflicts,
+            incomplete_5w1h_fields=incomplete_5w1h,
+            has_empty_execution_log=has_empty_log,
+            multi_view_warning=multi_view_warning,
+            spawned_non_terminal_warning=spawned_non_terminal_warning,
         )
 
     except Exception as e:
@@ -321,12 +339,25 @@ def generate_hook_output(
         checklist_items.append("[WARNING] 4. execution log 未填寫")
 
     # 項目 5: spawned_tickets (只對 ANA 類型顯示)
+    # W12-004 Phase 1：分支三種狀態（未建立 / 含非 terminal / 全 terminal）
     ticket_type_upper_for_checklist = (check_result.task_type or "").upper()
     if ticket_type_upper_for_checklist == "ANA":
-        if check_result.message and "spawned" in check_result.message.lower():
+        # 「未建立」訊息來自 GateMessages.ANA_MISSING_SPAWNED_TICKETS_WARNING
+        # 用「缺少後續 Ticket」作為精確標誌而非通用關鍵字「spawned」
+        spawned_missing = bool(
+            check_result.message and "缺少後續 Ticket" in check_result.message
+        )
+        spawned_non_terminal = bool(check_result.spawned_non_terminal_warning)
+        if spawned_missing:
             checklist_items.append("[WARNING] 5. spawned_tickets 未建立（ANA）")
+        elif spawned_non_terminal:
+            checklist_items.append(
+                "[WARNING] 5. spawned_tickets 含非 terminal 項目（ANA）"
+            )
         else:
-            checklist_items.append("[x] 5. spawned_tickets 已更新（ANA）")
+            checklist_items.append(
+                "[x] 5. spawned_tickets 已建立且全 terminal（ANA）"
+            )
     else:
         checklist_items.append("[--] 5. spawned_tickets(非 ANA，不適用)")
 
@@ -345,6 +376,12 @@ def generate_hook_output(
     # 優先級 1：錯誤或警告訊息
     if check_result.message:
         context_parts.append(check_result.message)
+
+    # 優先級 1.5：ANA spawned 非 terminal 警告（W12-004 Phase 1）
+    # 獨立 dedicated field 確保不抑制下方 scene #9/#1 gate（gate 只看 message）
+    if check_result.spawned_non_terminal_warning:
+        context_parts.append(check_result.spawned_non_terminal_warning)
+        logger.info("新增 ANA spawned 非 terminal 警告（W12-004）")
 
     # 優先級 2：error-pattern 場景 #17 提醒（與 warning_msg 並存觸發）
     if check_result.has_new_error_patterns:

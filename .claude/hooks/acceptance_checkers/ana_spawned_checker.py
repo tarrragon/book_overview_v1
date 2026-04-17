@@ -13,8 +13,11 @@ _hooks_dir = Path(__file__).parent.parent
 if str(_hooks_dir) not in sys.path:
     sys.path.insert(0, str(_hooks_dir))
 
+from hook_utils import find_ticket_file, parse_ticket_frontmatter
 from lib.hook_messages import GateMessages, format_message
 from acceptance_checkers.ticket_parser import extract_children_from_frontmatter
+# 單一真實來源：terminal 狀態定義由 children_checker 集中管理（W12-004）
+from acceptance_checkers.children_checker import TERMINAL_STATUSES
 
 
 def extract_spawned_tickets_from_frontmatter(frontmatter: dict, logger) -> List[str]:
@@ -93,3 +96,73 @@ def check_ana_has_spawned_tickets(
 
     logger.info(f"ANA Ticket 有後續 Ticket: children={len(children)}, spawned={len(spawned)}")
     return False, None
+
+
+def check_spawned_tickets_status(
+    spawned: List[str],
+    project_dir: Path,
+    logger,
+) -> Optional[str]:
+    """檢查 spawned tickets 的狀態，列出非 terminal 的項目。
+
+    Phase 1 警告層（W12-004）：
+        當防護性 ANA 的 spawned IMP 仍處於 pending/in_progress/blocked 時，
+        產生警告訊息（不 block），讓 PM 看到防護缺口的可見訊號。
+
+    Shallow 一層（明示不 recurse）：
+        本函式只檢查 spawned 自身的 status，不遞迴進 spawned 的子任務。
+        避免與 children_checker 的責任重疊——children 鏈完整性由
+        check_children_completed_from_frontmatter 負責。
+
+    Args:
+        spawned: spawned ticket ID 清單
+        project_dir: 專案根目錄
+        logger: 日誌物件
+
+    Returns:
+        Optional[str] - 警告訊息（spawned 任一非 terminal 時）或 None（全 terminal 或 spawned 為空時）
+    """
+    if not spawned:
+        return None
+
+    non_terminal: List[Tuple[str, str]] = []  # [(ticket_id, status), ...]
+
+    for spawned_id in spawned:
+        spawned_file = find_ticket_file(spawned_id, project_dir, logger)
+
+        if not spawned_file:
+            logger.warning(f"無法找到 spawned ticket 檔案: {spawned_id}")
+            non_terminal.append((spawned_id, "not_found"))
+            continue
+
+        try:
+            content = spawned_file.read_text(encoding="utf-8")
+            spawned_fm = parse_ticket_frontmatter(content)
+            status = spawned_fm.get("status", "unknown")
+
+            if status not in TERMINAL_STATUSES:
+                logger.warning(
+                    f"spawned ticket 非 terminal: {spawned_id} (status={status})"
+                )
+                non_terminal.append((spawned_id, status))
+            else:
+                logger.info(
+                    f"spawned ticket terminal: {spawned_id} (status={status})"
+                )
+        except Exception as e:
+            logger.warning(f"讀取 spawned ticket 失敗 {spawned_file}: {e}")
+            non_terminal.append((spawned_id, "read_error"))
+
+    if not non_terminal:
+        return None
+
+    non_terminal_list = "\n".join(
+        f"  - {sid}: status={status}" for sid, status in non_terminal
+    )
+
+    warning_msg = format_message(
+        GateMessages.ANA_SPAWNED_NON_TERMINAL_WARNING,
+        non_terminal_list=non_terminal_list,
+        non_terminal_count=len(non_terminal),
+    )
+    return warning_msg

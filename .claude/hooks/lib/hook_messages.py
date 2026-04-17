@@ -149,6 +149,22 @@ ANA（分析）Ticket 的核心產出是「後續可追蹤的 Ticket」，用於
 
 如果分析結論確實不需要後續工作，請在 Ticket 內容中明確說明理由。"""
 
+    # ANA Ticket spawned tickets 含非 terminal 項目警告（W12-004 Phase 1）
+    # 防護性 ANA 之 spawned IMP 仍 pending/in_progress/blocked 時觸發
+    ANA_SPAWNED_NON_TERMINAL_WARNING = """[WARNING] Acceptance Gate: ANA spawned tickets 含非 terminal 項目
+
+防護性 ANA 通常需要 spawned IMP 全部落地（completed/closed）後才該 complete。
+目前以下 spawned ticket 仍處於非 terminal 狀態（{non_terminal_count} 項）：
+
+{non_terminal_list}
+
+請確認：
+  1. 此 ANA 是研究性還是防護性？防護性 ANA 應等 spawned IMP 完成後再 complete。
+  2. 如為研究性（純分析、結論已落地為設計文件/規則）可繼續 complete。
+  3. 如為防護性（需 IMP 落地才算解決問題）建議 release 並先推進 spawned IMP。
+
+註：本警告為 shallow 一層檢查，不 recurse 進 spawned 的子任務。"""
+
     # 建立後品質驗收未通過錯誤訊息（creation-acceptance-gate-hook.py）
     CREATION_NOT_ACCEPTED_ERROR = """錯誤：Ticket {ticket_id} 尚未通過建立後品質驗收
 
