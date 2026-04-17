@@ -1,5 +1,25 @@
 # Writing Prompts
 
+## 檔案定位
+
+本檔案承擔兩個角色：
+
+1. **`.claude/rules/core/ai-communication-rules.md` 的詳細版庫** — 框架級 auto-load 規則保留 90 行骨架（核心原則、強制規則、檢查清單），本檔提供完整 Agent Prompt / Context Bundle 骨架、Token 節省深度策略、情境範例與反模式解析。
+2. **compositional-writing skill 的產出品質規範** — 維護 skill 所有 reference（writing-code-comments、writing-documents、writing-logs、designing-fields、meta-metrics）的撰寫品質基準。
+
+**閱讀決策**：
+
+| 需求 | 讀哪份 |
+|------|-------|
+| 快速對照對話規範（預設每次 session auto-load） | `.claude/rules/core/ai-communication-rules.md` |
+| 寫大型 Agent Prompt / Ticket Context Bundle | 本檔（完整骨架範例） |
+| 深度理解 Token 節省取捨 | 本檔「Token 節省策略」章節 |
+| 作為 skill 新增 reference 的撰寫範本 | 本檔整體架構 |
+
+---
+
+## 情境定位
+
 本 reference 為 `compositional-writing` skill 的情境應用：撰寫 prompt。
 
 Prompt 的讀者是 AI 模型，但維護者是人類。寫作目標是在**最少 token 內傳遞最精準的意圖**，同時維持人類可讀性（prompt 需要被維護和迭代）。與其他寫作情境不同，prompt 的每一個冗詞都是直接成本——但過度精簡又會讓意圖模糊，導致 AI 輸出偏離目標。本文件說明如何平衡 token 成本與意圖清晰度。
