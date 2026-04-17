@@ -73,11 +73,36 @@ Claude Code Bash 工具的使用規範，涵蓋工作目錄、輸出處理、git
 
 | 方法 | 指令形式 | 適用情境 |
 |------|---------|---------|
-| Heredoc with quoted delimiter（推薦） | `cmd "$(cat <<'EOF'\n...\nEOF\n)"` | 長文字、含特殊字元、commit 訊息 |
+| Heredoc with quoted delimiter（推薦） | `cmd "$(cat <<'EOF'\n...\nEOF\n)"` | 長文字、含特殊字元、commit 訊息（長文字傳遞見規則五） |
 | 單引號包整參數 | `cmd '...含 backtick...'` | 參數內無單引號 |
 | 改用 Edit 工具 | 直接 `Edit` ticket md 檔 | 長文字寫入 ticket 內容 |
 
 **識別特徵**：若 Bash 執行後看到 `command not found` / `permission denied` / `ModuleNotFoundError` 等錯誤且來源不明，優先檢查是否 backtick 被 command substitution。
+
+---
+
+## 規則五：長文字傳遞預設使用 heredoc
+
+> 來源：PC-087（PM 寫 /tmp 作 ticket 內容中介）+ W15-005 WRAP 方案 E。長文字（append-log 內容、commit msg、ANA 結論）直接用 heredoc 傳 CLI，禁止繞 `/tmp` 寫檔再讀回傳入。
+
+**容量事實（打破心理障礙）**：
+
+| 項目 | 容量 | 對照 |
+|------|------|------|
+| ARG_MAX（macOS） | ≥ 1 MB | 單一命令列總長度上限 |
+| ARG_MAX（Linux） | ≥ 2 MB | 同上 |
+| 80 行 markdown 長文字 | 約 3-8 KB | 遠低於 ARG_MAX |
+| 典型 append-log Solution | 1-10 KB | 完全可行 |
+
+**識別信號表**：
+
+| 場景 | 錯誤做法 | 正確做法 |
+|------|---------|---------|
+| append-log 長 Solution | `Write /tmp/sol.md` → `Read` → `--content "$(cat /tmp/sol.md)"` | `ticket ... append-log ... --content "$(cat <<'EOF'\n...\nEOF\n)"` |
+| Commit 訊息多段 | `echo > /tmp/msg` → `git commit -F /tmp/msg` | `git commit -m "$(cat <<'EOF'\n...\nEOF\n)"` |
+| ANA 結論傳 CLI | 中介 /tmp 檔 | heredoc 直傳 |
+
+**例外**：文字 > 100 KB（極少見）才考慮檔案中介；此時應優先改用 `Edit` 工具直接改 ticket md。
 
 ---
 
@@ -94,6 +119,7 @@ Claude Code Bash 工具的使用規範，涵蓋工作目錄、輸出處理、git
 - [ ] 看到 `index.lock` 錯誤？→ 確認是否有 git 串接
 - [ ] CLI 參數含 backtick？→ 改用 heredoc / 單引號 / Edit 工具（規則四）
 - [ ] 看到 `command not found` / `ModuleNotFoundError` 來源不明？→ 檢查 backtick command substitution（PC-079）
+- [ ] 準備 `Write /tmp/*.md` 作 CLI 中介？→ 改 heredoc 直傳（規則五，容量絕對夠）
 
 ---
 
@@ -103,8 +129,9 @@ Claude Code Bash 工具的使用規範，涵蓋工作目錄、輸出處理、git
 - `.claude/references/quality-python.md` — Python 執行規則
 - `.claude/error-patterns/implementation/IMP-008-bash-working-directory-pollution.md`、`IMP-009-taskoutput-confusion.md`
 - `.claude/error-patterns/process-compliance/PC-079-bash-backtick-command-substitution-in-cli-args.md` — 規則四的完整案例與根因
+- `.claude/error-patterns/process-compliance/PC-087-pm-tmp-detour-for-long-text.md` — 規則五的觸發案例
 - CLAUDE.md — 專案開發規範
 
 ---
 
-**Last Updated**: 2026-04-16 | **Version**: 2.0.0 — 骨架保留 + 詳細案例遷 references（W10-077.4） | **Source**: IMP-008、IMP-009、index.lock 競爭
+**Last Updated**: 2026-04-18 | **Version**: 2.1.0 — 新增規則五 heredoc 長文字傳遞預設（W15-007 / W15-005 WRAP 方案 E） | **Source**: IMP-008、IMP-009、index.lock 競爭、PC-087

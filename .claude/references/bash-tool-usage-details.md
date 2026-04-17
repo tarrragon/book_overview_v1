@@ -193,6 +193,54 @@ Bash: git add file.md && git commit -m "msg" && git merge feat/xxx --no-edit && 
 
 ---
 
+## 規則五詳細：長文字傳遞預設使用 heredoc
+
+### 心理障礙破除
+
+PM 歷史上多次繞 `/tmp` 寫中介檔（PC-087），根因是**誤以為 heredoc 有容量限制**。實測：
+
+- macOS ARG_MAX = 1,048,576 bytes（1 MB）
+- Linux ARG_MAX 通常 ≥ 2 MB
+- 單次 `ticket track append-log --content "$(cat <<'EOF' ... EOF)"` 可安全傳遞 800 KB+ 純文字
+- 80 行密集中文 markdown 約 3-8 KB，完全在容量內
+
+**為何 PM 仍繞 /tmp**：
+1. LLM 訓練資料中 shell 「長字串用檔案」是常識模式，但那是針對傳統 shell 限制（512 KB 以下）
+2. 沒有容量事實的錨定，直覺保守
+3. `/tmp` 中介看似「更穩」，實際多兩次 IO + 遺留清理負擔
+
+### 正確模式範例
+
+```bash
+ticket track append-log 0.18.0-W15-007 --section Solution --content "$(cat <<'EOF'
+## Solution
+
+實作摘要：
+1. 主檔規則五新增（<30 行）
+2. 規則四交叉引用補充
+3. details.md 補心理障礙破除段
+4. auto-memory 雙通道建立
+EOF
+)"
+```
+
+quoted delimiter (`'EOF'`) 禁用變數展開與 command substitution，內容原樣傳入，安全於 backtick 與 `$var`。
+
+### 後退條件
+
+若 3 個月內（2026-07-18 前）仍偵測到 PM 繞 `/tmp` 寫中介檔案的案例 ≥ 2 次，升級方案：
+
+- 建立 pre-Write hook：Write 目標為 `/tmp/*.md` 且 content > 500 bytes 時警告「長文字應 heredoc 直傳，見 bash 規則五」
+- 參考 W15-005 WRAP 方案 F（Hook 升級路徑）
+
+### 觸發來源
+
+- PC-087（PM 寫 /tmp 中介）直接觸發
+- W15-005 WRAP 分析確認方案 E（規則 + memory + 交叉引用）為最低成本最大覆蓋方案
+- W15-007 落地實作
+
+---
+
 ## 相關文件
 
 - `.claude/rules/core/bash-tool-usage-rules.md` — 規則骨架（auto-load）
@@ -204,6 +252,6 @@ Bash: git add file.md && git commit -m "msg" && git merge feat/xxx --no-edit && 
 
 ---
 
-**Last Updated**: 2026-04-16
-**Version**: 1.0.0 — 從 rules/core/bash-tool-usage-rules.md 拆出（W10-077.4）
-**Source**: IMP-008（cd 污染）、IMP-009（TaskOutput 混淆）、IMP-056（chpwd）、PC-046（高頻違規）、index.lock 競爭
+**Last Updated**: 2026-04-18
+**Version**: 1.1.0 — 新增規則五詳細（心理障礙破除 + 後退條件 + 觸發來源）（W15-007）
+**Source**: IMP-008（cd 污染）、IMP-009（TaskOutput 混淆）、IMP-056（chpwd）、PC-046（高頻違規）、index.lock 競爭、PC-087（PM /tmp 中介）
