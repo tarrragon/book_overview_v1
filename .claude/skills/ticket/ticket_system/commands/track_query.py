@@ -322,6 +322,102 @@ def execute_chain(args: argparse.Namespace, version: str) -> int:
     return 0
 
 
+def _collect_spawned_tree(
+    ticket_id: str,
+    version: str,
+    visited: set,
+    depth: int,
+    lines: List[str],
+) -> None:
+    """
+    遞迴收集 spawned_tickets 樹狀結構到 lines。
+
+    Args:
+        ticket_id: 當前節點 Ticket ID
+        version: 版本號（用於載入子 Ticket）
+        visited: 已造訪集合，用於循環引用防護
+        depth: 縮排深度（每層 2 空格）
+        lines: 輸出行累積器
+    """
+    indent = "  " * depth
+    if ticket_id in visited:
+        lines.append(f"{indent}- {ticket_id} [CYCLE DETECTED, skipped]")
+        return
+    visited.add(ticket_id)
+
+    sub = load_ticket(version, ticket_id)
+    if not sub:
+        lines.append(f"{indent}- {ticket_id} (not_found)")
+        return
+
+    status = sub.get("status", "unknown")
+    title = sub.get("title", "")
+    ttype = sub.get("type", "?")
+    lines.append(f"{indent}- {ticket_id} [{status}] ({ttype}) {title}")
+
+    children_spawned = sub.get("spawned_tickets") or []
+    for child_id in children_spawned:
+        _collect_spawned_tree(child_id, version, visited, depth + 1, lines)
+
+
+def execute_deps(args: argparse.Namespace, version: str) -> int:
+    """
+    顯示 Ticket 衍生關係（spawned_tickets + source_ticket）。
+
+    與 tree/chain（純血緣語意：parent_id/children/chain）分離，對齊業界慣例
+    （Jira/Linear/GitHub）血緣與衍生分離展示。
+
+    輸出：
+    - 目標 Ticket 基本資訊
+    - Spawned IMPs 遞迴樹狀展開（含循環引用防護）
+    - Source ticket（若存在）
+    """
+    ticket, error = load_and_validate_ticket(version, args.ticket_id)
+    if error:
+        return 1
+
+    if _check_yaml_error(ticket, args.ticket_id):
+        return 1
+
+    ticket_id = args.ticket_id
+    title = ticket.get("title", "")
+    ttype = ticket.get("type", "?")
+    status = ticket.get("status", "unknown")
+
+    print(f"{ticket_id} [{status}] ({ttype}) {title}")
+    print(SEPARATOR_CHAR * SEPARATOR_WIDTH)
+
+    # Spawned tickets（遞迴樹狀）
+    spawned = ticket.get("spawned_tickets") or []
+    print(f"\nSpawned Tickets ({len(spawned)}):")
+    if not spawned:
+        print("  （無）")
+    else:
+        visited: set = {ticket_id}  # 將自身加入 visited 防自引用
+        lines: List[str] = []
+        for child_id in spawned:
+            _collect_spawned_tree(child_id, version, visited, 1, lines)
+        for line in lines:
+            print(line)
+
+    # Source ticket
+    source_id = ticket.get("source_ticket")
+    print(f"\nSource Ticket:")
+    if not source_id:
+        print("  （無）")
+    else:
+        src = load_ticket(version, source_id)
+        if not src:
+            print(f"  - {source_id} (not_found)")
+        else:
+            src_status = src.get("status", "unknown")
+            src_type = src.get("type", "?")
+            src_title = src.get("title", "")
+            print(f"  - {source_id} [{src_status}] ({src_type}) {src_title}")
+
+    return 0
+
+
 def execute_full(args: argparse.Namespace, version: str) -> int:
     """顯示 Ticket 完整內容"""
     ticket, error = load_and_validate_ticket(version, args.ticket_id)

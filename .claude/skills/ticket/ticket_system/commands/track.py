@@ -49,6 +49,7 @@ from .track_query import (
     execute_summary,
     execute_tree,
     execute_chain,
+    execute_deps,
     execute_full,
     execute_log,
     execute_list,
@@ -159,6 +160,7 @@ def _create_command_handlers() -> dict:
         "search": execute_search,
         "release": _execute_release,
         "chain": execute_chain,
+        "deps": execute_deps,
         "full": execute_full,
         "log": execute_log,
         "batch-claim": execute_batch_claim,
@@ -337,6 +339,14 @@ def _register_query_commands(
     p_chain = subparsers.add_parser("chain", help=TrackMessages.HELP_CHAIN)
     p_chain.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
     p_chain.add_argument("--version", help=TrackMessages.ARG_VERSION)
+
+    # deps 操作：顯示衍生關係（spawned_tickets + source_ticket）
+    p_deps = subparsers.add_parser(
+        "deps",
+        help="顯示 Ticket 衍生關係（spawned_tickets + source_ticket，與 tree/chain 血緣分離）",
+    )
+    p_deps.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
+    p_deps.add_argument("--version", help=TrackMessages.ARG_VERSION)
 
     # full 操作
     p_full = subparsers.add_parser("full", help=TrackMessages.HELP_FULL)
