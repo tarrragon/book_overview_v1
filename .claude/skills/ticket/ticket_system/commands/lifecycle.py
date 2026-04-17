@@ -24,6 +24,7 @@ from ticket_system.lib.ticket_loader import (
     load_ticket,
     save_ticket,
 )
+from ticket_system.lib.staleness import format_stale_warning
 from ticket_system.lib.ticket_validator import (
     validate_claimable_status,
     validate_completable_status,
@@ -1338,15 +1339,12 @@ def execute_claim(args: argparse.Namespace, version: str) -> int:
     """
     # Stale 提示（pending 超過 7 天；靜默失敗不影響 claim 主流程）
     try:
-        from ticket_system.lib.staleness import format_stale_warning
-
         ticket = load_ticket(version, args.ticket_id)
         if ticket:
             warning = format_stale_warning(ticket)
             if warning:
                 print(warning)
     except Exception as exc:  # 不可因 stale 檢查失敗阻擋 claim
-        import sys
         sys.stderr.write(f"[staleness] claim 前檢查異常：{exc}\n")
 
     lifecycle = TicketLifecycle(version)

@@ -37,7 +37,10 @@ from ticket_system.lib.ticket_loader import (
     resolve_version,
     list_tickets,
 )
-from ticket_system.lib.ticket_validator import validate_ticket_id
+from ticket_system.lib.ticket_validator import (
+    validate_ticket_id,
+    validate_acceptance_criteria,
+)
 from ticket_system.lib.messages import (
     ErrorMessages,
     WarningMessages,
@@ -213,8 +216,6 @@ def _check_all_acceptance_complete(ticket: Dict[str, Any]) -> bool:
     Returns:
         bool: True 表示全部已勾選，False 表示有未完成項目或無驗收條件
     """
-    from ticket_system.lib.ticket_validator import validate_acceptance_criteria
-
     acceptance_list = ticket.get("acceptance")
     if not acceptance_list:
         return False  # 無驗收條件，不觸發警告
