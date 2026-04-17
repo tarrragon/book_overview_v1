@@ -24,7 +24,7 @@ WRAP 框架的持續監控機制。絆腳索不告訴你該怎麼做，而是提
 |------|---------|------|---------|
 | **成功捕捉** | 任務完成時 | 問「有意外的成功值得記錄？」 | 完成 Checkpoint 整合 |
 | **學習捕捉** | Session 結束時 | 問「學到什麼可推廣的做法？」 | 學習捕捉 skill |
-| **發現捕捉** | 開發途中發現新模式 | 記錄到 error-patterns 或 insights | 主動紀錄 + 提醒機制 |
+| **發現捕捉** | 開發途中發現新模式 | 記錄到錯誤模式知識庫或 insights | 主動紀錄 + 提醒機制 |
 
 ---
 
@@ -93,7 +93,7 @@ Skill 不需要每次都跑完整 WRAP 流程。
 - **切割** — Atomic work unit / 階段性 checkpoint 機制
 - **正面捕捉** — 學習捕捉 / retrospective / 知識庫記錄
 
-本專案的具體整合（Hook 訊號對應、CLI 提醒訊息、狀態追蹤、自動觸發機制、pm-rules 對應）見 `references/project-integration/triggers-alignment.md`。
+各專案的具體整合（Hook 訊號對應、CLI 提醒訊息、狀態追蹤、自動觸發機制、規則系統對應）詳見 SKILL 尾部「本專案落地」索引。
 
 ---
 
