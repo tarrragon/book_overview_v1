@@ -1,10 +1,11 @@
-"""Group E：效能測試（AC6 <100ms + use_cache 接口一致性）。
+"""Group E：效能測試（AC6 <100ms）。
 
 Phase 2 §3 Group E / Phase 3a §5：
 - E1: 真實 tmp git repo end-to-end 執行 30 次，中位 <100ms + p95 <150ms
-- E2: use_cache=False vs use_cache=True（Phase 1 noop）行為一致
 
 thyme 先前實測 5 個 subprocess 序列中位 52ms / p95 84ms，應寬鬆通過。
+
+Phase 4 TD1：use_cache 參數本體已刪除（YAGNI），原 E2 接口一致性測試移除。
 """
 
 from __future__ import annotations
@@ -49,7 +50,6 @@ def test_E1_checkpoint_state_performance_median_under_100ms(
         start = time.perf_counter()
         state = checkpoint_state(
             ticket_id="W10-017.8",
-            use_cache=False,
             log_metrics=False,  # 避免 log I/O 污染量測
             caller="perf-test",
             project_root=tmp_git_repo,
@@ -69,32 +69,4 @@ def test_E1_checkpoint_state_performance_median_under_100ms(
     )
 
 
-# ---------------------------------------------------------------------------
-# E2：use_cache=False vs True 接口一致性（Phase 1 noop）
-# ---------------------------------------------------------------------------
-
-
-def test_E2_use_cache_interface_consistency(
-    tmp_git_repo: Path, mock_ticket_query, frozen_time,
-):
-    """Phase 1 use_cache 僅留接口，兩種呼叫應產生等價 state（除 computed_at）。"""
-    mock_ticket_query(ids=["X"])
-
-    state_no_cache = checkpoint_state(
-        ticket_id="W10-017.8", use_cache=False, log_metrics=False,
-        caller="test", project_root=tmp_git_repo,
-    )
-    state_cache = checkpoint_state(
-        ticket_id="W10-017.8", use_cache=True, log_metrics=False,
-        caller="test", project_root=tmp_git_repo,
-    )
-
-    # 關鍵推導欄位必須一致（接口契約）
-    assert state_no_cache.current_phase == state_cache.current_phase
-    assert state_no_cache.phase_label == state_cache.phase_label
-    assert state_no_cache.ready_for_clear == state_cache.ready_for_clear
-    assert state_no_cache.active_agents == state_cache.active_agents
-    assert state_no_cache.uncommitted_files == state_cache.uncommitted_files
-    assert state_no_cache.unmerged_worktrees == state_cache.unmerged_worktrees
-    assert state_no_cache.active_handoff == state_cache.active_handoff
-    assert state_no_cache.in_progress_tickets == state_cache.in_progress_tickets
+# E2 已移除：Phase 4 TD1 刪除 use_cache 參數本體（YAGNI）

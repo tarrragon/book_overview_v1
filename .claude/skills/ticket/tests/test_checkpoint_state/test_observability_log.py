@@ -128,7 +128,7 @@ def test_D3_log_metrics_false_skips_write(
     assert not log_path.exists()
 
     checkpoint_state(
-        ticket_id=None, use_cache=False, log_metrics=False, caller="test",
+        ticket_id=None, log_metrics=False, caller="test",
         project_root=tmp_git_repo,
     )
 
@@ -155,7 +155,7 @@ def test_D4_write_failure_fail_open(
 
     # 主流程不該拋
     state = checkpoint_state(
-        ticket_id=None, use_cache=False, log_metrics=True, caller="test",
+        ticket_id=None, log_metrics=True, caller="test",
         project_root=tmp_git_repo,
     )
     assert isinstance(state, CheckpointState)
@@ -228,7 +228,7 @@ def test_D6_caller_field_propagated(
 ):
     mock_ticket_query(ids=[])
     checkpoint_state(
-        ticket_id=None, use_cache=False, log_metrics=True,
+        ticket_id=None, log_metrics=True,
         caller="handoff-ready", project_root=tmp_git_repo,
     )
     log_path = tmp_git_repo / ".claude" / "logs" / "pm-automation-metrics.jsonl"

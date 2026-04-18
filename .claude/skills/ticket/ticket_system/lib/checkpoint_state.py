@@ -406,13 +406,6 @@ _METRICS_LOG_RELPATH = Path(".claude/logs/pm-automation-metrics.jsonl")
 _METRICS_LOG_ROTATE_BYTES = 10 * 1024 * 1024  # 10 MB
 
 
-class CheckpointStateError(Exception):
-    """關鍵資料來源失敗且無 fallback 時使用。
-
-    Phase 1 預留但不觸發；Phase 4 TD5 再決定觸發條件。
-    """
-
-
 def _write_metrics_log(
     state: CheckpointState,
     caller: Optional[str],
@@ -477,7 +470,6 @@ def _write_metrics_log(
 def checkpoint_state(
     ticket_id: Optional[str] = None,
     *,
-    use_cache: bool = False,
     log_metrics: bool = True,
     caller: Optional[str] = None,
     project_root: Optional[Path] = None,
@@ -486,16 +478,12 @@ def checkpoint_state(
 
     Args:
         ticket_id: 當前 ticket 識別（None = 使用 in_progress 推導）。
-        use_cache: Phase 1 僅留接口（noop，無快取實作）。
         log_metrics: False 時不寫 metrics log（單元測試隔離）。
         caller: 呼叫端識別（如 "snapshot"/"dispatch-check"），寫入 log caller 欄位。
         project_root: 測試注入用；預設呼叫 get_project_root()。
 
     Returns:
         CheckpointState（已填完所有欄位 + computed_at + data_sources）。
-
-    Raises:
-        CheckpointStateError: 關鍵資料來源失敗且無 fallback（Phase 1 預留不觸發）。
     """
 
     start = time.perf_counter()
@@ -513,7 +501,8 @@ def checkpoint_state(
         lambda: _read_dispatch_active(root),
         errors, pending, "dispatch-active", fallback=(0, {}),
     )
-    active_agents = agents_tuple[0] if isinstance(agents_tuple, tuple) else 0
+    # SAFE_CALL fallback=(0, {}) 保證 agents_tuple 必為 tuple
+    active_agents = agents_tuple[0]
 
     active_handoff = SAFE_CALL(
         lambda: _read_handoff_pending(root),
@@ -563,7 +552,9 @@ def checkpoint_state(
     if log_metrics:
         try:
             _write_metrics_log(state, caller, duration_ms, errors, project_root=root)
-        except Exception as e:  # noqa: BLE001 - fail-open 邊界；規則 4 stderr 保留可見性
+        except (OSError, json.JSONDecodeError, TypeError) as e:
+            # fail-open 邊界；規則 4 stderr 保留可見性
+            # whitelist 對齊 SAFE_CALL IO_ERRORS 哲學（檔案 I/O + JSON + 序列化）
             sys.stderr.write(
                 f"[checkpoint_state] metrics log write failed: "
                 f"{type(e).__name__}: {e}\n"
@@ -574,7 +565,6 @@ def checkpoint_state(
 
 __all__ = [
     "CheckpointState",
-    "CheckpointStateError",
     "PendingCheck",
     "PRIORITIES",
     "FALLBACK",
