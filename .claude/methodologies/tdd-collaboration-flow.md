@@ -1235,7 +1235,7 @@ Phase 3 實作完成
 
 **新增要求 - 需求註解撰寫**:
 
-重構設計師必須遵循「[程式碼註解撰寫方法論]($CLAUDE_PROJECT_DIR/.claude/methodologies/comment-writing-methodology.md)」執行以下任務：
+重構設計師必須遵循「[程式碼註解撰寫規範]($CLAUDE_PROJECT_DIR/.claude/skills/compositional-writing/references/writing-code-comments.md)」執行以下任務：
 
 - **全面檢視設計文件**: 重新審查所有相關需求規格和設計文件
 - **需求註解覆蓋**: 為所有業務邏輯函式新增需求脈絡註解

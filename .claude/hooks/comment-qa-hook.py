@@ -35,7 +35,7 @@ Comment Quality Assurance Hook - 註解品質保證檢查 (v3.0 多語言支援)
 配置: .claude/hooks/comment-qa-config.yaml (可選)
 
 參考規範:
-- .claude/methodologies/comment-writing-methodology.md
+- .claude/skills/compositional-writing/references/writing-code-comments.md
 - docs/event-driven-architecture-design.md
 
 版本: v3.0
@@ -627,7 +627,7 @@ def generate_report(
 
     report_lines.extend([
         "## [DOC] 註解規範參考",
-        "- `.claude/methodologies/comment-writing-methodology.md` - 註解撰寫方法論",
+        "- `.claude/skills/compositional-writing/references/writing-code-comments.md` - 註解撰寫規範",
         "- `docs/event-driven-architecture-design.md` - 事件驅動架構規範",
         "- 註解必須記錄「為什麼」而非「做什麼」",
         "- 註解必須包含需求來源和工作日誌追溯",
@@ -778,7 +778,7 @@ def main():
             output += f"[OK] {len(auxiliary_funcs)} 個輔助函式和 {len(dependent_widgets)} 個依賴型 Widget 已正確豁免\n\n"
 
         output += f"詳細報告已儲存: {report_path.relative_to(PROJECT_ROOT)}\n\n"
-        output += "[DOC] 註解規範: .claude/methodologies/comment-writing-methodology.md\n"
+        output += "[DOC] 註解規範: .claude/skills/compositional-writing/references/writing-code-comments.md\n"
 
         json_output = {
             "hookSpecificOutput": {

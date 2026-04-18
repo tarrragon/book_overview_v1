@@ -714,7 +714,7 @@ parsley-flutter-developer (Phase 3b)
 |--------|------------|
 | .claude/methodologies/package-import-methodology.md | 統一 package 格式、消除別名、架構透明化 |
 | .claude/methodologies/natural-language-programming-methodology.md | 可讀性檢查、五行函式、變數職責專一化 |
-| .claude/methodologies/comment-writing-methodology.md | 需求註解覆蓋、維護指引、語意化命名 |
+| .claude/skills/compositional-writing/references/writing-code-comments.md | 需求註解覆蓋、維護指引、語意化命名 |
 
 ---
 

@@ -260,7 +260,7 @@ class DartParser(LanguageParser):
         """
         檢查是否有完整的追溯註解
 
-        完整註解標準（基於 comment-writing-methodology.md）:
+        完整註解標準（基於 writing-code-comments.md）:
         - 必須包含「需求來源」或「需求」關鍵字
         - 必須包含「規格文件」或「工作日誌」關鍵字
         - 或包含具體的需求編號（UC-, BR-）和文件路徑（docs/）

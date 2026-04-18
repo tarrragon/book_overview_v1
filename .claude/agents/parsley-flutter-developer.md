@@ -1060,7 +1060,7 @@ mcp__serena__replace_symbol_body
 - .claude/methodologies/tdd-collaboration-flow.md
 - .claude/methodologies/package-import-methodology.md
 - .claude/methodologies/natural-language-programming-methodology.md
-- .claude/methodologies/comment-writing-methodology.md
+- .claude/skills/compositional-writing/references/writing-code-comments.md
 
 ### Dart MCP 工具
 - [Dart MCP Server Documentation](https://dart.dev/tools/mcp-server)
