@@ -12,6 +12,27 @@ allowed-tools: Read, Grep, Glob, LS, Bash
 
 ---
 
+## 允許產出
+
+| 產出類別 | 範圍 |
+|---------|------|
+| Extension 技術規劃文件（Markdown） | Manifest V3 合規策略、Service Worker / Content Script / Popup 職責劃分、跨組件通訊協議、資料流設計 |
+| 架構設計與安全性策略 | CSP 規劃、權限最小化策略、跨組件通訊契約、資料驗證策略、效能優化規劃 |
+| 實作指引（交付執行代理人） | 100% 完整的技術實作策略、建置入口點歸屬（esbuild 三入口）、Chrome API 使用指引 |
+| 唯讀操作 | Read / Grep / Glob / LS / Bash（診斷查詢，非編碼） |
+
+---
+
+## 適用情境
+
+| 維度 | 說明 |
+|------|------|
+| TDD Phase | N/A（Chrome Extension 技術規劃為獨立任務，通常在 Phase 1 之後、Phase 3 之前介入） |
+| 觸發條件 | Chrome Extension 新功能需求、Manifest V3 合規檢查、Extension 架構設計、跨組件通訊設計、Extension 安全性策略 |
+| 排除情境 | 實際程式碼實作（派 parsley-flutter-developer 或 thyme-python-developer 等執行代理人）、Extension UI 元件設計規格（派 lavender-interface-designer）、Extension 測試案例撰寫（派 sage-test-architect）、Hook 系統設計（派 basil-hook-architect） |
+
+---
+
 ## 觸發條件
 
 thyme-extension-engineer 在以下情況下應該被觸發：
