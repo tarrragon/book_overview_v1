@@ -286,6 +286,44 @@ Claude Code 內建了官方的 memory 系統（`~/.claude/projects/{project}/mem
 | PC-050 | 過早判斷代理人完成 | 中 | v0.17.3 |
 | PC-051 | 過早宣稱不可能 | 中 | v0.17.3 |
 | PC-052 | 忽略既有 error-pattern 警告直接實作 | 中 | v0.17.3 |
+| PC-053 | PM 對「小修改」跳過 Ticket 和 error-pattern 記錄 | 中 | v0.18.0 |
+| PC-054 | 分析視角錨定在防禦性限制而非品質目標 | 中 | v0.18.0 |
+| PC-055 | Ticket AC 與實況漂移未被系統偵測 | 中 | v0.18.0 |
+| PC-056 | parallel-evaluation 強勢視角結論直接轉執行 Ticket 而未經 WRAP 驗證 | 中 | v0.18.0 |
+| PC-057 | PM 派發 prompt 要求超出代理人職責範圍，代理人無防線照做導致越界 | 中 | v0.18.0 |
+| PC-058 | ANA 代理人建立 follow-up Ticket 的 metadata 權威性不足 | 中 | v0.18.0 |
+| PC-059 | 代理人 frontmatter Tools 宣告 ≠ 實際 runtime 權限 | 中 | v0.18.0 |
+| PC-060 | 未使用 ToolSearch 發現 Claude Code deferred tools 導致採限制性解法 | 中 | v0.18.0 |
+| PC-061 | Memory 寫入後未評估升級為框架規則 | 中 | v0.18.0 |
+| PC-062 | 派發後焦慮性檢查違規 | 中 | v0.18.0 |
+| PC-063 | ANA 階段過早收斂於假設方案，未做重現實驗驗證根因 | 中 | v0.18.0 |
+| PC-064 | PM 列純文字選項而未使用 AskUserQuestion | 中 | v0.18.0 |
+| PC-065 | PM 並行派發多代理人時 prompt 模板遺漏 Ticket ID 格式 | 低 | v0.18.0 |
+| PC-066 | 輔助決策系統未在 Context 沉重時主動觸發 | 中 | v0.18.0 |
+| PC-067 | 執行 ANA 規劃時未質疑規劃本身的設計品質 | 中 | v0.18.0 |
+| PC-068 | Phase 3a 規劃新建既有 utility 而未先掃描重用 | 中 | v0.18.0 |
+| PC-069 | Subagent 被擋時多檔案機械性修改的批次腳本策略 | 中 | v0.18.0 |
+| PC-070 | PM 用 Hook 廣播訊號推論代理人失敗（跳過 TaskOutput status 查詢） | 中 | v0.18.0 |
+| PC-071 | 個人化建議未詢問當事人條件（視野狹窄偏誤） | 中 | v0.18.0 |
+| PC-072 | AskUserQuestion payload 生成時混入簡體字與 emoji | 中 | v0.18.0 |
+| PC-073 | ANA 衍生 IMP Ticket 誤用 --parent 導致 children 關係，complete 時被 acceptance-gate 擋下 | 低 | v0.18.0 |
+| PC-074 | 字元集守衛 Hook 實作時的繁簡共用字 false positive | 低 | v0.18.0 |
+| PC-075 | spawned 與 children 狀態檢查語義不對稱 | 中 | v0.18.0 |
+| PC-076 | Session 間未 commit 變更在後續 session 執行中意外浮現 | 中 | v0.18.0 |
+| PC-077 | Hook 強制 worktree vs ARCH-015 `.claude/` 保護的派發死結 | 中 | v0.18.0 |
+| PC-078 | 並行 terminal/session 的 Ticket 狀態異動被誤判為前 session 遺留 | 高 | v0.18.0 |
+| PC-079 | Bash CLI 參數含 backtick 被解析為 command substitution | 中 | v0.18.0 |
+| PC-080 | WRAP A 階段未檢查問題框架（選項全在同一框架內，違反 Consider the Opposite） | 中 | v0.18.0 |
+| PC-081 | PM 自我檢查標準比用戶規則更嚴格（保守偏見導致過早收斂） | 中 | v0.18.0 |
+| PC-082 | 修復 regression 時選還原舊值而非移除（忽略全域規則適用範圍） | 中 | v0.18.0 |
+| PC-083 | framework 檔案 footer/metadata 誤寫專案 Wave/Patch 識別符 | 低 | v0.18.0 |
+| PC-084 | 日文漢字清單誤列繁日共用字 false positive | 低 | v0.18.0 |
+| PC-085 | CJK 漢字相鄰 codepoint 在 XXXX escape 中的肉眼混淆 | 低 | v0.18.0 |
+| PC-086 | Subagent 建 Hook 腳本缺執行權限（exec bit） | 中 | v0.18.0 |
+| PC-087 | PM 寫 /tmp 中介檔作為 ticket 內容寫入繞路 | 中 | v0.18.0 |
+| PC-088 | LLM 對 tool call 路徑的步驟數估算偏誤 | 中 | v0.18.0 |
+| PC-089 | Hook 豁免路徑與 Ticket 寫入範圍不一致 | 中 | v0.18.0 |
+| PC-090 | 推延性 close 反模式 | 中 | v0.18.0 |
 
 ---
 
