@@ -1,25 +1,20 @@
-"""CheckpointState dataclass + Checkpoint 推導邏輯 + 5 層 fail-open 資料來源。
+"""CheckpointState dataclass + Checkpoint 推導 + 5 層 fail-open 資料來源 + 主函式 + 觀測 log。
 
-派發 1 範圍（0.18.0-W10-017.8 Phase 3b）：
-- §1.1 CheckpointState / PendingCheck dataclass
-- §1.4 _derive_checkpoint 的 priority table + FALLBACK + 迴圈查表
+派發 1 範圍：dataclass + 決策推導 priority table。
+派發 2 範圍：SAFE_CALL + 5 個 _read_* 資料來源。
+派發 3 範圍（本次）：
+- §4 _write_metrics_log(state, caller, duration_ms, errors) + 10MB rotate（fail-open）
+- §1.2 checkpoint_state() 主函式串接 SAFE_CALL → _derive_checkpoint → log
 
-派發 2 範圍（Group B + F）：
-- §1.3 SAFE_CALL helper + IO_ERRORS 白名單
-- 5 個 _read_* 資料來源函式（fail-open，只捕獲 I/O 類例外）
-- 模組邊界：不 import track_snapshot / track_query
-
-不在派發 2 範圍：
-- _write_metrics_log（派發 3 Group D）
-- checkpoint_state() 主函式完整串接（派發 3）
-
-設計依據：Phase 3a §1.1 / §1.3 / §1.4；Phase 2 §3 Group A / B / C / F。
+設計依據：Phase 3a §1.2 / §4 / §5；Phase 2 §3 Group D / E。
 """
 
 from __future__ import annotations
 
 import json
 import subprocess
+import sys
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -402,15 +397,193 @@ def _read_git_worktrees(project_root: Optional[Path] = None) -> List[str]:
     return paths
 
 
+# ---------------------------------------------------------------------------
+# 觀測 log 寫入（Phase 3a §4 / Phase 2 §3 Group D）
+# ---------------------------------------------------------------------------
+
+# Phase 3a §4：log 路徑與 rotate 策略
+_METRICS_LOG_RELPATH = Path(".claude/logs/pm-automation-metrics.jsonl")
+_METRICS_LOG_ROTATE_BYTES = 10 * 1024 * 1024  # 10 MB
+
+
+class CheckpointStateError(Exception):
+    """關鍵資料來源失敗且無 fallback 時使用。
+
+    Phase 1 預留但不觸發；Phase 4 TD5 再決定觸發條件。
+    """
+
+
+def _write_metrics_log(
+    state: CheckpointState,
+    caller: Optional[str],
+    duration_ms: float,
+    errors: Dict[str, str],
+    *,
+    project_root: Optional[Path] = None,
+) -> None:
+    """Append 一行 JSONL 到 pm-automation-metrics.jsonl（fail-open）。
+
+    Schema（Phase 3a §4.1 / Phase 2 §3 Group D1）：
+        ts / event / caller / ticket_id / current_phase / ready_for_clear
+        / active_agents / uncommitted_files / duration_ms / data_source_errors
+
+    Rotate：檔案 > 10 MB 時 rename 為 .1.jsonl（保留一份歷史），新檔從 0 開始。
+
+    Fail-open（規則 4 雙通道）：寫入失敗時 stderr warning + 不阻斷主流程。
+    呼叫端（checkpoint_state）另外以 try/except 包住此函式本身保底。
+    """
+
+    root = project_root or get_project_root()
+    log_path = root / _METRICS_LOG_RELPATH
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Rotate（預寫檢查）
+    try:
+        if log_path.exists() and log_path.stat().st_size > _METRICS_LOG_ROTATE_BYTES:
+            rotated = log_path.with_suffix(".1.jsonl")
+            if rotated.exists():
+                rotated.unlink()
+            log_path.rename(rotated)
+    except OSError as rot_err:
+        # rotate 失敗不阻斷；stderr warning 但繼續寫原檔
+        sys.stderr.write(
+            f"[checkpoint_state] metrics log rotate failed: {rot_err}\n"
+        )
+
+    data_source_errors = [k for k, v in errors.items() if v != "ok"]
+
+    entry = {
+        "ts": state.computed_at,
+        "event": "checkpoint_state",
+        "caller": caller or "unknown",
+        "ticket_id": state._ticket_id or "",
+        "current_phase": state.current_phase,
+        "ready_for_clear": state.ready_for_clear,
+        "active_agents": state.active_agents,
+        "uncommitted_files": state.uncommitted_files,
+        "duration_ms": round(duration_ms, 2),
+        "data_source_errors": data_source_errors,
+    }
+
+    with log_path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+
+# ---------------------------------------------------------------------------
+# checkpoint_state() 主函式（Phase 3a §1.2 整合）
+# ---------------------------------------------------------------------------
+
+
+def checkpoint_state(
+    ticket_id: Optional[str] = None,
+    *,
+    use_cache: bool = False,
+    log_metrics: bool = True,
+    caller: Optional[str] = None,
+    project_root: Optional[Path] = None,
+) -> CheckpointState:
+    """整合 5 層 SAFE_CALL 資料收集 → _derive_checkpoint → metrics log。
+
+    Args:
+        ticket_id: 當前 ticket 識別（None = 使用 in_progress 推導）。
+        use_cache: Phase 1 僅留接口（noop，無快取實作）。
+        log_metrics: False 時不寫 metrics log（單元測試隔離）。
+        caller: 呼叫端識別（如 "snapshot"/"dispatch-check"），寫入 log caller 欄位。
+        project_root: 測試注入用；預設呼叫 get_project_root()。
+
+    Returns:
+        CheckpointState（已填完所有欄位 + computed_at + data_sources）。
+
+    Raises:
+        CheckpointStateError: 關鍵資料來源失敗且無 fallback（Phase 1 預留不觸發）。
+    """
+
+    start = time.perf_counter()
+    root = project_root or get_project_root()
+
+    errors: Dict[str, str] = {}
+    pending: List[PendingCheck] = []
+
+    # Step 1：5 層 fail-open 資料收集
+    uncommitted = SAFE_CALL(
+        lambda: _read_git_status(root),
+        errors, pending, "git-status", fallback=None,
+    )
+    agents_tuple = SAFE_CALL(
+        lambda: _read_dispatch_active(root),
+        errors, pending, "dispatch-active", fallback=(0, {}),
+    )
+    active_agents = agents_tuple[0] if isinstance(agents_tuple, tuple) else 0
+
+    active_handoff = SAFE_CALL(
+        lambda: _read_handoff_pending(root),
+        errors, pending, "handoff-pending", fallback=None,
+    )
+    in_progress = SAFE_CALL(
+        lambda: _query_in_progress_tickets(root),
+        errors, pending, "ticket-query", fallback=[],
+    )
+    worktrees = SAFE_CALL(
+        lambda: _read_git_worktrees(root),
+        errors, pending, "git-worktree", fallback=[],
+    )
+
+    # Step 2：先組半成品 state 讓 _derive_checkpoint 可查
+    state = CheckpointState(
+        current_phase="",
+        phase_label="",
+        next_action="",
+        ready_for_clear=False,
+        pending_checks=pending,
+        active_agents=active_agents,
+        unmerged_worktrees=list(worktrees),
+        active_handoff=active_handoff,
+        in_progress_tickets=list(in_progress),
+        data_sources=dict(errors),
+        computed_at=_utc_now_iso(),
+        uncommitted_files=uncommitted,
+        _ticket_id=ticket_id,
+    )
+
+    # Step 3：推導 Checkpoint
+    phase, label, action = _derive_checkpoint(state)
+    state.current_phase = phase
+    state.phase_label = label
+    state.next_action = action
+
+    # Step 4：ready_for_clear
+    state.ready_for_clear = (
+        phase in {"2", "3"}
+        and all(not c.auto_detectable for c in pending)
+    )
+
+    duration_ms = (time.perf_counter() - start) * 1000.0
+
+    # Step 5：觀測 log（fail-open；規則 4 stderr + log 雙通道）
+    if log_metrics:
+        try:
+            _write_metrics_log(state, caller, duration_ms, errors, project_root=root)
+        except Exception as e:  # noqa: BLE001 - fail-open 邊界；規則 4 stderr 保留可見性
+            sys.stderr.write(
+                f"[checkpoint_state] metrics log write failed: "
+                f"{type(e).__name__}: {e}\n"
+            )
+
+    return state
+
+
 __all__ = [
     "CheckpointState",
+    "CheckpointStateError",
     "PendingCheck",
     "PRIORITIES",
     "FALLBACK",
     "IO_ERRORS",
     "SAFE_CALL",
+    "checkpoint_state",
     "_derive_checkpoint",
     "_utc_now_iso",
+    "_write_metrics_log",
     "_read_git_status",
     "_read_dispatch_active",
     "_read_handoff_pending",
