@@ -255,6 +255,26 @@ PM 用 AUQ 前的自檢：這是哪種題型？
 
 > 各場景完整操作細節、選項配置、工具能力說明：.claude/references/askuserquestion-scene-details.md
 
+## 選項前提檢查（強制）
+
+> **來源**：W11-011（PM 在仍有 83 pending 時 AUQ 選項 3 提 `/version-release check`，description 附 disclaimer「顯然不時但可行」——前後矛盾等於自承假選項，違反規則 5.6 機制 4 illusion of control）。
+
+產出 AUQ 選項前，必須對每個選項自問「此選項的觸發前提是否成立？」
+
+| 檢查項 | 正確行為 | 違規訊號 |
+|--------|---------|---------|
+| 前提驗證 | 前提不成立 → **刪除該選項**，不列入 AUQ | 列出後附 disclaimer 合理化 |
+| Disclaimer 使用 | 描述選項的事實後果或 trade-off | 「顯然不時但可行」「不推薦但列出」「次選參考」等合理化用語 |
+| 規則條款路徑引用 | 引用具體路徑觸發對應情境的選項 | 把互斥情境（C1 vs C2）的動作都列為選項 |
+
+**假選項訊號清單**（任一出現即須刪除該選項）：
+
+1. Description 含「顯然不適用」「雖然但」「不推薦但可行」等前後矛盾詞
+2. 選項觸發前提（如「所有 Wave 完成」「無任何 pending」）在當前情境不成立
+3. 同一 AUQ 中混合互斥場景的動作（例：場景 3 的 C1 分支時也列 C2 動作）
+
+**典型案例**：場景 3「Wave/任務收尾」有互斥兩支 —— C1「有其他 Wave pending」走技術債整理，C2「全完成」走 `/version-release check`。PM 必須依當前實況選擇其一，**不得並列**。
+
 ## 違規處理
 
 | 違規行為 | 處理方式 |
@@ -262,6 +282,7 @@ PM 用 AUQ 前的自檢：這是哪種題型？
 | 文字提問替代 AskUserQuestion | 停止，改用 AskUserQuestion |
 | 跳過確認直接執行 | 提醒後繼續 |
 | 未載入就使用 AskUserQuestion | ToolSearch 載入後重試 |
+| 假選項（前提不成立仍列出） | 刪除該選項後重新產出 AUQ |
 
 ---
 
