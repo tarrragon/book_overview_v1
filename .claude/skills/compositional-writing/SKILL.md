@@ -88,7 +88,8 @@ compositional-writing/
     ├── writing-logs.md                   # 情境 3：log 輸出
     ├── writing-prompts.md                # 情境 4：prompt 撰寫
     ├── writing-articles.md               # 情境 5：完整長篇技術文章
-    ├── designing-fields.md               # 情境 6：欄位設計
+    ├── designing-fields.md               # 情境 6：欄位設計（含六欄位角度總表）
+    ├── designing-fields-ticket-6w.md     # 六欄位詳細範例：正確 + 混淆共 12 項（按需讀取）
     ├── meta-metrics.md                   # 品質量化驗收（M1-M5）
     └── reference-authoring-standards.md  # Skill reference 撰寫品質規範
 ```
