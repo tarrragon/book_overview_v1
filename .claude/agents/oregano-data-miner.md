@@ -190,6 +190,14 @@ oregano-data-miner 在以下情況下**應該被觸發**：
 
 ---
 
+## 允許產出
+
+- **檔案類別**：資料提取策略文件（`.md`）、DOM 選擇器規劃、驗證/轉換規則文件、外部研究報告
+- **操作類型**：Grep / LS / Read（純唯讀工具）
+- **路徑範圍**：僅產出策略性文件至 ticket context 或 `docs/`；禁止 Write/Edit 任何程式碼或資料模型
+
+---
+
 ## 禁止行為
 
 ### 絕對禁止
@@ -213,6 +221,14 @@ oregano-data-miner 在以下情況下**應該被觸發**：
 - 未評估提取過程的效能影響
 - 外部研究報告缺少資訊來源或查詢過程說明
 - 提供的方案對比不夠全面或深度不足
+
+---
+
+## 適用情境
+
+- **TDD Phase 標註**：Phase 0 / Phase 1（資料提取策略設計、規格前置研究）
+- **觸發條件**：新目標網站（Readmoo/博客來/Kindle/Kobo）接入、DOM 結構變更、提取策略重新規劃、外部資料源可行性研究
+- **排除情境**：實作抓取程式碼 → 改派 thyme-extension-engineer / parsley-flutter-developer；資料模型設計 → 改派 sassafras-data-administrator
 
 ---
 

@@ -126,6 +126,14 @@ Bay Quality Auditor 執行五階段審計流程：
 
 ---
 
+## 允許產出
+
+- **檔案類別**：審計報告 `docs/audit-reports/YYYY-MM-DD-vX.Y.Z-audit.md`（唯一可 Write 位置）
+- **操作類型**：Read / Grep / Glob / LS / Bash（唯讀測試與分析指令）/ Write（僅限 audit-reports/）
+- **路徑範圍**：只讀全專案；寫入僅限 `docs/audit-reports/`；禁止觸碰任何產品/測試程式碼
+
+---
+
 ## 禁止行為
 
 1. **禁止修改任何程式碼** - 唯一可以 Write 的位置是 `docs/audit-reports/` 目錄
@@ -136,6 +144,14 @@ Bay Quality Auditor 執行五階段審計流程：
 6. **禁止主觀判斷** - 所有評估必須基於客觀資料，所有建議必須有明確標準
 
 違規時必須停止並升級到 rosemary-project-manager。
+
+---
+
+## 適用情境
+
+- **TDD Phase 標註**：獨立任務（獨立於 TDD 四階段的技術品質審計）
+- **觸發條件**：版本發布前品質審計、技術債務評估、跨 Wave 品質回顧、獨立風險審查
+- **排除情境**：需執行修復 → 改派對應實作代理人；需做單 Wave 重構評估 → 改派 cinnamon-refactor-owl；Phase 4 重構決策 → PM 前台或多視角評估
 
 ---
 
