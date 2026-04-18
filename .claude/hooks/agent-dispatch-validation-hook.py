@@ -61,6 +61,79 @@ _NON_CLAUDE_PATH_PATTERN = re.compile(
     r"(?<![./\w])(?:src|tests?|lib|app|assets|scripts|public|bin|cmd)/"
 )
 
+# W5-047.2: 廣域 staging 偵測（PC-092 防護）
+# 匹配 `git add .` / `git add -A` / `git add --all`（允許額外空白）
+# 排除 `git add --`（具體路徑引導符）、`git add src/x` 等精準路徑
+_WIDE_STAGING_PATTERN = re.compile(
+    r"\bgit\s+add\s+(?:\.(?=\s|$)|-A\b|--all\b)"
+)
+
+
+def _has_wide_staging(prompt: str) -> bool:
+    """偵測 prompt 是否含廣域 git staging 指令（git add . / -A / --all）。"""
+    if not prompt:
+        return False
+    return bool(_WIDE_STAGING_PATTERN.search(prompt))
+
+
+def _count_active_dispatches() -> int:
+    """讀取 .claude/dispatch-active.json 的 dispatches 條目數量。
+
+    回傳：條目數；檔案不存在、解析失敗、格式異常皆回傳 0。
+    """
+    try:
+        project_root = get_project_root()
+    except Exception:
+        return 0
+
+    state_file = project_root / ".claude" / "dispatch-active.json"
+    if not state_file.exists():
+        return 0
+
+    try:
+        data = json.loads(state_file.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return 0
+
+    dispatches = data.get("dispatches") if isinstance(data, dict) else None
+    if not isinstance(dispatches, list):
+        return 0
+    return len(dispatches)
+
+
+_WIDE_STAGING_WARNING = """[警告] 並行派發場景偵測到廣域 git staging（git add . / -A / --all）
+
+為什麼警告：
+  PC-092（並行代理人 git index 競爭）：並行派發時 `git add .` 會暫存所有未追蹤/已修改檔案，
+  包含其他並行代理人尚未 commit 的產物，造成 commit 邊界混亂與 index.lock 競爭。
+
+建議修正：
+  改用精準路徑 staging，例如 `git add src/foo.py tests/test_foo.py`
+  派發 prompt 應明示各代理人負責的具體檔案路徑。
+
+詳見：.claude/error-patterns/process-compliance/PC-092-parallel-agents-git-index-race.md
+      .claude/pm-rules/parallel-dispatch.md（派發 prompt 必含精準 git staging 章節）
+
+本訊息為警告（非阻擋），派發將繼續進行。"""
+
+
+def _emit_wide_staging_warning_if_parallel(prompt: str, logger) -> None:
+    """並行場景 + 廣域 staging → stderr 印警告（非阻擋）。"""
+    if not _has_wide_staging(prompt):
+        return
+    active = _count_active_dispatches()
+    if active < 2:
+        logger.debug(
+            "廣域 staging 但單一派發場景（active=%d），不警告",
+            active,
+        )
+        return
+    print(_WIDE_STAGING_WARNING, file=sys.stderr)
+    logger.info(
+        "警告：並行場景（active=%d）偵測到廣域 staging（PC-092）",
+        active,
+    )
+
 
 def _classify_prompt_paths(prompt: str) -> Tuple[bool, bool, bool]:
     """分類 prompt 中的路徑提及。
@@ -170,6 +243,10 @@ def main() -> int:
 
     # Target-based 分類
     prompt = tool_input.get("prompt", "") or ""
+
+    # W5-047.2：並行場景廣域 staging 警告（PC-092 防護，非阻擋）
+    _emit_wide_staging_warning_if_parallel(prompt, logger)
+
     has_main_repo_claude, has_external_claude, has_other = _classify_prompt_paths(prompt)
 
     # 優先順序判斷：

@@ -295,3 +295,183 @@ def test_hook_ignores_non_agent_tool(monkeypatch, capsys):
     stdin_buffer = io.StringIO(json.dumps(payload))
     monkeypatch.setattr(sys, "stdin", stdin_buffer)
     assert main() == 0
+
+
+# ============================================================================
+# W5-047.2: 並行場景廣域 staging 偵測（PC-092 防護）
+# ============================================================================
+
+_has_wide_staging = _hook._has_wide_staging
+_count_active_dispatches = _hook._count_active_dispatches
+
+
+class TestHasWideStaging:
+    """_has_wide_staging 正則偵測。"""
+
+    @pytest.mark.parametrize("cmd", [
+        "git add .",
+        "git add -A",
+        "git add --all",
+        "請先執行 git add . 再 commit",
+        "run: git  add  -A  # with extra spaces",
+    ])
+    def test_detects_wide_staging_patterns(self, cmd):
+        assert _has_wide_staging(cmd) is True
+
+    @pytest.mark.parametrize("cmd", [
+        "",
+        "git add src/foo.py",
+        "git add src/ tests/",
+        "git add -- path",
+        "git commit -m 'msg'",
+        "run: git status",
+        "addendum: note about .claude/ hooks",
+    ])
+    def test_does_not_match_safe_patterns(self, cmd):
+        assert _has_wide_staging(cmd) is False
+
+
+def _write_dispatch_active(tmp_path, count: int) -> Path:
+    """建立假的 .claude/dispatch-active.json（含 count 個 dispatches 條目）。"""
+    claude_dir = tmp_path / ".claude"
+    claude_dir.mkdir(parents=True, exist_ok=True)
+    state = {
+        "dispatches": [
+            {
+                "agent_description": f"fake agent {i}",
+                "tool_use_id": f"toolu_fake_{i}",
+                "agent_id": None,
+                "ticket_id": "",
+                "files": [],
+                "branch_name": "",
+                "dispatched_at": "2026-04-18T00:00:00+00:00",
+            }
+            for i in range(count)
+        ]
+    }
+    state_file = claude_dir / "dispatch-active.json"
+    state_file.write_text(json.dumps(state), encoding="utf-8")
+    return state_file
+
+
+class TestParallelWideStagingWarning:
+    """整合：main() 在並行場景偵測廣域 staging 時印警告。"""
+
+    def test_parallel_with_wide_staging_emits_warning(
+        self, monkeypatch, capsys, tmp_path
+    ):
+        """並行場景（>=2 dispatches）+ prompt 含 git add . → stderr 印警告。"""
+        _write_dispatch_active(tmp_path, count=2)
+        monkeypatch.setattr(_hook, "get_project_root", lambda: tmp_path)
+
+        exit_code = _run_hook(
+            monkeypatch,
+            capsys,
+            tool_input={
+                "subagent_type": "thyme-python-developer",
+                "isolation": "worktree",
+                "prompt": "完成後執行 git add . && git commit -m msg，修改 src/foo.py",
+            },
+        )
+        err = capsys.readouterr().err
+        assert "PC-092" in err, "警告訊息必須引用 PC-092"
+        assert "git add" in err, "警告訊息需提示 wide staging"
+        assert exit_code == 0, "警告非阻擋，不改變 return code"
+
+    def test_parallel_with_wide_staging_dash_A_emits_warning(
+        self, monkeypatch, capsys, tmp_path
+    ):
+        """並行 + git add -A → 警告。"""
+        _write_dispatch_active(tmp_path, count=3)
+        monkeypatch.setattr(_hook, "get_project_root", lambda: tmp_path)
+
+        exit_code = _run_hook(
+            monkeypatch,
+            capsys,
+            tool_input={
+                "subagent_type": "parsley-flutter-developer",
+                "isolation": "worktree",
+                "prompt": "git add -A 然後 commit 修改 lib/foo.dart",
+            },
+        )
+        err = capsys.readouterr().err
+        assert "PC-092" in err
+        assert exit_code == 0
+
+    def test_parallel_with_precise_staging_no_warning(
+        self, monkeypatch, capsys, tmp_path
+    ):
+        """並行場景但 prompt 是精準 staging（git add src/foo.py）→ 不警告。"""
+        _write_dispatch_active(tmp_path, count=2)
+        monkeypatch.setattr(_hook, "get_project_root", lambda: tmp_path)
+
+        exit_code = _run_hook(
+            monkeypatch,
+            capsys,
+            tool_input={
+                "subagent_type": "thyme-python-developer",
+                "isolation": "worktree",
+                "prompt": "git add src/foo.py src/bar.py && commit",
+            },
+        )
+        err = capsys.readouterr().err
+        assert "PC-092" not in err, "精準 staging 不應觸發警告"
+        assert exit_code == 0
+
+    def test_single_dispatch_with_wide_staging_no_warning(
+        self, monkeypatch, capsys, tmp_path
+    ):
+        """單一派發場景（<2 dispatches）+ git add . → 不警告（合法單人用例）。"""
+        _write_dispatch_active(tmp_path, count=1)
+        monkeypatch.setattr(_hook, "get_project_root", lambda: tmp_path)
+
+        exit_code = _run_hook(
+            monkeypatch,
+            capsys,
+            tool_input={
+                "subagent_type": "thyme-python-developer",
+                "isolation": "worktree",
+                "prompt": "git add . 然後 commit 修改 src/foo.py",
+            },
+        )
+        err = capsys.readouterr().err
+        assert "PC-092" not in err, "單一派發場景不應觸發警告"
+        assert exit_code == 0
+
+    def test_no_dispatch_file_no_warning(
+        self, monkeypatch, capsys, tmp_path
+    ):
+        """dispatch-active.json 不存在 → 不警告（視為單一場景）。"""
+        monkeypatch.setattr(_hook, "get_project_root", lambda: tmp_path)
+
+        exit_code = _run_hook(
+            monkeypatch,
+            capsys,
+            tool_input={
+                "subagent_type": "thyme-python-developer",
+                "isolation": "worktree",
+                "prompt": "git add -A",
+            },
+        )
+        err = capsys.readouterr().err
+        assert "PC-092" not in err
+        assert exit_code == 0
+
+    def test_count_active_dispatches_handles_missing_file(self, tmp_path, monkeypatch):
+        """_count_active_dispatches：檔案不存在回傳 0。"""
+        monkeypatch.setattr(_hook, "get_project_root", lambda: tmp_path)
+        assert _count_active_dispatches() == 0
+
+    def test_count_active_dispatches_reads_entries(self, tmp_path, monkeypatch):
+        """_count_active_dispatches：正確計數 dispatches 條目。"""
+        _write_dispatch_active(tmp_path, count=3)
+        monkeypatch.setattr(_hook, "get_project_root", lambda: tmp_path)
+        assert _count_active_dispatches() == 3
+
+    def test_count_active_dispatches_handles_corrupt_json(self, tmp_path, monkeypatch):
+        """_count_active_dispatches：損壞 JSON 回傳 0。"""
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir()
+        (claude_dir / "dispatch-active.json").write_text("not json", encoding="utf-8")
+        monkeypatch.setattr(_hook, "get_project_root", lambda: tmp_path)
+        assert _count_active_dispatches() == 0
