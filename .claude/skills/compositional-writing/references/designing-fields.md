@@ -246,7 +246,7 @@ direction: "指向兄弟 ticket 045"
 
 ```yaml
 # 正確：ID 前綴暗示類別
-id: PROP-042    # proposal
+id: PROP-042    # proposal (portability-allow: teaching example)
 id: UC-007      # use case
 id: SPEC-012    # spec
 
