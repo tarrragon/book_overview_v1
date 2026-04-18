@@ -209,28 +209,28 @@ PM 用 AUQ 前的自檢：這是哪種題型？
 
 ### 18 個強制使用場景（#11 細分為 #11a/#11b）
 
-> **象限**欄位對應摩擦力管理方法論（.claude/methodologies/friction-management-methodology.md）。A=降低摩擦 / B=保留現狀 / C=增加摩擦。詳見 .claude/references/friction-management-decision-points.md。
+> **象限對照**（A=降低摩擦 / B=保留現狀 / C=增加摩擦）為單一來源：`.claude/references/friction-management-decision-points.md` 的「AskUserQuestion 18 場景覆蓋對照」表。本表不再重複象限欄，避免雙寫同步風險（W5-008）。
 
-| # | 場景 | 象限 | 觸發條件 | 決策點 | Hook 提醒 |
-|---|------|-----|---------|--------|-----------|
-| 1 | 驗收方式確認 | B | ticket track complete 前（P0 優先級時觸發；DOC/ANA/非 P0 IMP 自動決定，不觸發） | ticket-lifecycle 驗收階段 | acceptance-gate-hook |
-| 2 | Complete 後下一步 | B | ticket track complete 後 | ticket-lifecycle 完成階段 | acceptance-gate-hook |
-| 3 | Wave/任務收尾確認 | C | 當前 Wave 無 pending Ticket（**前置步驟**：強制執行 `/parallel-evaluation` Wave 多視角審查，審查完成並建立發現 Ticket 後才進入 #3 選項；情境 C1：有其他 Wave → #3a；情境 C2：全完成 → 技術債整理 + /version-release check） | ticket-lifecycle 收尾 | parallel-suggestion-hook |
-| 4 | 方案選擇 | C | 多個技術方案 | 決策樹第負一層 | prompt-submit-hook |
-| 5 | 優先級確認 | B | 多任務排序 | 決策樹第負一層 | prompt-submit-hook |
-| 6 | 任務拆分確認 | C | 認知負擔 > 10 | 決策樹第負一層 | prompt-submit-hook |
-| 7 | 派發方式選擇 | B | Task subagent / Agent Teams / 序列 | 決策樹第負一層 | askuserquestion-reminder-hook |
-| 8 | 執行方向確認 | B | 並行/序列、先後順序 | 決策樹第負一層 | prompt-submit-hook |
-| 9 | Handoff 方向選擇 | B | 多個兄弟/子任務可選 | ticket-lifecycle 完成階段 | - |
-| 10 | 開始/收尾確認 | B | 確認是否開始執行 | 決策樹第負一層 | - |
-| 11a | Commit 後 Context 刷新 Handoff（情境 A） | B | ticket 仍 in_progress | 決策樹第八層 Checkpoint 2 | commit-handoff-hook |
-| 11b | Commit 後任務切換 Handoff（情境 B） | B | ticket completed + 同 Wave 有 pending | 決策樹第八層 Checkpoint 2 | commit-handoff-hook |
-| 12 | 流程省略確認 | C | 省略意圖偵測 | 決策樹第八層 | process-skip-guard-hook |
-| 13 | 後續任務路由確認 | B | Phase 3b 完成且豁免條件不符時、Phase 4b（豁免）/4c 完成、版本完成（C2）、incident 或分析完成後有多個後續路由可選（Phase 1/2/3a 全自動不觸發；Phase 3b 豁免條件符合時自動進入 4b 不觸發） | 決策樹第八層 | phase-completion-gate（擴充） |
-| 14 | parallel-evaluation 觸發確認 | C | 階段完成後 | 決策樹第八層 | phase-completion-gate（擴充） |
-| 15 | Bulk 變更前備份確認 | C | 批量修改前 | 決策樹第八層 | parallel-suggestion-hook（擴充） |
-| 16 | 錯誤學習經驗確認 | B | commit 完成後（#11a/#11b 之前）；docs:/chore:/style: 等 commit 自動跳過；選項簡化為二元確認 | 決策樹第八層 Checkpoint 1.5 | commit-handoff-hook（擴充） |
-| 17 | 錯誤經驗改進追蹤 | B | ticket complete 時有新增 error-pattern | ticket-lifecycle 完成階段 | acceptance-gate-hook（擴充） |
+| # | 場景 | 觸發條件 | 決策點 | Hook 提醒 |
+|---|------|---------|--------|-----------|
+| 1 | 驗收方式確認 | ticket track complete 前（P0 優先級時觸發；DOC/ANA/非 P0 IMP 自動決定，不觸發） | ticket-lifecycle 驗收階段 | acceptance-gate-hook |
+| 2 | Complete 後下一步 | ticket track complete 後 | ticket-lifecycle 完成階段 | acceptance-gate-hook |
+| 3 | Wave/任務收尾確認 | 當前 Wave 無 pending Ticket（**前置步驟**：強制執行 `/parallel-evaluation` Wave 多視角審查，審查完成並建立發現 Ticket 後才進入 #3 選項；情境 C1：有其他 Wave → #3a；情境 C2：全完成 → 技術債整理 + /version-release check） | ticket-lifecycle 收尾 | parallel-suggestion-hook |
+| 4 | 方案選擇 | 多個技術方案 | 決策樹第負一層 | prompt-submit-hook |
+| 5 | 優先級確認 | 多任務排序 | 決策樹第負一層 | prompt-submit-hook |
+| 6 | 任務拆分確認 | 認知負擔 > 10 | 決策樹第負一層 | prompt-submit-hook |
+| 7 | 派發方式選擇 | Task subagent / Agent Teams / 序列 | 決策樹第負一層 | askuserquestion-reminder-hook |
+| 8 | 執行方向確認 | 並行/序列、先後順序 | 決策樹第負一層 | prompt-submit-hook |
+| 9 | Handoff 方向選擇 | 多個兄弟/子任務可選 | ticket-lifecycle 完成階段 | - |
+| 10 | 開始/收尾確認 | 確認是否開始執行 | 決策樹第負一層 | - |
+| 11a | Commit 後 Context 刷新 Handoff（情境 A） | ticket 仍 in_progress | 決策樹第八層 Checkpoint 2 | commit-handoff-hook |
+| 11b | Commit 後任務切換 Handoff（情境 B） | ticket completed + 同 Wave 有 pending | 決策樹第八層 Checkpoint 2 | commit-handoff-hook |
+| 12 | 流程省略確認 | 省略意圖偵測 | 決策樹第八層 | process-skip-guard-hook |
+| 13 | 後續任務路由確認 | Phase 3b 完成且豁免條件不符時、Phase 4b（豁免）/4c 完成、版本完成（C2）、incident 或分析完成後有多個後續路由可選（Phase 1/2/3a 全自動不觸發；Phase 3b 豁免條件符合時自動進入 4b 不觸發） | 決策樹第八層 | phase-completion-gate（擴充） |
+| 14 | parallel-evaluation 觸發確認 | 階段完成後 | 決策樹第八層 | phase-completion-gate（擴充） |
+| 15 | Bulk 變更前備份確認 | 批量修改前 | 決策樹第八層 | parallel-suggestion-hook（擴充） |
+| 16 | 錯誤學習經驗確認 | commit 完成後（#11a/#11b 之前）；docs:/chore:/style: 等 commit 自動跳過；選項簡化為二元確認 | 決策樹第八層 Checkpoint 1.5 | commit-handoff-hook（擴充） |
+| 17 | 錯誤經驗改進追蹤 | ticket complete 時有新增 error-pattern | ticket-lifecycle 完成階段 | acceptance-gate-hook（擴充） |
 
 **Hook 覆蓋狀態**：14/18 場景有 Hook 自動提醒（14/18 = 78%）。其中 #13/#14 為條件式觸發（僅當 TDD Phase 完成且 worklog 更新時），未計入 14/18 計數，列於下方 Hook 提醒機制表僅供參考。
 
