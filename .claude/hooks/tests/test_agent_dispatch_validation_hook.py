@@ -475,3 +475,256 @@ class TestParallelWideStagingWarning:
         (claude_dir / "dispatch-active.json").write_text("not json", encoding="utf-8")
         monkeypatch.setattr(_hook, "get_project_root", lambda: tmp_path)
         assert _count_active_dispatches() == 0
+
+
+# ============================================================================
+# W5-045: Agent 禁止行為關鍵字衝突掃描
+# ============================================================================
+
+_extract_prohibited_actions = _hook._extract_prohibited_actions
+_detect_keyword_conflicts = _hook._detect_keyword_conflicts
+
+
+def _write_agent_md(tmp_path: Path, subagent_type: str, body: str) -> Path:
+    """在 tmp_path/.claude/agents/ 建立假 agent .md 檔。"""
+    agents_dir = tmp_path / ".claude" / "agents"
+    agents_dir.mkdir(parents=True, exist_ok=True)
+    md_path = agents_dir / f"{subagent_type}.md"
+    md_path.write_text(body, encoding="utf-8")
+    return md_path
+
+
+_SAGE_LIKE_MD = """---
+name: sage-test-architect
+---
+
+# sage-test-architect
+
+設計和規劃測試策略。
+
+## 適用情境
+
+Phase 2 測試設計。
+
+## 禁止行為
+
+### 絕對禁止
+
+1. **禁止實作程式碼**：
+   - 不得撰寫任何可執行的程式碼
+   - 由 pepper 等實作代理人負責
+
+2. **禁止設計功能規格**：
+   - 不得設計功能規格
+
+3. **禁止直接執行測試修復**：
+   - 不得修復失敗測試
+
+## 工作流程
+
+略。
+"""
+
+
+class TestExtractProhibitedActions:
+    """_extract_prohibited_actions 解析 `## 禁止行為` 區塊。"""
+
+    def test_extracts_labels_from_hierarchical_section(self, tmp_path):
+        """階層式結構（sage-like）應抽出三條 prohibited action 標籤。"""
+        md = _write_agent_md(tmp_path, "sage-test-architect", _SAGE_LIKE_MD)
+        actions = _extract_prohibited_actions(md)
+        assert "實作程式碼" in actions
+        assert "設計功能規格" in actions
+        assert "直接執行測試修復" in actions
+
+    def test_extracts_from_flat_section(self, tmp_path):
+        """扁平式結構（無 ### 子標）也應正確抽出。"""
+        body = """## 禁止行為
+
+1. **禁止 git commit**：不得自行提交
+2. **禁止修改檔案**：只讀取
+
+## 其他章節
+"""
+        md = _write_agent_md(tmp_path, "flat-agent", body)
+        actions = _extract_prohibited_actions(md)
+        assert "git commit" in [a.strip() for a in actions]
+        assert "修改檔案" in actions
+
+    def test_returns_empty_when_no_section(self, tmp_path):
+        """無『## 禁止行為』區塊時回傳空 list。"""
+        md = _write_agent_md(tmp_path, "no-forbid", "# Some agent\n\n只有簡介。\n")
+        assert _extract_prohibited_actions(md) == []
+
+    def test_returns_empty_when_file_missing(self, tmp_path):
+        """檔案不存在時回傳空 list（不丟例外）。"""
+        assert _extract_prohibited_actions(tmp_path / "nonexistent.md") == []
+
+    def test_section_terminates_at_next_level2_heading(self, tmp_path):
+        """下一個 `## ` 應終止區塊，後續 `**禁止X**` 不應被誤抽。"""
+        body = """## 禁止行為
+
+1. **禁止實作**：略
+
+## 適用情境
+
+注意事項：**禁止忽略此規則** 屬於其他區塊不應被抽取。
+"""
+        md = _write_agent_md(tmp_path, "bounded", body)
+        actions = _extract_prohibited_actions(md)
+        assert "實作" in actions
+        assert "忽略此規則" not in actions, "下一章節的粗體不應被抽取"
+
+
+class TestDetectKeywordConflicts:
+    """_detect_keyword_conflicts 匹配 prompt 關鍵字與 prohibited actions。"""
+
+    def test_detects_implementation_keyword_in_prompt(self):
+        prompt = "請實作新功能並寫入 src/foo.py"
+        conflicts = _detect_keyword_conflicts(prompt, ["實作程式碼"])
+        assert len(conflicts) >= 1
+        assert "實作" in conflicts[0]
+
+    def test_detects_git_commit_keyword(self):
+        prompt = "完成後請執行 git commit -m 'msg'"
+        conflicts = _detect_keyword_conflicts(prompt, ["git commit"])
+        assert len(conflicts) >= 1
+        assert "git commit" in conflicts[0]
+
+    def test_detects_spec_design_keyword(self):
+        prompt = "請設計此 UC 的規格文件"
+        conflicts = _detect_keyword_conflicts(prompt, ["設計功能規格"])
+        assert len(conflicts) >= 1
+        assert "設計功能規格" in conflicts[0]
+
+    def test_no_conflict_for_clean_prompt(self):
+        """prompt 與所有禁止項皆無關時應無衝突。"""
+        prompt = "請閱讀 docs/foo.md 並撰寫分析報告"
+        conflicts = _detect_keyword_conflicts(
+            prompt, ["實作程式碼", "git commit", "設計功能規格"]
+        )
+        assert conflicts == []
+
+    def test_no_conflict_for_empty_prompt(self):
+        assert _detect_keyword_conflicts("", ["實作程式碼"]) == []
+
+    def test_no_conflict_for_empty_prohibited_list(self):
+        assert _detect_keyword_conflicts("實作某功能", []) == []
+
+    def test_prohibited_action_without_mapped_keyword_yields_no_conflict(self):
+        """prohibited action 標籤無法映射到 FORBIDDEN_KEYWORD_MAP → 不觸發衝突。"""
+        prompt = "請執行某操作"
+        conflicts = _detect_keyword_conflicts(prompt, ["超出測試設計範圍的工作"])
+        assert conflicts == []
+
+
+class TestKeywordConflictIntegration:
+    """整合：main() 掃描 sage 類 agent 的派發 prompt。"""
+
+    def test_sage_like_agent_with_implement_prompt_emits_warning(
+        self, monkeypatch, capsys, tmp_path
+    ):
+        """AC-T1：sage agent + prompt 含『實作』 → stderr 印警告。"""
+        _write_agent_md(tmp_path, "sage-test-architect", _SAGE_LIKE_MD)
+        monkeypatch.setattr(_hook, "get_project_root", lambda: tmp_path)
+
+        exit_code = _run_hook(
+            monkeypatch,
+            capsys,
+            tool_input={
+                "subagent_type": "sage-test-architect",
+                "prompt": "請實作新測試並寫入 tests/unit/foo_test.py",
+            },
+        )
+        err = capsys.readouterr().err
+        assert "W5-045" in err or "禁止行為" in err, (
+            "sage + 『實作』應觸發 W5-045 警告"
+        )
+        assert "實作" in err
+        # sage 非 IMPLEMENTATION_AGENTS，掃描後放行
+        assert exit_code == 0
+
+    def test_implementation_agent_with_git_commit_prompt_emits_warning(
+        self, monkeypatch, capsys, tmp_path
+    ):
+        """AC-T2：實作代理人 + prompt 含 git commit（若該 agent 禁止）→ 警告。
+
+        假設 linux-agent 禁止 git commit。使用自製 agent md。
+        """
+        body = """## 禁止行為
+
+1. **禁止 git commit**：不得自行 commit
+"""
+        _write_agent_md(tmp_path, "thyme-python-developer", body)
+        monkeypatch.setattr(_hook, "get_project_root", lambda: tmp_path)
+
+        exit_code = _run_hook(
+            monkeypatch,
+            capsys,
+            tool_input={
+                "subagent_type": "thyme-python-developer",
+                "isolation": "worktree",
+                "prompt": "修改 src/foo.py 後 git commit -m msg",
+            },
+        )
+        err = capsys.readouterr().err
+        assert "git commit" in err
+        assert "禁止行為" in err or "W5-045" in err
+        assert exit_code == 0, "警告非阻擋，正常 worktree 派發應放行"
+
+    def test_clean_prompt_no_warning(self, monkeypatch, capsys, tmp_path):
+        """AC-T3：prompt 與 agent 禁止行為無衝突 → 不警告。"""
+        _write_agent_md(tmp_path, "sage-test-architect", _SAGE_LIKE_MD)
+        monkeypatch.setattr(_hook, "get_project_root", lambda: tmp_path)
+
+        exit_code = _run_hook(
+            monkeypatch,
+            capsys,
+            tool_input={
+                "subagent_type": "sage-test-architect",
+                "prompt": "請分析現有測試架構並提供重構建議，不要修改程式碼",
+            },
+        )
+        err = capsys.readouterr().err
+        # 不應含 W5-045 警告標記（"設計" 可能誤觸？檢查 "設計功能規格" 的 pattern
+        # 是 "設計.*規格"，此 prompt 無 "規格" → 不命中）
+        assert "W5-045" not in err
+        assert "禁止行為" not in err or "衝突" not in err
+        assert exit_code == 0
+
+    def test_missing_agent_md_no_warning(self, monkeypatch, capsys, tmp_path):
+        """agent .md 檔不存在時靜默放行（不丟例外）。"""
+        monkeypatch.setattr(_hook, "get_project_root", lambda: tmp_path)
+
+        exit_code = _run_hook(
+            monkeypatch,
+            capsys,
+            tool_input={
+                "subagent_type": "unknown-agent",
+                "prompt": "請實作某功能",
+            },
+        )
+        err = capsys.readouterr().err
+        assert "W5-045" not in err
+        assert exit_code == 0
+
+    def test_agent_without_prohibited_section_no_warning(
+        self, monkeypatch, capsys, tmp_path
+    ):
+        """agent 檔存在但無『## 禁止行為』區塊 → 不警告。"""
+        _write_agent_md(
+            tmp_path, "bare-agent", "# bare\n\n只有簡介\n"
+        )
+        monkeypatch.setattr(_hook, "get_project_root", lambda: tmp_path)
+
+        exit_code = _run_hook(
+            monkeypatch,
+            capsys,
+            tool_input={
+                "subagent_type": "bare-agent",
+                "prompt": "請實作某功能",
+            },
+        )
+        err = capsys.readouterr().err
+        assert "W5-045" not in err
+        assert exit_code == 0
