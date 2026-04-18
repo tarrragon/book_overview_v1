@@ -234,6 +234,24 @@ def SAFE_CALL(
 _DISPATCH_ACTIVE_RELPATH = Path(".claude/state/dispatch-active.json")
 _HANDOFF_PENDING_RELDIR = Path(".claude/handoffs/pending")
 
+
+def _read_json_dict(path: Path) -> Optional[dict]:
+    """讀取 JSON 檔並確保 root 為 dict，統一 I/O + 解析 + 結構檢查 pattern。
+
+    Returns:
+        dict: 成功解析且 root 為 dict 時回傳。
+        None: 檔案存在可解析但 root 非 dict 時回傳（結構不符，非 I/O 錯誤）。
+
+    Raises:
+        FileNotFoundError: 檔案不存在（讓 SAFE_CALL 捕獲走 fallback）。
+        PermissionError: 權限拒絕（同上）。
+        json.JSONDecodeError: JSON 毀損（同上）。
+    """
+
+    raw_text = path.read_text(encoding="utf-8")
+    data = json.loads(raw_text)
+    return data if isinstance(data, dict) else None
+
 # subprocess 執行超時（秒）
 _GIT_CMD_TIMEOUT = 5
 _TICKET_CMD_TIMEOUT = 10
@@ -279,12 +297,11 @@ def _read_dispatch_active(
     root = project_root or get_project_root()
     path = root / _DISPATCH_ACTIVE_RELPATH
     # 注意：Path.read_text 對目錄不存在與檔案不存在皆拋 FileNotFoundError
-    raw_text = path.read_text(encoding="utf-8")
-    data = json.loads(raw_text)
-    if not isinstance(data, dict):
+    data = _read_json_dict(path)
+    if data is None:
         # 非 dict 視為資料毀損；用 JSONDecodeError 以讓 SAFE_CALL 捕獲
         raise json.JSONDecodeError(
-            "dispatch-active.json root is not a dict", raw_text, 0
+            "dispatch-active.json root is not a dict", "", 0
         )
     dispatches = data.get("dispatches", [])
     if not isinstance(dispatches, list):
@@ -319,8 +336,8 @@ def _read_handoff_pending(
         return None
     # 取 mtime 最新者
     latest = max(json_files, key=lambda p: p.stat().st_mtime)
-    data = json.loads(latest.read_text(encoding="utf-8"))
-    if not isinstance(data, dict):
+    data = _read_json_dict(latest)
+    if data is None:
         return None
     ticket_id = data.get("ticket_id")
     return ticket_id if isinstance(ticket_id, str) else None
