@@ -196,4 +196,4 @@
 ---
 
 **Last Updated**: 2026-04-18
-**Version**: 1.0.0 — 從 writing-prompts.md 雙職責拆分（W11-007）：Skill 品質規範獨立為本檔，writing-prompts.md 保留 prompt 寫作情境
+**Version**: 1.0.0 — 從 writing-prompts.md 雙職責拆分：Skill 品質規範獨立為本檔，writing-prompts.md 保留 prompt 寫作情境

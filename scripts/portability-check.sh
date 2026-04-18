@@ -17,14 +17,16 @@ if [[ ! -d "$TARGET_DIR" ]]; then
     exit 2
 fi
 
-# ---- 禁用模式定義（7 類） --------------------------------------------------
+# ---- 禁用模式定義（8 類） --------------------------------------------------
 # 每個模式：名稱|正則（ERE）
 # 注意：正則需同時避開合法白名單（例如 Zettelkasten、Anthropic URL、本腳本自身）
+# 教學用例若含 Wave ID，在對應行末加 <!-- portability-allow: reason --> 豁免掃描
 PATTERNS=(
     'framework-rules-path|\.claude/rules/'
     'framework-methodologies-path|\.claude/methodologies/'
     'framework-hooks-path|\.claude/hooks/'
     'project-ticket-id|\b(0\.(17|18|19|20)\.[0-9]+-W[0-9]+(\.[0-9]+)*|PROP-[0-9]+|ANA-[0-9]+|IMP-[0-9]+|PC-[0-9]+|ARCH-[0-9]+)\b'
+    'bare-wave-id|\bW[0-9]+-[0-9]+(\.[0-9]+)*\b'
     'project-commit-hash|\b[0-9a-f]{7,40}\b'
     'project-worklog-path|docs/work-logs/'
     'framework-hook-name|\b(skill-description-length-check|doc-sync-check|branch-verify-hook|pre-tool-use-hook|post-tool-use-hook)\b'

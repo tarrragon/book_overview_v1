@@ -148,7 +148,7 @@ SKILL.md 主檔被 Claude 載入時的 token 消耗總量。
 
 ### 狀態
 
-**未決**。實際閾值待 SKILL.md（W10-074.2）和 6 個 reference（W10-074.3-.7 + 本檔）完成後，量測實際 token 數再定最終值。可能調整方向：
+**未決**。實際閾值待 SKILL.md 與各 reference 完成後，量測實際 token 數再定最終值。可能調整方向：
 
 - 若實際 SKILL.md 穩定在 2000 tokens 內，閾值可降為 3000 tokens 作為緩衝
 - 若 SKILL.md 接近 5000 tokens，需拆分更多內容到 references 而非放寬閾值
@@ -177,7 +177,7 @@ SKILL.md 主檔被 Claude 載入時的 token 消耗總量。
 
 - 嚴格（< 2000）：強制 reference 高度原子化
 - 寬鬆（< 4000）：允許情境 reference 包含更多實例
-- 最終選擇依 W10-074 完成後的實測資料定
+- 最終選擇依 Skill 各 reference 完成後的實測資料定
 
 ---
 
