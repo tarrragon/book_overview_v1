@@ -198,6 +198,56 @@ Ticket 的 `what` / `how` 含以下任一特徵即屬於驗證類：
 
 > **Source of truth**：此表格為 worktree 隔離需求的唯一定義來源。Hook `agent-dispatch-validation-hook.py` 的 `IMPLEMENTATION_AGENTS` 清單必須與此表格同步。
 
+### 並行場景路徑區分（`.claude/` vs `src/`）
+
+> **兩個正交維度**：代理人類型（上表）決定是否需要 worktree 的一般規則；target 路徑（本小節）決定 worktree 可否使用的實體限制。**target 路徑限制優先於代理人類型**。
+
+#### 規則表
+
+| Target 路徑 | 派發策略 | 並行 commit 安全模型 |
+|-----------|---------|-------------------|
+| `src/` / `test/` / `lib/` / `docs/` | worktree 隔離（預設） | 各 worktree 獨立 commit，PM 合併 |
+| `.claude/` | 主 repo cwd（CC runtime 限制） | 精準 staging + Hook 偵測（見「派發 prompt 必含精準 git staging」章節） |
+
+#### `src/` 預設 worktree 的業界證據（2026）
+
+AI coding agent 並行工作預設 worktree 隔離已成業界共識：
+
+| 來源 | 立場 |
+|------|------|
+| Anthropic Claude Code 官方文件 | 推薦 worktree for multi-session workflows |
+| Cursor | "Parallel Agents" 功能建立在 worktree 基礎上 |
+| Augment Code Intent | 每個 Space 專屬 worktree + branch |
+| Upsun 開發者文件（2026 專文） | AI coding agents worktree 用法專題 |
+| Worktrunk CLI（2026 初發布） | 專為並行 AI agent 設計的 worktree 管理工具 |
+| JetBrains 2026.1 / VS Code 2025.7 | first-class worktree IDE 支援 |
+
+worktree 解決並行 AI agent 的核心問題：shared git index 競爭（見 PC-092）。獨立 worktree 提供獨立 index，並行 commit 互不干擾。
+
+#### `.claude/` 例外（CC runtime 硬編碼保護）
+
+Claude Code runtime 對 subagent 操作 worktree 內 `.claude/` 有硬編碼保護（見 ARCH-015）。實測 v2.1.114：
+
+- **Target 在主 repo 樹內 `.claude/`**：subagent Write/Edit 可成功（無論 cwd 是主 repo 或 worktree）
+- **Target 在 worktree 樹內 `.claude/`**：subagent Write/Edit 被拒
+- **分界線**：target 路徑是否在主 repo 樹內
+
+因此 `.claude/` 不能用 worktree 隔離並行修改，改用精準 staging + Hook 偵測（PC-092 方案 A）。
+
+#### 實務落地對照
+
+| 場景 | 派發位置 | 並行 commit 策略 |
+|------|---------|----------------|
+| 單一代理人改 `src/` | worktree | 代理人自 commit |
+| 多代理人並行改 `src/` 不同檔案 | 各自 worktree | 各自 commit，PM 合併 |
+| 單一代理人改 `.claude/` | 主 repo cwd | 代理人自 commit |
+| 多代理人並行改 `.claude/` 不同檔案 | 主 repo cwd | 精準 staging（禁 `git add .` / `git add -A`），序列化 commit 或 PM 統一 commit |
+
+> 業界證據連結：
+> - Augment Code — https://www.augmentcode.com/guides/git-worktrees-parallel-ai-agent-execution
+> - Upsun — https://developer.upsun.com/posts/2026/git-worktrees-for-parallel-ai-coding-agents
+> - Worktrunk — https://worktrunk.dev/
+
 ---
 
 ## 並行派發後驗證（強制）
@@ -230,6 +280,8 @@ Ticket 的 `what` / `how` 含以下任一特徵即屬於驗證類：
 ---
 
 **Last Updated**: 2026-04-18
+**Version**: 4.4.0 - Worktree 隔離章節新增「並行場景路徑區分（.claude/ vs src/）」子章節，涵蓋規則表/業界證據（2026）/CC runtime 例外/實務落地對照（W5-047.3）
+
 **Version**: 4.3.0 - 新增「派發 prompt 必含精準 git staging（並行 commit 場景）」強制要求，並行安全檢查 checklist 同步增項（PC-092 / W5-047.1）
 
 **Version**: 4.2.0 - 新增「派發 prompt 必含職責邊界聲明」強制要求，引用 agent-dispatch-template.md（W5-044）
