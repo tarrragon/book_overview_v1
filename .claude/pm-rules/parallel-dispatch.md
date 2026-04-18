@@ -44,7 +44,23 @@
 - [ ] Wave 無跨越：所有任務屬於同一個 Wave
 - [ ] 目標檔案路徑在代理人可編輯範圍（見下方路徑權限）
 - [ ] 實作代理人使用 `isolation: "worktree"` 派發
+- [ ] **派發 prompt 已引用職責邊界聲明骨架**（見 `.claude/references/agent-dispatch-template.md`）
 ```
+
+### 派發 prompt 必含職責邊界聲明（強制）
+
+> **來源**：Ticket 0.18.0-W5-009 / W5-044 — W5-001 session 實證，含職責邊界聲明的派發（pepper/thyme）無越界；缺聲明的派發（sage）出現越界寫測試。
+
+所有派發 prompt（並行或單一）必須於開場引用 `.claude/references/agent-dispatch-template.md` 定義的骨架，包含：
+
+1. `Ticket: {id}` 第一行
+2. `## 職責邊界聲明`：列出允許 / 禁止的產出
+3. `## 執行`：具體步驟
+4. `## 禁止`：跨 Ticket 衝突範圍
+
+並行派發時尤其重要：每個代理人的 prompt 必須明示「禁止修改其他並行 Ticket 的 where.files」以防範圍交叉。
+
+> 完整骨架與填寫要點：`.claude/references/agent-dispatch-template.md`
 
 ### 派發前路徑權限確認
 
@@ -169,6 +185,7 @@ Ticket 的 `what` / `how` 含以下任一特徵即屬於驗證類：
 
 ## 相關文件
 
+- .claude/references/agent-dispatch-template.md - 職責邊界聲明骨架（派發 prompt 強制引用）
 - .claude/references/parallel-dispatch-details.md - 詳細規則（5W1H 格式、分析任務並行、Agent Teams 場景表、進度追蹤）
 - .claude/pm-rules/references/dispatch-routing-framework.md - 派發路由（數量原則、不適用並行、背景派發、跨 Wave 優先級）
 - .claude/pm-rules/references/reporting-and-review-standards.md - 回報原則（最小回報、三人組、計數自檢）
@@ -181,5 +198,7 @@ Ticket 的 `what` / `how` 含以下任一特徵即屬於驗證類：
 
 ---
 
-**Last Updated**: 2026-04-12
+**Last Updated**: 2026-04-18
+**Version**: 4.2.0 - 新增「派發 prompt 必含職責邊界聲明」強制要求，引用 agent-dispatch-template.md（W5-044）
+
 **Version**: 4.1.0 - 新增「驗證類任務自動派發」章節，明文化不詢問用戶規則
