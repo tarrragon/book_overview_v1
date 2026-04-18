@@ -681,23 +681,16 @@ def checkpoint_state(
     return state
 
 
+# 公開 API 只含外部呼叫端需要的符號。
+# 私有符號（_ 前綴）仍可透過明確 import 名稱存取（供測試直接測試），
+# 但不會在 `from checkpoint_state import *` 時被匯出，避免過度暴露。
 __all__ = [
+    "checkpoint_state",
     "CheckpointState",
     "PendingCheck",
-    "PRIORITIES",
-    "FALLBACK",
-    "DATA_SOURCES",
-    "IO_ERRORS",
-    "SAFE_CALL",
-    "checkpoint_state",
+    "CheckpointCaller",
     "format_phase_label",
     "format_next_action",
-    "_derive_checkpoint",
-    "_utc_now_iso",
-    "_write_metrics_log",
-    "_read_git_status",
-    "_read_dispatch_active",
-    "_read_handoff_pending",
-    "_query_in_progress_tickets",
-    "_read_git_worktrees",
+    "DATA_SOURCES",
+    "PRIORITIES",
 ]
