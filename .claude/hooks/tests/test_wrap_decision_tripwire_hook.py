@@ -964,3 +964,181 @@ class TestL_Advisory:
         event = make_user_prompt("這是正常的開發需求並不包含任何關鍵字")
         code, _ = self._run_hook(hook_mod, monkeypatch, event, tmp_yaml, tmp_state_path, tmp_path, capsys)
         assert code == 0
+
+
+# ============================================================================
+# M. S4 reflection_depth_challenge（category=reflection_trigger）— W15-018
+# ============================================================================
+#
+# 涵蓋：
+#   M1 category 預設值向後相容（未標註 → wrap_standard）
+#   M2 category 顯式標註 reflection_trigger 正確解析
+#   M3 T6 反思關鍵字觸發（含 "再想想" / "introspection" 等）
+#   M4 min_prompt_length 過濾短 prompt
+#   M5 S2/S4 cooldown 獨立（S4 觸發不影響 S2）
+#   M6 訊息前綴依 category 區分（由 YAML template 驅動）
+#
+# 設計前提：
+#   - S4 複用 RestrictiveKeywordsStrategy（關鍵字匹配邏輯完全相同），
+#     但在 SIGNAL_STRATEGIES 以獨立 key 註冊，state cooldown 自然獨立。
+
+REFLECTION_SIGNAL = {
+    "id": "reflection_depth_challenge",
+    "category": "reflection_trigger",
+    "enabled": True,
+    "event_sources": ["UserPromptSubmit"],
+    "keywords": [
+        "太表層", "不夠深", "再想想", "這解釋不了",
+        "為何不是", "更深一層", "還有其他可能嗎", "introspection",
+    ],
+    "match_mode": "substring",
+    "case_sensitive": False,
+    "min_prompt_length": 30,
+    "reset_conditions": ["manual_reflection_invocation", "session_end"],
+    "message_template": (
+        "[Reflection Trigger] 偵測到反思深度質疑（關鍵字：{matched_keyword}）。\n"
+        "建議採用 three-phase-reflection 方法論：\n"
+        "  Phase 1: 列 5+ 候選假設 + Reality Test\n"
+        "  Phase 2: WRAP 檢驗 Phase 1 結論\n"
+    ),
+}
+
+
+def yaml_fixture_with_reflection(signal_overrides=None):
+    """Produce YAML including the S4 reflection signal.
+
+    Args:
+        signal_overrides: dict of {signal_id: {field: value}} 覆蓋任一訊號欄位。
+    """
+    config = copy.deepcopy(DEFAULT_CONFIG)
+    config["signals"].append(copy.deepcopy(REFLECTION_SIGNAL))
+    if signal_overrides:
+        for signal in config["signals"]:
+            sid = signal["id"]
+            if sid in signal_overrides:
+                signal.update(signal_overrides[sid])
+    return yaml.safe_dump(config, allow_unicode=True, sort_keys=False)
+
+
+class TestM_ReflectionTrigger:
+    @pytest.fixture
+    def tmp_yaml_with_reflection(self, tmp_path):
+        p = tmp_path / "wrap-triggers.yaml"
+        p.write_text(yaml_fixture_with_reflection(), encoding="utf-8")
+        return p
+
+    @pytest.fixture
+    def cfg(self, hook_mod, tmp_yaml_with_reflection):
+        return _load_config(hook_mod, tmp_yaml_with_reflection)
+
+    @pytest.fixture
+    def sd_s4(self, cfg):
+        return next(s for s in cfg.signals if s.id == "reflection_depth_challenge")
+
+    def test_m1_category_default_wrap_standard(self, cfg):
+        """未標註 category 的訊號（既有 S1/S2/S3）預設為 wrap_standard。"""
+        for sid in ("consecutive_failures", "restrictive_keywords", "ana_claim"):
+            sd = next(s for s in cfg.signals if s.id == sid)
+            assert sd.category == "wrap_standard", \
+                "signal {} expected default category wrap_standard, got {}".format(sid, sd.category)
+
+    def test_m2_category_reflection_trigger_parsed(self, sd_s4):
+        """category=reflection_trigger 正確從 YAML 解析。"""
+        assert sd_s4.category == "reflection_trigger"
+
+    def test_m3_reflection_keyword_triggers(self, hook_mod, sd_s4):
+        """T6 類反思關鍵字觸發（中文 + 英文 introspection）。"""
+        import logging
+        strat = hook_mod.SIGNAL_STRATEGIES["reflection_depth_challenge"]
+        state = hook_mod._initial_state()
+        # 中文關鍵字（prompt 長度需 >= 30）
+        event = make_user_prompt("你剛剛的分析太表層了完全沒有挖到真正的深因請再想想到底根本原因是什麼呢拜託")
+        result = strat.detect(event, state, sd_s4, None, logging.getLogger("t"))
+        assert result.hit is True
+        assert result.matched_keyword in {"太表層", "再想想"}
+        assert result.should_warn is True
+
+    def test_m3b_reflection_keyword_introspection(self, hook_mod, sd_s4):
+        """英文關鍵字 introspection 觸發（case insensitive）。"""
+        import logging
+        strat = hook_mod.SIGNAL_STRATEGIES["reflection_depth_challenge"]
+        state = hook_mod._initial_state()
+        event = make_user_prompt("Please do deeper INTROSPECTION on the root cause here")
+        result = strat.detect(event, state, sd_s4, None, logging.getLogger("t"))
+        assert result.hit is True
+        assert result.matched_keyword.lower() == "introspection"
+
+    def test_m4_min_prompt_length_filter(self, hook_mod, sd_s4):
+        """短 prompt（< min_prompt_length=30）即使含關鍵字也不觸發。"""
+        import logging
+        strat = hook_mod.SIGNAL_STRATEGIES["reflection_depth_challenge"]
+        state = hook_mod._initial_state()
+        event = make_user_prompt("再想想")  # < 30 chars
+        result = strat.detect(event, state, sd_s4, None, logging.getLogger("t"))
+        assert result.hit is False
+
+    def test_m5_s4_cooldown_independent_from_s2(self, hook_mod, frozen_now):
+        """S2 cooldown 激活時，S4 cooldown 仍為 False（獨立訊號 state）。"""
+        state = hook_mod._initial_state()
+        state["signals"]["restrictive_keywords"] = {
+            "last_warned_at": (frozen_now.t - timedelta(seconds=60)).isoformat(),
+        }
+        # S2 在 cooldown 期間
+        assert hook_mod.in_cooldown(state, "restrictive_keywords", 300) is True
+        # S4 未曾提醒 → 不在 cooldown
+        assert hook_mod.in_cooldown(state, "reflection_depth_challenge", 300) is False
+
+    def test_m5b_s2_cooldown_unaffected_by_s4_warning(self, hook_mod, frozen_now):
+        """S4 mark_warned 不會影響 S2 cooldown。"""
+        state = hook_mod._initial_state()
+        # S4 剛提醒
+        hook_mod.mark_warned(state, "reflection_depth_challenge")
+        # S2 未曾提醒
+        assert hook_mod.in_cooldown(state, "restrictive_keywords", 300) is False
+        # S4 在 cooldown
+        assert hook_mod.in_cooldown(state, "reflection_depth_challenge", 300) is True
+
+    def test_m6_message_prefix_differs_by_category(self, hook_mod, cfg):
+        """不同 category 的訊號產生不同訊息前綴（由 YAML template 驅動）。"""
+        sd_wrap = next(s for s in cfg.signals if s.id == "restrictive_keywords")
+        sd_refl = next(s for s in cfg.signals if s.id == "reflection_depth_challenge")
+        result = hook_mod.DetectResult(hit=True, matched_keyword="做不到", signal_id=sd_wrap.id)
+        wrap_msg = hook_mod.render_message(sd_wrap, result, "T-1")
+        result_refl = hook_mod.DetectResult(hit=True, matched_keyword="再想想", signal_id=sd_refl.id)
+        refl_msg = hook_mod.render_message(sd_refl, result_refl, "T-1")
+        assert "[WRAP Tripwire]" in wrap_msg or "[WRAP 絆腳索]" in wrap_msg
+        assert "[Reflection Trigger]" in refl_msg
+        assert "three-phase-reflection" in refl_msg
+
+    def test_m7_non_user_prompt_event_ignored(self, hook_mod, sd_s4):
+        """S4 只在 UserPromptSubmit 觸發；其他 event 忽略。
+        （由 _process_signals 過濾 event_sources，strategy 層不負責，但驗證 config 設定正確）"""
+        assert sd_s4.event_sources == ["UserPromptSubmit"]
+
+    def test_m8_strategy_registered(self, hook_mod):
+        """SIGNAL_STRATEGIES 包含 reflection_depth_challenge 鍵。"""
+        assert "reflection_depth_challenge" in hook_mod.SIGNAL_STRATEGIES
+
+    def test_m9_backward_compat_yaml_without_category_parses(self, hook_mod, tmp_yaml):
+        """既有 yaml（無 category 欄位）仍能解析，所有訊號 category=wrap_standard。"""
+        cfg = _load_config(hook_mod, tmp_yaml)
+        for sd in cfg.signals:
+            assert sd.category == "wrap_standard"
+
+    def test_m10_reset_conditions_include_reflection_specific(self, sd_s4):
+        """reflection_trigger 新增的 reset_conditions 不被視為 unknown。"""
+        assert "manual_reflection_invocation" in sd_s4.reset_conditions
+        assert "session_end" in sd_s4.reset_conditions
+
+    def test_m11_reflection_reset_conditions_not_logged_as_unknown(self, hook_mod, tmp_path, caplog):
+        """解析含 reflection_trigger 的 yaml 時，新 reset 條件不被記為 unknown。"""
+        import logging
+        p = tmp_path / "r.yaml"
+        p.write_text(yaml_fixture_with_reflection(), encoding="utf-8")
+        with caplog.at_level(logging.INFO):
+            cfg = _load_config(hook_mod, p)
+        assert cfg is not None
+        # 確認沒有針對 manual_reflection_invocation / session_end 的 unknown log
+        for rec in caplog.records:
+            assert "manual_reflection_invocation" not in rec.getMessage() or "unknown" not in rec.getMessage().lower()
+            assert "session_end" not in rec.getMessage() or "unknown" not in rec.getMessage().lower()

@@ -13,9 +13,15 @@ WRAP 絆腳索 Hook — wrap-decision-tripwire-hook.py
 模式：advisory（永遠 exit 0，只提醒不阻擋）
 
 訊號：
-  S1 consecutive_failures：連續代理人派發失敗
-  S2 restrictive_keywords：PM 表達「做不到」類限制性語句
-  S3 ana_claim：claim ANA 類型 ticket 的分析過程
+  S1 consecutive_failures（category=wrap_standard）：連續代理人派發失敗
+  S2 restrictive_keywords（category=wrap_standard）：PM 表達「做不到」類限制性語句
+  S3 ana_claim（category=wrap_standard）：claim ANA 類型 ticket 的分析過程
+  S4 reflection_depth_challenge（category=reflection_trigger）：反思深度質疑關鍵字
+
+category 分流（W15-018）：
+  wrap_standard     → 訊息前綴「[WRAP 絆腳索]」，引導 /wrap-decision
+  reflection_trigger → 訊息前綴「[Reflection Trigger]」，引導 three-phase-reflection
+各訊號 cooldown 由 state.signals[sd.id] 獨立追蹤，不跨 category 互相壓制。
 
 唯一觸發條件來源：.claude/config/wrap-triggers.yaml（W10-052 約束）
 禁止在本檔案中硬編碼 triggers / keywords / thresholds。
@@ -71,6 +77,11 @@ def _now() -> datetime:
 @dataclass
 class SignalDef:
     id: str
+    # category 區分訊號語意分類（W15-018）：
+    #   wrap_standard     — S1/S2/S3 標準 WRAP 絆腳索
+    #   reflection_trigger — S4 反思深度觸發（three-phase-reflection 方法論）
+    # 未標註時預設為 wrap_standard（向後相容）。
+    category: str = "wrap_standard"
     enabled: bool = True
     event_sources: List[str] = field(default_factory=list)
     tool_matcher: Optional[str] = None
@@ -119,6 +130,9 @@ _VALID_RESET_CONDITIONS = {
     "ticket_switch",
     "manual_wrap_invocation",
     "wrap_section_written",
+    # W15-018 reflection_trigger 類別新增
+    "manual_reflection_invocation",
+    "session_end",
 }
 
 
@@ -146,6 +160,8 @@ def _parse_signals(signals_raw: Any, logger) -> List[SignalDef]:
         sd = SignalDef(id=str(item.get("id", "")))
         if not sd.id:
             continue
+        # W15-018: category 預設 wrap_standard（向後相容）
+        sd.category = str(item.get("category", "wrap_standard"))
         sd.enabled = bool(item.get("enabled", True))
         sd.event_sources = list(item.get("event_sources", []))
         sd.tool_matcher = item.get("tool_matcher")
@@ -553,6 +569,10 @@ SIGNAL_STRATEGIES: Dict[str, SignalStrategy] = {
     "consecutive_failures": ConsecutiveFailuresStrategy(),
     "restrictive_keywords": RestrictiveKeywordsStrategy(),
     "ana_claim": AnaClaimStrategy(),
+    # W15-018: S4 reflection_depth_challenge 使用與 S2 相同的關鍵字匹配邏輯
+    # （UserPromptSubmit + keywords + min_prompt_length），但 signal_id 獨立
+    # 確保 cooldown state 不跨訊號壓制。訊息前綴差異由 YAML message_template 控制。
+    "reflection_depth_challenge": RestrictiveKeywordsStrategy(),
 }
 
 
