@@ -208,6 +208,18 @@ Phase 1 功能規格完成後**強制執行**，無豁免。
 | DOC 類型任務 | 純文件更新，不涉及程式碼品質 |
 | 任務範圍單純（單一模組、修改目的明確） | 低複雜度任務，cinnamon 單視角已足夠 |
 
+**Phase 4 強制 Checkpoint：重構評估 → WRAP Phase 2**：
+
+Phase 4a 多視角分析報告完成後，進入 Phase 4b 前，PM 必須執行 WRAP Phase 2 檢驗：
+
+| 步驟 | 說明 |
+|------|------|
+| 觸發條件 | Phase 4a 報告完成（或豁免後直接進 Phase 4b 前） |
+| 強制動作 | 以 Phase 4a 報告結論為 Phase 1 輸入，執行 WRAP Phase 2（R + A + P 三問） |
+| 目的 | 防止重構評估「太表層」——確認根因假設層級多元（非僅實作手段層級），並檢驗機會成本 |
+| 參考 | `.claude/skills/wrap-decision/SKILL.md`「觸發條件」S4 節 + `.claude/methodologies/three-phase-reflection-methodology.md` |
+| 豁免 | DOC 類型任務（無程式碼品質問題）+ 小型修改（認知負擔 <= 5）可豁免 |
+
 > 各 Phase 詳細描述和代理人連結：.claude/references/tdd-flow-details.md（Phase 1-4 章節）
 
 ---
@@ -340,5 +352,6 @@ SA 否決不可繞過 — 必須解決否決原因後重新審查。
 
 ---
 
-**Last Updated**: 2026-04-03
+**Last Updated**: 2026-04-18
+**Version**: 2.16.0 - Phase 4 新增強制 Checkpoint：重構評估前執行 WRAP Phase 2 檢驗（W15-019，防止重構根因分析太表層）
 **Version**: 2.15.0 - 新增 Phase 1.5 規格多視角審查（單一視角必然有盲點，規格完成後強制多視角審查）

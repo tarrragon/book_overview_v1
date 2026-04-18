@@ -25,21 +25,22 @@
 
 ## YAML 訊號 ↔ SKILL 抽象類別對應
 
-| YAML 訊號 ID | 事件源 | 偵測方式 | SKILL 抽象類別 |
-|-------------|-------|---------|--------------|
-| `consecutive_failures` | `PostToolUse(Task)` | 代理人派發連續失敗 ≥ 2 次 | 連續失敗 |
-| `restrictive_keywords` | `UserPromptSubmit` | 關鍵字命中（做不到/沒辦法/無法/不支援/CLI 不支援/禁止/不可能/impossible/限制性解法） | 被困住 |
-| `ana_claim` | `PostToolUse(Bash)` | `ticket claim` 且 ticket type: ANA | 分析任務（ANA） |
+| YAML 訊號 ID | 事件源 | 偵測方式 | SKILL 抽象類別 | Hook category |
+|-------------|-------|---------|--------------|--------------|
+| `consecutive_failures` | `PostToolUse(Task)` | 代理人派發連續失敗 ≥ 2 次 | 連續失敗 | `wrap_standard` |
+| `restrictive_keywords` | `UserPromptSubmit` | 關鍵字命中（做不到/沒辦法/無法/不支援/CLI 不支援/禁止/不可能/impossible/限制性解法） | 被困住 | `wrap_standard` |
+| `ana_claim` | `PostToolUse(Bash)` | `ticket claim` 且 ticket type: ANA | 分析任務（ANA） | `wrap_standard` |
+| `reflection_depth_challenge` | `UserPromptSubmit` | 關鍵字命中（太表層/不夠深/再想想/這解釋不了/為何不是/更深一層/還有其他可能嗎/introspection）；語意：正向「想更深」，非否定「做不到」（S2） | 反思深度質疑 | `reflection_trigger` |
 
-### 未來擴充（S4-S8）
+### 未來擴充（S5-S8）
 
 | 訊號 | 偵測方式 | 對應 SKILL 類別 |
 |------|---------|---------------|
-| 期限型（S4） | 非核心問題計時 > 15 分鐘 | 救火排擠 |
-| 偏離型（S5） | 連續 2+ 個 Ticket 不在核心 Wave | 偏離核心 |
-| 回退型（S6） | 已回退過一次修改 | — |
-| 嘗試型（S7） | 同一問題修改嘗試 2 次 | 連續失敗（細分） |
-| 資料充足度強制型（S8） | 個人化建議關鍵字（我/我該/推薦給我）+ 具體品牌/型號/劑量 | 個人化建議 → 強制 Step 0 |
+| 期限型（S5） | 非核心問題計時 > 15 分鐘 | 救火排擠 |
+| 偏離型（S6） | 連續 2+ 個 Ticket 不在核心 Wave | 偏離核心 |
+| 回退型（S7） | 已回退過一次修改 | — |
+| 嘗試型（S8） | 同一問題修改嘗試 2 次 | 連續失敗（細分） |
+| 資料充足度強制型（S9） | 個人化建議關鍵字（我/我該/推薦給我）+ 具體品牌/型號/劑量 | 個人化建議 → 強制 Step 0 |
 
 ---
 
@@ -157,5 +158,6 @@ ANA 分析過程必須執行 WRAP（至少快速模式）。
 
 ---
 
-**Last Updated**: 2026-04-16
+**Last Updated**: 2026-04-18
+**Version**: 1.1.0 — 新增 S4 reflection_depth_challenge 對應（Hook category: reflection_trigger），調整未來擴充編號為 S5-S9（W15-019）
 **Version**: 1.0.0 — 從原 tripwire-catalog.md 抽離本專案 Hook 設計；建立 YAML/Hook/SKILL 三層對應關係
