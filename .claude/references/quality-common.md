@@ -331,7 +331,7 @@
 
 > 標準格式、詳細指引、各類型註解範例、禁止註解分析：.claude/references/quality-common-details.md（1.6 註解標準 — 詳細指引章節）
 
-> 完整方法論：.claude/methodologies/comment-writing-methodology.md
+> 完整規範：.claude/skills/compositional-writing/references/writing-code-comments.md
 
 ---
 

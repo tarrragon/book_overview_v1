@@ -516,7 +516,7 @@ def calculate_discount_price(base_price: float, user_tier: str) -> float:
 ## 相關文件
 
 - .claude/references/quality-common.md - 核心規則定義
-- .claude/methodologies/comment-writing-methodology.md - 註解方法論
+- .claude/skills/compositional-writing/references/writing-code-comments.md - 註解撰寫規範
 
 ---
 
