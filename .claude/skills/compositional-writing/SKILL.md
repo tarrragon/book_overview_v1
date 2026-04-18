@@ -107,4 +107,4 @@ compositional-writing/
 ---
 
 **Last Updated**: 2026-04-18
-**Version**: 0.3.0 — 新增 `dry-run-guide.md` 於 Directory Index 與觸發路由（Skill 發布前語意層驗收 Phase 2 dry-run）；來源：0.18.0-W11-006
+**Version**: 0.3.0 — 新增 `dry-run-guide.md` 於 Directory Index 與觸發路由（Skill 發布前語意層驗收 Phase 2 dry-run）
