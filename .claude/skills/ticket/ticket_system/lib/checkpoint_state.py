@@ -497,6 +497,58 @@ def _write_metrics_log(
 
 
 # ---------------------------------------------------------------------------
+# DATA_SOURCES table（與 PRIORITIES 同構 table-driven）
+# ---------------------------------------------------------------------------
+
+# 每筆 (state_field, source_name, reader, fallback, extractor)：
+#   state_field: 寫入 collected dict 的 key（供主函式組裝 state 使用）
+#   source_name: SAFE_CALL 用的 source 識別字串（errors/pending 追蹤用）
+#   reader(root) -> Any：資料來源讀取函式（接受 project_root）
+#   fallback: SAFE_CALL 失敗時 fallback 值
+#   extractor(raw) -> Any：將 reader 回傳值正規化為 state 欄位值
+#     （預設恆等；dispatch-active 回 (count, dict) 需取 [0]）
+DATA_SOURCES: List[
+    Tuple[str, str, Callable[[Path], Any], Any, Callable[[Any], Any]]
+] = [
+    (
+        "uncommitted_files",
+        "git-status",
+        _read_git_status,
+        None,
+        lambda r: r,
+    ),
+    (
+        "active_agents",
+        "dispatch-active",
+        _read_dispatch_active,
+        (0, {}),
+        lambda r: r[0],
+    ),
+    (
+        "active_handoff",
+        "handoff-pending",
+        _read_handoff_pending,
+        None,
+        lambda r: r,
+    ),
+    (
+        "in_progress_tickets",
+        "ticket-query",
+        _query_in_progress_tickets,
+        [],
+        lambda r: r,
+    ),
+    (
+        "unmerged_worktrees",
+        "git-worktree",
+        _read_git_worktrees,
+        [],
+        lambda r: r,
+    ),
+]
+
+
+# ---------------------------------------------------------------------------
 # checkpoint_state() 主函式（Phase 3a §1.2 整合）
 # ---------------------------------------------------------------------------
 
@@ -526,30 +578,14 @@ def checkpoint_state(
     errors: Dict[str, str] = {}
     pending: List[PendingCheck] = []
 
-    # Step 1：5 層 fail-open 資料收集
-    uncommitted = SAFE_CALL(
-        lambda: _read_git_status(root),
-        errors, pending, "git-status", fallback=None,
-    )
-    agents_tuple = SAFE_CALL(
-        lambda: _read_dispatch_active(root),
-        errors, pending, "dispatch-active", fallback=(0, {}),
-    )
-    # SAFE_CALL fallback=(0, {}) 保證 agents_tuple 必為 tuple
-    active_agents = agents_tuple[0]
-
-    active_handoff = SAFE_CALL(
-        lambda: _read_handoff_pending(root),
-        errors, pending, "handoff-pending", fallback=None,
-    )
-    in_progress = SAFE_CALL(
-        lambda: _query_in_progress_tickets(root),
-        errors, pending, "ticket-query", fallback=[],
-    )
-    worktrees = SAFE_CALL(
-        lambda: _read_git_worktrees(root),
-        errors, pending, "git-worktree", fallback=[],
-    )
+    # Step 1：5 層 fail-open 資料收集（table-driven，與 PRIORITIES 同構）
+    collected: Dict[str, Any] = {}
+    for field_name, source, reader, fallback, extractor in DATA_SOURCES:
+        raw = SAFE_CALL(
+            lambda r=reader: r(root),
+            errors, pending, source, fallback=fallback,
+        )
+        collected[field_name] = extractor(raw)
 
     # Step 2：先組半成品 state 讓 _derive_checkpoint 可查
     state = CheckpointState(
@@ -558,13 +594,13 @@ def checkpoint_state(
         next_action="",
         ready_for_clear=False,
         pending_checks=pending,
-        active_agents=active_agents,
-        unmerged_worktrees=worktrees,
-        active_handoff=active_handoff,
-        in_progress_tickets=in_progress,
+        active_agents=collected["active_agents"],
+        unmerged_worktrees=collected["unmerged_worktrees"],
+        active_handoff=collected["active_handoff"],
+        in_progress_tickets=collected["in_progress_tickets"],
         data_sources=dict(errors),
         computed_at=_utc_now_iso(),
-        uncommitted_files=uncommitted,
+        uncommitted_files=collected["uncommitted_files"],
         _ticket_id=ticket_id,
     )
 
@@ -602,6 +638,7 @@ __all__ = [
     "PendingCheck",
     "PRIORITIES",
     "FALLBACK",
+    "DATA_SOURCES",
     "IO_ERRORS",
     "SAFE_CALL",
     "checkpoint_state",
