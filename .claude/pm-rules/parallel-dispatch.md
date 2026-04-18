@@ -45,6 +45,7 @@
 - [ ] 目標檔案路徑在代理人可編輯範圍（見下方路徑權限）
 - [ ] 實作代理人使用 `isolation: "worktree"` 派發
 - [ ] **派發 prompt 已引用職責邊界聲明骨架**（見 `.claude/references/agent-dispatch-template.md`）
+- [ ] **派發 prompt 已明示精準 git staging**（並行 commit 場景，禁用 `git add .` / `git add -A`；見下方 PC-092 防護）
 ```
 
 ### 派發 prompt 必含職責邊界聲明（強制）
@@ -61,6 +62,36 @@
 並行派發時尤其重要：每個代理人的 prompt 必須明示「禁止修改其他並行 Ticket 的 where.files」以防範圍交叉。
 
 > 完整骨架與填寫要點：`.claude/references/agent-dispatch-template.md`
+
+### 派發 prompt 必含精準 git staging（並行 commit 場景，強制）
+
+> **來源**：PC-092 — 2026-04-18 W5-043 並行派發事件，四個 thyme-python-developer 代理人併發 `git add .`，導致 batch 3 的 6 個檔案被 batch 4 代理人一併 staged + commit，commit 訊息標 batch 4 但實際 diff 含 batch 3 + 4。
+
+當並行派發的代理人各自執行 `git commit` 時，prompt 必須明示精準 staging：
+
+| 要求 | 正確 | 錯誤 |
+|------|------|------|
+| staging 路徑 | 逐一列出 `where.files` 的精確路徑 | `git add .` / `git add -A` |
+| 範圍邊界 | 僅 staging 本 Ticket 的 `where.files` | 任何廣域符號 |
+
+**範例 prompt 片段**：
+
+```
+執行 commit 時使用：
+    git add .claude/agents/sassafras.md .claude/agents/mint.md
+    git commit -m "..."
+禁止：git add . 或 git add -A（會併入其他並行代理人的修改）
+```
+
+**降級替代方案**（精準 staging 不可行時）：
+
+| 方案 | 適用情境 | 代價 |
+|------|---------|------|
+| 序列派發 | 並行代理人少 / 時間充裕 | 吞吐量下降 |
+| Worktree 隔離 | 長任務 / 獨立資源需求 | 配置與合併成本 |
+| PM 統一 commit | 代理人不需 commit 操作 | PM 工作量增加 |
+
+> 完整根因、觸發案例與方案比較：`.claude/error-patterns/process-compliance/PC-092-parallel-agents-git-index-race.md`
 
 ### 派發前路徑權限確認
 
@@ -199,6 +230,8 @@ Ticket 的 `what` / `how` 含以下任一特徵即屬於驗證類：
 ---
 
 **Last Updated**: 2026-04-18
+**Version**: 4.3.0 - 新增「派發 prompt 必含精準 git staging（並行 commit 場景）」強制要求，並行安全檢查 checklist 同步增項（PC-092 / W5-047.1）
+
 **Version**: 4.2.0 - 新增「派發 prompt 必含職責邊界聲明」強制要求，引用 agent-dispatch-template.md（W5-044）
 
 **Version**: 4.1.0 - 新增「驗證類任務自動派發」章節，明文化不詢問用戶規則
