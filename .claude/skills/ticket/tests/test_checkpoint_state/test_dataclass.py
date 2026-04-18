@@ -10,15 +10,17 @@ import re
 
 import pytest
 
-from ticket_system.lib.checkpoint_state import CheckpointState, PendingCheck
+from ticket_system.lib.checkpoint_state import (
+    CheckpointState,
+    PendingCheck,
+    format_phase_label,
+)
 
 
 def _make_state(**overrides) -> CheckpointState:
     """建構最小合法 CheckpointState，測試可 override 欄位。"""
     defaults = dict(
         current_phase="3",
-        phase_label="C3 流程完成",
-        next_action="ready for /clear 或選下個 Ticket",
         ready_for_clear=True,
         pending_checks=[],
         active_agents=0,
@@ -38,7 +40,8 @@ def test_A1_normal_construction_all_fields_readable():
     state = _make_state()
     # 所有欄位皆可讀
     assert state.current_phase == "3"
-    assert state.phase_label.startswith("C3")
+    # phase_label 改由 view function 產生（L10 重構）
+    assert format_phase_label(state).startswith("C3")
     assert state.pending_checks == []
     # computed_at 為 ISO 8601 格式（至少含 'T' 與日期-時間）
     assert re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", state.computed_at)
@@ -75,8 +78,10 @@ def test_A4_dataclass_fields_count_meets_AC1():
     public_fields = [
         f for f in dataclasses.fields(CheckpointState) if not f.name.startswith("_")
     ]
-    assert len(public_fields) >= 12, (
-        f"AC1 要求公開欄位 >= 12，實際 {len(public_fields)}："
+    # L10 重構後 phase_label / next_action 改為 view function，
+    # 公開欄位由 12 降為 10（純 state，不含 view 字串）。
+    assert len(public_fields) >= 10, (
+        f"公開欄位 >= 10，實際 {len(public_fields)}："
         f"{[f.name for f in public_fields]}"
     )
 
@@ -87,8 +92,6 @@ def test_A5_missing_required_field_raises_typeerror():
         # 刻意少傳必填欄位（pending_checks / data_sources 等）
         CheckpointState(  # type: ignore[call-arg]
             current_phase="3",
-            phase_label="C3",
-            next_action="x",
             ready_for_clear=True,
         )
 

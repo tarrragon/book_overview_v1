@@ -19,8 +19,6 @@ def _state(**overrides) -> CheckpointState:
     """建構「全 clean」基線狀態，case override 需觸發條件。"""
     defaults = dict(
         current_phase="",  # 由 _derive 決定
-        phase_label="",
-        next_action="",
         ready_for_clear=False,
         pending_checks=[],
         active_agents=0,

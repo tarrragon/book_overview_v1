@@ -53,21 +53,21 @@ class PendingCheck:
 
 @dataclass
 class CheckpointState:
-    """Checkpoint 決策狀態（12 欄位 + 1 內部 _ticket_id）。
+    """Checkpoint 決策狀態（純 state，不含 view 字串）。
 
-    AC1 判定：dataclasses.fields() 計數 >= 12（不含以底線開頭的內部欄位）。
+    Phase 4 L10 重構（W10-017.8.2）：原 phase_label / next_action 兩個人類可讀
+    字串改由 format_phase_label(state) / format_next_action(state) view function
+    產生，CheckpointState 保持純 state 不耦合 view 層，便於未來 i18n 擴展。
 
     欄位分為「推導」與「資料來源」兩類：
-    - 推導欄位（由 _derive_checkpoint 等決定）：current_phase / phase_label /
-      next_action / ready_for_clear / pending_checks
+    - 推導欄位（由 _derive_checkpoint 等決定）：current_phase / ready_for_clear /
+      pending_checks
     - 資料來源欄位（由 _read_* 填入）：active_agents / uncommitted_files /
       unmerged_worktrees / active_handoff / in_progress_tickets
     - 元資訊：data_sources / computed_at
     """
 
     current_phase: str
-    phase_label: str
-    next_action: str
     ready_for_clear: bool
     pending_checks: List[PendingCheck]
     active_agents: int
@@ -549,6 +549,33 @@ DATA_SOURCES: List[
 
 
 # ---------------------------------------------------------------------------
+# View functions（Phase 4 L10 重構：view 與 state 解耦，便於 i18n 擴展）
+# ---------------------------------------------------------------------------
+
+
+def format_phase_label(state: CheckpointState) -> str:
+    """回傳 state 對應的人類可讀 phase label（如 "C3 流程完成"）。
+
+    從 CheckpointState 抽出的 view function，不持有於 dataclass 欄位上，
+    便於未來 i18n 擴展（傳入 locale 參數切換語言）。
+    """
+
+    _phase, label, _action = _derive_checkpoint(state)
+    return label
+
+
+def format_next_action(state: CheckpointState) -> str:
+    """回傳 state 對應的人類可讀 next_action 建議訊息。
+
+    從 CheckpointState 抽出的 view function，不持有於 dataclass 欄位上，
+    便於未來 i18n 擴展。
+    """
+
+    _phase, _label, action = _derive_checkpoint(state)
+    return action
+
+
+# ---------------------------------------------------------------------------
 # checkpoint_state() 主函式（Phase 3a §1.2 整合）
 # ---------------------------------------------------------------------------
 
@@ -590,8 +617,6 @@ def checkpoint_state(
     # Step 2：先組半成品 state 讓 _derive_checkpoint 可查
     state = CheckpointState(
         current_phase="",
-        phase_label="",
-        next_action="",
         ready_for_clear=False,
         pending_checks=pending,
         active_agents=collected["active_agents"],
@@ -604,11 +629,9 @@ def checkpoint_state(
         _ticket_id=ticket_id,
     )
 
-    # Step 3：推導 Checkpoint
-    phase, label, action = _derive_checkpoint(state)
+    # Step 3：推導 Checkpoint phase（view 字串由 format_* 函式按需產生）
+    phase, _label, _action = _derive_checkpoint(state)
     state.current_phase = phase
-    state.phase_label = label
-    state.next_action = action
 
     # Step 4：ready_for_clear
     state.ready_for_clear = (
@@ -642,6 +665,8 @@ __all__ = [
     "IO_ERRORS",
     "SAFE_CALL",
     "checkpoint_state",
+    "format_phase_label",
+    "format_next_action",
     "_derive_checkpoint",
     "_utc_now_iso",
     "_write_metrics_log",

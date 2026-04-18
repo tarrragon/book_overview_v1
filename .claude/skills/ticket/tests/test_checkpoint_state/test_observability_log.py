@@ -38,8 +38,6 @@ def _make_state(
 ) -> CheckpointState:
     return CheckpointState(
         current_phase=current_phase,
-        phase_label=f"C{current_phase}",
-        next_action="nope",
         ready_for_clear=ready_for_clear,
         pending_checks=[],
         active_agents=active_agents,
