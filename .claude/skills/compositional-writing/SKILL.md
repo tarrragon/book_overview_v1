@@ -61,6 +61,7 @@ metadata:
 | 要設計 ticket 欄位 / schema frontmatter / 表單欄位 | `references/designing-fields.md` |
 | 想驗證寫作品質（認知負擔、獨立理解率） | `references/meta-metrics.md` |
 | 要新增或修改一份 Skill reference（撰寫品質規範、結構標準） | `references/reference-authoring-standards.md` |
+| 要驗收 Skill 發布品質（語意層驗收、Phase 2 dry-run） | `references/dry-run-guide.md` |
 
 每份 reference 自包含：以該情境為核心，把五大原則翻譯成可直接套用的檢查項與範例。閱讀任一 reference 不需要回來看其他 reference。
 
@@ -91,7 +92,8 @@ compositional-writing/
     ├── designing-fields.md               # 情境 6：欄位設計（含六欄位角度總表）
     ├── designing-fields-ticket-6w.md     # 六欄位詳細範例：正確 + 混淆共 12 項（按需讀取）
     ├── meta-metrics.md                   # 品質量化驗收（M1-M5）
-    └── reference-authoring-standards.md  # Skill reference 撰寫品質規範
+    ├── reference-authoring-standards.md  # Skill reference 撰寫品質規範
+    └── dry-run-guide.md                  # Skill 發布前語意層驗收（Phase 2 dry-run 流程）
 ```
 
 ---
@@ -104,5 +106,5 @@ compositional-writing/
 
 ---
 
-**Last Updated**: 2026-04-17
-**Version**: 0.2.0 — 新增 `writing-articles.md`（完整長篇技術文章情境），補齊原子化 vs 完整文章分工；來源：tarrragon/blog · tech_writing_structure.md
+**Last Updated**: 2026-04-18
+**Version**: 0.3.0 — 新增 `dry-run-guide.md` 於 Directory Index 與觸發路由（Skill 發布前語意層驗收 Phase 2 dry-run）；來源：0.18.0-W11-006
