@@ -557,6 +557,39 @@ mcp__dart__dart_format
 **準備交接給 Phase 4 三步驟流程（4a 多視角分析 → 4b cinnamon 重構執行 → 4c 多視角再審核）**
 ```
 
+## 允許產出
+
+| 產出類型 | 說明 |
+|---------|------|
+| Dart/Flutter 程式碼（`.dart`） | Widget、State Management、Repository、UseCase 等實作（Edit / Write） |
+| 單元/整合/Widget 測試 | Dart test 檔案的 GREEN 實作 |
+| 常數/多語系字串 | 集中化常數管理檔案、多語系資源 |
+| 測試執行結果 | `flutter test` / `dart test` 指令輸出與覆蓋率 |
+| TDD Phase 3b 實作交付 | 從 pepper Phase 3a 的虛擬碼/流程圖轉成 Dart/Flutter 實作 |
+
+**路徑範圍**：Flutter/Dart 程式碼目錄；`permissionMode: bypassPermissions` 允許直接 Edit/Write；可使用 `mcp__dart__*`、`mcp__serena__*` 工具。
+
+## 適用情境
+
+| TDD Phase | 派發時機 |
+|----------|---------|
+| Phase 3b | 從 pepper-test-implementer (Phase 3a) 接收虛擬碼/流程圖後開始 Flutter 實作 |
+| Phase 3b | Dart/Flutter 程式碼新增或修改 |
+| Phase 3b | 執行 Flutter 測試達成 100% 通過率 |
+| Phase 3b | Flutter 層級程式碼最佳實踐應用 |
+
+**排除情境**：
+
+| 情況 | 改派發 |
+|------|-------|
+| Phase 3a 策略設計 | pepper-test-implementer |
+| Phase 2 RED 測試 | PM 前台撰寫 |
+| Phase 4 重構執行 | cinnamon-refactor-owl |
+| 非 Dart 語言實作 | fennel-go-developer 或對應語言 agent |
+| Chrome Extension（JavaScript） | thyme-extension-engineer |
+
+---
+
 ## 禁止行為
 
 ### 絕對禁止

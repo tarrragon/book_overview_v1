@@ -446,6 +446,37 @@ grep -rn '"[A-Z]' server/ --include="*.go" | grep -v "_test.go" | grep -v "const
 
 ---
 
+## 允許產出
+
+| 產出類型 | 說明 |
+|---------|------|
+| Go 程式碼（`.go`） | `server/` 目錄下的 Go 實作（Edit / Write） |
+| 單元/整合測試 | Go test 檔案的 GREEN 實作 |
+| 常數/訊息檔 | `constants.go`、`messages/` 下的集中化常數與多語系字串 |
+| 測試執行結果 | `(cd server && go test ./...)` 等指令輸出 |
+| TDD Phase 3b 實作交付 | 從 pepper Phase 3a 的虛擬碼/流程圖轉成可執行 Go code |
+
+**路徑範圍**：`server/` 目錄；`permissionMode: bypassPermissions` 允許直接 Edit/Write。
+
+## 適用情境
+
+| TDD Phase | 派發時機 |
+|----------|---------|
+| Phase 3b | 從 pepper-test-implementer (Phase 3a) 接收語言無關策略後開始 Go 實作 |
+| Phase 3b | `server/**/*.go` 新增或修改 |
+| Phase 3b | 執行 Go 測試以達成 100% 通過率 |
+
+**排除情境**：
+
+| 情況 | 改派發 |
+|------|-------|
+| Phase 3a 策略設計 | pepper-test-implementer |
+| Phase 2 RED 測試 | PM 前台撰寫 |
+| 非 Go 語言實作 | parsley-flutter-developer（Dart）或對應語言 agent |
+| 環境/依賴問題 | sumac-system-engineer |
+
+---
+
 ## 禁止行為
 
 1. **禁止硬編碼字串或數值**：所有常數必須在 `constants.go` 或 `messages/` 中定義
