@@ -18,9 +18,15 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, TypeVar
 
 from .paths import get_project_root
+
+
+# CheckpointCaller：caller 欄位型別約束（TD6 / 017.8.4）。
+# 目前生產端呼叫集合；新增 caller 需同步擴充此 Literal。
+# Python runtime 不強制 Literal，型別檢查器（mypy/pyright）會警告誤植。
+CheckpointCaller = Literal["snapshot", "dispatch-check", "handoff-ready", "unknown"]
 
 
 # ---------------------------------------------------------------------------
@@ -408,7 +414,7 @@ _METRICS_LOG_ROTATE_BYTES = 10 * 1024 * 1024  # 10 MB
 
 def _write_metrics_log(
     state: CheckpointState,
-    caller: Optional[str],
+    caller: Optional[CheckpointCaller],
     duration_ms: float,
     errors: Dict[str, str],
     *,
@@ -471,7 +477,7 @@ def checkpoint_state(
     ticket_id: Optional[str] = None,
     *,
     log_metrics: bool = True,
-    caller: Optional[str] = None,
+    caller: Optional[CheckpointCaller] = None,
     project_root: Optional[Path] = None,
 ) -> CheckpointState:
     """整合 5 層 SAFE_CALL 資料收集 → _derive_checkpoint → metrics log。
