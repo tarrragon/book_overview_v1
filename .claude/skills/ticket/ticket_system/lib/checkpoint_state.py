@@ -257,6 +257,30 @@ _GIT_CMD_TIMEOUT = 5
 _TICKET_CMD_TIMEOUT = 10
 
 
+def _run_subprocess(
+    argv: List[str], cwd: Path, timeout: int
+) -> "subprocess.CompletedProcess[str]":
+    """統一 subprocess.run 呼叫形狀（capture_output / text / check=True）。
+
+    抽出目的：三處呼叫（git status / ticket query / git worktree）共用同一形狀，
+    集中於此避免重複。參數語意與 subprocess.run 一致。
+
+    Raises:
+        subprocess.CalledProcessError: 子程序非零退出。
+        subprocess.TimeoutExpired: 超時。
+        FileNotFoundError: 命令不存在。
+    """
+
+    return subprocess.run(
+        argv,
+        cwd=str(cwd),
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+        check=True,
+    )
+
+
 def _read_git_status(project_root: Optional[Path] = None) -> int:
     """讀取 git status --porcelain，回傳未提交檔案數。
 
@@ -267,13 +291,8 @@ def _read_git_status(project_root: Optional[Path] = None) -> int:
     """
 
     root = project_root or get_project_root()
-    result = subprocess.run(
-        ["git", "status", "--porcelain"],
-        cwd=str(root),
-        capture_output=True,
-        text=True,
-        timeout=_GIT_CMD_TIMEOUT,
-        check=True,
+    result = _run_subprocess(
+        ["git", "status", "--porcelain"], root, _GIT_CMD_TIMEOUT
     )
     # 每一行代表一個變更檔案；空輸出 = 0
     lines = [ln for ln in result.stdout.splitlines() if ln.strip()]
@@ -356,13 +375,10 @@ def _query_in_progress_tickets(
     """
 
     root = project_root or get_project_root()
-    result = subprocess.run(
+    result = _run_subprocess(
         ["ticket", "track", "query", "--status", "in_progress", "--format", "json"],
-        cwd=str(root),
-        capture_output=True,
-        text=True,
-        timeout=_TICKET_CMD_TIMEOUT,
-        check=True,
+        root,
+        _TICKET_CMD_TIMEOUT,
     )
     out = result.stdout.strip()
     if not out:
@@ -394,13 +410,8 @@ def _read_git_worktrees(project_root: Optional[Path] = None) -> List[str]:
     """
 
     root = project_root or get_project_root()
-    result = subprocess.run(
-        ["git", "worktree", "list", "--porcelain"],
-        cwd=str(root),
-        capture_output=True,
-        text=True,
-        timeout=_GIT_CMD_TIMEOUT,
-        check=True,
+    result = _run_subprocess(
+        ["git", "worktree", "list", "--porcelain"], root, _GIT_CMD_TIMEOUT
     )
     # porcelain 格式：每段以空行分隔，段內首行 "worktree <path>"
     paths: List[str] = []
