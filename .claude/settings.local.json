@@ -150,7 +150,12 @@
       "WebFetch(domain:felipeelias.github.io)",
       "Skill(worktree)",
       "mcp__plugin_context7_context7__resolve-library-id",
-      "mcp__plugin_context7_context7__query-docs"
+      "mcp__plugin_context7_context7__query-docs",
+      "Bash(ticket track append-log 0.18.0-W5-050.2 --section 'Test Results' ' *)",
+      "Bash(rm -f /Users/tarragon/Projects/book_overview_v1/.claude/agents/TEST_EXEMPT.md /Users/tarragon/Projects/book_overview_v1/.claude/rules/TEST_PROTECTED.md)",
+      "Bash(git worktree *)",
+      "Bash(mv .claude/handoff/pending/0.18.0-W5-047.json .claude/handoff/archive/)",
+      "Bash(mkdir -p .claude/handoff/archive)"
     ]
   },
   "enableAllProjectMcpServers": true,
