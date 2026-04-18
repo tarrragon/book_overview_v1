@@ -56,7 +56,7 @@ metadata:
 | 要寫或改一段程式碼註解 / doc comment | `references/writing-code-comments.md` |
 | 要起草 / 改寫一份文件（worklog、spec、README） | `references/writing-documents.md` |
 | 要設計 log / 錯誤訊息 / 結構化輸出 | `references/writing-logs.md` |
-| 要撰寫給 AI 的 prompt / instruction / Agent 派發 / Ticket Context Bundle | `references/writing-prompts.md`（為 `.claude/rules/core/ai-communication-rules.md` 的詳細版庫） |
+| 要撰寫給 AI 的 prompt / instruction / Agent 派發 / Ticket Context Bundle | `references/writing-prompts.md`（為 `.claude/rules/core/ai-communication-rules.md` 的詳細版庫，portability-allow） |
 | 要撰寫完整長篇技術文章（blog post / post-mortem / 架構決策 / 除錯復盤 / 技術評估） | `references/writing-articles.md` |
 | 要設計 ticket 欄位 / schema frontmatter / 表單欄位 | `references/designing-fields.md` |
 | 想驗證寫作品質（認知負擔、獨立理解率） | `references/meta-metrics.md` |
