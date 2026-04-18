@@ -17,6 +17,8 @@ from ticket_system.lib.constants import (
     STATUS_BLOCKED,
     STATUS_CLOSED,
     TERMINAL_STATUSES,
+    CLOSE_REASONS,
+    CLOSE_REASON_RETROSPECTIVE_UNKNOWN,
 )
 from ticket_system.lib.ticket_loader import (
     get_project_root,
@@ -666,7 +668,14 @@ class TicketLifecycle:
         print(f"   狀態: 被阻塞")
         return 0
 
-    def close(self, ticket_id: str, resolved_by: str, reason: str = "") -> int:
+    def close(
+        self,
+        ticket_id: str,
+        resolved_by: str,
+        reason_code: str,
+        reason_note: str = "",
+        retrospective: bool = False,
+    ) -> int:
         """
         關閉 Ticket - 問題已在其他 Ticket 一併解決，無需獨立處理
 
@@ -674,14 +683,35 @@ class TicketLifecycle:
         - complete：自己做完（需 who + acceptance 全勾）
         - close：被其他 Ticket 解決（需 resolved_by）
 
+        W15-027 / PC-090：reason_code 必填且須為 CLOSE_REASONS 六種枚舉之一。
+        retrospective=True 時允許填 'unknown'（C4 回顧式 close 補填場景）。
+
         Args:
             ticket_id: 要關閉的 Ticket ID
             resolved_by: 解決此問題的 Ticket ID
-            reason: 關閉原因（選填）
+            reason_code: close_reason 枚舉值（必填，PC-090 C1）
+            reason_note: 關閉原因補充說明（選填）
+            retrospective: 是否為回顧式 close 補填（允許 unknown）
 
         Returns:
             0 表示成功，非 0 表示失敗
         """
+        # Step 0：驗證 reason_code 枚舉（PC-090 C1/C4）
+        valid_codes = set(CLOSE_REASONS)
+        if retrospective:
+            valid_codes = valid_codes | {CLOSE_REASON_RETROSPECTIVE_UNKNOWN}
+
+        if not reason_code or reason_code not in valid_codes:
+            sorted_codes = sorted(CLOSE_REASONS)
+            print(
+                f"[Error] --reason 必填且須為合法枚舉：{sorted_codes}"
+                f"（retrospective 模式額外允許 '{CLOSE_REASON_RETROSPECTIVE_UNKNOWN}'）\n"
+                f"        收到：{reason_code!r}\n"
+                f"        參見：.claude/error-patterns/process-compliance/"
+                f"PC-090-deferred-close-anti-pattern.md"
+            )
+            return 1
+
         # Step 1：載入 Ticket
         ticket, error = load_and_validate_ticket(self.version, ticket_id)
         if error:
@@ -702,19 +732,26 @@ class TicketLifecycle:
             ticket.pop("completed_at", None)
 
         # Step 3：執行關閉操作
-        close_reason = reason if reason else f"已在 {resolved_by} 一併解決"
+        default_note = f"已在 {resolved_by} 一併解決"
+        close_note = reason_note if reason_note else default_note
 
         ticket["status"] = STATUS_CLOSED
         ticket["closed_at"] = datetime.now().isoformat(timespec="seconds")
         ticket["closed_by"] = resolved_by
-        ticket["close_reason"] = close_reason
+        ticket["close_reason"] = reason_code
+        ticket["close_reason_note"] = close_note
+        if retrospective:
+            ticket["retrospective"] = True
 
         ticket_path = resolve_ticket_path(ticket, self.version, ticket_id)
         save_ticket(ticket, ticket_path)
 
         print(format_info(InfoMessages.TICKET_CLOSED, ticket_id=ticket_id))
         print(f"   解決者: {resolved_by}")
-        print(f"   原因: {close_reason}")
+        print(f"   原因代碼: {reason_code}")
+        if retrospective:
+            print(f"   回顧式補填（retrospective: true）")
+        print(f"   補充說明: {close_note}")
         print(f"   關閉時間: {ticket['closed_at']}")
 
         return 0
@@ -1374,12 +1411,26 @@ def execute_close(args: argparse.Namespace, version: str) -> int:
     """
     關閉 Ticket - 問題已在其他 Ticket 一併解決
 
-    必填參數：--resolved-by（解決此問題的 Ticket ID）
+    必填參數：
+    - --resolved-by：解決此問題的 Ticket ID
+    - --reason：close_reason 枚舉（PC-090 C1，六種合法值）
+
+    選填參數：
+    - --reason-note：關閉原因補充說明
+    - --retrospective：回顧式補填模式，允許 reason=unknown（PC-090 C4）
     """
     resolved_by = args.resolved_by
-    reason = getattr(args, "reason", "")
+    reason_code = getattr(args, "reason", "") or ""
+    reason_note = getattr(args, "reason_note", "") or ""
+    retrospective = bool(getattr(args, "retrospective", False))
     lifecycle = TicketLifecycle(version)
-    return lifecycle.close(args.ticket_id, resolved_by, reason)
+    return lifecycle.close(
+        args.ticket_id,
+        resolved_by,
+        reason_code,
+        reason_note=reason_note,
+        retrospective=retrospective,
+    )
 
 
 def execute_release(args: argparse.Namespace, version: str) -> int:

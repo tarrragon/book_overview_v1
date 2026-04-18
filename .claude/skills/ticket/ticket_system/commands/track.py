@@ -285,12 +285,27 @@ def _register_lifecycle_commands(
         help="ANA 有 spawned 非 terminal 時旁路 blocking confirmation（非互動環境必需）",
     )
 
-    # close 操作
+    # close 操作（W15-027 / PC-090：--reason 枚舉必填）
+    from ticket_system.constants import CLOSE_REASONS, CLOSE_REASON_RETROSPECTIVE_UNKNOWN
+    _close_reason_choices = sorted(CLOSE_REASONS) + [CLOSE_REASON_RETROSPECTIVE_UNKNOWN]
     p_close = subparsers.add_parser("close", help="關閉 Ticket（已在其他 Ticket 一併解決）")
     p_close.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
     p_close.add_argument("--resolved-by", required=True, dest="resolved_by",
                          help="解決此問題的 Ticket ID")
-    p_close.add_argument("--reason", default="", help="關閉原因（選填）")
+    p_close.add_argument(
+        "--reason",
+        required=True,
+        choices=_close_reason_choices,
+        help=(
+            "close_reason 枚舉（PC-090 C1 必填）。合法值："
+            f"{sorted(CLOSE_REASONS)}；--retrospective 模式額外允許 "
+            f"'{CLOSE_REASON_RETROSPECTIVE_UNKNOWN}'"
+        ),
+    )
+    p_close.add_argument("--reason-note", dest="reason_note", default="",
+                         help="關閉原因補充說明（選填）")
+    p_close.add_argument("--retrospective", action="store_true",
+                         help="回顧式補填模式，允許 --reason unknown（PC-090 C4）")
     p_close.add_argument("--version", help=TrackMessages.ARG_VERSION)
 
     # release 操作

@@ -32,6 +32,9 @@ __all__ = [
     "TICKET_STATUS",
     "STATUS_LABELS",
     "TERMINAL_STATUSES",
+    # Close reason 枚舉（PC-090 / W15-024 C1）
+    "CLOSE_REASONS",
+    "CLOSE_REASON_RETROSPECTIVE_UNKNOWN",
     # Ticket ID
     "TICKET_ID_PATTERN",
     "TICKET_ID_RE",
@@ -115,6 +118,25 @@ STATUS_LABELS: Dict[str, str] = {
 #   兩邊都從此處 import，避免雙邊宣告與語意飄移。
 # frozenset 保證不可變、支援 `in` 運算；與先前使用 set/tuple 的呼叫端完全相容。
 TERMINAL_STATUSES: frozenset = frozenset({STATUS_COMPLETED, STATUS_CLOSED})
+
+# ============================================================
+# Close reason 枚舉（PC-090 / W15-024 C1）
+# ============================================================
+#
+# ticket close 必須填寫 close_reason 且符合以下六種合法枚舉之一。
+# 推延性 close（「等之後判斷」「閘門未達先 close」）屬於反模式，
+# 參見 .claude/error-patterns/process-compliance/PC-090-deferred-close-anti-pattern.md
+CLOSE_REASONS: frozenset = frozenset({
+    "goal_achieved",                        # 目標已達成
+    "requirement_vanished",                 # 需求消失（環境變更使 ticket 無意義）
+    "superseded_by",                        # 被上游 ticket 取代
+    "not_executable_knowledge_captured",    # 無法執行且知識已轉移 error-pattern
+    "duplicate",                            # 與既有 ticket 重複
+    "cancelled_by_user",                    # 用戶明示取消
+})
+
+# 回顧式 close 專用（C4）：既有 closed ticket 補填時允許，需標記 retrospective: true
+CLOSE_REASON_RETROSPECTIVE_UNKNOWN: str = "unknown"
 
 # ============================================================
 # Ticket ID 正則表達式
