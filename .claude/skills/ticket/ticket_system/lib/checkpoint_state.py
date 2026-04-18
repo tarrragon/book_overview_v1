@@ -438,6 +438,33 @@ def _read_git_worktrees(project_root: Optional[Path] = None) -> List[str]:
 # Phase 3a §4：log 路徑與 rotate 策略
 _METRICS_LOG_RELPATH = Path(".claude/logs/pm-automation-metrics.jsonl")
 _METRICS_LOG_ROTATE_BYTES = 10 * 1024 * 1024  # 10 MB
+# 保留的歷史份數（.1.jsonl ~ .N.jsonl）。W10-017.8.3 (TD3) 由 1 擴充為 3。
+_METRICS_LOG_ROTATE_KEEP = 3
+
+
+def _rotate_metrics_log(log_path: Path, keep: int = _METRICS_LOG_ROTATE_KEEP) -> None:
+    """滾動 metrics log：log → .1 → .2 → ... → .N，超過 N 份則丟棄最舊。
+
+    例：keep=3 時，原檔 → .1.jsonl，舊 .1 → .2.jsonl，舊 .2 → .3.jsonl，
+    舊 .3.jsonl 被覆蓋丟棄。
+
+    此函式僅在呼叫端已判定需要 rotate 時被呼叫；不自行檢查檔案大小。
+    """
+
+    # 從最舊往新滾動，避免覆蓋還未搬移的檔案
+    # i = keep, keep-1, ..., 2：將 .{i-1}.jsonl rename 為 .{i}.jsonl
+    for i in range(keep, 1, -1):
+        src = log_path.with_suffix(f".{i - 1}.jsonl")
+        dst = log_path.with_suffix(f".{i}.jsonl")
+        if src.exists():
+            if dst.exists():
+                dst.unlink()
+            src.rename(dst)
+    # 最後將原檔 → .1.jsonl
+    first = log_path.with_suffix(".1.jsonl")
+    if first.exists():
+        first.unlink()
+    log_path.rename(first)
 
 
 def _write_metrics_log(
@@ -454,7 +481,8 @@ def _write_metrics_log(
         ts / event / caller / ticket_id / current_phase / ready_for_clear
         / active_agents / uncommitted_files / duration_ms / data_source_errors
 
-    Rotate：檔案 > 10 MB 時 rename 為 .1.jsonl（保留一份歷史），新檔從 0 開始。
+    Rotate：檔案 > 10 MB 時滾動為 .1/.2/.../.N.jsonl（預設保留 N=3 份），
+    新檔從 0 開始；超過 N 份則丟棄最舊的 .N。
 
     Fail-open（規則 4 雙通道）：寫入失敗時 stderr warning + 不阻斷主流程。
     呼叫端（checkpoint_state）另外以 try/except 包住此函式本身保底。
@@ -467,10 +495,7 @@ def _write_metrics_log(
     # Rotate（預寫檢查）
     try:
         if log_path.exists() and log_path.stat().st_size > _METRICS_LOG_ROTATE_BYTES:
-            rotated = log_path.with_suffix(".1.jsonl")
-            if rotated.exists():
-                rotated.unlink()
-            log_path.rename(rotated)
+            _rotate_metrics_log(log_path, keep=_METRICS_LOG_ROTATE_KEEP)
     except OSError as rot_err:
         # rotate 失敗不阻斷；stderr warning 但繼續寫原檔
         sys.stderr.write(

@@ -194,26 +194,42 @@ def test_D5_rotate_at_10mb(tmp_path: Path, monkeypatch):
     assert json.loads(new_lines[0])["caller"] == "test"
 
 
-def test_D5b_rotate_replaces_old_backup(tmp_path: Path, monkeypatch):
-    """保留一份歷史：第二次 rotate 覆蓋舊的 .1.jsonl。"""
+def test_D5b_rotate_keeps_multiple_backups(tmp_path: Path, monkeypatch):
+    """W10-017.8.3 (TD3)：保留多份歷史（預設 3 份）— .1 → .2 → .3 滾動。"""
     import importlib
     mod = importlib.import_module("ticket_system.lib.checkpoint_state")
     monkeypatch.setattr(mod, "_METRICS_LOG_ROTATE_BYTES", 5)
+    monkeypatch.setattr(mod, "_METRICS_LOG_ROTATE_KEEP", 3)
 
     log_path = tmp_path / ".claude" / "logs" / "pm-automation-metrics.jsonl"
     log_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # 第一次 rotate
+    # 第 1 次 rotate：原檔(gen=1) → .1
     log_path.write_text('{"gen":1}\n', encoding="utf-8")
     mod._write_metrics_log(_make_state(), "test", 1.0, {}, project_root=tmp_path)
-    rotated = log_path.with_suffix(".1.jsonl")
-    assert rotated.exists()
-    assert json.loads(rotated.read_text().splitlines()[0])["gen"] == 1
+    assert json.loads(log_path.with_suffix(".1.jsonl").read_text().splitlines()[0])["gen"] == 1
 
-    # 第二次 rotate：.1.jsonl 應被新的覆蓋（保留 1 份歷史）
+    # 第 2 次 rotate：新原檔(gen=2) → .1；舊 .1(gen=1) → .2
     log_path.write_text('{"gen":2}\n', encoding="utf-8")
     mod._write_metrics_log(_make_state(), "test", 1.0, {}, project_root=tmp_path)
-    assert json.loads(rotated.read_text().splitlines()[0])["gen"] == 2
+    assert json.loads(log_path.with_suffix(".1.jsonl").read_text().splitlines()[0])["gen"] == 2
+    assert json.loads(log_path.with_suffix(".2.jsonl").read_text().splitlines()[0])["gen"] == 1
+
+    # 第 3 次 rotate：gen=3 → .1；gen=2 → .2；gen=1 → .3
+    log_path.write_text('{"gen":3}\n', encoding="utf-8")
+    mod._write_metrics_log(_make_state(), "test", 1.0, {}, project_root=tmp_path)
+    assert json.loads(log_path.with_suffix(".1.jsonl").read_text().splitlines()[0])["gen"] == 3
+    assert json.loads(log_path.with_suffix(".2.jsonl").read_text().splitlines()[0])["gen"] == 2
+    assert json.loads(log_path.with_suffix(".3.jsonl").read_text().splitlines()[0])["gen"] == 1
+
+    # 第 4 次 rotate：gen=4 → .1；gen=3 → .2；gen=2 → .3；gen=1 被丟棄
+    log_path.write_text('{"gen":4}\n', encoding="utf-8")
+    mod._write_metrics_log(_make_state(), "test", 1.0, {}, project_root=tmp_path)
+    assert json.loads(log_path.with_suffix(".1.jsonl").read_text().splitlines()[0])["gen"] == 4
+    assert json.loads(log_path.with_suffix(".2.jsonl").read_text().splitlines()[0])["gen"] == 3
+    assert json.loads(log_path.with_suffix(".3.jsonl").read_text().splitlines()[0])["gen"] == 2
+    # .4.jsonl 不應存在（keep=3）
+    assert not log_path.with_suffix(".4.jsonl").exists()
 
 
 # ---------------------------------------------------------------------------
