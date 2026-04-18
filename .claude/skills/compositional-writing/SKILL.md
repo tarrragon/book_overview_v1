@@ -60,6 +60,7 @@ metadata:
 | 要撰寫完整長篇技術文章（blog post / post-mortem / 架構決策 / 除錯復盤 / 技術評估） | `references/writing-articles.md` |
 | 要設計 ticket 欄位 / schema frontmatter / 表單欄位 | `references/designing-fields.md` |
 | 想驗證寫作品質（認知負擔、獨立理解率） | `references/meta-metrics.md` |
+| 要新增或修改一份 Skill reference（撰寫品質規範、結構標準） | `references/reference-authoring-standards.md` |
 
 每份 reference 自包含：以該情境為核心，把五大原則翻譯成可直接套用的檢查項與範例。閱讀任一 reference 不需要回來看其他 reference。
 
@@ -80,15 +81,16 @@ metadata:
 
 ```
 compositional-writing/
-├── SKILL.md                           # 本檔：五大原則速查 + 觸發路由
+├── SKILL.md                              # 本檔：五大原則速查 + 觸發路由
 └── references/
-    ├── writing-code-comments.md       # 情境 1：程式碼註解
-    ├── writing-documents.md           # 情境 2：文件撰寫
-    ├── writing-logs.md                # 情境 3：log 輸出
-    ├── writing-prompts.md             # 情境 4：prompt 撰寫
-    ├── writing-articles.md            # 情境 5：完整長篇技術文章
-    ├── designing-fields.md            # 情境 6：欄位設計
-    └── meta-metrics.md                # 品質量化驗收
+    ├── writing-code-comments.md          # 情境 1：程式碼註解
+    ├── writing-documents.md              # 情境 2：文件撰寫
+    ├── writing-logs.md                   # 情境 3：log 輸出
+    ├── writing-prompts.md                # 情境 4：prompt 撰寫
+    ├── writing-articles.md               # 情境 5：完整長篇技術文章
+    ├── designing-fields.md               # 情境 6：欄位設計
+    ├── meta-metrics.md                   # 品質量化驗收（M1-M5）
+    └── reference-authoring-standards.md  # Skill reference 撰寫品質規範
 ```
 
 ---

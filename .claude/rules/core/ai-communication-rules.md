@@ -393,7 +393,7 @@ Power_Index(Claude) =
 ## 相關文件
 
 - `.claude/skills/compositional-writing/SKILL.md` — Zettelkasten 寫作方法論入口（三大支柱、五大原則 + 六情境路由）
-- `.claude/skills/compositional-writing/references/writing-prompts.md` — 本規則詳細版 + skill 產出品質規範（完整 Agent Prompt / Context Bundle 骨架、Token 節省深度策略、情境範例）
+- `.claude/skills/compositional-writing/references/writing-prompts.md` — 本規則詳細版（完整 Agent Prompt / Context Bundle 骨架、Token 節省深度策略、情境範例）
 - `.claude/rules/core/language-constraints.md` — 語言與禁用詞彙規範
 - `.claude/rules/core/document-format-rules.md` — 文件格式規範
 

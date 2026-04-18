@@ -2,10 +2,9 @@
 
 ## 檔案定位
 
-本檔案承擔兩個角色：
+本檔案為 **`.claude/rules/core/ai-communication-rules.md` 的詳細版庫**（portability-allow: 本 skill 架構性橋接至框架 auto-load 規則，非可攜性違規）。
 
-1. **`.claude/rules/core/ai-communication-rules.md` 的詳細版庫**（portability-allow: 本 skill 架構性橋接至框架 auto-load 規則，非可攜性違規） — 框架級 auto-load 規則保留 90 行骨架（核心原則、強制規則、檢查清單），本檔提供完整 Agent Prompt / Context Bundle 骨架、Token 節省深度策略、情境範例與反模式解析。
-2. **compositional-writing skill 的產出品質規範** — 維護 skill 所有 reference（writing-code-comments、writing-documents、writing-logs、designing-fields、meta-metrics）的撰寫品質基準。
+框架級 auto-load 規則保留 90 行骨架（核心原則、強制規則、檢查清單），本檔提供完整 Agent Prompt / Context Bundle 骨架、Token 節省深度策略、情境範例與反模式解析。
 
 **閱讀決策**：
 
@@ -14,7 +13,7 @@
 | 快速對照對話規範（預設每次 session auto-load） | `.claude/rules/core/ai-communication-rules.md` (portability-allow) |
 | 寫大型 Agent Prompt / Ticket Context Bundle | 本檔（完整骨架範例） |
 | 深度理解 Token 節省取捨 | 本檔「Token 節省策略」章節 |
-| 作為 skill 新增 reference 的撰寫範本 | 本檔整體架構 |
+| 新增或修改 Skill reference 的撰寫品質規範 | `references/reference-authoring-standards.md` |
 
 ---
 
