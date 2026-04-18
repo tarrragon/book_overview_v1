@@ -97,4 +97,4 @@
 ---
 
 **Last Updated**: 2026-04-18
-**Version**: 1.0.0 - 從 methodology-writing-methodology.md 提煉不重疊部分（SKILL vs 方法論分工、撰寫/改寫檢查清單、retrospective 敘事脈絡）建立本檔；原重疊內容已遷移至 writing-documents.md（W10-074.10）
+**Version**: 1.0.0 - 從舊 methodology-writing 方法論提煉不重疊部分（SKILL vs 方法論分工、撰寫/改寫檢查清單、retrospective 敘事脈絡）建立本檔；原重疊內容已遷移至 writing-documents.md
