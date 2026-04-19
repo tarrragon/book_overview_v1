@@ -169,23 +169,17 @@ def annotate_event(event_id: str, label: str, note: str = "") -> bool:
         raise EventNotFound(event_id)
 
     annotations = read_annotations()
-    existing = annotations.get(event_id)
-    overwrote_different = False
-    if existing:
-        existing_label = existing.get("label")
-        existing_note = existing.get("note", "")
-        if existing_label == label and existing_note == note:
-            return False  # 冪等
-        if existing_label != label:
-            overwrote_different = True
-
+    existing = annotations.get(event_id) or {}
+    # 冪等早退：label + note 完全相同時不寫入
+    if existing.get("label") == label and existing.get("note", "") == note:
+        return False
     annotations[event_id] = {
         "label": label,
         "note": note,
         "annotated_at": _now_iso8601_utc(),
     }
     write_annotations(annotations)
-    return overwrote_different
+    return bool(existing) and existing.get("label") != label
 
 
 # ---------------------------------------------------------------------------
