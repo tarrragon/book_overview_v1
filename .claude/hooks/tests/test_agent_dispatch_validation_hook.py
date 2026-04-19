@@ -1103,6 +1103,46 @@ class TestWhitelistRulesRegistry:
             assert callable(rule)
 
 
+class TestWhitelistListDriven:
+    """AC5 regression：新增規則到清單即生效（不需修改 _detect_keyword_conflicts）。
+
+    防護 W11-004.1.3 Phase 4 三視角發現：WHITELIST_RULES 聲稱可擴充但整合點硬編碼，
+    新增規則無法自動套用。本測試鎖死「清單驅動」契約。
+    """
+
+    def test_per_match_list_split_exists(self):
+        """PER_MATCH_WHITELIST_RULES 與 PROMPT_LEVEL_WHITELIST_RULES 必須存在且為 list。"""
+        per_match = getattr(_hook, "PER_MATCH_WHITELIST_RULES")
+        prompt_level = getattr(_hook, "PROMPT_LEVEL_WHITELIST_RULES")
+        assert isinstance(per_match, list) and len(per_match) >= 3
+        assert isinstance(prompt_level, list) and len(prompt_level) >= 1
+
+    def test_rule_b_wrapper_eliminated(self):
+        """_rule_b_wrapper 必須被消除（簽名統一後不再需要）。"""
+        assert not hasattr(_hook, "_rule_b_wrapper"), (
+            "_rule_b_wrapper 應已消除；規則 B 改用統一簽名 (prompt, start, end=None)"
+        )
+
+    def test_adding_per_match_rule_takes_effect(self):
+        """新增假 per-match 規則（永遠回 True）到清單 → 所有 conflict 應被過濾。"""
+        def _fake_always_whitelist(prompt, start, end):
+            return True, "fake_rule_for_test"
+
+        original = list(_hook.PER_MATCH_WHITELIST_RULES)
+        try:
+            _hook.PER_MATCH_WHITELIST_RULES.append(_fake_always_whitelist)
+            # 使用一個平時會觸發 git commit 的 prompt
+            prompt = "請執行 git commit -m 'update'"
+            conflicts = _detect_keyword_conflicts(prompt, ["git commit"])
+            real = [c for c in conflicts if not c.get("whitelist_reason")]
+            assert real == [], (
+                f"新增假 per-match 規則後應過濾所有 conflict，實際 real={real}；"
+                f"若仍觸發，代表 _detect_keyword_conflicts 未走清單迭代（硬編碼）"
+            )
+        finally:
+            _hook.PER_MATCH_WHITELIST_RULES[:] = original
+
+
 # ----------------------------------------------------------------------------
 # W11-004.1.3.2：Meta-task 整體豁免改為 per-match 降級（TD-2 安全修復）
 # ----------------------------------------------------------------------------
