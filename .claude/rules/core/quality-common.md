@@ -19,10 +19,12 @@
 | 章節 | 用途 |
 |------|------|
 | 1.1 命名規範 / 1.2 函式設計（含 1.2.1~1.2.5 防護） | 命名 + 函式結構 + 重構/修 bug 防護 |
-| 1.3 常數管理 / 1.4 DRY / 1.6 註解標準 | 硬編碼、重複、註解規範 |
+| 1.3 常數管理 / 1.4 DRY / 1.6 註解標準（含業務情境聚焦、抽象層級貼合） | 硬編碼、重複、註解規範 |
 | 1.5 認知負擔閾值 | 詳見 `.claude/rules/core/cognitive-load.md` |
 | 2. 檢查清單 | 提交前對照 |
 
 ---
 
-**Last Updated**: 2026-04-16 | **Version**: 2.0.0 - 完全外移至 references/（W10-076.1）
+**Last Updated**: 2026-04-19 | **Version**: 2.1.0 - 1.6 註解標準索引補列「業務情境聚焦」與「抽象層級貼合」兩條款（substance 在 references/quality-common.md §1.6 與 methodologies/comment-writing-methodology.md）
+
+**Version**: 2.0.0 - 完全外移至 references/（W10-076.1）

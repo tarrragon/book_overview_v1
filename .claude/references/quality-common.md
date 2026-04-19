@@ -308,9 +308,11 @@
 ### 1.6 註解標準
 
 > **原則**：註解記錄需求和設計意圖，不解釋程式碼做什麼。
+>
+> **上位原則**：書面文字明示性見 `.claude/rules/core/document-writing-style.md`（三明示元規則 Why / Consequence / Action）；註解專項深度規範見 `.claude/methodologies/comment-writing-methodology.md`（業務情境 vs 語法選擇、抽象層級貼合）。本節只列基線指標。
 
 **註解是**：需求保護器、設計意圖記錄、維護指引
-**註解不是**：程式碼翻譯、API 說明、TODO 清單
+**註解不是**：程式碼翻譯、API 說明、TODO 清單、語法選擇解釋
 
 **覆蓋要求**：
 
@@ -321,6 +323,42 @@
 | 值物件建構式 | 是（約束條件） |
 | Domain 模型方法 | 是（業務規則） |
 
+**Doc comment 業務情境聚焦條款**（強制）：
+
+> **Why**: doc comment 佔最靠近讀者視線的位置；讀者看 code 可推斷的資訊（語法選擇）寫在 doc 浪費此資源並排擠業務資訊。
+> **Consequence**: 違反會導致 doc 重複 code 已表達內容（DRY 違反），同時讀者無法從 doc 理解「此程式解決什麼業務問題、什麼情境觸發、不這樣做有什麼產品後果」。
+> **Action**: 寫 doc 時自問「讀者看 code 不看 doc 能否推斷此資訊？」是 → 刪除或改寫；否 → 保留。
+
+| 應寫進 doc comment | 不應寫進 doc comment |
+|------------------|---------------------|
+| 此程式解決的業務問題 | 為什麼用 `while` 而不用 `if` |
+| 觸發此路徑的使用者動作或系統狀態 | 為什麼用 `async` |
+| 不這樣做的產品層面後果 | 為什麼用 `late` 變數 |
+| 契約細節（冪等性、順序保證、複雜度承諾） | 用什麼資料結構達成（Map / Set / List） |
+| 介面：契約 + 命名引用依賴 | 介面：「目前實作用什麼方式」（洩漏實作） |
+
+**Doc comment 不寫 TODO / placeholder 條款**（強制）：
+
+| 內容類型 | 應放位置 |
+|---------|---------|
+| 未完成工作 | Inline `// TODO(<ticket-id>): ...` + ticket |
+| 暫時實作說明 | Inline comment + ticket |
+| 穩定契約（即使現行為「暫時策略」） | Doc comment（描述當前真實契約） |
+
+**註解貼合抽象層級條款**（強制）：
+
+> **Why**: 程式刻意解耦是為了讓讀 / 改某層時不需通盤理解其他層。註解的認知依賴必須跟著程式依賴一起降低，否則抽象帶來的好處被註解抵消。
+> **Consequence**: 介面 doc 洩漏實作 → 消費端被迫知道實作細節 → 實作層更換時心智模型失準 + 測試 stub 被綁定到具體實作。
+> **Action**: 介面 doc 只寫契約 + 命名引用；想知道實作細節者跳轉，不想知道者跳過。同理適用模組 README、函式 docstring。
+
+| 位置 | 只寫什麼 | 不寫什麼 |
+|------|--------|--------|
+| 介面 / 抽象類別 doc | 契約（做什麼、輸入輸出語意、使用情境） | 「目前實作用什麼方式」 |
+| 模組 README | 此模組解決的問題、對外 API | 內部類別結構、用了什麼演算法 |
+| 函式 docstring | 解決什麼問題、輸入輸出約定 | 內部怎麼解決（除非行為細節是契約） |
+
+**例外**：行為細節本身就是契約時（冪等性、順序保證、複雜度承諾），必須寫在 doc。
+
 **禁止的註解**：
 
 | 類型 | 範例 | 原因 |
@@ -328,10 +366,15 @@
 | 程式碼翻譯 | `// 將計數器加 1` | 程式碼已自明 |
 | 技術實作描述 | `// 用 Map 做快速查找` | 程式碼已自明 |
 | 過時的 TODO | `// TODO: 之後加驗證` | 應建 Ticket 追蹤 |
+| **語法選擇解釋（doc comment）** | `/// 用 while 因為 queue 可能多筆` | 讀 code 可推斷，浪費 doc 視線位置；改寫為業務情境（為什麼有多筆） |
+| **Doc 寫 TODO / placeholder** | `/// TODO: 之後加驗證` / `/// 暫時這樣` | 契約混入待辦；移到 inline + 建 ticket |
+| **介面 doc 洩漏實作** | 介面寫「目前用輪詢」 | 破壞抽象，認知依賴爆增；改為命名引用 + 只寫契約 |
 
 > 標準格式、詳細指引、各類型註解範例、禁止註解分析：.claude/references/quality-common-details.md（1.6 註解標準 — 詳細指引章節）
 
-> 完整規範：.claude/skills/compositional-writing/references/writing-code-comments.md
+> 註解專項方法論（業務 vs 語法、抽象層級）：.claude/methodologies/comment-writing-methodology.md
+
+> 完整規範（五大原則 × 註解完整實踐）：.claude/skills/compositional-writing/references/writing-code-comments.md
 
 ---
 
