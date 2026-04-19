@@ -1,46 +1,107 @@
-"""Ticket 專案狀態快照命令"""
+"""Ticket 專案狀態快照命令（W10-017.1 v2 增強版）。
+
+v2 變更：
+- 整合 checkpoint_state() + lib/checkpoint_view 渲染「當前建議」+「Ready Check」區塊
+- 移除既有 _get_uncommitted_count 獨立 git status 呼叫，改從 state.uncommitted_files 取值（v2 §1.2 / §3.4）
+- 時間欄位用 format_local_time(state)（v2.2 Q4）
+- fail-open: IO_ERRORS exit 0 + stderr WARN（v2.2 Q2）；其他例外 exit 1（v2.1 §3.5）
+"""
+
 import argparse
 import re
 import subprocess
 import sys
-from datetime import datetime
-from pathlib import Path
 from typing import Any, Dict, List
 
-from ticket_system.lib.ticket_loader import list_tickets
+from ticket_system.lib.checkpoint_state import (
+    IO_ERRORS,
+    CheckpointState,
+    checkpoint_state,
+)
+from ticket_system.lib.checkpoint_view import (
+    format_local_time,
+    render_current_suggestion,
+    render_ready_check,
+)
 from ticket_system.lib.constants import (
-    STATUS_PENDING,
-    STATUS_IN_PROGRESS,
-    STATUS_COMPLETED,
     STATUS_BLOCKED,
     STATUS_CLOSED,
+    STATUS_COMPLETED,
+    STATUS_IN_PROGRESS,
+    STATUS_PENDING,
     WORK_LOGS_DIR,
 )
 from ticket_system.lib.paths import get_project_root
+from ticket_system.lib.ticket_loader import list_tickets
+
 VERSION_PATTERN = re.compile(r"^v(\d+\.\d+\.\d+)$")
 
 
 def execute_snapshot(args: argparse.Namespace) -> int:
-    """執行 snapshot 命令"""
+    """執行 snapshot 命令（v2 增強）。
+
+    Returns:
+        0: 永遠（含 IO_ERRORS fail-open，v2.2 Q2 AD-1）；
+        1: 非 IO_ERRORS 內部錯誤（v2.1 §3.5）
+    """
     try:
-        versions = _scan_all_versions()
-        branch = _get_git_branch()
-        uncommitted = _get_uncommitted_count()
-
-        print("=== Project Snapshot ===")
-        print(f"時間: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-        print(f"分支: {branch}")
-        print()
-
-        _print_version_progress(versions)
-        _print_in_progress_tasks(versions)
-        _print_pending_summary(versions)
-        _print_git_status(branch, uncommitted)
-
-        return 0
+        state = checkpoint_state(caller="snapshot", log_metrics=True)
+    except IO_ERRORS as e:
+        # v2.2 Q2: fail-open exit 0 + stderr WARN
+        sys.stderr.write(f"WARN: data source(s) unavailable: {e}\n")
+        return _render_degraded_snapshot(error=str(e))
     except Exception as e:
-        print(f"[Error] snapshot 失敗: {e}", file=sys.stderr)
+        # 非 IO_ERRORS：規則 4 stderr + exit 1
+        sys.stderr.write(f"snapshot internal error: {e}\n")
         return 1
+
+    return _render_full_snapshot(state)
+
+
+def _render_full_snapshot(state: CheckpointState) -> int:
+    """渲染完整 snapshot（state 推導成功路徑）。"""
+    versions = _scan_all_versions()
+    branch = _get_git_branch()
+
+    print("=== Project Snapshot ===")
+    print(f"時間: {format_local_time(state)}")
+    print(f"分支: {branch}")
+    print()
+
+    _print_version_progress(versions)
+    _print_in_progress_tasks(versions)
+    _print_pending_summary(versions)
+    _print_git_status_from_state(branch, state)
+    print()
+    print(render_current_suggestion(state))
+    print()
+    print(render_ready_check(state, caller="snapshot"))
+    return 0
+
+
+def _render_degraded_snapshot(error: str) -> int:
+    """fail-open 降級渲染：既有靜態區塊仍輸出，動態區塊顯示「資料源異常」。"""
+    versions = _scan_all_versions()
+    branch = _get_git_branch()
+
+    print("=== Project Snapshot ===")
+    print(f"分支: {branch}")
+    print()
+
+    _print_version_progress(versions)
+    _print_in_progress_tasks(versions)
+    _print_pending_summary(versions)
+    print("--- Git 狀態 ---")
+    print(f"  分支: {branch}")
+    print("  未提交: 資料源不可用")
+    print()
+    print("--- 當前建議 ---")
+    print(f"  資料源異常: {error}")
+    print()
+    print("--- /clear Ready Check ---")
+    print("  [?] 資料源異常，無法執行 Ready Check")
+    print("  Pipeline 阻擋判定請改用: ticket track handoff-ready")
+    return 0
 
 
 def _scan_all_versions() -> List[str]:
@@ -132,11 +193,14 @@ def _print_pending_summary(versions: List[str]) -> None:
     print()
 
 
-def _print_git_status(branch: str, uncommitted: int) -> None:
-    """輸出 git 狀態"""
+def _print_git_status_from_state(branch: str, state: CheckpointState) -> None:
+    """輸出 git 狀態（v2 §3.4：從 state.uncommitted_files 取值，不再呼叫 git status）。"""
     print("--- Git 狀態 ---")
     print(f"  分支: {branch}")
-    print(f"  未提交: {uncommitted} 個檔案")
+    if state.uncommitted_files is None:
+        print("  未提交: 資料源不可用")
+    else:
+        print(f"  未提交: {state.uncommitted_files} 個檔案")
 
 
 def _count_by_status(tickets: List[Dict[str, Any]]) -> Dict[str, int]:
@@ -155,16 +219,10 @@ def _count_by_status(tickets: List[Dict[str, Any]]) -> Dict[str, int]:
 def _get_git_branch() -> str:
     """取得當前 git 分支"""
     try:
-        r = subprocess.run(["git", "branch", "--show-current"], capture_output=True, text=True, timeout=5)
+        r = subprocess.run(
+            ["git", "branch", "--show-current"],
+            capture_output=True, text=True, timeout=5,
+        )
         return r.stdout.strip() or "unknown"
     except Exception:
         return "unknown"
-
-
-def _get_uncommitted_count() -> int:
-    """取得未提交檔案數"""
-    try:
-        r = subprocess.run(["git", "status", "--short"], capture_output=True, text=True, timeout=5)
-        return len([l for l in r.stdout.strip().split("\n") if l.strip()])
-    except Exception:
-        return -1
