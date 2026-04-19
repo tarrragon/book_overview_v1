@@ -7,6 +7,25 @@
 - §1.2 checkpoint_state() 主函式串接 SAFE_CALL → _derive_checkpoint → log
 
 設計依據：Phase 3a §1.2 / §4 / §5；Phase 2 §3 Group D / E。
+
+TD / AD 錨點（W10-017.13 AC5 回填，供後續追溯；完整表見 017.1 worklog §技債追蹤）:
+- TD-A: caller 以 Literal 守邊（CheckpointCaller），Phase 4 評估升級 enum → 見
+  `CheckpointCaller` 定義附近註解。
+- TD-B: get_suggested_commands O(n) 反查 PRIORITIES，現 5 列無效能問題；擴張 > 10
+  列再建索引 dict → 見 checkpoint_view.get_suggested_commands。
+- TD-C: snapshot 降級 vs full 渲染重複，已 W10-017.11/12 整併至 lib 層 view
+  function → 見 commands/track_snapshot._render_degraded_snapshot。
+- TD-D: IO_ERRORS 三命令差異，已統一至本檔 IO_ERRORS → 見下方 `IO_ERRORS` 定義。
+- TD-E: pyproject testpaths 納入 ticket_system/tests → W10-017.13 AC4 已落地，
+  見 pyproject.toml [tool.pytest.ini_options]。
+- AD-1: snapshot exit code 永遠 0（fail-open）→ 見 commands/track_snapshot 及
+  lib/checkpoint_view.render_ready_check footer。
+- AD-2: handoff-ready 在 IO_ERRORS 時 exit 2（保守 NO-GO）→ 見
+  commands/track_handoff_ready。
+- AD-3: view function 不接收 ticket_id 參數（從 state._ticket_id 取）→ 見本檔
+  `CheckpointState._ticket_id` 欄位。
+- AD-4: render_ready_check 對 uncommitted_files=None 顯示 [?] → 見
+  lib/checkpoint_view.render_ready_check / CheckItem.status="unknown"。
 """
 
 from __future__ import annotations
@@ -71,6 +90,13 @@ class CheckpointState:
     - 資料來源欄位（由 _read_* 填入）：active_agents / uncommitted_files /
       unmerged_worktrees / active_handoff / in_progress_tickets
     - 元資訊：data_sources / computed_at
+
+    W10-017.13 AC3：pending_checks 欄位決策「保留」，理由記錄於此：
+    - 由 SAFE_CALL 在資料源 I/O 失敗時 append auto_detectable=False 的 PendingCheck
+    - ready_for_clear 推導依賴此 list（見 checkpoint_state() Step 4：
+      `all(not c.auto_detectable for c in pending)`）
+    - 既有測試 test_degraded_snapshot_dry.py 驗證 reason 文字（對外契約）
+    - 非 dead field，PC-093 二選一原則此處為「保留 + 文件化」選項
     """
 
     current_phase: str

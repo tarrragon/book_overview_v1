@@ -17,7 +17,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Optional, Tuple, get_args
+from typing import Callable, Dict, List, Optional, Tuple, get_args
 
 from .checkpoint_state import (
     CheckpointCaller,
@@ -64,7 +64,44 @@ def format_local_time(state: CheckpointState) -> str:
 
 # ---------------------------------------------------------------------------
 # handoff_status_for（v2.1 §6.1 命名鎖定，v2.2 Q1 邊界）
+# TD-A 錨點：caller 為 Literal[...] (見 checkpoint_state.CheckpointCaller)，
+#   runtime 用 ValueError 守邊（v2.2 Q1），Phase 4 評估升級為 enum / dataclass tag。
+# W10-017.13 AC1：dict dispatch 取代 if-elif 字串比對，新增 caller 僅需擴充表。
 # ---------------------------------------------------------------------------
+
+
+# 單一 caller 對單一 handoff_id 狀態的 builder：(handoff_id) -> (is_ok, message)
+_HandoffStatusBuilder = Callable[[Optional[str]], Tuple[bool, str]]
+
+
+def _snapshot_handoff_status(handoff_id: Optional[str]) -> Tuple[bool, str]:
+    """snapshot caller: handoff 存在視為 NO-GO（pipeline 阻擋判定）。"""
+    if handoff_id is None:
+        return True, "無 pending handoff"
+    return False, f"先處理 pending handoff: {handoff_id}"
+
+
+def _handoff_ready_status(handoff_id: Optional[str]) -> Tuple[bool, str]:
+    """handoff-ready caller: handoff 已建立視為 GO，無 handoff 則看其他阻擋。"""
+    if handoff_id is None:
+        return True, "無 pending handoff (看其他阻擋)"
+    return True, f"handoff 已建立: {handoff_id}"
+
+
+def _checkpoint_status_handoff_status(handoff_id: Optional[str]) -> Tuple[bool, str]:
+    """checkpoint-status caller: 純資訊回報，永不阻擋。"""
+    if handoff_id is None:
+        return True, "無 pending handoff"
+    return True, f"handoff pending: {handoff_id}"
+
+
+# caller → builder 路由表（v2.1 §6.1 / §6.2）
+# 新增 caller 時：(1) 在 CheckpointCaller Literal 加值；(2) 在此表加 entry。
+_HANDOFF_STATUS_ROUTES: Dict[str, _HandoffStatusBuilder] = {
+    "snapshot": _snapshot_handoff_status,
+    "handoff-ready": _handoff_ready_status,
+    "checkpoint-status": _checkpoint_status_handoff_status,
+}
 
 
 def handoff_status_for(
@@ -78,6 +115,9 @@ def handoff_status_for(
       handoff-ready   | (True, "無 pending handoff (看其他阻擋)") | (True, "handoff 已建立: {id}")
       checkpoint-status | (True, "無 pending handoff") | (True, "handoff pending: {id}")
 
+    實作（W10-017.13 AC1）：改用 _HANDOFF_STATUS_ROUTES dict dispatch，
+    避免原 if-elif 字串比對無法在新增 caller 時被型別檢查器提醒遺漏。
+
     Args:
         state: CheckpointState 實例。
         caller: 必為 _VALID_CALLERS 之一，否則 raise ValueError（v2.2 Q1）。
@@ -89,22 +129,9 @@ def handoff_status_for(
     if caller not in _VALID_CALLERS:
         raise ValueError(f"unknown caller: {caller}")
 
-    handoff_id = state.active_handoff
-
-    if caller == "snapshot":
-        if handoff_id is None:
-            return True, "無 pending handoff"
-        return False, f"先處理 pending handoff: {handoff_id}"
-
-    if caller == "handoff-ready":
-        if handoff_id is None:
-            return True, "無 pending handoff (看其他阻擋)"
-        return True, f"handoff 已建立: {handoff_id}"
-
-    # caller == "checkpoint-status"
-    if handoff_id is None:
-        return True, "無 pending handoff"
-    return True, f"handoff pending: {handoff_id}"
+    # _VALID_CALLERS 與 _HANDOFF_STATUS_ROUTES 同步保證（見模組頂註解）。
+    builder = _HANDOFF_STATUS_ROUTES[caller]
+    return builder(state.active_handoff)
 
 
 # ---------------------------------------------------------------------------
@@ -243,12 +270,112 @@ def render_current_suggestion(state: CheckpointState) -> str:
 
 # ---------------------------------------------------------------------------
 # render_ready_check（v2.1 §1.4 + v2.3 Q6 三態標記）
+# AD-4 錨點：uncommitted_files=None 顯示 [?]（區分「資料源失敗」vs「真實未提交」）。
+# W10-017.13 AC2：改用結構化 CheckItem list，消除從 "[ ]" 字串反推「未通過」計數的
+#   magic string 依賴。
 # ---------------------------------------------------------------------------
 
 
 def _mark(passed: bool) -> str:
-    """純 ASCII 三態標記 helper（v2.3 Q6 規格）。"""
+    """純 ASCII 三態標記 helper（v2.3 Q6 規格）。
+
+    Note: 僅用於 pass/fail 雙態。資料源未知情境（[?]）由 CheckItem.status
+    直接存「unknown」走 _STATUS_TO_MARK 路由，不經此 helper。
+    """
     return "[x]" if passed else "[ ]"
+
+
+# CheckItem.status → 視覺標記
+_STATUS_TO_MARK: Dict[str, str] = {
+    "pass": "[x]",
+    "fail": "[ ]",
+    "unknown": "[?]",
+}
+
+
+@dataclass(frozen=True)
+class CheckItem:
+    """Ready Check 單一檢查項（結構化取代字串匹配）。
+
+    W10-017.13 AC2：取代原本「從 rendered line 反推 [ ] 計數」的 magic string
+    依賴。now 計數直接用 `sum(1 for ci in items if ci.status == "fail")`。
+
+    Attributes:
+        status: "pass" / "fail" / "unknown"（對應 [x] / [ ] / [?]）。
+        text: 主敘述文字（不含前導 "  [x]" 標記）。
+        hint: 可選的修復命令 hint（append 到同一行尾 "→ ..."）。
+    """
+
+    status: str  # Literal["pass", "fail", "unknown"]，runtime 以 _STATUS_TO_MARK 守邊
+    text: str
+    hint: Optional[str] = None
+
+    def render(self) -> str:
+        """渲染成單行（含前導兩空白 + mark + text + 可選 hint）。"""
+        mark = _STATUS_TO_MARK.get(self.status, "[?]")
+        line = f"  {mark} {self.text}"
+        if self.hint:
+            line += f" → {self.hint}"
+        return line
+
+
+def _build_ready_check_items(
+    state: CheckpointState, caller: str
+) -> List[CheckItem]:
+    """依 state + caller 組出 4 項 CheckItem（依序：agents / uncommitted / worktree / handoff）。"""
+
+    items: List[CheckItem] = []
+
+    # 1. 活躍代理人
+    agents_pass = state.active_agents == 0
+    items.append(
+        CheckItem(
+            status="pass" if agents_pass else "fail",
+            text=f"無活躍代理人 (active_agents={state.active_agents})",
+            hint=None if agents_pass else "ticket track agent-status",
+        )
+    )
+
+    # 2. 未提交變更（None=未知，標 [?]；AD-4 錨點）
+    uncommitted = state.uncommitted_files
+    if uncommitted is None:
+        items.append(
+            CheckItem(
+                status="unknown",
+                text="無未提交變更 (uncommitted_files=未知, 資料源不可用)",
+            )
+        )
+    else:
+        unc_pass = uncommitted == 0
+        items.append(
+            CheckItem(
+                status="pass" if unc_pass else "fail",
+                text=f"無未提交變更 (uncommitted_files={uncommitted})",
+                hint=None if unc_pass else "git add + git commit",
+            )
+        )
+
+    # 3. 未合併 worktree
+    wt_count = len(state.unmerged_worktrees)
+    wt_pass = wt_count == 0
+    items.append(
+        CheckItem(
+            status="pass" if wt_pass else "fail",
+            text=f"無未合併 worktree (count={wt_count})",
+            hint=None if wt_pass else "git worktree list",
+        )
+    )
+
+    # 4. handoff（透過 view function 路由）
+    is_ok, msg = handoff_status_for(state, caller)
+    items.append(
+        CheckItem(
+            status="pass" if is_ok else "fail",
+            text=msg,
+        )
+    )
+
+    return items
 
 
 def render_ready_check(state: CheckpointState, caller: str) -> str:
@@ -256,53 +383,24 @@ def render_ready_check(state: CheckpointState, caller: str) -> str:
 
     四項判定（v2.1 §1.4）：
       - 無活躍代理人: state.active_agents == 0
-      - 無未提交變更: state.uncommitted_files in (0,)；None → [?]（v2.3 Q6）
+      - 無未提交變更: state.uncommitted_files in (0,)；None → [?]（v2.3 Q6 / AD-4）
       - 無未合併 worktree: len(state.unmerged_worktrees) == 0
       - handoff 行: handoff_status_for(state, caller)
 
-    snapshot 視角追加 footer：
+    snapshot 視角追加 footer（AD-1 錨點：snapshot exit 永遠 0）：
       Pipeline 阻擋判定請改用: ticket track handoff-ready
+
+    W10-017.13 AC2：未通過計數改用 CheckItem.status == "fail" 結構化統計，
+    消除原本「從 rendered line 反推 '[ ]' 字串」的 magic string 依賴。
     """
 
+    items = _build_ready_check_items(state, caller)
     lines = ["--- /clear Ready Check ---"]
-
-    # 1. 活躍代理人
-    agents_pass = state.active_agents == 0
-    agents_line = (
-        f"  {_mark(agents_pass)} 無活躍代理人 (active_agents={state.active_agents})"
-    )
-    if not agents_pass:
-        agents_line += " → ticket track agent-status"
-    lines.append(agents_line)
-
-    # 2. 未提交變更（None=未知，標 [?]）
-    uncommitted = state.uncommitted_files
-    if uncommitted is None:
-        lines.append(
-            "  [?] 無未提交變更 (uncommitted_files=未知, 資料源不可用)"
-        )
-    else:
-        unc_pass = uncommitted == 0
-        unc_line = f"  {_mark(unc_pass)} 無未提交變更 (uncommitted_files={uncommitted})"
-        if not unc_pass:
-            unc_line += " → git add + git commit"
-        lines.append(unc_line)
-
-    # 3. 未合併 worktree
-    wt_count = len(state.unmerged_worktrees)
-    wt_pass = wt_count == 0
-    wt_line = f"  {_mark(wt_pass)} 無未合併 worktree (count={wt_count})"
-    if not wt_pass:
-        wt_line += " → git worktree list"
-    lines.append(wt_line)
-
-    # 4. handoff（透過 view function 路由）
-    is_ok, msg = handoff_status_for(state, caller)
-    lines.append(f"  {_mark(is_ok)} {msg}")
+    lines.extend(item.render() for item in items)
 
     # snapshot 視角 footer
     if caller == "snapshot":
-        unchecked = sum(1 for ln in lines[1:] if "[ ]" in ln)
+        unchecked = sum(1 for ci in items if ci.status == "fail")
         lines.append(
             f"  顯示結果: {unchecked} 項未通過 (純展示, snapshot exit 永遠 0)"
         )
@@ -321,4 +419,5 @@ __all__ = [
     "compute_blockers",
     "render_current_suggestion",
     "render_ready_check",
+    "CheckItem",
 ]
