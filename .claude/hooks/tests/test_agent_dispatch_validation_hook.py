@@ -1101,3 +1101,113 @@ class TestWhitelistRulesRegistry:
         rules = getattr(_hook, "WHITELIST_RULES")
         for rule in rules:
             assert callable(rule)
+
+
+# ----------------------------------------------------------------------------
+# W11-004.1.3.2：Meta-task 整體豁免改為 per-match 降級（TD-2 安全修復）
+# ----------------------------------------------------------------------------
+
+class TestMetaTaskPerMatchDegrade:
+    """Meta-task prompt 不再整體豁免：真違規仍需偵測，僅透過 whitelist_reason 標記降級。
+
+    修復前：_detect_keyword_conflicts 在 meta-task 命中時 `return []`，
+    使後段真違規（git commit / 實作 / 修改檔案）靜默通過。
+
+    修復後：meta-task 命中的 conflict 附帶 `whitelist_reason='meta_task_*'`，
+    呼叫端據此降級為 logger.debug，不寫 events.jsonl；
+    但真違規（非 meta-task 範疇的 keyword 命中）仍正常回報。
+    """
+
+    # --- AC：真違規在 meta-task prompt 中仍觸發（3 個情境）---
+
+    def test_meta_task_with_git_commit_still_detects_git_commit(self):
+        """情境 1：修改 .claude/rules/ + git commit → git commit 仍應觸發。"""
+        prompt = (
+            "修改 .claude/rules/core/quality-baseline.md 新增章節，"
+            "完成後 git commit -m 'update rules'"
+        )
+        conflicts = _detect_keyword_conflicts(
+            prompt, ["實作程式碼", "git commit"]
+        )
+        real = [c for c in conflicts if not c.get("whitelist_reason")]
+        keywords = {c["keyword"] for c in real}
+        assert "git commit" in keywords, (
+            f"meta-task prompt 的真違規 git commit 應觸發，實際 conflicts={conflicts}"
+        )
+
+    def test_meta_task_with_impl_still_detects_impl(self):
+        """情境 2：編輯規則文件 + 實作 src/foo.py → 實作 仍應觸發。"""
+        prompt = (
+            "編輯規則文件加入新約束，並請實作 src/foo.py 的 helper 函式"
+        )
+        conflicts = _detect_keyword_conflicts(prompt, ["實作程式碼"])
+        real = [c for c in conflicts if not c.get("whitelist_reason")]
+        assert len(real) >= 1, (
+            f"meta-task prompt 後段的實作越界應觸發，實際 conflicts={conflicts}"
+        )
+
+    def test_meta_task_with_git_push_still_detects_git_push(self):
+        """情境 3：更新 FORBIDDEN_KEYWORD_MAP + git push → git 寫入類違規仍應觸發。
+
+        git push 在 FORBIDDEN_KEYWORD_MAP 下屬「git 寫入」key，action 標籤需含該子字串。
+        """
+        prompt = (
+            "更新 FORBIDDEN_KEYWORD_MAP 加入 pattern 後 git push origin main"
+        )
+        conflicts = _detect_keyword_conflicts(
+            prompt, ["git commit", "禁止 git 寫入操作"]
+        )
+        real = [c for c in conflicts if not c.get("whitelist_reason")]
+        keywords = {c["keyword"] for c in real}
+        assert "git 寫入" in keywords, (
+            f"meta-task prompt 的真違規 git push 應觸發，實際 conflicts={conflicts}"
+        )
+
+    # --- AC：純 meta-task 與其他白名單組合不觸發（3 個情境）---
+
+    def test_pure_meta_task_no_real_violation(self):
+        """情境 4：純 meta-task（無違規動詞） → 不回報 real conflict。"""
+        prompt = "修改 .claude/rules/core/ai-communication-rules.md 的章節結構"
+        conflicts = _detect_keyword_conflicts(prompt, ["實作程式碼", "git commit"])
+        real = [c for c in conflicts if not c.get("whitelist_reason")]
+        assert real == [], (
+            f"純 meta-task 不應產生 real conflict，實際 real={real}"
+        )
+
+    def test_meta_task_with_quoted_keyword_no_real_violation(self):
+        """情境 5：meta-task + 引號內禁止詞（規則 A 應過濾）→ 不觸發 real。"""
+        prompt = "修改 .claude/rules/ 加入『禁止實作』章節的說明"
+        conflicts = _detect_keyword_conflicts(prompt, ["實作程式碼"])
+        real = [c for c in conflicts if not c.get("whitelist_reason")]
+        assert real == [], (
+            f"引號引用應被規則 A 過濾，實際 real={real}"
+        )
+
+    def test_meta_task_with_negation_prefix_no_real_violation(self):
+        """情境 6：meta-task + 否定前綴（規則 B 應過濾）→ 不觸發 real。"""
+        prompt = "修改 .claude/rules/core/ 規則 X，請勿實作任何程式碼"
+        conflicts = _detect_keyword_conflicts(prompt, ["實作程式碼"])
+        real = [c for c in conflicts if not c.get("whitelist_reason")]
+        assert real == [], (
+            f"否定前綴應被規則 B 過濾，實際 real={real}"
+        )
+
+    # --- 補強：meta-task 匹配本身仍能被標記（供 caller 降級使用）---
+
+    def test_meta_task_match_carries_whitelist_reason(self):
+        """meta-task 命中的 conflict（若存在）需帶 whitelist_reason 以供 caller 降級。
+
+        本測試確保下游 _emit_keyword_conflict_warning_if_any 能依此欄位
+        區分 meta-filtered vs real，實現 logger.debug 降級而非 stderr 噴發。
+        """
+        # 此 prompt 為 meta-task 且含 keyword「修改」類（視 FORBIDDEN_KEYWORD_MAP 而定）；
+        # 若無 keyword 命中，conflicts 為 []，仍滿足「不誤報」語意。
+        prompt = "修改 .claude/rules/core/quality-baseline.md 補齊說明"
+        conflicts = _detect_keyword_conflicts(prompt, ["實作程式碼", "git commit"])
+        # 任何被認定為 meta-filtered 的 conflict 都必須帶 whitelist_reason
+        for c in conflicts:
+            # 若沒有 whitelist_reason，代表被當作真違規，這不該發生在此純 meta prompt
+            assert c.get("whitelist_reason"), (
+                f"純 meta-task prompt 的 conflict 應被標記 whitelist_reason，"
+                f"實際={c}"
+            )

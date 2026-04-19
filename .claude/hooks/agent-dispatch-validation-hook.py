@@ -559,10 +559,22 @@ def _detect_keyword_conflicts(
     if not prompt or not prohibited_actions:
         return []
 
-    # 規則 D：Meta-task prompt 整體豁免
-    is_meta, _meta_reason = _is_meta_task_prompt(prompt)
-    if is_meta:
-        return []
+    # 規則 D（TD-2 修復，W11-004.1.3.2）：
+    # Meta-task prompt 不再整體豁免，改為 per-match 降級。
+    # 若 prompt 為 meta-task，對於命中 meta-task 相關關鍵字（「修改」「編輯」「更新」
+    # 等通常用於描述規則文件變更的動詞）的 conflict，附帶 whitelist_reason，
+    # 由呼叫端（_emit_keyword_conflict_warning_if_any）降級為 logger.debug，
+    # 不寫 events.jsonl。
+    #
+    # 關鍵變更：真違規（git commit / git push / 實作 等動作，且該關鍵字匹配
+    # 位置不在 meta-task pattern 涵蓋的前 100 字元範疇內，或該關鍵字本身
+    # 不屬 meta-task 動詞）仍會產生 real conflict（無 whitelist_reason）。
+    is_meta, meta_reason = _is_meta_task_prompt(prompt)
+
+    # meta-task 動詞集合：這些關鍵字在 meta-task prompt 中屬於規則文件編輯語境，
+    # 不視為真違規，標 whitelist_reason。其他關鍵字（git commit/push/實作 等
+    # 動作性越界）即使出現在 meta-task prompt 中，仍視為真違規。
+    _META_TASK_VERBS = {"修改檔案", "編輯檔案", "更新檔案", "修改", "編輯", "更新"}
 
     conflicts: List[Dict[str, str]] = []
     for action in prohibited_actions:
@@ -580,14 +592,18 @@ def _detect_keyword_conflicts(
                     continue
                 if _is_in_path_context(prompt, m.start(), m.end())[0]:
                     continue
-                conflicts.append({
+                conflict: Dict[str, str] = {
                     "action": action,
                     "keyword": keyword,
                     "matched_pattern": pattern.pattern,
                     "prompt_excerpt": _make_excerpt(
                         prompt, m.start(), m.end(), padding=20
                     ),
-                })
+                }
+                # 規則 D per-match 降級：僅對 meta-task 動詞類 keyword 標記
+                if is_meta and keyword in _META_TASK_VERBS:
+                    conflict["whitelist_reason"] = meta_reason or "meta_task"
+                conflicts.append(conflict)
                 break  # 同一 keyword 命中一次即可
     return conflicts
 
@@ -694,10 +710,27 @@ def _emit_keyword_conflict_warning_if_any(
     if not conflicts:
         return
 
+    # W11-004.1.3.2（TD-2 修復）：per-match 降級
+    # 分離 meta-task 白名單化的 conflict 與真違規；前者 logger.debug 降級，
+    # 不寫 stderr、不寫 events.jsonl；後者維持原行為。
+    meta_filtered = [c for c in conflicts if c.get("whitelist_reason")]
+    real_conflicts = [c for c in conflicts if not c.get("whitelist_reason")]
+
+    if meta_filtered:
+        logger.debug(
+            "%s prompt 有 %d 項 meta-task 白名單化關鍵字（降級不噴 stderr）：%s",
+            subagent_type,
+            len(meta_filtered),
+            [c.get("whitelist_reason") for c in meta_filtered],
+        )
+
+    if not real_conflicts:
+        return
+
     conflict_lines = "\n".join(
         f"  - 禁止行為『{c['action']}』命中關鍵字『{c['keyword']}』"
         f"（片段：{c['prompt_excerpt']!r}）"
-        for c in conflicts
+        for c in real_conflicts
     )
     message = _KEYWORD_CONFLICT_WARNING_TEMPLATE.format(
         agent=subagent_type, conflicts=conflict_lines
@@ -705,10 +738,11 @@ def _emit_keyword_conflict_warning_if_any(
     print(message, file=sys.stderr)
     logger.info(
         "警告：%s prompt 偵測到 %d 項關鍵字衝突（W5-045）",
-        subagent_type, len(conflicts),
+        subagent_type, len(real_conflicts),
     )
     # W11-004.1.1：寫 event 到 events.jsonl（失敗不 raise）
-    _write_event_jsonl(subagent_type, prompt, conflicts, logger)
+    # 只寫真違規，meta-task 白名單化項目不入 events.jsonl。
+    _write_event_jsonl(subagent_type, prompt, real_conflicts, logger)
 
 
 def main() -> int:
