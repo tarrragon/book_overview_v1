@@ -18,7 +18,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, TypeVar
+from typing import Any, Callable, Dict, List, Literal, NamedTuple, Optional, Tuple, TypeVar
 
 from .paths import get_project_root
 
@@ -94,72 +94,112 @@ class CheckpointState:
 # ---------------------------------------------------------------------------
 
 # linux Good Taste：用資料結構取代 if/elif 鏈；新增優先級只動資料。
-# 每筆 (predicate, phase, label, action_fn, suggested_commands_fn)：
-#   predicate(state) -> bool：是否命中此優先級
-#   action_fn(state) -> str：動態產生 next_action 訊息
-#   suggested_commands_fn(state) -> List[str]：W10-017.1 v2 第 5 欄，給 view function
-#     用於渲染「建議命令」清單（供 lib/checkpoint_view.py 反查）
-PRIORITIES: List[
-    Tuple[
-        Callable[[CheckpointState], bool],
-        str,
-        str,
-        Callable[[CheckpointState], str],
-        Callable[[CheckpointState], List[str]],
-    ]
-] = [
-    (
-        lambda s: s.active_agents > 0,
-        "1.85",
-        "C1.85 代理人運行中",
-        lambda s: f"等待 {s.active_agents} 個代理人或 ticket track agent-status",
-        lambda s: ["ticket track agent-status"],
+# W10-017.12 AC2：改用 NamedTuple 取代匿名 5-tuple，欄位具名避免匿名 unpack。
+
+
+class PriorityRule(NamedTuple):
+    """單條優先級規則（PRIORITIES 元素）。
+
+    Attributes:
+        predicate: (state) -> bool，是否命中此優先級。
+        phase: current_phase 字串（如 "1.85"）。
+        label: 人類可讀 phase label。
+        action_fn: (state) -> str，動態產生 next_action 訊息。
+        commands_fn: (state) -> List[str]，產生建議命令清單
+            （供 lib/checkpoint_view.py get_suggested_commands 反查）。
+    """
+
+    predicate: Callable[[CheckpointState], bool]
+    phase: str
+    label: str
+    action_fn: Callable[[CheckpointState], str]
+    commands_fn: Callable[[CheckpointState], List[str]]
+
+
+class FallbackRule(NamedTuple):
+    """PRIORITIES 全數未命中時的 fallback 規則。
+
+    欄位與 PriorityRule 對齊（去除 predicate）。
+    """
+
+    phase: str
+    label: str
+    action_fn: Callable[[CheckpointState], str]
+    commands_fn: Callable[[CheckpointState], List[str]]
+
+
+PRIORITIES: List[PriorityRule] = [
+    PriorityRule(
+        predicate=lambda s: s.active_agents > 0,
+        phase="1.85",
+        label="C1.85 代理人運行中",
+        action_fn=lambda s: f"等待 {s.active_agents} 個代理人或 ticket track agent-status",
+        commands_fn=lambda s: ["ticket track agent-status"],
     ),
-    (
-        lambda s: len(s.unmerged_worktrees) > 0,
-        "1.9",
-        "C1.9 worktree 待合併",
-        lambda s: f"合併 {len(s.unmerged_worktrees)} 個 worktree 並清理",
-        lambda s: [
+    PriorityRule(
+        predicate=lambda s: len(s.unmerged_worktrees) > 0,
+        phase="1.9",
+        label="C1.9 worktree 待合併",
+        action_fn=lambda s: f"合併 {len(s.unmerged_worktrees)} 個 worktree 並清理",
+        commands_fn=lambda s: [
             "git worktree list",
             "cd <worktree> && git push",
             "cd <main> && git merge",
         ],
     ),
-    (
-        lambda s: s.uncommitted_files is not None and s.uncommitted_files > 0,
-        "1",
-        "C1 未提交變更",
-        lambda s: f"git add + git commit ({s.uncommitted_files} 檔)",
-        lambda s: ["git status", "git add <files>", 'git commit -m "<msg>"'],
+    PriorityRule(
+        predicate=lambda s: s.uncommitted_files is not None and s.uncommitted_files > 0,
+        phase="1",
+        label="C1 未提交變更",
+        action_fn=lambda s: f"git add + git commit ({s.uncommitted_files} 檔)",
+        commands_fn=lambda s: ["git status", "git add <files>", 'git commit -m "<msg>"'],
     ),
-    (
-        lambda s: s.active_handoff is not None,
-        "2",
-        "C2 handoff 就緒",
-        lambda s: f"ready for /clear (handoff pending: {s.active_handoff})",
-        lambda s: ["/clear"],
+    PriorityRule(
+        predicate=lambda s: s.active_handoff is not None,
+        phase="2",
+        label="C2 handoff 就緒",
+        action_fn=lambda s: f"ready for /clear (handoff pending: {s.active_handoff})",
+        commands_fn=lambda s: ["/clear"],
     ),
-    (
-        lambda s: len(s.in_progress_tickets) > 0 and s._ticket_id is not None,
-        "0.5",
-        "C0.5 階段進行中",
-        lambda s: "ticket track append-log 記錄階段進展",
-        lambda s: [f"ticket track append-log {s._ticket_id or '<id>'} ..."],
+    PriorityRule(
+        predicate=lambda s: len(s.in_progress_tickets) > 0 and s._ticket_id is not None,
+        phase="0.5",
+        label="C0.5 階段進行中",
+        action_fn=lambda s: "ticket track append-log 記錄階段進展",
+        commands_fn=lambda s: [f"ticket track append-log {s._ticket_id or '<id>'} ..."],
     ),
 ]
 
-FALLBACK: Tuple[
-    str,
-    str,
-    Callable[[CheckpointState], str],
-    Callable[[CheckpointState], List[str]],
-] = (
-    "3",
-    "C3 流程完成",
-    lambda s: "ready for /clear 或選下個 Ticket",
-    lambda s: ["/clear", "ticket track query --status pending"],
+FALLBACK: FallbackRule = FallbackRule(
+    phase="3",
+    label="C3 流程完成",
+    action_fn=lambda s: "ready for /clear 或選下個 Ticket",
+    commands_fn=lambda s: ["/clear", "ticket track query --status pending"],
 )
+
+
+def _resolve_rule(state: CheckpointState) -> Tuple[str, str, str, List[str]]:
+    """依 PRIORITIES 從高到低找第一個命中的規則，回傳完整詮釋。
+
+    W10-017.12 AC3：合併 _derive_checkpoint 與 get_suggested_commands 為單次
+    PRIORITIES loop，避免兩次同構掃描（一次為 phase/label/action，一次為 commands）。
+
+    Args:
+        state: 已填入資料來源欄位的 CheckpointState。
+
+    Returns:
+        (current_phase, phase_label, next_action, suggested_commands) 四元組。
+    """
+
+    for rule in PRIORITIES:
+        if rule.predicate(state):
+            return rule.phase, rule.label, rule.action_fn(state), rule.commands_fn(state)
+    return (
+        FALLBACK.phase,
+        FALLBACK.label,
+        FALLBACK.action_fn(state),
+        FALLBACK.commands_fn(state),
+    )
 
 
 def _derive_checkpoint(state: CheckpointState) -> Tuple[str, str, str]:
@@ -170,13 +210,14 @@ def _derive_checkpoint(state: CheckpointState) -> Tuple[str, str, str]:
 
     Returns:
         (current_phase, phase_label, next_action) 三元組。
+
+    Note:
+        W10-017.12 後改為 _resolve_rule 的薄包裝；保留 3-tuple 簽章以維持
+        現有測試與呼叫端契約。
     """
 
-    for predicate, phase, label, action_fn, _commands_fn in PRIORITIES:
-        if predicate(state):
-            return phase, label, action_fn(state)
-    phase, label, action_fn, _commands_fn = FALLBACK
-    return phase, label, action_fn(state)
+    phase, label, action, _commands = _resolve_rule(state)
+    return phase, label, action
 
 
 # ---------------------------------------------------------------------------
@@ -722,4 +763,6 @@ __all__ = [
     "format_next_action",
     "DATA_SOURCES",
     "PRIORITIES",
+    "PriorityRule",
+    "FallbackRule",
 ]

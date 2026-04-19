@@ -15,14 +15,14 @@
 from __future__ import annotations
 
 import time
+from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Tuple, get_args
+from typing import List, Optional, Tuple, get_args
 
 from .checkpoint_state import (
-    FALLBACK,
-    PRIORITIES,
     CheckpointCaller,
     CheckpointState,
+    _resolve_rule,
     format_next_action,
     format_phase_label,
 )
@@ -113,19 +113,103 @@ def handoff_status_for(
 
 
 def get_suggested_commands(state: CheckpointState) -> List[str]:
-    """依 state.current_phase 反查 PRIORITIES / FALLBACK 第 5 欄。
+    """回傳 state 對應的建議命令清單。
 
-    語意：找 PRIORITIES 中 phase 字段相同的列；fallback 為 FALLBACK 第 5 欄。
-    對 view function 為 O(n) 線性查詢；目前 5 列無效能問題（TD-B 已記錄）。
+    W10-017.12 AC3：改為委派 _resolve_rule，與 _derive_checkpoint 共用
+    單次 PRIORITIES loop（原本此函式會做一次獨立掃描）。
+
+    語意保持：依規則優先序命中第一條；PRIORITIES 全數未命中則落入 FALLBACK。
     """
 
-    phase = state.current_phase
-    for _pred, p, _label, _action_fn, commands_fn in PRIORITIES:
-        if p == phase:
-            return commands_fn(state)
-    # FALLBACK 用 phase=="3" 識別
-    _p, _label, _action_fn, commands_fn = FALLBACK
-    return commands_fn(state)
+    _phase, _label, _action, commands = _resolve_rule(state)
+    return commands
+
+
+# ---------------------------------------------------------------------------
+# compute_blockers（W10-017.12 AC1：從 commands/track_handoff_ready 上移）
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Blocker:
+    """handoff-ready 阻擋項（純資料載體，view 由呼叫端渲染）。
+
+    W10-017.12 AC1：從 commands/track_handoff_ready._Blocker 上移 lib 層，
+    使 commands 層僅決定 exit code 與 print，業務判定集中 lib。
+
+    Attributes:
+        label: 人類可讀阻擋描述。
+        fix: 修復建議（命令或指示）。
+    """
+
+    label: str
+    fix: str
+
+
+def compute_blockers(
+    state: CheckpointState, ticket_id: Optional[str] = None
+) -> List[Blocker]:
+    """計算 handoff-ready 阻擋項清單（v2.1 §1.6 真值表）。
+
+    W10-017.12 AC1：從 commands/track_handoff_ready._compute_blockers 上移至
+    lib 層，commands 層只消費結果決定 exit code 與 print。
+
+    全域阻擋項（不過濾 ticket-id）：
+      - active_agents > 0
+      - uncommitted_files > 0（None 視為未知，不視為阻擋）
+      - len(unmerged_worktrees) > 0
+    Ticket-id 過濾項：
+      - in_progress_tickets 含「非當前 ticket」者 → 阻擋
+        指定 ticket_id 自己 in_progress 視為「正常推進」非阻擋
+
+    Args:
+        state: 已填入資料來源欄位的 CheckpointState。
+        ticket_id: 當前 ticket ID；用於排除自身 in_progress 判定。
+
+    Returns:
+        阻擋項清單；空清單表示 GO。
+    """
+
+    blockers: List[Blocker] = []
+
+    if state.active_agents > 0:
+        blockers.append(
+            Blocker(
+                label=f"活躍代理人未完成 (active_agents={state.active_agents})",
+                fix="ticket track agent-status 查看; 等待完成",
+            )
+        )
+
+    uncommitted = state.uncommitted_files
+    if uncommitted is not None and uncommitted > 0:
+        blockers.append(
+            Blocker(
+                label=f"未提交變更 (uncommitted_files={uncommitted})",
+                fix=f"git add + git commit ({uncommitted} 檔)",
+            )
+        )
+
+    if len(state.unmerged_worktrees) > 0:
+        blockers.append(
+            Blocker(
+                label=f"未合併 worktree (count={len(state.unmerged_worktrees)})",
+                fix="git worktree list; cd <wt> && git push; cd <main> && git merge",
+            )
+        )
+
+    # in_progress_tickets：排除「自身 ticket」
+    other_in_progress = [
+        tid for tid in state.in_progress_tickets if tid != ticket_id
+    ]
+    if other_in_progress:
+        blockers.append(
+            Blocker(
+                label=f"其他 ticket 進行中 ({len(other_in_progress)} 個)",
+                fix=f"完成或 release 其他 ticket: {', '.join(other_in_progress)}",
+            )
+        )
+
+    return blockers
 
 
 # ---------------------------------------------------------------------------
@@ -233,6 +317,8 @@ __all__ = [
     "format_local_time",
     "handoff_status_for",
     "get_suggested_commands",
+    "Blocker",
+    "compute_blockers",
     "render_current_suggestion",
     "render_ready_check",
 ]
