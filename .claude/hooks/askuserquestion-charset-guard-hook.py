@@ -27,6 +27,7 @@ import json
 import sys
 
 from hook_utils import setup_hook_logging, run_hook_safely, read_json_from_stdin
+from hook_utils.hook_io import emit_hook_output
 
 HOOK_NAME = "askuserquestion-charset-guard"
 
@@ -236,13 +237,30 @@ def main() -> int:
         logger.info("通過：AUQ payload 無簡體字與 emoji")
         return 0
 
-    # 命中違規 → 阻擋
-    message = BLOCK_MESSAGE_TEMPLATE.format(
+    # 命中違規 → 阻擋（W13-006.2 方案 C：雙通道分離）
+    # - stdout JSON: permissionDecisionReason 承載完整修復指引（給 Claude）
+    # - stderr: 極簡摘要（給用戶 terminal，保留規則 4 可觀測性）
+    # - exit 0: 讓 JSON 生效（exit 2 會忽略 JSON）
+    full_message = BLOCK_MESSAGE_TEMPLATE.format(
         count=len(violations), violations=format_violations(violations)
     )
-    sys.stderr.write(message)
+
+    # 極簡 stderr 摘要：錯誤標題 + 違規清單 + PC-072 連結（不含修復指引 1-4 步）
+    stderr_summary = (
+        f"錯誤：AUQ payload 含 {len(violations)} 處字元集污染（PC-072）\n"
+        f"{format_violations(violations)}\n"
+        f"（完整修復指引已傳遞給 AI；詳見 PC-072）\n"
+    )
+    sys.stderr.write(stderr_summary)
+
+    emit_hook_output(
+        "PreToolUse",
+        permission_decision="deny",
+        permission_decision_reason=full_message,
+    )
+
     logger.warning("阻擋：AUQ payload 含 %d 處污染", len(violations))
-    return 2
+    return 0
 
 
 if __name__ == "__main__":

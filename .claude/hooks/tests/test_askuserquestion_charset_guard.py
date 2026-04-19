@@ -9,6 +9,8 @@ AskUserQuestion Charset Guard Hook - 測試（W13-003 / W14-007）
 """
 
 import importlib.util
+import json as _json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -522,6 +524,149 @@ class TestFieldPathAndTemplate:
         )
         violations = find_violations(text, "test.field")
         assert violations == [], f"純繁體不應誤判，實際：{violations}"
+
+
+# ============================================================================
+# 類別 G：W13-006.2 雙通道輸出（exit 0 + JSON permissionDecisionReason）
+# 根據 ANA W13-006.1 推薦方案 C：
+#   - 攔截路徑改 exit 0
+#   - stdout 輸出 hookSpecificOutput JSON（permissionDecision=deny）
+#   - permissionDecisionReason 包含完整 BLOCK_MESSAGE_TEMPLATE 內容
+#   - stderr 無輸出或僅極簡摘要（不含完整指引）
+#   - logger.warning 保留（file log 可觀測性）
+# ============================================================================
+
+
+HOOK_PATH = HOOK_DIR / "askuserquestion-charset-guard-hook.py"
+
+
+def _run_hook(payload: dict) -> tuple[int, str, str]:
+    """以子行程方式執行 hook，回傳 (exit_code, stdout, stderr)。"""
+    proc = subprocess.run(
+        ["python3", str(HOOK_PATH)],
+        input=_json.dumps(payload),
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+    return proc.returncode, proc.stdout, proc.stderr
+
+
+def _make_auq_input(questions: list) -> dict:
+    return {
+        "tool_name": "AskUserQuestion",
+        "tool_input": {"questions": questions},
+    }
+
+
+class TestDualChannelOutput:
+    """W13-006.2：攔截時 exit 0 + stdout JSON + stderr 極簡。"""
+
+    def test_clean_payload_exits_zero_and_no_stdout(self):
+        """G1: 合法 payload → exit 0，stdout 空（或非 deny JSON），stderr 空。"""
+        payload = _make_auq_input([
+            {
+                "question": "選擇方案？",
+                "header": "方案",
+                "options": [
+                    {"label": "繼續", "description": "維持現狀"},
+                    {"label": "切換", "description": "改方向"},
+                ],
+            }
+        ])
+        code, out, err = _run_hook(payload)
+        assert code == 0, f"合法 payload 應 exit 0，實際 {code}；stderr={err}"
+        # 合法 payload 不需 deny JSON（允許 stdout 空或無 hookSpecificOutput）
+        if out.strip():
+            parsed = _json.loads(out)
+            hso = parsed.get("hookSpecificOutput", {})
+            assert hso.get("permissionDecision") != "deny"
+        assert err.strip() == "", f"合法 payload stderr 應為空，實際：{err!r}"
+
+    def test_violating_payload_exits_zero_not_two(self):
+        """G2: 違規 payload → exit 0（非 2），讓 stdout JSON 生效。"""
+        payload = _make_auq_input([
+            {
+                "question": "問題",
+                "header": "H",
+                "options": [
+                    {"label": "与方案", "description": "D"},
+                ],
+            }
+        ])
+        code, out, err = _run_hook(payload)
+        assert code == 0, (
+            f"違規攔截 exit code 應為 0（方案 C），實際 {code}；"
+            f"stdout={out!r}；stderr={err!r}"
+        )
+
+    def test_violating_payload_stdout_has_valid_deny_json(self):
+        """G3: 違規時 stdout 為合規 JSON（含三欄位 + deny）。"""
+        payload = _make_auq_input([
+            {
+                "question": "問題",
+                "header": "H",
+                "options": [{"label": "与", "description": "独立"}],
+            }
+        ])
+        code, out, err = _run_hook(payload)
+        assert code == 0
+        assert out.strip(), f"違規時 stdout 應有 JSON 內容，實際空；stderr={err!r}"
+        parsed = _json.loads(out)
+        hso = parsed.get("hookSpecificOutput")
+        assert isinstance(hso, dict), f"缺 hookSpecificOutput：{parsed}"
+        assert hso.get("hookEventName") == "PreToolUse"
+        assert hso.get("permissionDecision") == "deny"
+        reason = hso.get("permissionDecisionReason")
+        assert isinstance(reason, str) and reason, "缺 permissionDecisionReason"
+
+    def test_violating_payload_reason_contains_repair_guidance(self):
+        """G4: permissionDecisionReason 含完整修復指引（BLOCK_MESSAGE_TEMPLATE 骨幹）。"""
+        payload = _make_auq_input([
+            {
+                "question": "問題",
+                "header": "H",
+                "options": [{"label": "与", "description": "D"}],
+            }
+        ])
+        _, out, _ = _run_hook(payload)
+        reason = _json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
+        # 核心骨幹關鍵字（來自 BLOCK_MESSAGE_TEMPLATE）
+        assert "PC-072" in reason, "reason 應含 PC-072 連結"
+        assert "修復方式" in reason, "reason 應含修復指引段落"
+        assert "違規清單" in reason, "reason 應含違規清單段落"
+        # 具體違規位置被帶入
+        assert "U+4E0E" in reason or "与" in reason, "reason 應列出違規字"
+
+    def test_violating_payload_stderr_minimal_or_empty(self):
+        """G5: 違規時 stderr 空或極簡（不含完整修復方式 1-4 步）。"""
+        payload = _make_auq_input([
+            {
+                "question": "問題",
+                "header": "H",
+                "options": [{"label": "与", "description": "D"}],
+            }
+        ])
+        _, _, err = _run_hook(payload)
+        # 極簡定義：不得含「修復方式」完整 1-4 步清單
+        # 既有 BLOCK_MESSAGE_TEMPLATE 的「修復方式：」段落不應出現在 stderr
+        assert "修復方式：" not in err, (
+            f"stderr 不應含完整『修復方式』段落（應走 stdout JSON），實際 stderr：{err!r}"
+        )
+        # 若 stderr 有內容，行數 <= 10（極簡摘要）
+        if err.strip():
+            assert err.count("\n") <= 10, (
+                f"stderr 應為極簡摘要（<=10 行），實際 {err.count(chr(10))} 行：{err!r}"
+            )
+
+    def test_non_auq_tool_passes_silently(self):
+        """G6: tool_name 非 AskUserQuestion → exit 0 + stdout/stderr 無 deny JSON。"""
+        payload = {"tool_name": "Edit", "tool_input": {"file_path": "/tmp/x"}}
+        code, out, err = _run_hook(payload)
+        assert code == 0
+        if out.strip():
+            parsed = _json.loads(out)
+            assert parsed.get("hookSpecificOutput", {}).get("permissionDecision") != "deny"
 
 
 if __name__ == "__main__":
