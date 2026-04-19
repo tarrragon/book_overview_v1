@@ -16,19 +16,22 @@ from __future__ import annotations
 
 import time
 from datetime import datetime
-from typing import List, Tuple
+from typing import List, Tuple, get_args
 
 from .checkpoint_state import (
     FALLBACK,
     PRIORITIES,
+    CheckpointCaller,
     CheckpointState,
     format_next_action,
     format_phase_label,
 )
 
 
-# CLI 三命令的合法 caller 集合（v2.2 Q1 規格鎖定）
-_VALID_CALLERS = ("snapshot", "handoff-ready", "checkpoint-status")
+# CLI 三命令的合法 caller 集合（v2.2 Q1 規格鎖定）。
+# W10-017.11 AC 2：從 CheckpointCaller Literal 透過 get_args 派生，過濾掉 log
+# fallback 值 "unknown"，避免雙源定義漂移。新增 CLI caller 時只需擴充 Literal。
+_VALID_CALLERS = tuple(c for c in get_args(CheckpointCaller) if c != "unknown")
 
 
 # ---------------------------------------------------------------------------
@@ -39,8 +42,12 @@ _VALID_CALLERS = ("snapshot", "handoff-ready", "checkpoint-status")
 def format_local_time(state: CheckpointState) -> str:
     """轉 state.computed_at（UTC ISO8601）為本地時區可讀字串。
 
-    決策（v2.2 Q4）：用 time.localtime + strftime("%Y-%m-%d %H:%M (local)")
-    解析失敗時 fallback 為原字串 + "(local)" 標記，避免拋例外阻塞 view 渲染。
+    決策（v2.2 Q4）：
+    - 主路徑：datetime.fromisoformat(raw) + astimezone() 轉本地時區，
+      strftime("%Y-%m-%d %H:%M (local)") 格式化。
+    - Fallback（raw 解析失敗）：用 time.localtime + strftime 產生當前本地時間
+      字串；raw 非空時保留原字串 + " (當前本地時間)" 標記，raw 空時回純當前本地時間。
+    目的：避免拋例外阻塞 view 渲染（fail-open）。
     """
 
     raw = state.computed_at or ""

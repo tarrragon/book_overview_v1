@@ -16,6 +16,8 @@ from typing import Any, Dict, List
 from ticket_system.lib.checkpoint_state import (
     IO_ERRORS,
     CheckpointState,
+    PendingCheck,
+    _utc_now_iso,
     checkpoint_state,
 )
 from ticket_system.lib.checkpoint_view import (
@@ -79,10 +81,48 @@ def _render_full_snapshot(state: CheckpointState) -> int:
     return 0
 
 
+def _build_degraded_state(error: str) -> CheckpointState:
+    """建立 degraded CheckpointState：所有資料源 fallback + pending_check 註記錯誤。
+
+    用於 execute_snapshot IO_ERRORS 降級路徑，讓 render_current_suggestion +
+    render_ready_check 可直接複用（W10-017.11 AC 4 DRY）。
+
+    資料源 fallback 對齊 DATA_SOURCES：
+      uncommitted_files=None（資料源不可用，Ready Check 走 [?] 分支）
+      active_agents=0, unmerged_worktrees=[], active_handoff=None, in_progress_tickets=[]
+    這組 fallback 會落入 PRIORITIES FALLBACK（C3 流程完成），current_phase="3"。
+    """
+    pending = [
+        PendingCheck(
+            check_id="data_source_degraded",
+            reason=f"snapshot degraded: {error}",
+            blocker=False,
+            auto_detectable=False,
+        )
+    ]
+    return CheckpointState(
+        current_phase="3",
+        ready_for_clear=False,
+        pending_checks=pending,
+        active_agents=0,
+        unmerged_worktrees=[],
+        active_handoff=None,
+        in_progress_tickets=[],
+        data_sources={"degraded": f"IO_ERRORS: {error}"},
+        computed_at=_utc_now_iso(),
+        uncommitted_files=None,
+    )
+
+
 def _render_degraded_snapshot(error: str) -> int:
-    """fail-open 降級渲染：既有靜態區塊仍輸出，動態區塊顯示「資料源異常」。"""
+    """fail-open 降級渲染：既有靜態區塊仍輸出，動態區塊複用 render_* 函式。
+
+    W10-017.11 AC 4：複用 render_current_suggestion + render_ready_check 避免
+    與 _render_full_snapshot 重複實作「當前建議 / Ready Check」兩區塊。
+    """
     versions = _scan_all_versions()
     branch = _get_git_branch()
+    state = _build_degraded_state(error)
 
     print("=== Project Snapshot ===")
     print(f"分支: {branch}")
@@ -93,14 +133,11 @@ def _render_degraded_snapshot(error: str) -> int:
     _print_pending_summary(versions)
     print("--- Git 狀態 ---")
     print(f"  分支: {branch}")
-    print("  未提交: 資料源不可用")
+    print(f"  未提交: 資料源不可用 ({error})")
     print()
-    print("--- 當前建議 ---")
-    print(f"  資料源異常: {error}")
+    print(render_current_suggestion(state))
     print()
-    print("--- /clear Ready Check ---")
-    print("  [?] 資料源異常，無法執行 Ready Check")
-    print("  Pipeline 阻擋判定請改用: ticket track handoff-ready")
+    print(render_ready_check(state, caller="snapshot"))
     return 0
 
 

@@ -24,9 +24,15 @@ from .paths import get_project_root
 
 
 # CheckpointCaller：caller 欄位型別約束（TD6 / 017.8.4）。
-# 目前生產端呼叫集合；新增 caller 需同步擴充此 Literal。
+# 包含兩類成員：
+#   (1) CLI 三命令實際傳入值：snapshot / handoff-ready / checkpoint-status
+#   (2) 未指定 caller 時的 log fallback 值：unknown
+# checkpoint_view._VALID_CALLERS 從本 Literal 透過 typing.get_args 派生並過濾掉
+# "unknown"，確保 CLI caller 集合單一 source of truth（W10-017.11 AC 1/2）。
 # Python runtime 不強制 Literal，型別檢查器（mypy/pyright）會警告誤植。
-CheckpointCaller = Literal["snapshot", "dispatch-check", "handoff-ready", "unknown"]
+CheckpointCaller = Literal[
+    "snapshot", "handoff-ready", "checkpoint-status", "unknown"
+]
 
 
 # ---------------------------------------------------------------------------
@@ -640,7 +646,7 @@ def checkpoint_state(
     Args:
         ticket_id: 當前 ticket 識別（None = 使用 in_progress 推導）。
         log_metrics: False 時不寫 metrics log（單元測試隔離）。
-        caller: 呼叫端識別（如 "snapshot"/"dispatch-check"），寫入 log caller 欄位。
+        caller: 呼叫端識別（"snapshot"/"handoff-ready"/"checkpoint-status"），寫入 log caller 欄位。
         project_root: 測試注入用；預設呼叫 get_project_root()。
 
     Returns:
