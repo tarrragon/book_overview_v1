@@ -288,12 +288,32 @@ def _extract_prohibited_actions(agent_md_path: Path) -> List[str]:
     return labels
 
 
+# W11-004.1.1：events.jsonl 路徑（與 dispatch_stats.py 必須一致）
+try:
+    _EVENTS_JSONL_PATH = (
+        get_project_root()
+        / ".claude/hook-logs/agent-dispatch-validation/events/events.jsonl"
+    )
+except Exception:
+    _EVENTS_JSONL_PATH = (
+        Path.cwd()
+        / ".claude/hook-logs/agent-dispatch-validation/events/events.jsonl"
+    )
+
+
+def _make_excerpt(prompt: str, start: int, end: int, padding: int = 20) -> str:
+    """取命中片段前後 padding 字元作上下文，換行替換為空白。"""
+    lo = max(0, start - padding)
+    hi = min(len(prompt), end + padding)
+    return prompt[lo:hi].replace("\n", " ").replace("\r", " ")
+
+
 def _detect_keyword_conflicts(
     prompt: str, prohibited_actions: List[str]
-) -> List[str]:
+) -> List[Dict[str, str]]:
     """掃描 prompt 是否命中 prohibited_actions 對應的關鍵字 pattern。
 
-    回傳：衝突描述字串清單，形如 "禁止行為『實作程式碼』命中 pattern『實作』"。
+    回傳：衝突 dict 清單，每筆含 action / keyword / matched_pattern / prompt_excerpt。
     無衝突時回傳空 list。
 
     匹配策略：prohibited action 標籤若「包含」FORBIDDEN_KEYWORD_MAP 某個 key
@@ -302,7 +322,7 @@ def _detect_keyword_conflicts(
     if not prompt or not prohibited_actions:
         return []
 
-    conflicts: List[str] = []
+    conflicts: List[Dict[str, str]] = []
     for action in prohibited_actions:
         for keyword, patterns in FORBIDDEN_KEYWORD_MAP.items():
             if keyword not in action:
@@ -310,12 +330,64 @@ def _detect_keyword_conflicts(
             for pattern in patterns:
                 m = pattern.search(prompt)
                 if m:
-                    conflicts.append(
-                        f"禁止行為『{action}』命中關鍵字『{keyword}』"
-                        f"（prompt 片段：{m.group(0)!r}）"
-                    )
+                    conflicts.append({
+                        "action": action,
+                        "keyword": keyword,
+                        "matched_pattern": pattern.pattern,
+                        "prompt_excerpt": _make_excerpt(
+                            prompt, m.start(), m.end(), padding=20
+                        ),
+                    })
                     break  # 同一 keyword 命中一次即可
     return conflicts
+
+
+def _write_event_jsonl(
+    subagent_type: str,
+    prompt: str,
+    conflicts_detail: List[Dict[str, str]],
+    logger,
+) -> None:
+    """寫一行 event 到 events.jsonl，flock 並發安全，失敗不 raise。"""
+    if not subagent_type or not prompt:
+        return
+    if not conflicts_detail:
+        return
+
+    import hashlib
+    import fcntl
+    from datetime import datetime, timezone
+
+    prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:16]
+    now = datetime.now(timezone.utc)
+    ts_compact = now.strftime("%Y%m%dT%H%M%SZ")
+    event_id = f"{ts_compact}-{prompt_hash[:8]}"
+    timestamp_iso = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    event = {
+        "event_id": event_id,
+        "timestamp": timestamp_iso,
+        "subagent_type": subagent_type,
+        "conflicts": conflicts_detail,
+        "prompt_hash": prompt_hash,
+        "prompt_length": len(prompt),
+    }
+    line = json.dumps(event, ensure_ascii=False) + "\n"
+
+    try:
+        _EVENTS_JSONL_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with open(_EVENTS_JSONL_PATH, "a", encoding="utf-8") as f:
+            fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+            f.write(line)
+    except OSError as e:
+        msg = f"dispatch_stats: write event failed: {e}"
+        if logger is not None:
+            try:
+                logger.warning(msg)
+            except Exception:
+                pass
+        print(msg, file=sys.stderr)
+        return
 
 
 def _agent_md_path(subagent_type: str) -> Path:
@@ -372,7 +444,11 @@ def _emit_keyword_conflict_warning_if_any(
     if not conflicts:
         return
 
-    conflict_lines = "\n".join(f"  - {c}" for c in conflicts)
+    conflict_lines = "\n".join(
+        f"  - 禁止行為『{c['action']}』命中關鍵字『{c['keyword']}』"
+        f"（片段：{c['prompt_excerpt']!r}）"
+        for c in conflicts
+    )
     message = _KEYWORD_CONFLICT_WARNING_TEMPLATE.format(
         agent=subagent_type, conflicts=conflict_lines
     )
@@ -381,6 +457,8 @@ def _emit_keyword_conflict_warning_if_any(
         "警告：%s prompt 偵測到 %d 項關鍵字衝突（W5-045）",
         subagent_type, len(conflicts),
     )
+    # W11-004.1.1：寫 event 到 events.jsonl（失敗不 raise）
+    _write_event_jsonl(subagent_type, prompt, conflicts, logger)
 
 
 def main() -> int:
