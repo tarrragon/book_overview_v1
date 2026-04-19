@@ -583,19 +583,19 @@ class TestDetectKeywordConflicts:
         prompt = "請實作新功能並寫入 src/foo.py"
         conflicts = _detect_keyword_conflicts(prompt, ["實作程式碼"])
         assert len(conflicts) >= 1
-        assert "實作" in conflicts[0]
+        assert any(c["action"] == "實作程式碼" and c["keyword"] == "實作" for c in conflicts)
 
     def test_detects_git_commit_keyword(self):
         prompt = "完成後請執行 git commit -m 'msg'"
         conflicts = _detect_keyword_conflicts(prompt, ["git commit"])
         assert len(conflicts) >= 1
-        assert "git commit" in conflicts[0]
+        assert any(c["keyword"] == "git commit" for c in conflicts)
 
     def test_detects_spec_design_keyword(self):
         prompt = "請設計此 UC 的規格文件"
         conflicts = _detect_keyword_conflicts(prompt, ["設計功能規格"])
         assert len(conflicts) >= 1
-        assert "設計功能規格" in conflicts[0]
+        assert any(c["keyword"] == "設計功能規格" for c in conflicts)
 
     def test_no_conflict_for_clean_prompt(self):
         """prompt 與所有禁止項皆無關時應無衝突。"""
