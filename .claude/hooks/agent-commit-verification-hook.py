@@ -24,6 +24,7 @@ Agent Commit Verification Hook - SubagentStop
 
 import json
 import logging
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -110,7 +111,11 @@ FEATURE_BRANCH_PREFIXES = ("feat/", "feature/", "fix/", "refactor/")
 
 # Hook error 摘要
 HOOK_ERROR_SCAN_MINUTES = 5
-HOOK_ERROR_KEYWORDS = ("ERROR", "FAIL", "Exception", "Traceback", "TypeError", "NameError")
+# Log level 精確匹配：`[timestamp] LEVEL - message` 格式，僅 ERROR/CRITICAL/FATAL 視為錯誤
+# 使用 regex 避免純字串匹配造成誤報（例如用戶命令字串含 "ERROR"/"FAIL"/"Exception" 關鍵字）
+HOOK_ERROR_LOG_LEVEL_RE = re.compile(r"\] (ERROR|CRITICAL|FATAL) -")
+# Python Traceback 標記（行首），同樣是真實 Hook 錯誤訊號
+HOOK_ERROR_TRACEBACK_RE = re.compile(r"^Traceback \(most recent call last\):", re.MULTILINE)
 MSG_HOOK_ERROR_TITLE = "[Hook Error 摘要] 代理人執行期間偵測到 Hook 錯誤"
 MSG_HOOK_ERROR_BODY = (
     "以下 Hook 在最近 {minutes} 分鐘內有錯誤記錄（可能影響代理人執行）：\n"
@@ -432,6 +437,23 @@ def build_cwd_restore_message(project_root: str) -> str:
     return "\n".join(lines)
 
 
+def _has_hook_error(content: str) -> bool:
+    """判斷 log 檔內容是否包含真實 Hook 錯誤。
+
+    只採計以下兩種訊號，避免純字串匹配誤報：
+      1. log level 為 ERROR/CRITICAL/FATAL 的 log 行（格式 `] LEVEL -`）
+      2. Python Traceback 標記（行首 `Traceback (most recent call last):`）
+
+    INFO/DEBUG/WARNING 訊息中夾帶 "ERROR"/"FAIL"/"Exception" 等關鍵字
+    （例如回放使用者命令字串）不視為錯誤。
+    """
+    if HOOK_ERROR_LOG_LEVEL_RE.search(content):
+        return True
+    if HOOK_ERROR_TRACEBACK_RE.search(content):
+        return True
+    return False
+
+
 def scan_hook_errors(project_root: str, minutes: int, logger: logging.Logger) -> list[tuple[str, int]]:
     """掃描 hook-logs 目錄，找出最近 N 分鐘內含有錯誤的 Hook
 
@@ -464,7 +486,7 @@ def scan_hook_errors(project_root: str, minutes: int, logger: logging.Logger) ->
                     if log_file.stat().st_mtime < cutoff_time:
                         continue
                     content = log_file.read_text(encoding="utf-8", errors="ignore")
-                    if any(kw in content for kw in HOOK_ERROR_KEYWORDS):
+                    if _has_hook_error(content):
                         error_counts[hook_name] = error_counts.get(hook_name, 0) + 1
                 except OSError:
                     continue
