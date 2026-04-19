@@ -48,33 +48,16 @@ REQUIRED_EVENT_FIELDS = (
 )
 
 
-def _default_events_path() -> Path:
-    # 與 agent-dispatch-validation-hook.py 的 _EVENTS_JSONL_PATH 必須一致
-    project_root = Path(__file__).resolve().parents[2]
-    return project_root / ".claude/hook-logs/agent-dispatch-validation/events/events.jsonl"
+_PROJECT_ROOT: Path = Path(__file__).resolve().parents[2]
+# 與 agent-dispatch-validation-hook.py 的 _EVENTS_JSONL_PATH 必須一致
+_EVENTS_JSONL_PATH: Path = _PROJECT_ROOT / ".claude/hook-logs/agent-dispatch-validation/events/events.jsonl"
+_ANNOTATIONS_JSON_PATH: Path = _PROJECT_ROOT / ".claude/hook-logs/agent-dispatch-validation/events/annotations.json"
 
 
-def _default_annotations_path() -> Path:
-    project_root = Path(__file__).resolve().parents[2]
-    return project_root / ".claude/hook-logs/agent-dispatch-validation/events/annotations.json"
-
-
-_EVENTS_JSONL_PATH: Path = _default_events_path()
-_ANNOTATIONS_JSON_PATH: Path = _default_annotations_path()
-
-
-def _get_events_path() -> Path:
-    env = os.environ.get("DISPATCH_STATS_EVENTS_PATH")
-    if env:
-        return Path(env)
-    return _EVENTS_JSONL_PATH
-
-
-def _get_annotations_path() -> Path:
-    env = os.environ.get("DISPATCH_STATS_ANNOTATIONS_PATH")
-    if env:
-        return Path(env)
-    return _ANNOTATIONS_JSON_PATH
+def _resolve_path(env_var: str, default: Path) -> Path:
+    """統一的路徑解析：環境變數優先，否則回傳 default（模組常數，可被測試 monkeypatch）。"""
+    env = os.environ.get(env_var)
+    return Path(env) if env else default
 
 
 # ---------------------------------------------------------------------------
@@ -93,7 +76,7 @@ def read_events(path: Optional[Path] = None) -> Tuple[List[Dict[str, Any]], int]
 
     格式錯誤行 skip 並寫 stderr「第 N 行格式錯誤」。
     """
-    p = path if path is not None else _get_events_path()
+    p = path if path is not None else _resolve_path("DISPATCH_STATS_EVENTS_PATH", _EVENTS_JSONL_PATH)
     if not p.exists():
         return [], 0
     events: List[Dict[str, Any]] = []
@@ -121,7 +104,7 @@ def read_events(path: Optional[Path] = None) -> Tuple[List[Dict[str, Any]], int]
 
 
 def read_annotations(path: Optional[Path] = None) -> Dict[str, Dict[str, Any]]:
-    p = path if path is not None else _get_annotations_path()
+    p = path if path is not None else _resolve_path("DISPATCH_STATS_ANNOTATIONS_PATH", _ANNOTATIONS_JSON_PATH)
     if not p.exists():
         return {}
     try:
@@ -143,7 +126,7 @@ def read_annotations(path: Optional[Path] = None) -> Dict[str, Dict[str, Any]]:
 def write_annotations(annotations: Dict[str, Dict[str, Any]],
                        path: Optional[Path] = None) -> None:
     """atomic rename 寫入 annotations.json。"""
-    p = path if path is not None else _get_annotations_path()
+    p = path if path is not None else _resolve_path("DISPATCH_STATS_ANNOTATIONS_PATH", _ANNOTATIONS_JSON_PATH)
     p.parent.mkdir(parents=True, exist_ok=True)
     tmp_path = p.with_name(p.name + ".tmp." + uuid.uuid4().hex[:8])
     try:
