@@ -29,7 +29,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Callable, Dict, List, Tuple
 
 from hook_utils import (
     setup_hook_logging,
@@ -341,6 +341,210 @@ def _make_excerpt(prompt: str, start: int, end: int, padding: int = 20) -> str:
     return prompt[lo:hi].replace("\n", " ").replace("\r", " ")
 
 
+# ============================================================================
+# W11-004.1.3：白名單過濾 - 合法引用情境排除誤觸
+# ============================================================================
+#
+# 設計：四條白名單規則（純函式 + WHITELIST_RULES 清單），在 _detect_keyword_conflicts
+# 內部套用，命中任一規則則跳過該衝突。
+#
+# 規則 A：引號包圍偵測（『』「」"" '' `` ** **）
+# 規則 B：否定前綴偵測（不要/請勿/禁止/避免/不得/不可/勿/don't/avoid/...）
+# 規則 C：路徑/檔名上下文偵測（.claude/ docs/ src/ tests/ ... .md .py ...）
+# 規則 D：Meta-task prompt 偵測（修改 .claude/rules/ / 編輯規則文件 / 更新 FORBIDDEN_KEYWORD_MAP）
+
+# 引號配對：開 → 閉（成對引號）；同字元 → 同字元（對稱引號）
+_QUOTE_PAIRS: Dict[str, str] = {
+    "『": "』",
+    "「": "」",
+    '"': '"',
+    "'": "'",
+    "`": "`",
+}
+
+# Markdown 粗體包圍 **...**
+_MD_BOLD = "**"
+
+# 中文否定詞（在匹配位置前 10 字元內出現即視為否定前綴）
+_NEGATION_WORDS_ZH = ("不要", "請勿", "禁止", "避免", "不得", "不可", "切勿", "勿")
+# 英文否定詞（case-insensitive，以 regex 檢查）
+_NEGATION_PATTERN_EN = re.compile(
+    r"\b(?:don'?t|do\s+not|avoid|forbid(?:den)?|must\s+not|never)\b",
+    re.IGNORECASE,
+)
+
+# 句子邊界字元（跨越則不算前綴）
+_SENTENCE_BOUNDARY_CHARS = set("。；;.\n\r")
+
+# 路徑前綴（向前 30 字內出現視為檔案路徑上下文）
+_PATH_PREFIXES = (".claude/", "docs/", "src/", "tests/", "test/", "lib/", "app/",
+                  "scripts/", "bin/", "cmd/", "assets/", "public/")
+# 副檔名（向後 15 字內出現視為檔案路徑上下文）
+_FILE_EXTENSIONS = (".md", ".py", ".js", ".ts", ".dart", ".go", ".json", ".yaml", ".yml")
+# Ticket ID 模式（如 0.18.0-W11-004.1.2）
+_TICKET_ID_PATTERN = re.compile(r"\d+\.\d+\.\d+-W\d+-\d+(?:\.\d+)*")
+
+# Meta-task 宣告關鍵字（prompt 前 100 字元內出現任一即視為 meta-task）
+_META_TASK_PATTERNS = (
+    re.compile(r"修改\s*\.claude/(?:rules|agents|hooks|pm-rules|skills|references)/"),
+    re.compile(r"編輯\s*\.claude/(?:rules|agents|hooks|pm-rules|skills|references)/"),
+    re.compile(r"編輯規則文件"),
+    re.compile(r"修改規則文件"),
+    re.compile(r"更新\s*FORBIDDEN_KEYWORD_MAP"),
+    re.compile(r"新增\s*FORBIDDEN_KEYWORD_MAP"),
+)
+
+
+def _is_quoted_match(prompt: str, start: int, end: int) -> Tuple[bool, str]:
+    """規則 A：判斷匹配片段是否被引號/粗體包圍。
+
+    回傳：(is_whitelisted, reason)。未命中回傳 (False, "")。
+    策略：從 start 向前 50 字元掃描開引號，從 end 向後 50 字元掃描對應閉引號，
+    中間不跨越換行。
+    """
+    if not prompt or start < 0 or end > len(prompt) or start >= end:
+        return False, ""
+
+    window_before = prompt[max(0, start - 50):start]
+    window_after = prompt[end:min(len(prompt), end + 50)]
+
+    # 禁跨行：若 window_before 或 window_after 含換行，裁切到最近換行後/前
+    if "\n" in window_before:
+        window_before = window_before.rsplit("\n", 1)[-1]
+    if "\n" in window_after:
+        window_after = window_after.split("\n", 1)[0]
+
+    # 檢查成對/對稱引號
+    for open_q, close_q in _QUOTE_PAIRS.items():
+        # 向前找最近的 open_q
+        open_idx = window_before.rfind(open_q)
+        if open_idx == -1:
+            continue
+        # 對稱引號：open_q == close_q，需確認 open_q 出現次數為奇數
+        if open_q == close_q:
+            # 向後找 close_q 即可
+            if close_q in window_after:
+                return True, f"quoted_by_{open_q}{close_q}"
+        else:
+            # 成對引號：確認 window_before 在 open_idx 之後無閉引號
+            tail = window_before[open_idx + len(open_q):]
+            if close_q in tail:
+                continue  # 這對引號已在匹配前閉合
+            if close_q in window_after:
+                return True, f"quoted_by_{open_q}{close_q}"
+
+    # Markdown 粗體 **...**
+    bold_open = window_before.rfind(_MD_BOLD)
+    if bold_open != -1:
+        tail = window_before[bold_open + len(_MD_BOLD):]
+        if _MD_BOLD not in tail and _MD_BOLD in window_after:
+            return True, "quoted_by_md_bold"
+
+    return False, ""
+
+
+def _has_negation_prefix(prompt: str, start: int) -> Tuple[bool, str]:
+    """規則 B：判斷匹配位置前 10 字元內是否含否定詞（同句內）。
+
+    回傳：(is_whitelisted, reason)。
+    """
+    if not prompt or start <= 0:
+        return False, ""
+
+    window_start = max(0, start - 10)
+    window = prompt[window_start:start]
+
+    # 檢查句子邊界：若 window 含句號/分號/換行，從最後一個邊界之後重新切
+    last_boundary = -1
+    for i, ch in enumerate(window):
+        if ch in _SENTENCE_BOUNDARY_CHARS:
+            last_boundary = i
+    if last_boundary != -1:
+        window = window[last_boundary + 1:]
+
+    # 中文否定詞
+    for word in _NEGATION_WORDS_ZH:
+        if word in window:
+            return True, f"negation_prefix_{word}"
+
+    # 英文否定詞（用 regex）
+    if _NEGATION_PATTERN_EN.search(window):
+        return True, "negation_prefix_en"
+
+    return False, ""
+
+
+def _is_in_path_context(prompt: str, start: int, end: int) -> Tuple[bool, str]:
+    """規則 C：判斷匹配位置是否落在檔案路徑/ticket ID 上下文內。
+
+    條件（任一命中即視為白名單）：
+      1. 向前 30 字內含路徑前綴（.claude/, docs/, src/, ...）且該前綴到匹配位置之間無空白
+      2. 向後 15 字內含副檔名（.md, .py, ...）且匹配到副檔名之間無空白
+      3. 匹配落在 ticket ID 模式內
+    """
+    if not prompt or start < 0 or end > len(prompt) or start >= end:
+        return False, ""
+
+    # Ticket ID 檢查
+    for m in _TICKET_ID_PATTERN.finditer(prompt):
+        if m.start() <= start and end <= m.end():
+            return True, "ticket_id_context"
+
+    # 路徑前綴檢查（向前 30 字內，且前綴與匹配之間無空白）
+    before = prompt[max(0, start - 30):start]
+    for prefix in _PATH_PREFIXES:
+        idx = before.rfind(prefix)
+        if idx == -1:
+            continue
+        between = before[idx + len(prefix):]
+        if " " not in between and "\t" not in between and "\n" not in between:
+            return True, f"path_prefix_{prefix.rstrip('/')}"
+
+    # 副檔名檢查（向後 15 字內，且匹配與副檔名之間無空白）
+    after = prompt[end:min(len(prompt), end + 15)]
+    for ext in _FILE_EXTENSIONS:
+        idx = after.find(ext)
+        if idx == -1:
+            continue
+        between = after[:idx]
+        if " " not in between and "\t" not in between and "\n" not in between:
+            return True, f"file_ext_{ext.lstrip('.')}"
+
+    return False, ""
+
+
+def _is_meta_task_prompt(prompt: str) -> Tuple[bool, str]:
+    """規則 D：判斷 prompt 是否為 meta-task（修改規則/agent 定義/FORBIDDEN_KEYWORD_MAP）。
+
+    檢查 prompt 前 100 字元。
+    """
+    if not prompt:
+        return False, ""
+    head = prompt[:100]
+    for pat in _META_TASK_PATTERNS:
+        m = pat.search(head)
+        if m:
+            return True, f"meta_task_{m.group(0)[:20]}"
+    return False, ""
+
+
+# 白名單規則清單（可擴充）。
+# 前三條為 per-match 規則：簽名 (prompt, start, end) -> (bool, str)
+# 規則 B 僅需 start，wrap 成統一簽名。
+# 規則 D 為 prompt-level 規則：簽名 (prompt) -> (bool, str)，在 _detect_keyword_conflicts
+# 前置判斷。
+def _rule_b_wrapper(prompt: str, start: int, end: int) -> Tuple[bool, str]:
+    return _has_negation_prefix(prompt, start)
+
+
+WHITELIST_RULES: List[Callable] = [
+    _is_quoted_match,
+    _rule_b_wrapper,
+    _is_in_path_context,
+    _is_meta_task_prompt,
+]
+
+
 def _detect_keyword_conflicts(
     prompt: str, prohibited_actions: List[str]
 ) -> List[Dict[str, str]]:
@@ -355,6 +559,11 @@ def _detect_keyword_conflicts(
     if not prompt or not prohibited_actions:
         return []
 
+    # 規則 D：Meta-task prompt 整體豁免
+    is_meta, _meta_reason = _is_meta_task_prompt(prompt)
+    if is_meta:
+        return []
+
     conflicts: List[Dict[str, str]] = []
     for action in prohibited_actions:
         for keyword, patterns in FORBIDDEN_KEYWORD_MAP.items():
@@ -362,16 +571,24 @@ def _detect_keyword_conflicts(
                 continue
             for pattern in patterns:
                 m = pattern.search(prompt)
-                if m:
-                    conflicts.append({
-                        "action": action,
-                        "keyword": keyword,
-                        "matched_pattern": pattern.pattern,
-                        "prompt_excerpt": _make_excerpt(
-                            prompt, m.start(), m.end(), padding=20
-                        ),
-                    })
-                    break  # 同一 keyword 命中一次即可
+                if not m:
+                    continue
+                # 白名單過濾：規則 A/B/C（per-match）
+                if _is_quoted_match(prompt, m.start(), m.end())[0]:
+                    continue
+                if _has_negation_prefix(prompt, m.start())[0]:
+                    continue
+                if _is_in_path_context(prompt, m.start(), m.end())[0]:
+                    continue
+                conflicts.append({
+                    "action": action,
+                    "keyword": keyword,
+                    "matched_pattern": pattern.pattern,
+                    "prompt_excerpt": _make_excerpt(
+                        prompt, m.start(), m.end(), padding=20
+                    ),
+                })
+                break  # 同一 keyword 命中一次即可
     return conflicts
 
 
