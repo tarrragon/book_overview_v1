@@ -44,6 +44,35 @@ from ticket_system.lib.ticket_ops import (
 )
 
 
+DICT_FIELD_SUBKEY: Dict[str, str] = {
+    "who": "current",
+    "where": "layer",
+    "how": "strategy",
+}
+"""dict 型欄位與主要子欄位的對應表（W10-086 修復）。
+
+Why: set-who/set-where/set-how 應僅更新子欄位（current/layer/strategy），
+保留 dict 其他 key（history/files/task_type）；原實作直接覆寫整個 dict 為 string，
+導致後續 dict.get 操作 AttributeError。
+
+How to apply: execute_set_field 依此表分流 dict 與 string 欄位的寫入邏輯。
+"""
+
+
+_DICT_FIELD_DEFAULTS: Dict[str, Dict[str, Any]] = {
+    "who": {"current": "pending", "history": {}},
+    "where": {"layer": "待定義", "files": []},
+    "how": {"task_type": "Implementation", "strategy": "待定義"},
+}
+
+
+def _build_dict_field(field_name: str, subkey: str, new_value: Any) -> Dict[str, Any]:
+    """為降級（原值已被壓扁為 string）/ 初始化場景重建完整 dict 結構。"""
+    result = {k: v for k, v in _DICT_FIELD_DEFAULTS[field_name].items()}
+    result[subkey] = new_value
+    return result
+
+
 def execute_get_field(
     args: argparse.Namespace,
     version: str,
@@ -146,8 +175,17 @@ def execute_set_field(
     # 取得新值
     new_value = args.value
 
-    # 更新欄位
-    ticket[actual_field_name] = new_value
+    # 更新欄位：dict 型欄位僅更新子欄位（W10-086 修復，防止壓扁 dict 為 string）
+    if actual_field_name in DICT_FIELD_SUBKEY:
+        subkey = DICT_FIELD_SUBKEY[actual_field_name]
+        existing = ticket.get(actual_field_name)
+        if isinstance(existing, dict):
+            existing[subkey] = new_value
+            ticket[actual_field_name] = existing
+        else:
+            ticket[actual_field_name] = _build_dict_field(actual_field_name, subkey, new_value)
+    else:
+        ticket[actual_field_name] = new_value
 
     # 儲存
     ticket_path = resolve_ticket_path(ticket, version, args.ticket_id)
