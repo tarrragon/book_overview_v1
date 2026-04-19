@@ -20,11 +20,35 @@ from acceptance_checkers.ticket_parser import (
 )
 
 
-def has_acceptance_record(ticket_content: str, logger) -> bool:
-    """
-    檢查 Ticket 是否有驗收記錄
+def _all_acceptance_items_checked(acceptance_list) -> bool:
+    """判定 frontmatter acceptance list 是否全部項目以 [x] 開頭（勾選完成）。
 
-    尋找以下關鍵字：
+    回傳 True 僅當 list 非空且所有項目（字串，strip 後）以 `[x]` 開頭。
+    非字串項目或部分未勾選一律回傳 False。
+    """
+    if not acceptance_list or not isinstance(acceptance_list, list):
+        return False
+    for item in acceptance_list:
+        if not isinstance(item, str):
+            return False
+        if not item.strip().startswith("[x]"):
+            return False
+    return True
+
+
+def has_acceptance_record(
+    ticket_content: str,
+    logger,
+    frontmatter: Optional[dict] = None,
+) -> bool:
+    """
+    檢查 Ticket 是否有驗收記錄。
+
+    資料源優先序（與 CLI track_acceptance.py 寫入端對齊）：
+      1. 優先檢查 frontmatter acceptance list：全部項目 `[x]` 勾選 → True
+      2. 空 list / 部分勾選 / 無欄位 → fallback body 關鍵字掃描
+
+    Body 關鍵字（fallback，保留舊 Ticket 相容）：
     - 驗收結果: 通過
     - Acceptance Audit Report
     - 驗收通過
@@ -34,12 +58,24 @@ def has_acceptance_record(ticket_content: str, logger) -> bool:
     - acceptance-auditor
 
     Args:
-        ticket_content: Ticket 檔案內容
+        ticket_content: Ticket 檔案內容（body 文字）
         logger: 日誌物件
+        frontmatter: Ticket frontmatter 結構（可選；None 表示舊 caller）
 
     Returns:
         bool - 是否有驗收記錄
     """
+    # 優先：frontmatter acceptance list 全勾選
+    if frontmatter is not None:
+        acceptance_list = frontmatter.get("acceptance")
+        if _all_acceptance_items_checked(acceptance_list):
+            logger.info(
+                f"frontmatter acceptance list 全部勾選 "
+                f"({len(acceptance_list)} 項)"
+            )
+            return True
+
+    # Fallback：body 關鍵字掃描
     acceptance_keywords = [
         "驗收結果: 通過",
         "Acceptance Audit Report",
@@ -88,7 +124,7 @@ def verify_acceptance_record(
         logger.info(f"Ticket {ticket_id} 為 DOC 類型且無子任務，豁免驗收檢查")
         should_check_acceptance = False
 
-    has_accept = has_acceptance_record(ticket_content, logger)
+    has_accept = has_acceptance_record(ticket_content, logger, frontmatter=frontmatter)
 
     if should_check_acceptance and not has_accept:
         warning_msg = format_message(
