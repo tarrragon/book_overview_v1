@@ -443,11 +443,13 @@ def _is_quoted_match(prompt: str, start: int, end: int) -> Tuple[bool, str]:
     return False, ""
 
 
-def _has_negation_prefix(prompt: str, start: int) -> Tuple[bool, str]:
+def _has_negation_prefix(prompt: str, start: int, end: int = None) -> Tuple[bool, str]:
     """規則 B：判斷匹配位置前 10 字元內是否含否定詞（同句內）。
 
     回傳：(is_whitelisted, reason)。
+    參數 end 為簽名統一用（與 per-match 規則 A/C 一致），此規則不消費 end。
     """
+    _ = end  # 簽名統一：per-match 規則共同接收 (prompt, start, end)，此規則忽略 end
     if not prompt or start <= 0:
         return False, ""
 
@@ -528,20 +530,32 @@ def _is_meta_task_prompt(prompt: str) -> Tuple[bool, str]:
     return False, ""
 
 
-# 白名單規則清單（可擴充）。
-# 前三條為 per-match 規則：簽名 (prompt, start, end) -> (bool, str)
-# 規則 B 僅需 start，wrap 成統一簽名。
-# 規則 D 為 prompt-level 規則：簽名 (prompt) -> (bool, str)，在 _detect_keyword_conflicts
-# 前置判斷。
-def _rule_b_wrapper(prompt: str, start: int, end: int) -> Tuple[bool, str]:
-    return _has_negation_prefix(prompt, start)
-
-
-WHITELIST_RULES: List[Callable] = [
+# 白名單規則清單（可擴充，拆兩層抽象）。
+#
+# PER_MATCH 層：每個 regex match 套用，簽名 (prompt, start, end) -> (bool, str)
+#   - 規則 A 引號、規則 B 否定前綴、規則 C 路徑上下文。
+#   - 命中任一 → 直接跳過該 conflict（不記錄）。
+#
+# PROMPT_LEVEL 層：整個 prompt 套用一次，簽名 (prompt) -> (bool, str)
+#   - 規則 D meta-task。
+#   - 命中 → 搭配 _META_TASK_VERBS 為特定 verb keyword 標 whitelist_reason
+#     （per-match 降級，不整體豁免；見 _detect_keyword_conflicts）。
+#
+# 擴充即生效：新增規則只需 append 到對應清單，無需修改 _detect_keyword_conflicts。
+PER_MATCH_WHITELIST_RULES: List[Callable[[str, int, int], Tuple[bool, str]]] = [
     _is_quoted_match,
-    _rule_b_wrapper,
+    _has_negation_prefix,
     _is_in_path_context,
+]
+
+PROMPT_LEVEL_WHITELIST_RULES: List[Callable[[str], Tuple[bool, str]]] = [
     _is_meta_task_prompt,
+]
+
+# Backward-compat alias：保留既有 WHITELIST_RULES 名稱供外部/測試引用。
+WHITELIST_RULES: List[Callable] = [
+    *PER_MATCH_WHITELIST_RULES,
+    *PROMPT_LEVEL_WHITELIST_RULES,
 ]
 
 
@@ -569,7 +583,14 @@ def _detect_keyword_conflicts(
     # 關鍵變更：真違規（git commit / git push / 實作 等動作，且該關鍵字匹配
     # 位置不在 meta-task pattern 涵蓋的前 100 字元範疇內，或該關鍵字本身
     # 不屬 meta-task 動詞）仍會產生 real conflict（無 whitelist_reason）。
-    is_meta, meta_reason = _is_meta_task_prompt(prompt)
+    # Prompt-level 規則（清單驅動）：整個 prompt 套用一次，收集 reason 供 per-match 降級使用。
+    # 當前僅規則 D（meta-task）會產生 reason；新增規則時直接 append 到 PROMPT_LEVEL_WHITELIST_RULES 即生效。
+    prompt_level_reason = ""
+    for rule in PROMPT_LEVEL_WHITELIST_RULES:
+        is_matched, reason = rule(prompt)
+        if is_matched:
+            prompt_level_reason = reason or "prompt_level"
+            break
 
     # meta-task 動詞集合：這些關鍵字在 meta-task prompt 中屬於規則文件編輯語境，
     # 不視為真違規，標 whitelist_reason。其他關鍵字（git commit/push/實作 等
@@ -585,13 +606,15 @@ def _detect_keyword_conflicts(
                 m = pattern.search(prompt)
                 if not m:
                     continue
-                # 白名單過濾：規則 A/B/C（per-match）
-                if _is_quoted_match(prompt, m.start(), m.end())[0]:
+                # Per-match 白名單過濾（清單驅動）：命中任一規則即跳過。
+                whitelisted = False
+                for per_match_rule in PER_MATCH_WHITELIST_RULES:
+                    if per_match_rule(prompt, m.start(), m.end())[0]:
+                        whitelisted = True
+                        break
+                if whitelisted:
                     continue
-                if _has_negation_prefix(prompt, m.start())[0]:
-                    continue
-                if _is_in_path_context(prompt, m.start(), m.end())[0]:
-                    continue
+
                 conflict: Dict[str, str] = {
                     "action": action,
                     "keyword": keyword,
@@ -600,9 +623,9 @@ def _detect_keyword_conflicts(
                         prompt, m.start(), m.end(), padding=20
                     ),
                 }
-                # 規則 D per-match 降級：僅對 meta-task 動詞類 keyword 標記
-                if is_meta and keyword in _META_TASK_VERBS:
-                    conflict["whitelist_reason"] = meta_reason or "meta_task"
+                # Prompt-level per-match 降級：僅對 meta-task 動詞類 keyword 標記
+                if prompt_level_reason and keyword in _META_TASK_VERBS:
+                    conflict["whitelist_reason"] = prompt_level_reason
                 conflicts.append(conflict)
                 break  # 同一 keyword 命中一次即可
     return conflicts
