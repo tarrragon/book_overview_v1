@@ -114,6 +114,14 @@ from .track_agent_status import (
 from .track_snapshot import (
     execute_snapshot,
 )
+from .track_handoff_ready import (
+    execute_handoff_ready,
+    register_handoff_ready,
+)
+from .track_checkpoint_status import (
+    execute_checkpoint_status,
+    register_checkpoint_status,
+)
 # 導入版本審計命令模組
 from .audit_version import (
     execute_audit_version,
@@ -209,6 +217,10 @@ def execute(args: argparse.Namespace) -> int:
         return execute_snapshot(args)
     if operation == "agent-status":
         return execute_agent_status(args)
+    if operation == "handoff-ready":
+        return execute_handoff_ready(args)
+    if operation == "checkpoint-status":
+        return execute_checkpoint_status(args)
 
     # 其他命令需要版本資訊
     # 優先級：
@@ -707,6 +719,8 @@ def _register_all_subcommands(
     _register_board_commands(track_subparsers)
     _register_snapshot_commands(track_subparsers)
     register_agent_status(track_subparsers)
+    register_handoff_ready(track_subparsers)
+    register_checkpoint_status(track_subparsers)
 
 
 def _register_snapshot_commands(

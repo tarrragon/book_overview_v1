@@ -88,48 +88,71 @@ class CheckpointState:
 # ---------------------------------------------------------------------------
 
 # linux Good Taste：用資料結構取代 if/elif 鏈；新增優先級只動資料。
-# 每筆 (predicate, phase, label, action_fn)：
+# 每筆 (predicate, phase, label, action_fn, suggested_commands_fn)：
 #   predicate(state) -> bool：是否命中此優先級
 #   action_fn(state) -> str：動態產生 next_action 訊息
+#   suggested_commands_fn(state) -> List[str]：W10-017.1 v2 第 5 欄，給 view function
+#     用於渲染「建議命令」清單（供 lib/checkpoint_view.py 反查）
 PRIORITIES: List[
-    Tuple[Callable[[CheckpointState], bool], str, str, Callable[[CheckpointState], str]]
+    Tuple[
+        Callable[[CheckpointState], bool],
+        str,
+        str,
+        Callable[[CheckpointState], str],
+        Callable[[CheckpointState], List[str]],
+    ]
 ] = [
     (
         lambda s: s.active_agents > 0,
         "1.85",
         "C1.85 代理人運行中",
         lambda s: f"等待 {s.active_agents} 個代理人或 ticket track agent-status",
+        lambda s: ["ticket track agent-status"],
     ),
     (
         lambda s: len(s.unmerged_worktrees) > 0,
         "1.9",
         "C1.9 worktree 待合併",
         lambda s: f"合併 {len(s.unmerged_worktrees)} 個 worktree 並清理",
+        lambda s: [
+            "git worktree list",
+            "cd <worktree> && git push",
+            "cd <main> && git merge",
+        ],
     ),
     (
         lambda s: s.uncommitted_files is not None and s.uncommitted_files > 0,
         "1",
         "C1 未提交變更",
         lambda s: f"git add + git commit ({s.uncommitted_files} 檔)",
+        lambda s: ["git status", "git add <files>", 'git commit -m "<msg>"'],
     ),
     (
         lambda s: s.active_handoff is not None,
         "2",
         "C2 handoff 就緒",
         lambda s: f"ready for /clear (handoff pending: {s.active_handoff})",
+        lambda s: ["/clear"],
     ),
     (
         lambda s: len(s.in_progress_tickets) > 0 and s._ticket_id is not None,
         "0.5",
         "C0.5 階段進行中",
         lambda s: "ticket track append-log 記錄階段進展",
+        lambda s: [f"ticket track append-log {s._ticket_id or '<id>'} ..."],
     ),
 ]
 
-FALLBACK: Tuple[str, str, Callable[[CheckpointState], str]] = (
+FALLBACK: Tuple[
+    str,
+    str,
+    Callable[[CheckpointState], str],
+    Callable[[CheckpointState], List[str]],
+] = (
     "3",
     "C3 流程完成",
     lambda s: "ready for /clear 或選下個 Ticket",
+    lambda s: ["/clear", "ticket track query --status pending"],
 )
 
 
@@ -143,10 +166,10 @@ def _derive_checkpoint(state: CheckpointState) -> Tuple[str, str, str]:
         (current_phase, phase_label, next_action) 三元組。
     """
 
-    for predicate, phase, label, action_fn in PRIORITIES:
+    for predicate, phase, label, action_fn, _commands_fn in PRIORITIES:
         if predicate(state):
             return phase, label, action_fn(state)
-    phase, label, action_fn = FALLBACK
+    phase, label, action_fn, _commands_fn = FALLBACK
     return phase, label, action_fn(state)
 
 
