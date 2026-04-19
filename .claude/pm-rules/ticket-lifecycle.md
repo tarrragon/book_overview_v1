@@ -49,6 +49,7 @@ pending → claim → in_progress → complete → completed
 | 子任務建立 | `/ticket create --parent {parent_id}` |
 | 任務層級判斷 | 因執行現有 Ticket 產生 → 子任務；獨立問題 → 新任務鏈 |
 | **ANA 衍生 Ticket 溯源驗證** | **AC 必須 1:1 對應來源 ANA Solution 修改項（PC-041）** |
+| **骨架/references 雙向檢查** | where.files 必須同時列骨架索引路徑與 references 實質路徑（詳見 `.claude/methodologies/atomic-ticket-methodology.md` §「where.files 撰寫指引：拆分檔案配對」） |
 
 ### ANA 衍生 Ticket 溯源驗證（強制）
 
@@ -86,7 +87,7 @@ Ticket 建立後、認領前，強制並行派發多代理人審核。
 
 | 審核者 | 面向 | 檢查項目 |
 |--------|------|---------|
-| acceptance-auditor | 品質 | 驗收條件 4V 合規、where.files 完整性、數字正確性 |
+| acceptance-auditor | 品質 | 驗收條件 4V 合規、where.files 完整性（含骨架/references 配對完整性）、數字正確性 |
 | system-analyst | 設計 | 設計合理性、重複實作檢查、範圍適當性 |
 
 ### 審核流程
