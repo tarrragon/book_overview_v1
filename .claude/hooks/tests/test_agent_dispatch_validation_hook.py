@@ -857,3 +857,247 @@ class TestExpandedKeywordMap:
         for k in ["實作", "修改檔案", "git commit", "設計功能規格", "直接執行測試修復", "執行測試"]:
             assert k in _FORBIDDEN_KEYWORD_MAP
             assert len(_FORBIDDEN_KEYWORD_MAP[k]) >= 1
+
+
+# ============================================================================
+# W11-004.1.3: 白名單過濾 - 合法引用情境排除誤觸
+# ============================================================================
+#
+# 對應 ticket 0.18.0-W11-004.1.3：識別合法情境並排除誤觸。
+# 設計：四條白名單規則（純函式 + WHITELIST_RULES 清單），在 _detect_keyword_conflicts
+# 回傳前過濾。
+#
+# 待實作符號（thyme Phase 3b GREEN）：
+#   _is_quoted_match(prompt, start, end) -> Tuple[bool, str]
+#   _has_negation_prefix(prompt, start) -> Tuple[bool, str]
+#   _is_in_path_context(prompt, start, end) -> Tuple[bool, str]
+#   _is_meta_task_prompt(prompt) -> Tuple[bool, str]
+#   WHITELIST_RULES: List[Callable]
+#
+# 整合行為：_detect_keyword_conflicts 內部套用白名單過濾，被白名單化的匹配不進結果。
+
+
+class TestWhitelistRuleA_QuotedReference:
+    """規則 A：引號包圍偵測 _is_quoted_match。"""
+
+    @pytest.fixture
+    def fn(self):
+        return getattr(_hook, "_is_quoted_match")
+
+    @pytest.mark.parametrize("prompt,start_substr", [
+        ("請遵守 thyme 定義中的『禁止實作程式碼』邊界", "實作"),
+        ("sage 的「禁止 git commit」章節", "git commit"),
+        ("參照 standard.md 的 **禁止執行測試** 格式", "執行測試"),
+        ('agent 的 "禁止修改規格" 範例說明', "修改規格"),
+        ("詳見 `禁止 git push` 條款", "git push"),
+    ])
+    def test_whitelisted_when_wrapped_in_quotes(self, fn, prompt, start_substr):
+        """匹配位置落在引號內 → 白名單化（回傳 (True, reason)）。"""
+        start = prompt.index(start_substr)
+        end = start + len(start_substr)
+        is_wl, reason = fn(prompt, start, end)
+        assert is_wl is True
+        assert reason, "白名單命中時必須回傳非空 reason"
+
+    @pytest.mark.parametrize("prompt,start_substr", [
+        ("請實作 src/foo.py 的新功能", "實作"),
+        ("完成後 git commit -m 'fix'", "git commit"),
+        ("請修改規格文件加入新需求", "修改規格"),
+    ])
+    def test_not_whitelisted_when_no_quotes(self, fn, prompt, start_substr):
+        """匹配位置不在引號內 → 不白名單化。"""
+        start = prompt.index(start_substr)
+        end = start + len(start_substr)
+        is_wl, _ = fn(prompt, start, end)
+        assert is_wl is False
+
+    def test_unclosed_quote_does_not_infinite_loop(self, fn):
+        """未閉合引號不應造成回圈，視為未在引號內。"""
+        prompt = "請『實作新功能 src/foo.py"  # 開引號無閉合
+        start = prompt.index("實作")
+        end = start + len("實作")
+        is_wl, _ = fn(prompt, start, end)
+        # 接受 True/False，核心是「不 hang」；若實作選擇嚴格閉合 → False
+        assert isinstance(is_wl, bool)
+
+    def test_cross_line_quote_not_counted(self, fn):
+        """引號跨行不視為包圍（避免過寬匹配）。"""
+        prompt = "標題：『警告\n內容：實作' 範例"
+        start = prompt.index("實作")
+        end = start + len("實作")
+        is_wl, _ = fn(prompt, start, end)
+        assert is_wl is False
+
+
+class TestWhitelistRuleB_NegationPrefix:
+    """規則 B：否定前綴偵測 _has_negation_prefix。"""
+
+    @pytest.fixture
+    def fn(self):
+        return getattr(_hook, "_has_negation_prefix")
+
+    @pytest.mark.parametrize("prompt,start_substr", [
+        ("請勿實作程式碼，僅產出設計", "實作"),
+        ("不要執行 git commit", "git commit"),
+        ("禁止修改 src/ 下檔案", "修改"),
+        ("不得進行重構", "重構"),
+        ("do not commit changes", "commit"),
+        ("avoid refactor in this task", "refactor"),
+    ])
+    def test_whitelisted_when_negation_within_10_chars(self, fn, prompt, start_substr):
+        """匹配位置前 10 字元內含否定詞 → 白名單化。"""
+        start = prompt.index(start_substr)
+        is_wl, reason = fn(prompt, start)
+        assert is_wl is True
+        assert reason
+
+    @pytest.mark.parametrize("prompt,start_substr", [
+        ("請實作新功能", "實作"),
+        ("完成後 git commit", "git commit"),
+        ("請修改 src/foo.py", "修改"),
+    ])
+    def test_not_whitelisted_without_negation(self, fn, prompt, start_substr):
+        start = prompt.index(start_substr)
+        is_wl, _ = fn(prompt, start)
+        assert is_wl is False
+
+    def test_negation_too_far_not_counted(self, fn):
+        """否定詞距離超過 10 字元視為無效前綴。"""
+        prompt = "請不要忘記這件事，然後開始實作新功能"
+        start = prompt.index("實作")
+        is_wl, _ = fn(prompt, start)
+        assert is_wl is False
+
+    def test_sentence_boundary_blocks_negation(self, fn):
+        """否定詞與匹配跨越句號/分號 → 不算前綴。"""
+        prompt = "不要忘記。請實作新功能"
+        start = prompt.index("實作")
+        is_wl, _ = fn(prompt, start)
+        assert is_wl is False
+
+
+class TestWhitelistRuleC_PathContext:
+    """規則 C：路徑/檔名上下文偵測 _is_in_path_context。"""
+
+    @pytest.fixture
+    def fn(self):
+        return getattr(_hook, "_is_in_path_context")
+
+    @pytest.mark.parametrize("prompt,start_substr", [
+        ("參考 .claude/error-patterns/implementation/IMP-057.md 的教訓", "implementation"),
+        ("閱讀 docs/spec/modify-spec-guide.md 文件", "modify-spec"),
+        ("修改 docs/work-logs/v0.18/IMP-052-implementation.md", "implementation"),
+    ])
+    def test_whitelisted_when_in_file_path(self, fn, prompt, start_substr):
+        """匹配位置落在檔案路徑內 → 白名單化。"""
+        start = prompt.index(start_substr)
+        end = start + len(start_substr)
+        is_wl, reason = fn(prompt, start, end)
+        assert is_wl is True
+        assert reason
+
+    @pytest.mark.parametrize("prompt,start_substr", [
+        ("請在 src/foo.py 中實作新功能", "實作"),
+        ("完成後執行 git commit 提交", "git commit"),
+        ("請修改規格以符合新需求", "修改規格"),
+    ])
+    def test_not_whitelisted_when_not_in_path(self, fn, prompt, start_substr):
+        start = prompt.index(start_substr)
+        end = start + len(start_substr)
+        is_wl, _ = fn(prompt, start, end)
+        assert is_wl is False
+
+    def test_ticket_id_context_whitelisted(self, fn):
+        """ticket ID 模式內的關鍵字視為引用（ticket track 命令）。"""
+        prompt = "ticket track query 0.18.0-W11-004.1.2"
+        start = prompt.index("ticket track")
+        end = start + len("ticket track")
+        is_wl, _ = fn(prompt, start, end)
+        # 本 case 不嚴格要求 True（由實作決定），但不應 raise
+        assert isinstance(is_wl, bool)
+
+
+class TestWhitelistRuleD_MetaTaskPrompt:
+    """規則 D（延伸）：Meta-task 偵測 _is_meta_task_prompt。"""
+
+    @pytest.fixture
+    def fn(self):
+        return getattr(_hook, "_is_meta_task_prompt")
+
+    @pytest.mark.parametrize("prompt", [
+        "修改 .claude/rules/core/ai-communication-rules.md 新增『禁止硬編碼』章節",
+        "編輯規則文件加入新約束",
+        "更新 FORBIDDEN_KEYWORD_MAP 加入 git push pattern",
+        "修改 .claude/agents/thyme-python-developer.md 的禁止行為章節",
+    ])
+    def test_meta_task_detected(self, fn, prompt):
+        is_meta, reason = fn(prompt)
+        assert is_meta is True
+        assert reason
+
+    @pytest.mark.parametrize("prompt", [
+        "實作 src/foo.py 的 parse 函式",
+        "修復 tests/unit/test_bar.py 失敗",
+        "分析 docs/foo.md 後產出報告",
+    ])
+    def test_non_meta_task_not_detected(self, fn, prompt):
+        is_meta, _ = fn(prompt)
+        assert is_meta is False
+
+
+class TestWhitelistIntegration:
+    """整合測試：_detect_keyword_conflicts 套用白名單後過濾合法情境。"""
+
+    def test_quoted_reference_not_emitted(self):
+        prompt = "請遵守 thyme 定義中的『禁止實作程式碼』邊界"
+        conflicts = _detect_keyword_conflicts(prompt, ["實作程式碼"])
+        assert conflicts == [], f"引號引用不應觸發，但得到 {conflicts}"
+
+    def test_negation_prefix_not_emitted(self):
+        prompt = "請勿實作程式碼，僅產出設計規格"
+        conflicts = _detect_keyword_conflicts(prompt, ["實作程式碼"])
+        assert conflicts == []
+
+    def test_path_context_not_emitted(self):
+        prompt = "參考 .claude/error-patterns/PC-057-unauthorized-implementation.md"
+        conflicts = _detect_keyword_conflicts(prompt, ["實作程式碼"])
+        assert conflicts == []
+
+    def test_real_violation_still_emitted(self):
+        """真實越界案例（W5-001 範型）仍應觸發。"""
+        prompt = "請實作新測試並寫入 tests/unit/foo.py"
+        conflicts = _detect_keyword_conflicts(prompt, ["實作程式碼"])
+        assert len(conflicts) >= 1
+
+    def test_git_commit_real_violation_still_emitted(self):
+        prompt = "修改 src/foo.py 後 git commit -m msg"
+        conflicts = _detect_keyword_conflicts(prompt, ["git commit"])
+        assert len(conflicts) >= 1
+
+    def test_mixed_quoted_and_real_only_real_emitted(self):
+        """同 prompt 含引號引用 + 真實違反 → 僅真實違反觸發。"""
+        prompt = "說明『禁止 git commit』邊界。但請實作新功能 src/foo.py"
+        conflicts = _detect_keyword_conflicts(
+            prompt, ["實作程式碼", "git commit"]
+        )
+        keywords = {c["keyword"] for c in conflicts}
+        assert "實作" in keywords
+        assert "git commit" not in keywords, "引號引用不應觸發"
+
+
+class TestWhitelistRulesRegistry:
+    """WHITELIST_RULES 清單可擴充性驗證。"""
+
+    def test_whitelist_rules_is_list(self):
+        rules = getattr(_hook, "WHITELIST_RULES")
+        assert isinstance(rules, list)
+
+    def test_whitelist_rules_has_at_least_three_entries(self):
+        """規則 A/B/C 必備；D 為延伸，至少 3 條。"""
+        rules = getattr(_hook, "WHITELIST_RULES")
+        assert len(rules) >= 3
+
+    def test_each_rule_is_callable(self):
+        rules = getattr(_hook, "WHITELIST_RULES")
+        for rule in rules:
+            assert callable(rule)
