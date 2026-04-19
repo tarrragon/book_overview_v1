@@ -600,6 +600,104 @@ Parent
 | Why | `why` | 需求依據 |
 | How | `how.task_type` + `how.strategy` | Task Type + 實作策略 |
 
+### where.files 撰寫指引：拆分檔案配對
+
+#### 背景：骨架與實質內容的拆分架構
+
+本專案的 `.claude/` 規則目錄採用「骨架（索引）+ 實質內容（詳版）」雙檔拆分架構（自 W10-076.1 落地）：
+
+- **骨架**（auto-load）：`rules/core/X.md`、`pm-rules/X.md` — 每次 session 自動載入，只含觸發指標、摘要、索引表
+- **實質內容**（按需讀取）：`references/X.md`、`references/X-details.md` — 詳細規則、範例、深度說明
+
+骨架第一行通常包含「完整規則：references/X.md（按需讀取）」的明示引用，表示規則實質內容落在 references 端。
+
+**Why**: 骨架只是索引——骨架的存在承諾讀者「內容看 references/」，因此擴充規則內容必然牽動 references/，而非骨架本身。忽略此結構會導致 ticket where.files 僅列骨架，但 agent 實際修改 references/ 而產生範圍漂移。
+
+#### 規則 1：列「實質修改會發生的位置」
+
+PM 撰寫 where.files 時的核心問題：「此 ticket 的修改本質是改變規則『入口索引』還是『規則本身的內容』？」
+
+| 修改類型 | where.files 列法 | 判別問題 |
+|---------|-----------------|---------|
+| 骨架索引變更（版本號、索引表、導航連結） | 只列骨架路徑 | 「只改入口，不動內容」 |
+| 實質內容擴充（新增規則、修改規則細節） | 列 references/ 實質檔路徑 | 「改的是規則內容本身」 |
+| 同步變更（索引表更新 + 規則細節同步） | 兩者都列 | 「入口和內容都要動」 |
+
+**Consequence**: 僅列骨架時，agent 必須自裁決定是否延伸到 references/，有範圍漂移風險且缺乏明示記錄。
+
+#### 規則 2：PM 撰寫 where.files 前的拆分偵測
+
+列 where.files 時，若看到路徑包含 `rules/core/` 或 `pm-rules/`，必須檢查是否存在對應的 references/ 拆分配對：
+
+```bash
+# 偵測配對的快速指令
+for path in $(echo "$where_files" | grep -E "(rules/core|pm-rules)/"); do
+  basename=$(basename "$path" .md)
+  find .claude/references -name "${basename}*.md"
+done
+```
+
+**本專案已知 10+ 組拆分對**（任何修改這些規則內容的 ticket 都有 where.files 漂移風險）：
+
+| 骨架（auto-load） | 實質內容（按需讀取） | 拆分類型 |
+|-----------------|-------------------|---------|
+| rules/core/quality-common.md | references/quality-common.md | 同名 |
+| rules/core/bash-tool-usage-rules.md | references/bash-tool-usage-details.md | -details |
+| pm-rules/askuserquestion-rules.md | references/askuserquestion-scene-details.md | -details |
+| pm-rules/decision-tree.md | references/decision-tree-checkpoint-details.md | -details |
+| pm-rules/incident-response.md | references/incident-response-details.md | -details |
+| pm-rules/parallel-dispatch.md | references/parallel-dispatch-details.md | -details |
+| pm-rules/tdd-flow.md | references/tdd-flow-details.md | -details |
+| pm-rules/verification-framework.md | references/verification-framework-details.md | -details |
+| pm-rules/version-progression.md | references/version-progression-details.md | -details |
+| pm-rules/plan-to-ticket-flow.md | references/plan-to-ticket-details.md + references/plan-to-ticket-mapping-details.md | 1-to-many |
+
+> 本規則適用於所有涉及上表拆分對的 ticket，不限於 quality-common。新增規則檔案後，應同步維護上表。
+
+#### 規則 3：Agent 延伸 where.files 外檔的行為規範
+
+Agent 若發現實際修改必須延伸到 where.files 未列的檔案（例如骨架-references 拆分配對的另一邊）：
+
+| 情境 | 允許行為 |
+|------|---------|
+| 延伸符合 ticket 意圖（規則實質內容落在 references/） | 允許延伸，必須 append-log 記錄：「延伸至 X.md，原因：[理由]」 |
+| 延伸超出 ticket 意圖（新增無關模組、修改非配對檔） | 禁止延伸，停止並回報 PM |
+
+**預設禁止默默擴展未記錄**。
+
+**Action**: Agent 每次觸發「延伸符合意圖」時，立即在 Solution 章節寫一行：`延伸至 [path]，原因：[骨架第 N 行明示引用此 references/]`。
+
+#### 正反案例
+
+**反例**（W10-011 事件）：
+
+```yaml
+# ticket where.files 僅列骨架
+where:
+  files:
+    - .claude/rules/core/quality-common.md   # 骨架，auto-load 索引
+    # 遺漏 references/quality-common.md      # 實質內容在此
+```
+
+問題：agent 必須自裁決定是否延伸到 references/；延伸後未在 ticket 記錄，PM 驗收時無法追蹤實際修改範圍。
+
+**正例 A**（修改規則內容時同步列兩者）：
+
+```yaml
+where:
+  files:
+    - .claude/rules/core/quality-common.md   # 骨架（若索引表需更新）
+    - .claude/references/quality-common.md   # 實質內容（規則細節擴充）
+```
+
+**正例 B**（僅修改規則細節，不動骨架索引）：
+
+```yaml
+where:
+  files:
+    - .claude/references/quality-common.md   # 只列實質檔，骨架不需改
+```
+
 ### Ticket YAML 格式
 
 ```yaml
