@@ -374,13 +374,39 @@ _NEGATION_PATTERN_EN = re.compile(
 )
 
 # 句子邊界字元（跨越則不算前綴）
-_SENTENCE_BOUNDARY_CHARS = set("。；;.\n\r")
+# W11-004.1.3.3：加入 `，`、`！`、`？`，配合視窗擴至 20，讓逗號分隔的長句
+# 不會把跨子句的否定詞誤判為前綴。
+_SENTENCE_BOUNDARY_CHARS = set("。；;.\n\r，,！!？?")
+
+# W11-004.1.3.3：否定詞視窗字元數（由 10 擴至 20，涵蓋「請不要在這個 ticket 裡面實作」
+# 這類常見中文長句型。跨句邊界仍會被 _SENTENCE_BOUNDARY_CHARS 裁切）。
+_NEGATION_WINDOW_SIZE = 20
 
 # 路徑前綴（向前 30 字內出現視為檔案路徑上下文）
 _PATH_PREFIXES = (".claude/", "docs/", "src/", "tests/", "test/", "lib/", "app/",
                   "scripts/", "bin/", "cmd/", "assets/", "public/")
 # 副檔名（向後 15 字內出現視為檔案路徑上下文）
 _FILE_EXTENSIONS = (".md", ".py", ".js", ".ts", ".dart", ".go", ".json", ".yaml", ".yml")
+
+# W11-004.1.3.3：路徑合法字元正向 token（僅 ASCII；CJK 等非 ASCII 字元視為非路徑內容）
+# 刻意不用 \w（Python 預設 \w 涵蓋 CJK，會把 `禁止`、`實作` 等關鍵字誤判為路徑字元）。
+_PATH_TOKEN_CHARS = set(
+    "abcdefghijklmnopqrstuvwxyz"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "0123456789"
+    "_/.-"
+)
+
+
+def _is_path_token(text: str) -> bool:
+    """判斷字串是否完全由合法路徑字元組成。
+
+    用於規則 C：正向驗證匹配字串與前後片段是否可構成延續的路徑 token。
+    空字串視為合法（代表「無額外字元阻斷」）。
+    """
+    if not text:
+        return True
+    return all(ch in _PATH_TOKEN_CHARS for ch in text)
 # Ticket ID 模式（如 0.18.0-W11-004.1.2）
 _TICKET_ID_PATTERN = re.compile(r"\d+\.\d+\.\d+-W\d+-\d+(?:\.\d+)*")
 
@@ -444,16 +470,19 @@ def _is_quoted_match(prompt: str, start: int, end: int) -> Tuple[bool, str]:
 
 
 def _has_negation_prefix(prompt: str, start: int, end: int = None) -> Tuple[bool, str]:
-    """規則 B：判斷匹配位置前 10 字元內是否含否定詞（同句內）。
+    """規則 B：判斷匹配位置前 _NEGATION_WINDOW_SIZE 字元內是否含否定詞（同句內）。
 
     回傳：(is_whitelisted, reason)。
     參數 end 為簽名統一用（與 per-match 規則 A/C 一致），此規則不消費 end。
+
+    W11-004.1.3.3 調校：視窗由 10 擴至 20（_NEGATION_WINDOW_SIZE），配合句子邊界
+    新增逗號/驚嘆/問號，涵蓋「請不要在這個 ticket 裡面實作」這類中長距否定句。
     """
     _ = end  # 簽名統一：per-match 規則共同接收 (prompt, start, end)，此規則忽略 end
     if not prompt or start <= 0:
         return False, ""
 
-    window_start = max(0, start - 10)
+    window_start = max(0, start - _NEGATION_WINDOW_SIZE)
     window = prompt[window_start:start]
 
     # 檢查句子邊界：若 window 含句號/分號/換行，從最後一個邊界之後重新切
@@ -479,37 +508,47 @@ def _has_negation_prefix(prompt: str, start: int, end: int = None) -> Tuple[bool
 def _is_in_path_context(prompt: str, start: int, end: int) -> Tuple[bool, str]:
     """規則 C：判斷匹配位置是否落在檔案路徑/ticket ID 上下文內。
 
-    條件（任一命中即視為白名單）：
-      1. 向前 30 字內含路徑前綴（.claude/, docs/, src/, ...）且該前綴到匹配位置之間無空白
-      2. 向後 15 字內含副檔名（.md, .py, ...）且匹配到副檔名之間無空白
-      3. 匹配落在 ticket ID 模式內
+    W11-004.1.3.3 調校：改用正向 token 驗證取代「無空白」反向判斷。
+    匹配字串本身必須全由 _PATH_TOKEN_CHARS 組成（ASCII 路徑字元），CJK 關鍵字
+    如「禁止」「實作」即使緊接 `.claude/xxx` 之後也不會被誤判為路徑內容。
+
+    條件（任一命中且匹配字串為路徑 token 即視為白名單）：
+      1. 匹配落在 ticket ID 模式內（最優先，允許 CJK 以外結構）
+      2. 匹配字串為合法路徑 token，且向前 30 字內含路徑前綴，之間字元皆為路徑 token
+      3. 匹配字串為合法路徑 token，且向後 15 字內含副檔名，之間字元皆為路徑 token
     """
     if not prompt or start < 0 or end > len(prompt) or start >= end:
         return False, ""
 
-    # Ticket ID 檢查
+    # Ticket ID 檢查（保留原行為，不受正向 token 限制）
     for m in _TICKET_ID_PATTERN.finditer(prompt):
         if m.start() <= start and end <= m.end():
             return True, "ticket_id_context"
 
-    # 路徑前綴檢查（向前 30 字內，且前綴與匹配之間無空白）
+    # 正向 token 調校核心：匹配字串必須為 ASCII 路徑字元
+    # CJK 關鍵字（如「禁止」「實作」）即使緊接路徑前綴也不視為路徑內容
+    matched = prompt[start:end]
+    if not _is_path_token(matched):
+        return False, ""
+
+    # 路徑前綴檢查（向前 30 字內，且前綴與匹配之間字元皆為路徑 token）
     before = prompt[max(0, start - 30):start]
     for prefix in _PATH_PREFIXES:
         idx = before.rfind(prefix)
         if idx == -1:
             continue
         between = before[idx + len(prefix):]
-        if " " not in between and "\t" not in between and "\n" not in between:
+        if _is_path_token(between):
             return True, f"path_prefix_{prefix.rstrip('/')}"
 
-    # 副檔名檢查（向後 15 字內，且匹配與副檔名之間無空白）
+    # 副檔名檢查（向後 15 字內，且匹配與副檔名之間字元皆為路徑 token）
     after = prompt[end:min(len(prompt), end + 15)]
     for ext in _FILE_EXTENSIONS:
         idx = after.find(ext)
         if idx == -1:
             continue
         between = after[:idx]
-        if " " not in between and "\t" not in between and "\n" not in between:
+        if _is_path_token(between):
             return True, f"file_ext_{ext.lstrip('.')}"
 
     return False, ""
@@ -518,11 +557,22 @@ def _is_in_path_context(prompt: str, start: int, end: int) -> Tuple[bool, str]:
 def _is_meta_task_prompt(prompt: str) -> Tuple[bool, str]:
     """規則 D：判斷 prompt 是否為 meta-task（修改規則/agent 定義/FORBIDDEN_KEYWORD_MAP）。
 
-    檢查 prompt 前 100 字元。
+    W11-004.1.3.3 調校：視窗由固定 100 字改為「第一段語意邊界或前 500 字」。
+    典型 Ticket prompt 第一行為 `Ticket: 0.18.0-W...` 標題，meta-task 動詞描述
+    出現在空行後第二段；原本 100 字視窗無法涵蓋會漏判。
+
+    規則：
+      - 若 prompt 無段落邊界或第一段長度 >= 100 字，取第一段
+      - 否則擴至前 500 字作 fallback（涵蓋 ticket 標題 + 描述段落）
     """
     if not prompt:
         return False, ""
-    head = prompt[:100]
+    # 以空行（\n\n）切段
+    first_para = prompt.split("\n\n", 1)[0]
+    if len(first_para) >= 100:
+        head = first_para
+    else:
+        head = prompt[:500]
     for pat in _META_TASK_PATTERNS:
         m = pat.search(head)
         if m:

@@ -962,7 +962,7 @@ class TestWhitelistRuleB_NegationPrefix:
         assert is_wl is False
 
     def test_negation_too_far_not_counted(self, fn):
-        """否定詞距離超過 10 字元視為無效前綴。"""
+        """否定詞與匹配跨越逗號邊界視為無效前綴（W11-004.1.3.3 調校後）。"""
         prompt = "請不要忘記這件事，然後開始實作新功能"
         start = prompt.index("實作")
         is_wl, _ = fn(prompt, start)
@@ -1251,3 +1251,116 @@ class TestMetaTaskPerMatchDegrade:
                 f"純 meta-task prompt 的 conflict 應被標記 whitelist_reason，"
                 f"實際={c}"
             )
+
+
+# ============================================================================
+# W11-004.1.3.3：白名單規則邊界調校
+# ============================================================================
+
+
+class TestRuleC_PositiveTokenCalibration:
+    """規則 C 調校：路徑判斷改正向 token（非反向「無空白」）。
+
+    問題：現行 `if " " not in between` 會把 `.claude/xxx禁止` 的 `禁止` 誤判為
+    路徑內（between=`xxx`，無空白 → 誤 whitelist）。改用正向 token 驗證後，
+    CJK 關鍵字不應被視為路徑內容。
+    """
+
+    @pytest.fixture
+    def fn(self):
+        return getattr(_hook, "_is_in_path_context")
+
+    def test_cjk_keyword_after_path_prefix_not_whitelisted(self, fn):
+        """.claude/xxx禁止 的 `禁止` 為 CJK 關鍵字，不應被判為路徑內。"""
+        prompt = ".claude/xxx禁止"
+        start = prompt.index("禁止")
+        end = start + len("禁止")
+        is_wl, _ = fn(prompt, start, end)
+        assert is_wl is False, (
+            "CJK 關鍵字緊接 .claude/xxx 後不應被誤判為路徑（W11-004.1.3.3 規則 C 調校）"
+        )
+
+    def test_keyword_after_path_with_whitespace_separator_not_whitelisted(self, fn):
+        """.claude/foo-bar.md 禁止 中的 `禁止` 被空白分隔，不應判為路徑內。"""
+        prompt = ".claude/rules/foo-bar.md 禁止修改此檔案"
+        start = prompt.index("禁止")
+        end = start + len("禁止")
+        is_wl, _ = fn(prompt, start, end)
+        assert is_wl is False
+
+    def test_ascii_word_inside_path_still_whitelisted(self, fn):
+        """正向 token 調校不應破壞既有 ASCII 路徑片段識別能力。"""
+        prompt = "參考 .claude/error-patterns/implementation/IMP.md"
+        start = prompt.index("implementation")
+        end = start + len("implementation")
+        is_wl, _ = fn(prompt, start, end)
+        assert is_wl is True
+
+
+class TestRuleB_NegationWindowCalibration:
+    """規則 B 調校：視窗 10→20 + 逗號作句子邊界。
+
+    問題：現行 10 字元視窗漏掉常見中文長句型
+    「請不要在這個 ticket 裡面實作」，否定詞距關鍵字 14+ 字元。
+    擴至 20 後可命中，同時逗號應視為句子邊界以保留「跨句不算」語意。
+    """
+
+    @pytest.fixture
+    def fn(self):
+        return getattr(_hook, "_has_negation_prefix")
+
+    def test_long_form_chinese_negation_within_20_chars_whitelisted(self, fn):
+        """中長距（14+ 字）否定句應被視為否定前綴。"""
+        prompt = "請不要在這個 ticket 裡面實作程式碼"
+        start = prompt.index("實作")
+        is_wl, reason = fn(prompt, start)
+        assert is_wl is True, (
+            "20 字內的否定詞（跨 ticket 字串）應被識別為否定前綴（W11-004.1.3.3 規則 B 調校）"
+        )
+        assert reason
+
+    def test_negation_separated_by_period_still_not_counted(self, fn):
+        """否定詞與關鍵字跨越句號 → 仍不算前綴（保留原語意）。"""
+        prompt = "請不要。請實作新功能"
+        start = prompt.index("實作")
+        is_wl, _ = fn(prompt, start)
+        assert is_wl is False
+
+
+class TestRuleD_MetaTaskWindowCalibration:
+    """規則 D 調校：meta-task 視窗由固定 100 字 → 第一段或前 500 字。
+
+    問題：Ticket prompt 第一行常為 `Ticket: 0.18.0-W...`（30 字），
+    meta-task 描述（如「修改 .claude/rules/...」）出現在空行後第二段，
+    100 字視窗會漏判。
+    """
+
+    @pytest.fixture
+    def fn(self):
+        return getattr(_hook, "_is_meta_task_prompt")
+
+    def test_ticket_header_then_meta_task_body_detected(self, fn):
+        """Ticket 標題段（>100 字）後第二段為 meta-task 描述，應命中。"""
+        prompt = (
+            "Ticket: 0.18.0-W11-004.1.3.3 調校白名單規則邊界"
+            "（路徑判斷改正向 token + 否定視窗擴展 + meta-task 第一段語意邊界）\n\n"
+            "修改 .claude/rules/core/quality-baseline.md 補齊說明，"
+            "新增『失敗案例學習』章節。"
+        )
+        is_meta, reason = fn(prompt)
+        assert is_meta is True, (
+            "第二段的 meta-task pattern 應被命中（W11-004.1.3.3 規則 D 調校）"
+        )
+        assert reason
+
+    def test_long_prompt_without_meta_pattern_not_detected(self, fn):
+        """單段長 prompt 但無 meta-task pattern → 不命中（避免誤報）。"""
+        prompt = (
+            "實作 src/extractor/foo.py 的 parse 函式，"
+            "處理 Readmoo API 回傳的 JSON 結構，"
+            "注意空值與錯誤欄位的 fallback 設計。"
+            "測試覆蓋率要求 >= 80%，"
+            "請在 tests/unit/test_foo.py 新增至少 5 個測試案例。"
+        ) * 3  # 確保超過 500 字
+        is_meta, _ = fn(prompt)
+        assert is_meta is False
