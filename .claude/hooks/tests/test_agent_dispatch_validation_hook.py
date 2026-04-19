@@ -728,3 +728,132 @@ class TestKeywordConflictIntegration:
         err = capsys.readouterr().err
         assert "W5-045" not in err
         assert exit_code == 0
+
+
+# ============================================================================
+# W11-004.1.2: 擴充 keyword map 六類新 pattern（A-F）
+# ============================================================================
+
+_FORBIDDEN_KEYWORD_MAP = _hook.FORBIDDEN_KEYWORD_MAP
+
+
+class TestExpandedKeywordMap:
+    """W11-004.1.2：A-F 六類新 pattern 的 match / non-match 驗證。"""
+
+    def _match_any(self, keyword: str, prompt: str) -> bool:
+        patterns = _FORBIDDEN_KEYWORD_MAP[keyword]
+        return any(p.search(prompt) for p in patterns)
+
+    # 類別 A：Ticket CLI
+    @pytest.mark.parametrize("prompt", [
+        "請執行 ticket track append-log 0.18-W1",
+        "請跑 /ticket create IMP",
+        "ticket claim 0.18-W1-001",
+    ])
+    def test_ticket_cli_matches(self, prompt):
+        assert self._match_any("ticket CLI", prompt) is True
+
+    @pytest.mark.parametrize("prompt", [
+        "請閱讀 ticket 文件並整理摘要",
+        "分析 docs/ 下的文件",
+    ])
+    def test_ticket_cli_non_matches(self, prompt):
+        assert self._match_any("ticket CLI", prompt) is False
+
+    # 類別 B：修改規格
+    @pytest.mark.parametrize("prompt", [
+        "請修改 docs/use-cases.md 的規格",
+        "Edit spec 文件加入新需求",
+        "更新規格以對齊新版",
+    ])
+    def test_modify_spec_matches(self, prompt):
+        assert self._match_any("修改規格", prompt) is True
+
+    @pytest.mark.parametrize("prompt", [
+        "請閱讀規格文件",
+        "分析現有需求並產出報告",
+    ])
+    def test_modify_spec_non_matches(self, prompt):
+        assert self._match_any("修改規格", prompt) is False
+
+    # 類別 C：git 寫入
+    @pytest.mark.parametrize("prompt", [
+        "完成後請 git push origin main",
+        "請 git merge feature-branch",
+        "執行 git rebase main",
+        "執行 git reset --hard HEAD~1",
+        "請推送分支至 PR",
+    ])
+    def test_git_write_matches(self, prompt):
+        assert self._match_any("git 寫入", prompt) is True
+
+    @pytest.mark.parametrize("prompt", [
+        "git status 查看狀態",
+        "git log --oneline",
+        "git diff HEAD",
+    ])
+    def test_git_write_non_matches(self, prompt):
+        assert self._match_any("git 寫入", prompt) is False
+
+    # 類別 D：執行重構
+    @pytest.mark.parametrize("prompt", [
+        "請執行重構移除過時函式",
+        "進行重構讓函式更短",
+        "請移除 src/foo.py",
+        "刪除 lib/bar.dart 中的過時邏輯",
+        "Please refactor the parser",
+    ])
+    def test_refactor_matches(self, prompt):
+        assert self._match_any("執行重構", prompt) is True
+
+    @pytest.mark.parametrize("prompt", [
+        "請分析後提出建議但不要動程式",
+        "規劃策略",
+    ])
+    def test_refactor_non_matches(self, prompt):
+        assert self._match_any("執行重構", prompt) is False
+
+    # 類別 E：系統審查
+    @pytest.mark.parametrize("prompt", [
+        "請做系統審查",
+        "進行系統級審查",
+        "盤點全專案架構",
+        "審計系統的相依關係",
+    ])
+    def test_system_review_matches(self, prompt):
+        assert self._match_any("系統審查", prompt) is True
+
+    @pytest.mark.parametrize("prompt", [
+        "請檢視單一檔案",
+        "盤點本 ticket 的改動",
+    ])
+    def test_system_review_non_matches(self, prompt):
+        assert self._match_any("系統審查", prompt) is False
+
+    # 類別 F：分支操作
+    @pytest.mark.parametrize("prompt", [
+        "git checkout feature-x",
+        "git branch -d old",
+        "git switch main",
+        "執行 worktree add /tmp/wt",
+        "worktree remove wt-1",
+    ])
+    def test_branch_ops_matches(self, prompt):
+        assert self._match_any("分支操作", prompt) is True
+
+    @pytest.mark.parametrize("prompt", [
+        "git status",
+        "查看分支列表（僅讀取）",
+    ])
+    def test_branch_ops_non_matches(self, prompt):
+        assert self._match_any("分支操作", prompt) is False
+
+    def test_new_categories_have_at_least_10_regex(self):
+        new_keys = ["ticket CLI", "修改規格", "git 寫入", "執行重構", "系統審查", "分支操作"]
+        total = sum(len(_FORBIDDEN_KEYWORD_MAP[k]) for k in new_keys)
+        assert total >= 10, f"新增 regex 應 >= 10，實際 {total}"
+
+    def test_existing_categories_preserved(self):
+        for k in ["實作", "修改檔案", "git commit", "設計功能規格", "直接執行測試修復", "執行測試"]:
+            assert k in _FORBIDDEN_KEYWORD_MAP
+            assert len(_FORBIDDEN_KEYWORD_MAP[k]) >= 1

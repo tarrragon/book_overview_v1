@@ -262,6 +262,39 @@ FORBIDDEN_KEYWORD_MAP: Dict[str, List[re.Pattern]] = {
         re.compile(r"\brun\s+tests?\b", re.IGNORECASE),
         re.compile(r"\bpytest\b", re.IGNORECASE),
     ],
+    # W11-004.1.2：新增 A-F 六類 pattern（擴充 keyword map 覆蓋 W5-001 以降新型越界）
+    # 類別 A：Ticket CLI 操作（rosemary/incident-responder 禁止直接執行）
+    "ticket CLI": [
+        re.compile(r"\bticket\s+(?:track|create|migrate|handoff|claim|complete)\b", re.IGNORECASE),
+        re.compile(r"/ticket\s+\w+"),
+    ],
+    # 類別 B：規格/文件修改（lavender/oregano/star-anise 禁止越權）
+    "修改規格": [
+        re.compile(r"(?:修改|編輯|Edit)[^\n]{0,20}(?:spec|規格|需求|use-?case)", re.IGNORECASE),
+        re.compile(r"(?:更新|改寫)[^\n]{0,10}規格"),
+    ],
+    # 類別 C：Git 寫入（非 commit）
+    "git 寫入": [
+        re.compile(r"git\s+(?:push|merge|rebase|cherry-pick)", re.IGNORECASE),
+        re.compile(r"git\s+reset\s+--hard", re.IGNORECASE),
+        re.compile(r"(?:推送|合併|變基)[^\n]{0,10}(?:分支|branch|PR)"),
+    ],
+    # 類別 D：重構/移除（linux「只分析不修改」、pepper「只規劃不實作」）
+    "執行重構": [
+        re.compile(r"(?:執行|進行)[^\n]{0,10}重構"),
+        re.compile(r"(?:移除|刪除)[^\n]{0,20}\.(?:py|js|ts|dart|go)"),
+        re.compile(r"\brefactor\b", re.IGNORECASE),
+    ],
+    # 類別 E：系統級審查（lavender 禁止系統級審查）
+    "系統審查": [
+        re.compile(r"系統級?審查"),
+        re.compile(r"(?:盤點|審計)[^\n]{0,10}(?:系統|架構|全專案)"),
+    ],
+    # 類別 F：分支/worktree 操作
+    "分支操作": [
+        re.compile(r"git\s+(?:checkout|branch|switch)\b", re.IGNORECASE),
+        re.compile(r"\bworktree\s+(?:add|remove|prune)\b", re.IGNORECASE),
+    ],
 }
 
 
