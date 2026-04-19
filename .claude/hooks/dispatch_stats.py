@@ -332,9 +332,9 @@ def compute_stats(
     }
 
     if groupby == "agent":
-        result["groups"] = _group_by_agent(events, eff_ann)
+        result["groups"] = _group_by(events, eff_ann, _key_agent)
     elif groupby == "keyword":
-        result["groups"] = _group_by_keyword(events, eff_ann)
+        result["groups"] = _group_by(events, eff_ann, _key_keyword)
 
     return result
 
@@ -365,26 +365,17 @@ def _group_summary(
     }
 
 
-def _group_by_agent(events, eff_ann):
+def _group_by(events, eff_ann, key_fn):
+    """通用分組：key_fn(event) 回傳 0..N 個分組 key（字串）。
+
+    - agent 分組：key_fn 回傳 [subagent_type]
+    - keyword 分組：key_fn 回傳每個 conflict 的 keyword 清單
+    """
     groups: Dict[str, List[Tuple[str, Optional[str]]]] = {}
     for e in events:
-        k = e.get("subagent_type", "")
-        lbl = eff_ann.get(e["event_id"], {}).get("label") if eff_ann.get(e["event_id"]) else None
-        groups.setdefault(k, []).append((k, lbl))
-    out = []
-    for k, items in sorted(groups.items()):
-        summary = _group_summary(items)
-        summary["key"] = k
-        out.append(summary)
-    return out
-
-
-def _group_by_keyword(events, eff_ann):
-    groups: Dict[str, List[Tuple[str, Optional[str]]]] = {}
-    for e in events:
-        lbl = eff_ann.get(e["event_id"], {}).get("label") if eff_ann.get(e["event_id"]) else None
-        for c in e.get("conflicts", []) or []:
-            k = c.get("keyword", "")
+        ann = eff_ann.get(e["event_id"])
+        lbl = ann.get("label") if ann else None
+        for k in key_fn(e):
             groups.setdefault(k, []).append((k, lbl))
     out = []
     for k, items in sorted(groups.items()):
@@ -392,6 +383,14 @@ def _group_by_keyword(events, eff_ann):
         summary["key"] = k
         out.append(summary)
     return out
+
+
+def _key_agent(e: Dict[str, Any]) -> List[str]:
+    return [e.get("subagent_type", "")]
+
+
+def _key_keyword(e: Dict[str, Any]) -> List[str]:
+    return [c.get("keyword", "") for c in (e.get("conflicts") or [])]
 
 
 # ---------------------------------------------------------------------------
@@ -424,11 +423,8 @@ def format_list_json(events: List[Dict[str, Any]]) -> str:
     return json.dumps(events, ensure_ascii=False, indent=2)
 
 
-def format_show_text(event: Dict[str, Any]) -> str:
-    return json.dumps(event, ensure_ascii=False, indent=2)
-
-
-def format_show_json(event: Dict[str, Any]) -> str:
+def format_show(event: Dict[str, Any]) -> str:
+    """show 的 text 與 json 格式相同（皆為 pretty JSON），合併為單一函式。"""
     return json.dumps(event, ensure_ascii=False, indent=2)
 
 
@@ -527,10 +523,8 @@ def cmd_show(ns: argparse.Namespace) -> int:
     if target is None:
         print(f"dispatch_stats: event_id 不存在：{ns.event_id}", file=sys.stderr)
         return 2
-    if ns.format == "json":
-        print(format_show_json(target))
-    else:
-        print(format_show_text(target))
+    # show 的 text 與 json 輸出皆為 pretty JSON（規格），共用 format_show
+    print(format_show(target))
     return 0
 
 
@@ -572,17 +566,9 @@ def cmd_annotate(ns: argparse.Namespace) -> int:
 def cmd_stats(ns: argparse.Namespace) -> int:
     events, malformed = read_events()
     annotations = read_annotations()
-    if not events and malformed == 0:
-        if ns.format == "json":
-            stats = compute_stats([], annotations, groupby=ns.groupby,
-                                   since=ns.since, malformed_lines=0)
-            print(format_stats_json(stats))
-        elif ns.format == "markdown":
-            print("尚無事件")
-        else:
-            print("尚無事件")
-        return 0
-
+    # 空事件走 compute_stats + format_* 通用路徑：total_events=0 時，
+    # format_stats_text / format_stats_markdown 皆回「尚無事件」；
+    # json 仍輸出完整 stats 結構，維持 CLI 契約一致。
     stats = compute_stats(events, annotations, groupby=ns.groupby,
                            since=ns.since, malformed_lines=malformed)
     if ns.format == "json":
