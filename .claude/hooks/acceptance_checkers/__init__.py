@@ -22,6 +22,9 @@ from acceptance_checkers.acceptance_checker import (
 from acceptance_checkers.error_pattern_checker import (
     check_error_pattern_conflicts,
 )
+from acceptance_checkers.error_pattern_attribution import (
+    filter_error_patterns_by_ticket_scope,
+)
 from acceptance_checkers.five_w1h_checker import (
     check_5w1h_completeness,
 )

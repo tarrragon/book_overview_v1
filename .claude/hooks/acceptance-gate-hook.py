@@ -75,6 +75,7 @@ from acceptance_checkers import (
     check_ana_has_spawned_tickets,
     find_pending_sibling_tickets,
     check_multi_view_status,
+    filter_error_patterns_by_ticket_scope,
 )
 from acceptance_checkers.ana_spawned_checker import (
     check_spawned_tickets_status,
@@ -261,7 +262,22 @@ def check_acceptance_status(ticket_id: str, project_dir: Path, logger) -> Accept
                     project_dir, ticket_start_time, logger
                 )
                 if has_new_error_patterns:
-                    logger.info(f"發現 {len(new_error_pattern_files)} 個新增/修改的 error-pattern")
+                    logger.info(
+                        f"mtime 比對發現 {len(new_error_pattern_files)} 個候選 error-pattern，"
+                        "進入 PC-099 歸屬過濾"
+                    )
+                    # PC-099 防護：以 frontmatter source_ticket + ticket md 引用雙重過濾
+                    new_error_pattern_files = filter_error_patterns_by_ticket_scope(
+                        new_error_pattern_files,
+                        ticket_id,
+                        content,
+                        project_dir,
+                        logger,
+                    )
+                    has_new_error_patterns = bool(new_error_pattern_files)
+                    logger.info(
+                        f"歸屬過濾後保留 {len(new_error_pattern_files)} 個真正屬於當前 ticket 的 error-pattern"
+                    )
             else:
                 logger.warning(f"無法取得 ticket 的開始時間，跳過 error-pattern 檢查")
 
