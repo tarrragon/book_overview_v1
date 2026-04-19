@@ -647,16 +647,15 @@ class TestKeywordConflictIntegration:
     def test_implementation_agent_with_git_commit_prompt_emits_warning(
         self, monkeypatch, capsys, tmp_path
     ):
-        """AC-T2：實作代理人 + prompt 含 git commit（若該 agent 禁止）→ 警告。
-
-        假設 linux-agent 禁止 git commit。使用自製 agent md。
-        """
+        """AC-T2（W11-004.1.4 升級）：實作代理人 + prompt 含 git commit
+        （若該 agent 禁止）→ 高信心 BLOCK（exit 2）。"""
         body = """## 禁止行為
 
 1. **禁止 git commit**：不得自行 commit
 """
         _write_agent_md(tmp_path, "thyme-python-developer", body)
         monkeypatch.setattr(_hook, "get_project_root", lambda: tmp_path)
+        monkeypatch.delenv(_hook._BYPASS_ENV_VAR, raising=False)
 
         exit_code = _run_hook(
             monkeypatch,
@@ -669,8 +668,8 @@ class TestKeywordConflictIntegration:
         )
         err = capsys.readouterr().err
         assert "git commit" in err
-        assert "禁止行為" in err or "W5-045" in err
-        assert exit_code == 0, "警告非阻擋，正常 worktree 派發應放行"
+        assert "高信心" in err or "W11-004.1.4" in err or "已阻擋" in err
+        assert exit_code == 2, "git commit 屬高信心越界，應被 block"
 
     def test_clean_prompt_no_warning(self, monkeypatch, capsys, tmp_path):
         """AC-T3：prompt 與 agent 禁止行為無衝突 → 不警告。"""
@@ -1364,3 +1363,209 @@ class TestRuleD_MetaTaskWindowCalibration:
         ) * 3  # 確保超過 500 字
         is_meta, _ = fn(prompt)
         assert is_meta is False
+
+
+# ============================================================================
+# W11-004.1.4：分層判決測試（high-confidence block / low-confidence warn / bypass）
+# ============================================================================
+
+_HIGH_CONF_AGENT_MD = """---
+name: tiered-test-agent
+---
+
+## 允許產出
+
+略
+
+## 禁止行為
+
+1. **禁止 git commit**：不得自行 commit
+2. **禁止 ticket CLI**：不得呼叫 ticket 指令
+3. **禁止 git 寫入**：不得 push / merge
+4. **禁止分支操作**：不得 checkout / switch
+5. **禁止實作程式碼**：不得撰寫實作
+
+## 適用情境
+
+略
+"""
+
+
+class TestTieredVerdictUnit:
+    """分層判決純函式單元測試（不經 main()）。"""
+
+    def test_partition_separates_high_and_low(self):
+        conflicts = [
+            {"keyword": "git commit", "action": "a", "matched_pattern": "", "prompt_excerpt": ""},
+            {"keyword": "實作", "action": "b", "matched_pattern": "", "prompt_excerpt": ""},
+            {"keyword": "ticket CLI", "action": "c", "matched_pattern": "", "prompt_excerpt": ""},
+            {"keyword": "修改檔案", "action": "d", "matched_pattern": "", "prompt_excerpt": ""},
+        ]
+        high, low = _hook._partition_by_confidence(conflicts)
+        assert {c["keyword"] for c in high} == {"git commit", "ticket CLI"}
+        assert {c["keyword"] for c in low} == {"實作", "修改檔案"}
+
+    def test_bypass_env_var_triggers(self, monkeypatch):
+        monkeypatch.setenv(_hook._BYPASS_ENV_VAR, "1")
+        bypassed, reason = _hook._is_bypass_requested("any prompt")
+        assert bypassed is True
+        assert "env" in reason
+
+    def test_bypass_prompt_marker_triggers(self, monkeypatch):
+        monkeypatch.delenv(_hook._BYPASS_ENV_VAR, raising=False)
+        bypassed, reason = _hook._is_bypass_requested(
+            f"請執行任務 {_hook._BYPASS_PROMPT_MARKER}"
+        )
+        assert bypassed is True
+        assert "prompt_marker" in reason
+
+    def test_no_bypass_when_neither_present(self, monkeypatch):
+        monkeypatch.delenv(_hook._BYPASS_ENV_VAR, raising=False)
+        bypassed, _reason = _hook._is_bypass_requested("no bypass here")
+        assert bypassed is False
+
+    def test_high_confidence_keywords_contains_git_commit(self):
+        assert "git commit" in _hook.HIGH_CONFIDENCE_KEYWORDS
+        assert "ticket CLI" in _hook.HIGH_CONFIDENCE_KEYWORDS
+        assert "git 寫入" in _hook.HIGH_CONFIDENCE_KEYWORDS
+        assert "分支操作" in _hook.HIGH_CONFIDENCE_KEYWORDS
+        # 低信心 keyword 不應出現在集合
+        assert "實作" not in _hook.HIGH_CONFIDENCE_KEYWORDS
+        assert "修改檔案" not in _hook.HIGH_CONFIDENCE_KEYWORDS
+
+
+class TestTieredVerdictIntegration:
+    """整合：main() 分層判決。"""
+
+    def _setup(self, monkeypatch, tmp_path, agent_name="tiered-test-agent"):
+        _write_agent_md(tmp_path, agent_name, _HIGH_CONF_AGENT_MD)
+        monkeypatch.setattr(_hook, "get_project_root", lambda: tmp_path)
+        monkeypatch.delenv(_hook._BYPASS_ENV_VAR, raising=False)
+
+    def test_high_confidence_git_commit_blocks(self, monkeypatch, capsys, tmp_path):
+        """AC-T4：高信心 git commit 衝突 → exit 2。"""
+        self._setup(monkeypatch, tmp_path)
+        exit_code = _run_hook(
+            monkeypatch, capsys,
+            tool_input={
+                "subagent_type": "tiered-test-agent",
+                "prompt": "完成後 git commit -m 'done'",
+            },
+        )
+        err = capsys.readouterr().err
+        assert exit_code == 2
+        assert "git commit" in err
+        assert "已阻擋" in err or "高信心" in err
+
+    def test_high_confidence_ticket_cli_blocks(self, monkeypatch, capsys, tmp_path):
+        """AC-T5：高信心 ticket CLI 衝突 → exit 2。"""
+        self._setup(monkeypatch, tmp_path)
+        exit_code = _run_hook(
+            monkeypatch, capsys,
+            tool_input={
+                "subagent_type": "tiered-test-agent",
+                "prompt": "請執行 ticket track claim 0.18.0-W1-001",
+            },
+        )
+        assert exit_code == 2
+
+    def test_low_confidence_only_warns_not_blocks(
+        self, monkeypatch, capsys, tmp_path
+    ):
+        """AC-T6：僅低信心衝突（實作）→ 警告，exit 0。"""
+        self._setup(monkeypatch, tmp_path)
+        exit_code = _run_hook(
+            monkeypatch, capsys,
+            tool_input={
+                "subagent_type": "tiered-test-agent",
+                "prompt": "請實作新功能並寫入設計",
+            },
+        )
+        err = capsys.readouterr().err
+        assert exit_code == 0
+        assert "實作" in err
+        # 警告 template 特徵
+        assert "警告" in err or "W5-045" in err
+        # 不應使用 block template
+        assert "已阻擋" not in err
+
+    def test_bypass_env_var_downgrades_block_to_warn(
+        self, monkeypatch, capsys, tmp_path
+    ):
+        """AC-T7：高信心 + bypass env → exit 0（降級為 warn）。"""
+        self._setup(monkeypatch, tmp_path)
+        monkeypatch.setenv(_hook._BYPASS_ENV_VAR, "1")
+        exit_code = _run_hook(
+            monkeypatch, capsys,
+            tool_input={
+                "subagent_type": "tiered-test-agent",
+                "prompt": "完成後 git commit -m 'done'",
+            },
+        )
+        err = capsys.readouterr().err
+        assert exit_code == 0
+        assert "BYPASS" in err
+        assert "git commit" in err
+
+    def test_bypass_prompt_marker_downgrades_block_to_warn(
+        self, monkeypatch, capsys, tmp_path
+    ):
+        """AC-T8：高信心 + prompt marker → exit 0。"""
+        self._setup(monkeypatch, tmp_path)
+        exit_code = _run_hook(
+            monkeypatch, capsys,
+            tool_input={
+                "subagent_type": "tiered-test-agent",
+                "prompt": (
+                    f"完成後 git commit -m 'done' {_hook._BYPASS_PROMPT_MARKER}"
+                ),
+            },
+        )
+        err = capsys.readouterr().err
+        assert exit_code == 0
+        assert "BYPASS" in err
+
+    def test_block_message_contains_agent_name_and_suggestion(
+        self, monkeypatch, capsys, tmp_path
+    ):
+        """AC-T9：block 訊息含 agent 名稱與建議（職責、改派、繞過方式）。"""
+        self._setup(monkeypatch, tmp_path)
+        exit_code = _run_hook(
+            monkeypatch, capsys,
+            tool_input={
+                "subagent_type": "tiered-test-agent",
+                "prompt": "請 git commit 完成此任務",
+            },
+        )
+        err = capsys.readouterr().err
+        assert exit_code == 2
+        assert "tiered-test-agent" in err
+        assert "職責" in err or "改派" in err or "繞過" in err
+        assert _hook._BYPASS_ENV_VAR in err  # 應告知繞過方式
+
+    def test_clean_prompt_still_passes(self, monkeypatch, capsys, tmp_path):
+        """AC-T10：無衝突 prompt → exit 0 + 無警告/阻擋訊息。"""
+        self._setup(monkeypatch, tmp_path)
+        exit_code = _run_hook(
+            monkeypatch, capsys,
+            tool_input={
+                "subagent_type": "tiered-test-agent",
+                "prompt": "請分析現有架構並撰寫分析報告",
+            },
+        )
+        err = capsys.readouterr().err
+        assert exit_code == 0
+        assert "已阻擋" not in err
+        assert "W5-045" not in err
+
+    def test_mixed_high_and_low_blocks(self, monkeypatch, capsys, tmp_path):
+        """AC-T11：高+低信心並存 → 走 block 路徑。"""
+        self._setup(monkeypatch, tmp_path)
+        exit_code = _run_hook(
+            monkeypatch, capsys,
+            tool_input={
+                "subagent_type": "tiered-test-agent",
+                "prompt": "請實作功能並 git commit -m 'done'",
+            },
+        )
+        assert exit_code == 2

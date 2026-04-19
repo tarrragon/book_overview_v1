@@ -26,6 +26,7 @@ Hook 類型：PreToolUse
 """
 
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -738,6 +739,89 @@ def _agent_md_path(subagent_type: str) -> Path:
     return project_root / ".claude" / "agents" / f"{subagent_type}.md"
 
 
+# ============================================================================
+# W11-004.1.4：分層判決（high-confidence block / low-confidence warn / bypass）
+# ============================================================================
+#
+# 設計依據：W11-004.1.1 Phase A 建立 annotate/stats 機制量化誤報率。
+# 分層策略：
+#   - HIGH_CONFIDENCE_KEYWORDS（直接可執行的 git/CLI 動詞，語意明確，FP 低）
+#     → 阻擋（exit 2）
+#   - 其他 keyword（實作/修改/設計等描述性動詞，語意模糊，FP 較高）
+#     → 維持 warn（exit 0 + stderr）
+#   - BYPASS：env var AGENT_DISPATCH_BYPASS=1 或 prompt 含 [BYPASS-DISPATCH-VALIDATION]
+#     → 降級為 warn，PM 強制覆寫通道
+#
+# 高信心分類理由（對應父 ticket AC3「發現明顯越界時 block」）：
+#   - git commit / git 寫入 / ticket CLI / 分支操作：具體命令，極難合法引用（
+#     除非白名單 C/D 命中已被過濾），剩餘真命中基本皆為越界。
+# 低信心保留 warn 理由：
+#   - 實作 / 修改檔案 / 設計規格 等為 natural language 描述，白名單難以窮盡
+#     所有合法引用（如說明文案、meta-task 外溢），維持 warn 避免誤阻塞。
+
+HIGH_CONFIDENCE_KEYWORDS = frozenset({
+    "git commit",
+    "git 寫入",
+    "ticket CLI",
+    "分支操作",
+})
+
+_BYPASS_ENV_VAR = "AGENT_DISPATCH_BYPASS"
+_BYPASS_PROMPT_MARKER = "[BYPASS-DISPATCH-VALIDATION]"
+
+
+def _is_bypass_requested(prompt: str) -> Tuple[bool, str]:
+    """判斷是否觸發 bypass（env var 或 prompt marker）。
+
+    回傳：(bypassed, reason)。未觸發回傳 (False, "")。
+    """
+    if os.environ.get(_BYPASS_ENV_VAR) == "1":
+        return True, f"env:{_BYPASS_ENV_VAR}=1"
+    if prompt and _BYPASS_PROMPT_MARKER in prompt:
+        return True, f"prompt_marker:{_BYPASS_PROMPT_MARKER}"
+    return False, ""
+
+
+def _partition_by_confidence(
+    conflicts: List[Dict[str, str]]
+) -> Tuple[List[Dict[str, str]], List[Dict[str, str]]]:
+    """依 HIGH_CONFIDENCE_KEYWORDS 分離 high/low 信心衝突。
+
+    回傳：(high_conflicts, low_conflicts)。
+    """
+    high: List[Dict[str, str]] = []
+    low: List[Dict[str, str]] = []
+    for c in conflicts:
+        if c.get("keyword") in HIGH_CONFIDENCE_KEYWORDS:
+            high.append(c)
+        else:
+            low.append(c)
+    return high, low
+
+
+_KEYWORD_CONFLICT_BLOCK_TEMPLATE = """錯誤：派發 {agent} prompt 含高信心越界動作，已阻擋
+
+為什麼阻止（W11-004.1.4 分層判決）：
+  下列關鍵字屬直接可執行的 git/CLI 動作，與 {agent} 的「## 禁止行為」宣告衝突。
+  誤報率極低（已排除引號引用/否定前綴/路徑上下文/meta-task 白名單）。
+
+偵測到的高信心衝突：
+{conflicts}
+
+Agent 職責摘要：
+  {agent} 的「## 禁止行為」明列不可執行此類動作。請改派適合的代理人：
+  - 需要 git commit / 分支操作：派發實作代理人（parsley/thyme/fennel/cinnamon）
+  - 需要 ticket CLI 操作：由 PM 前台執行
+
+繞過方式（僅限 PM 確認合法情境後使用）：
+  方法 1：export AGENT_DISPATCH_BYPASS=1 後重新派發
+  方法 2：在 prompt 加入標記 [BYPASS-DISPATCH-VALIDATION]
+  兩者皆會降級為 warn，仍會寫入 events.jsonl 供審計。
+
+詳見：.claude/rules/core/agent-definition-standard.md
+      .claude/error-patterns/process-compliance/（W5-001 派發越界學習）"""
+
+
 _KEYWORD_CONFLICT_WARNING_TEMPLATE = """[警告] 派發 {agent} 偵測到 prompt 與 agent 禁止行為衝突
 
 為什麼警告：
@@ -761,15 +845,24 @@ _KEYWORD_CONFLICT_WARNING_TEMPLATE = """[警告] 派發 {agent} 偵測到 prompt
 
 def _emit_keyword_conflict_warning_if_any(
     subagent_type: str, prompt: str, logger
-) -> None:
-    """掃描 agent 禁止行為與 prompt 衝突；有衝突時 stderr 印警告（非阻擋）。"""
+) -> str:
+    """掃描 agent 禁止行為與 prompt 衝突。
+
+    W11-004.1.4：分層判決
+      - 回傳 "block"：偵測到高信心衝突且未 bypass → 呼叫端應 exit 2
+      - 回傳 "warn"：僅低信心衝突、或高信心但已 bypass → 已印 stderr 但放行
+      - 回傳 "pass"：無衝突、或輸入無效
+
+    stderr 輸出：block 印 _KEYWORD_CONFLICT_BLOCK_TEMPLATE；warn 印
+    _KEYWORD_CONFLICT_WARNING_TEMPLATE。
+    """
     if not subagent_type or not prompt:
-        return
+        return "pass"
 
     agent_md = _agent_md_path(subagent_type)
     if not agent_md.exists():
         logger.debug("agent .md 不存在：%s（略過關鍵字掃描）", agent_md)
-        return
+        return "pass"
 
     prohibited = _extract_prohibited_actions(agent_md)
     if not prohibited:
@@ -777,15 +870,13 @@ def _emit_keyword_conflict_warning_if_any(
             "%s agent 無『## 禁止行為』區塊或解析為空（略過掃描）",
             subagent_type,
         )
-        return
+        return "pass"
 
     conflicts = _detect_keyword_conflicts(prompt, prohibited)
     if not conflicts:
-        return
+        return "pass"
 
     # W11-004.1.3.2（TD-2 修復）：per-match 降級
-    # 分離 meta-task 白名單化的 conflict 與真違規；前者 logger.debug 降級，
-    # 不寫 stderr、不寫 events.jsonl；後者維持原行為。
     meta_filtered = [c for c in conflicts if c.get("whitelist_reason")]
     real_conflicts = [c for c in conflicts if not c.get("whitelist_reason")]
 
@@ -798,8 +889,33 @@ def _emit_keyword_conflict_warning_if_any(
         )
 
     if not real_conflicts:
-        return
+        return "pass"
 
+    # W11-004.1.4：分層判決 + bypass
+    high_conflicts, low_conflicts = _partition_by_confidence(real_conflicts)
+    bypassed, bypass_reason = _is_bypass_requested(prompt)
+
+    # 高信心衝突 + 未 bypass → block
+    if high_conflicts and not bypassed:
+        conflict_lines = "\n".join(
+            f"  - 禁止行為『{c['action']}』命中關鍵字『{c['keyword']}』"
+            f"（片段：{c['prompt_excerpt']!r}）"
+            for c in high_conflicts
+        )
+        message = _KEYWORD_CONFLICT_BLOCK_TEMPLATE.format(
+            agent=subagent_type, conflicts=conflict_lines
+        )
+        print(message, file=sys.stderr)
+        logger.warning(
+            "阻擋：%s prompt 偵測到 %d 項高信心關鍵字衝突（W11-004.1.4）",
+            subagent_type, len(high_conflicts),
+        )
+        # 仍寫入 events.jsonl 供誤報率統計
+        _write_event_jsonl(subagent_type, prompt, real_conflicts, logger)
+        return "block"
+
+    # 有衝突但走 warn 路徑（低信心、或高信心被 bypass）
+    # 訊息內容維持原 warn template；bypass 時加註降級原因
     conflict_lines = "\n".join(
         f"  - 禁止行為『{c['action']}』命中關鍵字『{c['keyword']}』"
         f"（片段：{c['prompt_excerpt']!r}）"
@@ -808,14 +924,24 @@ def _emit_keyword_conflict_warning_if_any(
     message = _KEYWORD_CONFLICT_WARNING_TEMPLATE.format(
         agent=subagent_type, conflicts=conflict_lines
     )
+    if bypassed and high_conflicts:
+        message += (
+            f"\n\n[BYPASS] 高信心衝突已由 {bypass_reason} 降級為警告；"
+            f"仍寫入 events.jsonl 供審計。"
+        )
     print(message, file=sys.stderr)
-    logger.info(
-        "警告：%s prompt 偵測到 %d 項關鍵字衝突（W5-045）",
-        subagent_type, len(real_conflicts),
-    )
-    # W11-004.1.1：寫 event 到 events.jsonl（失敗不 raise）
-    # 只寫真違規，meta-task 白名單化項目不入 events.jsonl。
+    if bypassed and high_conflicts:
+        logger.warning(
+            "bypass：%s 高信心衝突 %d 項被 %s 降級（W11-004.1.4）",
+            subagent_type, len(high_conflicts), bypass_reason,
+        )
+    else:
+        logger.info(
+            "警告：%s prompt 偵測到 %d 項關鍵字衝突（W5-045 低信心）",
+            subagent_type, len(real_conflicts),
+        )
     _write_event_jsonl(subagent_type, prompt, real_conflicts, logger)
+    return "warn"
 
 
 def main() -> int:
@@ -849,10 +975,13 @@ def main() -> int:
 
     prompt = tool_input.get("prompt", "") or ""
 
-    # W5-045：agent 禁止行為關鍵字衝突掃描（非阻擋，初版 warn-only）
+    # W5-045 + W11-004.1.4：agent 禁止行為關鍵字衝突掃描
+    # 分層判決：高信心衝突 block（exit 2），低信心/bypass 僅 warn。
     # 不受 IMPLEMENTATION_AGENTS 限制：W5-001 派發 sage 越界事件中 sage 非
     # 實作代理人，但 prompt 要求實作而觸發越界，正需此掃描防護。
-    _emit_keyword_conflict_warning_if_any(subagent_type, prompt, logger)
+    verdict = _emit_keyword_conflict_warning_if_any(subagent_type, prompt, logger)
+    if verdict == "block":
+        return 2
 
     # 無 subagent_type 或非實作代理人 → 放行（worktree 強制邏輯僅對實作代理人）
     if not subagent_type or subagent_type not in IMPLEMENTATION_AGENTS:
