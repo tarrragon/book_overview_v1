@@ -80,6 +80,12 @@ EXEMPT_MARKER_STRIP = re.compile(r"<!--\s*PC-093-exempt[^>]*-->")
 # 豁免 proximity（marker 同行或前 1 行生效）
 EXEMPT_PROXIMITY_LINES = 1
 
+# 檔級豁免（PC-099 meta-ticket 自我引用）：
+#   此 hook 的識別名稱。當 ticket frontmatter 包含
+#     hook_self_reference: phase4-decision-enforcement
+#   或 list 形式含此值時，整檔豁免偵測（hook 自身設計/測試/實作 ticket）。
+SELF_REFERENCE_HOOK_ID = "phase4-decision-enforcement"
+
 
 # ============================================================================
 # 資料結構
@@ -346,6 +352,54 @@ def partition_hits(
 
 
 # ============================================================================
+# F7.5: 檔級豁免偵測（PC-099 meta-ticket self-reference）
+# ============================================================================
+
+def detect_hook_self_reference(content: str) -> bool:
+    """偵測 ticket frontmatter 是否宣告 self-reference 豁免。
+
+    格式（任一匹配）：
+        hook_self_reference: phase4-decision-enforcement
+        hook_self_reference:
+          - phase4-decision-enforcement
+          - other-hook
+
+    僅解析首個 YAML frontmatter 區塊（--- ... ---）。不引入 PyYAML 相依。
+
+    Returns True 表示整檔豁免。
+    """
+    if not content.startswith("---"):
+        return False
+    # 取 frontmatter 區塊（--- ... ---）
+    end = content.find("\n---", 3)
+    if end < 0:
+        return False
+    fm = content[3:end]
+    # 單行形式：hook_self_reference: phase4-decision-enforcement
+    single = re.search(
+        r"^\s*hook_self_reference\s*:\s*(\S.*?)\s*$",
+        fm,
+        re.MULTILINE,
+    )
+    if single:
+        value = single.group(1).strip()
+        if value == SELF_REFERENCE_HOOK_ID or value == '"{}"'.format(SELF_REFERENCE_HOOK_ID) \
+                or value == "'{}'".format(SELF_REFERENCE_HOOK_ID):
+            return True
+    # List 形式：hook_self_reference:\n  - phase4-decision-enforcement
+    list_match = re.search(
+        r"^\s*hook_self_reference\s*:\s*\n((?:\s*-\s*\S.*\n?)+)",
+        fm,
+        re.MULTILINE,
+    )
+    if list_match:
+        items = re.findall(r"-\s*(\S+)", list_match.group(1))
+        if SELF_REFERENCE_HOOK_ID in items:
+            return True
+    return False
+
+
+# ============================================================================
 # F8: 從命令萃取 ticket_id 及模式
 # ============================================================================
 
@@ -506,6 +560,13 @@ def main() -> int:
         content = md_path.read_text(encoding="utf-8")
     except (UnicodeDecodeError, OSError) as exc:
         logger.info("read ticket md failed: {}".format(exc))
+        return 0
+
+    # PC-099: 檔級豁免（meta-ticket self-reference）
+    if detect_hook_self_reference(content):
+        logger.info(
+            "ticket {} declared hook_self_reference, skip scan (PC-099)".format(ticket_id)
+        )
         return 0
 
     lines = content.split("\n")

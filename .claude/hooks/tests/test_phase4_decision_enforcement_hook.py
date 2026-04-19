@@ -40,6 +40,7 @@ _hook = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_hook)
 
 build_regex_table = _hook.build_regex_table
+detect_hook_self_reference = _hook.detect_hook_self_reference
 scan_lines_for_phrases = _hook.scan_lines_for_phrases
 parse_exempt_marker = _hook.parse_exempt_marker
 validate_exempt_fields = _hook.validate_exempt_fields
@@ -712,3 +713,82 @@ def test_extract_phase3b_不匹配():
 def test_extract_無關命令():
     tid, mode = extract_ticket_id_from_command("git status")
     assert tid is None and mode is None
+
+
+# ============================================================================
+# PC-099 — 檔級 self-reference 豁免（meta-ticket 防誤報）
+# ============================================================================
+
+def test_self_ref_單行形式():
+    content = (
+        "---\n"
+        "id: X\n"
+        "hook_self_reference: phase4-decision-enforcement\n"
+        "title: Y\n"
+        "---\n"
+        "Phase 4 再決定\n"
+    )
+    assert detect_hook_self_reference(content) is True
+
+
+def test_self_ref_list_形式():
+    content = (
+        "---\n"
+        "id: X\n"
+        "hook_self_reference:\n"
+        "  - phase4-decision-enforcement\n"
+        "  - other-hook\n"
+        "---\n"
+    )
+    assert detect_hook_self_reference(content) is True
+
+
+def test_self_ref_引號包裹():
+    content = (
+        "---\n"
+        'hook_self_reference: "phase4-decision-enforcement"\n'
+        "---\n"
+    )
+    assert detect_hook_self_reference(content) is True
+
+
+def test_self_ref_無_frontmatter():
+    assert detect_hook_self_reference("Phase 4 再決定\n") is False
+
+
+def test_self_ref_其他_hook_值不豁免():
+    content = (
+        "---\n"
+        "hook_self_reference: other-hook\n"
+        "---\n"
+    )
+    assert detect_hook_self_reference(content) is False
+
+
+def test_self_ref_無此欄位():
+    content = "---\nid: X\ntitle: Y\n---\n"
+    assert detect_hook_self_reference(content) is False
+
+
+def test_self_ref_main_整合_豁免整檔(monkeypatch, tmp_path, capsys):
+    """Main flow: self-ref ticket 有 M1 命中但整檔豁免 → exit 0 無 stderr。"""
+    ticket_md = tmp_path / "TEST-099.md"
+    ticket_md.write_text(
+        "---\n"
+        "id: TEST-099\n"
+        "hook_self_reference: phase4-decision-enforcement\n"
+        "---\n"
+        "Phase 4 再決定是否保留 use_cache\n"
+        "保留以防萬一\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(_hook, "find_ticket_file", lambda tid, logger=None: ticket_md)
+    stdin_json = json.dumps({
+        "hook_event_name": "PostToolUse",
+        "tool_input": {"command": "ticket track phase TEST-099 phase4"},
+    })
+    monkeypatch.setattr("sys.stdin", io.StringIO(stdin_json))
+    rc = main()
+    captured = capsys.readouterr()
+    assert rc == 0
+    assert "PC-093 Phase 4 強制決斷" not in captured.err
