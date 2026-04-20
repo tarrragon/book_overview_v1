@@ -14,7 +14,6 @@ Active Dispatch Tracker 共用模組
 - detect_orphan_branches: 偵測 orphan worktree 分支
 """
 
-import fcntl
 import json
 import subprocess
 import sys
@@ -25,6 +24,38 @@ from typing import Dict, List, Optional
 
 STATE_FILE_RELATIVE = ".claude/dispatch-active.json"
 LOCK_FILE_RELATIVE = ".claude/dispatch-active.lock"
+
+# 跨平台 file lock：Unix 走 fcntl.flock，Windows 走 msvcrt.locking。
+# 目標：_state_lock 的 read-modify-write 互斥保護可在 Windows 執行，
+# 不再以 `import fcntl` 直接失敗 (ModuleNotFoundError)。
+if sys.platform == "win32":
+    import msvcrt
+
+    def _lock_fd(fd) -> None:
+        """Windows 檔案鎖：msvcrt.locking 需檔案有內容才能鎖。"""
+        try:
+            fd.write(" ")
+            fd.flush()
+            fd.seek(0)
+            msvcrt.locking(fd.fileno(), msvcrt.LK_LOCK, 1)
+        except OSError:
+            # 鎖失敗不阻斷（Hook 非關鍵路徑），容忍極罕見 race
+            pass
+
+    def _unlock_fd(fd) -> None:
+        try:
+            fd.seek(0)
+            msvcrt.locking(fd.fileno(), msvcrt.LK_UNLCK, 1)
+        except OSError:
+            pass
+else:
+    import fcntl
+
+    def _lock_fd(fd) -> None:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+
+    def _unlock_fd(fd) -> None:
+        fcntl.flock(fd, fcntl.LOCK_UN)
 
 # 記憶體快取：避免同一 Hook 執行中重複讀取 JSON 檔案
 # 使用檔案 mtime 判斷是否需要重新讀取
@@ -49,10 +80,10 @@ def _state_lock(project_root: Path):
     lock_file.parent.mkdir(parents=True, exist_ok=True)
     fd = lock_file.open("w")
     try:
-        fcntl.flock(fd, fcntl.LOCK_EX)
+        _lock_fd(fd)
         yield
     finally:
-        fcntl.flock(fd, fcntl.LOCK_UN)
+        _unlock_fd(fd)
         fd.close()
 
 

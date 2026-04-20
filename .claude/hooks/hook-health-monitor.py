@@ -132,8 +132,9 @@ def resolve_hook_log_dir(
 ) -> Tuple[str, Path, bool]:
     """根據 hook 檔案名稱解析對應的日誌目錄
 
-    所有 hook 的日誌目錄名稱已統一為檔名 stem（命名一致性已修復），
-    採用純機械推導：去掉 .py 取 stem 即為日誌目錄名稱。
+    優先使用檔名 stem 作為 log dir，若不存在則嘗試去掉 `-hook` 後綴的 fallback。
+    原因：部分 hook 呼叫 `setup_hook_logging("xxx")` 時傳入不含 `-hook` 的類別名
+    （如 file-size-guardian-hook.py 實際 log dir 為 file-size-guardian/）。
 
     Args:
         hook_filename: hook 檔案名稱（如 'cli-dependency-check.py'）
@@ -141,13 +142,21 @@ def resolve_hook_log_dir(
 
     Returns:
         (log_dir_name, full_path, dir_exists)
-        - log_dir_name: 日誌目錄名稱（= 檔名 stem）
-        - full_path: .claude/hook-logs/{log_dir_name} 完整路徑
-        - dir_exists: 日誌目錄是否實際存在
     """
     stem = Path(hook_filename).stem
-    log_dir = project_root / ".claude" / "hook-logs" / stem
-    return stem, log_dir, log_dir.is_dir()
+    base_dir = project_root / ".claude" / "hook-logs"
+
+    primary = base_dir / stem
+    if primary.is_dir():
+        return stem, primary, True
+
+    if stem.endswith("-hook"):
+        fallback_name = stem[: -len("-hook")]
+        fallback = base_dir / fallback_name
+        if fallback.is_dir():
+            return fallback_name, fallback, True
+
+    return stem, primary, False
 
 
 def _check_single_hook_log(

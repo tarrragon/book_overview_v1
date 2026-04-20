@@ -695,8 +695,14 @@ def _write_event_jsonl(
         return
 
     import hashlib
-    import fcntl
     from datetime import datetime, timezone
+
+    # 跨平台 file lock：Windows 下無 fcntl，降級為「不加 lock 寫入」
+    # 理由：這是 event log append，極偶發 race 不會資料遺失，只會行交錯
+    try:
+        import fcntl as _fcntl
+    except ModuleNotFoundError:
+        _fcntl = None
 
     prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:16]
     now = datetime.now(timezone.utc)
@@ -717,7 +723,8 @@ def _write_event_jsonl(
     try:
         _EVENTS_JSONL_PATH.parent.mkdir(parents=True, exist_ok=True)
         with open(_EVENTS_JSONL_PATH, "a", encoding="utf-8") as f:
-            fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+            if _fcntl is not None:
+                _fcntl.flock(f.fileno(), _fcntl.LOCK_EX)
             f.write(line)
     except OSError as e:
         msg = f"dispatch_stats: write event failed: {e}"
