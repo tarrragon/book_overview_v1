@@ -5,6 +5,7 @@ Ticket lifecycle 操作模組
 """
 
 import argparse
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -297,6 +298,53 @@ def _print_phase_prerequisite_warning(
 
 
 # ============================================================================
+# Body 同步輔助函式（W17-016.4）
+# ============================================================================
+
+def sync_completion_body_fields(
+    body: str,
+    completed_at: str,
+    executing_agent: str = "",
+) -> str:
+    """
+    將 frontmatter 的完成資訊同步寫回 body 的 Completion Info 區塊。
+
+    處理三個欄位（僅替換 placeholder，不覆蓋已填值）：
+    - **Completion Time**: (pending) → completed_at ISO
+    - **Executing Agent**: 若為空或 placeholder，填入 executing_agent
+    - **Review Status**: 保留現狀（無權威資料來源）
+
+    Args:
+        body: Ticket body 文字
+        completed_at: ISO 時間字串
+        executing_agent: who.current 值（可為空）
+
+    Returns:
+        更新後的 body 文字；若無相符欄位則原樣返回。
+    """
+    if not body:
+        return body
+
+    # Completion Time: 僅替換 (pending) placeholder
+    body = re.sub(
+        r"(\*\*Completion Time\*\*:\s*)\(pending\)",
+        lambda m: f"{m.group(1)}{completed_at}",
+        body,
+    )
+
+    # Executing Agent: 僅當為空或 placeholder 時填入
+    if executing_agent:
+        body = re.sub(
+            r"(\*\*Executing Agent\*\*:\s*)(\(pending\)|TBD|未指派)?\s*$",
+            lambda m: f"{m.group(1)}{executing_agent}",
+            body,
+            flags=re.MULTILINE,
+        )
+
+    return body
+
+
+# ============================================================================
 # TicketLifecycle 物件層 - 封裝生命週期操作
 # ============================================================================
 
@@ -581,6 +629,17 @@ class TicketLifecycle:
         # Step 4：執行完成操作
         ticket["status"] = STATUS_COMPLETED
         ticket["completed_at"] = datetime.now().isoformat(timespec="seconds")
+
+        # W17-016.4：同步 completed_at / Executing Agent 寫回 body
+        existing_body = ticket.get("_body", "")
+        if existing_body:
+            who = ticket.get("who") or {}
+            executing_agent = who.get("current") if isinstance(who, dict) else ""
+            ticket["_body"] = sync_completion_body_fields(
+                existing_body,
+                ticket["completed_at"],
+                executing_agent or "",
+            )
 
         ticket_path = resolve_ticket_path(ticket, self.version, ticket_id)
         save_ticket(ticket, ticket_path)
