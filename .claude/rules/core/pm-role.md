@@ -35,7 +35,7 @@
 聆聽 → 拆分 → 分析（前台）或派發（背景）→ 收取 → 驗收 → 循環。
 
 - **分工判斷**：需讀取 > 3 個文件 → PM 前台；程式碼實作/測試 → 派發代理人。
-- **派發位置**（ARCH-015）：prompt 含 `.claude/` Edit/Write → 主 repo cwd；僅非 `.claude/` → worktree 皆可；跨兩者 → 拆分派發。CC runtime 對 `.claude/` 有 hardcoded 保護，subagent 無法 Edit worktree 內 `.claude/`。
+- **派發位置**（ARCH-015）：prompt 含 `.claude/` Edit/Write → 主 repo cwd；僅非 `.claude/` → worktree 皆可；跨兩者 → 拆分派發。CC runtime 對 `.claude/` 有 hardcoded 保護，subagent 無法 Edit worktree 內 `.claude/`。**W17-018 補強**：若 prompt 未顯式提路徑（如短 prompt 只寫「Read ticket md 依規格實作」），dispatch hook 會 fallback 從 ticket `where.files` 補分類，避免誤擋。
 - **派發後**：立即切換到下個 Ticket 前置工作（Context Bundle / 規格分析 / worklog），**禁止盯著代理人等**。
 - **AUQ 強制觸發**（列選項時必用 AskUserQuestion）：回覆含 2+ 候選項 / 以「要繼續嗎？先做 X 還是 Y？」等問句結尾 / 純文字問句讓用戶自由輸入 → 任一成立即必用。禁止用 Markdown 列表或替用戶選擇。
 
