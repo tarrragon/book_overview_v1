@@ -18,12 +18,15 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from ticket_system.commands.show import (
+    RENDERER_INSTALL_HINTS,
     RENDERER_PRIORITY,
     build_full_content,
     build_renderer_command,
+    detect_installed_renderers,
     detect_renderer,
     execute_show,
     expand_short_id,
+    format_renderer_choices_help,
 )
 
 
@@ -267,3 +270,104 @@ class TestExecuteShow:
             assert mock_load.called
             args, _ = mock_load.call_args
             assert args[1] == "0.18.0-W17-015"
+
+
+# ---------- W17-015.2：渲染器 UX（安裝狀態 + 安裝指令） ----------
+
+
+class TestDetectInstalledRenderers:
+    def test_returns_dict_for_each_supported_renderer(self):
+        with patch(
+            "ticket_system.commands.show.shutil.which",
+            side_effect=lambda n: f"/usr/bin/{n}" if n == "bat" else None,
+        ):
+            result = detect_installed_renderers()
+        assert set(result.keys()) == set(RENDERER_PRIORITY)
+        assert result["bat"] is True
+        assert result["glow"] is False
+        assert result["mdcat"] is False
+
+    def test_all_installed(self):
+        with patch(
+            "ticket_system.commands.show.shutil.which",
+            return_value="/usr/bin/x",
+        ):
+            result = detect_installed_renderers()
+        assert all(result.values())
+
+    def test_none_installed(self):
+        with patch(
+            "ticket_system.commands.show.shutil.which",
+            return_value=None,
+        ):
+            result = detect_installed_renderers()
+        assert not any(result.values())
+
+
+class TestFormatRendererChoicesHelp:
+    def test_marks_installed_renderers(self):
+        with patch(
+            "ticket_system.commands.show.shutil.which",
+            side_effect=lambda n: f"/usr/bin/{n}" if n == "glow" else None,
+        ):
+            help_text = format_renderer_choices_help()
+        assert "glow[已安裝]" in help_text
+        assert "mdcat[未安裝" in help_text
+        assert "bat[未安裝" in help_text
+
+    def test_contains_install_hint_for_missing(self):
+        with patch(
+            "ticket_system.commands.show.shutil.which",
+            return_value=None,
+        ):
+            help_text = format_renderer_choices_help()
+        # 未安裝時應帶入 RENDERER_INSTALL_HINTS 的指令
+        assert "brew install glow" in help_text
+        assert "brew install mdcat" in help_text
+        assert "brew install bat" in help_text
+
+    def test_all_installed_no_hint(self):
+        with patch(
+            "ticket_system.commands.show.shutil.which",
+            return_value="/usr/bin/x",
+        ):
+            help_text = format_renderer_choices_help()
+        assert "未安裝" not in help_text
+        for name in RENDERER_PRIORITY:
+            assert f"{name}[已安裝]" in help_text
+
+
+class TestExecuteShowMissingRendererHint:
+    def test_error_message_includes_install_command(self, capsys):
+        """-R 指定未安裝渲染器時，stderr 必須包含安裝指令。"""
+        with patch(
+            "ticket_system.commands.show.load_and_validate_ticket",
+            return_value=(SAMPLE_TICKET, None),
+        ), patch(
+            "sys.stdout.isatty", return_value=True
+        ), patch(
+            "ticket_system.commands.show.shutil.which",
+            return_value=None,
+        ):
+            exit_code = execute_show(_make_args(renderer="glow"))
+        captured = capsys.readouterr()
+        assert exit_code == 2
+        assert "未安裝" in captured.err
+        assert "brew install glow" in captured.err
+
+    def test_hint_matches_renderer_install_hints_mapping(self, capsys):
+        """每個支援的渲染器都應有對應的安裝指令 hint。"""
+        for name in RENDERER_PRIORITY:
+            with patch(
+                "ticket_system.commands.show.load_and_validate_ticket",
+                return_value=(SAMPLE_TICKET, None),
+            ), patch(
+                "sys.stdout.isatty", return_value=True
+            ), patch(
+                "ticket_system.commands.show.shutil.which",
+                return_value=None,
+            ):
+                execute_show(_make_args(renderer=name))
+            err = capsys.readouterr().err
+            assert RENDERER_INSTALL_HINTS[name].split()[0:2] == ["brew", "install"]
+            assert name in err

@@ -262,12 +262,15 @@ def execute_show(args: argparse.Namespace) -> int:
     renderer = detect_renderer(requested)
 
     if renderer is None:
-        # 指定特定渲染器但缺失 → 明確報錯 exit 2
+        # 指定特定渲染器但缺失 → 明確報錯 exit 2，附安裝指令
         if requested != "auto":
             print(
                 f"[ERROR] 指定的渲染器 '{requested}' 未安裝或不在 PATH 中",
                 file=sys.stderr,
             )
+            hint = RENDERER_INSTALL_HINTS.get(requested)
+            if hint:
+                print(f"  可執行：{hint}", file=sys.stderr)
             return 2
         # auto 但全部缺失 → fallback raw + stderr warning
         print(
