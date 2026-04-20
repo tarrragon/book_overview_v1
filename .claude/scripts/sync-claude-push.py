@@ -348,12 +348,66 @@ def extract_version_string(content: str) -> str:
     """從可能包含多行或註解的 VERSION 檔案內容中提取版本號。
 
     跳過空行和 # 開頭的註解行，取第一行有效內容並移除 v 前綴。
+    移除 UTF-8 BOM（Windows 環境 VERSION 檔案可能含 BOM，
+    若未 strip 會導致 bump_version 正規式 parse 失敗 fallback 至 1.0.1）。
     """
     for line in content.split("\n"):
-        line = line.strip()
+        line = line.strip().lstrip("\ufeff")
         if line and not line.startswith("#"):
             return line.lstrip("v")
     return ""
+
+
+def validate_version_bump(remote_version: str, new_version: str) -> None:
+    """驗證新版號相對 remote 的跳躍幅度是否合理。
+
+    合法 bump 型態（恰好滿足一種）：
+      - major: X+1.0.0
+      - minor: X.Y+1.0
+      - patch: X.Y.Z+1
+
+    任何其他跳躍（如 1.17.0 → 1.36.2 共 19 個 minor）屬異常，
+    可能成因：local VERSION 污染、encoding 陷阱、bump 邏輯錯誤、
+    手動編輯後未同步。此時 fail-fast 而非靜默 push 出異常版號。
+
+    背景：W16-004.2 追蹤的 v1.17.0 → v1.36.2 事件即缺此防護所致。
+    """
+    r_match = re.match(r"(\d+)\.(\d+)\.(\d+)", remote_version)
+    n_match = re.match(r"(\d+)\.(\d+)\.(\d+)", new_version)
+    if not r_match or not n_match:
+        print_color(
+            f"版本格式無法解析: remote={remote_version!r}, new={new_version!r}",
+            "red",
+        )
+        sys.exit(1)
+
+    r_maj, r_min, r_pat = (int(x) for x in r_match.groups())
+    n_maj, n_min, n_pat = (int(x) for x in n_match.groups())
+
+    valid_major = n_maj == r_maj + 1 and n_min == 0 and n_pat == 0
+    valid_minor = n_maj == r_maj and n_min == r_min + 1 and n_pat == 0
+    valid_patch = n_maj == r_maj and n_min == r_min and n_pat == r_pat + 1
+
+    if not (valid_major or valid_minor or valid_patch):
+        print_color(
+            f"[FAIL] 版號跳躍異常: remote=v{remote_version} -> new=v{new_version}",
+            "red",
+        )
+        print_color(
+            "預期三種合法 bump: major+1/0/0、major/minor+1/0、或 major/minor/patch+1",
+            "red",
+        )
+        print_color(
+            "可能原因: 本地 .claude/VERSION 被其他來源污染、UTF-8 BOM、"
+            "bump 邏輯錯誤、或手動編輯未同步。",
+            "yellow",
+        )
+        print_color(
+            "建議操作: 檢查本地 .claude/VERSION 是否等於 remote（加 1 patch 內）；"
+            "若已異常，手動設為 remote + 1 patch 再重試。",
+            "yellow",
+        )
+        sys.exit(1)
 
 
 def bump_version(version: str, bump_level: str) -> str:
@@ -547,6 +601,11 @@ def main() -> None:
 
         # 8. Calculate new version (use bump suggestion for auto-generated messages)
         new_version = bump_version(remote_version, bump_suggestion)
+
+        # 8.5. Sanity check: 版號跳躍幅度防護（W16-004.2）
+        # v1.17.0 -> v1.36.2 事件即缺此防護，Windows 環境下意外推出跳躍 19 minor 的版號
+        validate_version_bump(remote_version, new_version)
+
         (temp_dir / "VERSION").write_text(new_version + "\n", encoding="utf-8")
 
         # 9. Update CHANGELOG (use full commit message for detailed history)
