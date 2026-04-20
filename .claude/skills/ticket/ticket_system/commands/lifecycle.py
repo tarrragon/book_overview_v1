@@ -34,6 +34,7 @@ from ticket_system.lib.ticket_validator import (
     validate_completable_status,
     validate_acceptance_criteria,
     validate_execution_log,
+    validate_execution_log_by_type,
 )
 from ticket_system.lib.messages import (
     ErrorMessages,
@@ -542,7 +543,12 @@ class TicketLifecycle:
             return self.claim(ticket_id)
         return 1
 
-    def complete(self, ticket_id: str, yes_spawned: bool = False) -> int:
+    def complete(
+        self,
+        ticket_id: str,
+        yes_spawned: bool = False,
+        skip_body_check: bool = False,
+    ) -> int:
         """
         完成 Ticket - 使用「先查後做」驗證流程
 
@@ -604,9 +610,30 @@ class TicketLifecycle:
             print("   請完成所有驗收條件後再執行 complete")
             return 1
 
-        # Step 3.5：檢查執行日誌是否已填寫（soft check - 警告但不阻止）
+        # Step 3.5：type-aware body schema 驗證（W17-016.3 hard block + escape valve）
+        # 對照 .claude/pm-rules/ticket-body-schema.md 各 type 必填章節；含佔位符則阻擋。
         body = ticket.get("_body", "")
-        if body:
+        ticket_type = ticket.get("type", "")
+        if body and not skip_body_check:
+            typed_passed, typed_unfilled = validate_execution_log_by_type(ticket_type, body)
+            if not typed_passed:
+                print()
+                print(f"[Error] {ticket_id} body 未依 {ticket_type} schema 填寫必填章節")
+                print()
+                print("   未填寫的必填章節：")
+                for section in typed_unfilled:
+                    print(f"   - {section}")
+                print()
+                print("   依 .claude/pm-rules/ticket-body-schema.md，此 type 以下章節為必填且須替換佔位符：")
+                for section in typed_unfilled:
+                    print(
+                        f'   ticket track append-log {ticket_id} --section "{section}" --content "內容"'
+                    )
+                print()
+                print("   逃生閥：--skip-body-check（需附理由於 Completion Info）")
+                return 1
+        elif body and skip_body_check:
+            # 逃生閥啟用：仍執行舊 soft check 作為可見提醒
             log_filled, unfilled_sections = validate_execution_log(ticket_id, body)
             if not log_filled:
                 print()
@@ -614,11 +641,7 @@ class TicketLifecycle:
                 for section in unfilled_sections:
                     print(f"   - {section}")
                 print()
-                print(f"   {WarningMessages.EXECUTION_LOG_SUGGESTION}")
-                for section in unfilled_sections:
-                    print(f'   ticket track append-log {ticket_id} --section "{section}" "內容"')
-                print()
-                print("   繼續完成? (已執行完成操作)")
+                print("   --skip-body-check 已啟用，強制完成；請於 Completion Info 記錄理由")
                 print()
 
         # Step 3.6：ANA spawned 非 terminal blocking confirmation（W12-005 / PC-075 Phase 2）
@@ -1463,7 +1486,12 @@ def execute_complete(args: argparse.Namespace, version: str) -> int:
     """
     lifecycle = TicketLifecycle(version)
     yes_spawned = bool(getattr(args, "yes_spawned", False))
-    return lifecycle.complete(args.ticket_id, yes_spawned=yes_spawned)
+    skip_body_check = bool(getattr(args, "skip_body_check", False))
+    return lifecycle.complete(
+        args.ticket_id,
+        yes_spawned=yes_spawned,
+        skip_body_check=skip_body_check,
+    )
 
 
 def execute_close(args: argparse.Namespace, version: str) -> int:

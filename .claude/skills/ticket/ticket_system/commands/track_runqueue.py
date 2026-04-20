@@ -120,7 +120,10 @@ def _apply_context_resume(
 # ---------------------------------------------------------------------------
 
 def _render_list(
-    tickets: List[Dict], top: Optional[int], wave: Optional[int]
+    tickets: List[Dict],
+    top: Optional[int],
+    wave: Optional[int],
+    context: Optional[str] = None,
 ) -> str:
     runnable = [t for t in tickets if _is_unblocked_pending(t)]
     runnable.sort(
@@ -142,7 +145,12 @@ def _render_list(
     lines.append("─" * 60)
 
     if not runnable:
-        lines.append("（無可執行 Ticket；blockedBy 全非空或 status 非 pending）")
+        if context == "resume":
+            lines.append("（無 resume 候選；當前無 handoff pending ticket）")
+        else:
+            lines.append(
+                "（無可執行 Ticket；blockedBy 全非空或 status 非 pending）"
+            )
         return "\n".join(lines)
 
     for idx, ticket in enumerate(runnable, start=1):
@@ -286,7 +294,7 @@ def execute_runqueue(args: argparse.Namespace, version: str) -> int:
     scoped = _apply_context_resume(scoped, context)
 
     if fmt == FORMAT_LIST:
-        print(_render_list(scoped, top, wave))
+        print(_render_list(scoped, top, wave, context))
     elif fmt == FORMAT_DAG:
         # dag 忽略 --top（呈現完整 DAG）
         print(_render_dag(scoped))

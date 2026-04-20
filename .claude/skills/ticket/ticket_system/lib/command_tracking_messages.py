@@ -155,7 +155,15 @@ class TrackAcceptanceMessages:
     STATUS_TEXT_UNCHECKED = "取消勾選"
 
     # execute_append_log 中有效的區段清單
-    VALID_SECTIONS = ["Problem Analysis", "Context Bundle", "Solution", "Test Results", "Execution Log"]
+    VALID_SECTIONS = [
+        "Problem Analysis",
+        "Context Bundle",
+        "Solution",
+        "Test Results",
+        "Execution Log",
+        "NeedsContext",
+        "Exit Status",
+    ]
 
     # execute_append_log 中的有效值提示前綴
     VALID_VALUES_PREFIX = "   有效值:"

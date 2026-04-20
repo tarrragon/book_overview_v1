@@ -662,6 +662,35 @@ def create_ticket_body(what: str, who: str, ticket_type: str = "") -> str:
 
 ---
 
+## NeedsContext
+
+<!-- 代理人回報資料缺口時追加於此（W17-010 協議）。子項建議 template：
+- **缺失項**:（具體指出需要的 context 是什麼）
+- **觸發位置**:（檔案:行號 或 決策點）
+- **影響**:（缺料導致無法完成哪些 acceptance）
+- **建議補料**:（PM 可採取的補充動作）
+- **重派成本**:（若需重派所需 token/context 估算）
+-->
+
+---
+
+## Exit Status
+
+<!-- 代理人結束時以 YAML 格式回報（W17-010 schema）：
+```yaml
+status: success        # 枚舉: success|needs_context|blocked|partial_success|failed
+reason: ""             # 狀態原因說明
+confidence: 1.0        # 0.0-1.0 信心度
+acceptance_met: []     # 已完成的 acceptance index 列表
+acceptance_unmet: []   # 未完成的 acceptance index 列表
+artifacts: []          # 產出檔案路徑列表
+context_dependencies: []  # 依賴的 context 來源
+estimated_recovery_effort: ""  # 若 needs_context/blocked，預估補料成本
+```
+對應 exit code: success=0, partial_success=0, needs_context=2, blocked=2, failed=1 -->
+
+---
+
 ## Completion Info{ci_marker}
 
 **Completion Time**: (pending)
