@@ -70,8 +70,11 @@
 迷失方向時，執行 3 步驟重新定位：
 
 1. `ticket track list --status in_progress` + `git status`
-2. 定位 Checkpoint（complete 後 → C1；commit 後 → C1.5；AskUserQuestion 後 → C2）
-3. 依 Checkpoint 執行下一步（詳見 `pm-rules/decision-tree.md` 第八層）
+2. `ticket track runqueue --wave N --format=list`（scheduler：查看下一個該做的 pending，priority 排序）
+3. 定位 Checkpoint（complete 後 → C1；commit 後 → C1.5；AskUserQuestion 後 → C2）
+4. 依 Checkpoint 執行下一步（詳見 `pm-rules/decision-tree.md` 第八層）
+
+**完整 DAG 視圖**：`ticket track runqueue --wave N --format=dag`（拓撲層級 + 關鍵路徑高亮，Linux `/proc/sched_debug` 類比）
 
 > 讓 CLI 查詢結果告訴你答案，而非靠記憶背誦規則。
 

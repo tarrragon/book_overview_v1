@@ -171,7 +171,17 @@ ticket batch-create --template impl-parsley --targets "a,b" --parent 1.0.0-W28-0
 
 ### track - 追蹤和更新 Ticket 狀態
 
-包含 READ 操作（summary/query/version/tree/chain/deps/full/log/list/board/agent/5W1H/validate）和 UPDATE 操作（claim/complete/release/set-who/set-what/set-when/set-where/set-why/set-how/phase/check-acceptance/set-acceptance/append-log/add-child/batch-claim/batch-complete/audit/accept-creation）。`list` 支援 `--wave`、`--status`、`--format` 篩選參數。
+包含 READ 操作（summary/query/version/tree/chain/deps/full/log/list/board/agent/5W1H/validate/**runqueue**）和 UPDATE 操作（claim/complete/release/set-who/set-what/set-when/set-where/set-why/set-how/phase/check-acceptance/set-acceptance/append-log/add-child/batch-claim/batch-complete/audit/accept-creation）。`list` 支援 `--wave`、`--status`、`--format` 篩選參數。
+
+> **Scheduler — `runqueue`**（W17-011.1）：回答「下一個該做哪個 ticket」。Linux schedule()/runqueue/top/ps 類比。合併原 next+schedule+resume-hint 為單一命令。
+>
+> ```bash
+> ticket track runqueue --wave 17                    # 可執行清單（blockedBy=[] pending，priority 排序）
+> ticket track runqueue --wave 17 --format=dag       # 完整 DAG + 關鍵路徑高亮
+> ticket track runqueue --context=resume --top 3     # 與 handoff/pending 交集（接手建議）
+> ```
+>
+> 新 session 啟動時 `session-start-scheduler-hint-hook` 自動呼叫 `runqueue --context=resume`，結果以 hook additionalContext 顯示。PM 迷失方向時優先執行，免靠記憶判斷先後順序。詳見 `references/track-command.md`「track runqueue 子命令」章節。
 
 > **注意**：僅有 6 個 `set-*` 命令（對應 5W1H 欄位）。`blockedBy`、`relatedTo`、`priority` 等欄位無 CLI 命令，需手動編輯 frontmatter。完整對照表見 `references/track-command.md`。
 >
