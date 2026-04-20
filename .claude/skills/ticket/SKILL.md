@@ -256,8 +256,23 @@ ticket show W17-015 -P         # 停用分頁
 | `references/completeness-check.md` | 指令完整性驗證（39 個指令/選項覆蓋狀態） |
 | `references/ticket-lifecycle-details.md` | Ticket 生命週期詳細規則 |
 
+## Ticket Body Schema（type-aware）
+
+不同 type 的 body 章節填寫要求：
+
+| Section | ANA | IMP | DOC |
+|---------|-----|-----|-----|
+| Problem Analysis | 必填 | 選填 | 選填 |
+| 重現實驗結果 | 必填（PC-063） | 免填 | 免填 |
+| Solution | 必填 | 選填 | 免填 |
+| Test Results | 選填 | 必填 | 免填 |
+| Completion Info | 必填 | 必填 | 必填（附變更摘要） |
+
+`ticket create --type ANA/IMP/DOC` 會在 body 各章節插入 `<!-- Schema[TYPE/Section]: 狀態 -->` 標註，指引填寫者。完整規則見 `.claude/pm-rules/ticket-body-schema.md`。
+
 ## 相關文件
 
+- `.claude/pm-rules/ticket-body-schema.md` - Ticket body type-aware schema
 - `.claude/methodologies/atomic-ticket-methodology.md` - Atomic Ticket 方法論
 - `.claude/methodologies/ticket-lifecycle-management-methodology.md` - Ticket 生命週期管理
 - `.claude/pm-rules/ticket-lifecycle.md` - Ticket 生命週期流程
