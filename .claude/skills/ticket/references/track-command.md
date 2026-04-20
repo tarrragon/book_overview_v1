@@ -95,7 +95,9 @@
 /ticket track set-how <id> <value>
 
 # 追加執行日誌
+# 有效 section: Problem Analysis / Context Bundle / Solution / Test Results / Execution Log
 /ticket track append-log <id> --section "Problem Analysis" "內容"
+/ticket track append-log <id> --section "Context Bundle" "PCB 內容（派發前分析結果，PC-040）"
 
 # 勾選驗收條件
 /ticket track check-acceptance <id> --all              # 勾選全部驗收條件

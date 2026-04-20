@@ -185,7 +185,7 @@ ticket batch-create --template impl-parsley --targets "a,b" --parent 1.0.0-W28-0
 
 > **注意**：僅有 6 個 `set-*` 命令（對應 5W1H 欄位）。`blockedBy`、`relatedTo`、`priority` 等欄位無 CLI 命令，需手動編輯 frontmatter。完整對照表見 `references/track-command.md`。
 >
-> **注意**：`append-log` 必須加上 `--section` 必填參數：`ticket track append-log <id> --section "Problem Analysis" "內容"`。有效區段值：`Problem Analysis`、`Solution`、`Test Results`。
+> **注意**：`append-log` 必須加上 `--section` 必填參數：`ticket track append-log <id> --section "Problem Analysis" "內容"`。有效區段值：`Problem Analysis`、`Context Bundle`、`Solution`、`Test Results`、`Execution Log`。`Context Bundle` 用於派發前寫入 PCB（PC-040）。
 >
 > **注意**：`check-acceptance` 必須指定 `--all`（勾選全部）或 index（如 `1 2 3`，從 1 開始編號）：`ticket track check-acceptance <id> --all` 或 `ticket track check-acceptance <id> 1 2 3`。先用 `ticket track query <id>` 查看驗收條件清單和編號。
 >
