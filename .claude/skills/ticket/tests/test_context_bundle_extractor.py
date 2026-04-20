@@ -15,14 +15,17 @@ from ticket_system.lib.context_bundle_extractor import (
     MAX_ITEMS_PER_FIELD,
     MAX_TOTAL_CHARS,
     SOURCE_PRIORITY,
+    ContextBundleExtractionError,
     ExtractedField,
     ExtractResult,
     detect_self_reference,
     extract_and_write_context_bundle,
     extract_context_bundle,
     format_cli_summary,
+    format_cli_summary_json,
     merge_auto_extracted_block,
     render_context_bundle_markdown,
+    set_metric_sink,
 )
 
 LOAD_TICKET_PATH = "ticket_system.lib.context_bundle_extractor.load_ticket"
@@ -402,8 +405,10 @@ class TestGroupD_CLI:
     @pytest.mark.parametrize(
         "flag_case,expected_pattern",
         [
+            # W17-002.1 acceptance #1：quiet 預設單行輸出
+            ("default", r"\[Context Bundle\] 已抽取（\d+ 項，\d+ 字元）"),
             ("quiet", r"\[Context Bundle\] 已抽取（\d+ 項，\d+ 字元）"),
-            ("default", r"已從 \d+ 個來源抽取 \d+ 項欄位"),
+            ("explicit_non_quiet", r"已從 \d+ 個來源抽取 \d+ 項欄位"),
             ("verbose", r"預覽："),
         ],
     )
@@ -415,8 +420,9 @@ class TestGroupD_CLI:
         with patch(LOAD_TICKET_PATH, return_value=source):
             result = extract_context_bundle(target)
         kwargs = {
-            "quiet": {"quiet": True},
             "default": {},
+            "quiet": {"quiet": True},
+            "explicit_non_quiet": {"quiet": False},
             "verbose": {"verbose": True},
         }[flag_case]
         out = format_cli_summary(result, **kwargs)
@@ -508,7 +514,11 @@ class TestGroupD_CLI:
         assert saved_calls == []  # 未寫入
 
     def test_s20_extraction_exception_non_raising(self, tmp_path):
-        """S20：抽取過程若 load_ticket 對 target 失敗，回傳 result 不拋例外。"""
+        """S20：target load 失敗 → 拋 ContextBundleExtractionError（W17-002.1 #5 專屬 Exception）。
+
+        原因鏈以 __cause__ 保留原始例外（RuntimeError），caller 可
+        except ContextBundleExtractionError 一次涵蓋所有底層 I/O 問題。
+        """
         def _fake_load(version, tid):
             raise RuntimeError("simulated I/O failure")
 
@@ -516,11 +526,9 @@ class TestGroupD_CLI:
             "ticket_system.lib.context_bundle_extractor.load_ticket",
             side_effect=_fake_load,
         ):
-            # extract_and_write 內部 load_ticket(target) 拋例外 → 應由 caller try/except
-            # 但我們的 helper 對 target load 失敗未 catch（設計如此），caller 負責。
-            # 驗證：直接呼叫會 raise；這是 §v2.3 / S20 的 caller try/except 契約。
-            with pytest.raises(RuntimeError):
+            with pytest.raises(ContextBundleExtractionError) as exc_info:
                 extract_and_write_context_bundle("0.18.0", "0.18.0-W17-010")
+        assert isinstance(exc_info.value.__cause__, RuntimeError)
 
     def test_s20_extract_context_bundle_non_raising_on_source_load_failure(self):
         """extract_context_bundle 對 source load 失敗 → 記錄 warning 不拋例外。"""
@@ -534,3 +542,236 @@ class TestGroupD_CLI:
         # 未拋例外，status 為 all_sources_missing
         assert result.status == "all_sources_missing"
         assert any("失敗" in w for w in result.warnings)
+
+
+# ============================================================================
+# 群組 F：W17-002.1 P2 風格增強（acceptance #1-#10）
+# ============================================================================
+
+
+class TestGroupF_P2Enhancements:
+    """W17-002.1 新增 acceptance 對應測試。"""
+
+    # --- acceptance #2：MAX_TOTAL_CHARS rationale ---
+    def test_max_total_chars_has_rationale_in_constants(self):
+        """常數值從 constants.py 集中管理，並附 rationale 註解（#2, #3）。"""
+        from ticket_system.constants import (
+            CONTEXT_BUNDLE_MAX_ITEMS_PER_FIELD,
+            CONTEXT_BUNDLE_MAX_TOTAL_CHARS,
+        )
+
+        assert CONTEXT_BUNDLE_MAX_TOTAL_CHARS == MAX_TOTAL_CHARS == 2000
+        assert CONTEXT_BUNDLE_MAX_ITEMS_PER_FIELD == MAX_ITEMS_PER_FIELD == 5
+
+    # --- acceptance #3：Literal 源自 lib/constants.py ---
+    def test_literal_values_from_constants(self):
+        from ticket_system.constants import (
+            CONTEXT_BUNDLE_EXTRACT_STATUSES,
+            CONTEXT_BUNDLE_SKIP_REASONS,
+            CONTEXT_BUNDLE_SOURCE_KINDS,
+        )
+
+        assert CONTEXT_BUNDLE_SOURCE_KINDS == SOURCE_PRIORITY
+        # 新增 opt_out 狀態
+        assert "opt_out" in CONTEXT_BUNDLE_EXTRACT_STATUSES
+        assert "opt_out" in CONTEXT_BUNDLE_SKIP_REASONS
+
+    # --- acceptance #4：SkipRecord dataclass ---
+    def test_skip_record_is_dataclass(self):
+        from dataclasses import is_dataclass
+
+        from ticket_system.lib.context_bundle_extractor import SkipRecord
+
+        assert is_dataclass(SkipRecord)
+        rec = SkipRecord(
+            source_id="T", source_kind="source_ticket", reason="source_missing"
+        )
+        assert rec.detail == ""
+
+    # --- acceptance #6：ac_parser 整合 acceptance 過濾 ---
+    def test_ac_parser_filters_checked_acceptance_items(self):
+        """已勾選的 acceptance（[x]）應被過濾，不出現在抽取結果中。"""
+        target = _make_target(source_ticket="0.18.0-W17-001")
+        source = _make_source(
+            "0.18.0-W17-001",
+            acceptance=[
+                "- [x] 已完成 A",
+                "- [ ] 未完成 B",
+                "- [x] 已完成 C",
+                "- [ ] 未完成 D",
+            ],
+        )
+        with patch(LOAD_TICKET_PATH, return_value=source):
+            result = extract_context_bundle(target)
+        ac_field = next(
+            (f for f in result.extracted if f.source_field == "acceptance"), None
+        )
+        assert ac_field is not None
+        # 僅未完成項被保留
+        joined = " ".join(ac_field.raw_value)
+        assert "未完成 B" in joined
+        assert "未完成 D" in joined
+        assert "已完成 A" not in joined
+        assert "已完成 C" not in joined
+
+    def test_ac_parser_all_checked_yields_no_field(self):
+        """所有 acceptance 皆已完成 → 過濾後為空，該欄位不寫入 extracted。"""
+        target = _make_target(source_ticket="0.18.0-W17-001")
+        source = _make_source(
+            "0.18.0-W17-001",
+            acceptance=["- [x] done 1", "- [x] done 2"],
+        )
+        with patch(LOAD_TICKET_PATH, return_value=source):
+            result = extract_context_bundle(target)
+        assert not any(f.source_field == "acceptance" for f in result.extracted)
+
+    # --- acceptance #7：--json 結構化輸出 ---
+    def test_format_cli_summary_json_schema(self):
+        target = _make_target(source_ticket="0.18.0-W17-001")
+        source = _make_source(
+            "0.18.0-W17-001",
+            what="task W",
+            why="reason R",
+            where_files=["a.py"],
+            acceptance=["- [ ] ac1"],
+        )
+        with patch(LOAD_TICKET_PATH, return_value=source):
+            result = extract_context_bundle(target)
+        out = format_cli_summary_json(result)
+
+        import json as _json
+
+        payload = _json.loads(out)
+        assert payload["status"] == "success"
+        assert payload["sources_declared"] == 1
+        assert payload["sources_ok"] == 1
+        assert isinstance(payload["extracted"], list)
+        assert isinstance(payload["skipped"], list)
+        assert isinstance(payload["warnings"], list)
+        assert payload["total_chars_estimate"] >= 0
+        # extracted 各項含 required keys
+        for f in payload["extracted"]:
+            assert set(f.keys()) >= {
+                "source_id",
+                "source_kind",
+                "source_field",
+                "target_subsection",
+                "truncated",
+                "value",
+            }
+
+    def test_format_cli_summary_json_for_no_source(self):
+        result = ExtractResult(status="no_source", target_ticket_id="T")
+        import json as _json
+
+        payload = _json.loads(format_cli_summary_json(result))
+        assert payload["status"] == "no_source"
+        assert payload["extracted"] == []
+
+    # --- acceptance #8：metric event 埋點 ---
+    def test_metric_sink_is_invoked_on_extract(self):
+        events: list = []
+
+        def _sink(event_type, payload):
+            events.append((event_type, dict(payload)))
+
+        set_metric_sink(_sink)
+        try:
+            target = _make_target(source_ticket="0.18.0-W17-001")
+            source = _make_source("0.18.0-W17-001")
+            with patch(LOAD_TICKET_PATH, return_value=source):
+                extract_context_bundle(target)
+        finally:
+            set_metric_sink(None)
+
+        assert len(events) == 1
+        event_type, payload = events[0]
+        assert event_type == "context_bundle.extract"
+        assert payload["status"] == "success"
+        assert payload["sources_declared"] == 1
+        assert payload["sources_ok"] == 1
+        assert payload["fields_extracted"] >= 1
+        assert payload["total_chars"] >= 0
+        assert payload["truncated_count"] == 0
+
+    def test_metric_sink_failure_does_not_break_extract(self, capsys):
+        def _bad_sink(event_type, payload):
+            raise RuntimeError("sink boom")
+
+        set_metric_sink(_bad_sink)
+        try:
+            target = _make_target(source_ticket="0.18.0-W17-001")
+            source = _make_source("0.18.0-W17-001")
+            with patch(LOAD_TICKET_PATH, return_value=source):
+                result = extract_context_bundle(target)
+        finally:
+            set_metric_sink(None)
+        # 主流程仍成功
+        assert result.status == "success"
+        captured = capsys.readouterr()
+        assert "metric sink 失敗" in captured.err
+
+    # --- acceptance #9：opt-out 標記 context-bundle: manual ---
+    def test_opt_out_marker_short_circuits_extraction(self):
+        target = _make_target(source_ticket="0.18.0-W17-001")
+        target["context_bundle"] = "manual"
+        with patch(LOAD_TICKET_PATH) as mock_load:
+            result = extract_context_bundle(target)
+        assert result.status == "opt_out"
+        assert result.extracted == []
+        assert any(sk.reason == "opt_out" for sk in result.skipped)
+        # 短路：未載入 source
+        mock_load.assert_not_called()
+
+    def test_opt_out_with_hyphen_key_also_detected(self):
+        """支援 YAML key 為 `context-bundle`（hyphen 形式）。"""
+        target = _make_target(source_ticket="0.18.0-W17-001")
+        target["context-bundle"] = "manual"
+        result = extract_context_bundle(target)
+        assert result.status == "opt_out"
+
+    def test_opt_out_other_values_do_not_trigger(self):
+        """值非 "manual" 時不觸發 opt-out（例如 "auto"）。"""
+        target = _make_target(source_ticket="0.18.0-W17-001")
+        target["context_bundle"] = "auto"
+        source = _make_source("0.18.0-W17-001")
+        with patch(LOAD_TICKET_PATH, return_value=source):
+            result = extract_context_bundle(target)
+        assert result.status == "success"
+
+    def test_render_opt_out_returns_empty(self):
+        result = ExtractResult(status="opt_out", target_ticket_id="T")
+        assert render_context_bundle_markdown(result) == ""
+
+    def test_format_cli_summary_opt_out_quiet(self):
+        result = ExtractResult(status="opt_out", target_ticket_id="T")
+        out = format_cli_summary(result)  # quiet 預設
+        assert "opt-out" in out
+
+    # --- acceptance #10：placeholder 擴為 list ---
+    @pytest.mark.parametrize(
+        "placeholder",
+        ["待定義", "TBD", "TODO", "待填寫", "(待填寫)", "（待填寫）", "N/A"],
+    )
+    def test_placeholder_list_detects_common_variants(self, placeholder):
+        target = _make_target(source_ticket="0.18.0-W17-001")
+        source = _make_source("0.18.0-W17-001", what=placeholder)
+        with patch(LOAD_TICKET_PATH, return_value=source):
+            result = extract_context_bundle(target)
+        # what 欄位應被略過
+        assert not any(f.source_field == "what" for f in result.extracted)
+        assert any(
+            sk.reason == "source_field_undefined" and sk.detail == "what"
+            for sk in result.skipped
+        )
+
+    # --- acceptance #1：quiet 預設單行 ---
+    def test_format_cli_summary_default_is_quiet_single_line(self):
+        target = _make_target(source_ticket="0.18.0-W17-001")
+        source = _make_source("0.18.0-W17-001")
+        with patch(LOAD_TICKET_PATH, return_value=source):
+            result = extract_context_bundle(target)
+        out = format_cli_summary(result)  # 預設（無 kwargs）
+        # 單行
+        assert "\n" not in out
+        assert "已抽取" in out

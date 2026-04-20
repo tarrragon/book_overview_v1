@@ -310,6 +310,12 @@ def _register_lifecycle_commands(
         action="store_true",
         help="Context Bundle 抽取摘要附欄位預覽（W17-002.2）",
     )
+    p_claim.add_argument(
+        "--json",
+        dest="json_output",
+        action="store_true",
+        help="Context Bundle 抽取結果以 JSON 結構化輸出（W17-002.1）",
+    )
 
     # complete 操作
     p_complete = subparsers.add_parser("complete", help=TrackMessages.HELP_COMPLETE)

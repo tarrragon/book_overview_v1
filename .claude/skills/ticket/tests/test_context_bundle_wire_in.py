@@ -155,6 +155,43 @@ class TestCreateWireIn:
         assert args.quiet is True
         assert args.verbose is False
 
+    def test_create_parser_has_json_flag(self):
+        """W17-002.1 acceptance #7：create register 註冊 --json flag。"""
+        parser = argparse.ArgumentParser()
+        sub = parser.add_subparsers(dest="cmd")
+        create_cmd.register(sub)
+        args = parser.parse_args(
+            ["create", "--action", "a", "--target", "t", "--json"]
+        )
+        assert args.json_output is True
+
+    def test_post_create_json_output_prints_json(self, capsys):
+        """--json flag → 輸出為合法 JSON 字串。"""
+        from ticket_system.lib.context_bundle_extractor import ExtractResult
+
+        with mock.patch(
+            "ticket_system.lib.ticket_loader.load_ticket",
+            return_value={
+                "id": "0.18.0-W99-001",
+                "source_ticket": "0.18.0-W99-000",
+            },
+        ), mock.patch(
+            "ticket_system.lib.context_bundle_extractor.extract_and_write_context_bundle"
+        ) as mock_extract:
+            mock_extract.return_value = (
+                ExtractResult(status="success", target_ticket_id="0.18.0-W99-001"),
+                [],
+            )
+            create_cmd._auto_extract_context_bundle_post_create(
+                "0.18.0", "0.18.0-W99-001", json_output=True
+            )
+        captured = capsys.readouterr()
+        import json as _json
+
+        payload = _json.loads(captured.out)
+        assert payload["target_ticket_id"] == "0.18.0-W99-001"
+        assert payload["status"] == "success"
+
 
 # ============================================================================
 # lifecycle.py execute_claim wire-in 測試
@@ -263,3 +300,13 @@ class TestClaimWireIn:
         args = parser.parse_args(["track", "claim", "0.18.0-W99-001", "--verbose"])
         assert args.verbose is True
         assert args.quiet is False
+
+    def test_claim_parser_has_json_flag(self):
+        """W17-002.1 acceptance #7：track claim register 註冊 --json flag。"""
+        from ticket_system.commands import track as track_cmd
+
+        parser = argparse.ArgumentParser()
+        sub = parser.add_subparsers(dest="cmd")
+        track_cmd.register(sub)
+        args = parser.parse_args(["track", "claim", "0.18.0-W99-001", "--json"])
+        assert args.json_output is True

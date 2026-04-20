@@ -1482,6 +1482,7 @@ def execute_claim(args: argparse.Namespace, version: str) -> int:
             args.ticket_id,
             quiet=bool(getattr(args, "quiet", False)),
             verbose=bool(getattr(args, "verbose", False)),
+            json_output=bool(getattr(args, "json_output", False)),
         )
 
     return rc
@@ -1492,6 +1493,7 @@ def _auto_extract_context_bundle_post_claim(
     ticket_id: str,
     quiet: bool = False,
     verbose: bool = False,
+    json_output: bool = False,
 ) -> None:
     """Claim 後的 Context Bundle 自動抽取 wire-in（W17-002.2）。
 
@@ -1507,6 +1509,7 @@ def _auto_extract_context_bundle_post_claim(
         from ticket_system.lib.context_bundle_extractor import (
             extract_and_write_context_bundle,
             format_cli_summary,
+            format_cli_summary_json,
         )
 
         target = load_ticket(version, ticket_id)
@@ -1522,7 +1525,10 @@ def _auto_extract_context_bundle_post_claim(
             return
 
         result, _notes = extract_and_write_context_bundle(version, ticket_id)
-        print(format_cli_summary(result, quiet=quiet, verbose=verbose))
+        if json_output:
+            print(format_cli_summary_json(result))
+        else:
+            print(format_cli_summary(result, quiet=quiet, verbose=verbose))
     except Exception:
         sys.stderr.write(_tb.format_exc())
         sys.stderr.write("[Context Bundle] 抽取失敗，不影響 ticket 認領\n")

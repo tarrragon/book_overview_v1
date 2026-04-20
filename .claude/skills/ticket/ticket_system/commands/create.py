@@ -952,6 +952,7 @@ def _auto_extract_context_bundle_post_create(
     ticket_id: str,
     quiet: bool = False,
     verbose: bool = False,
+    json_output: bool = False,
 ) -> None:
     """Create 後的 Context Bundle 自動抽取 wire-in（W17-002.2）。
 
@@ -964,6 +965,7 @@ def _auto_extract_context_bundle_post_create(
         from ticket_system.lib.context_bundle_extractor import (
             extract_and_write_context_bundle,
             format_cli_summary,
+            format_cli_summary_json,
         )
         from ticket_system.lib.ticket_loader import load_ticket
 
@@ -980,7 +982,10 @@ def _auto_extract_context_bundle_post_create(
             return
 
         result, _notes = extract_and_write_context_bundle(version, ticket_id)
-        print(format_cli_summary(result, quiet=quiet, verbose=verbose))
+        if json_output:
+            print(format_cli_summary_json(result))
+        else:
+            print(format_cli_summary(result, quiet=quiet, verbose=verbose))
     except Exception:
         sys.stderr.write(traceback.format_exc())
         sys.stderr.write("[Context Bundle] 抽取失敗，不影響 ticket 建立\n")
@@ -1030,6 +1035,7 @@ def execute(args: argparse.Namespace) -> int:
             ticket_id,
             quiet=bool(getattr(args, "quiet", False)),
             verbose=bool(getattr(args, "verbose", False)),
+            json_output=bool(getattr(args, "json_output", False)),
         )
 
     return rc
@@ -1343,6 +1349,12 @@ def register(subparsers: argparse._SubParsersAction) -> None:
         dest="verbose",
         action="store_true",
         help="Context Bundle 抽取摘要附欄位預覽（W17-002.2）",
+    )
+    parser.add_argument(
+        "--json",
+        dest="json_output",
+        action="store_true",
+        help="Context Bundle 抽取結果以 JSON 結構化輸出（W17-002.1）",
     )
 
     parser.set_defaults(func=execute)
