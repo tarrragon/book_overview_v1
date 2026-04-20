@@ -126,6 +126,11 @@ from .track_dispatch_check import (
     execute_dispatch_check,
     register_dispatch_check,
 )
+# 統一 scheduler CLI（W17-011.1 / W17-009 落地）
+from .track_runqueue import (
+    execute_runqueue,
+    register_runqueue,
+)
 # 導入版本審計命令模組
 from .audit_version import (
     execute_audit_version,
@@ -207,6 +212,8 @@ def _create_command_handlers() -> dict:
         "audit": execute_audit,
         "audit-version": execute_audit_version,
         "board": execute_board,
+        # W17-011.1 / W17-009 統一 scheduler CLI
+        "runqueue": execute_runqueue,
     }
 
 
@@ -728,6 +735,7 @@ def _register_all_subcommands(
     register_handoff_ready(track_subparsers)
     register_checkpoint_status(track_subparsers)
     register_dispatch_check(track_subparsers)
+    register_runqueue(track_subparsers)
 
 
 def _register_snapshot_commands(
