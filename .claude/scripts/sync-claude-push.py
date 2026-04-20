@@ -178,12 +178,15 @@ def copy_filtered(src: Path, dst: Path) -> int:
 
 
 def restore_executable_bits(root: Path) -> int:
-    """對 root/hooks/ 下所有 .py 檔案強制加入 executable bit。
+    """對 root/hooks/ 下所有 .py 檔案強制加入 filesystem executable bit。
 
     呼叫時機：copy_filtered 把本地 .claude/ 內容複製到 temp_dir 後、git add -A 前。
-    確保即使本地 mode 已因歷史 sync-pull 降權受損，push 出去的 git index 仍記錄 100755。
+    在 POSIX 環境有效（macOS/Linux）；Windows NTFS 無 exec bit 概念，此操作無效果，
+    但不會失敗或污染狀態。
 
     與 sync-claude-pull.py::restore_executable_bits 對稱（pull 端 safety net）。
+
+    跨平台治本方案見 git_update_index_chmod()（在 git add 後呼叫）。
 
     參數:
         root: 遠端 repo 的本地暫存根目錄（temp_dir）
@@ -203,6 +206,44 @@ def restore_executable_bits(root: Path) -> int:
             new_mode = mode | 0o111
             if new_mode != mode:
                 py_file.chmod(new_mode)
+                count += 1
+    return count
+
+
+def git_update_index_chmod(root: Path) -> int:
+    """對 root/hooks/ 下所有 .py 檔案的 git index mode 設為 100755。
+
+    Windows NTFS 無 executable bit 概念，filesystem chmod 對 git index 無作用；
+    `git update-index --chmod=+x` 直接寫入 git index，不依賴 filesystem 語意，
+    跨平台一致。這是 W16-004.3 的治本方案，覆蓋 restore_executable_bits 在
+    Windows 上的盲點。
+
+    呼叫時機：`git add -A` 之後（檔案已 tracked），`git commit` 之前。
+
+    背景：IMP-067 v1.36.2 事件——Windows push 使 379 個新 .py 檔案 mode
+    在 remote 記為 100644；需此函式顯式確保 index mode 正確。
+
+    參數:
+        root: 遠端 repo 的本地暫存根目錄（temp_dir）
+
+    傳回:
+        int: 成功設定 mode 的檔案數
+    """
+    count = 0
+    for subdir in EXECUTABLE_PY_SUBDIRS:
+        target_dir = root / subdir
+        if not target_dir.is_dir():
+            continue
+        for py_file in target_dir.rglob("*.py"):
+            if not py_file.is_file():
+                continue
+            rel = py_file.relative_to(root).as_posix()
+            result = run_git(
+                ["update-index", "--chmod=+x", rel],
+                cwd=str(root),
+                check=False,
+            )
+            if result.returncode == 0:
                 count += 1
     return count
 
@@ -618,6 +659,13 @@ def main() -> None:
         commit_msg = f"v{new_version}: {commit_summary}"
         print_color("提交變更...")
         run_git(["add", "-A"], cwd=str(temp_dir))
+
+        # 10.5. 跨平台 hook mode 治本（W16-004.3）：直接寫 git index mode 為 100755
+        # Windows NTFS 無 exec bit，filesystem chmod 對 git index 無效；
+        # 此處 git update-index --chmod=+x 不依賴 filesystem，跨平台一致
+        index_fixed = git_update_index_chmod(temp_dir)
+        if index_fixed:
+            print_color(f"   git index mode 設定 {index_fixed} 個 hook 檔案為 100755", "green")
 
         # Check if there are actual changes
         diff_result = run_git(["diff", "--cached", "--quiet"], cwd=str(temp_dir), check=False)
