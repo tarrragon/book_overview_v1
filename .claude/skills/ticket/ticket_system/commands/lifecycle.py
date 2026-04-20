@@ -1471,9 +1471,61 @@ def execute_claim(args: argparse.Namespace, version: str) -> int:
     skip_verify = bool(getattr(args, "skip_verify", False))
     auto_yes = bool(getattr(args, "yes", False))
     # 統一走驗證入口（skip_verify=True 時內部會降級走既有 claim）
-    return lifecycle.claim_with_verification(
+    rc = lifecycle.claim_with_verification(
         args.ticket_id, skip_verify=skip_verify, auto_yes=auto_yes
     )
+
+    # W17-002.2：claim 成功後自動抽取 Context Bundle（異常降級；idempotent merge 自然防止重複）
+    if rc == 0:
+        _auto_extract_context_bundle_post_claim(
+            version,
+            args.ticket_id,
+            quiet=bool(getattr(args, "quiet", False)),
+            verbose=bool(getattr(args, "verbose", False)),
+        )
+
+    return rc
+
+
+def _auto_extract_context_bundle_post_claim(
+    version: str,
+    ticket_id: str,
+    quiet: bool = False,
+    verbose: bool = False,
+) -> None:
+    """Claim 後的 Context Bundle 自動抽取 wire-in（W17-002.2）。
+
+    觸發條件：target ticket 具 source_ticket / blocked_by / related_to 其一。
+    幂等性：依賴 `merge_auto_extracted_block` 的 sources 主鍵幂等保證，
+    若 Context Bundle 已存在同 sources 的 auto block，不再重寫（no_change_idempotent）。
+    異常降級：任何例外寫 stderr traceback，退出碼保 0。
+
+    設計依據：W17-002 Phase 1 §5.2 claim-insert 虛擬碼。
+    """
+    import traceback as _tb
+    try:
+        from ticket_system.lib.context_bundle_extractor import (
+            extract_and_write_context_bundle,
+            format_cli_summary,
+        )
+
+        target = load_ticket(version, ticket_id)
+        if target is None:
+            return
+        if not (
+            target.get("source_ticket")
+            or target.get("blocked_by")
+            or target.get("blockedBy")
+            or target.get("related_to")
+            or target.get("relatedTo")
+        ):
+            return
+
+        result, _notes = extract_and_write_context_bundle(version, ticket_id)
+        print(format_cli_summary(result, quiet=quiet, verbose=verbose))
+    except Exception:
+        sys.stderr.write(_tb.format_exc())
+        sys.stderr.write("[Context Bundle] 抽取失敗，不影響 ticket 認領\n")
 
 
 def execute_complete(args: argparse.Namespace, version: str) -> int:

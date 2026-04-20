@@ -298,6 +298,18 @@ def _register_lifecycle_commands(
         action="store_true",
         help="非互動模式：AC 驗證仍執行，但自動選 y 繼續 claim",
     )
+    p_claim.add_argument(
+        "--quiet",
+        dest="quiet",
+        action="store_true",
+        help="Context Bundle 抽取摘要單行輸出（W17-002.2）",
+    )
+    p_claim.add_argument(
+        "--verbose",
+        dest="verbose",
+        action="store_true",
+        help="Context Bundle 抽取摘要附欄位預覽（W17-002.2）",
+    )
 
     # complete 操作
     p_complete = subparsers.add_parser("complete", help=TrackMessages.HELP_COMPLETE)
