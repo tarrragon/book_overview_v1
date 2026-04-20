@@ -69,6 +69,10 @@ EXCLUDE_NAME_PREFIXES = {
     "secret",   # secrets.json, secret_key.txt 等
 }
 
+# Push 前強制還原 executable bit 的子目錄（與 sync-claude-pull.py 對稱）
+# 確保推上去的 git index mode 為 100755，避免下游 pull 拿到 644。
+EXECUTABLE_PY_SUBDIRS = ("hooks",)
+
 # 預計算小寫版本，避免每次呼叫 should_exclude 重複計算
 _EXCLUDE_PATTERNS_LOWER = {p.lower() for p in EXCLUDE_PATTERNS}
 _EXCLUDE_SUFFIXES_LOWER = {s.lower() for s in EXCLUDE_SUFFIXES}
@@ -164,6 +168,36 @@ def copy_filtered(src: Path, dst: Path) -> int:
             dest_item.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(item, dest_item)
             count += 1
+    return count
+
+
+def restore_executable_bits(root: Path) -> int:
+    """對 root/hooks/ 下所有 .py 檔案強制加入 executable bit。
+
+    呼叫時機：copy_filtered 把本地 .claude/ 內容複製到 temp_dir 後、git add -A 前。
+    確保即使本地 mode 已因歷史 sync-pull 降權受損，push 出去的 git index 仍記錄 100755。
+
+    與 sync-claude-pull.py::restore_executable_bits 對稱（pull 端 safety net）。
+
+    參數:
+        root: 遠端 repo 的本地暫存根目錄（temp_dir）
+
+    傳回:
+        int: 實際變更 mode 的檔案數
+    """
+    count = 0
+    for subdir in EXECUTABLE_PY_SUBDIRS:
+        target_dir = root / subdir
+        if not target_dir.is_dir():
+            continue
+        for py_file in target_dir.rglob("*.py"):
+            if not py_file.is_file():
+                continue
+            mode = py_file.stat().st_mode
+            new_mode = mode | 0o111
+            if new_mode != mode:
+                py_file.chmod(new_mode)
+                count += 1
     return count
 
 
@@ -499,6 +533,11 @@ def main() -> None:
             print_color("清理遠端過時檔案...")
             deleted = clean_stale_files(temp_dir, claude_dir)
             print_color(f"   已清理 {deleted} 個遠端過時檔案", "green")
+
+        # 7.6. 還原 hook 檔案 executable bit（防止 push 出損壞 mode 到遠端）
+        restored = restore_executable_bits(temp_dir)
+        if restored:
+            print_color(f"   已還原 {restored} 個 hook 檔案的執行權限（push 前 safety net）", "green")
 
         # 8. Calculate new version (use bump suggestion for auto-generated messages)
         new_version = bump_version(remote_version, bump_suggestion)
