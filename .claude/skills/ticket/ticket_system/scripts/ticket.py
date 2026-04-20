@@ -127,6 +127,8 @@ def main() -> int:
 
     parser = argparse.ArgumentParser(
         description="統一 Ticket 系統 - 整合建立、追蹤、交接、恢復、遷移功能",
+        epilog="查詢子命令詳細用法：ticket <command> -h\n"
+               "  （例如 ticket show -h、ticket track -h）",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 

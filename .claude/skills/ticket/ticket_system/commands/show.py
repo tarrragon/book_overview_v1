@@ -19,7 +19,7 @@ import re
 import shutil
 import subprocess
 import sys
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import yaml
 
@@ -32,8 +32,41 @@ RENDERER_PRIORITY: List[str] = ["glow", "mdcat", "bat"]
 # 支援的 --renderer 值（加 auto 代表自動偵測）
 SUPPORTED_RENDERERS: List[str] = RENDERER_PRIORITY + ["auto"]
 
+# 各渲染器的 Homebrew 安裝指令（macOS 優先；Linux 用戶可依套件管理器調整）
+RENDERER_INSTALL_HINTS: Dict[str, str] = {
+    "glow": "brew install glow  # Linux: https://github.com/charmbracelet/glow",
+    "mdcat": "brew install mdcat  # Linux: cargo install mdcat",
+    "bat": "brew install bat  # Linux: apt install bat 或 cargo install bat",
+}
+
 # Short-ID 模式：W{wave}-{seq}[.sub...]，無版本前綴
 SHORT_ID_RE = re.compile(r"^W\d+-\d+(?:\.\d+)*$")
+
+
+def detect_installed_renderers() -> Dict[str, bool]:
+    """偵測每個支援渲染器的安裝狀態。
+
+    Returns:
+        {renderer_name: is_installed} 對應 RENDERER_PRIORITY 順序。
+    """
+    return {name: shutil.which(name) is not None for name in RENDERER_PRIORITY}
+
+
+def format_renderer_choices_help() -> str:
+    """動態組裝 -R/--renderer 的 help 文字，標記每個渲染器的安裝狀態。
+
+    Example:
+        指定渲染器（預設 auto）。狀態：glow[已安裝]、mdcat[未安裝: brew install mdcat]、bat[已安裝]
+    """
+    status = detect_installed_renderers()
+    parts = []
+    for name in RENDERER_PRIORITY:
+        if status[name]:
+            parts.append(f"{name}[已安裝]")
+        else:
+            hint = RENDERER_INSTALL_HINTS.get(name, f"請安裝 {name}")
+            parts.append(f"{name}[未安裝: {hint}]")
+    return "指定渲染器（預設 auto）。狀態：" + "、".join(parts)
 
 
 def register(subparsers: argparse._SubParsersAction) -> None:
@@ -72,7 +105,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
         "--renderer",
         choices=SUPPORTED_RENDERERS,
         default="auto",
-        help="指定渲染器（預設 auto）",
+        help=format_renderer_choices_help(),
     )
     pager_group = parser.add_mutually_exclusive_group()
     pager_group.add_argument(
