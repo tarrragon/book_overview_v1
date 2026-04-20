@@ -99,6 +99,8 @@ class TestCompleteIntegration:
                    return_value=(True, [])), \
              patch("ticket_system.commands.lifecycle.validate_execution_log",
                    return_value=(True, [])), \
+             patch("ticket_system.commands.lifecycle.validate_execution_log_by_type",
+                   return_value=(True, [])), \
              patch("ticket_system.commands.lifecycle.save_ticket", side_effect=fake_save), \
              patch("ticket_system.commands.lifecycle.resolve_ticket_path",
                    return_value="/tmp/fake.md"), \
