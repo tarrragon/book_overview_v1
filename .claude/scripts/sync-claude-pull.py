@@ -17,6 +17,11 @@
   - 根目錄 CLAUDE.md（保留專案特定配置）
   - .claude/hook-logs/（本地日誌）
   - .claude/handoff/（本地交接檔案）
+
+Safety net:
+  上游 repo 的 hook 檔案 mode 可能已損壞（Windows 推送時 NTFS 無 exec bit），
+  本腳本會在同步後自動對 .claude/hooks/**/*.py 強制 chmod +x。
+  完整背景與除錯指南詳見 WINDOWS-NOTES.md。
 """
 
 import filecmp

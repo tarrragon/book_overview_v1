@@ -79,6 +79,12 @@ project/
 
 ## 注意事項
 
+### Windows 使用者特別注意
+
+Windows 執行 sync-push 時 git 對新增檔案的 mode 處理與 macOS/Linux 不同（NTFS 無 executable bit 概念）。未遵循建議操作可能導致遠端 repo 的 hook 檔案 mode 損壞，下游 pull 後 hook 無法執行。
+
+詳見：[WINDOWS-NOTES.md](./WINDOWS-NOTES.md)
+
 ### settings.local.json 管理
 
 - **包含在獨立 repo** - 完整推送

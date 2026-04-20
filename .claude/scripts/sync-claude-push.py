@@ -20,6 +20,12 @@ commit 訊息生成:
   - 無參數時自動分析 .claude/ 相關 commit 生成結構化摘要
   - 提供參數時使用用戶指定的訊息
   - 自動建議版本遞增幅度（patch/minor/major）
+
+Windows 使用者特別注意:
+  Windows NTFS 無 executable bit 概念，git 對新增 .py 檔案的 mode
+  預設記為 100644（非 100755），會導致下游 pull 後 hook Permission denied。
+  本腳本已內建 restore_executable_bits() safety net 防護，
+  完整說明與除錯指南詳見 WINDOWS-NOTES.md。
 """
 
 import hashlib
