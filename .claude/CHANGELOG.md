@@ -1,3 +1,10 @@
+## [1.36.3] - 2026-04-20
+
+### Summary
+feat(sync): cross-platform hook mode preservation + version bump sanity check
+
+---
+
 ## [1.36.2] - 2026-04-19
 
 ### Summary
