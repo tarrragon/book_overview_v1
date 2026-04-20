@@ -40,6 +40,7 @@ try:
         migrate_register,
         generate_register,
         batch_create_register,
+        show_register,
     )
     from ticket_system.commands.version_shift import register as version_shift_register
 except ModuleNotFoundError:
@@ -145,6 +146,7 @@ def main() -> int:
     generate_register(subparsers)
     batch_create_register(subparsers)
     version_shift_register(subparsers)
+    show_register(subparsers)
 
     # 解析命令行參數
     args = parser.parse_args()
