@@ -291,6 +291,11 @@
           {
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/hook-health-monitor.py"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-start-scheduler-hint-hook.py",
+            "timeout": 10000
           }
         ]
       }
