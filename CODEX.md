@@ -106,11 +106,14 @@ Codex 在此專案中的多代理 / subagent 協作，應優先遵循 `ticket` s
 
 ## 0.6 Python Hook 測試執行規則
 
-`.claude/hooks/tests/` 內的 Python hook 測試預設使用 `uv` 建立測試環境，不要直接假設目前 shell 已有 `pytest` entrypoint 或 `python -m pytest` module。
+`.claude/hooks/tests/` 內的 Python hook 測試預設使用 `uv` 建立測試環境，不要直接假設目前 shell 已有 `pytest` entrypoint 或 `python -m pytest` module。正式 SOP 見 `.claude/hooks/tests/README.md`。
 
-- 單檔 hook 測試優先使用：`uv run --with pytest python -m pytest <test-file> -v`
+- 執行前先檢查測試檔是否含 PEP 723 inline metadata：`rg -n "^# /// script|^# dependencies =" .claude/hooks/tests/<test-file>.py`
+- 若測試檔含 PEP 723 dependencies，單檔測試優先用 `uv run .claude/hooks/tests/<test-file>.py`，讓 `uv` 讀取檔頭依賴
+- 若測試檔不含 inline dependencies，單檔測試使用：`uv run --with pytest python -m pytest <test-file> -v`
+- 若對含 inline dependencies 的檔案做 pytest node selection，必須把檔頭 dependencies 轉為 `--with`，例如 `uv run --with pytest --with pyyaml python -m pytest <test-file>::<test-name> -v`
 - 不要先用裸 `pytest <test-file>` 當作正式驗證；該命令可能因目前環境未安裝 pytest 而失敗，不能代表測試本身失敗
-- 若只需要快速驗證純函式，可用 `uv run python ...` 或 `python3 -c ...` 做 smoke check，但 ticket Test Results 仍應記錄正式 `uv run --with pytest python -m pytest ...` 結果
+- 若只需要快速驗證純函式，可用 `uv run python ...` 或 `python3 -c ...` 做 smoke check，但 ticket Test Results 仍應記錄正式 `uv` 測試命令結果
 - 若測試位於 `.claude/skills/ticket/` 套件內，應依該 skill 的 `pyproject.toml` 入口，在 skill 目錄下使用 `uv run pytest ...`
 
 ---

@@ -442,8 +442,15 @@ Hook 的替代方案：異常記錄到**日誌檔**（`.claude/hook-logs/`），
 
 測試執行：
 ```bash
-uv run pytest .claude/lib/tests/ -v
+uv run --with pytest python -m pytest .claude/lib/tests/ -v
 ```
+
+Hook tests under `.claude/hooks/tests/` may include PEP 723 inline dependencies.
+Before running them, inspect the file header and follow `.claude/hooks/tests/README.md`:
+
+- PEP 723 test file: `uv run .claude/hooks/tests/<test-file>.py`
+- Ordinary pytest file: `uv run --with pytest python -m pytest .claude/hooks/tests/<test-file>.py -v`
+- Targeted selection on a PEP 723 file: mirror dependencies with `--with <package>`
 
 ### 配置外部化
 
