@@ -87,7 +87,7 @@ from .track_acceptance import (
     execute_append_log,
     execute_accept_creation,
 )
-# 導入 set-acceptance / validate 子命令（W14-030）
+# 導入 set-acceptance / validate 子命令
 from .track_set_acceptance import execute_set_acceptance
 from .track_validate import execute_validate
 # 導入關係和狀態管理模組
@@ -637,7 +637,7 @@ def _register_acceptance_commands(
     )
     p_check_acceptance.add_argument("--version", help=TrackMessages.ARG_VERSION)
 
-    # set-acceptance 操作（W14-030）
+    # set-acceptance 操作
     p_set_acceptance = subparsers.add_parser(
         "set-acceptance",
         help="勾選/取消勾選驗收條件（--check/--uncheck 支援多 index，--all-check/--all-uncheck 批量）"
@@ -661,7 +661,7 @@ def _register_acceptance_commands(
     )
     p_set_acceptance.add_argument("--version", help=TrackMessages.ARG_VERSION)
 
-    # validate 操作（W14-030）
+    # validate 操作
     p_validate = subparsers.add_parser(
         "validate",
         help="驗證 Ticket frontmatter 4 欄位（status/completed_at/acceptance/who）合規性"
