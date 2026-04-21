@@ -83,7 +83,30 @@ Codex 應將 [.codex/skill-trigger-map.md](/Users/mac-eric/project/book_overview
 
 不得將 ticket 系統視為一般自然語言待辦清單；凡命中上述情境，預設先走 ticket skill / ticket 規則，再決定後續操作。
 
-## 0.4 Subagent 協作規則
+## 0.4 Compositional Writing Skill 觸發規則
+
+`compositional-writing` 是文件、註解、欄位、參考資料拆分與撰寫方式的專用 skill。任何撰寫或修改文件、規則、註解、README、reference、prompt、log、ticket 內容的任務，都必須先參考此 skill，再決定文件結構與拆分方式。
+
+最低讀取要求：
+
+- 文件 / 規則 / README / reference：先讀 `.claude/skills/compositional-writing/SKILL.md`，再依任務讀 `references/writing-documents.md` 或 `references/reference-authoring-standards.md`
+- 程式碼註解：先讀 `.claude/skills/compositional-writing/SKILL.md`，再讀 `references/writing-code-comments.md`
+- 工作日誌 / ticket 執行紀錄：先讀 `.claude/skills/compositional-writing/SKILL.md`，再讀 `references/writing-logs.md`
+- 欄位或 schema 類文件：先讀 `.claude/skills/compositional-writing/SKILL.md`，再讀 `references/designing-fields.md`
+
+不得在未參考 compositional-writing 的情況下，直接新增長篇說明、流程規則、文件拆分策略或註解規範。
+
+## 0.5 Error Pattern 使用規則
+
+`error-pattern` 用於記錄任務執行中的錯誤學習內容，尤其是流程疏失、工具誤用、提交/驗證漏步、跨文件規則污染、代理人協作失誤等可重複發生的問題。
+
+- 發生流程疏失或被使用者指出執行方式錯誤時，先查既有 `.claude/error-patterns/`
+- 若已有相符 error-pattern，後續修正與回報需引用該模式的規則意圖
+- 若沒有相符 error-pattern，且該錯誤具備可重複性或跨任務風險，應新增 error-pattern 記錄症狀、根因、修正方式與預防規則
+- error-pattern 應記錄抽象化經驗，不寫入專案 ticket 編號或只對單次事件有意義的流水帳
+- 純一次性 typo 或沒有重複風險的小錯不必新增 error-pattern，但仍可在 ticket/worklog 中記錄
+
+## 0.6 Subagent 協作規則
 
 Codex 在此專案中的多代理 / subagent 協作，應優先遵循 `ticket` skill 原文件與其 references，不在 `CODEX.md` 內重寫一套簡化版流程。
 
@@ -95,7 +118,7 @@ Codex 在此專案中的多代理 / subagent 協作，應優先遵循 `ticket` s
 
 若任務涉及 subagent、平行處理、handoff、resume、claim、complete、runqueue、active agent、agent-status，Codex 應先讀上述原文件，再執行協作決策。
 
-## 0.5 Shell 引號安全規則
+## 0.7 Shell 引號安全規則
 
 當 Codex 透過 shell 執行 ticket 指令並附帶自由文字內容時，尤其是 `ticket track append-log`，不得直接把含有 Markdown 反引號的內容原樣塞進 shell 命令列。
 
@@ -104,7 +127,7 @@ Codex 在此專案中的多代理 / subagent 協作，應優先遵循 `ticket` s
 - 若內容含命令示例、路徑、Markdown code span，先檢查 shell 是否會展開，再執行寫入
 - 若已發生污染，應先修正 ticket 內容，再繼續後續 claim / complete 流程
 
-## 0.6 Python Hook 測試執行規則
+## 0.8 Python Hook 測試執行規則
 
 `.claude/hooks/tests/` 內的 Python hook 測試預設使用 `uv` 建立測試環境，不要直接假設目前 shell 已有 `pytest` entrypoint 或 `python -m pytest` module。正式 SOP 見 `.claude/hooks/tests/README.md`。
 
@@ -116,7 +139,7 @@ Codex 在此專案中的多代理 / subagent 協作，應優先遵循 `ticket` s
 - 若只需要快速驗證純函式，可用 `uv run python ...` 或 `python3 -c ...` 做 smoke check，但 ticket Test Results 仍應記錄正式 `uv` 測試命令結果
 - 若測試位於 `.claude/skills/ticket/` 套件內，應依該 skill 的 `pyproject.toml` 入口，在 skill 目錄下使用 `uv run pytest ...`
 
-## 0.7 通用框架文件可攜性規則
+## 0.9 通用框架文件可攜性規則
 
 `.claude/rules/`、`.claude/pm-rules/`、`.claude/skills/`、`.codex/` 等通用框架文件會被其他專案重用；內容不得記錄本專案的 ticket 編號、worklog 路徑、版本 wave、或 session 歷史。
 
@@ -126,7 +149,7 @@ Codex 在此專案中的多代理 / subagent 協作，應優先遵循 `ticket` s
 - 若需要保留背景、盤點、驗收或歷史原因，寫在對應 ticket / worklog，不寫進通用規則文件
 - `PC-*`、`ARCH-*`、`IMP-*` 等已抽象化 error-pattern 編號可以保留，前提是內容本身不依賴特定專案 ticket
 
-## 0.8 Commit 粒度規則
+## 0.10 Commit 粒度規則
 
 提交必須依任務內容拆分，不得把不同性質的修正混在同一個 commit。commit 前先檢查 staged diff，確認所有檔案都屬於同一個目的。
 
