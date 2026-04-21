@@ -138,6 +138,8 @@ ticket create ... --blocked-by "1.0.0-W2-001.1,1.0.0-W2-001.2"
 
 從模板 + 目標清單快速建立多個 Tickets。適用於大量同質任務場景（如 30 個實作子任務）。
 
+> **邊界**：`batch-create` 只建立 tickets，不派發 agents。多任務派發前先寫 dispatch-plan，保留每張 ticket 的獨立 prompt、commit policy 與 Exit Status；禁止把 batch-create 誤用為 batch dispatch CLI。
+
 **使用情境**：
 
 - W28 場景：快速建立 30 個相同類型的實作任務
@@ -200,6 +202,8 @@ ticket batch-create --template impl-parsley --targets "a,b" --parent 1.0.0-W28-0
 > **注意**：`validate <id>` 驗證 Ticket frontmatter 4 關鍵欄位（status/completed_at/acceptance/who）合規性，違規時給出建議修復命令。
 >
 > **注意**：`deps <id>` 顯示衍生關係（`spawned_tickets` + `source_ticket`），與 `tree`/`chain` 純血緣語意（`parent_id`/`children`/`chain`）分離，對齊 Jira/Linear/GitHub 業界慣例（W15-004）。支援遞迴展開與循環引用防護（標記 `CYCLE DETECTED`）。用法：`ticket track deps <ticket-id>`。
+
+> **派發前提示**：當 ticket 是 group、含 children、含 spawned_tickets，或同輪會派 2+ agents 時，先在 Ticket Problem Analysis / Solution 寫 dispatch-plan。欄位使用 `.claude/references/agent-dispatch-template.md`：`ticket` / `agent` / `files` / `deps` / `context source` / `commit policy` / `run mode`。dispatch-plan 是 orchestration description，不是 batch dispatch CLI。
 
 > 決策樹：Read `references/workflow-execute.md` 和 `references/workflow-query.md`
 > 詳細用法：Read `references/track-command.md`
