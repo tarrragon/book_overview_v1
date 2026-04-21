@@ -1,5 +1,5 @@
 version: '1.0'
-last_updated: '2026-04-20'
+last_updated: '2026-04-21'
 proposals:
   PROP-000:
     title: 提案驅動需求追蹤機制設計
@@ -230,6 +230,62 @@ proposals:
       status: pending
       verified_by: null
     - item: 'Phase 3: Dark Mode + 陰影系統 + Spec 文件全面對齊'
+      status: pending
+      verified_by: null
+  PROP-009:
+    title: Ticket CLI 完整性提升 — 全欄位 CLI 化 + 清單式驗證
+    status: approved
+    proposed: '2026-04-11'
+    confirmed: null
+    target_version: v0.17.4
+    source: framework
+    reference: docs/proposals/PROP-009-ticket-cli-completeness.md
+    spec_refs: []
+    usecase_refs: []
+    ticket_refs: []
+    checklist:
+    - item: 面向 A - 補齊 priority / acceptance / spawned_tickets / decision_tree_path 欄位操作 CLI
+      status: pending
+      verified_by: null
+    - item: 面向 B - create 時加入欄位完整性清單驗證
+      status: pending
+      verified_by: null
+    - item: 面向 C - complete 前整合清單式驗證
+      status: pending
+      verified_by: null
+  PROP-010:
+    title: Ticket AC 與實況漂移偵測機制
+    status: approved
+    proposed: '2026-04-12'
+    confirmed: '2026-04-12'
+    target_version: v0.18.0
+    source: framework
+    reference: docs/proposals/PROP-010-ticket-ac-drift-detection.md
+    spec_refs: []
+    usecase_refs: []
+    ticket_refs:
+    - 0.18.0-W4-006
+    - 0.18.0-W5-001
+    checklist:
+    - item: Phase 1 - Claim 前 AC 驗證流程
+      status: pending
+      verified_by: null
+    - item: Phase 1 - claim/query/list stale 警告
+      status: pending
+      verified_by: null
+    - item: Phase 1 - AC 自然語言驗證模板
+      status: pending
+      verified_by: null
+    - item: Phase 1 - PM rules claim 流程文件更新
+      status: pending
+      verified_by: null
+    - item: Phase 1 - 觸發案例回歸測試
+      status: pending
+      verified_by: null
+    - item: Phase 2 - Wave 檢查 / SPEC audit
+      status: pending
+      verified_by: null
+    - item: Phase 3 - SPEC / Plan / Ticket 三層溯源評估
       status: pending
       verified_by: null
   PROP-011:
