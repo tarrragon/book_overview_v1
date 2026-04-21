@@ -149,6 +149,16 @@ Wave 完成判定規則（Checkpoint 2 情境 C 前置條件）：
 /ticket track set-acceptance <id> --all-check          # 勾選全部
 /ticket track set-acceptance <id> --all-uncheck        # 取消勾選全部
 
+# 設定阻擋關係（blockedBy 欄位）
+/ticket track set-blocked-by <id> <blocked-by-id>      # 覆寫（設定單一 blockedBy）
+/ticket track set-blocked-by <id> <id2> --add          # 追加（去重）
+/ticket track set-blocked-by <id> <id2> --remove       # 移除指定 blockedBy
+
+# 設定相關關係（relatedTo 欄位）
+/ticket track set-related-to <id> <related-id>         # 覆寫（設定單一 relatedTo）
+/ticket track set-related-to <id> <id2> --add          # 追加（去重）
+/ticket track set-related-to <id> <id2> --remove       # 移除指定 relatedTo
+
 # 驗證 frontmatter 合規性（W14-030）
 /ticket track validate <id>                            # 檢查 status/completed_at/acceptance/who 4 欄位
 
@@ -175,8 +185,8 @@ Wave 完成判定規則（Checkpoint 2 情境 C 前置條件）：
 | children | `add-child <parent> <child>` | 父子關係 |
 | acceptance | `check-acceptance` / `set-acceptance` | 勾選/取消勾選驗收條件（set-acceptance 為 W14-030 明確語意版） |
 | frontmatter 驗證 | `validate <id>` | 檢查 status/completed_at/acceptance/who 4 欄位合規性（W14-030） |
-| blockedBy | 無 CLI 命令 | 建立時用 `--blocked-by`；之後手動編輯 frontmatter |
-| relatedTo | 無 CLI 命令 | 建立時用 `--related-to`；之後手動編輯 frontmatter |
+| blockedBy | `set-blocked-by <id> <value> [--add\|--remove]` | 建立時用 `--blocked-by`；之後用 CLI 更新 |
+| relatedTo | `set-related-to <id> <value> [--add\|--remove]` | 建立時用 `--related-to`；之後用 CLI 更新 |
 | priority | 無 CLI 命令 | 手動編輯 frontmatter |
 | dispatch_reason | 無 CLI 命令 | 手動編輯 frontmatter |
 
@@ -184,10 +194,8 @@ Wave 完成判定規則（Checkpoint 2 情境 C 前置條件）：
 
 | 錯誤呼叫 | 正確做法 |
 |---------|---------|
-| `set-blocked-by` / `set-blockedBy` | 手動編輯 frontmatter `blockedBy` 欄位 |
 | `set-status` | 使用 `claim` / `complete` / `release` |
 | `set-priority` | 手動編輯 frontmatter `priority` 欄位 |
-| `set-related-to` | 手動編輯 frontmatter `relatedTo` 欄位 |
 
 ---
 
