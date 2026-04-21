@@ -104,6 +104,15 @@ Codex 在此專案中的多代理 / subagent 協作，應優先遵循 `ticket` s
 - 若內容含命令示例、路徑、Markdown code span，先檢查 shell 是否會展開，再執行寫入
 - 若已發生污染，應先修正 ticket 內容，再繼續後續 claim / complete 流程
 
+## 0.6 Python Hook 測試執行規則
+
+`.claude/hooks/tests/` 內的 Python hook 測試預設使用 `uv` 建立測試環境，不要直接假設目前 shell 已有 `pytest` entrypoint 或 `python -m pytest` module。
+
+- 單檔 hook 測試優先使用：`uv run --with pytest python -m pytest <test-file> -v`
+- 不要先用裸 `pytest <test-file>` 當作正式驗證；該命令可能因目前環境未安裝 pytest 而失敗，不能代表測試本身失敗
+- 若只需要快速驗證純函式，可用 `uv run python ...` 或 `python3 -c ...` 做 smoke check，但 ticket Test Results 仍應記錄正式 `uv run --with pytest python -m pytest ...` 結果
+- 若測試位於 `.claude/skills/ticket/` 套件內，應依該 skill 的 `pyproject.toml` 入口，在 skill 目錄下使用 `uv run pytest ...`
+
 ---
 
 ## 1. 專案身份
