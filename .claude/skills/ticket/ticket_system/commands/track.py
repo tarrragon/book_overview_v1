@@ -425,7 +425,6 @@ def _register_query_commands(
     # version 操作
     p_version = subparsers.add_parser("version", help=TrackMessages.HELP_VERSION)
     p_version.add_argument("version_str", help=TrackMessages.ARG_VERSION_STR)
-    p_version.add_argument("--version", dest="version_param", help=TrackMessages.ARG_VERSION_PARAM)
 
 
 def _register_field_read_commands(
@@ -782,5 +781,4 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     _register_all_subcommands(track_subparsers)
 
     parser.set_defaults(func=execute)
-
 
