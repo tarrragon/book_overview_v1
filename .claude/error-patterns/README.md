@@ -324,6 +324,7 @@ Claude Code 內建了官方的 memory 系統（`~/.claude/projects/{project}/mem
 | PC-088 | LLM 對 tool call 路徑的步驟數估算偏誤 | 中 | v0.18.0 |
 | PC-089 | Hook 豁免路徑與 Ticket 寫入範圍不一致 | 中 | v0.18.0 |
 | PC-090 | 推延性 close 反模式 | 中 | v0.18.0 |
+| PC-105 | PM 對 SKILL CLI 語法的 autopilot 假設（同 session 多次撞 hook 警告後仍嘗試相似變體） | 中 | v0.18.0 |
 
 ---
 
