@@ -83,6 +83,18 @@ Codex 應將 [.codex/skill-trigger-map.md](/Users/mac-eric/project/book_overview
 
 不得將 ticket 系統視為一般自然語言待辦清單；凡命中上述情境，預設先走 ticket skill / ticket 規則，再決定後續操作。
 
+## 0.4 Subagent 協作規則
+
+Codex 在此專案中的多代理 / subagent 協作，應優先遵循 `ticket` skill 原文件與其 references，不在 `CODEX.md` 內重寫一套簡化版流程。
+
+- 核心入口：`.claude/skills/ticket/SKILL.md`
+- scheduler / 下一張 ticket：`.claude/skills/ticket/references/track-command.md`
+- handoff / resume 流程：`.claude/skills/ticket/references/workflow-handoff.md`
+- handoff 命令邊界：`.claude/skills/ticket/references/handoff-command.md`
+- ticket 生命週期細節：`.claude/skills/ticket/references/ticket-lifecycle-details.md`
+
+若任務涉及 subagent、平行處理、handoff、resume、claim、complete、runqueue、active agent、agent-status，Codex 應先讀上述原文件，再執行協作決策。
+
 ---
 
 ## 1. 專案身份
