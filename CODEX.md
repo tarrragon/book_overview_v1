@@ -95,6 +95,15 @@ Codex 在此專案中的多代理 / subagent 協作，應優先遵循 `ticket` s
 
 若任務涉及 subagent、平行處理、handoff、resume、claim、complete、runqueue、active agent、agent-status，Codex 應先讀上述原文件，再執行協作決策。
 
+## 0.5 Shell 引號安全規則
+
+當 Codex 透過 shell 執行 ticket 指令並附帶自由文字內容時，尤其是 `ticket track append-log`，不得直接把含有 Markdown 反引號的內容原樣塞進 shell 命令列。
+
+- 反引號在 shell 中會觸發 command substitution，可能把文字中的命令片段誤執行
+- 含有 `` `...` `` 的內容，應改用安全 quoting、避免反引號，或改採直接編輯檔案 / 其他不經 shell 展開的方式
+- 若內容含命令示例、路徑、Markdown code span，先檢查 shell 是否會展開，再執行寫入
+- 若已發生污染，應先修正 ticket 內容，再繼續後續 claim / complete 流程
+
 ---
 
 ## 1. 專案身份
