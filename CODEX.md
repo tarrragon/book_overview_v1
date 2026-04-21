@@ -126,6 +126,16 @@ Codex 在此專案中的多代理 / subagent 協作，應優先遵循 `ticket` s
 - 若需要保留背景、盤點、驗收或歷史原因，寫在對應 ticket / worklog，不寫進通用規則文件
 - `PC-*`、`ARCH-*`、`IMP-*` 等已抽象化 error-pattern 編號可以保留，前提是內容本身不依賴特定專案 ticket
 
+## 0.8 Commit 粒度規則
+
+提交必須依任務內容拆分，不得把不同性質的修正混在同一個 commit。commit 前先檢查 staged diff，確認所有檔案都屬於同一個目的。
+
+- 原 ticket 內容、review 後修正、框架規則更新、ticket/worklog 紀錄更新，預設各自獨立提交
+- `CODEX.md` 相關更新必須獨立成一個 commit，不與 `.claude/` 規則、ticket 文件、產品程式碼或測試修正混合
+- 通用框架文件與專案特定文件同時需要更新時，框架規則一個 commit，專案 ticket/worklog 一個 commit
+- 只有在尚未提交前，且 staged diff 確認仍是同一個原子目的時，才可合併成同一 commit
+- 已提交後發現不同性質的修正，優先新增 follow-up commit；不要用 amend 把新性質的修改混進既有 commit
+
 ---
 
 ## 1. 專案身份
