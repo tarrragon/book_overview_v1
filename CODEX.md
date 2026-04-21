@@ -116,6 +116,16 @@ Codex 在此專案中的多代理 / subagent 協作，應優先遵循 `ticket` s
 - 若只需要快速驗證純函式，可用 `uv run python ...` 或 `python3 -c ...` 做 smoke check，但 ticket Test Results 仍應記錄正式 `uv` 測試命令結果
 - 若測試位於 `.claude/skills/ticket/` 套件內，應依該 skill 的 `pyproject.toml` 入口，在 skill 目錄下使用 `uv run pytest ...`
 
+## 0.7 通用框架文件可攜性規則
+
+`.claude/rules/`、`.claude/pm-rules/`、`.claude/skills/`、`.codex/` 等通用框架文件會被其他專案重用；內容不得記錄本專案的 ticket 編號、worklog 路徑、版本 wave、或 session 歷史。
+
+- 禁止在通用框架文件中寫入任何專案 ticket 編號，包含版本化 ticket id、wave id、或執行任務 id
+- 禁止引用專案內工作日誌路徑作為規則來源
+- 範例需使用 `<ticket-id>`、`<ticket-file-path>`、`<project-path>` 等占位符
+- 若需要保留背景、盤點、驗收或歷史原因，寫在對應 ticket / worklog，不寫進通用規則文件
+- `PC-*`、`ARCH-*`、`IMP-*` 等已抽象化 error-pattern 編號可以保留，前提是內容本身不依賴特定專案 ticket
+
 ---
 
 ## 1. 專案身份
