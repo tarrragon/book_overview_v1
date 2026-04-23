@@ -377,8 +377,26 @@ When the document is an experience-sharing write-up (not a methodology), six add
 
 ---
 
+## Second-Pass Review (highest priority — run before self-validation)
+
+Understanding the writing rules does not guarantee the output follows them. After every writing or expansion pass, run the second-pass review before reporting completion. The goal is not perfection on the first try — a fast scan with a fixed checklist catches most violations at lower cost than forcing flawless first drafts.
+
+| Check | Signal that something is wrong |
+|-------|-------------------------------|
+| Tables have follow-up explanation | A table sits alone with no subsequent prose, identification signals, or examples — it classifies without explaining |
+| Core principle leads each paragraph | The opening sentence gives an example, not a rule; readers must reach the last sentence before understanding what the paragraph is about |
+| Negative contrasts have positive anchors | A "don't do X" appears without a paired "instead, do Y" |
+| No prohibited vocabulary / simplified Chinese | Words like 數據, 代碼, 默認 appear; see `language-constraints.md` for the full list |
+| No typos or spelling errors | Scan for mismatched Traditional Chinese; check English technical terms for correct capitalization |
+| Content is neutral and reusable | Project-specific identifiers (ticket IDs, version numbers, project names) appear inside what should be a framework-level document |
+
+**When violations are found**: fix immediately and re-scan. Do not defer unless the author explicitly instructs otherwise.
+
+---
+
 ## Self-Validation Checklist (run before committing the document)
 
+- [ ] **Second-pass review completed** (tables explained, principle leads, negative anchors present, no prohibited words, neutral and reusable)
 - [ ] Document type identified, and structure matches the type's template
 - [ ] Opening paragraph states the conclusion / rule (inverted pyramid)
 - [ ] Spec content contains no process narrative; process content is not dressed as spec
