@@ -537,7 +537,7 @@ def validate_execution_log_by_type(
     - DOC: 無強制 body 章節（僅 Completion Info 由別處驗證）
 
     每個必填章節需：
-    1. 標題存在（## 或 ### 層級）
+    1. 標題存在（## 或 ### 層級，line-anchored 匹配避免 backtick 內誤判；W17-074）
     2. 內容非 placeholder（含 `（待填寫：...）` 中文佔位符）
 
     Args:
@@ -563,12 +563,15 @@ def validate_execution_log_by_type(
 
     unfilled: List[str] = []
     for section in required:
-        header_patterns = [f"### {section}", f"## {section}"]
+        # W17-074：使用 line-anchored regex 定位章節 header，避免 body.find
+        # substring 匹配命中 backtick 包住的章節名引用（如 `## Test Results`）。
+        # 同家族修復對照：W17-071 已於 validate_execution_log 使用相同 pattern。
         section_start = -1
-        for pattern in header_patterns:
-            idx = body.find(pattern)
-            if idx != -1:
-                section_start = idx
+        for level in ("###", "##"):
+            pattern = rf"^{level} {re.escape(section)}\b"
+            match = re.search(pattern, body, re.MULTILINE)
+            if match:
+                section_start = match.start()
                 break
 
         if section_start == -1:
