@@ -1,6 +1,6 @@
 # PM 判斷干擾機制地圖
 
-**版本**: v1.0.0
+**版本**: v1.1.0
 **建立日期**: 2026-04-24
 **核心原則**: 判斷品質失效是多類系統性干擾，非單一事件；分層盤點與絆腳索防護
 
@@ -48,8 +48,9 @@
 | 1.1 事後合理化編造機制 | 警戒術語出現（`working memory` / `race condition` / `context pollution`） | Q1-Q3 自檢：機制寫在哪？可引用嗎？事實句型會不會等價？ | 附引用或改為事實句型 |
 | 1.2 自信度校準失效 | 技術術語未附規則 / 檔案 / memory 引用 | 輸出前引用檢查：能說出具體檔案路徑 / 規則 ID 嗎？ | 無引用就不說機制 |
 | 1.3 機制句型偏好 | 傾向「會導致 X」「可能 Y」等預測性句型 | 句型改寫檢查：改為「依 Y 職責 / 規則 / 案例」是否等價？ | 事實句型替代 |
+| 1.4 素材錯置抽象層級 | 引用了真實文件（PC / memory / SKILL），但所述層級（如 git index race 這種實作細節）與當前論述層級（如「working memory」這種認知抽象層）不符 | 素材層級檢查：文件所述層級 = 當前論述層級？（實作細節 ≠ 認知機制）| 引用時明示層級對應；若跨層則不引用，改為事實句型說明具體文件內容 |
 
-**關聯 PC**：PC-111 R1/R2/R3
+**關聯 PC**：PC-111 R1/R2/R3/R5
 
 ### 層 2：歸因層
 
@@ -142,6 +143,7 @@ WRAP 框架自身的失效（元層級）。
    d. 防護層：下次具體自檢機制是什麼？
 3. 若根因對應本地圖某因子，引用該因子編號（如「層 1 因子 1.1」）
 4. 若新因子未在地圖中，追加至地圖
+5. 素材來源層（當因子 1.4 觸發時必執行）：下挖具體素材來源 —— 哪個檔案路徑、哪條 memory 條目名稱、哪個 SKILL？該素材所述的抽象層級是什麼？與論述層級的差距是什麼？
 ```
 
 ### 情境 C：失敗事件的學習累積
@@ -208,8 +210,11 @@ WRAP 框架自身的失效（元層級）。
 | PC-088（多步驟 perplexity 盲） | 3.4 |
 | PC-105（CLI autopilot） | 3.1 |
 | PC-106（規則失敗草率重設計） | 3.3 |
-| PC-111（論述編造 + 淺層歸因） | 1.1-1.3、2.1 |
+| PC-111（論述編造 + 淺層歸因） | 1.1-1.3、1.4、2.1 |
+| PC-092（並行 subagent git index race） | 1.4（素材跨層誤推的具體觸發案例） |
 | memory feedback_git_index_lock_prevention | 4.2 |
+| memory feedback_parallel_agent_arbitration（subagent 各看局部） | 1.4（subagent 局部視角被泛化為認知機制的典型素材） |
+| `.claude/skills/agent-team/SKILL.md`（Team 共享 state） | 1.4（SKILL 實作層素材被泛化為 working memory 論述的典型素材） |
 
 ---
 
@@ -255,11 +260,35 @@ WRAP 框架自身的失效（元層級）。
 
 ---
 
+### 自測案例 2：「working memory 混淆」推理鏈（因子 1.4 觸發範例）
+
+**情境**：PM 在論述兩個 thyme 並發問題時引用了三個素材：PC-092（並行 thyme git index race）、memory `feedback_parallel_agent_arbitration`（subagent 各看局部）、`.claude/skills/agent-team/SKILL.md`（Team 共享 state）。論述輸出「兩個 thyme 並發會產生 working memory 混淆」。
+
+**推理鏈拆解**：
+
+| 步驟 | 素材 / 操作 | 所述抽象層級 | 問題 |
+|------|------------|------------|------|
+| 素材 1 | PC-092：git index.lock 並行競爭 | 實作層（git 指令層級） | 正確 |
+| 素材 2 | feedback_parallel_agent_arbitration：subagent 各看局部 | 資訊可見性層（哪個 subagent 看到哪些 context） | 正確 |
+| 素材 3 | agent-team SKILL：Team 共享 state | 架構設計層（Team 協作模式） | 正確 |
+| 跨層泛化 | 三素材 → 統一歸納為「working memory 混淆」 | 認知機制層（AI 工作記憶概念） | 跨層：素材均為實作/資訊層，論述卻跳至認知機制層 |
+
+**素材層級檢查（因子 1.4 絆腳索）**：
+
+- PC-092 所述層級：git 指令實作層 ≠ 「working memory」認知機制層
+- 各素材描述的是「哪個 subagent 發生什麼操作問題」，而非「working memory 是什麼機制」
+- 結論：三素材均無法支撐「working memory 混淆」這個認知機制性論述
+
+**替代行為**：改為事實句型「PC-092 記錄 thyme 並行時 git index.lock 競爭；subagent 各自看到局部 context，無法跨 agent 共享完整狀態」，不引入無素材支撐的認知機制術語。
+
+---
+
 ## 版本歷史
 
 | 版本 | 日期 | 變更 |
 |------|------|------|
 | v1.0.0 | 2026-04-24 | 初版；從 W17-075 ANA（WRAP 深度分析）落地；13 因子 × 6 層地圖 |
+| v1.1.0 | 2026-04-24 | 層 1 新增因子 1.4「素材錯置抽象層級」（觸發訊號 + 絆腳索 + 替代行為）；情境 B 四層挖因新增第 5 層「素材來源層」；相關 PC/memory 索引補 PC-092 + feedback_parallel_agent_arbitration + agent-team SKILL；自測案例新增「working memory 混淆」推理鏈範例；W17-075 素材溯源落地 |
 
 ---
 
