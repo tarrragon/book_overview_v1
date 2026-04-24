@@ -519,11 +519,14 @@ def validate_execution_log_by_type(
             continue
         content_start += 1
 
+        # 章節邊界：僅 h2 (`## `) 行首才算下一章節起點
+        # W17-047：原本把 `### ` 也當邊界會誤切含 h3 子標題的章節；
+        # 改用 re.MULTILINE 行首匹配，避免 code block 或段落中間的
+        # `## ` 字串誤判。
         next_section_idx = len(body)
-        for marker in ["## ", "### "]:
-            idx = body.find(marker, content_start)
-            if idx != -1 and idx < next_section_idx:
-                next_section_idx = idx
+        match = re.search(r"^## ", body[content_start:], re.MULTILINE)
+        if match:
+            next_section_idx = content_start + match.start()
 
         section_content = body[content_start:next_section_idx].strip()
         if _is_placeholder(section_content):
