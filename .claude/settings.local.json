@@ -1,4 +1,7 @@
 {
+  "env": {
+    "PYTHONUTF8": "1"
+  },
   "permissions": {
     "allow": [
       "// === 檔案查詢指令（唯讀）===",
@@ -155,7 +158,8 @@
       "Bash(rm -f /Users/tarragon/Projects/book_overview_v1/.claude/agents/TEST_EXEMPT.md /Users/tarragon/Projects/book_overview_v1/.claude/rules/TEST_PROTECTED.md)",
       "Bash(git worktree *)",
       "Bash(mv .claude/handoff/pending/0.18.0-W5-047.json .claude/handoff/archive/)",
-      "Bash(mkdir -p .claude/handoff/archive)"
+      "Bash(mkdir -p .claude/handoff/archive)",
+      "Skill(schedule)"
     ]
   },
   "enableAllProjectMcpServers": true,
@@ -186,8 +190,5 @@
       }
     ]
   },
-  "outputStyle": "5W1H Structured Response",
-  "env": {
-    "PYTHONUTF8": "1"
-  }
+  "outputStyle": "5W1H Structured Response"
 }
