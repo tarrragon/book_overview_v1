@@ -131,6 +131,11 @@ from .track_runqueue import (
     execute_runqueue,
     register_runqueue,
 )
+# stuck-anas 列出卡住的 ANA（W17-008.15 方案 D）
+from .track_stuck_anas import (
+    execute_stuck_anas,
+    register_stuck_anas,
+)
 # 導入版本審計命令模組
 from .audit_version import (
     execute_audit_version,
@@ -174,6 +179,7 @@ def _create_version_agnostic_handlers() -> dict:
         "handoff-ready": execute_handoff_ready,
         "checkpoint-status": execute_checkpoint_status,
         "dispatch-check": execute_dispatch_check,
+        "stuck-anas": execute_stuck_anas,
     }
 
 
@@ -772,6 +778,7 @@ def _register_all_subcommands(
     _register_board_commands(track_subparsers)
     _register_global_state_commands(track_subparsers)
     register_runqueue(track_subparsers)
+    register_stuck_anas(track_subparsers)
 
 
 def _register_global_state_commands(
