@@ -749,19 +749,16 @@ class TicketLifecycle:
         )
 
         # 任務鏈後續步驟建議
+        # W11-002.1：頂層統一載入 all_tickets，建立 ticket_map 一次後下傳
+        # 給 _analyze_next_steps 與 _post_complete_cascade，消除 cascade 內重複 I/O
         all_tickets = list_tickets(self.version)
+        ticket_map: Dict[str, Any] = {t.get("id"): t for t in all_tickets}
         analysis = _analyze_next_steps(ticket, all_tickets)
         _print_next_steps(analysis)
 
         # W5-019：父 complete → 子 cascade 解鎖 + 未完成 children 警告
         # 置於 _auto_handoff_if_needed 之前，讓解鎖後的子狀態可影響 handoff 建議
-        children_ids = ticket.get("children", [])
-        if children_ids:
-            unblocked, pending = _cascade_unblock_children(ticket, self.version)
-            if unblocked:
-                _print_cascade_unblocked(unblocked)
-            if pending:
-                _print_children_warnings(pending)
+        _post_complete_cascade(ticket, self.version, ticket_map)
 
         # W17-008.15 方案 D：IMP complete 後檢查 source ANA 是否可 complete
         _print_source_ana_complete_hint(ticket, self.version)
@@ -1403,9 +1400,39 @@ def _handle_ana_spawned_confirmation(
     return 2
 
 
+def _post_complete_cascade(
+    parent_ticket: Dict[str, Any],
+    version: str,
+    ticket_map: Dict[str, Any],
+) -> None:
+    """
+    complete() 後處理：cascade 解鎖子 Ticket + 印出解鎖/警告訊息。
+
+    W11-002.1 從 complete() 抽出，讓 complete() 主體只做編排。
+    若 parent 無 children，直接 no-op。
+
+    Args:
+        parent_ticket: 已完成的父 Ticket dict
+        version: 版本字串
+        ticket_map: 預先載入的 {ticket_id: ticket_dict} map（complete 流程已載入）
+    """
+    children_ids = parent_ticket.get("children", [])
+    if not children_ids:
+        return
+
+    unblocked, pending = _cascade_unblock_children(
+        parent_ticket, version, ticket_map=ticket_map
+    )
+    if unblocked:
+        _print_cascade_unblocked(unblocked)
+    if pending:
+        _print_children_warnings(pending)
+
+
 def _cascade_unblock_children(
     parent_ticket: Dict[str, Any],
     version: str,
+    ticket_map: Optional[Dict[str, Any]] = None,
 ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     """
     對 parent 的 blocked children 執行 cascade 解鎖，並收集未完成 children 清單。
@@ -1421,6 +1448,10 @@ def _cascade_unblock_children(
     Args:
         parent_ticket: 已完成的父 Ticket dict
         version: 版本字串
+        ticket_map: 可選，預先載入的 {ticket_id: ticket_dict} map。
+            若為 None，內部 fallback 走 list_tickets(version)（向後相容）。
+            注意：傳入的 map 中 child dict 會被原地 mutate（status → pending），
+            caller 不應在 cascade 後重用同一 map 做後續決策。
 
     Returns:
         (unblocked_list, pending_list)
@@ -1434,8 +1465,9 @@ def _cascade_unblock_children(
     if not children_ids:
         return unblocked, pending
 
-    all_tickets = list_tickets(version)
-    ticket_map: Dict[str, Any] = {t.get("id"): t for t in all_tickets}
+    if ticket_map is None:
+        all_tickets = list_tickets(version)
+        ticket_map = {t.get("id"): t for t in all_tickets}
 
     for child_id in children_ids:
         child = ticket_map.get(child_id)
