@@ -292,6 +292,9 @@ def _merge_ticket_scope(ticket_ids: List[str]) -> Tuple[bool, bool, bool]:
     try:
         project_root_str = str(get_project_root().resolve())
     except Exception:
+        # 規則 4 雙通道：靜默降級為空字串可接受，因 _classify_paths 對空 root
+        # 退化為「全部當作非主 repo」的保守判斷（has_main=False），不會誤豁免
+        # worktree 強制；此處不寫 stderr 以免污染 hook 輸出，呼叫端日誌已足夠。
         project_root_str = ""
 
     has_main = False
@@ -336,15 +339,24 @@ def _resolve_path_classification(
     Returns:
         (has_main_repo_claude, has_external_claude, has_other) tuple
     """
-    # L1: prompt 直接分類
+    # L1: prompt 直接分類（總是執行）
+    # 狀態：(m, e, o) 反映 prompt 內實際出現的路徑訊號
     m, e, o = _classify_prompt_paths(prompt)
 
-    # L2: W17-018 fallback（prompt 全空 → 讀 ticket scope）
+    # 入口前置呼叫 _merge_ticket_scope 一次（W11-004.7.1 polish）：
+    # L2/L3 都需要 ticket scope 分類，前置呼叫消除重複 I/O 與重複解析。
+    # ticket_ids 為空時不呼叫，保留 (False, False, False) 預設值。
+    ticket_m = ticket_e = ticket_o = False
+    if ticket_ids:
+        ticket_m, ticket_e, ticket_o = _merge_ticket_scope(ticket_ids)
+
+    # L2: W17-018 fallback（prompt 全空 → 用 ticket scope 補分類）
+    # 觸發條件：L1 三欄全 False AND ticket_ids 非空
+    # 狀態轉換：(False, False, False) → (ticket_m, ticket_e, ticket_o)
     if not m and not e and not o and ticket_ids:
-        tm, te, to = _merge_ticket_scope(ticket_ids)
-        m = m or tm
-        e = e or te
-        o = o or to
+        m = m or ticket_m
+        e = e or ticket_e
+        o = o or ticket_o
         if logger is not None and (m or o or e):
             logger.info(
                 "W17-018 fallback：prompt 路徑不明，由 ticket where.files 補分類："
@@ -352,9 +364,17 @@ def _resolve_path_classification(
                 ticket_ids, m, e, o,
             )
     # L3: W11-004.7 覆蓋（has_other=True 但 ticket scope 純 .claude/）
+    # 觸發條件：L1 含 has_other AND 無 external_claude AND ticket_ids 非空
+    #          AND ticket scope 為純 .claude/（m=True, e=False, o=False）
+    # 狀態轉換：(*, False, True) → (True, False, False)
+    #
+    # WARNING（假設邊界）：本層假設「ticket where.files 為 scope 的 source of truth」，
+    # 故將 prompt 內的 src/tests/lib/ token 視為 .claude/ 巢狀路徑（如
+    # `.claude/skills/ticket/tests/`）。若 ticket where.files 漏填或未涵蓋
+    # 真正的非 .claude/ 變更目標，此層會誤豁免 worktree 強制。
+    # 防護依賴：ticket 建立時的 where.files 完整性（PC-040 規範）。
     elif o and ticket_ids and not e:
-        ticket_m, ticket_e, ticket_o = _merge_ticket_scope(ticket_ids)
-        # 純 .claude/ 條件：m=True AND e=False AND o=False
+        # 純 .claude/ 條件：ticket_m=True AND ticket_e=False AND ticket_o=False
         if ticket_m and not ticket_e and not ticket_o:
             if logger is not None:
                 logger.info(
