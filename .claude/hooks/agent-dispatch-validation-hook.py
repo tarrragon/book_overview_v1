@@ -38,6 +38,7 @@ from hook_utils import (
     run_hook_safely,
     read_json_from_stdin,
     get_project_root,
+    extract_where_files,
 )
 
 # 需要 worktree 隔離的實作代理人
@@ -153,62 +154,13 @@ def _extract_ticket_ids(prompt: str) -> List[str]:
 def _load_ticket_where_files(ticket_id: str) -> List[str]:
     """讀 ticket md 的 frontmatter where.files 欄位。
 
+    W11-004.7.2：改用 hook_utils.hook_ticket.extract_where_files 共用 helper，
+    消除與 file-ownership-guard / parallel-dispatch-verification 的重複實作。
+
     Returns:
-        檔案路徑清單；ticket 不存在或無 where.files 時回傳 []。
+        檔案路徑清單（原始字串、未規範化）；ticket 不存在或無 where.files 時回傳 []。
     """
-    try:
-        project_root = get_project_root()
-    except Exception:
-        return []
-
-    # 解析版本：0.18.0-W17-015.2 → 0.18.0
-    version_match = re.match(r"(\d+\.\d+\.\d+)", ticket_id)
-    if not version_match:
-        return []
-    version = version_match.group(1)
-    major_minor = ".".join(version.split(".")[:2])  # 0.18
-    major = "v" + version.split(".")[0]              # v0
-
-    # 路徑模式：docs/work-logs/v0/v0.18/v0.18.0/tickets/{id}.md
-    ticket_md = (
-        project_root
-        / "docs" / "work-logs"
-        / major
-        / f"v{major_minor}"
-        / f"v{version}"
-        / "tickets"
-        / f"{ticket_id}.md"
-    )
-    if not ticket_md.exists():
-        return []
-
-    try:
-        content = ticket_md.read_text(encoding="utf-8")
-    except OSError:
-        return []
-
-    # 簡易 frontmatter 解析：找 where.files 區塊
-    # 格式：where:\n  layer: X\n  files:\n  - path1\n  - path2
-    fm_match = re.search(r"^---\n(.*?)\n---", content, re.DOTALL)
-    if not fm_match:
-        return []
-    fm = fm_match.group(1)
-
-    # 擷取 where.files 列表
-    where_block = re.search(
-        r"^where:\s*\n((?:  .*\n)+)", fm, re.MULTILINE
-    )
-    if not where_block:
-        return []
-
-    files_match = re.search(
-        r"^  files:\s*\n((?:  - .*\n)+)", where_block.group(1), re.MULTILINE
-    )
-    if not files_match:
-        return []
-
-    files = re.findall(r"^  - (.+)$", files_match.group(1), re.MULTILINE)
-    return [f.strip() for f in files]
+    return extract_where_files(ticket_id)
 
 
 def _classify_paths(paths: List[str], project_root_str: str) -> Tuple[bool, bool, bool]:
