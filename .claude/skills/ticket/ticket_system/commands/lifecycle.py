@@ -1569,7 +1569,11 @@ def _cascade_unblock_children(
             except Exception as err:
                 # §6.7 non-fail-fast：列入 warnings 而非隱藏
                 print(format_warning(
-                    f"cascade 解鎖 {outcome.id} 儲存失敗：{err}"
+                    format_msg(
+                        LifecycleMessages.CASCADE_SAVE_FAILED,
+                        ticket_id=outcome.id,
+                        error=err,
+                    )
                 ))
                 warnings.append({
                     "id": outcome.id,
@@ -1590,18 +1594,27 @@ def _cascade_unblock_children(
 def _print_cascade_unblocked(unblocked: List[Dict[str, Any]]) -> None:
     """印出 cascade 解鎖訊息（Phase 1 §3.3）。"""
     print()
-    print("[Cascade] 以下子 Ticket 已自動解鎖（blocked → pending）：")
+    print(LifecycleMessages.CASCADE_UNBLOCKED_HEADER)
     for item in unblocked:
-        print(f"   - {item['id']}: {item.get('title', '')}")
+        print(format_msg(
+            LifecycleMessages.CASCADE_UNBLOCKED_ITEM,
+            id=item['id'],
+            title=item.get('title', ''),
+        ))
 
 
 def _print_children_warnings(pending: List[Dict[str, Any]]) -> None:
     """印出未完成 children 警告訊息（Phase 1 §3.4）。"""
     print()
-    print("[Warning] 父 Ticket 完成時尚有未完成的子 Ticket：")
+    print(LifecycleMessages.CHILDREN_PENDING_WARNING_HEADER)
     for item in pending:
-        print(f"   - {item['id']} [{item['status']}]: {item.get('title', '')}")
-    print("   （提示：父 complete 不阻止，但建議確認子任務是否需要獨立推進或 close）")
+        print(format_msg(
+            LifecycleMessages.CHILDREN_PENDING_WARNING_ITEM,
+            id=item['id'],
+            status=item['status'],
+            title=item.get('title', ''),
+        ))
+    print(LifecycleMessages.CHILDREN_PENDING_WARNING_HINT)
 
 
 # ============================================================================
