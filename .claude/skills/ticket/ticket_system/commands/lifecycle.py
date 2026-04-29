@@ -931,6 +931,52 @@ def _check_pending_children(
     return suggestions
 
 
+def _is_fully_unblocked(
+    ticket: Dict[str, Any],
+    ticket_map: Dict[str, Any],
+    *,
+    include_closed_as_resolved: bool,
+) -> bool:
+    """
+    判斷 ticket 的所有 blocker 是否皆已解除（AND 語義）。
+
+    共用 predicate，由 `_check_unblocked_tickets` 與 `_can_cascade_unblock`
+    delegate。語義差異透過參數揭露：
+
+    - blockedBy 為空 → True（無阻塞即視為解除）。
+    - 找不到 blocker（ticket_map 無此 id）→ False（資料不一致時保守保留 blocked
+      / 不建議解鎖）。兩個原始實作皆為此行為（前者透過 `{}.get("status")` 為
+      None 失敗比對、後者顯式 return False）。
+    - include_closed_as_resolved=True：blocker status 為 completed 或 closed
+      皆視為已解除（cascade unblock 場景，與 lifecycle skip 規則一致）。
+    - include_closed_as_resolved=False：僅 completed 視為已解除（建議列表場景，
+      保留原有 conservative 行為）。
+
+    Args:
+        ticket: 待檢查的 ticket dict（需含 blockedBy）。
+        ticket_map: 版本內所有 ticket 的 id → dict 映射。
+        include_closed_as_resolved: 是否將 closed 也視為解除狀態。
+
+    Returns:
+        True 表示所有 blocker 皆已解除。
+    """
+    blocked_by = ticket.get("blockedBy") or []
+    if not blocked_by:
+        return True
+    resolved_statuses = (
+        (STATUS_COMPLETED, STATUS_CLOSED)
+        if include_closed_as_resolved
+        else (STATUS_COMPLETED,)
+    )
+    for blocker_id in blocked_by:
+        blocker = ticket_map.get(blocker_id)
+        if blocker is None:
+            return False
+        if blocker.get("status") not in resolved_statuses:
+            return False
+    return True
+
+
 def _check_unblocked_tickets(
     ticket_id: str,
     all_tickets: List[Dict[str, Any]],
@@ -943,12 +989,8 @@ def _check_unblocked_tickets(
     for t in all_tickets:
         blocked_by = t.get("blockedBy", [])
         if ticket_id in blocked_by and t.get("status") in ["pending", "blocked"]:
-            # 檢查是否所有阻塞都已解除
-            all_unblocked = all(
-                ticket_map.get(b, {}).get("status") == "completed"
-                for b in blocked_by
-            )
-            if all_unblocked:
+            # 僅 completed 視為解除（保留原行為，不含 closed）
+            if _is_fully_unblocked(t, ticket_map, include_closed_as_resolved=False):
                 suggestions.append({
                     "priority": 2,
                     "ticket_id": t.get("id"),
@@ -1243,17 +1285,7 @@ def _can_cascade_unblock(
     Returns:
         True 表示可解鎖（blocked → pending），False 表示保留 blocked
     """
-    blocked_by = child.get("blockedBy") or []
-    if not blocked_by:
-        return True
-    for blocker_id in blocked_by:
-        blocker = ticket_map.get(blocker_id)
-        if blocker is None:
-            # 資料不一致時保守保留 blocked
-            return False
-        if blocker.get("status") not in (STATUS_COMPLETED, STATUS_CLOSED):
-            return False
-    return True
+    return _is_fully_unblocked(child, ticket_map, include_closed_as_resolved=True)
 
 
 # ============================================================================
