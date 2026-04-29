@@ -1554,11 +1554,26 @@ def _cascade_unblock_children(
     - children 中找不到（資料不一致） → 跳過
     - save 失敗（§6.7） → non-fail-fast，列入警告（不再隱藏）
 
+    呼叫契約（W11-002.5 / ANA W5-022）：
+    - **caller 必須在呼叫前已將 parent 落盤為 completed**：cascade 透過
+      ``_can_cascade_unblock`` → ``_is_fully_unblocked`` 檢查 child.blockedBy
+      中每個 blocker（含 parent）的 status；若 parent 尚未 save，fallback 路徑
+      （ticket_map=None → list_tickets）會從 disk 讀到舊 status，導致 child
+      不會被解鎖。``execute_complete`` 已先 ``save_ticket(parent)`` 才呼叫本函式
+      （lifecycle.py 約 L726 → L762），重構此順序前請同步更新測試契約。
+    - **ticket_map 中 child dict 會被原地 mutate**：dispatch unblock 階段
+      直接 ``child["status"] = STATUS_PENDING``；caller 不應在 cascade 後重用
+      同一 map 做後續決策（避免 in-memory 狀態與 disk 不一致的混淆）。
+    - **save 失敗不 fail-fast**：單一 child save 失敗只列入 warnings，其餘
+      children 仍會嘗試解鎖；caller 不應假設回傳的 unblocked 數量等於
+      blocked children 數量。
+
     Args:
-        parent_ticket: 已完成的父 Ticket dict
+        parent_ticket: 已完成的父 Ticket dict（caller 須先 save_ticket 落盤）
         version: 版本字串
         ticket_map: 可選，預先載入的 {ticket_id: ticket_dict} map。
-            若為 None，內部 fallback 走 list_tickets(version)（向後相容）。
+            若為 None，內部 fallback 走 list_tickets(version)（向後相容）；
+            此 fallback 路徑下 parent 必須已落盤，否則讀到舊 status。
             注意：傳入的 map 中 child dict 在 dispatch unblock 時會被原地 mutate
             （status → pending），caller 不應在 cascade 後重用同一 map 做後續決策。
 
