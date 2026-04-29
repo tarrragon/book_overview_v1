@@ -7,9 +7,10 @@ Ticket lifecycle 操作模組
 import argparse
 import re
 import sys
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Literal, Tuple, Optional
 
 from ticket_system.lib.constants import (
     STATUS_PENDING,
@@ -1429,6 +1430,75 @@ def _post_complete_cascade(
         _print_children_warnings(pending)
 
 
+ChildOutcomeKind = Literal[
+    "unblock",  # blocked → 可解鎖（dispatch 階段嘗試 save）
+    "blocked_pending",  # blocked 但 blockedBy 仍有未完成依賴
+    "in_progress_warning",  # pending / in_progress（含其他非 terminal 狀態）
+    "skip",  # completed / closed / 找不到 child（不報告）
+]
+
+
+@dataclass
+class ChildOutcome:
+    """單一 child 的分類結果（純資料，無副作用）。
+
+    classify 階段產出；dispatch 階段依 ``kind`` 決定是否 save，並把最終
+    結果（含 save_failed）收集成 unblocked/warnings 兩個清單。
+
+    Attributes:
+        id: child ticket id（skip 時可能為原始 child_id）
+        title: child 標題（skip 時為空字串）
+        kind: 分類結果類型
+        status_for_warning: in_progress_warning / blocked_pending 時要顯示的 status；
+            其他 kind 為 None
+    """
+
+    id: str
+    title: str
+    kind: ChildOutcomeKind
+    status_for_warning: Optional[str] = None
+
+
+def _classify_child(
+    child_id: str,
+    child: Optional[Dict[str, Any]],
+    ticket_map: Dict[str, Any],
+) -> ChildOutcome:
+    """純函式：依 Phase 1 §2.2 規則決策 child 的 outcome（不執行 save）。
+
+    - child 找不到（§6.5）/ completed / closed → skip
+    - blocked + 可解鎖（§6.8 AND 語義）→ unblock
+    - blocked + 仍有未完成依賴 → blocked_pending
+    - 其他（pending / in_progress / 異常狀態）→ in_progress_warning
+    """
+    if child is None:
+        return ChildOutcome(id=child_id, title="", kind="skip")
+
+    status = child.get("status", STATUS_PENDING)
+    title = child.get("title", "")
+
+    if status in (STATUS_COMPLETED, STATUS_CLOSED):
+        return ChildOutcome(id=child_id, title=title, kind="skip")
+
+    if status == STATUS_BLOCKED:
+        if _can_cascade_unblock(child, ticket_map):
+            return ChildOutcome(id=child_id, title=title, kind="unblock")
+        return ChildOutcome(
+            id=child_id,
+            title=title,
+            kind="blocked_pending",
+            status_for_warning=STATUS_BLOCKED,
+        )
+
+    # pending / in_progress / 其他非 terminal → 警告但不改動
+    return ChildOutcome(
+        id=child_id,
+        title=title,
+        kind="in_progress_warning",
+        status_for_warning=status,
+    )
+
+
 def _cascade_unblock_children(
     parent_ticket: Dict[str, Any],
     version: str,
@@ -1437,83 +1507,84 @@ def _cascade_unblock_children(
     """
     對 parent 的 blocked children 執行 cascade 解鎖，並收集未完成 children 清單。
 
+    W11-002.2 重構：classify → dispatch → collect 三步資料流。
+    - classify：純函式 ``_classify_child`` 決策每個 child 的 ``ChildOutcome``
+    - dispatch：對 unblock 類別嘗試 save_ticket；成功歸入 unblocked，失敗歸入 save_failed
+    - collect：unblocked 清單回傳；blocked_pending / in_progress_warning / save_failed
+      合併成統一 warnings 清單回傳（save_failed 之前隱藏於 stderr-style print，
+      現在進入 warnings 並由 ``_print_children_warnings`` 顯示）
+
     依 Phase 1 §2.2 規則：
     - children 中 blocked 且 blockedBy 僅剩 completed/closed → 解鎖為 pending
     - children 中 blocked 但仍有其他未完成依賴 → 保留 blocked，列入警告
     - children 中 pending/in_progress → 不改狀態，列入警告
     - children 中 completed/closed → 忽略
     - children 中找不到（資料不一致） → 跳過
-    - save 失敗（§6.7） → 記錄 warning，不 fail-fast
+    - save 失敗（§6.7） → non-fail-fast，列入警告（不再隱藏）
 
     Args:
         parent_ticket: 已完成的父 Ticket dict
         version: 版本字串
         ticket_map: 可選，預先載入的 {ticket_id: ticket_dict} map。
             若為 None，內部 fallback 走 list_tickets(version)（向後相容）。
-            注意：傳入的 map 中 child dict 會被原地 mutate（status → pending），
-            caller 不應在 cascade 後重用同一 map 做後續決策。
+            注意：傳入的 map 中 child dict 在 dispatch unblock 時會被原地 mutate
+            （status → pending），caller 不應在 cascade 後重用同一 map 做後續決策。
 
     Returns:
-        (unblocked_list, pending_list)
+        (unblocked_list, warnings_list)
         - unblocked_list: [{id, title}, ...] 已 cascade 解鎖的 children
-        - pending_list:   [{id, title, status}, ...] 未完成但未解鎖的 children
+        - warnings_list:  [{id, title, status}, ...] 未完成或 save 失敗的 children；
+          status 為 ``blocked`` / ``pending`` / ``in_progress`` / ``save_failed``
     """
     unblocked: List[Dict[str, Any]] = []
-    pending: List[Dict[str, Any]] = []
+    warnings: List[Dict[str, Any]] = []
 
     children_ids = parent_ticket.get("children") or []
     if not children_ids:
-        return unblocked, pending
+        return unblocked, warnings
 
     if ticket_map is None:
         all_tickets = list_tickets(version)
         ticket_map = {t.get("id"): t for t in all_tickets}
 
-    for child_id in children_ids:
-        child = ticket_map.get(child_id)
-        if child is None:
-            # §6.5 找不到 child_id 跳過
+    # Step 1: classify (pure)
+    outcomes: List[ChildOutcome] = [
+        _classify_child(child_id, ticket_map.get(child_id), ticket_map)
+        for child_id in children_ids
+    ]
+
+    # Step 2 + 3: dispatch + collect
+    for outcome in outcomes:
+        if outcome.kind == "skip":
             continue
-
-        child_status = child.get("status", STATUS_PENDING)
-        child_title = child.get("title", "")
-
-        if child_status in (STATUS_COMPLETED, STATUS_CLOSED):
-            continue
-
-        if child_status == STATUS_BLOCKED:
-            if _can_cascade_unblock(child, ticket_map):
-                child["status"] = STATUS_PENDING
-                try:
-                    save_ticket(
-                        child,
-                        resolve_ticket_path(child, version, child_id),
-                    )
-                    unblocked.append({
-                        "id": child_id,
-                        "title": child_title,
-                    })
-                except Exception as err:
-                    print(format_warning(
-                        f"cascade 解鎖 {child_id} 儲存失敗：{err}"
-                    ))
-                    # §6.7 non-fail-fast：不計入 unblocked 也不列入 pending
-                    continue
-            else:
-                pending.append({
-                    "id": child_id,
-                    "title": child_title,
-                    "status": STATUS_BLOCKED,
+        if outcome.kind == "unblock":
+            child = ticket_map[outcome.id]
+            child["status"] = STATUS_PENDING
+            try:
+                save_ticket(
+                    child,
+                    resolve_ticket_path(child, version, outcome.id),
+                )
+                unblocked.append({"id": outcome.id, "title": outcome.title})
+            except Exception as err:
+                # §6.7 non-fail-fast：列入 warnings 而非隱藏
+                print(format_warning(
+                    f"cascade 解鎖 {outcome.id} 儲存失敗：{err}"
+                ))
+                warnings.append({
+                    "id": outcome.id,
+                    "title": outcome.title,
+                    "status": "save_failed",
                 })
-        else:
-            # pending / in_progress → 警告但不改動
-            pending.append({
-                "id": child_id,
-                "title": child_title,
-                "status": child_status,
-            })
+            continue
+        # blocked_pending / in_progress_warning
+        warnings.append({
+            "id": outcome.id,
+            "title": outcome.title,
+            "status": outcome.status_for_warning,
+        })
 
-    return unblocked, pending
+    return unblocked, warnings
 
 
 def _print_cascade_unblocked(unblocked: List[Dict[str, Any]]) -> None:
