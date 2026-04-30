@@ -81,7 +81,7 @@ your-skill-name/
 | 資料夾 kebab-case | `notion-project-setup` | `Notion Project Setup` |
 | 無底線 | `my-cool-skill` | `my_cool_skill` |
 | 無大寫 | `my-cool-skill` | `MyCoolSkill` |
-| 禁止 README.md | 文件放 SKILL.md 或 references/ | 不要在 Skill 資料夾內放 README.md |
+| 禁止 README.md | 文件放 SKILL.md 或 references/ | Skill 根目錄與**所有子目錄**（含 `references/`、`references/principles/` 等）皆不可放 README.md。資料夾用途透過檔名自說明，或在 SKILL.md「參考文件」段落索引 |
 
 **官方推薦：Gerund 命名**（動詞 + ing 形式）：
 
@@ -464,7 +464,7 @@ description: "Does things"
 - [ ] 包含範例
 - [ ] references/ 連結只有一層深
 - [ ] 長 reference 檔（100+ 行）有 TOC
-- [ ] 資料夾內無 README.md
+- [ ] 資料夾內無 README.md（包含根目錄與所有子目錄；資料夾用途透過 SKILL.md「參考文件」段落索引）
 - [ ] SKILL.md body 低於 500 行
 - [ ] 無時間敏感資訊
 - [ ] 術語一致
