@@ -232,6 +232,35 @@ def test_invalid_value_with_colon_includes_nested_hint(project_dir, logger):
     assert "multi_view_status: skipped" in msg
 
 
+def test_invalid_value_multiline_nested_includes_nested_hint(project_dir, logger):
+    """多行 nested YAML 結構也應觸發 invalid 分支與 nested 提示（W17-112 / PC-117）。
+
+    W17-095 收尾踩坑案例的多行 nested 形式必須與同行形式行為一致。
+    regex `^\\s*multi_view_status\\s*:\\s*(.+?)\\s*$` 中 `\\s*` 跨行吞 newline + 縮排，
+    故多行 nested 也會 match → value = 'status: skipped' → 觸發 invalid value 分支。
+    """
+    content = (
+        "---\nid: 0.18.0-W10-999\ntype: ANA\n---\n\n"
+        "## Problem Analysis\n\nsome analysis\n\n"
+        "## Solution\n\n"
+        "```yaml\n"
+        "multi_view_status:\n"
+        "  status: skipped\n"
+        "  reason: \"test\"\n"
+        "```\n\n"
+        "## Test Results\n\n"
+    )
+    fm = {"id": "0.18.0-W10-999", "type": "ANA"}
+
+    should_warn, msg = check_multi_view_status(content, fm, project_dir, logger)
+
+    assert should_warn is True, f"多行 nested 應觸發 invalid，實際 should_warn={should_warn}"
+    assert msg is not None
+    assert "偵測到值含冒號" in msg, "訊息應含 nested 提示"
+    assert "nested YAML" in msg
+    assert "multi_view_status: skipped" in msg, "訊息應含 flat 範例"
+
+
 # ---------------------------------------------------------------------------
 # 額外情境：Solution 區段缺失 → 警告
 # ---------------------------------------------------------------------------
