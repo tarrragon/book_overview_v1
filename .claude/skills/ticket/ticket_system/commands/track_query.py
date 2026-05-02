@@ -43,6 +43,7 @@ from ticket_system.lib.constants import (
     STATUS_IN_PROGRESS,
     STATUS_COMPLETED,
     STATUS_BLOCKED,
+    TERMINAL_STATUSES,
     WORK_LOGS_DIR,
 )
 from ticket_system.lib.ticket_loader import (
@@ -222,7 +223,7 @@ def execute_query(args: argparse.Namespace, version: str) -> int:
                 incomplete_items.append(f"{sid} (not_found)")
                 continue
             sub_status = sub.get("status", "unknown")
-            if sub_status == STATUS_COMPLETED:
+            if sub_status in TERMINAL_STATUSES:
                 completed_ids.append(sid)
             else:
                 incomplete_items.append(f"{sid} (status={sub_status})")
