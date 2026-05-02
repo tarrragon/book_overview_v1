@@ -343,3 +343,50 @@ Wave 完成判定規則（Checkpoint 2 情境 C 前置條件）：
 - 執行日誌填寫狀態
 - 子任務完成狀態
 - 品質標準符合性
+
+---
+
+## 統一錯誤訊息格式（W17-008.5.2）
+
+`lib/messages.py` 的 `format_error()` 支援雙路徑：
+
+### Legacy 路徑（向後相容）
+
+```python
+from ticket_system.lib.messages import ErrorMessages, format_error
+
+format_error(ErrorMessages.TICKET_NOT_FOUND, ticket_id="0.31.0-W4-001")
+# => "[Error] 找不到 Ticket 0.31.0-W4-001"
+```
+
+### 結構化 Envelope 路徑（推薦給 .5.3+ 後續呼叫）
+
+```python
+from ticket_system.lib.messages import ErrorEnvelope, format_error
+
+env = ErrorEnvelope(
+    component="track",         # CLI 子命令或模組名
+    action="claim",            # 操作動詞
+    errno="TICKET_NOT_FOUND",  # 錯誤分類代碼
+    hint="ticket track list",  # 修復建議（可選）
+)
+print(format_error(env))
+```
+
+輸出：
+
+```text
+[Error] __error_envelope_v1__
+  component: track
+  action: claim
+  errno: TICKET_NOT_FOUND
+  hint: ticket track list
+```
+
+### 版本標記 `__error_envelope_v1__`
+
+Hook 偵測到此標記即視為已套用統一格式，**跳過重複補充**（W17-008.5.5 後續處理）。grep 可用：
+
+```bash
+grep -n "__error_envelope_v1__" .claude/skills/ticket/ticket_system/
+```
