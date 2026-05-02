@@ -173,6 +173,11 @@ Wave 完成判定規則（Checkpoint 2 情境 C 前置條件）：
 # 批量操作
 /ticket track batch-claim "id1,id2,id3"
 /ticket track batch-complete "id1,id2,id3"
+
+# 追加 spawned_tickets（支援單 ID / 多 ID，對齊 Unix 慣例如 rm a b c）
+/ticket track add-spawned <id> <spawned-id>                    # 單一 ID
+/ticket track add-spawned <id> <spawned-1> <spawned-2> <s-3>   # 多 ID 空白分隔（W17-008.1）
+# 重複 ID 會自動去重並列入「已存在略過」
 ```
 
 ## 驗收條件操作詳解

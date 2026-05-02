@@ -546,7 +546,7 @@ def _register_field_write_commands(
     # add-spawned 操作
     p_add_spawned = subparsers.add_parser("add-spawned", help=TrackMessages.HELP_ADD_SPAWNED)
     p_add_spawned.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
-    p_add_spawned.add_argument("value", help="Spawned Ticket ID")
+    p_add_spawned.add_argument("value", nargs="+", help="Spawned Ticket ID（可一次傳多個，對齊 Unix 慣例如 rm a b c）")
     p_add_spawned.add_argument("--version", help=TrackMessages.ARG_VERSION)
 
     # set-decision-tree 操作
