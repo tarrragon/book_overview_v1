@@ -137,9 +137,15 @@ Wave 完成判定規則（Checkpoint 2 情境 C 前置條件）：
 /ticket track set-how <id> <value>
 
 # 追加執行日誌
-# 有效 section: Problem Analysis / Context Bundle / Solution / Test Results / Execution Log
+# 有效 section: Problem Analysis / Context Bundle / Solution / Test Results / Execution Log / NeedsContext / Exit Status
 /ticket track append-log <id> --section "Problem Analysis" "內容"
 /ticket track append-log <id> --section "Context Bundle" "PCB 內容（派發前分析結果，PC-040）"
+#
+# Section 標題容錯（W17-008.9）：
+# - 標題比對採 MULTILINE + \s+ 容許多空白 + \s*$ 容尾空白
+# - 命中：「## Solution」、「## Solution 」（末尾空白）、「##  Solution」（雙空白）皆 OK
+# - 不誤匹配：「## Solutions」、「## Solution alt」不會被視為 Solution
+# - SECTION_NOT_FOUND 時錯誤訊息會列出該 ticket 所有現有 ## 標題引導用戶
 
 # 勾選驗收條件（check-acceptance，舊語法）
 /ticket track check-acceptance <id> 1                  # 勾選第 1 項（1-based 整數）

@@ -544,18 +544,33 @@ def execute_append_log(args: argparse.Namespace, version: str) -> int:
         print(format_error(ErrorMessages.BODY_CONTENT_NOT_FOUND, ticket_id=args.ticket_id))
         return 1
 
-    # 尋找對應的區段（## Section Name）
-    section_pattern = rf"## {re.escape(section)}\n(.*?)(?=\n##|\Z)"
-    match = re.search(section_pattern, body, re.DOTALL)
+    # 尋找對應的區段標題（## Section Name），容許前後額外空白（W17-008.9）
+    # 與 acceptance_auditor.py:364 同步：MULTILINE 模式 + \s+ 允許多空白 + \s*$ 容尾空白
+    header_pattern = rf"^##\s+{re.escape(section)}\s*$"
+    header_match = re.search(header_pattern, body, re.MULTILINE)
 
-    if not match:
+    if not header_match:
+        # 列出該 ticket md 所有 ^## 標題引導用戶（W17-008.9 B 方案）
+        existing_headers = re.findall(r"^##\s+.+$", body, re.MULTILINE)
         print(format_error(ErrorMessages.SECTION_NOT_FOUND, ticket_id=args.ticket_id, section=section))
+        if existing_headers:
+            print(f"  該 ticket 現有 ## 標題：")
+            for header in existing_headers:
+                print(f"    - {header.strip()}")
+        else:
+            print(f"  該 ticket md 無任何 ## 標題")
         return 1
 
-    section_start = match.start()
-    section_end = match.end()
-    section_text = match.group(0)
-    section_content = match.group(1)
+    # 擷取整個 section 範圍（從標題行到下一個 ## 或文件結尾）
+    section_start = header_match.start()
+    content_start = header_match.end()
+    next_match = re.search(r"\n## ", body[content_start:])
+    if next_match:
+        section_end = content_start + next_match.start()
+    else:
+        section_end = len(body)
+    section_text = body[section_start:section_end]
+    section_content = body[content_start:section_end]
 
     # 生成時間戳
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
