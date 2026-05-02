@@ -110,7 +110,7 @@ def _print_source_ana_complete_hint(ticket: Dict[str, Any], version: str) -> Non
         spawned = load_ticket(version, sid)
         if not spawned:
             return
-        if spawned.get("status") != STATUS_COMPLETED:
+        if spawned.get("status") not in TERMINAL_STATUSES:
             return
 
     print(
@@ -1089,7 +1089,7 @@ def _calc_chain_progress(
     if not chain_tickets:
         chain_tickets = [t for t in all_tickets if t.get("id") == root_id or t.get("parent_id") == root_id]
 
-    completed_count = sum(1 for t in chain_tickets if t.get("status") == "completed")
+    completed_count = sum(1 for t in chain_tickets if t.get("status") in TERMINAL_STATUSES)
     total_count = len(chain_tickets)
 
     return {
