@@ -22,6 +22,7 @@ from ticket_system.lib.constants import (
     STATUS_COMPLETED,
     STATUS_PENDING,
     STATUS_BLOCKED,
+    TERMINAL_STATUSES,
     HANDOFF_DIR,
     HANDOFF_PENDING_SUBDIR,
     HANDOFF_ARCHIVE_SUBDIR,
@@ -180,7 +181,7 @@ def _verify_handoff_dependencies(ticket: Dict[str, Any], ticket_id: str, version
         dep_ticket = load_ticket(dep_version, dep_id)
         if not dep_ticket:
             incomplete_deps.append(f"{dep_id} (未找到)")
-        elif dep_ticket.get("status") != STATUS_COMPLETED:
+        elif dep_ticket.get("status") not in TERMINAL_STATUSES:
             incomplete_deps.append(f"{dep_id} (狀態：{dep_ticket.get('status')})")
 
     # 若有未完成的依賴，輸出錯誤訊息
@@ -739,7 +740,7 @@ def _print_dict_sibling(ticket_id: str, sibling_item: dict) -> None:
     """
     if sibling_item.get("id") == ticket_id:
         return
-    if sibling_item.get("status") != STATUS_COMPLETED:
+    if sibling_item.get("status") not in TERMINAL_STATUSES:
         print(format_msg(
             HandoffMessages.STATUS_USE_TO_SIBLING,
             ticket_id=ticket_id,
@@ -763,7 +764,7 @@ def _print_string_sibling(
     if sibling_id == ticket_id:
         return
     sibling_ticket = load_ticket(version, sibling_id)
-    if sibling_ticket and sibling_ticket.get("status") != STATUS_COMPLETED:
+    if sibling_ticket and sibling_ticket.get("status") not in TERMINAL_STATUSES:
         print(format_msg(
             HandoffMessages.STATUS_USE_TO_SIBLING,
             ticket_id=ticket_id,

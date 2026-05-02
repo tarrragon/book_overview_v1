@@ -16,7 +16,7 @@ from datetime import datetime
 from .ticket_loader import load_ticket, resolve_version, get_project_root, get_tickets_dir
 from .parser import parse_frontmatter
 from .checkbox_utils import strip_checkbox_prefix
-from .constants import STATUS_COMPLETED, VAGUE_ACCEPTANCE_WORDS, SRP_WHAT_CONJUNCTIONS, SRP_ACCEPTANCE_MODULE_THRESHOLD
+from .constants import STATUS_COMPLETED, TERMINAL_STATUSES, VAGUE_ACCEPTANCE_WORDS, SRP_WHAT_CONJUNCTIONS, SRP_ACCEPTANCE_MODULE_THRESHOLD
 
 
 # ============================================================
@@ -173,7 +173,7 @@ def _check_children_recursive(children_ids: List[str], version: str, visited: Op
             continue
 
         # 檢查子任務狀態
-        if child_ticket.get("status") != STATUS_COMPLETED:
+        if child_ticket.get("status") not in TERMINAL_STATUSES:
             incomplete.append(child_id)
 
         # 遞迴檢查孫任務
@@ -232,7 +232,7 @@ def _check_spawned_recursive(
 
         # 檢查 spawned ticket 狀態（shallow 一層，不 recurse）
         status = spawned_ticket.get("status", "unknown")
-        if status != STATUS_COMPLETED:
+        if status not in TERMINAL_STATUSES:
             incomplete.append(f"{spawned_id}: status={status}")
 
     all_completed = len(incomplete) == 0
