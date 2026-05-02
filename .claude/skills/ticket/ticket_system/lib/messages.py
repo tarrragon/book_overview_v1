@@ -5,6 +5,9 @@
 
 消除訊息硬編碼，提供一致的訊息格式和內容。
 """
+import argparse
+import re
+import sys
 from dataclasses import dataclass
 from typing import Optional, Union
 
@@ -367,6 +370,76 @@ def format_info(template: str, **kwargs) -> str:
         '[OK] 已接手 0.31.0-W4-001'
     """
     return template.format(**kwargs)
+
+
+# ---------------------------------------------------------------------------
+# Argparse 業務錯誤統一格式（W17-008.5.4）
+# ---------------------------------------------------------------------------
+
+# 業務錯誤訊息特徵（argparse 內建訊息片段；穩定 keyword 易維護）
+# - "invalid choice"：subparser 子命令不存在 / choices=[...] 不匹配
+# - "invalid <type> value"：type=int/float/... 轉型失敗
+# 純語法錯誤（unrecognized arguments / the following arguments are required）
+# 不在此清單，落入預設 argparse 路徑保留 POSIX 風格。
+_ARGPARSE_BUSINESS_ERROR_PATTERNS = (
+    re.compile(r"invalid choice"),
+    re.compile(r"invalid \S+ value"),
+)
+
+
+def _classify_argparse_error(message: str) -> Optional[str]:
+    """判別 argparse error message 是否屬業務錯誤類別。
+
+    Returns:
+        errno 字串（"INVALID_CHOICE" / "INVALID_VALUE"）若為業務錯誤；
+        None 表示純語法錯誤，呼叫端應走 argparse 預設路徑。
+    """
+    if _ARGPARSE_BUSINESS_ERROR_PATTERNS[0].search(message):
+        return "INVALID_CHOICE"
+    if _ARGPARSE_BUSINESS_ERROR_PATTERNS[1].search(message):
+        return "INVALID_VALUE"
+    return None
+
+
+class ArgparseFormatErrorParser(argparse.ArgumentParser):
+    """ArgumentParser subclass：業務錯誤改走 format_error(ErrorEnvelope)。
+
+    W17-008.5.4 動機：argparse 預設 error() 輸出英文 POSIX 風格，與 CLI 業務錯誤
+    （format_error 結構化封包）格式分歧。本類別 overload error() 將業務錯誤
+    （invalid choice / invalid type value）改走 ErrorEnvelope 統一輸出，
+    保留純語法錯誤（unrecognized args / missing required positional）的 argparse 預設行為。
+
+    分類依據見 _classify_argparse_error；含 ERROR_ENVELOPE_VERSION_MARKER 讓 hook 可偵測。
+
+    Examples:
+        >>> import argparse
+        >>> p = ArgparseFormatErrorParser(prog="ticket track", exit_on_error=False)
+        >>> sub = p.add_subparsers(dest="op")
+        >>> _ = sub.add_parser("claim")
+        >>> # invalid choice "foo" → 走 ErrorEnvelope 結構化路徑
+    """
+
+    def error(self, message: str) -> None:  # type: ignore[override]
+        """覆寫 argparse 預設 error()。
+
+        業務錯誤 → 渲染 ErrorEnvelope + sys.exit(2)
+        純語法錯誤 → 委回父類 error()（保留 usage + POSIX 風格訊息）
+        """
+        errno = _classify_argparse_error(message)
+        if errno is None:
+            # 純語法錯誤保留 argparse 預設行為
+            super().error(message)
+            return  # pragma: no cover (super().error 會 sys.exit)
+
+        # 業務錯誤改走結構化 envelope 路徑
+        envelope = ErrorEnvelope(
+            component=self.prog or "ticket",
+            action="parse_args",
+            errno=errno,
+            hint=message,
+        )
+        sys.stderr.write(format_error(envelope) + "\n")
+        sys.exit(2)
 
 
 def print_not_executable_and_exit():

@@ -29,6 +29,7 @@ from ticket_system.lib.ticket_loader import (
 )
 from ticket_system.lib.ticket_validator import extract_version_from_ticket_id
 from ticket_system.lib.messages import (
+    ArgparseFormatErrorParser,
     ErrorMessages,
     format_error,
     format_info,
@@ -816,12 +817,23 @@ def _register_snapshot_commands(
 
 
 def register(subparsers: argparse._SubParsersAction) -> None:
-    """註冊 track 子命令及所有操作"""
-    parser = subparsers.add_parser("track", help=TrackMessages.HELP_TRACK)
+    """註冊 track 子命令及所有操作
 
-    # 建立子操作解析器
+    W17-008.5.4：track parser 與所有操作子 parser 套用 ArgparseFormatErrorParser，
+    讓業務錯誤（invalid choice / invalid type value）改走 format_error 結構化路徑；
+    純語法錯誤（unrecognized args / missing required positional）保留 argparse 預設。
+    """
+    parser = subparsers.add_parser("track", help=TrackMessages.HELP_TRACK)
+    # 範圍邊界：scripts/ticket.py 的頂層 parser 不在本 ticket 範圍，
+    # 故 track 本身為預設 ArgumentParser；這裡綁定 error() 將業務錯誤改走客製路徑。
+    parser.error = ArgparseFormatErrorParser.error.__get__(parser, type(parser))  # type: ignore[method-assign]
+
+    # 建立子操作解析器（parser_class 讓所有 operation subparser 繼承業務錯誤客製）
     track_subparsers = parser.add_subparsers(
-        dest="operation", required=True, help="操作類型"
+        dest="operation",
+        required=True,
+        help="操作類型",
+        parser_class=ArgparseFormatErrorParser,
     )
 
     # 按功能分組註冊所有子命令
