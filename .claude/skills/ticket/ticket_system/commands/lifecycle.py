@@ -675,7 +675,7 @@ class TicketLifecycle:
                 print("   依 .claude/pm-rules/ticket-body-schema.md，此 type 以下章節為必填且須替換佔位符：")
                 for section in typed_unfilled:
                     print(
-                        f'   ticket track append-log {ticket_id} --section "{section}" --content "內容"'
+                        f'   ticket track append-log {ticket_id} "內容" --section "{section}"'
                     )
                 print()
                 print("   逃生閥：--skip-body-check（需附理由於 Completion Info）")
