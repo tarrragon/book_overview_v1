@@ -207,6 +207,8 @@ def _create_command_handlers() -> dict:
         "chain": execute_chain,
         "deps": execute_deps,
         "full": execute_full,
+        # show 為 full 的 alias（W17-008.2 / W17-004 落差 2：對齊 git/docker/kubectl 慣例）
+        "show": execute_full,
         "log": execute_log,
         "batch-claim": execute_batch_claim,
         "batch-complete": execute_batch_complete,
@@ -439,6 +441,14 @@ def _register_query_commands(
     p_full = subparsers.add_parser("full", help=TrackMessages.HELP_FULL)
     p_full.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
     p_full.add_argument("--version", help=TrackMessages.ARG_VERSION)
+
+    # show 操作（W17-008.2 / W17-004 落差 2：full 的 alias，對齊 git/docker/kubectl 慣例）
+    p_show = subparsers.add_parser(
+        "show",
+        help=f"{TrackMessages.HELP_FULL}（full 的 alias，對齊 git/docker/kubectl 慣例）",
+    )
+    p_show.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
+    p_show.add_argument("--version", help=TrackMessages.ARG_VERSION)
 
     # log 操作
     p_log = subparsers.add_parser("log", help=TrackMessages.HELP_LOG)

@@ -26,6 +26,9 @@
 # 完整內容
 /ticket track full <id>
 
+# 完整內容（show 為 full 的 alias，對齊 git/docker/kubectl 慣例；W17-008.2）
+/ticket track show <id>
+
 # 執行日誌
 /ticket track log <id>
 

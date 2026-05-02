@@ -344,6 +344,49 @@ class TestFull:
             assert result == 0
 
 
+class TestShowAlias:
+    """W17-008.2 / W17-004 落差 2：show 作為 full 的 alias
+
+    驗證 dispatcher 端 show / full 雙路徑都指向 execute_full，
+    並確認 argparse 端 show 子命令已註冊。
+    """
+
+    def test_show_handler_dispatches_to_execute_full(self):
+        """Given: dispatcher handler dict
+        When: 查 show 與 full
+        Then: 兩者皆指向同一個 execute_full
+        """
+        from ticket_system.commands.track import _create_command_handlers
+
+        handlers = _create_command_handlers()
+        assert "show" in handlers, "show 必須註冊為 dispatcher handler"
+        assert "full" in handlers, "full 仍須保留（向後相容）"
+        assert handlers["show"] is handlers["full"], (
+            "show 必須指向與 full 相同的 handler（execute_full）"
+        )
+        assert handlers["show"] is execute_full
+
+    def test_show_subparser_registered(self):
+        """Given: track 的 argparse 註冊
+        When: 解析 `track show <id>` 與 `track full <id>`
+        Then: 兩者皆能解析成功且 operation 對應正確
+        """
+        import argparse
+        from ticket_system.commands.track import register
+
+        parser = argparse.ArgumentParser()
+        sub = parser.add_subparsers(dest="command")
+        register(sub)
+
+        args_show = parser.parse_args(["track", "show", "0.31.0-W4-001"])
+        assert args_show.operation == "show"
+        assert args_show.ticket_id == "0.31.0-W4-001"
+
+        args_full = parser.parse_args(["track", "full", "0.31.0-W4-001"])
+        assert args_full.operation == "full"
+        assert args_full.ticket_id == "0.31.0-W4-001"
+
+
 class TestLog:
     """執行日誌查詢測試"""
 
