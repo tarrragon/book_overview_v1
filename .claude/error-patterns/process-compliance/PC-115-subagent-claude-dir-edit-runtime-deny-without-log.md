@@ -99,7 +99,7 @@ deny 訊息為標準 CC 模板「Permission to use Edit has been denied. IMPORTA
 
 ## 待重啟調查的候選假設
 
-Hypothesis K 否證後，W17-097.1-.4 的 4/4 deny 仍需解釋。可能候選（尚未測試）：
+Hypothesis K 否證後，W17-097.1-.4 的 4/4 deny 仍需解釋。**調查計畫已建立**：W17-110（含 W17-110.1/.2/.3/.4 spawned 子實驗 ticket，按 ROI 排序，含 W17-104 反模式 1-4 自查清單）。可能候選（尚未測試）：
 
 | 候選 | 描述 | 區辨設計 |
 |------|------|---------|
