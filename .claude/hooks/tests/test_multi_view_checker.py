@@ -207,6 +207,32 @@ def test_ana_invalid_value_should_warn(project_dir, logger):
 
 
 # ---------------------------------------------------------------------------
+# 額外情境：value 含冒號 → 警告附 nested 結構誤用提示（PC-117 / W17-111）
+# ---------------------------------------------------------------------------
+
+def test_invalid_value_with_colon_includes_nested_hint(project_dir, logger):
+    """value 含冒號時警告訊息應附 nested 結構誤用提示（PC-117 / W17-111）。
+
+    模擬 PM 將 multi_view_status 與子欄位寫在同一行（如 `multi_view_status: status: skipped`），
+    _parse_field 將整段冒號後內容當作 value 回傳，觸發 invalid value 分支。
+    """
+    body = (
+        "multi_view_status: status: skipped\n"
+        "reason: test\n"
+    )
+    content = _make_content(body)
+    fm = {"id": "0.18.0-W10-999", "type": "ANA"}
+
+    should_warn, msg = check_multi_view_status(content, fm, project_dir, logger)
+
+    assert should_warn is True
+    assert msg is not None
+    assert "偵測到值含冒號" in msg
+    assert "nested YAML" in msg
+    assert "multi_view_status: skipped" in msg
+
+
+# ---------------------------------------------------------------------------
 # 額外情境：Solution 區段缺失 → 警告
 # ---------------------------------------------------------------------------
 
