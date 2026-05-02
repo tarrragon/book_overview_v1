@@ -504,7 +504,7 @@ def execute_full(args: argparse.Namespace, version: str) -> int:
 
 
 def execute_log(args: argparse.Namespace, version: str) -> int:
-    """顯示執行日誌區塊"""
+    """顯示執行日誌區塊；可選 --section 過濾單一區段"""
     ticket, error = load_and_validate_ticket(version, args.ticket_id)
     if error:
         return 1
@@ -517,6 +517,29 @@ def execute_log(args: argparse.Namespace, version: str) -> int:
 
     if not body:
         print(format_warning(WarningMessages.NO_BODY_CONTENT, ticket_id=args.ticket_id))
+        return 0
+
+    # W17-008.3: --section 過濾分支（與 append-log section pattern 同步，W17-008.9 容錯規則）
+    section = getattr(args, "section", None)
+    if section:
+        # MULTILINE 模式 + \s+ 容多空白 + \s*$ 容尾空白；re.escape 避前綴誤匹配
+        header_pattern = rf"^##\s+{re.escape(section)}\s*$"
+        header_match = re.search(header_pattern, body, re.MULTILINE)
+        if not header_match:
+            existing_headers = re.findall(r"^##\s+.+$", body, re.MULTILINE)
+            print(format_error(ErrorMessages.SECTION_NOT_FOUND, ticket_id=args.ticket_id, section=section))
+            if existing_headers:
+                print(f"  該 ticket 現有 ## 標題：")
+                for header in existing_headers:
+                    print(f"    - {header.strip()}")
+            else:
+                print(f"  該 ticket md 無任何 ## 標題")
+            return 1
+        section_start = header_match.start()
+        content_start = header_match.end()
+        next_match = re.search(r"\n## ", body[content_start:])
+        section_end = content_start + next_match.start() if next_match else len(body)
+        print(body[section_start:section_end])
         return 0
 
     # 尋找 "# Execution Log" 區塊

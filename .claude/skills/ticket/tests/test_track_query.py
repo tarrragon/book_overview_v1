@@ -439,6 +439,71 @@ class TestLog:
             assert result == 0
 
 
+class TestLogSection:
+    """W17-008.3: ticket track log --section 過濾測試（與 W17-008.9 容錯規則同步）"""
+
+    def _make_args(self, section):
+        args = Mock()
+        args.ticket_id = "0.31.0-W4-001"
+        args.version = "0.31.0"
+        args.section = section
+        return args
+
+    def _mock_ticket(self, body):
+        return {"id": "0.31.0-W4-001", "title": "Test", "_body": body}
+
+    def test_section_standard(self, capsys):
+        """標準 section 標題 → 只輸出該 section 內容"""
+        body = "## Problem Analysis\n問題描述\n\n## Solution\n解法內容\n\n## Test Results\n測試\n"
+        with patch('ticket_system.lib.ticket_ops.load_ticket', return_value=self._mock_ticket(body)):
+            assert execute_log(self._make_args("Solution"), "0.31.0") == 0
+        out = capsys.readouterr().out
+        assert "## Solution" in out
+        assert "解法內容" in out
+        assert "問題描述" not in out
+        assert "Test Results" not in out
+
+    def test_section_trailing_whitespace(self, capsys):
+        """標題尾端空白容錯（W17-008.9）"""
+        body = "## Solution   \n內容\n\n## Other\nx\n"
+        with patch('ticket_system.lib.ticket_ops.load_ticket', return_value=self._mock_ticket(body)):
+            assert execute_log(self._make_args("Solution"), "0.31.0") == 0
+        assert "內容" in capsys.readouterr().out
+
+    def test_section_double_space_after_hash(self, capsys):
+        """## 與標題間多空白容錯（\\s+）"""
+        body = "##  Solution\n內容\n\n## Other\nx\n"
+        with patch('ticket_system.lib.ticket_ops.load_ticket', return_value=self._mock_ticket(body)):
+            assert execute_log(self._make_args("Solution"), "0.31.0") == 0
+        assert "內容" in capsys.readouterr().out
+
+    def test_section_prefix_no_false_match(self, capsys):
+        """前綴相同不應誤匹配：搜 Solution 不應命中 Solutions"""
+        body = "## Solutions\n錯誤命中\n\n## Other\nx\n"
+        with patch('ticket_system.lib.ticket_ops.load_ticket', return_value=self._mock_ticket(body)):
+            assert execute_log(self._make_args("Solution"), "0.31.0") == 1
+        out = capsys.readouterr().out
+        assert "無 'Solution' 區段" in out
+        assert "## Solutions" in out  # 引導列出現有標題
+
+    def test_section_not_found_lists_existing(self, capsys):
+        """section 不存在時列出現有標題引導"""
+        body = "## Problem Analysis\nx\n\n## Other\ny\n"
+        with patch('ticket_system.lib.ticket_ops.load_ticket', return_value=self._mock_ticket(body)):
+            assert execute_log(self._make_args("Solution"), "0.31.0") == 1
+        out = capsys.readouterr().out
+        assert "現有 ## 標題" in out
+        assert "## Problem Analysis" in out
+
+    def test_no_section_falls_back_to_full_log(self, capsys):
+        """無 --section 時走原本 Execution Log 路徑（回歸）"""
+        body = "# Execution Log\n\n- 2026-01-30 entry\n"
+        args = self._make_args(None)
+        with patch('ticket_system.lib.ticket_ops.load_ticket', return_value=self._mock_ticket(body)):
+            assert execute_log(args, "0.31.0") == 0
+        assert "Execution Log" in capsys.readouterr().out
+
+
 class TestList:
     """Ticket 列表查詢測試"""
 

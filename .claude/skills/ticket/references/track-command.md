@@ -29,8 +29,13 @@
 # 完整內容（show 為 full 的 alias，對齊 git/docker/kubectl 慣例；W17-008.2）
 /ticket track show <id>
 
-# 執行日誌
+# 執行日誌（全部）
 /ticket track log <id>
+
+# 執行日誌（過濾單一 section，W17-008.3；對齊 append-log 介面）
+# 範例：/ticket track log <id> --section "Solution"
+# 可用 section：Problem Analysis / Context Bundle / Solution / Test Results / Execution Log
+/ticket track log <id> --section "<Section Name>"
 
 # 列出 Tickets
 /ticket track list [--pending|--in-progress|--completed|--blocked]

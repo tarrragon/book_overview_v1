@@ -454,6 +454,8 @@ def _register_query_commands(
     p_log = subparsers.add_parser("log", help=TrackMessages.HELP_LOG)
     p_log.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
     p_log.add_argument("--version", help=TrackMessages.ARG_VERSION)
+    # W17-008.3: --section 過濾，對齊 append-log 介面對稱性
+    p_log.add_argument("--section", help=TrackMessages.ARG_SECTION, default=None)
 
     # version 操作
     p_version = subparsers.add_parser("version", help=TrackMessages.HELP_VERSION)
