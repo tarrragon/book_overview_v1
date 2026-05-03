@@ -127,6 +127,10 @@
           {
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/file-type-permission-hook.py"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/framework-rule-edit-skill-trigger-hook.py"
           }
         ]
       },
@@ -152,6 +156,10 @@
           {
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/skills/strategic-compact/suggest-compact.py"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/framework-rule-edit-skill-trigger-hook.py"
           }
         ]
       },

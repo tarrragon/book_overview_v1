@@ -1231,30 +1231,65 @@ def _print_claim_checklist(ticket: Dict[str, Any]) -> None:
     _print_claim_wrap_prompt(ticket_type, ticket)
 
 
-# Framework 路徑前綴清單（S 問觸發條件，[Ticket 0.18.0-W17-125]）
-# TODO(W17-127): 抽到 .claude/config/framework-paths.yaml SSOT
-_FRAMEWORK_PATH_PREFIXES = (
+def _has_framework_path(ticket: Dict[str, Any]) -> bool:
+    """檢查 ticket where.files 是否任一路徑命中 framework 路徑前綴。
+
+    [Ticket 0.18.0-W17-127.2] 改用 .claude/hooks/lib/framework_paths.is_framework_path
+    為唯一 SSOT，移除原 _FRAMEWORK_PATH_PREFIXES inline 清單（避免 SSOT 漂移）。
+    若 lib 不可用（隔離測試環境）則 fallback 至既有前綴清單以維持向後相容。
+    """
+    where = ticket.get("where") or {}
+    files = where.get("files") or []
+    if not isinstance(files, list):
+        return False
+
+    is_fw = _resolve_framework_path_checker()
+    for path in files:
+        if not isinstance(path, str):
+            continue
+        if is_fw(path):
+            return True
+    return False
+
+
+def _resolve_framework_path_checker():
+    """取得 framework path 判定函式（lib SSOT 為主，fallback 至 inline 前綴）。
+
+    Lazy import：避免 lifecycle 模組於非 hook 環境（如純 ticket CLI 單元測試）
+    強依賴 hooks/lib 與 PyYAML。失敗時降級至 inline 前綴比對，保留既有行為。
+    """
+    try:
+        # 將 .claude/hooks/ 加入 sys.path（從專案根目錄推導）
+        # lifecycle.py: .claude/skills/ticket/ticket_system/commands/lifecycle.py
+        # → 上溯 5 層至 .claude/，再進 hooks/
+        claude_dir = Path(__file__).resolve().parents[4]
+        hooks_dir = claude_dir / "hooks"
+        if str(hooks_dir) not in sys.path:
+            sys.path.insert(0, str(hooks_dir))
+        from lib import framework_paths  # noqa: WPS433
+        return framework_paths.is_framework_path
+    except Exception:  # noqa: BLE001 — 任何 import 失敗皆 fallback
+        return _fallback_is_framework_path
+
+
+# Fallback 前綴清單（與 .claude/config/framework-paths.yaml 的 framework_paths 對齊）
+# 僅在 lib.framework_paths 不可用時使用；正常路徑由 lib SSOT 負責。
+_FALLBACK_FRAMEWORK_PREFIXES = (
     ".claude/rules/",
     ".claude/pm-rules/",
     ".claude/references/",
     ".claude/skills/",
     ".claude/methodologies/",
     ".claude/agents/",
+    ".claude/error-patterns/",
 )
 
 
-def _has_framework_path(ticket: Dict[str, Any]) -> bool:
-    """檢查 ticket where.files 是否任一路徑命中 framework 路徑前綴。"""
-    where = ticket.get("where") or {}
-    files = where.get("files") or []
-    if not isinstance(files, list):
+def _fallback_is_framework_path(path: str) -> bool:
+    """lib.framework_paths 不可用時的降級判定。"""
+    if not isinstance(path, str) or not path:
         return False
-    for path in files:
-        if not isinstance(path, str):
-            continue
-        if any(path.startswith(prefix) for prefix in _FRAMEWORK_PATH_PREFIXES):
-            return True
-    return False
+    return any(path.startswith(p) for p in _FALLBACK_FRAMEWORK_PREFIXES)
 
 
 def _print_claim_wrap_prompt(
