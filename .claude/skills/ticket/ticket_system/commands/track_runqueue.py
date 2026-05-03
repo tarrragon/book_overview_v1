@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Iterable, List, Literal, Optional, Set
@@ -36,8 +37,9 @@ from ticket_system.lib.critical_path import (
     CriticalPathAnalyzer,
     CriticalPathResult,
 )
-from ticket_system.lib.ticket_loader import list_tickets
+from ticket_system.lib.ticket_loader import list_tickets, load_ticket
 from ticket_system.lib.paths import get_project_root
+from ticket_system.lib.section_locator import find_section
 
 
 # ---------------------------------------------------------------------------
@@ -144,6 +146,86 @@ def _get_exit_status_tag(handoff_info: Optional[Dict]) -> Optional[str]:
     return None
 
 
+# ---------------------------------------------------------------------------
+# W17-031.3: Readiness 標註
+# ---------------------------------------------------------------------------
+
+# Readiness tags（W17-031.3 ticket md 判定規則表）
+READINESS_READY = "READY"
+READINESS_NEEDS_CTX = "NEEDS-CTX"
+READINESS_BLOCKED = "BLOCKED"
+READINESS_FAILED = "FAILED"
+READINESS_NO_CB = "NO-CB"
+
+# exit_status → readiness tag 映射（非 success / 缺欄位）
+_EXIT_STATUS_TO_READINESS: Dict[str, str] = {
+    "needs_context": READINESS_NEEDS_CTX,
+    "blocked": READINESS_BLOCKED,
+    "failed": READINESS_FAILED,
+}
+
+
+def _has_context_bundle(ticket: Dict) -> bool:
+    """檢查 ticket body 是否含非空 Context Bundle 段落。
+
+    讀取順序：先用既有 _body 欄位（list_tickets 載入時附加）；若無則
+    fallback 用 load_ticket 重新載入。判定「非空」：去除 placeholder /
+    HTML 註解 / 空白後仍有實質內容。
+    """
+    body: Optional[str] = ticket.get("_body")
+    if body is None:
+        ticket_id = ticket.get("id")
+        version = ticket.get("version")
+        if not ticket_id or not version:
+            return False
+        loaded = load_ticket(str(version), str(ticket_id))
+        if not loaded:
+            return False
+        body = loaded.get("_body") or ""
+
+    if not body:
+        return False
+
+    match = find_section(body, "Context Bundle")
+    if not match.found:
+        return False
+
+    content = match.content or ""
+    # 移除 HTML 註解
+    cleaned = re.sub(r"<!--.*?-->", "", content, flags=re.DOTALL)
+    # 去空白後判斷是否有實質內容
+    return bool(cleaned.strip())
+
+
+def _compute_readiness(
+    ticket: Dict, handoff_info: Optional[Dict[str, Dict]] = None
+) -> str:
+    """計算 ticket 的 readiness tag（W17-031.3 判定規則表）。
+
+    規則順序：
+    1. exit_status in {needs_context, blocked, failed} → 對應 tag
+    2. exit_status == success → READY
+    3. Context Bundle 段落非空 → READY
+    4. 其他 → NO-CB
+    """
+    handoff_info = handoff_info or {}
+    info = handoff_info.get(ticket.get("id"))
+    exit_status_obj = (info or {}).get("exit_status") if isinstance(info, dict) else None
+    if isinstance(exit_status_obj, dict):
+        status = exit_status_obj.get("status")
+        if isinstance(status, str):
+            mapped = _EXIT_STATUS_TO_READINESS.get(status)
+            if mapped:
+                return mapped
+            if status == "success":
+                return READINESS_READY
+            # partial_success / 未知值 → fallthrough 改用 Context Bundle 判定
+
+    if _has_context_bundle(ticket):
+        return READINESS_READY
+    return READINESS_NO_CB
+
+
 def _apply_context_resume(
     tickets: List[Dict], context: Optional[str]
 ) -> List[Dict]:
@@ -204,8 +286,11 @@ def _render_list(
         # blockedBy=[] runnable 標記，避免 scheduler 誤把待補料 ticket 當可接手
         tag = _get_exit_status_tag(handoff_info.get(tid)) if context == "resume" else None
         suffix = f"[{tag}]" if tag else "blockedBy=[]"
+        # W17-031.3: readiness tag（READY / NEEDS-CTX / BLOCKED / FAILED / NO-CB）
+        # 不影響排序；資訊是 PM 派發前判斷可接手與否的可視訊號
+        readiness = _compute_readiness(ticket, handoff_info)
         lines.append(
-            f"  {idx}. [{priority}] {tid}  {title}  {suffix}"
+            f"  {idx}. [{priority}] [{readiness}] {tid}  {title}  {suffix}"
         )
     return "\n".join(lines)
 
@@ -337,8 +422,9 @@ def render_runqueue(args: argparse.Namespace, version: str) -> str:
     scoped = _apply_context_resume(scoped, context)
 
     # W17-031.1: resume 模式下載入 handoff info 供 _render_list 標 exit_status tag
+    # W17-031.3: list 視圖一律載入 handoff info 供 readiness 計算（READY/NEEDS-CTX 等）
     handoff_info: Dict[str, Dict] = (
-        _get_pending_handoff_info() if context == "resume" else {}
+        _get_pending_handoff_info() if (context == "resume" or fmt == FORMAT_LIST) else {}
     )
 
     if fmt == FORMAT_LIST:

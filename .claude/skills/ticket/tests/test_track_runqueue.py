@@ -401,6 +401,141 @@ class TestRunqueueExitStatusTag:
         assert "blockedBy=[]" in out
 
 
+class TestRunqueueReadinessTag:
+    """W17-031.3: runqueue list 輸出 readiness tag。
+
+    判定規則（ticket md 表）：
+    - exit_status=needs_context → [NEEDS-CTX]
+    - exit_status=blocked → [BLOCKED]
+    - exit_status=failed → [FAILED]
+    - exit_status=success 或 Context Bundle 段落非空 → [READY]
+    - 無 exit_status 且無 Context Bundle → [NO-CB]
+    """
+
+    def _make_handoff(self, ticket_id: str, status: str) -> Dict:
+        return {
+            "ticket_id": ticket_id,
+            "direction": "to-self",
+            "from_status": "in_progress",
+            "exit_status": {"status": status, "reason": ""},
+        }
+
+    def test_ready_when_exit_status_success(self):
+        tickets = [_make_ticket("TIX-RDY-1", blocked_by=[])]
+        info = {"TIX-RDY-1": self._make_handoff("TIX-RDY-1", "success")}
+        with patch(
+            "ticket_system.commands.track_runqueue.list_tickets",
+            return_value=tickets,
+        ), patch(
+            "ticket_system.commands.track_runqueue._get_pending_handoff_info",
+            return_value=info,
+        ):
+            rc, out = _run(_args(format="list"))
+        assert rc == 0
+        assert "[READY]" in out
+        assert "TIX-RDY-1" in out
+
+    def test_ready_when_context_bundle_present(self):
+        ticket = _make_ticket("TIX-CB-1", blocked_by=[])
+        ticket["_body"] = (
+            "# Execution Log\n\n"
+            "## Context Bundle\n\n"
+            "Some real context content here.\n\n"
+            "## Solution\n"
+        )
+        with patch(
+            "ticket_system.commands.track_runqueue.list_tickets",
+            return_value=[ticket],
+        ), patch(
+            "ticket_system.commands.track_runqueue._get_pending_handoff_info",
+            return_value={},
+        ):
+            rc, out = _run(_args(format="list"))
+        assert rc == 0
+        assert "[READY]" in out
+
+    def test_no_cb_when_no_exit_status_and_no_context_bundle(self):
+        tickets = [_make_ticket("TIX-NOCB-1", blocked_by=[])]
+        with patch(
+            "ticket_system.commands.track_runqueue.list_tickets",
+            return_value=tickets,
+        ):
+            rc, out = _run(_args(format="list"))
+        assert rc == 0
+        assert "[NO-CB]" in out
+
+    def test_needs_ctx_readiness_tag(self):
+        tickets = [_make_ticket("TIX-NC-1", blocked_by=[])]
+        info = {"TIX-NC-1": self._make_handoff("TIX-NC-1", "needs_context")}
+        with patch(
+            "ticket_system.commands.track_runqueue.list_tickets",
+            return_value=tickets,
+        ), patch(
+            "ticket_system.commands.track_runqueue._get_pending_handoff_info",
+            return_value=info,
+        ):
+            rc, out = _run(_args(format="list"))
+        assert rc == 0
+        assert "[NEEDS-CTX]" in out
+        assert "[READY]" not in out
+
+    def test_context_bundle_with_only_html_comment_is_empty(self):
+        """空 Context Bundle 段落（僅 HTML 註解）→ NO-CB 而非 READY"""
+        ticket = _make_ticket("TIX-EMPTY-CB", blocked_by=[])
+        ticket["_body"] = (
+            "# Execution Log\n\n"
+            "## Context Bundle\n\n"
+            "<!-- placeholder for context -->\n\n"
+            "## Solution\n"
+        )
+        with patch(
+            "ticket_system.commands.track_runqueue.list_tickets",
+            return_value=[ticket],
+        ):
+            rc, out = _run(_args(format="list"))
+        assert rc == 0
+        assert "[NO-CB]" in out
+        assert "[READY]" not in out
+
+    def test_readiness_does_not_change_priority_order(self):
+        """readiness 標註不影響 priority 排序（AC 3）"""
+        tickets = [
+            _make_ticket("TIX-LOW", priority="P3", blocked_by=[]),
+            _make_ticket("TIX-HI", priority="P0", blocked_by=[]),
+        ]
+        # 高優先級 NO-CB；低優先級 READY（success），確保 readiness 不影響排序
+        ticket_hi_body = tickets[1]
+        info = {"TIX-LOW": self._make_handoff("TIX-LOW", "success")}
+        with patch(
+            "ticket_system.commands.track_runqueue.list_tickets",
+            return_value=tickets,
+        ), patch(
+            "ticket_system.commands.track_runqueue._get_pending_handoff_info",
+            return_value=info,
+        ):
+            rc, out = _run(_args(format="list"))
+        assert rc == 0
+        # P0 仍排第一，即使是 NO-CB
+        assert out.find("TIX-HI") < out.find("TIX-LOW"), (
+            f"priority 排序被 readiness 影響: {out}"
+        )
+
+    def test_blocked_pending_excluded_from_list(self):
+        """blockedBy 非空仍被排除（readiness 不放寬 list 過濾條件）"""
+        tickets = [
+            _make_ticket("TIX-OPEN", blocked_by=[]),
+            _make_ticket("TIX-BLOCKED", blocked_by=["TIX-OPEN"]),
+        ]
+        with patch(
+            "ticket_system.commands.track_runqueue.list_tickets",
+            return_value=tickets,
+        ):
+            rc, out = _run(_args(format="list"))
+        assert rc == 0
+        assert "TIX-OPEN" in out
+        assert "TIX-BLOCKED" not in out
+
+
 class TestRunqueueCycleDetection:
     """復用 CycleDetector：有環時給出錯誤訊息"""
 
