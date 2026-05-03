@@ -61,7 +61,17 @@
 | PM 迷失方向 / 新 session 接手 | `ticket track runqueue --wave N`                        | priority 排序的可執行清單（blockedBy=[]） |
 | 查看完整依賴 DAG              | `ticket track runqueue --wave N --format=dag`           | 拓撲層級分組，關鍵路徑高亮                |
 | 查看關鍵路徑節點              | `ticket track runqueue --wave N --format=critical-path` | slack=0 節點（CPM）                       |
-| /clear 後接手                 | `ticket track runqueue --context=resume --top 3`        | 與 handoff/pending 交集 top 3             |
+| /clear 後接手                 | `ticket track runqueue --context=resume --top 3`        | 與 handoff/pending 交集 top 3，含 exit_status tag |
+
+**Exit Status tag（W17-031.1）**：`--context=resume` 模式下，list 視圖讀取 handoff JSON 的 `exit_status.status` 欄位，四類狀態以 `[<status>]` 取代 `blockedBy=[]` runnable 標記，避免 scheduler 誤把待補料 ticket 當可直接接手：
+
+| Tag                 | 含義                              |
+| ------------------- | --------------------------------- |
+| `[needs_context]`   | agent 回報資料缺口，待 PM 補料     |
+| `[blocked]`         | 環境/依賴阻塞，無法繼續           |
+| `[failed]`          | 執行失敗                          |
+| `[partial_success]` | 部分完成，剩餘子任務待跟進        |
+| 無 tag（保留 `blockedBy=[]`） | success / 缺欄位 / 未知值（fail-open，相容舊 handoff JSON） |
 
 **參數**：
 
