@@ -103,6 +103,53 @@ class TestIsFrameworkPath:
 
 
 # ============================================================================
+# is_framework_path_broad（W17-132 SSOT 邊界拆分）
+# ============================================================================
+
+
+class TestIsFrameworkPathBroad:
+    def test_hooks_path_strict_false_broad_true(self):
+        """.claude/hooks/ 路徑：strict=False（PreToolUse 不誤擋）/ broad=True（lifecycle S 問觸發）"""
+        hook_path = ".claude/hooks/commit-msg-layer2-marker-check-hook.py"
+        assert not framework_paths.is_framework_path(hook_path), \
+            "strict 不應含 .claude/hooks/（避免 PreToolUse 對所有 hook Edit 誤擋）"
+        assert framework_paths.is_framework_path_broad(hook_path), \
+            "broad 應含 .claude/hooks/（lifecycle.py 對 hook IMP 應觸發 S 問）"
+
+    def test_strict_paths_also_broad(self):
+        """strict 範圍內路徑 broad 必為 True（broad 為 strict 超集）"""
+        for path in (
+            ".claude/rules/core/quality-baseline.md",
+            ".claude/pm-rules/decision-tree.md",
+            ".claude/skills/ticket/SKILL.md",
+            ".claude/methodologies/wrap-decision.md",
+            ".claude/agents/AGENT_PRELOAD.md",
+            ".claude/error-patterns/process-compliance/PC-088.md",
+        ):
+            assert framework_paths.is_framework_path(path), f"strict 應含 {path}"
+            assert framework_paths.is_framework_path_broad(path), f"broad 應含 {path}"
+
+    def test_non_framework_both_false(self):
+        """非 framework 路徑 strict 和 broad 都 False"""
+        for path in ("src/foo.py", "docs/work-logs/v0/foo.md", "README.md", ""):
+            assert not framework_paths.is_framework_path(path)
+            assert not framework_paths.is_framework_path_broad(path)
+
+    def test_hooks_tests_exempt_in_broad(self):
+        """.claude/hooks/tests/ 屬豁免清單，broad 也應 False"""
+        assert not framework_paths.is_framework_path_broad(
+            ".claude/hooks/tests/test_framework_paths.py"
+        )
+
+    def test_get_framework_paths_broad_loaded(self):
+        broad = framework_paths.get_framework_paths_broad()
+        assert ".claude/hooks/" in broad
+        # broad 為 strict 超集
+        for prefix in framework_paths.get_framework_paths():
+            assert prefix in broad
+
+
+# ============================================================================
 # is_layer1_path 行為等價
 # ============================================================================
 

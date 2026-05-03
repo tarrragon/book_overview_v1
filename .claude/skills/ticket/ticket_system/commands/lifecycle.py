@@ -1234,8 +1234,10 @@ def _print_claim_checklist(ticket: Dict[str, Any]) -> None:
 def _has_framework_path(ticket: Dict[str, Any]) -> bool:
     """檢查 ticket where.files 是否任一路徑命中 framework 路徑前綴。
 
-    [Ticket 0.18.0-W17-127.2] 改用 .claude/hooks/lib/framework_paths.is_framework_path
-    為唯一 SSOT，移除原 _FRAMEWORK_PATH_PREFIXES inline 清單（避免 SSOT 漂移）。
+    [Ticket 0.18.0-W17-127.2] 改用 .claude/hooks/lib/framework_paths 為唯一 SSOT，
+    移除原 _FRAMEWORK_PATH_PREFIXES inline 清單（避免 SSOT 漂移）。
+    [Ticket 0.18.0-W17-132] 改用 is_framework_path_broad（strict + .claude/hooks/）：
+    hook 內警告訊息屬規範性產物，編輯時亦應觸發 S 問提示讀 SKILL。
     若 lib 不可用（隔離測試環境）則 fallback 至既有前綴清單以維持向後相容。
     """
     where = ticket.get("where") or {}
@@ -1267,13 +1269,14 @@ def _resolve_framework_path_checker():
         if str(hooks_dir) not in sys.path:
             sys.path.insert(0, str(hooks_dir))
         from lib import framework_paths  # noqa: WPS433
-        return framework_paths.is_framework_path
+        return framework_paths.is_framework_path_broad
     except Exception:  # noqa: BLE001 — 任何 import 失敗皆 fallback
         return _fallback_is_framework_path
 
 
-# Fallback 前綴清單（與 .claude/config/framework-paths.yaml 的 framework_paths 對齊）
+# Fallback 前綴清單（與 .claude/config/framework-paths.yaml 的 framework_paths_broad 對齊）
 # 僅在 lib.framework_paths 不可用時使用；正常路徑由 lib SSOT 負責。
+# [Ticket 0.18.0-W17-132] 加入 .claude/hooks/ 對齊 broad 範圍。
 _FALLBACK_FRAMEWORK_PREFIXES = (
     ".claude/rules/",
     ".claude/pm-rules/",
@@ -1282,6 +1285,7 @@ _FALLBACK_FRAMEWORK_PREFIXES = (
     ".claude/methodologies/",
     ".claude/agents/",
     ".claude/error-patterns/",
+    ".claude/hooks/",
 )
 
 
