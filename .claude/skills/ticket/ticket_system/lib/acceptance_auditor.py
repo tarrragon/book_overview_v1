@@ -358,39 +358,19 @@ def validate_execution_log_completeness(body: str) -> Tuple[bool, List[str]]:
     if not body or not isinstance(body, str):
         return False, [f"所有區段未填寫：{', '.join(required_sections)}"]
 
-    for section in required_sections:
-        # 搜尋區段標題（支援 ## 或 ### 層級）
-        patterns = [
-            rf"^##\s+{re.escape(section)}\s*$",
-            rf"^###\s+{re.escape(section)}\s*$"
-        ]
+    # W17-117.1: 統一抽至 section_locator helper（雙層級 ##/###）
+    from ticket_system.lib.section_locator import find_section
 
-        section_match = None
-        for pattern in patterns:
-            section_match = re.search(pattern, body, re.MULTILINE)
-            if section_match:
-                break
+    for section in required_sections:
+        match = find_section(body, section, levels=(2, 3))
 
         # 找不到區段標題
-        if not section_match:
+        if not match.found:
             missing_sections.append(section)
             continue
 
-        # 擷取區段內容（從標題到下一個同層級 ## 標題或文件結尾）
-        # 注意：### 子標題屬於父區段內容，不作為邊界
-        content_start = section_match.end()
-
-        # 找到下一個同層級區段的開頭
-        next_section_pattern = r"\n## "
-        next_match = re.search(next_section_pattern, body[content_start:])
-
-        if next_match:
-            section_content = body[content_start:content_start + next_match.start()]
-        else:
-            section_content = body[content_start:]
-
         # 檢查區段內容是否為佔位符或空白
-        if _is_placeholder(section_content):
+        if _is_placeholder(match.content):
             missing_sections.append(section)
 
     if missing_sections:
