@@ -740,9 +740,9 @@ class ClaimWrapMessages:
     WRAP_SKILL_TRIGGER = (
         "  S（SKILL trigger）—— framework 規則層 Edit 提示\n"
         "    本次 ticket where.files 含 framework 路徑（規則/方法論/skill/agent）。\n"
-        "    Read .claude/skills/compositional-writing/SKILL.md 的成本約 2-3K token，\n"
-        "    可換取首次撰寫品質；跳過的成本是事後 Layer 2 委員補做約 5-10K token。\n"
-        "    同 session 已 Read 過時可省略。"
+        "    Trade-off：Read .claude/skills/compositional-writing/SKILL.md 約 2-3K token\n"
+        "    換取首次撰寫品質；跳過則事後 Layer 2 委員補修約 5-10K token。\n"
+        "    同 session 已 Read 過、或本次 Edit 屬純格式調整時可省略。"
     )
 
     # ANA 類型專屬第四問（PC-063 防護 4/4）

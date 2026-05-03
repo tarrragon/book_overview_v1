@@ -85,7 +85,8 @@ STRICT_MESSAGE = """\
 [skill-trigger][strict] 偵測到 framework 規則層編輯：{path}
 
 當前 strict 模式啟用（.claude/config/skill-trigger-strict.yaml）。
-建議在繼續編輯前讀一次 compositional-writing SKILL，再重試本次操作：
+建議在繼續編輯前讀一次 compositional-writing SKILL，再重試本次操作；
+讀後重試可獲得原則 3 自動覆蓋，若範圍未涉原則 3 維度可走豁免條件標記：
 
   Skill: compositional-writing
 
@@ -94,7 +95,8 @@ STRICT_MESSAGE = """\
 - 已在近期 session 讀過 SKILL 且本次 Edit 範圍未涉原則 3 維度
 - 修正既有錯字 / 簡體字 / 禁用詞
 
-切回警告模式：將 skill-trigger-strict.yaml 的 strict 改回 false。
+切回警告模式：將 skill-trigger-strict.yaml 的 strict 改回 false
+（適用於 strict 在當前情境成本過高時的撤回路徑）。
 """
 
 
