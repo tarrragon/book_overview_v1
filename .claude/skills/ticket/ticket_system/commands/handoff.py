@@ -11,6 +11,7 @@ if __name__ == "__main__":
 
 
 import argparse
+import dataclasses
 import json
 import sys
 from datetime import datetime
@@ -1114,6 +1115,49 @@ def _print_auto_runqueue_hint(version: str) -> None:
         print(_AUTO_RUNQUEUE_EMPTY_MESSAGE)
 
 
+def _extract_context_bundle_for_handoff(
+    ticket: Dict[str, Any],
+) -> Optional[Dict[str, Any]]:
+    """
+    為 handoff --auto 抽取 Context Bundle 並序列化為 JSON 可存的 dict。
+
+    呼叫 W17-002 既有 extract_context_bundle()，將 ExtractResult 透過
+    dataclasses.asdict 序列化。抽取失敗時降級為 warning（stderr），
+    回傳 None 不阻擋 handoff 主流程（W17-031 盲區 B 設計）。
+
+    Args:
+        ticket: 已載入的 ticket dict（frontmatter）
+
+    Returns:
+        dict（成功）或 None（抽取失敗 / 模組不可用 / 其它例外）
+    """
+    try:
+        from ticket_system.lib.context_bundle_extractor import (
+            extract_context_bundle,
+        )
+    except Exception as exc:  # pragma: no cover - 防禦性
+        print(
+            format_warning(
+                f"Context Bundle 抽取器不可用，handoff 不附 context_bundle：{exc}"
+            ),
+            file=sys.stderr,
+        )
+        return None
+
+    try:
+        result = extract_context_bundle(ticket)
+        return dataclasses.asdict(result)
+    except Exception as exc:
+        # Non-raising 設計下不應到此；保留 fail-safe 確保 handoff 主流程不中斷。
+        print(
+            format_warning(
+                f"Context Bundle 抽取失敗，handoff 不附 context_bundle：{exc}"
+            ),
+            file=sys.stderr,
+        )
+        return None
+
+
 def _execute_auto_handoff(args: argparse.Namespace) -> int:
     """
     執行 --auto 模式 handoff。
@@ -1193,6 +1237,7 @@ def _execute_auto_handoff(args: argparse.Namespace) -> int:
         "chain": ticket.get("chain", {}),
         "resumed_at": None,
         "auto_generated": True,
+        "context_bundle": _extract_context_bundle_for_handoff(ticket),
     }
 
     try:
