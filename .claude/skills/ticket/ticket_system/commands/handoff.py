@@ -13,10 +13,13 @@ if __name__ == "__main__":
 import argparse
 import dataclasses
 import json
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
+
+import yaml
 
 from ticket_system.lib.constants import (
     STATUS_IN_PROGRESS,
@@ -448,6 +451,7 @@ def _create_handoff_file_internal(ticket: Dict[str, Any], direction: str) -> int
         "what": ticket.get("what"),
         "chain": ticket.get("chain", {}),
         "resumed_at": None,  # 未接手時為 None，resume 時更新
+        "exit_status": _extract_exit_status_for_handoff(ticket),
     }
 
     try:
@@ -1158,6 +1162,89 @@ def _extract_context_bundle_for_handoff(
         return None
 
 
+# Exit Status H2 section 抽取正則：匹配 `## Exit Status` 到下一個 `## ` 或檔尾。
+# 與 context_bundle_extractor._read_section_body 同模式。
+_EXIT_STATUS_SECTION_RE = re.compile(
+    r"##\s+Exit Status\s*\n(.*?)(?=^## |\Z)",
+    flags=re.MULTILINE | re.DOTALL,
+)
+
+# 匹配 ```yaml ... ``` 或 ``` ... ``` fenced code block（取首個）。
+_YAML_FENCE_RE = re.compile(
+    r"```(?:yaml)?\s*\n(.*?)```",
+    flags=re.DOTALL,
+)
+
+# 匹配 HTML 註解，用於剝離 schema 樣板註解區。
+_HTML_COMMENT_RE = re.compile(r"<!--.*?-->", flags=re.DOTALL)
+
+_VALID_EXIT_STATUSES = {
+    "success",
+    "needs_context",
+    "blocked",
+    "partial_success",
+    "failed",
+}
+
+
+def _extract_exit_status_for_handoff(
+    ticket: Dict[str, Any],
+) -> Optional[Dict[str, Any]]:
+    """為 handoff JSON 抽取 ticket body 的 Exit Status YAML（W17-031.6）。
+
+    讀 ticket _body 的 `## Exit Status` H2 section，剝除 HTML 註解（樣板）後
+    解析其 YAML 區塊（fenced ```yaml 優先，否則整段視為 YAML），回傳含
+    status 子欄位的 dict 供 runqueue / hook 使用。
+
+    Fail-open：缺段 / YAML 解析失敗 / status 非合法枚舉 → 回 None + stderr
+    warning，不阻擋 handoff 主流程。
+
+    Args:
+        ticket: 已載入的 ticket dict（需含 _body 欄位）
+
+    Returns:
+        dict（含 status 等子欄位）或 None
+    """
+    body = ticket.get("_body") if isinstance(ticket, dict) else None
+    if not isinstance(body, str) or not body:
+        return None
+
+    section_match = _EXIT_STATUS_SECTION_RE.search(body)
+    if not section_match:
+        return None  # 缺段：靜默回 None（樣板可能未渲染 H2，常見且非錯誤）
+
+    section = section_match.group(1)
+    # 剝除 HTML 註解（包含 schema 樣板說明）
+    cleaned = _HTML_COMMENT_RE.sub("", section).strip()
+    if not cleaned:
+        return None  # 段落只剩樣板註解
+
+    # 優先取 fenced YAML 區塊
+    fence_match = _YAML_FENCE_RE.search(cleaned)
+    yaml_text = fence_match.group(1) if fence_match else cleaned
+
+    try:
+        parsed = yaml.safe_load(yaml_text)
+    except yaml.YAMLError as exc:
+        print(
+            format_warning(
+                f"Exit Status YAML 解析失敗，handoff 不附 exit_status：{exc}"
+            ),
+            file=sys.stderr,
+        )
+        return None
+
+    if not isinstance(parsed, dict):
+        return None
+
+    status = parsed.get("status")
+    if not isinstance(status, str) or status not in _VALID_EXIT_STATUSES:
+        # status 缺失或非合法枚舉：仍回 None（runqueue tag 設計依賴 status 合法性）
+        return None
+
+    return parsed
+
+
 def _execute_auto_handoff(args: argparse.Namespace) -> int:
     """
     執行 --auto 模式 handoff。
@@ -1238,6 +1325,7 @@ def _execute_auto_handoff(args: argparse.Namespace) -> int:
         "resumed_at": None,
         "auto_generated": True,
         "context_bundle": _extract_context_bundle_for_handoff(ticket),
+        "exit_status": _extract_exit_status_for_handoff(ticket),
     }
 
     try:
