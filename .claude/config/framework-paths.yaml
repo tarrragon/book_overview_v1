@@ -1,0 +1,56 @@
+# framework-paths.yaml — Framework Path SSOT
+#
+# 用途：集中管理 framework 規則層路徑分類，供多個 hook 共用，避免雙寫漂移
+#       （linux 視角 SSOT 警示，W17-122 ANA 採納）。
+#
+# 消費端：
+#   - .claude/hooks/lib/framework_paths.py（提供 is_framework_path 等共用函式）
+#   - .claude/hooks/layer-boundary-validator-hook.py（透過 lib 取 layer1_paths）
+#   - .claude/hooks/agent-dispatch-validation-hook.py（透過 lib 取 categories）
+#   - 後續 W17-127.2 skill-trigger-hook、W17-126 commit-msg Layer 2 hook
+#
+# 修改原則：
+#   - 新增 framework 規則類別 → 加入 categories 與對應 paths
+#   - 不要在消費端 hook 內 inline glob/regex（破壞 SSOT）
+#   - 變更後執行 .claude/hooks/tests/test_framework_paths.py 與相關 hook tests
+
+# Framework 路徑類別清單（用於 dispatch-validation _META_TASK_PATTERNS 等場景）
+# 對應正則 (rules|agents|hooks|pm-rules|skills|references|methodologies|error-patterns)
+categories:
+  - rules
+  - pm-rules
+  - references
+  - skills
+  - methodologies
+  - agents
+  - hooks
+  - error-patterns
+
+# 廣義 framework 路徑（rules/methodology/skill/agent 全集合）
+# 用於 W17-127.2 skill-trigger-hook 偵測「PM 編輯 framework 規則」場景
+framework_paths:
+  - .claude/rules/
+  - .claude/pm-rules/
+  - .claude/references/
+  - .claude/methodologies/
+  - .claude/agents/
+  - .claude/skills/  # 含 SKILL.md 與 references/*.md（W17-122 basil 視角警示）
+  - .claude/error-patterns/
+
+# Layer 1 子集（layer-boundary-validator-hook 專用，narrower scope）
+# 不等同 framework_paths，僅含核心規則層
+layer1_paths:
+  - .claude/rules/core/
+  - .claude/rules/flows/
+  - .claude/rules/guides/
+  - .claude/rules/forbidden/
+  - .claude/skills/tdd/references/phase0/rules.md
+  - .claude/skills/tdd/references/portable-tdd-standard.md
+
+# 豁免路徑（即使匹配 framework_paths 也視為非 framework 編輯）
+# 用於避開測試檔、暫存檔、自動產出物
+exempt_paths:
+  - .claude/skills/**/tests/
+  - .claude/hooks/tests/
+  - .claude/hooks/__pycache__/
+  - .claude/hook-logs/
