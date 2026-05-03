@@ -40,6 +40,7 @@ from ticket_system.lib.critical_path import (
 from ticket_system.lib.ticket_loader import list_tickets, load_ticket
 from ticket_system.lib.paths import get_project_root
 from ticket_system.lib.section_locator import find_section
+from ticket_system.lib.staleness import is_stale_in_progress
 
 
 # ---------------------------------------------------------------------------
@@ -79,6 +80,20 @@ def _is_unblocked_pending(ticket: Dict) -> bool:
         return False
     blocked_by = ticket.get("blockedBy") or []
     return len(blocked_by) == 0
+
+
+def _is_listable(ticket: Dict) -> bool:
+    """W17-031.4: list 視圖納入條件 = unblocked pending OR stale in_progress。
+
+    stale in_progress 加入 list 是為了讓 PM 在 runqueue 看見遺留 ticket
+    並人工介入（評估 agent 真停滯還是長任務）。W17-033 自律 + acceptance-gate-hook
+    無法覆蓋 agent 中斷案例（agent 已不在）。
+    """
+    if _is_unblocked_pending(ticket):
+        return True
+    if is_stale_in_progress(ticket):
+        return True
+    return False
 
 
 def _filter_by_wave(tickets: Iterable[Dict], wave: Optional[int]) -> List[Dict]:
@@ -156,6 +171,9 @@ READINESS_NEEDS_CTX = "NEEDS-CTX"
 READINESS_BLOCKED = "BLOCKED"
 READINESS_FAILED = "FAILED"
 READINESS_NO_CB = "NO-CB"
+
+# W17-031.4: stale in_progress 標註（與 readiness tag 並列顯示）
+STALE_TAG = "STALE"
 
 # exit_status → readiness tag 映射（非 success / 缺欄位）
 _EXIT_STATUS_TO_READINESS: Dict[str, str] = {
@@ -249,7 +267,7 @@ def _render_list(
     context: Optional[str] = None,
     handoff_info: Optional[Dict[str, Dict]] = None,
 ) -> str:
-    runnable = [t for t in tickets if _is_unblocked_pending(t)]
+    runnable = [t for t in tickets if _is_listable(t)]
     runnable.sort(
         key=lambda t: (_priority_rank(t), str(t.get("id", "")))
     )
@@ -289,8 +307,11 @@ def _render_list(
         # W17-031.3: readiness tag（READY / NEEDS-CTX / BLOCKED / FAILED / NO-CB）
         # 不影響排序；資訊是 PM 派發前判斷可接手與否的可視訊號
         readiness = _compute_readiness(ticket, handoff_info)
+        # W17-031.4: stale in_progress tag（與 readiness 並列；可疊加）
+        # PM 看到 [STALE] → 人工介入評估（agent 真停滯 vs 長任務）
+        stale_suffix = f" [{STALE_TAG}]" if is_stale_in_progress(ticket) else ""
         lines.append(
-            f"  {idx}. [{priority}] [{readiness}] {tid}  {title}  {suffix}"
+            f"  {idx}. [{priority}] [{readiness}]{stale_suffix} {tid}  {title}  {suffix}"
         )
     return "\n".join(lines)
 

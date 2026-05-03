@@ -536,6 +536,90 @@ class TestRunqueueReadinessTag:
         assert "TIX-BLOCKED" not in out
 
 
+class TestRunqueueStaleInProgress:
+    """W17-031.4: runqueue list 標註 stale in_progress。
+
+    判定規則：
+    - status=in_progress 且 completed_at=None 且 started_at 距今 >= 24h → [STALE]
+    - status=in_progress 但 started_at < 24h → 不標
+    - status=completed → 不標（且不出現在 list）
+    """
+
+    def _stale_ticket(
+        self, ticket_id: str, hours_ago: float, **overrides
+    ) -> Dict:
+        from datetime import datetime, timedelta
+        started = (datetime.now() - timedelta(hours=hours_ago)).isoformat(
+            timespec="seconds"
+        )
+        ticket = _make_ticket(ticket_id, **overrides)
+        ticket["status"] = "in_progress"
+        ticket["started_at"] = started
+        ticket["completed_at"] = None
+        return ticket
+
+    def test_in_progress_over_24h_marked_stale(self):
+        tickets = [self._stale_ticket("TIX-STALE-1", hours_ago=30)]
+        with patch(
+            "ticket_system.commands.track_runqueue.list_tickets",
+            return_value=tickets,
+        ):
+            rc, out = _run(_args(format="list"))
+        assert rc == 0
+        assert "TIX-STALE-1" in out
+        assert "[STALE]" in out
+
+    def test_in_progress_under_24h_not_marked(self):
+        tickets = [self._stale_ticket("TIX-FRESH-1", hours_ago=2)]
+        with patch(
+            "ticket_system.commands.track_runqueue.list_tickets",
+            return_value=tickets,
+        ):
+            rc, out = _run(_args(format="list"))
+        assert rc == 0
+        # 24h 內的 in_progress 不在 listable 範圍，也不標 STALE
+        assert "[STALE]" not in out
+
+    def test_completed_ticket_not_in_list_and_no_stale_tag(self):
+        ticket = _make_ticket("TIX-DONE-1", blocked_by=[])
+        ticket["status"] = "completed"
+        ticket["started_at"] = "2026-01-01T00:00:00"
+        ticket["completed_at"] = "2026-01-02T00:00:00"
+        with patch(
+            "ticket_system.commands.track_runqueue.list_tickets",
+            return_value=[ticket],
+        ):
+            rc, out = _run(_args(format="list"))
+        assert rc == 0
+        assert "TIX-DONE-1" not in out
+        assert "[STALE]" not in out
+
+    def test_pending_ticket_not_marked_stale(self):
+        """pending（非 in_progress）即使 started_at 很久也不標 STALE"""
+        tickets = [_make_ticket("TIX-PEND-1", blocked_by=[])]
+        with patch(
+            "ticket_system.commands.track_runqueue.list_tickets",
+            return_value=tickets,
+        ):
+            rc, out = _run(_args(format="list"))
+        assert rc == 0
+        assert "TIX-PEND-1" in out
+        assert "[STALE]" not in out
+
+    def test_stale_does_not_break_readiness_tag(self):
+        """STALE 與 readiness tag 並列（可疊加）"""
+        tickets = [self._stale_ticket("TIX-STALE-RDY", hours_ago=48)]
+        with patch(
+            "ticket_system.commands.track_runqueue.list_tickets",
+            return_value=tickets,
+        ):
+            rc, out = _run(_args(format="list"))
+        assert rc == 0
+        assert "[STALE]" in out
+        # 既有 readiness tag 仍應存在（NO-CB 因無 Context Bundle 也無 handoff）
+        assert "[NO-CB]" in out
+
+
 class TestRunqueueCycleDetection:
     """復用 CycleDetector：有環時給出錯誤訊息"""
 
