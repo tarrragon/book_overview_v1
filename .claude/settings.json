@@ -348,6 +348,11 @@
           },
           {
             "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/commit-msg-layer2-marker-check-hook.py",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/worktree-merge-reminder-hook.py",
             "timeout": 10000
           },
