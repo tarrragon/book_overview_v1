@@ -385,11 +385,34 @@ print(format_error(env))
 
 ### 版本標記 `__error_envelope_v1__`
 
-Hook 偵測到此標記即視為已套用統一格式，**跳過重複補充**（W17-008.5.5 後續處理）。grep 可用：
+Hook 偵測到此標記即視為已套用統一格式，**跳過重複補充**（W17-008.5.5）。grep 可用：
 
 ```bash
 grep -n "__error_envelope_v1__" .claude/skills/ticket/ticket_system/
 ```
+
+#### Hook 端跳過機制（`.claude/hooks/skill-cli-error-feedback-hook.py`）
+
+Hook 在 PostToolUse 攔截 `ticket track` 系列命令的 stderr/stdout，若偵測到 `__error_envelope_v1__` 標記即直接放行，不再附加中文修復引導，避免「argparse 英文 + Hook 中文 markdown」雙軌訊息互相重疊：
+
+```python
+# .claude/hooks/skill-cli-error-feedback-hook.py（節錄）
+ENVELOPE_VERSION_MARKER = "__error_envelope_v1__"
+
+def is_envelope_output(stderr: str, stdout: str) -> bool:
+    return ENVELOPE_VERSION_MARKER in (stderr or "") or ENVELOPE_VERSION_MARKER in (stdout or "")
+
+# main() 內：
+if is_envelope_output(stderr, stdout):
+    return EXIT_SUCCESS  # 已是結構化訊息，跳過 hook 補充
+```
+
+**設計後果**：
+
+| 命令輸出 | hook 行為 |
+|---------|----------|
+| 含 `__error_envelope_v1__`（業務錯誤經 `format_error(ErrorEnvelope)`） | 跳過補充；用戶看到單一結構化訊息 |
+| 不含標記（純語法錯誤、legacy str 路徑、未遷移命令） | 補充中文修復建議（保留既有引導體驗） |
 
 ---
 

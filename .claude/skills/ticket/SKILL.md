@@ -265,6 +265,7 @@ ticket show W17-015 -P         # 停用分頁
 | `references/workflow-migrate.md`         | ID 遷移流程決策樹                        |
 | `references/completeness-check.md`       | 指令完整性驗證（39 個指令/選項覆蓋狀態） |
 | `references/ticket-lifecycle-details.md` | Ticket 生命週期詳細規則                  |
+| `references/track-command.md`            | track 子命令；含 `format_error()` 雙路徑（legacy str / `ErrorEnvelope` 結構化）、`ArgparseFormatErrorParser` 業務 vs 語法錯誤分流、版本標記 `__error_envelope_v1__`（W17-008.5 group） |
 
 ## Ticket Body Schema（type-aware）
 
