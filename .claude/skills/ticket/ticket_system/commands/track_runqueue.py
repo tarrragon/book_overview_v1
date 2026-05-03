@@ -30,7 +30,7 @@ import argparse
 import json
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Set
+from typing import Dict, Iterable, List, Literal, Optional, Set
 
 from ticket_system.lib.critical_path import (
     CriticalPathAnalyzer,
@@ -50,6 +50,15 @@ FORMAT_CRITICAL_PATH = "critical-path"
 
 _PRIORITY_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
 _DEFAULT_PRIORITY_RANK = 99  # 未知 priority 排最後
+
+# Exit Status tags 顯示於 runqueue --context=resume（W17-031.1 / W17-010 schema）
+# 規格：成功 / 缺欄位 → 不標籤（fail-open）；以下四類顯示為 tag
+ExitStatusTag = Literal[
+    "needs_context", "blocked", "failed", "partial_success"
+]
+_TAGGED_EXIT_STATUSES: Set[str] = {
+    "needs_context", "blocked", "failed", "partial_success"
+}
 
 
 # ---------------------------------------------------------------------------
@@ -76,22 +85,26 @@ def _filter_by_wave(tickets: Iterable[Dict], wave: Optional[int]) -> List[Dict]:
     return [t for t in tickets if t.get("wave") == wave]
 
 
-def _get_pending_handoff_ticket_ids() -> Set[str]:
-    """掃描 .claude/handoff/pending/*.json 取得 ticket_id 集合。
+def _get_pending_handoff_info() -> Dict[str, Dict]:
+    """掃描 .claude/handoff/pending/*.json，回傳 ticket_id → handoff JSON 字典。
 
-    獨立函式便於測試 monkeypatch；不依賴 handoff_utils 完整解析流程
-    （只需 ticket_id），降低耦合。
+    W17-031.1：擴充自原 _get_pending_handoff_ticket_ids；保留完整 handoff
+    資料以便讀取 exit_status（W17-010 schema）。獨立函式便於測試 monkeypatch；
+    不依賴 handoff_utils 完整解析流程，降低耦合。
+
+    Returns:
+        ticket_id → handoff data dict；解析失敗或無 pending 目錄時回傳 {}。
     """
     try:
         root = get_project_root()
     except Exception:
-        return set()
+        return {}
 
     pending_dir = root / ".claude" / "handoff" / "pending"
     if not pending_dir.exists():
-        return set()
+        return {}
 
-    ticket_ids: Set[str] = set()
+    info: Dict[str, Dict] = {}
     for handoff_file in sorted(pending_dir.glob("*.json")):
         try:
             data = json.loads(handoff_file.read_text(encoding="utf-8"))
@@ -99,8 +112,36 @@ def _get_pending_handoff_ticket_ids() -> Set[str]:
             continue
         ticket_id = data.get("ticket_id")
         if ticket_id:
-            ticket_ids.add(ticket_id)
-    return ticket_ids
+            info[ticket_id] = data
+    return info
+
+
+def _get_pending_handoff_ticket_ids() -> Set[str]:
+    """回傳 handoff pending ticket_id 集合（thin wrapper，向後相容）。"""
+    return set(_get_pending_handoff_info().keys())
+
+
+def _get_exit_status_tag(handoff_info: Optional[Dict]) -> Optional[str]:
+    """從 handoff JSON 解析 exit_status tag（W17-031.1）。
+
+    Fail-open 設計：handoff 不存在 / 缺 exit_status 欄位 / 非 dict / status=success
+    皆回傳 None（不顯示 tag）；僅四類 needs_context/blocked/failed/partial_success
+    回傳對應字串。
+
+    Args:
+        handoff_info: handoff JSON dict，或 None
+    Returns:
+        ExitStatusTag 字串之一，或 None（不標籤）
+    """
+    if not handoff_info or not isinstance(handoff_info, dict):
+        return None
+    exit_status = handoff_info.get("exit_status")
+    if not isinstance(exit_status, dict):
+        return None
+    status = exit_status.get("status")
+    if isinstance(status, str) and status in _TAGGED_EXIT_STATUSES:
+        return status
+    return None
 
 
 def _apply_context_resume(
@@ -124,6 +165,7 @@ def _render_list(
     top: Optional[int],
     wave: Optional[int],
     context: Optional[str] = None,
+    handoff_info: Optional[Dict[str, Dict]] = None,
 ) -> str:
     runnable = [t for t in tickets if _is_unblocked_pending(t)]
     runnable.sort(
@@ -153,12 +195,17 @@ def _render_list(
             )
         return "\n".join(lines)
 
+    handoff_info = handoff_info or {}
     for idx, ticket in enumerate(runnable, start=1):
         tid = ticket.get("id", "<unknown>")
         priority = ticket.get("priority") or "P?"
         title = ticket.get("title") or ""
+        # W17-031.1: resume 模式且有 exit_status tag → 顯示 [<status>] 取代
+        # blockedBy=[] runnable 標記，避免 scheduler 誤把待補料 ticket 當可接手
+        tag = _get_exit_status_tag(handoff_info.get(tid)) if context == "resume" else None
+        suffix = f"[{tag}]" if tag else "blockedBy=[]"
         lines.append(
-            f"  {idx}. [{priority}] {tid}  {title}  blockedBy=[]"
+            f"  {idx}. [{priority}] {tid}  {title}  {suffix}"
         )
     return "\n".join(lines)
 
@@ -289,8 +336,13 @@ def render_runqueue(args: argparse.Namespace, version: str) -> str:
     scoped = _filter_by_wave(all_tickets, wave)
     scoped = _apply_context_resume(scoped, context)
 
+    # W17-031.1: resume 模式下載入 handoff info 供 _render_list 標 exit_status tag
+    handoff_info: Dict[str, Dict] = (
+        _get_pending_handoff_info() if context == "resume" else {}
+    )
+
     if fmt == FORMAT_LIST:
-        return _render_list(scoped, top, wave, context)
+        return _render_list(scoped, top, wave, context, handoff_info)
     elif fmt == FORMAT_DAG:
         # dag 忽略 --top（呈現完整 DAG）
         return _render_dag(scoped)
