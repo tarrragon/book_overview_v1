@@ -1228,18 +1228,49 @@ def _print_claim_checklist(ticket: Dict[str, Any]) -> None:
     print()
 
     # 附加簡化 WRAP 三問提示（Ticket 0.18.0-W10-028，來源 W10-027）
-    _print_claim_wrap_prompt(ticket_type)
+    _print_claim_wrap_prompt(ticket_type, ticket)
 
 
-def _print_claim_wrap_prompt(ticket_type: str) -> None:
+# Framework 路徑前綴清單（S 問觸發條件，[Ticket 0.18.0-W17-125]）
+# TODO(W17-127): 抽到 .claude/config/framework-paths.yaml SSOT
+_FRAMEWORK_PATH_PREFIXES = (
+    ".claude/rules/",
+    ".claude/pm-rules/",
+    ".claude/references/",
+    ".claude/skills/",
+    ".claude/methodologies/",
+    ".claude/agents/",
+)
+
+
+def _has_framework_path(ticket: Dict[str, Any]) -> bool:
+    """檢查 ticket where.files 是否任一路徑命中 framework 路徑前綴。"""
+    where = ticket.get("where") or {}
+    files = where.get("files") or []
+    if not isinstance(files, list):
+        return False
+    for path in files:
+        if not isinstance(path, str):
+            continue
+        if any(path.startswith(prefix) for prefix in _FRAMEWORK_PATH_PREFIXES):
+            return True
+    return False
+
+
+def _print_claim_wrap_prompt(
+    ticket_type: str,
+    ticket: Optional[Dict[str, Any]] = None,
+) -> None:
     """
     印出認領時的簡化 WRAP 三問提示。
 
     所有 ticket 類型共用三問區段；ANA 類型額外附加完整 /wrap-decision 提示。
-    來源：Ticket 0.18.0-W10-027（ANA 分析結論）。
+    type=IMP 且 where.files 含 framework 路徑時額外附加 S 問（SKILL trigger）。
+    來源：Ticket 0.18.0-W10-027（ANA 分析結論）、0.18.0-W17-125（S 問擴增）。
 
     Args:
         ticket_type: Ticket 類型（IMP/ANA/DOC 等），用於條件式輸出與文案格式化
+        ticket: 完整 ticket dict（用於 S 問 framework 路徑偵測，向後相容可為 None）
     """
     _print_stage_separator(ClaimWrapMessages.WRAP_SECTION_TITLE)
     print()
@@ -1253,6 +1284,12 @@ def _print_claim_wrap_prompt(ticket_type: str) -> None:
     print()
     print(ClaimWrapMessages.WRAP_APPLIES_TO.format(ticket_type=ticket_type))
     print()
+
+    # S 問（SKILL trigger）：type=IMP 且涉及 framework 路徑
+    # [Ticket 0.18.0-W17-125] 來源 W17-122 Solution Layer B
+    if ticket_type == "IMP" and ticket is not None and _has_framework_path(ticket):
+        print(ClaimWrapMessages.WRAP_SKILL_TRIGGER)
+        print()
 
     if ticket_type == "ANA":
         print(ClaimWrapMessages.ANA_REALITY_TEST)
