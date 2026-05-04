@@ -258,6 +258,12 @@ PM 用 AUQ 前的自檢：這是哪種題型？
 ## #11 /clear 前置條件（強制）
 
 > **來源**：W10-014。session 結束前 main 未提交變更若隨 /clear 丟失 context，後人僅見檔案不知決策理由；強制將 #11 Handoff 選項的觸發前提綁到「main clean」上，避免 PM 為了快點 /clear 跳過 commit。
+>
+> **Why**：#11 Handoff 是 /clear 進入路徑最近的上游節點；前置條件綁在這裡能在「呈現選項」階段就攔截 dirty main，無需等到 /clear 觸發後再補救。
+>
+> **Consequence**：缺前置檢查時 PM 在 main dirty 狀態仍可呈現 #11，用戶選 Handoff 後 context 已退場，commit 機會永久失去。
+>
+> **Action**：產出 #11 AUQ 選項前先執行 `git rev-parse --abbrev-ref HEAD` + `git status --short`；若位於 main 且有未提交變更，**從 AUQ 移除 /clear 相關選項**，改先提 commit 引導；commit 完成後再次評估是否呈現 #11。
 
 | 前置檢查 | 通過條件 | 不通過時動作 |
 |---------|---------|------------|
