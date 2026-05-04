@@ -5,4 +5,4 @@ preserve:
   - hooks/pre-fix-evaluation-hook.py
   - hooks/handoff-prompt-reminder-hook.py
   - hooks/lib/hook_messages.py
-  - error-patterns/architecture/ARCH-010-module-assembly-omission.md
+  - error-patterns/architecture/ARCH-021-module-assembly-omission.md

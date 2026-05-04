@@ -153,7 +153,7 @@ Readmoo 頁面的 DOM 結構會隨版本更新變化。選擇器設計原則：
 ## 相關文件
 
 - `docs/chrome-extension-dev-guide.md` — Chrome Extension 環境限制總覽
-- `.claude/error-patterns/architecture/ARCH-010-module-assembly-omission.md` — 模組組裝遺漏錯誤模式
+- `.claude/error-patterns/architecture/ARCH-021-module-assembly-omission.md` — 模組組裝遺漏錯誤模式（原 ARCH-010，W10-021 重編號）
 - `src/content/adapters/readmoo-adapter.js` — 提取層實作
 - `src/background/messaging/message-router.js` — 訊息路由層
 - `src/background/events/event-coordinator.js` — 事件監聽與儲存層
