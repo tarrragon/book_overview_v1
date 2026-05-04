@@ -68,6 +68,58 @@
 
 ---
 
+## 3b 派發前閾值（PM 派發檢查門）
+
+> **核心定位**：本章節是 PM 在 TDD Phase 3b（GREEN 實作派發）之前的整合性檢查門，將散佈在三份文件的閾值收斂為單頁三項核心指標，避免 PM 派發過大任務壓垮代理人認知負擔（W17-049 ANA 收斂結論）。
+
+### 三項核心閾值
+
+| 閾值 | 拆分門檻 | 取得方式 |
+|------|---------|---------|
+| 功能職責數 | > 2 須拆分 | 數一數 ticket 涵蓋的獨立功能職責（一個職責 = 一個動詞 + 單一目標） |
+| 修改檔案數 | > 5 須拆分 | `where.files` 欄位計數，或從 Problem Analysis 影響範圍推算 |
+| Context Bundle tokens | > 3000 tokens 須拆分（軟上限）；> 5000 tokens 強制拆分 | claim 後 `ticket track show <id>` 查 PCB 區段字數，或 `wc -c` 估算 |
+
+### 三明示
+
+#### 閾值 1：功能職責數 > 2
+
+**Why**：一個 ticket 涵蓋多重職責時，代理人需同時建立多套心智模型，工作記憶受 Miller's Law 7±2 限制，職責越多越易卡住或產出遺漏。
+
+**Consequence**：派發後常見症狀為（1）代理人 commit 時遺漏部分職責；（2）回合耗盡前只完成一半；（3）跨職責的測試互相干擾，難以定位失敗根因。
+
+**Action**：以「動詞 + 單一目標」描述每個職責；> 2 個動詞時依職責邊界拆分為多個 ticket，於 `spawned_tickets` 互相連結。
+
+#### 閾值 2：修改檔案數 > 5
+
+**Why**：跨檔案修改需代理人保持多檔案的內部一致性（命名、介面、行為），檔案越多一致性維護成本越高，且 Edit 工具的 old_string 唯一性檢查易因相似內容而失敗。
+
+**Consequence**：> 5 檔修改的 ticket 常出現（1）部分檔案修改完整、其他檔案遺漏；（2）跨檔不一致導致測試失敗；（3）代理人需反覆讀取既有內容造成 token 浪費。
+
+**Action**：依 domain 邊界拆分；同 domain 內 > 5 檔仍應評估「批量機械操作」（純重命名/格式化）vs「設計變更」分類，前者可用 inline script 一次處理（PC-069），後者必須拆 ticket。
+
+#### 閾值 3：Context Bundle tokens > 3000
+
+**Why**：Context Bundle 是 claim 時自動載入給代理人的前置脈絡，token 數越大代理人讀取成本越高，且 PCB 過大常代表 ticket 範圍過寬（牽涉多個 source ticket / 多個檔案的歷史脈絡）。
+
+**Consequence**：PCB > 3000 tokens 的 ticket 常見（1）代理人讀完 PCB 已耗 30%+ context window；（2）PCB 中混雜不直接相關的歷史，代理人誤判任務焦點；（3）PCB > 5000 tokens 時代理人在實作前已逼近回合耗盡。
+
+**Action**：> 3000 軟上限：審視 PCB 是否含與本 ticket acceptance 無關的歷史段落，可在 Problem Analysis 加註「PCB 部分段落僅供背景，本 ticket 焦點為 X」；> 5000 強制拆分：依 source ticket 數或檔案 domain 切分為多個 ticket，每個 ticket 限定 2-3 個 source。
+
+### PM 派發前檢查清單
+
+派發 3b 實作 ticket 前，PM 在主線程逐項勾選：
+
+- [ ] 功能職責數 ≤ 2（一個 ticket 一個動詞 + 單一目標，最多兩個高度耦合的副職責）
+- [ ] 修改檔案數 ≤ 5（`where.files` 或 Problem Analysis 影響範圍）
+- [ ] Context Bundle tokens ≤ 3000（claim 後 `ticket track show` 查驗；> 3000 走豁免 / > 5000 必拆）
+- [ ] 已對齊既有閾值（本檔 §量化標準/任務拆分閾值，無矛盾）
+- [ ] 若任一項超標，已建立拆分 ticket 並更新 `spawned_tickets`
+
+> **與 §量化標準/任務拆分閾值的關係**：上方 §量化標準 是通用閾值矩陣（適用程式碼 / 任務 / 文件設計多場景）；本章節是 **3b 派發前單頁檢查門**，從中精選三項最關鍵指標供 PM 派發決策即時對照。詳細閾值矩陣（含複雜度分級、並行派發判斷、程式碼品質）見 `@.claude/skills/cognitive-load-assessment/thresholds.md`。
+
+---
+
 ## 自我檢查清單
 
 ### 函式層級
@@ -170,5 +222,7 @@
 
 ---
 
-**Last Updated**: 2026-01-23
-**Version**: 1.0.0
+**Last Updated**: 2026-05-04
+**Version**: 1.1.0 — 新增「3b 派發前閾值（PM 派發檢查門）」章節：三項核心閾值（功能職責數 > 2 / 修改檔案數 > 5 / Context Bundle tokens > 3000）+ Why/Consequence/Action 三明示 + PM 派發前檢查清單（W17-052 / 源 W17-049 ANA 收斂）
+
+**Version**: 1.0.0 — 初始建立

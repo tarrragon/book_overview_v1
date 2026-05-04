@@ -223,8 +223,8 @@ PM 用 AUQ 前的自檢：這是哪種題型？
 | 8 | 執行方向確認 | 並行/序列、先後順序 | 決策樹第負一層 | prompt-submit-hook |
 | 9 | Handoff 方向選擇 | 多個兄弟/子任務可選 | ticket-lifecycle 完成階段 | - |
 | 10 | 開始/收尾確認 | 確認是否開始執行 | 決策樹第負一層 | - |
-| 11a | Commit 後 Context 刷新 Handoff（情境 A） | ticket 仍 in_progress | 決策樹第八層 Checkpoint 2 | commit-handoff-hook |
-| 11b | Commit 後任務切換 Handoff（情境 B） | ticket completed + 同 Wave 有 pending | 決策樹第八層 Checkpoint 2 | commit-handoff-hook |
+| 11a | Commit 後 Context 刷新 Handoff（情境 A） | ticket 仍 in_progress；**前置：main 必須 clean**（見下方「#11 /clear 前置條件」） | 決策樹第八層 Checkpoint 2 | commit-handoff-hook |
+| 11b | Commit 後任務切換 Handoff（情境 B） | ticket completed + 同 Wave 有 pending；**前置：main 必須 clean** | 決策樹第八層 Checkpoint 2 | commit-handoff-hook |
 | 12 | 流程省略確認 | 省略意圖偵測 | 決策樹第八層 | process-skip-guard-hook |
 | 13 | 後續任務路由確認 | Phase 3b 完成且豁免條件不符時、Phase 4b（豁免）/4c 完成、版本完成（C2）、incident 或分析完成後有多個後續路由可選（Phase 1/2/3a 全自動不觸發；Phase 3b 豁免條件符合時自動進入 4b 不觸發） | 決策樹第八層 | phase-completion-gate（擴充） |
 | 14 | parallel-evaluation 觸發確認 | 階段完成後 | 決策樹第八層 | phase-completion-gate（擴充） |
@@ -254,6 +254,24 @@ PM 用 AUQ 前的自檢：這是哪種題型？
 ---
 
 > 各場景完整操作細節、選項配置、工具能力說明：.claude/references/askuserquestion-scene-details.md
+
+## #11 /clear 前置條件（強制）
+
+> **來源**：W10-014。session 結束前 main 未提交變更若隨 /clear 丟失 context，後人僅見檔案不知決策理由；強制將 #11 Handoff 選項的觸發前提綁到「main clean」上，避免 PM 為了快點 /clear 跳過 commit。
+>
+> **Why**：#11 Handoff 是 /clear 進入路徑最近的上游節點；前置條件綁在這裡能在「呈現選項」階段就攔截 dirty main，無需等到 /clear 觸發後再補救。
+>
+> **Consequence**：缺前置檢查時 PM 在 main dirty 狀態仍可呈現 #11，用戶選 Handoff 後 context 已退場，commit 機會永久失去。
+>
+> **Action**：產出 #11 AUQ 選項前先執行 `git rev-parse --abbrev-ref HEAD` + `git status --short`；若位於 main 且有未提交變更，**從 AUQ 移除 /clear 相關選項**，改先提 commit 引導；commit 完成後再次評估是否呈現 #11。
+
+| 前置檢查 | 通過條件 | 不通過時動作 |
+|---------|---------|------------|
+| 主倉庫 + main 分支 + 有未提交變更 | 先 `git add` + `git commit`（commit message 含決策理由）才能呈現 #11 | **不得**呈現 #11 AUQ；改為先引導用戶 commit |
+| Worktree（feature 分支）+ 有未提交變更 | 提示用戶但不阻擋 | 仍可呈現 #11；description 註明「worktree 有未提交，由 worktree owner 後續處理」 |
+| 所有變更皆已 commit | 通過 | 直接呈現 #11 |
+
+> 完整 main vs worktree 差別對待規則：`.claude/pm-rules/session-switching-sop.md`「main vs worktree 差別對待（強制）」章節。
 
 ## 選項前提檢查（強制）
 
@@ -317,7 +335,8 @@ PM 用 AUQ 前的自檢：這是哪種題型？
 
 ---
 
-**Last Updated**: 2026-04-18
+**Last Updated**: 2026-05-04
+**Version**: 3.12.0 — 新增「#11 /clear 前置條件」章節 + 場景表 #11a/#11b 加註 main clean 前置（W10-014）：main 未提交變更強制先 commit 才能呈現 #11；worktree 有未提交僅提示不阻擋
 **Version**: 3.11.0 — 新增題型判別輔助章節 + PC-064 適用邊界子章節（Phase A / W14-025 / 019.4 方案 G）：決策題/釐清題/混合題三類判別表 + 釐清題不適用 PC-064 的邊界條款（兩處均含反濫用警告）
 **Version**: 3.10.0 — 規則 6 新增 Recommended 標籤分級（Phase A / W14-023 / 019.3 方案 G）：ANA/重大決策/Session 關鍵分歧情境下 `(Recommended)` 依證據強度分級為 `(Recommended by WRAP)`、`(Recommended by 多視角)` 或 `(My current guess)`
 **Version**: 3.9.0 — 新增規則 6：預設選項設計規則（PC-066 防護），重大決策/ANA/Session 路由的 Recommended 必須為 WRAP/多視角，禁止「跳過評估」
