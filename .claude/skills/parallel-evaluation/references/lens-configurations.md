@@ -311,6 +311,7 @@
 - 必要的段落是否都存在（如「相關文件」「適用時機」）
 - 正交工具之間是否有區別說明
 - 新增內容是否已在所有相關入口點可被發現
+- 文件中所有「待建立」「TODO」「獨立 Ticket」「未來實作」標記是否都附 ticket ID（依 `decision-trigger-binding.md` 規則 1 / 2，無 ticket ID 即違規；W10-015）
 
 ### Cognitive Load 視角
 
