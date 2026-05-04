@@ -20,6 +20,7 @@ Exit codes:
 
 import os
 import stat
+import subprocess
 import sys
 from pathlib import Path
 
@@ -66,6 +67,128 @@ def _check_and_fix_permissions(hooks_dir, logger):
     return fixed, already_ok
 
 
+def _run_git(args, cwd, logger):
+    """Run a git command, return CompletedProcess. Never raises."""
+    try:
+        return subprocess.run(
+            ["git", *args],
+            cwd=str(cwd),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        logger.warning(f"[HookCheck] git {' '.join(args)} 執行失敗: {exc}")
+        sys.stderr.write(f"[HookCheck] git {' '.join(args)} 執行失敗: {exc}\n")
+        return None
+
+
+def _attempt_auto_commit(fixed_files, hooks_dir, project_root, logger):
+    """If working tree only contains the chmod mode-only changes for fixed_files,
+    auto-commit them as chore. Otherwise print a warning and skip.
+
+    fixed_files: list of file names (basenames) that were chmod'd.
+    Returns True if a commit was created, False otherwise.
+    """
+    if not fixed_files:
+        return False
+
+    # Compute repo-relative paths for each fixed file
+    fixed_paths_abs = [hooks_dir / name for name in fixed_files]
+    try:
+        fixed_rel_set = {
+            str(p.resolve().relative_to(project_root.resolve()))
+            for p in fixed_paths_abs
+            if p.exists()
+        }
+    except ValueError as exc:
+        msg = f"[HookCheck] 無法計算相對路徑，跳過自動 commit: {exc}"
+        print(msg)
+        logger.warning(msg)
+        return False
+
+    # 1) git status --porcelain - examine working tree
+    status = _run_git(["status", "--porcelain"], project_root, logger)
+    if status is None or status.returncode != 0:
+        msg = "[HookCheck] git status 失敗，跳過自動 commit"
+        print(msg)
+        logger.warning(msg)
+        if status and status.stderr:
+            sys.stderr.write(status.stderr)
+        return False
+
+    # Parse porcelain entries: each line "XY path"
+    changed_paths = set()
+    for line in status.stdout.splitlines():
+        if not line.strip():
+            continue
+        # porcelain format: 2 status chars + space + path
+        path = line[3:].strip()
+        # Strip rename arrow if present
+        if " -> " in path:
+            path = path.split(" -> ", 1)[1]
+        changed_paths.add(path)
+
+    if changed_paths != fixed_rel_set:
+        extra = changed_paths - fixed_rel_set
+        msg = (
+            f"[HookCheck] 偵測到其他未提交變更（{len(extra)} 項），跳過自動 commit。"
+            f" 請手動處理後再執行；或使用 git revert HEAD 不適用此情境。"
+        )
+        print(msg)
+        logger.info(msg)
+        return False
+
+    # 2) Verify each file is mode-only change (git diff <file> empty content)
+    diff = _run_git(
+        ["diff", "--", *sorted(fixed_rel_set)],
+        project_root,
+        logger,
+    )
+    if diff is None or diff.returncode != 0:
+        msg = "[HookCheck] git diff 失敗，跳過自動 commit"
+        print(msg)
+        logger.warning(msg)
+        return False
+
+    # Mode-only changes show in `git diff` as a header with "old mode"/"new mode"
+    # but no @@ hunks. If we see any hunk markers, it's not mode-only.
+    if "@@" in diff.stdout:
+        msg = "[HookCheck] 偵測到非 mode-only 變更，跳過自動 commit"
+        print(msg)
+        logger.info(msg)
+        return False
+
+    # 3) git add + git commit
+    add = _run_git(["add", "--", *sorted(fixed_rel_set)], project_root, logger)
+    if add is None or add.returncode != 0:
+        err = (add.stderr if add else "") or "unknown error"
+        msg = f"[HookCheck] git add 失敗，跳過自動 commit: {err}"
+        print(msg)
+        logger.warning(msg)
+        sys.stderr.write(msg + "\n")
+        return False
+
+    commit_msg = "chore: auto-fix executable permissions for hook files (IMP-054)"
+    commit = _run_git(["commit", "-m", commit_msg], project_root, logger)
+    if commit is None or commit.returncode != 0:
+        err = (commit.stderr if commit else "") or "unknown error"
+        out = (commit.stdout if commit else "") or ""
+        msg = f"[HookCheck] git commit 失敗: {err}{out}"
+        print(msg)
+        logger.warning(msg)
+        sys.stderr.write(msg + "\n")
+        return False
+
+    success_msg = (
+        f"[HookCheck] 已自動 commit {len(fixed_rel_set)} 個權限修正檔案。"
+        f" 如需撤銷請執行: git revert HEAD"
+    )
+    print(success_msg)
+    logger.info(success_msg)
+    return True
+
+
 def main():
     logger = setup_hook_logging("hook-completeness-check")
     # Determine project root
@@ -91,6 +214,15 @@ def main():
             more = f"  ... 還有 {len(fixed_files) - 10} 個"
             print(more)
             logger.info(more)
+
+        # --- Auto-commit (IMP-054 / W17-133) ---
+        try:
+            _attempt_auto_commit(fixed_files, hooks_dir, project_root, logger)
+        except Exception as exc:  # noqa: BLE001 - hook must not crash session
+            err = f"[HookCheck] 自動 commit 流程發生未預期例外: {exc}"
+            print(err)
+            logger.warning(err)
+            sys.stderr.write(err + "\n")
 
     # --- Registration check ---
 
