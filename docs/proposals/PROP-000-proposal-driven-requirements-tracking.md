@@ -8,6 +8,7 @@ proposed_date: "2026-03-30"
 confirmed_date: null
 target_version: "v0.16.2"
 priority: P0
+evaluation_level: heavy
 
 outputs:
   spec_refs: []
@@ -556,5 +557,132 @@ Proposal ──source_proposal──→ Spec
 
 ---
 
-**Last Updated**: 2026-03-30
-**Version**: 1.0.0
+## 替代方案
+
+> 本節為 heavy evaluation 必填章節，彙整「提案驅動需求追蹤」的候選方案評估決策脈絡。
+
+### 已評估的候選方案
+
+| 方案 | 決策 | 理由 |
+|------|------|------|
+| 方案 A：維持既有 todolist.md 單體追蹤 | 不採用 | 缺跨 ticket/spec 的需求溯源機制，隨規模增長失去可查詢性 |
+| 方案 B：在 CLAUDE.md 直接補充需求清單 | 不採用 | 框架層混入專案產物，違反框架/產物職責分離原則 |
+| 方案 C：四資料夾架構 + YAML tracking（本方案） | 採用 | 各司其職，階段清晰，與既有 ticket 系統風格一致，可程式化查詢 |
+| 方案 D：外部工具（GitHub Issues / Notion） | 不採用 | 引入外部依賴，需離開 repo 查詢，破壞本地一致性 |
+
+### 不採用方案的邊界說明
+
+- 方案 A 在需求少時有效，但無法追蹤「哪個提案對應哪個 spec/ticket」，隨版本增長失效
+- 方案 B 違反 `.claude/references/framework-asset-separation.md` 的職責分離原則
+- 方案 D 雖功能完整，但引入外部 SaaS 依賴，Context 切換成本高
+
+---
+
+## 失敗防護
+
+> 本節為 heavy evaluation 必填章節，描述本提案實施後可能的失敗情境與防護設計。
+
+### 失敗情境矩陣
+
+| 失敗情境 | 失敗前兆 | 防護措施 |
+|---------|---------|---------|
+| proposals-tracking.yaml 與實際提案狀態不同步 | 查詢結果與 PROP 檔案狀態矛盾 | 後續開發 Hook 自動同步；短期以手動更新約束 |
+| 提案數量膨脹導致目錄難以導航 | PROP 超過 20 個且無分類 | proposals/ README 建立分類索引；長期開發 /doc CLI |
+| 開發者繞過提案直接開 ticket | 發現 ticket.why 未引用任何 PROP | ticket create Hook 可加提示，要求 why 欄位引用來源 |
+
+### 降級設計
+
+若四資料夾架構因團隊習慣而難以落地，系統可退回最小防護：僅維護 proposals/ 目錄 + proposals-tracking.yaml，不強制 spec/ 和 usecases/ 重組，確保提案入口和追蹤索引至少存在。
+
+---
+
+## Reality Test
+
+> 本節為 heavy evaluation 必填章節，以觸發案例與假設驗證對提案前提進行實證檢核。
+
+### 觸發案例驗證
+
+| 驗證項目 | 假設 | 實際狀況 | 結論 |
+|---------|------|---------|------|
+| 現有文件架構是否存在需求溯源斷裂 | 是 | `app-requirements-spec.md` 26KB 單體無實作狀態追蹤；178 個 worklog 項目與 spec 間無引用 | 假設成立，問題真實存在 |
+| YAML frontmatter 是否足以支撐跨文件導航 | 是 | ticket 系統已驗證 YAML 作為追蹤索引的可行性 | 假設成立，風格一致可重用 |
+| 提案先行機制是否防止過早 ticket | 是 | 歷史上多次出現「先開 ticket 再確認需求」導致 ticket 廢棄 | 假設成立，提案前置可減少浪費 |
+
+### 關鍵假設清單
+
+| 假設 | 風險等級 | 驗證方式 |
+|------|---------|---------|
+| 開發者願意在開 ticket 前先建提案 | 中 | 流程規則 + Hook 提示輔助，初期允許補建提案 |
+| YAML tracking 手動維護成本可接受 | 中 | 初期提案數少（< 10），手動可接受；超過 20 再評估自動化 |
+| 四資料夾架構不增加顯著認知負擔 | 低 | docs/README 提供導航；各資料夾內有 TEMPLATE.md |
+
+---
+
+## 多視角審查
+
+> 本節為 heavy evaluation 必填章節，從多個角色視角審查提案的可行性與邊界。
+
+### PM 視角
+
+**收益**：統一需求入口，告別「需求散落 todolist/worklog/口頭討論」，每次派發 ticket 可直接引用 PROP-ID 作為 why。
+
+**顧慮**：維護 proposals-tracking.yaml 的同步成本；若提案被跳過直接開 ticket，追蹤機制失效。
+
+**結論**：初期以流程引導為主（ticket why 欄位引用 PROP），後期 Hook 強制；允許補建提案（不強制事前）。
+
+### 代理人（subagent）視角
+
+**收益**：ticket context bundle 可引用 PROP 提供更完整的需求背景，減少代理人猜測意圖的成本。
+
+**顧慮**：代理人讀取提案文件增加 context token 消耗。
+
+**結論**：提案文件為選擇性引用（context bundle 按需引入），非強制全量載入。
+
+### 框架設計視角
+
+**收益**：proposals/ 與 .claude/ 框架層完全分離，提案屬專案產物不污染框架；符合 framework-asset-separation 原則。
+
+**顧慮**：doc CLI (/doc query、/doc nav) 屬框架工具，若置於 .claude/skills/ 需避免引用專案特定 PROP ID。
+
+**結論**：doc CLI 設計為通用工具（參數化 PROP-ID），框架層不硬編碼任何提案引用。
+
+### 長期維護視角
+
+**收益**：四資料夾架構提供清晰的文件生命週期（proposals → spec → usecases），新人加入時有明確的文件地圖。
+
+**顧慮**：遷移現有 app-requirements-spec.md / app-use-cases.md 有一次性成本。
+
+**結論**：Phase 2/3 分階段遷移，不阻擋 Phase 1 基礎建設落地；既有文件保留原址直到遷移完成。
+
+---
+
+## 機會成本
+
+> 本節為 heavy evaluation 必填章節，分析採用本提案相對於替代行動的機會成本。
+
+### 採用本提案的機會成本
+
+| 機會成本維度 | 說明 |
+|------------|------|
+| 工程成本 | Phase 1 基礎建設約 1-2 個 Ticket，等同於延後同等數量的功能開發 |
+| 維護成本 | proposals-tracking.yaml 手動維護；提案數超過 20 後需評估自動化工具 |
+| 學習成本 | 開發者需理解四資料夾架構與提案生命週期，初期有認知負擔 |
+
+### 不採用的機會成本
+
+| 不採用後果 | 說明 |
+|----------|------|
+| 需求溯源缺失 | 隨版本增長，無法回溯「某功能為何而做」，技術債決策缺乏依據 |
+| Ticket 浪費 | 缺提案先行機制，重複開立廢棄 ticket 的概率持續存在 |
+| 文件熵增 | spec 和 worklog 繼續割裂，新人上手成本隨時間線性增長 |
+
+### 決策評估結論
+
+Phase 1 基礎建設的工程投入相對於長期需求管理效益具備正向 ROI。本提案已進入 implemented 狀態，four-folder 架構已落地（0.16.2-W1-002 完成），後續 Phase 2/3 視實際需求分階段執行。
+
+---
+
+**Last Updated**: 2026-05-05
+**Change Log**:
+- v1.1 (2026-05-05): 補 evaluation_level=heavy + 5 必填章節（替代方案 / 失敗防護 / Reality Test / 多視角審查 / 機會成本）；對應 0.18.0-W10-098.1
+- v1.0 (2026-03-30): 初稿
