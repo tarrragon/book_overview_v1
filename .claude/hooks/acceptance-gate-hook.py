@@ -569,6 +569,19 @@ def main() -> int:
         # 步驟 1: 解析驗證輸入
         input_data = read_json_from_stdin(logger)
 
+        # 降級 fast-path（W10-047.1）：
+        # ANA W10-035.3 觀察 3d 觸發 1667 次僅 36 Action（2.2%）。
+        # 在執行 subagent 偵測 / 完整輸入驗證 / Ticket 提取 / 驗收檢查等
+        # 重操作前，先以最低成本判斷命令是否為 ticket track complete；
+        # 不是即直接放行，避免每次 Bash 命令都跑完整流程。
+        if input_data is not None:
+            _fp_tool_input = input_data.get("tool_input") or {}
+            _fp_command = _fp_tool_input.get("command", "") if isinstance(_fp_tool_input, dict) else ""
+            if input_data.get("tool_name") != "Bash" or not is_complete_command(_fp_command):
+                logger.debug("Fast-path skip: 非 ticket track complete 命令")
+                _output_allow_json()
+                return EXIT_SUCCESS
+
         if is_subagent_environment(input_data):
             logger.info("偵測到 subagent 環境（agent_id=%s），跳過 AskUserQuestion 提醒", input_data.get("agent_id"))
             return EXIT_SUCCESS

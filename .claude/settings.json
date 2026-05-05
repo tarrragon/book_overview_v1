@@ -388,10 +388,6 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/parallel-dispatch-verification-hook.py"
-          },
-          {
-            "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/phase4-decision-enforcement-hook.py",
             "timeout": 5000
           },
