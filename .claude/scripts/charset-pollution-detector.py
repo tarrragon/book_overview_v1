@@ -64,6 +64,9 @@ from typing import Iterable
 _ANCHORS_SEED = (
     # PC-072 已知污染字
     "独违没务实觉决个隶遗设长"
+    # W17-144.1.1.1 Method 6: Hook log 反推（PC-085 self-check 警示 12 字，明確簡體）
+    # 來源：.claude/hooks/askuserquestion-charset-guard-hook.py 自身 self-check 機制
+    "图两译驿气乐观检权铁转广"
     # 高頻簡體字（從中文詞抽字，含部分共用字，由 OpenCC 動態過濾）
     "为来对国会发还过这样时间问题点说话"
     "运动开机经济产业农业医药动员无线电话计算从认识结构办公关系应当应该"
