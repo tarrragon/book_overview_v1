@@ -16,6 +16,8 @@ outputs:
 
 related_proposals: []
 supersedes: null
+evaluation_level: light  # draft 暫設 light；promote 為 confirmed/approved 時須重評 standard/heavy
+promotion_review_required: true
 ---
 
 # PROP-001: 多平台隔離與跨平台路由
