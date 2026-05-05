@@ -27,13 +27,21 @@ Why soft check:
     會在英文專案造成假警報。輸出到 stderr 確保訊息可見（quality-baseline 規則 4），
     不影響 session 啟動。
 
+Why file-based MCP probe (W17-143 / ARCH-022):
+    依 ARCH-022「framework hook 不應對 user-scope 設定產生隱性副作用」，採直讀
+    三層 scope 設定 JSON 檔（user / project / local），任一含 zhtw-mcp 即視為
+    已註冊。早期版本曾用 `claude mcp list` spawn CLI 探測，平均耗 8-10s 且
+    子 CLI 對所有遠端 MCP server（Gmail / Linear / Greptile / Calendar）發
+    HTTP health check；現行設計耗時降至 < 50ms，無遠端副作用。
+
 Exit codes:
     0 - Always (soft check, never blocks session)
 """
 
+import json
+import os
 import platform
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 
@@ -42,61 +50,75 @@ from hook_utils import setup_hook_logging, run_hook_safely
 
 
 HOOK_NAME = "zhtw-mcp-check"
-SKIP_FLAG = Path(__file__).parent.parent / ".zhtw-mcp-skip"
 INSTALL_URL = "https://github.com/sysprog21/zhtw-mcp"
+
+# Hook 位於 .claude/hooks/<file>，故 parent.parent = .claude/，parent.parent.parent = project root
+_HOOK_FILE = Path(__file__).resolve()
+SKIP_FLAG = _HOOK_FILE.parent.parent / ".zhtw-mcp-skip"
+PROJECT_DIR = Path(os.environ.get("CLAUDE_PROJECT_DIR") or _HOOK_FILE.parent.parent.parent)
+USER_HOME = Path.home()
 
 
 def _check_binary():
-    """Locate zhtw-mcp on PATH and grab version string.
+    """Locate zhtw-mcp on PATH.
+
+    Note (W17-143 user decision): 不嘗試版本探測。zhtw-mcp 0.1.0 不支援
+    `--version` flag；待上游發布 release 後再用標準探測（追蹤 ticket: W17-140）。
+    當前版本欄位固定顯示 "unknown"，避免每次 spawn 子 process 抓不到結果浪費 IO。
 
     Returns:
-        (path, version) tuple. path=None if not found.
+        path (str) if zhtw-mcp on PATH, None otherwise.
     """
-    path = shutil.which("zhtw-mcp")
-    if not path:
-        return None, None
+    return shutil.which("zhtw-mcp")
 
+
+def _scope_has_zhtw_mcp(json_path: Path) -> "bool | None":
+    """Read a JSON file's mcpServers section and check for zhtw-mcp registration.
+
+    Returns:
+        True  - file exists, parsed OK, contains "zhtw-mcp" key in mcpServers
+        False - file does not exist (legitimate "not registered in this scope")
+        None  - file exists but cannot be parsed (treat as unknown to surface in fallback)
+    """
+    if not json_path.exists():
+        return False
     try:
-        result = subprocess.run(
-            ["zhtw-mcp", "--version"],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=5,
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            return path, result.stdout.strip().split("\n")[0]
-        return path, "version unknown"
-    except (subprocess.TimeoutExpired, OSError):
-        return path, "version check failed"
+        data = json.loads(json_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+    mcp_servers = data.get("mcpServers") if isinstance(data, dict) else None
+    if not isinstance(mcp_servers, dict):
+        return False
+    return "zhtw-mcp" in mcp_servers
 
 
 def _check_mcp_registered():
-    """Probe `claude mcp list` for zhtw-mcp registration.
+    """File-based three-scope probe for zhtw-mcp registration.
+
+    探測順序（任一 scope 命中即回 True）：
+        1. user scope    : ~/.claude.json mcpServers
+        2. project scope : <project_dir>/.mcp.json mcpServers
+        3. local scope   : <project_dir>/.claude/settings.local.json mcpServers
+
+    依 ARCH-022 設計原則改為 file-based 取代 spawn `claude mcp list`，避免
+    對所有遠端 MCP server 發 health check HTTP 請求。
 
     Returns:
-        True  - registered
-        False - not registered
-        None  - probe failed (claude CLI missing or list errored)
+        True  - any scope has "zhtw-mcp" in mcpServers
+        False - all scopes confirmed not registered (file missing or absent key)
+        None  - any scope file exists but cannot be parsed (probe inconclusive)
     """
-    if shutil.which("claude") is None:
+    scopes = [
+        USER_HOME / ".claude.json",
+        PROJECT_DIR / ".mcp.json",
+        PROJECT_DIR / ".claude" / "settings.local.json",
+    ]
+    results = [_scope_has_zhtw_mcp(p) for p in scopes]
+    if any(r is True for r in results):
+        return True
+    if any(r is None for r in results):
         return None
-
-    try:
-        result = subprocess.run(
-            ["claude", "mcp", "list"],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=10,
-        )
-        if result.returncode != 0:
-            return None
-        return "zhtw-mcp" in result.stdout
-    except (subprocess.TimeoutExpired, OSError):
-        return None
+    return False
 
 
 def _install_hint():
@@ -146,7 +168,7 @@ def main():
         logger.info(f"Skip flag found at {SKIP_FLAG}")
         return 0
 
-    binary_path, version = _check_binary()
+    binary_path = _check_binary()
 
     if not binary_path:
         body = (
@@ -170,7 +192,6 @@ def main():
     if registered is False:
         body = (
             f"Binary: {binary_path}\n"
-            f"版本: {version}\n"
             "\n"
             "註冊命令:\n"
             f"{_register_hint()}\n"
@@ -182,11 +203,11 @@ def main():
         return 0
 
     if registered is True:
-        print(f"[zhtw-mcp Check] OK: {version} (registered)")
-        logger.info(f"zhtw-mcp OK: {version}, registered")
+        print(f"[zhtw-mcp Check] OK: {binary_path} (registered)")
+        logger.info(f"zhtw-mcp OK at {binary_path}, registered")
     else:
-        print(f"[zhtw-mcp Check] Binary OK: {version} (registration probe unavailable)")
-        logger.info(f"zhtw-mcp binary OK: {version}, registration probe failed")
+        print(f"[zhtw-mcp Check] Binary OK: {binary_path} (scope probe inconclusive)")
+        logger.warning(f"zhtw-mcp binary OK at {binary_path}, scope JSON parse failed")
 
     return 0
 

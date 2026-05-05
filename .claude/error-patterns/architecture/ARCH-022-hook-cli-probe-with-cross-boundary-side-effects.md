@@ -40,6 +40,8 @@ Framework hook 透過 spawn 子 CLI 探測狀態，子 CLI 內部執行範圍超
 
 **Why 容易發生**：官方 CLI 是公開介面，設計者直覺認為「用公開介面比讀檔穩定」，忽略了 CLI 副作用範圍。
 
+**Action**：設計 hook 探測前，先以一句話寫下「我想知道什麼」與「子 CLI 內部會做什麼」，比對兩者範圍是否對齊。範圍不對齊即進入選項 A 或 B。
+
 ### 根因 2：子 CLI 副作用對設計者透明
 
 設計者在自己的環境驗證 hook 時，可能誤以為「8s 是初始 cache miss 後就會穩定」或「一次性成本可接受」。實際上：
@@ -48,11 +50,15 @@ Framework hook 透過 spawn 子 CLI 探測狀態，子 CLI 內部執行範圍超
 - 跨專案 sync 後成本累加（N 專案 × M session/day）
 - 子 CLI 對遠端服務的請求被視為「正常 health check」，不會觸發告警
 
+**Action**：設計階段在乾淨環境（新 session / 多專案模擬）跑 hook 至少一輪，量測平均耗時，並用 `lsof -p <pid>` 觀察是否有預期外的網路連線；耗時 > 1s 或出現外部 socket 即觸發機制範圍重新評估。
+
 ### 根因 3：Timeout 訊號被視為瑕疵而非警訊
 
 當 hook 偶爾 timeout 時，設計者第一反應是「調高 timeout」或「視為軟性瑕疵」。但 timeout 接近閾值本身就是訊號：探測機制與探測目的範圍不對稱。
 
 「偶爾 timeout」應觸發 WRAP 重新審視，而非單純調整參數。
+
+**Action**：Timeout 接近閾值時，先用 `time` / `timeit` 量測平均耗時，再對照「探測目的」與「子 CLI 內部執行範圍」；若兩者不對齊，依根因 1 的 Action 重新設計探測機制。
 
 ---
 
@@ -69,7 +75,7 @@ Framework hook 透過 spawn 子 CLI 探測狀態，子 CLI 內部執行範圍超
 | 失敗 | timeout 時 hook 顯示 unavailable | 讀檔失敗時可 fallback |
 | 跨平台 | 統一 | 路徑可能變動（需 fallback） |
 
-**讀檔失敗時的 fallback 設計**：先試 file-based，失敗時再 spawn CLI（保底）。確保穩定性同時降低平均副作用。
+**讀檔失敗時的 fallback 設計**：先試 file-based，失敗時再 spawn CLI（保底）。當設定檔路徑屬工具公開合約（如 `~/.claude.json` 為 Claude Code 公開設定路徑）時，file-based 為主、CLI fallback 為輔的組合在穩定性與副作用上優於純 CLI。若設定檔路徑非公開合約且可能隨版本變動，fallback 機制可降低破壞風險。
 
 ### 選項 B：限定子 CLI 範圍
 
@@ -81,7 +87,7 @@ Framework hook 透過 spawn 子 CLI 探測狀態，子 CLI 內部執行範圍超
 | `kubectl get all`（所有資源） | `kubectl get pod <name>`（單一 pod） |
 | `git status`（整 repo） | `git status -- <path>`（單一路徑） |
 
-成本：scope 參數每個 CLI 不同，需逐個學習。回報：副作用降低數倍。
+成本：scope 參數每個 CLI 不同，需逐個學習。回報：副作用降低幅度視 CLI 設計而定（本案例由 8.9s 降至 < 50ms，約 178 倍）。
 
 ### 選項 C：Hook 設計時加入「子 CLI 副作用評估」步驟
 
