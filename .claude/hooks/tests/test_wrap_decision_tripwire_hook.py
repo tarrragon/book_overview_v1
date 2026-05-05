@@ -1142,3 +1142,119 @@ class TestM_ReflectionTrigger:
         for rec in caplog.records:
             assert "manual_reflection_invocation" not in rec.getMessage() or "unknown" not in rec.getMessage().lower()
             assert "session_end" not in rec.getMessage() or "unknown" not in rec.getMessage().lower()
+
+
+# ============================================================================
+# N. W10-101 observability log 欄位（matched_keyword + prompt_excerpt）
+#
+#   N1 _build_prompt_excerpt：基本中段
+#   N2 _build_prompt_excerpt：keyword 在開頭
+#   N3 _build_prompt_excerpt：keyword 在結尾
+#   N4 _build_prompt_excerpt：prompt 短於 100 字（不超界）
+#   N5 _build_prompt_excerpt：換行字元轉空格
+#   N6 _build_prompt_excerpt：無 prompt / 無 keyword 返回 "-"
+#   N7 _build_prompt_excerpt：keyword 不在 prompt（fallback "-"）
+#   N8 _process_signals 觸發時 log 含 matched_keyword + prompt_excerpt（S2）
+#   N9 _process_signals 保留原 "signal %s triggered" log 行（向後相容）
+#   N10 _process_signals 對 S1（無 keyword、無 prompt）填 "-"
+# ============================================================================
+
+
+class TestN_ObservabilityLog:
+    def test_n1_excerpt_middle(self, hook_mod):
+        prompt = "這個任務的部分需求我覺得做不到啦因為目前的架構限制相當嚴重所以無法處理"
+        out = hook_mod._build_prompt_excerpt(prompt, "做不到")
+        assert "做不到" in out
+        # 預期包含 keyword 周邊文字
+        assert "覺得" in out
+
+    def test_n2_excerpt_at_head(self, hook_mod):
+        prompt = "做不到啦這個任務真的有困難請放棄"
+        out = hook_mod._build_prompt_excerpt(prompt, "做不到")
+        assert out.startswith("做不到")
+
+    def test_n3_excerpt_at_tail(self, hook_mod):
+        prompt = "我已經盡力嘗試很多方式但最後還是做不到"
+        out = hook_mod._build_prompt_excerpt(prompt, "做不到")
+        assert out.endswith("做不到")
+
+    def test_n4_short_prompt_no_overrun(self, hook_mod):
+        prompt = "做不到"
+        out = hook_mod._build_prompt_excerpt(prompt, "做不到")
+        assert out == "做不到"
+
+    def test_n5_newline_replaced_with_space(self, hook_mod):
+        prompt = "前段文字\n中段做不到\n後段補充"
+        out = hook_mod._build_prompt_excerpt(prompt, "做不到")
+        assert "\n" not in out
+        assert "做不到" in out
+
+    def test_n6_empty_prompt_or_keyword_returns_dash(self, hook_mod):
+        assert hook_mod._build_prompt_excerpt("", "做不到") == "-"
+        assert hook_mod._build_prompt_excerpt("hello", None) == "-"
+        assert hook_mod._build_prompt_excerpt("hello", "") == "-"
+
+    def test_n7_keyword_not_in_prompt_returns_dash(self, hook_mod):
+        out = hook_mod._build_prompt_excerpt("沒有命中關鍵字的提示文字", "做不到")
+        assert out == "-"
+
+    def test_n8_process_signals_logs_observability_for_s2(self, hook_mod, tmp_yaml, caplog):
+        import logging
+        cfg = _load_config(hook_mod, tmp_yaml)
+        state = hook_mod._initial_state()
+        prompt = "這個功能我覺得做不到啦真的沒辦法繼續處理因為架構不允許這樣的擴展"
+        event = make_user_prompt(prompt)
+        with caplog.at_level(logging.INFO):
+            warnings = hook_mod._process_signals(
+                event, "UserPromptSubmit", state, cfg, None,
+                logging.getLogger("t_n8"),
+            )
+        assert warnings  # 應觸發 warning
+        msgs = [r.getMessage() for r in caplog.records]
+        # 觀測 log 行存在
+        obs = [m for m in msgs if "observability" in m and "restrictive_keywords" in m]
+        assert obs, "expected observability log for restrictive_keywords"
+        joined = "\n".join(obs)
+        assert "matched_keyword=做不到" in joined
+        assert "prompt_excerpt=" in joined
+        # excerpt 應包含 keyword
+        assert "做不到" in joined
+
+    def test_n9_legacy_log_line_preserved(self, hook_mod, tmp_yaml, caplog):
+        """向後相容：原 'signal %s triggered; warning emitted' 行必須保留。"""
+        import logging
+        cfg = _load_config(hook_mod, tmp_yaml)
+        state = hook_mod._initial_state()
+        prompt = "我覺得這個功能做不到啦真的沒辦法繼續處理因為現況架構受限"
+        event = make_user_prompt(prompt)
+        with caplog.at_level(logging.INFO):
+            hook_mod._process_signals(
+                event, "UserPromptSubmit", state, cfg, None,
+                logging.getLogger("t_n9"),
+            )
+        msgs = [r.getMessage() for r in caplog.records]
+        legacy = [m for m in msgs
+                  if "restrictive_keywords" in m
+                  and "triggered" in m
+                  and "warning emitted" in m]
+        assert legacy, "legacy log line must be preserved for backward compat"
+
+    def test_n10_s1_logs_dash_for_missing_fields(self, hook_mod, tmp_yaml, caplog):
+        """S1 觸發（無 prompt、無 matched_keyword）log 欄位應為 '-'。"""
+        import logging
+        cfg = _load_config(hook_mod, tmp_yaml)
+        state = hook_mod._initial_state()
+        # 連續兩次失敗以達 threshold=2
+        ev = make_post_tool_use_task({"status": "failed"})
+        with caplog.at_level(logging.INFO):
+            hook_mod._process_signals(ev, "PostToolUse", state, cfg, None,
+                                      logging.getLogger("t_n10_a"))
+            hook_mod._process_signals(ev, "PostToolUse", state, cfg, None,
+                                      logging.getLogger("t_n10_b"))
+        msgs = [r.getMessage() for r in caplog.records]
+        obs = [m for m in msgs
+               if "observability" in m and "consecutive_failures" in m]
+        assert obs, "expected observability log for consecutive_failures"
+        joined = "\n".join(obs)
+        assert "matched_keyword=-" in joined
+        assert "prompt_excerpt=-" in joined

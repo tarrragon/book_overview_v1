@@ -642,6 +642,38 @@ def render_message(sd: SignalDef, result: DetectResult,
 
 
 # ============================================================================
+# Log 觀測欄位輔助（W10-101）
+# ============================================================================
+
+# excerpt 半徑：以 matched keyword 在 prompt 中的位置為中心，向前後各取 N 字。
+# 50 為 ticket Problem Analysis 指定值，避免單行 log 過長。
+_EXCERPT_RADIUS = 50
+
+
+def _build_prompt_excerpt(prompt: str, matched_keyword: Optional[str]) -> str:
+    """從 prompt 抽取以 matched_keyword 為中心的前後 50 字 excerpt。
+
+    無 prompt 或無關鍵字時返回 "-"（log 欄位佔位）。
+    換行字元統一替換為空格，並 strip 兩端 whitespace。
+    keyword 比對採大小寫不敏感（與 RestrictiveKeywordsStrategy 一致）。
+    若 keyword 不在 prompt 中（例如非 S2 訊號），返回 "-"。
+    """
+    if not prompt or not matched_keyword:
+        return "-"
+    haystack = prompt.lower()
+    needle = matched_keyword.lower()
+    idx = haystack.find(needle)
+    if idx < 0:
+        return "-"
+    start = max(0, idx - _EXCERPT_RADIUS)
+    end = min(len(prompt), idx + len(matched_keyword) + _EXCERPT_RADIUS)
+    excerpt = prompt[start:end]
+    # 換行轉空格，避免 plain text log 多行錯位
+    excerpt = excerpt.replace("\n", " ").replace("\r", " ").strip()
+    return excerpt
+
+
+# ============================================================================
 # 主流程
 # ============================================================================
 
@@ -678,7 +710,18 @@ def _process_signals(
             msg = render_message(sd, result, current_ticket)
             warnings.append(msg)
             state = mark_warned(state, sd.id)
+            # 保留原訊息行（向後相容既有 grep / 掃描工具）
             logger.info("signal %s triggered; warning emitted", sd.id)
+            # W10-101：附加觀測欄位（matched_keyword + prompt_excerpt），供
+            # 未來 S2 誤報率重評時依關鍵字 / 上下文分類樣本。S1/S3 等無 keyword
+            # 或無 prompt 的 signal 填 "-"。
+            kw = result.matched_keyword or "-"
+            prompt = str(event.get("prompt", "") or "")
+            excerpt = _build_prompt_excerpt(prompt, result.matched_keyword)
+            logger.info(
+                "signal %s observability matched_keyword=%s prompt_excerpt=%s",
+                sd.id, kw, excerpt,
+            )
         elif result.should_warn:
             logger.info("signal %s in cooldown; warning suppressed", sd.id)
     return warnings
