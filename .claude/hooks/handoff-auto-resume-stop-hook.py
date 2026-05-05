@@ -111,6 +111,7 @@ LOG_FILE_PREFIX = "stop-hook"
 WORK_LOGS_DIR_NAME = "docs/work-logs"
 TODOLIST_FILE_NAME = "docs/todolist.yaml"
 RECENT_TASK_THRESHOLD_MINUTES = 30  # 30 分鐘內視為「最近任務」（可能有代理人正在執行）
+RECENT_HANDOFF_WINDOW_SECONDS = 300  # W17-118: 最近 N 秒內建立的 handoff 視為下 session 接手點，不計入 pending
 
 
 def get_session_stop_flag() -> Path:
@@ -434,6 +435,40 @@ def should_preserve_pending_json(record: dict, logger) -> bool:
     return True
 
 
+def is_handoff_recently_created(record: dict, logger) -> bool:
+    """
+    判斷 handoff record 是否在 RECENT_HANDOFF_WINDOW_SECONDS 內建立（W17-118）
+
+    剛建立的 handoff 為「下 session 接手點」，當前 session Stop hook 不應將其
+    視為待恢復任務阻塞退出。timestamp 欄位由 /ticket handoff CLI 寫入，格式為
+    `datetime.now().isoformat()`。
+
+    Args:
+        record: handoff/pending/*.json 載入的 dict
+        logger: 日誌記錄器
+
+    Returns:
+        bool - 是否在豁免窗口內。timestamp 缺失或解析失敗時保守回傳 False
+               （走原路徑，視為非剛建）。
+    """
+    timestamp_str = (record or {}).get("timestamp")
+    if not timestamp_str:
+        return False
+    try:
+        created_at = datetime.fromisoformat(timestamp_str)
+        elapsed = (datetime.now() - created_at).total_seconds()
+        is_recent = 0 <= elapsed < RECENT_HANDOFF_WINDOW_SECONDS
+        if is_recent:
+            logger.debug(
+                f"handoff timestamp={timestamp_str} 在 {elapsed:.1f}s 前建立 "
+                f"(< {RECENT_HANDOFF_WINDOW_SECONDS}s)，視為下 session 接手點"
+            )
+        return is_recent
+    except (ValueError, TypeError) as e:
+        logger.warning(f"解析 handoff timestamp 失敗 ({timestamp_str}): {e}")
+        return False
+
+
 def scan_pending_handoff_tasks(project_root: Path, logger) -> tuple:
     """
     掃描待恢復的 handoff 任務（resumed_at == null 的任務）
@@ -483,6 +518,36 @@ def scan_pending_handoff_tasks(project_root: Path, logger) -> tuple:
                     ticket_id = data.get("ticket_id", file_path.stem)
                     title = data.get("title", "無標題")
                     direction = data.get("direction", "unknown")
+
+                    # W17-118 Phase 2: 剛建 handoff 視為下 session 接手點，不阻塞
+                    # 即使 stale (任務鏈目標已啟動) 也不在當前 session 阻擋退出
+                    recently_created = is_handoff_recently_created(data, logger)
+                    if recently_created:
+                        recent_tasks.append({
+                            "ticket_id": ticket_id,
+                            "title": title,
+                            "direction": direction,
+                        })
+                        logger.info(
+                            f"剛建 handoff (< {RECENT_HANDOFF_WINDOW_SECONDS}s)，"
+                            f"視為下 session 接手點不阻塞: {ticket_id}"
+                        )
+                        continue
+
+                    # W17-118 Phase 1: 計數前先 stale 過濾（與 ticket resume --list 對齊）
+                    # stale 條件包含「任務鏈目標已啟動 / 已完成」「來源 ticket 已 completed」
+                    # 對齊既有 GC 行為：刪除檔案不計入 pending_tasks
+                    is_stale, stale_reason = is_handoff_stale(data)
+                    if is_stale:
+                        try:
+                            file_path.unlink()
+                            logger.info(
+                                f"GC: 刪除 stale handoff pending JSON "
+                                f"({ticket_id}, direction={direction}, reason={stale_reason})"
+                            )
+                        except Exception as e:
+                            logger.warning(f"刪除 stale handoff JSON 失敗 ({file_path.name}): {e}")
+                        continue
 
                     # 檢查對應 Ticket 是否已完成
                     if is_ticket_completed(project_root, ticket_id, logger):
