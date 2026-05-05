@@ -108,6 +108,39 @@ Hypothesis K 否證後，W17-097.1-.4 的 4/4 deny 仍需解釋。**調查計畫
 | Session 累積狀態 | 上 session 已執行多 commit + pytest 後的某種累積狀態觸發 deny | 新 session 完整重現 W17-097 上下文（多 commit + pytest 累積後）再測 |
 | CC 版本內部變化 | 同版號 v2.1.126 內部行為波動 | 記錄 deny 案例的 CC 詳細版本資訊 |
 
+## Base Rate 觀察（W17-110.4 多 session 累積中）
+
+**目的**：累積 ≥3 個獨立冷快取 session 數據點，計算 subagent `.claude/` Edit deny 的 base rate，區辨 W17-097.1-.4 的 4/4 deny 是「真 transient runtime」（候選 1）還是「未識別系統性變因」。
+
+**Phase A 標準操作**（每 session 重複）：
+1. 全新 session 啟動（/clear 後）
+2. PM 從未 Edit/Write `.claude/`（僅 Read/Bash/CLI tool 不破壞冷快取）
+3. 派發單發 thyme 對 `.claude/methodologies/atomic-ticket-methodology.md` 做 2 次 Edit（append marker `<!-- experiment-w17-110-4-marker -->` + revert）
+4. 紀錄結果與環境變因
+
+**數據點累積表**：
+
+| # | 日期 | Session 起始 | CC 版本 | PM Edit `.claude/` | Subagent 先前 Edit `.claude/` | Commit 數 | pytest | Edit 1 | Edit 2 | 來源 ticket |
+|---|------|-------------|---------|--------------------|------------------------------|-----------|--------|--------|--------|-----------|
+| 1 | 2026-05-05 | T17:44 | Opus 4.7 (claude-opus-4-7[1m]) | 否 | 否（首次） | 0 | 否 | success | success | W17-110.4 |
+| 2 | （待累積） | — | — | — | — | — | — | — | — | — |
+| 3 | （待累積） | — | — | — | — | — | — | — | — | — |
+
+**目前累積**：1 / 3+ 數據點；當前 deny 比率 = 0/2 = 0%（樣本不足，未達 base rate 結論門檻）
+
+**判定門檻**（W17-110.4 ticket 規定）：
+
+| Deny 比率 | 結論 |
+|-----------|------|
+| < 5% | 候選 1（transient runtime）強支持 — PC-115 結論為「罕見 transient，不需深查」 |
+| 5-20% | 仍可能有未識別變因，需重啟 widen 找其他候選 |
+| > 20% | 必有系統性變因未識別，反模式 2 警告生效 |
+
+**反模式自查**（W17-104 + W17-110）：
+
+- 反模式 2（偶發標籤化）：累積 < 3 數據點不可標籤化「transient」
+- 反模式 4（推翻後仍 anchor）：每個數據點獨立解讀，不立即下「transient」結論
+
 ## 防護（**已下調**：Hypothesis K 暖機建議撤回）
 
 | 層級 | 機制 |
