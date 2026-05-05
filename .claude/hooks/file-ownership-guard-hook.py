@@ -253,7 +253,7 @@ def extract_ticket_id(input_data: dict) -> Optional[str]:
     if not input_data:
         return None
 
-    tool_input = input_data.get("toolInput", {})
+    tool_input = input_data.get("tool_input", {})
     if not isinstance(tool_input, dict):
         return None
 
@@ -290,8 +290,8 @@ def is_valid_trigger(input_data: dict) -> bool:
     if not input_data:
         return False
 
-    hook_event = input_data.get("hookEventName")
-    tool_name = input_data.get("toolName")
+    hook_event = input_data.get("hook_event_name")
+    tool_name = input_data.get("tool_name")
 
     return hook_event == "PreToolUse" and tool_name == "Agent"
 
