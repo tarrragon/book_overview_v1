@@ -259,6 +259,10 @@
           },
           {
             "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/zhtw-mcp-availability-check-hook.py"
+          },
+          {
+            "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ticket-reinstall-hook.py"
           },
           {
