@@ -123,10 +123,12 @@ Hypothesis K 否證後，W17-097.1-.4 的 4/4 deny 仍需解釋。**調查計畫
 | # | 日期 | Session 起始 | CC 版本 | PM Edit `.claude/` | Subagent 先前 Edit `.claude/` | Commit 數 | pytest | Edit 1 | Edit 2 | 來源 ticket |
 |---|------|-------------|---------|--------------------|------------------------------|-----------|--------|--------|--------|-----------|
 | 1 | 2026-05-05 | T17:44 | Opus 4.7 (claude-opus-4-7[1m]) | 否 | 否（首次） | 0 | 否 | success | success | W17-110.4 |
-| 2 | （待累積） | — | — | — | — | — | — | — | — | — |
-| 3 | （待累積） | — | — | — | — | — | — | — | — | — |
+| 2 | 2026-05-05 | 新 session（/clear 後） | Opus 4.7 (claude-opus-4-7[1m]) | 否 | 否 | 0 | 否 | success | success | W17-110.4 |
+| 3 | 2026-05-05 | 新 session（/clear 後）| 2.1.128 | 否 | 否 | 0 | 否 | success | success | W17-110.4 |
 
-**目前累積**：1 / 3+ 數據點；當前 deny 比率 = 0/2 = 0%（樣本不足，未達 base rate 結論門檻）
+**目前累積**：3 / 3+ 數據點；當前 deny 比率 = 0/6 = 0%（達結論門檻 < 5%）
+
+**結論（Session 3 後達門檻）**：候選 1（transient runtime）強支持。PC-115 結論：W17-097.1-.4 deny 為罕見 transient runtime 事件，不需深查。三個獨立 session（含 /clear 冷快取）共 6 次 Edit 全部 success，0 deny，base rate 為 0%，遠低於 5% 門檻。後續若再次出現 `.claude/` Edit deny，仍視為 transient 而非系統性問題；累積 ≥ 3 次新 deny 才重啟調查。
 
 **判定門檻**（W17-110.4 ticket 規定）：
 
