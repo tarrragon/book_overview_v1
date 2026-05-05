@@ -15,7 +15,7 @@ related:
 
 ## 問題描述
 
-`.claude/rules/core/agent-definition-standard.md` 已定義「章節結構規則」（W17-072）：實作類 agent 完成 ticket 時禁止寫自定義 H2，實作內容必須寫在 Schema 章節（如 `## Solution`）下用 H3 子章節組織。但 dispatch 後 agent 仍會出現以下違規模式：
+`.claude/rules/core/agent-definition-standard.md` 已定義「章節結構規則」（W17-072）：實作類 agent 完成 ticket 時禁止寫自定義 H2，實作內容必須寫在 Schema 章節（如 `## Solution`）下用 H3 子章節組織。但 dispatch 後 agent 仍會出現違規模式；**進一步發現 PM 用 ticket CLI append-log 寫長段內容時也會犯同樣錯誤**（案例 2，2026-05-05 W17-110.2），規則 scope 應從「agent 行為層」擴為「ticket body content writer 行為層」。常見違規模式：
 
 - 將實作內容包裝在自定義 H2（例：`## 變更摘要`、`## 修復摘要`、`## 驗證指令與結果`）
 - Schema 章節（`## Solution`）保持空白或只剩原始 placeholder comment
@@ -104,6 +104,56 @@ W10-098.2 派發 thyme-documentation-integrator 補 PROP-001 frontmatter evaluat
 #### 影響範圍
 
 W10-098 系列剩餘 10 子 ticket（W10-098.3/.4/.5/.6/.7/.8/.9/.10/.11 + W10-099 ANA）若不更新 dispatch prompt，會重複此模式。
+
+---
+
+### 案例 2：PM append-log 違反 W17-072（W17-110.2 / 2026-05-05）
+
+PM（rosemary-project-manager）在 W17-110.2 ticket 寫 PM 協調紀錄、dispatch-plan、實驗結果矩陣時，使用 `ticket track append-log <id> --section "..."` 寫入內容，但內容開頭標題用 `## 標題` 而非 `### 標題`。
+
+#### 違規結構（commit 前）
+
+```markdown
+## Problem Analysis
+（原有內容）
+---
+## PM 協調紀錄（2026-05-05 session）  ← 違規：自定義 H2
+
+### 預設執行條件檢查（已驗證）
+...
+
+## Solution
+<!-- To be filled -->
+---
+## Dispatch Plan（PC-040 / agent-dispatch-template）  ← 違規：自定義 H2
+...
+
+## Test Results
+<!-- To be filled -->
+---
+## 4 並行實驗結果矩陣（2026-05-05 session）  ← 違規：自定義 H2
+...
+```
+
+#### 修正後結構
+
+3 個自定義 H2 全降為 `### `（H3），讓內容歸屬正確 Schema section。complete hook 從 warning 轉為 pass。
+
+#### 根因分析
+
+- **Why**：W17-072 規則寫在 `agent-definition-standard.md`，rule scope 寫成 「agent 行為層」。PM 不會自動載入 agent definition（PM 自己讀 `pm-rules/`），規則對 PM 場景在認知上「不適用」。
+- **但實際上**：W17-072 的實質約束是「ticket body 章節結構」，而 PM 與 agent 都會寫 ticket body。actor 為 agent 還是 PM 是同一規則的兩個實例。
+- **Consequence**：PM 違規會被 hook 偵測（同 W17-072 偵測機制覆蓋），但 PM 認知上不視為自己的規則範圍，第一次撰寫時就會犯。
+
+#### 修正方向
+
+1. **PC-123 scope 擴充**（本次落地）：rule scope 從「agent 行為層」擴為「ticket body content writer 行為層」（agent + PM）。
+2. **W17-072 規則位置升級**（建議 follow-up）：將「ticket body 章節結構規則」從 `agent-definition-standard.md`（agent 專屬）抽出為獨立規則檔（如 `rules/core/ticket-body-structure-rules.md`），PM 與 agent 雙方 auto-load。當前 hook 已偵測，補規則檔可降低首次違規率。
+3. **PM 自查**：PM 用 append-log 寫長段內容時，先想「這段內容歸屬哪個 Schema section？」用 H3 子章節組織，避免 H2 切斷 Schema section。
+
+#### 影響範圍
+
+PM 用 ticket CLI append-log 寫內容的所有場景（W10-098 系列 PM 主動操作 ticket、W17-110 系列實驗協調、未來所有 PM 寫 dispatch-plan / coordination notes 的場景）。
 
 ---
 
