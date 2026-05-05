@@ -53,6 +53,14 @@ from typing import Iterable
 #   - PC-072 文件列出的常見污染字
 #   - W17-145 hook 攔截實證的「实」
 #   - 從中文常用詞庫提取（含可能誤入的共用字，由 OpenCC 動態過濾排除）
+# 警告：禁從 OpenCC STCharacters 表全量抽取種子！
+#
+# W17-144.1.1 ANA 實證：OpenCC 對台灣現代繁體標準字有 30% 偏差，會把
+# 「台/群/干」等台灣官方/教育部標準字誤判為簡體（s2t 轉「臺/羣/幹」）。
+# 種子若從 OpenCC STCharacters 全量抽取會引入這些字，導致誤報合法繁體文件。
+#
+# 安全做法：種子從「PC-072 已知污染字 + 中文常用詞拆字」手選，
+# OpenCC 動態過濾共用字（_build_anchors）+ self-test 反向驗證雙層保險。
 _ANCHORS_SEED = (
     # PC-072 已知污染字
     "独违没务实觉决个隶遗设长"
@@ -66,6 +74,14 @@ _ANCHORS_SEED = (
     "组合组件织布脏话脏污脏乱让步让位让座让出让给"
     "队员补充准备简单优秀两个观察检查权限气候"
 )
+
+
+# 台灣現代繁體標準字反向白名單（W17-144.1.1 ANA 實證 OpenCC 對這些字誤判為簡體）
+#
+# 用途：self-test 驗證 KNOWN_SIMPLIFIED_ANCHORS **不可包含**這些字。
+# 來源：本 session 用 zhtw-mcp 實測 detected_script="traditional"（與 OpenCC 判斷相反）。
+# 維護：未來新增 ANCHORS 種子前，必須先用 zhtw-mcp 確認 detected_script != "simplified"。
+TAIWAN_STANDARD_WHITELIST: frozenset[str] = frozenset("台群才干了只布")
 
 
 def _build_anchors(converter) -> frozenset[str]:
@@ -361,6 +377,26 @@ def self_test(converter) -> int:
     print(
         f"[SELF-TEST PASS] KNOWN_SIMPLIFIED_ANCHORS 全 {len(KNOWN_SIMPLIFIED_ANCHORS)} 字"
         f"皆為 OpenCC 認可簡體字"
+    )
+
+    # 第五層測試：台灣標準字反向白名單（W17-144.1.1 ANA 實證 OpenCC 對這些字誤判）
+    # 詳見 _ANCHORS_SEED 上方警告與 TAIWAN_STANDARD_WHITELIST 註解
+    forbidden_taiwan_std = [
+        ch for ch in TAIWAN_STANDARD_WHITELIST if ch in KNOWN_SIMPLIFIED_ANCHORS
+    ]
+    if forbidden_taiwan_std:
+        print(
+            f"[SELF-TEST FAIL] KNOWN_SIMPLIFIED_ANCHORS 含台灣標準字"
+            f"（W17-144.1.1 違規）：{forbidden_taiwan_std}"
+        )
+        print(
+            "  原因：OpenCC 把台灣繁體標準字（如 台/群/干）誤判為簡體；"
+            "若 _ANCHORS_SEED 從 OpenCC STCharacters 全量抽取會踩雷。"
+        )
+        return 1
+    print(
+        f"[SELF-TEST PASS] KNOWN_SIMPLIFIED_ANCHORS 未含 {len(TAIWAN_STANDARD_WHITELIST)} 個"
+        f"台灣標準字（W17-144.1.1 反向白名單防護有效）"
     )
 
     return 0 if not failures and not pollution_failures else 1
