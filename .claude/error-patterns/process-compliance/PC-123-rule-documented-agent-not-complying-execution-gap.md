@@ -141,9 +141,9 @@ PM（rosemary-project-manager）在 W17-110.2 ticket 寫 PM 協調紀錄、dispa
 
 #### 根因分析
 
-- **Why**：W17-072 規則寫在 `agent-definition-standard.md`，rule scope 寫成 「agent 行為層」。PM 不會自動載入 agent definition（PM 自己讀 `pm-rules/`），規則對 PM 場景在認知上「不適用」。
-- **但實際上**：W17-072 的實質約束是「ticket body 章節結構」，而 PM 與 agent 都會寫 ticket body。actor 為 agent 還是 PM 是同一規則的兩個實例。
+- **Why**：W17-072 規則寫在 `agent-definition-standard.md`，rule scope 寫成 「agent 行為層」。PM 不會自動載入 agent definition（PM 自己讀 `pm-rules/`），規則對 PM 場景在認知上「不適用」。實質上 W17-072 的約束是「ticket body 章節結構」，actor 為 agent 還是 PM 屬同規則兩實例。
 - **Consequence**：PM 違規會被 hook 偵測（同 W17-072 偵測機制覆蓋），但 PM 認知上不視為自己的規則範圍，第一次撰寫時就會犯。
+- **Action**：見下方「修正方向」段（PC-123 scope 擴充 / W17-072 規則位置升級 / PM 自查）。
 
 #### 修正方向
 
