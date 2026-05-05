@@ -9,6 +9,7 @@ priority: P2
 category: feature
 related: [UC-09, UC-01, UC-02, PROP-005]
 reference: /Users/mac-eric/project/readmoo-tracker_20260418（同類擴充功能實作借鑑來源）
+evaluation_level: standard
 ---
 
 # PROP-011: 自動導航書庫頁 + 自動滾動蒐集完整書目
@@ -438,6 +439,77 @@ Content script:
 - `docs/chrome-extension-dev-guide.md` — Chrome Extension 限制與最佳實踐
 - `.claude/references/chrome-extension-quickref.md` — 事件監聽器頂層註冊、Storage API 等關鍵限制
 - MDN `chrome.tabs.update`、`AbortController`、`MutationObserver`、`IntersectionObserver`
+
+## 替代方案
+
+本提案的四個子決策均已在「候選方案評估」章節進行多方案比較，此處整合各決策的選擇依據摘要。
+
+### 子決策 A：自動導航實作方式
+
+- **已採用（A1）**：popup 程式化 `chrome.tabs.update`。Manifest V3 標準 API，摩擦最低，一鍵完成導航。
+- **未採用（A2）**：content script 注入 `<a href>` 連結（Tracker 風格）。摩擦高一層，使用者需手動點連結；A1 已涵蓋此情境。
+- **未採用（A3）**：A1 + A2 雙路徑並存。Phase 1 先驗證單一路徑，避免複雜度過高。
+
+### 子決策 B：自動滾動演算法
+
+- **已採用（B1）**：scrollTo + scrollHeight 穩定偵測。耦合對象是書籍卡片選擇器，為 UC-01/02 本來就要付的成本，無新增耦合。
+- **未採用（B2）**：IntersectionObserver 觀察 loading sentinel。依賴 Readmoo 特定 DOM 元件（sentinel 選擇器），Readmoo 改版即失效，新增脆弱耦合；Phase 3 條件性評估。
+
+### 選擇依據
+
+Phase 1 MVP 優先降低新增耦合風險，A1 + B1 組合以最小代碼面覆蓋核心使用者需求（一鍵完整提取）。進階機制（C 中斷 / D 重試 / E 容量預警）在 Phase 1.5 補入，讓 Phase 1 交付更快且問題更聚焦。
+
+---
+
+## 失敗防護
+
+本提案主要失敗情境及防護設計：
+
+### 失敗情境 1：autoStart flag 在 Service Worker idle 時遺失
+
+**前兆**：使用者點按鈕後跳轉書庫頁，但自動掃描未啟動。
+
+**防護**：flag 寫入時附 timestamp；content script 讀取時驗證 timestamp < 60 秒前才接受。若 flag 失效，通道 2（`chrome.tabs.sendMessage`）作為備援，雙通道設計互為保險（詳見實作細節 T1）。
+
+### 失敗情境 2：Readmoo 書庫 DOM 結構變更致選擇器失效
+
+**前兆**：E2E 測試失敗；書籍數量計數為 0。
+
+**防護**：集中管理選擇器於 `ReadmooAdapter`，新增 fallback 層（多候選選擇器依序嘗試）；ANA-A 前置勘查確認選擇器穩定性後再實作，降低初期誤判。
+
+### 失敗情境 3：無限滾動安全閥失效致無限迴圈
+
+**前兆**：滾動操作持續進行，`safetyBreak` 計數器未正確遞增。
+
+**防護**：`scrollUntilStable` 內建 `safetyBreak < 100` 硬上限（借鑑 readmoo-tracker 設計）；連續兩次 `scrollHeight` 無變化即視為到底並中止，雙條件保護避免誤判。
+
+### 失敗情境 4：新增 manifest 權限被 Chrome Web Store 審核拒絕
+
+**前兆**：`permissions: tabs` 新增時審核週期延長或被標記。
+
+**防護**：T2 明確列出所需權限清單，ANA-A 前置任務驗證現有 `activeTab` 是否足夠；若不夠再升級至 `tabs`，並在 Store 說明頁補充用途說明。
+
+---
+
+## Reality Test
+
+### 假設驗證
+
+**假設 1：`chrome.storage.session` 可作為 popup → content script 的可靠 flag 傳遞通道。**
+
+尚待驗證（ANA-A 前置任務）。風險點：Manifest V3 Service Worker idle 清除行為可能在低活躍裝置上早於 60 秒觸發。防護設計（timestamp 驗證 + 雙通道備援）已納入 T1，實測若仍失效則改用 `chrome.storage.local` + 時間戳。
+
+**假設 2：`scrollTo(0, scrollHeight)` + 2 秒等待足以觸發 Readmoo 書庫的無限滾動載入。**
+
+尚待驗證（ANA-A 前置實地勘查）。Readmoo 書庫採用 SPA 延遲載入，若等待時間不足會造成大書庫蒐集不完整。B1 演算法的「連續 2 次穩定 = 到底」判斷依賴此假設成立；ANA-A 需以 50 本、200 本、500 本三個規模各實測一次。
+
+**假設 3：Phase 1 MVP（A1 + B1）能涵蓋 > 95% 使用者的核心需求，無需在 Phase 1 同時交付 C/D/E。**
+
+觸發條件（Phase 1 觀察後重評）：若 Phase 1 上線後使用者反映大書庫（> 200 本）蒐集成功率 < 90%，或中斷後資料狀態不一致問題超過 5 個回報，則 Phase 1.5 優先級升至與 Phase 1 並行處理，不等版本結束。
+
+### 觸發案例
+
+本提案觸發點：現有 UC-01/02 假設「使用者已在書庫頁且 DOM 已備妥」，但 Readmoo 書庫為無限滾動 SPA，「可見書籍 ≠ 全部書籍」的落差從未被正式記錄。借鑑 readmoo-tracker v1.5 分頁自動翻頁設計，驗證同類自動化機制可移植至無限滾動場景，並補強缺口（中斷機制、錯誤恢復、容量預警）。
 
 ---
 
