@@ -254,6 +254,7 @@ Claude Code 內建了官方的 memory 系統（`~/.claude/projects/{project}/mem
 | IMP-051 | 新 Hook 未註冊到 settings | 中 | v0.17.3 |
 | IMP-052 | 批量遷移缺少 None guard | 中 | v0.17.3 |
 | IMP-053 | 一刀切修改忽略程式碼執行路徑差異 | 中 | v0.17.3 |
+| IMP-070 | Hook stdin 欄位命名規範混淆（input snake_case vs output camelCase） | 高 | v0.18.0 |
 
 ### 流程合規 (PC)
 
