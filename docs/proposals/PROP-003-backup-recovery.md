@@ -16,6 +16,10 @@ outputs:
 
 related_proposals: [PROP-002]
 supersedes: null
+
+# draft 過期暫設 light；promote 至 confirmed/approved 時需重評 standard/heavy
+evaluation_level: light
+promotion_review_required: true
 ---
 
 # PROP-003: 資料備份與恢復機制
