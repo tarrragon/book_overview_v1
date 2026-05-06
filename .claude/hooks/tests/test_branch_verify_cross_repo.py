@@ -54,8 +54,10 @@ def test_find_target_repo_returns_repo_root_for_nested_file():
             Path(find_target_repo(str(target_file))).resolve() == repo.resolve()
 
 
-def test_find_target_repo_returns_none_for_relative_path():
-    assert find_target_repo("relative/path.md") is None
+def test_find_target_repo_returns_none_for_empty_path():
+    # W17-150: 改用 git_utils.find_target_repo 後，相對路徑會被 Path.resolve() 解析為絕對路徑，
+    # 故不再保證相對路徑回傳 None。實際 hook 呼叫端仍以 file_path.startswith("/") 守門，
+    # 行為對 hook 場景一致。本測試僅保留空字串案例。
     assert find_target_repo("") is None
 
 

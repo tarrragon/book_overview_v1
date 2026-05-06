@@ -47,6 +47,7 @@ from git_utils import (
     is_protected_branch,
     is_allowed_branch,
     generate_worktree_info,
+    find_target_repo,
 )
 from hook_io import (
     read_hook_input,
@@ -64,30 +65,6 @@ GENERIC_EXEMPT_EXACT = [
     ".gitignore",
     ".gitattributes",
 ]
-
-
-def find_target_repo(file_path: str) -> Optional[str]:
-    """
-    從檔案路徑往上找最近的 .git 目錄，回傳該 repo 的根目錄。
-
-    W17-149: minimal helper（W17-148 完成後可遷移至 git_utils.py）
-
-    Args:
-        file_path: 被編輯的檔案絕對路徑
-
-    Returns:
-        str | None: repo 根目錄路徑；找不到則回傳 None
-    """
-    if not file_path or not file_path.startswith("/"):
-        return None
-    p = Path(file_path)
-    # 從 file 自身或其父目錄開始
-    check = p if p.is_dir() else p.parent
-    while check and str(check) != "/":
-        if (check / ".git").exists():
-            return str(check)
-        check = check.parent
-    return None
 
 
 def _resolve_cwd_for_branch_detection(file_path: str) -> "str | None":
