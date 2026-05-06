@@ -296,6 +296,20 @@ build-炸-修循環。明顯划算。
 
 這樣的檢視產出具體改善方向：「判讀完成標準要收緊」、「機制差異需實證」，而不是模糊的「要更仔細」。
 
+**進階：避免 hindsight 論述汙染判讀記錄**
+
+事後檢視類文章（post-mortem / 設計缺陷分析 / retrospective）有一個常見的失敗模式：論述依賴「結局已發生」的視角、產出的判斷工具只在 case 已踩坑後才能用。
+
+例：「[工具] 預設為 [限制版本]、被當 [通用版本] 用了一段時間沒事、後來踩坑 → 設計缺陷」——這個論述需要讀者知道結局、且歸因落在個人預見性。換成當下三軸論述「在零成本差異 + 強領域先驗下選了限制更高的選項 → 設計缺陷」、判斷不依賴結局、歸因轉到工具預設與制度。
+
+寫設計檢討時、輪 5「反例 / 邊界」要加掃這個 frame：
+
+- 論述是否需要「後來」「最終」「結果」這類時序詞才站得住？
+- 歸因是否落在「沒預見」「沒考慮」這類個人能力？
+- 結論是否寫成 case-bound 規則（「下次要記得 X」）而不是 portable 工具（「下次跑三軸」）？
+
+詳細展開、修法、跨情境多面向應用見 [design-flaw-by-current-axes-not-hindsight](principles/design-flaw-by-current-axes-not-hindsight.md)。
+
 ---
 
 ### 規則五：最重要的話優先說（資訊優先序）
@@ -629,23 +643,26 @@ build-炸-修循環。明顯划算。
 
 ## 多輪 Re-read Pass（multi-pass refinement）
 
-寫完上方自檢還不是 done — 自檢是「同 frame 的最後一掃」、不是 multi-pass。Multi-pass 要求每輪用**不同 frame** catch 不同層的錯（[#82](principles/literal-interception-vs-behavioral-refinement.md) / [#83](principles/writing-multi-pass-review.md)）。
+寫完上方自檢還不是 done — 自檢是「同 frame 的最後一掃」、不是 multi-pass。Multi-pass 要求每輪用**不同 frame** catch 不同層的錯（[literal-interception-vs-behavioral-refinement](principles/literal-interception-vs-behavioral-refinement.md) / [writing-multi-pass-review](principles/writing-multi-pass-review.md)）。
 
 跑下表前先做 surface enumeration：列出 body surface（段落、表格、範例）與 metadata / navigation surface（title、description、tags、heading、link label、MOC / index entry、slug / filename）。每輪 frame 都掃同一份 surface 清單，讓正文與讀者入口維持同一個概念錨點。細節見 [metadata-surface-in-writing-review](principles/metadata-surface-in-writing-review.md)。
 
 文章用的五輪 + 兩輪文章專屬：
 
-| 輪  | Frame                                                              | 文章專用 checklist                                                                                                             |
-| --- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | 生成                                                               | idea 從頭寫到尾、不停下改、預期會有粗糙                                                                                        |
-| 2   | 對意圖（[#67](principles/ease-of-writing-vs-intent-alignment.md)） | 開頭一句、title、description、MOC hook 都點同一個核心責任嗎？段落順序由「易讀」決定不是「好寫」決定？去掉視覺標記後還能讀嗎？  |
-| 3   | 機會成本語氣                                                       | 全 surface grep「應該/必須/不行/正確/唯一」、絕對詞翻成 trade-off                                                              |
-| 4   | Grep-ability / 命名 / 術語                                         | title / heading / link label / 段首關鍵字前置、表格欄位用 `:` `\|` `→` 友善分隔、slug 對應 title；術語保留原文錨點與完整名詞頭 |
-| 5   | 反例 / 邊界                                                        | 「何時不適用」段寫了嗎？「跟其他卡的關係」表完整嗎？反模式給「為什麼不好」+「修法」嗎？                                        |
-| 6   | Cross-link 健康度                                                  | 引用的卡都還在嗎、被引用該卡是否反向引回（雙向）、新卡有沒有加進 collection index                                              |
-| 7   | 索引條 vs 內容                                                     | MOC / index entry 的索引描述、link label、文章 title 與正文第一段是否指向同一個核心責任                                        |
+| 輪  | Frame                                                              | 文章專用 checklist                                                                                                                                                                                                                                                                                                                                   |
+| --- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | 生成                                                               | idea 從頭寫到尾、不停下改、預期會有粗糙                                                                                                                                                                                                                                                                                                              |
+| 2   | 對意圖（[ease-of-writing-vs-intent-alignment](principles/ease-of-writing-vs-intent-alignment.md)） | 開頭一句、title、description、MOC hook 都點同一個核心責任嗎？段落順序由「易讀」決定不是「好寫」決定？去掉視覺標記後還能讀嗎？                                                                                                                                                                                                                        |
+| 3   | 機會成本語氣                                                       | 全 surface grep「應該/必須/不行/正確/唯一」、絕對詞翻成 trade-off                                                                                                                                                                                                                                                                                    |
+| 4   | Grep-ability / 命名 / 術語                                         | title / heading / link label / 段首關鍵字前置、表格欄位用 `:` `\|` `→` 友善分隔、slug 對應 title；術語保留原文錨點與完整名詞頭                                                                                                                                                                                                                       |
+| 5   | 反例 / 邊界                                                        | 「何時不適用」段寫了嗎？「跟其他卡的關係」表完整嗎？反模式給「為什麼不好」+「修法」嗎？設計檢討類文章另掃 [hindsight 論述](principles/design-flaw-by-current-axes-not-hindsight.md)                                                                                                                                                                  |
+| 6   | Cross-link 健康度                                                  | 引用的卡都還在嗎、被引用該卡是否反向引回（雙向）、新卡有沒有加進 collection index                                                                                                                                                                                                                                                                    |
+| 7   | 索引條 vs 內容                                                     | MOC / index entry 的索引描述、link label、文章 title 與正文第一段是否指向同一個核心責任                                                                                                                                                                                                                                                              |
+| 8   | Keyword bank（換工具）                                             | 跑 grep 比對固定 keyword list（口語修辭 / 廢話前綴 / 地區漂移 / 依賴 code）、不靠 reviewer 記憶——詳見 [colloquial-rhetoric](principles/colloquial-rhetoric-erodes-technical-precision.md) + [regional-terminology](principles/regional-terminology-alignment.md) + [prose-self-contained](principles/prose-self-contained-without-code-reference.md) |
+| 9   | Reader simulation（換視角）                                        | 拿掉所有 code block 重讀論述是否仍能 parse？跳到段落中間直接讀能不能拿到關鍵資訊？——強迫換讀者視角、catch reviewer 的「fill in 上下文」盲點                                                                                                                                                                                                          |
+| 10  | Self-criticism（換層次）                                           | 我跑的 N 輪 catch 哪些問題類型？同個規則下還有哪些違反句型沒掃到？framework 是否有 known blind spot？——詳見 [multi-pass-review-frame-granularity](principles/multi-pass-review-frame-granularity.md)                                                                                                                                                 |
 
-跳輪規則同 [#83](principles/writing-multi-pass-review.md) — 短文 / 即時 note 跳 4-7、production 卡片 / 教學文章全跑。
+跳輪規則同 [writing-multi-pass-review](principles/writing-multi-pass-review.md) — 短文 / 即時 note 跳 4-7、production 卡片 / 教學文章全跑；輪 8-10 是 production 教學文章專用、catch 字句層問題、跑 N 輪後仍漏 catch 同類問題時觸發。
 
 ### 術語檢查：中文入口 + 原文錨點 + 完整名詞頭
 
@@ -700,23 +717,26 @@ emoji 在容器窄時斷行：
 
 本規則四條與 compositional-writing 五大原則對應關係：
 
-| 本 reference 規則                                    | 對應五大原則        | 說明                                                                                              |
-| ---------------------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------- |
-| 規則一：階段分層                                     | 原子化 + 意圖顯性   | 每個階段是自包含的認知單元；階段名即宣告該段功能                                                  |
-| 規則二：商業邏輯先於 CASE                            | 意圖顯性 + 原子化   | 商業邏輯段是可跨 CASE 重用的容器；CASE 是該容器的實例填充                                         |
-| 規則三：評估用內在屬性                               | 欄位設計            | 內在屬性是穩定的比較軸；時間消耗是執行者的狀態，不應混入評估欄位                                  |
-| 規則四：事後檢視看判讀品質                           | 可查詢性 + 欄位設計 | 失敗類型是可 grep 的分類鍵；改善方向與失敗類型分欄，避免「要更仔細」這種無欄位化結論              |
-| 規則五：最重要的話優先說                             | 意圖顯性            | 核心原則必須在句首，示例和提醒跟在後面；禁止「觀察→示例→事後定義」的反向認知路徑                  |
-| 規則六：反例段落用正向陳述                           | 意圖顯性 + 原子化   | 錯誤段落先說正確概念，再用錯誤作對比；禁止只有排除式定義（「X 不是 Y」）而無正向錨點              |
-| 規則七：機會成本語氣                                 | 意圖顯性 + 欄位設計 | 方案對照用 A/B/C/D 多選項並列、不用「正確 vs 不足」二元；選項數由議題決定不強湊；真反模式直接標明 |
-| 規則八：自我應用 (dogfooding)                        | 意圖顯性（meta）    | 教某條規則的段落本身遵守該規則；違反時規則的可信度受傷                                            |
-| 規則九：跨多篇議題 → managing-article-collections.md | （指引轉介）        | 拆分判準（focus）/ 三類文章 structure / 跨篇引用 idiom 由跨篇 reference 處理                      |
+| 本 reference 規則                                    | 對應五大原則        | 說明                                                                                                                                                                                                                                                        |
+| ---------------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 規則一：階段分層                                     | 原子化 + 意圖顯性   | 每個階段是自包含的認知單元；階段名即宣告該段功能                                                                                                                                                                                                            |
+| 規則二：商業邏輯先於 CASE                            | 意圖顯性 + 原子化   | 商業邏輯段是可跨 CASE 重用的容器；CASE 是該容器的實例填充                                                                                                                                                                                                   |
+| 規則三：評估用內在屬性                               | 欄位設計            | 內在屬性是穩定的比較軸；時間消耗是執行者的狀態，不應混入評估欄位                                                                                                                                                                                            |
+| 規則四：事後檢視看判讀品質                           | 可查詢性 + 欄位設計 | 失敗類型是可 grep 的分類鍵；改善方向與失敗類型分欄，避免「要更仔細」這種無欄位化結論。設計檢討類文章另外要避免 hindsight 論述汙染判讀（見 [principles/design-flaw-by-current-axes-not-hindsight](principles/design-flaw-by-current-axes-not-hindsight.md)） |
+| 規則五：最重要的話優先說                             | 意圖顯性            | 核心原則必須在句首，示例和提醒跟在後面；禁止「觀察→示例→事後定義」的反向認知路徑                                                                                                                                                                            |
+| 規則六：反例段落用正向陳述                           | 意圖顯性 + 原子化   | 錯誤段落先說正確概念，再用錯誤作對比；禁止只有排除式定義（「X 不是 Y」）而無正向錨點                                                                                                                                                                        |
+| 規則七：機會成本語氣                                 | 意圖顯性 + 欄位設計 | 方案對照用 A/B/C/D 多選項並列、不用「正確 vs 不足」二元；選項數由議題決定不強湊；真反模式直接標明                                                                                                                                                           |
+| 規則八：自我應用 (dogfooding)                        | 意圖顯性（meta）    | 教某條規則的段落本身遵守該規則；違反時規則的可信度受傷                                                                                                                                                                                                      |
+| 規則九：跨多篇議題 → managing-article-collections.md | （指引轉介）        | 拆分判準（focus）/ 三類文章 structure / 跨篇引用 idiom 由跨篇 reference 處理                                                                                                                                                                                |
 
 **反向理解**：原子化要求「每張卡一個概念」，完整文章要求「每個階段一個功能」；兩者是同一個認知負擔原則在不同粒度上的體現。
 
 ---
 
-**Last Updated**: 2026-04-30
+**Last Updated**: 2026-05-06
+**Version**: 0.8.1 — WRAP 審視後降 over-claim：5 張對應 report 卡（#110-114）都加「論述基礎與限制」段揭露樣本量限制；補上 [`regional-terminology-alignment`](principles/regional-terminology-alignment.md) portable principle（地區用語對齊、輪 8 keyword bank 引用）；同步 [`design-flaw-by-current-axes-not-hindsight`](principles/design-flaw-by-current-axes-not-hindsight.md) 的 WRAP 修補（個人 vs 制度歸因軟化、多面向標假設性對比）
+**Version**: 0.8.0 — Multi-pass review 加輪 8-10（keyword bank / reader simulation / self-criticism）、處理「跑了 N 輪、字句層問題仍漏」的盲點；新增三張內部 principle：[`colloquial-rhetoric`](principles/colloquial-rhetoric-erodes-technical-precision.md)（口語修辭 keyword bank）、[`prose-self-contained`](principles/prose-self-contained-without-code-reference.md)（reader simulation 自測）、[`multi-pass-review-frame-granularity`](principles/multi-pass-review-frame-granularity.md)（meta 層、self-criticism 三機制論述）
+**Version**: 0.7.6 — 規則四補進階段「避免 hindsight 論述汙染判讀記錄」、輪 5 補設計檢討類另掃 hindsight 論述；新增內部 principle [`design-flaw-by-current-axes-not-hindsight`](principles/design-flaw-by-current-axes-not-hindsight.md)——把「設計缺陷的精準定義」從「沒預測到後來需求」改成「在當下成本對稱條件下選了限制更高的選項」、用三軸論證代替 hindsight、確保產出 portable 判斷工具
 **Version**: 0.7.5 — 將翻譯 / 轉譯 review 升級為獨立 reference：`translation-review.md`，聚焦句內邏輯對位、前提檢查、因果檢查與讀者追問方向；writing-articles 保留短檢查表並轉介。
 **Version**: 0.7.4 — 強化術語翻譯的句內邏輯檢查：譯名放回原句後要檢查主詞、動詞、修飾語、因果與讀者追問方向；避免中文順口但讓句子多出原文沒有的前提。
 **Version**: 0.7.3 — 輪 4 補術語檢查：翻譯術語第一次出現保留原文錨點，中文壓縮術語保留完整名詞頭；新增 `terminology-keeps-original-anchor` 與 `compressed-chinese-terms-need-head-noun` 兩張內部 principle。
