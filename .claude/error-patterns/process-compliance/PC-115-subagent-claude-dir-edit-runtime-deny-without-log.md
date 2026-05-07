@@ -21,7 +21,7 @@ subagent 派發後嘗試 Edit/Write 主 repo `.claude/` 下檔案：
 - `.claude/hook-logs/` 全目錄無相關紀錄
 - 同 session 同檔案，PM 主線程 Edit 立即成功
 
-## 根因（**未解**：W17-097/098/099/100/101/102/103 五輪 + W17-108/109 三階段對照，Hypothesis K 強形式已否證）
+## 根因（**已收斂**：候選 1 transient runtime 強支持；Hypothesis K 強形式已否證 / 候選 5、2 已否證 / 候選 3 弱否證）
 
 **狀態：根因待重啟調查**。Hypothesis K（session 級 prefix-based 權限快取需 PM 暖機）於 2026-05-02 21:00 新 session 三階段對照實驗中被決定性否證——冷快取下 subagent `.claude/` Edit 兩次皆 success。W17-097.1-.4 DENY 4/4 的真實根因仍未識別。詳見 `docs/work-logs/v0/v0.18/v0.18.0/tickets/0.18.0-W17-108.md` 與 `0.18.0-W17-109.md`。
 
@@ -97,16 +97,19 @@ deny 訊息為標準 CC 模板「Permission to use Edit has been denied. IMPORTA
   - Phase C 暖機後不同檔（comment-writing-methodology.md）：subagent Edit 兩次皆 success
   - **結論**：Hypothesis K 強形式被決定性否證；W17-097.1-.4 DENY 4/4 的真實根因仍未識別
 
-## 待重啟調查的候選假設
+## 候選假設驗證結果（W17-110 收斂，2026-05-05 ~ 05-07）
 
-Hypothesis K 否證後，W17-097.1-.4 的 4/4 deny 仍需解釋。**調查計畫已建立**：W17-110（含 W17-110.1/.2/.3/.4 spawned 子實驗 ticket，按 ROI 排序，含 W17-104 反模式 1-4 自查清單）。可能候選（尚未測試）：
+W17-110 ANA 規劃 4 子實驗按 ROI 順序執行，全部 success，結論收斂為候選 1（transient runtime）強支持。
 
-| 候選 | 描述 | 區辨設計 |
-|------|------|---------|
-| Transient runtime issue | W17-097 那次是 CC runtime 暫時故障，非系統性行為 | 累積多 session 重複 4 並行 + 複雜 Edit 嘗試，看 deny 比率 |
-| 並行 + 複雜 Edit 組合 | 並行性與 Edit 複雜度（含 import 修改 + 多處替換）的交互作用 | 控制 Edit 複雜度，分別測 1/2/4 並行 |
-| Session 累積狀態 | 上 session 已執行多 commit + pytest 後的某種累積狀態觸發 deny | 新 session 完整重現 W17-097 上下文（多 commit + pytest 累積後）再測 |
-| CC 版本內部變化 | 同版號 v2.1.126 內部行為波動 | 記錄 deny 案例的 CC 詳細版本資訊 |
+| 候選 | 描述 | 區辨設計 | 驗證 ticket | 結果 | 結論 |
+|------|------|---------|-----------|------|------|
+| 5（ROI #1） | prompt 內容觸發特殊 audit | 單派 thyme 用 W17-097.1 完整 prompt 風格複刻（import 修改 + commit/pytest 提及） | W17-110.1 | 2/2 success | **否證**：相同 prompt 風格冷快取單派可成功 |
+| 2（ROI #2） | 並行 + 複雜 Edit 組合 | 4 thyme 並行各對不同檔案做 import 替換 + revert | W17-110.2 | 8/8 success（4×2） | **否證**：並行 + 複雜 + 冷三維組合不觸發 deny |
+| 3（ROI #3） | session 累積狀態（commit + pytest） | 累積 2 commit + pytest 後測單發 marker Edit | W17-110.3 | 2/2 success | **弱否證**：當前累積（2 commit）不及 W17-097 baseline（5 commit），需更高累積樣本才能強否證 |
+| 1（ROI #4） | transient runtime base rate | 連續多 cold session 重複 Phase A，計算 deny 比率 | W17-110.4 | 6/6 success（3 session × 2） | **強支持**：base rate 0%（< 5% 門檻），W17-097.1-.4 deny 為罕見 transient runtime |
+| 4（trigger） | CC 版本內部變化（同版號波動） | 記錄各 deny 案例 CC build；CC 升級後在 PC-115 補新版本 Phase A 重測 | 觸發條件式 | 待 CC 升級 | 開放等待 |
+
+**收斂說明**：W17-097.1-.4 DENY 4/4 真實根因 = transient runtime fluctuation（候選 1）。後續若 `.claude/` Edit 再 deny，視為 transient；累積 ≥ 3 次新 deny 才重啟調查（候選 3 / 4 需更高樣本驗證時的 trigger）。
 
 ## Base Rate 觀察（W17-110.4 多 session 累積中）
 
