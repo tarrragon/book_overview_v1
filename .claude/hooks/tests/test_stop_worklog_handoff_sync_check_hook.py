@@ -1,0 +1,277 @@
+"""Tests for stop-worklog-handoff-sync-check-hook.py (W17-083.2 S3).
+
+對應 W17-083 Phase 2 sage §S3 11 測試案例（S3-T01 ~ S3-T11）：
+- 四主情境矩陣（雙軌一致 / worklog 有 pending 無 / pending 有 worklog 無 / 雙軌皆無）
+- 邊界（worklog 不存在 / mtime 早於 session / 短 ID 補全 / completed 排除 / 孤立 + completed）
+- 中斷（event JSON 缺欄位）
+- 整合（輸出格式驗證）
+
+策略：
+- 用 importlib 動態載入 hook 模組（檔名含 hyphen 無法 import）
+- 用 tmp_path 建構假 project_root（含 docs/todolist.yaml + worklog + ticket md + handoff/pending）
+- 直接呼叫 detect_sync_drift（避開 stdin 處理 → 簡化測試）
+"""
+
+from __future__ import annotations
+
+import importlib.util
+import json
+import os
+import sys
+import time
+from pathlib import Path
+from unittest.mock import MagicMock
+
+import pytest
+
+
+HOOK_PATH = Path(__file__).parent.parent / "stop-worklog-handoff-sync-check-hook.py"
+
+
+def _load_hook_module():
+    spec = importlib.util.spec_from_file_location(
+        "stop_worklog_handoff_sync_check_hook", HOOK_PATH
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.fixture
+def hook_mod():
+    return _load_hook_module()
+
+
+# ---------------------------------------------------------------------------
+# Fixtures：假 project_root
+# ---------------------------------------------------------------------------
+
+
+def make_project_root(
+    tmp_path,
+    version="0.18.0",
+    worklog_content=None,
+    pending_ticket_ids=None,
+    ticket_status_map=None,
+    create_worklog=True,
+):
+    pending_ticket_ids = pending_ticket_ids or set()
+    ticket_status_map = ticket_status_map or {}
+
+    root = tmp_path / "fake_project"
+    root.mkdir(exist_ok=True)
+
+    # docs/todolist.yaml
+    todolist = root / "docs" / "todolist.yaml"
+    todolist.parent.mkdir(parents=True, exist_ok=True)
+    todolist.write_text(
+        f"versions:\n  - version: '{version}'\n    status: active\n",
+        encoding="utf-8",
+    )
+
+    # worklog 路徑：docs/work-logs/v0/v0.18/v0.18.0/v0.18.0-main.md
+    bare = version
+    parts = bare.split(".")
+    major = parts[0]
+    minor = f"{parts[0]}.{parts[1]}"
+    worklog_path = (
+        root / "docs" / "work-logs" / f"v{major}" / f"v{minor}" / f"v{bare}"
+        / f"v{bare}-main.md"
+    )
+    worklog_path.parent.mkdir(parents=True, exist_ok=True)
+    if create_worklog:
+        worklog_path.write_text(worklog_content or "", encoding="utf-8")
+
+    # pending dir
+    pending_dir = root / ".claude" / "handoff" / "pending"
+    pending_dir.mkdir(parents=True, exist_ok=True)
+    for tid in pending_ticket_ids:
+        (pending_dir / f"{tid}.json").write_text("{}", encoding="utf-8")
+
+    # ticket md（用於 status 查詢）
+    tickets_dir = worklog_path.parent / "tickets"
+    tickets_dir.mkdir(parents=True, exist_ok=True)
+    for tid, status in ticket_status_map.items():
+        ticket_md = tickets_dir / f"{tid}.md"
+        ticket_md.write_text(
+            f"---\nid: {tid}\nstatus: {status}\n---\n\n# Test Ticket\n",
+            encoding="utf-8",
+        )
+
+    return root, worklog_path
+
+
+# ---------------------------------------------------------------------------
+# S3-T01 ~ S3-T11
+# ---------------------------------------------------------------------------
+
+
+class TestStopWorklogHandoffSyncCheck:
+
+    def test_t01_dual_track_consistent_no_output(self, tmp_path, hook_mod):
+        """S3-T01 情境1：雙軌一致 → 不輸出"""
+        root, worklog = make_project_root(
+            tmp_path,
+            worklog_content="## Handoff Context\n\nW17-079 待處理\n",
+            pending_ticket_ids={"0.18.0-W17-079"},
+            ticket_status_map={"0.18.0-W17-079": "in_progress"},
+        )
+
+        result = hook_mod.detect_sync_drift(root, 0.0, MagicMock())
+        assert result is None
+
+    def test_t02_worklog_has_pending_missing(self, tmp_path, hook_mod):
+        """S3-T02 情境2（核心）：worklog 有兩 ticket、pending 空 → 缺失警告"""
+        root, worklog = make_project_root(
+            tmp_path,
+            worklog_content=(
+                "## Handoff Context\n\n"
+                "W17-079 與 W17-080 待下 session 處理\n"
+            ),
+            pending_ticket_ids=set(),
+            ticket_status_map={
+                "0.18.0-W17-079": "in_progress",
+                "0.18.0-W17-080": "pending",
+            },
+        )
+
+        result = hook_mod.detect_sync_drift(root, 0.0, MagicMock())
+        assert result is not None
+        assert "[Worklog-CLI Handoff Sync Check]" in result
+        assert "0.18.0-W17-079" in result
+        assert "0.18.0-W17-080" in result
+        assert "ticket handoff 0.18.0-W17-079" in result
+
+    def test_t03_pending_has_worklog_no_orphan(self, tmp_path, hook_mod):
+        """S3-T03 情境3：worklog 無關鍵字、pending 有孤立 → 列為孤立"""
+        root, worklog = make_project_root(
+            tmp_path,
+            worklog_content="## 一般工作日誌\n\n今天修了 bug\n",
+            pending_ticket_ids={"0.17.0-W5-001"},
+            ticket_status_map={"0.17.0-W5-001": "in_progress"},
+        )
+
+        result = hook_mod.detect_sync_drift(root, 0.0, MagicMock())
+        assert result is not None
+        assert "孤立" in result
+        assert "0.17.0-W5-001" in result
+
+    def test_t04_dual_track_empty_no_output(self, tmp_path, hook_mod):
+        """S3-T04 情境4：雙軌皆無 → 不輸出"""
+        root, worklog = make_project_root(
+            tmp_path,
+            worklog_content="## 一般工作日誌\n\n無接手段落\n",
+            pending_ticket_ids=set(),
+        )
+
+        result = hook_mod.detect_sync_drift(root, 0.0, MagicMock())
+        assert result is None
+
+    def test_t05_worklog_not_exist_silent(self, tmp_path, hook_mod):
+        """S3-T05 邊界：worklog 不存在 → 靜默退出（None）"""
+        root, worklog = make_project_root(
+            tmp_path,
+            create_worklog=False,
+        )
+
+        result = hook_mod.detect_sync_drift(root, 0.0, MagicMock())
+        assert result is None
+
+    def test_t06_worklog_mtime_before_session_skip(self, tmp_path, hook_mod):
+        """S3-T06 邊界：worklog mtime 早於 session_start → 不輸出"""
+        root, worklog = make_project_root(
+            tmp_path,
+            worklog_content="## Handoff Context\n\nW17-079 待處理\n",
+            pending_ticket_ids=set(),
+            ticket_status_map={"0.18.0-W17-079": "in_progress"},
+        )
+
+        # 設 worklog mtime 為 1000（很早），session_start 為 2000（之後）
+        os.utime(worklog, (1000.0, 1000.0))
+
+        result = hook_mod.detect_sync_drift(root, 2000.0, MagicMock())
+        assert result is None
+
+    def test_t07_short_id_completion(self, tmp_path, hook_mod):
+        """S3-T07 邊界：worklog 含短 ID（無版本前綴）→ 補全為完整 ID"""
+        root, worklog = make_project_root(
+            tmp_path,
+            worklog_content=(
+                "## Handoff Context\n\n下 session 優先建議：W17-079\n"
+            ),
+            pending_ticket_ids=set(),
+            ticket_status_map={"0.18.0-W17-079": "in_progress"},
+        )
+
+        result = hook_mod.detect_sync_drift(root, 0.0, MagicMock())
+        assert result is not None
+        assert "0.18.0-W17-079" in result  # 補全
+
+    def test_t08_completed_ticket_excluded(self, tmp_path, hook_mod):
+        """S3-T08 邊界：worklog 含 ID 但 ticket 已 completed → 不視為缺失"""
+        root, worklog = make_project_root(
+            tmp_path,
+            worklog_content="## Handoff Context\n\nW17-079 已完成\n",
+            pending_ticket_ids=set(),
+            ticket_status_map={"0.18.0-W17-079": "completed"},
+        )
+
+        result = hook_mod.detect_sync_drift(root, 0.0, MagicMock())
+        # worklog ID 全 completed → missing 為空；pending 也空 → orphan 為空
+        # 應該不輸出（雙方比對結果皆無）
+        assert result is None
+
+    def test_t09_orphan_with_completed(self, tmp_path, hook_mod):
+        """S3-T09 邊界：pending 有 completed ticket、worklog 無關鍵字 → 列為孤立"""
+        root, worklog = make_project_root(
+            tmp_path,
+            worklog_content="## 一般\n",
+            pending_ticket_ids={"0.17.0-W5-001"},
+            ticket_status_map={"0.17.0-W5-001": "completed"},
+        )
+
+        result = hook_mod.detect_sync_drift(root, 0.0, MagicMock())
+        # 孤立邏輯：pending 有 worklog_active_set 無 → 列為孤立
+        # （sage 規格：仍列為孤立提示「考慮 archive」）
+        assert result is not None
+        assert "0.17.0-W5-001" in result
+
+    def test_t10_event_missing_session_start(self, tmp_path, hook_mod):
+        """S3-T10 中斷：session_start=0（缺欄位 fallback）→ 不 raise，正常檢查"""
+        root, worklog = make_project_root(
+            tmp_path,
+            worklog_content="## Handoff Context\n\nW17-079\n",
+            pending_ticket_ids=set(),
+            ticket_status_map={"0.18.0-W17-079": "in_progress"},
+        )
+
+        # session_start=0 → 不過濾 mtime
+        result = hook_mod.detect_sync_drift(root, 0.0, MagicMock())
+        assert result is not None
+        assert "0.18.0-W17-079" in result
+
+    def test_t11_output_format_structure(self, tmp_path, hook_mod):
+        """S3-T11 整合：輸出格式包含所有設計骨架元素"""
+        root, worklog = make_project_root(
+            tmp_path,
+            worklog_content=(
+                "## Handoff Context\n\nW17-079 待處理\n"
+            ),
+            pending_ticket_ids={"0.17.0-W5-001"},  # 孤立
+            ticket_status_map={
+                "0.18.0-W17-079": "in_progress",
+                "0.17.0-W5-001": "in_progress",
+            },
+        )
+
+        result = hook_mod.detect_sync_drift(root, 0.0, MagicMock())
+        assert result is not None
+        # 檢查所有關鍵段落
+        assert "[Worklog-CLI Handoff Sync Check]" in result  # 標題
+        assert "缺失" in result
+        assert "0.18.0-W17-079" in result
+        assert "孤立" in result
+        assert "0.17.0-W5-001" in result
+        assert "建議執行" in result
+        assert "ticket handoff 0.18.0-W17-079" in result
+        assert "session-switching-sop.md" in result  # SOP 引用

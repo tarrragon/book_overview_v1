@@ -1088,6 +1088,143 @@ def _execute_gc(args: argparse.Namespace) -> int:
     return execute_gc(dry_run=(dry_run or not execute_mode))
 
 
+# ============================================================================
+# --from-worklog 子命令（W17-083.2 S2）
+# ============================================================================
+
+
+def _build_handoff_namespace(ticket_id: str) -> argparse.Namespace:
+    """
+    為 _execute_handoff 構造完整 Namespace（避免 AttributeError）。
+
+    集中欄位構造避免分散；對應 _execute_handoff 預期的所有 getattr 欄位。
+    """
+    return argparse.Namespace(
+        ticket_id=ticket_id,
+        version=None,
+        to_parent=False,
+        to_child=None,
+        to_sibling=None,
+        context_refresh=False,
+        status=False,
+        gc=False,
+        dry_run=False,
+        execute=False,
+        auto=False,
+        from_ticket_id=None,
+        direction=None,
+        from_worklog=False,
+        worklog_path=None,
+    )
+
+
+def _auto_detect_worklog_path() -> Optional[Path]:
+    """
+    自動偵測 active version 的 main worklog 路徑。
+
+    Returns:
+        Path 或 None（active version 偵測失敗時）
+    """
+    from ticket_system.lib.version import get_current_version
+    from ticket_system.lib.worklog_parser import find_worklog_path
+
+    version = get_current_version()
+    if not version:
+        return None
+    return find_worklog_path(version)
+
+
+def _execute_from_worklog(args: argparse.Namespace) -> int:
+    """
+    執行 handoff --from-worklog：從 worklog 偵測 handoff 段落並批次建立 pending handoff。
+
+    流程：
+    1. 定位 worklog（--worklog-path 或 auto-detect）
+    2. 偵測 handoff 關鍵字
+    3. 提取 ticket ID 清單（含 active version 短 ID 補全）
+    4. 對每個 ID：跳過已 pending、跳過 completed、處理不存在錯誤；
+       --dry-run 僅列出建議；否則重用 _execute_handoff 建檔。
+    """
+    from ticket_system.lib.version import get_current_version
+    from ticket_system.lib.worklog_parser import (
+        detect_handoff_keywords,
+        extract_ticket_ids,
+    )
+
+    # 1) worklog 定位
+    worklog_path = getattr(args, "worklog_path", None)
+    if worklog_path is None:
+        worklog_path = _auto_detect_worklog_path()
+        if worklog_path is None:
+            print(format_error("無法自動偵測 active version；請指定 --worklog-path"), file=sys.stderr)
+            return 1
+
+    if not isinstance(worklog_path, Path):
+        worklog_path = Path(worklog_path)
+
+    if not worklog_path.exists():
+        print(format_error(f"worklog 不存在: {worklog_path}"), file=sys.stderr)
+        return 1
+
+    # 2) 解析
+    content = worklog_path.read_text(encoding="utf-8")
+    if not detect_handoff_keywords(content):
+        print(format_info("未偵測到 handoff 段落（無 handoff 關鍵字命中）"))
+        return 0
+
+    active_version = get_current_version()
+    if active_version:
+        active_version = active_version.lstrip("v")
+    ticket_ids = extract_ticket_ids(content, active_version=active_version)
+
+    if not ticket_ids:
+        print(format_info("偵測到 handoff 關鍵字但無 ticket ID"))
+        return 0
+
+    # 3) 逐個處理
+    project_root = get_project_root()
+    pending_dir = project_root / HANDOFF_DIR / HANDOFF_PENDING_SUBDIR
+
+    dry_run = getattr(args, "dry_run", False)
+
+    for tid in ticket_ids:
+        if (pending_dir / f"{tid}.json").exists():
+            print(f"[SKIP] {tid}: 已存在 pending handoff")
+            continue
+
+        # 載入 ticket，檢查存在與狀態
+        # 從 ticket_id 提取版本（如 "0.18.0-W17-079" -> "0.18.0"）
+        ticket_version = extract_version_from_ticket_id(tid)
+        if not ticket_version:
+            ticket_version = active_version
+
+        ticket = None
+        try:
+            if ticket_version:
+                ticket = load_ticket(ticket_version, tid)
+        except Exception:
+            ticket = None
+
+        if not ticket:
+            print(f"[FAIL] {tid}: ticket 不存在")
+            continue
+
+        if ticket.get("status") == STATUS_COMPLETED:
+            print(f"[SKIP] {tid}: 已 completed")
+            continue
+
+        if dry_run:
+            print(f"[DRY-RUN] 將執行：ticket handoff {tid}")
+            continue
+
+        # 4) 重用 _execute_handoff
+        sub_args = _build_handoff_namespace(tid)
+        rc = _execute_handoff(sub_args)
+        print(f"[{'OK' if rc == 0 else 'FAIL'}] {tid}")
+
+    return 0
+
+
 _VALID_AUTO_DIRECTIONS = ("to-parent", "to-child", "to-sibling", "to-source", "context-refresh")
 _AUTO_RUNQUEUE_HINT_TITLE = "下一步候選（runqueue --context=resume --top 3）"
 _AUTO_RUNQUEUE_EMPTY_MESSAGE = "目前無待恢復 ticket"
@@ -1353,6 +1490,10 @@ def execute(args: argparse.Namespace) -> int:
     if getattr(args, "gc", False):
         return _execute_gc(args)
 
+    # --from-worklog：從 worklog 偵測批次建立 handoff（W17-083.2 S2）
+    if getattr(args, "from_worklog", False):
+        return _execute_from_worklog(args)
+
     # 檢查 --status 選項
     if getattr(args, "status", False):
         ticket_id = getattr(args, "ticket_id", None)
@@ -1511,5 +1652,18 @@ def register(subparsers: argparse._SubParsersAction) -> None:
         "--direction",
         dest="direction",
         help="（搭配 --auto）handoff 方向：to-parent / to-child / to-sibling / to-source / context-refresh（可加 :TARGET_ID 後綴）"
+    )
+    parser.add_argument(
+        "--from-worklog",
+        dest="from_worklog",
+        action="store_true",
+        help="從 worklog 偵測 handoff 段落並批次建立 pending handoff（W17-083.2 S2）"
+    )
+    parser.add_argument(
+        "--worklog-path",
+        dest="worklog_path",
+        type=Path,
+        default=None,
+        help="（搭配 --from-worklog）指定 worklog 路徑；省略則自動偵測 active version"
     )
     parser.set_defaults(func=execute)
