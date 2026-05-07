@@ -251,7 +251,11 @@ class TestStopWorklogHandoffSyncCheck:
         assert "0.18.0-W17-079" in result
 
     def test_t11_output_format_structure(self, tmp_path, hook_mod):
-        """S3-T11 整合：輸出格式包含所有設計骨架元素"""
+        """S3-T11 整合：輸出格式包含所有設計骨架元素 + Stop event JSON schema 驗證（W17-158）
+
+        W17-158 修正：Stop event schema 不允許 hookSpecificOutput.additionalContext，
+        改用 top-level systemMessage。本測試額外驗證 main() 輸出的 JSON 頂層欄位結構。
+        """
         root, worklog = make_project_root(
             tmp_path,
             worklog_content=(
@@ -275,3 +279,35 @@ class TestStopWorklogHandoffSyncCheck:
         assert "建議執行" in result
         assert "ticket handoff 0.18.0-W17-079" in result
         assert "session-switching-sop.md" in result  # SOP 引用
+
+    def test_t12_main_output_uses_stop_event_schema(self, tmp_path, hook_mod, monkeypatch, capsys):
+        """W17-158：main() JSON 輸出符合 Stop event schema（top-level systemMessage，
+        不得有 hookSpecificOutput.additionalContext）。"""
+        root, worklog = make_project_root(
+            tmp_path,
+            worklog_content="## Handoff Context\n\nW17-079 待處理\n",
+            pending_ticket_ids=set(),
+            ticket_status_map={"0.18.0-W17-079": "in_progress"},
+        )
+
+        # mock get_project_root → tmp root；stdin → 空 event
+        monkeypatch.setattr(hook_mod, "get_project_root", lambda: root)
+        monkeypatch.setattr(sys, "stdin", __import__("io").StringIO("{}"))
+
+        with pytest.raises(SystemExit) as exc_info:
+            hook_mod.main()
+        assert exc_info.value.code == 0
+
+        captured = capsys.readouterr()
+        # main() 應輸出 JSON 至 stdout
+        assert captured.out.strip(), "main() 應輸出 JSON"
+        payload = json.loads(captured.out)
+
+        # 規格：top-level systemMessage 必存在且含警告內容
+        assert "systemMessage" in payload, "Stop event 必須使用 top-level systemMessage"
+        assert "[Worklog-CLI Handoff Sync Check]" in payload["systemMessage"]
+
+        # 規格：禁止 hookSpecificOutput.additionalContext（Stop event schema 不允許）
+        assert "hookSpecificOutput" not in payload, (
+            "Stop event schema 不允許 hookSpecificOutput.additionalContext（W17-158）"
+        )

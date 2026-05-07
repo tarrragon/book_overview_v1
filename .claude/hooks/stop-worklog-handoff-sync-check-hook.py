@@ -18,8 +18,9 @@ session 結束時掃描 worklog 是否含 handoff 關鍵字，比對 .claude/han
 4. 雙軌皆無 → 不輸出
 
 輸出協議：
-- additionalContext via JSON stdout（與 handoff-auto-resume-stop-hook 共存，
-  Claude Code 會合併多個 hook 的 additionalContext）
+- systemMessage via JSON stdout（top-level 欄位，Claude Code Stop event schema
+  不允許 additionalContext；handoff-auto-resume-stop-hook 使用 decision/reason
+  與 suppressOutput，本 hook 透過 systemMessage 顯示警告，兩者可獨立共存）
 
 ARCH-020 同構雙寫風險：
 - HANDOFF_KEYWORDS / TICKET_ID regex 與 ticket_system/lib/worklog_parser.py 重複
@@ -305,11 +306,10 @@ def main():
         warning = detect_sync_drift(project_root, session_start, logger)
 
         if warning:
+            # Stop event schema 不允許 hookSpecificOutput.additionalContext；
+            # 改用 top-level systemMessage（W17-158）。
             output = {
-                "hookSpecificOutput": {
-                    "hookEventName": "Stop",
-                    "additionalContext": warning,
-                }
+                "systemMessage": warning,
             }
             print(json.dumps(output, ensure_ascii=False))
         sys.exit(EXIT_SUCCESS)
