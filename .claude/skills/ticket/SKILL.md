@@ -230,6 +230,12 @@ ticket show W17-015 -P         # 停用分頁
 
 支援自動判斷方向、指定交接到父/子/兄弟任務。五種交接情境。
 
+新增 `--from-worklog` 子命令（W17-083.2）：解析 worklog 最新交接段，提取 ticket ID 並批次補建 `.claude/handoff/pending/<id>.json`，修復「worklog 寫了但未執行 CLI」雙軌不同步缺口。搭配 `stop-worklog-handoff-sync-check-hook`（Stop event 偵測）形成自動防護。
+
+```bash
+ticket handoff --from-worklog [--worklog-path PATH] [--dry-run]
+```
+
 > 決策樹：Read `references/workflow-handoff.md`
 > 詳細用法：Read `references/handoff-command.md`
 
