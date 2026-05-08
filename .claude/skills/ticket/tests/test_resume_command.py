@@ -670,7 +670,7 @@ class TestExecute:
         assert result == 0
 
         captured = capsys.readouterr()
-        assert "待恢復任務清單" in captured.out or "[待恢復任務清單]" in captured.out
+        assert "下 session 建議項目清單" in captured.out or "[下 session 建議項目清單]" in captured.out
         assert "0.31.0-W4-001" in captured.out
         assert "0.31.0-W4-002" in captured.out
 
