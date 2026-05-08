@@ -1473,9 +1473,14 @@ def _execute_auto_handoff(args: argparse.Namespace) -> int:
     handoff_dir.mkdir(parents=True, exist_ok=True)
     handoff_file = handoff_dir / f"{from_ticket_id}.json"
 
+    # W17-164 / L2-A: 從 direction 後綴提取 target_ticket_id 並提升為頂層欄位。
+    # 既有 direction 後綴語意保留（向後相容），新增絕對指向欄位讓讀取端統一解析。
+    auto_target_id = direction.split(":", 1)[1] if ":" in direction else None
+
     handoff_data = {
         "ticket_id": from_ticket_id,
         "direction": direction,
+        "target_ticket_id": auto_target_id,
         "timestamp": datetime.now().isoformat(),
         "from_status": ticket.get("status"),
         "title": ticket.get("title"),
@@ -1502,8 +1507,101 @@ def _execute_auto_handoff(args: argparse.Namespace) -> int:
     return 0
 
 
+def _execute_next_handoff(args: argparse.Namespace) -> int:
+    """
+    執行 --next 模式 handoff（W17-164 / L2-A）。
+
+    用途：明示指定下 session 該做的 target ticket id，繞過 direction 間接指向。
+    產出的 JSON 含 target_ticket_id 欄位 + direction="context-refresh"（語意：
+    跨 session 對焦至絕對 target）。
+
+    與 --auto 差異：--next 強制寫入 target_ticket_id；--auto 透過 direction 後綴
+    間接表達 target。兩者互斥（execute() 已先攔截）。
+
+    Args:
+        args: argparse Namespace，需含 next（target id）與 from_ticket_id
+
+    Returns:
+        int: exit code (0 成功, 1 參數 / 寫入失敗, 2 ticket 不存在)
+    """
+    target_id = getattr(args, "next", None)
+    from_ticket_id = getattr(args, "from_ticket_id", None)
+
+    if not target_id:
+        print(format_error("--next 需要 target ticket id 參數"), file=sys.stderr)
+        return 1
+    if not from_ticket_id:
+        print(format_error("--next 需要 --from-ticket-id 參數"), file=sys.stderr)
+        return 1
+
+    if not validate_ticket_id(from_ticket_id):
+        _print_id_error()
+        return 1
+    if not validate_ticket_id(target_id):
+        print(format_error(f"--next 目標 ticket id 格式無效：{target_id}"), file=sys.stderr)
+        return 1
+
+    explicit_version = getattr(args, "version", None)
+    if explicit_version:
+        version = resolve_version(explicit_version)
+    else:
+        extracted = extract_version_from_ticket_id(from_ticket_id)
+        version = extracted if extracted else resolve_version(None)
+    if not version:
+        _print_version_error()
+        return 1
+
+    ticket, error = load_and_validate_ticket(version, from_ticket_id, auto_print_error=False)
+    if error:
+        _print_ticket_not_found_error(from_ticket_id, version)
+        return 2
+
+    root = get_project_root()
+    handoff_dir = root / HANDOFF_DIR / HANDOFF_PENDING_SUBDIR
+    handoff_dir.mkdir(parents=True, exist_ok=True)
+    handoff_file = handoff_dir / f"{from_ticket_id}.json"
+
+    handoff_data = {
+        "ticket_id": from_ticket_id,
+        "direction": "context-refresh",
+        "target_ticket_id": target_id,
+        "timestamp": datetime.now().isoformat(),
+        "from_status": ticket.get("status"),
+        "title": ticket.get("title"),
+        "what": ticket.get("what"),
+        "chain": ticket.get("chain", {}),
+        "resumed_at": None,
+        "auto_generated": False,
+        "context_bundle": _extract_context_bundle_for_handoff(ticket),
+        "exit_status": _extract_exit_status_for_handoff(ticket),
+    }
+
+    try:
+        with open(handoff_file, "w", encoding="utf-8") as f:
+            json.dump(handoff_data, f, ensure_ascii=False, indent=2)
+    except (IOError, OSError) as exc:
+        print(format_error(f"寫入 handoff 檔案失敗：{exc}"), file=sys.stderr)
+        return 1
+
+    print(format_info(
+        InfoMessages.HANDOFF_FILE_CREATED,
+        path=str(handoff_file.relative_to(root)),
+    ))
+    return 0
+
+
 def execute(args: argparse.Namespace) -> int:
     """執行 handoff 命令"""
+    # --next 與 --auto 互斥檢查（W17-164 / L2-A）
+    next_target = getattr(args, "next", None)
+    if next_target and getattr(args, "auto", False):
+        print(format_error("--next 與 --auto 互斥，請擇一使用"), file=sys.stderr)
+        return 1
+
+    # --next 顯式 target 模式（W17-164 / L2-A）
+    if next_target:
+        return _execute_next_handoff(args)
+
     # --auto 自動生成模式（scheduler / 自動化用途）
     if getattr(args, "auto", False):
         return _execute_auto_handoff(args)
@@ -1674,6 +1772,13 @@ def register(subparsers: argparse._SubParsersAction) -> None:
         "--direction",
         dest="direction",
         help="（搭配 --auto）handoff 方向：to-parent / to-child / to-sibling / context-refresh（可加 :TARGET_ID 後綴）"
+    )
+    parser.add_argument(
+        "--next",
+        dest="next",
+        default=None,
+        help="（W17-164 / L2-A）顯式指定下 session 該做的 target ticket id；"
+             "與 --auto 互斥；需搭配 --from-ticket-id"
     )
     parser.add_argument(
         "--from-worklog",

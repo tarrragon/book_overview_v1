@@ -177,6 +177,36 @@ def is_valid_direction(direction: str) -> bool:
     return direction_type in _KNOWN_DIRECTION_VALUES
 
 
+def resolve_target(record: dict) -> Optional[str]:
+    """
+    統一解析 handoff record 的 target ticket id（W17-164 / L2-A）。
+
+    讀取優先序：
+    1. 顯式 target_ticket_id 欄位（非空字串）
+    2. fallback: 從 direction 後綴提取（既有行為）
+
+    Why：handoff 設計初衷是讓下 session 找到「該做的 ticket」（target），
+    但既有 schema 以 from_ticket（source）+ direction（相對方向）間接表達。
+    新增 target_ticket_id 欄位讓指向絕對化；本 helper 統一讀取邏輯，
+    使所有讀取端（GC / SessionStart / Stop / resume hint）共用單一解析來源。
+
+    Consequence：跳過此 helper 而各自實作會重蹈 ARCH-020（跨進程同構邏輯）覆轍，
+    造成欄位優先序漂移。
+
+    Args:
+        record: handoff JSON dict，預期含 direction 與 / 或 target_ticket_id 欄位
+
+    Returns:
+        Optional[str]: 解析得到的 target ticket id；若兩個來源都無法解析則 None
+    """
+    explicit_target = record.get("target_ticket_id")
+    if explicit_target:
+        return explicit_target
+
+    direction = record.get("direction", "") or ""
+    return extract_direction_target_id(direction)
+
+
 def is_handoff_stale(record: dict) -> tuple[bool, str]:
     """判斷 handoff record 是否為 stale。
 
