@@ -101,6 +101,40 @@ def _detect_handoff_keywords(content: str) -> bool:
     return any(kw in content for kw in HANDOFF_KEYWORDS)
 
 
+def _extract_handoff_section(content: str) -> str:
+    """從 worklog 內容切出 handoff 相關段落（SOT-mirror）。
+
+    策略：找到首個 HANDOFF_KEYWORDS 命中位置，回傳該位置至下一個 H1/H2 標題前的內容；
+    若找不到下一個標題則回傳到 EOF。無關鍵字命中回 ""。
+
+    SOT: .claude/skills/ticket/ticket_system/lib/worklog_parser.py:extract_handoff_section
+    任一處更新需同步另一處（ARCH-020）。
+    用於 detect_sync_drift 將 ticket ID 掃描範圍限制在 handoff 段落，避免從整個
+    worklog 抓到歷史 ticket 造成 false positive（W17-155 ANA / W17-156 修復）。
+    """
+    if not content:
+        return ""
+
+    earliest_idx = -1
+    for kw in HANDOFF_KEYWORDS:
+        idx = content.find(kw)
+        if idx >= 0 and (earliest_idx < 0 or idx < earliest_idx):
+            earliest_idx = idx
+
+    if earliest_idx < 0:
+        return ""
+
+    line_start = content.rfind("\n", 0, earliest_idx) + 1
+
+    section_end_pattern = re.compile(r"^(# |## )", re.MULTILINE)
+    search_from = earliest_idx + 1
+    next_match = section_end_pattern.search(content, search_from)
+
+    if next_match:
+        return content[line_start : next_match.start()]
+    return content[line_start:]
+
+
 def _preceded_by_version_prefix(content: str, start: int) -> bool:
     if start == 0:
         return False
@@ -273,7 +307,12 @@ def detect_sync_drift(project_root: Path, session_start: float, logger) -> Optio
     if not has_keywords and not pending_ids:
         return None
 
-    worklog_ids = _extract_ticket_ids(content, active_version=version) if has_keywords else []
+    # W17-156: 只掃 handoff 段落而非整份 worklog，避免抓到歷史 ticket 造成 false positive
+    if has_keywords:
+        handoff_section = _extract_handoff_section(content)
+        worklog_ids = _extract_ticket_ids(handoff_section, active_version=version)
+    else:
+        worklog_ids = []
 
     # 過濾 worklog 中已 completed 的 ticket
     worklog_active = []

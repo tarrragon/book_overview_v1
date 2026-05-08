@@ -311,3 +311,115 @@ class TestStopWorklogHandoffSyncCheck:
         assert "hookSpecificOutput" not in payload, (
             "Stop event schema 不允許 hookSpecificOutput.additionalContext（W17-158）"
         )
+
+    def test_t13_only_scans_handoff_section_not_full_worklog(self, tmp_path, hook_mod):
+        """W17-156：只掃 handoff 段落而非整份 worklog。
+
+        worklog 含大量歷史段落引用 completed ticket，後段才有 handoff section；
+        應只把 handoff section 內的 ticket 視為待處理，不應抓到歷史段落 ID。
+        """
+        worklog_content = (
+            "# v0.18.0 工作日誌\n\n"
+            "## 2026-05-01 W17-001 完成\n\n"
+            "已完成 W17-001 修復某 bug；亦關閉 W17-002 與 W17-003。\n\n"
+            "## 2026-05-02 W17-050 完成\n\n"
+            "處理 W17-050、W17-051、W17-052 等多個 ticket。\n\n"
+            "## 下個 Session 接手 Context\n\n"
+            "W17-200 待處理\n"
+        )
+        # 歷史 ticket 都已 completed；只有 W17-200 是 in_progress
+        status_map = {f"0.18.0-W17-{n:03d}": "completed" for n in (1, 2, 3, 50, 51, 52)}
+        status_map["0.18.0-W17-200"] = "in_progress"
+
+        root, _ = make_project_root(
+            tmp_path,
+            worklog_content=worklog_content,
+            pending_ticket_ids=set(),
+            ticket_status_map=status_map,
+        )
+
+        result = hook_mod.detect_sync_drift(root, 0.0, MagicMock())
+        assert result is not None
+        # 只應顯示 handoff section 內的 W17-200
+        assert "0.18.0-W17-200" in result
+        # 不應抓到歷史段落的 ID
+        for n in (1, 2, 3, 50, 51, 52):
+            assert f"0.18.0-W17-{n:03d}" not in result, (
+                f"歷史段落 ticket W17-{n:03d} 不應出現在輸出中"
+            )
+
+    def test_t14_no_handoff_keyword_no_ticket_scan(self, tmp_path, hook_mod):
+        """W17-156：worklog 無 handoff 關鍵字時，不應掃描出任何 ticket ID。
+
+        即便 worklog 充滿 ticket ID 引用，只要無 handoff 關鍵字，handoff section
+        為空，worklog_ids 應為 []，不會與 pending（空）產生 missing。
+        """
+        worklog_content = (
+            "# v0.18.0 工作日誌\n\n"
+            "今天進度：W17-100、W17-101、W17-102 都完成了。\n"
+            "下一步看 W17-103。\n"
+        )
+        root, _ = make_project_root(
+            tmp_path,
+            worklog_content=worklog_content,
+            pending_ticket_ids=set(),
+            ticket_status_map={
+                "0.18.0-W17-100": "in_progress",
+                "0.18.0-W17-103": "in_progress",
+            },
+        )
+
+        result = hook_mod.detect_sync_drift(root, 0.0, MagicMock())
+        # 無 handoff 關鍵字 + 無 pending → 不輸出
+        assert result is None
+
+    def test_t15_realistic_large_worklog_no_false_positive(self, tmp_path, hook_mod):
+        """W17-156：真實規模 worklog（700+ 行）只應抓 handoff section 中的 ticket。
+
+        模擬 v0.18.0-main.md 規模：大量歷史段落 + 多個 ticket ID 引用，
+        最後才有 handoff section。修復前會抓 48+ false positive，修復後只應抓 1 個。
+        """
+        # 構造 ~700 行 worklog：30 個歷史段落 × 約 23 行
+        sections = []
+        sections.append("# v0.18.0 工作日誌\n")
+        for i in range(1, 31):
+            sections.append(f"## 2026-04-{i:02d} 進度報告\n")
+            for j in range(20):
+                tid = f"W17-{i*10 + j:03d}"
+                sections.append(f"- 處理 {tid}：完成某項任務並驗證測試通過。")
+            sections.append("")
+        # 加上 handoff section
+        sections.append("## 下個 Session 接手 Context\n")
+        sections.append("W17-999 待下 session 處理\n")
+
+        worklog_content = "\n".join(sections)
+        # 確認規模 ~700 行
+        line_count = worklog_content.count("\n")
+        assert line_count >= 600, f"fixture line count {line_count} 不足"
+
+        # 大量歷史 ticket 都已 completed；只有 W17-999 in_progress
+        status_map = {}
+        for i in range(1, 31):
+            for j in range(20):
+                status_map[f"0.18.0-W17-{i*10 + j:03d}"] = "completed"
+        status_map["0.18.0-W17-999"] = "in_progress"
+
+        root, _ = make_project_root(
+            tmp_path,
+            worklog_content=worklog_content,
+            pending_ticket_ids=set(),
+            ticket_status_map=status_map,
+        )
+
+        result = hook_mod.detect_sync_drift(root, 0.0, MagicMock())
+        assert result is not None
+        # 只有 W17-999 應出現
+        assert "0.18.0-W17-999" in result
+        # 計算 missing 段中的 ticket bullet 行數（- 開頭含 0.18.0-）
+        missing_lines = [
+            ln for ln in result.split("\n")
+            if ln.strip().startswith("- 0.18.0-W17-")
+        ]
+        assert len(missing_lines) == 1, (
+            f"修復後應只抓 1 個 ticket，實際抓到 {len(missing_lines)}：{missing_lines}"
+        )
