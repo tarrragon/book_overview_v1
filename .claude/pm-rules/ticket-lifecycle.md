@@ -493,6 +493,33 @@ ANA Ticket 的下游 Ticket **必須以 children 表達**（用 `--parent <ANA-i
 
 ---
 
+## ANA Solution Spawn 規劃落地（強制）
+
+> **來源**：W17-167 ANA L3 結論 — 現行檢查只看 `spawned_tickets`/`children` 是否為空，不檢查 Solution 章節 spawn 規劃表格 vs 實際 ticket 數量的一致性。W17-162 觸發案例 + W11-003.6 等歷史漏建證實此漏洞需正式規則化。
+
+ANA complete 前置條件追加：若 Solution 章節含 IMP/DOC/ANA spawn 規劃表格，**規劃項目必須全部轉為實際 ticket，或在 Solution 顯性標註豁免理由**。本規則是規則 5（所有發現必須追蹤）在 ANA Solution 場景的延伸。
+
+**Why**：acceptance 勾選「產出 spawned IMP/DOC 清單」只檢查文字產出（表格寫了沒），不檢查 ticket 是否實際建立。Solution 寫了規劃但未建 ticket 等同無 trigger 延後決策（PC-093 模式），分析結論會在 complete 後永久遺忘。
+
+**Consequence**：未強制此前置條件，ANA 由分析代理人（saffron 等）執行時 frontmatter 必然為空（分析代理人無 ticket create 權限），PM 若未察覺則 spawn 規劃靜默丟失。W17-167 自身即重現此反模式（saffron 在分析此問題時自身 spawned_tickets=[] 即 complete）。
+
+**Action**：
+
+| 情境 | PM 必要動作 |
+|------|-----------|
+| Solution 含 spawn 規劃表格，全部已建 ticket | 確認 `spawned_tickets + children` 數量 ≥ 規劃數量，正常 complete |
+| Solution 含 spawn 規劃表格，部分或全部未建 | complete 前先建 ticket（PM 接手 ticket create 職責），回填欄位 |
+| 經評估後不需建立 ticket | 在 Solution 顯性標註「無需建 ticket：[具體理由]」 |
+| 分析代理人 complete 時 frontmatter 為空 | PM 驗收時立即比對 Solution 表格，缺漏立即補建（事後補建可，但不可遺忘） |
+
+**強制層**：acceptance-gate-hook Step 2.5.2（W17-168 落地）將自動掃描 Solution spawn 規劃語意（正則匹配 `| IMP/DOC/ANA |` + `P[0-3]` 表格行），與 `spawned_tickets + children` 數量比對，缺漏阻擋 complete。豁免條件：Solution 含「無需建 ticket」或「不 spawn」等顯性否定標記。
+
+**Schema 層**：ticket-body-schema.md ANA Solution 章節新增「Spawn 落地確認」子節 checklist（與本條款互補）。
+
+**規則層**：本條款是 quality-baseline.md 規則 5「適用場景：ANA Solution 內 spawn 規劃」的執行細則，引用同一來源（W17-167）。
+
+---
+
 ## Close 條件規則
 
 > **來源**：W15-024 ANA — W15-015 決策中 PM 提議「閘門未觸發時 close ticket」，被用戶指正：ticket 只能「做任務」或「收狀（completed/closed）」，不可有「留待之後判斷」。本章節固化 close 合法條件，防止推延性 close 反模式重犯。
@@ -584,7 +611,9 @@ how:
 
 ---
 
-**Last Updated**: 2026-05-05
+**Last Updated**: 2026-05-08
+**Version**: 6.3.0 — 新增「ANA Solution Spawn 規劃落地（強制）」章節（W17-167 L3 落地，含 Why/Consequence/Action 三明示 + 強制/Schema/規則層交叉引用，配合 W17-168 hook + W17-169 quality-baseline 規則 5 / ticket-body-schema 同步修訂）
+
 **Version**: 6.2.0 — 新增「ANA 子分類：研究性 vs 防護性」章節（兩類定義 + 判別準則 + 各 1 個範例 + complete 觸發時機對照表 + Why/Consequence/Action），來源 W10-072 ANA 事實 4 + W17-120.2 / PC-091
 
 **Version**: 6.1.0 — 新增「ANA 衍生 Ticket Priority 繼承」章節（預設繼承 + 三種降級情境 + 降級明示要求 + 檢查清單），來源 PC-075 下游傳播路徑軸 B
