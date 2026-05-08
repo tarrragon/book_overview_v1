@@ -42,6 +42,9 @@ from acceptance_checkers.ana_spawned_checker import (
     extract_spawned_tickets_from_frontmatter,
     check_ana_has_spawned_tickets,
 )
+from acceptance_checkers.ana_spawn_consistency_checker import (
+    check_ana_spawn_consistency,
+)
 from acceptance_checkers.sibling_checker import (
     find_pending_sibling_tickets,
 )

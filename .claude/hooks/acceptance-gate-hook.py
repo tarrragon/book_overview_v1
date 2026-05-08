@@ -78,6 +78,7 @@ from acceptance_checkers import (
     filter_error_patterns_by_ticket_scope,
     check_custom_h2_sections,
     check_self_check_visibility,
+    check_ana_spawn_consistency,
 )
 # W17-120.2 / PC-091: ana_spawned_checker 退場
 # ANA complete 阻擋判斷統一收斂到 children_checker（PC-091 路線：
@@ -244,6 +245,24 @@ def check_acceptance_status(ticket_id: str, project_dir: Path, logger) -> Accept
         # children_checker（步驟 1）負責——ANA 落地請用 `--parent <ANA-ID>` 建 children。
         # spawned_tickets 對 ANA 為弱 metadata，不阻擋父 complete。
         spawned_non_terminal_warning: Optional[str] = None  # 保留欄位向後相容
+
+        # 步驟 2.5.2：ANA Solution spawn 規劃 vs spawned+children 一致性檢查（W17-168）
+        # 對應 W17-167 ANA L2 設計：解析 Solution spawn 規劃表格（IMP/DOC/ANA + P0-P3），
+        # 與 frontmatter spawned_tickets + children 比對。N>0 且 S+C==0 → 阻擋；
+        # N>0 且 S+C<N → warning；含豁免標記（「無需建 ticket」「不 spawn」）→ 跳過。
+        if is_ana_type(frontmatter.get("type")):
+            spawn_should_block, spawn_msg = check_ana_spawn_consistency(
+                content, frontmatter, logger
+            )
+            if spawn_should_block:
+                return AcceptanceCheckResult(
+                    True, False, spawn_msg, False, [], [], "", "", [], [], False
+                )
+            if spawn_msg:
+                if warning_msg:
+                    warning_msg = warning_msg + "\n\n" + spawn_msg
+                else:
+                    warning_msg = spawn_msg
 
         # 步驟 2.6：ANA Ticket Solution 必須含 multi_view_status 標註（W10-051）
         multi_view_warning: Optional[str] = None
