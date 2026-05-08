@@ -27,6 +27,7 @@ from ticket_system.lib.constants import (
     STATUS_PENDING,
     STATUS_BLOCKED,
     TERMINAL_STATUSES,
+    TASK_CHAIN_DIRECTION_TYPES,
     HANDOFF_DIR,
     HANDOFF_PENDING_SUBDIR,
     HANDOFF_ARCHIVE_SUBDIR,
@@ -1225,7 +1226,12 @@ def _execute_from_worklog(args: argparse.Namespace) -> int:
     return 0
 
 
-_VALID_AUTO_DIRECTIONS = ("to-parent", "to-child", "to-sibling", "to-source", "context-refresh")
+# W17-163 L1-B: 移除 to-source。理由：
+# (1) to-source 不在 constants.TASK_CHAIN_DIRECTION_TYPES 與 NON_CHAIN_DIRECTION_TYPES 任一組
+# (2) chain_analyzer 不產生此方向，無自動化流程使用
+# (3) 語意矛盾：from_ticket 已 completed 時 source 已無可操作性，sources_declared=0 時無目標可指
+# 「回溯 source」需求改由 source_ticket 欄位 + runqueue --context=resume 路由處理
+_VALID_AUTO_DIRECTIONS = ("to-parent", "to-child", "to-sibling", "context-refresh")
 _AUTO_RUNQUEUE_HINT_TITLE = "下一步候選（runqueue --context=resume --top 3）"
 _AUTO_RUNQUEUE_EMPTY_MESSAGE = "目前無待恢復 ticket"
 
@@ -1445,6 +1451,22 @@ def _execute_auto_handoff(args: argparse.Namespace) -> int:
         _print_ticket_not_found_error(from_ticket_id, version)
         return 2
 
+    # W17-163 L1-C: terminal handoff 防護
+    # terminal status (completed/closed) 的非任務鏈 handoff 無消費者
+    # （SessionStart/Stop hook 會視為孤兒，GC 會清理），直接阻擋避免產生孤兒 JSON。
+    # 任務鏈方向（to-sibling/to-parent/to-child）允許，因 chain handoff 仍有任務鏈下游目標。
+    ticket_status = ticket.get("status")
+    direction_type = direction.split(":", 1)[0]
+    if (
+        ticket_status in TERMINAL_STATUSES
+        and direction_type not in TASK_CHAIN_DIRECTION_TYPES
+    ):
+        raise ValueError(
+            f"terminal ticket（status={ticket_status}）不可建立非任務鏈 handoff "
+            f"（direction={direction}）：terminal + 非任務鏈 handoff 無消費者，"
+            f"會形成孤兒 JSON。任務鏈方向（to-sibling/to-parent/to-child）才合法。"
+        )
+
     # 寫入 handoff JSON
     root = get_project_root()
     handoff_dir = root / HANDOFF_DIR / HANDOFF_PENDING_SUBDIR
@@ -1651,7 +1673,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     parser.add_argument(
         "--direction",
         dest="direction",
-        help="（搭配 --auto）handoff 方向：to-parent / to-child / to-sibling / to-source / context-refresh（可加 :TARGET_ID 後綴）"
+        help="（搭配 --auto）handoff 方向：to-parent / to-child / to-sibling / context-refresh（可加 :TARGET_ID 後綴）"
     )
     parser.add_argument(
         "--from-worklog",
