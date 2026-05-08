@@ -230,6 +230,14 @@ ticket show W17-015 -P         # 停用分頁
 
 支援自動判斷方向、指定交接到父/子/兄弟任務。五種交接情境。
 
+`--next <target-ticket-id>` 子旗標（W17-164 / L2-A）：以**絕對指向**語意建立 handoff，直接寫入 `target_ticket_id` 欄位，讓下 session 從「該做的 ticket」（target）讀取，而非從 source + direction 間接推導。
+
+```bash
+ticket handoff --next <target-ticket-id> --from-ticket-id <source-id>
+```
+
+`--next` 與 `--auto` 互斥；產生的 JSON `direction="context-refresh"`、`auto_generated=False`。讀取端（GC / SessionStart hint / Stop hook / resume）優先讀 `target_ticket_id`，缺則 fallback 至 direction 後綴解析（向後相容，舊 JSON 不破）。
+
 新增 `--from-worklog` 子命令（W17-083.2）：解析 worklog 最新交接段，提取 ticket ID 並批次補建 `.claude/handoff/pending/<id>.json`，修復「worklog 寫了但未執行 CLI」雙軌不同步缺口。搭配 `stop-worklog-handoff-sync-check-hook`（Stop event 偵測）形成自動防護。
 
 ```bash
@@ -298,12 +306,16 @@ ticket handoff --from-worklog [--worklog-path PATH] [--dry-run]
 
 ---
 
-**Version**: 2.4.0
-**Last Updated**: 2026-04-21
+**Version**: 2.5.0
+**Last Updated**: 2026-05-08
 **Status**: Completed
 
 **Change Log**:
 
+- v2.5.0 (2026-05-08): handoff 章節同步 W17-164 落地的 `--next` CLI 與 `target_ticket_id` 欄位
+  - 新增 `--next <target-ticket-id>` 用法說明（絕對指向語意）
+  - 註明與 `--auto` 互斥、direction 預設 `context-refresh`
+  - 註明讀取端優先序：target_ticket_id > direction fallback（向後相容）
 - v2.4.0 (2026-04-21): `/ticket` 裸指令入口切換為 scheduler 接手建議
   - 流程步驟 1 從 `ticket resume --list` 改為 `ticket track runqueue --context=resume --top 3`
   - AskUserQuestion 選項順序改反映 runqueue scheduler 排序
