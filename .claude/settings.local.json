@@ -161,7 +161,8 @@
       "Bash(mkdir -p .claude/handoff/archive)",
       "Skill(schedule)",
       "Bash(rm /Users/mac-eric/project/book_overview_v1/.git/index.lock)",
-      "Bash(git -C /Users/mac-eric/project/book_overview_v1 add .claude/skills/ticket/ticket_system/lib/worklog_parser.py .claude/skills/ticket/ticket_system/tests/test_worklog_parser.py docs/work-logs/v0/v0.18/v0.18.0/tickets/0.18.0-W17-083.1.md)"
+      "Bash(git -C /Users/mac-eric/project/book_overview_v1 add .claude/skills/ticket/ticket_system/lib/worklog_parser.py .claude/skills/ticket/ticket_system/tests/test_worklog_parser.py docs/work-logs/v0/v0.18/v0.18.0/tickets/0.18.0-W17-083.1.md)",
+      "Bash(mv .claude/handoff/pending/0.18.0-W10-047.4.json .claude/handoff/archive/)"
     ]
   },
   "enableAllProjectMcpServers": true,
