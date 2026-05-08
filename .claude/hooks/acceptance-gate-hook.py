@@ -77,6 +77,7 @@ from acceptance_checkers import (
     check_multi_view_status,
     filter_error_patterns_by_ticket_scope,
     check_custom_h2_sections,
+    check_self_check_visibility,
 )
 # W17-120.2 / PC-091: ana_spawned_checker 退場
 # ANA complete 阻擋判斷統一收斂到 children_checker（PC-091 路線：
@@ -122,6 +123,8 @@ class AcceptanceCheckResult(NamedTuple):
     spawned_non_terminal_warning: Optional[str] = None
     # W17-072：非 Schema H2 章節清單（偵測 agent 自定義 H2 違規，warning 不阻擋）
     custom_h2_sections: List[str] = []
+    # W17-064：Layer 1 自檢可觀測性 warning（缺 `### 自檢結果` 時非 None，warning 不阻擋）
+    self_check_warning: Optional[str] = None
 
 
 # ============================================================================
@@ -154,6 +157,10 @@ CUSTOM_H2_WARNING = (
     "如需子結構請使用 H3（`### 子標題`）組織。\n"
     "建議：complete 前搬移自定義 H2 內容到對應 Schema 章節並降為 H3。"
 )
+
+
+# W17-064：Layer 1 自檢可觀測性 warning 訊息由 checker 直接組裝（含 ticket type 條件性說明），
+# 此處不另定義模板，warning 字串透過 `check_self_check_visibility` 回傳。
 
 
 # ============================================================================
@@ -297,6 +304,11 @@ def check_acceptance_status(ticket_id: str, project_dir: Path, logger) -> Accept
         # 步驟 7：檢查自定義 H2 章節（W17-072，warning 不阻擋）
         custom_h2 = check_custom_h2_sections(content, logger)
 
+        # 步驟 8：檢查 Layer 1 自檢可觀測性（W17-064，warning 不阻擋）
+        self_check_warning = check_self_check_visibility(
+            content, frontmatter.get("type", ""), logger
+        )
+
         task_type = frontmatter.get("type", "")
         priority = frontmatter.get("priority", "")
 
@@ -315,6 +327,7 @@ def check_acceptance_status(ticket_id: str, project_dir: Path, logger) -> Accept
             multi_view_warning=multi_view_warning,
             spawned_non_terminal_warning=spawned_non_terminal_warning,
             custom_h2_sections=custom_h2,
+            self_check_warning=self_check_warning,
         )
 
     except Exception as e:
@@ -407,6 +420,17 @@ def generate_hook_output(
     else:
         checklist_items.append("[x] 7. body 僅使用 Schema 章節")
 
+    # 項目 8: Layer 1 自檢可觀測性（W17-064，僅對 IMP/ANA/DOC 顯示）
+    if ticket_type_upper_for_checklist in ("IMP", "ANA", "DOC"):
+        if check_result.self_check_warning:
+            checklist_items.append(
+                "[WARNING] 8. Solution 缺 ### 自檢結果 子章節（Layer 1）"
+            )
+        else:
+            checklist_items.append("[x] 8. Layer 1 自檢結果已記錄")
+    else:
+        checklist_items.append("[--] 8. Layer 1 自檢(非 IMP/ANA/DOC，不適用)")
+
     checklist_text = "[Complete 清單]\n" + "\n".join(checklist_items)
     context_parts.append(checklist_text)
 
@@ -450,6 +474,11 @@ def generate_hook_output(
         logger.info(
             f"新增自定義 H2 警告，違規章節數: {len(check_result.custom_h2_sections)}"
         )
+
+    # 優先級 2.7：Layer 1 自檢可觀測性 warning（W17-064，WARNING 不阻擋）
+    if check_result.self_check_warning:
+        context_parts.append(check_result.self_check_warning)
+        logger.info("新增 Layer 1 自檢可觀測性 warning")
 
     # 優先級 3：Handoff 方向選擇 場景 #9（無訊息時，sibling >= 2）
     if (
