@@ -198,11 +198,40 @@ def _find_worklog_path(project_root: Path, version: str) -> Path:
 
 
 def _scan_pending_dir(project_root: Path) -> Set[str]:
-    """掃描 .claude/handoff/pending/ 下的 ticket ID（檔名 stem）。"""
+    """掃描 .claude/handoff/pending/ 下的 ticket ID（檔名 stem）。
+
+    W17-165 L2-C：過濾 from_ticket 處於 terminal 狀態（completed/closed）的
+    handoff JSON，避免下游 orphan 比對誤報。設計取捨：
+    - 純檔名掃描（O(N) glob）→ 加入 frontmatter 讀取（O(N) read + regex）
+    - 在 session stop 時觸發，N 通常 < 20，額外成本可忽略
+    - 失敗 fail-open：讀檔/解析失敗時保留原 ID（與 GC 策略一致）
+    """
     pending_dir = project_root / HANDOFF_PENDING_RELPATH
     if not pending_dir.exists():
         return set()
-    return {p.stem for p in pending_dir.glob("*.json")}
+
+    result: Set[str] = set()
+    for p in pending_dir.glob("*.json"):
+        ticket_id = p.stem
+        try:
+            data = json.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            # 解析失敗保留原 ID，不誤刪
+            result.add(ticket_id)
+            continue
+
+        # 優先以 JSON 內 from_ticket / ticket_id 欄位定位實際 ticket（檔名可能與 from_ticket 不一致）
+        from_ticket = (
+            (data or {}).get("from_ticket")
+            or (data or {}).get("ticket_id")
+            or ticket_id
+        )
+        status = _load_ticket_status(project_root, str(from_ticket))
+        if status in TERMINAL_STATUSES:
+            # from_ticket 已 terminal → 不視為待恢復；交由 handoff-auto-resume GC 路徑清理
+            continue
+        result.add(ticket_id)
+    return result
 
 
 def _load_ticket_status(project_root: Path, ticket_id: str) -> Optional[str]:

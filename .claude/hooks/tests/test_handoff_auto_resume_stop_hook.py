@@ -297,3 +297,60 @@ def test_scan_recently_created_pure_no_block(monkeypatch, tmp_path):
     assert [t["ticket_id"] for t in recent] == ["W17-117"]
     # 不應被 GC
     assert (pending_dir / "W17-117.json").exists()
+
+
+# ===== W17-165 L2-C：terminal status 過濾（closed 也視為 terminal）=====
+
+
+def test_terminal_statuses_includes_closed():
+    """W17-165 L2-C：TERMINAL_STATUSES 集合包含 completed 與 closed。"""
+    hook = load_hook_module()
+    assert hook.TERMINAL_STATUSES == {"completed", "closed"}
+
+
+def test_is_ticket_completed_returns_true_for_closed(monkeypatch, tmp_path):
+    """W17-165 L2-C：closed 狀態應走 terminal 路徑（is_ticket_completed=True）。"""
+    hook = load_hook_module()
+    fake_path = tmp_path / "fake.md"
+    fake_path.write_text("---\nstatus: closed\n---\n")
+    monkeypatch.setattr(
+        hook, "find_ticket_file",
+        lambda tid, root, log: fake_path,
+    )
+    monkeypatch.setattr(
+        hook, "parse_ticket_frontmatter",
+        lambda path, log: {"status": "closed"},
+    )
+    assert hook.is_ticket_completed(tmp_path, "W17-X", MagicMock()) is True
+
+
+def test_is_ticket_completed_returns_true_for_completed(monkeypatch, tmp_path):
+    """向後相容：completed 仍視為 terminal。"""
+    hook = load_hook_module()
+    fake_path = tmp_path / "fake.md"
+    fake_path.write_text("---\nstatus: completed\n---\n")
+    monkeypatch.setattr(
+        hook, "find_ticket_file",
+        lambda tid, root, log: fake_path,
+    )
+    monkeypatch.setattr(
+        hook, "parse_ticket_frontmatter",
+        lambda path, log: {"status": "completed"},
+    )
+    assert hook.is_ticket_completed(tmp_path, "W17-X", MagicMock()) is True
+
+
+def test_is_ticket_completed_returns_false_for_in_progress(monkeypatch, tmp_path):
+    """非 terminal 狀態（in_progress/pending）回 False。"""
+    hook = load_hook_module()
+    fake_path = tmp_path / "fake.md"
+    fake_path.write_text("---\nstatus: in_progress\n---\n")
+    monkeypatch.setattr(
+        hook, "find_ticket_file",
+        lambda tid, root, log: fake_path,
+    )
+    monkeypatch.setattr(
+        hook, "parse_ticket_frontmatter",
+        lambda path, log: {"status": "in_progress"},
+    )
+    assert hook.is_ticket_completed(tmp_path, "W17-X", MagicMock()) is False

@@ -423,3 +423,66 @@ class TestStopWorklogHandoffSyncCheck:
         assert len(missing_lines) == 1, (
             f"修復後應只抓 1 個 ticket，實際抓到 {len(missing_lines)}：{missing_lines}"
         )
+
+
+# ---------------------------------------------------------------------------
+# W17-165 L2-C：from_ticket terminal 過濾
+# ---------------------------------------------------------------------------
+
+
+class TestPendingDirTerminalFilter:
+    """W17-165 L2-C：_scan_pending_dir 過濾 from_ticket 為 terminal 狀態的 handoff JSON。
+
+    前置背景：terminal handoff JSON 在 GC 機制最終被清理，但即時掃描仍會誤入
+    orphan 比對導致誤報。本套件驗證 from_ticket 為 completed/closed 的 JSON
+    不進入 _scan_pending_dir 結果。
+    """
+
+    def _write_handoff(self, pending_dir: Path, ticket_id: str, from_ticket: str = None):
+        pending_dir.mkdir(parents=True, exist_ok=True)
+        record = {"ticket_id": ticket_id, "from_ticket": from_ticket or ticket_id}
+        (pending_dir / f"{ticket_id}.json").write_text(
+            json.dumps(record), encoding="utf-8"
+        )
+
+    def test_completed_from_ticket_excluded(self, tmp_path, hook_mod):
+        """from_ticket 為 completed → 不進結果集。"""
+        root, _ = make_project_root(
+            tmp_path,
+            ticket_status_map={"0.18.0-W17-999": "completed"},
+        )
+        pending_dir = root / ".claude" / "handoff" / "pending"
+        self._write_handoff(pending_dir, "0.18.0-W17-999")
+        ids = hook_mod._scan_pending_dir(root)
+        assert ids == set()
+
+    def test_closed_from_ticket_excluded(self, tmp_path, hook_mod):
+        """from_ticket 為 closed → 不進結果集（W17-165 L2-C 主要修復）。"""
+        root, _ = make_project_root(
+            tmp_path,
+            ticket_status_map={"0.18.0-W17-998": "closed"},
+        )
+        pending_dir = root / ".claude" / "handoff" / "pending"
+        self._write_handoff(pending_dir, "0.18.0-W17-998")
+        ids = hook_mod._scan_pending_dir(root)
+        assert ids == set()
+
+    def test_in_progress_from_ticket_kept(self, tmp_path, hook_mod):
+        """from_ticket 為 in_progress → 保留。"""
+        root, _ = make_project_root(
+            tmp_path,
+            ticket_status_map={"0.18.0-W17-997": "in_progress"},
+        )
+        pending_dir = root / ".claude" / "handoff" / "pending"
+        self._write_handoff(pending_dir, "0.18.0-W17-997")
+        ids = hook_mod._scan_pending_dir(root)
+        assert ids == {"0.18.0-W17-997"}
+
+    def test_unparseable_json_kept_failopen(self, tmp_path, hook_mod):
+        """JSON 解析失敗 → fail-open 保留 ID（不誤刪）。"""
+        root, _ = make_project_root(tmp_path)
+        pending_dir = root / ".claude" / "handoff" / "pending"
+        pending_dir.mkdir(parents=True, exist_ok=True)
+        (pending_dir / "0.18.0-W17-996.json").write_text("not-json", encoding="utf-8")
+        ids = hook_mod._scan_pending_dir(root)
+        assert ids == {"0.18.0-W17-996"}

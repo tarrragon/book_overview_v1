@@ -113,6 +113,11 @@ TODOLIST_FILE_NAME = "docs/todolist.yaml"
 RECENT_TASK_THRESHOLD_MINUTES = 30  # 30 分鐘內視為「最近任務」（可能有代理人正在執行）
 RECENT_HANDOFF_WINDOW_SECONDS = 300  # W17-118: 最近 N 秒內建立的 handoff 視為下 session 接手點，不計入 pending
 
+# Terminal 狀態集合（W17-165 L2-C：與 ticket_system.constants.TERMINAL_STATUSES 對齊）
+# 對 from_ticket 處於 terminal 狀態的 handoff 不視為「待恢復」，避免誤報阻止 session 退出。
+# 原 is_ticket_completed 只比對 'completed'，本擴展補上 'closed'。
+TERMINAL_STATUSES = {"completed", "closed"}
+
 
 def get_session_stop_flag() -> Path:
     """
@@ -355,7 +360,12 @@ def is_ticket_recently_started(project_root: Path, ticket_id: str, logger) -> bo
 
 def is_ticket_completed(project_root: Path, ticket_id: str, logger) -> bool:
     """
-    檢查 Ticket 是否已完成（status: completed）
+    檢查 Ticket 是否處於 terminal 狀態（completed 或 closed）。
+
+    W17-165 L2-C：擴展為 terminal 狀態判定（原本僅檢查 completed），
+    使 closed 的 ticket 也走 GC / 過濾路徑，避免 stop hook 對 terminal
+    handoff JSON 誤報「待恢復」阻止退出。函式名保持 is_ticket_completed
+    以維持向後相容（內部呼叫端僅關心「該 ticket 是否屬 terminal」）。
 
     Args:
         project_root: 專案根目錄
@@ -363,7 +373,7 @@ def is_ticket_completed(project_root: Path, ticket_id: str, logger) -> bool:
         logger: 日誌記錄器
 
     Returns:
-        bool - 是否已完成
+        bool - 是否處於 terminal 狀態
     """
     try:
         # 使用 find_ticket_file 支援三層階層與舊扁平結構
@@ -377,7 +387,7 @@ def is_ticket_completed(project_root: Path, ticket_id: str, logger) -> bool:
             return False
 
         status = frontmatter.get('status', '').lower()
-        return status == 'completed'
+        return status in TERMINAL_STATUSES
 
     except Exception as e:
         logger.warning(f"檢查 Ticket 完成狀態失敗 ({ticket_id}): {e}")
