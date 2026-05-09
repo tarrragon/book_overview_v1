@@ -230,6 +230,8 @@ ticket show W17-015 -P         # 停用分頁
 
 支援自動判斷方向、指定交接到父/子/兄弟任務。五種交接情境。
 
+> **設計原則**：handoff = 純指針，禁含任務描述 / acceptance / 5W1H（這些屬 ticket md 範圍）。完整原則見 `.claude/methodologies/handoff-design-principle-methodology.md`。
+
 `--next <target-ticket-id>` 子旗標（W17-164 / L2-A）：以**絕對指向**語意建立 handoff，直接寫入 `target_ticket_id` 欄位，讓下 session 從「該做的 ticket」（target）讀取，而非從 source + direction 間接推導。
 
 ```bash
@@ -306,12 +308,13 @@ ticket handoff --from-worklog [--worklog-path PATH] [--dry-run]
 
 ---
 
-**Version**: 2.5.0
-**Last Updated**: 2026-05-08
+**Version**: 2.5.1
+**Last Updated**: 2026-05-10
 **Status**: Completed
 
 **Change Log**:
 
+- v2.5.1 (2026-05-10): handoff 章節新增「設計原則」引用指向 `handoff-design-principle-methodology.md`（W17-175 落地）
 - v2.5.0 (2026-05-08): handoff 章節同步 W17-164 落地的 `--next` CLI 與 `target_ticket_id` 欄位
   - 新增 `--next <target-ticket-id>` 用法說明（絕對指向語意）
   - 註明與 `--auto` 互斥、direction 預設 `context-refresh`

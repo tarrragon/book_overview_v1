@@ -4,6 +4,8 @@
 
 handoff 是**任務鏈內的 context 移動機制**，不是通用的「下一個任務」路由器。
 
+> **設計原則**：handoff = 純指針 + 必要 metadata，禁止重複 ticket md 已承擔的任務內容。完整原則、違反案例與自檢清單見 `.claude/methodologies/handoff-design-principle-methodology.md`。
+
 | 移動方向 | handoff 旗標 | 用途 |
 |---------|------------|------|
 | 子 → 父 | `--to-parent` | 子完成返回父驗收 |
@@ -182,6 +184,7 @@ completed ticket，想繼續工作？
 
 ---
 
-**Last Updated**: 2026-05-08
+**Last Updated**: 2026-05-10
+**Version**: 1.2.0 — 設計意圖段補「設計原則」引用指向 `handoff-design-principle-methodology.md`（W17-175 落地：原則層 / 機制層 / 命令層三層分離）
 **Version**: 1.1.0 — 同步 W17-164 落地：新增「指向語意：source vs target」章節（含 target_ticket_id 欄位 + resolve_target 優先序）、`--next` 子旗標說明（W17-164 / L2-A）、`--next` vs `--auto` 對比表
-**Source**: 0.18.0-W17-164
+**Source**: 0.18.0-W17-175 / 0.18.0-W17-164
