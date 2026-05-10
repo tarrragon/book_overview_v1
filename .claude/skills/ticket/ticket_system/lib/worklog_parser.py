@@ -207,10 +207,16 @@ def extract_recent_content(worklog_path: Path, since_mtime: float) -> str:
 
 def extract_handoff_section(content: str) -> str:
     """
-    從 worklog 內容切出 handoff 相關段落。
+    從 worklog 內容切出 handoff 相關段落（最新一筆）。
 
-    策略：找到首個 HANDOFF_KEYWORDS 命中位置，回傳該位置至下一個 H1/H2 標題前的內容；
-    若找不到下一個標題則回傳到 EOF。
+    策略：找到 **最後一個** HANDOFF_KEYWORDS 命中位置（rfind 取最大 idx），
+    回傳該位置至下一個 H1/H2 標題前的內容；若找不到下一個標題則回傳到 EOF。
+
+    使用 rfind 取最後位置的理由（W17-176）：
+    worklog 累積多 session 的歷史 handoff 段落（H3 ### 分隔，無法被 H1/H2 切斷），
+    若取最早關鍵字會擷取整份歷史 handoff（49K chars / 283 IDs / 12 false positive）。
+    取最後一個對應「當前 session 寫入的 handoff」，符合本函式「找出本 session
+    寫了什麼 handoff」的呼叫意圖。
 
     Args:
         content: worklog 全文內容
@@ -226,22 +232,22 @@ def extract_handoff_section(content: str) -> str:
     if not content:
         return ""
 
-    # 找首個關鍵字命中位置
-    earliest_idx = -1
+    # 找最後一個關鍵字命中位置（rfind 取最大 idx，對應當前 session 寫入的 handoff）
+    latest_idx = -1
     for kw in HANDOFF_KEYWORDS:
-        idx = content.find(kw)
-        if idx >= 0 and (earliest_idx < 0 or idx < earliest_idx):
-            earliest_idx = idx
+        idx = content.rfind(kw)
+        if idx > latest_idx:
+            latest_idx = idx
 
-    if earliest_idx < 0:
+    if latest_idx < 0:
         return ""
 
     # 從關鍵字所在行的行首開始
-    line_start = content.rfind("\n", 0, earliest_idx) + 1
+    line_start = content.rfind("\n", 0, latest_idx) + 1
 
     # 找下一個 H1/H2 標題（# / ##）
     section_end_pattern = re.compile(r"^(# |## )", re.MULTILINE)
-    search_from = earliest_idx + 1
+    search_from = latest_idx + 1
     next_match = section_end_pattern.search(content, search_from)
 
     if next_match:

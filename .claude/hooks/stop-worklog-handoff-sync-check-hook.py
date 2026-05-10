@@ -40,9 +40,24 @@ from typing import Optional, Set
 
 # 加入 hook_utils 路徑
 sys.path.insert(0, str(Path(__file__).parent))
-from hook_utils import setup_hook_logging, get_project_root  # noqa: E402
+from hook_utils import (  # noqa: E402
+    setup_hook_logging,
+    get_project_root,
+    scan_ticket_files_by_version,
+    parse_ticket_frontmatter,
+)
+from datetime import datetime  # noqa: E402
 
 EXIT_SUCCESS = 0
+
+# Stop flag 防重複觸發（W17-176 根因 1）
+# 與 handoff-auto-resume-stop-hook 機制對齊但獨立 flag 路徑，避免互相干擾
+STOP_FLAG_FILE = ".claude/handoff/.stop-sync-check-blocked"
+STOP_FLAG_EXPIRY_SECONDS = 7200  # 2 小時（一個 session 的合理長度）
+
+# In-progress 偵測豁免（W17-176 根因 2）
+# 任務進行中提醒 handoff 邏輯倒置：handoff 是 session 結束時的動作
+IN_PROGRESS_STATUSES = {"in_progress"}
 
 # todolist active version 偵測（與 session-start-scheduler-hint-hook 同步）
 _TODOLIST_ACTIVE_VERSION_RE = re.compile(
@@ -104,8 +119,15 @@ def _detect_handoff_keywords(content: str) -> bool:
 def _extract_handoff_section(content: str) -> str:
     """從 worklog 內容切出 handoff 相關段落（SOT-mirror）。
 
-    策略：找到首個 HANDOFF_KEYWORDS 命中位置，回傳該位置至下一個 H1/H2 標題前的內容；
-    若找不到下一個標題則回傳到 EOF。無關鍵字命中回 ""。
+    策略：找到 **最後一個** HANDOFF_KEYWORDS 命中位置（rfind 取最大 idx），
+    回傳該位置至下一個 H1/H2 標題前的內容；若找不到下一個標題則回傳到 EOF。
+    無關鍵字命中回 ""。
+
+    使用 rfind 取最後位置的理由（W17-176）：
+    worklog 累積多 session 的歷史 handoff 段落（H3 ### 分隔，無法被 H1/H2 切斷），
+    若取最早關鍵字會擷取整份歷史 handoff（測量值：49K chars / 283 IDs / ~12 false
+    positive）。取最後一個對應「當前 session 寫入的 handoff」，符合本函式「找出本
+    session 寫了什麼 handoff」的呼叫意圖。
 
     SOT: .claude/skills/ticket/ticket_system/lib/worklog_parser.py:extract_handoff_section
     任一處更新需同步另一處（ARCH-020）。
@@ -115,19 +137,19 @@ def _extract_handoff_section(content: str) -> str:
     if not content:
         return ""
 
-    earliest_idx = -1
+    latest_idx = -1
     for kw in HANDOFF_KEYWORDS:
-        idx = content.find(kw)
-        if idx >= 0 and (earliest_idx < 0 or idx < earliest_idx):
-            earliest_idx = idx
+        idx = content.rfind(kw)
+        if idx > latest_idx:
+            latest_idx = idx
 
-    if earliest_idx < 0:
+    if latest_idx < 0:
         return ""
 
-    line_start = content.rfind("\n", 0, earliest_idx) + 1
+    line_start = content.rfind("\n", 0, latest_idx) + 1
 
     section_end_pattern = re.compile(r"^(# |## )", re.MULTILINE)
-    search_from = earliest_idx + 1
+    search_from = latest_idx + 1
     next_match = section_end_pattern.search(content, search_from)
 
     if next_match:
@@ -269,6 +291,99 @@ def _load_ticket_status(project_root: Path, ticket_id: str) -> Optional[str]:
 
 
 # ---------------------------------------------------------------------------
+# Stop flag 防重複觸發 + in_progress 豁免（W17-176）
+# ---------------------------------------------------------------------------
+
+
+def _get_stop_flag_path(project_root: Path) -> Path:
+    """取得 stop flag 檔案路徑（W17-176 根因 1）。"""
+    return project_root / STOP_FLAG_FILE
+
+
+def _is_blocked_this_session(project_root: Path, logger) -> bool:
+    """檢查 stop flag 是否存在且未過期（防重複觸發）。
+
+    flag 機制與 handoff-auto-resume-stop-hook 一致：
+    - flag 不存在 → False（首次觸發）
+    - flag 存在且未過期 → True（本 session 已執行過，跳過）
+    - flag 已過期 → 刪除並回傳 False（視為新 session）
+
+    fail-open：解析失敗時刪除 flag 並回傳 False。
+    """
+    flag_file = _get_stop_flag_path(project_root)
+    if not flag_file.exists():
+        return False
+    try:
+        data = json.loads(flag_file.read_text(encoding="utf-8"))
+        created_at_str = data.get("created_at")
+        if not created_at_str:
+            flag_file.unlink()
+            return False
+        created_at = datetime.fromisoformat(created_at_str)
+        elapsed = (datetime.now() - created_at).total_seconds()
+        if elapsed > STOP_FLAG_EXPIRY_SECONDS:
+            logger.debug("Stop flag 已過期 (%.1fs)，刪除", elapsed)
+            flag_file.unlink()
+            return False
+        logger.debug("Stop flag 仍有效 (%.1fs)，跳過本次觸發", elapsed)
+        return True
+    except Exception as e:
+        logger.warning("檢查 stop flag 失敗: %s", e)
+        try:
+            flag_file.unlink()
+        except Exception:
+            pass
+        return False
+
+
+def _mark_blocked_this_session(project_root: Path, logger) -> None:
+    """寫入 stop flag 標記本 session 已執行過。"""
+    flag_file = _get_stop_flag_path(project_root)
+    try:
+        flag_file.parent.mkdir(parents=True, exist_ok=True)
+        flag_data = {
+            "created_at": datetime.now().isoformat(),
+            "reason": "stop_worklog_handoff_sync_check_triggered",
+        }
+        flag_file.write_text(json.dumps(flag_data, ensure_ascii=False), encoding="utf-8")
+        logger.debug("建立 stop flag: %s", flag_file)
+    except Exception as e:
+        logger.warning("建立 stop flag 失敗: %s", e)
+
+
+def _has_in_progress_ticket(project_root: Path, version: str, logger) -> bool:
+    """偵測 active version 是否有 in_progress ticket（W17-176 根因 2）。
+
+    Fail-open 設計：偵測過程任何異常皆回傳 False（不阻塞 hook 後續邏輯，但
+    本 hook 整體 fail-open 走向是「假設無 in_progress→繼續檢查」，可能造成
+    一次假陽性，但不會掩蓋真實的 sync drift 問題）。
+
+    根因 2 邏輯：任務進行中提醒 handoff 是邏輯倒置——handoff 是 session 結束
+    時的動作，任務未完成不該補 handoff。
+    """
+    try:
+        ticket_files = scan_ticket_files_by_version(project_root, version, logger)
+        if not ticket_files:
+            return False
+        for ticket_path in ticket_files:
+            try:
+                fm = parse_ticket_frontmatter(ticket_path, logger)
+                if not fm:
+                    continue
+                status = (fm.get("status") or "").strip().lower()
+                if status in IN_PROGRESS_STATUSES:
+                    logger.debug("偵測到 in_progress ticket: %s", ticket_path.name)
+                    return True
+            except Exception as e:
+                logger.debug("讀取 ticket frontmatter 失敗 (%s): %s", ticket_path.name, e)
+                continue
+        return False
+    except Exception as e:
+        logger.warning("掃描 in_progress ticket 失敗（fail-open）: %s", e)
+        return False
+
+
+# ---------------------------------------------------------------------------
 # 主邏輯
 # ---------------------------------------------------------------------------
 
@@ -307,10 +422,25 @@ def _format_warning(missing: list[str], orphan: list[str]) -> str:
 
 
 def detect_sync_drift(project_root: Path, session_start: float, logger) -> Optional[str]:
-    """主檢查邏輯：偵測雙軌不同步並回傳警告字串（無問題回 None）。"""
+    """主檢查邏輯：偵測雙軌不同步並回傳警告字串（無問題回 None）。
+
+    W17-176 三道防護（在原邏輯前依序檢查）：
+    1. Stop flag：本 session 已執行過 → 跳過（防重複觸發）
+    2. in_progress ticket 偵測：有 in_progress ticket → 跳過（任務進行中不該提醒 handoff）
+    3. （隱含）_extract_handoff_section 改 rfind 取最新 → 只列當前 session handoff
+    """
+    # W17-176 根因 1：stop flag 防重複觸發
+    if _is_blocked_this_session(project_root, logger):
+        return None
+
     version = _detect_active_version(project_root)
     if not version:
         logger.debug("無 active version，靜默退出")
+        return None
+
+    # W17-176 根因 2：in_progress ticket 偵測豁免（fail-open）
+    if _has_in_progress_ticket(project_root, version, logger):
+        logger.debug("偵測到 in_progress ticket，跳過 handoff sync check")
         return None
 
     worklog_path = _find_worklog_path(project_root, version)
@@ -380,6 +510,10 @@ def main():
                 "systemMessage": warning,
             }
             print(json.dumps(output, ensure_ascii=False))
+            # W17-176 根因 1：成功輸出 warning 後標記 stop flag，後續本 session
+            # 不再重複觸發。設計取捨：只在「實際輸出」時標記，避免「無 drift
+            # 也消耗 flag」造成下次有 drift 時被誤判跳過。
+            _mark_blocked_this_session(project_root, logger)
         sys.exit(EXIT_SUCCESS)
     except Exception as e:
         # 規則 4：失敗可見（stderr + 日誌）
