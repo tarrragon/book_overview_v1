@@ -91,7 +91,7 @@ for _p in (_TICKET_SKILL_PATH, _TICKET_LIB_PATH):
 try:
     from handoff_utils import is_handoff_stale  # type: ignore
 except Exception:  # pragma: no cover - fallback：lib 不可用時退化為原邏輯（保留任務鏈）
-    def is_handoff_stale(record):  # type: ignore
+    def is_handoff_stale(record, project_root=None):  # type: ignore
         direction = (record or {}).get("direction", "") or ""
         direction_type = direction.split(":")[0]
         # 任務鏈方向預設不視為 stale（保留語義與原 should_preserve_pending_json 一致）
@@ -414,7 +414,7 @@ def scan_in_progress_tickets(project_root: Path, logger) -> list:
     return []
 
 
-def should_preserve_pending_json(record: dict, logger) -> bool:
+def should_preserve_pending_json(record: dict, logger, project_root: Optional[Path] = None) -> bool:
     """
     判斷是否應保留 pending JSON，即使來源 Ticket 已完成。
 
@@ -436,7 +436,7 @@ def should_preserve_pending_json(record: dict, logger) -> bool:
     Returns:
         bool - 是否應保留 pending JSON（True=保留，False=GC）
     """
-    is_stale, reason = is_handoff_stale(record or {})
+    is_stale, reason = is_handoff_stale(record or {}, project_root)
     direction = (record or {}).get("direction", "") or ""
     if is_stale:
         logger.debug(f"handoff direction='{direction}' 視為 stale（{reason}），不保留")
@@ -547,7 +547,7 @@ def scan_pending_handoff_tasks(project_root: Path, logger) -> tuple:
                     # W17-118 Phase 1: 計數前先 stale 過濾（與 ticket resume --list 對齊）
                     # stale 條件包含「任務鏈目標已啟動 / 已完成」「來源 ticket 已 completed」
                     # 對齊既有 GC 行為：刪除檔案不計入 pending_tasks
-                    is_stale, stale_reason = is_handoff_stale(data)
+                    is_stale, stale_reason = is_handoff_stale(data, project_root)
                     if is_stale:
                         try:
                             file_path.unlink()
@@ -562,7 +562,7 @@ def scan_pending_handoff_tasks(project_root: Path, logger) -> tuple:
                     # 檢查對應 Ticket 是否已完成
                     if is_ticket_completed(project_root, ticket_id, logger):
                         # GC：檢查 direction，判斷是否應保留
-                        if should_preserve_pending_json(data, logger):
+                        if should_preserve_pending_json(data, logger, project_root):
                             pending_tasks.append({
                                 "ticket_id": ticket_id,
                                 "title": title,

@@ -273,7 +273,7 @@ class TestExecuteGcExecute:
     def test_execute_preserves_non_stale(self, mock_completed, temp_gc_env):
         """--execute 不應移動非 stale 的 handoff"""
         project_root, pending, archive = temp_gc_env
-        mock_completed.side_effect = lambda tid: tid == "0.1.0-W6-001"
+        mock_completed.side_effect = lambda tid, project_root=None: tid == "0.1.0-W6-001"
 
         stale_file = _write_handoff(pending, "0.1.0-W6-001", "context-refresh", from_status="in_progress")
         valid_file = _write_handoff(pending, "0.1.0-W6-002", "context-refresh", from_status="in_progress")

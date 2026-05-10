@@ -31,7 +31,7 @@ def load_hook_module():
 def _patch_is_handoff_stale(monkeypatch, return_value):
     """以 monkeypatch 替換 module 的 is_handoff_stale，避開實際 ticket fs 依賴。"""
     hook = load_hook_module()
-    monkeypatch.setattr(hook, "is_handoff_stale", lambda record: return_value)
+    monkeypatch.setattr(hook, "is_handoff_stale", lambda record, project_root=None: return_value)
     return hook
 
 
@@ -165,7 +165,7 @@ def _setup_scan(monkeypatch, tmp_path, *, stale_map=None,
     completed_map = completed_map or {}
     hook = load_hook_module()
 
-    def fake_is_handoff_stale(record):
+    def fake_is_handoff_stale(record, project_root=None):
         tid = (record or {}).get("ticket_id", "")
         return stale_map.get(tid, (False, ""))
 
