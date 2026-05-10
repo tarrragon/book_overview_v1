@@ -43,7 +43,14 @@ if str(_TICKET_LIB_PATH) not in sys.path:
 
 try:
     from handoff_utils import is_handoff_stale  # type: ignore
-except Exception:  # pragma: no cover - fallback：lib 不可用時不過濾，行為退化為原狀
+except Exception as _import_err:  # pragma: no cover - fallback：lib 不可用時不過濾，行為退化為原狀
+    # PC-135 防護：silent fallback 改 noisy。退化為「全不過濾」會讓 reminder 列出已 stale 的 handoff，
+    # 雖偏保守側但會干擾用戶體驗，必須立即可見。
+    sys.stderr.write(
+        f"[handoff-reminder-hook][PC-135] handoff_utils import failed, "
+        f"using degraded is_handoff_stale fallback (no stale filtering). "
+        f"Cause: {type(_import_err).__name__}: {_import_err}\n"
+    )
     def is_handoff_stale(record, project_root=None):  # type: ignore
         return False, ""
 

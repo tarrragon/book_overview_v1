@@ -49,7 +49,18 @@ for _p in (_TICKET_SKILL_PATH, _TICKET_LIB_PATH):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
-from handoff_utils import is_ticket_completed as _lib_is_ticket_completed  # type: ignore
+try:
+    from handoff_utils import is_ticket_completed as _lib_is_ticket_completed  # type: ignore
+except Exception as _import_err:  # pragma: no cover
+    # PC-135 防護：silent fallback 改 noisy。lib import 失敗時退化為「永遠視為未完成」，
+    # 寫 stderr 讓 PM/開發者立即察覺 lib 不可達（避免 reminder 永遠彈出或永遠不彈）。
+    sys.stderr.write(
+        f"[handoff-prompt-reminder-hook][PC-135] handoff_utils import failed, "
+        f"using degraded is_ticket_completed fallback (always returns False). "
+        f"Cause: {type(_import_err).__name__}: {_import_err}\n"
+    )
+    def _lib_is_ticket_completed(ticket_id, project_root=None):  # type: ignore
+        return False
 
 EXIT_SUCCESS = 0
 EXIT_ERROR = 1
