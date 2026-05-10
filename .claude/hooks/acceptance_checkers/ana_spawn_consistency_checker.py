@@ -47,6 +47,15 @@ _SPAWN_ROW_PATTERN = re.compile(
     re.MULTILINE,
 )
 
+# heading-based spawn 偵測：H3 標題同時含 Spawn 關鍵字與 IMP/DOC/ANA 任一
+# 涵蓋 W17-176 案例（key-value 表格格式 spawn 規劃，row-per-spawn 正則漏判）
+# 範例命中：`### Spawned IMP 規劃` / `### Spawn 規劃 (DOC)` / `### Spawned DOC/ANA 清單`
+# 範例不命中：`### 根因分析` / `### Implementation Plan`（無 Spawn 關鍵字）
+_SPAWN_HEADING_PATTERN = re.compile(
+    r"^###\s+.*?\bSpawn(?:ed)?\b.*?\b(?:IMP|DOC|ANA)\b.*$",
+    re.MULTILINE | re.IGNORECASE,
+)
+
 
 def _extract_solution_section(content: str) -> Optional[str]:
     """擷取 ## Solution 區段（到下一個 ## 或檔尾為止）。"""
@@ -73,6 +82,32 @@ def _count_spawn_planning_rows(section: str) -> int:
     """計算 Solution 內 spawn 規劃表格行數（IMP/DOC/ANA + P0-P3）。"""
     matches = _SPAWN_ROW_PATTERN.findall(section)
     return len(matches)
+
+
+def _count_spawn_heading_rows(section: str) -> int:
+    """計算 Solution 內 H3 標題含 Spawn + IMP/DOC/ANA 的數量（heading-based 偵測）。
+
+    用於補強 row-per-spawn 漏判場景：W17-176 案例使用 key-value 格式表格
+    描述單一 spawn 規劃（無同行 type+priority），row-per-spawn 正則 N=0
+    但語義上確實為 1 項 spawn 規劃。
+
+    每個命中的 H3 視為 1 項 spawn 規劃。
+    """
+    matches = _SPAWN_HEADING_PATTERN.findall(section)
+    return len(matches)
+
+
+def _count_spawn_planning(section: str) -> int:
+    """整合雙策略：N = max(row-per-spawn 計數, heading-based 計數)。
+
+    - row-per-spawn：每行一個 spawn（如 W17-162 / W17-167 多項規劃表）
+    - heading-based：每個 H3 一個 spawn（如 W17-176 key-value 單項規劃表）
+
+    取較大值避免漏判；兩策略適用不同表格樣式，不會在同一規劃中同時計數。
+    """
+    n_rows = _count_spawn_planning_rows(section)
+    n_headings = _count_spawn_heading_rows(section)
+    return max(n_rows, n_headings)
 
 
 def _count_spawned_and_children(frontmatter: dict) -> int:
@@ -124,7 +159,7 @@ def check_ana_spawn_consistency(
         logger.info("ANA %s Solution 含豁免標記，跳過 spawn 一致性檢查", ticket_id)
         return False, None
 
-    n_planned = _count_spawn_planning_rows(section)
+    n_planned = _count_spawn_planning(section)
     if n_planned == 0:
         logger.debug("ANA %s Solution 無 spawn 規劃表格行", ticket_id)
         return False, None

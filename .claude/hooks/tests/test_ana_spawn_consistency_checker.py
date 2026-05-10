@@ -249,6 +249,105 @@ def test_non_ana_should_skip(logger):
 # (h) Solution 為空 → 跳過
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# (i) heading-based 偵測：W17-176 key-value 表格格式 → 至少 N=1（W17-178 擴充）
+# ---------------------------------------------------------------------------
+
+
+def test_w17_176_keyvalue_heading_should_block(logger):
+    """W17-176 案例：### Spawned IMP 規劃 + key-value 表格，row-per-spawn N=0
+    但 heading-based N=1，整合後應偵測為 1 項 spawn 規劃並阻擋 complete。
+    """
+    solution = (
+        "### Spawned IMP 規劃\n\n"
+        "| 欄位 | 值 |\n"
+        "|------|------|\n"
+        "| action | 修復 stop-worklog hook |\n"
+        "| target | `.claude/hooks/x.py` |\n"
+        "| priority | P1 |\n"
+        "| who | thyme-extension-engineer |\n"
+        "| blockedBy | 無 |\n"
+    )
+    content = _make_content(solution)
+    fm = {"id": "0.18.0-W17-176", "type": "ANA", "spawned_tickets": [], "children": []}
+
+    should_block, msg = check_ana_spawn_consistency(content, fm, logger)
+
+    assert should_block is True
+    assert msg is not None
+    assert "0.18.0-W17-176" in msg
+
+
+def test_heading_with_spawn_passes_when_actual_present(logger):
+    """heading-based 偵測 N=1，spawned_tickets 有 1 項 → 通過。"""
+    solution = (
+        "### Spawned DOC 規劃\n\n"
+        "| 欄位 | 值 |\n"
+        "|------|------|\n"
+        "| action | 文件更新 |\n"
+        "| priority | P2 |\n"
+    )
+    content = _make_content(solution)
+    fm = {
+        "id": "0.18.0-W17-989",
+        "type": "ANA",
+        "spawned_tickets": ["0.18.0-W17-989.1"],
+        "children": [],
+    }
+
+    should_block, msg = check_ana_spawn_consistency(content, fm, logger)
+
+    assert should_block is False
+    assert msg is None
+
+
+def test_heading_without_spawn_keyword_should_not_trigger(logger):
+    """非 spawn 語境的 H3（如 ### 根因分析、### Implementation Plan）不應被誤判。"""
+    solution = (
+        "### 根因分析\n\n"
+        "說明 IMP 階段發生的問題。\n\n"
+        "### Implementation Plan\n\n"
+        "DOC 文件已涵蓋。\n"
+    )
+    content = _make_content(solution)
+    fm = {"id": "0.18.0-W17-988", "type": "ANA", "spawned_tickets": [], "children": []}
+
+    should_block, msg = check_ana_spawn_consistency(content, fm, logger)
+
+    # 無 Spawn 關鍵字的 H3 + 無 row-per-spawn 表格 → N=0 → 通過
+    assert should_block is False
+    assert msg is None
+
+
+def test_combined_strategies_takes_max(logger):
+    """雙策略整合：row-per-spawn 偵測 2 項，heading-based 偵測 1 項 → max=2。"""
+    solution = (
+        "### Spawned IMP/DOC 清單\n\n"
+        "| # | Type | Priority | 標題 |\n"
+        "|---|------|----------|------|\n"
+        "| 1 | IMP | P1 | A |\n"
+        "| 2 | DOC | P2 | B |\n"
+    )
+    content = _make_content(solution)
+    fm = {"id": "0.18.0-W17-987", "type": "ANA", "spawned_tickets": [], "children": []}
+
+    should_block, msg = check_ana_spawn_consistency(content, fm, logger)
+
+    assert should_block is True
+    assert msg is not None
+    # 應顯示 2（max(2 row, 1 heading)）而非 3
+    assert "2" in msg
+
+
+# ---------------------------------------------------------------------------
+# (h) Solution 為空 → 跳過
+# ---------------------------------------------------------------------------
+
+
+def _legacy_test_empty_solution_should_skip_marker():
+    """anchor for next test definition (no-op)."""
+
+
 def test_empty_solution_should_skip(logger):
     content = (
         "---\nid: 0.18.0-W17-991\ntype: ANA\n---\n\n"
