@@ -41,6 +41,16 @@ sys.path.insert(0, str(Path(__file__).parent))
 from hook_utils import setup_hook_logging, run_hook_safely, read_json_from_stdin, parse_ticket_frontmatter, get_project_root, find_ticket_file
 from lib.hook_messages import WorkflowMessages, CoreMessages, format_message
 
+# W17-181.2: delegate is_ticket_completed 至 lib SSOT，消除跨進程同構邏輯（ARCH-020）。
+# 加入 ticket_system 父路徑以解析 handoff_utils 內部 `from ticket_system.lib.*` import。
+_TICKET_SKILL_PATH = Path(__file__).parent.parent / "skills" / "ticket"
+_TICKET_LIB_PATH = _TICKET_SKILL_PATH / "ticket_system" / "lib"
+for _p in (_TICKET_SKILL_PATH, _TICKET_LIB_PATH):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
+
+from handoff_utils import is_ticket_completed as _lib_is_ticket_completed  # type: ignore
+
 EXIT_SUCCESS = 0
 EXIT_ERROR = 1
 
@@ -88,34 +98,22 @@ def mark_reminded_this_session(logger) -> None:
 
 def is_ticket_completed(project_root: Path, ticket_id: str, logger) -> bool:
     """
-    檢查 Ticket 是否已完成（status: completed）
+    檢查 Ticket 是否已完成（status: completed）。
 
-    使用 hook_utils.find_ticket_file 解析路徑，支援扁平與三層階層
-    （docs/work-logs/v{major}/v{minor}/v{version}/tickets/）兩種結構，
-    與 handoff-auto-resume-stop-hook.py（W17-165 已升級）對齊，避免
-    ARCH-020 跨進程同步遺漏導致已完成 ticket 仍被誤判為待恢復。
+    W17-181.2：delegate 至 lib `handoff_utils.is_ticket_completed`（單一 SSOT），
+    消除 ARCH-020 跨進程同步遺漏。本函式保留為 thin wrapper 以維持既有
+    呼叫端 (project_root, ticket_id, logger) 簽名相容。
 
     Args:
         project_root: 專案根目錄
         ticket_id: Ticket ID
-        logger: Logger 實例
+        logger: Logger 實例（保留參數，異常時記錄）
 
     Returns:
         bool - 是否已完成
     """
     try:
-        ticket_path = find_ticket_file(ticket_id, project_root, logger)
-        if not ticket_path:
-            return False
-
-        # 解析 frontmatter
-        frontmatter = parse_ticket_frontmatter(ticket_path, logger)
-        if not frontmatter:
-            return False
-
-        status = frontmatter.get('status', '').lower()
-        return status == 'completed'
-
+        return _lib_is_ticket_completed(ticket_id, project_root)
     except Exception as e:
         logger.warning(f"檢查 Ticket 完成狀態失敗 ({ticket_id}): {e}")
         return False

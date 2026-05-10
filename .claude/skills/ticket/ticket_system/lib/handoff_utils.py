@@ -16,6 +16,7 @@ from ticket_system.lib.constants import (
     STATUS_IN_PROGRESS,
     TASK_CHAIN_DIRECTION_TYPES,
     NON_CHAIN_DIRECTION_TYPES,
+    TERMINAL_STATUSES,
     HANDOFF_DIR,
     HANDOFF_PENDING_SUBDIR,
 )
@@ -125,6 +126,31 @@ def is_ticket_completed(
     try:
         status = _load_ticket_status(ticket_id, project_root)
         return status == STATUS_COMPLETED
+    except Exception:
+        return False  # 保守策略：無法判斷時顯示
+
+
+def is_ticket_terminal(
+    ticket_id: str,
+    project_root: Optional[Path] = None,
+) -> bool:
+    """
+    檢查 Ticket 是否處於 terminal 狀態（completed 或 closed）。
+
+    W17-181.2：將 stop hook 自定義的 terminal 判定上移至 lib，消除
+    跨進程同構邏輯（ARCH-020）。stop hook 的 GC / handoff 過濾路徑使用，
+    避免 closed 的 ticket 對應 handoff JSON 被誤報為「待恢復」阻止退出。
+
+    Args:
+        ticket_id: Ticket ID
+        project_root: 專案根目錄；None 時 fallback 至 get_project_root()
+
+    Returns:
+        bool: True 表示處於 terminal 狀態，False 表示否或無法判斷
+    """
+    try:
+        status = _load_ticket_status(ticket_id, project_root)
+        return status in TERMINAL_STATUSES
     except Exception:
         return False  # 保守策略：無法判斷時顯示
 
