@@ -168,7 +168,25 @@ W17-097：ANA 規劃 5 個 IMP children，前 4 個並行派發 thyme-python-dev
 | MCP write tool 對 text file 被擋 | PC-112 |
 | Edit 成功但 prompt 缺 context | PC-040 |
 
+## 重啟調查鏈案例
+
+PC-115 結論收斂後，「累積 ≥ 3 次新 deny 才重啟調查」屬於「ANA 結論被後續實驗推翻」的元模式。本節記錄此模式在其他主題上的觸發案例，作為 retrospective 學習素材（W17-182 ANA 將分析「ANA 宣稱已修妥的驗證義務」方法論缺口）。
+
+### 案例 1：W17-179 → W17-181（handoff stale GC，2026-05-10）
+
+| 階段 | Ticket | 結論 | 事後驗證 |
+|------|--------|------|---------|
+| 初次 ANA | W17-179 | stop hook 行為正確，false alarm（saffron-system-analyst）| **被推翻** |
+| 重啟調查 | W17-181 | lib `handoff_utils` L49/L102 走舊路徑，子進程環境 100% 重現 false negative | 確認為真根因（ARCH-020 延伸案例）|
+
+**重啟觸發**：W17-179 complete 後手動清除 `.stop-blocked` flag 觸發 stop hook，發現兩筆已 completed ticket（W17-174 / W17-178.1）的 handoff JSON 仍未被 GC，與 W17-179 結論矛盾。
+
+**方法論缺口**：W17-179 saffron 只 grep stop hook 自定義函式（W17-165 / W17-176.2.1 已修），未掃 lib 層 callers，導致誤判「已修妥」。屬 PC-115 描述的「結論狀態不可僅憑單點驗證」更廣模式。
+
+**承接學習**：W17-182 retrospective ANA 將提煉為獨立 PC pattern（「ANA 宣稱已修妥的驗證義務」）；ARCH-020 v1.1 已升級「同名 predicate 多處實作即高風險訊號」判別準則（W17-181.3 落地）。
+
 ## 後續觀察
 
 - CC 升級或 setting 變更後重驗（記錄版本號 + 日期）
 - 若用戶 setting 可關閉此限制，補充至本 PC
+- 重啟調查鏈案例累積 ≥ 3 次同模式（ANA 結論被後續實驗推翻）時，獨立提煉為 PC pattern（W17-182 retrospective 啟動）

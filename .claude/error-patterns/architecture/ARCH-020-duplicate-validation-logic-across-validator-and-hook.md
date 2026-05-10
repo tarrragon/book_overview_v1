@@ -90,6 +90,45 @@ def _is_placeholder(text: str) -> bool:
 | 跨語言實作（如 Dart + Python） | 不適用（無法共用模組） |
 | 意圖不同的相似名稱函式 | 不適用（非重複實作） |
 
+## 延伸案例：ticket 路徑解析 SSOT（2026-05-10 升級）
+
+本案例將 ARCH-020 從「驗證邏輯重寫」延伸至「pure predicate 跨進程多份實作」的更廣模式。
+
+### 模式描述
+
+`is_ticket_completed(ticket_id) -> bool` 屬 pure predicate（同輸入必同輸出，無副作用）。此類函式在 lib + hook 多進程環境下若各自實作，會出現「同名 predicate 多處實作」的高風險訊號：
+
+- **同名 predicate 多處實作即 ARCH-020 高風險訊號**——應升 lib 層 SSOT，不應允許「lib 一份 + hook 各一份」並存
+- 三 caller 應全部 delegate 至 lib 唯一入口，禁止自定義同義函式
+
+### 三次重爆軌跡（W17-181 三視角審查）
+
+`is_ticket_completed` 在 stop hook / prompt-reminder hook / lib `handoff_utils` 三處各自實作，連續三次同病灶重爆：
+
+| 事件 | 日期 | 修復範圍 | 遺漏 |
+|------|------|---------|------|
+| W17-165 | 2026-05-08 | stop hook 自定義版改用 `find_ticket_file` | 未同步 prompt-reminder hook、未同步 lib 層 |
+| W17-176.2.1 | 2026-05-09 | prompt-reminder hook 自定義版改用 `find_ticket_file`（commit fdc3ee3e）| 未同步 lib 層 |
+| W17-181 | 2026-05-10 | lib `handoff_utils.is_ticket_completed`（L49）/ `is_ticket_in_progress_or_completed`（L102）仍走 `load_and_validate_ticket` 舊路徑，子進程 cwd 非專案根 + `CLAUDE_PROJECT_DIR` 缺失時靜默回 False，導致 stale handoff 未被 GC | — |
+
+### W17-181 三視角審查結論（共識）
+
+| 視角 | 關鍵結論 |
+|------|---------|
+| Evidence | 根因 100% 坐實：lib L49 走 `get_project_root()` 無參數版，子進程環境路徑解析失敗回保守 False |
+| Scope | 影響 8 個消費者路徑（lib 三處 + hook 三處 + CLI 兩處），lib 層 bug 透過 `is_handoff_stale` 傳染至三套 hook |
+| linux universal | 「ticket completed?」pure predicate 有 3 份實作就是在邀請 ARCH-020 反覆發作。W17-165 修一處、W17-176.2.1 修一處、W17-181 又發現一處——非巧合，是缺 SSOT |
+
+### 升級後的判別準則
+
+新增「同名 pure predicate 多處實作」為 ARCH-020 高風險訊號：
+
+| 訊號 | 是否觸發 ARCH-020 升 SSOT |
+|------|----------------------|
+| 同名 predicate（如 `is_X`、`has_Y`、`can_Z`）跨 lib + hook 多進程各有實作 | 是（核心新增訊號） |
+| pure predicate 簽章不一致（如 `is_ticket_completed(ticket_id)` vs `is_ticket_completed(project_root, ticket_id, logger)`）並存 | 是（簽章漂移即實作漂移前兆） |
+| lib 提供函式但 hook 自定義同義函式 | 是（必 delegate 至 lib，禁自定義） |
+
 ## 相關事件與 Ticket
 
 | 事件 | 日期 | 說明 |
@@ -99,6 +138,9 @@ def _is_placeholder(text: str) -> bool:
 | W17-070 | 2026-04-24 | ANA 雙根因分析，saffron 重現實驗發現 hook 端同構 bug |
 | W17-071 | 2026-04-24 | IMP-1 症狀修復（必須同步改兩處） |
 | PC-110 | 2026-04-24 | body-check false negative 具體 bug 記錄 |
+| W17-165 | 2026-05-08 | `is_ticket_completed` 第一次重爆（stop hook）|
+| W17-176.2.1 | 2026-05-09 | `is_ticket_completed` 第二次重爆（prompt-reminder hook，commit fdc3ee3e）|
+| W17-181 | 2026-05-10 | `is_ticket_completed` 第三次重爆（lib 層）；三視角審查確認需升 SSOT；spawn W17-181.1（lib SSOT）/ W17-181.2（hook delegate）/ W17-181.3（本次規則升級）/ W17-182（retrospective ANA）|
 
 ## 相關文件
 
@@ -109,5 +151,6 @@ def _is_placeholder(text: str) -> bool:
 
 ---
 
-**Last Updated**: 2026-04-24
+**Last Updated**: 2026-05-10
+**Version**: 1.1.0 — 新增「ticket 路徑解析 SSOT」延伸案例：將模式從「驗證邏輯重寫」延伸至「pure predicate 跨進程多份實作」；新增「同名 predicate 多處實作即 ARCH-020 高風險訊號」判別準則；補 W17-165 / W17-176.2.1 / W17-181 三次重爆軌跡與三視角審查結論（W17-181.3 落地）
 **Version**: 1.0.0 — 初版；source W17-070 ANA（saffron-system-analyst）
