@@ -303,39 +303,41 @@ def test_scan_recently_created_pure_no_block(monkeypatch, tmp_path):
 
 
 def test_terminal_statuses_includes_closed():
-    """W17-165 L2-C：TERMINAL_STATUSES 集合包含 completed 與 closed。"""
-    hook = load_hook_module()
-    assert hook.TERMINAL_STATUSES == {"completed", "closed"}
+    """W17-165 L2-C：TERMINAL_STATUSES 集合包含 completed 與 closed。
+
+    W17-197 修法：hook 不直接 re-export TERMINAL_STATUSES（W17-181.2 起 SSOT 移至
+    ticket_system.constants），改為驗證 lib 端 constants 的 TERMINAL_STATUSES。
+    """
+    # 透過 hook 的 sys.path 設定取得 lib 端 TERMINAL_STATUSES
+    load_hook_module()  # 確保 sys.path 已設定（hook 模組加 skills/ticket 父路徑）
+    from ticket_system.constants import TERMINAL_STATUSES
+    assert set(TERMINAL_STATUSES) == {"completed", "closed"}
 
 
 def test_is_ticket_completed_returns_true_for_closed(monkeypatch, tmp_path):
-    """W17-165 L2-C：closed 狀態應走 terminal 路徑（is_ticket_completed=True）。"""
+    """W17-165 L2-C：closed 狀態應走 terminal 路徑（is_ticket_completed=True）。
+
+    W17-197 修法：hook.is_ticket_completed delegate 至 lib `is_ticket_terminal`
+    （W17-181.2 SSOT），原測試 monkeypatch hook 層級 find_ticket_file /
+    parse_ticket_frontmatter 已不適用。改為 monkeypatch hook 內 `_lib_is_ticket_terminal`。
+    """
     hook = load_hook_module()
-    fake_path = tmp_path / "fake.md"
-    fake_path.write_text("---\nstatus: closed\n---\n")
     monkeypatch.setattr(
-        hook, "find_ticket_file",
-        lambda tid, root, log: fake_path,
-    )
-    monkeypatch.setattr(
-        hook, "parse_ticket_frontmatter",
-        lambda path, log: {"status": "closed"},
+        hook, "_lib_is_ticket_terminal",
+        lambda tid, project_root=None: True,
     )
     assert hook.is_ticket_completed(tmp_path, "W17-X", MagicMock()) is True
 
 
 def test_is_ticket_completed_returns_true_for_completed(monkeypatch, tmp_path):
-    """向後相容：completed 仍視為 terminal。"""
+    """向後相容：completed 仍視為 terminal。
+
+    W17-197 修法：同 closed 測試，改 monkeypatch lib delegate。
+    """
     hook = load_hook_module()
-    fake_path = tmp_path / "fake.md"
-    fake_path.write_text("---\nstatus: completed\n---\n")
     monkeypatch.setattr(
-        hook, "find_ticket_file",
-        lambda tid, root, log: fake_path,
-    )
-    monkeypatch.setattr(
-        hook, "parse_ticket_frontmatter",
-        lambda path, log: {"status": "completed"},
+        hook, "_lib_is_ticket_terminal",
+        lambda tid, project_root=None: True,
     )
     assert hook.is_ticket_completed(tmp_path, "W17-X", MagicMock()) is True
 
