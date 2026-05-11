@@ -40,8 +40,8 @@ metadata:
 
 | 模式 | 適用 | `categoryExtensions` 工具集 |
 |------|------|---------------------------|
-| pipe（chrome-devtools-mcp 自啟動 Chrome） | 開發中 unpacked extension | ✅ 完整可用 |
-| attach（連接 `--remote-debugging-port=9222` 既有 Chrome） | debug installed extension | ❌ Chrome 149 前不支援（基礎 console / network 工具仍可用） |
+| pipe（chrome-devtools-mcp 自啟動 Chrome） | 開發中 unpacked extension | [可用] 完整 |
+| attach（連接 `--remote-debugging-port=9222` 既有 Chrome） | debug installed extension | [限制] Chrome 149 前不支援（基礎 console / network 工具仍可用） |
 
 **判別**：若你要看「Chrome Web Store 安裝版」或「使用者已載入 unpacked 的實際 profile」→ attach；若是「我剛 build 完想測一下」→ pipe。**為何不能單一模式涵蓋兩者**：attach 模式接到既有 Chrome 時 `categoryExtensions` 工具集未隨之掛載（Chrome 149 stable 前不支援），pipe 模式則綁定 chrome-devtools-mcp 自啟動的隔離 Chrome 實例，無法看使用者原本的 profile。
 
@@ -165,9 +165,9 @@ reload 後 `getExtensions` 顯示新 version 號或 SW 重啟時間。
 
 ### 反模式
 
-- ❌ 只截圖不看 console — 視覺正常但 console 有 error 是常見「半失敗」狀態
-- ❌ 直接 navigate 不等 content script 初始化 — 加 `chrome-devtools__wait_for` 等預期 DOM 出現
-- ✅ 三件套：snapshot + console + screenshot 一起看
+- [反模式] 只截圖不看 console — 視覺正常但 console 有 error 是常見「半失敗」狀態
+- [反模式] 直接 navigate 不等 content script 初始化 — 加 `chrome-devtools__wait_for` 等預期 DOM 出現
+- [建議] 三件套：snapshot + console + screenshot 一起看
 
 ### 書庫類專案：套用既有 checklist 模板
 

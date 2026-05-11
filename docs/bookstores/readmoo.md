@@ -70,7 +70,7 @@
 | https://read.readmoo.com/#/library | 是（`*.readmoo.com` 涵蓋 `read.readmoo.com`） |
 | https://member.readmoo.com/ | 是 |
 
-驗證 content script 是否注入：在目標頁開啟後執行 `list_console_messages`，應看到 `📍 頁面檢測: Readmoo 頁面` 等專案特定 log。
+驗證 content script 是否注入：在目標頁開啟後執行 `list_console_messages`，應看到含關鍵字 `頁面檢測: Readmoo 頁面` 的 log（extension 實際輸出含位置圖示 emoji 開頭，但比對時可只看關鍵字）。
 
 ---
 
