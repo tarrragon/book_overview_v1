@@ -1001,18 +1001,16 @@ class TestJ_SourceOfTruth:
 # ============================================================================
 
 class TestK_DocSync:
+    # test_k2 / test_k3 已於 0.18.0-W10-104.1 移除，對齊 W11-004 / W13-004
+    # wrap-decision SKILL 解耦設計：
+    # - W11-004: SKILL.md 通用化，移除「機器可讀版本」與 wrap-triggers.yaml 引用
+    # - W13-004: tripwire-catalog.md 不再引用 W10-009（已 completed，無歷史引用義務）
+    # 詳見父 ticket 0.18.0-W10-104 結論，禁止為了讓測試通過而還原已解耦的引用。
+    # test_k1 保留：其檢查的 placeholder 語句（"實際 Hook 程式碼實作為獨立 Ticket（待建立）"）
+    # 仍適用於 catalog 的「不應遺留待辦標記」品質要求。
     def test_k1_catalog_pending_marker_removed(self):
         text = CATALOG_PATH.read_text(encoding="utf-8")
         assert "實際 Hook 程式碼實作為獨立 Ticket（待建立）" not in text
-
-    def test_k2_catalog_links_to_w10_009(self):
-        text = CATALOG_PATH.read_text(encoding="utf-8")
-        assert "0.18.0-W10-009" in text
-
-    def test_k3_skill_md_yaml_sync_note_present(self):
-        text = SKILL_PATH.read_text(encoding="utf-8")
-        assert "機器可讀版本" in text
-        assert "wrap-triggers.yaml" in text
 
 
 # ============================================================================
