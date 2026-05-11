@@ -143,7 +143,7 @@ npm run format:check
 
 ## 6. 專案特定規範
 
-@.claude/references/project-specific-conventions.md
+@docs/project-conventions.md
 
 ---
 
