@@ -169,6 +169,22 @@ reload 後 `getExtensions` 顯示新 version 號或 SW 重啟時間。
 - ❌ 直接 navigate 不等 content script 初始化 — 加 `chrome-devtools__wait_for` 等預期 DOM 出現
 - ✅ 三件套：snapshot + console + screenshot 一起看
 
+### 書庫類專案：套用既有 checklist 模板
+
+提取書目的 Extension 專案通常含多步驟流程（登入 → 觸發提取 → storage 寫入 → overview 顯示 → 匯出）。本 SKILL 不重複每書城具體步驟，改引用專案 reference：
+
+| 書城 | Reference 路徑（範例） |
+|------|---------------------|
+| Readmoo | `docs/bookstores/readmoo.md` 含「MCP E2E 驗證 Checklist」7 步驟 |
+| 博客來 / Kindle / Kobo（未實作） | 依 `docs/bookstores/README.md` 模板新增 |
+
+**Workflow C 在書庫類專案的標準呼叫**：
+
+1. 讀對應書城 reference 取得測試 URL、登入需求、SPA 觀察點
+2. 依該 reference 的「MCP E2E Checklist」7 步驟跑（install → navigate → 登入 → 瀑布流 → popup → storage 驗證 → overview）
+3. 失敗時對照 reference 的 Common pitfalls 表診斷
+4. 結果寫入 ticket Solution 或 worklog
+
 ---
 
 ## Workflow D-popup: Debug popup
