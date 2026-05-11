@@ -152,7 +152,7 @@ W17-190 ANA 重現實驗評估三方案：
 | B. 個別測試檔直接 import yaml | 部分可行（測試碼侵入） |
 | C. 測試檔 UV script header 補 deps | **不可行**：pytest 不解析 header，header 失效 |
 
-方案 C 「不可行」的根因即本變體的核心：UV script header 是「執行時宣告」，pytest 載入測試是「模組宣告」，兩者執行模型不相容。
+方案 C 標為「不可行」的原因即本變體核心：UV script header 屬執行時宣告，pytest 載入測試屬模組宣告，兩種執行模型不相容。
 
 ### 升級結論
 
