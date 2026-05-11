@@ -34,9 +34,11 @@ sys.path.insert(0, str(_PROJECT_INIT_DIR))
 from hook_utils import setup_hook_logging, run_hook_safely
 from project_init.lib.hook_checker import (
     extract_registered_hooks,
+    extract_registered_skill_hooks,
     get_exclude_patterns,
     load_json_file,
     scan_hooks_directory,
+    scan_skill_hooks,
     should_exclude_file,
 )
 
@@ -237,12 +239,18 @@ def main():
     exclude_list = load_json_file(exclude_list_path, logger)
     exact_excludes, patterns = get_exclude_patterns(exclude_list)
 
-    # Scan hooks directory
+    # Scan hooks directory (主層 .claude/hooks/)
     all_hooks = scan_hooks_directory(hooks_dir, exact_excludes, patterns)
     registered_hooks = extract_registered_hooks(settings)
 
+    # Scan skill hooks (.claude/skills/<skill>/hooks/，W10-091 雙層架構)
+    skills_dir = project_root / '.claude' / 'skills'
+    all_skill_hooks = scan_skill_hooks(skills_dir, exact_excludes, patterns)
+    registered_skill_hooks = extract_registered_skill_hooks(settings)
+
     # Find unregistered hooks
     unregistered = all_hooks - registered_hooks
+    unregistered_skill_hooks = all_skill_hooks - registered_skill_hooks
     count_excluded = sum(
         1 for f in hooks_dir.glob('*.py')
         if should_exclude_file(f.name, exact_excludes, patterns)
@@ -264,6 +272,13 @@ def main():
     print(log_output)
     logger.info(log_output)
     log_output = f"排除: {count_excluded} 個"
+    print(log_output)
+    logger.info(log_output)
+    log_output = (
+        f"Skill Hooks (.claude/skills/*/hooks/): 共 {len(all_skill_hooks)} 個"
+        f"，已註冊 {len(registered_skill_hooks)} 個"
+        f"，未註冊 {len(unregistered_skill_hooks)} 個"
+    )
     print(log_output)
     logger.info(log_output)
     log_output = f"權限: {ok_count + len(fixed_files)} 個已確認可執行" + (f" ({len(fixed_files)} 個本次修正)" if fixed_files else "")
@@ -300,6 +315,22 @@ def main():
 
         print(log_output)
 
+        logger.info(log_output)
+
+    if unregistered_skill_hooks:
+        log_output = "\n未註冊的 Skill Hook（最多顯示 15 個）:"
+        print(log_output)
+        logger.info(log_output)
+        for hook in sorted(unregistered_skill_hooks)[:15]:
+            log_output = f"  - [skill] {hook}"
+            print(log_output)
+            logger.info(log_output)
+        if len(unregistered_skill_hooks) > 15:
+            log_output = f"  ... 還有 {len(unregistered_skill_hooks) - 15} 個"
+            print(log_output)
+            logger.info(log_output)
+        log_output = "\n建議: 檢查這些 Skill Hook 是否需要在 settings.json 中註冊（路徑形式: $CLAUDE_PROJECT_DIR/.claude/skills/<skill>/hooks/<file>.py）"
+        print(log_output)
         logger.info(log_output)
 
     log_output = "=" * 60
