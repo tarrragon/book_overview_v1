@@ -115,7 +115,7 @@ PM 需手動 Edit 移除前半 placeholder 區塊。
 
 ### Layer 3：規則層（書面教學）
 
-於 [referenced rule] 補：
+於 `.claude/skills/ticket/SKILL.md` 或 `.claude/pm-rules/ticket-lifecycle.md` 補：
 
 - append-log 設計語意明確為「附加」，schema 模板場景應改用 Edit 或新 fill-log 命令
 - 寫 ticket 章節前先 Read 該 section 確認既有內容
@@ -130,7 +130,7 @@ PM 需手動 Edit 移除前半 placeholder 區塊。
 
 1. 撞牆當下：用 Edit 工具清理重複區塊
 2. 記錄 IMP-071（本文）+ 用戶 memory（雙通道）
-3. spawn IMP 改 CLI（建議 W17-194 或更高，依優先級）
+3. spawn IMP 改 CLI（trigger：本 IMP 累積 ≥ 3 案例，或 PM 評估認知負擔成本後立即 spawn）
 
 ## 預估影響
 
