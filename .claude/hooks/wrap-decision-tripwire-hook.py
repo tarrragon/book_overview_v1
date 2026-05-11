@@ -75,6 +75,15 @@ def _now() -> datetime:
 # ============================================================================
 
 @dataclass
+class ContextBlacklist:
+    """S2 context-aware filter（W10-058.1.1.2）：keyword match 後，
+    若觸發詞前後 window 字內含 words 任一者，視為技術語境陳述，suppress signal。
+    """
+    window: int = 20
+    words: List[str] = field(default_factory=list)
+
+
+@dataclass
 class SignalDef:
     id: str
     # category 區分訊號語意分類（W15-018）：
@@ -94,6 +103,8 @@ class SignalDef:
     ticket_type_filter: Optional[str] = None
     reset_conditions: List[str] = field(default_factory=list)
     message_template: str = ""
+    # W10-058.1.1.2：context-aware filter（黑名單版）。None 表示未啟用。
+    context_blacklist: Optional[ContextBlacklist] = None
     raw: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -174,6 +185,19 @@ def _parse_signals(signals_raw: Any, logger) -> List[SignalDef]:
         sd.ticket_type_filter = item.get("ticket_type_filter")
         sd.reset_conditions = list(item.get("reset_conditions", []))
         sd.message_template = item.get("message_template", "")
+        # W10-058.1.1.2：解析 context_blacklist（選填）
+        cb_raw = item.get("context_blacklist")
+        if isinstance(cb_raw, dict):
+            words = cb_raw.get("words") or []
+            if isinstance(words, list) and words:
+                try:
+                    window = int(cb_raw.get("window", 20))
+                except (TypeError, ValueError):
+                    window = 20
+                sd.context_blacklist = ContextBlacklist(
+                    window=window,
+                    words=[str(w) for w in words],
+                )
         sd.raw = item
 
         if not sd.message_template:
@@ -495,7 +519,43 @@ class RestrictiveKeywordsStrategy:
                 break
         if matched is None:
             return DetectResult(hit=False, signal_id=sd.id)
+        # W10-058.1.1.2：context-aware filter（黑名單版）。
+        # 觸發詞前後 window 字內含 blacklist 詞 → 視為技術語境陳述，suppress signal。
+        if sd.context_blacklist is not None and self._check_context_blacklist(
+            prompt, matched, sd.context_blacklist.window, sd.context_blacklist.words,
+            sd.case_sensitive,
+        ):
+            logger.info(
+                "signal %s context_blacklist matched; suppressing (keyword=%s)",
+                sd.id, matched,
+            )
+            return DetectResult(hit=False, log_reason="context_blacklist", signal_id=sd.id)
         return DetectResult(hit=True, matched_keyword=matched, should_warn=True, signal_id=sd.id)
+
+    @staticmethod
+    def _check_context_blacklist(
+        prompt: str, keyword: str, window: int, blacklist: List[str],
+        case_sensitive: bool = False,
+    ) -> bool:
+        """檢查觸發詞前後 window 字內是否含 blacklist 任一詞。
+
+        回傳 True 表示應 suppress signal。case_sensitive=False 時比對採大小寫不敏感
+        （與 keyword 匹配邏輯一致）。
+        """
+        haystack = prompt if case_sensitive else prompt.lower()
+        needle = keyword if case_sensitive else keyword.lower()
+        idx = haystack.find(needle)
+        if idx < 0:
+            return False
+        start = max(0, idx - window)
+        end = min(len(prompt), idx + len(keyword) + window)
+        excerpt = prompt[start:end]
+        excerpt_cmp = excerpt if case_sensitive else excerpt.lower()
+        for bl in blacklist:
+            bl_cmp = bl if case_sensitive else bl.lower()
+            if bl_cmp and bl_cmp in excerpt_cmp:
+                return True
+        return False
 
     def apply(self, state: Dict[str, Any], result: DetectResult,
               current_ticket: Optional[str]) -> Dict[str, Any]:

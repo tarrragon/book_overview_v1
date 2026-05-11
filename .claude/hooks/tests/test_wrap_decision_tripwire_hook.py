@@ -494,6 +494,100 @@ class TestD_S2:
 
 
 # ============================================================================
+# D2. S2 context-aware filter（黑名單版）— W10-058.1.1.2
+# ============================================================================
+
+class TestD2_ContextBlacklist:
+    """W10-058.1.1.2：context-aware filter 黑名單版測試。
+
+    根因：hit 4 案例「Stop 事件只在退出時觸發，不可能『每 turn fire』」中
+    「不可能」是技術陳述事實而非 PM 自動駕駛主張，但純 keyword 比對誤判。
+    解法：觸發詞前後 ±window 字內含技術語境黑名單詞 → suppress signal。
+    """
+
+    @pytest.fixture
+    def strategy(self, hook_mod):
+        return hook_mod.RestrictiveKeywordsStrategy()
+
+    @pytest.fixture
+    def sd_with_blacklist(self, hook_mod, tmp_path):
+        """產生帶 context_blacklist 的 SignalDef（覆蓋預設 keywords）。"""
+        custom_yaml = tmp_path / "custom_blacklist.yaml"
+        custom_yaml.write_text(
+            yaml_fixture(signal_overrides={
+                "restrictive_keywords": {
+                    "keywords": ["不可能", "做不到"],
+                    "min_prompt_length": 10,
+                    "context_blacklist": {
+                        "window": 20,
+                        "words": ["事件", "hook", "訊號", "fire"],
+                    },
+                },
+            }),
+            encoding="utf-8",
+        )
+        cfg = _load_config(hook_mod, custom_yaml)
+        return next(s for s in cfg.signals if s.id == "restrictive_keywords")
+
+    def test_blacklist_suppresses_hit4_case(self, hook_mod, strategy, sd_with_blacklist):
+        """hit 4 原案例：技術語境陳述應被 suppress。"""
+        import logging
+        # 確認 SignalDef 正確載入 context_blacklist
+        assert sd_with_blacklist.context_blacklist is not None
+        assert "事件" in sd_with_blacklist.context_blacklist.words
+
+        state = hook_mod._initial_state()
+        event = make_user_prompt("Stop 事件只在退出時觸發，不可能『每 turn fire』，所以這是技術限制")
+        result = strategy.detect(event, state, sd_with_blacklist, None, logging.getLogger("t"))
+        assert result.hit is False
+        assert result.log_reason == "context_blacklist"
+
+    def test_blacklist_does_not_suppress_real_pm_speech(self, hook_mod, strategy, sd_with_blacklist):
+        """純 PM 限制性主張（無技術詞）應仍觸發。"""
+        import logging
+        state = hook_mod._initial_state()
+        event = make_user_prompt("這個任務根本不可能完成啦，我們先放棄這個方向吧")
+        result = strategy.detect(event, state, sd_with_blacklist, None, logging.getLogger("t"))
+        assert result.hit is True
+        assert result.matched_keyword == "不可能"
+
+    def test_blacklist_window_boundary(self, hook_mod, strategy, sd_with_blacklist):
+        """黑名單詞在 window 內 → suppress；剛好在 window 外 → 觸發。"""
+        import logging
+        state = hook_mod._initial_state()
+
+        # 案例 A：黑名單詞「事件」距離「不可能」< 20 字 → suppress
+        # 「不可能」前 5 字內含「事件」
+        prompt_in = "這個 事件 完全不可能解決呢請幫忙"
+        event_in = make_user_prompt(prompt_in)
+        result_in = strategy.detect(event_in, state, sd_with_blacklist, None, logging.getLogger("t"))
+        assert result_in.hit is False, "blacklist within window should suppress"
+
+        # 案例 B：黑名單詞「事件」距離「不可能」> 20 字 → 觸發
+        # 構造：事件 + 30 字 padding + 不可能
+        padding = "啊" * 30
+        prompt_out = "事件" + padding + "不可能解決問題的這個方法"
+        event_out = make_user_prompt(prompt_out)
+        result_out = strategy.detect(event_out, state, sd_with_blacklist, None, logging.getLogger("t"))
+        assert result_out.hit is True, "blacklist outside window should not suppress"
+        assert result_out.matched_keyword == "不可能"
+
+    def test_no_blacklist_config_keeps_original_behavior(self, hook_mod, tmp_yaml):
+        """無 context_blacklist 配置時行為與原始一致（向後相容）。"""
+        import logging
+        cfg = _load_config(hook_mod, tmp_yaml)
+        sd = next(s for s in cfg.signals if s.id == "restrictive_keywords")
+        assert sd.context_blacklist is None  # DEFAULT_CONFIG 未含 context_blacklist
+
+        strat = hook_mod.RestrictiveKeywordsStrategy()
+        state = hook_mod._initial_state()
+        # 即使含「事件」等技術詞，無 blacklist 配置 → 仍觸發
+        event = make_user_prompt("Stop 事件只在退出時觸發，不可能每 turn fire 啦")
+        result = strat.detect(event, state, sd, None, logging.getLogger("t"))
+        assert result.hit is True
+
+
+# ============================================================================
 # E. S3 ana_claim
 # ============================================================================
 
