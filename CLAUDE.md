@@ -88,7 +88,12 @@ npm run test:coverage
 
 # 執行所有測試（含 E2E）
 npm run test:comprehensive
+
+# 執行 .claude/hooks/ Python 測試（由 W17-191 引入，PC-124 transitive deps 修復）
+npm run test:hooks
 ```
+
+**Hook 測試說明**：`npm run test:hooks` 透過 `uv run --project .claude/hooks pytest tests/` 執行 `.claude/hooks/tests/` 下的 pytest 測試。dev deps（pytest, pyyaml）統一由 `.claude/hooks/pyproject.toml` 宣告，避免 UV ephemeral env 不拉 transitive deps 的 PC-124 模式。
 
 ### 建置指令
 
