@@ -38,8 +38,20 @@ def _load_hook_module():
 
 
 @pytest.fixture
-def hook_mod():
-    return _load_hook_module()
+def hook_mod(monkeypatch):
+    """載入 hook 模組並停用 W17-176 in_progress 豁免（測試專注 sync drift 邏輯本身）。
+
+    W17-176 引入兩道豁免：
+    1. _is_blocked_this_session：本 session 已執行過 → 跳過（用 tmp_path 隔離 flag）
+    2. _has_in_progress_ticket：偵測到 in_progress ticket → 跳過
+
+    本套件測試 detect_sync_drift 的 worklog↔pending 比對邏輯；in_progress 豁免
+    應由獨立測試套件覆蓋。此 fixture 將兩道豁免覆寫為 False，讓主邏輯路徑可測。
+    """
+    module = _load_hook_module()
+    monkeypatch.setattr(module, "_has_in_progress_ticket", lambda *a, **kw: False)
+    monkeypatch.setattr(module, "_is_blocked_this_session", lambda *a, **kw: False)
+    return module
 
 
 # ---------------------------------------------------------------------------
