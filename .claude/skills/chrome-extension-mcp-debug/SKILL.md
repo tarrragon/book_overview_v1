@@ -34,7 +34,7 @@ metadata:
 
 ## 三個前置概念
 
-讀懂以下三個概念可大幅降低 chrome-devtools-mcp 操作的試錯成本。
+讀懂以下三個概念可大幅降低 chrome-devtools-mcp 操作的試錯成本。未理解三者時最常見的失敗模式：(1) 用 attach 模式找 extension 卻發現 `getExtensions` 工具不可用，誤以為設定錯；(2) 在 host page console 找 service worker log 永遠找不到；(3) 沒有 extension ID 卻嘗試 navigate `chrome-extension://`。下方分別說明判別準則與避雷做法。
 
 ### 概念 1：pipe vs attach 兩種啟動模式
 
@@ -43,7 +43,7 @@ metadata:
 | pipe（chrome-devtools-mcp 自啟動 Chrome） | 開發中 unpacked extension | ✅ 完整可用 |
 | attach（連接 `--remote-debugging-port=9222` 既有 Chrome） | debug installed extension | ❌ Chrome 149 前不支援（基礎 console / network 工具仍可用） |
 
-**判別**：若你要看「Chrome Web Store 安裝版」或「使用者已載入 unpacked 的實際 profile」→ attach；若是「我剛 build 完想測一下」→ pipe。
+**判別**：若你要看「Chrome Web Store 安裝版」或「使用者已載入 unpacked 的實際 profile」→ attach；若是「我剛 build 完想測一下」→ pipe。**為何不能單一模式涵蓋兩者**：attach 模式接到既有 Chrome 時 `categoryExtensions` 工具集未隨之掛載（Chrome 149 stable 前不支援），pipe 模式則綁定 chrome-devtools-mcp 自啟動的隔離 Chrome 實例，無法看使用者原本的 profile。
 
 ### 概念 2：Manifest V3 三個執行情境
 
@@ -53,7 +53,7 @@ metadata:
 | Content script | host page 的 console（與該頁面 console 共用） | navigate `<target-host>` + getConsoleMessages |
 | Service worker（background） | `chrome://extensions` → 「Service worker」inspector | getExtensionLogs（pipe 模式）/ 手開 inspector（attach 模式） |
 
-**常見誤判**：看 host page console 找不到 service worker 的 log → 三個 console 是分開的，要去對應 inspector 看。
+**常見誤判**：看 host page console 找不到 service worker 的 log → 三個 console 是分開的，要去對應 inspector 看。**為何分開**：Manifest V3 把 popup、content script、service worker 各跑在不同 V8 isolate，DevTools 也對應分隔上下文（chrome-devtools-mcp 一次只 attach 一個 context），不會自動聚合。
 
 ### 概念 3：extension ID 取得方式
 
@@ -261,6 +261,14 @@ Service worker 沒跑 / background 任務失效。
 | popup log | popup 開啟後 popup 自身 console（navigate 到 `chrome-extension://<id>/popup.html`） |
 | service worker log | SW inspector（`getExtensionLogs` 或手開 SW inspector） |
 
+### 常見誤判
+
+| 症狀 | 根因 | 修正 |
+|------|------|------|
+| 沒看到 content script log | navigate 早於 cs 注入 / cs 內 console 被 framework 攔截 | 加 `wait_for` DOM 元素出現再 getConsoleMessages |
+| log 不完整 | console.log 在 page lifecycle 早於 mcp attach | 重新 navigate 該頁觸發 cs 再讀 |
+| 看到 log 但時間錯亂 | 多個 page tab 並存，console 來源混淆 | 用 `--source <url-pattern>` 篩選或先關不相關 tab |
+
 ---
 
 ## Workflow E-network: Inspect network
@@ -286,6 +294,14 @@ Service worker 沒跑 / background 任務失效。
 ### 配合 console 使用
 
 network 看到 4xx/5xx 後，回頭看對應時間點的 console log 確認應用層錯誤訊息。
+
+### 常見誤判
+
+| 症狀 | 根因 | 修正 |
+|------|------|------|
+| 看不到 extension 發起的 request | request 來自 service worker，但 attach 模式下未追蹤 SW context | 改 pipe 模式或人工開 SW inspector |
+| 看到 request 但缺 response body | chrome-devtools-mcp 預設不存 body（成本高） | 明示需 response body 時請 LLM 用 evaluate 直接 fetch 重發 |
+| Pre-flight CORS 看不到 | CORS pre-flight OPTIONS 在某些版本被過濾 | 用 `--all` 參數或檢查 host_permissions 是否齊備 |
 
 ---
 
