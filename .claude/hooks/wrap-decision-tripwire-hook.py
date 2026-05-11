@@ -727,10 +727,34 @@ def _process_signals(
     return warnings
 
 
+def is_pytest_environment() -> bool:
+    """偵測是否在 pytest 測試環境（W10-058.1.1.1 MVP）。
+
+    觸發條件（任一成立即視為 pytest 環境）：
+      - PYTEST_CURRENT_TEST env var 存在（pytest 主流程自動注入）
+      - 當前工作目錄路徑含 'pytest-of-'（pytest tmp_path fixture 慣例）
+
+    用途：避免 hook 在自身的 unit test 中觸發 detection（hit 2 fixture 字串污染）。
+    """
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        return True
+    try:
+        cwd_str = str(Path.cwd())
+    except (FileNotFoundError, OSError):
+        return False
+    if "pytest-of-" in cwd_str:
+        return True
+    return False
+
+
 def main() -> int:
     logger = setup_hook_logging(HOOK_NAME)
     event = read_json_from_stdin(logger)
     if event is None:
+        return 0
+
+    if is_pytest_environment():
+        logger.debug("pytest environment detected, skipping detection")
         return 0
 
     project_root = get_project_root()

@@ -1258,3 +1258,61 @@ class TestN_ObservabilityLog:
         joined = "\n".join(obs)
         assert "matched_keyword=-" in joined
         assert "prompt_excerpt=-" in joined
+
+
+# ============================================================================
+# O. pytest 環境豁免（W10-058.1.1.1）
+# ============================================================================
+#
+# 目的：偵測自身在 pytest 環境執行時早期 return 0，避免 hit 2
+#       fixture 字串污染觸發 detection（W10-058.1.1 ANA 結論 MVP）。
+# ============================================================================
+
+class TestO_PytestEnvironmentExemption:
+    def test_o1_pytest_env_var_detected(self, hook_mod, monkeypatch):
+        """PYTEST_CURRENT_TEST 存在時 is_pytest_environment() 回 True。"""
+        monkeypatch.setenv("PYTEST_CURRENT_TEST", "test_o1 (call)")
+        assert hook_mod.is_pytest_environment() is True
+
+    def test_o2_pytest_path_detected(self, hook_mod, monkeypatch):
+        """cwd 含 pytest-of- 時 is_pytest_environment() 回 True。"""
+        monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+        fake = Path("/tmp/pytest-of-tarragon/pytest-1/test_x0")
+        monkeypatch.setattr(hook_mod.Path, "cwd", lambda: fake)
+        assert hook_mod.is_pytest_environment() is True
+
+    def test_o3_non_pytest_env_returns_false(self, hook_mod, monkeypatch):
+        """非 pytest 環境（無 env var 且 cwd 不含 pytest-of-）回 False。"""
+        monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+        monkeypatch.setattr(hook_mod.Path, "cwd",
+                            lambda: Path("/Users/dev/project"))
+        assert hook_mod.is_pytest_environment() is False
+
+    def test_o4_main_skips_when_pytest_env(self, hook_mod, monkeypatch, tmp_path):
+        """pytest 環境下 main() 早期 return 0，不執行 detection。
+
+        驗證方式：patch get_project_root 為不存在的路徑、不提供 yaml；
+        若 detection 真的執行會嘗試載入 config（雖仍回 0），
+        透過 patch derive_ticket 監測是否被呼叫即可確認跳過。
+        """
+        monkeypatch.setenv("PYTEST_CURRENT_TEST", "test_o4 (call)")
+        monkeypatch.setattr(sys, "stdin",
+                            io.StringIO(json.dumps(make_user_prompt("做不到啊真的"))))
+        called = {"derive_ticket": False, "get_project_root": False}
+
+        def fake_root():
+            called["get_project_root"] = True
+            return tmp_path
+
+        def fake_derive(ev, cwd, logger):
+            called["derive_ticket"] = True
+            return None
+
+        monkeypatch.setattr(hook_mod, "get_project_root", fake_root)
+        monkeypatch.setattr(hook_mod, "derive_ticket", fake_derive)
+        code = hook_mod.main()
+        assert code == 0
+        assert called["derive_ticket"] is False, (
+            "pytest 環境下 derive_ticket 不應被呼叫（main 應早期 return）")
+        assert called["get_project_root"] is False, (
+            "pytest 環境下 get_project_root 不應被呼叫")
