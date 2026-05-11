@@ -31,7 +31,6 @@
 
 import sys
 import json
-import re
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
@@ -45,6 +44,7 @@ from hook_utils import (
     get_project_root,
     get_current_version_from_todolist,
     scan_ticket_files_by_version,
+    parse_ticket_frontmatter,
 )
 
 # 全域常數
@@ -83,6 +83,9 @@ def extract_frontmatter(file_path: Path, logger) -> Optional[Dict[str, Any]]:
     """
     從 Markdown 檔案提取 frontmatter
 
+    W17-189 修復：原版本使用 yaml.safe_load 但未 import yaml，所有呼叫靜默 return None。
+    改用 hook_utils.parse_ticket_frontmatter（W17-188 同方向，DRY 對齊 hook_utils 既有 helper）。
+
     格式:
     ---
     ticket_id: 0.20.0-TD-001
@@ -93,26 +96,19 @@ def extract_frontmatter(file_path: Path, logger) -> Optional[Dict[str, Any]]:
 
     Args:
         file_path: Markdown 檔案路徑
+        logger: 日誌物件
 
     Returns:
-        dict - Frontmatter 內容，若失敗則回傳 None
+        dict - Frontmatter 內容；無 frontmatter 或解析失敗回傳 None（保留原 API 契約）
     """
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-
-        # 提取 frontmatter (--- ... ---)
-        match = re.match(r'^---\s*\n(.*?)\n---', content, re.DOTALL)
-        if not match:
-            logger.debug(f"檔案不包含 frontmatter: {file_path.name}")
+        frontmatter = parse_ticket_frontmatter(file_path, logger)
+        # parse_ticket_frontmatter 失敗或無 frontmatter 時返回空 dict；
+        # 保留原 None 契約讓 caller `if not frontmatter` 語義一致
+        if not frontmatter:
+            logger.debug(f"檔案不包含 frontmatter 或解析失敗: {file_path.name}")
             return None
-
-        frontmatter_text = match.group(1)
-
-        # 解析 YAML
-        frontmatter = yaml.safe_load(frontmatter_text)
         return frontmatter
-
     except Exception as e:
         logger.warning(f"提取 frontmatter 失敗 ({file_path.name}): {e}")
         return None
