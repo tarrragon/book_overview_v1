@@ -500,6 +500,45 @@ describe('Popup Event Integration', () => {
       expect(result).toBeNull()
       expect(controller.elements.statusDot.className).toContain('error')
     })
+
+    // W6-018: Readmoo 是 hash-based SPA，pathname 永遠為 '/'，需用 pathname+hash 顯示實際路由
+    describe('SPA URL 解析 (W6-018)', () => {
+      test('應該能正確解析 hash-based SPA 書庫 URL (/#/library)', async () => {
+        mockChrome.tabs.query.mockResolvedValue([{
+          id: 1,
+          url: 'https://read.readmoo.com/#/library',
+          active: true
+        }])
+
+        await controller.checkCurrentTab()
+
+        expect(controller.elements.pageInfo.textContent).toBe('Readmoo (/#/library)')
+      })
+
+      test('應該能正確解析根路徑首頁 URL (/)', async () => {
+        mockChrome.tabs.query.mockResolvedValue([{
+          id: 1,
+          url: 'https://readmoo.com/',
+          active: true
+        }])
+
+        await controller.checkCurrentTab()
+
+        expect(controller.elements.pageInfo.textContent).toBe('Readmoo (/)')
+      })
+
+      test('應該能正確解析帳號頁 URL (/account)', async () => {
+        mockChrome.tabs.query.mockResolvedValue([{
+          id: 1,
+          url: 'https://member.readmoo.com/account',
+          active: true
+        }])
+
+        await controller.checkCurrentTab()
+
+        expect(controller.elements.pageInfo.textContent).toBe('Readmoo (/account)')
+      })
+    })
   })
 
   describe('Content Script 通訊 (TDD循環 #24)', () => {

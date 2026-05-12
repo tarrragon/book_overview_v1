@@ -699,7 +699,7 @@ async function checkCurrentTab () {
     const isReadmoo = tab.url && tab.url.includes(CONFIG.READMOO_DOMAIN)
 
     elements.pageInfo.textContent = isReadmoo
-      ? `Readmoo (${new URL(tab.url).pathname})`
+      ? `Readmoo (${new URL(tab.url).pathname}${new URL(tab.url).hash})`
       : '非 Readmoo 頁面'
 
     if (isReadmoo) {

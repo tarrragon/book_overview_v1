@@ -383,7 +383,7 @@ class PopupEventController extends EventHandler {
 
       if (this.elements.pageInfo) {
         this.elements.pageInfo.textContent = isReadmoo
-          ? `Readmoo (${new URL(tab.url).pathname})`
+          ? `Readmoo (${new URL(tab.url).pathname}${new URL(tab.url).hash})`
           : '非 Readmoo 頁面'
       }
 
