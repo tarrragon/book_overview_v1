@@ -524,6 +524,164 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
   })
 
+  // ---------------------------------------------------------------------------
+  // AC 3 (Ticket 0.18.0-W6-012.1) — loadBooksFromChromeStorage 直接覆蓋
+  //
+  // 目的：在 handleReload 間接呼叫之外，補上 loadBooksFromChromeStorage()
+  //       本體的四個關鍵場景：有資料、空資料、API 不可用、storage 拋錯。
+  //       對應 Solution 章節 H1 根因（stale build artifact 幻象）排除後
+  //       source 端應確保的行為契約。
+  // ---------------------------------------------------------------------------
+  describe('loadBooksFromChromeStorage 載入流程（AC 3 覆蓋）', () => {
+    let consoleWarnSpy
+    let consoleLogSpy
+    let consoleErrorSpy
+
+    beforeEach(() => {
+      // 抑制並追蹤 console 輸出（loadBooksFromChromeStorage 內以 console.* 作為 Logger 後備）
+      consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+      consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
+      consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+    })
+
+    afterEach(() => {
+      consoleWarnSpy.mockRestore()
+      consoleLogSpy.mockRestore()
+      consoleErrorSpy.mockRestore()
+    })
+
+    test('場景 1：storage 有書 → 寫入 currentBooks 並渲染表格', async () => {
+      const mockBooks = [
+        makeBook({ id: '1', title: '自動載入書 1', progress: 30, readingStatus: 'reading' }),
+        makeBook({ id: '2', title: '自動載入書 2', progress: 100, readingStatus: 'finished' })
+      ]
+      const extractionTimestamp = Date.now()
+
+      // 覆蓋預設 mock：回傳 readmoo_books 物件結構（books + timestamp）
+      global.chrome.storage.local.get = jest.fn().mockResolvedValue({
+        readmoo_books: {
+          books: mockBooks,
+          extractionTimestamp
+        }
+      })
+
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      await controller.loadBooksFromChromeStorage()
+
+      // 1. 已呼叫正確的 storage key
+      expect(global.chrome.storage.local.get).toHaveBeenCalledWith(['readmoo_books'])
+
+      // 2. 內部狀態正確更新（驗證 _updateBooksData 被呼叫的副作用）
+      expect(controller.currentBooks).toEqual(mockBooks)
+      expect(controller.filteredBooks).toEqual(mockBooks)
+
+      // 3. 表格已渲染（updateDisplay → renderBooksTable）
+      const tableBody = document.getElementById('tableBody')
+      const rows = tableBody.querySelectorAll('tr')
+      expect(rows.length).toBe(2)
+      expect(rows[0].textContent).toContain('自動載入書 1')
+      expect(rows[1].textContent).toContain('自動載入書 2')
+
+      // 4. 統計顯示正確
+      expect(document.getElementById('totalBooks').textContent).toBe('2')
+      expect(document.getElementById('displayedBooks').textContent).toBe('2')
+
+      // 5. 未觸發錯誤路徑
+      expect(consoleErrorSpy).not.toHaveBeenCalled()
+    })
+
+    test('場景 2：storage 空 → 顯示空資料狀態（保留手動載入 UI）', async () => {
+      // storage 完全沒有 readmoo_books key
+      global.chrome.storage.local.get = jest.fn().mockResolvedValue({})
+
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      await controller.loadBooksFromChromeStorage()
+
+      expect(global.chrome.storage.local.get).toHaveBeenCalledWith(['readmoo_books'])
+
+      // 1. 空資料 log 已輸出
+      const logCalls = consoleLogSpy.mock.calls.map(args => args.join(' ')).join('\n')
+      expect(logCalls).toContain('Chrome Storage 中沒有書籍資料')
+
+      // 2. tableBody 顯示「無資料」行（renderBooksTable([]) 行為）
+      const tableBody = document.getElementById('tableBody')
+      expect(tableBody.children.length).toBe(1)
+      expect(tableBody.textContent).toContain('目前沒有書籍資料')
+
+      // 3. 錯誤容器仍隱藏（保留手動載入 UI 流程，不顯示錯誤）
+      expect(document.getElementById('errorContainer').style.display).toBe('none')
+
+      // 4. Loading indicator 已收起
+      expect(document.getElementById('loadingIndicator').style.display).toBe('none')
+
+      // 5. 未觸發錯誤路徑
+      expect(consoleErrorSpy).not.toHaveBeenCalled()
+    })
+
+    test('場景 3：chrome.storage API 不可用 → console.warn 提示並提前返回', async () => {
+      // 模擬非 Chrome Extension 環境（chrome.storage 缺失）
+      const originalChrome = global.chrome
+      global.chrome = { runtime: originalChrome.runtime }
+
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      await controller.loadBooksFromChromeStorage()
+
+      // 1. console.warn 已被呼叫並包含關鍵字「Chrome Storage API 不可用」
+      expect(consoleWarnSpy).toHaveBeenCalled()
+      const warnCalls = consoleWarnSpy.mock.calls.map(args => args.join(' ')).join('\n')
+      expect(warnCalls).toContain('Chrome Storage API 不可用')
+
+      // 2. 應提前 return：currentBooks 保持初始空陣列，未進入 try/catch
+      expect(controller.currentBooks).toEqual([])
+      expect(controller.filteredBooks).toEqual([])
+
+      // 3. 沒有觸發錯誤顯示
+      expect(document.getElementById('errorContainer').style.display).toBe('none')
+
+      // 還原
+      global.chrome = originalChrome
+    })
+
+    test('場景 4：chrome.storage.local.get 拋錯 → 觸發 showError 並 console.error', async () => {
+      const storageError = new Error('storage quota exceeded')
+      global.chrome.storage.local.get = jest.fn().mockRejectedValue(storageError)
+
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      await controller.loadBooksFromChromeStorage()
+
+      // 1. console.error 已輸出原始錯誤
+      expect(consoleErrorSpy).toHaveBeenCalled()
+      const errorCalls = consoleErrorSpy.mock.calls
+      const hasExpectedError = errorCalls.some(args =>
+        args.some(arg =>
+          (typeof arg === 'string' && arg.includes('從 Chrome Storage 載入書籍資料失敗')) ||
+          arg === storageError
+        )
+      )
+      expect(hasExpectedError).toBe(true)
+
+      // 2. showError 已執行 → errorContainer 可見
+      expect(document.getElementById('errorContainer').style.display).not.toBe('none')
+
+      // 3. errorMessage 文字包含原始錯誤訊息
+      expect(document.getElementById('errorMessage').textContent).toContain('storage quota exceeded')
+
+      // 4. Loading indicator 已收起（showError → hideLoading）
+      expect(document.getElementById('loadingIndicator').style.display).toBe('none')
+
+      // 5. currentBooks 維持初始空陣列（未誤更新）
+      expect(controller.currentBooks).toEqual([])
+    })
+  })
+
   describe('Red Phase: readingStatus 篩選 bar 和 badge', () => {
     // 測試用書籍資料，涵蓋全部 6 種 readingStatus
     const mockBooksWithStatus = [
