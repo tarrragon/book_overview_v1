@@ -23,6 +23,20 @@ def _parse_wave_arg(value: str) -> int:
         return int(stripped[1:])
     return int(value)
 
+
+def _parse_top_arg(value: str) -> int:
+    """Parse --top argument: 非負整數。
+
+    負值或非整數會 raise argparse.ArgumentTypeError（argparse 自動轉 exit 2）。
+    """
+    try:
+        n = int(value)
+    except (ValueError, TypeError):
+        raise argparse.ArgumentTypeError("--top must be integer")
+    if n < 0:
+        raise argparse.ArgumentTypeError("--top must be >= 0")
+    return n
+
 from ticket_system.lib.ticket_loader import (
     resolve_version,
     require_version,
@@ -437,6 +451,19 @@ def _register_query_commands(
     p_list.add_argument("--status", nargs='+', help=TrackMessages.ARG_STATUS)
     p_list.add_argument("--format", choices=["table", "ids", "yaml"], default="table", help=TrackMessages.ARG_FORMAT)
     p_list.add_argument("--version", help=TrackMessages.ARG_VERSION)
+    # W10-115: 預設限制 top 10 + priority 排序，--all 取得全量
+    p_list.add_argument(
+        "--top",
+        type=_parse_top_arg,
+        default=None,
+        help="限制輸出最多 N 筆（預設 10），依 priority(P0>P1>P2>P3) → created → id 排序",
+    )
+    p_list.add_argument(
+        "--all",
+        dest="list_all",
+        action="store_true",
+        help="取得全量輸出（覆蓋 --top；與 --top 共存時 --all 優先並 emit warning）",
+    )
 
     # search 操作（W9-002: 跨維度查詢）
     p_search = subparsers.add_parser("search", help="搜尋 Tickets（依 UC/Spec/Prop 引用或檔案路徑）")
