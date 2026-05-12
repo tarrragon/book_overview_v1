@@ -346,6 +346,37 @@ def test_ex_n4_ticket_tracked_缺_ticket_id():
     assert valid is False and err == "ticket-tracked-need-id"
 
 
+# ---- W10-122: rule-quote 類別豁免（PC-142 治本） ----
+
+def test_ex_p5_rule_quote_valid_含規則路徑():
+    """合法引用：reason 含 .claude/rules/ 路徑，應豁免「Phase 5 再決定」字面誤判。"""
+    m = parse_exempt_marker(
+        "<!-- PC-093-exempt: rule-quote:引用 .claude/rules/core/decision-trigger-binding.md 規則 1.5 -->"
+    )
+    assert m is not None and m.category == "rule-quote"
+    valid, err = validate_exempt_fields(m)
+    assert valid is True and err is None
+
+
+def test_ex_p6_rule_quote_valid_含_pm_rules_路徑():
+    """合法引用：reason 含 .claude/pm-rules/ 路徑也應通過。"""
+    m = parse_exempt_marker(
+        "<!-- PC-093-exempt: rule-quote:對照 .claude/pm-rules/skip-gate.md 條款 -->"
+    )
+    valid, err = validate_exempt_fields(m)
+    assert valid is True and err is None
+
+
+def test_ex_n9_rule_quote_缺路徑():
+    """非法：rule-quote reason 不含規則路徑，應 invalid 並產出 rule-quote-need-path。"""
+    m = parse_exempt_marker(
+        "<!-- PC-093-exempt: rule-quote:這是規則引用但沒附路徑說明 -->"
+    )
+    assert m is not None and m.category == "rule-quote"
+    valid, err = validate_exempt_fields(m)
+    assert valid is False and err == "rule-quote-need-path"
+
+
 def test_ex_n5_格式錯誤_missing_colon_reason():
     m = parse_exempt_marker("<!-- PC-093-exempt: missing-reason -->")
     assert m is None

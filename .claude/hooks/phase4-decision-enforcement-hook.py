@@ -22,8 +22,9 @@ Hook 類型：
 豁免語法：
   <!-- PC-093-exempt: <category>:<reason> -->
   於命中 phrase 同行或前 1 行內生效。
-  category: tdd-transition | baseline-gated | ticket-tracked | user-override
-  reason: ≥10 字元；baseline-gated 需含數字；ticket-tracked 需含 ticket id
+  category: tdd-transition | baseline-gated | ticket-tracked | user-override | rule-quote
+  reason: ≥10 字元；baseline-gated 需含數字；ticket-tracked 需含 ticket id；
+          rule-quote 需含 .claude/rules/ 或 .claude/pm-rules/ 路徑
 
 Ticket: 0.18.0-W10-082
 Pattern: PC-093
@@ -57,12 +58,17 @@ EXEMPT_CATEGORIES = frozenset({
     "baseline-gated",
     "ticket-tracked",
     "user-override",
+    "rule-quote",
 })
 
 REASON_MIN_LEN = 10
 
 # Ticket ID 通用格式：W{wave}-{seq} 或 {version}-W{wave}-{seq}
 TICKET_ID_PATTERN = re.compile(r"\bW\d+-\d+")
+
+# Rule-quote 類別：reason 必須含 .claude/rules/ 或 .claude/pm-rules/ 路徑
+# 用途：PM 在 acceptance / Solution 引用規則名稱（如「禁止 Phase 5 再決定」）時豁免
+RULE_PATH_PATTERN = re.compile(r"\.claude/(?:rules|pm-rules)/")
 
 # 觸發命令偵測
 MAIN_GATE_CMD = re.compile(r"ticket\s+track\s+phase\s+(\S+)\s+phase4\b")
@@ -107,6 +113,10 @@ ERR_MESSAGE_MAP: Dict[str, Tuple[str, str]] = {
     "ticket-tracked-need-id": (
         "ticket-tracked 類別的 reason 必須含 W{wave}-{seq} 格式 ticket ID",
         "範例：<!-- PC-093-exempt: ticket-tracked:W17-085 hook 訊息改善 -->",
+    ),
+    "rule-quote-need-path": (
+        "rule-quote 類別的 reason 必須含規則檔案路徑（.claude/rules/ 或 .claude/pm-rules/）",
+        "範例：<!-- PC-093-exempt: rule-quote:引用 .claude/rules/core/decision-trigger-binding.md 規則 1.5 -->",
     ),
 }
 
@@ -296,6 +306,8 @@ def validate_exempt_fields(marker: ExemptMarker) -> Tuple[bool, Optional[str]]:
         return (False, "baseline-need-number")
     if marker.category == "ticket-tracked" and not TICKET_ID_PATTERN.search(marker.reason):
         return (False, "ticket-tracked-need-id")
+    if marker.category == "rule-quote" and not RULE_PATH_PATTERN.search(marker.reason):
+        return (False, "rule-quote-need-path")
     return (True, None)
 
 
