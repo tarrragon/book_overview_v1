@@ -94,6 +94,7 @@ Auto-memory 位於 `~/.claude/projects/<project>/memory/`，**依專案隔離儲
 |------|------|------|
 | 2026-04-13 | PM 修改 pm-role.md + PC-050 + 新建 pm-agent-observability.md 時加入 ~18 處 ticket 引用 | 3 檔案 × 6 平均引用 |
 | 2026-05-11 | 縮減 CLAUDE.md 時將專案規範（含 `src/core/errors/` 路徑、產品名稱）誤外移到 `.claude/references/project-specific-conventions.md`，並將含產品名稱的 Chrome Extension 速查放在 `.claude/references/chrome-extension-quickref.md`；後修正：強違反檔遷移至 `docs/project-conventions.md`、弱違反檔泛化保留並引用「CLAUDE.md 章節外移決策樹」 | 2 檔案違反規則 8（強 + 弱各 1） |
+| 2026-05-12 | W10-080 grep 全掃描發現 3 個既有強違反檔（W10-077.1 前已存在）；W10-102 採同模式處理：`.claude/eslint-error-handling-rules.md`（含 `src/core/errors/` 多處）遷移至 `docs/`；`.claude/code-quality-examples.md`（含 `src/extractors/readmoo/services/`、`ReadmooCatalogService` 等）遷移至 `docs/`；`.claude/chrome-extension-specs.md`（含 `src/background/` 與 Readmoo 產品名稱）內容已被 `chrome-extension-quickref.md` + `project-conventions.md` + `language-constraints.md` 全部覆蓋故直接刪除 | 3 檔案違反規則 8（2 強遷移 + 1 內容覆蓋刪除） |
 
 ## 檢測方式
 

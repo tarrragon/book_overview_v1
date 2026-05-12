@@ -6,7 +6,7 @@
 
 ## 🎯 目的
 
-基於專案的錯誤處理標準化規範 ([error-handling-standardization-plan.md](../domains/03-reference/archive/architecture/error-handling-standardization-plan.md))，建立 ESLint 規則自動檢測和防止違反規範的程式碼。
+基於專案的錯誤處理標準化規範 ([error-handling-standardization-plan.md](domains/03-reference/archive/architecture/error-handling-standardization-plan.md))，建立 ESLint 規則自動檢測和防止違反規範的程式碼。
 
 ### 強制執行的規範
 
@@ -283,10 +283,10 @@ npm run lint | grep "🚨" && exit 1 || echo "錯誤處理規範檢查通過"
 
 ## 📝 相關文件
 
-- [專案錯誤處理標準化方案](../domains/03-reference/archive/architecture/error-handling-standardization-plan.md)
-- [StandardError 使用指引](../../../src/core/errors/README.md) (待建立)
+- [專案錯誤處理標準化方案](domains/03-reference/archive/architecture/error-handling-standardization-plan.md)
+- [StandardError 使用指引](../src/core/errors/README.md) (待建立)
 - [TDD 協作開發流程](./tdd-collaboration-flow.md)
-- [CLAUDE.md 主規範](../../CLAUDE.md)
+- [CLAUDE.md 主規範](../CLAUDE.md)
 
 ---
 

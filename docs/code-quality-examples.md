@@ -30,9 +30,9 @@ const hasAdminPermission = user.roles.includes('admin');
 
 ```text
 src/
-  core/errors/StandardError.js
-  extractors/readmoo/services/ReadmooCatalogService.js
-  overview/controller/OverviewPageController.js
+ core/errors/StandardError.js
+ extractors/readmoo/services/ReadmooCatalogService.js
+ overview/controller/OverviewPageController.js
 ```
 
 ```javascript
@@ -51,27 +51,27 @@ import { ReadmooCatalogService } from 'src/extractors/readmoo/services/ReadmooCa
 ```javascript
 // 警示案例：直接協調 >5 個事件/步驟，需檢討職責
 function buildOverviewPage() {
-  eventBus.emit('EXTRACTOR.FETCH.START');
-  const books = fetchBooks();
-  eventBus.emit('TRANSFORM.NORMALIZE.START');
-  const normalized = normalizeBooks(books);
-  eventBus.emit('ENRICH.METADATA.START');
-  const enriched = enrichMetadata(normalized);
-  eventBus.emit('STORAGE.SAVE.START');
-  storage.save(enriched);
-  eventBus.emit('UI.RENDER.START');
-  renderOverview(enriched);
+ eventBus.emit('EXTRACTOR.FETCH.START');
+ const books = fetchBooks();
+ eventBus.emit('TRANSFORM.NORMALIZE.START');
+ const normalized = normalizeBooks(books);
+ eventBus.emit('ENRICH.METADATA.START');
+ const enriched = enrichMetadata(normalized);
+ eventBus.emit('STORAGE.SAVE.START');
+ storage.save(enriched);
+ eventBus.emit('UI.RENDER.START');
+ renderOverview(enriched);
 }
 
 // 建議：以協調器維持單一句意，子步驟下放至專職函式
 function buildOverviewPage() {
-  return orchestrateOverviewBuild();
+ return orchestrateOverviewBuild();
 }
 
 function orchestrateOverviewBuild() {
-  const data = gatherOverviewData();      // EXTRACTOR.*
-  const processed = processOverviewData(data); // TRANSFORM.*, ENRICH.*
-  return persistAndRenderOverview(processed);  // STORAGE.*, UI.*
+ const data = gatherOverviewData(); // EXTRACTOR.*
+ const processed = processOverviewData(data); // TRANSFORM.*, ENRICH.*
+ return persistAndRenderOverview(processed); // STORAGE.*, UI.*
 }
 ```
 
@@ -81,9 +81,9 @@ function orchestrateOverviewBuild() {
 
 ```text
 路徑與名稱一致（domain-oriented path）
-src/extractors/readmoo/services/readmoo-catalog.service.js  ->  class ReadmooCatalogService
-src/overview/controller/overview-page.controller.js         ->  class OverviewPageController
-src/core/errors/standard-error.js                           ->  class StandardError
+src/extractors/readmoo/services/readmoo-catalog.service.js -> class ReadmooCatalogService
+src/overview/controller/overview-page.controller.js -> class OverviewPageController
+src/core/errors/standard-error.js -> class StandardError
 ```
 
 ```javascript
@@ -99,9 +99,9 @@ class StandardError extends Error { /* responsible for standardized error model 
 ```text
 檔案命名（擇一定稿並全專案一致）
 1) feature.type.js（沿用 docs/README.md）
-   e.g. readmoo-catalog.service.js, overview-page.controller.js
+ e.g. readmoo-catalog.service.js, overview-page.controller.js
 2) kebab-case.role.js（一檔一類）
-   e.g. standard-error.model.js
+ e.g. standard-error.model.js
 ```
 
 ---
@@ -111,30 +111,30 @@ class StandardError extends Error { /* responsible for standardized error model 
 ```javascript
 // 警示：單一類別協調過多事件/依賴 (>5)
 class OverviewPageController {
-  constructor(eventBus, extractor, transformer, enricher, storage, renderer) {
-    this.eventBus = eventBus;
-    this.extractor = extractor;
-    this.transformer = transformer;
-    this.enricher = enricher;
-    this.storage = storage;
-    this.renderer = renderer;
-  }
-  async build() { /* 直接協調 6 個協作者 */ }
+ constructor(eventBus, extractor, transformer, enricher, storage, renderer) {
+ this.eventBus = eventBus;
+ this.extractor = extractor;
+ this.transformer = transformer;
+ this.enricher = enricher;
+ this.storage = storage;
+ this.renderer = renderer;
+ }
+ async build() { /* 直接協調 6 個協作者 */ }
 }
 
 // 建議：引入協調器分層，控制公開方法數量
 class OverviewBuildCoordinator {
-  constructor(extractor, processor, persister) {
-    this.extractor = extractor;   // 聚合 EXTRACTOR.*
-    this.processor = processor;   // 聚合 TRANSFORM.*, ENRICH.*
-    this.persister = persister;   // 聚合 STORAGE.*, UI.*
-  }
-  async buildOverview() { /* 維持單一句意 */ }
+ constructor(extractor, processor, persister) {
+ this.extractor = extractor; // 聚合 EXTRACTOR.*
+ this.processor = processor; // 聚合 TRANSFORM.*, ENRICH.*
+ this.persister = persister; // 聚合 STORAGE.*, UI.*
+ }
+ async buildOverview() { /* 維持單一句意 */ }
 }
 
 class OverviewPageController {
-  constructor(coordinator) { this.coordinator = coordinator; }
-  async init() { return this.coordinator.buildOverview(); }
+ constructor(coordinator) { this.coordinator = coordinator; }
+ async init() { return this.coordinator.buildOverview(); }
 }
 ```
 
