@@ -142,6 +142,11 @@ from .track_stale_list import (
     execute_stale_list,
     register_stale_list,
 )
+# td-status 校準 TD 清單（W10-083 / PC-094）
+from .track_td_status import (
+    execute_td_status,
+    register_td_status,
+)
 # 導入版本審計命令模組
 from .audit_version import (
     execute_audit_version,
@@ -251,6 +256,8 @@ def _create_command_handlers() -> dict:
         "board": execute_board,
         # W17-011.1 / W17-009 統一 scheduler CLI
         "runqueue": execute_runqueue,
+        # W10-083 / PC-094 TD 清單校準
+        "td-status": execute_td_status,
     }
 
 
@@ -799,6 +806,7 @@ def _register_all_subcommands(
     register_runqueue(track_subparsers)
     register_stuck_anas(track_subparsers)
     register_stale_list(track_subparsers)
+    register_td_status(track_subparsers)
 
 
 def _register_global_state_commands(
