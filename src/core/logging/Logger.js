@@ -174,57 +174,120 @@ class Logger {
 
   /**
    * Console 輸出
+   *
+   * 設計考量（0.18.0-W6-012.3）：
+   * - 將 logEntry 序列化為單一字串輸出，避免 chrome-devtools-mcp 等
+   *   外部觀測工具取得 console message text 時，物件第二參數被降為
+   *   `[object Object]` toString fallback（W6-012.1 實機 MCP 驗證觀察 16+ 次）
+   * - JSON.stringify 含 circular reference 與 Error 物件 replacer
+   * - 序列化失敗時降級為 messageKey 為核心的最小字串，確保任何情況都有可讀內容
+   *
    * @private
    * @param {string} level - 日誌等級
    * @param {Object} logEntry - 日誌項目
    */
   _consoleOutput (level, logEntry) {
     const prefix = `[${level}]`
+    const serialized = Logger._safeSerialize(logEntry)
+    const output = `${prefix} ${serialized}`
 
     switch (level) {
       case 'DEBUG':
         // eslint-disable-next-line no-console
         if (console.debug) {
           // eslint-disable-next-line no-console
-          console.debug(prefix, logEntry)
+          console.debug(output)
         } else {
           // eslint-disable-next-line no-console
-          console.log(prefix, logEntry)
+          console.log(output)
         }
         break
       case 'INFO':
         // eslint-disable-next-line no-console
         if (console.info) {
           // eslint-disable-next-line no-console
-          console.info(prefix, logEntry)
+          console.info(output)
         } else {
           // eslint-disable-next-line no-console
-          console.log(prefix, logEntry)
+          console.log(output)
         }
         break
       case 'WARN':
         // eslint-disable-next-line no-console
         if (console.warn) {
           // eslint-disable-next-line no-console
-          console.warn(prefix, logEntry)
+          console.warn(output)
         } else {
           // eslint-disable-next-line no-console
-          console.log(prefix, logEntry)
+          console.log(output)
         }
         break
       case 'ERROR':
         // eslint-disable-next-line no-console
         if (console.error) {
           // eslint-disable-next-line no-console
-          console.error(prefix, logEntry)
+          console.error(output)
         } else {
           // eslint-disable-next-line no-console
-          console.log(prefix, logEntry)
+          console.log(output)
         }
         break
       default:
         // eslint-disable-next-line no-console
-        console.log(prefix, logEntry)
+        console.log(output)
+    }
+  }
+
+  /**
+   * 安全序列化 logEntry 為可讀字串
+   *
+   * 設計考量（0.18.0-W6-012.3）：
+   * - 使用 WeakSet 偵測循環引用，遇到時以 '[Circular]' 替代避免 stack overflow
+   * - Error 物件展開為 `{ name, message, stack }`，保留可 debug 資訊
+   * - function / undefined 給予可讀字串標示，避免被 JSON.stringify 丟棄
+   * - 整體序列化失敗時，降級輸出含 messageKey 的最小 JSON 字串
+   *
+   * @private
+   * @param {Object} logEntry - 日誌項目
+   * @returns {string} JSON 字串（縮排 2 空白）或降級訊息
+   */
+  static _safeSerialize (logEntry) {
+    try {
+      const seen = new WeakSet()
+      const replacer = (key, value) => {
+        if (value instanceof Error) {
+          return {
+            name: value.name,
+            message: value.message,
+            stack: value.stack
+          }
+        }
+        if (typeof value === 'function') {
+          return `[Function: ${value.name || 'anonymous'}]`
+        }
+        if (typeof value === 'object' && value !== null) {
+          if (seen.has(value)) {
+            return '[Circular]'
+          }
+          seen.add(value)
+        }
+        return value
+      }
+      return JSON.stringify(logEntry, replacer, 2)
+    } catch (serializeError) {
+      // 序列化失敗的最後防線：盡量輸出 messageKey / level / name 三欄
+      try {
+        const fallback = {
+          level: logEntry && logEntry.level,
+          name: logEntry && logEntry.name,
+          messageKey: logEntry && logEntry.messageKey,
+          message: logEntry && logEntry.message,
+          serializeError: serializeError && serializeError.message
+        }
+        return JSON.stringify(fallback)
+      } catch (_) {
+        return '[Logger Serialize Failed]'
+      }
     }
   }
 

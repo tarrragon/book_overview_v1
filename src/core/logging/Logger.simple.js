@@ -30,22 +30,58 @@ class Logger {
       timestamp: Date.now()
     }
 
+    // 序列化為單一字串輸出（0.18.0-W6-012.3）：
+    // 避免外部觀測工具（chrome-devtools-mcp 等）取得 console message text
+    // 時，物件參數降為 [object Object] 失去可讀性
+    const output = Logger._safeSerialize(entry)
+
     switch (level) {
       case 'ERROR':
         // eslint-disable-next-line no-console
-        console.error(entry)
+        console.error(output)
         break
       case 'WARN':
         // eslint-disable-next-line no-console
-        console.warn(entry)
+        console.warn(output)
         break
       case 'DEBUG':
         // eslint-disable-next-line no-console
-        console.debug(entry)
+        console.debug(output)
         break
       default:
         // eslint-disable-next-line no-console
-        console.info(entry)
+        console.info(output)
+    }
+  }
+
+  /**
+   * 安全序列化 entry 為可讀字串（與 Logger.js _safeSerialize 行為一致）
+   *
+   * 設計原則：循環引用以 '[Circular]' 替代；Error 物件展開保留 stack；
+   * 序列化失敗時降級為錯誤訊息字串，確保任何情況都有可讀輸出。
+   *
+   * @param {Object} entry - 日誌項目
+   * @returns {string}
+   */
+  static _safeSerialize (entry) {
+    try {
+      const seen = new WeakSet()
+      const replacer = (key, value) => {
+        if (value instanceof Error) {
+          return { name: value.name, message: value.message, stack: value.stack }
+        }
+        if (typeof value === 'function') {
+          return `[Function: ${value.name || 'anonymous'}]`
+        }
+        if (typeof value === 'object' && value !== null) {
+          if (seen.has(value)) return '[Circular]'
+          seen.add(value)
+        }
+        return value
+      }
+      return JSON.stringify(entry, replacer, 2)
+    } catch (e) {
+      return `[Logger Serialize Failed: ${e && e.message}]`
     }
   }
 
