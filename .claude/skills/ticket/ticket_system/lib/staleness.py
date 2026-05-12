@@ -133,6 +133,36 @@ def is_stale_in_progress(
     return elapsed_hours >= STALE_IN_PROGRESS_HOURS
 
 
+def compute_stale_minutes(
+    ticket: dict, now: Optional[datetime] = None
+) -> Optional[int]:
+    """
+    計算 in_progress ticket 自 started_at 起經過的分鐘數（W10-114 dashboard）。
+
+    純函式：不執行 stale 判定，僅回傳分鐘數（caller 自行套門檻）。
+    解析失敗（缺 started_at / 格式錯誤）→ 回傳 None。
+
+    Args:
+        ticket: ticket frontmatter dict
+        now: 當前時間（測試可注入）；預設 datetime.now()
+
+    Returns:
+        int 分鐘數（>= 0），或 None
+    """
+    started = _parse_started_at(ticket.get("started_at"))
+    if started is None:
+        return None
+    reference = now or datetime.now()
+    if started.tzinfo is not None and reference.tzinfo is None:
+        started = started.replace(tzinfo=None)
+    elif started.tzinfo is None and reference.tzinfo is not None:
+        reference = reference.replace(tzinfo=None)
+    elapsed = (reference - started).total_seconds() / 60
+    if elapsed < 0:
+        return 0
+    return int(elapsed)
+
+
 def _ticket_age_days(ticket: dict, today: date) -> Optional[int]:
     created_date = _parse_created(ticket.get("created"))
     if created_date is None:

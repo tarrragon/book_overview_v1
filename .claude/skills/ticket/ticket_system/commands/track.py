@@ -132,6 +132,11 @@ from .track_runqueue import (
     execute_runqueue,
     register_runqueue,
 )
+# dashboard 聚合視圖（W10-114 / W10-113 ANA Solution M1+M4'）
+from .track_dashboard import (
+    execute_dashboard,
+    register_dashboard,
+)
 # stuck-anas 列出卡住的 ANA（W17-008.15 方案 D）
 from .track_stuck_anas import (
     execute_stuck_anas,
@@ -256,6 +261,8 @@ def _create_command_handlers() -> dict:
         "board": execute_board,
         # W17-011.1 / W17-009 統一 scheduler CLI
         "runqueue": execute_runqueue,
+        # W10-114 聚合 dashboard 視圖（in_progress + top N ready + stale）
+        "dashboard": execute_dashboard,
         # W10-083 / PC-094 TD 清單校準
         "td-status": execute_td_status,
     }
@@ -804,6 +811,7 @@ def _register_all_subcommands(
     _register_board_commands(track_subparsers)
     _register_global_state_commands(track_subparsers)
     register_runqueue(track_subparsers)
+    register_dashboard(track_subparsers)
     register_stuck_anas(track_subparsers)
     register_stale_list(track_subparsers)
     register_td_status(track_subparsers)
