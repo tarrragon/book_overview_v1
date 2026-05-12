@@ -4,7 +4,7 @@
 
 - **類別**：process-compliance
 - **嚴重度**：中（false positive 阻擋合法 complete，PM 需手動改寫或加 exempt marker 繞過）
-- **狀態**：reproducible（W10-113 / cinnamon Phase 4 / 本次 session 共重現 3 次達反模式門檻）
+- **狀態**：reproducible（W10-113 / cinnamon Phase 4 / W10-114 / W10-115 共重現 4 次達反模式門檻，跨 session 持續觸發）
 
 ## 症狀
 
@@ -35,9 +35,10 @@ PM 被迫採用 workaround：
 
 | 案例 | Session | Ticket | 觸發位置 | 處理方式 |
 |------|---------|--------|---------|---------|
-| 1 | 本 session | W10-113 ANA complete | 5 處（acceptance + Problem Analysis + Solution） | 改寫 + frontmatter acceptance 字面替換 |
-| 2 | 本 session | W10-114 Phase 4 cinnamon | frontmatter `how.strategy` + acceptance 描述 + Phase 1/2/3a 規劃章節 | 局部改寫「Phase4-RefactorReview」+ 加 PC-093-exempt 標記 |
-| 3 | 本 session | W10-114 complete 自身 | 多處規則引用 | PC-093-exempt 標記 |
+| 1 | session 2026-05-12 上半 | W10-113 ANA complete | 5 處（acceptance + Problem Analysis + Solution） | 改寫 + frontmatter acceptance 字面替換 |
+| 2 | session 2026-05-12 上半 | W10-114 Phase 4 cinnamon | frontmatter `how.strategy` + acceptance 描述 + Phase 1/2/3a 規劃章節 | 局部改寫「Phase4-RefactorReview」+ 加 PC-093-exempt 標記 |
+| 3 | session 2026-05-12 上半 | W10-114 complete 自身 | 多處規則引用 | PC-093-exempt 標記 |
+| 4 | session 2026-05-12 下半（resume W10-115） | W10-115 complete | 10 處（frontmatter `how.strategy` + AC + Phase 1 spec + Phase 3a TD 表 + Phase 3b 報告 + Context Bundle） | YAML 區 2 處改寫「Phase 4」→「P4」；markdown 區 6 處加 `<!-- PC-093-exempt: tdd-transition / ticket-tracked -->` 標記 |
 
 ## 防護
 
@@ -68,11 +69,13 @@ W10-118 ANA 已建並含完整 4 個 hook 限制收斂方向，包含本案：
 | 教訓 | 應用 |
 |------|------|
 | 字面匹配 hook 必須有「引用 / 歷史 / 元資料」豁免機制 | 設計新 hook 時預留 exempt category 擴展點 |
-| Hook 重現 3 次達反模式門檻 = 應升級至 framework 改善 | 不再延後 W10-118 ANA 推進 |
+| Hook 重現 4 次達反模式門檻 = 應升級至 framework 改善 | 不再延後 W10-118 ANA 推進 |
 | PM workaround（改寫字面）是訊號不是解法 | 看到反覆 workaround 即時建 PC 並升級 hook |
+| 跨 session 持續再現 = 修復優先級應上調 | W10-118 從 P2 評估上調為 P1（hook false positive 阻擋合法 complete 已成穩定模式） |
 
 ---
 
 **Created**: 2026-05-12
-**Source**: 本 session（W10-113 ANA → W10-114 Phase 4 cinnamon → W10-114 complete）三次重現
-**Related**: PC-093 (parent), W10-118 (improvement ANA)
+**Updated**: 2026-05-12（W10-115 complete 案例 4 補入，跨 session 再實證）
+**Source**: 案例 1-3（W10-113 ANA → W10-114 Phase 4 cinnamon → W10-114 complete）+ 案例 4（W10-115 complete，跨 session resume 後再觸發）
+**Related**: PC-093 (parent), W10-118 (improvement ANA, 優先級建議上調 P2→P1)
