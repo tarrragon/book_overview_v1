@@ -215,7 +215,7 @@ Phase 1 功能規格完成後**強制執行**，無豁免。
 | Phase 4b 重構執行 | cinnamon-refactor-owl | 重構程式碼、債務記錄 |
 | Phase 4c 多視角再審核 | /parallel-evaluation A | 審核報告 |
 
-**Phase 4 派發前預檢：TD 清單校準（td-status）**：
+**Phase 4 派發前預檢（強制）：TD 清單校準（td-status）**
 
 Phase 4a 或 Phase 4b（豁免時）派發前，PM 必須執行 TD 清單校準，確認已完成項不浪費多視角 token：
 
