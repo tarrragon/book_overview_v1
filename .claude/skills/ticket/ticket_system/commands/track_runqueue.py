@@ -78,7 +78,13 @@ _TAGGED_EXIT_STATUSES: Set[str] = {
 # ---------------------------------------------------------------------------
 
 def _priority_rank(ticket: Dict) -> int:
-    """取得 priority 的排序鍵，未知值排最後。"""
+    """取得 priority 的排序鍵，未知值排最後。
+
+    W10-121 註：本函式為 int 變體（0..3/99）；track_query._normalize_priority
+    為 str 變體（"P0".."P3"/"P9"）。兩者共享 priority schema 但介面分歧。
+    若 trigger 觸發抽 lib/runqueue_helpers.py 時，順便將 _normalize_priority
+    納入 SSOT（見 W10-121 結論）。
+    """
     raw = (ticket.get("priority") or "").strip().upper()
     return _PRIORITY_ORDER.get(raw, _DEFAULT_PRIORITY_RANK)
 

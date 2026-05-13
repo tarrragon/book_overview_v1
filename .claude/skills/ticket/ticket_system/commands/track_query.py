@@ -607,6 +607,10 @@ def _normalize_priority(value: Any) -> str:
     """Normalize priority value to one of P0/P1/P2/P3, else P9 (sorts last).
 
     W10-115: 缺欄位 / None / 空字串 / 非標準值（如 'X1' / 'P9'）一律歸 P9。
+
+    W10-121 註：本函式為 str 變體（"P0".."P3"/"P9"）；track_runqueue._priority_rank
+    為 int 變體（0..3/99）。兩者共享 priority schema 但介面分歧（caller 偏好不同）。
+    若 W10-119 trigger 觸發抽 lib/runqueue_helpers.py 時，順便將本函式納入 SSOT。
     """
     if not isinstance(value, str):
         return "P9"
