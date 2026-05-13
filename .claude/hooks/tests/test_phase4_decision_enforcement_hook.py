@@ -948,3 +948,92 @@ def test_w10_108_block_message_references_decision_trigger_binding_rule():
     hits = [Hit(line_no=10, rule_id="M1", level="BLOCK", text="Phase 5 再決定")]
     msg = format_block_message("0.18.0-W10-108", hits, exempted=[])
     assert "decision-trigger-binding" in msg
+
+
+# ============================================================================
+# W10-130 — Placeholder template 區塊內 PC-093-exempt 範例字串豁免
+# ============================================================================
+
+def test_w10_130_schema_placeholder_block_skips_example_exempt_marker():
+    """<!-- Schema[...]: ... --> placeholder 區塊內的 PC-093-exempt 範例字串
+    不應被解析為實際 marker（避免誤判 cat:reason 為 INVALID category-whitelist）。"""
+    lines = [
+        "## Problem Analysis",
+        "<!-- Schema[IMP/Problem Analysis]: 選填 -->",
+        "",
+        "範例: <!-- PC-093-exempt: cat:reason -->",
+        "另一範例: <!-- PC-093-exempt: <category>:<reason> -->",
+        "",
+        "---",
+        "",
+        "## Solution",
+        "實際內容",
+    ]
+    refs = collect_exempt_markers(lines)
+    # placeholder 區塊內的範例字串不應被收集為 marker
+    assert len(refs) == 0, (
+        "placeholder 區塊內的 PC-093-exempt 範例應被跳過，"
+        "但收到 {} markers: {}".format(len(refs), refs)
+    )
+
+
+def test_w10_130_schema_placeholder_block_terminates_at_next_h2():
+    """placeholder 區塊在下個 H2（## ）處結束；之後的 marker 仍應被解析。"""
+    lines = [
+        "<!-- Schema[IMP/Problem Analysis]: 選填 -->",
+        "<!-- PC-093-exempt: cat:reason -->",  # 範例（區塊內）— 跳過
+        "## Solution",
+        "<!-- PC-093-exempt: ticket-tracked:W10-130 hook 修復 -->",  # 區塊外 — 解析
+    ]
+    refs = collect_exempt_markers(lines)
+    # 只剩第 4 行的真實 marker
+    assert len(refs) == 1
+    assert refs[0].line_no == 4
+    assert refs[0].valid is True
+
+
+def test_w10_130_schema_placeholder_block_terminates_at_hr_separator():
+    """placeholder 區塊在 `---` 分隔符處結束；之後的 marker 仍應被解析。"""
+    lines = [
+        "<!-- Schema[IMP/Problem Analysis]: 選填 -->",
+        "<!-- PC-093-exempt: cat:reason -->",  # 範例 — 跳過
+        "",
+        "---",
+        "",
+        "<!-- PC-093-exempt: ticket-tracked:W10-130 真實 marker -->",  # 解析
+    ]
+    refs = collect_exempt_markers(lines)
+    assert len(refs) == 1
+    assert refs[0].line_no == 6
+    assert refs[0].valid is True
+
+
+def test_w10_130_no_schema_placeholder_normal_marker_still_works():
+    """無 Schema placeholder 區塊時，正常 marker 行為不變（regression guard）。"""
+    lines = [
+        "## Solution",
+        "<!-- PC-093-exempt: ticket-tracked:W10-130 hook 修復說明 -->",
+    ]
+    refs = collect_exempt_markers(lines)
+    assert len(refs) == 1
+    assert refs[0].valid is True
+
+
+def test_w10_130_schema_placeholder_also_skips_phrase_scanning():
+    """placeholder 區塊內的延後話術（若有）也應跳過，避免範例字串觸發誤判。"""
+    lines = [
+        "<!-- Schema[IMP/Problem Analysis]: 範例：填入根因，例如 Phase 5 再決定的問題 -->",
+        "<!-- PC-093-exempt: cat:reason -->",  # 範例 marker
+        "",
+        "---",
+        "",
+        "## Solution",
+        "正常內容",
+    ]
+    table = build_regex_table()
+    hits = scan_lines_for_phrases(lines, table)
+    markers = collect_exempt_markers(lines)
+    blocked, warned, info, exempted = partition_hits(hits, markers)
+    # placeholder 區塊內即使 Schema note 含「Phase 5 再決定」字樣也應跳過
+    assert len(blocked) == 0
+    assert len(warned) == 0

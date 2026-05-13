@@ -91,6 +91,15 @@ EXEMPT_MARKER_STRIP = re.compile(r"<!--\s*PC-093-exempt[^>]*-->")
 # 行級豁免（trim 後以 `- [ref]` 或 `[ref]` 開頭）— 採方向 A：簡單精準。
 REF_LINE_PATTERN = re.compile(r"^\s*-?\s*\[ref\]")
 
+# W10-130: Schema placeholder template 區塊起點。
+# Ticket body schema 採 `<!-- Schema[<type>/<section>]: <note> -->` 標記。
+# 該區塊內的 `<!-- PC-093-exempt: cat:reason -->` 屬範例文字（template note 內
+# 示意 marker 格式），非實際豁免宣告。應整段跳過 phrase 掃描與 marker 蒐集。
+SCHEMA_PLACEHOLDER_START = re.compile(r"<!--\s*Schema\[[^\]]+\]\s*:")
+# 區塊邊界：下個 H2（## ）或 `---` 水平分隔符（trim 後完全相符）。
+SCHEMA_PLACEHOLDER_END_H2 = re.compile(r"^\s*##\s")
+SCHEMA_PLACEHOLDER_END_HR = re.compile(r"^\s*---\s*$")
+
 # 豁免 proximity（marker 同行或前 1 行生效）
 EXEMPT_PROXIMITY_LINES = 1
 
@@ -262,6 +271,31 @@ def build_regex_table() -> List[PhraseRule]:
 # F2: 逐行掃描 phrase
 # ============================================================================
 
+def compute_schema_placeholder_lines(lines: List[str]) -> set:
+    """W10-130: 計算 Schema placeholder template 區塊的 1-based 行號集合。
+
+    起點：含 `<!-- Schema[<type>/<section>]: ... -->` 的行（含該行）。
+    終點：下個 H2（`## `）或 `---` 水平分隔符（不含該邊界行）。
+
+    回傳：所有屬於 placeholder 區塊的行號集合。phrase 掃描與 marker 蒐集均跳過。
+    """
+    placeholder_lines: set = set()
+    in_block = False
+    for idx, raw in enumerate(lines, start=1):
+        if in_block:
+            if SCHEMA_PLACEHOLDER_END_H2.match(raw) or SCHEMA_PLACEHOLDER_END_HR.match(raw):
+                in_block = False
+                # 邊界行不屬 placeholder
+                continue
+            placeholder_lines.add(idx)
+            # 同一行可能再次出現 Schema 標記（連續 placeholder），仍視為 in_block
+            continue
+        if SCHEMA_PLACEHOLDER_START.search(raw):
+            in_block = True
+            placeholder_lines.add(idx)
+    return placeholder_lines
+
+
 def scan_lines_for_phrases(
     lines: List[str],
     table: List[PhraseRule],
@@ -270,9 +304,14 @@ def scan_lines_for_phrases(
 
     - 掃前移除 EXEMPT_MARKER_STRIP 避 marker 內含 phrase 誤判。
     - 同行可多規則命中，不去重；豁免狀態由 F7 處理。
+    - W10-130: Schema placeholder template 區塊整段跳過。
     """
+    placeholder_lines = compute_schema_placeholder_lines(lines)
     hits: List[Hit] = []
     for idx, raw in enumerate(lines, start=1):
+        # W10-130: Schema placeholder template 區塊跳過（範例文字非實際內容）
+        if idx in placeholder_lines:
+            continue
         # W10-127: Context Bundle 自動抽取的 [ref] 行豁免（行級 short-circuit）。
         # 這些行屬 source ticket 引用，非本 ticket 延後決策。
         if REF_LINE_PATTERN.match(raw):
@@ -329,9 +368,16 @@ def validate_exempt_fields(marker: ExemptMarker) -> Tuple[bool, Optional[str]]:
 # ============================================================================
 
 def collect_exempt_markers(lines: List[str]) -> List[ExemptRef]:
-    """掃全文蒐集 marker 位置 + 解析結果。"""
+    """掃全文蒐集 marker 位置 + 解析結果。
+
+    W10-130: Schema placeholder template 區塊內的 marker 屬範例文字（如
+    `<!-- PC-093-exempt: cat:reason -->`），整段跳過避免誤判為 INVALID。
+    """
+    placeholder_lines = compute_schema_placeholder_lines(lines)
     refs: List[ExemptRef] = []
     for idx, raw in enumerate(lines, start=1):
+        if idx in placeholder_lines:
+            continue
         marker = parse_exempt_marker(raw)
         if marker is None:
             # 若行內含 PC-093-exempt 文字但格式不符（EX-N5/EX-N8）
