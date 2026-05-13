@@ -70,6 +70,11 @@ _TAGGED_EXIT_STATUSES: Set[str] = {
 
 # ---------------------------------------------------------------------------
 # 內部工具：ticket 過濾 / 排序 / handoff 掃描
+#
+# TODO(W10-119 trigger): 以下 helper 已有 2 個跨模組 consumer
+# （commands/resume.py 用 _priority_rank、commands/track_dashboard.py 用 5 個）。
+# 當第 3 個 cross-module consumer 出現時（rule of three），依 W10-119 結論
+# 抽出至 lib/runqueue_helpers.py 共用模組。
 # ---------------------------------------------------------------------------
 
 def _priority_rank(ticket: Dict) -> int:
