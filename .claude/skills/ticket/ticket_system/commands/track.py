@@ -393,6 +393,12 @@ def _register_lifecycle_commands(
         action="store_true",
         help="逃生閥：跳過 type-aware body schema 必填章節驗證（W17-016.3；需於 Completion Info 附理由）",
     )
+    p_complete.add_argument(
+        "--force",
+        dest="force",
+        action="store_true",
+        help="逃生閥：父 ticket 有未完成 children 時旁路阻擋強制完成（W11-003.2；會輸出警告）",
+    )
 
     # close 操作（W15-027 / PC-090：--reason 枚舉必填）
     from ticket_system.constants import CLOSE_REASONS, CLOSE_REASON_RETROSPECTIVE_UNKNOWN

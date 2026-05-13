@@ -46,6 +46,7 @@ ticket track summary                                    # 摘要
 ticket track query 1.0.0-W4-001                       # 查詢
 ticket track claim 1.0.0-W4-001                       # 認領
 ticket track complete 1.0.0-W4-001                    # 完成
+ticket track complete 1.0.0-W4-001 --force            # 強制完成（旁路未完成 children 阻擋，W11-003.2）
 ticket create --version 0.31.0 --wave 4 --action "實作" --target "XXX"  # 建立
 ```
 
@@ -240,6 +241,8 @@ ticket batch-create --template impl-parsley --targets "a,b" --parent 1.0.0-W28-0
 >
 > 輸出分三組：`[已處理]` / `[無需處理]` / `[仍待處理]`，pending TD 會附 PC-094 校準提示，建議於 body 標註或在 commit 訊息引用 TD 編號。呼叫時機：Phase 3a 策略文件完成後、Phase 3b commit 前、Phase 4 派發前。詳見 `.claude/pm-rules/tech-debt.md`「TD 清單即時校準（td-status）」章節。
 
+> **注意**：`complete` 在父 ticket 含未完成 children（非 terminal：pending / in_progress / blocked）時會以 exit 1 阻擋（W11-003.2）。提供 `--force` 旁路強制完成，會在 stderr 列出未完成 children 作為警告，cascade 解鎖機制仍會執行。建議優先完成 children 後再 complete 父 ticket。
+>
 > **注意**：5W1H 欄位由 `set-who` ~ `set-how` 6 個命令更新。`blockedBy` 用 `set-blocked-by`、`relatedTo` 用 `set-related-to`（均支援 `--add`/`--remove`）。`priority` 等欄位無 CLI 命令，需手動編輯 frontmatter。完整對照表見 `references/track-command.md`。
 >
 > **注意**：`append-log` 必須加上 `--section` 必填參數：`ticket track append-log <id> --section "Problem Analysis" "內容"`。有效區段值：`Problem Analysis`、`Context Bundle`、`Solution`、`Test Results`、`Execution Log`、`NeedsContext`、`Exit Status`。`Context Bundle` 用於派發前寫入 PCB（PC-040）；`NeedsContext`/`Exit Status` 用於代理人結束狀態協議（W17-010）。
