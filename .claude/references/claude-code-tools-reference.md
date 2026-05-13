@@ -14,7 +14,7 @@
 
 | 工具 | 最低版本 | 平台支援 | 狀態 |
 |------|---------|---------|------|
-| Claude in Chrome | 未明確要求最低版本 | macOS / Windows / Linux | Beta（需安裝擴充功能） |
+| Claude in Chrome | —（需安裝 Chrome 擴充功能，無 CC 版本下限） | macOS / Windows / Linux | Beta |
 | BashTool Sandbox 模式 | 2.0.24 | macOS / Linux / WSL2 | 穩定（預設關閉） |
 | Monitor 工具 | 2.1.98 | 全平台 | 穩定 |
 
@@ -24,7 +24,7 @@
 
 ### 用途
 
-將 Claude Code 連接到 Chrome 瀏覽器，實現程式碼開發與瀏覽器操作的整合工作流。Claude 可直接操控瀏覽器，讀取 console 錯誤、擷取 DOM 狀態、執行自動化任務。
+開發 Web App 時，切換視窗手動測試是主要摩擦點；Chrome 整合將瀏覽器測試與除錯動作內嵌於開發工作流，消除上下文切換。Claude Code 連接 Chrome 後可直接操控瀏覽器，讀取 console 錯誤、擷取 DOM 狀態、執行自動化任務，並共用瀏覽器的已登入狀態。
 
 ### 啟用方式
 
@@ -88,11 +88,11 @@ Chrome 整合也透過 `mcp__chrome-devtools__*` 系列 deferred tools 提供細
 
 ### 用途
 
-將 Bash 命令執行限制在沙盒隔離環境中，防止指令意外存取或修改檔案系統與網路。適用於需要在不可信任的環境中執行程式碼、或要求更嚴格安全邊界的部署場景。
+將 Bash 命令執行限制在沙盒隔離環境中，防止指令意外存取或修改檔案系統與網路。不啟用時，代理人的 Bash 命令對主機檔案系統和網路有完整存取權；高風險環境（CI/CD、教育平台、不可信程式碼執行）應主動評估是否啟用。預設關閉，需顯式設定。
 
 ### 啟用方式
 
-**方法 A：settings.json 設定（推薦）**
+**方法 A：settings.json 設定（推薦：設定持久生效，不需每次啟動時加 flag）**
 
 ```json
 {
@@ -129,9 +129,9 @@ for await (const message of query({
 }
 ```
 
-**方法 C：Bash 工具參數關閉沙盒（per-call）**
+**方法 C：Bash 工具參數停用沙盒（per-call 豁免）**
 
-若已啟用全域沙盒，可在單次呼叫時使用 `dangerouslyDisableSandbox: true` 關閉：
+若已啟用全域沙盒，但特定命令需要完整存取權限，可在單次呼叫時使用 `dangerouslyDisableSandbox: true` 關閉沙盒：
 
 ```typescript
 type BashInput = {
@@ -172,7 +172,7 @@ type BashInput = {
 
 在背景執行一個 shell 腳本，並將每一行 stdout 輸出即時串流給 Claude 作為事件通知。讓 Claude 在等待期間能夠被動接收更新，而無需主動輪詢。
 
-**與 `run_in_background` 的差異**：`run_in_background` 執行後需主動查詢結果；Monitor 主動將每行輸出推送給 Claude，適合需要即時反應的監控場景。
+**與 `run_in_background` 的差異**：`run_in_background` 執行後需主動查詢結果（TaskOutput），適合只需最終結果的場景，開銷較低；Monitor 主動將每行輸出推送給 Claude，適合需要即時反應（逐行通知、條件觸發後續操作）的監控場景。若只需等待命令完成，優先選 `run_in_background`。
 
 ### Schema
 
@@ -283,5 +283,18 @@ TaskStop(taskId="<Monitor 回傳的 taskId>")
 
 ---
 
+## 維護說明
+
+本文件收錄的工具資訊可能隨 Claude Code 版本變動。以下情境應重新查證 code.claude.com/docs 並更新：
+
+| 觸發條件 | 需更新項目 |
+|---------|---------|
+| CC 版本跳升 minor 版號（如 2.1.x → 2.2.x） | 確認各工具狀態（Beta/GA）、版本號、啟用語法是否變更 |
+| Claude in Chrome 從 Beta 轉 GA | 更新總覽表狀態欄、移除 Beta 限制說明 |
+| 新增工具的官方文件出現「Available since vX.Y.Z」 | 更新對應工具的最低版本欄位 |
+
+---
+
 **Last Updated**: 2026-05-13
+**Version**: 1.1.0 — Layer 2 審查修正（basil-writing-critic + linux）：補 Chrome/Sandbox 用途段 Why 層、方法 C 節標題改「停用/豁免」、總覽表 Chrome 版本欄統一語意、方法 A 補推薦理由、Monitor 差異說明補選擇指引、新增維護說明章節
 **Version**: 1.0.0 — 初始建立，收錄 Claude in Chrome（Beta）、BashTool Sandbox 模式、Monitor 工具三項 CC 進階工具的用途、啟用方式、適用場景與限制；查證自 code.claude.com/docs（2026-05-13）
