@@ -82,6 +82,15 @@ EXEMPT_MARKER = re.compile(
 # 豁免 marker 剔除（掃描 phrase 前移除，避免 marker 內含 phrase 誤判）
 EXEMPT_MARKER_STRIP = re.compile(r"<!--\s*PC-093-exempt[^>]*-->")
 
+# Context Bundle 自動抽取的 [ref] 行豁免（W10-127）：
+# ticket-loader 抽取 source ticket 的 acceptance / rationale 時，會將每行加上
+# `[ref]` 前綴標記。這些行是「引用其他 ticket 的內容」，不是本 ticket 的延後
+# 決策。常見模式：
+#   - [ref] [ ] Phase 4 評估結論明確（無需重構 / ...，禁止 Phase 5 再決定）
+# 屬於 PC-142 case 4 漏網案例（W10-122 rule-quote 豁免未涵蓋 ref 行模式）。
+# 行級豁免（trim 後以 `- [ref]` 或 `[ref]` 開頭）— 採方向 A：簡單精準。
+REF_LINE_PATTERN = re.compile(r"^\s*-?\s*\[ref\]")
+
 # 豁免 proximity（marker 同行或前 1 行生效）
 EXEMPT_PROXIMITY_LINES = 1
 
@@ -264,6 +273,10 @@ def scan_lines_for_phrases(
     """
     hits: List[Hit] = []
     for idx, raw in enumerate(lines, start=1):
+        # W10-127: Context Bundle 自動抽取的 [ref] 行豁免（行級 short-circuit）。
+        # 這些行屬 source ticket 引用，非本 ticket 延後決策。
+        if REF_LINE_PATTERN.match(raw):
+            continue
         stripped = EXEMPT_MARKER_STRIP.sub("", raw)
         for rule in table:
             for match in rule.pattern.finditer(stripped):

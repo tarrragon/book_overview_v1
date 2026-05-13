@@ -346,6 +346,39 @@ def test_ex_n4_ticket_tracked_缺_ticket_id():
     assert valid is False and err == "ticket-tracked-need-id"
 
 
+# ---- W10-127: Context Bundle [ref] 行豁免（PC-142 case 4 漏網案例） ----
+
+def test_w10_127_ref_line_phase4_不命中():
+    """`- [ref] [ ] Phase 4 評估` 行屬 source ticket 引用，不應命中。"""
+    text = "- [ref] [ ] Phase 4 評估結論明確（禁止 Phase 5 再決定）  # from 0.18.0-W10-113"
+    hits = _scan_text(text)
+    assert hits == [], "ref 行不應產生任何命中，實際: {}".format(hits)
+
+
+def test_w10_127_一般_phase4_仍命中():
+    """非 [ref] 行的「Phase 4 再決定」仍應命中（保留既有偵測能力）。"""
+    text = "Phase 4 再決定是否保留 use_cache"
+    hits = _scan_text(text)
+    assert len(_hits_by_rule(hits, "M1")) == 1
+
+
+def test_w10_127_ref_inline_含其他延後話術也豁免():
+    """`[ref]` 開頭行即使 inline 含其他延後話術也整行豁免（trim 後判斷）。"""
+    text = "  [ref] 之後再決定處理方式"
+    hits = _scan_text(text)
+    assert hits == []
+
+
+def test_w10_127_w10_116_line_186_真實案例():
+    """W10-116 line 186 真實命中案例：修復後不應再報 hit。"""
+    text = (
+        "- [ref] [ ] Phase 4 評估結論明確（無需重構 / 採方案 X / "
+        "spawn N 個 IMP ticket，禁止 Phase 5 再決定）  # from 0.18.0-W10-113"
+    )
+    hits = _scan_text(text)
+    assert hits == [], "W10-116 line 186 真實案例不應命中，實際: {}".format(hits)
+
+
 # ---- W10-122: rule-quote 類別豁免（PC-142 治本） ----
 
 def test_ex_p5_rule_quote_valid_含規則路徑():
