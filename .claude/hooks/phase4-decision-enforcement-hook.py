@@ -490,9 +490,17 @@ def format_block_message(
     blocked: List[Hit],
     exempted: List[Hit],
 ) -> str:
-    """組 §4.1 stderr block 訊息 + AUQ 骨架。"""
+    """組 §4.1 stderr block 訊息 + AUQ 骨架。
+
+    W10-108: 訊息開頭主動提示「優先嘗試 inline 標記」+ 列出白名單完整 category 清單
+    （含適用情境），引導 agent 走 inline 路徑而非字串繞過（PC-093 同精神反模式）。
+    """
     lines = []
     lines.append("[PC-093 Phase 4 強制決斷] 偵測到延後話術，禁止遞迴延後")
+    lines.append("")
+    lines.append("優先嘗試 inline 標記（不要改寫文字繞過偵測）:")
+    lines.append("  在命中行同行或前 1 行加 <!-- PC-093-exempt: <category>:<reason> -->")
+    lines.append("  若屬合法延後情境，這是最低成本的解法；改寫文字 = PC-093 同精神反模式。")
     lines.append("")
     lines.append("Ticket: {}".format(ticket_id))
     lines.append("命中:")
@@ -502,10 +510,18 @@ def format_block_message(
     lines.append("根因: PC-093 YAGNI 累積反模式")
     lines.append("  詳見: .claude/error-patterns/process-compliance/PC-093-yagni-deferred-decision-accumulation.md")
     lines.append("")
-    lines.append("要求對每項做出二選一:")
+    lines.append("合法豁免 category 白名單（共 {} 項）:".format(len(EXEMPT_CATEGORIES)))
+    lines.append("  - tdd-transition  — TDD phase 轉換的合法延後（Phase 1→2→3 規格性過渡）")
+    lines.append("  - baseline-gated  — 量化基線觸發條件（reason 須含數字，如『baseline > 100ms 重啟』）")
+    lines.append("  - ticket-tracked  — 引用既有 ticket ID（reason 須含 W{wave}-{seq}，如 source ticket 歷史引用）")
+    lines.append("  - user-override   — 用戶明確授權的延後（一般說明 ≥ 10 字）")
+    lines.append("  - rule-quote      — 引用 .claude/rules/ 或 .claude/pm-rules/ 規則名稱（reason 須含規則路徑）")
+    lines.append("  詳見 .claude/rules/core/decision-trigger-binding.md「Hook 引用豁免機制」章節")
+    lines.append("")
+    lines.append("要求對每項做出三選一:")
     lines.append("  1. 執行 — 立即實作，附 use case + AC")
     lines.append("  2. 移除 — 刪除預留 + dead code，記錄理由")
-    lines.append("  3. 豁免 — 符合合法延後條件，加 <!-- PC-093-exempt: cat:reason --> 標記")
+    lines.append("  3. 豁免 — 符合上述白名單條件，加 <!-- PC-093-exempt: cat:reason --> 標記")
     lines.append("")
     lines.append("修復後重新 ticket track phase {} phase4。".format(ticket_id))
     lines.append("")

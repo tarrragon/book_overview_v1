@@ -901,3 +901,50 @@ def test_format_warn_info_humanizes_format_error():
     # humanized 範例含正確 marker 格式
     assert "<!-- PC-093-exempt:" in msg
     assert "修復提示" in msg
+
+
+# ============================================================================
+# W10-108 — Block 訊息可達性（白名單清單 + inline 提示）
+# ============================================================================
+
+def test_w10_108_block_message_lists_all_exempt_categories():
+    """拒絕訊息必須完整列出 5 個合法 category（避免 agent 因不知道路徑而走字串繞過）。"""
+    hits = [Hit(line_no=10, rule_id="M1", level="BLOCK", text="Phase 5 再決定")]
+    msg = format_block_message("0.18.0-W10-108", hits, exempted=[])
+    for category in ("tdd-transition", "baseline-gated", "ticket-tracked",
+                     "user-override", "rule-quote"):
+        assert category in msg, "白名單必含 category: {}".format(category)
+
+
+def test_w10_108_block_message_starts_with_inline_hint():
+    """訊息開頭（標題後）必須含「優先嘗試 inline」提示，引導 agent 走 inline 路徑。"""
+    hits = [Hit(line_no=10, rule_id="M1", level="BLOCK", text="Phase 5 再決定")]
+    msg = format_block_message("0.18.0-W10-108", hits, exempted=[])
+    # 提示文字存在
+    assert "優先嘗試 inline" in msg
+    # 位置：在「命中」清單之前（標題行之後第一個實質提示）
+    inline_pos = msg.index("優先嘗試 inline")
+    hit_pos = msg.index("命中:")
+    assert inline_pos < hit_pos, "inline 提示必須在命中清單之前"
+
+
+def test_w10_108_block_message_categories_have_use_case():
+    """每個 category 後附『適用情境』一行說明（非僅列名稱）。"""
+    hits = [Hit(line_no=10, rule_id="M1", level="BLOCK", text="Phase 5 再決定")]
+    msg = format_block_message("0.18.0-W10-108", hits, exempted=[])
+    # 每個 category 行格式包含「— 」說明分隔符
+    for category in ("tdd-transition", "baseline-gated", "ticket-tracked",
+                     "user-override", "rule-quote"):
+        # 找該 category 所在行
+        for line in msg.split("\n"):
+            if category in line and "—" in line:
+                break
+        else:
+            raise AssertionError("category {} 缺『—』適用情境說明".format(category))
+
+
+def test_w10_108_block_message_references_decision_trigger_binding_rule():
+    """訊息應指向權威規則路徑，讓 agent 知道完整規格何處查詢。"""
+    hits = [Hit(line_no=10, rule_id="M1", level="BLOCK", text="Phase 5 再決定")]
+    msg = format_block_message("0.18.0-W10-108", hits, exempted=[])
+    assert "decision-trigger-binding" in msg
