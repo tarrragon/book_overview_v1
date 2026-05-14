@@ -34,10 +34,39 @@ from pathlib import Path
 import pytest
 import yaml
 
+from ticket_system.commands.migrate import (
+    _batch_migrate,
+    _migrate_single_ticket,
+    _update_cross_references,
+    _update_ticket_id_references,
+)
+from ticket_system.lib.parser import parse_frontmatter
+
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
+
+def _patch_get_project_root(monkeypatch, tmp_path: Path) -> None:
+    """集中將 migrate / ticket_loader / paths（若存在）的 get_project_root 指向 tmp_path。
+
+    收斂原本散布於 fixture 的三處 monkeypatch；paths 模組以 try/except 保留
+    跨版本容錯（並非所有版本都暴露 paths.get_project_root）。
+    """
+    import ticket_system.commands.migrate as migrate_mod
+    import ticket_system.lib.ticket_loader as loader_mod
+
+    monkeypatch.setattr(migrate_mod, "get_project_root", lambda: tmp_path)
+    monkeypatch.setattr(loader_mod, "get_project_root", lambda: tmp_path)
+
+    try:
+        import ticket_system.lib.paths as paths_mod  # type: ignore
+
+        if hasattr(paths_mod, "get_project_root"):
+            monkeypatch.setattr(paths_mod, "get_project_root", lambda: tmp_path)
+    except ImportError:
+        pass
 
 
 def _write_ticket(tickets_dir: Path, ticket_id: str, extra_fields: dict) -> Path:
@@ -67,8 +96,6 @@ def _write_ticket(tickets_dir: Path, ticket_id: str, extra_fields: dict) -> Path
 
 def _read_frontmatter(path: Path) -> dict:
     """讀取 frontmatter dict。"""
-    from ticket_system.lib.parser import parse_frontmatter
-
     content = path.read_text(encoding="utf-8")
     fm, _ = parse_frontmatter(content)
     return fm
@@ -76,7 +103,7 @@ def _read_frontmatter(path: Path) -> dict:
 
 @pytest.fixture
 def project_with_tickets(tmp_path, monkeypatch):
-    """建立 tmp 專案結構並 patch get_project_root 到 migrate / paths 模組。
+    """建立 tmp 專案結構並 patch get_project_root（集中於 _patch_get_project_root）。
 
     Returns:
         (tmp_path, tickets_dir) — 用於後續寫入測試 ticket
@@ -84,19 +111,7 @@ def project_with_tickets(tmp_path, monkeypatch):
     work_logs = tmp_path / "docs" / "work-logs" / "v0.18.0" / "tickets"
     work_logs.mkdir(parents=True)
 
-    import ticket_system.commands.migrate as migrate_mod
-    import ticket_system.lib.ticket_loader as loader_mod
-
-    monkeypatch.setattr(migrate_mod, "get_project_root", lambda: tmp_path)
-    monkeypatch.setattr(loader_mod, "get_project_root", lambda: tmp_path)
-
-    # paths 模組可能不存在或結構不同，盡量也 patch
-    try:
-        import ticket_system.lib.paths as paths_mod  # type: ignore
-        if hasattr(paths_mod, "get_project_root"):
-            monkeypatch.setattr(paths_mod, "get_project_root", lambda: tmp_path)
-    except ImportError:
-        pass
+    _patch_get_project_root(monkeypatch, tmp_path)
 
     return tmp_path, work_logs
 
@@ -115,7 +130,6 @@ class TestAC1_ParentChildrenUpdated:
         When: 對 old_id → new_id 呼叫 _update_cross_references
         Then: P.children = [new_id, sibling_id]，old_id 完全消失
         """
-        from ticket_system.commands.migrate import _update_cross_references
 
         _, tickets_dir = project_with_tickets
 
@@ -138,7 +152,6 @@ class TestAC1_ParentChildrenUpdated:
         When: 對 old_id → new_id 呼叫 _update_cross_references
         Then: 對應 dict.id 變為 new_id；其他鍵值（type 等）保留
         """
-        from ticket_system.commands.migrate import _update_cross_references
 
         _, tickets_dir = project_with_tickets
 
@@ -164,7 +177,6 @@ class TestAC1_ParentChildrenUpdated:
         When: 對 old_id → new_id 呼叫 _update_cross_references
         Then: 兩種形式的引用都被更新；其他 children 不受影響
         """
-        from ticket_system.commands.migrate import _update_cross_references
 
         _, tickets_dir = project_with_tickets
 
@@ -191,7 +203,6 @@ class TestAC1_ParentChildrenUpdated:
         """
         端到端驗證（透過 _migrate_single_ticket）。
         """
-        from ticket_system.commands.migrate import _migrate_single_ticket
 
         _, tickets_dir = project_with_tickets
 
@@ -261,7 +272,6 @@ class TestAC2_ExternalReferencesUpdated:
         self, project_with_tickets, field, build_initial, build_expected
     ):
         """五個單欄位場景共用驗證骨架；失敗訊息以 ids 標示欄位名。"""
-        from ticket_system.commands.migrate import _update_cross_references
 
         _, tickets_dir = project_with_tickets
         old_id, new_id, other = "0.18.0-W5-001", "0.18.0-W11-001", "0.18.0-W5-002"
@@ -282,7 +292,6 @@ class TestAC2_ExternalReferencesUpdated:
         Given: 同一 ticket E 五欄位都引用 old_id
         Then: 五欄位都更新；updated_count == 1（同檔案只計一次）
         """
-        from ticket_system.commands.migrate import _update_cross_references
 
         _, tickets_dir = project_with_tickets
         old_id, new_id = "0.18.0-W5-001", "0.18.0-W11-001"
@@ -316,7 +325,6 @@ class TestAC2_ExternalReferencesUpdated:
 
 
 def _write_migrations_yaml(tmp_path: Path, migrations: list) -> Path:
-    import yaml
 
     config = tmp_path / "migrations.yaml"
     config.write_text(yaml.dump({"migrations": migrations}), encoding="utf-8")
@@ -334,7 +342,6 @@ class TestAC3_BatchCrossMigrationReferences:
         When: _batch_migrate
         Then: A 不存、B 存、C.blockedBy = [B]
         """
-        from ticket_system.commands.migrate import _batch_migrate
 
         tmp_path, tickets_dir = project_with_tickets
         a, b = "0.18.0-W5-001", "0.18.0-W11-001"
@@ -359,7 +366,6 @@ class TestAC3_BatchCrossMigrationReferences:
         Given: A、C 存在；C.blockedBy = [A]；yaml = [A→A_new, C→C_new]
         Then: A、C 舊不存；A_new、C_new 存；C_new.blockedBy = [A_new]
         """
-        from ticket_system.commands.migrate import _batch_migrate
 
         tmp_path, tickets_dir = project_with_tickets
         a, a_new = "0.18.0-W5-001", "0.18.0-W11-001"
@@ -391,7 +397,6 @@ class TestAC3_BatchCrossMigrationReferences:
                yaml = [A→A_new, D→D_new]
         Then: P.children = [{id: A_new, type: IMP}, {id: D_new, type: IMP}]
         """
-        from ticket_system.commands.migrate import _batch_migrate
 
         tmp_path, tickets_dir = project_with_tickets
         a, a_new = "0.18.0-W5-001", "0.18.0-W11-001"
@@ -436,7 +441,6 @@ class TestAC4_W11ReorganizationScenario:
         """建立 W11 重組情境：父 + 3 child（混合 string/dict 形式）+ 3 外部引用，
         執行 _batch_migrate 並回傳 (tickets_dir, rc) 供後續驗證使用。
         """
-        from ticket_system.commands.migrate import _batch_migrate
 
         tmp_path, tickets_dir = project_with_tickets
 
@@ -523,7 +527,6 @@ class TestAC4_W11ReorganizationScenario:
 
     def test_w11_reorganization_idempotency(self, project_with_tickets):
         """重複執行 batch migrate 的冪等性：來源不存在 → skip → P.children 不變。"""
-        from ticket_system.commands.migrate import _batch_migrate
 
         tmp_path, tickets_dir = project_with_tickets
 
@@ -560,19 +563,19 @@ class TestAC4_W11ReorganizationScenario:
 
 
 class TestTD2_UpdateTicketIdReferencesSelfLoop:
-    """TD#2（PC-093 強制決斷追加）：鎖定 _update_ticket_id_references 既有實作行為。
+    """TD#2：鎖定 _update_ticket_id_references 既有實作行為。
 
-    現行實作（migrate.py:58-79）覆蓋三欄位：
-    - blockedBy（list 替換）
-    - children dict 形式（id 替換）
-    - source_ticket（直接替換）
-    其他欄位（relatedTo / parent_id / spawned_tickets / children string）為已知未覆蓋，
-    本測試僅鎖定既有行為以防退化（此函式為 self-loop 異常情境，實務罕見）。
+    W11-003.11 補齊六欄位完整處理（與 _update_cross_references 對齊）：
+    - blockedBy（list of string）
+    - relatedTo（list of string）
+    - children（string list + dict 兩形式）
+    - source_ticket（scalar）
+    - parent_id（scalar）
+    - spawned_tickets（list of string）
     """
 
     def test_self_loop_source_ticket_updated(self):
         """source_ticket 自我引用會被更新。"""
-        from ticket_system.commands.migrate import _update_ticket_id_references
 
         old_id, new_id = "0.18.0-W5-001", "0.18.0-W11-001"
         ticket = {"id": old_id, "source_ticket": old_id}
@@ -580,3 +583,114 @@ class TestTD2_UpdateTicketIdReferencesSelfLoop:
         _update_ticket_id_references(ticket, old_id, new_id)
 
         assert ticket["source_ticket"] == new_id
+
+    def test_blockedBy_updated(self):
+        """blockedBy list 自我引用會被更新；其他保留。"""
+        old_id, new_id, other = "0.18.0-W5-001", "0.18.0-W11-001", "0.18.0-W5-099"
+        ticket = {"id": old_id, "blockedBy": [old_id, other]}
+
+        _update_ticket_id_references(ticket, old_id, new_id)
+
+        assert ticket["blockedBy"] == [new_id, other]
+
+    def test_relatedTo_updated(self):
+        """relatedTo list 自我引用會被更新（W11-003.11 新支援）。"""
+        old_id, new_id, other = "0.18.0-W5-001", "0.18.0-W11-001", "0.18.0-W5-099"
+        ticket = {"id": old_id, "relatedTo": [old_id, other]}
+
+        _update_ticket_id_references(ticket, old_id, new_id)
+
+        assert ticket["relatedTo"] == [new_id, other]
+
+    def test_parent_id_updated(self):
+        """parent_id 自我引用會被更新（W11-003.11 新支援）。"""
+        old_id, new_id = "0.18.0-W5-001", "0.18.0-W11-001"
+        ticket = {"id": old_id, "parent_id": old_id}
+
+        _update_ticket_id_references(ticket, old_id, new_id)
+
+        assert ticket["parent_id"] == new_id
+
+    def test_spawned_tickets_updated(self):
+        """spawned_tickets list 自我引用會被更新（W11-003.11 新支援）。"""
+        old_id, new_id, other = "0.18.0-W5-001", "0.18.0-W11-001", "0.18.0-W5-099"
+        ticket = {"id": old_id, "spawned_tickets": [old_id, other]}
+
+        _update_ticket_id_references(ticket, old_id, new_id)
+
+        assert ticket["spawned_tickets"] == [new_id, other]
+
+    def test_children_string_list_updated(self):
+        """children 為純 string list 時自我引用會被更新（W11-003.11 新支援）。"""
+        old_id, new_id, sibling = "0.18.0-W5-001", "0.18.0-W11-001", "0.18.0-W5-019"
+        ticket = {"id": old_id, "children": [old_id, sibling]}
+
+        _update_ticket_id_references(ticket, old_id, new_id)
+
+        assert ticket["children"] == [new_id, sibling]
+
+    def test_children_dict_list_updated(self):
+        """children 為 dict list 時自我引用會被更新（既有行為保留）。"""
+        old_id, new_id = "0.18.0-W5-001", "0.18.0-W11-001"
+        ticket = {
+            "id": old_id,
+            "children": [{"id": old_id, "type": "IMP"}, {"id": "other", "type": "ANA"}],
+        }
+
+        _update_ticket_id_references(ticket, old_id, new_id)
+
+        assert ticket["children"][0] == {"id": new_id, "type": "IMP"}
+        assert ticket["children"][1] == {"id": "other", "type": "ANA"}
+
+    def test_children_mixed_string_and_dict(self):
+        """children 同時含 string 與 dict 形式時，兩者都會被更新。"""
+        old_id, new_id = "0.18.0-W5-001", "0.18.0-W11-001"
+        ticket = {
+            "id": old_id,
+            "children": [old_id, {"id": old_id, "type": "IMP"}, "kept"],
+        }
+
+        _update_ticket_id_references(ticket, old_id, new_id)
+
+        assert ticket["children"][0] == new_id
+        assert ticket["children"][1] == {"id": new_id, "type": "IMP"}
+        assert ticket["children"][2] == "kept"
+
+    def test_six_fields_all_updated_together(self):
+        """單一 ticket 六欄位皆引用 old_id 時一次性全部更新。"""
+        old_id, new_id = "0.18.0-W5-001", "0.18.0-W11-001"
+        ticket = {
+            "id": old_id,
+            "blockedBy": [old_id],
+            "relatedTo": [old_id],
+            "children": [old_id],
+            "source_ticket": old_id,
+            "parent_id": old_id,
+            "spawned_tickets": [old_id],
+        }
+
+        _update_ticket_id_references(ticket, old_id, new_id)
+
+        assert ticket["blockedBy"] == [new_id]
+        assert ticket["relatedTo"] == [new_id]
+        assert ticket["children"] == [new_id]
+        assert ticket["source_ticket"] == new_id
+        assert ticket["parent_id"] == new_id
+        assert ticket["spawned_tickets"] == [new_id]
+
+    def test_non_matching_id_left_untouched(self):
+        """ticket 不引用 old_id 時欄位不變。"""
+        old_id, new_id = "0.18.0-W5-001", "0.18.0-W11-001"
+        ticket = {
+            "id": old_id,
+            "blockedBy": ["0.18.0-W5-099"],
+            "relatedTo": ["0.18.0-W5-099"],
+            "parent_id": "0.18.0-W5-099",
+        }
+        snapshot = {k: list(v) if isinstance(v, list) else v for k, v in ticket.items()}
+
+        _update_ticket_id_references(ticket, old_id, new_id)
+
+        assert ticket["blockedBy"] == snapshot["blockedBy"]
+        assert ticket["relatedTo"] == snapshot["relatedTo"]
+        assert ticket["parent_id"] == snapshot["parent_id"]
