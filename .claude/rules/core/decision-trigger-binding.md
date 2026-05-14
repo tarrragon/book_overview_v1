@@ -178,8 +178,4 @@ marker 必須**緊鄰命中行**：同一行行尾，或命中行上方一行（
 
 ---
 
-**Last Updated**: 2026-05-13
-**Version**: 1.2.0 — 新增「Hook 引用豁免機制」段：合法豁免類別表、標記位置規則（緊鄰命中行）、多命中行情境（W10-126 落地 + PC-146 防護收斂）。
-**Version**: 1.1.0 — 新增規則 1.5「適用邊界：程式碼/文件 vs worklog/ticket」；規則 1 禁止詞表加入「將來」；規則 2 替代方案表新增「ticket 計數」「版本錨點」兩列非時間 trigger；規則 4 違規偵測 + 檢查清單同步加「將來」「下週」「下個月」；引用 friction-management-methodology.md 解釋時間非權重單位。
-**Version**: 1.0.0 — 從用戶原則「不應該在任何時候使用延後決策」+ WRAP 完整模式分析（D + A + E 三層落地，trigger 限 ticket ID only，不設探索性例外）建立。
-**Source**: PC-093 反模式描述的正向 prescriptive 替代框架；hook 精度誤判的合法 Phase 4 結論案例觸發本次反思。
+**Last Updated**: 2026-05-13 | **Version**: 1.2.0 — 兩種合法狀態 + 適用邊界（程式碼/文件 vs worklog）+ Hook 引用豁免機制（PC-146 防護）。歷史 1.0–1.1 版見 git log。**Source**: PC-093 / PC-146。
