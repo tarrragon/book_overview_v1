@@ -36,13 +36,14 @@ from hook_utils import (
     is_subagent_environment,
     generate_hook_output,
     read_json_from_stdin,
+    get_project_root,
+    find_active_in_progress_ticket,
 )
 from lib.hook_messages import (
     AskUserQuestionMessages,
     ProcessSkipMessages,
     format_message,
 )
-from lib.frontmatter_parser import parse_frontmatter
 
 # Type/phase guard 規則：SKIP_SA_REVIEW 在以下 ticket 上下文應靜音
 # - DOC / ANA type：全面靜音（非實作任務無 SA 前置審查需求）
@@ -167,9 +168,7 @@ def has_active_dispatch() -> bool:
         True 若有 active dispatch；False 若檔案缺失/損毀/dispatches 空
     """
     try:
-        root = _find_repo_root()
-        if root is None:
-            return False
+        root = get_project_root()
         path = root / ".claude" / "dispatch-active.json"
         if not path.exists():
             return False
@@ -177,7 +176,7 @@ def has_active_dispatch() -> bool:
         if isinstance(data, dict):
             dispatches = data.get("dispatches", [])
         elif isinstance(data, list):
-            # 兼容舊格式（裸陣列）
+            # 兼容舊格式(裸陣列)
             dispatches = data
         else:
             return False
@@ -187,54 +186,27 @@ def has_active_dispatch() -> bool:
         return False
 
 
-def _find_repo_root() -> Optional[Path]:
-    """向上尋找含 docs/work-logs 的祖先目錄（hook 隨 worktree/主 repo 走皆成立）"""
-    for parent in Path(__file__).resolve().parents:
-        if (parent / "docs" / "work-logs").exists():
-            return parent
-    return None
-
-
-def _parse_ticket_frontmatter(path: Path) -> Optional[dict]:
-    """讀取單一 ticket 檔的 frontmatter，失敗回 None（不影響整體掃描）"""
-    try:
-        return parse_frontmatter(path.read_text(encoding="utf-8"))
-    except Exception:
-        return None
-
-
 def get_active_in_progress_ticket() -> Optional[dict]:
     """
-    找出最新 in_progress ticket（依 mtime 由新到舊掃描，遇第一個即返回）
+    找出最新 in_progress ticket（W11-021 統一入口包裝）
+
+    委派至 hook_utils.find_active_in_progress_ticket（共用 helper，含 archive/backup
+    排除與 get_project_root worktree 支援），並投影為本 hook 所需欄位。
 
     Returns:
         {"type": ..., "current_phase": ...} 若找到；None 若無或讀取失敗
 
     Performance:
-        Phase 4 實測 999 ticket 全掃 1052ms；short-circuit + mtime 排序使 hot path
-        命中第一個 in_progress 即 return，cold path 延遲 << 100ms（W11-019）
+        共用 helper 採 mtime 排序 + short-circuit；hot path 命中第一個 in_progress
+        即 return，cold path 延遲 << 100ms（W11-019）
     """
-    root = _find_repo_root()
-    if root is None:
+    fm = find_active_in_progress_ticket()
+    if not fm:
         return None
-
-    try:
-        paths = sorted(
-            root.glob("docs/work-logs/**/tickets/*.md"),
-            key=lambda p: p.stat().st_mtime,
-            reverse=True,
-        )
-    except OSError:
-        return None
-
-    for path in paths:
-        fm = _parse_ticket_frontmatter(path)
-        if fm and fm.get("status") == "in_progress":
-            return {
-                "type": fm.get("type"),
-                "current_phase": fm.get("current_phase"),
-            }
-    return None
+    return {
+        "type": fm.get("type"),
+        "current_phase": fm.get("current_phase"),
+    }
 
 
 def _should_silence_sa_review(active_ticket: Optional[dict]) -> bool:

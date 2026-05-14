@@ -48,6 +48,7 @@ from .hook_ticket import (
     extract_wave_from_ticket_id,
     validate_ticket_has_decision_tree,
     validate_ticket_unified,
+    find_active_in_progress_ticket,
 )
 
 __all__ = [
@@ -82,4 +83,5 @@ __all__ = [
     "extract_wave_from_ticket_id",
     "validate_ticket_has_decision_tree",
     "validate_ticket_unified",
+    "find_active_in_progress_ticket",
 ]
