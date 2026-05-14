@@ -32,6 +32,7 @@ AC 對應（4 條）：
 from pathlib import Path
 
 import pytest
+import yaml
 
 
 # ---------------------------------------------------------------------------
@@ -42,40 +43,25 @@ import pytest
 def _write_ticket(tickets_dir: Path, ticket_id: str, extra_fields: dict) -> Path:
     """寫入最小化 Ticket 檔案（含 frontmatter + body）。
 
-    支援欄位形式：
-    - 純值：`status: pending`
-    - list of string：`children: [a, b]` → `- a` / `- b`
-    - list of dict：`children: [{id: a, type: IMP}]` → `- id: a` / `  type: IMP`
+    使用 yaml.safe_dump 序列化 frontmatter，自然支援純值 / list of string /
+    list of dict 三種欄位形式，無需手寫分支邏輯。
     """
-    filename = f"{ticket_id}.md"
-    path = tickets_dir / filename
+    path = tickets_dir / f"{ticket_id}.md"
 
-    lines = [
-        "---",
-        f"id: {ticket_id}",
-        f"title: Test {ticket_id}",
-        "type: IMP",
-        "status: pending",
-    ]
-    for key, value in extra_fields.items():
-        if isinstance(value, list):
-            lines.append(f"{key}:")
-            for item in value:
-                if isinstance(item, dict):
-                    items = list(item.items())
-                    first_k, first_v = items[0]
-                    lines.append(f"  - {first_k}: {first_v}")
-                    for k, v in items[1:]:
-                        lines.append(f"    {k}: {v}")
-                else:
-                    lines.append(f"  - {item}")
-        else:
-            lines.append(f"{key}: {value}")
-    lines.append("---")
-    lines.append("")
-    lines.append("# Body")
+    frontmatter = {
+        "id": ticket_id,
+        "title": f"Test {ticket_id}",
+        "type": "IMP",
+        "status": "pending",
+        **extra_fields,
+    }
 
-    path.write_text("\n".join(lines), encoding="utf-8")
+    content = (
+        "---\n"
+        + yaml.safe_dump(frontmatter, sort_keys=False, allow_unicode=True)
+        + "---\n\n# Body"
+    )
+    path.write_text(content, encoding="utf-8")
     return path
 
 
@@ -237,67 +223,57 @@ class TestAC1_ParentChildrenUpdated:
 class TestAC2_ExternalReferencesUpdated:
     """AC2：外部 ticket 五欄位引用同步更新。"""
 
-    def test_blockedby_updated(self, project_with_tickets):
+    # 五個單欄位場景：(欄位名, 初始值 builder, 期望值 builder)
+    # list 形式（blockedBy / relatedTo / spawned_tickets）含 other 驗證部分替換；
+    # scalar 形式（parent_id / source_ticket）只放 old_id。
+    @pytest.mark.parametrize(
+        "field, build_initial, build_expected",
+        [
+            (
+                "blockedBy",
+                lambda old, other: [old, other],
+                lambda new, other: [new, other],
+            ),
+            (
+                "relatedTo",
+                lambda old, other: [old, other],
+                lambda new, other: [new, other],
+            ),
+            (
+                "parent_id",
+                lambda old, other: old,
+                lambda new, other: new,
+            ),
+            (
+                "source_ticket",
+                lambda old, other: old,
+                lambda new, other: new,
+            ),
+            (
+                "spawned_tickets",
+                lambda old, other: [old, other],
+                lambda new, other: [new, other],
+            ),
+        ],
+        ids=["blockedBy", "relatedTo", "parent_id", "source_ticket", "spawned_tickets"],
+    )
+    def test_single_field_updated(
+        self, project_with_tickets, field, build_initial, build_expected
+    ):
+        """五個單欄位場景共用驗證骨架；失敗訊息以 ids 標示欄位名。"""
         from ticket_system.commands.migrate import _update_cross_references
 
         _, tickets_dir = project_with_tickets
         old_id, new_id, other = "0.18.0-W5-001", "0.18.0-W11-001", "0.18.0-W5-002"
-        _write_ticket(tickets_dir, "0.18.0-W11-EXT", {"blockedBy": [old_id, other]})
 
-        _update_cross_references(old_id, new_id)
-
-        fm = _read_frontmatter(tickets_dir / "0.18.0-W11-EXT.md")
-        assert fm["blockedBy"] == [new_id, other]
-
-    def test_relatedto_updated(self, project_with_tickets):
-        from ticket_system.commands.migrate import _update_cross_references
-
-        _, tickets_dir = project_with_tickets
-        old_id, new_id, other = "0.18.0-W5-001", "0.18.0-W11-001", "0.18.0-W5-002"
-        _write_ticket(tickets_dir, "0.18.0-W11-EXT", {"relatedTo": [old_id, other]})
-
-        _update_cross_references(old_id, new_id)
-
-        fm = _read_frontmatter(tickets_dir / "0.18.0-W11-EXT.md")
-        assert fm["relatedTo"] == [new_id, other]
-
-    def test_parent_id_updated(self, project_with_tickets):
-        from ticket_system.commands.migrate import _update_cross_references
-
-        _, tickets_dir = project_with_tickets
-        old_id, new_id = "0.18.0-W5-001", "0.18.0-W11-001"
-        _write_ticket(tickets_dir, "0.18.0-W11-EXT", {"parent_id": old_id})
-
-        _update_cross_references(old_id, new_id)
-
-        fm = _read_frontmatter(tickets_dir / "0.18.0-W11-EXT.md")
-        assert fm["parent_id"] == new_id
-
-    def test_source_ticket_updated(self, project_with_tickets):
-        from ticket_system.commands.migrate import _update_cross_references
-
-        _, tickets_dir = project_with_tickets
-        old_id, new_id = "0.18.0-W5-001", "0.18.0-W11-001"
-        _write_ticket(tickets_dir, "0.18.0-W11-EXT", {"source_ticket": old_id})
-
-        _update_cross_references(old_id, new_id)
-
-        fm = _read_frontmatter(tickets_dir / "0.18.0-W11-EXT.md")
-        assert fm["source_ticket"] == new_id
-
-    def test_spawned_tickets_updated(self, project_with_tickets):
-        from ticket_system.commands.migrate import _update_cross_references
-
-        _, tickets_dir = project_with_tickets
-        old_id, new_id, other = "0.18.0-W5-001", "0.18.0-W11-001", "0.18.0-W5-002"
         _write_ticket(
-            tickets_dir, "0.18.0-W11-EXT", {"spawned_tickets": [old_id, other]}
+            tickets_dir, "0.18.0-W11-EXT", {field: build_initial(old_id, other)}
         )
 
         _update_cross_references(old_id, new_id)
 
         fm = _read_frontmatter(tickets_dir / "0.18.0-W11-EXT.md")
-        assert fm["spawned_tickets"] == [new_id, other]
+        assert fm[field] == build_expected(new_id, other)
 
     def test_multiple_fields_in_single_ticket_all_updated(
         self, project_with_tickets
@@ -450,80 +426,100 @@ class TestAC3_BatchCrossMigrationReferences:
 class TestAC4_W11ReorganizationScenario:
     """AC4：W11 重組整合情境。"""
 
-    def test_w11_reorganization_full_consistency(self, project_with_tickets):
-        """W11 重組三筆批量遷移 + 父 children 混合形式 + 三類外部引用 + 零殘留檢查（精確比對）。"""
+    # W11 重組共用情境常數（p_id / 3 對 child id mapping）
+    P_ID = "0.18.0-W11-003"
+    C1, C1_NEW = "0.18.0-W5-018", "0.18.0-W11-003.1"
+    C2, C2_NEW = "0.18.0-W10-022", "0.18.0-W11-003.2"
+    C3, C3_NEW = "0.18.0-W10-038", "0.18.0-W11-003.3"
+
+    def _setup_w11_scenario(self, project_with_tickets):
+        """建立 W11 重組情境：父 + 3 child（混合 string/dict 形式）+ 3 外部引用，
+        執行 _batch_migrate 並回傳 (tickets_dir, rc) 供後續驗證使用。
+        """
         from ticket_system.commands.migrate import _batch_migrate
 
         tmp_path, tickets_dir = project_with_tickets
 
-        p_id = "0.18.0-W11-003"
-        c1, c1_new = "0.18.0-W5-018", "0.18.0-W11-003.1"
-        c2, c2_new = "0.18.0-W10-022", "0.18.0-W11-003.2"
-        c3, c3_new = "0.18.0-W10-038", "0.18.0-W11-003.3"
-
         _write_ticket(
             tickets_dir,
-            p_id,
-            {"children": [c1, c2, {"id": c3, "type": "IMP"}]},
+            self.P_ID,
+            {"children": [self.C1, self.C2, {"id": self.C3, "type": "IMP"}]},
         )
-        for cid in (c1, c2, c3):
+        for cid in (self.C1, self.C2, self.C3):
             _write_ticket(tickets_dir, cid, {})
-        _write_ticket(tickets_dir, "0.18.0-W11-E1", {"blockedBy": [c1]})
-        _write_ticket(tickets_dir, "0.18.0-W11-E2", {"relatedTo": [c2]})
-        _write_ticket(tickets_dir, "0.18.0-W11-E3", {"parent_id": c3})
+        _write_ticket(tickets_dir, "0.18.0-W11-E1", {"blockedBy": [self.C1]})
+        _write_ticket(tickets_dir, "0.18.0-W11-E2", {"relatedTo": [self.C2]})
+        _write_ticket(tickets_dir, "0.18.0-W11-E3", {"parent_id": self.C3})
 
         config = _write_migrations_yaml(
             tmp_path,
             [
-                {"from": c1, "to": c1_new},
-                {"from": c2, "to": c2_new},
-                {"from": c3, "to": c3_new},
+                {"from": self.C1, "to": self.C1_NEW},
+                {"from": self.C2, "to": self.C2_NEW},
+                {"from": self.C3, "to": self.C3_NEW},
             ],
         )
 
         rc = _batch_migrate("0.18.0", str(config), dry_run=False, backup=False)
-        assert rc == 0
+        return tickets_dir, rc
 
-        # 1. child rename
-        for old, new in [(c1, c1_new), (c2, c2_new), (c3, c3_new)]:
+    def _verify_child_renamed(self, tickets_dir):
+        """驗證面向 1：3 個 child ticket 都 rename 為新 ID。"""
+        for old, new in [(self.C1, self.C1_NEW), (self.C2, self.C2_NEW), (self.C3, self.C3_NEW)]:
             assert not (tickets_dir / f"{old}.md").exists(), f"{old} should be renamed"
             assert (tickets_dir / f"{new}.md").exists(), f"{new} should exist"
 
-        # 2. 父 P.children 完整更新（順序保持、形式保留）
-        fm_p = _read_frontmatter(tickets_dir / f"{p_id}.md")
-        assert fm_p["children"] == [c1_new, c2_new, {"id": c3_new, "type": "IMP"}]
+    def _verify_parent_children_updated(self, tickets_dir):
+        """驗證面向 2：父 P.children 順序保持、形式保留（string + dict 混合）。"""
+        fm_p = _read_frontmatter(tickets_dir / f"{self.P_ID}.md")
+        assert fm_p["children"] == [
+            self.C1_NEW,
+            self.C2_NEW,
+            {"id": self.C3_NEW, "type": "IMP"},
+        ]
 
-        # 3. 外部引用同步
+    def _verify_external_refs_synced(self, tickets_dir):
+        """驗證面向 3：外部 ticket 三類欄位（blockedBy/relatedTo/parent_id）同步。"""
         fm_e1 = _read_frontmatter(tickets_dir / "0.18.0-W11-E1.md")
         fm_e2 = _read_frontmatter(tickets_dir / "0.18.0-W11-E2.md")
         fm_e3 = _read_frontmatter(tickets_dir / "0.18.0-W11-E3.md")
-        assert fm_e1["blockedBy"] == [c1_new]
-        assert fm_e2["relatedTo"] == [c2_new]
-        assert fm_e3["parent_id"] == c3_new
+        assert fm_e1["blockedBy"] == [self.C1_NEW]
+        assert fm_e2["relatedTo"] == [self.C2_NEW]
+        assert fm_e3["parent_id"] == self.C3_NEW
 
-        # 4. 零殘留（TD#3：用集合精確比對 frontmatter 欄位，避免 prefix 誤判）
-        old_ids = {c1, c2, c3}
+    def _verify_no_stale_old_ids(self, tickets_dir):
+        """驗證面向 4：所有 ticket frontmatter 六欄位精確比對無舊 ID 殘留
+        （TD#3：用集合精確比對避免 prefix 誤判）。
+        """
+        old_ids = {self.C1, self.C2, self.C3}
         for md_file in tickets_dir.glob("*.md"):
             fm = _read_frontmatter(md_file)
             # children: 同時檢查 string 與 dict 形式
-            children = fm.get("children") or []
-            for ch in children:
+            for ch in fm.get("children") or []:
                 if isinstance(ch, str):
                     assert ch not in old_ids, f"{md_file.name} children 仍含舊 ID {ch}"
                 elif isinstance(ch, dict):
                     assert ch.get("id") not in old_ids, (
                         f"{md_file.name} children dict 仍含舊 ID {ch.get('id')}"
                     )
-            # 其他欄位
             for field in ("blockedBy", "relatedTo", "spawned_tickets"):
-                values = fm.get(field) or []
-                for v in values:
-                    assert v not in old_ids, (
-                        f"{md_file.name} {field} 仍含舊 ID {v}"
-                    )
+                for v in fm.get(field) or []:
+                    assert v not in old_ids, f"{md_file.name} {field} 仍含舊 ID {v}"
             for field in ("parent_id", "source_ticket"):
-                v = fm.get(field)
-                assert v not in old_ids, f"{md_file.name} {field} 仍含舊 ID {v}"
+                assert fm.get(field) not in old_ids, (
+                    f"{md_file.name} {field} 仍含舊 ID {fm.get(field)}"
+                )
+
+    def test_w11_reorganization_full_consistency(self, project_with_tickets):
+        """W11 重組三筆批量遷移：四個驗證面向組合（child rename / 父 children /
+        外部引用 / 零殘留）。各面向細節下放至 `_verify_*` helper。"""
+        tickets_dir, rc = self._setup_w11_scenario(project_with_tickets)
+        assert rc == 0
+
+        self._verify_child_renamed(tickets_dir)
+        self._verify_parent_children_updated(tickets_dir)
+        self._verify_external_refs_synced(tickets_dir)
+        self._verify_no_stale_old_ids(tickets_dir)
 
     def test_w11_reorganization_idempotency(self, project_with_tickets):
         """重複執行 batch migrate 的冪等性：來源不存在 → skip → P.children 不變。"""
