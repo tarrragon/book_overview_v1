@@ -22,6 +22,7 @@ from .hook_logging import (
 from .hook_io import (
     run_git,
     read_json_from_stdin,
+    get_effort_level,
     extract_tool_input,
     extract_tool_response,
     is_handoff_recovery_mode,
@@ -59,6 +60,7 @@ __all__ = [
     "run_hook_safely",
     "run_git",
     "read_json_from_stdin",
+    "get_effort_level",
     "extract_tool_input",
     "extract_tool_response",
     "is_handoff_recovery_mode",
