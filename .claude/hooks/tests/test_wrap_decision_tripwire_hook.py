@@ -246,7 +246,7 @@ class TestB_Settings:
         found = False
         for entry in settings["hooks"]["PostToolUse"]:
             for h in entry.get("hooks", []):
-                if "wrap-decision-tripwire-hook.py" in h.get("command", ""):
+                if "wrap-decision-tripwire-hook.py" in (h.get("command", "") + " ".join(h.get("args", []))):
                     found = True
         assert found
 
@@ -254,7 +254,7 @@ class TestB_Settings:
         found = False
         for entry in settings["hooks"]["UserPromptSubmit"]:
             for h in entry.get("hooks", []):
-                if "wrap-decision-tripwire-hook.py" in h.get("command", ""):
+                if "wrap-decision-tripwire-hook.py" in (h.get("command", "") + " ".join(h.get("args", []))):
                     found = True
         assert found
 
@@ -262,7 +262,7 @@ class TestB_Settings:
         for ev in ("PreToolUse", "SessionStart", "Stop"):
             for entry in settings["hooks"].get(ev, []):
                 for h in entry.get("hooks", []):
-                    assert "wrap-decision-tripwire-hook.py" not in h.get("command", ""), \
+                    assert "wrap-decision-tripwire-hook.py" not in (h.get("command", "") + " ".join(h.get("args", []))), \
                         "hook should not register to {}".format(ev)
 
     def test_b4_no_duplicate_post_tool_use_entries(self, settings):
@@ -270,7 +270,7 @@ class TestB_Settings:
         count = 0
         for entry in settings["hooks"]["PostToolUse"]:
             for h in entry.get("hooks", []):
-                if "wrap-decision-tripwire-hook.py" in h.get("command", ""):
+                if "wrap-decision-tripwire-hook.py" in (h.get("command", "") + " ".join(h.get("args", []))):
                     count += 1
         assert count == 1, "Expect exactly 1 PostToolUse registration, got {}".format(count)
 
