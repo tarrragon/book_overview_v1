@@ -614,6 +614,38 @@ def _resolve_ticket_id_and_wave(args: argparse.Namespace, version: str) -> Optio
     return (version, ticket_id, wave)
 
 
+def _inherit_parent_who(parent_ticket: Optional[Dict[str, Any]]) -> str:
+    """從 parent ticket 取 who.current，相容舊字串格式。
+
+    W11-003.7: 舊 ticket（v0.16/v0.17 早期）who 為字串；新格式為 dict {current, history}。
+    型別防護策略：dict 走 .get("current")、str 直接使用、None/缺失 fallback "pending"。
+    """
+    if not parent_ticket:
+        return "pending"
+    who = parent_ticket.get("who")
+    if isinstance(who, dict):
+        return who.get("current") or "pending"
+    if isinstance(who, str) and who:
+        return who
+    return "pending"
+
+
+def _inherit_parent_where_layer(parent_ticket: Optional[Dict[str, Any]]) -> str:
+    """從 parent ticket 取 where.layer，相容舊字串格式。
+
+    W11-003.7: 舊 ticket where 為字串（即 layer 描述），新格式為 dict {layer, files}。
+    型別防護策略：dict 走 .get("layer")、str 直接使用、None/缺失 fallback DEFAULT_UNDEFINED_VALUE。
+    """
+    if not parent_ticket:
+        return DEFAULT_UNDEFINED_VALUE
+    where = parent_ticket.get("where")
+    if isinstance(where, dict):
+        return where.get("layer") or DEFAULT_UNDEFINED_VALUE
+    if isinstance(where, str) and where:
+        return where
+    return DEFAULT_UNDEFINED_VALUE
+
+
 def _parse_cli_args_to_config(
     args: argparse.Namespace,
     version: str,
@@ -691,10 +723,10 @@ def _parse_cli_args_to_config(
         "title": args.title or f"{args.action} {args.target}",
         "ticket_type": ticket_type,
         "priority": args.priority or DEFAULT_PRIORITY,
-        "who": args.who or (parent_ticket.get("who", {}).get("current") if parent_ticket else "pending"),
+        "who": args.who or _inherit_parent_who(parent_ticket),
         "what": args.what or f"{args.action} {args.target}",
         "when": args.when or DEFAULT_UNDEFINED_VALUE,
-        "where_layer": args.where_layer or (parent_ticket.get("where", {}).get("layer") if parent_ticket else DEFAULT_UNDEFINED_VALUE),
+        "where_layer": args.where_layer or _inherit_parent_where_layer(parent_ticket),
         "where_files": where_files,
         "why": why_value,
         "how_task_type": args.how_type or DEFAULT_HOW_TASK_TYPE,
