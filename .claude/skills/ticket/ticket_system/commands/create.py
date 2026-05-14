@@ -646,6 +646,25 @@ def _inherit_parent_where_layer(parent_ticket: Optional[Dict[str, Any]]) -> str:
     return DEFAULT_UNDEFINED_VALUE
 
 
+def _extract_where_files(ticket_data: Optional[Dict[str, Any]]) -> List[str]:
+    """從 ticket dict 取 where.files，相容舊字串格式。
+
+    W11-026: 舊 ticket where 為字串（即 layer 描述，無 files 概念），新格式為 dict {layer, files}。
+    型別防護策略：dict 走 .get("files", [])、str / None / 缺失皆回空 list。
+
+    與 _inherit_parent_where_layer 同模式但取 files（list 而非 str）。
+    本 helper 可重用於任何包含 where 欄位的 ticket dict（parent / child / new_ticket）。
+    """
+    if not ticket_data:
+        return []
+    where = ticket_data.get("where")
+    if isinstance(where, dict):
+        files = where.get("files")
+        return files if isinstance(files, list) else []
+    # str / None / 其他型別：舊格式無 files 概念
+    return []
+
+
 def _parse_cli_args_to_config(
     args: argparse.Namespace,
     version: str,
@@ -1402,7 +1421,7 @@ def _print_parallel_analysis_result(
 
         task = {
             "task_id": child_id,
-            "where_files": child_info.get("where", {}).get("files", []),
+            "where_files": _extract_where_files(child_info),
             "blockedBy": child_info.get("blockedBy", []),
             "title": child_info.get("title", ""),
         }
@@ -1453,7 +1472,7 @@ def _print_cognitive_load_assessment(
     if not new_ticket:
         return
 
-    where_files = new_ticket.get("where", {}).get("files") or []
+    where_files = _extract_where_files(new_ticket)
 
     # 若 where_files 為空或「待定義」
     if not where_files or where_files == [DEFAULT_UNDEFINED_VALUE]:
