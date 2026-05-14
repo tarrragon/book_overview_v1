@@ -161,29 +161,38 @@
 
 | 欄位 | 說明 |
 |------|------|
-| `command` | 要執行的 shell command |
-| `args` | **(v2.1.139+) exec 形式**：`string[]`，直接 spawn 不經 shell。優先使用以避免 shell quoting 問題（PC-079 同源） |
+| `command` | **必填 string**。無 `args` 時為完整 shell 字串（shell form）；有 `args` 時為執行檔路徑（exec form） |
+| `args` | 選填 `string[]`。出現時觸發 exec form，與 `command` 一起 spawn，不經 shell |
 | `async` | true 時背景執行，不阻塞流程 |
 | `asyncRewake` | true 時背景執行，exit code 2 會喚醒 Claude |
 | `shell` | `bash` 或 `powershell` |
 
-**`args` exec 形式範例（v2.1.139+，推薦）**：
+**Shell form（`args` 省略）**：
 
 ```json
 {
   "type": "command",
-  "args": [
-    "$CLAUDE_PROJECT_DIR/.claude/hooks/check-style.py",
-    "--strict",
-    "--report-dir=$CLAUDE_PROJECT_DIR/.claude/hook-logs"
-  ],
+  "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/check-style.py --strict",
   "timeout": 30
 }
 ```
 
-直接由 Claude Code spawn 不經 shell，避免 backtick command substitution、quoting、空白路徑等 shell 解析地雷。新 hook 預設用 `args`；既有 `command` 字串形式仍相容。
+`command` 完整字串走 shell 解析，可用 pipe / redirect / `&&`，但含空白路徑或 backtick 需自行 quote。
 
-> **本專案遷移狀態**：`.claude/settings.json`（121 hook entries）與 `.claude/settings.local.json`（2 entries）已於 0.18.0-W14-031 全數遷移至 `args` exec 形式。新增 hook 註冊請直接使用 `args`。
+**Exec form（`args` 出現，v2.1.139+，無 shell 解析）**：
+
+```json
+{
+  "type": "command",
+  "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/check-style.py",
+  "args": ["--strict", "--report-dir=$CLAUDE_PROJECT_DIR/.claude/hook-logs"],
+  "timeout": 30
+}
+```
+
+**注意**：`command` 永遠是必填 string，**不能省略**。`args` 僅作為「執行檔的 argv」，不是 `command` 的替代品。本檔在 0.18.0-W14-031 / W14-040 之前曾錯誤示範「args 取代 command」並導致 settings.json schema 驗證失敗（`/doctor` 報 `command: Expected string, but received undefined`）；範例已更正為官方 schema。
+
+> **官方來源**：https://code.claude.com/docs/en/hooks（Command hook fields 章節）。修改本段前必須 WebFetch 官方文件驗證 schema，禁止靠 release notes 推測。
 
 ### HTTP handler
 

@@ -655,7 +655,7 @@ def test_cfg_1_posttooluse_含_phase4_hook():
     for entry in posttool:
         if entry.get("matcher") == "Bash":
             bash_hooks.extend(entry.get("hooks", []))
-    commands = [h.get("command", "") + " ".join(h.get("args", [])) for h in bash_hooks]
+    commands = [h.get("command", "") for h in bash_hooks]
     assert any("phase4-decision-enforcement-hook" in c for c in commands)
 
 
@@ -666,7 +666,7 @@ def test_cfg_2_pretooluse_含_phase4_hook():
     for entry in pretool:
         if entry.get("matcher") == "Bash":
             bash_hooks.extend(entry.get("hooks", []))
-    commands = [h.get("command", "") + " ".join(h.get("args", [])) for h in bash_hooks]
+    commands = [h.get("command", "") for h in bash_hooks]
     assert any("phase4-decision-enforcement-hook" in c for c in commands)
 
 
@@ -678,7 +678,7 @@ def test_cfg_3_timeout_設定():
             if entry.get("matcher") != "Bash":
                 continue
             for h in entry.get("hooks", []):
-                if "phase4-decision-enforcement-hook" in (h.get("command", "") + " ".join(h.get("args", []))):
+                if "phase4-decision-enforcement-hook" in h.get("command", ""):
                     # timeout 欄位為可選，但若存在應 <= 10000
                     if "timeout" in h:
                         assert h["timeout"] <= 10000
