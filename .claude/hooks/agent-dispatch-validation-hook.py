@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --quiet --script
 # /// script
-# requires-python = ">=3.9"
-# dependencies = []
+# requires-python = ">=3.11"
+# dependencies = ["pyyaml"]
 # ///
 """
 Agent Dispatch Validation Hook - PreToolUse Hook
