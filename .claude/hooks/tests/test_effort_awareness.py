@@ -244,3 +244,214 @@ class TestPhase4EffortAlwaysBlocks:
         }
         rc, _, _ = _run_hook(self.HOOK, payload)
         assert rc == 0
+
+
+# ============================================================================
+# W14-037：類別 A 剩餘 6 hook effort 感知
+# ============================================================================
+
+class TestCreationAcceptanceGateEffort:
+    HOOK = HOOKS_DIR / "creation-acceptance-gate-hook.py"
+
+    def test_low_effort_short_circuits(self):
+        payload = {
+            "prompt": "/ticket track claim 0.18.0-W99-999",
+            "effort": {"level": "low"},
+        }
+        rc, stdout, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+        assert "UserPromptSubmit" in stdout
+
+    def test_medium_effort_processes(self):
+        payload = {
+            "prompt": "echo hi",  # 非 claim 命令，醫療通過
+            "effort": {"level": "medium"},
+        }
+        rc, _, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+
+    def test_high_effort_processes(self):
+        payload = {
+            "prompt": "echo hi",
+            "effort": {"level": "high"},
+        }
+        rc, _, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+
+
+class TestAnaTicketMetadataValidationEffort:
+    HOOK = HOOKS_DIR / "ana-ticket-metadata-validation-hook.py"
+
+    def test_low_effort_short_circuits(self):
+        payload = {
+            "tool_name": "Write",
+            "tool_input": {
+                "file_path": "docs/work-logs/v0.18.0/tickets/test.md",
+                "content": "---\nid: test\n---\n# x",
+            },
+            "effort": {"level": "low"},
+        }
+        rc, _, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+
+    def test_medium_effort_processes(self):
+        payload = {
+            "tool_name": "Write",
+            "tool_input": {"file_path": "/tmp/not-a-ticket.py"},
+            "effort": {"level": "medium"},
+        }
+        rc, _, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+
+    def test_high_effort_processes(self):
+        payload = {
+            "tool_name": "Write",
+            "tool_input": {"file_path": "/tmp/not-a-ticket.py"},
+            "effort": {"level": "high"},
+        }
+        rc, _, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+
+
+class TestTicketCreationValidationEffort:
+    HOOK = HOOKS_DIR / "ticket-creation-validation-hook.py"
+
+    def test_low_effort_short_circuits(self):
+        payload = {
+            "tool_name": "Write",
+            "tool_input": {
+                "file_path": "docs/work-logs/v0.18.0/tickets/test.md",
+                "content": "---\nid: test\n---\n# x",
+            },
+            "effort": {"level": "low"},
+        }
+        rc, _, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+
+    def test_medium_effort_processes(self):
+        payload = {
+            "tool_name": "Write",
+            "tool_input": {
+                "file_path": "/tmp/random.py",
+                "content": "x = 1",
+            },
+            "effort": {"level": "medium"},
+        }
+        rc, _, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+
+    def test_high_effort_processes(self):
+        payload = {
+            "tool_name": "Write",
+            "tool_input": {
+                "file_path": "/tmp/random.py",
+                "content": "x = 1",
+            },
+            "effort": {"level": "high"},
+        }
+        rc, _, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+
+
+class TestCommentQAEffort:
+    HOOK = HOOKS_DIR / "comment-qa-hook.py"
+
+    def test_low_effort_short_circuits(self):
+        payload = {
+            "tool_name": "Edit",
+            "tool_input": {"file_path": "/tmp/x.py"},
+            "tool_response": {"success": True},
+            "effort": {"level": "low"},
+        }
+        rc, _, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+
+    def test_medium_effort_processes(self):
+        payload = {
+            "tool_name": "Edit",
+            "tool_input": {"file_path": "/tmp/non-source.txt"},
+            "tool_response": {"success": True},
+            "effort": {"level": "medium"},
+        }
+        rc, _, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+
+    def test_high_effort_processes(self):
+        payload = {
+            "tool_name": "Edit",
+            "tool_input": {"file_path": "/tmp/non-source.txt"},
+            "tool_response": {"success": True},
+            "effort": {"level": "high"},
+        }
+        rc, _, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+
+
+class TestAuqCharsetGuardEffortAlwaysScans:
+    """關鍵測試：PC-074/PC-131 字元集偵測在 low effort 仍執行"""
+
+    HOOK = HOOKS_DIR / "askuserquestion-charset-guard-hook.py"
+
+    def test_low_effort_clean_payload_passes(self):
+        payload = {
+            "tool_name": "AskUserQuestion",
+            "tool_input": {
+                "questions": [
+                    {"question": "繼續嗎？", "options": [{"label": "是"}, {"label": "否"}]}
+                ]
+            },
+            "effort": {"level": "low"},
+        }
+        rc, _, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+
+    def test_low_effort_non_auq_tool_passes(self):
+        payload = {
+            "tool_name": "Bash",
+            "tool_input": {"command": "echo hi"},
+            "effort": {"level": "low"},
+        }
+        rc, _, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+
+    def test_high_effort_clean_payload_passes(self):
+        payload = {
+            "tool_name": "AskUserQuestion",
+            "tool_input": {"questions": []},
+            "effort": {"level": "high"},
+        }
+        rc, _, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+
+
+class TestAuqOptionPatternDetectorEffortAlwaysRuns:
+    """關鍵測試：PC-064 AUQ pattern 偵測在 low effort 仍執行"""
+
+    HOOK = HOOKS_DIR / "auq-option-pattern-detector-hook.py"
+
+    def test_low_effort_no_transcript_passes(self):
+        payload = {
+            "prompt": "echo hi",
+            "effort": {"level": "low"},
+        }
+        rc, stdout, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+        assert "UserPromptSubmit" in stdout
+
+    def test_medium_effort_no_transcript_passes(self):
+        payload = {
+            "prompt": "echo hi",
+            "effort": {"level": "medium"},
+        }
+        rc, stdout, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+        assert "UserPromptSubmit" in stdout
+
+    def test_high_effort_no_transcript_passes(self):
+        payload = {
+            "prompt": "echo hi",
+            "effort": {"level": "high"},
+        }
+        rc, stdout, _ = _run_hook(self.HOOK, payload)
+        assert rc == 0
+        assert "UserPromptSubmit" in stdout
