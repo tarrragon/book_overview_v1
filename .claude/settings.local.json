@@ -196,17 +196,6 @@
           }
         ]
       }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Agent",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/agent-dispatch-validation-hook.py"
-          }
-        ]
-      }
     ]
   },
   "outputStyle": "5W1H Structured Response"
