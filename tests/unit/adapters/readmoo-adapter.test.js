@@ -240,20 +240,21 @@ describe('ReadmooAdapter', () => {
       expect(book).toHaveProperty('type')
     })
 
-    test('應該能正確提取書籍 ID（使用封面URL系統）', async () => {
+    test('應該能正確提取書籍 ID（reader-link 優先，W6-012.2.1）', async () => {
       // eslint-disable-next-line no-unused-vars
       const books = await adapter.extractBooks()
       // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
-      // 新系統使用封面URL作為主要識別
-      expect(book.id).toBe('cover-qpfmrmi')
+      // W6-012.2.1：策略順序重排為 reader-link → cover → title → fallback
+      // 有合法 reader-link href 時，使用 reader-{readerId} 作為主 ID
+      expect(book.id).toBe('reader-210327003000101')
 
-      // 檢查額外識別資訊
+      // 檢查額外識別資訊（coverId 仍然提取保留作參考）
       expect(book.identifiers).toBeDefined()
       expect(book.identifiers.coverId).toBe('qpfmrmi')
       expect(book.identifiers.readerLinkId).toBe('210327003000101')
-      expect(book.identifiers.primarySource).toBe('cover')
+      expect(book.identifiers.primarySource).toBe('reader-link')
     })
 
     test('應該能正確提取書籍標題', async () => {
@@ -360,8 +361,8 @@ describe('ReadmooAdapter', () => {
       const book = books[0]
 
       expect(book.progress).toBe(0)
-      // 新系統中會嘗試從封面URL提取ID
-      expect(book.id).toContain('new') // 封面名稱為cover-new或相似
+      // W6-012.2.1：reader-link 優先，使用 reader-{readerId}
+      expect(book.id).toBe('reader-987654321')
     })
 
     test('應該能處理缺少某些欄位的書籍', async () => {
@@ -383,8 +384,8 @@ describe('ReadmooAdapter', () => {
       // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
-      // 新系統中會嘗試從封面URL提取ID
-      expect(book.id).toContain('incomplete') // 封面名稱為cover-incomplete或相似
+      // W6-012.2.1：reader-link 優先，使用 reader-{readerId}
+      expect(book.id).toBe('reader-111111111')
       expect(book.title).toBe('不完整資料')
       expect(book.progress).toBe(0) // 預設值
       expect(book.type).toBe('未知') // 預設值
@@ -476,13 +477,13 @@ describe('ReadmooAdapter', () => {
       adapter = createReadmooAdapter()
     })
 
-    test('應該優先使用封面URL提取書籍ID', async () => {
+    test('應該優先使用 reader-link 提取書籍ID（W6-012.2.1）', async () => {
       document.body.innerHTML = `
         <div class="library-item">
           <div class="cover">
             <a href="https://readmoo.com/api/reader/999999999" class="reader-link">
-              <img class="cover-img" 
-                   src="https://cdn.readmoo.com/cover/ab/test123_210x315.jpg?v=123456" 
+              <img class="cover-img"
+                   src="https://cdn.readmoo.com/cover/ab/test123_210x315.jpg?v=123456"
                    alt="測試書籍">
             </a>
           </div>
@@ -497,22 +498,22 @@ describe('ReadmooAdapter', () => {
       // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
-      // 主要ID應該來自封面URL
-      expect(book.id).toBe('cover-test123')
-      expect(book.identifiers.coverId).toBe('test123')
-      expect(book.identifiers.primarySource).toBe('cover')
+      // W6-012.2.1：reader-link 優先（穩定可反查 Readmoo 真實書籍）
+      expect(book.id).toBe('reader-999999999')
+      expect(book.identifiers.coverId).toBe('test123') // coverId 仍提取保留
+      expect(book.identifiers.primarySource).toBe('reader-link')
       expect(book.identifiers.readerLinkId).toBe('999999999')
     })
 
-    test('應該能從標題生成備用ID', async () => {
+    test('無 reader-link 與無 cover 時，應該從標題生成備用ID（W6-012.2.1）', async () => {
+      // W6-012.2.1：reader-link 優先策略下，僅當 reader-link 也缺失才走 title
+      // 用 readerLink 缺失（href 空 / 無 anchor）模擬無 reader id 來源
       document.body.innerHTML = `
         <div class="library-item">
           <div class="cover">
-            <a href="https://readmoo.com/api/reader/888888888" class="reader-link">
-              <img class="cover-img" 
-                   src="https://invalid-domain.com/nopattern.jpg" 
-                   alt="複雜 書籍@標題 (第一集)">
-            </a>
+            <img class="cover-img"
+                 src="https://invalid-domain.com/nopattern.jpg"
+                 alt="複雜 書籍@標題 (第一集)">
           </div>
           <div class="info">
             <div class="title" title="複雜 書籍@標題 (第一集)">複雜 書籍@標題 (第一集)</div>
@@ -525,19 +526,19 @@ describe('ReadmooAdapter', () => {
       // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
-      // 由於封面URL無法識別，應該使用標題生成ID
+      // 由於 reader-link 缺失 + cover URL 無法識別，應該使用標題生成ID
       expect(book.id).toBe('title-複雜-書籍標題-第一集')
       expect(book.identifiers.primarySource).toBe('title')
       expect(book.identifiers.titleBased).toBe('複雜-書籍標題-第一集')
     })
 
-    test('應該標記不穩定的reader-link ID', async () => {
+    test('應該以 reader-link 為主 ID（W6-012.2.1：reader-{readerId}，已移除 unstable- 前綴）', async () => {
       document.body.innerHTML = `
         <div class="library-item">
           <div class="cover">
             <a href="https://readmoo.com/api/reader/777777777" class="reader-link">
-              <img class="cover-img" 
-                   src="https://unknowndomain.com/unknown.png" 
+              <img class="cover-img"
+                   src="https://unknowndomain.com/unknown.png"
                    alt="">
             </a>
           </div>
@@ -552,8 +553,8 @@ describe('ReadmooAdapter', () => {
       // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
-      // 最後備用方案：使用reader-link但標記為不穩定
-      expect(book.id).toBe('unstable-777777777')
+      // W6-012.2.1：tryReaderStrategy 改返 reader-{id}（移除 unstable- 前綴）
+      expect(book.id).toBe('reader-777777777')
       expect(book.identifiers.primarySource).toBe('reader-link')
       expect(book.identifiers.readerLinkId).toBe('777777777')
     })
@@ -579,13 +580,13 @@ describe('ReadmooAdapter', () => {
       // eslint-disable-next-line no-unused-vars
       const book = books[0]
 
-      // 檢查完整的識別資訊結構
+      // 檢查完整的識別資訊結構（W6-012.2.1：primarySource 改為 reader-link）
       expect(book.identifiers).toEqual({
         coverId: 'unique456',
         titleBased: '完整測試書籍',
         readerLinkId: '555555555',
         privacyBookId: '',
-        primarySource: 'cover'
+        primarySource: 'reader-link'
       })
 
       expect(book.coverInfo).toEqual({
@@ -595,17 +596,16 @@ describe('ReadmooAdapter', () => {
       })
     })
 
-    test('應該正確處理不同的封面URL格式', async () => {
-      // eslint-disable-next-line no-unused-vars
+    test('應該正確解析不同的封面URL格式（W6-012.2.1：coverId 仍提取保留為輔助識別）', async () => {
+      // W6-012.2.1：reader-link 已成主 ID 來源，cover 改為輔助識別
+      // 本測試聚焦於 coverId 解析的正確性，book.id 由 reader-link 提供
       const testCases = [
         {
           url: 'https://cdn.readmoo.com/cover/ab/bookid123_210x315.jpg?v=123',
-          expectedId: 'cover-bookid123',
           expectedCoverId: 'bookid123'
         },
         {
           url: 'https://cdn.readmoo.com/cover/xy/another-book_300x450.png',
-          expectedId: 'cover-another-book',
           expectedCoverId: 'another-book'
         }
       ]
@@ -629,10 +629,65 @@ describe('ReadmooAdapter', () => {
         // eslint-disable-next-line no-unused-vars
         const book = books[0]
 
-        expect(book.id).toBe(testCase.expectedId)
+        expect(book.id).toBe('reader-123456')
         expect(book.identifiers.coverId).toBe(testCase.expectedCoverId)
-        expect(book.identifiers.primarySource).toBe('cover')
+        expect(book.identifiers.primarySource).toBe('reader-link')
       }
+    })
+  })
+
+  // W6-012.2.1：ID 策略優先級重排（reader-link 第一優先 + cover known-unstable 過濾）
+  // 對應 ticket: 0.18.0-W6-012.2.1
+  describe('ID 策略優先級 (W6-012.2.1)', () => {
+    beforeEach(() => {
+      adapter = createReadmooAdapter()
+    })
+
+    test('Case 1: reader-link 與 cover 同時可用時，reader-link 優先', () => {
+      const inputs = {
+        readerId: '18337744',
+        title: 'X',
+        cover: 'https://cdn.readmoo.com/cover/aa/abc_210x315.jpg'
+      }
+      const result = adapter.applyIdGenerationStrategiesWithInfo(inputs)
+      expect(result.id).toBe('reader-18337744')
+      expect(result.strategy).toBe('reader-link')
+    })
+
+    test('Case 2: reader-link 缺失但 cover 可用時，使用 cover 後備', () => {
+      const inputs = {
+        readerId: '',
+        title: 'X',
+        cover: 'https://cdn.readmoo.com/cover/aa/abc_210x315.jpg'
+      }
+      const result = adapter.applyIdGenerationStrategiesWithInfo(inputs)
+      expect(result.id).toBe('cover-abc')
+      expect(result.strategy).toBe('cover')
+    })
+
+    test('Case 3: cover 為 openbook 佔位圖時，過濾並改走 title 策略', () => {
+      const inputs = {
+        readerId: '',
+        title: '範例書名',
+        cover: 'https://read.readmoo.com/images/openbook.png'
+      }
+      const result = adapter.applyIdGenerationStrategiesWithInfo(inputs)
+      expect(result.strategy).toBe('title')
+      expect(result.id).toMatch(/^title-/)
+    })
+
+    test('Case 4: 全部來源缺失時，回退至 fallback 策略', () => {
+      const inputs = {
+        readerId: '',
+        title: '',
+        cover: ''
+      }
+      const result = adapter.applyIdGenerationStrategiesWithInfo(inputs)
+      expect(result.strategy).toBe('fallback')
+      // createFallbackId 目前回傳 'reader-undefined'（既有實作）
+      // 此處驗證 strategy 而非 id 字面，避免綁定 fallback id 內部格式
+      expect(typeof result.id).toBe('string')
+      expect(result.id.length).toBeGreaterThan(0)
     })
   })
 
@@ -699,8 +754,8 @@ describe('ReadmooAdapter', () => {
 
       // 應該能提取有效的書籍，忽略無效項目
       expect(books).toHaveLength(1)
-      // 由於封面URL無效，會使用標題生成ID
-      expect(books[0].id).toBe('title-有效書籍')
+      // W6-012.2.1：reader-link 優先，readerId = 'valid'
+      expect(books[0].id).toBe('reader-valid')
     })
   })
 

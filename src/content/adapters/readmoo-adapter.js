@@ -83,6 +83,11 @@ function createReadmooAdapter (options = {}) {
   // Readmoo SPA 佔位 URL 偵測用正則
   const PLACEHOLDER_URL_PATTERN = /\/api\/reader\/\d+$/
 
+  // 已知不穩定 / 佔位用 cover 圖片識別字（例：openbook.png placeholder）
+  // 命中時應跳過 cover 策略，改走 reader-link / title / fallback
+  // W6-012.2.1：cover-openbook 無法反查書籍，必須過濾
+  const UNSTABLE_COVER_IDS = new Set(['openbook', 'undefined', 'placeholder', 'default'])
+
   const adapter = {
     // 適配器標準屬性
     name: 'ReadmooAdapter',
@@ -869,6 +874,16 @@ function createReadmooAdapter (options = {}) {
      * @returns {Object} {id: string, strategy: string}
      */
     applyIdGenerationStrategiesWithInfo (inputs) {
+      // W6-012.2.1：策略優先級重排為 reader-link → cover → title → fallback
+      // 原因：privacy 反查需要穩定 reader id，cover-XXX 無法用於深連結 / 書城跳轉
+      const readerResult = this.tryReaderStrategy(inputs)
+      if (readerResult) {
+        return {
+          id: `reader-${inputs.readerId}`,
+          strategy: 'reader-link'
+        }
+      }
+
       const coverResult = this.tryCoverStrategy(inputs)
       if (coverResult) {
         return { id: coverResult, strategy: 'cover' }
@@ -877,14 +892,6 @@ function createReadmooAdapter (options = {}) {
       const titleResult = this.tryTitleStrategy(inputs)
       if (titleResult) {
         return { id: titleResult, strategy: 'title' }
-      }
-
-      const readerResult = this.tryReaderStrategy(inputs)
-      if (readerResult) {
-        return {
-          id: `unstable-${inputs.readerId}`,
-          strategy: 'reader-link'
-        }
       }
 
       return {
@@ -902,7 +909,10 @@ function createReadmooAdapter (options = {}) {
     tryCoverStrategy ({ cover }) {
       if (!cover || !cover.trim()) return null
       const coverId = this.extractCoverIdFromUrl(cover)
-      return coverId ? `cover-${coverId}` : null
+      if (!coverId) return null
+      // W6-012.2.1：過濾已知不穩定 / 佔位用 cover（openbook 等），避免覆蓋 reader 策略
+      if (UNSTABLE_COVER_IDS.has(coverId)) return null
+      return `cover-${coverId}`
     },
 
     /**
