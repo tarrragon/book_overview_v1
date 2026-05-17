@@ -385,7 +385,7 @@ from ticket_system.lib.messages import ErrorEnvelope, format_error
 env = ErrorEnvelope(
     component="track",         # CLI 子命令或模組名
     action="claim",            # 操作動詞
-    errno="TICKET_NOT_FOUND",  # 錯誤分類代碼
+    errno="TICKET_NOT_FOUND",  # 錯誤分類代號
     hint="ticket track list",  # 修復建議（可選）
 )
 print(format_error(env))
