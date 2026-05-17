@@ -53,7 +53,7 @@ const CONSTANTS = {
 
   // 表格配置
   TABLE: {
-    COLUMNS: 6,
+    COLUMNS: 7,
     COVER_SIZE: { WIDTH: 50, HEIGHT: 75 },
     DEFAULT_COVER: '📚'
   },
@@ -102,6 +102,9 @@ class OverviewPageController extends EventHandlerClass {
     this.tagFilterState = { selectedTagIds: new Set(), mode: 'or' }
     this.tagMap = new Map()
     this.categoryMap = new Map()
+
+    // 選取狀態（W6-012.7.1）：以 bookId 為唯一識別，UI 從此 Set 計算 checked / row-selected
+    this.selectedBookIds = new Set()
 
     // 初始化 Tag Cell Renderer
     this.tagCellRenderer = createTagCellRenderer({
@@ -161,7 +164,7 @@ class OverviewPageController extends EventHandlerClass {
       // 表格相關元素
       table: ['tableBody', 'booksTable'],
       // 操作按鈕元素
-      buttons: ['exportCSVBtn', 'exportJSONBtn', 'importJSONBtn', 'copyTextBtn', 'selectAllBtn', 'reloadBtn'],
+      buttons: ['exportCSVBtn', 'exportJSONBtn', 'importJSONBtn', 'copyTextBtn', 'selectAllBtn', 'reloadBtn', 'selectAllHeaderCheckbox'],
       // 檔案載入相關元素
       fileLoad: ['fileUploader', 'jsonFileInput', 'loadFileBtn', 'loadSampleBtn', 'sortSelect', 'sortDirection'],
       // 狀態顯示元素
@@ -263,6 +266,106 @@ class OverviewPageController extends EventHandlerClass {
     }
     if (this.elements.sortDirection) {
       this.elements.sortDirection.addEventListener('change', () => this.applyCurrentFilter())
+    }
+
+    // 選取全部按鈕（W6-012.7.1）：toggle — 若已全選則清空，否則全選 displayedBooks
+    if (this.elements.selectAllBtn) {
+      this.elements.selectAllBtn.addEventListener('click', () => {
+        this.handleSelectAllToggle()
+      })
+    }
+
+    // 表格 header checkbox：與 selectAllBtn 行為一致
+    if (this.elements.selectAllHeaderCheckbox) {
+      this.elements.selectAllHeaderCheckbox.addEventListener('click', () => {
+        this.handleSelectAllToggle()
+      })
+    }
+  }
+
+  /**
+   * 切換全選狀態（W6-012.7.1）
+   *
+   * 規則：
+   * - 若當前已選取的書本數 === displayedBooks 數量，則清空選取
+   * - 否則將 displayedBooks 中所有書本加入選取
+   * - 切換後重新渲染表格以同步 UI
+   */
+  handleSelectAllToggle () {
+    const displayed = this.filteredBooks || []
+    const displayedIds = displayed.map(b => this._getBookId(b)).filter(id => id !== null)
+
+    const allSelected = displayedIds.length > 0 &&
+      displayedIds.every(id => this.selectedBookIds.has(id))
+
+    if (allSelected) {
+      // 清空 displayed 範圍內的選取（保留範圍外的已選，雖然當前 UI 只看到 displayed）
+      displayedIds.forEach(id => this.selectedBookIds.delete(id))
+    } else {
+      displayedIds.forEach(id => this.selectedBookIds.add(id))
+    }
+
+    this.renderBooksTable(this.filteredBooks)
+    this._syncHeaderCheckboxState()
+  }
+
+  /**
+   * 切換單筆書本的選取狀態（W6-012.7.1）
+   * @param {string} bookId
+   */
+  handleRowCheckboxToggle (bookId) {
+    if (!bookId) return
+    if (this.selectedBookIds.has(bookId)) {
+      this.selectedBookIds.delete(bookId)
+    } else {
+      this.selectedBookIds.add(bookId)
+    }
+    // 只 toggle 該 row 的視覺，不 re-render 整表（效能 + 不打斷使用者）
+    this._updateRowSelectedClass(bookId)
+    this._syncHeaderCheckboxState()
+  }
+
+  /**
+   * 取得書本唯一識別（W6-012.7.1）
+   * @private
+   */
+  _getBookId (book) {
+    if (!book) return null
+    return book.id || book.bookId || null
+  }
+
+  /**
+   * 同步 header checkbox 的 checked 狀態（W6-012.7.1）
+   * @private
+   */
+  _syncHeaderCheckboxState () {
+    const header = this.elements.selectAllHeaderCheckbox
+    if (!header) return
+    const displayed = this.filteredBooks || []
+    const displayedIds = displayed.map(b => this._getBookId(b)).filter(id => id !== null)
+    const allSelected = displayedIds.length > 0 &&
+      displayedIds.every(id => this.selectedBookIds.has(id))
+    header.checked = allSelected
+  }
+
+  /**
+   * 更新單筆 row 的選取視覺（W6-012.7.1）
+   * @private
+   */
+  _updateRowSelectedClass (bookId) {
+    if (!this.elements.tableBody) return
+    const checkbox = this.elements.tableBody.querySelector(
+      `input.row-checkbox[data-book-id="${bookId}"]`
+    )
+    if (!checkbox) return
+    const row = checkbox.closest('tr')
+    if (!row) return
+    if (this.selectedBookIds.has(bookId)) {
+      row.classList.add('row-selected')
+      checkbox.checked = true
+    } else {
+      row.classList.remove('row-selected')
+      checkbox.checked = false
     }
   }
 
@@ -559,10 +662,12 @@ class OverviewPageController extends EventHandlerClass {
 
     if (!books || books.length === 0) {
       this.renderEmptyState()
+      this._syncHeaderCheckboxState()
       return
     }
 
     this.renderBookRows(books)
+    this._syncHeaderCheckboxState()
   }
 
   /**
@@ -604,6 +709,28 @@ class OverviewPageController extends EventHandlerClass {
   createBookRow (book) {
     const row = this.document.createElement('tr')
     const rowData = this._formatBookRowData(book)
+
+    // 選取 checkbox 欄位（W6-012.7.1）
+    const bookId = this._getBookId(book)
+    const selectCell = this.document.createElement('td')
+    selectCell.className = 'select-col'
+    if (bookId) {
+      const checkbox = this.document.createElement('input')
+      checkbox.type = 'checkbox'
+      checkbox.className = 'row-checkbox'
+      checkbox.setAttribute('data-book-id', bookId)
+      checkbox.setAttribute('aria-label', '選取此書')
+      if (this.selectedBookIds.has(bookId)) {
+        checkbox.checked = true
+        row.classList.add('row-selected')
+      }
+      checkbox.addEventListener('click', (e) => {
+        e.stopPropagation()
+        this.handleRowCheckboxToggle(bookId)
+      })
+      selectCell.appendChild(checkbox)
+    }
+    row.appendChild(selectCell)
 
     // XSS 防護：使用 DOM API 建立各欄位，避免 innerHTML 注入
     // cover 欄位：驗證 URL 協議後建立 img 元素

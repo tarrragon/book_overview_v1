@@ -167,6 +167,30 @@ body {
   border-bottom: none;
 }
 
+/* 選取狀態（W6-012.7.1）*/
+#booksTable th.select-col,
+#booksTable td.select-col {
+  width: 40px;
+  text-align: center;
+  padding: 8px;
+}
+
+#booksTable .row-checkbox,
+#selectAllHeaderCheckbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+#booksTable tr.row-selected {
+  background-color: rgba(33, 150, 243, 0.08);
+}
+
+#booksTable tr.row-selected:hover {
+  background-color: rgba(33, 150, 243, 0.12);
+}
+
 /* 書籍封面圖片 */
 .book-cover {
   width: 40px;
