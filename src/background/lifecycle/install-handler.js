@@ -16,6 +16,7 @@
 
 const BaseModule = require('./base-module')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const MigrationService = require('src/background/domains/data-management/services/migration-service')
 
 class InstallHandler extends BaseModule {
   constructor (dependencies = {}) {
@@ -24,7 +25,11 @@ class InstallHandler extends BaseModule {
     // 安裝處理相關服務
     this.storageService = dependencies.storageService || null
     this.configService = dependencies.configService || null
-    this.migrationService = dependencies.migrationService || null
+    // MigrationService DI wire-up（W6-012.2.2.1）：
+    // 若未注入則自動建立預設實例（綁定 chrome.storage.local），保證
+    // onUpdated 路由必能執行 schema migration；測試環境可顯式注入 mock。
+    this.migrationService = dependencies.migrationService ||
+      this._createDefaultMigrationService()
 
     // 安裝狀態追蹤
     this.installationInProgress = false
@@ -436,6 +441,38 @@ class InstallHandler extends BaseModule {
       installationStartTime: this.installationStartTime,
       defaultConfig: { ...this.defaultConfig },
       timestamp: Date.now()
+    }
+  }
+
+  /**
+   * 建立預設 MigrationService 實例
+   *
+   * 觸發時機：dependencies.migrationService 未提供時。
+   * 設計理由：v0.18.0 起 schema migration 屬 install-handler 的核心職責，
+   *   不再容許「未注入即靜默跳過」的歷史行為（W6-012.2.2.2 cover-to-reader
+   *   遷移將強依賴此 service）。
+   * 風險容忍：若 chrome.storage.local 不可用（如測試環境未 mock chrome），
+   *   constructor 階段不丟錯（保留 null），由 _doInitialize 階段以 logger
+   *   降級提示，避免阻斷整個 background 啟動。
+   *
+   * @returns {MigrationService|null}
+   * @private
+   */
+  _createDefaultMigrationService () {
+    try {
+      if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) {
+        return null
+      }
+      return new MigrationService({
+        storage: chrome.storage.local,
+        logger: this.logger
+      })
+    } catch (creationError) {
+      // 建立失敗不阻斷 background 啟動；後續 onUpdated 走無 migration 路徑
+      this.logger.warn && this.logger.warn(
+        `⚠️ 預設 MigrationService 建立失敗，將略過 schema migration: ${creationError.message}`
+      )
+      return null
     }
   }
 

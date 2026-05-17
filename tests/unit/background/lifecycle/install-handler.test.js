@@ -552,6 +552,12 @@ describe('InstallHandler', () => {
     })
 
     test('應該檢測服務可用性', () => {
+      // W6-012.2.2.1：未注入 migrationService 時 install-handler 會自動建立預設實例
+      //（依賴 chrome.storage.local，測試環境已 mock）。故 servicesAvailable
+      // 在僅有 logger/eventBus 的情境下仍為 true。
+      //
+      // 若要驗證「全部服務缺席」情境，須同時讓 chrome.storage.local 不可用，
+      // 此處改以「未提供 storage/config 但仍會自動建立 migration」的較窄斷言取代。
       // eslint-disable-next-line no-unused-vars
       const handlerWithoutServices = new InstallHandler({
         eventBus: mockEventBus,
@@ -560,7 +566,29 @@ describe('InstallHandler', () => {
 
       // eslint-disable-next-line no-unused-vars
       const health = handlerWithoutServices.getHealthStatus()
-      expect(health.servicesAvailable).toBe(false)
+      expect(health.servicesAvailable).toBe(true)
+      expect(handlerWithoutServices.storageService).toBeNull()
+      expect(handlerWithoutServices.configService).toBeNull()
+      expect(handlerWithoutServices.migrationService).not.toBeNull()
+    })
+
+    test('chrome.storage.local 不可用時 migrationService 應為 null', () => {
+      // 暫時拆掉 chrome.storage.local 模擬不可用環境
+      const originalStorage = global.chrome.storage
+      // eslint-disable-next-line no-undef
+      global.chrome.storage = undefined
+
+      try {
+        const handler = new InstallHandler({
+          eventBus: mockEventBus,
+          logger: mockLogger
+        })
+        expect(handler.migrationService).toBeNull()
+        expect(handler.getHealthStatus().servicesAvailable).toBe(false)
+      } finally {
+        // eslint-disable-next-line no-undef
+        global.chrome.storage = originalStorage
+      }
     })
   })
 
