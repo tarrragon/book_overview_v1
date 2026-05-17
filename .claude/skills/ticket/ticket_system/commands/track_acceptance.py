@@ -288,24 +288,26 @@ def execute_check_acceptance(args: argparse.Namespace, version: str) -> int:
     use_all = getattr(args, "all", False)
     index_arg = getattr(args, "index", None)
 
+    # 用戶輸入錯誤路徑均為業務拒絕（return 2），詳見 cli-exit-code-rules.md 規則 2
     if use_all and index_arg is not None:
         print(format_error(ErrorMessages.CHECK_ACCEPTANCE_ALL_WITH_INDEX))
-        return 1
+        return 2
 
     if not use_all and index_arg is None:
         print(format_error(ErrorMessages.CHECK_ACCEPTANCE_MISSING_INDEX))
-        return 1
+        return 2
 
-    # 載入 Ticket
+    # 載入 Ticket（找不到 ticket 為用戶輸入錯誤 → return 2）
     ticket, error = load_and_validate_ticket(version, args.ticket_id)
     if error:
-        return 1
+        return 2
 
     # 取得 acceptance 列表（來自 frontmatter）
     acceptance_list = ticket.get("acceptance", [])
     if not acceptance_list:
+        # 業務拒絕：ticket 無 acceptance 條件可勾選
         print(format_error(ErrorMessages.ACCEPTANCE_CRITERIA_NOT_FOUND, ticket_id=args.ticket_id))
-        return 1
+        return 2
 
     uncheck = getattr(args, "uncheck", False)
 
@@ -333,8 +335,9 @@ def _execute_single_check_acceptance(
     # 解析 index 參數（支援三種格式）
     success, msg, index = _parse_acceptance_index(index_arg, acceptance_list)
     if not success:
+        # 業務拒絕：用戶輸入的 index 無法解析（不存在或格式錯誤）
         print(msg)
-        return 1
+        return 2
 
     # 取得目標項目
     target_item = acceptance_list[index - 1]
