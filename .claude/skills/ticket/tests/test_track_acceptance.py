@@ -440,6 +440,45 @@ class TestAppendLog:
                     mock_save.assert_called_once()
 
 
+class TestAppendLogH2Warning:
+    """W17-208: append-log 寫入 Schema 章節時內容含 ## H2 → stderr warning（不阻擋）"""
+
+    def _run(self, section: str, content: str, capsys):
+        args = Mock()
+        args.ticket_id = "0.31.0-W4-001"
+        args.version = "0.31.0"
+        args.section = section
+        args.content = content
+        body = f"## {section}\n\n（佔位）\n"
+        mock_ticket = {"id": args.ticket_id, "_path": "/p/t.md", "_body": body}
+        with patch('ticket_system.commands.track_acceptance.load_ticket') as mock_load:
+            mock_load.return_value = mock_ticket
+            with patch('ticket_system.commands.track_acceptance.get_ticket_path'):
+                with patch('ticket_system.commands.track_acceptance.save_ticket') as mock_save:
+                    result = execute_append_log(args, "0.31.0")
+        captured = capsys.readouterr()
+        return result, captured, mock_save
+
+    def test_h2_in_solution_triggers_warning(self, capsys):
+        result, captured, mock_save = self._run("Solution", "## 實作策略\n內文", capsys)
+        assert result == 0
+        assert "WARNING" in captured.err
+        assert "H2" in captured.err
+        mock_save.assert_called_once()
+
+    def test_h3_in_solution_no_warning(self, capsys):
+        result, captured, mock_save = self._run("Solution", "### 子節\n內文", capsys)
+        assert result == 0
+        assert "WARNING" not in captured.err
+        mock_save.assert_called_once()
+
+    def test_execution_log_h2_skipped(self, capsys):
+        # Execution Log 不在 schema check 範圍
+        result, captured, _ = self._run("Execution Log", "## 任何", capsys)
+        assert result == 0
+        assert "WARNING" not in captured.err
+
+
 class TestAppendLogSectionMatching:
     """W17-008.9 section 標題容錯邊界測試（標準/末尾空白/雙空白命中；Solutions/Solution alt 不誤匹配）"""
 

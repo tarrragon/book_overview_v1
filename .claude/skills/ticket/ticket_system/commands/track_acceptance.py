@@ -538,6 +538,20 @@ def execute_append_log(args: argparse.Namespace, version: str) -> int:
     # 取得內容
     content = args.content
 
+    # W17-208: 偵測寫入 Schema 章節時內容含 ## H2 標題，stderr warning 不阻擋
+    # 動機：append-log 寫入應為既有章節 H3 子節；H2 會切斷 Schema 章節範圍（W17-072）
+    schema_sections_for_h2_check = {
+        "Solution", "Test Results", "Problem Analysis",
+        "Context Bundle", "NeedsContext", "Exit Status", "Completion Info",
+    }
+    if section in schema_sections_for_h2_check and content:
+        if re.search(r'(?m)^## ', content):
+            import sys as _sys
+            _sys.stderr.write(
+                "[append-log] WARNING: 偵測到內容含 H2 標題；append-log 寫入應為既有章節的 "
+                "H3 子節，避免切斷 Schema 章節範圍（W17-072）。建議改用 ### 子標題。\n"
+            )
+
     # 獲取 Ticket 內容
     body = ticket.get("_body", "")
     if not body:
