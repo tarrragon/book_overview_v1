@@ -22,8 +22,22 @@ const FILE_CONSTANTS = {
   MESSAGES: {
     FILE_PARSE_ERROR: '檔案解析失敗',
     FILE_READ_ERROR: '檔案讀取失敗',
-    INVALID_JSON: '無效的 JSON 格式'
+    INVALID_JSON: '無效的 JSON 格式',
+    INVALID_CSV: '無效的 CSV 格式'
   }
+}
+
+// CSV header → book 物件欄位的映射（對齊 book-exporter.js CSV_HEADERS）
+// W6-012.6.1 輸出: ['書名', '書城來源', '進度', '狀態', '封面URL', 'id', 'authors', 'tagIds']
+const CSV_HEADER_TO_FIELD = {
+  書名: 'title',
+  書城來源: 'source',
+  進度: 'progress',
+  狀態: 'status',
+  封面URL: 'cover',
+  id: 'id',
+  authors: 'authors',
+  tagIds: 'tagIds'
 }
 
 class BookFileImporter {
@@ -63,14 +77,14 @@ class BookFileImporter {
    */
   _validateFileBasics (file) {
     if (!file) {
-      this.showError('請先選擇一個 JSON 檔案！')
+      this.showError('請先選擇一個 JSON 或 CSV 檔案！')
       const error = new Error('檔案不存在')
       error.code = ErrorCodes.VALIDATION_ERROR
       error.details = { category: 'validation' }
       throw error
     }
-    if (!this._isJSONFile(file)) {
-      this.showError('請選擇 JSON 格式的檔案！')
+    if (!this._isJSONFile(file) && !this._isCSVFile(file)) {
+      this.showError('請選擇 JSON 或 CSV 格式的檔案！')
       const error = new Error('檔案格式不正確')
       error.code = ErrorCodes.VALIDATION_ERROR
       error.details = { category: 'validation' }
@@ -92,6 +106,19 @@ class BookFileImporter {
     const hasJsonMimeType = file.type === 'application/json'
 
     return hasJsonExtension || hasJsonMimeType
+  }
+
+  /**
+   * 檢查是否為 CSV 檔案（W6-012.6.2）
+   * @private
+   * @param {File} file - 要檢查的檔案
+   * @returns {boolean} 是否為 CSV 檔案
+   */
+  _isCSVFile (file) {
+    const hasCSVExtension = file.name.toLowerCase().endsWith('.csv')
+    // book-exporter.js 使用 'text/csv;charset=utf-8;'；部分瀏覽器回傳 'text/csv'
+    const hasCSVMimeType = typeof file.type === 'string' && file.type.toLowerCase().startsWith('text/csv')
+    return hasCSVExtension || hasCSVMimeType
   }
 
   /**
@@ -117,9 +144,10 @@ class BookFileImporter {
    * @returns {Promise<Array>} 解析後的書籍陣列
    */
   _readFileWithReader (file) {
+    const fileFormat = this._isCSVFile(file) ? 'csv' : 'json'
     return new Promise((resolve, reject) => {
       const reader = this._createFileReader()
-      this._setupReaderHandlers(reader, resolve, reject)
+      this._setupReaderHandlers(reader, resolve, reject, fileFormat)
       reader.readAsText(file, 'utf-8')
     })
   }
@@ -153,8 +181,8 @@ class BookFileImporter {
    * @param {Function} resolve - Promise resolve函數
    * @param {Function} reject - Promise reject函數
    */
-  _setupReaderHandlers (reader, resolve, reject) {
-    reader.onload = (e) => this._handleReaderSuccess(e, resolve, reject)
+  _setupReaderHandlers (reader, resolve, reject, fileFormat) {
+    reader.onload = (e) => this._handleReaderSuccess(e, resolve, reject, fileFormat)
     reader.onerror = () => this._handleReaderError(reject)
   }
 
@@ -164,10 +192,11 @@ class BookFileImporter {
    * @param {Event} e - 載入事件
    * @param {Function} resolve - Promise resolve函數
    * @param {Function} reject - Promise reject函數
+   * @param {string} fileFormat - 'csv' | 'json'（預設 json）
    */
-  _handleReaderSuccess (e, resolve, reject) {
+  _handleReaderSuccess (e, resolve, reject, fileFormat) {
     try {
-      const books = this._handleFileContent(e.target.result)
+      const books = this._handleFileContent(e.target.result, fileFormat)
       resolve(books)
     } catch (error) {
       this._handleFileProcessError(error, reject)
@@ -206,11 +235,175 @@ class BookFileImporter {
    * @param {string} content - 檔案內容
    * @returns {Array} 處理後的書籍陣列
    */
-  _handleFileContent (content) {
+  _handleFileContent (content, fileFormat) {
     const cleanContent = this._validateAndCleanContent(content)
-    const data = this._parseJSONContent(cleanContent)
+    const data = fileFormat === 'csv'
+      ? this._parseCSVContent(cleanContent)
+      : this._parseJSONContent(cleanContent)
     const books = this._processBookData(data)
     return books
+  }
+
+  /**
+   * 解析 CSV 內容（W6-012.6.2）
+   *
+   * 支援 W6-012.6.1 book-exporter.js 輸出格式：
+   * - Header 列：書名,書城來源,進度,狀態,封面URL,id,authors,tagIds
+   * - 每個欄位以雙引號包覆（exporter 固定加引號）
+   * - authors 陣列以 ", " 分隔；tagIds 以 "; " 分隔
+   * - 欄位順序容錯：依 header 名稱對應 field（非依固定位置）
+   *
+   * @private
+   * @param {string} content - 要解析的 CSV 內容
+   * @returns {Array} 解析後的 book 物件陣列
+   */
+  _parseCSVContent (content) {
+    const rows = this._parseCSVRows(content)
+    if (rows.length === 0) {
+      const error = new Error(FILE_CONSTANTS.MESSAGES.INVALID_CSV + '：內容為空')
+      error.code = ErrorCodes.PARSE_ERROR
+      error.details = { category: 'parsing' }
+      throw error
+    }
+    const headerRow = rows[0]
+    const fieldNames = headerRow.map(h => CSV_HEADER_TO_FIELD[h] || null)
+    if (!fieldNames.includes('id') || !fieldNames.includes('title')) {
+      const error = new Error(FILE_CONSTANTS.MESSAGES.INVALID_CSV + '：缺少必要欄位（id 或 書名）')
+      error.code = ErrorCodes.PARSE_ERROR
+      error.details = { category: 'parsing' }
+      throw error
+    }
+    const books = []
+    for (let i = 1; i < rows.length; i += 1) {
+      const row = rows[i]
+      if (this._isBlankRow(row)) continue
+      books.push(this._csvRowToBook(row, fieldNames))
+    }
+    return books
+  }
+
+  /**
+   * 判斷 CSV 列是否完全空白（用於忽略尾端空行）
+   * @private
+   */
+  _isBlankRow (row) {
+    return row.every(cell => cell === '' || cell === undefined)
+  }
+
+  /**
+   * 將 CSV 內容拆解為二維 row × cell 陣列。
+   *
+   * 處理規則：
+   * - 雙引號包覆欄位：欄位內可含逗號與換行
+   * - 連續雙引號 `""` 視為單個跳脫雙引號
+   * - 行尾換行 \n 或 \r\n
+   *
+   * @private
+   * @param {string} content - CSV 純文字
+   * @returns {Array<Array<string>>}
+   */
+  _parseCSVRows (content) {
+    const rows = []
+    let currentRow = []
+    let currentField = ''
+    let inQuotes = false
+    let i = 0
+    while (i < content.length) {
+      const ch = content[i]
+      if (inQuotes) {
+        if (ch === '"') {
+          if (content[i + 1] === '"') {
+            currentField += '"'
+            i += 2
+            continue
+          }
+          inQuotes = false
+          i += 1
+          continue
+        }
+        currentField += ch
+        i += 1
+        continue
+      }
+      if (ch === '"') {
+        inQuotes = true
+        i += 1
+        continue
+      }
+      if (ch === ',') {
+        currentRow.push(currentField)
+        currentField = ''
+        i += 1
+        continue
+      }
+      if (ch === '\r' && content[i + 1] === '\n') {
+        currentRow.push(currentField)
+        rows.push(currentRow)
+        currentRow = []
+        currentField = ''
+        i += 2
+        continue
+      }
+      if (ch === '\n' || ch === '\r') {
+        currentRow.push(currentField)
+        rows.push(currentRow)
+        currentRow = []
+        currentField = ''
+        i += 1
+        continue
+      }
+      currentField += ch
+      i += 1
+    }
+    // 收尾：最後一個欄位 / 列（檔案可能不以換行結束）
+    if (currentField !== '' || currentRow.length > 0) {
+      currentRow.push(currentField)
+      rows.push(currentRow)
+    }
+    return rows
+  }
+
+  /**
+   * 將單一 CSV 資料列依 fieldNames 對應映射回 book 物件。
+   *
+   * @private
+   * @param {Array<string>} row - 單列 cell 陣列
+   * @param {Array<string|null>} fieldNames - 對應 header 解析出的 field 名稱
+   * @returns {Object} book 物件
+   */
+  _csvRowToBook (row, fieldNames) {
+    const book = {}
+    for (let idx = 0; idx < fieldNames.length; idx += 1) {
+      const field = fieldNames[idx]
+      if (!field) continue // 未知 header，忽略該欄
+      const raw = row[idx] === undefined ? '' : row[idx]
+      book[field] = this._deserializeCSVField(field, raw)
+    }
+    return book
+  }
+
+  /**
+   * 將 CSV cell 字串依欄位反序列化為對應型別。
+   *
+   * @private
+   * @param {string} field - book 物件欄位名
+   * @param {string} raw - CSV cell 原始字串值
+   * @returns {*} 反序列化後的值
+   */
+  _deserializeCSVField (field, raw) {
+    if (field === 'authors') {
+      if (raw === '') return []
+      return raw.split(', ').map(s => s.trim()).filter(s => s !== '')
+    }
+    if (field === 'tagIds') {
+      if (raw === '') return []
+      return raw.split('; ').map(s => s.trim()).filter(s => s !== '')
+    }
+    if (field === 'progress') {
+      const n = Number(raw)
+      return Number.isFinite(n) ? n : 0
+    }
+    return raw
   }
 
   /**
