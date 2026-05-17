@@ -141,6 +141,11 @@ from .track_dispatch_check import (
     execute_dispatch_check,
     register_dispatch_check,
 )
+# parallel-check 子任務衝突偵測（W17-203.1 落地）
+from .track_parallel_check import (
+    execute_parallel_check,
+    register_parallel_check,
+)
 # 統一 scheduler CLI（W17-011.1 / W17-009 落地）
 from .track_runqueue import (
     execute_runqueue,
@@ -211,6 +216,7 @@ def _create_version_agnostic_handlers() -> dict:
         "dispatch-check": execute_dispatch_check,
         "stuck-anas": execute_stuck_anas,
         "stale-list": execute_stale_list,
+        "parallel-check": execute_parallel_check,
     }
 
 
@@ -863,6 +869,7 @@ def _register_global_state_commands(
     register_handoff_ready(subparsers)
     register_checkpoint_status(subparsers)
     register_dispatch_check(subparsers)
+    register_parallel_check(subparsers)
 
 
 def _register_snapshot_commands(
