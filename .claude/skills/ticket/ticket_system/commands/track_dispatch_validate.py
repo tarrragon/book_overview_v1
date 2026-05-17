@@ -18,6 +18,11 @@ Exit code 語意：
 - 1: 軟性警告（規則 2 / 3 / 4 部分違反，可派發但建議修正）
 - 2: 硬性失敗（規則 1 違反、ticket 不存在、IO 錯誤）
 
+**Exit code 與 dispatch-check 語意不共享**：本命令 exit 1 = 軟性警告 /
+exit 2 = 硬性失敗或 IO 錯誤；既有 dispatch-check exit 1 = 有活躍派發 /
+exit 2 = IO 錯誤。呼叫端必須以命令名稱判別語意，禁止以 exit code
+跨命令解讀。
+
 邊界：本 CLI **不** 修改 ticket、**不** 取代 hook / scheduler；僅輸出結構化
 診斷供 PM / agent 派發前自檢使用（W17-209 ANA 方案 A）。
 """

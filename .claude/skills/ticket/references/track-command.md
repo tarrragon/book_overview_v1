@@ -690,6 +690,8 @@ ticket track list --completed --format yaml --version 0.18.0
 （`context_bundle_extractor` 自動抽取）的第二道防線。**與 W10-017.2 的
 `dispatch-check`（活躍派發狀態查詢）職責正交**，獨立子命令不互相干擾。
 
+**Why**：C 方案自動抽取可能產出「填料成功但內容空殼」的失敗模式（規則 1 hard fail / 規則 2-4 soft warn 即為此設計），需要 lightweight 檢查層攔截，避免空殼 Context Bundle 派發給 agent。
+
 ### 用法
 
 ```bash
