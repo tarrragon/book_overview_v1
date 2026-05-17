@@ -10,7 +10,7 @@
 2. 內容長度 — Context Bundle content >= 50 字元（避免空殼填料）
 3. 檔案存在 — frontmatter `where.files` 列出的檔案在檔案系統存在
 4. acceptance >= 3 項 — 4V 原則，少於 3 項視為規格不足
-5. （保留）LLM 審查 — 本 ticket 不實作，預留 hook 點
+5. LLM 審查 — 未實作（不在 W17-003 範圍；未來如需加入須另起 ticket）
 
 Exit code 語意：
 
@@ -36,7 +36,7 @@ from typing import List, Tuple
 
 from ticket_system.lib.parser import load_ticket
 from ticket_system.lib.paths import get_project_root
-from ticket_system.lib.section_locator import find_section
+from ticket_system.lib.section_locator import SectionMatch, find_section
 
 
 _CONTEXT_BUNDLE_SECTION = "Context Bundle"
@@ -49,9 +49,15 @@ _MIN_ACCEPTANCE_ITEMS = 3
 # ---------------------------------------------------------------------------
 
 
-def check_section_present(body: str) -> Tuple[bool, str]:
-    """規則 1：Context Bundle section 存在且 content 非全空白。"""
-    match = find_section(body or "", _CONTEXT_BUNDLE_SECTION)
+def check_section_present(
+    body: str, *, match: SectionMatch | None = None
+) -> Tuple[bool, str]:
+    """規則 1：Context Bundle section 存在且 content 非全空白。
+
+    `match` 可選；若呼叫端已 `find_section` 過則傳入避免重複解析。
+    """
+    if match is None:
+        match = find_section(body or "", _CONTEXT_BUNDLE_SECTION)
     if not match.found:
         return False, "Context Bundle section 不存在（規則 1 違反）"
     if not match.content.strip():
@@ -59,9 +65,18 @@ def check_section_present(body: str) -> Tuple[bool, str]:
     return True, "Context Bundle section 存在且非空"
 
 
-def check_content_length(body: str, *, min_chars: int = _MIN_CONTENT_CHARS) -> Tuple[bool, str]:
-    """規則 2：Context Bundle content 長度 >= min_chars。"""
-    match = find_section(body or "", _CONTEXT_BUNDLE_SECTION)
+def check_content_length(
+    body: str,
+    *,
+    min_chars: int = _MIN_CONTENT_CHARS,
+    match: SectionMatch | None = None,
+) -> Tuple[bool, str]:
+    """規則 2：Context Bundle content 長度 >= min_chars。
+
+    `match` 可選；若呼叫端已 `find_section` 過則傳入避免重複解析。
+    """
+    if match is None:
+        match = find_section(body or "", _CONTEXT_BUNDLE_SECTION)
     if not match.found:
         return False, f"Context Bundle section 不存在，無法計算長度（< {min_chars}）"
     length = len(match.content.strip())
@@ -138,9 +153,12 @@ def execute_dispatch_validate(args: argparse.Namespace, version: str) -> int:
 
     project_root = get_project_root()
 
+    # 規則 1 + 規則 2 共用一次 find_section 結果（避免重複解析）
+    cb_match = find_section(body, _CONTEXT_BUNDLE_SECTION)
+
     # 規則 1 硬性；規則 2/3/4 軟性
-    r1_ok, r1_msg = check_section_present(body)
-    r2_ok, r2_msg = check_content_length(body)
+    r1_ok, r1_msg = check_section_present(body, match=cb_match)
+    r2_ok, r2_msg = check_content_length(body, match=cb_match)
     r3_ok, r3_msg = check_where_files_exist(where_files or [], project_root=project_root)
     r4_ok, r4_msg = check_acceptance_count(acceptance)
 
@@ -149,6 +167,13 @@ def execute_dispatch_validate(args: argparse.Namespace, version: str) -> int:
     print(_format_result("規則 2 內容長度", r2_ok, r2_msg))
     print(_format_result("規則 3 檔案存在", r3_ok, r3_msg))
     print(_format_result("規則 4 acceptance 項數", r4_ok, r4_msg))
+
+    # where.files 空時補 INFO 提示（避免靜默通過遮蔽 W17-002 抽取漏掉）
+    if not (where_files or []):
+        print(
+            "  [INFO] where.files 為空：規則 3 自動通過。若本 ticket 應修改檔案，"
+            "請確認 frontmatter where.files 已正確填寫（DOC 類 ticket 可忽略）"
+        )
 
     # 規則 1 = 硬性失敗 → exit 2
     if not r1_ok:

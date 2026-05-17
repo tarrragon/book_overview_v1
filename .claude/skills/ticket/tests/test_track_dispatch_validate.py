@@ -49,6 +49,21 @@ class TestRule1SectionPresent:
         assert ok is True
 
 
+class TestSectionMatchCacheReuse:
+    """W17-212 AC: 規則 1+2 共用 find_section 結果（cache 不重複解析）。"""
+
+    def test_passing_precomputed_match_avoids_reparse(self):
+        from ticket_system.lib.section_locator import find_section
+
+        body = "## Context Bundle\n\n" + ("x" * 60) + "\n\n## Next\n"
+        cached = find_section(body, "Context Bundle")
+        # 傳入 cached match，函式應產出與重新解析一致的結果
+        ok1, _ = check_section_present(body, match=cached)
+        ok2, _ = check_content_length(body, match=cached)
+        assert ok1 is True
+        assert ok2 is True
+
+
 class TestRule2ContentLength:
     def test_short_content_fails(self):
         body = "## Context Bundle\n\n短\n\n## Next\n"
@@ -174,6 +189,29 @@ class TestExecuteDispatchValidate:
         }
         rc, _out, _err = _run(ticket, project_root=tmp_path)
         assert rc == 1
+
+    def test_empty_where_files_emits_info_hint(self, tmp_path):
+        """W17-212 AC: where.files 為空時 stdout 應含 [INFO] 提示。"""
+        ticket = {
+            "_body": "## Context Bundle\n\n" + ("a" * 100) + "\n",
+            "acceptance": ["a", "b", "c"],
+            "where": {"files": []},
+        }
+        rc, out, _err = _run(ticket, project_root=tmp_path)
+        assert rc == 0
+        assert "[INFO] where.files 為空" in out
+
+    def test_non_empty_where_files_no_info_hint(self, tmp_path):
+        """W17-212 AC: where.files 非空時不應印 [INFO] 提示。"""
+        (tmp_path / "src.py").write_text("x")
+        ticket = {
+            "_body": "## Context Bundle\n\n" + ("a" * 100) + "\n",
+            "acceptance": ["a", "b", "c"],
+            "where": {"files": ["src.py"]},
+        }
+        rc, out, _err = _run(ticket, project_root=tmp_path)
+        assert rc == 0
+        assert "[INFO] where.files 為空" not in out
 
     def test_few_acceptance_returns_1(self, tmp_path):
         ticket = {
