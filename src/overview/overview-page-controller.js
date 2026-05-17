@@ -250,6 +250,15 @@ class OverviewPageController extends EventHandlerClass {
       })
     }
 
+    // 複製為文字按鈕（W6-012.7.3）：與 exportCSV/exportJSON 行為一致
+    // selection-aware：透過 bookExporter.getFilteredBooks DI 自動尊重 selectedBookIds
+    // （W6-012.7.2 已注入 selection-aware getter）
+    if (this.elements.copyTextBtn) {
+      this.elements.copyTextBtn.addEventListener('click', () => {
+        this.bookExporter.handleCopyText()
+      })
+    }
+
     if (this.elements.importJSONBtn) {
       this.elements.importJSONBtn.addEventListener('click', () => {
         if (this.elements.fileUploader) {
