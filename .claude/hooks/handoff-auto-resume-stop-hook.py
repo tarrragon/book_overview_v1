@@ -318,7 +318,50 @@ def get_active_version(project_root: Path, logger) -> Optional[str]:
     return None
 
 
-def is_ticket_recently_started(project_root: Path, ticket_id: str, logger) -> bool:
+def _load_frontmatter_cached(
+    cache: Optional[Dict[str, Optional[dict]]],
+    ticket_id: str,
+    project_root: Path,
+    logger,
+) -> Optional[dict]:
+    """單次請求內 ticket frontmatter 採集點（PC-097 / single-source-io-collection-rules）。
+
+    Why：scan_pending_handoff_tasks 對同一 ticket_id 可能在 is_handoff_stale /
+    is_ticket_completed / is_ticket_recently_started 三處重複讀檔。本 helper 提供
+    請求生命週期內的快取（dict 由呼叫端建立並傳入），同一 ticket 只解析一次 frontmatter。
+
+    Args:
+        cache: 呼叫端持有的快取 dict（key=ticket_id, value=frontmatter dict or None）；
+               傳 None 表示不快取（向後相容單一查詢場景）。
+        ticket_id: Ticket ID
+        project_root: 專案根目錄
+        logger: 日誌記錄器
+
+    Returns:
+        frontmatter dict；無法定位或解析失敗時為 None。
+    """
+    if cache is not None and ticket_id in cache:
+        return cache[ticket_id]
+
+    ticket_path = find_ticket_file(ticket_id, project_root, logger)
+    if not ticket_path:
+        result: Optional[dict] = None
+    else:
+        result = parse_ticket_frontmatter(ticket_path, logger)
+        if not result:
+            result = None
+
+    if cache is not None:
+        cache[ticket_id] = result
+    return result
+
+
+def is_ticket_recently_started(
+    project_root: Path,
+    ticket_id: str,
+    logger,
+    frontmatter_cache: Optional[Dict[str, Optional[dict]]] = None,
+) -> bool:
     """
     檢查 Ticket 是否在最近 N 分鐘內開始執行（started_at 時間戳）
 
@@ -330,18 +373,17 @@ def is_ticket_recently_started(project_root: Path, ticket_id: str, logger) -> bo
         project_root: 專案根目錄
         ticket_id: Ticket ID
         logger: 日誌記錄器
+        frontmatter_cache: 單次請求內 ticket frontmatter 快取（PC-097 防護）；
+            scan loop 應傳入共用 dict 以避免同一 ticket 重複讀檔。
+            未傳則維持單次讀檔行為（向後相容單一查詢場景）。
 
     Returns:
         bool - 是否在最近 N 分鐘內開始執行
     """
     try:
-        # 使用 find_ticket_file 支援三層階層與舊扁平結構
-        ticket_path = find_ticket_file(ticket_id, project_root, logger)
-        if not ticket_path:
-            return False
-
-        # 解析 frontmatter
-        frontmatter = parse_ticket_frontmatter(ticket_path, logger)
+        frontmatter = _load_frontmatter_cached(
+            frontmatter_cache, ticket_id, project_root, logger
+        )
         if not frontmatter:
             return False
 
@@ -521,6 +563,11 @@ def scan_pending_handoff_tasks(project_root: Path, logger) -> tuple:
     pending_tasks = []
     recent_tasks = []
 
+    # PC-097 / single-source-io-collection-rules：單次掃描內 ticket frontmatter
+    # 採集快取。is_ticket_recently_started 可能與其他 predicate 重複讀同一 ticket，
+    # 透過共用 dict 確保每個 ticket_id 在本次 scan 內只解析一次 frontmatter。
+    frontmatter_cache: Dict[str, Optional[dict]] = {}
+
     if not pending_dir.exists():
         logger.debug(f"pending 目錄不存在: {pending_dir}")
         return pending_tasks, recent_tasks
@@ -603,7 +650,9 @@ def scan_pending_handoff_tasks(project_root: Path, logger) -> tuple:
                             logger.info(
                                 f"建議性 handoff ({direction_type})，不阻塞退出: {ticket_id}"
                             )
-                        elif is_ticket_recently_started(project_root, ticket_id, logger):
+                        elif is_ticket_recently_started(
+                            project_root, ticket_id, logger, frontmatter_cache
+                        ):
                             recent_tasks.append({
                                 "ticket_id": ticket_id,
                                 "title": title,

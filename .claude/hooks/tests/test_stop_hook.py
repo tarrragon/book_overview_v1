@@ -511,7 +511,7 @@ class TestAutoDirectionHandling:
         def mock_completed(project_root, ticket_id, logger):
             return False
 
-        def mock_recently_started(project_root, ticket_id, logger):
+        def mock_recently_started(project_root, ticket_id, logger, cache=None):
             # 只有非 auto 才會進入此判斷，回傳 False 模擬超時
             return False
 

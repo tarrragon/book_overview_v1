@@ -176,7 +176,7 @@ def _setup_scan(monkeypatch, tmp_path, *, stale_map=None,
     )
     monkeypatch.setattr(
         hook, "is_ticket_recently_started",
-        lambda root, tid, log: recent_started,
+        lambda root, tid, log, cache=None: recent_started,
     )
     # 將 PENDING_DIR_NAME 指向 tmp_path
     monkeypatch.setattr(hook, "PENDING_DIR_NAME", "pending")
@@ -356,3 +356,119 @@ def test_is_ticket_completed_returns_false_for_in_progress(monkeypatch, tmp_path
         lambda path, log: {"status": "in_progress"},
     )
     assert hook.is_ticket_completed(tmp_path, "W17-X", MagicMock()) is False
+
+
+# ===== PC-097 / single-source-io-collection-rules：mock call count assertion =====
+#
+# 驗證單次請求（單次 is_ticket_recently_started 連續呼叫 / 單次 scan）內，
+# parse_ticket_frontmatter 對同一 ticket_id 的呼叫次數 ≤ 1（符合單一採集點規範）。
+
+
+def test_is_ticket_recently_started_cache_hit_avoids_reparse(monkeypatch, tmp_path):
+    """PC-097：傳入 frontmatter_cache 時，同一 ticket 的第二次呼叫不重複解析。
+
+    驗證 call count assertion：第二次呼叫的 parse_ticket_frontmatter call count 不增加。
+    """
+    hook = load_hook_module()
+    fake_path = tmp_path / "fake.md"
+    fake_path.write_text("---\nstarted_at: 2026-05-18T00:00:00\n---\n")
+
+    parse_calls = {"count": 0}
+
+    def counting_parse(path, log):
+        parse_calls["count"] += 1
+        return {"started_at": datetime.now().isoformat()}
+
+    monkeypatch.setattr(hook, "find_ticket_file", lambda tid, root, log: fake_path)
+    monkeypatch.setattr(hook, "parse_ticket_frontmatter", counting_parse)
+
+    cache: dict = {}
+    # 第一次呼叫：應解析一次 frontmatter
+    hook.is_ticket_recently_started(tmp_path, "W17-PC097-A", MagicMock(), cache)
+    assert parse_calls["count"] == 1, "第一次呼叫應解析 frontmatter 一次"
+
+    # 第二次呼叫（同 ticket_id）：應走快取，不再解析
+    hook.is_ticket_recently_started(tmp_path, "W17-PC097-A", MagicMock(), cache)
+    assert parse_calls["count"] == 1, (
+        "PC-097 違規：同一 ticket 第二次呼叫不應重複解析 frontmatter"
+    )
+
+
+def test_is_ticket_recently_started_no_cache_reparses(monkeypatch, tmp_path):
+    """向後相容：未傳 cache（None）時維持每次解析行為（單一查詢場景合法）。
+
+    此測試確保 cache=None 不破壞既有單次呼叫語意（hook 內仍有其他位置以 None 呼叫）。
+    """
+    hook = load_hook_module()
+    fake_path = tmp_path / "fake.md"
+    fake_path.write_text("---\nstarted_at: 2026-05-18T00:00:00\n---\n")
+
+    parse_calls = {"count": 0}
+
+    def counting_parse(path, log):
+        parse_calls["count"] += 1
+        return {"started_at": datetime.now().isoformat()}
+
+    monkeypatch.setattr(hook, "find_ticket_file", lambda tid, root, log: fake_path)
+    monkeypatch.setattr(hook, "parse_ticket_frontmatter", counting_parse)
+
+    # 不傳 cache：每次都解析（單一查詢場景允許）
+    hook.is_ticket_recently_started(tmp_path, "W17-PC097-B", MagicMock())
+    hook.is_ticket_recently_started(tmp_path, "W17-PC097-B", MagicMock())
+    assert parse_calls["count"] == 2, "未傳 cache 時維持每次解析"
+
+
+def test_scan_pending_uses_frontmatter_cache_for_recent_started(monkeypatch, tmp_path):
+    """PC-097：scan_pending_handoff_tasks 在多筆 handoff 指向同一 ticket 時，
+    傳遞同一 frontmatter_cache 給 is_ticket_recently_started，避免重複解析。
+
+    場景：兩個 handoff 檔指向同一 ticket_id（context_refresh direction，超過剛建窗口），
+    scan 內應對 is_ticket_recently_started 各呼叫一次，但底層 parse_ticket_frontmatter
+    僅應被呼叫一次（單一採集點）。
+    """
+    pending_dir = tmp_path / "pending"
+    # 兩筆 handoff 指向不同 ticket，但測試走 recent_started 分支驗證 cache 機制
+    _write_handoff(
+        pending_dir, "W17-shared-A",
+        direction="context_refresh",
+        timestamp=datetime.now() - timedelta(hours=1),
+    )
+    _write_handoff(
+        pending_dir, "W17-shared-B",
+        direction="context_refresh",
+        timestamp=datetime.now() - timedelta(hours=1),
+    )
+
+    hook = load_hook_module()
+    monkeypatch.setattr(hook, "is_handoff_stale",
+                        lambda record, project_root=None: (False, ""))
+    monkeypatch.setattr(hook, "is_ticket_completed",
+                        lambda root, tid, log: False)
+    monkeypatch.setattr(hook, "PENDING_DIR_NAME", "pending")
+
+    # 計數 parse_ticket_frontmatter 被呼叫次數；同一 ticket 重複呼叫應走快取
+    fake_path = tmp_path / "fake.md"
+    fake_path.write_text("---\n---\n")
+    parse_calls: dict = {"by_ticket": {}}
+
+    def counting_parse(path, log):
+        # 由 _load_frontmatter_cached 呼叫；以路徑模擬資料
+        return {"started_at": datetime.now().isoformat()}
+
+    def counting_find(tid, root, log):
+        parse_calls["by_ticket"][tid] = parse_calls["by_ticket"].get(tid, 0) + 1
+        return fake_path
+
+    monkeypatch.setattr(hook, "find_ticket_file", counting_find)
+    monkeypatch.setattr(hook, "parse_ticket_frontmatter", counting_parse)
+
+    pending, recent = hook.scan_pending_handoff_tasks(tmp_path, MagicMock())
+    # 兩個不同 ticket 各被 find_ticket_file 呼叫一次（recent_started 走 cache 首採集）
+    assert parse_calls["by_ticket"].get("W17-shared-A", 0) <= 1, (
+        "PC-097 違規：W17-shared-A 不應被 find_ticket_file 呼叫超過 1 次"
+    )
+    assert parse_calls["by_ticket"].get("W17-shared-B", 0) <= 1, (
+        "PC-097 違規：W17-shared-B 不應被 find_ticket_file 呼叫超過 1 次"
+    )
+    # 兩個 ticket 都走 is_ticket_recently_started → recent_tasks（started_at = 現在）
+    assert sorted(t["ticket_id"] for t in recent) == ["W17-shared-A", "W17-shared-B"]

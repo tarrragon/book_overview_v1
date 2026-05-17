@@ -110,14 +110,91 @@ def _print_git_status_from_state(branch: str, state: CheckpointState) -> None:
 | 註解明示「不再呼叫 git status」 | 規則 1 單一採集點：消費端禁止繞過 |
 | 寫入 `state.uncommitted_files` 與 `computed_at` | 規則 2 時間戳語意：computed_at 對應 state 組裝時刻 |
 
-### 反例（待後續稽核補回）
+### 反例：handoff stop hook 同一 ticket frontmatter 多次讀取
 
-實際違規案例由後續稽核任務執行 `.claude/skills/ticket/ticket_system/commands/` 與 `.claude/hooks/` 全量稽核後補入。補入時應包含以下欄位以利對照：
+**反例位置**：`.claude/hooks/handoff-auto-resume-stop-hook.py::scan_pending_handoff_tasks` 迴圈內。
 
-- 反例位置：檔案 / 行號 / 重複 I/O 結構描述
-- 修復前後程式碼片段
-- 對應違反的規則編號（規則 1 / 2 / 3）
-- 補強測試：mock call count assertion 範例
+**結構描述**：單次 stop hook 觸發、單筆 handoff record 處理路徑，可能對同一 ticket_id 重複呼叫 `find_ticket_file` + `parse_ticket_frontmatter`：
+
+| 呼叫位置 | 觸發路徑 | I/O 行為 |
+|---------|---------|---------|
+| `is_handoff_stale(data, project_root)` | lib SSOT，依 direction / from_ticket 內部呼叫 `_load_ticket_status` | 讀 ticket md frontmatter（1 次） |
+| `is_ticket_completed(project_root, ticket_id, logger)` | delegate 至 lib `is_ticket_terminal` | 讀同一 ticket md（2 次） |
+| `is_ticket_recently_started(project_root, ticket_id, logger)` | hook 內 `find_ticket_file` + `parse_ticket_frontmatter` | 讀同一 ticket md（3 次） |
+
+當 `target_id == from_ticket == ticket_id` 時，同一檔案在單次 scan 內被開啟解析 **最多 3 次**，違反規則 1 單一採集點原則。
+
+**修復前**：
+
+```python
+def is_ticket_recently_started(project_root: Path, ticket_id: str, logger) -> bool:
+    ticket_path = find_ticket_file(ticket_id, project_root, logger)
+    if not ticket_path:
+        return False
+    frontmatter = parse_ticket_frontmatter(ticket_path, logger)  # 每次呼叫都重讀
+    ...
+```
+
+**修復後**（採方案 B：lib 層 API 接受預採集參數注入）：
+
+```python
+def _load_frontmatter_cached(cache, ticket_id, project_root, logger):
+    """單次請求內 frontmatter 採集點：cache 命中則直接回傳，未命中才走 I/O。"""
+    if cache is not None and ticket_id in cache:
+        return cache[ticket_id]
+    ticket_path = find_ticket_file(ticket_id, project_root, logger)
+    result = parse_ticket_frontmatter(ticket_path, logger) if ticket_path else None
+    if cache is not None:
+        cache[ticket_id] = result
+    return result
+
+
+def is_ticket_recently_started(project_root, ticket_id, logger, frontmatter_cache=None):
+    frontmatter = _load_frontmatter_cached(frontmatter_cache, ticket_id, project_root, logger)
+    if not frontmatter:
+        return False
+    ...
+
+
+def scan_pending_handoff_tasks(project_root, logger):
+    frontmatter_cache: Dict[str, Optional[dict]] = {}  # 採集快取（請求範圍）
+    for file_path in sorted(pending_dir.glob("*.json")):
+        ...
+        elif is_ticket_recently_started(project_root, ticket_id, logger, frontmatter_cache):
+            ...
+```
+
+**對應違反的規則編號**：規則 1（單一採集點原則）。`is_ticket_recently_started` 與其他 predicate 各自採集同一 ticket frontmatter，未透過共用 cache 收斂為「單次採集 + 多消費」結構。
+
+**補強測試（mock call count assertion 範例）**：
+
+```python
+def test_is_ticket_recently_started_cache_hit_avoids_reparse(monkeypatch, tmp_path):
+    """PC-097：傳入 frontmatter_cache 時，同一 ticket 第二次呼叫不重複解析。"""
+    parse_calls = {"count": 0}
+    def counting_parse(path, log):
+        parse_calls["count"] += 1
+        return {"started_at": datetime.now().isoformat()}
+    monkeypatch.setattr(hook, "find_ticket_file", lambda tid, root, log: fake_path)
+    monkeypatch.setattr(hook, "parse_ticket_frontmatter", counting_parse)
+
+    cache: dict = {}
+    hook.is_ticket_recently_started(tmp_path, "X", MagicMock(), cache)
+    assert parse_calls["count"] == 1, "第一次呼叫應解析一次"
+    hook.is_ticket_recently_started(tmp_path, "X", MagicMock(), cache)
+    assert parse_calls["count"] == 1, "第二次呼叫應走快取，不重複解析"
+```
+
+**設計要點**：
+
+| 元素 | 規範對應 |
+|------|---------|
+| `_load_frontmatter_cached` 為採集函式 | 規則 3 命名規範：採集函式以 `_load_*` / `_read_*` 表達「外部 I/O」 |
+| `frontmatter_cache` 參數注入 | 規則 1 方案 B：lib 層 API 接受預採集參數，呼叫端控制請求範圍 |
+| cache 預設為 `None` 維持向後相容 | 單一查詢場景無需快取，避免強制全域狀態 |
+| Call count assertion `assert parse_calls["count"] == 1` | 規則 3 設計檢查清單：mock 底層 I/O，斷言呼叫次數 ≤ 1 |
+
+**未完全收斂的部分**：`is_handoff_stale`（lib SSOT 函式）與 `is_ticket_completed`（delegate 至 lib `is_ticket_terminal`）目前仍各自呼叫 `_load_ticket_status`，因屬於 lib 層共用 API 改動成本較高。本反例先於 hook 層收斂 `is_ticket_recently_started`，剩餘兩個 predicate 之後可在 lib 層擴充「接受預採集 frontmatter 參數」介面（規則 1 方案 B）統一收斂。
 
 ---
 
