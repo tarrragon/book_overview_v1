@@ -114,8 +114,14 @@ class OverviewPageController extends EventHandlerClass {
     })
 
     // 初始化匯出模組
+    // selection-aware DI（W6-012.7.2）：當 selectedBookIds 非空時，匯出/copy 僅針對選取項；
+    // 為空時退回全量 filteredBooks，維持向後相容。getFilteredBooks 僅由 book-exporter
+    // 消費（grep 確認唯一呼叫者），擴展語意安全。
     this.bookExporter = new BookExporter({
-      getFilteredBooks: () => this.filteredBooks,
+      getFilteredBooks: () => {
+        if (this.selectedBookIds.size === 0) return this.filteredBooks
+        return this.filteredBooks.filter(b => this.selectedBookIds.has(b.id))
+      },
       document: this.document
     })
 
