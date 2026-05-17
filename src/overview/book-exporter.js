@@ -14,7 +14,7 @@
 
 // 匯出配置常數
 const EXPORT_CONSTANTS = {
-  CSV_HEADERS: ['書名', '書城來源', '進度', '狀態', '封面URL'],
+  CSV_HEADERS: ['書名', '書城來源', '進度', '狀態', '封面URL', 'id', 'authors', 'tagIds'],
   FILE_TYPE: 'text/csv;charset=utf-8;',
   FILENAME_PREFIX: '書籍資料_',
   JSON_MIME: 'application/json;charset=utf-8;',
@@ -180,12 +180,17 @@ class BookExporter {
    * @private
    */
   _bookToCSVRow (book) {
+    const authors = Array.isArray(book.authors) ? book.authors.join(', ') : ''
+    const tagIds = Array.isArray(book.tagIds) ? book.tagIds.join('; ') : ''
     return [
       `"${book.title || ''}"`,
       `"${this._formatBookSource(book)}"`,
       `"${book.progress || 0}"`,
       `"${book.status || ''}"`,
-      `"${book.cover || ''}"`
+      `"${book.cover || ''}"`,
+      `"${book.id || ''}"`,
+      `"${authors}"`,
+      `"${tagIds}"`
     ].join(',')
   }
 
