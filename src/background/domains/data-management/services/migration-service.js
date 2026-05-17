@@ -21,6 +21,7 @@
  */
 
 const { migrateV1ToV2 } = require('src/data-management/migration/v1-to-v2')
+const { migrateCoverToReader } = require('src/data-management/migration/cover-to-reader')
 
 /**
  * v1-to-v2 step 的 applies 判定
@@ -37,6 +38,16 @@ function v1ToV2Applies (_previousVersion, _currentVersion) {
 }
 
 /**
+ * cover-to-reader step 的 applies 判定
+ *
+ * 採寬鬆策略，與 v1-to-v2 同：由 step 自身依 storage.schema_version
+ * 是否為 '3.1.0' 判斷是否跳過。
+ */
+function coverToReaderApplies (_previousVersion, _currentVersion) {
+  return true
+}
+
+/**
  * 建立預設 migration step 清單
  *
  * @returns {Array<{id: string, applies: Function, run: Function}>}
@@ -47,6 +58,11 @@ function createDefaultSteps () {
       id: 'v1-to-v2',
       applies: v1ToV2Applies,
       run: async (storage, logger) => migrateV1ToV2(storage, logger)
+    },
+    {
+      id: 'cover-to-reader',
+      applies: coverToReaderApplies,
+      run: async (storage, logger) => migrateCoverToReader(storage, logger)
     }
   ]
 }

@@ -205,10 +205,15 @@ describe('MigrationService', () => {
       const report = await svc.migrate('0.17.0', '0.18.0')
 
       expect(report.success).toBe(true)
-      expect(report.executed).toHaveLength(1)
+      // W6-012.2.2.2 後預設 2 步：v1-to-v2 + cover-to-reader
+      expect(report.executed).toHaveLength(2)
       const v1ToV2 = report.executed.find(e => e.id === 'v1-to-v2')
       expect(v1ToV2.result.migrated).toBe(false)
       expect(v1ToV2.result.reason).toBe('already_migrated')
+      const coverToReader = report.executed.find(e => e.id === 'cover-to-reader')
+      // 空書庫情境：cover-to-reader 直接升至 3.1.0
+      expect(coverToReader.result.migrated).toBe(true)
+      expect(storage._store.schema_version).toBe('3.1.0')
     })
 
     it('schema_version 未設定時應觸發遷移並寫入新版本', async () => {
@@ -223,7 +228,8 @@ describe('MigrationService', () => {
       expect(report.success).toBe(true)
       const v1ToV2 = report.executed.find(e => e.id === 'v1-to-v2')
       expect(v1ToV2.result.migrated).toBe(true)
-      expect(storage._store.schema_version).toBe('3.0.0')
+      // W6-012.2.2.2 後 cover-to-reader 接續執行，最終 schema_version=3.1.0
+      expect(storage._store.schema_version).toBe('3.1.0')
       expect(storage._store.readmoo_books[0]).toMatchObject({
         id: 'b1',
         readingStatus: expect.any(String),
