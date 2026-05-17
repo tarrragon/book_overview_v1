@@ -1,0 +1,142 @@
+# 專案重啟環境恢復指南
+
+本文件為 Readmoo 書庫管理器 Chrome Extension 專案的**環境恢復 SOP**，適用於專案長期暫停（> 2 個月）後重新啟動開發、或 clone 全新 repo 後初始化的情境。
+
+> **背景**：2026-05-12 在 ticket `0.18.0-W6-012.1` 診斷期暴露四層巢狀環境問題（build 過期 → 缺 esbuild → peer dep 衝突 → 19 vulnerability），耗時排查。本指南將該次經驗固化為可重複執行的流程，避免下次重啟再次踩雷。
+>
+> **權威來源**：本文件由 `0.18.0-W6-013` 建立，源自 `0.18.0-W6-012.1` 診斷實況。
+
+---
+
+## 適用觸發場景
+
+| 場景 | 是否適用 |
+|------|---------|
+| 專案暫停 > 2 個月後重啟 | 是 |
+| 新 clone repo 首次初始化 | 是 |
+| 切換大版本後（如 v0.17 → v0.18）首次 build | 是 |
+| 日常開發（< 1 週未操作） | 否（直接 `npm run build:dev` 即可） |
+| CI 環境 | 否（CI 走獨立 lockfile 流程） |
+
+---
+
+## 標準恢復流程（Happy Path）
+
+依序執行以下指令；任一步驟失敗請對照下方「四層環境問題對照表」排查。
+
+```bash
+# 1. 安裝依賴（必須帶 --legacy-peer-deps，原因見 L3）
+npm install --legacy-peer-deps
+
+# 2. 重建開發版（覆蓋過期 build artifact）
+npm run build:dev
+
+# 3. 檢視 vulnerability 警告（不修復，僅評估）
+npm audit
+
+# 4. 驗證 build 產物存在且時間戳當下
+ls -la build/development/
+```
+
+完成後在 Chrome 開啟 `chrome://extensions/`，點 **重新載入** 按鈕讓 Extension 載入新版 SW / Content Script / Popup。
+
+---
+
+## 四層環境問題對照表
+
+| 層 | 觸發訊號（你會看到什麼） | 根因 | 排查方法 | 修復動作 |
+|----|----------------------|------|---------|---------|
+| **L1** 行為異常 | Overview 開啟顯示 0 本書 / popup 行為與 src 預期不符 / Content Script log 內容對應不上最新程式碼 | Extension 載入的是過期 `build/` 產物 | `ls -la build/development/` 看時間戳；比對 `git log --since="<build 時間>" -- src/` | 執行 `npm run build:dev` 後重新載入 Extension |
+| **L2** Build 失敗 | `npm run build:dev` 報 `Cannot find module 'esbuild'` | `node_modules/` 缺套件（package-lock.json 與實際安裝不一致；可能因為 `npm install` 從未執行或被中斷） | `ls node_modules/esbuild` 確認套件目錄是否存在；`npm ls esbuild` 看依賴樹 | `npm install --legacy-peer-deps` |
+| **L3** Install 失敗 | `npm install` 報 `ERESOLVE could not resolve` 並指向 `eslint-plugin-n` 或 `eslint-config-standard` | `eslint-config-standard@17.x` 要求 `eslint-plugin-n@^15\|\|^16`，但本專案 package.json 列 `eslint-plugin-n@^17.x`（追蹤中：`0.18.0-W6-014`） | 看 npm error log 中 `Found:` 與 `Could not resolve dependency:` 兩段 | 暫用 `npm install --legacy-peer-deps`；根治方案待 `0.18.0-W6-014` 完成 |
+| **L4** 安全警告 | `npm audit` 輸出 19+ vulnerability（含 high severity） | 套件鏈中存在已知 CVE | `npm audit` 看詳情；`npm audit --json` 取結構化資料 | **不要直接執行 `npm audit fix`**（會破壞 lockfile）；評估邏輯見 `0.18.0-W6-015` ANA 結論 |
+
+---
+
+## Vulnerability 處理流程
+
+**核心原則**：本專案是 Chrome Extension（不對外提供 HTTP API、不執行用戶內容、運行於 Chrome sandbox），多數 vulnerability 影響面有限。但仍應**評估後再決定是否修復**，禁止無腦 `npm audit fix --force`。
+
+### 處理步驟
+
+1. **取得詳情**：
+
+   ```bash
+   npm audit
+   ```
+
+2. **對照評估結論**：詳細優先級與修復路徑見 [`0.18.0-W6-015.md`](work-logs/v0/v0.18/v0.18.0/tickets/0.18.0-W6-015.md)（ANA Ticket）
+
+3. **判斷修復策略**：
+
+   | Severity | 預設策略 |
+   |---------|---------|
+   | high | 評估是否影響 Chrome Extension runtime；若僅影響開發工具（如 ESLint plugin）可記入技術債延後 |
+   | moderate | 評估是否進入 production bundle；非 production 路徑可延後 |
+   | low | 記入技術債，下次依賴升級時順帶處理 |
+
+4. **禁止行為**：
+
+   - 禁止執行 `npm audit fix --force`（會強制升級到 major version，可能破壞既有 API 相容性）
+   - 禁止逐套件手動 `npm install <pkg>@latest`（容易引發 peer dep 連鎖衝突，見 L3）
+   - 禁止在未讀 W6-015 ANA 結論前批量修復
+
+---
+
+## Build Warning 處理流程
+
+`npm run build:dev` 過程可能出現 esbuild warning（非阻塞，build 仍會產出 artifact），常見來源：
+
+- `src/core/messaging/MessageDictionary.js:372` / `:379`
+- `src/core/logger/Logger.js:414` / `:424`
+
+**處理流程**：
+
+| 步驟 | 動作 |
+|------|------|
+| 1 | 觀察 warning 內容（通常為 dead code / unused import / unreachable case） |
+| 2 | 對照 [`0.18.0-W6-016.md`](work-logs/v0/v0.18/v0.18.0/tickets/0.18.0-W6-016.md)（ANA Ticket）確認是否為已知 warning |
+| 3 | 若為新 warning：在該 ANA Ticket 補充紀錄；若為已知 warning：依 ANA 結論處理 |
+
+**判斷原則**：build warning 非阻塞，但反映程式碼結構問題（如永遠不會 reach 的 case branch）。日常開發可忽略，正式發布前（`npm run build:prod`）應全部清零。
+
+---
+
+## 為何使用 `--legacy-peer-deps`
+
+`--legacy-peer-deps` 是 npm v7+ 引入的相容性 flag，作用為**忽略 peer dependency 衝突**（npm v6 行為）。本專案目前需要此 flag 是因為 `eslint-config-standard@17.1.0` 與 `eslint-plugin-n@17.x` 的 peer dep 版本範圍不相容（追蹤於 `0.18.0-W6-014`）。
+
+**為什麼不直接降版 `eslint-plugin-n` 到 16？**
+
+降版需評估是否影響既有 ESLint 規則行為，屬獨立決策，由 `0.18.0-W6-014` ticket 統一處理。在 W6-014 完成前，使用 `--legacy-peer-deps` 是**已驗證可工作**的權宜方案。
+
+**風險評估**：`--legacy-peer-deps` 僅影響開發階段的 lint 工具鏈，不進入 Chrome Extension production bundle，runtime 風險為零。
+
+---
+
+## 恢復後驗證清單
+
+完成恢復流程後依序確認：
+
+- [ ] `ls -la build/development/` 顯示當下時間戳的 manifest.json
+- [ ] Chrome 載入 unpacked extension 後 popup 可正常開啟
+- [ ] Content Script 注入 readmoo.com 頁面（DevTools Console 應見啟動 log）
+- [ ] Service Worker 在 `chrome://extensions/` 頁面狀態為「active」
+- [ ] `npm test` 至少能跑起來（測試是否通過為獨立議題）
+
+---
+
+## 相關 Ticket 與文件
+
+| 文件 | 內容 |
+|------|------|
+| `0.18.0-W6-012.1.md` | 四層環境問題原始診斷紀錄（含時間戳證據） |
+| `0.18.0-W6-014.md` | eslint peer dep 根治方案（追蹤中） |
+| `0.18.0-W6-015.md` | npm audit 19 個 vulnerability 優先級評估 |
+| `0.18.0-W6-016.md` | esbuild build warning 評估 |
+| `docs/chrome-extension-dev-guide.md` | Chrome Extension 環境限制與最佳實踐 |
+| `CLAUDE.md §4.1` | 專案重啟狀態（含本指南指引） |
+
+---
+
+**Last Updated**: 2026-05-17 | **Source**: `0.18.0-W6-013`（DOC，源自 `0.18.0-W6-012.1` 診斷實況）

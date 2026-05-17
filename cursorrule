@@ -64,6 +64,8 @@
 - 既有 todolist.md 內容僅供歷史參考，不作為當前開發依據
 - 需重新評估專案現況、測試狀態、架構健康度後，再制定新的開發計畫
 
+**環境恢復**：長期暫停後重啟（或新 clone repo）必須依 [`docs/environment-recovery-guide.md`](docs/environment-recovery-guide.md) 執行恢復流程。標準三步驟：`npm install --legacy-peer-deps` → `npm run build:dev` → `npm audit`。詳細的四層環境問題排查表、vulnerability / build warning 處理流程亦在該指南。
+
 ---
 
 ## 5. 開發指令
