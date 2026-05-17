@@ -183,6 +183,27 @@ W6-012.2.1 調整 `bookData.id` 生成策略：
 
 書庫頁採虛擬 scroll：944 本書時 DOM 僅渲染前 96 個 `.library-item`。完整提取需 scroll 觸發 lazy load（透過底部「更多...」按鈕或 scroll-to-end）。提取流程應等待 `.library-item` 數量穩定於目標總數（從「擁有 N 本書，其中封存 X 本，借出 Y 本」文字解析）後才開始。
 
+**實作對照**（截至 v0.18.0）：
+
+| 元件 | 狀態 | 說明 |
+|------|------|------|
+| `src/content/adapters/readmoo-adapter.js#extractAllBooks` | 缺少 scroll-to-end loop | 僅呼叫 `waitForBookElements()`（任何 > 0 即 resolve），未驗證 count 達 target；首批 96 後直接消費，造成 96/944（約 10%）提取缺口 |
+| `src/content/adapters/readmoo-adapter.js#waitForBookElements` | 設計為「等待出現」非「等待完整」 | resolve 條件 `length > 0`（adapter line 282），不等 count 穩定 |
+| `src/content/content-modular.js` SPA 路由監聽 | 未串接 | `event-utils.onURLChange` 已備但未調用，路由切換返回 library 時只看到當下 DOM snapshot |
+| `docs/bookstores/readmoo.md` §MCP E2E checklist Step 3 演算法 | 規格已書面化，未進入 production code | 僅用於手動 e2e 驗證 |
+
+**修復追蹤**：W6-021 ANA 結論——需 spawn IMP 將 Step 3 演算法落地到 production extraction code（採 `loadAllBooksLazy()` 新 method 保留呼叫者選擇權；loop 結束條件：count == target OR 連續 3 輪無變化 OR 30 輪上限）。
+
+**SPA 路由切換補充**（W6-012.9.4 + W6-021 ANA）：
+
+| 進入方式 | 觀察到的初始 DOM count | 缺 lazy load 的影響 |
+|----------|----------------------|---------------------|
+| 直接 reload `/library` | 96（首批 render） | 提取 96/944（10%） |
+| SPA 路由切換返回（從閱讀器返回書庫） | 96（MutationObserver 命中後 resolve） | 同上 |
+| 小書庫帳號（< 96 本） | 全部 render | 無感（首批即完整） |
+
+故「SPA 路由切換 96 命中」**並非路由切換特有缺陷**——而是提取流程普遍缺少 lazy load 處理；reload 路徑同樣受影響，只是 W6-012.9.4 未對照書庫總數所以漏看。
+
 ### WAIT_FOR_BOOK_ELEMENTS_TIMEOUT 觸發情境（W6-012.9.4 ANA 結論）
 
 實機驗證四情境後判定常見路徑**不會觸發** finalCount:0 timeout：
