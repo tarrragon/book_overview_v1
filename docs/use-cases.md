@@ -177,8 +177,8 @@
 
 - JSON 匯出格式升級為 Interchange Format v2（含 tags 按類別、tag_tree 結構）。tag_tree 序列化格式待定義於匯出規格文件。
 - 新增匯出選項：v2 格式（預設）和 v1 相容格式
-- CSV 匯出需包含 tag 欄位（以分隔符序列化）和 6 種閱讀狀態
-- 匯出欄位集定義需更新（BASIC/EXTENDED/COMPLETE 等加入 tag 相關欄位）
+- CSV 匯出需包含 tag 欄位（以分隔符序列化）和 6 種閱讀狀態 詳見 [CSV 匯出欄位規格](./spec/csv-export-spec.md)。
+- 匯出欄位集定義需更新（BASIC/EXTENDED/COMPLETE 等加入 tag 相關欄位） 詳見 [CSV 匯出欄位規格](./spec/csv-export-spec.md)。
 - **新邊界條件**：書籍無 tag 時匯出為空陣列而非省略欄位
 
 ---
