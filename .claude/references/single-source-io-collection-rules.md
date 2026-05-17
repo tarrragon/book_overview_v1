@@ -110,15 +110,14 @@ def _print_git_status_from_state(branch: str, state: CheckpointState) -> None:
 | 註解明示「不再呼叫 git status」 | 規則 1 單一採集點：消費端禁止繞過 |
 | 寫入 `state.uncommitted_files` 與 `computed_at` | 規則 2 時間戳語意：computed_at 對應 state 組裝時刻 |
 
-### 反例（TODO：由稽核子任務補回）
+### 反例（待後續稽核補回）
 
-<!-- TODO: 由 W15-029 稽核子任務（W15-029.2）執行 .claude/skills/ticket/ticket_system/commands/ 與 .claude/hooks/ 全量稽核後，將實際違規案例（含修復前 / 修復後 diff、call count assertion 測試片段）補入此段。預留欄位：
-- 反例 1：[檔案:行號] — 重複 I/O 結構描述
-- 修復前：（程式碼片段）
-- 修復後：（程式碼片段）
-- 對應規則違反項：（規則 1 / 2 / 3 之一或多項）
-- 測試補強：（mock call count assertion 範例）
--->
+實際違規案例由後續稽核任務執行 `.claude/skills/ticket/ticket_system/commands/` 與 `.claude/hooks/` 全量稽核後補入。補入時應包含以下欄位以利對照：
+
+- 反例位置：檔案 / 行號 / 重複 I/O 結構描述
+- 修復前後程式碼片段
+- 對應違反的規則編號（規則 1 / 2 / 3）
+- 補強測試：mock call count assertion 範例
 
 ---
 
