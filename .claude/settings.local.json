@@ -178,7 +178,8 @@
       "mcp__chrome-devtools__wait_for",
       "Bash(cp /Users/tarragon/Projects/book_overview_v1/.claude/settings.json /Users/tarragon/Projects/book_overview_v1/.claude/settings.json.bak)",
       "Bash(cp /Users/tarragon/Projects/book_overview_v1/.claude/settings.local.json /Users/tarragon/Projects/book_overview_v1/.claude/settings.local.json.bak)",
-      "mcp__chrome-devtools__reload_extension"
+      "mcp__chrome-devtools__reload_extension",
+      "mcp__chrome-devtools__close_page"
     ]
   },
   "enableAllProjectMcpServers": true,
