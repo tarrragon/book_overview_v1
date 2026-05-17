@@ -30,11 +30,10 @@ exit 2 = IO 錯誤。呼叫端必須以命令名稱判別語意，禁止以 exit
 from __future__ import annotations
 
 import argparse
-import sys
 from pathlib import Path
 from typing import List, Tuple
 
-from ticket_system.lib.parser import load_ticket
+from ticket_system.lib.dispatch_common import load_and_unpack
 from ticket_system.lib.paths import get_project_root
 from ticket_system.lib.section_locator import SectionMatch, find_section
 
@@ -133,23 +132,13 @@ def execute_dispatch_validate(args: argparse.Namespace, version: str) -> int:
     Returns:
         0: 全部規則通過；1: 軟性警告；2: 硬性失敗 / IO 錯誤。
     """
-    ticket_id = getattr(args, "ticket_id", None)
-    if not ticket_id:
-        sys.stderr.write("[FAIL] 缺少 ticket_id 參數\n")
-        return 2
-
-    ticket = load_ticket(version, ticket_id)
-    if ticket is None:
-        sys.stderr.write(f"[FAIL] ticket {ticket_id} 不存在或無法讀取\n")
-        return 2
-    if ticket.get("_yaml_error"):
-        sys.stderr.write(f"[FAIL] ticket {ticket_id} YAML 解析失敗: {ticket['_yaml_error']}\n")
-        return 2
-
-    body = ticket.get("_body", "") or ""
-    where = ticket.get("where") or {}
-    where_files = where.get("files") if isinstance(where, dict) else []
-    acceptance = ticket.get("acceptance") or []
+    loaded = load_and_unpack(args, version)
+    if loaded.error_exit_code is not None:
+        return loaded.error_exit_code
+    body = loaded.body
+    where_files = loaded.where_files
+    acceptance = loaded.acceptance
+    ticket_id = args.ticket_id
 
     project_root = get_project_root()
 

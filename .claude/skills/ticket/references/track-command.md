@@ -772,6 +772,11 @@ ticket track dispatch-readiness <ticket_id>
 > **閾值來源**：`.claude/references/cognitive-load-execution-details.md`「3b
 > 派發前閾值」三項核心指標。閾值 1「功能職責數」CLI 無法精確自動推導，
 > 沿用 acceptance 條目作為近似訊號，最終由 PM 判定。
+>
+> **近似性警告（W17-213）**：acceptance 若含「跑測試」「補文件」「執行驗證」
+> 等驗證類條目，會讓 acceptance 條目數高於實際功能職責數（高估）；反之，若
+> 多個職責被合併寫成單一 acceptance（低估），也會偏離真值。CLI 僅作近似訊號，
+> 達 WARN/FAIL 時 PM 應手動覆核 acceptance 是否反映真實職責數，再決定是否拆分。
 
 ### Exit code
 

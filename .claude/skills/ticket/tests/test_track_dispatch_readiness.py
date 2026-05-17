@@ -121,7 +121,7 @@ def _args(ticket_id: str = "0.18.0-W17-053") -> argparse.Namespace:
 def _run(ticket_dict) -> tuple[int, str, str]:
     out, err = io.StringIO(), io.StringIO()
     with patch(
-        "ticket_system.commands.track_dispatch_readiness.load_ticket",
+        "ticket_system.lib.dispatch_common.load_ticket",
         return_value=ticket_dict,
     ), redirect_stdout(out), redirect_stderr(err):
         rc = execute_dispatch_readiness(_args(), "0.18.0")

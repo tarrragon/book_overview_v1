@@ -30,17 +30,18 @@ Exit code 語意（與 dispatch-check / dispatch-validate 不共享）：
 from __future__ import annotations
 
 import argparse
-import sys
 from typing import List, Tuple
 
-from ticket_system.lib.parser import load_ticket
+from ticket_system.lib.dispatch_common import load_and_unpack
 from ticket_system.lib.section_locator import find_section
 
 
 _CONTEXT_BUNDLE_SECTION = "Context Bundle"
 
 # 三項核心閾值（與 cognitive-load-execution-details.md 對齊）
-_RESPONSIBILITY_SOFT_MAX = 2  # > 2 軟警告
+# W17-213: 原 _RESPONSIBILITY_SOFT_MAX 重命名為 _RESPONSIBILITY_PASS_MAX
+# 「PASS」更貼合 > N 即離開 pass 區的閘門語意（rules/cognitive-load.md 3b 派發前閾值）
+_RESPONSIBILITY_PASS_MAX = 2  # > 2 軟警告
 _RESPONSIBILITY_HARD_MAX = 4  # > 4 視為強制拆分（依據 7±2 取下限保守）
 _FILES_SOFT_MAX = 5  # > 5 軟警告
 _FILES_HARD_MAX = 10  # > 10 強制拆分
@@ -57,7 +58,7 @@ _CHARS_PER_TOKEN = 4  # 粗估換算（OpenAI cl100k 平均）
 def check_responsibility_count(
     acceptance: List,
     *,
-    soft_max: int = _RESPONSIBILITY_SOFT_MAX,
+    soft_max: int = _RESPONSIBILITY_PASS_MAX,
     hard_max: int = _RESPONSIBILITY_HARD_MAX,
 ) -> Tuple[str, int, str]:
     """閾值 1：功能職責數估算。
@@ -145,25 +146,13 @@ def execute_dispatch_readiness(args: argparse.Namespace, version: str) -> int:
     Returns:
         0: 全通過；1: 軟性警告；2: 硬性失敗 / IO 錯誤。
     """
-    ticket_id = getattr(args, "ticket_id", None)
-    if not ticket_id:
-        sys.stderr.write("[FAIL] 缺少 ticket_id 參數\n")
-        return 2
-
-    ticket = load_ticket(version, ticket_id)
-    if ticket is None:
-        sys.stderr.write(f"[FAIL] ticket {ticket_id} 不存在或無法讀取\n")
-        return 2
-    if ticket.get("_yaml_error"):
-        sys.stderr.write(
-            f"[FAIL] ticket {ticket_id} YAML 解析失敗: {ticket['_yaml_error']}\n"
-        )
-        return 2
-
-    body = ticket.get("_body", "") or ""
-    where = ticket.get("where") or {}
-    where_files = where.get("files") if isinstance(where, dict) else []
-    acceptance = ticket.get("acceptance") or []
+    loaded = load_and_unpack(args, version)
+    if loaded.error_exit_code is not None:
+        return loaded.error_exit_code
+    body = loaded.body
+    where_files = loaded.where_files
+    acceptance = loaded.acceptance
+    ticket_id = args.ticket_id
 
     r1_status, _, r1_msg = check_responsibility_count(acceptance)
     r2_status, _, r2_msg = check_file_count(where_files or [])

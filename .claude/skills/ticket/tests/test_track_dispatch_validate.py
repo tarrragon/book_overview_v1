@@ -129,7 +129,7 @@ def _run(ticket_dict, *, project_root: Path | None = None) -> tuple[int, str, st
     pr = project_root or Path("/tmp")
     out, err = io.StringIO(), io.StringIO()
     with patch(
-        "ticket_system.commands.track_dispatch_validate.load_ticket",
+        "ticket_system.lib.dispatch_common.load_ticket",
         return_value=ticket_dict,
     ), patch(
         "ticket_system.commands.track_dispatch_validate.get_project_root",
