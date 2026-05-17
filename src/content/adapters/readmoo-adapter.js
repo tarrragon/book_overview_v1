@@ -154,7 +154,7 @@ function createReadmooAdapter (options = {}) {
 
         // 備用策略：如果沒有找到主要容器，嘗試其他選擇器
         if (elements.length === 0) {
-          logger.warn('FALLBACK_SELECTOR_ATTEMPT', { reason: '未找到 .library-item' })
+          logger.debug('FALLBACK_SELECTOR_ATTEMPT', { reason: '未找到 .library-item' })
 
           for (const selector of SELECTORS.alternativeContainers) {
             const found = document.querySelectorAll(selector)
@@ -168,7 +168,7 @@ function createReadmooAdapter (options = {}) {
 
         // 最後備用策略：直接查找閱讀器連結的父容器
         if (elements.length === 0) {
-          logger.warn('LAST_RESORT_STRATEGY', { reason: '查找閱讀器連結的父容器' })
+          logger.info('LAST_RESORT_STRATEGY', { reason: '查找閱讀器連結的父容器' })
           const readerLinks = document.querySelectorAll(SELECTORS.readerLink)
           const containers = new Set()
           const MAX_ANCESTOR_DEPTH = 10
@@ -320,10 +320,17 @@ function createReadmooAdapter (options = {}) {
             resolved = true
             cleanup()
             const finalElements = this.getBookElements()
-            logger.warn('WAIT_FOR_BOOK_ELEMENTS_TIMEOUT', {
+            // finalCount > 0 表示超時但仍取得結果，屬正常情境（降級為 info）
+            // finalCount === 0 表示真正失敗，維持 warn
+            const timeoutPayload = {
               timeoutMs: WAIT_TIMEOUT_MS,
               finalCount: finalElements.length
-            })
+            }
+            if (finalElements.length > 0) {
+              logger.info('WAIT_FOR_BOOK_ELEMENTS_TIMEOUT', timeoutPayload)
+            } else {
+              logger.warn('WAIT_FOR_BOOK_ELEMENTS_TIMEOUT', timeoutPayload)
+            }
             resolve(finalElements)
           }
         }, WAIT_TIMEOUT_MS)
