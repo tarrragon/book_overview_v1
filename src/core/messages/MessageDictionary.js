@@ -140,6 +140,7 @@ class MessageDictionary {
       WAIT_FOR_BOOK_ELEMENTS_START: '開始等待書籍元素出現（逾時: {timeoutMs}ms）',
       WAIT_FOR_BOOK_ELEMENTS_FOUND: '書籍元素已找到（來源: {source}，數量: {count}）',
       WAIT_FOR_BOOK_ELEMENTS_SKIP: '跳過等待書籍元素',
+      WAIT_FOR_BOOK_ELEMENTS_TIMEOUT: '等待書籍元素逾時（逾時: {timeoutMs}ms，最終數量: {finalCount}）',
       SELECTOR_PARADOX: '選擇器矛盾：主選擇器未找到但備用策略成功',
       CONTAINER_SAMPLE: '容器取樣資料',
       EXTRACTION_SAMPLE_DATA: '提取樣本資料（共 {totalBooks} 本）',
