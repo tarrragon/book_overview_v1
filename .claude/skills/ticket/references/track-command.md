@@ -681,3 +681,54 @@ ticket track list --completed --format yaml --version 0.18.0
 | 細部篩選（特定 wave/status/format） | `list` | flag 組合彈性高 |
 | 自動化腳本（pipe 到其他命令） | `list --format ids` | 純 ID 輸出無裝飾 |
 | 「下一個該做哪個」決策 | `runqueue` | 含關鍵路徑 / DAG 視圖
+
+---
+
+## track dispatch-validate 子命令（W17-003）
+
+對 target ticket 的 Context Bundle 自動填料結果做合理性檢查，作為 C 方案
+（`context_bundle_extractor` 自動抽取）的第二道防線。**與 W10-017.2 的
+`dispatch-check`（活躍派發狀態查詢）職責正交**，獨立子命令不互相干擾。
+
+### 用法
+
+```bash
+ticket track dispatch-validate <ticket_id>
+```
+
+### 合理性檢查規則
+
+| 規則 | 內容 | 違反後果 |
+|------|------|---------|
+| 1 | Context Bundle section 存在且 content 非全空白 | 硬性失敗 → exit 2 |
+| 2 | Context Bundle content 長度 ≥ 50 字元（避免空殼填料） | 軟性警告 → exit 1 |
+| 3 | frontmatter `where.files` 列出的檔案在檔案系統存在 | 軟性警告 → exit 1 |
+| 4 | acceptance ≥ 3 項（4V 原則） | 軟性警告 → exit 1 |
+| 5 | （保留）LLM 審查 Context Bundle 是否真能讓 agent 上手 | 本 ticket 不實作 |
+
+### Exit code
+
+| code | 意義 |
+|------|------|
+| 0 | 全部規則通過 |
+| 1 | 軟性警告（規則 2/3/4 至少一項違反） |
+| 2 | 硬性失敗（規則 1 違反、ticket 不存在、IO/YAML 錯誤） |
+
+### 設計邊界
+
+- **不**修改 ticket，僅輸出診斷
+- **不**取代 hook / scheduler 的執行控制
+- **不**負責產生 dispatch-plan、也**不**實作 batch dispatch CLI（與 W17-029 邊界）
+- where.files 為空時規則 3 視為通過（DOC 類 ticket 常見情形）
+
+### 範例
+
+```bash
+$ ticket track dispatch-validate 0.18.0-W17-003
+dispatch-validate 0.18.0-W17-003:
+  [PASS] 規則 1 欄位非空: Context Bundle section 存在且非空
+  [PASS] 規則 2 內容長度: Context Bundle 內容長度 596 >= 50
+  [PASS] 規則 3 檔案存在: where.files 3 個檔案皆存在
+  [PASS] 規則 4 acceptance 項數: acceptance 5 項 >= 3
+[PASS] 全部規則通過
+```

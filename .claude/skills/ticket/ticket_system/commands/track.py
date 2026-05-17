@@ -141,6 +141,11 @@ from .track_dispatch_check import (
     execute_dispatch_check,
     register_dispatch_check,
 )
+# Context Bundle 合理性檢查（W17-003 落地，獨立於 dispatch-check）
+from .track_dispatch_validate import (
+    execute_dispatch_validate,
+    register_dispatch_validate,
+)
 # parallel-check 子任務衝突偵測（W17-203.1 落地）
 from .track_parallel_check import (
     execute_parallel_check,
@@ -285,6 +290,8 @@ def _create_command_handlers() -> dict:
         "dashboard": execute_dashboard,
         # W10-083 / PC-094 TD 清單校準
         "td-status": execute_td_status,
+        # W17-003 Context Bundle 合理性檢查（version-aware：需讀取 ticket md）
+        "dispatch-validate": execute_dispatch_validate,
     }
 
 
@@ -854,6 +861,7 @@ def _register_all_subcommands(
     register_stuck_anas(track_subparsers)
     register_stale_list(track_subparsers)
     register_td_status(track_subparsers)
+    register_dispatch_validate(track_subparsers)
 
 
 def _register_global_state_commands(
