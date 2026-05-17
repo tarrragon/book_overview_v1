@@ -183,6 +183,20 @@ W6-012.2.1 調整 `bookData.id` 生成策略：
 
 書庫頁採虛擬 scroll：944 本書時 DOM 僅渲染前 96 個 `.library-item`。完整提取需 scroll 觸發 lazy load（透過底部「更多...」按鈕或 scroll-to-end）。提取流程應等待 `.library-item` 數量穩定於目標總數（從「擁有 N 本書，其中封存 X 本，借出 Y 本」文字解析）後才開始。
 
+### WAIT_FOR_BOOK_ELEMENTS_TIMEOUT 觸發情境（W6-012.9.4 ANA 結論）
+
+實機驗證四情境後判定常見路徑**不會觸發** finalCount:0 timeout：
+
+| 情境 | 觸發 timeout？ | 證據來源 |
+|------|--------------|---------|
+| 已登入 baseline reload | 否（~90ms hydration） | W6-012.9.4 實機 |
+| SPA 路由切換後返回 library | 否（MutationObserver 命中 96 items） | W6-012.9.4 實機 |
+| 未登入訪問 library URL | 否（host 變 `next.readmoo.com`，content script 未注入） | W6-012.9.4 實機 |
+| 空書庫帳號（0 books） | 推論觸發（無 .library-item 可命中）| W6-012.9.4 程式碼推論（無測試帳號） |
+| 節流網路（Slow 3G） | 未驗證（mcp `emulate` permission denied） | 待後續調查 |
+
+**結論**：方案 D（wait 策略調整）**不值得在 v0.18.0 實施**。W6-012.9.1 logger 級別調整（commit `909865a5`）已涵蓋多數雜訊；finalCount:0 warn 留作真實異常訊號（空書庫推論觸發為唯一已知情境）。
+
 ### API 端點
 
 書庫資料來自 XHR/Fetch（非 SSR HTML）。用 `chrome-devtools__list_network_requests` 觀察：
