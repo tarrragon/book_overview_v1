@@ -45,7 +45,8 @@ uv tool install .claude/skills/ticket --reinstall
 ticket track summary                                    # 摘要
 ticket track query 1.0.0-W4-001                       # 查詢
 ticket track claim 1.0.0-W4-001                       # 認領
-ticket track complete 1.0.0-W4-001                    # 完成
+ticket track complete 1.0.0-W4-001                    # 完成（auto-stage：自動 git add ticket md + worklog md + cascade children，stdout 提示 commit 指令）
+ticket track complete 1.0.0-W4-001 --no-stage         # 完成但跳過 auto-stage（保留用戶手動掌控 stage 範圍，W11-035）
 ticket track complete 1.0.0-W4-001 --force            # 強制完成（旁路未完成 children 阻擋，W11-003.2）
 ticket create --version 0.31.0 --wave 4 --action "實作" --target "XXX"  # 建立
 ```
