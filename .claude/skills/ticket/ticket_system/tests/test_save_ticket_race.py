@@ -1,9 +1,17 @@
-"""Phase 2 RED — save_ticket race condition regression tests.
+"""Phase 2 RED v2 — update_* race condition regression tests.
 
-對應 ticket 0.18.0-W14-042 / W14-005 ANA Solution。
-驗證 parser.save_ticket() 之 fcntl.flock per-ticket-file lock 機制。
+對應 ticket 0.18.0-W14-042（修正版 Phase 1 spec，saffron 重評後）。
 
-設計來源：W14-042 Test Results 章節 sage Phase 2 RED 設計（7 個 test case）。
+設計變更（v1 → v2）：
+-----------------------
+v1 RED 失效根因：lock 注入 `save_ticket()` 是錯誤設計。`save_ticket` 的 single
+`f.write(content)` 對小 content 已 effectively atomic（OS-level），測試僅 1/7 真紅。
+
+v2 修正：真正 race 發生在 `update_parent_children` / `update_source_spawned_tickets`
+的 load → modify → save 三步驟序列（logical read-modify-write）。本測試模擬該層級
+race，預期無 lock 時 lost rate ≥ 50%。
+
+對應 spec：Solution「Phase 1 修正版」場景 1/4，acceptance A2-1 / A2-4。
 """
 
 from __future__ import annotations
@@ -14,10 +22,11 @@ import os
 import signal
 import time
 from pathlib import Path
+from typing import Tuple
 
 import pytest
 
-from ticket_system.lib import parser
+from ticket_system.lib import parser, ticket_builder
 from ticket_system.lib.parser import parse_frontmatter
 
 
@@ -27,7 +36,7 @@ from ticket_system.lib.parser import parse_frontmatter
 
 @pytest.fixture(scope="module", autouse=True)
 def _force_fork_mode():
-    """macOS Python 3.13 預設 spawn，顯式切回 fork 以共享 monkeypatch。"""
+    """macOS Python 3.13 預設 spawn，顯式切回 fork 以共享 monkeypatch state。"""
     try:
         mp.set_start_method("fork", force=True)
     except RuntimeError:
@@ -35,258 +44,252 @@ def _force_fork_mode():
 
 
 @pytest.fixture
-def tmp_ticket_dir(tmp_path):
+def tmp_ticket_dir(tmp_path: Path) -> Path:
     d = tmp_path / "tickets"
     d.mkdir()
     return d
 
 
+def _write_ticket(path: Path, tid: str, *, children=None, spawned=None) -> None:
+    """以最小合法 frontmatter 建立 ticket md 檔。"""
+    lines = ["---"]
+    lines.append(f"id: {tid}")
+    lines.append("title: race target")
+    lines.append("status: pending")
+    lines.append(f"children: {children if children is not None else []}")
+    lines.append(f"spawned_tickets: {spawned if spawned is not None else []}")
+    lines.append("---")
+    lines.append("")
+    lines.append("body")
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
 @pytest.fixture
-def sample_ticket_factory(tmp_ticket_dir):
-    def _make(tid="0.0.0-TEST-001", payload_size=1):
-        path = tmp_ticket_dir / f"{tid}.md"
-        ticket = {
-            "id": tid,
-            "title": "race test fixture",
-            "status": "pending",
-            "_body": "X" * payload_size,
-        }
-        return ticket, path
-    return _make
+def parent_ticket(tmp_ticket_dir: Path) -> Tuple[str, Path]:
+    """建立一個 parent ticket，回傳 (id, path)。"""
+    tid = "0.0.0-W0-PARENT"
+    path = tmp_ticket_dir / f"{tid}.md"
+    _write_ticket(path, tid, children=[])
+    return tid, path
 
 
-# ============================================================
-# Helper: 直接以 path 載入 ticket（旁路 load_ticket 的 version 邏輯）
-# ============================================================
-
-def _load_by_path(path: Path):
-    """讀檔 + parse_frontmatter，避開 load_ticket 的 version/cache 邏輯。"""
-    if not path.exists():
-        return None
-    content = path.read_text(encoding="utf-8")
-    try:
-        fm, body = parse_frontmatter(content)
-    except Exception:
-        return None
-    if not fm:
-        return None
-    fm["_body"] = body
-    return fm
+@pytest.fixture
+def source_ticket(tmp_ticket_dir: Path) -> Tuple[str, Path]:
+    """建立一個 source ticket，回傳 (id, path)。"""
+    tid = "0.0.0-W0-SOURCE"
+    path = tmp_ticket_dir / f"{tid}.md"
+    _write_ticket(path, tid, spawned=[])
+    return tid, path
 
 
-# ============================================================
-# Multiprocessing workers（必須在 module top-level）
-# ============================================================
+@pytest.fixture
+def patch_ticket_paths(tmp_ticket_dir: Path, monkeypatch):
+    """重導 update_* 內部的 get_ticket_path / load_ticket 至 tmp dir。
 
-def _worker_save(args):
-    tid, path_str, writer_id = args
-    # body 含 writer_id marker，可用於檢測「frontmatter title vs body 是否來自同一 writer」
-    body = f"WRITER={writer_id}\n" + (f"line-{writer_id}\n" * 2048)
-    ticket = {
-        "id": tid,
-        "title": f"writer-{writer_id}",
-        "status": "pending",
-        "_body": body,
-    }
-    parser.save_ticket(ticket, Path(path_str))
+    fork 模式下 child 繼承 parent 的 monkeypatch 狀態，故只需在主 process patch。
+    """
+    def _fake_get_ticket_path(version: str, ticket_id: str) -> Path:
+        return tmp_ticket_dir / f"{ticket_id}.md"
 
-
-def _worker_save_with_sleep(args):
-    """寫入前 sleep，放大時序窗。"""
-    tid, path_str, writer_id, sleep_s = args
-    ticket = {
-        "id": tid,
-        "title": f"writer-{writer_id}",
-        "status": "pending",
-        "_body": "X" * (100 * 1024),
-    }
-    time.sleep(sleep_s)
-    parser.save_ticket(ticket, Path(path_str))
-
-
-def _worker_save_hold_lock(args):
-    """child process 持鎖後長 sleep，供 SIGKILL 測試。"""
-    tid, path_str = args
-    # 直接寫入後 sleep（簡化版：若實作 lock 則 lock 在 save 期間持有）
-    # 為了真正模擬「持鎖中被 kill」，這裡假設實作會 monkeypatch _file_lock
-    # 此 worker 是 fallback：直接呼叫 save_ticket 並在後續 hang
-    ticket = {
-        "id": tid,
-        "title": "child-holding-lock",
-        "status": "pending",
-        "_body": "Y" * 4096,
-    }
-    parser.save_ticket(ticket, Path(path_str))
-    # 持鎖效果靠下方測試另以 monkeypatch 注入 sleep
-    time.sleep(30)
-
-
-# ============================================================
-# Tests
-# ============================================================
-
-class TestSaveTicketRace:
-
-    # ---- Test 1: 同 path 並發無 lost update / corruption ----
-    def test_concurrent_same_path_no_lost_update(self, sample_ticket_factory):
-        _, path = sample_ticket_factory()
-        # 重複多輪以放大 race window 命中機率
-        N_ROUNDS = 5
-        N_WRITERS = 20
-        for round_idx in range(N_ROUNDS):
-            args = [("0.0.0-TEST-001", str(path), i) for i in range(N_WRITERS)]
-            with mp.Pool(N_WRITERS) as pool:
-                pool.map(_worker_save, args)
-
-            loaded = _load_by_path(path)
-            assert loaded is not None, \
-                f"round {round_idx}: ticket file unreadable / corrupted YAML"
-            title = loaded.get("title", "")
-            assert title.startswith("writer-"), \
-                f"round {round_idx}: title corruption: {title!r}"
-            try:
-                wid_title = int(title.split("-")[1])
-            except (ValueError, IndexError):
-                pytest.fail(f"round {round_idx}: corrupted title: {title!r}")
-            assert 0 <= wid_title <= N_WRITERS - 1, \
-                f"round {round_idx}: title writer id OOR: {wid_title}"
-
-            # 一致性：body 第一行 WRITER=N 必須與 title writer-N 相符
-            body = loaded.get("_body", "")
-            first_line = body.split("\n", 1)[0]
-            assert first_line == f"WRITER={wid_title}", (
-                f"round {round_idx}: frontmatter/body interleaved — "
-                f"title=writer-{wid_title} but body first line={first_line!r}"
-            )
-
-    # ---- Test 2: 不同 path 並發無阻塞 ----
-    def test_concurrent_different_paths_no_blocking(self, sample_ticket_factory):
-        _, p1 = sample_ticket_factory(tid="0.0.0-TEST-A")
-        _, p2 = sample_ticket_factory(tid="0.0.0-TEST-B")
-
-        sleep_s = 0.5
-
-        # baseline：序列
-        t0 = time.time()
-        _worker_save_with_sleep(("0.0.0-TEST-A", str(p1), 0, sleep_s))
-        _worker_save_with_sleep(("0.0.0-TEST-B", str(p2), 1, sleep_s))
-        t_seq = time.time() - t0
-
-        # 並發
-        args = [
-            ("0.0.0-TEST-A", str(p1), 2, sleep_s),
-            ("0.0.0-TEST-B", str(p2), 3, sleep_s),
-        ]
-        t0 = time.time()
-        with mp.Pool(2) as pool:
-            pool.map(_worker_save_with_sleep, args)
-        t_par = time.time() - t0
-
-        # 並發應接近單次耗時（per-file lock 不應 cross-block）
-        assert t_par < t_seq * 0.7, \
-            f"per-file lock not isolated: t_par={t_par:.2f}s t_seq={t_seq:.2f}s"
-
-    # ---- Test 3: Crash 後 lock 自動釋放 ----
-    def test_crash_releases_lock(self, sample_ticket_factory):
-        _, path = sample_ticket_factory(tid="0.0.0-TEST-CRASH")
-
-        # 建立 child process 持鎖
-        proc = mp.Process(
-            target=_worker_save_hold_lock,
-            args=(("0.0.0-TEST-CRASH", str(path)),),
-        )
-        proc.start()
-        time.sleep(0.5)  # 確保 child 已進入 save_ticket（或之後 sleep）
-
-        # SIGKILL
-        os.kill(proc.pid, signal.SIGKILL)
-        proc.join(timeout=2)
-
-        # 主 process 立即寫入，計時
-        t0 = time.time()
-        parser.save_ticket(
-            {"id": "0.0.0-TEST-CRASH", "title": "main-after-crash",
-             "status": "pending", "_body": "Z" * 1024},
-            path,
-        )
-        t_recover = time.time() - t0
-
-        assert t_recover < 1.0, \
-            f"lock not released after SIGKILL: t_recover={t_recover:.2f}s"
-
-        loaded = _load_by_path(path)
-        assert loaded is not None
-        assert loaded.get("title") == "main-after-crash"
-
-    # ---- Test 4: Cache invalidation 時序 ----
-    def test_cache_invalidation_within_lock(self, sample_ticket_factory, tmp_path, monkeypatch):
-        # 使用真實的 docs/work-logs path 結構讓 load_ticket 找得到
-        # 改用 monkeypatch 修改 get_ticket_path 指向 tmp_path
-        from ticket_system.lib import paths as paths_mod
-        from ticket_system.lib import parser as parser_mod
-
-        tid = "0.0.0-TEST-CACHE"
-        ticket_path = tmp_path / f"{tid}.md"
-
-        def _fake_get_ticket_path(version, ticket_id):
-            return ticket_path
-
-        monkeypatch.setattr(parser_mod, "get_ticket_path", _fake_get_ticket_path)
-
-        # 1) 初版
-        parser.save_ticket(
-            {"id": tid, "title": "v1", "status": "pending", "_body": "body-v1"},
-            ticket_path,
-        )
-
-        # 2) 觸發 cache 填入
-        loaded1 = parser.load_ticket("0.0.0", tid)
-        assert loaded1 is not None
-        assert loaded1["title"] == "v1"
-
-        # 3) 改寫新版
-        parser.save_ticket(
-            {"id": tid, "title": "v2", "status": "pending", "_body": "body-v2"},
-            ticket_path,
-        )
-
-        # 4) 立即 load，必須取得新版
-        loaded2 = parser.load_ticket("0.0.0", tid)
-        assert loaded2 is not None
-        assert loaded2["title"] == "v2", \
-            f"cache not invalidated: got title={loaded2.get('title')!r}"
-
-    # ---- Test 5: 權限錯誤 rethrow ----
-    def test_propagates_permission_error(self, tmp_path):
-        readonly = tmp_path / "readonly"
-        readonly.mkdir()
-        readonly.chmod(0o555)
-        target = readonly / "subdir" / "x.md"
-
+    def _fake_load_ticket(version: str, ticket_id: str):
+        path = tmp_ticket_dir / f"{ticket_id}.md"
+        if not path.exists():
+            return None
+        content = path.read_text(encoding="utf-8")
         try:
-            with pytest.raises((PermissionError, OSError)):
-                parser.save_ticket(
-                    {"id": "x", "title": "t", "status": "pending", "_body": ""},
-                    target,
-                )
-        finally:
-            readonly.chmod(0o755)  # 還原權限以便清理
+            fm, body = parse_frontmatter(content)
+        except Exception:
+            return None
+        if not fm:
+            return None
+        fm["_body"] = body
+        fm["_path"] = str(path)
+        return fm
 
-    # ---- Test 6: .gitignore 含 *.lock pattern ----
+    # Patch 在 ticket_builder 模組命名空間（update_* 內部解析的目標）
+    monkeypatch.setattr(ticket_builder, "get_ticket_path", _fake_get_ticket_path)
+    monkeypatch.setattr(ticket_builder, "load_ticket", _fake_load_ticket)
+
+    # extract_version_from_ticket_id 對 "0.0.0-W0-PARENT" 需能回傳 "0.0.0"
+    # 真實函式應已支援；若失敗測試會直接顯示
+    return _fake_get_ticket_path, _fake_load_ticket
+
+
+# ============================================================
+# Multiprocessing workers（module top-level，fork 可直接繼承 patch）
+# ============================================================
+
+def _worker_update_parent(args):
+    """並發呼叫 update_parent_children。"""
+    parent_id, child_id = args
+    return ticket_builder.update_parent_children("0.0.0", parent_id, child_id)
+
+
+def _worker_update_source(args):
+    """並發呼叫 update_source_spawned_tickets。"""
+    source_id, new_id = args
+    return ticket_builder.update_source_spawned_tickets(source_id, new_id)
+
+
+def _read_list_field(path: Path, field: str) -> list:
+    """直接從 md frontmatter 讀取 list 欄位（旁路 load_ticket 快取）。"""
+    content = path.read_text(encoding="utf-8")
+    fm, _ = parse_frontmatter(content)
+    return list(fm.get(field, []) or [])
+
+
+# ============================================================
+# Tests — 真正 RED：模擬 update_* race
+# ============================================================
+
+class TestUpdateParentChildrenRace:
+    """場景 1 / A2-1：N=20 並行 update_parent_children，0 lost update。"""
+
+    def test_concurrent_append_no_lost_update(
+        self, parent_ticket, patch_ticket_paths
+    ):
+        parent_id, parent_path = parent_ticket
+        N = 20
+        N_ROUNDS = 3  # 重複多輪累積 lost rate 樣本
+
+        total_expected = 0
+        total_actual_sum = 0
+        round_results = []
+
+        for round_idx in range(N_ROUNDS):
+            # 每輪重置 children=[]
+            _write_ticket(parent_path, parent_id, children=[])
+
+            # 清 process-scoped cache（避免主 process 殘留）
+            try:
+                parser._ticket_cache.clear()
+            except Exception:
+                pass
+
+            child_ids = [f"0.0.0-W0-CHILD-{round_idx}-{i:02d}" for i in range(N)]
+            args = [(parent_id, cid) for cid in child_ids]
+
+            with mp.Pool(N) as pool:
+                results = pool.map(_worker_update_parent, args)
+
+            # 成功 writers：returned True；失敗（False）也是 race 訊號
+            # （load_ticket 讀到部分寫入時回 None → update_* 回 False）
+            successful_ids = [cid for cid, ok in zip(child_ids, results) if ok]
+
+            final_children = _read_list_field(parent_path, "children")
+            unique = set(final_children)
+            # 計算 lost update：成功宣稱寫入 (return True) 但最終 children 缺失
+            missing = set(successful_ids) - unique
+
+            round_results.append({
+                "expected_among_successful": len(successful_ids),
+                "actual": len(unique),
+                "missing": sorted(missing),
+                "returned_false_count": results.count(False),
+            })
+            total_expected += len(successful_ids)
+            total_actual_sum += len(unique & set(successful_ids))
+
+        lost_total = total_expected - total_actual_sum
+        lost_rate = lost_total / total_expected if total_expected else 0.0
+
+        # 預期 RED：無 lock 時 lost_rate > 0（W14-005 重現實驗 ~66.5%）
+        assert lost_total == 0, (
+            f"LOST UPDATE detected (update_parent_children race):\n"
+            f"  total_expected={total_expected} total_actual={total_actual_sum}\n"
+            f"  lost_total={lost_total} lost_rate={lost_rate*100:.1f}%\n"
+            f"  per-round details: {round_results}"
+        )
+
+
+class TestUpdateSourceSpawnedRace:
+    """場景 4 / A2-4：N=20 並行 update_source_spawned_tickets，0 lost update。"""
+
+    def test_concurrent_append_no_lost_update(
+        self, source_ticket, patch_ticket_paths
+    ):
+        source_id, source_path = source_ticket
+        N = 20
+        N_ROUNDS = 3
+
+        total_expected = 0
+        total_actual_sum = 0
+        round_results = []
+
+        for round_idx in range(N_ROUNDS):
+            _write_ticket(source_path, source_id, spawned=[])
+
+            try:
+                parser._ticket_cache.clear()
+            except Exception:
+                pass
+
+            spawned_ids = [f"0.0.0-W0-SPAWN-{round_idx}-{i:02d}" for i in range(N)]
+            args = [(source_id, sid) for sid in spawned_ids]
+
+            with mp.Pool(N) as pool:
+                results = pool.map(_worker_update_source, args)
+
+            successful_ids = [sid for sid, ok in zip(spawned_ids, results) if ok]
+
+            final_spawned = _read_list_field(source_path, "spawned_tickets")
+            unique = set(final_spawned)
+            missing = set(successful_ids) - unique
+
+            round_results.append({
+                "expected_among_successful": len(successful_ids),
+                "actual": len(unique),
+                "missing": sorted(missing),
+                "returned_false_count": results.count(False),
+            })
+            total_expected += len(successful_ids)
+            total_actual_sum += len(unique & set(successful_ids))
+
+        lost_total = total_expected - total_actual_sum
+        lost_rate = lost_total / total_expected if total_expected else 0.0
+
+        assert lost_total == 0, (
+            f"LOST UPDATE detected (update_source_spawned_tickets race):\n"
+            f"  total_expected={total_expected} total_actual={total_actual_sum}\n"
+            f"  lost_total={lost_total} lost_rate={lost_rate*100:.1f}%\n"
+            f"  per-round details: {round_results}"
+        )
+
+
+# ============================================================
+# 配置型測試（保留 v1 中仍有效項：.gitignore、signature）
+# ============================================================
+
+class TestConfiguration:
+    """配置層 acceptance（A1 / A4）：與 race 行為解耦的契約檢查。"""
+
     def test_gitignore_contains_lock_pattern(self):
-        # 從 parser.py 反推 project root
+        """A4: .gitignore 含 generic *.lock pattern。"""
         project_root = Path(parser.__file__).resolve().parents[5]
         gitignore = project_root / ".gitignore"
         assert gitignore.exists(), f"gitignore not found at {gitignore}"
         content = gitignore.read_text(encoding="utf-8")
-        # 接受 *.lock 或 **/*.lock 通用 pattern
         import re
         m = re.search(r"^\*+(?:/\*+)?\.lock\s*$", content, re.MULTILINE)
         assert m is not None, ".gitignore missing generic *.lock pattern"
 
-    # ---- Test 7: signature 不變 ----
     def test_save_ticket_signature_unchanged(self):
+        """A1: save_ticket signature 不變（修正版 spec 不改 save_ticket）。"""
         sig = inspect.signature(parser.save_ticket)
         params = list(sig.parameters.keys())
         assert params[:2] == ["ticket", "ticket_path"], \
+            f"signature changed: {params}"
+
+    def test_update_parent_children_signature_unchanged(self):
+        """update_parent_children signature 不變（lock 注入應對 caller 透明）。"""
+        sig = inspect.signature(ticket_builder.update_parent_children)
+        params = list(sig.parameters.keys())
+        assert params == ["version", "parent_id", "child_id"], \
+            f"signature changed: {params}"
+
+    def test_update_source_spawned_signature_unchanged(self):
+        """update_source_spawned_tickets signature 不變。"""
+        sig = inspect.signature(ticket_builder.update_source_spawned_tickets)
+        params = list(sig.parameters.keys())
+        assert params == ["source_ticket_id", "new_ticket_id"], \
             f"signature changed: {params}"
