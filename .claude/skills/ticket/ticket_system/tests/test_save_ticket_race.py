@@ -36,11 +36,25 @@ from ticket_system.lib.parser import parse_frontmatter
 
 @pytest.fixture(scope="module", autouse=True)
 def _force_fork_mode():
-    """macOS Python 3.13 預設 spawn，顯式切回 fork 以共享 monkeypatch state。"""
+    """macOS Python 3.13 預設 spawn，顯式切回 fork 以共享 monkeypatch state。
+
+    防護：若無法切到 fork（已 init 過且當前非 fork），必須 fail-fast。
+    spawn 模式下 child process 不繼承 monkeypatch 狀態，會導致 race
+    regression 測試讀到真實 ticket dir、誤判通過（false GREEN）。
+    """
     try:
         mp.set_start_method("fork", force=True)
     except RuntimeError:
+        # 已被 init 過：若當前已是 fork 則正常通過；否則 fail-fast
         pass
+    current = mp.get_start_method()
+    assert current == "fork", (
+        f"fork mode required for race tests; current start method = {current!r}. "
+        f"spawn/forkserver would yield FALSE GREEN due to process state isolation "
+        f"(monkeypatch on ticket_builder.get_ticket_path / load_ticket would not "
+        f"propagate to child processes, so workers would touch real ticket dir "
+        f"or fail to import the patched paths)."
+    )
 
 
 @pytest.fixture
