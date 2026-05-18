@@ -6,6 +6,7 @@ Ticket lifecycle 操作模組
 
 import argparse
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
 from datetime import datetime
@@ -61,7 +62,19 @@ from ticket_system.lib.ticket_ops import (
     load_and_validate_ticket,
     resolve_ticket_path,
 )
-from ticket_system.lib.worklog_appender import append_worklog_progress
+from ticket_system.lib.worklog_appender import (
+    append_worklog_progress,
+    _build_worklog_path,
+)
+
+
+def _build_worklog_path_for_stage(version: str) -> str:
+    """W11-035：取得 worklog 絕對路徑供 git add 使用。
+
+    薄封裝 `_build_worklog_path`，回傳 str 並隔離測試替身（test 可 patch
+    此 symbol 而不影響 worklog_appender 內部呼叫）。
+    """
+    return str(_build_worklog_path(version))
 from ticket_system.lib.ui_constants import SEPARATOR_PRIMARY
 from ticket_system.lib.project_root import resolve_project_cwd
 from ticket_system.commands.claim_verification import (
@@ -603,6 +616,7 @@ class TicketLifecycle:
         yes_spawned: bool = False,
         skip_body_check: bool = False,
         force: bool = False,
+        no_stage: bool = False,
     ) -> int:
         """
         完成 Ticket - 使用「先查後做」驗證流程
@@ -779,13 +793,42 @@ class TicketLifecycle:
 
         # W5-019：父 complete → 子 cascade 解鎖 + 未完成 children 警告
         # 置於 _auto_handoff_if_needed 之前，讓解鎖後的子狀態可影響 handoff 建議
-        _post_complete_cascade(ticket, self.version, ticket_map)
+        # W11-035：捕獲 unblocked 清單以便 auto-stage 收集 children md 路徑
+        unblocked_children = _post_complete_cascade(ticket, self.version, ticket_map) or []
 
         # W17-008.15 方案 D：IMP complete 後檢查 source ANA 是否可 complete
         _print_source_ana_complete_hint(ticket, self.version)
 
         # 自動 handoff：若有後續任務，自動建立 handoff 檔案
         _auto_handoff_if_needed(ticket, analysis, self.version)
+
+        # W11-035：自動 git add 已知 modified 路徑 + 提示 commit 指令
+        if not no_stage:
+            modified_paths: List[str] = []
+            try:
+                modified_paths.append(str(ticket_path))
+            except Exception:
+                pass
+            try:
+                modified_paths.append(_build_worklog_path_for_stage(self.version))
+            except Exception as exc:
+                sys.stderr.write(
+                    f"[auto-stage] worklog 路徑解析失敗（略過）：{exc}\n"
+                )
+            for child in unblocked_children:
+                cid = child.get("id") if isinstance(child, dict) else None
+                if not cid:
+                    continue
+                child_dict = ticket_map.get(cid) or {"id": cid}
+                try:
+                    modified_paths.append(
+                        str(resolve_ticket_path(child_dict, self.version, cid))
+                    )
+                except Exception as exc:
+                    sys.stderr.write(
+                        f"[auto-stage] child {cid} 路徑解析失敗（略過）：{exc}\n"
+                    )
+            _auto_stage_completion_files(ticket_id, modified_paths)
 
         return 0
 
@@ -1624,25 +1667,80 @@ def _handle_pending_children_block(
     return 1
 
 
+def _auto_stage_git_add(paths: List[str]) -> None:
+    """W11-035：薄封裝 subprocess.run 以便測試替身 patch 此 symbol，
+    避免污染全域 subprocess.run（會影響 get_project_root 等 git 呼叫）。
+    """
+    subprocess.run(
+        ["git", "add", *paths],
+        capture_output=True,
+        check=False,
+    )
+
+
+def _auto_stage_completion_files(
+    ticket_id: str,
+    modified_paths: List[str],
+) -> None:
+    """W11-035 方案 D：complete 後自動 git add 已知 modified 路徑 + stdout 提示。
+
+    精確路徑 add（無 ./、-A、--all），不夾帶 WIP；subprocess 失敗 degrade
+    gracefully（stderr 警告 + 不中斷 complete 流程）。
+
+    Args:
+        ticket_id: 主 ticket id（用於 commit 訊息提示）
+        modified_paths: complete 流程實際寫入的檔案路徑清單
+    """
+    # 去重 + 過濾空字串，保留順序
+    seen: set = set()
+    deduped: List[str] = []
+    for p in modified_paths:
+        if not p or p in seen:
+            continue
+        seen.add(p)
+        deduped.append(p)
+
+    if not deduped:
+        return
+
+    try:
+        _auto_stage_git_add(deduped)
+    except Exception as exc:
+        sys.stderr.write(
+            f"[auto-stage] git add 失敗（非致命）：{exc}\n"
+        )
+        return
+
+    print()
+    print(f"  [Auto-stage] 已 staged {len(deduped)} 個 metadata 檔案")
+    print(
+        f"  建議 commit: git commit -m \"chore({ticket_id}): metadata sync post-completion\""
+    )
+
+
 def _post_complete_cascade(
     parent_ticket: Dict[str, Any],
     version: str,
     ticket_map: Dict[str, Any],
-) -> None:
+) -> List[Dict[str, Any]]:
     """
     complete() 後處理：cascade 解鎖子 Ticket + 印出解鎖/警告訊息。
 
     W11-002.1 從 complete() 抽出，讓 complete() 主體只做編排。
-    若 parent 無 children，直接 no-op。
+    W11-035：回傳 unblocked 清單供 auto-stage 取得 children 路徑（先前無回傳）。
+    若 parent 無 children，回傳空 list。
 
     Args:
         parent_ticket: 已完成的父 Ticket dict
         version: 版本字串
         ticket_map: 預先載入的 {ticket_id: ticket_dict} map（complete 流程已載入）
+
+    Returns:
+        unblocked list of {id, title}（與 _cascade_unblock_children 第一回傳值同型）
     """
     children_ids = parent_ticket.get("children", [])
     if not children_ids:
-        return
+        return []
 
     unblocked, pending = _cascade_unblock_children(
         parent_ticket, version, ticket_map=ticket_map
@@ -1651,6 +1749,7 @@ def _post_complete_cascade(
         _print_cascade_unblocked(unblocked)
     if pending:
         _print_children_warnings(pending)
+    return unblocked
 
 
 ChildOutcomeKind = Literal[
@@ -1960,11 +2059,13 @@ def execute_complete(args: argparse.Namespace, version: str) -> int:
     yes_spawned = bool(getattr(args, "yes_spawned", False))
     skip_body_check = bool(getattr(args, "skip_body_check", False))
     force = bool(getattr(args, "force", False))
+    no_stage = bool(getattr(args, "no_stage", False))
     return lifecycle.complete(
         args.ticket_id,
         yes_spawned=yes_spawned,
         skip_body_check=skip_body_check,
         force=force,
+        no_stage=no_stage,
     )
 
 

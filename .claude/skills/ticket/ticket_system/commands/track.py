@@ -419,6 +419,12 @@ def _register_lifecycle_commands(
         action="store_true",
         help="逃生閥：父 ticket 有未完成 children 時旁路阻擋強制完成（W11-003.2；會輸出警告）",
     )
+    p_complete.add_argument(
+        "--no-stage",
+        dest="no_stage",
+        action="store_true",
+        help="跳過 complete 後自動 git add metadata 檔案（W11-035 方案 D opt-out）",
+    )
 
     # close 操作（W15-027 / PC-090：--reason 枚舉必填）
     from ticket_system.constants import CLOSE_REASONS, CLOSE_REASON_RETROSPECTIVE_UNKNOWN
