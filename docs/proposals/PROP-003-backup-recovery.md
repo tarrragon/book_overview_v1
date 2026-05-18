@@ -17,8 +17,8 @@ outputs:
 related_proposals: [PROP-002]
 supersedes: null
 
-# draft 過期暫設 light；promote 至 confirmed/approved 時需重評 standard/heavy
-evaluation_level: light
+# PROP-003 單版本功能（v0.16.3 備份恢復），W10-099 仲裁結論落地（IMP-B）
+evaluation_level: standard
 promotion_review_required: true
 ---
 

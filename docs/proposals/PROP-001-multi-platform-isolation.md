@@ -16,7 +16,7 @@ outputs:
 
 related_proposals: []
 supersedes: null
-evaluation_level: light  # draft 暫設 light；promote 為 confirmed/approved 時須重評 standard/heavy
+evaluation_level: heavy  # PROP-001 跨版本/架構級（v2.0+ 多平台路由），W10-099 仲裁結論落地（IMP-B）
 promotion_review_required: true
 ---
 
