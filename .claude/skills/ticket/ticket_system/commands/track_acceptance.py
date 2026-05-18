@@ -29,6 +29,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 
+from ticket_system.lib.file_lock import file_lock
 from ticket_system.lib.ticket_loader import (
     get_ticket_path,
     load_ticket,
@@ -297,30 +298,35 @@ def execute_check_acceptance(args: argparse.Namespace, version: str) -> int:
         print(format_error(ErrorMessages.CHECK_ACCEPTANCE_MISSING_INDEX))
         return 2
 
-    # 載入 Ticket（找不到 ticket 為用戶輸入錯誤 → return 2）
-    ticket, error = load_and_validate_ticket(version, args.ticket_id)
-    if error:
-        return 2
+    # W14-045: file_lock 包圍 load → modify → save，消除 logical race。
+    # Lock 範圍涵蓋 _execute_single_check_acceptance / _execute_batch_check_acceptance
+    # 內部的 save_ticket 呼叫。
+    lock_target = Path(get_ticket_path(version, args.ticket_id))
+    with file_lock(lock_target):
+        # 載入 Ticket（找不到 ticket 為用戶輸入錯誤 → return 2）
+        ticket, error = load_and_validate_ticket(version, args.ticket_id)
+        if error:
+            return 2
 
-    # 取得 acceptance 列表（來自 frontmatter）
-    acceptance_list = ticket.get("acceptance", [])
-    if not acceptance_list:
-        # 業務拒絕：ticket 無 acceptance 條件可勾選
-        print(format_error(ErrorMessages.ACCEPTANCE_CRITERIA_NOT_FOUND, ticket_id=args.ticket_id))
-        return 2
+        # 取得 acceptance 列表（來自 frontmatter）
+        acceptance_list = ticket.get("acceptance", [])
+        if not acceptance_list:
+            # 業務拒絕：ticket 無 acceptance 條件可勾選
+            print(format_error(ErrorMessages.ACCEPTANCE_CRITERIA_NOT_FOUND, ticket_id=args.ticket_id))
+            return 2
 
-    uncheck = getattr(args, "uncheck", False)
+        uncheck = getattr(args, "uncheck", False)
 
-    if use_all:
-        # 批量操作
-        return _execute_batch_check_acceptance(
-            args, version, ticket, acceptance_list, uncheck
-        )
-    else:
-        # 單一操作
-        return _execute_single_check_acceptance(
-            args, version, ticket, acceptance_list, index_arg, uncheck
-        )
+        if use_all:
+            # 批量操作
+            return _execute_batch_check_acceptance(
+                args, version, ticket, acceptance_list, uncheck
+            )
+        else:
+            # 單一操作
+            return _execute_single_check_acceptance(
+                args, version, ticket, acceptance_list, index_arg, uncheck
+            )
 
 
 def _execute_single_check_acceptance(
@@ -481,29 +487,32 @@ def execute_accept_creation(args: argparse.Namespace, version: str) -> int:
     將 frontmatter 中的 creation_accepted 欄位設為 true。
     既有 Ticket 缺少此欄位時視為 false。
     """
-    ticket = load_ticket(version, args.ticket_id)
-    if not ticket:
-        print(format_error(ErrorMessages.TICKET_NOT_FOUND, ticket_id=args.ticket_id))
-        return 1
+    # W14-045: file_lock 包圍 load → modify → save
+    lock_target = Path(get_ticket_path(version, args.ticket_id))
+    with file_lock(lock_target):
+        ticket = load_ticket(version, args.ticket_id)
+        if not ticket:
+            print(format_error(ErrorMessages.TICKET_NOT_FOUND, ticket_id=args.ticket_id))
+            return 1
 
-    # 取得當前 creation_accepted 狀態（預設為 false）
-    creation_accepted = ticket.get("creation_accepted", False)
+        # 取得當前 creation_accepted 狀態（預設為 false）
+        creation_accepted = ticket.get("creation_accepted", False)
 
-    if creation_accepted:
-        # 已經通過驗收
-        msg = format_msg(
-            TrackAcceptanceMessages.ACCEPT_CREATION_ALREADY_ACCEPTED_FORMAT,
-            ticket_id=args.ticket_id
-        )
-        print(msg)
-        return 0
+        if creation_accepted:
+            # 已經通過驗收
+            msg = format_msg(
+                TrackAcceptanceMessages.ACCEPT_CREATION_ALREADY_ACCEPTED_FORMAT,
+                ticket_id=args.ticket_id
+            )
+            print(msg)
+            return 0
 
-    # 標記建立後驗收已通過
-    ticket["creation_accepted"] = True
+        # 標記建立後驗收已通過
+        ticket["creation_accepted"] = True
 
-    # 保存
-    ticket_path = resolve_ticket_path(ticket, version, args.ticket_id)
-    save_ticket(ticket, ticket_path)
+        # 保存
+        ticket_path = resolve_ticket_path(ticket, version, args.ticket_id)
+        save_ticket(ticket, ticket_path)
 
     # 輸出結果
     msg = format_msg(
@@ -525,6 +534,15 @@ def execute_append_log(args: argparse.Namespace, version: str) -> int:
     - ticket track append-log <id> --section "Test Results" "內容"
     - ticket track append-log <id> --section "Execution Log" "內容"
     """
+    # W14-045: file_lock 包圍 load → modify → save，消除 logical race。
+    # append-log 為高頻並發 caller（PM/agent 持續寫入），race 風險最高。
+    lock_target = Path(get_ticket_path(version, args.ticket_id))
+    with file_lock(lock_target):
+        return _execute_append_log_locked(args, version)
+
+
+def _execute_append_log_locked(args: argparse.Namespace, version: str) -> int:
+    """append-log 主邏輯（已位於 file_lock 內）。"""
     ticket = load_ticket(version, args.ticket_id)
     if not ticket:
         print(format_error(ErrorMessages.TICKET_NOT_FOUND, ticket_id=args.ticket_id))
