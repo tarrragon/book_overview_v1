@@ -200,5 +200,8 @@
       }
     ]
   },
-  "outputStyle": "5W1H Structured Response"
+  "outputStyle": "5W1H Structured Response",
+  "worktree": {
+    "bgIsolation": "none"
+  }
 }
