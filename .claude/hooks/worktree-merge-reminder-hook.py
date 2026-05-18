@@ -6,8 +6,10 @@
 """
 Worktree Merge Reminder Hook - PostToolUse (Bash)
 
-功能：當偵測到 ticket track complete 命令時，檢查所有 worktree 是否有未合併回 main 的 commit。
-提醒 PM 在 ticket 完成前處理待合併的 worktree。
+功能：當偵測到 ticket track complete 命令時，檢查所有 worktree：
+1. 未合併（ahead>0）→ 推送 merge 警告（既有功能）
+2. 已合併（ahead=0，含 user worktree）→ 推送 cleanup reminder（W11-033 / PC-149 新增）
+   - dirty worktree 額外提示先處理變更
 
 Hook 類型：PostToolUse
 匹配工具：Bash
@@ -84,6 +86,32 @@ def get_unmerged_commits(branch: str, logger) -> List[str]:
     return commits
 
 
+def is_worktree_dirty(path: str, logger) -> bool:
+    """檢查 worktree 是否有未提交變更（含未追蹤檔案）。
+
+    Args:
+        path: worktree 絕對路徑
+        logger: logger 實例
+
+    Returns:
+        True 表示 dirty（status --porcelain 非空），False 表示 clean 或無法判斷。
+    """
+    try:
+        result = subprocess.run(
+            ["git", "-C", path, "status", "--porcelain"],
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10
+        )
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        logger.warning("git -C %s status 執行失敗", path)
+        return False
+
+    if result.returncode != 0:
+        logger.debug("git -C %s status 非零退出碼: %d", path, result.returncode)
+        return False
+
+    return bool(result.stdout.strip())
+
+
 def is_ticket_complete_command(input_data: dict) -> bool:
     """判斷 Bash 輸出是否為 ticket track complete 命令。"""
     # 檢查工具輸入（命令本身）
@@ -124,31 +152,57 @@ def main() -> int:
         logger.debug("無非 main 的 worktree")
         return 0
 
-    # 收集未合併的 worktree
+    # 分類：未合併 vs 已合併（ahead=0）
     unmerged = []
+    merged = []  # (path, branch, dirty)
     for wt_path, branch in worktrees:
         commits = get_unmerged_commits(branch, logger)
         if commits:
             unmerged.append((wt_path, branch, commits))
+        else:
+            dirty = is_worktree_dirty(wt_path, logger)
+            merged.append((wt_path, branch, dirty))
 
-    if not unmerged:
-        logger.info("所有 worktree 已合併，無需提醒")
+    if not unmerged and not merged:
+        logger.info("所有 worktree 已合併且無需清理")
         return 0
 
-    # 組裝警告訊息
-    lines = ["[Worktree 合併提醒] 以下 worktree 有未合併回 main 的 commit：", ""]
-    for wt_path, branch, commits in unmerged:
-        lines.append(f"  分支: {branch}")
-        lines.append(f"  路徑: {wt_path}")
-        lines.append(f"  待合併 commit: {len(commits)} 個")
-        for commit in commits[:5]:
-            lines.append(f"    - {commit}")
-        if len(commits) > 5:
-            lines.append(f"    ... 還有 {len(commits) - 5} 個")
-        lines.append(f"  建議: git merge {branch} --no-edit")
-        lines.append("")
+    lines: List[str] = []
 
-    lines.append("請在 ticket 完成前合併這些 worktree 的變更。")
+    # Section 1: 未合併警告（既有區塊）
+    if unmerged:
+        lines.append("[Worktree 合併提醒] 以下 worktree 有未合併回 main 的 commit：")
+        lines.append("")
+        for wt_path, branch, commits in unmerged:
+            lines.append(f"  分支: {branch}")
+            lines.append(f"  路徑: {wt_path}")
+            lines.append(f"  待合併 commit: {len(commits)} 個")
+            for commit in commits[:5]:
+                lines.append(f"    - {commit}")
+            if len(commits) > 5:
+                lines.append(f"    ... 還有 {len(commits) - 5} 個")
+            lines.append(f"  建議: git merge {branch} --no-edit")
+            lines.append("")
+        lines.append("請在 ticket 完成前合併這些 worktree 的變更。")
+        if merged:
+            lines.append("")
+
+    # Section 2: 已合併 cleanup reminder（W11-033 / PC-149 新增）
+    if merged:
+        lines.append("[Worktree 清理提醒] 以下 worktree 已完全合併回 main，建議清理：")
+        lines.append("")
+        for wt_path, branch, dirty in merged:
+            lines.append(f"  分支: {branch}")
+            lines.append(f"  路徑: {wt_path}")
+            if dirty:
+                lines.append("  狀態: 未提交變更（dirty）— 請先處理未提交/未追蹤檔案再移除")
+                lines.append(f"  建議: cd {wt_path} && git status   # 確認變更")
+                lines.append(f"        git worktree remove {wt_path} --force   # 強制移除")
+            else:
+                lines.append("  狀態: clean")
+                lines.append(f"  建議: git worktree remove {wt_path}")
+            lines.append("")
+        lines.append("PC-149: ticket 完成後 worktree 殘留會累積 disk 與視圖污染。")
 
     message = "\n".join(lines)
     output = {
@@ -158,7 +212,10 @@ def main() -> int:
         }
     }
     print(json.dumps(output, ensure_ascii=False))
-    logger.warning("發現 %d 個 worktree 有未合併 commit", len(unmerged))
+    if unmerged:
+        logger.warning("發現 %d 個 worktree 有未合併 commit", len(unmerged))
+    if merged:
+        logger.info("發現 %d 個已合併 worktree 待清理", len(merged))
 
     # 回傳 0（警告但不阻擋），讓 PM 決定是否處理
     return 0
