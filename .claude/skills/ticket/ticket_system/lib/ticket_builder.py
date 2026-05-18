@@ -29,6 +29,7 @@ from ticket_system.lib.ticket_loader import (
     get_ticket_path,
 )
 from ticket_system.lib.ticket_validator import extract_version_from_ticket_id
+from ticket_system.lib.parser import _file_lock
 
 
 # 預設驗收條件（依 Ticket 類型）
@@ -741,26 +742,30 @@ def update_parent_children(version: str, parent_id: str, child_id: str) -> bool:
     if resolved_version is None:
         return False
 
-    parent: Optional[Dict[str, Any]] = load_ticket(resolved_version, parent_id)
-    if not parent:
-        return False
+    # W14-042: 用 per-ticket-file lock 包圍 load → modify → save 三步驟，
+    # 消除 logical race（W14-005 重現實驗 lost_rate 55.6%）。
+    parent_path: Path = Path(get_ticket_path(resolved_version, parent_id))
+    with _file_lock(parent_path):
+        parent: Optional[Dict[str, Any]] = load_ticket(resolved_version, parent_id)
+        if not parent:
+            return False
 
-    # 防禦性型別檢查：children 可能因手動編輯變成字串
-    raw_children = parent.get("children", [])
-    if isinstance(raw_children, str):
-        print(
-            f"[WARNING] 父 Ticket {parent_id} 的 children 欄位為字串而非清單，"
-            f"已自動修正",
-            file=sys.stderr,
-        )
-    children: List[str] = _normalize_children(raw_children)
+        # 防禦性型別檢查：children 可能因手動編輯變成字串
+        raw_children = parent.get("children", [])
+        if isinstance(raw_children, str):
+            print(
+                f"[WARNING] 父 Ticket {parent_id} 的 children 欄位為字串而非清單，"
+                f"已自動修正",
+                file=sys.stderr,
+            )
+        children: List[str] = _normalize_children(raw_children)
 
-    if child_id not in children:
-        children.append(child_id)
-        parent["children"] = children
+        if child_id not in children:
+            children.append(child_id)
+            parent["children"] = children
 
-        parent_path: Path = Path(parent.get("_path", get_ticket_path(resolved_version, parent_id)))
-        save_ticket(parent, parent_path)
+            actual_path: Path = Path(parent.get("_path", parent_path))
+            save_ticket(parent, actual_path)
 
     return True
 
@@ -804,34 +809,38 @@ def update_source_spawned_tickets(source_ticket_id: str, new_ticket_id: str) -> 
     if resolved_version is None:
         return False
 
-    source: Optional[Dict[str, Any]] = load_ticket(resolved_version, source_ticket_id)
-    if not source:
-        return False
-
-    # 防禦性型別檢查：spawned_tickets 可能因手動編輯變成字串
-    raw_spawned = source.get("spawned_tickets", [])
-    if isinstance(raw_spawned, str):
-        print(
-            f"[WARNING] Source Ticket {source_ticket_id} 的 spawned_tickets 欄位為字串而非清單，"
-            f"已自動修正",
-            file=sys.stderr,
-        )
-    # 重用 _normalize_children（語義上為「將任意輸入正規化為 list[str]」，
-    # 無 children 特化邏輯；pepper Phase 3a §2 決策不改名）
-    spawned: List[str] = _normalize_children(raw_spawned)
-
-    if new_ticket_id not in spawned:
-        spawned.append(new_ticket_id)
-        source["spawned_tickets"] = spawned
-
-        source_path: Path = Path(
-            source.get("_path", get_ticket_path(resolved_version, source_ticket_id))
-        )
-        # save_ticket 失敗時回傳 False（不 propagate exception；對齊 CLI 層不回滾設計）
-        try:
-            save_ticket(source, source_path)
-        except (IOError, OSError):
+    # W14-042: 用 per-ticket-file lock 包圍 load → modify → save，
+    # 消除 logical race（W14-005 重現實驗 lost_rate 71.9%）。
+    source_path: Path = Path(get_ticket_path(resolved_version, source_ticket_id))
+    with _file_lock(source_path):
+        source: Optional[Dict[str, Any]] = load_ticket(resolved_version, source_ticket_id)
+        if not source:
             return False
+
+        # 防禦性型別檢查：spawned_tickets 可能因手動編輯變成字串
+        raw_spawned = source.get("spawned_tickets", [])
+        if isinstance(raw_spawned, str):
+            print(
+                f"[WARNING] Source Ticket {source_ticket_id} 的 spawned_tickets 欄位為字串而非清單，"
+                f"已自動修正",
+                file=sys.stderr,
+            )
+        # 重用 _normalize_children（語義上為「將任意輸入正規化為 list[str]」，
+        # 無 children 特化邏輯；pepper Phase 3a §2 決策不改名）
+        spawned: List[str] = _normalize_children(raw_spawned)
+
+        if new_ticket_id not in spawned:
+            spawned.append(new_ticket_id)
+            source["spawned_tickets"] = spawned
+
+            actual_path: Path = Path(
+                source.get("_path", source_path)
+            )
+            # save_ticket 失敗時回傳 False（不 propagate exception；對齊 CLI 層不回滾設計）
+            try:
+                save_ticket(source, actual_path)
+            except (IOError, OSError):
+                return False
 
     return True
 

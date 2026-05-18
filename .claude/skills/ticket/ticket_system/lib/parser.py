@@ -4,13 +4,47 @@
 提供 Markdown frontmatter 解析、Ticket 檔案載入和儲存功能。
 支援 Markdown（含 frontmatter）和 YAML 格式。
 """
+import fcntl
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict, Any, Tuple, Iterator
 
 import yaml
 
 from .ui_constants import FRONTMATTER_SPLIT_COUNT
 from .paths import get_ticket_path
+
+
+# ============================================================================
+# Per-ticket-file advisory lock（W14-042）
+# ============================================================================
+#
+# Why: ticket_builder.update_parent_children / update_source_spawned_tickets
+#   的 load → modify → save 三步驟存在 logical race（W14-005 重現實驗
+#   confirmed lost_rate 55.6%~71.9%）。本 utility 為共用 context manager，
+#   注入 update_* caller 包圍完整序列；save_ticket 本身不加 lock（其單次
+#   f.write 對小 content 已 effectively atomic）。
+# Action: caller 用 `with _file_lock(ticket_path): load → modify → save`。
+# POSIX-only（fcntl）；Windows fallback 後續 ticket 處理。
+
+@contextmanager
+def _file_lock(ticket_path: Path) -> Iterator[None]:
+    """Per-ticket-file fcntl.LOCK_EX blocking advisory lock。
+
+    Lock file: `{ticket_path}{suffix}.lock`，crash 後 OS 自動回收 fd 釋鎖，
+    殘留 lock file 不影響後續 reuse（已加入 .gitignore）。
+    """
+    lock_path = ticket_path.with_suffix(ticket_path.suffix + ".lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    fd = open(lock_path, "w")
+    try:
+        fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
+        yield
+    finally:
+        try:
+            fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
+        finally:
+            fd.close()
 
 
 # ============================================================================
