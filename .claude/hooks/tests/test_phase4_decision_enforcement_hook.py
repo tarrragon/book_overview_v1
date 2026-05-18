@@ -410,6 +410,46 @@ def test_ex_n9_rule_quote_缺路徑():
     assert valid is False and err == "rule-quote-need-path"
 
 
+# ---- W11-023: history 類別豁免（引用已完成歷史 / 動機脈絡） ----
+
+def test_ex_p7_history_valid_含_ticket_id():
+    """合法引用：reason 含 ticket ID 作歷史錨點，應通過驗證。"""
+    m = parse_exempt_marker(
+        "<!-- PC-093-exempt: history:本段引用 parent W11-004.7 多視角審查發現作動機脈絡 -->"
+    )
+    assert m is not None and m.category == "history"
+    valid, err = validate_exempt_fields(m)
+    assert valid is True and err is None
+
+
+def test_ex_p8_history_valid_含_versioned_ticket_id():
+    """合法引用：reason 含 versioned ticket ID（0.18.0-W11-004 含 W11-004 子字串）也應通過。"""
+    m = parse_exempt_marker(
+        "<!-- PC-093-exempt: history:引用 0.18.0-W11-004.7.1 的 Problem Analysis 作背景 -->"
+    )
+    valid, err = validate_exempt_fields(m)
+    assert valid is True and err is None
+
+
+def test_ex_n10_history_缺_ticket_id():
+    """非法：history reason 不含 ticket ID 錨點，應 invalid 並產出 history-need-anchor。"""
+    m = parse_exempt_marker(
+        "<!-- PC-093-exempt: history:這是歷史脈絡但沒有票號錨點的說明 -->"
+    )
+    assert m is not None and m.category == "history"
+    valid, err = validate_exempt_fields(m)
+    assert valid is False and err == "history-need-anchor"
+
+
+def test_ex_n11_history_invalid_message_contains_anchor_hint():
+    """history-need-anchor 訊息應在 ERR_MESSAGE_MAP 中，含修復範例。"""
+    err_map = _hook.ERR_MESSAGE_MAP
+    assert "history-need-anchor" in err_map
+    title, hint = err_map["history-need-anchor"]
+    assert "history" in title
+    assert "W" in hint  # 範例含 W{wave}-{seq} 格式
+
+
 def test_ex_n5_格式錯誤_missing_colon_reason():
     m = parse_exempt_marker("<!-- PC-093-exempt: missing-reason -->")
     assert m is None
@@ -910,11 +950,11 @@ def test_format_warn_info_humanizes_format_error():
 # ============================================================================
 
 def test_w10_108_block_message_lists_all_exempt_categories():
-    """拒絕訊息必須完整列出 5 個合法 category（避免 agent 因不知道路徑而走字串繞過）。"""
+    """拒絕訊息必須完整列出 6 個合法 category（避免 agent 因不知道路徑而走字串繞過）。"""
     hits = [Hit(line_no=10, rule_id="M1", level="BLOCK", text="Phase 5 再決定")]
     msg = format_block_message("0.18.0-W10-108", hits, exempted=[])
     for category in ("tdd-transition", "baseline-gated", "ticket-tracked",
-                     "user-override", "rule-quote"):
+                     "user-override", "rule-quote", "history"):
         assert category in msg, "白名單必含 category: {}".format(category)
 
 
@@ -936,7 +976,7 @@ def test_w10_108_block_message_categories_have_use_case():
     msg = format_block_message("0.18.0-W10-108", hits, exempted=[])
     # 每個 category 行格式包含「— 」說明分隔符
     for category in ("tdd-transition", "baseline-gated", "ticket-tracked",
-                     "user-override", "rule-quote"):
+                     "user-override", "rule-quote", "history"):
         # 找該 category 所在行
         for line in msg.split("\n"):
             if category in line and "—" in line:

@@ -22,8 +22,8 @@ Hook 類型：
 豁免語法：
   <!-- PC-093-exempt: <category>:<reason> -->
   於命中 phrase 同行或前 1 行內生效。
-  category: tdd-transition | baseline-gated | ticket-tracked | user-override | rule-quote
-  reason: ≥10 字元；baseline-gated 需含數字；ticket-tracked 需含 ticket id；
+  category: tdd-transition | baseline-gated | ticket-tracked | user-override | rule-quote | history
+  reason: ≥10 字元；baseline-gated 需含數字；ticket-tracked / history 需含 ticket id；
           rule-quote 需含 .claude/rules/ 或 .claude/pm-rules/ 路徑
 
 Ticket: 0.18.0-W10-082
@@ -60,6 +60,7 @@ EXEMPT_CATEGORIES = frozenset({
     "ticket-tracked",
     "user-override",
     "rule-quote",
+    "history",
 })
 
 REASON_MIN_LEN = 10
@@ -151,6 +152,10 @@ ERR_MESSAGE_MAP: Dict[str, Tuple[str, str]] = {
     "rule-quote-need-path": (
         "rule-quote 類別的 reason 必須含規則檔案路徑（.claude/rules/ 或 .claude/pm-rules/）",
         "範例：<!-- PC-093-exempt: rule-quote:引用 .claude/rules/core/decision-trigger-binding.md 規則 1.5 -->",
+    ),
+    "history-need-anchor": (
+        "history 類別的 reason 必須含 W{wave}-{seq} 格式 ticket ID 作歷史錨點",
+        "範例：<!-- PC-093-exempt: history:本段引用 parent W11-004.7 多視角審查發現作動機脈絡 -->",
     ),
 }
 
@@ -445,6 +450,12 @@ def validate_exempt_fields(marker: ExemptMarker) -> Tuple[bool, Optional[str]]:
         return (False, "ticket-tracked-need-id")
     if marker.category == "rule-quote" and not RULE_PATH_PATTERN.search(marker.reason):
         return (False, "rule-quote-need-path")
+    # W11-023: history 類別 reason 必須含 ticket ID 作歷史錨點，
+    # 避免「歷史脈絡」變成自由文字逃生閥。語意上 history 描述「引用已完成的
+    # 歷史 / 動機脈絡」（如 parent ANA 審查發現），與 ticket-tracked（等待
+    # 該 ticket 完成）語意不同。
+    if marker.category == "history" and not TICKET_ID_PATTERN.search(marker.reason):
+        return (False, "history-need-anchor")
     return (True, None)
 
 
@@ -651,6 +662,7 @@ def format_block_message(
     lines.append("  - ticket-tracked  — 引用既有 ticket ID（reason 須含 W{wave}-{seq}，如 source ticket 歷史引用）")
     lines.append("  - user-override   — 用戶明確授權的延後（一般說明 ≥ 10 字）")
     lines.append("  - rule-quote      — 引用 .claude/rules/ 或 .claude/pm-rules/ 規則名稱（reason 須含規則路徑）")
+    lines.append("  - history         — 引用已完成歷史 / 動機脈絡（reason 須含 W{wave}-{seq} ticket ID 作錨點）")
     lines.append("  詳見 .claude/rules/core/decision-trigger-binding.md「Hook 引用豁免機制」章節")
     lines.append("")
     lines.append("要求對每項做出三選一:")
