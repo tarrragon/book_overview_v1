@@ -24,7 +24,11 @@ E   assert 2 == 1
 - 「代理人虛構：報告中提及的測試名稱不存在於 repo」（W14-045 ↔ W14-046 案例）
 - 「pre-existing failure 與本 ticket 無關」（baseline 接受，沒人追查）
 
-**Why**：失敗訊息不指向真因（規範演進 vs stale 期望），第一直覺往程式碼動向走。**Consequence**：可能誤改正確的實作（將 return 2 改回 return 1）、開不必要的 ANA ticket 追查「agent 虛構」、或將真實的 stale test 永久標記為「pre-existing failure baseline」不再追查。**Action**：看到「assert result == X」+「assert Y == X」型錯誤時，先讀對應 production code 註解（常見會引用 `cli-exit-code-rules.md`），確認規範方向，再決定改測試或改實作。
+**Why**：失敗訊息不指向真因（規範演進 vs stale 期望），第一直覺往程式碼動向走。
+
+**Consequence**：可能誤改正確的實作（將 return 2 改回 return 1）、開不必要的 ANA ticket 追查「agent 虛構」、或將真實的 stale test 永久標記為「pre-existing failure baseline」不再追查。
+
+**Action**：看到「assert result == X」+「assert Y == X」型錯誤時，先讀對應 production code 註解（常見會引用 `cli-exit-code-rules.md`），確認規範方向，再決定改測試或改實作。
 
 ## 觸發條件
 
@@ -65,6 +69,8 @@ E   assert 2 == 1
 - 測試端：規範演進後測試期望未同步 → 本 PC
 
 ## 防護措施
+
+防護分自律層與規範層兩線：自律層處理「已發生的 stale test 如何正確診斷」，規範層處理「規範演進時如何防止測試期望落後」。兩者互補，缺一會在不同時間點重新產生本模式。
 
 ### 自律層（PM + 代理人）
 
