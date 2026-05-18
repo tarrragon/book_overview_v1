@@ -4,67 +4,17 @@
 提供 Markdown frontmatter 解析、Ticket 檔案載入和儲存功能。
 支援 Markdown（含 frontmatter）和 YAML 格式。
 """
-from contextlib import contextmanager
 from pathlib import Path
-from typing import Optional, Dict, Any, Tuple, Iterator
+from typing import Optional, Dict, Any, Tuple
 
 import yaml
 
-# fcntl is POSIX-only; Windows lacks it. We gate the import so module load
-# succeeds cross-platform, then raise an explicit NotImplementedError with
-# migration guidance when _file_lock is actually invoked on a non-POSIX host.
-try:
-    import fcntl  # type: ignore[import-not-found]
-    _HAS_FCNTL = True
-except ImportError:  # pragma: no cover - exercised only on Windows
-    fcntl = None  # type: ignore[assignment]
-    _HAS_FCNTL = False
-
 from .ui_constants import FRONTMATTER_SPLIT_COUNT
 from .paths import get_ticket_path
-
-
-# ============================================================================
-# Per-ticket-file advisory lock（W14-042）
-# ============================================================================
-#
-# Why: ticket_builder.update_parent_children / update_source_spawned_tickets
-#   的 load → modify → save 三步驟存在 logical race（W14-005 重現實驗
-#   confirmed lost_rate 55.6%~71.9%）。本 utility 為共用 context manager，
-#   注入 update_* caller 包圍完整序列；save_ticket 本身不加 lock（其單次
-#   f.write 對小 content 已 effectively atomic）。
-# Action: caller 用 `with _file_lock(ticket_path): load → modify → save`。
-# POSIX-only（fcntl）；Windows fallback 後續 ticket 處理。
-
-@contextmanager
-def _file_lock(ticket_path: Path) -> Iterator[None]:
-    """Per-ticket-file fcntl.LOCK_EX blocking advisory lock。
-
-    Lock file: `{ticket_path}{suffix}.lock`，crash 後 OS 自動回收 fd 釋鎖，
-    殘留 lock file 不影響後續 reuse（已加入 .gitignore）。
-    """
-    if not _HAS_FCNTL:
-        # Why: fcntl is POSIX-only. On Windows the advisory-lock semantics here
-        # cannot be silently dropped (would re-introduce W14-005 race) nor
-        # naively replaced (msvcrt.locking has different semantics).
-        # Action: surface an explicit error pointing at portable alternatives.
-        raise NotImplementedError(
-            "_file_lock requires POSIX fcntl, which is unavailable on this "
-            "platform (likely Windows). Run ticket tooling under WSL/macOS/"
-            "Linux, or migrate _file_lock to a cross-platform library such as "
-            "`portalocker` or `filelock` before invoking update_* code paths."
-        )
-    lock_path = ticket_path.with_suffix(ticket_path.suffix + ".lock")
-    lock_path.parent.mkdir(parents=True, exist_ok=True)
-    fd = open(lock_path, "w")
-    try:
-        fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
-        yield
-    finally:
-        try:
-            fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
-        finally:
-            fd.close()
+# Backward-compat alias：原 _file_lock 已搬至 lib/file_lock.py 並 rename 為
+# public file_lock。保留此 re-export 避免破壞既有 import；新 caller 應改用
+# `from ticket_system.lib.file_lock import file_lock`。
+from .file_lock import file_lock as _file_lock  # noqa: F401
 
 
 # ============================================================================
