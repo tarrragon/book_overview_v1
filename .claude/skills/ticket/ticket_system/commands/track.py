@@ -176,6 +176,11 @@ from .track_stale_list import (
     execute_stale_list,
     register_stale_list,
 )
+# hook-health 掃描 .claude/hook-logs/ 評估觸發頻率（W13-018，源自 W13-008 IMP-3）
+from .track_hook_health import (
+    execute_hook_health,
+    register_hook_health,
+)
 # td-status 校準 TD 清單（W10-083 / PC-094）
 from .track_td_status import (
     execute_td_status,
@@ -227,6 +232,7 @@ def _create_version_agnostic_handlers() -> dict:
         "stuck-anas": execute_stuck_anas,
         "stale-list": execute_stale_list,
         "parallel-check": execute_parallel_check,
+        "hook-health": execute_hook_health,
     }
 
 
@@ -874,6 +880,7 @@ def _register_all_subcommands(
     register_stuck_anas(track_subparsers)
     register_stale_list(track_subparsers)
     register_td_status(track_subparsers)
+    register_hook_health(track_subparsers)
     register_dispatch_validate(track_subparsers)
     register_dispatch_readiness(track_subparsers)
 
