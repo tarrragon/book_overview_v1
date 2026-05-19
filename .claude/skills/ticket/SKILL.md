@@ -412,3 +412,17 @@ ticket handoff --from-worklog [--worklog-path PATH] [--dry-run]
 - v1.9.0 (2026-02-06): 語意化重命名 commands_messages_a/b
 - v1.8.0 (2026-02-06): 變更後文件一致性同步
 - v1.7.0 (2026-02-06): 文件同步更新 - 新增 generate/board/audit 文件
+
+---
+
+## 修改 source 後必須重新安裝
+
+> **重要**：本 skill 透過 `uv tool install` 安裝為獨立 CLI，source（本目錄）與 installed（`~/.local/share/uv/tools/<package>/`）是兩份獨立 Python package。修改 source 後若未 reinstall，CLI 仍使用 stale installed 版本，新增的函式會 AttributeError 或被 hasattr 包裝靜默吞掉（W11-037 根因）。
+
+**修復指令**：
+
+```bash
+cd .claude/skills/<本 skill 目錄> && uv tool install . --force --reinstall
+```
+
+**自動偵測**：每次 SessionStart 由 `uv-tool-staleness-check-hook` 比對 source vs installed SHA256，偵測 stale 時提示修復指令。對應 ticket-skill 本身另有 `ticket-reinstall-hook` 自動 reinstall。

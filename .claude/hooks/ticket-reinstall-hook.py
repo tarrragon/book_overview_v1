@@ -41,9 +41,20 @@ import sys
 from pathlib import Path
 from typing import Optional, Set, Dict, Tuple
 
-# 導入 hook_utils
+# 導入 hook_utils 與共用 lib
 sys.path.insert(0, str(Path(__file__).parent))
 from hook_utils import setup_hook_logging, run_hook_safely, get_project_root
+from lib.uv_tool_utils import (
+    compute_file_hashes as _compute_file_hashes_shared,
+    find_installed_module_dir,
+    compare_hash_sets,
+    DEFAULT_EXCLUDE_DIRS,
+)
+
+
+def compute_file_hashes(directory: Path) -> Dict[str, str]:
+    """向後相容包裝：委派至 lib.uv_tool_utils（保留既有測試 import 路徑）。"""
+    return _compute_file_hashes_shared(directory, DEFAULT_EXCLUDE_DIRS)
 
 
 def find_ticket_cli_path(logger: logging.Logger) -> Optional[Path]:

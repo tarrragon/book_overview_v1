@@ -327,6 +327,11 @@
           },
           {
             "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/uv-tool-staleness-check-hook.py",
+            "timeout": 10000
+          },
+          {
+            "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/version-consistency-guard-hook.py"
           },
           {
