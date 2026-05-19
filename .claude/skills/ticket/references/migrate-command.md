@@ -16,6 +16,9 @@ Ticket ID 遷移（支援單一和批量遷移）。
 
 # 停用備份
 /ticket migrate <source_id> <target_id> --no-backup
+
+# 明示授權覆寫目標 ID 既有 Ticket（W14-048）
+/ticket migrate <source_id> <target_id> --force-overwrite
 ```
 
 ## 單一遷移範例
@@ -72,6 +75,19 @@ migrations:
 | `children`       | 更新子任務 ID 引用      |
 | `source_ticket`  | 更新來源引用            |
 
+## Collision Detection（W14-048）
+
+遷移會檢查目標 ID 是否與既有 Ticket 撞檔：
+
+| 階段       | 行為                                                                                |
+| ---------- | ----------------------------------------------------------------------------------- |
+| `--dry-run`  | 目標已存在時輸出 `[WARNING] 目標 Ticket 已存在，實際執行時將被覆寫`，exit 0       |
+| 實際執行   | 預設拒絕並 exit 1（顯示既有 Ticket 的標題/狀態，提示 `--force-overwrite` 旗標）     |
+| 批量遷移   | 預掃描所有 target_id；任一撞 ID 即 fail-fast，**不執行任何 migration**             |
+| `--force-overwrite` | 明示授權覆寫，並在 stdout 記錄 `[AUDIT]` log（含時間戳與既有標題）        |
+
+例外：`source_id == target_id`（in-place rename）不視為 collision。
+
 ## 備份機制
 
 預設情況下，遷移前會自動建立備份：
@@ -88,3 +104,4 @@ migrations:
 | `--dry-run`     | 預覽遷移結果，不實際執行           |
 | `--backup`      | 遷移前備份（預設啟用）             |
 | `--no-backup`   | 停用備份                           |
+| `--force-overwrite` | 明示授權覆寫目標 ID 既有 Ticket（W14-048；會記錄 audit log） |
