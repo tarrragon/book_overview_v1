@@ -109,7 +109,7 @@ def project_with_tickets(tmp_path, monkeypatch):
     Returns:
         (tmp_path, tickets_dir) — 用於後續寫入測試 ticket
     """
-    work_logs = tmp_path / "docs" / "work-logs" / "v0.18.0" / "tickets"
+    work_logs = tmp_path / "docs" / "work-logs" / "v0" / "v0.18" / "v0.18.0" / "tickets"
     work_logs.mkdir(parents=True)
 
     _patch_get_project_root(monkeypatch, tmp_path)

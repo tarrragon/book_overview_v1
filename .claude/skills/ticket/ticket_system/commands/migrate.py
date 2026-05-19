@@ -125,7 +125,10 @@ def _update_cross_references(old_id: str, new_id: str) -> int:
     work_logs_root = get_project_root() / "docs" / "work-logs"
 
     # 掃描所有版本目錄下的 tickets 資料夾
-    for tickets_dir in sorted(work_logs_root.glob("v*/tickets")):
+    # 支援 flat (v{ver}/tickets) 與三層 (v{major}/v{major.minor}/v{ver}/tickets)
+    flat_dirs = list(work_logs_root.glob("v*/tickets"))
+    hierarchical_dirs = list(work_logs_root.glob("v*/v*/v*/tickets"))
+    for tickets_dir in sorted(set(flat_dirs + hierarchical_dirs)):
         for ticket_file in sorted(tickets_dir.glob("*.md")):
             # 跳過剛遷移的 Ticket 本身（來源：0.18.0-W10-037 Bug 2）
             # 原本使用 startswith 會誤跳過子 Ticket（檔名以 new_id 開頭），

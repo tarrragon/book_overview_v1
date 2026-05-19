@@ -83,7 +83,7 @@ def _read_frontmatter(path: Path) -> dict:
 @pytest.fixture
 def project_with_tickets(tmp_path, monkeypatch):
     """建立 tmp 專案結構並 patch get_project_root。"""
-    work_logs = tmp_path / "docs" / "work-logs" / "v0.18.0" / "tickets"
+    work_logs = tmp_path / "docs" / "work-logs" / "v0" / "v0.18" / "v0.18.0" / "tickets"
     work_logs.mkdir(parents=True)
 
     _patch_get_project_root(monkeypatch, tmp_path)
