@@ -689,3 +689,101 @@ def test_scan_background_tasks_priority_over_started_at(monkeypatch, tmp_path):
     assert call_counter["started_at"] == 0, (
         "background_tasks 非空時不應再呼叫 is_ticket_recently_started fallback"
     )
+
+
+# ===== main() stdin 整合測試（W3-037，承接 W3-026.1 commit 7f2ec9e6）=====
+# 驗證 main() 的 stdin 讀取四路徑：
+#   1. tty 互動模式 → input_data={}，fallback
+#   2. JSONDecodeError → input_data={}，fallback + warning log
+#   3. JSON 但非 dict → input_data={}，fallback + warning log
+#   4. JSON 含 background_tasks → 完整傳遞給 generate_hook_output
+
+
+import io
+
+
+class _FakeStdin(io.StringIO):
+    """StringIO 包裝，提供 isatty() 介面以模擬 sys.stdin。"""
+
+    def __init__(self, content: str = "", tty: bool = False):
+        super().__init__(content)
+        self._tty = tty
+
+    def isatty(self) -> bool:
+        return self._tty
+
+
+def _patch_main_dependencies(monkeypatch, hook, captured: dict):
+    """mock generate_hook_output 攔截 input_data，避開真實 fs 依賴。"""
+
+    def fake_generate_hook_output(logger, input_data=None):
+        captured["input_data"] = input_data
+        return {"suppressOutput": True}
+
+    monkeypatch.setattr(hook, "generate_hook_output", fake_generate_hook_output)
+
+
+def test_main_stdin_tty_fallback(monkeypatch, capsys):
+    """路徑 1：tty 互動模式時不讀取 stdin，input_data 維持空 dict。"""
+    hook = load_hook_module()
+    captured: dict = {}
+    _patch_main_dependencies(monkeypatch, hook, captured)
+    monkeypatch.setattr(hook.sys, "stdin", _FakeStdin("", tty=True))
+
+    exit_code = hook.main()
+
+    assert exit_code == hook.EXIT_SUCCESS
+    assert captured["input_data"] == {}, "tty 模式不應讀取 stdin，input_data 應為空 dict"
+
+
+def test_main_stdin_json_decode_error_fallback(monkeypatch, capsys):
+    """路徑 2：stdin 為非法 JSON 時 fallback 到空 dict。"""
+    hook = load_hook_module()
+    captured: dict = {}
+    _patch_main_dependencies(monkeypatch, hook, captured)
+    monkeypatch.setattr(
+        hook.sys, "stdin", _FakeStdin("not a valid json {{{", tty=False)
+    )
+
+    exit_code = hook.main()
+
+    assert exit_code == hook.EXIT_SUCCESS
+    assert captured["input_data"] == {}, "JSONDecodeError 應 fallback 至空 dict"
+
+
+def test_main_stdin_non_dict_fallback(monkeypatch, capsys):
+    """路徑 3：stdin 為合法 JSON 但非 dict（list/null/str）時 fallback 到空 dict。"""
+    hook = load_hook_module()
+    captured: dict = {}
+    _patch_main_dependencies(monkeypatch, hook, captured)
+    monkeypatch.setattr(hook.sys, "stdin", _FakeStdin('["a", "b"]', tty=False))
+
+    exit_code = hook.main()
+
+    assert exit_code == hook.EXIT_SUCCESS
+    assert captured["input_data"] == {}, "non-dict JSON 應 fallback 至空 dict"
+
+
+def test_main_stdin_with_background_tasks(monkeypatch, capsys):
+    """路徑 4：stdin 含 background_tasks 時完整傳遞給 generate_hook_output。"""
+    hook = load_hook_module()
+    captured: dict = {}
+    _patch_main_dependencies(monkeypatch, hook, captured)
+
+    payload = {
+        "background_tasks": [{"id": "bg-1", "status": "running"}],
+        "session_id": "s-test",
+    }
+    monkeypatch.setattr(
+        hook.sys, "stdin", _FakeStdin(json.dumps(payload), tty=False)
+    )
+
+    exit_code = hook.main()
+
+    assert exit_code == hook.EXIT_SUCCESS
+    assert captured["input_data"] == payload, (
+        "background_tasks 完整 payload 應傳遞給 generate_hook_output"
+    )
+    assert captured["input_data"]["background_tasks"] == [
+        {"id": "bg-1", "status": "running"}
+    ]
