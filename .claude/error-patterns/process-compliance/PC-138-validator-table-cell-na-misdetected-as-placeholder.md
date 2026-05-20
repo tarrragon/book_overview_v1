@@ -83,6 +83,22 @@ W10-133 治本：`ticket_validator._is_placeholder()` 新增豁免 regex `^[\s\-
 
 新增 pytest 8 案例（`tests/test_ticket_validator.py::TestDescriptiveNAExemption`）覆蓋三類：W10-125 regression 守護、W10-133 主場景豁免、混合情境防擴散。
 
+### W14-053 IMP Test Results（2026-05-20）— 家族延伸：acceptance 列表中文描述後接 inline N/A
+
+W14-053 IMP `.claude/state/` gitignore 修復，在 Test Results 章節「Acceptance 對應」列表中寫：
+
+```markdown
+- [x] 既有 marker 若 tracked 已 git rm --cached：marker 從未 tracked，N/A 自動滿足
+```
+
+中文敘述 + 冒號 + 結論短語含 `N/A`。`ticket track complete` 阻擋並報「未填寫的必填章節：Test Results」。
+
+W10-133 豁免規則為 `^[\s\-\*\+>]*(?:Layer\s+\w+|Phase\s+\w+)\s*[:：]?\s*N/A\s*\.?\s*$`，僅匹配 `Layer X: N/A` / `Phase X: N/A` 規範化句型。本案例 acceptance 描述行不符合此 pattern（前綴為「既有 marker...」中文敘述），仍命中 `\bN/A\b` 觸發。
+
+作者端修復：將「N/A 自動滿足」改為「此項自動滿足」（去除 N/A keyword）即通過驗證。
+
+驗證模式：本案例證實 W10-133 豁免規則對「結尾簡短結論含 N/A」的散文情境仍未覆蓋。validator 端治本需擴充豁免句型或實施「整段檢查時忽略中文描述行尾 N/A」策略。
+
 ## 防護
 
 ### Layer 1：作者端（短期）
