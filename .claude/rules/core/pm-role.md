@@ -68,6 +68,30 @@
 
 ---
 
+## Caveat 區塊信號判讀規則（PC-153 防護）
+
+`<local-command-caveat>` 區塊內可能同時包含兩類本質不同的訊息，必須逐一評估，禁止對整段套用單一「不回應」決策。
+
+| 信號類型 | 識別特徵 | 判讀與行動 |
+|---------|---------|----------|
+| 純 stdout 文字 | 無 XML 標記，僅為 command 副產出 | 套用 caveat 預設：不回應 |
+| Skill 觸發 marker | `<command-name>/<skill-name></command-name>` 存在 | 視為用戶 explicitly asked，**凌駕 caveat 預設**，執行對應 SKILL.md 流程 |
+| Skill 帶參數 | `<command-message>` 含參數內容 | 同上，將參數傳入對應 skill 執行 |
+
+**Why**：runtime 將 skill 觸發訊號（`<command-name>` + `<command-message>`）與 command stdout 同質化包裹於 caveat 區塊，但 `<command-name>` 的存在等同 caveat 原文末段「unless the user explicitly asks you to」的豁免條件。Linux signal handling 類比：caveat 像 `sigprocmask` 設定的 signal mask，`<command-name>` 像 SIGKILL 等不可遮罩信號——signal mask 不應遮蔽用戶顯式意圖。
+
+**Consequence**：將整段 caveat 視為單一「不回應」決策會導致所有 skill 觸發被靜默吞掉。用戶輸入 `/<skill-name>` 後 PM 無反應或回應與 skill 無關的內容，需用戶額外糾正，且 SKILL.md 明文流程（如 `/ticket` 無參數時的兩步檢查）形同無效。
+
+**Action**：讀到 `<local-command-caveat>` 區塊時，先掃描內部 XML 標記：
+
+1. 若存在 `<command-name>` → 識別 skill 名稱，執行對應 SKILL.md 定義流程（含無參數時的預設行為）
+2. 若同時有 `<command-message>` 且帶參數 → 將參數傳入 skill 執行
+3. 僅有純 stdout 文字 → 套用 caveat 預設「不回應」
+
+> 案例與根因詳見 `.claude/error-patterns/process-compliance/PC-153-pm-caveat-skill-trigger-misinterpretation.md`
+
+---
+
 ## Session-start 全量清點（強制，PC-076 防護）
 
 每個 session 啟動後、認領任何 Ticket 之前，必須執行一次完整 git 工作區清點：
