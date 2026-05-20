@@ -215,6 +215,124 @@
 
 統計：27 個 Ticket、~250 個新測試、~6000 行新程式碼
 
+## [v0.16.1] - 2026-03-29
+
+### skip 測試大規模重啟 + sync 腳本重構
+
+**核心測試修復**：
+- [修復] 重新啟用 191 個 skip 測試（分類評估後逐步開啟）
+- [修復] PerformanceAssessment 測試 OOM（performance.now mock 遞增值管理）
+- [修復] Workflow 測試 Helper 回傳結構不符（8 個測試）
+
+**API 測試與 E2E 環境啟用**：
+- [重寫] API 過時測試套件（58 個測試、3 個檔案）
+- [新增] jest.e2e.config.js 獨立 E2E 測試配置
+- [升級] Puppeteer 至 22.x 並驗證 WebSocket 修復
+- [啟用] E2E 環境依賴的 skip 測試（113 個測試、9 個檔案，11 個子 Ticket）
+
+**品質與工具修復**：
+- [記錄] jsdom 相容性 skip 測試保留決策（29 個測試）
+- [修復] MetricsCollector 與 PerformanceAssessment 記憶體指標結構不匹配
+- [修復] ErrorCodes 項目型別假設錯誤（字串 vs 物件）
+- [修復] todolist.yaml 格式與 ticket CLI 解析邏輯不一致
+- [重構] sync-claude-push/pull 改為 merge 機制取代覆蓋
+- [修復] git index.lock 競爭條件自動清理 + Hook 改用 `--no-optional-locks` 消除根因
+
+**sync 腳本增強與收尾**：
+- [新增] sync-push 版本衝突檢測、sync-pull preserve 遠端更新偵測
+- [新增] sync-push EXCLUDE_PATTERNS 敏感檔案保護擴展
+- [新增] sync-claude-status 版本+內容 hash 快速比對工具
+- [新增] sync-push/pull 效能最佳化、並發保護、幻影檔案驗證（6 個 Ticket）
+
+統計：29 個 Ticket（W1~W4）
+
+## [v0.16.0] - 2026-03-28
+
+### 提取選擇器失效修復 + reader URL 重複修正
+
+**提取品質修復**：
+- [修復] 96 本書 reader URL 全部相同問題（提取邏輯 bug）
+- [修復] 主選擇器 `.library-item` 持續失效（每次走 FALLBACK -> LAST_RESORT）
+
+**任務管理**：
+- [遷移] v0.15.0 遺留 191 個 skip 測試重啟任務正式遷移至 v0.16.1
+
+**關鍵決策**：
+- 提取選擇器問題的根因是 Readmoo 頁面 DOM 結構持續變更，確認需要定期驗證選擇器有效性
+- v0.16.1 專門處理 skip 測試重啟，避免本版範圍過大
+
+統計：4 個 Ticket（W1）
+
+## [v0.15.4] - 2026-03-28
+
+### Overview 頁面修復 + 提取流程容錯強化
+
+**Overview 頁面緊急修復**：
+- [修復] event-bus.js `require is not defined`（CommonJS/ESM 不相容）
+- [修復] ErrorCodes 變數重複宣告
+- [修復] chrome-event-bridge.js ERR_FILE_NOT_FOUND
+- [修復] 封面 URL 安全過濾警告大量洗版 console
+
+**提取流程日誌補齊**：
+- [新增] book-data-extractor 提取結果為空時的日誌
+- [新增] parseBookElement 解析失敗時的逐筆日誌
+- [修正] extractAllBooks 全部解析失敗時日誌等級從 warn 升為 error
+
+**選擇器修復與容錯重構**：
+- [修復] ReadmooAdapter 書籍 href 選擇器失效（DOM 結構變更）
+- [修復] Service Worker error handler 延遲註冊警告
+- [重構] parseBookElement 採用容錯策略（必要欄位必須成功 + 可選欄位允許失敗）
+- [調查] Popup 與 Background Service Worker 連線失敗（待後續處理）
+
+**文件與測試**：
+- [文件] v0.15.x 資料提取到儲存問題歷程參考文件
+- [測試] 資料提取到 Overview 顯示的端到端整合測試
+
+**關鍵決策**：
+- DOM 選擇器：Readmoo DOM 結構變更是常態，需要多層 fallback 機制
+
+統計：14 個 Ticket（W1~W4）
+
+## [v0.15.3] - 2026-03-28
+
+### Chrome Extension 開發經驗彙整 + Popup UI 修復
+
+**經驗彙整**：
+- [文件] `docs/chrome-extension-dev-guide.md` Chrome Extension 開發注意事項（彙整 v0.15.0~v0.15.2 manifest、content script、service worker 等踩坑經驗）
+
+**UI 修復**：
+- [修復] Popup UI 按鈕點擊無反應
+
+統計：3 個 Ticket（W1）
+
+## [v0.15.2] - 2026-03-28
+
+### Chrome runtime 錯誤修復（事件常數未定義）
+
+**runtime 錯誤修復**：
+- [修復] Chrome runtime 錯誤：MESSAGE_EVENTS、CONNECTION_EVENTS 等事件常數在 background service worker 中未定義（v0.15.0 ErrorCodes 分層重構的引用遺漏）
+- [修復] 其他 runtime 相關問題（W2-002/003、W3-001/002、W4-001 補充修正與驗證）
+
+**版本管理**：
+- [更新] 版本號從 0.15.0 推進至 0.15.2
+
+**關鍵決策**：
+- runtime 錯誤根因是 v0.15.0 ErrorCodes 分層重構的引用遺漏，確認重構時需要更完整的引用影響分析
+
+## [v0.15.1] - 2026-03-28
+
+### 生產建置修復（content.js 缺失 + manifest 設定補齊）
+
+**核心建置修復**：
+- [修復] content.js 缺失導致生產建置驗證失敗
+
+**manifest 設定補齊**：
+- [修復] manifest.json background 區段缺少 `type: module` 宣告
+- [修復] 其他 manifest 設定缺失（W2-001.2 ~ W2-001.4）
+
+**關鍵決策**：
+- 這些問題源於半年暫停期間的程式碼演進未同步到建置設定，確認需要建立 Chrome Extension 開發注意事項文件（v0.15.3 執行）
+
 ## [v0.15.0] - 2026-03-28
 
 ### 專案重啟與品質整理
