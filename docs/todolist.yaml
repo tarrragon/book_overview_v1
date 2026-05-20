@@ -1,6 +1,6 @@
 # Todolist - 專案版本與任務追蹤
 # 格式規範：使用 versions 列表，ticket CLI 自動偵測 status=active 的版本
-last_updated: "2026-04-11"
+last_updated: "2026-05-20"
 
 versions:
   - version: "0.17.0"
@@ -24,11 +24,11 @@ versions:
     description: "框架品質改善 — Hook 拆分/修復、WRAP 強化、task-splitting SRP 重定位"
 
   - version: "0.18.0"
-    status: active
-    description: "測試重寫與品質恢復（對齊新 model，失敗測試歸零）"
+    status: completed
+    description: "測試重寫與品質恢復 + 框架基礎建設（982 ticket 完成，CHANGELOG 已補）"
 
   - version: "0.19.0"
-    status: planned
+    status: active
     description: "端到端驗證、打包與內測準備（實機測試 + 可分發打包 + 安裝指南）"
 
   - version: "0.20.0"
