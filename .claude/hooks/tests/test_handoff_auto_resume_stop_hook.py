@@ -472,3 +472,220 @@ def test_scan_pending_uses_frontmatter_cache_for_recent_started(monkeypatch, tmp
     )
     # 兩個 ticket 都走 is_ticket_recently_started → recent_tasks（started_at = 現在）
     assert sorted(t["ticket_id"] for t in recent) == ["W17-shared-A", "W17-shared-B"]
+
+
+# ===== W3-026.1: has_background_agents 弱依賴策略驗證 =====
+
+
+def test_has_background_agents_with_non_empty_list_returns_true():
+    """background_tasks 非空 list → 視為有背景代理人。"""
+    hook = load_hook_module()
+    input_data = {"background_tasks": [{"id": "agent-1"}]}
+    assert hook.has_background_agents(input_data, MagicMock()) is True
+
+
+def test_has_background_agents_with_empty_list_returns_false():
+    """background_tasks 為空 list → 無背景代理人，caller 應 fallback。"""
+    hook = load_hook_module()
+    input_data = {"background_tasks": []}
+    assert hook.has_background_agents(input_data, MagicMock()) is False
+
+
+def test_has_background_agents_missing_field_returns_false():
+    """欄位不存在（舊版 CC）→ 回 False 觸發 fallback。"""
+    hook = load_hook_module()
+    assert hook.has_background_agents({}, MagicMock()) is False
+
+
+def test_has_background_agents_non_list_type_returns_false():
+    """background_tasks 為非 list 型別（schema 異常）→ 安全回 False。"""
+    hook = load_hook_module()
+    assert hook.has_background_agents(
+        {"background_tasks": "not-a-list"}, MagicMock()
+    ) is False
+    assert hook.has_background_agents(
+        {"background_tasks": {"key": "value"}}, MagicMock()
+    ) is False
+    assert hook.has_background_agents(
+        {"background_tasks": None}, MagicMock()
+    ) is False
+
+
+def test_has_background_agents_input_not_dict_returns_false():
+    """input_data 非 dict（極端防禦）→ 回 False。"""
+    hook = load_hook_module()
+    assert hook.has_background_agents(None, MagicMock()) is False
+    assert hook.has_background_agents([], MagicMock()) is False
+    assert hook.has_background_agents("string", MagicMock()) is False
+
+
+def test_has_background_agents_weak_dependency_ignores_task_internal_schema():
+    """弱依賴策略：只判斷 list 非空，不依賴 task object 內部欄位。
+
+    無論 task 內部結構為何（dict / str / 空 dict），只要 list 非空都回 True。
+    """
+    hook = load_hook_module()
+    # task 為任意型別都可
+    assert hook.has_background_agents(
+        {"background_tasks": [{}]}, MagicMock()
+    ) is True
+    assert hook.has_background_agents(
+        {"background_tasks": ["any-string"]}, MagicMock()
+    ) is True
+    assert hook.has_background_agents(
+        {"background_tasks": [None, None]}, MagicMock()
+    ) is True
+
+
+# ===== W3-026.1: scan_pending_handoff_tasks 整合 background_tasks 驗證 =====
+
+
+def test_scan_with_background_tasks_treats_as_recent(monkeypatch, tmp_path):
+    """background_tasks 非空 + pending task → recent_tasks（取代 started_at 推斷）。"""
+    pending_dir = tmp_path / "pending"
+    _write_handoff(
+        pending_dir, "W3-026-A",
+        direction="context_refresh",
+        timestamp=datetime.now() - timedelta(hours=1),
+    )
+    hook = _setup_scan(
+        monkeypatch, tmp_path,
+        # 即使 is_ticket_recently_started 回 False（超過 30 分鐘）
+        recent_started=False,
+    )
+    pending, recent = hook.scan_pending_handoff_tasks(
+        tmp_path, MagicMock(),
+        input_data={"background_tasks": [{"id": "agent-1"}]},
+    )
+    # background_tasks 非空 → 視為 recent，不阻塞退出
+    assert [t["ticket_id"] for t in recent] == ["W3-026-A"]
+    assert pending == []
+
+
+def test_scan_with_empty_background_tasks_falls_back_to_started_at(
+    monkeypatch, tmp_path
+):
+    """background_tasks 為空 list + recent_started=True → fallback 視為 recent。"""
+    pending_dir = tmp_path / "pending"
+    _write_handoff(
+        pending_dir, "W3-026-B",
+        direction="context_refresh",
+        timestamp=datetime.now() - timedelta(hours=1),
+    )
+    hook = _setup_scan(
+        monkeypatch, tmp_path,
+        recent_started=True,  # started_at 在 30 分鐘內
+    )
+    pending, recent = hook.scan_pending_handoff_tasks(
+        tmp_path, MagicMock(),
+        input_data={"background_tasks": []},
+    )
+    # background_tasks 空 → 走 is_ticket_recently_started fallback → recent
+    assert [t["ticket_id"] for t in recent] == ["W3-026-B"]
+    assert pending == []
+
+
+def test_scan_missing_background_tasks_falls_back_to_started_at(
+    monkeypatch, tmp_path
+):
+    """背景欄位不存在（舊版 CC）+ recent_started=False → fallback → pending（阻擋）。"""
+    pending_dir = tmp_path / "pending"
+    _write_handoff(
+        pending_dir, "W3-026-C",
+        direction="context_refresh",
+        timestamp=datetime.now() - timedelta(hours=1),
+    )
+    hook = _setup_scan(
+        monkeypatch, tmp_path,
+        recent_started=False,  # 超過 30 分鐘
+    )
+    pending, recent = hook.scan_pending_handoff_tasks(
+        tmp_path, MagicMock(),
+        input_data={},  # 欄位不存在
+    )
+    # 兩種推斷都判否 → pending（阻擋退出）
+    assert [t["ticket_id"] for t in pending] == ["W3-026-C"]
+    assert recent == []
+
+
+def test_scan_with_none_input_data_falls_back_safely(monkeypatch, tmp_path):
+    """input_data=None（呼叫端未傳）→ 視同空 dict，fallback 到 started_at。"""
+    pending_dir = tmp_path / "pending"
+    _write_handoff(
+        pending_dir, "W3-026-D",
+        direction="context_refresh",
+        timestamp=datetime.now() - timedelta(hours=1),
+    )
+    hook = _setup_scan(
+        monkeypatch, tmp_path,
+        recent_started=True,
+    )
+    pending, recent = hook.scan_pending_handoff_tasks(tmp_path, MagicMock())
+    # 未傳 input_data → has_background_agents 回 False → fallback → recent
+    assert [t["ticket_id"] for t in recent] == ["W3-026-D"]
+    assert pending == []
+
+
+def test_scan_non_blocking_direction_priority_over_background_tasks(
+    monkeypatch, tmp_path
+):
+    """non_blocking direction（auto / next-wave）優先級高於 background_tasks。
+
+    既有行為不破壞：建議性 handoff 不論 background_tasks 狀態都進 recent_tasks。
+    """
+    pending_dir = tmp_path / "pending"
+    _write_handoff(
+        pending_dir, "W3-026-E",
+        direction="auto",
+        timestamp=datetime.now() - timedelta(hours=1),
+    )
+    hook = _setup_scan(
+        monkeypatch, tmp_path,
+        recent_started=False,
+    )
+    # 即使 background_tasks 空也應該因 direction=auto 進 recent
+    pending, recent = hook.scan_pending_handoff_tasks(
+        tmp_path, MagicMock(),
+        input_data={"background_tasks": []},
+    )
+    assert [t["ticket_id"] for t in recent] == ["W3-026-E"]
+    assert pending == []
+
+
+def test_scan_background_tasks_priority_over_started_at(monkeypatch, tmp_path):
+    """background_tasks 非空時優先判定，不再呼叫 is_ticket_recently_started。
+
+    驗證新邏輯取代 started_at 推斷的優先序：bg_tasks 非空 → 直接判為 recent。
+    """
+    pending_dir = tmp_path / "pending"
+    _write_handoff(
+        pending_dir, "W3-026-F",
+        direction="context_refresh",
+        timestamp=datetime.now() - timedelta(hours=1),
+    )
+
+    # 故意讓 is_ticket_recently_started 若被呼叫即 raise，驗證未被呼叫
+    hook = load_hook_module()
+    monkeypatch.setattr(
+        hook, "is_handoff_stale", lambda record, project_root=None: (False, "")
+    )
+    monkeypatch.setattr(hook, "is_ticket_completed", lambda root, tid, log: False)
+    monkeypatch.setattr(hook, "PENDING_DIR_NAME", "pending")
+
+    call_counter = {"started_at": 0}
+
+    def fake_recently_started(root, tid, log, cache=None):
+        call_counter["started_at"] += 1
+        return False
+
+    monkeypatch.setattr(hook, "is_ticket_recently_started", fake_recently_started)
+
+    pending, recent = hook.scan_pending_handoff_tasks(
+        tmp_path, MagicMock(),
+        input_data={"background_tasks": [{"id": "x"}]},
+    )
+    assert [t["ticket_id"] for t in recent] == ["W3-026-F"]
+    # bg_tasks 非空命中後不再 fallback
+    assert call_counter["started_at"] == 0, (
+        "background_tasks 非空時不應再呼叫 is_ticket_recently_started fallback"
+    )

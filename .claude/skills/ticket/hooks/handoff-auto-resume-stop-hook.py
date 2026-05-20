@@ -529,7 +529,44 @@ def is_handoff_recently_created(record: dict, logger) -> bool:
         return False
 
 
-def scan_pending_handoff_tasks(project_root: Path, logger) -> tuple:
+def has_background_agents(input_data: Dict[str, Any], logger) -> bool:
+    """
+    判斷 input_data 是否有背景代理人正在執行。
+
+    W3-026.1：用 Claude Code v2.1.145 新欄位 background_tasks 取代
+    started_at 30 分鐘閾值推斷。採「弱依賴策略」——只判斷 list 非空，
+    不依賴 task object 內部 schema，避免 schema 不確定風險。
+
+    Args:
+        input_data: Stop hook stdin JSON
+        logger: 日誌記錄器
+
+    Returns:
+        bool - 是否有背景代理人執行中。
+        欄位不存在 / 非 list / 空 list 皆回 False，
+        由 caller fallback 到 started_at 推斷。
+    """
+    if not isinstance(input_data, dict):
+        return False
+    bg_tasks = input_data.get("background_tasks")
+    if not isinstance(bg_tasks, list):
+        return False
+    has_active = len(bg_tasks) > 0
+    if has_active:
+        logger.info(
+            f"input_data.background_tasks 非空（{len(bg_tasks)} 項），"
+            f"偵測到背景代理人執行中"
+        )
+    else:
+        logger.debug("input_data.background_tasks 為空 list，無背景代理人")
+    return has_active
+
+
+def scan_pending_handoff_tasks(
+    project_root: Path,
+    logger,
+    input_data: Optional[Dict[str, Any]] = None,
+) -> tuple:
     """
     掃描待恢復的 handoff 任務（resumed_at == null 的任務）
 
@@ -650,9 +687,22 @@ def scan_pending_handoff_tasks(project_root: Path, logger) -> tuple:
                             logger.info(
                                 f"建議性 handoff ({direction_type})，不阻塞退出: {ticket_id}"
                             )
+                        elif has_background_agents(input_data or {}, logger):
+                            # W3-026.1：v2.1.145 background_tasks 直接判斷，
+                            # 優先於 started_at 30 分鐘閾值推斷
+                            recent_tasks.append({
+                                "ticket_id": ticket_id,
+                                "title": title,
+                                "direction": direction
+                            })
+                            logger.info(
+                                f"background_tasks 非空，視為最近任務: {ticket_id}"
+                            )
                         elif is_ticket_recently_started(
                             project_root, ticket_id, logger, frontmatter_cache
                         ):
+                            # Fallback：background_tasks 不可用或為空時，
+                            # 退化到 started_at 30 分鐘閾值推斷
                             recent_tasks.append({
                                 "ticket_id": ticket_id,
                                 "title": title,
@@ -711,7 +761,9 @@ def format_pending_tasks_list(pending_tasks: list) -> str:
     return message
 
 
-def generate_hook_output(logger) -> Dict[str, Any]:
+def generate_hook_output(
+    logger, input_data: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """
     生成 Hook 輸出
 
@@ -758,7 +810,9 @@ def generate_hook_output(logger) -> Dict[str, Any]:
         else:
             # Step 3: 掃描 pending 目錄（含 GC 清理已完成 Ticket 的 stale JSON）
             # 並區分待恢復任務和最近任務
-            pending_tasks, recent_tasks = scan_pending_handoff_tasks(project_root, logger)
+            pending_tasks, recent_tasks = scan_pending_handoff_tasks(
+                project_root, logger, input_data=input_data
+            )
             if pending_tasks:
                 logger.info(f"掃描 pending 目錄找到 {len(pending_tasks)} 個待恢復任務")
             if recent_tasks:
@@ -849,7 +903,23 @@ def main() -> int:
     try:
         logger.info("Handoff 自動恢復 Stop Hook 啟動")
 
-        hook_output = generate_hook_output(logger)
+        # W3-026.1: 讀取 stdin 取得 input_data.background_tasks（v2.1.145 新欄位）
+        # 解析失敗 / tty / 欄位不存在皆 fallback 到 started_at 推斷
+        input_data: Dict[str, Any] = {}
+        if not sys.stdin.isatty():
+            try:
+                input_data = json.load(sys.stdin)
+                if not isinstance(input_data, dict):
+                    logger.warning(
+                        f"stdin JSON 非 dict 型別（{type(input_data).__name__}），"
+                        f"fallback 到 started_at 推斷"
+                    )
+                    input_data = {}
+            except (json.JSONDecodeError, ValueError) as e:
+                logger.warning(f"解析 stdin 失敗，fallback 到 started_at 推斷: {e}")
+                input_data = {}
+
+        hook_output = generate_hook_output(logger, input_data=input_data)
         print(json.dumps(hook_output, ensure_ascii=False, indent=2))
 
         logger.info("Hook 執行完成")
