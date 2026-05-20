@@ -1,13 +1,13 @@
 ---
 id: PC-153
-title: PM 對 local-command-caveat 包裹的 skill 觸發信號過度保守解讀
+title: PM 對 local-command-caveat 包裹的 skill 觸發訊號過度保守解讀
 category: process-compliance
 severity: medium
 source_case: 0.19.0-W3-022
 created: 2026-05-20
 ---
 
-# PC-153: PM 對 local-command-caveat 包裹的 skill 觸發信號過度保守解讀
+# PC-153: PM 對 local-command-caveat 包裹的 skill 觸發訊號過度保守解讀
 
 ## 症狀
 
@@ -40,9 +40,9 @@ created: 2026-05-20
 
 ### L1（規則層缺口）
 
-`.claude/rules/core/pm-role.md` 原無 caveat 區塊信號優先序的明文定義。PM 預設將 caveat 區塊視為單一決策單位（整段不回應），未要求逐一評估內部信號。本 PC 觸發後已補入「Caveat 區塊信號判讀規則」章節作為防護。
+`.claude/rules/core/pm-role.md` 原無 caveat 區塊訊號優先序的明文定義。PM 預設將 caveat 區塊視為單一決策單位（整段不回應），未要求逐一評估內部訊號。本 PC 觸發後已補入「Caveat 區塊訊號判讀規則」章節作為防護。
 
-### L2（信號設計不對稱）
+### L2（訊號設計不對稱）
 
 runtime 將兩類本質不同的訊息同質化包裹於 `<local-command-caveat>`：
 
@@ -57,11 +57,11 @@ Linux signal handling 提供清晰類比：
 
 | 概念 | Linux 對應 |
 |------|-----------|
-| `<local-command-caveat>` 預設 | `sigprocmask` 設定的 signal mask（攔截大多數信號） |
-| `<command-name>` 信號 | SIGKILL / SIGSTOP（不可遮罩的用戶顯式信號） |
-| 規則缺口 | mask 沒有定義「不可遮罩信號」例外清單 |
+| `<local-command-caveat>` 預設 | `sigprocmask` 設定的 signal mask（攔截大多數訊號） |
+| `<command-name>` 訊號 | SIGKILL / SIGSTOP（不可遮罩的用戶顯式訊號） |
+| 規則缺口 | mask 沒有定義「不可遮罩訊號」例外清單 |
 
-Signal mask 不可遮蔽所有信號（OS 設計），同理 caveat 不可遮蔽所有用戶顯式意圖。此類比直到 0.19.0-W3-022 ANA 才明示。
+Signal mask 不可遮蔽所有訊號（OS 設計），同理 caveat 不可遮蔽所有用戶顯式意圖。此類比直到 0.19.0-W3-022 ANA 才明示。
 
 ## 案例
 
@@ -85,13 +85,13 @@ Signal mask 不可遮蔽所有信號（OS 設計），同理 caveat 不可遮蔽
 
 | 層級 | 機制 | 狀態 |
 |------|------|------|
-| 規則層 | `.claude/rules/core/pm-role.md`「Caveat 區塊信號判讀規則」章節 | 已落地（0.19.0-W3-023） |
+| 規則層 | `.claude/rules/core/pm-role.md`「Caveat 區塊訊號判讀規則」章節 | 已落地（0.19.0-W3-023） |
 | 教訓層 | 本 PC-153 | 已落地（0.19.0-W3-023） |
 | Hook 層（未來） | 偵測 PM 在 `<command-name>` 存在的 caveat 區塊內未執行對應 skill 流程，發出提示 | 未實作（後續 ticket 評估必要性） |
 
 ## 相關規則
 
-- `.claude/rules/core/pm-role.md`「Caveat 區塊信號判讀規則」章節 —— 本 PC 的規則層落地
+- `.claude/rules/core/pm-role.md`「Caveat 區塊訊號判讀規則」章節 —— 本 PC 的規則層落地
 - `.claude/skills/ticket/SKILL.md`「無子命令時的預設行為」章節 —— 案例 1 中被跳過的明文流程
 - `.claude/rules/core/decision-trigger-binding.md` 規則 1.5 —— 「適用邊界依載體區分」的同構結構
 
