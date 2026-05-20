@@ -26,7 +26,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 
 
-HOOK_PATH = Path(__file__).resolve().parent.parent / "worktree-merge-reminder-hook.py"
+HOOK_PATH = Path(__file__).resolve().parents[2] / "skills" / "worktree" / "hooks" / "worktree-merge-reminder-hook.py"
 
 
 @pytest.fixture(scope="module")

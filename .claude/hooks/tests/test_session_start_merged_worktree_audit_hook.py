@@ -24,7 +24,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 
 
-HOOK_PATH = Path(__file__).resolve().parent.parent / "session-start-merged-worktree-audit-hook.py"
+HOOK_PATH = Path(__file__).resolve().parents[2] / "skills" / "worktree" / "hooks" / "session-start-merged-worktree-audit-hook.py"
 
 # RED 階段守則：hook 檔案尚未建立時整 module skip
 # Agent 實作後測試自動啟用（pass/fail 視實作是否符合 acceptance）

@@ -29,7 +29,7 @@ import sys
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "hooks"))
 
 from hook_utils import (
     setup_hook_logging,
