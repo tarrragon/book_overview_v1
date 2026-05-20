@@ -42,7 +42,7 @@ except ImportError:
     yaml = None
 
 # 加入 hook_utils 路徑（W14-037 effort 感知）
-_hooks_dir = Path(__file__).parent
+_hooks_dir = Path(__file__).resolve().parents[3] / "hooks"
 if str(_hooks_dir) not in sys.path:
     sys.path.insert(0, str(_hooks_dir))
 

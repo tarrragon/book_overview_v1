@@ -25,7 +25,7 @@ from unittest.mock import MagicMock
 import pytest
 
 
-HOOK_PATH = Path(__file__).parent.parent / "stop-worklog-handoff-sync-check-hook.py"
+HOOK_PATH = Path(__file__).parent.parent.parent / "skills" / "ticket" / "hooks" / "stop-worklog-handoff-sync-check-hook.py"
 
 
 def _load_hook_module():

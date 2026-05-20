@@ -36,14 +36,14 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 
 # 加入 hook_utils 路徑（相同目錄）
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "hooks"))
 
 from hook_utils import setup_hook_logging, run_hook_safely, read_json_from_stdin, parse_ticket_frontmatter, get_project_root, find_ticket_file
 from lib.hook_messages import WorkflowMessages, CoreMessages, format_message
 
 # W17-181.2: delegate is_ticket_completed 至 lib SSOT，消除跨進程同構邏輯（ARCH-020）。
 # 加入 ticket_system 父路徑以解析 handoff_utils 內部 `from ticket_system.lib.*` import。
-_TICKET_SKILL_PATH = Path(__file__).parent.parent / "skills" / "ticket"
+_TICKET_SKILL_PATH = Path(__file__).resolve().parents[1]
 _TICKET_LIB_PATH = _TICKET_SKILL_PATH / "ticket_system" / "lib"
 for _p in (_TICKET_SKILL_PATH, _TICKET_LIB_PATH):
     if str(_p) not in sys.path:

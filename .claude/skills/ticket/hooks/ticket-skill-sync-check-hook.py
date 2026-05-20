@@ -35,7 +35,7 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "hooks"))
 
 from hook_utils import (
     setup_hook_logging,
@@ -82,7 +82,7 @@ SYNC_EXEMPT_PREFIXES = (
 )
 
 # 本 hook 自身路徑（meta 自我引用豁免，PC-099 教訓）
-META_SELF_PATH = ".claude/hooks/ticket-skill-sync-check-hook.py"
+META_SELF_PATH = ".claude/skills/ticket/hooks/ticket-skill-sync-check-hook.py"  # W10-092: moved into skill
 
 # PostToolUse 預設輸出
 DEFAULT_OUTPUT = {

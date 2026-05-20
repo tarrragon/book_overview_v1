@@ -14,7 +14,7 @@ from io import StringIO
 
 
 # 載入 Stop hook 模組
-STOP_HOOK_PATH = Path(__file__).parent.parent / "handoff-auto-resume-stop-hook.py"
+STOP_HOOK_PATH = Path(__file__).parent.parent.parent / "skills" / "ticket" / "hooks" / "handoff-auto-resume-stop-hook.py"
 
 
 def load_stop_hook_module():

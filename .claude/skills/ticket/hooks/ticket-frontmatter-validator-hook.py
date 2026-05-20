@@ -41,7 +41,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 # hook_utils（同目錄）
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "hooks"))
 
 from hook_utils import (  # noqa: E402
     setup_hook_logging,
@@ -53,7 +53,7 @@ from hook_utils import (  # noqa: E402
 )
 
 # 共用 validator（.claude/skills/ticket/ticket_system/validators）
-_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_PROJECT_ROOT = Path(__file__).resolve().parents[4]
 _SKILL_TICKET_ROOT = _PROJECT_ROOT / ".claude" / "skills" / "ticket"
 if str(_SKILL_TICKET_ROOT) not in sys.path:
     sys.path.insert(0, str(_SKILL_TICKET_ROOT))

@@ -44,7 +44,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional, Tuple, List, NamedTuple, TypedDict
 
 # 加入 hook_utils 路徑（相同目錄）
-_hooks_dir = Path(__file__).parent
+_hooks_dir = Path(__file__).resolve().parents[3] / "hooks"
 if _hooks_dir not in [p for p in sys.path if Path(p) == _hooks_dir]:
     sys.path.insert(0, str(_hooks_dir))
 

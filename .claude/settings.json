@@ -27,7 +27,7 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/acceptance-gate-hook.py"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/acceptance-gate-hook.py"
           },
           {
             "type": "command",
@@ -101,7 +101,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ticket-file-access-guard-hook.py"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/ticket-file-access-guard-hook.py"
           }
         ]
       },
@@ -110,11 +110,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ticket-path-guard-hook.py"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/ticket-path-guard-hook.py"
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ticket-file-access-guard-hook.py"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/ticket-file-access-guard-hook.py"
           },
           {
             "type": "command",
@@ -151,11 +151,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ticket-path-guard-hook.py"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/ticket-path-guard-hook.py"
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ticket-file-access-guard-hook.py"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/ticket-file-access-guard-hook.py"
           },
           {
             "type": "command",
@@ -188,7 +188,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/agent-ticket-validation-hook.py"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/agent-ticket-validation-hook.py"
           },
           {
             "type": "command",
@@ -275,7 +275,7 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ticket-reinstall-hook.py"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/ticket-reinstall-hook.py"
           },
           {
             "type": "command",
@@ -303,7 +303,7 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/handoff-reminder-hook.py"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/handoff-reminder-hook.py"
           },
           {
             "type": "command",
@@ -375,7 +375,7 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/handoff-cleanup-hook.py",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/handoff-cleanup-hook.py",
             "timeout": 5000
           },
           {
@@ -400,7 +400,7 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post-ticket-lifecycle-hook.py",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/post-ticket-lifecycle-hook.py",
             "timeout": 5000
           },
           {
@@ -410,12 +410,12 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/needs-context-listener-hook.py",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/needs-context-listener-hook.py",
             "timeout": 5000
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ticket-skill-sync-check-hook.py",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/ticket-skill-sync-check-hook.py",
             "timeout": 5000
           }
         ]
@@ -468,7 +468,7 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ticket-frontmatter-validator-hook.py",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/ticket-frontmatter-validator-hook.py",
             "timeout": 5000
           }
         ]
@@ -486,7 +486,7 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ticket-id-validator-hook.py"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/ticket-id-validator-hook.py"
           },
           {
             "type": "command",
@@ -503,16 +503,16 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ticket-creation-validation-hook.py"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/ticket-creation-validation-hook.py"
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ana-ticket-metadata-validation-hook.py",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/ana-ticket-metadata-validation-hook.py",
             "timeout": 5000
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ticket-quality-gate-hook.py"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/ticket-quality-gate-hook.py"
           },
           {
             "type": "command",
@@ -532,7 +532,7 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ticket-frontmatter-validator-hook.py",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/ticket-frontmatter-validator-hook.py",
             "timeout": 5000
           }
         ]
@@ -577,7 +577,7 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/creation-acceptance-gate-hook.py",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/creation-acceptance-gate-hook.py",
             "timeout": 5000
           },
           {
@@ -591,7 +591,7 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/handoff-prompt-reminder-hook.py",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/handoff-prompt-reminder-hook.py",
             "timeout": 5000
           },
           {
@@ -647,7 +647,7 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/handoff-auto-resume-stop-hook.py"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/handoff-auto-resume-stop-hook.py"
           },
           {
             "type": "command",
@@ -660,7 +660,7 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/stop-worklog-handoff-sync-check-hook.py",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/stop-worklog-handoff-sync-check-hook.py",
             "timeout": 10000
           }
         ]
