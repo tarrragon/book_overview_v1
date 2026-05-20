@@ -524,6 +524,83 @@ def execute_accept_creation(args: argparse.Namespace, version: str) -> int:
     return 0
 
 
+def _replace_or_append_section_content(
+    *,
+    section_text: str,
+    section_content: str,
+    new_entry: str,
+) -> str:
+    """W3-035: Schema 章節含 placeholder 時替換，否則正常 append。
+
+    Why: 4/9 W3 ANA saffron 都遇到 append-log 不替換 placeholder 導致
+    body-schema-checker false positive 阻擋 complete，被迫用 --skip-body-check。
+
+    策略：
+    1. 用 ticket_validator._is_placeholder 偵測 section_content 是否僅含 placeholder
+       （已內建剝除 HTML 註解 / 分隔符 / 表格的邏輯，與 body-schema-checker 一致）
+    2. 是 placeholder：保留 section header + Schema HTML 註解，移除待填寫文字，
+       再 append new_entry
+    3. 否：正常 section_text + new_entry
+
+    Args:
+        section_text: 完整 section（含 header + content）
+        section_content: section content only（不含 header）
+        new_entry: 要追加的新內容（已含開頭換行）
+
+    Returns:
+        重組後的完整 section 文字
+    """
+    from ticket_system.lib.ticket_validator import _is_placeholder
+
+    if not _is_placeholder(section_content):
+        # 已有實質內容，正常 append
+        return section_text + new_entry
+
+    # placeholder-only：保留 header + Schema HTML 註解，移除其他 placeholder 文字
+    # section_text 結構：`## Header\n[content_with_placeholders]`
+    # 提取 header line
+    header_end = section_text.find("\n")
+    if header_end == -1:
+        # 不可能發生（find_section 保證有 header），保守處理
+        return section_text + new_entry
+
+    header_line = section_text[: header_end + 1]  # 含換行
+    content_part = section_text[header_end + 1 :]
+
+    # 保留 Schema 註解行（`<!-- Schema[...]: ... -->`），可能跨多行
+    preserved_lines = []
+    schema_pattern = re.compile(r"<!--\s*Schema\[[^\]]+\]:")
+    # 逐行處理：保留 Schema 註解（含其多行延續）；丟棄其他 placeholder 文字
+    lines = content_part.splitlines(keepends=True)
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if schema_pattern.search(line):
+            # 收集此 Schema 註解（可能跨多行直到 `-->`）
+            preserved_lines.append(line)
+            if "-->" not in line:
+                # 多行 Schema 註解：繼續收集直到 -->
+                j = i + 1
+                while j < len(lines):
+                    preserved_lines.append(lines[j])
+                    if "-->" in lines[j]:
+                        break
+                    j += 1
+                i = j + 1
+            else:
+                i += 1
+            continue
+        # 其他行（placeholder 文字 / 空行 / 一般 HTML 註解）一律丟棄
+        i += 1
+
+    preserved_content = "".join(preserved_lines).rstrip()
+    if preserved_content:
+        # header + Schema 註解 + 新內容
+        return header_line + preserved_content + "\n" + new_entry.lstrip("\n") + "\n"
+    # 無 Schema 註解：純 header + 新內容
+    return header_line + new_entry.lstrip("\n") + "\n"
+
+
 def execute_append_log(args: argparse.Namespace, version: str) -> int:
     """
     追加執行日誌
@@ -611,8 +688,18 @@ def _execute_append_log_locked(args: argparse.Namespace, version: str) -> int:
         # 其他區段直接追加
         new_entry = f"\n{content}"
 
-    # 追加內容
-    updated_section = section_text + new_entry
+    # W3-035: 若 section_content 為 placeholder-only（含 Schema 註解 + 待填寫文字），
+    # 改用 new_entry 替換 placeholder 而非 append，避免 placeholder 殘留導致
+    # body-schema-checker false positive 阻擋 complete。
+    # Execution Log 維持 append 語意（每筆 log 都是新事件）。
+    if section != "Execution Log":
+        updated_section = _replace_or_append_section_content(
+            section_text=section_text,
+            section_content=section_content,
+            new_entry=new_entry,
+        )
+    else:
+        updated_section = section_text + new_entry
 
     # 更新 body
     new_body = body[:section_start] + updated_section + body[section_end:]
