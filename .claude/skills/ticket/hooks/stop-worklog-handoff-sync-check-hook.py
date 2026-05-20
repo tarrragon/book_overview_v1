@@ -351,6 +351,37 @@ def _mark_blocked_this_session(project_root: Path, logger) -> None:
         logger.warning("建立 stop flag 失敗: %s", e)
 
 
+def _has_background_agents(input_data: dict, logger) -> bool:
+    """判斷 input_data 是否有背景代理人正在執行（W3-026.3）。
+
+    Why: Claude Code v2.1.145 stdin 提供 background_tasks 欄位，是「目前有
+    背景任務」的直接訊號，比現行的 stop flag + in_progress ticket 推斷更精準；
+    背景任務執行中時 worklog/CLI 同步通常尚未完成，提醒屬誤報。
+
+    Consequence: 採「弱依賴策略」——只判斷 list 非空，不依賴 task object
+    內部 schema。欄位不存在 / 非 list / 空 list / input_data 非 dict 全部
+    回 False，caller 自然 fallback 到現行兩道防護邏輯，不影響舊行為。
+
+    Action: caller（detect_sync_drift）在 stop flag 與 in_progress ticket
+    防護之後加入本檢查，True 時 return None 跳過 sync drift 偵測。
+
+    SOT: .claude/skills/ticket/hooks/handoff-auto-resume-stop-hook.py:has_background_agents
+    任一處更新需同步另一處（ARCH-020 同構雙寫，PEP 723 隔離無法 import lib）。
+    """
+    if not isinstance(input_data, dict):
+        return False
+    bg_tasks = input_data.get("background_tasks")
+    if not isinstance(bg_tasks, list):
+        return False
+    has_active = len(bg_tasks) > 0
+    if has_active:
+        logger.info(
+            f"input_data.background_tasks 非空（{len(bg_tasks)} 項），"
+            f"跳過 worklog-handoff sync check"
+        )
+    return has_active
+
+
 def _has_in_progress_ticket(project_root: Path, version: str, logger) -> bool:
     """偵測 active version 是否有 in_progress ticket（W17-176 根因 2）。
 
@@ -421,13 +452,21 @@ def _format_warning(missing: list[str], orphan: list[str]) -> str:
     return "\n".join(lines)
 
 
-def detect_sync_drift(project_root: Path, session_start: float, logger) -> Optional[str]:
+def detect_sync_drift(
+    project_root: Path,
+    session_start: float,
+    logger,
+    input_data: dict | None = None,
+) -> Optional[str]:
     """主檢查邏輯：偵測雙軌不同步並回傳警告字串（無問題回 None）。
 
-    W17-176 三道防護（在原邏輯前依序檢查）：
+    W17-176 + W3-026.3 三道防護（在原邏輯前依序檢查）：
     1. Stop flag：本 session 已執行過 → 跳過（防重複觸發）
     2. in_progress ticket 偵測：有 in_progress ticket → 跳過（任務進行中不該提醒 handoff）
-    3. （隱含）_extract_handoff_section 改 rfind 取最新 → 只列當前 session handoff
+    3. background_tasks（v2.1.145 stdin 直接訊號）：執行中時跳過（W3-026.3）
+    4. （隱含）_extract_handoff_section 改 rfind 取最新 → 只列當前 session handoff
+
+    input_data 參數設為 Optional 以保持向後相容（caller 不傳時等同 {} fallback）。
     """
     # W17-176 根因 1：stop flag 防重複觸發
     if _is_blocked_this_session(project_root, logger):
@@ -441,6 +480,11 @@ def detect_sync_drift(project_root: Path, session_start: float, logger) -> Optio
     # W17-176 根因 2：in_progress ticket 偵測豁免（fail-open）
     if _has_in_progress_ticket(project_root, version, logger):
         logger.debug("偵測到 in_progress ticket，跳過 handoff sync check")
+        return None
+
+    # W3-026.3：background_tasks 直接訊號（v2.1.145）
+    if _has_background_agents(input_data or {}, logger):
+        logger.debug("偵測到 background_tasks 非空，跳過 sync check")
         return None
 
     worklog_path = _find_worklog_path(project_root, version)
@@ -493,15 +537,25 @@ def detect_sync_drift(project_root: Path, session_start: float, logger) -> Optio
 def main():
     logger = setup_hook_logging("stop-worklog-handoff-sync-check")
     try:
-        try:
-            event = json.loads(sys.stdin.read() or "{}")
-        except Exception:
-            event = {}
+        # W3-026.3：讀取 stdin 取得 v2.1.145 background_tasks 欄位
+        # 解析失敗 / tty / 欄位不存在皆 fallback 到空 dict（沿用既有行為）
+        event: dict = {}
+        if not sys.stdin.isatty():
+            try:
+                parsed = json.loads(sys.stdin.read() or "{}")
+                if isinstance(parsed, dict):
+                    event = parsed
+                else:
+                    logger.warning(
+                        f"stdin JSON 非 dict 型別（{type(parsed).__name__}），fallback"
+                    )
+            except (json.JSONDecodeError, ValueError) as e:
+                logger.warning(f"解析 stdin 失敗，fallback: {e}")
 
         session_start = float(event.get("session_start_timestamp", 0) or 0)
 
         project_root = get_project_root()
-        warning = detect_sync_drift(project_root, session_start, logger)
+        warning = detect_sync_drift(project_root, session_start, logger, input_data=event)
 
         if warning:
             # Stop event schema 不允許 hookSpecificOutput.additionalContext；
