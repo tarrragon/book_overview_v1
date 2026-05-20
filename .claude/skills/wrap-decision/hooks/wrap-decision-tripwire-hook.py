@@ -40,7 +40,11 @@ from typing import Any, Callable, Dict, List, Optional, Protocol
 
 import yaml
 
-sys.path.insert(0, str(Path(__file__).parent))
+# 加入 hook_utils 路徑（.claude/hooks/）
+_hooks_dir = Path(__file__).resolve().parents[3] / "hooks"
+if _hooks_dir not in [Path(p) for p in sys.path]:
+    sys.path.insert(0, str(_hooks_dir))
+
 from hook_utils import (
     setup_hook_logging,
     run_hook_safely,
