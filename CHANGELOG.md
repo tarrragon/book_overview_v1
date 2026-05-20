@@ -2,6 +2,44 @@
 
 本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.18.0] - 2026-05-20
+
+### 測試重寫與品質恢復 — 對齊 Tag-based Book Model + 框架基礎建設全面強化
+
+**產品功能修復**：
+- [修復] UC-07 data integrity recovery 測試對齊 Tag-based Book Model（W1-002）
+- [修復] Readmoo book ID 策略：reader-link 優先 + cover known-unstable 過濾，96 個 1:1 對應實機驗證（W6-012.2 系列）
+- [新增] cover-to-reader migration logic + MigrationService class + 17 單元測試（W6-012.2.2 系列，schema 3.1.0）
+- [新增] 文件 ID 演進歷程章節，記錄歷史 cover-XXX → reader-XXX 轉換脈絡（W6-012.2.2.3）
+
+**框架品質——工具發現與決策防護三層機制**：
+- [新增] 工具發現規則 `.claude/rules/core/tool-discovery.md`（五問檢查、限制性 vs 探索性框架）+ PC-060 meta-tool-discovery-blindness（W10-001~003）
+- [新增] Memory 升級評估三層防護：quality-baseline 規則 7、continuous-learning skill 升級、memory-upgrade-reminder-hook + PC-061（W10-004~007）
+- [新增] 決策品質 Autopilot 防護：決策樹 Context 重度層、decision-quality-guard-hook、ticket CLI ANA claim WRAP 提示 + PC-062（W10-008~010）
+
+**框架品質——文件撰寫與註解原則**：
+- [新增] 文件撰寫明示性原則 `.claude/rules/core/document-writing-style.md`（禁止人性化/隱含表達，三明示原則 Why/Consequence/Action + 資訊優先序 + 二次審查強制執行）（W10-011.1 / W10-011.2）
+- [擴充] 註解原則：doc comment 聚焦業務情境、註解貼合所在抽象層級、介面/API doc 不洩漏實作（W10-011）
+
+**框架品質——架構保護與跨專案 sync**：
+- [新增] ARCH-015 error-pattern：subagent .claude/ hardcoded 寫入保護 5 Why 配置矩陣 + Option E 白名單規則（W10-018~020）
+- [清理] 框架文件中專案 ticket ID 引用（避免跨專案 sync 誤導），8 代理人並行派發處理 5 大目錄 ~750+ 處（W8-001 完整任務鏈）
+- [新增] 跨平台部署規範：.gitattributes 強制 LF、UTF-8 強制、CRLF 防護、subprocess encoding 稽核（W10-054 系列）
+- [新增] .claude/state/ 加入 .gitignore 防 session marker 循環污染（W14-053）
+
+**框架品質——Hook 系統與雙層 Skill 架構**：
+- [新增] Hook 雙層架構：擴充 hook-completeness-check 掃描 .claude/skills/*/hooks/，遷移 28 個 skill 專用 hook（ticket 20、worktree 7、wrap-decision 1）至各 skill 子目錄方便獨立發佈（W10-016 / W10-091~094）
+- [新增] Hook 觸發頻率監測閉環：hook-health collector lib、hook-health-monitor 擴充、ticket track hook-health CLI（W13-008 / W13-016~018）
+- [新增] PC-148 hook 雙重註冊 shebang bypass、PC-138 validator placeholder 多變體累積（trade-off cell、Layer/Phase 描述、acceptance 列表 inline）（W11-030 / W14-053）
+
+**Ticket CLI 完整性**：
+- [新增] Ticket CLI 6 個 set-* 命令 + 清單式欄位驗證（PROP-009）
+- [新增] Ticket CLI `--source-ticket` flag（PC-073：spawned 衍生關係 CLI 原生支援）
+- [新增] Ticket migrate v1+ 目錄結構支援（get_tickets_dir() 移除存在性檢查、三層化）（W14-051~052）
+- [完成] ticket migrate W11-038 → 0.19.0-W3-021、W13-002/004 → v1.0.0-W1-001/002（觀察項與 SKILL Market 規劃移版本）
+
+**統計**：982 ticket 完成（952 completed + 30 closed），Wave 10 hook 遷移系列收尾，版本目標「失敗測試歸零 + 框架基礎建設」達成。詳細日誌見 `docs/work-logs/v0/v0.18/v0.18.0/v0.18.0-main.md`。
+
 ## [v0.17.4] - 2026-04-12
 
 ### 框架品質改善 — Hook 拆分/修復、WRAP 強化、task-splitting SRP 重定位
