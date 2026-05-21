@@ -696,10 +696,10 @@ describe('ExtractionCompletedHandler', () => {
       handler.setEventBus(mockEventBus)
     })
 
-    test('應該在處理大量資料時保持效能', async () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
-
+    test('應該正確處理大量資料的完成事件', async () => {
+      // W1-019：原以 processingTime < 1000ms 計時硬門檻作驗收，
+      // 受全套件機器負載與 GC 影響 flaky。改為驗證大量資料的功能正確性，
+      // 計時不作為測試驗收條件（效能差是設計問題，非功能問題）。
       // eslint-disable-next-line no-unused-vars
       const largeDataEvent = {
         type: 'EXTRACTION.COMPLETED',
@@ -715,13 +715,14 @@ describe('ExtractionCompletedHandler', () => {
         }
       }
 
-      await handler.handle(largeDataEvent)
-
       // eslint-disable-next-line no-unused-vars
-      const processingTime = performance.now() - startTime
+      const result = await handler.handle(largeDataEvent)
 
-      // 處理1000本書應該在合理時間內完成 (< 1秒)
-      expect(processingTime).toBeLessThan(1000)
+      // 驗證 1000 本書被完整且正確處理
+      expect(result.success).toBe(true)
+      expect(result.processedBooks).toBe(1000)
+      expect(handler.completionStats.totalCompletions).toBe(1)
+      expect(handler.completionStats.successfulSaves).toBe(1)
     })
 
     test('應該正確清理記憶體資源', () => {

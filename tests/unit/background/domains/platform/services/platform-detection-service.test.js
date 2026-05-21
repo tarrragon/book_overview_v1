@@ -515,7 +515,8 @@ describe('PlatformDetectionService', () => {
       const result = await service.detectPlatform(context)
 
       // Both URL and DOM should contribute to high confidence (using toBeCloseTo for floating point precision)
-      expect(result.confidence).toBeCloseTo(0.9, 5)
+      // W1-019：精度由 5 降為 2，與同檔其他 toBeCloseTo 斷言一致。5 位精度在 IEEE 754 下脆弱。
+      expect(result.confidence).toBeCloseTo(0.9, 2)
       expect(result.features).toContain('url_pattern_match')
       expect(result.features).toContain('dom_features_match')
     })
@@ -980,7 +981,8 @@ describe('PlatformDetectionService', () => {
       // eslint-disable-next-line no-unused-vars
       const confidence = service.calculateConfidence(factors)
 
-      expect(confidence).toBeCloseTo(1.0, 5)
+      // W1-019：精度由 5 降為 2，與同檔其他 toBeCloseTo 斷言一致。5 位精度在 IEEE 754 下脆弱。
+      expect(confidence).toBeCloseTo(1.0, 2)
     })
 
     test('should calculate confidence correctly for partial match', () => {

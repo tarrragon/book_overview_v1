@@ -1,11 +1,21 @@
 /**
- * ErrorCodes 效能監控系統整合測試
+ * ErrorCodes 效能監控系統整合測試（非 npm test 主套件）
  *
  * 測試範圍：
  * - ErrorCodesPerformanceMonitor 即時監控功能
  * - PerformanceAnomalyDetector 異常檢測系統
  * - 監控與檢測系統整合工作流程
  * - 自動回應機制驗證
+ *
+ * 執行方式：
+ * - 本檔位於 tests/perf/，不在 npm test（jest tests/unit tests/integration）掃描範圍。
+ * - 透過 npm run test:perf（jest tests/perf）獨立執行。
+ *
+ * 量測環境限制（W1-019，延續 W1-017 方案 A）：
+ * - Jest 在 jsdom 下執行，且測試大量使用 mock，並非有效的效能量測環境。
+ * - 計時值受全套件機器負載、JIT 暖機狀態、GC 時序影響，絕對門檻（avgCreationTime < 0.5ms 等）
+ *   在全套件負載下 flaky。原位於 tests/integration/performance/ 時持續汙染 npm test。
+ * - 本檔計時斷言定位為大幅退化防護，非功能驗收 gate。
  */
 
 const { ErrorCodesPerformanceMonitor } = require('src/error-handling/event-performance-monitor')

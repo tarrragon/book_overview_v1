@@ -466,7 +466,10 @@ describe('ReadmooDataValidator', () => {
       expect(result.processingErrors).toBe(2) // 兩個處理錯誤
     })
 
-    test('應該支援批量驗證的效能優化', async () => {
+    test('應該支援批量驗證並正確處理大量書籍', async () => {
+      // W1-019：原以 processingTime < 1000ms 計時硬門檻作驗收，
+      // 受全套件機器負載影響 flaky。改為驗證批量驗證的功能正確性，
+      // 計時不作為測試驗收條件。
       // eslint-disable-next-line no-unused-vars
       const largeBooksSet = Array.from({ length: 100 }, (_, i) => ({
         ...sampleValidBook,
@@ -475,14 +478,10 @@ describe('ReadmooDataValidator', () => {
       }))
 
       // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
-      // eslint-disable-next-line no-unused-vars
       const result = await validator.validateBooks(largeBooksSet)
-      // eslint-disable-next-line no-unused-vars
-      const processingTime = performance.now() - startTime
 
+      // 驗證 100 本書全部被正確驗證
       expect(result.validBooks).toBe(100)
-      expect(processingTime).toBeLessThan(1000) // 應該在1秒內完成
     })
   })
 
@@ -621,24 +620,19 @@ describe('ReadmooDataValidator', () => {
 
   describe('效能優化和記憶體管理 (Cycle #9)', () => {
     test('應該快取常用的驗證規則', async () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
+      // W1-019：原以 secondRunTime < firstRunTime * 0.8 相對計時比較作驗收，
+      // 在 mock 環境下兩次呼叫差值落在 GC/JIT 雜訊範圍內 flaky。
+      // 改為驗證快取確實被建立並命中（getCacheHitRate > 0），
+      // 直接驗證快取機制本身而非以計時間接推論。
 
       // 第一次驗證 (建立快取)
       await validator.validateBook(sampleValidBook)
-      // eslint-disable-next-line no-unused-vars
-      const firstRunTime = performance.now() - startTime
-
-      // eslint-disable-next-line no-unused-vars
-      const secondStartTime = performance.now()
 
       // 第二次驗證 (使用快取)
       await validator.validateBook(sampleValidBook)
-      // eslint-disable-next-line no-unused-vars
-      const secondRunTime = performance.now() - secondStartTime
 
-      // 第二次應該更快 (至少快 20%)
-      expect(secondRunTime).toBeLessThan(firstRunTime * 0.8)
+      // 驗證快取已建立並命中：getCacheHitRate 在快取非空時 > 0
+      expect(validator.getCacheHitRate()).toBeGreaterThan(0)
     })
 
     test('應該自動清理過期的驗證快取', async () => {
