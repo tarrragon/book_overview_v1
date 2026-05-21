@@ -6,6 +6,7 @@ pending/
 
 # Stop hook 暫時檔案
 .stop-blocked
+.stop-sync-check-blocked
 
 # 但保留目錄結構
 !pending/.gitkeep
