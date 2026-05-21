@@ -471,7 +471,8 @@ describe('Modular Content Script', () => {
       const bookData = adapter.parseBookElement(bookElements[0])
 
       expect(bookData).toEqual({
-        id: expect.stringMatching(/^cover-12345$/),
+        // W6-012.2.1：ID 優先級重排為 reader-link → cover → title，readerLinkId 命中時走 reader 策略
+        id: expect.stringMatching(/^reader-12345$/),
         title: '測試書籍1',
         cover: 'https://cdn.readmoo.com/cover/ab/12345_210x315.jpg',
         progress: 45,
@@ -482,7 +483,7 @@ describe('Modular Content Script', () => {
         identifiers: expect.objectContaining({
           readerLinkId: '12345',
           coverId: '12345',
-          primarySource: 'cover'
+          primarySource: 'reader-link'
         }),
         coverInfo: expect.objectContaining({
           url: 'https://cdn.readmoo.com/cover/ab/12345_210x315.jpg',

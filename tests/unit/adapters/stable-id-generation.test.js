@@ -94,8 +94,9 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC001: 應該從標準Readmoo封面URL生成cover-based ID', () => {
         // eslint-disable-next-line no-unused-vars
         const coverUrl = 'https://cdn.readmoo.com/cover/ab/test123_210x315.jpg'
+        // W6-012.2.1：優先級為 reader → cover → title，readerId 為 null 才會走 cover 策略
         // eslint-disable-next-line no-unused-vars
-        const result = adapter.generateStableBookId('reader456', '書籍標題', coverUrl)
+        const result = adapter.generateStableBookId(null, '書籍標題', coverUrl)
 
         expect(result).toBe('cover-test123')
       })
@@ -104,8 +105,9 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC002: 應該正確處理包含查詢參數的封面URL', () => {
         // eslint-disable-next-line no-unused-vars
         const coverUrl = 'https://cdn.readmoo.com/cover/xy/book789_300x450.png?v=123456'
+        // W6-012.2.1：優先級為 reader → cover → title，readerId 為 null 才會走 cover 策略
         // eslint-disable-next-line no-unused-vars
-        const result = adapter.generateStableBookId('reader999', '測試書籍', coverUrl)
+        const result = adapter.generateStableBookId(null, '測試書籍', coverUrl)
 
         expect(result).toBe('cover-book789')
       })
@@ -114,8 +116,9 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC003: 應該正確處理不同尺寸格式的封面URL', () => {
         // eslint-disable-next-line no-unused-vars
         const coverUrl = 'https://cdn.readmoo.com/cover/cd/novel456_150x200.jpeg'
+        // W6-012.2.1：優先級為 reader → cover → title，readerId 為 null 才會走 cover 策略
         // eslint-disable-next-line no-unused-vars
-        const result = adapter.generateStableBookId('reader111', '小說', coverUrl)
+        const result = adapter.generateStableBookId(null, '小說', coverUrl)
 
         expect(result).toBe('cover-novel456')
       })
@@ -128,8 +131,9 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         const invalidCoverUrl = 'https://invalid-domain.com/image.jpg'
         // eslint-disable-next-line no-unused-vars
         const title = 'JavaScript 程式設計指南'
+        // W6-012.2.1：優先級為 reader → cover → title，readerId 為 null 才會走 title 策略
         // eslint-disable-next-line no-unused-vars
-        const result = adapter.generateStableBookId('reader222', title, invalidCoverUrl)
+        const result = adapter.generateStableBookId(null, title, invalidCoverUrl)
 
         expect(result).toBe('title-javascript-程式設計指南')
       })
@@ -140,8 +144,9 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         const invalidCoverUrl = ''
         // eslint-disable-next-line no-unused-vars
         const title = 'Python@入門 (第二版) & 實戰！'
+        // W6-012.2.1：優先級為 reader → cover → title，readerId 為 null 才會走 title 策略
         // eslint-disable-next-line no-unused-vars
-        const result = adapter.generateStableBookId('reader333', title, invalidCoverUrl)
+        const result = adapter.generateStableBookId(null, title, invalidCoverUrl)
 
         expect(result).toBe('title-python入門-第二版-實戰')
       })
@@ -152,8 +157,9 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         const invalidCoverUrl = ''
         // eslint-disable-next-line no-unused-vars
         const title = 'Deep Learning 深度學習 2024'
+        // W6-012.2.1：優先級為 reader → cover → title，readerId 為 null 才會走 title 策略
         // eslint-disable-next-line no-unused-vars
-        const result = adapter.generateStableBookId('reader444', title, invalidCoverUrl)
+        const result = adapter.generateStableBookId(null, title, invalidCoverUrl)
 
         expect(result).toBe('title-deep-learning-深度學習-2024')
       })
@@ -165,7 +171,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         // eslint-disable-next-line no-unused-vars
         const result = adapter.generateStableBookId('reader555', '', '')
 
-        expect(result).toBe('unstable-reader555')
+        expect(result).toBe('reader-reader555')
       })
 
       // TC008: 標題為預設值時的處理
@@ -175,7 +181,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         // eslint-disable-next-line no-unused-vars
         const result = adapter.generateStableBookId('reader666', '未知標題', invalidCoverUrl)
 
-        expect(result).toBe('unstable-reader666')
+        expect(result).toBe('reader-reader666')
       })
     })
   })
@@ -207,7 +213,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC012: 只有readerId有效時應該使用閱讀器ID', () => {
         // eslint-disable-next-line no-unused-vars
         const result = adapter.generateStableBookId('valid123', null, null)
-        expect(result).toBe('unstable-valid123')
+        expect(result).toBe('reader-valid123')
       })
 
       // TC013: 只有title有效
@@ -256,8 +262,9 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC018: 超長標題應該被截斷至50字符', () => {
         // eslint-disable-next-line no-unused-vars
         const longTitle = '超長標題'.repeat(100) // 400字符
+        // W6-012.2.1：優先級為 reader → cover → title，readerId 為 null 才會走 title 策略
         // eslint-disable-next-line no-unused-vars
-        const result = adapter.generateStableBookId('reader123', longTitle, '')
+        const result = adapter.generateStableBookId(null, longTitle, '')
 
         expect(result).toMatch(/^title-/)
         expect(result.length).toBeLessThanOrEqual(56) // 'title-' + 50字符
@@ -267,8 +274,9 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC019: 超長封面URL如果能解析coverId則正常返回', () => {
         // eslint-disable-next-line no-unused-vars
         const longUrl = 'https://cdn.readmoo.com/cover/ab/test123_210x315.jpg' + '?param=' + 'x'.repeat(500)
+        // W6-012.2.1：優先級為 reader → cover → title，readerId 為 null 才會走 cover 策略
         // eslint-disable-next-line no-unused-vars
-        const result = adapter.generateStableBookId('reader123', '標題', longUrl)
+        const result = adapter.generateStableBookId(null, '標題', longUrl)
 
         // 如果能解析出coverId則返回，否則降級
         expect(result).toMatch(/^(cover-test123|title-)/)
@@ -281,7 +289,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         // eslint-disable-next-line no-unused-vars
         const result = adapter.generateStableBookId(longReaderId, '', '')
 
-        expect(result).toBe(`unstable-${longReaderId}`)
+        expect(result).toBe(`reader-${longReaderId}`)
       })
     })
 
@@ -290,8 +298,9 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC021: 應該清理HTML標籤並返回安全ID', () => {
         // eslint-disable-next-line no-unused-vars
         const maliciousTitle = '<script>alert(\'test\')</script>書名'
+        // W6-012.2.1：優先級為 reader → cover → title，readerId 為 null 才會走 title 策略
         // eslint-disable-next-line no-unused-vars
-        const result = adapter.generateStableBookId('reader123', maliciousTitle, '')
+        const result = adapter.generateStableBookId(null, maliciousTitle, '')
 
         expect(result).toBe('title-書名')
         expect(result).not.toContain('<script>')
@@ -301,8 +310,9 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       test('TC022: 應該正規化URL編碼字符', () => {
         // eslint-disable-next-line no-unused-vars
         const encodedTitle = '書名%20測試&amp;版本'
+        // W6-012.2.1：優先級為 reader → cover → title，readerId 為 null 才會走 title 策略
         // eslint-disable-next-line no-unused-vars
-        const result = adapter.generateStableBookId('reader123', encodedTitle, '')
+        const result = adapter.generateStableBookId(null, encodedTitle, '')
 
         expect(result).toBe('title-書名-測試版本')
       })
@@ -421,7 +431,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         expect(() => {
           // eslint-disable-next-line no-unused-vars
           const result = adapter.generateStableBookId('reader123', circularObj, '')
-          expect(result).toBe('unstable-reader123')
+          expect(result).toBe('reader-reader123')
         }).not.toThrow()
       })
     })
@@ -459,7 +469,8 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
           'https://cdn.readmoo.com/cover/ab/csp123_210x315.jpg'
         )
 
-        expect(result).toMatch(/^(cover-csp123|title-csp測試書籍)$/)
+        // W6-012.2.1：優先級 reader → cover → title，readerId 有效時走 reader 策略
+        expect(result).toBe('reader-reader123')
       })
 
       // TC032: 跨域限制處理
@@ -472,7 +483,8 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
           'https://cdn.readmoo.com/cover/ab/cors123_210x315.jpg'
         )
 
-        expect(result).toMatch(/^(cover-cors123|title-跨域測試)$/)
+        // W6-012.2.1：優先級 reader → cover → title，readerId 有效時走 reader 策略
+        expect(result).toBe('reader-reader123')
       })
 
       // TC033: 舊版瀏覽器兼容
@@ -514,7 +526,8 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
 
         expect(result1).toBe(result2)
         expect(result2).toBe(result3)
-        expect(result1).toBe('cover-test123')
+        // W6-012.2.1：優先級 reader → cover → title，readerId 有效時走 reader 策略
+        expect(result1).toBe('reader-reader123')
       })
 
       // TC035: 不同時間調用一致性
@@ -544,9 +557,12 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         const url2 = `https://cdn.readmoo.com/cover/ab/${baseId}_300x450.jpg`
 
         // eslint-disable-next-line no-unused-vars
-        const result1 = adapter.generateStableBookId('reader1', '書籍', url1)
+        // W6-012.2.1：優先級 reader → cover → title，readerId 為 null 才會走 cover 策略
+        // 本案驗證「不同封面尺寸提取相同 coverID」，須讓 cover 策略生效
         // eslint-disable-next-line no-unused-vars
-        const result2 = adapter.generateStableBookId('reader2', '書籍', url2)
+        const result1 = adapter.generateStableBookId(null, '書籍', url1)
+        // eslint-disable-next-line no-unused-vars
+        const result2 = adapter.generateStableBookId(null, '書籍', url2)
 
         expect(result1).toBe(`cover-${baseId}`)
         expect(result2).toBe(`cover-${baseId}`)
@@ -563,11 +579,14 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         const title3 = 'JavaScript　程式設計!' // 全形空格和感嘆號
 
         // eslint-disable-next-line no-unused-vars
-        const result1 = adapter.generateStableBookId('reader123', title1, '')
+        // W6-012.2.1：優先級 reader → cover → title，readerId 為 null 才會走 title 策略
+        // 本案驗證標題正規化，須讓 title 策略生效
         // eslint-disable-next-line no-unused-vars
-        const result2 = adapter.generateStableBookId('reader456', title2, '')
+        const result1 = adapter.generateStableBookId(null, title1, '')
         // eslint-disable-next-line no-unused-vars
-        const result3 = adapter.generateStableBookId('reader789', title3, '')
+        const result2 = adapter.generateStableBookId(null, title2, '')
+        // eslint-disable-next-line no-unused-vars
+        const result3 = adapter.generateStableBookId(null, title3, '')
 
         // 正規化後應該產生相似的ID（具體實作可能略有不同）
         expect(result1).toMatch(/^title-javascript-程式設計/)
@@ -593,8 +612,9 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         )
 
         expect(book1).not.toBe(book2)
-        expect(book1).toBe('cover-bookA')
-        expect(book2).toBe('cover-bookB')
+        // W6-012.2.1：優先級 reader → cover → title，readerId 有效時走 reader 策略
+        expect(book1).toBe('reader-reader1')
+        expect(book2).toBe('reader-reader2')
       })
 
       // TC039: 相似但不同標題
@@ -605,9 +625,12 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         const title2 = 'JavaScript進階指南'
 
         // eslint-disable-next-line no-unused-vars
-        const result1 = adapter.generateStableBookId('reader123', title1, '')
+        // W6-012.2.1：優先級 reader → cover → title，readerId 為 null 才會走 title 策略
+        // 本案驗證相似標題產生不同 ID，須讓 title 策略生效
         // eslint-disable-next-line no-unused-vars
-        const result2 = adapter.generateStableBookId('reader456', title2, '')
+        const result1 = adapter.generateStableBookId(null, title1, '')
+        // eslint-disable-next-line no-unused-vars
+        const result2 = adapter.generateStableBookId(null, title2, '')
 
         expect(result1).not.toBe(result2)
         expect(result1).toContain('入門')
@@ -624,9 +647,12 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         const cover2 = 'https://cdn.readmoo.com/cover/ab/prog2_210x315.jpg'
 
         // eslint-disable-next-line no-unused-vars
-        const result1 = adapter.generateStableBookId('reader1', sameTitle, cover1)
+        // W6-012.2.1：優先級 reader → cover → title，readerId 為 null 才會走 cover 策略
+        // 本案驗證「相同標題但不同封面基於封面生成不同 ID」，須讓 cover 策略生效
         // eslint-disable-next-line no-unused-vars
-        const result2 = adapter.generateStableBookId('reader2', sameTitle, cover2)
+        const result1 = adapter.generateStableBookId(null, sameTitle, cover1)
+        // eslint-disable-next-line no-unused-vars
+        const result2 = adapter.generateStableBookId(null, sameTitle, cover2)
 
         expect(result1).not.toBe(result2)
         expect(result1).toBe('cover-prog1')
@@ -657,8 +683,9 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         expect(uniqueResults.size).toBe(100)
 
         // 檢查每個結果都符合預期格式
+        // W6-012.2.1：優先級 reader → cover → title，readerId 有效時走 reader 策略
         results.forEach((result, index) => {
-          expect(result).toBe(`cover-book${index}`)
+          expect(result).toBe(`reader-reader${index}`)
         })
       })
     })
@@ -681,7 +708,8 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       // eslint-disable-next-line no-unused-vars
       const duration = endTime - startTime
 
-      expect(result).toBe('cover-perf123')
+      // W6-012.2.1：優先級 reader → cover → title，readerId 有效時走 reader 策略
+      expect(result).toBe('reader-reader123')
       expect(duration).toBeLessThan(10) // 10ms內完成
     })
 
@@ -723,8 +751,10 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
     test('應該防止XSS攻擊', () => {
       // eslint-disable-next-line no-unused-vars
       const xssTitle = '<img src=x onerror=alert("XSS")>書名'
+      // W6-012.2.1：優先級 reader → cover → title，readerId 為 null 才會走 title 策略
+      // 本案驗證標題 XSS 過濾，須讓 title 策略生效
       // eslint-disable-next-line no-unused-vars
-      const result = adapter.generateStableBookId('reader123', xssTitle, '')
+      const result = adapter.generateStableBookId(null, xssTitle, '')
 
       expect(result).not.toContain('<img')
       expect(result).not.toContain('onerror')
@@ -735,8 +765,10 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
     test('應該防止SQL注入式字符', () => {
       // eslint-disable-next-line no-unused-vars
       const sqlTitle = "書名'; DROP TABLE books; --"
+      // W6-012.2.1：優先級 reader → cover → title，readerId 為 null 才會走 title 策略
+      // 本案驗證標題 SQL 注入字元過濾，須讓 title 策略生效
       // eslint-disable-next-line no-unused-vars
-      const result = adapter.generateStableBookId('reader123', sqlTitle, '')
+      const result = adapter.generateStableBookId(null, sqlTitle, '')
 
       expect(result).not.toContain('DROP')
       expect(result).not.toContain('TABLE')
