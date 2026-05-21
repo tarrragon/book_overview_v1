@@ -609,6 +609,10 @@ def scan_pending_handoff_tasks(
         logger.debug(f"pending 目錄不存在: {pending_dir}")
         return pending_tasks, recent_tasks
 
+    # W3-036：has_background_agents 屬 loop-invariant——其唯一輸入 input_data
+    # 在整個迴圈中固定不變。提升至迴圈外一次性計算，消除 O(n) 重複呼叫與重複日誌。
+    bg_active = has_background_agents(input_data or {}, logger)
+
     try:
         for file_path in sorted(pending_dir.glob("*.json")):
             try:
@@ -687,7 +691,7 @@ def scan_pending_handoff_tasks(
                             logger.info(
                                 f"建議性 handoff ({direction_type})，不阻塞退出: {ticket_id}"
                             )
-                        elif has_background_agents(input_data or {}, logger):
+                        elif bg_active:
                             # W3-026.1：v2.1.145 background_tasks 直接判斷，
                             # 優先於 started_at 30 分鐘閾值推斷
                             recent_tasks.append({
