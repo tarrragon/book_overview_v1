@@ -24,6 +24,7 @@
 - **CLAUDE 開發知識**: `claude/` → [📖 CLAUDE 附帶知識索引](./claude/README.md)
 - **工作日誌**: `work-logs/` - 詳細開發過程記錄
 - **版本記錄**: `../CHANGELOG.md` - 版本變更歷史
+- **書城設定**: `bookstores/` - 各書城提取 URL、登入流程、DOM 結構（[Readmoo](./bookstores/readmoo.md)）
 
 ### 📋 專案管理
 

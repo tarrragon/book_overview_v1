@@ -172,6 +172,12 @@ npm run format:check
 | `docs/data-flow-architecture.md` | 資料流架構與已知陷阱（必讀） |
 | `docs/proposals-tracking.yaml` | 提案追蹤索引 |
 
+### 書城基本設定（提取 URL、登入流程、DOM 結構）
+
+| 文件 | 用途 |
+|------|------|
+| `docs/bookstores/readmoo.md` | Readmoo 提取目標 URL（`read.readmoo.com/#/library`）、SPA 路由、登入流程、DOM 結構（必讀） |
+
 ### Chrome Extension 開發規範（必讀）
 
 完整規範：`docs/chrome-extension-dev-guide.md`；速查表見下方。
