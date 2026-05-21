@@ -1170,4 +1170,115 @@ describe('ReadmooAdapter', () => {
       })
     })
   })
+
+  describe('isUnsafeUrl 相對路徑封面 URL 修復 (W1-010)', () => {
+    beforeEach(() => {
+      adapter = createReadmooAdapter()
+    })
+
+    describe('isUnsafeUrl 單元測試 - base 參數支援相對路徑', () => {
+      test('相對路徑 cover URL 帶 base 時不被誤判為 unsafe', () => {
+        // W1-006 根因：單參數 new URL() 對相對路徑 throw，被誤判為 unsafe
+        expect(adapter.isUnsafeUrl('/cover/abc/xyz_210x315.jpg', 'https://readmoo.com')).toBe(false)
+      })
+
+      test('不帶斜線開頭的相對路徑帶 base 時不被誤判為 unsafe', () => {
+        expect(adapter.isUnsafeUrl('cover/abc/xyz_210x315.jpg', 'https://readmoo.com')).toBe(false)
+      })
+
+      test('絕對 URL 帶 base 時 base 被忽略，結果不變', () => {
+        expect(adapter.isUnsafeUrl('https://cdn.readmoo.com/cover/jb/q_210x315.jpg', 'https://readmoo.com')).toBe(false)
+      })
+
+      test('javascript: URI 帶 base 時仍被判定為 unsafe', () => {
+        expect(adapter.isUnsafeUrl('javascript:alert(1)', 'https://readmoo.com')).toBe(true)
+      })
+
+      test('data: URI 帶 base 時仍被判定為 unsafe', () => {
+        expect(adapter.isUnsafeUrl('data:image/png;base64,AAAA', 'https://readmoo.com')).toBe(true)
+      })
+
+      test('相對路徑含路徑遍歷 (..) 帶 base 時仍被判定為 unsafe', () => {
+        // new URL(url, base) 會把 .. 正規化掉，故必須對原始字串檢查
+        expect(adapter.isUnsafeUrl('/cover/../../../etc/passwd', 'https://readmoo.com')).toBe(true)
+      })
+
+      test('相對路徑含 %2e%2e 編碼路徑遍歷帶 base 時仍被判定為 unsafe', () => {
+        expect(adapter.isUnsafeUrl('/cover/%2e%2e/%2e%2e/etc/passwd', 'https://readmoo.com')).toBe(true)
+      })
+
+      test('不帶 base 時絕對 URL 行為不變（向後相容）', () => {
+        expect(adapter.isUnsafeUrl('https://cdn.readmoo.com/cover/jb/q_210x315.jpg')).toBe(false)
+        expect(adapter.isUnsafeUrl('javascript:alert(1)')).toBe(true)
+      })
+
+      test('空值或非字串輸入仍回傳 unsafe', () => {
+        expect(adapter.isUnsafeUrl('', 'https://readmoo.com')).toBe(true)
+        expect(adapter.isUnsafeUrl(null, 'https://readmoo.com')).toBe(true)
+      })
+    })
+
+    describe('extractCoverAndTitle 對相對路徑封面的處理', () => {
+      test('相對路徑封面 URL 不應被清空（W1-006: 78/96 封面誤過濾）', () => {
+        const element = buildLibraryItem('/cover/abc/relcover001_210x315.jpg', '相對路徑封面書籍')
+
+        const result = adapter.extractCoverAndTitle(element)
+
+        expect(result.cover).toBe('/cover/abc/relcover001_210x315.jpg')
+        expect(result.title).toBe('相對路徑封面書籍')
+      })
+
+      test('相對路徑封面含 javascript: 仍被清空', () => {
+        const element = buildLibraryItem("javascript:alert('xss')", '惡意封面書籍')
+
+        const result = adapter.extractCoverAndTitle(element)
+
+        expect(result.cover).toBe('')
+        expect(result.title).toBe('惡意封面書籍')
+      })
+
+      test('相對路徑封面含路徑遍歷 (..) 仍被清空', () => {
+        const element = buildLibraryItem('/cover/../../../etc/passwd', '遍歷封面書籍')
+
+        const result = adapter.extractCoverAndTitle(element)
+
+        expect(result.cover).toBe('')
+        expect(result.title).toBe('遍歷封面書籍')
+      })
+    })
+  })
 })
+
+/**
+ * 建立 library-item DOM 元素供 extractCoverAndTitle 測試使用
+ *
+ * 以安全 DOM API（createElement / setAttribute / textContent）建構，
+ * 避免 innerHTML 注入測試固定值。
+ *
+ * @param {string} coverSrc - 封面 img 的 src 值（可為相對路徑）
+ * @param {string} titleText - 書名文字
+ * @returns {HTMLElement} library-item 容器元素
+ */
+function buildLibraryItem (coverSrc, titleText) {
+  const item = document.createElement('div')
+  item.className = 'library-item'
+
+  const cover = document.createElement('div')
+  cover.className = 'cover'
+  const img = document.createElement('img')
+  img.className = 'cover-img'
+  img.setAttribute('src', coverSrc)
+  img.setAttribute('alt', titleText)
+  cover.appendChild(img)
+
+  const info = document.createElement('div')
+  info.className = 'info'
+  const title = document.createElement('div')
+  title.className = 'title'
+  title.textContent = titleText
+  info.appendChild(title)
+
+  item.appendChild(cover)
+  item.appendChild(info)
+  return item
+}

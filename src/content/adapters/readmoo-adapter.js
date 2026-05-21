@@ -433,7 +433,10 @@ function createReadmooAdapter (options = {}) {
 
       // 安全檢查 - 過濾惡意圖片URL
       // 收集不安全 URL，在 extractAllBooks() 完成後批量彙整輸出
-      if (cover && this.isUnsafeUrl(cover)) {
+      // 傳入 location.origin 作 base，使相對路徑封面 URL（如 /cover/abc/xyz.jpg）
+      // 能被正確解析而非誤判為 unsafe（W1-010 / W1-006 根因修復）
+      const coverBase = getLocation().origin
+      if (cover && this.isUnsafeUrl(cover, coverBase)) {
         if (!this._unsafeUrlCount) this._unsafeUrlCount = 0
         this._unsafeUrlCount++
         cover = ''
@@ -689,25 +692,36 @@ function createReadmooAdapter (options = {}) {
 
     /**
      * 檢查URL是否不安全
-     * @param {string} url - 要檢查的URL
+     *
+     * 支援相對路徑：傳入 base 時以 new URL(url, base) 解析，使相對路徑
+     * （如 /cover/abc/xyz.jpg）能正確判定協議與遍歷風險。未傳 base 時，
+     * 相對路徑會在 new URL() throw 後被歸為 unsafe（向後相容舊行為）。
+     *
+     * 路徑遍歷檢查刻意對「原始輸入字串」進行，而非解析後的 pathname：
+     * new URL(url, base) 會將 .. 正規化消除（/a/../b 變成 /b），若只檢查
+     * 解析後 pathname 將遺漏遍歷攻擊。
+     *
+     * @param {string} url - 要檢查的URL（可為絕對 URL 或相對路徑）
+     * @param {string} [base] - 解析相對路徑用的 base URL（如 location.origin）
      * @returns {boolean} 是否不安全
      */
-    isUnsafeUrl (url) {
+    isUnsafeUrl (url, base) {
       if (!url || typeof url !== 'string') {
         return true
       }
 
+      // 路徑遍歷檢查 - 對原始字串進行，避免 new URL 正規化掩蓋遍歷
+      const lowerUrl = url.toLowerCase()
+      if (lowerUrl.includes('..') || lowerUrl.includes('%2e%2e')) {
+        return true
+      }
+
       try {
-        const urlObj = new URL(url)
+        const urlObj = base ? new URL(url, base) : new URL(url)
         const protocol = urlObj.protocol.toLowerCase()
 
         // 只允許 https 和 http 協議
         if (protocol !== 'https:' && protocol !== 'http:') {
-          return true
-        }
-
-        // 檢查路徑遍歷攻擊
-        if (urlObj.pathname.includes('..') || urlObj.pathname.includes('%2e%2e')) {
           return true
         }
 
