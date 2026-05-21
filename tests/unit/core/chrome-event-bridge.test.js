@@ -30,6 +30,22 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
  * - 跨分頁的事件同步處理
  */
 
+/**
+ * 清空 microtask 佇列
+ *
+ * 監聽器同步回傳 true 後，CROSS_CONTEXT_EVENT 的非同步處理
+ * 以 fire-and-forget 方式執行；測試需 flush 多輪 microtask
+ * 等待非同步鏈（dispatchToContext -> dispatchToContent -> sendToTab）完成。
+ *
+ * @param {number} [rounds=10] - flush 輪數
+ * @returns {Promise<void>}
+ */
+async function flushMicrotasks (rounds = 10) {
+  for (let i = 0; i < rounds; i++) {
+    await Promise.resolve()
+  }
+}
+
 describe('🌐 Chrome Extension 事件橋接器測試', () => {
   let createChromeEventBridge
   let bridge
@@ -544,7 +560,12 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
       const messageListener = mockChrome.runtime.onMessage.addListener.mock.calls[0][0]
 
       // Act
-      await messageListener(crossContextMessage, mockSender, mockSendResponse)
+      // 監聽器同步回傳 true（MV3 多監聽器回應契約，0.19.0-W1-007 BUG-A）；
+      // CROSS_CONTEXT_EVENT 的非同步處理分離為 fire-and-forget，
+      // 需 flush 多輪 microtask 等待 dispatchToContent 鏈完成。
+      const channelResult = messageListener(crossContextMessage, mockSender, mockSendResponse)
+      expect(channelResult).toBe(true)
+      await flushMicrotasks()
 
       // Assert
       expect(bridge.getReadmooTabs).toHaveBeenCalled()

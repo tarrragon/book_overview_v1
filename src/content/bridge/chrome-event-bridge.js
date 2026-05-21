@@ -357,25 +357,49 @@ function createChromeEventBridge () {
   }
 
   // 設置 Chrome Runtime 消息監聽器
-  messageListener = async (message, sender, sendResponse) => {
-    // 處理跨上下文事件消息
-    if (message.type === 'CROSS_CONTEXT_EVENT') {
-      try {
-        const result = await bridge.dispatchToContext(
-          message.data.event,
-          message.data.targetContext
-        )
-        sendResponse({
-          success: true,
-          result
-        })
-      } catch (error) {
-        sendResponse({
-          success: false,
-          error: error.message
-        })
-      }
-      return true // 保持消息通道開啟
+  //
+  // 重要（Manifest V3 多監聽器回應契約，0.19.0-W1-007 BUG-A）：
+  // 監聽器函式本身必須「同步」回傳值，禁止宣告為 async。
+  // - async 函式一律回傳 Promise；Chrome MV3 視「回傳 Promise」為
+  //   「此監聽器負責回應」，並把 Promise resolve 的值送回 sender。
+  // - 本監聽器僅處理 CROSS_CONTEXT_EVENT。若宣告為 async，收到其他
+  //   訊息類型（如 START_EXTRACTION）時函式體結束會回傳 Promise(undefined)，
+  //   與 content-modular.js 中真正處理該訊息的監聽器競爭，導致 sender
+  //   取得 undefined → popup 誤判「提取失敗 / 未知錯誤」。
+  // 正確做法：同步函式，非處理的訊息回傳 undefined（不搶通道）；
+  //   處理的訊息將 async 邏輯分離為 fire-and-forget，並回傳 true。
+  messageListener = (message, sender, sendResponse) => {
+    // 僅處理跨上下文事件消息，其餘訊息回傳 undefined 讓其他監聽器處理
+    if (message.type !== 'CROSS_CONTEXT_EVENT') {
+      return undefined
+    }
+
+    handleCrossContextEvent(message, sendResponse)
+    return true // 保持消息通道開啟，由 handleCrossContextEvent 非同步呼叫 sendResponse
+  }
+
+  /**
+   * 處理 CROSS_CONTEXT_EVENT 的非同步邏輯（與監聽器主體分離）
+   *
+   * @param {Object} message - 跨上下文事件訊息
+   * @param {Function} sendResponse - Chrome 回應函式
+   * @returns {Promise<void>}
+   */
+  async function handleCrossContextEvent (message, sendResponse) {
+    try {
+      const result = await bridge.dispatchToContext(
+        message.data.event,
+        message.data.targetContext
+      )
+      sendResponse({
+        success: true,
+        result
+      })
+    } catch (error) {
+      sendResponse({
+        success: false,
+        error: error.message
+      })
     }
   }
 
