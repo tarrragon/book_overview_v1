@@ -38,6 +38,9 @@ coverage/
 # Output of 'npm pack'
 *.tgz
 
+# 打包產物（npm run package 產出的可分發 ZIP）
+dist/
+
 # IDEs and editors
 .vscode/
 .idea/
