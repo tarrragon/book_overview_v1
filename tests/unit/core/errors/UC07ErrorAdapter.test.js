@@ -389,35 +389,56 @@ describe('UC07ErrorAdapter', () => {
     })
   })
 
-  describe('效能測試', () => {
-    test('大量錯誤轉換應該保持效能', () => {
+  // 效能斷言策略（W1-017）：計時硬門檻受全套件機器負載影響會 flaky
+  // （UC07ErrorAdapter.test.js:420 原 < 10 在完整 npm test 下失敗）。
+  // 計時斷言一律改為「大幅退化防護」門檻，只攔截數量級退化；
+  // 功能正確性（轉換產出正確、快取一致）為真正的 pass-fail gate。
+  describe('效能測試（大幅退化防護）', () => {
+    test('大量錯誤轉換應該保持功能且不發生數量級退化', () => {
       // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
+      // eslint-disable-next-line no-unused-vars
+      let lastError
       for (let i = 0; i < 100; i++) {
-        UC07ErrorAdapter.convertError(
+        lastError = UC07ErrorAdapter.convertError(
           'SYSTEM_ERROR_HANDLER_RECURSION',
           `測試訊息 ${i}`,
           { testIndex: i }
         )
       }
 
+      // 功能正確性驗證：轉換持續產出有效錯誤物件
+      expect(lastError).toBeDefined()
+      expect(lastError.code).toBe(ErrorCodes.OPERATION_ERROR)
+
+      // 大幅退化防護門檻（門檻刻意放寬，避免機器負載誤判）
       // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
-      expect(duration).toBeLessThan(50) // 100次轉換應該在50ms內
+      expect(duration).toBeLessThan(500)
     })
 
-    test('映射表快取應該減少重複計算', () => {
+    test('映射表快取應該回傳一致結果且不發生數量級退化', () => {
       // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
 
+      // eslint-disable-next-line no-unused-vars
+      const firstMapping = UC07ErrorAdapter.getErrorMapping()
+      // eslint-disable-next-line no-unused-vars
+      let lastMapping
       for (let i = 0; i < 1000; i++) {
-        UC07ErrorAdapter.getErrorMapping()
+        lastMapping = UC07ErrorAdapter.getErrorMapping()
       }
 
+      // 功能正確性驗證：快取回傳同一參考的映射表（取代僅靠計時的弱驗證）。
+      // getErrorMapping 回傳 Object.freeze 的單例，toBe（參考相等）才真正驗證
+      // 快取未重建；toEqual（值相等）即使每次都新建物件也會通過，無法驗證快取。
+      expect(lastMapping).toBe(firstMapping)
+
+      // 大幅退化防護門檻（門檻刻意放寬，避免機器負載誤判）
       // eslint-disable-next-line no-unused-vars
       const duration = Date.now() - startTime
-      expect(duration).toBeLessThan(10) // 1000次存取應該在10ms內
+      expect(duration).toBeLessThan(500)
     })
   })
 
