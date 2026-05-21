@@ -1030,10 +1030,14 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
         // eslint-disable-next-line no-unused-vars
         const row = tableBody.children[0]
-        expect(row.querySelector('td:nth-child(2)').textContent).toContain('完整資訊書籍')
-        expect(row.querySelector('td:nth-child(3)').textContent).toContain('readmoo')
-        expect(row.querySelector('td:nth-child(4)').textContent).toContain('75%')
-        expect(row.querySelector('td:nth-child(5)').textContent).toContain('閱讀中')
+        // createBookRow 欄位順序：[1]select-checkbox [2]cover [3]title
+        // [4]source [5]progress [6]status [7]tag（select-col 由 W6-012.7.1 新增、
+        // tag-col 由 tagCellRenderer 新增）。原測試 nth-child(2..5) 在這兩欄加入前撰寫，
+        // 對齊至實際產品欄位後改為 nth-child(3..6)。
+        expect(row.querySelector('td:nth-child(3)').textContent).toContain('完整資訊書籍')
+        expect(row.querySelector('td:nth-child(4)').textContent).toContain('readmoo')
+        expect(row.querySelector('td:nth-child(5)').textContent).toContain('75%')
+        expect(row.querySelector('td:nth-child(6)').textContent).toContain('閱讀中')
       })
     })
   })
