@@ -297,9 +297,9 @@ describe('UC-02 匯出完整資訊鏈整合測試', () => {
       // When: 生成 CSV 內容
       const csvContent = controller.generateCSVContent()
 
-      // Then: 第一行應為表頭
+      // Then: 第一行應為表頭（對齊 BookSchemaV2 欄位擴展：新增 id、authors、tagIds）
       const lines = csvContent.split('\n')
-      expect(lines[0]).toBe('書名,書城來源,進度,狀態,封面URL')
+      expect(lines[0]).toBe('書名,書城來源,進度,狀態,封面URL,id,authors,tagIds')
 
       // Then: 應有 2 筆資料行
       expect(lines.length).toBe(3) // 1 表頭 + 2 資料
