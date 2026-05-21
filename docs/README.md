@@ -25,6 +25,8 @@
 - **工作日誌**: `work-logs/` - 詳細開發過程記錄
 - **版本記錄**: `../CHANGELOG.md` - 版本變更歷史
 - **書城設定**: `bookstores/` - 各書城提取 URL、登入流程、DOM 結構（[Readmoo](./bookstores/readmoo.md)）
+- **資料流架構**: [data-flow-architecture.md](./data-flow-architecture.md) - 資料流架構與已知陷阱（必讀）
+- **環境恢復指南**: [environment-recovery-guide.md](./environment-recovery-guide.md) - 長期暫停後重啟或新 clone 的環境恢復流程
 
 ### 📋 專案管理
 
