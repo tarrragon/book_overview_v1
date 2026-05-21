@@ -62,7 +62,6 @@ v2.1.0 變更:
 
 import sys
 import json
-import re
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional
@@ -141,77 +140,11 @@ EXIT_SUCCESS = 0
 PENDING_DIR_NAME = ".claude/handoff/pending"
 LOG_DIR_NAME = ".claude/hook-logs/handoff-auto-resume"
 LOG_FILE_PREFIX = "stop-hook"
-WORK_LOGS_DIR_NAME = "docs/work-logs"
-TODOLIST_FILE_NAME = "docs/todolist.yaml"
 RECENT_TASK_THRESHOLD_MINUTES = 30  # 30 分鐘內視為「最近任務」（可能有代理人正在執行）
 RECENT_HANDOFF_WINDOW_SECONDS = 300  # W17-118: 最近 N 秒內建立的 handoff 視為下 session 接手點，不計入 pending
 
 # W17-181.2: Terminal 狀態集合已上移至 lib `handoff_utils.is_ticket_terminal`
 # （透過 ticket_system.constants.TERMINAL_STATUSES 引用），消除跨進程同構邏輯（ARCH-020）。
-
-def get_active_version(project_root: Path, logger) -> Optional[str]:
-    """
-    從 docs/todolist.yaml 取得活躍版本號
-
-    Fallback：掃描 docs/work-logs/ 目錄取最新版本號。
-
-    Args:
-        project_root: 專案根目錄
-        logger: 日誌記錄器
-
-    Returns:
-        str - 活躍版本號（如 "0.31.0"）；無法取得時回傳 None
-    """
-    todolist_file = project_root / TODOLIST_FILE_NAME
-
-    # 嘗試從 todolist.yaml 讀取
-    if todolist_file.exists():
-        try:
-            content = todolist_file.read_text(encoding='utf-8')
-            # 簡易搜尋 status: "active" 的版本
-            for line in content.split('\n'):
-                if 'version:' in line:
-                    current_version = None
-                    version_match = re.search(r'"([\d.]+)"', line)
-                    if version_match:
-                        current_version = version_match.group(1)
-                    else:
-                        version_match = re.search(r"'([\d.]+)'", line)
-                        if version_match:
-                            current_version = version_match.group(1)
-
-                    # 若未找到版本則跳過
-                    if not current_version:
-                        continue
-
-                    # 接下來檢查 status 行
-                    for next_line in content[content.index(line):].split('\n')[1:5]:
-                        if 'status:' in next_line:
-                            if 'active' in next_line:
-                                logger.debug(f"從 todolist.yaml 找到活躍版本: {current_version}")
-                                return current_version
-                            break
-
-        except Exception as e:
-            logger.warning(f"解析 todolist.yaml 失敗: {e}")
-
-    # Fallback：掃描 docs/work-logs/ 目錄
-    work_logs_dir = project_root / WORK_LOGS_DIR_NAME
-    if work_logs_dir.exists():
-        try:
-            version_dirs = sorted(
-                [d for d in work_logs_dir.iterdir() if d.is_dir() and d.name.startswith('v')],
-                reverse=True
-            )
-            if version_dirs:
-                version = version_dirs[0].name[1:]  # 移除 'v' 前綴
-                logger.debug(f"Fallback：掃描 work-logs 找到版本: {version}")
-                return version
-        except Exception as e:
-            logger.warning(f"掃描 work-logs 目錄失敗: {e}")
-
-    return None
-
 
 def _load_frontmatter_cached(
     cache: Optional[Dict[str, Optional[dict]]],
