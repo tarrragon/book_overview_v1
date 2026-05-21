@@ -177,50 +177,42 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
   })
 
   describe('🎭 模擬測試資料驗證', () => {
+    // W1-008：readmoo-mock-page.html 已重寫為真實瀏覽器 E2E fixture，DOM 結構對齊
+    // readmoo-adapter.js 的 SELECTORS（.library-item / .title / a[href*="/api/reader/"]
+    // / .cover-img / .progress-bar / .label.rendition），由真實 content script DOM
+    // 提取，不再使用舊的 <script type="application/json"> mock 資料區塊。
     test('模擬 Readmoo 頁面應該有正確的結構', () => {
-      // eslint-disable-next-line no-unused-vars
       const mockPagePath = path.join(e2eTestsPath, 'fixtures/readmoo-mock-page.html')
-      // eslint-disable-next-line no-unused-vars
       const mockPageContent = fs.readFileSync(mockPagePath, 'utf8')
 
-      // 檢查關鍵元素
-      expect(mockPageContent).toContain('.book-item')
-      expect(mockPageContent).toContain('.book-title')
-      expect(mockPageContent).toContain('.book-author')
-      expect(mockPageContent).toContain('data-book-id')
-
-      // 檢查測試資料
-      expect(mockPageContent).toContain('testBookData')
-      expect(mockPageContent).toContain('getTestBookData')
+      // 檢查對齊真實 Readmoo selector 的關鍵元素
+      expect(mockPageContent).toContain('library-item')
+      expect(mockPageContent).toContain('class="title"')
+      expect(mockPageContent).toContain('/api/reader/')
+      expect(mockPageContent).toContain('cover-img')
+      expect(mockPageContent).toContain('progress-bar')
 
       // eslint-disable-next-line no-console
       console.log('✅ 模擬 Readmoo 頁面結構正確')
     })
 
     test('測試資料應該包含完整的書籍資訊', () => {
-      // eslint-disable-next-line no-unused-vars
       const mockPagePath = path.join(e2eTestsPath, 'fixtures/readmoo-mock-page.html')
-      // eslint-disable-next-line no-unused-vars
       const mockPageContent = fs.readFileSync(mockPagePath, 'utf8')
 
-      // 提取 JSON 資料
-      // eslint-disable-next-line no-unused-vars
-      const jsonMatch = mockPageContent.match(/type="application\/json"[^>]*>([^<]+)</)
-      expect(jsonMatch).toBeTruthy()
+      // fixture 含正好 5 個 .library-item 書籍容器
+      const libraryItemMatches = mockPageContent.match(/class="library-item"/g)
+      expect(libraryItemMatches).toBeTruthy()
+      expect(libraryItemMatches.length).toBe(5)
 
-      // eslint-disable-next-line no-unused-vars
-      const testData = JSON.parse(jsonMatch[1].trim())
-      expect(testData.books).toBeInstanceOf(Array)
-      expect(testData.books.length).toBe(5)
+      // 每本書具備提取所需的關鍵元素：reader 連結（ID 來源）、書名、進度條
+      const readerLinkMatches = mockPageContent.match(/href="\/api\/reader\/\d+"/g)
+      expect(readerLinkMatches).toBeTruthy()
+      expect(readerLinkMatches.length).toBe(5)
 
-      // 檢查第一本書的資料結構
-      // eslint-disable-next-line no-unused-vars
-      const firstBook = testData.books[0]
-      expect(firstBook).toHaveProperty('id')
-      expect(firstBook).toHaveProperty('title')
-      expect(firstBook).toHaveProperty('author')
-      expect(firstBook).toHaveProperty('progress')
-      expect(firstBook).toHaveProperty('purchaseDate')
+      const progressBarMatches = mockPageContent.match(/class="progress-bar" style="width:\d+%"/g)
+      expect(progressBarMatches).toBeTruthy()
+      expect(progressBarMatches.length).toBe(5)
     })
   })
 
