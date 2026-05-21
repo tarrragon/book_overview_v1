@@ -13,7 +13,7 @@ description: "Assertion design judgment framework for flaky and design-quality i
 
 | 問題 | 判斷標準 | 「否」時對應類型 |
 |------|---------|----------------|
-| 確定性 | 同一程式碼在任何執行環境下，pass/fail 結果一致？ | 類型 1–6（環境依賴） |
+| 確定性 | 同一程式碼在任何執行環境下，pass/fail 結果一致？ | 類型 1–6（確定性失效） |
 | 聚焦性 | 此測試案例只驗證一個行為面向？ | 類型 8–9（設計問題） |
 | 隔離性 | 此測試不依賴其他測試建立的狀態或執行順序？ | 類型 7（隔離違反） |
 
@@ -92,4 +92,4 @@ description: "Assertion design judgment framework for flaky and design-quality i
 ---
 
 **Last Updated**: 2026-05-21
-**Version**: 1.1.0 — F2-F5 修正：環境依賴族擴展為 1-4、確定性三問改為 1-6、routing 涵蓋全 9 類、判斷軸改為兩族 partition（Source: W1-027 第 1 輪審查）
+**Version**: 1.2.0 — 第 2 輪審查：三問「確定性」對應標籤由「環境依賴」改為「確定性失效」（類型 5-6 屬設計族）。1.1.0：F2-F5 修正（W1-027 第 1 輪審查）
