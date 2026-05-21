@@ -18,6 +18,7 @@ const BaseModule = require('src/background/lifecycle/base-module')
 const { SYSTEM_EVENTS, EVENT_PRIORITIES } = require('src/background/constants/module-constants')
 const { Logger } = require('src/core/logging/Logger')
 const ErrorCodes = require('src/core/errors/ErrorCodes')
+const BookSchemaV2 = require('src/data-management/BookSchemaV2')
 
 class EventCoordinator extends BaseModule {
   constructor (dependencies = {}) {
@@ -540,12 +541,35 @@ class EventCoordinator extends BaseModule {
       try {
         let books = event.data?.booksData || event.data?.books
 
-        // 正規化每本書加入 tags
+        // 正規化每本書並套用 BookSchemaV2 model 轉換
+        //
+        // 轉換順序（單一 map callback 內，順序關鍵）：
+        // 1. tags 正規化（既有邏輯）— 確保含書城來源名 'readmoo'
+        // 2. derive readingStatus — 由 progress 經 mapV1StatusToV2() 推導
+        // 3. applyDefaults() — 填入 tagIds:[]、isManualStatus:false 等 schema 預設
+        // 4. 顯式設定 schemaVersion — schema fields 未定義此欄位，applyDefaults 不會填
+        //
+        // 順序理由：derive 必須先於 applyDefaults。applyDefaults 只在欄位
+        // === undefined 時填預設（readingStatus 預設為 'unread'），若順序顛倒，
+        // progress=100 的書會被預設值覆蓋為 'unread' 而非 derive 出的 'finished'。
         if (Array.isArray(books)) {
           books = books.map(b => {
             const existing = Array.isArray(b.tags) ? b.tags : (b.tag ? [b.tag] : [])
             const tags = Array.from(new Set([...(existing || []), 'readmoo']))
-            return { ...b, tags }
+
+            // derive readingStatus（DRY：複用 BookSchemaV2 既有 derivation，
+            // 異常 progress 由 normalizeV1Progress 退化為 unread，不丟錯）
+            const readingStatus = BookSchemaV2.mapV1StatusToV2(b)
+
+            // 先放入 derive 結果，再 applyDefaults 才不會覆蓋為預設 unread
+            const withStatus = { ...b, tags, readingStatus }
+            const normalized = BookSchemaV2.applyDefaults(withStatus)
+
+            // book 物件層級的 schema 版本標記（採 camelCase，與 book 既有
+            // 欄位 extractedAt/coverInfo 命名風格一致）
+            normalized.schemaVersion = BookSchemaV2.SCHEMA_VERSION
+
+            return normalized
           })
         }
 
