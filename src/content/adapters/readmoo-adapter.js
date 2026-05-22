@@ -516,35 +516,73 @@ function createReadmooAdapter (options = {}) {
     /**
      * 執行單輪捲動（W1-030，可注入私有方法）
      *
-     * 依 strategy 觸發 lazy load：load-more-button 策略點擊按鈕，
-     * 其餘策略捲動容器至底部。此方法刻意抽為獨立方法，使 Phase 2
-     * 測試能以 jest.spyOn 注入受控捲動行為驗證停止邏輯（規格 R5 可測性）。
+     * 每輪同時執行兩個 lazy load 觸發動作，不再依 strategy 二擇一：
+     * 1. 捲動容器至底部（觸發虛擬捲動 render 後批書籍）
+     * 2. 點擊底部「更多...」按鈕（觸發官方分頁載入）
      *
-     * W1-033 R3：document 策略原同時寫 window.scrollTo + container.scrollTop，
-     * 其中 window.scrollTo 為多餘——document 策略下 container 即 documentElement，
-     * 設定其 scrollTop 已是整頁捲動的標準做法；雙寫在 Mobile Chrome 兩者可能
-     * 不一致。改為僅設 container.scrollTop，與其他策略一致走容器捲動。
+     * W1-040：原實作依 strategy 二擇一——load-more-button 策略只點按鈕、
+     * 其餘策略只捲動。實機（read.readmoo.com/#/library）findScrollContainer
+     * 永遠先命中 selector 策略（#react-container 為頁面根容器），導致「更多...」
+     * 按鈕永不被點擊。Readmoo library 首批僅 render 96 本，必須先點「更多...」
+     * 按鈕才會展開至 192 本，之後虛擬捲動才接手——只捲動 #react-container
+     * 對首批 96 完全無效，3 輪 count 不變即誤觸 count_stable 放棄（實機
+     * log：loadedCount:96 expectedTotal:928 stopReason:count_stable）。
+     * 手動「scrollTo + 點擊更多按鈕」證實可載入完整 928 本。
      *
-     * @param {HTMLElement} container - 捲動容器或載入按鈕
+     * 兩動作每輪皆執行使任一觸發路徑有效即可推進：按鈕點擊負責首批展開，
+     * 容器捲動負責後續虛擬捲動批次。按鈕全部載入完成後會消失，
+     * findLoadMoreButton 回傳 null 時自然略過點擊。
+     *
+     * W1-033 R3：document 策略下 container 即 documentElement，
+     * 設定其 scrollTop 即整頁捲動，不另寫 window.scrollTo（雙寫在
+     * Mobile Chrome 兩者可能不一致）。
+     *
+     * 此方法刻意抽為獨立方法，使 Phase 2 測試能以 jest.spyOn 注入受控
+     * 捲動行為驗證停止邏輯（規格 R5 可測性）。
+     *
+     * @param {HTMLElement} container - 捲動容器（load-more-button 策略下為按鈕元素）
      * @param {string} strategy - findScrollContainer 回傳的策略
      */
     _scrollStep (container, strategy) {
-      if (!container) return
-
-      if (strategy === 'load-more-button') {
-        // 點擊「更多...」按鈕觸發載入；按鈕可能已消失（全部載入完成）
-        if (typeof container.scrollIntoView === 'function') {
-          container.scrollIntoView({ block: 'center' })
+      // 動作 1：捲動容器至底部觸發虛擬捲動。
+      // load-more-button 策略下 container 為按鈕元素本身，改捲入視野後由動作 2 點擊。
+      if (container) {
+        if (strategy === 'load-more-button') {
+          if (typeof container.scrollIntoView === 'function') {
+            container.scrollIntoView({ block: 'center' })
+          }
+        } else {
+          // selector / scrollable-ancestor / document：捲動容器至底部。
+          container.scrollTop = container.scrollHeight
         }
-        if (typeof container.click === 'function') {
-          container.click()
-        }
-        return
       }
 
-      // selector / scrollable-ancestor / document：捲動容器至底部。
-      // document 策略下 container 為 documentElement，設定 scrollTop 即整頁捲動。
-      container.scrollTop = container.scrollHeight
+      // 動作 2：點擊底部「更多...」按鈕觸發官方分頁載入。
+      // 與動作 1 並行而非二擇一——實機 selector 策略恆優先命中容器，
+      // 若僅靠 strategy 分支則按鈕永不被點擊，首批 96 無法展開（W1-040 根因）。
+      // 按鈕在全部載入完成後消失，findLoadMoreButton 回傳 null 時略過。
+      this._clickLoadMoreButton()
+    },
+
+    /**
+     * 尋找並點擊底部「更多...」按鈕（W1-040，可注入私有方法）
+     *
+     * 由 _scrollStep 每輪呼叫。按鈕不存在（全部載入完成或頁面結構不符）
+     * 時靜默略過——此為正常終止情境，非錯誤。點擊前先捲入視野，
+     * 確保虛擬捲動容器內的按鈕可被點擊。
+     *
+     * 抽為獨立方法以支援 Phase 2 測試以 jest.spyOn 注入驗證點擊行為。
+     */
+    _clickLoadMoreButton () {
+      const loadMoreBtn = this.findLoadMoreButton()
+      if (!loadMoreBtn) return
+
+      if (typeof loadMoreBtn.scrollIntoView === 'function') {
+        loadMoreBtn.scrollIntoView({ block: 'center' })
+      }
+      if (typeof loadMoreBtn.click === 'function') {
+        loadMoreBtn.click()
+      }
     },
 
     /**
