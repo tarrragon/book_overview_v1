@@ -181,10 +181,14 @@ class ContentScriptCoordinatorService {
    */
   initializeScriptConfigs () {
     // Readmoo 書庫頁面腳本
+    // W1-029.1: 真實書庫頁為 https://read.readmoo.com/#/library
+    // （Vue SPA hash route）。Chrome match pattern 不支援 fragment(#)，
+    // 故 path 段不可硬編 /library；放寬至 host 層級涵蓋 read.readmoo.com，
+    // 由 detectPageType 負責 readmoo_library 細部判斷。
     this.scriptConfigs.set('readmoo_library_extractor', {
       id: 'readmoo_library_extractor',
       file: '/src/content/extractors/readmoo-library-extractor.js',
-      matches: ['*://readmoo.com/library*'],
+      matches: ['*://*.readmoo.com/*'],
       pageTypes: ['readmoo_library'],
       runAt: 'document_idle',
       allFrames: false,
@@ -295,7 +299,15 @@ class ContentScriptCoordinatorService {
    */
   async detectPageType (url) {
     // 基本URL模式檢測
-    if (url.includes('readmoo.com/library')) return 'readmoo_library'
+    // W1-029.1: 真實書庫頁為 https://read.readmoo.com/#/library
+    // （Vue SPA hash route），不含子字串 readmoo.com/library。
+    // 同時相容舊版 path 形式（如 member.readmoo.com/library）。
+    if (
+      (url.includes('read.readmoo.com') && url.includes('#/library')) ||
+      url.includes('readmoo.com/library')
+    ) {
+      return 'readmoo_library'
+    }
     if (url.match(/readmoo\.com\/book\/\d+/)) return 'readmoo_book_detail'
     if (url.includes('readmoo.com/reader')) return 'readmoo_reader'
     if (url.includes('readmoo.com')) return 'readmoo_main'

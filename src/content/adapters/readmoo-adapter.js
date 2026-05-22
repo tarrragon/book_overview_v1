@@ -1867,13 +1867,14 @@ function createReadmooAdapter (options = {}) {
      * @returns {string[]} 支援的 URL 模式陣列
      */
     getSupportedUrls () {
+      // W1-029.1: 真實書庫頁為 https://read.readmoo.com/#/library
+      // （Vue SPA hash route）。Chrome match pattern 的 path 段不支援
+      // URL fragment(#)，故不可硬編 /library；改放寬至 host 層級，
+      // 由 detectPageType / validatePage 負責 hash route 細部判斷。
       return [
         'readmoo.com',
         'member.readmoo.com',
-        'https://readmoo.com/library*',
-        'https://readmoo.com/bookshelf*',
-        'https://*.readmoo.com/library*',
-        'https://*.readmoo.com/bookshelf*'
+        '*://*.readmoo.com/*'
       ]
     },
 

@@ -83,6 +83,19 @@ describe('ReadmooAdapter', () => {
       expect(Array.isArray(supportedUrls)).toBe(true)
     })
 
+    test('getSupportedUrls 不應殘留過時的 readmoo.com/library 硬編碼模式', () => {
+      // W1-029.1: 真實書庫頁為 https://read.readmoo.com/#/library
+      // （Vue SPA hash route），不含子字串 readmoo.com/library。
+      // Chrome match pattern 不支援 fragment(#)，故 path 段不可硬編 /library。
+      const supportedUrls = adapter.getSupportedUrls()
+
+      const stalePatterns = supportedUrls.filter(
+        (pattern) => pattern.includes('readmoo.com/library') ||
+          pattern.includes('readmoo.com/bookshelf')
+      )
+      expect(stalePatterns).toEqual([])
+    })
+
     test('應該能驗證 Readmoo 書庫頁面', () => {
       // eslint-disable-next-line no-unused-vars
       const libraryUrl = 'https://member.readmoo.com/library'

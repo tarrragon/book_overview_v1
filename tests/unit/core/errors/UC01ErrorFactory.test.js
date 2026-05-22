@@ -114,13 +114,16 @@ describe('UC01ErrorFactory', () => {
       })
     })
 
-    test('應該使用預設參數', () => {
+    test('應該使用預設參數（指向真實 Readmoo 書庫 SPA 路由）', () => {
+      // W1-029.1: 預設 expectedPatterns 文字須反映真實書庫頁
+      // https://read.readmoo.com/#/library（Vue SPA hash route），
+      // 舊值 'readmoo.com/library' 已 404。
       // eslint-disable-next-line no-unused-vars
       const error = UC01ErrorFactory.createPageDetectionError('https://test.com')
 
       expect(error.details.expectedPatterns).toEqual([
-        'readmoo.com/library',
-        'readmoo.com/shelf'
+        'read.readmoo.com/#/library',
+        'read.readmoo.com/#/shelf'
       ])
     })
   })

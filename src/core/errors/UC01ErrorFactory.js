@@ -70,7 +70,10 @@ class UC01ErrorFactory {
       '無法檢測到 Readmoo 書庫頁面',
       {
         currentUrl,
-        expectedPatterns: expectedPatterns.length > 0 ? expectedPatterns : ['readmoo.com/library', 'readmoo.com/shelf'],
+        // W1-029.1: 預設文字指向真實 Readmoo 書庫 SPA 路由
+        // （read.readmoo.com/#/library，Vue SPA hash route）；
+        // 此欄位僅用於錯誤訊息文字，非比對邏輯。
+        expectedPatterns: expectedPatterns.length > 0 ? expectedPatterns : ['read.readmoo.com/#/library', 'read.readmoo.com/#/shelf'],
         suggestedAction: 'navigate_to_readmoo_library',
         userGuidance: '請先前往 Readmoo 書庫頁面，再使用書籍提取功能',
         ...additionalDetails
