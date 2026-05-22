@@ -34,6 +34,10 @@ const { BookExporter } = require('src/overview/book-exporter')
 const { BookFileImporter } = require('src/overview/book-file-importer')
 const { DuplicateBookMerger } = require('src/overview/duplicate-book-merger')
 const { createTagCellRenderer } = require('src/overview/tag-cell-renderer')
+// v2 匯出器（Interchange Format v2）：book-data-exporter.js 使用 default export
+const BookDataExporter = require('src/export/book-data-exporter')
+// Tag 資料來源（v2 匯出需要 tags / tagCategories 頂層區段）
+const TagStorageAdapter = require('src/storage/adapters/tag-storage-adapter')
 
 // 常數定義
 const CONSTANTS = {
@@ -71,6 +75,16 @@ const CONSTANTS = {
   // 元素選取器
   SELECTORS: {
     LOADING_TEXT: '.loading-text'
+  },
+
+  // v2 匯出配置（Interchange Format v2）
+  EXPORT_V2: {
+    FORMAT_VERSION: '2.0.0',
+    // COMPLETE_V2 涵蓋全部 v2 書籍欄位，最大化規格合規（含 readingStatus/tagIds/source 等）
+    FIELD_PRESET: 'COMPLETE_V2',
+    JSON_MIME: 'application/json;charset=utf-8;',
+    CSV_MIME: 'text/csv;charset=utf-8;',
+    FILENAME_PREFIX: '書籍資料_'
   }
 }
 
@@ -238,15 +252,18 @@ class OverviewPageController extends EventHandlerClass {
       })
     }
 
+    // 匯出 CSV/JSON 按鈕（W1-042.1）：改接 BookDataExporter v2 路徑
+    // 產出符合 Interchange Format v2 規格（含 metadata/tagCategories/tags 頂層、
+    // readingStatus/tagIds 書籍欄位）。v2 路徑需從 storage 讀取 tags，故為 async。
     if (this.elements.exportCSVBtn) {
       this.elements.exportCSVBtn.addEventListener('click', () => {
-        this.bookExporter.handleExportCSV()
+        this.handleExportCSVv2()
       })
     }
 
     if (this.elements.exportJSONBtn) {
       this.elements.exportJSONBtn.addEventListener('click', () => {
-        this.bookExporter.handleExportJSON()
+        this.handleExportJSONv2()
       })
     }
 
@@ -908,6 +925,146 @@ class OverviewPageController extends EventHandlerClass {
    */
   downloadJSONFile (jsonContent) {
     this.bookExporter.downloadJSONFile(jsonContent)
+  }
+
+  // ========== v2 匯出方法（委派至 BookDataExporter，Interchange Format v2） ==========
+
+  /**
+   * 處理 JSON 匯出（v2 路徑，W1-042.1）
+   *
+   * 改接 BookDataExporter 的 v2 路徑，產出符合 Interchange Format v2 規格的 JSON：
+   * - 頂層含 metadata（formatVersion 2.0.0）/ tagCategories / tags / books 四區段
+   * - 書籍欄位用 readingStatus（非 status）、tagIds（非 tags）
+   *
+   * v2 路徑需 tags / tagCategories 資料，故從 Chrome Storage 讀取，方法為 async。
+   *
+   * @returns {Promise<void>}
+   */
+  async handleExportJSONv2 () {
+    const books = this._getBooksForExport()
+    if (!books || books.length === 0) {
+      alert(CONSTANTS.MESSAGES.NO_DATA_EXPORT)
+      return
+    }
+
+    try {
+      const { tags, tagCategories } = await this._loadTagData()
+      const exporter = new BookDataExporter(books)
+      const json = exporter.exportToJSON({
+        formatVersion: CONSTANTS.EXPORT_V2.FORMAT_VERSION,
+        fieldPreset: CONSTANTS.EXPORT_V2.FIELD_PRESET,
+        tags,
+        tagCategories
+      })
+      this._triggerExportDownload(json, 'json', CONSTANTS.EXPORT_V2.JSON_MIME)
+    } catch (error) {
+      // 匯出失敗（storage 讀取或序列化錯誤）須讓使用者可見，避免靜默無回饋
+      // eslint-disable-next-line no-console
+      console.error('❌ v2 JSON 匯出失敗:', error)
+      this.showError('JSON 匯出失敗: ' + (error && error.message ? error.message : error))
+    }
+  }
+
+  /**
+   * 處理 CSV 匯出（v2 路徑，W1-042.1）
+   *
+   * 改接 BookDataExporter 的 v2 路徑，產出符合 csv-export-spec v2 的 CSV：
+   * - headers 為英文欄位名（id,title,authors,...,readingStatus,tagIds,tagNames,tagCategories）
+   * - 衍生欄位 tagNames / tagCategories 由 tagIds 解析
+   *
+   * @returns {Promise<void>}
+   */
+  async handleExportCSVv2 () {
+    const books = this._getBooksForExport()
+    if (!books || books.length === 0) {
+      alert(CONSTANTS.MESSAGES.NO_DATA_EXPORT)
+      return
+    }
+
+    try {
+      const { tags, tagCategories } = await this._loadTagData()
+      const exporter = new BookDataExporter(books)
+      const csv = exporter.exportToCSV({
+        formatVersion: CONSTANTS.EXPORT_V2.FORMAT_VERSION,
+        fieldPreset: CONSTANTS.EXPORT_V2.FIELD_PRESET,
+        tags,
+        tagCategories
+      })
+      this._triggerExportDownload(csv, 'csv', CONSTANTS.EXPORT_V2.CSV_MIME)
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('❌ v2 CSV 匯出失敗:', error)
+      this.showError('CSV 匯出失敗: ' + (error && error.message ? error.message : error))
+    }
+  }
+
+  /**
+   * 取得待匯出的書籍清單（selection-aware）
+   *
+   * 與 BookExporter 的 getFilteredBooks DI 行為一致：
+   * - 有書本被選取時僅匯出選取項
+   * - 無選取時退回全量 filteredBooks
+   *
+   * @private
+   * @returns {Array} 待匯出書籍陣列
+   */
+  _getBooksForExport () {
+    if (this.selectedBookIds.size === 0) return this.filteredBooks
+    return this.filteredBooks.filter(b => this.selectedBookIds.has(this._getBookId(b)))
+  }
+
+  /**
+   * 從 Chrome Storage 讀取 tags 與 tagCategories
+   *
+   * v2 匯出需要完整的 tags / tagCategories 頂層區段。透過 TagStorageAdapter
+   * 讀取對應 storage key（tags / tag_categories）。非 Chrome Extension 環境
+   * （如測試）或 storage 無資料時退回空陣列，匯出仍可進行。
+   *
+   * @private
+   * @returns {Promise<{tags: Array, tagCategories: Array}>}
+   */
+  async _loadTagData () {
+    if (typeof chrome === 'undefined' || !chrome.storage) {
+      return { tags: [], tagCategories: [] }
+    }
+    const [tags, tagCategories] = await Promise.all([
+      TagStorageAdapter.getAllTags(),
+      TagStorageAdapter.getAllTagCategories()
+    ])
+    return {
+      tags: Array.isArray(tags) ? tags : [],
+      tagCategories: Array.isArray(tagCategories) ? tagCategories : []
+    }
+  }
+
+  /**
+   * 觸發 v2 匯出檔案下載
+   *
+   * 以 this.document 建立隱藏 anchor 並觸發 click，與 BookExporter 的下載
+   * 機制一致（不使用 BookDataExporter.downloadFile，因其依賴 global.document）。
+   *
+   * @private
+   * @param {string} content - 檔案內容
+   * @param {string} extension - 副檔名（不含點，如 'json' / 'csv'）
+   * @param {string} mimeType - MIME 類型
+   */
+  _triggerExportDownload (content, extension, mimeType) {
+    const blob = new Blob([content], { type: mimeType })
+    const date = new Date().toISOString().slice(0, 10)
+    const filename = `${CONSTANTS.EXPORT_V2.FILENAME_PREFIX}${date}.${extension}`
+
+    const link = this.document.createElement('a')
+    const url = URL.createObjectURL(blob)
+
+    link.setAttribute('href', url)
+    link.setAttribute('download', filename)
+    link.style.visibility = 'hidden'
+
+    this.document.body.appendChild(link)
+    link.click()
+    this.document.body.removeChild(link)
+
+    URL.revokeObjectURL(url)
   }
 
   /**
