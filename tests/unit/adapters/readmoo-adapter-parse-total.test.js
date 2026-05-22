@@ -90,14 +90,15 @@ describe('ReadmooAdapter.parseLibraryTotal', () => {
   })
 
   // TC-7.6 封存/借出大於總數的異常文字
-  // Phase 3a 決議：N-X-Y 為負時夾為 0（Math.max(0, N-X-Y)），不回傳負數。
-  test('封存/借出大於總數時 total 夾為 0，不回傳負數', () => {
+  // Phase 3a 待釐清 2 決議：N-X-Y 為負時回 null（不夾 0）。
+  // W1-033 R6：原 Phase 3b 偏離為 Math.max(0,...) 夾 0，本次重構對齊規格回 null。
+  // 夾 0 會讓 loadAllBooksLazy 誤判 already_complete，回 null 才正確退回穩定條件停止。
+  test('封存/借出大於總數時 total 回 null，不回傳負數也不夾 0', () => {
     setHeaderText('擁有 5 本書，其中封存 10 本')
 
     const result = adapter.parseLibraryTotal()
 
-    expect(result.total).toBe(0)
-    expect(result.total).toBeGreaterThanOrEqual(0)
+    expect(result.total).toBeNull()
   })
 
   // 補充：實機取證的完整文字格式（含封存與借出）

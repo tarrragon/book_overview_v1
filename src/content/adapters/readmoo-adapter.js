@@ -111,6 +111,11 @@ function createReadmooAdapter (options = {}) {
   // W6-012.2.1：cover-openbook 無法反查書籍，必須過濾
   const UNSTABLE_COVER_IDS = new Set(['openbook', 'undefined', 'placeholder', 'default'])
 
+  // 向上尋找祖先元素的最大層數（W1-033 R4：getBookElements LAST_RESORT 策略與
+  // findScrollableAncestor 原各自 local 定義且值不一致＝10 vs 12，提為單一共用常數）。
+  // 取較大者 12 為共用上界，涵蓋 Readmoo .library-item 到捲動容器的祖先深度。
+  const MAX_ANCESTOR_DEPTH = 12
+
   const adapter = {
     // 適配器標準屬性
     name: 'ReadmooAdapter',
@@ -194,7 +199,6 @@ function createReadmooAdapter (options = {}) {
           logger.info('LAST_RESORT_STRATEGY', { reason: '查找閱讀器連結的父容器' })
           const readerLinks = document.querySelectorAll(SELECTORS.readerLink)
           const containers = new Set()
-          const MAX_ANCESTOR_DEPTH = 10
 
           readerLinks.forEach(link => {
             // 向上查找 .library-item 容器，最多走 MAX_ANCESTOR_DEPTH 層
@@ -314,23 +318,14 @@ function createReadmooAdapter (options = {}) {
           }
         }
 
-        // 策略 1：MutationObserver 監聽 DOM 新增節點
+        // 策略 1：MutationObserver 監聽 DOM 新增節點（W1-033 R2：與
+        // waitForRenderSettle 共用 _observeChildListOnce helper）
         const observeTarget = document.body || document.documentElement
-        if (typeof MutationObserver !== 'undefined' && observeTarget && observeTarget.nodeType === 1) {
-          try {
-            observer = new MutationObserver(() => {
-              tryResolve('mutation')
-            })
-            observer.observe(observeTarget, {
-              childList: true,
-              subtree: true
-            })
-          } catch (observeError) {
-            // MutationObserver 在某些環境（如 JSDOM）可能無法正常運作
-            logger.warn('MUTATION_OBSERVER_FAILED', { error: observeError.message })
-            observer = null
-          }
-        }
+        observer = this._observeChildListOnce(
+          observeTarget,
+          () => tryResolve('mutation'),
+          'MUTATION_OBSERVER_FAILED'
+        )
 
         // 策略 2：定時輪詢作為備援
         intervalId = setInterval(() => {
@@ -365,11 +360,16 @@ function createReadmooAdapter (options = {}) {
      *
      * Readmoo library header 文字格式為「擁有 N 本書，其中封存 X 本，借出 Y 本」。
      * 可見書目數 = N - X - Y（封存與借出書籍不渲染為 .library-item）。
-     * 封存與借出子句皆為可選；計算結果為負時夾為 0（不回傳負數）。
+     * 封存與借出子句皆為可選。
      *
      * 此方法為捲動載入停止條件的目標值來源：loadAllBooksLazy 以此判定
-     * 是否達 expectedTotal。文字格式變更或元素不存在時回傳 total=null，
-     * 此時捲動載入改依「連續穩定」條件停止。
+     * 是否達 expectedTotal。文字格式變更、元素不存在、或計算結果為負
+     * （封存/借出大於總數的異常文字）時回傳 total=null，此時捲動載入
+     * 改依「連續穩定」條件停止。
+     *
+     * W1-033 R6：Phase 3a 待釐清 2 決議「N-X-Y 為負時回 null」，
+     * 不回傳 Math.max(0,...) 夾 0 的值——夾 0 會讓 loadAllBooksLazy
+     * 誤判 already_complete（0 本書庫），回 null 才正確退回穩定條件停止。
      *
      * @returns {{ total: number|null, raw: string }} total 為可見書目數，
      *   無法解析時為 null；raw 為原始 header 文字
@@ -399,8 +399,11 @@ function createReadmooAdapter (options = {}) {
         const archived = archivedMatch ? parseInt(archivedMatch[1], 10) : 0
         const lent = lentMatch ? parseInt(lentMatch[1], 10) : 0
 
-        // 可見書目數夾為非負數（封存/借出大於總數的異常文字不回傳負數）
-        const visible = Math.max(0, libraryTotal - archived - lent)
+        // R6：N-X-Y 為負時回 null（封存/借出大於總數的異常文字無法判定可見書目數）
+        const visible = libraryTotal - archived - lent
+        if (visible < 0) {
+          return { total: null, raw }
+        }
         return { total: visible, raw }
       } catch (error) {
         logger.warn('PARSE_LIBRARY_TOTAL_FAILED', { error: error.message })
@@ -487,8 +490,8 @@ function createReadmooAdapter (options = {}) {
     /**
      * 從 .library-item 向上尋找可捲動祖先元素（W1-030）
      *
-     * 可捲動定義：scrollHeight > clientHeight。最多向上走 12 層祖先
-     * （與 getBookElements 的 MAX_ANCESTOR_DEPTH 取一致量級）。
+     * 可捲動定義：scrollHeight > clientHeight。最多向上走 MAX_ANCESTOR_DEPTH
+     * 層祖先（與 getBookElements LAST_RESORT 策略共用同一模組級常數）。
      *
      * @returns {HTMLElement|null} 可捲動祖先，找不到時為 null
      */
@@ -498,7 +501,6 @@ function createReadmooAdapter (options = {}) {
       const firstItem = document.querySelector(SELECTORS.bookContainer)
       if (!firstItem) return null
 
-      const MAX_ANCESTOR_DEPTH = 12
       let parent = firstItem.parentElement
       let depth = 0
       while (parent && parent !== document.body && depth < MAX_ANCESTOR_DEPTH) {
@@ -518,6 +520,11 @@ function createReadmooAdapter (options = {}) {
      * 其餘策略捲動容器至底部。此方法刻意抽為獨立方法，使 Phase 2
      * 測試能以 jest.spyOn 注入受控捲動行為驗證停止邏輯（規格 R5 可測性）。
      *
+     * W1-033 R3：document 策略原同時寫 window.scrollTo + container.scrollTop，
+     * 其中 window.scrollTo 為多餘——document 策略下 container 即 documentElement，
+     * 設定其 scrollTop 已是整頁捲動的標準做法；雙寫在 Mobile Chrome 兩者可能
+     * 不一致。改為僅設 container.scrollTop，與其他策略一致走容器捲動。
+     *
      * @param {HTMLElement} container - 捲動容器或載入按鈕
      * @param {string} strategy - findScrollContainer 回傳的策略
      */
@@ -535,17 +542,8 @@ function createReadmooAdapter (options = {}) {
         return
       }
 
-      if (strategy === 'document') {
-        // 整頁捲動
-        const targetTop = container.scrollHeight
-        if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
-          window.scrollTo(0, targetTop)
-        }
-        container.scrollTop = targetTop
-        return
-      }
-
-      // selector / scrollable-ancestor：捲動容器至底部
+      // selector / scrollable-ancestor / document：捲動容器至底部。
+      // document 策略下 container 為 documentElement，設定 scrollTop 即整頁捲動。
       container.scrollTop = container.scrollHeight
     },
 
@@ -587,14 +585,19 @@ function createReadmooAdapter (options = {}) {
      * DOM 任一時刻僅渲染約 96 個 .library-item，提取前需先捲動載入全部書籍。
      *
      * 演算法：反覆「捲動 → 等待新項目渲染 → 量測累積 unique 書籍數」直到
-     * 達可見書目數、連續數輪穩定、或達上限/逾時。loadedCount 採累積
+     * 達可見書目數、連續數輪無進展、或達上限/逾時。loadedCount 採累積
      * unique book ID Set（對 DOM 回收式虛擬捲動天然免疫，天然去重）。
      *
-     * 防無限迴圈（4 個獨立停止條件，任一成立即停止）：
-     * (a) loadedCount >= expectedTotal（expectedTotal 非 null 時）
-     * (b) 連續 stableRounds 輪 loadedCount 不變
-     * (c) iterations >= maxIterations（輪數硬上限）
-     * (d) 累計耗時 >= overallTimeoutMs（單輪 hang 硬上限）
+     * 防無限迴圈（4 個獨立停止條件，任一成立即跳出迴圈）：
+     * (a) reached_total：loadedCount >= expectedTotal（expectedTotal 非 null 時）
+     * (b) count_stable：連續 stableRounds 輪「無進展」（loadedCount 未增加）
+     * (c) max_iterations：iterations >= maxIterations（輪數硬上限）
+     * (d) timeout：累計耗時 >= overallTimeoutMs（單輪 hang 硬上限）
+     *
+     * W1-033 R1：原以 stableCount（計數面）與 ineffectiveScrollCount
+     * （捲動位置面）兩個計數器測量同一件事——「這一輪有無進展」，且兩者
+     * 皆觸發 count_stable。合併為單一「無進展輪數」計數器：只要該輪
+     * loadedCount 未增加即視為無進展，連續 stableRounds 輪即 count_stable。
      *
      * 此方法永遠 resolve（不 reject）：捲動容器找不到或捲動例外時降級回傳，
      * 不讓提取流程整體失敗。
@@ -621,6 +624,16 @@ function createReadmooAdapter (options = {}) {
       const bookIdSet = new Set()
       let iterations = 0
       let stopReason = ''
+
+      // R5：讀取容器 scrollTop 的容錯 helper（原 try/catch 重複 4 處抽為單一函式）。
+      // 某些環境讀取 scrollTop 可能拋例外；失敗時回傳 null 不中斷捲動流程。
+      const readScrollTop = (el) => {
+        try {
+          return el.scrollTop ?? null
+        } catch (readError) {
+          return null
+        }
+      }
 
       // 結束時統一輸出涵蓋率日誌與還原捲動位置的收尾函式
       const finalize = (reason, restoreContainer, originalScrollTop) => {
@@ -678,12 +691,7 @@ function createReadmooAdapter (options = {}) {
         }
 
         // 記錄起始捲動位置（D5 還原用）
-        let originalScrollTop = null
-        try {
-          originalScrollTop = container.scrollTop ?? null
-        } catch (readError) {
-          originalScrollTop = null
-        }
+        const originalScrollTop = readScrollTop(container)
 
         // 首次量測：判定是否首批即完整（already_complete）
         const firstIds = this._measureBooks()
@@ -692,26 +700,18 @@ function createReadmooAdapter (options = {}) {
           return finalize('already_complete', container, originalScrollTop)
         }
 
-        // 捲動主迴圈
-        let stableCount = 0
+        // 捲動主迴圈：單一「無進展輪數」計數器（R1 合併 stableCount 與
+        // ineffectiveScrollCount——兩者皆測量「這一輪 loadedCount 有無增加」）。
+        let noProgressRounds = 0
         let prevCount = bookIdSet.size
-        // 連續捲動位置未變化計數（捲動有效性探測）
-        let ineffectiveScrollCount = 0
-        const INEFFECTIVE_SCROLL_LIMIT = stableRounds
 
-        while (iterations < maxIterations) {
+        // 迴圈以四個停止條件控制（任一成立即跳出），不再用 maxIterations
+        // 作迴圈條件＋迴圈內二次判定（R5：原 maxIterations 三處判定收斂為單一出口）。
+        while (true) {
           // 停止條件 (d)：整體逾時
           if (Date.now() - startTime >= overallTimeoutMs) {
             stopReason = 'timeout'
             break
-          }
-
-          // 捲動有效性探測：記錄捲動前位置
-          let scrollTopBefore = null
-          try {
-            scrollTopBefore = container.scrollTop ?? null
-          } catch (readError) {
-            scrollTopBefore = null
           }
 
           // 執行單輪捲動
@@ -732,36 +732,16 @@ function createReadmooAdapter (options = {}) {
             break
           }
 
-          // 停止條件 (b)：連續穩定
+          // 停止條件 (b)：連續無進展（loadedCount 未增加即視為無進展，
+          // 涵蓋「捲動有效但已無新書」與「捲動對此頁面無效」兩種情況）
           if (currentCount === prevCount) {
-            stableCount++
-            if (stableCount >= stableRounds) {
+            noProgressRounds++
+            if (noProgressRounds >= stableRounds) {
               stopReason = 'count_stable'
               break
             }
           } else {
-            stableCount = 0
-          }
-
-          // 捲動有效性探測：捲動位置未變化且 loadedCount 未增加
-          let scrollTopAfter = null
-          try {
-            scrollTopAfter = container.scrollTop ?? null
-          } catch (readError) {
-            scrollTopAfter = null
-          }
-          const scrollUnchanged = scrollTopBefore !== null &&
-            scrollTopAfter !== null &&
-            scrollTopBefore === scrollTopAfter
-          if (scrollUnchanged && currentCount === prevCount) {
-            ineffectiveScrollCount++
-            if (ineffectiveScrollCount >= INEFFECTIVE_SCROLL_LIMIT) {
-              // 當前策略對此頁面無效，提早停止（停止條件 b 已涵蓋計數面）
-              stopReason = 'count_stable'
-              break
-            }
-          } else {
-            ineffectiveScrollCount = 0
+            noProgressRounds = 0
           }
 
           prevCount = currentCount
@@ -771,11 +751,6 @@ function createReadmooAdapter (options = {}) {
             stopReason = 'max_iterations'
             break
           }
-        }
-
-        // 迴圈正常結束未設 stopReason（達 maxIterations 邊界）
-        if (!stopReason) {
-          stopReason = 'max_iterations'
         }
 
         return finalize(stopReason, container, originalScrollTop)
@@ -792,14 +767,45 @@ function createReadmooAdapter (options = {}) {
     },
 
     /**
+     * 在指定元素上掛 MutationObserver 監聽子節點新增（W1-033 R2 共用 helper）
+     *
+     * waitForBookElements 與 waitForRenderSettle 原各自重複「建立 observer →
+     * try-catch observe childList/subtree → 失敗回 null」的模式，抽為單一 helper。
+     *
+     * @param {HTMLElement} target - 監聽目標元素
+     * @param {Function} onMutation - 偵測到子節點變化時的回呼
+     * @param {string} failLogEvent - observe 失敗時的 logger.debug 事件名
+     * @returns {MutationObserver|null} 建立成功的 observer，環境不支援或失敗時為 null
+     */
+    _observeChildListOnce (target, onMutation, failLogEvent) {
+      if (typeof MutationObserver === 'undefined' || !target || target.nodeType !== 1) {
+        return null
+      }
+      try {
+        const observer = new MutationObserver(onMutation)
+        observer.observe(target, { childList: true, subtree: true })
+        return observer
+      } catch (observeError) {
+        logger.debug(failLogEvent, { error: observeError.message })
+        return null
+      }
+    },
+
+    /**
      * 等待新書籍項目渲染（W1-030 混合式渲染等待）
      *
      * 固定 renderWaitMs 上限 + MutationObserver 提早結束混合策略：
-     * 在容器上掛 MutationObserver 監聽子節點新增，偵測到新節點即提早結束；
+     * 監聽書籍渲染區域的子節點新增，偵測到新節點即提早結束；
      * 若 renderWaitMs 內無新增則逾時結束本輪。此設計避免固定等待在慢網路下
      * 「等不夠」誤觸發 count_stable，也避免快網路下無謂等滿上限。
      *
-     * @param {HTMLElement} container - 捲動容器
+     * W1-033 R2：監聽目標改為書籍實際渲染區域（document.body），而非傳入的
+     * scrollContainer。load-more-button 策略下 scrollContainer 是按鈕元素，
+     * 在按鈕上掛 MutationObserver 永不觸發，混合等待會退回 renderWaitMs
+     * 固定逾時、失去提早結束效益。新書 .library-item 渲染在 body 子樹內，
+     * 監聽 body 對所有策略皆有效。
+     *
+     * @param {HTMLElement} container - 捲動容器（保留參數相容；實際監聽 body）
      * @param {number} renderWaitMs - 渲染等待上限毫秒
      * @param {number} remainingTimeoutMs - 距整體逾時的剩餘毫秒（取較小值為上限）
      * @returns {Promise<void>}
@@ -831,18 +837,11 @@ function createReadmooAdapter (options = {}) {
           resolve()
         }
 
-        // 策略 1：MutationObserver 偵測新節點提早結束
-        if (typeof MutationObserver !== 'undefined' && container && container.nodeType === 1) {
-          try {
-            observer = new MutationObserver(() => {
-              done()
-            })
-            observer.observe(container, { childList: true, subtree: true })
-          } catch (observeError) {
-            logger.debug('RENDER_SETTLE_OBSERVER_FAILED', { error: observeError.message })
-            observer = null
-          }
-        }
+        // 策略 1：MutationObserver 偵測書籍渲染區域新節點提早結束。
+        // 監聽 document.body：新書渲染於此子樹，對所有捲動策略（含按鈕）皆有效。
+        const document = getDocument()
+        const observeTarget = document ? (document.body || document.documentElement) : null
+        observer = this._observeChildListOnce(observeTarget, () => done(), 'RENDER_SETTLE_OBSERVER_FAILED')
 
         // 策略 2：固定 renderWaitMs 上限逾時結束
         timeoutId = setTimeout(done, waitMs)
