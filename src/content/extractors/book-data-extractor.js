@@ -240,10 +240,14 @@ function createBookDataExtractor () {
       }
 
       try {
+        // 報告進度: 捲動載入書庫（W1-030：extractAllBooks 內部會先捲動載入
+        // 全部書籍，此進度回報讓 UI 反映「捲動載入」階段）
+        await this.reportProgress(flowId, 0.05, '捲動載入書庫')
+
         // 報告進度: 開始提取
         await this.reportProgress(flowId, 0.1, '開始提取書籍資料')
 
-        // 提取所有書籍
+        // 提取所有書籍（內部含捲動載入全部書籍）
         const booksData = await readmooAdapter.extractAllBooks()
 
         // 診斷日誌：確認資料傳遞
