@@ -207,9 +207,9 @@ describe('提取-儲存-顯示 pipeline E2E (W1-008)', () => {
         // 等待書籍清單渲染完成（#tableBody 至少一列 tr）
         await overviewPage.waitForSelector('#tableBody tr', { timeout: 30000 })
 
-        // 書名為每列 tr 的第 3 個 td（td:nth-child(3)，TD-1：無語意化 class）
+        // 書名 cell 以語意化 class 定位，避免位置選擇器隨欄位順序變動失效
         const titles = await overviewPage.$$eval(
-          '#tableBody tr td:nth-child(3)',
+          '#tableBody tr td.book-title-cell',
           tds => tds.map(td => td.textContent.trim())
         )
 
