@@ -736,4 +736,112 @@ describe('ReadmooAdapter.loadAllBooksLazy', () => {
       expect(container.scrollTop).toBe(88)
     })
   })
+
+  // ===== TG-11 _scrollStep 每輪同時捲動 + 點擊「更多...」按鈕（W1-040）=====
+  // 驗證 W1-040 根因修復：原 _scrollStep 依 strategy 二擇一，實機 selector
+  // 策略恆優先命中容器導致「更多...」按鈕永不被點擊，首批 96 無法展開。
+  // 修復後每輪同時執行捲動與按鈕點擊。本組測試 _scrollStep 真實實作（不 spy）。
+  describe('TG-11 _scrollStep 每輪同時捲動 + 點擊「更多...」按鈕（W1-040）', () => {
+    /**
+     * 建立 .btn-outline-primary 「更多...」按鈕並附加到 DOM。
+     * @param {string} text - 按鈕文字（預設「更多...」）
+     * @returns {HTMLElement} 按鈕元素
+     */
+    const setupLoadMoreButton = (text = '更多...') => {
+      const btn = document.createElement('button')
+      btn.className = 'btn-outline-primary'
+      btn.textContent = text
+      document.body.appendChild(btn)
+      return btn
+    }
+
+    // TC-11.1 selector 策略下仍點擊「更多...」按鈕（W1-040 核心根因）
+    test('TC-11.1 selector 策略捲動容器，同時點擊頁面上的「更多...」按鈕', () => {
+      const container = setupScrollableContainer()
+      const btn = setupLoadMoreButton()
+      const clickSpy = jest.spyOn(btn, 'click')
+
+      adapter._scrollStep(container, 'selector')
+
+      // selector 策略：容器捲動至底部
+      expect(container.scrollTop).toBe(container.scrollHeight)
+      // 修復重點：selector 策略下仍點擊「更多...」按鈕（原實作不會點）
+      expect(clickSpy).toHaveBeenCalled()
+    })
+
+    // TC-11.2 scrollable-ancestor 策略下亦點擊按鈕
+    test('TC-11.2 scrollable-ancestor 策略捲動容器，同時點擊「更多...」按鈕', () => {
+      const container = setupScrollableContainer()
+      const btn = setupLoadMoreButton('載入更多...')
+      const clickSpy = jest.spyOn(btn, 'click')
+
+      adapter._scrollStep(container, 'scrollable-ancestor')
+
+      expect(container.scrollTop).toBe(container.scrollHeight)
+      expect(clickSpy).toHaveBeenCalled()
+    })
+
+    // TC-11.3 按鈕不存在時不報錯（全部載入完成的正常終止情境）
+    test('TC-11.3 「更多...」按鈕不存在時 _scrollStep 仍正常捲動且不拋例外', () => {
+      const container = setupScrollableContainer()
+      // 不建立按鈕
+
+      expect(() => adapter._scrollStep(container, 'selector')).not.toThrow()
+      expect(container.scrollTop).toBe(container.scrollHeight)
+    })
+
+    // TC-11.4 load-more-button 策略下按鈕仍被點擊
+    test('TC-11.4 load-more-button 策略下「更多...」按鈕被點擊', () => {
+      const btn = setupLoadMoreButton()
+      const clickSpy = jest.spyOn(btn, 'click')
+
+      adapter._scrollStep(btn, 'load-more-button')
+
+      expect(clickSpy).toHaveBeenCalled()
+    })
+
+    // TC-11.5 loadAllBooksLazy 主迴圈每輪皆點擊「更多...」按鈕
+    test('TC-11.5 loadAllBooksLazy 每輪呼叫 _clickLoadMoreButton 觸發首批展開', async () => {
+      const container = setupScrollableContainer()
+      setupLoadMoreButton()
+      jest.spyOn(adapter, 'findScrollContainer').mockReturnValue({ container, strategy: 'selector' })
+      jest.spyOn(adapter, 'parseLibraryTotal').mockReturnValue({ total: 928, raw: '擁有 944 本書' })
+      const clickSpy = jest.spyOn(adapter, '_clickLoadMoreButton')
+      // 模擬點擊後書籍漸增至達標
+      const idArray = (n) => Array.from({ length: n }, (_, i) => `id-${i}`)
+      jest.spyOn(adapter, '_measureBooks')
+        .mockReturnValueOnce(idArray(96))
+        .mockReturnValueOnce(idArray(192))
+        .mockReturnValueOnce(idArray(500))
+        .mockReturnValue(idArray(928))
+
+      const result = await adapter.loadAllBooksLazy({
+        maxIterations: 30, stableRounds: 3, renderWaitMs: 5, overallTimeoutMs: 60000
+      })
+
+      // 每輪迴圈皆觸發按鈕點擊（首批 96 -> 192 的展開路徑）
+      expect(clickSpy).toHaveBeenCalled()
+      expect(result.stopReason).toBe('reached_total')
+      expect(result.loadedCount).toBe(928)
+    })
+
+    // TC-11.6 「更多...」消失後（全部載入完成）仍正常推進至達標
+    test('TC-11.6 按鈕消失後 _clickLoadMoreButton 略過點擊，迴圈仍正常結束', async () => {
+      const container = setupScrollableContainer()
+      // 不建立按鈕，模擬全部載入完成後按鈕已消失
+      jest.spyOn(adapter, 'findScrollContainer').mockReturnValue({ container, strategy: 'selector' })
+      jest.spyOn(adapter, 'parseLibraryTotal').mockReturnValue({ total: 100, raw: 'X' })
+      const idArray = (n) => Array.from({ length: n }, (_, i) => `id-${i}`)
+      jest.spyOn(adapter, '_measureBooks')
+        .mockReturnValueOnce(idArray(50))
+        .mockReturnValue(idArray(100))
+
+      const result = await adapter.loadAllBooksLazy({
+        maxIterations: 30, stableRounds: 3, renderWaitMs: 5, overallTimeoutMs: 60000
+      })
+
+      expect(result.stopReason).toBe('reached_total')
+      expect(result.loadedCount).toBe(100)
+    })
+  })
 })
