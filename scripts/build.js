@@ -48,7 +48,14 @@ function copyRecursive(src, dest) {
       if (item.includes('.test.') || item.includes('.spec.')) {
         return;
       }
-      
+
+      // 跳過 .backup 與 .backup-<時間戳> 開發殘留檔。
+      // 檔名含 .backup 子字串即排除，避免工具產生的備份檔混入分發產物
+      // （與 scripts/package.js 的 *.backup* glob 排除語意一致）。
+      if (item.includes('.backup')) {
+        return;
+      }
+
       copyRecursive(
         path.join(src, item),
         path.join(dest, item)
