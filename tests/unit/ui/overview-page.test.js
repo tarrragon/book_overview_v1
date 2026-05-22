@@ -861,9 +861,18 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
         writable: false
       })
 
+      // W1-047.5 / IMP-E：handleFileLoad 在讀檔前 await promptImportMode。
+      // stub 回 'overwrite' 並 flush 一輪 microtask，讓流程推進至建立 FileReader
+      // 後再 simulate，否則 onload 尚未掛載 simulateSuccess 不生效。
+      controller.promptImportMode = jest.fn().mockResolvedValue('overwrite')
+
       // handleFileLoad 應該返回被拒絕的 Promise
       // eslint-disable-next-line no-unused-vars
       const loadPromise = controller.handleFileLoad(mockFile)
+
+      // 等待 promptImportMode microtask 解析，使 handleFileLoad 推進至讀檔階段
+      await Promise.resolve()
+      await Promise.resolve()
 
       // 模擬FileReader讀取完成，但內容無效
       mockFileReader.simulateSuccess(invalidJSON)
@@ -889,9 +898,17 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
         writable: false
       })
 
+      // W1-047.5 / IMP-E：handleFileLoad 在讀檔前 await promptImportMode。
+      // stub 回 'overwrite' 並 flush microtask 讓流程推進至建立 FileReader 後再 simulate。
+      controller.promptImportMode = jest.fn().mockResolvedValue('overwrite')
+
       // handleFileLoad 應該返回被拒絕的 Promise
       // eslint-disable-next-line no-unused-vars
       const loadPromise = controller.handleFileLoad(mockFile)
+
+      // 等待 promptImportMode microtask 解析，使 handleFileLoad 推進至讀檔階段
+      await Promise.resolve()
+      await Promise.resolve()
 
       // 模擬檔案讀取失敗
       mockFileReader.simulateError()

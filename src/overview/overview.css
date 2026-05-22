@@ -410,3 +410,67 @@ body {
     transform: translateY(0);
   }
 }
+
+/* 匯入模式選擇 modal（UC-04） */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-dialog {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.modal-title {
+  margin: 0 0 12px;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.modal-description {
+  margin: 0 0 20px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.modal-btn-primary {
+  background: #667eea;
+  color: #fff;
+}
+
+.modal-btn-secondary {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.modal-btn:focus {
+  outline: 2px solid #4a5fc1;
+  outline-offset: 2px;
+}

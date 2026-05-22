@@ -292,6 +292,11 @@ describe('📄 Overview 資料匯入功能測試', () => {
       // 延遲初始化，確保DOM元素已準備就緒
       controller = new OverviewPageController(mockEventBus, document)
 
+      // W1-047.5 / IMP-E：handleFileLoad 真實實作新增 promptImportMode 模式選擇步驟。
+      // 本檔焦點為檔案讀取與錯誤處理，stub promptImportMode 回 'overwrite' 保持覆蓋語意。
+      // stub 於建構後即掛上，handleFileLoad.mockRestore() 還原真實實作時仍有效。
+      controller.promptImportMode = jest.fn().mockResolvedValue('overwrite')
+
       // Mock FileReader 方法，避免 JSDOM Blob 驗證問題
       jest.spyOn(controller, 'handleFileLoad').mockImplementation(async function (file) {
         // 檔案前置驗證

@@ -263,6 +263,11 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
     // 建立控制器實例，並傳入必要參數
     controller = new OverviewPageController(global.mockEventBus, document)
     controller.books = []
+
+    // W1-047.5 / IMP-E：handleFileLoad 新增 promptImportMode 模式選擇步驟。
+    // 本檔焦點為檔案讀取私有方法，stub promptImportMode 回 'overwrite' 保持覆蓋語意
+    // （modal 互動由 import-mode-modal.test.js 專責覆蓋）。
+    controller.promptImportMode = jest.fn().mockResolvedValue('overwrite')
   })
 
   afterEach(() => {

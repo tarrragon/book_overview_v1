@@ -474,7 +474,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       expect(global.chrome.storage.local.get).toHaveBeenCalledWith(['readmoo_books'])
     })
 
-    test('應該能處理檔案載入操作', () => {
+    test('應該能處理檔案載入操作', async () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
       // eslint-disable-next-line no-unused-vars
       const controller = new OverviewPageController(mockEventBus, document)
@@ -492,7 +492,17 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
         onload: null
       }))
 
+      // W1-047.5 / IMP-E：handleFileLoad 新增 promptImportMode 模式選擇步驟。
+      // 本煙霧測試焦點為讀檔流程觸發 FileReader，stub promptImportMode 回 'overwrite'
+      // 讓流程進入讀檔（modal DOM 不在此 fixture，互動測試由專責檔覆蓋）。
+      // 不 await 整個 handleFileLoad——FileReader mock 的 onload 永不觸發，
+      // _readFileWithReader 會永久 pending；僅 flush microtask 推進至建立 FileReader。
+      controller.promptImportMode = jest.fn().mockResolvedValue('overwrite')
+
       controller.handleFileLoad(mockFile)
+      // 等待 promptImportMode microtask 解析，使流程推進至讀檔建立 FileReader
+      await Promise.resolve()
+      await Promise.resolve()
 
       expect(global.FileReader).toHaveBeenCalled()
     })
@@ -1174,6 +1184,9 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       TagStorageAdapter.replaceAllData = jest
         .fn()
         .mockResolvedValue({ success: true, counts: { books: 3, tags: 1, tagCategories: 1 } })
+      // W1-047.5 / IMP-E：handleFileLoad 新增 promptImportMode 模式選擇步驟。
+      // 本 TC 焦點為 books 解構，stub promptImportMode 回 'overwrite' 保持覆蓋語意。
+      controller.promptImportMode = jest.fn().mockResolvedValue('overwrite')
       const updateSpy = jest.spyOn(controller, '_updateUIWithBooks')
 
       const mockFile = { name: 'books.json', type: 'application/json', size: 100 }
@@ -1270,6 +1283,11 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       const TagStorageAdapter = require('src/storage/adapters/tag-storage-adapter')
       const replaceAllDataMock = jest.fn().mockResolvedValue(writeResult)
       TagStorageAdapter.replaceAllData = replaceAllDataMock
+
+      // W1-047.5 / IMP-E：handleFileLoad 新增 promptImportMode 模式選擇步驟。
+      // Group G 焦點為覆蓋模式持久化分流，stub promptImportMode 回 'overwrite'
+      // 保持原覆蓋語意（modal 互動由 import-mode-modal.test.js 專責覆蓋）。
+      controller.promptImportMode = jest.fn().mockResolvedValue('overwrite')
 
       return { controller, replaceAllDataMock }
     }

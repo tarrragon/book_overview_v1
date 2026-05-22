@@ -85,6 +85,21 @@
         </div>
     </div>
 
+    <!-- 匯入模式選擇 modal（UC-04，預設隱藏；由 promptImportMode 控制顯示） -->
+    <div id="importModeOverlay" class="modal-overlay" style="display: none;">
+        <div id="importModeModal" class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="importModeTitle">
+            <h2 id="importModeTitle" class="modal-title">選擇匯入模式</h2>
+            <p class="modal-description">
+                覆蓋模式會清空現有書庫後完全載入匯入資料；合併模式保留現有書庫，將匯入資料與既有書籍合併。
+            </p>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-primary" id="importModeOverwriteBtn">覆蓋（清空現有書庫）</button>
+                <button class="modal-btn modal-btn-primary" id="importModeMergeBtn">合併（保留現有書庫）</button>
+                <button class="modal-btn modal-btn-secondary" id="importModeCancelBtn">取消</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 載入 JavaScript（由 esbuild 打包，包含所有依賴） -->
     <script src="overview.js"></script>
 </body>
