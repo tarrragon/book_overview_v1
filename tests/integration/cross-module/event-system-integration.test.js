@@ -796,9 +796,15 @@ describe('事件系統跨模組整合測試', () => {
       // 改驗證 peakMemoryUsage 為有效正數，確認分析器有回傳峰值記憶體指標。
       expect(typeof performanceAnalysis.peakMemoryUsage).toBe('number')
       expect(performanceAnalysis.peakMemoryUsage).toBeGreaterThan(0)
-      // 基於真實測量，averageCpuUsage 可能為 undefined
+      // W4-003: 移除 averageCpuUsage 絕對門檻斷言。CPU 使用率由執行期環境取樣，
+      // 受全套件並行測試的機器負載、GC、JIT 暖機影響，是非確定性數值，
+      // 全套件負載下可能超過 0.7 門檻而 flaky，屬 test-assertion-design-rules
+      // 規則 1 反模式（絕對資源門檻當 pass-fail）。比照 W1-031 對 peakMemoryUsage 的修法，
+      // 改驗證 averageCpuUsage 為有效非負數，確認分析器有回傳 CPU 使用率指標。
+      // 保留 undefined 守衛：基於真實測量，averageCpuUsage 可能為 undefined。
       if (performanceAnalysis.averageCpuUsage !== undefined) {
-        expect(performanceAnalysis.averageCpuUsage).toBeLessThan(0.7) // 平均CPU使用<70%
+        expect(typeof performanceAnalysis.averageCpuUsage).toBe('number')
+        expect(performanceAnalysis.averageCpuUsage).toBeGreaterThanOrEqual(0)
       }
 
       // 分析效能瓶頸
