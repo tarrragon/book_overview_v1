@@ -388,6 +388,135 @@ v0.15.2 執行階段錯誤修復
 
 ---
 
+## 11. E2E 測試本地執行與除錯
+
+### E2E 測試環境概述
+
+E2E 測試使用 Puppeteer（`^22.15.0`）操控真實 Chromium 瀏覽器，並透過 `--load-extension` flag 載入已建置的 Extension。其設計與單元/整合測試有本質差異：
+
+| 項目 | 單元/整合測試 | E2E 測試 |
+|------|-------------|---------|
+| Jest 配置 | `jest.config.js` | `jest.e2e.config.js` |
+| 測試環境 | jsdom（模擬 DOM） | node（真實 Chrome） |
+| Chrome API | `jest-chrome` mock | 真實 Chrome Extension API |
+| 執行模式 | headed/headless 皆可 | 必須 headed（Manifest V3 限制） |
+| 測試逾時 | 5000ms（預設） | 30000ms |
+| 前置條件 | 無 | `build/development/` 必須存在 |
+
+**Why**：Manifest V3 的 Chrome 目前不支援在 headless 模式下載入 Extension。E2E 測試執行時 Chrome 視窗會短暫可見，這是預期行為。
+
+### 本地執行 E2E 測試
+
+```bash
+# 前提：確保 Extension 已建置
+npm run build:dev
+
+# 執行全部 E2E 測試（排除 browser 子目錄）
+npm run test:e2e
+
+# 執行特定子套件
+npm run test:e2e:workflow      # tests/e2e/workflows/（端到端工作流程）
+npm run test:e2e:integration   # tests/e2e/integration/（整合流程）
+npm run test:e2e:performance   # tests/e2e/performance/（效能測試）
+npm run test:e2e:browser       # tests/e2e/browser/（需 headed Chrome）
+
+# 完整流程（自動 build + 執行所有子套件 + 生成報告）
+npm run test:e2e:full
+```
+
+### 常見失敗與除錯步驟
+
+#### 問題 1：Chrome 找不到
+
+```
+Error: Could not find Chrome (ver. XXX)
+```
+
+**根因**：Puppeteer 的 Chromium 未下載，且系統無 Chrome。
+
+**除錯步驟**：
+
+```bash
+# 確認 Puppeteer 能否找到 Chrome
+node -e "const puppeteer = require('puppeteer'); console.log(puppeteer.executablePath())"
+
+# 若上面指令報錯，重新安裝 Puppeteer（觸發 Chromium 下載）
+npm install puppeteer --legacy-peer-deps
+```
+
+若系統已安裝 Chrome，`extension-setup.js` 的 `resolveChromePath()` 會自動偵測以下路徑：
+- `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`
+- `/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary`
+- `/Applications/Chromium.app/Contents/MacOS/Chromium`
+
+#### 問題 2：Extension ID 取得失敗
+
+```
+Error: 取得 Extension ID 失敗
+```
+
+**根因**：Extension 未成功載入（`build/development/` 不存在或 manifest 有誤）。
+
+**除錯步驟**：
+
+```bash
+# 確認 build 產物存在
+ls -la build/development/manifest.json
+
+# 重新建置
+npm run build:dev
+
+# 手動驗證 manifest 語法
+node -e "require('./build/development/manifest.json'); console.log('manifest 語法正確')"
+```
+
+#### 問題 3：測試 timeout
+
+```
+Timeout - Async callback was not invoked within the 30000 ms timeout
+```
+
+**根因**：Chrome 啟動慢、Service Worker 初始化慢、或系統資源不足。
+
+**除錯步驟**：
+
+```bash
+# 觀察 Chrome 啟動情況（E2E 測試執行時 Chrome 視窗是否出現）
+# 若視窗完全不出現，是 Chrome 啟動失敗問題
+# 若視窗出現但空白，是 Extension 載入問題
+
+# 在 CI 環境關閉 headed 模式（注意：Manifest V3 Extension 在 headless Chrome 可能無法正常運作）
+HEADLESS=false npm run test:e2e
+```
+
+若需要調高逾時，可修改 `jest.e2e.config.js` 的 `testTimeout` 值（不建議長期保留，應排查根因）。
+
+#### 問題 4：`Cannot find module 'src/core/...'`
+
+**根因**：誤用了預設的 `jest.config.js`（不含 E2E 的 `moduleNameMapper`），未使用 `jest.e2e.config.js`。
+
+**除錯步驟**：確認執行的是 `npm run test:e2e`（會帶 `--config jest.e2e.config.js`），而非 `npx jest tests/e2e/`（會使用預設配置）。
+
+### 截圖與 Debug 輔助
+
+E2E 測試失敗時，`ExtensionTestSetup.takeScreenshot()` 可擷取當下的瀏覽器畫面：
+
+```javascript
+// tests/e2e/ 測試檔中使用
+await setup.takeScreenshot('after-extraction-failure');
+// 截圖儲存至 tests/e2e/screenshots/<name>.png
+```
+
+DevTools Console 中的錯誤會被攔截並輸出到測試 stdout：
+
+```javascript
+// extension-setup.js 已設置攔截，測試輸出中會見到：
+// [WARNING] 頁面 Console Error: <錯誤訊息>
+// [WARNING] 頁面錯誤: <錯誤訊息>
+```
+
+---
+
 ## 快速參考表
 
 | 項目 | 限制 | 解法 |
@@ -403,9 +532,10 @@ v0.15.2 執行階段錯誤修復
 | 健康檢查 | 初始狀態非異常 | 區分「無記錄」和「失敗」 |
 | Build script | 需 bundling | esbuild 三入口點 bundle |
 | 權限監控 | 避免高頻輪詢 | 5 分鐘間隔 + 快取比對 |
+| E2E headed 模式 | Manifest V3 不支援 headless + Extension | 以 headed 模式執行（視窗短暫可見屬正常）|
+| E2E build 前置 | 測試前需 `build/development/` 存在 | 執行 `npm run build:dev` |
 
 ---
 
-**Last Updated**: 2026-03-28
-**Version**: 1.0.0
-**Source**: v0.15.0 ~ v0.15.2 修復經驗彙整
+**Last Updated**: 2026-05-22 | **Version**: 1.1.0 — 新增 §11 E2E 測試本地執行與除錯（Source: `0.19.0-W5-005`）
+**Version**: 1.0.0 — v0.15.0 ~ v0.15.2 修復經驗彙整（2026-03-28）
