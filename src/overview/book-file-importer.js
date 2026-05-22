@@ -14,6 +14,8 @@
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { detectFormatVersion } = require('src/export/format-version-detector')
+const { convertV1ToV2Data } = require('src/export/v1-to-v2-converter')
 
 // 檔案載入相關常數
 const FILE_CONSTANTS = {
@@ -233,14 +235,15 @@ class BookFileImporter {
    * @private
    *
    * @param {string} content - 檔案內容
+   * @param {string} [fileFormat='json'] - 'csv' | 'json'
    * @returns {Array} 處理後的書籍陣列
    */
-  _handleFileContent (content, fileFormat) {
+  _handleFileContent (content, fileFormat = 'json') {
     const cleanContent = this._validateAndCleanContent(content)
     const data = fileFormat === 'csv'
       ? this._parseCSVContent(cleanContent)
       : this._parseJSONContent(cleanContent)
-    const books = this._processBookData(data)
+    const books = this._processBookData(data, fileFormat)
     return books
   }
 
@@ -458,10 +461,11 @@ class BookFileImporter {
    * 處理書籍資料
    * @private
    * @param {any} data - 解析後的JSON資料
+   * @param {string} [fileFormat='json'] - 'csv' | 'json'，傳遞給版本偵測閘門
    * @returns {Array} 驗證後的書籍陣列
    */
-  _processBookData (data) {
-    const books = this._extractBooksFromData(data)
+  _processBookData (data, fileFormat = 'json') {
+    const books = this._extractBooksFromData(data, fileFormat)
     const validBooks = this._filterValidBooks(books)
     this._checkLargeDataset(validBooks)
     return validBooks
@@ -497,10 +501,26 @@ class BookFileImporter {
    * 從資料中提取書籍陣列
    * @private
    *
+   * 版本偵測閘門（W1-047.1）：
+   * 僅 JSON 匯入路徑（fileFormat === 'json'）先以 detectFormatVersion 判定格式，
+   * 在明確回傳 'v1' 時介入轉換——將 v1 資料經 convertV1ToV2Data 轉為 v2 書籍結構後
+   * 取 .books 回傳。'v2' 與 null 一律 fall through 既有四種形狀辨識邏輯（不改動既有分支），
+   * 確保 data.data fallback 與既有錯誤拋出契約零回歸。
+   * tagCategories/tags 暫時丟棄（回傳介面變更屬 IMP-B / W1-047.2）。
+   *
+   * CSV 匯入路徑（fileFormat === 'csv'）不經版本偵測：detectFormatVersion 對純陣列
+   * 一律判為 'v1'，但 CSV 解析產出的書籍物件結構（status/tags）與 v1 JSON 不同，
+   * 不應走 v1→v2 轉換。CSV 自有 detectCsvFormatVersion 偵測機制。
+   *
    * @param {any} data - 解析後的JSON資料
+   * @param {string} [fileFormat='json'] - 'csv' | 'json'，僅 json 啟用版本偵測閘門
    * @returns {Array} 書籍陣列
    */
-  _extractBooksFromData (data) {
+  _extractBooksFromData (data, fileFormat = 'json') {
+    if (fileFormat === 'json' && detectFormatVersion(data) === 'v1') {
+      return convertV1ToV2Data(data).books
+    }
+
     if (this._isDirectArrayFormat(data)) return data
     if (this._isWrappedBooksFormat(data)) return data.books
     if (this._isMetadataWrapFormat(data)) return data.data
@@ -568,11 +588,14 @@ class BookFileImporter {
   /**
    * 驗證必要欄位存在
    * @private
+   *
+   * W1-047.1：移除 cover 強制要求（SPEC-EXPORT-V2 §3.5 cover 為選填）。
+   * 僅驗證 id 與 title；cover 型別仍由 _validateFieldTypes 檢查為 string
+   * （v1 轉換產出的 book cover 為 ''，型別檢查通過）。
    */
   _validateRequiredFields (book) {
     return Boolean(book.id) &&
-           Boolean(book.title) &&
-           Boolean(book.cover)
+           Boolean(book.title)
   }
 
   /**
