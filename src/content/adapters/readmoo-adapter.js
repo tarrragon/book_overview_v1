@@ -36,11 +36,13 @@ const { Logger } = require('src/core/logging/Logger')
  *
  * @param {Object} options - 配置選項
  * @param {Document} options.document - 可選的 document 物件，用於測試環境
+ * @param {Object} [options.logger] - 可選的日誌記錄器，用於測試驗證日誌契約；
+ *   未提供時建立預設 Logger（W1-030：捲動載入涵蓋率日誌契約需可注入 mock 驗證）
  * @returns {Object} ReadmooAdapter 實例
  */
 function createReadmooAdapter (options = {}) {
-  // 建立專用日誌記錄器
-  const logger = new Logger('ReadmooAdapter')
+  // 建立專用日誌記錄器（允許注入以驗證涵蓋率日誌契約）
+  const logger = options.logger || new Logger('ReadmooAdapter')
   const stats = {
     totalExtracted: 0,
     successfulExtractions: 0,
@@ -77,8 +79,29 @@ function createReadmooAdapter (options = {}) {
       '.progress',
       '[class*="progress"]',
       '.reading-progress'
-    ]
+    ],
+
+    // W1-030：捲動載入相關選擇器（實機取證 2026-05-22）
+    // 捲動容器候選 — Readmoo library 為 React SPA，頁面根容器 id=react-container
+    scrollContainerCandidates: [
+      '#react-container',
+      '.react-container'
+    ],
+    // 「更多...」/「載入更多...」按鈕 — 實機取證 button.btn-outline-primary
+    loadMoreButton: 'button.btn-outline-primary',
+    // 書庫總數 header — 實機取證 div.item-list-state.container-fluid
+    libraryTotalHeader: '.item-list-state'
   }
+
+  // W1-030：書庫總數 header 文字解析正則
+  // 來源文字格式：「擁有 N 本書，其中封存 X 本，借出 Y 本」
+  // 封存與借出子句皆為可選；可見書目數 = N - X - Y
+  const LIBRARY_TOTAL_PATTERN = /擁有\s*(\d+)\s*本書/
+  const ARCHIVED_PATTERN = /封存\s*(\d+)\s*本/
+  const LENT_PATTERN = /借出\s*(\d+)\s*本/
+
+  // W1-030：「更多...」/「載入更多...」按鈕文字判定（兩種變體皆需匹配）
+  const LOAD_MORE_TEXT_PATTERN = /更多/
 
   // Readmoo SPA 佔位 URL 偵測用正則
   const PLACEHOLDER_URL_PATTERN = /\/api\/reader\/\d+$/
@@ -338,6 +361,514 @@ function createReadmooAdapter (options = {}) {
     },
 
     /**
+     * 從頁面 header 文字解析「可見書目數」（W1-030）
+     *
+     * Readmoo library header 文字格式為「擁有 N 本書，其中封存 X 本，借出 Y 本」。
+     * 可見書目數 = N - X - Y（封存與借出書籍不渲染為 .library-item）。
+     * 封存與借出子句皆為可選；計算結果為負時夾為 0（不回傳負數）。
+     *
+     * 此方法為捲動載入停止條件的目標值來源：loadAllBooksLazy 以此判定
+     * 是否達 expectedTotal。文字格式變更或元素不存在時回傳 total=null，
+     * 此時捲動載入改依「連續穩定」條件停止。
+     *
+     * @returns {{ total: number|null, raw: string }} total 為可見書目數，
+     *   無法解析時為 null；raw 為原始 header 文字
+     */
+    parseLibraryTotal () {
+      try {
+        const document = getDocument()
+        if (!document) {
+          return { total: null, raw: '' }
+        }
+
+        const headerEl = document.querySelector(SELECTORS.libraryTotalHeader)
+        if (!headerEl) {
+          return { total: null, raw: '' }
+        }
+
+        const raw = headerEl.textContent?.trim() || ''
+        const totalMatch = raw.match(LIBRARY_TOTAL_PATTERN)
+        if (!totalMatch) {
+          // 文字格式變更無法解析書庫總數
+          return { total: null, raw }
+        }
+
+        const libraryTotal = parseInt(totalMatch[1], 10)
+        const archivedMatch = raw.match(ARCHIVED_PATTERN)
+        const lentMatch = raw.match(LENT_PATTERN)
+        const archived = archivedMatch ? parseInt(archivedMatch[1], 10) : 0
+        const lent = lentMatch ? parseInt(lentMatch[1], 10) : 0
+
+        // 可見書目數夾為非負數（封存/借出大於總數的異常文字不回傳負數）
+        const visible = Math.max(0, libraryTotal - archived - lent)
+        return { total: visible, raw }
+      } catch (error) {
+        logger.warn('PARSE_LIBRARY_TOTAL_FAILED', { error: error.message })
+        return { total: null, raw: '' }
+      }
+    },
+
+    /**
+     * 多層 fallback 辨識虛擬捲動容器（W1-030）
+     *
+     * Readmoo library 為 React SPA 虛擬捲動，捲動容器型態因頁面結構而異。
+     * 依序嘗試 5 層 fallback 策略，命中即停：
+     * 1. selector：指定的 library 捲動容器 class（react-container）
+     * 2. load-more-button：底部「更多...」按鈕（官方載入路徑之一）
+     * 3. scrollable-ancestor：從 .library-item 向上找可捲動祖先
+     * 4. document：退回整頁捲動（window.scrollTo）
+     * 5. none：以上皆失敗，觸發提取降級
+     *
+     * @returns {{ container: HTMLElement|null, strategy: string }}
+     *   strategy 枚舉：selector / load-more-button / scrollable-ancestor / document / none
+     */
+    findScrollContainer () {
+      try {
+        const document = getDocument()
+        if (!document) {
+          return { container: null, strategy: 'none' }
+        }
+
+        // 策略 1：指定 selector 捲動容器
+        for (const selector of SELECTORS.scrollContainerCandidates) {
+          const el = document.querySelector(selector)
+          if (el) {
+            return { container: el, strategy: 'selector' }
+          }
+        }
+
+        // 策略 2：「更多...」/「載入更多...」按鈕
+        const loadMoreBtn = this.findLoadMoreButton()
+        if (loadMoreBtn) {
+          return { container: loadMoreBtn, strategy: 'load-more-button' }
+        }
+
+        // 策略 3：從 .library-item 向上找可捲動祖先
+        const scrollableAncestor = this.findScrollableAncestor()
+        if (scrollableAncestor) {
+          return { container: scrollableAncestor, strategy: 'scrollable-ancestor' }
+        }
+
+        // 策略 4：退回整頁捲動（document）
+        const docEl = document.documentElement
+        if (docEl && docEl.scrollHeight > docEl.clientHeight) {
+          return { container: docEl, strategy: 'document' }
+        }
+
+        // 策略 5：全失敗
+        return { container: null, strategy: 'none' }
+      } catch (error) {
+        logger.warn('FIND_SCROLL_CONTAINER_FAILED', { error: error.message })
+        return { container: null, strategy: 'none' }
+      }
+    },
+
+    /**
+     * 尋找底部「更多...」/「載入更多...」按鈕（W1-030）
+     *
+     * 實機取證：按鈕為 button.btn-outline-primary，文字在首次載入前後
+     * 於「更多...」與「載入更多...」間變化，全部載入完成後按鈕消失。
+     *
+     * @returns {HTMLElement|null} 按鈕元素，找不到時為 null
+     */
+    findLoadMoreButton () {
+      const document = getDocument()
+      if (!document) return null
+      const buttons = document.querySelectorAll(SELECTORS.loadMoreButton)
+      for (const btn of buttons) {
+        const text = btn.textContent?.trim() || ''
+        if (LOAD_MORE_TEXT_PATTERN.test(text)) {
+          return btn
+        }
+      }
+      return null
+    },
+
+    /**
+     * 從 .library-item 向上尋找可捲動祖先元素（W1-030）
+     *
+     * 可捲動定義：scrollHeight > clientHeight。最多向上走 12 層祖先
+     * （與 getBookElements 的 MAX_ANCESTOR_DEPTH 取一致量級）。
+     *
+     * @returns {HTMLElement|null} 可捲動祖先，找不到時為 null
+     */
+    findScrollableAncestor () {
+      const document = getDocument()
+      if (!document) return null
+      const firstItem = document.querySelector(SELECTORS.bookContainer)
+      if (!firstItem) return null
+
+      const MAX_ANCESTOR_DEPTH = 12
+      let parent = firstItem.parentElement
+      let depth = 0
+      while (parent && parent !== document.body && depth < MAX_ANCESTOR_DEPTH) {
+        if (parent.scrollHeight > parent.clientHeight) {
+          return parent
+        }
+        depth++
+        parent = parent.parentElement
+      }
+      return null
+    },
+
+    /**
+     * 執行單輪捲動（W1-030，可注入私有方法）
+     *
+     * 依 strategy 觸發 lazy load：load-more-button 策略點擊按鈕，
+     * 其餘策略捲動容器至底部。此方法刻意抽為獨立方法，使 Phase 2
+     * 測試能以 jest.spyOn 注入受控捲動行為驗證停止邏輯（規格 R5 可測性）。
+     *
+     * @param {HTMLElement} container - 捲動容器或載入按鈕
+     * @param {string} strategy - findScrollContainer 回傳的策略
+     */
+    _scrollStep (container, strategy) {
+      if (!container) return
+
+      if (strategy === 'load-more-button') {
+        // 點擊「更多...」按鈕觸發載入；按鈕可能已消失（全部載入完成）
+        if (typeof container.scrollIntoView === 'function') {
+          container.scrollIntoView({ block: 'center' })
+        }
+        if (typeof container.click === 'function') {
+          container.click()
+        }
+        return
+      }
+
+      if (strategy === 'document') {
+        // 整頁捲動
+        const targetTop = container.scrollHeight
+        if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+          window.scrollTo(0, targetTop)
+        }
+        container.scrollTop = targetTop
+        return
+      }
+
+      // selector / scrollable-ancestor：捲動容器至底部
+      container.scrollTop = container.scrollHeight
+    },
+
+    /**
+     * 量測當下 DOM 內所有書籍的識別符（W1-030，可注入私有方法）
+     *
+     * 對當下 DOM 的每個 .library-item 解析其書籍 ID（優先 privacy ID，
+     * 沿用 adapter 既有解析邏輯）。回傳該輪 DOM 內所有 book ID 陣列，
+     * 由 loadAllBooksLazy 累積為 unique Set。抽為獨立方法以支援測試注入。
+     *
+     * @returns {string[]} 當下 DOM 內所有 .library-item 的書籍 ID 陣列
+     */
+    _measureBooks () {
+      const document = getDocument()
+      if (!document) return []
+
+      const items = document.querySelectorAll(SELECTORS.bookContainer)
+      const ids = []
+      for (const item of items) {
+        // 優先 privacy ID（Readmoo 內部真實 book ID，最穩定）
+        const privacyId = this.extractBookIdFromPrivacy(item)
+        if (privacyId) {
+          ids.push(privacyId)
+          continue
+        }
+        // 退回 reader link href ID
+        const { readerId } = this.extractHrefFromElement(item)
+        if (readerId) {
+          ids.push(readerId)
+        }
+      }
+      return ids
+    },
+
+    /**
+     * 提取前程式化捲動 library 容器，反覆觸發虛擬捲動 lazy load（W1-030）
+     *
+     * 解決 Vue/React SPA 虛擬捲動導致書庫提取涵蓋不全的問題：
+     * DOM 任一時刻僅渲染約 96 個 .library-item，提取前需先捲動載入全部書籍。
+     *
+     * 演算法：反覆「捲動 → 等待新項目渲染 → 量測累積 unique 書籍數」直到
+     * 達可見書目數、連續數輪穩定、或達上限/逾時。loadedCount 採累積
+     * unique book ID Set（對 DOM 回收式虛擬捲動天然免疫，天然去重）。
+     *
+     * 防無限迴圈（4 個獨立停止條件，任一成立即停止）：
+     * (a) loadedCount >= expectedTotal（expectedTotal 非 null 時）
+     * (b) 連續 stableRounds 輪 loadedCount 不變
+     * (c) iterations >= maxIterations（輪數硬上限）
+     * (d) 累計耗時 >= overallTimeoutMs（單輪 hang 硬上限）
+     *
+     * 此方法永遠 resolve（不 reject）：捲動容器找不到或捲動例外時降級回傳，
+     * 不讓提取流程整體失敗。
+     *
+     * @param {Object} [scrollOptions={}] - 捲動選項
+     * @param {number} [scrollOptions.maxIterations=30] - 捲動輪數上限（1-100）
+     * @param {number} [scrollOptions.stableRounds=3] - 連續穩定輪數（2-5）
+     * @param {number} [scrollOptions.renderWaitMs=800] - 每輪渲染等待上限毫秒（200-3000）
+     * @param {number} [scrollOptions.overallTimeoutMs=60000] - 整體逾時上限毫秒（5000-120000）
+     * @returns {Promise<Object>} LoadAllBooksResult：loadedCount / expectedTotal /
+     *   coverageComplete / missingCount / stopReason / iterations / durationMs
+     */
+    async loadAllBooksLazy (scrollOptions = {}) {
+      const startTime = Date.now()
+      const maxIterations = scrollOptions.maxIterations || 30
+      const stableRounds = scrollOptions.stableRounds || 3
+      const renderWaitMs = scrollOptions.renderWaitMs || 800
+      const overallTimeoutMs = scrollOptions.overallTimeoutMs || 60000
+
+      // 解析可見書目數（停止條件 a 的目標值；null 時改依連續穩定停止）
+      const { total: expectedTotal } = this.parseLibraryTotal()
+
+      // 累積 unique book ID Set（對 DOM 回收式虛擬捲動天然免疫）
+      const bookIdSet = new Set()
+      let iterations = 0
+      let stopReason = ''
+
+      // 結束時統一輸出涵蓋率日誌與還原捲動位置的收尾函式
+      const finalize = (reason, restoreContainer, originalScrollTop) => {
+        // 捲動位置還原為 best-effort（D5）：失敗不影響提取結果
+        if (restoreContainer && originalScrollTop !== null) {
+          try {
+            restoreContainer.scrollTop = originalScrollTop
+          } catch (restoreError) {
+            logger.debug('SCROLL_POSITION_RESTORE_FAILED', { error: restoreError.message })
+          }
+        }
+
+        const loadedCount = bookIdSet.size
+        const coverageComplete = expectedTotal !== null && loadedCount >= expectedTotal
+        const missingCount = expectedTotal !== null
+          ? Math.max(0, expectedTotal - loadedCount)
+          : 0
+        const durationMs = Date.now() - startTime
+
+        const result = {
+          loadedCount,
+          expectedTotal,
+          coverageComplete,
+          missingCount,
+          stopReason: reason,
+          iterations,
+          durationMs
+        }
+
+        logger.info('SCROLL_LOAD_COMPLETED', result)
+
+        if (!coverageComplete) {
+          logger.warn('COVERAGE_INCOMPLETE', {
+            missingCount,
+            stopReason: reason,
+            reason: this.describeStopReason(reason)
+          })
+        }
+
+        return result
+      }
+
+      try {
+        // 辨識捲動容器
+        const { container, strategy } = this.findScrollContainer()
+        if (!container || strategy === 'none') {
+          // 降級：捲動容器找不到，量測當下 DOM 後回傳現行行為
+          const initialIds = this._measureBooks()
+          initialIds.forEach(id => bookIdSet.add(id))
+          logger.warn('SCROLL_CONTAINER_NOT_FOUND', {
+            loadedCount: bookIdSet.size,
+            message: '捲動容器辨識失敗，降級為現行提取行為'
+          })
+          return finalize('container_not_found', null, null)
+        }
+
+        // 記錄起始捲動位置（D5 還原用）
+        let originalScrollTop = null
+        try {
+          originalScrollTop = container.scrollTop ?? null
+        } catch (readError) {
+          originalScrollTop = null
+        }
+
+        // 首次量測：判定是否首批即完整（already_complete）
+        const firstIds = this._measureBooks()
+        firstIds.forEach(id => bookIdSet.add(id))
+        if (expectedTotal !== null && bookIdSet.size >= expectedTotal) {
+          return finalize('already_complete', container, originalScrollTop)
+        }
+
+        // 捲動主迴圈
+        let stableCount = 0
+        let prevCount = bookIdSet.size
+        // 連續捲動位置未變化計數（捲動有效性探測）
+        let ineffectiveScrollCount = 0
+        const INEFFECTIVE_SCROLL_LIMIT = stableRounds
+
+        while (iterations < maxIterations) {
+          // 停止條件 (d)：整體逾時
+          if (Date.now() - startTime >= overallTimeoutMs) {
+            stopReason = 'timeout'
+            break
+          }
+
+          // 捲動有效性探測：記錄捲動前位置
+          let scrollTopBefore = null
+          try {
+            scrollTopBefore = container.scrollTop ?? null
+          } catch (readError) {
+            scrollTopBefore = null
+          }
+
+          // 執行單輪捲動
+          this._scrollStep(container, strategy)
+          iterations++
+
+          // 等待新項目渲染（MutationObserver 提早結束 + renderWaitMs 上限）
+          await this.waitForRenderSettle(container, renderWaitMs, overallTimeoutMs - (Date.now() - startTime))
+
+          // 量測累積 unique 書籍數
+          const roundIds = this._measureBooks()
+          roundIds.forEach(id => bookIdSet.add(id))
+          const currentCount = bookIdSet.size
+
+          // 停止條件 (a)：達可見書目數
+          if (expectedTotal !== null && currentCount >= expectedTotal) {
+            stopReason = 'reached_total'
+            break
+          }
+
+          // 停止條件 (b)：連續穩定
+          if (currentCount === prevCount) {
+            stableCount++
+            if (stableCount >= stableRounds) {
+              stopReason = 'count_stable'
+              break
+            }
+          } else {
+            stableCount = 0
+          }
+
+          // 捲動有效性探測：捲動位置未變化且 loadedCount 未增加
+          let scrollTopAfter = null
+          try {
+            scrollTopAfter = container.scrollTop ?? null
+          } catch (readError) {
+            scrollTopAfter = null
+          }
+          const scrollUnchanged = scrollTopBefore !== null &&
+            scrollTopAfter !== null &&
+            scrollTopBefore === scrollTopAfter
+          if (scrollUnchanged && currentCount === prevCount) {
+            ineffectiveScrollCount++
+            if (ineffectiveScrollCount >= INEFFECTIVE_SCROLL_LIMIT) {
+              // 當前策略對此頁面無效，提早停止（停止條件 b 已涵蓋計數面）
+              stopReason = 'count_stable'
+              break
+            }
+          } else {
+            ineffectiveScrollCount = 0
+          }
+
+          prevCount = currentCount
+
+          // 停止條件 (c)：達輪數上限
+          if (iterations >= maxIterations) {
+            stopReason = 'max_iterations'
+            break
+          }
+        }
+
+        // 迴圈正常結束未設 stopReason（達 maxIterations 邊界）
+        if (!stopReason) {
+          stopReason = 'max_iterations'
+        }
+
+        return finalize(stopReason, container, originalScrollTop)
+      } catch (error) {
+        // 捲動或量測過程拋例外：終止迴圈，以已累積書籍繼續（不整體失敗）
+        logger.error('SCROLL_LOAD_ERROR', {
+          error: error.message,
+          component: 'ReadmooAdapter',
+          loadedCount: bookIdSet.size,
+          iterations
+        })
+        return finalize('error', null, null)
+      }
+    },
+
+    /**
+     * 等待新書籍項目渲染（W1-030 混合式渲染等待）
+     *
+     * 固定 renderWaitMs 上限 + MutationObserver 提早結束混合策略：
+     * 在容器上掛 MutationObserver 監聽子節點新增，偵測到新節點即提早結束；
+     * 若 renderWaitMs 內無新增則逾時結束本輪。此設計避免固定等待在慢網路下
+     * 「等不夠」誤觸發 count_stable，也避免快網路下無謂等滿上限。
+     *
+     * @param {HTMLElement} container - 捲動容器
+     * @param {number} renderWaitMs - 渲染等待上限毫秒
+     * @param {number} remainingTimeoutMs - 距整體逾時的剩餘毫秒（取較小值為上限）
+     * @returns {Promise<void>}
+     */
+    async waitForRenderSettle (container, renderWaitMs, remainingTimeoutMs) {
+      const waitMs = Math.max(0, Math.min(renderWaitMs, remainingTimeoutMs))
+      if (waitMs === 0) return
+
+      return new Promise((resolve) => {
+        let settled = false
+        let observer = null
+        let timeoutId = null
+
+        const cleanup = () => {
+          if (observer) {
+            observer.disconnect()
+            observer = null
+          }
+          if (timeoutId) {
+            clearTimeout(timeoutId)
+            timeoutId = null
+          }
+        }
+
+        const done = () => {
+          if (settled) return
+          settled = true
+          cleanup()
+          resolve()
+        }
+
+        // 策略 1：MutationObserver 偵測新節點提早結束
+        if (typeof MutationObserver !== 'undefined' && container && container.nodeType === 1) {
+          try {
+            observer = new MutationObserver(() => {
+              done()
+            })
+            observer.observe(container, { childList: true, subtree: true })
+          } catch (observeError) {
+            logger.debug('RENDER_SETTLE_OBSERVER_FAILED', { error: observeError.message })
+            observer = null
+          }
+        }
+
+        // 策略 2：固定 renderWaitMs 上限逾時結束
+        timeoutId = setTimeout(done, waitMs)
+      })
+    },
+
+    /**
+     * 將停止原因枚舉轉為可讀說明（W1-030 涵蓋率診斷日誌用）
+     *
+     * @param {string} stopReason - loadAllBooksLazy 的 stopReason 枚舉值
+     * @returns {string} 可讀說明
+     */
+    describeStopReason (stopReason) {
+      const descriptions = {
+        reached_total: '捲動後已達可見書目數',
+        already_complete: '首批渲染即達可見書目數，未進入捲動',
+        count_stable: '捲動到底後書籍數連續穩定但未達可見書目數',
+        max_iterations: '達捲動輪數上限仍未達可見書目數',
+        timeout: '達整體逾時上限仍未達可見書目數',
+        container_not_found: '捲動容器辨識失敗，僅提取已渲染書籍',
+        error: '捲動過程發生例外，以已載入書籍繼續'
+      }
+      return descriptions[stopReason] || stopReason
+    },
+
+    /**
      * 從容器元素提取 href（容錯：找不到 readerLink 時回傳空字串）
      *
      * @param {HTMLElement} element - 書籍容器元素
@@ -582,7 +1113,15 @@ function createReadmooAdapter (options = {}) {
      */
     async extractAllBooks () {
       const extractionStart = performance.now()
-      // 使用 waitForBookElements 等待 SPA 動態渲染完成，避免空結果
+
+      // W1-030：提取前先捲動載入全部書籍，解決 SPA 虛擬捲動 lazy load
+      // 導致涵蓋不全（單次僅約 96/928）的問題。loadAllBooksLazy 永遠 resolve，
+      // 即使捲動失敗也降級回傳，不讓提取流程整體失敗。
+      const loadResult = await this.loadAllBooksLazy()
+
+      // 使用 waitForBookElements 作為降級路徑安全網（R6）：
+      // 捲動成功路徑下 DOM 已就緒，waitForBookElements 立即 resolve；
+      // 捲動降級（container_not_found / error）時確保至少有書籍元素可提取。
       const bookElements = await this.waitForBookElements({ timeoutMs: 5000 })
       const books = []
 
@@ -635,13 +1174,15 @@ function createReadmooAdapter (options = {}) {
       stats.lastExtraction = Date.now()
       const totalTime = performance.now() - extractionStart
 
-      // 詳細的提取結果日誌
+      // 詳細的提取結果日誌（W1-030：併入捲動載入涵蓋率欄位）
       logger.info('EXTRACTION_COMPLETED', {
         extracted: books.length,
         total: bookElements.length,
         duration: totalTime.toFixed(2) + 'ms',
         successful: stats.successfulExtractions,
-        failed: stats.failedExtractions
+        failed: stats.failedExtractions,
+        expectedTotal: loadResult.expectedTotal,
+        coverageComplete: loadResult.coverageComplete
       })
 
       // 診斷日誌：印出前 3 本書的資料摘要

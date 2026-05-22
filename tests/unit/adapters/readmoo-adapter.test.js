@@ -1247,6 +1247,119 @@ describe('ReadmooAdapter', () => {
       })
     })
   })
+
+  /**
+   * TG-8：extractAllBooks 與 loadAllBooksLazy 整合（0.19.0-W1-030）
+   *
+   * 對應 Phase 2 測試設計 TG-8。驗證捲動載入在 extractAllBooks 內
+   * 於 waitForBookElements 之前呼叫、回傳型別不變、降級銜接、
+   * EXTRACTION_COMPLETED 日誌併入涵蓋率欄位。
+   */
+  describe('extractAllBooks 捲動載入整合 (W1-030 TG-8)', () => {
+    beforeEach(() => {
+      adapter = createReadmooAdapter()
+    })
+
+    // TC-8.1 loadAllBooksLazy 於 waitForBookElements 之前呼叫
+    test('TC-8.1 loadAllBooksLazy 呼叫順序早於 waitForBookElements', async () => {
+      expect(typeof adapter.loadAllBooksLazy).toBe('function')
+      expect(typeof adapter.waitForBookElements).toBe('function')
+
+      const loadSpy = jest.spyOn(adapter, 'loadAllBooksLazy').mockResolvedValue({
+        loadedCount: 96,
+        expectedTotal: 96,
+        coverageComplete: true,
+        missingCount: 0,
+        stopReason: 'reached_total',
+        iterations: 1,
+        durationMs: 100
+      })
+      const waitSpy = jest.spyOn(adapter, 'waitForBookElements').mockResolvedValue([])
+
+      await adapter.extractAllBooks()
+
+      expect(loadSpy).toHaveBeenCalled()
+      expect(waitSpy).toHaveBeenCalled()
+      expect(loadSpy.mock.invocationCallOrder[0])
+        .toBeLessThan(waitSpy.mock.invocationCallOrder[0])
+    })
+
+    // TC-8.2 extractAllBooks 回傳型別不變
+    test('TC-8.2 extractAllBooks 回傳 Promise<Object[]>（陣列）', async () => {
+      jest.spyOn(adapter, 'loadAllBooksLazy').mockResolvedValue({
+        loadedCount: 0,
+        expectedTotal: 0,
+        coverageComplete: true,
+        missingCount: 0,
+        stopReason: 'already_complete',
+        iterations: 0,
+        durationMs: 0
+      })
+      jest.spyOn(adapter, 'waitForBookElements').mockResolvedValue([])
+
+      const books = await adapter.extractAllBooks()
+
+      expect(Array.isArray(books)).toBe(true)
+    })
+
+    // TC-8.3 EXTRACTION_COMPLETED 日誌併入涵蓋率欄位
+    test('TC-8.3 EXTRACTION_COMPLETED 日誌含 expectedTotal 與 coverageComplete', async () => {
+      const mockLogger = { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }
+      adapter = createReadmooAdapter({ logger: mockLogger })
+      jest.spyOn(adapter, 'loadAllBooksLazy').mockResolvedValue({
+        loadedCount: 928,
+        expectedTotal: 928,
+        coverageComplete: true,
+        missingCount: 0,
+        stopReason: 'reached_total',
+        iterations: 10,
+        durationMs: 5000
+      })
+      jest.spyOn(adapter, 'waitForBookElements').mockResolvedValue([])
+
+      await adapter.extractAllBooks()
+
+      expect(mockLogger.info).toHaveBeenCalledWith('EXTRACTION_COMPLETED', expect.objectContaining({
+        expectedTotal: 928,
+        coverageComplete: true
+      }))
+    })
+
+    // TC-8.4 容器找不到時降級為現行提取行為
+    test('TC-8.4 loadAllBooksLazy 回傳 container_not_found 時 waitForBookElements 仍被呼叫', async () => {
+      jest.spyOn(adapter, 'loadAllBooksLazy').mockResolvedValue({
+        loadedCount: 96,
+        expectedTotal: 96,
+        coverageComplete: true,
+        missingCount: 0,
+        stopReason: 'container_not_found',
+        iterations: 0,
+        durationMs: 0
+      })
+      const waitSpy = jest.spyOn(adapter, 'waitForBookElements').mockResolvedValue([])
+
+      const books = await adapter.extractAllBooks()
+
+      expect(waitSpy).toHaveBeenCalled()
+      expect(Array.isArray(books)).toBe(true)
+    })
+
+    // TC-8.5 loadAllBooksLazy 回傳 error 時提取仍以已載入書籍繼續
+    test('TC-8.5 loadAllBooksLazy 回傳 error 時 extractAllBooks 不整體失敗', async () => {
+      jest.spyOn(adapter, 'loadAllBooksLazy').mockResolvedValue({
+        loadedCount: 400,
+        expectedTotal: 928,
+        coverageComplete: false,
+        missingCount: 528,
+        stopReason: 'error',
+        iterations: 3,
+        durationMs: 2000
+      })
+      jest.spyOn(adapter, 'waitForBookElements').mockResolvedValue([])
+
+      await expect(adapter.extractAllBooks()).resolves.toBeDefined()
+    })
+  })
 })
 
 /**
