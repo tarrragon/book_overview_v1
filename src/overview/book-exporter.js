@@ -12,7 +12,16 @@
 
 // 複製配置常數
 const EXPORT_CONSTANTS = {
-  NO_DATA_EXPORT: '沒有資料可以匯出'
+  NO_DATA_EXPORT: '沒有資料可以匯出',
+  // 無資料可複製時的提示（handleCopyText 早退路徑）
+  NO_DATA_COPY: '沒有資料可以複製',
+  // 複製成功提示（navigator.clipboard.writeText 成功後）
+  COPY_SUCCESS: '已複製到剪貼簿',
+  // 複製失敗提示（剪貼簿 API 不支援或拋例外）
+  COPY_FAILED: '複製失敗，請確認瀏覽器支援剪貼簿功能',
+  // 複製純文字的 header 列，欄位順序須對應 generateCopyText 組裝順序
+  // （title / _formatBookSource / progress / status）
+  COPY_TEXT_HEADERS: ['書名', '書城', '閱讀進度', '狀態']
 }
 
 class BookExporter {
