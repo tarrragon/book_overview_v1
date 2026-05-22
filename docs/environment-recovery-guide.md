@@ -114,6 +114,68 @@ ls -la build/development/
 
 ---
 
+## E2E 環境恢復
+
+E2E 測試使用 Puppeteer 操控真實 Chrome 瀏覽器並載入 Extension，與單元/整合測試的 jsdom mock 環境完全不同。長期暫停後重啟時，E2E 環境有獨立的恢復步驟。
+
+### 前提：標準恢復流程須已完成
+
+E2E 測試依賴 `build/development/` 中的 Extension 產物。執行 E2E 前，**必須先完成本文件「標準恢復流程（Happy Path）」的三步驟**（`npm install --legacy-peer-deps` → `npm run build:dev` → `npm audit`）。
+
+### E2E 環境組成
+
+| 元件 | 說明 |
+|------|------|
+| `jest.e2e.config.js` | E2E 專用 Jest 配置（`testEnvironment: 'node'`，`testTimeout: 30000`，不載入 jsdom mock） |
+| `puppeteer`（devDep `^22.15.0`） | 操控真實 Chromium 瀏覽器；透過 `--load-extension` flag 載入 Extension |
+| `tests/e2e/setup/extension-setup.js` | E2E 測試環境初始化：Chrome 路徑偵測、Extension 載入、Extension ID 取得 |
+| `build/development/` | E2E 測試載入的 Extension 產物（必須存在且為最新 build） |
+
+### Chrome 路徑偵測邏輯
+
+E2E 環境使用雙層 fallback 策略尋找 Chrome：
+
+1. 優先使用 Puppeteer 管理的 Chrome（`puppeteer.executablePath()` 成功即使用）
+2. 若 Puppeteer 管理的 Chrome 不存在，依序嘗試以下系統路徑：
+   - `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`
+   - `/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary`
+   - `/Applications/Chromium.app/Contents/MacOS/Chromium`
+
+若兩層皆無法找到 Chrome，Puppeteer 啟動會失敗。解法：重新安裝 Puppeteer（`npm install puppeteer --legacy-peer-deps`）或安裝系統 Chrome。
+
+### E2E 恢復步驟
+
+```bash
+# 1. 確認 build/development/ 存在且為最新（已由標準恢復流程完成）
+ls -la build/development/
+
+# 2. 確認 Puppeteer 可找到 Chrome
+node -e "const puppeteer = require('puppeteer'); console.log(puppeteer.executablePath())"
+
+# 3. 執行 E2E 測試（不含 browser 子目錄，因 browser 測試需要 headed 模式）
+npm run test:e2e
+
+# 4. 若只想執行特定子套件
+npm run test:e2e:workflow      # tests/e2e/workflows/
+npm run test:e2e:integration   # tests/e2e/integration/
+npm run test:e2e:performance   # tests/e2e/performance/
+npm run test:e2e:full          # 完整流程（含 build + 所有子套件）
+```
+
+**注意**：E2E 測試以 headed 模式（`headless: false`）執行，Chrome 視窗會短暫可見。這是 Manifest V3 的限制——Chrome 目前不支援在 headless 模式下載入 Extension。
+
+### E2E 環境常見問題對照
+
+| 症狀 | 根因 | 修復動作 |
+|------|------|---------|
+| `Error: Could not find Chrome` | Puppeteer 管理的 Chrome 未下載，系統也無 Chrome | `npm install puppeteer --legacy-peer-deps`（觸發 Chrome 下載）|
+| `Error: 取得 Extension ID 失敗` | `build/development/` 不存在或 Extension 載入失敗 | 執行 `npm run build:dev` 後重試 |
+| E2E 測試 timeout（30 秒超限） | Chrome 啟動慢或 Extension Service Worker 未及時啟動 | 確認系統資源充足；低效能機器可在 `jest.e2e.config.js` 調高 `testTimeout` |
+| 測試跑到一半 Chrome 閃退 | `build/development/manifest.json` 有語法錯誤 | `npm run build:dev` 並確認 build 無錯誤 |
+| `Cannot find module 'src/core/...'` | E2E config 的 `moduleNameMapper` 未正確對應 | 確認使用 `jest.e2e.config.js`（非預設 `jest.config.js`） |
+
+---
+
 ## 恢復後驗證清單
 
 完成恢復流程後依序確認：
@@ -123,6 +185,7 @@ ls -la build/development/
 - [ ] Content Script 注入 readmoo.com 頁面（DevTools Console 應見啟動 log）
 - [ ] Service Worker 在 `chrome://extensions/` 頁面狀態為「active」
 - [ ] `npm test` 至少能跑起來（測試是否通過為獨立議題）
+- [ ] `npm run test:e2e` 至少能啟動（E2E 環境已就緒）
 
 ---
 
@@ -134,9 +197,11 @@ ls -la build/development/
 | `0.18.0-W6-014.md` | eslint peer dep 根治方案（追蹤中） |
 | `0.18.0-W6-015.md` | npm audit 19 個 vulnerability 優先級評估 |
 | `0.18.0-W6-016.md` | esbuild build warning 評估 |
+| `docs/chrome-extension-dev-guide.md §11` | E2E 測試本地執行與除錯指南（含 Chrome 路徑、常見失敗排查） |
 | `docs/chrome-extension-dev-guide.md` | Chrome Extension 環境限制與最佳實踐 |
 | `CLAUDE.md §4.1` | 專案重啟狀態（含本指南指引） |
 
 ---
 
-**Last Updated**: 2026-05-17 | **Source**: `0.18.0-W6-013`（DOC，源自 `0.18.0-W6-012.1` 診斷實況）
+**Last Updated**: 2026-05-22 | **Version**: 1.1.0 — 新增 E2E 環境恢復章節（Source: `0.19.0-W5-005`）
+**Version**: 1.0.0 — 建立（Source: `0.18.0-W6-013`，源自 `0.18.0-W6-012.1` 診斷實況，2026-05-17）
