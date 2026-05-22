@@ -31,6 +31,17 @@ describe('UC04ErrorAdapter', () => {
       expect(mapping1).toBe(mapping2) // 相同參考
       expect(Object.isFrozen(mapping1)).toBe(true)
     })
+
+    test('多次存取映射表均回傳同一參考（快取不重建）', () => {
+      // 驗證快取生效：映射表為 memoized 單例，重複呼叫不重建物件。
+      // 改用參考比較取代計時門檻（test-assertion-design-rules 規則 4）：
+      // 若快取失效改回每次重建，toBe 必然失敗，與環境計時無關。
+      const firstMapping = UC04ErrorAdapter.getErrorMapping()
+
+      for (let i = 0; i < 1000; i++) {
+        expect(UC04ErrorAdapter.getErrorMapping()).toBe(firstMapping)
+      }
+    })
   })
 
   describe('extractSubType', () => {
@@ -379,35 +390,4 @@ describe('UC04ErrorAdapter', () => {
     })
   })
 
-  describe('效能測試', () => {
-    test('大量錯誤轉換應該保持效能', () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-
-      for (let i = 0; i < 100; i++) {
-        UC04ErrorAdapter.convertError(
-          'DATA_IMPORT_FILE_INVALID',
-          `測試訊息 ${i}`,
-          { testIndex: i }
-        )
-      }
-
-      // eslint-disable-next-line no-unused-vars
-      const duration = Date.now() - startTime
-      expect(duration).toBeLessThan(50) // 100次轉換應該在50ms內
-    })
-
-    test('映射表快取應該減少重複計算', () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-
-      for (let i = 0; i < 1000; i++) {
-        UC04ErrorAdapter.getErrorMapping()
-      }
-
-      // eslint-disable-next-line no-unused-vars
-      const duration = Date.now() - startTime
-      expect(duration).toBeLessThan(10) // 1000次存取應該在10ms內
-    })
-  })
 })

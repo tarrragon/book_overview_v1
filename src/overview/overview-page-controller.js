@@ -770,6 +770,7 @@ class OverviewPageController extends EventHandlerClass {
 
     // title, source, progress 欄位：使用 textContent 自動逸出
     const titleCell = this.document.createElement('td')
+    titleCell.className = 'book-title-cell'
     titleCell.textContent = rowData.title
     row.appendChild(titleCell)
 
