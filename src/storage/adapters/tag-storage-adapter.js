@@ -19,6 +19,8 @@ const { SCHEMA_VERSION: BOOK_SCHEMA_VERSION } = require('../../data-management/B
 
 const { COLORS } = require('../../core/design-system/colors.js')
 
+const TagSchema = require('../../data-management/TagSchema')
+
 const STORAGE_KEYS = {
   READMOO_BOOKS: 'readmoo_books',
   TAG_CATEGORIES: 'tag_categories',
@@ -792,6 +794,299 @@ async function replaceAllData ({ books, tags, tagCategories }) {
 }
 
 // ==========================================
+// 合併模式整批寫入（UC-04 匯入）
+// ==========================================
+
+/**
+ * 截斷字串至指定上限（用於 tag/category name 超長時的防禦）
+ * @param {string} value - 原字串（非字串時回傳空字串）
+ * @param {number} maxLength - 上限長度
+ * @returns {string}
+ */
+function truncateName (value, maxLength) {
+  if (typeof value !== 'string') return ''
+  return value.length > maxLength ? value.slice(0, maxLength) : value
+}
+
+/**
+ * 組成 tag 同名比對複合鍵：重映射後本地 categoryId + name（大小寫不敏感）。
+ *
+ * 同名比對鍵必須含 categoryId——不同 category 下的同名 tag 不應視為相同。
+ * 以 JSON.stringify 元組編碼，避免 id/name 內含分隔字元造成的鍵碰撞。
+ *
+ * @param {string} categoryId - 重映射後的本地 categoryId
+ * @param {string} name - tag 名稱
+ * @returns {string}
+ */
+function makeTagKey (categoryId, name) {
+  return JSON.stringify([categoryId, name.toLowerCase()])
+}
+
+/**
+ * 合併計算純函式：計算匯入資料與本地資料疊加後的結果，並建立 id 重映射表。
+ *
+ * 與 storage I/O 完全解耦——不觸碰 chrome.storage、不產生時間戳。新建本地 id
+ * 透過注入的 idGenerators 提供，使本函式可重現、可獨立於 chrome.storage mock 測試。
+ *
+ * 四階段管線（順序即保證三層 id 一致性）：
+ * 1. category 同名比對 → 建 categoryIdMap
+ * 2. tag 同名比對（鍵 = 重映射後 categoryId + name）→ 建 tagIdMap
+ * 3. book tagIds 重映射 + 同 id tagIds 聯集
+ *
+ * 合併語意：同 id 更新（其餘欄位以匯入覆蓋、tagIds 取聯集）、新 id 新增、永不刪除本地。
+ * 合併不修復本地破損：本地既有孤兒 tagId 在聯集後原樣保留（修復屬 checkReferentialIntegrity 職責）。
+ *
+ * @param {Object} local - 本地現況 { books, tags, tagCategories }
+ * @param {Object} incoming - 匯入資料 { books, tags, tagCategories }
+ * @param {Object} idGenerators - { nextCategoryId, nextTagId } 兩個無參數函式
+ * @returns {{ books: Array, tags: Array, tagCategories: Array,
+ *             remap: { categoryIdMap: Map, tagIdMap: Map,
+ *                      categoryRemapToExisting: number, tagRemapToExisting: number } }}
+ */
+function computeMergeResult (local, incoming, idGenerators) {
+  const localBooks = (local && local.books) || []
+  const localTags = (local && local.tags) || []
+  const localCategories = (local && local.tagCategories) || []
+  const incomingBooks = (incoming && incoming.books) || []
+  const incomingTags = (incoming && incoming.tags) || []
+  const incomingCategories = (incoming && incoming.tagCategories) || []
+
+  // === 階段 1：category 同名比對與重映射 ===
+  // categoryIdMap：匯入 category id → 本地 category id（同名映射或新建）
+  const categoryIdMap = new Map()
+  // resultCategories 以本地 category 淺拷貝起始，新建 category 追加於後
+  const resultCategories = localCategories.slice()
+  // localCatByName：name.toLowerCase() → category 物件，供 O(1) 同名查找與收斂
+  const localCatByName = new Map()
+  for (const cat of resultCategories) {
+    localCatByName.set(cat.name.toLowerCase(), cat)
+  }
+  // 既有本地 category id 集合，供 remap 統計區分「映射至既有」與「新建」
+  const previousCategoryIds = new Set(localCategories.map(c => c.id))
+
+  // 惰性建立的「未分類」category id（首次需要時才建，避免無孤兒 tag 時憑空多出）
+  let uncategorizedId = null
+  /**
+   * 確保「未分類」category 存在並回傳其本地 id。
+   * 本地已有「未分類」則映射至本地；否則新建並參與後續同名比對。
+   */
+  function ensureUncategorized () {
+    if (uncategorizedId !== null) return uncategorizedId
+    const key = '未分類'.toLowerCase()
+    if (localCatByName.has(key)) {
+      uncategorizedId = localCatByName.get(key).id
+      return uncategorizedId
+    }
+    const newId = idGenerators.nextCategoryId()
+    const newCat = {
+      id: newId,
+      name: '未分類',
+      description: '',
+      color: DEFAULT_CATEGORY_COLOR,
+      isSystem: false,
+      sortOrder: resultCategories.length
+    }
+    resultCategories.push(newCat)
+    localCatByName.set(key, newCat)
+    uncategorizedId = newId
+    return newId
+  }
+
+  for (const impCat of incomingCategories) {
+    const name = truncateName(impCat.name, TagSchema.TAG_CATEGORY_NAME_MAX_LENGTH)
+    const key = name.toLowerCase()
+    if (localCatByName.has(key)) {
+      // 同名（含先前 incoming 已收斂建立者）→ 映射至既有本地 id
+      categoryIdMap.set(impCat.id, localCatByName.get(key).id)
+    } else {
+      // 不存在則新建本地 category
+      const newId = idGenerators.nextCategoryId()
+      const newCat = { ...impCat, id: newId, name }
+      resultCategories.push(newCat)
+      localCatByName.set(key, newCat)
+      categoryIdMap.set(impCat.id, newId)
+    }
+  }
+
+  // === 階段 2：tag 同名比對與重映射 ===
+  // tagIdMap：匯入 tag id → 本地 tag id
+  const tagIdMap = new Map()
+  const resultTags = localTags.slice()
+  // localTagByKey：複合鍵（categoryId + name）→ tag 物件
+  const localTagByKey = new Map()
+  for (const tag of resultTags) {
+    localTagByKey.set(makeTagKey(tag.categoryId, tag.name), tag)
+  }
+  const previousTagIds = new Set(localTags.map(t => t.id))
+
+  for (const impTag of incomingTags) {
+    const name = truncateName(impTag.name, TagSchema.TAG_NAME_MAX_LENGTH)
+    // 重映射 categoryId；匯入檔案內找不到對應 category → 歸入「未分類」
+    let localCatId = categoryIdMap.get(impTag.categoryId)
+    if (localCatId === undefined) {
+      console.warn(
+        `[tag-storage-adapter] merge: tag '${impTag.id}' categoryId 無對應，歸入「未分類」`
+      )
+      localCatId = ensureUncategorized()
+    }
+    const key = makeTagKey(localCatId, name)
+    if (localTagByKey.has(key)) {
+      // 同 category 同名 → 映射至既有本地 tag id
+      tagIdMap.set(impTag.id, localTagByKey.get(key).id)
+    } else {
+      // 不存在則新建本地 tag
+      const newId = idGenerators.nextTagId()
+      const newTag = { ...impTag, id: newId, name, categoryId: localCatId }
+      resultTags.push(newTag)
+      localTagByKey.set(key, newTag)
+      tagIdMap.set(impTag.id, newId)
+    }
+  }
+
+  // === 階段 3：book tagIds 重映射 + 同 id 聯集 ===
+  // localBookById 初始即含全部本地書，保證本地未匹配書原樣保留
+  const localBookById = new Map()
+  for (const book of localBooks) {
+    localBookById.set(book.id, book)
+  }
+
+  for (const impBook of incomingBooks) {
+    if (impBook.id === undefined || impBook.id === null) {
+      console.warn('[tag-storage-adapter] merge: book 缺 id 跳過')
+      continue
+    }
+    // 重映射匯入 tagIds，過濾無法重映射者（匯入側孤兒，不觸碰本地側）
+    const remappedTagIds = []
+    for (const tid of (impBook.tagIds || [])) {
+      const mapped = tagIdMap.get(tid)
+      if (mapped === undefined) {
+        console.warn(
+          `[tag-storage-adapter] merge: 匯入 tagId 無法重映射，過濾 '${tid}'`
+        )
+        continue
+      }
+      remappedTagIds.push(mapped)
+    }
+    if (localBookById.has(impBook.id)) {
+      // 同 id：其餘欄位以匯入覆蓋，tagIds 取聯集（本地在前、新增在後、去重）
+      const localBook = localBookById.get(impBook.id)
+      let unionTagIds = [...new Set([...(localBook.tagIds || []), ...remappedTagIds])]
+      if (unionTagIds.length > TagSchema.MAX_TAGS_PER_BOOK) {
+        console.warn(
+          `[tag-storage-adapter] merge: book '${impBook.id}' tagIds 聯集超 ${TagSchema.MAX_TAGS_PER_BOOK} 截斷`
+        )
+        unionTagIds = unionTagIds.slice(0, TagSchema.MAX_TAGS_PER_BOOK)
+      }
+      localBookById.set(impBook.id, { ...localBook, ...impBook, tagIds: unionTagIds })
+    } else {
+      // 新 id 直接加入
+      localBookById.set(impBook.id, { ...impBook, tagIds: remappedTagIds })
+    }
+  }
+
+  const resultBooks = [...localBookById.values()]
+
+  // remap 統計：僅計「映射至既有本地 id」者，新建不計入（feature-spec §2.2）
+  let categoryRemapToExisting = 0
+  for (const localId of categoryIdMap.values()) {
+    if (previousCategoryIds.has(localId)) categoryRemapToExisting++
+  }
+  let tagRemapToExisting = 0
+  for (const localId of tagIdMap.values()) {
+    if (previousTagIds.has(localId)) tagRemapToExisting++
+  }
+
+  return {
+    books: resultBooks,
+    tags: resultTags,
+    tagCategories: resultCategories,
+    remap: { categoryIdMap, tagIdMap, categoryRemapToExisting, tagRemapToExisting }
+  }
+}
+
+/**
+ * 合併模式整批寫入：將匯入資料與 storage 既有 books / tags / tag_categories 疊加。
+ *
+ * 語意 = 同 id 更新、新 id 新增，永不清空本地（SPEC-EXPORT-V2 §8.2）。與覆蓋模式
+ * replaceAllData 對稱：合併計算（computeMergeResult 純函式）+ storage I/O 編排。
+ *
+ * 設計：複用既有基礎設施，不新增機制——
+ * - operationLock.run：與其他 storage 操作序列化互斥
+ * - checkQuotaLevel：寫入前攔截配額不足
+ * - withAtomicRollback：任一 key 寫入失敗時回滾全部三 key 至寫入前快照
+ * - saveBooksWrapper：保持 readmoo_books 既有結構慣例（陣列或 { books: [...] }）
+ *
+ * @param {Object} data
+ * @param {Array<Object>} data.books          - 匯入的 v2 書籍陣列
+ * @param {Array<Object>} data.tags           - 匯入的 v2 tag 陣列
+ * @param {Array<Object>} data.tagCategories  - 匯入的 v2 tag category 陣列
+ * @returns {Promise<{ success: boolean, error?: string,
+ *                      counts?: { books: number, tags: number, tagCategories: number },
+ *                      remap?: { categories: number, tags: number } }>}
+ *   success=true：合併結果原子寫回三 key，counts 為合併後筆數，remap 為重映射統計
+ *   success=false：error 為 'quota_exceeded' | 'storage_error'
+ */
+async function mergeAllData ({ books, tags, tagCategories }) {
+  return operationLock.run(async () => {
+    // 步驟 A：配額前置攔截——blocked 時不讀、不算、不寫
+    const quota = await checkQuotaLevel()
+    if (quota.level === 'blocked') {
+      console.error('[tag-storage-adapter] mergeAllData blocked: quota exceeded')
+      return { success: false, error: 'quota_exceeded' }
+    }
+
+    // 步驟 B：讀本地三 key 現況作為合併輸入
+    const previousBooks = await loadBooks()
+    const previousTags = await loadTags()
+    const previousCategories = await loadCategories()
+
+    // 步驟 C：計算合併結果（純函式，注入正式 id 產生器）
+    const idGenerators = {
+      nextCategoryId: () => `cat_${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      nextTagId: () => `tag_${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    }
+    const merged = computeMergeResult(
+      { books: previousBooks, tags: previousTags, tagCategories: previousCategories },
+      { books, tags, tagCategories },
+      idGenerators
+    )
+
+    // 步驟 D：原子寫回（快照 key 名對齊 SNAPSHOT_KEY_TO_STORAGE_KEY）
+    const result = await withAtomicRollback(
+      { books: previousBooks, tags: previousTags, categories: previousCategories },
+      async () => {
+        await saveBooksWrapper(merged.books)
+        await saveToStorage({ [STORAGE_KEYS.TAGS]: merged.tags })
+        await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: merged.tagCategories })
+        return { success: true }
+      },
+      'mergeAllData'
+    )
+
+    // 步驟 E：判定終點
+    if (result.success === true) {
+      return {
+        success: true,
+        counts: {
+          books: merged.books.length,
+          tags: merged.tags.length,
+          tagCategories: merged.tagCategories.length
+        },
+        remap: {
+          categories: merged.remap.categoryRemapToExisting,
+          tags: merged.remap.tagRemapToExisting
+        }
+      }
+    }
+
+    // withAtomicRollback 已完成回滾並回傳 { success:false, error:'rollback' }；
+    // 對外統一轉為 'storage_error'，'rollback' 為實作細節不外洩。
+    console.error('[tag-storage-adapter] mergeAllData failed after rollback')
+    return { success: false, error: 'storage_error' }
+  })
+}
+
+// ==========================================
 // 匯出
 // ==========================================
 
@@ -830,6 +1125,10 @@ const TagStorageAdapter = {
 
   // 覆蓋模式整批寫入（UC-04 匯入）
   replaceAllData,
+
+  // 合併模式整批寫入與合併計算純函式（UC-04 匯入）
+  mergeAllData,
+  computeMergeResult,
 
   // 常數（供外部使用）
   STORAGE_KEYS,
