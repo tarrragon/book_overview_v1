@@ -46,16 +46,17 @@ describe('BookFileImporter 版本偵測與 v1 轉換接線（0.19.0-W1-047.1）'
 
       const result = importer._extractBooksFromData(data)
 
-      expect(Array.isArray(result)).toBe(true)
-      expect(result).toHaveLength(1)
-      expect(result[0].readingStatus).toBe('finished')
-      expect(result[0].authors).toEqual(['作者甲'])
-      expect(result[0]).not.toHaveProperty('isNew')
-      expect(result[0]).not.toHaveProperty('isFinished')
-      expect(result[0].isManualStatus).toBe(false)
-      expect(Array.isArray(result[0].tagIds)).toBe(true)
-      expect(result[0].tagIds).toHaveLength(1)
-      expect(result[0].source).toBe('readmoo')
+      // W1-047.2 / IMP-B：_extractBooksFromData 回傳 ImportResult，books 區段為書籍陣列
+      expect(Array.isArray(result.books)).toBe(true)
+      expect(result.books).toHaveLength(1)
+      expect(result.books[0].readingStatus).toBe('finished')
+      expect(result.books[0].authors).toEqual(['作者甲'])
+      expect(result.books[0]).not.toHaveProperty('isNew')
+      expect(result.books[0]).not.toHaveProperty('isFinished')
+      expect(result.books[0].isManualStatus).toBe(false)
+      expect(Array.isArray(result.books[0].tagIds)).toBe(true)
+      expect(result.books[0].tagIds).toHaveLength(1)
+      expect(result.books[0].source).toBe('readmoo')
     })
 
     test('TC-02 v1 books 包裝格式（無 formatVersion）偵測並轉換', () => {
@@ -68,11 +69,11 @@ describe('BookFileImporter 版本偵測與 v1 轉換接線（0.19.0-W1-047.1）'
 
       const result = importer._extractBooksFromData(data)
 
-      expect(result).toHaveLength(1)
-      expect(result[0].readingStatus).toBe('reading')
-      expect(Array.isArray(result[0].tagIds)).toBe(true)
-      expect(result[0].isManualStatus).toBe(false)
-      expect(Array.isArray(result[0].authors)).toBe(true)
+      expect(result.books).toHaveLength(1)
+      expect(result.books[0].readingStatus).toBe('reading')
+      expect(Array.isArray(result.books[0].tagIds)).toBe(true)
+      expect(result.books[0].isManualStatus).toBe(false)
+      expect(Array.isArray(result.books[0].authors)).toBe(true)
     })
 
     test('TC-03 v2 格式（明確 formatVersion）維持原行為', () => {
@@ -88,8 +89,8 @@ describe('BookFileImporter 版本偵測與 v1 轉換接線（0.19.0-W1-047.1）'
       const result = importer._extractBooksFromData(data)
 
       // 直接取 data.books，不經轉換（toBe 參考比較驗證未重建物件）
-      expect(result).toBe(data.books)
-      expect(result[0].readingStatus).toBe('finished')
+      expect(result.books).toBe(data.books)
+      expect(result.books[0].readingStatus).toBe('finished')
     })
 
     test('TC-04 v2 格式（metadata + readingStatus 推斷）維持原行為', () => {
@@ -105,8 +106,8 @@ describe('BookFileImporter 版本偵測與 v1 轉換接線（0.19.0-W1-047.1）'
 
       const result = importer._extractBooksFromData(data)
 
-      expect(result).toBe(data.books)
-      expect(result[0].readingStatus).toBe('reading')
+      expect(result.books).toBe(data.books)
+      expect(result.books[0].readingStatus).toBe('reading')
     })
 
     test('TC-05 data.data 包裝（metadata wrap）維持 fallback——關鍵回歸防護', () => {
@@ -119,8 +120,8 @@ describe('BookFileImporter 版本偵測與 v1 轉換接線（0.19.0-W1-047.1）'
       expect(() => importer._extractBooksFromData(data)).not.toThrow()
       const result = importer._extractBooksFromData(data)
 
-      // 回傳值即 data.data（toBe 參考比較）；null 不可導致拋錯或誤判
-      expect(result).toBe(data.data)
+      // books 區段即 data.data（toBe 參考比較）；null 不可導致拋錯或誤判
+      expect(result.books).toBe(data.data)
     })
   })
 
@@ -136,7 +137,7 @@ describe('BookFileImporter 版本偵測與 v1 轉換接線（0.19.0-W1-047.1）'
 
       const result = importer._extractBooksFromData(data)
 
-      expect(result.map(b => b.readingStatus)).toEqual([
+      expect(result.books.map(b => b.readingStatus)).toEqual([
         'finished',
         'finished',
         'reading',
@@ -155,10 +156,10 @@ describe('BookFileImporter 版本偵測與 v1 轉換接線（0.19.0-W1-047.1）'
 
       const result = importer._extractBooksFromData(data)
 
-      expect(result[0].progress).toBe(75)
-      expect(result[1].progress).toBe(0)
-      expect(result[2].progress).toBe(100)
-      expect(result[3].progress).toBe(0)
+      expect(result.books[0].progress).toBe(75)
+      expect(result.books[1].progress).toBe(0)
+      expect(result.books[2].progress).toBe(100)
+      expect(result.books[3].progress).toBe(0)
     })
 
     test('TC-08 v1 author 字串轉 authors 陣列', () => {
@@ -171,9 +172,9 @@ describe('BookFileImporter 版本偵測與 v1 轉換接線（0.19.0-W1-047.1）'
 
       const result = importer._extractBooksFromData(data)
 
-      expect(result[0].authors).toEqual(['作者甲'])
-      expect(result[1].authors).toEqual([])
-      expect(result[2].authors).toEqual([])
+      expect(result.books[0].authors).toEqual(['作者甲'])
+      expect(result.books[1].authors).toEqual([])
+      expect(result.books[2].authors).toEqual([])
     })
   })
 
@@ -205,20 +206,25 @@ describe('BookFileImporter 版本偵測與 v1 轉換接線（0.19.0-W1-047.1）'
 
       const result = importer._extractBooksFromData(data)
       // 前置驗證：v1 轉換補空字串 cover，typeof 為 string
-      expect(result[0].cover).toBe('')
+      expect(result.books[0].cover).toBe('')
 
-      const validBooks = importer._filterValidBooks(result)
+      const validBooks = importer._filterValidBooks(result.books)
       expect(validBooks).toHaveLength(1)
     })
   })
 
   describe('Group D：錯誤契約不回歸（AC-4、場景 6-7）', () => {
-    test('TC-13 空物件回傳空陣列', () => {
+    test('TC-13 空物件回傳空 ImportResult', () => {
       const importer = makeImporter()
       const data = {}
       expect(Object.keys(data)).toHaveLength(0) // 前置驗證
 
-      expect(importer._extractBooksFromData(data)).toEqual([])
+      // W1-047.2 / IMP-B：回傳 ImportResult，三區段皆為空陣列
+      expect(importer._extractBooksFromData(data)).toEqual({
+        books: [],
+        tagCategories: [],
+        tags: []
+      })
       expect(() => importer._extractBooksFromData(data)).not.toThrow()
     })
 
@@ -243,7 +249,7 @@ describe('BookFileImporter 版本偵測與 v1 轉換接線（0.19.0-W1-047.1）'
 
       const result = importer._extractBooksFromData(data)
 
-      expect(result).toEqual([])
+      expect(result.books).toEqual([])
       expect(() => importer._extractBooksFromData(data)).not.toThrow()
     })
 
@@ -253,8 +259,8 @@ describe('BookFileImporter 版本偵測與 v1 轉換接線（0.19.0-W1-047.1）'
 
       const result = importer._extractBooksFromData(data)
 
-      expect(result).toHaveLength(1)
-      expect(result[0].id).toBe('b2')
+      expect(result.books).toHaveLength(1)
+      expect(result.books[0].id).toBe('b2')
     })
 
     test('TC-17 v1 category 為空字串/「未分類」不建立 tag', () => {
@@ -266,8 +272,8 @@ describe('BookFileImporter 版本偵測與 v1 轉換接線（0.19.0-W1-047.1）'
 
       const result = importer._extractBooksFromData(data)
 
-      expect(result[0].tagIds).toEqual([])
-      expect(result[1].tagIds).toEqual([])
+      expect(result.books[0].tagIds).toEqual([])
+      expect(result.books[1].tagIds).toEqual([])
     })
   })
 })

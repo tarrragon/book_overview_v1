@@ -27,9 +27,13 @@ describe('BookFileImporter CSV import（W6-012.6.2）', () => {
 
   /**
    * 直接走內部 _handleFileContent 路徑（避免 FileReader 在 jsdom 環境的非同步處理差異）
+   *
+   * W1-047.2 / IMP-B：_handleFileContent 回傳介面由 Book[] 升級為 ImportResult
+   * （{ books, tagCategories, tags }）；helper 解構 .books 維持 CSV happy path
+   * 既有斷言不變。CSV 路徑 tagCategories / tags 恆為 []，另由 import-result 測試覆蓋。
    */
   function parseCSV (importer, csvText) {
-    return importer._handleFileContent(csvText, 'csv')
+    return importer._handleFileContent(csvText, 'csv').books
   }
 
   describe('檔案格式偵測', () => {

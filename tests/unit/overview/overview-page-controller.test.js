@@ -1140,4 +1140,99 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       expect(updatedStats.executionCount).toBe(1)
     })
   })
+
+  // ---------------------------------------------------------------------------
+  // Group F：匯入回傳介面 ImportResult 適配（0.19.0-W1-047.2 / IMP-B，場景 9-10）
+  //
+  // BookFileImporter 回傳介面由 Book[] 升級為 ImportResult
+  // （{ books, tagCategories, tags }）。controller 在 handleFileLoad /
+  // _handleFileContent 邊界解構 books 傳給 UI 層；tagCategories / tags 本
+  // ticket 暫不流入 UI（IMP-C 接手 storage 持久化）。
+  // 非匯入呼叫端（STORAGE.LOAD / EXTRACTION / UI.BOOKS.UPDATE）零回歸。
+  // ---------------------------------------------------------------------------
+  describe('Group F：匯入回傳介面 ImportResult 適配（0.19.0-W1-047.2）', () => {
+    test('TC-12 handleFileLoad 解構 ImportResult.books 傳給 UI', async () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      const importResult = {
+        books: [
+          { id: 'b1', title: '書一', cover: 'http://x/c1.jpg', readingStatus: 'reading' },
+          { id: 'b2', title: '書二', cover: 'http://x/c2.jpg', readingStatus: 'finished' },
+          { id: 'b3', title: '書三', cover: 'http://x/c3.jpg', readingStatus: 'unread' }
+        ],
+        tagCategories: [{ id: 'c1', name: 'X' }],
+        tags: [{ id: 't1', name: 'Y', categoryId: 'c1' }]
+      }
+      // stub importer 讀檔回傳 ImportResult
+      controller.bookFileImporter._readFileWithReader = jest
+        .fn()
+        .mockResolvedValue(importResult)
+      const updateSpy = jest.spyOn(controller, '_updateUIWithBooks')
+
+      const mockFile = { name: 'books.json', type: 'application/json', size: 100 }
+      await controller.handleFileLoad(mockFile)
+
+      // _updateUIWithBooks 收到的是陣列（非 ImportResult 物件）
+      expect(updateSpy).toHaveBeenCalledTimes(1)
+      const passedArg = updateSpy.mock.calls[0][0]
+      expect(Array.isArray(passedArg)).toBe(true)
+      expect(passedArg).toHaveLength(3)
+      // controller 內部狀態正確
+      expect(controller.currentBooks).toHaveLength(3)
+      expect(controller.currentBooks).not.toContain(undefined)
+    })
+
+    test('TC-13 _handleFileContent 代理解構 ImportResult.books', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      const importResult = {
+        books: [
+          { id: 'b1', title: '書一', cover: 'http://x/c1.jpg', readingStatus: 'reading' },
+          { id: 'b2', title: '書二', cover: 'http://x/c2.jpg', readingStatus: 'finished' }
+        ],
+        tagCategories: [],
+        tags: []
+      }
+      // stub importer _handleFileContent 回傳 ImportResult
+      controller.bookFileImporter._handleFileContent = jest
+        .fn()
+        .mockReturnValue(importResult)
+      const updateSpy = jest.spyOn(controller, '_updateUIWithBooks')
+
+      controller._handleFileContent('{"books":[]}')
+
+      expect(updateSpy).toHaveBeenCalledTimes(1)
+      const passedArg = updateSpy.mock.calls[0][0]
+      expect(Array.isArray(passedArg)).toBe(true)
+      expect(passedArg).toEqual(importResult.books)
+    })
+
+    test('TC-14 非匯入呼叫端零回歸（STORAGE / EXTRACTION / UI.BOOKS.UPDATE）', () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      const books = [
+        makeBook({ id: 's1', title: '事件書一' }),
+        makeBook({ id: 's2', title: '事件書二' })
+      ]
+      // 前置驗證：eventData.books 為純陣列（非匯入路徑不經 importer）
+      expect(Array.isArray(books)).toBe(true)
+
+      // STORAGE.LOAD.COMPLETED：_updateBooksData 收純陣列
+      controller.handleStorageLoadCompleted({ books })
+      expect(controller.currentBooks).toEqual(books)
+      expect(controller.filteredBooks).toEqual(books)
+
+      // UI.BOOKS.UPDATE：_updateBooksData 收純陣列
+      const updateBooks = [makeBook({ id: 'u1', title: '更新書' })]
+      controller.handleBooksUpdate({ books: updateBooks })
+      expect(controller.currentBooks).toEqual(updateBooks)
+
+      // EXTRACTION.COMPLETED：委派 handleReload（不經 importer，行為不變）
+      expect(typeof controller.handleExtractionCompleted).toBe('function')
+      expect(() => controller.handleExtractionCompleted({})).not.toThrow()
+    })
+  })
 })

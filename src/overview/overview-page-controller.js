@@ -1038,6 +1038,10 @@ class OverviewPageController extends EventHandlerClass {
    * - 委派檔案驗證和讀取至 BookFileImporter
    * - 管理載入狀態
    * - 接收解析後的書籍資料更新 UI
+   *
+   * W1-047.2 / IMP-B：importer 回傳介面由 Book[] 升級為 ImportResult
+   * （{ books, tagCategories, tags }）。controller 在此邊界解構 books 傳給 UI 層；
+   * tagCategories / tags 本 ticket 暫不流入 UI（IMP-C 接手 storage 持久化）。
    */
   async handleFileLoad (file) {
     // 驗證階段由 importer 處理（會呼叫 showError 並 throw）
@@ -1045,9 +1049,9 @@ class OverviewPageController extends EventHandlerClass {
     this.bookFileImporter._validateFileSize(file)
     this.showLoading('正在讀取檔案...')
 
-    // 讀取和解析由 importer 處理，回傳書籍陣列
-    const books = await this.bookFileImporter._readFileWithReader(file)
-    this._updateUIWithBooks(books)
+    // 讀取和解析由 importer 處理，回傳 ImportResult（INV-1 保證三欄位恆為陣列）
+    const importResult = await this.bookFileImporter._readFileWithReader(file)
+    this._updateUIWithBooks(importResult.books)
   }
 
   // EventHandler 抽象方法實現
@@ -1284,10 +1288,12 @@ class OverviewPageController extends EventHandlerClass {
    * @param {string} content - 檔案內容
    *
    * 保留原因：測試環境中 handleFileLoad 的替代實作直接呼叫此方法
+   *
+   * W1-047.2 / IMP-B：importer 回傳 ImportResult，於此邊界解構 books 傳給 UI 層。
    */
   _handleFileContent (content) {
-    const books = this.bookFileImporter._handleFileContent(content)
-    this._updateUIWithBooks(books)
+    const importResult = this.bookFileImporter._handleFileContent(content)
+    this._updateUIWithBooks(importResult.books)
   }
 
   /**

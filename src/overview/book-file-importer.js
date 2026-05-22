@@ -6,11 +6,25 @@
  * - 檔案讀取（FileReader 整合）
  * - JSON 解析與 BOM 處理
  * - 書籍資料提取與驗證
+ * - v2 interchange 三區段（books / tagCategories / tags）提取（W1-047.2 / IMP-B）
  *
  * 設計考量：
  * - 從 OverviewPageController 提取，專責檔案載入邏輯
  * - 透過 dependency injection 接收 document、showError、ErrorCodes
  * - 保持與原 Controller 相同的驗證和解析行為
+ *
+ * 回傳介面（W1-047.2 / IMP-B）：
+ * 回傳鏈 _extractBooksFromData → _processBookData → _handleFileContent →
+ * _readFileWithReader → handleFileLoad 由純 Book[] 升級為 ImportResult。
+ *
+ * @typedef {Object} ImportResult
+ * @property {Array<Object>} books          - 書籍陣列，必有，可能為空陣列
+ * @property {Array<Object>} tagCategories  - tag 分類陣列，必有，可能為空陣列
+ * @property {Array<Object>} tags           - tag 陣列，必有，可能為空陣列
+ *
+ * 不變式 INV-1：ImportResult 三欄位永遠存在且型別恆為陣列，
+ * 任何路徑（v1 / v2 / CSV / 空物件）不得回傳 undefined / null。
+ * 消費端可無條件解構，無需 null 檢查。
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
@@ -59,7 +73,7 @@ class BookFileImporter {
    * 處理檔案載入操作
    *
    * @param {File} file - 要載入的檔案
-   * @returns {Promise<Array>} 解析後的書籍陣列
+   * @returns {Promise<ImportResult>} 含 books / tagCategories / tags 三區段的匯入結果
    *
    * 負責功能：
    * - 協調檔案載入流程
@@ -143,7 +157,7 @@ class BookFileImporter {
    * 使用FileReader讀取檔案
    * @private
    * @param {File} file - 要讀取的檔案
-   * @returns {Promise<Array>} 解析後的書籍陣列
+   * @returns {Promise<ImportResult>} 含 books / tagCategories / tags 三區段的匯入結果
    */
   _readFileWithReader (file) {
     const fileFormat = this._isCSVFile(file) ? 'csv' : 'json'
@@ -198,8 +212,8 @@ class BookFileImporter {
    */
   _handleReaderSuccess (e, resolve, reject, fileFormat) {
     try {
-      const books = this._handleFileContent(e.target.result, fileFormat)
-      resolve(books)
+      const result = this._handleFileContent(e.target.result, fileFormat)
+      resolve(result)
     } catch (error) {
       this._handleFileProcessError(error, reject)
     }
@@ -236,15 +250,14 @@ class BookFileImporter {
    *
    * @param {string} content - 檔案內容
    * @param {string} [fileFormat='json'] - 'csv' | 'json'
-   * @returns {Array} 處理後的書籍陣列
+   * @returns {ImportResult} 含 books / tagCategories / tags 三區段的匯入結果
    */
   _handleFileContent (content, fileFormat = 'json') {
     const cleanContent = this._validateAndCleanContent(content)
     const data = fileFormat === 'csv'
       ? this._parseCSVContent(cleanContent)
       : this._parseJSONContent(cleanContent)
-    const books = this._processBookData(data, fileFormat)
-    return books
+    return this._processBookData(data, fileFormat)
   }
 
   /**
@@ -459,16 +472,25 @@ class BookFileImporter {
 
   /**
    * 處理書籍資料
+   *
+   * 匯聚點：接收 _extractBooksFromData 的 ImportResult，僅對 books 區段做
+   * 有效性過濾與大型資料集檢查；tagCategories / tags 原樣透傳不過濾
+   * （tag 區段過濾不屬本模組職責，見 feature-spec §2.2）。
+   *
    * @private
    * @param {any} data - 解析後的JSON資料
    * @param {string} [fileFormat='json'] - 'csv' | 'json'，傳遞給版本偵測閘門
-   * @returns {Array} 驗證後的書籍陣列
+   * @returns {ImportResult} 含過濾後 books 與透傳 tagCategories / tags 的匯入結果
    */
   _processBookData (data, fileFormat = 'json') {
-    const books = this._extractBooksFromData(data, fileFormat)
-    const validBooks = this._filterValidBooks(books)
+    const extracted = this._extractBooksFromData(data, fileFormat)
+    const validBooks = this._filterValidBooks(extracted.books)
     this._checkLargeDataset(validBooks)
-    return validBooks
+    return {
+      books: validBooks,
+      tagCategories: extracted.tagCategories,
+      tags: extracted.tags
+    }
   }
 
   /**
@@ -498,42 +520,114 @@ class BookFileImporter {
   }
 
   /**
-   * 從資料中提取書籍陣列
+   * 從資料中提取 v2 interchange 三區段（W1-047.2 / IMP-B）
    * @private
    *
    * 版本偵測閘門（W1-047.1）：
    * 僅 JSON 匯入路徑（fileFormat === 'json'）先以 detectFormatVersion 判定格式，
-   * 在明確回傳 'v1' 時介入轉換——將 v1 資料經 convertV1ToV2Data 轉為 v2 書籍結構後
-   * 取 .books 回傳。'v2' 與 null 一律 fall through 既有四種形狀辨識邏輯（不改動既有分支），
-   * 確保 data.data fallback 與既有錯誤拋出契約零回歸。
-   * tagCategories/tags 暫時丟棄（回傳介面變更屬 IMP-B / W1-047.2）。
+   * 在明確回傳 'v1' 時介入轉換——將 v1 資料經 convertV1ToV2Data 轉為 v2 結構後
+   * 取其 books / tagCategories / tags 三區段回傳。'v2' 與 null 一律 fall through
+   * 既有四種形狀辨識邏輯（不改動 books 提取順序），確保 data.data fallback 與
+   * 既有錯誤拋出契約零回歸。
+   *
+   * 回傳介面變更（IMP-B）：由純 Book[] 升級為 ImportResult。
+   * - v1 路徑：取 convertV1ToV2Data 產出的三區段（IMP-A 僅取 .books，本 ticket 補取其餘）。
+   * - v2 路徑：books 沿用四形狀辨識；tagCategories / tags 一律從根物件 data 提取，
+   *   與 books 取自哪個形狀無關，缺失或非陣列降級為 []（寬鬆降級，feature-spec §2.3）。
+   * - 空物件 / CSV：tagCategories / tags 為 []。
+   *
+   * INV-1：回傳的三欄位恆為陣列，不回傳 undefined / null。
    *
    * CSV 匯入路徑（fileFormat === 'csv'）不經版本偵測：detectFormatVersion 對純陣列
    * 一律判為 'v1'，但 CSV 解析產出的書籍物件結構（status/tags）與 v1 JSON 不同，
    * 不應走 v1→v2 轉換。CSV 自有 detectCsvFormatVersion 偵測機制。
+   * CSV 解析結果為陣列，會落入 v2 路徑的 _isDirectArrayFormat 分支，
+   * tag 區段經 _extractTagSection（對非物件輸入安全回傳 []）降級為 []。
    *
    * @param {any} data - 解析後的JSON資料
    * @param {string} [fileFormat='json'] - 'csv' | 'json'，僅 json 啟用版本偵測閘門
-   * @returns {Array} 書籍陣列
+   * @returns {ImportResult} 含 books / tagCategories / tags 三區段的提取結果
    */
   _extractBooksFromData (data, fileFormat = 'json') {
+    // 路徑 1：v1 JSON — 取 converter 完整三區段
     if (fileFormat === 'json' && detectFormatVersion(data) === 'v1') {
-      return convertV1ToV2Data(data).books
+      const converted = convertV1ToV2Data(data)
+      return {
+        books: converted.books,
+        tagCategories: this._normalizeToArray(converted.tagCategories),
+        tags: this._normalizeToArray(converted.tags)
+      }
     }
 
-    if (this._isDirectArrayFormat(data)) return data
-    if (this._isWrappedBooksFormat(data)) return data.books
-    if (this._isMetadataWrapFormat(data)) return data.data
+    // 路徑 2：v2 JSON 四形狀辨識 — books 沿用既有順序，tag 從根物件提取
+    let booksArray = null
+    if (this._isDirectArrayFormat(data)) booksArray = data
+    else if (this._isWrappedBooksFormat(data)) booksArray = data.books
+    else if (this._isMetadataWrapFormat(data)) booksArray = data.data
 
-    // 處理空 JSON 對象的情況
+    if (booksArray !== null) {
+      return {
+        books: booksArray,
+        tagCategories: this._extractTagSection(data, 'tagCategories'),
+        tags: this._extractTagSection(data, 'tags')
+      }
+    }
+
+    // 路徑 3：空 JSON 對象
     if (data && typeof data === 'object' && Object.keys(data).length === 0) {
-      return [] // 空對象回傳空陣列
+      return { books: [], tagCategories: [], tags: [] }
     }
 
+    // 路徑 4：無法辨識結構 — 維持既有錯誤契約（零回歸）
     const error = new Error('JSON 檔案應該包含一個陣列或包含books屬性的物件')
     error.code = ErrorCodes.VALIDATION_ERROR
     error.details = { category: 'validation' }
     throw error
+  }
+
+  /**
+   * 從根物件提取單一 tag 區段（tagCategories 或 tags），採寬鬆降級。
+   * @private
+   *
+   * 降級規則（feature-spec §2.3 / SPEC-EXPORT-V2 §2.3「必須為陣列，否則初始化為空陣列」）：
+   * - 合法陣列：原樣回傳（保持參考，與既有 books 取 data.books 同參考行為一致）。
+   * - 缺失（undefined）：回傳 []，不告警（缺失屬正常情況）。
+   * - 非陣列（物件 / 字串 / null 等）：回傳 []，以 console.warn 記錄欄位名與降級原因。
+   * - data 本身非物件（如 CSV 路徑傳入陣列、或 null）：先判型再讀屬性，安全回傳 []。
+   *
+   * @param {any} data - 來源根物件
+   * @param {string} fieldName - 區段欄位名（'tagCategories' | 'tags'）
+   * @returns {Array<Object>} 合法陣列或空陣列
+   */
+  _extractTagSection (data, fieldName) {
+    const candidate = (data && typeof data === 'object') ? data[fieldName] : undefined
+    if (Array.isArray(candidate)) {
+      return candidate
+    }
+    // 缺失不告警；值存在但型別錯誤才告警（observability-rules 規則 1：含欄位名與原因）
+    if (candidate !== undefined && candidate !== null) {
+      // Logger 後備方案: tag 區段型別降級警告
+      // 設計理念: 匯入檔 tag 區段型別非陣列屬資料異常，需開發者可見
+      // 後備機制: console.warn 在無 Logger 環境提供降級事件可觀測性
+      // 使用場景: v2 JSON 的 tagCategories / tags 欄位型別錯誤時的降級提示
+      // eslint-disable-next-line no-console
+      console.warn(`${fieldName} 型別非陣列，降級為空陣列`)
+    }
+    return []
+  }
+
+  /**
+   * 將值正規化為陣列：陣列原樣回傳，否則回傳空陣列。
+   * @private
+   *
+   * 用途：v1 路徑對 convertV1ToV2Data 輸出的防禦。converter 契約已回傳陣列，
+   * 此防禦使 INV-1 在所有路徑成立，且免去對 converter 內部實作的耦合假設。
+   *
+   * @param {any} value - 待正規化的值
+   * @returns {Array} 原陣列或空陣列
+   */
+  _normalizeToArray (value) {
+    return Array.isArray(value) ? value : []
   }
 
   /**
