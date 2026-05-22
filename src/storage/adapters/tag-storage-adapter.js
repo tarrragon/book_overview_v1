@@ -720,6 +720,78 @@ async function initializeSchema () {
 }
 
 // ==========================================
+// 覆蓋模式整批寫入（UC-04 匯入）
+// ==========================================
+
+/**
+ * 覆蓋模式整批寫入：以匯入資料完全取代 storage 中的 books / tags / tag_categories。
+ *
+ * 語意 = 清空後載入（SPEC-EXPORT-V2 §8.1）。三個 storage key 一併取代，
+ * 空集合也覆蓋為 []（不保留舊值）。
+ *
+ * 設計：複用既有基礎設施，不新增機制——
+ * - operationLock.run：與其他 storage 操作序列化互斥
+ * - checkQuotaLevel：寫入前攔截配額不足
+ * - withAtomicRollback：任一 key 寫入失敗時回滾全部三 key 至寫入前快照
+ * - saveBooksWrapper：保持 readmoo_books 既有結構慣例（陣列或 { books: [...] }）
+ *
+ * @param {Object} data
+ * @param {Array<Object>} data.books          - v2 書籍陣列
+ * @param {Array<Object>} data.tags           - v2 tag 陣列
+ * @param {Array<Object>} data.tagCategories  - v2 tag category 陣列
+ * @returns {Promise<{ success: boolean, error?: string,
+ *                      counts?: { books: number, tags: number, tagCategories: number } }>}
+ *   success=true：三 key 寫入完成，counts 回報寫入筆數
+ *   success=false：error 為 'quota_exceeded' | 'storage_error'
+ */
+async function replaceAllData ({ books, tags, tagCategories }) {
+  return operationLock.run(async () => {
+    // 步驟 A：配額前置攔截——blocked 時不寫入任何 key
+    const quota = await checkQuotaLevel()
+    if (quota.level === 'blocked') {
+      console.error('[tag-storage-adapter] replaceAllData blocked: quota exceeded')
+      return { success: false, error: 'quota_exceeded' }
+    }
+
+    // 步驟 B：建立寫入前快照（三 key）
+    // 快照 key 名稱必須對齊 SNAPSHOT_KEY_TO_STORAGE_KEY 契約：
+    // categories→TAG_CATEGORIES、tags→TAGS，books 走 saveBooksWrapper 特殊處理。
+    const previousBooks = await loadBooks()
+    const previousTags = await loadTags()
+    const previousCategories = await loadCategories()
+
+    // 步驟 C：原子寫入（包入回滾機制），依序寫三 key
+    const result = await withAtomicRollback(
+      { books: previousBooks, tags: previousTags, categories: previousCategories },
+      async () => {
+        await saveBooksWrapper(books)
+        await saveToStorage({ [STORAGE_KEYS.TAGS]: tags })
+        await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: tagCategories })
+        return { success: true }
+      },
+      'replaceAllData'
+    )
+
+    // 步驟 D：判定終點
+    if (result.success === true) {
+      return {
+        success: true,
+        counts: {
+          books: books.length,
+          tags: tags.length,
+          tagCategories: tagCategories.length
+        }
+      }
+    }
+
+    // withAtomicRollback 已完成回滾並回傳 { success:false, error:'rollback' }；
+    // 對外統一轉為 'storage_error'，'rollback' 為實作細節不外洩。
+    console.error('[tag-storage-adapter] replaceAllData failed after rollback')
+    return { success: false, error: 'storage_error' }
+  })
+}
+
+// ==========================================
 // 匯出
 // ==========================================
 
@@ -755,6 +827,9 @@ const TagStorageAdapter = {
 
   // Schema
   initializeSchema,
+
+  // 覆蓋模式整批寫入（UC-04 匯入）
+  replaceAllData,
 
   // 常數（供外部使用）
   STORAGE_KEYS,

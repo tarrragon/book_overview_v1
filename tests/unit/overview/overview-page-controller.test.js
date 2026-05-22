@@ -1168,6 +1168,12 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       controller.bookFileImporter._readFileWithReader = jest
         .fn()
         .mockResolvedValue(importResult)
+      // W1-047.3 / IMP-C：handleFileLoad 在 _updateUIWithBooks 前插入 replaceAllData
+      // 持久化。mock 其回傳 success，使本 TC 聚焦驗證 books 解構傳 UI。
+      const TagStorageAdapter = require('src/storage/adapters/tag-storage-adapter')
+      TagStorageAdapter.replaceAllData = jest
+        .fn()
+        .mockResolvedValue({ success: true, counts: { books: 3, tags: 1, tagCategories: 1 } })
       const updateSpy = jest.spyOn(controller, '_updateUIWithBooks')
 
       const mockFile = { name: 'books.json', type: 'application/json', size: 100 }
@@ -1233,6 +1239,211 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       // EXTRACTION.COMPLETED：委派 handleReload（不經 importer，行為不變）
       expect(typeof controller.handleExtractionCompleted).toBe('function')
       expect(() => controller.handleExtractionCompleted({})).not.toThrow()
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // Group G：UC-04 匯入持久化接線（0.19.0-W1-047.3 / IMP-C，場景 1-6）
+  //
+  // handleFileLoad 解構 ImportResult 後呼叫 TagStorageAdapter.replaceAllData
+  // 覆蓋模式持久化；持久化成功才呼叫 _updateUIWithBooks，失敗則 showError 並
+  // 中止 UI 更新。replaceAllData 行為由 storage 測試覆蓋，此處 mock 其回傳契約。
+  // ---------------------------------------------------------------------------
+  describe('Group G：UC-04 匯入持久化接線（0.19.0-W1-047.3）', () => {
+    const mockFile = { name: 'books.json', type: 'application/json', size: 100 }
+
+    /**
+     * 建立已 stub importer 與 replaceAllData 的 controller
+     * @param {Object} importResult - importer 回傳的 ImportResult
+     * @param {Object} writeResult - replaceAllData mock 回傳值
+     * @returns {{ controller, replaceAllDataMock }}
+     */
+    function setupController (importResult, writeResult) {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      controller.bookFileImporter._readFileWithReader = jest
+        .fn()
+        .mockResolvedValue(importResult)
+
+      // mock TagStorageAdapter.replaceAllData（與 controller 共用同一模組實例）
+      const TagStorageAdapter = require('src/storage/adapters/tag-storage-adapter')
+      const replaceAllDataMock = jest.fn().mockResolvedValue(writeResult)
+      TagStorageAdapter.replaceAllData = replaceAllDataMock
+
+      return { controller, replaceAllDataMock }
+    }
+
+    test('TC-G1 持久化成功才更新 UI', async () => {
+      const importResult = {
+        books: [
+          { id: 'b1', title: '書一', cover: 'http://x/c1.jpg', readingStatus: 'reading' },
+          { id: 'b2', title: '書二', cover: 'http://x/c2.jpg', readingStatus: 'finished' },
+          { id: 'b3', title: '書三', cover: 'http://x/c3.jpg', readingStatus: 'unread' }
+        ],
+        tags: [{ id: 't1', name: 'Y', categoryId: 'c1' }],
+        tagCategories: [{ id: 'c1', name: 'X' }]
+      }
+      const { controller, replaceAllDataMock } = setupController(
+        importResult,
+        { success: true, counts: { books: 3, tags: 1, tagCategories: 1 } }
+      )
+      // 前置驗證：ImportResult 三欄位為陣列
+      expect(Array.isArray(importResult.books)).toBe(true)
+      expect(Array.isArray(importResult.tags)).toBe(true)
+      expect(Array.isArray(importResult.tagCategories)).toBe(true)
+
+      const updateSpy = jest.spyOn(controller, '_updateUIWithBooks')
+
+      await controller.handleFileLoad(mockFile)
+
+      // replaceAllData 被呼叫一次，引數為物件形式
+      expect(replaceAllDataMock).toHaveBeenCalledTimes(1)
+      expect(replaceAllDataMock).toHaveBeenCalledWith({
+        books: importResult.books,
+        tags: importResult.tags,
+        tagCategories: importResult.tagCategories
+      })
+      // _updateUIWithBooks 收到 books 陣列
+      expect(updateSpy).toHaveBeenCalledTimes(1)
+      expect(updateSpy.mock.calls[0][0]).toEqual(importResult.books)
+      expect(controller.currentBooks).toHaveLength(3)
+    })
+
+    test('TC-G2 空 tags/tagCategories 仍接線', async () => {
+      const importResult = {
+        books: [
+          { id: 'b1', title: '書一', cover: 'http://x/c1.jpg', readingStatus: 'reading' },
+          { id: 'b2', title: '書二', cover: 'http://x/c2.jpg', readingStatus: 'finished' }
+        ],
+        tags: [],
+        tagCategories: []
+      }
+      const { controller, replaceAllDataMock } = setupController(
+        importResult,
+        { success: true, counts: { books: 2, tags: 0, tagCategories: 0 } }
+      )
+      const updateSpy = jest.spyOn(controller, '_updateUIWithBooks')
+
+      await controller.handleFileLoad(mockFile)
+
+      // replaceAllData 收到空陣列（非 undefined）
+      const passedArg = replaceAllDataMock.mock.calls[0][0]
+      expect(passedArg.tags).toEqual([])
+      expect(passedArg.tagCategories).toEqual([])
+      expect(updateSpy).toHaveBeenCalledTimes(1)
+    })
+
+    test('TC-G3 空書庫成功（_updateUIWithBooks 收 []，不 showError）', async () => {
+      const importResult = { books: [], tags: [], tagCategories: [] }
+      const { controller, replaceAllDataMock } = setupController(
+        importResult,
+        { success: true, counts: { books: 0, tags: 0, tagCategories: 0 } }
+      )
+      const updateSpy = jest.spyOn(controller, '_updateUIWithBooks')
+      const errorSpy = jest.spyOn(controller, 'showError')
+
+      await controller.handleFileLoad(mockFile)
+
+      expect(replaceAllDataMock).toHaveBeenCalledTimes(1)
+      expect(updateSpy).toHaveBeenCalledTimes(1)
+      expect(updateSpy.mock.calls[0][0]).toEqual([])
+      expect(errorSpy).not.toHaveBeenCalled()
+      expect(controller.currentBooks).toEqual([])
+    })
+
+    test('TC-G4 配額不足不更新 UI', async () => {
+      const importResult = {
+        books: [{ id: 'b1', title: '書一', cover: 'http://x/c1.jpg', readingStatus: 'reading' }],
+        tags: [],
+        tagCategories: []
+      }
+      const { controller, replaceAllDataMock } = setupController(
+        importResult,
+        { success: false, error: 'quota_exceeded' }
+      )
+      // 前置：currentBooks 保持呼叫前狀態
+      const booksBefore = controller.currentBooks
+      const updateSpy = jest.spyOn(controller, '_updateUIWithBooks')
+      const errorSpy = jest.spyOn(controller, 'showError')
+
+      await controller.handleFileLoad(mockFile)
+
+      expect(replaceAllDataMock).toHaveBeenCalledTimes(1)
+      // showError 被呼叫一次，訊息含儲存空間不足語意
+      expect(errorSpy).toHaveBeenCalledTimes(1)
+      expect(errorSpy.mock.calls[0][0]).toContain('儲存空間不足')
+      // _updateUIWithBooks 未被呼叫，currentBooks 維持呼叫前狀態
+      expect(updateSpy).not.toHaveBeenCalled()
+      expect(controller.currentBooks).toBe(booksBefore)
+    })
+
+    test('TC-G5 寫入失敗不更新 UI', async () => {
+      const importResult = {
+        books: [{ id: 'b1', title: '書一', cover: 'http://x/c1.jpg', readingStatus: 'reading' }],
+        tags: [],
+        tagCategories: []
+      }
+      const { controller } = setupController(
+        importResult,
+        { success: false, error: 'storage_error' }
+      )
+      const updateSpy = jest.spyOn(controller, '_updateUIWithBooks')
+      const errorSpy = jest.spyOn(controller, 'showError')
+
+      await controller.handleFileLoad(mockFile)
+
+      expect(errorSpy).toHaveBeenCalledTimes(1)
+      expect(updateSpy).not.toHaveBeenCalled()
+    })
+
+    test('TC-G6 檔案驗證失敗不進入持久化（既有行為）', async () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      // importer 驗證階段拋出（既有行為：_validateFileBasics 失敗時 throw）
+      const validationError = new Error('檔案驗證失敗')
+      controller.bookFileImporter._validateFileBasics = jest.fn(() => {
+        throw validationError
+      })
+      const TagStorageAdapter = require('src/storage/adapters/tag-storage-adapter')
+      const replaceAllDataMock = jest.fn()
+      TagStorageAdapter.replaceAllData = replaceAllDataMock
+      const updateSpy = jest.spyOn(controller, '_updateUIWithBooks')
+
+      const invalidFile = { name: 'bad.txt', type: 'text/plain', size: 10 }
+      let caught = null
+      try {
+        await controller.handleFileLoad(invalidFile)
+      } catch (err) {
+        caught = err
+      }
+
+      // 驗證階段拋出（既有行為不回歸）
+      expect(caught).toBe(validationError)
+      // 驗證失敗不進入持久化、不更新 UI
+      expect(replaceAllDataMock).not.toHaveBeenCalled()
+      expect(updateSpy).not.toHaveBeenCalled()
+    })
+
+    test('TC-G7 replaceAllData 引數三欄位內容對應 ImportResult', async () => {
+      const importResult = {
+        books: [{ id: 'b1', title: '書一', cover: 'http://x/c1.jpg', readingStatus: 'reading' }],
+        tags: [{ id: 't1', name: 'Y', categoryId: 'c1' }],
+        tagCategories: [{ id: 'c1', name: 'X' }]
+      }
+      const { controller, replaceAllDataMock } = setupController(
+        importResult,
+        { success: true, counts: { books: 1, tags: 1, tagCategories: 1 } }
+      )
+
+      await controller.handleFileLoad(mockFile)
+
+      // 防欄位錯置：三欄位內容分別等於 ImportResult 對應欄位
+      const passedArg = replaceAllDataMock.mock.calls[0][0]
+      expect(passedArg.books).toEqual(importResult.books)
+      expect(passedArg.tags).toEqual(importResult.tags)
+      expect(passedArg.tagCategories).toEqual(importResult.tagCategories)
     })
   })
 })

@@ -1037,11 +1037,15 @@ class OverviewPageController extends EventHandlerClass {
    * 負責功能：
    * - 委派檔案驗證和讀取至 BookFileImporter
    * - 管理載入狀態
-   * - 接收解析後的書籍資料更新 UI
+   * - 覆蓋模式持久化匯入資料至 chrome.storage.local
+   * - 持久化成功才以 books 更新 UI
    *
    * W1-047.2 / IMP-B：importer 回傳介面由 Book[] 升級為 ImportResult
-   * （{ books, tagCategories, tags }）。controller 在此邊界解構 books 傳給 UI 層；
-   * tagCategories / tags 本 ticket 暫不流入 UI（IMP-C 接手 storage 持久化）。
+   * （{ books, tagCategories, tags }）。
+   *
+   * W1-047.3 / IMP-C：解構 ImportResult 後先呼叫 TagStorageAdapter.replaceAllData
+   * 覆蓋模式持久化三區段（books / tags / tagCategories）；成功才更新 UI，
+   * 失敗則呼叫 showError 並中止 UI 更新，避免 UI 顯示「已匯入」假象但重整後消失。
    */
   async handleFileLoad (file) {
     // 驗證階段由 importer 處理（會呼叫 showError 並 throw）
@@ -1051,7 +1055,22 @@ class OverviewPageController extends EventHandlerClass {
 
     // 讀取和解析由 importer 處理，回傳 ImportResult（INV-1 保證三欄位恆為陣列）
     const importResult = await this.bookFileImporter._readFileWithReader(file)
-    this._updateUIWithBooks(importResult.books)
+
+    // 覆蓋模式持久化：以匯入資料完全取代 storage 三 key（清空後載入）
+    const writeResult = await TagStorageAdapter.replaceAllData({
+      books: importResult.books,
+      tags: importResult.tags,
+      tagCategories: importResult.tagCategories
+    })
+
+    // 持久化成功才更新 UI；失敗中止並 showError（UI 維持呼叫前狀態）
+    if (writeResult.success === true) {
+      this._updateUIWithBooks(importResult.books)
+    } else if (writeResult.error === 'quota_exceeded') {
+      this.showError('儲存空間不足，匯入未完成')
+    } else {
+      this.showError('儲存失敗，已還原原有資料')
+    }
   }
 
   // EventHandler 抽象方法實現

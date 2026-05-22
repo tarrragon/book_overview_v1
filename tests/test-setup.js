@@ -205,6 +205,13 @@ chrome.storage.local.set.mockImplementation((items, callback) => {
   if (callback) callback()
 })
 
+// getBytesInUse 預設實作：jest-chrome 僅提供無實作的 jest.fn()，
+// 不呼叫 callback 會使依賴配額檢查（checkQuotaLevel）的程式碼 Promise 永久 pending。
+// 預設回傳 0 bytes（配額充足），與既有 chrome-mock-factory 行為一致。
+chrome.storage.local.getBytesInUse.mockImplementation((keys, callback) => {
+  if (callback) callback(0)
+})
+
 chrome.tabs.query.mockImplementation((queryInfo, callback) => {
   callback([{
     id: 1,
