@@ -1,0 +1,51 @@
+{
+  "metadata": {
+    "formatVersion": "2.0.0",
+    "exportDate": "2026-05-23T00:00:00.000Z",
+    "source": "readmoo-book-extractor",
+    "schemaVersion": "3.0.0",
+    "totalBooks": 1,
+    "totalTags": 1,
+    "totalTagCategories": 1
+  },
+  "tagCategories": [
+    {
+      "id": "cat_user_custom",
+      "name": "自訂標籤",
+      "description": "",
+      "color": "#808080",
+      "isSystem": false,
+      "sortOrder": 1,
+      "createdAt": "2026-05-01T00:00:00.000Z",
+      "updatedAt": "2026-05-01T00:00:00.000Z"
+    }
+  ],
+  "tags": [
+    {
+      "id": "tag_uc04_c",
+      "name": "推理",
+      "categoryId": "cat_user_custom",
+      "isSystem": false,
+      "sortOrder": 2,
+      "createdAt": "2026-05-03T00:00:00.000Z",
+      "updatedAt": "2026-05-03T00:00:00.000Z"
+    }
+  ],
+  "books": [
+    {
+      "id": "uc04-book-x",
+      "title": "UC04 測試書 X",
+      "readingStatus": "reading",
+      "authors": ["測試作者一"],
+      "publisher": "UC04 出版社",
+      "progress": 45,
+      "type": "電子書",
+      "cover": "https://cdn.readmoo.com/cover/uc04-book-x.jpg",
+      "tagIds": ["tag_uc04_c"],
+      "isManualStatus": false,
+      "extractedAt": "2026-05-10T08:00:00.000Z",
+      "updatedAt": "2026-05-22T12:00:00.000Z",
+      "source": "readmoo"
+    }
+  ]
+}

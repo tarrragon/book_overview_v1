@@ -1,0 +1,22 @@
+[
+  {
+    "id": "uc04-v1-book-1",
+    "title": "UC04 V1 測試書一",
+    "author": "V1 作者甲",
+    "cover": "https://cdn.readmoo.com/cover/uc04-v1-book-1.jpg",
+    "isNew": false,
+    "isFinished": true,
+    "progress": 100,
+    "category": "V1匯入分類"
+  },
+  {
+    "id": "uc04-v1-book-2",
+    "title": "UC04 V1 測試書二",
+    "author": "V1 作者乙",
+    "cover": "https://cdn.readmoo.com/cover/uc04-v1-book-2.jpg",
+    "isNew": false,
+    "isFinished": false,
+    "progress": 30,
+    "category": "V1匯入分類"
+  }
+]
