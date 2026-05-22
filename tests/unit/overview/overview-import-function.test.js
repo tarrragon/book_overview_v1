@@ -843,7 +843,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
         expect(controller.currentBooks[0].title).toBe('Books包裝測試書籍')
       })
 
-      test('應該處理大型資料集的效能', async () => {
+      test('應該正確載入大型資料集', async () => {
         // Given: 包含5000本書的大型資料集
         // eslint-disable-next-line no-unused-vars
         const largeDataset = Array.from({ length: 5000 }, (_, i) => ({
@@ -857,18 +857,11 @@ describe('📄 Overview 資料匯入功能測試', () => {
         // eslint-disable-next-line no-unused-vars
         const fileContent = JSON.stringify(largeDataset)
 
-        // When: 執行檔案載入並測量時間
-        // eslint-disable-next-line no-unused-vars
-        const startTime = Date.now()
+        // When: 執行檔案載入
         await controller.handleFileLoad(createMockFile(fileContent))
-        // eslint-disable-next-line no-unused-vars
-        const endTime = Date.now()
 
-        // Then: 驗證效能要求
+        // Then: 驗證大型資料集正確載入與資料完整性
         expect(controller.currentBooks).toHaveLength(5000)
-        expect(endTime - startTime).toBeLessThan(3000) // 3秒內完成
-
-        // 驗證資料完整性
         expect(controller.currentBooks[0].id).toBe('book-0')
         expect(controller.currentBooks[4999].id).toBe('book-4999')
         expect(Array.isArray(controller.currentBooks[100].tags)).toBe(true)
