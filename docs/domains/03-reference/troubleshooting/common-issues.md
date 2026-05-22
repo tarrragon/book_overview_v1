@@ -83,7 +83,7 @@
 **解決步驟**：
 
 1. **檢查當前頁面**
-   - 確認您在 Readmoo 書庫頁面 (`readmoo.com/library`)
+   - 確認您在 Readmoo 書庫頁面 (`read.readmoo.com/#/library`)
    - 確認頁面上顯示有書籍
 
 2. **更新擴展**

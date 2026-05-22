@@ -453,7 +453,7 @@ describe('Chrome Extension Integration Tests', () => {
       
       mockChrome.tabs.query.mockResolvedValue([
         { id: 123, url: 'https://readmoo.com/explore' },
-        { id: 124, url: 'https://readmoo.com/library' }
+        { id: 124, url: 'https://read.readmoo.com/#/library' }
       ]);
       
       mockChrome.tabs.sendMessage.mockResolvedValue({ success: true });

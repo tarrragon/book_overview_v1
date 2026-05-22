@@ -358,7 +358,7 @@ describe('Chrome Extension Performance Integration', () => {
       
       const startTime = performance.now();
       
-      await page.goto('https://readmoo.com/library');
+      await page.goto('https://read.readmoo.com/#/library');
       
       // 等待 Content Script 注入完成
       await page.waitForFunction(() => {
@@ -375,7 +375,7 @@ describe('Chrome Extension Performance Integration', () => {
   describe('Data Extraction Performance', () => {
     test('Book list extraction speed', async () => {
       const page = await context.newPage();
-      await page.goto('https://readmoo.com/library');
+      await page.goto('https://read.readmoo.com/#/library');
       
       // 等待頁面載入完成
       await page.waitForLoadState('networkidle');
@@ -745,7 +745,7 @@ describe('User Journey Load Tests', () => {
       {
         name: 'Navigate to library',
         action: async (page) => {
-          await page.goto('https://readmoo.com/library');
+          await page.goto('https://read.readmoo.com/#/library');
           await page.waitForLoadState('networkidle');
         }
       },

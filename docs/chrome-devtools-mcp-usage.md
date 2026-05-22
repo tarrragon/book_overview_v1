@@ -63,7 +63,7 @@ npm run build:dev    # 產出 build/development/
 直接請 Claude Code 用 chrome-devtools-mcp 工具操作。例：
 
 > 「用 chrome-devtools-mcp 開啟 chrome-extension://<id>/popup.html，看 console 有沒有錯誤」
-> 「載入後導航到 https://readmoo.com/library，等 content script 注入完成，截圖並讀 console」
+> 「載入後導航到 https://read.readmoo.com/#/library，等 content script 注入完成，截圖並讀 console」
 
 Claude Code 可呼叫的工具（categoryExtensions 啟用後可見）：
 
@@ -118,7 +118,7 @@ attach 模式必須移除 `--categoryExtensions` 與 `--chromeArg`（兩者僅 p
 
 ### 在 Claude Code 中
 
-> 「attach 到 localhost:9222 的 Chrome，導航到 https://readmoo.com/library，看 extension 注入的 content script 輸出什麼到 console」
+> 「attach 到 localhost:9222 的 Chrome，導航到 https://read.readmoo.com/#/library，看 extension 注入的 content script 輸出什麼到 console」
 
 可用工具集（attach 模式）：
 

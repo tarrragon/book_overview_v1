@@ -12,7 +12,7 @@
 new StandardError('DOM_READMOO_PAGE_NOT_DETECTED', '無法檢測到 Readmoo 書庫頁面', {
   severity: 'SEVERE',
   currentUrl: window.location.href,
-  expectedPatterns: ['readmoo.com/library', 'readmoo.com/shelf'],
+  expectedPatterns: ['read.readmoo.com/#/library', 'read.readmoo.com/#/shelf'],
   detectedElements: []
 })
 ```

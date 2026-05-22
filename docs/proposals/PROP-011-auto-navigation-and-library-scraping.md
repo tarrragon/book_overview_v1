@@ -100,7 +100,7 @@ scrapeAllPages(onProgress):
 ```
 使用者點 popup「一鍵提取全部書目」
   → chrome.storage.session.set({ autoStartExtraction: true })
-  → chrome.tabs.update(activeTab, { url: 'https://readmoo.com/library' })
+  → chrome.tabs.update(activeTab, { url: 'https://read.readmoo.com/#/library' })
   → 到達後 content script init 讀取 flag → 自動 waitForDom → 自動 scroll → 自動 scrape
   → 完成後 clear flag + 顯示結果
 ```
