@@ -826,36 +826,6 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
       controller.filteredBooks = testBooks
     })
 
-    test('應該正確處理CSV匯出', () => {
-      // Mock downloadCSVFile 方法來捕獲 CSV 內容
-      // eslint-disable-next-line no-unused-vars
-      const downloadCSVSpy = jest.spyOn(controller, 'downloadCSVFile').mockImplementation((csvContent) => {
-        expect(csvContent).toContain('書名') // 驗證 CSV 內容包含標題
-        expect(csvContent).toContain('測試書籍 1') // 驗證包含測試資料
-      })
-
-      controller.handleExportCSV()
-
-      expect(downloadCSVSpy).toHaveBeenCalledWith(expect.any(String))
-      downloadCSVSpy.mockRestore()
-    })
-
-    test('應該正確處理JSON匯出', () => {
-      // Mock downloadJSONFile 方法來捕獲 JSON 內容
-      // eslint-disable-next-line no-unused-vars
-      const downloadJSONSpy = jest.spyOn(controller, 'downloadJSONFile').mockImplementation((jsonContent) => {
-        expect(() => JSON.parse(jsonContent)).not.toThrow() // 驗證是有效的 JSON
-        // eslint-disable-next-line no-unused-vars
-        const parsedData = JSON.parse(jsonContent)
-        expect(parsedData.books).toHaveLength(3) // 驗證包含 3 本測試書籍
-      })
-
-      controller.handleExportJSON()
-
-      expect(downloadJSONSpy).toHaveBeenCalledWith(expect.any(String))
-      downloadJSONSpy.mockRestore()
-    })
-
     test('應該正確處理檔案載入', () => {
       // eslint-disable-next-line no-unused-vars
       const fileContent = TestDataFactory.createFileTestData.validJSON()

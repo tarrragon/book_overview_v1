@@ -16,7 +16,6 @@
  */
 
 const { BookFileImporter } = require('../../../src/overview/book-file-importer')
-const { BookExporter } = require('../../../src/overview/book-exporter')
 
 describe('BookFileImporter CSV import（W6-012.6.2）', () => {
   function makeImporter () {
@@ -81,25 +80,13 @@ describe('BookFileImporter CSV import（W6-012.6.2）', () => {
       expect(book.tagIds).toEqual(['tag-001', 'tag-002'])
     })
 
-    test('能 round-trip：BookExporter 匯出 → BookFileImporter 匯入', () => {
-      const sourceBooks = [
-        {
-          id: 'rt-001',
-          title: '迴圈書',
-          source: 'readmoo',
-          progress: 75,
-          status: 'reading',
-          cover: 'https://example.com/rt-001.jpg',
-          authors: ['Alice', 'Bob'],
-          tagIds: ['tech', 'fiction']
-        }
-      ]
-
-      const exporter = new BookExporter({
-        getFilteredBooks: () => sourceBooks,
-        document
-      })
-      const csvContent = exporter.generateCSVContent()
+    test('能 round-trip：CSV 匯出格式 → BookFileImporter 匯入', () => {
+      // inline CSV fixture，對應 book-exporter v1 CSV 輸出格式
+      // （v1 generateCSVContent 已於 W1-042.2 移除，改用固定字串避免死碼依賴）
+      const csvContent = [
+        '書名,書城來源,進度,狀態,封面URL,id,authors,tagIds',
+        '"迴圈書","readmoo","75","reading","https://example.com/rt-001.jpg","rt-001","Alice, Bob","tech; fiction"'
+      ].join('\n')
 
       const importer = makeImporter()
       const imported = parseCSV(importer, csvContent)

@@ -461,32 +461,6 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
   })
 
   describe('🔴 Red Phase: 使用者操作處理', () => {
-    test('應該能處理匯出 CSV 操作', () => {
-      const { OverviewPageController } = require('src/overview/overview-page-controller')
-      // eslint-disable-next-line no-unused-vars
-      const controller = new OverviewPageController(mockEventBus, document)
-
-      expect(typeof controller.handleExportCSV).toBe('function')
-
-      // eslint-disable-next-line no-unused-vars
-      const mockBooks = [
-        { id: '1', title: '書籍1', tags: ['readmoo'], progress: 50, status: '閱讀中' },
-        { id: '2', title: '書籍2', tags: ['kobo'], progress: 100, status: '已完成' }
-      ]
-
-      // Mock 全域函數
-      global.URL = {
-        createObjectURL: jest.fn(() => 'blob:url'),
-        revokeObjectURL: jest.fn()
-      }
-      global.Blob = jest.fn()
-
-      controller.filteredBooks = mockBooks
-      controller.handleExportCSV()
-
-      expect(global.Blob).toHaveBeenCalled()
-    })
-
     test('應該能處理重新載入操作', async () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
       // eslint-disable-next-line no-unused-vars
