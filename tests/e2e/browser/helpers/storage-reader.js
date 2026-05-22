@@ -18,10 +18,15 @@
  * - tests/e2e/browser/ 真實瀏覽器 E2E 測試讀取提取結果驗證 model 斷言。
  */
 
+const { acquireServiceWorkerTarget } = require('../../setup/service-worker-target')
+
 const STORAGE_KEY = 'readmoo_books'
 
 /**
  * 取得 Extension Service Worker 的 worker context
+ *
+ * SW target 取得邏輯收斂於 setup/service-worker-target.js（單一 SSOT）；
+ * 本函式保留 [SETUP] 前綴錯誤包裝（屬環境問題的可觀測契約）。
  *
  * @param {import('puppeteer').Browser} browser - Puppeteer Browser 實例
  * @param {number} timeout - 等待 SW target 的逾時毫秒數
@@ -30,11 +35,7 @@ const STORAGE_KEY = 'readmoo_books'
  */
 async function getServiceWorker (browser, timeout = 10000) {
   try {
-    const swTarget = await browser.waitForTarget(
-      target => target.type() === 'service_worker' &&
-                target.url().startsWith('chrome-extension://'),
-      { timeout }
-    )
+    const swTarget = await acquireServiceWorkerTarget(browser, timeout)
     return await swTarget.worker()
   } catch (error) {
     throw new Error(`[SETUP] 取得 Service Worker 失敗: ${error.message}`)

@@ -29,6 +29,7 @@ const puppeteer = require('puppeteer')
 const path = require('path')
 const fs = require('fs')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { acquireServiceWorkerTarget } = require('./service-worker-target')
 
 class ExtensionTestSetup {
   constructor () {
@@ -132,13 +133,10 @@ class ExtensionTestSetup {
    */
   async getExtensionId () {
     try {
-      // Service Worker 可能需要數秒才完成註冊，使用 waitForTarget 等待
+      // Service Worker 可能需要數秒才完成註冊；SW target 取得邏輯收斂於
+      // setup/service-worker-target.js（單一 SSOT），此處只需 target.url()。
       const SW_WAIT_TIMEOUT = 10000
-      const extensionTarget = await this.browser.waitForTarget(
-        target => target.type() === 'service_worker' &&
-                  target.url().startsWith('chrome-extension://'),
-        { timeout: SW_WAIT_TIMEOUT }
-      )
+      const extensionTarget = await acquireServiceWorkerTarget(this.browser, SW_WAIT_TIMEOUT)
 
       const extensionUrl = extensionTarget.url()
       const extensionId = extensionUrl.split('/')[2]
@@ -242,15 +240,13 @@ class ExtensionTestSetup {
    */
   async getBackgroundPage () {
     try {
-      // Manifest V3 使用 Service Worker，需要用 waitForTarget 確保已啟動
+      // Manifest V3 使用 Service Worker；SW target 取得邏輯收斂於
+      // setup/service-worker-target.js（單一 SSOT）。
       const SW_WAIT_TIMEOUT = 10000
-      const backgroundTarget = await this.browser.waitForTarget(
-        target => target.type() === 'service_worker' &&
-                  target.url().startsWith('chrome-extension://'),
-        { timeout: SW_WAIT_TIMEOUT }
-      )
+      const backgroundTarget = await acquireServiceWorkerTarget(this.browser, SW_WAIT_TIMEOUT)
 
-      // Service Worker 使用 worker() 而非 page() 取得執行上下文
+      // Service Worker 使用 worker() 而非 page() 取得執行上下文；
+      // this.backgroundPage 副作用指派為 caller 專屬，不進 SSOT。
       this.backgroundPage = await backgroundTarget.worker()
       return this.backgroundPage
     } catch (error) {
