@@ -867,66 +867,6 @@ class OverviewPageController extends EventHandlerClass {
     this._toggleElement('errorContainer', false)
   }
 
-  // ========== 匯出方法（委派至 BookExporter） ==========
-
-  /**
-   * 處理匯出 CSV 操作（委派至 BookExporter）
-   *
-   * 保留 Controller 層級的方法簽名，以維持向後相容性。
-   * 內部透過自身的 generateCSVContent / downloadCSVFile 方法執行，
-   * 確保外部 spy 可以正確攔截子方法呼叫。
-   */
-  handleExportCSV () {
-    if (!this.filteredBooks || this.filteredBooks.length === 0) {
-      alert(CONSTANTS.MESSAGES.NO_DATA_EXPORT)
-      return
-    }
-
-    const csvContent = this.generateCSVContent()
-    this.downloadCSVFile(csvContent)
-  }
-
-  /**
-   * 處理匯出 JSON 操作（委派至 BookExporter）
-   */
-  handleExportJSON () {
-    if (!this.filteredBooks || this.filteredBooks.length === 0) {
-      alert(CONSTANTS.MESSAGES.NO_DATA_EXPORT)
-      return
-    }
-
-    const json = this.generateJSONContent()
-    this.downloadJSONFile(json)
-  }
-
-  /**
-   * 生成 CSV 內容（委派至 BookExporter）
-   */
-  generateCSVContent () {
-    return this.bookExporter.generateCSVContent()
-  }
-
-  /**
-   * 生成 JSON 內容（委派至 BookExporter）
-   */
-  generateJSONContent () {
-    return this.bookExporter.generateJSONContent()
-  }
-
-  /**
-   * 下載 CSV 檔案（委派至 BookExporter）
-   */
-  downloadCSVFile (csvContent) {
-    this.bookExporter.downloadCSVFile(csvContent)
-  }
-
-  /**
-   * 下載 JSON 檔案（委派至 BookExporter）
-   */
-  downloadJSONFile (jsonContent) {
-    this.bookExporter.downloadJSONFile(jsonContent)
-  }
-
   // ========== v2 匯出方法（委派至 BookDataExporter，Interchange Format v2） ==========
 
   /**
