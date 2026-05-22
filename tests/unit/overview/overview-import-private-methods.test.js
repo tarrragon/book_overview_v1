@@ -18,6 +18,11 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
   let OverviewPageController
 
   // 測試資料集
+  // validBook 為 v2 形狀 fixture（W1-047.1 IMP-A 起 JSON 匯入經 v1->v2 轉換）：
+  // v1 欄位 status/tags 經 convertV1ToV2Book 轉為 readingStatus/tagIds，
+  // status 字串不參與映射（mapV1StatusToV2 只讀 isFinished/isNew/progress）。
+  // progress:50 -> readingStatus:'reading'；無 category -> tagIds:[]。
+  // updatedAt 為轉換時 runtime timestamp，非確定值，不列入 toMatchObject 比對。
   // eslint-disable-next-line no-unused-vars
   const testDataSets = {
     validBook: {
@@ -25,10 +30,10 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
       title: '測試書籍',
       cover: 'http://example.com/cover.jpg',
       progress: 50,
-      status: '閱讀中',
+      readingStatus: 'reading',
       source: 'readmoo',
       extractedAt: '2025-08-22T10:00:00.000Z',
-      tags: ['readmoo'],
+      tagIds: [],
       type: '電子書'
     },
     largeBook: {
@@ -722,11 +727,13 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
       test('應該處理包含特殊字符的 JSON', async () => {
         // Given: 包含特殊字符的書籍資料
+        // 註：v2 轉換產出固定 schema，v1-passthrough 自訂欄位（如 description）
+        // 不保留。本測試核心驗證為「特殊字符經 JSON 解析正確保留」，
+        // 由 v2 schema 內欄位 title（含特殊字符）驗證即足。
         // eslint-disable-next-line no-unused-vars
         const specialBook = {
           ...testDataSets.validBook,
-          title: '特殊字符📚測試\n"引號"\'單引號\'',
-          description: '包含\t製表符\r\n換行符的描述'
+          title: '特殊字符📚測試\n"引號"\'單引號\''
         }
         // eslint-disable-next-line no-unused-vars
         const specialJSON = JSON.stringify([specialBook])
@@ -743,7 +750,6 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // Then: 應該正確處理特殊字符
         expect(controller.books).toHaveLength(1)
         expect(controller.books[0].title).toBe(specialBook.title)
-        expect(controller.books[0].description).toBe(specialBook.description)
       })
     })
   })

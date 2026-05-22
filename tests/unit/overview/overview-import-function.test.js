@@ -392,11 +392,13 @@ describe('📄 Overview 資料匯入功能測試', () => {
   describe('📋 資料格式驗證', () => {
     test('應該驗證必要欄位的存在', async () => {
       // Given: 包含無效記錄的JSON檔案
+      // W1-047.1 IMP-A 起 cover 為選填（SPEC-EXPORT-V2 §3.5），
+      // 必要欄位僅 id + title。缺 cover 不過濾，缺 id 仍過濾。
       // eslint-disable-next-line no-unused-vars
       const invalidBooks = [
         { id: 'book-1', title: '完整書籍', cover: 'http://example.com/cover.jpg' },
-        { id: 'book-2', title: '缺少封面' }, // 缺少cover欄位
-        { title: '缺少ID', cover: 'http://example.com/cover.jpg' } // 缺少id欄位
+        { id: 'book-2', title: '缺少封面' }, // 缺少cover欄位：cover 選填，保留
+        { title: '缺少ID', cover: 'http://example.com/cover.jpg' } // 缺少id欄位：過濾
       ]
       // eslint-disable-next-line no-unused-vars
       const fileContent = JSON.stringify(invalidBooks)
@@ -404,13 +406,15 @@ describe('📄 Overview 資料匯入功能測試', () => {
       // When: 執行檔案載入
       await controller.handleFileLoad(createMockFile(fileContent))
 
-      // Then: 驗證只載入有效記錄
-      expect(controller.currentBooks).toHaveLength(1)
+      // Then: 缺 cover 書籍保留、缺 id 書籍被過濾，共載入 2 本
+      expect(controller.currentBooks).toHaveLength(2)
       expect(controller.currentBooks[0].id).toBe('book-1')
+      expect(controller.currentBooks[1].id).toBe('book-2')
     })
 
     test('應該處理不同的資料類型', async () => {
       // Given: 包含不同資料類型的JSON檔案
+      // W1-047.1 IMP-A 起 JSON 匯入經 v1->v2 轉換：v1 tags 轉為 v2 tagIds 陣列。
       // eslint-disable-next-line no-unused-vars
       const mixedData = [
         {
@@ -428,9 +432,9 @@ describe('📄 Overview 資料匯入功能測試', () => {
       // When: 執行檔案載入
       await controller.handleFileLoad(createMockFile(fileContent))
 
-      // Then: 驗證資料類型正確處理
+      // Then: 驗證資料類型正確處理（數字 progress、字串 extractedAt、陣列 tagIds）
       expect(controller.currentBooks[0].progress).toBe(50)
-      expect(Array.isArray(controller.currentBooks[0].tags)).toBe(true)
+      expect(Array.isArray(controller.currentBooks[0].tagIds)).toBe(true)
       expect(controller.currentBooks[0].extractedAt).toBe('2025-08-22T10:00:00.000Z')
     })
   })
@@ -861,10 +865,11 @@ describe('📄 Overview 資料匯入功能測試', () => {
         await controller.handleFileLoad(createMockFile(fileContent))
 
         // Then: 驗證大型資料集正確載入與資料完整性
+        // W1-047.1 IMP-A 起 v1 tags 轉為 v2 tagIds 陣列。
         expect(controller.currentBooks).toHaveLength(5000)
         expect(controller.currentBooks[0].id).toBe('book-0')
         expect(controller.currentBooks[4999].id).toBe('book-4999')
-        expect(Array.isArray(controller.currentBooks[100].tags)).toBe(true)
+        expect(Array.isArray(controller.currentBooks[100].tagIds)).toBe(true)
       })
     })
 
@@ -998,6 +1003,8 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
       test('應該正確處理表格顯示更新', async () => {
         // Given: 準備包含完整資訊的書籍資料
+        // W1-047.1 IMP-A 起 JSON 匯入經 v1->v2 轉換：v1 status 轉為 v2 readingStatus，
+        // 表格狀態欄直接渲染 readingStatus 值（'reading'）。
         // eslint-disable-next-line no-unused-vars
         const completeBooks = [
           {
@@ -1005,7 +1012,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
             title: '完整資訊書籍',
             cover: 'http://example.com/cover.jpg',
             progress: 75,
-            status: '閱讀中',
+            readingStatus: 'reading',
             source: 'readmoo',
             type: '電子書'
           }
@@ -1030,7 +1037,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
         expect(row.querySelector('td:nth-child(3)').textContent).toContain('完整資訊書籍')
         expect(row.querySelector('td:nth-child(4)').textContent).toContain('readmoo')
         expect(row.querySelector('td:nth-child(5)').textContent).toContain('75%')
-        expect(row.querySelector('td:nth-child(6)').textContent).toContain('閱讀中')
+        expect(row.querySelector('td:nth-child(6)').textContent).toContain('reading')
       })
     })
   })
