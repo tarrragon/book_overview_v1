@@ -24,11 +24,15 @@ if (!fs.existsSync(BUILD_DIR)) {
 }
 
 // 需要複製的檔案和目錄
+//
+// overview 入口由 src/overview/overview.html 提供（event-driven，自動讀
+// chrome.storage），manifest.json 的 options_page 已指向該檔。
+// 舊版根目錄 overview.html（檔案式 legacy，引用 assets/js/main.js）已移除，
+// 故此處不再複製根目錄 overview.html，避免分發產物殘留孤兒入口。
 const filesToCopy = [
   'manifest.json',
   'src/',
-  'assets/',
-  'overview.html'
+  'assets/'
 ];
 
 /**
