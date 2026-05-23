@@ -259,7 +259,7 @@ class OverviewPageController extends EventHandlerClass {
           // 後備機制: console.warn 提供 storage 事件處理錯誤的基本可見性
           // 使用場景: Chrome Storage API 事件監聽錯誤，不應中斷頁面功能
           // eslint-disable-next-line no-console
-          console.warn('⚠️ 處理 storage 變更失敗:', error)
+          console.warn('[WARNING] 處理 storage 變更失敗:', error)
         }
       })
     }
@@ -461,7 +461,7 @@ class OverviewPageController extends EventHandlerClass {
       // 後備機制: console.warn 確保環境問題能被立即發現
       // 使用場景: 非 Chrome Extension 環境或 API 不可用時的即時提醒
       // eslint-disable-next-line no-console
-      console.warn('⚠️ Chrome Storage API 不可用')
+      console.warn('[WARNING] Chrome Storage API 不可用')
       return
     }
 
@@ -500,7 +500,7 @@ class OverviewPageController extends EventHandlerClass {
       // 後備機制: console.error 確保錯誤可見性，即使在無 Logger 環境
       // 使用場景: 頁面核心功能無法運作時的錯誤追蹤
       // eslint-disable-next-line no-console
-      console.error('❌ 從 Chrome Storage 載入書籍資料失敗:', error)
+      console.error('[ERROR] 從 Chrome Storage 載入書籍資料失敗:', error)
       this.showError('無法載入書籍資料: ' + error.message)
     }
   }
@@ -925,7 +925,7 @@ class OverviewPageController extends EventHandlerClass {
     } catch (error) {
       // 匯出失敗（storage 讀取或序列化錯誤）須讓使用者可見，避免靜默無回饋
       // eslint-disable-next-line no-console
-      console.error('❌ v2 JSON 匯出失敗:', error)
+      console.error('[ERROR] v2 JSON 匯出失敗:', error)
       this.showError('JSON 匯出失敗: ' + (error && error.message ? error.message : error))
     }
   }
@@ -958,7 +958,7 @@ class OverviewPageController extends EventHandlerClass {
       this._triggerExportDownload(csv, 'csv', CONSTANTS.EXPORT_V2.CSV_MIME)
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error('❌ v2 CSV 匯出失敗:', error)
+      console.error('[ERROR] v2 CSV 匯出失敗:', error)
       this.showError('CSV 匯出失敗: ' + (error && error.message ? error.message : error))
     }
   }
@@ -1081,7 +1081,7 @@ class OverviewPageController extends EventHandlerClass {
     // DOM 缺失防禦：任一元素為 null 視為設計缺陷，回傳哨兵值供 handleFileLoad 分流
     if (!overlay || !modal || !overwriteBtn || !mergeBtn || !cancelBtn) {
       // eslint-disable-next-line no-console
-      console.error('❌ 匯入模式 modal 元素缺失，無法顯示模式選擇')
+      console.error('[ERROR] 匯入模式 modal 元素缺失，無法顯示模式選擇')
       return Promise.resolve(IMPORT_MODE_MODAL_MISSING)
     }
 
@@ -1404,15 +1404,6 @@ class OverviewPageController extends EventHandlerClass {
   _updateUIWithBooks (books) {
     this._updateBooksData(books)
     this.updateDisplay()
-    this._logLoadSuccess(books)
-  }
-
-  /**
-   * 記錄載入成功訊息
-   * @private
-   * @param {Array} books - 載入的書籍陣列
-   */
-  _logLoadSuccess (books) {
   }
 
   // ========== EventHandler 抽象方法實現 ==========
