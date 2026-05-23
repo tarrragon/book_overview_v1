@@ -181,7 +181,8 @@
       "mcp__chrome-devtools__reload_extension",
       "mcp__chrome-devtools__close_page",
       "Skill(error-pattern)",
-      "Skill(parallel-evaluation)"
+      "Skill(parallel-evaluation)",
+      "mcp__chrome-devtools__upload_file"
     ]
   },
   "enableAllProjectMcpServers": true,
