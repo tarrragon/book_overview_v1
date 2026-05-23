@@ -689,7 +689,19 @@ class BatchValidationProcessor extends BaseModule {
    * @returns {Object} 健康狀態
    */
   isBatchProcessorHealthy () {
-    const memoryUsage = process.memoryUsage()
+    // Chrome Extension 環境記憶體量測：performance.memory 為 Chrome-only API
+    // typeof guard 保留：(1) 跨環境安全，(2) Firefox / Safari / Jest jsdom 無此 API
+    // 對應欄位：heapUsed = usedJSHeapSize，heapTotal = totalJSHeapSize，external 無對應回傳 0
+    let memoryUsage
+    if (typeof performance !== 'undefined' && performance.memory) {
+      memoryUsage = {
+        heapUsed: performance.memory.usedJSHeapSize,
+        heapTotal: performance.memory.totalJSHeapSize,
+        external: 0
+      }
+    } else {
+      memoryUsage = { heapUsed: 0, heapTotal: 0, external: 0 }
+    }
 
     return {
       isHealthy: memoryUsage.heapUsed < 500 * 1024 * 1024, // 500MB 限制

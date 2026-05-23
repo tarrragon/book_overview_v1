@@ -471,13 +471,19 @@ class CacheManagementService extends BaseModule {
 
   /**
    * 獲取記憶體使用情況
+   *
+   * Chrome Extension 環境記憶體量測：performance.memory 為 Chrome-only API
+   * typeof guard 保留：(1) 跨環境安全，(2) Firefox / Safari / Jest jsdom 無此 API
+   * 對應欄位：heapUsed = usedJSHeapSize，heapTotal = totalJSHeapSize
    */
   getMemoryUsage () {
-    const memoryUsage = process.memoryUsage()
-    return {
-      heapUsed: memoryUsage.heapUsed,
-      heapTotal: memoryUsage.heapTotal
+    if (typeof performance !== 'undefined' && performance.memory) {
+      return {
+        heapUsed: performance.memory.usedJSHeapSize,
+        heapTotal: performance.memory.totalJSHeapSize
+      }
     }
+    return { heapUsed: 0, heapTotal: 0 }
   }
 
   /**

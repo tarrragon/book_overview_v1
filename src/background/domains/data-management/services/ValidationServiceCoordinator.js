@@ -792,8 +792,12 @@ class ValidationServiceCoordinator {
    * @private
    */
   _getCurrentResourceUtilization () {
+    // performance.memory 為 Chrome-only API；typeof guard 保留作跨環境 fallback
+    const heapUsed = (typeof performance !== 'undefined' && performance.memory)
+      ? performance.memory.usedJSHeapSize
+      : 0
     return {
-      memory: process.memoryUsage().heapUsed,
+      memory: heapUsed,
       activeCoordinations: this.activeCoordinations.size,
       timestamp: Date.now()
     }
@@ -1011,11 +1015,15 @@ class ValidationServiceCoordinator {
    * @private
    */
   _calculateResourceUtilization (parallelResult) {
+    // performance.memory 為 Chrome-only API；typeof guard 保留作跨環境 fallback
+    const heapUsed = (typeof performance !== 'undefined' && performance.memory)
+      ? performance.memory.usedJSHeapSize
+      : 0
     return {
       concurrency: parallelResult.concurrentTasks || 0,
       maxConcurrency: this.config.maxConcurrentOperations,
       utilizationRate: (parallelResult.concurrentTasks || 0) / this.config.maxConcurrentOperations,
-      memoryUsage: process.memoryUsage().heapUsed
+      memoryUsage: heapUsed
     }
   }
 
@@ -1099,8 +1107,17 @@ class ValidationServiceCoordinator {
    * @private
    */
   _calculateOverallResourceUtilization () {
+    // performance.memory 為 Chrome-only API；typeof guard 保留作跨環境 fallback
+    // 對應欄位：heapUsed = usedJSHeapSize，heapTotal = totalJSHeapSize，external 無對應回傳 0
+    const memory = (typeof performance !== 'undefined' && performance.memory)
+      ? {
+          heapUsed: performance.memory.usedJSHeapSize,
+          heapTotal: performance.memory.totalJSHeapSize,
+          external: 0
+        }
+      : { heapUsed: 0, heapTotal: 0, external: 0 }
     return {
-      memory: process.memoryUsage(),
+      memory,
       activeCoordinations: this.activeCoordinations.size,
       serviceHealth: Array.from(this.serviceHealthStatus.values()).filter(s => s.status === 'healthy').length
     }
@@ -1128,11 +1145,15 @@ class ValidationServiceCoordinator {
    * @private
    */
   _calculateResourceUtilizationSummary () {
+    // performance.memory 為 Chrome-only API；typeof guard 保留作跨環境 fallback
+    const heapUsed = (typeof performance !== 'undefined' && performance.memory)
+      ? performance.memory.usedJSHeapSize
+      : 0
     return {
       activeCoordinations: this.activeCoordinations.size,
       maxConcurrentOperations: this.config.maxConcurrentOperations,
       utilizationPercentage: (this.activeCoordinations.size / this.config.maxConcurrentOperations) * 100,
-      memoryUsage: process.memoryUsage().heapUsed
+      memoryUsage: heapUsed
     }
   }
 
