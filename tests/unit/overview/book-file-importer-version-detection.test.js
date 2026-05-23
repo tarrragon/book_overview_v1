@@ -242,6 +242,86 @@ describe('BookFileImporter 版本偵測與 v1 轉換接線（0.19.0-W1-047.1）'
     })
   })
 
+  describe('Group F：CSV 路徑不走版本偵測閘門（0.19.0-W1-048.3 / Phase 4 F11 regression）', () => {
+    // 設計鎖定：src/overview/book-file-importer.js 行 605-650 `_extractBooksFromData`
+    // 中 fileFormat === 'json' 條件刻意 bypass CSV 路徑（行 580-599 註解理由）。
+    // 此 describe 透過 jest.isolateModules + jest.doMock 注入 spy，確保未來若有人
+    // 誤刪 fileFormat === 'json' 條件，CSV 案例會立即失敗、JSON 案例對照組維持綠燈。
+
+    function loadImporterWithSpies () {
+      let detectSpy
+      let convertSpy
+      let BookFileImporterIsolated
+      jest.isolateModules(() => {
+        detectSpy = jest.fn(jest.requireActual('../../../src/export/format-version-detector').detectFormatVersion)
+        convertSpy = jest.fn(jest.requireActual('../../../src/export/v1-to-v2-converter').convertV1ToV2Data)
+        jest.doMock('src/export/format-version-detector', () => ({
+          detectFormatVersion: detectSpy
+        }))
+        jest.doMock('src/export/v1-to-v2-converter', () => ({
+          convertV1ToV2Data: convertSpy
+        }))
+        jest.doMock('../../../src/export/format-version-detector', () => ({
+          detectFormatVersion: detectSpy
+        }))
+        jest.doMock('../../../src/export/v1-to-v2-converter', () => ({
+          convertV1ToV2Data: convertSpy
+        }))
+        BookFileImporterIsolated = require('../../../src/overview/book-file-importer').BookFileImporter
+      })
+      const importer = new BookFileImporterIsolated({ document, showError: () => {} })
+      return { importer, detectSpy, convertSpy }
+    }
+
+    test('TC-18 CSV 路徑不呼叫 detectFormatVersion / convertV1ToV2Data（核心鎖定）', () => {
+      const { importer, detectSpy, convertSpy } = loadImporterWithSpies()
+      // CSV 解析結果：純陣列形狀（detectFormatVersion 對純陣列會判 'v1'，
+      // 但 CSV 路徑必須 bypass 此判定，避免被誤導入 v1→v2 轉換）
+      const csvParsedData = [
+        { id: 'b1', title: '書一', readingStatus: 'reading', progress: 50, tags: [], tagIds: [] },
+        { id: 'b2', title: '書二', readingStatus: 'finished', progress: 100, tags: [], tagIds: [] }
+      ]
+      expect(Array.isArray(csvParsedData)).toBe(true)
+      expect(detectSpy).not.toHaveBeenCalled()
+
+      const result = importer._extractBooksFromData(csvParsedData, 'csv')
+
+      // 核心斷言：CSV 路徑 bypass 版本偵測閘門
+      expect(detectSpy).not.toHaveBeenCalled()
+      expect(convertSpy).not.toHaveBeenCalled()
+
+      // 行為驗證：CSV 落入 v2 路徑的 _isDirectArrayFormat 分支
+      expect(result.books).toBe(csvParsedData)
+      expect(result.tagCategories).toEqual([])
+      expect(result.tags).toEqual([])
+    })
+
+    test('TC-19 JSON v1 路徑仍呼叫 detectFormatVersion + convertV1ToV2Data（對照組）', () => {
+      const { importer, detectSpy, convertSpy } = loadImporterWithSpies()
+      const jsonV1Data = [
+        { id: 'b1', title: '書一', isFinished: true, progress: 100, author: '作者甲' }
+      ]
+      expect(detectSpy).not.toHaveBeenCalled()
+
+      const result = importer._extractBooksFromData(jsonV1Data, 'json')
+
+      expect(detectSpy).toHaveBeenCalledTimes(1)
+      expect(detectSpy).toHaveBeenCalledWith(jsonV1Data)
+      expect(convertSpy).toHaveBeenCalledTimes(1)
+      expect(result.books).toHaveLength(1)
+      expect(result.books[0].readingStatus).toBe('finished')
+    })
+
+    test('TC-20 JSON 預設值（未傳 fileFormat）仍走 JSON 路徑（既有行為鎖定）', () => {
+      const { importer, detectSpy } = loadImporterWithSpies()
+      const data = [{ id: 'b1', title: '書一', progress: 50 }]
+
+      importer._extractBooksFromData(data)
+
+      expect(detectSpy).toHaveBeenCalledTimes(1)
+    })
+  })
+
   describe('Group E：v1 轉換邊界（語義推演 Q1、SPEC §7.3）', () => {
     test('TC-15 全部書籍轉換失敗回傳空陣列', () => {
       const importer = makeImporter()
