@@ -129,6 +129,21 @@ async function bundleEntryPoints() {
       alias: {
         'src': srcAlias
       },
+      // 將 process.env.NODE_ENV 替換為 build mode 字串常量。
+      //
+      // Why: Chrome Extension runtime 無 Node.js process 物件，
+      // src/ 中 13 處 process.env.NODE_ENV 直接讀取會在 4 個 CE
+      // runtime（SW/content/popup/overview）造成 ReferenceError 崩潰。
+      // 此 define 於 bundle 時將 process.env.NODE_ENV 替換為
+      // JSON 字串常量（'development' / 'production'），執行期不再
+      // 觸及 process 物件，同時保留 if (process.env.NODE_ENV === 'production')
+      // 等條件分支語意。
+      //
+      // 來源：0.19.0-W1-050 ANA P7-P16（13 處致命級違規盤點）
+      // 落地：0.19.0-W1-050.2（spawn-B）
+      define: {
+        'process.env.NODE_ENV': JSON.stringify(MODE)
+      },
       logLevel: 'warning'
     });
 
