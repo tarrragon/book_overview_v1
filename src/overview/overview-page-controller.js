@@ -1214,8 +1214,7 @@ class OverviewPageController extends EventHandlerClass {
    */
   async handleFileLoad (file) {
     // 1. 驗證階段由 importer 處理（會呼叫 showError 並 throw）——先於 modal
-    this.bookFileImporter._validateFileBasics(file)
-    this.bookFileImporter._validateFileSize(file)
+    this.bookFileImporter.validate(file)
 
     // 2. 模式選擇 modal：驗證通過後、讀檔前彈出
     const mode = await this.promptImportMode()
@@ -1233,7 +1232,7 @@ class OverviewPageController extends EventHandlerClass {
 
     // 5. 讀檔（modal resolve 之後）：importer 回傳 ImportResult（INV-1 保證三欄位恆陣列）
     this.showLoading('正在讀取檔案...')
-    const importResult = await this.bookFileImporter._readFileWithReader(file)
+    const importResult = await this.bookFileImporter.read(file)
 
     // 6. 依模式分流持久化：覆蓋走 replaceAllData，合併走 mergeAllData
     const payload = {
