@@ -26,14 +26,15 @@ describe('BookFileImporter CSV import（W6-012.6.2）', () => {
   }
 
   /**
-   * 直接走內部 _handleFileContent 路徑（避免 FileReader 在 jsdom 環境的非同步處理差異）
+   * 直接走 public parseContent 路徑（避免 FileReader 在 jsdom 環境的非同步處理差異）
    *
-   * W1-047.2 / IMP-B：_handleFileContent 回傳介面由 Book[] 升級為 ImportResult
-   * （{ books, tagCategories, tags }）；helper 解構 .books 維持 CSV happy path
-   * 既有斷言不變。CSV 路徑 tagCategories / tags 恆為 []，另由 import-result 測試覆蓋。
+   * W1-048.1 Stage C.1：遷移至 public API（parseContent），不再呼底線 _handleFileContent。
+   * parseContent 回傳 ImportResult（{ books, tagCategories, tags }）；helper 解構 .books
+   * 維持 CSV happy path 既有斷言不變。CSV 路徑 tagCategories / tags 恆為 []，另由
+   * import-result 測試覆蓋。
    */
   function parseCSV (importer, csvText) {
-    return importer._handleFileContent(csvText, 'csv').books
+    return importer.parseContent(csvText, 'csv').books
   }
 
   /**
@@ -55,20 +56,23 @@ describe('BookFileImporter CSV import（W6-012.6.2）', () => {
       expect(() => importer.validate(null)).toThrow()
     })
 
-    test('parseContent(content, fileFormat) 對合法 CSV 內容回傳解析結果（delegate 至 _handleFileContent，行為等價）', () => {
+    test('parseContent(content, fileFormat) 對合法 CSV 內容回傳 ImportResult', () => {
+      // W1-048.1.3 Stage C.1 追加範圍修正：parseContent 實際回傳 ImportResult
+      // （{ books, tagCategories, tags }），非 Array<Book>。修正錯誤的 Array.isArray
+      // 斷言與 _handleFileContent 對照（後者為私有方法，本檔不再引用）。
       const importer = makeImporter()
       const csv = [
         '書名,書城來源,進度,狀態,封面URL,id,authors,tagIds',
         '"書","readmoo","0","unread","https://example.com/c.jpg","b1","",""'
       ].join('\n')
       const result = importer.parseContent(csv, 'csv')
-      const internalResult = importer._handleFileContent(csv, 'csv')
       expect(result).toBeDefined()
-      // parseContent 為 thin wrapper，行為與 _handleFileContent 等價（含回傳結構）
-      expect(result).toEqual(internalResult)
-      expect(Array.isArray(result)).toBe(true)
-      expect(result).toHaveLength(1)
-      expect(result[0].id).toBe('b1')
+      expect(result).toHaveProperty('books')
+      expect(result).toHaveProperty('tagCategories')
+      expect(result).toHaveProperty('tags')
+      expect(Array.isArray(result.books)).toBe(true)
+      expect(result.books).toHaveLength(1)
+      expect(result.books[0].id).toBe('b1')
     })
 
     test('parseContent 未傳 fileFormat 時 throw TypeError（F16 修復：型別契約強制，禁止 fallback 至 json）', () => {
@@ -92,16 +96,18 @@ describe('BookFileImporter CSV import（W6-012.6.2）', () => {
       expect(importer._isCSVFile({ name: 'books', type: 'text/csv;charset=utf-8;' })).toBe(true)
     })
 
-    test('_validateFileBasics 應接受 CSV 檔案不拋錯', () => {
+    test('validate 應接受 CSV 檔案不拋錯', () => {
+      // W1-048.1 Stage C.1：遷移自 _validateFileBasics 直呼至 public validate(file)
       const importer = makeImporter()
       const csvFile = { name: 'books.csv', type: 'text/csv', size: 100 }
-      expect(() => importer._validateFileBasics(csvFile)).not.toThrow()
+      expect(() => importer.validate(csvFile)).not.toThrow()
     })
 
-    test('_validateFileBasics 應拒絕非 JSON / CSV 檔案', () => {
+    test('validate 應拒絕非 JSON / CSV 檔案', () => {
+      // W1-048.1 Stage C.1：遷移自 _validateFileBasics 直呼至 public validate(file)
       const importer = makeImporter()
       const txtFile = { name: 'books.txt', type: 'text/plain', size: 100 }
-      expect(() => importer._validateFileBasics(txtFile)).toThrow('檔案格式不正確')
+      expect(() => importer.validate(txtFile)).toThrow('檔案格式不正確')
     })
   })
 
