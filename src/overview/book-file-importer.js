@@ -86,6 +86,58 @@ class BookFileImporter {
   }
 
   /**
+   * 驗證檔案是否符合匯入前置條件（存在性 + 格式 + 大小）
+   *
+   * Public API（W1-048.1 Stage A）：合併 _validateFileBasics + _validateFileSize 為單一進入點，
+   * 作為 controller / 外部呼叫者的驗證契約。內部 delegate 至既有底線私有方法，行為等價。
+   *
+   * @param {File} file - 要驗證的檔案
+   * @throws {Error} VALIDATION_ERROR：失敗時已呼叫 showError，caller 應中止流程
+   */
+  validate (file) {
+    this._validateFileBasics(file)
+    this._validateFileSize(file)
+  }
+
+  /**
+   * 從已驗證的 file 讀取內容、解析、提取 ImportResult
+   *
+   * Public API（W1-048.1 Stage A）：純 thin wrapper，delegate 至 _readFileWithReader。
+   * 前置：file 已通過 validate（caller 責任；read 不重複驗證）。
+   *
+   * @param {File} file - 要讀取的檔案（須已通過 validate）
+   * @returns {Promise<ImportResult>} 含 books / tagCategories / tags 三區段的匯入結果
+   */
+  read (file) {
+    return this._readFileWithReader(file)
+  }
+
+  /**
+   * 將字串內容解析為 ImportResult（純函式入口）
+   *
+   * Public API（W1-048.1 Stage A）：解決 F16 fileFormat 訊號遺失——
+   * fileFormat 為必填參數，未傳時 throw TypeError，從型別契約消除遺漏。
+   *
+   * @param {string} content - 檔案內容字串
+   * @param {string} fileFormat - 'json' 或 'csv'（必填，無預設值）
+   * @returns {ImportResult} 含 books / tagCategories / tags 三區段的匯入結果
+   * @throws {TypeError} fileFormat 缺漏（undefined / null）時拋出
+   * @throws {Error} fileFormat 非 'json' / 'csv' 時拋出 PARSE_ERROR；解析失敗時拋出對應 error
+   */
+  parseContent (content, fileFormat) {
+    if (fileFormat === undefined || fileFormat === null) {
+      throw new TypeError('parseContent: fileFormat is required (must be "json" or "csv")')
+    }
+    if (fileFormat !== 'json' && fileFormat !== 'csv') {
+      const error = new Error('parseContent: fileFormat must be "json" or "csv"')
+      error.code = ErrorCodes.PARSE_ERROR
+      error.details = { category: 'parsing' }
+      throw error
+    }
+    return this._handleFileContent(content, fileFormat)
+  }
+
+  /**
    * 驗證檔案基本要求
    * @private
    * @param {File} file - 要驗證的檔案

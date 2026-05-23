@@ -36,6 +36,48 @@ describe('BookFileImporter CSV import（W6-012.6.2）', () => {
     return importer._handleFileContent(csvText, 'csv').books
   }
 
+  /**
+   * W1-048.1 Stage A：Public API contract test
+   *
+   * 驗證 BookFileImporter 暴露 validate / read / parseContent 三個 public method，
+   * 以及 parseContent 對 fileFormat 必填的型別契約（F16 修復核心）。
+   */
+  describe('Public API contract（W1-048.1 Stage A）', () => {
+    test('validate / read / parseContent 為 callable public method', () => {
+      const importer = makeImporter()
+      expect(typeof importer.validate).toBe('function')
+      expect(typeof importer.read).toBe('function')
+      expect(typeof importer.parseContent).toBe('function')
+    })
+
+    test('validate(file) 對無效檔案（null）拋錯', () => {
+      const importer = makeImporter()
+      expect(() => importer.validate(null)).toThrow()
+    })
+
+    test('parseContent(content, fileFormat) 對合法 CSV 內容回傳解析結果（delegate 至 _handleFileContent，行為等價）', () => {
+      const importer = makeImporter()
+      const csv = [
+        '書名,書城來源,進度,狀態,封面URL,id,authors,tagIds',
+        '"書","readmoo","0","unread","https://example.com/c.jpg","b1","",""'
+      ].join('\n')
+      const result = importer.parseContent(csv, 'csv')
+      const internalResult = importer._handleFileContent(csv, 'csv')
+      expect(result).toBeDefined()
+      // parseContent 為 thin wrapper，行為與 _handleFileContent 等價（含回傳結構）
+      expect(result).toEqual(internalResult)
+      expect(Array.isArray(result)).toBe(true)
+      expect(result).toHaveLength(1)
+      expect(result[0].id).toBe('b1')
+    })
+
+    test('parseContent 未傳 fileFormat 時 throw TypeError（F16 修復：型別契約強制，禁止 fallback 至 json）', () => {
+      const importer = makeImporter()
+      const csv = '書名,id\n"書","b1"'
+      expect(() => importer.parseContent(csv)).toThrow(TypeError)
+    })
+  })
+
   describe('檔案格式偵測', () => {
     test('_isCSVFile 應識別 .csv 副檔名', () => {
       const importer = makeImporter()
