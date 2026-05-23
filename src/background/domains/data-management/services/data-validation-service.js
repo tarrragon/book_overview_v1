@@ -29,7 +29,7 @@
  */
 
 const { Logger } = require('src/core/logging/Logger')
-const crypto = require('crypto')
+const { djb2Hex16 } = require('src/utils/crypto-shim')
 
 // 引入新的錯誤類別系統
 const { BookValidationError } = require('src/core/errors/BookValidationError')
@@ -1512,7 +1512,7 @@ class DataValidationService {
    * 雜湊字串工具方法
    */
   hashString (str) {
-    return crypto.createHash('md5').update(str).digest('hex').substring(0, 16)
+    return djb2Hex16(str)
   }
 
   /**

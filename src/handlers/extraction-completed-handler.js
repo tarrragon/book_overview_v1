@@ -39,7 +39,7 @@
 
 const EventHandler = require('src/core/event-handler')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
-const crypto = require('crypto')
+const { randomHex } = require('src/utils/crypto-shim')
 
 class ExtractionCompletedHandler extends EventHandler {
   constructor (options = {}) {
@@ -512,7 +512,7 @@ class ExtractionCompletedHandler extends EventHandler {
    * @returns {string} 會話ID
    */
   generateSessionId () {
-    return crypto.randomBytes(8).toString('hex')
+    return randomHex(8)
   }
 
   /**

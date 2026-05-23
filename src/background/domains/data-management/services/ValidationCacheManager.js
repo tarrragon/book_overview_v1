@@ -29,7 +29,7 @@
  * - 系統資源使用監控和優化
  */
 
-const crypto = require('crypto')
+const { djb2Hex } = require('src/utils/crypto-shim')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class ValidationCacheManager {
@@ -960,7 +960,7 @@ class ValidationCacheManager {
 
   _generateRuleVersion (rules) {
     const content = JSON.stringify(rules, Object.keys(rules).sort())
-    return crypto.createHash('md5').update(content).digest('hex').substring(0, 8)
+    return djb2Hex(content)
   }
 
   _matchPattern (key, pattern) {
