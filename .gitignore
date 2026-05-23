@@ -94,5 +94,9 @@ __pycache__/
 # Claude migration backups (ticket migrate auto-generated)
 .claude/migration-backups/
 
+# Project-level backup directories (smart_fix / manual snapshots)
+.backup/
+backups/
+
 # E2E test screenshots (generated artifacts)
 tests/e2e/screenshots/
