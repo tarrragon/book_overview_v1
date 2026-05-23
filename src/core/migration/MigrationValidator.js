@@ -38,7 +38,7 @@ const VALIDATION_TYPE = {
  */
 class MigrationValidator {
   constructor (options = {}) {
-    this.projectRoot = options.projectRoot || process.cwd()
+    this.projectRoot = options.projectRoot || (typeof process !== 'undefined' && process.cwd ? process.cwd() : '/')
     this.eslintConfig = options.eslintConfig || '.eslintrc.js'
     this.testCommand = options.testCommand || 'npm test'
     this.buildCommand = options.buildCommand || 'npm run build'

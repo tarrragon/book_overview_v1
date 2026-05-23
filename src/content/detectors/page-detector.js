@@ -52,18 +52,6 @@ function createPageDetector () {
      */
     detectReadmooPage () {
       const location = getLocation()
-      // Debug: 在測試環境中強制輸出到標準輸出
-      const locationInfo = {
-        hostname: location.hostname,
-        href: location.href,
-        origin: location.origin,
-        globalThis: globalThis.location ? 'exists' : 'missing',
-        window: (typeof window !== 'undefined' && window?.location) ? 'exists' : 'missing'
-      }
-      // 強制輸出到stderr確保在Jest中可見
-      if (typeof process !== 'undefined' && process.stderr) {
-        process.stderr.write(`PageDetector Debug: ${JSON.stringify(locationInfo)}\n`)
-      }
       isReadmooPage = location.hostname && location.hostname.includes('readmoo.com')
       pageType = isReadmooPage ? this.detectPageType() : 'unknown'
 
