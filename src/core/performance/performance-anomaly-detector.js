@@ -406,9 +406,9 @@ export class PerformanceAnomalyDetector {
     // eslint-disable-next-line no-console
     console.warn('檢測到記憶體洩漏，觸發自動回應:', anomaly)
 
-    // 強制垃圾回收
-    if (global.gc) {
-      global.gc()
+    // 強制垃圾回收僅在 Node 測試環境（--expose-gc）可用；CE runtime 無此 API，略過
+    if (typeof globalThis !== 'undefined' && typeof globalThis.gc === 'function') {
+      globalThis.gc()
     }
 
     // 清理舊的效能數據
