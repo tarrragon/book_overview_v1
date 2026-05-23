@@ -310,6 +310,60 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
       expect(result.tagCategories).toEqual(data.tagCategories)
       expect(result.tags).toEqual(data.tags)
     })
+
+    // -------------------------------------------------------------------------
+    // W1-048.4.1：cover 選填欄位驗證一致性
+    //
+    // ANA 結論（W1-048.4）：cover 為 SPEC-EXPORT-V2 §3.5 / data-management.md 選填欄位。
+    // _validateRequiredFields 已不要求 cover（W1-047.1）；本測試確保 _validateFieldTypes
+    // 同步容許 cover 為 undefined，避免 selectively-loose validation 反模式（宣稱寬鬆
+    // 但實作嚴格，導致缺 cover 的合法 v2 JSON 書籍被靜默過濾）。
+    // -------------------------------------------------------------------------
+    test('TC-12 _processBookData 容許 cover undefined（W1-048.4.1）', () => {
+      const importer = makeImporter()
+      const data = {
+        metadata: { formatVersion: '2.0.0' },
+        tagCategories: [],
+        tags: [],
+        books: [
+          // 完全缺 cover 欄位（v2 JSON 合法情境）
+          { id: 'b1', title: '缺 cover 但完整書', readingStatus: 'reading' },
+          // cover 為空字串（v1 轉換產出的典型情境，回歸防護）
+          { id: 'b2', title: '空字串 cover 書', readingStatus: 'reading', cover: '' },
+          // cover 為合法 URL（base 情境，回歸防護）
+          { id: 'b3', title: '正常 cover 書', readingStatus: 'reading', cover: 'http://x/c.jpg' }
+        ]
+      }
+
+      const result = importer._processBookData(data, 'json')
+
+      // 三筆書皆通過 _isValidBook 過濾，不再因 cover 型別被丟棄
+      expect(result.books).toHaveLength(3)
+      expect(result.books.map(b => b.id)).toEqual(['b1', 'b2', 'b3'])
+    })
+
+    test('TC-13 _processBookData 仍過濾 cover 為非 string 非 undefined 的書（W1-048.4.1）', () => {
+      const importer = makeImporter()
+      const data = {
+        metadata: { formatVersion: '2.0.0' },
+        tagCategories: [],
+        tags: [],
+        books: [
+          // 合法：cover 為 undefined
+          { id: 'b1', title: '缺 cover 書', readingStatus: 'reading' },
+          // 非法：cover 為 number（防護回歸：不應因放寬 undefined 而誤放行其他型別）
+          { id: 'b2', title: 'cover 型別錯誤', readingStatus: 'reading', cover: 123 },
+          // 非法：cover 為 null（null 不等於 undefined，typeof null === 'object'）
+          { id: 'b3', title: 'cover null', readingStatus: 'reading', cover: null }
+        ]
+      }
+
+      const result = importer._processBookData(data, 'json')
+
+      // 僅 b1 通過：b2 / b3 因 cover 型別違規被 _validateFieldTypes 過濾
+      expect(result.books).toHaveLength(1)
+      expect(result.books[0].id).toBe('b1')
+    })
   })
 
   // ---------------------------------------------------------------------------

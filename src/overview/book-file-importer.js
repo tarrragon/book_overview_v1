@@ -749,11 +749,17 @@ class BookFileImporter {
   /**
    * 驗證欄位類型
    * @private
+   *
+   * W1-048.4.1：cover 為選填欄位（SPEC-EXPORT-V2 §3.5、data-management.md），
+   * 容許 cover 為 undefined。W1-048.4 ANA 識別 selectively-loose validation 反模式：
+   * _validateRequiredFields 已不要求 cover（W1-047.1），但 _validateFieldTypes 仍嚴格要求
+   * typeof === 'string'，導致缺 cover 的合法 v2 JSON 書籍被靜默過濾。
+   * 修復方向：方案 A（真寬鬆）—— cover 為 string 或 undefined 皆通過。
    */
   _validateFieldTypes (book) {
     return typeof book.id === 'string' &&
            typeof book.title === 'string' &&
-           typeof book.cover === 'string'
+           (typeof book.cover === 'string' || book.cover === undefined)
   }
 }
 
