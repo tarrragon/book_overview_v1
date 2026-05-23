@@ -829,18 +829,19 @@ class ErrorCodesPerformanceMonitor {
       return errorCreationFn()
     }
 
-    const startTime = process.hrtime.bigint()
+    // CE runtime 無 process.hrtime；改用 performance.now()，回傳值已是 ms
+    const startTime = performance.now()
     const memoryBefore = this._measureMemory()
 
     try {
       // 執行錯誤建立
       const result = errorCreationFn()
 
-      const endTime = process.hrtime.bigint()
+      const endTime = performance.now()
       const memoryAfter = this._measureMemory()
 
-      // 計算效能指標
-      const creationTime = Number(endTime - startTime) / 1000000 // 轉換為毫秒
+      // 計算效能指標（performance.now() 差值單位為 ms，無需轉換）
+      const creationTime = endTime - startTime
       const memoryUsed = memoryAfter.heapUsed - memoryBefore.heapUsed
 
       // 記錄效能數據
@@ -881,17 +882,18 @@ class ErrorCodesPerformanceMonitor {
       )
     }
 
-    const startTime = process.hrtime.bigint()
+    // CE runtime 無 process.hrtime；改用 performance.now()，回傳值已是 ms
+    const startTime = performance.now()
     const memoryBefore = this._measureMemory()
 
     if (global.gc) global.gc() // 強制垃圾回收以獲得準確的記憶體測量
 
     const result = batchCreationFn()
 
-    const endTime = process.hrtime.bigint()
+    const endTime = performance.now()
     const memoryAfter = this._measureMemory()
 
-    const totalTime = Number(endTime - startTime) / 1000000
+    const totalTime = endTime - startTime
     const totalMemory = memoryAfter.heapUsed - memoryBefore.heapUsed
 
     // 記錄批次效能
@@ -913,11 +915,8 @@ class ErrorCodesPerformanceMonitor {
    * @private
    */
   _measureMemory () {
-    if (typeof process !== 'undefined' && process.memoryUsage) {
-      return process.memoryUsage()
-    }
-
-    // Chrome Extension 環境的記憶體測量
+    // Chrome Extension 環境的記憶體測量（performance.memory 為 Chrome-only API）
+    // typeof guard 保留：(1) 確保跨環境安全，(2) Firefox / Safari 等瀏覽器無此 API
     if (typeof performance !== 'undefined' && performance.memory) {
       const memory = performance.memory
       return {
@@ -926,6 +925,13 @@ class ErrorCodesPerformanceMonitor {
         external: 0,
         rss: memory.usedJSHeapSize
       }
+    }
+
+    // Node.js 測試環境 fallback（typeof process guard 保留作向後相容）
+    // eslint-disable-next-line no-undef
+    if (typeof process !== 'undefined' && process.memoryUsage) {
+      // eslint-disable-next-line no-undef
+      return process.memoryUsage()
     }
 
     return { heapUsed: 0, heapTotal: 0, external: 0, rss: 0 }

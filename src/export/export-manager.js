@@ -394,7 +394,8 @@ class ExportManager {
       if (now - lastUpdateTime >= PROGRESS_THROTTLE_MS || progress === 100) {
         lastUpdateTime = now
 
-        process.nextTick(() => {
+        // CE runtime 無 process.nextTick；queueMicrotask 提供同等 microtask 排程語意
+        queueMicrotask(() => {
           this._safeUpdateProgress(exportId, progress, 'processing', `處理 ${format.toUpperCase()} 資料...`)
         })
       }
@@ -434,7 +435,8 @@ class ExportManager {
    * @private
    */
   _emitProgressEvent (exportId, progress, phase, message) {
-    process.nextTick(() => {
+    // CE runtime 無 process.nextTick；queueMicrotask 提供同等 microtask 排程語意
+    queueMicrotask(() => {
       const progressData = {
         exportId,
         current: progress,
@@ -541,7 +543,8 @@ class ExportManager {
     formats.forEach((format, index) => {
       const progress = Math.round((index + 1) / totalFormats * 100)
 
-      process.nextTick(() => {
+      // CE runtime 無 process.nextTick；queueMicrotask 提供同等 microtask 排程語意
+      queueMicrotask(() => {
         const progressData = {
           format,
           current: index + 1,
@@ -657,7 +660,8 @@ class ExportManager {
    * @private
    */
   _emitDownloadStartedEvent (downloadData) {
-    process.nextTick(() => {
+    // CE runtime 無 process.nextTick；queueMicrotask 提供同等 microtask 排程語意
+    queueMicrotask(() => {
       const eventData = {
         filename: downloadData.filename,
         fileSize: downloadData.data ? downloadData.data.length : 0,
@@ -896,7 +900,15 @@ class ExportManager {
    * @returns {Object} 記憶體使用統計
    */
   getMemoryUsage () {
-    const usage = process.memoryUsage()
+    // CE runtime 無 process.memoryUsage；用 performance.memory（Chrome-only）替代
+    // typeof guard 確保跨環境安全（Firefox/Safari 無 performance.memory）
+    const usage = (typeof performance !== 'undefined' && performance.memory)
+      ? {
+          heapUsed: performance.memory.usedJSHeapSize,
+          heapTotal: performance.memory.totalJSHeapSize,
+          external: 0
+        }
+      : { heapUsed: 0, heapTotal: 0, external: 0, unavailable: true }
     return {
       heapUsed: usage.heapUsed,
       heapTotal: usage.heapTotal,

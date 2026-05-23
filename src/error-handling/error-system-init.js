@@ -163,14 +163,22 @@ class ErrorSystemManager {
       })
     }
 
-    // Node.js 環境錯誤處理（用於測試）
-    if (typeof process !== 'undefined') {
-      process.on('uncaughtException', (error) => {
-        this._handleGlobalError(error, 'Uncaught Exception')
+    // Service Worker / Worker 環境的全域錯誤處理（CE Manifest V3 SW context 無 window 但有 self）
+    // 避免與 window listener 重複註冊（window 環境下 self === window）
+    if (typeof self !== 'undefined' && typeof window === 'undefined') {
+      self.addEventListener('error', (event) => {
+        // ErrorEvent 的 .error 屬性對應 process.on('uncaughtException', error) 的 error 參數
+        this._handleGlobalError(event.error, 'Uncaught Exception', {
+          message: event.message,
+          filename: event.filename,
+          lineno: event.lineno,
+          colno: event.colno
+        })
       })
 
-      process.on('unhandledRejection', (reason, promise) => {
-        this._handleGlobalError(reason, 'Unhandled Rejection', { promise })
+      self.addEventListener('unhandledrejection', (event) => {
+        // PromiseRejectionEvent 的 .reason / .promise 對應 process.on('unhandledRejection', (reason, promise)) 的兩個參數
+        this._handleGlobalError(event.reason, 'Unhandled Rejection', { promise: event.promise })
       })
     }
   }
