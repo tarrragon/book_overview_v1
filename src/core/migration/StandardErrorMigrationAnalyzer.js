@@ -58,7 +58,7 @@ export class StandardErrorMigrationAnalyzer {
 
   constructor (options = {}) {
     this.config = {
-      projectRoot: options.projectRoot || process.cwd(),
+      projectRoot: options.projectRoot || (typeof process !== 'undefined' && process.cwd ? process.cwd() : '/'),
       srcDirectory: options.srcDirectory || 'src',
       excludePatterns: options.excludePatterns || [
         'node_modules',

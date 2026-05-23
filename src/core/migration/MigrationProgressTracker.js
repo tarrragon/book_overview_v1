@@ -40,7 +40,7 @@ const MIGRATION_ITEM_TYPE = {
  */
 class MigrationProgressTracker {
   constructor (options = {}) {
-    this.projectRoot = options.projectRoot || process.cwd()
+    this.projectRoot = options.projectRoot || (typeof process !== 'undefined' && process.cwd ? process.cwd() : '/')
     this.stateFile = options.stateFile || path.join(this.projectRoot, '.migration-state.json')
     this.progressFile = options.progressFile || path.join(this.projectRoot, 'docs/migration-reports/progress.json')
     this.backupDir = options.backupDir || path.join(this.projectRoot, '.migration-backups')

@@ -1050,7 +1050,7 @@ class DiagnosticModule {
   _getSystemSpecs () {
     return {
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Node.js',
-      platform: typeof navigator !== 'undefined' ? navigator.platform : process.platform,
+      platform: typeof navigator !== 'undefined' ? navigator.platform : 'unknown',
       language: typeof navigator !== 'undefined' ? navigator.language : 'en-US',
       cookieEnabled: typeof navigator !== 'undefined' ? navigator.cookieEnabled : false,
       onLine: typeof navigator !== 'undefined' ? navigator.onLine : true
