@@ -24,11 +24,15 @@ if (!fs.existsSync(BUILD_DIR)) {
 }
 
 // 需要複製的檔案和目錄
+//
+// overview 入口由 src/overview/overview.html 提供（event-driven，自動讀
+// chrome.storage），manifest.json 的 options_page 已指向該檔。
+// 舊版根目錄 overview.html（檔案式 legacy，引用 assets/js/main.js）已移除，
+// 故此處不再複製根目錄 overview.html，避免分發產物殘留孤兒入口。
 const filesToCopy = [
   'manifest.json',
   'src/',
-  'assets/',
-  'overview.html'
+  'assets/'
 ];
 
 /**
@@ -124,6 +128,21 @@ async function bundleEntryPoints() {
       allowOverwrite: true,
       alias: {
         'src': srcAlias
+      },
+      // 將 process.env.NODE_ENV 替換為 build mode 字串常量。
+      //
+      // Why: Chrome Extension runtime 無 Node.js process 物件，
+      // src/ 中 13 處 process.env.NODE_ENV 直接讀取會在 4 個 CE
+      // runtime（SW/content/popup/overview）造成 ReferenceError 崩潰。
+      // 此 define 於 bundle 時將 process.env.NODE_ENV 替換為
+      // JSON 字串常量（'development' / 'production'），執行期不再
+      // 觸及 process 物件，同時保留 if (process.env.NODE_ENV === 'production')
+      // 等條件分支語意。
+      //
+      // 來源：0.19.0-W1-050 ANA P7-P16（13 處致命級違規盤點）
+      // 落地：0.19.0-W1-050.2（spawn-B）
+      define: {
+        'process.env.NODE_ENV': JSON.stringify(MODE)
       },
       logLevel: 'warning'
     });
