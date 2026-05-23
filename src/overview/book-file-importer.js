@@ -507,13 +507,15 @@ class BookFileImporter {
    * @returns {any} 解析後的資料
    *
    * W5-002 修復：catch 區塊的 const error 改為 const parseError，避免變數遮蔽
+   * W1-048.2 修復（F9）：以 Error options 的 cause 欄位保留原始 SyntaxError 的 stack trace 與訊息，
+   * 後續 telemetry / 日誌可透過 err.cause 追蹤原始 parse 失敗位置（observability-rules 規則 1 catch 必有可追溯資訊）。
    */
   _parseJSONContent (content) {
     try {
       return JSON.parse(content)
     } catch (error) {
       if (error instanceof SyntaxError) {
-        const parseError = new Error('JSON 檔案格式不正確')
+        const parseError = new Error('JSON 檔案格式不正確', { cause: error })
         parseError.code = ErrorCodes.PARSE_ERROR
         parseError.details = { category: 'parsing' }
         throw parseError
@@ -567,7 +569,7 @@ class BookFileImporter {
       // 後備機制: console.warn 提供效能問題的即時提醒
       // 使用場景: 超過 1000 本書籍時的效能警告，提示未來優化需求
       // eslint-disable-next-line no-console
-      console.warn('⚠️ 大型資料集，建議分批處理（未來改善）')
+      console.warn('[WARNING] 大型資料集，建議分批處理（未來改善）')
     }
   }
 
