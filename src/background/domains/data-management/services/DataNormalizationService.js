@@ -29,7 +29,7 @@
  * - 資料一致性檢查和修復
  */
 
-const crypto = require('crypto')
+const { djb2Hex16 } = require('src/utils/crypto-shim')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class DataNormalizationService {
@@ -160,11 +160,11 @@ class DataNormalizationService {
       }
     }
 
-    // 生成基於內容的雜湊ID
+    // 生成基於內容的雜湊ID（DJB2 sync hash 取代 sha256，cache key 場景非加密用途）
     const content = identifiers.join('|')
-    const hash = crypto.createHash('sha256').update(content).digest('hex')
+    const hash = djb2Hex16(content)
 
-    return `cross_${hash.substring(0, 16)}`
+    return `cross_${hash}`
   }
 
   /**
@@ -183,9 +183,9 @@ class DataNormalizationService {
       cover: book.cover || ''
     }
 
-    // 生成JSON字串並計算雜湊
+    // 生成JSON字串並計算雜湊（DJB2 sync hash 取代 sha256，data fingerprint 非加密用途）
     const content = JSON.stringify(fingerprintData, Object.keys(fingerprintData).sort())
-    const hash = crypto.createHash('sha256').update(content).digest('hex')
+    const hash = djb2Hex16(content)
 
     return hash
   }

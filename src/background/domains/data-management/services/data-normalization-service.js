@@ -19,7 +19,7 @@
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
-const crypto = require('crypto')
+const { djb2Hex16, randomHex } = require('src/utils/crypto-shim')
 const { Logger } = require('src/core/logging/Logger')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
@@ -499,7 +499,7 @@ class DataNormalizationService extends BaseModule {
     }
 
     const dataString = JSON.stringify(coreData)
-    return crypto.createHash('sha256').update(dataString).digest('hex').substring(0, 16)
+    return djb2Hex16(dataString)
   }
 
   /**
@@ -516,11 +516,11 @@ class DataNormalizationService extends BaseModule {
     ].filter(Boolean)
 
     if (identifiers.length === 0) {
-      return crypto.randomBytes(8).toString('hex')
+      return randomHex(8)
     }
 
     const idString = identifiers.join('::')
-    return crypto.createHash('md5').update(idString).digest('hex')
+    return djb2Hex16(idString)
   }
 
   /**

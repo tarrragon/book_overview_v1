@@ -19,7 +19,7 @@
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
-const crypto = require('crypto')
+const { djb2Hex } = require('src/utils/crypto-shim')
 const { Logger } = require('src/core/logging/Logger')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
@@ -555,7 +555,7 @@ class CacheManagementService extends BaseModule {
    * @returns {string} 雜湊值
    */
   hashString (str) {
-    return crypto.createHash('md5').update(str).digest('hex').substring(0, 8)
+    return djb2Hex(str)
   }
 
   /**
