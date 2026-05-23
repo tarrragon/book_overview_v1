@@ -356,4 +356,114 @@ describe('BookFileImporter 版本偵測與 v1 轉換接線（0.19.0-W1-047.1）'
       expect(result.books[1].tagIds).toEqual([])
     })
   })
+
+  describe('Group G：Phase 2 新 path 結構鎖定（0.19.0-W1-048.7）', () => {
+    // 設計目標：鎖定 Phase 1 三決策（A3 MetadataWrap warn / B2 v2 顯式分流 / C2 CSV 頂層分流）
+    // 既有 TC-01~TC-20 不破，新 TC-21~TC-26 補上 6 個 path 邊界覆蓋
+
+    function loadImporterWithFullSpies () {
+      let detectSpy, convertSpy, BookFileImporterIsolated
+      jest.isolateModules(() => {
+        detectSpy = jest.fn(jest.requireActual('../../../src/export/format-version-detector').detectFormatVersion)
+        convertSpy = jest.fn(jest.requireActual('../../../src/export/v1-to-v2-converter').convertV1ToV2Data)
+        jest.doMock('src/export/format-version-detector', () => ({ detectFormatVersion: detectSpy }))
+        jest.doMock('../../../src/export/format-version-detector', () => ({ detectFormatVersion: detectSpy }))
+        jest.doMock('src/export/v1-to-v2-converter', () => ({ convertV1ToV2Data: convertSpy }))
+        jest.doMock('../../../src/export/v1-to-v2-converter', () => ({ convertV1ToV2Data: convertSpy }))
+        BookFileImporterIsolated = require('../../../src/overview/book-file-importer').BookFileImporter
+      })
+      const importer = new BookFileImporterIsolated({ document, showError: () => {} })
+      return { importer, detectSpy, convertSpy }
+    }
+
+    let warnSpy
+    beforeEach(() => { warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {}) })
+    afterEach(() => { warnSpy.mockRestore() })
+
+    test('TC-21 MetadataWrap 觸發 console.warn 恰一次（決策 A3）', () => {
+      const importer = makeImporter()
+      const data = { data: [{ id: 'b1', title: '書一' }] }
+      // 前置驗證：detectFormatVersion 不命中（落入 MetadataWrap path）
+      expect(detectFormatVersion(data)).toBeNull()
+      expect(Array.isArray(data.data)).toBe(true)
+
+      const result = importer._extractBooksFromData(data)
+
+      // 核心斷言：warn 被呼叫一次且訊息含關鍵字
+      expect(warnSpy).toHaveBeenCalledTimes(1)
+      const warnMessage = warnSpy.mock.calls[0].join(' ')
+      expect(warnMessage).toMatch(/metadata-wrap|歷史相容/i)
+
+      // 行為不變：result.books === data.data
+      expect(result.books).toBe(data.data)
+    })
+
+    test('TC-22 v2 path 由 detectFormatVersion=v2 顯式分流（決策 B2，明確 formatVersion）', () => {
+      const { importer, detectSpy } = loadImporterWithFullSpies()
+      const data = { metadata: { formatVersion: '2.0.0' }, books: [{ id: 'b1', title: 'A' }] }
+
+      const result = importer._extractBooksFromData(data, 'json')
+
+      // detectFormatVersion 被呼叫且回傳 v2
+      expect(detectSpy).toHaveBeenCalledTimes(1)
+      expect(detectSpy.mock.results[0].value).toBe('v2')
+      // books 取 data.books（toBe 參考比較，未經形狀辨識重建）
+      expect(result.books).toBe(data.books)
+      // 不誤觸 MetadataWrap path
+      expect(warnSpy).not.toHaveBeenCalled()
+    })
+
+    test('TC-23 v2 path 不依賴形狀辨識 fallthrough（決策 B2，Rule 2 推斷 v2）', () => {
+      const { importer, detectSpy } = loadImporterWithFullSpies()
+      const data = { metadata: { source: 'x' }, books: [{ id: 'b1', readingStatus: 'reading' }] }
+      // 前置驗證：無 formatVersion，但 detectFormatVersion Rule 2 推斷 v2
+      expect(detectFormatVersion(data)).toBe('v2')
+
+      const result = importer._extractBooksFromData(data, 'json')
+
+      expect(detectSpy.mock.results[0].value).toBe('v2')
+      expect(result.books).toBe(data.books)
+      expect(warnSpy).not.toHaveBeenCalled()
+    })
+
+    test('TC-24 CSV 頂層分流不呼叫 detectFormatVersion（決策 C2，強化 TC-18）', () => {
+      const { importer, detectSpy, convertSpy } = loadImporterWithFullSpies()
+      const csvData = [{ id: 'b1', title: 'A' }]
+
+      const result = importer._extractBooksFromData(csvData, 'csv')
+
+      // 核心斷言：CSV 完全 bypass 版本偵測（不呼叫 detectSpy 也不呼叫 convertSpy）
+      expect(detectSpy).not.toHaveBeenCalled()
+      expect(convertSpy).not.toHaveBeenCalled()
+      // 行為驗證：直接 passthrough CSV 陣列
+      expect(result.books).toBe(csvData)
+      expect(result.tagCategories).toEqual([])
+      expect(result.tags).toEqual([])
+    })
+
+    test('TC-25 同時含 books 與 data 時，v2 path 優先於 MetadataWrap（path 優先序）', () => {
+      const { importer, detectSpy } = loadImporterWithFullSpies()
+      const data = {
+        metadata: { formatVersion: '2.0.0' },
+        books: [{ id: 'b1' }],
+        data: [{ id: 'x' }]
+      }
+
+      const result = importer._extractBooksFromData(data, 'json')
+
+      // detectFormatVersion 回 v2，path B 命中而非 path C
+      expect(detectSpy.mock.results[0].value).toBe('v2')
+      expect(result.books).toBe(data.books) // 非 data.data
+      expect(warnSpy).not.toHaveBeenCalled()
+    })
+
+    test('TC-26 CSV null/undefined 輸入回傳空 ImportResult（C2 防禦）', () => {
+      const { importer, detectSpy } = loadImporterWithFullSpies()
+
+      const result = importer._extractBooksFromData(null, 'csv')
+
+      expect(result).toEqual({ books: [], tagCategories: [], tags: [] })
+      expect(detectSpy).not.toHaveBeenCalled()
+    })
+  })
 })
