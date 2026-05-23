@@ -577,34 +577,45 @@ class BookFileImporter {
    * 從資料中提取 v2 interchange 三區段（W1-047.2 / IMP-B）
    * @private
    *
-   * 版本偵測閘門（W1-047.1）：
-   * 僅 JSON 匯入路徑（fileFormat === 'json'）先以 detectFormatVersion 判定格式，
-   * 在明確回傳 'v1' 時介入轉換——將 v1 資料經 convertV1ToV2Data 轉為 v2 結構後
-   * 取其 books / tagCategories / tags 三區段回傳。'v2' 與 null 一律 fall through
-   * 既有四種形狀辨識邏輯（不改動 books 提取順序），確保 data.data fallback 與
-   * 既有錯誤拋出契約零回歸。
+   * 版本顯式分流（W1-048.7）：頂層先依 fileFormat 分 CSV / JSON，JSON 子流程再依
+   * detectFormatVersion 顯式分 v1 / v2，MetadataWrap 屬 spec 未定義之歷史相容路徑
+   * （命中時 console.warn 標記），空物件為 v1 退化合理，其他結構維持 throw 契約。
    *
-   * 回傳介面變更（IMP-B）：由純 Book[] 升級為 ImportResult。
-   * - v1 路徑：取 convertV1ToV2Data 產出的三區段（IMP-A 僅取 .books，本 ticket 補取其餘）。
-   * - v2 路徑：books 沿用四形狀辨識；tagCategories / tags 一律從根物件 data 提取，
-   *   與 books 取自哪個形狀無關，缺失或非陣列降級為 []（寬鬆降級，feature-spec §2.3）。
-   * - 空物件 / CSV：tagCategories / tags 為 []。
+   * 6 線性分支路徑表（spec 對應）：
+   * - CSV               頂層分流，不走版本偵測（F11 顯式化；CSV 自有 detectCsvFormatVersion）
+   * - JSON-v1           detectFormatVersion='v1' → convertV1ToV2Data 三區段（spec §2.1 Rule 3/4）
+   * - JSON-v2           detectFormatVersion='v2' → 取 data.books（spec §3.1 唯一合法形狀）
+   * - JSON-MetadataWrap _isMetadataWrapFormat → 取 data.data + warn（spec 未定義，歷史相容）
+   * - JSON-EmptyObject  {} → 空 ImportResult（v1 退化合理）
+   * - JSON-Unrecognized → throw VALIDATION_ERROR（既有錯誤契約零回歸）
    *
-   * INV-1：回傳的三欄位恆為陣列，不回傳 undefined / null。
+   * 設計決策（W1-048.7 Solution Phase 1）：
+   * - A3 MetadataWrap 保留 + console.warn：spec 未定義但 TC-05 字面要求回歸防護
+   * - B2 v2 path 顯式分流：對齊 v1 path 既有 detectFormatVersion 顯式設計
+   * - C2 CSV 頂層分流：消除 CSV 走 v2 形狀辨識的隱性耦合（_isDirectArrayFormat dead branch）
    *
-   * CSV 匯入路徑（fileFormat === 'csv'）不經版本偵測：detectFormatVersion 對純陣列
-   * 一律判為 'v1'，但 CSV 解析產出的書籍物件結構（status/tags）與 v1 JSON 不同，
-   * 不應走 v1→v2 轉換。CSV 自有 detectCsvFormatVersion 偵測機制。
-   * CSV 解析結果為陣列，會落入 v2 路徑的 _isDirectArrayFormat 分支，
-   * tag 區段經 _extractTagSection（對非物件輸入安全回傳 []）降級為 []。
+   * 回傳介面（IMP-B）：ImportResult { books, tagCategories, tags }。
+   * INV-1：所有 return path 三欄位恆為陣列，throw path 不回傳。
    *
-   * @param {any} data - 解析後的JSON資料
-   * @param {string} [fileFormat='json'] - 'csv' | 'json'，僅 json 啟用版本偵測閘門
+   * @param {any} data - 解析後的 JSON 資料 / CSV 解析結果
+   * @param {string} [fileFormat='json'] - 'csv' | 'json'，csv 走頂層 bypass
    * @returns {ImportResult} 含 books / tagCategories / tags 三區段的提取結果
    */
   _extractBooksFromData (data, fileFormat = 'json') {
-    // 路徑 1：v1 JSON — 取 converter 完整三區段
-    if (fileFormat === 'json' && detectFormatVersion(data) === 'v1') {
+    // 頂層分流 1：CSV — 不走版本偵測（W1-048.7 決策 C2）
+    if (fileFormat === 'csv') {
+      return {
+        books: Array.isArray(data) ? data : [],
+        tagCategories: [],
+        tags: []
+      }
+    }
+
+    // 頂層分流 2：JSON — 走版本偵測
+    const version = detectFormatVersion(data)
+
+    // JSON path A：v1 — converter 完整三區段（spec §2.1 Rule 3/4）
+    if (version === 'v1') {
       const converted = convertV1ToV2Data(data)
       return {
         books: converted.books,
@@ -613,26 +624,36 @@ class BookFileImporter {
       }
     }
 
-    // 路徑 2：v2 JSON 四形狀辨識 — books 沿用既有順序，tag 從根物件提取
-    let booksArray = null
-    if (this._isDirectArrayFormat(data)) booksArray = data
-    else if (this._isWrappedBooksFormat(data)) booksArray = data.books
-    else if (this._isMetadataWrapFormat(data)) booksArray = data.data
-
-    if (booksArray !== null) {
+    // JSON path B：v2 — spec §3.1 唯一合法形狀 data.books（W1-048.7 決策 B2）
+    if (version === 'v2') {
       return {
-        books: booksArray,
+        books: data.books,
         tagCategories: this._extractTagSection(data, 'tagCategories'),
         tags: this._extractTagSection(data, 'tags')
       }
     }
 
-    // 路徑 3：空 JSON 對象
+    // JSON path C：MetadataWrap 歷史相容（spec 未定義，W1-048.7 決策 A3 保留 + warn）
+    if (this._isMetadataWrapFormat(data)) {
+      // Logger 後備方案: MetadataWrap 相容路徑降級警告
+      // 設計理念: spec 未定義的歷史相容形狀（IMP-A~B 演進中加入），命中時應對開發者可見
+      // 後備機制: console.warn 在無 Logger 環境提供相容路徑可觀測性
+      // 使用場景: 用戶 export 含 {data: [...]} 結構檔案匯入時，標記非 SPEC-EXPORT-V2 形狀
+      // eslint-disable-next-line no-console
+      console.warn('[book-file-importer] 偵測到 metadata-wrap 形狀（非 SPEC-EXPORT-V2 定義），走歷史相容路徑')
+      return {
+        books: data.data,
+        tagCategories: this._extractTagSection(data, 'tagCategories'),
+        tags: this._extractTagSection(data, 'tags')
+      }
+    }
+
+    // JSON path D：空 JSON 物件（v1 退化合理）
     if (data && typeof data === 'object' && Object.keys(data).length === 0) {
       return { books: [], tagCategories: [], tags: [] }
     }
 
-    // 路徑 4：無法辨識結構 — 維持既有錯誤契約（零回歸）
+    // JSON path E：throw — 既有錯誤契約（零回歸）
     const error = new Error('JSON 檔案應該包含一個陣列或包含books屬性的物件')
     error.code = ErrorCodes.VALIDATION_ERROR
     error.details = { category: 'validation' }
@@ -685,26 +706,16 @@ class BookFileImporter {
   }
 
   /**
-   * 檢查是否為直接陣列格式
+   * 檢查是否為 metadata-wrap 形狀（{data: [...]}）。
    * @private
-   */
-  _isDirectArrayFormat (data) {
-    return Array.isArray(data)
-  }
-
-  /**
-   * 檢查是否為包裝books格式
-   * @private
-   */
-  _isWrappedBooksFormat (data) {
-    return data &&
-           typeof data === 'object' &&
-           Array.isArray(data.books)
-  }
-
-  /**
-   * 檢查是否為metadata包裝格式
-   * @private
+   *
+   * 歷史相容判定，非 SPEC-EXPORT-V2 形狀（W1-048.7 決策 A3）。
+   * 此 helper 為 _extractBooksFromData JSON path C 唯一使用者，命中時會
+   * console.warn 標記為「歷史相容路徑」，提供未來 spec 補定義 / deprecate 的觀測訊號。
+   *
+   * 移除歷史（W1-048.7）：原 _isDirectArrayFormat / _isWrappedBooksFormat 兩個 helper
+   * 已隨 v1 / v2 path 顯式分流而移除——detectFormatVersion Rule 3（純陣列→v1）
+   * 與 Rule 1/2（v2 顯式判定）已涵蓋兩種形狀辨識需求，原 helper 成為 dead branch。
    */
   _isMetadataWrapFormat (data) {
     return data &&
