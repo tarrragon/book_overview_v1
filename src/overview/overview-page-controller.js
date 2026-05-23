@@ -32,7 +32,7 @@ const EventHandlerClass = require('src/core/event-handler')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { BookExporter } = require('src/overview/book-exporter')
 const { BookFileImporter } = require('src/overview/book-file-importer')
-const { DuplicateBookMerger } = require('src/overview/duplicate-book-merger')
+const { ImportFlowController } = require('src/overview/import-flow-controller')
 const { createTagCellRenderer } = require('src/overview/tag-cell-renderer')
 // v2 匯出器（Interchange Format v2）：book-data-exporter.js 使用 default export
 const BookDataExporter = require('src/export/book-data-exporter')
@@ -77,12 +77,6 @@ const CONSTANTS = {
     LOADING_TEXT: '.loading-text'
   },
 
-  // 匯入模式選擇 modal（UC-04）
-  IMPORT_MODE: {
-    OVERWRITE: 'overwrite',
-    MERGE: 'merge'
-  },
-
   // v2 匯出配置（Interchange Format v2）
   EXPORT_V2: {
     FORMAT_VERSION: '2.0.0',
@@ -93,16 +87,6 @@ const CONSTANTS = {
     FILENAME_PREFIX: '書籍資料_'
   }
 }
-
-/**
- * 匯入模式 modal DOM 缺失的哨兵值（UC-04）。
- *
- * promptImportMode 的合法回傳為 'overwrite' / 'merge' / null（取消）。
- * 當 modal DOM 元素未注入時需回傳一個與三者皆不碰撞的值，使 handleFileLoad
- * 能將「DOM 缺失」（應 showError）與「使用者取消」（應靜默中止）分流。
- * 用 Symbol 確保唯一性，不與任何字串 / null 相等。
- */
-const IMPORT_MODE_MODAL_MISSING = Symbol('import-mode-modal-missing')
 
 class OverviewPageController extends EventHandlerClass {
   /**
@@ -136,13 +120,6 @@ class OverviewPageController extends EventHandlerClass {
     // 選取狀態（W6-012.7.1）：以 bookId 為唯一識別，UI 從此 Set 計算 checked / row-selected
     this.selectedBookIds = new Set()
 
-    // 匯入模式 modal 單一實例保護（UC-04）：modal 開啟期間 pending Promise 暫存於此，
-    // 重複觸發匯入時回傳同一 Promise，不開第二個 modal。null 表示無進行中的 modal。
-    this._importModePending = null
-
-    // 匯入模式 modal 開啟前的焦點元素，modal 關閉時還原焦點至此（無障礙）
-    this._importModePreviousFocus = null
-
     // 初始化 Tag Cell Renderer
     this.tagCellRenderer = createTagCellRenderer({
       getTagById: id => this.tagMap.get(id),
@@ -168,11 +145,24 @@ class OverviewPageController extends EventHandlerClass {
       showError: (msg) => this.showError(msg)
     })
 
-    // 初始化重複書籍合併模組
-    this.duplicateBookMerger = new DuplicateBookMerger()
-
-    // 初始化 DOM 元素引用
+    // 初始化 DOM 元素引用（importFlowController 依賴 this.elements，故須先建立）
     this.initializeElements()
+
+    // 初始化匯入流程控制器（W1-048.5.1）：抽出 controller 匯入相關職責
+    // tagStorageAdapter 為模組參考而非物件快照，確保測試覆寫 replaceAllData /
+    // mergeAllData 時匯入流程能讀到最新 mock。
+    // promptImportModeFn 注入 controller.promptImportMode 作為 modal 觸發入口，
+    // 確保 controller 對外保留 promptImportMode 公開方法供既有測試 spy 觀測。
+    this.importFlowController = new ImportFlowController({
+      bookFileImporter: this.bookFileImporter,
+      elements: this.elements,
+      document: this.document,
+      tagStorageAdapter: TagStorageAdapter,
+      showError: (msg) => this.showError(msg),
+      showLoading: (msg) => this.showLoading(msg),
+      onImportSuccess: (books) => this._updateUIWithBooks(books),
+      promptImportModeFn: () => this.promptImportMode()
+    })
 
     // 設置事件監聽器
     this.setupEventListeners()
@@ -1053,205 +1043,35 @@ class OverviewPageController extends EventHandlerClass {
     }
   }
 
-  // ========== 匯入模式選擇 modal（UC-04 / IMP-E） ==========
+  // ========== 匯入流程委派（W1-048.5.1） ==========
+  // 匯入相關職責（modal、檔案載入、持久化分流）已抽出至 ImportFlowController。
+  // 本 controller 保留 promptImportMode / handleFileLoad 作薄包裝，
+  // 維持既有測試（import-mode-modal.test.js 等）對 controller 的呼叫介面不變。
 
   /**
    * 顯示匯入模式選擇 modal，回傳使用者選擇的模式（UC-04 / IMP-E）
    *
-   * @returns {Promise<'overwrite' | 'merge' | null | symbol>}
-   *   - 'overwrite'：使用者選擇覆蓋模式（清空現有書庫後載入）
-   *   - 'merge'：使用者選擇合併模式（保留現有書庫並合併）
-   *   - null：使用者取消（取消鈕 / Esc / 點遮罩）
-   *   - IMPORT_MODE_MODAL_MISSING：modal DOM 未注入（呼叫端應 showError）
+   * 薄包裝：委派至 importFlowController.promptImportMode。回傳 Promise，
+   * resolve 值為 'overwrite' / 'merge' / null（取消）或內部哨兵值（modal DOM 缺失）。
    *
-   * 設計：
-   * - modal 一次只允許一個實例；重複呼叫回傳「同一個」pending Promise 物件（場景 8）。
-   *   本方法刻意不用 async（async 會將回傳值包成新 Promise，破壞 pending Promise
-   *   的物件識別性），改為直接回傳 Promise 物件以保證重複呼叫得到同一引用。
-   * - resolve 前 modal 持續顯示，不自動關閉。
-   * - settle 統一收斂出口：移除監聽器 → 隱藏 modal → 清 pending 旗標 → 還原焦點 → resolve。
+   * @returns {Promise<'overwrite' | 'merge' | null | symbol>}
    */
   promptImportMode () {
-    const overlay = this.elements.importModeOverlay
-    const modal = this.elements.importModeModal
-    const overwriteBtn = this.elements.importModeOverwriteBtn
-    const mergeBtn = this.elements.importModeMergeBtn
-    const cancelBtn = this.elements.importModeCancelBtn
-
-    // DOM 缺失防禦：任一元素為 null 視為設計缺陷，回傳哨兵值供 handleFileLoad 分流
-    if (!overlay || !modal || !overwriteBtn || !mergeBtn || !cancelBtn) {
-      // eslint-disable-next-line no-console
-      console.error('[ERROR] 匯入模式 modal 元素缺失，無法顯示模式選擇')
-      return Promise.resolve(IMPORT_MODE_MODAL_MISSING)
-    }
-
-    // 單一實例保護：modal 已開啟時回傳既有 pending Promise，不開第二個（場景 8）
-    if (this._importModePending) {
-      return this._importModePending
-    }
-
-    this._importModePending = new Promise((resolve) => {
-      // 焦點還原起點：記錄 modal 開啟前的焦點元素
-      this._importModePreviousFocus =
-        (this.document && this.document.activeElement) || null
-
-      const focusable = [overwriteBtn, mergeBtn, cancelBtn]
-
-      // focus trap：Tab / Shift+Tab 在三按鈕集合內循環，不跑出 modal
-      const handleFocusTrap = (event) => {
-        const first = focusable[0]
-        const last = focusable[focusable.length - 1]
-        const active = this.document.activeElement
-        if (event.shiftKey && active === first) {
-          event.preventDefault()
-          last.focus()
-        } else if (!event.shiftKey && active === last) {
-          event.preventDefault()
-          first.focus()
-        }
-      }
-
-      // keydown 處理：Esc 取消、Tab 進入 focus trap
-      const onKeydown = (event) => {
-        if (event.key === 'Escape') {
-          settle(null)
-        } else if (event.key === 'Tab') {
-          handleFocusTrap(event)
-        }
-      }
-
-      // 遮罩點擊：只有點遮罩本身（非冒泡自 modal 內部）才視為取消（場景 5 / TC-B4）
-      const onOverlayClick = (event) => {
-        if (event.target === overlay) {
-          settle(null)
-        }
-      }
-
-      const onOverwrite = () => settle(CONSTANTS.IMPORT_MODE.OVERWRITE)
-      const onMerge = () => settle(CONSTANTS.IMPORT_MODE.MERGE)
-      const onCancel = () => settle(null)
-
-      // 統一收斂出口：移除監聽器 → 隱藏 modal → 清 pending 旗標 → 還原焦點 → resolve
-      const settle = (result) => {
-        overwriteBtn.removeEventListener('click', onOverwrite)
-        mergeBtn.removeEventListener('click', onMerge)
-        cancelBtn.removeEventListener('click', onCancel)
-        overlay.removeEventListener('click', onOverlayClick)
-        modal.removeEventListener('keydown', onKeydown)
-
-        this._hideImportModeModal()
-        this._importModePending = null
-
-        // 焦點還原：modal 關閉後焦點回到開啟前的元素
-        if (
-          this._importModePreviousFocus &&
-          typeof this._importModePreviousFocus.focus === 'function'
-        ) {
-          this._importModePreviousFocus.focus()
-        }
-        this._importModePreviousFocus = null
-
-        resolve(result)
-      }
-
-      // 綁定四種出口
-      overwriteBtn.addEventListener('click', onOverwrite)
-      mergeBtn.addEventListener('click', onMerge)
-      cancelBtn.addEventListener('click', onCancel)
-      overlay.addEventListener('click', onOverlayClick)
-      modal.addEventListener('keydown', onKeydown)
-
-      // 顯示 modal 並設初始焦點至預設按鈕（覆蓋）
-      this._showImportModeModal()
-      overwriteBtn.focus()
-    })
-
-    return this._importModePending
+    return this.importFlowController.promptImportMode()
   }
 
   /**
-   * 顯示匯入模式 modal（UC-04）
-   * @private
-   */
-  _showImportModeModal () {
-    if (this.elements.importModeOverlay) {
-      this.elements.importModeOverlay.style.display = 'flex'
-    }
-  }
-
-  /**
-   * 隱藏匯入模式 modal（UC-04）
-   * @private
-   */
-  _hideImportModeModal () {
-    if (this.elements.importModeOverlay) {
-      this.elements.importModeOverlay.style.display = 'none'
-    }
-  }
-
-  /**
-   * 處理檔案載入操作（委派至 BookFileImporter）
+   * 處理檔案載入操作（委派至 ImportFlowController）
+   *
+   * 薄包裝：委派至 importFlowController.execute。完整流程（驗證 → modal →
+   * 讀檔 → 持久化 → UI 更新）由 ImportFlowController 編排，本方法僅作對外
+   * 入口，呼叫端介面不變。
    *
    * @param {File} file - 要載入的檔案
-   * @returns {Promise<void>} 載入完成Promise
-   *
-   * 負責功能：
-   * - 委派檔案驗證和讀取至 BookFileImporter
-   * - 彈出模式選擇 modal，依使用者選擇分流至覆蓋 / 合併模式
-   * - 管理載入狀態
-   * - 持久化匯入資料至 chrome.storage.local
-   * - 持久化成功才以 books 更新 UI
-   *
-   * W1-047.2 / IMP-B：importer 回傳介面由 Book[] 升級為 ImportResult
-   * （{ books, tagCategories, tags }）。
-   *
-   * W1-047.3 / IMP-C：解構 ImportResult 後呼叫 TagStorageAdapter.replaceAllData
-   * 覆蓋模式持久化三區段（books / tags / tagCategories）。
-   *
-   * W1-047.5 / IMP-E：在檔案驗證之後、讀檔之前彈出模式選擇 modal——
-   * 覆蓋走 replaceAllData，合併走 mergeAllData，取消則靜默中止，
-   * modal DOM 缺失則 showError。讀檔在 modal resolve 之後才執行。
+   * @returns {Promise<void>} 載入完成 Promise
    */
   async handleFileLoad (file) {
-    // 1. 驗證階段由 importer 處理（會呼叫 showError 並 throw）——先於 modal
-    this.bookFileImporter.validate(file)
-
-    // 2. 模式選擇 modal：驗證通過後、讀檔前彈出
-    const mode = await this.promptImportMode()
-
-    // 3. modal DOM 缺失分流：視為設計缺陷，showError 後中止
-    if (mode === IMPORT_MODE_MODAL_MISSING) {
-      this.showError('匯入功能初始化失敗')
-      return
-    }
-
-    // 4. 取消分流：使用者取消為正常操作，靜默中止——不讀檔、不寫 storage、UI 不變
-    if (mode === null) {
-      return
-    }
-
-    // 5. 讀檔（modal resolve 之後）：importer 回傳 ImportResult（INV-1 保證三欄位恆陣列）
-    this.showLoading('正在讀取檔案...')
-    const importResult = await this.bookFileImporter.read(file)
-
-    // 6. 依模式分流持久化：覆蓋走 replaceAllData，合併走 mergeAllData
-    const payload = {
-      books: importResult.books,
-      tags: importResult.tags,
-      tagCategories: importResult.tagCategories
-    }
-    const writeResult = mode === CONSTANTS.IMPORT_MODE.OVERWRITE
-      ? await TagStorageAdapter.replaceAllData(payload)
-      : await TagStorageAdapter.mergeAllData(payload)
-
-    // 7. 持久化成功才更新 UI；失敗中止並 showError（覆蓋 / 合併共用，回傳契約對稱）
-    if (writeResult.success === true) {
-      this._updateUIWithBooks(importResult.books)
-    } else if (writeResult.error === 'quota_exceeded') {
-      this.showError('儲存空間不足，匯入未完成')
-    } else {
-      this.showError('儲存失敗，已還原原有資料')
-    }
+    return this.importFlowController.execute(file)
   }
 
   // EventHandler 抽象方法實現
@@ -1469,23 +1289,15 @@ class OverviewPageController extends EventHandlerClass {
     }
   }
 
-  // ========== 重複書籍處理（委派至 DuplicateBookMerger） ==========
-  // W1-048.1 Stage C.7：移除三個 test-only proxy 方法
-  // （_handleFileContent / _validateFileBasics / _validateFileSize）。
-  // 測試已遷移至 importer public API（validate / read / parseContent）；
-  // handleFileLoad 為唯一對外匯入入口。
-
-  /**
-   * 處理重複書籍的合併策略（委派至 DuplicateBookMerger）
-   *
-   * @param {Array} existingBooks - 既有書籍陣列
-   * @param {Array} importedBooks - 匯入書籍陣列
-   * @param {string} strategy - 合併策略 ('skip' | 'override' | 'merge')
-   * @returns {Array} 合併後的書籍陣列
-   */
-  _handleDuplicateBooks (existingBooks, importedBooks, strategy) {
-    return this.duplicateBookMerger.handleDuplicateBooks(existingBooks, importedBooks, strategy)
-  }
+  // ========== 歷史備註 ==========
+  // W1-048.1 Stage C.7：移除三個 test-only proxy 方法（_handleFileContent /
+  // _validateFileBasics / _validateFileSize）；測試已遷移至 importer public API
+  // （validate / read / parseContent）。handleFileLoad 為唯一對外匯入入口。
+  //
+  // W1-048.5.1：移除 _handleDuplicateBooks（DuplicateBookMerger 委派方法）。
+  // 該方法為孤兒 proxy，生產路徑（handleFileLoad → TagStorageAdapter.mergeAllData）
+  // 未呼叫。對應測試（duplicate-handling-v2 / overview-import-duplicate-handling）
+  // 連同 src/overview/duplicate-book-merger.js 整檔一併刪除。
 }
 
 // 瀏覽器環境：將 OverviewPageController 定義為全域變數
