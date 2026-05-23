@@ -1203,10 +1203,14 @@ class DataValidationService {
 
     // 效能資訊
     if (this.config.progressReporting) {
+      // performance.memory 為 Chrome-only API；typeof guard 保留作跨環境 fallback
+      const heapUsed = (typeof performance !== 'undefined' && performance.memory)
+        ? performance.memory.usedJSHeapSize
+        : 0
       result.performance = {
         booksPerSecond: Math.round(books.length / ((endTime - startTime) / 1000)),
         averageTimePerBook: Math.round((endTime - startTime) / books.length),
-        memoryUsage: process.memoryUsage().heapUsed
+        memoryUsage: heapUsed
       }
     }
 

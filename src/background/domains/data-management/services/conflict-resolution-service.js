@@ -627,9 +627,13 @@ class ConflictResolutionService extends BaseModule {
 
       // 記憶體優化選項
       if (options.enableMemoryOptimization) {
+        // performance.memory 為 Chrome-only API；typeof guard 保留作跨環境 fallback
+        const heapUsed = (typeof performance !== 'undefined' && performance.memory)
+          ? performance.memory.usedJSHeapSize
+          : 0
         results.memoryUsage = {
-          peakUsage: process.memoryUsage().heapUsed,
-          finalUsage: process.memoryUsage().heapUsed
+          peakUsage: heapUsed,
+          finalUsage: heapUsed
         }
         results.processingBatches = Math.ceil(batchData.length / batchSize)
       }
@@ -1054,8 +1058,12 @@ class ConflictResolutionService extends BaseModule {
 
   getResourceUsage () {
     // //todo: 實作更詳細的資源使用監控
+    // performance.memory 為 Chrome-only API；typeof guard 保留作跨環境 fallback
+    const heapUsed = (typeof performance !== 'undefined' && performance.memory)
+      ? performance.memory.usedJSHeapSize
+      : 0
     return {
-      memoryUsage: process.memoryUsage().heapUsed,
+      memoryUsage: heapUsed,
       activeBatches: this.batchOperations.size
     }
   }
