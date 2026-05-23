@@ -21,7 +21,7 @@ class FileReaderFactory {
    * @throws {Error} 當 FileReader 不可用時
    */
   static createReader () {
-    if (global.FileReader) return new global.FileReader()
+    if (typeof globalThis !== 'undefined' && globalThis.FileReader) return new globalThis.FileReader()
     if (typeof FileReader !== 'undefined') return new FileReader()
     const error = new Error('檔案讀取功能不支援')
     error.code = ErrorCodes.FILE_ERROR
@@ -34,7 +34,10 @@ class FileReaderFactory {
    * @returns {boolean} 是否可用
    */
   static isAvailable () {
-    return Boolean(global.FileReader || typeof FileReader !== 'undefined')
+    return Boolean(
+      (typeof globalThis !== 'undefined' && globalThis.FileReader) ||
+      typeof FileReader !== 'undefined'
+    )
   }
 }
 

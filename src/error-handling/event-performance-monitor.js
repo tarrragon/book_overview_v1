@@ -884,7 +884,8 @@ class ErrorCodesPerformanceMonitor {
     const startTime = process.hrtime.bigint()
     const memoryBefore = this._measureMemory()
 
-    if (global.gc) global.gc() // 強制垃圾回收以獲得準確的記憶體測量
+    // 強制垃圾回收僅在 Node 測試環境（--expose-gc）可用；CE runtime 無此 API，略過
+    if (typeof globalThis !== 'undefined' && typeof globalThis.gc === 'function') globalThis.gc()
 
     const result = batchCreationFn()
 
@@ -936,7 +937,8 @@ class ErrorCodesPerformanceMonitor {
    * @private
    */
   _establishMemoryBaseline () {
-    if (global.gc) global.gc()
+    // 強制垃圾回收僅在 Node 測試環境（--expose-gc）可用；CE runtime 無此 API，略過
+    if (typeof globalThis !== 'undefined' && typeof globalThis.gc === 'function') globalThis.gc()
 
     setTimeout(() => {
       const baseline = this._measureMemory()

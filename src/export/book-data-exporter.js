@@ -931,18 +931,18 @@ class BookDataExporter {
         blob = new Blob([data], { type: mimeType + ';charset=utf-8' })
       }
 
-      const url = global.URL.createObjectURL(blob)
-      const link = global.document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
 
       link.href = url
       link.download = filename
       link.style.display = 'none'
 
-      global.document.body.appendChild(link)
+      document.body.appendChild(link)
       link.click()
-      global.document.body.removeChild(link)
+      document.body.removeChild(link)
 
-      global.URL.revokeObjectURL(url)
+      URL.revokeObjectURL(url)
     } catch (error) {
       this.logError('File download failed', error)
       throw error
@@ -1058,7 +1058,7 @@ class BookDataExporter {
    * @param {Object} options - 複製選項
    */
   async copyToClipboard (format, options = {}) {
-    if (!global.navigator || !global.navigator.clipboard || !global.navigator.clipboard.writeText) {
+    if (typeof navigator === 'undefined' || !navigator.clipboard || !navigator.clipboard.writeText) {
       throw (() => {
         const error = new Error('Clipboard API not supported')
         error.code = ErrorCodes.FEATURE_NOT_SUPPORTED
@@ -1086,7 +1086,7 @@ class BookDataExporter {
           })()
       }
 
-      await global.navigator.clipboard.writeText(data)
+      await navigator.clipboard.writeText(data)
     } catch (error) {
       this.logError('Copy to clipboard failed', error)
       throw error

@@ -90,14 +90,14 @@ async function initializeContentScript () {
     bookDataExtractor.setEventBus(contentEventBus)
     bookDataExtractor.setReadmooAdapter(readmooAdapter)
 
-    // 第六步：設定全域變數 (供測試使用)
-    if (typeof global !== 'undefined') {
-      global.pageDetector = pageDetector
-      global.contentEventBus = contentEventBus
-      global.contentChromeBridge = contentChromeBridge
-      global.bookDataExtractor = bookDataExtractor
-      global.readmooAdapter = readmooAdapter
-      global.contentScriptReady = true
+    // 第六步：設定全域變數 (供測試使用；CE runtime 用 globalThis 與 Node 測試環境共用)
+    if (typeof globalThis !== 'undefined') {
+      globalThis.pageDetector = pageDetector
+      globalThis.contentEventBus = contentEventBus
+      globalThis.contentChromeBridge = contentChromeBridge
+      globalThis.bookDataExtractor = bookDataExtractor
+      globalThis.readmooAdapter = readmooAdapter
+      globalThis.contentScriptReady = true
     }
 
     // 第七步：設定模組間協調
