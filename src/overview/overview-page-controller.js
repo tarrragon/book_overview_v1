@@ -1478,43 +1478,11 @@ class OverviewPageController extends EventHandlerClass {
     }
   }
 
-  // ========== 檔案載入代理方法（向後相容，測試直接呼叫） ==========
-
-  /**
-   * 處理檔案內容（委派至 BookFileImporter）
-   * @private
-   * @param {string} content - 檔案內容
-   *
-   * 保留原因：測試環境中 handleFileLoad 的替代實作直接呼叫此方法
-   *
-   * W1-047.2 / IMP-B：importer 回傳 ImportResult，於此邊界解構 books 傳給 UI 層。
-   */
-  _handleFileContent (content) {
-    const importResult = this.bookFileImporter._handleFileContent(content)
-    this._updateUIWithBooks(importResult.books)
-  }
-
-  /**
-   * 驗證檔案基本要求（委派至 BookFileImporter）
-   * @private
-   *
-   * 保留原因：overview-page.test.js 透過 jest.spyOn 攔截此方法
-   */
-  _validateFileBasics (file) {
-    return this.bookFileImporter._validateFileBasics(file)
-  }
-
-  /**
-   * 驗證檔案大小（委派至 BookFileImporter）
-   * @private
-   *
-   * 保留原因：overview-page.test.js 透過 jest.spyOn 攔截此方法
-   */
-  _validateFileSize (file) {
-    return this.bookFileImporter._validateFileSize(file)
-  }
-
   // ========== 重複書籍處理（委派至 DuplicateBookMerger） ==========
+  // W1-048.1 Stage C.7：移除三個 test-only proxy 方法
+  // （_handleFileContent / _validateFileBasics / _validateFileSize）。
+  // 測試已遷移至 importer public API（validate / read / parseContent）；
+  // handleFileLoad 為唯一對外匯入入口。
 
   /**
    * 處理重複書籍的合併策略（委派至 DuplicateBookMerger）

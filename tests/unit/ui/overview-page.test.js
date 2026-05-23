@@ -832,9 +832,9 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
       // eslint-disable-next-line no-unused-vars
       const mockFile = new File([fileContent], 'test.json', { type: 'application/json' })
 
-      // 模擬檔案驗證方法
-      jest.spyOn(controller, '_validateFileBasics').mockImplementation(() => {})
-      jest.spyOn(controller, '_validateFileSize').mockImplementation(() => {})
+      // W1-048.1 Stage C.5：原 controller._validateFileBasics / _validateFileSize 兩 spy
+      // 合併為 importer.validate 單一 spy（validate 已合併 basics + size，proxy 已 C.7 移除）
+      jest.spyOn(controller.bookFileImporter, 'validate').mockImplementation(() => {})
 
       // 驗證方法調用不會拋出異常
       expect(() => {

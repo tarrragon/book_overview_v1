@@ -320,8 +320,10 @@ describe('📄 Overview 資料匯入功能測試', () => {
         this.showLoading('正在讀取檔案...')
 
         try {
-          // 直接處理檔案內容，避免 FileReader API
-          this._handleFileContent(file.content)
+          // W1-048.1 Stage C.4：直接呼叫 importer.parseContent 取代 controller._handleFileContent
+          // proxy（已於 C.7 移除）。fileFormat 顯式為 'json'（本檔 fixture 全為 JSON）。
+          const importResult = this.bookFileImporter.parseContent(file.content, 'json')
+          this._updateUIWithBooks(importResult.books)
         } catch (error) {
           this.showError(`載入檔案失敗：${error.message}`)
           throw error
@@ -634,7 +636,9 @@ describe('📄 Overview 資料匯入功能測試', () => {
         // 模擬處理時間
         await new Promise(resolve => setTimeout(resolve, 50))
 
-        this._handleFileContent(file.content)
+        // W1-048.1 Stage C.4：直接呼叫 importer.parseContent 取代 controller proxy
+        const importResult = this.bookFileImporter.parseContent(file.content, 'json')
+        this._updateUIWithBooks(importResult.books)
         this.isLoading = false
         this.hideLoading()
       })
@@ -892,7 +896,9 @@ describe('📄 Overview 資料匯入功能測試', () => {
           // 模擬長時間讀取
           await new Promise(resolve => setTimeout(resolve, 100))
 
-          this._handleFileContent(file.content)
+          // W1-048.1 Stage C.4：直接呼叫 importer.parseContent 取代 controller proxy
+          const importResult = this.bookFileImporter.parseContent(file.content, 'json')
+          this._updateUIWithBooks(importResult.books)
           this.hideLoading()
         })
 

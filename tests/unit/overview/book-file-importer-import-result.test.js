@@ -166,7 +166,8 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
         '"書本A","readmoo","42","reading","https://example.com/c.jpg","book-001","作者甲","tag-001"'
       ].join('\n')
 
-      const result = importer._handleFileContent(csvText, 'csv')
+      // W1-048.1 Stage C.2：遷移自 _handleFileContent 至 public parseContent
+      const result = importer.parseContent(csvText, 'csv')
 
       expect(result).toHaveProperty('books')
       expect(Array.isArray(result.books)).toBe(true)
@@ -211,7 +212,8 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
       const importer = makeImporter()
       const invalidJson = '{ "books": [ '
 
-      expect(() => importer._handleFileContent(invalidJson, 'json')).toThrow(
+      // W1-048.1 Stage C.2：遷移自 _handleFileContent 至 public parseContent
+      expect(() => importer.parseContent(invalidJson, 'json')).toThrow(
         expect.objectContaining({
           code: ErrorCodes.PARSE_ERROR
         })
@@ -262,7 +264,7 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
         },
         {
           name: 'CSV',
-          run: () => importer._handleFileContent(csvText, 'csv')
+          run: () => importer.parseContent(csvText, 'csv')
         },
         {
           name: '空物件',
@@ -307,6 +309,47 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
       // tagCategories / tags 透傳，未經過濾
       expect(result.tagCategories).toEqual(data.tagCategories)
       expect(result.tags).toEqual(data.tags)
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // Group F：fileFormat 必填契約（0.19.0-W1-048.1 Stage C.6，Phase 2 §3.2）
+  //
+  // F16 修復核心：parseContent 強制要求 fileFormat 參數，禁止 fallback 至 json。
+  // 修復前 csv 檔案的 fileFormat 訊號可能遺失，導致 CSV 內容被誤判走 JSON 解析。
+  // ---------------------------------------------------------------------------
+  describe('Group F：fileFormat 必填契約（W1-048.1 Stage C.6）', () => {
+    test('parseContent 未傳 fileFormat 時 throw TypeError（禁止 fallback 至 json）', () => {
+      const importer = makeImporter()
+      const csv = '書名,id\n"書","b1"'
+      expect(() => importer.parseContent(csv)).toThrow(TypeError)
+    })
+
+    test('parseContent(csvContent, "csv") 正確解析 CSV', () => {
+      const importer = makeImporter()
+      const csvText = [
+        '書名,書城來源,進度,狀態,封面URL,id,authors,tagIds',
+        '"書本A","readmoo","42","reading","https://example.com/c.jpg","b1","",""',
+        '"書本B","readmoo","10","unread","https://example.com/c2.jpg","b2","",""'
+      ].join('\n')
+      const result = importer.parseContent(csvText, 'csv')
+      expect(result.books).toHaveLength(2)
+      expect(result.books[0].id).toBe('b1')
+      expect(result.books[1].id).toBe('b2')
+    })
+
+    test('parseContent(csvContent, "json") 應失敗 PARSE_ERROR（regression：CSV 路徑訊號遺失誤判 json）', () => {
+      const importer = makeImporter()
+      const csvText = [
+        '書名,書城來源,進度,狀態,封面URL,id,authors,tagIds',
+        '"書本A","readmoo","42","reading","https://example.com/c.jpg","b1","",""'
+      ].join('\n')
+      // CSV 內容當 JSON 解析必失敗
+      expect(() => importer.parseContent(csvText, 'json')).toThrow(
+        expect.objectContaining({
+          code: ErrorCodes.PARSE_ERROR
+        })
+      )
     })
   })
 })

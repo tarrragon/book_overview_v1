@@ -1202,31 +1202,11 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       expect(controller.currentBooks).not.toContain(undefined)
     })
 
-    test('TC-13 _handleFileContent 代理解構 ImportResult.books', () => {
-      const { OverviewPageController } = require('src/overview/overview-page-controller')
-      const controller = new OverviewPageController(mockEventBus, document)
-
-      const importResult = {
-        books: [
-          { id: 'b1', title: '書一', cover: 'http://x/c1.jpg', readingStatus: 'reading' },
-          { id: 'b2', title: '書二', cover: 'http://x/c2.jpg', readingStatus: 'finished' }
-        ],
-        tagCategories: [],
-        tags: []
-      }
-      // stub importer _handleFileContent 回傳 ImportResult
-      controller.bookFileImporter._handleFileContent = jest
-        .fn()
-        .mockReturnValue(importResult)
-      const updateSpy = jest.spyOn(controller, '_updateUIWithBooks')
-
-      controller._handleFileContent('{"books":[]}')
-
-      expect(updateSpy).toHaveBeenCalledTimes(1)
-      const passedArg = updateSpy.mock.calls[0][0]
-      expect(Array.isArray(passedArg)).toBe(true)
-      expect(passedArg).toEqual(importResult.books)
-    })
+    // W1-048.1 Stage C.7：TC-13 原驗證 controller._handleFileContent proxy 解構 ImportResult.books。
+    // proxy 已於 C.7 移除（行 1482-1516 不存在），測試案例失去 SUT。等價驗證已被
+    // TC-12（handleFileLoad 解構 ImportResult.books）覆蓋；regression 由
+    // overview-import-private-methods.test.js 「Controller test-only proxy 移除 regression」涵蓋。
+    // 故移除 TC-13。
 
     test('TC-14 非匯入呼叫端零回歸（STORAGE / EXTRACTION / UI.BOOKS.UPDATE）', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')

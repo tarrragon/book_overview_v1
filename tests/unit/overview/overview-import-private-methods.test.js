@@ -290,7 +290,10 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
   // 🔧 目標 1: 檔案處理層私有方法測試
   describe('📁 檔案處理層私有方法測試', () => {
-    describe('_validateFileBasics() 檔案基礎驗證', () => {
+    // W1-048.1 Stage C.3：原 _validateFileBasics() 直呼測試已透過 handleFileLoad 走 public
+    // validate()（Stage B 切換）。本 describe 行為斷言保留（VALIDATION_ERROR 訊息與檔案
+    // 拒絕邊界）；不再直呼底線方法。
+    describe('validate() 經由 handleFileLoad 檔案基礎驗證', () => {
       test('應該通過有效JSON檔案驗證', async () => {
         // Given: 有效的 JSON 檔案
         // eslint-disable-next-line no-unused-vars
@@ -339,7 +342,9 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
       })
     })
 
-    describe('_validateFileSize() 檔案大小驗證', () => {
+    // W1-048.1 Stage C.3：原 _validateFileSize() 直呼測試已併入 public validate()
+    // （Stage A：validate = basics + size 合併）。本 describe 行為斷言保留（大小邊界）。
+    describe('validate() 經由 handleFileLoad 檔案大小驗證', () => {
       test('應該通過正常大小檔案', async () => {
         // Given: 正常大小的檔案 (約1MB)
         // eslint-disable-next-line no-unused-vars
@@ -522,7 +527,9 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
       })
     })
 
-    describe('_readFileWithReader() 檔案讀取協調', () => {
+    // W1-048.1 Stage C.3：原 _readFileWithReader() 直呼測試已透過 handleFileLoad 走 public
+    // read()（Stage B 切換）。本 describe 行為斷言保留（端到端讀檔成功與非同步錯誤處理）。
+    describe('read() 經由 handleFileLoad 檔案讀取協調', () => {
       test('應該協調完整的檔案讀取流程', async () => {
         // Given: 有效檔案
         // eslint-disable-next-line no-unused-vars
@@ -756,6 +763,16 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         expect(controller.books).toHaveLength(1)
         expect(controller.books[0].title).toBe(specialBook.title)
       })
+    })
+  })
+
+  // W1-048.1 Stage C.6 / Phase 2 §3.3：controller 不再暴露 test-only proxy
+  // 此 describe 為 regression：proxy 三方法已於 Stage C.7 移除（行 1482-1516）。
+  describe('Controller test-only proxy 移除 regression（W1-048.1 Stage C.7）', () => {
+    test('controller 不再暴露 _handleFileContent / _validateFileBasics / _validateFileSize', () => {
+      expect(controller._handleFileContent).toBeUndefined()
+      expect(controller._validateFileBasics).toBeUndefined()
+      expect(controller._validateFileSize).toBeUndefined()
     })
   })
 })
