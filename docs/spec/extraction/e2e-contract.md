@@ -419,7 +419,7 @@ async function saveBooksWrapper(books) {
 { level: 'normal' | 'warning' | 'auto_cleanup' | 'blocked', usageRatio: 0.0-1.0 }
 ```
 
-**契約**：寫入大量資料前必須先呼叫 `checkQuotaLevel()`；level=`blocked` 時必須拒絕寫入並回傳明確錯誤訊息給用戶。
+**契約**：寫入大量資料前必須先呼叫 `checkQuotaLevel()`；level=`blocked` 時必須拒絕寫入並回傳明確錯誤訊息給用戶。**Why**：`chrome.storage.local` 觸發 5MB 上限時 Chrome runtime 會回傳 `QuotaExceededError` 但部分舊路徑會吞掉 Promise rejection。**Consequence**：跳過檢查的寫入在配額滿時 UI 看似成功（無 throw）但資料未落地，用戶後續開 overview 發現資料消失。
 
 #### 2.5 Schema 演進與 Migration 機制
 
@@ -472,7 +472,7 @@ install-handler.onUpdated 偵測版本升級
 | Migration 失敗 | 保留（供回滾） |
 | 回滾觸發（`rollback()` L240-247） | 讀備份 → 還原 → 刪備份 |
 
-**契約**：新增 schema 版本時必須建立新的 backup key（如 `migration_backup_v3_2`），並提供獨立的 forward + rollback function。
+**契約**：新增 schema 版本時必須建立新的 backup key（如 `migration_backup_v3_2`），並提供獨立的 forward + rollback function。**Why**：backup key 是 migration 失敗時的唯一還原途徑；複用既有 backup key 會覆寫前版備份，喪失多版回滾能力。**Consequence**：未隔離 backup key 的 schema 升級若中途失敗，用戶資料同時遺失新舊兩版備份，只能從 chrome.storage.sync（若有）或 CSV 匯出檔還原。
 
 #### 2.6 Storage 讀寫者完整清單
 
@@ -487,6 +487,7 @@ install-handler.onUpdated 偵測版本升級
 | `tests/e2e/browser/helpers/storage-reader.js` | L57-61 | E2E 測試斷言 |
 | `src/data-management/migration/cover-to-reader.js` | L262 | migration 觸發判斷 |
 | `src/data-management/migration/v1-to-v2.js` | L251 | migration 觸發判斷 |
+| `src/core/errors/UC02ErrorFactory.js` | L491 | `chrome.storage.local.get(null)` 全量讀取（**繞過 tag-storage-adapter 雙形態容錯**，UC-02 錯誤上下文收集用） |
 
 **監聽者**（`chrome.storage.onChanged` 事件監聽，不主動讀取）：
 
@@ -504,7 +505,7 @@ install-handler.onUpdated 偵測版本升級
 | `src/data-management/migration/cover-to-reader.js` | L286+ | migration 寫入新版資料 |
 | `src/data-management/migration/v1-to-v2.js` | （migration step） | migration 寫入 v2 資料 |
 
-**契約**：新增寫者必須使用 `saveBooksWrapper`（保留容器結構），不可繞過直接 `chrome.storage.local.set({ readmoo_books: books })`。
+**契約**：新增寫者必須使用 `saveBooksWrapper`（保留容器結構），不可繞過直接 `chrome.storage.local.set({ readmoo_books: books })`。**Why**：`readmoo_books` 雙形態（物件 vs 陣列）依歷史寫入決定；繞過 wrapper 直接寫陣列會把既有物件容器的 `extractionTimestamp` / `extractionCount` 等 metadata 一併刪除。**Consequence**：metadata 遺失後 popup 顯示「最後提取時間」變空白，用戶無法判斷資料新舊；E2E 測試依賴 metadata 的斷言也會破壞。
 
 ### 變更影響
 
@@ -607,7 +608,7 @@ grep -rln "readmoo_books" src/ tests/e2e/ --include="*.js" | sort -u
 | `CONTENT.STATUS.READY` | Content script 就緒（內部簡化命名） |
 | `SYSTEM.SHUTDOWN` | 系統關閉（雙層命名） |
 
-**契約**：所有新事件名應通過 `event-type-definitions.js` 的 `validateEventName()` 驗證；不符合 v2.0 規範的簡化命名（如 `START_EXTRACTION`、`CONTENT.STATUS.READY`）視為**遺留命名**，僅核心 message types 保留，新增事件必須採用 v2.0 規範。
+**契約**：所有新事件名應通過 `event-type-definitions.js` 的 `validateEventName()` 驗證；不符合 v2.0 規範的簡化命名（如 `START_EXTRACTION`、`CONTENT.STATUS.READY`）視為**遺留命名**，僅核心 message types 保留，新增事件必須採用 v2.0 規範。**Why**：v2.0 規範 `DOMAIN.PLATFORM.ACTION.STATE` 四層命名提供領域分流（後續多書城擴展需要 PLATFORM 維度）+ 自動統計分組（ANALYTICS 視角）；簡化命名遺失這兩維度，未來重構為 v2.0 需逐一重新對映。**Consequence**：放任新事件採簡化命名會在後續多書城擴展時觸發大規模事件名 migration，且歷史 telemetry 統計無法跨版本對齊。
 
 #### 3.2 核心 E2E Message Types
 
@@ -1133,9 +1134,9 @@ grep -A3 "content_scripts" manifest.json
 | 未讀 | `unread` | 自動可追蹤 | progress = 0 | false |
 | 閱讀中 | `reading` | 自動可追蹤 | progress 0 → >0 | false |
 | 已完成 | `finished` | 自動可追蹤 | progress 達 100 | false |
-| 待讀清單 | `queued` | 手動專用 | 用戶手動設定 | **true** |
-| 已放棄 | `abandoned` | 手動專用 | 用戶手動設定 | **true** |
-| 參考用書 | `reference` | 手動專用 | 用戶手動設定 | **true** |
+| 待讀清單 | `queued` | 手動專用 | 用戶手動設定 | true |
+| 已放棄 | `abandoned` | 手動專用 | 用戶手動設定 | true |
+| 參考用書 | `reference` | 手動專用 | 用戶手動設定 | true |
 
 **分類規則**（BookSchemaV2.js L29-39）：
 
@@ -1485,7 +1486,7 @@ const UNSTABLE_COVER_IDS = new Set(['openbook', 'undefined', 'placeholder', 'def
 - `openbook` 是 Readmoo 書庫的預設預覽圖（多本書共用），會造成集體 ID 碰撞
 - `undefined` / `placeholder` / `default` 為佔位填充值，無唯一性
 
-**契約**：新發現的不穩定 cover 識別字必須加入 UNSTABLE_COVER_IDS 並同步本表。
+**契約**：新發現的不穩定 cover 識別字必須加入 UNSTABLE_COVER_IDS 並同步本表。**Why**：cover 策略順位為 2（reader-link 失敗後 fallback），若 unstable cover 通過策略會產生集體 ID 碰撞（多本書共用同一 cover-{slug} id），下游 storage / 匯出 / UI 出現重複書籍。**Consequence**：未即時補入黑名單會在用戶實機提取時批次產生碰撞書籍，需執行 migration 重新生成 ID 並合併重複條目（與 W6-012.2.2 cover-to-reader migration 5 案例規則對齊）。
 
 #### 6.6 作者欄位 Source Limitation
 
@@ -1515,7 +1516,7 @@ const UNSTABLE_COVER_IDS = new Set(['openbook', 'undefined', 'placeholder', 'def
 
 **書庫頁採虛擬 scroll**：944 本書時 DOM 僅渲染前 96 個 `.library-item`。完整提取需 scroll 觸發 lazy load。
 
-**契約**：完整提取必須等 `.library-item` 數量穩定於目標總數後才開始解析。目標總數從 `.item-list-state` header 文字解析。
+**契約**：完整提取必須等 `.library-item` 數量穩定於目標總數後才開始解析。目標總數從 `.item-list-state` header 文字解析。**Why**：Readmoo 書庫頁採虛擬 scroll，首批僅渲染 96 個 `.library-item`（W6-012.9.4 實機驗證）；不等 lazy load 完成直接提取會丟失 90%+ 書目（944 本書時提取 96/944）。**Consequence**：W6-021 ANA 已確認既有 `extractAllBooks` 路徑缺 lazy load loop，導致提取 10% 缺口；未落地 scroll-to-end 演算法的 production code 路徑必然遺失大量資料，用戶誤以為書庫只有 96 本。
 
 **Header 文字格式**（`LIBRARY_TOTAL` / `ARCHIVED` / `LENT` patterns L99-101）：
 

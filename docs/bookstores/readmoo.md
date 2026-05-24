@@ -23,7 +23,10 @@
 | 官方首頁（商品瀏覽） | https://readmoo.com/ | 否 |
 | **書庫頁（資料提取主目標）** | https://read.readmoo.com/#/library | **是** |
 | 閱讀器頁（單書） | https://read.readmoo.com/reader/{book-id} | 是 |
+| 閱讀器 API（DOM 內 dummy URL） | https://readmoo.com/api/reader/{book-id} | — |
 | 帳號設定 | https://member.readmoo.com/ | 是 |
+
+**注意**：`readmoo.com/api/reader/{book-id}` 出現於書庫頁 `.library-item > a.reader-link[href]` 屬性內，SPA 載入時為佔位 URL（所有書共用同一 dummy），**非實際可訪問的 API 端點**。真實 book ID 來源為 `[id^="privacy-"]`（詳 §Book ID 來源優先級）。
 
 **核心測試 URL**：`https://read.readmoo.com/#/library` — 這是 Chrome Extension 提取書目的目標頁面，**不是** `https://readmoo.com/`（首頁無書庫資料）。
 
