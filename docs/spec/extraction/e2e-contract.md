@@ -84,7 +84,7 @@ UC-05（搜尋篩選）與 UC-07（Tag 管理）的契約聚焦於 UI 與 tag sc
 | §3 | Console 訊息與事件格式 | [W5-003.3](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.3.md) | completed |
 | §4 | Lifecycle 與步驟順序 | [W5-003.4](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.4.md) | completed |
 | §5 | Book schema v1.1 model | [W5-003.5](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.5.md) | completed |
-| §6 | DOM 提取選擇器 | [W5-003.6](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.6.md) | pending |
+| §6 | DOM 提取選擇器 | [W5-003.6](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.6.md) | completed |
 
 ---
 
@@ -1369,11 +1369,252 @@ grep -E "READING_STATUS_ENUM|DERIVABLE_STATUS|PROGRESS_TO_STATUS" tests/e2e/brow
 
 ## §6 DOM 提取選擇器契約
 
-> **撰寫者**：W5-003.6（pending）
->
-> **預期範圍**：.library-item DOM 結構樹 / 每欄位 selector + fallback 表 / Book ID 來源優先級 / cover 過濾規則 / 作者欄位 source limitation / src/content/adapters/readmoo-adapter.js 引用
+### Name
 
-（待 W5-003.6 撰寫）
+定義 Readmoo 書庫頁 `.library-item` DOM 結構、各 Book 欄位的 selector 與 fallback 策略、Book ID 生成優先級、cover 過濾規則、與 lazy load 處理策略。
+
+**適用範圍**：所有從 Readmoo DOM 提取 Book 資料的程式碼。Readmoo 變更 DOM 結構、新增 selector fallback、或修改 ID 策略前必須先更新本契約。
+
+### Source of Truth
+
+| 角色 | 檔案 | 行號 | 內容 |
+|------|------|------|------|
+| 主要 SELECTORS 集中定義 | `src/content/adapters/readmoo-adapter.js` | L60-94 | 完整 selectors 物件 |
+| Unstable cover ID 黑名單 | `src/content/adapters/readmoo-adapter.js` | L112 | UNSTABLE_COVER_IDS Set |
+| Placeholder URL pattern | `src/content/adapters/readmoo-adapter.js` | L107 | PLACEHOLDER_URL_PATTERN |
+| Library total 文字解析 regex | `src/content/adapters/readmoo-adapter.js` | L99-101 | LIBRARY_TOTAL / ARCHIVED / LENT patterns |
+| Load more 按鈕文字判定 | `src/content/adapters/readmoo-adapter.js` | L104 | LOAD_MORE_TEXT_PATTERN |
+| 祖先深度上界 | `src/content/adapters/readmoo-adapter.js` | L117 | MAX_ANCESTOR_DEPTH = 12 |
+| Book ID 策略 | `src/content/adapters/readmoo-adapter.js` | L1475-1500 | applyIdGenerationStrategiesWithInfo |
+| Cover 策略 + 過濾 | `src/content/adapters/readmoo-adapter.js` | L1508-1515 | tryCoverStrategy |
+| Title 策略 | `src/content/adapters/readmoo-adapter.js` | L1523-1527 | tryTitleStrategy |
+| getBookElements 多層 fallback | `src/content/adapters/readmoo-adapter.js` | L153-260 | bookContainer / alternativeContainers / readerLink 三層 fallback |
+| parseBookElement 主流程 | `src/content/adapters/readmoo-adapter.js` | L1044-1180 | DOM 解析入口 |
+| Readmoo DOM 結構參考 | `docs/bookstores/readmoo.md` | §書籍容器 DOM 結構 v1.3.0 | 完整 DOM 樹 |
+| Book ID 來源優先級背景 | `docs/bookstores/readmoo.md` | §Book ID 來源優先級 + §ID 演進歷程 | cover → reader 遷移脈絡 |
+| Lazy load 策略 | `docs/bookstores/readmoo.md` | §虛擬 scroll / lazy load | scroll-to-end 演算法 |
+| 作者欄位 limitation | `docs/bookstores/readmoo.md` | §作者欄位 Source Limitation | W1-061 ANA 確認 |
+| E2E test 5 本 fixture | `tests/e2e/browser/fixtures/readmoo-mock-page.html` | （fixture） | 5 本 .library-item 範本 |
+
+### 契約定義
+
+#### 6.1 SELECTORS 完整清單
+
+集中定義於 `readmoo-adapter.js` L60-94：
+
+| Selector 名稱 | CSS Selector | 用途 |
+|--------------|-------------|------|
+| `bookContainer` | `.library-item` | 主要書籍容器（單本書一個） |
+| `readerLink` | `a[href*="/api/reader/"]` | reader 深連結（SPA 載入時為佔位 URL） |
+| `bookImage` | `.cover-img` | 封面圖片 |
+| `bookTitle` | `.title` | 書名 |
+| `progressBar` | `.progress-bar` | 進度條 |
+| `renditionType` | `.label.rendition` | 書籍格式（流式 / 版式） |
+| `privacyElement` | `[id^="privacy-"]` | 真實 book ID 來源（`privacy-{8位數字}`） |
+| `scrollContainerCandidates` | `['#react-container', '.react-container']` | 捲動容器候選（lazy load） |
+| `loadMoreButton` | `button.btn-outline-primary` | 「更多...」按鈕 |
+| `libraryTotalHeader` | `.item-list-state` | 書庫總數文字 header |
+| `alternativeContainers` | `['.book-item', '.book-card', '.library-book']` | Fallback containers（DOM 結構演進時的 fallback） |
+| `progressIndicators` | `['.progress-bar', '.progress', '[class*="progress"]', '.reading-progress']` | 進度元素 fallback |
+
+#### 6.2 .library-item DOM 結構樹（v1.3.0）
+
+```text
+.library-item.library-item-grid-view
+├── .cover-outer
+│   ├── .cover-container > .cover
+│   │   ├── .sc-eCsseJ.elmWWH > .ribbon > span                                  ← Badge ("New" 等)
+│   │   └── a.reader-link[href="https://readmoo.com/api/reader/{dummy}"]        ← SPA 佔位 URL
+│   │       └── img.cover-img[alt=書名, src="https://cdn.readmoo.com/cover/.../{filename}_210x315.jpg"]
+│   ├── .rendition-overlay > .label.rendition                                    ← 格式 ("流式" / "版式")
+│   └── .desktop-overlay > .openbook-overlay                                     ← hover popup
+│       ├── .detail                                                              ← 詳細按鈕
+│       ├── .privacy[id="privacy-{8位數字}"]                                     ← 真實 book ID
+│       └── .menu-status > .dropdown > button                                    ← 進度狀態下拉
+├── .info
+│   ├── .progress.progress-simple > .progress-bar                                ← 進度條
+│   ├── .title[title=書名]                                                       ← 書名
+│   └── .star-rating                                                             ← 五星評分 (用戶自訂，可空)
+└── .select-overlay                                                              ← 批次選取
+```
+
+**Source**：`docs/bookstores/readmoo.md` §書籍容器 DOM 結構（v0.19.0 W1-061 實機驗證版）。
+
+#### 6.3 欄位 Selector 對應表
+
+| Book 欄位 (§5.1) | 主要 selector | Fallback 策略 | 來源檔案 |
+|------------------|--------------|--------------|---------|
+| `id` | 多策略（詳 §6.4） | reader → cover → title → fallback | `readmoo-adapter.js` L1475-1500 |
+| `title` | `.title`（讀 `title` 屬性或 textContent） | `img.cover-img[alt]`（圖片 alt 屬性） | `readmoo-adapter.js#extractCoverAndTitle` L988 |
+| `cover` | `.cover-img[src]` | （無 fallback，可為空） | `readmoo-adapter.js#extractCoverAndTitle` |
+| `progress` | `.progress-bar`（讀 style 寬度 或 aria-valuenow） | `progressIndicators` 陣列依序 | `readmoo-adapter.js#extractProgressFromContainer` L1342 |
+| `type` | `.label.rendition`（textContent："流式" / "版式"） | （無 fallback） | `readmoo-adapter.js` |
+| `identifiers.privacyBookId` | `[id^="privacy-"]`（讀 id 屬性 8 位數字） | （無 fallback） | `readmoo-adapter.js#parseBookElement` |
+| `readerLink` (內部) | `a[href*="/api/reader/"]` | 佔位 URL 偵測 `PLACEHOLDER_URL_PATTERN` 過濾 | `readmoo-adapter.js` L1532+ |
+| `authors` | （無 selector） | 永遠 `[]`（W1-061 source limitation，詳 §6.6） | — |
+
+**進度條解析特殊規則**：`.progress-bar` 可能透過 `style="width: 45%"` 或 `aria-valuenow="45"` 表達進度，extractor 兩者皆支援，最終正規化為 0-100 整數。
+
+#### 6.4 Book ID 來源優先級
+
+`applyIdGenerationStrategiesWithInfo` 策略順序（readmoo-adapter.js L1475-1500）：
+
+| 優先級 | 策略 | 條件 | 產出格式 | 穩定性 |
+|--------|------|------|---------|--------|
+| 1（首選） | `reader-link` | 從 `[id^="privacy-"]` 解析出 8 位數字 privacyBookId | `reader-{privacyBookId}` | 高（Readmoo 內部穩定 book ID） |
+| 2 | `cover` | `cover-img[src]` 含可解析的 filename 且不在 `UNSTABLE_COVER_IDS` 黑名單 | `cover-{slug}` | 低（封面 CDN 改版會破壞） |
+| 3 | `title` | 書名非空且非「未知標題」 | `title-{slug}` | 中（版本後綴影響） |
+| 4（fallback） | 隨機 hash | 前三策略皆失敗 | `fallback-{hash}` | 不穩定（最後手段） |
+
+**關鍵契約**：
+
+- `a.reader-link[href]` 在 SPA 載入時是**佔位 URL**（所有書共用同一 `/api/reader/210017268000101` dummy），**不可作為 book ID 來源**
+- 真實 book ID 由 `div.privacy#privacy-{digits}` 提供（在 `.openbook-overlay` 內，DOM 始終存在）
+- Parser 應以 privacyBookId 重建真實 reader URL：`https://readmoo.com/api/reader/{privacyBookId}`
+- 策略順序（reader → cover → title → fallback）由 W6-012.2.1 確立，**不可改變**
+
+**ID 演進歷程**：詳見 `docs/bookstores/readmoo.md` §ID 演進歷程（cover-XXX → reader-{privacyBookId} 遷移背景，含 5 案例合併規則對 §2.5 migration）。
+
+#### 6.5 Cover 過濾規則
+
+`UNSTABLE_COVER_IDS` 黑名單（readmoo-adapter.js L112）：
+
+```javascript
+const UNSTABLE_COVER_IDS = new Set(['openbook', 'undefined', 'placeholder', 'default'])
+```
+
+**過濾邏輯**（`tryCoverStrategy` L1508-1515）：
+
+| 步驟 | 動作 |
+|------|------|
+| 1 | `cover` 為空 / 純空白 → return null |
+| 2 | `extractCoverIdFromUrl(cover)` 解析失敗 → return null |
+| 3 | coverId 在 UNSTABLE_COVER_IDS 黑名單 → return null |
+| 4 | 通過所有檢查 → return `cover-{coverId}` |
+
+**Why**：
+
+- `openbook` 是 Readmoo 書庫的預設預覽圖（多本書共用），會造成集體 ID 碰撞
+- `undefined` / `placeholder` / `default` 為佔位填充值，無唯一性
+
+**契約**：新發現的不穩定 cover 識別字必須加入 UNSTABLE_COVER_IDS 並同步本表。
+
+#### 6.6 作者欄位 Source Limitation
+
+**結論**：`.library-item` DOM **不提供作者資訊**，這是 source data limitation，非 extractor 邏輯遺漏。
+
+**W1-061 ANA 證據**（chrome-devtools-mcp 對 96 個 `.library-item` 樣本測試）：
+
+| Selector | 命中數 |
+|----------|--------|
+| `.author` | 0 |
+| `.creator` | 0 |
+| `.book-author` | 0 |
+| `[class*="author"]` | 0 |
+| `[class*="creator"]` | 0 |
+| `[class*="writer"]` | 0 |
+
+**對 extractor 的影響**（與 §5 對齊）：
+
+- `parseBookElement()` 維持 schema 不含 `author/authors` selector（即使加上也是 empty string）
+- 下游 `data-normalization-service#normalizeBook` 接受 undefined 並產出 `authors: []`
+- UI / CSV 匯出明示「作者欄位來源限制，可由用戶手動編輯」
+
+**未來探索方向**（不在本契約範圍，列為參考）：5 種替代來源（Reader API / Readmoo 商品 API / Google Books 等），短期方案維持 source limitation + UI 提示。
+
+#### 6.7 Lazy Load 與 Scroll-to-End 策略
+
+**書庫頁採虛擬 scroll**：944 本書時 DOM 僅渲染前 96 個 `.library-item`。完整提取需 scroll 觸發 lazy load。
+
+**契約**：完整提取必須等 `.library-item` 數量穩定於目標總數後才開始解析。目標總數從 `.item-list-state` header 文字解析。
+
+**Header 文字格式**（`LIBRARY_TOTAL` / `ARCHIVED` / `LENT` patterns L99-101）：
+
+```
+擁有 N 本書，其中封存 X 本，借出 Y 本
+```
+
+可見書目數 = N - X - Y。封存與借出子句皆為可選。
+
+**Scroll-to-end loop 演算法**（`docs/bookstores/readmoo.md` §MCP E2E Checklist Step 3 規範）：
+
+| 步驟 | 動作 |
+|------|------|
+| 1 | 從 `.item-list-state` 解析目標總數 (N - X - Y) |
+| 2 | `window.scrollTo(0, document.body.scrollHeight)` |
+| 3 | 等 800ms |
+| 4 | 找 `button.btn-outline-primary` 含文字「更多」按鈕 → 滾到中間 → 點擊 |
+| 5 | 等 800ms |
+| 6 | 計數 `.library-item` |
+| 7 | 連續 3 輪 count 無變化或達上限 30 輪 → 結束 |
+
+**終止條件**：
+
+- `count === target`（達目標數）
+- 連續 3 輪 count 無變化（plateau）
+- 30 輪上限
+
+**已知缺口**（W6-021 ANA）：
+
+| 元件 | 狀態 | 影響 |
+|------|------|------|
+| `readmoo-adapter.js#extractAllBooks` | 缺 scroll-to-end loop | 僅提取首批 96/944（10%） |
+| `waitForBookElements` (L268+) | 設計為「等待出現」非「等待完整」 | resolve 條件 `length > 0`，不等 count 穩定 |
+| SPA 路由監聽串接 | 未串接 `event-utils.onURLChange` | 路由切換返回 library 只看當下 snapshot |
+
+**契約**：未來 IMP 將 Step 3 演算法落地到 production code（採 `loadAllBooksLazy()` 新 method 保留呼叫者選擇權；loop 結束條件依本契約）。
+
+#### 6.8 getBookElements 多層 Fallback
+
+`readmoo-adapter.js#getBookElements` L153-260 三層 fallback：
+
+| 層 | Selector | 條件 |
+|----|---------|------|
+| 1 | `.library-item` (`SELECTORS.bookContainer`) | 直接命中即用 |
+| 2 | `SELECTORS.alternativeContainers` 陣列依序 | bookContainer 命中 0 個時嘗試 |
+| 3 | `SELECTORS.readerLink` 反查 | 從 `a[href*="/api/reader/"]` 向上找最多 12 層祖先（`MAX_ANCESTOR_DEPTH`），找到含書籍特徵的父元素 |
+
+**LAST_RESORT 策略**（第 3 層）：用 `Error().stack` 記錄呼叫來源（L157 用於診斷時序問題），向上找祖先層數上限 `MAX_ANCESTOR_DEPTH = 12`（L117）。
+
+**契約**：DOM 結構大改時，alternativeContainers 與 LAST_RESORT 策略提供短期相容性，但長期應修正主 selector。
+
+### 變更影響
+
+| 變更內容 | 影響 |
+|---------|------|
+| Readmoo 改 `.library-item` class 名 | §6.1 / §6.2 同步；可能觸發 alternativeContainers fallback；建議改為 `class*="library-item"` attribute selector |
+| 新增不穩定 cover 識別字 | §6.5 UNSTABLE_COVER_IDS 補入；舊資料是否需重新 ID 化 |
+| 修改 Book ID 策略順序 | §6.4 重寫；§2.5 schema 升級（新 migration 必要）；既有資料 backfill |
+| 新增 Book 欄位（例 author / publisher 改有 DOM 來源） | §6.3 selector 對應表補入；§5 schema 同步 |
+| Readmoo 移除 SPA / 改為 SSR | §6.7 scroll-to-end 演算法不再需要；§1 SPA hash 處理同步調整 |
+| 修改 `.item-list-state` header 文字格式 | §6.7 LIBRARY_TOTAL / ARCHIVED / LENT regex 同步 |
+
+### Grep 驗證
+
+```bash
+# 6.1 SELECTORS 完整清單
+grep -A30 "^  const SELECTORS = {" src/content/adapters/readmoo-adapter.js | head -35
+
+# 6.4 Book ID 策略順序
+grep -A20 "applyIdGenerationStrategiesWithInfo" src/content/adapters/readmoo-adapter.js | head -30
+
+# 6.5 UNSTABLE_COVER_IDS
+grep -n "UNSTABLE_COVER_IDS" src/content/adapters/readmoo-adapter.js | head -5
+
+# 6.7 header / load more regex
+grep -E "LIBRARY_TOTAL_PATTERN|ARCHIVED_PATTERN|LENT_PATTERN|LOAD_MORE_TEXT_PATTERN" src/content/adapters/readmoo-adapter.js
+
+# 6.7 MAX_ANCESTOR_DEPTH
+grep -n "MAX_ANCESTOR_DEPTH" src/content/adapters/readmoo-adapter.js | head -3
+
+# 6.8 getBookElements fallback layers
+grep -n "alternativeContainers\|SELECTORS.bookContainer\|SELECTORS.readerLink" src/content/adapters/readmoo-adapter.js | head -10
+
+# 6.6 作者 selector 確認無命中
+grep -E "\.author|\.creator|\.book-author" src/content/adapters/readmoo-adapter.js
+```
+
+**驗證標準**：每條 grep 命中本契約列出的引用點；新增 selector / fallback 必須補入對應子節。
 
 ---
 
