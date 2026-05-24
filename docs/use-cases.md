@@ -71,9 +71,12 @@
 **成功標準**:
 
 - 提取成功率 > 95%
-- 每本書籍都包含必要欄位（id, title, cover等）
+- 每本書籍都包含必要欄位（`id`, `title`, `cover`, `progress`, `type`）
+- `authors` 標為 **source-limited（非必要欄位）**：Readmoo library 頁 DOM 不提供作者資訊（W1-061 ANA 實機驗證），由用戶於 UI 手動補寫
 - Overview頁面載入時間 < 3秒
 - 無JavaScript錯誤
+
+> **作者欄位說明（W1-061）**：透過 chrome-devtools-mcp 對 v0.19.0 `.library-item` 96 個樣本驗證，`.info` 子節點僅含 `.progress` / `.title` / `.star-rating`，無任何 `.author` / `.creator` 等 selector 命中。`authors: []` 為預期空陣列，非提取邏輯缺陷。完整 ANA 結論見 `docs/work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W1-061.md`；短期方案 W1-061.2 落地 UI 提示，長期方案於 v0.20.0+ 探索替代來源。
 
 **Tag-based Model 影響**（v1.1）:
 
@@ -491,6 +494,7 @@
 |------|------|---------|
 | v1.0 | 2025-08-22 | 初始版本，7 個核心 UC |
 | v1.1 | 2026-04-03 | PROP-007 tag-based model 對齊：閱讀狀態 3→6、tag-based 影響分析、新增邊界條件、新增錯誤場景 E/F/G |
+| v1.2 | 2026-05-24 | UC-01 成功標準補正：`authors` 標為 source-limited（非必要欄位），引用 W1-061 ANA |
 
 ## 相關規範與連結
 
