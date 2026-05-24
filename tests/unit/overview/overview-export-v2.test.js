@@ -219,7 +219,10 @@ describe('Overview 匯出按鈕 v2 路徑（W1-042.1）', () => {
       await controller.handleExportCSVv2()
 
       expect(captured).not.toBeNull()
-      const header = captured.split('\n')[0]
+      // W1-061.2: overview 匯出啟用 includeSourceLimitations，第一行為 # source-limited 註解列
+      // 跳過註解列取得真正的 headers 行
+      const lines = captured.split('\n').filter(l => !l.startsWith('#'))
+      const header = lines[0]
       expect(header).toContain('readingStatus')
       expect(header).toContain('tagIds')
       expect(header).toContain('tagNames')
@@ -227,6 +230,21 @@ describe('Overview 匯出按鈕 v2 路徑（W1-042.1）', () => {
       // 不應含 v1 中文 headers
       expect(header).not.toContain('書名')
       expect(header).not.toContain('狀態')
+    })
+
+    test('W1-061.2: CSV 前置 source-limited 註解列明示 authors 來源限制', async () => {
+      controller.filteredBooks = [makeV2Book()]
+      let captured = null
+      jest.spyOn(controller, '_triggerExportDownload').mockImplementation((content) => {
+        captured = content
+      })
+
+      await controller.handleExportCSVv2()
+
+      expect(captured).not.toBeNull()
+      const firstLine = captured.split('\n')[0]
+      expect(firstLine).toMatch(/^#\s+source-limited:\s+authors/)
+      expect(firstLine).toContain('Readmoo')
     })
 
     test('衍生欄位 tagNames 由 tagIds 解析出 tag 名稱', async () => {
