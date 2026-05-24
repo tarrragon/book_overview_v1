@@ -967,6 +967,37 @@ sequenceDiagram
 | Migration 必須在 SW 啟動完成前完成 | install-handler L74-82 同步等待 | 提取流程讀到舊 schema 資料 |
 | SYSTEM.SHUTDOWN 廣播必須在 SW 真正回收前完成 | shutdown-handler 內 | CS 持有 stale event listeners |
 
+#### 4.9 Error Recovery 邊界 invariant
+
+> **本節定位**：本契約**只記錄已穩定的不變式**（跨進程 error recovery 邊界保證），不契約化具體 retry 策略（次數 / 間隔 / circuit breaker 觸發條件）。retry 策略仍在演進中，具體 SoT 為 `RetryCoordinator.js`；本節記錄的是「無論策略怎麼演進都應維持的邊界」。
+
+| Invariant | 不變式內容 | 實作層 SoT |
+|-----------|----------|-----------|
+| EI-1 失敗 storage write 由 RetryCoordinator 接管 | `chrome.storage.local.set` 失敗時必須進入 RetryCoordinator 重試佇列，不可靜默丟棄 | `src/background/domains/data-management/services/RetryCoordinator.js` L26+ class + L83-84 maxRetryAttempts |
+| EI-2 RetryCoordinator 狀態持久化 | retry queue 與 circuit breaker 狀態必須寫入 `retryCoordinator_state` storage key（詳 §2.1），SW 重啟後可恢復 | 同上 L24 STORAGE_KEY + L400+ 持久化方法 |
+| EI-3 Emergency mode 不繞過配額檢查 | SW 啟動失敗觸發 `activateEmergencyMode` 時，仍須遵守 §2.4 `checkQuotaLevel` 流程，不可寫入超過 5MB 配額 | `src/background/background.js` L233 + §2.4 配額管理 |
+| EI-4 Migration 失敗保留 backup | Migration 中途失敗時 `migration_backup_v3_1` 必須保留（不刪除），供後續 rollback 還原（詳 §2.5） | `src/data-management/migration/cover-to-reader.js` L240-247 rollback flow |
+| EI-5 CS 注入失敗觸發 SW 重新初始化 | content-modular.js 初始化失敗時必須 `cleanup()` 並 throw error，由 SW 透過 emergency mode 處理；不可靜默成功 | `src/content/content-modular.js` L127-134 + `background.js` L164 fallback |
+| EI-6 SYSTEM.SHUTDOWN 廣播完成才回收 SW | shutdown-handler 必須等所有 CS 確認收到 SYSTEM.SHUTDOWN 並 cleanup 後才允許 SW 真正回收（詳 §4.7 / §4.8 既有時序約束） | `src/background/lifecycle/shutdown-handler.js` + `src/background/messaging/content-message-handler.js` L581 |
+| EI-7 Tag operation 衝突回滾 | tag-storage-adapter cascade 刪除（deleteTagCategory / deleteTag）失敗時必須 `withAtomicRollback` 還原 snapshot，不可留下半完成狀態 | `src/storage/adapters/tag-storage-adapter.js#withAtomicRollback` L189+ |
+
+**Why（本節範圍邊界）**：
+
+- **包含**：跨進程 error 處理的「邊界保證」（誰負責 retry / 何時放棄 / 失敗後狀態如何收斂）
+- **不包含**：具體 retry 策略數值（maxRetryAttempts / backoffDelay 演算法 / circuitBreaker threshold）— 仍演進中
+- **不包含**：error-collector / error-handler 累積策略 — 屬 observability 層非契約
+
+**Consequence（違反 invariant）**：
+
+- EI-1/EI-7 違反：用戶資料部分遺失或不一致
+- EI-2 違反：SW 重啟後 retry 狀態歸零，正在重試的失敗任務永久消失
+- EI-3 違反：emergency mode 可能寫入超過 5MB 觸發 chrome.storage QuotaExceededError 連鎖失敗
+- EI-4 違反：migration 失敗無法 rollback，用戶資料卡在不完整 schema 狀態
+- EI-5 違反：CS 注入失敗但提取按鈕仍可點，用戶觸發後無回饋
+- EI-6 違反：CS 持有 stale listeners，下次 SW 啟動時 message 路由錯亂
+
+**Action**：未來修改 RetryCoordinator / activateEmergencyMode / migration / shutdown 流程前，必須先驗證上述 7 條 invariant 仍成立；違反者必須先建 ANA ticket 評估影響。
+
 ### 變更影響
 
 | 變更內容 | 影響 |
