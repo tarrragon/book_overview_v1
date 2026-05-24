@@ -1175,7 +1175,8 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
         tags: [{ id: 't1', name: 'Y', categoryId: 'c1' }]
       }
       // stub importer 讀檔回傳 ImportResult
-      controller.bookFileImporter._readFileWithReader = jest
+      // Stage C 遷移（W1-048.10.1.4）：reader.read 取代 importer._readFileWithReader
+      controller.bookFileImporter.reader.read = jest
         .fn()
         .mockResolvedValue(importResult)
       // W1-047.3 / IMP-C：handleFileLoad 在 _updateUIWithBooks 前插入 replaceAllData
@@ -1255,7 +1256,8 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
-      controller.bookFileImporter._readFileWithReader = jest
+      // Stage C 遷移（W1-048.10.1.4）：reader.read 取代 importer._readFileWithReader
+      controller.bookFileImporter.reader.read = jest
         .fn()
         .mockResolvedValue(importResult)
 
@@ -1399,9 +1401,10 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
 
-      // importer 驗證階段拋出（既有行為：_validateFileBasics 失敗時 throw）
+      // importer 驗證階段拋出（既有行為：validator.validate 失敗時 throw）
+      // Stage C 遷移（W1-048.10.1.4）：validator.validate 取代 importer._validateFileBasics
       const validationError = new Error('檔案驗證失敗')
-      controller.bookFileImporter._validateFileBasics = jest.fn(() => {
+      controller.bookFileImporter.validator.validate = jest.fn(() => {
         throw validationError
       })
       const TagStorageAdapter = require('src/storage/adapters/tag-storage-adapter')

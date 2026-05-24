@@ -775,4 +775,242 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
       expect(controller._validateFileSize).toBeUndefined()
     })
   })
+
+  // W1-048.10.1.4 Stage C：BookFileImporter 改 orchestrator 後，
+  // 底線私有方法（_validateFileBasics / _validateFileSize / _readFileWithReader /
+  // _handleFileContent）已隨 Stage B 移除；改採 DI 注入 validator / reader / parser 三個 helper class。
+  // 本 describe 為反向斷言：確保未來 PR 不會誤把底線方法加回去。
+  describe('BookFileImporter 不再暴露底線方法（W1-048.10.1.4 Stage B 後）', () => {
+    let importer
+
+    beforeAll(() => {
+      // 動態 require，避免影響上方 describe 的 require 鏈
+      const { BookFileImporter } = require('src/overview/book-file-importer')
+      importer = new BookFileImporter({
+        document: global.document,
+        showError: () => {}
+      })
+    })
+
+    test('importer 不再暴露 _validateFileBasics / _validateFileSize / _readFileWithReader / _handleFileContent', () => {
+      expect(importer._validateFileBasics).toBeUndefined()
+      expect(importer._validateFileSize).toBeUndefined()
+      expect(importer._readFileWithReader).toBeUndefined()
+      expect(importer._handleFileContent).toBeUndefined()
+    })
+
+    test('importer 不再暴露 17 個子 helper（CSV / JSON / 書籍處理）', () => {
+      // 取樣關鍵子 helper，確認皆已搬遷至 ContentParser / FileValidator / FileContentReader
+      expect(importer._isJSONFile).toBeUndefined()
+      expect(importer._isCSVFile).toBeUndefined()
+      expect(importer._parseCSVContent).toBeUndefined()
+      expect(importer._parseJSONContent).toBeUndefined()
+      expect(importer._extractBooksFromData).toBeUndefined()
+      expect(importer._processBookData).toBeUndefined()
+      expect(importer._filterValidBooks).toBeUndefined()
+      expect(importer._validateRequiredFields).toBeUndefined()
+      expect(importer._isValidBook).toBeUndefined()
+      expect(importer._handleReaderSuccess).toBeUndefined()
+      expect(importer._handleReaderError).toBeUndefined()
+    })
+
+    test('importer DI 注入點存在且為 helper class 實例', () => {
+      const { FileValidator } = require('src/overview/import/file-validator')
+      const { FileContentReader } = require('src/overview/import/file-reader')
+      const { ContentParser } = require('src/overview/import/content-parser')
+
+      expect(importer.validator).toBeInstanceOf(FileValidator)
+      expect(importer.reader).toBeInstanceOf(FileContentReader)
+      expect(importer.parser).toBeInstanceOf(ContentParser)
+
+      // helper class 對應 method 存在（不檢內部實作）
+      expect(typeof importer.validator.validate).toBe('function')
+      expect(typeof importer.validator.detectFormat).toBe('function')
+      expect(typeof importer.reader.read).toBe('function')
+      expect(typeof importer.parser.parse).toBe('function')
+    })
+
+    test('importer public API 維持向後相容（4 個 thin wrapper + W1-048.10.1.5 public API）', () => {
+      // 4 個 thin wrapper public API
+      expect(typeof importer.handleFileLoad).toBe('function')
+      expect(typeof importer.validate).toBe('function')
+      expect(typeof importer.read).toBe('function')
+      expect(typeof importer.parseContent).toBe('function')
+      // W1-048.10.1.5 系列加入的 public API（delegate at Stage B）
+      expect(typeof importer.isCSVFile).toBe('function')
+      expect(typeof importer.extractBooksFromData).toBe('function')
+      expect(typeof importer.processBookData).toBe('function')
+      expect(typeof importer.validateRequiredFields).toBe('function')
+      expect(typeof importer.filterValidBooks).toBe('function')
+    })
+  })
+
+  // W1-048.10.1.4 Stage C：DI constructor 行為測試
+  // 驗證 constructor 預設自建 helper / 注入時保留參考 / 預設 reader 依賴注入 parser
+  describe('BookFileImporter constructor (DI)（W1-048.10.1.4 Stage A）', () => {
+    let BookFileImporter
+    let FileValidator
+    let FileContentReader
+    let ContentParser
+
+    beforeAll(() => {
+      BookFileImporter = require('src/overview/book-file-importer').BookFileImporter
+      FileValidator = require('src/overview/import/file-validator').FileValidator
+      FileContentReader = require('src/overview/import/file-reader').FileContentReader
+      ContentParser = require('src/overview/import/content-parser').ContentParser
+    })
+
+    test('預設情境：constructor 僅傳 document/showError，自建三個 helper 實例', () => {
+      const importer = new BookFileImporter({
+        document: global.document,
+        showError: () => {}
+      })
+      expect(importer.validator).toBeInstanceOf(FileValidator)
+      expect(importer.reader).toBeInstanceOf(FileContentReader)
+      expect(importer.parser).toBeInstanceOf(ContentParser)
+    })
+
+    test('注入 validator：importer.validator 為注入實例（identity check）', () => {
+      const stubValidator = { validate: jest.fn(), detectFormat: jest.fn(() => 'json') }
+      const importer = new BookFileImporter({
+        document: global.document,
+        showError: () => {},
+        validator: stubValidator
+      })
+      expect(importer.validator).toBe(stubValidator)
+    })
+
+    test('注入 reader：importer.reader 為注入實例（identity check）', () => {
+      const stubReader = { read: jest.fn().mockResolvedValue({ books: [], tagCategories: [], tags: [] }) }
+      const importer = new BookFileImporter({
+        document: global.document,
+        showError: () => {},
+        reader: stubReader
+      })
+      expect(importer.reader).toBe(stubReader)
+    })
+
+    test('注入 parser：importer.parser 為注入實例（identity check）', () => {
+      const stubParser = { parse: jest.fn() }
+      const importer = new BookFileImporter({
+        document: global.document,
+        showError: () => {},
+        parser: stubParser
+      })
+      expect(importer.parser).toBe(stubParser)
+    })
+
+    test('僅注入 parser：預設 reader 內部仍使用注入的 parser（生產情境鏈一致）', () => {
+      // 透過 reader.read 觸發 parser.parse 確認鏈是否一致
+      const stubParser = {
+        parse: jest.fn().mockReturnValue({ books: [{ id: 'p1', title: 'parsed' }], tagCategories: [], tags: [] })
+      }
+      const importer = new BookFileImporter({
+        document: global.document,
+        showError: () => {},
+        parser: stubParser
+      })
+      // importer.parser 為注入的 stub
+      expect(importer.parser).toBe(stubParser)
+      // 預設 reader 的內部 parser 應為同一個 stub（鏈一致）
+      // 透過 reader._parser 私有欄位驗證（FileContentReader 內部命名）
+      expect(importer.reader._parser).toBe(stubParser)
+    })
+  })
+
+  // W1-048.10.1.4 Stage C：4 public method thin wrapper delegate 驗證
+  describe('BookFileImporter public method thin wrapper delegate（W1-048.10.1.4 Stage B）', () => {
+    let BookFileImporter
+
+    beforeAll(() => {
+      BookFileImporter = require('src/overview/book-file-importer').BookFileImporter
+    })
+
+    function createImporter (overrides = {}) {
+      const stubValidator = overrides.validator || { validate: jest.fn(), detectFormat: jest.fn(() => 'json') }
+      const stubReader = overrides.reader || {
+        read: jest.fn().mockResolvedValue({ books: [], tagCategories: [], tags: [] })
+      }
+      const stubParser = overrides.parser || {
+        parse: jest.fn().mockReturnValue({ books: [], tagCategories: [], tags: [] })
+      }
+      const importer = new BookFileImporter({
+        document: global.document,
+        showError: () => {},
+        validator: stubValidator,
+        reader: stubReader,
+        parser: stubParser
+      })
+      return { importer, stubValidator, stubReader, stubParser }
+    }
+
+    test('validate(file) delegate to validator.validate', () => {
+      const { importer, stubValidator } = createImporter()
+      const file = { name: 'x.json', type: 'application/json' }
+      importer.validate(file)
+      expect(stubValidator.validate).toHaveBeenCalledTimes(1)
+      expect(stubValidator.validate).toHaveBeenCalledWith(file)
+    })
+
+    test('read(file) delegate to reader.read and 回傳值透傳', async () => {
+      const fixture = { books: [{ id: 'b1', title: 't1' }], tagCategories: [], tags: [] }
+      const { importer, stubReader } = createImporter({
+        reader: { read: jest.fn().mockResolvedValue(fixture) }
+      })
+      const file = { name: 'x.json', type: 'application/json' }
+      const result = await importer.read(file)
+      expect(stubReader.read).toHaveBeenCalledTimes(1)
+      expect(stubReader.read).toHaveBeenCalledWith(file)
+      expect(result).toBe(fixture)
+    })
+
+    test('parseContent(content, fileFormat) delegate to parser.parse', () => {
+      const fixture = { books: [{ id: 'p1', title: 'pt' }], tagCategories: [], tags: [] }
+      const { importer, stubParser } = createImporter({
+        parser: { parse: jest.fn().mockReturnValue(fixture) }
+      })
+      const result = importer.parseContent('{"x":1}', 'json')
+      expect(stubParser.parse).toHaveBeenCalledTimes(1)
+      expect(stubParser.parse).toHaveBeenCalledWith('{"x":1}', 'json')
+      expect(result).toBe(fixture)
+    })
+
+    test('handleFileLoad(file) 順序：validate 先於 read', async () => {
+      const { importer, stubValidator, stubReader } = createImporter()
+      const file = { name: 'x.json', type: 'application/json' }
+      await importer.handleFileLoad(file)
+      expect(stubValidator.validate).toHaveBeenCalledTimes(1)
+      expect(stubReader.read).toHaveBeenCalledTimes(1)
+      // 順序驗證：validate.mock.invocationCallOrder[0] < read.mock.invocationCallOrder[0]
+      expect(stubValidator.validate.mock.invocationCallOrder[0])
+        .toBeLessThan(stubReader.read.mock.invocationCallOrder[0])
+    })
+
+    test('handleFileLoad validate throw → reader.read 不被呼叫（短路）', async () => {
+      const validationError = new Error('validation fail')
+      const { importer, stubReader } = createImporter({
+        validator: {
+          validate: jest.fn(() => { throw validationError }),
+          detectFormat: jest.fn(() => 'json')
+        }
+      })
+      const file = { name: 'x.json', type: 'application/json' }
+      let caught = null
+      try {
+        await importer.handleFileLoad(file)
+      } catch (err) {
+        caught = err
+      }
+      expect(caught).toBe(validationError)
+      expect(stubReader.read).not.toHaveBeenCalled()
+    })
+
+    test('isCSVFile(file) delegate to validator.detectFormat === "csv"', () => {
+      const { importer, stubValidator } = createImporter({
+        validator: { validate: jest.fn(), detectFormat: jest.fn(() => 'csv') }
+      })
+      expect(importer.isCSVFile({ name: 'x.csv', type: 'text/csv' })).toBe(true)
+      expect(stubValidator.detectFormat).toHaveBeenCalledTimes(1)
+    })
+  })
 })
