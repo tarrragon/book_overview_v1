@@ -178,6 +178,21 @@ class BookFileImporter {
 
   /**
    * 檢查是否為 CSV 檔案（W6-012.6.2）
+   *
+   * 公開 API（W1-048.10.1.5.1 模式驗證最小單元）：
+   * - 與 validate / read / parseContent 並列為 public method
+   * - 供測試與外部呼叫者判斷檔案是否為 CSV 而不需穿透私有方法
+   * - 內部委派 _isCSVFile 保留原有實作與內部呼叫鏈不變
+   *
+   * @param {File} file - 要檢查的檔案
+   * @returns {boolean} 是否為 CSV 檔案
+   */
+  isCSVFile (file) {
+    return this._isCSVFile(file)
+  }
+
+  /**
+   * 檢查是否為 CSV 檔案（W6-012.6.2）
    * @private
    * @param {File} file - 要檢查的檔案
    * @returns {boolean} 是否為 CSV 檔案

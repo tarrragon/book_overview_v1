@@ -2,7 +2,7 @@
  * BookFileImporter CSV import 測試（W6-012.6.2）
  *
  * 測試範圍：
- * - 接受 text/csv MIME / .csv 副檔名（_isCSVFile / _validateFileBasics）
+ * - 接受 text/csv MIME / .csv 副檔名（isCSVFile / validate）
  * - 解析 W6-012.6.1 book-exporter.js 輸出格式回 book 物件
  *   - 必要欄位 id/title/cover 完整
  *   - authors 以 ", " 分隔反序列化為陣列
@@ -11,6 +11,9 @@
  * - 欄位順序變化容錯（依 header 名稱對應，非固定位置）
  * - 雙引號 escape 與含逗號的欄位
  * - 走既有 _processBookData → _isValidBook 過濾流程
+ *
+ * W1-048.10.1.5.1 遷移：4 處 _isCSVFile 直呼改為 public isCSVFile（方案 A），
+ * 對齊 W1-048.10.1.4 移除底線方法直呼的 SSOT 重構方向。
  *
  * @jest-environment jsdom
  */
@@ -44,11 +47,13 @@ describe('BookFileImporter CSV import（W6-012.6.2）', () => {
    * 以及 parseContent 對 fileFormat 必填的型別契約（F16 修復核心）。
    */
   describe('Public API contract（W1-048.1 Stage A）', () => {
-    test('validate / read / parseContent 為 callable public method', () => {
+    test('validate / read / parseContent / isCSVFile 為 callable public method', () => {
+      // W1-048.10.1.5.1：isCSVFile 加入 public API（_isCSVFile 委派）
       const importer = makeImporter()
       expect(typeof importer.validate).toBe('function')
       expect(typeof importer.read).toBe('function')
       expect(typeof importer.parseContent).toBe('function')
+      expect(typeof importer.isCSVFile).toBe('function')
     })
 
     test('validate(file) 對無效檔案（null）拋錯', () => {
@@ -83,17 +88,19 @@ describe('BookFileImporter CSV import（W6-012.6.2）', () => {
   })
 
   describe('檔案格式偵測', () => {
-    test('_isCSVFile 應識別 .csv 副檔名', () => {
+    test('isCSVFile 應識別 .csv 副檔名', () => {
+      // W1-048.10.1.5.1：遷移自 _isCSVFile 直呼至 public isCSVFile
       const importer = makeImporter()
-      expect(importer._isCSVFile({ name: 'books.csv', type: '' })).toBe(true)
-      expect(importer._isCSVFile({ name: 'books.CSV', type: '' })).toBe(true)
+      expect(importer.isCSVFile({ name: 'books.csv', type: '' })).toBe(true)
+      expect(importer.isCSVFile({ name: 'books.CSV', type: '' })).toBe(true)
     })
 
-    test('_isCSVFile 應識別 text/csv MIME 類型', () => {
+    test('isCSVFile 應識別 text/csv MIME 類型', () => {
+      // W1-048.10.1.5.1：遷移自 _isCSVFile 直呼至 public isCSVFile
       const importer = makeImporter()
-      expect(importer._isCSVFile({ name: 'books', type: 'text/csv' })).toBe(true)
+      expect(importer.isCSVFile({ name: 'books', type: 'text/csv' })).toBe(true)
       // book-exporter.js 實際使用 'text/csv;charset=utf-8;'
-      expect(importer._isCSVFile({ name: 'books', type: 'text/csv;charset=utf-8;' })).toBe(true)
+      expect(importer.isCSVFile({ name: 'books', type: 'text/csv;charset=utf-8;' })).toBe(true)
     })
 
     test('validate 應接受 CSV 檔案不拋錯', () => {
