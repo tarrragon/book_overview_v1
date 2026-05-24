@@ -29,6 +29,8 @@
     "package:zip": "node scripts/package.js",
     "validate:build": "node scripts/validate-build.js",
     "validate:build:prod": "node scripts/validate-build.js --prod",
+    "validate:manifest": "node scripts/validate-manifest.js",
+    "validate:manifest:prod": "node scripts/validate-manifest.js --dir build/production",
     "dev": "npm run build:dev && npm run test:watch",
     "lint": "eslint src/ tests/",
     "lint:fix": "eslint src/ tests/ --fix",
