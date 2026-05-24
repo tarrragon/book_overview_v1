@@ -25,7 +25,8 @@
 
 const { BookFileImporter } = require('../../../src/overview/book-file-importer')
 const { detectFormatVersion } = require('../../../src/export/format-version-detector')
-const { convertV1ToV2Data } = require('../../../src/export/v1-to-v2-converter')
+// W1-060：移除 convertV1ToV2Data import（原 TC-04 二次呼叫導致 timestamp ms race，
+// 修復後改用 inline structural assertions，不再需要外部 converter 比對）
 const { ErrorCodes } = require('../../../src/core/errors/ErrorCodes')
 
 describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-047.2）', () => {
@@ -122,6 +123,20 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
   })
 
   describe('Group B：v1 路徑 tag 結構回傳（AC-2、場景 4-5）', () => {
+    // -------------------------------------------------------------------------
+    // W1-060：移除外部 convertV1ToV2Data 二次呼叫 + inline 期望值
+    //
+    // 原寫法 `expect(result.X).toEqual(converted.X)` 為 timestamp ms-level race
+    // 反模式（baseline 連續 10 跑 ~10-40% fail）：兩次呼叫 convertV1ToV2Data 各自
+    // 取 `Date.now()` / `new Date().toISOString()`，sub-millisecond 內通常相同，
+    // 但 GC/scheduler 切換造成 > 1ms 間隔時 timestamps 不同，導致 tag id 含 tsMs
+    // 與 createdAt/updatedAt 差 1ms 而 toEqual fail。
+    //
+    // 修復對齊 `.claude/rules/core/test-assertion-design-rules.md` 規則 1（npm test
+    // 主套件禁止計時依賴的 pass-fail 斷言）：改用 timestamp 無關的結構斷言驗證
+    // 「v1 含 category 確實轉換為 tag 結構」之語意，並以 stringMatching 容許動態
+    // tag id（'tag_<tsMs>-NNN'）。
+    // -------------------------------------------------------------------------
     test('TC-04 v1 含 category 回傳轉換 tag 結構', () => {
       const importer = makeImporter()
       const data = [
@@ -132,16 +147,36 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
       expect(detectFormatVersion(data)).toBe('v1')
 
       const result = importer.extractBooksFromData(data, 'json')
-      const converted = convertV1ToV2Data(data)
 
+      // 1. books 結構驗證
       expect(Array.isArray(result.books)).toBe(true)
       expect(result.books).toHaveLength(2)
+
+      // 2. tagCategories 結構驗證（timestamp 欄位用 ISO 格式 stringMatching 容許動態值）
       expect(Array.isArray(result.tagCategories)).toBe(true)
-      expect(result.tagCategories.length).toBeGreaterThan(0)
+      expect(result.tagCategories).toHaveLength(1)
+      expect(result.tagCategories[0]).toMatchObject({
+        id: 'cat_imported',
+        name: '匯入分類',
+        isSystem: false,
+        sortOrder: 0
+      })
+      expect(result.tagCategories[0].createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T/)
+      expect(result.tagCategories[0].updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/)
+      expect(typeof result.tagCategories[0].color).toBe('string')
+
+      // 3. tags 結構驗證（id 含動態 tsMs，用 regex 比對）
       expect(Array.isArray(result.tags)).toBe(true)
-      expect(result.tags.length).toBeGreaterThan(0)
-      expect(result.tagCategories).toEqual(converted.tagCategories)
-      expect(result.tags).toEqual(converted.tags)
+      expect(result.tags).toHaveLength(1)
+      expect(result.tags[0]).toMatchObject({
+        name: 'V1匯入分類',
+        categoryId: 'cat_imported',
+        isSystem: false,
+        sortOrder: 0
+      })
+      expect(result.tags[0].id).toMatch(/^tag_\d+-000$/)
+      expect(result.tags[0].createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T/)
+      expect(result.tags[0].updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/)
     })
 
     test('TC-05 v1 無 category 回傳空 tag 結構', () => {
