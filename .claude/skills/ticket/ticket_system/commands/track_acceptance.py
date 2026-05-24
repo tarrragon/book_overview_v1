@@ -641,6 +641,8 @@ def _execute_append_log_locked(args: argparse.Namespace, version: str) -> int:
     # 動機：append-log 寫入應為既有章節 H3 子節；H2 會切斷 Schema 章節範圍（W17-072）
     # W1-038 ANA 結論：source code 規範化（re.sub）比事後偵測更可靠，
     # 避免 W1-037 三 agent 連續違規 + PM 批次降級連帶 H4 false negative 鏈
+    # 修改注意：移除 re.sub 自動降級前須評估 W17-072 complete 層是否獨立足夠，
+    # 並更新 .claude/pm-rules/context-bundle-spec.md 條款 2「雙層防護」表格。
     schema_sections_for_h2_check = {
         "Solution", "Test Results", "Problem Analysis",
         "Context Bundle", "NeedsContext", "Exit Status", "Completion Info",

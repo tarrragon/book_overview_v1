@@ -224,8 +224,56 @@ PC-115 結論收斂後，「累積 ≥ 3 次新 deny 才重啟調查」屬於「
 
 **承接學習**：W17-182 retrospective ANA 將提煉為獨立 PC pattern（「ANA 宣稱已修妥的驗證義務」）；ARCH-020 v1.1 已升級「同名 predicate 多處實作即高風險訊號」判別準則（W17-181.3 落地）。
 
+## W1-068 三方 Deadlock 變體（2026-05-25 實證）
+
+PC-115 transient runtime fluctuation 與 `.claude/` 修改場景的派發流程 hook 互動，形成可預測的 deadlock 模式：
+
+| 約束 | 來源 | 行為 |
+|------|------|------|
+| 實作代理人強制 isolation:worktree | `agent-dispatch-validation-hook` | 派發實作 agent（thyme-* / parsley-*）必須加 `isolation: "worktree"` |
+| `.claude/` Edit 在 isolation:worktree 下可能 deny | PC-115 主結論 transient runtime fluctuation | 某些時段 subagent 對 `.claude/` Edit 被 runtime deny（無 hook 訊息） |
+| worktree 派發前 main 不可有未 commit 變更 | `worktree-commit-before-dispatch-hook` | 違反 PC-019 阻擋派發 |
+
+**Why（為何此三約束組合形成必然 deadlock）**：三約束各自合理（worktree 隔離保護 main 工作區 / PC-115 transient 可恢復 / commit-before-dispatch 防 stash 遺失），但組合場景下無單一層可獨立解除——PM 主線程是唯一不受三約束的角色。
+
+**Consequence（不認知此模式的成本）**：若無此認知，PM 遇到 worktree subagent `.claude/` Edit deny 會反覆重派（PC-115 transient 重派仍可能 deny），消耗 token 與 wave 時間後才回到 fallback；最壞情境是誤判為 agent 能力缺陷而拆 ticket 或重設計範圍。
+
+**三約束疊加 → Deadlock**：
+
+當 IMP ticket 需要修改 `.claude/` 時：
+
+1. 派發 agent 必須加 `isolation: "worktree"`（強制）
+2. 但 worktree subagent 對 `.claude/` Edit 可能被 runtime deny（PC-115 機率事件）
+3. 若預先 PM 自己 Edit `.claude/` 又會被 worktree-commit-before-dispatch-hook 阻擋（除非先 commit）
+4. 即使 commit 後派發，subagent 仍可能因 PC-115 transient deny 失敗
+
+**唯一可靠突破口**：**PM 主線程 fallback 接手執行** — PM 主線程無 isolation 限制，可直接 Edit `.claude/`。Subagent 在 needs_context 狀態回報完整補料指引後，PM 接手 N 步驟（Edit + 測試 + pytest + reinstall + 文件同步）即可完成。
+
+### W1-068 實證案例
+
+| 階段 | 結果 |
+|------|------|
+| 派發 thyme-python-developer + isolation:worktree | hook 強制 worktree 通過 |
+| Subagent 嘗試 Edit `track_acceptance.py` | runtime deny（PC-115 transient） |
+| Subagent 回報 needs_context + 完整補料指引 | success（agent 知道自己無法完成並提供精確指引） |
+| PM 主線程 fallback：Edit + pytest 27/27 全綠 + uv reinstall + 文件同步 | success |
+| W1-068 acceptance 4/4 通過、commit f4aade8a | success |
+
+此案例驗證兩點：(a) Subagent 在 needs_context 狀態能完整回報補料指引，自我認知失敗邊界準確（不會硬撐造成更大破壞）；(b) PM 主線程 fallback 為 PC-115 transient + worktree 約束疊加場景的可靠突破口。後續同模式案例應沿此流程處理：派發失敗 → 接收 needs_context + 補料指引 → PM 直接執行（不重派）。
+
+### 衍生方法論建議（待 W17-182 retrospective 評估）
+
+**核心原則**：派發決策應依 `.claude/` 修改佔比與 deadlock 風險權衡；佔比越高、worktree 安全範圍越窄，越偏向 PM 直接執行。下表為此原則的場景化展開：
+
+| 場景 | 預設策略 |
+|------|---------|
+| IMP ticket 範圍純 `.claude/` 修改且小規模（< 10 步驟） | 評估直接 PM 主線程執行（跳過派發 agent） |
+| IMP ticket 範圍含 `.claude/` 與其他 worktree 安全範圍 | 派發 agent 嘗試；失敗回報 needs_context 即由 PM fallback |
+| Agent 回報 needs_context 對 `.claude/` Edit 失敗 | 立即 PM fallback，不重派（PC-115 transient 重派仍可能 deny） |
+
 ## 後續觀察
 
 - CC 升級或 setting 變更後重驗（記錄版本號 + 日期）
 - 若用戶 setting 可關閉此限制，補充至本 PC
 - 重啟調查鏈案例累積 ≥ 3 次同模式（ANA 結論被後續實驗推翻）時，獨立提煉為 PC pattern（W17-182 retrospective 啟動）
+- W1-068 deadlock 變體再次出現時，評估是否升級為獨立 PC（目前合併於本 PC-115 末章節）
