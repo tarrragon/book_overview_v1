@@ -733,6 +733,57 @@ async function checkCurrentTab () {
 // ==================== 操作處理 ====================
 
 /**
+ * 設定提取完成監聽器
+ *
+ * 業務情境：
+ * - W1-001.2 實機驗證發現 928 本提取成功後 popup 仍顯示「檢測中...」
+ * - UC-01 step 6 規格要求「Popup 顯示提取結果：成功提取 X 本書籍」
+ * - 根因：popup 對 START_EXTRACTION 的同步回應只代表「流程已啟動」，
+ *   真實提取結果由 background 異步寫入 chrome.storage.local.readmoo_books，
+ *   popup 缺乏對該 storage key 變更的監聽，導致提取完成事件無正向回饋
+ *
+ * 處理流程：
+ * 1. 在 startExtraction 觸發成功後呼叫
+ * 2. 註冊一次性 chrome.storage.onChanged 監聽器
+ * 3. 偵測 readmoo_books 變更時，依新值 books 陣列長度更新 UI
+ * 4. 完成更新後自動移除監聽器，避免後續干擾或記憶體累積
+ *
+ * 設計考量：
+ * - 監聽器一次性：popup 生命週期短，本次提取結果顯示完即可解除
+ * - storage area 限定 local：與 background 寫入位置（chrome.storage.local）一致
+ * - newValue 缺失或非陣列時不誤更新，保留既有狀態避免錯誤回饋
+ *
+ * @returns {void}
+ */
+function setupExtractionCompletionListener () {
+  if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.onChanged) {
+    return
+  }
+
+  const listener = (changes, areaName) => {
+    if (areaName !== 'local') return
+    if (!changes || !changes.readmoo_books) return
+
+    const newValue = changes.readmoo_books.newValue
+    if (!newValue || !Array.isArray(newValue.books)) return
+
+    const bookCount = newValue.books.length
+    updateStatus('完成', '提取成功', `提取成功 ${bookCount} 本書籍`, STATUS_TYPES.READY)
+    if (elements.bookCount) {
+      elements.bookCount.textContent = String(bookCount)
+    }
+
+    try {
+      chrome.storage.onChanged.removeListener(listener)
+    } catch (error) {
+      Logger.warn('移除 storage onChanged 監聽器失敗', { error: error.message })
+    }
+  }
+
+  chrome.storage.onChanged.addListener(listener)
+}
+
+/**
  * 開始資料提取
  *
  * @returns {Promise<void>}
@@ -750,9 +801,11 @@ async function checkCurrentTab () {
  * 處理流程：
  * 1. 檢查當前標籤頁狀態
  * 2. 禁用按鈕並顯示進度狀態
- * 3. 發送提取開始訊息到 Content Script
- * 4. 處理提取結果並更新狀態
- * 5. 恢復按鈕狀態
+ * 3. 註冊 storage 變更監聽器（捕捉真實提取完成）
+ * 4. 發送提取開始訊息到 Content Script
+ * 5. 處理 START_EXTRACTION 同步回應（流程啟動確認）
+ * 6. 由 storage onChanged 監聽器負責最終「提取成功 N 本書籍」回饋
+ * 7. 恢復按鈕狀態
  */
 async function startExtraction () {
   const tab = await checkCurrentTab()
@@ -761,6 +814,10 @@ async function startExtraction () {
   try {
     updateStatus('提取中', MESSAGES.EXTRACTION_IN_PROGRESS, MESSAGES.EXTRACTION_HINT, STATUS_TYPES.LOADING)
     updateButtonState(true)
+
+    // 提取結果由 background 異步寫入 chrome.storage.local.readmoo_books，
+    // 先註冊監聽器以免錯過 storage 變更事件
+    setupExtractionCompletionListener()
 
     const response = await chrome.tabs.sendMessage(tab.id, { type: MESSAGE_TYPES.START_EXTRACTION })
 
@@ -1266,6 +1323,7 @@ if (typeof window !== 'undefined') {
   window.checkCurrentTab = checkCurrentTab
   window.checkBackgroundStatus = checkBackgroundStatus
   window.startExtraction = startExtraction
+  window.setupExtractionCompletionListener = setupExtractionCompletionListener
   window.setupEventListeners = setupEventListeners
   window.initialize = initialize
 
