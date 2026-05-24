@@ -81,7 +81,7 @@ UC-05（搜尋篩選）與 UC-07（Tag 管理）的契約聚焦於 UI 與 tag sc
 |---|------|----------------|---------|
 | §1 | URL 與 SPA 路由 | [W5-003.1](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.1.md) | completed |
 | §2 | Storage key 與 schema | [W5-003.2](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.2.md) | completed |
-| §3 | Console 訊息與事件格式 | [W5-003.3](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.3.md) | pending |
+| §3 | Console 訊息與事件格式 | [W5-003.3](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.3.md) | completed |
 | §4 | Lifecycle 與步驟順序 | [W5-003.4](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.4.md) | pending |
 | §5 | Book schema v1.1 model | [W5-003.5](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.5.md) | pending |
 | §6 | DOM 提取選擇器 | [W5-003.6](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.6.md) | pending |
@@ -544,11 +544,242 @@ grep -rln "readmoo_books" src/ tests/e2e/ --include="*.js" | sort -u
 
 ## §3 Console 訊息與事件格式契約
 
-> **撰寫者**：W5-003.3（pending）
->
-> **預期範圍**：console log 前綴規則（`[DIAG]`、`頁面檢測` 等）/ event-system message JSON Schema / status string enum / src/event-system 引用
+### Name
 
-（待 W5-003.3 撰寫）
+定義 Chrome Extension 跨進程通訊（content script ↔ background SW ↔ popup）的 message envelope 結構、v2.0 事件命名規範、核心 E2E message types、與 console log 前綴規則。
+
+**適用範圍**：所有 `chrome.runtime.sendMessage` / `chrome.tabs.sendMessage` 呼叫、事件系統發送/訂閱、用於 E2E 觀察的 console log。新增 message type 或 console log 前綴前必須先更新本契約。
+
+**範圍邊界**：本契約只覆蓋 E2E 流程涉及的核心 message types 與結構化 log 前綴；專屬於 export / sync / 內部 telemetry 等場景的事件類型由各自 spec 文件管理。
+
+### Source of Truth
+
+| 角色 | 檔案 | 行號 | 內容 |
+|------|------|------|------|
+| v2.0 事件命名規範 | `src/core/events/event-type-definitions.js` | L34-77 | EVENT_TYPE_CONFIG（DOMAINS / PLATFORMS / ACTIONS / STATES）+ NAMING_PATTERN regex |
+| 領域 × 平台 mapping | `src/core/events/event-type-definitions.js` | L82-91 | DOMAIN_PLATFORM_MAPPING |
+| 平台 × 動作 mapping | `src/core/events/event-type-definitions.js` | L96+ | PLATFORM_ACTION_MAPPING |
+| 核心 message router | `src/background/messaging/message-router.js` | L245-284 | routeMessage switch（PING / HEALTH_CHECK / GET_STATUS / EVENT.EMIT / EVENT.STATS / EVENT_SYSTEM_STATUS_CHECK） |
+| Content script PING handler | `src/content/content-modular.js` | L314 | content-side PING 回應 |
+| Content script START_EXTRACTION handler | `src/content/content-modular.js` | L296 | 提取觸發入口 |
+| Popup START_EXTRACTION sender | `src/background/messaging/popup-message-handler.js` | L630 | popup 觸發提取 |
+| SW SYSTEM.SHUTDOWN 廣播 | `src/background/messaging/content-message-handler.js` | L581 | SW 關閉時通知 content scripts |
+| 頁面檢測 console log | `src/content/detectors/page-detector.js` | L63 | `📍 頁面檢測:` 前綴 |
+| URL 變更 console log | `src/content/detectors/page-detector.js` | L178 | `URL 變更檢測:` 前綴 |
+| 全域 SW 錯誤前綴 | `src/background/` | （多處） | `[SW] 未處理的 Promise 拒絕:` / `[SW] 未捕獲錯誤:` |
+| 提取診斷前綴 | `src/background/`、`tests/e2e/` | （多處） | `[DIAG] performActualExtraction 收到資料` 等 |
+| Logger Fallback | （多處） | （多處） | `[Logger Fallback]` 前綴 |
+
+### 契約定義
+
+#### 3.1 v2.0 事件命名規範（DOMAIN.PLATFORM.ACTION.STATE）
+
+**格式**：四層大寫底線分隔，每層 ≤ 20 字元，總長 ≤ 100 字元。
+
+**Regex**：`/^[A-Z][A-Z_]*\.[A-Z][A-Z_]*\.[A-Z][A-Z_]*\.[A-Z][A-Z_]*$/`
+
+**九大領域（DOMAINS）**：
+
+| 領域 | 用途 |
+|------|------|
+| `SYSTEM` | 系統管理（啟動 / 關閉 / 健康） |
+| `PLATFORM` | 平台管理（多書城協調） |
+| `EXTRACTION` | 資料提取主流程 |
+| `DATA` | 資料管理（儲存 / 載入 / 驗證） |
+| `MESSAGING` | 通訊訊息層 |
+| `PAGE` | 頁面狀態與導航 |
+| `UX` | 使用者體驗事件 |
+| `SECURITY` | 安全驗證 |
+| `ANALYTICS` | 統計分析 |
+
+**八大平台（PLATFORMS）**：`READMOO` / `KINDLE` / `KOBO` / `BOOKS_COM` / `BOOKWALKER` / `UNIFIED`（跨平台）/ `MULTI`（多平台協調）/ `GENERIC`（平台無關）
+
+**核心動作（ACTIONS）**：`INIT` / `START` / `STOP` / `EXTRACT` / `SAVE` / `LOAD` / `DETECT` / `SWITCH` / `VALIDATE` / `PROCESS` / `SYNC` / `OPEN` / `CLOSE` / `UPDATE` / `DELETE` / `CREATE` / `RENDER`
+
+**狀態（STATES）**：`REQUESTED` / `STARTED` / `PROGRESS` / `COMPLETED` / `FAILED` / `CANCELLED` / `TIMEOUT` / `SUCCESS` / `ERROR`
+
+**範例合法事件名**：
+
+| 事件名 | 解讀 |
+|--------|------|
+| `EXTRACTION.READMOO.EXTRACT.COMPLETED` | Readmoo 提取流程完成 |
+| `ANALYTICS.EXTRACTION.COMPLETED` | 提取統計完成（簡化版三層命名） |
+| `CONTENT.STATUS.READY` | Content script 就緒（內部簡化命名） |
+| `SYSTEM.SHUTDOWN` | 系統關閉（雙層命名） |
+
+**契約**：所有新事件名應通過 `event-type-definitions.js` 的 `validateEventName()` 驗證；不符合 v2.0 規範的簡化命名（如 `START_EXTRACTION`、`CONTENT.STATUS.READY`）視為**遺留命名**，僅核心 message types 保留，新增事件必須採用 v2.0 規範。
+
+#### 3.2 核心 E2E Message Types
+
+由 `message-router.js#routeMessage` 統一分派的核心 message types（routing switch L245-284）：
+
+| Type | 來源 | 目標 | 用途 | 處理器 |
+|------|------|------|------|--------|
+| `PING` | popup / E2E test | content script / SW | readiness check | content-modular.js L314 / message-router.js L252 |
+| `HEALTH_CHECK` | popup | SW | 健康檢查 | message-router.js L255 |
+| `EVENT_SYSTEM_STATUS_CHECK` | popup / dev tool | SW | 事件系統狀態 | message-router.js L258 |
+| `GET_STATUS` | popup | SW | 取得 SW 狀態 | message-router.js L261 |
+| `EVENT.EMIT` | content / popup | SW | 事件廣播 | message-router.js L264 |
+| `EVENT.STATS` | popup | SW | 事件統計 | message-router.js L267 |
+| `START_EXTRACTION` | popup / E2E test | content script | 觸發提取 | content-modular.js L296 / popup-message-handler.js L630 |
+| `CANCEL_EXTRACTION` | popup | content script | 取消提取 | （content-modular handler） |
+| `SYSTEM.SHUTDOWN` | SW | content scripts | SW 關閉廣播 | content-message-handler.js L581 |
+
+**Source routing**（`message-router.js#routeBySource` L295-322）：
+
+| Sender | 識別方式 | 對應處理器 |
+|--------|---------|-----------|
+| content-script | `sender.tab && sender.tab.id` | `contentMessageHandler.handleMessage` |
+| popup | `sender.url` 含 `popup.html` | `popupMessageHandler.handleMessage` |
+| background | 內部呼叫 | `handleInternalMessage` |
+
+未匹配來源回傳 `{ success: false, error: '未知的訊息來源' }`。
+
+#### 3.3 Message Envelope JSON Schema
+
+**Request envelope**（所有 `chrome.runtime.sendMessage` / `chrome.tabs.sendMessage` 採用）：
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MessageEnvelope (Request)",
+  "type": "object",
+  "required": ["type"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "description": "Message type，使用核心 message types (§3.2) 或 v2.0 事件名 (§3.1)"
+    },
+    "data": {
+      "description": "Message payload，型別依 type 而定",
+      "type": ["object", "array", "string", "number", "boolean", "null"]
+    },
+    "source": {
+      "type": "string",
+      "enum": ["content-script", "popup", "background", "options-page"],
+      "description": "選填；不提供時由 sender 推導"
+    },
+    "timestamp": {
+      "type": "integer",
+      "description": "選填；發送時間（Unix ms）"
+    }
+  }
+}
+```
+
+**Response envelope**（`sendResponse` callback 與 `chrome.tabs.sendMessage` 回傳）：
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MessageEnvelope (Response)",
+  "type": "object",
+  "required": ["success"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "處理結果"
+    },
+    "data": {
+      "description": "成功時的回傳資料"
+    },
+    "error": {
+      "type": "string",
+      "description": "失敗時的錯誤訊息（success=false 時必填）"
+    },
+    "messageType": {
+      "type": "string",
+      "description": "原始 request type（diagnostics 用，message-router L279 自動帶入）"
+    },
+    "timestamp": {
+      "type": "integer",
+      "description": "回應時間（Unix ms）"
+    }
+  }
+}
+```
+
+**契約**：
+
+- Response `success=false` 時 `error` 必填且為人類可讀字串
+- `messageType` 由 router 自動帶入，handler 不需手動填
+- E2E test 應斷言 `success === true` 而非 `!response.error`，避免 undefined 漏斷
+
+#### 3.4 結構化 Console Log 前綴規則
+
+E2E 觀察依賴的結構化前綴：
+
+| 前綴 | 模組 | 用途 | 範例 |
+|------|------|------|------|
+| `📍 頁面檢測:` | page-detector.js L63 | Readmoo 頁面偵測結果 | `📍 頁面檢測: Readmoo 頁面 (library)` |
+| `URL 變更檢測:` | page-detector.js L178 | SPA URL 變化 | `console.debug('URL 變更檢測:', { from, to, ... })` |
+| `[DIAG]` | extraction 流程多處 | 提取診斷訊息 | `[DIAG] performActualExtraction 收到資料` |
+| `[SW] 未處理的 Promise 拒絕:` | SW 全域 handler | unhandledrejection | `[SW] 未處理的 Promise 拒絕: <error>` |
+| `[SW] 未捕獲錯誤:` | SW 全域 handler | global error handler | `[SW] 未捕獲錯誤: <error>` |
+| `[Logger Fallback]` | logger 後備 | Logger 服務不可用時 | `[Logger Fallback] <msg>` |
+| `[ErrorHandler]` | ErrorHandler | 錯誤處理過程 | `[ErrorHandler] Export error occurred:` |
+| `[ERROR]` | 匯出 / 載入 | v2 匯出 / Chrome Storage 載入 | `[ERROR] v2 CSV 匯出失敗:` |
+| `[tag-storage-adapter]` | tag-storage-adapter.js | 配額與並發控制 | `[tag-storage-adapter] mergeAllData blocked: quota exceeded` |
+| `[UIDOMManager]` | UI DOM 管理 | DOM 操作失敗 | `[UIDOMManager] Failed to add event listener:` |
+| `[DiagnosticModule]` | DiagnosticModule | 健康報告 | `[DiagnosticModule] Failed to generate health report:` |
+| `❌ <名詞>失敗:` | 多處 console.error | 業務操作失敗 | `❌ 啟動提取流程失敗:` / `❌ URL 變更回調函數錯誤:` |
+
+**契約**：
+
+- 結構化前綴必須**完全相等**（含 emoji、空格、冒號）才視為合法 E2E 觀察點
+- 修改前綴文字時必須同步更新本表 + 所有相關 E2E 觀察測試
+- 新增前綴必須加入本表（避免散落硬編碼）
+
+#### 3.5 Status string 集合
+
+E2E 流程涉及的 status string（在 message data / event payload 中使用）：
+
+| Status | 涵義 | 使用場景 |
+|--------|------|---------|
+| `success` | 操作成功 | response.success === true |
+| `failed` | 操作失敗 | response.success === false |
+| `progress` | 進行中 | extraction lifecycle 進度 |
+| `completed` | 流程完成 | extraction lifecycle 完成 |
+| `cancelled` | 已取消 | 用戶取消 |
+| `timeout` | 已逾時 | 操作逾時 |
+| `ready` | 已就緒 | content script 注入完成 |
+| `error` | 錯誤狀態 | 異常分流 |
+
+**對照 v2.0 STATES**：`REQUESTED` / `STARTED` / `PROGRESS` / `COMPLETED` / `FAILED` / `CANCELLED` / `TIMEOUT` / `SUCCESS` / `ERROR`（§3.1 第 9 種狀態）；event payload 用大寫，message response data 用小寫。
+
+### 變更影響
+
+| 變更內容 | 影響 |
+|---------|------|
+| 新增核心 message type | §3.2 補入；message-router.js routeMessage switch 新增 case；E2E test 確認新 type 不誤觸 default 分支 |
+| 修改 message envelope schema | §3.3 更新；所有 sender / handler 同步調整；E2E 測試斷言更新 |
+| 修改 v2.0 命名規範（DOMAINS / PLATFORMS 等） | §3.1 更新；既有事件名重新驗證；event-type-definitions.js 更新 mapping |
+| 修改結構化 log 前綴 | §3.4 更新；對該前綴有依賴的 E2E 觀察測試同步調整 |
+| 新增書城平台 | §3.1 PLATFORMS 新增；DOMAIN_PLATFORM_MAPPING 對齊 |
+
+### Grep 驗證
+
+```bash
+# 3.1 v2.0 命名規範
+grep -E "DOMAINS:|PLATFORMS:|ACTIONS:|STATES:|NAMING_PATTERN" src/core/events/event-type-definitions.js | head -10
+
+# 3.2 核心 message router switch
+grep -E "case 'PING'|case 'HEALTH_CHECK'|case 'GET_STATUS'|case 'EVENT.EMIT'|case 'EVENT.STATS'|case 'EVENT_SYSTEM_STATUS_CHECK'" src/background/messaging/message-router.js
+
+# 3.2 content script handlers
+grep -E "case 'START_EXTRACTION'|case 'PING'" src/content/content-modular.js
+
+# 3.2 SYSTEM.SHUTDOWN 廣播
+grep -n "SYSTEM.SHUTDOWN" src/background/messaging/content-message-handler.js
+
+# 3.4 結構化 log 前綴（取樣）
+grep -rn "頁面檢測:\|URL 變更檢測:\|\[DIAG\]\|\[SW\]\|\[Logger Fallback\]" src/ --include="*.js" | head -10
+
+# 3.4 console.error 起手式分布（取樣，量大時用 head 限縮）
+grep -roE "console\.(log|debug|info|warn|error)\(['\"][^'\"]+" src/ --include="*.js" | sort -u | wc -l
+```
+
+**驗證標準**：每條 grep 應命中本規格列出的引用點；新發現的硬編碼前綴 / message type 必須補入本契約對應子節。
 
 ---
 
