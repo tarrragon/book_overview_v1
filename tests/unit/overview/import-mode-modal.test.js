@@ -11,8 +11,12 @@
  * - modal DOM 缺失防禦（sentinel 分流）
  *
  * 對應 Phase 2 測試設計：7 群 28 個 TC（TC-A1~G1）。
- * Mock 策略：外部依賴 mock（TagStorageAdapter / importer._readFileWithReader），
+ * Mock 策略：外部依賴 mock（TagStorageAdapter / importer.reader.read / importer.validator.validate），
  * modal 互動以 jsdom 真實 DOM 事件模擬，不 mock controller 自身被測 API。
+ *
+ * 0.19.0-W1-048.10.1.4 Stage C 遷移：
+ * importer._readFileWithReader / _validateFileBasics 已隨 Stage B 移除，
+ * 改 mock 注入的 helper class instance（reader.read / validator.validate）。
  *
  * @jest-environment jsdom
  */
@@ -331,11 +335,13 @@ describe('匯入模式選擇 modal（UC-04 / IMP-E）', () => {
 
     /**
      * 建立 controller 並 stub importer 讀檔 + adapter 兩個 *AllData
+     *
+     * Stage C 遷移：reader.read 取代 importer._readFileWithReader（DI 注入點）
      * @returns {{ controller, replaceAllDataMock, mergeAllDataMock }}
      */
     function setup () {
       const controller = createController()
-      controller.bookFileImporter._readFileWithReader = jest
+      controller.bookFileImporter.reader.read = jest
         .fn()
         .mockResolvedValue(importResult)
 
@@ -380,7 +386,7 @@ describe('匯入模式選擇 modal（UC-04 / IMP-E）', () => {
 
     test('TC-C3 取消 → handleFileLoad 提前 return，無副作用', async () => {
       const { controller, replaceAllDataMock, mergeAllDataMock } = setup()
-      const readSpy = controller.bookFileImporter._readFileWithReader
+      const readSpy = controller.bookFileImporter.reader.read
       const loadingSpy = jest.spyOn(controller, 'showLoading')
       const booksBefore = controller.currentBooks
 
@@ -399,9 +405,9 @@ describe('匯入模式選擇 modal（UC-04 / IMP-E）', () => {
 
     test('TC-C4 modal 在檔案基本驗證之後彈出（驗證失敗時不彈 modal）', async () => {
       const { controller } = setup()
-      // importer 驗證階段拋出
+      // importer 驗證階段拋出（Stage C 遷移：validator.validate 取代 _validateFileBasics）
       const validationError = new Error('檔案驗證失敗')
-      controller.bookFileImporter._validateFileBasics = jest.fn(() => {
+      controller.bookFileImporter.validator.validate = jest.fn(() => {
         throw validationError
       })
       const promptSpy = jest.spyOn(controller, 'promptImportMode')
@@ -419,17 +425,17 @@ describe('匯入模式選擇 modal（UC-04 / IMP-E）', () => {
       expect(promptSpy).not.toHaveBeenCalled()
     })
 
-    test('TC-C5 modal 在讀檔之前彈出（promptImportMode resolve 早於 _readFileWithReader）', async () => {
+    test('TC-C5 modal 在讀檔之前彈出（promptImportMode resolve 早於 reader.read）', async () => {
       const { controller } = setup()
       const promptSpy = jest.spyOn(controller, 'promptImportMode')
-      const readSpy = controller.bookFileImporter._readFileWithReader
+      const readSpy = controller.bookFileImporter.reader.read
 
       const loadPromise = controller.handleFileLoad(mockFile)
       await Promise.resolve()
       document.getElementById('importModeOverwriteBtn').click()
       await loadPromise
 
-      // promptImportMode 的呼叫順序早於 _readFileWithReader
+      // promptImportMode 的呼叫順序早於 reader.read（原 _readFileWithReader）
       expect(promptSpy.mock.invocationCallOrder[0])
         .toBeLessThan(readSpy.mock.invocationCallOrder[0])
     })
@@ -453,7 +459,8 @@ describe('匯入模式選擇 modal（UC-04 / IMP-E）', () => {
      */
     function setupMerge (writeResult) {
       const controller = createController()
-      controller.bookFileImporter._readFileWithReader = jest
+      // Stage C 遷移：reader.read 取代 importer._readFileWithReader
+      controller.bookFileImporter.reader.read = jest
         .fn()
         .mockResolvedValue(importResult)
       const TagStorageAdapter = require('src/storage/adapters/tag-storage-adapter')
@@ -658,7 +665,8 @@ describe('匯入模式選擇 modal（UC-04 / IMP-E）', () => {
       const errorSpy = jest.spyOn(controller, 'showError')
 
       const importResult = { books: [], tags: [], tagCategories: [] }
-      controller.bookFileImporter._readFileWithReader = jest
+      // Stage C 遷移：reader.read 取代 importer._readFileWithReader
+      controller.bookFileImporter.reader.read = jest
         .fn()
         .mockResolvedValue(importResult)
       const TagStorageAdapter = require('src/storage/adapters/tag-storage-adapter')
