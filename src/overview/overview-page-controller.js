@@ -57,9 +57,12 @@ const CONSTANTS = {
 
   // 表格配置
   TABLE: {
-    COLUMNS: 7,
+    COLUMNS: 8,
     COVER_SIZE: { WIDTH: 50, HEIGHT: 75 },
-    DEFAULT_COVER: '📚'
+    DEFAULT_COVER: '📚',
+    // 作者欄位 placeholder（W1-061 ANA 結論：Readmoo library 頁 DOM 不提供作者，屬 source data limitation）
+    AUTHOR_PLACEHOLDER: '— 待補',
+    AUTHOR_TOOLTIP: 'Readmoo 來源頁不提供作者欄位，可手動編輯（v0.20.0 將支援標籤化編輯）'
   },
 
   // 事件配置
@@ -800,11 +803,25 @@ class OverviewPageController extends EventHandlerClass {
     }
     row.appendChild(coverCell)
 
-    // title, source, progress 欄位：使用 textContent 自動逸出
+    // title, author, source, progress 欄位：使用 textContent 自動逸出
     const titleCell = this.document.createElement('td')
     titleCell.className = 'book-title-cell'
     titleCell.textContent = rowData.title
     row.appendChild(titleCell)
+
+    // author 欄位（W1-061.2）：authors=[] 時顯示 placeholder + tooltip 提示 source limitation
+    // Why: Readmoo library 頁 DOM 不提供作者欄位（W1-061 ANA 96 樣本 selector 0 命中），
+    // 空白會讓用戶誤判為 extractor 漏抓；明示「來源未提供，可手動編輯」避免誤導
+    const authorCell = this.document.createElement('td')
+    authorCell.className = 'book-author-cell'
+    if (rowData.authorIsMissing) {
+      authorCell.textContent = CONSTANTS.TABLE.AUTHOR_PLACEHOLDER
+      authorCell.setAttribute('title', CONSTANTS.TABLE.AUTHOR_TOOLTIP)
+      authorCell.setAttribute('data-source-limited', 'authors')
+    } else {
+      authorCell.textContent = rowData.authors
+    }
+    row.appendChild(authorCell)
 
     const sourceCell = this.document.createElement('td')
     sourceCell.textContent = rowData.source
@@ -943,7 +960,9 @@ class OverviewPageController extends EventHandlerClass {
         formatVersion: CONSTANTS.EXPORT_V2.FORMAT_VERSION,
         fieldPreset: CONSTANTS.EXPORT_V2.FIELD_PRESET,
         tags,
-        tagCategories
+        tagCategories,
+        // W1-061.2: overview 匯出明示 source limitation 給用戶；Excel/LibreOffice/pandas 容忍 # 註解列
+        includeSourceLimitations: true
       })
       this._triggerExportDownload(csv, 'csv', CONSTANTS.EXPORT_V2.CSV_MIME)
     } catch (error) {
@@ -1148,11 +1167,20 @@ class OverviewPageController extends EventHandlerClass {
     const { WIDTH, HEIGHT } = CONSTANTS.TABLE.COVER_SIZE
     const readingStatus = book.readingStatus || ''
 
+    // authors 處理（W1-061.2）：
+    // - Array 且非空：以「、」分隔顯示
+    // - Array 空 / undefined / null：標記為 missing，由 createBookRow 顯示 placeholder + tooltip
+    const authorsArray = Array.isArray(book.authors) ? book.authors : []
+    const authorIsMissing = authorsArray.length === 0
+    const authors = authorIsMissing ? '' : authorsArray.join('、')
+
     return {
       cover: book.cover
         ? `<img src="${book.cover}" alt="封面" style="width: ${WIDTH}px; height: ${HEIGHT}px; object-fit: cover;">`
         : CONSTANTS.TABLE.DEFAULT_COVER,
       title: book.title || '未知書名',
+      authors,
+      authorIsMissing,
       source: this._formatBookSource(book),
       progress: book.progress ? `${book.progress}%` : '-',
       status: readingStatus

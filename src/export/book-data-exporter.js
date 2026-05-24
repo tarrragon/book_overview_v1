@@ -286,6 +286,7 @@ class BookDataExporter {
    * @param {string} [options.fieldPreset='EXTENDED_V2'] - 欄位集名稱
    * @param {Array} [options.tags=[]] - tag 陣列，用於 resolve tagNames
    * @param {Array} [options.tagCategories=[]] - tag category 陣列，用於 resolve tagCategories
+   * @param {boolean} [options.includeSourceLimitations=false] - 是否前置 source-limited 註解列（W1-061.2，預設關閉以保持純 RFC 4180 CSV；caller 顯式啟用）
    * @returns {string} v2 CSV 字串
    */
   _exportToCSVv2 (options) {
@@ -294,6 +295,8 @@ class BookDataExporter {
       const tagCategories = options.tagCategories || []
       const delimiter = options.delimiter || this.config.delimiter
       const includeHeaders = options.includeHeaders !== false
+      // W1-061.2: 預設關閉，由 caller（overview-page-controller）顯式啟用以避免破壞純 RFC 4180 CSV consumer
+      const includeSourceLimitations = options.includeSourceLimitations === true
 
       // 決定 field preset
       const presetName = options.fieldPreset || 'EXTENDED_V2'
@@ -309,6 +312,16 @@ class BookDataExporter {
       const categoryMap = new Map(tagCategories.map(c => [c.id, c]))
 
       let csv = ''
+
+      // Source limitation 註解列（W1-061.2）
+      // Why: W1-061 ANA 確認 Readmoo library 頁 DOM 不提供作者欄位（96 樣本 selector 0 命中），
+      //      authors:[] 是 source data limitation 而非 extractor 漏抓；明示讓用戶可手動補
+      // 格式: 以 # 起始的註解列（Excel/LibreOffice/pandas 可設定跳過註解；多數 CSV reader 容忍）
+      // 預設啟用；caller 可透過 options.includeSourceLimitations=false 關閉以產出純 RFC 4180 CSV
+      if (includeSourceLimitations && allFields.includes('authors')) {
+        csv += '# source-limited: authors (Readmoo library 頁 DOM 不提供作者欄位，空白為來源未提供，可手動編輯)'
+        csv += this.config.lineEnding
+      }
 
       // 標題行
       if (includeHeaders) {
@@ -494,6 +507,20 @@ class BookDataExporter {
 
     this.updateProgress(50)
 
+    // Source limitations 註記（W1-061.2）
+    // Why: W1-061 ANA 確認 Readmoo library 頁 DOM 不提供作者欄位（96 樣本 selector 0 命中）；
+    //      authors:[] 是 source data limitation 而非 extractor 漏抓
+    // 結構：metadata.sourceLimitations 為陣列，每項描述一個欄位的來源限制
+    const sourceLimitations = []
+    if (fields.includes('authors')) {
+      sourceLimitations.push({
+        field: 'authors',
+        reason: 'Readmoo library 頁 DOM 不提供作者欄位',
+        recommendation: '可手動編輯（v0.20.0 將支援標籤化編輯）',
+        sourceTicket: '0.19.0-W1-061'
+      })
+    }
+
     // 組裝 v2 根結構
     const v2Data = {
       metadata: {
@@ -503,7 +530,8 @@ class BookDataExporter {
         schemaVersion: '3.0.0',
         totalBooks: filteredBooks.length,
         totalTags: tags.length,
-        totalTagCategories: tagCategories.length
+        totalTagCategories: tagCategories.length,
+        ...(sourceLimitations.length > 0 ? { sourceLimitations } : {})
       },
       tagCategories,
       tags,
