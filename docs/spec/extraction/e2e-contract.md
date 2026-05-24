@@ -80,7 +80,7 @@ UC-05（搜尋篩選）與 UC-07（Tag 管理）的契約聚焦於 UI 與 tag sc
 | § | 契約 | 對應 sub-ticket | 撰寫狀態 |
 |---|------|----------------|---------|
 | §1 | URL 與 SPA 路由 | [W5-003.1](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.1.md) | completed |
-| §2 | Storage key 與 schema | [W5-003.2](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.2.md) | pending |
+| §2 | Storage key 與 schema | [W5-003.2](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.2.md) | completed |
 | §3 | Console 訊息與事件格式 | [W5-003.3](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.3.md) | pending |
 | §4 | Lifecycle 與步驟順序 | [W5-003.4](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.4.md) | pending |
 | §5 | Book schema v1.1 model | [W5-003.5](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.5.md) | pending |
@@ -263,11 +263,282 @@ grep "FIXTURE_URL" tests/e2e/browser/helpers/extraction-flow.js
 
 ## §2 Storage key 與 schema 契約
 
-> **撰寫者**：W5-003.2（pending）
->
-> **預期範圍**：chrome.storage.local 完整 key 清單 / 每 key JSON Schema / schema_version 演進規則 / migration 觸發條件 / tests/e2e helpers/storage-reader.js 引用
+### Name
 
-（待 W5-003.2 撰寫）
+定義 Chrome Extension 使用 `chrome.storage.local` 的所有 key 命名、value schema、雙形態容錯規則、配額管理、與 schema 演進 migration 機制。
+
+**適用範圍**：所有讀寫 `chrome.storage.local` 的 production code、E2E 測試、migration script。新增 / 修改 storage key 前必須先更新本契約。
+
+### Source of Truth
+
+| 角色 | 檔案 | 行號 | 內容 |
+|------|------|------|------|
+| 核心 STORAGE_KEYS（書籍/類別/標籤/版本） | `src/storage/adapters/tag-storage-adapter.js` | L24-29 | 4 個核心 key 集中定義 |
+| 常數定義（READMOO_BOOKS） | `src/background/constants/module-constants.js` | L521 | 統一常數匯出 |
+| 配額閾值 | `src/storage/adapters/tag-storage-adapter.js` | L31-39 | MAX_STORAGE_SIZE + QUOTA_THRESHOLDS |
+| readmoo_books 雙形態容錯讀取 | `src/storage/adapters/tag-storage-adapter.js` | L128-135 | loadBooks 雙形態解析 |
+| Book schema 版本常數 | `src/data-management/BookSchemaV2.js` | （L: SCHEMA_VERSION = '3.0.0'） | 當前 Book schema 版本 |
+| cover-to-reader migration | `src/data-management/migration/cover-to-reader.js` | L33 / L260+ | BACKUP_KEY + migrate flow |
+| v1-to-v2 migration | `src/data-management/migration/v1-to-v2.js` | L251 | 舊版升級 |
+| E2E storage helper | `tests/e2e/browser/helpers/storage-reader.js` | L23 / L64-73 | STORAGE_KEY + 雙形態容錯讀取 |
+| Service Worker retry 狀態 | `src/background/domains/data-management/services/RetryCoordinator.js` | L24 | retryCoordinator_state key |
+| Tab 狀態追蹤 | `src/background/domains/page/services/tab-state-tracking-service.js` | L206 | tabStates / tabHistory keys |
+| 同步 metadata | `src/background/domains/data-management/services/sync-metadata-manager.js` | L24 | SYNC_METADATA / USER_SETTINGS / LIBRARY_VERSION |
+| 跨裝置同步 ID 演進歷程 | `docs/bookstores/readmoo.md` | §ID 演進歷程 | cover-XXX → reader-{privacyBookId} 遷移背景 |
+
+### 契約定義
+
+#### 2.1 Storage key 完整清單
+
+**核心 key**（書籍提取與標籤管理）：
+
+| Key | 型別 | 用途 | 來源 |
+|-----|------|------|------|
+| `readmoo_books` | Object \| Array | 書籍資料容器（詳見 §2.2 雙形態） | `tag-storage-adapter.js#STORAGE_KEYS.READMOO_BOOKS` |
+| `tag_categories` | Array | 標籤類別清單 | `tag-storage-adapter.js#STORAGE_KEYS.TAG_CATEGORIES` |
+| `tags` | Array | 標籤清單 | `tag-storage-adapter.js#STORAGE_KEYS.TAGS` |
+| `schema_version` | String | 當前 Book schema 版本（例 `"3.1.0"`） | `BookSchemaV2.SCHEMA_VERSION` + migration |
+| `migration_backup_v3_1` | Object | cover-to-reader migration 備份 | `cover-to-reader.js#BACKUP_KEY` L33 |
+
+**輔助 key**（內部狀態與同步）：
+
+| Key | 型別 | 用途 | 來源 |
+|-----|------|------|------|
+| `retryCoordinator_state` | Object | SW 重啟後的 retry queue / circuit breaker 狀態 | `RetryCoordinator.js` L24 |
+| `tabStates` | Object | Tab 提取狀態追蹤 | `tab-state-tracking-service.js` L206 |
+| `tabHistory` | Array | Tab 切換歷史 | `tab-state-tracking-service.js` L206 |
+| `SYNC_METADATA` | Object | 跨裝置同步元資料 | `sync-metadata-manager.js#STORAGE_KEYS.SYNC_METADATA` |
+| `USER_SETTINGS` | Object | 用戶設定 | `sync-metadata-manager.js#STORAGE_KEYS.USER_SETTINGS` |
+| `LIBRARY_VERSION` | String | 書庫版本追蹤 | `sync-metadata-manager.js#STORAGE_KEYS.LIBRARY_VERSION` |
+
+#### 2.2 readmoo_books 容器 JSON Schema
+
+`readmoo_books` 採**雙形態**設計（歷史相容）：
+
+**形態 A（物件容器，提取流程預設）**：
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "readmoo_books (Object 形態)",
+  "type": "object",
+  "required": ["books"],
+  "properties": {
+    "books": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Book" },
+      "description": "書籍陣列，每本書 schema 見 §5"
+    },
+    "extractionTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "提取完成時間（ISO 8601）"
+    },
+    "extractionCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "本次提取書籍總數"
+    }
+  }
+}
+```
+
+**形態 B（直接陣列，部分舊路徑寫入）**：
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "readmoo_books (Array 形態)",
+  "type": "array",
+  "items": { "$ref": "#/definitions/Book" },
+  "description": "書籍陣列（無 metadata wrapper），每本書 schema 見 §5"
+}
+```
+
+**Book 物件 schema**：詳見 §5 Book schema v1.1 model 契約（避免重複定義）。
+
+#### 2.3 雙形態容錯讀取規則
+
+所有讀取 `readmoo_books` 的程式碼必須遵循以下順序：
+
+```javascript
+function loadBooks(raw) {
+  if (raw === null || raw === undefined) return []
+  if (Array.isArray(raw)) return raw                     // 形態 B
+  if (raw.books && Array.isArray(raw.books)) return raw.books  // 形態 A
+  return []
+}
+```
+
+**讀取規則**：
+
+| Step | 判定 | 處理 |
+|------|------|------|
+| 1 | `raw == null` | 回傳 `[]`（無資料） |
+| 2 | `Array.isArray(raw)` | 回傳 `raw`（形態 B） |
+| 3 | `raw.books` 是陣列 | 回傳 `raw.books`（形態 A） |
+| 4 | 以上皆否 | 回傳 `[]`（格式異常 fallback） |
+
+**已知雙形態實作**：
+
+| 位置 | 行號 | 角色 |
+|------|------|------|
+| `src/storage/adapters/tag-storage-adapter.js#loadBooks` | L128-135 | 核心讀取 helper |
+| `tests/e2e/browser/helpers/storage-reader.js#readBooksFromStorage` | L64-73 | E2E 測試讀取 helper |
+
+**寫入規則**（`tag-storage-adapter.js#saveBooksWrapper` L137-145）：
+
+```javascript
+// 保留原始容器結構：原本為形態 A 則回寫形態 A，否則寫形態 B
+async function saveBooksWrapper(books) {
+  const raw = await loadFromStorage(STORAGE_KEYS.READMOO_BOOKS)
+  if (raw && !Array.isArray(raw) && raw.books) {
+    await saveToStorage({ [STORAGE_KEYS.READMOO_BOOKS]: { ...raw, books } })
+  } else {
+    await saveToStorage({ [STORAGE_KEYS.READMOO_BOOKS]: books })
+  }
+}
+```
+
+**契約**：新增寫入路徑必須採同一保留原始結構策略，避免覆寫使形態退化。
+
+#### 2.4 配額管理規則
+
+**配額上限與閾值**（`tag-storage-adapter.js` L31-39）：
+
+| 常數 | 值 | 用途 |
+|------|----|------|
+| `MAX_STORAGE_SIZE` | 5,242,880 (5MB) | chrome.storage.local 上限 |
+| `QUOTA_THRESHOLDS.WARNING` | 0.8 (80%) | 顯示警告 |
+| `QUOTA_THRESHOLDS.AUTO_CLEANUP` | 0.9 (90%) | 觸發自動清理（保留近期資料） |
+| `QUOTA_THRESHOLDS.BLOCK` | 0.95 (95%) | 阻擋新寫入 |
+
+**配額層級回傳**（`checkQuotaLevel` L102-116）：
+
+```javascript
+{ level: 'normal' | 'warning' | 'auto_cleanup' | 'blocked', usageRatio: 0.0-1.0 }
+```
+
+**契約**：寫入大量資料前必須先呼叫 `checkQuotaLevel()`；level=`blocked` 時必須拒絕寫入並回傳明確錯誤訊息給用戶。
+
+#### 2.5 Schema 演進與 Migration 機制
+
+**版本歷程**：
+
+| Schema 版本 | 標記 | Book.id 格式 | Migration 來源 |
+|------------|------|-------------|---------------|
+| v1.x | （無 schema_version） | `cover-{slug}` | （pre-history） |
+| v2.0.0 / 3.0.0 | `'3.0.0'` | 過渡：仍含 cover-XXX | `v1-to-v2.js`（W6-012.2 之前） |
+| **3.1.0**（當前） | `'3.1.0'` | `reader-{privacyBookId}` | `cover-to-reader.js`（W6-012.2.2.2） |
+
+**當前 SCHEMA_VERSION**：`'3.0.0'`（`BookSchemaV2.SCHEMA_VERSION`）；但 cover-to-reader migration 觸發後寫入 `'3.1.0'`。
+
+**Migration 觸發機制**（`cover-to-reader.js` L260-290 流程）：
+
+```
+install-handler.onUpdated 偵測版本升級
+  │
+  ▼
+讀取 ['schema_version', 'readmoo_books']
+  │
+  ├── schema_version === '3.1.0'? → 跳過（已遷移）
+  │
+  ├── readmoo_books 不存在? → 直接寫 schema_version='3.1.0'
+  │
+  └── 執行遷移：
+      1. 備份 readmoo_books → migration_backup_v3_1
+      2. 套用 5 案例合併規則（詳見 docs/bookstores/readmoo.md §4 遷移流程）
+      3. 寫入 readmoo_books + schema_version='3.1.0'
+      4. 移除 migration_backup_v3_1
+```
+
+**5 案例合併規則**（cover-to-reader migration step）：
+
+| 案例 | 觸發條件 | 處理 |
+|------|---------|------|
+| 1. 正常遷移 | identifiers.privacyBookId 存在 | 改寫 id 為 `reader-{privacyBookId}` |
+| 2. privacyBookId 缺失 | 無 privacyBookId | 保留舊 `cover-XXX` id + 標記 `manual_review` |
+| 3. cover-openbook 集體碰撞 | 多本書共用 ID | 以 secondary key（title+author）去重後再遷移 |
+| 4. 同 privacyBookId 多筆 | 重複 ID | 取新並集 tag 後合併為單筆 |
+| 5. cross-device sync 衝突 | （範圍外） | 由 follow-up ticket 處理 |
+
+**Backup key 生命週期**：
+
+| 階段 | `migration_backup_v3_1` 狀態 |
+|------|----------------------------|
+| Migration 開始前 | 不存在 |
+| Migration 中 | 寫入備份 |
+| Migration 成功 | 刪除（cleanup） |
+| Migration 失敗 | 保留（供回滾） |
+| 回滾觸發（`rollback()` L240-247） | 讀備份 → 還原 → 刪備份 |
+
+**契約**：新增 schema 版本時必須建立新的 backup key（如 `migration_backup_v3_2`），並提供獨立的 forward + rollback function。
+
+#### 2.6 Storage 讀寫者完整清單
+
+**讀者**：
+
+| 檔案 | 行號 | 讀取目的 |
+|------|------|---------|
+| `src/storage/adapters/tag-storage-adapter.js` | L128 | tag operation 前讀 readmoo_books |
+| `src/background/messaging/popup-message-handler.js` | L385 / L750 | popup 查詢書籍數 / 清空前讀取 |
+| `src/background/events/event-coordinator.js` | L588 | 提取完成後驗證 storage 寫入 |
+| `src/overview/overview-page-controller.js` | L464 | overview 頁載入書籍清單 |
+| `tests/e2e/browser/helpers/storage-reader.js` | L57-61 | E2E 測試斷言 |
+| `src/data-management/migration/cover-to-reader.js` | L262 | migration 觸發判斷 |
+| `src/data-management/migration/v1-to-v2.js` | L251 | migration 觸發判斷 |
+
+**監聽者**（`chrome.storage.onChanged` 事件監聽，不主動讀取）：
+
+| 檔案 | 行號 | 監聽目的 |
+|------|------|---------|
+| `src/popup/popup.js` | L785-787 | 偵測提取完成後 readmoo_books 變更，依新值更新 UI |
+
+**寫者**：
+
+| 檔案 | 行號 | 寫入時機 |
+|------|------|---------|
+| `src/storage/adapters/tag-storage-adapter.js` | L137-145 | saveBooksWrapper（保留容器結構） |
+| `src/background/messaging/popup-message-handler.js` | L812 | popup 清空（remove） |
+| `src/background/lifecycle/install-handler.js` | L322 | 安裝 / 升級時初始化 `readmoo_books: null` |
+| `src/data-management/migration/cover-to-reader.js` | L286+ | migration 寫入新版資料 |
+| `src/data-management/migration/v1-to-v2.js` | （migration step） | migration 寫入 v2 資料 |
+
+**契約**：新增寫者必須使用 `saveBooksWrapper`（保留容器結構），不可繞過直接 `chrome.storage.local.set({ readmoo_books: books })`。
+
+### 變更影響
+
+| 變更內容 | 影響 |
+|---------|------|
+| 新增 storage key | §2.1 補列；確認 5MB 配額不會被擠壓 |
+| 改變 readmoo_books 容器形態（例棄用形態 B） | §2.2 / §2.3 同步更新；所有讀取者（7 個）必須一次性升級；E2E helper 同步 |
+| 修改 schema_version（例 3.1.0 → 3.2.0） | §2.5 補新 migration script + 新 backup key；提供 forward + rollback |
+| 修改配額閾值 | §2.4 更新；UI 警告訊息門檻同步 |
+| 修改 BookSchemaV2.SCHEMA_VERSION | §5 Book schema 同步；確認既有資料相容性 |
+
+### Grep 驗證
+
+```bash
+# 2.1 核心 key 集中定義（4 個 + migration backup）
+grep -n "READMOO_BOOKS\|TAG_CATEGORIES\|TAGS\|SCHEMA_VERSION" src/storage/adapters/tag-storage-adapter.js | head -10
+grep -n "BACKUP_KEY" src/data-management/migration/cover-to-reader.js
+
+# 2.2/2.3 雙形態容錯讀取
+grep -A5 "function loadBooks" src/storage/adapters/tag-storage-adapter.js
+grep -A8 "雙形態容錯" tests/e2e/browser/helpers/storage-reader.js
+
+# 2.4 配額閾值
+grep -E "MAX_STORAGE_SIZE|QUOTA_THRESHOLDS" src/storage/adapters/tag-storage-adapter.js | head -5
+
+# 2.5 Schema 版本與 migration
+grep -E "SCHEMA_VERSION = " src/data-management/BookSchemaV2.js
+grep -n "schema_version.*3.1.0\|TARGET_SCHEMA_VERSION" src/data-management/migration/cover-to-reader.js
+
+# 2.6 所有 readmoo_books 讀寫者
+grep -rln "readmoo_books" src/ tests/e2e/ --include="*.js" | sort -u
+```
+
+**驗證標準**：每條 grep 指令應命中本規格列出的引用點；新增讀寫者必須補入 §2.6 表格。
 
 ---
 
