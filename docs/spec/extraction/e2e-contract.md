@@ -708,7 +708,7 @@ grep -rln "readmoo_books" src/ tests/e2e/ --include="*.js" | sort -u
 
 #### 3.4 結構化 Console Log 前綴規則
 
-**字元集豁免聲明**：本節表格與 §4 序列圖內出現的 emoji（U+1F4CD 圖釘符 / U+274C 叉號等）為 src code log 字面的機械引用，受 grep 對齊機制保護（修改字面即破壞契約驗證）。語言約束 `.claude/rules/core/language-constraints.md` 規則 3 的 emoji 禁令適用於書面文字產出，不適用於規格文件中對程式碼字面的機械引用——本豁免條款待 W5-003 follow-up ANA ticket 推進至規則層落地。
+**字元集豁免聲明**：本節表格與 §4 序列圖內出現的 emoji（U+1F4CD 圖釘符 / U+274C 叉號等）為 src code log 字面的機械引用，受 grep 對齊機制保護（修改字面即破壞契約驗證）。本豁免依據 `.claude/rules/core/language-constraints.md` §規則 3 豁免條款，三條件邊界：（1）檔案位置限 `docs/spec/**/*.md`；（2）引用語意限結構化前綴對應表內的 source-of-truth 機械引用；（3）字面與 src code 完全一致。
 
 E2E 觀察依賴的結構化前綴：
 
