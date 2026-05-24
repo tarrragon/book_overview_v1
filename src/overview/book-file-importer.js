@@ -192,6 +192,44 @@ class BookFileImporter {
   }
 
   /**
+   * 從解析後的資料中提取 v2 interchange 三區段（books / tagCategories / tags）
+   *
+   * Public API（W1-048.10.1.5.2 採委派模式，對齊 .5.1 isCSVFile 設計）：
+   * - 與 validate / read / parseContent / isCSVFile 並列為 public method
+   * - 供測試與外部呼叫者直接驗證版本分流邏輯（v1 / v2 / MetadataWrap / 空物件 / CSV）
+   *   而不需穿透私有方法
+   * - 內部委派 _extractBooksFromData，保留原有實作、6 線性分支路徑與錯誤契約不變
+   * - 與 _processBookData 公開化（processBookData）同屬本 ticket 範圍
+   *
+   * 前置：資料已通過解析（CSV 為 book 物件陣列；JSON 為解析後物件 / 陣列）。
+   *
+   * @param {any} data - 解析後的 JSON 資料 / CSV 解析結果
+   * @param {string} [fileFormat='json'] - 'csv' | 'json'，csv 走頂層 bypass
+   * @returns {ImportResult} 含 books / tagCategories / tags 三區段的提取結果
+   * @throws {Error} JSON 無法辨識結構時拋出 VALIDATION_ERROR（既有錯誤契約）
+   */
+  extractBooksFromData (data, fileFormat = 'json') {
+    return this._extractBooksFromData(data, fileFormat)
+  }
+
+  /**
+   * 處理書籍資料：提取三區段 + 過濾無效 books + 大資料集檢查
+   *
+   * Public API（W1-048.10.1.5.2 採委派模式，對齊 .5.1 isCSVFile 設計）：
+   * - 與 validate / read / parseContent / isCSVFile / extractBooksFromData 並列為 public method
+   * - 為 _extractBooksFromData 後續的匯聚點：對 books 做有效性過濾與大型資料集檢查；
+   *   tagCategories / tags 透傳不過濾
+   * - 內部委派 _processBookData，保留原有實作與過濾鏈不變
+   *
+   * @param {any} data - 解析後的 JSON 資料 / CSV 解析結果
+   * @param {string} [fileFormat='json'] - 'csv' | 'json'，傳遞給版本偵測閘門
+   * @returns {ImportResult} 含過濾後 books 與透傳 tagCategories / tags 的匯入結果
+   */
+  processBookData (data, fileFormat = 'json') {
+    return this._processBookData(data, fileFormat)
+  }
+
+  /**
    * 檢查是否為 CSV 檔案（W6-012.6.2）
    * @private
    * @param {File} file - 要檢查的檔案
