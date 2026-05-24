@@ -206,6 +206,26 @@ var errorHandler = null
 var diagnosticEnhancer = null
 var initializationTracker = null
 
+/**
+ * 終態旗標（W1-062.1）
+ *
+ * 業務情境：
+ * - W1-062 修復 storage onChanged 後正確顯示「提取成功 N 本書籍」終態
+ * - setInterval(periodicStatusUpdate, 3000) 每 3 秒呼叫 checkCurrentTab() 會將
+ *   status 覆寫回「就緒/Content Script 連線正常」，使終態僅顯示不到 3 秒
+ *
+ * 旗標語意：
+ * - false（預設）：popup 處於 polling 模式，periodicStatusUpdate 可自由更新 status
+ * - true：popup 處於終態（提取成功/失敗），periodicStatusUpdate 跳過 status 覆寫
+ *   但仍執行 chrome.tabs.query 健康探測
+ *
+ * 變更時機：
+ * - 設為 true：setupExtractionCompletionListener 收到 readmoo_books 變更時、
+ *   startExtraction 同步 response.success 時、startExtraction catch 區塊
+ * - 設為 false：startExtraction 函式開頭（用戶再次點擊提取，重置回 polling）
+ */
+var isFinalStatus = false
+
 // ==================== 狀態管理 ====================
 
 /**
@@ -772,6 +792,8 @@ function setupExtractionCompletionListener () {
     if (elements.bookCount) {
       elements.bookCount.textContent = String(bookCount)
     }
+    // W1-062.1：設定終態旗標，阻止 periodicStatusUpdate 覆寫終態 status
+    isFinalStatus = true
 
     try {
       chrome.storage.onChanged.removeListener(listener)
@@ -808,6 +830,11 @@ function setupExtractionCompletionListener () {
  * 7. 恢復按鈕狀態
  */
 async function startExtraction () {
+  // W1-062.1：用戶再次點擊「開始提取」時重置終態旗標，回到 polling 模式。
+  // 此重置必須在所有可能的 updateStatus 呼叫之前，確保 periodicStatusUpdate
+  // 在新一輪提取流程中能正常更新檢測狀態（如「就緒」「載入中」「待機」）。
+  isFinalStatus = false
+
   const tab = await checkCurrentTab()
   if (!tab) return
 
@@ -827,6 +854,9 @@ async function startExtraction () {
       if (response.booksDetected !== undefined) {
         elements.bookCount.textContent = response.booksDetected
       }
+      // W1-062.1：同步 response 終態，雖然真實 N 本書籍由 storage onChanged 監聽器
+      // 後續覆蓋，但「資料提取完成」屬流程啟動成功訊息，也應 sticky 避免 polling 覆寫。
+      isFinalStatus = true
     } else {
       const error = (() => {
         const err = new Error(response?.error || '未知錯誤')
@@ -839,6 +869,8 @@ async function startExtraction () {
   } catch (error) {
     Logger.error('提取過程發生錯誤', { error })
     updateStatus('失敗', '提取失敗', error.message, STATUS_TYPES.ERROR)
+    // W1-062.1：提取失敗為終態，保持失敗訊息直到用戶再次點擊提取
+    isFinalStatus = true
   } finally {
     updateButtonState(false)
   }
@@ -1102,18 +1134,38 @@ async function initialize () {
 /**
  * 定期狀態更新函數
  *
+ * 業務情境：
+ * - W1-062 修復 storage onChanged 後 popup 顯示「提取成功 N 本書籍」終態
+ * - W1-062.1 發現本函式每 3 秒透過 checkCurrentTab() 將 status 覆寫回「就緒」，
+ *   使終態僅顯示不到 3 秒
+ *
  * 負責功能：
- * - 定期檢查並更新界面狀態
- * - 只在界面可見時執行更新
+ * - 非終態（polling 模式）：定期呼叫 checkCurrentTab() 更新 UI 狀態
+ * - 終態（isFinalStatus=true）：跳過 status 更新，但仍執行 chrome.tabs.query
+ *   作為健康探測（確保 tabs API 可用、interval 仍持續運作）
  *
  * 設計考量：
- * - 節省資源，僅在需要時更新
- * - 保持狀態的即時性
+ * - 節省資源，僅在頁面可見時執行
+ * - 終態旗標 sticky 直到用戶再次點擊「開始提取」（startExtraction 重置）
+ * - 健康探測失敗時記錄 warning 但不更新 UI，避免覆寫終態訊息
  */
 async function periodicStatusUpdate () {
-  if (document.visibilityState === 'visible') {
-    await checkCurrentTab()
+  if (document.visibilityState !== 'visible') {
+    return
   }
+
+  if (isFinalStatus) {
+    // W1-062.1：終態模式 — 跳過 checkCurrentTab（含 updateStatus）避免覆寫終態，
+    // 但仍呼叫 chrome.tabs.query 作為輕量健康探測（驗證 tabs API 可用、interval 運作）
+    try {
+      await chrome.tabs.query({ active: true, currentWindow: true })
+    } catch (error) {
+      Logger.warn('periodicStatusUpdate 健康探測失敗（終態模式）', { error: error.message })
+    }
+    return
+  }
+
+  await checkCurrentTab()
 }
 
 // ==================== 錯誤處理 ====================
@@ -1326,6 +1378,10 @@ if (typeof window !== 'undefined') {
   window.setupExtractionCompletionListener = setupExtractionCompletionListener
   window.setupEventListeners = setupEventListeners
   window.initialize = initialize
+  // W1-062.1：暴露 periodicStatusUpdate 與 isFinalStatus 旗標讀寫供測試使用
+  window.periodicStatusUpdate = periodicStatusUpdate
+  window.getIsFinalStatus = () => isFinalStatus
+  window.setIsFinalStatus = (value) => { isFinalStatus = !!value }
 
   // 新增的進度和結果功能
   window.updateProgress = updateProgress
