@@ -82,7 +82,7 @@ UC-05（搜尋篩選）與 UC-07（Tag 管理）的契約聚焦於 UI 與 tag sc
 | §1 | URL 與 SPA 路由 | [W5-003.1](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.1.md) | completed |
 | §2 | Storage key 與 schema | [W5-003.2](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.2.md) | completed |
 | §3 | Console 訊息與事件格式 | [W5-003.3](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.3.md) | completed |
-| §4 | Lifecycle 與步驟順序 | [W5-003.4](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.4.md) | pending |
+| §4 | Lifecycle 與步驟順序 | [W5-003.4](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.4.md) | completed |
 | §5 | Book schema v1.1 model | [W5-003.5](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.5.md) | pending |
 | §6 | DOM 提取選擇器 | [W5-003.6](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.6.md) | pending |
 
@@ -785,11 +785,243 @@ grep -roE "console\.(log|debug|info|warn|error)\(['\"][^'\"]+" src/ --include="*
 
 ## §4 Lifecycle 與步驟順序契約
 
-> **撰寫者**：W5-003.4（pending）
->
-> **預期範圍**：Mermaid sequenceDiagram（SW 啟動 → CS 注入 → 提取 → storage 寫入 → overview 顯示）/ 步驟順序表 / content script 注入時機規則 / 各步驟對應 src 檔案行號
+### Name
 
-（待 W5-003.4 撰寫）
+定義 Chrome Extension 從 Service Worker 啟動、Content Script 注入、用戶觸發提取、Storage 寫入、Overview 顯示，到 SW 關閉的完整 lifecycle 步驟順序與各步驟對應 src 檔案行號。
+
+**適用範圍**：所有跨進程協作流程的設計與除錯。變動 SW 啟動順序、CS 注入時機、提取流程任何步驟前必須先更新本契約。
+
+### Source of Truth
+
+| 角色 | 檔案 | 行號 | 內容 |
+|------|------|------|------|
+| SW 入口 | `src/background/background.js` | L105-183 | initializeBackgroundSystem / registerServiceWorkerEvents |
+| Install handler（首次安裝 / 升級） | `src/background/lifecycle/install-handler.js` | L74-82 / L316-322 / L419+ | 初始化 storage / config / migration services |
+| Startup handler（瀏覽器啟動） | `src/background/lifecycle/startup-handler.js` | L64+ / L192-194 / L294 / L356-360 | 模組初始化序列 |
+| Shutdown handler | `src/background/lifecycle/shutdown-handler.js` | （shutdown 流程） | SW 關閉清理 |
+| Lifecycle coordinator | `src/background/lifecycle/lifecycle-coordinator.js` | （協調入口） | 跨 lifecycle phase 協調 |
+| Content script 入口 | `src/content/content-modular.js` | L63-135 | initializeContentScript 九步驟 |
+| CS 訊息 handler | `src/content/content-modular.js` | L287-334 | handleBackgroundMessage（PAGE_READY / START_EXTRACTION / PING） |
+| 提取觸發 | `src/content/content-modular.js` | L296-312 | START_EXTRACTION → bookDataExtractor.startExtractionFlow |
+| 事件轉發配置 | `src/content/content-modular.js` | L144-150 | forwardEvents 清單（5 種 EXTRACTION 事件） |
+| SW 訊息分派 | `src/background/messaging/message-router.js` | L245-322 | routeMessage / routeBySource |
+| Popup 觸發 | `src/background/messaging/popup-message-handler.js` | L630 | START_EXTRACTION sender |
+| Storage 寫入 | `src/storage/adapters/tag-storage-adapter.js` | L137-145 | saveBooksWrapper（§2.6 寫者） |
+| Storage 變更廣播 | `src/popup/popup.js` | L785-787 | chrome.storage.onChanged 監聽 |
+| Overview 載入 | `src/overview/overview-page-controller.js` | L464 | 載入 readmoo_books 渲染 |
+| Manifest content_scripts | `manifest.json` | L18-30 | run_at: document_idle |
+
+### 契約定義
+
+#### 4.1 完整 Lifecycle Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant B as Browser
+    participant SW as Service Worker
+    participant CS as Content Script
+    participant P as Popup
+    participant O as Overview
+    participant S as chrome.storage.local
+
+    Note over SW: Phase 1 — SW 啟動 / 安裝
+    B->>SW: chrome.runtime.onInstalled (首次安裝/升級)
+    SW->>SW: install-handler.initialize()
+    SW->>S: 初始化 readmoo_books: null<br/>(install-handler.js L322)
+    SW->>SW: migration 觸發判斷<br/>(cover-to-reader.js L260+)
+    alt schema_version < 3.1.0
+        SW->>S: 備份 → migrate → 寫 schema_version='3.1.0'
+    end
+
+    B->>SW: chrome.runtime.onStartup (瀏覽器啟動)
+    SW->>SW: startup-handler.initialize()
+    SW->>SW: registerServiceWorkerEvents()<br/>(background.js L183)
+    SW->>SW: routeMessage listener ready
+
+    Note over CS: Phase 2 — Content Script 注入<br/>(用戶導航至 readmoo.com)
+    U->>B: 導航至 read.readmoo.com/#/library
+    B->>CS: 注入 content-modular.js<br/>(manifest run_at: document_idle)
+    CS->>CS: initializeContentScript() 九步驟<br/>(content-modular.js L63-135)
+    CS->>CS: Step 1: createPageDetector()
+    CS->>CS: 偵測 isReadmooPage + pageType<br/>(log: 「📍 頁面檢測:」)
+    alt 非 Readmoo 頁面
+        CS->>CS: Logger.info 跳過初始化 → 結束
+    end
+    CS->>CS: Step 2-5: 建立 eventBus / chromeBridge / adapter / extractor
+    CS->>CS: Step 6: 設定 globalThis (含 contentScriptReady=true)
+    CS->>CS: Step 7-8: setupModuleIntegration + setupLifecycleManagement
+    CS->>SW: Step 9: reportReadyStatus()
+    SW-->>CS: 確認
+
+    Note over P,S: Phase 3 — 用戶觸發提取
+    U->>P: 開 popup → 點 #extractBtn
+    P->>SW: chrome.runtime.sendMessage<br/>{ type: 'START_EXTRACTION' }
+    SW->>SW: routeMessage → popupMessageHandler
+    SW->>CS: chrome.tabs.sendMessage<br/>{ type: 'START_EXTRACTION' }<br/>(popup-message-handler.js L630)
+    CS->>CS: handleBackgroundMessage L296<br/>→ bookDataExtractor.startExtractionFlow()
+    CS->>CS: contentEventBus.emit('EXTRACTION.STARTED')
+    CS-->>SW: 轉發 EXTRACTION.STARTED<br/>(contentChromeBridge L144-150)
+
+    CS->>CS: ReadmooAdapter 等待 .library-item DOM ready<br/>(詳見 §6)
+    CS->>CS: 提取 books 陣列<br/>(log: 「[DIAG] performActualExtraction 收到資料」)
+    CS->>CS: contentEventBus.emit('EXTRACTION.COMPLETED')
+    CS-->>SW: 轉發 EXTRACTION.COMPLETED + books data
+
+    Note over SW,S: Phase 4 — Storage 寫入
+    SW->>SW: event-coordinator 接收 EXTRACTION.COMPLETED
+    SW->>S: tag-storage-adapter.saveBooksWrapper(books)<br/>(L137-145)
+    S-->>P: chrome.storage.onChanged 廣播<br/>(popup.js L785-787)
+    P->>P: 依新值 books 陣列長度更新 UI
+    SW->>S: 驗證 storage 寫入<br/>(event-coordinator.js L588)
+
+    Note over U,O: Phase 5 — Overview 顯示
+    U->>O: 開 overview.html<br/>(chrome-extension://{id}/src/overview/overview.html)
+    O->>S: chrome.storage.local.get(['readmoo_books'])<br/>(overview-page-controller.js L464)
+    S-->>O: 回傳 books 資料
+    O->>O: 渲染 #tableBody tr td.book-title-cell
+
+    Note over SW,CS: Phase 6 — SW 關閉 (idle / browser close)
+    B->>SW: SW 即將被回收
+    SW->>SW: shutdown-handler.cleanup()
+    SW->>CS: chrome.tabs.sendMessage<br/>{ type: 'SYSTEM.SHUTDOWN' }<br/>(content-message-handler.js L581)
+    CS->>CS: cleanup() 清理 globalThis 與 observers
+```
+
+#### 4.2 Phase 1: SW 啟動 / 安裝
+
+| Step | 動作 | 觸發條件 | 對應檔案 / 行號 |
+|------|------|---------|----------------|
+| 1.1 | `chrome.runtime.onInstalled` 觸發 | 首次安裝、版本升級、reload extension | `install-handler.js` |
+| 1.2 | 初始化 storage / config / migration services | onInstalled callback | `install-handler.js` L74-82 |
+| 1.3 | 寫入 `readmoo_books: null` 初始化 | install 流程內 | `install-handler.js` L322 |
+| 1.4 | Migration 觸發判斷 | install 流程內 | `cover-to-reader.js` L260+（詳 §2.5） |
+| 1.5 | `chrome.runtime.onStartup` 觸發 | 瀏覽器啟動 | `startup-handler.js` |
+| 1.6 | 模組初始化序列 | onStartup callback | `startup-handler.js` L64+ / L192-194 |
+| 1.7 | 註冊 SW event listeners | `background.js#registerServiceWorkerEvents` | `background.js` L183 |
+| 1.8 | `routeMessage` listener ready | listener 註冊完成 | `message-router.js` L245 |
+
+#### 4.3 Phase 2: Content Script 注入
+
+| Step | 動作 | 觸發條件 | 對應檔案 / 行號 |
+|------|------|---------|----------------|
+| 2.1 | 用戶導航至 readmoo.com 任何路徑 | 用戶操作 | （無，瀏覽器行為） |
+| 2.2 | Browser 注入 `content-modular.js` | `manifest.json` matches + `run_at: document_idle` | `manifest.json` L18-30 |
+| 2.3 | `initializeContentScript()` 九步驟啟動 | CS 載入後立即執行 | `content-modular.js` L63 |
+| 2.4 | **Step 1**: 頁面偵測 + 輸出「📍 頁面檢測:」log | initializeContentScript 內 | `content-modular.js` L67-77 |
+| 2.5 | （非 Readmoo 頁面 → return） | pageStatus.isReadmooPage === false | `content-modular.js` L71-74 |
+| 2.6 | **Step 2-5**: 建立 eventBus / chromeBridge / adapter / extractor | initializeContentScript 內 | `content-modular.js` L78-91 |
+| 2.7 | **Step 6**: 設定 `globalThis.contentScriptReady = true` | Step 5 完成後 | `content-modular.js` L93-101 |
+| 2.8 | **Step 7-8**: setupModuleIntegration + setupLifecycleManagement | initializeContentScript 內 | `content-modular.js` L103-107 |
+| 2.9 | **Step 9**: 向 SW 報告就緒狀態 | Step 8 完成後 | `content-modular.js` L125-126 |
+
+**事件轉發設定**（Step 7 內，`setupModuleIntegration` L144-150）：
+
+CS → SW 轉發的 5 種事件：`EXTRACTION.STARTED` / `EXTRACTION.PROGRESS` / `EXTRACTION.COMPLETED` / `EXTRACTION.ERROR` / `EXTRACTION.CANCELLED`。
+
+#### 4.4 Phase 3: 用戶觸發提取
+
+| Step | 動作 | 觸發條件 | 對應檔案 / 行號 |
+|------|------|---------|----------------|
+| 3.1 | 用戶開 popup + 點 #extractBtn | 用戶操作 | `src/popup/popup.js` |
+| 3.2 | Popup → SW `{ type: 'START_EXTRACTION' }` | popup 按鈕事件 | `popup.js` → `popup-message-handler.js` L630 |
+| 3.3 | SW `popupMessageHandler.handleMessage` | routeMessage by source | `message-router.js` L295-307 |
+| 3.4 | SW → CS `chrome.tabs.sendMessage` | popup-message-handler 內 | `popup-message-handler.js` L630 |
+| 3.5 | CS `handleBackgroundMessage` switch | onMessage listener | `content-modular.js` L287-296 |
+| 3.6 | `bookDataExtractor.startExtractionFlow()` | START_EXTRACTION case | `content-modular.js` L299 |
+| 3.7 | CS emit `EXTRACTION.STARTED` 事件 | startExtractionFlow 內 | `bookDataExtractor` |
+| 3.8 | CS → SW 轉發事件 | `contentChromeBridge.forwardEventToBackground` | `content-modular.js` L155 |
+| 3.9 | DOM 提取（等待 .library-item ready） | adapter 內 | （詳 §6 DOM 契約） |
+| 3.10 | CS emit `EXTRACTION.COMPLETED` + books data | 提取完成 | bookDataExtractor |
+
+#### 4.5 Phase 4: Storage 寫入與廣播
+
+| Step | 動作 | 觸發條件 | 對應檔案 / 行號 |
+|------|------|---------|----------------|
+| 4.1 | SW event-coordinator 接收 EXTRACTION.COMPLETED | CS → SW 轉發 | `event-coordinator.js` |
+| 4.2 | 呼叫 `saveBooksWrapper(books)` | event-coordinator 處理 | `tag-storage-adapter.js` L137-145 |
+| 4.3 | `chrome.storage.local.set({ readmoo_books: ... })` | saveBooksWrapper 內 | `tag-storage-adapter.js` L141 / L143 |
+| 4.4 | `chrome.storage.onChanged` 廣播給所有 listener | Chrome runtime | （內建） |
+| 4.5 | Popup 監聽到 readmoo_books 變更 | popup.js storage listener | `popup.js` L785-787 |
+| 4.6 | Popup 依新值更新 UI（書數 / 完成訊息） | onChanged callback | `popup.js` L787 |
+| 4.7 | Overview（若已開啟）監聽 onChanged 即時更新 | overview-page-controller listener | `overview-page-controller.js` L243-244 |
+| 4.8 | SW 驗證 storage 寫入 | event-coordinator 後續確認 | `event-coordinator.js` L588 |
+
+#### 4.6 Phase 5: Overview 顯示
+
+| Step | 動作 | 觸發條件 | 對應檔案 / 行號 |
+|------|------|---------|----------------|
+| 5.1 | 用戶開 overview.html | popup 按鈕 / 設定頁入口 | `chrome-extension://{id}/src/overview/overview.html` |
+| 5.2 | overview-page-controller 載入 | overview.html DOM ready | `overview-page-controller.js` |
+| 5.3 | `chrome.storage.local.get(['readmoo_books'])` | controller 初始化 | `overview-page-controller.js` L464 |
+| 5.4 | 雙形態容錯解析 books 陣列 | 依 §2.3 規則 | `overview-page-controller.js` |
+| 5.5 | 渲染 `#tableBody tr td.book-title-cell` 等 | books 載入完成 | `overview-page-controller.js` |
+
+#### 4.7 Phase 6: SW 關閉
+
+| Step | 動作 | 觸發條件 | 對應檔案 / 行號 |
+|------|------|---------|----------------|
+| 6.1 | SW 即將被回收（idle / browser close） | Chrome runtime | （內建） |
+| 6.2 | `shutdown-handler.cleanup()` | beforeunload / runtime | `shutdown-handler.js` |
+| 6.3 | SW → CS 廣播 `{ type: 'SYSTEM.SHUTDOWN' }` | shutdown 流程 | `content-message-handler.js` L581 |
+| 6.4 | CS `cleanup()` 清理 globalThis / observers | onMessage 收到 SYSTEM.SHUTDOWN | `content-modular.js` L233 |
+
+#### 4.8 並發與時序約束
+
+| 約束 | 規則 | 違反後果 |
+|------|------|---------|
+| CS 注入時機 | `run_at: document_idle`（DOM 載入完成後） | 改為 `document_start` 會在 DOM 未 ready 時提取失敗 |
+| Step 6 globalThis 設定必須在 Step 7-8 之前 | content-modular.js L93-101 須在 L103-107 之前 | setupModuleIntegration 依賴 globalThis 變數 |
+| `reportReadyStatus()` 必須在所有初始化完成後（Step 9） | content-modular.js L125-126 為最後步驟 | SW 收到 ready 但 CS 未就緒會誤觸 PING 失敗 |
+| `chrome.storage.local.set` 必須完成才能 emit COMPLETED | storage 寫入與事件 emit 順序 | popup 收到 COMPLETED 但讀 storage 為空（race） |
+| Migration 必須在 SW 啟動完成前完成 | install-handler L74-82 同步等待 | 提取流程讀到舊 schema 資料 |
+| SYSTEM.SHUTDOWN 廣播必須在 SW 真正回收前完成 | shutdown-handler 內 | CS 持有 stale event listeners |
+
+### 變更影響
+
+| 變更內容 | 影響 |
+|---------|------|
+| 修改 `run_at` | §4.3 Step 2.2 同步；CS 注入時機改變可能造成 DOM ready 競爭 |
+| 重排 initializeContentScript 九步驟 | §4.3 同步；Step 6 globalThis 約束、Step 9 reportReadyStatus 約束必須維持 |
+| 新增 lifecycle phase（例 Phase 7 telemetry） | 4.1 序列圖更新；對應 Phase 章節新增 |
+| 修改 START_EXTRACTION 訊息流向（例直接 popup → CS） | §4.4 Step 3.2-3.5 重寫；message-router 路由規則同步 |
+| Migration 改為 lazy 觸發（非 SW 啟動時） | §4.2 Step 1.4 移除；§4.5 新增 lazy migration phase |
+| 新增 CS → SW 轉發事件類型 | §4.3 「事件轉發設定」5 種清單擴充 |
+
+### Grep 驗證
+
+```bash
+# 4.1/4.3 CS 入口九步驟
+grep -n "initializeContentScript\|第.*步" src/content/content-modular.js | head -15
+
+# 4.2 SW 啟動 + lifecycle handlers
+grep -n "initializeBackgroundSystem\|registerServiceWorkerEvents" src/background/background.js
+ls src/background/lifecycle/
+
+# 4.3 CS handleBackgroundMessage 三個 case
+grep -E "case 'PAGE_READY'|case 'START_EXTRACTION'|case 'PING'" src/content/content-modular.js
+
+# 4.3 事件轉發 5 種
+grep -A6 "forwardEvents = \[" src/content/content-modular.js
+
+# 4.4 popup 觸發
+grep -n "START_EXTRACTION" src/background/messaging/popup-message-handler.js | head -3
+
+# 4.5 popup storage 監聽
+grep -n "chrome.storage.onChanged\|changes.readmoo_books" src/popup/popup.js
+
+# 4.6 overview load
+grep -n "readmoo_books" src/overview/overview-page-controller.js | head -3
+
+# 4.7 SYSTEM.SHUTDOWN
+grep -n "SYSTEM.SHUTDOWN" src/background/messaging/content-message-handler.js
+
+# manifest run_at
+grep -A3 "content_scripts" manifest.json
+```
+
+**驗證標準**：每條 grep 命中本契約列出的引用點；新增 lifecycle step 必須補入對應 Phase 表格與序列圖。
 
 ---
 
