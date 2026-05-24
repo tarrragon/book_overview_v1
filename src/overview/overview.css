@@ -470,6 +470,17 @@ body {
   color: #333;
 }
 
+/* W1-049: destructive 確認按鈕（紅色警告色，視覺與其他按鈕對比明顯）
+   用於不可逆操作（如清空書庫）的二次確認，與 .modal-btn-secondary 取消鈕並列 */
+.modal-btn-danger {
+  background: #d9534f;
+  color: #fff;
+}
+
+.modal-btn-danger:hover {
+  background: #c9302c;
+}
+
 .modal-btn:focus {
   outline: 2px solid #4a5fc1;
   outline-offset: 2px;

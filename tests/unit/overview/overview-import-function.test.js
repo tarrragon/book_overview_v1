@@ -297,6 +297,11 @@ describe('📄 Overview 資料匯入功能測試', () => {
       // stub 於建構後即掛上，handleFileLoad.mockRestore() 還原真實實作時仍有效。
       controller.promptImportMode = jest.fn().mockResolvedValue('overwrite')
 
+      // W1-049：handleFileLoad 在覆蓋模式 + 空檔案時新增二次確認 Modal B 步驟。
+      // 本檔若任一 TC 還原真實 handleFileLoad 並使用空 books fixture，會 hang 在 Modal B。
+      // stub 回 true 保持原覆蓋語意（Modal B 互動由 empty-file-confirm-modal.test.js 專責）。
+      controller.confirmEmptyFileOverwrite = jest.fn().mockResolvedValue(true)
+
       // Mock FileReader 方法，避免 JSDOM Blob 驗證問題
       jest.spyOn(controller, 'handleFileLoad').mockImplementation(async function (file) {
         // 檔案前置驗證

@@ -164,7 +164,10 @@ class OverviewPageController extends EventHandlerClass {
       showError: (msg) => this.showError(msg),
       showLoading: (msg) => this.showLoading(msg),
       onImportSuccess: (books) => this._updateUIWithBooks(books),
-      promptImportModeFn: () => this.promptImportMode()
+      promptImportModeFn: () => this.promptImportMode(),
+      // W1-049：Modal B 相關 deps
+      getCurrentBookCount: () => this.currentBooks.length,
+      confirmEmptyFileOverwriteFn: (n) => this.confirmEmptyFileOverwrite(n)
     })
 
     // 設置事件監聽器
@@ -205,8 +208,10 @@ class OverviewPageController extends EventHandlerClass {
       fileLoad: ['fileUploader', 'jsonFileInput', 'loadFileBtn', 'loadSampleBtn', 'sortSelect', 'sortDirection'],
       // 狀態顯示元素
       status: ['loadingIndicator', 'errorContainer', 'errorMessage', 'retryBtn'],
-      // 匯入模式選擇 modal 元素（UC-04）
-      importMode: ['importModeOverlay', 'importModeModal', 'importModeTitle', 'importModeOverwriteBtn', 'importModeMergeBtn', 'importModeCancelBtn']
+      // 匯入模式選擇 modal 元素（UC-04 Modal A）
+      importMode: ['importModeOverlay', 'importModeModal', 'importModeTitle', 'importModeOverwriteBtn', 'importModeMergeBtn', 'importModeCancelBtn'],
+      // 空檔案覆蓋二次確認 modal 元素（UC-04 Modal B / W1-049）
+      emptyFileConfirm: ['emptyFileConfirmOverlay', 'emptyFileConfirmModal', 'emptyFileConfirmTitle', 'emptyFileConfirmDesc', 'emptyFileConfirmProceedBtn', 'emptyFileConfirmCancelBtn']
     }
 
     // 批量取得元素引用
@@ -1077,6 +1082,19 @@ class OverviewPageController extends EventHandlerClass {
    */
   promptImportMode () {
     return this.importFlowController.promptImportMode()
+  }
+
+  /**
+   * 顯示空檔案覆蓋二次確認 modal（UC-04 / W1-049）
+   *
+   * 薄包裝：委派至 importFlowController.confirmEmptyFileOverwrite。回傳 Promise<boolean>，
+   * true 表示使用者明確確認清空，false 表示取消或 DOM 缺失（安全 default）。
+   *
+   * @param {number} currentBookCount - 目前書庫的書目數（用於動態文案）
+   * @returns {Promise<boolean>}
+   */
+  confirmEmptyFileOverwrite (currentBookCount) {
+    return this.importFlowController.confirmEmptyFileOverwrite(currentBookCount)
   }
 
   /**
