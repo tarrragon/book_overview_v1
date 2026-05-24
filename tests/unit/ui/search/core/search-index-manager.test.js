@@ -501,7 +501,10 @@ describe('SearchIndexManager - TDD 循環 1/8', () => {
 
       // eslint-disable-next-line no-unused-vars
       const stats = indexManager.getIndexStats()
-      expect(stats.buildDuration).toBeGreaterThan(0)
+      // 移除 buildDuration > 0 計時斷言：JIT 暖機 + Jest jsdom mock 下實測可能收到 0ms（W1-063）。
+      // 改為驗證 buildDuration 存在且為非負數，符合 test-assertion-design-rules.md 規則 1，
+      // 與 line 251 toBeGreaterThanOrEqual(0) 一致。上界沿用既有 wall-clock + 50ms 容忍作為大幅退化防護。
+      expect(stats.buildDuration).toBeGreaterThanOrEqual(0)
       expect(stats.buildDuration).toBeLessThan(endTime - startTime + 50) // 允許50ms誤差
       expect(stats.totalBooks).toBe(1000)
     })
