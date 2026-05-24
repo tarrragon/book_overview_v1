@@ -83,7 +83,7 @@ UC-05（搜尋篩選）與 UC-07（Tag 管理）的契約聚焦於 UI 與 tag sc
 | §2 | Storage key 與 schema | [W5-003.2](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.2.md) | completed |
 | §3 | Console 訊息與事件格式 | [W5-003.3](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.3.md) | completed |
 | §4 | Lifecycle 與步驟順序 | [W5-003.4](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.4.md) | completed |
-| §5 | Book schema v1.1 model | [W5-003.5](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.5.md) | pending |
+| §5 | Book schema v1.1 model | [W5-003.5](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.5.md) | completed |
 | §6 | DOM 提取選擇器 | [W5-003.6](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.6.md) | pending |
 
 ---
@@ -1027,11 +1027,343 @@ grep -A3 "content_scripts" manifest.json
 
 ## §5 Book schema v1.1 model 契約
 
-> **撰寫者**：W5-003.5（pending）
->
-> **預期範圍**：完整 v1.1 model JSON Schema / readingStatus 6 狀態 enum / Mermaid stateDiagram-v2 / progress → readingStatus auto-derive 規則 / 用戶覆寫優先級
+### Name
 
-（待 W5-003.5 撰寫）
+定義 Book 物件的完整欄位 schema、readingStatus 6 狀態 enum 與 state machine、progress → readingStatus auto-derive 規則、手動狀態與自動狀態的分流、與 v1 → v2 migration 對映規則。
+
+**適用範圍**：所有產生 / 消費 / 驗證 Book 物件的程式碼，含提取流程、儲存層、UI 顯示、匯出入、tag 操作。新增欄位 / 修改狀態邏輯前必須先更新本契約。
+
+**規格命名**：本契約對應內部 `Schema version 3.0.0`（BookSchemaV2.SCHEMA_VERSION）；ticket 標題用 "v1.1 model" 是業務語意命名（與 v0.17.x Tag-based Book Model 重構里程碑對應）。
+
+### Source of Truth
+
+| 角色 | 檔案 | 行號 | 內容 |
+|------|------|------|------|
+| Schema 主定義 | `src/data-management/BookSchemaV2.js` | L45-68 | BOOK_SCHEMA_V2 欄位定義 |
+| Schema 版本常數 | `src/data-management/BookSchemaV2.js` | L43 | SCHEMA_VERSION = '3.0.0' |
+| readingStatus enum | `src/data-management/BookSchemaV2.js` | L14-21 | READING_STATUS 6 種凍結物件 |
+| 自動 / 手動狀態分流 | `src/data-management/BookSchemaV2.js` | L29-39 | isManualOnlyStatus / isAutoTrackableStatus |
+| 自動狀態轉換邏輯 | `src/data-management/BookSchemaV2.js` | L134-154 | computeAutoStatusTransition |
+| 手動狀態設定邏輯 | `src/data-management/BookSchemaV2.js` | L166-175 | computeManualStatusChange |
+| v1 → v2 狀態對映 | `src/data-management/BookSchemaV2.js` | L194-214 | mapV1StatusToV2 |
+| v1 progress 正規化 | `src/data-management/BookSchemaV2.js` | L223-238 | normalizeV1Progress |
+| Schema 驗證引擎 | `src/data-management/SchemaValidator.js` | （validateField / validateObject） | 通用驗證 |
+| TagSchema 定義 | `src/data-management/TagSchema.js` | （tag 結構） | tagIds 引用對象 |
+| E2E 測試 enum 引用 | `tests/e2e/browser/extraction-pipeline.e2e.test.js` | L38 | READING_STATUS_ENUM 6 種 |
+| E2E 測試 derive 對照 | `tests/e2e/browser/extraction-pipeline.e2e.test.js` | L41 / L47-53 | DERIVABLE_STATUS + PROGRESS_TO_STATUS map |
+| 提取時 Book 構造 | `src/content/adapters/readmoo-adapter.js` | （parseBookElement） | DOM → Book 欄位映射（詳 §6） |
+
+### 契約定義
+
+#### 5.1 Book 物件完整 JSON Schema
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Book (BookSchemaV2, schema_version 3.0.0)",
+  "type": "object",
+  "required": ["id", "title", "readingStatus"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Book ID（格式: reader-{8位數字} 為當前標準，cover-{slug} / title-{slug} / fallback-{hash} 為歷史 fallback，詳 §6 Book ID 來源優先級）"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "書名"
+    },
+    "readingStatus": {
+      "type": "string",
+      "enum": ["unread", "reading", "finished", "queued", "abandoned", "reference"],
+      "default": "unread",
+      "description": "閱讀狀態（詳 §5.2 enum 與 §5.4 state machine）"
+    },
+    "authors": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "作者陣列。Readmoo library 頁 DOM 無作者欄位（W1-061 確認），首次提取為空"
+    },
+    "publisher": {
+      "type": "string",
+      "default": "",
+      "description": "出版社"
+    },
+    "progress": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 0,
+      "description": "閱讀進度（百分比，整數 0-100）"
+    },
+    "type": {
+      "type": "string",
+      "default": "",
+      "description": "書籍格式（流式 / 版式）"
+    },
+    "cover": {
+      "type": "string",
+      "default": "",
+      "description": "封面 CDN URL"
+    },
+    "tagIds": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "標籤 ID 陣列，引用 TagSchema 定義的 tag.id（首次提取為空）"
+    },
+    "isManualStatus": {
+      "type": "boolean",
+      "default": false,
+      "description": "true: 用戶手動設定狀態（queued/abandoned/reference 必為 true）；false: 自動追蹤（unread/reading/finished）"
+    },
+    "extractedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "首次提取時間（ISO 8601，自動填入）"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "最後更新時間（ISO 8601，自動填入）"
+    },
+    "source": {
+      "type": "string",
+      "default": "readmoo",
+      "description": "資料來源平台（自動填入，v2.0+ 多書城時擴展）"
+    }
+  }
+}
+```
+
+#### 5.2 readingStatus enum 6 種狀態
+
+| 狀態 | 字串值 | 分類 | 觸發條件 | isManualStatus |
+|------|-------|------|---------|----------------|
+| 未讀 | `unread` | 自動可追蹤 | progress = 0 | false |
+| 閱讀中 | `reading` | 自動可追蹤 | progress 0 → >0 | false |
+| 已完成 | `finished` | 自動可追蹤 | progress 達 100 | false |
+| 待讀清單 | `queued` | 手動專用 | 用戶手動設定 | **true** |
+| 已放棄 | `abandoned` | 手動專用 | 用戶手動設定 | **true** |
+| 參考用書 | `reference` | 手動專用 | 用戶手動設定 | **true** |
+
+**分類規則**（BookSchemaV2.js L29-39）：
+
+```javascript
+// 自動可追蹤狀態
+isAutoTrackableStatus(s) === [unread, reading, finished].includes(s)
+
+// 手動專用狀態
+isManualOnlyStatus(s) === [queued, abandoned, reference].includes(s)
+```
+
+#### 5.3 State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> unread: 提取 (default)
+
+    unread --> reading: progress 0→>0 (auto)
+    reading --> finished: progress=100 (auto)
+
+    unread --> queued: 手動設定
+    unread --> abandoned: 手動設定
+    unread --> reference: 手動設定
+    reading --> queued: 手動設定
+    reading --> abandoned: 手動設定
+    reading --> reference: 手動設定
+    finished --> queued: 手動設定
+    finished --> abandoned: 手動設定
+    finished --> reference: 手動設定
+
+    queued --> unread: 手動恢復自動
+    queued --> reading: 手動恢復自動
+    queued --> finished: 手動恢復自動
+    abandoned --> unread: 手動恢復自動
+    abandoned --> reading: 手動恢復自動
+    abandoned --> finished: 手動恢復自動
+    reference --> unread: 手動恢復自動
+    reference --> reading: 手動恢復自動
+    reference --> finished: 手動恢復自動
+
+    note right of finished
+        自動可追蹤狀態
+        (isManualStatus=false)
+    end note
+
+    note right of reference
+        手動專用狀態
+        (isManualStatus=true)
+    end note
+```
+
+**State machine 不變式**（invariants）：
+
+| 不變式 | 規則 |
+|--------|------|
+| Initial state | 提取時 readingStatus 預設為 `unread`，isManualStatus = false |
+| Manual lock | isManualStatus = true 時，progress 變化不觸發狀態轉換 |
+| Manual recovery | 手動設定回 unread/reading/finished 時，isManualStatus 自動恢復為 false |
+| Auto bound | 自動轉換僅在 `unread → reading` 與 `reading → finished` 兩條 path |
+| Backward block | 自動轉換不會 reading → unread 或 finished → reading（須由用戶手動恢復） |
+
+#### 5.4 自動狀態轉換規則
+
+`computeAutoStatusTransition(book, newProgress)` 邏輯（BookSchemaV2.js L134-154）：
+
+```javascript
+function computeAutoStatusTransition(book, newProgress) {
+  if (book.isManualStatus) {
+    return null  // 手動鎖定，不轉換
+  }
+
+  const currentStatus = book.readingStatus || 'unread'
+  const currentProgress = book.progress || 0
+
+  // Rule 1: unread → reading
+  if (currentStatus === 'unread' && currentProgress === 0 && newProgress > 0) {
+    return { readingStatus: 'reading', isManualStatus: false }
+  }
+
+  // Rule 2: reading → finished
+  if (currentStatus === 'reading' && newProgress === 100) {
+    return { readingStatus: 'finished', isManualStatus: false }
+  }
+
+  return null  // 不轉換
+}
+```
+
+**契約**：
+
+- 自動轉換**只有兩條 path**：`unread → reading`（首次 progress 變化）與 `reading → finished`（達 100）
+- `finished → reading`（progress 倒退）**不會**自動觸發；若需此邏輯必須由用戶手動操作
+- isManualStatus 為 true 時，任何 progress 變化都不觸發狀態轉換
+
+#### 5.5 手動狀態設定規則
+
+`computeManualStatusChange(newStatus)` 邏輯（BookSchemaV2.js L166-175）：
+
+```javascript
+function computeManualStatusChange(newStatus) {
+  if (!READING_STATUS_VALUES.includes(newStatus)) {
+    return null  // 無效狀態值
+  }
+
+  return {
+    readingStatus: newStatus,
+    isManualStatus: isManualOnlyStatus(newStatus)
+    // queued/abandoned/reference → true
+    // unread/reading/finished → false（恢復自動）
+  }
+}
+```
+
+**契約**：
+
+- 設定 `queued` / `abandoned` / `reference` → isManualStatus 自動設為 **true**（後續 progress 變化不會自動轉換）
+- 設定 `unread` / `reading` / `finished` → isManualStatus 自動設為 **false**（恢復自動追蹤）
+- 無效狀態值（不在 6 種 enum 內）回傳 null，呼叫端必須處理
+
+#### 5.6 v1 → v2 狀態對映規則
+
+`mapV1StatusToV2(v1Book)` 優先順序（BookSchemaV2.js L194-214）：
+
+| 優先級 | 條件 | 對映結果 |
+|--------|------|---------|
+| 1 | `isFinished === true` | `finished` |
+| 2 | `normalizeV1Progress(progress) >= 100` | `finished` |
+| 3 | `progress > 0` | `reading` |
+| 4 | 其餘（含 `isNew === true`、兩者皆 undefined） | `unread` |
+
+**Progress 正規化規則**（`normalizeV1Progress`, L223-238）：
+
+| 輸入型別 | 處理 |
+|---------|------|
+| `null` / `undefined` | → 0 |
+| `number`（含 NaN） | NaN → 0；其他原值 |
+| `string` | `parseInt(value, 10)`；解析失敗 → 0 |
+| `object` 含 `progress` 鍵 | 遞迴解析 `value.progress` |
+| 其他 | → 0 |
+
+**契約**：
+
+- mapV1StatusToV2 同時被 BookSchemaV2 主流程與 v1-to-v2 migration 使用，修改時兩邊測試必須同步通過
+- 異常組合 `isNew=true + isFinished=true` 以 isFinished 優先（避免遺失完成資訊）
+
+#### 5.7 預設值規則
+
+`applyDefaults(book)` 邏輯（BookSchemaV2.js L103-118）：
+
+- 僅對 `undefined` 的欄位填入預設值（已有值不覆寫，含 `null`、空字串、`0`）
+- Array 型欄位 deep clone 預設值（`[...fieldDef.default]`），避免共用 reference
+
+**契約**：
+
+- 提取流程必須對每本書呼叫 `applyDefaults` 填入預設值（避免 undefined 流到下游）
+- 預設值表（依 5.1 JSON Schema）：authors=[]、publisher=''、progress=0、type=''、cover=''、tagIds=[]、isManualStatus=false、readingStatus='unread'、source='readmoo'
+
+#### 5.8 E2E 測試對照
+
+E2E 測試（`tests/e2e/browser/extraction-pipeline.e2e.test.js`）硬編碼的契約常數：
+
+| 常數 | 行號 | 與 BookSchemaV2 對應 |
+|------|------|---------------------|
+| `READING_STATUS_ENUM` | L38 | === `READING_STATUS_VALUES`（6 種） |
+| `DERIVABLE_STATUS` | L41 | === `[unread, reading, finished]`（自動可追蹤） |
+| `PROGRESS_TO_STATUS` | L47-53 | 反推 `computeAutoStatusTransition` 對 fixture progress 的結果 |
+
+`PROGRESS_TO_STATUS` 對照（fixture 5 本書）：
+
+| progress | 期望 readingStatus | 對應規則 |
+|----------|-------------------|---------|
+| 0 | unread | 預設 |
+| 1 | reading | Rule 1: 0 → >0 |
+| 45 | reading | Rule 1: 0 → >0 |
+| 99 | reading | Rule 1: 0 → >0 |
+| 100 | finished | Rule 2: =100 |
+
+**契約**：E2E 測試斷言 `readingStatus` 必須匹配 `PROGRESS_TO_STATUS[progress]`；首次提取結果**只應出現** `DERIVABLE_STATUS` 三種（不含 queued/abandoned/reference，這三種僅手動設定可達）。
+
+### 變更影響
+
+| 變更內容 | 影響 |
+|---------|------|
+| 新增 readingStatus 狀態（例 `paused`） | §5.2 enum 擴充；§5.3 state machine 補轉換邊；isAutoTrackable / isManualOnly 分類確認；E2E READING_STATUS_ENUM 同步 |
+| 修改自動轉換邏輯（例新增 reading → unread） | §5.4 更新；E2E PROGRESS_TO_STATUS 同步；既有資料是否需 backfill |
+| 新增必填欄位 | §5.1 JSON Schema required 擴充；既有資料 migration 設計；applyDefaults 不適用（required 不可只用 default） |
+| 修改 progress 邏輯（例改為 0-1 浮點） | §5.4 / §5.6 / §5.8 全面同步；DOM 提取 (§6) 同步調整 |
+| Schema version bump（3.0.0 → 3.1.0+） | §2.5 migration 機制觸發；本契約 SCHEMA_VERSION 同步；新 migration script 提供 forward + rollback |
+| 修改 tagIds 結構（例改為 object 含 weight） | §5.1 tagIds schema 同步；TagSchema 對應；UI / 匯出格式同步 |
+
+### Grep 驗證
+
+```bash
+# 5.1 SCHEMA_VERSION + BOOK_SCHEMA_V2 欄位
+grep -n "SCHEMA_VERSION\|BOOK_SCHEMA_V2" src/data-management/BookSchemaV2.js | head -10
+
+# 5.2 readingStatus enum 6 種
+grep -A8 "const READING_STATUS = Object.freeze" src/data-management/BookSchemaV2.js
+
+# 5.2 自動 / 手動分類
+grep -A2 "isManualOnlyStatus\|isAutoTrackableStatus" src/data-management/BookSchemaV2.js | head -10
+
+# 5.4 自動轉換邏輯
+grep -A5 "computeAutoStatusTransition" src/data-management/BookSchemaV2.js | head -15
+
+# 5.5 手動設定邏輯
+grep -A5 "computeManualStatusChange" src/data-management/BookSchemaV2.js | head -15
+
+# 5.6 v1 → v2 對映
+grep -A10 "mapV1StatusToV2" src/data-management/BookSchemaV2.js | head -20
+
+# 5.8 E2E 測試常數
+grep -E "READING_STATUS_ENUM|DERIVABLE_STATUS|PROGRESS_TO_STATUS" tests/e2e/browser/extraction-pipeline.e2e.test.js | head -10
+```
+
+**驗證標準**：每條 grep 命中本契約列出的引用點；新增狀態 / 修改 derive 規則必須同步 §5.2/§5.3/§5.4 與 E2E PROGRESS_TO_STATUS。
 
 ---
 
