@@ -451,6 +451,45 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
       // 焦點還原至 loadFileBtn
       expect(document.activeElement).toBe(loadFileBtn)
     })
+
+    test('TC-C7 modal 開啟前焦點元素被刪除時 settle 不 throw 且 graceful fallback（W1-071 Finding #1）', async () => {
+      // 業務情境：modal 開啟期間原焦點元素被其他流程從 DOM 移除（例如 SPA 路由切換、
+      // 非同步資料載入完成後重新渲染）。settle 還原焦點時若無 optional chaining 守護，
+      // previousFocus.focus() 會拋 TypeError（element 已脫離 DOM 但物件參考仍存活，
+      // 部分 jsdom 行為下 focus 方法仍可呼叫但會無作用；嚴格場景下會拋）。
+      // 本 TC 驗證：(1) settle 不 throw；(2) modal 正常關閉；(3) focus fallback 至 body 或合理元素
+      const controller = createController()
+
+      // 開啟前焦點落於可被移除的暫時元素（模擬 SPA 動態元素）
+      const tempElement = document.createElement('button')
+      tempElement.id = 'tempFocusable'
+      document.body.appendChild(tempElement)
+      tempElement.focus()
+      expect(document.activeElement).toBe(tempElement)
+
+      const pending = controller.confirmEmptyFileOverwrite(5)
+      await Promise.resolve()
+
+      // modal 開啟後，原焦點元素被移除（模擬非同步 DOM 變更）
+      tempElement.remove()
+
+      // settle 觸發焦點還原：previousFocus 物件參考仍存在，但元素已脫離 DOM
+      // 預期：?.focus?.() 守護不 throw；若元素 focus 方法仍可呼叫，
+      // jsdom 會將 activeElement fallback 至 body
+      let settleError = null
+      try {
+        document.getElementById('emptyFileConfirmCancelBtn').click()
+        await pending
+      } catch (err) {
+        settleError = err
+      }
+
+      expect(settleError).toBeNull()
+      // modal 已關閉
+      expect(document.getElementById('emptyFileConfirmOverlay').style.display).toBe('none')
+      // 焦點 fallback 至合理元素（body 或其他可聚焦元素），未崩潰至 null
+      expect(document.activeElement).not.toBeNull()
+    })
   })
 
   // ===========================================================================
@@ -527,6 +566,33 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
     let controller
     let mockFile
     let TagStorageAdapter
+
+    /**
+     * Group F 跨檔 mock 隔離強化（W1-071 Finding #3）：
+     *
+     * 業務情境：Group F 整合測試會對 TagStorageAdapter 模組屬性（replaceAllData /
+     * mergeAllData）做 module-level 覆寫。Jest 並行執行多個測試檔時，若同檔內或
+     * 跨檔 TC 共用同一 require cache 實例，後續 TC 可能讀到前一 TC 的 mock 殘留，
+     * 造成 expect(mock).toHaveBeenCalledTimes(1) 在 isolation 下通過、並行下失敗。
+     *
+     * 雖然頂層 beforeEach（第 ~155 行）已呼叫 jest.resetModules()，但保險起見在
+     * Group F 內再次明確 reset 並清除既有 mock，避免跨 TC 污染。
+     */
+    beforeEach(() => {
+      jest.resetModules()
+      // 明確清除 TagStorageAdapter mock（避免上一 TC 殘留 mock fn）
+      try {
+        const adapter = require('src/storage/adapters/tag-storage-adapter')
+        if (adapter && typeof adapter.replaceAllData === 'function' && adapter.replaceAllData.mockReset) {
+          adapter.replaceAllData.mockReset()
+        }
+        if (adapter && typeof adapter.mergeAllData === 'function' && adapter.mergeAllData.mockReset) {
+          adapter.mergeAllData.mockReset()
+        }
+      } catch (_) {
+        // adapter 尚未載入或 mock 未設過：忽略
+      }
+    })
 
     /**
      * 建立 Group F 整合測試 controller，mock reader.read / replaceAllData / mergeAllData / validate

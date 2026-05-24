@@ -197,12 +197,10 @@ class ImportFlowController {
         this._importModePending = null
 
         // 焦點還原：modal 關閉後焦點回到開啟前的元素
-        if (
-          this._importModePreviousFocus &&
-          typeof this._importModePreviousFocus.focus === 'function'
-        ) {
-          this._importModePreviousFocus.focus()
-        }
+        // 業務情境：開啟期間原焦點元素可能已被 DOM remove（W1-071 Finding #1）；
+        // 用 optional chaining 兩層守護，元素消失或無 focus 方法時靜默 fallback，
+        // 避免 settle 拋例外造成 modal 卡死、pending Promise 永不 resolve。
+        this._importModePreviousFocus?.focus?.()
         this._importModePreviousFocus = null
 
         resolve(result)
@@ -340,12 +338,9 @@ class ImportFlowController {
         this._hideEmptyConfirmModal()
         this._emptyConfirmPending = null
 
-        if (
-          this._emptyConfirmPreviousFocus &&
-          typeof this._emptyConfirmPreviousFocus.focus === 'function'
-        ) {
-          this._emptyConfirmPreviousFocus.focus()
-        }
+        // 焦點還原：與 Modal A settle 對稱（W1-071 Finding #1）。
+        // optional chaining 守護開啟期間原元素被 remove 的邊界，靜默 fallback。
+        this._emptyConfirmPreviousFocus?.focus?.()
         this._emptyConfirmPreviousFocus = null
 
         resolve(result)
