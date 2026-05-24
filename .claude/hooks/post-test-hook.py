@@ -95,7 +95,11 @@ TEST_FAILURE_PATTERNS = [
 
 ANALYZER_WARNING_PATTERNS = [
     (r"info\s*-.*?unused", "未使用的警告"),
-    (r"warning\s*-", "lint 警告"),
+    # eslint stylish formatter 格式：縮排 + row:col + warning + 訊息 + rule-name
+    # 例：「  12:34  warning  Unused variable  no-unused-vars」
+    # 縮窄理由：W1-059 / W1-048.8 實證舊 regex r"warning\s*-" 誤報 jest console.warn
+    # 與含 "warning - ..." 的訊息字串。要求 row:col 起頭 + 結尾 rule name 才屬 lint warning。
+    (r"^\s*\d+:\d+\s+warning\s+.+?\s+@?[a-z][a-z0-9-]*(?:/[a-z0-9-]+)*\s*$", "lint 警告"),
     (r"deprecated\s+(?:function|class|method)", "已棄用 API"),
 ]
 
