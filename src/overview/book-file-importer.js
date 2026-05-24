@@ -230,6 +230,48 @@ class BookFileImporter {
   }
 
   /**
+   * 驗證書籍必要欄位（id 與 title）是否存在
+   *
+   * Public API（W1-048.10.1.5.3 採委派模式，對齊 .5.1 / .5.2 設計）：
+   * - 與 validate / read / parseContent / isCSVFile / extractBooksFromData / processBookData
+   *   並列為 public method
+   * - 供測試與外部呼叫者直接驗證書籍欄位完整性，無需穿透私有方法
+   * - 內部委派 _validateRequiredFields，保留原有實作與驗證鏈
+   *   （_isValidBook → _validateRequiredFields）不變
+   *
+   * 驗證規則（W1-047.1）：
+   * - 僅檢查 id 與 title（cover 為選填，SPEC-EXPORT-V2 §3.5）
+   * - 兩欄位皆需為 truthy 值才回傳 true
+   *
+   * @param {Object} book - 書籍物件
+   * @returns {boolean} 必要欄位齊備時為 true，否則為 false
+   */
+  validateRequiredFields (book) {
+    return this._validateRequiredFields(book)
+  }
+
+  /**
+   * 過濾出陣列中所有有效的書籍
+   *
+   * Public API（W1-048.10.1.5.3 採委派模式，對齊 .5.1 / .5.2 設計）：
+   * - 與 validate / read / parseContent / isCSVFile / extractBooksFromData /
+   *   processBookData / validateRequiredFields 並列為 public method
+   * - 供測試與外部呼叫者直接驗證書籍過濾邏輯，無需穿透私有方法
+   * - 內部委派 _filterValidBooks，保留原有實作（_isValidBook 三段檢查鏈）不變
+   *
+   * 過濾規則（_isValidBook 三段檢查）：
+   * - _validateBookStructure：物件存在且型別為 object
+   * - _validateRequiredFields：id 與 title 為 truthy
+   * - _validateFieldTypes：id / title 為 string；cover 為 string 或 undefined
+   *
+   * @param {Array<Object>} books - 書籍陣列
+   * @returns {Array<Object>} 通過所有驗證的書籍陣列
+   */
+  filterValidBooks (books) {
+    return this._filterValidBooks(books)
+  }
+
+  /**
    * 檢查是否為 CSV 檔案（W6-012.6.2）
    * @private
    * @param {File} file - 要檢查的檔案
