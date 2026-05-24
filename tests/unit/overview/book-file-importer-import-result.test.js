@@ -10,10 +10,15 @@
  *
  * 測試策略：
  * - Sociable Unit Test：不 mock format-version-detector / v1-to-v2-converter（內層真實依賴）
- * - 入口點：直接呼叫 _extractBooksFromData / _processBookData / _handleFileContent
+ * - 入口點：直接呼叫 public API extractBooksFromData / processBookData / parseContent
  *   （避免 jsdom FileReader 非同步差異）
  * - 三欄位（books/tagCategories/tags）一律以 Array.isArray() 驗型別恆為陣列；
  *   內容用 toEqual；無計時斷言；無 toBeCloseTo
+ *
+ * 遷移歷史：
+ * - 0.19.0-W1-048.10.1.5.2：17 處底線方法直呼遷移為 public API（委派模式對齊 .5.1）
+ *   - _extractBooksFromData × 14 → extractBooksFromData
+ *   - _processBookData × 3 → processBookData
  *
  * @jest-environment jsdom
  */
@@ -61,7 +66,7 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
       expect(Array.isArray(data.tags) && data.tags.length > 0).toBe(true)
       expect(Array.isArray(data.books) && data.books.length > 0).toBe(true)
 
-      const result = importer._extractBooksFromData(data, 'json')
+      const result = importer.extractBooksFromData(data, 'json')
 
       expect(result).toHaveProperty('books')
       expect(result).toHaveProperty('tagCategories')
@@ -84,7 +89,7 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
       expect(data.tagCategories).toBeUndefined()
       expect(data.tags).toBeUndefined()
 
-      const result = importer._extractBooksFromData(data, 'json')
+      const result = importer.extractBooksFromData(data, 'json')
 
       expect(Array.isArray(result.tagCategories)).toBe(true)
       expect(result.tagCategories).toEqual([])
@@ -107,8 +112,8 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
       expect(Array.isArray(data.tagCategories)).toBe(false)
       expect(Array.isArray(data.tags)).toBe(false)
 
-      expect(() => importer._extractBooksFromData(data, 'json')).not.toThrow()
-      const result = importer._extractBooksFromData(data, 'json')
+      expect(() => importer.extractBooksFromData(data, 'json')).not.toThrow()
+      const result = importer.extractBooksFromData(data, 'json')
 
       expect(result.tagCategories).toEqual([])
       expect(result.tags).toEqual([])
@@ -126,7 +131,7 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
       // 前置驗證：偵測為 v1
       expect(detectFormatVersion(data)).toBe('v1')
 
-      const result = importer._extractBooksFromData(data, 'json')
+      const result = importer.extractBooksFromData(data, 'json')
       const converted = convertV1ToV2Data(data)
 
       expect(Array.isArray(result.books)).toBe(true)
@@ -149,7 +154,7 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
       // 前置驗證：偵測為 v1
       expect(detectFormatVersion(data)).toBe('v1')
 
-      const result = importer._extractBooksFromData(data, 'json')
+      const result = importer.extractBooksFromData(data, 'json')
 
       expect(Array.isArray(result.books)).toBe(true)
       expect(result.books.length).toBeGreaterThan(0)
@@ -182,8 +187,8 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
       // 前置驗證：data 為空物件
       expect(Object.keys(data)).toHaveLength(0)
 
-      expect(() => importer._extractBooksFromData(data, 'json')).not.toThrow()
-      const result = importer._extractBooksFromData(data, 'json')
+      expect(() => importer.extractBooksFromData(data, 'json')).not.toThrow()
+      const result = importer.extractBooksFromData(data, 'json')
 
       expect(result).toEqual({ books: [], tagCategories: [], tags: [] })
     })
@@ -199,7 +204,7 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
       expect(data.data).toBeUndefined()
       expect(Object.keys(data).length).toBeGreaterThan(0)
 
-      expect(() => importer._extractBooksFromData(data, 'json')).toThrow(
+      expect(() => importer.extractBooksFromData(data, 'json')).toThrow(
         expect.objectContaining({
           message: 'JSON 檔案應該包含一個陣列或包含books屬性的物件',
           code: ErrorCodes.VALIDATION_ERROR,
@@ -234,12 +239,12 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
       const cases = [
         {
           name: 'v1 純陣列',
-          run: () => importer._extractBooksFromData(
+          run: () => importer.extractBooksFromData(
             [{ id: 'b1', title: 'A', category: 'C1' }], 'json')
         },
         {
           name: 'v2 含 tag',
-          run: () => importer._extractBooksFromData({
+          run: () => importer.extractBooksFromData({
             metadata: { formatVersion: '2.0.0' },
             tagCategories: [{ id: 'c1', name: 'X' }],
             tags: [{ id: 't1', name: 'Y' }],
@@ -248,14 +253,14 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
         },
         {
           name: 'v2 缺 tag',
-          run: () => importer._extractBooksFromData({
+          run: () => importer.extractBooksFromData({
             metadata: { formatVersion: '2.0.0' },
             books: [{ id: 'b1', title: 'A', readingStatus: 'reading', cover: 'http://x/c.jpg' }]
           }, 'json')
         },
         {
           name: 'v2 非陣列 tag',
-          run: () => importer._extractBooksFromData({
+          run: () => importer.extractBooksFromData({
             metadata: { formatVersion: '2.0.0' },
             tagCategories: 'bad',
             tags: 123,
@@ -268,7 +273,7 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
         },
         {
           name: '空物件',
-          run: () => importer._extractBooksFromData({}, 'json')
+          run: () => importer.extractBooksFromData({}, 'json')
         }
       ]
 
@@ -286,7 +291,7 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
       })
     })
 
-    test('TC-11 _processBookData 回傳 ImportResult', () => {
+    test('TC-11 processBookData 回傳 ImportResult', () => {
       const importer = makeImporter()
       const data = {
         metadata: { formatVersion: '2.0.0' },
@@ -298,7 +303,7 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
         ]
       }
 
-      const result = importer._processBookData(data, 'json')
+      const result = importer.processBookData(data, 'json')
 
       expect(result).toHaveProperty('books')
       expect(result).toHaveProperty('tagCategories')
@@ -319,7 +324,7 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
     // 同步容許 cover 為 undefined，避免 selectively-loose validation 反模式（宣稱寬鬆
     // 但實作嚴格，導致缺 cover 的合法 v2 JSON 書籍被靜默過濾）。
     // -------------------------------------------------------------------------
-    test('TC-12 _processBookData 容許 cover undefined（W1-048.4.1）', () => {
+    test('TC-12 processBookData 容許 cover undefined（W1-048.4.1）', () => {
       const importer = makeImporter()
       const data = {
         metadata: { formatVersion: '2.0.0' },
@@ -335,14 +340,14 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
         ]
       }
 
-      const result = importer._processBookData(data, 'json')
+      const result = importer.processBookData(data, 'json')
 
       // 三筆書皆通過 _isValidBook 過濾，不再因 cover 型別被丟棄
       expect(result.books).toHaveLength(3)
       expect(result.books.map(b => b.id)).toEqual(['b1', 'b2', 'b3'])
     })
 
-    test('TC-13 _processBookData 仍過濾 cover 為非 string 非 undefined 的書（W1-048.4.1）', () => {
+    test('TC-13 processBookData 仍過濾 cover 為非 string 非 undefined 的書（W1-048.4.1）', () => {
       const importer = makeImporter()
       const data = {
         metadata: { formatVersion: '2.0.0' },
@@ -358,7 +363,7 @@ describe('BookFileImporter v2 結構提取與 ImportResult 介面（0.19.0-W1-04
         ]
       }
 
-      const result = importer._processBookData(data, 'json')
+      const result = importer.processBookData(data, 'json')
 
       // 僅 b1 通過：b2 / b3 因 cover 型別違規被 _validateFieldTypes 過濾
       expect(result.books).toHaveLength(1)
