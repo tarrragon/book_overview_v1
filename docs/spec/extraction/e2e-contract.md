@@ -79,7 +79,7 @@ UC-05（搜尋篩選）與 UC-07（Tag 管理）的契約聚焦於 UI 與 tag sc
 
 | § | 契約 | 對應 sub-ticket | 撰寫狀態 |
 |---|------|----------------|---------|
-| §1 | URL 與 SPA 路由 | [W5-003.1](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.1.md) | pending |
+| §1 | URL 與 SPA 路由 | [W5-003.1](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.1.md) | completed |
 | §2 | Storage key 與 schema | [W5-003.2](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.2.md) | pending |
 | §3 | Console 訊息與事件格式 | [W5-003.3](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.3.md) | pending |
 | §4 | Lifecycle 與步驟順序 | [W5-003.4](../../work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W5-003.4.md) | pending |
@@ -90,11 +90,174 @@ UC-05（搜尋篩選）與 UC-07（Tag 管理）的契約聚焦於 UI 與 tag sc
 
 ## §1 URL 與 SPA 路由契約
 
-> **撰寫者**：W5-003.1（pending）
->
-> **預期範圍**：Readmoo 完整 URL 表 / `manifest.json` content_scripts.matches / SPA hash 路由處理 / page-detector 偵測規則 / tests/e2e FIXTURE_URL 引用 / chrome-extension URL 規則
+### Name
 
-（待 W5-003.1 撰寫）
+定義 Chrome Extension 與 Readmoo 平台之間所有 URL 邊界的契約，涵蓋 content script 注入範圍、page detector 偵測規則、SPA hash 路由處理、chrome-extension URL（Overview 頁）、以及 E2E 測試的 fixture URL。
+
+**適用範圍**：所有與 URL 相關的 production code 與 E2E 測試。修改 Readmoo URL 結構、`manifest.json` matches、page detector 邏輯前必須先更新本契約。
+
+### Source of Truth
+
+| 角色 | 檔案 | 行號 | 內容 |
+|------|------|------|------|
+| Readmoo 真實 URL（user-facing） | `docs/bookstores/readmoo.md` | §基本資訊 / §測試目標 URL | 官方首頁 / 書庫頁 / 閱讀器 / 帳號設定 |
+| Content Script matches | `manifest.json` | L20-23 | `*://*.readmoo.com/*`、`*://readmoo.com/*` |
+| Host permissions | `manifest.json` | L47-49 | `*://*.readmoo.com/*` |
+| Web accessible resources matches | `manifest.json` | L57-60 | `*://*.readmoo.com/*` |
+| Options page（Overview） | `manifest.json` | L63 | `src/overview/overview.html` |
+| Page hostname 偵測 | `src/content/detectors/page-detector.js` | L55 | `hostname.includes('readmoo.com')` |
+| Page type 偵測規則 | `src/content/detectors/page-detector.js` | L73-90 | `library` / `shelf` / `reader` / `unknown` 分類 |
+| 可提取頁面定義 | `src/content/detectors/page-detector.js` | L132-134 | `isReadmooPage && ['library', 'shelf'].includes(pageType)` |
+| URL 變更監聽 | `src/content/detectors/page-detector.js` | L142-232 | `onUrlChange` + MutationObserver |
+| E2E Fixture URL | `tests/e2e/browser/helpers/extraction-flow.js` | L34 | `FIXTURE_URL = 'https://readmoo.com/library'` |
+| Overview URL pattern | `tests/e2e/browser/extraction-pipeline.e2e.test.js` | L204 | `chrome-extension://${extensionId}/src/overview/overview.html` |
+| SPA hash 路由規格 | `docs/bookstores/readmoo.md` | §SPA 路由 | Hash-based SPA（`#/library`）處理規則 |
+
+### 契約定義
+
+#### 1.1 Readmoo 真實 URL 表
+
+| 用途 | URL | 登入需求 | 是否注入 CS |
+|------|-----|---------|-----------|
+| 官方首頁 | `https://readmoo.com/` | 否 | 是 |
+| 書庫頁（提取主目標） | `https://read.readmoo.com/#/library` | 是 | 是 |
+| 閱讀器頁（單書） | `https://read.readmoo.com/reader/{book-id}` | 是 | 是 |
+| 閱讀器 API（DOM dummy） | `https://readmoo.com/api/reader/{book-id}` | — | 是 |
+| 帳號設定 | `https://member.readmoo.com/` | 是 | 是 |
+
+**核心契約**：書庫提取主目標 URL 為 `https://read.readmoo.com/#/library`（**SPA hash 路由**），非 `https://readmoo.com/`（首頁無書庫資料）。
+
+#### 1.2 Content Script 注入規則（manifest.json）
+
+```json
+{
+  "content_scripts": [
+    {
+      "matches": ["*://*.readmoo.com/*", "*://readmoo.com/*"],
+      "js": ["src/content/content-modular.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}
+```
+
+**注入時機**：`document_idle`（DOM 載入完成後）。
+
+**涵蓋範圍**：
+
+| URL pattern | 命中第 1 條（`*.readmoo.com`） | 命中第 2 條（`readmoo.com`） | 結論 |
+|------------|---------------------------|---------------------------|------|
+| `https://readmoo.com/*` | 否（subdomain 為空） | 是 | 注入 |
+| `https://read.readmoo.com/*` | 是 | 否 | 注入 |
+| `https://member.readmoo.com/*` | 是 | 否 | 注入 |
+| `https://next.readmoo.com/*` | 是 | 否 | 注入（W6-012.9.4 驗證：未登入 redirect 後變 next 子網域） |
+| 其他網域 | 否 | 否 | 不注入 |
+
+#### 1.3 Page Detector 偵測規則
+
+`src/content/detectors/page-detector.js` 兩階段偵測：
+
+**階段 1：是否為 Readmoo 頁面**（`detectReadmooPage`, L53-66）：
+
+```javascript
+isReadmooPage = location.hostname && location.hostname.includes('readmoo.com')
+```
+
+**階段 2：頁面類型分類**（`detectPageType`, L73-90）：
+
+| 條件（OR） | 分類 | 範例 URL |
+|-----------|------|---------|
+| `url.includes('/library')` OR `pathname.includes('/library')` | `library` | `https://read.readmoo.com/#/library` |
+| `url.includes('/shelf')` OR `pathname.includes('/shelf')` | `shelf` | `https://read.readmoo.com/#/shelf` |
+| `url.includes('/book/')` OR `pathname.includes('/book/')` OR `url.includes('/api/reader/')` OR `pathname.includes('/api/reader/')` | `reader` | `https://readmoo.com/api/reader/210017268000101` |
+| 以上皆否 | `unknown` | `https://readmoo.com/`（首頁） |
+
+**關鍵契約**：條件用 `url.includes()` **OR** `pathname.includes()` 雙重檢查。**Why**：SPA hash 路由（`#/library`）的 `pathname` 為 `/`，hash 在 `location.href` 中而不在 `pathname` 中；若只查 pathname 會誤判 unknown（W1-001.2 SPA hash 路由誤判事件根因）。
+
+**可提取頁面範圍**（`isExtractablePage`, L132-134）：
+
+```javascript
+isExtractablePage = isReadmooPage && ['library', 'shelf'].includes(pageType)
+```
+
+即只有 `library` 與 `shelf` 兩種頁面類型會觸發提取流程。
+
+#### 1.4 SPA Hash 路由處理規則
+
+Readmoo 書庫頁採 Hash-based SPA（URL 含 `#/library`）。Content script 處理規則：
+
+| 場景 | 觸發機制 | 對應 src 行 |
+|------|---------|------------|
+| 初次載入 | `content-modular.js` 啟動時呼叫 `detectReadmooPage()` | `page-detector.js#detectReadmooPage` L53-66 |
+| URL hash 變化 | MutationObserver 偵測 DOM 變化，間接捕捉 `location.href` 變化 | `page-detector.js#onUrlChange` L142-232 |
+| DOM 動態載入 | 提取流程等待 `.library-item` 出現 | `readmoo-adapter.js#waitForBookElements`（詳見 §6） |
+
+**SPA 路由變更日誌契約**：URL 變更時 console 輸出 `URL 變更檢測:` 字面（page-detector.js L178），格式為：
+
+```javascript
+console.debug('URL 變更檢測:', { from, to, oldStatus, newStatus })
+```
+
+**警告**：MutationObserver 不直接監聽 `hashchange` 事件，而是觀察 DOM 子節點變動後比對 `location.href`。極端情況下純 hash 變更（無 DOM 變化）可能漏觸發。詳見 W6-012.9.4 ANA。
+
+#### 1.5 Chrome-extension URL（Overview 頁）
+
+| 角色 | URL pattern |
+|------|------------|
+| Options page（manifest 定義） | `chrome-extension://{extensionId}/src/overview/overview.html` |
+| Web accessible resources（注入用） | `chrome-extension://{extensionId}/assets/*`、`chrome-extension://{extensionId}/src/overview/overview.html` |
+| E2E 測試導航 | 同 Options page pattern |
+
+**Why path 是 `src/overview/`**：manifest 引用 source path 而非 build output path。實際載入 unpacked extension 時，`build/development/manifest.json` 內容相同，但 build 過程會把 `src/overview/overview.html` 複製到 build 目錄維持 path 結構。
+
+#### 1.6 E2E Fixture URL（與真實 URL 的差異）
+
+| 角色 | URL | 路由形式 |
+|------|-----|---------|
+| 真實書庫 | `https://read.readmoo.com/#/library` | Hash route |
+| E2E Fixture | `https://readmoo.com/library` | Path route |
+
+**Why 差異**：E2E 測試（`extraction-flow.js`）採 Puppeteer request interception 將 fixture HTML 服務於任意 readmoo.com URL，選用 path route 避免 hash route 觸發 SPA 行為混淆測試。`manifest.json` matches 同時涵蓋 path 與 hash，兩種 URL 都會觸發 CS 注入，因此 fixture URL 切換不影響 CS 注入契約。
+
+**Consequence**：E2E 測試**無法直接驗證 SPA hash 路由偵測邏輯**。SPA hash 行為需透過實機驗證（`docs/bookstores/readmoo.md` MCP E2E Checklist Step 2-3）覆蓋。
+
+### 變更影響
+
+| 變更內容 | 影響 |
+|---------|------|
+| 修改 `manifest.json` matches | Content script 注入範圍變動，可能漏注入或誤注入；必須同步更新 §1.2 表格與 page-detector 測試 fixture |
+| 修改 page-detector `detectPageType` | 提取觸發條件變動；必須同步更新 §1.3 規則表與 e2e 測試 PROGRESS_TO_STATUS（若新增 pageType） |
+| Readmoo 改 URL 結構（例如棄用 hash route） | §1.1 與 §1.3 同步更新；page-detector 雙重 includes 邏輯可能需簡化 |
+| 修改 `FIXTURE_URL` | §1.6 同步更新；確認新 URL 仍命中 manifest matches |
+| 新增 chrome-extension 頁面（如 popup.html） | 在 §1.5 增列；確認 `web_accessible_resources` 是否需更新 |
+
+### Grep 驗證
+
+每次修改本契約後執行以下指令確認 source code 與規格一致：
+
+```bash
+# 1.1 真實 URL：確認 docs/bookstores/readmoo.md 與本規格一致
+grep -E "read.readmoo.com/#/library|readmoo.com/api/reader" docs/bookstores/readmoo.md
+
+# 1.2 manifest matches：確認 manifest.json matches 與規格表一致
+grep -A2 '"matches"' manifest.json | head -20
+
+# 1.3 page detector 規則：確認三類 page type 偵測邏輯與規格一致
+grep -E "pageType|'library'|'shelf'|'reader'|'unknown'" src/content/detectors/page-detector.js | head -30
+
+# 1.4 SPA hash log：確認 URL 變更檢測 log 字面與規格一致
+grep -n "URL 變更檢測" src/content/detectors/page-detector.js
+
+# 1.5 Overview URL：確認 manifest options_page 與 e2e 測試引用一致
+grep -E "options_page|overview.html" manifest.json
+grep -E "overview.html" tests/e2e/browser/extraction-pipeline.e2e.test.js
+
+# 1.6 Fixture URL：確認 e2e helper 引用與規格一致
+grep "FIXTURE_URL" tests/e2e/browser/helpers/extraction-flow.js
+```
+
+**驗證標準**：每條 grep 指令應命中本規格列出的引用點且無新增未列出的硬編碼點。若新增硬編碼，必須補入本契約 Source of Truth 表格。
 
 ---
 
