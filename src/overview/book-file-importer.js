@@ -30,6 +30,9 @@
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { detectFormatVersion } = require('src/export/format-version-detector')
 const { convertV1ToV2Data } = require('src/export/v1-to-v2-converter')
+const { FileValidator } = require('src/overview/import/file-validator')
+const { FileContentReader } = require('src/overview/import/file-reader')
+const { ContentParser } = require('src/overview/import/content-parser')
 
 // 檔案載入相關常數
 const FILE_CONSTANTS = {
@@ -60,13 +63,35 @@ class BookFileImporter {
   /**
    * 建構 BookFileImporter
    *
+   * Stage A（W1-048.10.1.4）：加入 helper class DI 注入點，
+   * 為 Stage B 「4 個 public method 改 thin wrapper + 移除底線方法」鋪路。
+   * 本 Stage 暫不啟用 helper field（public method 仍走既有底線方法），
+   * 純粹建立注入介面以隔離後續變更，保持既有測試零回退。
+   *
+   * 注入順序關鍵：parser 先於 reader（reader 預設依賴 parser）。
+   * 預設情境（production）零變更：未注入時自建 helper 實例，
+   * 行為與既有底線方法完全等價（FileValidator / FileContentReader / ContentParser
+   * 由 10.1.1 / 10.1.3 / 10.1.2 落地時驗證等價契約）。
+   *
    * @param {Object} deps - 依賴注入
    * @param {Document} deps.document - DOM 文檔物件
    * @param {Function} deps.showError - 顯示錯誤訊息的回呼函式
+   * @param {Object} [deps.validator] - 選用，FileValidator 實例（測試注入 stub）
+   * @param {Object} [deps.reader] - 選用，FileContentReader 實例（測試注入 stub）
+   * @param {Object} [deps.parser] - 選用，ContentParser 實例（測試注入 stub）
    */
-  constructor ({ document, showError }) {
+  constructor ({ document, showError, validator, reader, parser } = {}) {
     this.document = document
     this.showError = showError
+
+    // Helper DI（順序：parser → validator → reader，reader 預設依賴 parser）
+    this.parser = parser || new ContentParser()
+    this.validator = validator || new FileValidator({ showError })
+    this.reader = reader || new FileContentReader({
+      parser: this.parser,
+      showError,
+      detectFormat: (file) => this.validator.detectFormat(file)
+    })
   }
 
   /**
