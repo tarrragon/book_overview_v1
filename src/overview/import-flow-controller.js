@@ -41,12 +41,18 @@ const IMPORT_MODE = {
 /**
  * @typedef {Object} ImportFlowDeps
  * @property {Object} bookFileImporter - 檔案驗證/讀取模組（validate / read）
- * @property {Object} elements - import-mode modal 相關 DOM 元素引用
- * @property {HTMLElement} elements.importModeOverlay - modal 遮罩
- * @property {HTMLElement} elements.importModeModal - modal 容器
- * @property {HTMLElement} elements.importModeOverwriteBtn - 覆蓋按鈕
- * @property {HTMLElement} elements.importModeMergeBtn - 合併按鈕
- * @property {HTMLElement} elements.importModeCancelBtn - 取消按鈕
+ * @property {Object} elements - import-mode modal + empty-file-confirm modal 相關 DOM 元素引用
+ * @property {HTMLElement} elements.importModeOverlay - Modal A 遮罩
+ * @property {HTMLElement} elements.importModeModal - Modal A 容器
+ * @property {HTMLElement} elements.importModeOverwriteBtn - Modal A 覆蓋按鈕
+ * @property {HTMLElement} elements.importModeMergeBtn - Modal A 合併按鈕
+ * @property {HTMLElement} elements.importModeCancelBtn - Modal A 取消按鈕
+ * @property {HTMLElement} [elements.emptyFileConfirmOverlay] - Modal B（W1-049）遮罩
+ * @property {HTMLElement} [elements.emptyFileConfirmModal] - Modal B 容器
+ * @property {HTMLElement} [elements.emptyFileConfirmTitle] - Modal B 標題（aria-labelledby 目標）
+ * @property {HTMLElement} [elements.emptyFileConfirmDesc] - Modal B 動態說明（aria-describedby 目標）
+ * @property {HTMLElement} [elements.emptyFileConfirmProceedBtn] - Modal B 確認清空按鈕
+ * @property {HTMLElement} [elements.emptyFileConfirmCancelBtn] - Modal B 取消按鈕
  * @property {Document} document - DOM 文檔（焦點管理用）
  * @property {Object} tagStorageAdapter - 模組參考，需含 replaceAllData / mergeAllData
  * @property {Function} showError - 顯示錯誤訊息
@@ -57,6 +63,11 @@ const IMPORT_MODE = {
  *   （測試 spy / 行為攔截）時，可注入此 callback。內部 execute 流程透過此
  *   callback 觸發 modal，而非直接呼叫 this.promptImportMode。
  *   未注入時 execute 使用 this.promptImportMode 自身（含 modal 邏輯）。
+ * @property {Function} [getCurrentBookCount] - 取得目前 currentBooks.length（W1-049）
+ *   用於 Modal B 動態文案；未注入時預設回 0。
+ * @property {Function} [confirmEmptyFileOverwriteFn] - 選填的 confirmEmptyFileOverwrite 呼叫委派（W1-049）
+ *   簽名：(currentBookCount: number) => Promise<boolean>。與 promptImportModeFn 同模式，
+ *   保留 controller-level spy 可觀測性。未注入時 execute 直接呼叫 this.confirmEmptyFileOverwrite。
  */
 
 class ImportFlowController {
@@ -76,12 +87,26 @@ class ImportFlowController {
     // 可選的 promptImportMode 呼叫委派：未注入時 execute 內部使用 this.promptImportMode
     this._promptImportModeFn = deps.promptImportModeFn || null
 
+    // W1-049：取得目前 currentBooks.length（Modal B 動態文案用）；未注入時預設回 0
+    this._getCurrentBookCount = typeof deps.getCurrentBookCount === 'function'
+      ? deps.getCurrentBookCount
+      : () => 0
+
+    // W1-049：可選的 confirmEmptyFileOverwrite 呼叫委派（同 promptImportModeFn 模式）
+    this._confirmEmptyFileOverwriteFn = deps.confirmEmptyFileOverwriteFn || null
+
     // modal 單一實例保護：modal 開啟期間 pending Promise 暫存於此，
     // 重複觸發時回傳同一 Promise，不開第二個 modal。null 表示無進行中的 modal。
     this._importModePending = null
 
+    // W1-049：Modal B 單一實例保護（同 Modal A 模式，獨立變數避免干擾）
+    this._emptyConfirmPending = null
+
     // 匯入模式 modal 開啟前的焦點元素，modal 關閉時還原焦點至此（無障礙）
     this._importModePreviousFocus = null
+
+    // W1-049：Modal B 開啟前的焦點元素（獨立變數，與 Modal A 隔離）
+    this._emptyConfirmPreviousFocus = null
   }
 
   /**
@@ -219,6 +244,148 @@ class ImportFlowController {
   }
 
   /**
+   * 顯示空檔案覆蓋二次確認 modal（Modal B / W1-049）
+   *
+   * 業務情境：UC-04 覆蓋模式匯入 books 為空的檔案會清空整個 storage，且無 undo
+   * 機制，屬不可逆 destructive 操作。本方法提供二次確認 UX 防呆，避免使用者誤
+   * 選空檔案造成資料遺失。
+   *
+   * @param {number} currentBookCount - 目前書庫的書目數（用於動態文案）
+   * @returns {Promise<boolean>}
+   *   - true：使用者明確點「確認清空」按鈕
+   *   - false：取消（取消鈕 / Esc / 點遮罩） OR DOM 缺失（fail-safe 安全預設）
+   *
+   * 設計：
+   * - destructive 預設焦點落於 Cancel 鈕（與 Modal A 的覆蓋鈕預設焦點不同），
+   *   符合 Material Design / WCAG 防呆原則——避免使用者直覺 Enter 即清空資料。
+   * - DOM 缺失視為「使用者未確認」，安全 default = 不清空（與 Modal A 不同，
+   *   Modal A 用 sentinel 區分「DOM 缺失」與「取消」，Modal B 兩者合併為 false
+   *   即可，因兩者後續處理相同：不寫 storage）。
+   * - modal 一次只允許一個實例；重複呼叫回傳同一個 pending Promise 物件。
+   * - settle 統一收斂出口：移除監聽器 → 隱藏 modal → 清 pending 旗標 → 還原焦點 → resolve。
+   */
+  confirmEmptyFileOverwrite (currentBookCount) {
+    const overlay = this.elements.emptyFileConfirmOverlay
+    const modal = this.elements.emptyFileConfirmModal
+    const desc = this.elements.emptyFileConfirmDesc
+    const proceedBtn = this.elements.emptyFileConfirmProceedBtn
+    const cancelBtn = this.elements.emptyFileConfirmCancelBtn
+
+    // DOM 缺失防禦：任一元素為 null 視為設計缺陷，安全 default = false（不清空）
+    if (!overlay || !modal || !desc || !proceedBtn || !cancelBtn) {
+      // eslint-disable-next-line no-console
+      console.error('[ERROR] 空檔案確認 modal 元素缺失，預設為不清空（安全防護）')
+      return Promise.resolve(false)
+    }
+
+    // 單一實例保護：modal 已開啟時回傳既有 pending Promise
+    if (this._emptyConfirmPending) {
+      return this._emptyConfirmPending
+    }
+
+    // 動態填入說明文字（N>=1 與 N===0 文案差異）
+    const count = Number.isInteger(currentBookCount) ? currentBookCount : 0
+    if (count >= 1) {
+      desc.textContent = `此檔案不包含任何書目資料。繼續將清空目前書庫中的 ${count} 本書，且無法復原。`
+    } else {
+      desc.textContent = '此檔案不包含任何書目資料。目前書庫為空，無資料可清空。仍要繼續嗎？'
+    }
+
+    this._emptyConfirmPending = new Promise((resolve) => {
+      // 焦點還原起點：記錄 modal 開啟前的焦點元素
+      this._emptyConfirmPreviousFocus =
+        (this.document && this.document.activeElement) || null
+
+      // focus trap 集合：[cancel, proceed]，預設焦點 cancel（destructive 防呆）
+      const focusable = [cancelBtn, proceedBtn]
+
+      const handleFocusTrap = (event) => {
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        const active = this.document.activeElement
+        if (event.shiftKey && active === first) {
+          event.preventDefault()
+          last.focus()
+        } else if (!event.shiftKey && active === last) {
+          event.preventDefault()
+          first.focus()
+        }
+      }
+
+      const onKeydown = (event) => {
+        if (event.key === 'Escape') {
+          settle(false)
+        } else if (event.key === 'Tab') {
+          handleFocusTrap(event)
+        }
+      }
+
+      // 遮罩點擊：只有點遮罩本身（非冒泡自 modal 內部）才視為取消
+      const onOverlayClick = (event) => {
+        if (event.target === overlay) {
+          settle(false)
+        }
+      }
+
+      const onProceed = () => settle(true)
+      const onCancel = () => settle(false)
+
+      // 統一收斂出口：移除監聽器 → 隱藏 modal → 清 pending 旗標 → 還原焦點 → resolve
+      const settle = (result) => {
+        proceedBtn.removeEventListener('click', onProceed)
+        cancelBtn.removeEventListener('click', onCancel)
+        overlay.removeEventListener('click', onOverlayClick)
+        modal.removeEventListener('keydown', onKeydown)
+
+        this._hideEmptyConfirmModal()
+        this._emptyConfirmPending = null
+
+        if (
+          this._emptyConfirmPreviousFocus &&
+          typeof this._emptyConfirmPreviousFocus.focus === 'function'
+        ) {
+          this._emptyConfirmPreviousFocus.focus()
+        }
+        this._emptyConfirmPreviousFocus = null
+
+        resolve(result)
+      }
+
+      // 綁定四種出口
+      proceedBtn.addEventListener('click', onProceed)
+      cancelBtn.addEventListener('click', onCancel)
+      overlay.addEventListener('click', onOverlayClick)
+      modal.addEventListener('keydown', onKeydown)
+
+      // 顯示 modal 並設初始焦點至 Cancel（destructive 安全預設）
+      this._showEmptyConfirmModal()
+      cancelBtn.focus()
+    })
+
+    return this._emptyConfirmPending
+  }
+
+  /**
+   * 顯示空檔案確認 modal（W1-049）
+   * @private
+   */
+  _showEmptyConfirmModal () {
+    if (this.elements.emptyFileConfirmOverlay) {
+      this.elements.emptyFileConfirmOverlay.style.display = 'flex'
+    }
+  }
+
+  /**
+   * 隱藏空檔案確認 modal（W1-049）
+   * @private
+   */
+  _hideEmptyConfirmModal () {
+    if (this.elements.emptyFileConfirmOverlay) {
+      this.elements.emptyFileConfirmOverlay.style.display = 'none'
+    }
+  }
+
+  /**
    * 執行完整匯入流程：驗證 → modal → 讀檔 → 持久化 → callback
    *
    * 流程：
@@ -261,10 +428,31 @@ class ImportFlowController {
     }
 
     // 5. 讀檔（modal resolve 之後）：importer 回傳 ImportResult（INV-1 保證三欄位恆陣列）
-    this.showLoading('正在讀取檔案...')
+    //
+    // W1-049 修補項 2 決策：showLoading 自此處移除，後移至步驟 6.5（持久化前）。
+    // 原因：(a) 對齊「showLoading 緊鄰 destructive 寫入」原則，消除 Modal B 取消
+    // 分支的 loading 殘留風險；(b) 避免新增 hideLoading dep 與額外的 false 分支處理；
+    // (c) 空檔案 read 通常 < 50ms，無 loading 對 UX 影響可忽略。
+    // 大檔案 read UX loading 屬獨立 issue，與本 ticket 空檔案防呆無關。
     const importResult = await this.bookFileImporter.read(file)
 
-    // 6. 依模式分流持久化：覆蓋走 replaceAllData，合併走 mergeAllData
+    // 6. W1-049：覆蓋模式 + 空檔案二次確認（destructive 防呆）
+    // 觸發條件：mode === 'overwrite' AND importResult.books.length === 0
+    // 不觸發：merge 模式（no-op，無破壞性）/ overwrite + 非空（正常覆蓋）
+    if (mode === IMPORT_MODE.OVERWRITE && importResult.books.length === 0) {
+      const proceed = this._confirmEmptyFileOverwriteFn
+        ? await this._confirmEmptyFileOverwriteFn(this._getCurrentBookCount())
+        : await this.confirmEmptyFileOverwrite(this._getCurrentBookCount())
+      if (!proceed) {
+        // 使用者取消 OR Modal B DOM 缺失：靜默中止，不寫 storage、無 loading 殘留
+        return
+      }
+    }
+
+    // 6.5 W1-049：showLoading 後移至此（持久化前），緊鄰 destructive 寫入
+    this.showLoading('正在儲存匯入資料...')
+
+    // 7. 依模式分流持久化：覆蓋走 replaceAllData，合併走 mergeAllData
     const payload = {
       books: importResult.books,
       tags: importResult.tags,
