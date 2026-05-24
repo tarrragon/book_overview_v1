@@ -256,6 +256,8 @@ mcp__chrome-devtools__list_extensions()
 
 **驗證**：Extension Enabled，version 與 manifest.json 一致，Service Worker URL 出現。
 
+**Why absolute path is mandatory（W1-001.1 / W1-005 實證）**：`.mcp.json` 不再預設 `--chromeArg=--load-extension`——相對路徑在 chrome-devtools-mcp npx 啟動環境下不會生效（`list_extensions` 初次回空），絕對路徑寫進 tracked config 又不可移植。`install_extension(path=...)` 動態載入是唯一可靠步驟，且 `path` 必須是絕對路徑（如 `/Users/<user>/Projects/book_overview_v1/build/development`），相對路徑會被拒。
+
 ### Step 2：導航到登入流程
 
 ```
