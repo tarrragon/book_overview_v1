@@ -231,15 +231,30 @@ class BookFileImporter {
   }
 
   /**
-   * 載入FileReaderFactory
+   * 載入 FileReaderFactory
    * @private
-   * @returns {Object} FileReaderFactory類
+   * @returns {Object} FileReaderFactory 類
+   *
+   * W1-048.8 簡化（F15）：移除 `window.FileReaderFactory` fallback 死碼分支。
+   *
+   * 環境覆蓋說明：
+   * - Node / Jest：`require` 為 Node 全域，直接走 CommonJS。
+   * - Chrome Extension（esbuild bundle）：esbuild 將 `require` 重命名為 `__require`
+   *   並注入內部 module shim，`typeof require` 為 'undefined' 但 `typeof __require`
+   *   為 'function'。bundle 後 esbuild 會將此呼叫直接 inline 為 `require_file_reader_factory()`，
+   *   `typeof require !== 'undefined'` 分支永遠成立——保留 typeof 檢查作為靜態防護，
+   *   避免 minifier 過度優化或未來 bundler 切換時的 ReferenceError。
+   * - `window.FileReaderFactory` 路徑為歷史測試殘留，全 repo 無任何賦值點
+   *   （grep `window.FileReaderFactory` 僅命中此處讀取），為純死碼，故移除。
    */
   _loadFileReaderFactory () {
     if (typeof require !== 'undefined') {
       return require('src/utils/file-reader-factory')
     }
-    return window.FileReaderFactory
+    const error = new Error('FileReaderFactory 載入失敗：require 不可用')
+    error.code = ErrorCodes.FILE_ERROR
+    error.details = { category: 'general' }
+    throw error
   }
 
   /**
@@ -366,69 +381,102 @@ class BookFileImporter {
    * - 連續雙引號 `""` 視為單個跳脫雙引號
    * - 行尾換行 \n 或 \r\n
    *
+   * W1-048.8 重構（F13）：原 inline 處理 6 個字元分支，認知指數 12。
+   * 改為 state 物件 + 兩個 helper（quoted / unquoted）分流，主迴圈降為單一 dispatch + EOF flush。
+   *
    * @private
    * @param {string} content - CSV 純文字
    * @returns {Array<Array<string>>}
    */
   _parseCSVRows (content) {
-    const rows = []
-    let currentRow = []
-    let currentField = ''
-    let inQuotes = false
+    const state = { rows: [], currentRow: [], currentField: '', inQuotes: false }
     let i = 0
     while (i < content.length) {
-      const ch = content[i]
-      if (inQuotes) {
-        if (ch === '"') {
-          if (content[i + 1] === '"') {
-            currentField += '"'
-            i += 2
-            continue
-          }
-          inQuotes = false
-          i += 1
-          continue
-        }
-        currentField += ch
-        i += 1
-        continue
-      }
-      if (ch === '"') {
-        inQuotes = true
-        i += 1
-        continue
-      }
-      if (ch === ',') {
-        currentRow.push(currentField)
-        currentField = ''
-        i += 1
-        continue
-      }
-      if (ch === '\r' && content[i + 1] === '\n') {
-        currentRow.push(currentField)
-        rows.push(currentRow)
-        currentRow = []
-        currentField = ''
-        i += 2
-        continue
-      }
-      if (ch === '\n' || ch === '\r') {
-        currentRow.push(currentField)
-        rows.push(currentRow)
-        currentRow = []
-        currentField = ''
-        i += 1
-        continue
-      }
-      currentField += ch
-      i += 1
+      i += state.inQuotes
+        ? this._consumeQuotedChar(state, content, i)
+        : this._consumeUnquotedChar(state, content, i)
     }
-    // 收尾：最後一個欄位 / 列（檔案可能不以換行結束）
-    if (currentField !== '' || currentRow.length > 0) {
-      currentRow.push(currentField)
-      rows.push(currentRow)
+    this._flushPendingRow(state)
+    return state.rows
+  }
+
+  /**
+   * 處理引號狀態內的單一字元，回傳前進步數（1 或 2）。
+   * @private
+   *
+   * 規則：
+   * - `""`：跳脫雙引號 → 累加單個 `"`，前進 2
+   * - 單 `"`：結束引號狀態，前進 1
+   * - 其他：累加字元，前進 1
+   */
+  _consumeQuotedChar (state, content, i) {
+    const ch = content[i]
+    if (ch === '"') {
+      if (content[i + 1] === '"') {
+        state.currentField += '"'
+        return 2
+      }
+      state.inQuotes = false
+      return 1
     }
-    return rows
+    state.currentField += ch
+    return 1
+  }
+
+  /**
+   * 處理非引號狀態的單一字元，回傳前進步數（1 或 2）。
+   * @private
+   *
+   * 規則：
+   * - `"`：進入引號狀態，前進 1
+   * - `,`：欄位分隔 → flush field，前進 1
+   * - `\r\n`：列尾（Windows）→ flush row，前進 2
+   * - `\r` 或 `\n`：列尾 → flush row，前進 1
+   * - 其他：累加字元，前進 1
+   */
+  _consumeUnquotedChar (state, content, i) {
+    const ch = content[i]
+    if (ch === '"') {
+      state.inQuotes = true
+      return 1
+    }
+    if (ch === ',') {
+      state.currentRow.push(state.currentField)
+      state.currentField = ''
+      return 1
+    }
+    if (ch === '\r' && content[i + 1] === '\n') {
+      this._commitRow(state)
+      return 2
+    }
+    if (ch === '\n' || ch === '\r') {
+      this._commitRow(state)
+      return 1
+    }
+    state.currentField += ch
+    return 1
+  }
+
+  /**
+   * 將當前 field/row 提交至 rows，並重置 currentRow / currentField。
+   * @private
+   */
+  _commitRow (state) {
+    state.currentRow.push(state.currentField)
+    state.rows.push(state.currentRow)
+    state.currentRow = []
+    state.currentField = ''
+  }
+
+  /**
+   * EOF 收尾：若有未提交的最後一個欄位 / 列（檔案可能不以換行結束），補入 rows。
+   * @private
+   */
+  _flushPendingRow (state) {
+    if (state.currentField !== '' || state.currentRow.length > 0) {
+      state.currentRow.push(state.currentField)
+      state.rows.push(state.currentRow)
+    }
   }
 
   /**
