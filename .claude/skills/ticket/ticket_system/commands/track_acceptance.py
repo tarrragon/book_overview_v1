@@ -636,8 +636,11 @@ def _execute_append_log_locked(args: argparse.Namespace, version: str) -> int:
     # 取得內容
     content = args.content
 
-    # W17-208: 偵測寫入 Schema 章節時內容含 ## H2 標題，stderr warning 不阻擋
+    # W17-208 + W1-068: 偵測寫入 Schema 章節時內容含 ## H2 標題
+    # W17-208 (stderr warning) + W1-068 方案 B（自動降級 H2 → H3 源頭阻斷）
     # 動機：append-log 寫入應為既有章節 H3 子節；H2 會切斷 Schema 章節範圍（W17-072）
+    # W1-038 ANA 結論：source code 規範化（re.sub）比事後偵測更可靠，
+    # 避免 W1-037 三 agent 連續違規 + PM 批次降級連帶 H4 false negative 鏈
     schema_sections_for_h2_check = {
         "Solution", "Test Results", "Problem Analysis",
         "Context Bundle", "NeedsContext", "Exit Status", "Completion Info",
@@ -647,8 +650,11 @@ def _execute_append_log_locked(args: argparse.Namespace, version: str) -> int:
             import sys as _sys
             _sys.stderr.write(
                 "[append-log] WARNING: 偵測到內容含 H2 標題；append-log 寫入應為既有章節的 "
-                "H3 子節，避免切斷 Schema 章節範圍（W17-072）。建議改用 ### 子標題。\n"
+                "H3 子節，避免切斷 Schema 章節範圍（W17-072）。"
+                "已自動降級 H2 → H3（W1-068 方案 B：源頭阻斷）。\n"
             )
+            # W1-068（W1-038 方案 B）: 自動降級 H2 → H3 規範化（只匹配行首 H2，不影響 H3+）
+            content = re.sub(r'(?m)^## ', '### ', content)
 
     # 獲取 Ticket 內容
     body = ticket.get("_body", "")
