@@ -24,6 +24,7 @@ from ticket_system.lib.constants import (
     CLOSE_REASON_RETROSPECTIVE_UNKNOWN,
 )
 from ticket_system.lib.file_lock import file_lock
+from ticket_system.lib.precondition import require_in_progress
 from ticket_system.lib.ticket_loader import (
     get_project_root,
     get_ticket_path,
@@ -661,6 +662,18 @@ class TicketLifecycle:
             if is_already_complete:
                 print(format_info(status_msg))
                 return 0
+
+            # W3-044: body-op precondition（status 必須 in_progress；force 旁路與既有 children-force 共用旗標）
+            ok, error_msg = require_in_progress(
+                ticket,
+                ticket_id,
+                "complete",
+                allow_completed=False,  # already_complete 已 short-circuit
+                force=force,
+            )
+            if not ok:
+                sys.stderr.write(error_msg + "\n")
+                return 2
 
             # 若不可完成，阻止操作
             if not can_complete:
