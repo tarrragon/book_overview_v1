@@ -75,6 +75,57 @@ describe('V1ToV2Converter', () => {
       expect(result.tags).toEqual([])
       expect(result.categoryToTagIdMap.size).toBe(0)
     })
+
+    // W1-078：Date.parse NaN fallback 完備化測試
+    // 驗證當 caller 傳入無效 timestamp 字串時，ts 與 tsMs 仍同源，
+    // 不可保留原始無效字串而讓 tag id 的 ms 與 createdAt 指向不同時刻
+    describe('W1-078: Date.parse NaN fallback 同源驗證', () => {
+      test('無效 timestamp 字串 → tag id 中的 ms 與 createdAt 同源', () => {
+        const result = convertV1CategoryToTag(['科幻', '文學'], 'invalid-date')
+
+        // tagCategory.createdAt 必須是有效 ISO 字串（非原始 'invalid-date'）
+        expect(result.tagCategory.createdAt).not.toBe('invalid-date')
+        const createdAtMs = Date.parse(result.tagCategory.createdAt)
+        expect(Number.isFinite(createdAtMs)).toBe(true)
+
+        // 每個 tag id 中的 tsMs 必須等於 createdAt 解析後的 ms
+        result.tags.forEach((tag) => {
+          // tag id 格式: tag_<tsMs>-<index>
+          const match = tag.id.match(/^tag_(\d+)-\d{3}$/)
+          expect(match).not.toBeNull()
+          const tagIdMs = Number(match[1])
+          expect(tagIdMs).toBe(createdAtMs)
+          // tag.createdAt 也必須與 tagCategory.createdAt 同源
+          expect(tag.createdAt).toBe(result.tagCategory.createdAt)
+          expect(tag.updatedAt).toBe(result.tagCategory.createdAt)
+        })
+      })
+
+      test('空字串 timestamp → 走預設分支（同源）', () => {
+        // 空字串為 falsy，會走 else 分支（內部 Date.now() + 衍生 ISO）
+        const result = convertV1CategoryToTag(['科幻'], '')
+
+        const createdAtMs = Date.parse(result.tagCategory.createdAt)
+        expect(Number.isFinite(createdAtMs)).toBe(true)
+
+        const match = result.tags[0].id.match(/^tag_(\d+)-\d{3}$/)
+        expect(match).not.toBeNull()
+        expect(Number(match[1])).toBe(createdAtMs)
+      })
+
+      test('合法 ISO timestamp → 保留原始字串且 ms 同源（baseline）', () => {
+        const result = convertV1CategoryToTag(['科幻'], TIMESTAMP)
+
+        // 合法 timestamp 必須被保留為 createdAt
+        expect(result.tagCategory.createdAt).toBe(TIMESTAMP)
+
+        // tag id ms 必須等於 Date.parse(TIMESTAMP)
+        const expectedMs = Date.parse(TIMESTAMP)
+        const match = result.tags[0].id.match(/^tag_(\d+)-\d{3}$/)
+        expect(match).not.toBeNull()
+        expect(Number(match[1])).toBe(expectedMs)
+      })
+    })
   })
 
   describe('convertV1ToV2Data', () => {
