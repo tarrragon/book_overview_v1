@@ -17,11 +17,9 @@
     },
     "codegraph": {
       "type": "stdio",
-      "command": "codegraph",
+      "command": "codegraph-mcp",
       "args": [
-        "serve",
-        "--mcp",
-        "--path",
+        "-w",
         "."
       ],
       "env": {}
