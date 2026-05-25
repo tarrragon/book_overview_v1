@@ -381,6 +381,19 @@ class TestDataGenerator {
 
   /**
    * 生成具有指定進度分佈的書籍
+   *
+   * @deprecated W1-075 起改用 {@link TestDataGenerator#buildScenarioBooks}。
+   *   本方法因內部使用 randomInt 變動 + 邊界 clamp，在
+   *   heavy-reader-device 場景 (~5% 機率) 會產生 avgProgress 浮點偏差
+   *   觸發 toBeCloseTo flaky（W1-075 根因）。
+   *   buildScenarioBooks 改用整數確定性建構，總和精確 = averageProgress * bookCount。
+   *   保留本方法僅為 backward compatibility，未來新測試請改用 buildScenarioBooks。
+   *
+   *   違規範例：
+   *     // 錯誤（flaky 風險）：
+   *     generator.generateBooksWithProgress(500, 'heavy', { averageProgress: 65 })
+   *     // 正確（確定性整數）：
+   *     generator.buildScenarioBooks({ name: 'heavy', bookCount: 500, completedRatio: 0.3, averageProgress: 65 })
    */
   generateBooksWithProgress (count, scenarioName = 'default', options = {}) {
     const {
@@ -479,6 +492,83 @@ class TestDataGenerator {
       ;[books[i], books[j]] = [books[j], books[i]]
     }
 
+    return books
+  }
+
+  /**
+   * 以整數確定性建構 scenario 書籍（W1-075 替代 generateBooksWithProgress）
+   *
+   * 設計原則：所有 inProgress 書籍取相同整數進度，由最後一本書承接整數餘數，
+   * 保證 sum(progress) 精確等於 averageProgress * bookCount，避免浮點 toBeCloseTo flaky。
+   *
+   * Guard clause (W1-079)：當 inProgressTotalNeeded < 0 時 throw，
+   * 防止未來新 scenario 設定 completedRatio > averageProgress / 100
+   * （例如 completedRatio=0.9 + averageProgress=50 → completedContribution=4500 > totalTarget=2500）
+   * 產生負 progress 值的隱性 bug。
+   *
+   * @param {Object} scenario - 場景設定
+   * @param {string} scenario.name - 場景識別名（用於 book id 前綴 + error 訊息）
+   * @param {number} scenario.bookCount - 該場景書籍總數
+   * @param {number} scenario.completedRatio - 已完成書籍比例（0-1）
+   * @param {number} scenario.averageProgress - 目標平均進度（0-100）
+   * @returns {Array<Object>} 整數進度書籍陣列
+   * @throws {Error} 當 inProgressTotalNeeded < 0（無法達成目標 averageProgress）
+   */
+  buildScenarioBooks (scenario) {
+    const { name, bookCount, completedRatio, averageProgress } = scenario
+    const completedCount = Math.floor(bookCount * completedRatio)
+    const inProgressCount = bookCount - completedCount
+    const totalTarget = averageProgress * bookCount
+    const completedContribution = completedCount * 100
+    const inProgressTotalNeeded = totalTarget - completedContribution
+
+    // W1-079 Guard：completedContribution 已超過 totalTarget 意味無法達成目標平均
+    // （inProgress 書籍進度無法為負值補償）。此情況需測試設計者調整 scenario 參數。
+    if (inProgressTotalNeeded < 0) {
+      throw new Error(
+        `[buildScenarioBooks] scenario "${name}": ` +
+        `inProgressTotalNeeded=${inProgressTotalNeeded} < 0. ` +
+        `completedRatio (${completedRatio}) × 100 超過 averageProgress (${averageProgress})，` +
+        '無法達成目標平均（會產生負 progress）。' +
+        '請調整 completedRatio 或 averageProgress 使 completedRatio × 100 <= averageProgress。'
+      )
+    }
+
+    // 每本 inProgress 書籍取下取整商；最後一本承接餘數，總和精確
+    const baseProgress = inProgressCount > 0
+      ? Math.floor(inProgressTotalNeeded / inProgressCount)
+      : 0
+    const remainder = inProgressCount > 0
+      ? inProgressTotalNeeded - baseProgress * inProgressCount
+      : 0
+
+    const books = []
+    for (let i = 0; i < completedCount; i++) {
+      books.push({
+        id: `${name}-completed-${i + 1}`,
+        title: `已完成書籍 ${i + 1} - ${name}`,
+        progress: 100,
+        status: 'completed',
+        isFinished: true,
+        author: '測試作者',
+        category: '測試分類'
+      })
+    }
+    for (let i = 0; i < inProgressCount; i++) {
+      // 最後一本承接餘數；其餘取 baseProgress
+      const progress = (i === inProgressCount - 1)
+        ? baseProgress + remainder
+        : baseProgress
+      books.push({
+        id: `${name}-inprogress-${i + 1}`,
+        title: `閱讀中書籍 ${i + 1} - ${name}`,
+        progress,
+        status: 'reading',
+        isFinished: false,
+        author: '測試作者',
+        category: '測試分類'
+      })
+    }
     return books
   }
 
