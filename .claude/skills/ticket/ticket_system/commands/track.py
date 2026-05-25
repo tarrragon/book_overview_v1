@@ -372,17 +372,28 @@ def _register_lifecycle_commands(
     p_claim.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
     p_claim.add_argument("--version", help=TrackMessages.ARG_VERSION)
     p_claim.add_argument(
+        "--verify",
+        dest="verify",
+        action="store_true",
+        help=(
+            "W3-046: 明示啟用 AC 自動驗證（預設關閉，避免 npm test 全套件副作用 / "
+            "PC-078 並行衝突）。僅供除錯場景使用"
+        ),
+    )
+    p_claim.add_argument(
         "--skip-verify",
         dest="skip_verify",
         action="store_true",
-        help="跳過 AC 自動驗證（逃生閥），直接進入既有 claim 流程",
+        help=(
+            "W3-046: 已預設不執行 AC 驗證，此旗標保留為 no-op（向後相容）"
+        ),
     )
     p_claim.add_argument(
         "--yes",
         "-y",
         dest="yes",
         action="store_true",
-        help="非互動模式：AC 驗證仍執行，但自動選 y 繼續 claim",
+        help="非互動模式：AC 驗證（若以 --verify 啟用）自動選 y 繼續 claim",
     )
     p_claim.add_argument(
         "--quiet",

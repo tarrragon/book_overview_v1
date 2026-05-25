@@ -192,18 +192,26 @@ acceptance-gate-hook 事後驗證（最後防線）
 
 ---
 
-## AC 漂移偵測（claim 階段強制）
+## AC 漂移偵測（claim 階段；W3-046 改為 --verify opt-in）
 
 > **來源**：PC-055 — Ticket AC 與實況漂移未被系統偵測。PROP-010 Phase 1 MVP 透過兩項自動機制防護。
 >
-> **觸發時機**：每次執行 `ticket track claim <id>` 時，CLI 自動觸發 AC 驗證 + stale 警告。
+> **W3-046 變更（重要）**：原 claim 自動執行 AC verification（含 npm_test_pass 模板跑全套件 npm test）會在同 wave 並行 claim 時造成 PC-078 衝突。依 W3-045 ANA 共識（linux + basil + bay 三視角），claim 預設**不執行** AC verification；需明示 `--verify` 旗標才啟用（保留除錯場景）。Stale 警告（>= 7 天）不受影響仍預設啟用。
+>
+> **Why**：claim 是狀態切換動作，不應綁全域測試副作用；同 wave 並行 claim 必然撞 Jest 暫存 / git stash 中間狀態。
+>
+> **Consequence**：原預設行為已造成多次 false test failure，PM 必須以 `--skip-verify` 繞過，反而失去 AC 漂移防護。新預設改為「不執行 verification」+「明示 --verify 啟用」，將決策權交回 PM。
+>
+> **Action**：日常 claim 直接 `ticket track claim <id>`；除錯/AC 漂移巡檢場景才用 `ticket track claim <id> --verify`。
+>
+> **觸發時機**：執行 `ticket track claim <id> --verify` 時，CLI 觸發 AC 驗證 + stale 警告。未帶 `--verify` 時僅輸出 stale 警告。
 
 ### 機制總覽
 
 | 機制 | 實作位置 | 觸發條件 | 來源 Ticket |
 |------|---------|---------|------------|
-| AC 自動驗證 | `lifecycle.py` / `claim_verification.py` | claim 前解析 AC 並執行可機器驗證項 | W11-001.1 |
-| Stale 年齡警告 | `lib/staleness.py` | Ticket 建立距今 >= 7/14/30 天 | W11-001.2 |
+| AC 自動驗證（opt-in） | `lifecycle.py` / `claim_verification.py` | `--verify` 旗標明示啟用後執行可機器驗證項 | W11-001.1 / W3-046 |
+| Stale 年齡警告（預設啟用） | `lib/staleness.py` | Ticket 建立距今 >= 7/14/30 天 | W11-001.2 |
 
 ### Claim 時三決策路徑
 
@@ -234,7 +242,7 @@ claim 命令整合上述兩機制後，PM 面對的決策空間為：
 # 情境：W5-020 pending 18 天，PC-055 觸發案例。
 # 上游 W5-015 的重構已順帶修復 AC[0]「測試全綠」和 AC[1]「lint 0 warning」。
 
-$ ticket track claim 0.18.0-W5-020
+$ ticket track claim 0.18.0-W5-020 --verify   # W3-046：須 opt-in
 [WARNING] Ticket 建立已 18 天，超過 14 天警告閾值
 [AC 驗證] 解析 4 條 AC，執行 2 條可機器驗證：
   [x] AC[0] 測試全綠（npm test 0 failure）— 已達成（外溢）
@@ -254,7 +262,7 @@ $ ticket track complete 0.18.0-W5-020
 ```
 # 情境：W10-042 昨天建立，AC 要求實作新功能。
 
-$ ticket track claim 0.18.0-W10-042
+$ ticket track claim 0.18.0-W10-042 --verify   # W3-046：須 opt-in
 [AC 驗證] 解析 3 條 AC，執行 1 條可機器驗證：
   [ ] AC[0] 新指令 `track snapshot` 可執行 — 未達成
   [-] AC[1] 整合測試通過 — 待實作後驗證
@@ -276,9 +284,11 @@ $ ticket track claim 0.18.0-W10-042
 
 | 條件 | 處理 |
 |------|------|
-| `--skip-verify` 旗標 | 跳過 AC 驗證（CI/緊急情境用，stderr 輸出 WARNING 紀錄） |
-| `--yes` 旗標 | 自動選 y，但 S4 仍拒絕（S4 拒絕優先於 --yes） |
-| 無可機器驗證 AC 的 Ticket | CLI 僅輸出「無可驗證項」，不阻擋 claim |
+| 預設（無 `--verify`） | W3-046 後新預設：跳過 AC 驗證直接 claim（避免 PC-078 並行衝突） |
+| `--verify` 旗標 | W3-046 新增：明示啟用 AC 驗證（保留除錯/AC 漂移巡檢場景） |
+| `--skip-verify` 旗標 | W3-046 後 no-op（保留向後相容；新預設已不執行驗證） |
+| `--yes` 旗標 | 配合 `--verify` 使用，自動選 y 繼續；S4 仍拒絕（S4 優先於 --yes） |
+| 無可機器驗證 AC 的 Ticket | `--verify` 啟用時 CLI 輸出「無可驗證項」，不阻擋 claim |
 
 > AC 驗證實作細節：`.claude/skills/ticket/ticket_system/commands/claim_verification.py`
 > Stale 閾值常數：`.claude/skills/ticket/ticket_system/lib/staleness.py`（7/14/30 天）

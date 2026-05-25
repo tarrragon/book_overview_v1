@@ -1996,10 +1996,23 @@ def execute_claim(args: argparse.Namespace, version: str) -> int:
     lifecycle = TicketLifecycle(version)
     skip_verify = bool(getattr(args, "skip_verify", False))
     auto_yes = bool(getattr(args, "yes", False))
-    # 統一走驗證入口（skip_verify=True 時內部會降級走既有 claim）
-    rc = lifecycle.claim_with_verification(
-        args.ticket_id, skip_verify=skip_verify, auto_yes=auto_yes
-    )
+    verify_opt_in = bool(getattr(args, "verify", False))
+
+    # W3-046 (Strategy B): 預設不執行 AC verification，避免 claim 觸發 npm test
+    # 全套件造成同 wave 並行 claim 衝突（PC-078 根本解）。--verify 旗標明示啟用
+    # 才走 claim_with_verification（保留除錯場景）。
+    # --skip-verify 變成 no-op（保留向後相容；歷史腳本不報錯）。
+    if verify_opt_in and not skip_verify:
+        rc = lifecycle.claim_with_verification(
+            args.ticket_id, skip_verify=skip_verify, auto_yes=auto_yes
+        )
+    else:
+        if skip_verify and (auto_yes or verify_opt_in):
+            sys.stderr.write(
+                "[Warning] --skip-verify 與 --yes/--verify 同時指定；"
+                "新預設已不執行驗證，--skip-verify 為 no-op\n"
+            )
+        rc = lifecycle.claim(args.ticket_id)
 
     # W17-002.2：claim 成功後自動抽取 Context Bundle（異常降級；idempotent merge 自然防止重複）
     if rc == 0:
