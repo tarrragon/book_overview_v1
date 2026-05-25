@@ -81,13 +81,21 @@ function convertV1CategoryToTag (categories, timestamp) {
   }
 
   // W1-057：單次時間取值 + 雙向衍生，保證 ts 與 tsMs 同源
+  // W1-078：Date.parse NaN fallback 完備化——當 caller 傳入無效 timestamp 字串時，
+  // tsMs 回退至 Date.now() 後必須重新衍生 ts，避免保留原始無效字串（如 'invalid-date'）
+  // 而導致 tag id 中的 ms 與 createdAt/updatedAt 指向不同時刻（W1-057 雙時間問題變體）
   let ts
   let tsMs
   if (timestamp) {
-    ts = timestamp
     const parsedMs = Date.parse(timestamp)
-    // Date.parse 失敗（NaN）時回退至當下時間，避免產出無效 tag id
-    tsMs = Number.isFinite(parsedMs) ? parsedMs : Date.now()
+    if (Number.isFinite(parsedMs)) {
+      ts = timestamp
+      tsMs = parsedMs
+    } else {
+      // Date.parse 失敗（NaN）時：tsMs 與 ts 一起回退並從同一 tsMs 衍生，保證同源
+      tsMs = Date.now()
+      ts = new Date(tsMs).toISOString()
+    }
   } else {
     tsMs = Date.now()
     ts = new Date(tsMs).toISOString()
