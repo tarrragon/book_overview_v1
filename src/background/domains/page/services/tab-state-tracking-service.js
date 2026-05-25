@@ -24,6 +24,7 @@ const {
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const pageTypeDetector = require('src/background/domains/page/utils/page-type-detector')
 
 /**
  * Logger 後備方案設計理念：
@@ -628,32 +629,21 @@ class TabStateTrackingService {
 
   /**
    * 檢測是否為 Readmoo 頁面
+   *
+   * 委派至共用工具 page-type-detector（W1-039 DRY 收斂）。
    */
   isReadmooPage (url) {
-    if (!url) return false
-    return url.includes('readmoo.com')
+    return pageTypeDetector.isReadmooPage(url)
   }
 
   /**
    * 檢測頁面類型
+   *
+   * 委派至共用工具 page-type-detector（W1-039 DRY 收斂）。
+   * 保留 async 簽名以維持既有呼叫端相容（內部實際為同步運算）。
    */
   async detectPageType (url) {
-    if (!url || !this.isReadmooPage(url)) return null
-
-    // W1-029.1: 真實書庫頁為 https://read.readmoo.com/#/library
-    // （Vue SPA hash route），不含子字串 readmoo.com/library。
-    // 同時相容舊版 path 形式（如 member.readmoo.com/library）。
-    if (
-      (url.includes('read.readmoo.com') && url.includes('#/library')) ||
-      url.includes('readmoo.com/library')
-    ) {
-      return 'readmoo_library'
-    }
-    if (url.match(/readmoo\.com\/book\/\d+/)) return 'readmoo_book_detail'
-    if (url.includes('readmoo.com/reader')) return 'readmoo_reader'
-    if (url.includes('readmoo.com')) return 'readmoo_main'
-
-    return null
+    return pageTypeDetector.detectReadmooPageType(url)
   }
 
   /**
