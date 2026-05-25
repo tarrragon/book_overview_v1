@@ -118,17 +118,61 @@ describe('跨設備同步工作流程整合測試', () => {
         }
       ]
 
+      // W1-075：採行修復方向 C（重設計 mock data）— 不再使用
+      // testDataGenerator.generateBooksWithProgress（含 randomInt 變動 + 邊界 clamp，
+      // 在 heavy-reader-device 場景 ~5% 機率產生 dev > 0.005 觸發 toBeCloseTo flaky）。
+      // 改以本地確定性建構：所有 inProgress 書籍取相同整數進度，
+      // 由最後一本書承接整數餘數，保證總和精確 = averageProgress * bookCount。
+      // 詳見 W1-075 Problem Analysis。
+      const buildScenarioBooks = (scenario) => {
+        const { name, bookCount, completedRatio, averageProgress } = scenario
+        const completedCount = Math.floor(bookCount * completedRatio)
+        const inProgressCount = bookCount - completedCount
+        const totalTarget = averageProgress * bookCount
+        const completedContribution = completedCount * 100
+        const inProgressTotalNeeded = totalTarget - completedContribution
+        // 每本 inProgress 書籍取下取整商；最後一本承接餘數，總和精確
+        const baseProgress = inProgressCount > 0
+          ? Math.floor(inProgressTotalNeeded / inProgressCount)
+          : 0
+        const remainder = inProgressCount > 0
+          ? inProgressTotalNeeded - baseProgress * inProgressCount
+          : 0
+
+        const books = []
+        for (let i = 0; i < completedCount; i++) {
+          books.push({
+            id: `${name}-completed-${i + 1}`,
+            title: `已完成書籍 ${i + 1} - ${name}`,
+            progress: 100,
+            status: 'completed',
+            isFinished: true,
+            author: '測試作者',
+            category: '測試分類'
+          })
+        }
+        for (let i = 0; i < inProgressCount; i++) {
+          // 最後一本承接餘數；其餘取 baseProgress
+          const progress = (i === inProgressCount - 1)
+            ? baseProgress + remainder
+            : baseProgress
+          books.push({
+            id: `${name}-inprogress-${i + 1}`,
+            title: `閱讀中書籍 ${i + 1} - ${name}`,
+            progress,
+            status: 'reading',
+            isFinished: false,
+            author: '測試作者',
+            category: '測試分類'
+          })
+        }
+        return books
+      }
+
       for (const scenario of scenarios) {
-        // When: 設定不同場景的資料
+        // When: 設定不同場景的資料（W1-075：改用本地確定性建構器）
         // eslint-disable-next-line no-unused-vars
-        const scenarioBooks = testDataGenerator.generateBooksWithProgress(
-          scenario.bookCount,
-          scenario.name,
-          {
-            completedRatio: scenario.completedRatio,
-            averageProgress: scenario.averageProgress
-          }
-        )
+        const scenarioBooks = buildScenarioBooks(scenario)
 
         await testSuite.clearAllStorageData()
         await testSuite.loadInitialData({ books: scenarioBooks })
@@ -142,15 +186,17 @@ describe('跨設備同步工作流程整合測試', () => {
         // eslint-disable-next-line no-unused-vars
         const avgProgress = storageData.books.reduce((sum, book) =>
           sum + book.progress, 0) / storageData.books.length
-        // W1-019：精度由 5 降為 2。浮點平均值在 IEEE 754 下 5 位精度過高，
-        // 跨 suite 負載時 intermittent flaky（W1-017 實證）。2 位精度對此確定性計算足夠。
-        expect(avgProgress).toBeCloseTo(scenario.averageProgress, 2)
+        // W1-075：因 buildScenarioBooks 以整數構造且總和 = averageProgress * bookCount
+        // 為確定性整除整數計算（test-assertion-design-rules 規則 3 豁免允許高精度），
+        // 此處改為直接斷言除法商等於目標值；不再依賴 toBeCloseTo 浮點近似。
+        expect(avgProgress).toBe(scenario.averageProgress)
 
         // eslint-disable-next-line no-unused-vars
         const completedCount = storageData.books.filter(book => book.progress === 100).length
         // eslint-disable-next-line no-unused-vars
         const expectedCompleted = Math.floor(scenario.bookCount * scenario.completedRatio)
-        expect(completedCount).toBeCloseTo(expectedCompleted, 2)
+        // W1-075：completedCount 為純整數計數，使用嚴格相等更精確
+        expect(completedCount).toBe(expectedCompleted)
       }
     })
   })
