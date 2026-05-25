@@ -457,6 +457,8 @@ rg "error" lib/ --glob '!lib/l10n/' --glob '!*.g.dart'
 
 **使用方式**：透過 `ToolSearch(query="select:codegraph_status,codebase-memory-mcp__search,plugin_serena_serena__find_symbol")` 一次載入多工具 schema，再按需呼叫。
 
+**cbm 深度參考**：CLI 用法、`.claude/` 不索引限制、cbm vs codegraph vs serena 分工速查 → `references/codebase-memory-tool.md`
+
 ---
 
 ## WebSearch - 網頁搜尋
@@ -523,6 +525,14 @@ rg --version
 | command not found | 未安裝 | `brew install ripgrep` |
 | 搜尋結果不完整 | .gitignore 排除 | `rg --no-ignore "pattern"` |
 | PCRE2 不可用 | 編譯時未啟用 | `cargo install ripgrep --features pcre2` |
+
+### 三 MCP 已知限制速查
+
+| 限制 | 影響 | Workaround |
+|------|------|----------|
+| cbm MCP namespace 未在 ToolSearch deferred 曝光（v0.6.1） | `mcp__codebase_memory__*` 找不到 | 改用 CLI：`codebase-memory-mcp cli <tool> '<json>'`（詳見 `references/codebase-memory-tool.md` §1） |
+| cbm 對 `.claude/` 不索引（v0.6.1 hardcoded） | `.claude/` 範圍搜尋 cbm 結果為空 | `.claude/` 範圍改用 `rg` + 必要時 serena（詳見 `references/codebase-memory-tool.md` §2） |
+| codegraph 冷啟動需載 embedding model | fresh subprocess 30-60s 不可用 | 用 CC runtime 內已暖機的 `mcp__codegraph__*` deferred tools |
 
 ---
 
