@@ -56,8 +56,17 @@ function convertV1ToV2Book (v1Book, importTimestamp) {
 /**
  * 將 v1 category 字串集合轉換為 tag 結構
  *
+ * W1-057 timestamp 一致化：tag id 中的 tsMs 與 createdAt/updatedAt 的 ISO timestamp
+ * 必須源自單一時間取值，避免「同次 conversion 產生兩個 timestamp」的設計 bug
+ * （違反業務語意一致性，並導致下游測試出現 ms-level race flaky）。
+ *
+ * 實作策略：
+ * - 若 caller 傳入 `timestamp`（ISO 字串），用 `Date.parse()` 解出 `tsMs`，
+ *   保證 tsMs 與 ts 源自同一時刻。
+ * - 若 caller 未傳入，內部一次取 `Date.now()` 並衍生 ISO 字串，避免兩次取值。
+ *
  * @param {string[]} categories - 不重複的 category 名稱陣列
- * @param {string} [timestamp] - 建立時間
+ * @param {string} [timestamp] - 建立時間（ISO 字串），未傳入時內部統一取值
  * @returns {{ tagCategory: Object|null, tags: Object[], categoryToTagIdMap: Map }}
  */
 function convertV1CategoryToTag (categories, timestamp) {
@@ -71,8 +80,18 @@ function convertV1CategoryToTag (categories, timestamp) {
     return { tagCategory: null, tags: [], categoryToTagIdMap: new Map() }
   }
 
-  const ts = timestamp || new Date().toISOString()
-  const tsMs = Date.now()
+  // W1-057：單次時間取值 + 雙向衍生，保證 ts 與 tsMs 同源
+  let ts
+  let tsMs
+  if (timestamp) {
+    ts = timestamp
+    const parsedMs = Date.parse(timestamp)
+    // Date.parse 失敗（NaN）時回退至當下時間，避免產出無效 tag id
+    tsMs = Number.isFinite(parsedMs) ? parsedMs : Date.now()
+  } else {
+    tsMs = Date.now()
+    ts = new Date(tsMs).toISOString()
+  }
 
   const tagCategory = {
     id: IMPORT_CATEGORY_ID,
