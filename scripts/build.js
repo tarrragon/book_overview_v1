@@ -17,6 +17,46 @@ function getEsbuild () {
   return esbuild;
 }
 
+/**
+ * esbuild early validation（0.19.0-W1-080 / source 0.19.0-W1-074 F-4）
+ *
+ * Why: getEsbuild() lazy require 若 esbuild 模組損壞（缺失 / 版本錯誤 /
+ *   binary 不可執行），錯誤會延遲到 bundleEntryPoints() 第一次呼叫時才暴露。
+ *   prod build 此時已執行清空 build/ 目錄 + 複製檔案 + 處理 manifest 等
+ *   副作用，失敗時需手動清理。
+ *
+ * Consequence: 不做 early validation 會讓 esbuild 損壞的失敗在 build flow
+ *   中段才觸發，產生半成品 build/ 目錄並讓使用者誤以為 manifest/copy 階段
+ *   出問題（實際是 esbuild 模組故障）。
+ *
+ * Action: build() 開頭呼叫一次 ensureEsbuildAvailable() 強制 require + 檢查
+ *   .build 屬性，失敗 fail-fast 並提供修復建議。
+ *
+ * 範圍邊界：僅驗證 esbuild 子系統，不觸碰 validateVersionAlignment /
+ *   detectActiveWorklogVersion / WORK_LOGS_ROOT（屬 W1-083 SSOT 反轉範圍）。
+ *
+ * @throws {Error} esbuild 載入失敗時拋出帶診斷訊息的 Error
+ */
+function ensureEsbuildAvailable () {
+  let mod;
+  try {
+    mod = getEsbuild();
+  } catch (err) {
+    throw new Error(
+      `[ESBUILD CHECK] 無法載入 esbuild 模組：${err.message}\n` +
+      '修復建議：\n' +
+      '  1. 確認 node_modules/esbuild 已安裝（npm install --legacy-peer-deps）\n' +
+      '  2. 確認 esbuild binary 對應當前平台（macOS/Linux/Windows）\n' +
+      '  3. 若 npm install 警告 platform binary 失敗，移除 node_modules 後重裝'
+    );
+  }
+  if (!mod || typeof mod.build !== 'function') {
+    throw new Error(
+      '[ESBUILD CHECK] esbuild 模組載入但缺 build() 方法，疑似版本不相容或 binary 損壞'
+    );
+  }
+}
+
 const MODE = process.argv.includes('--prod') ? 'production' : 'development';
 const SKIP_VERSION_CHECK = process.argv.includes('--skip-version-check');
 const BUILD_DIR = path.join(__dirname, '..', 'build', MODE);
@@ -285,6 +325,10 @@ async function bundleEntryPoints() {
 async function build() {
   try {
     console.log(`🔨 開始編譯 ${MODE} 版本...`);
+
+    // esbuild early validation（W1-080）：在副作用前 fail-fast 確認 esbuild 可用，
+    // 避免清空 build/ 目錄 + 複製檔案完成後才在 bundleEntryPoints 撞到模組錯誤。
+    ensureEsbuildAvailable();
 
     // 版號 sanity check（W1-074）
     //

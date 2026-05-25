@@ -21,16 +21,7 @@ const {
   validateHostPermissions,
   validateAll
 } = require('../../../scripts/validate-manifest')
-
-/**
- * 建立 fsAdapter mock：fileExists 由 existingFiles 陣列決定
- * @param {string[]} existingFiles - 視為存在的檔案路徑（絕對路徑或相對路徑）
- */
-function createMockFsAdapter (existingFiles) {
-  return {
-    fileExists: (filePath) => existingFiles.includes(filePath)
-  }
-}
+const { createMinimalFsAdapter } = require('./script-test-helpers')
 
 const BUILD_DIR = '/fake/build/production'
 
@@ -42,7 +33,7 @@ describe('validate-manifest', () => {
         background: { service_worker: 'src/background/background.js' }
       }
       const swPath = path.join(BUILD_DIR, 'src/background/background.js')
-      const fsAdapter = createMockFsAdapter([swPath])
+      const fsAdapter = createMinimalFsAdapter([swPath])
 
       const result = validateManifestVersionAndServiceWorker(manifest, BUILD_DIR, fsAdapter)
 
@@ -55,7 +46,7 @@ describe('validate-manifest', () => {
         manifest_version: 2,
         background: { service_worker: 'src/background/background.js' }
       }
-      const fsAdapter = createMockFsAdapter([])
+      const fsAdapter = createMinimalFsAdapter([])
 
       const result = validateManifestVersionAndServiceWorker(manifest, BUILD_DIR, fsAdapter)
 
@@ -67,7 +58,7 @@ describe('validate-manifest', () => {
 
     it('應在缺少 background 欄位時失敗', () => {
       const manifest = { manifest_version: 3 }
-      const fsAdapter = createMockFsAdapter([])
+      const fsAdapter = createMinimalFsAdapter([])
 
       const result = validateManifestVersionAndServiceWorker(manifest, BUILD_DIR, fsAdapter)
 
@@ -79,7 +70,7 @@ describe('validate-manifest', () => {
 
     it('應在缺少 background.service_worker 時失敗', () => {
       const manifest = { manifest_version: 3, background: {} }
-      const fsAdapter = createMockFsAdapter([])
+      const fsAdapter = createMinimalFsAdapter([])
 
       const result = validateManifestVersionAndServiceWorker(manifest, BUILD_DIR, fsAdapter)
 
@@ -94,7 +85,7 @@ describe('validate-manifest', () => {
         manifest_version: 3,
         background: { service_worker: 'src/background/background.js' }
       }
-      const fsAdapter = createMockFsAdapter([]) // 檔案不存在
+      const fsAdapter = createMinimalFsAdapter([]) // 檔案不存在
 
       const result = validateManifestVersionAndServiceWorker(manifest, BUILD_DIR, fsAdapter)
 
@@ -114,7 +105,7 @@ describe('validate-manifest', () => {
         }]
       }
       const csPath = path.join(BUILD_DIR, 'src/content/content-modular.js')
-      const fsAdapter = createMockFsAdapter([csPath])
+      const fsAdapter = createMinimalFsAdapter([csPath])
 
       const result = validateContentScripts(manifest, BUILD_DIR, fsAdapter)
 
@@ -124,7 +115,7 @@ describe('validate-manifest', () => {
 
     it('應在缺少 content_scripts 欄位時失敗', () => {
       const manifest = {}
-      const fsAdapter = createMockFsAdapter([])
+      const fsAdapter = createMinimalFsAdapter([])
 
       const result = validateContentScripts(manifest, BUILD_DIR, fsAdapter)
 
@@ -136,7 +127,7 @@ describe('validate-manifest', () => {
 
     it('應在 content_scripts 不是陣列時失敗', () => {
       const manifest = { content_scripts: 'not-an-array' }
-      const fsAdapter = createMockFsAdapter([])
+      const fsAdapter = createMinimalFsAdapter([])
 
       const result = validateContentScripts(manifest, BUILD_DIR, fsAdapter)
 
@@ -150,7 +141,7 @@ describe('validate-manifest', () => {
           js: ['src/content/content-modular.js']
         }]
       }
-      const fsAdapter = createMockFsAdapter([]) // 檔案不存在
+      const fsAdapter = createMinimalFsAdapter([]) // 檔案不存在
 
       const result = validateContentScripts(manifest, BUILD_DIR, fsAdapter)
 
@@ -168,7 +159,7 @@ describe('validate-manifest', () => {
         ]
       }
       const existing = [path.join(BUILD_DIR, 'src/content/a.js')] // 只有 a 存在
-      const fsAdapter = createMockFsAdapter(existing)
+      const fsAdapter = createMinimalFsAdapter(existing)
 
       const result = validateContentScripts(manifest, BUILD_DIR, fsAdapter)
 
@@ -182,7 +173,7 @@ describe('validate-manifest', () => {
       const manifest = {
         content_scripts: [{ matches: ['*://*.readmoo.com/*'] }] // 缺 js
       }
-      const fsAdapter = createMockFsAdapter([])
+      const fsAdapter = createMinimalFsAdapter([])
 
       const result = validateContentScripts(manifest, BUILD_DIR, fsAdapter)
 
@@ -316,7 +307,7 @@ describe('validate-manifest', () => {
     }
 
     function validFsAdapter () {
-      return createMockFsAdapter([
+      return createMinimalFsAdapter([
         path.join(BUILD_DIR, 'src/background/background.js'),
         path.join(BUILD_DIR, 'src/content/content-modular.js')
       ])
@@ -342,7 +333,7 @@ describe('validate-manifest', () => {
 
     it('應在 manifest 解析錯誤時透過 fsAdapter 缺檔回報明確錯誤', () => {
       // 全部檔案不存在
-      const result = validateAll(validManifest(), BUILD_DIR, createMockFsAdapter([]))
+      const result = validateAll(validManifest(), BUILD_DIR, createMinimalFsAdapter([]))
 
       expect(result.ok).toBe(false)
       // 應同時包含 SW + CS 缺檔錯誤
