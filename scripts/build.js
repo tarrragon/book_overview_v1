@@ -6,22 +6,147 @@
 
 const fs = require('fs');
 const path = require('path');
-const esbuild = require('esbuild');
+
+// esbuild lazy require：避免單元測試在 jsdom 環境載入本檔時
+// 因 TextEncoder/Uint8Array 不相容崩潰。實際 build flow 仍正常使用。
+let esbuild;
+function getEsbuild () {
+  if (!esbuild) {
+    esbuild = require('esbuild');
+  }
+  return esbuild;
+}
 
 const MODE = process.argv.includes('--prod') ? 'production' : 'development';
+const SKIP_VERSION_CHECK = process.argv.includes('--skip-version-check');
 const BUILD_DIR = path.join(__dirname, '..', 'build', MODE);
 const SOURCE_DIR = path.join(__dirname, '..');
+const WORK_LOGS_ROOT = path.join(SOURCE_DIR, 'docs', 'work-logs', 'v0');
 
-console.log(`🔨 開始編譯 ${MODE} 版本...`);
+/**
+ * 預設 fsAdapter：使用 Node.js fs 模組，與 scripts/validate-manifest.js 同模式
+ *
+ * 設計目的：將 I/O 與純函式驗證邏輯分離，便於單元測試 mock 檔案系統。
+ */
+const defaultFsAdapter = {
+  fileExists: (p) => fs.existsSync(p),
+  readFile: (p) => fs.readFileSync(p, 'utf8'),
+  readdir: (p) => fs.readdirSync(p),
+  stat: (p) => fs.statSync(p)
+};
 
-// 建立輸出目錄
-if (!fs.existsSync(path.dirname(BUILD_DIR))) {
-  fs.mkdirSync(path.dirname(BUILD_DIR), { recursive: true });
+/**
+ * 從 docs/work-logs/v0/ 掃描 active worklog，推斷預期版號
+ *
+ * 業務情境：v0.18.0 已發布後 wave 進入 v0.19.0，但 package.json
+ * 未 bump 造成 dist ZIP 顯示舊版號（0.19.0-W1-002.2 觀察）。
+ * 本函式以 worklog 「**狀態**: 開發中」標記為 SSOT，
+ * 與 package.json 比對作為 build:prod sanity check。
+ *
+ * 掃描策略：
+ *   1. 列舉 docs/work-logs/v0/ 下所有 v* 主版本目錄（如 v0.18, v0.19）
+ *   2. 列舉每個主版本目錄下的 v*.*.* patch 子目錄（如 v0.19.0, v0.19.1）
+ *   3. 讀取 v{patch}-main.md 並偵測「**狀態**: 開發中」標記
+ *   4. 若僅有 1 個 active worklog → 該版號即預期值
+ *   5. 若有 0 或 >1 個 active worklog → 回傳 { ok: false, reason }
+ *
+ * 排序原則：版號以 semantic version 字串排序（適用本專案 v0.x.x），
+ * 多 active 時取最新版作為候選提示，但仍視為錯誤狀態。
+ *
+ * @param {string} workLogsRoot - docs/work-logs/v0/ 絕對路徑
+ * @param {object} fsAdapter - 注入的 fs 介面（測試可 mock）
+ * @returns {{ok: boolean, version?: string, reason?: string, candidates?: string[]}}
+ */
+function detectActiveWorklogVersion (workLogsRoot, fsAdapter = defaultFsAdapter) {
+  if (!fsAdapter.fileExists(workLogsRoot)) {
+    return { ok: false, reason: `worklog 根目錄不存在: ${workLogsRoot}` };
+  }
+
+  const activeVersions = [];
+
+  const majorDirs = fsAdapter.readdir(workLogsRoot)
+    .filter((name) => /^v\d+\.\d+$/.test(name));
+
+  for (const majorDir of majorDirs) {
+    const majorPath = path.join(workLogsRoot, majorDir);
+    if (!fsAdapter.stat(majorPath).isDirectory()) continue;
+
+    const patchDirs = fsAdapter.readdir(majorPath)
+      .filter((name) => /^v\d+\.\d+\.\d+$/.test(name));
+
+    for (const patchDir of patchDirs) {
+      const patchPath = path.join(majorPath, patchDir);
+      if (!fsAdapter.stat(patchPath).isDirectory()) continue;
+
+      const mainFile = path.join(patchPath, `${patchDir}-main.md`);
+      if (!fsAdapter.fileExists(mainFile)) continue;
+
+      const content = fsAdapter.readFile(mainFile);
+      // 偵測「**狀態**: 開發中」標記（容忍前後空白與不同冒號）
+      if (/\*\*狀態\*\*\s*[::]\s*開發中/.test(content)) {
+        // 移除 v 前綴以對齊 package.json 格式
+        activeVersions.push(patchDir.replace(/^v/, ''));
+      }
+    }
+  }
+
+  if (activeVersions.length === 0) {
+    return { ok: false, reason: '未找到任何 active worklog（標記為「**狀態**: 開發中」）' };
+  }
+
+  if (activeVersions.length > 1) {
+    return {
+      ok: false,
+      reason: `找到多個 active worklog（應僅 1 個）: ${activeVersions.join(', ')}`,
+      candidates: activeVersions
+    };
+  }
+
+  return { ok: true, version: activeVersions[0] };
 }
 
-if (!fs.existsSync(BUILD_DIR)) {
-  fs.mkdirSync(BUILD_DIR, { recursive: true });
+/**
+ * 驗證 package.json 版號與 active worklog 版號一致
+ *
+ * 業務情境：W1-072 ANA 結論——build:prod 需 fail-fast 防止
+ * 版號不一致的 ZIP 被分發到內測使用者。借鑑 IMP-068 sync-push
+ * 缺 sanity check 的教訓，將驗證左移至 build 階段。
+ *
+ * 失敗情境（任一成立即 ok=false）：
+ *   - package.json 與 active worklog 版號字串不一致
+ *   - 無法偵測 active worklog（多個 active 或全部已完成）
+ *
+ * @param {string} packageVersion - package.json 的 version 欄位值
+ * @param {string} workLogsRoot - docs/work-logs/v0/ 絕對路徑
+ * @param {object} fsAdapter - 注入的 fs 介面（測試可 mock）
+ * @returns {{ok: boolean, error?: string, expectedVersion?: string, actualVersion?: string}}
+ */
+function validateVersionAlignment (packageVersion, workLogsRoot, fsAdapter = defaultFsAdapter) {
+  const detection = detectActiveWorklogVersion(workLogsRoot, fsAdapter);
+
+  if (!detection.ok) {
+    return {
+      ok: false,
+      error: `[VERSION CHECK] 無法推斷 active worklog 版號：${detection.reason}`,
+      actualVersion: packageVersion
+    };
+  }
+
+  if (detection.version !== packageVersion) {
+    return {
+      ok: false,
+      error: `[VERSION CHECK] package.json 版號 (${packageVersion}) 與 active worklog 版號 (${detection.version}) 不一致`,
+      expectedVersion: detection.version,
+      actualVersion: packageVersion
+    };
+  }
+
+  return { ok: true, expectedVersion: detection.version, actualVersion: packageVersion };
 }
+
+// 注意：build/ 與 BUILD_DIR 的建立移至 build() 函式內執行（PC-N/A：避免模組頂層
+// 副作用污染 require build.js 的測試環境）。實際 build flow 仍會在清理後重建
+// BUILD_DIR（見 build() 內部）。
 
 // 需要複製的檔案和目錄
 //
@@ -118,7 +243,7 @@ async function bundleEntryPoints() {
 
     console.log(`[BUNDLE] 打包 ${entry.name}...`);
 
-    await esbuild.build({
+    await getEsbuild().build({
       entryPoints: [inputPath],
       bundle: true,
       format: entry.format,
@@ -159,6 +284,39 @@ async function bundleEntryPoints() {
  */
 async function build() {
   try {
+    console.log(`🔨 開始編譯 ${MODE} 版本...`);
+
+    // 版號 sanity check（W1-074）
+    //
+    // Why: build:prod 產出的 ZIP 會分發給內測使用者，若 package.json
+    // 版號與 active worklog 不一致，會出現「wave 在 v0.19.0，但 ZIP 顯示
+    // v0.18.0」的混淆（W1-002.2 觀察）。本檢查 fail-fast 防止錯誤版號
+    // 進入內測產出。
+    //
+    // 觸發條件：
+    //   - production mode 強制檢查（除非 --skip-version-check）
+    //   - development mode 預設略過，避免 dev 期短暫不一致干擾
+    //
+    // 逃生閥：--skip-version-check flag（dev 期暫時不一致時使用）
+    if (MODE === 'production' && !SKIP_VERSION_CHECK) {
+      const packageJsonPath = path.join(SOURCE_DIR, 'package.json');
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+      const result = validateVersionAlignment(packageJson.version, WORK_LOGS_ROOT);
+
+      if (!result.ok) {
+        console.error(result.error);
+        console.error('[VERSION CHECK] 修復建議：');
+        console.error('  1. 確認 docs/work-logs/v0/ 下有且僅有 1 個 worklog 標記「**狀態**: 開發中」');
+        console.error('  2. 執行 version-release 流程或手動 bump package.json + manifest.json');
+        console.error('  3. dev 期暫時不一致：使用 --skip-version-check flag 繞過');
+        process.exit(1);
+      }
+
+      console.log(`[VERSION CHECK] package.json (${result.actualVersion}) 與 active worklog 一致`);
+    } else if (MODE === 'production' && SKIP_VERSION_CHECK) {
+      console.warn('[VERSION CHECK] 已透過 --skip-version-check 略過版號 sanity check');
+    }
+
     // 清理輸出目錄
     if (fs.existsSync(BUILD_DIR)) {
       fs.rmSync(BUILD_DIR, { recursive: true, force: true });
@@ -237,4 +395,16 @@ async function build() {
   }
 }
 
-build();
+// 僅在直接執行時觸發 build；require 時僅匯出純函式供測試。
+//
+// 設計參考 scripts/validate-manifest.js 同模式：純函式 + I/O 分離，
+// 測試可注入 mock fsAdapter 而不需建立實體 docs/work-logs/ 結構。
+if (require.main === module) {
+  build();
+}
+
+module.exports = {
+  detectActiveWorklogVersion,
+  validateVersionAlignment,
+  defaultFsAdapter
+};
