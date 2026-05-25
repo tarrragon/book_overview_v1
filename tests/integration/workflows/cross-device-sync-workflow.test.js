@@ -121,58 +121,14 @@ describe('跨設備同步工作流程整合測試', () => {
       // W1-075：採行修復方向 C（重設計 mock data）— 不再使用
       // testDataGenerator.generateBooksWithProgress（含 randomInt 變動 + 邊界 clamp，
       // 在 heavy-reader-device 場景 ~5% 機率產生 dev > 0.005 觸發 toBeCloseTo flaky）。
-      // 改以本地確定性建構：所有 inProgress 書籍取相同整數進度，
-      // 由最後一本書承接整數餘數，保證總和精確 = averageProgress * bookCount。
-      // 詳見 W1-075 Problem Analysis。
-      const buildScenarioBooks = (scenario) => {
-        const { name, bookCount, completedRatio, averageProgress } = scenario
-        const completedCount = Math.floor(bookCount * completedRatio)
-        const inProgressCount = bookCount - completedCount
-        const totalTarget = averageProgress * bookCount
-        const completedContribution = completedCount * 100
-        const inProgressTotalNeeded = totalTarget - completedContribution
-        // 每本 inProgress 書籍取下取整商；最後一本承接餘數，總和精確
-        const baseProgress = inProgressCount > 0
-          ? Math.floor(inProgressTotalNeeded / inProgressCount)
-          : 0
-        const remainder = inProgressCount > 0
-          ? inProgressTotalNeeded - baseProgress * inProgressCount
-          : 0
-
-        const books = []
-        for (let i = 0; i < completedCount; i++) {
-          books.push({
-            id: `${name}-completed-${i + 1}`,
-            title: `已完成書籍 ${i + 1} - ${name}`,
-            progress: 100,
-            status: 'completed',
-            isFinished: true,
-            author: '測試作者',
-            category: '測試分類'
-          })
-        }
-        for (let i = 0; i < inProgressCount; i++) {
-          // 最後一本承接餘數；其餘取 baseProgress
-          const progress = (i === inProgressCount - 1)
-            ? baseProgress + remainder
-            : baseProgress
-          books.push({
-            id: `${name}-inprogress-${i + 1}`,
-            title: `閱讀中書籍 ${i + 1} - ${name}`,
-            progress,
-            status: 'reading',
-            isFinished: false,
-            author: '測試作者',
-            category: '測試分類'
-          })
-        }
-        return books
-      }
+      // W1-079：原 local function buildScenarioBooks 已抽出為 TestDataGenerator class 方法
+      // 並追加 guard clause（inProgressTotalNeeded < 0 時 throw），供未來新 scenario 測試複用。
+      // 詳見 W1-075 Problem Analysis + W1-079 Solution。
 
       for (const scenario of scenarios) {
-        // When: 設定不同場景的資料（W1-075：改用本地確定性建構器）
+        // When: 設定不同場景的資料（W1-075：改用確定性建構；W1-079：呼叫 class 方法）
         // eslint-disable-next-line no-unused-vars
-        const scenarioBooks = buildScenarioBooks(scenario)
+        const scenarioBooks = testDataGenerator.buildScenarioBooks(scenario)
 
         await testSuite.clearAllStorageData()
         await testSuite.loadInitialData({ books: scenarioBooks })
