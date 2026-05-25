@@ -6,6 +6,8 @@
 >
 > **與 `environment-recovery-guide.md` 的分工**：本文件處理 Claude Code session 層（MCP servers）；環境恢復指南處理 npm / build artifact 層。兩者皆為新環境必須完成的初始化。
 
+> **安裝指令規範（PC-159）**：本文件所有 npm / pip / brew / uv 等套件安裝指令**必須使用完整 scoped package name**（如 `@scope/pkg-name`）或完整 registry URL，**禁止使用未驗證的短名**。**Why**：npm/PyPI 短名易被 placeholder package 占據，造成「指令通過但載入錯版本」的靜默失敗（W3-050 codegraph 短名實證案例）。**Consequence**：未遵守會導致 fresh shell 安裝後 MCP 載入失敗、deferred tools 不出現，新開發者環境初始化卡關。**Action**：每次新增或修改安裝指令時，在 fresh shell（新 terminal，無既有環境變數加成）執行驗證後才寫入本文件；package name 須附 `npm info <name>` / `pip show <name>` 等 registry 驗證結果於 commit message 或對應 ticket Test Results。
+
 ---
 
 ## MCP Servers 總覽
@@ -51,7 +53,7 @@ codebase-memory-mcp --version
 透過 npm global 安裝（user-level）：
 
 ```bash
-npm install -g codegraph
+npm install -g @astudioplus/codegraph-mcp
 codegraph --version
 ```
 
