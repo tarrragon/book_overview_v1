@@ -67,6 +67,9 @@ const WORK_LOGS_ROOT = path.join(SOURCE_DIR, 'docs', 'work-logs', 'v0');
  * 預設 fsAdapter：使用 Node.js fs 模組，與 scripts/validate-manifest.js 同模式
  *
  * 設計目的：將 I/O 與純函式驗證邏輯分離，便於單元測試 mock 檔案系統。
+ *
+ * W1-083 擴充：syncWorklogStatus 需要寫入能力，於 defaultFsWriter 提供
+ * 並維持與 fsAdapter 同樣的注入模式，測試可獨立 mock 寫入路徑。
  */
 const defaultFsAdapter = {
   fileExists: (p) => fs.existsSync(p),
@@ -74,6 +77,52 @@ const defaultFsAdapter = {
   readdir: (p) => fs.readdirSync(p),
   stat: (p) => fs.statSync(p)
 };
+
+/**
+ * 預設 fsWriter：供 syncWorklogStatus 寫入 worklog main.md
+ *
+ * 設計目的：將寫入操作與讀取操作分離。讀取（fsAdapter）為驗證的基礎能力，
+ * 寫入（fsWriter）僅由 syncWorklogStatus 使用，分離有助於降低測試 mock 的
+ * 認知負擔——驗證測試無需 mock 寫入，sync 測試無需 mock 讀取的全部介面。
+ */
+const defaultFsWriter = {
+  writeFile: (p, content) => fs.writeFileSync(p, content, 'utf8')
+};
+
+/**
+ * 根據 package.json 版號推斷對應的 worklog patch 目錄路徑
+ *
+ * 業務情境：W1-083 SSOT 反轉後，package.json 是版本源，build 階段
+ * 需確認對應的 worklog 目錄（如 docs/work-logs/v0/v0.19/v0.19.0/）
+ * 確實存在。本函式為純路徑推斷工具，無 I/O 副作用。
+ *
+ * 推斷規則：
+ *   - 0.19.0 -> v0/v0.19/v0.19.0/v0.19.0-main.md
+ *   - 0.18.3 -> v0/v0.18/v0.18.3/v0.18.3-main.md
+ *   - major 取 v{M.m}（前兩段），patch 取 v{M.m.p}（完整三段）
+ *
+ * 邊界：本函式僅支援 M.m.p 三段格式，不處理 pre-release / build metadata
+ * （Chrome Extension manifest version 規範即三段，無 pre-release 需求）。
+ *
+ * @param {string} packageVersion - package.json 的 version 欄位值
+ * @param {string} workLogsRoot - docs/work-logs/v0/ 絕對路徑
+ * @returns {{ok: boolean, mainFile?: string, patchDir?: string, error?: string}}
+ */
+function resolveWorklogPath (packageVersion, workLogsRoot) {
+  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(packageVersion);
+  if (!match) {
+    return {
+      ok: false,
+      error: `[VERSION CHECK] package.json 版號格式不符 (預期 M.m.p)：${packageVersion}`
+    };
+  }
+  const [, major, minor] = match;
+  const majorDir = `v${major}.${minor}`;
+  const patchDir = `v${packageVersion}`;
+  const patchPath = path.join(workLogsRoot, majorDir, patchDir);
+  const mainFile = path.join(patchPath, `${patchDir}-main.md`);
+  return { ok: true, patchDir: patchPath, mainFile };
+}
 
 /**
  * 從 docs/work-logs/v0/ 掃描 active worklog，推斷預期版號
@@ -146,42 +195,142 @@ function detectActiveWorklogVersion (workLogsRoot, fsAdapter = defaultFsAdapter)
 }
 
 /**
- * 驗證 package.json 版號與 active worklog 版號一致
+ * 驗證 package.json 版號對應的 worklog 目錄存在（W1-083 SSOT 反轉）
  *
- * 業務情境：W1-072 ANA 結論——build:prod 需 fail-fast 防止
- * 版號不一致的 ZIP 被分發到內測使用者。借鑑 IMP-068 sync-push
- * 缺 sanity check 的教訓，將驗證左移至 build 階段。
+ * 業務情境：W1-077 ANA 推薦方向 A——package.json 為唯一版本 source of truth，
+ * worklog 標記由 script 自動 sync。本函式不再以 worklog 標記為斷言來源，
+ * 改為「以 package.json 版號為源 → 確認對應 worklog 目錄與 main.md 存在」。
+ *
+ * SSOT 設計說明（與 W1-074 舊邏輯對比）：
+ *   - 舊邏輯：讀 worklog 「狀態: 開發中」標記 → 推斷預期版號 → 對比 package.json
+ *     （worklog 為 SSOT，人工維護易遺漏）
+ *   - 新邏輯：讀 package.json 版號 → 驗證對應 worklog 目錄存在
+ *     （package.json 為 SSOT，符合 npm/Chrome Extension 生態慣例）
  *
  * 失敗情境（任一成立即 ok=false）：
- *   - package.json 與 active worklog 版號字串不一致
- *   - 無法偵測 active worklog（多個 active 或全部已完成）
+ *   - package.json 版號格式不符 M.m.p（resolveWorklogPath 失敗）
+ *   - 對應的 worklog patch 目錄不存在（如 v0.99.0 未建立目錄）
+ *   - 對應的 main.md 不存在（目錄存在但缺主檔案）
+ *
+ * 補救路徑：syncWorklogStatus 負責「目錄存在但標記為已完成」的自動更新；
+ * 本函式聚焦「結構性存在性」斷言，避免單一函式承載過多職責。
  *
  * @param {string} packageVersion - package.json 的 version 欄位值
  * @param {string} workLogsRoot - docs/work-logs/v0/ 絕對路徑
  * @param {object} fsAdapter - 注入的 fs 介面（測試可 mock）
- * @returns {{ok: boolean, error?: string, expectedVersion?: string, actualVersion?: string}}
+ * @returns {{ok: boolean, error?: string, actualVersion?: string, expectedMainFile?: string}}
  */
 function validateVersionAlignment (packageVersion, workLogsRoot, fsAdapter = defaultFsAdapter) {
-  const detection = detectActiveWorklogVersion(workLogsRoot, fsAdapter);
+  const resolved = resolveWorklogPath(packageVersion, workLogsRoot);
+  if (!resolved.ok) {
+    return { ok: false, error: resolved.error, actualVersion: packageVersion };
+  }
 
-  if (!detection.ok) {
+  if (!fsAdapter.fileExists(resolved.patchDir)) {
     return {
       ok: false,
-      error: `[VERSION CHECK] 無法推斷 active worklog 版號：${detection.reason}`,
-      actualVersion: packageVersion
+      error: `[VERSION CHECK] package.json 版號 (${packageVersion}) 對應的 worklog 目錄不存在: ${resolved.patchDir}`,
+      actualVersion: packageVersion,
+      expectedMainFile: resolved.mainFile
     };
   }
 
-  if (detection.version !== packageVersion) {
+  if (!fsAdapter.fileExists(resolved.mainFile)) {
     return {
       ok: false,
-      error: `[VERSION CHECK] package.json 版號 (${packageVersion}) 與 active worklog 版號 (${detection.version}) 不一致`,
-      expectedVersion: detection.version,
-      actualVersion: packageVersion
+      error: `[VERSION CHECK] package.json 版號 (${packageVersion}) 對應的 worklog 主檔案不存在: ${resolved.mainFile}`,
+      actualVersion: packageVersion,
+      expectedMainFile: resolved.mainFile
     };
   }
 
-  return { ok: true, expectedVersion: detection.version, actualVersion: packageVersion };
+  return {
+    ok: true,
+    actualVersion: packageVersion,
+    expectedMainFile: resolved.mainFile
+  };
+}
+
+/**
+ * 同步 worklog 狀態標記至「開發中」（W1-083 SSOT 反轉補救路徑）
+ *
+ * 業務情境：W1-077 ANA 方向 A 的核心——當 package.json bump 至新版本後，
+ * 開發者可能忘記手動更新對應 worklog main.md 的「狀態: 開發中」標記。
+ * 本函式由 build:prod 在 validate 通過後自動觸發，將標記同步為「開發中」，
+ * 落實 Linus 原則「Don't add a check for the thing humans forget to do.
+ * Make it impossible to forget.」
+ *
+ * 行為矩陣：
+ *   - main.md 不存在 → ok=false（交由 validate 階段處理，本函式不重複報錯）
+ *   - 標記已為「開發中」 → ok=true, changed=false（no-op）
+ *   - 標記為「已完成」/其他 → 改寫為「開發中」，ok=true, changed=true
+ *   - 無「狀態」標記行 → ok=false（worklog 結構異常，需人工處理）
+ *
+ * 容錯設計：regex 容忍前後空白與全形/半形冒號，與 detectActiveWorklogVersion
+ * 的偵測邏輯對稱，避免兩處對「狀態」標記格式的判定漂移。
+ *
+ * 不在本函式範圍：
+ *   - 建立 worklog 目錄或 main.md（屬 version-release skill start 子命令）
+ *   - 將舊版本標記為「已完成」（屬 version-release skill release 子命令）
+ *   本函式僅處理「當前 package.json 版號 → 標記為開發中」的單向 sync。
+ *
+ * @param {string} packageVersion - package.json 的 version 欄位值
+ * @param {string} workLogsRoot - docs/work-logs/v0/ 絕對路徑
+ * @param {object} fsAdapter - 注入的 fs 介面（測試可 mock）
+ * @param {object} fsWriter - 注入的寫入介面（測試可 mock）
+ * @returns {{ok: boolean, changed?: boolean, previousStatus?: string, error?: string, mainFile?: string}}
+ */
+function syncWorklogStatus (
+  packageVersion,
+  workLogsRoot,
+  fsAdapter = defaultFsAdapter,
+  fsWriter = defaultFsWriter
+) {
+  const resolved = resolveWorklogPath(packageVersion, workLogsRoot);
+  if (!resolved.ok) {
+    return { ok: false, error: resolved.error };
+  }
+
+  if (!fsAdapter.fileExists(resolved.mainFile)) {
+    return {
+      ok: false,
+      error: `[WORKLOG SYNC] worklog 主檔案不存在: ${resolved.mainFile}`,
+      mainFile: resolved.mainFile
+    };
+  }
+
+  const content = fsAdapter.readFile(resolved.mainFile);
+  // 容忍前後空白與全形/半形冒號（U+003A / U+FF1A）。
+  // 注意：detectActiveWorklogVersion 既有 regex 寫法為 [::] 但兩字元皆為半形冒號
+  // （W1-074 implementation bug，註解誤稱支援全形）；本函式採顯式 escape [:：]
+  // 確保真正支援，避免本 ticket 引入新 regex bug。既有 detect 函式的 regex
+  // 不在 W1-083 範圍內修正，留待後續 ticket 處理。
+  const statusRegex = /(\*\*狀態\*\*\s*[:：]\s*)([^\n\r]+)/;
+  const match = statusRegex.exec(content);
+
+  if (!match) {
+    return {
+      ok: false,
+      error: `[WORKLOG SYNC] worklog 主檔案缺少「**狀態**: ...」標記行: ${resolved.mainFile}`,
+      mainFile: resolved.mainFile
+    };
+  }
+
+  const previousStatus = match[2].trim();
+  if (previousStatus === '開發中') {
+    return { ok: true, changed: false, previousStatus, mainFile: resolved.mainFile };
+  }
+
+  // 改寫狀態為「開發中」並保留前綴格式（冒號樣式、間距）
+  const updatedContent = content.replace(statusRegex, `$1開發中`);
+  fsWriter.writeFile(resolved.mainFile, updatedContent);
+
+  return {
+    ok: true,
+    changed: true,
+    previousStatus,
+    mainFile: resolved.mainFile
+  };
 }
 
 // 注意：build/ 與 BUILD_DIR 的建立移至 build() 函式內執行（PC-N/A：避免模組頂層
@@ -330,15 +479,23 @@ async function build() {
     // 避免清空 build/ 目錄 + 複製檔案完成後才在 bundleEntryPoints 撞到模組錯誤。
     ensureEsbuildAvailable();
 
-    // 版號 sanity check（W1-074）
+    // 版號 sanity check（W1-074 -> W1-083 SSOT 反轉）
     //
-    // Why: build:prod 產出的 ZIP 會分發給內測使用者，若 package.json
-    // 版號與 active worklog 不一致，會出現「wave 在 v0.19.0，但 ZIP 顯示
-    // v0.18.0」的混淆（W1-002.2 觀察）。本檢查 fail-fast 防止錯誤版號
-    // 進入內測產出。
+    // Why: build:prod 產出的 ZIP 會分發給內測使用者，需確認 package.json
+    // （ npm/Chrome Extension 生態唯一版本源）對應的 worklog 目錄存在，
+    // 並將 worklog 狀態標記自動 sync 為「開發中」，避免人工遺漏導致
+    // 「ZIP 帶錯版號」或「worklog 標記與實際版本漂移」（W1-077 ANA 結論）。
+    //
+    // 兩階段流程：
+    //   1. validateVersionAlignment：以 package.json 為源，斷言對應 worklog
+    //      目錄與 main.md 存在；不存在 fail-fast（如 bump 至全新版號但忘記
+    //      建 worklog 目錄）。
+    //   2. syncWorklogStatus：通過 validate 後自動將 worklog 標記同步為
+    //      「開發中」，補救「狀態漂移」情境（如新版本目錄已建立但標記仍為
+    //      已完成 / 缺漏）。
     //
     // 觸發條件：
-    //   - production mode 強制檢查（除非 --skip-version-check）
+    //   - production mode 強制執行（除非 --skip-version-check）
     //   - development mode 預設略過，避免 dev 期短暫不一致干擾
     //
     // 逃生閥：--skip-version-check flag（dev 期暫時不一致時使用）
@@ -350,15 +507,29 @@ async function build() {
       if (!result.ok) {
         console.error(result.error);
         console.error('[VERSION CHECK] 修復建議：');
-        console.error('  1. 確認 docs/work-logs/v0/ 下有且僅有 1 個 worklog 標記「**狀態**: 開發中」');
-        console.error('  2. 執行 version-release 流程或手動 bump package.json + manifest.json');
+        console.error('  1. 確認 docs/work-logs/v0/v{major}/v{patch}/v{patch}-main.md 已建立');
+        console.error('  2. 執行 version-release skill 的 start 子命令自動建立 worklog 結構');
         console.error('  3. dev 期暫時不一致：使用 --skip-version-check flag 繞過');
         process.exit(1);
       }
 
-      console.log(`[VERSION CHECK] package.json (${result.actualVersion}) 與 active worklog 一致`);
+      console.log(`[VERSION CHECK] package.json (${result.actualVersion}) 對應 worklog 存在`);
+
+      // Auto-sync worklog 狀態標記至「開發中」（W1-083 補救路徑）
+      const syncResult = syncWorklogStatus(packageJson.version, WORK_LOGS_ROOT);
+      if (!syncResult.ok) {
+        console.warn(`[WORKLOG SYNC] ${syncResult.error}`);
+        // 不 fail-fast：validate 已通過，sync 失敗不阻擋 build
+        // 但顯示警告讓開發者注意 worklog 結構異常
+      } else if (syncResult.changed) {
+        console.log(
+          `[WORKLOG SYNC] worklog 標記自動更新「${syncResult.previousStatus}」-> 「開發中」: ${syncResult.mainFile}`
+        );
+      } else {
+        console.log(`[WORKLOG SYNC] worklog 標記已為「開發中」(no-op)`);
+      }
     } else if (MODE === 'production' && SKIP_VERSION_CHECK) {
-      console.warn('[VERSION CHECK] 已透過 --skip-version-check 略過版號 sanity check');
+      console.warn('[VERSION CHECK] 已透過 --skip-version-check 略過版號 sanity check + worklog sync');
     }
 
     // 清理輸出目錄
@@ -450,5 +621,8 @@ if (require.main === module) {
 module.exports = {
   detectActiveWorklogVersion,
   validateVersionAlignment,
-  defaultFsAdapter
+  syncWorklogStatus,
+  resolveWorklogPath,
+  defaultFsAdapter,
+  defaultFsWriter
 };
