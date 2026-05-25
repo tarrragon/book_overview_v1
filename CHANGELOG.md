@@ -2,6 +2,22 @@
 
 本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.19.0] - In Development
+
+### 端到端驗證、打包、內測準備與流程規格化 — 進行中
+
+**版本目標**：Readmoo 實機提取 + 匯出入端到端功能驗證 + 可分發 ZIP 打包 + 安裝指南 + E2E 流程契約規格化。
+
+**正在進行**（內容待 release 時補完，由 version-release 流程更新）：
+- Tag-based Book Model runtime pipeline 落地（W1-009 系列）
+- SPA lazy-load 提取完整化（W1-030：96/928 → 928/944 涵蓋率）
+- E2E 真實瀏覽器 regression 測試基礎建設（W1-008）
+- Readmoo URL 規範統一（W1-029 系列）
+- 內測 ZIP 打包流程驗證（W1-002 系列）
+- Framework 品質改善（W3 系列：version-release skill 修復、文件規格化）
+
+**版本 bump 時機**：本版本於 W1-072 ANA 評估後採方向 C（內測前 bump），於 W1-073 執行 package.json + manifest.json 0.18.0 → 0.19.0。
+
 ## [v0.18.0] - 2026-05-20
 
 ### 測試重寫與品質恢復 — 對齊 Tag-based Book Model + 框架基礎建設全面強化
