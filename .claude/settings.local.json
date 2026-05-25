@@ -182,7 +182,10 @@
       "mcp__chrome-devtools__close_page",
       "Skill(error-pattern)",
       "Skill(parallel-evaluation)",
-      "mcp__chrome-devtools__upload_file"
+      "mcp__chrome-devtools__upload_file",
+      "Bash(mkdir -p __TRACKED_VAR__/readmoo-ext-w1-002-2)",
+      "Bash(rm -rf __TRACKED_VAR__/readmoo-ext-w1-002-2/*)",
+      "Bash(unzip -q dist/readmoo-book-extractor-v0.18.0.zip -d __TRACKED_VAR__/readmoo-ext-w1-002-2/)"
     ]
   },
   "enableAllProjectMcpServers": true,
