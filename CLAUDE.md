@@ -22,8 +22,13 @@
 
 **啟用的 MCP/Plugin**:
 
-- serena - 語意程式碼操作
+- chrome-devtools - Chrome Extension 實機測試與 debug（專案層級 .mcp.json）
+- codebase-memory-mcp - Codebase 知識圖譜 + ADR 管理 + 架構查詢（專案層級 .mcp.json）
+- codegraph - Tree-sitter 解析的符號級程式碼搜尋與圖譜（專案層級 .mcp.json）
+- serena - 語意程式碼操作 / LSP 級重構（user-level 配置）
 - context7 - 文件查詢
+
+> 安裝與驗證流程：`docs/development-setup.md`；三 MCP 工具選擇策略亦在該文件。
 
 ---
 

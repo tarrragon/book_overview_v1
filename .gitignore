@@ -100,3 +100,6 @@ backups/
 
 # E2E test screenshots (generated artifacts)
 tests/e2e/screenshots/
+
+# CodeGraph MCP index (per-developer local index, see docs/development-setup.md)
+.codegraph/
