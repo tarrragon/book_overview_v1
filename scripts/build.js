@@ -171,8 +171,10 @@ function detectActiveWorklogVersion (workLogsRoot, fsAdapter = defaultFsAdapter)
       if (!fsAdapter.fileExists(mainFile)) continue;
 
       const content = fsAdapter.readFile(mainFile);
-      // 偵測「**狀態**: 開發中」標記（容忍前後空白與不同冒號）
-      if (/\*\*狀態\*\*\s*[::]\s*開發中/.test(content)) {
+      // 偵測「**狀態**: 開發中」標記（容忍前後空白與全形/半形冒號 U+003A / U+FF1A）。
+      // W1-084 修復：原 regex [::] 兩字元皆為半形冒號（W1-074 implementation bug），
+      // 改為顯式 escape [:：] 與 syncWorklogStatus（line 308）對稱真正支援全形冒號。
+      if (/\*\*狀態\*\*\s*[:：]\s*開發中/.test(content)) {
         // 移除 v 前綴以對齊 package.json 格式
         activeVersions.push(patchDir.replace(/^v/, ''));
       }
@@ -301,10 +303,8 @@ function syncWorklogStatus (
 
   const content = fsAdapter.readFile(resolved.mainFile);
   // 容忍前後空白與全形/半形冒號（U+003A / U+FF1A）。
-  // 注意：detectActiveWorklogVersion 既有 regex 寫法為 [::] 但兩字元皆為半形冒號
-  // （W1-074 implementation bug，註解誤稱支援全形）；本函式採顯式 escape [:：]
-  // 確保真正支援，避免本 ticket 引入新 regex bug。既有 detect 函式的 regex
-  // 不在 W1-083 範圍內修正，留待後續 ticket 處理。
+  // 與 detectActiveWorklogVersion（line 175）對稱採顯式 [:：] 確保全形冒號支援
+  // （W1-074 implementation bug 於 W1-083 + W1-084 完整修復）。
   const statusRegex = /(\*\*狀態\*\*\s*[:：]\s*)([^\n\r]+)/;
   const match = statusRegex.exec(content);
 
