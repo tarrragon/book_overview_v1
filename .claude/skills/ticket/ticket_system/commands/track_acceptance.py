@@ -47,6 +47,7 @@ from ticket_system.lib.command_tracking_messages import (
     TrackAcceptanceMessages,
     format_msg,
 )
+from ticket_system.lib.precondition import require_in_progress
 from ticket_system.lib.ticket_ops import (
     load_and_validate_ticket,
     resolve_ticket_path,
@@ -620,10 +621,25 @@ def execute_append_log(args: argparse.Namespace, version: str) -> int:
 
 def _execute_append_log_locked(args: argparse.Namespace, version: str) -> int:
     """append-log 主邏輯（已位於 file_lock 內）。"""
+    import sys as _sys
+
     ticket = load_ticket(version, args.ticket_id)
     if not ticket:
         print(format_error(ErrorMessages.TICKET_NOT_FOUND, ticket_id=args.ticket_id))
         return 1
+
+    # W3-044: body-op precondition 檢查（status 必須 in_progress 或 completed-allow）
+    force = bool(getattr(args, "force", False))
+    ok, error_msg = require_in_progress(
+        ticket,
+        args.ticket_id,
+        "append-log",
+        allow_completed=True,  # append-log 支援 completed 補 review
+        force=force,
+    )
+    if not ok:
+        _sys.stderr.write(error_msg + "\n")
+        return 2
 
     # 驗證 section 參數
     valid_sections = TrackAcceptanceMessages.VALID_SECTIONS

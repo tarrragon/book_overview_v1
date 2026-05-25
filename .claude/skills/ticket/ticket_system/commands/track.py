@@ -802,6 +802,12 @@ def _register_acceptance_commands(
     )
     p_append_log.add_argument("content", help=TrackMessages.ARG_CONTENT)
     p_append_log.add_argument("--version", help=TrackMessages.ARG_VERSION)
+    p_append_log.add_argument(
+        "--force",
+        action="store_true",
+        default=False,
+        help="W3-044 逃生閥：旁路 status precondition 檢查（記入 hook-logs）",
+    )
 
     # accept-creation 操作
     p_accept_creation = subparsers.add_parser(
