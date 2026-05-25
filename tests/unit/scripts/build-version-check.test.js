@@ -145,6 +145,27 @@ describe('detectActiveWorklogVersion（保留為公用工具）', () => {
     expect(result.reason).toMatch(/找到多個 active worklog/)
     expect(result.candidates).toEqual(expect.arrayContaining(['0.19.0', '0.20.0']))
   })
+
+  it('應容忍全形冒號 U+FF1A 標記（W1-084 regex bug 修復）', () => {
+    // W1-084: 原 regex [::] 兩字元皆為半形冒號 U+003A，註解卻聲稱支援全形。
+    // syncWorklogStatus 已採顯式 [:：]（U+003A + U+FF1A），本測試確保
+    // detectActiveWorklogVersion 對稱支援全形冒號，避免兩函式對「狀態」標記
+    // 格式判定漂移（W1-083 PC-074 同源風險）。
+    const files = {
+      [WORK_LOGS_ROOT]: null,
+      [path.join(WORK_LOGS_ROOT, 'v0.19')]: null,
+      [path.join(WORK_LOGS_ROOT, 'v0.19', 'v0.19.0')]: null,
+      // 使用顯式 U+FF1A 全形冒號（與 syncWorklogStatus 測試對稱）
+      [path.join(WORK_LOGS_ROOT, 'v0.19', 'v0.19.0', 'v0.19.0-main.md')]:
+        '# v0.19.0 版本工作日誌\n\n**版本號**: v0.19.0\n**狀態**：開發中\n'
+    }
+    const fsAdapter = createFullFsAdapter(files)
+
+    const result = detectActiveWorklogVersion(WORK_LOGS_ROOT, fsAdapter)
+
+    expect(result.ok).toBe(true)
+    expect(result.version).toBe('0.19.0')
+  })
 })
 
 describe('validateVersionAlignment（W1-083 反轉：package.json 為 SSOT）', () => {
