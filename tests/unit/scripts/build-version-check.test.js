@@ -21,51 +21,9 @@ const {
   detectActiveWorklogVersion,
   validateVersionAlignment
 } = require('../../../scripts/build')
+const { createFullFsAdapter } = require('./script-test-helpers')
 
 const WORK_LOGS_ROOT = '/fake/docs/work-logs/v0'
-
-/**
- * 建立記憶體 fsAdapter mock
- *
- * @param {object} files - 路徑 → 內容字串對應表（內容為 null 表示為目錄）
- *
- * mock 行為：
- *   - fileExists(p)：path 存在於 files 即 true
- *   - readFile(p)：回傳 files[p]（必須是字串）
- *   - readdir(p)：列舉所有 files 中以 p 為前綴且為直接子項的名稱
- *   - stat(p)：files[p] === null 表示目錄，其他表示檔案
- */
-function createMockFsAdapter (files) {
-  const norm = (p) => p.replace(/\/+$/, '')
-  return {
-    fileExists: (p) => Object.prototype.hasOwnProperty.call(files, norm(p)),
-    readFile: (p) => {
-      const content = files[norm(p)]
-      if (typeof content !== 'string') {
-        throw new Error(`mock readFile: ${p} 非檔案`)
-      }
-      return content
-    },
-    readdir: (p) => {
-      const prefix = norm(p) + '/'
-      const directChildren = new Set()
-      for (const fullPath of Object.keys(files)) {
-        if (fullPath.startsWith(prefix)) {
-          const remainder = fullPath.slice(prefix.length)
-          const firstSegment = remainder.split('/')[0]
-          if (firstSegment) directChildren.add(firstSegment)
-        }
-      }
-      return Array.from(directChildren)
-    },
-    stat: (p) => {
-      const content = files[norm(p)]
-      return {
-        isDirectory: () => content === null
-      }
-    }
-  }
-}
 
 /**
  * 建立 worklog main.md 的記憶體 mock 內容
@@ -112,7 +70,7 @@ describe('detectActiveWorklogVersion', () => {
       { major: 'v0.18', patch: 'v0.18.0', status: '已完成' },
       { major: 'v0.19', patch: 'v0.19.0', status: '開發中' }
     ])
-    const fsAdapter = createMockFsAdapter(files)
+    const fsAdapter = createFullFsAdapter(files)
 
     const result = detectActiveWorklogVersion(WORK_LOGS_ROOT, fsAdapter)
 
@@ -125,7 +83,7 @@ describe('detectActiveWorklogVersion', () => {
       { major: 'v0.18', patch: 'v0.18.0', status: '已完成' },
       { major: 'v0.19', patch: 'v0.19.0', status: '已完成' }
     ])
-    const fsAdapter = createMockFsAdapter(files)
+    const fsAdapter = createFullFsAdapter(files)
 
     const result = detectActiveWorklogVersion(WORK_LOGS_ROOT, fsAdapter)
 
@@ -138,7 +96,7 @@ describe('detectActiveWorklogVersion', () => {
       { major: 'v0.19', patch: 'v0.19.0', status: '開發中' },
       { major: 'v0.20', patch: 'v0.20.0', status: '開發中' }
     ])
-    const fsAdapter = createMockFsAdapter(files)
+    const fsAdapter = createFullFsAdapter(files)
 
     const result = detectActiveWorklogVersion(WORK_LOGS_ROOT, fsAdapter)
 
@@ -148,7 +106,7 @@ describe('detectActiveWorklogVersion', () => {
   })
 
   it('應在 workLogsRoot 不存在時回傳失敗', () => {
-    const fsAdapter = createMockFsAdapter({})
+    const fsAdapter = createFullFsAdapter({})
 
     const result = detectActiveWorklogVersion(WORK_LOGS_ROOT, fsAdapter)
 
@@ -164,7 +122,7 @@ describe('detectActiveWorklogVersion', () => {
     files[path.join(WORK_LOGS_ROOT, 'v0.19', 'v0.19.0', 'tickets')] = null
     files[path.join(WORK_LOGS_ROOT, 'v0.19', 'v0.19.0', 'i18n-backlog.md')] = '# noise'
     files[path.join(WORK_LOGS_ROOT, 'README.md')] = '# meta'
-    const fsAdapter = createMockFsAdapter(files)
+    const fsAdapter = createFullFsAdapter(files)
 
     const result = detectActiveWorklogVersion(WORK_LOGS_ROOT, fsAdapter)
 
@@ -178,7 +136,7 @@ describe('validateVersionAlignment', () => {
     const files = buildWorklogTree([
       { major: 'v0.19', patch: 'v0.19.0', status: '開發中' }
     ])
-    const fsAdapter = createMockFsAdapter(files)
+    const fsAdapter = createFullFsAdapter(files)
 
     const result = validateVersionAlignment('0.19.0', WORK_LOGS_ROOT, fsAdapter)
 
@@ -192,7 +150,7 @@ describe('validateVersionAlignment', () => {
       { major: 'v0.18', patch: 'v0.18.0', status: '已完成' },
       { major: 'v0.19', patch: 'v0.19.0', status: '開發中' }
     ])
-    const fsAdapter = createMockFsAdapter(files)
+    const fsAdapter = createFullFsAdapter(files)
 
     const result = validateVersionAlignment('0.18.0', WORK_LOGS_ROOT, fsAdapter)
 
@@ -207,7 +165,7 @@ describe('validateVersionAlignment', () => {
     const files = buildWorklogTree([
       { major: 'v0.18', patch: 'v0.18.0', status: '已完成' }
     ])
-    const fsAdapter = createMockFsAdapter(files)
+    const fsAdapter = createFullFsAdapter(files)
 
     const result = validateVersionAlignment('0.18.0', WORK_LOGS_ROOT, fsAdapter)
 
@@ -227,7 +185,7 @@ describe('--skip-version-check flag 行為驗證（情境 skip）', () => {
       { major: 'v0.18', patch: 'v0.18.0', status: '已完成' },
       { major: 'v0.19', patch: 'v0.19.0', status: '開發中' }
     ])
-    const fsAdapter = createMockFsAdapter(files)
+    const fsAdapter = createFullFsAdapter(files)
 
     // 即使版號錯，純函式仍如實回傳 ok=false；skip 由上層 build flow 控制
     const result = validateVersionAlignment('0.18.0', WORK_LOGS_ROOT, fsAdapter)
