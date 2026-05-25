@@ -88,13 +88,38 @@
 | 檔案名稱 | `CLAUDE.md`, `pubspec.yaml` |
 | API 和協定名稱 | REST API, WebSocket, JSON |
 
+### 規則 5：字元集子集清單必須動態驗證
+
+**維護任何「字元集子集」清單（簡體字黑名單、日漢字清單、異體字白名單等）時，禁止僅依人工判斷，必須用工具動態驗證清單純度。**
+
+> **與規則 1-4 邊界**：規則 1-4 處理「輸出語言選擇」（寫什麼語言、用哪些詞、是否保留原文）；規則 5 處理「字元集清單維護品質」（如何維護字元辨識工具本身），聚焦不同。
+
+**Why**：人工撰寫字元清單時無法可靠區分繁簡共用字與簡體專屬字。PC-074 已被二度自證（W17-144.1）：即使讀過警告，維護者仍在新增清單時混入共用字。Token 生成過程不會主動檢查文件中的警告規則，靜態清單必然累積誤差。
+
+**Consequence**：共用字混入黑名單會產生 false positive，打斷正常繁體文本流程；false positive 比 false negative 更影響工具信任度，一次誤判即可讓維護者繞過防護機制，使整體守衛失效。
+
+**Action**：
+
+| 場景 | 反模式 | 正確做法 |
+|------|-------|---------|
+| 簡體字黑名單 | 人工列簡體字清單 | OpenCC `s2t(X) != X` 動態過濾 |
+| 日漢字黑名單 | 人工列日漢字清單 | unicodedata + JIS 表動態過濾 |
+| 異體字白名單 | 人工列異體字 | OpenCC round-trip 動態判定 |
+| 任何字元集子集 | 靜態維護 | 依規則動態建構 + 啟動時 self-test |
+
+實作參考：`.claude/hooks/askuserquestion-charset-guard-hook.py` v1.2.0（含 self-test 機制）。
+
+> **來源**：PC-074（v1.2.0 動態驗證章節）。完整案例、已知共用字清單、擴充流程見 PC-074；繁日共用字維度詳細案例見 PC-084。
+
 ---
 
 ## 參考資源
 
 - @.claude/terminology-dictionary.md - 專案用語規範字典
+- `.claude/error-patterns/process-compliance/PC-074-*.md` - 規則 5 詳細案例庫
+- `.claude/error-patterns/process-compliance/PC-084-*.md` - 繁日共用字案例
 
 ---
 
-**Last Updated**: 2026-04-16
-**Version**: 1.2.0 - 刪除「檢查機制」章節（內容與實際 Hook 能力不符，避免跨專案 sync 時誤導）
+**Last Updated**: 2026-05-26
+**Version**: 1.3.0 - 新增規則 5「字元集子集清單必須動態驗證」（PC-074 升級至自動載入層級，W3-014.1）
