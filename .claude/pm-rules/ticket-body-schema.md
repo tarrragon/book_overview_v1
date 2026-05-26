@@ -117,21 +117,24 @@ ticket track claim 不再執行 AC verification（W3-046 L3-b 實作），所有
 
 ### 撰寫原則
 
-| 原則 | 示例 |
-|------|------|
-| 包含測試 acceptance → 明示驗收時機 | `complete 時驗收：npm test 100% 通過` |
-| 包含工作產出 acceptance → 明示產出清單 | `3 個 .md 文件已更新（見 Solution 章節）` |
-| 明示驗收範圍 → 避免假設全套件 | `相關檔案測試 (src/utils/*.test.js) 通過` |
-| 避免歧義標記 → 禁止「npm test」單獨出現 | 改為「complete 時驗收 npm test exit 0」|
+| 原則 | 為何 | 示例 |
+|------|------|------|
+| 包含測試 acceptance → 明示驗收時機 | L3-b 後 claim 不跑測試，未明示時機讀者無法判定何時驗收 | `complete 時驗收：npm test 100% 通過` |
+| 包含工作產出 acceptance → 明示產出清單 | 文件 / 規範類產出無「測試」概念，需有可數產出對應 | `3 個 .md 文件已更新（見 Solution 章節）` |
+| 明示驗收範圍 → 避免假設全套件 | 全套件驗收與並行 claim 衝突（PC-078 根因） | `相關檔案測試 (src/utils/*.test.js) 通過` |
+| 避免歧義標記 → 禁止「npm test」單獨出現 | 單獨出現的 `npm test` 無法區分 claim/complete 時機 | 改為「complete 時驗收 npm test exit 0」|
 
-### 反模式與修正
+### 反模式與修正（單一權威源）
+
+> 本表為全專案 acceptance 反模式的單一權威源；`.claude/pm-rules/ticket-lifecycle.md` 反向引用本表，避免雙處維護漂移（W3-057 整併）
 
 | 反模式 | 問題 | 修正 |
 |-------|------|------|
-| `npm test 不引入新失敗` | 驗收時機不明（claim vs complete） | 改為「complete 時驗收：npm test 不引入新失敗」 |
-| `全套件測試通過` | 並行 claim 會衝突（PC-078 根因） | 改為「相應檔案測試（X 個檔案）通過」或「complete 驗收全套件」|
+| `npm test 100% 通過` | 驗收時機不明（claim vs complete） | 改為「complete 時驗收：npm test 100% 通過」 |
+| `npm test 不引入新失敗` | 同上 | 改為「complete 時驗收：npm test 不引入新失敗」 |
+| `全套件測試通過` / `全套件測試無回歸` | 並行 claim 會衝突（PC-078 根因）+ 時機不明 | 改為「相關檔案測試（X 個檔案）通過」或「complete 時驗收 npm test 0 failed」 |
 | `測試通過率 100%` | 過於抽象 + 驗收時機不明 | 改為「complete 時驗收：npm test exit 0 無 failed tests」 |
-| `npm run lint 無問題` | 缺少具體指標（error vs warning） | 改為「complete 時驗收：npm run lint 0 errors / 0 warnings」 |
+| `lint 0 warning` / `npm run lint 無問題` | 缺少具體指標（error vs warning） | 改為「complete 時驗收：npm run lint 0 errors / 0 warnings」 |
 
 ### 有效 Acceptance 範例
 

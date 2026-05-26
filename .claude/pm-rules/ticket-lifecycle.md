@@ -205,15 +205,16 @@ Acceptance 欄位表達的是 **complete 時的驗收條件**，而非 claim 時
 - **包含中間檢查點的 acceptance**（如「檔案結構驗證」「linter 無錯誤」）→ 可在 claim 驗證，亦可延遲至 complete（建議明示時機避免歧義）
 - **包含功能行為的 acceptance**（如「3 個檔案的測試通過」「特定模組無回歸」）→ 建議明示驗收範圍（相對檔案測試 vs 全套件）
 
-### 撰寫指引
+### Action：撰寫 acceptance 的操作步驟
 
-| 反模式 | 建議改為 | 說明 |
-|-------|--------|------|
-| `npm test 100% 通過` | `complete 時驗收：npm test 100% 通過` | 明示驗收時機 |
-| `全套件測試無回歸` | `相關檔案測試（5 個 test.js）通過` | 明示驗收範圍（避免 PC-078 並行衝突） |
-| `測試通過率 100%` | `complete 時驗收：npm test 綠燈（0 failed）` | 使用具體指標 |
-| `npm test 不引入新失敗` | `complete 時驗收：npm test 不引入新失敗` | 明示 complete-time 語義 |
-| `lint 0 warning` | `complete 時驗收：npm run lint 無 error 與 warning` | 區分 error 與 warning |
+撰寫新 ticket acceptance 時依序執行：
+
+1. **判斷時機**：本 acceptance 是 complete-time 驗收（測試類）還是中間檢查點（檔案結構 / lint 類）
+2. **明示時機**：對測試類前綴「complete 時驗收：」；對中間檢查點明示「claim 後驗證：」或省略
+3. **明示範圍**：避免「全套件」字面（PC-078 並行衝突）；改用「相關檔案測試 (X.test.js)」或「complete 時驗收 npm test」
+4. **對照反模式與有效範例**：執行前 Read `.claude/pm-rules/ticket-body-schema.md` `## Acceptance 欄位設計指引`（含完整反模式對照表 + IMP/DOC/ANA 三類有效範例，單一權威源）
+
+> **DRY 分工**：本檔保留語義原則與 Action 步驟；具體反模式對照表與範例集中於 `ticket-body-schema.md` 避免雙處維護漂移（W3-057 整併）
 
 ### 歷史遷移
 
