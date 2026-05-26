@@ -50,6 +50,25 @@ EXIT_SUCCESS = 0
 # 測試命令關鍵字
 TEST_COMMAND_KEYWORDS = ["flutter test", "dart test", "npm test"]
 
+# Ticket body 寫入操作關鍵字（W3-041 豁免）
+# 這些 CLI 命令會把含「FAILED / N tests failed」字面的 ticket body 內容
+# 回顯到 tool_response，與真實測試失敗輸出無關，應跳過失敗評估。
+TICKET_WRITE_COMMAND_KEYWORDS = [
+    "ticket track append-log",
+    "ticket track set-acceptance",
+    "ticket track check-acceptance",
+    "ticket track complete",
+    "ticket track claim",
+    "ticket track create",
+    "ticket track update",
+]
+
+# Ticket md 檔案路徑樣式（W3-041 豁免，防御性檢查 Edit/Write 觸發場景）
+TICKET_MD_PATH_PATTERNS = [
+    re.compile(r"docs/work-logs/v[^/]+/.+/tickets/.+\.md$"),
+    re.compile(r"\.claude/skills/[^/]+/tickets/.+\.md$"),
+]
+
 # --- timeout 子邏輯常數 ---
 WARNING_THRESHOLD = 300     # 5 分鐘
 CRITICAL_THRESHOLD = 900    # 15 分鐘
@@ -260,8 +279,41 @@ def _log_evaluation(error_type: ErrorType, errors: List[Dict[str, str]], logger)
         sys.stderr.write(f"[post-test-hook] _log_evaluation 寫入失敗: {e}\n")
 
 
+def _is_ticket_body_write(input_data: dict, tool_input: dict) -> bool:
+    """判斷此 PostToolUse 是否為 ticket body 寫入操作（W3-041 豁免）。
+
+    觸發場景：thyme 透過 ticket CLI append-log 或 Edit/Write 將含「FAILED」
+    字面的修復描述寫入 ticket md。tool_response 會回顯該內容，被 regex
+    誤判為真實測試失敗。
+
+    判定條件（任一成立即視為 ticket body 寫入）：
+    1. Bash command 含 ticket CLI 寫入子命令
+    2. tool_input.file_path 匹配 ticket md 路徑樣式（防御性，目前 hook
+       僅註冊於 Bash/mcp__dart__run_tests，但保留以避免未來重註冊出錯）
+    """
+    tool_name = input_data.get("tool_name", "")
+
+    if tool_name == "Bash":
+        command = (tool_input or {}).get("command", "")
+        if any(kw in command for kw in TICKET_WRITE_COMMAND_KEYWORDS):
+            return True
+
+    file_path = (tool_input or {}).get("file_path", "")
+    if file_path:
+        for pattern in TICKET_MD_PATH_PATTERNS:
+            if pattern.search(file_path):
+                return True
+
+    return False
+
+
 def evaluate_test_failure(input_data: dict, tool_input: dict, logger):
     """子邏輯 2: 測試失敗評估。回傳評估訊息或 None。"""
+    # W3-041: ticket body 寫入豁免（避免 thyme 寫修復描述含「FAILED」字面被誤判）
+    if _is_ticket_body_write(input_data, tool_input):
+        logger.debug("evaluation: ticket body 寫入操作，跳過失敗評估（W3-041）")
+        return None
+
     tool_response = input_data.get("tool_response", "")
     if not tool_response:
         logger.debug("evaluation: 無 tool_response，跳過")
