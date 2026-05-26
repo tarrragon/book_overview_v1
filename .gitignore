@@ -64,7 +64,8 @@ temp/
 __pycache__/
 
 # Claude Hook System logs (auto-generated)
-.claude/hook-logs/
+# 覆蓋根目錄 .claude/hook-logs/ 與嵌套 skill 目錄（如 .claude/skills/ticket/.claude/hook-logs/）
+**/hook-logs/
 
 # Claude sync state (local only)
 .claude/.sync-state.json
