@@ -76,7 +76,7 @@ Claude Code v2.1.143+ 提供 `worktree.bgIsolation` 設定，控制 background s
 | 單一 subagent + `.claude/` Edit | none 可選 per-dispatch override | W3-034.1 驗證 success；ARCH-015 主 repo cwd 規則仍適用 |
 | 並行 3+ subagent + `.claude/` Edit | **none 必用**（worktree 模式並行 ≤ 2 禁止 3+） | W3-034.4 驗證 success；commit 由 PM 統一執行避免 PC-092 |
 | 跨 `.claude/` + src/ 混合修改 | 拆兩次派發（`.claude/` 用 none，src/ 用 worktree） | ARCH-015 + bgIsolation 衝突避免 |
-| 全面切換 bgIsolation: none | **暫不採用** | 並行 commit 與 5+ 並行未驗證；對 src/ 失去 worktree 隔離保護 |
+| 全面切換 bgIsolation: none | **暫不採用** | 並行 commit 與 5+ 並行未驗證；對 src/ 失去 worktree 隔離保護。當前正向路徑：採策略 C 條件式採用（per-dispatch override），待 5+ 並行需求或 PC-092 共享 index 驗證需求出現時，建 ANA ticket 對照實驗 |
 
 **未驗證情境（仍受限）**：
 
@@ -84,6 +84,8 @@ Claude Code v2.1.143+ 提供 `worktree.bgIsolation` 設定，控制 background s
 |------|------|
 | bgIsolation: none + 並行 + 子代理人各自 git add/commit | PC-092 共享 index 競爭未測 |
 | bgIsolation: none + 並行 5+ subagent | 更高並行度未測，採並行 ≤ 3 為觀察上限 |
+
+> 上表屬規則檔擴充性說明（依 `.claude/rules/core/decision-trigger-binding.md` 規則 1.5，rules/方法論可述未來考量，不需綁 ticket trigger）。實際出現 5+ 並行需求或需驗證 PC-092 共享 index 行為時，建 ANA ticket 執行對照實驗。
 
 **不採策略 B 的理由**：全面 bgIsolation: none 對 src/ 並行修改場景失去 git index 隔離保護（PC-092 風險必然化）；策略 C 保留 worktree 為預設，僅在 `.claude/` 場景 per-dispatch override 為 none，兼顧兩者優勢。
 
