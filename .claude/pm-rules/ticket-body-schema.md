@@ -99,6 +99,30 @@ ANA / IMP Solution 章節支援 H3 子標題組織內容（如「### WRAP 完整
 - `Test Results` 必填：至少記錄執行指令與通過數（或 commit SHA）。
 - `Problem Analysis` / `Solution` 選填：小型 IMP 以 frontmatter how/acceptance 已足；大型 IMP 建議補充決策理由。
 
+#### 安裝指令 IMP 額外 acceptance（PC-159 防護）
+
+IMP ticket 含安裝指令時，acceptance 必須補上 fresh shell 驗證條件，避免 PM / agent 既有環境通過驗證但 fresh shell 失敗的系統性風險（PC-159 / W3-050 codegraph placeholder package、W3-051 sys.path hack 案例）。
+
+**觸發條件**（任一成立即須補強）：
+
+- ticket `what` / `how` 含安裝動詞：`npm install` / `pip install` / `brew install` / `uv tool install` / `cargo install`
+- ticket `where.files` 含 `docs/development-setup.md` / `docs/environment-recovery-guide.md` / 等價的環境安裝指南檔案
+
+**必填 acceptance**（觸發後至少一項勾選）：
+
+| # | 驗證條件 | 適用情境 |
+|---|---------|---------|
+| 1 | 安裝指令在 fresh shell（新 terminal、無 `.bashrc` / `.zshrc` 以外環境變數）執行通過 | 任何安裝指令均適用 |
+| 2 | package name 為完整 scoped name（`@scope/pkg-name`）或完整 registry URL，無短名 placeholder squat 風險 | npm / PyPI 公開 registry |
+| 3 | 附 package registry 驗證輸出（`npm info <pkg>` / `pip show <pkg>` / `cargo search <pkg>`） | 已知 squat 風險或內部 mirror |
+
+**Why**：規則 5（所有發現必須追蹤）+ PC-159 三層防護（規則層 / Hook 層 / 文件層）的 Acceptance Schema 層落地。Hook 層（W3-052.1 `install-guide-edit-reminder-hook`）僅提供 reminder，acceptance schema 層提供 complete-time 強制驗證閘門。
+
+**參考**：
+
+- `.claude/error-patterns/process-compliance/PC-159-install-command-not-verified-in-fresh-shell.md`
+- 設計來源：`docs/work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W3-052.md` Solution 方案 (b)
+
 ### DOC（Documentation）
 
 **核心價值**：變更摘要 + 引用的檔案清單。
