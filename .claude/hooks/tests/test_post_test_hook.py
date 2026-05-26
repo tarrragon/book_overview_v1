@@ -117,3 +117,97 @@ def test_clean_output_no_errors(hook_module, logger):
     error_type, errors = hook_module._classify_errors(output, logger)
     lint_warnings = [e for e in errors if e["description"] == "lint 警告"]
     assert lint_warnings == []
+
+
+# ---------------------------------------------------------------------------
+# W3-066：_is_test_command 改用 word boundary regex
+# ---------------------------------------------------------------------------
+
+def _bash_input(command: str) -> dict:
+    """組裝 PostToolUse Bash payload（精簡版）。"""
+    return {"tool_name": "Bash", "tool_input": {"command": command}}
+
+
+REAL_TEST_COMMAND_SAMPLES = [
+    pytest.param("npm test", id="npm-test"),
+    pytest.param("npm test:unit", id="npm-test-colon-suffix"),
+    pytest.param("npm test --silent", id="npm-test-with-flag"),
+    pytest.param("npm run test:hooks", id="npm-run-test-hooks"),
+    pytest.param("npm run test:comprehensive", id="npm-run-test-comprehensive"),
+    pytest.param("flutter test", id="flutter-test"),
+    pytest.param("dart test", id="dart-test"),
+    pytest.param("cd /path && npm test", id="chained-after-and"),
+    pytest.param("(cd /path && npm test)", id="parenthesised-subshell"),
+    pytest.param("NODE_ENV=test npm test", id="env-prefix"),
+    pytest.param("npm test 2>&1 | tail -20", id="npm-test-piped"),
+]
+
+
+@pytest.mark.parametrize("command", REAL_TEST_COMMAND_SAMPLES)
+def test_real_test_command_detected(hook_module, command):
+    """statement 邊界後出現的 test 命令應被偵測為測試命令。"""
+    assert hook_module._is_test_command(_bash_input(command)) is True, (
+        f"未偵測為測試命令：{command!r}"
+    )
+
+
+ECHO_FALSE_POSITIVE_SAMPLES = [
+    pytest.param('echo "npm test"', id="echo-double-quoted"),
+    pytest.param("echo 'flutter test'", id="echo-single-quoted-flutter"),
+    pytest.param('cat foo.log | grep "npm test"', id="grep-quoted-keyword"),
+    pytest.param("ls", id="ls"),
+    pytest.param("git status", id="git-status"),
+    pytest.param("", id="empty-command"),
+    pytest.param("echo dart test result", id="echo-dart-test-result-tokens"),
+]
+
+
+@pytest.mark.parametrize("command", ECHO_FALSE_POSITIVE_SAMPLES)
+def test_echoed_or_quoted_keyword_not_misclassified(hook_module, command):
+    """回顯關鍵字或非測試命令不應被誤判為測試命令（W3-066 修正）。"""
+    assert hook_module._is_test_command(_bash_input(command)) is False, (
+        f"非測試命令被誤判為測試命令：{command!r}"
+    )
+
+
+def test_mcp_dart_run_tests_still_detected(hook_module):
+    """mcp__dart__run_tests 仍視為測試命令。"""
+    assert hook_module._is_test_command({"tool_name": "mcp__dart__run_tests"}) is True
+
+
+# ---------------------------------------------------------------------------
+# W3-066：TICKET_WRITE_COMMAND_KEYWORDS 補齊 top-level commands
+# ---------------------------------------------------------------------------
+
+TICKET_BODY_WRITE_SAMPLES = [
+    pytest.param("ticket create --version 0.19.0 --wave 3", id="ticket-create"),
+    pytest.param("ticket batch-create --template impl-parsley --targets a,b", id="ticket-batch-create"),
+    pytest.param("ticket show 0.19.0-W3-066", id="ticket-show"),
+    pytest.param('ticket track append-log W3-066 --section "Solution" "..."', id="ticket-append-log"),
+    pytest.param("ticket track complete W3-066", id="ticket-complete"),
+    pytest.param("ticket track claim W3-066", id="ticket-claim"),
+]
+
+
+@pytest.mark.parametrize("command", TICKET_BODY_WRITE_SAMPLES)
+def test_ticket_body_write_detected(hook_module, command):
+    """ticket CLI 寫入 / 回顯命令應被視為 ticket body 寫入操作（W3-041 豁免）。"""
+    payload = _bash_input(command)
+    assert hook_module._is_ticket_body_write(payload, payload["tool_input"]) is True, (
+        f"ticket body 寫入未被偵測：{command!r}"
+    )
+
+
+def test_obsolete_ticket_track_create_removed(hook_module):
+    """W3-066: TICKET_WRITE_COMMAND_KEYWORDS 不應再含已過時的 `ticket track create`。"""
+    keywords = hook_module.TICKET_WRITE_COMMAND_KEYWORDS
+    assert "ticket track create" not in keywords, (
+        "ticket track create 為不存在的命令，應已移除"
+    )
+    assert "ticket track update" not in keywords, (
+        "ticket track update 為不存在的命令，應已移除"
+    )
+    # 補齊的 top-level 命令存在
+    assert "ticket create" in keywords
+    assert "ticket batch-create" in keywords
+    assert "ticket show" in keywords

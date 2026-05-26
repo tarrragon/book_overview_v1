@@ -755,7 +755,7 @@ def create_ticket_body(what: str, who: str, ticket_type: str = "") -> str:
 搜尋指令：grep -rn "pattern" path/ --include="*.py"
 確認的位置：
 - file1.py:123
-注意：接手者應獨立重新驗證數量/範圍（PC-007）
+注意：接手者應獨立重新驗證數量/範圍（PC-162）
 -->
 
 ---

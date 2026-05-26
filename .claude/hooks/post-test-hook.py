@@ -47,20 +47,39 @@ except ImportError as _import_err:
 
 EXIT_SUCCESS = 0
 
-# 測試命令關鍵字
-TEST_COMMAND_KEYWORDS = ["flutter test", "dart test", "npm test"]
+# 測試命令偵測 regex（W3-066 修正）
+#
+# 舊版 TEST_COMMAND_KEYWORDS substring `in` 比對 ["npm test", ...] 會誤觸發
+# echo "npm test" 等回顯關鍵字的非測試命令。改用 statement 邊界 + word
+# boundary regex：要求 test 命令位於命令序列起頭（^/&&/||/;/|/(/換行）後，
+# 可選環境變數前綴，最後接 flutter test / dart test / npm test / npm run test。
+#
+# 同時補強 npm run test:hooks 等 substring 比對漏觸發的情境。
+TEST_COMMAND_PATTERN = re.compile(
+    r"(?:^|[;|&(\n]|&&|\|\|)\s*"                # statement 邊界
+    r"(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*"       # 可選環境變數前綴
+    r"(?:flutter\s+test|dart\s+test|npm\s+(?:test|run\s+test))\b"
+)
 
-# Ticket body 寫入操作關鍵字（W3-041 豁免）
+# Ticket body 寫入操作關鍵字（W3-041 豁免；W3-066 補齊）
 # 這些 CLI 命令會把含「FAILED / N tests failed」字面的 ticket body 內容
 # 回顯到 tool_response，與真實測試失敗輸出無關，應跳過失敗評估。
+#
+# W3-066 修正：
+# - 移除不存在的命令 `ticket track create`、`ticket track update`
+#   （ticket CLI 真實命令為 top-level `ticket create`，無 track 前綴）
+# - 補齊 top-level 寫入 / 回顯命令：ticket create / batch-create / show
 TICKET_WRITE_COMMAND_KEYWORDS = [
+    # Top-level commands that create or echo ticket body content
+    "ticket create",
+    "ticket batch-create",
+    "ticket show",
+    # track sub-commands (write / echo back body or state)
     "ticket track append-log",
     "ticket track set-acceptance",
     "ticket track check-acceptance",
     "ticket track complete",
     "ticket track claim",
-    "ticket track create",
-    "ticket track update",
 ]
 
 # Ticket md 檔案路徑樣式（W3-041 豁免，防御性檢查 Edit/Write 觸發場景）
@@ -132,12 +151,16 @@ TRUNCATED_OUTPUT_PATTERN = re.compile(
 # ============================================================================
 
 def _is_test_command(input_data: dict) -> bool:
-    """判斷是否為測試命令。"""
+    """判斷是否為測試命令。
+
+    W3-066: 改用 statement 邊界 + word boundary regex，避免 echo "npm test"
+    等回顯關鍵字的非測試命令誤觸發。
+    """
     tool_name = input_data.get("tool_name", "")
 
     if tool_name == "Bash":
         command = (input_data.get("tool_input") or {}).get("command", "")
-        return any(kw in command for kw in TEST_COMMAND_KEYWORDS)
+        return bool(TEST_COMMAND_PATTERN.search(command))
     elif tool_name == "mcp__dart__run_tests":
         return True
 
@@ -365,9 +388,19 @@ def main() -> int:
     if not _is_test_command(input_data):
         return EXIT_SUCCESS
 
+    tool_input = (input_data.get("tool_input") or {})
+
+    # W3-066: ticket body 寫入豁免提升為 main() 早期 gate（原僅在 evaluate_test_failure
+    # 內部豁免），避免 timeout monitor 在 ticket CLI 命令上誤觸發。
+    # 觸發場景：ticket track append-log / ticket create 等 ticket body 寫入命令的
+    # 內容含 `cd && npm test`、`flutter test` 等字面，被新 word-boundary regex
+    # 正確匹配為「statement boundary 後 test command」，但實際非真實測試執行。
+    if _is_ticket_body_write(input_data, tool_input):
+        logger.debug("ticket body 寫入操作，跳過所有後續子邏輯（W3-066 補強）")
+        return EXIT_SUCCESS
+
     logger.info("偵測到測試命令，開始執行子邏輯")
 
-    tool_input = (input_data.get("tool_input") or {})
     messages = []
 
     # 子邏輯 1: 超時監控（優先執行）
