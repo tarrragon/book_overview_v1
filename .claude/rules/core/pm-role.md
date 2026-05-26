@@ -65,6 +65,7 @@
 | 驗收結果 | `pm-rules/verification-framework.md` |
 | 版本規劃 | `pm-rules/version-progression.md`, `pm-rules/monorepo-version-strategy.md` |
 | 版本發布前檢討 | `pm-rules/version-retrospective.md` |
+| 準備寫 memory feedback | `pm-rules/pm-quality-baseline.md` 規則 7（四問升級檢查，PC-061 / PC-160） |
 
 ---
 
