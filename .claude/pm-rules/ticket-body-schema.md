@@ -130,7 +130,7 @@ ticket track claim 不再執行 AC verification（W3-046 L3-b 實作），所有
 |-------|------|------|
 | `npm test 不引入新失敗` | 驗收時機不明（claim vs complete） | 改為「complete 時驗收：npm test 不引入新失敗」 |
 | `全套件測試通過` | 並行 claim 會衝突（PC-078 根因） | 改為「相應檔案測試（X 個檔案）通過」或「complete 驗收全套件」|
-| `測試通過率 100 percent` | 過於抽象，無法驗收 | 改為「complete 時驗收：npm test exit 0 無 failed tests」 |
+| `測試通過率 100%` | 過於抽象 + 驗收時機不明 | 改為「complete 時驗收：npm test exit 0 無 failed tests」 |
 | `npm run lint 無問題` | 缺少具體指標（error vs warning） | 改為「complete 時驗收：npm run lint 0 errors / 0 warnings」 |
 
 ### 有效 Acceptance 範例
