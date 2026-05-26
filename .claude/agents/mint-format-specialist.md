@@ -200,11 +200,13 @@ ticket track check-acceptance --all <ticket-id>
 ticket track complete <ticket-id>
 ```
 
+> `<ticket-id>` 替換為當前認領的 ticket ID（範例：`0.19.0-W3-049.1`）。
+
 ### 例外情境
 
 | 狀況 | 處理 |
 |------|------|
-| 部分 acceptance 未達成 | 在 NeedsContext 章節記錄缺口，**不 complete**，回報 PM |
+| 部分 acceptance 未達成 | 在 ticket body 的 NeedsContext 章節記錄缺口（schema 定義見 `.claude/pm-rules/ticket-body-schema.md`），**不 complete**，回報 PM |
 | acceptance-gate-hook 阻擋 | 依 hook 訊息修補後重試（hook 是安全網，非懲罰） |
 
 > **完整規範**：`.claude/agents/AGENT_PRELOAD.md` 規則 2.4
@@ -352,7 +354,7 @@ ticket track complete <ticket-id>
 
 **Change Log**:
 
-- v1.2.0 (2026-05-26): 新增「收尾責任：自律 complete」段落，重複 AGENT_PRELOAD 規則 2.4 核心指令（check-acceptance + complete），補強 haiku low-effort model 對長文規則的 attention 落地率（W3-049 ANA 結論落地，W3-049.1）
+- v1.2.0 (2026-05-26): 新增「收尾責任：自律 complete」段落，重複 AGENT_PRELOAD 規則 2.4 核心指令（check-acceptance + complete），補強 haiku low-effort model 對長文規則的 attention 落地率（W3-049 ANA 結論落地，W3-049.1，含 Layer 2 basil-writing-critic 微調：補佔位符範例 + NeedsContext schema 引用）
 - v1.1.0 (2026-03-02): 字元 Normalize 任務白名單機制
 
 
