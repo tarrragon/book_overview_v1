@@ -36,6 +36,52 @@
 | 只讀審查、ANA、DOC 前台修改 | 不需要 worktree | 依 command-routing 的分工路由處理 |
 | `.claude/` Edit/Write | 主 repo cwd，不用 worktree | ARCH-015 強制限制 |
 
+### bgIsolation 策略選擇
+
+Claude Code v2.1.143+ 提供 `worktree.bgIsolation` 設定，控制 background sessions（subagent）是否使用 worktree 隔離。
+
+| 設定值 | 行為 | 適用情境 |
+|--------|------|---------|
+| `"worktree"`（預設） | subagent 自動建立 worktree 隔離 | 並行 src/ 修改、需 git index 隔離 |
+| `"none"` | subagent 直接在主 repo working copy 操作 | 條件式採用，需評估並行 git index 競爭風險 |
+
+**策略對照表**：
+
+| 策略 | 設定 | 收益 | 風險 |
+|------|------|------|------|
+| A. 維持 worktree（短期推薦） | 不設定（預設） | 並行 git index 隔離；既有規則 / hook 不需修改 | 殭屍 worktree 累積（已有 GC hook 緩解） |
+| B. 全面 none | bgIsolation: none | 消除合併成本；可能解鎖 subagent .claude/ Edit | 並行 git index 競爭；PC-092 風險必然化 |
+| C. 條件式（長期目標） | 不改預設；特定任務 per-dispatch override | 兼顧上述兩者優勢 | 需 per-dispatch override 可行性確認；規則複雜度增加 |
+
+**受控實驗結論摘要**：
+
+| 假設 | 內容 | 驗證結果 |
+|------|------|---------|
+| A | deny 綁定 subagent cwd（worktree cwd ≠ 主 repo cwd 時觸發） | **成立**（單一 subagent + bgIsolation: none + .claude/ Edit → success） |
+| B | deny 綁定 subagent 身份（任何 subagent 對 .claude/ Edit 均受限） | **否證** |
+
+**實驗範圍限制**：僅驗證單一 subagent。並行 3+ subagent 情境（PC-137 真正關注場景）由後續並行受控實驗驗證。 <!-- PC-093-exempt: history:0.19.0-W3-034.1 W3-034.4 為實驗驗證歷史錨點 -->
+
+**目前建議（v0.19.x）**：
+
+- 短期：採策略 A（預設 worktree），不設定 bgIsolation
+- 中期：並行受控實驗（0.19.0-W3-034.4）結果出來後評估策略 C 可行性 <!-- PC-093-exempt: ticket-tracked:W3-034.4 為策略升級的 trigger ticket -->
+- 不採策略 B：並行 git index 競爭風險未經評估
+
+**決策樹（情境 → 設定）**：
+
+| 你的派發情境 | bgIsolation 設定 | 理由 |
+|------------|----------------|------|
+| 涉及 src/ / tests/ 並行 subagent | 不設定（預設 worktree） | 保留 git index 隔離，避免 PC-092 風險 |
+| 只改 `.claude/` 且非並行 | 不設定（預設） | ARCH-015 強制主 repo cwd，bgIsolation 不影響該決策 |
+| 跨多檔 `.claude/` 修改 | 不設定（預設） | 並行情境未驗證，預設最安全 |
+| 想啟用 bgIsolation: none 全面切換 | **暫不啟用** | 等並行受控實驗結論確認 |
+
+**參考**：
+
+- ARCH-015（.claude/ Edit 邊界 — 本文件下方「.claude/ 路徑限制」章節）
+- PC-137（並行 ≤ 2 規則）
+
 ### CLI worktree session
 
 使用 `--worktree` / `-w` 前仍必須先讓主 repo 乾淨：
