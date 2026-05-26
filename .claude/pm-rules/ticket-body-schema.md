@@ -116,7 +116,13 @@ IMP ticket 含安裝指令時，acceptance 必須補上 fresh shell 驗證條件
 | 2 | package name 為完整 scoped name（`@scope/pkg-name`）或完整 registry URL，無短名 placeholder squat 風險 | npm / PyPI 公開 registry |
 | 3 | 附 package registry 驗證輸出（`npm info <pkg>` / `pip show <pkg>` / `cargo search <pkg>`） | 已知 squat 風險或內部 mirror |
 
+表格三項為 OR 關係，任一勾選即滿足 PC-159 acceptance 閘門；多項並列僅為冗餘保護，無加分效果。
+
 **Why**：規則 5（所有發現必須追蹤）+ PC-159 三層防護（規則層 / Hook 層 / 文件層）的 Acceptance Schema 層落地。Hook 層（W3-052.1 `install-guide-edit-reminder-hook`）僅提供 reminder，acceptance schema 層提供 complete-time 強制驗證閘門。
+
+**Consequence**：未補強 acceptance 的 IMP 可在 PM / agent 既有環境通過 complete，但其他用戶 fresh shell 安裝即失敗（PC-159 重現模式：W3-050 codegraph placeholder package、W3-051 sys.path hack 在 uv tool install 後失效）；此時責任歸屬不清，需事後重新復現。
+
+**Action**：IMP claim 後若觸發條件成立，依上方表格至少勾選一項並在 ticket Test Results 附驗證輸出；若三項皆不適用（如離線環境、自訂 registry），於 acceptance 增列豁免條件並明示理由（避免規則 1.5 無 trigger 延後）。
 
 **參考**：
 
