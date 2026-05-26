@@ -192,6 +192,36 @@ acceptance-gate-hook 事後驗證（最後防線）
 
 ---
 
+## Acceptance 設計規範
+
+### 核心原則：Complete-Time Verification Semantics（L3-b 後）
+
+Acceptance 欄位表達的是 **complete 時的驗收條件**，而非 claim 時的早期回饋。
+
+**為何**：W3-046 實作 L3-b 策略 B 後，claim 階段移除 AC verification，所有驗收測試延遲到 complete。若 acceptance 寫「npm test 100%」，應理解為「complete 時驗收 npm test 100% 通過」，而非「claim 時驗證」。
+
+**邊界**：
+- **包含測試驗收的 acceptance**（如「npm test 全綠」「pytest 通過」）→ **complete-time** 驗收條件，應明示驗收時機
+- **包含中間檢查點的 acceptance**（如「檔案結構驗證」「linter 無錯誤」）→ 可在 claim 驗證，亦可延遲至 complete（建議明示時機避免歧義）
+- **包含功能行為的 acceptance**（如「3 個檔案的測試通過」「特定模組無回歸」）→ 建議明示驗收範圍（相對檔案測試 vs 全套件）
+
+### 撰寫指引
+
+| 反模式 | 建議改為 | 說明 |
+|-------|--------|------|
+| `npm test 100% 通過` | `complete 時驗收：npm test 100% 通過` | 明示驗收時機 |
+| `全套件測試無回歸` | `相關檔案測試（5 個 test.js）通過` | 明示驗收範圍（避免 PC-078 並行衝突） |
+| `測試通過率 100%` | `complete 時驗收：npm test 綠燈（0 failed）` | 使用具體指標 |
+| `npm test 不引入新失敗` | `complete 時驗收：npm test 不引入新失敗` | 明示 complete-time 語義 |
+| `lint 0 warning` | `complete 時驗收：npm run lint 無 error 與 warning` | 區分 error 與 warning |
+
+### 歷史遷移
+
+- **L3-b 前（舊 acceptance）**：「npm test 100%」表達「claim 時驗證全套件」 → 於 W3-047 DOC ticket 清理，改為 complete-time 語義
+- **L3-b 後（新 acceptance）**：所有新建 ticket 遵循 complete-time 語義；既有 completed 的 ticket 作為歷史紀錄保留
+
+---
+
 ## AC 漂移偵測（claim 階段；W3-046 改為 --verify opt-in）
 
 > **來源**：PC-055 — Ticket AC 與實況漂移未被系統偵測。PROP-010 Phase 1 MVP 透過兩項自動機制防護。

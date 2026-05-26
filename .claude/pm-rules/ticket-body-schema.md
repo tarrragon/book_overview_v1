@@ -109,6 +109,58 @@ ANA / IMP Solution 章節支援 H3 子標題組織內容（如「### WRAP 完整
 
 ---
 
+## Acceptance 欄位設計指引（L3-b 後）
+
+### 語義基礎：Complete-Time Verification
+
+ticket track claim 不再執行 AC verification（W3-046 L3-b 實作），所有驗收測試（包括 npm test）延遲到 complete 階段。Acceptance 欄位應以此為前提進行撰寫。
+
+### 撰寫原則
+
+| 原則 | 示例 |
+|------|------|
+| 包含測試 acceptance → 明示驗收時機 | `complete 時驗收：npm test 100% 通過` |
+| 包含工作產出 acceptance → 明示產出清單 | `3 個 .md 文件已更新（見 Solution 章節）` |
+| 明示驗收範圍 → 避免假設全套件 | `相關檔案測試 (src/utils/*.test.js) 通過` |
+| 避免歧義標記 → 禁止「npm test」單獨出現 | 改為「complete 時驗收 npm test exit 0」|
+
+### 反模式與修正
+
+| 反模式 | 問題 | 修正 |
+|-------|------|------|
+| `npm test 不引入新失敗` | 驗收時機不明（claim vs complete） | 改為「complete 時驗收：npm test 不引入新失敗」 |
+| `全套件測試通過` | 並行 claim 會衝突（PC-078 根因） | 改為「相應檔案測試（X 個檔案）通過」或「complete 驗收全套件」|
+| `測試通過率 100 percent` | 過於抽象，無法驗收 | 改為「complete 時驗收：npm test exit 0 無 failed tests」 |
+| `npm run lint 無問題` | 缺少具體指標（error vs warning） | 改為「complete 時驗收：npm run lint 0 errors / 0 warnings」 |
+
+### 有效 Acceptance 範例
+
+**IMP Ticket（功能實作）**：
+```yaml
+acceptance:
+- '[x] 修復後檔案無 linter error'
+- '[x] complete 時驗收：npm test --testPathPattern=modified-file 全通過'
+- '[x] 相關功能測試（5 個 test.js）無回歸'
+```
+
+**DOC Ticket（文件更新）**：
+```yaml
+acceptance:
+- '[x] 3 個 markdown 檔案已更新（見 Solution 變更摘要）'
+- '[x] 交叉連結驗證（所有引用路徑有效）'
+- '[x] 內容一致性檢查（相同概念同義表述）'
+```
+
+**ANA Ticket（分析任務）**：
+```yaml
+acceptance:
+- '[x] 三層方案定位與優先序已明確'
+- '[x] 包含至少 3 個歷史案例驗證'
+- '[x] Spawn 規劃表已落地為實際 ticket'
+```
+
+---
+
 ## 與既有規則的關係
 
 | 規則 | 關係 |
