@@ -130,6 +130,7 @@ Memory 升級案例中，相當比例是「用戶指正後 PM 才升級」。PM 
 - **相關模式**：[PC-160](PC-160-pm-skip-upgrade-gate-direct-memory-write.md)（本 PC 的 v2 實證案例 + session 內浮現洞察情境 specific 防護五步驟；W3-028.2 → W3-058 ANA 結論確認為同模式擴展，cross-reference 而非合併）
 - **相關 Skill**：`.claude/skills/continuous-learning/`（後續新增升級評估決策樹）
 - **相關 Hook**：`memory-upgrade-reminder-hook.py`（後續新增自動提示）
+- **相關方法論**：[`.claude/methodologies/hook-system-methodology.md`](../../methodologies/hook-system-methodology.md) § 6「觀察類工具的雙重身份設計」（W3-028.2 → W3-058 → W3-059 升級落地案例，本 PC 防護五步驟的成功應用範例）
 
 ### v2 案例延伸（PC-160）
 

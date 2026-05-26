@@ -65,6 +65,7 @@ PM 在以下情境準備寫 memory 時應停下檢查：
 - **quality-baseline 規則 5/6**：所有發現必須追蹤 + 失敗案例學習原則
 - **continuous-learning skill**：memory 升級評估的動態觸發機制（被本 PC v2 案例識別為可繞過）
 - **memory feedback `feedback_skip_upgrade_gate_directly_writing_memory.md`**：本 PC 對應的 memory 條目
+- **相關方法論**：[`.claude/methodologies/hook-system-methodology.md`](../../methodologies/hook-system-methodology.md) § 6「觀察類工具的雙重身份設計」（W3-028.2 浮現洞察 → W3-058 ANA → W3-059 升級落地的完整鏈條，本 PC 防護五步驟的成功應用範例）
 
 ## Last Updated
 
