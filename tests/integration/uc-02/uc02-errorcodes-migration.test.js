@@ -320,7 +320,7 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
   })
 
   describe('效能和記憶體測試', () => {
-    test('大量錯誤處理不應造成記憶體洩漏', () => {
+    test('大量錯誤建立應該有效完成', () => {
       // Given: 大量錯誤建立和處理
       // eslint-disable-next-line no-unused-vars
       const errorCount = 1000
@@ -328,20 +328,15 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
       const errors = []
 
       // When: 建立大量錯誤物件
-      // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
-
       for (let i = 0; i < errorCount; i++) {
         // eslint-disable-next-line no-unused-vars
         const error = UC02ErrorFactory.createDuplicateDetectionError([`book_${i}`])
         errors.push(error)
       }
 
-      // eslint-disable-next-line no-unused-vars
-      const endTime = performance.now()
-
-      // Then: 性能應該在合理範圍內
-      expect(endTime - startTime).toBeLessThan(100) // 100ms內完成1000次錯誤建立
+      // Then: 全部錯誤都應該成功建立且有效
+      // 移除 (endTime - startTime).toBeLessThan(100) 計時門檻斷言
+      // 依 test-assertion-design-rules.md 規則 1：計時門檻屬效能 SLA，應於 tests/perf/ 驗證
       expect(errors.length).toBe(errorCount)
 
       // 所有錯誤都應該有效
@@ -356,20 +351,20 @@ describe('UC-02 ErrorCodes 遷移整合測試', () => {
       const cacheTestCount = 100
 
       // When: 重複獲取預建立的錯誤
-      // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
-
+      const cachedResults = []
       for (let i = 0; i < cacheTestCount; i++) {
-        UC02ErrorFactory.getCommonError('DUPLICATE_DETECTION')
-        UC02ErrorFactory.getCommonError('PROGRESS_VALIDATION')
-        UC02ErrorFactory.getCommonError('PAGE_STRUCTURE')
+        cachedResults.push(UC02ErrorFactory.getCommonError('DUPLICATE_DETECTION'))
+        cachedResults.push(UC02ErrorFactory.getCommonError('PROGRESS_VALIDATION'))
+        cachedResults.push(UC02ErrorFactory.getCommonError('PAGE_STRUCTURE'))
       }
 
-      // eslint-disable-next-line no-unused-vars
-      const endTime = performance.now()
-
-      // Then: 快取機制應該顯著提升性能
-      expect(endTime - startTime).toBeLessThan(10) // 應該非常快速
+      // Then: 快取機制應該回傳相同參考（依 test-assertion-design-rules.md 規則 4：
+      // 快取驗證用參考比較取代計時比較）
+      // 移除 (endTime - startTime).toBeLessThan(10) 計時門檻斷言
+      const firstDup = UC02ErrorFactory.getCommonError('DUPLICATE_DETECTION')
+      const secondDup = UC02ErrorFactory.getCommonError('DUPLICATE_DETECTION')
+      expect(secondDup).toBe(firstDup) // toBe 參考比較：若快取失效會重建物件，必然不同參考
+      expect(cachedResults.length).toBe(cacheTestCount * 3)
     })
   })
 
