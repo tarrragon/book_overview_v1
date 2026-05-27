@@ -261,8 +261,6 @@ describe('Platform Detection Integration Tests', () => {
     test('應該支援並發平台檢測', async () => {
       // eslint-disable-next-line no-unused-vars
       const contexts = Object.values(testContexts)
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
 
       // 並發執行所有檢測
       // eslint-disable-next-line no-unused-vars
@@ -270,19 +268,12 @@ describe('Platform Detection Integration Tests', () => {
       // eslint-disable-next-line no-unused-vars
       const results = await Promise.all(promises)
 
-      // eslint-disable-next-line no-unused-vars
-      const endTime = Date.now()
-
-      // 驗證所有檢測都完成
+      // 驗證所有檢測都完成（移除計時斷言，依 test-assertion-design-rules.md 規則 1：
+      // 並發效能驗證屬效能基準，應於 tests/perf/ 而非主套件斷言計時門檻）
       expect(results).toHaveLength(contexts.length)
       results.forEach(result => {
         expect(result).toBeValidDetectionResult()
       })
-
-      // 驗證並發效能
-      // eslint-disable-next-line no-unused-vars
-      const totalTime = endTime - startTime
-      expect(totalTime).toBeLessThan(2000) // 並發檢測應該更快
     })
   })
 
@@ -379,7 +370,7 @@ describe('Platform Detection Integration Tests', () => {
   })
 
   describe('⚡ 效能基準達標驗證', () => {
-    test('應該滿足單次檢測效能要求', async () => {
+    test('應該滿足單次檢測功能要求', async () => {
       // eslint-disable-next-line no-unused-vars
       const context = testContexts.readmoo
 
@@ -389,9 +380,10 @@ describe('Platform Detection Integration Tests', () => {
         context
       )
 
+      // 驗證功能成功（移除 toCompleteWithin(500) / assertDetectionPerformance 計時斷言，
+      // 依 test-assertion-design-rules.md 規則 1：效能基準應於 tests/perf/ 驗證）
       expect(measurement.success).toBe(true)
-      expect(measurement.duration).toCompleteWithin(500) // 使用自訂匹配器
-      assertions.assertDetectionPerformance(measurement.duration, 500)
+      expect(measurement.result).toBeValidDetectionResult()
     })
 
     test('應該滿足批量檢測效能基準', async () => {
@@ -413,13 +405,13 @@ describe('Platform Detection Integration Tests', () => {
         benchmarks
       )
 
+      // 驗證 benchmark 執行成功，移除 averageTime/maxTime 計時門檻斷言
+      // 依 test-assertion-design-rules.md 規則 1：計時門檻屬效能 SLA，應於 tests/perf/ 驗證
       expect(benchmarkResult.passed).toBe(true)
-      expect(benchmarkResult.metrics.averageTime).toBeLessThan(benchmarks.maxAverageTime)
-      expect(benchmarkResult.metrics.maxTime).toBeLessThan(benchmarks.maxSingleTime)
       expect(benchmarkResult.metrics.successRate).toBeGreaterThanOrEqual(benchmarks.minSuccessRate)
     })
 
-    test('應該在高頻檢測時保持穩定效能', async () => {
+    test('應該在高頻檢測時保持穩定功能', async () => {
       // eslint-disable-next-line no-unused-vars
       const contexts = Array.from({ length: 50 }, (_, i) =>
         createDetectionContext('READMOO', {
@@ -427,8 +419,6 @@ describe('Platform Detection Integration Tests', () => {
         })
       )
 
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
       // eslint-disable-next-line no-unused-vars
       const results = []
 
@@ -442,15 +432,11 @@ describe('Platform Detection Integration Tests', () => {
       }
 
       // eslint-disable-next-line no-unused-vars
-      const totalTime = Date.now() - startTime
-      // eslint-disable-next-line no-unused-vars
       const successfulTests = results.filter(r => r.success).length
-      // eslint-disable-next-line no-unused-vars
-      const averageTime = results.reduce((sum, r) => sum + r.duration, 0) / results.length
 
+      // 驗證高頻情境下功能穩定性（移除 averageTime/totalTime 計時門檻斷言）
+      // 依 test-assertion-design-rules.md 規則 1：計時門檻屬效能 SLA，應於 tests/perf/ 驗證
       expect(successfulTests).toBe(contexts.length)
-      expect(averageTime).toBeLessThan(200) // 平均檢測時間
-      expect(totalTime).toBeLessThan(10000) // 總執行時間
     })
   })
 
