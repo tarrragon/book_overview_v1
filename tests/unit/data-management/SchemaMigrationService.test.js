@@ -992,14 +992,11 @@ describe('Schema Migration Service', () => {
       await mockStorageAdapter.set('currentData', largeData)
 
       // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.rollbackToVersion('1.0.0')
-      // eslint-disable-next-line no-unused-vars
-      const duration = Date.now() - startTime
 
+      // W1-099 Rule 1: 移除 duration < 10000 計時門檻（Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。保留 rollback 成功狀態驗證。
       expect(result.success).toBe(true)
-      expect(duration).toBeLessThan(10000) // 應該在10秒內完成
     })
 
     test('緊急回滾機制', async () => {
@@ -1285,15 +1282,12 @@ describe('Schema Migration Service', () => {
       const step = { type: 'ADD_FIELD', field: 'newField', defaultValue: null }
 
       // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-      // eslint-disable-next-line no-unused-vars
       const result = await migrationService.executeMigrationStep(step, largeDataset)
-      // eslint-disable-next-line no-unused-vars
-      const duration = Date.now() - startTime
 
+      // W1-099 Rule 1: 移除 duration < 30000 計時門檻（Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。保留遷移成功與修改筆數驗證。
       expect(result.success).toBe(true)
       expect(result.modifiedRecords).toBe(10000)
-      expect(duration).toBeLessThan(30000) // 應該在30秒內完成
     })
 
     test('記憶體使用優化和監控', async () => {
