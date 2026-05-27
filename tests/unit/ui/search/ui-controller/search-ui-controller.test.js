@@ -1049,17 +1049,13 @@ describe('SearchUIController', () => {
       })
     })
 
-    test('應該在要求的時間內處理輸入事件', () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
-
+    test('應該能處理輸入事件而不拋例外', () => {
       // eslint-disable-next-line no-unused-vars
       const mockEvent = { target: { value: 'test query' } }
-      searchUIController.handleSearchInput(mockEvent)
 
-      // eslint-disable-next-line no-unused-vars
-      const executionTime = performance.now() - startTime
-      expect(executionTime).toBeLessThan(10) // 應在10ms內完成
+      // W1-099 Rule 1: 移除 executionTime < 10 計時門檻（performance.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。改驗證輸入事件處理不拋例外（功能正確性）。
+      expect(() => searchUIController.handleSearchInput(mockEvent)).not.toThrow()
     })
 
     test('應該高效處理大量快速輸入', () => {

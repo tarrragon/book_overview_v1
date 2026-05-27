@@ -176,20 +176,10 @@ describe('PopupController 最終整合和優化', () => {
   describe('⚡ 效能優化', () => {
     test('應該實現組件懶加載', async () => {
       // 測試組件只在需要時初始化
-      // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
-
       await controller.initialize()
 
-      // eslint-disable-next-line no-unused-vars
-      const endTime = performance.now()
-      // eslint-disable-next-line no-unused-vars
-      const initTime = endTime - startTime
-
-      // 初始化時間應該在合理範圍內 (< 100ms)
-      expect(initTime).toBeLessThan(100)
-
-      // 驗證組件確實被創建了
+      // W1-099 Rule 1: 移除 initTime < 100 計時門檻（performance.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。保留組件創建驗證。
       expect(controller.components.ui).toBeDefined()
       expect(controller.components.status).toBeDefined()
       expect(controller.components.progress).toBeDefined()
@@ -197,31 +187,23 @@ describe('PopupController 最終整合和優化', () => {
       expect(controller.components.extraction).toBeDefined()
     })
 
-    test('應該優化事件監聽器註冊效能', async () => {
+    test('應該優化事件監聽器註冊', async () => {
       await controller.initialize()
 
       // eslint-disable-next-line no-unused-vars
       const eventManager = controller.eventManager
-      // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
 
-      // 測試大量事件註冊的效能
+      // W1-099 Rule 1: 移除 registrationTime < 50 計時門檻（performance.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。改驗證註冊與反註冊流程能順利執行。
       for (let i = 0; i < 100; i++) {
         eventManager.registerEvent(`test-element-${i}`, 'click', () => {})
       }
 
-      // eslint-disable-next-line no-unused-vars
-      const endTime = performance.now()
-      // eslint-disable-next-line no-unused-vars
-      const registrationTime = endTime - startTime
-
-      // 100個事件註冊應該在合理時間內完成 (< 50ms)
-      expect(registrationTime).toBeLessThan(50)
-
-      // 清理測試事件
+      // 清理測試事件（如能正常清理代表註冊機制運作正常）
       for (let i = 0; i < 100; i++) {
         eventManager.unregisterEvent(`test-element-${i}`, 'click')
       }
+      expect(eventManager).toBeDefined()
     })
 
     test('應該實現 Chrome API 通訊優化', async () => {
@@ -229,10 +211,8 @@ describe('PopupController 最終整合和優化', () => {
 
       // eslint-disable-next-line no-unused-vars
       const communication = controller.components.communication
-      // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
 
-      // 測試並發通訊效能
+      // 測試並發通訊
       // eslint-disable-next-line no-unused-vars
       const promises = []
       for (let i = 0; i < 10; i++) {
@@ -241,13 +221,9 @@ describe('PopupController 最終整合和優化', () => {
 
       // eslint-disable-next-line no-unused-vars
       const results = await Promise.all(promises)
-      // eslint-disable-next-line no-unused-vars
-      const endTime = performance.now()
-      // eslint-disable-next-line no-unused-vars
-      const communicationTime = endTime - startTime
 
-      // 10個並發請求應該在合理時間內完成 (< 100ms, 因為是 mock)
-      expect(communicationTime).toBeLessThan(100)
+      // W1-099 Rule 1: 移除 communicationTime < 100 計時門檻（performance.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。保留並發結果正確性驗證（10 個 mock 回傳 ready）。
       expect(results.length).toBe(10)
       results.forEach(result => {
         expect(result).toEqual({ status: 'ready' })
@@ -259,8 +235,6 @@ describe('PopupController 最終整合和優化', () => {
 
       // eslint-disable-next-line no-unused-vars
       const uiManager = controller.components.ui
-      // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
 
       // 測試批次 DOM 更新
       // eslint-disable-next-line no-unused-vars
@@ -269,16 +243,9 @@ describe('PopupController 最終整合和優化', () => {
         updates.push(() => uiManager.updateProgress(i * 2, 'active', `${i * 2}% 完成`))
       }
 
-      // 批次執行更新
-      updates.forEach(update => update())
-
-      // eslint-disable-next-line no-unused-vars
-      const endTime = performance.now()
-      // eslint-disable-next-line no-unused-vars
-      const updateTime = endTime - startTime
-
-      // 50個 DOM 更新應該在合理時間內完成 (< 50ms, 因為是 mock)
-      expect(updateTime).toBeLessThan(50)
+      // W1-099 Rule 1: 移除 updateTime < 50 計時門檻（performance.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。改驗證批次執行能順利完成（不拋例外）。
+      expect(() => updates.forEach(update => update())).not.toThrow()
     })
   })
 
@@ -498,18 +465,11 @@ describe('PopupController 最終整合和優化', () => {
   })
 
   describe('📊 整合品質指標', () => {
-    test('應該達到效能基準', async () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
-
+    test('應該達到初始化完整性基準', async () => {
       await controller.initialize()
 
-      // eslint-disable-next-line no-unused-vars
-      const initTime = performance.now() - startTime
-
-      // 初始化應該很快
-      expect(initTime).toBeLessThan(100)
-
+      // W1-099 Rule 1: 移除 initTime < 100 計時門檻（performance.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。保留初始化完成狀態與組件數量驗證。
       // 所有組件應該正確初始化
       expect(controller.isInitialized).toBe(true)
       expect(Object.keys(controller.components).length).toBe(5)
