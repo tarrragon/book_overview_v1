@@ -162,7 +162,10 @@ describe('ReadmooPlatformMigrationValidator', () => {
             conversionSuccess: true,
             conversionTime: expect.any(Number)
           })
-          expect(result.conversionTime).toBeLessThan(5) // < 5ms 要求
+          // mock 固定回傳 conversionTime: 3（src/platform/readmoo-platform-migration-validator.js
+          // validateEventConversion 固定值），非真實 performance.now() 量測。
+          // 依 test-assertion-design-rules.md 規則 1 例外條款：mock 控制值不受環境影響，保留斷言。
+          expect(result.conversionTime).toBeLessThan(5) // < 5ms 要求（mock 固定值，非效能 SLA）
         }
       })
 
@@ -270,6 +273,8 @@ describe('ReadmooPlatformMigrationValidator', () => {
             maxTime: expect.any(Number),
             meetsBaseline: true
           })
+          // mock 確定性回傳 averageTime = baseline - 10（src validatePerformance），
+          // 非真實效能量測。依規則 1 例外條款：mock 控制值不受環境影響，保留斷言。
           expect(result.averageTime).toBeLessThanOrEqual(test.expectedTime)
         }
       })
@@ -284,7 +289,10 @@ describe('ReadmooPlatformMigrationValidator', () => {
           increase: expect.any(Number),
           increasePercentage: expect.any(Number)
         })
-        expect(result.increasePercentage).toBeLessThanOrEqual(15) // < 15% 增長要求
+        // increasePercentage 為記憶體增長百分比業務指標（非計時門檻），
+        // src validateMemoryUsage 確定性計算 (afterMigration - beforeMigration) / beforeMigration * 100。
+        // 業務值斷言不受環境影響，依規則 1 不屬計時門檻範疇，保留。
+        expect(result.increasePercentage).toBeLessThanOrEqual(15) // < 15% 增長要求（業務指標，非計時）
       })
 
       test('應該驗證並發事件處理能力', async () => {
@@ -397,9 +405,14 @@ describe('ReadmooPlatformMigrationValidator', () => {
       // eslint-disable-next-line no-unused-vars
       const secondResult = await migrationValidator.validateWithCache(testName)
 
+      // 依 test-assertion-design-rules.md 規則 4：
+      // 快取加速驗證用 fromCache 旗標而非相對計時比較。
+      // 原斷言 secondResult.executionTime < firstResult.executionTime 屬 Rule 4 違規
+      // （相對計時比較受 GC/JIT 影響 flaky；mock 環境下計時值無效能量測意義）。
+      // 改用 fromCache 旗標：若快取失效會走 cache miss 分支，必然 fromCache: false。
       expect(firstResult.fromCache).toBe(false)
       expect(secondResult.fromCache).toBe(true)
-      expect(secondResult.executionTime).toBeLessThan(firstResult.executionTime)
+      expect(secondResult.testName).toBe(firstResult.testName) // 同一快取項目
     })
 
     test('應該實作錯誤分類和優先級處理', async () => {
