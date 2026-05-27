@@ -17,10 +17,10 @@
     },
     "codegraph": {
       "type": "stdio",
-      "command": "codegraph-mcp",
+      "command": "codegraph",
       "args": [
-        "-w",
-        "."
+        "serve",
+        "--mcp"
       ],
       "env": {}
     }
