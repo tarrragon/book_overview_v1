@@ -1,0 +1,82 @@
+{
+  "_doc": "跨裝置 round-trip 整合測試固定資料：裝置 B 在匯入裝置 A 資料前的既有書庫（合併模式測試用）。3 本書，含 1 本與 A 同 id（用於驗證合併模式 tagIds 聯集 + 同 id 更新），2 本 B 獨有書籍應在合併後保留。所屬 ticket: 0.19.0-W1-003.1。",
+  "tagCategories": [
+    {
+      "id": "cat_b_personal",
+      "name": "B 個人收藏",
+      "description": "裝置 B 既有分類",
+      "color": "#F59E0B",
+      "isSystem": false,
+      "sortOrder": 0,
+      "createdAt": "2026-03-01T00:00:00.000Z",
+      "updatedAt": "2026-03-01T00:00:00.000Z"
+    }
+  ],
+  "tags": [
+    {
+      "id": "tag_b_to_read",
+      "name": "待讀",
+      "categoryId": "cat_b_personal",
+      "isSystem": false,
+      "sortOrder": 0,
+      "createdAt": "2026-03-02T00:00:00.000Z",
+      "updatedAt": "2026-03-02T00:00:00.000Z"
+    },
+    {
+      "id": "tag_b_note",
+      "name": "已做筆記",
+      "categoryId": "cat_b_personal",
+      "isSystem": false,
+      "sortOrder": 1,
+      "createdAt": "2026-03-02T00:00:00.000Z",
+      "updatedAt": "2026-03-02T00:00:00.000Z"
+    }
+  ],
+  "books": [
+    {
+      "id": "rt-book-01",
+      "title": "三體",
+      "authors": ["劉慈欣"],
+      "publisher": "貓頭鷹",
+      "progress": 60,
+      "readingStatus": "reading",
+      "type": "電子書",
+      "cover": "https://cdn.readmoo.com/cover/rt-book-01.jpg",
+      "tagIds": ["tag_b_note"],
+      "isManualStatus": false,
+      "extractedAt": "2026-03-15T08:00:00.000Z",
+      "updatedAt": "2026-03-30T10:00:00.000Z",
+      "source": "readmoo"
+    },
+    {
+      "id": "rt-b-only-01",
+      "title": "B 裝置獨有書一",
+      "authors": ["B 作者甲"],
+      "publisher": "B 出版社",
+      "progress": 50,
+      "readingStatus": "reading",
+      "type": "電子書",
+      "cover": "https://cdn.readmoo.com/cover/rt-b-only-01.jpg",
+      "tagIds": ["tag_b_to_read"],
+      "isManualStatus": false,
+      "extractedAt": "2026-03-15T08:00:00.000Z",
+      "updatedAt": "2026-03-20T11:00:00.000Z",
+      "source": "readmoo"
+    },
+    {
+      "id": "rt-b-only-02",
+      "title": "B 裝置獨有書二",
+      "authors": ["B 作者乙"],
+      "publisher": "B 出版社",
+      "progress": 100,
+      "readingStatus": "finished",
+      "type": "電子書",
+      "cover": "https://cdn.readmoo.com/cover/rt-b-only-02.jpg",
+      "tagIds": ["tag_b_note"],
+      "isManualStatus": false,
+      "extractedAt": "2026-03-15T08:00:00.000Z",
+      "updatedAt": "2026-03-25T12:00:00.000Z",
+      "source": "readmoo"
+    }
+  ]
+}
