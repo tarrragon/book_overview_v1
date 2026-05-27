@@ -27,6 +27,113 @@
 
 ---
 
+## Messages 系統規範
+
+專案採用分層 messages 管理：跨模組共用 key 集中於 `MessageDictionary.js` 的 `_loadDefaultMessages()`（以下稱 **GlobalMessages**），模組專屬 key 由各模組自行透過 `new MessageDictionary({...})` 註冊 **local dict**。
+
+**規範依據**：W1-107 ANA（MessageDictionary 作用域邊界分析）議題 A（GlobalMessages 納入標準）+ 議題 B 方案 1（命名前綴規範）。
+
+### GlobalMessages 納入標準（3 條件，須同時滿足）
+
+key 須**同時滿足以下 3 條件**才可加入 GlobalMessages：
+
+| 條件 | 說明 |
+|------|------|
+| 被 2+ 獨立模組引用 | 同一 `src/` 子目錄視為同一模組；單一模組內多檔案共用不算「跨模組」 |
+| 屬通用詞彙 | 錯誤碼（`NETWORK_ERROR`）、操作狀態（`SUCCESS`/`FAILED`）、系統生命週期（`SYSTEM_READY`） |
+| 無模組前綴 | key 名稱不含 `POPUP_`/`SEARCH_`/`VALIDATOR_`/`EXTRACTOR_` 等模組識別詞 |
+
+**任一條件不滿足，必須改放對應模組的 local dict**。3 條件採 AND 邏輯，避免「只滿足 2 條件」開後門。
+
+### 合格 GlobalMessages key 範例（約 20 個）
+
+| 分類 | key 範例 |
+|------|---------|
+| 錯誤類 | `VALIDATION_FAILED`, `NETWORK_ERROR`, `STORAGE_ERROR`, `PERMISSION_DENIED`, `UNKNOWN_ERROR` |
+| 操作類 | `OPERATION_START`, `OPERATION_COMPLETE`, `OPERATION_CANCELLED`, `OPERATION_TIMEOUT`, `OPERATION_RETRY` |
+| 系統類 | `SYSTEM_READY`, `SYSTEM_SHUTDOWN`, `LOADING`, `PROCESSING` |
+| 通用 UI | `SUCCESS`, `FAILED`, `RETRY`, `CANCEL`, `CONFIRM` |
+| 測試 | `TEST_MESSAGE`, `TEST_WITH_PARAMS` |
+
+### 命名前綴規範
+
+含模組前綴的 key 屬 **module-specific**，禁止出現在 GlobalMessages：
+
+| 前綴 | 對應模組 | 應註冊位置 |
+|------|---------|-----------|
+| `POPUP_*` | `src/popup/` | popup local dict |
+| `SEARCH_*` | `src/ui/`（search-filter） | `searchUIMessages` |
+| `VALIDATOR_*` | `src/platform/`（validator） | `validatorMessages` |
+| `EXTRACTOR_*` | `src/extractors/`, `src/content/` | extractor/content local dict（待建） |
+
+**判定原則**：key 名稱**首段**為模組識別詞即視為 module-specific。`OPERATION_START` 雖含 `OPERATION_` 但非模組名（屬通用操作詞彙），不適用此規範。
+
+### 新模組加入 messages 流程
+
+新模組（如未來的 options page、devtools panel）需要訊息字典時，**禁止**將該模組的 key 加進 GlobalMessages，必須建立 local dict。
+
+**local dict 模板**（仿 `searchUIMessages` / `validatorMessages` 模式）：
+
+```javascript
+// src/<your-module>/messages.js（或檔案內 const）
+const { MessageDictionary } = require('../core/messages');
+
+const myModuleMessages = new MessageDictionary({
+  MYMODULE_INIT: '模組初始化',
+  MYMODULE_READY: '模組已就緒',
+  MYMODULE_ERROR_X: '特定錯誤訊息',
+  // 模組專屬 key 全部放這裡
+});
+
+module.exports = { myModuleMessages };
+```
+
+**使用時**：
+
+```javascript
+const { myModuleMessages } = require('./messages');
+const text = myModuleMessages.get('MYMODULE_INIT');
+```
+
+**禁止做法**：
+
+```javascript
+// 錯誤：把模組 key 加進 GlobalMessages
+// src/core/messages/MessageDictionary.js
+_loadDefaultMessages() {
+  return {
+    // ... 既有共用 key
+    MYMODULE_INIT: '模組初始化',  // 禁止：屬 module-specific
+  };
+}
+```
+
+### Code Review Checklist
+
+審查 messages 相關變更時，依以下步驟判定 key 的歸屬：
+
+| 步驟 | 檢查項目 | 通過條件 |
+|------|---------|---------|
+| 1 | key 名稱是否含模組前綴？（`POPUP_`/`SEARCH_`/`VALIDATOR_`/`EXTRACTOR_` 等） | 若含 → 必須放 local dict，**不得**加進 GlobalMessages |
+| 2 | key 是否被 2+ 獨立模組引用？ | grep 確認跨模組（不同 `src/` 子目錄）引用點 ≥ 2 |
+| 3 | key 是否屬通用詞彙？（錯誤碼 / 操作狀態 / 系統生命週期 / 通用 UI） | 屬具體業務邏輯（如「書籍提取進度」）→ 應在 module local dict |
+| 4 | 變更是否新增 module-specific 模組？ | 確認對應 local dict 已建立，未新增 key 到 GlobalMessages |
+
+**Reviewer 拒絕條件**：
+
+- key 含模組前綴卻加進 GlobalMessages → 要求改放 local dict
+- key 僅單一模組使用卻加進 GlobalMessages → 要求改放 local dict
+- 新模組訊息直接加進 GlobalMessages 而未建立 local dict → 要求建立 local dict
+
+**強制規範**：
+
+- GlobalMessages（`MessageDictionary.js` 的 `_loadDefaultMessages()`）僅收納跨模組共用 key
+- 模組專屬 key 必須透過 `new MessageDictionary({...})` 註冊為 local dict
+- 含模組前綴的 key 禁止出現在 GlobalMessages
+- 詳見：`src/core/messages/MessageDictionary.js`、現有 local dict 範例（`searchUIMessages`、`validatorMessages`）
+
+---
+
 ## 專案架構
 
 ```
